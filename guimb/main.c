@@ -79,23 +79,23 @@ parse_opt (int key, char *arg, struct argp_state *state)
   switch (key)
     {
     case 'c':
-      program_expr = optarg;
+      program_expr = arg;
       *(int *)state->input = state->next;
       state->next = state->argc;
       break;
       
     case 's':
-      program_file = optarg;
+      program_file = arg;
       *(int *)state->input = state->next;
       state->next = state->argc;
       break;
 
     case 'f':
-      program_file = optarg;
+      program_file = arg;
       break;
 
     case 'e':
-      program_expr = optarg;
+      program_expr = arg;
       break;
 
     case 'd':
@@ -103,15 +103,15 @@ parse_opt (int key, char *arg, struct argp_state *state)
       break;
 
     case 'g':
-      append_arg (optarg);
+      append_arg (arg);
       break;
 
     case 'M':
-      default_mailbox = optarg;
+      default_mailbox = arg;
       break;
 
     case 'u':
-      user_name = optarg ? optarg : who_am_i ();
+      user_name = arg ? arg : who_am_i ();
       break;
 
     default:
