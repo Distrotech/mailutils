@@ -3,4 +3,4 @@
 # See file COPYING in the distribution root directory for copying conditions.
 
 gnudir = $(pkgincludedir)/gnu
-gnu_HEADERS = argp.h
+gnu_HEADERS = argp.h getopt.h
