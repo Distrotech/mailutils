@@ -20,10 +20,11 @@
 * Parse822::                    Parsing RFC 822 headers
 @end menu
 
-Wherever the mail is and whatever format it is stored in, the same operations
-to manipulate emails are common.  To unified the C API, GNU mailutils offers
-a heteroclite set of objects that work in aggregation to do operations on
-emails.  Each object do a specific task and delegates non related tasks to
+Wherever the mail is and whatever format it is stored in, it is operated
+upon using the same set of functions. To unified the C API,
+@sc{gnu} Mailutils offers a heteroclite set of objects that work in
+aggregation to do operations on
+emails.  Each object does a specific task and delegates non-related tasks to
 others.  The object comes alive by specifying a @emph{URL} parameter when
 created, it will indicate the storage format or protocol
 (POP3, IMAP4, MH, MAILDIR, etc ..).
@@ -67,12 +68,14 @@ created, it will indicate the storage format or protocol
 @end group
 @end example
 
-For example writing a simple @code{from} command that will list the
-@emph{From} and @emph{Subject} headers of every mail in a mailbox.
+As an example, here is a simplified version of @code{from} command. It
+lists the @samp{From} and @samp{Subject} headers of every mail in a mailbox.
 
 @example
 @include sfrom.inc
 @end example
+
+Here is a sample output produced by this program:
 
 @example
 @cartouche

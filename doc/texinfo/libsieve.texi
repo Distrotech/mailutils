@@ -3,7 +3,7 @@
 @c See file mailutils.texi for copying conditions.
 @comment *******************************************************************
 
-This chapter describes GNU Sieve library.
+This chapter describes @sc{gnu} Sieve library.
 
 @menu
 * Library Description::
@@ -587,7 +587,7 @@ Dump the disassembled code of the sieve machine @var{mach}.
 @node Input Language
 @section Input Language
 
-The input language understood by the GNU Sieve Library is a superset of
+The input language understood by the @sc{gnu} Sieve Library is a superset of
 the Sieve language as described in RFC 3028.
 
 @menu
@@ -600,13 +600,13 @@ the Sieve language as described in RFC 3028.
 @end menu
 
 @node Syntax
-@subsection
+@subsection Syntax
 
 @node Preprocessor
 @subsection Preprocessor
-@cindex Sieve preprocessor statements, a GNU extension
+@cindex Sieve preprocessor statements, a @sc{gnu} extension
 
-The preprocessor statements are a GNU extension to the Sieve language.
+The preprocessor statements are a @sc{gnu} extension to the Sieve language.
 The syntax for a preprocessor statement is similar to that used in
 @code{C} programming language, i.e.: a pound character (@samp{#})
 followed by a preprocessor directive and any arguments. Any amount of
@@ -644,7 +644,7 @@ If @var{filename} starts with a directory separator character
 
 The @code{#searchpath} directive adds its argument to the list of
 directories searched for loadable modules. It has the same effect
-as @option{-L} command line switch used by GNU sieve utility
+as @option{-L} command line switch used by @sc{gnu} sieve utility
 (@pxref{sieve group}). 
 
 @node Require Statement
@@ -672,7 +672,7 @@ Otherwise, the capability is understood as a name of an action to be
 used.
 
 The @code{require} statement, if present, must be used before any other
-statement that is using the required capability. As an extension, the GNU
+statement that is using the required capability. As an extension, the @sc{gnu}
 sieve allows the @code{require} and any other statements to be
 interspersed.
 
@@ -695,7 +695,7 @@ require "fileinto";
 require "comparator-i;ascii-numeric";
 @end example
 
-When processing arguments for @code{require} statement, GNU libsieve
+When processing arguments for @code{require} statement, @sc{gnu} libsieve
 uses the following algorithm:
 
 @enumerate 1
@@ -765,7 +765,7 @@ source for the required action NAME is not available
 @node Comparators
 @subsection Comparators
 
-GNU libsieve supports the following built-in comparators:
+@sc{gnu} libsieve supports the following built-in comparators:
 
 @table @code
 @item i;octet
@@ -784,7 +784,7 @@ be explicitly required prior to use.
 @node Tests
 @subsection Tests
 
-This section describes the built-in tests supported by GNU libsieve.
+This section describes the built-in tests supported by @sc{gnu} libsieve.
 In the discussion below the following macro-notations are used:
 
 @table @var
@@ -961,7 +961,7 @@ If the argument is @samp{:under}, and the size of the message is less than
 the @var{number}, the test is true; otherwise, it is false.
 
 Otherwise, the test is true only if the size of the message equals
-exactly @var{number}. This is a GNU extension.
+exactly @var{number}. This is a @sc{gnu} extension.
 
 The size of a message is defined to be the number of octets from the
 initial header until the last character in the message body.
@@ -1036,7 +1036,7 @@ if not exists ["From","Date"]
 @end example
 @end deffn
 
-@deffn header [@var{comparator}] [@var{match-type}] [:mime] @var{header-names} @var{key-list}
+@deffn Test header [@var{comparator}] [@var{match-type}] [:mime] @var{header-names} @var{key-list}
 @sp 1
 @noindent
 Tagged arguments:
@@ -1112,7 +1112,7 @@ If the tagged argument is not given, @samp{:over} is assumed.
 @node Actions
 @subsection Actions
 
-The GNU libsieve supports the following default actions:
+The @sc{gnu} libsieve supports the following default actions:
 
 @itemize
 @item stop
@@ -1273,7 +1273,7 @@ the old message in a new one.
 @node Extensions
 @section Extensions
 
-This section summarizes the GNU extensions to the sieve language
+This section summarizes the @sc{gnu} extensions to the sieve language
 
 @enumerate 1
 
@@ -1281,7 +1281,7 @@ This section summarizes the GNU extensions to the sieve language
 
 @itemize
 @item According to the RFC an error must occur if a @code{require} appears
-after a command other than @code{require}. The GNU sieve library allows
+after a command other than @code{require}. The @sc{gnu} sieve library allows
 interspersing the @code{require} and other statements. The only
 requirement is that @code{require} must occur before a statement that is
 using the required capability (@pxref{Require Statement}).
@@ -1309,7 +1309,7 @@ may disappear from the subsequent releases.
 @item Match type optional argument.
 
 Along with the usual @code{:is}, @code{:matches} and @code{contains}
-matching type, GNU sieve library understands @code{:regex} type. This
+matching type, @sc{gnu} sieve library understands @code{:regex} type. This
 matching type toggles POSIX Extended Regular Expression matching.
 
 @end enumerate
@@ -1318,7 +1318,7 @@ matching type toggles POSIX Extended Regular Expression matching.
 @section Writing Loadable Commands
 
 This section contains an example of how to write external loadable
-commands for GNU libsieve.
+commands for @sc{gnu} libsieve.
 
 @example
 @include numaddr.inc

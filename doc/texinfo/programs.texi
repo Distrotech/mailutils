@@ -3,7 +3,7 @@
 @c See file mailutils.texi for copying conditions.
 @comment *******************************************************************
 
-GNU Mailutils provides a set of programs for handling the email.
+@sc{gnu} Mailutils provides a set of programs for handling the email.
 
 @menu
 * authentication:: Authorization and authentication principles.        
@@ -18,7 +18,7 @@ GNU Mailutils provides a set of programs for handling the email.
 * sieve::         Mail filtering utility.
 * guimb::         Mailbox scanning and processing language.
 * comsatd::       Comsat daemon.
-* mailutils-config:: Get the information about the mailutils build.
+* mailutils-config:: Get the information about the Mailutils build.
 @end menu
 
 @page
@@ -130,9 +130,9 @@ the list of authorization modules is:
 
 There are some command line options that are used so often that it is
 inconvenient to specify them in the command line each time you run
-a mailutils utility. The @dfn{configuration files} provide a way to
+a Mailutils utility. The @dfn{configuration files} provide a way to
 add default command line arguments without having to type them in
-the command line. Upon startup, each mailutils utility scans and
+the command line. Upon startup, each Mailutils utility scans and
 processes the contents of the three startup files, none of which
 are required to exist:
 
@@ -170,15 +170,15 @@ must start with a @dfn{tag}. In the program-specific configuration
 file the tag must not be present, all options are for that specific
 program.
 
-A tag is either a name of a particular mailutils utility or @dfn{option
+A tag is either a name of a particular Mailutils utility or @dfn{option
 group}, prefixed with colon (@samp{:}). The command line options common for
-several mailutils programs are divided into @dfn{option groups} or
+several Mailutils programs are divided into @dfn{option groups} or
 @dfn{capabilities}, e.g. the options @option{--mail-spool} and
 @option{--lock-flags} form group @samp{mailbox}. These groups are discussed
 in detail below.
 
 When processing the non-program-specific configuration files,
-a mailutils utility selects
+a Mailutils utility selects
 those lines whose tag is either the name of that utility or the name
 of the option group supported by it. In the program-specific configuration
 file, all lines are selected. For each line found, its tag (if present)
@@ -195,19 +195,19 @@ whitespace, it should be enclosed in a pair of quotes (either double
 or single quotes).
 
 @menu
-* default::            Options understood by most GNU utilities.
+* default::            Options understood by most @sc{gnu} utilities.
 * mailbox::            Specifies the mail spool location, and locking strategy.
 * mailer::             Sets the mailer URL.
 * address::            Specifies the default email address and domain.
 * daemon::             Options common for daemon programs.
 * auth::               Authentication-specific options.
 * logging::            Logging control options.
-* sieve:sieve group.   Sieve specific options
+* sieve: sieve group.  Sieve specific options
 * config sample::      A sample configuration file.
 @end menu
 
 @node default
-@subsection default --- Options understood by most GNU utilities.
+@subsection default --- Options understood by most @sc{gnu} utilities.
 
 Each program also understands the following informational options:
 
@@ -220,7 +220,7 @@ Display a short usage message and exit.
 Display help message and exit.
 @item -L
 @itemx --license
-Display GNU General Public License and exit.
+Display @sc{gnu} General Public License and exit.
 @item -v
 @itemx --version
 Display program version and exit.
@@ -418,7 +418,7 @@ library files.
 @subsection A sample configuration file.
 @cindex mailutils.rc, an example
 
-The following configuration file specifies that all mailutils programs
+The following configuration file specifies that all Mailutils programs
 should use @file{/var/spool/mail} as a local mailspool
 directory. Programs performing authentication will use @acronym{pam}
 service @samp{mailutils}. All programs, except @command{imap4d} will
@@ -439,7 +439,7 @@ imap4d --daemon=20 --timeout=1800 --log-facility local1
 @section IMAP4 daemon
 @pindex imap4d
 
-GNU imap4d is a daemon implementing @sc{imap4} rev1 protocol for
+@sc{gnu} imap4d is a daemon implementing @sc{imap4} rev1 protocol for
 accessing and handling electronic mail messages on a server. It can
 be run either as a standalone program or from @file{inetd.conf} file.
 
@@ -453,7 +453,7 @@ be run either as a standalone program or from @file{inetd.conf} file.
 @cindex namespace
 @cindex IMAP4 namespace
 
-GNU imap4d supports a notion of @dfn{namespaces} defined in RFC 2342. A
+@sc{gnu} imap4d supports a notion of @dfn{namespaces} defined in RFC 2342. A
 namespace is a set of directories upon which the user has certain
 permissions. It should be understood that these persmissions apply
 only if the underlying filesystem allows them.
@@ -488,8 +488,10 @@ The home directory of the user, if exists.
 
 @item Other Users' Namespace
 Empty
+
 @item Shared Namespace
 Empty
+
 @end table
 
 @emph{Note}, that this means that by default, a user won't be able to
@@ -1214,8 +1216,10 @@ If @var{mailbox} is omitted, the command prints the current mailbox
 name followed by the summary information regarding it, e.g.:
 
 @example
+@cartouche
 & fold
 "/var/spool/mail/gray": 23 messages 22 unread
+@end cartouche
 @end example
 @end table
 
@@ -1283,8 +1287,10 @@ Displays the value of @code{folder} variable.
 Displays current mailbox summary. E.g.:
 
 @example
+@cartouche
 & summary
 "/var/spool/mail/gray": 23 messages 22 unread
+@end cartouche
 @end example
 @end table
 
@@ -1315,6 +1321,7 @@ For detailed description of ignored header lists, see @ref{Controlling Header Di
 Print a multipart message. The @code{decode} command decodes and prints
 out specified message parts. E.g.
 @example
+@cartouche
 & decode 15[2]
 +---------------------------------------
 | Message=15[2]
@@ -1323,6 +1330,7 @@ out specified message parts. E.g.
 +---------------------------------------
 Content-Type: message/delivery-status
 ...
+@end cartouche
 @end example
 @item top [@var{msglist}]
 @itemx to [@var{msglist}]
@@ -1397,11 +1405,13 @@ sender of the first message in @var{msglist}. For example:
 
 @example
 @group
+@cartouche
 & from 14 15
  U  14 smith@@noldor.org Fri Jun 30 18:11  14/358   The Save c
  U  15 gray@@noldor.org  Fri Jun 30 18:30  8/245    Re: The Sa
 & Save 14 15
 "smith" 22/603
+@end cartouche
 @end group
 @end example
 @noindent
@@ -1650,7 +1660,7 @@ command can also be spelled as @code{!}.
 @node Mail Variables
 @subsection How to alter the behavior of mail
 
-Following variables control the behavior of GNU @command{mail}:
+Following variables control the behavior of @sc{gnu} @command{mail}:
 
 @table @code
 @item Sign
@@ -1945,8 +1955,9 @@ and appends the received data to the local mailboxes.
 @menu
 * Invocation::     Mail.local options
 * MTA::            Using mail.local with various MTAs
-* Mailbox Quotas:: Setting up mailbox quotas. 
-* Filters::        Implementing user-defined mail filters. 
+* Mailbox Quotas:: Setting up mailbox quotas.
+* Sieve Filters::  Implementing user-defined Sieve mail filters.
+* Scheme Filters:: Implementing user-defined Scheme mail filters. 
 @end menu
 
 @node Invocation
@@ -1969,7 +1980,7 @@ creates the envelope by using current user name and date.
 Display this help and exit.
 @item -L
 @itemx --license
-Display GNU General Public License and exit.
+Display @sc{gnu} General Public License and exit.
 @item -m @var{path}
 @itemx --mail-spool @var{path}
 Specify path to mailspool directory.
@@ -1978,7 +1989,17 @@ Specify path to mailspool directory.
 Specify path to mailbox quota database (@pxref{Mailbox Quotas}). 
 @item -s @var{pattern}
 @itemx --source @var{pattern}
-Set name pattern for user-defined mail filters (@pxref{Filters}). The
+Set name pattern for user-defined mail filters written in Scheme
+(@pxref{Scheme Filters}). The
+metacharacters @samp{%u} and @samp{%h} in the pattern are expanded to
+the current recipient user name and home directory correspondingly.
+
+This option is available only if the package has been configured to
+use Guile extension language.
+@item -S @var{pattern}
+@itemx --sieve @var{pattern}
+Set name pattern for user-defined mail filters written is Sieve
+(@pxref{Sieve Filters}). The
 metacharacters @samp{%u} and @samp{%h} in the pattern are expanded to
 the current recipient user name and home directory correspondingly.
 @item -t @var{number}
@@ -1986,13 +2007,32 @@ the current recipient user name and home directory correspondingly.
 Wait @var{number} seconds for acquiring the lockfile. If it doesn't
 become available after that amount of time, return failure. The timeout
 defaults to 5 minutes.
-@item -x guile
-@itemx --debug guile
+@item -x @var{flags}
+@itemx --debug @var{flags}
+Enable debugging. The debugging information will be output using syslog.
+The @var{flags} is a string consisting of the following flags:
+Debug flags are:
+
+@table @samp
+@item g
 Start with guile debugging evaluator and backtraces. This is convenient
-for debugging user-defined filters (@pxref{Filters}).
-@item -x @var{number}
-@itemx --debug @var{number}
-Set debugging level.
+for debugging user-defined filters (@pxref{Scheme Filters}).
+
+@item T
+Enable libmailutil traces (MU_DEBUG_TRACE).
+
+@item P
+Enable network protocol traces (MU_DEBUG_PROT)
+
+@item t
+Enable sieve trace (MU_SIEVE_DEBUG_TRACE)
+
+@item l
+Enble sieve action logs
+@end table
+
+The digits in the range @samp{0} -- @samp{9} used in @var{flags} set
+@command{mail.local} debugging level.
 @item -v
 @itemx --version
 Display program version and exit.
@@ -2080,8 +2120,11 @@ mail_local:
 @node Mailbox Quotas
 @subsection Setting up mailbox quotas
 
-@node Filters
-@subsection Implementing user-defined mail filters.
+@node Sieve Filters
+@subsection Implementing user-defined Sieve mail filters.
+
+@node Scheme Filters
+@subsection Implementing user-defined Scheme mail filters.
 
 @page
 @node messages
@@ -2197,7 +2240,7 @@ Default is --weedlist=''From Subject Date To CC Apparently-''
 @pindex sieve
 
 Sieve is a language for filtering e-mail messages at time of final
-delivery, described in RFC 3028. GNU mailutils provides two
+delivery, described in RFC 3028. @sc{gnu} Mailutils provides two
 implementations of this language: a stand-alone @dfn{sieve interpreter}
 and a @dfn{sieve translator and filter}. The following sections describe these
 utilities in detail.
@@ -2211,10 +2254,10 @@ utilities in detail.
 @subsection A Sieve Interpreter
 
 Sieve interpreter @command{sieve} allows to apply Sieve scripts to an
-arbitrary number of mailboxes. GNU @command{sieve} implements a superset
+arbitrary number of mailboxes. @sc{gnu} @command{sieve} implements a superset
 of the Sieve language as described in RFC 3028. @xref{Input Language},
 for a description of the Sieve language. @xref{Extensions}, for a
-discussion of differences between the GNU implementation of Sieve and
+discussion of differences between the @sc{gnu} implementation of Sieve and
 its standard.
 
 @menu
@@ -3067,13 +3110,13 @@ $B(,5)\
 
 @page
 @node mailutils-config
-@section mailutils-config --- Get the information about the mailutils build.
+@section mailutils-config --- Get the information about the Mailutils build.
 @pindex mailutils-config
 
 This program is designed for developers wishing to link their programs
 against libmailbox. It allows to examine the particulars of the
-current build of mailutils and to get the command line parameters
-necessary for compiling and linking an application with mailutils
+current build of Mailutils and to get the command line parameters
+necessary for compiling and linking an application with Mailutils
 libraries.
 
 @menu
@@ -3088,7 +3131,7 @@ libraries.
 When invoked with the option @option{--compile}, or its short form
 @option{-c}, @command{mailutils-config} prints the flags
 that must be given to the compiler for compiling the program using
-mailutils functions. An example usage:
+Mailutils functions. An example usage:
 
 @example
 cc -omyprog.o `mailutils-config --compile` myprog.c
@@ -3099,10 +3142,10 @@ cc -omyprog.o `mailutils-config --compile` myprog.c
 
 The @option{--link}, or its short form @option{-l} prints to the
 standard output the loader flags necessary to link a program against
-mailutils libraries.
+Mailutils libraries.
 
 When invoked without arguments, it produces the flags necessary to
-link against the basic library of mailutils: @file{libmailbox}.
+link against the basic library of Mailutils: @file{libmailbox}.
 Up to two arguments may be given that alter this behavior. These
 are:
 
@@ -3126,7 +3169,7 @@ cc -omyprog myprog.o `mailutils-config --link auth guile`
 @subsection Obtaining General Build Information
 
 The @option{--info}, or @option{-i} retrieves the options (flags) used
-when building mailutils. It may be used with or without
+when building Mailutils. It may be used with or without
 arguments.
 
 When used without arguments, it prints the list of all
@@ -3199,11 +3242,11 @@ The flags and their meanings are:
 @table @asis
 @c @item VERSION=" VERSION,
 @item USE_LIBPAM
-The mailutils uses @sc{pam} libraries.
+The Mailutils uses @sc{pam} libraries.
 
 @item HAVE_LIBLTDL
 The @sc{gnu} wrapper library @file{libltdl} is present and is used
-by mailutils. @xref{Using libltdl,,,libtool,Using libltdl}, for
+by Mailutils. @xref{Using libltdl,,,libtool,Using libltdl}, for
 more information on @file{libltdl} library.
 
 

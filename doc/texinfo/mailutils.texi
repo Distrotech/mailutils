@@ -40,8 +40,9 @@
 * pop3d: (mailutils)pop3d.           POP3 daemon
 * readmsg: (mailutils)readmsg.       Extract messages from a folder
 * sieve: (mailutils)sieve.           Mail filtering utility
+* mailutils-config: (mailutils)mailutils-config. Get the information about the Mailutils build.
 @end direntry
-This file documents @sc{mailutils},  library API.
+This file documents Mailutils,  library API.
 
 
 Published by the Free Software Foundation,
@@ -75,13 +76,13 @@ by the Foundation.
 @setchapternewpage off
 
 @titlepage
-@title mailutils, SDK.
+@title Mailutils, SDK.
 @subtitle version @value{VERSION}, @value{UPDATED}
 @author Alain Magloire et al.
 
 @page
 @vskip 0pt plus 1filll
-Copyright @copyright{} 1999, 2000, 2001 Free Software Foundation, Inc.
+Copyright @copyright{} 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
 
 @sp 2
 Published by the Free Software Foundation, @*
@@ -113,21 +114,22 @@ by the Foundation.
 
 @ifinfo
 This document was produced for version @value{VERSION} of @sc{gnu}
-@sc{mailutils}.
+Mailutils.
 @end ifinfo
 @menu
-* Introduction::                GNU @sc{mailutils}
+* Introduction::                GNU Mailutils
 @comment * Concrete API::                Concrete API.
 * Framework::                   Framework.
-* Authentication Library::
-* Sieve Library::
+* Authentication Library::      Auxiliary library for authenticating users.
+* Sieve Library::               GNU implementation of Sieve mail filtering.
 * Programs::                    Programs.
-* Reporting Bugs::              Reporting Bugs.
+* Reporting Bugs::              How to report a bug.
+* News::                        Where to get information about @sc{gnu} Mailutils
 * Acknowledgement::             Thanks and Credits.
 
 Indices
-* Function Index::              All @sc{Mailutils} Functions.
-* Program Index::               All @sc{Mailutils} Programs.
+* Function Index::              All Mailutils Functions.
+* Program Index::               All Mailutils Programs.
 * Concept Index::               Index of Concepts.
 
 @end menu
@@ -137,7 +139,7 @@ Indices
 @chapter Introduction
 @cindex Introduction
 
-@sc{gnu} @sc{Mailutils} offers a general purpose library whose aim is to
+@sc{gnu} Mailutils offers a general purpose library whose aim is to
 provide a rich set of functions for accessing different mailbox formats and
 mailers.
 
@@ -290,15 +292,39 @@ Notifications}
 @include programs.texi
 
 @page
-@node Reporting Bugs, Acknowledgement, Programs, Top
+@node Reporting Bugs, News, Programs, Top
 @comment  node-name,  next,  previous,  up
 @chapter Reporting Bugs
 @cindex Reporting Bugs
 
 Email bug reports to @email{bug-mailutils@@gnu.org}.
-Be sure to include the word ``mailutils'' somewhere in the ``Subject:'' field.
+Be sure to include the word ``mailutils'' somewhere in the ``Subject:''
+field.
 
-@node Acknowledgement, Function Index , Reporting Bugs, Top
+As the purpose of bug reporting is to improve software, please be sure
+to include maximum information when reporting a bug. The information
+needed is:
+
+@itemize
+@item Version of the package you are using.
+@item Compilation options used when configuring the package.
+@item Conditions under which the bug appears.
+@end itemize
+
+The archives of bug-mailutils mailing list are available from
+@url{http://mail.gnu.org/mailman/listinfo/bug-mailutils}.
+
+@node News, Acknowledgement, Reporting Bugs, Top
+@chapter Getting news about @sc{gnu} mailutils
+
+The two places to look for any news regarding @sc{gnu} Mailutils are the
+Mailutils homepage at @url{http://www.gnu.org/software/mailutils}, and the
+project page at @url{http://savannah.gnu.org/projects/mailutils}.
+
+The updated versions of this manual are available online from
+@url{http://www.gnu.org/software/mailutils/manual}. 
+
+@node Acknowledgement, Function Index , News, Top
 @comment  node-name,  next,  previous,  up
 @chapter Acknowledgement
 @cindex Acknowledgement
@@ -324,6 +350,8 @@ Sam Roberts @email{sroberts@@uniserve.com},
 Sergey Poznyakoff @email{gray@@Mirddin.farlep.net},
 @item
 Fran@,{c}ois Pinard  @email{pinard@@IRO.UMontreal.CA}.
+@item
+Jordi Mallach @email{jordi@@sindominio.net}
 @end itemize
 @page
 
@@ -331,7 +359,7 @@ Fran@,{c}ois Pinard  @email{pinard@@IRO.UMontreal.CA}.
 @comment node-name,  next,  previous,  up
 @unnumbered Function Index
 
-This is an alphabetical list of all @sc{mailutils} functions.
+This is an alphabetical list of all Mailutils functions.
 
 @printindex fn
 @page
