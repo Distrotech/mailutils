@@ -41,7 +41,7 @@ AC_SUBST(INTLINCS)
 if test ".$BUILD_INCLUDED_LIBINTL" = ".yes" ; then
         AC_DEFINE(WITH_INCLUDED_LIBINTL,1,
                   [Define if the included libintl is used])
-	INTLINCS='-I../intl -I${top_srcdir}/intl'
+	INTLINCS='-I${top_builddir}/intl -I${top_srcdir}/intl'
 fi
 
 dnl Check for libraries
