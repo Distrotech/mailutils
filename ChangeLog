@@ -1,3 +1,14 @@
+2002-09-04  Sergey Poznyakoff 
+
+	* README: Verbose description of --with-mail-spool configuration
+	  option. Spell-checked the file.
+
+	* examples/http.c: New file. Example of stream functions.  
+	* examples/Makefile.am: Added http.c  
+	* doc/texinfo/Makefile.am: Added http.c.texi.
+	* doc/texinfo/.cvsignore: Likewise.
+	* doc/texinfo/stream.texi: Include http.c.texi.
+
 2002-09-03  Sergey Poznyakoff 
 
 	* mailbox/md5-rsa.c: Removed.
