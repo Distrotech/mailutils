@@ -1,3 +1,42 @@
+2003-01-22  Sergey Poznyakoff  
+
+	* configure.ac: Raised version number to 0.2.2
+	  Added support for cram-md5 password file
+	* auth/Makefile.am: Define SITE_CRAM_MD5_PWD
+	* auth/gsasl.c: Implemented gsasl stream. Added
+	  argp stuff.
+	* imap4d/auth_gsasl.c (auth_gsasl): Make sure the
+	  streams are reset after issuing OK tagged response.
+	* imap4d/imap4d.c (imap4d_capa): Require "gsasl" capability
+	  if compiled with gsasl support.
+	  (main): Call auth_.*_init's after mu_argp_parse.
+	* imap4d/imap4d.h (util_get_input, util_get_output)
+	  (util_set_input, util_set_output): New functions.
+	  (util_register_event, util_event_remove, util_run_events): New
+	  functions.
+	* imap4d/util.c (util_finish): Check event queue if the
+	  state has changed.
+	  (util_register_event, util_event_remove, util_run_events): New
+	  functions.
+	  
+	* include/mailutils/gsasl.h (gsasl_stream_create): Changed
+	  declaration.
+	  (mu_gsasl_init_argp): New function.
+	  (gsasl_cram_md5_pwd): New global.
+
+	* mailbox/stream.c (stream_sequential_readline, stream_strerror):
+	  Check for stream == NULL.
+	
+	* imap4d/store.c (imap4d_store0): Fixed STORE untagged output in
+	  accordance with rfc2060-errata document.
+	* imap4d/fetch.c (fetch_flags0): Likewise.
+	* imap4d/testsuite/imap4d/expunge.exp: Likewise.
+	* imap4d/testsuite/imap4d/fetch.exp: Likewise.
+	* imap4d/testsuite/imap4d/search.exp: Likewise.
+
+	* doc/rfc/rfc2177.txt: New file.
+	* doc/rfc/Makefile.am: Added rfc2177.txt
+	
 2003-01-22  Sergey Poznyakoff 
 
 	* configure.ac: Renamed AUTHOBJS to IMAP_AUTHOBJS for
