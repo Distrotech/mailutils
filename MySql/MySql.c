@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <pwd.h>
 
+#include <mailutils/error.h>
 
 #ifdef HAVE_MYSQL
 
@@ -27,7 +28,7 @@ sql_expand_query (const char *query, const char *ustr)
     return NULL;
   
   /* Compute resulting query length */
-  for (len = 0, p = query; *p; )
+  for (len = 0, p = (char *) query; *p; )
     {
       if (*p == '%')
 	{
@@ -58,7 +59,7 @@ sql_expand_query (const char *query, const char *ustr)
   if (!res)
     return res;
 
-  for (p = query, q = res; *p; )
+  for (p = (char *) query, q = res; *p; )
     {
       if (*p == '%')
 	{
