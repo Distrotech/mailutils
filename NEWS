@@ -1,10 +1,10 @@
-GNU mailutils NEWS -- history of user-visible changes.  2004-06-09
+GNU mailutils NEWS -- history of user-visible changes.  2004-06-26
 Copyright (C) 2002, 2003, 2004 Free Software Foundation, Inc.
 See the end of file for copying conditions.
 
 Please send mailutils bug reports to <bug-mailutils@gnu.org>.
 
-Version 0.4.90:
+Version 0.5:
 
 * New features:
 
