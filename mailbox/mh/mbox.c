@@ -174,13 +174,15 @@ static void _mh_message_insert __P((struct _mh_data *mhd,
 static void _mh_message_delete __P((struct _mh_data *mhd,
 				    struct _mh_message *msg));
 static int mh_pool_open __P((struct _mh_message *mhm));
+static int mh_pool_open_count __P((struct _mh_data *mhd));
+static struct _mh_message **mh_pool_lookup __P((struct _mh_message *mhm));
 
 static int mh_envelope_date __P((envelope_t envelope, char *buf, size_t len,
 				 size_t *psize));
 static int mh_envelope_sender __P((envelope_t envelope, char *buf, size_t len,
 				   size_t *psize));
 
-/* Should be in an other header file.  */
+/* Should be in other header file.  */
 extern int mh_message_number __P ((message_t msg, size_t *pnum));
 
 /* Return filename for the message.
@@ -912,7 +914,11 @@ static void
 _mh_message_delete (struct _mh_data *mhd, struct _mh_message *msg)
 {
   struct _mh_message *p;
+  struct _mh_message **pp = mh_pool_lookup (msg);
 
+  if (pp)
+    *pp = NULL;
+  
   if ((p = msg->next) != NULL)
     p->prev = msg->prev;
   else
@@ -1162,7 +1168,7 @@ mh_get_size (mailbox_t mailbox ARG_UNUSED, off_t *psize ARG_UNUSED)
 
 /* Return number of open streams residing in a message pool */
 static int
-mh_pool_open_count(struct _mh_data *mhd)
+mh_pool_open_count (struct _mh_data *mhd)
 {
   int cnt = mhd->pool_last - mhd->pool_first;
   if (cnt < 0)
@@ -1171,8 +1177,9 @@ mh_pool_open_count(struct _mh_data *mhd)
 }
 
 /* Look up a _mh_message in the pool of open messages.
-   Returns 1 if the message is found in the pool, and 0 otherwise. */
-static int
+   If the message is found in the pool, returns the address of
+   the pool slot occupied by it. Otherwise returns NULL. */
+static struct _mh_message **
 mh_pool_lookup (struct _mh_message *mhm)
 {
   struct _mh_data *mhd = mhm->mhd;
@@ -1181,15 +1188,19 @@ mh_pool_lookup (struct _mh_message *mhm)
   for (i = mhd->pool_first; i != mhd->pool_last; )
     {
       if (mhd->msg_pool[i] == mhm)
-	return 1;
+	return &mhd->msg_pool[i];
       if (++i == MAX_OPEN_STREAMS)
 	i = 0;
     }
-  return 0;
+  return NULL;
 }
 
 /* Open a stream associated with the message mhm. If the stream is
-   already open, do nothing */
+   already open, do nothing.
+   NOTE: We could have reused the NULL holes in the msg_pool, but
+   that hardly is worth the effort, since the holes appear only when
+   expunging. On the other hand this may be useful when MAX_OPEN_STREAMS
+   size is very big. "Premature optimization is the root of all evil" */
 static int
 mh_pool_open (struct _mh_message *mhm)
 {
