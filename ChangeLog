@@ -6,9 +6,11 @@
 	* m4/Makefile.am: New file to support directory
 	* m4/malloc.m4: File to support lib/ directory
 	* m4/realloc.m4: File to support lib/ directory
+	* lib/Makefile.am: Distribute xalloc.h
 	* lib/xalloc.h: New file to support xmalloc.c
 	* lib/xmalloc.c: New version from sh-utils-2.0g
 	* autogen.sh: Look in m4 for extra macros
+	* doc/Makefile.am: Rearrange to quiet automake
 
 2000-03-28  Jakob 'sparky' Kaivo  <jkaivo@elijah.nodomainname.net>
 
