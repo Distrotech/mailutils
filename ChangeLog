@@ -1,3 +1,7 @@
+2004-01-11  Sergey Poznyakoff
+
+	* mailbox/amd.c (amd_open,amd_close): Bugfix
+
 2004-01-11  Wojciech Polak
 
 	* libmu_scm/mailutils.scm.in (mu-libs): Added libmu_maildir.
