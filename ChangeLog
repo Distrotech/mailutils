@@ -1,6 +1,6 @@
 2004-06-02  Sergey Poznyakoff 
 
-	* configure.ac: Raised version number to 1.4.90
+	* configure.ac: Raised version number to 0.4.90
 	* NEWS: LIkewise
         * mailbox/muerrno.c (MU_ERR_CONN_CLOSED,MU_ERR_PARSE):
         New error codes.
