@@ -16,6 +16,7 @@
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #include "imap4d.h"
+#include <ctype.h>
 
 static int add2set (int **set, int *n, unsigned long val, size_t max);
 static const char * sc2string (int rc);
@@ -298,6 +299,16 @@ util_do_command (char *prompt)
 
   command->tag = tag;
   return command->func (command, sp);
+}
+
+int
+util_upper (char *s)
+{
+  if (!s)
+    return 0;
+  for (; *s; s++)
+    *s = toupper ((unsigned)*s);
+  return 0;
 }
 
 /* FIXME:  What is this for?  */

@@ -36,7 +36,7 @@
 #define MIME_MULTIPART_MIXED		0x1
 #define MIME_MULTIPART_ALT          0x2
 
-#ifdef _cplusplus
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -55,7 +55,7 @@ int mime_add_part	__P ((mime_t mime, message_t msg));
 
 int mime_get_message	__P ((mime_t mime, message_t *msg));
 
-#ifdef _cplusplus
+#ifdef __cplusplus
 }
 #endif
 

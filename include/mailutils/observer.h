@@ -28,7 +28,7 @@
 #endif
 #endif /*__P */
 
-#ifdef _cplusplus
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -64,7 +64,7 @@ extern int observable_attach    __P ((observable_t, size_t type, observer_t obse
 extern int observable_detach    __P ((observable_t, observer_t observer));
 extern int observable_notify    __P ((observable_t, int type));
 
-#ifdef _cplusplus
+#ifdef __cplusplus
 }
 #endif
 

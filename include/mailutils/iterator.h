@@ -29,7 +29,7 @@
 #endif
 #endif /*__P */
 
-#ifdef _cplusplus
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -43,7 +43,7 @@ extern int iterator_next     __P ((iterator_t));
 extern int iterator_current  __P ((iterator_t, void **pitem));
 extern int iterator_is_done  __P ((iterator_t));
 
-#ifdef _cplusplus
+#ifdef __cplusplus
 }
 #endif
 

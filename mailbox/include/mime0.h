@@ -33,7 +33,7 @@
 #endif
 #endif /*__P */
 
-#ifdef _cplusplus
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -97,7 +97,7 @@ struct _mime_part
 	size_t		lines;
 };
 
-#ifdef _cplusplus
+#ifdef __cplusplus
 }
 #endif
 

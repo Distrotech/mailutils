@@ -1,3 +1,44 @@
+2001-03-03  Alain Magloire
+
+	* imap4d/fetch.c (fetch_operation) : HEADER.FIELDS.NOT implemented.
+	fetch_opertaion() tak e a new argument.
+	* imap4d/util.c (util_upper) : New function string upper.
+
+	* mailbox/heder.c : Added new functionnalities to help the imap4d
+	fetch command.
+	(header_get_field_count) : New function returns the number of header
+	fields in the header.
+	(header_get_field_name): New function returns the field name.
+	(header_get_field_value): New function returns the field value.
+
+2001-03-03  Alain Magloire
+
+	* include/mailutils/address.h : s/_cplusplus/__cplusplus/g
+	(include/mailutils/auth.h) : Likewised.
+	(include/mailutils/body.h) : Likewised.
+	(include/mailutils/debug.h) : Likewised.
+	(include/mailutils/header.h) : Likewised.
+	(include/mailutils/iterator.h) : Likewised.
+	(include/mailutils/list.h) : Likewised.
+	(include/mailutils/mailer.h) : Likewised.
+	(include/mailutils/message.h) : Likewised.
+	(include/mailutils/mime.h) : Likewised.
+	(include/mailutils/observer.h) : Likewised.
+	(include/mailutils/property.h) : Likewised.
+	(include/mailutils/registrar.h): Likewised.
+	(mailbox/include/address0.h) : Likewised.
+	(mailbox/include/auth0.h) : Likewised.
+	(mailbox/include/body0.h) : Likewised.
+	(mailbox/include/debug0.h) : Likewised.
+	(mailbox/include/header0.h) : Likewised.
+	(mailbox/include/iterator0.h) : Likewised.
+	(mailbox/include/list0.h) : Likewised.
+	(mailbox/include/mailer0.h) : Likewised.
+	(mailbox/include/message0.h) : Likewised.
+	(mailbox/include/mime0.h) : Likewised.
+	(mailbox/include/observer0.h) : Likewised.
+	Pointed by Sam Roberts.
+
 2001-02-28  Alain Magloire
 
 	* mailbox/address.c (address_get_personal) : Remove surrounding quotes.

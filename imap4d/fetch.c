@@ -47,7 +47,7 @@ static int fetch_body (struct imap4d_command *, char*);
 static int fetch_uid (struct imap4d_command *, char*);
 
 static int fetch_send_address (char *addr);
-static int fetch_operation (size_t, char *);
+static int fetch_operation (size_t, char *, int);
 
 struct imap4d_command fetch_command_table [] =
 {
@@ -236,8 +236,7 @@ fetch_envelope (struct imap4d_command *command, char *arg)
   char from[128];
   header_t header = NULL;
   message_t msg = NULL;
-  /* FIXME: K&R compilers will choke at this, initializing local arrays was
-     not permitted.  Even AIX xlc use to choke.  */
+
   mailbox_get_message (mbox, command->states, &msg);
   message_get_header (msg, &header);
   util_send ("%s(", command->name);
@@ -332,7 +331,7 @@ fetch_flags (struct imap4d_command *command, char *arg)
 }
 
 /* The internal date of the message.  */
-/* FIXME: Wrong format.  */
+/* FIXME: Wrong format?  */
 static int
 fetch_internaldate (struct imap4d_command *command, char *arg)
 {
@@ -357,7 +356,7 @@ fetch_rfc822_header (struct imap4d_command *command, char *arg)
   char buffer[16];
   util_send ("%s ", command->name);
   strcpy (buffer, "[HEADER]");
-  fetch_operation (command->states, buffer);
+  fetch_operation (command->states, buffer, 1);
   return 0;
 }
 
@@ -374,7 +373,7 @@ fetch_rfc822_text (struct imap4d_command *command, char *arg)
   attribute_set_read (attr);
   util_send ("%s ", command->name);
   strcpy (buffer, "[TEXT]");
-  fetch_operation (command->states, buffer);
+  fetch_operation (command->states, buffer, 1);
   return 0;
 }
 
@@ -428,7 +427,7 @@ fetch_rfc822 (struct imap4d_command *command, char *arg)
       attribute_set_read (attr);
       util_send ("%s ", command->name);
       strcpy (buffer, "[]");
-      fetch_operation (command->states, buffer);
+      fetch_operation (command->states, buffer, 1);
     }
   return 0;
 }
@@ -495,13 +494,15 @@ fetch_body (struct imap4d_command *command, char *arg)
       return 0;
     }
 
-  util_send ("%s", arg);
-  fetch_operation (command->states, arg);
+  fetch_operation (command->states, arg, 0);
   return 0;
 }
 
+/* FIXME: "\n" -->"\r\n" is not handle right still it will not be as messy.  */
+/* FIXME:  Code bloat move some stuff in routines, to be reuse.  */
+/* FIXME: partial fetch <x.y> still not handle.  */
 static int
-fetch_operation (size_t msgno, char *arg)
+fetch_operation (size_t msgno, char *arg, int silent)
 {
   off_t offset = 0;
   size_t limit = -1; /* No limit. */
@@ -513,6 +514,7 @@ fetch_operation (size_t msgno, char *arg)
     {
       /* FIXME: This shoud be move in imap4d_fetch() and have more
 	 draconian check.  */
+      *partial = '\0';
       partial++;
       offset = strtoul (partial, &partial, 10);
       if (*partial == '.')
@@ -520,7 +522,11 @@ fetch_operation (size_t msgno, char *arg)
 	  partial++;
 	  limit = strtoul (partial, NULL, 10);
 	}
+      partial = alloca (64);
+      snprintf (partial, 64, "<%lu>", (unsigned long)offset);
     }
+  else
+    partial = (char *)"";
 
   mailbox_get_message (mbox, msgno, &msg);
 
@@ -533,7 +539,9 @@ fetch_operation (size_t msgno, char *arg)
       message_get_stream (msg, &stream);
       message_size (msg, &size);
       message_size (msg, &lines);
-      util_send ("{%u}\r\n", size + lines);
+      if (!silent)
+	util_send ("%s", arg);
+      util_send ("%s {%u}\r\n", partial, size + lines);
       while (stream_readline (stream, buffer, sizeof (buffer), off, &n) == 0
 	     && n > 0)
 	{
@@ -555,7 +563,12 @@ fetch_operation (size_t msgno, char *arg)
       message_get_header (msg, &header);
       header_size (header, &size);
       header_lines (header, &lines);
-      util_send ("{%u}\r\n", size + lines);
+      if (!silent)
+	{
+	  util_upper (arg);
+	  util_send ("%s", arg);
+	}
+      util_send ("%s {%u}\r\n", partial, size + lines);
       header_get_stream (header, &stream);
       while (stream_readline (stream, buffer, sizeof (buffer), off, &n) == 0
 	     && n > 0)
@@ -567,50 +580,178 @@ fetch_operation (size_t msgno, char *arg)
 	  off += n;
 	}
     }
-  else if (strncasecmp (arg, "[HEADER.FIELDS.NOT", 19) == 0)
+  else if (strncasecmp (arg, "[HEADER.FIELDS.NOT", 18) == 0)
     {
-      /* Not implemented.  */
+      char **array = NULL;
+      size_t array_len = 0;
+      char *buffer = NULL;
+      size_t total = 0;
+
+      arg += 18;
+
+      /* Save the field we want to ignore.  */
+      {
+	char *field;
+	char *sp = NULL;
+	for (;(field = strtok_r (arg, " ()]\r\n", &sp));
+	     arg = NULL, array_len++)
+	  {
+	    array = realloc (array, (array_len + 1) * sizeof (*array));
+	    if (!array)
+	      util_quit (1); /* FIXME: ENOMEM, send a "* BYE" to the client. */
+	    array[array_len] = field;
+	  }
+      }
+
+      /* Build the buffer.  */
+      {
+	size_t i;
+	header_t header = NULL;
+	size_t count = 0;
+	message_get_header (msg, &header);
+	header_get_field_count (header, &count);
+	for (i = 1; i <= count; i++)
+	  {
+	    char *name;
+	    char *value ;
+	    size_t ototal;
+	    size_t name_len = 0;
+	    size_t value_len = 0;
+	    size_t ignore = 0;
+
+	    /* Get the field name.  */
+	    header_get_field_name (header, i, NULL, 0, &name_len);
+	    if (name_len == 0)
+	      continue;
+	    name = calloc (name_len + 1, sizeof (*name));
+	    if (!name)
+	      util_quit (1); /* FIXME: ENOMEM, send a "* BYE" to the client. */
+	    header_get_field_name (header, i, name, name_len + 1, NULL);
+
+	    /* Should we ignore the field?  */
+	    {
+	      size_t j;
+	      for (j = 0; j < array_len; j++)
+		{
+		  if (strcasecmp (array[j], name) == 0)
+		    {
+		      ignore = 1;
+		    break;
+		    }
+		}
+	      if (ignore)
+		{
+		  free (name);
+		  continue;
+		}
+	    }
+
+	    /* Fet the field value.  */
+	    header_get_field_value (header, i, NULL, 0, &value_len);
+	    value = calloc (value_len + 1, sizeof (*value));
+	    if (!value)
+	      util_quit (1); /* FIXME: ENOMEM, send a "* BYE" to the client. */
+	    header_get_field_value (header, i, value, value_len + 1, NULL);
+
+	    /* Save the field.  */
+	    ototal = name_len + value_len + 4; /* 4 for ": \r\n"  */
+	    buffer = realloc (buffer, (ototal + total + 1) * sizeof (*buffer));
+	    if (!buffer)
+	      util_quit (1); /* FIXME: ENOMEM, send a "* BYE" to the client. */
+	    snprintf (buffer + total, ototal + 1, "%s: %s\r\n", name, value);
+	    free (value);
+	    free (name);
+	    total += ototal;
+	  }
+      }
+
+      util_send ("[HEADER.FIELDS.NOT");
+      {
+	size_t j;
+	for (j = 0; j < array_len; j++)
+	  {
+	    util_upper (array[j]);
+	    util_send (" \"%s\"", array[j]);
+	  }
+      }
+      util_send ("]%s {%u}\r\n", partial, total + 2);
+      util_send ("%s\r\n", (buffer) ? buffer : "");
+      if (buffer)
+	free (buffer);
+      if (array)
+	free (array);
     }
   else if (strncasecmp (arg, "[HEADER.FIELDS", 14) == 0)
     {
-      char *field;
-      char *sp = NULL;
-      header_t header = NULL;
-      size_t val_len = 0;
-      size_t total = 0;
       char *buffer = NULL;
+      char **array = NULL;
+      size_t array_len = 0;
+      size_t total = 0;
 
       arg += 14;
-      message_get_header (msg, &header);
 
-      for (; field = strtok_r (arg, " ()]\r\n", &sp); arg = NULL, val_len = 0)
-	{
-	  size_t ototal;
-	  char *value = NULL;
+      /* Save the field.  */
+      {
+	char *field;
+	char *sp = NULL;
+	for (;(field = strtok_r (arg, " ()]\r\n", &sp));
+	     arg = NULL, array_len++)
+	  {
+	    array = realloc (array, (array_len + 1) * sizeof (*array));
+	    if (!array)
+	      util_quit (1); /* FIXME: ENOMEM, send a "* BYE" to the client. */
+	    array[array_len] = field;
+	  }
+      }
 
-	  header_get_value (header, field, NULL, 0, &val_len);
-	  if (val_len == 0)
-	    continue;
-	  value = malloc (val_len + 1);
-	  if (!value)
-	    util_quit (1); /* FIXME: ENOMEM, send a "* BYE" to the client.  */
-	  header_get_value (header, field, value, val_len + 1, NULL);
+      {
+	size_t j;
+	header_t header = NULL;
 
-	  ototal = strlen (field) + val_len + 4; /* 4 for ": \r\n"  */
-	  buffer = realloc (buffer, ototal + total + 1);
-	  if (!buffer)
-	    util_quit (1); /* FIXME: ENOMEM, send a "* BYE" to the client.  */
-	  snprintf (buffer + total, ototal + 1, "%s: %s\r\n", field, value);
-	  free (value);
-	  total += ototal;
-	}
+	message_get_header (msg, &header);
 
-      util_send ("{%u}\r\n", total + 2);
+	for (j = 0; j < array_len; j++)
+	  {
+	    size_t ototal;
+	    char *value;
+	    size_t val_len = 0;
+
+	    header_get_value (header, array[j], NULL, 0, &val_len);
+	    if (val_len == 0)
+	      continue;
+	    value = calloc (val_len + 1, sizeof (*value));
+	    if (!value)
+	      util_quit (1); /* FIXME: send a "* BYE" to the client.  */
+	    header_get_value (header, array[j], value, val_len + 1, NULL);
+
+	    ototal = strlen (array[j]) + val_len + 4; /* 4 for ": \r\n"  */
+	    buffer = realloc (buffer, (ototal + total + 1) * sizeof (*buffer));
+	    if (!buffer)
+	      util_quit (1); /* FIXME: send a "* BYE" to the client.  */
+	    snprintf (buffer + total, ototal + 1, "%s: %s\r\n",
+		      array[j], value);
+	    free (value);
+	    total += ototal;
+	  }
+      }
+
+      util_send ("[HEADER.FIELDS");
+      {
+	size_t j;
+	for (j = 0; j < array_len; j++)
+	  {
+	    util_upper (array[j]);
+	    util_send (" \"%s\"", array[j]);
+	  }
+      }
+      util_send ("]%s {%u}\r\n", partial, total + 2);
       if (total)
 	util_send ("%s", buffer);
       util_send ("\r\n");
       if (buffer)
 	free (buffer);
+      if (array)
+	free (array);
     }
   else if (strncasecmp (arg, "[TEXT]", 6) == 0)
     {
@@ -622,7 +763,9 @@ fetch_operation (size_t msgno, char *arg)
       message_get_body (msg, &body);
       body_size (body, &size);
       body_lines (body, &lines);
-      util_send ("{%u}\r\n", size + lines);
+      if (!silent)
+	util_send ("[TEXT]");
+      util_send ("%s {%u}\r\n", partial, size + lines);
       body_get_stream (body, &stream);
       while (stream_readline (stream, buffer, sizeof (buffer), off, &n) == 0
 	     && n > 0)

@@ -36,7 +36,7 @@
 # endif
 #endif /* __P */
 
-#ifdef _cplusplus
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -52,7 +52,7 @@ struct _body
   int (*_lines) (body_t, size_t*);
 };
 
-#ifdef _cplusplus
+#ifdef __cplusplus
 }
 #endif
 

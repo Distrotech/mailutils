@@ -33,7 +33,7 @@
 # endif
 #endif /* __P */
 
-#ifdef _cplusplus
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -60,7 +60,7 @@ extern int mailer_get_observable __P ((mailer_t, observable_t *));
 
 extern int mailer_get_url       __P ((mailer_t, url_t *));
 
-#ifdef _cplusplus
+#ifdef __cplusplus
 }
 #endif
 

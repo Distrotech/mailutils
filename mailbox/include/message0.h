@@ -29,7 +29,7 @@
 #include <sys/types.h>
 #include <stdio.h>
 
-#ifdef _cplusplus
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -74,7 +74,7 @@ struct _message
   int (*_size)           __P ((message_t, size_t *));
 };
 
-#ifdef _cplusplus
+#ifdef __cplusplus
 }
 #endif
 

@@ -36,7 +36,7 @@
 #endif
 #endif /*__P */
 
-#ifdef _cplusplus
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -55,7 +55,7 @@ struct _list
 };
 
 
-#ifdef _cplusplus
+#ifdef __cplusplus
 }
 #endif
 

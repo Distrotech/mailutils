@@ -34,7 +34,7 @@
 # endif
 #endif /*__P */
 
-#ifdef _cplusplus
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -119,7 +119,7 @@ extern record_t smtp_record;
 /* Sendmail, "sendmail:"  */
 extern record_t sendmail_record;
 
-#ifdef _cplusplus
+#ifdef __cplusplus
 }
 #endif
 

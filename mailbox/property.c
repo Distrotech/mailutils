@@ -1,5 +1,5 @@
 /* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Library Public License as published by
@@ -26,27 +26,29 @@
 #include <mailutils/list.h>
 #include <mailutils/iterator.h>
 
+#ifdef DMALLOC
+# include <dmalloc.h>
+#endif
+
 struct property_data
 {
   size_t hash;
-  enum property_type type;
-  union
-  {
-    long l;
-    void *v;
-  } value;
+  const void *value;
 };
 
 struct _property
 {
+  void *owner;
   list_t list;
+  int (*_set_value) __P ((property_t , const char *, const void *));
+  int (*_get_value) __P ((property_t, const char *, void **));
 };
 
 static int property_find __P ((list_t, const char *, struct property_data **));
 static size_t hash __P ((const char *));
 
 int
-property_create (property_t *pp)
+property_create (property_t *pp, void *owner)
 {
   property_t prop;
   int status;
@@ -61,32 +63,56 @@ property_create (property_t *pp)
       free (prop);
       return status;
     }
+  prop->owner = owner;
   *pp = prop;
   return 0;
 }
 
 void
-property_destroy (property_t *pp)
+property_destroy (property_t *pp, void *owner)
 {
   if (pp && *pp)
     {
       property_t prop = *pp;
-      list_destroy (&(prop->list));
-      free (prop);
+      if (prop->owner == owner)
+	{
+	  list_destroy (&(prop->list));
+	  free (prop);
+	}
       *pp = NULL;
     }
 }
 
+void *
+property_get_owner (property_t prop)
+{
+  return (prop == NULL) ? NULL : prop->owner;
+}
 
 int
-property_set_value (property_t prop, const char *key,  const void *value,
-		    enum property_type type)
+property_set_set_value (property_t prop, int (*_set_value)
+			__P ((property_t , const char *, const void *)),
+			void *owner)
 {
-  struct property_data *pd;
+  if (prop == NULL)
+    return EINVAL;
+  if (prop->owner != owner)
+    return EACCES;
+  prop->_set_value = _set_value;
+  return 0;
+}
+
+int
+property_set_value (property_t prop, const char *key,  const void *value)
+{
+  struct property_data *pd = NULL;
   int status;
 
   if (prop == NULL)
     return EINVAL;
+
+  if (prop->_set_value)
+    return prop->_set_value (prop, key, value);
 
   status = property_find (prop->list, key, &pd);
   if (status != 0)
@@ -98,33 +124,38 @@ property_set_value (property_t prop, const char *key,  const void *value,
       if (pd == NULL)
 	return ENOMEM;
       pd->hash = hash (key);
-      pd->type = type;
-      switch (type)
-	{
-	case TYPE_POINTER:
-	  pd->value.v = (void *)value;
-	  break;
-
-	case TYPE_LONG:
-	  pd->value.l = (long)value;
-	  break;
-	}
+      pd->value = (void *)value;
       list_append (prop->list, (void *)pd);
     }
   else
-    pd->value.v = (void *)value;
+    pd->value = (void *)value;
   return 0;
 }
 
 int
-property_get_value (property_t prop, const char *key, void **pvalue,
-		    enum property_type *ptype)
+property_set_get_value (property_t prop, int (*_get_value)
+			__P ((property_t, const char *, void **)),
+			void *owner)
 {
-  struct property_data *pd;
+  if (prop == NULL)
+    return EINVAL;
+  if (prop->owner != owner)
+    return EACCES;
+  prop->_get_value = _get_value;
+  return 0;
+}
+
+int
+property_get_value (property_t prop, const char *key, void **pvalue)
+{
+  struct property_data *pd = NULL;
   int status;
 
   if (prop == NULL)
     return EINVAL;
+
+  if (prop->_get_value)
+    return prop->_get_value (prop, key, pvalue);
 
   status = property_find (prop->list, key, &pd);
   if (status != 0)
@@ -133,10 +164,8 @@ property_get_value (property_t prop, const char *key, void **pvalue,
   if (pd == NULL)
     return ENOENT;
 
-  if (ptype)
-    *ptype = pd->type;
   if (pvalue)
-    *pvalue =  pd->value.v;
+    *pvalue =  (void *)pd->value;
   return 0;
 }
 
@@ -161,45 +190,46 @@ property_is_set (property_t prop, const char *k)
 int
 property_set_int (property_t prop, const char *k, int i)
 {
-  return property_set_value (prop, k, (void *)i, TYPE_LONG);
+  return property_set_value (prop, k, (void *)i);
 }
 
 int
 property_get_int (property_t prop, const char *k)
 {
   int value = 0;
-  property_get_value (prop, k, (void **)&value, NULL);
+  property_get_value (prop, k, (void **)&value);
   return value;
 }
 
 int
 property_set_long (property_t prop, const char *k, long l)
 {
-  return property_set_value (prop, k, (const void *)l, TYPE_LONG);
+  return property_set_value (prop, k, (const void *)l);
 }
 
 long
 property_get_long (property_t prop, const char *k)
 {
   long value = 0;
-  property_get_value (prop, k, (void **)&value, NULL);
+  property_get_value (prop, k, (void **)&value);
   return value;
 }
 
 int
 property_set_pointer (property_t prop, const char *k, void *p)
 {
-  return property_set_value (prop, k, p, TYPE_POINTER);
+  return property_set_value (prop, k, p);
 }
 
 void *
 property_get_pointer (property_t prop, const char *k)
 {
   void *value = NULL;
-  property_get_value (prop, k, &value, NULL);
+  property_get_value (prop, k, &value);
   return value;
 }
 
+/* Taking from an article in Dr Dobbs.  */
 static size_t
 hash (const char *s)
 {
@@ -207,12 +237,12 @@ hash (const char *s)
   for (hashval = 0; *s != '\0' ; s++)
     {
       hashval  += (unsigned)*s ;
-      hashval  += (hashval <<10);
-      hashval  ^= (hashval >>6) ;
+      hashval  += (hashval << 10);
+      hashval  ^= (hashval >> 6) ;
     }
-  hashval  += (hashval  <<3);
-  hashval  ^= (hashval  >>11);
-  hashval  += (hashval  <<15);
+  hashval += (hashval << 3);
+  hashval ^= (hashval >> 11);
+  hashval += (hashval << 15);
   return hashval;
 }
 

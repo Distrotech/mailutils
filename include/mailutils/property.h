@@ -28,25 +28,29 @@
 # endif
 #endif /*__P */
 
-#ifdef _cplusplus
+#ifdef __cplusplus
 extern "C" {
 #endif
 
 struct _property;
 typedef struct _property *property_t;
-enum property_type { TYPE_POINTER, TYPE_LONG };
 
-extern int property_create   __P ((property_t *));
-extern void property_destroy __P ((property_t *));
+extern int property_create   __P ((property_t *, void *));
+extern void property_destroy __P ((property_t *, void *));
+extern void *property_get_owner __P ((property_t));
 
-extern int property_set_value   __P ((property_t, const char *k, const void *v,
-				      enum property_type));
-extern int property_get_value  __P ((property_t, const char *k, void **,
-				     enum property_type *));
+extern int property_set_value   __P ((property_t, const char *, const void *));
+extern int property_get_value  __P ((property_t, const char *, void **));
+extern int property_set_set_value __P ((property_t, int (*_set_value)
+					__P ((property_t , const char *,
+					      const void *)), void *));
+extern int property_set_get_value __P ((property_t , int (*_get_value)
+					__P ((property_t, const char *,
+					      void **)), void *owner));
 
-extern int property_set  __P ((property_t, const char *k));
-extern int property_unset  __P ((property_t, const char *k));
-extern int property_is_set  __P ((property_t, const char *k));
+extern int property_set  __P ((property_t, const char *));
+extern int property_unset  __P ((property_t, const char *));
+extern int property_is_set  __P ((property_t, const char *));
 
 extern int property_set_int __P ((property_t, const char *, int));
 extern int property_get_int __P ((property_t, const char *));
@@ -57,7 +61,7 @@ extern long property_get_long __P ((property_t, const char *));
 extern int property_set_pointer __P ((property_t, const char *, void *));
 extern void *property_get_pointer __P ((property_t, const char *));
 
-#ifdef _cplusplus
+#ifdef __cplusplus
 }
 #endif
 

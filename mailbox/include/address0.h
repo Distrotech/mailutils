@@ -32,7 +32,7 @@
 # endif
 #endif /*__P */
 
-#ifdef _cplusplus
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -46,7 +46,7 @@ struct _address
   struct _address *next;
 };
 
-#ifdef _cplusplus
+#ifdef __cplusplus
 }
 #endif
 

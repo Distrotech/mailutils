@@ -28,7 +28,7 @@
 #endif
 #endif /*__P */
 
-#ifdef _cplusplus
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -57,7 +57,7 @@ extern int authority_get_ticket       __P ((authority_t, ticket_t *));
 extern int authority_authenticate     __P ((authority_t));
 extern int authority_set_authenticate __P ((authority_t, int (*_authenticate) __P ((authority_t)), void *));
 
-#ifdef _cplusplus
+#ifdef __cplusplus
 }
 #endif
 

@@ -204,6 +204,8 @@ header_parse (header_t header, const char *blurb, int len)
 	{
 	  free (header->blurb);
 	  free (header->hdr);
+	  header->blurb = NULL;
+	  header->hdr = NULL;
 	  return ENOMEM;
 	}
       hdr[header->hdr_count].fn = fn;
@@ -307,6 +309,7 @@ header_set_value (header_t header, const char *fn, const char *fv, int replace)
     {
       memcpy (blurb + len, header->blurb, header->blurb_len);
       free (header->blurb);
+      header->blurb = NULL;
     }
   else
     blurb [len] = '\n';
@@ -486,6 +489,99 @@ header_get_value (header_t header, const char *name, char *buffer,
 }
 
 int
+header_get_field_count (header_t header, size_t *pcount)
+{
+  if (header == NULL)
+    {
+      if (pcount)
+        *pcount = 0;
+      return EINVAL;
+    }
+
+  /* Try to fill out the buffer, if we know how.  */
+  if (header->blurb == NULL)
+    {
+      int err = fill_blurb (header);
+      if (err != 0)
+	return err;
+    }
+
+  if (pcount)
+    *pcount = header->hdr_count;
+  return 0;
+}
+
+int
+header_get_field_name (header_t header, size_t num, char *buf,
+		       size_t buflen, size_t *nwriten)
+{
+  size_t len;
+
+  if (header == NULL)
+    return EINVAL;
+
+  /* Try to fill out the buffer, if we know how.  */
+  if (header->blurb == NULL)
+    {
+      int err = fill_blurb (header);
+      if (err != 0)
+	return err;
+    }
+
+  if (header->hdr_count == 0 || num > header->hdr_count || num == 0)
+    return ENOENT;
+
+  num--;
+  len = (header->hdr[num].fn_end - header->hdr[num].fn);
+  if (buf && buflen)
+    {
+      /* save one for the null */
+      --buflen;
+      len = (len > buflen) ? len : len;
+      memcpy (buf, header->hdr[num].fn, len);
+      buf[len] = '\0';
+    }
+  if (nwriten)
+    *nwriten = len;
+  return 0;
+}
+
+int
+header_get_field_value (header_t header, size_t num, char *buf,
+			size_t buflen, size_t *nwritten)
+{
+  size_t len;
+  if (header == NULL)
+    return EINVAL;
+
+  /* Try to fill out the buffer, if we know how.  */
+  if (header->blurb == NULL)
+    {
+      int err = fill_blurb (header);
+      if (err != 0)
+	return err;
+    }
+
+  if (header->hdr_count == 0 || num > header->hdr_count || num == 0)
+    return ENOENT;
+
+  num--;
+  len = header->hdr[num].fv_end - header->hdr[num].fv;
+  if (buf && buflen > 0)
+    {
+      /* save one for the null */
+      --buflen;
+      len = (len > buflen) ? buflen : len;
+      memcpy (buf, header->hdr[num].fv, len);
+      buf[len] = '\0';
+    }
+
+  if (nwritten)
+    *nwritten = len;
+  return 0;
+}
+
+int
 header_set_lines (header_t header, int (*_lines)
 		 (header_t, size_t *), void *owner)
 {
@@ -646,7 +742,10 @@ fill_blurb (header_t header)
 	free (header->fhdr[i].fv);
     }
   if (header->fhdr)
-    free (header->fhdr);
+    {
+      free (header->fhdr);
+      header->fhdr = NULL;
+    }
   header->_get_fvalue = NULL;
 
   do
@@ -787,7 +886,6 @@ header_readline (stream_t is, char *buf, size_t buflen, off_t off, size_t *pn)
     *pn = len;
   return 0;
 }
-
 
 int
 header_get_stream (header_t header, stream_t *pstream)

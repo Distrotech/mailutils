@@ -32,7 +32,7 @@
 
 #include <mailutils/debug.h>
 
-#ifdef _cplusplus
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -45,7 +45,7 @@ struct _debug
   int (*_print) __P ((debug_t, const char *, va_list));
 };
 
-#ifdef _cplusplus
+#ifdef __cplusplus
 }
 #endif
 

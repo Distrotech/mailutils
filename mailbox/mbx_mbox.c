@@ -153,6 +153,7 @@ struct _mbox_data
   char *sender;
   char *date;
   off_t off;
+  property_t property;
   mailbox_t mailbox; /* Back pointer. */
 };
 
@@ -171,6 +172,7 @@ static int mbox_uidnext               __P ((mailbox_t, size_t *));
 static int mbox_scan                  __P ((mailbox_t, size_t, size_t *));
 static int mbox_is_updated            __P ((mailbox_t));
 static int mbox_size                  __P ((mailbox_t, off_t *));
+static int mbox_get_property          __P ((mailbox_t, property_t *));
 
 /* private stuff */
 static int mbox_scan0                 __P ((mailbox_t, size_t, size_t *, int));
@@ -266,6 +268,8 @@ _mailbox_mbox_init (mailbox_t mailbox)
   mailbox->_is_updated = mbox_is_updated;
 
   mailbox->_size = mbox_size;
+
+  mailbox->_get_property = mbox_get_property;
 
   MAILBOX_DEBUG1 (mailbox, MU_DEBUG_TRACE, "mbox_init(%s)\n", mud->name);
   return 0; /* okdoke */
@@ -437,7 +441,7 @@ mbox_scan (mailbox_t mailbox, size_t msgno, size_t *pcount)
     return mbox_scan0 (mailbox, msgno, pcount, 1);
   /* Since the mailbox is already updated fake the scan. */
   if (msgno > 0)
-    msgno--; /* The fist message is number "1", decremente for the C array.  */ 
+    msgno--; /* The fist message is number "1", decremente for the C array.  */
   for (i = msgno; i < mud->messages_count; i++)
     {
       if (observable_notify (mailbox->observable, MU_EVT_MESSAGE_ADD) != 0)
@@ -962,6 +966,41 @@ mbox_unset_attr_flags (attribute_t attr, int flags)
   if (mum == NULL)
     return EINVAL;
   mum->attr_flags &= ~flags;
+  return 0;
+}
+
+static int
+mbox_property_set_value (property_t property, const char *k, const void *v)
+{
+  mailbox_t mbox = property_get_owner (property);
+  mbox_data_t mud = mbox->data;
+  return property_set_value (mud->property, k, v);
+}
+
+static int
+mbox_property_get_value (property_t property, const char *k, void **v)
+{
+  mailbox_t mbox = property_get_owner (property);
+  mbox_data_t mud = mbox->data;
+  return property_get_value (mud->property, k, v);
+}
+
+static int
+mbox_get_property (mailbox_t mbox, property_t *pprop)
+{
+  mbox_data_t mud = mbox->data;
+  int status = property_create (&(mbox->property), mbox);
+  if (status != 0)
+    return status;
+  status = property_create (&(mud->property), mud);
+  if (status != 0)
+    {
+      property_destroy (&(mbox->property), mbox);
+      return status;
+    }
+  property_set_set_value (mbox->property, mbox_property_set_value, mbox);
+  property_set_get_value (mbox->property, mbox_property_get_value, mbox);
+  *pprop = mbox->property;
   return 0;
 }
 

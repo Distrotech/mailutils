@@ -32,7 +32,7 @@
 #endif
 #endif /*__P */
 
-#ifdef _cplusplus
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -60,7 +60,7 @@ typedef struct _event *event_t;
 
 
 
-#ifdef _cplusplus
+#ifdef __cplusplus
 }
 #endif
 

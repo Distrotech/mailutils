@@ -28,7 +28,7 @@
 # endif
 #endif /*__P */
 
-#ifdef _cplusplus
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -44,7 +44,7 @@ extern int list_count    __P ((list_t, size_t *pcount));
 extern int list_remove   __P ((list_t, void *item));
 extern int list_get      __P ((list_t, size_t _index, void **pitem));
 
-#ifdef _cplusplus
+#ifdef __cplusplus
 }
 #endif
 

@@ -133,6 +133,7 @@ void util_quit __P ((int));
 char *util_getword __P ((char *s, char **save_ptr));
 int util_token __P ((char *s, size_t, char **save_ptr));
 int util_msgset __P ((char *s, int **set, int *n, int isuid));
+int util_upper __P ((char *));
 struct imap4d_command *util_getcommand __P ((char *cmd,
 					     struct imap4d_command []));
 

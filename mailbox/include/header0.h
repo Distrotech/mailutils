@@ -25,7 +25,7 @@
 #include <mailutils/header.h>
 #include <sys/types.h>
 
-#ifdef _cplusplus
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -75,7 +75,7 @@ struct _header
   int (*_fill)      __P ((header_t, char *, size_t, off_t, size_t *));
 };
 
-#ifdef _cplusplus
+#ifdef __cplusplus
 }
 #endif
 

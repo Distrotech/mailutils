@@ -68,17 +68,17 @@ imap4d_select0 (struct imap4d_command *command, char *arg, int flags)
       mailbox_message_unseen (mbox, &unseen);
       util_out (RESP_NONE, "%d EXISTS", count);
       util_out (RESP_NONE, "%d RECENT", recent);
-      util_out (RESP_NONE, "FLAGS (%s)", mflags);
-      util_out (RESP_OK, "[UIDNEXT %d] Predicted next uid", uidnext);
       util_out (RESP_OK, "[UIDVALIDITY (%d)] UID valididy status",
 		uidvalidity);
+      util_out (RESP_OK, "[UIDNEXT %d] Predicted next uid", uidnext);
       if (unseen)
 	util_out (RESP_OK, "[UNSEEN (%d)] %d is first unseen messsage ",
 		  unseen, unseen);
+      util_out (RESP_NONE, "FLAGS (%s)", mflags);
       /* FIXME:
 	 - '\*' can be supported if we use the attribute_set userflag()
 	 - Answered is still not set in the mailbox code.  */
-      util_out (RESP_OK, "[PERMANENTFLAGS (%s)]", pflags);
+      util_out (RESP_OK, "[PERMANENTFLAGS (%s)] Permanent flags", pflags);
       return util_send ("%s OK [%s] %s Complete\r\n", command->tag,
 			(MU_STREAM_READ == flags) ?
 			"READ-ONLY" : "READ-WRITE", command->name);

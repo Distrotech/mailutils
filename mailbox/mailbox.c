@@ -396,6 +396,15 @@ mailbox_get_property (mailbox_t mbox, property_t *pproperty)
 {
   if (mbox == NULL || pproperty == NULL)
     return EINVAL;
+  if (mbox->property == NULL)
+    {
+      int status;
+      if (mbox->_get_property)
+	return mbox->_get_property (mbox, pproperty);
+      status = property_create (&(mbox->property), mbox);
+      if (status != 0)
+	return status;
+    }
   *pproperty = mbox->property;
   return 0;
 }

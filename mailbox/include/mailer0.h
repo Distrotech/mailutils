@@ -25,7 +25,7 @@
 #include <sys/types.h>
 #include <mailutils/mailer.h>
 #include <mailutils/monitor.h>
-#ifdef _cplusplus
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -86,7 +86,7 @@ if (mailer->debug) debug_print (mailer->debug, type, format, arg1, arg2, arg3)
 #define MAILER_DEBUG4(mailer, type, format, arg1, arg2, arg3, arg4) \
 if (mailer->debug) debug_print (mailer->debug, type, format, arg1, arg2, arg3, arg4)
 
-#ifdef _cplusplus
+#ifdef __cplusplus
 }
 #endif
 

@@ -29,7 +29,7 @@
 #endif
 #endif /*__P */
 
-#ifdef _cplusplus
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -47,7 +47,7 @@ extern int debug_print     __P ((debug_t debug, size_t level,
 				 const char *format, ...));
 extern int debug_set_print __P ((debug_t, int (*_print) __P ((debug_t, const char *, va_list)), void *owner));
 
-#ifdef _cplusplus
+#ifdef __cplusplus
 }
 #endif
 

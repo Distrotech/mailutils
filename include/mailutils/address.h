@@ -28,7 +28,7 @@
 # endif
 #endif /*__P */
 
-#ifdef _cplusplus
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -47,7 +47,7 @@ extern int address_get_comments __P ((address_t, size_t, char *,
 extern int address_to_string    __P ((address_t, char *, size_t, size_t *));
 extern int address_get_count     __P ((address_t, size_t *));
 
-#ifdef _cplusplus
+#ifdef __cplusplus
 }
 #endif
 

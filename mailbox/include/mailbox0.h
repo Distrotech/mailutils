@@ -75,6 +75,7 @@ struct _mailbox
   int  (*_expunge)         __P ((mailbox_t));
   int  (*_uidvalidity)     __P ((mailbox_t, unsigned long *num));
   int  (*_uidnext)         __P ((mailbox_t, size_t *num));
+  int  (*_get_property)    __P ((mailbox_t, property_t *num));
 
   int  (*_scan)            __P ((mailbox_t, size_t msgno, size_t *count));
   int  (*_is_updated)      __P ((mailbox_t));

@@ -29,7 +29,7 @@
 # endif
 #endif /* __P */
 
-#ifdef _cplusplus
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -55,7 +55,7 @@ extern int body_lines          __P ((body_t, size_t *));
 extern int body_set_lines      __P ((body_t, int (*_lines)
 				     __P ((body_t, size_t*)), void *owner));
 
-#ifdef _cplusplus
+#ifdef __cplusplus
 }
 #endif
 

@@ -40,7 +40,7 @@ typedef struct _message *message_t;
 # endif
 #endif /* __P */
 
-#ifdef _cplusplus
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -120,7 +120,7 @@ extern int message_encapsulate __P ((message_t msg, message_t *newmsg,
 extern int message_unencapsulate __P ((message_t msg, message_t *newmsg,
 				       void **data));
 
-#ifdef _cplusplus
+#ifdef __cplusplus
 }
 #endif
 

@@ -32,7 +32,7 @@
 #endif
 #endif /*__P */
 
-#ifdef _cplusplus
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -44,7 +44,7 @@ struct _iterator
 };
 
 
-#ifdef _cplusplus
+#ifdef __cplusplus
 }
 #endif
 
