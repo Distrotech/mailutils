@@ -6,7 +6,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: mailutils 0.2.1\n"
-"POT-Creation-Date: 2002-12-29 02:44+0100\n"
+"POT-Creation-Date: 2002-12-29 12:57+0100\n"
 "PO-Revision-Date: 2002-12-29 02:47+0100\n"
 "Last-Translator: Jordi Mallach <jordi@gnu.org>\n"
 "Language-Team: Catalan <ca@dodds.net>\n"
@@ -538,7 +538,7 @@ msgid "At least one of -fecs must be used. Try guimb --help for more info."
 msgstr ""
 "Al menys una de -fecs s'ha d'usar. Proveu guimp --help per a més informació."
 
-#: guimb/util.c:50 guimb/util.c:57 mail/util.c:649 mail/util.c:656
+#: guimb/util.c:50 guimb/util.c:57 mail/util.c:648 mail/util.c:655
 #, c-format
 msgid "can't determine sender name (msg %d)"
 msgstr "no es pot determinar el nom del remitent (msg %d)"
@@ -1283,6 +1283,16 @@ msgstr ""
 msgid "not enough memory to edit the line"
 msgstr "no hi ha suficient memòria per a editar la línia"
 
+#: mail/msgset.y:155
+#, fuzzy
+msgid "unknown message type"
+msgstr "L'escapada %s no és coneguda."
+
+#: mail/msgset.y:445
+#, fuzzy
+msgid "range error"
+msgstr "error d'expreg"
+
 # Urgh, què malsonant... "on aplicar". jm
 #: mail/next.c:43 mail/previous.c:43
 msgid "No applicable message"
@@ -1394,82 +1404,82 @@ msgstr " %d eliminats"
 msgid "unalias requires at least one argument"
 msgstr "unalias requereix al menys un argument"
 
-#: mail/util.c:151 mail/var.c:198
+#: mail/util.c:150 mail/var.c:198
 #, c-format
 msgid "Unknown command: %s"
 msgstr "Ordre desconeguda: %s"
 
-#: mail/util.c:393
+#: mail/util.c:392
 #, c-format
 msgid "No value set for \"%s\""
 msgstr "No hi ha cap valor establit per a «%s»"
 
-#: mail/util.c:491
+#: mail/util.c:490
 msgid "oops?"
 msgstr "oops?"
 
-#: mail/util.c:586
+#: mail/util.c:585
 msgid "can't get homedir"
 msgstr "no es pot obtindre el directori personal"
 
-#: mail/util.c:724
+#: mail/util.c:723
 msgid "not enough memory\n"
 msgstr "no hi ha memòria suficient\n"
 
-#: mail/util.c:882
+#: mail/util.c:881
 #, c-format
 msgid "can't open save file %s: %s"
 msgstr "no es pot obrir el fitxer on desar %s: %s"
 
-#: mail/util.c:899
+#: mail/util.c:898
 msgid "not enough memory for creating save file"
 msgstr "no hi ha memòria suficient per a crear un fitxer on desar"
 
-#: mail/util.c:984
+#: mail/util.c:983
 #, c-format
 msgid "Unknown command: %s\n"
 msgstr "Ordre desconeguda: %s\n"
 
-#: mail/util.c:1009
+#: mail/util.c:1008
 msgid "can't unencapsulate message/part"
 msgstr "no es pot desencapsular el missatge o part"
 
-#: mail/util.c:1018
+#: mail/util.c:1017
 #, c-format
 msgid "no such (sub)part in the message: %d"
 msgstr "no hi ha una (sub)part semblant en el missatge: %d"
 
-#: mail/util.c:1025
+#: mail/util.c:1024
 #, c-format
 msgid "can't get (sub)part from the message: %d"
 msgstr "no es pot obtindre la (sub)part del missatge: %d"
 
-#: mail/util.c:1149
+#: mail/util.c:1148
 #, c-format
 msgid "can't create temporary header: %s"
 msgstr "no es pot crear la capçalera temporal: %s"
 
-#: mail/util.c:1190
+#: mail/util.c:1189
 #, c-format
 msgid "can't parse address `%s' (while expanding `%s'): %s"
 msgstr "no es pot analitzar l'adreça «%s» (a l'expandir «%s»): %s"
 
-#: mail/util.c:1193
+#: mail/util.c:1192
 #, c-format
 msgid "can't parse address `%s': %s"
 msgstr "no es pot analitzar l'adreça «%s»: %s"
 
-#: mail/util.c:1246
+#: mail/util.c:1245
 #, c-format
 msgid "can't get message %lu: %s"
 msgstr "no es pot obtindre el missatge %lu: %s"
 
-#: mail/util.c:1254
+#: mail/util.c:1253
 #, c-format
 msgid "%lu: Inappropriate message (has been deleted)"
 msgstr "%lu: missatge inapropiat (s'ha eliminat)"
 
-#: mail/util.c:1264
+#: mail/util.c:1263
 #, c-format
 msgid "%d: invalid message number"
 msgstr "%d: el número de missatge no és vàlid"

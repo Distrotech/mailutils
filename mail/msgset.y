@@ -1,18 +1,18 @@
-/* GNU mailutils - a suite of utilities for electronic mail
+/* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
 
-   This program is free software; you can redistribute it and/or modify
+   GNU Mailutils program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
    the Free Software Foundation; either version 2, or (at your option)
    any later version.
 
-   This program is distributed in the hope that it will be useful,
+   GNU Mailutils program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
+   along with GNU Mailutils program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 %{
@@ -152,7 +152,7 @@ msg      : header REGEXP /* /.../ */
            {
 	     if (strchr ("dnorTtu", $1) == NULL)
 	       {
-		 yyerror ("unknown message type");
+		 yyerror (_("unknown message type"));
 		 YYERROR;
 	       }
 	     $$ = msgset_select (select_type, (void *)&$1, 0, 0);
@@ -442,7 +442,7 @@ msgset_range (int low, int high)
 
   if (low >= high)
     {
-      yyerror ("range error");
+      yyerror (_("range error"));
       return NULL;
     }
 

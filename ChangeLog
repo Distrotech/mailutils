@@ -1,3 +1,20 @@
+2002-12-29  Wojciech Polak <polak@gnu.org>
+
+	* auth/*: Fixed C source copyrights to be compatible with the
+          GNU 'Maintaining' document, i.e. "This program" -> "GNU Mailutils".
+	* cmc/*: Likewise.
+	* examples/*: Likewise.
+	* imap4d/*: Likewise.
+	* include/mailutils/*: Likewise.
+	* libmu_scm/*: Likewise.
+	* libsieve/*: Likewise.
+	* mailbox/*: Likewise.
+	* mapi/*: Likewise.
+	* mh/*: Likewise.
+	* pop3d/*: Likewise.
+
+	* po/POTFILES.in: Added missing mail/msgset.y.
+
 2002-12-29  Sergey Poznyakoff
 
 	* mail/util.c: Removed unneded global env_cursor.
