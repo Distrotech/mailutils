@@ -12,5 +12,6 @@ mhpath
 folder
 fmtcheck
 repl
+whatnow
 *.output
 .gdbinit

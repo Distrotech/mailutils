@@ -1,9 +1,30 @@
-2003-01-14  Wojciech Polak
+2003-01-15  Sergey Poznyakoff
 
-	* auth/tls.c (mu_init_tls_libs): gnutls_global_init() returns
-	  zero on success, so reverse this state for 'tls_available'
-	  variable.
+	* m4/db2.m4: Fixed version reference in the comment.
+	* mail/msgset.y: Added missing NLS markers.
+	* mailbox/mutil.c: Fixed indentation.
 
+	* mh/mh_whatnow.c: New file.
+	* mh/whatnow.c: New file. Source for whatnow utility.
+	* mh/Makefile.am: Removed unnecessary _SOURCE declarations.
+	  Added new files and targets.
+	* mh/mh.h: Include argcv.h and getline.h
+	  (struct mh_whatnow_env): New datatype.
+	  (mh_spawnp, mh_whatnow): New functions.
+
+	* mh/mh_argp.c (mh_argp_parse): Fixed parsing order: global
+	  profile arguments first, then the command line arguments.
+	* mh/mh_format.c: Added missing NLS markers.
+	  (builtin_concat,builtin_printstr): New functions.
+	* mh/mh_init.c (mh_spawnp): New function.
+	* mh/repl.c: Almost finished.
+	* mh/mh_ctx.c: Shut compiler warnings.
+	* mh/TODO: Updated.
+	* mh/README: Updated.
+	* mh/.cvsignore: Updated.
+	
+	* po/POTFILES.in: Added missing files.
+	
 2003-01-14  Sergey Poznyakoff 
 
 	* m4/db2.m4: New file. Version-specific stuff for Berkeley DB.
@@ -51,6 +72,9 @@
 	* mail/write.c: Likewise.
 	  
 2003-01-14  Wojciech Polak
+
+	* doc/rfc/Makefile.am: Added rfc2595.txt
+	* TODO: Updated.
 
 	* pop3d/pop3d.h (ERR_TLS_ACTIVE, TLS_ACTIVE): New defines.
 	* pop3d/pop3d.c: Added support for ERR_TLS_ACTIVE.

@@ -24,6 +24,12 @@ default formats for repl and comp, e.g.:
 Notice that this means that usual replcomps file will be ignoring
 --cc and --nocc options, unless it has been modified as shown above.
 
+** Function concat
+Appends whitespace + arg to str.
+
+** Function printstr
+Prints the value of string register, prefixed by the given argument.
+
 * rmm
 
 ** Different behaviour if one of the messages in the list does not exist.
