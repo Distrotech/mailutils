@@ -65,7 +65,7 @@ static char *input_file;
 static char *audit_file; 
 static FILE *audit_fp;
 static int changecur = -1;
-static int truncate = -1;
+static int truncate_source = -1;
 static int quiet = 0;
 
 static int
@@ -99,7 +99,7 @@ opt_handler (int key, char *arg, void *unused)
       break;
 
     case 'T':
-      truncate = arg[0] == 'y';
+      truncate_source = arg[0] == 'y';
       break;
       
     case 'w':
@@ -215,8 +215,8 @@ main (int argc, char **argv)
   buffer = xmalloc (width);
   
   /* Fixup options */
-  if (truncate == -1)
-    truncate = f_truncate;
+  if (truncate_source == -1)
+    truncate_source = f_truncate;
   if (changecur == -1)
     changecur = f_changecur;
 
@@ -252,7 +252,7 @@ main (int argc, char **argv)
       if (!quiet)
 	list_message (&format, output, lastmsg + n, buffer, width);
       
-      if (truncate)
+      if (truncate_source)
 	{
 	  attribute_t attr;
 	  message_get_attribute (imsg, &attr);
@@ -266,7 +266,7 @@ main (int argc, char **argv)
   mailbox_close (output);
   mailbox_destroy (&output);
 
-  if (truncate)
+  if (truncate_source)
     mailbox_expunge (input);
   mailbox_close (input);
   mailbox_destroy (&input);
