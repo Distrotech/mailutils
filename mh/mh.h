@@ -176,9 +176,17 @@ typedef struct
 typedef void (*mh_iterator_fp) __P((mailbox_t mbox, message_t msg,
 				    size_t num, void *data));
 
+/* Recipient masks */
+#define RCPT_NONE 0
+#define RCPT_TO   0x0001
+#define RCPT_CC   0x0002
+#define RCPT_ME   0x0004
+#define RCPT_ALL  (RCPT_TO|RCPT_CC|RCPT_ME)
+
 extern char *current_folder;
 extern size_t current_message;
 extern char mh_list_format[];
+extern int rcpt_mask;
 
 void mh_init __P((void));
 void mh_init2 __P((void));
@@ -238,7 +246,9 @@ char * mh_my_email __P((void));
 int mh_iterate __P((mailbox_t mbox, mh_msgset_t *msgset,
 		    mh_iterator_fp itr, void *data));
 
-size_t mh_get_message (mailbox_t mbox, size_t seqno, message_t *mesg);
+size_t mh_get_message __P((mailbox_t mbox, size_t seqno, message_t *mesg));
+
+int mh_decode_rcpt_flag __P((const char *arg));
 
 void *xmalloc __P((size_t));
 void *xrealloc __P((void *, size_t));
