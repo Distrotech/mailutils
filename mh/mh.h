@@ -48,6 +48,7 @@
 #define MH_SEQUENCES_FILE ".mh_sequences"
 #define MH_USER_PROFILE ".mh_profile"
 #define MH_GLOBAL_PROFILE "mh-profile"
+#define MH_CONTEXT_FILE "context"
 
 enum mh_opcode
 {
@@ -119,7 +120,7 @@ enum mh_type
 typedef int mh_opcode_t;
 
 struct mh_machine;
-typedef void (*mh_builtin_fp)(struct mh_machine *);
+typedef void (*mh_builtin_fp) __P((struct mh_machine *));
 
 typedef union {
   mh_opcode_t opcode;
@@ -154,39 +155,65 @@ struct mh_builtin
   int optarg;
 };
 
+typedef struct
+{
+  char *name;
+  header_t header;
+} mh_context_t;
+
+typedef struct
+{
+  size_t count;
+  size_t *list;
+} mh_msgset_t;
+
+typedef void (*mh_iterator_fp) __P((mailbox_t mbox, message_t msg,
+				    size_t num, void *data));
+
 extern char *current_folder;
 extern size_t current_message;
 extern char mh_list_format[];
-extern header_t ctx_header;
-extern header_t profile_header;
 
-void mh_init (void);
-void mh_read_profile (void);
-void mh_save_context (void);
-int mh_read_context_file (char *path, header_t *header);
-int mh_write_context_file (char *path, header_t header);
-int mh_read_formfile (char *name, char **pformat);
+void mh_init __P((void));
+void mh_read_profile __P((void));
+void mh_save_context __P((void));
+int mh_read_formfile __P((char *name, char **pformat));
 
-char * mh_profile_value (char *name, char *defval);
+char * mh_profile_value __P((char *name, char *defval));
 
-int mh_getyn (const char *fmt, ...);
-int mh_check_folder (char *pathname);
+int mh_getyn __P((const char *fmt, ...));
+int mh_check_folder __P((char *pathname));
 
-int mh_format (mh_format_t *fmt, message_t msg, size_t msgno,
-	       char *buffer, size_t bufsize);
-int mh_format_parse (char *format_str, mh_format_t *fmt);
-void mh_format_free (mh_format_t *fmt);
-mh_builtin_t *mh_lookup_builtin (char *name, int *rest);
+int mh_format __P((mh_format_t *fmt, message_t msg, size_t msgno,
+		   char *buffer, size_t bufsize));
+int mh_format_parse __P((char *format_str, mh_format_t *fmt));
+void mh_format_free __P((mh_format_t *fmt));
+mh_builtin_t *mh_lookup_builtin __P((char *name, int *rest));
 
-void mh_error(const char *fmt, ...);
+void mh_error __P((const char *fmt, ...));
 
-FILE *mh_audit_open (char *name, mailbox_t mbox);
-void mh_audit_close (FILE *fp);
+FILE *mh_audit_open __P((char *name, mailbox_t mbox));
+void mh_audit_close __P((FILE *fp));
 
-int mh_message_number (message_t msg, size_t *pnum);
+mh_context_t *mh_context_create __P((char *name, int copy));
+int mh_context_read __P((mh_context_t *ctx));
+int mh_context_write __P((mh_context_t *ctx));
+char *mh_context_get_value __P((mh_context_t *ctx, const char *name,
+				char *defval));
+int mh_context_set_value __P((mh_context_t *ctx, const char *name,
+			      char *value));
 
-mailbox_t mh_open_folder (void);
+int mh_message_number __P((message_t msg, size_t *pnum));
 
-void *xmalloc (size_t);
-void *xrealloc (void *, size_t);
+mailbox_t mh_open_folder __P((const char *folder));
+
+int mh_msgset_parse __P((mailbox_t mbox, mh_msgset_t *msgset,
+			 int argc, char **argv));
+int mh_msgset_member __P((mh_msgset_t *msgset, size_t num));
+
+char *mh_get_dir __P((void));
+const char *mh_expand_name __P((const char *name, int is_folder));
+
+void *xmalloc __P((size_t));
+void *xrealloc __P((void *, size_t));
      
