@@ -76,8 +76,8 @@ mail_reply (int argc, char **argv)
 	    }
 
 	  /* Finally, add any Ccs */
-	  header_aget_value (hdr, MU_HEADER_CC, &str);
-	  compose_header_set (&env, MU_HEADER_TO, str, COMPOSE_SINGLE_LINE);
+	  if (header_aget_value (hdr, MU_HEADER_CC, &str) == 0)
+	    compose_header_set (&env, MU_HEADER_TO, str, COMPOSE_SINGLE_LINE);
 	}
 
       if (header_aget_value (hdr, MU_HEADER_SUBJECT, &str) == 0)
