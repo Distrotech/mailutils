@@ -261,7 +261,7 @@ switch_user_id (struct mu_auth_data *auth, int user)
   int rc;
   uid_t uid;
   
-  if (auth->change_uid == 0)
+  if (!auth || auth->change_uid == 0)
     return 0;
   
   if (user)
@@ -375,22 +375,13 @@ deliver (FILE *fp, char *name)
       return;
     }
   
-  path = strdup (auth->mailbox);
-  if (!path)
+  if ((status = mailbox_create (&mbox, auth->mailbox)) != 0)
     {
-      mailer_err ("Out of memory");
+      mailer_err ("can't open mailbox %s: %s",
+		  auth->mailbox, mu_errstring (status));
       return;
     }
 
-  if ((status = mailbox_create (&mbox, path)) != 0)
-    {
-      mailer_err ("can't open mailbox %s: %s", path, mu_errstring (status));
-      free (path);
-      return;
-    }
-
-  free (path);
-      
   mailbox_get_url (mbox, &url);
   path = (char*) url_to_string (url);
 
