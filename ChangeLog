@@ -1,12 +1,18 @@
-1999-10-11  Jeff Bailey  <jbailey@cr499794-a.crdva1.bc.wave.home.com>
+1999-10-23  Alain Magloire
+
+	* ChangeLog: Cleanup according to GNU std, and remove
+	of email addresses. The emails should be AUTHORS or THANKS
+	so if they change no need to sed everything.
+
+1999-10-11  Jeff Bailey
 
 	* libmailbox/Makefile.am: Remove no-install option, add -pedantic
 
-1999-10-12  Sean 'Shaleh' Perry  <shaleh@debian.org>
+1999-10-12  Sean 'Shaleh' Perry
 
 	* made sure that the imap4 was REALLY broken
 
-1999-10-11  Jeff Bailey  <jbailey@cr499794-a.crdva1.bc.wave.home.com>
+1999-10-11  Jeff Bailey
 
 	* imap4d/Makefile.am: New file
 
@@ -25,11 +31,11 @@
 
 	* lib/getline.h: New file
 
-1999-10-11  Sean 'Shaleh' Perry  <shaleh@debian.org>
+1999-10-11  Sean 'Shaleh' Perry
 
 	* added my imap code -- PLEASE DO NOT TOUCH
 
-1999-10-10  Jeff Bailey  <jbailey@cr499794-a.crdva1.bc.wave.home.com>
+1999-10-10  Jeff Bailey
 
 	* THANKS: New file
 	
@@ -48,15 +54,15 @@
 
 	* libsrc/: Rename to lib/
 
-1999-10-09  Sean 'Shaleh' Perry  <shaleh@debian.org>
+1999-10-09  Sean 'Shaleh' Perry
 
-  * Made changelog.pl output in approved format -- I miss the time stamp
+	* Made changelog.pl output in approved format -- I miss the time stamp
 
-Sean 'Shaleh' Perry <shaleh@debian.org>  Sat,  9 Oct 1999 01:13:56 -0700
+1999-10-09 Sean 'Shaleh' Perry
 
-  * added examples/gnu-pop3d.pam 
+	* added examples/gnu-pop3d.pam 
 
-1999-10-08  Jeff Bailey  <jbailey@cr499794-a.crdva1.bc.wave.home.com>
+1999-10-08  Jeff Bailey
 
 	* doc/: New directory
 	
@@ -68,37 +74,38 @@ Sean 'Shaleh' Perry <shaleh@debian.org>  Sat,  9 Oct 1999 01:13:56 -0700
 
 	* acconfig.h: New File
 
-Sean 'Shaleh' Perry <shaleh@debian.org>  Fri,  8 Oct 1999 18:13:45 -0700
+1999-10-08 Sean 'Shaleh' Perry
 
-  * added showmail.c to examples
-  * libmailbox: some minor code cleanups
+	* added showmail.c to examples
+	* libmailbox: some minor code cleanups
 
-Sean 'Shaleh' Perry <shaleh@debian.org>  Fri,  8 Oct 1999 01:08:42 -0700
+1999-10-08 Sean 'Shaleh' Perry
 
-  * fixed the "if empty mailbox, return not implemented"
-    NB: seems there was a large assumption being made:
-        if unixmbox_open() failed, it was because it was not mbox
-    this was wrong for many reasons, so on actual "not mbox", return EBADMSG.
-    Prolly want to come up with a better error, but this works for now
-  * more cleaning in the mailbox code
-    a) added stat() call -- we can bomb earlier, plus detect if passed object
-       is a directory or file
-    b) unixmbox_close() free()'s mbox.  This will hamper the use when we add
-       support for more mailboxes later.  Need to find a solution.  Perhaps
-       a unixmbox_free() call.
-       There was also a small leak there -- mbox->name was being left.
-    c) To aid checking in unixbox_open(), added checks around fgets call.
-       Now properly detects EOF, errors, etc.  This was a large cause of the
-	   spurious "not implemented" bug.
-    d) all of unixmbox_open()'s function calls should now be checked
-	   NB: need to do the same for rest of file
+	* fixed the "if empty mailbox, return not implemented"
+	NB: seems there was a large assumption being made:
+	if unixmbox_open() failed, it was because it was not mbox
+	this was wrong for many reasons, so on actual "not mbox",
+	return EBADMSG.
+	Prolly want to come up with a better error, but this works for now
+	* more cleaning in the mailbox code
+	a) added stat() call -- we can bomb earlier, plus detect if
+	passed object is a directory or file
+	b) unixmbox_close() free()'s mbox.  This will hamper the use
+	when we add support for more mailboxes later.  Need to find
+	a solution.  Perhaps a unixmbox_free() call.
+	There was also a small leak there -- mbox->name was being left.
+	c) To aid checking in unixbox_open(), added checks around fgets call.
+	Now properly detects EOF, errors, etc.  This was a large cause of the
+	spurious "not implemented" bug.
+	d) all of unixmbox_open()'s function calls should now be checked
+	NB: need to do the same for rest of file
 
-Sean 'Shaleh' Perry <shaleh@debian.org>  Thu,  7 Oct 1999 22:33:24 -0700
+1999-10-07 Sean 'Shaleh' Perry
 
-  * removed spurious code in from.c
-  * added TODO file
+	* removed spurious code in from.c
+	* added TODO file
 
-1999-10-07  Jeff Bailey  <jbailey@cr499794-a.crdva1.bc.wave.home.com>
+1999-10-07  Jeff Bailey
 
 	* Makefile.am: Compile libsrc/ first.
 
@@ -111,43 +118,43 @@ Sean 'Shaleh' Perry <shaleh@debian.org>  Thu,  7 Oct 1999 22:33:24 -0700
 	* configure.in: Remove AM_MAINTAINER_MODE.  Export crypt detection
 	to Makefiles
 
-Sean 'Shaleh' Perry <shaleh@debian.org>  Thu,  7 Oct 1999 18:31:57 -0700
+1999-10-07 Sean 'Shaleh' Perry
 
-  * included my read_a_line() in examples/
+	* included my read_a_line() in examples/
 
-Sean 'Shaleh' Perry <shaleh@debian.org>  Wed,  6 Oct 1999 13:55:42 -0700
+1999-10-06 Sean 'Shaleh' Perry
 
-  * Cleanup some compilation issues
-  * changed "w+" to "w" in called to pop3_mainloop():ofile = fdopen()
-      why was it called with w+?  It is only ever used for writing.
-  * catch EINTR in call to accept() (play nice w/ our UNIX friends)
-  * set SO_REUSEADDR on daemon's socket
+	* Cleanup some compilation issues
+	* changed "w+" to "w" in called to pop3_mainloop():ofile = fdopen()
+	why was it called with w+?  It is only ever used for writing.
+	* catch EINTR in call to accept() (play nice w/ our UNIX friends)
+	* set SO_REUSEADDR on daemon's socket
 
-Sean 'Shaleh' Perry <shaleh@debian.org>  Tue,  5 Oct 1999 23:06:33 -0700
+1999-10-05 Sean 'Shaleh' Perry
 
-  * Added changelog.pl so we can have automated entries
-    set CVS_EMAIL=me@here.com and CVS_FULLNAME="Joe Blow"
+	* Added changelog.pl so we can have automated entries
+	set CVS_EMAIL=me@here.com and CVS_FULLNAME="Joe Blow"
 	usage: changelog.pl "added signal.c" or changelog.pl, an editor will
 	then appear (uses $VISUAL and $EDITOR)
 	the format is controlled simply via the format call at the end
 	and the section of perl code directly above it
 
-Sean 'Shaleh' Perry <shaleh@debian.org>  Tue,  5 Oct 1999 17:46:31 -0700
+1999-10-05 Sean 'Shaleh' Perry
 	
 	* added pop3d/signal.c -- contains pop3_sigchld() currently
 
-Sean 'Shaleh' Perry <shaleh@debian.org>  Mon,  4 Oct 1999 17:57:17 -0700
+1999-10-05 Sean 'Shaleh' Perry
 
 	* initial fork() rewrite, not even compiled it yet
 
-Sean 'Shaleh' Perry <shaleh@debian.org>  Mon,  4 Oct 1999 14:28:35 -0700
+1999-10-04 Sean 'Shaleh' Perry
 
 	* changed lock(int mode) to lock(mailbox_lock_t mode), this will allow
-	   the type to be chnaged later without affecting code compatibility
+	the type to be chnaged later without affecting code compatibility
 	* added name to AUTHORS
 	* noticed mention of IMAP4 server and went back to coding it (-:
 
-1999-10-03  Jeff Bailey  <jbailey@cr499794-a.crdva1.bc.wave.home.com>
+1999-10-03  Jeff Bailey 
 
 	* mail/mail.c: Support --help, --version.
 
@@ -177,16 +184,16 @@ Sean 'Shaleh' Perry <shaleh@debian.org>  Mon,  4 Oct 1999 14:28:35 -0700
 	* mail/mail.c: Include config.h if defined, update copyright.
 	
 
-Fri Oct  1 01:00:00 1999  Sean 'Shaleh' Perry  <shaleh@debian.org>
+1999-10-01 Sean 'Shaleh' Perry
 
 	* added an examples directory and the first example, from.c
 
-Fri Oct  1 03:17:28 1999  Jakob 'sparky' Kaivo  <jkaivo@gnu.org>
+1999-10-01 Jakob 'sparky' Kaivo
 
 	* libmailbox/*.[ch]: added cleanup patches from Shaleh while he works
 	on getting CVS access
 
-1999-09-22  Jakob 'sparky' Kaivo  <jkaivo@elijah.nodomainname.net>
+1999-09-22  Jakob 'sparky' Kaivo
 
 	* mail/mail.c (main): added 'f' and 'F' to test mbox_header_line
 
@@ -219,7 +226,7 @@ Fri Oct  1 03:17:28 1999  Jakob 'sparky' Kaivo  <jkaivo@gnu.org>
 
 	* libmailbox/*.[ch]: added copyright/licensing info
 
-1999-09-21  Jakob 'sparky' Kaivo  <jkaivo@elijah.nodomainname.net>
+1999-09-21  Jakob 'sparky' Kaivo
 
 	* pop3d/Makefile.am (pop3d_LDADD): add $(AUTHLIBS)
 
@@ -229,18 +236,19 @@ Fri Oct  1 03:17:28 1999  Jakob 'sparky' Kaivo  <jkaivo@gnu.org>
 	* README: actually put something here, noted necessary tools to build
 	from CVS
 
-1999-09-14  Jakob 'sparky' Kaivo  <jkaivo@elijah.nodomainname.net>
+1999-09-14  Jakob 'sparky' Kaivo
 
 	* pop3d/pop3d.c (main): moved setgid() call to after option parsing
 	(main): make --version report PACKAGE and VERSION
 
 	* libmailbox/mailbox.c (mbox_open): changed paramater type to const
 
-	* pop3d/Makefile.am (INCLUDES): change relative directories to top_srcdir base
+	* pop3d/Makefile.am (INCLUDES): change relative directories to
+	top_srcdir base
 
 	* configure.in: Added checks for PAM and crypt
 
-1999-09-13  Jakob 'sparky' Kaivo  <jkaivo@elijah.nodomainname.net>
+1999-09-13  Jakob 'sparky' Kaivo
 
 	* pop3d/retr.c (pop3_retr): fixed calls mbox_header => mbox_get_header
 	and mbox_body => mbox_get_body
@@ -265,15 +273,10 @@ Fri Oct  1 03:17:28 1999  Jakob 'sparky' Kaivo  <jkaivo@gnu.org>
 
 	* pop3d/*: imported from gnu-pop3d tree
 
-1999-09-11  Jeff Bailey  <jbailey@cr499794-a.crdva1.bc.wave.home.com>
+1999-09-11  Jeff Bailey
 
 	* libmailbox/unixmbox.h: Do not prefix config.h defines with _
 
-1999-09-10  Jeff Bailey  <jbailey@cr499794-a.crdva1.bc.wave.home.com>
+1999-09-10  Jeff Bailey
 
 	* */*: Accomidate directory rearrange
-
-
-
-
-	
