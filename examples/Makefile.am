@@ -29,7 +29,8 @@ noinst_PROGRAMS = \
  http\
  mta\
  decode2047\
- mailcap
+ mailcap \
+ pop3client
 
 moddir=@SIEVE_MODDIR@
 mod_LTLIBRARIES = numaddr.la
@@ -61,6 +62,12 @@ sfrom_LDADD =\
  ../mailbox/libmailbox.la\
  ../lib/libmailutils.la\
  @AUTHLIBS@ 
+
+pop3client_LDADD = \
+ ../mailbox/pop/libmu_pop.la\
+ ../mailbox/libmailbox.la\
+ ../lib/libmailutils.la\
+ @AUTHLIBS@ @READLINE_LIBS@ 
 
 EXTRA_DIST = comsat.conf dot.biffrc gnu-imap4d.pam gnu-pop3d.pam\
  mailutils.rc reply.scm

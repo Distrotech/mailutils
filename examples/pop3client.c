@@ -62,6 +62,7 @@ int com_stat (char *);
 int com_top  (char *);
 int com_uidl (char *);
 int com_user (char *);
+int com_verbose (char *);
 
 void initialize_readline (void);
 char *stripwhite (char *);
@@ -92,6 +93,7 @@ COMMAND commands[] = {
   { "top",  com_top,  "Get the header of message: TOP msgno [lines]" },
   { "uidl", com_uidl, "Get the uniq id of message: UIDL [msgno]" },
   { "user", com_user, "send login: USER user" },
+  { "verbose", com_verbose, "Enable Protocol tracing: verbose [on|off]" },
   { NULL, NULL, NULL }
 };
 
@@ -100,6 +102,9 @@ char *progname;
 
 /* Global handle for pop3.  */
 mu_pop3_t pop3;
+
+/* Flag if verbosity is needed.  */
+int verbose;
 
 /* When non-zero, this global means the user is done using this program. */
 int done;
@@ -158,8 +163,11 @@ main (int argc, char **argv)
 
       if (*s)
         {
+          int status;
           add_history (s);
-          execute_line (s);
+          status = execute_line (s);
+          if (status != 0)
+            fprintf (stderr, "Error: %s\n", strerror(status));
         }
 
       free (line);
@@ -317,23 +325,49 @@ command_generator (const char *text, int state)
 }
 
 int
+com_verbose (char *arg)
+{
+  int status = 0;
+  if (!valid_argument ("verbose", arg))
+    return EINVAL;
+
+  verbose = (strcmp (arg, "on") == 0);
+  if (pop3 != NULL)
+    {
+      if (verbose == 1)
+        {
+          mu_debug_t debug;
+          mu_debug_create (&debug, NULL);
+          mu_debug_set_level (debug, MU_DEBUG_PROT);
+          status = mu_pop3_set_debug (pop3, debug);
+        }
+      else
+       {
+          status = mu_pop3_set_debug (pop3, NULL);
+       }
+    }
+  return status;
+}
+
+int
 com_user (char *arg)
 {
   if (!valid_argument ("user", arg))
-    return 1;
+    return EINVAL;
   return mu_pop3_user (pop3, arg);
 }
+
 int
 com_apop (char *arg)
 {
   char *user, *digest;
 
   if (!valid_argument ("apop", arg))
-    return 1;
+    return EINVAL;
   user = strtok (arg, " ");
   digest = strtok (NULL, " ");
   if (!valid_argument ("apop", user) || !valid_argument ("apop", digest))
-    return 1;
+    return EINVAL;
   return mu_pop3_apop (pop3, user, digest);
 }
 
@@ -364,10 +398,11 @@ com_capa (char *arg)
 int
 com_uidl (char *arg)
 {
+  int status = 0;
   if (arg == NULL || *arg == '\0')
     {
       list_t list = NULL;
-      int status = mu_pop3_uidl_all (pop3, &list);
+      status = mu_pop3_uidl_all (pop3, &list);
       if (status == 0)
 	{
           iterator_t uidl_iterator = NULL;
@@ -388,20 +423,22 @@ com_uidl (char *arg)
     {
       char *uidl = NULL;
       unsigned int msgno = strtoul (arg, NULL, 10);
-      if (mu_pop3_uidl (pop3, msgno, &uidl) == 0)
+      status = mu_pop3_uidl (pop3, msgno, &uidl);
+      if (status == 0)
 	printf ("Msg: %d UIDL: %s\n", msgno, (uidl) ? uidl : "");
       free (uidl);
     }
-  return 0;
+  return status;
 }
 
 int
 com_list (char *arg)
 {
+  int status = 0;
   if (arg == NULL || *arg == '\0')
     {
       list_t list = NULL;
-      int status = mu_pop3_list_all (pop3, &list);
+      status = mu_pop3_list_all (pop3, &list);
       if (status == 0)
 	{
           iterator_t list_iterator;
@@ -422,10 +459,11 @@ com_list (char *arg)
     {
       size_t size = 0;
       unsigned int msgno = strtoul (arg, NULL, 10);
-      if (mu_pop3_list (pop3, msgno, &size) == 0)
+      status = mu_pop3_list (pop3, msgno, &size);
+      if (status == 0)
 	printf ("Msg: %d Size: %d\n", msgno, size);
     }
-  return 0;
+  return status;
 }
 
 int
@@ -452,8 +490,7 @@ echo_on(struct termios *stored_settings)
 }
 
 int
-com_pass (arg)
-     char *arg;
+com_pass (char *arg)
 {
   char pass[256];
   if (!arg || *arg == '\0')
@@ -477,12 +514,13 @@ int
 com_stat (char *arg)
 {
   unsigned count, size;
+  int status = 0;
 
   (void)arg;
   count = size = 0;
-  mu_pop3_stat (pop3, &count, &size);
+  status = mu_pop3_stat (pop3, &count, &size);
   fprintf (stdout, "Mesgs: %d Size %d\n", count, size);
-  return 0;
+  return status;
 }
 
 int
@@ -491,7 +529,7 @@ com_dele (arg)
 {
   unsigned msgno;
   if (!valid_argument ("dele", arg))
-      return 1;
+      return EINVAL;
   msgno = strtoul (arg, NULL, 10);
   return mu_pop3_dele (pop3, msgno);
 }
@@ -553,7 +591,7 @@ com_top (char *arg)
   int status;
 
   if (!valid_argument ("top", arg))
-    return 1;
+    return EINVAL;
 
   space = strchr (arg, ' ');
   if (space)
@@ -575,7 +613,7 @@ com_top (char *arg)
 	printf ("%s", buf);
       stream_destroy (&stream, NULL);
     }
-  return 0;
+  return status;
 }
 
 int
@@ -586,7 +624,7 @@ com_retr (char *arg)
   int status;
 
   if (!valid_argument ("retr", arg))
-    return 1;
+    return EINVAL;
 
   msgno = strtoul (arg, NULL, 10);
   status = mu_pop3_retr (pop3, msgno, &stream);
@@ -599,13 +637,7 @@ com_retr (char *arg)
 	printf ("%s", buf);
       stream_destroy (&stream, NULL);
     }
-  return 0;
-}
-
-void
-com_debug (const char *buffer)
-{
-  printf ("%s", buffer);
+  return status;
 }
 
 int
@@ -619,28 +651,32 @@ com_connect (char *arg)
   *host = '\0';
   sscanf (arg, "%256s %d", host, &port);
   if (!valid_argument ("connect", host))
-    return 1;
+    return EINVAL;
   if (pop3)
     com_disconnect (NULL);
   status = mu_pop3_create (&pop3);
   if (status == 0)
     {
-      //mu_debug_t debug;
       stream_t tcp;
-      mu_pop3_set_debug (pop3, com_debug);
-      //mu_debug_set_level (debug, MU_DEBUG_PROT);
-      //mu_debug_destroy (&debug);
+
+      if (verbose)
+        com_verbose ("verbose on");
       status = tcp_stream_create (&tcp, host, port, MU_STREAM_READ | MU_STREAM_NO_CHECK);
       if (status == 0)
         {
           mu_pop3_set_carrier (pop3, tcp);
           status = mu_pop3_connect (pop3);
         }
+      else
+       {
+         mu_pop3_destroy (&pop3);
+         pop3 = NULL;
+       }
     }
 
   if (status != 0)
     fprintf (stderr, "Failed to create pop3: %s\n", strerror (status));
-  return 0;
+  return status;
 }
 
 int
