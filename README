@@ -64,17 +64,11 @@ specific configuration options:
 	./configure LIBS='-L/usr/local/mysql/lib' \
                     CPPLAGS='-I/usr/local/mysql/include' --enable-mysql
 
-    --enable-virtual-domains
-
-	Enable support for authentication using virtual mail domains.
-	Note that this is also needed if you wish to run testsuites for
-	pop3d and imap4d daemons. The following option controls where
-	exactly the domain database should be located:
-
     --with-virtual-pwddir=DIR
 
 	Use DIR instead of $sysconfdir/domain as the location of
-	virtual mail domain database.
+	virtual mail domain database. This option is ignored if
+        --disable-virtual-domains is specified.
 
     --without-readline
 
@@ -155,6 +149,19 @@ of DBM you are using. GDBM is most common for GNU system.
 
 	Don't compile regex; this is the default on systems with version
 	2 of the GNU C library (use with caution on other systems)
+
+Use following options to disable support for particular protocols or
+features:
+
+    --disable-imap        Disables IMAP protocol support. 
+    --disable-pop         Disables POP protocol support. 
+    --disable-smtp        Disables support for SMTP mailer. With this
+                          option `mail.remote' is not built.
+    --disable-sendmail    Disables support for `Sendmail' mailer.
+    --disable-mh          Disables support for MH mailbox format.  
+    --disable-virtual-domains 
+                          Disables support for authentication using virtual
+                          mail domains.
 
 
 Where to report BUGS
