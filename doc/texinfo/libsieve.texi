@@ -1,0 +1,216 @@
+@c This is part of the GNU Mailutils manual.
+@c Copyright (C) 1999,2000,2001,2002 Free Software Foundation, Inc.
+@c See file mailutils.texi for copying conditions.
+@comment *******************************************************************
+
+@menu
+* Sieve Data Types::
+* Manipulating the Sieve Machine::
+* Logging and Diagnostic Functions::
+* Symbol Space Functions::
+* Memory Allocation::
+* Compiling and Executing the Script::
+@end menu
+
+@node Sieve Data Types
+@section Sieve Data Types
+
+@deftp {Data Type} sieve_machine_t
+@end deftp
+
+@deftp {Enumeration} sieve_data_type
+@end deftp
+
+@deftp {Structure} sieve_value_t
+@end deftp
+
+@deftp {Structure} sieve_tag_def_t
+@end deftp
+
+@deftp {Structure} sieve_runtime_tag_t
+@end deftp
+
+@deftp {Function Type} sieve_handler_t
+@example
+typedef int (*sieve_handler_t) (sieve_machine_t mach,
+                                list_t args, list_t tags);
+@end example
+@end deftp
+
+@deftp {Function Type} sieve_printf_t                               
+@example
+typedef int (*sieve_printf_t) (void *data, const char *fmt, va_list ap);
+@end example
+@end deftp
+
+@deftp {Function Type} sieve_parse_error_t
+@example
+typedef int (*sieve_parse_error_t) (void *data,
+                                    const char *filename, int lineno,
+                                    const char *fmt, va_list ap);
+@end example
+@end deftp
+
+@deftp {Function Type} sieve_action_log_t
+@example
+typedef void (*sieve_action_log_t) (void *data,
+                                    const char *script,
+                                    size_t msgno, message_t msg,
+                                    const char *action,
+                                    const char *fmt, va_list ap);
+@end example
+@end deftp
+
+@deftp {Function Type} sieve_comparator_t
+@example
+typedef int (*sieve_comparator_t) (const char *, const char *);
+@end example
+@end deftp
+
+@deftp {Function Type} sieve_retrieve_t
+@example
+typedef int (*sieve_retrieve_t) (void *item, void *data, int idx,
+                                 char **pval);
+@end example
+@end deftp
+
+@deftp {Function Type} sieve_destructor_t
+@example
+typedef void (*sieve_destructor_t) (void *data);
+@end example
+@end deftp
+
+@deftp {Function Type} sieve_tag_checker_t
+@example
+typedef int (*sieve_tag_checker_t) (const char *name, list_t tags, list_t args)
+@end example
+@end deftp
+
+
+@node Manipulating the Sieve Machine
+@section Manipulating the Sieve Machine
+
+@deftypefn int sieve_machine_init (sieve_machine_t *@var{mach}, void *@var{data})
+@end deftypefn
+
+@deftypefn void sieve_machine_destroy (sieve_machine_t *@var{pmach})
+@end deftypefn
+
+@deftypefn int sieve_machine_add_destructor (sieve_machine_t @var{mach}, sieve_destructor_t @var{destr}, void *@var{ptr});
+@end deftypefn
+
+@deftypefn void *sieve_get_data (sieve_machine_t @var{mach})
+@end deftypefn
+
+@deftypefn message_t sieve_get_message (sieve_machine_t @var{mach})
+@end deftypefn
+
+@deftypefn size_t sieve_get_message_num (sieve_machine_t @var{mach});
+@end deftypefn
+
+@deftypefn int sieve_get_debug_level (sieve_machine_t @var{mach})
+@end deftypefn
+
+@deftypefn ticket_t sieve_get_ticket (sieve_machine_t @var{mach})
+@end deftypefn
+
+@deftypefn mailer_t sieve_get_mailer (sieve_machine_t @var{mach})
+@end deftypefn
+
+@deftypefn {char *} sieve_get_daemon_email __P((sieve_machine_t @var{mach})
+@end deftypefn
+
+
+@deftypefn void sieve_set_error (sieve_machine_t @var{mach},
+sieve_printf_t @var{error_printer})
+@end deftypefn
+
+@deftypefn void sieve_set_parse_error (sieve_machine_t @var{mach}, sieve_parse_error_t @var{p})
+@end deftypefn
+
+@deftypefn void sieve_set_debug (sieve_machine_t @var{mach}, sieve_printf_t @var{debug}));
+@end deftypefn
+
+@deftypefn void sieve_set_debug_level (sieve_machine_t @var{mach}, mu_debug_t @var{dbg}, int @var{level})
+@end deftypefn
+
+@deftypefn void sieve_set_logger (sieve_machine_t @var{mach}, sieve_action_log_t @var{logger})
+@end deftypefn
+
+@deftypefn void sieve_set_ticket (sieve_machine_t @var{mach}, ticket_t @var{ticket})
+@end deftypefn
+
+@deftypefn void sieve_set_mailer (sieve_machine_t @var{mach}, mailer_t @var{mailer})
+@end deftypefn
+
+@deftypefn void sieve_set_daemon_email (sieve_machine_t @var{mach}, const char *@var{email})
+@end deftypefn
+
+@deftypefn int sieve_is_dry_run (sieve_machine_t @var{mach})
+@end deftypefn
+
+@deftypefn {const char *} sieve_type_str (sieve_data_type @var{type})
+@end deftypefn
+
+@node Logging and Diagnostic Functions 
+@section Logging and Diagnostic Functions 
+
+@deftypefn void sieve_error (sieve_machine_t @var{mach}, const char *@var{fmt}, @dots{})
+@end deftypefn
+
+@deftypefn void sieve_debug (sieve_machine_t @var{mach}, const char *@var{fmt}, @dots{})
+@end deftypefn
+
+@deftypefn void sieve_log_action (sieve_machine_t @var{mach}, const char *@var{action}, const char *@var{fmt}, @dots{})
+@end deftypefn
+
+@deftypefn void sieve_abort (sieve_machine_t @var{mach})
+@end deftypefn
+
+@node Symbol Space Functions
+@section Symbol Space Functions
+
+@deftypefn {sieve_register_t *} sieve_test_lookup (sieve_machine_t @var{mach}, const char *@var{name})
+@end deftypefn
+
+@deftypefn sieve_register_t *sieve_action_lookup (sieve_machine_t @var{mach}, const char *@var{name})
+@end deftypefn
+                                           
+@deftypefn int sieve_register_test (sieve_machine_t @var{mach}, const char *@var{name}, sieve_handler_t @var{handler}, sieve_data_type *@var{arg_types}, sieve_tag_group_t *@var{tags}, int @var{required})
+@end deftypefn
+                             
+@deftypefn int sieve_register_action (sieve_machine_t @var{mach}, const char *@var{name}, sieve_handler_t @var{handler}, sieve_data_type *@var{arg_types}, sieve_tag_group_t *@var{tags}, int @var{required})
+@end deftypefn
+                               
+@deftypefn int sieve_register_comparator (sieve_machine_t @var{mach}, const char *@var{name}, int @var{required}, sieve_comparator_t @var{is}, sieve_comparator_t @var{contains}, sieve_comparator_t @var{matches}, sieve_comparator_t @var{regex})
+@end deftypefn
+                                   
+@deftypefn int sieve_tag_lookup (list_t @var{taglist}, char *@var{name}, sieve_value_t **@var{arg})
+@end deftypefn
+
+@deftypefn int sieve_load_ext (sieve_machine_t @var{mach}, const char *@var{name})
+@end deftypefn
+
+@node Memory Allocation
+@section Memory Allocation
+
+@deftypefn {void *} sieve_alloc (size_t @var{size})
+@end deftypefn
+
+@node Compiling and Executing the Script
+@section Compiling and Executing the Script
+
+@deftypefn int sieve_compile (sieve_machine_t @var{mach}, const char *@var{name})
+@end deftypefn
+
+@deftypefn int sieve_mailbox (sieve_machine_t @var{mach}, mailbox_t @var{mbox})
+@end deftypefn
+
+@deftypefn int sieve_message (sieve_machine_t @var{mach}, message_t @var{message})
+@end deftypefn
+
+@deftypefn int sieve_disass (sieve_machine_t @var{mach})
+@end deftypefn
+
+
+
