@@ -1,3 +1,11 @@
+2003-09-10  Sergey Poznyakoff
+
+	* mailbox/imap/folder.c (read_capa): New function.
+	(check_capa): Call read_capa.
+	(authenticate_imap_login): Check for LOGINDISABLED.
+	(tls): Reread the capabilities after successfull TLS
+	negotiation.
+
 2003-09-09  Sergey Poznyakoff
 
 	* include/mailutils/address.h (address_aget_personal): Added
