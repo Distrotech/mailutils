@@ -1421,7 +1421,6 @@ mbox_append_message (mailbox_t mailbox, message_t msg)
     default:
       {
 	off_t size;
-	int status;
 	/* Move to the end of the file, not necesary if _APPEND mode.  */
 	if ((status = stream_size (mailbox->stream, &size)) != 0
 	    || (status = mbox_append_message0 (mailbox, msg, &size, 0, 0)) != 0)

@@ -34,7 +34,7 @@
 #include <mailutils/mutil.h>
 #include <mailutils/error.h>
 
-char *mu_path_maildir = MU_PATH_MAILDIR; 
+const char *mu_path_maildir = MU_PATH_MAILDIR; 
 
 /* Is this a security risk?  */
 #define USE_ENVIRON 1

@@ -1,3 +1,20 @@
+2002-03-15  Alain Magloire
+
+	Nuking of some useless warnings, and make "char *" --> "const char *"
+	when required.
+
+	* mailbox/include/imap0.h: warning: comma at end of enumerator list.
+	* mailbox/locker.c (locker_set_expire_time): warning: declaration of `time'
+	  shadows global declaration
+	  (locker_get_expire_time): declaration of `time' shadows global declaration
+	* mailbox/mbx_default.c (mu_path_maildir): Use "const" to reinforce a constant string.
+	* include/mailutils/mailbox.h (mu_path_maildir): constant "const".
+	* mailbox/mbx_mbox.c (mbox_append_message): status already declared.
+	* mailbox/memory_stream.c (_memory_truncate): Cast before doing the comparison.
+	* mailbox/parse822.c (parse822_time): useless ';' outside function definition.
+	* mailbox/smtp.c (smtp_send_message): warning: declaration of `from' shadows a parameter
+	  declaration of `to' shadows a parameter.
+
 2002-03-14  Sergey Poznyakoff  <gray@Mirddin.farlep.net>
 
 	* mail/util.c (util_do_command): Coredumped in false branches

@@ -129,7 +129,7 @@ _memory_truncate (stream_t stream, off_t len)
 	free (mfs->ptr);
       mfs->ptr = NULL;
     }
-  else if (len != mfs->size)
+  else if (len != (off_t)mfs->size)
     {
       char *tmp = realloc (mfs->ptr, len);
       if (tmp == NULL)

@@ -119,8 +119,7 @@ enum imap_auth_state
   IMAP_AUTH_ANON_WAIT_CONT,
   IMAP_AUTH_ANON_MSG,
   IMAP_AUTH_ANON_MSG_SEND,
-  IMAP_AUTH_ANON_WAIT_RESP,
-
+  IMAP_AUTH_ANON_WAIT_RESP
 };
 
 struct literal_string

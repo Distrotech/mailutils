@@ -35,7 +35,7 @@
 extern "C" {
 #endif
 
-extern char *mu_path_maildir;
+extern const char *mu_path_maildir;
 
 /* Constructor/destructor and possible types.  */
 extern int  mailbox_create          __P ((mailbox_t *, const char *));

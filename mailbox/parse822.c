@@ -1411,7 +1411,7 @@ int parse822_time(const char** p, const char* e,
   str_free(&zone);
 
   return EOK;
-};
+}
 
 #if 0
 For reference, especially the for the required range and values of the

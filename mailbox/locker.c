@@ -144,15 +144,15 @@ int locker_set_flags (locker_t locker, int flags)
 }
 
 int
-locker_set_expire_time (locker_t locker, int time)
+locker_set_expire_time (locker_t locker, int etime)
 {
   if (!locker)
     return MU_ERR_LOCKER_NULL;
 
-  if(time <= 0)
+  if(etime <= 0)
     return EINVAL;
 
-  locker->expire_time = time;
+  locker->expire_time = etime;
 
   return 0;
 }
@@ -199,15 +199,15 @@ int locker_get_flags (locker_t locker, int *flags)
 }
 
 int
-locker_get_expire_time (locker_t locker, int *time)
+locker_get_expire_time (locker_t locker, int *ptime)
 {
   if (!locker)
     return MU_ERR_LOCKER_NULL;
 
-  if(!time)
+  if(!ptime)
     return EINVAL;
 
-  *time = locker->expire_time;
+  *ptime = locker->expire_time;
 
   return 0;
 }

@@ -233,7 +233,7 @@ mailbox_imap_open (mailbox_t mailbox, int flags)
   m_imap_t m_imap = mailbox->data;
   f_imap_t f_imap = m_imap->f_imap;
   folder_t folder = f_imap->folder;
-  struct folder_list folders = { 0 };
+  struct folder_list folders = { 0, 0 };
 
   /* m_imap must have been created during mailbox initialization. */
   assert (mailbox->data);

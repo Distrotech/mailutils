@@ -439,16 +439,16 @@ smtp_send_message(mailer_t mailer, message_t msg, address_t from, address_t to)
     case SMTP_ENV_FROM:
       {
 	size_t len = 0;
-	char *from;
+	char *frm;
 	address_get_email (smtp->mail_from, 1, NULL, 0, &len);
 	if (len == 0)
 	  CHECK_ERROR (smtp, EINVAL);
-	from = calloc (len + 1, sizeof (char));
-	if (from == NULL)
+	frm = calloc (len + 1, sizeof (char));
+	if (frm == NULL)
 	  CHECK_ERROR (smtp, ENOMEM);
-	address_get_email (smtp->mail_from, 1, from, len + 1, NULL);
-	status = smtp_writeline (smtp, "MAIL FROM: %s\r\n", from);
-	free (from);
+	address_get_email (smtp->mail_from, 1, frm, len + 1, NULL);
+	status = smtp_writeline (smtp, "MAIL FROM: %s\r\n", frm);
+	free (frm);
 	address_destroy (&smtp->mail_from);
 	CHECK_ERROR (smtp, status);
 	MAILER_DEBUG0 (mailer, MU_DEBUG_PROT, smtp->buffer);
@@ -482,16 +482,16 @@ smtp_send_message(mailer_t mailer, message_t msg, address_t from, address_t to)
 	if (smtp->rcpt_index <= i)
 	  {
 	    size_t len = 0;
-	    char *to;
+	    char *To;
 	    address_get_email (smtp->rcpt_to, smtp->rcpt_index, NULL, 0, &len);
 	    if (len == 0)
 	      CHECK_ERROR (smtp, EINVAL);
-	    to = calloc (len + 1, sizeof (char));
-	    if (to == NULL)
+	    To = calloc (len + 1, sizeof (char));
+	    if (To == NULL)
 	      CHECK_ERROR (smtp, ENOMEM);
-	    address_get_email (smtp->rcpt_to, smtp->rcpt_index, to, len + 1, NULL);
-	    status = smtp_writeline (smtp, "RCPT TO: %s\r\n", to);
-	    free (to);
+	    address_get_email (smtp->rcpt_to, smtp->rcpt_index, To, len + 1, NULL);
+	    status = smtp_writeline (smtp, "RCPT TO: %s\r\n", To);
+	    free (To);
 	    CHECK_ERROR (smtp, status);
 	    MAILER_DEBUG0 (mailer, MU_DEBUG_PROT, smtp->buffer);
 	    smtp->state = SMTP_RCPT_TO;
