@@ -66,7 +66,7 @@ int
 mda_init (void *data)
 {
   struct mda_data *md = data;
-  md->progfile = make_progfile_name (md->progfile_pattern, md->argv[0]);
+  md->progfile = mu_expand_path_pattern (md->progfile_pattern, md->argv[0]);
   return 0;
 }
 
@@ -159,7 +159,7 @@ mda_next (void *data, mailbox_t mbox)
     return 0;
   if (md->progfile)
     free (md->progfile);
-  md->progfile = make_progfile_name (md->progfile_pattern, *md->argv);
+  md->progfile = mu_expand_path_pattern (md->progfile_pattern, *md->argv);
 
   mailbox_get_message (mbox, 1, &mesg);
   message_get_attribute (mesg, &attr);
