@@ -1,3 +1,56 @@
+2003-01-22  Sergey Poznyakoff
+
+	Renamed mu_errstring to mu_strerror for consistency
+	with usual practice.
+	Files affected:
+	
+	* comsat/comsat.c
+	* dotlock/dotlock.c
+	* examples/http.c
+	* examples/mimetest.c
+	* examples/msg-send.c
+	* examples/mta.c
+	* examples/sfrom.c
+	* examples/url-parse.c
+	* frm/frm.c
+	* from/from.c
+	* guimb/collect.c
+	* imap4d/auth_gsasl.c
+	* imap4d/select.c
+	* include/mailutils/errno.h
+	* libsieve/actions.c
+	* libsieve/argp.c
+	* libsieve/prog.c
+	* libsieve/require.c
+	* libsieve/runtime.c
+	* libsieve/sieve.l
+	* mail/alt.c
+	* mail/file.c
+	* mail/mail.c
+	* mail/send.c
+	* mail/util.c
+	* mail/var.c
+	* mail.local/main.c
+	* mail.remote/mail.remote.c
+	* mailbox/mbx_mbox.c
+	* mailbox/mbx_pop.c
+	* mailbox/message.c
+	* mailbox/mu_argp.c
+	* mailbox/muerrno.c
+	* mailbox/wicket.c
+	* mh/comp.c
+	* mh/inc.c
+	* mh/mh_ctx.c
+	* mh/mh_init.c
+	* mh/mh_msgset.c
+	* mh/mh_whatnow.c
+	* mh/refile.c
+	* mh/repl.c
+	* pop3d/apop.c
+	* pop3d/lock.c
+	* readmsg/readmsg.c
+	* sieve/sieve.c
+
 2003-01-22  Sergey Poznyakoff  
 
 	* configure.ac: Raised version number to 0.2.2
