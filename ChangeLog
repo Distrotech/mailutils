@@ -1,3 +1,9 @@
+2004-01-13  Wojciech Polak
+
+	* from/from.c: Use mu_error() where appropriate.
+	(from_rfc2047_decode): New function.
+	* messages/messages.c: Use mu_error().
+
 2004-01-12  Wojciech Polak
 
 	* frm/frm.c (frm_rfc2047_decode): New function.
