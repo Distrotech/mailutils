@@ -1,3 +1,9 @@
+2001-07-23 Sergey Poznyakoff
+	* configure.in,libmu_scm/Makefile.am,guimb/Makefile.am : Fixed to
+	compile properly on systems with missing/incomplete guile.
+	* include/mailutils/Makefile.am: Added mailutils.h to
+	pkginclude_HEADERS.
+
 2001-07-23 Alain Magloire
 
 	* libmu_scm/mu_scm.h: Remove HAVE_LIBGUILE_H guard.
