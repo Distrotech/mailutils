@@ -1,3 +1,11 @@
+2003-08-29  Sergey Poznyakoff 
+
+	* auth/gsasl.c: Lots of fixes.
+	* auth/lbuf.h (_auth_lb_writelines): New function.
+	* auth/lbuf.c: Likewise
+	* imap4d/util.c (util_run_events): Use iterator instead of
+	list_do. Iterators are safer.
+
 2003-08-28  Sergey Poznyakoff 
 
 	Implemented the TLS protocol for IMAP and POP mailboxes.
