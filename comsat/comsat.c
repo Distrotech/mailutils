@@ -349,8 +349,8 @@ comsat_main (int fd)
     }
 
   syslog (LOG_INFO,
-	  ngettext ("%d byte from %s",
-		    "%d bytes from %s", rdlen),
+	  ngettext ("received %d byte from %s",
+		    "received %d bytes from %s", rdlen),
 	  rdlen, inet_ntoa (sin_from.sin_addr));
 
   buffer[rdlen] = 0;

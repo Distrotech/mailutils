@@ -65,7 +65,7 @@ Debug flags:\n\
 static struct argp_option options[] =
 {
   {"no-actions", 'n', 0, 0,
-   N_("No actions executed, just print what would be done"), 0},
+   N_("Do not execute any actions, just print what would be done"), 0},
 
   {"keep-going", 'k', 0, 0,
    N_("Keep on going if execution fails on a message"), 0},

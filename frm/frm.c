@@ -171,7 +171,7 @@ static struct argp_option options[] = {
   {"to",     'l', NULL,   0, N_("Include the To: information"), 0},
   {"number", 'n', NULL,   0, N_("Display message numbers"), 0},
   {"Quiet",  'Q', NULL,   0, N_("Very quiet"), 0},
-  {"query",  'q', NULL,   0, N_("Print a message if unread mail"), 0},
+  {"query",  'q', NULL,   0, N_("Print a message if the mailbox contains some unread mail"), 0},
   {"summary",'S', NULL,   0, N_("Print a summary of messages"), 0},
   {"status", 's', N_("STATUS"), 0, attr_help, 0},
   {"align",  't', NULL,   0, N_("Try to align"), 0},
