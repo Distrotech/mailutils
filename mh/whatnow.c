@@ -95,7 +95,13 @@ main (int argc, char **argv)
 
   mh_argp_parse (argc, argv, 0, options, mh_option, args_doc, doc,
 		 opt_handler, NULL, &index);
-
+  argc -= index;
+  argv += index;
+  if (argc)
+    wh_env.draftfile = argv[0];
+  else
+    wh_env.draftfile = mh_draft_name ();
+  wh_env.file = wh_env.draftfile;
   wh_env.msg = getenv ("mhaltmsg");
   return mh_whatnow (&wh_env, initial_edit);
 }
