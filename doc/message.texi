@@ -1,0 +1,63 @@
+The @code{message_t} is a convenient way to manipulate messages.  It
+encapsulates the @code{header_t} attribute and the @code{body_t}.
+This type, unless you ask explicitly with @code{message_clone}, only contains
+references on how to retrieve the information from the mailbox.
+
+@example
+@group
+    +------------------+
+    |  message_t       |
+    +------------------+
+    |  header_t        |             +----------------+
+    |  body_t[]  *-----|------------+|  body_t        |----* .....
+    |  type            |             +----------------+
+    |  body_count      |             |  header_t      |
+    +------------------+             |  content       |
+                                     |  type          |
+                                     |  next body *---|----//--
+                                     +----------------+
+@end group
+@end example
+
+@section Init/Destroy
+The common way to obtain a @code{message_t} is by requesting
+@code{mailbox_get_message}, or @code{mailbox_create_message} from
+a specific type of mailbox, they are not explicitely created.
+
+@example
+#include <mailutils.h>
+
+mailbox_t mbx;
+message_t msg, clone;
+mailbox_init_default (&mbx, NULL);
+mailbox_open (mbx, MU_MB_RDONLY);
+@dots{}
+mailbox_get_message (mbx, msg_no, &msg);
+/* before closing I need to make sure
+   that I have a copy not a reference of the message */
+message_clone (msg, &clone);
+/* safe to close/expunge, I got a copy */
+mailbox_close (mbx);
+/* ... */
+message_size (clone, &size);
+@end example
+
+@deftypefun void message_destroy (message_t *@var{msg})
+The ressources allocate for clone @var{msg} are freed.
+@end deftypefun
+
+@deftypefun int message_get_header (message_t @var{msg}, header_t *@var{hdr})
+@end deftypefun
+
+The @code{message_t} provides some methosd to retrieve some well know headers.
+@deftypefun int message_get_from (message_t @var{msg}, char *buffer, size_t len, size_t *n)
+@end deftypefun
+
+@deftypefun int message_get_to (message_t @var{msg}, char *buffer, size_t len, size_t *n)
+@end deftypefun
+
+@deftypefun int message_get_date (message_t @var{msg}, char *buffer, size_t len, size_t *n)
+@end deftypefun
+
+@deftypefun int message_get_cc (message_t @var{msg}, char *buffer, size_t len, size_t *n)
+@end deftypefun

@@ -1,0 +1,22 @@
+The @code{body_t} type contains a @code{header_t}, a content and
+optionnaly another @code{body_t} part.
+
+@section Init/Destroy
+
+@deftypefun int body_init (body_t *@var{msg}, const mailbox_t @var{mbx})
+Private.
+@end deftypefun
+
+@deftypefun void body_destroy (body_t *@var{msg})
+The ressources allocate for clone @var{msg} are freed.
+@end deftypefun
+
+@deftypefun int body_get_header (body_t @var{msg}, header_t *@var{hdr})
+@end deftypefun
+
+@deftypefun int body_get_content (body_t @var{msg}, char *buffer, size_t len, size_t *n)
+@end deftypefun
+
+@deftypefun int body_get_type (body_t @var{msg}, char *buffer, size_t len, size_t *n)
+@end deftypefun
+

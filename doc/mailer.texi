@@ -1,13 +1,12 @@
 
 Mail Delivery is done here. Nothing is implemented and the API is still shaky.
 
-@subsubsection Init/Destroy
+@section Init/Destroy
 
 Initialize the mailer object.
 
 @deftypefun int mailer_init (mailer_t *@var{mailer}, const char *@var{name}, int @var{flag})
 Not Implemented.
-@end deftypefun
 
 @defmac MU_ML_PROGRAM
 Program like sendmail, mail, mailx to deliver the mail
@@ -21,11 +20,14 @@ Contact the host directly with SMTP.
 Use MPP protocol.
 @end defmac
 
+@end deftypefun
+
 @deftypefun int mailer_destroy (mailer_r *@var{mailer})
 Not Implemented.
 @end deftypefun
 
-@subsubsection User/Passwd
+
+@section User/Passwd
 
 On some mailer like MMP you need to identify.
 
@@ -37,7 +39,7 @@ Not Implemented.
 Not Implemented.
 @end deftypefun
 
-@subsubsection Open/Close
+@section Open/Close
 The mailer is spawn, if it is a program, or the host is contacted.
 
 @deftypefun int mailer_open (mailer_t @var{mailer}, int @var{flag})
@@ -48,15 +50,15 @@ Not Implemented.
 Not Implemented.
 @end deftypefun
 
-@subsubsection Sending
+@section Sending
 
 Sending a message.
 
-@deftypefun int mailer_create_envelope (mailer_t @var{mailer}, size_t *)
+@deftypefun int mailer_new_message (mailer_t @var{mailer}, size_t *)
 Not Implemented.
 @end deftypefun
 
-@deftypefun int mailer_set_body (mailer_t @var{mailer}, char *, size_t)
+@deftypefun int mailer_set_content (mailer_t @var{mailer}, char *, size_t)
 Not Implemented.
 @end deftypefun
 
@@ -67,11 +69,11 @@ Not Implemented.
 @deftypefun int mailbox_add_attachment (mailer_t, size_t msgno, const char *boundary, const char *header, FILE *file, int encoding)
 @end deftypefun
 
-@deftypefun int mailer_send_envelope (mailer_t @var{mailer}, size_t)
+@deftypefun int mailer_send_message (mailer_t @var{mailer}, size_t)
 Not Implemented.
 @end deftypefun
 
-@subsubsection Timeout
+@section Timeout
 @deftypefun int mailer_set_timeout (mailer_t @var{mailer}, size_t)
 Not Implemented.
 @end deftypefun
@@ -80,42 +82,26 @@ Not Implemented.
 Not Implemented.
 @end deftypefun
 
-
-@subsection Mailto
-@cindex Mailto
-The URL mailto: should be supported.
-
-TODO: example of mailto, and mailing lists,
-
-@subsection SMTP
+@section SMTP
 @cindex SMTP
 
 TODO: todo
 
-@subsection UUCP
+@section UUCP
 @cindex UUCP
 
 Yeurk ! It this to old ? Is it worth it ?
 
-@subsection Sendmail
+@section Program
 @cindex Sendmail
-
-This is not a protocol, but someone may use it as the mailer, and
-we provide the magic.
-
-@subsection mailx
 @cindex mailx
-
-This is not a protocol, but someone may use it as the mailer, and
-we provide the magic.
-
-@subsection mail
 @cindex mail
 
-This is not a protocol, but someone may use it as the mailer, and
-we provide the magic.
+This is not a protocol, but on must site the delivery of mail is done via
+a program, @command{/usr/lib/sendmail}, @command{/bin/mailx},
+@command{/bin/mail}, @dots{}
 
-@subsection MPP
+@section MPP
 @cindex MPP
 
-Mail Posting Protocol.
+Mail Posting Protocol.  Not Implemented.

@@ -1,9 +1,9 @@
-@subsection RFC1522
+@section RFC1522
 @cindex RFC1522
 
-@subsection Quoted Printable
+@section Quoted Printable
 @cindex Quoted Printable
 
-@subsection Base64
+@section Base64
 @cindex Base64
 

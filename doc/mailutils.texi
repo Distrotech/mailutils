@@ -100,30 +100,60 @@ by the Foundation.
 This document was produced for version @value{VERSION} of @sc{gnu}
 @sc{mailutils}.
 @end ifinfo
-
 @menu
-* Introduction::              GNU @sc{Mailutils}  Programmer's manual.
-* Mailbox::                   Mailbox API.
-* Mailer::                    Protocol Use to Send Mail.
-* URL::                       Unified Ressource Locator.
-* Headers::                   Headers API.
-* Mime::                      Mime API.
-* Encoding::                  Encoding API.
-* Reporting Bugs::            Reporting Bugs.
-* Acknowledgement::           Thanks and Credits.
-* Concept Index::             Topics in this Manual.
-* Index::                     All @sc{Mailutils} Functions.
+* Introduction::                GNU @sc{mailutils}
+* Mailbox::                     Mailbox API.
+* Mailer::                      Protocol Use to Send Mail.
+* URL::                         Unified Ressource Locator.
+* Message::                     Message API.
+* Body::                        Body API.
+* Headers::                     Headers API.
+* Mime::                        Mime API.
+* Encoding::                    Encoding API.
+* Reporting Bugs::              Reporting Bugs.
+* Acknowledgement::             Thanks and Credits.
+* Concept Index ::
+* Index::                       All @sc{Mailutils} Functions.
 @end menu
 
-@node Introduction,  Mailbox, Top, Top
+@node Introduction, Mailbox, Top, Top
 @comment  node-name,  next,  previous,  up
 @chapter Introduction
 @cindex Introduction
 
 @sc{gnu} @sc{Mailutils} offers a general purpose library aimed to provide
 a rich set of functions for accessing different mailbox formats and mailers.
-For example writing a simple from command that will list @var{From} and
-@var{Subject} of a folder.
+
+@example
+@group
+                             USER Client
+                         -------------------
+                            |           |
+              +-------------+           +-------------+
+              |                                       |
+         /-----------\                          /-----------\
+         | mailbox_t |                          | mailer_t  |
+         \-----------/                          \-----------/
+              |                                       |
+              +--------------------+------------------+
+                                   |
+                          /------------------\
+                          |     message_t    |
+                          \------------------/
+                          | body_t | header_t|
+                          +------------------+
+                                   |
+              +--------------------+----------------+
+              |                                      |
+           -------                            ////////////////
+          (_______)                           //    LAN     //
+          (_______)                           ////////////////
+          (_______)
+@end group
+@end example
+
+For example writing a simple @command{from} command that will list @emph{From}
+and @emph{Subject} of a folder.
 
 @example
 @include sfrom.c.texi
@@ -136,21 +166,35 @@ For example writing a simple from command that will list @var{From} and
 
 @include mailbox.texi
 
-@node Mailer, URL , Mailbox, Top
+@node Mailer, URL, Mailbox, Top
 @comment  node-name,  next,  previous,  up
 @chapter Mailer
 @cindex Mailer
 
 @include mailer.texi
 
-@node URL, Headers , Mailer, Top
+@node URL, Message, Mailer, Top
 @comment  node-name,  next,  previous,  up
 @chapter URL
 @cindex URL
 
 @include url.texi
 
-@node Headers, Mime, URL , Top
+@node Message, Body, URL, Top
+@comment  node-name,  next,  previous,  up
+@chapter Message
+@cindex Message
+
+@include message.texi
+
+@node Body, Headers, Message, Top
+@comment  node-name,  next,  previous,  up
+@chapter Body
+@cindex Body
+
+@include body.texi
+
+@node Headers, Mime , Body, Top
 @comment  node-name,  next,  previous,  up
 @chapter Headers
 @cindex Headers
@@ -159,12 +203,12 @@ For example writing a simple from command that will list @var{From} and
 
 @node Mime , Encoding, Headers, Top
 @comment  node-name,  next,  previous,  up
-@subsection Mime
+@chapter Mime
 @cindex Mime
 
 @include mime.texi
 
-@node Encoding,  Reporting Bugs, Mime, Top
+@node Encoding, Reporting Bugs, Mime , Top
 @comment  node-name,  next,  previous,  up
 @chapter Encoding
 @cindex Encoding
@@ -179,14 +223,16 @@ For example writing a simple from command that will list @var{From} and
 Email bug reports to @email{bug-mailutils@@gnu.org}.
 Be sure to include the word ``mailutils'' somewhere in the ``Subject:'' field.
 
-@node Acknowledgement, Concept Index, Reporting Bugs, Top
+@node Acknowledgement, Concept Index , Reporting Bugs, Top
 @comment  node-name,  next,  previous,  up
 @chapter Acknowledgement
 @cindex Acknowledgement
 
-Jakob Kaivo  @email{jkaivo@@ndn.net},
-Jeff Bailey  @email{jbailey@@gnu.org},
-Sean Perry   @email{shaleh@@debian.org},
+In no particular order,
+Jakob Kaivo @email{jkaivo@@ndn.net},
+Jeff Bailey @email{jbailey@@gnu.org},
+Sean Perry @email{shaleh@@debian.org},
+Thomas Fletcher @email{thomasf@@qnx.com}.
 
 @page
 @node Concept Index , Index, Acknowledgement, Top
@@ -198,7 +244,7 @@ This is a general index of all issues discussed in this manual
 @printindex cp
 @page
 
-@node Index,  , Concept Index, Top
+@node Index,  , Concept Index , Top
 @unnumbered Index
 
 This is an alphabetical list of all @sc{mailutils} functions.

@@ -1,42 +1,64 @@
 Mail boxes come in different formats and may be on a remote hosts,
-only accessible through a Mail Delivery Agent(MDA).  Regardeless
+only accessible through Mail Delivery Agent(MDA).  Regardeless
 of the format and the protocol use, some common actions are needed like
 reading, saving, deleting, scanning ... Those actions are provided via a
 unify API mailbox_t.
 
 All functions of the mailbox_t API return 0 if succesfull or non-zero
-otherwise. Unless they specify otherwise.
+for failure, unless specify otherwise.
 
-@subsubsection Init/Destroy
+@section Init/Destroy
 Initializing and destroying a mailbox_t object.
 
 @deftypefun int mailbox_init (mailbox_t *@var{mbx}, const char * @var{url}, int @var{id})
 Based on the type of the @var{url}, @var{mbx} is initialize to a known type,
 if @var{id} is not zero, it represents the id of the mailbox. The @var{id}
 will be use instead of doing heuristic search on the @var{url}.
-@end deftypefun
 @example
 #include <mailutils.h>
-@dot{}
+@dots{}
 mailbox_t foo, popmbx, bar;
+/* same as @url{file:///var/mail/foo} */
 mailbox_init (&mbox, "/var/mail/foo", 0);
-mailbox_init (&mbox, "pop://popserver.bar.com/foo, 0);
+mailbox_init (&mbox, "pop://popserver.bar.com/foo", 0);
 mailbox_init (&mbox, "file:///home/bar/.hiddenmail/bar", 0);
 @end example
+@end deftypefun
+
+@deftypefun int mailbox_init_default (mailbox_t *@var{mbx}, const char * @var{user})
+Initialize the default mailbox of the system as set by the mail adminstrator.
+It could be hardcoded or override by a configuration
+@file{$sysconfig/mailutils.conf}.
+@example
+#include <mailutils.h>
+@dots{}
+/* If the default mailbox on this system is @file{/var/mail} */
+
+mailbox_t mbx;
+
+/* sets the mailbox name to @url{file:///var/mail/foo} */
+mailbox_init_default (&mbx, "foo");
+
+/*
+ If the user is log as @emph{bar}, sets the mailbox name
+ to @url{file:///var/mail/bar}
+*/
+mailbox_init_default (&mbx, NULL);
+@end example
+@end deftypefun
 
 @deftypefun int mailbox_destroy (mailbox_t *@var{mbx})
-All ressources allocated is release if the stream is not open,
+All ressources allocated are release.  If the stream is not open,
 @code{mailbox_close} is call.
 @end deftypefun
 
-@subsubsection Open/Close
+@section Open/Close
 Opening and closing mailbox can be done any number of times. But be warned
 on some cases like POP3, when opening, the lock can be persistent until
 the stream is closed as required by the RFC.
 
 @deftypefun int mailbox_open (mailbox_t @var{mbx}, int @var{flag})
 Open the mailbox box stream. This funtion will call @code{mailbox_scan}.
-@end deftypefun
 
 @defmac MU_MB_RDONLY
 Stream is open read-only.
@@ -48,20 +70,86 @@ Stream is open write-only.
 Stream is open read-write.
 @end defmac
 @defmac MU_MB_CREAT
-If file does not exist it is created. May be a noop on remote hosts mailbox.
+If Folder does not exist it is created. May be a noop on remote hosts mailbox.
 @end defmac
 @defmac MU_MB_APPEND
 The stream is opened in append mode.
 @end defmac
 @defmac MU_MB_ONONBLOCK
-For sockets, open() nonblocking.
+For sockets, open() nonblocking.  Not supported.
 @end defmac
+@end deftypefun
 
 @deftypefun int mailbox_close (mailbox_t @var{mbx})
 Close the streams and release the locks.
 @end deftypefun
 
-@subsubsection Deletion
+@deftypefun int mailbox_is_open (mailbox_t @var{mbx})
+Return a non-zero value if  the stream is open, zero otherwise.
+@end deftypefun
+
+This is a very simple implementation of Unix @command{biff}.
+
+@example
+#include <mailutils.h>
+#include <unistd.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+#define NAP 120
+
+int
+main ()
+@{
+    mailbox_t mbx;
+    size_t size = 0, size2 = 0;
+
+    if (mailbox_init_default (&mbx, NULL) != 0)
+      @{
+          fprintf ("Can't initiliaze system mailbox\n");
+          exit (EXIT_FAILURE);
+      @}
+    /* the open may fail if no mailbox was created,
+       will check this later */
+    mailbox_open (mbx, MU_MB_RDONLY);
+    mailbox_size (mbx, &size);
+    for (;;)
+      @{
+         if (! mailbox_is_open (mbx))
+           @{
+              if (mailbox_open (mbx, MU_MB_RDONLY) != 0);
+                @{
+                   //fprintf (stderr, "Not exist ?\n");
+                @}
+           @}
+         else
+           @{
+              if (mailbox_size (mbx, &size2) == 0)
+                @{
+                   if (size2 > size)
+                     @{
+                        printf ("You got mail\a\n");
+                     @}
+                   size = size2;
+                @}
+           @}
+
+          /* rest a while */
+          sleep (NAP);
+
+          /* It is a good habit to close the resources.
+             A mailbox could be a remote host and the locking
+             may interfere with normal delivery, for example with
+             POP, the lock is hold during the entire session.
+           */
+          mailbox_close (mbx);
+       @}
+
+     return 0;
+@}
+@end example
+
+@section Deletion
 Messages can be marked for deletion but the action of removing them is only
 taken when @code{mailbox_expunge} is called.
 
@@ -85,11 +173,11 @@ All messages marked for deletion will be removed and the mailbox updated.
 Return the number of Mailbox marked to be delete.
 @end deftypefun
 
-@subsubsection New Message
+@section New Message
 Certain mailboxes allow new messages to be appended the existing folder.
 The stream must be @code{mailbox_open}  with the proper permission.
 
-@deftypefun int mailbox_create_envelope (mailbox_t @var{mbx}, size_t *@var{msgno})
+@deftypefun int mailbox_new_message (mailbox_t @var{mbx}, size_t *@var{msgno})
 Create an envelope, @var{msgno} will contain a uniq number for this envelope.
 @end deftypefun
 
@@ -104,7 +192,7 @@ Fill the body of new envelope @var{msgno}.  If @var{replace} is zero the buffer
 @var{body} will be append, otherwise it will overwrite any existing one.
 @end deftypefun
 
-@deftypefun int mailbox_append (mailbox_t @var{mbx}, size_t @var{msgno}, int @var{destroy})
+@deftypefun int mailbox_append_message (mailbox_t @var{mbx}, size_t @var{msgno}, int @var{destroy})
 @var{msgno} given from @code{mailbox_envelope} will be append to
 the mailbox. When appending the header may be modified.  In the case of
 Unix Mbox, the header "From " is prepend.  If @var{destroy} is set non-zero
@@ -116,16 +204,16 @@ Ressources allocated to envelope @var{msgno} will be release.  This function
 should be call after @code{mailbox_append}.
 @end deftypefun
 
-@subsubsection Reading
+@section Reading
 Reading the message body and header.
 
-@deftypefun int mailbox_get_body (mailbox_t @var{mbx}, size_t @var{msgno}, off_t @var{off}, char *@var{buffer}, size_t @var{len}, size_t *@var{read})
+@deftypefun int mailbox_get_content (mailbox_t @var{mbx}, size_t @var{msgno}, off_t @var{off}, char *@var{buffer}, size_t @var{len}, size_t *@var{read})
 Read the body of message @var{msgno} starting at offset @var{off} in
 @var{buffer} of size @var{len}. The number of bytes read is returned in
 @var{nread}.
 @end deftypefun
 
-@deftypefun int mailbox_get_mbody (mailbox_t @var{mbx}, size_t @var{msgno}, off_t @var{off}, char **@var{buffer}, size_t *@var{read})
+@deftypefun int mailbox_get_mcontent (mailbox_t @var{mbx}, size_t @var{msgno}, off_t @var{off}, char **@var{buffer}, size_t *@var{read})
 A buffer is allocated with @code{malloc(3)} return memory containing the body
 of message @var{msgno} starting at offset @var{off} in @var{buffer}.
 The number of bytes read is returned in @var{nread}.
@@ -143,7 +231,7 @@ message @var{msgno} starting at offset @var{off} in @var{buffer}.
 The number of bytes read is returned in @var{nread}.
 @end deftypefun
 
-@subsubsection Locking
+@section Locking
 Most mailboxes provide locking before changing the content.  Functions
 will grab the lock before doing any destructive action.  The Locking functions
 are provided for accesssing the folder outside the API, in that case the
@@ -154,7 +242,6 @@ locking to provide synchronisation to the mailbox_t object.
 Grab the lock.  In some cases, i.e Unix mbox this may involve creating
 a .lock file in the spool directory.
 @comment Say something about permission the program be gid on some OS.
-@end deftypefun
 
 @defmac MU_MB_RDLOCK
 Read lock.
@@ -166,13 +253,15 @@ Write lock.
 Read/Write lock.
 @end defmac
 
+@end deftypefun
+
 Note on many mailbox, RDLOCK is a noop.
 
 @deftypefun int mailbox_unlock (mailbox_t @var{mbx})
 Release the lock.
 @end deftypefun
 
-@subsubsection Owner/Group
+@section Owner/Group
 Most mailboxes provide locking before changing their content, Ownership
 and group. When creating certain mailbox, you can set the owner/group.
 
@@ -185,7 +274,7 @@ Set the group to @var{gid}.  If the Mailbox was not @code{mailbox_open}
 the action is delayed until the stream is opened.
 @end deftypefun
 
-@subsubsection Scanning
+@section Scanning
 
 Scan is done explicitely on @code{mailbox_open}.
 
@@ -214,7 +303,7 @@ For message @var{msgno} set @var{header} size and @var{body} size.
 Return the number of messages in @var{mbx}.
 @end deftypefun
 
-@subsubsection Timeout/Notification
+@section Timeout/Notification
 Setting timeout and notifications.  @code{mailbox_scan} can be called
 periodically to see if new messages have arrived, if the number of
 total messages has changed the notification function is called.  By default
@@ -236,7 +325,7 @@ Not Implemented.
 Not Implemented.
 @end deftypefun
 
-@subsubsection Registration and Type
+@section Registration and Type
 
 Mailbox_t comes with a certain number of builtin types, you can query them
 or add you own to the list.
@@ -270,45 +359,45 @@ Add a mailbox @var{mtype} to the list of builtin.
 Remove a mailbox @var{mtype} to the list of builtin.
 @end deftypefun
 
-@deftypefun int mailbox_get_type (struct mailbox_type **@var{mtype}, int @var{id})
-Base ont the URL @var{id} return the mailbox_type.
+@deftypefun int mailbox_get_type (struct mailbox_type **@var{mtype}, int @var{urlid})
+Base on the URL @var{urlid} return the mailbox_type.
 @end deftypefun
 
-@deftypefun int mailbox_get_name (mailbox_t @var{mbx}, int *@var{id}, char *@var{name}, size_t @var{len}, size_t *@var{n})
-Return the name of mailbox identify by @var{id}, in buffer @var{name} of size
-@var{len}.  The number of byte is put in @var{n}.
+@deftypefun int mailbox_get_name (mailbox_t @var{mbx}, int *@var{mbxid}, char *@var{name}, size_t @var{len}, size_t *@var{n})
+Return the name of mailbox identify by @var{mbxid}, in buffer @var{name} of
+size @var{len}.  The number of byte is put in @var{n}.
 @end deftypefun
 
-@deftypefun int mailbox_get_mname (mailbox_t, int *id, char **name, size_t *n)
-Return the name of mailbox identify by @var{id}, in a @code{malloc(3)} buffer
-@var{name} of size @var{n}.
+@deftypefun int mailbox_get_mname (mailbox_t @var{mbx}, int *@var{mbxid}, char **@var{name}, size_t *@var{n})
+Return the name of mailbox identify by @var{mbxid}, in a @code{malloc(3)}
+buffer @var{name} of size @var{n}.
 @end deftypefun
 
 All mailbox implementations provide this minimum set of the API.
 
-@subsection Unix Mbox
+@section Unix Mbox
 @cindex Unix Mbox
 
 TODO: describe particularities :
 locking policy, appending envelope, describe the flags use in _open(..), etc...
 
-@subsection POP3 Mbox
+@section POP3 Mbox
 @cindex POP3 Mbox
 
 TODO: describe timeout policies, describe the flags use in _open(..),
 describe different authorisation supported.
 
-@subsection IMAP Mbox
+@section IMAP Mbox
 @cindex IMAP Mbox
 
 Not implemented.
 
-@subsection QMail Mbox
+@section QMail Mbox
 @cindex QMail Mbox
 
 Not implemented.
 
-@subsection MMDF Mbox
+@section MMDF Mbox
 @cindex MMDF Mbox
 
 Not implemented.

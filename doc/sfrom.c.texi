@@ -3,11 +3,6 @@
 #include <unistd.h>
 #include <string.h>
 #include <mailutils.h>
-#include <paths.h>
-
-#ifndef _PATH_MAILDIR
-#define _PATH_MAILDIR "/usr/spool/mail"
-#endif
 
 int main (int argc, char **argv)
 @{
@@ -19,32 +14,13 @@ int main (int argc, char **argv)
    int status
    size_t msgno, msg_total, size;
 
-   if (argc == 2)
-     @{
-         mail = argv[1];
-     @}
-   else
-     @{
-         mail = getenv ("MAIL");
-         if (mail == NULL)
-           @{
-               char * user = getlogin ();
-               size_t len = strlen (_PATH_MAILDIR)
-                           + 1 /* for slash */ + strlen (user) + 1 /* null */;
-               mail = malloc (len);
-               if (mail == NULL)
-                 @{
-                    fprintf (stderr, "malloc failed\n");
-                    exit (EXIT_FAILURE);
-                 @}
-               snprintf (mail, len, "%s/%s", _PATH_MAILDIR, user);
-           @}
-     @}
+   mail = (argc == 2) ? argv[1] : getenv ("MAIL");
 
-   status = mailbox_init (&mbox, mail, 0);
+   status = mailbox_init_default (&mbox, mail);
    if (status != 0)
      @{
-        fprintf (stderr, "mailbox_init(%s) failed\n", mail);
+        fprintf (stderr, "mailbox_init(%s) failed\n",
+                 mail ? mail : "Default");
         exit (EXIT_FAILURE);
      @}
 
@@ -65,7 +41,8 @@ int main (int argc, char **argv)
                fprintf (stderr, "header corrupted\n");
                exit (EXIT_FAILURE);
            @}
-         header_gvalue (buffer, size, MU_HDR_FROM, from, sizeof (from), NULL);
+         header_gvalue (buffer, size, MU_HDR_FROM, from,
+                        sizeof (from), NULL);
          header_gvalue (buffer, size, MU_HDR_SUBJECT, subject,
                         sizeof (subject), NULL);
          printf ("%s %s\n", from, subject);

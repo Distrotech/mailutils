@@ -1,57 +1,149 @@
 
 @comment See rfc2368, rfc2369, rfc2384
-Instead of providing different functions to create a mailbox_t and mailer_t the
-information is encoded in the form of a URL.
-
-@itemize @bullet
-@item
-POP3 Post Office Protocol, Not Implemented.
-@item
-IMAP, not implemented
-@item
-QMAIL, not implemented
-@item
-Unix mbox
-@item
-MMDF, not implemented
-@item
-SMail, not implemented
-@end itemize
-
-The URL will contain the necessary information to initialize @code{mailbox_t}
+A mailbox and mailer can be describe in a URL, the string will contain the
+necessary information to initialize @code{mailbox_t}, or @code{mailer_t}
 properly.
-@subsection POP3
-pop://<user>;AUTH=<auth>@@<hostname>:<port>
 
-Description of the fields and examples are needed.
+@section POP3
+The POP URL scheme contains a pop server, optionnal port number
+and the authentication mechanism.  The genereal form is
 
-@subsection IMAP
+@example
+@url{pop://user;AUTH=type@@hostname:port}
+@url{pop://obelix;AUTH=+APOP@@village.gaulois.org:2000}
+@end example
+
+If @emph{:port} is omitted the default value is 110. Different form of
+authentication can be specified with @emph{;AUTH=type}.
+The special string @emph{;AUTH=*} indicates that the client will use
+a default scheme base on the capability of the server.
+@example
+@url{pop://obelix@@gaulois.org}
+@url{pop://asterix;AUTH=*@@france.com}
+@url{pop://falbala;AUTH=+APOP@@france.com}
+@end example
+
+For more complete information see @cite{rfc2368}.
+
+@section IMAP
 imap://.....
 
 Description of the fields and examples are needed.
 
-@subsection File
-file://path
+@section File
 
-Description of the fields and examples are needed.
+Local folder should be handle by this URL.  It is preferable to let
+the mailbox recognise the type of mailbox and take the appropriate
+action.
 
-@subsection MMDF
-mmdf://path
+@example
+@url{file://path}
+@url{file://var/mail/user}
+@url{file://home/obelix/Mail}
+@end example
 
-Description of the fields and examples are needed.
+For MMDF, MH local mailboxes urls are provided,  but it is preferable to
+use @url{file://path} and let the library figure out which one.
 
-@subsection MH
-mh://path
+@example
+@url{mmdf://path}
+@url{mh://path}
+@end example
 
-Description of the fields and examples are needed.
+@section Mailto
 
-@subsection Mailto
-mailto://
+After setting a mailer, @url{mailto:} is use to tell the mailer where
+and to whom the message is for.
+@example
+@url{mailto://hostname}
+@end example
 
-Description of the fields and examples are needed.
+Mailto can be use to generate short messages for example to subscribe
+to mailing lists.
+@example
+@url{mailto://bug-mailutils@@gnu.org?body=subscribe}
+@url{mailto://bug-mailutils@@gnu.org?Subject=hello&body=subscribe}
+@end example
 
-@subsection mmp
-mmp://
+For more complete information see @cite{rfc2368}.
 
-Description of the fields and examples are needed.
+@section URL funtions
+
+Helper functions are provided to retreive and set  the @emph{URL} fields.
+
+@deftypefun int  url_init (url_t *@var{url}, const char *name)
+Initialize and parse the @var{url}
+@end deftypefun
+
+@deftypefun void url_destroy (url_t *)
+@end deftypefun
+
+@deftp {Data type} struct url_type
+@example
+@{
+  char *scheme;
+  size_t  len;
+  char *description;
+  int  id;
+  int  (*_init) (url_t *, const char * name);
+  void (*_destroy) (url_t *);
+@};
+@end example
+@end deftp
+
+@section Helper functions
+
+@deftypefun int url_list_type (struct url_type @var{list}[], size_t @var{len}, size_t *@var{n})
+@end deftypefun
+
+@deftypefun int url_list_mtype (struct url_type **@var{mlist}, size_t *@var{n})
+@end deftypefun
+
+@deftypefun int url_add_type (struct url_type *@var{utype})
+@end deftypefun
+
+@deftypefun int url_remove_type (const struct url_type *@var{utype})
+@end deftypefun
+
+@deftypefun int url_get_id (const url_t @var{url}, int *@var{id})
+@end deftypefun
+
+@deftypefun int url_get_scheme (const url_t @var{url}, char *@var{schem}, size_t @var{len}, size_t *@var{n})
+@end deftypefun
+
+@deftypefun int url_get_mscheme (const url_t @var{url}, char **@var{scheme}, size_t *@var{n})
+@end deftypefun
+
+@deftypefun int url_get_user (const url_t @var{url}, char *@var{usr}, size_t @var{len}, size_t *@var{n})
+@end deftypefun
+
+@deftypefun int url_get_muser (const url_t @var{url}, char **@var{buf}, size_t *@var{n})
+@end deftypefun
+
+@deftypefun int url_get_passwd (const url_t @var{url}, char *@var{passwd}, size_t @var{len}, size_t *@var{n})
+@end deftypefun
+
+@deftypefun int url_get_mpasswd (const url_t @var{url}, char **@var{buf}, size_t *@var{n})
+@end deftypefun
+
+@deftypefun int url_get_host (const url_t @var{url}, char *@var{host}, size_t @var{len}, size_t *@var{n})
+@end deftypefun
+
+@deftypefun int url_get_mhost (const url_t @var{url}, char **@var{buf}, size_t *@var{n})
+@end deftypefun
+
+@deftypefun int url_get_port (const url_t @var{url}, long *@var{port})
+@end deftypefun
+
+@deftypefun int url_get_path (const url_t @var{url}, char *@var{path}, size_t @var{len}, size_t *@var{n})
+@end deftypefun
+
+@deftypefun int url_get_mpath (const url_t @var{url}, char **@var{buffer}, size_t *@var{len})
+@end deftypefun
+
+@deftypefun int url_get_query (const url_t @var{url}, char *@var{query}, size_t{len}, size_t *@var{n})
+@end deftypefun
+
+@deftypefun int url_get_mquery (const url_t @var{url}, char **@var{buf}, size_t *@var{len})
+@end deftypefun
 
