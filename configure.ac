@@ -17,7 +17,7 @@
 # Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #
 
-AC_INIT([GNU Mailutils], [0.1.1], [bug-mailutils@gnu.org])
+AC_INIT([GNU Mailutils], [0.1.2], [bug-mailutils@gnu.org])
 AC_CONFIG_SRCDIR([mailbox/mailbox.c])
 AC_CANONICAL_TARGET([])
 AM_INIT_AUTOMAKE
@@ -329,6 +329,13 @@ if test x"$use_virtual_domains" = x"yes"; then
     [SITE_VIRTUAL_PWDDIR="\$(sysconfdir)/domain"])
 fi
 
+MU_ENABLE_SUPPORT(imap)
+MU_ENABLE_SUPPORT(pop)
+AC_SUBST(MH_BUILD_DIRS)
+MU_ENABLE_SUPPORT(mh, [MH_BUILD_DIRS='$(MH_DIRS)'])
+AC_SUBST(SMTP_BUILD_DIRS)
+MU_ENABLE_SUPPORT(smtp, [SMTP_BUILD_DIRS='$(SMTP_DIRS)'])
+MU_ENABLE_SUPPORT(sendmail)
 
 if test x"$testpam" = x"yes"; then
 	AC_CHECK_HEADERS(security/pam_appl.h)
