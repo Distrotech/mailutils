@@ -11,6 +11,6 @@ SUBDIRS=scm
 bin_PROGRAMS=@GUIMB@
 EXTRA_PROGRAMS=guimb
 guimb_SOURCES=main.c collect.c util.c guimb.h 
-guimb_LDADD = ../libmu_scm/libmu_scm.a ../mailbox/libmailbox.la \
+guimb_LDADD = ../libmu_scm/libmu_scm.la ../mailbox/libmailbox.la \
  ../lib/libmailutils.la @GUILE_LIBS@ 
 
