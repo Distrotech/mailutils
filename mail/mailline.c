@@ -169,7 +169,7 @@ ml_readline_internal ()
 }
 
 char *
-ml_readline (const char *prompt)
+ml_readline (char *prompt)
 {
   if (interactive)
     return readline (prompt);
@@ -529,7 +529,7 @@ ml_reread (const char *prompt, char **text)
 }
 
 char *
-readline (const char *prompt)
+readline (char *prompt)
 {
   if (prompt)
     {
