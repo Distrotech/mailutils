@@ -62,19 +62,18 @@ imap4d_select0 (struct imap4d_command *command, char *arg, int flags)
     return util_finish (command, RESP_NO, "Couldn't open mailbox");
 
   if ((status = mailbox_create (&mbox, mailbox_name)) == 0
-      && (status = mailbox_open (mbox, flags)) == 0
-	)
+      && (status = mailbox_open (mbox, flags)) == 0)
     {
       select_flags = flags;
       state = STATE_SEL;
       if ((status = imap4d_select_status ()) == 0)
-      {
-      free (mailbox_name);
-      /* Need to set the state explicitely for select.  */
-	return util_send ("%s OK [%s] %s Completed\r\n", command->tag,
-			  (MU_STREAM_READ == flags) ?
-			  "READ-ONLY" : "READ-WRITE", command->name);
-      }
+	{
+	  free (mailbox_name);
+	  /* Need to set the state explicitely for select.  */
+	  return util_send ("%s OK [%s] %s Completed\r\n", command->tag,
+			    (MU_STREAM_READ == flags) ?
+			    "READ-ONLY" : "READ-WRITE", command->name);
+	}
     }
   status = util_finish (command, RESP_NO, "Couldn't open %s, %s",
 			mailbox_name, mu_errstring (status));
@@ -95,17 +94,15 @@ imap4d_select_status ()
   if (state != STATE_SEL)
     return 0; /* FIXME: this should be something! */
 
-  if (
-      (status = mailbox_uidvalidity (mbox, &uidvalidity)) ||
-      (status = mailbox_uidnext (mbox, &uidnext)) ||
-      (status = mailbox_messages_count (mbox, &count)) ||
-      (status = mailbox_messages_recent (mbox, &recent)) ||
-      (status = mailbox_message_unseen (mbox, &unseen))
-      )
+  if ((status = mailbox_uidvalidity (mbox, &uidvalidity))
+      || (status = mailbox_uidnext (mbox, &uidnext))
+      || (status = mailbox_messages_count (mbox, &count))
+      || (status = mailbox_messages_recent (mbox, &recent))
+      || (status = mailbox_message_unseen (mbox, &unseen)))
     return status;
 
-  util_out (RESP_NONE, "%d EXISTS", count);
-  util_out (RESP_NONE, "%d RECENT", recent);
+  /* This outputs EXISTS and RECENT responses */
+  imap4d_sync();
   util_out (RESP_OK, "[UIDVALIDITY %d] UID valididy status", uidvalidity);
   util_out (RESP_OK, "[UIDNEXT %d] Predicted next uid", uidnext);
   if (unseen)
