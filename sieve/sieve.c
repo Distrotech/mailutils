@@ -205,7 +205,7 @@ sv_printv (sv_interp_ctx_t* ic, int level, const char *fmt, va_list ap)
 void sv_print (sv_interp_ctx_t* ic, int level, const char* fmt, ...)
 {
   va_list ap;
-  va_start(fmt, ap);
+  va_start(ap, fmt);
   sv_printv(ic, level, fmt, ap);
   va_end(ap);
 }
