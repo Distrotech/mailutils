@@ -1,11 +1,12 @@
-.gdbinit
-bad-dates.out
-addr
+.gdbinit*
 Addrs.test
 Urls.test
+_*
+addr
+bad-dates.out
+mailer
 mbox-check
 mbox-dates
 mbox-dates.out
 mbox-explode
 url-parse
-_*

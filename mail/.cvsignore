@@ -4,3 +4,4 @@ Makefile
 .libs
 mail
 msgset.c
+y.output
