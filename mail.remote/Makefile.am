@@ -5,7 +5,9 @@
 AUTOMAKE_OPTIONS = ../lib/ansi2knr
 INCLUDES =-I$(srcdir) -I$(top_srcdir)/lib -I$(top_srcdir)/include -I$(top_srcdir)/libmu_scm 
 
-libexec_PROGRAMS = mail.remote
+SMTP_PROGRAMS = mail.remote
+EXTRA_PROGRAMS = mail.remote
+libexec_PROGRAMS = @SMTP_PROGRAMS@
 mail_remote_SOURCES = mail.remote.c 
 
 mail_remote_LDADD = ../mailbox/libmailbox.la ../lib/libmailutils.la
