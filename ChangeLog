@@ -1,5 +1,10 @@
 2001-07-23 Alain Magloire
 
+	* libmu_scm/mu_scm.h: Remove HAVE_LIBGUILE_H guard.
+	* guimb/guimb.h: Remove HAVE_LIBGUILE_H guard.
+
+2001-07-23 Alain Magloire
+
 	* util.c (util_msglist_command):  Check for interruption here
 	also and that will permit interruption on long commands like
 	"from *"
