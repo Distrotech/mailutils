@@ -6,6 +6,7 @@ pkginclude_HEADERS = \
  bstream.h   \
  envelope.h  \
  fstream.h   \
+ header.h    \
  iterator.h  \
  list.h      \
  mbox.h      \

@@ -9,6 +9,7 @@ pkginclude_HEADERS = \
  base.h      \
  envelope.h  \
  error.h     \
+ header.h     \
  iterator.h  \
  list.h      \
  mbox.h      \
