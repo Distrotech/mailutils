@@ -45,8 +45,8 @@ Retrieve @var{msg} header.
 @deftypefun int message_set_body (message_t @var{msg}, body_t @var{body}, void *@var{owner})
 @end deftypefun
 
-@deftypefun int message_is_multipart (message_t @var{msg})
-Return non-zero value if message is multi-part.
+@deftypefun int message_is_multipart (message_t @var{msg}, int *@var{pmulti})
+Set *@var{pmulti} to non-zero value if @var{msg} is multi-part.
 @end deftypefun
 
 @deftypefun int message_get_num_parts (message_t @var{msg}, size_t *nparts)
