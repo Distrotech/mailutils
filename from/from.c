@@ -250,7 +250,7 @@ main(int argc, char *argv[])
       }
     header_gvalue (buffer, size, MU_HDR_FROM, from, sizeof (from), NULL);
     header_gvalue (buffer, size, MU_HDR_SUBJECT, subject,
-		   sizeof (subject), NULL);
+    	   sizeof (subject), NULL);
 
     printf("%s %s\n", from, subject);
   }
