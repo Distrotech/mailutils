@@ -325,6 +325,7 @@ mu_sql_authenticate (void *ignored_return_data, void *key,
 		     void *ignored_func_data, void *call_data)
 {
   struct mu_auth_data *auth_data = key;
+  char *pass = call_data;
   char *query_str = NULL;
   MYSQL *m;
   MYSQL_RES *res;
@@ -379,7 +380,7 @@ mu_sql_authenticate (void *ignored_return_data, void *key,
       return 1;
     }
 
-  rc = strcmp (row[0], crypt (auth_data->passwd, row[0]));
+  rc = strcmp (row[0], crypt (pass, row[0]));
   mysql_free_result (res);
   mysql_close (m);
   return rc;
