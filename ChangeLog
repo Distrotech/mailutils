@@ -1,3 +1,7 @@
+2001-06-01  Alain Magloire
+
+	* mailbox/mbx_pop.c (pop_writeline): if buffer is NULL noop.
+
 2001-06-01  Sergey Poznyakoff
 	* imap4d/search.c: case-insensitive comparison for text fields.
 	  Error checking for stray symbols at the end of criteria.

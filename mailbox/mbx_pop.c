@@ -1783,6 +1783,8 @@ pop_writeline (pop_data_t mpd, const char *format, ...)
   va_list ap;
   int done = 1;
 
+  if (mpd->buffer == NULL)
+    return EINVAL;
   va_start(ap, format);
   do
     {
