@@ -1,3 +1,7 @@
+2003-10-25  Sergey Poznyakoff
+
+	* mailbox/list.c (list_do): Bugfix
+
 2003-10-24  Sergey Poznyakoff
 
 	* mailbox/list.c (list_do): Rewritten using iterators.
