@@ -52,7 +52,7 @@ static int fetch_uid               __P ((struct fetch_command *, char**));
 static int fetch_envelope0         __P ((message_t));
 static int fetch_bodystructure0    __P ((message_t, int));
 static int bodystructure           __P ((message_t, int));
-static int send_parameter_list     __P ((char *));
+static void send_parameter_list    __P ((char *));
 static int fetch_operation         __P ((message_t, char **, int));
 static int fetch_message           __P ((message_t, unsigned long, unsigned long));
 static int fetch_header            __P ((message_t, unsigned long, unsigned long));
@@ -528,6 +528,57 @@ fetch_body (struct fetch_command *command, char **arg)
 
 /* Helper Functions: Where the Beef is.  */
 
+static void
+fetch_send_header_value (header_t header, const char *name,
+			 const char *defval, int space)
+{
+  char *buffer;
+  
+  if (space)
+    util_send (" ");
+  if (header_aget_value (header, name, &buffer) == 0)
+    {
+      util_send_qstring (buffer);
+      free (buffer);
+    }
+  else
+    util_send (defval ? defval : "NIL");
+}
+
+static void
+fetch_send_header_list (header_t header, const char *name,
+			 const char *defval, int space)
+{
+  char *buffer;
+  
+  if (space)
+    util_send (" ");
+  if (header_aget_value (header, name, &buffer) == 0)
+    {
+      send_parameter_list (buffer);
+      free (buffer);
+    }
+  else
+    util_send (defval ? defval : "NIL");
+}
+
+static void
+fetch_send_header_address (header_t header, const char *name,
+			   const char *defval, int space)
+{
+  char *buffer;
+  
+  if (space)
+    util_send (" ");
+  if (header_aget_value (header, name, &buffer) == 0)
+    {
+      fetch_send_address (buffer);
+      free (buffer);
+    }
+  else
+    fetch_send_address (defval ? defval : "NIL");
+}
+
 /* ENVELOPE:
    The envelope structure of the message.  This is computed by the server by
    parsing the [RFC-822] header into the component parts, defaulting various
@@ -541,74 +592,27 @@ fetch_body (struct fetch_command *command, char **arg)
 static int
 fetch_envelope0 (message_t msg)
 {
-  char *buffer = NULL;
   char *from = NULL;
   header_t header = NULL;
 
   message_get_header (msg, &header);
 
-  /* Date:  */
-  header_aget_value (header, "Date", &buffer);
-  util_send_qstring (buffer);
-  free (buffer);
-  util_send (" ");
-
-  /* Subject:  */
-  header_aget_value (header, "Subject", &buffer);
-  util_send_qstring (buffer);
-  free (buffer);
-  util_send (" ");
+  fetch_send_header_value (header, "Date", NULL, 0);
+  fetch_send_header_value (header, "Subject", NULL, 1);
 
   /* From:  */
   header_aget_value (header, "From", &from);
   fetch_send_address (from);
   util_send (" ");
 
-  /* Sender:  */
-  /* Note that the server MUST default the reply-to and sender fields from
-     the From field; a client is not expected to know to do this. */
-  header_aget_value (header, "Sender", &buffer);
-  fetch_send_address (buffer ? buffer : from);
-  free (buffer);
-  util_send (" ");
+  fetch_send_header_address (header, "Sender", from, 1);
+  fetch_send_header_address (header, "Reply-to", from, 1);
+  fetch_send_header_address (header, "To", NULL, 1);
+  fetch_send_header_address (header, "Cc", NULL, 1);
+  fetch_send_header_address (header, "Bcc", NULL, 1);
+  fetch_send_header_value (header, "In-Reply-To", NULL, 1);
+  fetch_send_header_value (header, "Message-ID", NULL, 1);
 
-  /* Reply-To:  */
-  /* Note that the server MUST default the reply-to and sender fields from
-     the From field; a client is not expected to know to do this. */
-  header_aget_value (header, "Reply-to", &buffer);
-  fetch_send_address (buffer ? buffer : from);
-  free (buffer);
-  util_send (" ");
-
-  /* To:  */
-  header_aget_value (header, "To", &buffer);
-  fetch_send_address (buffer);
-  free (buffer);
-  util_send (" ");
-
-  /* Cc:  */
-  header_aget_value (header, "Cc", &buffer);
-  fetch_send_address (buffer);
-  free (buffer);
-  util_send (" ");
-
-  /* Bcc:  */
-  header_aget_value (header, "Bcc", &buffer);
-  fetch_send_address (buffer);
-  free (buffer);
-  util_send (" ");
-
-  /* In-Reply-To:  */
-  header_aget_value (header, "In-Reply-To", &buffer);
-  util_send_qstring (buffer);
-  free (buffer);
-  util_send (" ");
-
-  /* Message-ID:  */
-  header_aget_value (header, "Message-ID", &buffer);
-  util_send_qstring (buffer);
-
-  free (buffer);
   free (from);
   return RESP_OK;
 }
@@ -641,12 +645,11 @@ fetch_bodystructure0 (message_t message, int extension)
   size_t nparts = 1;
   size_t i;
   int is_multipart = 0;
+
   message_is_multipart (message, &is_multipart);
   if (is_multipart)
     {
       char *buffer = NULL;
-      char *s;
-      char *sp = NULL;
       header_t header = NULL;
 
       message_get_num_parts (message, &nparts);
@@ -663,67 +666,84 @@ fetch_bodystructure0 (message_t message, int extension)
 
       message_get_header (message, &header);
 
+
       /* The subtype.  */
       if (header_aget_value (header, MU_HEADER_CONTENT_TYPE, &buffer) == 0)
-        {
-           s = strtok_r (buffer, " \t\r\n;", &sp);
-           if (s)
-	     {
-	       s = strchr (s, '/');
-	       if (s)
-	         *s++ = '\0';
-	     }
-	}
-      util_send (" ");
-      util_send_qstring (s);
+	{
+	  int argc = 0;
+	  char **argv;
+	  char *s;
+	  
+	  argcv_get (buffer, " \t\r\n;=", NULL, &argc, &argv);
 
-      /* The extension data for multipart. */
-      if (extension)
-        {
-	  while (sp && *sp && isspace ((unsigned)*sp)) sp++;
-	  /* body parameter parenthesized list: Content-type parameter list. */
-	  if (sp && *sp)
+	  s = strchr (argv[0], '/');
+	  if (s)
+	    s++;
+	  util_send (" ");
+	  util_send_qstring (s);
+
+	  /* The extension data for multipart. */
+	  if (extension)
 	    {
+	      int space = 0;
+	      char *lvalue = NULL;
+	      
 	      util_send (" (");
-	      {
-		int space = 0;
-		while ((s = strtok_r (NULL, " \t\r\n;", &sp)))
-		  {
-		    char *p = strchr (s, '=');
-		    if (p)
-		      *p++ = '\0';
-		    if (space)
-		      util_send (" ");
-		    space = 1;
-		    util_send_qstring (s);
-		    if (p)
-		      {
+	      for (i = 1; i < argc; i++)
+		{
+		  /* body parameter parenthesized list:
+		     Content-type parameter list. */
+		  if (lvalue)
+		    {
+		      if (space)
 			util_send (" ");
-			util_unquote (&p);
-			util_send_qstring (p);
-		      }
-		  }
-	      }
+		      util_send_qstring (lvalue);
+		      lvalue = NULL;
+		      space = 1;
+		    }
+
+		  switch (argv[i][0])
+		    {
+		    case ';':
+		      continue;
+		      
+		    case '=':
+		      if (++i < argc)
+			{
+			  char *p = argv[i];
+			  util_send (" ");
+			  util_unquote (&p);
+			  util_send_qstring (p);
+			}
+		      break;
+		      
+		    default:
+		      lvalue = argv[i];
+		    }
+		}
+	      if (lvalue)
+		{
+		  if (space)
+		    util_send (" ");
+		  util_send_qstring (lvalue);
+		}
 	      util_send (")");
 	    }
 	  else
 	    util_send (" NIL");
+	  argcv_free (argc, argv);
           free (buffer);
-
-          /* body disposition: Content-Disposition.  */
-          header_aget_value (header, MU_HEADER_CONTENT_DISPOSITION, &buffer);
-	  util_send (" ");
-	  send_parameter_list (buffer);
-          free (buffer);
-
-          /* body language: Content-Language.  */
-          header_aget_value (header, MU_HEADER_CONTENT_LANGUAGE, &buffer);
-          util_send (" ");
-	  send_parameter_list (buffer);
-          free (buffer);
-        } /* extension */
+	}
       else
-	free (buffer);
+	/* No content-type header */
+	util_send (" NIL");
+
+      /* body disposition: Content-Disposition.  */
+      fetch_send_header_list (header, MU_HEADER_CONTENT_DISPOSITION,
+			      NULL, 1);
+      /* body language: Content-Language.  */
+      fetch_send_header_list (header, MU_HEADER_CONTENT_LANGUAGE,
+			      NULL, 1);
     }
   else
     bodystructure (message, extension);
@@ -778,99 +798,114 @@ static int
 bodystructure (message_t msg, int extension)
 {
   header_t header = NULL;
-  char *sp = NULL;
   char *buffer = NULL;
-  char *s;
   size_t blines = 0;
   int message_rfc822 = 0;
   int text_plain = 0;
 
   message_get_header (msg, &header);
 
-  /* body type:  Content-Type
-     body subtype: */
-  if (header_aget_value (header, MU_HEADER_CONTENT_TYPE, &buffer) == 0
-      && (s = strtok_r (buffer, " \t\r\n;", &sp)) != NULL)
+  if (header_aget_value (header, MU_HEADER_CONTENT_TYPE, &buffer) == 0)
     {
-      char *p = strchr (s, '/');
-      if (strcasecmp (s, "MESSAGE/RFC822") == 0)
+      int argc = 0;
+      char **argv;
+      char *s, *p;
+	  
+      argcv_get (buffer, " \t\r\n;=", NULL, &argc, &argv);
+
+      if (strcasecmp (argv[0], "MESSAGE/RFC822") == 0)
         message_rfc822 = 1;
-      if (strcasecmp (s, "TEXT/PLAIN") == 0)
+      else if (strcasecmp (argv[0], "TEXT/PLAIN") == 0)
         text_plain = 1;
-      if (p)
-        *p++ = '\0';
-      /* MIME media type and subtype  */
-      util_send_qstring (s);
-      util_send (" ");
-      util_unquote (&p);
+
+      s = strchr (argv[0], '/');
+      if (s)
+	*s++ = 0;
+      p = argv[0];
       util_send_qstring (p);
+      util_send (" ");
+      util_send_qstring (s);
+
+      /* body parameter parenthesized list: Content-type attributes */
+      if (argc > 1 || text_plain)
+	{
+	  int space = 0;
+	  char *lvalue = NULL;
+	  int have_charset = 0;
+	  int i;
+	  
+	  util_send (" (");
+	  for (i = 1; i < argc; i++)
+	    {
+	      /* body parameter parenthesized list:
+		 Content-type parameter list. */
+	      if (lvalue)
+		{
+		  if (space)
+		    util_send (" ");
+		  util_send_qstring (lvalue);
+		  lvalue = NULL;
+		  space = 1;
+		}
+	      
+	      switch (argv[i][0])
+		{
+		case ';':
+		  continue;
+		  
+		case '=':
+		  if (++i < argc)
+		    {
+		      char *p = argv[i];
+		      util_send (" ");
+		      util_unquote (&p);
+		      util_send_qstring (p);
+		    }
+		  break;
+		  
+		default:
+		  lvalue = argv[i];
+		  if (strcasecmp (lvalue, "charset") == 0)
+		    have_charset = 1;
+
+		}
+	    }
+	  
+	  if (lvalue)
+	    {
+	      if (space)
+		util_send (" ");
+	      util_send_qstring (lvalue);
+	    }
+	  
+	  if (!have_charset && text_plain)
+	    {
+	      if (space)
+		util_send (" ");
+	      util_send ("\"CHARSET\" \"US-ASCII\"");
+	    }
+	  util_send (")");
+	}
+      else
+	util_send (" NIL");
+      argcv_free (argc, argv);
+      free (buffer);
     }
   else
     {
       /* Default? If Content-Type is not present consider as text/plain.  */
-      util_send_qstring ("TEXT");
-      util_send (" ");
-      util_send_qstring ("PLAIN");
+      util_send ("TEXT PLAIN (\"CHARSET\" \"US-ASCII\")");
       text_plain = 1;
     }
-
-  while (sp != NULL && *sp && isspace ((unsigned)*sp)) sp++;
   
-  /* body parameter parenthesized list: Content-type attributes */
-  if ((sp != NULL && *sp) || text_plain)
-    {
-      int space = 0;
-      int have_charset = 0;
-
-      util_send (" (");
-      if (sp)
-	{
-	  /* Content-type parameter list. */
-	  while ((s = strtok_r (NULL, " \t\r\n;", &sp)))
-	    {
-	      char *p = strchr (s, '=');
-	      if (p)
-		*p++ = '\0';
-	      if (space)
-		util_send (" ");
-	      util_send_qstring (s);
-	      util_send (" ");
-	      util_unquote (&p);
-	      if (strcasecmp (s, "charset") == 0)
-		have_charset = 1;
-	      util_send_qstring (p);
-	      space = 1;
-	    }
-	}
-      if (!have_charset && text_plain)
-	{
-	  if (space)
-	    util_send (" ");
-	  util_send ("\"CHARSET\" \"US-ASCII\"");
-	}
-      util_send (")");
-    }
-  else
-    util_send (" NIL");
-  free (buffer);
-
   /* body id: Content-ID. */
-  header_aget_value (header, MU_HEADER_CONTENT_ID, &buffer);
-  util_send (" ");
-  util_send_qstring (buffer);
-  free (buffer);
-
+  fetch_send_header_value (header, MU_HEADER_CONTENT_ID, NULL, 1);
   /* body description: Content-Description. */
-  header_aget_value (header, MU_HEADER_CONTENT_DESCRIPTION, &buffer);
-  util_send (" ");
-  util_send_qstring (buffer);
-  free (buffer);
+  fetch_send_header_value (header, MU_HEADER_CONTENT_DESCRIPTION, NULL, 1);
 
   /* body encoding: Content-Transfer-Encoding. */
-  header_aget_value (header, MU_HEADER_CONTENT_TRANSFER_ENCODING, &buffer);
-  util_send (" ");
-  util_send_qstring (buffer ? buffer : "7BIT");
-  free (buffer);
+  fetch_send_header_value (header, MU_HEADER_CONTENT_TRANSFER_ENCODING,
+			   "7BIT", 1);
 
   /* body size RFC822 format.  */
   {
@@ -910,22 +945,13 @@ bodystructure (message_t msg, int extension)
   if (extension)
     {
       /* body MD5: Content-MD5.  */
-      header_aget_value (header, MU_HEADER_CONTENT_MD5, &buffer);
-      util_send (" ");
-      util_send_qstring (buffer);
-      free (buffer);
+      fetch_send_header_value (header, MU_HEADER_CONTENT_MD5, NULL, 1);
 
       /* body disposition: Content-Disposition.  */
-      header_aget_value (header, MU_HEADER_CONTENT_DISPOSITION, &buffer);
-      util_send (" ");
-      send_parameter_list (buffer);
-      free (buffer);
+      fetch_send_header_list (header, MU_HEADER_CONTENT_DISPOSITION, NULL, 1);
 
       /* body language: Content-Language.  */
-      header_aget_value (header, MU_HEADER_CONTENT_LANGUAGE, &buffer);
-      util_send (" ");
-      util_send_qstring (buffer);
-      free (buffer);
+      fetch_send_header_value (header, MU_HEADER_CONTENT_LANGUAGE, NULL, 1);
     }
   return RESP_OK;
 }
@@ -1008,10 +1034,7 @@ fetch_operation (message_t msg, char **arg, int silent)
 	     see it as an extension. But according to IMAP4 we should
 	     have send an empty string: util_send (" \"\"");
 	  */
-	  if (*section)
-	    util_send ("[%sHEADER]", section);
-	  else
-	    util_send ("[%s", *arg);
+	  util_send ("[%sHEADER]", section);
 	}
       (*arg) += 7;
       fetch_header (msg, start, end);
@@ -1344,18 +1367,20 @@ fetch_header_fields_not (message_t msg, char **arg, unsigned long start,
 	    }
 	}
 
-	header_aget_field_value (header, i, &value);
-	/* Save the field.  */
-	n = asprintf (&buffer, "%s: %s\n", name, value);
-	status = stream_write (stream, buffer, n, off, &n);
-        off += n;
-	/* count the lines.  */
-	{
-	  char *nl = buffer;
-	  for (;(nl = strchr (nl, '\n')); nl++)
-	    lines++;
-	}
-        free (value);
+	if (header_aget_field_value (header, i, &value) == 0)
+	  {
+	    char *nl;
+	    
+	    /* Save the field.  */
+	    n = asprintf (&buffer, "%s: %s\n", name, value);
+	    status = stream_write (stream, buffer, n, off, &n);
+	    off += n;
+	    /* count the lines.  */
+	    for (nl = buffer;(nl = strchr (nl, '\n')); nl++)
+	      lines++;
+
+	    free (value);
+	  }
         free (name);
         free (buffer);
         buffer = NULL;
@@ -1461,39 +1486,72 @@ fetch_send_address (char *addr)
 }
 
 /* Send parameter list for the bodystructure.  */
-static int
+static void
 send_parameter_list (char *buffer)
 {
-  if (buffer)
-    while (*buffer && isspace ((unsigned)*buffer)) buffer++;
-
-  if (buffer && *buffer)
+  int argc = 0;
+  char **argv;
+  
+  if (!buffer)
     {
-      char *sp = NULL;
-      char *s;
+      util_send ("NIL");
+      return;
+    }
+
+  argcv_get (buffer, " \t\r\n;=", NULL, &argc, &argv);
+  
+  if (argc == 0)
+    util_send ("NIL");
+  else
+    {
+      char *p;
+      
       util_send ("(");
-      s = strtok_r (buffer, " \t\r\n;", &sp);
-      util_send_qstring (s);
-      while (sp && *sp && isspace ((unsigned)*sp)) sp++;
-      if (sp && *sp)
+        
+      p = argv[0];
+      util_send_qstring (p);
+
+      if (argc > 1)
 	{
-	  int space = 0;
-	  util_send (" (");
-	  while ((s = strtok_r (NULL, " \t\r\n;", &sp)))
+	  int i, space = 0;
+	  char *lvalue = NULL;
+
+	  util_send ("(");
+	  for (i = 1; i < argc; i++)
 	    {
-	      char *p = strchr (s, '=');
-	      if (p)
-		*p++ = '\0';
+	      if (lvalue)
+		{
+		  if (space)
+		    util_send (" ");
+		  util_send_qstring (lvalue);
+		  lvalue = NULL;
+		  space = 1;
+		}
+	      
+	      switch (argv[i][0])
+		{
+		case ';':
+		  continue;
+		  
+		case '=':
+		  if (++i < argc)
+		    {
+		      char *p = argv[i];
+		      util_send (" ");
+		      util_unquote (&p);
+		      util_send_qstring (p);
+		    }
+		  break;
+		  
+		default:
+		  lvalue = argv[i];
+		}
+	    }
+	  if (lvalue)
+	    {
 	      if (space)
 		util_send (" ");
-	      space = 1;
-	      util_send_qstring (s);
-	      if (p)
-		{
-		  util_send (" ");
-		  util_unquote (&p);
-		  util_send_qstring (p);
-		}
+	      util_send_qstring (lvalue);
 	    }
 	  util_send (")");
 	}
@@ -1501,7 +1559,7 @@ send_parameter_list (char *buffer)
 	util_send (" NIL");
       util_send (")");
     }
-  else
-    util_send ("NIL");
-  return 0;
+  argcv_free (argc, argv);
 }
+	  
+
