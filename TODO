@@ -5,8 +5,6 @@
 
 ** Generic search interface
 
-** Maildir support
-
 ** Locking
 
 *** Implement a read/write locker_lock() flag so that when MU_LOCKER_WRONLY
