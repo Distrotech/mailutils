@@ -1,3 +1,9 @@
+2003-06-26  Sergey Poznyakoff
+
+	* mailbox/mu_auth.c (mu_auth_register_module): Fixed memory
+	overrun.
+	* pop3d/popauth.c: New option --create
+
 2003-06-23  Sergey Poznyakoff 
 
 	* doc/Readme.mysql: Removed. File not relevant anymore.
