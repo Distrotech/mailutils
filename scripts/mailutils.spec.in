@@ -19,7 +19,8 @@ GNU Mailutils contains a series of useful mail clients, servers, and
 libraries. These are the primary mail utilities of the GNU system.
 This package provides a replacement for /bin/mail(x) conforming to
 the UNIX98 specification for mailx. Provides also mail.local,
-mail.remote, and other tools including guimb, dotlock, frm.
+mail.remote, and other tools including guimb, dotlock, movemail,
+frm.
 
 %package -n libmailutils
 Summary: GNU Mailutils: mailbox access library.
@@ -138,6 +139,7 @@ make distclean
 %{prefix}/bin/movemail
 %{prefix}/bin/readmsg
 %{prefix}/libexec/*
+%{prefix}/share/mailutils/*.scm
 
 %files -n libmailutils
 %defattr(-, root, root)
@@ -151,6 +153,7 @@ make distclean
 %defattr(-, root, root)
 %{prefix}/bin/mailutils-config
 %{prefix}/lib/libmailbox.*a
+%{prefix}/lib/libsieve.*a
 %{prefix}/lib/libmu*.*a
 %{prefix}/include
 
@@ -177,12 +180,10 @@ make distclean
 %defattr(-, root, root)
 %{prefix}/bin/sieve*
 %{prefix}/lib/libsieve.so.*
-%{prefix}/lib/libsieve.*a
 %{prefix}/lib/mailutils/list*
 %{prefix}/lib/mailutils/numaddr*
 %{prefix}/lib/mailutils/spamd*
 %{prefix}/lib/mailutils/timestamp*
-%{prefix}/share/mailutils/*.scm
 
 %files -n mailutils-mh
 %defattr(-, root, root)
