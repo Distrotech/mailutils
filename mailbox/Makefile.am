@@ -89,8 +89,6 @@ system.c \
 tcp.c \
 ticket.c \
 url.c \
-url_file.c \
-url_path.c \
 url_sendmail.c \
 url_smtp.c \
 wicket.c
