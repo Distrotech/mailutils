@@ -65,6 +65,6 @@ install-exec-hook: @BUILD_MH_EXEC_HOOK@
 mh_finish_install:
 	@here=`pwd`; \
 	cd $(DESTDIR); \
-	-rm -f $(bindir)/folders; \
+	rm -f $(bindir)/folders; \
 	$(LN_S) $(bindir)/folder $(bindir)/folders; \
 	cd $$here
