@@ -215,13 +215,62 @@ mail_cmdline(void *closure, int cont ARG_UNUSED)
   return rc;
 }
 
+static char *default_setup[] = {
+  "set noallnet",
+  "set noappend",
+  "set asksub",
+  "set crt",
+  "set noaskbcc",
+  "set askcc",
+  "set noautoprint",
+  "set nobang",
+  "set nocmd",
+  "set nodebug",
+  "set nodot",
+  "set escape=~",
+  "set noflipr",
+  "set nofolder",
+  "set header",
+  "set nohold",
+  "set noignore",
+  "set noignoreeof",
+  "set indentprefix=\"\t\"",
+  "set nokeep",
+  "set nokeepsave",
+  "set nometoo",
+  "set noonehop",
+  "set nooutfolder",
+  "set nopage",
+  "set prompt=\"? \"",
+  "set norecord",
+  "set save",
+  "set nosendmail",
+  "set nosendwait",
+  "set noshowto",
+  "set nosign",
+  "set noSign",
+  "set toplines=5",
+  "set autoinc",
+  "set regex",
+  "set replyprefix=\"Re: \"",
+  "set charset=auto",
+  "set xmailer",
+  "unfold subject",
+  "sender mail-followup-to reply-to from",
+
+  /* Start in mail reading mode */
+  "set mode=read",
+  "set noquit",
+  "set rc"
+};
+
 int
 main (int argc, char **argv)
 {
   char *mode = NULL, *prompt = NULL;
   size_t modelen = 0;
   struct arguments args;
-  int rc;
+  int i, rc;
   
   ofile = stdout;
   cursor = 1;
@@ -251,6 +300,8 @@ main (int argc, char **argv)
       char *p = util_get_homedir ();
       setenv ("HOME", p, 0);
     }
+
+  /* Set up the default environment */
   setenv ("DEAD", util_fullpath("~/dead.letter"), 0);
   setenv ("EDITOR", "ed", 0);
   setenv ("LISTER", "ls", 0);
@@ -263,51 +314,10 @@ main (int argc, char **argv)
   setenv ("LINES", "24", 0);
 
   /* set defaults for execution */
-  util_do_command ("set noallnet");
-  util_do_command ("set noappend");
-  util_do_command ("set asksub");
-  util_do_command ("set crt");
-  util_do_command ("set noaskbcc");
-  util_do_command ("set askcc");
-  util_do_command ("set noautoprint");
-  util_do_command ("set nobang");
-  util_do_command ("set nocmd");
-  util_do_command ("set nodebug");
-  util_do_command ("set nodot");
-  util_do_command ("set escape=~");
-  util_do_command ("set noflipr");
-  util_do_command ("set nofolder");
-  util_do_command ("set header");
-  util_do_command ("set nohold");
-  util_do_command ("set noignore");
-  util_do_command ("set noignoreeof");
-  util_do_command ("set indentprefix=\"\t\"");
-  util_do_command ("set nokeep");
-  util_do_command ("set nokeepsave");
-  util_do_command ("set nometoo");
-  util_do_command ("set noonehop");
-  util_do_command ("set nooutfolder");
-  util_do_command ("set nopage");
-  util_do_command ("set prompt=\"? \"");
-  util_do_command ("set norecord");
-  util_do_command ("set save");
+  for (i = 0; i < sizeof(default_setup)/sizeof(default_setup[0]); i++)
+    util_do_command (default_setup[i]);
   util_do_command ("set screen=%d", util_getlines ());
   util_do_command ("set columns=%d", util_getcols ());
-  util_do_command ("set nosendmail");
-  util_do_command ("set nosendwait");
-  util_do_command ("set noshowto");
-  util_do_command ("set nosign");
-  util_do_command ("set noSign");
-  util_do_command ("set toplines=5");
-  util_do_command ("set autoinc");
-  util_do_command ("set regex");
-  util_do_command ("set replyprefix=\"Re: \"");
-  util_do_command ("set charset=auto");
-  util_do_command ("unfold subject");
-  /* Start in mail reading mode */
-  util_do_command ("set mode=read");
-  util_do_command ("set noquit");
-  util_do_command ("set rc");
   
   /* Set the default mailer to sendmail.  */
   {
