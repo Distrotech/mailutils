@@ -182,7 +182,7 @@ pop3_mainloop (int infile, int outfile)
   char *local_hostname;
 
   ifile = infile;
-  ofile = fdopen (outfile, "w+");
+  ofile = fdopen (outfile, "w");
   if (ofile == NULL)
     pop3_abquit (ERR_NO_OFILE);
   state = AUTHORIZATION;
