@@ -24,8 +24,8 @@
 #include <string.h>
 #include <stdlib.h>
 
+#include <mailutils/errno.h>
 #include <auth0.h>
-
 
 static int
 _authenticate_null (authority_t auth ARG_UNUSED)
@@ -37,9 +37,9 @@ int
 authority_create_null (authority_t *pauthority, void *owner)
 {
   int rc = authority_create(pauthority, NULL, owner);
-  if(rc)
+  if (rc)
     return rc;
-  (*pauthority)->_authenticate = _authenticate_null;
+  authority_set_authenticate (*pauthority, _authenticate_null,  owner);
   return 0;
 }
 
@@ -105,12 +105,35 @@ authority_get_ticket (authority_t authority, ticket_t *pticket)
   return 0;
 }
 
+struct auth_cb
+{
+  int status;
+  authority_t authority;
+};
+
+static int
+try_auth (void *item, void *data)
+{
+  int (*authenticate) __P ((authority_t)) = item;
+  struct auth_cb *cb = data;
+  if (authenticate (cb->authority) == 0)
+    {
+      cb->status = 0;
+      return 1;
+    }
+  return 0;
+}
+
 int
 authority_authenticate (authority_t authority)
 {
-  if (authority && authority->_authenticate)
+  if (authority && authority->auth_methods)
     {
-      return authority->_authenticate (authority);
+      struct auth_cb cb;
+      cb.status = MU_ERR_AUTH_FAILURE;
+      cb.authority = authority;
+      list_do (authority->auth_methods, try_auth, &cb);
+      return cb.status;
     }
   return EINVAL;
 }
@@ -125,6 +148,12 @@ authority_set_authenticate (authority_t authority,
 
   if (authority->owner != owner)
     return EACCES;
-  authority->_authenticate = _authenticate;
+  if (!authority->auth_methods)
+    {
+      int rc = list_create (&authority->auth_methods);
+      if (rc)
+	return rc;
+    }
+  list_append (authority->auth_methods, _authenticate);
   return 0;
 }
