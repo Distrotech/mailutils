@@ -1,0 +1,119 @@
+# -*- tcl -*-
+# This file is part of Mailutils testsuite.
+# Copyright (C) 2002, Free Software Foundation
+#  
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#   
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#  
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software Foundation,
+# Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. 
+
+source $top_srcdir/testsuite/lib/mailutils.exp
+
+mu_init
+mu_prepare_spools
+set mu_filename "$MU_FOLDER_DIR/mta.diag"
+set env(MTA_DIAG) "$mu_filename"
+
+# mailer_remote_test [-message MESSAGE][-default (FAIL|XFAIL)]
+#            [-from FROM][-to TO][-pattern PATTERN-LIST][PATTERN...]
+# PATTERN   - Sequence to expect in return. 
+# MESSAGE   - [optional] message to output
+proc mailer_remote_test { args } {
+    global MU_TOOL
+    global top_builddir
+    global verbose
+    global suppress_flag;
+    global mu_filename
+    upvar timeout timeout
+
+    set default ""
+    set message ""
+    set invocation ""
+    set input ""
+    set pattern ""
+    for {set i 0} {$i < [llength $args]} {incr i} {
+	set a [lindex $args $i]
+	if {"$a" == "-default"} {
+	    incr i
+	    set default [lindex $args $i]
+	} elseif {"$a" == "-message"} {
+	    incr i
+	    set message [lindex $args $i]
+	} elseif {"$a" == "-pattern"} {
+	    incr i
+	    set pattern [lindex $args $i]
+	} elseif {"$a" == "-input"} {
+	    incr i
+	    set input [lindex $args $i]
+	} elseif {"$a" == "-args"} {
+	    incr i
+	    set a [lindex $args $i]
+	    if {[llength $a] > 0} {
+		append invocation $a
+	    }
+	} else {
+	    set args [lrange $args $i end]
+	    break
+	}
+    }
+
+    set res [remote_spawn host "${top_builddir}/examples/mta -bd"]
+    if { $res < 0 || $res == "" } {
+	perror "Spawning mta failed."
+	return 1
+    }
+
+    remote_expect host 60 {
+	-re "\[0-9\]\[0-9\]*" {
+	    set port $expect_out(buffer)
+	    set url "smtp://127.0.0.1:$port"
+	    verbose "URL: $url" 1
+	}
+	default {
+	    perror "Spawning mta failed."
+	            return 1
+	}
+    }
+
+    verbose "Spawning $MU_TOOL --mailer $url $invocation" 1
+
+    set res [remote_spawn host "$MU_TOOL --mailer $url $invocation"]
+    if { $res < 0 || $res == "" } {
+	perror "Spawning $MU_TOOL $invocation failed."
+	return 1;
+    }
+	
+    if {"$message" == ""}  {
+	set message [lindex $args 0]
+    }
+
+    if $verbose>2 then {
+	send_user "Message is \"$message\"\n"
+    }
+
+    set result ""
+    verbose "INPUT: $input" 1
+    for {set i 0} {$result == "" && $i < [llength $input]} {incr i} {
+	set s [lindex $input $i]
+	verbose "SEND: $s" 1
+	set result [mu_send "[lindex $input $i]\n"]
+	verbose "RESULT: $result"
+    }
+
+    mu_send ""
+
+    remote_wait host 60
+    
+    return [mu_test_file -default $default -message $message -pattern $pattern $mu_filename]
+}
+
+

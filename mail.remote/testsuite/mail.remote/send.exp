@@ -1,0 +1,83 @@
+# -*- tcl -*-
+# This file is part of Mailutils testsuite.
+# Copyright (C) 2002, Free Software Foundation
+#  
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#   
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#  
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software Foundation,
+# Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. 
+
+set chan [open ${srcdir}/Data r]
+
+set state 0
+set command ""
+for {gets $chan line} {![eof $chan]} {gets $chan line} {
+    verbose "LINE $line" 1
+    switch -regexp -- "$line" {
+	"^#.*" { }
+	"^MESSAGE END" {
+	    verbose "MAIL FROM $from" 1
+	    verbose "MAIL TO $to" 1
+	    verbose "INPUT $input" 1
+	    verbose "PATTERN $pattern" 1
+	    set args ""
+	    if {$from != ""} {
+		append args " --from $from"
+	    }
+	    if {$to != ""} {
+		append args " $to"
+	    }
+	    mailer_remote_test -message $message -input $input -pattern $pattern -args $args
+	    set state 0
+	}
+	"^MESSAGE" {
+	    regexp "^MESSAGE (.*)" $line dummy message 
+	    set from ""
+	    set to ""
+	    set input [list]
+	    set pattern [list]
+	    set state 1
+	}
+	"^FROM" {
+	    regexp "^FROM (.*)" $line dummy from
+	}
+	"^TO" {
+	    regexp "^TO (.*)" $line dummy to
+	}
+	"^BODY BEGIN" {
+	    set state 2
+	}
+	"^BODY END" {
+	    set state 1
+	}
+	"^PATTERN BEGIN" {
+	    set state 3
+	}
+	"^PATTERN END" {
+	    set state 1
+	}
+	"^STOP" {
+	    break
+	}
+	default {
+	    if {$state == 2} {
+		lappend input $line
+	    } elseif {$state == 3} {
+		lappend pattern $line
+	    }
+	}
+    }
+}
+
+close $chan
+
+# End of send.exp
