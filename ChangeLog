@@ -1,3 +1,9 @@
+2004-06-01  Sergey Poznyakoff 
+
+	* examples/mailcap.c (main): Bugfix: fields_count had wrong type.
+	* include/mailutils/mailutils.h: Remove guile.h. (reverses another
+	part of changes made 2004-01-10).
+
 2004-05-27  Sergey Poznyakoff 
 
 	* NEWS: Updated
