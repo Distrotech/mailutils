@@ -214,7 +214,8 @@
 			     (>= i len))))))
 	     #f)
           (set! input-line-number (1+ input-line-number))
-	  (if (and (char=? (string-ref line 0) #\.)
+	  (if (and (not (string-null? line))
+                   (char=? (string-ref line 0) #\.)
 		   (char=? (string-ref line 1) #\.))
 	      (set! line (make-shared-substring line 1)))
 	  (set! text (string-append text "\n" line)))
@@ -843,6 +844,7 @@
   (call-with-output-file
    outfile
    (lambda (port)
+     (display "#! /home/gray/mailutils/guimb/guimb --source\n!#\n" port)
      (display (string-append
 	       ";;;; A Guile mailbox parser made from " filename) port)
      (newline port) 
@@ -907,6 +909,8 @@
 	    (value #t))
     (help   (single-char #\h))))
 
+(define program-name (car (command-line)))
+
 (for-each
  (lambda (x)
    (cond
@@ -922,7 +926,8 @@
 
 (if (not filename)
     (begin
-     (display "missing input filename")
+     (display program-name)
+     (display ": missing input filename")
      (newline)
      (sieve-usage)))
 
@@ -935,7 +940,9 @@
 	 (exit 0)))
   (if (not (file-exists? filename))
       (begin
-       (display (string-append "Input file " filename " does not exist."))
+       (display (string-append
+		 program-name
+		 ": Input file " filename " does not exist."))
        (newline)
        (exit 0))))
 	
@@ -963,7 +970,8 @@
  (output
   (sieve-save-program output))
  ((not guimb?)
-  (display "sieve.scm: Either use guimb to compile and execute the script")
+  (display program-name)
+  (display ": Either use guimb to compile and execute the script")
   (newline)
   (display "or use --output option to save the Scheme program.")
   (newline)
