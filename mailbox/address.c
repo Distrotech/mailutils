@@ -53,7 +53,8 @@ address_create (address_t *a, const char *s)
     return ENOMEM;
 
   /* We need to unfold the string. Do the same thing as parse822_field_body()
-     but we have to be more flexible in allowing bare '\n' as CRLF.  */
+     but we have to be more flexible in allowing bare '\n' as CRLF for
+     unix-mbox.  This is may not be the right approach still.  */
   for (;;)
     {
       const char *eol = s;
@@ -71,10 +72,13 @@ address_create (address_t *a, const char *s)
       fb[len + (eol - s)] = '\0';
 
       s = eol;
-      if (s == e)
+      if (eol == e)
 	break; /* no more, so we're done */
 
-      s += 2;
+      s++;
+
+      if (s == e)
+	break; /* no more, so we're done */
 
       /* check if next line is a continuation line */
       if (*s != ' ' && *s != '\t')
