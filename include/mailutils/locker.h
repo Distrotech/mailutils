@@ -34,6 +34,9 @@ extern "C" {
 
 /* locker_create() flags */
 
+#define MU_LOCKER_NULL     0
+  /* Special locker type: means no lock. This is to be used with
+     temporary mailboxes stored in memory. */
 #define MU_LOCKER_RETRY    0x01
   /* This requests that we loop retries times, sleeping retry_sleep
      seconds in between trying to obtain the lock before failing with
