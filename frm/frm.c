@@ -45,7 +45,7 @@
 #include <mailutils/mutil.h>
 #include <mailutils/mime.h>
 
-static char* show_field;
+static char *show_field;
 static int show_to;
 static int show_from = 1;
 static int show_subject = 1;
@@ -54,7 +54,6 @@ static int show_summary;
 static int be_quiet;
 static int align = 1;
 static int show_query;
-static int have_new_mail;
 static int dbug;
 
 #define IS_READ 0x001
@@ -327,12 +326,18 @@ get_personal (header_t hdr, const char *field, char *personal, size_t buflen)
   return status;
 }
 
+static struct {
+  size_t index;
+  size_t new;
+  size_t read;
+  size_t unread;
+} counter;
+
 /* Observable action is being called on discovery of each message. */
 /* FIXME: The format of the display is poorly done, please correct.  */
 static int
 action (observer_t o, size_t type)
 {
-  static int counter;
   int status;
 
   switch (type)
@@ -344,26 +349,33 @@ action (observer_t o, size_t type)
 	header_t hdr = NULL;
 	attribute_t attr = NULL;
 
-	counter++;
+	counter.index++;
 
-	mailbox_get_message (mbox, counter, &msg);
+	mailbox_get_message (mbox, counter.index, &msg);
 
 	message_get_attribute (msg, &attr);
 	message_get_header (msg, &hdr);
 
+	if (attribute_is_read (attr))
+	  counter.read++;
+	else if (attribute_is_seen (attr))
+	  counter.unread++;
+	else if (attribute_is_recent (attr))
+	  counter.new++;
+	
 	if (((select_attribute & IS_READ) && (!attribute_is_read (attr)))
 	    || ((select_attribute & IS_NEW) && (!attribute_is_recent (attr)))
 	    || ((select_attribute & IS_OLD) && (!attribute_is_seen (attr))))
 	  break;
 
-	if (attribute_is_recent (attr))
-	  have_new_mail = 1;
-
 	if (select_attribute)
 	  selected = 1;
 
+	if (be_quiet)
+	  break;
+	
 	if (show_number)
-	  printf ("%d: ", counter);
+	  printf ("%4lu: ", (u_long) counter.index);
 
 	if (show_field)
 	  {
@@ -419,6 +431,24 @@ action (observer_t o, size_t type)
   return 0;
 }
 
+static void
+frm_abort (mailbox_t *mbox)
+{
+  int status;
+  
+  if ((status = mailbox_close (*mbox)) != 0)
+    {
+      url_t url;
+      
+      mu_error (_("Couldn't close <%s>: %s."),
+		url_to_string (url), mu_strerror (status));
+      exit (3);
+    }
+  
+  mailbox_destroy (mbox);
+  exit (3);
+}
+
 /* This is a clone of the elm program call "frm".  It is a good example on
    how to use the observable(callback) of libmailbox.  "frm" has to
    be very interactive, it is not possible to call mailbox_messages_count()
@@ -427,10 +457,149 @@ action (observer_t o, size_t type)
    an observable type MU_MAILBOX_MSG_ADD. The rest is formatting code.  */
 
 int
+frm (char *mailbox_name)
+{
+  int status;
+  mailbox_t mbox;
+  url_t url = NULL;
+  size_t total = 0;
+
+  status = mailbox_create_default (&mbox, mailbox_name);
+  if (status != 0)
+    {
+      mu_error (_("Couldn't create mailbox <%s>: %s."),
+		mailbox_name ? mailbox_name : _("default"),
+		mu_strerror (status));
+      exit (3);
+    }
+
+  if (dbug)
+    {
+      mu_debug_t debug;
+      mailbox_get_debug (mbox, &debug);
+      mu_debug_set_level (debug, MU_DEBUG_TRACE|MU_DEBUG_PROT);
+    }
+
+  mailbox_get_url (mbox, &url);
+
+  status = mailbox_open (mbox, MU_STREAM_READ);
+  if (status == ENOENT)
+    /* nothing to do */;
+  else if (status != 0)
+    {
+      mu_error (_("Couldn't open mailbox <%s>: %s."),
+		url_to_string (url), mu_strerror (status));
+      frm_abort (&mbox);
+    }
+  else
+    {
+      observer_t observer;
+      observable_t observable;
+      
+      observer_create (&observer, mbox);
+      observer_set_action (observer, action, mbox);
+      mailbox_get_observable (mbox, &observable);
+      observable_attach (observable, MU_EVT_MESSAGE_ADD, observer);
+
+      memset (&counter, 0, sizeof counter);
+      
+      status = mailbox_scan (mbox, 1, &total);
+      if (status != 0)
+	{
+	  mu_error (_("Couldn't scan mailbox <%s>: %s."),
+		    url_to_string (url), mu_strerror (status));
+	  frm_abort (&mbox);
+	}
+      
+      observable_detach (observable, observer);
+      observer_destroy (&observer, mbox);
+      
+      if ((status = mailbox_close (mbox)) != 0)
+	{
+	  mu_error (_("Couldn't close <%s>: %s."),
+		    url_to_string (url), mu_strerror (status));
+	  exit (3);
+	}
+    }
+  mailbox_destroy (&mbox);
+  
+  if (show_summary)
+    {
+      if (total == 0)
+	printf (_("Folder contains no messages."));
+      else
+	{
+	  char *delim = "";
+      	  
+	  printf (_("Folder contains "));
+	
+	  if (counter.new)
+	    {
+	      printf (ngettext ("%lu new message",
+				"%lu new messages",
+				counter.new),
+		      (u_long) counter.new);
+	      delim = ", ";
+	    }
+	  
+	  if (counter.unread)
+	    {
+	      printf ("%s", delim);
+	      
+	      printf (ngettext ("%lu unread message",
+				"%lu unread messages",
+				counter.unread),
+		      (u_long) counter.unread);
+	      delim = ", ";
+	    }
+	  
+	  if (counter.read)
+	    {
+	      printf ("%s", delim);
+	      
+	      printf (ngettext ("%lu read message",
+				"%lu read messages",
+				counter.read),
+		      (u_long) counter.read);
+	    }
+	  /* TRANSLATORS: This dot finishes the sentence
+
+              "Folder contains XXX messages."
+
+	      Leave it as it is unless your language requires to reorder
+	      the parts of speach in the message
+	  */
+	  printf (_("."));
+	}
+      printf ("\n");
+    }
+  else if (show_query)
+    {
+      if (total > 0)
+	printf (_("There are messages in that folder.\n"));
+      else
+	printf (_("No messages in that folder!\n"));
+    }
+  
+  /* EXIT STATUS
+     Frm returns a zero status ("true") if messages matching `status' are
+     present.  Frm returns 1 if no messages matching `status' are present,
+     but there are some messages, returns 2 if there are no messages at
+     all, or returns 3 if an error occurred. */
+  
+  if (selected)
+    status = 0;
+  else if (total > 0)
+    status = 1;
+  else
+    status = 2;
+
+  return status;
+}
+
+int
 main (int argc, char **argv)
 {
-  char *mailbox_name = NULL;
-  size_t total = 0;
   int c;
   int status = 0;
 
@@ -439,6 +608,9 @@ main (int argc, char **argv)
 
   prepare_attrs ();
   
+  /* register the formats.  */
+  mu_register_all_mbox_formats ();
+
   mu_argp_init (program_version, NULL);
 #ifdef WITH_TLS
   mu_tls_init_client_argp ();
@@ -446,110 +618,16 @@ main (int argc, char **argv)
   mu_argp_parse (&argp, &argc, &argv, 0, frm_argp_capa, &c, NULL);
 
   /* have an argument */
-  argc -= c;
-  argv += c;
-
-  if (argc)
-    mailbox_name = argv[0];
-
-  /* register the formats.  */
-  mu_register_all_mbox_formats ();
-
-  /* Construct the mailbox_t, attach a notification and destroy  */
-  {
-    mailbox_t mbox;
-    observer_t observer;
-    observable_t observable;
-    url_t url = NULL;
-
-    status = mailbox_create_default (&mbox, mailbox_name);
-    if (status != 0)
-      {
-	mu_error (_("Couldn't create mailbox <%s>: %s."),
-		  mailbox_name ? mailbox_name : _("default"),
-		  mu_strerror (status));
-	exit (3);
-      }
-
-    if (dbug)
-      {
-	mu_debug_t debug;
-	mailbox_get_debug (mbox, &debug);
-	mu_debug_set_level (debug, MU_DEBUG_TRACE|MU_DEBUG_PROT);
-      }
-
-    mailbox_get_url (mbox, &url);
-
-    status = mailbox_open (mbox, MU_STREAM_READ);
-    if (status != 0)
-      {
-	if (status == ENOENT)
-	  goto cleanup1;
-	else
-	  {
-	    mu_error (_("Couldn't open mailbox <%s>: %s."),
-		      url_to_string (url), mu_strerror (status));
-	    goto cleanup;
-	  }
-      }
-
-    if (! be_quiet)
-      {
-	observer_create (&observer, mbox);
-	observer_set_action (observer, action, mbox);
-	mailbox_get_observable (mbox, &observable);
-	observable_attach (observable, MU_EVT_MESSAGE_ADD, observer);
-      }
-
-    status = mailbox_scan (mbox, 1, &total);
-    if (status != 0)
-      {
-	mu_error (_("Couldn't scan mailbox <%s>: %s."),
-		  url_to_string (url), mu_strerror (status));
-	goto cleanup;
-      }
-
-    if (! be_quiet)
-      {
-	observable_detach (observable, observer);
-	observer_destroy (&observer, mbox);
-      }
-
-cleanup:
-    if (mailbox_close (mbox) != 0)
-      {
-	mu_error (_("Couldn't close <%s>: %s."),
-		  url_to_string (url), mu_strerror (status));
-	return -1;
-      }
-
-    mailbox_destroy (&mbox);
-
-    if (status != 0)
-      return 3;
-  }
-
- cleanup1:
-  if (show_summary)
-    printf (ngettext ("You have %d message.\n",
-                      "You have %d messages.\n",
-		      total),
-            total);
-  if (show_query && have_new_mail)
-    printf (_("You have new mail.\n"));
-
-  /* EXIT STATUS
-     Frm returns a zero status ("true") if messages matching `status' are
-     present.  Frm returns 1 if no messages matching `status' are present,
-     but there are some messages, returns 2 if there are no messages at
-     all, or returns 3 if an error occurred. */
-
-  if (selected)
-    status = 0;
-  else if (total > 0)
-    status = 1;
+  if (c == argc)
+    status = frm (NULL);
+  else if (c + 1 == argc)
+    status = frm (argv[c]);
   else
-    status = 2;
+    for (; c < argc; c++)
+      {
+	printf ("%s:\n", argv[c]);
+	status = frm (argv[c]);
+      }
 
   return status;
 }
