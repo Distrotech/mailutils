@@ -38,6 +38,7 @@ static int counter;
 static struct option long_options[] =
 {
   {"help", no_argument, 0, 'h'},
+  {"field", required_argument, 0, 'f'},
   {"to", no_argument, 0, 'l'},
   {"number", no_argument, 0, 'n'},
   {"Quiet", no_argument, 0, 'Q'},
@@ -49,8 +50,9 @@ static struct option long_options[] =
   {0, 0, 0, 0}
 };
 
-const char *short_options ="hlnQqSs:tv";
+const char *short_options ="hf:lnQqSs:tv";
 
+static char* show_field;
 static int show_to;
 static int show_from = 1;
 static int show_subject = 1;
@@ -108,7 +110,6 @@ action (observer_t o, size_t type)
 	message_t msg = NULL;
 	header_t hdr = NULL;
 	attribute_t attr = NULL;
-	char hsubject[512];
 
 	counter++;
 
@@ -145,6 +146,15 @@ action (observer_t o, size_t type)
 	if (show_number)
 	  printf ("%d: ", counter);
 
+	if (show_field)
+	  {
+	    char hfield[256];
+	    int status = header_get_value (hdr, show_field, hfield,
+					   sizeof (hfield), NULL);
+	    if (status == 0)
+	      printf ("%s\n", hfield);
+	  }
+
 	if (show_to)
 	  {
 	    char hto[16];
@@ -171,7 +181,8 @@ action (observer_t o, size_t type)
 	    char hsubject[64];
 	    int status = header_get_value (hdr, MU_HEADER_SUBJECT, hsubject,
 					   sizeof (hsubject), NULL);
-	    printf("%s\n", hsubject);
+	    if(status == 0)
+	      printf("%s\n", hsubject);
 	  }
 	break;
       }
@@ -189,8 +200,9 @@ usage (const char *argv)
   printf ("GNU Mailutils.\n");
   printf ("Usage: %s [OPTIONS]\n\n", argv);
   printf ("  -h, --help               display this help and exit\n");
+  printf ("  -f, --field=string       header field to display\n");
   printf ("  -l, --to                 include the To: information\n");
-  printf ("  -n, --number             display the message numberd\n");
+  printf ("  -n, --number             display the message numbered\n");
   printf ("  -Q, --Quiet              very quiet\n");
   printf ("  -q, --query              print a message if unread mail\n");
   printf ("  -S, --summary            print a summary of messages\n");
@@ -225,6 +237,13 @@ main(int argc, char **argv)
 	{
 	case 'h':
 	  usage (argv[0]);
+	  break;
+
+	case 'f':
+	  show_field = optarg;
+	  show_from = 0;
+	  show_subject = 0;
+	  align = 0;
 	  break;
 
 	case 'l':
