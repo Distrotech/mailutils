@@ -199,7 +199,26 @@ namespace_checkfullpath (char *name, const char *pattern, const char *delim)
 char *
 namespace_getfullpath (char *name, const char *delim)
 {
-  return namespace_checkfullpath (name, NULL, delim);
+  if (strcasecmp (name, "INBOX") == 0 && !mu_virtual_domain)
+    {
+      struct passwd *pw = mu_getpwuid (getuid ());
+      if (pw)
+	{
+	  name = malloc (strlen (mu_path_maildir) +
+			 strlen (pw->pw_name) + 1);
+	  if (!name)
+	    {
+	      syslog (LOG_ERR, "Not enough memory");
+	      return NULL;
+	    }
+	  sprintf (name, "%s%s", mu_path_maildir, pw->pw_name);
+	}
+      else
+	name = strdup ("/dev/null");
+    }
+  else
+    name = namespace_checkfullpath (name, NULL, delim);
+  return name;
 }
 
 
