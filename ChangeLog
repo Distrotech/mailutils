@@ -1,3 +1,18 @@
+2002-01-18  Sergey Poznyakoff  
+
+	* mailbox/mutil.c: New function mu_tempfile().
+	* include/mailutils/mutil.h: Declaration for mu_tempfile().
+	* guimb/collect.c: Use mu_tempfile.
+	* mail/send.c: Likewise.
+	* mail/var.c: Likewise.
+	* mailbox/body.c: Likewise.
+	* mailbox/mbx_mh.c: Likewise.
+
+	* mailbox/muerror.c: New function mu_verror().
+	
+	* guimb/util.c: Removed util_tempfile().
+	* mail/util.c: Likewise.
+
 2002-01-15 Sam Roberts
 
 	* sieve/: sieve.c, sv.h, svcb.c, svctx.c, svutil.c,
