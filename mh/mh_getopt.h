@@ -178,7 +178,7 @@ struct mh_argp_data
 void mh_argv_preproc __P((int argc, char **argv, struct mh_argp_data *data));
 int mh_getopt __P((int argc, char **argv, struct mh_option *mh_opt,
 		   const char *doc));
-int mh_argp_parse __P((int argc, char **argv,
+int mh_argp_parse __P((int *argc, char **argv[],
 		       int flags,
 		       struct argp_option *option,
 		       struct mh_option *mh_option,

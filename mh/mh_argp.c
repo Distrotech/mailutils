@@ -95,7 +95,7 @@ my_argp_parse (struct argp *argp, int argc, char **argv, int flags,
 }
 
 int
-mh_argp_parse (int argc, char **argv,
+mh_argp_parse (int *pargc, char **pargv[],
 	       int flags,
 	       struct argp_option *option,
 	       struct mh_option *mh_option,
@@ -108,8 +108,8 @@ mh_argp_parse (int argc, char **argv,
   int index;
   int extra  = 0;
   
-  program_invocation_name = argv[0];
-  p = strrchr (argv[0], '/');
+  program_invocation_name = (*pargv)[0];
+  p = strrchr ((*pargv)[0], '/');
   if (p)
     program_invocation_short_name = p+1;
   else
@@ -131,41 +131,42 @@ mh_argp_parse (int argc, char **argv,
   p = mh_global_profile_get (program_invocation_short_name, NULL);
   if (p)
     {
-      int _argc;
-      char **_argv;
+      int argc;
+      char **argv;
       int xargc;
       char **xargv;
       int i, j;
       
       argcv_get (p, "", NULL, &xargc, &xargv);
 
-      _argc = argc + xargc;
-      _argv = calloc (_argc+1, sizeof *_argv);
-      if (!_argv)
+      argc = *pargc + xargc;
+      argv = calloc (argc+1, sizeof *argv);
+      if (!argv)
         mh_err_memory (1);
 
       i = 0;
-      _argv[i++] = argv[0];
+      argv[i++] = (*pargv)[0];
       for (j = 0; j < xargc; i++, j++)
-	_argv[i] = xargv[j];
-      for (j = 1; i < _argc; i++, j++)
-	_argv[i] = argv[j];
-      _argv[i] = NULL;
-      mh_argv_preproc (_argc, _argv, &data);
+	argv[i] = xargv[j];
+      for (j = 1; i < argc; i++, j++)
+	argv[i] = (*pargv)[j];
+      argv[i] = NULL;
+      
+      mh_argv_preproc (argc, argv, &data);
 
-      my_argp_parse (&argp, _argc, _argv, flags, &index, &data);
+      my_argp_parse (&argp, argc, argv, flags, &index, &data);
 
-      free (_argv);
-      extra = index < _argc;
-      index -= xargc;
-      if (index < 0)
-	index = argc;
+      extra = index < argc;
+
+      *pargc = argc;
+      *pargv = argv;
+      free (xargv);
     }
   else
     {
-      mh_argv_preproc (argc, argv, &data);
-      my_argp_parse (&argp, argc, argv, flags, &index, &data);
-      extra = index < argc;
+      mh_argv_preproc (*pargc, *pargv, &data);
+      my_argp_parse (&argp, *pargc, *pargv, flags, &index, &data);
+      extra = index < *pargc;
     }
   if (pindex)
     *pindex = index;
