@@ -535,6 +535,22 @@ util_setenv (const char *variable, void *value, mail_env_data_t type,
 	  
 	case Mail_env_string:
 	  ep->value.string = strdup (value);
+	  if (strcmp (variable, "replyregex") == 0)
+	    { 
+	      int rc;
+	      char *err;
+	      
+	      if (rc = munre_set_regex (value, 0, &err))
+		{
+		  fprintf (stderr, "%s", mu_strerror (rc));
+		  if (err)
+		    {
+		      fprintf (stderr, "%s", err);
+		      free (err);
+		    }
+		  fprintf (stderr, "\n");
+		}
+	    }
 	  break;
 	  
 	case Mail_env_boolean:
@@ -547,6 +563,15 @@ util_setenv (const char *variable, void *value, mail_env_data_t type,
 
   return 0;
 }
+
+const char *
+util_reply_prefix ()
+{
+  char *prefix = "Re: ";
+  util_getenv (&prefix, "replyprefix", Mail_env_string, 0);
+  return prefix;
+}
+
 
 /* ************************* */
 
