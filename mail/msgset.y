@@ -32,6 +32,7 @@ struct header_data
 static msgset_t *msgset_select (int (*sel)(), void *closure, int rev,
 				int max_matches);
 static int select_header (message_t msg, void *closure);
+static int select_body (message_t msg, void *closure);
 static int select_type (message_t msg, void *closure);
 static int select_sender (message_t msg, void *closure);
 static int select_deleted (message_t msg, void *closure);
@@ -47,7 +48,7 @@ static msgset_t *result;
 }
 
 %token <type> TYPE
-%token <string> IDENT REGEXP HEADER
+%token <string> IDENT REGEXP HEADER BODY
 %token <number> NUMBER
 %type <mset> msgset msgspec msg rangeset range partno number
 %type <string> header
@@ -118,6 +119,10 @@ msg      : header REGEXP /* /.../ */
 	     if ($1)
 	       free ($1);
 	     free ($2);
+	   }
+         | BODY
+           {
+	     $$ = msgset_select (select_body, $1, 0, 0);
 	   }
          | TYPE  /* :n, :d, etc */
            {
@@ -280,6 +285,20 @@ yylex()
   if (*cur_p == ':')
     {
       cur_p++;
+      if (*cur_p == '/')
+	{
+	  char *p = ++cur_p;
+	  int len;
+	  
+	  while (*cur_p && *cur_p != '/')
+	    cur_p++;
+	  len = cur_p - p + 1;
+	  cur_p++;
+	  yylval.string = xmalloc (len);
+	  memcpy (yylval.string, p, len-1);
+	  yylval.string[len-1] = 0;
+	  return BODY;
+	}
       yylval.type = *cur_p++;
       return TYPE;
     }
@@ -491,6 +510,7 @@ select_header (message_t msg, void *closure)
 	    }
           status = regexec (&re, contents, 0, NULL, 0);
           free (contents);
+	  regfree (&re);
           return status == 0;
 	}
       else
@@ -503,6 +523,50 @@ select_header (message_t msg, void *closure)
 	}
     }
   return 0;
+}
+
+int
+select_body (message_t msg, void *closure)
+{
+  char *expr = closure;
+  int noregex = util_find_env ("noregex")->set;
+  regex_t re;
+  int status;
+  body_t body = NULL;
+  stream_t stream = NULL;
+  size_t size = 0, lines = 0;
+  char buffer[128];
+  size_t n = 0;
+  off_t offset = 0;
+
+  if (noregex)
+    util_strupper (expr);
+  else if (regcomp (&re, expr, REG_EXTENDED | REG_ICASE) != 0)
+    return 0;
+
+  message_get_body (msg, &body);
+  body_size (body, &size);
+  body_lines (body, &lines);
+  body_get_stream (body, &stream);
+  status = 0;
+  while (status == 0
+	 && stream_readline (stream, buffer, sizeof(buffer)-1, offset, &n) == 0
+	 && n > 0)
+    {
+      offset += n;
+      if (noregex)
+	{
+	  util_strupper (buffer);
+	  status = strstr (buffer, expr) != NULL;
+	}
+      else
+	status = regexec (&re, buffer, 0, NULL, 0);
+    }
+
+  if (!noregex)
+    regfree (&re);
+
+  return status;
 }
 
 int
