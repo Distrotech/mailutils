@@ -53,13 +53,14 @@ mh_getopt (int argc, char **argv, struct mh_option *mh_opt)
   optlen = strlen (mh_optptr+1);
   for (p = mh_opt; p->opt; p++)
     {
-      if (p->match_len <= optlen
-	  && strlen (p->opt) >= optlen
-	  && (memcmp (mh_optptr+1, p->opt, optlen) == 0
-	      || (p->flags == MH_OPT_BOOL
-		  && optlen > 2
-		  && memcmp (mh_optptr+3, p->opt, optlen-2) == 0)))
-	  break;
+      if ((p->match_len <= optlen
+	   && memcmp (mh_optptr+1, p->opt, optlen) == 0)
+	  || (p->flags == MH_OPT_BOOL
+	      && optlen > 2
+	      && memcmp (mh_optptr+1, "no", 2) == 0
+	      && strlen (p->opt) >= optlen-2
+	      && memcmp (mh_optptr+3, p->opt, optlen-2) == 0))
+	break;
     }
   
   if (p->opt)
