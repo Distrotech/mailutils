@@ -466,7 +466,7 @@ int parse822_quoted_string(const char** p, const char* e, char** qstr)
 	} else if(c == '\\') {
 	    rc = parse822_quoted_pair(p, e, qstr);
 	} else if(c == '\r') {
-	    /* invalid character... */
+ 	    /* invalid character... */
 	    *p += 1;
 	} else if(parse822_is_char(c)) {
 	    rc = str_append_char(qstr, c);
@@ -498,7 +498,7 @@ int parse822_word(const char** p, const char* e, char** word)
 
     {
 	char* qstr = 0;
-	if((rc = parse822_quoted_string(p, e, &qstr)) == EOK) {
+	if((rc = parse822_quoted_string(p, e, &qstr)) == EOK && qstr) {
 	    rc = str_append(word, qstr);
 
 	    str_free(&qstr);
