@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2005 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -29,7 +29,8 @@ top0 (msgset_t *mspec, message_t msg, void *data)
   size_t n;
   off_t off;
   int lines;
-
+  attribute_t attr = NULL;
+  
   if (util_getenv (&lines, "toplines", Mail_env_number, 1)
       || lines < 0)
     return 1;
@@ -43,6 +44,10 @@ top0 (msgset_t *mspec, message_t msg, void *data)
       fprintf (ofile, "%s", buf);
     }
   cursor = mspec->msg_part[0];
+
+  message_get_attribute (msg, &attr);
+  attribute_set_read (attr);
+  attribute_set_userflag (attr, MAIL_ATTRIBUTE_SHOWN);
   return 0;
 }
 
