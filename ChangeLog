@@ -1,3 +1,9 @@
+2001-11-15  Sergey Poznyakoff
+
+	* imap4d/append.c: Removed mailbox_destroy_folder kludge. It is
+	not needed due to yesterday's mods of mailbox/mailbox.c.
+	* comsat/comsat.c: Likewise.
+
 2001-11-14  Alain Magloire
 
 	* mailbox/wicket.c (_get_ticket): Reset the buffer.
