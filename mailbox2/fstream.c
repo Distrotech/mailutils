@@ -148,7 +148,7 @@ static int
 _fs_truncate (stream_t stream, off_t len)
 {
   struct _fs *fs = (struct _fs *)stream;
-  if (fs->file && ftruncate (fileno(fs->file), len) != 0)
+  if (fs->file && ftruncate (fileno (fs->file), len) != 0)
     return MU_ERROR_IO;
   return 0;
 }
@@ -162,7 +162,7 @@ _fs_get_size (stream_t stream, off_t *psize)
   if (fs->file)
     {
       fflush (fs->file);
-      if (fstat(fileno(fs->file), &stbuf) == -1)
+      if (fstat (fileno (fs->file), &stbuf) == -1)
 	return errno;
     }
   if (psize)
@@ -404,6 +404,7 @@ stream_file_create (stream_t *pstream)
   fs->ref = 1;
   fs->file = NULL;
   fs->flags = 0;
+  monitor_create (&(fs->lock));
   *pstream = &fs->base;
   return 0;
 }

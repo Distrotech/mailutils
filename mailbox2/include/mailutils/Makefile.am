@@ -4,19 +4,29 @@
 SUBDIRS = sys
 
 pkginclude_HEADERS = \
- address.h   \
- attribute.h \
- base.h      \
- envelope.h  \
- error.h     \
+ address.h    \
+ attribute.h  \
+ authority.h  \
+ body.h       \
+ debug.h      \
+ envelope.h   \
+ error.h      \
+ folder.h     \
  header.h     \
- iterator.h  \
- list.h      \
- mbox.h      \
- md5-rsa.h   \
- monitor.h   \
- mutil.h     \
- observer.h  \
- parse822.h  \
- pop3.h      \
- stream.h
+ iterator.h   \
+ list.h       \
+ locker.h     \
+ mailbox.h    \
+ mbox.h       \
+ md5-rsa.h    \
+ message.h    \
+ monitor.h    \
+ mutil.h      \
+ observable.h \
+ observer.h   \
+ parse822.h   \
+ pop3.h       \
+ property.h   \
+ stream.h     \
+ ticket.h     \
+ url.h

@@ -15,35 +15,40 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-#ifndef _MAILUTILS_SYS_ITERATOR_H
-#define _MAILUTILS_SYS_ITERATOR_H
+#ifndef _MAILUTILS_PROPERTY_H
+#define _MAILUTILS_PROPERTY_H
 
-#include <mailutils/iterator.h>
+#include <sys/types.h>
+
+#ifndef __P
+# ifdef __STDC__
+#  define __P(args) args
+# else
+#  define __P(args) ()
+# endif
+#endif /*__P */
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct _iterator_vtable
-{
-  /* Base */
-  int (*add_ref) __P ((iterator_t));
-  int (*release) __P ((iterator_t));
-  int (*destroy) __P ((iterator_t));
+struct _property;
+typedef struct _property *property_t;
 
-  int (*first)   __P ((iterator_t));
-  int (*next)    __P ((iterator_t));
-  int (*current) __P ((iterator_t, void *));
-  int (*is_done) __P ((iterator_t));
-};
+extern int property_create   __P ((property_t *));
+extern int property_destroy  __P ((property_t));
 
-struct _iterator
-{
-  struct _iterator_vtable *vtable;
-};
+extern int property_set_value __P ((property_t, const char *, const char *,
+				    int));
+extern int property_get_value __P ((property_t, const char *, char * const *));
+
+/* Helper functions.  */
+extern int property_set  __P ((property_t, const char *));
+extern int property_unset __P ((property_t, const char *));
+extern int property_is_set __P ((property_t, const char *));
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* _MAILUTILS_SYS_ITERATOR_H */
+#endif /* _MAILUTILS_PROPERTY_H */

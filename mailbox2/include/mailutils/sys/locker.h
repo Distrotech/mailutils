@@ -15,35 +15,45 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-#ifndef _MAILUTILS_SYS_ITERATOR_H
-#define _MAILUTILS_SYS_ITERATOR_H
+#ifndef _MAILUTILS_SYS_LOCKER_H
+#define _MAILUTILS_SYS_LOCKER_H
 
-#include <mailutils/iterator.h>
+#ifdef DMALLOC
+#include <dmalloc.h>
+#endif
+
+#include <mailutils/locker.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct _iterator_vtable
-{
-  /* Base */
-  int (*add_ref) __P ((iterator_t));
-  int (*release) __P ((iterator_t));
-  int (*destroy) __P ((iterator_t));
+#ifndef __P
+# ifdef __STDC__
+#  define __P(args) args
+# else
+#  define __P(args) ()
+# endif
+#endif /*__P */
 
-  int (*first)   __P ((iterator_t));
-  int (*next)    __P ((iterator_t));
-  int (*current) __P ((iterator_t, void *));
-  int (*is_done) __P ((iterator_t));
+struct _locker_vtable
+{
+  int (*add_ref)   __P ((locker_t));
+  int (*release)   __P ((locker_t));
+  int (*destroy)   __P ((locker_t));
+
+  int (*lock)      __P ((locker_t));
+  int (*touchlock) __P ((locker_t));
+  int (*unlock)    __P ((locker_t));
 };
 
-struct _iterator
+struct _locker
 {
-  struct _iterator_vtable *vtable;
+  struct _locker_vtable *vtable;
 };
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* _MAILUTILS_SYS_ITERATOR_H */
+#endif /* _MAILUTILS_SYS_ENVELOPE_H */

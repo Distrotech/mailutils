@@ -63,16 +63,6 @@ struct _da
   monitor_t lock;
 };
 
-#define attribute_add_ref(a)           ((a)->vtable->add_ref)(s)
-#define attribute_release(a)           ((a)->vtable->release)(s)
-#define attribute_destroy(a)           ((a)->vtable->destroy)(s)
-
-#define attribute_get_flags(a,pf)      ((a)->vtable->get_flags)(a,pf)
-#define attribute_set_flags(a,f)       ((a)->vtable->set_flags)(a,f)
-#define attribute_unset_flags(a,f)     ((a)->vtable->unset_flags)(a,f)
-#define attribute_clear_flags(a)       ((a)->vtable->clear_flags)(a)
-
-
 #ifdef __cplusplus
 }
 #endif

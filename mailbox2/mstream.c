@@ -471,6 +471,7 @@ stream_mapfile_create (stream_t *pstream)
   ms->offset = -1;
   ms->flags = 0;
   ms->mflags = 0;
+  monitor_create (&(ms->lock));
   *pstream = &ms->base;
 
   return 0;

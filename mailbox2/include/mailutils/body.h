@@ -15,35 +15,45 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-#ifndef _MAILUTILS_SYS_ITERATOR_H
-#define _MAILUTILS_SYS_ITERATOR_H
+#ifndef _MAILUTILS_BODY_H
+#define _MAILUTILS_BODY_H
 
-#include <mailutils/iterator.h>
+#include <sys/types.h>
+#include <mailutils/property.h>
+#include <mailutils/stream.h>
+
+#ifndef __P
+# ifdef __STDC__
+#  define __P(args) args
+# else
+#  define __P(args) ()
+# endif
+#endif /* __P */
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct _iterator_vtable
-{
-  /* Base */
-  int (*add_ref) __P ((iterator_t));
-  int (*release) __P ((iterator_t));
-  int (*destroy) __P ((iterator_t));
+/* forward declaration */
+struct _body;
+typedef struct _body *body_t;
 
-  int (*first)   __P ((iterator_t));
-  int (*next)    __P ((iterator_t));
-  int (*current) __P ((iterator_t, void *));
-  int (*is_done) __P ((iterator_t));
-};
+extern int body_add_ref        __P ((body_t));
+extern int body_release        __P ((body_t));
+extern int body_destroy        __P ((body_t));
 
-struct _iterator
-{
-  struct _iterator_vtable *vtable;
-};
+extern int body_is_modified    __P ((body_t));
+extern int body_clear_modified __P ((body_t));
+
+extern int body_get_stream     __P ((body_t, stream_t *));
+
+extern int body_get_property   __P ((body_t, property_t *));
+
+extern int body_get_size       __P ((body_t, size_t*));
+extern int body_get_lines      __P ((body_t, size_t *));
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* _MAILUTILS_SYS_ITERATOR_H */
+#endif /* _MAILUTILS_BODY_H */

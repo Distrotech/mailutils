@@ -48,7 +48,7 @@ struct _header_vtable
   int (*get_field_value) __P ((header_t, size_t, char *, size_t, size_t *));
   int (*get_field_name)  __P ((header_t, size_t, char *, size_t, size_t *));
 
-   int (*get_stream)     __P ((header_t, stream_t *));
+  int (*get_stream)     __P ((header_t, stream_t *));
 
   int (*get_size)        __P ((header_t, size_t *));
   int (*get_lines)       __P ((header_t, size_t *));

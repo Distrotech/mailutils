@@ -23,7 +23,7 @@
 #include <stdlib.h>
 #include <mailutils/iterator.h>
 #include <mailutils/error.h>
-#include <mailutils/sys/observer.h>
+#include <mailutils/sys/observable.h>
 
 struct observer_info
 {

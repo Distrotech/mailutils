@@ -2,48 +2,36 @@
    Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
-   it under the terms of the GNU General Library Public License as published by
+   it under the terms of the GNU Library General Public License as published by
    the Free Software Foundation; either version 2, or (at your option)
    any later version.
 
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU Library General Public License for more details.
+   GNU General Public License for more details.
 
    You should have received a copy of the GNU Library General Public License
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-#ifndef _MAILUTILS_SYS_ITERATOR_H
-#define _MAILUTILS_SYS_ITERATOR_H
+#ifndef MAILUTILS_SYS_MEMSTREAM_H
+#define MAILUTILS_SYS_MEMSTREAM_H
 
-#include <mailutils/iterator.h>
+#include <sys/types.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include <mailutils/monitor.h>
+#include <mailutils/sys/stream.h>
 
-struct _iterator_vtable
+struct _memory_stream
 {
-  /* Base */
-  int (*add_ref) __P ((iterator_t));
-  int (*release) __P ((iterator_t));
-  int (*destroy) __P ((iterator_t));
-
-  int (*first)   __P ((iterator_t));
-  int (*next)    __P ((iterator_t));
-  int (*current) __P ((iterator_t, void *));
-  int (*is_done) __P ((iterator_t));
+  struct _stream base;
+  int ref;
+  char *ptr;
+  size_t  size;
+  off_t  offset;
+  int flags;
+  monitor_t lock;
 };
 
-struct _iterator
-{
-  struct _iterator_vtable *vtable;
-};
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif /* _MAILUTILS_SYS_ITERATOR_H */
+#endif /* _MAILUTILS_SYS_MEMSTREAM_H */

@@ -15,17 +15,13 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-#ifndef _MAILUTILS_BASE_H
-#define _MAILUTILS_BASE_H
+#ifndef _MAILUTILS_LOCKER_H
+#define _MAILUTILS_LOCKER_H
 
 #include <sys/types.h>
 
-#ifdef  __cplusplus
-# define __MAILUTILS_START_DECLS  extern "C" {
-# define __MAILUTILS_END_DECLS    }
-#else
-# define __MAILUTILS_BEGIN_DECLS
-# define __MAILUTILS_END_DECLS
+#ifdef __cplusplus
+extern "C" {
 #endif
 
 #ifndef __P
@@ -36,51 +32,22 @@
 # endif
 #endif /*__P */
 
-__MAILUTILS_BEGIN_DECLS
-
-/* Forward declarations.  */
-struct _url;
-typedef struct _url *url_t;
-
-struct _mailer;
-typedef struct _mailer *mailer_t;
-
-struct _folder;
-typedef struct _folder *folder_t;
-
-struct _mailbox;
-typedef struct _mailbox *mailbox_t;
-
-struct _mime;
-struct _mime *mime_t;
-
-struct _message;
-typedef struct _message *message_t;
-
-struct _header;
-typedef struct _header *header_t;
-
-struct _body;
-typedef struct _body *body_t;
-
-struct _ticket;
-typedef struct _ticket *ticket_t;
-
-struct _authority;
-typedef struct _authority *authority_t;
-
 struct _locker;
 typedef struct _locker *locker_t;
 
-struct _debug;
-typedef struct _debug *mu_debug_t;
+extern int locker_add_ref        __P ((locker_t));
+extern int locker_release        __P ((locker_t));
+extern int locker_destroy        __P ((locker_t));
 
-struct _filter;
-typedef struct _filter *filter_t;
+extern int locker_lock           __P ((locker_t));
+extern int locker_touchlock      __P ((locker_t));
+extern int locker_unlock         __P ((locker_t));
 
-struct _property;
-typedef struct _property *property_t;
+extern int locker_dotlock_create __P ((locker_t *, const char *filename));
+extern int locker_nfslock_create __P ((locker_t *, const char *filename));
 
-__MAILUTILS_END_DECLS
+#ifdef __cplusplus
+}
+#endif
 
-#endif /*_MAILUTILS_BASE_H */
+#endif /* _MAILUTILS_MAILBOX_H */

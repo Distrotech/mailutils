@@ -15,8 +15,8 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-#ifndef _MAILUTILS_OBSERVER_H
-#define _MAILUTILS_OBSERVER_H
+#ifndef _MAILUTILS_TICKET_H
+#define _MAILUTILS_TICKET_H
 
 #include <sys/types.h>
 
@@ -32,38 +32,20 @@
 extern "C" {
 #endif
 
-struct _observer;
-typedef struct _observer * observer_t;
+/* forward declaration */
+struct _ticket;
+typedef struct _ticket *ticket_t;
 
-struct event
-{
-  int type;
-  union
-  {
-    void *mailbox; /* For corrupted mailbox.  */
-    int msgno;         /* For new message.  */
-    int percentage;    /* Scan progress.  */
-    void *message; /* message sent.  */
-  } data ;
-};
+extern int ticket_add_ref __P ((ticket_t));
+extern int ticket_release __P ((ticket_t));
+extern int ticket_destroy __P ((ticket_t));
 
-#define MU_EVT_MESSAGE_ADD         0x010
-#define MU_EVT_MAILBOX_PROGRESS    0x020
-#define MU_EVT_AUTHORITY_FAILED    0x030
-#define MU_EVT_MAILBOX_CORRUPT     0x040
-#define MU_EVT_MAILER_MESSAGE_SENT 0x080
+extern int ticket_pop     __P ((ticket_t, const char *, char **));
 
-extern int observer_create  __P ((observer_t *, int (*action)
-				       __P ((void *, struct event)), void *));
-
-extern int observer_add_ref __P ((observer_t));
-extern int observer_release __P ((observer_t));
-extern int observer_destroy __P ((observer_t));
-
-extern int observer_action  __P ((observer_t, struct event));
+extern int ticket_prompt_create __P ((ticket_t *));
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* _MAILUTILS_OBSERVER_H */
+#endif /* _MAILUTILS_TICKET_H */

@@ -18,14 +18,26 @@
 #ifndef _MAILUTILS_MBOX_H
 #define _MAILUTILS_MBOX_H
 
-#include <mailutils/iterator.h>
-#include <mailutils/stream.h>
 #include <mailutils/message.h>
 #include <mailutils/observer.h>
 
-__MAILUTILS_BEGIN_DECLS
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-extern int mbox_create          __P ((mbox_t));
+#ifndef __P
+# ifdef __STDC__
+#  define __P(args) args
+# else
+#  define __P(args) ()
+# endif
+#endif /*__P */
+
+struct _mbox;
+typedef struct _mbox *mbox_t;
+
+
+extern int mbox_create          __P ((mbox_t *));
 extern int mbox_destroy         __P ((mbox_t));
 
 extern int mbox_uidvalidity     __P ((mbox_t, unsigned long *));
@@ -34,35 +46,28 @@ extern int mbox_uidnext         __P ((mbox_t, unsigned long));
 extern int mbox_open            __P ((mbox_t, const char *, int));
 extern int mbox_close           __P ((mbox_t));
 
+extern int mbox_get_message     __P ((mbox_t, unsigned int, message_t *));
 extern int mbox_get_envelope    __P ((mbox_t, unsigned int, envelope_t *));
-extern int mbox_set_envelope    __P ((mbox_t, unsigned int, envelope_t));
-
-extern int mbox_get_header      __P ((mbox_t, unsigned int, stream_t *));
-extern int mbox_set_header      __P ((mbox_t, unsigned int, stream_t));
-extern int mbox_header_size     __P ((mbox_t, unsigned int, size_t *));
-extern int mbox_hdr_get_value   __P ((mbox_t, unsigned int, char *, size_t, size_t *));
-extern int mbox_hdr_set_value   __P ((mbox_t, unsigned int, char *, size_t, int));
-
-extern int mbox_get_body        __P ((mbox_t, unsigned int, stream_t *));
-extern int mbox_set_body        __P ((mbox_t, unsigned int, stream_t));
-extern int mbox_body_size       __P ((mbox_t, unsigned int, size_t *));
+extern int mbox_get_header      __P ((mbox_t, unsigned int, header_t *));
+extern int mbox_get_body        __P ((mbox_t, unsigned int, body_t *));
 
 extern int mbox_get_flags       __P ((mbox_t, unsigned int, int *));
-extern int mbox_set_flags       __P ((mbox_t, unsigned int, int));
 
-extern int mbox_size            __P ((mbox_t, unsigned long *));
+extern int mbox_get_size        __P ((mbox_t, unsigned long *));
 
 extern int mbox_save_attributes __P ((mbox_t));
 extern int mbox_expunge         __P ((mbox_t));
 extern int mbox_is_modified     __P ((mbox_t));
 
 extern int mbox_scan            __P ((mbox_t, unsigned int, unsigned int *));
-extern int mbox_get_count           __P ((mbox_t, unsigned int *));
-extern int mbox_get_oberver     __P ((mbox_t, observer_t));
+extern int mbox_messages_count  __P ((mbox_t, unsigned int *));
+extern int mbox_get_obervable   __P ((mbox_t, observable_t *));
 
-extern int mbox_append          __P ((mbox_t, stream_t));
+extern int mbox_append          __P ((mbox_t, message_t));
 
 
-__MAILUTILS_END_DECLS
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* _MAILUTILS_MBOX_H */

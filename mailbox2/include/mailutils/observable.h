@@ -15,10 +15,11 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-#ifndef _MAILUTILS_OBSERVER_H
-#define _MAILUTILS_OBSERVER_H
+#ifndef _MAILUTILS_OBSERVABLE_H
+#define _MAILUTILS_OBSERVABLE_H
 
 #include <sys/types.h>
+#include <mailutils/observer.h>
 
 #ifndef __P
 #ifdef __STDC__
@@ -32,38 +33,19 @@
 extern "C" {
 #endif
 
-struct _observer;
-typedef struct _observer * observer_t;
+struct _observable;
+typedef struct _observable *observable_t;
 
-struct event
-{
-  int type;
-  union
-  {
-    void *mailbox; /* For corrupted mailbox.  */
-    int msgno;         /* For new message.  */
-    int percentage;    /* Scan progress.  */
-    void *message; /* message sent.  */
-  } data ;
-};
+extern int observable_create     __P ((observable_t *));
+extern int observable_release    __P ((observable_t));
+extern int observable_destroy    __P ((observable_t));
 
-#define MU_EVT_MESSAGE_ADD         0x010
-#define MU_EVT_MAILBOX_PROGRESS    0x020
-#define MU_EVT_AUTHORITY_FAILED    0x030
-#define MU_EVT_MAILBOX_CORRUPT     0x040
-#define MU_EVT_MAILER_MESSAGE_SENT 0x080
-
-extern int observer_create  __P ((observer_t *, int (*action)
-				       __P ((void *, struct event)), void *));
-
-extern int observer_add_ref __P ((observer_t));
-extern int observer_release __P ((observer_t));
-extern int observer_destroy __P ((observer_t));
-
-extern int observer_action  __P ((observer_t, struct event));
+extern int observable_attach     __P ((observable_t, int, observer_t));
+extern int observable_detach     __P ((observable_t, observer_t));
+extern int observable_notify_all __P ((observable_t, struct event));
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* _MAILUTILS_OBSERVER_H */
+#endif /* _MAILUTILS_OBSERVABLE_H */

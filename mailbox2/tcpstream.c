@@ -376,7 +376,7 @@ static struct _stream_vtable _tcp_vtable =
 
   _tcp_get_fd,
   _tcp_get_flags,
-  _tcp_get_state,
+  _tcp_get_state
 };
 
 int
@@ -397,6 +397,7 @@ stream_tcp_create (stream_t *pstream)
   tcp->host = NULL;
   tcp->port = -1;
   tcp->state = TCP_STATE_INIT;
+  monitor_create (&(tcp->lock));
   *pstream = &tcp->base;
   return 0;
 }

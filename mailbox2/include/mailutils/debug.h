@@ -15,10 +15,11 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-#ifndef _MAILUTILS_OBSERVER_H
-#define _MAILUTILS_OBSERVER_H
+#ifndef _MAILUTILS_DEBUG_H
+#define _MAILUTILS_DEBUG_H
 
 #include <sys/types.h>
+#include <stdarg.h>
 
 #ifndef __P
 #ifdef __STDC__
@@ -32,38 +33,24 @@
 extern "C" {
 #endif
 
-struct _observer;
-typedef struct _observer * observer_t;
+struct _debug;
+typedef struct _debug* mu_debug_t;
 
-struct event
-{
-  int type;
-  union
-  {
-    void *mailbox; /* For corrupted mailbox.  */
-    int msgno;         /* For new message.  */
-    int percentage;    /* Scan progress.  */
-    void *message; /* message sent.  */
-  } data ;
-};
-
-#define MU_EVT_MESSAGE_ADD         0x010
-#define MU_EVT_MAILBOX_PROGRESS    0x020
-#define MU_EVT_AUTHORITY_FAILED    0x030
-#define MU_EVT_MAILBOX_CORRUPT     0x040
-#define MU_EVT_MAILER_MESSAGE_SENT 0x080
-
-extern int observer_create  __P ((observer_t *, int (*action)
-				       __P ((void *, struct event)), void *));
-
-extern int observer_add_ref __P ((observer_t));
-extern int observer_release __P ((observer_t));
-extern int observer_destroy __P ((observer_t));
-
-extern int observer_action  __P ((observer_t, struct event));
+#define MU_DEBUG_TRACE 1
+#define MU_DEBUG_PROT  2
+extern int mu_debug_add_ref   __P ((mu_debug_t));
+extern int mu_debug_release   __P ((mu_debug_t));
+extern int mu_debug_destroy   __P ((mu_debug_t));
+extern int mu_debug_set_level __P ((mu_debug_t, size_t level));
+extern int mu_debug_get_level __P ((mu_debug_t, size_t *plevel));
+extern int mu_debug_print     __P ((mu_debug_t debug, size_t level,
+				    const char *format, ...));
+extern int mu_debug_printv    __P ((mu_debug_t debug, size_t level,
+				    const char *format, va_list argp));
+extern int mu_debug_stderr_create    __P ((mu_debug_t *));
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* _MAILUTILS_OBSERVER_H */
+#endif /* _MAILUTILS_DEBUG_H */
