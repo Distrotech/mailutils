@@ -72,7 +72,7 @@ N_("GNU mail.remote -- pseudo-sendmail interface for mail delivery\n"
   "the data part of the protocol transaction will also be printed to stdout.\n");
 
 static struct argp_option options[] = {
-  {"from",  'f', N_("ADDR"), 0, N_("Override the default from address\n")},
+  {"from",  'f', N_("ADDR"), 0, N_("Override the default from address")},
   {"debug", 'd', NULL,   0, N_("Enable debugging output")},
   {      0, 'o', "OPT",  OPTION_HIDDEN, N_("Ignored for sendmail compatibility")},
   {0}
@@ -148,8 +148,8 @@ main (int argc, char **argv)
     {
       if ((status = address_create (&from, optfrom)))
 	{
-	  fprintf (stderr, _("Parsing from addresses failed: %s\n"),
-		   mu_strerror (status));
+	  mu_error (_("Parsing from addresses failed: %s"),
+		    mu_strerror (status));
 	  goto end;
 	}
     }
@@ -160,34 +160,33 @@ main (int argc, char **argv)
 
       if ((status = address_createv (&to, (const char **) av, -1)))
 	{
-	  fprintf (stderr, _("Parsing to addresses failed: %s\n"),
-		   mu_strerror (status));
+	  mu_error (_("Parsing to addresses failed: %s"),
+		    mu_strerror (status));
 	  goto end;
 	}
     }
 
   if ((status = stdio_stream_create (&in, stdin, MU_STREAM_SEEKABLE)))
     {
-      fprintf (stderr, _("Failed: %s\n"), mu_strerror (status));
+      mu_error (_("Failed: %s"), mu_strerror (status));
       goto end;
     }
 
   if ((status = stream_open (in)))
     {
-      fprintf (stderr, _("Opening stdin failed: %s\n"), mu_strerror (status));
+      mu_error (_("Opening stdin failed: %s"), mu_strerror (status));
       goto end;
     }
 
   if ((status = message_create (&msg, NULL)))
     {
-      fprintf (stderr, _("Failed: %s\n"), mu_strerror (status));
+      mu_error (_("Failed: %s"), mu_strerror (status));
       goto end;
     }
 
   if ((status = message_set_stream (msg, in, NULL)))
     {
-      fprintf (stderr, _("Failed: %s\n"),
-	       mu_strerror (status));
+      mu_error (_("Failed: %s"), mu_strerror (status));
       goto end;
     }
 
@@ -195,8 +194,8 @@ main (int argc, char **argv)
     {
       const char *url = NULL;
       mailer_get_url_default (&url);
-      fprintf (stderr, _("Creating mailer '%s' failed: %s\n"),
-	  url, mu_strerror (status));
+      mu_error (_("Creating mailer '%s' failed: %s"),
+		url, mu_strerror (status));
       goto end;
     }
 
@@ -214,20 +213,20 @@ main (int argc, char **argv)
     {
       const char *url = NULL;
       mailer_get_url_default (&url);
-      fprintf (stderr, _("Opening mailer '%s' failed: %s\n"),
-	  url, mu_strerror (status));
+      mu_error (_("Opening mailer '%s' failed: %s"),
+		url, mu_strerror (status));
       goto end;
     }
 
   if ((status = mailer_send_message (mailer, msg, from, to)))
     {
-      fprintf (stderr, _("Sending message failed: %s\n"), mu_strerror (status));
+      mu_error (_("Sending message failed: %s"), mu_strerror (status));
       goto end;
     }
 
   if ((status = mailer_close (mailer)))
     {
-      fprintf (stderr, _("Closing mailer failed: %s\n"), mu_strerror (status));
+      mu_error (_("Closing mailer failed: %s"), mu_strerror (status));
       goto end;
     }
 
