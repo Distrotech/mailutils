@@ -1,3 +1,83 @@
+2002-03-13  Sergey Poznyakoff 
+
+	* include/mailutils/Makefile.am: Added types.h
+
+	* argp/{argp-eexst.c,argp-namefrob.h,argp.h,
+	  argp-fmtstream.c,argp-parse.c,argp-fmtstream.h,argp-pv.c,
+	  argp-fs-xinl.c,argp-pvh.c,pin.c,argp-ba.c,argp-help.c,
+	  argp-xinl.c}: Moved to ../lib
+	* argp/Makefile.am: Removed
+	* argp/.cvsignore: Removed
+	* lib/{argp-eexst.c,argp-namefrob.h,argp.h,argp-fmtstream.c,
+	  argp-parse.c,argp-fmtstream.h,argp-pv.c,
+	  argp-fs-xinl.c,argp-pvh.c,pin.c,argp-ba.c,argp-help.c,
+	  argp-xinl.c}: Added from ../argp
+	* lib/Makefile.am: Added argp* files.
+	* Makefile.am: Removed argp from SUBDIRS.
+	* configure.in: Changed replace code for argp* functions.
+	
+	* comsat/Makefile.am: Removed @ARGPINCS@ and @ARGPLIBS@
+	* dotlock/Makefile.am: Likewise.
+	* frm/Makefile.am: Likewise.
+	* guimb/Makefile.am: Likewise.
+	* imap4d/Makefile.am: Likewise.
+	* pop3d/Makefile.am: Likewise.
+	* mail/Makefile.am: Likewise.
+	* mail.local/Makefile.am: Likewise.
+	* messages/Makefile.am: Likewise.
+	* sieve/Makefile.am: Likewise.
+	* mh/Makefile.am: Likewise.
+
+	Synchronized mailbox2/include with changes dated 2002-02-27:
+
+	* mailbox2/include/mailutils/mu_features.h: Added
+	* mailbox2/include/mailutils/Makefile.am: Added mu_features.h
+
+	Removed definition of __P, included <mailutils/mu_features.h>.
+	Files affected:
+	
+	* mailbox2/include/mailutils/address.h,
+	* mailbox2/include/mailutils/attribute.h,
+	* mailbox2/include/mailutils/authority.h,
+	* mailbox2/include/mailutils/body.h,
+	* mailbox2/include/mailutils/debug.h,
+	* mailbox2/include/mailutils/envelope.h,
+	* mailbox2/include/mailutils/error.h,
+	* mailbox2/include/mailutils/folder.h,
+	* mailbox2/include/mailutils/header.h,
+	* mailbox2/include/mailutils/iterator.h,
+	* mailbox2/include/mailutils/list.h,
+	* mailbox2/include/mailutils/lockfile.h,
+	* mailbox2/include/mailutils/mailbox.h,
+	* mailbox2/include/mailutils/mbox.h,
+	* mailbox2/include/mailutils/message.h,
+	* mailbox2/include/mailutils/mutil.h,
+	* mailbox2/include/mailutils/observable.h,
+	* mailbox2/include/mailutils/observer.h,
+	* mailbox2/include/mailutils/parse822.h,
+	* mailbox2/include/mailutils/pop3.h,
+	* mailbox2/include/mailutils/property.h,
+	* mailbox2/include/mailutils/refcount.h,
+	* mailbox2/include/mailutils/stream.h,
+	* mailbox2/include/mailutils/ticket.h,
+	* mailbox2/include/mailutils/url.h,
+	* mailbox2/include/mailutils/sys/address.h,
+	* mailbox2/include/mailutils/sys/attribute.h,
+	* mailbox2/include/mailutils/sys/authority.h,
+	* mailbox2/include/mailutils/sys/debug.h,
+	* mailbox2/include/mailutils/sys/envelope.h,
+	* mailbox2/include/mailutils/sys/folder.h,
+	* mailbox2/include/mailutils/sys/header.h,
+	* mailbox2/include/mailutils/sys/list.h,
+	* mailbox2/include/mailutils/sys/lockfile.h,
+	* mailbox2/include/mailutils/sys/mailbox.h,
+	* mailbox2/include/mailutils/sys/message.h,
+	* mailbox2/include/mailutils/sys/observable.h,
+	* mailbox2/include/mailutils/sys/observer.h,
+	* mailbox2/include/mailutils/sys/refcount.h,
+	* mailbox2/include/mailutils/sys/ticket.h,
+	* mailbox2/include/mailutils/sys/url.h.
+	
 2002-03-11 Sam Roberts
 
 	* include/mailutils/: address.h, locker.h, mailbox.h, message.h,
