@@ -24,55 +24,55 @@ it is appended.
 Some basic macros are already provided for rfc822.
 
 @table @code
-@item MU_HDR_RETURN_PATH
+@item MU_HEADER_RETURN_PATH
 Return-Path
-@item MU_HDR_RECEIVED
+@item MU_HEADER_RECEIVED
 Received
-@item MU_HDR_DATE
+@item MU_HEADER_DATE
 Date
-@item MU_HDR_FROM
+@item MU_HEADER_FROM
 From
-@item MU_HDR_RESENT_FROM
+@item MU_HEADER_RESENT_FROM
 Resent-From
-@item MU_HDR_SUBJECT
+@item MU_HEADER_SUBJECT
 Subject
-@item MU_HDR_SENDER
+@item MU_HEADER_SENDER
 Sender
-@item MU_HDR_RESENT_SENDER
+@item MU_HEADER_RESENT_SENDER
 Resent-SENDER
-@item MU_HDR_TO
+@item MU_HEADER_TO
 To
-@item MU_HDR_RESENT_TO
+@item MU_HEADER_RESENT_TO
 Resent-To
-@item MU_HDR_CC
+@item MU_HEADER_CC
 Cc
-@item MU_HDR_RESENT_CC
+@item MU_HEADER_RESENT_CC
 Resent-Cc
-@item MU_HDR_BCC
+@item MU_HEADER_BCC
 Bcc
-@item MU_HDR_RESENT_BCC
+@item MU_HEADER_RESENT_BCC
 Resent-Bcc
-@item MU_HDR_REPLY_TO
+@item MU_HEADER_REPLY_TO
 Reply-To
-@item MU_HDR_RESENT_REPLY_TO
+@item MU_HEADER_RESENT_REPLY_TO
 Resent-Reply-To
-@item MU_HDR_MESSAGE_ID
+@item MU_HEADER_MESSAGE_ID
 Message-ID
-@item MU_HDR_RESENT_MESSAGE_ID
+@item MU_HEADER_RESENT_MESSAGE_ID
 Resent-Message-ID
-@item MU_HDR_IN_REPLY_TO
+@item MU_HEADER_IN_REPLY_TO
 In-Reply-To
-@item MU_HDR_ENCRYPTED
+@item MU_HEADER_ENCRYPTED
 Encrypted
-@item MU_HDR_PRECEDENCE
+@item MU_HEADER_PRECEDENCE
 Precedence
-@item MU_HDR_STATUS
+@item MU_HEADER_STATUS
 Status
-@item MU_HDR_CONTENT_LENGTH
+@item MU_HEADER_CONTENT_LENGTH
 Content-Length
-@item MU_HDR_CONTENT_TYPE
+@item MU_HEADER_CONTENT_TYPE
 Content-Type
-@item MU_HDR_MIME_VERSION
+@item MU_HEADER_MIME_VERSION
 MIME-Version
 @end table
 
