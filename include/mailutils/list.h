@@ -15,11 +15,10 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-#ifndef _MAILUTILS_BODY_H
-#define _MAILUTILS_BODY_H
+#ifndef _MAILUTILS_LIST_H
+#define _MAILUTILS_LIST_H
 
 #include <sys/types.h>
-#include <mailutils/stream.h>
 
 #ifndef __P
 # ifdef __STDC__
@@ -27,35 +26,25 @@
 # else
 #  define __P(args) ()
 # endif
-#endif /* __P */
+#endif /*__P */
 
 #ifdef _cplusplus
 extern "C" {
 #endif
 
-/* forward declaration */
-struct _body;
-typedef struct _body *body_t;
+struct _list;
+typedef struct _list *list_t;
 
-extern int body_create       __P ((body_t *, void *owner));
-extern void body_destroy     __P ((body_t *, void *owner));
-extern void * body_get_owner __P ((body_t));
-
-extern int body_get_stream   __P ((body_t, stream_t *));
-extern int body_set_stream   __P ((body_t, stream_t, void *owner));
-
-extern int body_get_filename __P ((body_t, char *, size_t, size_t *));
-extern int body_set_filename __P ((body_t, const char*));
-
-extern int body_size         __P ((body_t, size_t*));
-extern int body_set_size     __P ((body_t, int (*_size)
-				   __P ((body_t, size_t*)), void *owner));
-extern int body_lines        __P ((body_t, size_t *));
-extern int body_set_lines    __P ((body_t, int (*_lines)
-				   __P ((body_t, size_t*)), void *owner));
+extern int list_create   __P ((list_t *));
+extern void list_destroy __P ((list_t *));
+extern int list_append   __P ((list_t, void *item));
+extern int list_prepend  __P ((list_t, void *item));
+extern int list_count    __P ((list_t, size_t *pcount));
+extern int list_remove   __P ((list_t, void *item));
+extern int list_get      __P ((list_t, size_t _index, void **pitem));
 
 #ifdef _cplusplus
 }
 #endif
 
-#endif /* _MAILUTILS_BODY_H */
+#endif /* _MAILUTILS_LIST_H */

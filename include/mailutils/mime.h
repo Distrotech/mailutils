@@ -31,7 +31,10 @@
 #endif /* __P */
 
 /* mime flags */
-#define MIME_INCREAMENTAL_PARSER	0x00000001
+#define MIME_INCREAMENTAL_PARSER	0x1
+
+#define MIME_MULTIPART_MIXED		0x1
+#define MIME_MULTIPART_ALT          0x2
 
 #ifdef _cplusplus
 extern "C" {

@@ -15,44 +15,36 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-#ifndef _MAILUTILS_LOCKER_H
-#define _MAILUTILS_LOCKER_H
+#ifndef _MAILUTILS_ITERATOR_H
+#define _MAILUTILS_ITERATOR_H
 
+#include <mailutils/list.h>
 #include <sys/types.h>
 
-#ifdef __cplusplus
+#ifndef __P
+#ifdef __STDC__
+#define __P(args) args
+#else
+#define __P(args) ()
+#endif
+#endif /*__P */
+
+#ifdef _cplusplus
 extern "C" {
 #endif
 
-#ifndef __P
-# ifdef __STDC__
-#  define __P(args) args
-# else
-#  define __P(args) ()
-# endif
-#endif /*__P */
+struct _iterator;
+typedef struct _iterator *iterator_t;
 
-struct _locker;
-typedef struct _locker *locker_t;
+extern int iterator_create   __P ((iterator_t *, list_t));
+extern void iterator_destroy __P ((iterator_t *));
+extern int iterator_first    __P ((iterator_t));
+extern int iterator_next     __P ((iterator_t));
+extern int iterator_current  __P ((iterator_t, void **pitem));
+extern int iterator_is_done  __P ((iterator_t));
 
-extern int locker_create   __P ((locker_t *, char *filename,
-				 size_t len, int flags));
-extern void locker_destroy __P ((locker_t *));
-
-#define MU_LOCKER_RDLOCK 0
-#define MU_LOCKER_WRLOCK 1
-
-/* locking flags */
-#define MU_LOCKER_PID    1
-#define MU_LOCKER_FCNTL  2
-#define MU_LOCKER_TIME   4
-
-extern int locker_lock      __P ((locker_t, int flag));
-extern int locker_touchlock __P ((locker_t));
-extern int locker_unlock    __P ((locker_t));
-
-#ifdef __cplusplus
+#ifdef _cplusplus
 }
 #endif
 
-#endif /* _MAILUTILS_MAILBOX_H */
+#endif /* _MAILUTILS_ITERATOR_H */

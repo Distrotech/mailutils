@@ -15,8 +15,8 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-#ifndef _HEADER_H
-#define _HEADER_H
+#ifndef _MAILUTILS_HEADER_H
+#define _MAILUTILS_HEADER_H
 
 #include <sys/types.h>
 #include <mailutils/stream.h>
@@ -70,6 +70,7 @@ typedef struct _header * header_t;
 extern int header_create        __P ((header_t *, const char *,
 				      size_t, void *));
 extern void header_destroy      __P ((header_t *, void *));
+extern void * header_get_owner  __P ((header_t));
 
 extern int header_set_value     __P ((header_t, const char *,
 				      const char *, int));
@@ -98,4 +99,4 @@ extern int header_set_lines     __P ((header_t, int (*_lines)
 }
 #endif
 
-#endif /* HEADER_H */
+#endif /* _MAILUTILS_HEADER_H */

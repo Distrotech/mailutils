@@ -15,8 +15,8 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-#ifndef _STREAM_H
-# define _STREAM_H
+#ifndef _MAILUTILS_STREAM_H
+# define _MAILUTILS_STREAM_H
 
 #include <sys/types.h>
 
@@ -44,11 +44,17 @@ typedef struct _stream *stream_t;
 /*  stream will be destroy on stream_destroy */
 #define MU_STREAM_NO_CHECK 0x00000040
 
-extern int stream_create       __P ((stream_t *, int flags, void *owner));
+/* Identity of the stream.  */
+#define MU_STREAM_POP      0x00001000
+#define MU_STREAM_IMAP     0x00002000
+#define MU_STREAM_FILE     0x00004000
+#define MU_STREAM_SMTP     0x00008000
+#define MU_STREAM_SENDMAIL 0x00010000
 
+extern int stream_create       __P ((stream_t *, int flags, void *owner));
 extern void stream_destroy     __P ((stream_t *, void *owner));
-extern int stream_set_destroy  __P ((stream_t, void (*_destroy)
-				    __P ((stream_t)), void *owner));
+extern int stream_set_destroy  __P ((stream_t, void (*_destroy) __P ((stream_t)), void *owner));
+extern void * stream_get_owner __P ((stream_t));
 
 extern int stream_open         __P ((stream_t, const char *, int, int));
 extern int stream_set_open     __P ((stream_t, int (*_open)
@@ -97,7 +103,7 @@ extern int stream_set_flush    __P ((stream_t, int (*_flush)
 				     __P ((stream_t)), void *owner));
 
 extern int stream_get_flags    __P ((stream_t, int *pflags));
-extern int stream_set_flags    __P ((stream_t, int flags, void *owner));
+extern int stream_set_flags    __P ((stream_t, int flags));
 
 #define MU_STREAM_STATE_OPEN  1
 #define MU_STREAM_STATE_READ  2
@@ -118,4 +124,4 @@ extern int tcp_stream_create      __P ((stream_t *stream));
 }
 #endif
 
-#endif /* _STREAM_H */
+#endif /* _MAILUTILS_STREAM_H */

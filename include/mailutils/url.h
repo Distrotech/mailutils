@@ -15,8 +15,8 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-#ifndef _URL_H
-#define _URL_H	1
+#ifndef _MAILUTILS_URL_H
+#define _MAILUTILS_URL_H	1
 
 #include <sys/types.h>
 
@@ -37,32 +37,20 @@ struct _url;
 typedef struct _url * url_t;
 
 extern int  url_create    __P ((url_t *, const char *name));
-extern void url_destroy __P ((url_t *));
+extern void url_destroy   __P ((url_t *));
 
-extern int url_get_id __P ((const url_t, int *id));
-
-extern int url_get_scheme  __P ((const url_t, char *sch,
-					size_t, size_t *));
-
-extern int url_get_user    __P ((const url_t, char *usr,
-					size_t, size_t *));
-
-extern int url_get_passwd  __P ((const url_t, char *passwd,
-					size_t, size_t *));
-
-extern int url_get_host    __P ((const url_t, char *host,
-					size_t, size_t *));
-
-extern int url_get_port    __P ((const url_t, long *port));
-
-extern int url_get_path    __P ((const url_t, char *path,
-					size_t, size_t *));
-
-extern int url_get_query   __P ((const url_t, char *qeury,
-					size_t, size_t *));
+extern int url_get_scheme  __P ((const url_t, char *, size_t, size_t *));
+extern int url_get_user    __P ((const url_t, char *, size_t, size_t *));
+extern int url_get_passwd  __P ((const url_t, char *, size_t, size_t *));
+extern int url_get_auth    __P ((const url_t, char *, size_t, size_t *));
+extern int url_get_host    __P ((const url_t, char *, size_t, size_t *));
+extern int url_get_port    __P ((const url_t, long *));
+extern int url_get_path    __P ((const url_t, char *, size_t, size_t *));
+extern int url_get_query   __P ((const url_t, char *, size_t, size_t *));
+extern const char* url_to_string   __P ((const url_t));
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* URL_H */
+#endif /* _MAILUTILS_URL_H */

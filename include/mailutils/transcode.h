@@ -15,8 +15,8 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-#ifndef _TRANSCODE_H
-#define _TRANSCODE_H
+#ifndef _MAILUTILS_TRANSCODE_H
+#define _MAILUTILS_TRANSCODE_H
 
 #include <sys/types.h>
 
@@ -53,4 +53,4 @@ extern int transcode_set_stream		__P ((transcoder_t tc, stream_t is));
 }           
 #endif
 
-#endif /* _TRANSCODE_H */
+#endif /* _MAILUTILS_TRANSCODE_H */

@@ -15,10 +15,14 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-#ifndef _MAILER_H
-#define _MAILER_H
+#ifndef _MAILUTILS_MAILER_H
+#define _MAILUTILS_MAILER_H
 
 #include <sys/types.h>
+#include <mailutils/stream.h>
+#include <mailutils/observer.h>
+#include <mailutils/debug.h>
+#include <mailutils/url.h>
 #include <mailutils/message.h>
 
 #ifndef __P
@@ -37,15 +41,29 @@ extern "C" {
 struct _mailer;
 typedef struct _mailer *mailer_t;
 
-extern int mailer_create			__P ((mailer_t *, message_t));
-extern int mailer_destroy			__P ((mailer_t *));
-extern int mailer_connect		__P ((mailer_t, char *host));
-extern int mailer_disconnect	__P ((mailer_t));
-extern int mailer_send_header	__P ((mailer_t, message_t));
-extern int mailer_send_message	__P ((mailer_t, message_t));
+extern int mailer_create        __P ((mailer_t *, const char *, int));
+extern void mailer_destroy      __P ((mailer_t *));
+
+extern int mailer_open          __P ((mailer_t, int flags));
+extern int mailer_close         __P ((mailer_t));
+
+extern int mailer_send_message	__P ((mailer_t, const char *from,
+				      const char *rcpt, int dsn, message_t));
+/* stream settings */
+extern int mailer_get_stream    __P ((mailer_t, stream_t *));
+extern int mailer_set_stream    __P ((mailer_t, stream_t));
+
+/* stream settings */
+extern int mailer_get_debug     __P ((mailer_t, debug_t *));
+extern int mailer_set_debug     __P ((mailer_t, debug_t));
+
+extern int mailer_attach        __P ((mailer_t, observer_t));
+extern int mailer_detach        __P ((mailer_t, observer_t));
+
+extern int mailer_get_url       __P ((mailer_t, url_t *));
 
 #ifdef _cplusplus
 }
 #endif
 
-#endif /* _MAILER_H */
+#endif /* _MAILUTILS_MAILER_H */

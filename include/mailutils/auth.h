@@ -15,8 +15,8 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-#ifndef _AUTH_H
-#define _AUTH_H
+#ifndef _MAILUTILS_AUTH_H
+#define _MAILUTILS_AUTH_H
 
 #include <sys/types.h>
 
@@ -33,30 +33,31 @@ extern "C" {
 #endif
 
 /* forward declaration */
-struct _auth;
-typedef struct _auth *auth_t;
+struct _ticket;
+typedef struct _ticket *ticket_t;
 
-extern int auth_create           __P ((auth_t *, void *owner));
-extern void auth_destroy         __P ((auth_t *, void *owner));
+extern int ticket_create           __P ((ticket_t *, void *owner));
+extern void ticket_destroy         __P ((ticket_t *, void *owner));
+extern void * ticket_get_owner     __P ((ticket_t));
 
-extern int auth_prologue         __P ((auth_t));
-extern int auth_set_prologue     __P ((auth_t auth,
-				       int (*_prologue) __P ((auth_t)),
-				       void *owner));
+extern int ticket_pop              __P ((ticket_t, const char *, char **));
 
-extern int auth_authenticate     __P ((auth_t, char **, char **));
-extern int auth_set_authenticate __P ((auth_t auth,
-				       int (*_authenticate)
-				       __P ((auth_t, char **, char **)),
-				       void *owner));
+extern int ticket_get_type         __P ((ticket_t, char *, size_t, size_t *));
+extern int ticket_set_type         __P ((ticket_t, char *));
 
-extern int auth_epilogue         __P ((auth_t));
-extern int auth_set_epilogue     __P ((auth_t auth,
-				       int (*_epilogue) __P ((auth_t)),
-				       void *owner));
+struct _authority;
+typedef struct _authority *authority_t;
+
+extern int authority_create           __P ((authority_t *, ticket_t, void *));
+extern void authority_destroy         __P ((authority_t *, void *));
+extern void *authority_get_owner      __P ((authority_t));
+extern int authority_set_ticket       __P ((authority_t, ticket_t));
+extern int authority_get_ticket       __P ((authority_t, ticket_t *));
+extern int authority_authenticate     __P ((authority_t));
+extern int authority_set_authenticate __P ((authority_t, int (*_authenticate) __P ((authority_t)), void *));
 
 #ifdef _cplusplus
 }
 #endif
 
-#endif /* _AUTH_H */
+#endif /* _MAILUTILS_AUTH_H */

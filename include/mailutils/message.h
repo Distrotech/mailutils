@@ -15,14 +15,15 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-#ifndef _MESSAGE_H
-#define _MESSAGE_H
+#ifndef _MAILUTILS_MESSAGE_H
+#define _MAILUTILS_MESSAGE_H
 
 #include <sys/types.h>
+#include <mailutils/stream.h>
 #include <mailutils/header.h>
 #include <mailutils/body.h>
+#include <mailutils/observer.h>
 #include <mailutils/attribute.h>
-#include <mailutils/stream.h>
 
 
 #ifndef __P
@@ -47,6 +48,7 @@ typedef struct _message *message_t;
 
 extern int message_create            __P ((message_t *, void *owner));
 extern void message_destroy          __P ((message_t *, void *owner));
+extern void * message_get_owner      __P ((message_t));
 
 extern int message_get_header        __P ((message_t, header_t *));
 extern int message_set_header        __P ((message_t, header_t, void *owner));
@@ -56,6 +58,11 @@ extern int message_set_body          __P ((message_t, body_t, void *owner));
 
 extern int message_get_stream        __P ((message_t, stream_t *));
 extern int message_set_stream        __P ((message_t, stream_t, void *owner));
+
+extern int message_get_attribute     __P ((message_t, attribute_t *));
+extern int message_set_attribute     __P ((message_t, attribute_t, void *));
+
+extern int message_get_observable    __P ((message_t, observable_t *));
 
 extern int message_is_multipart      __P ((message_t, int *));
 extern int message_set_is_multipart  __P ((message_t, int (*_is_multipart)
@@ -81,9 +88,6 @@ extern int message_set_received      __P ((message_t, int (*_received)
 					   __P ((message_t, char *, size_t,
 						 size_t *)), void *owner));
 
-extern int message_get_attribute     __P ((message_t, attribute_t *));
-extern int message_set_attribute     __P ((message_t, attribute_t, void *));
-
 extern int message_get_num_parts     __P ((message_t, size_t *nparts));
 extern int message_set_get_num_parts __P ((message_t, int (*_get_num_parts)
 					   __P ((message_t, size_t *)),
@@ -98,12 +102,6 @@ extern int message_get_uidl          __P ((message_t, char *, size_t, size_t *))
 extern int message_set_uidl          __P ((message_t, int (*_get_uidl)
 					   __P ((message_t, char *, size_t,
 						 size_t *)), void *owner));
-
-/* events */
-#define MU_EVT_MSG_DESTROY 32
-extern int message_register __P ((message_t msg, size_t type, int (*action)
-				  __P ((size_t typ, void *arg)), void *arg));
-extern int message_deregister __P ((message_t msg, void *action));
 
 /* misc functions */
 extern int message_create_attachment __P ((const char *content_type,
@@ -121,4 +119,4 @@ extern int message_unencapsulate __P ((message_t msg, message_t *newmsg,
 }
 #endif
 
-#endif /* _MESSAGE_H */
+#endif /* _MAILUTILS_MESSAGE_H */

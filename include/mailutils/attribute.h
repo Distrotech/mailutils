@@ -15,8 +15,8 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-#ifndef _ATTRIBUTE_H
-#define _ATTRIBUTE_H
+#ifndef _MAILUTILS_ATTRIBUTE_H
+#define _MAILUTILS_ATTRIBUTE_H
 
 #include <sys/types.h>
 
@@ -45,7 +45,9 @@ typedef struct _attribute * attribute_t;
 
 extern int attribute_create         __P ((attribute_t *, void *));
 extern void attribute_destroy       __P ((attribute_t *, void *));
+extern void * attribute_get_owner   __P ((attribute_t));
 
+extern int attribute_is_userflag    __P ((attribute_t, int));
 extern int attribute_is_seen        __P ((attribute_t));
 extern int attribute_is_answered    __P ((attribute_t));
 extern int attribute_is_flagged     __P ((attribute_t));
@@ -54,6 +56,7 @@ extern int attribute_is_draft       __P ((attribute_t));
 extern int attribute_is_recent      __P ((attribute_t));
 extern int attribute_is_read        __P ((attribute_t));
 
+extern int attribute_set_userflag   __P ((attribute_t, int));
 extern int attribute_set_seen       __P ((attribute_t));
 extern int attribute_set_answered   __P ((attribute_t));
 extern int attribute_set_flagged    __P ((attribute_t));
@@ -62,6 +65,7 @@ extern int attribute_set_draft      __P ((attribute_t));
 extern int attribute_set_recent     __P ((attribute_t));
 extern int attribute_set_read       __P ((attribute_t));
 
+extern int attribute_unset_userflag __P ((attribute_t, int));
 extern int attribute_unset_seen     __P ((attribute_t));
 extern int attribute_unset_answered __P ((attribute_t));
 extern int attribute_unset_flagged  __P ((attribute_t));
@@ -92,4 +96,4 @@ extern int flags_to_string          __P ((int flags, char *buf,
 }
 #endif
 
-#endif /* _ATTRIBUTE_H */
+#endif /* _MAILUTILS_ATTRIBUTE_H */
