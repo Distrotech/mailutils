@@ -9,7 +9,7 @@
 %(lit)%<(rcpt to)%(formataddr{to})%>%<(rcpt cc)%(formataddr{cc})%>%<(rcpt me)%(formataddr(me))%>\
 %<(nonnull)%(void(width))%(putaddr cc: )\n%>\
 %<{fcc}Fcc: %{fcc}\n%>\
-%<{subject}Subject: Re: %(unre{subject})\n%>\
+%<{subject}%(lit)%(concat(unre{subject}))%(printhdr Subject: Re: )\n%>\
 %(lit)%(concat(in_reply_to))%<(nonnull)%(void(width))%(printhdr In-reply-to: )\n%>\
 %(lit)%(concat(references))%<(nonnull)%(void(width))%(printhdr References: )\n%>\
 X-Mailer: MH \(%(package_string)\)\n\
