@@ -19,6 +19,9 @@
 
 static FILE *ifile;
 static FILE *ofile;
+#ifdef WITH_TLS
+static gnutls_session sfile;
+#endif /* WITH_TLS */
 
 /* Takes a string as input and returns either the remainder of the string
    after the first space, or a zero length string if no space */
@@ -89,7 +92,7 @@ int
 pop3d_abquit (int reason)
 {
   /* Unlock spool */
-  pop3d_unlock();
+  pop3d_unlock ();
   mailbox_close (mbox);
   mailbox_destroy (&mbox);
 
@@ -119,7 +122,8 @@ pop3d_abquit (int reason)
 
     case ERR_MBOX_SYNC:
       syslog (LOG_ERR, _("Mailbox was updated by other party: %s"), username);
-      pop3d_outf ("-ERR [OUT-SYNC] Mailbox updated by other party or corrupt\r\n");
+      pop3d_outf
+	("-ERR [OUT-SYNC] Mailbox updated by other party or corrupt\r\n");
       break;
 
     default:
@@ -128,19 +132,39 @@ pop3d_abquit (int reason)
       break;
     }
 
-  closelog();
+  closelog ();
   exit (EXIT_FAILURE);
 }
 
 void
-pop3d_setio (FILE *in, FILE *out)
+pop3d_setio (FILE * in, FILE * out)
 {
   if (!in || !out)
     pop3d_abquit (ERR_NO_OFILE);
 
   ifile = in;
   ofile = out;
-}     
+}
+
+#ifdef WITH_TLS
+
+int
+pop3d_init_tls_server ()
+{
+  sfile =
+    (gnutls_session) mu_init_tls_server (fileno (ifile), fileno (ofile));
+  if (!sfile)
+    return 0;
+  return 1;
+}
+
+void
+pop3d_deinit_tls_server ()
+{
+  mu_deinit_tls_server (sfile);
+}
+
+#endif /* WITH_TLS */
 
 void
 pop3d_flush_output ()
@@ -169,10 +193,25 @@ pop3d_outf (const char *fmt, ...)
 	  free (buf);
 	}
     }
-  vfprintf (ofile, fmt, ap);
+
+#ifdef WITH_TLS
+  if (tls_done)
+    {
+      char *buf;
+      vasprintf (&buf, fmt, ap);
+      if (buf)
+	{
+	  gnutls_record_send (sfile, buf, strlen (buf));
+	  free (buf);
+	}
+    }
+  else
+#endif /* WITH_TLS */
+    vfprintf (ofile, fmt, ap);
+
   va_end (ap);
 }
-    
+
 
 /* Gets a line of input from the client, caller should free() */
 char *
@@ -181,7 +220,15 @@ pop3d_readline (char *buffer, size_t size)
   char *ptr;
 
   alarm (daemon_param.timeout);
-  ptr = fgets (buffer, size, ifile);
+#ifdef WITH_TLS
+  if (tls_done)
+    {
+      gnutls_record_recv (sfile, buffer, size - 1);
+      ptr = buffer;
+    }
+  else
+#endif /* WITH_TLS */
+    ptr = fgets (buffer, size, ifile);
   alarm (0);
 
   /* We should probably check ferror() too, but if ptr is null we

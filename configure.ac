@@ -1,6 +1,6 @@
 # Configuration for GNU mailutils - a suite of utilities for electronic mail
 #
-# Copyright (C) 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
+# Copyright (C) 1999, 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
 # 
 # GNU Mailutils is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -112,6 +112,13 @@ if test "x$WITH_GSSAPI" != "xno"; then
   fi
 fi
 AC_SUBST(AUTHOBJS)
+
+MU_CHECK_TLS
+if test "$WITH_GNUTLS" != "no"; then
+  AUTHLIBS="$AUTHLIBS $TLS_LIBS"
+  AC_DEFINE(WITH_GNUTLS,1,[Define if mailutils is using GNU TLS])
+  AC_DEFINE(WITH_TLS,1,[Define if mailutils is using TLS])
+fi
 
 AC_ARG_WITH([guile],
             AC_HELP_STRING([--without-guile],

@@ -32,6 +32,11 @@ struct daemon_param daemon_param = {
 
 int debug_mode;
 
+#ifdef WITH_TLS
+int tls_available;
+int tls_done;
+#endif /* WITH_TLS */
+
 /* Number of child processes.  */
 volatile size_t children;
 
@@ -57,6 +62,9 @@ static struct argp argp = {
 static const char *pop3d_argp_capa[] = {
   "daemon",
   "auth",
+#ifdef WITH_TLS
+  "tls",
+#endif /* WITH_TLS */
   "common",
   "mailbox",
   "logging",
@@ -90,6 +98,9 @@ main (int argc, char **argv)
   mu_init_nls ();
 
   MU_AUTH_REGISTER_ALL_MODULES();
+#ifdef WITH_TLS
+  mu_tls_init_argp ();
+#endif /* WITH_TLS */
   mu_argp_parse (&argp, &argc, &argv, 0, pop3d_argp_capa, NULL, &daemon_param);
 
 #ifdef USE_LIBPAM
@@ -117,7 +128,7 @@ main (int argc, char **argv)
 	  exit (EXIT_FAILURE);
 	}
     }
-  
+
   /* Register the desired formats.  */
   {
     list_t bookie;
@@ -153,6 +164,13 @@ main (int argc, char **argv)
   mu_error_set_print (mu_syslog_error_printer);
   
   umask (S_IROTH | S_IWOTH | S_IXOTH);	/* 007 */
+
+  /* Check TLS environment, i.e. cert and key files */
+#ifdef WITH_TLS
+  tls_available = mu_check_tls_environment ();
+  if (tls_available)
+    tls_available = mu_init_tls_libs ();
+#endif /* WITH_TLS */
 
   /* Actually run the daemon.  */
   if (daemon_param.mode == MODE_DAEMON)
@@ -330,6 +348,10 @@ pop3d_mainloop (int fd, FILE *infile, FILE *outfile)
 	status = pop3d_uidl (arg);
       else if (strncasecmp (cmd, "CAPA", 4) == 0)
 	status = pop3d_capa (arg);
+#ifdef WITH_TLS
+      else if ((strncasecmp (cmd, "STLS", 4) == 0) && tls_available)
+	status = pop3d_stls (arg);
+#endif /* WITH_TLS */
       else
 	status = ERR_BAD_CMD;
 
@@ -361,6 +383,11 @@ pop3d_mainloop (int fd, FILE *infile, FILE *outfile)
       free (cmd);
       free (arg);
     }
+
+#ifdef WITH_TLS
+  pop3d_deinit_tls_server ();
+  mu_deinit_tls_libs ();
+#endif /* WITH_TLS */
 
   return (status != OK);
 }

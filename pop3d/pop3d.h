@@ -123,6 +123,7 @@
 #include <mailutils/registrar.h>
 #include <mailutils/url.h>
 #include <mailutils/mu_auth.h>
+#include <mailutils/tls.h>
 #include <mailutils/nls.h>
 
 /* For Berkley DB2 APOP password file */
@@ -175,6 +176,8 @@ extern char *md5shared;
 extern volatile size_t children;
 extern struct daemon_param daemon_param;
 extern int debug_mode;
+extern int tls_available;
+extern int tls_done;
 
 extern int pop3d_abquit         __P ((int));
 extern int pop3d_apop           __P ((const char *));
@@ -193,6 +196,9 @@ extern int pop3d_rset           __P ((const char *));
 extern RETSIGTYPE pop3d_sigchld __P ((int));
 extern RETSIGTYPE pop3d_signal  __P ((int));
 extern int pop3d_stat           __P ((const char *));
+#ifdef WITH_TLS
+extern int pop3d_stls           __P ((const char *));
+#endif /* WITH_TLS */
 extern int pop3d_top            __P ((const char *));
 extern int pop3d_touchlock      __P ((void));
 extern int pop3d_uidl           __P ((const char *));

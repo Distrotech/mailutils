@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2001 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001, 2003 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -41,6 +41,12 @@ pop3d_capa (const char *arg)
   pop3d_outf ("UIDL\r\n");
   pop3d_outf ("RESP-CODES\r\n");
   pop3d_outf ("PIPELINING\r\n");
+
+#ifdef WITH_TLS
+  if (tls_available && tls_done == 0)
+    pop3d_outf ("STLS\r\n");
+#endif /* WITH_TLS */
+
   /* FIXME: This can be Implemented by setting an header field on the
      message.  */
   /*pop3d_outf ("EXPIRE NEVER\r\n"); */

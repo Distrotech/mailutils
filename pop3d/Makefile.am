@@ -1,19 +1,19 @@
 ## Process this file with GNU Automake to create Makefile.in
 
-##   Copyright (C) 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
+##   Copyright (C) 1999, 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
 ##
-##   GNU Mailtuils is free software; you can redistribute it and/or
+##   GNU Mailutils is free software; you can redistribute it and/or
 ##   modify it under the terms of the GNU General Public License as
 ##   published by the Free Software Foundation; either version 2, or (at
 ##   your option) any later version.
 ##
-##   This program is distributed in the hope that it will be useful, but
+##   GNU Mailutils is distributed in the hope that it will be useful, but
 ##   WITHOUT ANY WARRANTY; without even the implied warranty of
 ##   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 ##   General Public License for more details.
 ##
 ##   You should have received a copy of the GNU General Public License
-##   along with this program; if not, write to the Free Software
+##   along with GNU Mailutils; if not, write to the Free Software
 ##   Foundation, Inc.
 ##   59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
@@ -25,8 +25,8 @@ EXTRA_PROGRAMS = popauth
 SUBDIRS = testsuite
 
 pop3d_SOURCES = apop.c auth.c capa.c dele.c extra.c pop3d.c pop3d.h \
- list.c lock.c noop.c quit.c retr.c rset.c stat.c signal.c top.c uidl.c \
- user.c 
+ list.c lock.c noop.c quit.c retr.c rset.c stat.c stls.c signal.c top.c \
+ uidl.c user.c 
 
 pop3d_LDADD = ../mailbox/libmailbox.la @AUTHLIBS@ ../lib/libmailutils.la @LTLIBINTL@
 

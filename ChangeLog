@@ -1,3 +1,25 @@
+2003-01-13  Wojciech Polak
+
+	* auth/tls.c: New file. Added main TLS/SSL code (via GnuTLS).
+	* include/mailutils/tls.h: New file. TLS header file.
+	* auth/Makefile.am: Updated.
+	* include/mailutils/Makefile.am: Likewise.
+
+	* pop3d/pop3d.c: Added TLS support.
+	* pop3d/pop3d.h: include <mailutils/tls.h>
+	  (pop3d_stls): New prototype.
+	* pop3d/stls.c: New file. The STLS command support.
+	* pop3d/extra.c (pop3d_init_tls_server): New function.
+	  (pop3d_deinit_tls_server): New function.
+	  (pop3d_outf): Added TLS support (GnuTLS).
+	  (pop3d_readline): Added TLS support (GnuTLS).
+	* pop3d/capa.c (pop3d_capa): Added STLS.
+	* pop3d/Makefile.am: Updated.
+
+	* m4/tls.m4: New file. Implements MU_CHECK_TLS defun.
+	* m4/Makefile.am: Updated.
+	* configure.ac: Added GnuTLS support (--with-gnutls).
+
 2003-01-13  Sergey Poznyakoff
 
 	* m4/gssapi.m4: Fixed typo.
