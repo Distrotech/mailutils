@@ -91,7 +91,10 @@ extern void login_delay_capa __P((void));
 #endif
 
 /* Minimum advertise retention time for messages.  */
-extern int expire;
+extern time_t expire;
+extern int expire_on_exit;
+
+#define EXPIRE_NEVER ((time_t)-1)
 
 /* Size of the MD5 digest for APOP */
 #define APOP_DIGEST	70
@@ -173,6 +176,7 @@ extern int expire;
 #define POP3_ATTRIBUTE_DELE 0x0001
 #define POP3_ATTRIBUTE_RETR 0x0010
 
+#define INITIAL        -1
 #define AUTHORIZATION	0
 #define TRANSACTION	1
 #define UPDATE		2
@@ -200,6 +204,7 @@ extern int expire;
 
 extern mailbox_t mbox;
 extern int state;
+extern int initial_state;
 extern char *username;
 extern char *maildir;
 extern char *md5shared;
@@ -261,5 +266,8 @@ extern void pop3d_deinit_tls_server __P ((void));
 extern void pop3d_mark_retr __P((attribute_t attr));
 extern int pop3d_is_retr __P((attribute_t attr));
 extern void pop3d_unmark_retr __P((attribute_t attr));
+
+extern void expire_mark_message __P((message_t msg, char **value));
+
 
 #endif /* _POP3D_H */
