@@ -1,5 +1,15 @@
 2001-10-31  Alain Magloire
 
+	* messages/message.c (messages_count): getenv ("MAIL") may return NULL.
+	In this case we were trying to printf (" ..%s\n", NULL); GNU/Linux 
+	seems to cope with it but QNX/Neutrino sigsegv miserably.  Fix the code
+	by getting the url of the mailbox and calling url_to_string().
+
+	* mailbox/mbx_default.c: If the argument is NULL __or__ an empty
+	string check MAIL and FOLDER environment.
+
+2001-10-31  Alain Magloire
+
 	* mailbox/mbx_imap.c (delete_to_string): Try to turn a sequence
 	of number to IMAP msgset. Call add_number for the work.
 	(add_number): New function to add number to string for
