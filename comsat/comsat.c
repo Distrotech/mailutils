@@ -76,11 +76,15 @@ static struct option long_options[] =
 #define NOT_HERE 1
 #define PERMISSION_DENIED 2
 
+#ifndef MAXHOSTNAMELEN
+# define MAXHOSTNAMELEN 64
+#endif
+
 int mode = MODE_INETD;
 int port = 512; /* Default biff port */
 int timeout = 0;
 int maxlines = 5;
-char *hostname;
+char hostname[MAXHOSTNAMELEN];
 
 static int syslog_error_printer (const char *fmt, va_list ap);
 static void comsat_init (void);
@@ -92,6 +96,9 @@ static int find_user (char *name, char *tty);
 static void help (void);
 char *mailbox_path (const char *user);
 void change_user (char *user);
+
+static int xargc;
+static char **xargv;
 
 int
 main(int argc, char **argv)
@@ -140,7 +147,12 @@ main(int argc, char **argv)
   comsat_init ();
 
   if (mode == MODE_DAEMON)
-    comsat_daemon_init ();
+    {
+      /* Preserve invocation arguments */
+      xargc = argc;
+      xargv = argv;
+      comsat_daemon_init ();
+    }
 
   /* Set up error messaging  */
   openlog ("gnu-comsat", LOG_PID, LOG_LOCAL1);
@@ -159,18 +171,33 @@ main(int argc, char **argv)
   return c != 0;
 }
 
+RETSIGTYPE
+sig_hup (int sig)
+{
+  syslog (LOG_NOTICE, "restarting");
+
+  if (xargv[0][0] != '/')
+    syslog (LOG_ERR, "can't restart: not started with absolute pathname");
+  else
+    execvp (xargv[0], xargv);
+      
+  signal (sig, sig_hup);
+}
+
 void
 comsat_init ()
 {
-  /* Register desired formats. Maybe should be configurable */
   list_t bookie;
+
   registrar_get_list (&bookie);
   /* list_append (bookie, mbox_record); */
   list_append (bookie, path_record);
 
+  gethostname (hostname, sizeof hostname);
+	
   /* Set signal handlers */
-  signal(SIGTTOU, SIG_IGN);
-  signal(SIGCHLD, SIG_IGN);
+  signal (SIGTTOU, SIG_IGN);
+  signal (SIGCHLD, SIG_IGN);
   signal (SIGHUP, SIG_IGN);	/* Ignore SIGHUP.  */
 }
 
@@ -190,6 +217,8 @@ comsat_daemon_init (void)
     exit (EXIT_SUCCESS);	/* Parent exits.  */
 
   /* Child: */
+  signal (SIGHUP, sig_hup);
+
   setsid ();			/* Become session leader.  */
 
   /* The second fork is to guarantee that the daemon cannot acquire a
@@ -255,6 +284,9 @@ comsat_daemon (int port)
       exit (1);
     }
 
+  syslog (LOG_NOTICE, "GNU comsat started");
+  
+  last_request_time = last_overflow_time = time (NULL);
   while (1)
     {
       fd_set fdset;
@@ -276,15 +308,22 @@ comsat_daemon (int port)
 	  now = time (NULL);
 	  if (reqcount > maxrequests)
 	    {
+	      unsigned delay;
+
+	      delay = overflow_delay_time << (overflow_count + 1);
 	      syslog (LOG_NOTICE, "too many requests: pausing for %u seconds",
-		      overflow_delay_time * (overflow_count + 1));
-	      sleep (overflow_delay_time * (overflow_count + 1));
+		      delay);
+	      sleep (delay);
 	      reqcount = 0;
 	      if (now - last_overflow_time <= overflow_control_interval)
-		++overflow_count;
+		{
+		  if ((overflow_delay_time << (overflow_count + 2)) >
+		      overflow_delay_time)
+		    ++overflow_count;
+		}
 	      else
 		overflow_count = 0;
-	      last_overflow_time = now;
+	      last_overflow_time = time (NULL);
 	    }
       
 	  if (now - last_request_time <= request_control_interval)
@@ -336,7 +375,7 @@ comsat_main (int fd)
 
   /* Parse the buffer */
   p = strchr (buffer, '@');
-  if (!p)
+  if (!p && !isspace (*p))
     {
       syslog (LOG_ERR, "malformed input: %s", buffer);
       return 1;
@@ -631,12 +670,13 @@ help ()
 {
   printf ("Usage: comsatd [OPTIONS]\n");
   printf ("Options are:");
+  printf ("  -c, --config=PATH      read configuration from the file\n");
   printf ("  -d, --daemon           run in daemon mode\n");
   printf ("  -h, --help             display this help and exit\n");
   printf ("  -i, --inetd            run in inetd mode (default)\n");
   printf ("  -p, --port=PORT        specify port to listen on, implies -d\n");
   printf ("  -t, --timeout=VALUE    set idle timeout (implies -i)\n");
-  printf ("  -v, --version            display version information and exit\n");
+  printf ("  -v, --version          display version information and exit\n");
   printf ("\nReport bugs to bug-mailutils@gnu.org\n");
   exit (EXIT_SUCCESS);
 }
