@@ -164,7 +164,7 @@ pop_completion (char *text, int start, int end)
      to complete.  Otherwise it is the name of a file in the current
      directory. */
   if (start == 0)
-    matches = completion_matches (text, command_generator);
+    matches = rl_completion_matches (text, command_generator);
 
   return (matches);
 }
