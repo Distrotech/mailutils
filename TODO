@@ -1,0 +1,18 @@
+- autogen.sh (libtool) complains about libmailbox.la in noinst
+
+- libmailbox has a nasty bug -- if the mailbox is empty, the library has no idea
+  what to do
+  
+- crypt is linked even if pam was detected, it should be one or the other
+
+- test daemon code
+
+- test network code
+
+- add imap server code
+
+- add more features
+
+- optimize everything
+
+- test everything

@@ -7,11 +7,12 @@
 #include <mailbox.h>
 #include <paths.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 int main(int argc, char *argv[]) {
 	mailbox *mail;
 	unsigned int i;
-	char *header, *from, *date;
+	char *from, *date;
 	char *user;
 	char mailpath[256];
 
@@ -28,11 +29,6 @@ int main(int argc, char *argv[]) {
 		exit(-1);
 	}
 	for(i = 0; i < mail->messages; ++i) {
-		header = mbox_get_header(mail, i);
-		if( header == NULL ) {
-			perror("mbox_get_header: ");
-			exit(-1);
-		}
 		from = mbox_header_line(mail, i, "From");
 		if (from == NULL)
           {
@@ -46,7 +42,6 @@ int main(int argc, char *argv[]) {
             exit(-1);
           }
 		printf("%s %s\n", from, date);
-		free(header);
 		free(from);
 		free(date);
 	}

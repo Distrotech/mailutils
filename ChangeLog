@@ -1,3 +1,8 @@
+Sean 'Shaleh' Perry <shaleh@debian.org>  Thu,  7 Oct 1999 22:33:24 -0700
+
+  * removed spurious code in from.c
+  * added TODO file
+
 1999-10-07  Jeff Bailey  <jbailey@cr499794-a.crdva1.bc.wave.home.com>
 
 	* Makefile.am: Compile libsrc/ first.
