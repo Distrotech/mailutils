@@ -1,3 +1,35 @@
+2003-10-06  Sergey Poznyakoff 
+
+	* configure.ac: Raised version number to 0.4
+	
+	* lib/getopt.c: Moved to ...
+	* mailbox/getopt.c: ... here
+	* lib/getopt1.c: Moved to ...
+	* mailbox/getopt1.c: ... here
+	* lib/Makefile.am: Removed getopt.
+	* mailbox/Makefile.am: Added getopt.
+	
+	* m4/getopt.m4: New file
+	* m4/mu_libobj.m4 (MU_HEADER): Prevent multiple inclusions.
+	* m4/Makefile.am: Added getopt.m4
+	
+	* imap4d/imap4d.h: Added missing includes
+	* mail/mail.h: Likewise
+	* mail/util.c: Likewise
+	* mailbox/ticket.c: Likewise
+	* auth/tls.c: Likewise
+	* from/from.c: Likewise
+	* readmsg/readmsg.c: Likewise
+	* readmsg/readmsg.h: Likewise
+	
+	* mail/decode.c (display_message): Bugfix
+	* mailbox/locale.c (mu_charset_lookup): Bugfix
+	* mailbox/mailutils-config.c: Minor fix in the help string.
+	* mh/repl.c: Likewise.
+	* mh/mh.h (mh_format_str): Added prototype.
+	
+	* NEWS: Updated
+
 2003-10-05  Alain Magloire
 
 	* examples/pop3client.c:  A simple example illustrating the use
@@ -5,8 +37,9 @@
 
 2003-10-05  Alain Magloire
 
-	Implementation of the lower level functions for POP3 in a separate library.
-	This the first draft, the code is not yet enable in the Makefile.am
+	Implementation of the lower level functions for POP3 in a separate
+	library.
+	This the first draft, the code is not yet enabled in the Makefile.am
 
 	* mailbox/pop/pop3_apop.c: APOP
 	* mailbox/pop/pop3_capa.c: CAPA
@@ -36,21 +69,25 @@
 	* mailbox/pop/pop3_user.c: USER
 
 	* include/mailutils/pop3.h: Declaration of the public functions.
-	* include/mailutils/sys/pop3.h: Declaration of the internal functions and structures.
+	* include/mailutils/sys/pop3.h: Declaration of the internal
+	functions and structures.
 
 	* doc/texinfo/pop3.texi: updated.
 
 2003-10-05  Alain Magloire
 
 	When list_destroy() is called, we need to provide also
-	a way to free the item is necessary.  To do this we added a new function:
+	a way to free the item is necessary. To do this we added a new
+	function:
 
-	extern int list_set_destroy_item __P ((list_t list, void (*destoy_item) __P((void *))));
+	extern int list_set_destroy_item __P ((list_t list,
+	       void (*destoy_item) __P((void *))));
 
 	This function let us register a function to call on the item
 	when the list is being destroy.
 	Unresolved Problems: What about list_remove() and list_replace() ?
-	should destroy_item() be called when the item is no longer in the list ?
+	should destroy_item() be called when the item is no longer in the
+	list ?
 
 	* mailbox/list.c (list_destroy) : Call to list->destroy_item() when
 	the data is free().
