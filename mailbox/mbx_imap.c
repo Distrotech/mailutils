@@ -926,23 +926,10 @@ imap_append_message (mailbox_t mailbox, message_t msg)
 
   /* copy the message to local disk by createing a floating message.  */
   {
-    stream_t stream = NULL;
-    stream_t tstream = NULL;
     message_t message = NULL;
-    off_t off = 0;
-    size_t n = 0;
-    char buf[128];
 
-    message_create (&message, NULL);
-    message_get_stream (msg, &stream);
-    message_get_stream (message, &tstream);
+    status = message_create_copy(&message, msg);
 
-    while ((status = stream_readline (stream, buf, sizeof buf, off, &n)) == 0
-	   && n > 0)
-      {
-	stream_write (tstream, buf, n, off, NULL);
-	off += n;
-      }
     if (status == 0)
       status = imap_append_message0 (mailbox, message);
     message_destroy (&message, NULL);
