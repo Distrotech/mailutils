@@ -19,7 +19,9 @@
 # include <config.h>
 #endif
 
+#include <assert.h>
 #include <errno.h>
+#include <ctype.h>
 #include <netdb.h>
 #include <pwd.h>
 #include <stdarg.h>
@@ -30,6 +32,7 @@
 
 #include <mailutils/address.h>
 #include <mailutils/debug.h>
+#include <mailutils/errno.h>
 #include <mailutils/header.h>
 #include <mailutils/message.h>
 #include <mailutils/mutil.h>
@@ -65,11 +68,12 @@ struct _smtp
   char *mailhost;
   char *localhost;
 
-  /* Buffered the IO.  */
+  /* IO buffering. */
+  char *buffer; /* Must be freed. */
+  size_t buflen;
+
   char *ptr;
   char *nl;
-  char *buffer;
-  size_t buflen;
   off_t s_offset;
 
   enum smtp_state
@@ -83,22 +87,95 @@ struct _smtp
 
   int extended;
 
-  address_t mail_from;
-  address_t rcpt_to;
+  char* mail_from;
+  address_t rcpt_to; /* Destroy this if not the same as TO below. */
+  address_t rcpt_bcc;
+  size_t rcpt_to_count;
+  size_t rcpt_bcc_count;
   size_t rcpt_index;
+  size_t rcpt_count;
+  int bccing;
+  message_t msg;
 
   off_t offset;
-  int dsn;
-  message_t message;
+
+  /* The mailer_send_message() args. */
+  message_t argmsg;
+  address_t argfrom;
+  address_t argto;
 };
 
 typedef struct _smtp * smtp_t;
 
-/* Usefull little Macros, since these are very repetitive.  */
-#define CLEAR_STATE(smtp) \
- smtp->state = SMTP_NO_STATE
+/* Useful little macros, since these are very repetitive. */
 
-/* Clear the state and close the stream.  */
+static void
+CLEAR_STATE (smtp_t smtp)
+{
+  smtp->ptr = NULL;
+  smtp->nl = NULL;
+  smtp->s_offset = 0;
+  smtp->extended = 0;
+
+  smtp->msg = NULL;
+
+  if (smtp->mail_from)
+  {
+    free (smtp->mail_from);
+  smtp->mail_from = NULL;
+  }
+
+  smtp->argfrom = NULL;
+
+  if (smtp->rcpt_to != smtp->argto)
+    address_destroy (&smtp->rcpt_to);
+
+  address_destroy (&smtp->rcpt_bcc);
+
+  if (smtp->msg != smtp->argmsg)
+    message_destroy (&smtp->msg, NULL);
+
+  smtp->argmsg = smtp->msg = NULL;
+
+  smtp->rcpt_to = smtp->argto = NULL;
+
+  smtp->rcpt_index = 0;
+
+  smtp->offset = 0;
+
+  smtp->state = SMTP_NO_STATE;
+}
+
+/* If we are resuming, we should be resuming the SAME operation
+   as that which is ongoing. Check this. */
+static int
+smtp_check_send_resumption (smtp_t smtp,
+		       message_t msg, address_t from, address_t to)
+{
+  if(smtp->state == SMTP_NO_STATE)
+    return 0;
+
+  /* FIXME: state should be one of the "send" states if its not
+     "no state" */
+  if (msg != smtp->argmsg)
+    return MU_ERR_BAD_RESUMPTION;
+
+  if (from != smtp->argfrom)
+    return MU_ERR_BAD_RESUMPTION;
+
+  if (to != smtp->argto)
+    return MU_ERR_BAD_RESUMPTION;
+
+  return 0;
+}
+
+#define CHECK_SEND_RESUME(smtp, msg, from, to) \
+do { \
+  if((status = smtp_check_send_resumption(smtp, msg, from, to)) != 0) \
+    return status; \
+} while (0)
+
+/* Clear the state and close the stream. */
 #define CHECK_ERROR_CLOSE(mailer, smtp, status) \
 do \
   { \
@@ -111,7 +188,7 @@ do \
   } \
 while (0)
 
-/* Clear the state.  */
+/* Clear the state. */
 #define CHECK_ERROR(smtp, status) \
 do \
   { \
@@ -147,8 +224,8 @@ static int smtp_readline (smtp_t);
 static int smtp_read_ack (smtp_t);
 static int smtp_write (smtp_t);
 
-static int get_rcpt (message_t , address_t *);
-static int get_from (message_t , char *, address_t *);
+static int _smtp_set_from (smtp_t, message_t , address_t);
+static int _smtp_set_rcpt (smtp_t, message_t , address_t);
 
 int
 _mailer_smtp_init (mailer_t mailer)
@@ -182,19 +259,20 @@ static void
 smtp_destroy(mailer_t mailer)
 {
   smtp_t smtp = mailer->data;
+
+  CLEAR_STATE(smtp);
+
   /* Not our responsability to close.  */
-  /* smtp_close (mailer); */
+
   if (smtp->mailhost)
     free (smtp->mailhost);
   if (smtp->localhost)
     free (smtp->localhost);
   if (smtp->buffer)
     free (smtp->buffer);
-  if (smtp->mail_from)
-    address_destroy (&(smtp->mail_from));
-  if (smtp->rcpt_to)
-    address_destroy (&(smtp->rcpt_to));
+
   free (smtp);
+
   mailer->data = NULL;
 }
 
@@ -207,8 +285,7 @@ smtp_open (mailer_t mailer, int flags)
   size_t buf_len = 0;
 
   /* Sanity checks.  */
-  if (smtp == NULL)
-    return EINVAL;
+  assert (smtp);
 
   mailer->flags = flags;
 
@@ -220,6 +297,7 @@ smtp_open (mailer_t mailer, int flags)
   switch (smtp->state)
     {
     case SMTP_NO_STATE:
+/* Set up the mailer, open the stream, etc. */
       /* Get the mailhost.  */
       if (smtp->mailhost)
 	{
@@ -227,8 +305,10 @@ smtp_open (mailer_t mailer, int flags)
 	  smtp->mailhost = NULL;
 	}
       smtp->mailhost = calloc (buf_len + 1, sizeof (char));
+
       if (smtp->mailhost == NULL)
 	return ENOMEM;
+
       url_get_host (mailer->url, smtp->mailhost, buf_len + 1, NULL);
 
       if (smtp->localhost)
@@ -236,63 +316,16 @@ smtp_open (mailer_t mailer, int flags)
 	  free (smtp->localhost);
 	  smtp->localhost = NULL;
 	}
-      /* Fetch our localhost name.  */
-      buf_len = 64;
-      do
-	{
-	  char *tmp;
-	  errno = 0;
-	  buf_len *= 2;    /* Initial guess */
-	  tmp = realloc (smtp->localhost, buf_len);
-	  if (tmp == NULL)
-	    {
-	      if (smtp->localhost)
-		free (smtp->localhost);
-	      smtp->localhost = NULL;
-	      free (smtp->mailhost);
-	      smtp->mailhost = NULL;
-	      return ENOMEM;
-	    }
-	  smtp->localhost = tmp;
-	}
-      while (((status = gethostname(smtp->localhost, buf_len)) == 0
-	      && !memchr (smtp->localhost, '\0', buf_len))
-#ifdef ENAMETOOLONG
-	     || errno == ENAMETOOLONG
-#endif
-	     );
-      if (status != 0 && errno != 0)
+      /* Fetch our local host name.  */
+
+      status = mu_get_host_name(&smtp->localhost);
+
+      if (status != 0)
 	{
 	  /* gethostname failed, abort.  */
-	  free (smtp->localhost);
-	  smtp->localhost = NULL;
 	  free (smtp->mailhost);
 	  smtp->mailhost = NULL;
-	  return EINVAL;
-	}
-
-      /* Many SMTP servers prefer a FQDN.  */
-      if (strchr (smtp->localhost, '.') == NULL)
-	{
-	  struct hostent *hp = gethostbyname (smtp->localhost);
-	  if (hp == NULL)
-	    {
-	      /* Don't flag it as an error some SMTP servers can get the FQDN
-		 by themselves even if the client is lying, probably
-		 with getpeername().  */
-	      /* return EINVAL; */
-	    }
-	  else
-	    {
-	      free (smtp->localhost);
-	      smtp->localhost = strdup (hp->h_name);
-	      if (smtp->localhost == NULL)
-		{
-		  free (smtp->mailhost);
-		  smtp->mailhost = NULL;
-		  return ENOMEM;
-		}
-	    }
+	  return status;
 	}
 
       /* allocate a working io buffer.  */
@@ -318,7 +351,7 @@ smtp_open (mailer_t mailer, int flags)
       smtp->state = SMTP_OPEN;
 
     case SMTP_OPEN:
-      MAILER_DEBUG2 (mailer, MU_DEBUG_PROT, "smtp_open (%s:%d)\n",
+      MAILER_DEBUG2 (mailer, MU_DEBUG_PROT, "smtp_open (host: %s port: %d)\n",
 		     smtp->mailhost, port);
       status = stream_open (mailer->stream);
       CHECK_EAGAIN (smtp, status);
@@ -328,7 +361,7 @@ smtp_open (mailer_t mailer, int flags)
       /* Swallow the greetings.  */
       status = smtp_read_ack (smtp);
       CHECK_EAGAIN (smtp, status);
-      MAILER_DEBUG0 (mailer, MU_DEBUG_PROT, smtp->buffer);
+
       if (smtp->buffer[0] != '2')
 	{
 	  stream_close (mailer->stream);
@@ -336,7 +369,7 @@ smtp_open (mailer_t mailer, int flags)
 	}
       status = smtp_writeline (smtp, "EHLO %s\r\n", smtp->localhost);
       CHECK_ERROR (smtp, status);
-      MAILER_DEBUG0 (mailer, MU_DEBUG_PROT, smtp->buffer);
+
       smtp->state = SMTP_EHLO;
 
     case SMTP_EHLO:
@@ -348,7 +381,7 @@ smtp_open (mailer_t mailer, int flags)
     case SMTP_EHLO_ACK:
       status = smtp_read_ack (smtp);
       CHECK_EAGAIN (smtp, status);
-      MAILER_DEBUG0 (mailer, MU_DEBUG_PROT, smtp->buffer);
+
       if (smtp->buffer[0] != '2')
 	{
 	  smtp->extended = 0;
@@ -363,7 +396,7 @@ smtp_open (mailer_t mailer, int flags)
 	}
 
     case SMTP_HELO:
-      if (!smtp->extended)
+      if (!smtp->extended) /* FIXME: this will always be false! */
 	{
 	  status = smtp_write (smtp);
 	  CHECK_EAGAIN (smtp, status);
@@ -375,7 +408,7 @@ smtp_open (mailer_t mailer, int flags)
 	{
 	  status = smtp_read_ack (smtp);
 	  CHECK_EAGAIN (smtp, status);
-	  MAILER_DEBUG0 (mailer, MU_DEBUG_PROT, smtp->buffer);
+
 	  if (smtp->buffer[0] != '2')
 	    {
 	      stream_close (mailer->stream);
@@ -399,9 +432,9 @@ smtp_close (mailer_t mailer)
   switch (smtp->state)
     {
     case SMTP_NO_STATE:
-      status = smtp_writeline (smtp, "Quit\r\n");
+      status = smtp_writeline (smtp, "QUIT\r\n");
       CHECK_ERROR (smtp, status);
-      MAILER_DEBUG0 (mailer, MU_DEBUG_PROT, smtp->buffer);
+
       smtp->state = SMTP_QUIT;
 
     case SMTP_QUIT:
@@ -412,7 +445,6 @@ smtp_close (mailer_t mailer)
     case SMTP_QUIT_ACK:
       status = smtp_read_ack (smtp);
       CHECK_EAGAIN (smtp, status);
-      MAILER_DEBUG0 (mailer, MU_DEBUG_PROT, smtp->buffer);
 
     default:
       break;
@@ -421,46 +453,119 @@ smtp_close (mailer_t mailer)
 }
 
 static int
-smtp_send_message(mailer_t mailer, message_t msg, address_t from, address_t to)
+message_set_header_value (message_t msg, const char *field, const char *value)
 {
-  smtp_t smtp = mailer->data;
+  int status = 0;
+  header_t hdr = NULL;
+
+  if ((status = message_get_header (msg, &hdr)))
+    return status;
+
+  if ((status = header_set_value (hdr, field, value, 1)))
+    return status;
+
+  return status;
+}
+
+/*
+
+The smtp mailer doesn't deal with mail like:
+
+To: public@com, pub2@com
+Bcc: hidden@there, two@there
+
+It just sends the message to all the addresses, making the
+"blind" cc not particularly blind.
+
+The correct algorithm is
+
+- open smtp connection
+- look as msg, figure out addrto&cc, and addrbcc
+- deliver to the to & cc addresses:
+  - if there are bcc addrs, remove the bcc field
+  - send the message to to & cc addrs:
+  mail from: me
+  rcpt to: public@com
+  rcpt to: pub2@com
+  data
+  ...
+
+- deliver to the bcc addrs:
+
+  for a in (bccaddrs)
+  do
+    - add header field to msg,  bcc: $a
+    - send the msg:
+    mail from: me
+    rcpt to: $a
+    data
+    ...
+  done
+
+- quit smtp connection
+
+*/
+
+static int
+smtp_send_message (mailer_t mailer, message_t argmsg, address_t argfrom,
+		   address_t argto)
+{
+  smtp_t smtp = NULL;
   int status;
 
-  if (smtp == NULL || msg == NULL)
+  if(mailer == NULL)
     return EINVAL;
 
-/* FIXME: implement the from and to */
-  if(from || to)
-    return ENOSYS;
+  smtp = mailer->data;
+  assert (smtp);
+
+  CHECK_SEND_RESUME (smtp, argmsg, argfrom, argto);
 
   switch (smtp->state)
     {
     case SMTP_NO_STATE:
-      smtp->state = SMTP_ENV_FROM;
-      status = get_from (msg, smtp->localhost, &smtp->mail_from);
-      CHECK_ERROR (smtp, status);
-      status = get_rcpt (msg, &smtp->rcpt_to);
+      if (argmsg == NULL)
+	return EINVAL;
+
+      smtp->argmsg = smtp->msg = argmsg;
+      smtp->argfrom = argfrom;
+      smtp->argto = argto;
+
+      status = _smtp_set_from (smtp, smtp->argmsg, smtp->argfrom);
       CHECK_ERROR (smtp, status);
 
+      status = _smtp_set_rcpt (smtp, smtp->argmsg, smtp->argto);
+      CHECK_ERROR (smtp, status);
+
+      /* Clear the Bcc: field if we found one. */
+      if (smtp->rcpt_bcc)
+	{
+	  smtp->msg = NULL;
+	  status = message_create_copy (&smtp->msg, smtp->argmsg);
+	  CHECK_ERROR (smtp, status);
+
+	  status = message_set_header_value (smtp->msg, MU_HEADER_BCC, NULL);
+	  CHECK_ERROR (smtp, status);
+	}
+
+      /* Begin bccing if there are not To: recipients. */
+      if (smtp->rcpt_to_count == 0)
+	smtp->bccing = 1;
+
+      smtp->rcpt_index = 1;
+
+      smtp->state = SMTP_ENV_FROM;
+
     case SMTP_ENV_FROM:
+    ENV_FROM:
       {
-	size_t len = 0;
-	char *frm;
-	address_get_email (smtp->mail_from, 1, NULL, 0, &len);
-	if (len == 0)
-	  CHECK_ERROR (smtp, EINVAL);
-	frm = calloc (len + 1, sizeof (char));
-	if (frm == NULL)
-	  CHECK_ERROR (smtp, ENOMEM);
-	address_get_email (smtp->mail_from, 1, frm, len + 1, NULL);
-	status = smtp_writeline (smtp, "MAIL FROM: %s\r\n", frm);
-	free (frm);
-	address_destroy (&smtp->mail_from);
+	status = smtp_writeline (smtp, "MAIL FROM: %s\r\n", smtp->mail_from);
 	CHECK_ERROR (smtp, status);
-	MAILER_DEBUG0 (mailer, MU_DEBUG_PROT, smtp->buffer);
 	smtp->state = SMTP_MAIL_FROM;
       }
 
+      /* We use a goto, since we may have multiple messages,
+         we come back here and doit all over again ... Not pretty.  */
     case SMTP_MAIL_FROM:
       status = smtp_write (smtp);
       CHECK_EAGAIN (smtp, status);
@@ -469,7 +574,6 @@ smtp_send_message(mailer_t mailer, message_t msg, address_t from, address_t to)
     case SMTP_MAIL_FROM_ACK:
       status = smtp_read_ack (smtp);
       CHECK_EAGAIN (smtp, status);
-      MAILER_DEBUG0 (mailer, MU_DEBUG_PROT, smtp->buffer);
       if (smtp->buffer[0] != '2')
 	{
 	  stream_close (mailer->stream);
@@ -478,64 +582,58 @@ smtp_send_message(mailer_t mailer, message_t msg, address_t from, address_t to)
 	}
 
       /* We use a goto, since we may have multiple recipients,
-	 we come back here and doit all over again ... Not pretty.  */
+         we come back here and do it all over again ... Not pretty. */
     case SMTP_ENV_RCPT:
-    RCPT_TO:
+    ENV_RCPT:
       {
-	size_t i = 0;
+	address_t addr = smtp->rcpt_to;
+	char *to = NULL;
+
+	if (smtp->bccing)
+	  addr = smtp->rcpt_bcc;
+
+	status = address_aget_email (addr, smtp->rcpt_index, &to);
+
+	CHECK_ERROR (smtp, status);
+
+	/* Add the Bcc: field back in for recipient. */
+	if(smtp->bccing)
+	{
+	  status = message_set_header_value (smtp->msg, MU_HEADER_BCC, to);
+	  CHECK_ERROR (smtp, status);
+	}
+
+	status = smtp_writeline (smtp, "RCPT TO: %s\r\n", to);
+
+	free (to);
+
+	CHECK_ERROR (smtp, status);
+
+	smtp->state = SMTP_RCPT_TO;
 	smtp->rcpt_index++;
-	address_get_count (smtp->rcpt_to, &i);
-	if (smtp->rcpt_index <= i)
-	  {
-	    size_t len = 0;
-	    char *To;
-	    address_get_email (smtp->rcpt_to, smtp->rcpt_index, NULL, 0, &len);
-	    if (len == 0)
-	      CHECK_ERROR (smtp, EINVAL);
-	    To = calloc (len + 1, sizeof (char));
-	    if (To == NULL)
-	      CHECK_ERROR (smtp, ENOMEM);
-	    address_get_email (smtp->rcpt_to, smtp->rcpt_index, To, len + 1, NULL);
-	    status = smtp_writeline (smtp, "RCPT TO: %s\r\n", To);
-	    free (To);
-	    CHECK_ERROR (smtp, status);
-	    MAILER_DEBUG0 (mailer, MU_DEBUG_PROT, smtp->buffer);
-	    smtp->state = SMTP_RCPT_TO;
-	  }
-	else
-	  {
-	    address_destroy (&(smtp->rcpt_to));
-	    smtp->rcpt_index = 0;
-	    smtp->state = SMTP_DATA;
-	  }
       }
 
     case SMTP_RCPT_TO:
-      if (smtp->rcpt_to)
-	{
-	  status = smtp_write (smtp);
-	  CHECK_EAGAIN (smtp, status);
-	  smtp->state = SMTP_RCPT_TO_ACK;
-	}
+      status = smtp_write (smtp);
+      CHECK_EAGAIN (smtp, status);
+      smtp->state = SMTP_RCPT_TO_ACK;
 
     case SMTP_RCPT_TO_ACK:
-      if (smtp->rcpt_to)
+      status = smtp_read_ack (smtp);
+      CHECK_EAGAIN (smtp, status);
+      if (smtp->buffer[0] != '2')
 	{
-	  status = smtp_read_ack (smtp);
-	  CHECK_EAGAIN (smtp, status);
-	  MAILER_DEBUG0 (mailer, MU_DEBUG_PROT, smtp->buffer);
-	  if (smtp->buffer[0] != '2')
-	    {
-	      stream_close (mailer->stream);
-	      CLEAR_STATE (smtp);
-	      return EACCES;
-	    }
-	  goto RCPT_TO;
+	  stream_close (mailer->stream);
+	  CLEAR_STATE (smtp);
+	  return MU_ERR_SMTP_RCPT_FAILED;
 	}
-      /* We are done with the rcpt.  */
+      /* Redo the receipt sequence for every To: and Cc: recipient. */
+      if (!smtp->bccing && smtp->rcpt_index <= smtp->rcpt_to_count)
+	goto ENV_RCPT;
+
+      /* We are done with the rcpt. */
       status = smtp_writeline (smtp, "DATA\r\n");
       CHECK_ERROR (smtp, status);
-      MAILER_DEBUG0 (mailer, MU_DEBUG_PROT, smtp->buffer);
       smtp->state = SMTP_DATA;
 
     case SMTP_DATA:
@@ -546,7 +644,6 @@ smtp_send_message(mailer_t mailer, message_t msg, address_t from, address_t to)
     case SMTP_DATA_ACK:
       status = smtp_read_ack (smtp);
       CHECK_EAGAIN (smtp, status);
-      MAILER_DEBUG0 (mailer, MU_DEBUG_PROT, smtp->buffer);
       if (smtp->buffer[0] != '3')
 	{
 	  stream_close (mailer->stream);
@@ -565,12 +662,12 @@ smtp_send_message(mailer_t mailer, message_t msg, address_t from, address_t to)
 	   in the buffer and flush it.  */
 	status = smtp_write (smtp);
 	CHECK_EAGAIN (smtp, status);
-	message_get_stream (msg, &stream);
+	message_get_stream (smtp->msg, &stream);
 	while ((status = stream_readline (stream, data, sizeof (data) - 1,
 					  smtp->offset, &n)) == 0 && n > 0)
 	  {
-	    if (data [n - 1] == '\n')
-	      data [n -1] = '\0';
+	    if (data[n - 1] == '\n')
+	      data[n - 1] = '\0';
 	    if (data[0] == '.')
 	      {
 		status = smtp_writeline (smtp, ".%s\r\n", data);
@@ -582,8 +679,7 @@ smtp_send_message(mailer_t mailer, message_t msg, address_t from, address_t to)
 		CHECK_ERROR (smtp, status);
 	      }
 	    smtp->offset += n;
-	    MAILER_DEBUG0 (mailer, MU_DEBUG_PROT, smtp->buffer);
-		status = smtp_write (smtp);
+	    status = smtp_write (smtp);
 	    CHECK_EAGAIN (smtp, status);
 	  }
 	smtp->offset = 0;
@@ -600,14 +696,24 @@ smtp_send_message(mailer_t mailer, message_t msg, address_t from, address_t to)
     case SMTP_SEND_ACK:
       status = smtp_read_ack (smtp);
       CHECK_EAGAIN (smtp, status);
-      MAILER_DEBUG0 (mailer, MU_DEBUG_PROT, smtp->buffer);
-      observable_notify (mailer->observable, MU_EVT_MAILER_MESSAGE_SENT);
       if (smtp->buffer[0] != '2')
 	{
 	  stream_close (mailer->stream);
 	  CLEAR_STATE (smtp);
 	  return EACCES;
 	}
+
+      /* Decide whether we need to loop again, to deliver to Bcc:
+         recipients. */
+      if (!smtp->bccing)
+	{
+	  smtp->bccing = 1;
+	  smtp->rcpt_index = 1;
+	}
+      if (smtp->rcpt_index <= smtp->rcpt_bcc_count)
+	goto ENV_FROM;
+
+      observable_notify (mailer->observable, MU_EVT_MAILER_MESSAGE_SENT);
 
     default:
       break;
@@ -617,125 +723,229 @@ smtp_send_message(mailer_t mailer, message_t msg, address_t from, address_t to)
 }
 
 static int
-get_from (message_t msg, char *localhost, address_t *pmail_from)
+_smtp_set_from (smtp_t smtp, message_t msg, address_t from)
 {
-  int status;
-  size_t size = 0;
-  char *from;
+  int status = 0;
+  char *mail_from;
   header_t header = NULL;
 
-  message_get_header (msg, &header);
-  status = header_get_value (header, MU_HEADER_FROM, NULL, 0, &size);
-  /* If it's not in the header create one form the passwd.  */
-  if (status != 0 || size == 0)
+  /* Get MAIL_FROM from FROM, the message, or the environment. */
+  if (from)
     {
-      struct passwd *pwd = mu_getpwuid (getuid ());
-      /* Not in the passwd ???? We have a problem.  */
-      if (pwd == 0 || pwd->pw_name == NULL)
+      /* Use the specified address_t. */
+      if ((status = mailer_check_from (from)) != 0)
 	{
-	  size = 10 + strlen (localhost) + 1;
-	  from = calloc (size, sizeof (char));
-	  if (from == NULL)
-	    return ENOMEM;
-	  snprintf (from, size, "%d@%s", getuid(), localhost);
+	  MAILER_DEBUG0 (smtp->mailer, MU_DEBUG_ERROR,
+			 "mailer_send_message(): explicit from not valid\n");
+	  return status;
 	}
-      else
-	{
-	  from  = calloc (strlen (pwd->pw_name) + 1
-			  + strlen (localhost) + 1, sizeof (char));
-	  if (from == NULL)
-	    return ENOMEM;
-	  sprintf(from, "%s@%s", pwd->pw_name, localhost);
-	}
+
+      if ((status = address_aget_email (from, 1, &mail_from)) != 0)
+	return status;
     }
   else
     {
-      from = calloc (size + 1, sizeof (char));
-      if (from == NULL)
-	return ENOMEM;
-      header_get_value (header, MU_HEADER_FROM, from, size + 1, NULL);
-    }
-  /* Check if a Fully Qualified Name, some smtp servers
-     notably sendmail insists on it, for good reasons.  */
-  if (strchr (from, '@') == NULL)
-    {
-      char *tmp;
-      tmp = malloc (strlen (from) + 1 +strlen (localhost) + 1);
-      if (tmp == NULL)
+      char *from_hdr = NULL;
+
+      if ((status = message_get_header (msg, &header)) != 0)
+	return status;
+
+      status = header_aget_value (header, MU_HEADER_FROM, &from_hdr);
+
+      switch (status)
 	{
-	  free (from);
-	  return ENOMEM;
+	default:
+	  return status;
+
+	  /* Use the From: header. */
+	case 0:
+	  {
+	    address_t fromaddr = NULL;
+
+	    MAILER_DEBUG1 (smtp->mailer, MU_DEBUG_TRACE,
+			   "mailer_send_message(): using From: %s\n",
+			   from_hdr);
+
+	    if ((status = address_create (&fromaddr, from_hdr)) != 0)
+	      {
+		free (from_hdr);
+		return status;
+	      }
+	    if ((status = mailer_check_from (fromaddr)) != 0)
+	      {
+		free (from_hdr);
+		address_destroy (&fromaddr);
+		MAILER_DEBUG1 (smtp->mailer, MU_DEBUG_ERROR,
+			       "mailer_send_message(): from field %s not valid\n",
+			       from_hdr);
+		return status;
+	      }
+	    if ((status = address_aget_email (fromaddr, 1, &mail_from)) != 0)
+	      {
+		free (from_hdr);
+		address_destroy (&fromaddr);
+		return status;
+	      }
+	    free (from_hdr);
+	    address_destroy (&fromaddr);
+	  }
+	  break;
+
+	case ENOENT:
+	  /* Use the environment. */
+	  mail_from = mu_get_user_email (NULL);
+
+	  if (mail_from)
+	    {
+	      MAILER_DEBUG1 (smtp->mailer, MU_DEBUG_TRACE,
+			     "mailer_send_message(): using user's address: %s\n",
+			     mail_from);
+	    }
+	  else
+	    {
+	      MAILER_DEBUG0 (smtp->mailer, MU_DEBUG_TRACE,
+			     "mailer_send_message(): no user's address, failing\n");
+	    }
+
+	  if (!mail_from)
+	    return errno;
+
+	  status = 0;
+
+	  /* FIXME: should we add the From: header? */
+
+	  break;
+
 	}
-      sprintf (tmp, "%s@%s", from, localhost);
-      free (from);
-      from = tmp;
     }
-  status = address_create (pmail_from, from);
-  free (from);
+
+  assert (mail_from);
+
+  smtp->mail_from = mail_from;
+
   return status;
 }
 
 static int
-get_rcpt (message_t msg, address_t *prcpt_to)
+_smtp_set_rcpt (smtp_t smtp, message_t msg, address_t to)
 {
-  char *rcpt;
-  int status;
-  size_t size = 0;
+  int status = 0;
   header_t header = NULL;
+  char *toaddrv[3] = { NULL, NULL };
+  char *bccaddr = NULL;
+  address_t rcpt_to = NULL;
+  address_t rcpt_bcc = NULL;
 
-  message_get_header (msg, &header);
-  status = header_get_value (header, MU_HEADER_TO, NULL, 0, &size);
-  if (status == 0 && size != 0)
+  /* Get RCPT_TO from TO, or the message. */
+
+  if (to)
     {
-      char *tmp;
-      size_t len;
-      rcpt = calloc (size + 1, sizeof (char));
-      if (rcpt == NULL)
-	return ENOMEM;
-      header_get_value (header, MU_HEADER_TO, rcpt, size + 1, NULL);
-
-      size = 0;
-      status = header_get_value (header, MU_HEADER_CC, NULL, 0, &size);
-      if (status == 0 && size != 0)
+      /* Use the specified address_t. */
+      if ((status = mailer_check_to (to)) != 0)
 	{
-	  len = strlen (rcpt);
-	  tmp = realloc (rcpt, (len + 1 + size + 1) * sizeof (char));
-	  if (tmp == NULL)
-	    {
-	      free (rcpt);
-	      return ENOMEM;
-	    }
-	  else
-	    rcpt = tmp;
-	  rcpt[len] = ',';
-	  header_get_value (header, MU_HEADER_CC, rcpt + len + 1,
-			    size + 1, NULL);
-
-	  size = 0;
-	  status = header_get_value (header, MU_HEADER_BCC, NULL, 0, &size);
-	  if (status == 0 && size != 0)
-	    {
-	      len = strlen (rcpt);
-	      tmp = realloc (rcpt, (len + 1 + size + 1) * sizeof (char));
-	      if (tmp == NULL)
-		{
-		  free (rcpt);
-		  return ENOMEM;
-		}
-	      else
-		rcpt = tmp;
-	      rcpt[len] = ',';
-	      header_get_value (header, MU_HEADER_BCC, rcpt + len + 1,
-				size + 1, NULL);
-	    }
+	  MAILER_DEBUG0 (smtp->mailer, MU_DEBUG_ERROR,
+			 "mailer_send_message(): explicit to not valid\n");
+	  return status;
 	}
-      status = address_create (prcpt_to, rcpt);
-      free (rcpt);
+      smtp->rcpt_to = to;
+
       return status;
     }
-  return EINVAL;
-}
 
+  if ((status = message_get_header (msg, &header)))
+    return status;
+
+  status = header_aget_value (header, MU_HEADER_TO, toaddrv + 0);
+
+  if (status && status != ENOENT)
+    goto end;
+
+  status = header_aget_value (header, MU_HEADER_CC, toaddrv + 1);
+
+  if (status && status != ENOENT)
+    goto end;
+
+  status = header_aget_value (header, MU_HEADER_BCC, &bccaddr);
+
+  if (status && status != ENOENT)
+    goto end;
+
+  status = 0;
+
+  {
+    const char **av = (const char **) toaddrv;
+    int tostatus = address_createv (&rcpt_to, av, 2);
+
+    /* Any error other than EMPTY_ADDRESS is fatal */
+    if (tostatus)
+      {
+	if (tostatus == MU_ERR_EMPTY_ADDRESS)
+	  tostatus = MU_ERR_MAILER_NO_RCPT_TO;
+	else
+	  goto end;
+      }
+
+    if (!bccaddr)
+      status = MU_ERR_EMPTY_ADDRESS;
+    else
+      {
+	status = address_create (&rcpt_bcc, bccaddr);
+
+	if (status)
+	  {
+	    if (status == MU_ERR_EMPTY_ADDRESS)
+	      status = MU_ERR_MAILER_NO_RCPT_TO;
+	    else
+	      goto end;
+	  }
+      }
+
+    /* If both to and bcc are empty, it is fatal */
+    if (status == MU_ERR_EMPTY_ADDRESS && tostatus == status)
+      goto end;
+
+    /* otherwise, at least rcpt_to or rcpt_bcc is defined */
+    status = 0;
+  }
+
+  /* If to or bcc is present, the must be OK. */
+  if (rcpt_to && (status = mailer_check_to (rcpt_to)))
+    goto end;
+
+  if (rcpt_bcc && (status = mailer_check_to (rcpt_bcc)))
+    goto end;
+
+end:
+
+  if (toaddrv[0])
+    free (toaddrv[0]);
+
+  if (toaddrv[1])
+    free (toaddrv[1]);
+
+  if (bccaddr)
+    free (bccaddr);
+
+  if (status)
+    {
+      address_destroy (&rcpt_to);
+      address_destroy (&rcpt_bcc);
+    }
+  else
+    {
+      smtp->rcpt_to = rcpt_to;
+
+      if (smtp->rcpt_to)
+	address_get_count (smtp->rcpt_to, &smtp->rcpt_to_count);
+
+      smtp->rcpt_bcc = rcpt_bcc;
+
+      if (smtp->rcpt_bcc)
+	address_get_count (smtp->rcpt_bcc, &smtp->rcpt_bcc_count);
+    }
+
+  return status;
+}
 /* C99 says that a conforming implementations of snprintf ()
    should return the number of char that would have been call
    but many GNU/Linux && BSD implementations return -1 on error.
@@ -748,25 +958,36 @@ smtp_writeline (smtp_t smtp, const char *format, ...)
   va_list ap;
   int done = 1;
 
-  va_start(ap, format);
+  va_start (ap, format);
   do
     {
       len = vsnprintf (smtp->buffer, smtp->buflen - 1, format, ap);
-      if (len < 0 || (len >= (int)smtp->buflen)
+      if (len < 0 || (len >= (int) smtp->buflen)
 	  || !memchr (smtp->buffer, '\0', len + 1))
-        {
-          smtp->buflen *= 2;
-          smtp->buffer = realloc (smtp->buffer, smtp->buflen);
-          if (smtp->buffer == NULL)
-            return ENOMEM;
+	{
+	  char *buffer = NULL;
+	  size_t buflen = smtp->buflen * 2;
+	  buffer = realloc (smtp->buffer, buflen);
+	  if (smtp->buffer == NULL)
+	    return ENOMEM;
+	  smtp->buffer = buffer;
+	  smtp->buflen = buflen;
 	  done = 0;
-        }
+	}
       else
 	done = 1;
     }
   while (!done);
-  va_end(ap);
+
+  va_end (ap);
+
   smtp->ptr = smtp->buffer + len;
+
+  while (len > 0 && isspace (smtp->buffer[len-1]))
+    len--;
+
+  MAILER_DEBUG2 (smtp->mailer, MU_DEBUG_PROT, "> %.*s\n", len, smtp->buffer);
+
   return 0;
 }
 
@@ -781,10 +1002,10 @@ smtp_write (smtp_t smtp)
       status = stream_write (smtp->mailer->stream, smtp->buffer, len,
 			     0, &len);
       if (status == 0)
-        {
-          memmove (smtp->buffer, smtp->buffer + len, len);
-          smtp->ptr -= len;
-        }
+	{
+	  memmove (smtp->buffer, smtp->buffer + len, len);
+	  smtp->ptr -= len;
+	}
     }
   else
     {
@@ -804,8 +1025,7 @@ smtp_read_ack (smtp_t smtp)
     {
       multi = 0;
       status = smtp_readline (smtp);
-      if ((smtp->ptr - smtp->buffer) > 4
-	  && smtp->buffer[3] == '-')
+      if ((smtp->ptr - smtp->buffer) > 4 && smtp->buffer[3] == '-')
 	multi = 1;
       if (status == 0)
 	smtp->ptr = smtp->buffer;
@@ -832,7 +1052,7 @@ smtp_readline (smtp_t smtp)
       status = stream_readline (smtp->mailer->stream, smtp->buffer + total,
 				smtp->buflen - total, smtp->s_offset, &n);
       if (status != 0)
-        return status;
+	return status;
 
       /* Server went away, consider this like an error.  */
       if (n == 0)
@@ -841,17 +1061,17 @@ smtp_readline (smtp_t smtp)
       total += n;
       smtp->s_offset += n;
       smtp->nl = memchr (smtp->buffer, '\n', total);
-      if (smtp->nl == NULL)  /* Do we have a full line.  */
-        {
-          /* Allocate a bigger buffer ?  */
-          if (total >= smtp->buflen -1)
-            {
-              smtp->buflen *= 2;
-              smtp->buffer = realloc (smtp->buffer, smtp->buflen + 1);
-              if (smtp->buffer == NULL)
-                return ENOMEM;
-            }
-        }
+      if (smtp->nl == NULL)	/* Do we have a full line.  */
+	{
+	  /* Allocate a bigger buffer ?  */
+	  if (total >= smtp->buflen - 1)
+	    {
+	      smtp->buflen *= 2;
+	      smtp->buffer = realloc (smtp->buffer, smtp->buflen + 1);
+	      if (smtp->buffer == NULL)
+		return ENOMEM;
+	    }
+	}
       smtp->ptr = smtp->buffer + total;
     }
   while (smtp->nl == NULL);
@@ -863,5 +1083,9 @@ smtp_readline (smtp_t smtp)
       *(smtp->nl) = '\0';
       smtp->ptr = smtp->nl;
     }
+
+  MAILER_DEBUG1 (smtp->mailer, MU_DEBUG_PROT, "< %s", smtp->buffer);
+
   return 0;
 }
+
