@@ -155,37 +155,30 @@ util_expand_msglist (const int argc, char **argv, int **list)
 	  /* All messages with pattern following / in
 	     the subject line, case insensitive */
 	  int j;
+	  char *pattern;
+
+	  pattern = strdup (&argv[i][1]);
+	  util_strupper (pattern);
+
 	  for (j = 1; j <= total; j++)
 	    {
 	      message_t msg = NULL;
 	      header_t hdr = NULL;
 	      char *subject = NULL;
 	      size_t subjlen;
-	      char *pattern;
-	      size_t patlen;
 	      int k;
 
 	      mailbox_get_message (mbox, j, &msg);
 	      message_get_header (msg, &hdr);
 
 	      header_aget_value (hdr, MU_HEADER_SUBJECT, &subject);
-	      subjlen = (subject) ? strlen (subject) : 0;
-	      for (k = 0; k < subjlen; k++)
-		subject[k] = toupper ((int)subject[k]);
-
-	      pattern = strdup (&argv[i][1]);
-	      patlen = (pattern) ? strlen (pattern) : 0;
-	      for (k = 0; k < patlen; k++)
-		pattern[k] = toupper ((int)pattern[k]);
+	      util_strupper (subject);
 
 	      if (pattern && subject && strstr (subject, pattern))
-		    {
-		      current = util_ll_add (current, j);
-		}
-
-	      free (pattern);
+		current = util_ll_add (current, j);
 	      free (subject);
 	    }
+	  free (pattern);
 	}
       else if (argv[i][0] == ':')
 	{
@@ -280,13 +273,13 @@ util_do_command (const char *c, ...)
   char *cmd = NULL;
   va_list ap;
   static const char *delim = "=";
-  
+
   va_start (ap, c);
   status = vasprintf (&cmd, c, ap);
   va_end (ap);
   if (status < 0)
     return 0;
-  
+
   if (cmd)
     {
       struct mail_command_entry entry;
@@ -326,7 +319,7 @@ util_do_command (const char *c, ...)
  * func is the function to run
  * argc is the number of arguments inculding the command and msglist
  * argv is the list of strings containing the command and msglist
- * set_cursor means whether the function should set the cursor to 
+ * set_cursor means whether the function should set the cursor to
  * the number of the last message processed. If set_cursor = 0, the
  * cursor is not altered.
  */
@@ -430,7 +423,7 @@ util_screen_lines()
 {
   struct mail_env_entry *ep = util_find_env("screen");
   size_t n;
-  
+
   if (ep && ep->set && (n = atoi(ep->value)) != 0)
     return n;
   return util_getlines();
@@ -536,7 +529,7 @@ util_get_homedir()
     }
   return strdup(homedir);
 }
-		 
+
 char *
 util_fullpath(char *inpath)
 {
@@ -550,7 +543,7 @@ util_get_sender(int msgno, int strip)
   address_t addr = NULL;
   message_t msg = NULL;
   char buffer[512], *p;
-      
+
   mailbox_get_message (mbox, msgno, &msg);
   message_get_header (msg, &header);
   if (header_get_value (header, MU_HEADER_FROM, buffer, sizeof(buffer), NULL)
@@ -572,14 +565,14 @@ util_get_sender(int msgno, int strip)
       address_destroy (&addr);
       return NULL;
     }
-  
+
   if (strip)
     {
       p = strchr (buffer, '@');
       if (p)
 	*p = 0;
     }
-  
+
   p = strdup (buffer);
   address_destroy (&addr);
   return p;
@@ -590,15 +583,15 @@ util_slist_print(list_t list, int nl)
 {
   iterator_t itr;
   char *name;
-  
+
   if (!list || iterator_create (&itr, list))
     return;
-  
+
   for (iterator_first (itr); !iterator_is_done (itr); iterator_next (itr))
     {
       iterator_current (itr, (void **)&name);
       fprintf (ofile, "%s%c", name, nl ? '\n' : ' ');
-      
+
     }
   iterator_destroy (&itr);
 }
@@ -609,10 +602,10 @@ util_slist_lookup(list_t list, char *str)
   iterator_t itr;
   char *name;
   int rc = 0;
-  
+
   if (!list || iterator_create (&itr, list))
     return 0;
-  
+
   for (iterator_first (itr); !iterator_is_done (itr); iterator_next (itr))
     {
       iterator_current (itr, (void **)&name);
@@ -630,10 +623,10 @@ void
 util_slist_add (list_t *list, char *value)
 {
   char *p;
-  
+
   if (!*list && list_create (list))
     return;
-  
+
   if ((p = strdup(value)) == NULL)
     {
       util_error("not enough memory\n");
@@ -647,10 +640,10 @@ util_slist_destroy (list_t *list)
 {
   iterator_t itr;
   char *name;
-  
+
   if (!*list || iterator_create (&itr, *list))
     return;
-  
+
   for (iterator_first (itr); !iterator_is_done (itr); iterator_next (itr))
     {
       iterator_current (itr, (void **)&name);
@@ -666,10 +659,10 @@ util_slist_to_string (list_t list, char *delim)
   iterator_t itr;
   char *name;
   char *str = NULL;
-  
+
   if (!list || iterator_create (&itr, list))
     return NULL;
-  
+
   for (iterator_first (itr); !iterator_is_done (itr); iterator_next (itr))
     {
       iterator_current (itr, (void **)&name);
@@ -699,14 +692,26 @@ util_strcat(char **dest, char *str)
       memcpy (newp + dlen - 1, str, slen);
     }
 }
-      
+
+/* Upper case the entire string.  Assume it is NULL terminated.  */
+void
+util_strupper (char *s)
+{
+  if (s)
+    {
+      while (s++)
+	*s = toupper ((int)*s);
+    }
+}
+
+
 void
 util_escape_percent (char **str)
 {
   int count;
   char *p, *q;
   char *newstr;
-  
+
   /* Count ocurrences of % in the string */
   count = 0;
   for (p = *str; *p; p++)
@@ -716,7 +721,7 @@ util_escape_percent (char **str)
   if (!count)
     return; /* nothing to do */
 
-  /* expand the string */ 
+  /* expand the string */
   newstr = malloc (strlen (*str) + 1 + count);
   if (!newstr)
     {
@@ -724,7 +729,7 @@ util_escape_percent (char **str)
       exit (1); /* be on the safe side */
     }
 
-  /* and escape percent signs */ 
+  /* and escape percent signs */
   p = newstr;
   q = *str;
   while (*p = *q++)
@@ -748,7 +753,7 @@ util_outfolder_name (char *str)
     case '+':
       str = util_fullpath (str);
       break;
-      
+
     default:
       if (ep && ep->set)
 	{
@@ -785,14 +790,14 @@ util_save_outgoing (message_t msg, char *savefile)
 	{
 	  char *buf;
 	  size_t bsize = 0;
-	  
+
 	  message_size (msg, &bsize);
 
 	  /* Try to allocate large buffer */
 	  for (; bsize > 1; bsize /= 2)
 	    if ((buf = malloc (bsize)))
 	      break;
-	  
+
 	  if (!bsize)
 	    {
 	      util_error("not enough memory for creating save file");
@@ -828,7 +833,7 @@ util_save_outgoing (message_t msg, char *savefile)
 #ifdef HAVE_STDARG_H
 void
 util_error (const char *format, ...)
-#else     
+#else
 void
 util_error (va_alist)
      va_dcl
@@ -838,7 +843,7 @@ util_error (va_alist)
 
 #ifdef HAVE_STDARG_H
   va_start(ap, format);
-#else  
+#else
   char *format;
 
   va_start(ap);
@@ -892,7 +897,7 @@ util_tempfile(char **namep)
   char *filename;
   char *tmpdir;
   int fd;
-  
+
   /* We have to be extra careful about opening temporary files, since we
      may be running with extra privilege i.e setgid().  */
   tmpdir = (getenv ("TMPDIR")) ? getenv ("TMPDIR") : "/tmp";

@@ -1,3 +1,10 @@
+2001-07-01 Alain Magloire
+
+	* mail/util.c (util_expand_msglist): Cleanup the expand by pattern
+	by moving some code in util_strupper(), the comparison must be
+	case insensitive.
+	(util_strupper): Convert the string to uppercase.
+
 2001-07-01 Sergey Poznyakoff
         * mailbox/attribute.c: set MU_ATTRIBUTE_MODIFIED bit in the underlying
         structure when setting the flags.
@@ -15,7 +22,7 @@
 2001-06-30 Sergey Poznyakoff
 	* configure.in:
 		define READLINE_LIBS instead of linking libreadline
-		to every binary. 
+		to every binary.
 		AC_CHECK_LIB(pthread) was missing comma before
 		ACTION_IF_NOT_FOUND, thus have_libpthread was always no.
 	* mail/Makefile.am: Use READLINE_LIBS
@@ -46,7 +53,7 @@
 	* mail/mail.h: in struct mail_command_entry changed `isflow' field
 	to `flags'. It contains information about semantics of the command.
 	* mail/table.c: Initialize `flags' field.
-		
+
 
 2001-06-29  Alain Magloire
 
