@@ -171,7 +171,7 @@ getMpwnam (const char *username)
 }
 
 struct passwd *
-getMpwuid (uid_t uid)
+getMpwuid (uid_t *puid)
 {
   char *QueryStr = NULL;
   MYSQL *m;
@@ -202,7 +202,7 @@ getMpwuid (uid_t uid)
       return NULL;
     }
 
-  snprintf (uidstr, sizeof (uidstr), "%u", uid);
+  snprintf (uidstr, sizeof (uidstr), "%u", *puid);
   QueryStr = sql_expand_query (sql_getpwuid_query, uidstr);
 
   if (!QueryStr)

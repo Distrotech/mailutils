@@ -12,7 +12,7 @@ extern char *sql_socket;
 extern int  sql_port;
 
 struct passwd *getMpwnam (const char *username);
-struct passwd *getMpwuid (uid_t uid);
+struct passwd *getMpwuid (uid_t *puid);
 struct spwd *getMspnam (const char *username);
 
 #define MHOST NULL              /* Hostname to connect to. NULL for UNIX
