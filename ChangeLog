@@ -1,5 +1,10 @@
 2003-10-05  Alain Magloire
 
+	* examples/pop3client.c:  A simple example illustrating the use
+	of the low level POP3 function calls.
+
+2003-10-05  Alain Magloire
+
 	Implementation of the lower level functions for POP3 in a separate library.
 	This the first draft, the code is not yet enable in the Makefile.am
 

@@ -29,7 +29,7 @@ mu_pop3_dele (mu_pop3_t pop3, unsigned msgno)
   int status;
 
   if (pop3 == NULL || msgno == 0)
-    return MU_ERR_INVALID_PARAMETER;
+    return EINVAL;
 
   switch (pop3->state)
     {
