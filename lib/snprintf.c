@@ -446,10 +446,12 @@ struct DATA * p;
   char number[MAX_FIELD/2];
   int i;
 
+  /* reset the flags.  */
   p->precision = p->width = NOT_FOUND;
   p->star_w = p->star_p = NOT_FOUND;
   p->square = p->space = NOT_FOUND;
   p->a_long = p->justify = NOT_FOUND;
+  p->a_longlong = NOT_FOUND;
   p->pad = ' ';
 
   for(;s && *s ;s++) {
@@ -523,7 +525,10 @@ va_list args;
             break;
           case 'f':  /* float, double */
             STAR_ARGS(&data);
-            d = va_arg(args, double);
+            if (data.a_long == FOUND)
+               d = va_arg(args, LONG_DOUBLE);
+            else
+               d = va_arg(args, double);
             floating(&data, d);
             state = 0;
             break;
@@ -531,7 +536,10 @@ va_list args;
           case 'G':
             STAR_ARGS(&data);
             DEF_PREC(&data);
-            d = va_arg(args, double);
+            if (data.a_long == FOUND)
+               d = va_arg(args, LONG_DOUBLE);
+            else
+               d = va_arg(args, double);
             i = log_10(d);
             /*
              * for '%g|%G' ANSI: use f if exponent
@@ -547,22 +555,29 @@ va_list args;
           case 'e':
           case 'E':  /* Exponent double */
             STAR_ARGS(&data);
-            d = va_arg(args, double);
+            if (data.a_long == FOUND)
+               d = va_arg(args, LONG_DOUBLE);
+            else
+               d = va_arg(args, double);
             exponent(&data, d);
             state = 0;
             break;
 	  case 'u':  /* unsigned decimal */
 	    STAR_ARGS(&data);
-	    if (data.a_long == FOUND)
-		d = va_arg(args, unsigned long);
-	    else
-		d = va_arg(args, unsigned int);
+            if (data.a_longlong == FOUND)
+              d = va_arg(args, unsigned LONG_LONG);
+            else if (data.a_long == FOUND)
+              d = va_arg(args, unsigned long);
+            else
+              d = va_arg(args, unsigned int);
 	    decimal(&data, d);
-	    state = 0;
-	    break;
+            state = 0;
+            break;
           case 'd':  /* decimal */
             STAR_ARGS(&data);
-            if (data.a_long == FOUND)
+            if (data.a_longlong == FOUND)
+              d = va_arg(args, LONG_LONG);
+            else if (data.a_long == FOUND)
               d = va_arg(args, long);
             else
               d = va_arg(args, int);
@@ -571,7 +586,9 @@ va_list args;
             break;
           case 'o':  /* octal */
             STAR_ARGS(&data);
-            if (data.a_long == FOUND)
+            if (data.a_longlong == FOUND)
+              d = va_arg(args, LONG_LONG);
+            else if (data.a_long == FOUND)
               d = va_arg(args, long);
             else
               d = va_arg(args, int);
@@ -581,7 +598,9 @@ va_list args;
           case 'x':
           case 'X':  /* hexadecimal */
             STAR_ARGS(&data);
-            if (data.a_long == FOUND)
+            if (data.a_longlong == FOUND)
+              d = va_arg(args, LONG_LONG);
+            else if (data.a_long == FOUND)
               d = va_arg(args, long);
             else
               d = va_arg(args, int);
@@ -599,11 +618,18 @@ va_list args;
             state = 0;
             break;
           case 'n':
-             *(va_arg(args, int *)) = data.counter; /* what's the count ? */
-             state = 0;
-             break;
+            *(va_arg(args, int *)) = data.counter; /* what's the count ? */
+            state = 0;
+            break;
+          case 'q':
+            data.a_longlong = FOUND;
+            break;
+          case 'L':
           case 'l':
-            data.a_long = FOUND;
+            if (data.a_long == FOUND)
+              data.a_longlong = FOUND;
+            else
+              data.a_long = FOUND;
             break;
           case 'h':
             break;
@@ -676,7 +702,7 @@ va_dcl
 #include <stdio.h>
 
 /* set of small tests for snprintf() */
-void main()
+int main()
 {
   char holder[100];
   int i;
@@ -709,6 +735,17 @@ void main()
   printf("/%-10d/\n", 336);
   printf("%s\n", holder);
 
+/* long long  */
+
+  printf("/%%lld/, 336\n");
+  snprintf(holder, sizeof holder, "/%lld/\n", (LONG_LONG)336);
+  printf("/%lld/\n", (LONG_LONG)336);
+  printf("%s\n", holder);
+
+  printf("/%%2qd/, 336\n");
+  snprintf(holder, sizeof holder, "/%2qd/\n", (LONG_LONG)336);
+  printf("/%2qd/\n", (LONG_LONG)336);
+  printf("%s\n", holder);
 
 /* floating points */
 
@@ -825,5 +862,7 @@ void main()
   i = snprintf(holder, 10, "%s\n", BIG);
   printf("<%s>\n", BIG);
   printf("<%s>\n", holder);
+
+  return 0;
 }
 #endif
