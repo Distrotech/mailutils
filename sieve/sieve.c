@@ -1,6 +1,6 @@
 /*
 
-sieve interpreter
+sieve script interpreter.
 
 */
 
@@ -10,11 +10,13 @@ sieve interpreter
 
 #include <assert.h>
 #include <errno.h>
+#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <stdarg.h>
+
+#include <argp.h>
 
 #include "sieve.h"
 
@@ -23,25 +25,132 @@ sieve interpreter
 
 void mutil_register_all_mbox_formats(void);
 
-const char USAGE[] =
-  "usage: sieve [-hnkvc] [-d <TPthq>] [-f mbox] [-t tickets] script\n";
+const char *argp_program_version = "sieve (" PACKAGE ") " VERSION;
+const char *argp_program_bug_address = "<bug-mailutils@gnu.org>";
 
-const char HELP[] =
-  "  -h   print this helpful message and exit.\n"
-  "  -n   no execute, just print actions.\n"
-  "  -k   keep on going if execution fails on a message.\n"
-  "  -v   print actions executed on a message.\n"
-  "  -c   compile script and exit.\n"
-  "  -f   the mbox to sieve, defaults to the users spool file.\n"
-  "  -t   a ticket file to use for authentication to mailboxes.\n"
-  "  -d   debug flags, each turns on a different set of messages:\n"
-  "         T - mailutil traces\n"
-  "         P - network protocols\n"
-  "         t - sieve trace\n"
-  "         h - sieve header parseing\n"
-  "         q - sieve message queries\n"
-  "  -m   a mailer URL (default is \"sendmail:\")\n"
+static char doc[] =
+  "GNU sieve -- a mail filtering tool\n"
+  "\v"
+  "Debug flags:\n"
+  "  T - mailutil traces (MU_DEBUG_TRACE)\n"
+  "  P - network protocols (MU_DEBUG_PROT)\n"
+  "  t - sieve trace (SV_DEBUG_TRACE)\n"
+  "  h - sieve header filling (SV_DEBUG_HDR_FILL)\n"
+  "  q - sieve message queries (SV_DEBUG_MSG_QUERY)\n"
   ;
+
+static struct argp_option options[] = {
+  {"no-actions", 'n', 0, 0,
+   "No actions executed, just print what would be done", 0},
+
+  {"keep-going", 'k', 0, 0,
+   "Keep on going if execution fails on a message", 0},
+
+  {"compile-only", 'c', 0, 0,
+   "Compile script and exit", 0},
+
+  {"mbox-url", 'f', "MBOX", 0,
+   "Mailbox to sieve (defaults to user's mail spool)", 0},
+
+  {"ticket", 't', "TICKET", 0,
+   "Ticket file for mailbox authentication", 0},
+
+  {"mailer-url", 'm', "MAILER", 0,
+   "Mailer URL (defaults to \"sendmail:\")", 0},
+
+  {"debug", 'd', "FLAGS", OPTION_ARG_OPTIONAL,
+   "Debug flags (defaults to \"TPt\")", 0},
+
+  {0}
+};
+
+struct options
+{
+  int no_actions;
+  int keep_going;
+  int compile_only;
+  char *mbox;
+  char *tickets;
+  int debug_level;
+  char *mailer;
+  char *script;
+};
+
+static error_t
+parser (int key, char *arg, struct argp_state *state)
+{
+  struct options *opts = state->input;
+
+  switch (key)
+    {
+    case ARGP_KEY_INIT:
+      opts->mailer = "sendmail:";
+      break;
+    case 'n':
+      opts->no_actions = SV_FLAG_NO_ACTIONS;
+      break;
+    case 'k':
+      opts->keep_going = 1;
+      break;
+    case 'c':
+      opts->compile_only = 1;
+      break;
+    case 'f':
+      opts->mbox = arg;
+      break;
+    case 't':
+      opts->tickets = arg;
+      break;
+    case 'd':
+      for (; *arg; arg++)
+	{
+	  switch (*arg)
+	    {
+	    case 'T':
+	      opts->debug_level |= MU_DEBUG_TRACE;
+	      break;
+	    case 'P':
+	      opts->debug_level |= MU_DEBUG_PROT;
+	      break;
+	    case 't':
+	      opts->debug_level |= SV_DEBUG_TRACE;
+	      break;
+	    case 'h':
+	      opts->debug_level |= SV_DEBUG_HDR_FILL;
+	      break;
+	    case 'q':
+	      opts->debug_level |= SV_DEBUG_MSG_QUERY;
+	      break;
+	    default:
+	      argp_error (state, "%c is not a valid debug flag", *arg);
+	      break;
+	    }
+	}
+      break;
+
+    case ARGP_KEY_ARG:
+      if (opts->script)
+	argp_error (state, "only one SCRIPT can be specified");
+      opts->script = arg;
+      break;
+
+    case ARGP_KEY_NO_ARGS:
+      argp_error (state, "SCRIPT must be specified");
+      break;
+
+    default:
+      return ARGP_ERR_UNKNOWN;
+    }
+
+  return 0;
+}
+
+static struct argp argp = {
+  options,
+  parser,
+  "SCRIPT",
+  doc
+};
 
 static void
 parse_error (const char *script, int lineno, const char *errmsg)
@@ -98,87 +207,16 @@ main (int argc, char *argv[])
   mailer_t mailer = 0;
   mailbox_t mbox = 0;
 
+  struct options opts;
+
   size_t count = 0;
   int msgno = 0;
 
   int rc = 0;
 
-  int opt_no_actions = 0;
-  int opt_keep_going = 0;
-  int opt_compile_only = 0;
-  char *opt_mbox = 0;
-  char *opt_tickets = 0;
-  int opt_debug_level = 0;
-  char *opt_mailer = "sendmail:";
-  char *opt_script = 0;
-
-  int opt;
+  argp_parse (&argp, argc, argv, ARGP_IN_ORDER, NULL, &opts);
 
   mutil_register_all_mbox_formats ();
-
-  while ((opt = getopt (argc, argv, "hnkcf:t:d:")) != -1)
-    {
-      switch (opt)
-	{
-	case 'h':
-	  printf ("%s\n", USAGE);
-	  printf ("%s", HELP);
-	  return 0;
-	case 'n':
-	  opt_no_actions = SV_FLAG_NO_ACTIONS;
-	  break;
-	case 'k':
-	  opt_keep_going = 1;
-	  break;
-	case 'c':
-	  opt_compile_only = 1;
-	  break;
-	case 'f':
-	  opt_mbox = optarg;
-	  break;
-	case 't':
-	  opt_tickets = optarg;
-	  break;
-	case 'd':
-	  for (; *optarg; optarg++)
-	    {
-	      switch (*optarg)
-		{
-		case 'T':
-		  opt_debug_level |= MU_DEBUG_TRACE;
-		  break;
-		case 'P':
-		  opt_debug_level |= MU_DEBUG_PROT;
-		  break;
-		case 't':
-		  opt_debug_level |= SV_DEBUG_TRACE;
-		  break;
-		case 'h':
-		  opt_debug_level |= SV_DEBUG_HDR_FILL;
-		  break;
-		case 'q':
-		  opt_debug_level |= SV_DEBUG_MSG_QUERY;
-		  break;
-		default:
-		  fprintf (stderr, "unknown debug flag %c\n", *optarg);
-		  fprintf (stderr, "%s", USAGE);
-		  return 1;
-		}
-	    }
-	  break;
-	default:
-	  fprintf (stderr, "%s", USAGE);
-	  return 1;
-	}
-    }
-
-  if (!argv[optind])
-    {
-      fprintf (stderr, "%s", USAGE);
-      return 1;
-    }
-
-  opt_script = argv[optind];
 
   /* Sieve interpreter setup. */
   rc = sv_interp_alloc (&interp, parse_error, execute_error, action_log);
@@ -189,7 +227,7 @@ main (int argc, char *argv[])
       goto cleanup;
     }
 
-  rc = sv_script_parse (&script, interp, opt_script);
+  rc = sv_script_parse (&script, interp, opts.script);
 
   if (rc)
     {
@@ -197,21 +235,21 @@ main (int argc, char *argv[])
          parse_error() was already called to report it. */
       if (rc != SV_EPARSE)
 	fprintf (stderr, "parsing %s failed: %s\n",
-		 opt_script, sv_strerror (rc));
+		 opts.script, sv_strerror (rc));
       goto cleanup;
     }
 
   /* We can finish if its only a compilation check. */
-  if (opt_compile_only)
+  if (opts.compile_only)
     goto cleanup;
 
   /* Create a ticket, if we can. */
-  if (opt_tickets)
+  if (opts.tickets)
     {
-      if ((rc = wicket_create (&wicket, opt_tickets)) != 0)
+      if ((rc = wicket_create (&wicket, opts.tickets)) != 0)
 	{
 	  fprintf (stderr, "wicket create <%s> failed: %s\n",
-		   opt_tickets, strerror (rc));
+		   opts.tickets, strerror (rc));
 	  goto cleanup;
 	}
       if ((rc = wicket_get_ticket (wicket, &ticket, 0, 0)) != 0)
@@ -222,14 +260,14 @@ main (int argc, char *argv[])
     }
 
   /* Create a debug object, if needed. */
-  if (opt_debug_level)
+  if (opts.debug_level)
     {
       if ((rc = mu_debug_create (&debug, interp)))
 	{
 	  fprintf (stderr, "mu_debug_create failed: %s\n", strerror (rc));
 	  goto cleanup;
 	}
-      if ((rc = mu_debug_set_level (debug, opt_debug_level)))
+      if ((rc = mu_debug_set_level (debug, opts.debug_level)))
 	{
 	  fprintf (stderr, "mu_debug_set_level failed: %s\n", strerror (rc));
 	  goto cleanup;
@@ -242,10 +280,10 @@ main (int argc, char *argv[])
     }
 
   /* Create a mailer. */
-  if ((rc = mailer_create(&mailer, opt_mailer)))
+  if ((rc = mailer_create(&mailer, opts.mailer)))
   {
       fprintf (stderr, "mailer create <%s> failed: %s\n",
-	       opt_mailer, strerror (rc));
+	       opts.mailer, strerror (rc));
       goto cleanup;
   }
   if (debug && (rc = mailer_set_debug (mailer, debug)))
@@ -255,10 +293,10 @@ main (int argc, char *argv[])
     }
 
   /* Create, give a ticket to, and open the mailbox. */
-  if ((rc = mailbox_create_default (&mbox, opt_mbox)) != 0)
+  if ((rc = mailbox_create_default (&mbox, opts.mbox)) != 0)
     {
       fprintf (stderr, "mailbox create <%s> failed: %s\n",
-	       opt_mbox ? opt_mbox : "default", strerror (rc));
+	       opts.mbox ? opts.mbox : "default", strerror (rc));
       goto cleanup;
     }
   
@@ -294,7 +332,7 @@ main (int argc, char *argv[])
     }
 
   /* Open the mailbox read-only if we aren't going to modify it. */
-  if (opt_no_actions)
+  if (opts.no_actions)
     rc = mailbox_open (mbox, MU_STREAM_READ);
   else
     rc = mailbox_open (mbox, MU_STREAM_RDWR);
@@ -302,7 +340,7 @@ main (int argc, char *argv[])
   if (rc != 0)
     {
       fprintf (stderr, "open on %s failed: %s\n",
-	       opt_mbox ? opt_mbox : "default", strerror (rc));
+	       opts.mbox ? opts.mbox : "default", strerror (rc));
       goto cleanup;
     }
 
@@ -312,17 +350,9 @@ main (int argc, char *argv[])
   if (rc != 0)
     {
       fprintf (stderr, "message count on %s failed: %s\n",
-	       opt_mbox ? opt_mbox : "default", strerror (rc));
+	       opts.mbox ? opts.mbox : "default", strerror (rc));
       goto cleanup;
     }
-
-/*
-  if (opt_verbose)
-    {
-      fprintf (stderr, "mbox %s has %d messages...\n",
-	  ic.opt_mbox, count);
-    }
-*/
 
   for (msgno = 1; msgno <= count; ++msgno)
     {
@@ -331,18 +361,18 @@ main (int argc, char *argv[])
       if ((rc = mailbox_get_message (mbox, msgno, &msg)) != 0)
 	{
 	  fprintf (stderr, "get message on %s (msg %d) failed: %s\n",
-	      opt_mbox ? opt_mbox : "default", msgno, strerror (rc));
+	      opts.mbox ? opts.mbox : "default", msgno, strerror (rc));
 	  goto cleanup;
 	}
 
-      rc = sv_script_execute (script, msg, ticket, debug, mailer, opt_no_actions);
+      rc = sv_script_execute (script, msg, ticket, debug, mailer, opts.no_actions);
 
       if (rc)
 	{
 	  fprintf (stderr, "execution of %s on %s (msg %d) failed: %s\n",
-		   opt_script, opt_mbox ? opt_mbox : "default", msgno,
+		   opts.script, opts.mbox ? opts.mbox : "default", msgno,
 		   sv_strerror (rc));
-	  if (opt_keep_going)
+	  if (opts.keep_going)
 	    rc = 0;
 	  else
 	    goto cleanup;
@@ -350,7 +380,7 @@ main (int argc, char *argv[])
     }
 
 cleanup:
-  if (mbox && !opt_no_actions && !opt_compile_only)
+  if (mbox && !opts.no_actions && !opts.compile_only)
     {
       int e;
 
@@ -360,7 +390,7 @@ cleanup:
 	 on a later message. */
       if ((e = mailbox_expunge (mbox)) != 0)
 	fprintf (stderr, "expunge on %s failed: %s\n",
-	    opt_mbox ? opt_mbox : "default", strerror (e));
+	    opts.mbox ? opts.mbox : "default", strerror (e));
 
       if(e && !rc)
 	rc = e;
