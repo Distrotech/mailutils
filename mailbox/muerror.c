@@ -53,6 +53,14 @@ mu_syslog_error_printer (const char *fmt, va_list ap)
 static error_pfn_t mu_error_printer = mu_default_error_printer;
 
 int
+mu_verror (const char *fmt, va_list ap)
+{
+  if (mu_error_printer)
+    return (*mu_error_printer) (fmt, ap);
+  return 0;
+}
+
+int
 mu_error (const char *fmt, ...)
 {
   int status;
