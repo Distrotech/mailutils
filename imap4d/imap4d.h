@@ -208,6 +208,11 @@ extern int  util_msgset __P ((char *, size_t **, int *, int));
 extern int  util_upper __P ((char *));
 extern struct imap4d_command *util_getcommand __P ((char *,
 						    struct imap4d_command []));
+extern int util_parse_internal_date0 __P((char *date, time_t *timep, char **endp));
+extern int util_parse_internal_date __P((char *date, time_t *timep));
+extern int util_parse_header_date __P((char *date, time_t *timep));
+extern int util_parse_rfc822_date __P((char *date, time_t *timep));
+extern char *util_strcasestr __P((const char *haystack, const char *needle));
 
 #ifdef __cplusplus
 }
