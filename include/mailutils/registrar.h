@@ -114,6 +114,22 @@ extern record_t sendmail_record;
   list_append (bookie, maildir_record);\
 } while (0)
 
+#define mu_register_local_mbox_formats() do {\
+  list_t bookie = 0;\
+  registrar_get_list (&bookie);\
+  list_append (bookie, path_record);\
+  list_append (bookie, mbox_record);\
+  list_append (bookie, mh_record);\
+  list_append (bookie, maildir_record);\
+} while (0)
+
+#define mu_register_remote_mbox_formats() do {\
+  list_t bookie = 0;\
+  registrar_get_list (&bookie);\
+  list_append (bookie, pop_record);\
+  list_append (bookie, imap_record);\
+} while (0)
+  
 #define mu_register_all_mailer_formats() do {\
   list_t bookie = 0;\
   registrar_get_list (&bookie);\
