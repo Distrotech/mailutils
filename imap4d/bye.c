@@ -58,6 +58,10 @@ imap4d_bye0 (int reason, struct imap4d_command *command)
       syslog (LOG_INFO, _("No socket to send to"));
       break;
 
+    case ERR_MAILBOX_CORRUPTED:
+      syslog (LOG_ERR, _("Mailbox modified by third party"));
+      break;
+      
     case OK:
       util_out (RESP_BYE, "Session terminating.");
       if (state == STATE_NONAUTH)
