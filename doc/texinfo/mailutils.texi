@@ -1,7 +1,7 @@
 \input texinfo  @c -*-texinfo-*-
 @c %**start of header
 @setfilename mailutils.info
-@settitle mailutils, Programming Manual
+@settitle GNU Mailutils, Programming Manual
 @c %**end of header
 
 @c This file has the new style title page commands.
@@ -42,8 +42,7 @@
 * sieve: (mailutils)sieve.           Mail filtering utility
 * mailutils-config: (mailutils)mailutils-config. Get the information about the Mailutils build.
 @end direntry
-This file documents Mailutils,  library API.
-
+This file documents GNU Mailutils, library API.
 
 Published by the Free Software Foundation,
 59 Temple Place - Suite 330
@@ -76,7 +75,7 @@ by the Foundation.
 @setchapternewpage off
 
 @titlepage
-@title Mailutils, SDK.
+@title GNU Mailutils, SDK.
 @subtitle version @value{VERSION}, @value{UPDATED}
 @author Alain Magloire et al.
 
@@ -113,9 +112,11 @@ by the Foundation.
 @comment  node-name,  next,  previous,  up
 
 @ifinfo
-This document was produced for version @value{VERSION} of @sc{gnu}
-Mailutils.
+@chapter GNU Mailutils
+This edition of the @cite{GNU Mailutils Manual}, last updated @value{UPDATED},
+documents GNU Mailutils Version @value{VERSION}.
 @end ifinfo
+
 @menu
 * Introduction::                GNU Mailutils
 * libmailbox::                  Main library               
