@@ -64,9 +64,6 @@
 
 #define MAX_OPEN_STREAMS 16
 
-#define MH_ENV_SENDER_HEADER "X-Envelope-Sender"
-#define MH_ENV_DATE_HEADER "X-Envelope-Date"
-
 /* Notifications ADD_MESG. */
 #define DISPATCH_ADD_MSG(mbox,mhd) \
 do \
@@ -508,6 +505,7 @@ _mh_message_save (struct _mh_data *mhd, struct _mh_message *mhm, int expunge)
   size_t n, off = 0;
   size_t bsize;
   size_t nlines;
+  size_t new_body_start, new_header_lines;
   FILE *fp;
   message_t msg = mhm->message;
   header_t hdr;
@@ -517,15 +515,7 @@ _mh_message_save (struct _mh_data *mhd, struct _mh_message *mhm, int expunge)
   char buffer[512];
   envelope_t env = NULL;
   
-  if (expunge)
-    fp = _mh_tempfile (mhm->mhd, &name);
-  else
-    {
-      msg_name = _mh_message_name (mhm, mhm->deleted);
-      fp = fopen (msg_name, "w");
-      free (msg_name);
-    }
-
+  fp = _mh_tempfile (mhm->mhd, &name);
   if (!fp)
     {
       free (mhm);
@@ -561,14 +551,14 @@ _mh_message_save (struct _mh_data *mhd, struct _mh_message *mhm, int expunge)
       if (!(strncasecmp (buf, "status:", 7) == 0
 	    || strncasecmp (buf, "x-imapbase:", 11) == 0
 	    || strncasecmp (buf, "x-uid:", 6) == 0
-	    || strncasecmp (buf, MH_ENV_DATE_HEADER ":", sizeof (MH_ENV_DATE_HEADER)) == 0
-	    || strncasecmp (buf, MH_ENV_SENDER_HEADER ":", sizeof (MH_ENV_SENDER_HEADER)) == 0))
+	    || strncasecmp (buf, MU_HEADER_ENV_DATE ":", sizeof (MU_HEADER_ENV_DATE)) == 0
+	    || strncasecmp (buf, MU_HEADER_ENV_SENDER ":", sizeof (MU_HEADER_ENV_SENDER)) == 0))
 	fprintf (fp, "%s", buf);
       off += n;
     }
 
-  mhm->header_lines = nlines;
-  mhm->body_start = off;
+  new_header_lines = nlines;
+  new_body_start = off;
 
   /* Add imapbase */
   if (!mhd->msg_head || (mhd->msg_head == mhm)) /*FIXME*/
@@ -585,13 +575,13 @@ _mh_message_save (struct _mh_data *mhd, struct _mh_message *mhm, int expunge)
       char *p = buffer;
       while (isspace (*p))
 	p++;
-      fprintf (fp, "%s: %s", MH_ENV_DATE_HEADER, p);
+      fprintf (fp, "%s: %s", MU_HEADER_ENV_DATE, p);
       nlines++;
     }
 	  
   if (envelope_sender (env, buffer, sizeof buffer, &n) == 0 && n > 0)
     {
-      fprintf (fp, "%s: %s\n", MH_ENV_SENDER_HEADER, buffer);
+      fprintf (fp, "%s: %s\n", MU_HEADER_ENV_SENDER, buffer);
       nlines++;
     }
   
@@ -618,19 +608,18 @@ _mh_message_save (struct _mh_data *mhd, struct _mh_message *mhm, int expunge)
       off += n;
     }
 
+  mhm->header_lines = new_header_lines;
+  mhm->body_start = new_body_start;
   mhm->body_lines = nlines;
   mhm->body_end = off;
 
   free (buf);
   fclose (fp);
 
-  if (expunge)
-    {
-      msg_name = _mh_message_name (mhm, mhm->deleted);
-      rename (name, msg_name);
-      free (name);
-      free (msg_name);
-    }
+  msg_name = _mh_message_name (mhm, mhm->deleted);
+  rename (name, msg_name);
+  free (name);
+  free (msg_name);
 
   return 0;
 }
@@ -795,9 +784,41 @@ mh_expunge (mailbox_t mailbox)
 static int
 mh_save_attributes (mailbox_t mailbox)
 {
-  /*FIXME*/
-  (void)mailbox;
-  return ENOSYS;
+  struct _mh_data *mhd = mailbox->data;
+  struct _mh_message *mhm;
+
+  if (mhd == NULL)
+    return EINVAL;
+
+  if (mhd->msg_count == 0)
+    return 0;
+
+  /* Find the first dirty(modified) message.  */
+  for (mhm = mhd->msg_head; mhm; mhm = mhm->next)
+    {
+      if ((mhm->attr_flags & MU_ATTRIBUTE_MODIFIED) ||
+	  (mhm->attr_flags & MU_ATTRIBUTE_DELETED) ||
+	  (mhm->message && message_is_modified (mhm->message)))
+	break;
+    }
+
+  if (!mhm)
+    return 0; /* Nothing changed, just return.  */
+
+  while (mhm)
+    {
+      struct _mh_message *next = mhm->next;
+
+      if (mhm->attr_flags & MU_ATTRIBUTE_MODIFIED)
+	{
+	  _mh_attach_message (mailbox, mhm, NULL);
+	  mhm->deleted = mhm->attr_flags & MU_ATTRIBUTE_DELETED;
+	  _mh_message_save (mhd, mhm, 0);
+	}
+      mhm = next;
+    }
+
+  return 0;
 }
 
 static int
@@ -1441,7 +1462,7 @@ mh_envelope_date (envelope_t envelope, char *buf, size_t len,
 
   if ((status = message_get_header (msg, &hdr)) != 0)
     return status;
-  if (header_aget_value (hdr, MH_ENV_DATE_HEADER, &from))
+  if (header_aget_value (hdr, MU_HEADER_ENV_DATE, &from))
     return ENOSYS;
 
   /* Format:  "sender date" */
@@ -1478,7 +1499,7 @@ mh_envelope_sender (envelope_t envelope, char *buf, size_t len, size_t *psize)
 
   if ((status = message_get_header (msg, &hdr)) != 0)
     return status;
-  if (header_aget_value (hdr, MH_ENV_SENDER_HEADER, &from))
+  if (header_aget_value (hdr, MU_HEADER_ENV_SENDER, &from))
     return ENOSYS;
 
   if (buf && len > 0)
