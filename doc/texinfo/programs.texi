@@ -915,9 +915,11 @@ using a text editor specified either by @code{EDITOR} or by
 @code{VISUAL} environment variables. The @samp{~e} uses the former,
 and @samp{~v} uses the latter.
 
-@emph{Please note}, that both commands allow you to edit the body of the
-message, and not its headers. To change message headers, see
-@ref{Modifying the Headers}.
+By default both escapes allow you to edit only the body of the
+message. However, if the @code{editheaders} variable is set,
+@command{mail} will load into the editor the complete text of
+the message with headers included, thus allowing you to change
+the headers as well.
 
 @node Modifying the Headers
 @subsubsection Modifying the Headers: ~h, ~t, ~c, ~b, ~s
@@ -1676,6 +1678,14 @@ be printed using program set in the environment variable @code{ENVIRON}.
 
 If @code{True}, causes @command{mail} to interpret a period alone on a line as the
 terminator of a message you are sending.
+
+@item editheaders
+@*Type: Boolean.
+@*Default: False.
+
+When set, @command{mail} will include message headers in the text to
+be the @code{~e} and @code{~v} escapes, thus allowing you to customize
+the headers.
 
 @item escape
 @*Type: String.

@@ -10,7 +10,8 @@
 	* mail/reply.c: Likewise.
 	* mail/util.c (util_msglist_esccmd): Declaration updated.
 
-	* mail/var.c: Implemented "editheader" variable.
+	* mail/var.c: Implemented "editheaders" variable.
+	* doc/texinfo/programs.texi: Documented "editheaders" variable.
 	* mh/Makefile.am (install-exec-hook): Remove "folders" before
 	  linking "folder" to it.
 	
