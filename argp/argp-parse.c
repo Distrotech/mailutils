@@ -32,6 +32,10 @@
 # include <strings.h>
 #endif
 
+#ifdef HAVE_ALLOCA_H
+# include <alloca.h>
+#endif
+
 #ifndef _
 /* This is for other GNU distributions with internationalized messages.
    When compiling libc, the _ macro is predefined.  */
