@@ -101,7 +101,7 @@ rfc2047_decode (const char *tocode, const char *input, char **ptostr)
 	      break;
 	      
 	    case 'Q':
-	      filter_type = "quoted-printable";
+	      filter_type = "Q";
 	      break;
 
 	    default:
