@@ -1,3 +1,28 @@
+2003-01-29  Sergey Poznyakoff
+
+	* imap4d/idle.c: Do not wait for 'DONE' command longer than
+	  timeout seconds.
+
+	* mailbox/rfc2047.c: New file. Initial implementation of
+	  rfc2047_decode. Based on input from Kidong Lee
+	  <brian@ahmlhs.com>.
+	  
+	* mailbox/Makefile.am: Added rfc2047.c
+	
+	* examples/decode2047.c: New file. Test program for rfc2047
+	  decoder functions.
+	* examples/Makefile.am: Added decode2047.c
+	* include/mailutils/errno.h (MU_ERR_BAD_2047_INPUT): New error
+	  code.
+	* mailbox/muerrno.c: Likewise.
+	* include/mailutils/mime.h (rfc2047_decode): New function.
+
+	* mailbox/testsuite/RFC2047: New file. Test data for rfc 2047.
+	* mailbox/testsuite/Makefile.am: Added RFC2047
+	* mailbox/testsuite/mailbox/rfc2047.exp: New file. Testcase for
+	  decoding rfc 2047 strings.
+	* mailbox/testsuite/mailbox/DISTFILES: Added rfc2047.exp
+	
 2003-01-28  Sergey Poznyakoff
 
 	* auth/gsasl.c (_gsasl_get_fd): New function.
