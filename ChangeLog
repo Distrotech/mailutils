@@ -1,3 +1,31 @@
+2002-12-05  Sergey Poznyakoff
+
+	* configure.ac: Check for presense of getopt.h
+	* examples/mta.c: Do not use program_invocation_short_name:
+	  examples are not linked against libmailutils.
+	* frm/testsuite/frm/test.exp: Override FOLDER environment
+	  variable.
+	* from/testsuite/from/test.exp: Likewise.
+	* messages/testsuite/messages/test.exp: Likewise.
+	* readmsg/testsuite/readmsg/test.exp: Likewise.
+	* sieve/testsuite/lib/sieve.exp: Likewise.
+	
+	* guimb/scm/Makefile.am: Use $? instead of $< in implicit rules.
+	* libmu_scm/Makefile.am: Likewise.
+	
+	* lib/getopt.h: Moved to ...
+	* include/mailutils/gnu/getopt.h: ... here.
+	* include/mailutils/gnu/Makefile.am: getopt.h moved from lib to
+	  include/mailutils/gnu
+	* lib/Makefile.am: Likewise.
+	* include/mailutils/gnu/argp.h: Include local copy of getopt.h if
+	  the system does not provide one.
+	  
+	* mailbox/Makefile.am (mailutils_config_LDADD): Added
+	  libmailutils.la
+	* mailbox/mailutils-config.c (main): Do not print duplicate
+	  --link arguments.
+	
 2002-12-04  Sergey Poznyakoff
 
 	* include/mailutils/argp.h (mu_print_options, mu_check_option):

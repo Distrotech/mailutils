@@ -52,6 +52,7 @@ mu_exec -retcode 1 -arg -q -message "frm -q"
 mu_exec -arg -q -arg %nonexistent -retcode 2 -message "frm -q %nonexistent" 
 
 set env(MAIL) $MU_SPOOL_DIR/bigto.mbox
+set env(FOLDER) $env(MAIL)
 mu_exec -retcode 1 -message "frm -l on long headers" -arg -l \
 "(\"Ayoung-Chee, N) Patrick Chan\tNew email address, etc."
 
