@@ -1,3 +1,15 @@
+2002-04-08  Sergey Poznyakoff 
+
+	* include/mailutils/locker.h (MU_LOCKER_KERNEL): New locker
+	  type: implies kernel-locking.
+	* mailbox/locker.c: Reorganized. Default locking type is DOTLOCK.
+	  If the mailbox to be locked is not writable for the user,
+	  locking type changes to NULL (no locking at all). If the
+	  directory where the mailbox resides is not writable, the
+	  locking type switches to KERNEL.
+
+	* m4/gssapi.m4: Fixed typo.
+	
 2002-04-04  Sergey Poznyakoff 
 
 	* imap4d/lsub.c (imap4d_lsub): Return OK response, unless
