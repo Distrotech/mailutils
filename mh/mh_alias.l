@@ -19,6 +19,11 @@
 #include <mh.h>
 #include <mh_alias.h>
 #include <sys/stat.h>
+#include <ctype.h>
+
+#ifndef isblank
+# define isblank(c) ((c)==' ' || (c)=='\t')
+#endif  
   
 char *ali_filename;  
 size_t ali_line_num;  
@@ -231,7 +236,7 @@ push_source (const char *name, int fail)
   FILE *fp;
   struct buffer_ctx *ctx;
   struct stat st;
-  const char *filename;
+  char *filename;
 
   filename = mh_expand_name (NULL, name, 0);
   if (stat (filename, &st))

@@ -31,6 +31,8 @@
 #include <registrar0.h>
 
 #include <maildir.h>
+#include <mailutils/mutil.h>
+#include <amd.h>
 
 static int
 _maildir_folder_init (folder_t folder ARG_UNUSED)

@@ -31,6 +31,7 @@
 #include <registrar0.h>
 #include <url0.h>
 #include <mailutils/errno.h>
+#include <mailutils/mutil.h>
 
 static void url_mbox_destroy (url_t purl);
 

@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2002, 2004 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -45,6 +45,7 @@
 #include <mailutils/debug.h>
 #include <mailutils/mailer.h>
 #include <mailutils/envelope.h>
+#include <mailutils/mime.h>
 
 #include <mu_asprintf.h>
 #include <getline.h>
@@ -315,6 +316,7 @@ char *mh_draft_name __P((void));
 char *mh_create_message_id __P((int));
 int mh_whom __P((char *filename, int check));
 void mh_set_reply_regex __P((const char *str));
+int mh_decode_2047 __P((char *text, char **decoded_text));
 
 int mh_alias_read __P((char *name, int fail));
 int mh_alias_get __P((char *name, list_t *return_list));
@@ -349,3 +351,4 @@ int check_draft_disposition __P((struct mh_whatnow_env *wh, int use_draft));
 
 void ali_parse_error __P((char *fmt, ...));
 void ali_verbatim __P((int enable));
+

@@ -26,6 +26,7 @@
 #include <mailutils/stream.h>
 #include <mailutils/filter.h>
 #include <mailutils/errno.h>
+#include <mailutils/mutil.h>
 
 int
 rfc2047_decode (const char *tocode, const char *input, char **ptostr)

@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2003 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2003, 2004 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -33,6 +33,8 @@
 #include <url0.h>
 #include <folder0.h>
 #include <registrar0.h>
+#include <amd.h>
+#include <mailutils/mutil.h>
 
 static int
 _mh_folder_init (folder_t folder ARG_UNUSED)
