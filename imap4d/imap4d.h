@@ -80,6 +80,7 @@
 #include <mailutils/parse822.h>
 #include <mailutils/registrar.h>
 #include <mailutils/stream.h>
+#include <mailutils/mutil.h>
 
 #ifndef _PATH_MAILDIR
 # define _PATH_MAILDIR "/usr/spool/mail"
@@ -232,7 +233,6 @@ extern int util_parse_internal_date __P((char *date, time_t *timep));
 extern int util_parse_822_date __P((char *date, time_t *timep));
 extern int util_parse_ctime_date __P((const char *date, time_t *timep));
 extern char *util_strcasestr __P((const char *haystack, const char *needle));
-extern char *util_normalize_path __P((char *path, const char *delim));
 extern int util_parse_attributes __P((char *items, char **save, int *flags));
   
 #ifdef __cplusplus
