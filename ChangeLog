@@ -1,3 +1,7 @@
+2002-06-27  Sergey Poznyakoff
+
+	* libmu_scm/mu_message.c (mu_message_set_header_fields): Bugfix.
+
 2002-05-24  Walter J. Mack <wmack@componentsw.com>
 
 	* include/mailutils/types.h: Include definition for __PMT
