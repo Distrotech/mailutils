@@ -127,7 +127,7 @@ int message_save_attachment(message_t msg, const char *filename, void **data)
 	stream_t			stream;
 	header_t			hdr;
 	struct _msg_info	*info = NULL;
-	int 				ret;
+	int 				ret = 0;
 	size_t				size;
 	char 				*content_encoding;
 

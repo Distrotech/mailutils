@@ -159,7 +159,7 @@ int
 bio_write (bio_t bio, const char *ptr, size_t n, size_t *pnwriten)
 {
   int nleft;
-  int err;
+  int err = 0;
   size_t nwriten = 0;
   size_t total = 0;
 

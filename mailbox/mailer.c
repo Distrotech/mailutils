@@ -40,7 +40,7 @@ mailer_create (mailer_t *pmailer, const char *name, int id)
   mailer_entry_t entry = NULL;
   list_t list = NULL;
   iterator_t iterator;
-  int found;
+  int found = 0;
 
   (void)id;
   if (pmailer == NULL)

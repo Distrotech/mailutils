@@ -121,7 +121,7 @@ _file_write (stream_t stream, const char *iptr, size_t isize,
 {
   struct _file_stream *fs = stream_get_owner (stream);
   size_t n;
-  int err;
+  int err = 0;
 
   if (fs == NULL)
     return EINVAL;

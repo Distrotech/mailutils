@@ -749,15 +749,24 @@ mbox_expunge (mailbox_t mailbox)
 	  mum = mud->umessages[j];
 	  if (mum->new_flags && ATTRIBUTE_IS_DELETED (mum->new_flags))
 	    {
-	      memmove (mud->umessages + j, mud->umessages + j + 1,
-		       (dlast - dirty) * sizeof (mum));
-	      mum->header_from = mum->header_from_end = 0;
-	      mum->header_status = mum->header_status_end = 0;
-	      mum->body = mum->body_end = 0;
-	      mum->header_lines = mum->body_lines = 0;
-	      mud->umessages[dlast] = mum;
-	      dlast--;
-	      mum = mud->umessages[j];
+	      if ((j + 1) >= mud->messages_count)
+		{
+		  /* Move all the pointers up.  So the message pointer
+		     part of mum will be at the right position.  */
+		  memmove (mud->umessages + j, mud->umessages + j + 1,
+			   (dlast - dirty) * sizeof (mum));
+		  mum->header_from = mum->header_from_end = 0;
+		  mum->header_status = mum->header_status_end = 0;
+		  mum->body = mum->body_end = 0;
+		  mum->header_lines = mum->body_lines = 0;
+		  /* We are not free()ing the useless mum, but instead
+		     we put it back in the pool, to be reuse.  */
+		  mud->umessages[dlast] = mum;
+		  dlast--;
+		  /* Set mum to the new value after the memmove so it
+		     gets cleared to.  */
+		  mum = mud->umessages[j];
+		}
 	    }
 	  mum->header_from = mum->header_from_end = 0;
 	  mum->header_status = mum->header_status_end = 0;
