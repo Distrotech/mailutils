@@ -3,6 +3,7 @@ bad-dates.out
 addr
 Addrs.test
 Urls.test
+mbox-check
 mbox-dates
 mbox-dates.out
 mbox-explode
