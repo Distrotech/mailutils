@@ -1,5 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2002, 2003,
+   2004 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -20,7 +21,6 @@
   * Created as an example for using mailutils API
   * Sean 'Shaleh' Perry <shaleh@debian.org>, 1999
   * Alain Magloire alainm@gnu.org
-  * NLS: Wojciech Polak <polak@gnu.org>
   *
   **/
 
@@ -75,7 +75,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
 static struct argp argp = {
   options,
   parse_opt,
-  NULL,
+  N_("[URL]"),
   doc,
 };
 
@@ -89,8 +89,52 @@ static const char *capa[] = {
   NULL
 };
 
+static void
+from_rfc2047_decode (char *buf, size_t buflen)
+{
+  char *charset = NULL;
+  char *tmp;
+  int rc;
+
+  /* Try to deduce the charset from LC_ALL or LANG variables */
+
+  tmp = getenv ("LC_ALL");
+  if (!tmp)
+    tmp = getenv ("LANG");
+
+  if (tmp)
+    {
+      char *sp;
+      char *lang;
+      char *terr;
+
+      lang = strtok_r (tmp, "_", &sp);
+      terr = strtok_r (NULL, ".", &sp);
+      charset = strtok_r (NULL, "@", &sp);
+
+      if (!charset)
+	charset = mu_charset_lookup (lang, terr);
+    }
+
+  if (!charset)
+    return;
+
+  rc = rfc2047_decode (charset, buf, &tmp);
+  if (rc)
+    {
+      if (debug)
+	mu_error (_("Can't decode line `%s': %s"),
+		  buf, mu_strerror (rc));
+    }
+  else
+    {
+      strncpy (buf, tmp, buflen - 1);
+      free (tmp);
+    }
+}
+
 int
-main(int argc, char **argv)
+main (int argc, char **argv)
 {
   mailbox_t mbox;
   size_t i;
@@ -118,29 +162,28 @@ main(int argc, char **argv)
   /* Register the desire formats.  */
   mu_register_all_mbox_formats ();
 
-  if ((status = mailbox_create_default (&mbox, mailbox_name)) != 0)
+  status = mailbox_create_default (&mbox, mailbox_name);
+  if (status != 0)
     {
-      fprintf (stderr, _("opening %s failed: %s\n"),
-	  mailbox_name,
-	  mu_strerror (status)
-	  );
+      mu_error (_("Couldn't create mailbox <%s>: %s."),
+		mailbox_name ? mailbox_name : _("default"),
+		mu_strerror (status));
       exit (1);
     }
 
   /* Debuging Trace.  */
-  if(debug)
+  if (debug)
   {
     mu_debug_t debug;
     mailbox_get_debug (mbox, &debug);
     mu_debug_set_level (debug, MU_DEBUG_TRACE|MU_DEBUG_PROT);
   }
 
-  if ((status = mailbox_open (mbox, MU_STREAM_READ)) != 0)
+  status = mailbox_open (mbox, MU_STREAM_READ);
+  if (status != 0)
     {
-      fprintf (stderr, _("opening %s failed: %s\n"),
-	  mailbox_name,
-	  mu_strerror (status)
-	  );
+      mu_error (_("Couldn't open mailbox <%s>: %s."),
+		mailbox_name, mu_strerror (status));
       exit (1);
     }
 
@@ -150,33 +193,54 @@ main(int argc, char **argv)
       message_t msg;
       header_t hdr;
       size_t len = 0;
+
       if ((status = mailbox_get_message (mbox, i, &msg)) != 0
 	  || (status = message_get_header (msg, &hdr)) != 0)
 	{
-	  fprintf (stderr, _("msg %d : %s\n"), i, mu_strerror(status));
-	  exit(2);
+	  mu_error (_("msg %d : %s\n"), i, mu_strerror (status));
+	  exit (2);
 	}
 
       header_get_value (hdr, MU_HEADER_FROM, buf, sizeof (buf), &len);
       if (len != 0)
 	{
 	  address_t address = NULL;
-	  address_create (&address, buf);
 	  len = 0;
-	  address_get_personal (address, 1, personal, sizeof (personal), &len);
+
+	  from_rfc2047_decode (buf, sizeof (buf));
+	  address_create (&address, buf);
+	  address_get_personal (address, 1, personal,
+				sizeof (personal), &len);
 	  printf ("%s\t", (len != 0) ? personal : buf);
 	  address_destroy (&address);
 	}
       else
 	{
-	  header_get_value (hdr, MU_HEADER_TO, buf, sizeof (buf), &len);
-	  printf ("%s\t", buf);
+	  status = header_get_value (hdr, MU_HEADER_TO, buf,
+				     sizeof (buf), &len);
+	  if (status == 0)
+	    {
+	      from_rfc2047_decode (buf, sizeof (buf));
+	      printf ("%s\t", buf);
+	    }
 	}
 
-      header_get_value (hdr, MU_HEADER_SUBJECT, buf, sizeof (buf), NULL);
-      printf ("%s\n", buf);
+      status = header_get_value_unfold (hdr, MU_HEADER_SUBJECT,
+					buf, sizeof (buf), NULL);
+      if (status == 0)
+	{
+	  from_rfc2047_decode (buf, sizeof (buf));
+	  printf ("%s\n", buf);
+	}
     }
-  mailbox_close (mbox);
+
+  status = mailbox_close (mbox);
+  if (status != 0)
+    {
+      mu_error (_("Couldn't close <%s>: %s."),
+		mailbox_name, mu_strerror (status));
+    }
+
   mailbox_destroy (&mbox);
   return 0;
 }
