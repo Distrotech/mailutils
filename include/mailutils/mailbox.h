@@ -35,6 +35,7 @@ extern int  mailbox_create_default  __P ((mailbox_t *, const char *));
 
 extern int  mailbox_open            __P ((mailbox_t, int flag));
 extern int  mailbox_close           __P ((mailbox_t));
+extern int  mailbox_flush           __P ((mailbox_t mbox, int expunge));
 extern int  mailbox_get_folder      __P ((mailbox_t, folder_t *));
 extern int  mailbox_set_folder      __P ((mailbox_t, folder_t));
 extern int  mailbox_uidvalidity     __P ((mailbox_t, unsigned long *));
