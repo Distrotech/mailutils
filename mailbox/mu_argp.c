@@ -48,12 +48,15 @@
 
 #define ARG_LOG_FACILITY 1
 #define ARG_LOCK_FLAGS 2
+#define ARG_SHOW_OPTIONS 3
 
 const char *argp_program_bug_address = "<" PACKAGE_BUGREPORT ">";
 
 static struct argp_option mu_common_argp_options[] = 
 {
   { NULL, 0, NULL, 0, "Common options", 0},
+  { "show-config-options", ARG_SHOW_OPTIONS, NULL, OPTION_HIDDEN,
+    "Show compilation options", 0 },
   { NULL, 0, NULL, 0, NULL, 0 }
 };
 
@@ -250,6 +253,53 @@ static char license_text[] =
     "   along with this program; if not, write to the Free Software\n"
     "   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.\n";
 
+static char *mu_conf_option[] = {
+  "VERSION=" VERSION,
+#ifdef USE_LIBPAM
+  "USE_LIBPAM",
+#endif
+#ifdef USE_VIRTUAL_DOMAINS
+  "USE_VIRTUAL_DOMAINS",
+#endif
+#ifdef WITH_BDB2
+  "WITH_BDB2",
+#endif
+#ifdef WITH_NDBM
+  "WITH_NDBM",
+#endif
+#ifdef WITH_OLD_DBM
+  "WITH_OLD_DBM",
+#endif
+#ifdef WITH_GDBM
+  "WITH_GDBM",
+#endif
+#ifdef WITH_GSSAPI
+  "WITH_GSSAPI",
+#endif
+#ifdef WITH_GUILE
+  "WITH_GUILE",
+#endif
+#ifdef WITH_PTHREAD
+  "WITH_PTHREAD",
+#endif
+#ifdef WITH_READLINE
+  "WITH_READLINE",
+#endif
+#ifdef HAVE_MYSQL
+  "HAVE_MYSQL",
+#endif
+  NULL
+};
+
+static void
+show_options()
+{
+  int i;
+  
+  for (i = 0; mu_conf_option[i]; i++)
+    printf ("%s\n", mu_conf_option[i]);
+}
+
 static error_t
 mu_common_argp_parser (int key, char *arg, struct argp_state *state)
 {
@@ -264,6 +314,10 @@ mu_common_argp_parser (int key, char *arg, struct argp_state *state)
       printf ("%s", license_text);
       exit (0);
 
+    case ARG_SHOW_OPTIONS:
+      show_options ();
+      exit (0);
+      
       /* mailbox */
     case 'm':
       mu_path_maildir = arg;
@@ -752,7 +806,7 @@ mu_argp_parse(const struct argp *argp,
 
   if(!argp)
     argp = &argpnull;
-  
+
   argp = mu_build_argp (argp, capa);
   mu_create_argcv (capa, *pargc, *pargv, pargc, pargv);
   ret = argp_parse (argp, *pargc, *pargv, flags, arg_index, input);
