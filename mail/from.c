@@ -38,7 +38,7 @@ mail_from0 (msgset_t *mspec, message_t msg, void *data)
   mu_timezone tz;
 
   message_get_header (msg, &hdr);
-  if (header_aget_value (hdr, MU_HEADER_FROM, &from) == 0)
+  if (header_aget_value_unfold (hdr, MU_HEADER_FROM, &from) == 0)
     {
       address_t address = NULL;
       if (address_create (&address, from) == 0)
@@ -57,7 +57,7 @@ mail_from0 (msgset_t *mspec, message_t msg, void *data)
 	  address_destroy (&address);
 	}
     }
-  header_aget_value (hdr, MU_HEADER_SUBJECT, &subj);
+  header_aget_value_unfold (hdr, MU_HEADER_SUBJECT, &subj);
   
   message_get_attribute (msg, &attr);
   

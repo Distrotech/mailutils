@@ -174,7 +174,7 @@ get_personal (header_t hdr, const char *field, char *personal, size_t buflen)
   /* Empty string.  */
   *hfield = '\0';
 
-  status = header_get_value (hdr, field, hfield, sizeof (hfield), NULL);
+  status = header_get_value_unfold (hdr, field, hfield, sizeof (hfield), NULL);
   if (status == 0)
     {
       address_t address = NULL;
@@ -242,8 +242,8 @@ action (observer_t o, size_t type)
 	if (show_field)
 	  {
 	    char hfield[256];
-	    int status = header_get_value (hdr, show_field, hfield,
-					   sizeof (hfield), NULL);
+	    int status = header_get_value_unfold (hdr, show_field, hfield,
+						  sizeof (hfield), NULL);
 	    if (status == 0)
 	      printf ("%s", hfield);
 	  }
@@ -272,8 +272,9 @@ action (observer_t o, size_t type)
 	if (show_subject)
 	  {
 	    char hsubject[64];
-	    int status = header_get_value (hdr, MU_HEADER_SUBJECT, hsubject,
-					   sizeof (hsubject), NULL);
+	    int status = header_get_value_unfold (hdr, MU_HEADER_SUBJECT,
+						  hsubject,
+						  sizeof (hsubject), NULL);
 	    if(status == 0)
 	      printf("%s", hsubject);
 	  }
