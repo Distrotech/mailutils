@@ -56,7 +56,7 @@ struct mime_context
 
 #define DEBUG(c,l,f) if ((c)->debug_level > (l)) printf f
 
-static void
+static int
 mime_context_fill (struct mime_context *ctx, const char *file,
 		   stream_t input, header_t hdr, const char *no_ask,
 		   int interactive, int dry_run, int debug_level)
@@ -66,7 +66,9 @@ mime_context_fill (struct mime_context *ctx, const char *file,
   memset (ctx, 0, sizeof *ctx);
   ctx->input = input;
   ctx->hdr = hdr;
-  header_aget_value (hdr, MU_HEADER_CONTENT_TYPE, &ctx->content_type_buffer);
+  if (header_aget_value (hdr, MU_HEADER_CONTENT_TYPE,
+			 &ctx->content_type_buffer))
+    return 1;
   ctx->content_type = strtok_r (ctx->content_type_buffer, ";", &sp);
   ctx->temp_file = file ? strdup (file) : NULL; 
   ctx->unlink_temp_file = 0;
@@ -97,6 +99,7 @@ mime_context_fill (struct mime_context *ctx, const char *file,
 	  list_append (ctx->no_ask_types, p);
 	}
     }
+  return 0;
 }
 
 static void
@@ -650,6 +653,9 @@ display_stream_mailcap (const char *ident, stream_t stream, header_t hdr,
   struct mime_context ctx;
   int rc = 1;
   
+  if (mime_context_fill (&ctx, ident, stream, hdr,
+			 no_ask, interactive, dry_run, debug_level))
+    return 1;
   mailcap_path = getenv ("MAILCAP");
   if (!mailcap_path)
     {
@@ -661,8 +667,6 @@ display_stream_mailcap (const char *ident, stream_t stream, header_t hdr,
     mailcap_path = strdup (mailcap_path);
 
   obstack_init (&expand_stack);
-  mime_context_fill (&ctx, ident, stream, hdr, no_ask, interactive, dry_run,
-		     debug_level);
   
   for (p = strtok_r (mailcap_path, ":", &sp); p; p = strtok_r (NULL, ":", &sp))
     {
@@ -670,8 +674,8 @@ display_stream_mailcap (const char *ident, stream_t stream, header_t hdr,
 	break;
     }
 
-  mime_context_release (&ctx);
   obstack_free (&expand_stack, NULL);
   free (mailcap_path);
+  mime_context_release (&ctx);
   return rc;
 }
