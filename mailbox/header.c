@@ -26,7 +26,7 @@
 #include <stdlib.h>
 #include <errno.h>
 
-static int header_parse (header_t h, const char *blurb, size_t len);
+static int header_parse (header_t h, const char *blurb, int len);
 static int header_read (istream_t is, char *buf, size_t buflen,
 			off_t off, ssize_t *pnread);
 static int header_write (ostream_t os, const char *buf, size_t buflen,
@@ -120,7 +120,7 @@ header_destroy (header_t *ph, void *owner)
  * on how to handle the case.
  */
 static int
-header_parse (header_t header, const char *blurb, size_t len)
+header_parse (header_t header, const char *blurb, int len)
 {
   char *header_end;
   char *header_start;
@@ -153,7 +153,7 @@ header_parse (header_t header, const char *blurb, size_t len)
 	  else
 	    {
 	      len -= (header_end - header_start2 + 1);
-	      if (len == 0)
+	      if (len < 0)
 		{
 		  header_end = NULL;
 		  break;
@@ -183,8 +183,8 @@ header_parse (header_t header, const char *blurb, size_t len)
 	  && strncmp (header_start, "From ", 5) == 0)
 	{
 	  header->hdr[header->hdr_count - 1].fn = header_start;
-	  header->hdr[header->hdr_count - 1].fn_end = header_start + 6;
-	  header->hdr[header->hdr_count - 1].fv = header_start + 6;
+	  header->hdr[header->hdr_count - 1].fn_end = header_start + 4;
+	  header->hdr[header->hdr_count - 1].fv = header_start + 5;
 	  header->hdr[header->hdr_count - 1].fv_end = header_end;
 	}
       else
