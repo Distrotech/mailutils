@@ -1,3 +1,9 @@
+2005-02-26  Wojciech Polak
+
+	* mailbox/url_smtp.c (_url_smtp_init): Do not reject
+	an URL with user name, password, or auth method specified.
+	We will use it in further ESMTP authentication.
+
 2005-02-26  Sergey Poznyakoff
 
 	* sql/mysql.c: Do not use any libmysql functions to
