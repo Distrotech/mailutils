@@ -17,6 +17,7 @@
 
 #include "mail.h"
 #include <mailutils/mutil.h>
+#include <pwd.h>
 
 typedef struct _node {
   /* for the msglist expander */
@@ -250,7 +251,8 @@ util_do_command (const char *c, ...)
   function_t *command;
   char *cmd = NULL;
   va_list ap;
-
+  int i, zcnt = 0;
+  
   va_start (ap, c);
   status = vasprintf (&cmd, c, ap);
   va_end (ap);
@@ -266,6 +268,28 @@ util_do_command (const char *c, ...)
 
       if (argcv_get (cmd, &argc, &argv) != 0)
 	return argcv_free (argc, argv);
+
+      /* Eliminate empty strings */
+      for (i = 0; i < argc; i++)
+	{
+	  if (argv[i][0] == 0)
+	    {
+	      int d;
+	      for (d = i; d < argc && argv[d][0] == 0; d++)
+		;
+	      if (d == argc)
+		{
+		  break;
+		}
+	      else
+		{
+		  char *s = argv[d];
+		  argv[d] = argv[i];
+		  argv[i] = s;
+		}
+	      zcnt++;
+	    }
+	}
       
       entry = util_find_entry (argv[0]);
 
@@ -280,7 +304,7 @@ util_do_command (const char *c, ...)
     command = util_command_get ("quit");
 
   if (command != NULL)
-    status = command (argc, argv);
+    status = command (argc - zcnt, argv);
   else
     {
       fprintf (ofile, "Unknown command: %s\n", argv[0]);
@@ -296,10 +320,13 @@ util_do_command (const char *c, ...)
  * func is the function to run
  * argc is the number of arguments inculding the command and msglist
  * argv is the list of strings containing the command and msglist
+ * set_cursor means whether the function should set the cursor to 
+ * the number of the last message processed. If set_cursor = 0, the
+ * cursor is not altered.
  */
 
 int
-util_msglist_command (function_t *func, int argc, char **argv)
+util_msglist_command (function_t *func, int argc, char **argv, int set_cursor)
 {
   int i;
   int *list = NULL;
@@ -315,7 +342,10 @@ util_msglist_command (function_t *func, int argc, char **argv)
     }
   free (list);
 
-  cursor = realcursor;
+  if (set_cursor)
+    realcursor = cursor;
+  else
+    cursor = realcursor;
   return status;
 }
 
@@ -388,6 +418,18 @@ util_getlines (void)
 {
     return strtol (getenv("LINES"), NULL, 10);
 }
+
+int
+util_screen_lines()
+{
+  struct mail_env_entry *ep = util_find_env("screen");
+  size_t n;
+  
+  if (ep && ep->set && (n = atoi(ep->value)) != 0)
+    return n;
+  return util_getlines();
+}
+
 
 /*
  * find environment entry var
@@ -783,8 +825,101 @@ util_escape_percent (char **str)
   *str = newstr;
 }
 
+char *
+util_outfolder_name (char *str)
+{
+  struct mail_env_entry *ep = util_find_env("outfolder");
 
-  
+  switch (*str)
+    {
+    case '/':
+    case '~':
+    case '+':
+      str = util_fullpath (str);
+      break;
+      
+    default:
+      if (ep && ep->set)
+	{
+	  char *ns = NULL;
+	  asprintf (&ns, "%s/%s", ep->value, str);
+	  str = util_fullpath (ns);
+	  free (ns);
+	}
+      break;
+
+    }
+
+  return str;
+}
+
+char *
+util_whoami()
+{
+  struct passwd *pw = getpwuid(getuid());
+  return pw ? pw->pw_name : "unknown";
+}
+
+/* Save an outgoing message. "savefile" allows to override the setting
+   of the "record" variable. */
+void
+util_save_outgoing (message_t msg, char *savefile)
+{
+  struct mail_env_entry *ep = util_find_env("record");
+  if (ep->set)
+    {
+      FILE *outfile;
+      char *filename = util_outfolder_name (savefile ? savefile : ep->value);
+
+      outfile = fopen (filename, "a");
+      if (!outfile)
+	{
+	  fprintf (outfile, "can't open save file %s: %s",
+		   filename, strerror (errno));
+	}
+      else
+	{
+	  char *buf;
+	  size_t bsize = 0;
+	  
+	  message_size (msg, &bsize);
+
+	  /* Try to allocate large buffer */
+	  for (; bsize > 1; bsize /= 2)
+	    if ((buf = malloc (bsize)))
+	      break;
+	  
+	  if (!bsize)
+	    {
+	      fprintf (ofile, "not enough memory for creating save file\n");
+	    }
+	  else
+	    {
+	      stream_t stream;
+	      size_t n, off = 0;
+	      time_t t;
+	      struct tm *tm;
+	      char date[64];
+
+	      time(&t);
+	      tm = gmtime(&t);
+	      strftime (date, sizeof (date), "%a %b %e %H:%M:%S %Y%n", tm);
+	      fprintf (outfile, "From %s %s\n", util_whoami(), date);
+
+	      message_get_stream (msg, &stream);
+	      while (stream_read (stream, buf, bsize, off, &n) == 0
+		     && n != 0)
+		{
+		  fwrite (buf, 1, n, outfile);
+		  off += n;
+		}
+	      free (buf);
+	    }
+	  fclose (outfile);
+	}
+      free (filename);
+    }
+}
   
 
 
