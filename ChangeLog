@@ -16,6 +16,11 @@
 	and get_hdr_value() to util.c
 	* mail/table.c: Fixed synopsis for decode. 
 
+        * libmu_scm/Makefile.am: Removed .x and .doc files from EXTRA_DIST.
+          Thanks to Alain.
+        * guimb/Makefile.am: Likewise.
+        * m4/Makefile.am: Added maintain.m4
+
 2001-08-06  Alain Magloire
 
 	* sieve/{exitcodes.h hmac-md5.h md5.c md5.h md5global.h}: Removed.
