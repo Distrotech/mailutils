@@ -25,9 +25,6 @@
 #ifndef PATH_TTY_PFX
 # define PATH_TTY_PFX PATH_DEV
 #endif
-#ifndef _PATH_MAILDIR
-# define _PATH_MAILDIR "/var/spool/mail"
-#endif
 
 #ifdef HAVE_UTMP_H
 # include <utmp.h>
@@ -50,13 +47,14 @@ typedef struct utmp UTMP;
 
 #define MAX_TTY_SIZE (sizeof (PATH_TTY_PFX) + sizeof (((UTMP*)0)->ut_line))
 
-static char short_options[] = "c:dhip:t:v";
+static char short_options[] = "c:dhim:p:t:v";
 static struct option long_options[] =
 {
   {"config", required_argument, 0, 'c'},
   {"daemon", no_argument, 0, 'd'},
   {"help", no_argument, 0, 'h'},
   {"inetd", no_argument, 0, 'i'},
+  {"maildir", required_argument, 0, 'm'},
   {"port", required_argument, 0, 'p'},
   {"timeout", required_argument, 0, 't'},
   {"version", no_argument, 0, 'v'},
@@ -80,6 +78,7 @@ int timeout = 0;
 int maxlines = 5;
 char hostname[MAXHOSTNAMELEN];
 const char *username;
+const char *maildir = MU_PATH_MAILDIR;
 
 static void comsat_init (void);
 static void comsat_daemon_init (void);
@@ -121,6 +120,10 @@ main(int argc, char **argv)
 	  mode = MODE_INETD;
 	  break;
 
+	case 'm':
+	  maildir = optarg;
+	  break;
+	  
 	case 'p':
 	  port = strtoul (optarg, NULL, 10);
 	  break;
@@ -137,6 +140,13 @@ main(int argc, char **argv)
 	default:
 	  exit (EXIT_FAILURE);
 	}
+    }
+
+  maildir = mu_normalize_maildir (maildir);
+  if (!maildir)
+    {
+      mu_error ("Badly formed maildir: %s", maildir);
+      exit (1);
     }
 
   if (timeout > 0 && mode == MODE_DAEMON)
@@ -612,9 +622,9 @@ mailbox_path (const char *user)
 
   if (!mu_virtual_domain)
     {
-      mailbox_name = calloc (strlen (_PATH_MAILDIR) + 1
+      mailbox_name = calloc (strlen (maildir) + 1
 			     + strlen (pw->pw_name) + 1, 1);
-      sprintf (mailbox_name, "%s/%s", _PATH_MAILDIR, pw->pw_name);
+      sprintf (mailbox_name, "%s%s", maildir, pw->pw_name);
     }
   else
     {
