@@ -198,6 +198,7 @@ static int mbox_body_readline         __P ((stream_t, char *, size_t, off_t,
 static int mbox_readstream            __P ((mbox_message_t, char *, size_t,
 					    off_t, size_t *, int, off_t,
 					    off_t));
+static int mbox_stream_size           __P((stream_t stream, off_t *psize));
 
 static int mbox_header_size           __P ((header_t, size_t *));
 static int mbox_header_lines          __P ((header_t, size_t *));
@@ -1454,6 +1455,13 @@ mbox_body_size (body_t body, size_t *psize)
 }
 
 static int
+mbox_stream_size (stream_t stream, off_t *psize)
+{
+  body_t body = stream_get_owner (stream);
+  return mbox_body_size (body, (size_t*) psize);
+}
+
+static int
 mbox_body_lines (body_t body, size_t *plines)
 {
   message_t msg = body_get_owner (body);
@@ -1647,6 +1655,7 @@ mbox_get_message (mailbox_t mailbox, size_t msgno, message_t *pmsg)
     stream_set_read (stream, mbox_body_read, body);
     stream_set_readline (stream, mbox_body_readline, body);
     stream_set_fd (stream, mbox_get_body_fd, body);
+    stream_set_size (stream, mbox_stream_size, body);
     body_set_stream (body, stream, msg);
     body_set_size (body, mbox_body_size, msg);
     body_set_lines (body, mbox_body_lines, msg);
