@@ -34,8 +34,10 @@ typedef void (*sieve_action_log_t) __PMT((void *data,
 					  const char *fmt, va_list ap));
 
 typedef int (*sieve_comparator_t) __PMT((const char *, const char *));
-typedef int (*sieve_retrieve_t) __PMT((void *item, void *data, char **pval));
-
+typedef int (*sieve_retrieve_t) __PMT((void *item, void *data, int idx, char **pval));
+typedef void (*sieve_destructor_t) __PMT((void *data));
+typedef int (*sieve_tag_checker_t) __PMT((const char *name,
+					  list_t tags, list_t args));
 
 typedef enum {
   SVT_VOID,
@@ -44,7 +46,8 @@ typedef enum {
   SVT_STRING_LIST,
   SVT_TAG,
   SVT_IDENT,
-  SVT_VALUE_LIST
+  SVT_VALUE_LIST,
+  SVT_POINTER
 } sieve_data_type;
 
 typedef struct sieve_runtime_tag sieve_runtime_tag_t;
@@ -56,17 +59,22 @@ typedef struct {
     long number;
     list_t list;
     sieve_runtime_tag_t *tag;
+    void *ptr;
   } v;
 } sieve_value_t;
 
 typedef struct {
   char *name;
-  int num;
   sieve_data_type argtype;
 } sieve_tag_def_t;
 
+typedef struct {
+  sieve_tag_def_t *tags;
+  sieve_tag_checker_t checker;
+} sieve_tag_group_t;
+
 struct sieve_runtime_tag {
-  int tag;
+  char *tag;
   sieve_value_t *arg;
 };
 
@@ -74,10 +82,8 @@ typedef struct {
   char *name;
   int required;
   sieve_handler_t handler;
-  int num_req_args;
   sieve_data_type *req_args;
-  int num_tags;
-  sieve_tag_def_t *tags;
+  sieve_tag_group_t *tags;
 } sieve_register_t;
 
 #define MU_SIEVE_MATCH_IS        1
@@ -108,10 +114,10 @@ sieve_register_t *sieve_test_lookup __P((const char *name));
 sieve_register_t *sieve_action_lookup __P((const char *name));
 int sieve_register_test __P((const char *name, sieve_handler_t handler,
 			     sieve_data_type *arg_types,
-			     sieve_tag_def_t *tags, int required));
+			     sieve_tag_group_t *tags, int required));
 int sieve_register_action __P((const char *name, sieve_handler_t handler,
 			       sieve_data_type *arg_types,
-			       sieve_tag_def_t *tags, int required));
+			       sieve_tag_group_t *tags, int required));
 
 void sieve_slist_destroy __P((list_t *plist));
 void sieve_require __P((list_t slist));
@@ -133,6 +139,11 @@ int sieve_mailbox __P((sieve_machine_t mach, mailbox_t mbox));
 int sieve_disass __P((sieve_machine_t mach));
 
 int sieve_machine_init __P((sieve_machine_t *mach, void *data));
+void sieve_machine_destroy __P((sieve_machine_t *pmach));
+int sieve_machine_add_destructor __P((sieve_machine_t mach,
+				       sieve_destructor_t destr,
+				      void *ptr));
+
 void sieve_machine_set_error __P((sieve_machine_t mach,
 				  sieve_printf_t error_printer));
 void sieve_machine_set_parse_error __P((sieve_machine_t mach,
@@ -166,3 +177,5 @@ sieve_comparator_t sieve_comparator_lookup __P((const char *name,
 						int matchtype));
 
 sieve_comparator_t sieve_get_comparator __P((list_t tags));
+
+const char *sieve_type_str __P((sieve_data_type type));
