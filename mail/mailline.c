@@ -295,7 +295,7 @@ restore_tty ()
 #define LINE_INC 80
 
 int
-ml_reread (char *prompt, char **text)
+ml_reread (const char *prompt, char **text)
 {
   int ch;
   char *line;
