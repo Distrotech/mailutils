@@ -193,6 +193,8 @@ AC_SUBST(GUILE_INCLUDES)
 AC_SUBST(GUILE_LIBS)
 AC_SUBST(GUIMB)	
 AC_SUBST(MU_SCM)
+AC_SUBST(GUILE_PROCEDURES_TXT)
+AC_SUBST(GUILE_BUILT_SOURCES)
 if test x"$useguile" = x"yes"; then
 	AC_PATH_PROG(GUILE_CONFIG, guile-config, no, $PATH)
 	AC_CHECK_HEADER(libguile.h, :, [GUILE_CONFIG=no])     
@@ -201,6 +203,8 @@ if test x"$useguile" = x"yes"; then
   		GUILE_LIBS=`guile-config link`
 		GUIMB=guimb
 		MU_SCM=libmu_scm.a
+		GUILE_PROCEDURES_TXT=guile-procedures.txt
+		GUILE_BUILT_SOURCES='$(DOT_X_FILES) $(DOT_DOC_FILES)'
 	fi
 fi
 
