@@ -462,9 +462,14 @@ message_size (message_t msg, size_t *psize)
     return msg->_size (msg, psize);
   if (psize)
     {
+      header_t hdr = NULL;
+      body_t body = NULL;
+      
       hsize = bsize = 0;
-      if ( ( ret = header_size (msg->header, &hsize) ) == 0 )
-		ret = body_size (msg->body, &bsize);
+      message_get_header (msg, &hdr);
+      message_get_body (msg, &body);
+      if ( ( ret = header_size (hdr, &hsize) ) == 0 )
+	ret = body_size (body, &bsize);
       *psize = hsize + bsize;
     }
   return ret;
