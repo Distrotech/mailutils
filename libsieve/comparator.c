@@ -33,11 +33,9 @@ typedef struct {
   sieve_comparator_t comp[MU_SIEVE_MATCH_LAST];
 } sieve_comparator_record_t;
 
-
-static list_t comparator_list;
-
 int
-sieve_register_comparator (const char *name,
+sieve_register_comparator (sieve_machine_t mach,
+			   const char *name,
 			   int required,
 			   sieve_comparator_t is, sieve_comparator_t contains,
 			   sieve_comparator_t matches,
@@ -45,14 +43,14 @@ sieve_register_comparator (const char *name,
 {
   sieve_comparator_record_t *rp;
 
-  if (!comparator_list)
+  if (!mach->comp_list)
     {
-      int rc = list_create (&comparator_list);
+      int rc = list_create (&mach->comp_list);
       if (rc)
 	return rc;
     }
 
-  rp = sieve_palloc (&sieve_machine->memory_pool, sizeof (*rp));
+  rp = sieve_palloc (&mach->memory_pool, sizeof (*rp));
   rp->required = required;
   rp->name = name;
   rp->comp[MU_SIEVE_MATCH_IS] = is;       
@@ -60,16 +58,16 @@ sieve_register_comparator (const char *name,
   rp->comp[MU_SIEVE_MATCH_MATCHES] = matches;  
   rp->comp[MU_SIEVE_MATCH_REGEX] = regex;    
 
-  return list_append (comparator_list, rp);
+  return list_append (mach->comp_list, rp);
 }
 
 sieve_comparator_record_t *
-_lookup (const char *name)
+_lookup (list_t list, const char *name)
 {
   iterator_t itr;
   sieve_comparator_record_t *reg;
 
-  if (!comparator_list || iterator_create (&itr, comparator_list))
+  if (!list || iterator_create (&itr, list))
     return NULL;
 
   for (iterator_first (itr); !iterator_is_done (itr); iterator_next (itr))
@@ -85,9 +83,9 @@ _lookup (const char *name)
 }
     
 int
-sieve_require_comparator (const char *name)
+sieve_require_comparator (sieve_machine_t mach, const char *name)
 {
-  sieve_comparator_record_t *reg = _lookup (name);
+  sieve_comparator_record_t *reg = _lookup (mach->comp_list, name);
   if (!reg)
     return 1;
   reg->required = 1;
@@ -95,9 +93,9 @@ sieve_require_comparator (const char *name)
 }
 
 sieve_comparator_t 
-sieve_comparator_lookup (const char *name, int matchtype)
+sieve_comparator_lookup (sieve_machine_t mach, const char *name, int matchtype)
 {
-  sieve_comparator_record_t *reg = _lookup (name);
+  sieve_comparator_record_t *reg = _lookup (mach->comp_list, name);
   if (reg && reg->comp[matchtype])
     return reg->comp[matchtype];
   return NULL;
@@ -117,12 +115,13 @@ _find_comparator (void *item, void *data)
 }
 
 sieve_comparator_t
-sieve_get_comparator (list_t tags)
+sieve_get_comparator (sieve_machine_t mach, list_t tags)
 {
   sieve_comparator_t comp = NULL;
 
   list_do (tags, _find_comparator, &comp);
-  return comp ? comp : sieve_comparator_lookup ("i;ascii-casemap",
+  return comp ? comp : sieve_comparator_lookup (mach,
+						"i;ascii-casemap",
 						MU_SIEVE_MATCH_IS);
 }
 
@@ -248,7 +247,7 @@ sieve_match_part_checker (const char *name, list_t tags, list_t args)
     list_remove (tags, match);
 
   compname = comp ? comp->arg->v.string : "i;ascii-casemap";
-  compfun = sieve_comparator_lookup (compname, matchtype);
+  compfun = sieve_comparator_lookup (sieve_machine, compname, matchtype);
   if (!compfun)
     {
       sieve_compile_error (sieve_filename, sieve_line_num,
@@ -468,21 +467,24 @@ i_ascii_numeric_is (const char *pattern, const char *text)
 }
 
 void
-sieve_register_standard_comparators ()
+sieve_register_standard_comparators (sieve_machine_t mach)
 {
-  sieve_register_comparator ("i;octet",
+  sieve_register_comparator (mach,
+			     "i;octet",
 			     1,
 			     i_octet_is,
 			     i_octet_contains,
 			     i_octet_matches,
 			     i_octet_regex);
-  sieve_register_comparator ("i;ascii-casemap",
+  sieve_register_comparator (mach,
+			     "i;ascii-casemap",
 			     1,
 			     i_ascii_casemap_is,
 			     i_ascii_casemap_contains,
 			     i_ascii_casemap_matches,
 			     i_ascii_casemap_regex);
-  sieve_register_comparator ("i;ascii-numeric",
+  sieve_register_comparator (mach,
+			     "i;ascii-numeric",
 			     0,
 			     i_ascii_numeric_is,
 			     NULL,
