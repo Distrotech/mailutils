@@ -1,5 +1,37 @@
 2004-06-30  Alain Magloire
 
+	* configure.ac: Add nntp directory.
+	* doc/rfc/pop3.texit: add new API.
+
+	* mailbox/Makefile.am: Add nntp directory.
+
+	* mailbox/nntp/Makefile.am: Add new files.
+	* mailbox/nntp/nntp_iterator.c: New file.
+	* mailbox/nntp/nntp_list_active.c: Use the an iterator_t instead of a lis_t..
+	* mailbox/nntp/nntp_list_distribpats.c: instead of a lis_t. file.
+	* mailbox/nntp/nntp_list_times.c: instead of a lis_t. file.
+	* mailbox/nntp/nntp_list_newgroups.c: instead of a lis_t. file.
+	* mailbox/nntp/nntp_list_newnews.c: instead of a lis_t. file.
+
+	* mailbox/pop3/Makefile.am: Add new files.
+	* mailbox/pop3/pop3_iterator.c: New file.
+	* mailbox/pop3/pop3_capa.c: instead of a lis_t. file.
+	* mailbox/pop3/pop3_lista.c: instead of a lis_t. file.
+	* mailbox/pop3/pop3_uidla.c: instead of a lis_t. file.
+
+	* include/mailutils/Makefile.am: Add nntp.h and pop3.h.
+	* include/mailutils/nntp.h: Add new declarations.
+	* include/mailutils/sys/Makefile.am: Add nntp and pop3.hh
+	* include/mailutils/sys/nntp.h: Add new declarations.
+	* include/mailutils/pop3.h: NAdd new declarations.
+
+	* example/Makefile.am: Adusted to new API.
+	* example/nntpclient.c: Adusted to new API.
+	* example/pop3client.c: Adusted to new API.
+	* example/.cvsignore: Add nntpclient.
+
+2004-06-30  Alain Magloire
+
 	* mailbox/list.c (list_get_iterator): Bug fix, wrong size for calloc()
 	(list_data_dup): Copy the elements.
 
