@@ -279,8 +279,6 @@ init_quoted (rfc2047_encoder * enc)
 static void
 insert_quoted (rfc2047_encoder * enc)
 {
-  int size;
-
   if (enc->must_open)
     {
       enc->must_open = 0;
