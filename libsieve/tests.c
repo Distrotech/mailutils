@@ -37,45 +37,92 @@
 #define TAG_OVER        9
 
 int
-sieve_test_address (sieve_machine_t *mach, list_t args, list_t tags)
+sieve_test_address (sieve_machine_t mach, list_t args, list_t tags)
 {
   return 0;
 }
 
 int
-sieve_test_header (sieve_machine_t *mach, list_t args, list_t tags)
+sieve_test_header (sieve_machine_t mach, list_t args, list_t tags)
 {
   return 0;
 }
 
 int
-sieve_test_envelope (sieve_machine_t *mach, list_t args, list_t tags)
+sieve_test_envelope (sieve_machine_t mach, list_t args, list_t tags)
 {
   return 0;
 }
 
 int
-sieve_test_size (sieve_machine_t *mach, list_t args, list_t tags)
+sieve_test_size (sieve_machine_t mach, list_t args, list_t tags)
 {
+  int rc;
+  sieve_runtime_tag_t *tag = NULL;
+  size_t size;
+  
+  sieve_value_t *val = sieve_value_get (args, 0);
+  if (!val)
+    {
+      sieve_error (mach, "size: can't get argument!");
+      sieve_abort (mach);
+    }
+
+  message_size (sieve_get_message (mach), &size);
+  list_get (tags, 0, (void **)&tag);
+  if (!tag)
+    rc = size == val->v.number;
+  else if (tag->tag == TAG_OVER)
+    rc = size > val->v.number;
+  else if (tag->tag == TAG_UNDER)
+    rc = size < val->v.number;
+
+  return rc;
+}
+
+int
+sieve_test_true (sieve_machine_t mach, list_t args, list_t tags)
+{
+  if (mach->debug_level & MU_SIEVE_DEBUG_TRACE)
+    sieve_debug (mach, "TRUE\n");
+  return 1;
+}
+
+int
+sieve_test_false (sieve_machine_t mach, list_t args, list_t tags)
+{
+  if (mach->debug_level & MU_SIEVE_DEBUG_TRACE)
+    sieve_debug (mach, "FALSE\n");
   return 0;
 }
 
 int
-sieve_test_true (sieve_machine_t *mach, list_t args, list_t tags)
+_test_exists (void *item, void *data)
 {
-  return 0;
-}
+  header_t hdr = data;
+  size_t n;
 
-int
-sieve_test_false (sieve_machine_t *mach, list_t args, list_t tags)
-{
-  return 0;
+  return header_get_value (hdr, (char*)item, NULL, 0, &n);
 }
-
+  
 int
-sieve_test_exists (sieve_machine_t *mach, list_t args, list_t tags)
+sieve_test_exists (sieve_machine_t mach, list_t args, list_t tags)
 {
-  return 0;
+  header_t header = NULL;
+  sieve_value_t *val;   
+
+  if (mach->debug_level & MU_SIEVE_DEBUG_TRACE)
+    sieve_debug (mach, "EXISTS\n");
+
+  message_get_header (sieve_get_message (mach), &header);
+  val = sieve_value_get (args, 0);
+  if (!val)
+    {
+      sieve_error (mach, "exists: can't get argument!");
+      sieve_abort (mach);
+    }
+
+  return list_do (val->v.list, _test_exists, header) == 0;
 }
 
 #define ADDRESS_PART \
@@ -142,7 +189,7 @@ void
 sieve_register_standard_tests ()
 {
   sieve_register_test ("false", sieve_test_false, NULL, NULL, 1);
-  sieve_register_test ("true", sieve_test_false, NULL, NULL, 1);
+  sieve_register_test ("true", sieve_test_true, NULL, NULL, 1);
   sieve_register_test ("address", sieve_test_address,
 		       address_req_args, address_tags, 1);
   sieve_register_test ("size", sieve_test_size,
