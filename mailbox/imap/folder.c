@@ -278,7 +278,7 @@ authenticate_imap_sasl_anon (authority_t auth)
   if (check_capa (f_imap, "AUTH=ANONYMOUS"))
     {
       FOLDER_DEBUG0 (folder, MU_DEBUG_PROT,
-		     "ANONYMOUS capability not present disabled\n");
+		     "ANONYMOUS capability not present\n");
       return ENOSYS;
     }
 
@@ -678,7 +678,16 @@ folder_imap_open (folder_t folder, int flags)
       assert (folder->authority);
       {
 	status = authority_authenticate (folder->authority);
-	CHECK_EAGAIN (f_imap, status);
+	if (status)
+	  {
+	    /* Fake folder_imap_close into closing the folder.
+	       FIXME: The entire state machine should probably
+	       be revised... */
+	    f_imap->isopen++;
+	    f_imap->state = IMAP_NO_STATE;
+	    folder_imap_close (folder);
+	    return status;
+	  }
       }
 
     case IMAP_AUTH_DONE:
