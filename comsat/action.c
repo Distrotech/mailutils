@@ -335,7 +335,8 @@ open_rc (const char *filename, FILE *tty)
 	}
       if ((stb.st_mode & 0777) != 0600)
 	{
-	  fprintf (tty, _("Warning: your .biffrc has wrong permissions\r\n"));
+	  fprintf (tty, "%s\r\n",
+		   _("Warning: your .biffrc has wrong permissions"));
 	  syslog (LOG_NOTICE, _("%s's %s has wrong permissions"),
 		  username, filename);
 	  return NULL;
@@ -393,7 +394,8 @@ run_user_action (FILE *tty, const char *cr, message_t msg)
 	    }
 	  else
 	    {
-	      fprintf (tty, _(".biffrc:%d: unknown keyword\r\n"), line);
+	      fprintf (tty, _(".biffrc:%d: unknown keyword"), line);
+	      fprintf (tty, "\r\n");
 	      syslog (LOG_ERR, _("%s:.biffrc:%d: unknown keyword %s"),
 		      username, line, argv[0]);
 	      break;
