@@ -1,3 +1,11 @@
+2001-10-22  Jeff Bailey  <jbailey@outpost.dnsalias.org>
+
+	* doc/texinfo/Makefile.am: Remove version.texi, it's implied.
+
+	* libmu_scm/Makefile.am: Clean @GUILE_PROCEDURES_TXT@
+
+	* guimb/Makefile.am: Clean @GUILE_PROCEDURES_TXT@
+
 2001-10-21  Sergey Poznyakoff
 
 	Changes for compatibility with automake 1.5:

@@ -21,7 +21,7 @@ DOT_DOC_FILES=mu_address.doc mu_body.doc mu_mailbox.doc mu_message.doc \
  mu_mime.doc mu_logger.doc mu_port.doc mu_scm.doc  
 BUILT_SOURCES=@GUILE_BUILT_SOURCES@ 
 
-DISTCLEANFILES=$(DOT_X_FILES) $(DOT_DOC_FILES)
+DISTCLEANFILES=$(DOT_X_FILES) $(DOT_DOC_FILES) @GUILE_PROCEDURES_TXT@
 
 CPPFLAGS=-DDATADIR=\"$(pkgdatadir)\"
 ETAGS_ARGS = --regex='/SCM_\(GLOBAL_\)?\(G?PROC\|G?PROC1\|SYMBOL\|VCELL\|CONST_LONG\).*\"\([^\"]\)*\"/\3/' \

@@ -32,8 +32,7 @@ mailutils_TEXINFOS = \
  sfrom.c.texi \
  smtp.texi \
  stream.texi \
- url.texi \
- version.texi
+ url.texi
 
 ## Sam, the examples dir is not part of the distribution so this will not work
 ## but we should probably have a "addrmsg" program and reenable this.
