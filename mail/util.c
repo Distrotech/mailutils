@@ -349,8 +349,12 @@ util_msglist_command (function_t *func, int argc, char **argv, int set_cursor)
   for (i = 0; i < number; i++)
     {
       cursor = list[i];
+      /* NOTE: Should we bail on error also?  */
       if (func (1, argv) != 0)
 	status = 1;
+      /* Bail out if we receive an interrupt.  */
+      if (ml_got_interrupt () != 0)
+	break;
     }
   free (list);
 
