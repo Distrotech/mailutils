@@ -396,14 +396,17 @@ builtin_not_implemented (char *name)
 static void
 builtin_msg (struct mh_machine *mach)
 {
-  mach->reg_num = mach->msgno;
+  size_t msgno = mach->msgno;
+  mh_message_number (mach->message, &msgno);
+  mach->reg_num = msgno;
 }
 
 static void
 builtin_cur (struct mh_machine *mach)
 {
-  /*FIXME*/
-  mach->reg_num = 0;
+  size_t msgno = mach->msgno;
+  mh_message_number (mach->message, &msgno);
+  mach->reg_num = msgno == current_message;
 }
 
 static void
