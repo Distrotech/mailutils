@@ -1,3 +1,53 @@
+2002-02-19  Sergey Poznyakoff  <gray@Mirddin.farlep.net>
+
+	Use of system getpwuid() in many places of the code
+	actually broke mu_getpwnam() pardigm. To fix it,
+	a wrapper function, mu_getpwuid(), is introduced.
+	It allows to use 'overloaded' getpwuid calls. In the
+	simplest case, it boils down to calling getpuid().
+	Applications, registering getpwname function by using
+	mu_register_getpwname() are expected to register its
+	getpwuid counterpart by using mu_register_getpwname().
+	"Virtual domains" (mutil.c:407) seem to be an exception:
+	there is no easy way to create appropriate getpwuid()
+	function. This does not break the virtual domain
+	functionality, however.
+	
+	* mailbox/mutil.c (mu_getpwuid): new function. Allows
+	  to use overloaded getpwuid() in the same way as
+	  mu_getpwnam() does it for getpwnam().
+	  (mu_register_getpwuid): Overload getpwuid function.
+	* include/mailutils/mutil.h: Proto for mu_getpwuid().
+	* lib/mu_argp.c: New options: --sql-getpwuid for setting
+	  sql query returning passwd data for a given uid, and
+	  --pam-service for setting the PAM service name to be
+	  used.
+	* lib/mu_argp.h: Added extern for pam_service.
+	
+	* MySql/MySql.c (getMpwnam): Return username along with
+	  other data.
+	  (getMpwuid): New function.
+	* MySql/MySql.h: Added extern declaration for sql_getpwuid_query.
+	* examples/mailutils.rc: Fixed queries.
+
+	* mail.local/main.c: register getMpwuid().
+	* imap4d/imap4d.c: Initialize pam_service. Register getMpwuid().
+	* pop3d/pop3d.c: Likewise.
+	* imap4d/login.c: Use pam_service instead of hardcoding PAM
+	  service name.
+	* pop3d/user.c: Likewise.
+	
+	* imap4d/bye.c: Use mu_getpwuid() instead of getpwuid().
+	* imap4d/copy.c: Likewise.
+	* imap4d/rename.c: Likewise.
+	* imap4d/select.c: Likewise.
+	* imap4d/status.c: Likewise.
+	* mailbox/mbx_default.c: Likewise.
+	* mailbox/message.c: Likewise.
+	* mailbox/smtp.c: Likewise.
+	* mailbox/wicket.c: Likewise.
+	* mailbox2/mutil.c: Likewise.
+	
 2002-02-19  Sergey Poznyakoff 
 
 	* lib/mu_argp.c (mu_create_argcv): Fixed memory overrun.
