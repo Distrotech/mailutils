@@ -91,7 +91,7 @@ struct sieve_runtime_tag {
 };
 
 typedef struct {
-  char *name;
+  const char *name;
   int required;
   sieve_handler_t handler;
   sieve_data_type *req_args;
