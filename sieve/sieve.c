@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -97,6 +97,7 @@ struct options {
   int compile_only;
   char *mbox;
   char *tickets;
+  int tickets_default;
   int debug_level;
   int sieve_debug;
   int verbose;
@@ -113,7 +114,10 @@ parser (int key, char *arg, struct argp_state *state)
     {
     case ARGP_KEY_INIT:
       if (!opts->tickets)
-	opts->tickets = mu_tilde_expansion ("~/.tickets", "/", NULL);
+	{
+	  opts->tickets = mu_tilde_expansion ("~/.tickets", "/", NULL);
+	  opts->tickets_default = 1;
+	}
       if (!opts->debug_level)
 	opts->debug_level = MU_DEBUG_ERROR;
       log_facility = 0;
@@ -150,6 +154,7 @@ parser (int key, char *arg, struct argp_state *state)
     case 't':
       free (opts->tickets);
       opts->tickets = mu_tilde_expansion (arg, "/", NULL);
+      opts->tickets_default = 0;
       break;
       
     case 'd':
@@ -367,18 +372,22 @@ main (int argc, char *argv[])
   /* Create a ticket, if we can. */
   if (opts.tickets)
     {
-      if ((rc = wicket_create (&wicket, opts.tickets)) != 0)
-	{
-	  mu_error (_("wicket_create <%s> failed: %s"),
-		   opts.tickets, mu_strerror (rc));
-	  goto cleanup;
-	}
-      if ((rc = wicket_get_ticket (wicket, &ticket, 0, 0)) != 0)
-	{
-	  mu_error (_("ticket_get failed: %s"), mu_strerror (rc));
-	  goto cleanup;
-	}
-      sieve_set_ticket (mach, ticket);
+      if ((rc = wicket_create (&wicket, opts.tickets)) == 0)
+        {
+          if ((rc = wicket_get_ticket (wicket, &ticket, 0, 0)) != 0)
+            {
+              mu_error (_("ticket_get failed: %s"), mu_strerror (rc));
+              goto cleanup;
+            }
+        }
+      else if (!(opts.tickets_default && errno == ENOENT))
+        {
+          mu_error (_("wicket_create <%s> failed: %s"),
+                    opts.tickets, mu_strerror (rc));
+          goto cleanup;
+        }
+      if (ticket)
+        sieve_set_ticket (mach, ticket);
     }
 
   /* Create a debug object, if needed. */
