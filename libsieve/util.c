@@ -236,7 +236,7 @@ sieve_log_action (sieve_machine_t mach, const char *action,
   if (!mach->logger)
     return;
   va_start (ap, fmt);
-  mach->logger (mach->data, mach->filename, mach->msgno, mach->msg,
+  mach->logger (mach->data, &mach->locus, mach->msgno, mach->msg,
 		action, fmt, ap);
   va_end (ap);
 }
