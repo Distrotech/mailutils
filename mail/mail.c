@@ -302,6 +302,7 @@ main (int argc, char **argv)
   util_do_command ("set regex");
   util_do_command ("set replyprefix=\"Re: \"");
   util_do_command ("set charset=auto");
+  util_do_command ("unfold subject");
   /* Start in mail reading mode */
   util_do_command ("set mode=read");
   util_do_command ("set noquit");
