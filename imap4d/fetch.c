@@ -17,6 +17,7 @@
 
 #include "imap4d.h"
 #include <ctype.h>
+#include <argcv.h>
 
 /* This will suck, too.
    Alain: Yes it does.  */
@@ -60,7 +61,7 @@ static int fetch_body_content      __P ((message_t, unsigned long, unsigned long
 static int fetch_io                __P ((stream_t, unsigned long, unsigned long, unsigned long));
 static int fetch_header_fields     __P ((message_t, char **, unsigned long, unsigned long));
 static int fetch_header_fields_not __P ((message_t, char **, unsigned long, unsigned long));
-static int fetch_send_address      __P ((char *));
+static int fetch_send_address      __P ((const char *));
 
 static struct fetch_command* fetch_getcommand __P ((char *, struct fetch_command[]));
 
@@ -1437,7 +1438,7 @@ fetch_header_fields_not (message_t msg, char **arg, unsigned long start,
 /* FIXME: The address is limit by a buffer of 128, no good.  We should
    allocate the buffer.  */
 static int
-fetch_send_address (char *addr)
+fetch_send_address (const char *addr)
 {
   address_t address;
   size_t i, count = 0;
