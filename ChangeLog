@@ -1,3 +1,9 @@
+2003-08-30  Wojciech Polak
+
+	* auth/tls.c (mu_check_tls_environment): Improved diagnostics.
+	* mailbox/pop/mbox.c (POP_AUTH_USER_ACK): Protect password
+	in debug mode (PASS ***).
+
 2003-08-29  Sergey Poznyakoff 
 
 	* imap4d/bye.c: Do not attempt to write to the output
