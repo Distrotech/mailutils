@@ -683,7 +683,7 @@ _header_date (struct parsebuf *pb, time_t *timep)
   
   message_get_header (pb->msg, &header);
   if (!header_get_value (header, "Date", buffer, sizeof(buffer), NULL)
-      && util_parse_header_date (buffer, timep))
+      && util_parse_822_date (buffer, timep))
     return 0;
   return 1;
 }
@@ -797,7 +797,7 @@ cond_before (struct parsebuf *pb)
   
   message_get_envelope (pb->msg, &env);
   envelope_date (env, buffer, sizeof (buffer), NULL);
-  util_parse_rfc822_date (buffer, &mesg_time);
+  util_parse_ctime_date (buffer, &mesg_time);
   _search_push (pb, mesg_time < t);
 }                   
 
@@ -882,7 +882,7 @@ cond_on (struct parsebuf *pb)
   
   message_get_envelope (pb->msg, &env);
   envelope_date (env, buffer, sizeof (buffer), NULL);
-  util_parse_rfc822_date (buffer, &mesg_time);
+  util_parse_ctime_date (buffer, &mesg_time);
   _search_push (pb, t <= mesg_time && mesg_time <= t + 86400);
 }                       
 
@@ -927,7 +927,7 @@ cond_since (struct parsebuf *pb)
   
   message_get_envelope (pb->msg, &env);
   envelope_date (env, buffer, sizeof (buffer), NULL);
-  util_parse_rfc822_date (buffer, &mesg_time);
+  util_parse_ctime_date (buffer, &mesg_time);
   _search_push (pb, mesg_time >= t);
 }                    
 
