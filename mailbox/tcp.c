@@ -87,7 +87,7 @@ _tcp_open (stream_t stream)
     case TCP_STATE_INIT:
       if (tcp->fd == -1)
 	{
-	  if ((tcp->fd = socket (AF_INET, SOCK_STREAM, 0)) == -1)
+	  if ((tcp->fd = socket (PF_INET, SOCK_STREAM, 0)) == -1)
 	    return errno;
 	}
       if (flags & MU_STREAM_NONBLOCK)

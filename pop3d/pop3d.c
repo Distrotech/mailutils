@@ -466,7 +466,7 @@ pop3d_daemon (unsigned int maxchildren, unsigned int port)
   int listenfd, connfd;
   size_t size;
 
-  listenfd = socket (AF_INET, SOCK_STREAM, 0);
+  listenfd = socket (PF_INET, SOCK_STREAM, 0);
   if (listenfd == -1)
     {
       syslog (LOG_ERR, "socket: %s", strerror(errno));
