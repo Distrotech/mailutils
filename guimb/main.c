@@ -17,8 +17,6 @@
 
 #include "guimb.h"
 
-#include <mailutils/argp.h>
-
 char *program_file;
 char *program_expr;
 int debug_guile;
