@@ -349,7 +349,7 @@ sieve_machine_init (sieve_machine_t *pmach, void *data)
   if (rc)
     {
       free (mach);
-      return NULL;
+      return 1;
     }
   list_append (mach->memory_pool, mach);
   
@@ -402,6 +402,47 @@ ticket_t
 sieve_get_ticket (sieve_machine_t mach)
 {
   return mach->ticket;
+}
+
+struct sieve_destr_record
+{
+  sieve_destructor_t destr;
+  void *ptr;
+};
+
+int
+sieve_machine_add_destructor (sieve_machine_t mach, sieve_destructor_t destr,
+			      void *ptr)
+{
+  struct sieve_destr_record *p;
+  
+  if (!mach->destr_list && list_create (&mach->destr_list))
+    return 1;
+  p = sieve_palloc (&mach->memory_pool, sizeof (*p));
+  if (!p)
+    return 1;
+  p->destr = destr;
+  p->ptr = ptr;
+  return list_append (mach->memory_pool, p);
+}
+
+static int
+_run_destructor (void *data, void *unused)
+{
+  struct sieve_destr_record *p = data;
+  p->destr (p->ptr);
+  return 0;
+}
+
+void
+sieve_machine_destroy (sieve_machine_t *pmach)
+{
+  sieve_machine_t mach = *pmach;
+  list_do (mach->destr_list, _run_destructor, NULL);
+  list_destroy (&mach->destr_list);
+  sieve_slist_destroy (&mach->memory_pool);
+  free (mach);
+  *pmach = NULL;
 }
 
 /* FIXME: When posix thread support is added, sieve_machine_begin() should
