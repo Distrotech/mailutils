@@ -1,3 +1,12 @@
+2002-07-23  Sergey Poznyakoff
+
+	* imap4d/imap4d.c (imap4d_parse_opt): Fixed dereference of
+	  child_inputs. Thanks to Jordi Mallach. 
+	* pop3d/pop3d.c (pop3d_parse_opt): Likewise.
+	  (pop3d_argp_capa): Reordered capabilities to match those of
+	  imap4d.
+	* comsat/comsat.c (comsatd_parse_opt): Likewise.
+
 2002-07-22  Sergey Poznyakoff
 
 	* mail/delete.c (mail_delete): Initialize auto variables.
