@@ -30,9 +30,9 @@ Texts. A copy of the license is included in the file COPYING.
 	Alain Magloire <alainm@gnu.org>,
 	Sergey Poznyakoff <gray@Mirddin.farlep.net> 
 
-%%updated: 27 Jun 2004
+%%updated: 23 Dec 2004
 
-%%keywords: mail, email, pop3, imap4, sieve, comsat, smtp, mh, maildir
+%%keywords: mail, email, pop3, imap4, sieve, comsat, smtp, mh, maildir, movemail
 
 %%interface: Command line, daemon
 
@@ -56,20 +56,19 @@ Texts. A copy of the license is included in the file COPYING.
 	Sergey Poznyakoff <gray@Mirddin.farlep.net>,
 	Wojciech Polak <polak@gnu.org>
 
-%%source-tarball: ftp://ftp.gnu.org/pub/gnu/mailutils/mailutils-0.5.tar.gz
+%%source-tarball: ftp://ftp.gnu.org/pub/gnu/mailutils/mailutils-0.6.tar.gz
 %%source-info: http://savannah.gnu.org/projects/mailutils
 
 %%repository:
-	:pserver:anoncvs@subversions.gnu.org:/cvsroot/mailutils login,
-	:pserver:anoncvs@subversions.gnu.org:/cvsroot/mailutils co mailutils,
+        CVS_RSH=ssh :ext:anoncvs@savannah.gnu.org:/cvsroot/mailutils co mailutils,
 	http://savannah.gnu.org/cvs/?group_id=36,
-	http://subversions.gnu.org/cgi-bin/cvsweb/mailutils,
+	http://savannah.gnu.org/cgi-bin/viewcvs/mailutils/mailutils,
 
 %%source-language: C
 
-%%weak-prerequisites: Guile 1.4, Libtool 1.4.2
+%%weak-prerequisites: Guile 1.6.4, Libtool 1.4.2, GSASL 0.2.3, GnuTLS 1.0.18
 
-%%version: 0.5 released on 27 Jun 2004
+%%version: 0.6 released on 23 Dec 2004
 
 %%bug-list: bug-mailutils@gnu.org bug-mailutils@gnu.org http://mail.gnu.org/mailman/listinfo/bug-mailutils
 
