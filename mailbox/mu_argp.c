@@ -26,7 +26,6 @@
 #include <string.h>
 #include <syslog.h>
 #include <unistd.h>
-#include <xalloc.h>
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -43,7 +42,7 @@
 #include <mailutils/mailer.h>
 #include <mailutils/mailbox.h>
 
-#include <argcv.h>
+#include <mailutils/argcv.h>
 
 #define ARG_LOG_FACILITY 1
 #define ARG_LOCK_FLAGS 2
