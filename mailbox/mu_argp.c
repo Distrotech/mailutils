@@ -2,7 +2,7 @@
    Copyright (C) 1999, 2001 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
-   it under the terms of the GNU Lesser General Public License as published by
+   it under the terms of the GNU General Public License as published by
    the Free Software Foundation; either version 2, or (at your option)
    any later version.
 
@@ -35,11 +35,13 @@
 # include <strings.h>
 #endif
 
+#include <mailutils/argp.h>
 #include <mailutils/error.h>
 #include <mailutils/errno.h>
 #include <mailutils/mutil.h>
 #include <mailutils/locker.h>
-#include <mailutils/mu_argp.h>
+#include <mailutils/mailer.h>
+#include <mailutils/mailbox.h>
 
 #include <argcv.h>
 #include <mu_asprintf.h>
@@ -87,6 +89,13 @@ static struct argp_option mu_address_argp_option[] = {
    "Set current user's email address (default is loginname@defaultdomain)", 0},
   {"email-domain", 'D', "DOMAIN", 0,
    "Set domain for unqualified user names (default is this host)", 0},
+  { NULL,      0, NULL, 0, NULL, 0 }
+};
+
+/* Options used by programs that send mail. */
+static struct argp_option mu_mailer_argp_option[] = {
+  {"mailer", 'M', "MAILER", 0,
+   "Use specified URL as the default mailer", 0},
   { NULL,      0, NULL, 0, NULL, 0 }
 };
 
@@ -185,6 +194,18 @@ struct argp mu_address_argp = {
 
 struct argp_child mu_address_argp_child = {
   &mu_address_argp,
+  0,
+  NULL,
+  0
+};
+
+struct argp mu_mailer_argp = {
+  mu_mailer_argp_option,
+  mu_common_argp_parser,
+};
+
+struct argp_child mu_mailer_argp_child = {
+  &mu_mailer_argp,
   0,
   NULL,
   0
@@ -291,10 +312,6 @@ int  sql_port = MPORT;
 char *pam_service = NULL;
 #endif
 
-void
-mu_argp_fake()
-{
-}
 static error_t
 mu_common_argp_parser (int key, char *arg, struct argp_state *state)
 {
@@ -357,6 +374,16 @@ mu_common_argp_parser (int key, char *arg, struct argp_state *state)
 		arg, mu_errstring(err));
 	  }
       break;
+
+      /* mailer */
+    case 'M':
+      if ((err = mailer_set_url_default(arg)) != 0)
+	  {
+	    argp_error (state, "invalid mailer url '%s': %s",
+		arg, mu_errstring(err));
+	  }
+      break;
+
 
       /* log */
     case ARG_LOG_FACILITY:
@@ -713,6 +740,7 @@ struct argp_capa {
   {"license", &mu_license_argp_child},
   {"mailbox", &mu_mailbox_argp_child},
   {"address", &mu_address_argp_child},
+  {"mailer",  &mu_mailer_argp_child},
   {"logging", &mu_logging_argp_child},
   {"auth",    &mu_auth_argp_child},
   {"daemon",  &mu_daemon_argp_child},
