@@ -45,7 +45,8 @@ static struct argp_option options[] = {
   {"subject", 's', N_("SUBJ"), 0, N_("Send a message with a Subject of SUBJ"), 0},
   {"to",      't', 0,      0, N_("Precede message by a list of addresses"), 0},
   {"user",    'u', N_("USER"), 0, N_("Operate on USER's mailbox"), 0},
-
+  {"append",  'a', N_("HEADER: VALUE"), 0,
+   N_("Append given header to the message being sent."), 0},
   { NULL,      0, NULL, 0, NULL, 0 }
 };
 
@@ -55,6 +56,7 @@ struct arguments
   char **args;
   char *file;
   char *user;
+  int send_mode;
 };
 
 static error_t
@@ -64,6 +66,11 @@ parse_opt (int key, char *arg, struct argp_state *state)
 
   switch (key)
     {
+    case 'a':
+      args->send_mode = 1;
+      send_append_header (arg);
+      break;
+      
     case 'e':
       util_cache_command (&command_list, "set mode=exist");
       break;
@@ -112,9 +119,9 @@ parse_opt (int key, char *arg, struct argp_state *state)
       break;
       
     case 's':
-      util_cache_command (&command_list, "set mode=send");
+      send_append_header2 (MU_HEADER_SUBJECT, arg, COMPOSE_REPLACE);
       util_cache_command (&command_list, "set noasksub");
-      util_cache_command (&command_list, "set subject=\"%s\"", arg);
+      args->send_mode = 1;
       break;
       
     case 'u':
@@ -142,6 +149,11 @@ parse_opt (int key, char *arg, struct argp_state *state)
 	  args->args[state->arg_num + 1] = NULL;
 	  util_cache_command (&command_list, "set mode=send");
 	}
+      break;
+
+    case ARGP_KEY_FINI:
+      if (args->send_mode)
+	util_cache_command (&command_list, "set mode=send");
       break;
       
     default:
@@ -320,7 +332,8 @@ main (int argc, char **argv)
   args.args = NULL;
   args.file = NULL;
   args.user = NULL;
-
+  args.send_mode = 0;
+  
   /* argument parsing */
 
   mu_argp_init (program_version, NULL);
