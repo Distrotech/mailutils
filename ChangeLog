@@ -1,5 +1,13 @@
 2003-08-18  Sergey Poznyakoff 
 
+	* pop3d/extra.c (pop3d_abquit): Flush message headers.
+	* NEWS: Updated.
+	* mail/mail.c (main): If the send mode was interrupted by
+	the user, exit with zero status if mailx is set.
+	* doc/texinfo/programs.texi: Updated.
+	
+2003-08-18  Sergey Poznyakoff 
+
 	* mail/send.c (mail_send, mail_send0): Use `mailx'
 	to control mailx compatibility mode. Thanks Peter S Galbraith
 	<p.galbraith@globetrotter.net> for the idea.
