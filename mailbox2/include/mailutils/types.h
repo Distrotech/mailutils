@@ -1,0 +1,94 @@
+/* GNU mailutils - a suite of utilities for electronic mail
+   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Library Public License as published by
+   the Free Software Foundation; either version 2, or (at your option)
+   any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU Library General Public License for more details.
+
+   You should have received a copy of the GNU Library General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
+
+#ifndef _MAILUTILS_TYPES_H
+#define _MAILUTILS_TYPES_H
+
+#include <sys/types.h>
+
+#include <mailutils/mu_features.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+struct _address;
+struct _attribute;
+struct _authority;
+struct _body;
+struct _debug;
+struct _envelope;
+struct _filter;
+struct _filter_record;
+struct _folder;
+struct _header;
+struct _iterator;
+struct _list;
+struct _locker;
+struct _mailbox;
+struct _mailer;
+struct _message;
+struct _mime;
+struct _observable;
+struct _observer;
+struct _property;
+struct _record;
+struct _stream;
+struct _ticket;
+struct _url;
+struct _wicket;
+struct _refcount;
+struct _pop3;
+struct _lockfile;
+struct _mbox;
+  
+typedef struct _address *address_t;
+typedef struct _attribute *attribute_t;
+typedef struct _authority *authority_t;
+typedef struct _body *body_t;
+typedef struct _mu_debug *mu_debug_t;
+typedef struct _envelope *envelope_t;
+typedef struct _filter *filter_t;
+typedef struct _filter_record *filter_record_t;
+typedef struct _folder *folder_t;
+typedef struct _header * header_t;
+typedef struct _iterator *iterator_t;
+typedef struct _list *mu_list_t;
+typedef struct _locker *locker_t;
+typedef struct _mailbox *mailbox_t;
+typedef struct _mailer *mailer_t;
+typedef struct _message *message_t;
+typedef struct _mime *mime_t;
+typedef struct _observable *observable_t;
+typedef struct _observer *observer_t;
+typedef struct _property *property_t;
+typedef struct _record* record_t;
+typedef struct _stream *stream_t;
+typedef struct _ticket *ticket_t;
+typedef struct _url *url_t;
+typedef struct _wicket *wicket_t;
+typedef struct _refcount *mu_refcount_t;
+typedef struct _pop3 *pop3_t;  
+typedef struct _lockfile *lockfile_t;
+typedef struct _mbox *mbox_t;
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif
+
