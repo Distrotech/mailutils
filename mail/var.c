@@ -1,18 +1,18 @@
-/* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999, 2001 Free Software Foundation, Inc.
+/* GNU Mailutils -- a suite of utilities for electronic mail
+   Copyright (C) 1999, 2001, 2002 Free Software Foundation, Inc.
 
-   This program is free software; you can redistribute it and/or modify
+   GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
    the Free Software Foundation; either version 2, or (at your option)
    any later version.
 
-   This program is distributed in the hope that it will be useful,
+   GNU Mailutils is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
+   along with GNU Mailutils; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 /* Functions for handling escape variables */
@@ -55,7 +55,7 @@ parse_headers (FILE *fp, compose_env_t *env)
   
   if ((status = header_create (&header, NULL, 0, NULL)) != 0)
     {
-      util_error ("can't create header: %s", mu_errstring (status));
+      util_error (_("can't create header: %s"), mu_errstring (status));
       return 1;
     }
 
@@ -91,7 +91,7 @@ parse_headers (FILE *fp, compose_env_t *env)
 		}
 	      else
 		{
-		  util_error ("%d: not a header line", line);
+		  util_error (_("%d: not a header line"), line);
 		  errcnt++;
 		}
 	    }
@@ -117,7 +117,7 @@ parse_headers (FILE *fp, compose_env_t *env)
 		}
 	      else
 		{
-		  util_error ("%d: not a header line", line);
+		  util_error (_("%d: not a header line"), line);
 		  errcnt++;
 		}
 	    }
@@ -138,7 +138,7 @@ parse_headers (FILE *fp, compose_env_t *env)
       char *p;
       
       header_destroy (&header, NULL);
-      p = ml_readline ("Edit again?");
+      p = ml_readline (_("Edit again?"));
       if (*p == 'y' || *p == 'Y')
 	return -1;
       else
@@ -153,7 +153,7 @@ parse_headers (FILE *fp, compose_env_t *env)
 static void
 var_continue (void)
 {
-  fprintf (stdout, "(continue)\n");
+  fprintf (stdout, _("(continue)\n"));
 }
 
 static int 
@@ -163,7 +163,7 @@ var_check_args (int argc, char **argv)
     {
       char *escape = "~";
       util_getenv (&escape, "escape", Mail_env_string, 0);
-      util_error ("%c%s requires an argument", escape[0], argv[0]);
+      util_error (_("%c%s requires an argument"), escape[0], argv[0]);
       return 1;
     }
   return 0;
@@ -195,12 +195,12 @@ var_command (int argc, char **argv, compose_env_t *env)
   entry = util_find_entry (mail_command_table, argv[1]);
   if (!entry.func)
     {
-      util_error ("Unknown command: %s", argv[1]);
+      util_error (_("Unknown command: %s"), argv[1]);
       return 1;
     }
   if (entry.flags & (EF_FLOW | EF_SEND))
     {
-      util_error ("Command not allowed in an escape sequence\n");
+      util_error (_("Command not allowed in an escape sequence\n"));
       return 1;
     }
 
@@ -251,11 +251,11 @@ var_sign (int argc, char **argv, compose_env_t *env)
 
 	  if (!fp)
 	    {
-	      util_error ("can't open %s: %s", name, strerror (errno));
+	      util_error (_("can't open %s: %s"), name, strerror (errno));
 	      free (name);
 	    }
 
-	  fprintf (stdout, "Reading %s\n", name);
+	  fprintf (stdout, _("Reading %s\n"), name);
 	  while (getline (&buf, &n, fp) > 0)
 	    fprintf (ofile, "%s", buf);
 
@@ -455,7 +455,7 @@ var_quote (int argc, char **argv, compose_env_t *env)
       if (util_get_message (mbox, cursor, &mesg, MSG_NODELETED))
 	return 1;
 
-      fprintf (stdout, "Interpolating: %d\n", cursor);
+      fprintf (stdout, _("Interpolating: %d\n"), cursor);
 
       util_getenv (&prefix, "indentprefix", Mail_env_string, 0);
 
@@ -516,7 +516,7 @@ var_type_input (int argc, char **argv, compose_env_t *env)
 {
   char buffer[512];
 
-  fprintf (env->ofile, "Message contains:\n");
+  fprintf (env->ofile, _("Message contains:\n"));
 
   dump_headers (env->ofile, env);
 
@@ -546,7 +546,7 @@ var_read (int argc, char **argv, compose_env_t *env)
   inf = fopen (filename, "r");
   if (!inf)
     {
-      util_error ("can't open %s: %s\n", filename, strerror (errno));
+      util_error (_("can't open %s: %s\n"), filename, strerror (errno));
       free (filename);
       return 1;
     }
@@ -601,7 +601,7 @@ var_write (int argc, char **argv, compose_env_t *env)
 
   if (!fp)
     {
-      util_error ("can't open %s: %s\n", filename, strerror (errno));
+      util_error (_("can't open %s: %s\n"), filename, strerror (errno));
       free (filename);
       return 1;
     }
@@ -631,7 +631,7 @@ var_pipe (int argc, char **argv, compose_env_t *env)
 
   if (argc == 1)
     {
-      util_error ("pipe: no command specified");
+      util_error (_("pipe: no command specified"));
       return 1;
     }
 
@@ -675,7 +675,7 @@ var_pipe (int argc, char **argv, compose_env_t *env)
 	xargv[i] = argv[i + 1];
       xargv[i] = NULL;
       execvp (xargv[0], xargv);
-      util_error ("cannot exec process `%s': %s", xargv[0], strerror (errno));
+      util_error (_("cannot exec process `%s': %s"), xargv[0], strerror (errno));
       exit (1);
     }
   else
@@ -708,14 +708,14 @@ var_pipe (int argc, char **argv, compose_env_t *env)
       waitpid (pid, &status, 0);
       if (!WIFEXITED (status))
 	{
-	  util_error ("child terminated abnormally: %d", WEXITSTATUS (status));
+	  util_error (_("child terminated abnormally: %d"), WEXITSTATUS (status));
 	}
       else
 	{
 	  struct stat st;
 	  if (fstat (fd, &st))
 	    {
-	      util_error ("can't stat output file: %s", strerror (errno));
+	      util_error (_("can't stat output file: %s"), strerror (errno));
 	    }
 	  else if (st.st_size > 0)
 	    rc = 0;
@@ -725,7 +725,7 @@ var_pipe (int argc, char **argv, compose_env_t *env)
 	       (unsigned long) lines, (unsigned long) size);
       if (rc)
 	{
-	  fprintf (stdout, "no lines out\n");
+	  fprintf (stdout, _("no lines out\n"));
 	}
       else
 	{

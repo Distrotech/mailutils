@@ -1,18 +1,18 @@
-/* GNU mailutils - a suite of utilities for electronic mail
+/* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
 
-   This program is free software; you can redistribute it and/or modify
+   GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Library Public License as published by
    the Free Software Foundation; either version 2, or (at your option)
    any later version.
 
-   This program is distributed in the hope that it will be useful,
+   GNU Mailutils is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU Library General Public License for more details.
 
    You should have received a copy of the GNU Library General Public License
-   along with this program; if not, write to the Free Software
+   along with GNU Mailutils; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #ifdef HAVE_CONFIG_H
@@ -31,14 +31,13 @@
 static int messages_count (const char *);
 
 const char *argp_program_version = "messages (" PACKAGE_STRING ")";
-static char doc[] = "GNU messages -- count the number of messages in a mailbox";
-static char args_doc[] = "[mailbox...]";
+static char doc[] = N_("GNU messages -- count the number of messages in a mailbox");
+static char args_doc[] = N_("[mailbox...]");
 
 static struct argp_option options[] = {
-  {NULL, 0, NULL, 0,
-   "messages specific switches:", 0},
-  {"quiet",	'q',	0,	0,	"Only display number of messages"},
-  {"silent",	's',	0,	0,	"Same as -q"},
+  { NULL,         0, NULL,  0,  N_("messages specific switches:"), 0},
+  {"quiet",	'q',	0,	0,	N_("Only display number of messages")},
+  {"silent",	's',	0,	0,	N_("Same as -q")},
   { 0 }
 };
 
@@ -98,6 +97,9 @@ main (int argc, char **argv)
   int err = 0;
   struct arguments args = {0, NULL};
 
+  /* Native Language Support */
+  mu_init_nls ();
+
   mu_argp_parse (&argp, &argc, &argv, 0, argp_capa, NULL, &args);
 
   registrar_get_list (&bookie);
@@ -126,7 +128,7 @@ messages_count (const char *box)
 
   if (mailbox_create_default (&mbox, box) != 0)
     {
-      fprintf (stderr, "Couldn't create mailbox %s.\n", (box) ? box : "");
+      fprintf (stderr, _("Couldn't create mailbox %s.\n"), (box) ? box : "");
       return -1;
     }
 
@@ -135,24 +137,24 @@ messages_count (const char *box)
 
   if (mailbox_open (mbox, MU_STREAM_READ) != 0)
     {
-      fprintf (stderr, "Couldn't open mailbox %s.\n", box);
+      fprintf (stderr, _("Couldn't open mailbox %s.\n"), box);
       return -1;
     }
 
   if (mailbox_messages_count (mbox, &count) != 0)
     {
-      fprintf (stderr, "Couldn't count messages in %s.\n", box);
+      fprintf (stderr, _("Couldn't count messages in %s.\n"), box);
       return -1;
     }
 
   if (silent)
     printf ("%d\n", count);
   else
-    printf ("Number of messages in %s: %d\n", box, count);
+    printf (_("Number of messages in %s: %d\n"), box, count);
 
   if (mailbox_close (mbox) != 0)
     {
-      fprintf (stderr, "Couldn't close %s.\n", box);
+      fprintf (stderr, _("Couldn't close %s.\n"), box);
       return -1;
     }
   mailbox_destroy (&mbox);

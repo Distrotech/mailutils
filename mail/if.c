@@ -1,18 +1,18 @@
-/* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999, 2001 Free Software Foundation, Inc.
+/* GNU Mailutils -- a suite of utilities for electronic mail
+   Copyright (C) 1999, 2001, 2002 Free Software Foundation, Inc.
 
-   This program is free software; you can redistribute it and/or modify
+   GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
    the Free Software Foundation; either version 2, or (at your option)
    any later version.
 
-   This program is distributed in the hope that it will be useful,
+   GNU Mailutils is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
+   along with GNU Mailutils; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #include "mail.h"
@@ -52,7 +52,7 @@ _cond_push(int val)
 
   if (!_cond_stack)
     {
-      util_error("not enough memory");
+      util_error(_("not enough memory"));
       exit (EXIT_FAILURE);
     }
   _cond_stack[_cond_level++] = val;
@@ -63,7 +63,7 @@ _cond_pop()
 {
   if (_cond_level == 0)
     {
-      util_error("internal error: condition stack underflow");
+      util_error(_("internal error: condition stack underflow"));
       abort();
     }
   return _cond_stack[--_cond_level];
@@ -85,13 +85,13 @@ mail_if (int argc, char **argv)
 
   if (argc != 2)
     {
-      util_error("if requires an argument: s | r | t");
+      util_error(_("if requires an argument: s | r | t"));
       return 1;
     }
 
   if (argv[1][1] != 0)
     {
-      util_error("valid if arguments are: s | r | t");
+      util_error(_("valid if arguments are: s | r | t"));
       return 1;
     }
 
@@ -115,7 +115,7 @@ mail_if (int argc, char **argv)
 	  cond = interactive;
 	  break;
 	default:
-	  util_error("valid if arguments are: s | r | t");
+	  util_error(_("valid if arguments are: s | r | t"));
 	  return 1;
 	}
     }
@@ -131,7 +131,7 @@ mail_else (int argc, char **argv)
   (void)argc; (void)argv;
   if (_cond_level == 0)
     {
-      util_error("else without matching if");
+      util_error(_("else without matching if"));
       return 1;
     }
   cond = _cond_pop();
@@ -147,11 +147,10 @@ mail_endif (int argc, char **argv)
   (void)argc; (void)argv;
   if (_cond_level == 0)
     {
-      util_error("endif without matching if");
+      util_error(_("endif without matching if"));
       return 1;
     }
   _cond_pop();
   return 1;
 }
-
 

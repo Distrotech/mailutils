@@ -1,18 +1,18 @@
-/* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999, 2001 Free Software Foundation, Inc.
+/* GNU Mailutils -- a suite of utilities for electronic mail
+   Copyright (C) 1999, 2001, 2002 Free Software Foundation, Inc.
 
-   This program is free software; you can redistribute it and/or modify
+   GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
    the Free Software Foundation; either version 2, or (at your option)
    any later version.
 
-   This program is distributed in the hope that it will be useful,
+   GNU Mailutils is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
+   along with GNU Mailutils; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #include "pop3d.h"
@@ -94,34 +94,34 @@ pop3d_abquit (int reason)
     {
     case ERR_NO_MEM:
       pop3d_outf ("-ERR Out of memory, quitting\r\n");
-      syslog (LOG_ERR, "Out of memory");
+      syslog (LOG_ERR, _("Out of memory"));
       break;
 
     case ERR_SIGNAL:
       pop3d_outf ("-ERR Quitting on signal\r\n");
-      syslog (LOG_ERR, "Quitting on signal");
+      syslog (LOG_ERR, _("Quitting on signal"));
       break;
 
     case ERR_TIMEOUT:
       pop3d_outf ("-ERR Session timed out\r\n");
       if (state == TRANSACTION)
-	syslog (LOG_INFO, "Session timed out for user: %s", username);
+	syslog (LOG_INFO, _("Session timed out for user: %s"), username);
       else
-	syslog (LOG_INFO, "Session timed out for no user");
+	syslog (LOG_INFO, _("Session timed out for no user"));
       break;
 
     case ERR_NO_OFILE:
-      syslog (LOG_INFO, "No socket to send to");
+      syslog (LOG_INFO, _("No socket to send to"));
       break;
 
     case ERR_MBOX_SYNC:
-      syslog (LOG_ERR, "Mailbox was updated by other party: %s", username);
+      syslog (LOG_ERR, _("Mailbox was updated by other party: %s"), username);
       pop3d_outf ("-ERR [OUT-SYNC] Mailbox updated by other party or corrupt\r\n");
       break;
 
     default:
       pop3d_outf ("-ERR Quitting (reason unknown)\r\n");
-      syslog (LOG_ERR, "Unknown quit");
+      syslog (LOG_ERR, _("Unknown quit"));
       break;
     }
 

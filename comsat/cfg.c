@@ -1,4 +1,4 @@
-/* Copyright (C) 1998,2001 Free Software Foundation, Inc.
+/* Copyright (C) 1998, 2001, 2002 Free Software Foundation, Inc.
 
    This file is part of GNU Inetutils.
 
@@ -111,7 +111,7 @@ netdef_parse (char *str)
   netdef = malloc (sizeof *netdef);
   if (!netdef)
     {
-      syslog (LOG_ERR, "out of memory");
+      syslog (LOG_ERR, _("out of memory"));
       exit (1);
     }
 
@@ -136,7 +136,7 @@ read_config (const char *config_file)
   fp = fopen (config_file, "r");
   if (!fp)
     {
-      syslog (LOG_ERR, "can't open config file %s: %m", config_file);
+      syslog (LOG_ERR, _("can't open config file %s: %m"), config_file);
       return;
     }
 
@@ -163,7 +163,7 @@ read_config (const char *config_file)
       argcv_get (ptr, "", NULL, &argc, &argv);
       if (argc < 2)
 	{
-	  syslog (LOG_ERR, "%s:%d: too few fields", config_file, line);
+	  syslog (LOG_ERR, _("%s:%d: too few fields"), config_file, line);
 	  argcv_free (argc, argv);
 	  continue;
 	}
@@ -175,7 +175,7 @@ read_config (const char *config_file)
 	  else if (strcmp (argv[1], "no") == 0)
 	    allow_biffrc = 0;
 	  else
-	    syslog (LOG_ERR, "%s:%d: yes or no expected", config_file, line);
+	    syslog (LOG_ERR, _("%s:%d: yes or no expected"), config_file, line);
 	}
       else if (strcmp (argv[0], "max-requests") == 0)
 	maxrequests = strtoul (argv[1], NULL, 0);
@@ -195,7 +195,7 @@ read_config (const char *config_file)
 	    action = ACT_DENY;
 	  else
 	    {
-	      syslog (LOG_ERR, "%s:%d: unknown keyword", config_file, line);
+	      syslog (LOG_ERR, _("%s:%d: unknown keyword"), config_file, line);
 	      argcv_free (argc, argv);
 	      continue;
 	    }
@@ -206,7 +206,7 @@ read_config (const char *config_file)
 	      netdef_t *cur = netdef_parse (argv[i]);
 	      if (!cur)
 		{
-		  syslog (LOG_ERR, "%s:%d: can't parse netdef: %s",
+		  syslog (LOG_ERR, _("%s:%d: can't parse netdef: %s"),
 			  config_file, line, argv[i]);
 		  continue;
 		}
@@ -222,7 +222,7 @@ read_config (const char *config_file)
 	  acl = malloc (sizeof *acl);
 	  if (!acl)
 	    {
-	      syslog (LOG_CRIT, "out of memory");
+	      syslog (LOG_CRIT, _("out of memory"));
 	      exit (1);
 	    }
 	  acl->next = NULL;

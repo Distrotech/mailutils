@@ -1,18 +1,18 @@
-/* GNU mailutils - a suite of utilities for electronic mail
+/* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
 
-   This program is free software; you can redistribute it and/or modify
+   GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
    the Free Software Foundation; either version 2, or (at your option)
    any later version.
 
-   This program is distributed in the hope that it will be useful,
+   GNU Mailutils is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
+   along with GNU Mailutils; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #include "mail.h"
@@ -148,7 +148,7 @@ util_do_command (const char *c, ...)
     }
   else
     {
-      util_error ("Unknown command: %s", argv[0]);
+      util_error (_("Unknown command: %s"), argv[0]);
       status = 1;
     }
 
@@ -390,7 +390,7 @@ util_getenv (void *ptr, const char *variable, mail_env_data_t type, int warn)
   if (!mail_env_entry_is_set (env) || env->type != type)
     {
       if (warn)
-	util_error ("No value set for \"%s\"", variable);
+	util_error (_("No value set for \"%s\""), variable);
       return 1;
     }
   if (ptr)
@@ -488,7 +488,7 @@ util_printenv (int set)
 	      break;
 	      
 	    case Mail_env_whatever:
-	      fprintf (ofile, "oops?");
+	      fprintf (ofile, _("oops?"));
 	    }
 	  fprintf (ofile, "\n");
 	}
@@ -583,7 +583,7 @@ util_get_homedir ()
   if (!homedir)
     {
       /* Shouldn't happen, but one never knows */
-      util_error ("can't get homedir");
+      util_error (_("can't get homedir"));
       exit (EXIT_FAILURE);
     }
   return homedir;
@@ -646,14 +646,14 @@ util_get_sender(int msgno, int strip)
       if (envelope_sender (env, buffer, sizeof (buffer), NULL)
 	  || address_create (&addr, buffer))
 	{
-	  util_error("can't determine sender name (msg %d)", msgno);
+	  util_error (_("can't determine sender name (msg %d)"), msgno);
 	  return NULL;
 	}
     }
 
   if (address_get_email (addr, 1, buffer, sizeof(buffer), NULL))
     {
-      util_error("can't determine sender name (msg %d)", msgno);
+      util_error (_("can't determine sender name (msg %d)"), msgno);
       address_destroy (&addr);
       return NULL;
     }
@@ -721,7 +721,7 @@ util_slist_add (list_t *list, char *value)
 
   if ((p = strdup(value)) == NULL)
     {
-      util_error("not enough memory\n");
+      util_error(_("not enough memory\n"));
       return;
     }
   list_append (*list, p);
@@ -879,7 +879,7 @@ util_save_outgoing (message_t msg, char *savefile)
       outfile = fopen (filename, "a");
       if (!outfile)
 	{
-	  util_error("can't open save file %s: %s",
+	  util_error(_("can't open save file %s: %s"),
 		     filename, strerror (errno));
 	}
       else
@@ -896,7 +896,7 @@ util_save_outgoing (message_t msg, char *savefile)
 
 	  if (!bsize)
 	    {
-	      util_error("not enough memory for creating save file");
+	      util_error(_("not enough memory for creating save file"));
 	    }
 	  else
 	    {
@@ -981,7 +981,7 @@ util_help (const struct mail_command_entry *table, char *word)
       else
 	{
 	  status = 1;
-	  fprintf (stdout, "Unknown command: %s\n", word);
+	  fprintf (stdout, _("Unknown command: %s\n"), word);
 	}
       return status;
     }
@@ -1006,7 +1006,7 @@ util_descend_subparts (message_t mesg, msgset_t *msgset, message_t *part)
 	{
 	  if (message_unencapsulate (mesg, &submsg, NULL))
 	    {
-	      util_error ("can't unencapsulate message/part");
+	      util_error (_("can't unencapsulate message/part"));
 	      return 1;
 	    }
 	  mesg = submsg;
@@ -1015,14 +1015,14 @@ util_descend_subparts (message_t mesg, msgset_t *msgset, message_t *part)
       message_get_num_parts (mesg, &nparts);
       if (nparts < msgset->msg_part[i])
 	{
-	  util_error ("no such (sub)part in the message: %d",
+	  util_error (_("no such (sub)part in the message: %d"),
 		      msgset->msg_part[i]);
 	  return 1;
 	}
 
       if (message_get_part (mesg, msgset->msg_part[i], &submsg))
 	{
-	  util_error ("can't get (sub)part from the message: %d",
+	  util_error (_("can't get (sub)part from the message: %d"),
 		      msgset->msg_part[i]);
 	  return 1;
 	}
@@ -1146,7 +1146,7 @@ util_header_expand (header_t *phdr)
   rc = header_create (&hdr, "", 0, NULL);
   if (rc)
     {
-      util_error ("can't create temporary header: %s", mu_errstring (rc));
+      util_error (_("can't create temporary header: %s"), mu_errstring (rc));
       return 1;
     }
       
@@ -1187,10 +1187,10 @@ util_header_expand (header_t *phdr)
 		{
 		  errcnt++;
 		  if (exp)
-		    util_error ("can't parse address `%s' (while expanding `%s'): %s",
+		    util_error (_("can't parse address `%s' (while expanding `%s'): %s"),
 				exp, p, mu_errstring (rc));
 		  else
-		    util_error ("can't parse address `%s': %s",
+		    util_error (_("can't parse address `%s': %s"),
 				p, mu_errstring (rc));
 		}
 	      
@@ -1243,7 +1243,7 @@ util_get_message (mailbox_t mbox, size_t msgno, message_t *msg, int flag)
   status = mailbox_get_message (mbox, msgno, msg);
   if (status)
     {
-      util_error ("can't get message %lu: %s",
+      util_error (_("can't get message %lu: %s"),
 		  (unsigned long) msgno, mu_errstring (status));
       return status;
     }
@@ -1251,7 +1251,7 @@ util_get_message (mailbox_t mbox, size_t msgno, message_t *msg, int flag)
   if ((flag & MSG_NODELETED) && util_isdeleted (*msg))
     {
       if (!(flag & MSG_SILENT))
-	util_error ("%lu: Inappropriate message (has been deleted)",
+	util_error (_("%lu: Inappropriate message (has been deleted)"),
 		    (unsigned long) msgno);
       return ENOENT;
     }
@@ -1261,6 +1261,6 @@ util_get_message (mailbox_t mbox, size_t msgno, message_t *msg, int flag)
 int
 util_error_range (size_t msgno)
 {
-  util_error ("%d: invalid message number", msgno);
+  util_error (_("%d: invalid message number"), msgno);
   return 1;
 }

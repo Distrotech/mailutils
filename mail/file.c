@@ -1,18 +1,18 @@
-/* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999, 2001 Free Software Foundation, Inc.
+/* GNU Mailutils -- a suite of utilities for electronic mail
+   Copyright (C) 1999, 2001, 2002 Free Software Foundation, Inc.
 
-   This program is free software; you can redistribute it and/or modify
+   GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
    the Free Software Foundation; either version 2, or (at your option)
    any later version.
 
-   This program is distributed in the hope that it will be useful,
+   GNU Mailutils is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
+   along with GNU Mailutils; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #include "mail.h"
@@ -36,7 +36,7 @@ mail_expand_name (const char *name)
     {
     case '#':
       if (!prev_name)
-	util_error ("No previous file");
+	util_error (_("No previous file"));
       else
 	name = xstrdup (prev_name);
       break;
@@ -44,7 +44,7 @@ mail_expand_name (const char *name)
     case '&':
       name = getenv ("MBOX");
       if (!name)
-	util_error ("MBOX environment variable not set");
+	util_error (_("MBOX environment variable not set"));
       else
 	name = xstrdup (name);
       break;
@@ -87,7 +87,7 @@ mail_file (int argc, char **argv)
 	  || mailbox_open (newbox, MU_STREAM_RDWR) != 0)
 	{
 	  mailbox_destroy (&newbox);
-	  util_error("can't open mailbox %s: %s", name, mu_errstring (errno));
+	  util_error(_("can't open mailbox %s: %s"), name, mu_errstring (errno));
 	  free (name);
 	  return 1;
 	}
@@ -121,7 +121,7 @@ mail_file (int argc, char **argv)
     }
   else
     {
-      util_error("%s takes only one arg", argv[0]);
+      util_error(_("%s takes only one arg"), argv[0]);
     }
   return 1;
 }

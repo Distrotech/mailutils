@@ -2,13 +2,16 @@
 # Copyright (C) 2000,2001,2002 Free Software Foundation
 # See file COPYING in the distribution root directory for copying conditions.
 
-INCLUDES = -I${top_srcdir}/include -I${top_srcdir}/mailbox -I${top_srcdir}/mailbox/include -I${top_srcdir}/include/mailutils/gnu
+INCLUDES = -I${top_srcdir}/include -I$(top_srcdir)/intl -I${top_srcdir}/mailbox -I${top_srcdir}/mailbox/include -I${top_srcdir}/include/mailutils/gnu
 AM_CFLAGS = -DSITE_VIRTUAL_PWDDIR=\"@SITE_VIRTUAL_PWDDIR@\"
 
 SUBDIRS = include testsuite
 
 lib_LTLIBRARIES = libmailbox.la
 bin_PROGRAMS = mailutils-config
+
+localedir = $(datadir)/locale
+DEFS = @DEFS@ -DLOCALEDIR=\"$(localedir)\"
 
 EXTRA_DIST = mbx_mboxscan.c strtok_r.c \
  strndup.c strnlen.c strchrnul.c argp-ba.c argp-eexst.c \
@@ -60,6 +63,7 @@ mu_auth.c \
 mutil.c \
 muerror.c \
 muerrno.c \
+nls.c \
 observer.c \
 parse822.c \
 property.c \
@@ -82,9 +86,9 @@ url_smtp.c \
 wicket.c
 
 libmailbox_la_DEPENDENCIES = @MU_LTLIBOBJS@
-libmailbox_la_LIBADD = @MU_LTLIBOBJS@
+libmailbox_la_LIBADD = @MU_LTLIBOBJS@ @LIBINTL@
 libmailbox_la_LDFLAGS = -version-info 0:0:0
 
 mailutils_config_SOURCES = mailutils-config.c
 mailutils_config_LDADD = ./libmailbox.la ../lib/libmailutils.la
-mailutils_config_CFLAGS = -DCOMPILE_FLAGS="\"-I$(includedir)\"" -DLINK_FLAGS="\"-L$(libdir)\"" -DAUTHLIBS="\"$(MYSQLLIBS)\"" -DGUILE_LIBS="\"$(GUILE_LIBS)\""
+mailutils_config_CFLAGS = -DCOMPILE_FLAGS="\"-I$(includedir)\"" -I$(top_srcdir)/intl -DLINK_FLAGS="\"-L$(libdir)\"" -DAUTHLIBS="\"$(MYSQLLIBS)\"" -DGUILE_LIBS="\"$(GUILE_LIBS)\""

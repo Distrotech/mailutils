@@ -5,7 +5,7 @@
 AUTOMAKE_OPTIONS = gnu 1.7.1 readme-alpha std-options
 ACLOCAL_AMFLAGS = -I m4
 
-SUBDIRS = include m4 lib testsuite mailbox libsieve examples doc \
+SUBDIRS = include m4 intl po lib testsuite mailbox libsieve examples doc \
           auth frm from pop3d imap4d \
           mail sieve scripts libmu_scm guimb messages comsat readmsg \
           mail.local mail.remote dotlock mh 

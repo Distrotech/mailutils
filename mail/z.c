@@ -1,18 +1,18 @@
-/* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999, 2001 Free Software Foundation, Inc.
+/* GNU Mailutils -- a suite of utilities for electronic mail
+   Copyright (C) 1999, 2001, 2002 Free Software Foundation, Inc.
 
-   This program is free software; you can redistribute it and/or modify
+   GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
    the Free Software Foundation; either version 2, or (at your option)
    any later version.
 
-   This program is distributed in the hope that it will be useful,
+   GNU Mailutils is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
+   along with GNU Mailutils; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #include "mail.h"
@@ -60,7 +60,7 @@ z_parse_args(int argc, char **argv, unsigned int *return_count, int *return_dir)
 	 dir = D_NONE;
 	 break;
        default:
-	 util_error("Bad arguments for the scrolling command");
+	 util_error (_("Bad arguments for the scrolling command"));
 	 return 1;
        }
 
@@ -75,7 +75,7 @@ z_parse_args(int argc, char **argv, unsigned int *return_count, int *return_dir)
 
       if (argc > 1)
 	{
-	  util_error("Too many arguments for the scrolling command");
+	  util_error (_("Too many arguments for the scrolling command"));
 	  return 1;
 	}
 
@@ -83,13 +83,13 @@ z_parse_args(int argc, char **argv, unsigned int *return_count, int *return_dir)
 	{
 	  if (dir == D_NONE)
 	    {
-	      util_error("argument not applicable for z.");
+	      util_error (_("argument not applicable for z."));
 	      return 1;
 	    }
 
 	  if ((mul = strtoul (argp, NULL, 10)) == 0)
 	    {
-	      util_error("Bad number of pages");
+	      util_error (_("Bad number of pages"));
 	      return 1;
 	    }
 	}
@@ -121,7 +121,7 @@ mail_z (int argc, char **argv)
     case D_BWD:
       if (cursor < nlines)
 	{
-	  fprintf(stdout, "On first screenful of messages\n");
+	  fprintf (stdout, _("On first screenful of messages\n"));
 	  return 0;
 	}
       if (cursor < count)
@@ -133,7 +133,7 @@ mail_z (int argc, char **argv)
     case D_FWD:
       if (cursor + pagelines > total)
 	{
-	  fprintf(stdout, "On last screenful of messages\n");
+	  fprintf (stdout, _("On last screenful of messages\n"));
 	  return 0;
 	}
 
@@ -144,7 +144,7 @@ mail_z (int argc, char **argv)
 
       if (nlines <= 0)
 	{
-	  fprintf(stdout, "On last screenful of messages\n");
+	  fprintf (stdout, _("On last screenful of messages\n"));
 	  return 0;
 	}
       break;
@@ -157,6 +157,7 @@ mail_z (int argc, char **argv)
 	   when displaying the summary and the headers, new messages
 	   are last but we want to display a screenful with the
 	   real cursor set by summary() to the new message.  */
+
 	/* Find the start of the last screen page.  */
 	int lastpage =  total - pagelines + 1;
 	if (lastpage <= 0)

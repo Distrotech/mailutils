@@ -1,18 +1,18 @@
-/* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999, 2001 Free Software Foundation, Inc.
+/* GNU Mailutils -- a suite of utilities for electronic mail
+   Copyright (C) 1999, 2001, 2002 Free Software Foundation, Inc.
 
-   This program is free software; you can redistribute it and/or modify
+   GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
    the Free Software Foundation; either version 2, or (at your option)
    any later version.
 
-   This program is distributed in the hope that it will be useful,
+   GNU Mailutils is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
+   along with GNU Mailutils; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #include <sys/types.h>
@@ -112,7 +112,7 @@ compose_header_set (compose_env_t * env, char *name, char *value, int mode)
   if (!env->header
       && (status = header_create (&env->header, NULL, 0, NULL)) != 0)
     {
-      util_error ("can't create header: %s", mu_errstring (status));
+      util_error (_("can't create header: %s"), mu_errstring (status));
       return status;
     }
 
@@ -195,7 +195,7 @@ mail_send0 (compose_env_t * env, int save_to)
 
   if (fd == -1)
     {
-      util_error ("Can not open temporary file");
+      util_error (_("Can not open temporary file"));
       return 1;
     }
 
@@ -224,7 +224,7 @@ mail_send0 (compose_env_t * env, int save_to)
 		free (buf);
 	      if (++int_cnt == 2)
 		break;
-	      util_error ("(Interrupt -- one more to kill letter)");
+	      util_error (_("(Interrupt -- one more to kill letter)"));
 	    }
 	  continue;
 	}
@@ -234,8 +234,8 @@ mail_send0 (compose_env_t * env, int save_to)
 	  if (util_getenv (NULL, "ignore", Mail_env_boolean, 0) == 0)
 	    {
 	      util_error (util_getenv (NULL, "dot", Mail_env_boolean, 0) == 0 ?
-			  "Use \".\" to terminate letter." :
-			  "Use \"~.\" to terminate letter.");
+			  _("Use \".\" to terminate letter.") :
+			  _("Use \"~.\" to terminate letter."));
 	      continue;
 	    }
 	  else
@@ -275,11 +275,11 @@ mail_send0 (compose_env_t * env, int save_to)
 		  if (entry.escfunc)
 		    status = (*entry.escfunc) (argc, argv, env);
 		  else
-		    util_error ("Unknown escape %s", argv[0]);
+		    util_error (_("Unknown escape %s"), argv[0]);
 		}
 	      else
 		{
-		  util_error ("can't parse escape sequence");
+		  util_error (_("can't parse escape sequence"));
 		}
 	      argcv_free (argc, argv);
 
@@ -304,7 +304,7 @@ mail_send0 (compose_env_t * env, int save_to)
 
 	  if (!fp)
 	    {
-	      util_error ("can't open file %s: %s", getenv ("DEAD"),
+	      util_error (_("can't open file %s: %s"), getenv ("DEAD"),
 			  strerror (errno));
 	    }
 	  else
@@ -359,7 +359,7 @@ mail_send0 (compose_env_t * env, int save_to)
 	      }
 	    
 	    if (offset == 0)
-	      util_error ("Null message body; hope that's ok\n");
+	      util_error (_("Null message body; hope that's ok\n"));
 	    if (buf)
 	      free (buf);
 	  }
@@ -413,7 +413,7 @@ mail_send0 (compose_env_t * env, int save_to)
 			  mailbox_destroy (&mbx);
 			}
 		      if (status)
-			util_error ("can't create mailbox %s", env->outfiles[i]);
+			util_error (_("can't create mailbox %s"), env->outfiles[i]);
 		    }
 		}
 	    }
@@ -449,7 +449,7 @@ mail_send0 (compose_env_t * env, int save_to)
 		    msg_to_pipe (sendmail, msg);
 		}
 	      else
-		util_error ("variable sendmail not set: no mailer");
+		util_error (_("variable sendmail not set: no mailer"));
 	    }
 	  message_destroy (&msg, NULL);
 	  remove (filename);
@@ -497,5 +497,5 @@ msg_to_pipe (const char *cmd, message_t msg)
       fclose (fp);
     }
   else
-    util_error ("Piping %s failed", cmd);
+    util_error (_("Piping %s failed"), cmd);
 }

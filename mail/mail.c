@@ -1,18 +1,18 @@
-/* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+/* GNU Mailutils -- a suite of utilities for electronic mail
+   Copyright (C) 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
 
-   This program is free software; you can redistribute it and/or modify
+   GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
    the Free Software Foundation; either version 2, or (at your option)
    any later version.
 
-   This program is distributed in the hope that it will be useful,
+   GNU Mailutils is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
+   along with GNU Mailutils; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #include "mail.h"
@@ -26,29 +26,29 @@ FILE *ofile;
 int interactive;
 
 const char *argp_program_version = "mail (" PACKAGE_STRING ")";
-static char doc[] = "GNU mail -- the standard /bin/mail interface";
-static char args_doc[] = "[address...]";
+static char doc[] = N_("GNU mail -- the standard /bin/mail interface");
+static char args_doc[] = N_("[address...]");
 
 static struct argp_option options[] = {
-  {"exist",   'e', 0,      0, "Return true if mail exists", 0},
+  {"exist",   'e', 0,      0, N_("Return true if mail exists"), 0},
   {"file",    'f', "FILE", OPTION_ARG_OPTIONAL,
-			      "Operate on mailbox FILE (default ~/mbox)", 0},
-  {"byname",  'F', 0,      0, "Save messages according to sender", 0},
-  {"headers", 'H', 0,      0, "Write a header summary and exit", 0},
-  {"ignore",  'i', 0,      0, "Ignore interrupts", 0},
-  {"norc",    'n', 0,      0, "Do not read the system mailrc file", 0},
-  {"nosum",   'N', 0,      0, "Do not display initial header summary", 0},
-  {"print",   'p', 0,      0, "Print all mail to standard output", 0},
-  {"quit",    'q', 0,      0, "Cause interrupts to terminate program", 0},
-  {"read",    'r', 0,      0, "Same as -p", 0},
-  {"subject", 's', "SUBJ", 0, "Send a message with a Subject of SUBJ", 0},
-  {"to",      't', 0,      0, "Precede message by a list of addresses", 0},
-  {"user",    'u', "USER", 0, "Operate on USER's mailbox", 0},
+			          N_("Operate on mailbox FILE (default ~/mbox)"), 0},
+  {"byname",  'F', 0,      0, N_("Save messages according to sender"), 0},
+  {"headers", 'H', 0,      0, N_("Write a header summary and exit"), 0},
+  {"ignore",  'i', 0,      0, N_("Ignore interrupts"), 0},
+  {"norc",    'n', 0,      0, N_("Do not read the system mailrc file"), 0},
+  {"nosum",   'N', 0,      0, N_("Do not display initial header summary"), 0},
+  {"print",   'p', 0,      0, N_("Print all mail to standard output"), 0},
+  {"quit",    'q', 0,      0, N_("Cause interrupts to terminate program"), 0},
+  {"read",    'r', 0,      0, N_("Same as -p"), 0},
+  {"subject", 's', "SUBJ", 0, N_("Send a message with a Subject of SUBJ"), 0},
+  {"to",      't', 0,      0, N_("Precede message by a list of addresses"), 0},
+  {"user",    'u', "USER", 0, N_("Operate on USER's mailbox"), 0},
   {NULL,      0,  NULL,    OPTION_DOC,
-   "Note: Argument to --file (-f) option is optional. If it is present, "
+   N_("Note: Argument to --file (-f) option is optional. If it is present, "
    "it must follow the short option immediately, without any intervening "
    "whitespace. If it is used with the long option, it must be separated "
-   "from it by an equal sign, with no intervening whitespace.", 0},
+   "from it by an equal sign, with no intervening whitespace."), 0},
   { NULL,      0, NULL, 0, NULL, 0 }
 };
 
@@ -135,9 +135,10 @@ parse_opt (int key, char *arg, struct argp_state *state)
 
       if (args->file)
 	{
-	  util_error ("Usage error: --file takes an optional argument, it must follow the option\n"
-	              "without any intervening whitespace.");
-	  util_error ("Run mail --help for more info.");
+	  util_error (_("Usage error: --file takes an optional argument, "
+	              "it must follow the option\n"
+	              "without any intervening whitespace."));
+	  util_error (_("Run mail --help for more info."));
 	  util_do_command ("set quiet");
 	  args->file = arg;
 	}
@@ -187,20 +188,20 @@ mail_cmdline(void *closure, int cont)
           && !mailbox_is_updated (mbox))
 	{
 	  mailbox_messages_count (mbox, &total);
-	  fprintf (ofile, "New mail has arrived\n");
+	  fprintf (ofile, _("New mail has arrived.\n"));
 	}
 
       rc = ml_readline (prompt);
 
       if (ml_got_interrupt())
 	{
-	  util_error("Interrupt");
+	  util_error(_("Interrupt"));
 	  continue;
 	}
 
       if (!rc && util_getenv (NULL, "ignoreeof", Mail_env_boolean, 0) == 0)
 	{
-	  util_error ("Use \"quit\" to quit.");
+	  util_error (_("Use \"quit\" to quit."));
 	  continue;
 	}
 
@@ -220,6 +221,9 @@ main (int argc, char **argv)
   ofile = stdout;
   cursor = 1;
   realcursor = cursor;
+
+  /* Native Language Support */
+  mu_init_nls ();
 
   /* Register the desire formats.  */
   {
@@ -350,10 +354,10 @@ main (int argc, char **argv)
   if (util_getenv (NULL, "quiet", Mail_env_boolean, 0))
     {
       fprintf (ofile,
-	       "%s, Copyright (C) 2001 Free Software Foundation, Inc.\n"
+	       _("%s, Copyright (C) 2001 Free Software Foundation, Inc.\n"
 	       "mail is free software with ABSOLUTELY NO WARRANTY.\n"
 	       "For details type `warranty'.\n"
-	       "Send bug reports to %s.\n",
+	       "Send bug reports to %s.\n"),
 	       argp_program_version,
 	       argp_program_bug_address);
     }
@@ -391,14 +395,14 @@ main (int argc, char **argv)
 	    rc = mailbox_create_default (&mbox, NULL);
 	  if (rc != 0)
 	    {
-	      util_error ("Can not create mailbox for %s: %s", args.user,
+	      util_error (_("Can not create mailbox for %s: %s"), args.user,
 			  mu_errstring (rc));
 	      exit (EXIT_FAILURE);
 	    }
 	}
       else if ((rc = mailbox_create_default (&mbox, args.file)) != 0)
 	{
-	  util_error ("Can not create mailbox %s: %s", args.file,
+	  util_error (_("Can not create mailbox %s: %s"), args.file,
 		      mu_errstring (rc));
 	  exit (EXIT_FAILURE);
 	}
@@ -415,7 +419,7 @@ main (int argc, char **argv)
 	{
 	  url_t url = NULL;
 	  mailbox_get_url (mbox, &url);
-	  util_error ("Can not open mailbox %s: %s",
+	  util_error (_("Can not open mailbox %s: %s"),
 		      url_to_string (url), mu_errstring (rc));
 	  exit (EXIT_FAILURE);
 	}
@@ -428,7 +432,7 @@ main (int argc, char **argv)
 	    {
 	      url_t url = NULL;
 	      mailbox_get_url (mbox, &url);
-	      util_error ("Can not read mailbox %s: %s",
+	      util_error (_("Can not read mailbox %s: %s"),
 			  url_to_string (url), mu_errstring (rc));
 	      exit (EXIT_FAILURE);
 	    }
@@ -446,9 +450,9 @@ main (int argc, char **argv)
       if (total == 0)
         {
 	  if (args.file)
-	    fprintf (ofile, "%s: 0 messages\n", args.file);
+	    fprintf (ofile, _("%s: 0 messages\n"), args.file);
 	  else
-	    fprintf (ofile, "No mail for %s\n",
+	    fprintf (ofile, _("No mail for %s\n"),
 		     args.user ? args.user : mail_whoami ());
           return 1;
         }
@@ -508,28 +512,24 @@ mail_mainloop (char *(*input) __P((void *, int)), void *closure, int do_history)
     }
 }
 
-static char warranty_stmt[] =
-"GNU mailutils - a suite of utilities for electronic mail\n\
-Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.\n\
-\n\
-   This program is free software; you can redistribute it and/or modify\n\
-   it under the terms of the GNU General Public License as published by\n\
-   the Free Software Foundation; either version 2, or (at your option)\n\
-   any later version.\n\
-\n\
-   This program is distributed in the hope that it will be useful,\n\
-   but WITHOUT ANY WARRANTY; without even the implied warranty of\n\
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n\
-   GNU General Public License for more details.\n\
-\n\
-   You should have received a copy of the GNU General Public License\n\
-   along with this program; if not, write to the Free Software\n\
-   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.\n";
-
 int
-mail_warranty(int argc, char **argv)
+mail_warranty (int argc, char **argv)
 {
   (void)argc; (void)argv;
-  fprintf (ofile, "%s", warranty_stmt);
+
+  fputs (_("GNU Mailutils -- a suite of utilities for electronic mail\n"
+           "Copyright (C) 1999, 2000, 2001, 2002 Free Software Foundation, Inc.\n\n"),
+           ofile);
+  fputs (_("GNU Mailutils is free software; you can redistribute it and/or modify\n"
+           "it under the terms of the GNU General Public License as published by\n"
+           "the Free Software Foundation; either version 2, or (at your option)\n"
+           "any later version.\n\n"), ofile);
+  fputs (_("GNU Mailutils is distributed in the hope that it will be useful,\n"
+           "but WITHOUT ANY WARRANTY; without even the implied warranty of\n"
+           "MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n"
+           "GNU General Public License for more details.\n\n"), ofile);
+  fputs (_("You should have received a copy of the GNU General Public License\n"
+           "along with GNU Mailutils; if not, write to the Free Software\n"
+           "Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.\n"), ofile);
   return 0;
 }

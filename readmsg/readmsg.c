@@ -1,18 +1,18 @@
-/* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+/* GNU Mailutils -- a suite of utilities for electronic mail
+   Copyright (C) 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
 
-   This program is free software; you can redistribute it and/or modify
+   GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
    the Free Software Foundation; either version 2, or (at your option)
    any later version.
 
-   This program is distributed in the hope that it will be useful,
+   GNU Mailutils is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
+   along with GNU Mailutils; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #ifdef HAVE_CONFIG_H
@@ -29,20 +29,21 @@ static void print_body __P ((message_t));
 static int  string_starts_with __P ((const char * s1, const char *s2));
 
 const char *argp_program_version = "readmsg (" PACKAGE_STRING ")";
-static char doc[] = "GNU readmsg -- print messages";
+static char doc[] = N_("GNU readmsg -- print messages");
 static error_t readmsg_parse_opt  __P((int key, char *arg,
 				       struct argp_state *astate));
 
 static struct argp_option options[] = 
 {
-  { "debug", 'd', 0, 0, "Display debugging information", 1 },
-  { "header", 'h', 0, 0, "Display entire header", 1 },
-  { "weedlist", 'w', "LIST", 0, "List of header names separated by whitespace or commas", 1 },
-  { "folder", 'f', "FOLDER", 0, "Folder to use", 1 },
-  { "no-header", 'n', 0, 0, "Exclude all headers", 1 },
-  { "form-feeds", 'p', 0, 0, "Output formfeeds between messages", 1 },
+  { "debug", 'd', 0, 0, N_("Display debugging information"), 1 },
+  { "header", 'h', 0, 0, N_("Display entire header"), 1 },
+  { "weedlist", 'w', "LIST", 0,
+    N_("List of header names separated by whitespace or commas"), 1 },
+  { "folder", 'f', "FOLDER", 0, N_("Folder to use"), 1 },
+  { "no-header", 'n', 0, 0, N_("Exclude all headers"), 1 },
+  { "form-feeds", 'p', 0, 0, N_("Output formfeeds between messages"), 1 },
   { "show-all-match", 'a', NULL, 0,
-    "Print all messages matching pattern, not just the first", 1 },
+    N_("Print all messages matching pattern, not just the first"), 1 },
   {0, 0, 0, 0}
 };
 
@@ -224,6 +225,9 @@ main (int argc, char **argv)
   int index;
   mailbox_t mbox = NULL;
 
+  /* Native Language Support */
+  mu_init_nls ();
+
   mu_argp_parse (&argp, &argc, &argv, 0, readmsg_argp_capa, &index, NULL);
 
   /* Registration.  */
@@ -239,7 +243,7 @@ main (int argc, char **argv)
   status = mailbox_create_default (&mbox, mailbox_name);
   if (status != 0)
     {
-      fprintf (stderr, "could not create - %s\n", mu_errstring(status));
+      fprintf (stderr, _("could not create - %s\n"), mu_errstring(status));
       exit (2);
     }
 
@@ -257,7 +261,7 @@ main (int argc, char **argv)
       url_t url = NULL;
 
       mailbox_get_url (mbox, &url);
-      fprintf (stderr, "can't open mailbox %s: %s\n",
+      fprintf (stderr, _("can't open mailbox %s: %s\n"),
 	       url_to_string (url),
 	       mu_errstring(status));
       exit (2);

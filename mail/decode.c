@@ -1,18 +1,18 @@
-/* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+/* GNU Mailutils -- a suite of utilities for electronic mail
+   Copyright (C) 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
 
-   This program is free software; you can redistribute it and/or modify
+   GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
    the Free Software Foundation; either version 2, or (at your option)
    any later version.
 
-   This program is distributed in the hope that it will be useful,
+   GNU Mailutils is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
+   along with GNU Mailutils; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #include "mail.h"
@@ -133,15 +133,15 @@ display_part_header (FILE *out, const msgset_t *msgset,
     fputc ('-', out);
   fputc ('+', out);
   fputc ('\n', out);
-  fprintf (out, "| Message=%d", msgset->msg_part[0]);
+  fprintf (out, _("| Message=%d"), msgset->msg_part[0]);
   for (i = 1; i < msgset->npart; i++)
     fprintf (out, "[%d", msgset->msg_part[i]);
   for (i = 1; i < msgset->npart; i++)
     fprintf (out, "]");
   fprintf (out, "\n");
 
-  fprintf (out, "| Type=%s\n", type);
-  fprintf (out, "| encoding=%s\n", encoding);
+  fprintf (out, _("| Type=%s\n"), type);
+  fprintf (out, _("| encoding=%s\n"), encoding);
   fputc ('+', out);
   for (i = 0; (int)i <= size; i++)
     fputc ('-', out);
@@ -242,7 +242,7 @@ print_stream (stream_t stream, FILE *out)
     {
       if (ml_got_interrupt())
 	{
-	  util_error("\nInterrupt");
+	  util_error(_("\nInterrupt"));
 	  break;
 	}
       buffer[n] = '\0';

@@ -1,18 +1,18 @@
-/* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+/* GNU Mailutils -- a suite of utilities for electronic mail
+   Copyright (C) 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
 
-   This program is free software; you can redistribute it and/or modify
+   GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
    the Free Software Foundation; either version 2, or (at your option)
    any later version.
 
-   This program is distributed in the hope that it will be useful,
+   GNU Mailutils is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
+   along with GNU Mailutils; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #include "comsat.h"
@@ -55,7 +55,7 @@ static char doc[] = "GNU comsatd";
 
 static struct argp_option options[] = 
 {
-  {"config", 'c', "FILE", 0, "Read configuration from FILE", 0},
+  {"config", 'c', "FILE", 0, N_("Read configuration from FILE"), 0},
   { NULL, 0, NULL, 0, NULL, 0 }
 };
 
@@ -136,12 +136,15 @@ main(int argc, char **argv)
 {
   int c;
 
+  /* Native Language Support */
+  mu_init_nls ();
+
   mu_argp_parse (&argp, &argc, &argv, 0, comsat_argp_capa,
 		 NULL, &daemon_param);
 
   if (daemon_param.timeout > 0 && daemon_param.mode == MODE_DAEMON)
     {
-      fprintf (stderr, "--timeout and --daemon are incompatible\n");
+      fprintf (stderr, _("--timeout and --daemon are incompatible\n"));
       exit (EXIT_FAILURE);
     }
 
@@ -175,10 +178,10 @@ main(int argc, char **argv)
 static RETSIGTYPE
 sig_hup (int sig)
 {
-  syslog (LOG_NOTICE, "restarting");
+  syslog (LOG_NOTICE, _("restarting"));
 
   if (xargv[0][0] != '/')
-    syslog (LOG_ERR, "can't restart: not started with absolute pathname");
+    syslog (LOG_ERR, _("can't restart: not started with absolute pathname"));
   else
     execvp (xargv[0], xargv);
 
@@ -212,7 +215,7 @@ comsat_daemon_init (void)
      first three one, in, out, err.  Do not do the chdir("/").   */
   if (daemon (1, 0) < 0)
     {
-      perror ("failed to become a daemon:");
+      perror (_("failed to become a daemon:"));
       exit (EXIT_FAILURE);
     }
 }
@@ -256,7 +259,7 @@ comsat_daemon (int port)
       exit (1);
     }
 
-  syslog (LOG_NOTICE, "GNU comsat started");
+  syslog (LOG_NOTICE, _("GNU comsat started"));
 
   last_request_time = last_overflow_time = time (NULL);
   while (1)
@@ -283,7 +286,7 @@ comsat_daemon (int port)
 	      unsigned delay;
 
 	      delay = overflow_delay_time << (overflow_count + 1);
-	      syslog (LOG_NOTICE, "too many requests: pausing for %u seconds",
+	      syslog (LOG_NOTICE, _("too many requests: pausing for %u seconds"),
 		      delay);
 	      sleep (delay);
 	      reqcount = 0;
@@ -336,12 +339,12 @@ comsat_main (int fd)
 
   if (acl_match (&sin_from))
     {
-      syslog (LOG_ALERT, "DENIED attempt to connect from %s",
+      syslog (LOG_ALERT, _("DENIED attempt to connect from %s"),
 	      inet_ntoa (sin_from.sin_addr));
       return 1;
     }
 
-  syslog (LOG_INFO, "%d bytes from %s", rdlen, inet_ntoa (sin_from.sin_addr));
+  syslog (LOG_INFO, _("%d bytes from %s"), rdlen, inet_ntoa (sin_from.sin_addr));
 
   buffer[rdlen] = 0;
 
@@ -349,7 +352,7 @@ comsat_main (int fd)
   p = strchr (buffer, '@');
   if (!p)
     {
-      syslog (LOG_ERR, "malformed input: %s", buffer);
+      syslog (LOG_ERR, _("malformed input: %s"), buffer);
       return 1;
     }
   *p++ = 0;
@@ -364,7 +367,7 @@ comsat_main (int fd)
       break;
     default:
       if (!isspace (*endp))
-	syslog (LOG_ERR, "malformed input: %s@%s (near %s)", buffer, p, endp);
+	syslog (LOG_ERR, _("malformed input: %s@%s (near %s)"), buffer, p, endp);
     }
 
   if (find_user (buffer, tty) != SUCCESS)
@@ -429,7 +432,7 @@ notify_user (const char *user, const char *device, const char *path, off_t offse
   change_user (user);
   if ((fp = fopen (device, "w")) == NULL)
     {
-      syslog (LOG_ERR, "can't open device %s: %m", device);
+      syslog (LOG_ERR, _("can't open device %s: %m"), device);
       exit (0);
     }
 
@@ -445,21 +448,21 @@ notify_user (const char *user, const char *device, const char *path, off_t offse
   if ((status = mailbox_create (&mbox, path)) != 0
       || (status = mailbox_open (mbox, MU_STREAM_READ)) != 0)
     {
-      syslog (LOG_ERR, "can't open mailbox %s: %s",
+      syslog (LOG_ERR, _("can't open mailbox %s: %s"),
 	      path, mu_errstring (status));
       return;
     }
 
   if ((status = mailbox_get_stream (mbox, &stream)))
     {
-      syslog (LOG_ERR, "can't get stream for mailbox %s: %s",
+      syslog (LOG_ERR, _("can't get stream for mailbox %s: %s"),
 	      path, mu_errstring (status));
       return;
     }
 
   if ((status = stream_size (stream, (off_t *) &size)))
     {
-      syslog (LOG_ERR, "can't get stream size (mailbox %s): %s",
+      syslog (LOG_ERR, _("can't get stream size (mailbox %s): %s"),
 	      path, mu_errstring (status));
       return;
     }
@@ -476,14 +479,14 @@ notify_user (const char *user, const char *device, const char *path, off_t offse
   if ((status = mailbox_create (&tmp, "/dev/null")) != 0
       || (status = mailbox_open (tmp, MU_STREAM_READ)) != 0)
     {
-      syslog (LOG_ERR, "can't create temporary mailbox: %s",
+      syslog (LOG_ERR, _("can't create temporary mailbox: %s"),
 	      mu_errstring (status));
       return;
     }
 
   if ((status = memory_stream_create (&stream, 0, 0)))
     {
-      syslog (LOG_ERR, "can't create temporary stream: %s",
+      syslog (LOG_ERR, _("can't create temporary stream: %s"),
 	      mu_errstring (status));
       return;
     }
@@ -530,7 +533,7 @@ find_user (const char *name, char *tty)
 	  if (strncmp (ftty, PATH_TTY_PFX, strlen (PATH_TTY_PFX)))
 	    {
 	      /* An attempt to break security... */
-	      syslog (LOG_ALERT, "bad line name in utmp record: %s", ftty);
+	      syslog (LOG_ALERT, _("bad line name in utmp record: %s"), ftty);
 	      return NOT_HERE;
 	    }
 
@@ -538,7 +541,7 @@ find_user (const char *name, char *tty)
 	    {
 	      if (!S_ISCHR (statb.st_mode))
 		{
-		  syslog (LOG_ALERT, "not a character device: %s", ftty);
+		  syslog (LOG_ALERT, _("not a character device: %s"), ftty);
 		  return NOT_HERE;
 		}
 
@@ -571,7 +574,7 @@ change_user (const char *user)
   pw = getpwnam (user);
   if (!pw)
     {
-      syslog (LOG_CRIT, "no such user: %s", user);
+      syslog (LOG_CRIT, _("no such user: %s"), user);
       exit (1);
     }
 
@@ -591,7 +594,7 @@ mailbox_path (const char *user)
 
   if (!auth)
     {
-      syslog (LOG_ALERT, "user nonexistent: %s", user);
+      syslog (LOG_ALERT, _("user nonexistent: %s"), user);
       return NULL;
     }
 
@@ -606,7 +609,7 @@ volatile int _st=0;
 void
 stop()
 {
-  syslog (LOG_ALERT, "waiting for debug");
+  syslog (LOG_ALERT, _("waiting for debug"));
   while (!_st)
     _st=_st;
 }

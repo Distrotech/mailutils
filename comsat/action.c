@@ -1,18 +1,18 @@
-/* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+/* GNU Mailutils -- a suite of utilities for electronic mail
+   Copyright (C) 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
 
-   This program is free software; you can redistribute it and/or modify
+   GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
    the Free Software Foundation; either version 2, or (at your option)
    any later version.
 
-   This program is distributed in the hope that it will be useful,
+   GNU Mailutils is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
+   along with GNU Mailutils; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #include "comsat.h"
@@ -277,27 +277,27 @@ action_exec (FILE *tty, int line, int argc, char **argv)
 
   if (argc == 0)
     {
-      syslog (LOG_ERR, "%s:.biffrc:%d: No arguments for exec", username, line);
+      syslog (LOG_ERR, _("%s:.biffrc:%d: No arguments for exec"), username, line);
       return;
     }
 
   if (argv[0][0] != '/')
     {
-      syslog (LOG_ERR, "%s:.biffrc:%d: Not an absolute pathname",
+      syslog (LOG_ERR, _("%s:.biffrc:%d: Not an absolute pathname"),
 	      username, line);
       return;
     }
 
   if (stat (argv[0], &stb))
     {
-      syslog (LOG_ERR, "%s:.biffrc:%d: can't stat %s: %s",
+      syslog (LOG_ERR, _("%s:.biffrc:%d: can't stat %s: %s"),
 	      username, line, argv[0], strerror (errno));
       return;
     }
 
   if (stb.st_mode & (S_ISUID|S_ISGID))
     {
-      syslog (LOG_ERR, "%s:.biffrc:%d: won't execute set[ug]id programs",
+      syslog (LOG_ERR, _("%s:.biffrc:%d: won't execute set[ug]id programs"),
 	      username, line);
       return;
     }
@@ -311,7 +311,7 @@ action_exec (FILE *tty, int line, int argc, char **argv)
       dup2 (fileno (tty), 2);
       fclose (tty);
       execv (argv[0], argv);
-      syslog (LOG_ERR, "can't execute %s: %s", argv[0], strerror (errno));
+      syslog (LOG_ERR, _("can't execute %s: %s"), argv[0], strerror (errno));
       exit (0);
     }
 }
@@ -329,14 +329,14 @@ open_rc (const char *filename, FILE *tty)
     {
       if (stb.st_uid != pw->pw_uid)
 	{
-	  syslog (LOG_NOTICE, "%s's %s is not owned by %s",
+	  syslog (LOG_NOTICE, _("%s's %s is not owned by %s"),
 		  username, filename, username);
 	  return NULL;
 	}
       if ((stb.st_mode & 0777) != 0600)
 	{
-	  fprintf (tty, "Warning: your .biffrc has wrong permissions\r\n");
-	  syslog (LOG_NOTICE, "%s's %s has wrong permissions",
+	  fprintf (tty, _("Warning: your .biffrc has wrong permissions\r\n"));
+	  syslog (LOG_NOTICE, _("%s's %s has wrong permissions"),
 		  username, filename);
 	  return NULL;
 	}
@@ -393,8 +393,8 @@ run_user_action (FILE *tty, const char *cr, message_t msg)
 	    }
 	  else
 	    {
-	      fprintf (tty, ".biffrc:%d: unknown keyword\r\n", line);
-	      syslog (LOG_ERR, "%s:.biffrc:%d: unknown keyword %s",
+	      fprintf (tty, _(".biffrc:%d: unknown keyword\r\n"), line);
+	      syslog (LOG_ERR, _("%s:.biffrc:%d: unknown keyword %s"),
 		      username, line, argv[0]);
 	      break;
 	    }

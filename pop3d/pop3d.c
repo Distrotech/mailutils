@@ -1,18 +1,18 @@
-/* GNU mailutils - a suite of utilities for electronic mail
+/* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
 
-   This program is free software; you can redistribute it and/or modify
+   GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
    the Free Software Foundation; either version 2, or (at your option)
    any later version.
 
-   This program is distributed in the hope that it will be useful,
+   GNU Mailutils is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
+   along with GNU Mailutils; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #include "pop3d.h"
@@ -44,7 +44,7 @@ static error_t pop3d_parse_opt  __P((int key, char *arg,
 				     struct argp_state *astate));
 
 const char *argp_program_version = "pop3d (" PACKAGE_STRING ")";
-static char doc[] = "GNU pop3d -- the POP3 daemon";
+static char doc[] = N_("GNU pop3d -- the POP3 daemon");
 
 static struct argp argp = {
   NULL,
@@ -87,6 +87,9 @@ main (int argc, char **argv)
   struct group *gr;
   int status = OK;
 
+  /* Native Language Support */
+  mu_init_nls ();
+
   MU_AUTH_REGISTER_ALL_MODULES();
   mu_argp_parse (&argp, &argc, &argv, 0, pop3d_argp_capa, NULL, &daemon_param);
 
@@ -105,13 +108,13 @@ main (int argc, char **argv)
       gr = getgrnam ("mail");
       if (gr == NULL)
 	{
-	  perror ("Error getting mail group");
+	  perror (_("Error getting mail group"));
 	  exit (EXIT_FAILURE);
 	}
 
       if (setgid (gr->gr_gid) == -1)
 	{
-	  perror ("Error setting mail group");
+	  perror (_("Error setting mail group"));
 	  exit (EXIT_FAILURE);
 	}
     }
@@ -174,7 +177,7 @@ pop3d_daemon_init (void)
      first three one, in, out, err   */
   if (daemon (0, 0) < 0)
     {
-      perror ("failed to become a daemon:");
+      perror (_("failed to become a daemon:"));
       exit (EXIT_FAILURE);
     }
 
@@ -211,22 +214,22 @@ pop3d_mainloop (int infile, int outfile)
 
   state = AUTHORIZATION;
 
-  syslog (LOG_INFO, "Incoming connection opened");
+  syslog (LOG_INFO, _("Incoming connection opened"));
 
   /* log information on the connecting client */
   if (debug_mode)
     {
-      syslog (LOG_INFO, "Started in debugging mode");
+      syslog (LOG_INFO, _("Started in debugging mode"));
     }
   else
     {
       struct sockaddr_in cs;
       int len = sizeof cs;
       if (getpeername (infile, (struct sockaddr*)&cs, &len) < 0)
-	syslog (LOG_ERR, "can't obtain IP address of client: %s",
+	syslog (LOG_ERR, _("can't obtain IP address of client: %s"),
 		strerror (errno));
       else
-	syslog (LOG_INFO, "connect from %s", inet_ntoa(cs.sin_addr));
+	syslog (LOG_INFO, _("connect from %s"), inet_ntoa(cs.sin_addr));
     }
 
   /* Prepare the shared secret for APOP.  */
@@ -397,7 +400,7 @@ pop3d_daemon (unsigned int maxchildren, unsigned int port)
     {
       if (children > maxchildren)
         {
-	  syslog (LOG_ERR, "too many children (%lu)",
+	  syslog (LOG_ERR, _("too many children (%lu)"),
 		  (unsigned long) children);
           pause ();
           continue;
@@ -431,7 +434,4 @@ pop3d_daemon (unsigned int maxchildren, unsigned int port)
       close (connfd);
     }
 }
-
-
-
 

@@ -1,18 +1,18 @@
-/* GNU mailutils - a suite of utilities for electronic mail
+/* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2001 Free Software Foundation, Inc.
 
-   This program is free software; you can redistribute it and/or modify
+   GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
    the Free Software Foundation; either version 2, or (at your option)
    any later version.
 
-   This program is distributed in the hope that it will be useful,
+   GNU Mailutils is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
+   along with GNU Mailutils; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #include "mail.h"
@@ -47,7 +47,7 @@ mail_mbox_close ()
   
   mailbox_get_url (mbox, &url);
   mailbox_messages_count (mbox, &held_count);
-  fprintf (ofile, "Held %d messages in %s\n", held_count, url_to_string (url));
+  fprintf (ofile, _("Held %d messages in %s\n"), held_count, url_to_string (url));
 
   mailbox_close (mbox);
   mailbox_destroy (&mbox);
@@ -104,7 +104,7 @@ mail_mbox_commit ()
 		  || mailbox_open (dest_mbox,
 				   MU_STREAM_WRITE | MU_STREAM_CREAT))
 		{
-		  util_error("can't create mailbox %s", name);
+		  util_error (_("can't create mailbox %s"), name);
 		  return 1;
 		}
 	    }
@@ -124,7 +124,7 @@ mail_mbox_commit ()
       url_t u = NULL;
 
       mailbox_get_url (dest_mbox, &u);
-      fprintf(ofile, "Saved %d messages in %s\n", saved_count,
+      fprintf(ofile, _("Saved %d messages in %s\n"), saved_count,
 	      url_to_string (u));
       mailbox_close (dest_mbox);
       mailbox_destroy (&dest_mbox);

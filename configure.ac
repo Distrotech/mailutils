@@ -2,23 +2,24 @@
 #
 # Copyright (C) 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
 # 
-# This program is free software; you can redistribute it and/or modify
+# GNU Mailutils is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2, or (at your option)
 # any later version.
 #
-# This program is distributed in the hope that it will be useful,
+# GNU Mailutils is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
+# along with GNU Mailutils; if not, write to the Free Software
 # Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #
 
-AC_INIT([GNU Mailutils],[0.2],[bug-mailutils@gnu.org])
+AC_INIT([GNU Mailutils], [0.2], [bug-mailutils@gnu.org], [mailutils])
 AC_CONFIG_SRCDIR([mailbox/mailbox.c])
+AC_CONFIG_AUX_DIR([scripts])
 AC_CANONICAL_TARGET([])
 AM_INIT_AUTOMAKE
 AC_CONFIG_HEADERS([config.h])
@@ -33,6 +34,10 @@ AC_LIBTOOL_DLOPEN
 AM_PROG_LIBTOOL
 AC_PROG_YACC
 AM_PROG_LEX
+
+dnl Internationalization macros.
+AM_GNU_GETTEXT
+AM_GNU_GETTEXT_VERSION(0.11.5)
 
 dnl Check for libraries
 AC_CHECK_LIB(resolv, res_query)
@@ -588,6 +593,7 @@ dnl Output Makefiles
 AC_CONFIG_FILES([Makefile mailutils.spec
  include/Makefile include/mailutils/Makefile include/mailutils/gnu/Makefile
  m4/Makefile
+ intl/Makefile po/Makefile.in
  doc/Makefile doc/man/Makefile doc/rfc/Makefile doc/texinfo/Makefile
  lib/Makefile lib/posix/Makefile
  testsuite/Makefile

@@ -1,18 +1,18 @@
-/* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+/* GNU Mailutils -- a suite of utilities for electronic mail
+   Copyright (C) 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
 
-   This program is free software; you can redistribute it and/or modify
+   GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
    the Free Software Foundation; either version 2, or (at your option)
    any later version.
 
-   This program is distributed in the hope that it will be useful,
+   GNU Mailutils is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
+   along with GNU Mailutils; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #ifdef HAVE_CONFIG_H
@@ -38,6 +38,7 @@
 #include <mailutils/registrar.h>
 #include <mailutils/stream.h>
 #include <mailutils/url.h>
+#include <mailutils/nls.h>
 
 static char* show_field;
 static int show_to;
@@ -60,19 +61,19 @@ static int selected;
 static int action (observer_t, size_t);
 
 const char *argp_program_version = "frm (" PACKAGE_STRING ")";
-static char doc[] = "GNU frm -- display From: lines";
+static char doc[] = N_("GNU frm -- display From: lines");
 
 static struct argp_option options[] = {
-  {"debug",  'd', NULL,   0, "Enable debugging output", 0},
-  {"field",  'f', "NAME", 0, "Header field to display", 0},
-  {"to",     'l', NULL,   0, "Include the To: information", 0},
-  {"number", 'n', NULL,   0, "Display message numbers", 0},
-  {"Quiet",  'Q', NULL,   0, "Very quiet", 0},
-  {"query",  'q', NULL,   0, "Print a message if unread mail", 0},
-  {"summary",'S', NULL,   0, "Print a summary of messages", 0},
+  {"debug",  'd', NULL,   0, N_("Enable debugging output"), 0},
+  {"field",  'f', "NAME", 0, N_("Header field to display"), 0},
+  {"to",     'l', NULL,   0, N_("Include the To: information"), 0},
+  {"number", 'n', NULL,   0, N_("Display message numbers"), 0},
+  {"Quiet",  'Q', NULL,   0, N_("Very quiet"), 0},
+  {"query",  'q', NULL,   0, N_("Print a message if unread mail"), 0},
+  {"summary",'S', NULL,   0, N_("Print a summary of messages"), 0},
   {"status", 's', "[nor]",0,
-   "Select message with the specific attribute: [n]ew, [r]ead, [u]nread.", 0 },
-  {"align",  't', NULL,   0, "Try to align", 0},
+   N_("Select message with the specific attribute: [n]ew, [r]ead, [u]nread."), 0 },
+  {"align",  't', NULL,   0, N_("Try to align"), 0},
   {0, 0, 0, 0}
 };
 
@@ -105,7 +106,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
       be_quiet += 2;
       if (freopen("/dev/null", "w", stdout) == NULL)
 	{
-	  perror ("Can not be very quiet");
+	  perror (_("Can not be very quiet"));
 	  exit (3);
 	}
       break;
@@ -301,7 +302,10 @@ main(int argc, char **argv)
   size_t total = 0;
   int c;
   int status = 0;
-  
+
+  /* Native Language Support */
+  mu_init_nls ();
+
   mu_argp_parse (&argp, &argc, &argv, 0, frm_argp_capa, &c, NULL);
 
   /* have an argument */
@@ -331,8 +335,8 @@ main(int argc, char **argv)
 
     if (status != 0)
       {
-	fprintf (stderr, "could not create mailbox <%s>: %s\n",
-	    mailbox_name ? mailbox_name : "default",
+	fprintf (stderr, _("could not create mailbox <%s>: %s\n"),
+	    mailbox_name ? mailbox_name : _("default"),
 	    mu_errstring(status));
 	exit (3);
       }
@@ -355,7 +359,7 @@ main(int argc, char **argv)
 	  goto cleanup1;
 	else
 	  {
-	    fprintf (stderr, "could not open mailbox %s: %s\n",
+	    fprintf (stderr, _("could not open mailbox %s: %s\n"),
 		     url_to_string (url),
 		     mu_errstring(status));
 	    
@@ -378,7 +382,7 @@ main(int argc, char **argv)
 	url_t url = NULL;
 
 	mailbox_get_url (mbox, &url);
-	fprintf (stderr, "could not scan mailbox <%s>: %s\n",
+	fprintf (stderr, _("could not scan mailbox <%s>: %s\n"),
 		 url_to_string (url),
 		 mu_errstring(status));
 	goto cleanup;
@@ -399,9 +403,9 @@ cleanup:
 
  cleanup1:
   if (show_summary)
-    printf ("You have %d messages\n", total);
+    printf (_("You have %d messages\n"), total);
   if (show_query && have_new_mail)
-    printf ("You have new mail\n");
+    printf (_("You have new mail\n"));
 
   /* 0 - selected messages discover.
      1 - have messages.

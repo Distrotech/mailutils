@@ -1,18 +1,18 @@
-/* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999, 2001 Free Software Foundation, Inc.
+/* GNU Mailutils -- a suite of utilities for electronic mail
+   Copyright (C) 1999, 2001, 2002 Free Software Foundation, Inc.
 
-   This program is free software; you can redistribute it and/or modify
+   GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
    the Free Software Foundation; either version 2, or (at your option)
    any later version.
 
-   This program is distributed in the hope that it will be useful,
+   GNU Mailutils is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
+   along with GNU Mailutils; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #include "pop3d.h"
@@ -63,7 +63,7 @@ pop3d_user (const char *arg)
       tmp = pop3d_apopuser (arg);
       if (tmp != NULL)
 	{
-	  syslog (LOG_INFO, "APOP user %s tried to log in with USER", arg);
+	  syslog (LOG_INFO, _("APOP user %s tried to log in with USER"), arg);
 	  free (tmp);
 	  return ERR_BAD_LOGIN;
 	}
@@ -73,7 +73,7 @@ pop3d_user (const char *arg)
 
       if (auth_data == NULL)
 	{
-	  syslog (LOG_INFO, "User '%s': nonexistent", arg);
+	  syslog (LOG_INFO, _("User '%s': nonexistent"), arg);
 	  return ERR_BAD_LOGIN;
 	}
 
@@ -82,14 +82,14 @@ pop3d_user (const char *arg)
 
       if (rc)
 	{
-	  syslog (LOG_INFO, "User '%s': authentication failed", arg);
+	  syslog (LOG_INFO, _("User '%s': authentication failed"), arg);
 	  mu_auth_data_free (auth_data);
 	  return ERR_BAD_LOGIN;
 	}
     }
   else if (strcasecmp (cmd, "QUIT") == 0)
     {
-      syslog (LOG_INFO, "Possible probe of account '%s'", arg);
+      syslog (LOG_INFO, _("Possible probe of account '%s'"), arg);
       free (cmd);
       return pop3d_quit (pass);
     }
@@ -150,12 +150,9 @@ pop3d_user (const char *arg)
     size_t total = 0;
     mailbox_get_url (mbox, &url);
     mailbox_messages_count (mbox, &total);
-    syslog (LOG_INFO, "User '%s' logged in with mailbox '%s' (%d msgs)",
+    syslog (LOG_INFO, _("User '%s' logged in with mailbox '%s' (%d msgs)"),
 	    username, url_to_string (url), total);
   }
   return OK;
-
 }
-
-
 
