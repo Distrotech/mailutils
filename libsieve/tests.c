@@ -27,7 +27,7 @@
 
 typedef int (*address_aget_t) __PMT ((address_t addr, size_t no, char **buf));
 
-int
+static int
 _get_address_part (void *item, void *data)
 {
   sieve_runtime_tag_t *t = item;

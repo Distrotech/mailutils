@@ -19,7 +19,7 @@
 
 typedef int (*address_get_fp) __P((address_t, size_t, char *, size_t, size_t *));
 
-SCM
+static SCM
 _get_address_part (const char *func_name, address_get_fp fun,
 		   SCM ADDRESS, SCM NUM)
 {
