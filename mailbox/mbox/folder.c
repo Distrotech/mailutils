@@ -37,6 +37,7 @@
 #include <mailutils/auth.h>
 #include <mailutils/url.h>
 #include <mailutils/stream.h>
+#include <mailutils/mutil.h>
 
 /* We export url parsing and the initialisation of
    the mailbox, via the register entry/record.  */
