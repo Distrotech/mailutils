@@ -1,7 +1,0 @@
-@example
-@code{/* Prefix @emph{mh_} is reserved */}
-@code{#include <mailutils/mh.h>}
-
-@end example
-
-Mail Handler mailbox format.  Not implemented.
