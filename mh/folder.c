@@ -383,8 +383,7 @@ action_print ()
     }
   else
     {
-      char *p;
-      asprintf (&p, "%s/%s", mu_path_folder_dir, current_folder);
+      char *p = mh_expand_name (NULL, current_folder, 0);
       _scan (p, 1);
       free (p);
     }
