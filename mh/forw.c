@@ -303,8 +303,13 @@ finish_draft ()
       free (str);
       for (i = 0; rc == 0 && i < msgset.count; i++)
 	{
-	  snprintf (buf, sizeof buf, " %lu", (unsigned long) i);
-	  rc = stream_sequential_write (stream, buf, strlen (buf));
+          message_t msg;
+	  size_t num;
+		  
+	  mailbox_get_message (mbox, msgset.list[i], &msg);
+	  mh_message_number (msg, &num);
+	  snprintf (buf, sizeof buf, " %lu", (unsigned long) num);
+          rc = stream_sequential_write (stream, buf, strlen (buf));
 	}
     }
   else
