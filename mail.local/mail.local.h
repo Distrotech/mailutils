@@ -19,6 +19,7 @@
 # include <config.h>
 #endif
 
+#include <sys/types.h>
 #include <errno.h>
 #include <grp.h>
 #include <netdb.h>
