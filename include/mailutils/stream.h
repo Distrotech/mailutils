@@ -57,6 +57,7 @@ extern int mapfile_stream_create __P ((stream_t *stream, const char* filename, i
 extern int memory_stream_create  __P ((stream_t *stream, const char* filename, int flags));
 extern int encoder_stream_create __P ((stream_t *stream, stream_t iostream, const char *encoding));
 extern int decoder_stream_create __P ((stream_t *stream, stream_t iostream, const char *encoding));
+extern int stdio_stream_create   __P ((stream_t *stream, FILE* stdio, int flags));
 
 extern void stream_destroy    __P ((stream_t *, void *owner));
 
