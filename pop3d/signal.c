@@ -39,12 +39,13 @@ pop3d_sigchld (int signo)
 RETSIGTYPE
 pop3d_signal (int signo)
 {
-  syslog (LOG_CRIT, _("got signal %s"), strsignal(signo));
+  syslog (LOG_CRIT, _("got signal %s"), strsignal (signo));
+
   /* Master process.  */
-  if (!ofile)
+  if (pop3d_is_master ())
     {
        syslog (LOG_CRIT, _("MASTER: exiting on signal"));
-       exit (EXIT_FAILURE); /* abort(); */
+       exit (EXIT_FAILURE); 
     }
 
   if (signo == SIGALRM)
