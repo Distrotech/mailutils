@@ -24,7 +24,7 @@
 extern "C" {
 #endif
 
-extern int iterator_create   __P ((iterator_t *, list_t));
+extern int iterator_create   __P ((iterator_t *, void *));
 extern int iterator_dup      __P ((iterator_t *piterator, iterator_t orig));
 extern void iterator_destroy __P ((iterator_t *));
 extern int iterator_first    __P ((iterator_t));
@@ -32,6 +32,23 @@ extern int iterator_next     __P ((iterator_t));
 extern int iterator_current  __P ((iterator_t, void **pitem));
 extern int iterator_is_done  __P ((iterator_t));
 extern int iterator_get_list __P ((iterator_t iterator, list_t *plist));
+
+extern int iterator_attach (iterator_t *root, iterator_t iterator);
+extern int iterator_detach (iterator_t *root, iterator_t iterator);
+extern void iterator_advance (iterator_t iterator, void *e);
+  
+extern int iterator_set_first (iterator_t, int (*first) (void *));  
+extern int iterator_set_next (iterator_t, int (*next) (void *));  
+extern int iterator_set_getitem (iterator_t,
+				 int (*getitem) (void *, void **));  
+extern int iterator_set_finished_p (iterator_t,
+				    int (*finished_p) (void *));  
+extern int iterator_set_dup (iterator_t itr,
+			     int (dup) (void **ptr, void *data));
+extern int iterator_set_destroy (iterator_t itr,
+				 int (destroy) (iterator_t, void *data));
+extern int iterator_set_curitem_p (iterator_t itr,
+				   int (*curitem_p) (void *, void *));
   
 #ifdef __cplusplus
 }
