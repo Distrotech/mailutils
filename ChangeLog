@@ -8,6 +8,9 @@
 	generation when doing the distribution, having yacc should
 	not be required.
 
+	* mailbox/mutil.c (mu_hexstr2ul): Properly cast the expression
+	before doing the comparison.
+
 2001-08-06 Sergey Poznyakoff
 	* mail/msgset.y: (new) A parser for message set specifications
 	of arbitrary complexity. Returns a singly linked list of
