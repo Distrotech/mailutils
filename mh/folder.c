@@ -280,9 +280,10 @@ _scan (const char *name, int depth)
   
   dir = opendir (name);
 
-  if (!dir && errno == ENOENT && create_flag)
+  if (!dir && errno == ENOENT)
     {
-      mh_check_folder (name, 0);
+      if (mh_check_folder (name, !create_flag))
+	return;
       dir = opendir (name);
     }
 
