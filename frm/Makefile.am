@@ -32,8 +32,9 @@ frm_LDADD = \
  ../mailbox/maildir/libmu_maildir.la\
  ../mailbox/libmailbox.la\
  ../lib/libmailutils.la\
- @AUTHLIBS@ @MU_COMMON_LIBRARIES@
+ @AUTHLIBS@ @FRIBIDI_LIBS@ @MU_COMMON_LIBRARIES@
 
 install-exec-hook:
 	cd $(DESTDIR)$(bindir) && \
 	$(LN_S) -f frm$(EXEEXT) from$(EXEEXT)
+
