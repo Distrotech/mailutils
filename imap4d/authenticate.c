@@ -104,6 +104,9 @@ imap4d_authenticate (struct imap4d_command *command, char *arg)
   if (!auth_type)
     return util_finish (command, RESP_BAD, "Too few arguments");
 
+  if (tls_required)
+    return util_finish (command, RESP_NO, "Command disabled: Use STARTTLS first");
+  
   adata.command = command;
   adata.auth_type = auth_type;
   adata.arg = sp;
