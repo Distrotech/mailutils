@@ -440,7 +440,7 @@ qp_decode (const char *iptr, size_t isize, char *optr, size_t osize,
 		  char 	chr[3];
 		  int 	new_c;
 
-		  chr[3] = 0;
+		  chr[2] = 0;
 		  chr[0] = *iptr++;
 		  /* Ignore LF.  */
 		  if (chr[0] != '\n')
