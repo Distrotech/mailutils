@@ -39,6 +39,7 @@ extern int list_create   __P ((list_t *));
 extern void list_destroy __P ((list_t *));
 extern int list_append   __P ((list_t, void *item));
 extern int list_prepend  __P ((list_t, void *item));
+extern int list_is_empty __P ((list_t));
 extern int list_count    __P ((list_t, size_t *pcount));
 extern int list_remove   __P ((list_t, void *item));
 extern int list_get      __P ((list_t, size_t _index, void **pitem));

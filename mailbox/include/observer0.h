@@ -18,6 +18,10 @@
 #ifndef _OBSERVER0_H
 #define _OBSERVER0_H
 
+#ifdef DMALLOC
+#  include <dmalloc.h>
+#endif
+
 #include <mailutils/observer.h>
 
 #ifndef __P
@@ -45,6 +49,15 @@ struct _observable
   void *owner;
   list_t list;
 };
+
+struct _event
+{
+  size_t type;
+  observer_t observer;
+};
+
+typedef struct _event *event_t;
+
 
 
 #ifdef _cplusplus

@@ -18,6 +18,10 @@
 #ifndef _MAILUTILS_DEBUG0_H
 #define _MAILUTILS_DEBUG0_H
 
+#ifdef DMALLOC
+#  include <dmalloc.h>
+#endif
+
 #ifndef __P
 #ifdef __STDC__
 #define __P(args) args

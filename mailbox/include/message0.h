@@ -18,6 +18,10 @@
 #ifndef _MESSAGE0_H
 #define _MESSAGE0_H
 
+#ifdef DMALLOC
+#  include <dmalloc.h>
+#endif
+
 #include <mailutils/message.h>
 #include <mailutils/mime.h>
 

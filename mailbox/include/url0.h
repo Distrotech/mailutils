@@ -18,6 +18,10 @@
 #ifndef _URL0_H
 #define _URL0_H	1
 
+#ifdef DMALLOC
+#  include <dmalloc.h>
+#endif
+
 #include <mailutils/url.h>
 
 #ifdef __cplusplus

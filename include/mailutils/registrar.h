@@ -23,6 +23,7 @@
 #include <mailutils/url.h>
 #include <mailutils/mailbox.h>
 #include <mailutils/mailer.h>
+#include <mailutils/folder.h>
 #include <mailutils/list.h>
 
 #ifndef __P
@@ -41,6 +42,8 @@ struct mailbox_entry;
 typedef struct mailbox_entry* mailbox_entry_t;
 struct mailer_entry;
 typedef struct mailer_entry* mailer_entry_t;
+struct folder_entry;
+typedef struct folder_entry* folder_entry_t;
 struct _registrar_record;
 typedef struct _registrar_record* registrar_record_t;
 
@@ -53,6 +56,11 @@ struct mailer_entry
 {
   int (*_url_init)     __P ((url_t));
   int (*_mailer_init)  __P ((mailer_t));
+};
+struct folder_entry
+{
+  int (*_url_init)     __P ((url_t));
+  int (*_folder_init)  __P ((folder_t));
 };
 
 struct _record;
@@ -77,6 +85,10 @@ extern int record_get_mailer     __P ((record_t, mailer_entry_t *));
 extern int record_set_mailer     __P ((record_t, mailer_entry_t));
 extern int record_set_get_mailer __P ((record_t, int (*_get_mailer)
 				       __P ((mailer_entry_t *))));
+extern int record_get_folder     __P ((record_t, folder_entry_t *));
+extern int record_set_folder     __P ((record_t, folder_entry_t));
+extern int record_set_get_folder __P ((record_t, int (*_get_folder)
+				       __P ((folder_entry_t *))));
 
 #define MU_POP_PORT 110
 #define MU_POP_SCHEME "pop://"
@@ -84,6 +96,13 @@ extern int record_set_get_mailer __P ((record_t, int (*_get_mailer)
 extern int url_pop_init  __P ((url_t));
 extern mailbox_entry_t pop_entry;
 extern record_t pop_record;
+
+#define MU_IMAP_PORT 143
+#define MU_IMAP_SCHEME "imap://"
+#define MU_IMAP_SCHEME_LEN 7
+extern int url_imap_init  __P ((url_t));
+extern folder_entry_t imap_entry;
+extern record_t imap_record;
 
 #define MU_MBOX_SCHEME "mbox:"
 #define MU_MBOX_SCHEME_LEN 5

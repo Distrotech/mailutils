@@ -184,10 +184,10 @@ mailer_get_stream (mailer_t mailer, stream_t *pstream)
 }
 
 int
-mailer_attach (mailer_t mailer, observer_t observer)
+mailer_get_observable (mailer_t mailer, observable_t *pobservable)
 {
   /* FIXME: I should check for invalid types */
-  if (mailer == NULL || observer == NULL)
+  if (mailer == NULL || pobservable == NULL)
     return EINVAL;
 
   if (mailer->observable == NULL)
@@ -196,18 +196,8 @@ mailer_attach (mailer_t mailer, observer_t observer)
       if (status != 0)
 	return status;
     }
-  return observable_attach (mailer->observable, observer);
-}
-
-int
-mailer_detach (mailer_t mailer, observer_t observer)
-{
-  /* FIXME: I should check for invalid types */
-  if (mailer == NULL || observer == NULL)
-    return EINVAL;
-  if (mailer->observable == NULL)
-    return 0;
-  return observable_detach (mailer->observable, observer);
+  *pobservable = mailer->observable;
+  return 0;
 }
 
 int

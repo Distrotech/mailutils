@@ -18,6 +18,10 @@
 #ifndef _LIST0_H
 #define _LIST0_H
 
+#ifdef DMALLOC
+#  include <dmalloc.h>
+#endif
+
 #ifdef HAVE_PTHREAD_H
 #  define __USE_UNIX98 /* ?? */
 #  include <pthread.h>

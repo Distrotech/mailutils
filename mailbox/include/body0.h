@@ -18,6 +18,10 @@
 #ifndef _BODY0_H
 #define _BODY0_H
 
+#ifdef DMALLOC
+#  include <dmalloc.h>
+#endif
+
 #include <mailutils/stream.h>
 #include <mailutils/body.h>
 

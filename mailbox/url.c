@@ -44,6 +44,7 @@ url_destroy (url_t *purl)
   if (purl && *purl)
     {
       url_t url = (*purl);
+
       if (url->_destroy)
 	url->_destroy (url);
 
@@ -59,8 +60,17 @@ url_destroy (url_t *purl)
       if (url->passwd)
 	free (url->passwd);
 
+      if (url->auth)
+	free (url->auth);
+
       if (url->host)
 	free (url->host);
+
+      if (url->path)
+	free (url->path);
+
+      if (url->query)
+	free (url->query);
 
       free (url);
 

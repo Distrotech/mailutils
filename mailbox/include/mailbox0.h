@@ -18,6 +18,10 @@
 #ifndef _MAILBOX0_H
 #define _MAILBOX0_H
 
+#ifdef DMALLOC
+#  include <dmalloc.h>
+#endif
+
 #ifdef HAVE_PTHREAD_H
 #  define __USE_UNIX98 /* ?? */
 #  include <pthread.h>
@@ -27,6 +31,7 @@
 #include <stdio.h>
 
 #include <mailutils/mailbox.h>
+#include <mailutils/folder.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -50,6 +55,7 @@ struct _mailbox
   locker_t locker;
   stream_t stream;
   url_t url;
+  folder_t folder;
   int flags;
 
 #ifdef WITH_PTHREAD

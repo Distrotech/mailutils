@@ -18,6 +18,10 @@
 #ifndef _BIO_H
 # define _BIO_H
 
+#ifdef DMALLOC
+#  include <dmalloc.h>
+#endif
+
 #include <sys/types.h>
 #include <mailutils/stream.h>
 

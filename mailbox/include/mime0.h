@@ -18,6 +18,10 @@
 #ifndef _MIME0_H
 #define _MIME0_H
 
+#ifdef DMALLOC
+#  include <dmalloc.h>
+#endif
+
 #include <sys/types.h>
 #include <mailutils/mime.h>
 

@@ -134,13 +134,17 @@ observable_destroy (observable_t *pobservable, void *owner)
 	  int status = iterator_create (&iterator, observable->list);
 	  if (status == 0)
 	    {
-	      observer_t observer = NULL;
+	      event_t event = NULL;
 	      for (iterator_first (iterator); !iterator_is_done (iterator);
 		   iterator_next (iterator))
 		{
-		  iterator_current (iterator, (void **)&observer);
-		  if (observer != NULL)
-		    observer_destroy (&observer, NULL);
+		  event = NULL;
+		  iterator_current (iterator, (void **)&event);
+		  if (event != NULL)
+		    {
+		      observer_destroy (&(event->observer), NULL);
+		      free (event);
+		    }
 		}
 	    }
 	  list_destroy (&((*pobservable)->list));
@@ -157,11 +161,17 @@ observable_get_owner (observable_t observable)
 }
 
 int
-observable_attach (observable_t observable, observer_t observer)
+observable_attach (observable_t observable, size_t type,  observer_t observer)
 {
+  event_t event;
   if (observable == NULL || observer == NULL)
     return EINVAL;
-  return list_append (observable->list, observer);
+  event = calloc (1, sizeof (*event));
+  if (event == NULL)
+    return ENOMEM;
+  event->type = type;
+  event->observer = observer;
+  return list_append (observable->list, event);
 }
 
 int
@@ -170,7 +180,7 @@ observable_detach (observable_t observable, observer_t observer)
   iterator_t iterator;
   int status;
   int found = 0;
-  observer_t current;
+  event_t event = NULL;
   if (observable == NULL ||observer == NULL)
     return EINVAL;
   status = iterator_create (&iterator, observable->list);
@@ -179,22 +189,30 @@ observable_detach (observable_t observable, observer_t observer)
   for (iterator_first (iterator); !iterator_is_done (iterator);
        iterator_next (iterator))
     {
-      iterator_current (iterator, (void **)&current);
-      if ((int)(current) == (int)observer)
+      event = NULL;
+      iterator_current (iterator, (void **)&event);
+      if (event && (int)(event->observer) == (int)observer)
         {
           found = 1;
           break;
         }
     }
   iterator_destroy (&iterator);
-  return (found) ? list_remove (observable->list, observer) : ENOENT;
+  if (found)
+    {
+      status = list_remove (observable->list, event);
+      free (event);
+    }
+  else
+    status = ENOENT;
+  return status;
 }
 
 int
 observable_notify (observable_t observable, int type)
 {
   iterator_t iterator;
-  observer_t observer = NULL;
+  event_t event = NULL;
   int status = 0;
   if (observable == NULL)
     return EINVAL;
@@ -204,11 +222,11 @@ observable_notify (observable_t observable, int type)
   for (iterator_first (iterator); !iterator_is_done (iterator);
        iterator_next (iterator))
     {
-      iterator_current (iterator, (void **)&observer);
-      if (observer)
+      event = NULL;
+      iterator_current (iterator, (void **)&event);
+      if (event && event->type & type)
         {
-	  status |= observer_action (observer, type);
-	  observer = NULL;
+	  status |= observer_action (event->observer, type);
         }
     }
   iterator_destroy (&iterator);

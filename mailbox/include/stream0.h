@@ -19,6 +19,9 @@
 # define _IO0_H
 
 #include <mailutils/stream.h>
+#ifdef DMALLOC
+#include <dmalloc.h>
+#endif
 
 #ifdef __cplusplus
 extern "C" {

@@ -50,11 +50,13 @@ static struct _record _pop_record =
   MU_POP_SCHEME,
   &_pop_entry, /* Mailbox entry.  */
   NULL, /* Mailer entry.  */
+  NULL, /* folder entry.  */
   0, /* Not malloc()ed.  */
   NULL, /* No need for an owner.  */
   NULL, /* is_scheme method.  */
   NULL, /* get_mailbox method.  */
-  NULL /* get_mailer method.  */
+  NULL, /* get_mailer method.  */
+  NULL /* get_folder method.  */
 };
 
 /* We export two functions: url parsing and the initialisation of
@@ -312,10 +314,10 @@ pop_destroy (mailbox_t mbox)
 	    }
 	}
       bio_destroy (&(mpd->bio));
-      free (mpd->buffer);
-      mpd->buffer = NULL;
-      free (mpd->pmessages);
-      mpd->pmessages = NULL;
+      if (mpd->buffer)
+	free (mpd->buffer);
+      if (mpd->pmessages)
+	free (mpd->pmessages);
       free (mpd);
       mbox->data = NULL;
       mailbox_unlock (mbox);
@@ -335,9 +337,8 @@ pop_user (authority_t auth)
     {
     case POP_AUTH:
       authority_get_ticket (auth, &ticket);
-      /*  Fetch the user/passwd from them.  */
+      /*  Fetch the user from them.  */
       ticket_pop (ticket, "Pop User: ",  &mpd->user);
-      ticket_pop (ticket, "Pop Passwd: ",  &mpd->passwd);
       status = pop_writeline (mpd, "USER %s\r\n", mpd->user);
       CHECK_ERROR_CLOSE(mbox, mpd, status);
       MAILBOX_DEBUG0 (mbox, MU_DEBUG_PROT, mpd->buffer);
@@ -360,9 +361,12 @@ pop_user (authority_t auth)
 	{
 	  observable_t observable = NULL;
 	  mailbox_get_observable (mbox, &observable);
+	  CLEAR_STATE (mpd);
 	  observable_notify (observable, MU_EVT_AUTHORITY_FAILED);
 	  CHECK_ERROR_CLOSE (mbox, mpd, EACCES);
 	}
+      /*  Fetch the passwd from them.  */
+      ticket_pop (ticket, "Pop Passwd: ",  &mpd->passwd);
       status = pop_writeline (mpd, "PASS %s\r\n", mpd->passwd);
       /* We have to nuke the passwd.  */
       memset (mpd->passwd, 0, strlen (mpd->passwd));
@@ -389,6 +393,7 @@ pop_user (authority_t auth)
 	{
 	  observable_t observable = NULL;
 	  mailbox_get_observable (mbox, &observable);
+	  CLEAR_STATE (mpd);
 	  observable_notify (observable, MU_EVT_AUTHORITY_FAILED);
 	  CHECK_ERROR_CLOSE (mbox, mpd, EACCES);
 	}
@@ -435,11 +440,16 @@ pop_open (mailbox_t mbox, int flags)
       if (mpd->buffer == NULL)
 	{
 	  mpd->buflen = 255;
-	  mpd->buffer = malloc (mpd->buflen + 1);
+	  mpd->buffer = calloc (mpd->buflen + 1, sizeof (char));
 	  if (mpd->buffer == NULL)
 	    {
 	      CHECK_ERROR (mpd, ENOMEM);
 	    }
+	  mpd->ptr = mpd->buffer;
+	}
+      else
+	{
+	  memset (mpd->buffer, '\0', mpd->buflen);
 	  mpd->ptr = mpd->buffer;
 	}
 
@@ -479,19 +489,22 @@ pop_open (mailbox_t mbox, int flags)
 	    CHECK_ERROR_CLOSE (mbox, mpd, EACCES);
 	  }
 
-	url_get_auth (mbox->url, auth, 64, &n);
-	if (n == 0 || strcasecmp (auth, "*") == 0)
+	if (mbox->authority == NULL)
 	  {
-	    authority_create (&(mbox->authority), mbox->ticket, mbox);
-	    authority_set_authenticate (mbox->authority, pop_user, mbox);
-	  }
-	else if (strcasecmp (auth, "+apop") == 0)
-	  {
-	    /* Not supported.  */
-	  }
-	else
-	  {
-	    /* What can do flag an error ?  */
+	    url_get_auth (mbox->url, auth, 64, &n);
+	    if (n == 0 || strcasecmp (auth, "*") == 0)
+	      {
+		authority_create (&(mbox->authority), mbox->ticket, mbox);
+		authority_set_authenticate (mbox->authority, pop_user, mbox);
+	      }
+	    else if (strcasecmp (auth, "+apop") == 0)
+	      {
+		/* Not supported.  */
+	      }
+	    else
+	      {
+		/* What can we do ? flag an error ?  */
+	      }
 	  }
 	mpd->state = POP_AUTH;
       }

@@ -43,11 +43,13 @@ static struct _record _sendmail_record =
   MU_SENDMAIL_SCHEME,
   NULL, /* Mailbox entry.  */
   &_sendmail_entry, /* Mailer entry.  */
+  NULL, /* Folder entry.  */
   0, /* Not malloc()ed.  */
   NULL, /* No need for an owner.  */
   NULL, /* is_scheme method.  */
   NULL, /* get_mailbox method.  */
-  NULL /* get_mailer method.  */
+  NULL, /* get_mailer method.  */
+  NULL /* get_folder method.  */
 };
 
 /* We export two functions: url parsing and the initialisation of

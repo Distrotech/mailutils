@@ -18,6 +18,10 @@
 #ifndef _MISC_H
 #define _MISC_H
 
+#ifdef DMALLOC
+#  include <dmalloc.h>
+#endif
+
 #ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif

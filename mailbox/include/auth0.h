@@ -18,6 +18,10 @@
 #ifndef _AUTH0_H
 #define _AUTH0_H
 
+#ifdef DMALLOC
+#  include <dmalloc.h>
+#endif
+
 #include <mailutils/auth.h>
 #include <sys/types.h>
 

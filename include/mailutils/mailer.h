@@ -57,8 +57,7 @@ extern int mailer_set_stream    __P ((mailer_t, stream_t));
 extern int mailer_get_debug     __P ((mailer_t, debug_t *));
 extern int mailer_set_debug     __P ((mailer_t, debug_t));
 
-extern int mailer_attach        __P ((mailer_t, observer_t));
-extern int mailer_detach        __P ((mailer_t, observer_t));
+extern int mailer_get_observable __P ((mailer_t, observable_t *));
 
 extern int mailer_get_url       __P ((mailer_t, url_t *));
 

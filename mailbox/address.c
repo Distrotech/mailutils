@@ -302,6 +302,8 @@ address_destroy (address_t *paddress)
       address_t current;
       for (; address; address = current)
 	{
+	  if (address->addr)
+	    free (address->addr);
 	  if (address->comments)
 	    free (address->comments);
 	  if (address->personal)

@@ -45,11 +45,13 @@ static struct _record _smtp_record =
   MU_SMTP_SCHEME,
   NULL, /* Mailbox entry.  */
   &_smtp_entry, /* Mailer entry.  */
+  NULL, /* Mailer entry.  */
   0, /* Not malloc()ed.  */
   NULL, /* No need for an owner.  */
   NULL, /* is_scheme method.  */
   NULL, /* get_mailbox method.  */
-  NULL /* get_mailer method.  */
+  NULL, /* get_mailer method.  */
+  NULL /* get_folder method.  */
 };
 
 /* We export two functions: url parsing and the initialisation of
@@ -287,8 +289,6 @@ smtp_open (mailer_t mailer, int flags)
             }
           smtp->ptr = smtp->buffer;
         }
-      status = bio_create (&(smtp->bio), mailer->stream);
-      CHECK_ERROR (smtp, status);
 
       /* Create a TCP stack if one is not given.  */
       if (mailer->stream == NULL)
@@ -296,6 +296,8 @@ smtp_open (mailer_t mailer, int flags)
 	  status = tcp_stream_create (&(mailer->stream));
 	  CHECK_ERROR (smtp, status);
 	}
+      status = bio_create (&(smtp->bio), mailer->stream);
+      CHECK_ERROR (smtp, status);
       smtp->state = SMTP_OPEN;
 
     case SMTP_OPEN:

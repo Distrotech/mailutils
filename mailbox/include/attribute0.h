@@ -18,6 +18,10 @@
 #ifndef _ATTRIBUTE0_H
 # define _ATTRIBUTE0_H
 
+#ifdef DMALLOC
+#  include <dmalloc.h>
+#endif
+
 #include <mailutils/attribute.h>
 
 #ifdef __cplusplus

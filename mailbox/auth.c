@@ -71,8 +71,8 @@ ticket_destroy (ticket_t *pticket, void *owner)
 	    free (ticket->type);
 	  free (ticket);
 	}
+      *pticket = NULL;
     }
-  *pticket = NULL;
 }
 
 void *
@@ -145,6 +145,8 @@ ticket_set_type (ticket_t ticket, char *type)
 {
   if (ticket == NULL)
     return EINVAL;
+  if (ticket->type)
+    free (ticket->type);
   ticket->type = strdup ((type) ? type : "");
   return 0;
 }
@@ -190,7 +192,8 @@ authority_set_ticket (authority_t authority, ticket_t ticket)
 {
   if (authority == NULL)
     return EINVAL;
-  ticket_destroy (&(authority->ticket), authority);
+  if (authority->ticket)
+    ticket_destroy (&(authority->ticket), authority);
   authority->ticket = ticket;
   return 0;
 }

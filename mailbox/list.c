@@ -108,6 +108,14 @@ list_prepend (list_t list, void *item)
 }
 
 int
+list_is_empty (list_t list)
+{
+  size_t n = 0;
+  list_count (list, &n);
+  return n;
+}
+
+int
 list_count (list_t list, size_t *pcount)
 {
   if (list == NULL || pcount == NULL)

@@ -208,7 +208,7 @@ main (int argc, char **argv)
       if (mailbox_create_default (&mbox, args.user) != 0)
 	exit (EXIT_FAILURE);
     }
-  else if (mailbox_create (&mbox, args.file, 0) != 0)
+  else if (mailbox_create (&mbox, args.file) != 0)
     exit (EXIT_FAILURE);
 
   if (mailbox_open (mbox, MU_STREAM_READ) != 0)

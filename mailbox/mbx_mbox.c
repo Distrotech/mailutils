@@ -60,11 +60,13 @@ static struct _record _mbox_record =
   MU_MBOX_SCHEME,
   &_mbox_entry, /* Mailbox entry.  */
   NULL, /* Mailer entry.  */
+  NULL, /* Folder entry.  */
   0, /* Not malloc()ed.  */
   NULL, /* No need for an owner.  */
   NULL, /* is_scheme method.  */
   NULL, /* get_mailbox method.  */
-  NULL /* get_mailer method.  */
+  NULL, /* get_mailer method.  */
+  NULL /* get_folder method.  */
 };
 record_t mbox_record = &_mbox_record;
 
@@ -249,7 +251,7 @@ mbox_destroy (mailbox_t mailbox)
 	free (mud->umessages);
       if (mud->name)
 	free (mud->name);
-      free (mailbox->data);
+      free (mud);
       mailbox->data = NULL;
       mailbox_unlock (mailbox);
     }

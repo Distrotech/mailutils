@@ -18,6 +18,10 @@
 #ifndef _ITERATOR0_H
 #define _ITERATOR0_H
 
+#ifdef DMALLOC
+#  include <dmalloc.h>
+#endif
+
 #include <mailutils/iterator.h>
 
 #ifndef __P

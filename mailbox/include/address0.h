@@ -18,6 +18,10 @@
 #ifndef _ADDRESS0_H
 #define _ADDRESS_0H
 
+#ifdef DMALLOC
+#  include <dmalloc.h>
+#endif
+
 #include <mailutils/address.h>
 
 #ifndef __P

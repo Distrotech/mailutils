@@ -74,9 +74,9 @@ mailbox_create_default (mailbox_t *pmbox, const char *mail)
       if (mail0 == NULL)
 	return ENOMEM;
       sprintf (mail0, "%s/%s", _PATH_MAILDIR, user);
-      status = mailbox_create (pmbox, mail0, 0);
+      status = mailbox_create (pmbox, mail0);
       free (mail0);
       return status;
     }
-  return  mailbox_create (pmbox, mail, 0);
+  return  mailbox_create (pmbox, mail);
 }

@@ -46,7 +46,7 @@ struct _mailbox;
 typedef struct _mailbox *mailbox_t;
 
 /* Constructor/destructor and possible types.  */
-extern int  mailbox_create        __P ((mailbox_t *, const char *, int));
+extern int  mailbox_create        __P ((mailbox_t *, const char *));
 extern void mailbox_destroy       __P ((mailbox_t *));
 extern int mailbox_create_default __P ((mailbox_t *, const char *));
 
@@ -73,6 +73,8 @@ extern int mailbox_get_locker     __P ((mailbox_t, locker_t *));
 extern int mailbox_set_locker     __P ((mailbox_t, locker_t));
 
 /* Authentication.  */
+extern int mailbox_get_authority  __P ((mailbox_t, authority_t *));
+extern int mailbox_set_authority  __P ((mailbox_t, authority_t));
 extern int mailbox_get_ticket     __P ((mailbox_t, ticket_t *));
 extern int mailbox_set_ticket     __P ((mailbox_t, ticket_t));
 

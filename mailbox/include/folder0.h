@@ -9,26 +9,30 @@
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
+   GNU Library General Public License for more details.
 
    You should have received a copy of the GNU Library General Public License
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-#ifndef _MAILER0_H
-#define _MAILER0_H
+#ifndef _FOLDER_H
+#define _FOLDER0_H
 
 #ifdef DMALLOC
 #  include <dmalloc.h>
 #endif
 
-#include <sys/types.h>
-#include <mailutils/mailer.h>
 #ifdef HAVE_PTHREAD_H
 #  define __USE_UNIX98 /* ?? */
 #  include <pthread.h>
 #endif
-#ifdef _cplusplus
+
+#include <sys/types.h>
+#include <stdio.h>
+
+#include <mailutils/folder.h>
+
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -40,51 +44,45 @@ extern "C" {
 # endif
 #endif /*__P */
 
-// mailer states
-#define MAILER_STATE_HDR		1
-#define MAILER_STATE_MSG		2
-#define MAILER_STATE_COMPLETE	3
-
-// mailer messages
-#define MAILER_HELO	1
-#define MAILER_MAIL	2
-#define MAILER_RCPT	3
-#define MAILER_DATA	4
-#define MAILER_RSET	5
-#define MAILER_QUIT	6
-
-#define MAILER_LINE_BUF_SIZE	1000
-
-struct _mailer
+struct _folder
 {
-  stream_t stream;
+  /* Data */
+  ticket_t ticket;
+  authority_t authority;
   observable_t observable;
   debug_t debug;
+  stream_t stream;
   url_t url;
   int flags;
+  size_t ref;
+  size_t uid;
+
 #ifdef WITH_PTHREAD
   pthread_rwlock_t rwlock;
 #endif
 
-  /* Pointer to the specific mailer data.  */
+  /* Back pointer to the specific mailbox */
   void *data;
 
-  /* Public methods.  */
-  int (*_init)         __P ((mailer_t));
-  void (*_destroy)     __P ((mailer_t));
-  int (*_open)         __P ((mailer_t, int flags));
-  int (*_close)        __P ((mailer_t));
-  int (*_send_message) __P ((mailer_t, const char *from, const char *rcpt,
-			     int dsn, message_t));
+  /* Public methods */
+
+  int  (*_init)            __P ((folder_t));
+  void (*_destroy)         __P ((folder_t));
+
+  int  (*_open)            __P ((folder_t, int flag));
+  int  (*_close)           __P ((folder_t));
+  int  (*_list)            __P ((folder_t, list_t *));
+  int  (*_delete_mailbox)  __P ((folder_t, const char *));
+  int  (*_decremente)      __P ((folder_t));
 };
 
-/* Mail locks.  */
-extern int mailer_rdlock __P ((mailer_t));
-extern int mailer_wrlock __P ((mailer_t));
-extern int mailer_unlock __P ((mailer_t));
+/* To manipulate mailbox rwlock.  */
+extern int folder_rdlock         __P ((folder_t));
+extern int folder_wrlock         __P ((folder_t));
+extern int folder_unlock         __P ((folder_t));
 
-#ifdef _cplusplus
+#ifdef __cplusplus
 }
 #endif
 
-#endif /* MAILER0_H */
+#endif /* _MAILBOX0_H */

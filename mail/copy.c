@@ -55,7 +55,7 @@ mail_copy (int argc, char **argv)
       /* filename = login name part */
     }
 
-  mailbox_create (&mbx, filename, 0);
+  mailbox_create (&mbx, filename);
   mailbox_open (mbx, MU_STREAM_WRITE | MU_STREAM_CREAT);
   
   if (num > 0)

@@ -38,6 +38,7 @@ typedef struct _observer* observer_t;
 typedef struct _observable* observable_t;
 
 #define MU_EVT_MAILBOX_DESTROY   0x001
+#define MU_EVT_FOLDER_DESTROY   0x001
 #define MU_EVT_MAILER_DESTROY    0x002
 #define MU_EVT_MESSAGE_DESTROY   0x004
 #define MU_EVT_MESSAGE_ADD       0x008
@@ -57,7 +58,7 @@ extern int observer_set_flags   __P ((observer_t, int flags));
 extern int observable_create    __P ((observable_t *, void *owner));
 extern void observable_destroy  __P ((observable_t *, void *owner));
 extern void * observable_get_owner __P ((observable_t));
-extern int observable_attach    __P ((observable_t, observer_t observer));
+extern int observable_attach    __P ((observable_t, size_t type, observer_t observer));
 extern int observable_detach    __P ((observable_t, observer_t observer));
 extern int observable_notify    __P ((observable_t, int type));
 

@@ -576,9 +576,12 @@ void mime_destroy(mime_t *pmime)
 		if ( mime->mtp_parts != NULL ) {
 			for ( i = 0; i < mime->nmtp_parts; i++ ) {
 				mime_part = mime->mtp_parts[i];
-				if ( mime_part->msg )
+				if ( mime_part->msg ) {
 					message_destroy(&mime_part->msg, mime_part);
+					free (mime_part);
+				}
 			}
+			free (mime->mtp_parts);
 		}
 		if ( mime->content_type )
 			free(mime->content_type);

@@ -63,29 +63,41 @@ record_is_scheme (record_t record, const char *scheme)
 int
 record_get_mailbox (record_t record, mailbox_entry_t *pmbox)
 {
-  if (record == NULL)
+  if (record == NULL || pmbox == NULL)
     return EINVAL;
 
   /* Overload.  */
   if (record->_get_mailbox)
     return record->_get_mailbox (record, pmbox);
 
-  if (pmbox)
-    *pmbox = record->mailbox;
+  *pmbox = record->mailbox;
   return 0;
 }
 
 int
 record_get_mailer (record_t record, mailer_entry_t *pml)
 {
-  if (record == NULL)
+  if (record == NULL || pml == NULL)
     return EINVAL;
 
   /* Overload.  */
   if (record->_get_mailer)
     return record->_get_mailer (record, pml);
 
-  if (pml)
-    *pml = record->mailer;
+  *pml = record->mailer;
+  return 0;
+}
+
+int
+record_get_folder (record_t record, folder_entry_t *pfolder)
+{
+  if (record == NULL || pfolder == NULL)
+    return EINVAL;
+
+  /* Overload.  */
+  if (record->_get_folder)
+    return record->_get_folder (record, pfolder);
+
+  *pfolder = record->folder;
   return 0;
 }

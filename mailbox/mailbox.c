@@ -34,7 +34,7 @@
    Then we call the mailbox's >url_create() to parse the URL. Last
    initiliaze the concrete mailbox.  */
 int
-mailbox_create (mailbox_t *pmbox, const char *name, int id)
+mailbox_create (mailbox_t *pmbox, const char *name)
 {
   int status = EINVAL;
   record_t record = NULL;
@@ -43,7 +43,6 @@ mailbox_create (mailbox_t *pmbox, const char *name, int id)
   list_t list;
   int found = 0;
 
-  (void)id;
   if (pmbox == NULL)
     return EINVAL;
 
@@ -58,10 +57,12 @@ mailbox_create (mailbox_t *pmbox, const char *name, int id)
       iterator_current (iterator, (void **)&record);
       if (record_is_scheme (record, name))
 	{
-	  status = record_get_mailbox (record, &entry);
-	  if (status == 0)
-	    found = 1;
-	  break;
+	  record_get_mailbox (record, &entry);
+	  if (entry)
+	    {
+	      found = 1;
+	      break;
+	    }
 	}
     }
   iterator_destroy (&iterator);
@@ -140,6 +141,9 @@ mailbox_destroy (mailbox_t *pmbox)
 	  stream_destroy (&(mbox->stream), mbox);
 	}
 
+      if (mbox->ticket)
+	ticket_destroy (&(mbox->ticket), mbox);
+
       if (mbox->authority)
 	authority_destroy (&(mbox->authority), mbox);
 
@@ -151,6 +155,9 @@ mailbox_destroy (mailbox_t *pmbox)
 
       if (mbox->debug)
 	debug_destroy (&(mbox->debug), mbox);
+
+      if (mbox->folder)
+	folder_destroy (&(mbox->folder));
 
       free (mbox);
       *pmbox = NULL;
@@ -241,7 +248,7 @@ mailbox_set_locker (mailbox_t mbox, locker_t locker)
 {
   if (mbox == NULL)
     return EINVAL;
-  if (mbox->locker != NULL)
+  if (mbox->locker)
     locker_destroy (&mbox->locker);
   mbox->locker = locker;
   return 0;
@@ -252,8 +259,27 @@ mailbox_get_locker (mailbox_t mbox, locker_t *plocker)
 {
   if (mbox == NULL || plocker == NULL)
     return EINVAL;
-  if (plocker)
-    *plocker = mbox->locker;
+  *plocker = mbox->locker;
+  return 0;
+}
+
+int
+mailbox_set_authority (mailbox_t mbox, authority_t authority)
+{
+  if (mbox == NULL)
+    return EINVAL;
+  if (mbox->authority)
+    authority_destroy (&(mbox->authority), mbox);
+  mbox->authority = authority;
+  return 0;
+}
+
+int
+mailbox_get_authority (mailbox_t mbox, authority_t *pauthority)
+{
+  if (mbox == NULL || pauthority == NULL)
+    return EINVAL;
+  *pauthority = mbox->authority;
   return 0;
 }
 
@@ -262,6 +288,8 @@ mailbox_set_ticket (mailbox_t mbox, ticket_t ticket)
 {
   if (mbox == NULL)
     return EINVAL;
+  if (mbox->ticket)
+    ticket_destroy (&(mbox->ticket), mbox);
   mbox->ticket = ticket;
   return 0;
 }
@@ -271,8 +299,7 @@ mailbox_get_ticket (mailbox_t mbox, ticket_t *pticket)
 {
   if (mbox == NULL || pticket == NULL)
     return EINVAL;
-  if (pticket)
-    *pticket = mbox->ticket;
+  *pticket = mbox->ticket;
   return 0;
 }
 
@@ -281,6 +308,8 @@ mailbox_set_stream (mailbox_t mbox, stream_t stream)
 {
   if (mbox == NULL)
     return EINVAL;
+  if (mbox->stream)
+    stream_destroy (&(mbox->stream), mbox);
   mbox->stream = stream;
   return 0;
 }
@@ -290,8 +319,7 @@ mailbox_get_stream (mailbox_t mbox, stream_t *pstream)
 {
   if (mbox == NULL || pstream == NULL)
     return EINVAL;
-  if (pstream)
-    *pstream = mbox->stream;
+  *pstream = mbox->stream;
   return 0;
 }
 
@@ -316,7 +344,8 @@ mailbox_set_debug (mailbox_t mbox, debug_t debug)
 {
   if (mbox == NULL)
     return EINVAL;
-  debug_destroy (&(mbox->debug), mbox);
+  if (mbox->debug)
+    debug_destroy (&(mbox->debug), mbox);
   mbox->debug = debug;
   return 0;
 }

@@ -40,6 +40,7 @@ extern int ticket_create           __P ((ticket_t *, void *owner));
 extern void ticket_destroy         __P ((ticket_t *, void *owner));
 extern void * ticket_get_owner     __P ((ticket_t));
 
+extern int ticket_set_pop          __P ((ticket_t, int (*_pop) __P ((ticket_t, const char *, char **)), void *));
 extern int ticket_pop              __P ((ticket_t, const char *, char **));
 
 extern int ticket_get_type         __P ((ticket_t, char *, size_t, size_t *));
