@@ -19,6 +19,74 @@
 
 static char *prev_name;
 
+/* Expand mail special characters:
+ * #	    the previous file
+ * &	    the current mbox
+ * +file    the file named in the folder directory (set folder=foo)
+ * Note 1) The followig notations are left intact, since they are
+ * handled by mailbox_create_default:
+ * %	    system mailbox
+ * %user    system mailbox of the user (bo
+ * Note 2) Allocates memory
+ */
+char *
+mail_expand_name (const char *name)
+{
+  struct mail_env_entry *env;
+
+  switch (name[0])
+    {
+    case '#':
+      if (!prev_name)
+	util_error ("No previous file");
+      else
+	name = xstrdup (prev_name);
+      break;
+	  
+    case '&':
+      name = getenv ("MBOX");
+      if (!name)
+	util_error ("MBOX environment variable not set");
+      else
+	name = xstrdup (name);
+      break;
+	  
+    case '+':
+      env = util_find_env ("folder");
+      if (!env->set)
+	{
+	  util_error ("No value set for \"folder\"");
+	  return NULL;
+	}
+      else
+	{
+	  char *tmp;
+	  
+	  if (env->value[0] != '/' && env->value[1] != '~')
+	    {
+	      char *home = mu_get_homedir ();
+	      tmp  = xmalloc (strlen (home) + 1 +
+			      strlen (env->value) + 1 +
+			      strlen (name + 1) + 1);
+	      sprintf (tmp, "%s/%s/%s", home, env->value, name + 1);
+	    }
+	  else
+	    {
+	      tmp  = xmalloc (strlen (env->value) + 1 +
+			      strlen (name + 1) + 1);
+	      sprintf (tmp, "%s/%s", env->value, name + 1);
+	    }
+	  name = tmp;
+	}
+      break;
+
+    default:
+      name = xstrdup (name);
+      break;
+    }
+  return (char*) name;
+}
+
 /*
  * fi[le] [file]
  * fold[er] [file]
@@ -33,68 +101,25 @@ mail_file (int argc, char **argv)
     }
   else if (argc == 2)
     {
+      /* switch folders */
       char *pname;
       url_t url;
-
-      /* switch folders */
-      /*
-       * special characters:
-       * %	system mailbox
-       * %user	system mailbox of the user
-       * #	the previous file
-       * &	the current mbox
-       * +file	the file named in the folder directory (set folder=foo)
-       */
       mailbox_t newbox = NULL;
-      struct mail_env_entry *env;
-      char *name;
-      
-      switch (argv[1][0])
-	{
-	case '#':
-	  if (!prev_name)
-	    {
-	      util_error("No previous file");
-	      return 1;
-	    }
-	  name = prev_name;
-	  break;
-	  
-	case '&':
-	  name = getenv ("MBOX");
-	  break;
-	  
-	case '+':
-	  env = util_find_env ("folder");
-	  if (env->set && env->value[0] != '/' && env->value[1] != '~')
-	    {
-	      char *home = mu_get_homedir ();
-	      name = alloca (strlen (home) + 1 +
-			     strlen (env->value) + 1 +
-			     strlen (argv[1] + 1) + 1);
-	      if (!name)
-		{
-		  util_error ("Not enough memory");
-		  return 1;
-		} 
-	      sprintf (name, "%s/%s/%s", home, env->value, argv[1] + 1);
-	    }
-	  else
-	    name = argv[1];
-	  break;
-	  
-	default:
-	  name = argv[1];
-	}
+      char *name = mail_expand_name (argv[1]);
+
+      if (!name)
+	return 1;
       
       if (mailbox_create_default (&newbox, name) != 0 
-	  || mailbox_open (newbox, MU_STREAM_READ) != 0)
+	  || mailbox_open (newbox, MU_STREAM_RDWR) != 0)
 	{
 	  mailbox_destroy (&newbox);
-	  util_error("can't open mailbox %s: %s",
-		     name ? name : "%", strerror(errno));
+	  util_error("can't open mailbox %s: %s", name, mu_errstring (errno));
+	  free (name);
 	  return 1;
 	}
+
+      free (name); /* won't need it any more */
 
       mailbox_get_url (mbox, &url);
       pname = strdup (url_to_string (url));
@@ -103,7 +128,7 @@ mail_file (int argc, char **argv)
 	  if (pname)
 	    free (pname);
 	  mailbox_close (newbox);
-	  mailbox_destroy (&newbox); 
+	  mailbox_destroy (&newbox);
 	  return 1;
 	}
       

@@ -210,6 +210,7 @@ extern void mail_set_my_name __P ((char *name));
 extern char *mail_whoami __P ((void));
 extern int mail_header_is_visible __P ((char *str));
 extern int mail_mbox_close __P ((void));
+extern char *mail_expand_name __P((const char *name));
 
 extern int var_shell __P ((int argc, char **argv, struct send_environ *env));
 extern int var_command __P ((int argc, char **argv, struct send_environ *env));
