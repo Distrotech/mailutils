@@ -400,8 +400,8 @@ sieve_test (struct mu_auth_data *auth, message_t msg)
 		  switch_user_id (auth, 0);
 		  chdir ("/");
 		}
+	      sieve_machine_destroy (&mach);
 	    }
-	  sieve_machine_destroy (&mach);
 	}
     }
   free (progfile);
@@ -673,7 +673,6 @@ deliver (message_t msg, char *name)
 #if defined(USE_DBM)
   {
     size_t n, isize;
-    struct stat sb;
 
     switch (check_quota (name, size, &n))
       {
@@ -694,7 +693,7 @@ deliver (message_t msg, char *name)
 	    exit_code = EX_UNAVAILABLE;
 	    failed++;
 	  }
-	else if (sb.st_size > n)
+	else if (isize > n)
 	  {
 	    mailer_err ("%s: message would exceed maximum mailbox size for this recipient",
 			name);
