@@ -61,7 +61,26 @@ mail_mbox_commit ()
   attribute_t attr;
   int keepsave = util_find_env("keepsave")->set;
   int hold = util_find_env ("hold")->set;
-    
+  url_t url;
+  int is_user_mbox;
+  
+  mailbox_get_url (mbox, &url);
+  is_user_mbox = strcmp (url_to_string (url), getenv("MBOX")) == 0; 
+
+  {
+    mailbox_t mb;
+    url_t u;
+    mailbox_create_default (&mb, NULL);
+    mailbox_get_url (mbox, &u);
+    if (strcmp (url_to_string (u), url_to_string (url)) != 0)
+      {
+	/* The mailbox we are closing is not a system one (%). Raise
+	   hold flag */
+	hold = 1;
+      }
+    mailbox_destroy (&mb);
+  }
+
   for (i = 1; i <= total; i++)
     {
       if (mailbox_get_message (mbox, i, &msg))
@@ -70,8 +89,10 @@ mail_mbox_commit ()
 	  return 1;
 	}
       message_get_attribute (msg, &attr);
-      if (attribute_is_userflag (attr, MAIL_ATTRIBUTE_MBOXED)
-	  || (!hold && attribute_is_seen (attr)))
+
+      if (!is_user_mbox &&
+	  (attribute_is_userflag (attr, MAIL_ATTRIBUTE_MBOXED)
+	  || (!hold && attribute_is_read (attr))))
 	{
 	  if (!dest_mbox)
 	    {
@@ -92,8 +113,8 @@ mail_mbox_commit ()
 	}
       else if (!keepsave && attribute_is_userflag (attr, MAIL_ATTRIBUTE_SAVED))
 	attribute_set_deleted (attr);
-      else if (attribute_is_seen (attr))
-	attribute_set_read (attr);
+      else if (attribute_is_read (attr))
+	attribute_set_seen (attr);
     }
 
   if (saved_count)
