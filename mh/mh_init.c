@@ -735,7 +735,7 @@ mh_draft_name ()
 }
 
 char *
-mh_create_message_id (int m)
+mh_create_message_id (int subpart)
 {
   char date[4+2+2+2+2+2+1];
   time_t t = time (NULL);
@@ -746,14 +746,14 @@ mh_create_message_id (int m)
   strftime (date, sizeof date, "%Y%m%d%H%M%S", tm);
   mu_get_host_name (&host);
 
-  if (m)
+  if (subpart)
     {
       struct timeval tv;
       gettimeofday (&tv, NULL);
-      asprintf (&p, "<%s.%lu.%lu@%s>",
+      asprintf (&p, "<%s.%lu.%d@%s>",
 		date,
-		(unsigned long) tv.tv_usec,
 		(unsigned long) getpid (),
+		subpart,
 		host);
     }
   else
