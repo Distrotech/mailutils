@@ -1,0 +1,467 @@
+/* GNU mailutils - a suite of utilities for electronic mail
+   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 2, or (at your option)
+   any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
+
+/* MH folder command */
+
+#include <mh.h>
+#include <sys/types.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <time.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <errno.h>
+
+#include <dirent.h>
+
+#define obstack_chunk_alloc malloc
+#define obstack_chunk_free free
+#include <obstack.h>
+
+const char *argp_program_version = "folder (" PACKAGE_STRING ")";
+static char doc[] = "GNU MH folder";
+static char args_doc[] = "[action][msg]";
+
+#define ARG_PUSH 1
+#define ARG_POP 2
+
+static struct argp_option options[] = {
+  {"Actions are:", 0, 0, OPTION_DOC, "", 0 },
+  {"print", 'p', NULL, 0, "List the folders (default)", 1 },
+  {"list", 'l', NULL, 0, "List the contents of the folder stack", 1},
+  {"push", ARG_PUSH, "FOLDER", OPTION_ARG_OPTIONAL, "Push the folder on the folder stack. If FOLDER is specified, it is pushed. Otherwise, if a folder is given in the command line (via + or --folder), it is pushed on stack. Otherwise, the current folder and the top of the folder stack are exchanged", 1},
+  {"pop", ARG_POP, NULL, 0, "Pop the folder off the folder stack", 1},
+  
+  {"Options are:", 0, 0, OPTION_DOC, "", 2 },
+  {"folder",  'f', "FOLDER", 0, "Specify folder to operate upon", 3},
+  {"all", 'a', NULL, 0, "List all folders", 3},
+  {"create", 'c', "BOOL", OPTION_ARG_OPTIONAL, "Create non-existing folders", 3},
+  {"fast", 'F', "BOOL", OPTION_ARG_OPTIONAL, "List only the folder names", 3},
+  {"header", 'h', "BOOL", OPTION_ARG_OPTIONAL, "Print the header line", 3},
+  {"recurse", 'r', "BOOL", OPTION_ARG_OPTIONAL, "Scan folders recursively", 3},
+  {"total", 't', "BOOL", OPTION_ARG_OPTIONAL, "Output the total statistics", 3},
+  { "\nUse -help switch to obtain the list of traditional MH options. ", 0, 0, OPTION_DOC, "", 4 },
+  
+  {NULL},
+};
+
+/* Traditional MH options */
+struct mh_option mh_option[] = {
+  {"print", 2, 'p', 0, NULL },
+  {"list", 1, 'l', 0, NULL },
+  {"push", 2, ARG_PUSH, 0, NULL },
+  {"pop", 2, ARG_POP, 0, NULL },
+  {"all", 1, 'a', 0, NULL },
+  {"create", 1, 'c', MH_OPT_BOOL, NULL},
+  {"fast", 1, 'F', MH_OPT_BOOL, NULL},
+  {"header", 1, 'h', MH_OPT_BOOL, NULL},
+  {"recurse", 1, 'r', MH_OPT_BOOL, NULL},
+  {"total", 1, 't', MH_OPT_BOOL, NULL},
+  {NULL},
+};
+
+typedef int (*folder_action) ();
+
+static int action_print ();
+static int action_list ();
+static int action_push ();
+static int action_pop ();
+
+static folder_action action = action_print;
+
+int show_all = 0; /* List all folders. Raised by --all switch */
+int create_flag = 0; /* Create non-existent folders (--create) */
+int fast_mode = 0; /* Fast operation mode. (--fast) */
+int print_header = 0; /* Display the header line (--header) */
+int recurse = 0; /* Recurse sub-folders */
+int print_total; /* Display total stats */
+
+char *push_folder; /* Folder name to push on stack */
+
+char *mh_seq_name; /* Name of the mh sequence file (defaults to
+		      .mh_sequences) */
+
+static int
+opt_handler (int key, char *arg, void *unused)
+{
+  switch (key)
+    {
+    case 'p':
+      action = action_print;
+      break;
+      
+    case 'l':
+      action = action_list;
+      break;
+      
+    case ARG_PUSH:
+      action = action_push;
+      if (arg)
+	{
+	  push_folder = mh_current_folder ();
+	  current_folder = arg;
+	}
+      break;
+      
+    case ARG_POP:
+      action = action_pop;
+      break;
+      
+    case 'a':
+      show_all++;
+      break;
+
+    case 'c':
+      create_flag = is_true (arg);
+      break;
+
+    case 'F':
+      fast_mode = is_true (arg);
+      break;
+
+    case 'h':
+      print_header = is_true (arg);
+      break;
+
+    case 'r':
+      recurse = is_true (arg);
+      break;
+
+    case 't':
+      print_total = is_true (arg);
+      break;
+      
+    case '+':
+    case 'f':
+      push_folder = mh_current_folder ();
+      current_folder = arg;
+      break;
+      
+    default:
+      return 1;
+    }
+  return 0;
+}
+
+struct folder_info {
+  char *name;              /* Folder name */
+  size_t message_count;    /* Number of messages in this folder */
+  size_t min;              /* First used sequence number (=uid) */
+  size_t max;              /* Last used sequence number */
+  size_t cur;              /* UID of the current message */
+  size_t others;           /* Number of non-message files */ 
+};
+
+struct obstack folder_info_stack; /* Memory storage for folder infp */
+struct folder_info *folder_info;  /* Finalized array of information
+				     structures */
+size_t folder_info_count;         /* Number of the entries in the array */
+
+size_t message_count;             /* Total number of messages */
+
+int name_prefix_len;              /* Length of the mu_path_folder_dir */
+
+
+void
+install_folder_info (const char *name, struct folder_info *info)
+{
+  info->name = strdup (name) + name_prefix_len;
+  obstack_grow (&folder_info_stack, info, sizeof (*info));
+  folder_info_count++;
+  message_count += info->message_count;
+}
+
+static int
+folder_info_comp (const void *a, const void *b)
+{
+  return strcmp (((struct folder_info *)a)->name,
+		 ((struct folder_info *)b)->name);
+}
+
+static void
+read_seq_file (struct folder_info *info, const char *prefix, const char *name)
+{
+  char *pname = NULL;
+  mh_context_t *ctx;
+  char *p;
+  
+  asprintf (&pname, "%s/%s", prefix, name);
+  if (!pname)
+    abort ();
+  ctx = mh_context_create (pname, 1);
+  mh_context_read (ctx);
+  
+  p = mh_context_get_value (ctx, "cur", NULL);
+  if (p)
+    info->cur = strtoul (p, NULL, 0);
+  free (pname);
+  free (ctx);
+}
+
+static void
+_scan (const char *name, int depth)
+{
+  DIR *dir;
+  struct dirent *entry;
+  struct folder_info info;
+  char *p;
+  struct stat st;
+  size_t uid;
+
+  if (fast_mode && !recurse && depth > 0)
+    {
+      memset (&info, 0, sizeof (info));
+      info.name = strdup (name);
+      install_folder_info (name, &info);
+      return;
+    }
+
+  if (depth > 1 && !recurse)
+    return;
+  
+  dir = opendir (name);
+
+  if (!dir && errno == ENOENT)
+    {
+      mh_check_folder (name, 0);
+      dir = opendir (name);
+    }
+
+  if (!dir)
+    {
+      mh_error ("can't scan folder %s: %s", name, strerror (errno));
+      return;
+    }
+
+  memset (&info, 0, sizeof (info));
+  info.name = strdup (name);
+  while ((entry = readdir (dir)))
+    {
+      switch (entry->d_name[0])
+	{
+	case '.':
+	  if (strcmp (entry->d_name, mh_seq_name) == 0)
+	    read_seq_file (&info, name, entry->d_name);
+	  break;
+	  
+	case ',':
+	  continue;
+
+	case '0':case '1':case '2':case '3':case '4':
+	case '5':case '6':case '7':case '8':case '9':
+	  uid = strtoul (entry->d_name, &p, 10);
+	  if (*p)
+	    info.others++;
+	  else
+	    {
+	      info.message_count++;
+	      if (info.min == 0 || uid < info.min)
+		info.min = uid;
+	      else if (uid > info.max)
+		info.max = uid;
+	    }
+	  break;
+
+	default:
+	  asprintf (&p, "%s/%s", name, entry->d_name);
+	  if (stat (p, &st) < 0)
+	    {
+	      mh_error ("can't stat %s: %s", p, strerror (errno));
+	      info.others++;
+	    }
+	  else if (S_ISDIR (st.st_mode))
+	    {
+	      _scan (p, depth+1);
+	    }
+	  else
+	    /* Invalid entry. */
+	    info.others++;
+	  free (p);
+	}
+      
+    }
+  closedir (dir);
+  install_folder_info (name, &info);
+}
+    
+static void
+print_all ()
+{
+  struct folder_info *info, *end = folder_info + folder_info_count;
+
+  for (info = folder_info; info < end; info++)
+    {
+      printf ("%19.19s%c", info->name,
+	      (strcmp (info->name, current_folder) == 0) ? '+' : ' ');
+      if (info->message_count)
+	{
+	  printf (" has %4lu messages (%4lu-%4lu)",
+		  (unsigned long) info->message_count,
+		  (unsigned long) info->min,
+		  (unsigned long) info->max);
+	  if (info->cur)
+	    printf ("; cur=%4lu", (unsigned long) info->cur);
+
+	  if (info->others)
+	    {
+	      if (!info->cur)
+		printf (";         ");
+	      else
+		printf ("; ");
+	      printf ("(others)");
+	    }
+	  printf (".\n");
+	}
+      else
+	{
+	  printf (" has no messages.\n");
+	}
+    }
+}
+
+static void
+print_fast ()
+{
+  struct folder_info *info, *end = folder_info + folder_info_count;
+
+  for (info = folder_info; info < end; info++)
+    {
+      printf ("%s", info->name);
+      if (strcmp (info->name, current_folder) == 0)
+	printf ("+");
+      printf ("\n");
+    }
+}
+
+static int
+action_print ()
+{
+  mh_seq_name = mh_global_profile_get ("mh-sequences", MH_SEQUENCES_FILE);
+
+  name_prefix_len = strlen (mu_path_folder_dir);
+  if (mu_path_folder_dir[name_prefix_len - 1] == '/')
+    name_prefix_len++;
+  name_prefix_len++;  /* skip past the slash */
+
+  obstack_init (&folder_info_stack);
+
+  if (show_all)
+    {
+      _scan (mu_path_folder_dir, 0);
+      folder_info_count--; /* do not count folder directory */
+    }
+  else
+    {
+      char *p;
+      asprintf (&p, "%s/%s", mu_path_folder_dir, current_folder);
+      _scan (p, 1);
+      free (p);
+    }
+  
+  folder_info = obstack_finish (&folder_info_stack);
+  qsort (folder_info, folder_info_count, sizeof (folder_info[0]),
+	 folder_info_comp);
+
+  if (fast_mode)
+    print_fast ();
+  else
+    print_all ();
+
+  if (print_total)
+    printf ("%24.24s=%4lu messages in %4lu folders\n",
+	    "TOTAL",
+	    (unsigned long) message_count,
+	    (unsigned long) folder_info_count);
+
+  if (push_folder)
+    mh_global_save_state ();
+
+  return 0;
+}
+
+static int
+action_list ()
+{
+  char *stack = mh_global_context_get ("Folder-Stack", NULL);
+
+  printf ("%s", current_folder);
+  if (stack)
+    printf (" %s\n", stack);
+  return 0;
+}
+
+static char *
+make_stack (char *folder, char *old_stack)
+{
+  char *stack = NULL;
+  if (old_stack)
+    asprintf (&stack,  "%s %s", folder, old_stack);
+  else
+    stack = strdup (folder);
+  return stack;
+}
+
+static int
+action_push ()
+{
+  char *stack = mh_global_context_get ("Folder-Stack", NULL);
+  char *new_stack = NULL;
+
+  if (push_folder)
+    new_stack = make_stack (push_folder, stack);
+  else
+    {
+      char *s, *p = strtok_r (stack, " ", &s);
+      new_stack = make_stack (current_folder, stack);
+      current_folder = p;
+    }
+  
+  mh_global_context_set ("Folder-Stack", new_stack);
+  action_list ();
+  mh_global_save_state ();
+  return 0;
+}
+
+static int
+action_pop ()
+{
+  char *stack = mh_global_context_get ("Folder-Stack", NULL);
+  char *s, *p = strtok_r (stack, " ", &s);
+  mh_global_context_set ("Folder-Stack", s);
+  current_folder = p;
+  action_list ();
+  mh_global_save_state ();
+  return 0;
+}
+
+int
+main (int argc, char **argv)
+{
+  int index = 0;
+  mh_argp_parse (argc, argv, options, mh_option, args_doc, doc,
+		 opt_handler, NULL, &index);
+
+  /* If  folder  is invoked by a name ending with "s" (e.g.,  folders),
+     `-all'  is  assumed */
+  if (program_invocation_short_name[strlen (program_invocation_short_name) - 1] == 's')
+    show_all++;
+
+  if (show_all)
+    print_header = print_total = 1;
+  
+  return (*action) ();
+}
