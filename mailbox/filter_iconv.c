@@ -204,6 +204,7 @@ internal_icvt_read (stream_t stream, char *optr, size_t osize, size_t *pnbytes)
 		  char *p = realloc (s->buf, s->bufsize + 128);
 		  if (!p)
 		    return ENOMEM;
+		  s->buf = p;
 		  s->bufsize += 128;
 		}
 	      continue;
@@ -255,7 +256,10 @@ copy_octal (struct icvt_stream *s, char *optr, size_t osize, size_t *pnbytes)
 	  /* Try to reallocate temp buffer */
 	  char *p = realloc (s->buf, rdcount);
 	  if (p)
-	    s->bufsize = rdcount;
+	    {
+	      s->bufsize = rdcount;
+	      s->buf = p;
+	    }
 	  else
 	    rdcount = s->bufsize;
 	}
@@ -279,7 +283,7 @@ copy_octal (struct icvt_stream *s, char *optr, size_t osize, size_t *pnbytes)
     {
       if (ISPRINT (*(unsigned char*)(s->buf+i)))
 	optr[j++] = s->buf[i];
-      else if (j + 4 >= s->bufpos)
+      else if (j + 4 >= osize)
 	break;
       else
 	{
