@@ -121,7 +121,7 @@ comsatd_parse_opt (int key, char *arg, struct argp_state *state)
   switch (key)
     {
     case ARGP_KEY_INIT:
-      state->child_inputs[1] = state->input;
+      state->child_inputs[0] = state->input;
       break;
       
     case 'c':
