@@ -27,7 +27,7 @@
    beep              --  Produce audible signal
    echo STRING       --  Output STRING to the user's tty
    exec PROG ARGS... --  Execute given program (absolute pathname
-                         required) 
+                         required)
 
    Following metacharacters are accepted in strings:
 
@@ -38,13 +38,13 @@
                  number of characters and line in the expansion.
 		 When omitted, they default to 400, 5. */
 
-int
+static int
 act_getline (FILE *fp, char **sptr, size_t *size)
 {
   char buf[256];
   int cont = 1;
   size_t used = 0;
-  
+
   while (cont && fgets (buf, sizeof buf, fp))
     {
       int len = strlen (buf);
@@ -71,22 +71,22 @@ act_getline (FILE *fp, char **sptr, size_t *size)
 	}
       memcpy (*sptr + used, buf, len);
       used += len;
-    }    
+    }
 
   if (*sptr)
     (*sptr)[used] = 0;
-  
+
   return used;
 }
 
 /* Convert second character of a backslash sequence to its ASCII
    value: */
-int
+static int
 backslash(int c)
 {
   static char transtab[] = "a\ab\bf\fn\nr\rt\t";
   char *p;
-  
+
   for (p = transtab; *p; p += 2)
     {
       if (*p == c)
@@ -95,8 +95,8 @@ backslash(int c)
   return c;
 }
 
-int
-expand_escape (char **pp, message_t msg, char *cr, struct obstack *stk)
+static int
+expand_escape (char **pp, message_t msg, const char *cr, struct obstack *stk)
 {
   char *p = *pp;
   char *start, *sval, *namep;
@@ -105,8 +105,8 @@ expand_escape (char **pp, message_t msg, char *cr, struct obstack *stk)
   body_t body;
   stream_t stream;
   int rc = 1;
-  size_t size, lncount;
-  
+  size_t size = 0, lncount = 0;
+
   switch (*++p) /* skip past $ */
     {
     case 'u':
@@ -115,12 +115,14 @@ expand_escape (char **pp, message_t msg, char *cr, struct obstack *stk)
       *pp = p;
       rc = 0;
       break;
+
     case 'h':
       len = strlen (hostname);
       obstack_grow (stk, hostname, len);
       *pp = p;
       rc = 0;
       break;
+
     case 'H':
       /* Header field */
       if (*++p != '{')
@@ -145,6 +147,7 @@ expand_escape (char **pp, message_t msg, char *cr, struct obstack *stk)
       *pp = p;
       rc = 0;
       break;
+
     case 'B':
       /* Message body */
       if (*++p == '(')
@@ -164,7 +167,7 @@ expand_escape (char **pp, message_t msg, char *cr, struct obstack *stk)
 	{
 	  size_t nread;
 	  char *buf = malloc (size+1);
-	  
+
 	  if (!buf)
 	    break;
 	  if (stream_read (stream, buf, size, 0, &nread) == 0)
@@ -193,14 +196,13 @@ expand_escape (char **pp, message_t msg, char *cr, struct obstack *stk)
   return rc;
 }
 
-char *
-expand_line (char *str, char *cr, message_t msg)
+static char *
+expand_line (const char *str, const char *cr, message_t msg)
 {
-  char *p;
-  int i, c, len;
-  size_t size;
+  const char *p;
+  int c = 0, len;
   struct obstack stk;
-  
+
   if (!*str)
     return NULL;
   obstack_init (&stk);
@@ -212,25 +214,30 @@ expand_line (char *str, char *cr, message_t msg)
 	  len = strlen (cr);
 	  obstack_grow (&stk, cr, len);
 	  break;
+
 	case '\\':
 	  p++;
 	  switch (*p)
 	    {
 	    case 0:
-	      obstack_1grow (&stk, c);
+	      obstack_1grow (&stk, *p);
 	      break;
+
 	    case 'n':
 	      len = strlen (cr);
  	      obstack_grow (&stk, cr, len);
 	      break;
+
 	    default:
 	      c = backslash (*p);
 	      obstack_1grow (&stk, c);
 	    }
 	  break;
+
 	case '$':
 	  if (expand_escape (&p, msg, cr, &stk) == 0)
 	    break;
+
 	  /*FALLTHRU*/
 	default:
 	  obstack_1grow (&stk, *p);
@@ -239,10 +246,10 @@ expand_line (char *str, char *cr, message_t msg)
   obstack_1grow (&stk, 0);
   str = strdup (obstack_finish (&stk));
   obstack_free (&stk, NULL);
-  return str;
+  return (char *)str;
 }
 
-char *default_action =
+const char *default_action =
 "Mail to \a$u@$h\a\n"
 "---\n"
 "From: $H{from}\n"
@@ -253,18 +260,18 @@ char *default_action =
 
 /* Take care to clear eighth bit, so we won't upset some stupid terminals */
 #define LB(c) ((c)&0x7f)
-  
-void
+
+static void
 action_beep (FILE *tty)
 {
   fprintf (tty, "\a\a");
 }
 
-void
+static void
 action_echo (FILE *tty, char *str)
 {
   char *p;
-  
+
   if (!str)
     return;
   for (p = str; *p; p++)
@@ -272,7 +279,7 @@ action_echo (FILE *tty, char *str)
   fprintf (tty, "%s", str);
 }
 
-void
+static void
 action_exec (FILE *tty, int line, int argc, char **argv)
 {
   pid_t pid;
@@ -319,8 +326,8 @@ action_exec (FILE *tty, int line, int argc, char **argv)
     }
 }
 
-FILE *
-open_rc (char *filename, FILE *tty)
+static FILE *
+open_rc (const char *filename, FILE *tty)
 {
   struct stat stb;
   struct passwd *pw = getpwnam (username);
@@ -348,7 +355,7 @@ open_rc (char *filename, FILE *tty)
 }
 
 void
-run_user_action (FILE *tty, char *cr, message_t msg)
+run_user_action (FILE *tty, const char *cr, message_t msg)
 {
   FILE *fp;
   int nact = 0;
@@ -359,7 +366,7 @@ run_user_action (FILE *tty, char *cr, message_t msg)
   if (fp)
     {
       int line = 0;
-      
+
       while (act_getline (fp, &stmt, &size))
 	{
 	  char *str;
@@ -396,7 +403,7 @@ run_user_action (FILE *tty, char *cr, message_t msg)
 	    }
 	  else
 	    {
-	      fprintf (tty, ".biffrc:%d: unknown keyword\r\n");
+	      fprintf (tty, ".biffrc:%d: unknown keyword\r\n", line);
 	      syslog (LOG_ERR, "%s:.biffrc:%d: unknown keyword %s",
 		      username, line, argv[0]);
 	      break;
@@ -404,12 +411,10 @@ run_user_action (FILE *tty, char *cr, message_t msg)
 	}
       fclose (fp);
     }
-  
+
   if (nact == 0)
     {
       char *str = expand_line (default_action, cr, msg);
       action_echo (tty, str);
     }
 }
-
-

@@ -59,9 +59,9 @@ extern time_t request_control_interval;
 extern time_t overflow_control_interval;
 extern time_t overflow_delay_time;
 extern int maxlines;
-extern char *username;
+extern const char *username;
 extern char hostname[];
 
-extern void read_config (char *config_file);
+extern void read_config (const char *config_file);
 int acl_match (struct sockaddr_in *sa_in);
-void run_user_action (FILE *tty, char *cr, message_t msg);
+void run_user_action (FILE *tty, const char *cr, message_t msg);

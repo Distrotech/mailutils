@@ -124,7 +124,7 @@ netdef_parse (char *str)
 }
 
 void
-read_config (char *config_file)
+read_config (const char *config_file)
 {
   FILE *fp;
   int line;
@@ -217,9 +217,9 @@ read_config (char *config_file)
 		tail->next = cur;
 	      tail = cur;
 	    }
-	  
+
 	  argcv_free (argc, argv);
-	  
+
 	  acl = malloc (sizeof *acl);
 	  if (!acl)
 	    {
@@ -268,7 +268,7 @@ acl_free (acl_t *acl)
 }
 
 /*NOTE: currently unused. */
-void
+static void
 discard_acl (acl_t *mark)
 {
   if (mark)

@@ -1,3 +1,30 @@
+2001-11-13  Alain Magloire
+
+	Try to use const whenever appropriate to make it clear
+	that a string should not be modified.  Nuke some
+	trailing spaces, thanks to emacs.  Reduce the scope
+	of functions with static.  GNU ident style for
+	switch() promote a empty line after the break;
+
+
+	* comsat/action.c (expand_escape): size and lncount
+	could have been use uninitialized.
+	(expand_escape): const char *cr.
+	(expand_line): cr == "\n\r" make it const.
+	variable i and size unneeded.
+	variable c initialize to zero.
+	(expand_line): obstack_1grow() pass *p instead of c.
+	(defaul_action): const char*.
+	(run_user_action): fprintf () missing argument.
+	(open_rc): const char *filename.
+	* comsat/comsat.c (username): const char *username.
+	(mailbox_path): const prototype.
+	(change_user): const prototype.
+	(notify_user): const prototype.
+	body and header unneeded variables.
+	(find_user): const prototype.
+	* comsat/comsat.h: Prototype updates.
+
 2001-11-13  Sergey Poznyakoff
 
 	* lib/daemon.c: Use of errx() is a bsd-ism.
@@ -13,7 +40,7 @@
 	* doc/texinfo/.cvsignore: Updated
 
 	* Makefile.am: Enabled comsat directory.
-	
+
 2001-11-12  Sergey Poznyakoff
 
 	* examples/comsat.conf: (new) A sample configuration file

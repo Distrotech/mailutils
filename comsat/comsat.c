@@ -76,17 +76,17 @@ int port = 512; /* Default biff port */
 int timeout = 0;
 int maxlines = 5;
 char hostname[MAXHOSTNAMELEN];
-char *username;
+const char *username;
 
 static void comsat_init (void);
 static void comsat_daemon_init (void);
-static void comsat_daemon (int port);
+static void comsat_daemon (int _port);
 static int comsat_main (int fd);
-static void notify_user (char *user, char *device, char *path, off_t offset);
-static int find_user (char *name, char *tty);
+static void notify_user (const char *user, const char *device, const char *path, off_t offset);
+static int find_user (const char *name, char *tty);
 static void help (void);
-char *mailbox_path (const char *user);
-void change_user (char *user);
+static char *mailbox_path (const char *user);
+static void change_user (const char *user);
 
 static int xargc;
 static char **xargv;
@@ -105,25 +105,32 @@ main(int argc, char **argv)
 	case 'c':
 	  config_file = optarg;
 	  break;
+
 	case 'd':
 	  mode = MODE_DAEMON;
 	  break;
+
 	case 'h':
 	  help ();
 	  /*NOTREACHED*/
+
 	case 'i':
 	  mode = MODE_INETD;
 	  break;
+
 	case 'p':
 	  port = strtoul (optarg, NULL, 10);
 	  break;
+
 	case 't':
 	  timeout = strtoul (optarg, NULL, 10);
 	  break;
+
 	case 'v':
 	  printf (IMPL " ("PACKAGE " " VERSION ")\n");
 	  exit (EXIT_SUCCESS);
 	  break;
+
 	default:
 	  exit (EXIT_FAILURE);
 	}
@@ -162,7 +169,7 @@ main(int argc, char **argv)
   return c != 0;
 }
 
-RETSIGTYPE
+static RETSIGTYPE
 sig_hup (int sig)
 {
   syslog (LOG_NOTICE, "restarting");
@@ -386,7 +393,7 @@ comsat_main (int fd)
   exit (0);
 }
 
-char *
+static const char *
 get_newline_str (FILE *fp)
 {
 #if defined(OPOST) && defined(ONLCR)
@@ -404,15 +411,14 @@ get_newline_str (FILE *fp)
 
 /* NOTE: Do not bother to free allocated memory, as the program exits
    immediately after executing this */
-void
-notify_user (char *user, char *device, char *path, off_t offset)
+static void
+notify_user (const char *user, const char *device, const char *path, off_t offset)
 {
   FILE *fp;
-  char *cr, *p, *blurb;
+  const char *cr;
+  char *blurb;
   mailbox_t mbox = NULL, tmp = NULL;
   message_t msg;
-  body_t body = NULL;
-  header_t header = NULL;
   stream_t stream = NULL;
   int status;
   size_t size, count, n;
@@ -491,8 +497,8 @@ notify_user (char *user, char *device, char *path, off_t offset)
 }
 
 /* Search utmp for the local user */
-int
-find_user (char *name, char *tty)
+static int
+find_user (const char *name, char *tty)
 {
   UTMP *uptr;
   int status;
@@ -520,7 +526,7 @@ find_user (char *name, char *tty)
 	  ftty[sizeof (ftty) - 1] = 0;
 
 	  mu_normalize_path (ftty, "/");
-	  if (strncmp (ftty, PATH_TTY_PFX, strlen(PATH_TTY_PFX)))
+	  if (strncmp (ftty, PATH_TTY_PFX, strlen (PATH_TTY_PFX)))
 	    {
 	      /* An attempt to break security... */
 	      syslog (LOG_ALERT, "bad line name in utmp record: %s", ftty);
@@ -557,7 +563,7 @@ find_user (char *name, char *tty)
 }
 
 void
-change_user (char *user)
+change_user (const char *user)
 {
   struct passwd *pw;
 
