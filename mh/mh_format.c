@@ -18,6 +18,7 @@
 /* This module implements execution of MH format strings. */
 
 #include <mh.h>
+#include <mailutils/mime.h>
 
 #ifdef HAVE_STRINGS_H
 # include <strings.h>
@@ -513,7 +514,7 @@ mh_format (mh_format_t *fmt, message_t msg, size_t msgno,
 	    header_t hdr = NULL;
 	    char *value = NULL;
 	    message_get_header (mach.message, &hdr);
-	    header_aget_value (hdr, strobj_ptr (&mach.arg_str), &value);
+	    header_aget_value_unfold (hdr, strobj_ptr (&mach.arg_str), &value);
 	    strobj_free (&mach.arg_str);
 	    if (value)
 	      {
@@ -1808,7 +1809,6 @@ builtin_unre (struct mh_machine *mach)
 static void
 builtin_isreply (struct mh_machine *mach)
 {
-  char *p;
   int rc;
   
   if (strobj_is_null (&mach->arg_str))
@@ -1825,6 +1825,56 @@ builtin_isreply (struct mh_machine *mach)
     rc = munre_subject (strobj_ptr (&mach->arg_str), NULL);
 
   mach->arg_num = !rc;
+}
+
+static void
+decode_string (strobj_t *obj)
+{
+  char *charset = NULL;
+  char *tmp;
+  int rc;
+
+  if (strobj_is_null (obj))
+    return;
+  charset = mh_global_profile_get ("Charset", NULL);
+  if (!charset)
+    return;
+  if (strcasecmp (charset, "auto") == 0)
+    {
+      /* Try to deduce the charset from LC_ALL variable */
+
+      tmp = getenv ("LC_ALL");
+      if (tmp)
+	{
+	  char *sp;
+	  char *lang;
+	  char *terr;
+
+	  lang = strtok_r (tmp, "_", &sp);
+	  terr = strtok_r (NULL, ".", &sp);
+	  charset = strtok_r (NULL, "@", &sp);
+
+	  if (!charset)
+	    charset = mu_charset_lookup (lang, terr);
+	}
+    }
+
+  if (!charset)
+    return;
+  
+  rc = rfc2047_decode (charset, strobj_ptr (obj), &tmp);
+  if (!rc)
+    {
+      strobj_free (obj);
+      strobj_create (obj, tmp);
+      free (tmp);
+    }
+}
+
+static void
+builtin_decode (struct mh_machine *mach)
+{
+  decode_string (&mach->arg_str);
 }
 
 static void
@@ -2041,6 +2091,7 @@ mh_builtin_t builtin_tab[] = {
   { "version",  builtin_version,  mhtype_str, mhtype_none },
   { "reply_regex", builtin_reply_regex, mhtype_none, mhtype_str },
   { "isreply", builtin_isreply, mhtype_num, mhtype_str, MHA_OPTARG },
+  { "decode", builtin_decode, mhtype_str, mhtype_str },
   { 0 }
 };
 
