@@ -12,19 +12,10 @@ if not set, this function can be override by a custom method.
 @deftypefun int auth_prologue (auth_t @var{auth})
 @end deftypefun
 
-@deftypefun int auth_set_prologue (auth_t @var{auth}, int (*@var{_prologue})(auth_t), void *@var{owner})
-@end deftypefun
-
 @deftypefun int auth_authenticate (auth_t @var{auth}, char **@var{user}, char **@var{passwd})
 @end deftypefun
 
-@deftypefun int auth_set_authenticate (auth_t auth, int (*@var{_authenticate}) (auth_t, char **, char **), void *@var{owner})
-@end deftypefun
-
 @deftypefun int auth_epilogue (auth_t @var{auth})
-@end deftypefun
-
-@deftypefun int auth_set_epilogue (auth_t @var{auth}, int (*@var{_epilogue})(auth_t), void *@var{owner})
 @end deftypefun
 
 A simple example of an authenticate function:

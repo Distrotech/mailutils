@@ -23,11 +23,5 @@ The resources allocate are release.
 @deftypefun int body_size (body_t @var{body}, size_t*@var{psize})
 @end deftypefun
 
-@deftypefun int body_set_size (body_t @var{body}, int (*@var{_size})(body_t, size_t*), void *@var{owner})
-@end deftypefun
-
 @deftypefun int body_lines (body_t @var{body}, size_t *@var{plines})
-@end deftypefun
-
-@deftypefun int body_set_lines (body_t @var{body}, int (*@var{_lines})(body_t, size_t*), void *@var{owner})
 @end deftypefun

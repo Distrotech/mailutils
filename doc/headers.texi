@@ -77,9 +77,6 @@ Value of field-name @var{fn} is returned in buffer @var{fv} of size @var{len}.
 The number of bytes written is put in @var{n}.
 @end deftypefun
 
-@deftypefun int header_set_get_value (header_t @var{hdr}, int (*@var{_get_value}) (header_t, const char *, char *, size_t, size_t *), void *@var{owner})
-@end deftypefun
-
 @deftypefun int header_get_stream (header_t @var{hdr}, stream_t *@var{pstream})
 @end deftypefun
 

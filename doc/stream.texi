@@ -29,67 +29,34 @@ Stream is destroyed without checking for the owner.
 @deftypefun void stream_destroy (stream_t *@var{pstream}, void *@var{owner})
 @end deftypefun
 
-@deftypefun int stream_set_destroy (stream_t @var{stream}, void (*@var{_destroy})(stream_t @var{stream}), void *@var{owner})
-@end deftypefun
-
 @deftypefun int stream_open (stream_t @var{stream}, const char *@var{name}, int@var{port}, int @var{flag})
-@end deftypefun
-
-@deftypefun int stream_set_open (stream_t @var{stream}, int (*@var{_open})(stream_t, const char *, int, int), void *@var{owner})
 @end deftypefun
 
 @deftypefun int stream_close (stream_t @var{stream})
 @end deftypefun
 
-@deftypefun int stream_set_close (stream_t @var{stream}, int (*@var{_close})(stream_t), void *@var{owner})
-@end deftypefun
-
 @deftypefun int stream_get_fd (stream_t @var{stream}, int *@var{pfd})
-@end deftypefun
-
-@deftypefun int stream_set_fd (stream_t @var{stream}, int (*@var{_get_fd})(stream_t, int *), void *@var{owner})
 @end deftypefun
 
 @deftypefun int stream_read (stream_t @var{stream}, char *@var{buffer}, size_t @var{buflen}, off_t @var{offset}, size_t *@var{pwriten})
 @end deftypefun
 
-@deftypefun int stream_set_read (stream_t @var{stream}, int (*@var{_read})(stream_t, char *, size_t, off_t, size_t *), void *@var{owner})
-@end deftypefun
-
 @deftypefun int stream_readline (stream_t @var{stream}, char *@var{buffer}, size_t @var{buflen}, off_t @var{offset}, size_t *@var{pwriten})
-@end deftypefun
-
-@deftypefun int stream_set_readline (stream_t @var{stream}, int (*@var{_readline})(stream_t, char *, size_t, off_t, size_t *), void *@var{owner})
 @end deftypefun
 
 @deftypefun int stream_size (stream_t @var{stream}, off_t *@var{psize})
 @end deftypefun
 
-@deftypefun int stream_set_size (stream_t @var{stream}, int (*@var{_size})(stream_t, off_t *), void *@var{owner})
-@end deftypefun
-
 @deftypefun int stream_truncate (stream_t @var{stream}, off_t @var{size})
-@end deftypefun
-
-@deftypefun int stream_set_truncate (stream_t @var{stream}, int (*@var{_truncate})(stream_t, off_t), void *@var{owner})
 @end deftypefun
 
 @deftypefun int stream_write (stream_t @var{stream}, const char *@var{buffer}, size_t @var{buflen}, off_t @var{offset}, size_t *@var{pwriten})
 @end deftypefun
 
-@deftypefun int stream_set_write (stream_t @var{stream}, int (*@var{_write})(stream_t, const char *, size_t, off_t, size_t *), void *@var{owner})
-@end deftypefun
-
 @deftypefun int stream_flush (stream_t @var{stream})
 @end deftypefun
 
-@deftypefun int stream_set_flush (stream_t @var{stream}, int (*@var{_flush})(stream_t), void *@var{owner})
-@end deftypefun
-
 @deftypefun int stream_get_flags (stream_t @var{stream}, int *@var{pflags})
-@end deftypefun
-
-@deftypefun int stream_set_flags (stream_t @var{stream}, int @var{flags}, void *@var{owner})
 @end deftypefun
 
 @deftypefun int stream_get_state (stream_t @var{stream}, int *@var{pstate})

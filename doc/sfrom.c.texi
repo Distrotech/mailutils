@@ -18,6 +18,14 @@ main (int argc, const char **argv)
 
    mail = (argc == 2) ? argv[1] : getenv ("MAIL");
 
+   /* Register the type of mailbox. IMAP4, POP3 and local format  */
+   @{
+       list_t registrar;
+       registrar_get_list (&registrar);
+       list_append (registrar, imap_record);
+       list_append (registrar, path_record);
+       list_append (registrar, pop_record);
+   @}
    status = mailbox_create (&mbox, mail, 0);
    if (status != 0)
      @{
@@ -32,12 +40,7 @@ main (int argc, const char **argv)
         exit (EXIT_FAILURE);
      @}
 
-   status = mailbox_scan (mbox, &total);
-   if (status != 0)
-     @{
-        fprintf (stderr, "mailbox_scan: failed\n");
-        exit (EXIT_FAILURE);
-     @}
+   mailbox_messages_count (mbox, &total);
 
    for (msgno = 1; msgno <= total; msgno++)
       @{
