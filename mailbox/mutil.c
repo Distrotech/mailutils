@@ -43,7 +43,7 @@ unsigned long
 mu_hex2ul (char hex)
 {
   if (hex >= '0' && hex <= '9')
-    return hex - '0';
+   return hex - '0';
 
   if (hex >= 'a' && hex <= 'z')
     return hex - 'a';
@@ -257,7 +257,7 @@ mu_get_homedir (void)
     {
       struct passwd *pwd;
 
-      pwd = getpwuid (getuid ());
+      pwd = mu_getpwuid (getuid ());
       if (!pwd)
 	return NULL;
       homedir = pwd->pw_dir;
@@ -364,6 +364,40 @@ mu_getpwnam (const char *name)
     }
   return p;
 }
+
+static list_t _app_getpwuid = NULL;
+
+void
+mu_register_getpwuid (struct passwd *(*fun) __P((uid_t)))
+{
+  if (!_app_getpwuid && list_create (&_app_getpwuid))
+    return;
+  list_append (_app_getpwuid, fun);
+}
+
+struct passwd *
+mu_getpwuid (uid_t uid)
+{
+  struct passwd *p;
+  iterator_t itr;
+
+  p = getpwuid (uid);
+
+  if (!p && iterator_create (&itr, _app_getpwuid) == 0)
+    {
+      struct passwd *(*fun) __P((uid_t));
+      for (iterator_first (itr); !p && !iterator_is_done (itr);
+	   iterator_next (itr))
+	{
+	  iterator_current (itr, (void **)&fun);
+	  p = (*fun) (uid);
+	}
+
+      iterator_destroy (&itr);
+    }
+  return p;
+}
+
 
 int mu_virtual_domain;
 
