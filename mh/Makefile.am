@@ -25,6 +25,7 @@ PROGRAMS_MH = \
  inc\
  install-mh\
  mark\
+ mhl\
  mhpath\
  refile\
  repl\
@@ -42,6 +43,7 @@ EXTRA_PROGRAMS = \
  inc\
  install-mh\
  mark\
+ mhl\
  mhpath\
  refile\
  repl\
