@@ -3,6 +3,7 @@ Makefile.in
 stamp-vti
 mdate-sh
 mailutils.info*
+muint.info*
 texinfo.tex
 version.texi
 mailutils.log
