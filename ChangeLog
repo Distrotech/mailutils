@@ -1,3 +1,28 @@
+2001-11-01  Sergey Poznyakoff
+
+	* configure.in: Added check for utmp.h & utmpx.h
+
+	* mailbox/mutil.c: New function: mu_normalize_path() moved
+	from imap4d/util.c
+	* include/mailutils/mutil.h: Added declaration for
+	mu_normalize_path().
+	* imap4d/imap4d.h: Removed declaration of util_normalize_path().
+	* imap4d/login.c: Use LOG_FACILITY instead of LOG_MAIL.
+	Use mu_normalize_path().
+	* imap4d/namespace.c: Use mu_normalize_path().
+	* imap4d/util.c: Removed declaration of util_normalize_path().
+
+	* mailbox/mailbox.c: mailbox_get_stream(): Fixed funny bug,
+	(introduced Dec 4, 2000).
+
+	* mailbox/mbx_imap.c: Use ENOSYS instead of ENOTSUP.
+
+	* comsat/: New directory. An implementation of comsat daemon.
+	* comsat/Makefile.am: (new)
+	* comsat/.cvsignore: (new)
+	* comsat/comsat.c: (new) Main module
+	* comsat/cfg.c: (new) Configuration and ACL routines.
+
 2001-11-01 00:15  sroberts
 
 	* TODO: Added suggestion for a mailcap based file viewer.
