@@ -161,13 +161,18 @@ mail_z (int argc, char **argv)
 	int lastpage =  total - pagelines + 1;
 	if (lastpage <= 0)
 	  lastpage = 1;
+
 	if (cursor > (unsigned int)lastpage)
 	  {
 	    realcursor = cursor;
 	    cursor = lastpage;
+
+	    if (cursor + nlines > total)
+	      nlines = total - cursor + 1;
+	
 	    for (i = 0; i < nlines; i++)
 	      {
-		mail_from(0, NULL);
+		mail_from0 (cursor, 0);
 		cursor++;
 	      }
 	    cursor = realcursor;
