@@ -129,7 +129,7 @@ For more information on,
 
 @itemize @bullet
 @item
-on SMTP
+SMTP
 
 @itemize @minus
 @item
@@ -140,7 +140,7 @@ on SMTP
 @end itemize
 
 @item
-on POP3
+POP3
 
 @itemize @minus
 @item
@@ -161,7 +161,7 @@ Protocol (POP3)}
 @end itemize
 
 @item
-on IMAP4
+IMAP4
 
 @itemize @minus
 @item
@@ -181,10 +181,17 @@ on IMAP4
 
 @item
 @cite{RFC 2192: IMAP URL Scheme}
+
+@item
+@cite{RFC 1731: IMAP4 Authentication Mechanisms}
+
+@item
+@cite{RFC 2245: Anonymous SASL Mechanism}
+
 @end itemize
 
 @item
-on message formats
+message formats
 
 @itemize @minus
 @item
@@ -211,7 +218,7 @@ Conformance Criteria and Examples}
 @end itemize
 
 @item
-on miscellaneous related topics
+miscellaneous related topics
 
 @itemize @minus
 @item
