@@ -128,6 +128,7 @@ mh_LIBS = \
  ../mailbox/imap/libmu_imap.la\
  ../mailbox/pop/libmu_pop.la\
  ../mailbox/mh/libmu_mh.la\
+ ../mailbox/nntp/libmu_nntp.la\
  ../mailbox/maildir/libmu_maildir.la\
  ../mailbox/libmailbox.la\
  ../lib/libmailutils.la\
