@@ -8,8 +8,6 @@ AM_YFLAGS = -dtv
 
 lib_LTLIBRARIES = libsieve.la
 
-noinst_PROGRAMS = sv
-
 libsieve_la_SOURCES = \
  actions.c\
  prog.c\
@@ -22,8 +20,6 @@ libsieve_la_SOURCES = \
  tests.c\
  util.c
 
-sv_SOURCES = sv.c
-sv_LDADD = ./libsieve.la ../mailbox/libmailbox.la 
 noinst_HEADERS = sieve.h
 
 BUILT_SOURCES= \
