@@ -1052,6 +1052,7 @@ mu_parse_date (const char *p, time_t *rettime, const time_t *now)
   if (!tmp)
     return -1;
 
+  memset (&tm, 0, sizeof tm);
   tm.tm_isdst = tmp->tm_isdst;
 
   if (yyparse ())
