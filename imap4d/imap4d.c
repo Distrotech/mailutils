@@ -106,6 +106,11 @@ main (int argc, char **argv)
       exit (1);
     }
 
+#ifdef USE_LIBPAM
+  if (!pam_service)
+    pam_service = "gnu-imap4d";
+#endif
+
   /* First we want our group to be mail so we can access the spool.  */
   gr = getgrnam ("mail");
   if (gr == NULL)
@@ -130,6 +135,7 @@ main (int argc, char **argv)
 
 #ifdef HAVE_MYSQL
   mu_register_getpwnam (getMpwnam);
+  mu_register_getpwuid (getMpwuid);
 #endif
 #ifdef USE_VIRTUAL_DOMAINS
   mu_register_getpwnam (getpwnam_virtual);
