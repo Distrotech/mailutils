@@ -95,8 +95,7 @@ main (int argc, char **argv)
   
   if (mu_argp_parse (&argp, &argc, &argv, 0, argp_capa, &index, NULL))
     {
-      argp_help (&argp, stdout, ARGP_HELP_SEE,
-		 program_invocation_short_name);
+      argp_help (&argp, stdout, ARGP_HELP_SEE, program_invocation_short_name);
       return 1;
     }
 
@@ -117,22 +116,26 @@ main (int argc, char **argv)
 	  } entry[4];
 
 	  entry[n].level = 1;
-	  asprintf (&entry[n].ptr, " %s -lmailbox", LINK_FLAGS);
+	  asprintf (&entry[n].ptr, "%s -lmailbox", LINK_FLAGS);
 	  n++;
-	  
+#ifdef ENABLE_NLS
+	  entry[n].level = 10;
+	  asprintf (&entry[n].ptr, "-lintl -liconv");
+	  n++;
+#endif
 	  for (; n < sizeof(entry)/sizeof(entry[0]) && argc > 0;
 	       argc--, argv++, n++)
 	    {
 	      if (strcmp (argv[0], "auth") == 0)
 		{
 		  entry[n].level = 2;
-		  asprintf (&entry[n].ptr, " -lmuauth %s", AUTHLIBS);
+		  asprintf (&entry[n].ptr, "-lmuauth %s", AUTHLIBS);
 		}
 #ifdef WITH_GUILE	      
 	      else if (strcmp (argv[0], "guile") == 0)
 		{
 		  entry[n].level = -1;
-		  asprintf (&entry[n].ptr, " -lmu_scm %s", GUILE_LIBS);
+		  asprintf (&entry[n].ptr, "-lmu_scm %s", GUILE_LIBS);
 		}
 #endif
 	      else
@@ -159,11 +162,15 @@ main (int argc, char **argv)
 	      
 	    }
 
-	  for (j = 0; j < n; j++)
+	  /* At least one entry is always present */
+	  printf ("%s", entry[0].ptr);
+
+	  /* Print the rest of them separated by a space */
+	  for (j = 1; j < n; j++)
 	    {
-	      if (j > 0 && entry[j].level == entry[j-1].level)
+	      if (entry[j].level == entry[j-1].level)
 		continue;
-	      printf ("%s", entry[j].ptr);
+	      printf (" %s", entry[j].ptr);
 	    }
 	  printf ("\n");
 	  return 0;
