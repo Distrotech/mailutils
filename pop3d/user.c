@@ -100,6 +100,16 @@ pop3d_user (const char *arg)
       return ERR_BAD_CMD;
     }
 
+  if (check_login_delay (auth_data->name))
+    {
+      syslog (LOG_INFO,
+	      _("User '%s' tried to log in within the minimum allowed delay"),
+	      auth_data->name);
+      state = AUTHORIZATION;
+      mu_auth_data_free (auth_data);
+      return ERR_LOGIN_DELAY;
+    }
+  
   if (auth_data->change_uid)
     setuid (auth_data->uid);
   
