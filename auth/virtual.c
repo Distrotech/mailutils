@@ -51,6 +51,7 @@
 #include <mailutils/mailbox.h>
 #include <mailutils/argp.h>
 #include <mailutils/mu_auth.h>
+#include <mailutils/nls.h>
 
 #ifdef ENABLE_VIRTUAL_DOMAINS
 
@@ -189,8 +190,8 @@ mu_virt_argp_parser (int key, char *arg, struct argp_state *state)
 }
 
 static struct argp_option mu_virt_argp_option[] = {
-  { "virtual-passwd-dir", ARG_PWDDIR, "DIR", 0,
-    "Search for virtual passwd file in DIR", 0},
+  { "virtual-passwd-dir", ARG_PWDDIR, N_("DIR"), 0,
+    N_("Search for virtual passwd file in DIR"), 0},
     { NULL,      0, NULL, 0, NULL, 0 }
 };
 

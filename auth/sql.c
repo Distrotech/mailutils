@@ -43,6 +43,7 @@
 #include <mailutils/argp.h>
 #include <mailutils/mu_auth.h>
 #include <mailutils/error.h>
+#include <mailutils/nls.h>
 
 #ifdef HAVE_MYSQL
 #include <mysql/mysql.h>
@@ -396,22 +397,22 @@ mu_sql_authenticate (void *ignored_return_data, void *key,
 # define ARG_SQL_PORT 8
 
 static struct argp_option mu_sql_argp_option[] = {
-  {"sql-getpwnam", ARG_SQL_GETPWNAM, "QUERY", 0,
-   "SQL query to retrieve a passwd entry based on username", 0},
-  {"sql-getpwuid", ARG_SQL_GETPWUID, "QUERY", 0,
-   "SQL query to retrieve a passwd entry based on UID", 0},
-  {"sql-getpass", ARG_SQL_GETPASS, "QUERY", 0,
-   "SQL query to retrieve a password from the database", 0},
-  {"sql-host", ARG_SQL_HOST, "HOSTNAME", 0,
-   "Name or IP of MySQL server to connect to", 0},
-  {"sql-user", ARG_SQL_USER, "NAME", 0,
-   "SQL user name", 0},
-  {"sql-passwd", ARG_SQL_PASSWD, "STRING", 0,
-   "SQL connection password", 0},
-  {"sql-db", ARG_SQL_DB, "STRING", 0,
-   "Name of the database to connect to", 0},
-  {"sql-port", ARG_SQL_PORT, "NUMBER", 0,
-   "Port to use", 0},
+  {"sql-getpwnam", ARG_SQL_GETPWNAM, N_("QUERY"), 0,
+   N_("SQL query to retrieve a passwd entry based on username"), 0},
+  {"sql-getpwuid", ARG_SQL_GETPWUID, N_("QUERY"), 0,
+   N_("SQL query to retrieve a passwd entry based on UID"), 0},
+  {"sql-getpass", ARG_SQL_GETPASS, N_("QUERY"), 0,
+   N_("SQL query to retrieve a password from the database"), 0},
+  {"sql-host", ARG_SQL_HOST, N_("HOSTNAME"), 0,
+   N_("Name or IP of MySQL server to connect to"), 0},
+  {"sql-user", ARG_SQL_USER, N_("NAME"), 0,
+   N_("SQL user name"), 0},
+  {"sql-passwd", ARG_SQL_PASSWD, N_("STRING"), 0,
+   N_("SQL connection password"), 0},
+  {"sql-db", ARG_SQL_DB, N_("STRING"), 0,
+   N_("Name of the database to connect to"), 0},
+  {"sql-port", ARG_SQL_PORT, N_("NUMBER"), 0,
+   N_("Port to use"), 0},
   { NULL,      0, NULL, 0, NULL, 0 }
 };
 

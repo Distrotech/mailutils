@@ -45,6 +45,7 @@
 #include <mailutils/mailbox.h>
 #include <mailutils/argp.h>
 #include <mailutils/mu_auth.h>
+#include <mailutils/nls.h>
 
 char *pam_service = NULL;
 
@@ -150,8 +151,8 @@ mu_pam_argp_parser (int key, char *arg, struct argp_state *state)
 }
 
 static struct argp_option mu_pam_argp_option[] = {
-  { "pam-service", ARG_PAM_SERVICE, "STRING", 0,
-    "Use STRING as PAM service name", 0},
+  { "pam-service", ARG_PAM_SERVICE, N_("STRING"), 0,
+    N_("Use STRING as PAM service name"), 0},
     { NULL,      0, NULL, 0, NULL, 0 }
 };
 
