@@ -345,12 +345,18 @@ WORD [^ \t\n,:;<+=\*]+
 		 return STRING;}
 {WS}           ;
 {WORD}         { yylval.string = strdup (yytext); return STRING;}
-"<"{WS}{WORD}  { char *p;
-
-                 for (p = yytext + 1; p < yytext + yyleng; p++)
+^{WS}?"<"{WS}?{WORD} { char *p;
+                 for (p = yytext; p < yytext + yyleng && isblank(*p); p++)
+		   ;
+                 for (p++; p < yytext + yyleng; p++)
 		   if (!isspace (*p))
 		     break;
                  push_source (p, 1); }
+"<"{WORD}      { yylval.string = xmalloc (yyleng + 2);
+                 yylval.string[0] = '<';
+		 memcpy(yylval.string, yytext, yyleng);
+		 yylval.string[yyleng+1] = 0;
+		 return STRING;}
 =|\*|\+|,|:|\; return yytext[0];
 .              { char *p;
                  asprintf (&p,
