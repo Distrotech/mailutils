@@ -21,7 +21,6 @@
 	* libsieve/actions.c (sieve_action_stop); Restored zero assignment
 	to pc. This is possible due to the changes to runtime.c
 
->>>>>>> 1.838
 2004-01-05  Sergey Poznyakoff  
 
 	* include/mailutils/libsieve.h (sieve_locus_t): New datatype.
