@@ -66,12 +66,13 @@
 #endif
 
 #include <mailutils/errno.h>
+#include <mailutils/error.h>
+#include <mailutils/locker.h>
 #include <mailutils/mailbox.h>
 #include <mailutils/message.h>
-#include <mailutils/error.h>
+#include <mailutils/mutil.h>
 #include <mailutils/registrar.h>
 #include <mailutils/stream.h>
-#include <mailutils/mutil.h>
 #include <mu_dbm.h>
 #include <mu_argp.h>
 
