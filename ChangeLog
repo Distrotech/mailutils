@@ -1,3 +1,59 @@
+2002-08-27  Sergey Poznyakoff
+
+	* frm/frm.c: Fixed return status when the mailbox does not exist.
+	* frm/Makefile.am: Added testsuite
+	* frm/testsuite: new directory.
+	* frm/testsuite/Makefile.am: new file.
+	* frm/testsuite/.cvsignore: new file.
+	* frm/testsuite/frm: new directory.
+	* frm/testsuite/frm/DISTFILES: new file.
+	* frm/testsuite/frm/test.exp: new file.
+	
+	* from/Makefile.am: Added testsuite
+	* from/testsuite: new directory.
+	* from/testsuite/Makefile.am: new file.
+	* from/testsuite/.cvsignore: new file.  
+	* from/testsuite/from: new directory.         
+	* from/testsuite/from/DISTFILES: new file.
+	* from/testsuite/from/test.exp: new file.
+
+	* messages/messages.c: Added "mailbox" command line capability.
+	* messages/Makefile.am: Added testsuite
+	* messages/testsuite: new directory.
+	* messages/testsuite/Makefile.am: new file.  
+	* messages/testsuite/.cvsignore: new file.   
+	* messages/testsuite/messages: new directory.
+	* messages/testsuite/messages/DISTFILES: new file.
+	* messages/testsuite/messages/test.exp: new file.
+
+	* readmsg/readmsg.h: Added include <mailutils/url.h>
+	* readmsg/readmsg.c (struct argp_option options): Fixed definition
+	  of -a option.
+	  (print_header): Last header was never seen.
+	  
+	* readmsg/Makefile.am: Added testsuite
+	* readmsg/testsuite: new directory.
+	* readmsg/testsuite/Makefile.am      
+	* readmsg/testsuite/.cvsignore: new file.       
+	* readmsg/testsuite/readmsg: new directory.
+	* readmsg/testsuite/readmsg/DISTFILES: new file.
+	* readmsg/testsuite/readmsg/test.exp: new file.
+
+	* imap4d/testsuite/config/unix.exp: Renamed to ...
+	* imap4d/testsuite/config/default.exp: ... this
+	* imap4d/testsuite/config/DISTFILES: Likewise.
+	
+	* mail/testsuite/config/unix.exp: Renamed to ...
+	* mail/testsuite/config/default.exp: ... this
+	* mail/testsuite/config/DISTFILES: Likewise.
+	
+	* pop3d/testsuite/config/unix.exp: Renamed to ...
+	* pop3d/testsuite/config/default.exp: ... this
+	* pop3d/testsuite/config/DISTFILES: Likewise.
+	
+	* configure.ac: Added new testsuites.
+	* testsuite/lib/mailutils.exp (mu_start): Modified.	
+
 2002-08-26  Sergey Poznyakoff
 
 	* frm/frm.c: Don't bail out if the mailbox does not exist.
