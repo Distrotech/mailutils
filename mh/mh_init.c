@@ -418,3 +418,9 @@ mh_audit_close (FILE *fp)
 {
   fclose (fp);
 }
+
+int
+mh_message_number (message_t msg, size_t *pnum)
+{
+  return message_get_uid (msg, pnum);	
+}
