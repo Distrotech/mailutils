@@ -149,46 +149,6 @@ notify_uid (size_t uid)
 }
 
 static void
-notify (void)
-{
-  size_t total = 0;
-  int reset = 0;
-  
-  mailbox_messages_count (mbox, &total);
-
-  if (!uid_table)
-    {
-      reset = 1;
-      reset_uids ();
-    }
-  
-  if (uid_table)
-    {
-      size_t i;
-      size_t recent = 0;
-
-      for (i = 1; i <= total; i++)
-	{
-	  message_t msg = NULL;
-	  size_t uid = 0;
-	  mailbox_get_message (mbox, i, &msg);
-	  message_get_uid (msg, &uid);
-	  if (!notify_uid (uid))
-	    recent++;
-	}
-      notify_deleted ();
-      util_out (RESP_NONE, "%d EXISTS", total);
-      if (recent)
-	util_out (RESP_NONE, "%d RECENT", recent);
-    }
-
-  if (!reset)
-    reset_uids ();
-  else
-    reset_notify ();
-}
-
-static void
 free_uids (void)
 {
   if (uid_table)
@@ -239,6 +199,46 @@ reset_uids (void)
       attribute_copy (uid_table[uid_table_count].attr, attr);
       uid_table_count++;
     }
+}
+
+static void
+notify (void)
+{
+  size_t total = 0;
+  int reset = 0;
+  
+  mailbox_messages_count (mbox, &total);
+
+  if (!uid_table)
+    {
+      reset = 1;
+      reset_uids ();
+    }
+  
+  if (uid_table)
+    {
+      size_t i;
+      size_t recent = 0;
+
+      for (i = 1; i <= total; i++)
+	{
+	  message_t msg = NULL;
+	  size_t uid = 0;
+	  mailbox_get_message (mbox, i, &msg);
+	  message_get_uid (msg, &uid);
+	  if (!notify_uid (uid))
+	    recent++;
+	}
+      notify_deleted ();
+      util_out (RESP_NONE, "%d EXISTS", total);
+      if (recent)
+	util_out (RESP_NONE, "%d RECENT", recent);
+    }
+
+  if (!reset)
+    reset_uids ();
+  else
+    reset_notify ();
 }
 
 size_t
