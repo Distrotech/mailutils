@@ -1,3 +1,25 @@
+2001-11-11  Sergey Poznyakoff
+
+	* lib/mu_dbm.c: (new) These functions provide an
+	intermediate layer between the DBM API and mailutils'
+	applications.
+	* lib/mu_dbm.h: (new) Declarations for DBM support.
+	* lib/Makefile.am: Added mu_dbm.[ch]
+
+	* acconfig.h: Added DBM-related WITH- defines
+	* configure.in: New options: --with-gdbm, --with-ndbm,
+	--with-old-dbm
+
+	* pop3d/popauth.c: (new) A tool for manipulating authentication
+	databases.
+	* pop3d/Makefile.am: Added popauth.
+	* pop3d/.cvsignore: Likewise.
+	* pop3d/apop.c: Bunch of changes due to introduction of new
+	DBM interface.
+	* pop3d/pop3d.h: Likewise.
+	
+	* comsat/Makefile.am: Added comsat.h to sources
+
 2001-11-10  Jeff Bailey  <jbailey@outpost.dnsalias.org>
 
 	* pop3d/pop3d.h: Use SYSCONFDIR, not hardcoded /etc
