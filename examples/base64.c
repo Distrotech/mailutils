@@ -90,14 +90,14 @@ main (int argc, char * argv [])
 	{
 	  char outbuf[24];
 	  sprintf (outbuf, "\\%03o", (unsigned int) buffer);
-	  stream_write (out, outbuf, strlen (outbuf), total, NULL);
+	  stream_sequential_write (out, outbuf, strlen (outbuf));
 	}
       else
-	stream_write (out, &buffer, size, total, NULL);
+	stream_sequential_write (out, &buffer, size);
       total += size;
     }
 
-  stream_write (out, "\n", 1, total, NULL);
+  stream_sequential_write (out, "\n", 1);
   stream_close (in);
   stream_close (out);
   if (verbose)
