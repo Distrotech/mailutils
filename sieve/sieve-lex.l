@@ -35,6 +35,8 @@ OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include "tree.h"
 #include "sieve-gram.h"
 
+static int start_line;
+  
 static int tonum(char *c);
 static char *fixstr(char *);
 static char *mlbuf;
@@ -49,20 +51,39 @@ ws		[ \t]+
 ident		[a-zA-Z_][a-zA-Z_0-9]*
 CRLF		(\r\n|\r|\n)
 
-%state MULTILINE
+%state MULTILINE COMMENT
 
 %%
-<MULTILINE>^\.{CRLF}	{ BEGIN INITIAL; 
+<MULTILINE>^\.{CRLF}	{ BEGIN(INITIAL); 
                           mlbuf[mlcur] = '\0';
                           yylval.sval = mlbuf; return STRING; }
 <MULTILINE>^\.\.  { /* dot stuffing! we want one . */ yyless(1); }
 <MULTILINE>(.|\n) { if (mlcur == mlbufsz) 
 			mlbuf = xrealloc(mlbuf, 1 + (mlbufsz+=1024));
 		    mlbuf[mlcur++] = yytext[0]; }
-<MULTILINE><<EOF>> { yyerror("unexpected end of file in string"); 
-		     yyterminate(); }
-<INITIAL>text:{ws}?(#.*)?{CRLF}	{ BEGIN MULTILINE;
-			  mlcur = 0; mlbufsz = 0; mlbuf = NULL; }
+<MULTILINE><<EOF>> { char *buf = NULL;
+                    asprintf (&buf,
+			      "unexpected end of file in string started on line %d",
+			      start_line);
+		    yyerror (buf);
+		    free (buf);
+		    yyterminate(); }
+<INITIAL>\/\*      { BEGIN(COMMENT); start_line = yylineno; }
+<COMMENT>[^*]*\*\/ { BEGIN(INITIAL); }
+<COMMENT>[^*]*[^/] ;
+<COMMENT><<EOF>>  { char *buf = NULL;
+                    asprintf (&buf,
+			      "unexpected end of file in comment started on line %d",
+			      start_line);
+		    yyerror (buf);
+		    free (buf);
+		    yyterminate(); }
+<INITIAL>text:{ws}?(#.*)?{CRLF}	{
+                          BEGIN(MULTILINE);
+			  mlcur = 0;
+			  mlbufsz = 0;
+			  mlbuf = NULL;
+                          start_line = yylineno; }
 <INITIAL>[0-9]+[KMG]?	{ yylval.nval = tonum(yytext); return NUMBER; }
 <INITIAL>if		return IF;
 <INITIAL>elsif		return ELSIF;
@@ -72,8 +93,8 @@ CRLF		(\r\n|\r|\n)
 <INITIAL>exists		return EXISTS;
 <INITIAL>false		return SFALSE;
 <INITIAL>true		return STRUE;
-<INITIAL>address		return ADDRESS;
-<INITIAL>envelope        return ENVELOPE;
+<INITIAL>address	return ADDRESS;
+<INITIAL>envelope       return ENVELOPE;
 <INITIAL>header		return HEADER;
 <INITIAL>not		return NOT;
 <INITIAL>size		return SIZE;
@@ -81,19 +102,19 @@ CRLF		(\r\n|\r|\n)
 <INITIAL>fileinto	return FILEINTO;
 <INITIAL>redirect	return FORWARD;
 <INITIAL>keep		return KEEP;
-<INITIAL>require         return REQUIRE;
+<INITIAL>require        return REQUIRE;
 <INITIAL>stop		return STOP;
-<INITIAL>discard		return DISCARD;
-<INITIAL>setflag      return SETFLAG;
-<INITIAL>addflag      return ADDFLAG;
-<INITIAL>removeflag   return REMOVEFLAG;
-<INITIAL>mark         return MARK;
-<INITIAL>unmark               return UNMARK;
-<INITIAL>notify       return NOTIFY;
-<INITIAL>denotify     return DENOTIFY;
-<INITIAL>:low         return LOW;
-<INITIAL>:medium      return MEDIUM;
-<INITIAL>:high        return HIGH;
+<INITIAL>discard	return DISCARD;
+<INITIAL>setflag        return SETFLAG;
+<INITIAL>addflag        return ADDFLAG;
+<INITIAL>removeflag     return REMOVEFLAG;
+<INITIAL>mark           return MARK;
+<INITIAL>unmark         return UNMARK;
+<INITIAL>notify         return NOTIFY;
+<INITIAL>denotify       return DENOTIFY;
+<INITIAL>:low           return LOW;
+<INITIAL>:medium        return MEDIUM;
+<INITIAL>:high          return HIGH;
 <INITIAL>vacation	return VACATION;
 <INITIAL>:days		return DAYS;
 <INITIAL>:addresses	return ADDRESSES;
@@ -108,7 +129,7 @@ CRLF		(\r\n|\r|\n)
 <INITIAL>:under		return UNDER;
 <INITIAL>:all		return ALL;
 <INITIAL>:localpart	return LOCALPART;
-<INITIAL>:domain		return DOMAIN;
+<INITIAL>:domain	return DOMAIN;
 <INITIAL>:user		return USER;
 <INITIAL>:detail	return DETAIL;
 <INITIAL>\"([^"]|\\.)*\"	{ yylval.sval = fixstr(yytext); return STRING; }
