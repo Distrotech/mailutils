@@ -405,7 +405,8 @@ stream_write (stream_t os, const char *buf, size_t count,
     }
   if (pnwrite)
     *pnwrite = total;
-  return err;
+  /* If we have someting in the buffer propagate the error on the next call.  */
+  return (total) ? 0 : err;
 }
 
 int
