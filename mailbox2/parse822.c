@@ -1486,13 +1486,13 @@ int parse822_date_time(const char** p, const char* e, struct tm* tm, struct mu_t
     tm->tm_min  = min;
     tm->tm_sec  = sec;
 
-#ifdef HAVE_TM_ISDST
+#ifdef HAVE_STRUCT_TM_TM_ISDST
     tm->tm_isdst = -1; /* unknown whether it's dst or not */
 #endif
-#ifdef HAVE_TM_GMTOFF
+#ifdef HAVE_STRUCT_TM_TM_GMTOFF
     tm->tm_gmtoff = tzoffset;
 #endif
-#ifdef HAVE_TM_ZONE
+#ifdef HAVE_STRUCT_TM_TM_ZONE
     tm->tm_zone = tz_name;
 #endif
   }

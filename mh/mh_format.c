@@ -920,7 +920,7 @@ builtin_dst (struct mh_machine *mach)
 
   if (_parse_date (mach, &tm, &tz))
     return;
-#ifdef HAVE_TM_ISDST  
+#ifdef HAVE_STRUCT_TM_TM_ISDST  
   mach->arg_num = tm.tm_isdst;
 #else
   mach->arg_num = 0;

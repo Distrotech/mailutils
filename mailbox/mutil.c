@@ -173,7 +173,7 @@ mu_parse_imap_date_time (const char **p, struct tm *tm, mu_timezone *tz)
   tm->tm_year = (year > 1900) ? year - 1900 : year;
   tm->tm_yday = 0;		/* unknown. */
   tm->tm_wday = 0;		/* unknown. */
-#if HAVE_TM_ISDST
+#if HAVE_STRUCT_TM_TM_ISDST
   tm->tm_isdst = -1;		/* unknown. */
 #endif
 
@@ -182,7 +182,7 @@ mu_parse_imap_date_time (const char **p, struct tm *tm, mu_timezone *tz)
   sign = (zone[0] == '-') ? -1 : +1;
   tzoffset = sign * (hh * 60 * 60 + mm * 60);
 
-#if HAVE_TM_GMTOFFSET
+#if HAVE_STRUCT_TM_TM_GMTOFFSET
   tm->tm_gmtoffset = tzoffset;
 #endif
 
@@ -248,7 +248,7 @@ mu_parse_ctime_date_time (const char **p, struct tm *tm, mu_timezone * tz)
       tm->tm_wday = wday;
       tm->tm_mon = mon;
       tm->tm_year = (year > 1900) ? year - 1900 : year;
-#ifdef HAVE_TM_ISDST
+#ifdef HAVE_STRUCT_TM_TM_ISDST
       tm->tm_isdst = -1;	/* unknown. */
 #endif
     }
