@@ -1,3 +1,12 @@
+2001-06-17 Sam Roberts
+
+	* sieve/Makefile.am: More fixes to the packaging structure by
+	Sergey.
+	* acconfig.h, configure.in, m4/tm_gmtoff.m4, m4/tm_isdst.m4,
+	m4/tm_zone.m4: Added tests for isdst, gmtoffset, and zone in struct
+	tm.
+	* mailbox/folder_pop.c: Confusing typo in comment.
+
 2001-06-16 Sergey Poznyakoff
         * mailbox/mu_mktime.c(added): a wrapper around system mktime()
           function that honours the timezone.
