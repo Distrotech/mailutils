@@ -2,13 +2,13 @@
 @c %**start of header
 @setfilename mailutils.info
 @settitle GNU Mailutils, Programming Manual
+@setchapternewpage off
+@finalout
 @c %**end of header
 
 @c This file has the new style title page commands.
 @c Run `makeinfo' rather than `texinfo-format-buffer'.
-
 @c smallbook
-
 @c tex
 @c \overfullrule=0pt
 @c end tex
@@ -42,51 +42,21 @@
 * sieve: (mailutils)sieve.           Mail filtering utility
 * mailutils-config: (mailutils)mailutils-config. Get the information about the Mailutils build.
 @end direntry
-This file documents GNU Mailutils, library API.
-
-Published by the Free Software Foundation,
-59 Temple Place - Suite 330
-Boston, MA 02111-1307, USA
-
-Copyright 1999, 2000 Free Software Foundation, Inc.
-
-Permission is granted to make and distribute verbatim copies of
-this manual provided the copyright notice and this permission notice
-are preserved on all copies.
+@end ifinfo
 
 @ignore
 Permission is granted to process this file through TeX and print the
 results, provided the printed document carries copying permission
 notice identical to this one except for the removal of this paragraph
 (this paragraph not being relevant to the printed manual).
-
 @end ignore
-Permission is granted to copy and distribute modified versions of this
-manual under the conditions for verbatim copying, provided that the entire
-resulting derived work is distributed under the terms of a permission
-notice identical to this one.
 
-Permission is granted to copy and distribute translations of this manual
-into another language, under the above conditions for modified versions,
-except that this permission notice may be stated in a translation approved
-by the Foundation.
-@end ifinfo
-
-@setchapternewpage off
-
-@titlepage
-@title GNU Mailutils, SDK.
-@subtitle version @value{VERSION}, @value{UPDATED}
-@author Alain Magloire et al.
-
-@page
-@vskip 0pt plus 1filll
-Copyright @copyright{} 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
-
-@sp 2
-Published by the Free Software Foundation, @*
-59 Temple Place - Suite 330, @*
+@copying
+Published by the Free Software Foundation,
+59 Temple Place - Suite 330
 Boston, MA 02111-1307, USA
+
+Copyright @copyright{} 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
 
 Permission is granted to make and distribute verbatim copies of
 this manual provided the copyright notice and this permission notice
@@ -101,10 +71,18 @@ Permission is granted to copy and distribute translations of this manual
 into another language, under the above conditions for modified versions,
 except that this permission notice may be stated in a translation approved
 by the Foundation.
+@end copying
 
-@end titlepage
+@titlepage
+@title GNU Mailutils
+@subtitle version @value{VERSION}, @value{UPDATED}
+@author Alain Magloire et al.
 @page
+@vskip 0pt plus 1filll
+@insertcopying
+@end titlepage
 
+@page
 @summarycontents
 @page
 
@@ -118,20 +96,20 @@ documents GNU Mailutils Version @value{VERSION}.
 @end ifinfo
 
 @menu
-* Introduction::                GNU Mailutils
-* libmailbox::                  Main library               
-* libmuauth::                   Auxiliary library for authenticating users.
-* libmu_scm::                   Interface with Guile
-* libsieve::                    GNU implementation of Sieve mail filtering.
-* Programs::                    Programs.
-* Reporting Bugs::              How to report a bug.
-* News::                        Where to get information about @sc{gnu} Mailutils
-* Acknowledgement::             Thanks and Credits.
+* Introduction::            GNU Mailutils.
+* libmailbox::              Main library.
+* libmuauth::               Auxiliary library for authenticating users.
+* libmu_scm::               Interface with Guile.
+* libsieve::                GNU implementation of Sieve mail filtering.
+* Programs::                Programs.
+* Reporting Bugs::          How to report a bug.
+* News::                    Where to get information about @sc{gnu} Mailutils.
+* Acknowledgement::         Thanks and Credits.
 
 Indices
-* Function Index::              All Mailutils Functions.
-* Program Index::               All Mailutils Programs.
-* Concept Index::               Index of Concepts.
+* Function Index::          All Mailutils Functions.
+* Program Index::           All Mailutils Programs.
+* Concept Index::           Index of Concepts.
 
 @end menu
 
@@ -316,14 +294,14 @@ The archives of bug-mailutils mailing list are available from
 @url{http://mail.gnu.org/mailman/listinfo/bug-mailutils}.
 
 @node News, Acknowledgement, Reporting Bugs, Top
-@chapter Getting news about @sc{gnu} mailutils
+@chapter Getting News About @sc{gnu} Mailutils
 
 The two places to look for any news regarding @sc{gnu} Mailutils are the
 Mailutils homepage at @url{http://www.gnu.org/software/mailutils}, and the
 project page at @url{http://savannah.gnu.org/projects/mailutils}.
 
 The updated versions of this manual are available online from
-@url{http://www.gnu.org/software/mailutils/manual}. 
+@url{http://www.gnu.org/software/mailutils/manual}.
 
 @node Acknowledgement, Function Index , News, Top
 @comment  node-name,  next,  previous,  up
@@ -353,6 +331,8 @@ Sergey Poznyakoff @email{gray@@Mirddin.farlep.net},
 Fran@,{c}ois Pinard  @email{pinard@@IRO.UMontreal.CA}.
 @item
 Jordi Mallach @email{jordi@@sindominio.net}
+@item
+Wojciech Polak @email{polak@@gnu.org}
 @end itemize
 @page
 
