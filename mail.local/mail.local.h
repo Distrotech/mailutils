@@ -28,12 +28,25 @@
 #include <grp.h>
 #include <stdarg.h>
 #include <sys/stat.h>
-#include <sysexits.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <netdb.h>
 #include "getopt.h"
+
+#ifdef HAVE_SYSEXITS_H
+# include <sysexits.h>
+#endif
+
+#ifndef EX_OK
+# define EX_OK 0
+#endif
+#ifndef EX_UNAVAILABLE
+# define EX_UNAVAILABLE 1
+#endif
+#ifndef EX_TEMPFAIL
+# define EX_TEMPFAIL 2
+#endif
 
 #ifdef HAVE_STRINGS_H
 # include <strings.h>
