@@ -48,6 +48,7 @@ const struct mail_command_entry mail_command_table[] = {
   { "ho",	"hold",	       0, mail_hold,	"ho[ld] [msglist]" },
   { "i",	"if",	       EF_FLOW, mail_if,	"i[f] s|r|t" }, 
   { "ig",	"ignore",      0, mail_discard,"ig[nore] [header-field...]" },
+  { "inc",      "incorporate", 0, mail_inc,     "inc[orporate]" },
   { "l",	"list",	       0, mail_list,	"l[ist]" },
   { "m",	"mail",	       EF_SEND, mail_send,    "m[ail] [address...]" },
   { "mb",	"mbox",	       0, mail_mbox,	"mb[ox] [msglist]" },

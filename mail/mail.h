@@ -138,6 +138,7 @@ int mail_headers __P((int argc, char **argv));
 int mail_hold __P((int argc, char **argv));
 int mail_help __P((int argc, char **argv));
 int mail_if __P((int argc, char **argv));
+int mail_inc __P((int argc, char **argv));
 int mail_list __P((int argc, char **argv));
 int mail_send __P((int argc, char **argv));	/* command mail */
 int mail_mbox __P((int argc, char **argv));
