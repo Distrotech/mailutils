@@ -4,3 +4,4 @@ Makefile.in
 *.sum
 site.exp
 remote.exp
+data
