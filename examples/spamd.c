@@ -315,7 +315,7 @@ spamd_test (sieve_machine_t mach, list_t args, list_t tags)
   message_size (msg, &m_size);
   message_lines (msg, &m_lines);
 
-  auth = mu_get_auth_by_uid (getuid ());
+  auth = mu_get_auth_by_uid (geteuid ());
   spamd_send_command (stream, "SYMBOLS SPAMC/1.2");
   spamd_send_command (stream, "Content-length: %lu",
 		      (u_long) (m_size + m_lines));
