@@ -4,6 +4,25 @@ See the end for copying conditions.
 
 Please send mailutils bug reports to <bug-mailutils@gnu.org>.
 
+Version 0.3.1:
+
+This version is a maintenance release over the previous one.
+
+* Bug fixes:
+
+** A replacement for vsyslog is provided for systems lacking it.
+** Fixed incorrect handling of dates.
+** Added support for handling Fcc: headers to the mailer code.
+** Several minor fixes to allow the package to compile on MacOS.
+
+* libmailbox:
+
+** First implementation of rfc1524: added a set of functions for handling
+mail capabilities
+
+* mh: All utilities needed by Emacs mh-e.el module are implemented.
+
+
 Version 0.3:
 
 * General:
