@@ -32,8 +32,8 @@ static char args_doc[] = N_("[address...]");
 
 static struct argp_option options[] = {
   {"exist",   'e', 0,      0, N_("Return true if mail exists"), 0},
-  {"file",    'f', N_("FILE"), OPTION_ARG_OPTIONAL,
-			          N_("Operate on mailbox FILE (default ~/mbox)"), 0},
+  {"file",    'f', N_("URL"), OPTION_ARG_OPTIONAL,
+			      N_("Operate on given mailbox URL (default ~/mbox)"), 0},
   {"byname",  'F', 0,      0, N_("Save messages according to sender"), 0},
   {"headers", 'H', 0,      0, N_("Write a header summary and exit"), 0},
   {"ignore",  'i', 0,      0, N_("Ignore interrupts"), 0},
