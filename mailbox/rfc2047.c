@@ -126,8 +126,8 @@ rfc2047_decode (const char *tocode, const char *input, char **ptostr)
       filter_create (&filter, in_stream, filter_type, MU_FILTER_DECODE,
                      MU_STREAM_READ);
 
-      while (stream_read (filter, buffer + bufpos, bufsize - bufpos, 0,
-			  &nbytes) == 0 && nbytes)
+      while (stream_sequential_read (filter, buffer + bufpos, bufsize - bufpos,
+				     &nbytes) == 0 && nbytes)
         {
           /* FIXME: Need to convert character set */
 	  bufpos += nbytes;
