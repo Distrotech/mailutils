@@ -31,6 +31,7 @@
 #include <mailutils/address.h>
 #include <mailutils/attribute.h>
 #include <mailutils/debug.h>
+#include <mailutils/errno.h>
 #include <mailutils/header.h>
 #include <mailutils/list.h>
 #include <mailutils/mailbox.h>
@@ -64,19 +65,16 @@ const char *argp_program_bug_address = "<bug-mailutils@gnu.org>";
 static char doc[] = "GNU frm -- display From: lines";
 
 static struct argp_option options[] = {
-  {NULL, 0, NULL, 0,
-   "frm specific switches:", 0},
-  {"debug", 'd', NULL, 0, "Enable debugging output", 0},
-  {"field", 'f', "NAME", 0,
-			      "Header field to display", 0},
-  {"to", 'l', NULL, 0, "Include the To: information", 0},
-  {"number", 'n', NULL, 0, "Display message numbers", 0},
-  {"Quiet", 'Q', NULL, 0, "Very quiet", 0},
-  {"query", 'q', NULL, 0, "Print a message if unread mail", 0},
-  {"summary", 'S', NULL, 0, "Print a summary of messages", 0},
-  {"status", 's', "[nor]", 0,
+  {"debug",  'd', NULL,   0, "Enable debugging output", 0},
+  {"field",  'f', "NAME", 0, "Header field to display", 0},
+  {"to",     'l', NULL,   0, "Include the To: information", 0},
+  {"number", 'n', NULL,   0, "Display message numbers", 0},
+  {"Quiet",  'Q', NULL,   0, "Very quiet", 0},
+  {"query",  'q', NULL,   0, "Print a message if unread mail", 0},
+  {"summary",'S', NULL,   0, "Print a summary of messages", 0},
+  {"status", 's', "[nor]",0,
    "Select message with the specific attribute: [n]ew, [r]ead, [u]nread.", 0 },
-  {"align", 't', NULL, 0, "Try to align", 0},
+  {"align",  't', NULL,   0, "Try to align", 0},
   {0, 0, 0, 0}
 };
 
@@ -161,7 +159,9 @@ static struct argp argp = {
 };
 
 static const char *frm_argp_capa[] = {
-  "mailutils",
+  "common",
+  "licence",
+  "mailbox",
   NULL
 };
 
@@ -330,10 +330,13 @@ main(int argc, char **argv)
     observable_t observable;
 
     status = mailbox_create_default (&mbox, mailbox_name);
+
     if (status != 0)
       {
-	fprintf (stderr, "could not create mailbox object\n");
-	exit (3);
+	fprintf (stderr, "could not create mailbox <%s>: %s\n",
+	    mailbox_name ? mailbox_name : "default",
+	    mu_errstring(status));
+	goto cleanup;
       }
 
     if (dbug)
@@ -344,10 +347,13 @@ main(int argc, char **argv)
       }
 
     status = mailbox_open (mbox, MU_STREAM_READ);
+
     if (status != 0)
       {
-	fprintf (stderr, "could not open mailbox\n");
-	exit (4);
+	fprintf (stderr, "could not open mailbox <%s>: %s\n",
+	    mailbox_name ? mailbox_name : "default",
+	    mu_errstring(status));
+	goto cleanup;
       }
 
     if (! be_quiet)
@@ -358,16 +364,27 @@ main(int argc, char **argv)
 	observable_attach (observable, MU_EVT_MESSAGE_ADD, observer);
       }
 
-    mailbox_scan (mbox, 1, &total);
+    status = mailbox_scan (mbox, 1, &total);
+
+    if (status != 0)
+      {
+	fprintf (stderr, "could not scan mailbox <%s>: %s\n",
+	    mailbox_name ? mailbox_name : "default",
+	    mu_errstring(status));
+	goto cleanup;
+      }
 
     if (! be_quiet)
       {
 	observable_detach (observable, observer);
 	observer_destroy (&observer, mbox);
       }
-
+cleanup:
     mailbox_close(mbox);
     mailbox_destroy(&mbox);
+
+    if(status != 0)
+      return 3;
   }
 
   if (show_summary)
