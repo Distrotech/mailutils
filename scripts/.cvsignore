@@ -12,3 +12,4 @@ missing
 mkinstalldirs
 texinfo.tex
 ltmain.sh
+mailutils.spec

@@ -1,3 +1,11 @@
+2003-09-27  Wojciech Polak
+
+	* mailutils.spec.in: Updated and moved to ...
+	* scripts/mailutils.spec.in: ... here.
+	* scripts/Makefile.am: Updated.
+	* configure.ac: Likewise.
+	* Makefile.am: Likewise.
+
 2003-09-27  Sergey Poznyakoff
 
 	* configure.ac: Moved fgetpwent from AC_CHECK_FUNCS to

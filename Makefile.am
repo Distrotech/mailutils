@@ -1,6 +1,6 @@
 ## Process this file with GNU Automake to create Makefile.in
 
-##   Copyright (C) 2000, 2001, 2002 Free Software Foundation, Inc.
+##   Copyright (C) 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
 ##
 ##   GNU Mailutils is free software; you can redistribute it and/or
 ##   modify it under the terms of the GNU General Public License as
@@ -25,7 +25,7 @@ SUBDIRS = headers include m4 intl po lib testsuite mailbox libsieve doc \
           mail sieve scripts libmu_scm guimb messages comsat readmsg \
           mail.local mail.remote dotlock mh 
 
-EXTRA_DIST = mailutils.spec mailutils.spec.in COPYING.LIB
+EXTRA_DIST = COPYING.LIB
 
 release:
 	$(MAKE) dist distdir=$(PACKAGE)-`date +"%Y%m%d"`

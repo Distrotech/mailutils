@@ -757,7 +757,6 @@ AC_CONFIG_FILES([Makefile
  mailbox/imap/Makefile
  mailbox/include/Makefile
  mailbox/testsuite/Makefile
- mailutils.spec
  messages/Makefile
  messages/testsuite/Makefile
  mh/Makefile
@@ -769,6 +768,7 @@ AC_CONFIG_FILES([Makefile
  scripts/Makefile
  scripts/guile-1.4/Makefile
  scripts/guile-1.6/Makefile
+ scripts/mailutils.spec
  sieve/Makefile
  sieve/testsuite/Makefile
  testsuite/Makefile
