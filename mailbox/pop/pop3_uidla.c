@@ -64,12 +64,20 @@ mu_pop3_uidl_all (mu_pop3_t pop3, list_t *plist)
            But do not use the stack and malloc.  */
         char *uidla;
         size_t n = 0;
-                                                                                                                             
+
         uidla = malloc (512);
         if (uidla == NULL)
           {
-            MU_POP3_CHECK_ERROR(pop3, ENOMEM);
+            /* MU_POP3_CHECK_ERROR(pop3, ENOMEM)
+	       Do not use the macro since we have to remove the list
+	       if things go wrong.
+	    */
+	    pop3->io.ptr = pop3->io.buf;
+	    pop3->state = MU_POP3_ERROR;
+	    list_destroy (plist);
+	    return ENOMEM;
           }
+
         while ((status = mu_pop3_readline (pop3, uidla, 512, &n)) == 0 && n > 0)
           {
             /* Nuke the trailing newline  */

@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2004 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -65,12 +65,18 @@ mu_pop3_list_all (mu_pop3_t pop3, list_t *plist)
            But do not use the stack and malloc.  */
         char *lista;
         size_t n = 0;
- 
+
         lista = malloc (512);
         if (lista == NULL)
           {
-            MU_POP3_CHECK_ERROR(pop3, ENOMEM);
+            /* MU_POP3_CHECK_ERROR(pop3, ENOMEM);
+	       Do not use the macro we need to clear the list if errors. */
+	    pop3->io.ptr = pop3->io.buf;
+	    pop3->state = MU_POP3_ERROR;
+	    list_destroy (plist);
+	    return ENOMEM;
           }
+
         while ((status = mu_pop3_readline (pop3, lista, 512, &n)) == 0 && n > 0)
           {
             /* Nuke the trailing newline  */
