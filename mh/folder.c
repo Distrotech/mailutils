@@ -34,7 +34,7 @@
 
 const char *argp_program_version = "folder (" PACKAGE_STRING ")";
 static char doc[] = "GNU MH folder";
-static char args_doc[] = "[action][msg]";
+static char args_doc[] = "[action] [msg]";
 
 #define ARG_PUSH 1
 #define ARG_POP 2
@@ -493,8 +493,8 @@ main (int argc, char **argv)
   if (argc - index == 1)
     {
       mailbox_t mbox = mh_open_folder (current_folder, 0);
-      mh_msgset_parse (mbox, &msgset, argc - index, argv + index);
-      current_message = msgset.list[0];
+      mh_msgset_parse (mbox, &msgset, argc - index, argv + index, "cur");
+      mh_msgset_current (mbox, &msgset, 0);
       mh_global_save_state ();
       mailbox_close (mbox);
       mailbox_destroy (&mbox);
