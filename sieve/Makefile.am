@@ -1,8 +1,9 @@
 #CFLAGS = -Wall -pedantic -g -DTESTING
 AUTOMAKE_OPTIONS = ../lib/ansi2knr
 INCLUDES = -I${top_srcdir}/include -I${top_srcdir}/lib 
+SUBDIRS  = testsuite
 YLWRAP = $(SHELL) $(srcdir)/ylwrap
-YFLAGS = -d
+YFLAGS = -dt
 
 BUILT_SOURCES= \
   sieve-gram.c sieve-gram.h \
