@@ -41,8 +41,8 @@ static struct argp_option options[] =
   { "folder", 'f', "FOLDER", 0, "Folder to use", 1 },
   { "no-header", 'n', 0, 0, "Exclude all headers", 1 },
   { "form-feeds", 'p', 0, 0, "Output formfeeds between messages", 1 },
-  { "show-all-match", 'a', "PATTERN", 0,
-    "Print all messages matching PATTERN", 1 },
+  { "show-all-match", 'a', NULL, 0,
+    "Print all messages matching pattern, not just the first", 1 },
   {0, 0, 0, 0}
 };
 
@@ -162,16 +162,17 @@ print_header (message_t message, int no_header, int all_headers,
 
       header_get_field_count (header, &count);
 
-      for (i = 1; i < count; i++)
+      for (i = 1; i <= count; i++)
 	{
 	  char *name = NULL;
 	  char *value = NULL;
-	  char *token = strdup (weedlist);
-	  char *p = token;
+	  char *weedcopy = strdup (weedlist);
+	  char *token, *s;
 
 	  header_aget_field_name (header, i, &name);
 	  header_aget_field_value (header, i, &value);
-	  for (; (token = strtok (token, delim)) != NULL; token = NULL)
+	  for (token = strtok_r (weedcopy, delim, &s); token;
+	       token = strtok_r (NULL, delim, &s)) 
 	    {
 	      if (string_starts_with (name, token))
 		{
@@ -182,7 +183,7 @@ print_header (message_t message, int no_header, int all_headers,
 	    }
 	  free (value);
 	  free (name);
-	  free (p);
+	  free (weedcopy);
 	}
       putchar ('\n');
     }
@@ -253,7 +254,12 @@ main (int argc, char **argv)
   status = mailbox_open (mbox, MU_STREAM_READ);
   if (status != 0)
     {
-      fprintf (stderr, "mailbox open - %s\n", mu_errstring(status));
+      url_t url = NULL;
+
+      mailbox_get_url (mbox, &url);
+      fprintf (stderr, "can't open mailbox %s: %s\n",
+	       url_to_string (url),
+	       mu_errstring(status));
       exit (2);
     }
 
@@ -261,7 +267,7 @@ main (int argc, char **argv)
     weedlist = "Date To Cc Subject From Apparently-";
 
   /* Build an array containing the message number.  */
-  argc -= optind;
+  argc -= index;
   if (argc > 0)
     msglist (mbox, show_all, argc, &argv[index], &set, &n);
 
