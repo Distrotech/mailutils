@@ -113,6 +113,7 @@ main (int argc, char **argv)
   int index;
   mailbox_t mbox;
   mh_msgset_t msgset;
+  size_t len;
   
   mu_init_nls ();
 
@@ -134,6 +135,10 @@ main (int argc, char **argv)
   if (!anno_text && !anno_date)
     exit (0);
 
+  len = strlen (component);
+  if (len > 0 && component[len-1] == ':')
+    component[len-1] = 0;
+  
   argc -= index;
   argv += index;
   
