@@ -226,11 +226,11 @@ notify (void)
 	  size_t uid = 0;
 	  mailbox_get_message (mbox, i, &msg);
 	  message_get_uid (msg, &uid);
-	  if (!notify_uid (uid))
-	    recent++;
+	  notify_uid (uid);
 	}
       notify_deleted ();
       util_out (RESP_NONE, "%d EXISTS", total);
+      mailbox_messages_recent (mbox, &recent);
       if (recent)
 	util_out (RESP_NONE, "%d RECENT", recent);
     }
