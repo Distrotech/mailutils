@@ -65,6 +65,8 @@ and use them in mail.remote.
 
 ** support AUTH=anonymous (imap://cyrus.andrew.cmu.edu/archive.info-cyrus)
 
+** filter_trans needs readline method.
+
 * pop3
 
 ** pop3d_readline - should this use select(), avoid the race condition,

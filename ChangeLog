@@ -1,3 +1,20 @@
+2003-03-15  Sergey Poznyakoff 
+
+	* mh/mhn.c: New file. Implementation of mhn utility (partial).
+	* mh/.cvsignore: Added mhn
+	* mh/Makefile.am: Likewise.
+	* mh/forw.c: Implemented --mime.
+	* mh/TODO: Updated.
+	* mh/mh.h (mhl_format_run): Changed prototype
+	  (MHL_DECODE,MHL_CLEARSCREEN,MHL_BELL): New defines.
+	* mh/mh_getopt.h: Updated.
+	* mh/mh_list.c (mhl_format_run): Changed declaration.
+	  (eval_body): Decode message body on request.
+	* mh/mh_ctx.c: Bugfix. Thanks Wojciech for noticing!
+	* mh/mhl.c: Updated invocations of mhl_format_run().
+	* mh/repl.c: Likewise.
+	* po/POTFILES.in: Added new files.
+	
 2003-03-14  Sergey Poznyakoff  
 
 	* TODO: Reformatted in Emacs outline mode
