@@ -30,6 +30,8 @@ OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include <stdio.h>
 
 extern const char *sieve_version;
+extern int addrdebug;
+extern int yydebug;
 
 /* error codes */
 #define SIEVE_OK (0)
@@ -139,7 +141,7 @@ int sieve_register_summary(sieve_interp_t *interp,
 				 sieve_execute_error *f);
  
 /* given an interpretor and a script, produce an executable script */
-int sieve_script_parse(sieve_interp_t *interp, FILE *script,
+int sieve_script_parse(sieve_interp_t *interp, FILE *script, 
 		       void *script_context, sieve_script_t **ret);
 
 int sieve_script_free(sieve_script_t **s);
