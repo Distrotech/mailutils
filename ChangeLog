@@ -1,3 +1,39 @@
+1999-09-14  Jakob 'sparky' Kaivo  <jkaivo@elijah.nodomainname.net>
+
+	* pop3d/pop3d.c (main): moved setgid() call to after option parsing
+	(main): make --version report PACKAGE and VERSION
+
+	* libmailbox/mailbox.c (mbox_open): changed paramater type to const
+
+	* pop3d/Makefile.am (INCLUDES): change relative directories to top_srcdir base
+
+	* configure.in: Added checks for PAM and crypt
+
+1999-09-13  Jakob 'sparky' Kaivo  <jkaivo@elijah.nodomainname.net>
+
+	* pop3d/retr.c (pop3_retr): fixed calls mbox_header => mbox_get_header
+	and mbox_body => mbox_get_body
+
+	* pop3d/user.c (pop3_user): removed references to mailbox variable
+
+	* pop3d/stat.c (pop3_stat): fixed mbox->is_deleted => mbox_is_deleted
+
+	* pop3d/pop3d.c (pop3_mainloop): removed reference to lockfile variable
+
+	* pop3d/extra.c (pop3_abquit): change fclose(mbox) to mbox_close(mbox)
+	removed calls to free(messages) and pop3_unlock()
+
+	* pop3d/dele.c (pop3_dele): fixed call to mbox_delete()
+
+	* Makefile.am (SUBDIRS): added pop3d and libsrc
+
+	* configure.in: Added checks needed for pop3d/*
+	made it work with libtool
+
+	* libsrc/*: imported from gnu-pop3d tree
+
+	* pop3d/*: imported from gnu-pop3d tree
+
 1999-09-11  Jeff Bailey  <jbailey@cr499794-a.crdva1.bc.wave.home.com>
 
 	* libmailbox/unixmbox.h: Do not prefix config.h defines with _

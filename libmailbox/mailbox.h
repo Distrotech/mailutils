@@ -42,6 +42,6 @@ typedef struct _mailbox
   }
 mailbox;
 
-mailbox *mbox_open __P ((char *name));
+mailbox *mbox_open __P ((const char *name));
 
 #endif

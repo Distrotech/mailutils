@@ -13,7 +13,7 @@ int _mbox_dummy3 (mailbox * mbox, char *c);
 char *_mbox_dummy4 (mailbox * mbox, int num);
 
 mailbox *
-mbox_open (char *name)
+mbox_open (const char *name)
 {
   mailbox *mbox = malloc (sizeof (mailbox));
   if (mbox == NULL)
