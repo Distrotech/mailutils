@@ -20,105 +20,105 @@ mail_start "--file=%teaparty.mbox"
 mail_command "set readonly"
 
 mail_test "headers" \
-">N   1 March Hare         Sun Jul 21 20:46  10/307   Invitation"\
-" N   2 Alice              Sun Jul 21 20:46  10/317   Re: Invitation"\
-" N   3 March Hare         Sun Jul 21 20:46  10/312   Re: Invitation"\
-" N   4 Alice              Sun Jul 21 20:46  10/341   Re: Invitation"\
-" N   5 March Hare         Sun Jul 21 20:46  10/358   Re: Invitation"\
-" N   6 Alice              Sun Jul 21 20:46  11/373   Re: Invitation"\
-" N   7 March Hare         Sun Jul 21 20:46  10/321   Personal remark"\
-" N   8 Alice              Sun Jul 21 20:46  10/364   Re: Personal remark"\
-" N   9 March Hare         Sun Jul 21 20:46  10/350   Riddle (was Re: Personal "
+">N   1 March Hare         Mon Jul 29 22:00  10/301   Invitation"\
+" N   2 Alice              Mon Jul 29 22:00  10/311   Re: Invitation"\
+" N   3 March Hare         Mon Jul 29 22:00  10/306   Re: Invitation"\
+" N   4 Alice              Mon Jul 29 22:00  10/335   Re: Invitation"\
+" N   5 March Hare         Mon Jul 29 22:00  10/352   Re: Invitation"\
+" N   6 Alice              Mon Jul 29 22:00  11/367   Re: Invitation"\
+" N   7 March Hare         Mon Jul 29 22:00  10/315   Personal remark"\
+" N   8 Alice              Mon Jul 29 22:00  10/358   Re: Personal remark"\
+" N   9 March Hare         Mon Jul 29 22:00  10/344   Riddle (was Re: Personal"
 
 mail_test "z." \
-">N   1 March Hare         Sun Jul 21 20:46  10/307   Invitation"\
-" N   2 Alice              Sun Jul 21 20:46  10/317   Re: Invitation"\
-" N   3 March Hare         Sun Jul 21 20:46  10/312   Re: Invitation"\
-" N   4 Alice              Sun Jul 21 20:46  10/341   Re: Invitation"\
-" N   5 March Hare         Sun Jul 21 20:46  10/358   Re: Invitation"\
-" N   6 Alice              Sun Jul 21 20:46  11/373   Re: Invitation"\
-" N   7 March Hare         Sun Jul 21 20:46  10/321   Personal remark"\
-" N   8 Alice              Sun Jul 21 20:46  10/364   Re: Personal remark"\
-" N   9 March Hare         Sun Jul 21 20:46  10/350   Riddle (was Re: Personal "
+">N   1 March Hare         Mon Jul 29 22:00  10/301   Invitation"\
+" N   2 Alice              Mon Jul 29 22:00  10/311   Re: Invitation"\
+" N   3 March Hare         Mon Jul 29 22:00  10/306   Re: Invitation"\
+" N   4 Alice              Mon Jul 29 22:00  10/335   Re: Invitation"\
+" N   5 March Hare         Mon Jul 29 22:00  10/352   Re: Invitation"\
+" N   6 Alice              Mon Jul 29 22:00  11/367   Re: Invitation"\
+" N   7 March Hare         Mon Jul 29 22:00  10/315   Personal remark"\
+" N   8 Alice              Mon Jul 29 22:00  10/358   Re: Personal remark"\
+" N   9 March Hare         Mon Jul 29 22:00  10/344   Riddle (was Re: Personal"
 
 mail_test "z" \
-">N  11 March Hare         Sun Jul 21 20:46  10/354   Re: Riddle"\
-" N  12 Alice              Sun Jul 21 20:46  10/303   Re: Riddle"\
-" N  13 March Hare         Sun Jul 21 20:46  10/344   Be specific (was Re: Ridd"\
-" N  14 Alice              Sun Jul 21 20:46  11/374   Re: Be specific"\
-" N  15 Hatter             Sun Jul 21 20:46  12/415   Re: Be specific"\
-" N  16 March Hare         Sun Jul 21 20:46  11/392   Re: Be specific"\
-" N  17 Dormouse           Sun Jul 21 20:46  12/448   Re: Be specific"\
-" N  18 Hatter             Sun Jul 21 20:46  10/336   Re: Be specific"\
-" N  19 Hatter             Sun Jul 21 20:46  10/316   Watch"\
-" N  20 Alice              Sun Jul 21 20:46  10/303   Re: Watch"
+">N  11 March Hare         Mon Jul 29 22:00  10/348   Re: Riddle"\
+" N  12 Alice              Mon Jul 29 22:00  10/297   Re: Riddle"\
+" N  13 March Hare         Mon Jul 29 22:00  10/338   Be specific (was Re: Ridd"\
+" N  14 Alice              Mon Jul 29 22:00  11/368   Re: Be specific"\
+" N  15 Hatter             Mon Jul 29 22:00  12/409   Re: Be specific"\
+" N  16 March Hare         Mon Jul 29 22:00  11/386   Re: Be specific"\
+" N  17 Dormouse           Mon Jul 29 22:00  12/442   Re: Be specific"\
+" N  18 Hatter             Mon Jul 29 22:00  10/330   Re: Be specific"\
+" N  19 Hatter             Mon Jul 29 22:00  10/310   Watch"\
+" N  20 Alice              Mon Jul 29 22:00  10/297   Re: Watch"
 
 mail_test "z-" \
-">N   1 March Hare         Sun Jul 21 20:46  10/307   Invitation"\
-" N   2 Alice              Sun Jul 21 20:46  10/317   Re: Invitation"\
-" N   3 March Hare         Sun Jul 21 20:46  10/312   Re: Invitation"\
-" N   4 Alice              Sun Jul 21 20:46  10/341   Re: Invitation"\
-" N   5 March Hare         Sun Jul 21 20:46  10/358   Re: Invitation"\
-" N   6 Alice              Sun Jul 21 20:46  11/373   Re: Invitation"\
-" N   7 March Hare         Sun Jul 21 20:46  10/321   Personal remark"\
-" N   8 Alice              Sun Jul 21 20:46  10/364   Re: Personal remark"\
-" N   9 March Hare         Sun Jul 21 20:46  10/350   Riddle (was Re: Personal "
+">N   1 March Hare         Mon Jul 29 22:00  10/301   Invitation"\
+" N   2 Alice              Mon Jul 29 22:00  10/311   Re: Invitation"\
+" N   3 March Hare         Mon Jul 29 22:00  10/306   Re: Invitation"\
+" N   4 Alice              Mon Jul 29 22:00  10/335   Re: Invitation"\
+" N   5 March Hare         Mon Jul 29 22:00  10/352   Re: Invitation"\
+" N   6 Alice              Mon Jul 29 22:00  11/367   Re: Invitation"\
+" N   7 March Hare         Mon Jul 29 22:00  10/315   Personal remark"\
+" N   8 Alice              Mon Jul 29 22:00  10/358   Re: Personal remark"\
+" N   9 March Hare         Mon Jul 29 22:00  10/344   Riddle (was Re: Personal"
 
 mail_test "z +3" \
-">N  31 Dormouse           Sun Jul 21 20:46  11/370   Re: Remark"\
-" N  32 Hatter             Sun Jul 21 20:46  10/325   Re: Riddle"\
-" N  33 Alice              Sun Jul 21 20:46  10/329   Re: Riddle"\
-" N  34 Hatter             Sun Jul 21 20:46  10/321   Re: Riddle"\
-" N  35 March Hare         Sun Jul 21 20:46  10/298   Re: Riddle"\
-" N  36 Alice              Sun Jul 21 20:46  11/412   Re: Riddle"\
-" N  37 Hatter             Sun Jul 21 20:46  11/378   Discussing Time"\
-" N  38 Alice              Sun Jul 21 20:46  10/328   Re: Discussing Time"\
-" N  39 Hatter             Sun Jul 21 20:46  10/363   Re: Discussing Time"\
-" N  40 Alice              Sun Jul 21 20:46  10/365   Re: Discussing Time"
+">N  31 Dormouse           Mon Jul 29 22:00  11/364   Re: Remark"\
+" N  32 Hatter             Mon Jul 29 22:00  10/319   Re: Riddle"\
+" N  33 Alice              Mon Jul 29 22:00  10/323   Re: Riddle"\
+" N  34 Hatter             Mon Jul 29 22:00  10/315   Re: Riddle"\
+" N  35 March Hare         Mon Jul 29 22:00  10/292   Re: Riddle"\
+" N  36 Alice              Mon Jul 29 22:00  11/406   Re: Riddle"\
+" N  37 Hatter             Mon Jul 29 22:00  11/372   Discussing Time"\
+" N  38 Alice              Mon Jul 29 22:00  10/322   Re: Discussing Time"\
+" N  39 Hatter             Mon Jul 29 22:00  10/357   Re: Discussing Time"\
+" N  40 Alice              Mon Jul 29 22:00  10/359   Re: Discussing Time"\
 
 mail_test "z -2" \
-">N  11 March Hare         Sun Jul 21 20:46  10/354   Re: Riddle"\
-" N  12 Alice              Sun Jul 21 20:46  10/303   Re: Riddle"\
-" N  13 March Hare         Sun Jul 21 20:46  10/344   Be specific (was Re: Ridd"\
-" N  14 Alice              Sun Jul 21 20:46  11/374   Re: Be specific"\
-" N  15 Hatter             Sun Jul 21 20:46  12/415   Re: Be specific"\
-" N  16 March Hare         Sun Jul 21 20:46  11/392   Re: Be specific"\
-" N  17 Dormouse           Sun Jul 21 20:46  12/448   Re: Be specific"\
-" N  18 Hatter             Sun Jul 21 20:46  10/336   Re: Be specific"\
-" N  19 Hatter             Sun Jul 21 20:46  10/316   Watch"\
-" N  20 Alice              Sun Jul 21 20:46  10/303   Re: Watch"
+">N  11 March Hare         Mon Jul 29 22:00  10/348   Re: Riddle"\
+" N  12 Alice              Mon Jul 29 22:00  10/297   Re: Riddle"\
+" N  13 March Hare         Mon Jul 29 22:00  10/338   Be specific (was Re: Ridd"\
+" N  14 Alice              Mon Jul 29 22:00  11/368   Re: Be specific"\
+" N  15 Hatter             Mon Jul 29 22:00  12/409   Re: Be specific"\
+" N  16 March Hare         Mon Jul 29 22:00  11/386   Re: Be specific"\
+" N  17 Dormouse           Mon Jul 29 22:00  12/442   Re: Be specific"\
+" N  18 Hatter             Mon Jul 29 22:00  10/330   Re: Be specific"\
+" N  19 Hatter             Mon Jul 29 22:00  10/310   Watch"\
+" N  20 Alice              Mon Jul 29 22:00  10/297   Re: Watch"
 
 mail_test "z +8" \
-">N  91 Dormouse           Sun Jul 21 20:46  10/306   Re: Story"\
-" N  92 Dormouse           Sun Jul 21 20:46  13/493   Re: Story"\
-" N  93 Alice              Sun Jul 21 20:46  10/337   Re: Story"\
-" N  94 Hatter             Sun Jul 21 20:46  10/317   Rude remark"\
-" N  95 Alice              Sun Jul 21 20:46  11/385   Thoughts"
+">N  91 Dormouse           Mon Jul 29 22:01  10/300   Re: Story"\
+" N  92 Dormouse           Mon Jul 29 22:01  13/487   Re: Story"\
+" N  93 Alice              Mon Jul 29 22:01  10/331   Re: Story"\
+" N  94 Hatter             Mon Jul 29 22:01  10/311   Rude remark"\
+" N  95 Alice              Mon Jul 29 22:01  11/379   Thoughts"
 
 
 mail_test "z" "On last screenful of messages"
 
 mail_test "headers" \
-" N  87 Alice              Sun Jul 21 20:46  10/323   Re: Story"\
-" N  88 Dormouse           Sun Jul 21 20:46  10/328   Re: Story"\
-" N  89 Dormouse           Sun Jul 21 20:46  11/396   Re: Story"\
-" N  90 Alice              Sun Jul 21 20:46  10/312   Re: Story"\
-">N  91 Dormouse           Sun Jul 21 20:46  10/306   Re: Story"\
-" N  92 Dormouse           Sun Jul 21 20:46  13/493   Re: Story"\
-" N  93 Alice              Sun Jul 21 20:46  10/337   Re: Story"\
-" N  94 Hatter             Sun Jul 21 20:46  10/317   Rude remark"\
-" N  95 Alice              Sun Jul 21 20:46  11/385   Thoughts"
+" N  87 Alice              Mon Jul 29 22:01  10/317   Re: Story"\
+" N  88 Dormouse           Mon Jul 29 22:01  10/322   Re: Story"\
+" N  89 Dormouse           Mon Jul 29 22:01  11/390   Re: Story"\
+" N  90 Alice              Mon Jul 29 22:01  10/306   Re: Story"\
+">N  91 Dormouse           Mon Jul 29 22:01  10/300   Re: Story"\
+" N  92 Dormouse           Mon Jul 29 22:01  13/487   Re: Story"\
+" N  93 Alice              Mon Jul 29 22:01  10/331   Re: Story"\
+" N  94 Hatter             Mon Jul 29 22:01  10/311   Rude remark"\
+" N  95 Alice              Mon Jul 29 22:01  11/379   Thoughts"
 
 mail_test "z -9" \
-">N   1 March Hare         Sun Jul 21 20:46  10/307   Invitation"\
-" N   2 Alice              Sun Jul 21 20:46  10/317   Re: Invitation"\
-" N   3 March Hare         Sun Jul 21 20:46  10/312   Re: Invitation"\
-" N   4 Alice              Sun Jul 21 20:46  10/341   Re: Invitation"\
-" N   5 March Hare         Sun Jul 21 20:46  10/358   Re: Invitation"\
-" N   6 Alice              Sun Jul 21 20:46  11/373   Re: Invitation"\
-" N   7 March Hare         Sun Jul 21 20:46  10/321   Personal remark"\
-" N   8 Alice              Sun Jul 21 20:46  10/364   Re: Personal remark"\
-" N   9 March Hare         Sun Jul 21 20:46  10/350   Riddle (was Re: Personal "
+">N   1 March Hare         Mon Jul 29 22:00  10/301   Invitation"\
+" N   2 Alice              Mon Jul 29 22:00  10/311   Re: Invitation"\
+" N   3 March Hare         Mon Jul 29 22:00  10/306   Re: Invitation"\
+" N   4 Alice              Mon Jul 29 22:00  10/335   Re: Invitation"\
+" N   5 March Hare         Mon Jul 29 22:00  10/352   Re: Invitation"\
+" N   6 Alice              Mon Jul 29 22:00  11/367   Re: Invitation"\
+" N   7 March Hare         Mon Jul 29 22:00  10/315   Personal remark"\
+" N   8 Alice              Mon Jul 29 22:00  10/358   Re: Personal remark"\
+" N   9 March Hare         Mon Jul 29 22:00  10/344   Riddle (was Re: Personal"
 
 mail_test "z-" "On first screenful of messages"
 
