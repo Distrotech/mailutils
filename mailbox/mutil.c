@@ -31,10 +31,6 @@
 
 #include <mailutils/mutil.h>
 
-#ifdef HAVE_MYSQL
-#include "../MySql/MySql.h"
-#endif
-
 /* convert a sequence of hex characters into an integer */
 
 unsigned long mu_hex2ul(char hex)
@@ -297,11 +293,7 @@ mu_tilde_expansion (const char *ref, const char *delim, const char *homedir)
           name = calloc (s - p + 1, 1);
           memcpy (name, p, s - p);
           name [s - p] = '\0';
-          pw = getpwnam (name);
-#ifdef HAVE_MYSQL
-          if (!pw)
-             pw = getMpwnam(name);
-#endif /* HAVE_MYSQL */
+          pw = mu_getpwnam (name);
           free (name);
           if (pw)
             {
@@ -332,3 +324,23 @@ util_cpystr (char *dst, const char *src, size_t size)
   dst[len] = '\0';
   return len;
 }
+
+static struct passwd *(*_app_getpwnam) __P((char *)) = NULL;
+
+void
+mu_register_getpwnam (struct passwd *(*fun) __P((char *)))
+{
+  _app_getpwnam = fun;
+}
+
+struct password *
+mu_getpwnam (const char *name)
+{
+  struct password *p;
+
+  p = getpwnam (name);
+  if (!p && _app_getpwnam)
+    p = (*_app_getpwnam)(name);
+  return p;
+}
+
