@@ -30,108 +30,108 @@ Using libmu_scm
 @node Address Functions
 @section Address Functions
 
-@deffn Function mu-address-get-personal ADDRESS NUM
+@deffn {Scheme Function} mu-address-get-personal ADDRESS NUM
 Return personal part of an email address.
 @end deffn
 
-@deffn Function mu-address-get-comments ADDRESS NUM
+@deffn {Scheme Function} mu-address-get-comments ADDRESS NUM
 @end deffn
 
-@deffn Function mu-address-get-email ADDRESS NUM
+@deffn {Scheme Function} mu-address-get-email ADDRESS NUM
 Return email part of an email address.
 @end deffn
 
-@deffn Function mu-address-get-domain ADDRESS NUM
+@deffn {Scheme Function} mu-address-get-domain ADDRESS NUM
 Return domain part of an email address
 @end deffn
 
-@deffn Function mu-address-get-local ADDRESS NUM
+@deffn {Scheme Function} mu-address-get-local ADDRESS NUM
 Return local part of an email address.
 @end deffn
 
-@deffn Function mu-address-get-count ADDRESS
+@deffn {Scheme Function} mu-address-get-count ADDRESS
 Return number of parts in email address.
 @end deffn
 
 @node Mailbox Functions
 @section Mailbox Functions
 
-@deffn Function mu-mailbox-open URL MODE
+@deffn {Scheme Function} mu-mailbox-open URL MODE
 Opens a mailbox specified by URL.
 @end deffn
 
-@deffn Function mu-mailbox-close MBOX
+@deffn {Scheme Function} mu-mailbox-close MBOX
 Closes mailbox MBOX
 @end deffn
 
-@deffn Function mu-mailbox-get-url MBOX
+@deffn {Scheme Function} mu-mailbox-get-url MBOX
 Returns the URL of the mailbox.
 @end deffn
 
-@deffn Function mu-mailbox-get-port MBOX MODE
+@deffn {Scheme Function} mu-mailbox-get-port MBOX MODE
 Returns a port associated with the contents of the MBOX.
 MODE is a string defining operation mode of the stream. It may
 contain any of the two characters: @samp{r} for reading, @samp{w} for
 writing.
 @end deffn
 
-@deffn Function mu-mailbox-get-message MBOX MSGNO
+@deffn {Scheme Function} mu-mailbox-get-message MBOX MSGNO
 Retrieve from MBOX message # MSGNO.
 @end deffn
 
-@deffn Function mu-mailbox-messages-count MBOX
+@deffn {Scheme Function} mu-mailbox-messages-count MBOX
 Returns number of messages in the mailbox.
 @end deffn
 
-@deffn Function mu-mailbox-expunge MBOX
+@deffn {Scheme Function} mu-mailbox-expunge MBOX
 Expunges deleted messages from the mailbox.
 @end deffn
 
-@deffn Function mu-mailbox-url MBOX
+@deffn {Scheme Function} mu-mailbox-url MBOX
 Returns the URL of the mailbox
 @end deffn
 
-@deffn Function mu-mailbox-append-message MBOX MESG
+@deffn {Scheme Function} mu-mailbox-append-message MBOX MESG
 Appends the message to the mailbox
 @end deffn
 
 @node Message Functions
 @section Message Functions
 
-@deffn Function mu-message-copy MESG
+@deffn {Scheme Function} mu-message-copy MESG
 Creates the copy of the given message.
 @end deffn
 
-@deffn Function mu-message-set-header MESG HEADER VALUE REPLACE
+@deffn {Scheme Function} mu-message-set-header MESG HEADER VALUE REPLACE
 Sets new VALUE to the header HEADER of the message MESG.
 If the HEADER is already present in the message its value
 is replaced with the supplied one if the optional REPLACE is
 #t. Otherwise new header is created and appended.
 @end deffn
 
-@deffn Function mu-message-get-size MESG
+@deffn {Scheme Function} mu-message-get-size MESG
 Returns the size of the given message.
 @end deffn
 
-@deffn Function mu-message-get-lines MESG
+@deffn {Scheme Function} mu-message-get-lines MESG
 Returns number of lines in the given message.
 @end deffn
 
-@deffn Function mu-message-get-sender MESG
+@deffn {Scheme Function} mu-message-get-sender MESG
 Returns the sender email address for the message MESG.
 @end deffn
 
-@deffn Function mu-message-get-header MESG HEADER
+@deffn {Scheme Function} mu-message-get-header MESG HEADER
 Returns the header value of the HEADER in the MESG.
 @end deffn
 
-@deffn Function mu-message-get-header-fields MESG HEADERS
+@deffn {Scheme Function} mu-message-get-header-fields MESG HEADERS
 Returns the list of headers in the MESG. If optional HEADERS is
 specified it should be a list of header names to restrict return
 value to.
 @end deffn
 
-@deffn Function mu-message-set-header-fields MESG LIST REPLACE
+@deffn {Scheme Function} mu-message-set-header-fields MESG LIST REPLACE
 Set the headers in the message MESG from LIST
 LIST is a list of (cons HEADER VALUE)
 Optional parameter REPLACE specifies whether the new header
@@ -139,30 +139,30 @@ values should replace the headers already present in the
 message.
 @end deffn
 
-@deffn Function mu-message-delete MESG FLAG
+@deffn {Scheme Function} mu-message-delete MESG FLAG
 Mark given message as deleted. Optional FLAG allows to toggle deleted mark
 The message is deleted if it is #t and undeleted if it is #f
 @end deffn
 
-@deffn Function mu-message-get-flag MESG FLAG
+@deffn {Scheme Function} mu-message-get-flag MESG FLAG
 Return value of the attribute FLAG.
 @end deffn
 
-@deffn Function mu-message-set-flag MESG FLAG VALUE
+@deffn {Scheme Function} mu-message-set-flag MESG FLAG VALUE
 Set the given attribute of the message. If optional VALUE is #f, the
 attribute is unset.
 @end deffn
 
-@deffn Function mu-message-get-user-flag MESG FLAG
+@deffn {Scheme Function} mu-message-get-user-flag MESG FLAG
 Returns value of the user attribute FLAG.
 @end deffn
 
-@deffn Function mu-message-set-user-flag MESG FLAG VALUE
+@deffn {Scheme Function} mu-message-set-user-flag MESG FLAG VALUE
 Set the given user attribute of the message. If optional VALUE is
 #f, the attribute is unset.
 @end deffn
 
-@deffn Function mu-message-get-port MESG MODE FULL
+@deffn {Scheme Function} mu-message-get-port MESG MODE FULL
 Returns a port associated with the given MESG. MODE is a string
 defining operation mode of the stream. It may contain any of the
 two characters: @samp{r} for reading, @samp{w} for writing.
@@ -172,11 +172,11 @@ part of the message (including headers). If it is #f then the port
 accesses only the message body (the default).
 @end deffn
 
-@deffn Function mu-message-get-body MESG
+@deffn {Scheme Function} mu-message-get-body MESG
 Returns the message body for the message MESG.
 @end deffn
 
-@deffn Function mu-message-send MESG MAILER
+@deffn {Scheme Function} mu-message-send MESG MAILER
 Sends the message MESG. Optional MAILER overrides default
 mailer settings in mu-mailer.
 @end deffn
@@ -184,42 +184,42 @@ mailer settings in mu-mailer.
 @node MIME Functions
 @section MIME Functions
 
-@deffn Function mu-mime-create FLAGS MESG
+@deffn {Scheme Function} mu-mime-create FLAGS MESG
 Creates a new MIME object.
 @end deffn
 
-@deffn Function mu-mime-multipart? MIME
+@deffn {Scheme Function} mu-mime-multipart? MIME
 Returns #t if MIME is a multipart object.
 @end deffn
 
-@deffn Function mu-mime-get-num-parts MIME
+@deffn {Scheme Function} mu-mime-get-num-parts MIME
 Returns number of parts in a MIME object.
 @end deffn
 
-@deffn Function mu-mime-get-part MIME PART
+@deffn {Scheme Function} mu-mime-get-part MIME PART
 Returns part number PART from a MIME object.
 @end deffn
 
-@deffn Function mu-mime-add-part MIME MESG
+@deffn {Scheme Function} mu-mime-add-part MIME MESG
 Adds MESG to the MIME object.
 @end deffn
 
-@deffn Function mu-mime-get-message MIME
+@deffn {Scheme Function} mu-mime-get-message MIME
 Converts MIME object to a message.
 @end deffn
 
 @node Log Functions
 @section Log Functions
 
-@deffn Function mu-openlog IDENT OPTION FACILITY
+@deffn {Scheme Function} mu-openlog IDENT OPTION FACILITY
 Opens a connection to the system logger for Guile program.
 @end deffn
 
-@deffn Function mu-logger PRIO TEXT
+@deffn {Scheme Function} mu-logger PRIO TEXT
 Generates a log message to be distributed via syslogd.
 @end deffn
 
-@deffn Function mu-closelog
+@deffn {Scheme Function} mu-closelog
 Closes the channel to the system logger open by mu-openlog.
 @end deffn
 
