@@ -2380,7 +2380,7 @@ sensitive.   Normally only the first message which matches the pattern will be
 printed.
 @end enumerate
 
-@subheading Command line options
+@subsubheading Command line options
 
 @table @option
 

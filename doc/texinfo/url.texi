@@ -8,15 +8,15 @@ A mailbox or a mailer can be described in a URL, the string will contain the
 necessary information to initialize @code{mailbox_t}, or @code{mailer_t}
 properly.
 
-@subheading POP3
+@subsubheading POP3
 The POP URL scheme contains a POP server, optional port number
 and the authentication mechanism.  The general form is
 
 @smallexample
 @group
-@url{pop://[<@var{user}>[;AUTH=<@var{auth}>]@@]<@var{host}>[:<@var{port}>]}
+@indicateurl{pop://[@var{user}[;AUTH=@var{auth}]@@]@var{host}[:@var{port}]}
  or
-@url{pop://[<@var{user}>[:<@var{passwd}>]@@]<@var{host}>[:<@var{port}>]}
+@indicateurl{pop://[@var{user}[:@var{passwd}]@@]@var{host}[:@var{port}]}
 @end group
 @end smallexample
 
@@ -26,24 +26,24 @@ The special string @emph{;AUTH=*} indicates that the client will use
 a default scheme base on the capability of the server.
 
 @smallexample
-@url{pop://obelix@@gaulois.org}
-@url{pop://asterix;AUTH=*@@france.com}
-@url{pop://falbala;AUTH=+APOP@@france.com}
-@url{pop://obelix;AUTH=+APOP@@village.gaulois.org:2000}
-@url{pop://obelix:menhir@@village.gaulois.org:2000}
+@indicateurl{pop://obelix@@gaulois.org}
+@indicateurl{pop://asterix;AUTH=*@@france.com}
+@indicateurl{pop://falbala;AUTH=+APOP@@france.com}
+@indicateurl{pop://obelix;AUTH=+APOP@@village.gaulois.org:2000}
+@indicateurl{pop://obelix:menhir@@village.gaulois.org:2000}
 @end smallexample
 
 For more complete information see @cite{RFC 2368}.
 
-@subheading IMAP
+@subsubheading IMAP
 The IMAP URL scheme contains an IMAP server, optional port number
 and the authentication mechanism. The general form is
 
 @smallexample
 @group
-@url{imap://[<@var{user}>[;AUTH=<@var{type}>]]@@<@var{host}>[:@var{port}][/<@var{mailbox}>]}
+@indicateurl{imap://[@var{user}[;AUTH=@var{type}]]@@@var{host}[:@var{port}][/@var{mailbox}]}
  or
-@url{imap://[<@var{user}>[:<@var{passwd}>]]@@<@var{host}>[:@var{port}][/<@var{mailbox}>]}
+@indicateurl{imap://[@var{user}[:@var{passwd}]]@@@var{host}[:@var{port}][/@var{mailbox}]}
 @end group
 @end smallexample
 
@@ -53,14 +53,14 @@ The special string @emph{;AUTH=*} indicates that the client will use
 a default scheme base on the capability of the server.
 
 @smallexample
-@url{imap://obelix@@imap.gaulois.org}
-@url{imap://asterix;AUTH=*@@imap.france.com}
-@url{imap://asterix:potion@@imap.france.com}
+@indicateurl{imap://obelix@@imap.gaulois.org}
+@indicateurl{imap://asterix;AUTH=*@@imap.france.com}
+@indicateurl{imap://asterix:potion@@imap.france.com}
 @end smallexample
 
 For more complete information see @cite{RFC 2192}.
 
-@subheading File
+@subsubheading File
 
 Local folder should be handle by this URL.  It is preferable to let
 the mailbox recognize the type of mailbox and take the appropriate
@@ -68,37 +68,37 @@ action.
 
 @smallexample
 @group
-@url{file://@var{path}}
-@url{file://var/mail/user}
-@url{file://home/obelix/Mail}
+@indicateurl{file://@var{path}}
+@indicateurl{file://var/mail/user}
+@indicateurl{file://home/obelix/Mail}
 @end group
 @end smallexample
 
 For MMDF, MH local mailboxes URLs are provided,  but it is preferable to
-use @url{file://@var{path}} and let the library figure out which one.
+use @indicateurl{file://@var{path}} and let the library figure out which one.
 
 @smallexample
 @group
-@url{mmdf://@var{path}}
-@url{mh://@var{path}}
+@indicateurl{mmdf://@var{path}}
+@indicateurl{mh://@var{path}}
 @end group
 @end smallexample
 
-@subheading Mailto
+@subsubheading Mailto
 
-After setting a mailer, @url{mailto:} is used to tell the mailer where
+After setting a mailer, @indicateurl{mailto:} is used to tell the mailer where
 and to whom the message is for.
 
 @smallexample
-@url{mailto://@var{hostname}}
+@indicateurl{mailto://@var{hostname}}
 @end smallexample
 
 Mailto can be used to generate short messages, for example to subscribe
 to mailing lists.
 
 @smallexample
-@url{mailto://bug-mailutils@@gnu.org?body=subscribe}
-@url{mailto://bug-mailutils@@gnu.org?Subject=hello&body=subscribe}
+@indicateurl{mailto://bug-mailutils@@gnu.org?body=subscribe}
+@indicateurl{mailto://bug-mailutils@@gnu.org?Subject=hello&body=subscribe}
 @end smallexample
 
 For more complete information see @cite{RFC 2368}.
@@ -107,7 +107,7 @@ For more complete information see @cite{RFC 2368}.
 @c URL Functions
 @c
 
-@subheading URL Functions
+@subsubheading URL Functions
 
 Helper functions are provided to retrieve and set the @emph{URL} fields.
 
@@ -196,7 +196,7 @@ a @code{strdup()}.
 @deftypefun  int url_is_ticket (url_t @var{ticket}, url_t @var{url})
 @end deftypefun
 
-@subheading Example
+@subsubheading Example
 @smallexample
 @include url-parse.inc
 @end smallexample
