@@ -161,7 +161,8 @@ stream_read (stream_t is, char *buf, size_t count,
       int r;
 
       /* Fill the buffer, do not want to start empty hand.  */
-      if (is->rbuffer.count <= 0)
+      if (is->rbuffer.count <= 0 || offset < is->rbuffer.offset
+	  || offset > (is->rbuffer.offset + is->rbuffer.count))
 	{
 	  status = refill (is, offset);
 	  if (status != 0)
@@ -184,7 +185,7 @@ stream_read (stream_t is, char *buf, size_t count,
 	  is->rbuffer.offset += r;
 	  buf += r;
 	  residue -= r;
-	  status = refill (is, is->rbuffer.offset + r);
+	  status = refill (is, is->rbuffer.offset);
 	  if (status != 0)
 	    {
 	      /* We have something in the buffer return the error on the
@@ -246,7 +247,7 @@ stream_readline (stream_t is, char *buf, size_t count,
       /* Grossly inefficient hopefully they override this */
       for (n = 1; n < count; n++)
 	{
-	  status = stream_read (is, &c, 1, offset, &nr);
+	  status = is->_read (is, &c, 1, offset, &nr);
 	  if (status != 0) /* Error.  */
 	    return status;
 	  else if (nr == 1)
@@ -273,14 +274,32 @@ stream_readline (stream_t is, char *buf, size_t count,
       char *p, *nl;
       size_t len;
       size_t total = 0;
+
       count--;  /* Leave space for the null.  */
+
+      //fprintf (stderr, "OFFSET %d %d\n", offset, is->rbuffer.offset);
+      /* If out of range refill.  */
+      if ((offset < is->rbuffer.offset
+	   || offset > (is->rbuffer.offset + is->rbuffer.count)))
+	{
+	  status = refill (is, offset);
+	  if (status != 0)
+	    return status;
+	  if (is->rbuffer.count == 0)
+	    {
+	      if (pnread)
+		*pnread = 0;
+	      return 0;
+	    }
+	}
+
       while (count != 0)
 	{
 	  /* If the buffer is empty refill it.  */
 	  len = is->rbuffer.count;
 	  if (len <= 0)
 	    {
-	      status = refill (is, offset);
+	      status = refill (is, is->rbuffer.offset);
 	      if (status != 0)
 		{
 		  if (s != buf)
@@ -304,21 +323,26 @@ stream_readline (stream_t is, char *buf, size_t count,
 	      len = ++nl - p;
 	      is->rbuffer.count -= len;
 	      is->rbuffer.ptr = nl;
+	      is->rbuffer.offset += len;
 	      (void)memcpy ((void *)s, (void *)p, len);
 	      total += len;
 	      s[len] = 0;
+	      //fprintf (stderr, ":%d %d:%s", len, total, s);
 	      if (pnread)
 		*pnread = total;
 	      return 0;
 	    }
 	  is->rbuffer.count -= len;
 	  is->rbuffer.ptr += len;
+	  is->rbuffer.offset += len;
 	  (void)memcpy((void *)s, (void *)p, len);
+	  //fprintf (stderr, "!:%d %d\n", len, total);
 	  total += len;
 	  s += len;
 	  count -= len;
         }
       *s = 0;
+      //fprintf (stderr, "1:%s", s);
       if (pnread)
 	*pnread = s - buf;
     }
@@ -554,6 +578,7 @@ refill (stream_t stream, off_t offset)
 {
   if (stream->_read)
     {
+      int status;
       if (stream->rbuffer.base == NULL)
 	{
 	  stream->rbuffer.base = calloc (1, stream->rbuffer.bufsiz);
@@ -563,9 +588,13 @@ refill (stream_t stream, off_t offset)
       stream->rbuffer.ptr = stream->rbuffer.base;
       stream->rbuffer.offset = offset;
       stream->rbuffer.count = 0;
-      return stream->_read (stream, stream->rbuffer.ptr,
-			    stream->rbuffer.bufsiz, offset,
-			    (size_t *)&(stream->rbuffer.count));
+      status = stream->_read (stream, stream->rbuffer.ptr,
+			      stream->rbuffer.bufsiz, offset,
+			      (size_t *)&(stream->rbuffer.count));
+      //fprintf (stderr, "COUNT%d\n", stream->rbuffer.count);
+      //stream->rbuffer.ptr[stream->rbuffer.count] = 0;
+      //fprintf (stderr, "%s\n", stream->rbuffer.ptr);
+      return status;
     }
   return ENOTSUP;
 }

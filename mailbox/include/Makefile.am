@@ -8,6 +8,7 @@ envelope0.h \
 folder0.h \
 header0.h \
 iterator0.h \
+imap0.h \
 list0.h \
 mailbox0.h \
 mailer0.h \

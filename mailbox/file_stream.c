@@ -1,5 +1,5 @@
 /* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Library Public License as published by
@@ -344,5 +344,7 @@ file_stream_create (stream_t *stream)
   stream_set_size (*stream, _file_size, fs);
   stream_set_flush (*stream, _file_flush, fs);
   stream_set_destroy (*stream, _file_destroy, fs);
+  /* Make sure we do not use the stream internal buffering.  */
+  stream_setbufsiz (*stream, 0);
   return 0;
 }

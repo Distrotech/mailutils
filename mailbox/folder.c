@@ -1,5 +1,5 @@
 /* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Library Public License as published by
@@ -31,18 +31,19 @@
 #include <misc.h>
 #include <folder0.h>
 
-static struct _monitor folder_lock = MU_MONITOR_INITIALIZER;
-
 /* Internal folder list.  */
 static list_t known_folder_list;
-static int is_known_folder (url_t, folder_t *);
-static int is_same_scheme (url_t, url_t);
-static int is_same_user (url_t, url_t);
-static int is_same_path (url_t, url_t);
-static int is_same_host (url_t, url_t);
-static int is_same_port (url_t, url_t);
+static int is_known_folder __P ((url_t, folder_t *));
+static int is_same_scheme  __P ((url_t, url_t));
+static int is_same_user    __P ((url_t, url_t));
+static int is_same_path    __P ((url_t, url_t));
+static int is_same_host    __P ((url_t, url_t));
+static int is_same_port    __P ((url_t, url_t));
 
-/* A folder could be remote(IMAP), or local(a spool directory) like $HOME/Mail
+/* Static folder lock.  */
+static struct _monitor folder_lock = MU_MONITOR_INITIALIZER;
+
+/* A folder could be remote (IMAP), or local(a spool directory) like $HOME/Mail
    etc ..  We maintain a known list of folder to not generate multiple folder
    of the same URL.  Meaning when folder_create () is call we'll check if we
    already have a folder for that URL and return the same, if not we create a
@@ -63,7 +64,8 @@ folder_create (folder_t *pfolder, const char *name)
   if (pfolder == NULL)
     return EINVAL;
 
-  /* Look in the registrar list(iterator), for a match  */
+  /* Look in the registrar list(iterator), for a possible concrete mailbox
+     implementatio that could match the URL.  */
   registrar_get_list (&list);
   status = iterator_create (&iterator, list);
   if (status != 0)
@@ -117,8 +119,8 @@ folder_create (folder_t *pfolder, const char *name)
       if (folder != NULL)
 	{
 	  folder->url = url;
-	  /* Initialize the internal lock, now so the concrete folder could
-	     use it.  */
+	  /* Initialize the internal foilder lock, now so the concrete folder
+	     could use it.  */
 	  status = monitor_create (&(folder->monitor), 0, folder);
 	  if (status == 0)
 	    {
@@ -151,6 +153,7 @@ folder_create (folder_t *pfolder, const char *name)
   return status;
 }
 
+/* The folder is destroy if it is the last reference.  */
 void
 folder_destroy (folder_t *pfolder)
 {
@@ -161,17 +164,22 @@ folder_destroy (folder_t *pfolder)
       monitor_t monitor = folder->monitor;
 
       monitor_wrlock (monitor);
+
+      /* Check if this the last reference for this folder.  If yes removed
+         it from the list.  */
       monitor_wrlock (&folder_lock);
       folder->ref--;
       /* Remove the folder from the list of known folder.  */
       if (folder->ref <= 0)
 	list_remove (known_folder_list, folder);
+      /* If the list is empty we can safely remove it.  */
       if (list_is_empty)
 	{
 	  list_destroy (&known_folder_list);
 	  known_folder_list = NULL;
 	}
       monitor_unlock (&folder_lock);
+
       if (folder->ref <= 0)
 	{
 	  monitor_unlock (monitor);
@@ -202,6 +210,8 @@ folder_destroy (folder_t *pfolder)
     }
 }
 
+
+/* Cover functions.  */
 int
 folder_open (folder_t folder, int flags)
 {
@@ -320,11 +330,12 @@ folder_get_debug (folder_t folder, debug_t *pdebug)
 }
 
 int
-folder_list (folder_t folder, const char *dirname, struct folder_list *pflist)
+folder_list (folder_t folder, const char *dirname, const char *basename,
+	     struct folder_list *pflist)
 {
   if (folder == NULL || folder->_list == NULL)
     return ENOSYS;
-  return folder->_list (folder, dirname, pflist);
+  return folder->_list (folder, dirname, basename, pflist);
 }
 
 int

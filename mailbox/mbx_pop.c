@@ -70,40 +70,40 @@ enum pop_state
   POP_AUTH_PASS, POP_AUTH_PASS_ACK
 };
 
-static void pop_destroy (mailbox_t);
+static void pop_destroy       __P ((mailbox_t));
 
 /*  Functions/Methods that implements the mailbox_t API.  */
-static int pop_open (mailbox_t, int);
-static int pop_close (mailbox_t);
-static int pop_get_message (mailbox_t, size_t, message_t *);
-static int pop_messages_count (mailbox_t, size_t *);
-static int pop_expunge (mailbox_t);
-static int pop_scan (mailbox_t, size_t, size_t *);
-static int pop_is_updated (mailbox_t);
+static int pop_open           __P ((mailbox_t, int));
+static int pop_close          __P ((mailbox_t));
+static int pop_get_message    __P ((mailbox_t, size_t, message_t *));
+static int pop_messages_count __P ((mailbox_t, size_t *));
+static int pop_expunge        __P ((mailbox_t));
+static int pop_scan           __P ((mailbox_t, size_t, size_t *));
+static int pop_is_updated     __P ((mailbox_t));
 
 /* The implementation of message_t */
-static int pop_user (authority_t);
-static int pop_size (mailbox_t, off_t *);
+static int pop_user           __P ((authority_t));
+static int pop_size           __P ((mailbox_t, off_t *));
 /* We use pop_top for retreiving headers.  */
 /* static int pop_header_read (stream_t, char *, size_t, off_t, size_t *); */
-static int pop_header_fd (stream_t, int *);
-static int pop_body_fd (stream_t, int *);
-static int pop_body_size (body_t, size_t *);
-static int pop_body_lines (body_t, size_t *);
-static int pop_body_read (stream_t, char *, size_t, off_t, size_t *);
-static int pop_message_read (stream_t, char *, size_t, off_t, size_t *);
-static int pop_message_size (message_t, size_t *);
-static int pop_message_fd (stream_t, int *);
-static int pop_top (stream_t, char *, size_t, off_t, size_t *);
-static int pop_retr (pop_message_t, char *, size_t, off_t, size_t *);
-static int pop_get_fd (pop_message_t, int *);
-static int pop_attr_flags (attribute_t, int *);
-static int pop_uid (message_t, char *, size_t, size_t *);
-static int fill_buffer (pop_data_t, char *, size_t);
-static int pop_readline (pop_data_t);
-static int pop_read_ack (pop_data_t);
-static int pop_writeline (pop_data_t, const char *, ...);
-static int pop_write (pop_data_t);
+static int pop_header_fd      __P ((stream_t, int *));
+static int pop_body_fd        __P ((stream_t, int *));
+static int pop_body_size      __P ((body_t, size_t *));
+static int pop_body_lines     __P ((body_t, size_t *));
+static int pop_body_read      __P ((stream_t, char *, size_t, off_t, size_t *));
+static int pop_message_read   __P ((stream_t, char *, size_t, off_t, size_t *));
+static int pop_message_size   __P ((message_t, size_t *));
+static int pop_message_fd     __P ((stream_t, int *));
+static int pop_top            __P ((stream_t, char *, size_t, off_t, size_t *));
+static int pop_retr           __P ((pop_message_t, char *, size_t, off_t, size_t *));
+static int pop_get_fd         __P ((pop_message_t, int *));
+static int pop_attr_flags     __P ((attribute_t, int *));
+static int pop_uid            __P ((message_t, char *, size_t, size_t *));
+static int fill_buffer        __P ((pop_data_t, char *, size_t));
+static int pop_readline       __P ((pop_data_t));
+static int pop_read_ack       __P ((pop_data_t));
+static int pop_writeline      __P ((pop_data_t, const char *, ...));
+static int pop_write          __P ((pop_data_t));
 
 /* This structure holds the info for a message. The pop_message_t
    type, will serve as the owner of the message_t and contains the command to
@@ -146,6 +146,9 @@ struct _pop_data
   size_t buflen; /* Len of buffer.  */
   char *ptr; /* Points to the end of the buffer i.e the non consume chars.  */
   char *nl;  /* Points to the '\n' char in te string.  */
+  off_t offset; /* Dummy, this is use because of the stream buffering.
+		   The stream_t maintains and offset and the offset we use must
+		   be in sync.  */
 
   int is_updated;
   char *user;     /* Temporary holders for user and passwd.  */
@@ -334,11 +337,12 @@ pop_user (authority_t auth)
     {
     case POP_AUTH:
       {
+	/*  Fetch the user from them.  */
 	size_t n = 0;
 	authority_get_ticket (auth, &ticket);
 	if (mpd->user)
 	  free (mpd->user);
-	/*  Fetch the user from them.  */
+	/* Was it in the URL? */
 	status = url_get_user (mbox->url, NULL, 0, &n);
 	if (status != 0 || n == 0)
 	  ticket_pop (ticket, "Pop User: ",  &mpd->user);
@@ -388,7 +392,7 @@ pop_user (authority_t auth)
 	}
       status = pop_writeline (mpd, "PASS %s\r\n", mpd->passwd);
       /* We have to nuke the passwd.  */
-      memset (mpd->passwd, 0, strlen (mpd->passwd));
+      memset (mpd->passwd, '\0', strlen (mpd->passwd));
       free (mpd->passwd);
       mpd->passwd = NULL;
       CHECK_ERROR_CLOSE (mbox, mpd, status);
@@ -400,7 +404,7 @@ pop_user (authority_t auth)
       status = pop_write (mpd);
       CHECK_EAGAIN (mpd, status);
       /* Clear the buffer it contains the passwd.  */
-      memset (mpd->buffer, 0, mpd->buflen);
+      memset (mpd->buffer, '\0', mpd->buflen);
       mpd->state = POP_AUTH_PASS_ACK;
 
     case POP_AUTH_PASS_ACK:
@@ -1762,11 +1766,12 @@ pop_readline (pop_data_t mpd)
   do
     {
       status = stream_readline (mpd->mbox->stream, mpd->buffer + total,
-				mpd->buflen - total,  0, &n);
+				mpd->buflen - total,  mpd->offset, &n);
       if (status != 0)
 	return status;
 
       total += n;
+      mpd->offset += n;
       mpd->nl = memchr (mpd->buffer, '\n', total);
       if (mpd->nl == NULL)  /* Do we have a full line.  */
 	{

@@ -1,5 +1,5 @@
 /* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Library Public License as published by
@@ -31,15 +31,15 @@
 #include <misc.h>
 #include <message0.h>
 
-static int message_read (stream_t is, char *buf, size_t buflen,
-			 off_t off, size_t *pnread );
-static int message_write (stream_t os, const char *buf, size_t buflen,
-			  off_t off, size_t *pnwrite);
-static int message_get_fd (stream_t stream, int *pfd);
-static int message_sender (envelope_t envelope, char *buf, size_t len,
-			 size_t *pnwrite);
-static int message_date (envelope_t envelope, char *buf, size_t len,
-			 size_t *pnwrite);
+static int message_read   __P ((stream_t is, char *buf, size_t buflen,
+				off_t off, size_t *pnread ));
+static int message_write  __P ((stream_t os, const char *buf, size_t buflen,
+				off_t off, size_t *pnwrite));
+static int message_get_fd __P ((stream_t stream, int *pfd));
+static int message_sender __P ((envelope_t envelope, char *buf, size_t len,
+				size_t *pnwrite));
+static int message_date   __P ((envelope_t envelope, char *buf, size_t len,
+				size_t *pnwrite));
 
 /*  Allocate ressources for the message_t.  */
 int

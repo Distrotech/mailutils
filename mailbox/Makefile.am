@@ -21,6 +21,7 @@ debug.c \
 envelope.c \
 file_stream.c \
 folder.c \
+folder_imap.c \
 folder_mbox.c \
 folder_pop.c \
 header.c \
@@ -32,6 +33,7 @@ mailer.c \
 mapfile_stream.c \
 mbx_default.c \
 mbx_file.c \
+mbx_imap.c \
 mbx_mbox.c \
 mbx_pop.c \
 message.c \

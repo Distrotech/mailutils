@@ -114,35 +114,35 @@ struct _mbox_data
 };
 
 /* Mailbox concrete implementation.  */
-static int mbox_open (mailbox_t, int);
-static int mbox_close (mailbox_t);
-static int mbox_get_message (mailbox_t, size_t, message_t *);
-static int mbox_append_message (mailbox_t, message_t);
-static int mbox_messages_count (mailbox_t, size_t *);
-static int mbox_expunge (mailbox_t);
-static int mbox_scan (mailbox_t, size_t, size_t *);
-static int mbox_is_updated (mailbox_t);
-static int mbox_size (mailbox_t, off_t *);
+static int mbox_open             __P ((mailbox_t, int));
+static int mbox_close            __P ((mailbox_t));
+static int mbox_get_message      __P ((mailbox_t, size_t, message_t *));
+static int mbox_append_message   __P ((mailbox_t, message_t));
+static int mbox_messages_count   __P ((mailbox_t, size_t *));
+static int mbox_expunge          __P ((mailbox_t));
+static int mbox_scan             __P ((mailbox_t, size_t, size_t *));
+static int mbox_is_updated       __P ((mailbox_t));
+static int mbox_size             __P ((mailbox_t, off_t *));
 
 
 /* private stuff */
-static int mbox_scan0 (mailbox_t, size_t, size_t *, int);
-static int mbox_get_header_read (stream_t, char *, size_t, off_t, size_t *);
-static int mbox_get_hdr_fd (stream_t, int *);
-static int mbox_get_body_fd (stream_t, int *);
-static int mbox_get_fd (mbox_message_t, int *);
-static int mbox_get_attr_flags (attribute_t, int *);
-static int mbox_set_attr_flags (attribute_t, int);
-static int mbox_unset_attr_flags (attribute_t, int);
-static int mbox_readstream (stream_t, char *, size_t, off_t, size_t *);
-static int mbox_header_size (header_t, size_t *);
-static int mbox_header_lines (header_t, size_t *);
-static int mbox_body_size (body_t, size_t *);
-static int mbox_body_lines (body_t, size_t *);
-static int mbox_envelope_sender (envelope_t, char *, size_t, size_t *);
-static int mbox_envelope_date (envelope_t, char *, size_t, size_t *);
+static int mbox_scan0            __P ((mailbox_t, size_t, size_t *, int));
+static int mbox_get_header_read  __P ((stream_t, char *, size_t, off_t, size_t *));
+static int mbox_get_hdr_fd       __P ((stream_t, int *));
+static int mbox_get_body_fd      __P ((stream_t, int *));
+static int mbox_get_fd           __P ((mbox_message_t, int *));
+static int mbox_get_attr_flags   __P ((attribute_t, int *));
+static int mbox_set_attr_flags   __P ((attribute_t, int));
+static int mbox_unset_attr_flags __P ((attribute_t, int));
+static int mbox_readstream       __P ((stream_t, char *, size_t, off_t, size_t *));
+static int mbox_header_size      __P ((header_t, size_t *));
+static int mbox_header_lines     __P ((header_t, size_t *));
+static int mbox_body_size        __P ((body_t, size_t *));
+static int mbox_body_lines       __P ((body_t, size_t *));
+static int mbox_envelope_sender  __P ((envelope_t, char *, size_t, size_t *));
+static int mbox_envelope_date    __P ((envelope_t, char *, size_t, size_t *));
 #ifdef WITH_PTHREAD
-static void mbox_cleanup (void *);
+static void mbox_cleanup         __P ((void *));
 #endif
 
 /* We allocate the mbox_data_t struct, but don't do any parsing on the name or

@@ -1,5 +1,5 @@
 /* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU Library General Public License as published by
@@ -83,14 +83,15 @@ static struct _record _path_record =
 record_t path_record = &_path_record;
 
 /* lsub/subscribe/unsubscribe are not needed.  */
-static void folder_mbox_destroy (folder_t);
-static int folder_mbox_open (folder_t, int);
-static int folder_mbox_close (folder_t);
-static int folder_mbox_delete (folder_t, const char *);
-static int folder_mbox_rename (folder_t , const char *, const char *);
-static int folder_mbox_list (folder_t, const char *, struct folder_list *);
+static void folder_mbox_destroy __P ((folder_t));
+static int folder_mbox_open     __P ((folder_t, int));
+static int folder_mbox_close    __P ((folder_t));
+static int folder_mbox_delete   __P ((folder_t, const char *));
+static int folder_mbox_rename   __P ((folder_t , const char *, const char *));
+static int folder_mbox_list     __P ((folder_t, const char *, const char *,
+				      struct folder_list *));
 
-static char *get_pathname (const char *, const char *);
+static char *get_pathname       __P ((const char *, const char *));
 
 struct _fmbox
 {
@@ -215,7 +216,7 @@ folder_mbox_rename (folder_t folder, const char *oldpath, const char *newpath)
    Unfortunately glov() does not expand the '~'.  We also return
    The full pathname so it can be use to create other folders.  */
 static int
-folder_mbox_list (folder_t folder, const char *pattern,
+folder_mbox_list (folder_t folder, const char *dirname, const char *pattern,
 		  struct folder_list *pflist)
 {
   fmbox_t fmbox = folder->data;
@@ -224,7 +225,10 @@ folder_mbox_list (folder_t folder, const char *pattern,
   size_t num = 0;
   glob_t gl;
 
-  pathname = get_pathname (fmbox->dirname, pattern);
+  if (dirname == NULL || dirname[0] == '\0')
+    dirname = (const char *)fmbox->dirname;
+
+  pathname = get_pathname (dirname, pattern);
   if (pathname)
     {
       memset(&gl, 0, sizeof(gl));

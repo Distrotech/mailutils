@@ -16,12 +16,14 @@
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #ifdef HAVE_CONFIG_H
-#  include <config.h>
+#include <config.h>
 #endif
+
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 
 #include <mailutils/message.h>
 #include <mailutils/stream.h>
@@ -39,38 +41,43 @@ struct _msg_info {
 	message_t msg;
 	int		ioffset;
 	int 	ooffset;
-	char	line[MAX_HDR_LEN];
-	int		line_ndx;
+	stream_t ostream; // output file/decoding stream for saving attachment
 };
 
-#define MSG_HDR "Content-Type: %s\nContent-Transfer-Encoding: %s\n\n"
+#define MSG_HDR "Content-Type: %s; name=%s\nContent-Transfer-Encoding: %s\nContent-Disposition: attachment; filename=%s\n\n"
 
 int message_create_attachment(const char *content_type, const char *encoding, const char *filename, message_t *newmsg)
 {
 	header_t  hdr;
 	body_t    body;
 	stream_t  fstream = NULL, tstream = NULL;
-	char *header;
+	char *header, *name = NULL, *fname = NULL;
 	int ret;
+
+	if ( filename == NULL || newmsg == NULL )
+		return EINVAL;
 
 	if ( ( ret = message_create(newmsg, NULL) ) == 0 ) {
 		if ( content_type == NULL )
 			content_type = "text/plain";
 		if ( encoding == NULL )
 			encoding = "7bit";
-		if ( ( header = alloca(strlen(MSG_HDR) + strlen(content_type) + strlen(encoding)) ) == NULL )
-			ret = ENOMEM;
-		else {
-			sprintf(header, MSG_HDR, content_type, encoding);
-			if ( ( ret = header_create( &hdr, header, strlen(header), *newmsg ) ) == 0 ) {
-				message_get_body(*newmsg, &body);
-				if ( ( ret = file_stream_create(&fstream) ) == 0 ) {
-				  if ( ( ret = stream_open(fstream, filename, 0,  MU_STREAM_READ) ) == 0 ) {
-					if ( ( ret = encoder_stream_create(&tstream, fstream, encoding) ) == 0 ) {
-						body_set_stream(body, tstream, *newmsg);
-						message_set_header(*newmsg, hdr, NULL);
+		if ( ( fname = strdup(filename) ) != NULL ) {
+			name = basename(fname);
+			if ( ( header = alloca(strlen(MSG_HDR) + strlen(content_type) + strlen(name) * 2 + strlen(encoding) + 1) ) == NULL )
+				ret = ENOMEM;
+			else {
+				sprintf(header, MSG_HDR, content_type, name, encoding, name);
+				if ( ( ret = header_create( &hdr, header, strlen(header), *newmsg ) ) == 0 ) {
+					message_get_body(*newmsg, &body);
+					if ( ( ret = file_stream_create(&fstream) ) == 0 ) {
+						if ( ( ret = stream_open(fstream, filename, 0,  MU_STREAM_READ) ) == 0 ) {
+							if ( ( ret = encoder_stream_create(&tstream, fstream, encoding) ) == 0 ) {
+								body_set_stream(body, tstream, *newmsg);
+								message_set_header(*newmsg, hdr, NULL);
+							}
+					  	}
 					}
-				  }
 				}
 			}
 		}
@@ -82,6 +89,8 @@ int message_create_attachment(const char *content_type, const char *encoding, co
 			header_destroy(&hdr, NULL);
 		if ( fstream )
 			stream_destroy(&fstream, NULL);
+		if ( fname )
+			free(fname);
 	}
 	return ret;
 }
@@ -125,32 +134,135 @@ static void _attachment_free(struct _msg_info *info, int free_message) {
 	free(info);
 }
 
+#define _ISSPECIAL(c) ( \
+    ((c) == '(') || ((c) == ')') || ((c) == '<') || ((c) == '>') \
+    || ((c) == '@') || ((c) == ',') || ((c) == ';') || ((c) == ':') \
+    || ((c) == '\\') || ((c) == '.') || ((c) == '[') \
+    || ((c) == ']') )
+
+static char *_header_get_param(char *field_body, const char *param, size_t *len)
+{
+	char *str, *p, *v, *e;
+	int quoted = 0, was_quoted = 0;
+
+	if ( len == NULL || ( str = field_body ) == NULL )
+		return NULL;
+
+	p = strchr(str, ';' );
+	while ( p ) {
+		p++;
+		while( isspace(*p) )  /* walk upto start of param */
+			p++;
+		if ( ( v = strchr(p, '=' ) ) == NULL )
+			break;
+		*len = 0;
+		v = e = v + 1;
+		while ( *e && (quoted || ( !_ISSPECIAL(*e) && !isspace(*e) ) ) ) { 	/* skip pass value and calc len */
+			if ( *e == '\"' )
+				quoted = ~quoted, was_quoted = 1;
+			else
+				(*len)++;
+			e++;
+		}
+		if ( strncasecmp(p, param, strlen(param)) ) {	/* no match jump to next */
+			p = strchr(e, ';' );
+			continue;
+		}
+		else
+			return was_quoted ? v + 1 : v;			/* return unquoted value */
+	}
+	return NULL;
+}
+
+int message_attachment_filename(message_t msg, char **filename)
+{
+	char 		*pTmp, *fname = NULL;
+	header_t	hdr;
+	int 		ret = EINVAL;
+	size_t		size = 0;
+
+	if ( filename != NULL && ( ret = message_get_header(msg, &hdr) ) == 0 ) {
+		*filename = NULL;
+		header_get_value(hdr, "Content-Dispostion", NULL, 0, &size);
+		if ( size ) {
+			if ( ( pTmp = alloca(size+1) ) == NULL )
+				ret = ENOMEM;
+			header_get_value(hdr, "Content-Dispostion", pTmp, size+1, 0);
+			if ( strstr( pTmp, "attachment" ) != NULL )
+				fname = _header_get_param(pTmp, "filename", &size);
+		}
+		if ( fname == NULL ) {
+			size = 0;
+			header_get_value(hdr, "Content-Type", NULL, 0, &size);
+			if ( size ) {
+				if ( ( pTmp = alloca(size+1) ) == NULL )
+					ret = ENOMEM;
+				header_get_value(hdr, "Content-Type", pTmp, size+1, 0);
+				fname = _header_get_param(pTmp, "name", &size);
+			}
+		}
+		if ( fname ) {
+			fname[size] = '\0';
+			if ( ( *filename = strdup(fname) ) == NULL )
+				ret = ENOMEM;
+		} else
+			ret = ENOENT;
+	}
+	return ret;
+}
+
 int message_save_attachment(message_t msg, const char *filename, void **data)
 {
-	stream_t			stream;
-	header_t			hdr;
+	stream_t			istream, fstream;
 	struct _msg_info	*info = NULL;
-	int 				ret = 0;
+	int 				ret;
 	size_t				size;
-	char 				*content_encoding;
+	size_t				nbytes;
+	header_t			hdr;
+	const char 				*content_encoding, *fname = NULL;
 
 	if ( msg == NULL || filename == NULL)
 		return EINVAL;
 
-	if ( ( data == NULL || *data == NULL) && ( ret = message_get_header(msg, &hdr) ) == 0 ) {
-		header_get_value(hdr, "Content-Transfer-Encoding", NULL, 0, &size);
-		if ( size ) {
-			if ( ( content_encoding = alloca(size+1) ) == NULL )
-				ret = ENOMEM;
-			header_get_value(hdr, "Content-Transfer-Encoding", content_encoding, size+1, 0);
-		}
-	}
-	if ( ret == 0 && ( ret = _attachment_setup( &info, msg, &stream, data) ) != 0 )
+	if ( ( ret = _attachment_setup( &info, msg, &istream, data) ) != 0 )
 		return ret;
 
-
-	if ( ret != EAGAIN && info )
+	if ( ret == 0 && ( ret = message_get_header(msg, &hdr) ) == 0 ) {
+		if ( filename == NULL )
+			ret = message_attachment_filename(msg, &fname);
+		else
+			fname = filename;
+		if ( fname && ( ret = file_stream_create(&fstream) ) == 0 ) {
+			if ( ( ret = stream_open(fstream, fname, 0,  MU_STREAM_WRITE|MU_STREAM_CREAT) ) == 0 ) {
+				header_get_value(hdr, "Content-Transfer-Encoding", NULL, 0, &size);
+				if ( size ) {
+					if ( ( content_encoding = alloca(size+1) ) == NULL )
+						ret = ENOMEM;
+					header_get_value(hdr, "Content-Transfer-Encoding", content_encoding, size+1, 0);
+				} else
+					content_encoding = "7bit";
+				ret = decoder_stream_create(&info->ostream, fstream, content_encoding);
+			}
+		}
+	}
+	if ( info->ostream && istream ) {
+		if ( info->nbytes )
+			memmove( info->buf, info->buf + (BUF_SIZE - info->nbytes), info->nbytes);
+		while ( (ret == 0 && info->nbytes) || ( ( ret = stream_read(istream, info->buf, BUF_SIZE, info->ioffset, &info->nbytes) ) == 0 && info->nbytes ) ) {
+			info->ioffset += info->nbytes;
+			while( info->nbytes ) {
+				if ( ( ret = stream_write(info->ostream, info->buf, info->nbytes, info->ooffset, &nbytes ) ) != 0 )
+					break;
+				info->nbytes -= nbytes;
+				info->ooffset += nbytes;
+			}
+		}
+	}
+	if ( ret != EAGAIN && info ) {
+		stream_close(info->ostream);
+		stream_destroy(&info->ostream, NULL);
 		_attachment_free(info, ret);
+	}
 	return ret;
 }
 
@@ -244,4 +356,3 @@ int message_unencapsulate(message_t msg, message_t *newmsg, void **data)
 		_attachment_free(info, ret);
 	return ret;
 }
-
