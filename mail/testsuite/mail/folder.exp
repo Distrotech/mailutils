@@ -1,0 +1,60 @@
+# -*- tcl -*-
+# This file is part of Mailutils testsuite.
+# Copyright (C) 2002, Free Software Foundation
+#  
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#   
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#  
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software Foundation,
+# Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. 
+
+# Test mailbox name expansion and various aspects of `file' and `folders'
+# functionality.
+
+mail_start "--file=%mbox1"
+mail_command "set readonly"
+
+mail_command "set folder=$srcdir/folder"
+# FIXME: Need -re here
+#mail_test "folders" "one  two"
+
+mail_test "file +one" \
+ "Held 4 messages in $srcdir/spool/mbox1" 
+mail_test "sum" \
+ "\"$srcdir/folder/one\": 1 messages 1 new"
+mail_test "headers" \
+ ">N   1 Foo Bar            Fri Dec 28 22:18  10/350   Mailbox 1"	
+
+mail_test "file +two" \
+ "Held 1 messages in $srcdir/folder/one"
+mail_test "sum" \
+ "\"$srcdir/folder/two\": 1 messages 1 new"
+mail_test "headers" \
+ ">N   1 Foo Bar            Fri Dec 28 22:18  10/350   Mailbox 2"
+
+mail_test "file #" \
+ "Held 1 messages in $srcdir/folder/two"
+mail_test "sum" \
+ "\"$srcdir/folder/one\": 1 messages 1 new"
+
+mail_test "file #" \
+ "Held 1 messages in $srcdir/folder/one"
+mail_test "sum" \
+ "\"$srcdir/folder/two\": 1 messages 1 new"
+
+mail_test "file &" \
+ "Held 1 messages in $srcdir/folder/two"
+mail_test "sum" \
+ "\"$srcdir/spool/mbox\": 1 messages 1 new"
+mail_test "headers" \
+ ">N   1 Sergey Poznyakoff  Sun Jul 16 12:11  12/429   MBOX"	
+
+#End of folder.exp
