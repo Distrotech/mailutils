@@ -366,6 +366,15 @@ _tls_strerror (stream_t stream, const char **pstr)
   return 0;
 }
 
+/* FIXME: It returns only input fd */
+int
+_tls_get_fd (stream_t stream, int *pfd)
+{
+  struct _tls_stream *s = stream_get_owner (stream);
+  *pfd = s->ifd;
+  return 0;
+}
+
 int
 tls_stream_create (stream_t *stream, int in_fd, int out_fd, int flags)
 {
@@ -397,6 +406,7 @@ tls_stream_create (stream_t *stream, int in_fd, int out_fd, int flags)
   stream_set_flush (*stream, _tls_flush, s);
   stream_set_destroy (*stream, _tls_destroy, s);
   stream_set_strerror (*stream, _tls_strerror, s);
+  stream_set_fd (*stream, _tls_get_fd, s);
   
   s->state = state_init;
   return 0;
