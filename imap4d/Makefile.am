@@ -63,6 +63,8 @@ imap4d_SOURCES = \
 imap4d_LDADD = \
  @IMAP_AUTHOBJS@\
  ../mailbox/mbox/libmu_mbox.la\
+ ../mailbox/mh/libmu_mh.la\
+ ../mailbox/maildir/libmu_maildir.la\
  ../mailbox/libmailbox.la\
  ../lib/libmailutils.la\
  @AUTHLIBS@ @SERV_AUTHLIBS@ @LTLIBINTL@
