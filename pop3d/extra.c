@@ -223,7 +223,15 @@ pop3d_readline (char *buffer, size_t size)
 #ifdef WITH_TLS
   if (tls_done)
     {
-      gnutls_record_recv (sfile, buffer, size - 1);
+      int rc = gnutls_record_recv (sfile, buffer, size - 1);
+      if (rc < 0)
+	{
+	  syslog (LOG_ERR, _("TLS error on read: %s"),
+		  gnutls_strerror (rc));
+	  pop3d_abquit (ERR_TLS_IO);
+	}
+      else
+	buffer[rc] = 0;
       ptr = buffer;
     }
   else
