@@ -400,13 +400,11 @@ com_apop (char *arg)
 int
 com_capa (char *arg ARG_UNUSED)
 {
-  list_t list = NULL;
-  int status = mu_pop3_capa (pop3, &list);
+  iterator_t iterator = NULL;
+  int status = mu_pop3_capa (pop3, &iterator);
 
   if (status == 0)
     {
-      iterator_t iterator = NULL;
-      list_get_iterator (list, &iterator);
       for (iterator_first (iterator);
 	   !iterator_is_done (iterator); iterator_next (iterator))
 	{
@@ -415,7 +413,6 @@ com_capa (char *arg ARG_UNUSED)
 	  printf ("Capa: %s\n", (capa) ? capa : "");
 	}
       iterator_destroy (&iterator);
-      list_destroy (&list);
     }
   return status;
 }
@@ -426,12 +423,10 @@ com_uidl (char *arg)
   int status = 0;
   if (arg == NULL || *arg == '\0')
     {
-      list_t list = NULL;
-      status = mu_pop3_uidl_all (pop3, &list);
+      iterator_t uidl_iterator = NULL;
+      status = mu_pop3_uidl_all (pop3, &uidl_iterator);
       if (status == 0)
 	{
-	  iterator_t uidl_iterator = NULL;
-	  list_get_iterator (list, &uidl_iterator);
 	  for (iterator_first (uidl_iterator);
 	       !iterator_is_done (uidl_iterator);
 	       iterator_next (uidl_iterator))
@@ -441,7 +436,6 @@ com_uidl (char *arg)
 	      printf ("UIDL: %s\n", (uidl) ? uidl : "");
 	    }
 	  iterator_destroy (&uidl_iterator);
-	  list_destroy (&list);
 	}
     }
   else
@@ -462,12 +456,10 @@ com_list (char *arg)
   int status = 0;
   if (arg == NULL || *arg == '\0')
     {
-      list_t list = NULL;
-      status = mu_pop3_list_all (pop3, &list);
+      iterator_t list_iterator;
+      status = mu_pop3_list_all (pop3, &list_iterator);
       if (status == 0)
 	{
-	  iterator_t list_iterator;
-	  list_get_iterator (list, &list_iterator);
 	  for (iterator_first (list_iterator);
 	       !iterator_is_done (list_iterator);
 	       iterator_next (list_iterator))
@@ -477,7 +469,6 @@ com_list (char *arg)
 	      printf ("LIST: %s\n", (list) ? list : "");
 	    }
 	  iterator_destroy (&list_iterator);
-	  list_destroy (&list);
 	}
     }
   else

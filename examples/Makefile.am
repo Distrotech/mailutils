@@ -31,7 +31,8 @@ noinst_PROGRAMS = \
  mta\
  decode2047\
  mailcap\
- pop3client
+ pop3client \
+ nntpclient
 
 ## NOTE: Numaddr must be an installable target, otherwise libtool
 ## will not create a shared library and `make check' will fail in
@@ -47,8 +48,8 @@ INCLUDES = -I$(top_srcdir)/include -I$(top_srcdir)/lib\
 AM_LDFLAGS = ../mailbox/libmailbox.la ../lib/libmailutils.la @MU_COMMON_LIBRARIES@
 
 numaddr_la_SOURCES = numaddr.c
-numaddr_la_LIBADD = ../libsieve/libsieve.la 
-numaddr_la_LDFLAGS = -module -avoid-version -no-undefined 
+numaddr_la_LIBADD = ../libsieve/libsieve.la
+numaddr_la_LDFLAGS = -module -avoid-version -no-undefined
 
 mimetest_LDADD =\
  ../mailbox/mbox/libmu_mbox.la\
@@ -56,7 +57,7 @@ mimetest_LDADD =\
  ../mailbox/pop/libmu_pop.la\
  ../mailbox/libmailbox.la\
  ../lib/libmailutils.la\
- @AUTHLIBS@ 
+ @AUTHLIBS@
 
 mta_LDADD =\
  ../mailbox/mbox/libmu_mbox.la\
@@ -71,14 +72,19 @@ sfrom_LDADD =\
  ../mailbox/maildir/libmu_maildir.la\
  ../mailbox/libmailbox.la\
  ../lib/libmailutils.la\
- @AUTHLIBS@ 
+ @AUTHLIBS@
 
 pop3client_LDADD = \
  ../mailbox/pop/libmu_pop.la\
  ../mailbox/libmailbox.la\
  ../lib/libmailutils.la\
- @AUTHLIBS@ @READLINE_LIBS@ 
+ @AUTHLIBS@ @READLINE_LIBS@
+
+nntpclient_LDADD = \
+ ../mailbox/nntp/libmu_nntp.la\
+ ../mailbox/libmailbox.la\
+ ../lib/libmailutils.la\
+ @AUTHLIBS@ @READLINE_LIBS@
 
 EXTRA_DIST = comsat.conf dot.biffrc gnu-imap4d.pam gnu-pop3d.pam\
  mailutils.rc reply.scm
-

@@ -563,13 +563,11 @@ int com_list (char *arg)
 int
 com_list_extensions (char *arg ARG_UNUSED)
 {
-  list_t list = NULL;
-  int status = mu_nntp_list_extensions (nntp, &list);
+  iterator_t iterator = NULL;
+  int status = mu_nntp_list_extensions (nntp, &iterator);
 
   if (status == 0)
     {
-      iterator_t iterator = NULL;
-      list_get_iterator (list, &iterator);
       printf ("List Extension:\n");
       for (iterator_first (iterator);
 	   !iterator_is_done (iterator); iterator_next (iterator))
@@ -579,7 +577,6 @@ com_list_extensions (char *arg ARG_UNUSED)
 	  printf (" %s\n", extension);
 	}
       iterator_destroy (&iterator);
-      list_destroy (&list);
     }
   return status;
 }
@@ -587,14 +584,11 @@ com_list_extensions (char *arg ARG_UNUSED)
 int
 com_list_active (char *arg)
 {
-  list_t list = NULL;
-
-  int status = mu_nntp_list_active (nntp, arg, &list);
+  iterator_t iterator = NULL;
+  int status = mu_nntp_list_active (nntp, arg, &iterator);
 
   if (status == 0)
     {
-      iterator_t iterator = NULL;
-      list_get_iterator (list, &iterator);
       printf ("List Active:\n");
       for (iterator_first (iterator);
 	   !iterator_is_done (iterator); iterator_next (iterator))
@@ -614,7 +608,6 @@ com_list_active (char *arg)
 	  printf (" high(%ld) low(%ld) status(%c)\n", high, low, stat);
 	}
       iterator_destroy (&iterator);
-      list_destroy (&list);
     }
   return status;
 }
@@ -622,13 +615,11 @@ com_list_active (char *arg)
 int
 com_list_active_times (char *arg)
 {
-  list_t list = NULL;
-  int status = mu_nntp_list_active_times (nntp, arg, &list);
+  iterator_t iterator = NULL;
+  int status = mu_nntp_list_active_times (nntp, arg, &iterator);
 
   if (status == 0)
     {
-      iterator_t iterator = NULL;
-      list_get_iterator (list, &iterator);
       printf ("List Active.Times:\n");
       for (iterator_first (iterator);
 	   !iterator_is_done (iterator); iterator_next (iterator))
@@ -664,7 +655,6 @@ com_list_active_times (char *arg)
 	  printf ("\n");
 	}
       iterator_destroy (&iterator);
-      list_destroy (&list);
     }
   return status;
 }
@@ -672,13 +662,11 @@ com_list_active_times (char *arg)
 int
 com_list_distributions (char *arg ARG_UNUSED)
 {
-  list_t list = NULL;
-  int status = mu_nntp_list_distributions (nntp, arg, &list);
+  iterator_t iterator = NULL;
+  int status = mu_nntp_list_distributions (nntp, arg, &iterator);
 
   if (status == 0)
     {
-      iterator_t iterator = NULL;
-      list_get_iterator (list, &iterator);
       printf ("List Distributions:\n");
       for (iterator_first (iterator);
 	   !iterator_is_done (iterator); iterator_next (iterator))
@@ -701,7 +689,6 @@ com_list_distributions (char *arg ARG_UNUSED)
 	  printf ("\n");
 	}
       iterator_destroy (&iterator);
-      list_destroy (&list);
     }
   return status;
 }
@@ -709,13 +696,11 @@ com_list_distributions (char *arg ARG_UNUSED)
 int
 com_list_distrib_pats (char *arg ARG_UNUSED)
 {
-  list_t list = NULL;
-  int status = mu_nntp_list_distrib_pats (nntp, &list);
+  iterator_t iterator = NULL;
+  int status = mu_nntp_list_distrib_pats (nntp, &iterator);
 
   if (status == 0)
     {
-      iterator_t iterator = NULL;
-      list_get_iterator (list, &iterator);
       printf ("List Distrib Pats:\n");
       for (iterator_first (iterator);
 	   !iterator_is_done (iterator); iterator_next (iterator))
@@ -740,7 +725,6 @@ com_list_distrib_pats (char *arg ARG_UNUSED)
 	  printf ("\n");
 	}
       iterator_destroy (&iterator);
-      list_destroy (&list);
     }
   return status;
 }
@@ -748,13 +732,11 @@ com_list_distrib_pats (char *arg ARG_UNUSED)
 int
 com_list_newsgroups (char *arg)
 {
-  list_t list = NULL;
-  int status = mu_nntp_list_newsgroups (nntp, arg, &list);
+  iterator_t iterator = NULL;
+  int status = mu_nntp_list_newsgroups (nntp, arg, &iterator);
 
   if (status == 0)
     {
-      iterator_t iterator = NULL;
-      list_get_iterator (list, &iterator);
       printf ("Newsgroups:\n");
       for (iterator_first (iterator);
 	   !iterator_is_done (iterator); iterator_next (iterator))
@@ -777,7 +759,6 @@ com_list_newsgroups (char *arg)
 	  printf ("\n");
 	}
       iterator_destroy (&iterator);
-      list_destroy (&list);
     }
   return status;
 }
@@ -815,7 +796,7 @@ com_next (char *arg ARG_UNUSED)
 int
 com_newgroups (char *arg)
 {
-  list_t list = NULL;
+  iterator_t iterator = NULL;
   struct tm stime;
   int year, month, day, hour, min, sec, is_gmt;
   year = month = day = hour = min = sec = is_gmt = 0;
@@ -841,11 +822,9 @@ com_newgroups (char *arg)
       year = stime->tm_year + 1900;       /* year */
     }
 
-  int status = mu_nntp_newgroups (nntp, year, month, day, hour, min, sec, is_gmt, &list);
+  int status = mu_nntp_newgroups (nntp, year, month, day, hour, min, sec, is_gmt, &iterator);
   if (status == 0)
     {
-      iterator_t iterator = NULL;
-      list_get_iterator (list, &iterator);
       printf ("New Groups:\n");
       for (iterator_first (iterator);
 	   !iterator_is_done (iterator); iterator_next (iterator))
@@ -865,7 +844,6 @@ com_newgroups (char *arg)
 	  printf (" hig(%d) low(%d) status(%c)\n", high, low, stat);
 	}
       iterator_destroy (&iterator);
-      list_destroy (&list);
     }
   return status;
 }
@@ -873,7 +851,7 @@ com_newgroups (char *arg)
 int
 com_newnews (char *arg)
 {
-  list_t list = NULL;
+  iterator_t iterator = NULL;
   struct tm stime;
   char *wildmat;
   char gmt[4];
@@ -901,11 +879,9 @@ com_newnews (char *arg)
       year = stime->tm_year + 1900;       /* year */
     }
 
-  int status = mu_nntp_newnews (nntp, wildmat, year, month, day, hour, min, sec, is_gmt, &list);
+  int status = mu_nntp_newnews (nntp, wildmat, year, month, day, hour, min, sec, is_gmt, &iterator);
   if (status == 0)
     {
-      iterator_t iterator = NULL;
-      list_get_iterator (list, &iterator);
       printf ("New News:\n");
       for (iterator_first (iterator);
 	   !iterator_is_done (iterator); iterator_next (iterator))
@@ -915,7 +891,6 @@ com_newnews (char *arg)
 	  printf (" %s\n", mid);
 	}
       iterator_destroy (&iterator);
-      list_destroy (&list);
     }
   return status;
 }
