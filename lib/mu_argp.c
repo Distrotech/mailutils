@@ -36,11 +36,13 @@
 #endif
 
 #include <mailutils/error.h>
+#include <mailutils/errno.h>
 #include <mailutils/mutil.h>
 #include <mailutils/locker.h>
 
 #include <argcv.h>
 #include <mu_argp.h>
+#include <mu_asprintf.h>
 
 #ifdef HAVE_MYSQL
 # include "../MySql/MySql.h"
@@ -76,6 +78,15 @@ static struct argp_option mu_mailbox_argp_option[] = {
    "Use specified URL as a mailspool directory", 0},
   {"lock-flags", ARG_LOCK_FLAGS, "FLAGS", 0,
    "Default locker flags (E=external, R=retry, T=time, P=pid)", 0},
+  { NULL,      0, NULL, 0, NULL, 0 }
+};
+
+/* Options used by programs that do address mapping. */
+static struct argp_option mu_address_argp_option[] = {
+  {"email-addr", 'E', "EMAIL", 0,
+   "Set current user's email address (default is loginname@defaultdomain)", 0},
+  {"email-domain", 'D', "DOMAIN", 0,
+   "Set domain for unqualified user names (default is this host)", 0},
   { NULL,      0, NULL, 0, NULL, 0 }
 };
 
@@ -162,6 +173,18 @@ struct argp mu_mailbox_argp = {
 
 struct argp_child mu_mailbox_argp_child = {
   &mu_mailbox_argp,
+  0,
+  NULL,
+  0
+};
+
+struct argp mu_address_argp = {
+  mu_address_argp_option,
+  mu_common_argp_parser,
+};
+
+struct argp_child mu_address_argp_child = {
+  &mu_address_argp,
   0,
   NULL,
   0
@@ -271,6 +294,7 @@ char *pam_service = NULL;
 static error_t
 mu_common_argp_parser (int key, char *arg, struct argp_state *state)
 {
+  int err = 0;
   char *p;
 
   switch (key)
@@ -311,6 +335,23 @@ mu_common_argp_parser (int key, char *arg, struct argp_state *state)
 	  }
 	locker_set_default_flags(flags);
       }
+      break;
+
+      /* address */
+    case 'E':
+      if ((err = mu_set_user_email(arg)) != 0)
+	  {
+	    argp_error (state, "invalid email-addr '%s': %s",
+		arg, mu_errstring(err));
+	  }
+      break;
+
+    case 'D':
+      if ((err = mu_set_user_email_domain(arg)) != 0)
+	  {
+	    argp_error (state, "invalid email-domain '%s': %s",
+		arg, mu_errstring(err));
+	  }
       break;
 
       /* log */
@@ -618,7 +659,7 @@ mu_create_argcv (const char *capa[],
   {
     char* userrc = NULL;
 
-    asprintf(&userrc, "%s/mailutils", MU_USER_CONFIG_FILE);
+    mu_asprintf(&userrc, "%s/mailutils", MU_USER_CONFIG_FILE);
 
     if (!userrc)
       {
@@ -635,9 +676,9 @@ mu_create_argcv (const char *capa[],
     char* progrc = NULL;
 
     if(rcdir)
-      asprintf(&progrc, "%s/%src", MU_USER_CONFIG_FILE, progname);
+      mu_asprintf(&progrc, "%s/%src", MU_USER_CONFIG_FILE, progname);
     else
-      asprintf(&progrc, "~/.mu.%src", progname);
+      mu_asprintf(&progrc, "~/.mu.%src", progname);
 
     if (!progrc)
       {
@@ -667,6 +708,7 @@ struct argp_capa {
   {"common",  &mu_common_argp_child},
   {"license", &mu_license_argp_child},
   {"mailbox", &mu_mailbox_argp_child},
+  {"address", &mu_address_argp_child},
   {"logging", &mu_logging_argp_child},
   {"auth",    &mu_auth_argp_child},
   {"daemon",  &mu_daemon_argp_child},
@@ -689,7 +731,7 @@ mu_build_argp (const struct argp *template, const char *capa[])
   int n;
   int nchild;
   struct argp_child *ap;
-  struct argp_option *opt;
+  const struct argp_option *opt;
   struct argp *argp;
   int group = 0;
 
@@ -761,6 +803,10 @@ mu_argp_parse(const struct argp *argp,
 	      void *input)
 {
   error_t ret;
+  const struct argp argpnull = { 0 };
+
+  if(!argp)
+    argp = &argpnull;
   
   argp = mu_build_argp (argp, capa);
   mu_create_argcv (capa, *pargc, *pargv, pargc, pargv);

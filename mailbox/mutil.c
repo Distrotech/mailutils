@@ -39,9 +39,12 @@
 #include <strings.h>
 #endif
 
+#include <mailutils/address.h>
 #include <mailutils/error.h>
 #include <mailutils/iterator.h>
 #include <mailutils/mutil.h>
+
+#include "mu_asprintf.h"
 
 /* convert a sequence of hex characters into an integer */
 
@@ -516,13 +519,91 @@ getpwnam_virtual (const char *u)
 
 #endif
 
+/*
+ * Functions used to convert unix mailbox/user names into RFC822 addr-specs.
+ */
+
+static char *mu_user_email = 0;
+
+int
+mu_set_user_email (const char *candidate)
+{
+  int err = 0;
+  address_t addr = NULL;
+  size_t emailno = 0;
+  char *email = NULL;
+
+  if ((err = address_create (&addr, candidate)) != 0)
+    return err;
+
+  if ((err = address_get_email_count (addr, &emailno)) != 0)
+    goto cleanup;
+
+  if (emailno != 1)
+    {
+      errno = EINVAL;
+      goto cleanup;
+    }
+
+  if ((err = address_aget_email (addr, 1, &email)) != 0)
+    goto cleanup;
+
+
+  if (mu_user_email)
+    free (mu_user_email);
+
+  mu_user_email = email;
+
+cleanup:
+  address_destroy (&addr);
+
+  return err;
+}
+
+static char *mu_user_email_domain = 0;
+
+int
+mu_set_user_email_domain (const char *domain)
+{
+  char* d = NULL;
+  
+  if(!domain)
+    return EINVAL;
+  
+  d = strdup(domain);
+
+  if(!d)
+    return ENOMEM;
+
+  if(mu_user_email_domain)
+    free(mu_user_email_domain);
+
+  mu_user_email_domain = d;
+
+  return 0;
+}
+
+const char *
+mu_get_user_email_domain (void)
+{
+  return mu_user_email_domain;
+}
+
 char *
-mu_get_user_email (char *name)
+mu_get_user_email (const char *name)
 {
   char hostname[256];
   struct hostent *hp;
   char *domainpart;
   char *email;
+
+  if (!name && mu_user_email)
+    {
+      email = strdup (mu_user_email);
+      if (!email)
+	errno = ENOMEM;
+      return email;
+    }
 
   if (!name)
     {
@@ -535,20 +616,26 @@ mu_get_user_email (char *name)
       name = pw->pw_name;
     }
 
-  gethostname (hostname, sizeof hostname);
-  hostname[sizeof (hostname)-1] = 0;
-
-  if ((hp = gethostbyname (hostname)))
-    domainpart = hp->h_name;
-  else
-    domainpart = hostname;
-  email = malloc (strlen (name) + strlen (domainpart) + 2);
-  if (!email)
+  if (mu_user_email_domain)
     {
-      errno = ENOMEM;
-      return NULL;
+      domainpart = mu_user_email_domain;
     }
-  sprintf (email, "%s@%s", name, domainpart);
+  else
+    {
+      gethostname (hostname, sizeof hostname);
+      hostname[sizeof (hostname) - 1] = 0;
+
+      if ((hp = gethostbyname (hostname)))
+	domainpart = hp->h_name;
+      else
+	domainpart = hostname;
+    }
+
+  mu_asprintf (&email, "%s@%s", name, domainpart);
+
+  if (!email)
+    errno = ENOMEM;
+
   return email;
 }
 

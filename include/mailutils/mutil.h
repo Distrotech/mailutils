@@ -70,10 +70,37 @@ extern int mu_virtual_domain;
 
 extern struct passwd * getpwnam_virtual __P((const char *u));
 
-extern char * mu_get_user_email __P((char *name));
-extern char * mu_normalize_path __P((char *path, const char *delim));
-extern char * mu_normalize_maildir __P((const char *dir));
-extern int mu_tempfile __P((const char *tmpdir, char **namep));
+/* Set the default user email address.
+ *
+ * Subsequent calls to mu_get_user_email() with a NULL name will return this
+ * email address.  email is parsed to determine that it consists of a a valid
+ * rfc822 address, with one valid addr-spec, i.e, the address must be
+ * qualified.
+ */
+extern int mu_set_user_email __P ((const char *email));
+
+/* Set the default user email address domain.
+ *
+ * Subsequent calls to mu_get_user_email() with a non-null name will return
+ * email addresses in this domain (name@domain). It should be fully
+ * qualified, but this isn't (and can't) be enforced.
+ */
+extern int mu_set_user_email_domain __P ((const char *domain));
+
+/* Return the currently set user email domain, or NULL if not set. */
+extern const char *mu_get_user_email_domain __P ((void));
+
+/*
+ * Get the default email address for user name. A NULL name is taken
+ * to mean the current user.
+ *
+ * The result must be freed by the caller after use.
+ */
+extern char *mu_get_user_email __P ((const char *name));
+
+extern char *mu_normalize_path __P ((char *path, const char *delim));
+extern char *mu_normalize_maildir __P ((const char *dir));
+extern int mu_tempfile __P ((const char *tmpdir, char **namep));
 
 extern char * mu_get_full_path __P((const char *file));
 extern char * mu_getcwd __P((void));

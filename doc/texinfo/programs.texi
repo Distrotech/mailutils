@@ -94,6 +94,7 @@ or single quotes).
 @menu
 * default::        Options understood by most GNU utilities.
 * mailbox::        Specifies the mail spool location, and locking strategy.
+* address::        Specifies the default email address and domain.
 * daemon::         Options common for daemon programs.
 * auth::           Authentication-specific options.
 * logging::        Logging control options.
@@ -133,6 +134,33 @@ location of the mail spool, and the locking strategy.
 Set path to the mailspool directory
 @item --lock-flags=@var{flags}
 Set the default mailbox lock flags (E=external, R=retry, T=time, P=pid).
+@end table
+
+@node address
+@subsection address --- Specifies the default email address and domain.
+@cindex :address
+
+Option group @samp{address} consists of options used to specify how to
+qualify email addresses.
+
+An unqualified address (one without an @var{@@}) is qualified by appending
+@var{@@}@var{defaultdomain}. @var{defaultdomain} is the return of
+gethostname(), or the result of gethostbyname() on the return of
+gethostname() (if the DNS lookup is successful).
+
+If the email address of the current user is needed, either the address set by
+--email-addr is returned, or the current uid is looked up in the user
+database, and qualified with the @var{defaultdomain}.
+
+@table @option
+@item -E @var{email}
+@itemx --email-addr=@var{email}
+Set the current user's email address, this it makes more sense to use
+this in one of the per-user configuration files.
+@item -D @var{domain}
+@itemx --email-domain=@var{domain}
+Set the default email domain, this might make sense to use in either
+the global or one of the per-user configuration files.
 @end table
 
 @node daemon
