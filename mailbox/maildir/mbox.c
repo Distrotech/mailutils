@@ -64,6 +64,7 @@
 #include <mailbox0.h>
 #include <registrar0.h>
 #include <amd.h>
+#include <maildir.h>
 
 struct _maildir_message
 {
@@ -200,13 +201,8 @@ read_random (void *buf, size_t size)
   return rc != size;
 }
 
-#define PERMS 0700
-#define TMPSUF "tmp"
-#define CURSUF "cur"
-#define NEWSUF "new"
-
-static char *
-mkfilename (char *directory, char *suffix, char *name)
+char *
+maildir_mkfilename (char *directory, char *suffix, char *name)
 {
   size_t size = strlen (directory) + 1 + strlen (suffix) + 1;
   char *tmp;
@@ -305,7 +301,7 @@ char *
 maildir_message_name (struct _amd_message *amsg, int deleted)
 {
   struct _maildir_message *msg = (struct _maildir_message *) amsg;
-  return mkfilename (amsg->amd->name, msg->newflag ? NEWSUF : CURSUF, msg->file_name);
+  return maildir_mkfilename (amsg->amd->name, msg->newflag ? NEWSUF : CURSUF, msg->file_name);
 }
 
 static void
@@ -323,7 +319,7 @@ static void
 maildir_delete_file (char *dirname, char *filename)
 {
   struct stat st;
-  char *name = mkfilename (dirname, filename, NULL);
+  char *name = maildir_mkfilename (dirname, filename, NULL);
 
   if (stat (name, &st) == 0)
     {
@@ -389,8 +385,8 @@ static int
 maildir_msg_finish_delivery (struct _amd_data *amd, struct _amd_message *amm)
 {
   struct _maildir_message *msg = (struct _maildir_message *) amm;
-  char *oldname = mkfilename (amd->name, TMPSUF, msg->file_name);
-  char *newname = mkfilename (amd->name, NEWSUF, msg->file_name);
+  char *oldname = maildir_mkfilename (amd->name, TMPSUF, msg->file_name);
+  char *newname = maildir_mkfilename (amd->name, NEWSUF, msg->file_name);
 
   unlink (newname);
   if (link (oldname, newname))
@@ -458,7 +454,7 @@ maildir_deliver_new (struct _amd_data *amd, DIR *dir)
 	  break;
 
 	default:
-	  oldname = mkfilename (amd->name, NEWSUF, entry->d_name);
+	  oldname = maildir_mkfilename (amd->name, NEWSUF, entry->d_name);
 	  newname = mk_info_filename (amd->name, CURSUF, entry->d_name, 0);
 	  rename (oldname, newname);
 	  free (oldname);
@@ -549,7 +545,7 @@ maildir_scan0 (mailbox_t mailbox, size_t msgno ARG_UNUSED, size_t *pcount,
   maildir_flush (amd);
 
   /* 2nd phase: Scan and deliver messages from new */
-  name = mkfilename (amd->name, NEWSUF, NULL);
+  name = maildir_mkfilename (amd->name, NEWSUF, NULL);
 
   status = maildir_opendir (&dir, name, PERMS);
   if (status == 0)
@@ -559,7 +555,7 @@ maildir_scan0 (mailbox_t mailbox, size_t msgno ARG_UNUSED, size_t *pcount,
     }
   free (name);
 
-  name = mkfilename (amd->name, CURSUF, NULL);
+  name = maildir_mkfilename (amd->name, CURSUF, NULL);
   /* 3rd phase: Scan cur/ */
   status = maildir_opendir (&dir, name, PERMS);
   if (status == 0)
