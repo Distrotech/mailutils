@@ -511,7 +511,6 @@ mutil_register_all_mbox_formats (void)
   list_append (bookie, pop_record);
   list_append (bookie, imap_record);
   list_append (bookie, mh_record);
-  list_append (bookie, maildir_record);
   list_append (bookie, sendmail_record);
   list_append (bookie, smtp_record);
 }
