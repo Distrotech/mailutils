@@ -91,8 +91,6 @@ mu_debug_set_print (mu_debug_t debug, int (*_print)
   return 0;
 }
 
-/* FIXME:  We use a fix size, we should use vasprinf or something
-   similar to get rid of this arbitrary limitation.  */
 int
 mu_debug_print (mu_debug_t debug, size_t level, const char *format, ...)
 {
