@@ -1,3 +1,13 @@
+2002-09-22  Sergey Poznyakoff
+
+	* mh/mh_argp.c (mh_argp_parse): Complain about non-processed
+	  arguments unless "index" is non-null.
+	* mh/folder.c: Implemented -header. Several fixes.
+	* mh/rmf.c: New file. Implements rmf command.
+	* mh/Makefile.am: Added rmf. Added install hook to link 'folder'
+	  to 'folders'
+	* mh/.cvsignore: Added rmf.
+
 2002-09-21  Sergey Poznyakoff
 
 	* mailbox/header.c (header_parse): Bugfix: do not
