@@ -38,14 +38,12 @@
 # include <paths.h>
 #endif
 
-#include <paths.h>
-
 #ifndef _PATH_MAILDIR
 # define _PATH_MAILDIR "/var/spool/mail"
 #endif
 
 #ifndef VERSION
-# define VERSION "unknow"
+# define VERSION "unknown"
 #endif
 
 #include "getopt.h"
