@@ -369,7 +369,7 @@ stream_write (stream_t os, const char *buf, size_t count,
   while (nleft > 0)
     {
       err = os->_write (os, buf, nleft, offset, &nwriten);
-      if (err != 0)
+      if (err != 0 || nwriten == 0)
         break;
       nleft -= nwriten;
       total += nwriten;

@@ -134,10 +134,12 @@ _file_write (stream_t stream, const char *iptr, size_t isize,
     }
 
   n = fwrite (iptr, sizeof(char), isize, fs->file);
-  if (n == 0)
+  if (n != isize)
     {
-      if (ferror (fs->file))
-	err = errno;
+      if (feof (fs->file) == 0)
+	err = EIO;
+      clearerr(fs->file);
+      n = 0;
     }
   else
     fs->offset += n;

@@ -489,6 +489,7 @@ mbox_scan0 (mailbox_t mailbox, size_t msgno, size_t *pcount, int do_notif)
               mum->header_from = total - n;
               mum->header_from_end = total;
 	      mum->body_end = mum->body = 0;
+	      mum->attr_flags = 0;
 	      lines = 0;
 	      sfield = NULL;
 	      for (j = 0; j < HDRSIZE; j++)
@@ -645,7 +646,7 @@ mbox_scan0 (mailbox_t mailbox, size_t msgno, size_t *pcount, int do_notif)
 	  }
 	mum->uid = ouid = uid;
       }
-    if (uid > mud->messages_count)
+    if (uid >= mud->uidnext)
       {
 	char u[64];
 	mud->uidnext = uid + 1;
