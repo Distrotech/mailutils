@@ -50,7 +50,7 @@
 # define monitor_cleanup_push(routine, arg) {
 # define monitor_cleanup_pop(execute)       }
 
-# define monitor_rdlock(m) (m = 1)
+# define monitor_lock(m) (m = 1)
 # define monitor_unlock(m)  (m = 0)
 
 #endif

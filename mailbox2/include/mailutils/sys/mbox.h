@@ -19,6 +19,8 @@
 #define _MAILUTILS_SYS_MBOX_H
 
 #include <time.h>
+#include <mailutils/monitor.h>
+#include <mailutils/locker.h>
 #include <mailutils/mbox.h>
 
 #ifdef __cplusplus
@@ -122,8 +124,23 @@ struct _mbox
   char *date;
   off_t off;
   monitor_t  lock;
-  locker_t  dotlock;
+
+  mu_debug_t debug;
+  locker_t  locker;
+  observable_t observable;
 };
+
+/* Moro(?)ic kluge.  */
+#define MBOX_DEBUG0(mbox, type, format) \
+if (mbox->debug) mu_debug_print (mbox->debug, type, format)
+#define MBOX_DEBUG1(mbox, type, format, arg1) \
+if (mbox->debug) mu_debug_print (mbox->debug, type, format, arg1)
+#define MBOX_DEBUG2(mbox, type, format, arg1, arg2) \
+if (mbox->debug) mu_debug_print (mbox->debug, type, format, arg1, arg2)
+#define MBOX_DEBUG3(mbox, type, format, arg1, arg2, arg3) \
+if (mbox->debug) mu_debug_print (mbox->debug, type, format, arg1, arg2, arg3)
+#define MBOX_DEBUG4(mbox, type, format, arg1, arg2, arg3, arg4) \
+if (mbox->debug) mu_debug_print (mbox->debug, type, format, arg1, arg2, arg3, arg4)
 
 #ifdef __cplusplus
 }

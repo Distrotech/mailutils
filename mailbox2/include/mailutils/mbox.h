@@ -19,7 +19,7 @@
 #define _MAILUTILS_MBOX_H
 
 #include <mailutils/message.h>
-#include <mailutils/observer.h>
+#include <mailutils/observable.h>
 
 #ifdef __cplusplus
 extern "C" {
