@@ -747,7 +747,7 @@ SCM_DEFINE (mu_message_send, "mu-message-send", 1, 3, 0,
   SCM_ASSERT (mu_scm_is_message (MESG), MESG, SCM_ARG1, FUNC_NAME);
   msg = mu_scm_message_get (MESG);
   
-  if (!SCM_UNBNDP (MAILER))
+  if (!SCM_UNBNDP (MAILER) && MAILER != SCM_BOOL_F)
     {
       SCM_ASSERT (SCM_NIMP (MAILER) && SCM_STRINGP (MAILER),
 		  MAILER, SCM_ARG2, FUNC_NAME);
@@ -756,14 +756,14 @@ SCM_DEFINE (mu_message_send, "mu-message-send", 1, 3, 0,
   else
     mailer_name = SCM_CHARS(_mu_scm_mailer);
 
-  if (!SCM_UNBNDP (FROM))
+  if (!SCM_UNBNDP (FROM) && FROM != SCM_BOOL_F)
     {
       SCM_ASSERT (SCM_NIMP (FROM) && SCM_STRINGP (FROM)
 		  && address_create (&from, SCM_CHARS (FROM)) == 0,
 		  FROM, SCM_ARG3, FUNC_NAME);
     }
   
-  if (!SCM_UNBNDP (TO))
+  if (!SCM_UNBNDP (TO) && TO != SCM_BOOL_F)
     {
       SCM_ASSERT (SCM_NIMP (TO) && SCM_STRINGP (TO)
 		  && address_create (&to, SCM_CHARS (TO)) == 0,
