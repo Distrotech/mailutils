@@ -45,6 +45,47 @@ list_create_or_die ()
   return list;
 }
 
+static char *
+ali_list_to_string (list_t *plist)
+{
+  size_t n;
+  char *string;
+  
+  list_count (*plist, &n);
+  if (n == 1)
+    {
+      list_get (*plist, 0, (void **)&string);
+    }
+  else
+    {
+      char *p;
+      size_t length = 0;
+      iterator_t itr;
+      iterator_create (&itr, *plist);
+      for (iterator_first (itr); !iterator_is_done (itr); iterator_next(itr))
+	{
+	  char *s;
+	  iterator_current (itr, (void**) &s);
+	  length += strlen (s) + 1;
+	}
+  
+      string = xmalloc (length + 1);
+      p = string;
+      for (iterator_first (itr); !iterator_is_done (itr); iterator_next(itr))
+	{
+	  char *s;
+	  iterator_current (itr, (void**) &s);
+	  strcpy (p, s);
+	  p += strlen (s);
+	  *p++ = ' ';
+	}
+      *--p = 0;
+      iterator_destroy (&itr);
+    }
+  list_destroy (plist);
+  return string;
+}
+	     
 static list_t unix_group_to_list __P((char *name));
 static list_t unix_gid_to_list __P((char *name));
 static list_t unix_passwd_to_list __P((void));
@@ -61,7 +102,7 @@ int yylex __P((void));
 }
 
 %token <string> STRING
-%type <list>  address_list address_group
+%type <list>  address_list address_group string_list
 %type <string> address
 %type <alias> alias
 
@@ -133,7 +174,22 @@ address_list : address
 	       }
              ;
 
-address      : STRING
+address      : string_list
+               {
+		 $$ = ali_list_to_string (&$1);
+	       }
+             ;
+
+string_list  : STRING
+               {
+		 list_create(&$$);
+		 list_append($$, $1);
+	       }
+             | string_list STRING
+               {
+		 list_append($1, $2);
+		 $$ = $1;
+	       }
              ;
 
 %%
