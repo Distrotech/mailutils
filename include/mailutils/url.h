@@ -38,6 +38,7 @@ typedef struct _url * url_t;
 
 extern int  url_create    __P ((url_t *, const char *name));
 extern void url_destroy   __P ((url_t *));
+extern int  url_parse     __P ((url_t));
 
 extern int url_get_scheme  __P ((const url_t, char *, size_t, size_t *));
 extern int url_get_user    __P ((const url_t, char *, size_t, size_t *));
@@ -54,6 +55,8 @@ extern int url_is_same_user   __P ((url_t, url_t));
 extern int url_is_same_path   __P ((url_t, url_t));
 extern int url_is_same_host   __P ((url_t, url_t));
 extern int url_is_same_port   __P ((url_t, url_t));
+
+extern char* url_decode    __P ((const char *s));
 
 #ifdef __cplusplus
 }
