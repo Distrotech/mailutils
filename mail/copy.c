@@ -41,10 +41,13 @@ mail_copy0 (int argc, char **argv, int mark)
   if (isupper (argv[0][0]))
     sender = 1;
   else if (argc >= 2)
-    filename = strdup(argv[--argc]);
+    filename = mail_expand_name (argv[--argc]);
   else
-    filename = strdup("mbox");
+    filename = strdup ("mbox");
 
+  if (!filename)
+    return 1;
+  
   if (msgset_parse (argc, argv, &msglist))
     {
       if (filename)
