@@ -49,6 +49,8 @@ extern "C" {
 #define MU_ERR_LOCK_EXT_KILLED (MU_ERR_BASE | 0x00f)
   /* external program was interrupted */
 
+#define MU_ERR_NO_SUCH_USER    (MU_ERR_BASE | 0x010)  
+  
 const char* mu_errname __P((int e));
 const char* mu_errstring __P((int e));
 

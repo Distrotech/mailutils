@@ -64,6 +64,7 @@ mu_errname (int e)
     EN(MU_ERR_LOCK_EXT_FAIL)
     EN(MU_ERR_LOCK_EXT_ERR)
     EN(MU_ERR_LOCK_EXT_KILLED)
+    EN(MU_ERR_NO_SUCH_USER)  
   }
 
   return "SYSTEM ERROR";
@@ -95,6 +96,8 @@ const char* mu_errstring (int e)
     ES(MU_ERR_LOCK_EXT_FAIL,    "Failed to exec external locker")
     ES(MU_ERR_LOCK_EXT_ERR,     "External locker failed")
     ES(MU_ERR_LOCK_EXT_KILLED,  "External locker killed")
+
+    ES(MU_ERR_NO_SUCH_USER,     "No such user name")
   }
 
   return strerror(e);
