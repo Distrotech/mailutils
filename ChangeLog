@@ -1,3 +1,37 @@
+2003-09-21  Sergey Poznyakoff  
+
+	Added decoding of RFC 2047 headers to MUA programs (mail and mh).
+	Fixed incorrect session termination in imap and pop clients.
+	
+	* mailbox/locale.c: New file. Contains locale-dependent functions.
+	* mailbox/Makefile.am: Added locale.c
+
+	* include/mailutils/mutil.h (mu_charset_lookup): New function.
+	* mail/from.c (mail_from0): Use util_rfc2047_decode for
+	"From" and "Subject" headers.
+	* mail/mail.c (main): Set default value for the "charset" variable.
+	* mail/mail.h (util_rfc2047_decode): New function.
+	* mail/util.c: Likewise.
+	* mail/print.c: Use util_rfc2047_decode for printing headers.
+	* doc/texinfo/programs.texi: Documented "charset" mail
+	variable
+
+	* mh/mh_format.c (mh_format): Use header_aget_value_unfold when
+	retrieving the header value.
+	(builtin_decode): New function. Implements (decode).
+	* mh/README: Updated
+	
+	* mailbox/imap/folder.c (authenticate_imap_sasl_anon): Fixed typo
+	in debug output.
+	(folder_imap_open): Issue LOGOUT if all the authentication methods
+	have failed.
+	* mailbox/imap/mbox.c (imap_get_fd): Removed. Use imap_get_fd2
+	instead.
+	* mailbox/pop/mbox.c (_pop_user): Do not close the stream on
+	authentication failures.
+
+	* imap4d/login.c: Minor fix
+	
 2003-09-20  Sergey Poznyakoff 
 
 	Install under mailutils/gnu only those headers which are

@@ -23,6 +23,21 @@ options is provided for backward compatibility.
 
 ** New functions
 
+*** decode
+Argument: string
+Return: string
+
+Decodes the input string as per RFC 2047. Useful in printing From:,
+To: and Subject: headers.
+
+Notice that, unlike the similar NMH function, decode checks the value
+of the global profile variable "Charset" to determine the charset
+to output the result in. If this variable is not set, decode returns
+its argument without any change. If this variable is set to "auto",
+decode tries to determine the charset name from the setting of
+LC_ALL environment variable. Otherwise, the value of "Charset" is
+taken to be the name of the character set.
+
 *** package
 Argument: none
 Return: string
@@ -133,6 +148,16 @@ Return: string
 Generates the value for the References: header according to RFC 2822.
 
 * New profile variables:
+
+** Charset
+
+Controls the character set in which the components decoded via
+the `decode' format function should be output (see `decode' above).
+By default this variable is not set, which means that no decoding
+takes place. If it is set to "auto", `decode' tries to determine
+the charset name from the setting of LC_ALL environment variable.
+Otherwise, the value of "Charset" is taken to be the name of the
+character set.
 
 ** Reply-Regex
 
