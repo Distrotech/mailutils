@@ -151,7 +151,29 @@ list_remove (list_t list, void *item)
 	}
     }
   monitor_unlock (list->monitor);
-  return ENOENT;
+  return status;
+}
+
+int
+list_replace (list_t list, void *old_item, void *new_item)
+{
+  struct list_data *current, *previous;
+  int status = ENOENT;
+  if (list == NULL)
+    return EINVAL;
+  monitor_wrlock (list->monitor);
+  for (previous = &(list->head), current = list->head.next;
+       current != &(list->head); previous = current, current = current->next)
+    {
+      if (current->item == old_item)
+	{
+	  current->item = new_item;
+	  status = 0;
+	  break;
+	}
+    }
+  monitor_unlock (list->monitor);
+  return status;
 }
 
 /* FIXME: FIXME: FIXME: URGENT:

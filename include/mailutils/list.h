@@ -31,6 +31,7 @@ extern int list_prepend  __P ((list_t, void *item));
 extern int list_is_empty __P ((list_t));
 extern int list_count    __P ((list_t, size_t *pcount));
 extern int list_remove   __P ((list_t, void *item));
+extern int list_replace  __P ((list_t list, void *old_item, void *new_item));  
 extern int list_get      __P ((list_t, size_t _index, void **pitem));
 
 typedef int list_action_t __PMT ((void* item, void* cbdata));
