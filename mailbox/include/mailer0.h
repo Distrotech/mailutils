@@ -83,6 +83,21 @@ extern int mailer_rdlock __P ((mailer_t));
 extern int mailer_wrlock __P ((mailer_t));
 extern int mailer_unlock __P ((mailer_t));
 
+#define MAILER_NOTIFY(mailer, type) \
+if (mailer->observer) observer_notify (mailer->observer, type)
+
+/* Moro(?)ic kluge.  */
+#define MAILER_DEBUG0(mailer, type, format) \
+if (mailer->debug) debug_print (mailer->debug, type, format)
+#define MAILER_DEBUG1(mailer, type, format, arg1) \
+if (mailer->debug) debug_print (mailer->debug, type, format, arg1)
+#define MAILER_DEBUG2(mailer, type, format, arg1, arg2) \
+if (mailer->debug) debug_print (mailer->debug, type, format, arg1, arg2)
+#define MAILER_DEBUG3(mailer, type, format, arg1, arg2, arg3) \
+if (mailer->debug) debug_print (mailer->debug, type, format, arg1, arg2, arg3)
+#define MAILER_DEBUG4(mailer, type, format, arg1, arg2, arg3, arg4) \
+if (mailer->debug) debug_print (mailer->debug, type, format, arg1, arg2, arg3, arg4)
+
 #ifdef _cplusplus
 }
 #endif

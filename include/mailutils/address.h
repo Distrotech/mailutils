@@ -38,10 +38,14 @@ typedef struct _address *address_t;
 extern int address_create   __P ((address_t *, const char *));
 extern void address_destroy __P ((address_t *));
 
-extern int address_get_email   __P ((address_t, char *, size_t, size_t *));
-extern int address_get_personal __P ((address_t, char *, size_t, size_t *));
-extern int address_get_comments __P ((address_t, char *, size_t, size_t *));
-extern int address_get_address __P ((address_t, char *, size_t, size_t *));
+extern int address_get_email    __P ((address_t, size_t, char *,
+				      size_t, size_t *));
+extern int address_get_personal __P ((address_t, size_t, char *,
+				      size_t, size_t *));
+extern int address_get_comments __P ((address_t, size_t, char *,
+				      size_t, size_t *));
+extern int address_to_string    __P ((address_t, char *, size_t, size_t *));
+extern int address_get_count     __P ((address_t, size_t *));
 
 #ifdef _cplusplus
 }

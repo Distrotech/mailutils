@@ -301,6 +301,7 @@ smtp_open (mailer_t mailer, int flags)
       smtp->state = SMTP_OPEN;
 
     case SMTP_OPEN:
+      MAILER_DEBUG2 (mailer, MU_DEBUG_PROT, "smtp_open (%s:%d)\n", smtp->localhost, port);
       status = stream_open (mailer->stream, smtp->mailhost, port,
 			    mailer->flags);
       CHECK_EAGAIN (smtp, status);
@@ -310,6 +311,7 @@ smtp_open (mailer_t mailer, int flags)
       /* Swallow the greetings.  */
       status = smtp_read_ack (smtp);
       CHECK_EAGAIN (smtp, status);
+      MAILER_DEBUG0 (mailer, MU_DEBUG_PROT, smtp->buffer);
       if (smtp->buffer[0] != '2')
 	{
 	  stream_close (mailer->stream);
@@ -317,6 +319,7 @@ smtp_open (mailer_t mailer, int flags)
 	}
       status = smtp_writeline (smtp, "EHLO %s\r\n", smtp->localhost);
       CHECK_ERROR (smtp, status);
+      MAILER_DEBUG0 (mailer, MU_DEBUG_PROT, smtp->buffer);
       smtp->state = SMTP_EHLO;
 
     case SMTP_EHLO:
@@ -328,6 +331,7 @@ smtp_open (mailer_t mailer, int flags)
     case SMTP_EHLO_ACK:
       status = smtp_read_ack (smtp);
       CHECK_EAGAIN (smtp, status);
+      MAILER_DEBUG0 (mailer, MU_DEBUG_PROT, smtp->buffer);
       if (smtp->buffer[0] != '2')
 	{
 	  smtp->extended = 0;
@@ -354,6 +358,7 @@ smtp_open (mailer_t mailer, int flags)
 	{
 	  status = smtp_read_ack (smtp);
 	  CHECK_EAGAIN (smtp, status);
+	  MAILER_DEBUG0 (mailer, MU_DEBUG_PROT, smtp->buffer);
 	  if (smtp->buffer[0] != '2')
 	    {
 	      stream_close (mailer->stream);
@@ -379,6 +384,7 @@ smtp_close (mailer_t mailer)
     case SMTP_NO_STATE:
       status = smtp_writeline (smtp, "Quit\r\n");
       CHECK_ERROR (smtp, status);
+      MAILER_DEBUG0 (mailer, MU_DEBUG_PROT, smtp->buffer);
       smtp->state = SMTP_QUIT;
 
     case SMTP_QUIT:
@@ -389,6 +395,7 @@ smtp_close (mailer_t mailer)
     case SMTP_QUIT_ACK:
       status = smtp_read_ack (smtp);
       CHECK_EAGAIN (smtp, status);
+      MAILER_DEBUG0 (mailer, MU_DEBUG_PROT, smtp->buffer);
 
     default:
       break;
@@ -528,6 +535,7 @@ smtp_send_message(mailer_t mailer, const char *from, const char *rcpt,
       free (smtp->from);
       smtp->from = NULL;
       CHECK_ERROR (smtp, status);
+      MAILER_DEBUG0 (mailer, MU_DEBUG_PROT, smtp->buffer);
       smtp->state = SMTP_MAIL_FROM;
 
     case SMTP_MAIL_FROM:
@@ -538,6 +546,7 @@ smtp_send_message(mailer_t mailer, const char *from, const char *rcpt,
     case SMTP_MAIL_FROM_ACK:
       status = smtp_read_ack (smtp);
       CHECK_EAGAIN (smtp, status);
+      MAILER_DEBUG0 (mailer, MU_DEBUG_PROT, smtp->buffer);
       if (smtp->buffer[0] != '2')
 	{
 	  stream_close (mailer->stream);
@@ -563,6 +572,7 @@ smtp_send_message(mailer_t mailer, const char *from, const char *rcpt,
 	status = smtp_writeline (smtp, "RCPT TO: %s\r\n", buf);
 	free (buf);
 	CHECK_ERROR (smtp, status);
+	MAILER_DEBUG0 (mailer, MU_DEBUG_PROT, smtp->buffer);
 	smtp->state = SMTP_RCPT_TO;
       }
 
@@ -576,6 +586,7 @@ smtp_send_message(mailer_t mailer, const char *from, const char *rcpt,
 	char *p;
 	status = smtp_read_ack (smtp);
 	CHECK_EAGAIN (smtp, status);
+	MAILER_DEBUG0 (mailer, MU_DEBUG_PROT, smtp->buffer);
 	if (smtp->buffer[0] != '2')
 	  {
 	    stream_close (mailer->stream);
@@ -601,6 +612,7 @@ smtp_send_message(mailer_t mailer, const char *from, const char *rcpt,
 	smtp->to = NULL;
 	status = smtp_writeline (smtp, "DATA\r\n");
 	CHECK_ERROR (smtp, status);
+	MAILER_DEBUG0 (mailer, MU_DEBUG_PROT, smtp->buffer);
 	smtp->state = SMTP_DATA;
       }
 
@@ -612,6 +624,7 @@ smtp_send_message(mailer_t mailer, const char *from, const char *rcpt,
     case SMTP_DATA_ACK:
       status = smtp_read_ack (smtp);
       CHECK_EAGAIN (smtp, status);
+      MAILER_DEBUG0 (mailer, MU_DEBUG_PROT, smtp->buffer);
       if (smtp->buffer[0] != '3')
 	{
 	  stream_close (mailer->stream);
@@ -664,6 +677,7 @@ smtp_send_message(mailer_t mailer, const char *from, const char *rcpt,
     case SMTP_SEND_ACK:
       status = smtp_read_ack (smtp);
       CHECK_EAGAIN (smtp, status);
+      MAILER_DEBUG0 (mailer, MU_DEBUG_PROT, smtp->buffer);
       if (smtp->buffer[0] != '2')
 	{
 	  stream_close (mailer->stream);

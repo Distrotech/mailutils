@@ -136,6 +136,7 @@ sendmail_open (mailer_t mailer, int flags)
       return errno;
     }
   sendmail->path = path;
+  MAILER_DEBUG1 (mailer, MU_DEBUG_TRACE, "sendmail (%s)\n", sendmail->path);
   return 0;
 }
 
@@ -167,7 +168,7 @@ sendmail_send_message (mailer_t mailer, const char *from, const char *rcpt,
 	char **argvec = NULL;
 
 	argvec = realloc (argvec, argc * (sizeof (*argvec)));
-	argvec[0] = sendmail->path;
+	argvec[0] = strdup (sendmail->path);
 	/* do not treat '.' as message terminator*/
 	argvec[1] = strdup ("-oi");
 	argvec[2] = strdup ("-t");
@@ -235,7 +236,11 @@ sendmail_send_message (mailer_t mailer, const char *from, const char *rcpt,
 	else
 	  status = errno;
 	for (argc = 0; argvec[argc]; argc++)
-	  free (argvec[argc]);
+	  {
+	    MAILER_DEBUG1 (mailer, MU_DEBUG_TRACE, "%s ", argvec[argc]);
+	    free (argvec[argc]);
+	  }
+	MAILER_DEBUG0 (mailer, MU_DEBUG_TRACE, "\n");
 	free (argvec);
 	close (tunnel[0]);
 	if (status != 0)

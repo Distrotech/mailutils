@@ -236,7 +236,7 @@ mbox_destroy (mailbox_t mailbox)
       size_t i;
       mbox_data_t mud = mailbox->data;
       MAILBOX_DEBUG1 (mailbox, MU_DEBUG_TRACE,
-		      "mbox_destroy (%s/%s)\n", mud->name);
+		      "mbox_destroy (%s)\n", mud->name);
       mailbox_wrlock (mailbox);
       for (i = 0; i < mud->umessages_count; i++)
 	{

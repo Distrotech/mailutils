@@ -146,6 +146,7 @@ observable_destroy (observable_t *pobservable, void *owner)
 		      free (event);
 		    }
 		}
+	      iterator_destroy (&iterator);
 	    }
 	  list_destroy (&((*pobservable)->list));
 	  free (*pobservable);

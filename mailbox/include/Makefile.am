@@ -1,9 +1,11 @@
 noinst_HEADERS = \
+address0.h \
 attribute0.h \
 auth0.h \
 bio.h \
 body0.h \
 debug0.h \
+folder0.h \
 header0.h \
 iterator0.h \
 list0.h \

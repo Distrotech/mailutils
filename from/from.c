@@ -115,5 +115,6 @@ main(int argc, char **argv)
       printf ("%s\n", buf);
     }
   mailbox_close (mbox);
+  mailbox_destroy (&mbox);
   return 0;
 }

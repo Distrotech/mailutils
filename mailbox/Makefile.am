@@ -12,6 +12,7 @@ lib_LTLIBRARIES = libmailbox.la
 EXTRA_DIST = mbx_mboxscan.c
 
 libmailbox_la_SOURCES = \
+address.c \
 attachment.c \
 attribute.c \
 auth.c \
@@ -19,6 +20,7 @@ bio.c  \
 body.c \
 debug.c \
 file_stream.c \
+folder.c \
 header.c \
 iterator.c \
 list.c \

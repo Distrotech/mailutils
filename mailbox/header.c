@@ -510,8 +510,11 @@ fill_blurb (header_t header)
 
   /* parse it. */
   status = header_parse (header, header->temp_blurb, header->temp_blurb_len);
-  free (header->temp_blurb);
-  header->temp_blurb = NULL;
+  if (header->temp_blurb)
+    {
+      free (header->temp_blurb);
+      header->temp_blurb = NULL;
+    }
   header->temp_blurb_len = 0;
   return status;
 }

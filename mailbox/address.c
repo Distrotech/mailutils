@@ -125,8 +125,8 @@ gettoken (const char **ptr)
 /* Note: This again as for header.c an awfull way of doing things.
    Meaning I need a correct rfc822 Parser.  This one does not
    understand group.  There is not doubt a better way to do this.  */
-int
-address_create (address_t *paddress, const char *addr)
+static int
+address_parse (address_t *paddress, const char **paddr)
 {
   const char *p;
   struct token	*t, *tok, *last;
@@ -134,18 +134,17 @@ address_create (address_t *paddress, const char *addr)
   struct token	*comments = NULL;
   struct token	*start_comments = NULL;
   address_t address;
-  address_t head;
   int in_comment = 0;
   int status = 0;
 
   tok = last = NULL;
 
-  address = calloc (1, sizeof (*address));
+  address = *paddress = calloc (1, sizeof (*address));
   if (address == NULL)
     return  ENOMEM;
-  head = address;
+
   /* Read address, remove comments right away.  */
-  p = addr;
+  p = *paddr;
   while ((t = gettoken(&p)) != NULL && (t->word[0] != ',' || in_comment))
     {
       if (t->word[0] == '(' || t->word[0] == ')' || in_comment)
@@ -174,13 +173,8 @@ address_create (address_t *paddress, const char *addr)
       last = t;
     }
 
-  address->addr = strdup (addr);
-  if (address->addr == NULL)
-    {
-      address_destroy (&address);
-      status = ENOMEM;
-      goto freenodes;
-    }
+  if (t != NULL)
+    free (t);
 
   /* Put extracted address into email  */
   t = brace ? brace->next : tok;
@@ -275,8 +269,6 @@ address_create (address_t *paddress, const char *addr)
 	}
     }
 
-  *paddress = head;
-
   /* Free list of tokens.  */
   freenodes:
   for (t = tok; t; t = last)
@@ -290,6 +282,41 @@ address_create (address_t *paddress, const char *addr)
       free (t);
     }
 
+  *paddr = p;
+  return status;
+}
+
+int
+address_create (address_t *paddress, const char *addr)
+{
+  address_t address = NULL;
+  address_t current = NULL;
+  address_t head = NULL;
+  const char *p = addr;
+  int status = 0;
+
+  if (paddress == NULL)
+    return EINVAL;
+  if (addr)
+    {
+      while (*addr != 0)
+	{
+	  status = address_parse (&address, &addr);
+	  if (status == 0)
+	    {
+	      if (head == NULL)
+		{
+		  head = address;
+		  head->addr = strdup (p);
+		}
+	      else
+		current->next = address;
+	      current = address;
+	      p = addr;
+	    }
+	}
+    }
+  *paddress = head;
   return status;
 }
 
@@ -318,43 +345,72 @@ address_destroy (address_t *paddress)
 }
 
 int
-address_get_personal (address_t addr, char *buf, size_t len, size_t *n)
+address_get_personal (address_t addr, size_t no, char *buf, size_t len,
+		      size_t *n)
 {
-  size_t i;
+  size_t i, j;
+  int status = EINVAL;
   if (addr == NULL)
     return EINVAL;
-  i = _cpystr (buf, addr->personal, len);
-  if (n)
-    *n = i;
-  return 0;
+  for (j = 1; addr; addr = addr->next, j++)
+    {
+      if (j == no)
+	{
+	  i = _cpystr (buf, addr->personal, len);
+	  if (n)
+	    *n = i;
+	  status = 0;
+	  break;
+	}
+    }
+  return status;
 }
 
 int
-address_get_comments (address_t addr, char *buf, size_t len, size_t *n)
+address_get_comments (address_t addr, size_t no, char *buf, size_t len,
+		      size_t *n)
 {
-  size_t i;
+  size_t i, j;
+  int status = EINVAL;
   if (addr == NULL)
     return EINVAL;
-  i = _cpystr (buf, addr->comments, len);
-  if (n)
-    *n = i;
-  return 0;
+  for (j = 1; addr; addr = addr->next, j++)
+    {
+      if (j == no)
+	{
+	  i = _cpystr (buf, addr->comments, len);
+	  if (n)
+	    *n = i;
+	  status = 0;
+	  break;
+	}
+    }
+  return status;
 }
 
 int
-address_get_email (address_t addr, char *buf, size_t len, size_t *n)
+address_get_email (address_t addr, size_t no, char *buf, size_t len, size_t *n)
 {
-  size_t i;
+  size_t i, j;
+  int status = EINVAL;
   if (addr == NULL)
     return EINVAL;
-  i = _cpystr (buf, addr->email, len);
-  if (n)
-    *n = i;
-  return 0;
+  for (j = 1; addr; addr = addr->next, j++)
+    {
+      if (j == no)
+	{
+	  i = _cpystr (buf, addr->email, len);
+	  if (n)
+	    *n = i;
+	  status = 0;
+	  break;
+	}
+    }
+  return status;
 }
 
 int
-address_get_address (address_t addr, char *buf, size_t len, size_t *n)
+address_to_string (address_t addr, char *buf, size_t len, size_t *n)
 {
   size_t i;
   if (addr == NULL)
@@ -365,26 +421,13 @@ address_get_address (address_t addr, char *buf, size_t len, size_t *n)
   return 0;
 }
 
-#if 0
 int
-main (int argc, char **argv)
+address_get_count (address_t addr, size_t *pcount)
 {
-  address_t addr;
-  int i;
-
-  address_create (&addr, argv[1]);
-  for (i = 0; addr; addr = addr->next, i++)
-    {
-      printf ("%d\n", i);
-      if (addr->addr)
-	printf ("Address |%s|\n", addr->addr);
-      if (addr->comments)
-	printf ("Comments |%s|\n", addr->comments);
-      if (addr->personal)
-	printf ("Personal |%s|\n", addr->personal);
-      if (addr->email)
-	printf ("Email |%s|\n", addr->email);
-    }
+  size_t j;
+  for (j = 0; addr; addr = addr->next, j++)
+    ;
+  if (pcount)
+    *pcount = j;
   return 0;
 }
-#endif

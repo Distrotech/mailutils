@@ -1,9 +1,11 @@
 SUBDIR = mailutils
 pkginclude_HEADERS = \
+ address.h \
  attribute.h \
  auth.h \
  body.h \
  debug.h \
+ folder.h \
  header.h \
  iterator.h \
  list.h \
