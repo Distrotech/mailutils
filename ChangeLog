@@ -1,3 +1,8 @@
+2002-03-18  Sam Roberts
+
+	* mailbox/locker.c: Implemented NFS-safe locking, useing link()
+	from a uniquely named file.
+
 2002-03-15  Alain Magloire
 
 	Nuking of some useless warnings, and make "char *" --> "const char *"
