@@ -1,3 +1,42 @@
+2001-04-04  Alain Magloire
+
+	Introduction of the notion of filter_t object takes a stream and
+	perform some filtering on it.  All the decoding streams will move
+	to this i.e. quoted-printable, base64 etc .. This scheme will also
+	permit users to add to the list new filters.  Still work in progress.
+
+	* mailbox/Makefile.am : Add filter.c filter_rfc822.c.
+	* mailbox/body.c ( : When creating a floating body i.e creating
+	a temporary file, the stream was not "own" by the body_t.
+	(_body_get_fd): Likewised.
+	(_body_read):_ Likewised.
+	(_body_readline): Likewised.
+	(_body_write): Likewised.
+	(_body_truncate): Likewised.
+	(_body_size): Likewised.
+	(_body_flush): Likewised.
+
+	* mailbox/folder_imap.c (imap_literal_string): Check if the
+	callback.buffer is NULL.
+	(imap_body): Do no set the callback.type if "FIELDS" is part of the
+	string.
+
+	* mailbox/header.c: Remove the support for RFC822 it will be part
+	of the filter_t object.
+	* mailbox/mbx_mbox.c: Likewised.
+	* mailbox/mailbox.c (mailbox_size): Rename to mailbox_get_size().
+
+	* mailbox/stream.c (stream_is_seekable): New function.
+	(stream_set_property): New function.
+	(stream_get_property): New function.
+
+	* mailbox/trans_stream.c: Beautify.
+
+	* include/mailutils/filter.h: new file.
+
+	* doc/mailbox.texi: Updated.
+	More changes to come.
+
 2001-03-20  Alain Magloire
 
 	* mailbox/folder_imap.c (imap_readline) :  If the server goes away
