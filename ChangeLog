@@ -1,3 +1,7 @@
+2004-01-20  Wojciech Polak
+
+	* doc/texinfo/*.texi: Major reorganization in the documentation.
+
 2004-01-19  Wojciech Polak
 
 	* libsieve/tests.c (retrieve_header): Unfold the header,
