@@ -32,7 +32,7 @@ mail_from (int argc, char **argv)
       header_t hdr = NULL;
       envelope_t env;
       attribute_t attr;
-      char *from = NULL, *subj = NULL;
+      char *from = NULL, *subj = NULL, *fromp, *subjp;
       int froml, subjl;
       char date[80], st[10];
       int cols = util_getcols () - 6;
@@ -70,13 +70,6 @@ mail_from (int argc, char **argv)
 	}
       header_aget_value (hdr, MU_HEADER_SUBJECT, &subj);
 
-      if (from == NULL || subj == NULL)
-	{
-	  free (from);
-	  free (subj);
-	  return 1;
-	}
-
       message_get_attribute (msg, &attr);
 
       if (attribute_is_userflag(attr, MAIL_ATTRIBUTE_MBOXED))
@@ -113,9 +106,11 @@ mail_from (int argc, char **argv)
       froml = cols / 3;
       subjl = cols - froml - strlen (st) - strlen (date);
 
+      fromp = from ? from : "";
+      subjp = subj ? subj : fromp;
       fprintf (ofile, "%c%c%4d %-18.18s %-16.16s %s %.*s\n",
 	       cursor == realcursor ? '>' : ' ', cflag, cursor,
-	       from, date, st, (subjl < 0) ? 0 : subjl, subj);
+	       fromp, date, st, (subjl < 0) ? 0 : subjl, subjp);
 
       free (from);
       free (subj);
