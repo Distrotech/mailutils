@@ -9,6 +9,7 @@ This chapter describes GNU Sieve library.
 * Library Description::
 * Input Language::
 * Extensions::
+* Writing Loadable Commands::
 @end menu
 
 @node Library Description
@@ -1313,6 +1314,13 @@ matching type toggles POSIX Extended Regular Expression matching.
 
 @end enumerate
 
+@node Writing Loadable Commands
+@section Writing Loadable Commands
 
+This section contains an example of how to write external loadable
+commands for GNU libsieve.
 
+@example
+@include numaddr.inc
+@end example
 

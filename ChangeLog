@@ -26,6 +26,10 @@
 	* pop3d/pop3d.c: Likewise.
 	* lib/mu_dbm.c: Include xalloc.h
 	* sieve/sieve.c: Include mu_asprintf.h
+
+	* examples/numaddr.c: Added extensive comments.
+	* doc/texinfo/libsieve.texi: Updated.
+	* doc/texinfo/programs.texi: Updated.
 	
 2002-12-10  Sergey Poznyakoff 
 

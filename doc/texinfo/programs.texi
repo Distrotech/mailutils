@@ -2211,8 +2211,11 @@ utilities in detail.
 @subsection A Sieve Interpreter
 
 Sieve interpreter @command{sieve} allows to apply Sieve scripts to an
-arbitrary number of mailboxes. GNU @command{sieve} supports full set
-of actions and tests described in RFC 3028.
+arbitrary number of mailboxes. GNU @command{sieve} implements a superset
+of the Sieve language as described in RFC 3028. @xref{Input Language},
+for a description of the Sieve language. @xref{Extensions}, for a
+discussion of differences between the GNU implementation of Sieve and
+its standard.
 
 @menu
 * Invoking Sieve::
@@ -2374,6 +2377,9 @@ following search paths (in the order given):
 
 @item The value of the environment variable LTDL_LIBRARY_PATH.
 
+@item Additional search directories specified with the
+@code{#searchpath} directive.
+
 @item System library search path: The system dependent library
 search path (e.g. on Linux it is set by the contents of the file
 @file{/etc/ld.so.conf} and the value of the environment variable
@@ -2381,8 +2387,9 @@ LD_LIBRARY_PATH).
 
 @end enumerate
 
-Each search path must be a colon-separated list of absolute directories,
-for example, @samp{"/usr/lib/mypkg:/lib/foo"}.
+The value of LTDL_LIBRARY_PATH and LD_LIBRARY_PATH must be a
+colon-separated list of absolute directories, for example,
+@samp{"/usr/lib/mypkg:/lib/foo"}.
 
 In any of these directories, @command{sieve} first attempts to find
 and load the given filename. If this fails, it tries to append the
