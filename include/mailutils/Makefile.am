@@ -5,6 +5,7 @@ pkginclude_HEADERS = \
  body.h \
  debug.h \
  envelope.h \
+ errno.h \
  error.h \
  filter.h \
  folder.h \

@@ -270,19 +270,37 @@ AC_CHECK_FUNC(gethostbyname, [true],
 AC_CHECK_FUNC(socket, [true],
 	AC_CHECK_LIB(socket, socket, LIBS="-lsocket $LIBS"))
 
+dnl Check for Curses libs.
+AC_CHECK_LIB(ncurses, tputs, CURSES_LIBS="-lncurses",
+	AC_CHECK_LIB(curses, tputs, CURSES_LIBS="-lcurses"))
+
+AC_SUBST(CURSES_LIBS)
+
 dnl Check for GNU Readline
 AC_SUBST(READLINE_LIBS)
+
 if test x"$usereadline" = x"yes"; then
-	AC_CHECK_LIB(readline, readline,
-		      [AC_CHECK_HEADERS(readline/readline.h,
-                                        AC_DEFINE(WITH_READLINE))
-                       READLINE_LIBS="-lcurses -lreadline"
-                       saved_LIBS=$LIBS
-                       LIBS="$LIBS $READLINE_LIBS"
-                       AC_CHECK_FUNCS(rl_completion_matches)
-                       LIBS=$saved_LIBS],
-			:,
-		       -lcurses)
+
+	dnl FIXME This should only link in the curses libraries if it's
+	dnl really needed!
+	
+	saved_LIBS=$LIBS
+	LIBS="$LIBS $CURSES_LIBS"
+	AC_CHECK_LIB(readline, readline, mu_have_readline=yes)
+	LIBS=$saved_LIBS
+	
+	if test x"$mu_have_readline" = x"yes"; then
+		AC_CHECK_HEADERS(readline/readline.h,
+			AC_DEFINE(WITH_READLINE))
+			READLINE_LIBS="-lreadline $CURSES_LIBS"
+			saved_LIBS=$LIBS
+			LIBS="$LIBS $READLINE_LIBS"
+			AC_CHECK_FUNCS(rl_completion_matches)
+			LIBS=$saved_LIBS
+	else
+		AC_MSG_WARN(readline requested but does not seem to be installed)
+	fi
+
 fi
 
 dnl Check for DBM

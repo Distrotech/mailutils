@@ -1,3 +1,12 @@
+2002-02-21  Jeff Bailey  <jbailey@outpost.dnsalias.org>
+
+	* sieve/Makefile.am: Link @ARGPLIBS@ before libmailutils.la to 
+	compensate for lack of interlibrary dependancies
+
+	* configure.in: Detect either curses or ncurses
+
+	* include/mailutils/Makefile.am: Add errno.h
+
 2002-02-20 20:25  Sam Roberts <sroberts@uniserve.com>
 
 	* comsat/action.c, comsat/cfg.c, lib/argcv.c, lib/argcv.h,
