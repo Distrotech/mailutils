@@ -1,3 +1,87 @@
+2002-08-13  Sergey Poznyakoff
+
+	Moved authentication specific calls scattered all over the
+	code to one place: libmuauth library. The new code returns
+	authorization credentials in struct mu_auth_data. It contains
+	all information from struct passwd as well as some
+	mailutils-specific information. New options `--authentication'
+	and `--authorization' provide a way to override default
+	settings.
+	
+	* configure.ac: Check for prototypes of strtok_r, strchrnul,
+	  strndup, asprintf, vasprintf. Create auth/Makefile
+	* Makefile.am: Added auth to SUBDIRS.
+	* MySql/Makefile.am: Added INCLUDES
+	* MySql/MySql.c: Include <mailutils/error.h>
+
+	* comsat/comsat.c: Switched to the new
+	  authentication/authorization functions.
+	* guimb/scm/sieve-core.scm: Likewise.
+	* imap4d/authenticate.c: Likewise.
+	* imap4d/bye.c: Likewise.
+	* imap4d/imap4d.c: Likewise.
+	* imap4d/login.c: Likewise.
+	* imap4d/namespace.c: Likewise.
+	* imap4d/rename.c: Likewise.
+	* pop3d/pop3d.c: Likewise.
+	* pop3d/user.c: Likewise.
+	* libmu_scm/mu_util.c: Likewise.
+	* mail.local/main.c: Likewise.
+	* mail.local/script.c: Likewise.
+	* mailbox/mbx_default.c: Likewise.
+	* mailbox/message.c: Likewise.	
+	* mailbox/wicket.c: Likewise.
+
+	* mailbox/mu_argp.c: Removed pam- and sql-specific stuff
+	* mailbox/mu_auth.c: New file. Basic authentication/authorization
+	  functions.
+	* mailbox/Makefile.am: Added mu_auth.c 
+
+	* auth/: New directory. The libmuauth library.
+	* auth/system.c: New file. System-specific
+	  (passwd/shadow) auth functions.
+	* auth/pam.c: New file. PAM-specific auth functions.
+	* auth/sql.c: New file. SQL-specific auth functions.
+	* auth/virtual.c: New file. Virtual-domain-specific auth functions.
+	* auth/Makefile.am: New file.
+
+	* pop3d/virtual.c: Removed. 
+	* pop3d/Makefile.am: Removed virtual.c
+	
+	* include/mailutils/mu_auth.h: New file. Prototypes for mailutils
+	  authentication/authorization functions.
+	* include/mailutils/Makefile.am: Added mu_auth.h.
+	* include/mailutils/argp.h (mu_register_capa): New prototype.
+
+	* include/mailutils/mutil.h (mu_register_getpwnam,
+	  mu_register_getpwuid,mu_getpwnam,mu_getpwuid,
+	  mu_virtual_domain): Removed.
+	* mailbox/mutil.c: Likewise.  
+
+        * lib/argp-help.c: Provide declarations for strchrnul, strndup
+	  if necessary.
+	* lib/mu_asprintf.c: Likewise for vasprintf,asprintf
+	
+	* imap4d/imap4d.h: Include <mailutils/mu_auth.h>
+	* comsat/comsat.h: Likewise.
+	* mail.local/mail.local.h: Likewise.
+	* pop3d/pop3d.h: Likewise.
+	
+	* mailbox/smtp.c (message_has_bcc): Fixed inconsistency in
+	  passing arguments to header_get_value().
+	* mail/set.c (mail_set): Fixed inconsistency in passing arguments
+	  to strtoul().
+	* mail/util.c (util_get_homedir): Do not strdup return.
+	  mu_get_homedir() does it now.
+	* mail/var.c (var_insert): Changed declaration to avoid
+	  `auth shadows parameter' warning.
+	  
+	* mailbox/locker.c (_locker_lock_dotlock): Bugfix: do not leave
+	  temporary lock file in case of errors
+
+	* mailbox/mailbox.c: Include <mailutils/attribute.h>
+	* mh/mh_init.c: Free return value of mu_get_homedir().
+	
 2002-08-08  Sergey Poznyakoff
 
 	* .cvsignore: Updated
