@@ -23,7 +23,6 @@
 #endif
 
 #define _QNX_SOURCE
-#define _GNU_SOURCE
 
 #include <sys/types.h>
 #ifdef HAVE_SECURITY_PAM_APPL_H
