@@ -39,12 +39,13 @@ mail_mbox_close ()
   if (mail_mbox_commit ())
     return 1;
   
+  mailbox_save_attributes (mbox);
   mailbox_expunge (mbox);
 
   mailbox_get_url (mbox, &url);
   mailbox_messages_count (mbox, &held_count);
   fprintf (ofile, "Held %d messages in %s\n", held_count, url_to_string (url));
-  
+
   mailbox_close (mbox);
   mailbox_destroy (&mbox);
   return 0;
@@ -59,7 +60,8 @@ mail_mbox_commit ()
   message_t msg;
   attribute_t attr;
   int keepsave = util_find_env("keepsave")->set;
-  
+  int hold = util_find_env ("hold")->set;
+    
   for (i = 1; i <= total; i++)
     {
       if (mailbox_get_message (mbox, i, &msg))
@@ -68,7 +70,8 @@ mail_mbox_commit ()
 	  return 1;
 	}
       message_get_attribute (msg, &attr);
-      if (attribute_is_userflag (attr, MAIL_ATTRIBUTE_MBOXED))
+      if (attribute_is_userflag (attr, MAIL_ATTRIBUTE_MBOXED)
+	  || (!hold && attribute_is_seen (attr)))
 	{
 	  if (!dest_mbox)
 	    {
@@ -88,9 +91,9 @@ mail_mbox_commit ()
 	  saved_count++;
 	}
       else if (!keepsave && attribute_is_userflag (attr, MAIL_ATTRIBUTE_SAVED))
-	{
-	  attribute_set_deleted (attr);
-	}
+	attribute_set_deleted (attr);
+      else if (attribute_is_seen (attr))
+	attribute_set_read (attr);
     }
 
   if (saved_count)
