@@ -31,7 +31,7 @@ static int  pop3_itr_dup     (void **ptr, void *owner);
 static int  pop3_itr_destroy (iterator_t itr, void *owner);
 static int  pop3_itr_first   (void *owner);
 static int  pop3_itr_next    (void *woner);
-static int  pop3_itr_getitem (void *owner, void **pret);
+static int  pop3_itr_getitem (void *owner, void * const *pret);
 static int  pop3_itr_curitem_p (void *owner, void *data);
 static int  pop3_itr_finished_p (void *owner);
 
@@ -157,7 +157,7 @@ pop3_itr_next (void *owner)
 }
 
 static int
-pop3_itr_getitem (void *owner, void **item)
+pop3_itr_getitem (void *owner, void * const *item)
 {
   struct pop3_iterator *pop3_iterator = (struct pop3_iterator *)owner;
   if (item)
