@@ -723,6 +723,7 @@ _scan_body (struct parsebuf *pb, char *text)
 	 && stream_read (stream, buffer, sizeof(buffer)-1, offset, &n) == 0
 	 && n > 0)
     {
+      buffer[n] = 0;
       offset += n;
       rc = util_strcasestr (buffer, text) != NULL;
     }
