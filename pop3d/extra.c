@@ -157,14 +157,14 @@ pop3_readline (int fd)
 {
   fd_set rfds;
   struct timeval tv;
-  char buf[1024], *ret = NULL;
+  char buf[512], *ret = NULL;
+  int nread;
   int available;
 
   FD_ZERO (&rfds);
   FD_SET (fd, &rfds);
   tv.tv_sec = timeout;
   tv.tv_usec = 0;
-  memset (buf, '\0', 1024);
 
   do
     {
@@ -175,17 +175,20 @@ pop3_readline (int fd)
 	    pop3_abquit (ERR_TIMEOUT);
 	}
 
-      if (read (fd, buf, 1024) < 1)
+      nread = read (fd, buf, sizeof (buf) - 1);
+      if (nread < 1)
 	pop3_abquit (ERR_DEAD_SOCK);
+
+      buf[nread] = '\0';
 
       if (ret == NULL)
 	{
-	  ret = malloc ((strlen (buf) + 1) * sizeof (char));
+	  ret = malloc ((nread + 1) * sizeof (char));
 	  strcpy (ret, buf);
 	}
       else
 	{
-	  ret = realloc (ret, (strlen (ret) + strlen (buf) + 1) * sizeof (char));
+	  ret = realloc (ret, (strlen (ret) + nread + 1) * sizeof (char));
 	  strcat (ret, buf);
 	}
     }
