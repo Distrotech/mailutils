@@ -266,8 +266,6 @@ SCM_DEFINE (mu_message_set_header, "mu-message-set-header", 3, 1, 0,
 	      VALUE, SCM_ARG2, FUNC_NAME);
   if (!SCM_UNBNDP (REPLACE))
     {
-      SCM_ASSERT (SCM_IMP (REPLACE) && SCM_INUMP (REPLACE),
-		  REPLACE, SCM_ARG3, FUNC_NAME);
       replace = REPLACE == SCM_BOOL_T;
     }
   
