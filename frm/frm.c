@@ -248,6 +248,7 @@ static int
 action (observer_t o, size_t type)
 {
   static int counter;
+  int status;
 
   switch (type)
     {
@@ -296,8 +297,8 @@ action (observer_t o, size_t type)
 	if (show_field)
 	  {
 	    char hfield[256];
-	    int status = header_get_value_unfold (hdr, show_field, hfield,
-						  sizeof (hfield), NULL);
+	    status = header_get_value_unfold (hdr, show_field, hfield,
+					      sizeof (hfield), NULL);
 	    if (status == 0)
 	      printf ("%s", hfield);
 	  }
@@ -305,7 +306,8 @@ action (observer_t o, size_t type)
 	if (show_to)
 	  {
 	    char hto[16];
-	    int status = get_personal (hdr, MU_HEADER_TO, hto, sizeof (hto));
+	    status = get_personal (hdr, MU_HEADER_TO, hto, sizeof (hto));
+
 	    if (status == 0)
 	      printf ("(%s) ", hto);
 	    else
@@ -315,8 +317,8 @@ action (observer_t o, size_t type)
 	if (show_from)
 	  {
 	    char hfrom[32];
-	    int status = get_personal (hdr, MU_HEADER_FROM, hfrom,
-				       sizeof (hfrom));
+	    status = get_personal (hdr, MU_HEADER_FROM, hfrom,
+				   sizeof (hfrom));
 	    if (status == 0)
 	      printf ("%s\t", hfrom);
 	    else
@@ -326,12 +328,14 @@ action (observer_t o, size_t type)
 	if (show_subject)
 	  {
 	    char hsubject[64];
-	    int status = header_get_value_unfold (hdr, MU_HEADER_SUBJECT,
-						  hsubject,
-						  sizeof (hsubject), NULL);
-	    frm_rfc2047_decode (hsubject, sizeof (hsubject));
-	    if(status == 0)
-	      printf ("%s", hsubject);
+	    status = header_get_value_unfold (hdr, MU_HEADER_SUBJECT,
+					      hsubject,
+					      sizeof (hsubject), NULL);
+	    if (status == 0)
+	      {
+		frm_rfc2047_decode (hsubject, sizeof (hsubject));
+		printf ("%s", hsubject);
+	      }
 	  }
 	printf ("\n");
 	break;

@@ -197,7 +197,7 @@ main (int argc, char **argv)
       if ((status = mailbox_get_message (mbox, i, &msg)) != 0
 	  || (status = message_get_header (msg, &hdr)) != 0)
 	{
-	  mu_error (_("msg %d : %s\n"), i, mu_strerror (status));
+	  mu_error (_("msg %d : %s"), i, mu_strerror (status));
 	  exit (2);
 	}
 
