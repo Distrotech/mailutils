@@ -16,7 +16,6 @@
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #include "imap4d.h"
-#include <ctype.h>
 
 static int add2set __P ((size_t **, int *, unsigned long));
 static const char *sc2string __P ((int));
@@ -199,7 +198,7 @@ util_normalize_path (char *path, const char *delim)
 	      /* Copy stuff */
 	      s = p + 2;
 	      p = q;
-	      while (*q++ = *s++)
+	      while ((*q++ = *s++))
 		;
 	      continue;
 	    }
@@ -684,11 +683,9 @@ int
 util_parse_internal_date0 (char *date, time_t *timep, char **endp)
 {
   struct tm tm;
-  char *save;
   int n, i;
   int year, day, hour, min, sec;
   char mon[4];
-  char sign[2];
   char tzs[6];
   time_t time;
   int off;
@@ -696,7 +693,7 @@ util_parse_internal_date0 (char *date, time_t *timep, char **endp)
   memset (&tm, 0, sizeof (tm));
   n = sscanf (date, "%2d-%3s-%4d %2d:%2d:%2d %5s%n\n",
 	      &day, mon, &year,
-	      &hour, &min, &sec, &tzs, &off);
+	      &hour, &min, &sec, tzs, &off);
 
   switch (n)
     {
@@ -735,7 +732,6 @@ util_parse_internal_date0 (char *date, time_t *timep, char **endp)
 
   if (n == 7)
     {
-      int sign;
       int tz;
 
       if (strlen (tzs) != 5)
@@ -767,77 +763,20 @@ util_parse_internal_date (char *date, time_t *timep)
 
 
 int
-util_parse_header_date (char *date, time_t *timep)
+util_parse_822_date (char *date, time_t *timep)
 {
   struct tm tm;
-  char *save;
-  int n, i;
-  int year, day, hour, min, sec;
-  char wday[5];
-  char mon[4];
-  char sign[2];
-  char tzs[6];
-  time_t time;
-
-  memset (&tm, 0, sizeof (tm));
-  n = sscanf (date, "%3s, %2d %3s %4d %2d:%2d:%2d %5s",
-	      wday, &day, mon, &year,
-	      &hour, &min, &sec, &tzs);
-
-  if (n < 7)
-    return 1;
-
-  tm.tm_mday = day;
-  for (i = 0; i < 11; i++)
-    if (strncmp (months[i], mon, 3) == 0)
-      break;
-  if (i == 12)
-    return 1;
-  tm.tm_mon = i;
-  tm.tm_year = (year < 1900) ? year : year - 1900;
-
-  if (n >= 6)
+  
+  if (parse822_date_time(&date, date+strlen(date), &tm) == 0)
     {
-      tm.tm_hour = hour;
-      tm.tm_min = min;
-      tm.tm_sec = sec;
+      *timep = mktime (&tm);
+      return 0;
     }
-
-  tm.tm_isdst = -1; /* unknown. */
-
-  time = mktime (&tm);
-  if (time == (time_t) -1)
-    return 2;
-
-  /*FIXME: mktime corrects for the timezone. We should fix up the
-    correction here */
-
-  if (n == 8)
-    {
-      int sign;
-      int tz;
-
-      if (strlen (tzs) != 5)
-	return 3;
-
-      for (i = 1; i <= 4; i++)
-	if (!isdigit (tzs[i]))
-	  return 3;
-
-      tz = (c2d (tzs[1])*10 + c2d (tzs[2]))*60 +
-	    c2d (tzs[3])*10 + c2d (tzs[4]);
-      if (tzs[0] == '-')
-	tz = -tz;
-      else if (tzs[0] != '+')
-	return 4;
-      time -= tz*60;
-    }
-  *timep = time;
-  return 0;
+  return 1;
 }
 
 int
-util_parse_rfc822_date (char *date, time_t *timep)
+util_parse_ctime_date (char *date, time_t *timep)
 {
   int year, mon, day, hour, min, sec;
   int offt;
@@ -916,12 +855,12 @@ struct
   char *name;
   int flag;
 } _imap4d_attrlist[] = {
-  "\\Answered", MU_ATTRIBUTE_ANSWERED,
-  "\\Flagged",  MU_ATTRIBUTE_FLAGGED,
-  "\\Deleted", MU_ATTRIBUTE_DELETED,
-  "\\Draft", MU_ATTRIBUTE_DRAFT,
-  "\\Seen", MU_ATTRIBUTE_SEEN,
-  "\\Recent", MU_ATTRIBUTE_RECENT,
+  { "\\Answered", MU_ATTRIBUTE_ANSWERED },
+  { "\\Flagged",  MU_ATTRIBUTE_FLAGGED },
+  { "\\Deleted", MU_ATTRIBUTE_DELETED },
+  { "\\Draft", MU_ATTRIBUTE_DRAFT },
+  { "\\Seen", MU_ATTRIBUTE_SEEN },
+  { "\\Recent", MU_ATTRIBUTE_RECENT },
 };
 
 #define NATTR sizeof(_imap4d_attrlist)/sizeof(_imap4d_attrlist[0])
@@ -982,7 +921,7 @@ util_type_to_attribute (int type, char **attr_str)
 int
 util_parse_attributes(char *items, char **save, int *flags)
 {
-  int rc;
+  int rc = 0;
 
   *flags = 0;
   while (*items)
