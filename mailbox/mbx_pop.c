@@ -1255,6 +1255,8 @@ pop_read_header (stream_t is, char *buffer, size_t buflen, off_t offset,
 
   if (mpm == NULL)
     return EINVAL;
+  mpd = mpm->mpd;
+
   /* Busy ? */
   if (mpd->func && mpd->func != func)
     return EBUSY;
@@ -1276,6 +1278,8 @@ pop_read_body (stream_t is, char *buffer, size_t buflen, off_t offset,
 
   if (mpm == NULL)
     return EINVAL;
+  mpd = mpm->mpd;
+
   /* Busy ? */
   if (mpd->func && mpd->func != func)
     return EBUSY;
@@ -1298,6 +1302,7 @@ pop_read_message (stream_t is, char *buffer, size_t buflen, off_t offset,
   if (mpm == NULL)
     return EINVAL;
   mpd = mpm->mpd;
+
   /* Busy ? */
   if (mpd->func && mpd->func != func)
     return EBUSY;
