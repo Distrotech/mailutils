@@ -431,8 +431,6 @@ deliver (FILE *fp, char *name)
   url_t url = NULL;
   size_t n = 0;
   locker_t lock;
-  int timeout;
-  struct stat sb;
   struct passwd *pw;
   int status;
   stream_t stream;
@@ -457,7 +455,7 @@ deliver (FILE *fp, char *name)
 
   if ((status = mailbox_create (&mbox, path)) != 0)
     {
-      mailer_err ("can't open mailbox %s: %s", path, strerror (status));
+      mailer_err ("can't open mailbox %s: %s", path, mu_errstring (status));
       free (path);
       return;
     }
@@ -477,24 +475,20 @@ deliver (FILE *fp, char *name)
     return;
   if (status != 0)
     {
-      mailer_err ("can't open mailbox %s: %s", path, strerror (status));
+      mailer_err ("can't open mailbox %s: %s", path, mu_errstring (status));
       mailbox_destroy (&mbox);
       return;
     }
   
   mailbox_get_locker (mbox, &lock);
+  locker_set_flags (lock, MU_LOCKER_PID|MU_LOCKER_RETRY);
+  locker_set_retries (lock, lock_timeout);
 
-  timeout = lock_timeout;
-  while ((status = locker_lock (lock, MU_LOCKER_WRLOCK|MU_LOCKER_PID)))
-    {
-      if (timeout-- <= 0)
-	break;
-      sleep (1);
-    }
+  status = locker_lock (lock);
 
   if (status)
     {
-      mailer_err ("cannot lock mailbox '%s': %s", path, strerror (status));
+      mailer_err ("cannot lock mailbox '%s': %s", path, mu_errstring (status));
       mailbox_destroy (&mbox);
       exit_code = EX_TEMPFAIL;
       return;
@@ -503,7 +497,7 @@ deliver (FILE *fp, char *name)
   if ((status = mailbox_get_stream (mbox, &stream)))
     {
       mailer_err ("can't get stream for mailbox %s: %s",
-		  path, strerror (status));
+		  path, mu_errstring (status));
       mailbox_destroy (&mbox);
       return;
     }
@@ -511,7 +505,7 @@ deliver (FILE *fp, char *name)
   if ((status = stream_size (stream, (off_t *) &size)))
     {
       mailer_err ("can't get stream size (mailbox %s): %s",
-		  path, strerror (status));
+		  path, mu_errstring (status));
       mailbox_destroy (&mbox);
       return;
     }
@@ -557,7 +551,7 @@ deliver (FILE *fp, char *name)
 	status = stream_write (stream, buf, strlen (buf), off, &nwr);
 	if (status)
 	  {
-	    mailer_err ("error writing to mailbox: %s", strerror (status));
+	    mailer_err ("error writing to mailbox: %s", mu_errstring (status));
 	    break;
 	  }
 	off += nwr;
