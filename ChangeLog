@@ -1,3 +1,27 @@
+2003-12-12  Sergey Poznyakoff
+
+        Temporarily switched to the back-up repository
+        on mirddin. Change map:
+
+        Date from       Date to         Repository
+        ========        =======         ==========
+        1999-09-10      2003-12-01      Savannah
+        2003-12-04      ***             Mirddin
+
+2003-12-05  Sergey Poznyakoff 
+
+	* mailbox/imap/mbox.c (mailbox_imap_open): Bugfix. Thanks
+	Stephen Bylo <Stephen.Bylo@radixs.com> for reporting.
+
+2003-12-04  Sergey Poznyakoff 
+
+	* mh/mhn.c (stream_getline): Bugfix
+	* mailbox/parse822.c (parse822_route_addr): Handle empty
+	addresses. Patch provided by Rob Casey <rob.casey@bluebottle.com>
+	* mailbox/smtp.c (smtp_send_message): Send sender and receipient
+	addresses enclosed in angle brackets.
+	* mailbox/testsuite/Addrs: Fixed null address test.
+	
 2003-12-01  Sergey Poznyakoff 
 
 	* mailbox/sendmail.c (sendmail_send_message): Don't
