@@ -1,3 +1,12 @@
+2003-03-17  Sergey Poznyakoff
+
+	* mh/mh.h (MHL_DISABLE_BODY): New flag.
+	* mh/mh_list.c (eval_body,mhl_format_run): MHL_DISABLE_BODY
+	  bit inhibits the 'body:' keyword.
+	* mh/mhn.c: Implemented store mode.
+	* mh/README: Updated
+	* mh/TODO: Updated
+
 2003-03-16  Wojciech Polak
 
 	* mh/mh_init.c (mh_getyn, mh_real_install): Added an extra

@@ -178,6 +178,32 @@ specified:
  --dry-run  do not actually sort messages, rather print what would
             have been done. This is useful for debugging purposes.
 
+* mhn
+
+** New option --compose forces mhn editing mode. This differs from
+the standard mhn, which switches to the editing mode only if
+no other options were given and the input file name coincides
+with the value of "mhdraft" environment variable.
+
+** Show mode (--show)
+*** If an appropriate mhn-show-type[/subtype] was not found, GNU mhn
+prints the decoded message content using moreproc. Standard mhn in
+this case used to print "don't know how to display content" diagnostic.
+
+*** The default behaviour is to pipe the content to the standard input
+of the mhn-show-type[/subtype] command. This is altered to using a
+temporary file if the command contains %f or %F escapes.
+
+** Store mode (--store)
+*** If Content-Disposition header contains "filename=", and mhn
+is invoked with --auto switch, it transforms the filename into
+the absolute notation and uses it only if it lies below the
+current mhn-storage directory. Standard mhn only requires that the
+filename do not begin with '/'
+
+*** Before saving a message part, GNU mhn checks if the file already
+exists. If so it asks whether the user wishes to rewrite it. This
+behaviour is disabled when --quiet option was given.
 
 
 Local variables:
