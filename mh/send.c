@@ -43,7 +43,7 @@ static struct argp_option options[] = {
   {"nodraftfolder", ARG_NODRAFTFOLDER, NULL, 0,
    N_("Undo the effect of the last --draftfolder option") },
   {"filter",        ARG_FILTER,        N_("FILE"), 0,
-  N_("* Set the filter program to preprocess the body of the message") },
+  N_("* Use filter FILE to preprocess the body of the message") },
   {"nofilter",      ARG_NOFILTER,      NULL, 0,
    N_("* Undo the effect of the last --filter option") },
   {"format",        ARG_FORMAT,        N_("BOOL"), OPTION_ARG_OPTIONAL,
@@ -239,14 +239,6 @@ watch_printf (const char *fmt, ...)
   vfprintf (stderr, fmt, ap);
   fprintf (stderr, "\n");
   va_end (ap);
-}
-
-static char *
-draft_name()
-{
-  char *draftfolder = mh_global_profile_get ("Draft-Folder",
-					     mu_path_folder_dir);
-  return mh_expand_name (draftfolder, "draft", 0);
 }
 
 static list_t mesg_list;
@@ -465,7 +457,7 @@ main (int argc, char **argv)
     {
       struct stat st;
       static char *xargv[2];
-      xargv[0] = draft_name();
+      xargv[0] = mh_draft_name ();
 
       if (stat (xargv[0], &st))
 	{
