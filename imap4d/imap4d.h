@@ -153,8 +153,9 @@ extern struct mu_auth_data *auth_data;
 #ifdef WITH_TLS
 extern int tls_available;
 extern int tls_done;
-extern int login_disabled;
 #endif /* WITH_TLS */
+
+extern int login_disabled;
 
 #ifndef HAVE_STRTOK_R
 extern char *strtok_r __P((char *s, const char *delim, char **save_ptr));

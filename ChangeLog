@@ -1,3 +1,23 @@
+2003-01-21  Sergey Poznyakoff 
+
+	Implemented LOGINDISABLED.
+	
+	* imap4d/capability.c (imap4d_capability_add)
+	  (imap4d_capability_remove, imap4d_capability_init): New
+	  functions.
+	* imap4d/imap4d.h: Likewise.
+	* imap4d/imap4d.c (login_disabled): New global.
+	  (argp_option options): Added --login-disabled option.
+	  (imap4d_parse_opt): Handle --login-disabled option.
+	  (main): Call imap4d_capability_init().
+	  Register "STARTTLS" capability if tls is OK.
+	* imap4d/starttls.c: When TLS negotiation succeedes, remove
+	  "STARTTLS" capability and reset login_disabled.
+	
+	* imap4d/login.c: Fail if login_disabled is set.
+	* imap4d/util.c (util_msgset): Edited comment.
+	  (util_start,util_getstate): Removed.
+	
 2003-01-20  Sergey Poznyakoff 
 
 	* configure.ac: Invoke AM_GNU_GETTEXT with no-libtool,
