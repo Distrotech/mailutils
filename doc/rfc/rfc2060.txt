@@ -1646,7 +1646,7 @@ RFC 2060                       IMAP4rev1                   December 1996
    Example:    C: A002 UNSUBSCRIBE #news.comp.mail.mime
                S: A002 OK UNSUBSCRIBE completed
 
-6.3..8.  LIST Command
+6.3.8.  LIST Command
 
    Arguments:  reference name
                mailbox name with possible wildcards
