@@ -94,6 +94,8 @@ case "${withval}" in
 esac],[usereadline=yes])
 
 AC_SUBST(IMAP_AUTHOBJS)
+AC_SUBST(SERV_AUTHLIBS)
+AC_SUBST(SERV_AUTHINCS)
 
 AC_ARG_WITH([gssapi],
             AC_HELP_STRING([--with-gssapi],
@@ -107,8 +109,8 @@ if test "x$WITH_GSSAPI" != "xno"; then
     AC_CACHE_SAVE
     AC_MSG_RESULT([GSSAPI libraries not found])
   else
-    AUTHLIBS="$AUTHLIBS $GSSAPI_LIBS"
-    AUTHINCS="$AUTHINCS $GSSAPI_CFLAGS"
+    SERV_AUTHLIBS="$SERV_AUTHLIBS $GSSAPI_LIBS"
+    SERV_AUTHINCS="$SERV_AUTHINCS $GSSAPI_CFLAGS"
     IMAP_AUTHOBJS="$IMAP_AUTHOBJS auth_gss.o"
     AC_DEFINE(WITH_GSSAPI,1,[Define if mailutils is using GSSAPI])
   fi
@@ -502,7 +504,8 @@ if test x"$testpam" = x"yes"; then
 	if test x"$ac_cv_header_security_pam_appl_h" = x"yes"; then
 		AC_CHECK_LIB(dl, dlopen, [LDL=-ldl], [LDL=])
 		AC_CHECK_LIB(pam, pam_start,
-			AUTHLIBS="$AUTHLIBS -lpam $LDL" ac_cv_have_libpam="yes",, $LDL)
+			[AUTHLIBS="$AUTHLIBS -lpam $LDL"
+                         ac_cv_have_libpam="yes"],, $LDL)
 		AC_DEFINE(USE_LIBPAM,1,[Enable use of PAM])
 	fi
 fi
@@ -638,6 +641,7 @@ AC_SUBST(GUILE_SNARF_VERSION)
 AC_SUBST(GUIMB)
 AC_SUBST(MU_SCM)
 AC_SUBST(LIBMU_SCM)
+AC_SUBST(LIBMU_SCM_DEPS)
 AC_SUBST(GUILE_PKGDATA)
 AC_SUBST(GUILE_BUILT_SOURCES)
 
@@ -650,6 +654,7 @@ if test x"$useguile" = x"yes"; then
 	    GUIMB=guimb
             MU_SCM=libmu_scm.la
             LIBMU_SCM=../libmu_scm/libmu_scm.la
+	    LIBMU_SCM_DEPS="../mailbox/mbox/libmu_mbox.la ../mailbox/imap/libmu_imap.la ../mailbox/pop/libmu_pop.la ../mailbox/mh/libmu_mh.la"
             GUILE_PKGDATA="guile-procedures.txt mailutils.scm"
 	    GUILE_BUILT_SOURCES='$(DOT_X_FILES) $(DOT_DOC_FILES)'
             case "$GUILE_VERSION" in
