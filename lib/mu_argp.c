@@ -25,6 +25,14 @@
 #ifdef HAVE_STRINGS_H
 # include <strings.h>
 #endif
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <pwd.h>
+#include <xalloc.h>
+#include <getline.h>
+#include <mailutils/mutil.h>
+#include <mailutils/error.h>
 #include <argcv.h>
 #include <mu_argp.h>
 #ifdef HAVE_MYSQL
@@ -42,24 +50,21 @@
 #define ARG_SQL_PORT 9
 #define ARG_PAM_SERVICE 10
 
-static struct argp_option mu_common_argp_option[] =
-{
+static struct argp_option mu_common_argp_option[] = {
   {"maildir", 'm', "URL", 0,
    "use specified URL as a mailspool directory", 0},
   { "license", 'L', NULL, 0, "print license and exit", 0 },
   { NULL,      0, NULL, 0, NULL, 0 }
 };
 
-static struct argp_option mu_logging_argp_option[] =
-{
+static struct argp_option mu_logging_argp_option[] = {
   {"log-facility", ARG_LOG_FACILITY, "FACILITY", 0,
    "output logs to syslog FACILITY", 0},
   { NULL,      0, NULL, 0, NULL, 0 }
 };
 
 
-static struct argp_option mu_auth_argp_option[] =
-{
+static struct argp_option mu_auth_argp_option[] = {
 #ifdef USE_LIBPAM
   { "pam-service", ARG_PAM_SERVICE, "STRING", 0,
     "Use STRING as PAM service name", 0},
@@ -85,8 +90,7 @@ static struct argp_option mu_auth_argp_option[] =
   { NULL,      0, NULL, 0, NULL, 0 }
 };
 
-static struct argp_option mu_daemon_argp_option[] =
-{
+static struct argp_option mu_daemon_argp_option[] = {
   {"daemon", 'd', "NUMBER", OPTION_ARG_OPTIONAL,
    "runs in daemon mode with a maximum of NUMBER children"},
   {"inetd",  'i', 0, 0,
@@ -103,8 +107,7 @@ static error_t mu_common_argp_parser __P((int key, char *arg,
 static error_t mu_daemon_argp_parser __P((int key, char *arg,
 					  struct argp_state *state));
 
-struct argp mu_common_argp =
-{
+struct argp mu_common_argp = {
   mu_common_argp_option,
   mu_common_argp_parser,
   "",
@@ -121,8 +124,7 @@ struct argp_child mu_common_argp_child = {
   1
 };
 
-struct argp mu_auth_argp =
-{
+struct argp mu_auth_argp = {
   mu_auth_argp_option,
   mu_common_argp_parser,
   "",
@@ -139,8 +141,7 @@ struct argp_child mu_auth_argp_child = {
   1
 };
 
-struct argp mu_logging_argp =
-{
+struct argp mu_logging_argp = {
   mu_logging_argp_option,
   mu_common_argp_parser,
   "",
@@ -157,8 +158,7 @@ struct argp_child mu_logging_argp_child = {
   1
 };
 
-struct argp mu_daemon_argp =
-{
+struct argp mu_daemon_argp = {
   mu_daemon_argp_option,
   mu_daemon_argp_parser,
   "",
@@ -361,6 +361,10 @@ mu_daemon_argp_parser (int key, char *arg, struct argp_state *state)
 # define MU_CONFIG_FILE SYSCONFDIR "/mailutils.rc"
 #endif
 
+#ifndef MU_USER_CONFIG_FILE
+# define MU_USER_CONFIG_FILE ".mailutils"
+#endif
+
 static int
 member (const char *array[], const char *text, size_t len)
 {
@@ -372,14 +376,116 @@ member (const char *array[], const char *text, size_t len)
 }
 
 void
+read_rc (const char *progname, const char *name, const char *capa[],
+	 int *argc, char ***argv)
+{
+  FILE *fp;
+  char *linebuf = NULL;
+  char *buf = NULL;
+  size_t n = 0;
+  int x_argc = *argc;
+  char **x_argv = *argv;
+
+  fp = fopen (name, "r");
+  if (!fp)
+    return;
+  
+  while (getline (&buf, &n, fp) > 0)
+    {
+      char *kwp, *p;
+      int len;
+      
+      for (kwp = buf; *kwp && isspace (*kwp); kwp++)
+	;
+
+      if (*kwp == '#' || *kwp == 0)
+	continue;
+
+      len = strlen (kwp);
+      if (kwp[len-1] == '\n')
+	kwp[--len] = 0;
+
+      if (kwp[len-1] == '\\' || linebuf)
+	{
+	  int cont;
+	  
+	  if (kwp[len-1] == '\\')
+	    {
+	      kwp[--len] = 0;
+	      cont = 1;
+	    }
+	  else
+	    cont = 0;
+	  
+	  if (!linebuf)
+	    linebuf = calloc (len + 1, 1);
+	  else
+	    linebuf = realloc (linebuf, strlen (linebuf) + len + 1);
+	  
+	  if (!linebuf)
+	    {
+	      fprintf (stderr, "%s: not enough memory\n", progname);
+	      exit (1);
+	    }
+	  
+	  strcpy (linebuf + strlen (linebuf), kwp);
+	  if (cont)
+	    continue;
+	  kwp = linebuf;
+	}
+
+      len = 0;
+      for (p = kwp; *p && !isspace (*p); p++)
+	len++;
+
+      if ((kwp[0] == ':'
+	   && member (capa, kwp+1, len-1))
+	  || strncmp (progname, kwp, len) == 0)
+	{
+	  int i, n_argc = 0;
+	  char **n_argv;
+              
+	  if (argcv_get (p, "", NULL, &n_argc, &n_argv))
+	    {
+	      argcv_free (n_argc, n_argv);
+	      if (linebuf)
+		free (linebuf);
+	      linebuf = NULL;
+	      continue;
+	    }
+	  x_argv = realloc (x_argv,
+			    (x_argc + n_argc) * sizeof (x_argv[0]));
+	  if (!x_argv)
+	    {
+	      fprintf (stderr, "%s: not enough memory\n", progname);
+	      exit (1);
+	    }
+	  
+	  for (i = 0; i < n_argc; i++)
+	    x_argv[x_argc++] = n_argv[i];
+	  
+	  free (n_argv);
+	  if (linebuf)
+	    free (linebuf);
+	  linebuf = NULL;
+	}
+    }
+  fclose (fp);
+
+  *argc = x_argc;
+  *argv = x_argv;
+}
+
+
+void
 mu_create_argcv (const char *capa[],
 		 int argc, char **argv, int *p_argc, char ***p_argv)
 {
-  FILE *fp;
   char *progname;
   int x_argc;
   char **x_argv;
   int i;
+  struct passwd *pw;
   
   progname = strrchr (argv[0], '/');
   if (progname)
@@ -399,99 +505,25 @@ mu_create_argcv (const char *capa[],
   x_argv[x_argc] = argv[x_argc];
   x_argc++;
 
-  /* Process the mailutils.rc file */
-  fp = fopen (MU_CONFIG_FILE, "r");
-  if (fp)
+  read_rc (progname, MU_CONFIG_FILE, capa, &x_argc, &x_argv);
+  pw = getpwuid (getuid ());
+  if (pw)
     {
-      char *linebuf = NULL;
-      char *buf = NULL;
-      size_t n = 0;
-      
-      while (getline (&buf, &n, fp) > 0)
-        {
-          char *kwp, *p;
-          int len;
-          
-          for (kwp = buf; *kwp && isspace (*kwp); kwp++)
-            ;
+      struct stat sb;
 
-          if (*kwp == '#' || *kwp == 0)
-            continue;
-
-          len = strlen (kwp);
-          if (kwp[len-1] == '\n')
-            kwp[--len] = 0;
-
-          if (kwp[len-1] == '\\' || linebuf)
-            {
-              int cont;
-              
-              if (kwp[len-1] == '\\')
-                {
-                  kwp[--len] = 0;
-                  cont = 1;
-                }
-              else
-                cont = 0;
-              
-              if (!linebuf)
-                linebuf = calloc (len + 1, 1);
-              else
-                linebuf = realloc (linebuf, strlen (linebuf) + len + 1);
-
-              if (!linebuf)
-                {
-                  fprintf (stderr, "%s: not enough memory\n", progname);
-                  exit (1);
-                }
-
-              strcpy (linebuf + strlen (linebuf), kwp);
-              if (cont)
-                continue;
-              kwp = linebuf;
-            }
-
-          len = 0;
-          for (p = kwp; *p && !isspace (*p); p++)
-            len++;
-
-          if ((kwp[0] == ':'
-	       && member (capa, kwp+1, len-1))
-	      || strncmp (progname, kwp, len) == 0)
-            {
-              int n_argc = 0;
-              char **n_argv;
-              
-              if (argcv_get (p, "", NULL, &n_argc, &n_argv))
-                {
-                  argcv_free (n_argc, n_argv);
-                  if (linebuf)
-                    free (linebuf);
-                  linebuf = NULL;
-                  continue;
-                }
-              x_argv = realloc (x_argv,
-                                (x_argc + n_argc + 1) * sizeof (x_argv[0]));
-              if (!x_argv)
-                {
-                  fprintf (stderr, "%s: not enough memory\n", progname);
-                  exit (1);
-                }
-
-              for (i = 0; i < n_argc; i++)
-                x_argv[x_argc++] = n_argv[i];
-
-              free (n_argv);
-              if (linebuf)
-                free (linebuf);
-              linebuf = NULL;
-            }
-        }
-      fclose (fp);
+      if (stat (pw->pw_dir, &sb) == 0 && S_ISDIR (sb.st_mode))
+	{
+	  /* note: sizeof return value counts terminating zero */
+	  char *name = xmalloc (strlen (pw->pw_dir) + 1
+					+ sizeof (MU_USER_CONFIG_FILE));
+	  sprintf (name, "%s/%s", pw->pw_dir, MU_USER_CONFIG_FILE);
+	  read_rc (progname, name, capa, &x_argc, &x_argv);
+	  free (name);
+	}
     }
 
   /* Finally, add the command line options */
-  x_argv = realloc (x_argv, (x_argc + argc + 1) * sizeof (x_argv[0]));
+  x_argv = realloc (x_argv, (x_argc + argc) * sizeof (x_argv[0]));
   for (i = 1; i < argc; i++)
     x_argv[x_argc++] = argv[i];
   
@@ -555,7 +587,7 @@ mu_build_argp (const struct argp *template, const char *capa[])
 	{
 	  mu_error ("INTERNAL ERROR: requested unknown argp capability %s",
 		    capa[n]);
-	  continue;
+	  abort ();
 	}
       ap[n] = *tmp;
       ap[n].group = n;
