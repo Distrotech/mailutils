@@ -22,11 +22,7 @@
  */
 
 int
-mail_delete (int argc, char **argv)
-{
-  if (argc > 1)
-    return util_msglist_command (mail_delete, argc, argv, 0);
-  else
+mail_delete0 ()
     {
       message_t msg;
       attribute_t attr;
@@ -36,5 +32,36 @@ mail_delete (int argc, char **argv)
       attribute_set_deleted (attr);
       return 0;
     }
-  return 1;
+
+int
+mail_delete (int argc, char **argv)
+{
+  int rc = 0;
+
+  if (argc > 1)
+    rc = util_msglist_command (mail_delete0, argc, argv, 0);
+  else
+    rc = mail_delete0 ();
+
+  if (cursor == realcursor)
+    {
+      int here = realcursor;
+      do
+	{
+	  message_t msg;
+	  attribute_t attr;
+	  
+	  mailbox_get_message (mbox, realcursor, &msg);
+	  message_get_attribute (msg, &attr);
+	  if (!attribute_is_deleted (attr))
+	    break;
+	  if (++realcursor > total)
+	    realcursor = 1;
+	}
+      while (realcursor != here);
+      
+      cursor = realcursor;
+    }
+  return rc;
 }
+
