@@ -79,7 +79,8 @@ mail_reply(int argc, char **argv)
 	}
 
       header_aget_value(hdr, MU_HEADER_SUBJECT, &str);
-      util_strcat(&env.subj, "Re: ");
+      if (str && strncasecmp (str, "Re:", 3))
+	util_strcat(&env.subj, "Re: ");
       util_strcat(&env.subj, str);
       free(str);
 
