@@ -55,7 +55,7 @@ mail_set (int argc, char **argv)
 	      if (entry == NULL)
 		return 1;
 	      i += 2;
-	      if (i > argc)
+	      if (i >= argc)
 		break;
 	      value = strdup (argv[i]);
 	      entry->set = 1;
