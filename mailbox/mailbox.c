@@ -33,6 +33,7 @@
 #include <mailutils/registrar.h>
 #include <mailutils/stream.h>
 #include <mailutils/url.h>
+#include <mailutils/attribute.h>
 
 #include <mailbox0.h>
 
