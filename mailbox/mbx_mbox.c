@@ -559,20 +559,35 @@ mbox_expunge (mailbox_t mailbox)
     }
   else
     {
-      /* strlen ("mbox:") == 5 + strlen (tmpmboxname) + 1 */
       char *m = alloca (5 + strlen (tmpmboxname) + 1);
+      /* Try via the mbox: protocol.  */
       sprintf (m, "mbox:%s", tmpmboxname);
-      /* Must put create if not the open will try to mmap() the file.  */
-      if ((status = mailbox_create (&tmpmailbox, m)) != 0
-	  || (status
-	      = mailbox_open (tmpmailbox, MU_STREAM_CREAT | MU_STREAM_RDWR)) != 0)
+      status = mailbox_create (&tmpmailbox, m);
+      if (status != 0)
+	{
+	  /* Do not give up just yet, maybe they register the path_record.  */
+	  sprintf (m, "%s", tmpmboxname);
+	  status = mailbox_create (&tmpmailbox, m);
+	  if (status != 0)
+	    {
+	      /* Ok give up.  */
+	      close (tempfile);
+	      remove (tmpmboxname);
+	      free (tmpmboxname);
+	      return status;
+	    }
+	}
+
+      /* Must be flag create if not the open will try to mmap() the file.  */
+      status = mailbox_open (tmpmailbox, MU_STREAM_CREAT | MU_STREAM_RDWR);
+      if (status != 0)
 	{
 	  close (tempfile);
 	  remove (tmpmboxname);
 	  free (tmpmboxname);
 	  return status;
 	}
-      close (tempfile);
+      close (tempfile); /* This one is useless the mailbox have its own.  */
     }
 
   /* Get the File lock.  */

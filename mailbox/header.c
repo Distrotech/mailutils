@@ -472,12 +472,7 @@ header_get_value (header_t header, const char *name, char *buffer,
   if (pn)
     *pn = total;
 
-  if (total == 0)
-    {
-      err = ENOENT;
-    }
-
-  return err;
+  return  (total == 0) ? ENOENT : 0;
 }
 
 int
