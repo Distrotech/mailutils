@@ -75,7 +75,6 @@ mh_argp_parse (int argc, char **argv,
   struct argp argp;
   struct mh_argp_data data;
   char *p;
-  char *program_invocation_name, *program_invocation_short_name;  
 
   program_invocation_name = argv[0];
   p = strrchr (argv[0], '/');
