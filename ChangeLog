@@ -1,7 +1,7 @@
 2001-08-07 Alain Magloire
 
 	* mail/msgset.y:  Draft implementation of a proposition
-	to allow regular implementation.
+	to allow regular expressions.
 	(REGEXP): Passing the address of the pointer instead of the pointer.
 	(INDENT): Likewised.
 	* mail/Makefile.am: Add in EXTRA_DIST msgset.c to force its
