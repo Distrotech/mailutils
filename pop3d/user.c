@@ -25,12 +25,16 @@ static int is_virtual = 0;
 
 #ifdef USE_VIRTUAL_DOMAINS
 
+/* XXX: Should not this be configurable somehow??  */
+#define VIRTUAL_PWDDIR "/etc/domains"
+
 static struct passwd *
 pop3d_virtual (const char *u)
 {
   struct passwd *pw;
+  char *filename;
   FILE *pfile;
-  int i = 0, len = strlen (u), delim = 0;
+  size_t i = 0, len = strlen (u), delim = 0;
 
   for (i = 0; i < len && delim == 0; i++)
     if (u[i] == '!' || u[i] == ':' || u[i] == '@')
@@ -39,17 +43,22 @@ pop3d_virtual (const char *u)
   if (delim == 0)
     return NULL;
 
-  chdir ("/etc/domains");
-  pfile = fopen (&u[delim+1], "r");
+  filename = malloc (strlen (VIRTUAL_PWDDIR) + strlen (&u[delim + 1]) + 1);
+  if (filename == NULL)
+    pop3d_abquit (ERR_NO_MEM);
+
+  sprintf (filename, "%s/%s", VIRTUAL_PWDDIR, &u[delim + 1]);
+  pfile = fopen (filename, "r");
+  free (filename);
   while (pfile != NULL && (pw = fgetpwent (pfile)) != NULL)
     {
-      if (strlen (pw->pw_name) == delim && !strncmp (u, pw->pw_name, delim))
+      if (strlen (pw->pw_name) == delim
+	  && !strncmp (u, pw->pw_name, delim))
 	{
 	  is_virtual = 1;
 	  return pw;
 	}
     }
-  
   return NULL;
 }
 
@@ -71,6 +80,7 @@ PAM_gnupop3d_conv (int num_msg, const struct pam_message **msg,
 {
   int replies = 0;
   struct pam_response *reply = NULL;
+  (void)appdata_ptr;
 
   reply = malloc (sizeof (*reply) * num_msg);
   if (!reply)
@@ -122,7 +132,7 @@ pop3d_user (const char *arg)
   struct passwd *pw;
   int status;
   int lockit = 1;
-  char *mailbox_name;
+  char *mailbox_name = NULL;
 
   if (state != AUTHORIZATION)
     return ERR_WRONG_STATE;
@@ -235,7 +245,7 @@ pop3d_user (const char *arg)
       if (pw->pw_uid > 0 && !is_virtual)
 	{
 	  setuid (pw->pw_uid);
-	  
+
 	  mailbox_name = calloc (strlen (_PATH_MAILDIR) + 1
 				 + strlen (pw->pw_name) + 1, 1);
 	  sprintf (mailbox_name, "%s/%s", _PATH_MAILDIR, pw->pw_name);

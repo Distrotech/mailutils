@@ -325,22 +325,21 @@ util_cpystr (char *dst, const char *src, size_t size)
   return len;
 }
 
-static struct passwd *(*_app_getpwnam) __P((char *)) = NULL;
+static struct passwd *(*_app_getpwnam) __P((const char *)) = NULL;
 
 void
-mu_register_getpwnam (struct passwd *(*fun) __P((char *)))
+mu_register_getpwnam (struct passwd *(*fun) __P((const char *)))
 {
   _app_getpwnam = fun;
 }
 
-struct password *
+struct passwd *
 mu_getpwnam (const char *name)
 {
-  struct password *p;
+  struct passwd *p;
 
   p = getpwnam (name);
   if (!p && _app_getpwnam)
     p = (*_app_getpwnam)(name);
   return p;
 }
-
