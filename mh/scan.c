@@ -71,8 +71,6 @@ static mh_format_t format;
 
 static mh_msgset_t msgset;
 
-static char *buffer;
-
 void list_message __P((mailbox_t mbox, message_t msg, size_t num, void *data));
 void print_header __P((mailbox_t mbox));
 void clear_screen __P((void));
@@ -171,8 +169,6 @@ main (int argc, char **argv)
 
   mbox = mh_open_folder (current_folder, 0);
 
-  buffer = xmalloc (width);
-  
   argc -= index;
   argv += index;
   if ((argc == 0 || strcmp (argv[0], "all") == 0) && !reverse)
@@ -268,7 +264,8 @@ clear_screen ()
 void
 list_message (mailbox_t mbox, message_t msg, size_t num, void *data)
 {
-  buffer[0] = 0;
-  mh_format (&format, msg, num, buffer, width);
+  char *buffer;
+  mh_format (&format, msg, num, width, &buffer);
   printf ("%s\n", buffer);
+  free (buffer);
 }

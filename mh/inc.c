@@ -129,17 +129,17 @@ opt_handler (int key, char *arg, void *unused)
 }
 
 void
-list_message (mh_format_t *format, mailbox_t mbox, size_t msgno,
-	      char *buffer, size_t width)
+list_message (mh_format_t *format, mailbox_t mbox, size_t msgno, size_t width)
 {
   message_t msg;
+  char *buf = NULL;
 
-  buffer[0] = 0;
   mailbox_get_message (mbox, msgno, &msg);
-  mh_format (format, msg, msgno, buffer, width);
-  printf ("%s\n", buffer);
+  mh_format (format, msg, msgno, width, &buf);
+  printf ("%s\n", buf);
   if (audit_fp)
-    fprintf (audit_fp, "%s\n", buffer);
+    fprintf (audit_fp, "%s\n", buf);
+  free (buf);
 }
 
 int
@@ -151,7 +151,6 @@ main (int argc, char **argv)
   size_t lastmsg;
   int f_truncate = 0;
   int f_changecur = 0;
-  char *buffer;
   mh_format_t format;
   int rc;
 
@@ -210,8 +209,6 @@ main (int argc, char **argv)
       exit (1);
     }
   
-  buffer = xmalloc (width);
-  
   /* Fixup options */
   if (truncate_source == -1)
     truncate_source = f_truncate;
@@ -249,7 +246,7 @@ main (int argc, char **argv)
 	}
 	  
       if (!quiet)
-	list_message (&format, output, lastmsg + n, buffer, width);
+	list_message (&format, output, lastmsg + n, width);
       
       if (truncate_source)
 	{
