@@ -163,6 +163,16 @@ msgset_preproc (mailbox_t mbox, char *arg)
   return strdup (arg);
 }
 
+static int
+comp_mesg (const void *a, const void *b)
+{
+  if (*(size_t*)a > *(size_t*)b)
+    return 1;
+  else if (*(size_t*)a < *(size_t*)b)
+    return -1;
+  return 0;
+}
+
 int
 mh_msgset_parse (mailbox_t mbox, mh_msgset_t *msgset, int argc, char **argv)
 {
@@ -231,6 +241,15 @@ mh_msgset_parse (mailbox_t mbox, mh_msgset_t *msgset, int argc, char **argv)
       free (arg);
     }
 
+  /* Sort the resulting message set */
+  qsort (msglist, msgcnt, sizeof (*msglist), comp_mesg);
+
+  /* Remove duplicates. */
+  for (i = 0, msgno = 1; i < msgcnt; i++)
+    if (msglist[msgno-1] != msglist[i])
+      msglist[msgno++] = msglist[i];
+  msgcnt = msgno;
+  
   msgset->count = msgcnt;
   msgset->list = msglist;
   return 0;
