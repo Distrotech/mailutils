@@ -1,0 +1,75 @@
+/* sfrom, Simple From */
+#include <stdio.h>
+#include <unistd.h>
+#include <string.h>
+#include <mailutils.h>
+#include <paths.h>
+
+#ifndef _PATH_MAILDIR
+#define _PATH_MAILDIR "/usr/spool/mail"
+#endif
+
+int main (int argc, char **argv)
+@{
+   char buffer[1024];
+   char from[64];
+   char subject[64];
+   char *header;
+   mailbox_t  mbox;
+   int status, id, msg_no;
+
+   if (argc == 2)
+     @{
+         mail = argv[1];
+     @}
+   else
+     @{
+         mail = getenv ("MAIL");
+         if (mail == NULL)
+           @{
+               char * user = getlogin ();
+               int len = strlen (_PATH_MAILDIR) + strlen (user) + 1;
+               mail = malloc (len);
+               if (mail == NULL)
+                 @{
+                    fprintf (stderr, "malloc failed\n");
+                    exit (EXIT_FAILURE);
+                 @}
+               snprintf (mail, len, "%s/%s", _PATH_MAILDIR, user);
+           @}
+     @}
+
+   status = mailbox_init (&mbox, mail, 0);
+   if (status != 0)
+     @{
+        fprintf (stderr, "mailbox_init(%s) failed\n", mail);
+        exit (EXIT_FAILURE);
+     @}
+
+   status = mailbox_open (mbox, MU_MB_ORDONLY);
+   if (status != 0)
+     @{
+        fprintf (stderr, "mailbox_open(%s), %s\n", mail);
+        exit (EXIT_FAILURE);
+     @}
+
+   mailbox_scan (mbox, &msg_total);
+
+   for (msgno = 0; msgno < msg_total; msgno++)
+      @{
+         if (mailbox_get_header (mbox, msgno, buffer,
+                                 sizeof (buffer), &size) != 0)
+           @{
+               fprintf (stderr, "header corrupted\n");
+               exit (EXIT_FAILURE);
+           @}
+         header_gvalue (buffer, size, MU_HDR_FROM, from, sizeof (from), NULL);
+         header_gvalue (buffer, size, MU_HDR_SUBJECT, subject,
+                        sizeof (subject), NULL);
+         printf ("%s %s\n", from, subject);
+      @}
+
+    mailbox_close (mbox);
+    mailbox_destroy (&mbox);
+    return 0;
+@}

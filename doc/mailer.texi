@@ -1,0 +1,86 @@
+
+Mail Delivery is done here. Nothing is implemented and the API is still shaky.
+
+@deftypefun int mailer_init (mailer_t *@var{mailer}, const char *@var{name}, int @var{flag})
+Not Implemented.
+@end deftypefun
+
+@deftypefun int mailer_destroy (mailer_r *@var{mailer})
+Not Implemented.
+@end deftypefun
+
+@deftypefun int mailer_user (mailer_t @var{mailer}, const char *@var{user})
+Not Implemented.
+@end deftypefun
+
+@deftypefun int mailer_passwd (mailer_t @var{mailer}, const char *@var{passwd})
+Not Implemented.
+@end deftypefun
+
+@deftypefun int mailer_open (mailer_t @var{mailer}, int @var{flag})
+Not Implemented.
+@end deftypefun
+
+@deftypefun int mailer_close (mailer_t @var{mailer})
+Not Implemented.
+@end deftypefun
+
+@deftypefun int mailer_set_body (mailer_t @var{mailer}, char *, size_t)
+Not Implemented.
+@end deftypefun
+
+@deftypefun int mailer_set_header (mailer_t @var{mailer}, char *, size_t)
+Not Implemented.
+@end deftypefun
+
+@deftypefun int mailer_set_timeout (mailer_t @var{mailer}, size_t)
+Not Implemented.
+@end deftypefun
+
+@deftypefun int mailer_get_timeout (mailer_t @var{mailer}, size_t)
+Not Implemented.
+@end deftypefun
+
+@deftypefun int mailer_send_envelope (mailer_t @var{mailer}, size_t)
+Not Implemented.
+@end deftypefun
+
+
+@subsection Mailto
+@cindex Mailto
+The URL mailto: is supported.
+
+TODO: example of mailto, and mailing lists,
+
+@subsection SMTP
+@cindex SMTP
+
+TODO: todo
+
+@subsection UUCP
+@cindex UUCP
+
+Yeurk ! It this to old ? Is it worth it ?
+
+@subsection Sendmail
+@cindex Sendmail
+
+This is not a protocol, but someone may use it as the mailer, and
+we provide the magic.
+
+@subsection mailx
+@cindex mailx
+
+This is not a protocol, but someone may use it as the mailer, and
+we provide the magic.
+
+@subsection mail
+@cindex mail
+
+This is not a protocol, but someone may use it as the mailer, and
+we provide the magic.
+
+@subsection MPP
+@cindex MPP
+
+Mail Posting Protocol.
