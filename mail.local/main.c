@@ -230,7 +230,7 @@ _sieve_debug_printer (void *unused, const char *fmt, va_list ap)
 
 static void
 _sieve_action_log (void *user_name,
-		   const char *script, size_t msgno, message_t msg,
+		   const sieve_locus_t *locus, size_t msgno, message_t msg,
 		   const char *action, const char *fmt, va_list ap)
 {
   char *text = NULL;
@@ -243,7 +243,10 @@ _sieve_action_log (void *user_name,
       if (header_aget_value (hdr, message_id_header, &val) == 0
 	  || header_aget_value (hdr, MU_HEADER_MESSAGE_ID, &val) == 0)
 	{
-	  asprintf (&text, _("%s on msg %s"), action, val);
+	  asprintf (&text, _("%s:%lu: %s on msg %s"),
+		    locus->source_file,
+		    (unsigned long) locus->source_line,
+		    action, val);
 	  free (val);
 	}
     }
@@ -251,7 +254,10 @@ _sieve_action_log (void *user_name,
     {
       size_t uid = 0;
       message_get_uid (msg, &uid);
-      asprintf (&text, _("%s on msg uid %d"), action, uid);
+      asprintf (&text, _("%s:%lu: %s on msg uid %d"),
+		locus->source_file,
+		(unsigned long)	locus->source_line,
+		action, uid);
     }
   
   if (fmt && strlen (fmt))

@@ -62,6 +62,8 @@ Debug flags:\n\
 
 #define D_DEFAULT "TPt"
 
+#define ARG_LINE_INFO 257
+
 static struct argp_option options[] =
 {
   {"no-actions", 'n', 0, 0,
@@ -87,7 +89,10 @@ static struct argp_option options[] =
 
   {"verbose", 'v', NULL, 0,
    N_("Log all actions"), 0},
-  
+
+  {"line-info", ARG_LINE_INFO, N_("BOOL"), OPTION_ARG_OPTIONAL,
+   N_("Print source location along with action logs (default)") },
+   
   {"email", 'e', N_("ADDRESS"), 0,
    N_("Override user email address"), 0},
   
@@ -105,6 +110,24 @@ struct options {
   int verbose;
   char *script;
 };
+
+static int sieve_print_locus = 1; /* Should the log messages include the
+				     locus */
+
+static int
+is_true_p (char *p)
+{
+  if (!p)
+    return 1;
+  /* TRANSLATORS: This is the list of characters meaning 'Yes'. Please, 
+     preserve yY in your translation, e.g., for German:
+
+     msgstr "yYjJ";
+  */
+  if (strchr (_("yY"), *p))
+    return 1;
+  return 0;
+}
 
 static error_t
 parser (int key, char *arg, struct argp_state *state)
@@ -196,6 +219,10 @@ parser (int key, char *arg, struct argp_state *state)
     case 'v':
       opts->verbose = 1;
       break;
+
+    case ARG_LINE_INFO:
+      sieve_print_locus = is_true_p (arg);
+      break;
       
     case ARGP_KEY_ARG:
       if (opts->script)
@@ -267,14 +294,20 @@ syslog_debug_print (mu_debug_t unused, size_t level, const char *fmt,
 
 static void
 stdout_action_log (void *unused,
-		   const char *script, size_t msgno, message_t msg,
+		   const sieve_locus_t *locus, size_t msgno, message_t msg,
 		   const char *action, const char *fmt, va_list ap)
 {
   size_t uid = 0;
-
+  
   message_get_uid (msg, &uid);
 
-  fprintf (stdout, _("%s on msg uid %lu"), action, (unsigned long) uid);
+  if (sieve_print_locus)
+    fprintf (stdout, _("%s:%lu: %s on msg uid %lu"),
+	     locus->source_file, (unsigned long) locus->source_line,
+	     action, (unsigned long) uid);
+  else
+    fprintf (stdout, _("%s on msg uid %lu"), action, (unsigned long) uid);
+  
   if (fmt && strlen (fmt))
     {
       fprintf (stdout, ": ");
@@ -285,7 +318,7 @@ stdout_action_log (void *unused,
 
 static void
 syslog_action_log (void *unused,
-		   const char *script, size_t msgno, message_t msg,
+		   const sieve_locus_t *locus, size_t msgno, message_t msg,
 		   const char *action, const char *fmt, va_list ap)
 {
   size_t uid = 0;
@@ -293,7 +326,13 @@ syslog_action_log (void *unused,
   
   message_get_uid (msg, &uid);
 
-  asprintf (&text, _("%s on msg uid %d"), action, uid);
+  if (sieve_print_locus)
+    asprintf (&text, _("%s:%lu: %s on msg uid %lu"),
+	      locus->source_file, (unsigned long) locus->source_line,
+	      action, (unsigned long) uid);
+  else
+    asprintf (&text, _("%s on msg uid %lu"), action, (unsigned long) uid);
+    
   if (fmt && strlen (fmt))
     {
       char *diag = NULL;
