@@ -1,5 +1,10 @@
 2002-02-07  Sergey Poznyakoff  
 
+	* imap4d/util.c (util_localname): return FQDN
+	* imap4d/capability.c: Forgotten to commit.
+
+2002-02-07  Sergey Poznyakoff  
+
 	* acconfig.h: Added WITH_GSSAPI define.
 	* configure.in: New option: --with-gssapi
 	* imap4d/auth_gss.c: (new)  GSSAPI authentication.
