@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <errno.h>
+
 #include <mailutils/address.h>
+#include <mailutils/errno.h>
 
 #define EPARSE ENOENT
 

@@ -1,4 +1,4 @@
-Sam <@[matrix (smtp)], @[nexus: \[node 12\]]:sroberts@[10].[1]> ;=> error EPARSE
+Sam <@[matrix (smtp)], @[nexus: \[node 12\]]:sroberts@[10].[1]> ;=> error MU_ERR_BAD_822_FORMAT
 
 a@b,z@y=> pcount 2
 1 email <a@b>
@@ -48,11 +48,11 @@ a@b,=> pcount 1
 1 email <a@b>
    local-part <a> domain <b>
 
-,=> error EPARSE
+,=> error MU_ERR_EMPTY_ADDRESS
 
-,,=> error EPARSE
+,,=> error MU_ERR_EMPTY_ADDRESS
 
-,,,=> error EPARSE
+,,,=> error MU_ERR_EMPTY_ADDRESS
 
 a group: a@b,z@y ;=> pcount 3
 1 group <a group>
@@ -120,7 +120,7 @@ a group: ,, ;=> pcount 1
 a group: ,,, ;=> pcount 1
 1 group <a group>
 
-Sam <@[matrix (smtp)], @[nexus: \[node 12\]]:sroberts@[10].[1]> ;=> error EPARSE
+Sam <@[matrix (smtp)], @[nexus: \[node 12\]]:sroberts@[10].[1]> ;=> error MU_ERR_BAD_822_FORMAT
 
 Aliens: Sam <@[matrix (smtp)]: sam@sam>, sroberts@[10].[1];=> pcount 3
 1 group <Aliens>
@@ -172,7 +172,7 @@ Sam <@mail2.uniserve.com:sroberts@uniserve.com>=> pcount 1
    local-part <sroberts> domain <uniserve.com>
    route <@mail2.uniserve.com>
 
-< (hey) @ (hey, )smtp1.sympatico.ca, mail2.uniserve.com (hoo!):sroberts@uniserve.com>=> error EPARSE
+< (hey) @ (hey, )smtp1.sympatico.ca, mail2.uniserve.com (hoo!):sroberts@uniserve.com>=> error MU_ERR_BAD_822_FORMAT
 
 hw@570.com (Hardware Support Account)=> pcount 1
 1 email <hw@570.com>
@@ -221,7 +221,7 @@ list-ietf-wg-apps-drums@faerber.muc.de (=?ISO-8859-1?Q?Claus_F=E4rber?=)=> pcoun
    personal <'paul@pitbull-productions.com'>
    local-part <paul> domain <pitbull-productions.com>
 
-"'sam@cogent.ca'" <sam@cogent.ca>, "'sroberts@uniserve.com'"=> error EPARSE
+"'sam@cogent.ca'" <sam@cogent.ca>, "'sroberts@uniserve.com'"=> error MU_ERR_BAD_822_FORMAT
 
 "'sroberts\@certicom\.ca'" <sroberts@certicom.ca>=> pcount 1
 1 email <sroberts@certicom.ca>
@@ -364,7 +364,7 @@ list-ietf-wg-apps-drums@faerber.muc.de (=?ISO-8859-1?Q?Claus_F=E4rber?=)=> pcoun
    personal <zwk@f36.n480.z2.fidonet.org>
    local-part <zwk%f36.n480.z2.fidonet.org> domain <f36.n480.z2.fidonet.org>
 
-'Dan Dall'Acqua' <ddallacqua@noetic.ab.ca>, 'Dave Shyong'=> error EPARSE
+'Dan Dall'Acqua' <ddallacqua@noetic.ab.ca>, 'Dave Shyong'=> error MU_ERR_BAD_822_FORMAT
 
 0xdeadbeef-request@petting-zoo.net=> pcount 1
 1 email <0xdeadbeef-request@petting-zoo.net>
@@ -382,7 +382,7 @@ list-ietf-wg-apps-drums@faerber.muc.de (=?ISO-8859-1?Q?Claus_F=E4rber?=)=> pcoun
 1 email <0xdeadbeef-request@petting-zoo.net>
    local-part <0xdeadbeef-request> domain <petting-zoo.net>
 
-<>=> error EPARSE
+<>=> error MU_ERR_BAD_822_FORMAT
 
 <Christia.Roberts@nrc.ca>=> pcount 1
 1 email <Christia.Roberts@nrc.ca>
@@ -392,7 +392,7 @@ list-ietf-wg-apps-drums@faerber.muc.de (=?ISO-8859-1?Q?Claus_F=E4rber?=)=> pcoun
 1 email <Nick_Shelness@motorcity2.lotus.com>
    local-part <Nick_Shelness> domain <motorcity2.lotus.com>
 
-<all: >=> error EPARSE
+<all: >=> error MU_ERR_BAD_822_FORMAT
 
 <fyi-admin@emyr.net>=> pcount 1
 1 email <fyi-admin@emyr.net>
@@ -611,15 +611,15 @@ mcaustin@eudoramail.com, aposner@usaid.gov, Kieran.O'Leary@anpost.ie,=> pcount 3
 3 email <Kieran.O'Leary@anpost.ie>
    local-part <Kieran.O'Leary> domain <anpost.ie>
 
-rfunk@wks.uts.ohio-state.eduofflinemailer-bounce@dikke.penguin.nl=> error EPARSE
+rfunk@wks.uts.ohio-state.eduofflinemailer-bounce@dikke.penguin.nl=> error MU_ERR_BAD_822_FORMAT
 
 root=> pcount 1
 1 email <>
    local-part <root>
 
-srr <sam@localhost>=> error EPARSE
+srr <sam@localhost>=> error MU_ERR_BAD_822_FORMAT
 
-whom it may concern: ;;whom.it.may.concern: ;=> error EPARSE
+whom it may concern: ;;whom.it.may.concern: ;=> error MU_ERR_BAD_822_FORMAT
 
 whom it may concern: mutt-dev@mutt.org, mutt-users@mutt.org;=> pcount 3
 1 group <whom it may concern>
