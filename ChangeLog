@@ -1,3 +1,9 @@
+2005-02-27  Wojciech Polak
+
+	* frm/Makefile.am: Added install-exec-hook for creating
+	the symbolic link 'from' to 'frm'.
+	* from/Makefile.am: Changed bin_PROGRAMS to noinst_PROGRAMS.
+
 2005-02-27  Sergey Poznyakoff 
 
 	* gnulib.modules: Add mbswidth
