@@ -47,8 +47,10 @@ mail_mbox_close ()
   
   mailbox_get_url (mbox, &url);
   mailbox_messages_count (mbox, &held_count);
-  fprintf (ofile, held_count == 1 ? _("Held %d message in %s\n")
-                                  : _("Held %d messages in %s\n"),
+  fprintf (ofile, 
+           ngettext ("Held %d message in %s\n",
+                     "Held %d messages in %s\n",
+                     held_count),
            held_count, url_to_string (url));
   mailbox_close (mbox);
   mailbox_destroy (&mbox);
@@ -125,8 +127,10 @@ mail_mbox_commit ()
       url_t u = NULL;
 
       mailbox_get_url (dest_mbox, &u);
-      fprintf(ofile, saved_count == 1 ? _("Saved %d message in %s\n")
-                                      : _("Saved %d messages in %s\n"),
+      fprintf(ofile, 
+              ngettext ("Saved %d message in %s\n",
+                        "Saved %d messages in %s\n",
+			saved_count),
               saved_count, url_to_string (u));
       mailbox_close (dest_mbox);
       mailbox_destroy (&dest_mbox);

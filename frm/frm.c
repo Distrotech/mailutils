@@ -403,8 +403,9 @@ cleanup:
 
  cleanup1:
   if (show_summary)
-    printf (total == 1 ? _("You have %d message.\n")
-                       : _("You have %d messages.\n"),
+    printf (ngettext ("You have %d message.\n",
+                      "You have %d messages.\n",
+		      total),
             total);
   if (show_query && have_new_mail)
     printf (_("You have new mail.\n"));
