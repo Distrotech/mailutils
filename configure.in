@@ -68,7 +68,7 @@ AC_HEADER_DIRENT
 AM_C_PROTOTYPES
 AC_CHECK_HEADERS(argp.h errno.h fcntl.h inttypes.h libgen.h limits.h malloc.h \
  paths.h shadow.h stdarg.h stdio.h stdlib.h string.h strings.h sys/file.h syslog.h \
- unistd.h)
+ unistd.h termios.h)
 
 dnl Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
