@@ -1,3 +1,54 @@
+2002-08-03  Sergey Poznyakoff
+
+	Use of attributes made consistent throughout the package:
+	
+	* imap4d/fetch.c (fetch_flags0): Use util_print_flags.
+	* imap4d/search.c (cond_keyword): Likewise for
+	  util_attribute_matches_flag.
+	* imap4d/imap4d.h (util_print_flags,util_attribute_to_type,
+	  util_attribute_matches_flag): New prototypes.
+	* imap4d/select.c (imap4d_select_status): Run imap4d_sync()
+	  to output EXISTS and RECENT untagged responses.
+	* imap4d/store.c (get_attribute_type):  Removed.
+	  util_attribute_to_type() does the job.
+	  (imap4d_store0): Use util_attribute_to_type().
+	* imap4d/sync.c: Output the actual number of recent messages.
+	  
+	* imap4d/util.c: For consistency, reduced all operations
+	  with flags to manipulations with _imap4d_attrlist array 
+	  RFC2060 states that  \Seen flag means "Message has been read",
+	  so it should be mapped to our MU_ATTRIBUTE_READ.
+	  (util_print_flags, util_attribute_matches_flag): New functions.
+
+	* include/mailutils/mutil.h (mu_register_getpwuid): Fixed proto.
+	* mailbox/mutil.c: Likewise.
+
+	* include/mailutils/attribute.h (MU_ATTRIBUTE_IS_UNSEEN,
+	  MU_ATTRIBUTE_IS_UNREAD): New macros.
+	* mailbox/attribute.c (attribute_is_recent): Use
+	  MU_ATTRIBUTE_IS_UNSEEN.
+	  (attribute_set_flags): If the required bits are already set,
+          do not modify anything
+	  (attribute_unset_flags): If the required bits are already
+          cleared, do not modify anything
+	* mailbox/mbx_mbox.c (mbox_messages_recent): use
+          MU_ATTRIBUTE_IS_UNSEEN.
+          (mbox_message_unseen): use MU_ATTRIBUTE_IS_UNREAD.
+        * mailbox/mbx_mh.c (mh_messages_recent, mh_message_unseen): Likewise.
+
+	* imap4d/bye.c (imap4d_bye0): Use mailbox_flush.
+	* imap4d/close.c (imap4d_close): Likewise.
+	* mail/quit.c (mail_mbox_close): Likewise.
+	* pop3d/quit.c (pop3d_quit): Likewise.
+	* include/mailutils/mailbox.h (mailbox_flush): New prototype.
+	* mailbox/mailbox.c (mailbox_flush): New function. Marks all
+          messages as seen and saves the attributes to the mailbox,
+          optionally expunging it.
+	* mailbox/folder_imap.c (imap_flags): Empty attribute
+	  list means MU_ATTRIBUTE_SEEN.
+	* mailbox/mbx_imap.c (flags_to_string): Map \Seen to
+	  MU_ATTRIBUTE_READ.
+
 2002-08-02  Sergey Poznyakoff 
 
 	* MySql/MySql.c (getMpwuid): Bugfix. It should take a pointer as
@@ -6717,3 +6768,8 @@
 
 	* */*: Accomidate directory rearrange
 
+
+Local Variables:
+mode: change-log
+version-control: never
+End:
