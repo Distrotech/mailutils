@@ -345,10 +345,11 @@ sendmail_send_message (mailer_t mailer, message_t msg, address_t from,
 	char buffer[512];
 	size_t len = 0;
 	int rc;
-
+	size_t offset = 0;
+	
 	message_get_stream (msg, &stream);
 	while ((status = stream_read (stream, buffer, sizeof (buffer),
-				      sendmail->offset, &len)) == 0
+				      offset, &len)) == 0
 	       && len != 0)
 	  {
 	    if (write (sendmail->fd, buffer, len) == -1)
@@ -360,6 +361,7 @@ sendmail_send_message (mailer_t mailer, message_t msg, address_t from,
 
 		break;
 	      }
+	    offset += len;
 	    sendmail->offset += len;
 	  }
 	if (status == EAGAIN)
