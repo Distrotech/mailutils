@@ -34,6 +34,7 @@ extern int list_count    __P ((list_t, size_t *pcount));
 extern int list_remove   __P ((list_t, void *item));
 extern int list_replace  __P ((list_t list, void *old_item, void *new_item));  
 extern int list_get      __P ((list_t, size_t _index, void **pitem));
+extern int list_to_array __P ((list_t list, void **array, size_t count, size_t *pcount));
 
 typedef int list_action_t __PMT ((void* item, void* cbdata));
   
@@ -44,6 +45,7 @@ typedef int (*list_comparator_t) __PMT((const void*, const void*));
 extern list_comparator_t list_set_comparator __P((list_t, list_comparator_t));
 
 extern int list_set_destroy_item __P ((list_t list, void (*destoy_item) __P((void *))));
+
   
 #ifdef __cplusplus
 }
