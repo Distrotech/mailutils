@@ -1,0 +1,94 @@
+/* GNU Mailutils -- a suite of utilities for electronic mail
+   Copyright (C) 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
+
+   GNU Mailutils is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 2, or (at your option)
+   any later version.
+
+   GNU Mailutils is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with GNU Mailutils; if not, write to the Free Software
+   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
+
+#ifndef _MU_SCM_H
+#define _MU_SCM_H
+
+#include <libguile.h>
+
+#if GUILE_VERSION == 14
+
+# define SCM_STRING_CHARS SCM_CHARS
+# define scm_list_1 SCM_LIST1
+# define scm_list_2 SCM_LIST2
+# define scm_list_3 SCM_LIST3
+# define scm_list_4 SCM_LIST4
+# define scm_list_5 SCM_LIST5
+# define scm_list_n SCM_LISTN
+# define scm_c_define scm_sysintern
+# define scm_primitive_eval_x scm_eval_x
+# define scm_i_big2dbl scm_big2dbl
+
+extern SCM scm_long2num (long val);
+
+#endif
+
+typedef struct
+{
+  int debug_guile;
+  mailbox_t mbox;
+  char *user_name;
+  int (*init) __PMT ((void *data));
+  SCM (*catch_body) __PMT ((void *data, mailbox_t mbox));
+  SCM (*catch_handler) __PMT ((void *data, SCM tag, SCM throw_args));
+  int (*next) __PMT ((void *data, mailbox_t mbox));
+  int (*exit) __PMT ((void *data, mailbox_t mbox));
+  void *data;
+} guimb_param_t;
+
+extern SCM _mu_scm_mailer;
+extern SCM _mu_scm_debug;
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+extern SCM scm_makenum __P((unsigned long val));
+extern void mu_set_variable __P((const char *name, SCM value));
+extern void mu_scm_init __P((void));
+
+extern void mu_scm_mailbox_init __P((void));
+extern SCM mu_scm_mailbox_create __P((mailbox_t mbox));
+extern int mu_scm_is_mailbox __P((SCM scm));
+
+extern void mu_scm_message_init __P((void));
+extern SCM mu_scm_message_create __P((SCM owner, message_t msg));
+extern int mu_scm_is_message __P((SCM scm));
+extern const message_t mu_scm_message_get __P((SCM MESG));
+
+extern int mu_scm_is_body __P((SCM scm));
+extern void mu_scm_body_init __P((void));
+extern SCM mu_scm_body_create __P((SCM mesg, body_t body));
+
+extern void mu_scm_address_init __P((void));
+extern void mu_scm_logger_init __P((void));
+
+extern void mu_scm_port_init __P((void));
+extern SCM mu_port_make_from_stream __P((SCM msg, stream_t stream, long mode));
+
+extern void mu_scm_mime_init __P((void));
+extern void mu_scm_message_add_owner __P((SCM MESG, SCM owner));
+
+extern void mu_process_mailbox __P((int argc, char *argv[], guimb_param_t *param));
+
+extern void mu_scm_mutil_init __P((void));
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif 
