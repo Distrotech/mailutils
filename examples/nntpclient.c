@@ -409,7 +409,7 @@ com_head (char *arg)
   stream_t stream = NULL;
   int status;
 
-  // No space allowed.
+  /* No space allowed. */
   if (arg != NULL && strchr (arg, ' ') != NULL)
     return EINVAL;
 
@@ -438,7 +438,7 @@ com_body (char *arg)
   stream_t stream = NULL;
   int status;
 
-  // No space allowed.
+  /* No space allowed. */
   if (arg != NULL && strchr (arg, ' ') != NULL)
     return EINVAL;
 
@@ -467,7 +467,7 @@ com_article (char *arg)
   stream_t stream = NULL;
   int status;
 
-  // No space allowed.
+  /* No space allowed. */
   if (arg != NULL && strchr (arg, ' ') != NULL)
     return EINVAL;
 
@@ -501,7 +501,7 @@ com_group (char *arg)
   status = mu_nntp_group (nntp, arg, &total, &low, &high, &name);
   if (status == 0)
     {
-      printf ("%s: low[%ld] high[%ld] total[%d]\n", (name == NULL) ? "" : name, low, high, total);
+      printf ("%s: low[%ld] high[%ld] total[%ld]\n", (name == NULL) ? "" : name, low, high, total);
       free (name);
     }
   return status;
@@ -798,9 +798,10 @@ com_newgroups (char *arg)
 {
   iterator_t iterator = NULL;
   struct tm stime;
+  int status;
   int year, month, day, hour, min, sec, is_gmt;
   year = month = day = hour = min = sec = is_gmt = 0;
-
+  
   if (arg != NULL && *arg != '\0')
     {
       char gmt[4];
@@ -822,7 +823,7 @@ com_newgroups (char *arg)
       year = stime->tm_year + 1900;       /* year */
     }
 
-  int status = mu_nntp_newgroups (nntp, year, month, day, hour, min, sec, is_gmt, &iterator);
+  status = mu_nntp_newgroups (nntp, year, month, day, hour, min, sec, is_gmt, &iterator);
   if (status == 0)
     {
       printf ("New Groups:\n");
@@ -841,7 +842,7 @@ com_newgroups (char *arg)
 	      printf (" group(%s)", group);
 	      free (group);
 	    }
-	  printf (" hig(%d) low(%d) status(%c)\n", high, low, stat);
+	  printf (" hig(%lu) low(%lu) status(%c)\n", high, low, stat);
 	}
       iterator_destroy (&iterator);
     }
@@ -856,7 +857,8 @@ com_newnews (char *arg)
   char *wildmat;
   char gmt[4];
   int year, month, day, hour, min, sec, is_gmt;
-
+  int status;
+  
   if (!valid_argument ("newnews", arg))
     return EINVAL;
 
@@ -879,7 +881,7 @@ com_newnews (char *arg)
       year = stime->tm_year + 1900;       /* year */
     }
 
-  int status = mu_nntp_newnews (nntp, wildmat, year, month, day, hour, min, sec, is_gmt, &iterator);
+  status = mu_nntp_newnews (nntp, wildmat, year, month, day, hour, min, sec, is_gmt, &iterator);
   if (status == 0)
     {
       printf ("New News:\n");
@@ -902,7 +904,7 @@ com_stat (char *arg)
   unsigned long number = 0;
   int status = 0;
 
-  // No space allowed.
+  /* No space allowed. */
   if (arg != NULL && strchr (arg, ' ') != NULL)
     return EINVAL;
 
@@ -915,7 +917,7 @@ com_stat (char *arg)
     }
   if (status == 0)
     {
-      fprintf (stdout, "status: %d %s\n", number, (mid == NULL) ? "" : mid);
+      fprintf (stdout, "status: %ld %s\n", number, (mid == NULL) ? "" : mid);
       free (mid);
     }
   return status;
