@@ -85,5 +85,5 @@ libmailbox_la_LIBADD = @MU_LTLIBOBJS@
 libmailbox_la_LDFLAGS = -version-info 0:0:0
 
 mailutils_config_SOURCES = mailutils-config.c
-mailutils_config_LDADD = ./libmailbox.la
+mailutils_config_LDADD = ./libmailbox.la ../lib/libmailutils.la
 mailutils_config_CFLAGS = -DCOMPILE_FLAGS="\"-I$(includedir)\"" -DLINK_FLAGS="\"-L$(libdir)\"" -DAUTHLIBS="\"$(MYSQLLIBS)\"" -DGUILE_LIBS="\"$(GUILE_LIBS)\""
