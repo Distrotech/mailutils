@@ -51,6 +51,8 @@
 #include <mailutils/envelope.h>
 #include <mailutils/nls.h>
 
+#include <registrar0.h>
+
 /* convert a sequence of hex characters into an integer */
 
 unsigned long
@@ -1152,3 +1154,20 @@ mu_true_answer_p (const char *p)
     return 0;
   return -1;
 }
+
+/* Returns true if SCHEME represents a local mail folder. Stores
+   real folder path to PATH */
+int
+mu_scheme_autodetect_p (const char *scheme,  const char **path)
+{
+  *path = scheme;
+  if (strncmp (MU_FILE_SCHEME, scheme, MU_FILE_SCHEME_LEN) == 0)
+    {
+      *path += MU_FILE_SCHEME_LEN;
+      return 1;
+    }
+  if (strncmp (MU_PATH_SCHEME, scheme, MU_PATH_SCHEME_LEN) == 0)
+    return 1;
+  return 0;
+}
+    

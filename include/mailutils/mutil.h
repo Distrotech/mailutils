@@ -127,6 +127,7 @@ extern int munre_subject  __P((const char *subject, const char **new_subject));
 extern char *mu_charset_lookup __P((char *lang, char *terr));
 
 extern int mu_true_answer_p __P((const char *p));
+extern int mu_scheme_autodetect_p __P((const char *scheme, const char **path));
 
 #ifdef __cplusplus
 }
