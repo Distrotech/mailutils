@@ -1,18 +1,18 @@
-/* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+/* GNU Mailutils -- a suite of utilities for electronic mail
+   Copyright (C) 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
 
-   This program is free software; you can redistribute it and/or modify
+   GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Library Public License as published by
    the Free Software Foundation; either version 2, or (at your option)
    any later version.
 
-   This program is distributed in the hope that it will be useful,
+   GNU Mailutils is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU Library General Public License for more details.
 
    You should have received a copy of the GNU Library General Public License
-   along with this program; if not, write to the Free Software
+   along with GNU Mailutils; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #ifdef HAVE_CONFIG_H
@@ -48,6 +48,7 @@
 #include <mailutils/observer.h>
 #include <mailutils/stream.h>
 #include <mailutils/mu_auth.h>
+#include <mailutils/nls.h>
 
 #define MESSAGE_MODIFIED 0x10000;
 
@@ -1064,7 +1065,7 @@ message_save_to_mailbox (message_t msg, ticket_t ticket, mu_debug_t debug,
   if ((rc = mailbox_create_default (&to, toname)))
     {
       mu_debug_print (debug, MU_DEBUG_TRACE,
-		      "mailbox_create_default (%s) failed: %s\n", toname,
+		      _("mailbox_create_default (%s) failed: %s\n"), toname,
 		      mu_errstring (rc));
       goto end;
     }
@@ -1095,7 +1096,7 @@ message_save_to_mailbox (message_t msg, ticket_t ticket, mu_debug_t debug,
   if ((rc = mailbox_open (to, MU_STREAM_WRITE | MU_STREAM_CREAT)))
     {
       mu_debug_print (debug, MU_DEBUG_TRACE,
-		      "mailbox_open (%s) failed: %s\n", toname,
+		      _("mailbox_open (%s) failed: %s\n"), toname,
 		      mu_errstring (rc));
       goto end;
     }
@@ -1103,7 +1104,7 @@ message_save_to_mailbox (message_t msg, ticket_t ticket, mu_debug_t debug,
   if ((rc = mailbox_append_message (to, msg)))
     {
       mu_debug_print (debug, MU_DEBUG_TRACE,
-		      "mailbox_append_message (%s) failed: %s\n", toname,
+		      _("mailbox_append_message (%s) failed: %s\n"), toname,
 		      mu_errstring (rc));
       goto end;
     }
@@ -1115,7 +1116,7 @@ end:
       if ((rc = mailbox_close (to)))
 	{
 	  mu_debug_print (debug, MU_DEBUG_TRACE,
-			  "mailbox_close (%s) failed: %s\n", toname,
+			  _("mailbox_close (%s) failed: %s\n"), toname,
 			  mu_errstring (rc));
 	}
     }

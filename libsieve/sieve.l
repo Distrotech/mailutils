@@ -1,19 +1,19 @@
 %{
-/* GNU mailutils - a suite of utilities for electronic mail
+/* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
 
-   This program is free software; you can redistribute it and/or modify
+   GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as published by
    the Free Software Foundation; either version 2, or (at your option)
    any later version.
 
-   This program is distributed in the hope that it will be useful,
+   GNU Mailutils is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU Lesser General Public License for more details.
 
    You should have received a copy of the GNU Lesser General Public License
-   along with this program; if not, write to the Free Software
+   along with GNU Mailutils; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #ifdef HAVE_CONFIG_H
@@ -122,7 +122,7 @@ lex_set_buffer (FILE *fp)
   
   if (!buf)
     {
-      sieve_compile_error (sieve_filename, sieve_line_num, "not enough memory");
+      sieve_compile_error (sieve_filename, sieve_line_num, _("not enough memory"));
       abort ();
     }
 
@@ -224,25 +224,25 @@ push_source (const char *name)
   if (stat (name, &st))
     {
       sieve_compile_error (sieve_filename, sieve_line_num,
-                           "can't stat `%s': %s", name, strerror (errno));
+                           _("can't stat `%s': %s"), name, strerror (errno));
       return 1;
     }
 
   if (sieve_filename && st.st_ino == sieve_source_inode)
     {
-      yyerror ("recursive inclusion");
+      yyerror (_("recursive inclusion"));
       return 1;
     }
   if (ctx = ctx_lookup (st.st_ino))
     {
-      yyerror ("recursive inclusion");
+      yyerror (_("recursive inclusion"));
       if (ctx->prev)
 	sieve_compile_error (ctx->prev->filename, ctx->prev->line,
-                             "`%s' already included here",
+                             _("`%s' already included here"),
                              name);
       else
 	sieve_compile_error (sieve_filename, sieve_line_num, 
-                             "`%s' already included at top level",
+                             _("`%s' already included at top level"),
 		             name);
       return 1;
     }
@@ -251,7 +251,7 @@ push_source (const char *name)
   if (!fp)
     {
       sieve_compile_error (sieve_filename, sieve_line_num, 
-                           "can't open `%s': %s", name, strerror (errno));
+                           _("can't open `%s': %s"), name, strerror (errno));
       return 1;
     }
 
@@ -420,7 +420,7 @@ get_file_name (char *p, char *endp, int *usepath)
       break;
 
     default:
-      yyerror ("preprocessor syntax");
+      yyerror (_("preprocessor syntax"));
       return NULL;
     }
 
@@ -429,7 +429,7 @@ get_file_name (char *p, char *endp, int *usepath)
 
   if (*p != exp)
     {
-      yyerror ("missing closing quote in preprocessor statement");
+      yyerror (_("missing closing quote in preprocessor statement"));
       return NULL;
     }
   
@@ -582,7 +582,7 @@ multiline_add (char *s)
       s = strdup (multiline_strip_tabs (yytext));
       if (!s)
 	{
-	  yyerror ("not enough memory");
+	  yyerror (_("not enough memory"));
 	  exit (1);
 	}
     }
@@ -622,7 +622,7 @@ multiline_begin ()
       multiline_delimiter = strdup (".");
       if (!multiline_delimiter)
 	{
-	  yyerror ("not enough memory");
+	  yyerror (_("not enough memory"));
 	  exit (1);
 	}
     }
@@ -679,7 +679,7 @@ ident (const char *text)
   yylval.string = strdup (text);
   if (!yylval.string)
     {
-      yyerror ("not enough memory");
+      yyerror (_("not enough memory"));
       exit (1);
     }
 }

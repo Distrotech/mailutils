@@ -1,18 +1,18 @@
-/* GNU mailutils - a suite of utilities for electronic mail
+/* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
 
-   This program is free software; you can redistribute it and/or modify
+   GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as published by
    the Free Software Foundation; either version 2, or (at your option)
    any later version.
 
-   This program is distributed in the hope that it will be useful,
+   GNU Mailutils is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU Lesser General Public License for more details.
 
    You should have received a copy of the GNU Lesser General Public License
-   along with this program; if not, write to the Free Software
+   along with GNU Mailutils; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #ifdef HAVE_CONFIG_H
@@ -35,7 +35,7 @@ sieve_code (sieve_op_t *op)
       if (!newprog)
 	{
 	  sieve_compile_error (sieve_filename, sieve_line_num, 
-                               "out of memory!");
+                               _("out of memory!"));
 	  return 1;
 	}
       sieve_machine->prog = newprog;
@@ -154,7 +154,7 @@ sieve_code_command (sieve_register_t *reg, list_t arglist)
       if (rc)
 	{
 	  sieve_compile_error (sieve_filename, sieve_line_num,
-                               "can't create iterator: %s",
+                               _("can't create iterator: %s"),
   		               mu_errstring (rc));
 	  return 1;
 	}
@@ -173,7 +173,7 @@ sieve_code_command (sieve_register_t *reg, list_t arglist)
 	      if (!tag)
 		{
 		  sieve_compile_error (sieve_filename, sieve_line_num,
-				       "invalid tag name `%s' for `%s'",
+				       _("invalid tag name `%s' for `%s'"),
 				       val->v.string, reg->name);
 		  err = 1;
 		  break;
@@ -182,7 +182,7 @@ sieve_code_command (sieve_register_t *reg, list_t arglist)
 	      if (!tag_list && (rc = list_create (&tag_list)))
 		{
 		  sieve_compile_error (sieve_filename, sieve_line_num,
-                                       "%s:%d: can't create tag list: %s",
+                                       _("%s:%d: can't create tag list: %s"),
 			               mu_errstring (rc));
 		  err = 1;
 		  break;
@@ -206,7 +206,7 @@ sieve_code_command (sieve_register_t *reg, list_t arglist)
 		  if (!chk_list && (rc = list_create (&chk_list)))
 		    {
 		      sieve_compile_error (sieve_filename, sieve_line_num,
-			  	         "%s:%d: can't create check list: %s",
+			  	         _("%s:%d: can't create check list: %s"),
 					   mu_errstring (rc));
 		      err = 1;
 		      break;
@@ -218,7 +218,7 @@ sieve_code_command (sieve_register_t *reg, list_t arglist)
 	  else if (*exp_arg == SVT_VOID)
 	    {
 	      sieve_compile_error (sieve_filename, sieve_line_num,
-                                   "too many arguments in call to `%s'",
+                                   _("too many arguments in call to `%s'"),
  			           reg->name);
 	      err = 1;
 	      break;
@@ -239,11 +239,11 @@ sieve_code_command (sieve_register_t *reg, list_t arglist)
 		  else
 		    {
 		      sieve_compile_error (sieve_filename, sieve_line_num,
-                                      "type mismatch in argument %d to `%s'",
+                                      _("type mismatch in argument %d to `%s'"),
 				      exp_arg - reg->req_args + 1,
 				      reg->name);
 		      sieve_compile_error (sieve_filename, sieve_line_num,
-                                      "Expected %s but passed %s",
+                                      _("Expected %s but passed %s"),
 				      sieve_type_str (*exp_arg),
 				      sieve_type_str (val->type));
 		      err = 1;
@@ -254,7 +254,7 @@ sieve_code_command (sieve_register_t *reg, list_t arglist)
 	      if (!arg_list && (rc = list_create (&arg_list)))
 		{
 		  sieve_compile_error (sieve_filename, sieve_line_num,
-                                       "can't create arg list: %s",
+                                       _("can't create arg list: %s"),
 			               mu_errstring (rc));
 		  err = 1;
 		  break;
@@ -272,7 +272,7 @@ sieve_code_command (sieve_register_t *reg, list_t arglist)
       if (*exp_arg != SVT_VOID)
 	{
 	  sieve_compile_error (sieve_filename, sieve_line_num, 
-                               "too few arguments in call to `%s'",
+                               _("too few arguments in call to `%s'"),
 			       reg->name);
 	  err = 1;
 	}

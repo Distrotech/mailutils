@@ -1,18 +1,18 @@
-/* GNU mailutils - a suite of utilities for electronic mail
+/* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
 
-   This program is free software; you can redistribute it and/or modify
+   GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as published by
    the Free Software Foundation; either version 2, or (at your option)
    any later version.
 
-   This program is distributed in the hope that it will be useful,
+   GNU Mailutils is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU Lesser General Public License for more details.
 
    You should have received a copy of the GNU Lesser General Public License
-   along with this program; if not, write to the Free Software
+   along with GNU Mailutils; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #ifdef HAVE_CONFIG_H
@@ -87,7 +87,7 @@ instr_push (sieve_machine_t mach)
   
   if (!mach->stack && list_create (&mach->stack))
     {
-      sieve_error (mach, "can't create stack");
+      sieve_error (mach, _("can't create stack"));
       sieve_abort (mach);
     }
   list_prepend (mach->stack, (void*) mach->reg);
@@ -105,7 +105,7 @@ instr_pop (sieve_machine_t mach)
 
   if (!mach->stack || list_is_empty (mach->stack))
     {
-      sieve_error (mach, "stack underflow");
+      sieve_error (mach, _("stack underflow"));
       sieve_abort (mach);
     }
   list_get (mach->stack, 0, (void **)&mach->reg);
@@ -314,7 +314,7 @@ sieve_mailbox (sieve_machine_t mach, mailbox_t mbox)
   mach->msgno = 0;
   rc = mailbox_scan (mbox, 1, &total);
   if (rc)
-    sieve_error (mach, "mailbox_scan: %s", mu_errstring (errno));
+    sieve_error (mach, _("mailbox_scan: %s"), mu_errstring (errno));
 
   observable_detach (observable, observer);
   observer_destroy (&observer, mach);

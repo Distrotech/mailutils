@@ -1,18 +1,18 @@
-/* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999, 2001 Free Software Foundation, Inc.
+/* GNU Mailutils -- a suite of utilities for electronic mail
+   Copyright (C) 1999, 2001, 2002 Free Software Foundation, Inc.
 
-   This program is free software; you can redistribute it and/or modify
+   GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as published by
    the Free Software Foundation; either version 2, or (at your option)
    any later version.
 
-   This program is distributed in the hope that it will be useful,
+   GNU Mailutils is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU Lesser General Public License for more details.
 
    You should have received a copy of the GNU Lesser General Public License
-   along with this program; if not, write to the Free Software
+   along with GNU Mailutils; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #ifdef HAVE_CONFIG_H
@@ -41,7 +41,7 @@
 #include <mailutils/locker.h>
 #include <mailutils/mailer.h>
 #include <mailutils/mailbox.h>
-
+#include <mailutils/nls.h>
 #include <mailutils/argcv.h>
 
 #define ARG_LOG_FACILITY 1
@@ -53,47 +53,47 @@ const char *argp_program_bug_address = "<" PACKAGE_BUGREPORT ">";
 
 static struct argp_option mu_common_argp_options[] = 
 {
-  { NULL, 0, NULL, 0, "Common options", 0},
+  { NULL, 0, NULL, 0, N_("Common options"), 0},
   { "show-config-options", ARG_SHOW_OPTIONS, NULL, OPTION_HIDDEN,
-    "Show compilation options", 0 },
+    N_("Show compilation options"), 0 },
   { NULL, 0, NULL, 0, NULL, 0 }
 };
 
 /* Option to print the license. */
 static struct argp_option mu_license_argp_option[] = {
-  { "license", ARG_LICENSE, NULL, 0, "Print license and exit", -2 },
+  { "license", ARG_LICENSE, NULL, 0, N_("Print license and exit"), -2 },
   { NULL,      0, NULL, 0, NULL, 0 }
 };
 
 /* Options used by programs that access mailboxes. */
 static struct argp_option mu_mailbox_argp_option[] = {
   {"mail-spool", 'm', "URL", 0,
-   "Use specified URL as a mailspool directory", 0},
+   N_("Use specified URL as a mailspool directory"), 0},
   {"lock-flags", ARG_LOCK_FLAGS, "FLAGS", 0,
-   "Default locker flags (E=external, R=retry, T=time, P=pid)", 0},
+   N_("Default locker flags (E=external, R=retry, T=time, P=pid)"), 0},
   { NULL,      0, NULL, 0, NULL, 0 }
 };
 
 /* Options used by programs that do address mapping. */
 static struct argp_option mu_address_argp_option[] = {
   {"email-addr", 'E', "EMAIL", 0,
-   "Set current user's email address (default is loginname@defaultdomain)", 0},
+   N_("Set current user's email address (default is loginname@defaultdomain)"), 0},
   {"email-domain", 'D', "DOMAIN", 0,
-   "Set domain for unqualified user names (default is this host)", 0},
+   N_("Set domain for unqualified user names (default is this host)"), 0},
   { NULL,      0, NULL, 0, NULL, 0 }
 };
 
 /* Options used by programs that send mail. */
 static struct argp_option mu_mailer_argp_option[] = {
   {"mailer", 'M', "MAILER", 0,
-   "Use specified URL as the default mailer", 0},
+   N_("Use specified URL as the default mailer"), 0},
   { NULL,      0, NULL, 0, NULL, 0 }
 };
 
 /* Options used by programs that log to syslog. */
 static struct argp_option mu_logging_argp_option[] = {
   {"log-facility", ARG_LOG_FACILITY, "FACILITY", 0,
-   "Output logs to syslog FACILITY", 0},
+   N_("Output logs to syslog FACILITY"), 0},
   { NULL,      0, NULL, 0, NULL, 0 }
 };
 
@@ -101,15 +101,15 @@ static struct argp_option mu_logging_argp_option[] = {
 /* Options used by programs that become daemons. */
 static struct argp_option mu_daemon_argp_option[] = {
   {"daemon", 'd', "NUMBER", OPTION_ARG_OPTIONAL,
-   "Runs in daemon mode with a maximum of NUMBER children"},
+   N_("Runs in daemon mode with a maximum of NUMBER children")},
   {"inetd",  'i', 0, 0,
-   "Run in inetd mode", 0},
+   N_("Run in inetd mode"), 0},
   {"port", 'p', "PORT", 0,
-   "Listen on specified port number", 0},
+   N_("Listen on specified port number"), 0},
   {"timeout", 't', "NUMBER", 0,
-   "Set idle timeout value to NUMBER seconds", 0},
+   N_("Set idle timeout value to NUMBER seconds"), 0},
   {"transcript", 'x', NULL, 0,
-   "output session transcript via syslog", 0},
+   N_("output session transcript via syslog"), 0},
   { NULL,      0, NULL, 0, NULL, 0 }
 };  
 
@@ -198,7 +198,7 @@ struct argp mu_daemon_argp = {
 struct argp_child mu_daemon_argp_child = {
   &mu_daemon_argp,
   0,
-  "Daemon configuration options",
+  N_("Daemon configuration options"),
   0
 };
 
@@ -233,24 +233,24 @@ parse_log_facility (const char *str)
   for (i = 0; i < sizeof (syslog_kw) / sizeof (syslog_kw[0]); i++)
     if (strcasecmp (syslog_kw[i].name, str) == 0)
       return syslog_kw[i].facility;
-  fprintf (stderr, "unknown facility `%s'\n", str);
+  fprintf (stderr, _("unknown facility `%s'\n"), str);
   return LOG_FACILITY;
 }
 
 char *mu_license_text =
-    "   This program is free software; you can redistribute it and/or modify\n"
+ N_("   GNU Mailutils is free software; you can redistribute it and/or modify\n"
     "   it under the terms of the GNU General Public License as published by\n"
     "   the Free Software Foundation; either version 2, or (at your option)\n"
     "   any later version.\n"
     "\n"
-    "   This program is distributed in the hope that it will be useful,\n"
+    "   GNU Mailutils is distributed in the hope that it will be useful,\n"
     "   but WITHOUT ANY WARRANTY; without even the implied warranty of\n"
     "   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n"
     "   GNU General Public License for more details.\n"
     "\n"
     "   You should have received a copy of the GNU General Public License\n"
-    "   along with this program; if not, write to the Free Software\n"
-    "   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.\n";
+    "   along with GNU Mailutils; if not, write to the Free Software\n"
+    "   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.\n\n");
 
 static char *mu_conf_option[] = {
   "VERSION=" VERSION,
@@ -353,7 +353,7 @@ mu_common_argp_parser (int key, char *arg, struct argp_state *state)
     {
       /* common */
     case ARG_LICENSE:
-      printf ("License for %s:\n\n", argp_program_version);
+      printf (_("License for %s:\n\n"), argp_program_version);
       printf ("%s", mu_license_text);
       exit (0);
 
@@ -390,7 +390,7 @@ mu_common_argp_parser (int key, char *arg, struct argp_state *state)
 		break;
 		
 	      default:
-		argp_error (state, "invalid lock flag '%c'", *arg);
+		argp_error (state, _("invalid lock flag '%c'"), *arg);
 	      }
 	  }
 	locker_set_default_flags(flags);
@@ -401,7 +401,7 @@ mu_common_argp_parser (int key, char *arg, struct argp_state *state)
     case 'E':
       if ((err = mu_set_user_email(arg)) != 0)
 	  {
-	    argp_error (state, "invalid email-addr '%s': %s",
+	    argp_error (state, _("invalid email-addr '%s': %s"),
 		arg, mu_errstring(err));
 	  }
       break;
@@ -409,7 +409,7 @@ mu_common_argp_parser (int key, char *arg, struct argp_state *state)
     case 'D':
       if ((err = mu_set_user_email_domain(arg)) != 0)
 	  {
-	    argp_error (state, "invalid email-domain '%s': %s",
+	    argp_error (state, _("invalid email-domain '%s': %s"),
 		arg, mu_errstring(err));
 	  }
       break;
@@ -418,7 +418,7 @@ mu_common_argp_parser (int key, char *arg, struct argp_state *state)
     case 'M':
       if ((err = mailer_set_url_default (arg)) != 0)
 	  {
-	    argp_error (state, "invalid mailer url '%s': %s",
+	    argp_error (state, _("invalid mailer url '%s': %s"),
 			arg, mu_errstring(err));
 	  }
       break;
@@ -432,7 +432,7 @@ mu_common_argp_parser (int key, char *arg, struct argp_state *state)
       p = mu_normalize_maildir (mu_path_maildir);
       if (!p)
 	{
-	  argp_error (state, "badly formed maildir: %s", mu_path_maildir);
+	  argp_error (state, _("badly formed maildir: %s"), mu_path_maildir);
 	}
       mu_path_maildir = p;
       break;
@@ -522,7 +522,7 @@ read_rc (const char *progname, const char *name, const char *capa[],
 
   if (!rcfile)
     {
-      fprintf (stderr, "%s: not enough memory\n", progname);
+      fprintf (stderr, _("%s: not enough memory\n"), progname);
       exit (1);
     }
 
@@ -567,7 +567,7 @@ read_rc (const char *progname, const char *name, const char *capa[],
 	  
 	  if (!linebuf)
 	    {
-	      fprintf (stderr, "%s: not enough memory\n", progname);
+	      fprintf (stderr, _("%s: not enough memory\n"), progname);
 	      exit (1);
 	    }
 	  
@@ -606,7 +606,7 @@ read_rc (const char *progname, const char *name, const char *capa[],
 			    (x_argc + n_argc) * sizeof (x_argv[0]));
 	  if (!x_argv)
 	    {
-	      fprintf (stderr, "%s: not enough memory\n", progname);
+	      fprintf (stderr, _("%s: not enough memory\n"), progname);
 	      exit (1);
 	    }
 	  
@@ -646,7 +646,7 @@ mu_create_argcv (const char *capa[],
   x_argv = malloc (sizeof (x_argv[0]));
   if (!x_argv)
     {
-      fprintf (stderr, "%s: not enough memory\n", progname);
+      fprintf (stderr, _("%s: not enough memory\n"), progname);
       exit (1);
     }
 
@@ -668,7 +668,7 @@ mu_create_argcv (const char *capa[],
 
     if (!rcdirname)
       {
-	fprintf (stderr, "%s: not enough memory\n", progname);
+	fprintf (stderr, _("%s: not enough memory\n"), progname);
 	exit (1);
       }
     if(stat(rcdirname, &s) == 0 && S_ISDIR(s.st_mode))
@@ -693,7 +693,7 @@ mu_create_argcv (const char *capa[],
 
       if (!userrc)
 	{
-	  fprintf (stderr, "%s: not enough memory\n", progname);
+	  fprintf (stderr, _("%s: not enough memory\n"), progname);
 	  exit (1);
 	}
       
@@ -722,7 +722,7 @@ mu_create_argcv (const char *capa[],
 
     if (!progrc)
       {
-	fprintf (stderr, "%s: not enough memory\n", progname);
+	fprintf (stderr, _("%s: not enough memory\n"), progname);
 	exit (1);
       }
 
@@ -808,7 +808,7 @@ mu_build_argp (const struct argp *template, const char *capa[])
   ap = calloc (n + 1, sizeof (*ap));
   if (!ap)
     {
-      mu_error ("out of memory");
+      mu_error (_("out of memory"));
       abort ();
     }
 
@@ -832,7 +832,7 @@ mu_build_argp (const struct argp *template, const char *capa[])
       struct argp_child *child = find_argp_child (capa[n]);
       if (!child)
 	{
-	  mu_error ("INTERNAL ERROR: requested unknown argp capability %s",
+	  mu_error (_("INTERNAL ERROR: requested unknown argp capability %s"),
 		    capa[n]);
 	  abort ();
 	}
@@ -846,7 +846,7 @@ mu_build_argp (const struct argp *template, const char *capa[])
   argp = malloc (sizeof (*argp));
   if (!argp)
     {
-      mu_error ("out of memory");
+      mu_error (_("out of memory"));
       abort ();
     }
 
@@ -885,7 +885,7 @@ mu_auth_init ()
   extern struct argp_child mu_auth_argp_child;
   if (mu_register_capa ("auth", &mu_auth_argp_child))
     {
-      mu_error ("INTERNAL ERROR: cannot register argp capability auth");
+      mu_error (_("INTERNAL ERROR: cannot register argp capability auth"));
       abort ();
     }
 }

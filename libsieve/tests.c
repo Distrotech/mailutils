@@ -1,18 +1,18 @@
-/* GNU mailutils - a suite of utilities for electronic mail
+/* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
 
-   This program is free software; you can redistribute it and/or modify
+   GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as published by
    the Free Software Foundation; either version 2, or (at your option)
    any later version.
 
-   This program is distributed in the hope that it will be useful,
+   GNU Mailutils is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU Lesser General Public License for more details.
 
    You should have received a copy of the GNU Lesser General Public License
-   along with this program; if not, write to the Free Software
+   along with GNU Mailutils; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #ifdef HAVE_CONFIG_H
@@ -101,13 +101,13 @@ sieve_test_address (sieve_machine_t mach, list_t args, list_t tags)
   h = sieve_value_get (args, 0);
   if (!h)
     {
-      sieve_error (mach, "address: can't get argument 1");
+      sieve_error (mach, _("address: can't get argument 1"));
       sieve_abort (mach);
     }
   v = sieve_value_get (args, 1);
   if (!v)
     {
-      sieve_error (mach, "address: can't get argument 2");
+      sieve_error (mach, _("address: can't get argument 2"));
       sieve_abort (mach);
     }
 
@@ -141,13 +141,13 @@ sieve_test_header (sieve_machine_t mach, list_t args, list_t tags)
   h = sieve_value_get (args, 0);
   if (!h)
     {
-      sieve_error (mach, "header: can't get argument 1");
+      sieve_error (mach, _("header: can't get argument 1"));
       sieve_abort (mach);
     }
   v = sieve_value_get (args, 1);
   if (!v)
     {
-      sieve_error (mach, "header: can't get argument 2");
+      sieve_error (mach, _("header: can't get argument 2"));
       sieve_abort (mach);
     }
 
@@ -221,13 +221,13 @@ sieve_test_envelope (sieve_machine_t mach, list_t args, list_t tags)
   h = sieve_value_get (args, 0);
   if (!h)
     {
-      sieve_error (mach, "header: can't get argument 1");
+      sieve_error (mach, _("header: can't get argument 1"));
       sieve_abort (mach);
     }
   v = sieve_value_get (args, 1);
   if (!v)
     {
-      sieve_error (mach, "header: can't get argument 2");
+      sieve_error (mach, _("header: can't get argument 2"));
       sieve_abort (mach);
     }
 
@@ -249,7 +249,7 @@ sieve_test_size (sieve_machine_t mach, list_t args, list_t tags)
   sieve_value_t *val = sieve_value_get (args, 0);
   if (!val)
     {
-      sieve_error (mach, "size: can't get argument!");
+      sieve_error (mach, _("size: can't get argument!"));
       sieve_abort (mach);
     }
 
@@ -303,7 +303,7 @@ sieve_test_exists (sieve_machine_t mach, list_t args, list_t tags)
   val = sieve_value_get (args, 0);
   if (!val)
     {
-      sieve_error (mach, "exists: can't get argument!");
+      sieve_error (mach, _("exists: can't get argument!"));
       sieve_abort (mach);
     }
 

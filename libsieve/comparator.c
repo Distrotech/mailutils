@@ -1,18 +1,18 @@
-/* GNU mailutils - a suite of utilities for electronic mail
+/* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
 
-   This program is free software; you can redistribute it and/or modify
+   GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as published by
    the Free Software Foundation; either version 2, or (at your option)
    any later version.
 
-   This program is distributed in the hope that it will be useful,
+   GNU Mailutils is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU Lesser General Public License for more details.
 
    You should have received a copy of the GNU Lesser General Public License
-   along with this program; if not, write to the Free Software
+   along with GNU Mailutils; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #ifdef HAVE_CONFIG_H
@@ -165,12 +165,12 @@ _regex_compile (void *item, void *data)
 	{
 	  regerror (rc, preg, errbuf, size);
 	  sieve_compile_error (sieve_filename, sieve_line_num,
-			       "regex error: %s", errbuf);
+			       _("regex error: %s"), errbuf);
 	  free (errbuf);
 	}
       else
 	 sieve_compile_error (sieve_filename, sieve_line_num,
-			      "regex error");
+			      _("regex error"));
       return rc;
     }
 
@@ -234,7 +234,7 @@ sieve_match_part_checker (const char *name, list_t tags, list_t args)
   if (err)
     {
       sieve_compile_error (sieve_filename, sieve_line_num,
-			   "match type specified twice in call to `%s'",
+			   _("match type specified twice in call to `%s'"),
 			   name);
       return 1;
     }
@@ -256,8 +256,8 @@ sieve_match_part_checker (const char *name, list_t tags, list_t args)
   if (!compfun)
     {
       sieve_compile_error (sieve_filename, sieve_line_num,
-			   "comparator `%s' is incompatible with match type `%s' in call to `%s'",
-			   compname, match ? match->tag : "is", name);
+			   _("comparator `%s' is incompatible with match type `%s' in call to `%s'"),
+			   compname, match ? match->tag : _("is"), name);
       return 1;
     }
 

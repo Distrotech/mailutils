@@ -1,19 +1,19 @@
 %{
-/* GNU mailutils - a suite of utilities for electronic mail
+/* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
 
-   This program is free software; you can redistribute it and/or modify
+   GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as published by
    the Free Software Foundation; either version 2, or (at your option)
    any later version.
 
-   This program is distributed in the hope that it will be useful,
+   GNU Mailutils is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU Lesser General Public License for more details.
 
    You should have received a copy of the GNU Lesser General Public License
-   along with this program; if not, write to the Free Software
+   along with GNU Mailutils; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #ifdef HAVE_CONFIG_H
@@ -226,11 +226,11 @@ test         : command
 
 		 if (!reg)
 		   sieve_compile_error (sieve_filename, sieve_line_num,
-                                "unknown test: %s",
+                                _("unknown test: %s"),
 				$1.ident);
 		 else if (!reg->required)
 		   sieve_compile_error (sieve_filename, sieve_line_num,
-                                "test `%s' has not been required",
+                                _("test `%s' has not been required"),
 				$1.ident);
 		 else if (sieve_code_test (reg, $1.args))
 		   YYERROR;
@@ -252,11 +252,11 @@ action       : command
 		 $$ = sieve_machine->pc;
 		 if (!reg)
 		   sieve_compile_error (sieve_filename, sieve_line_num,
-                                "unknown action: %s",
+                                _("unknown action: %s"),
 				$1.ident);
 		 else if (!reg->required)
 		   sieve_compile_error (sieve_filename, sieve_line_num,
-                                "action `%s' has not been required",
+                                _("action `%s' has not been required"),
 				$1.ident);
 		 else if (sieve_code_action (reg, $1.args))
 		   YYERROR;
