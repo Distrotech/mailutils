@@ -151,6 +151,13 @@ mail_cmdline(void *closure, int cont)
 	  util_error("Interrupt");
 	  continue;
 	}
+
+      if (!rc && util_find_env ("ignoreeof")->set)
+	{
+	  util_error ("Use \"quit\" to quit.");
+	  continue;
+	}
+      
       break;
     }
   return rc;
@@ -258,9 +265,10 @@ main (int argc, char **argv)
   /* argument parsing */
   argp_parse (&argp, argc, argv, 0, 0, &args);
 
-  /* read .mailrc */
+  /* read system-wide mail.rc and user's .mailrc */
   if ((util_find_env ("rc"))->set)
-    util_do_command ("source %s", getenv ("MAILRC"));
+    util_do_command ("source %s", "/etc/mail.rc"); /*FIXME: configurable path*/
+  util_do_command ("source %s", getenv ("MAILRC"));
 
   /* how should we be running? */
   if ((mode = util_find_env ("mode")) == NULL || mode->set == 0)
@@ -278,6 +286,9 @@ main (int argc, char **argv)
 	       argp_program_version);
     }
 
+  ml_readline_init ();
+  mail_set_my_name(args.user);
+
   /* Mode is just sending */
   if (strlen ("send") == modelen && !strcmp ("send", mode->value))
     {
@@ -293,9 +304,6 @@ main (int argc, char **argv)
   /* Or acting as a normal reader */
   else
     {
-      ml_readline_init ();
-      mail_set_my_name(args.user);
-
       /* open the mailbox */
       if (args.file == NULL)
 	{
@@ -318,6 +326,12 @@ main (int argc, char **argv)
       else if (strlen ("headers") == modelen
 	       && !strcmp ("headers", mode->value))
 	return util_do_command ("from *");
+
+      if (total == 0)
+        {
+          fprintf (ofile, "No mail for %s\n", mail_whoami());
+          return 1;
+        }
 
       /* initial commands */
       if ((util_find_env("header"))->set)
