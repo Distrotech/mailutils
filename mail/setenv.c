@@ -17,7 +17,9 @@
 
 #include "mail.h"
 
+#if !HAVE_DECL_ENVIRON
 extern char **environ;
+#endif
 
 int
 mail_setenv (int argc, char **argv)
