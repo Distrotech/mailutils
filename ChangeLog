@@ -1,4 +1,11 @@
 2002-03-25  Sergey Poznyakoff
+
+	Was too quick about _exit :^)
+	
+	* configure.in: Check for _exit.
+	* mailbox/mutil.c (mu_spawnvp): Protected _exit by #ifdef.
+	
+2002-03-25  Sergey Poznyakoff
 	
 	Bunch of fixes:
 
