@@ -3,7 +3,7 @@
 	* mailbox/mbx_imap.c (imap_attr_set_flags): Do not send
 	the \\Delete flag and just keep it locally.  The expunge
 	will take care of resending it.
-	(imap_attr_get_flags): Likewised.
+	(imap_attr_unset_flags): Likewised.
 
 2001-10-03 Sergey Poznyakoff
 
