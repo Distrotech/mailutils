@@ -1059,24 +1059,28 @@ fetch_operation (message_t msg, char **arg, int silent)
       (*arg) += 13;
       fetch_header_fields (msg, arg, start, end);
     }
-  /* Last case check also for section to catch "[1.2.3]" submessages.  */
-  else if (strncasecmp (*arg, "TEXT]", 5) == 0 || section)
+
+  else if (strncasecmp (*arg, "TEXT]", 5) == 0)
     {
       if (!silent)
 	{
 	  if (*section)
-	    util_send ("[%s]", section);
+	    util_send ("[%sTEXT]", section);
 	  else
 	    util_send ("[TEXT]");
 	}
-      if (*section)
-	(*arg)++;
-      else
-	(*arg) += 5;
+      (*arg) += 5;
+      fetch_body_content (msg, start, end);
+    }
+  else if (**arg == ']')
+    {
+      if (!silent)
+	util_send ("[%s]", section);
+      (*arg)++;
       fetch_body_content (msg, start, end);
     }
   else
-    util_send (" \"\"");
+    util_send (" \"\"");/*FIXME: ERROR Message!*/
   free (section);
   return RESP_OK;
 }
