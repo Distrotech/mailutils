@@ -1,18 +1,18 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
 
-   GNU Mailutils program is free software; you can redistribute it and/or modify
+   GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
    the Free Software Foundation; either version 2, or (at your option)
    any later version.
 
-   GNU Mailutils program is distributed in the hope that it will be useful,
+   GNU Mailutils is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with GNU Mailutils program; if not, write to the Free Software
+   along with GNU Mailutils; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 %{
@@ -50,6 +50,7 @@ static int select_deleted __P ((message_t msg, void *closure));
 int yyerror __P ((const char *));
 int yylex  __P ((void));
 
+static int msgset_flags = MSG_NODELETED;
 static msgset_t *result;
 %}
 
@@ -114,6 +115,11 @@ msgset   : msgexpr
          ;
 
 msgexpr  : msgspec
+           {
+	     $$ = $1;
+	     if (check_set (&$$))
+	       YYABORT;
+	   }
          | '{' msgset '}'
            {
 	     $$ = $2;
@@ -331,17 +337,26 @@ yylex()
 }
 
 int
-msgset_parse (const int argc, char **argv, msgset_t **mset)
+msgset_parse (const int argc, char **argv, int flags, msgset_t **mset)
 {
   int rc;
   xargc = argc;
   xargv = argv;
+  msgset_flags = flags;
   cur_ind = 1;
   cur_p = NULL;
   result = NULL;
   rc = yyparse ();
   if (rc == 0)
-    *mset = result;
+    {
+      if (result == NULL)
+	{
+	  util_noapp ();
+	  rc = 1;
+	}
+      else
+	*mset = result;
+    }
   return rc;
 }
 
@@ -362,12 +377,23 @@ msgset_free (msgset_t *msg_set)
     }
 }
 
+size_t
+msgset_count (msgset_t *set)
+{
+  size_t count = 0;
+  for (; set; set = set->next)
+    count++;
+  return count;
+}
+
 /* Create a message set consisting of a single msg_num and no subparts */
 msgset_t *
 msgset_make_1 (int number)
 {
   msgset_t *mp;
 
+  if (number == 0)
+    return NULL;
   mp = xmalloc (sizeof (*mp));
   mp->next = NULL;
   mp->npart = 1;
@@ -672,6 +698,63 @@ select_deleted (message_t msg, void *closure)
   message_get_attribute (msg, &attr);
   rc = attribute_is_deleted (attr);
   return strcmp (xargv[0], "undelete") == 0 ? rc : !rc;
+}
+
+int
+check_set (msgset_t **pset)
+{
+  int flags = msgset_flags;
+  int rc = 0;
+  
+  if (msgset_count (*pset) == 1)
+    flags ^= MSG_SILENT;
+  if (flags & MSG_NODELETED)
+    {
+      msgset_t *p = *pset, *prev = NULL;
+      msgset_t *delset = NULL;
+
+      while (p)
+	{
+	  msgset_t *next = p->next;
+	  if (util_isdeleted (p->msg_part[0]))
+	    {
+	      if ((flags & MSG_SILENT)
+		  && prev != NULL
+		  && next != NULL)
+		{
+		  /* Mark subset as deleted */
+		  p->next = delset;
+		  delset = p;
+		  /* Remove it from the set */
+		  if (prev)
+		    prev->next = next;
+		  else
+		    *pset = next;
+		}
+	      else
+		{
+		  util_error (_("%lu: Inappropriate message (has been deleted)"),
+			      (unsigned long) p->msg_part[0]);
+		  /* Delete entire set */
+		  delset = *pset;
+		  *pset = NULL;
+		  rc = 1;
+		  break;
+		}
+	    }
+	  else
+	    prev = p;
+	  p = next;
+	}
+
+      if (delset)
+	msgset_free (delset);
+
+      if (!*pset)
+	rc = 1;
+    }
+
+  return rc;
 }
 
 #if 0
