@@ -56,25 +56,25 @@ envelope_get_owner (envelope_t envelope)
 }
 
 int
-envelope_set_from (envelope_t envelope,
-		   int (*_from) __P ((envelope_t, char *, size_t, size_t*)),
+envelope_set_sender (envelope_t envelope,
+		   int (*_sender) __P ((envelope_t, char *, size_t, size_t*)),
 		   void *owner)
 {
   if (envelope == NULL)
     return EINVAL;
   if (envelope->owner != owner)
     return EACCES;
-  envelope->_from = _from;
+  envelope->_sender = _sender;
   return 0;
 }
 
 int
-envelope_from (envelope_t envelope, char *buf, size_t len, size_t *pnwrite)
+envelope_sender (envelope_t envelope, char *buf, size_t len, size_t *pnwrite)
 {
   if (envelope == NULL)
     return EINVAL;
-  if (envelope->_from)
-    return envelope->_from (envelope, buf, len, pnwrite);
+  if (envelope->_sender)
+    return envelope->_sender (envelope, buf, len, pnwrite);
   if (buf && len)
     *buf = '\0';
   if (pnwrite)

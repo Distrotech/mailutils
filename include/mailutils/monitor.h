@@ -32,10 +32,20 @@ extern "C" {
 # endif
 #endif /*__P */
 
-struct _monitor;
+struct _monitor
+{
+  void *data;
+  void *owner;
+  int allocated;
+  int flags;
+};
 typedef struct _monitor *monitor_t;
 
-extern int monitor_create      __P ((monitor_t *, void *owner));
+#define MU_MONITOR_PTHREAD 0
+#define MU_MONITOR_INITIALIZER {0, 0, 0, 0}
+
+
+extern int monitor_create      __P ((monitor_t *, int flags, void *owner));
 extern void monitor_destroy    __P ((monitor_t *, void *owner));
 extern void *monitor_get_owner __P ((monitor_t));
 

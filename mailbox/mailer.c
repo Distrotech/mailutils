@@ -73,7 +73,7 @@ mailer_create (mailer_t *pmailer, const char *name, int id)
       if (mailer == NULL)
 	return ENOMEM;
 
-      status = monitor_create (&(mailer->monitor), mailer);
+      status = monitor_create (&(mailer->monitor), 0, mailer);
       if (status != 0)
         {
           mailer_destroy (&mailer);

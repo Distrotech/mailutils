@@ -67,28 +67,30 @@ struct _record;
 typedef struct _record* record_t;
 
 /* Registration.  */
-extern int registrar_get_list   __P ((list_t *));
+extern int registrar_get_list     __P ((list_t *));
+extern int registrar_record       __P ((record_t));
+extern int unregistrar_record     __P ((record_t));
 
 /* Record.  */
-extern int record_create    __P ((record_t *, void *owner));
-extern void record_destroy  __P ((record_t *));
+extern int record_create          __P ((record_t *, void *owner));
+extern void record_destroy        __P ((record_t *));
 
-extern int record_is_scheme __P ((record_t, const char *));
-extern int record_set_scheme __P ((record_t, const char *));
-extern int record_set_is_scheme __P ((record_t, int (*_is_scheme)
-				      __P ((const char *))));
-extern int record_get_mailbox   __P ((record_t, mailbox_entry_t *));
-extern int record_set_mailbox   __P ((record_t, mailbox_entry_t));
+extern int record_is_scheme       __P ((record_t, const char *));
+extern int record_set_scheme      __P ((record_t, const char *));
+extern int record_set_is_scheme   __P ((record_t, int (*_is_scheme)
+					__P ((const char *))));
+extern int record_get_mailbox     __P ((record_t, mailbox_entry_t *));
+extern int record_set_mailbox     __P ((record_t, mailbox_entry_t));
 extern int record_set_get_mailbox __P ((record_t, int (*_get_mailbox)
 					__P ((mailbox_entry_t *))));
-extern int record_get_mailer     __P ((record_t, mailer_entry_t *));
-extern int record_set_mailer     __P ((record_t, mailer_entry_t));
-extern int record_set_get_mailer __P ((record_t, int (*_get_mailer)
+extern int record_get_mailer      __P ((record_t, mailer_entry_t *));
+extern int record_set_mailer      __P ((record_t, mailer_entry_t));
+extern int record_set_get_mailer  __P ((record_t, int (*_get_mailer)
 				       __P ((mailer_entry_t *))));
-extern int record_get_folder     __P ((record_t, folder_entry_t *));
-extern int record_set_folder     __P ((record_t, folder_entry_t));
-extern int record_set_get_folder __P ((record_t, int (*_get_folder)
-				       __P ((folder_entry_t *))));
+extern int record_get_folder      __P ((record_t, folder_entry_t *));
+extern int record_set_folder      __P ((record_t, folder_entry_t));
+extern int record_set_get_folder  __P ((record_t, int (*_get_folder)
+					__P ((folder_entry_t *))));
 
 #define MU_POP_PORT 110
 #define MU_POP_SCHEME "pop://"

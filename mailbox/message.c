@@ -37,7 +37,7 @@ static int message_read (stream_t is, char *buf, size_t buflen,
 static int message_write (stream_t os, const char *buf, size_t buflen,
 			  off_t off, size_t *pnwrite);
 static int message_get_fd (stream_t stream, int *pfd);
-static int message_from (envelope_t envelope, char *buf, size_t len,
+static int message_sender (envelope_t envelope, char *buf, size_t len,
 			 size_t *pnwrite);
 static int message_date (envelope_t envelope, char *buf, size_t len,
 			 size_t *pnwrite);
@@ -54,7 +54,7 @@ message_create (message_t *pmsg, void *owner)
   msg = calloc (1, sizeof (*msg));
   if (msg == NULL)
     return ENOMEM;
-  status = monitor_create (&(msg->monitor), msg);
+  status = monitor_create (&(msg->monitor), 0, msg);
   if (status != 0)
     {
       free (msg);
@@ -355,7 +355,7 @@ message_get_envelope (message_t msg, envelope_t *penvelope)
 	  monitor_unlock (msg->monitor);
 	  return status;
 	}
-      envelope_set_from (envelope, message_from, msg);
+      envelope_set_sender (envelope, message_sender, msg);
       envelope_set_date (envelope, message_date, msg);
       msg->envelope = envelope;
     }
@@ -811,7 +811,7 @@ message_date (envelope_t envelope, char *buf, size_t len, size_t *pnwrite)
 }
 
 static int
-message_from (envelope_t envelope, char *buf, size_t len, size_t *pnwrite)
+message_sender (envelope_t envelope, char *buf, size_t len, size_t *pnwrite)
 {
   message_t msg = envelope_get_owner (envelope);
   header_t header = NULL;
@@ -826,19 +826,19 @@ message_from (envelope_t envelope, char *buf, size_t len, size_t *pnwrite)
   status = header_get_value (header, MU_HEADER_FROM, NULL, 0, &n);
   if (status == 0 && n != 0)
     {
-      char *from;
+      char *sender;
       char *addr;
-      from = calloc (1, n + 1);
-      if (from == NULL)
+      sender = calloc (1, n + 1);
+      if (sender == NULL)
 	return ENOMEM;
       addr = calloc (1, n + 1);
       if (addr == NULL)
 	{
-	  free (from);
+	  free (sender);
 	  return ENOMEM;
 	}
-      header_get_value (header, MU_HEADER_FROM, from, n + 1, NULL);
-      if (parseaddr (from, addr, n + 1) == 0)
+      header_get_value (header, MU_HEADER_FROM, sender, n + 1, NULL);
+      if (parseaddr (sender, addr, n + 1) == 0)
 	{
 	  size_t i = strlen (addr);
 	  n = (i > len) ? len : i;
@@ -848,13 +848,13 @@ message_from (envelope_t envelope, char *buf, size_t len, size_t *pnwrite)
 	      buf[n] = '\0';
 	    }
 	  free (addr);
-	  free (from);
+	  free (sender);
 	  if (pnwrite)
 	    *pnwrite = n;
 	  return 0;
 	}
       free (addr);
-      free (from);
+      free (sender);
     }
   else if (status == EAGAIN)
     return status;

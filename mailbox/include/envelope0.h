@@ -40,7 +40,7 @@ struct _envelope
 {
   void *owner;
   int (*_destroy) __P ((envelope_t));
-  int (*_from)    __P ((envelope_t, char *, size_t, size_t*));
+  int (*_sender)    __P ((envelope_t, char *, size_t, size_t*));
   int (*_date)    __P ((envelope_t, char *, size_t , size_t *));
 };
 

@@ -23,7 +23,7 @@
 #include <mailutils/url.h>
 #include <mailutils/observer.h>
 #include <mailutils/debug.h>
-#include <mailutils/list.h>
+#include <mailutils/stream.h>
 #include <mailutils/auth.h>
 #include <mailutils/stream.h>
 
@@ -44,6 +44,17 @@ extern "C" {
 struct _folder;
 typedef struct _folder *folder_t;
 
+#define MU_FOLDER_ATTRIBUTE_NOINFERIORS 0x001
+#define MU_FOLDER_ATTRIBUTE_NOSELECT    0x002
+#define MU_FOLDER_ATTRIBUTE_MARKED      0x004
+#define MU_FOLDER_ATTRIBUTE_UNMARKED    0x008
+struct folder_list
+{
+  int attribute;
+  int separator;
+  char *name;
+};
+
 /* Constructor/destructor and possible types.  */
 extern int  folder_create        __P ((folder_t *, const char *));
 extern void folder_destroy       __P ((folder_t *));
@@ -53,7 +64,9 @@ extern int folder_close          __P ((folder_t));
 
 extern int folder_delete_mailbox __P ((folder_t, const char *));
 
-extern int folder_list           __P ((folder_t, char *vector[][], size_t *));
+extern int folder_list           __P ((folder_t, const char *pattern,
+				       struct folder_list ***flist, size_t *));
+extern int folder_list_destroy   __P ((struct folder_list ***, size_t));
 
 /* Stream settings.  */
 extern int folder_get_stream     __P ((folder_t, stream_t *));

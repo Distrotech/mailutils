@@ -38,8 +38,8 @@ typedef struct _envelope *envelope_t;
 int envelope_create (envelope_t *, void *);
 void envelope_destroy (envelope_t *, void *);
 void * envelope_get_owner (envelope_t);
-int envelope_set_from (envelope_t, int (*_from) __P ((envelope_t, char *, size_t, size_t*)), void *);
-int envelope_from (envelope_t, char *, size_t, size_t *);
+int envelope_set_sender (envelope_t, int (*_sender) __P ((envelope_t, char *, size_t, size_t*)), void *);
+int envelope_sender (envelope_t, char *, size_t, size_t *);
 int envelope_set_date (envelope_t, int (*_date) __P ((envelope_t, char *, size_t , size_t *)), void *);
 int envelope_date (envelope_t, char *, size_t, size_t *);
 

@@ -80,7 +80,6 @@ extern int mailbox_set_ticket     __P ((mailbox_t, ticket_t));
 
 /* URL.  */
 extern int mailbox_get_url        __P ((mailbox_t, url_t *));
-extern int mailbox_set_url        __P ((mailbox_t, url_t));
 
 /* For any debuging */
 extern int mailbox_get_debug      __P ((mailbox_t, debug_t *));

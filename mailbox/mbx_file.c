@@ -35,13 +35,14 @@ static struct mailbox_entry _file_entry =
   url_file_init, mailbox_file_init
 };
 mailbox_entry_t file_entry = &_file_entry;
+extern struct folder_entry  _fmbox_entry;
 
 static struct _record _file_record =
 {
   MU_FILE_SCHEME,
   &_file_entry, /* Mailbox entry.  */
   NULL, /* Mailer entry.  */
-  NULL, /* Folder entry.  */
+  &_fmbox_entry, /* Folder entry.  */
   0, /* Not malloc()ed.  */
   NULL, /* No need for an owner.  */
   NULL, /* is_scheme method.  */
@@ -63,7 +64,7 @@ static struct _record _path_record =
   MU_PATH_SCHEME,
   &_path_entry, /* Mailbox entry.  */
   NULL, /* Mailer entry.  */
-  NULL, /* Folder entry.  */
+  &_fmbox_entry, /* Folder entry.  */
   0, /* Not malloc()ed.  */
   NULL, /* No need for an owner.  */
   NULL, /* is_scheme method.  */

@@ -22,6 +22,7 @@ debug.c \
 envelope.c \
 file_stream.c \
 folder.c \
+folder_mbox.c \
 header.c \
 iterator.c \
 list.c \

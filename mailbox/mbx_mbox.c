@@ -57,13 +57,14 @@ static struct mailbox_entry _mbox_entry =
   url_mbox_init, mbox_init
 };
 mailbox_entry_t mbox_entry = &_mbox_entry;
+extern struct folder_entry _fmbox_entry;
 
 static struct _record _mbox_record =
 {
   MU_MBOX_SCHEME,
   &_mbox_entry, /* Mailbox entry.  */
   NULL, /* Mailer entry.  */
-  NULL, /* Folder entry.  */
+  &_fmbox_entry, /* Folder entry.  */
   0, /* Not malloc()ed.  */
   NULL, /* No need for an owner.  */
   NULL, /* is_scheme method.  */
@@ -130,7 +131,7 @@ struct _mbox_data
   {
     MBOX_NO_STATE=0, MBOX_STATE_FROM, MBOX_STATE_DATE, MBOX_STATE_APPEND
   } state ;
-  char *from;
+  char *sender;
   char *date;
   off_t off;
   mailbox_t mailbox; /* Back pointer. */
@@ -162,7 +163,7 @@ static int mbox_header_size (header_t, size_t *);
 static int mbox_header_lines (header_t, size_t *);
 static int mbox_body_size (body_t, size_t *);
 static int mbox_body_lines (body_t, size_t *);
-static int mbox_envelope_from (envelope_t, char *, size_t, size_t *);
+static int mbox_envelope_sender (envelope_t, char *, size_t, size_t *);
 static int mbox_envelope_date (envelope_t, char *, size_t, size_t *);
 static void mbox_cleanup (void *);
 
@@ -198,7 +199,8 @@ mbox_init (mailbox_t mailbox)
   mud->name = calloc (name_len + 1, sizeof (char));
   if (mud->name == NULL)
     {
-      mbox_destroy (mailbox);
+      free (mud);
+      mailbox->data = NULL;
       return ENOMEM;
     }
   url_get_path (mailbox->url, mud->name, name_len + 1, NULL);
@@ -1032,7 +1034,7 @@ mbox_envelope_date (envelope_t envelope, char *buf, size_t len,
 }
 
 static int
-mbox_envelope_from (envelope_t envelope, char *buf, size_t len,
+mbox_envelope_sender (envelope_t envelope, char *buf, size_t len,
 		    size_t *pnwrite)
 {
   message_t msg = envelope_get_owner (envelope);
@@ -1174,7 +1176,7 @@ mbox_get_message (mailbox_t mailbox, size_t msgno, message_t *pmsg)
 	message_destroy (&msg, mum);
 	return status;
       }
-    envelope_set_from (envelope, mbox_envelope_from, msg);
+    envelope_set_sender (envelope, mbox_envelope_sender, msg);
     envelope_set_date (envelope, mbox_envelope_date, msg);
     message_set_envelope (msg, envelope, mum);
   }
@@ -1222,8 +1224,8 @@ mbox_append_message (mailbox_t mailbox, message_t msg)
     switch (mud->state)
       {
       case MBOX_NO_STATE:
-	mud->from = calloc (128, sizeof (char));
-	if (mud->from == NULL)
+	mud->sender = calloc (128, sizeof (char));
+	if (mud->sender == NULL)
 	  {
 	    locker_unlock (mailbox->locker);
 	    monitor_unlock (mailbox->monitor);
@@ -1232,8 +1234,8 @@ mbox_append_message (mailbox_t mailbox, message_t msg)
 	mud->date = calloc (128, sizeof (char));
 	if (mud->date == NULL)
 	  {
-	    free (mud->from);
-	    mud->from = NULL;
+	    free (mud->sender);
+	    mud->sender = NULL;
 	    mud->state = MBOX_NO_STATE;
 	    locker_unlock (mailbox->locker);
 	    monitor_unlock (mailbox->monitor);
@@ -1249,14 +1251,14 @@ mbox_append_message (mailbox_t mailbox, message_t msg)
 	  size_t len = 0;
 	  envelope_t envelope;
 	  message_get_envelope (msg, &envelope);
-	  status = envelope_from (envelope, mud->from, 127, &len);
+	  status = envelope_sender (envelope, mud->sender, 127, &len);
 	  if (status != 0)
 	    {
 	      if (status != EAGAIN)
 		{
-		  free (mud->from);
+		  free (mud->sender);
 		  free (mud->date);
-		  mud->date = mud->from = NULL;
+		  mud->date = mud->sender = NULL;
 		  mud->state = MBOX_NO_STATE;
 		  locker_unlock (mailbox->locker);
 		}
@@ -1264,7 +1266,7 @@ mbox_append_message (mailbox_t mailbox, message_t msg)
 	      return status;
 	    }
 	  /* Nuke trailing newline.  */
-	  s = memchr (mud->from, nl, len);
+	  s = memchr (mud->sender, nl, len);
 	  if (s)
 	    *s = '\0';
 	  mud->state = MBOX_STATE_DATE;
@@ -1282,9 +1284,9 @@ mbox_append_message (mailbox_t mailbox, message_t msg)
 	    {
 	      if (status != EAGAIN)
 		{
-		  free (mud->from);
+		  free (mud->sender);
 		  free (mud->date);
-		  mud->date = mud->from = NULL;
+		  mud->date = mud->sender = NULL;
 		  mud->state = MBOX_NO_STATE;
 		  locker_unlock (mailbox->locker);
 		}
@@ -1298,7 +1300,7 @@ mbox_append_message (mailbox_t mailbox, message_t msg)
 	  /* Write the separator to the mailbox.  */
 	  stream_write (mailbox->stream, "From ", 5, size, &n);
 	  size += n;
-	  stream_write (mailbox->stream, mud->from, strlen (mud->from), size, &n);
+	  stream_write (mailbox->stream, mud->sender, strlen (mud->sender), size, &n);
 	  size += n;
 	  stream_write (mailbox->stream, " ", 1, size, &n);
 	  size += n;
@@ -1306,9 +1308,9 @@ mbox_append_message (mailbox_t mailbox, message_t msg)
 	  size += n;
 	  stream_write (mailbox->stream, &nl , 1, size, &n);
 	  size += n;
-	  free (mud->from);
+	  free (mud->sender);
 	  free (mud->date);
-	  mud->from = mud->date = NULL;
+	  mud->sender = mud->date = NULL;
 	  mud->state = MBOX_STATE_APPEND;
 	}
 
@@ -1327,9 +1329,9 @@ mbox_append_message (mailbox_t mailbox, message_t msg)
 		{
 		  if (status != EAGAIN)
 		    {
-		      free (mud->from);
+		      free (mud->sender);
 		      free (mud->date);
-		      mud->date = mud->from = NULL;
+		      mud->date = mud->sender = NULL;
 		      mud->state = MBOX_NO_STATE;
 		      locker_unlock (mailbox->locker);
 		    }

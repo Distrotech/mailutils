@@ -22,20 +22,16 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
-#ifdef HAVE_PTHREAD_H
-#  include <pthread.h>
-#endif
 
 #include <mailutils/registrar.h>
 #include <mailutils/iterator.h>
 #include <mailutils/list.h>
+#include <mailutils/monitor.h>
 
 #include <misc.h>
 #include <folder0.h>
 
-#ifdef WITH_PTHREAD
-static pthread_mutex_t slock = PTHREAD_MUTEX_INITIALIZER;
-#endif
+static struct _monitor folder_lock = MU_MONITOR_INITIALIZER;
 
 /* Internal folder list.  */
 static list_t known_folder_list;
@@ -99,24 +95,19 @@ folder_create (folder_t *pfolder, const char *name)
           || (status = entry->_url_init (url)) != 0)
 	return status;
 
-#ifdef WITH_PTHREAD
-      pthread_mutex_lock (&slock);
-#endif
+      monitor_wrlock (&folder_lock);
+
       /* Check if we already have the same URL folder.  */
       if (is_known_folder (url, &folder))
 	{
 	  folder->ref++;
 	  *pfolder = folder;
 	  url_destroy (&url);
-#ifdef WITH_PTHREAD
-	  pthread_mutex_unlock (&slock);
-#endif
+	  monitor_unlock (&folder_lock);
 	  return  0;
 	}
-#ifdef WITH_PTHREAD
       else
-	pthread_mutex_unlock (&slock);
-#endif
+	monitor_unlock (&folder_lock);
 
       /* Create a new folder.  */
 
@@ -127,7 +118,7 @@ folder_create (folder_t *pfolder, const char *name)
 	  folder->url = url;
 	  /* Initialize the internal lock, now so the concrete
 	     folder could use it.  */
-	  status = monitor_create (&(folder->monitor), folder);
+	  status = monitor_create (&(folder->monitor), 0, folder);
 	  if (status == 0)
 	    {
 	      /* Create the concrete folder type.  */
@@ -137,6 +128,8 @@ folder_create (folder_t *pfolder, const char *name)
 		  *pfolder = folder;
 		  folder->ref++;
 		  /* Put on the internal list of known folders.  */
+		  if (known_folder_list == NULL)
+		    list_create (&known_folder_list);
 		  list_append (known_folder_list, folder);
 		}
 	    }
@@ -167,16 +160,17 @@ folder_destroy (folder_t *pfolder)
       monitor_t monitor = folder->monitor;
 
       monitor_wrlock (monitor);
-#ifdef WITH_PTHREAD
-      pthread_mutex_lock (&slock);
-#endif
+      monitor_wrlock (&folder_lock);
       folder->ref--;
       /* Remove the folder from the list of known folder.  */
       if (folder->ref <= 0)
 	list_remove (known_folder_list, folder);
-#ifdef WITH_PHTREAD
-      pthread_mutex_unlock (&slock);
-#endif
+      if (list_is_empty)
+	{
+	  list_destroy (&known_folder_list);
+	  known_folder_list = NULL;
+	}
+      monitor_unlock (&folder_lock);
       if (folder->ref <= 0)
 	{
 	  monitor_unlock (monitor);
@@ -325,11 +319,34 @@ folder_get_debug (folder_t folder, debug_t *pdebug)
 }
 
 int
-folder_list (folder_t folder, char *vector[][], size_t *pnum)
+folder_list (folder_t folder, const char *dirname,
+	     struct folder_list ***flist, size_t *pnum)
 {
   if (folder == NULL || folder->_list == NULL)
     return ENOSYS;
-  return folder->_list (folder, vector, pnum);
+  return folder->_list (folder, dirname, flist, pnum);
+}
+
+int
+folder_list_destroy (struct folder_list ***pflist, size_t count)
+{
+  struct folder_list **list;
+  size_t i;
+  if (pflist == NULL || *pflist == NULL || count == 0)
+    return 0;
+  list = *pflist;
+  for (i = 0 ; i < count; i++)
+    {
+      if (list[i])
+	{
+	  if (list[i]->name)
+	    free (list[i]->name);
+	  free (list[i]);
+	}
+    }
+  free (list);
+  *pflist = NULL;
+  return 0;
 }
 
 int
@@ -339,6 +356,17 @@ folder_delete_mailbox (folder_t folder, const char *name)
     return ENOSYS;
   return folder->_delete_mailbox (folder, name);
 }
+
+int
+folder_get_url (folder_t folder, url_t *purl)
+{
+  if (folder == NULL || purl == NULL)
+    return EINVAL;
+  *purl = folder->url;
+  return 0;
+}
+
+/* ---------------------- Private ---------------------- */
 
 static int is_known_folder (url_t url, folder_t *pfolder)
 {

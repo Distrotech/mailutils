@@ -77,7 +77,7 @@ mailbox_create (mailbox_t *pmbox, const char *name)
 
       /* Initialize the internal lock now, so the concrete mailbox
 	 could use it. */
-      status = monitor_create (&(mbox->monitor), mbox);
+      status = monitor_create (&(mbox->monitor), 0, mbox);
       if (status != 0)
 	{
 	  mailbox_destroy (&mbox);
@@ -358,5 +358,14 @@ mailbox_get_debug (mailbox_t mbox, debug_t *pdebug)
 	return status;
     }
   *pdebug = mbox->debug;
+  return 0;
+}
+
+int
+mailbox_get_url (mailbox_t mbox, url_t *purl)
+{
+  if (mbox == NULL || purl == NULL)
+    return EINVAL;
+  *purl = mbox->url;
   return 0;
 }

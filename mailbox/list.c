@@ -34,7 +34,7 @@ list_create (list_t *plist)
   list = calloc (sizeof (*list), 1);
   if (list == NULL)
     return ENOMEM;
-  status = monitor_create (&(list->monitor), list);
+  status = monitor_create (&(list->monitor), 0,  list);
   if (status != 0)
     {
       free (list);
@@ -72,7 +72,10 @@ int
 list_append (list_t list, void *item)
 {
   struct list_data *ldata;
-  struct list_data *last = list->head.prev;
+  struct list_data *last;
+  if (list == NULL)
+    return EINVAL;
+  last = list->head.prev;
   ldata = calloc (sizeof (*ldata), 1);
   if (ldata == NULL)
     return ENOMEM;
@@ -91,7 +94,10 @@ int
 list_prepend (list_t list, void *item)
 {
   struct list_data *ldata;
-  struct list_data *first = list->head.next;
+  struct list_data *first;
+  if (list == NULL)
+    return EINVAL;
+  first = list->head.next;
   ldata = calloc (sizeof (*ldata), 1);
   if (ldata == NULL)
     return ENOMEM;
@@ -111,7 +117,7 @@ list_is_empty (list_t list)
 {
   size_t n = 0;
   list_count (list, &n);
-  return n;
+  return (n == 0);
 }
 
 int

@@ -24,22 +24,42 @@
 #include <errno.h>
 
 #include <mailutils/iterator.h>
+#include <mailutils/monitor.h>
 #include <registrar0.h>
 
-static list_t reg_list;
+/* NOTE: We will leak here since the monitor and the registrar will never
+   be release.  */
+static list_t registrar_list;
+struct _monitor registrar_monitor = MU_MONITOR_INITIALIZER;
 
 int
 registrar_get_list (list_t *plist)
 {
+  int status = 0;
   if (plist == NULL)
     return EINVAL;
-  if (reg_list == NULL)
-    {
-      int status = list_create (&reg_list);
-      if (status != 0)
-	return status;
-    }
-  *plist = reg_list;
+  monitor_wrlock (&registrar_monitor);
+  if (registrar_list == NULL)
+    status = list_create (&registrar_list);
+  *plist = registrar_list;
+  monitor_unlock (&registrar_monitor);
+  return status;
+}
+
+int
+registrar_record (record_t record)
+{
+  list_t list;
+  registrar_get_list (&list);
+  return list_append (list, record);
+}
+
+int
+unregistrar_record (record_t record)
+{
+  list_t list;
+  registrar_get_list (&list);
+  list_remove (list, record);
   return 0;
 }
 
@@ -53,8 +73,9 @@ record_is_scheme (record_t record, const char *scheme)
   if (record->_is_scheme)
     return record->_is_scheme (record, scheme);
 
-  if (record->scheme && strncasecmp (record->scheme, scheme,
-				    strlen (record->scheme)) == 0)
+  if (scheme
+      && record->scheme
+      && strncasecmp (record->scheme, scheme, strlen (record->scheme)) == 0)
     return 1;
 
   return 0;
