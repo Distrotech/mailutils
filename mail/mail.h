@@ -72,6 +72,7 @@ typedef int function_t ();
 struct mail_command_entry {
   char *shortname;
   char *longname;
+  int isflow;          /* 1 if this is a flow-control function */
   function_t *func;
   char *synopsis;
 };
@@ -100,6 +101,8 @@ int mail_discard __P((int argc, char **argv));
 int mail_dp __P((int argc, char **argv));
 int mail_echo __P((int argc, char **argv));
 int mail_edit __P((int argc, char **argv));
+int mail_else __P((int argc, char **argv));
+int mail_endif __P((int argc, char **argv));
 int mail_exit __P((int argc, char **argv));
 int mail_file __P((int argc, char **argv));
 int mail_folders __P((int argc, char **argv));
@@ -132,7 +135,11 @@ int mail_unset __P((int argc, char **argv));
 int mail_visual __P((int argc, char **argv));
 int mail_write __P((int argc, char **argv));
 int mail_z __P((int argc, char **argv));
+void mail_mainloop __P((char *(*input) __P((void *, int)), void *closure, int do_history));
 
+void mail_set_is_terminal __P((int val));
+int mail_is_terminal __P((void));
+       
 int mail_eq __P((int argc, char **argv));	/* command = */
 
 int util_expand_msglist __P((const int argc, char **argv, int **list));
@@ -148,6 +155,8 @@ int util_getlines __P((void));
 struct mail_env_entry *util_find_env __P((char *var));
 int util_printenv __P((int set));
 int util_isdeleted __P((int message));
+char *util_get_homedir __P((void));
+char *util_fullpath __P((char *inpath));
 
 #ifndef _PATH_SENDMAIL
 #define _PATH_SENDMAIL "/usr/lib/sendmail"
