@@ -150,7 +150,7 @@ action (observer_t o, size_t type)
 	    int status = header_get_value (hdr, show_field, hfield,
 					   sizeof (hfield), NULL);
 	    if (status == 0)
-	      printf ("%s\n", hfield);
+	      printf ("%s", hfield);
 	  }
 
 	if (show_to)
