@@ -1,5 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2002, 2003,
+   2004 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -19,14 +20,12 @@
 # include <config.h>
 #endif
 
-#include <mailutils/mailutils.h>
-
 #include <stdio.h>
-
 #ifdef HAVE_MALLOC_H
 # include <malloc.h>
 #endif
 
+#include <mailutils/mailutils.h>
 
 static int messages_count (const char *);
 
@@ -96,7 +95,6 @@ int
 main (int argc, char **argv)
 {
   int i = 1;
-  list_t bookie;
   int err = 0;
   struct arguments args = {0, NULL};
 
@@ -109,10 +107,8 @@ main (int argc, char **argv)
 #endif
   mu_argp_parse (&argp, &argc, &argv, 0, argp_capa, NULL, &args);
 
-  registrar_get_list (&bookie);
-  list_append (bookie, path_record);
-  list_append (bookie, imap_record);
-  list_append (bookie, pop_record);
+  /* register the formats.  */
+  mu_register_all_mbox_formats ();
 
   if (args.argc < 1 && messages_count (NULL) < 0)
       err = 1;
@@ -132,25 +128,33 @@ messages_count (const char *box)
   mailbox_t mbox;
   url_t url = NULL;
   size_t count;
+  int status = 0;
 
-  if (mailbox_create_default (&mbox, box) != 0)
+  status =  mailbox_create_default (&mbox, box);
+  if (status != 0)
     {
-      fprintf (stderr, _("Couldn't create mailbox %s.\n"), (box) ? box : "");
+      fprintf (stderr, _("Couldn't create mailbox <%s>: %s.\n"),
+	       box ? box : _("default"),
+	       mu_strerror (status));
       return -1;
     }
 
   mailbox_get_url (mbox, &url);
   box = url_to_string (url);
 
-  if (mailbox_open (mbox, MU_STREAM_READ) != 0)
+  status =  mailbox_open (mbox, MU_STREAM_READ);
+  if (status != 0)
     {
-      fprintf (stderr, _("Couldn't open mailbox %s.\n"), box);
+      fprintf (stderr, _("Couldn't open mailbox <%s>: %s.\n"),
+	       box, mu_strerror (status));
       return -1;
     }
 
-  if (mailbox_messages_count (mbox, &count) != 0)
+  status = mailbox_messages_count (mbox, &count);
+  if (status != 0)
     {
-      fprintf (stderr, _("Couldn't count messages in %s.\n"), box);
+      fprintf (stderr, _("Couldn't count messages in <%s>: %s.\n"),
+	       box, mu_strerror (status));
       return -1;
     }
 
@@ -159,11 +163,14 @@ messages_count (const char *box)
   else
     printf (_("Number of messages in %s: %d\n"), box, count);
 
-  if (mailbox_close (mbox) != 0)
+  status = mailbox_close (mbox);
+  if (status != 0)
     {
-      fprintf (stderr, _("Couldn't close %s.\n"), box);
+      fprintf (stderr, _("Couldn't close <%s>: %s.\n"),
+	       box, mu_strerror (status));
       return -1;
     }
+
   mailbox_destroy (&mbox);
   return count;
 }
