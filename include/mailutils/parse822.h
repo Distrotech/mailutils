@@ -55,7 +55,9 @@ extern int parse822_is_q_text      __P ((char c));
 extern int parse822_is_d_text      __P ((char c));
 extern int parse822_is_smtp_q      __P ((char c));
 
-extern int parse822_skip_ws        __P ((const char** p, const char* e));
+extern int parse822_skip_crlf      __P ((const char** p, const char* e));
+extern int parse822_skip_lwsp_char __P ((const char** p, const char* e));
+extern int parse822_skip_lwsp      __P ((const char** p, const char* e));
 extern int parse822_skip_comments  __P ((const char** p, const char* e));
 
 extern int parse822_digits         __P ((const char** p, const char* e, int min, int max, int* digits));
@@ -95,6 +97,8 @@ extern int parse822_domain_literal __P ((const char** p, const char* e, char** d
 extern int parse822_quote_string     __P ((char** quoted, const char* raw));
 extern int parse822_quote_local_part __P ((char** quoted, const char* raw));
 
+extern int parse822_field_body       __P ((const char** p, const char *e, char** fieldbody));
+extern int parse822_field_name       __P ((const char** p, const char *e, char** fieldname));
 #ifdef __cplusplus
 }
 #endif
