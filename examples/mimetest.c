@@ -119,7 +119,7 @@ main (int argc, char **argv)
       message_t msg;
       header_t hdr;
       size_t nparts;
-      size_t msize;
+      size_t msize, nlines;
 
       if ((ret = mailbox_get_message (mbox, i, &msg)) != 0)
         {
@@ -129,6 +129,11 @@ main (int argc, char **argv)
       if ((ret = message_size (msg, &msize)) != 0)
         {
           fprintf (stderr, "message_size - %s\n", mu_strerror (ret));
+          exit (2);
+        }
+      if ((ret = message_lines (msg, &nlines)) != 0)
+        {
+          fprintf (stderr, "message_lines - %s\n", mu_strerror (ret));
           exit (2);
         }
       if ((ret = message_get_header (msg, &hdr)) != 0)
@@ -150,8 +155,8 @@ main (int argc, char **argv)
         }
       printf ("Number of parts in message - %lu\n",
 	      (unsigned long) nparts);
-      printf ("Total message size - %lu\n",
-	      (unsigned long) msize);
+      printf ("Total message size - %lu/%lu\n",
+	      (unsigned long) msize, (unsigned long) nlines);
       message_display_parts (msg, 0);
     }
   mailbox_close (mbox);
@@ -165,7 +170,7 @@ void
 message_display_parts (message_t msg, int indent)
 {
   int ret, j;
-  size_t msize, nparts, nsubparts;
+  size_t msize, nlines, nparts, nsubparts;
   message_t part;
   header_t hdr;
   char type[256];
@@ -197,6 +202,11 @@ message_display_parts (message_t msg, int indent)
           fprintf (stderr, "message_size - %s\n", mu_strerror (ret));
           exit (2);
         }
+      if ((ret = message_lines (part, &nlines)) != 0)
+        {
+          fprintf (stderr, "message_lines - %s\n", mu_strerror (ret));
+          exit (2);
+        }
       if ((ret = message_get_header (part, &hdr)) != 0)
         {
           fprintf (stderr, "message_get_header - %s\n", mu_strerror (ret));
@@ -205,8 +215,8 @@ message_display_parts (message_t msg, int indent)
       header_get_value (hdr, MU_HEADER_CONTENT_TYPE, type, sizeof (type),
                         NULL);
       printf ("%*.*sType of part %d = %s\n", indent, indent, "", j, type);
-      printf ("%*.*sMessage part size - %lu\n", indent, indent, "",
-	      (unsigned long) msize);
+      printf ("%*.*sMessage part size - %lu/%lu\n", indent, indent, "",
+	      (unsigned long) msize, (unsigned long) nlines);
       encoding[0] = '\0';
       header_get_value (hdr, MU_HEADER_CONTENT_TRANSFER_ENCODING, encoding,
                         sizeof (encoding), NULL);
