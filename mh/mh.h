@@ -230,7 +230,7 @@ int mh_msgset_current __P((mailbox_t mbox, mh_msgset_t *msgset, int index));
 void mh_msgset_free __P((mh_msgset_t *msgset));
 
 char *mh_get_dir __P((void));
-char *mh_expand_name __P((const char *name, int is_folder));
+char *mh_expand_name __P((const char *base, const char *name, int is_folder));
 
 int mh_is_my_name __P((char *name));
 char * mh_my_email __P((void));

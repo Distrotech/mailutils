@@ -293,7 +293,7 @@ mh_open_folder (const char *folder, int create)
   char *name;
   int flags = MU_STREAM_RDWR;
   
-  name = mh_expand_name (folder, 1);
+  name = mh_expand_name (NULL, folder, 1);
   if (create && mh_check_folder (name, 1))
     exit (0);
     
@@ -334,7 +334,7 @@ mh_get_dir ()
 }
 
 char *
-mh_expand_name (const char *name, int is_folder)
+mh_expand_name (const char *base, const char *name, int is_folder)
 {
   char *tmp = NULL;
   char *p = NULL;
@@ -345,10 +345,12 @@ mh_expand_name (const char *name, int is_folder)
   else
     name = tmp;
 
+  if (!base)
+    base = mu_path_folder_dir;
   if (is_folder)
-    asprintf (&p, "mh:%s/%s", mu_path_folder_dir, name);
+    asprintf (&p, "mh:%s/%s", base, name);
   else
-    asprintf (&p, "%s/%s", mu_path_folder_dir, name);
+    asprintf (&p, "%s/%s", base, name);
   free (tmp);
   return p;
 }
