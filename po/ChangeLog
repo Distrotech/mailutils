@@ -1,3 +1,9 @@
+2003-10-20  Jordi Mallach  <jordi@gnu.org>
+
+	* ca.po: Updated Catalan translation.
+	* pl.po: Updated Polish translation by Sergey Poznyakoff.
+	* ru.po: Updated Russian translation by Sergey Poznyakoff.
+
 2003-10-18  Jordi Mallach  <jordi@gnu.org>
 
 	* POTFILES.in: Removed lib/getopt.c.
