@@ -871,8 +871,8 @@ static void
 builtin_me (struct mh_machine *mach)
 {
   char *s = mh_my_email ();
-  strobj_free (&mach->arg_str);
-  strobj_create (&mach->arg_str, s);
+  strobj_realloc (&mach->arg_str, strlen (s) + 3);
+  sprintf (strobj_ptr (&mach->arg_str), "<%s>", s);
 }
 
 static void
@@ -1708,7 +1708,7 @@ builtin_formataddr (struct mh_machine *mach)
   address_t addr, dest;
   size_t size;
   
-  if (strobj_is_null (&mach->reg_str))
+  if (strobj_len (&mach->reg_str) == 0)
     dest = NULL;
   else if (address_create (&dest, strobj_ptr (&mach->reg_str)))
     return;
@@ -1935,20 +1935,20 @@ mh_builtin_t builtin_tab[] = {
   { "divide",   builtin_divide,   mhtype_num,  mhtype_num },
   { "modulo",   builtin_modulo,   mhtype_num,  mhtype_num },
   { "num",      builtin_num,      mhtype_num,  mhtype_num },
-  { "lit",      builtin_lit,      mhtype_str,  mhtype_str, 1 },
+  { "lit",      builtin_lit,      mhtype_str,  mhtype_str,  MHA_OPT_CLEAR },
   { "getenv",   builtin_getenv,   mhtype_str,  mhtype_str },
   { "profile",  builtin_profile,  mhtype_str,  mhtype_str },
-  { "nonzero",  builtin_nonzero,  mhtype_num,  mhtype_num, 1 },
-  { "zero",     builtin_zero,     mhtype_num,  mhtype_num, 1 },
-  { "null",     builtin_null,     mhtype_num,  mhtype_str, 1 },
-  { "nonnull",  builtin_nonnull,  mhtype_num,  mhtype_str, 1 },
-  { "comp",     builtin_comp,     mhtype_num,  mhtype_str },
-  { "compval",  builtin_compval,  mhtype_num,  mhtype_str },
-  { "trim",     builtin_trim,     mhtype_str,  mhtype_str, 1 },
-  { "putstr",   builtin_putstr,   mhtype_none,  mhtype_str, 1 },
-  { "putstrf",  builtin_putstrf,  mhtype_none,  mhtype_str, 1 },
-  { "putnum",   builtin_putnum,   mhtype_none,  mhtype_num, 1 },
-  { "putnumf",  builtin_putnumf,  mhtype_none,  mhtype_num, 1 },
+  { "nonzero",  builtin_nonzero,  mhtype_num,  mhtype_num,  MHA_OPTARG },
+  { "zero",     builtin_zero,     mhtype_num,  mhtype_num,  MHA_OPTARG },
+  { "null",     builtin_null,     mhtype_num,  mhtype_str,  MHA_OPTARG },
+  { "nonnull",  builtin_nonnull,  mhtype_num,  mhtype_str,  MHA_OPTARG },
+  { "comp",     builtin_comp,     mhtype_num,  mhtype_str,  MHA_OPTARG },
+  { "compval",  builtin_compval,  mhtype_num,  mhtype_str },	   
+  { "trim",     builtin_trim,     mhtype_str,  mhtype_str,  MHA_OPTARG },
+  { "putstr",   builtin_putstr,   mhtype_none,  mhtype_str, MHA_OPTARG },
+  { "putstrf",  builtin_putstrf,  mhtype_none,  mhtype_str, MHA_OPTARG },
+  { "putnum",   builtin_putnum,   mhtype_none,  mhtype_num, MHA_OPTARG },
+  { "putnumf",  builtin_putnumf,  mhtype_none,  mhtype_num, MHA_OPTARG },
   { "sec",      builtin_sec,      mhtype_num,  mhtype_str },
   { "min",      builtin_min,      mhtype_num,  mhtype_str },
   { "hour",     builtin_hour,     mhtype_num,  mhtype_str },
@@ -1986,11 +1986,11 @@ mh_builtin_t builtin_tab[] = {
   { "path",     builtin_path,     mhtype_str,  mhtype_str },
   { "ingrp",    builtin_ingrp,    mhtype_num,  mhtype_str },
   { "gname",    builtin_gname,    mhtype_str,  mhtype_str},
-  { "formataddr", builtin_formataddr, mhtype_none, mhtype_str, 1 },
+  { "formataddr", builtin_formataddr, mhtype_none, mhtype_str, MHA_OPTARG },
   { "putaddr",  builtin_putaddr,  mhtype_none, mhtype_str },
   { "unre",     builtin_unre,     mhtype_str,  mhtype_str },
   { "rcpt",     builtin_rcpt,     mhtype_num,  mhtype_str },
-  { "concat",   builtin_concat,   mhtype_none, mhtype_str,     1 },
+  { "concat",   builtin_concat,   mhtype_none, mhtype_str,     MHA_OPTARG },
   { "printhdr", builtin_printhdr, mhtype_none, mhtype_str },
   { "in_reply_to", builtin_in_reply_to, mhtype_str,  mhtype_none },
   { "references", builtin_references, mhtype_str,  mhtype_none },
