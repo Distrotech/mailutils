@@ -82,6 +82,18 @@ attribute_clear_modified (attribute_t attr)
 }
 
 int
+attribute_set_modified (attribute_t attr)
+{
+  int status;
+  if (!attr)
+    return EINVAL;
+  if (attr->_set_flags)
+    status = attr->_set_flags (attr, MU_ATTRIBUTE_MODIFIED);
+  attr->flags |= MU_ATTRIBUTE_MODIFIED;
+  return status;
+}
+
+int
 attribute_get_flags (attribute_t attr, int *pflags)
 {
   if (attr == NULL)
@@ -352,6 +364,7 @@ attribute_unset_seen (attribute_t attr)
   if (attr->_unset_flags)
     status = attr->_unset_flags (attr, MU_ATTRIBUTE_SEEN);
   attr->flags &= ~MU_ATTRIBUTE_SEEN;
+  attribute_set_modified (attr);
   return status;
 }
 
@@ -364,6 +377,7 @@ attribute_unset_answered (attribute_t attr)
   if (attr->_unset_flags)
     status = attr->_unset_flags (attr, MU_ATTRIBUTE_ANSWERED);
   attr->flags &= ~MU_ATTRIBUTE_ANSWERED;
+  attribute_set_modified (attr);
   return status;
 }
 
@@ -376,6 +390,7 @@ attribute_unset_flagged (attribute_t attr)
   if (attr->_unset_flags)
     status = attr->_unset_flags (attr, MU_ATTRIBUTE_FLAGGED);
   attr->flags &= ~MU_ATTRIBUTE_FLAGGED;
+  attribute_set_modified (attr);
   return status;
 }
 
@@ -388,6 +403,7 @@ attribute_unset_read (attribute_t attr)
   if (attr->_unset_flags)
     status = attr->_unset_flags (attr, MU_ATTRIBUTE_READ);
   attr->flags &= ~MU_ATTRIBUTE_READ;
+  attribute_set_modified (attr);
   return status;
 }
 
@@ -400,6 +416,7 @@ attribute_unset_deleted (attribute_t attr)
   if (attr->_unset_flags)
     status = attr->_unset_flags (attr, MU_ATTRIBUTE_DELETED);
   attr->flags &= ~MU_ATTRIBUTE_DELETED;
+  attribute_set_modified (attr);
   return status;
 }
 
@@ -412,6 +429,7 @@ attribute_unset_draft (attribute_t attr)
   if (attr->_unset_flags)
     status = attr->_unset_flags (attr, MU_ATTRIBUTE_DRAFT);
   attr->flags &= ~MU_ATTRIBUTE_DRAFT;
+  attribute_set_modified (attr);
   return status;
 }
 
@@ -424,6 +442,7 @@ attribute_unset_recent (attribute_t attr)
   if (attr->_unset_flags)
     status = attr->_unset_flags (attr, MU_ATTRIBUTE_SEEN);
   attr->flags |= MU_ATTRIBUTE_SEEN;
+  attribute_set_modified (attr);
   return status;
 }
 
