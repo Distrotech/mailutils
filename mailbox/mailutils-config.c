@@ -22,23 +22,30 @@
 #include <mailutils/argp.h>
 
 const char *argp_program_version = "mailutils-config (" PACKAGE_STRING ")";
-static char doc[] = "GNU mailutils-config";
+static char doc[] = "GNU mailutils-config -- Display compiler and loader options needed for building a program with mailutils";
 static char args_doc[] = "[arg...]";
 
 static struct argp_option options[] = {
-  {"link",    'l', NULL,   0, "print libraries to link with", 1},
-  {NULL,        0, NULL,   0,
-   "Up to two args can be given. Each arg is "
-   "a string \"auth\" or \"guile\"."
-   , 2},
-  {"compile", 'c', NULL,   0, "print C compiler flags to compile with", 3},
+  {"compile", 'c', NULL,   0, "print C compiler flags to compile with", 0},
+  {"link",    'l', NULL,   0,
+   "print libraries to link with. Up to two args can be given. Arguments are: "
+   "auth, to display libraries needed for linking against libmuauth, and "
+   "guile, to display libraries needed for linking against libmu_scm. "
+   "Both can be given simultaneously", 0},
+  {"info", 'i', NULL, 0,
+   "print a list of compilation options used to build mailutils. If arguments "
+   "are given, they are interpreted as a list of compilation options to check "
+   "for. In this case the program prints those options from this list that "
+   "have been defined. It exits with zero status if all of the "
+   "specified options are defined. Otherwise, the exit status is 1.", 0},
   {0, 0, 0, 0}
 };
 
 enum config_mode {
   MODE_VOID,
   MODE_COMPILE,
-  MODE_LINK
+  MODE_LINK,
+  MODE_INFO
 };
 
 enum config_mode mode;
@@ -56,6 +63,10 @@ parse_opt (int key, char *arg, struct argp_state *state)
       mode = MODE_COMPILE;
       break;
 
+    case 'i':
+      mode = MODE_INFO;
+      break;
+      
     default: 
       return ARGP_ERR_UNKNOWN;
     }
@@ -132,6 +143,7 @@ main (int argc, char **argv)
 		}
 	    }
 
+	  /* Sort the entires by their level. */
 	  for (j = 0; j < n; j++)
 	    {
 	      int i;
@@ -156,6 +168,26 @@ main (int argc, char **argv)
       if (argc != 0)
 	break;
       printf ("%s\n", COMPILE_FLAGS);
+      return 0;
+
+    case MODE_INFO:
+      if (argc == 0)
+	mu_print_options ();
+      else
+	{
+	  int i, found = 0;
+	  
+	  for (i = 0; i < argc; i++)
+	    {
+	      const char *val = mu_check_option (argv[i]);
+	      if (val)
+		{
+		  found++;
+		  printf ("%s\n", val);
+		}
+	    }
+	  return found == argc ? 0 : 1;
+	}
       return 0;
     }
   
