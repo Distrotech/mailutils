@@ -1,3 +1,17 @@
+2001-07-30 Sergey Poznyakoff
+	* guimb/main.c: Set g_argv[0] to the program file name for consistency
+	with guile.
+	* libmu_scm/mu_message.c: Added new primitives:
+		mu_message_copy
+		mu_message_delete
+		mu_message_get_flag
+		mu_message_set_flag
+		mu_message_get_user_flag
+		mu_message_set_user_flag
+	* libmu_scm/mu_scm.c: Define MU-ATTRIBUTE- constants.
+	* libmu_scm/mu_address.c: (new) Address-related functions.
+	* libmu_scm/Makefile.am: Added mu_address.c
+
 2001-07-27 Sergey Poznyakoff
 	* lib/xmalloc.c: call mu_error() instead of error().
 	* lib/malloc.c,lib/realloc.c: (new) Provide rpl_malloc() and
