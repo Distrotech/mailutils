@@ -24,7 +24,6 @@ INCLUDES = -I${top_srcdir}/include -I${top_srcdir}/mailbox \
 lib_LTLIBRARIES = libmu_mbox.la
 
 libmu_mbox_la_SOURCES = \
- file.c\
  folder.c\
  mbox.c\
  mboxscan.c\
