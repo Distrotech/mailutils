@@ -28,7 +28,7 @@ ENVELOPE FROM: coyote@desert.example.org
 ENVELOPE TO: <gray@gnu.org>
 -re
    0: X-Authentication-Warning: [^ \t]+ set sender using -f flag
-   1: X-Sender: foobar@nonexistent.net
+   1: X-Loop-Prevention: foobar@nonexistent.net
    2: From: coyote@desert.example.org
    3: To: roadrunner@acme.example.com
    4: Subject: I have a present for you
@@ -50,7 +50,7 @@ ENVELOPE FROM: b1ff@de.res.example.com
 ENVELOPE TO: <gray@gnu.org>
 -re
    0: X-Authentication-Warning: [^ \t]+ set sender using -f flag
-   1: X-Sender: foobar@nonexistent.net
+   1: X-Loop-Prevention: foobar@nonexistent.net
    2: From: youcouldberich!@reply-by-postal-mail.invalid
    3: To: rube@landru.example.edu
    4: Subject: $$$ YOU, TOO, CAN BE A MILLIONAIRE! $$$
@@ -70,7 +70,7 @@ ENVELOPE FROM: bar@dontmailme.org
 ENVELOPE TO: <gray@gnu.org>
 -re
    0: X-Authentication-Warning: [^ \t]+ set sender using -f flag
-   1: X-Sender: foobar@nonexistent.net
+   1: X-Loop-Prevention: foobar@nonexistent.net
    2: Received: (from bar@dontmailme.org)
    3: 	by dontmailme.org id fERKR9N16790
    4: 	for foobar@nonexistent.net; Fri, 28 Dec 2001 22:18:08 +0200
