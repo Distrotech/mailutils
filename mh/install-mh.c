@@ -72,7 +72,7 @@ main (int argc, char **argv)
 
   mu_argp_init (program_version, NULL);
   mh_auto_install = 0;
-  mh_argp_parse (argc, argv, 0, options, mh_option, args_doc, doc,
+  mh_argp_parse (&argc, &argv, 0, options, mh_option, args_doc, doc,
 		 opt_handler, NULL, NULL);
 
   home = mu_get_homedir ();
