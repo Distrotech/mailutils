@@ -18,7 +18,7 @@
 #include "guimb.h"
 #include "getopt.h"
 
-static char short_options[] = "de:f:g:hm:v";
+static char short_options[] = "de:f:g:hv";
 static struct option long_options[] = {
   {"debug", no_argument, 0, 'd'},
   {"expression", required_argument, 0, 'e'},
@@ -62,6 +62,7 @@ main (int argc, char *argv[])
 {
   int c;
 
+  append_arg ("");
   while ((c = getopt_long (argc, argv, short_options, long_options, NULL))
 	 != -1)
     switch (c)
@@ -89,6 +90,8 @@ main (int argc, char *argv[])
 		 "Invalid argument. Try guimb --help for more info\n");
 	exit (1);
       }
+  if (program_file)
+      g_argv[0] = program_file;
   append_arg (NULL);
   g_argc--;
 
