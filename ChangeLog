@@ -1,3 +1,8 @@
+2004-01-13  Sergey Poznyakoff 
+
+	* frm/frm.c: Lots of changes for compatibility with ELM.
+	* frm/testsuite/frm/test.exp: Updated
+
 2004-01-13  Sergey Poznyakoff
 
 	Implemented 'file:' URLs

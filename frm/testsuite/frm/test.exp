@@ -31,11 +31,11 @@ mu_exec -retcode 1 -message "frm" "Foo Bar\tJabberwocky"\
 "Sergey Poznyakoff\tEmpty MIME Parts"
 
 mu_exec -retcode 1 -message "frm -n" -arg -n \
-"1: Foo Bar\tJabberwocky"\
-"2: Bar\tRe: Jabberwocky"\
-"3: Sergey Poznyakoff\tSimple MIME"\
-"4: Sergey Poznyakoff\tNested MIME"\
-"5: Sergey Poznyakoff\tEmpty MIME Parts"
+"   1: Foo Bar\tJabberwocky"\
+"   2: Bar\tRe: Jabberwocky"\
+"   3: Sergey Poznyakoff\tSimple MIME"\
+"   4: Sergey Poznyakoff\tNested MIME"\
+"   5: Sergey Poznyakoff\tEmpty MIME Parts"
 
 mu_exec -retcode 1 -message "frm -l" -arg -l \
 "(Bar) Foo Bar\tJabberwocky"\
@@ -45,14 +45,16 @@ mu_exec -retcode 1 -message "frm -l" -arg -l \
 "(Foo Bar) Sergey Poznyakoff\tEmpty MIME Parts"
 
 mu_exec -retcode 1 -message "frm -qS" -arg -qS \
-"You have 5 messages"
+"Folder contains 5 new messages."
 
 mu_exec -retcode 1 -arg %mbox -message "frm %mbox" \
 "Sergey Poznyakoff\tMBOX"
 
-mu_exec -retcode 1 -arg -q -message "frm -q" 
+mu_exec -retcode 1 -arg -q -message "frm -q"  \
+"There are messages in that folder."
 
-mu_exec -arg -q -arg %nonexistent -retcode 2 -message "frm -q %nonexistent" 
+mu_exec -arg -q -arg %nonexistent -retcode 2 -message "frm -q %nonexistent" \
+"No messages in that folder!"    
 
 set env(MAIL) $MU_SPOOL_DIR/bigto.mbox
 set env(FOLDER) $env(MAIL)
