@@ -350,24 +350,10 @@ action (observer_t o, size_t type)
 	message_get_attribute (msg, &attr);
 	message_get_header (msg, &hdr);
 
-	if (select_attribute
-	    && (select_attribute & IS_READ)
-	    && (!attribute_is_read (attr)))
-	  {
-	    break;
-	  }
-	else if (select_attribute
-		 && (select_attribute & IS_NEW)
-		 && (!attribute_is_recent (attr)))
-	  {
-	    break;
-	  }
-	else if (select_attribute
-		 && (select_attribute & IS_OLD)
-		 && (!attribute_is_seen (attr)))
-	  {
-	    break;
-	  }
+	if (((select_attribute & IS_READ) && (!attribute_is_read (attr)))
+	    || (select_attribute & IS_NEW) && (!attribute_is_recent (attr))
+	    || (select_attribute & IS_OLD) && (!attribute_is_seen (attr)))
+	  break;
 
 	if (attribute_is_recent (attr))
 	  have_new_mail = 1;
