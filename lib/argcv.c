@@ -25,37 +25,85 @@
  * returns 0 on success, nonzero on failure
  */
 
+#define isws(c) ((c)==' '||(c)=='\t')
+#define isdelim(c,delim) ((c)=='"'||strchr(delim,(c))!=NULL)
+		    
+static int
+argcv_scan (int len, const char *command, const char *delim,
+	    int *start, int *end, int *save)
+{
+  int i = *save;
+
+  /* Skip initial whitespace */
+  while (i < len && isws (command[i]))
+    i++;
+  *start = i;
+
+  switch (command[i])
+    {
+    case '"':
+      while (++i < len && command[i] != command[*start])
+	;
+      if (i < len)  /* found matching quote */
+	break;
+      /*FALLTHRU*/
+    default:
+      if (isdelim (command [i], delim))
+	break;
+      /* Skip until next whitespace character or end of line */
+      while (++i < len && !(isws (command [i]) || isdelim (command [i], delim)))
+	;
+      if (i < len)
+	i--;
+      break;
+    }
+
+  *end = i;
+  *save = i+1;
+  return *save;
+}
+  
 int
-argcv_get (const char *command, int *argc, char ***argv)
+argcv_get (const char *command, const char *delim, int *argc, char ***argv)
 {
   int len = strlen (command);
   int i = 0, j = 0;
-  int start = 0;
+  int start, end, save;
 
+  *argc = 0;
+  *argv = NULL;
   if (len < 1)
     return 1;
 
+  /* Count number of arguments */
   *argc = 1;
-
-  for (i = 0; i < len; i++)
-    if (command[i] == ' ')
+  save = 0;
+  while (argcv_scan (len, command, delim, &start, &end, &save) < len)
       (*argc)++;
 
   *argv = calloc ((*argc + 1), sizeof (char *));
 
-  for (i = 0; i <= len; i++)
+  i = 0;
+  save = 0;
+  do
     {
-      if (command[i] == ' ' || command[i] == '\0')
+      int n;
+      argcv_scan (len, command, delim, &start, &end, &save);
+
+      if (command[start] == '"' && command[end] == '"')
 	{
-	  /* Reserve space for the null.  */
-	  (*argv)[j] = calloc ((i - start + 1),  sizeof (char));
-	  if ((*argv)[j] == NULL)
-	    return 1;
-	  strncpy ((*argv)[j], &command[start], i - start);
-	  j++;
-	  start = i+1;
+	  start++;
+	  end--;
 	}
+      n = end - start + 1;
+      (*argv)[i] = calloc (n+1,  sizeof (char));
+      if ((*argv)[i] == NULL)
+	return 1;
+      memcpy ((*argv)[i], &command[start], n);
+      (*argv)[i][n] = 0;
+      i++;
     }
+  while (end < len);
   return 0;
 }
 
@@ -115,3 +163,18 @@ argcv_string (int argc, char **argv, char **pstring)
     *pstring = buffer;
   return 0;
 }
+
+#if 0
+char *command = "set prompt=\"& \"";
+
+main()
+{
+  int i, argc;
+  char **argv;
+  
+  argcv_get (command, "=", &argc, &argv);
+  printf ("%d args:\n", argc);
+  for (i = 0; i < argc; i++)
+    printf ("%s\n", argv[i]);
+}
+#endif
