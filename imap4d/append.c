@@ -104,7 +104,6 @@ imap4d_append0 (mailbox_t mbox, int flags, char *text)
   stream_write (stream, date, strlen (date), 0, &len);
   stream_write (stream, text, strlen (text), len, &len);
 
-  mailbox_destroy_folder (tmp);
   mailbox_set_stream (tmp, stream);
   mailbox_messages_count (tmp, &len);
   if (len == 1)

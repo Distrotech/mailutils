@@ -447,7 +447,6 @@ notify_user (const char *user, const char *device, const char *path, off_t offse
       return;
     }
 
-  mailbox_destroy_folder (mbox);
   if ((status = mailbox_get_stream (mbox, &stream)))
     {
       syslog (LOG_ERR, "can't get stream for mailbox %s: %s",
