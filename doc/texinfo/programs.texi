@@ -641,6 +641,16 @@ from the client within that number of seconds.
 @item -v
 @itemx --version
 Display program version and exit.
+@item --undelete
+Remove all deletion marks from the messages after opening the mailbox.
+@item --login-delay=@var{seconds}
+Sets the minimum allowed delay between closing a pop3d session and
+opening it again with the same user name.
+@item --stat-file=@var{filename}
+Sets the name of the login timestamp database, used with
+@option{--login-delay}. By default, these data are kept in
+@file{/var/run/pop3-login}. Be sure to specify the file name
+@emph{without} DBM-specific suffix.
 @end table
 
 @page
