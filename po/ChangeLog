@@ -1,3 +1,7 @@
+2002-12-29  Jordi Mallach  <jordi@gnu.org>
+
+	* ca.po: Fixed typos.
+
 2002-12-28  Jordi Mallach  <jordi@gnu.org>
 
 	* POTFILES.in: Added missing libsieve/sieve.l.
