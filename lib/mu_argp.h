@@ -15,6 +15,7 @@ extern char *pam_service;
 #endif
 extern char *maildir;
 extern int log_facility;
+extern int mu_argp_error_code;
 extern struct argp_child mu_common_argp_child[];
 extern struct argp_child mu_daemon_argp_child[];
 
