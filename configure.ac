@@ -385,8 +385,10 @@ AC_CHECK_FUNC(socket, [true],
 	AC_CHECK_LIB(socket, socket, LIBS="-lsocket $LIBS"))
 
 dnl Check for Curses libs.
-AC_CHECK_LIB(ncurses, tputs, CURSES_LIBS="-lncurses",
-	AC_CHECK_LIB(curses, tputs, CURSES_LIBS="-lcurses"))
+for lib in ncurses curses termcap
+do
+	AC_CHECK_LIB($lib, tputs, [CURSES_LIBS="-l$lib"; break])
+done
 
 AC_SUBST(CURSES_LIBS)
 
