@@ -48,6 +48,9 @@ mh_context_read (mh_context_t *ctx)
   struct stat st;
   FILE *fp;
 
+  if (!ctx)
+    return EINVAL;
+  
   if (stat (ctx->name, &st))
     return errno;
 
@@ -79,6 +82,9 @@ mh_context_write (mh_context_t *ctx)
   size_t off = 0, n;
   FILE *fp;
   
+  if (!ctx)
+    return EINVAL;
+
   fp = fopen (ctx->name, "w");
   if (!fp)
     {
@@ -117,7 +123,7 @@ mh_context_get_value (mh_context_t *ctx, const char *name, const char *defval)
 {
   char *p;
 
-  if (header_aget_value (ctx->header, name, &p))
+  if (!ctx || header_aget_value (ctx->header, name, &p))
     p = (char *) defval; 
   return p;
 }
@@ -125,6 +131,8 @@ mh_context_get_value (mh_context_t *ctx, const char *name, const char *defval)
 int
 mh_context_set_value (mh_context_t *ctx, const char *name, const char *value)
 {
+  if (!ctx)
+    return EINVAL;
   if (!ctx->header)
     {
       int rc;
@@ -145,6 +153,8 @@ mh_context_iterate (mh_context_t *ctx, mh_context_iterator fp, void *data)
   size_t i, nfields;
   int rc = 0;
   
+  if (!ctx)
+    return EINVAL;
   header_get_field_count (ctx->header, &nfields);
   for (i = 1; i <= nfields && rc == 0; i++)
     {
