@@ -17,12 +17,11 @@
 
 @c Combine indices.
 @syncodeindex ky cp
-@syncodeindex pg cp
-@syncodeindex tp cp
 
 @defcodeindex op
 @syncodeindex op fn
 @syncodeindex vr fn
+@syncodeindex tp fn
 
 @ifinfo
 @direntry
@@ -109,8 +108,11 @@ This document was produced for version @value{VERSION} of @sc{gnu}
 * Programs::                    Programs.
 * Reporting Bugs::              Reporting Bugs.
 * Acknowledgement::             Thanks and Credits.
-* Concept Index::               All @sc{Mailutils} Functions.
-* Index::
+
+Indices
+* Function Index::              All @sc{Mailutils} Functions.
+* Program Index::               All @sc{Mailutils} Programs.
+* Concept Index::               Index of Concepts.
 
 @end menu
 
@@ -258,6 +260,7 @@ Notifications}
 
 @include programs.texi
 
+@page
 @node Reporting Bugs, Acknowledgement, Programs, Top
 @comment  node-name,  next,  previous,  up
 @chapter Reporting Bugs
@@ -266,7 +269,7 @@ Notifications}
 Email bug reports to @email{bug-mailutils@@gnu.org}.
 Be sure to include the word ``mailutils'' somewhere in the ``Subject:'' field.
 
-@node Acknowledgement, Concept Index , Reporting Bugs, Top
+@node Acknowledgement, Function Index , Reporting Bugs, Top
 @comment  node-name,  next,  previous,  up
 @chapter Acknowledgement
 @cindex Acknowledgement
@@ -295,7 +298,23 @@ Fran@,{c}ois Pinard  @email{pinard@@IRO.UMontreal.CA}.
 @end itemize
 @page
 
-@node Concept Index, Index, Acknowledgement, Top
+@node Function Index, Program Index, Acknowledgement, Top
+@comment node-name,  next,  previous,  up
+@unnumbered Function Index
+
+This is an alphabetical list of all @sc{mailutils} functions.
+
+@printindex fn
+@page
+
+@node Program Index, Concept Index, Function Index, Top
+@comment node-name,  next,  previous,  up
+@unnumbered Program Index
+
+@printindex pg
+@page
+
+@node Concept Index, , Program Index, Top
 @comment node-name,  next,  previous,  up
 @unnumbered Concept Index
 
@@ -303,14 +322,6 @@ This is a general index of all issues discussed in this manual
 
 @printindex cp
 @page
-
-@node Index,  , Concept Index, Top
-@comment node-name,  next,  previous,  up
-@unnumbered Index
-
-This is an alphabetical list of all @sc{mailutils} functions.
-
-@printindex fn
 
 @contents
 
