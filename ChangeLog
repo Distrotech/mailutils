@@ -1,3 +1,7 @@
+2002-12-29  Wojciech Polak <polak@gnu.org>
+
+	* Makefile.am: Added "dist-bzip2" to AUTOMAKE_OPTIONS.
+
 2002-12-29  Sergey Poznyakoff 
 
 	* mail/mail.c (realcursor): Removed. The position of the point

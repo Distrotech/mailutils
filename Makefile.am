@@ -2,7 +2,7 @@
 # Copyright (C) 2000,2001,2002 Free Software Foundation
 # See file COPYING in the distribution root directory for copying conditions.
 
-AUTOMAKE_OPTIONS = gnu 1.7.1 readme-alpha std-options
+AUTOMAKE_OPTIONS = gnu 1.7.1 dist-bzip2 readme-alpha std-options
 ACLOCAL_AMFLAGS = -I m4
 
 SUBDIRS = include m4 intl po lib testsuite mailbox libsieve examples doc \
@@ -17,5 +17,4 @@ release:
 
 rpm: dist
 	rpm -ta --clean mailutils-$(VERSION).tar.gz
-
 
