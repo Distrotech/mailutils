@@ -305,6 +305,16 @@ if test x"$testpam" = x"yes"; then
 fi
 
 AC_CHECK_HEADERS(crypt.h)
+AC_CHECK_DECLS(crypt, , ,[
+#include <unistd.h>
+#ifdef HAVE_CRYPT_H
+# include <crypt.h>
+#endif])
+AH_BOTTOM([
+#if !HAVE_DECL_CRYPT
+char *crypt(const char *key, const char *salt);
+#endif])
+
 AC_CHECK_LIB(crypt, crypt)
 
 AC_SUBST(AUTHLIBS)
