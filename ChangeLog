@@ -1,4 +1,4 @@
-2001-04-13  Alain Magloire
+2001-04-14  Alain Magloire
 
 	* mailbox/folder_imap.c: When calling imap_writeline () the
 	cookie for the tag should be unsigned %d --> %u.
@@ -11,10 +11,20 @@
 	(imap_attr_set_flags): Use flag_string(), instead.
 	* mailbox/include/imap0.h:  CLEAR_STATE() should also deselect
 	the current mailbox.
+
 	* mailbox/mbx_pop.c (pop_write): The number of bytes in the memmove
 	was wrong.
-	* lib/vasprintf.c: Taken from libit.
+
+	* imap4d/imap4d.h: Add HAVE_SECURITY_PAM_APPL_H.
+	* imap4d/login.c: PAM_ERROR wrongly define.
+	* imap4d/expunge.c: Initialise variable sp.
+	* imap4d/logout.c: Initialise variable sp.
+	* imap4d/noop.c: Initialise variable sp.
+
 	* configure.in: AC_REP_FUNC(vasprintf).
+	* include/mailutils/Makefile.am: Add property.h, parse822.h.
+	* lib/vasprintf.c: Taken from libit.
+	(AM_INIT_AUTOMAKE): Change version to 0.0.9
 
 2001-04-13  Sam Roberts
 

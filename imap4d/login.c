@@ -29,7 +29,7 @@ static int _perr = 0;
 
 #define PAM_ERROR if (_perr || (pamerror != PAM_SUCCESS)) { \
     pam_end(pamh, 0); \
-    return ERR_BAD_LOGIN; }
+    return util_finish (command, RESP_NO, "User name or passwd rejected"); }
 
 static int
 PAM_gnupop3d_conv (int num_msg, const struct pam_message **msg,

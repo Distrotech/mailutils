@@ -24,7 +24,7 @@
 int
 imap4d_logout (struct imap4d_command *command, char *arg)
 {
-  char *sp;
+  char *sp = NULL;
   if (util_getword (arg, &sp))
     return util_finish (command, RESP_BAD, "Too many args");
   util_out (RESP_BYE, "Logging out");

@@ -1,6 +1,6 @@
 dnl Process this file with autoconf to procude a configure script. -*-m4-*-
 AC_INIT(mailbox/mailbox.c)
-AM_INIT_AUTOMAKE(mailutils, 0.9.9)
+AM_INIT_AUTOMAKE(mailutils, 0.0.9)
 AM_CONFIG_HEADER(config.h)
 
 dnl Check for programs

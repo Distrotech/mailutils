@@ -18,6 +18,8 @@ pkginclude_HEADERS = \
  mime.h \
  monitor.h \
  observer.h \
+ parse822.h \
+ property.h \
  registrar.h \
  stream.h \
  url.h
