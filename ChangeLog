@@ -1,3 +1,26 @@
+2001-06-19 Sam Roberts
+
+	* include/mailutils/debug.h, mailbox/debug.c: New function:
+	  debug_printv() to complement debug_print().
+	* examples/mbox-dates.c: parse822_date_time now takes a timezone
+	  argument. We don't actually use the arguments, though.
+	* include/mailutils/parse822.h: parse82_date_time() now uses the
+	  mu_timezone structure for portability.
+	* include/mailutils/mailbox.h: Prototyped mailbox_destroy_folder().
+	* mailbox/mu_mktime.c: Moved mu_mktime to mutil.c as mu_tm2time,
+	  and removed mu_mktime.c
+	* include/mailutils/mutil.h, mailbox/Makefile.am,
+	  mailbox/mbx_imap.c, mailbox/mutil.c, mailbox/parse822.c: Moved some
+	  generically useful date/time handling functions to mutil.c, fixed
+	  problems with portability of timezone information in struct tm, and
+	  created a new structure to hold timezone information, since
+	  struct tm doesn't do so reliably.
+	* imap4d/: append.c, fetch.c, imap4d.h, namespace.c, search.c,
+	  util.c: Moved date/time parsing utility functions to
+	  mailbox/mutil.c.  Added braces to initializers and removed unused
+	  variables prototyped shared functions, made functions that didn't
+	  return return void. (to quiet gcc -Wall),
+
 2001-06-17 Sam Roberts
 
 	* sieve/Makefile.am: More fixes to the packaging structure by
