@@ -26,12 +26,13 @@
 #include <stdio.h>
 #include <errno.h>
 #include <mailutils/sys/nntp.h>
+#include <mailutils/iterator.h>
 
 static int  nntp_itr_dup     (void **ptr, void *owner);
 static int  nntp_itr_destroy (iterator_t itr, void *owner);
 static int  nntp_itr_first   (void *owner);
 static int  nntp_itr_next    (void *woner);
-static int  nntp_itr_getitem (void *owner, void **pret);
+static int  nntp_itr_getitem (void *owner, void * const *pret);
 static int  nntp_itr_curitem_p (void *owner, void *data);
 static int  nntp_itr_finished_p (void *owner);
 
@@ -157,7 +158,7 @@ nntp_itr_next (void *owner)
 }
 
 static int
-nntp_itr_getitem (void *owner, void **item)
+nntp_itr_getitem (void *owner, void * const *item)
 {
   struct nntp_iterator *nntp_iterator = (struct nntp_iterator *)owner;
   if (item)
