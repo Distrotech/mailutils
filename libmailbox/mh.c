@@ -80,7 +80,7 @@ mh_open (mailbox * mbox)
 #endif
   chdir(old_dir);
 
-  fprintf(stderr, "%d messages read\n", mbox->messages);
+  fprintf(stderr, "\n%d messages read\n", mbox->messages);
 
   return 0;
 }
