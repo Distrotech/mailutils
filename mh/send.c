@@ -33,7 +33,7 @@ static char args_doc[] = N_("file [file...]");
 /* GNU options */
 static struct argp_option options[] = {
   {"alias",         ARG_ALIAS,         N_("FILE"), 0,
-   N_("* Specify additional alias file") },
+   N_("Specify additional alias file") },
   {"draft",         ARG_DRAFT,         NULL, 0,
    N_("Use prepared draft") },
   {"draftfolder",   ARG_DRAFTFOLDER,   N_("FOLDER"), 0,
@@ -127,7 +127,8 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
   switch (key)
     {
     case ARG_ALIAS:
-      return 1;
+      mh_alias_read (arg, 1);
+      break;
       
     case ARG_DRAFT:
       use_draft = 1;
@@ -346,6 +347,89 @@ get_sender_personal ()
   return s;
 }
 
+static void
+set_address_header (header_t hdr, char *name, address_t addr)
+{
+  size_t s = address_format_string (addr, NULL, 0);
+  char *value = xmalloc (s + 1);
+  address_format_string (addr, value, s);
+  header_set_value (hdr, name, value, 1);
+  free (value);
+}
+
+void
+expand_aliases (message_t msg)
+{
+  header_t hdr;
+  size_t i, num;
+  char buf[16];
+  address_t addr_to = NULL,
+            addr_cc = NULL,
+            addr_bcc = NULL;
+  
+  message_get_header (msg, &hdr);
+  header_get_field_count (hdr, &num);
+  for (i = 1; i <= num; i++)
+    {
+      header_get_field_name (hdr, i, buf, sizeof buf, NULL);
+      if (strcasecmp (buf, MU_HEADER_TO) == 0
+	  || strcasecmp (buf, MU_HEADER_CC) == 0
+	  || strcasecmp (buf, MU_HEADER_BCC) == 0)
+	{
+	  char *value;
+	  address_t addr = NULL;
+	  int incl;
+	  
+	  header_aget_field_value_unfold (hdr, i, &value);
+      
+	  mh_alias_expand (value, &addr, &incl);
+	  free (value);
+	  if (strcasecmp (buf, MU_HEADER_TO) == 0)
+	    address_union (&addr_to, addr);
+	  else if (strcasecmp (buf, MU_HEADER_CC) == 0)
+	    address_union (&addr_cc, addr);
+	  else if (strcasecmp (buf, MU_HEADER_BCC) == 0)
+	    address_union (&addr_bcc, addr);
+	}
+    }
+
+  if (addr_to)
+    {
+      set_address_header (hdr, MU_HEADER_TO, addr_to);
+      address_destroy (&addr_to);
+    }
+
+  if (addr_cc)
+    {
+      set_address_header (hdr, MU_HEADER_CC, addr_cc);
+      address_destroy (&addr_cc);
+    }
+
+  if (addr_bcc)
+    {
+      set_address_header (hdr, MU_HEADER_BCC, addr_bcc);
+      address_destroy (&addr_bcc);
+    }
+}
+
+void
+fix_fcc (message_t msg)
+{
+  header_t hdr;
+  char *val;
+  
+  message_get_header (msg, &hdr);
+  if (header_aget_value (hdr, MU_HEADER_FCC, &val) == 0
+      && strchr ("+%~/=", val[0]) == NULL)
+    {
+      val = realloc (val, strlen (val) + 2);
+      memmove (val + 1, val, strlen (val) + 1);
+      val[0] = '+';
+      header_set_value (hdr, MU_HEADER_FCC, val, 1);
+      free (val);
+    }  
+}
+
 int
 _action_send (void *item, void *data)
 {
@@ -388,6 +472,9 @@ _action_send (void *item, void *data)
 	create_message_id (hdr);
     }
 
+  expand_aliases (msg);
+  fix_fcc (msg);
+  
   mailer = open_mailer ();
   if (!mailer)
     return 1;
@@ -447,6 +534,8 @@ main (int argc, char **argv)
   mh_argp_parse (argc, argv, 0, options, mh_option, args_doc, doc,
 		 opt_handler, NULL, &index);
 
+  mh_read_aliases ();
+  
   argc -= index;
   argv += index;
 
