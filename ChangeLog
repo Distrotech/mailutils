@@ -14,9 +14,8 @@
 	  message_get_header ((message_t)mime, header);
 	}
 	Another example is tcpstream(socket stream) extends
-	fdstream(file description stream);
-	Also the name of the functions have change to match better
-	there purpose.
+	fdstream(file descriptor stream);
+	Also the name of the functions have change to match there purpose.
 
 	* mailbox2/Makefile.am: lockfile.c added.
 	* mailbox2/bstream.c: Reoganisation to make the
