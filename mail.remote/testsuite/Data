@@ -27,7 +27,7 @@ Data goes here.
 BODY END
 
 PATTERN BEGIN
-ENVELOPE FROM: gray@gnu.org
+ENVELOPE FROM: <gray@gnu.org>
 ENVELOPE TO: <bug-mailutils@gnu.org>
    0: From: gray@gnu.org
    1: To: bug-mailutils@gnu.org
@@ -41,7 +41,7 @@ PATTERN END
 MESSAGE END
 
 MESSAGE Explicit from
-FROM gray@localhost
+FROM <gray@localhost>
 BODY BEGIN
 From: gray@gnu.org
 To: bug-mailutils@gnu.org
@@ -52,7 +52,7 @@ Data goes here.
 BODY END
 
 PATTERN BEGIN
-ENVELOPE FROM: gray@localhost
+ENVELOPE FROM: <gray@localhost>
 ENVELOPE TO: <bug-mailutils@gnu.org>
    0: From: gray@gnu.org
    1: To: bug-mailutils@gnu.org
@@ -66,7 +66,7 @@ PATTERN END
 MESSAGE END
 
 MESSAGE Explicit To
-TO alainm@gnu.org jbailey@gnu.org
+TO <alainm@gnu.org> <jbailey@gnu.org>
 BODY BEGIN
 From: gray@gnu.org
 Subject: Expicit destinations
@@ -74,7 +74,7 @@ Subject: Expicit destinations
 This is a test for working explicit destinations.
 BODY END
 PATTERN BEGIN
-ENVELOPE FROM: gray@gnu.org
+ENVELOPE FROM: <gray@gnu.org>
 ENVELOPE TO: <alainm@gnu.org>,<jbailey@gnu.org>
    0: To: <alainm@gnu.org>,<jbailey@gnu.org>
    1: From: gray@gnu.org
@@ -96,7 +96,7 @@ Subject: Carbon copy test
 CC works.
 BODY END
 PATTERN BEGIN
-ENVELOPE FROM: gray@gnu.org
+ENVELOPE FROM: <gray@gnu.org>
 ENVELOPE TO: <bug-mailutils@gnu.org>,<alainm@gnu.org>
    0: From: gray@gnu.org
    1: To: bug-mailutils@gnu.org
@@ -119,7 +119,7 @@ Subject: Blind carbon copy test.
 Bcc works too.
 BODY END
 PATTERN BEGIN
-ENVELOPE FROM: gray@gnu.org
+ENVELOPE FROM: <gray@gnu.org>
 ENVELOPE TO: <alainm@gnu.org>
    0: From: gray@gnu.org
    1: To:  alainm@gnu.org
@@ -128,7 +128,7 @@ ENVELOPE TO: <alainm@gnu.org>
    4: Bcc works too.
    5:
 END OF MESSAGE
-ENVELOPE FROM: gray@gnu.org
+ENVELOPE FROM: <gray@gnu.org>
 ENVELOPE TO: <bug-mailutils@gnu.org>
    0: Bcc: bug-mailutils@gnu.org
    1: From: gray@gnu.org
@@ -142,7 +142,7 @@ PATTERN END
 MESSAGE END
 
 MESSAGE Complex
-TO root@localhost
+TO <root@localhost>
 BODY BEGIN
 From: gray@gnu.org
 Cc: "Alain Magloire" <alainm@gnu.org>, "Jeff Bailey" <jbailey@gnu.org>
@@ -152,7 +152,7 @@ Subject: A complex test
 It works?
 BODY END
 PATTERN BEGIN
-ENVELOPE FROM: gray@gnu.org
+ENVELOPE FROM: <gray@gnu.org>
 ENVELOPE TO: <root@localhost>,<alainm@gnu.org>,<jbailey@gnu.org>
    0: To: <root@localhost>,<alainm@gnu.org>,<jbailey@gnu.org>
    1: From: gray@gnu.org
@@ -162,7 +162,7 @@ ENVELOPE TO: <root@localhost>,<alainm@gnu.org>,<jbailey@gnu.org>
    5: It works?
    6:
 END OF MESSAGE
-ENVELOPE FROM: gray@gnu.org
+ENVELOPE FROM: <gray@gnu.org>
 ENVELOPE TO: <bug-mailutils@gnu.org>
    0: To: <bug-mailutils@gnu.org>
    1: Bcc: bug-mailutils@gnu.org
