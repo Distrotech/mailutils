@@ -20,8 +20,18 @@ changequote([,])dnl
 
 (define-module (mailutils))
 
+(define mu-libs (list "libmailbox"
+		      "libmuauth"
+		      "libmu_mbox"
+		      "libmu_mh"
+		      "libmu_pop"
+		      "libmu_imap"))
+
 (let ((lib-path "LIBDIR/"))
-  (dynamic-link (string-append lib-path "libmailbox"))
+  (for-each
+   (lambda (lib)
+	   (dynamic-link (string-append lib-path lib)))
+   mu-libs)
   (cond
    ((or (string=? (version) "1.4")
 	(string=? (version) "1.4.1"))
