@@ -1,0 +1,83 @@
+;;;; -*- scheme -*-
+;;;; GNU mailutils - a suite of utilities for electronic mail
+;;;; Copyright (C) 2002 Free Software Foundation, Inc.
+;;;;
+;;;; This program is free software; you can redistribute it and/or modify
+;;;; it under the terms of the GNU General Public License as published by
+;;;; the Free Software Foundation; either version 2, or (at your option)
+;;;; any later version.
+;;;; 
+;;;; This program is distributed in the hope that it will be useful,
+;;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;;;; GNU General Public License for more details.
+;;;; 
+;;;; You should have received a copy of the GNU General Public License
+;;;; along with this program; if not, write to the Free Software
+;;;; Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  
+;;;;
+changequote([,])dnl
+
+(define-module (mailutils))
+
+(let ((lib-path "LIBDIR/"))
+  (cond
+   ((or (string=? (version) "1.4")
+	(string=? (version) "1.4.1"))
+    (dynamic-link (string-append lib-path "libmailbox"))
+    (dynamic-call "mu_scm_init"
+		  (dynamic-link (string-append
+				 lib-path
+				 "libguile-mailutils-v-VERSION"))))
+   (else
+    (load-extension "libguile-mailutils-v-VERSION" "mu_scm_init"))))
+
+(export mu-package)
+(export mu-version)
+(export mu-mailer)
+(export mu-debug)
+
+(export MU-ATTRIBUTE-ANSWERED)
+(export MU-ATTRIBUTE-FLAGGED)
+(export MU-ATTRIBUTE-DELETED)
+(export MU-ATTRIBUTE-DRAFT)
+(export MU-ATTRIBUTE-SEEN)
+(export MU-ATTRIBUTE-READ)
+(export MU-ATTRIBUTE-MODIFIED)
+(export MU-ATTRIBUTE-RECENT)
+
+(export LOG_USER)   
+(export LOG_DAEMON)
+(export LOG_AUTH)  
+(export LOG_LOCAL0)
+(export LOG_LOCAL1)
+(export LOG_LOCAL2)
+(export LOG_LOCAL3)
+(export LOG_LOCAL4)
+(export LOG_LOCAL5)
+(export LOG_LOCAL6)
+(export LOG_LOCAL7)
+(export LOG_EMERG)    
+(export LOG_ALERT)   
+(export LOG_CRIT)    
+(export LOG_ERR)     
+(export LOG_WARNING) 
+(export LOG_NOTICE)  
+(export LOG_INFO)    
+(export LOG_DEBUG)   
+(export LOG_CONS)   
+(export LOG_NDELAY) 
+(export LOG_PID)
+
+include(BUILDDIR/mu_address.inc)
+include(BUILDDIR/mu_body.inc)
+include(BUILDDIR/mu_guimb.inc)
+include(BUILDDIR/mu_mailbox.inc)
+include(BUILDDIR/mu_message.inc)
+include(BUILDDIR/mu_mime.inc)
+include(BUILDDIR/mu_logger.inc)
+include(BUILDDIR/mu_port.inc)
+include(BUILDDIR/mu_scm.inc)
+include(BUILDDIR/mu_util.inc)
+
+
