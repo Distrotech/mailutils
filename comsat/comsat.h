@@ -35,6 +35,7 @@
 #include <syslog.h>
 #include <string.h>
 #include <pwd.h>
+#include <ctype.h>
 #include <getopt.h>
 
 #ifndef INADDR_NONE
