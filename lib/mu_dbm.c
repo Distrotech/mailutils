@@ -45,7 +45,10 @@ mu_fcheck_perm (int fd, int mode)
 	return 1;
     }
   if ((st.st_mode & 0777) != mode)
+    {
+      errno = EPERM;
     return 1;
+    }
   return 0;
 }
 
@@ -54,6 +57,8 @@ mu_check_perm (char *name, int mode)
 {
   struct stat st;
 
+  if (mode == 0)
+    return 0;	  
   if (stat (name, &st) == -1)
     {
       if (errno == ENOENT)
@@ -62,7 +67,10 @@ mu_check_perm (char *name, int mode)
 	return 1;
     }
   if ((st.st_mode & 0777) != mode)
+    {
+      errno = EPERM; 
     return 1;
+    }
   return 0;
 }
 
