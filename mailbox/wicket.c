@@ -77,7 +77,7 @@ wicket_get_filename (wicket_t wicket, char *filename, size_t len,
  size_t n;
  if (wicket == NULL)
    return EINVAL;
-  n = util_cpystr (filename, wicket->filename, len);
+  n = mu_cpystr (filename, wicket->filename, len);
   if (pwriten)
     *pwriten = n;
   return 0;

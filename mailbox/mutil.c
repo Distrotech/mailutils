@@ -318,7 +318,7 @@ mu_tilde_expansion (const char *ref, const char *delim, const char *homedir)
 /* Smart strncpy that always add the null and returns the number of bytes
    written.  */
 size_t
-util_cpystr (char *dst, const char *src, size_t size)
+mu_cpystr (char *dst, const char *src, size_t size)
 {
   size_t len = src ? strlen (src) : 0 ;
   if (dst == NULL || size == 0)

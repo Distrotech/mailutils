@@ -62,20 +62,20 @@ extern time_t mu_tm2time __P ((struct tm * timeptr, mu_timezone * tz));
 extern char * mu_get_homedir __P ((void));
 extern char * mu_tilde_expansion __P ((const char *ref, const char *delim, const char *homedir));
 
-extern size_t util_cpystr __P ((char *dst, const char *src, size_t size));
+extern size_t mu_cpystr __P ((char *dst, const char *src, size_t size));
 
 struct passwd;
 
 extern void mu_register_getpwnam __P((struct passwd *(*fun) __P((const char *))));
 extern struct passwd * mu_getpwnam __P((const char *name));
-  
+
 extern int mu_virtual_domain;
 
 extern struct passwd * getpwnam_virtual __P((const char *u));
 
 extern char * mu_get_user_email __P((char *name));
 extern char * mu_normalize_path __P((char *path, const char *delim));
-  
+
 #ifdef __cplusplus
 }
 #endif

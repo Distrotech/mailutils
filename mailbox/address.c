@@ -103,7 +103,7 @@ address_get_personal (address_t addr, size_t no, char *buf, size_t len,
     {
       if (j == no)
 	{
-	  i = util_cpystr (buf, addr->personal, len);
+	  i = mu_cpystr (buf, addr->personal, len);
 	  status = 0;
 	  break;
 	}
@@ -125,7 +125,7 @@ address_get_comments (address_t addr, size_t no, char *buf, size_t len,
     {
       if (j == no)
 	{
-	  i = util_cpystr (buf, addr->comments, len);
+	  i = mu_cpystr (buf, addr->comments, len);
 	  if (n)
 	    *n = i;
 	  status = 0;
@@ -146,7 +146,7 @@ address_get_email (address_t addr, size_t no, char *buf, size_t len, size_t *n)
     {
       if (j == no)
 	{
-	  i = util_cpystr (buf, addr->email, len);
+	  i = mu_cpystr (buf, addr->email, len);
 	  if (n)
 	    *n = i;
 	  status = 0;
@@ -167,7 +167,7 @@ address_get_local_part (address_t addr, size_t no, char *buf, size_t len, size_t
     {
       if (j == no)
 	{
-	  i = util_cpystr (buf, addr->local_part, len);
+	  i = mu_cpystr (buf, addr->local_part, len);
 	  if (n)
 	    *n = i;
 	  status = 0;
@@ -188,7 +188,7 @@ address_get_domain (address_t addr, size_t no, char *buf, size_t len, size_t *n)
     {
       if (j == no)
 	{
-	  i = util_cpystr (buf, addr->domain, len);
+	  i = mu_cpystr (buf, addr->domain, len);
 	  if (n)
 	    *n = i;
 	  status = 0;
@@ -209,7 +209,7 @@ address_get_route (address_t addr, size_t no, char *buf, size_t len, size_t *n)
     {
       if (j == no)
 	{
-	  i = util_cpystr (buf, addr->route, len);
+	  i = mu_cpystr (buf, addr->route, len);
 	  if (n)
 	    *n = i;
 	  status = 0;
@@ -251,7 +251,7 @@ address_to_string (address_t addr, char *buf, size_t len, size_t *n)
     return EINVAL;
   if (buf)
     *buf = '\0';
-  i = util_cpystr (buf, addr->addr, len);
+  i = mu_cpystr (buf, addr->addr, len);
   if (n)
     *n = i;
   return 0;
