@@ -120,6 +120,9 @@ extern int mu_rfc2822_in_reply_to __P((message_t msg, char **pstr));
 extern char *mu_strcasestr __P((const char *haystack, const char *needle));
 
 extern int mu_string_unfold __P((char *text, size_t *plen));
+
+extern int munre_set_regex __P((char *str, int caseflag, char **errp));
+extern int munre_subject  __P((const char *subject, const char **new_subject));
   
 #ifdef __cplusplus
 }
