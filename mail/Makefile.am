@@ -1,6 +1,6 @@
 AUTOMAKE_OPTIONS = ../lib/ansi2knr no-dependencies
 
-CFLAGS = -Wall -pedantic -g
+CFLAGS = -Wall -g
 
 INCLUDES = -I${top_srcdir}/include -I${top_srcdir}/lib @ARGPINCS@
 

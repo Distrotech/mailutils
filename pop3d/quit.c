@@ -24,7 +24,7 @@
    and closes the TCP connection.  */
 
 int
-pop3_quit (const char *arg)
+pop3d_quit (const char *arg)
 {
   int err = OK;
   if (strlen (arg) != 0)

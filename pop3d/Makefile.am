@@ -1,6 +1,6 @@
 AUTOMAKE_OPTIONS = ../lib/ansi2knr
 INCLUDES =-I$(srcdir) -I$(top_srcdir)/lib -I$(top_srcdir)/include
-CFLAGS = -Wall -pedantic -g
+CFLAGS = -Wall -g
 
 sbin_PROGRAMS = pop3d
 

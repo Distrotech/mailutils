@@ -20,7 +20,7 @@
 /* Prints out the specified message */
 
 int
-pop3_retr (const char *arg)
+pop3d_retr (const char *arg)
 {
   size_t mesgno, n;
   char *buf;
@@ -51,7 +51,7 @@ pop3_retr (const char *arg)
   off = n = 0;
   buf = malloc (buflen * sizeof (*buf));
   if (buf == NULL)
-    pop3_abquit (ERR_NO_MEM);
+    pop3d_abquit (ERR_NO_MEM);
 
   while (stream_readline (stream, buf, buflen, off, &n) == 0
 	 && n > 0)
@@ -64,7 +64,7 @@ pop3_retr (const char *arg)
 	  buflen *= 2;
 	  buf = realloc (buf, buflen * sizeof (*buf));
 	  if (buf == NULL)
-	    pop3_abquit (ERR_NO_MEM);
+	    pop3d_abquit (ERR_NO_MEM);
 	  continue;
 	}
       if (buf[0] == '.')

@@ -20,7 +20,7 @@
 /* Resets the connection so that no messages are marked as deleted */
 
 int
-pop3_rset (const char *arg)
+pop3d_rset (const char *arg)
 {
   size_t i;
   size_t total = 0;

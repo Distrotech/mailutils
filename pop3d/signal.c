@@ -19,7 +19,7 @@
 #include "pop3d.h"
 
 void
-pop3_sigchld (int signo)
+pop3d_sigchld (int signo)
 {
   pid_t pid;
   int status;
@@ -32,7 +32,7 @@ pop3_sigchld (int signo)
 #ifndef HAVE_SIGACTION
   /* On some system, signal implements the unreliabe sematic and
      has to be rearm.  */
-  signal (SIGCHLD, pop3_sigchld);
+  signal (SIGCHLD, pop3d_sigchld);
 #endif
   errno = old_errno;
 }

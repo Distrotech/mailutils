@@ -271,13 +271,13 @@ pop3d_mainloop (int infile, int outfile)
 
       if (state == TRANSACTION && !mailbox_is_updated (mbox))
 	{
-	  static size_t mailbox_size;
-	  size_t newsize = 0;
+	  static off_t mailbox_size;
+	  off_t newsize = 0;
 	  mailbox_get_size (mbox, &newsize);
 	  /* Did we shrink?  */
 	  if (!mailbox_size)
 	    mailbox_size = newsize;
-	  else (newsize < mailbox_size)
+	  else if (newsize < mailbox_size)
 	    pop3d_abquit (ERR_MBOX_SYNC);
 	}
 

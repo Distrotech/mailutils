@@ -20,7 +20,7 @@
 /* Prints the header of a message plus a specified number of lines.  */
 
 int
-pop3_top (const char *arg)
+pop3d_top (const char *arg)
 {
   size_t mesgno;
   int lines;
@@ -41,8 +41,8 @@ pop3_top (const char *arg)
   if (state != TRANSACTION)
     return ERR_WRONG_STATE;
 
-  mesgc = pop3_cmd (arg);
-  linesc = pop3_args (arg);
+  mesgc = pop3d_cmd (arg);
+  linesc = pop3d_args (arg);
   mesgno = strtoul (mesgc, NULL, 10);
   lines = strlen (linesc) > 0 ? strtol (linesc, NULL, 10) : -1;
   free (mesgc);
@@ -65,7 +65,7 @@ pop3_top (const char *arg)
   header_get_stream (hdr, &stream);
   buf = malloc (buflen * sizeof (*buf));
   if (buf == NULL)
-    pop3_abquit (ERR_NO_MEM);
+    pop3d_abquit (ERR_NO_MEM);
   off = n = 0;
   while (stream_readline (stream, buf, buflen, off, &n) == 0
 	 && n > 0)
@@ -98,7 +98,7 @@ pop3_top (const char *arg)
 	      buflen *= 2;
 	      buf = realloc (buf, buflen * sizeof (*buf));
 	      if (buf == NULL)
-		pop3_abquit (ERR_NO_MEM);
+		pop3d_abquit (ERR_NO_MEM);
 	      continue;
 	    }
 	  if (buf[0] == '.')

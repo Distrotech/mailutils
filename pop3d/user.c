@@ -77,7 +77,7 @@ static struct pam_conv PAM_conversation = { &PAM_gnupop3d_conv, NULL };
    otherwise it will (likely) return ERR_BAD_LOGIN */
 
 int
-pop3_user (const char *arg)
+pop3d_user (const char *arg)
 {
   char *buf, pass[POP_MAXCMDLEN], *tmp, *cmd;
   struct passwd *pw;
@@ -96,9 +96,9 @@ pop3_user (const char *arg)
   fprintf (ofile, "+OK\r\n");
   fflush (ofile);
 
-  buf = pop3_readline (ifile);
-  cmd = pop3_cmd (buf);
-  tmp = pop3_args (buf);
+  buf = pop3d_readline (ifile);
+  cmd = pop3d_cmd (buf);
+  tmp = pop3d_args (buf);
   free (buf);
 
   if (strlen (tmp) > POP_MAXCMDLEN)
@@ -125,7 +125,7 @@ pop3_user (const char *arg)
 
 #ifdef _USE_APOP
       /* Check to see if they have an APOP password. If so, refuse USER/PASS */
-      tmp = pop3_apopuser (arg);
+      tmp = pop3d_apopuser (arg);
       if (tmp != NULL)
 	{
 	  syslog (LOG_INFO, "APOP user %s tried to log in with USER", arg);
@@ -201,7 +201,7 @@ pam_errlab:
 
       username = strdup (arg);
       if (username == NULL)
-	pop3_abquit (ERR_NO_MEM);
+	pop3d_abquit (ERR_NO_MEM);
       state = TRANSACTION;
 
       if (pw != NULL && pw->pw_uid > 1)
@@ -221,7 +221,7 @@ pam_errlab:
     {
       syslog (LOG_INFO, "Possible probe of account '%s'", arg);
       free (cmd);
-      return pop3_quit (pass);
+      return pop3d_quit (pass);
     }
 
   free (cmd);

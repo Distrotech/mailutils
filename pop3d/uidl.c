@@ -18,7 +18,7 @@
 #include "pop3d.h"
 
 int
-pop3_uidl (const char *arg)
+pop3d_uidl (const char *arg)
 {
   size_t mesgno;
   char uidl[128];
