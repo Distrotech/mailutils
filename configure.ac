@@ -769,6 +769,7 @@ AC_CONFIG_FILES([Makefile
  mailbox/mh/Makefile
  mailbox/maildir/Makefile
  mailbox/pop/Makefile
+ mailbox/nntp/Makefile
  mailbox/imap/Makefile
  mailbox/include/Makefile
  mailbox/testsuite/Makefile
