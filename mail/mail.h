@@ -175,6 +175,7 @@ int mail_shell __P((int argc, char **argv));
 int mail_size __P((int argc, char **argv));
 int mail_source __P((int argc, char **argv));
 int mail_summary __P((int argc, char **argv));
+int mail_tag __P((int argc, char **argv));
 int mail_top __P((int argc, char **argv));
 int mail_touch __P((int argc, char **argv));
 int mail_unalias __P((int argc, char **argv));
@@ -285,6 +286,7 @@ char *readline __P((const char *prompt));
 /* Message attributes */
 #define MAIL_ATTRIBUTE_MBOXED   0x0001
 #define MAIL_ATTRIBUTE_SAVED    0x0002
+#define MAIL_ATTRIBUTE_TAGGED   0x0004
 
 #ifdef __cplusplus
 }
