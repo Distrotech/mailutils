@@ -48,6 +48,8 @@
 #include <mailutils/header.h>
 #include <mailutils/observer.h>
 #include <mailutils/stream.h>
+#include <mailutils/argcv.h>
+#include <mailutils/tls.h>
 
 /* For dbg purposes set to one to see different level of traffic.  */
 /* Print to stderr the command sent to the IMAP server.  */
@@ -171,8 +173,8 @@ folder_imap_destroy (folder_t folder)
       f_imap_t f_imap = folder->data;
       if (f_imap->buffer)
 	free (f_imap->buffer);
-      if (f_imap->capa)
-	free (f_imap->capa);
+      if (f_imap->capav)
+	argcv_free (f_imap->capac, f_imap->capav);
       free (f_imap);
       folder->data = NULL;
     }
@@ -210,6 +212,66 @@ folder_imap_get_authority (folder_t folder, authority_t *pauth)
   if (pauth)
     *pauth = folder->authority;
   return status;
+}
+
+static int
+parse_capa (f_imap_t f_imap, char *str)
+{
+  if (f_imap->capav)
+    argcv_free (f_imap->capac, f_imap->capav);
+  return argcv_get (str, "", NULL, &f_imap->capac, &f_imap->capav);
+}
+
+static int
+check_capa (f_imap_t f_imap, char *capa)
+{
+  int i;
+  
+  if (!f_imap->capav)
+    {
+      int status;
+      status = imap_writeline (f_imap, "g%u CAPABILITY\r\n",
+			       f_imap->seq++);
+      status = imap_send (f_imap);
+      status = imap_parse (f_imap);
+    }
+  for (i = 0; i < f_imap->capac; i++)
+    if (strcasecmp (f_imap->capav[i], capa) == 0)
+      return 0;
+  return 1;
+}
+
+static int
+tls (folder_t folder)
+{
+#ifdef WITH_TLS
+  int status;
+  f_imap_t f_imap = folder->data;
+
+  if (!mu_tls_enable || check_capa (f_imap, "STARTTLS"))
+    return -1;
+  
+  status = imap_writeline (f_imap, "g%u STARTTLS\r\n",
+			   f_imap->seq, f_imap->user, f_imap->passwd);
+  CHECK_ERROR (f_imap, status);
+  status = imap_send (f_imap);
+  CHECK_ERROR (f_imap, status);
+  status = imap_parse (f_imap);
+  if (status == 0)
+    {
+      stream_t str;
+      status = tls_stream_create_client_from_tcp (&str, folder->stream, 0);
+      CHECK_ERROR (f_imap, status);
+      status = stream_open (str);
+      if (status == 0)
+	folder->stream = str;
+      FOLDER_DEBUG1 (folder, MU_DEBUG_PROT, "TLS negotiation %s\n",
+		     status == 0 ? "succeeded" : "failed");
+    }
+  return status;
+#else
+  return -1;
+#endif
 }
 
 /* Simple User/pass authentication for imap.  */
@@ -486,8 +548,8 @@ folder_imap_open (folder_t folder, int flags)
         CHECK_EAGAIN (f_imap, status);
 	f_imap->ptr = f_imap->buffer;
         FOLDER_DEBUG0 (folder, MU_DEBUG_PROT, f_imap->buffer);
-	/* Are they open for business ?  The server send an untag response
-	   for greeting. Thenically it can be OK/PREAUTH/BYE.  The BYE is
+	/* Are they open for business ?  The server send an untagged response
+	   for greeting. Tecnically it can be OK/PREAUTH/BYE.  The BYE is
 	   the one that we do not want, server being unfriendly.  */
 	if (strncasecmp (f_imap->buffer, "* PREAUTH", 9) == 0)
 	  {
@@ -500,7 +562,8 @@ folder_imap_open (folder_t folder, int flags)
             f_imap->state = IMAP_AUTH;
 	  }
       }
-
+      tls(folder);
+      
     case IMAP_AUTH:
     case IMAP_LOGIN:
     case IMAP_LOGIN_ACK:
@@ -979,7 +1042,7 @@ imap_literal_string (f_imap_t f_imap, char **ptr)
     }
 
   /* The (len + 1) in the for is to count the strip '\r' by imap_readline.  */
-  for (len0 = len = total = 0; total < f_imap->string.nleft; total += (len + 1))
+  for (len0 = len = total = 0; total < f_imap->string.nleft; total += len + 1)
     {
       status = imap_readline (f_imap);
       if (DEBUG_SHOW_DATA)
@@ -1948,7 +2011,8 @@ imap_readline (f_imap_t f_imap)
   while (f_imap->nl == NULL);
 
   /* Conversion \r\n --> \n\0  */
-  if (f_imap->nl > f_imap->buffer)
+  /* FIXME: This should be done transparently by the TCP stream */
+  if (f_imap->nl > f_imap->buffer && f_imap->nl[-1] == '\r')
     {
       *(f_imap->nl - 1) = '\n';
       *(f_imap->nl) = '\0';
@@ -2100,9 +2164,7 @@ imap_parse (f_imap_t f_imap)
 			 initial capabilities list.  This makes it unnecessary
 			 for a client to send a separate CAPABILITY command if
 			 it recognizes this response.  */
-		      if (f_imap->capa)
-			free (f_imap->capa);
-		      f_imap->capa = strdup (cruft);
+		      parse_capa (f_imap, cruft);
 		    }
 		  else if (strcasecmp (subtag, "NEWNAME") == 0)
 		    {
@@ -2222,15 +2284,13 @@ imap_parse (f_imap_t f_imap)
 	    }
 	  else if (strcasecmp (response, "CAPABILITY") == 0)
 	    {
-	      if (f_imap->capa)
-		free (f_imap->capa);
-	      f_imap->capa = strdup (remainder);
+	      parse_capa (f_imap, remainder);
 	    }
 	  else if (strcasecmp (remainder, "EXISTS") == 0)
 	    {
 	      f_imap->selected->messages_count = strtol (response, NULL, 10);
 	    }
-	  else if (strcasecmp (remainder, "EXPUNGE") == 0)
+	  else if (strcasecmp (remainder, "EXPUNGED") == 0)
 	    {
 	      unsigned int msgno = strtol (response, NULL, 10);
 	      status = imap_expunge (f_imap, msgno);
