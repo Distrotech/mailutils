@@ -1,2 +1,5 @@
+Makefile
+Makefile.in
+stamp-vti
+mailutils.info
 version.texi
-

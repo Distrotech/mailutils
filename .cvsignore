@@ -1,0 +1,13 @@
+configure
+Makefile.in
+Makefile
+stamp-h.in
+config.h.in
+aclocal.m4
+libtool
+config.log
+config.h
+config.cache
+config.status
+stamp-h
+mailutils.spec
