@@ -15,6 +15,14 @@
 	* frm/frm.c: Likewise.
 	* imap4d/imap4d.h: Likewise.
 	* pop3d/pop3d.h: Likewise.
+	* mail.local/mail.local.h: Likewise.
+	* mh/mh_getopt.c: Likewise.
+	* readmsg/readmsg.h: Likewise.
+	
+	* imap4d/fetch.c (fetch_internaldate): Added typecast to shut up
+	  the compiler warning.
+	* mailbox/mbx_default.c (get_homedir): Returned value is not
+	  const.
 	
 2002-12-05  Sergey Poznyakoff
 
