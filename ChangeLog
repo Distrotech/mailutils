@@ -1,3 +1,11 @@
+2003-05-26  Sergey Poznyakoff
+
+	* imap4d/auth_gss.c (auth_gssapi): Check return codes
+	from gss_wrap, gss_unwrap.
+	* NEWS: Added entry for 0.3.1
+	* mh/mhn.c (_message_is_external_body): Check subtype before
+	dereferencing it.
+
 2003-05-24  Alain Magloire
 
 	* configure.ac: Check for "long long" and "long double".
