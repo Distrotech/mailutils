@@ -747,7 +747,11 @@ int mu_spawnvp(const char* prog, const char* const av_[], int* stat)
       sigprocmask (SIG_SETMASK, &savemask, NULL);
 
       execvp (av[0], av);
-      exit (127);		/* exec error */
+#ifdef HAVE__EXIT      
+      _exit (127);		/* exec error */
+#else
+      exit (127);
+#endif
     }
   else
     {				/* parent */
