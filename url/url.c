@@ -18,6 +18,7 @@
 #include <url_mbox.h>
 #include <url_unix.h>
 #include <url_mdir.h>
+#include <url_mh.h>
 #include <url_mmdf.h>
 #include <url_pop.h>
 #include <url_imap.h>
@@ -57,9 +58,10 @@ static struct url_builtin
   { &_url_mbox_type, 0,    &url_builtin[2] },
   { &_url_unix_type, 0,    &url_builtin[3] },
   { &_url_maildir_type, 0, &url_builtin[4] },
-  { &_url_mmdf_type, 0,    &url_builtin[5] },
-  { &_url_pop_type, 0,     &url_builtin[6] },
-  { &_url_imap_type, 0,    &url_builtin[7] },
+  { &_url_mh_type, 0,      &url_builtin[5] },
+  { &_url_mmdf_type, 0,    &url_builtin[6] },
+  { &_url_pop_type, 0,     &url_builtin[7] },
+  { &_url_imap_type, 0,    &url_builtin[8] },
   { &_url_mailto_type, 0,  &url_builtin[0] },
 };
 

@@ -12,4 +12,5 @@ unix:///var/mail/alain
 unix://usr/spool/mail
 file:///usr/spool/alain
 mdir://home/alain
+mh://home/shaleh/Mail/inbox
 mmdf://u
