@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2003, 2004 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2003, 2004, 2005 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -343,11 +343,10 @@ mu_mailcap_entry_get_value (mu_mailcap_entry_t entry, const char *key,
 			    char *buffer, size_t buflen, size_t *pn)
 {
   int len = 0;
-  int status = 0;
-  if (entry == NULL)
-    {
-      status = EINVAL;
-    }
+  int status = ENOENT;
+
+  if (!entry)
+    status = EINVAL;
   else
     {
       int i;
@@ -358,6 +357,7 @@ mu_mailcap_entry_get_value (mu_mailcap_entry_t entry, const char *key,
 	  if (n == 0)
 	    {
 	      int field_len = strlen(entry->fields[i]);
+	      status = 0;
 	      if (field_len > key_len)
 		{
 		  int c = entry->fields[i][key_len];
