@@ -1,18 +1,18 @@
-/* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+/* GNU Mailutils -- a suite of utilities for electronic mail
+   Copyright (C) 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
 
-   This program is free software; you can redistribute it and/or modify
+   GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
    the Free Software Foundation; either version 2, or (at your option)
    any later version.
 
-   This program is distributed in the hope that it will be useful,
+   GNU Mailutils is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
+   along with GNU Mailutils; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 /* MH scan command */
@@ -27,22 +27,24 @@
 
 const char *argp_program_version = "scan (" PACKAGE_STRING ")";
 static char doc[] = "GNU MH scan";
-static char args_doc[] = "[+folder] [msgs]";
+static char args_doc[] = N_("[+folder] [msgs]");
 
 /* GNU options */
 static struct argp_option options[] = {
-  {"folder",  'f', "FOLDER", 0, "Specify folder to scan"},
-  {"clear",   'c', "BOOL",   OPTION_ARG_OPTIONAL, "Clear screen after displaying the list"},
-  {"form",    'F', "FILE",   0, "Read format from given file"},
-  {"format",  't', "FORMAT", 0, "Use this format string"},
-  {"header",  'H', "BOOL",   OPTION_ARG_OPTIONAL, "Display header"},
-  {"width",   'w', "NUMBER", 0, "Set output width"},
-  {"reverse", 'r', "BOOL",   OPTION_ARG_OPTIONAL, "List messages in reverse order"},
-  {"file",    'i', "FILE",   0, "[Not yet implemented]"},
+  {"folder",  'f', "FOLDER", 0, N_("Specify folder to scan")},
+  {"clear",   'c', "BOOL",   OPTION_ARG_OPTIONAL,
+   N_("Clear screen after displaying the list")},
+  {"form",    'F', "FILE",   0, N_("Read format from given file")},
+  {"format",  't', "FORMAT", 0, N_("Use this format string")},
+  {"header",  'H', "BOOL",   OPTION_ARG_OPTIONAL, N_("Display header")},
+  {"width",   'w', "NUMBER", 0, N_("Set output width")},
+  {"reverse", 'r', "BOOL",   OPTION_ARG_OPTIONAL, N_("List messages in reverse order")},
+  {"file",    'i', "FILE",   0, N_("[Not yet implemented]")},
   
-  {"license", 'l', 0,        0, "Display software license", -1},
+  {"license", 'l', 0,        0, N_("Display software license"), -1},
 
-  { "\nUse -help switch to obtain the list of traditional MH options. ", 0, 0, OPTION_DOC, "" },
+  { N_("\nUse -help switch to obtain the list of traditional MH options. "),
+   0, 0, OPTION_DOC, "" },
   
   { 0 }
 };
@@ -103,7 +105,7 @@ opt_handler (int key, char *arg, void *unused)
       width = strtoul (arg, NULL, 0);
       if (!width)
 	{
-	  mh_error ("Invalid width");
+	  mh_error (_("Invalid width"));
 	  exit (1);
 	}
       break;
@@ -113,7 +115,7 @@ opt_handler (int key, char *arg, void *unused)
       break;
       
     case 'i':
-      mh_error ("'i' is not yet implemented.");
+      mh_error (_("'i' is not yet implemented."));
       break;
       
     case 'l':
@@ -132,13 +134,16 @@ main (int argc, char **argv)
 {
   int index;
   mailbox_t mbox;
-  
+
+  /* Native Language Support */
+  mu_init_nls ();
+
   mh_argp_parse (argc, argv, options, mh_option, args_doc, doc,
 		 opt_handler, NULL, &index);
 
   if (mh_format_parse (format_str, &format))
     {
-      mh_error ("Bad format string");
+      mh_error (_("Bad format string"));
       exit (1);
     }
 
@@ -214,7 +219,7 @@ scan (mailbox_t mbox)
       mailbox_get_url (mbox, &url);
       time (&t);
       strftime (datestr, sizeof datestr, "%c", localtime (&t));
-      printf ("Folder %s  %s\n", url_to_string (url), datestr);
+      printf (_("Folder %s  %s\n"), url_to_string (url), datestr);
     }
 
   mh_iterate (mbox, &msgset, list_message, &list_data);

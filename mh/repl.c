@@ -1,18 +1,18 @@
-/* GNU mailutils - a suite of utilities for electronic mail
+/* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 2002 Free Software Foundation, Inc.
 
-   This program is free software; you can redistribute it and/or modify
+   GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
    the Free Software Foundation; either version 2, or (at your option)
    any later version.
 
-   This program is distributed in the hope that it will be useful,
+   GNU Mailutils is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
+   along with GNU Mailutils; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 /* MH reply command */
@@ -21,7 +21,7 @@
 
 const char *argp_program_version = "reply (" PACKAGE_STRING ")";
 static char doc[] = "GNU MH reply";
-static char args_doc[] = "[+folder] [msg]";
+static char args_doc[] = N_("[+folder] [msg]");
 
 #define ARG_NOEDIT      1
 #define ARG_FCC         2
@@ -35,28 +35,28 @@ static char args_doc[] = "[+folder] [msg]";
 /* GNU options */
 static struct argp_option options[] = {
   {"annotate", 'a', "BOOL", OPTION_ARG_OPTIONAL,
-   "Add Replied: header to the message being replied to"},
+   N_("Add Replied: header to the message being replied to")},
   {"draftfolder", 'd', "FOLDER", 0,
-   "Invoke the draftfolder facility"},
+   N_("Invoke the draftfolder facility")},
   {"draftmessage" , 'm', "MSG", 0,
-   "Invoke the draftmessage facility"},
+   N_("Invoke the draftmessage facility")},
   {"cc",       'c', "{all|to|cc|me}", 0,
-   "Specify whom to place on the Cc: list of the reply"},
+   N_("Specify whom to place on the Cc: list of the reply")},
   {"nocc",     'n', "{all|to|cc|me}", 0,
-   "Specify whom to remove from the Cc: list of the reply"},
-  {"folder",  'f', "FOLDER", 0, "Specify folder to operate upon"},
-  {"editor",  'e', "PROG", 0, "Set the editor program to use"},
-  {"noedit", ARG_NOEDIT, 0, 0, "Suppress the initial edit"},
-  {"fcc",    ARG_FCC, "FOLDER", 0, "Set the folder to receive Fcc's."},
+   N_("Specify whom to remove from the Cc: list of the reply")},
+  {"folder",  'f', "FOLDER", 0, N_("Specify folder to operate upon")},
+  {"editor",  'e', "PROG", 0, N_("Set the editor program to use")},
+  {"noedit", ARG_NOEDIT, 0, 0, N_("Suppress the initial edit")},
+  {"fcc",    ARG_FCC, "FOLDER", 0, N_("Set the folder to receive Fcc's.")},
   {"filter", ARG_FILTER, "PROG", 0,
-   "Set the filter program to preprocess the body of the message being replied"},
-  {"form",   'F', "FILE", 0, "Read format from given file"},
-  {"inplace", ARG_INPLACE, "BOOL", 0, "Annotate the message in place"},
-  {"query", ARG_QUERY, "BOOL", 0, "Query for addresses to place in To: and Cc: lists"},
-  {"width", 'w', "NUMBER", 0, "Set output width"},
+   N_("Set the filter program to preprocess the body of the message being replied")},
+  {"form",   'F', "FILE", 0, N_("Read format from given file")},
+  {"inplace", ARG_INPLACE, "BOOL", 0, N_("Annotate the message in place")},
+  {"query", ARG_QUERY, "BOOL", 0, N_("Query for addresses to place in To: and Cc: lists")},
+  {"width", 'w', "NUMBER", 0, N_("Set output width")},
   {"whatnowproc", ARG_WHATNOWPROC, "PROG", 0,
-   "Set the relacement for whatnow program"},
-  { "\nUse -help switch to obtain the list of traditional MH options. ", 0, 0, OPTION_DOC, "" },
+   N_("Set the relacement for whatnow program")},
+  { N_("\nUse -help switch to obtain the list of traditional MH options. "), 0, 0, OPTION_DOC, "" },
   { 0 }
 };
 
@@ -116,7 +116,7 @@ opt_handler (int key, char *arg, void *unused)
       width = strtoul (arg, NULL, 0);
       if (!width)
 	{
-	  mh_error ("Invalid width");
+	  mh_error (_("Invalid width"));
 	  exit (1);
 	}
       break;
@@ -133,7 +133,7 @@ opt_handler (int key, char *arg, void *unused)
     case ARG_INPLACE:
     case ARG_QUERY:
     case ARG_WHATNOWPROC:
-      mh_error ("option is not yet implemented");
+      mh_error (_("option is not yet implemented"));
       exit (1);
       
     default:
@@ -155,7 +155,7 @@ make_draft ()
   fp = fopen (draft_file, "w+");
   if (!fp)
     {
-      mh_error ("cannot open draft file %s: %s",
+      mh_error (_("cannot open draft file %s: %s"),
 		draft_file, strerror (errno));
       exit (1);
     }
@@ -163,7 +163,7 @@ make_draft ()
   rc = mailbox_get_message (mbox, msgset.list[0], &msg);
   if (rc)
     {
-      mh_error ("cannot read message %lu: %s",
+      mh_error (_("cannot read message %lu: %s"),
 		(unsigned long) msgset.list[0],
 		mu_errstring (rc));
       exit (1);
@@ -178,12 +178,15 @@ int
 main (int argc, char **argv)
 {
   int index;
-  
+
+  /* Native Language Support */
+  mu_init_nls ();
+
   mh_argp_parse (argc, argv, options, mh_option, args_doc, doc,
 		 opt_handler, NULL, &index);
   if (mh_format_parse (format_str, &format))
     {
-      mh_error ("Bad format string");
+      mh_error (_("Bad format string"));
       exit (1);
     }
 
@@ -191,7 +194,7 @@ main (int argc, char **argv)
   mh_msgset_parse (mbox, &msgset, argc - index, argv + index, "cur");
   if (msgset.count != 1)
     {
-      mh_error ("only one message at a time!");
+      mh_error (_("only one message at a time!"));
       return 1;
     }
 

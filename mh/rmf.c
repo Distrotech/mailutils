@@ -1,18 +1,18 @@
-/* GNU mailutils - a suite of utilities for electronic mail
+/* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 2002 Free Software Foundation, Inc.
 
-   This program is free software; you can redistribute it and/or modify
+   GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
    the Free Software Foundation; either version 2, or (at your option)
    any later version.
 
-   This program is distributed in the hope that it will be useful,
+   GNU Mailutils is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
+   along with GNU Mailutils; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 /* MH rmf command */
@@ -30,14 +30,15 @@
 
 const char *argp_program_version = "rmf (" PACKAGE_STRING ")";
 static char doc[] = "GNU MH rmf";
-static char args_doc[] = "[+folder]";
+static char args_doc[] = N_("[+folder]");
 
 /* GNU options */
 static struct argp_option options[] = {
-  {"folder",  'f', "FOLDER", 0, "Specify the folder to delete"},
-  {"interactive", 'i', "BOOL", OPTION_ARG_OPTIONAL, "Interactive mode: ask for confirmation before removing each folder"},
-  {"recursive", 'r', NULL, 0, "Recursively delete all subfolders"},
-  { "\nUse -help switch to obtain the list of traditional MH options. ", 0, 0, OPTION_DOC, "" },
+  {"folder",  'f', "FOLDER", 0, N_("Specify the folder to delete")},
+  {"interactive", 'i', "BOOL", OPTION_ARG_OPTIONAL,
+    N_("Interactive mode: ask for confirmation before removing each folder")},
+  {"recursive", 'r', NULL, 0, N_("Recursively delete all subfolders")},
+  { N_("\nUse -help switch to obtain the list of traditional MH options. "), 0, 0, OPTION_DOC, "" },
   { 0 }
 };
 
@@ -86,11 +87,11 @@ rmf (const char *name)
 
   if (!dir)
     {
-      mh_error ("can't scan folder %s: %s", name, strerror (errno));
+      mh_error (_("can't scan folder %s: %s"), name, strerror (errno));
       return;
     }
 
-  if (interactive && !mh_getyn ("Remove folder %s", name))
+  if (interactive && !mh_getyn (_("Remove folder %s"), name))
     exit (0);
   
   while ((entry = readdir (dir)))
@@ -105,7 +106,7 @@ rmf (const char *name)
       asprintf (&p, "%s/%s", name, entry->d_name);
       if (stat (p, &st) < 0)
 	{
-	  mh_error ("can't stat %s: %s", p, strerror (errno));
+	  mh_error (_("can't stat %s: %s"), p, strerror (errno));
 	}
       else if (S_ISDIR (st.st_mode))
 	{
@@ -115,7 +116,7 @@ rmf (const char *name)
       else
 	{
 	  if (unlink (p))
-	    mh_error ("can't unlink %s: %s", p, strerror (errno));
+	    mh_error (_("can't unlink %s: %s"), p, strerror (errno));
 	}
       free (p);
     }
@@ -127,6 +128,10 @@ int
 main (int argc, char **argv)
 {
   char *name;
+
+  /* Native Language Support */
+  mu_init_nls ();
+
   mh_argp_parse (argc, argv, options, mh_option, args_doc, doc,
 		 opt_handler, NULL, NULL);
   if (!explicit_folder)

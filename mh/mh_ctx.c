@@ -1,18 +1,18 @@
-/* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+/* GNU Mailutils -- a suite of utilities for electronic mail
+   Copyright (C) 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
 
-   This program is free software; you can redistribute it and/or modify
+   GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
    the Free Software Foundation; either version 2, or (at your option)
    any later version.
 
-   This program is distributed in the hope that it will be useful,
+   GNU Mailutils is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
+   along with GNU Mailutils; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 /* MH context functions. */
@@ -28,7 +28,7 @@ mh_context_create (char *name, int copy)
   ctx = malloc (sizeof (*ctx));
   if (!ctx)
     {
-      mu_error ("not enough memory");
+      mu_error (_("not enough memory"));
       abort ();
     }
   if (copy)
@@ -38,7 +38,7 @@ mh_context_create (char *name, int copy)
       ctx->name = strdup (name);
       if (!ctx->name)
 	{
-	  mu_error ("not enough memory");
+	  mu_error (_("not enough memory"));
 	  abort ();
 	}
     }
@@ -88,7 +88,7 @@ mh_context_write (mh_context_t *ctx)
   fp = fopen (ctx->name, "w");
   if (!fp)
     {
-      mh_error ("can't write context file %s: %s",
+      mh_error (_("can't write context file %s: %s"),
 		ctx->name, strerror (errno));
       return 1;
     }
@@ -130,7 +130,7 @@ mh_context_set_value (mh_context_t *ctx, const char *name, const char *value)
       int rc;
       if ((rc = header_create (&ctx->header, NULL, 0, NULL)) != 0)
 	{
-	  mh_error ("Can't create context %s: %s",
+	  mh_error (_("Can't create context %s: %s"),
 		    ctx->name,
 		    mu_errstring (rc));
 	  return 1;

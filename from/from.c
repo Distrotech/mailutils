@@ -1,18 +1,18 @@
-/* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+/* GNU Mailutils -- a suite of utilities for electronic mail
+   Copyright (C) 1999, 2000, 2002 Free Software Foundation, Inc.
 
-   This program is free software; you can redistribute it and/or modify
+   GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
    the Free Software Foundation; either version 2, or (at your option)
    any later version.
 
-   This program is distributed in the hope that it will be useful,
+   GNU Mailutils is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
+   along with GNU Mailutils; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
  /**
@@ -20,6 +20,7 @@
   * Created as an example for using mailutils API
   * Sean 'Shaleh' Perry <shaleh@debian.org>, 1999
   * Alain Magloire alainm@gnu.org
+  * NLS: Wojciech Polak <polak@gnu.org>
   *
   **/
 
@@ -43,12 +44,13 @@
 #include <mailutils/message.h>
 #include <mailutils/registrar.h>
 #include <mailutils/stream.h>
+#include <mailutils/nls.h>
 
 const char *argp_program_version = "from (" PACKAGE_STRING ")";
-static char doc[] = "GNU from -- display from and subject";
+static char doc[] = N_("GNU from -- display from and subject");
 
 static struct argp_option options[] = {
-  {"debug",  'd', NULL,   0, "Enable debugging output", 0},
+  {"debug",  'd', NULL,   0, N_("Enable debugging output"), 0},
   {0, 0, 0, 0}
 };
 
@@ -96,6 +98,9 @@ main(int argc, char **argv)
   char personal[128];
   int status;
 
+  /* Native Language Support */
+  mu_init_nls ();
+
   {
     int opt;
     mu_argp_parse (&argp, &argc, &argv, 0, capa, &opt, NULL);
@@ -114,7 +119,7 @@ main(int argc, char **argv)
 
   if ((status = mailbox_create_default (&mbox, mailbox_name)) != 0)
     {
-      fprintf (stderr, "opening %s failed: %s\n",
+      fprintf (stderr, _("opening %s failed: %s\n"),
 	  mailbox_name,
 	  mu_errstring (status)
 	  );
@@ -131,7 +136,7 @@ main(int argc, char **argv)
 
   if ((status = mailbox_open (mbox, MU_STREAM_READ)) != 0)
     {
-      fprintf (stderr, "opening %s failed: %s\n",
+      fprintf (stderr, _("opening %s failed: %s\n"),
 	  mailbox_name,
 	  mu_errstring (status)
 	  );
@@ -147,7 +152,7 @@ main(int argc, char **argv)
       if ((status = mailbox_get_message (mbox, i, &msg)) != 0
 	  || (status = message_get_header (msg, &hdr)) != 0)
 	{
-	  fprintf (stderr, "msg %d : %s\n", i, mu_errstring(status));
+	  fprintf (stderr, _("msg %d : %s\n"), i, mu_errstring(status));
 	  exit(2);
 	}
 

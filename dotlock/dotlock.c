@@ -1,18 +1,18 @@
-/* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+/* GNU Mailutils -- a suite of utilities for electronic mail
+   Copyright (C) 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
 
-   This program is free software; you can redistribute it and/or modify
+   GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
    the Free Software Foundation; either version 2, or (at your option)
    any later version.
 
-   This program is distributed in the hope that it will be useful,
+   GNU Mailutils is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
+   along with GNU Mailutils; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #ifdef HAVE_CONFIG_H
@@ -28,32 +28,33 @@
 #include <mailutils/argp.h>
 #include <mailutils/errno.h>
 #include <mailutils/locker.h>
+#include <mailutils/nls.h>
 
 const char *argp_program_version = "GNU dotlock (" PACKAGE_STRING ")";
 static char doc[] =
-  "GNU dotlock -- lock mail spool files"
+N_("GNU dotlock -- lock mail spool files"
   "\v"
   "Returns 0 on success, 3 if the locking the file fails because"
-  " it's already locked, and 1 if some other kind of error occurred."
-  ;
-static char args_doc[] = "FILE";
+  " it's already locked, and 1 if some other kind of error occurred.");
+
+static char args_doc[] = N_("FILE");
 error_t argp_err_exit_status = MU_DL_EX_ERROR;
 
 static struct argp_option options[] = {
   {"unlock", 'u', NULL, 0,
-   "Unlock", 0},
+   N_("Unlock"), 0},
 
   {"force", 'f', "MINUTES", OPTION_ARG_OPTIONAL,
-   "Forcibly break an existing lock older than a certain time", 0},
+   N_("Forcibly break an existing lock older than a certain time"), 0},
 
   {"retry", 'r', "RETRIES", OPTION_ARG_OPTIONAL,
-   "Retry the lock a few times", 0},
+   N_("Retry the lock a few times"), 0},
 
   {"debug", 'd', NULL, 0,
-   "Print details of failure reasons to stderr", 0},
+   N_("Print details of failure reasons to stderr"), 0},
 
   {"test", 'T', "PROGRAM", OPTION_HIDDEN,
-   "Test external dotlocker", 0},
+   N_("Test external dotlocker"), 0},
 
   {NULL, 0, NULL, 0, NULL, 0}
 };
@@ -100,7 +101,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
 	{
 	  retries = atoi (arg);
 	  if (retries <= 0)
-	    argp_error (state, "RETRIES must be greater than 0");
+	    argp_error (state, _("RETRIES must be greater than 0"));
 	}
       flags |= MU_LOCKER_RETRY;
       break;
@@ -110,7 +111,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
 	{
 	  force = atoi (arg);
 	  if (force <= 0)
-	    argp_error (state, "MINUTES must be greater than 0");
+	    argp_error (state, _("MINUTES must be greater than 0"));
 	  force *= 60;
 	}
       flags |= MU_LOCKER_TIME;
@@ -118,12 +119,12 @@ parse_opt (int key, char *arg, struct argp_state *state)
 
     case ARGP_KEY_ARG:
       if (file)
-	argp_error (state, "only one FILE can be specified");
+	argp_error (state, _("only one FILE can be specified"));
       file = arg;
       break;
 
     case ARGP_KEY_NO_ARGS:
-      argp_error (state, "FILE must be specified");
+      argp_error (state, _("FILE must be specified"));
 
     default:
       return ARGP_ERR_UNKNOWN;
@@ -139,6 +140,9 @@ main (int argc, char *argv[])
   pid_t usergid = getgid();
   pid_t mailgid = getegid();
 
+  /* Native Language Support */
+  mu_init_nls ();
+
   /* Drop permissions during argument parsing. */
 
   if(setegid(usergid) < 0)
@@ -149,7 +153,7 @@ main (int argc, char *argv[])
   if ((err = locker_create (&locker, file, flags)))
     {
       if (debug)
-	fprintf (stderr, "locker create failed: %s\n", mu_errstring (err));
+	fprintf (stderr, _("locker create failed: %s\n"), mu_errstring (err));
       return MU_DL_EX_ERROR;
     }
 
@@ -177,8 +181,8 @@ main (int argc, char *argv[])
   locker_destroy (&locker);
 
   if (debug && err)
-    fprintf (stderr, "%slocking %s failed: %s\n",
-	     unlock ? "un" : "", file, mu_errstring (err));
+    fprintf (stderr, _("%s %s failed: %s\n"),
+	     unlock ? _("unlocking") : _("locking"), file, mu_errstring (err));
 
   switch (err)
     {

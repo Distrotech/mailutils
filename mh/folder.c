@@ -1,18 +1,18 @@
-/* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+/* GNU Mailutils -- a suite of utilities for electronic mail
+   Copyright (C) 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
 
-   This program is free software; you can redistribute it and/or modify
+   GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
    the Free Software Foundation; either version 2, or (at your option)
    any later version.
 
-   This program is distributed in the hope that it will be useful,
+   GNU Mailutils is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
+   along with GNU Mailutils; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 /* MH folder command */
@@ -34,27 +34,31 @@
 
 const char *argp_program_version = "folder (" PACKAGE_STRING ")";
 static char doc[] = "GNU MH folder";
-static char args_doc[] = "[action] [msg]";
+static char args_doc[] = N_("[action] [msg]");
 
 #define ARG_PUSH 1
 #define ARG_POP 2
 
 static struct argp_option options[] = {
-  {"Actions are:", 0, 0, OPTION_DOC, "", 0 },
-  {"print", 'p', NULL, 0, "List the folders (default)", 1 },
-  {"list", 'l', NULL, 0, "List the contents of the folder stack", 1},
-  {"push", ARG_PUSH, "FOLDER", OPTION_ARG_OPTIONAL, "Push the folder on the folder stack. If FOLDER is specified, it is pushed. Otherwise, if a folder is given in the command line (via + or --folder), it is pushed on stack. Otherwise, the current folder and the top of the folder stack are exchanged", 1},
-  {"pop", ARG_POP, NULL, 0, "Pop the folder off the folder stack", 1},
+  {N_("Actions are:"), 0, 0, OPTION_DOC, "", 0 },
+  {"print", 'p', NULL, 0, N_("List the folders (default)"), 1 },
+  {"list", 'l', NULL, 0, N_("List the contents of the folder stack"), 1},
+  {"push", ARG_PUSH, "FOLDER", OPTION_ARG_OPTIONAL,
+    N_("Push the folder on the folder stack. If FOLDER is specified, it is pushed. "
+       "Otherwise, if a folder is given in the command line (via + or --folder), "
+       "it is pushed on stack. Otherwise, the current folder and the top of the folder "
+       "stack are exchanged"), 1},
+  {"pop", ARG_POP, NULL, 0, N_("Pop the folder off the folder stack"), 1},
   
-  {"Options are:", 0, 0, OPTION_DOC, "", 2 },
-  {"folder",  'f', "FOLDER", 0, "Specify folder to operate upon", 3},
-  {"all", 'a', NULL, 0, "List all folders", 3},
-  {"create", 'c', "BOOL", OPTION_ARG_OPTIONAL, "Create non-existing folders", 3},
-  {"fast", 'F', "BOOL", OPTION_ARG_OPTIONAL, "List only the folder names", 3},
-  {"header", 'h', "BOOL", OPTION_ARG_OPTIONAL, "Print the header line", 3},
-  {"recurse", 'r', "BOOL", OPTION_ARG_OPTIONAL, "Scan folders recursively", 3},
-  {"total", 't', "BOOL", OPTION_ARG_OPTIONAL, "Output the total statistics", 3},
-  { "\nUse -help switch to obtain the list of traditional MH options. ", 0, 0, OPTION_DOC, "", 4 },
+  {N_("Options are:"), 0, 0, OPTION_DOC, "", 2 },
+  {"folder",  'f', "FOLDER", 0, N_("Specify folder to operate upon"), 3},
+  {"all", 'a', NULL, 0, N_("List all folders"), 3},
+  {"create", 'c', "BOOL", OPTION_ARG_OPTIONAL, N_("Create non-existing folders"), 3},
+  {"fast", 'F', "BOOL", OPTION_ARG_OPTIONAL, N_("List only the folder names"), 3},
+  {"header", 'h', "BOOL", OPTION_ARG_OPTIONAL, N_("Print the header line"), 3},
+  {"recurse", 'r', "BOOL", OPTION_ARG_OPTIONAL, N_("Scan folders recursively"), 3},
+  {"total", 't', "BOOL", OPTION_ARG_OPTIONAL, N_("Output the total statistics"), 3},
+  { N_("\nUse -help switch to obtain the list of traditional MH options. "), 0, 0, OPTION_DOC, "", 4 },
   
   {NULL},
 };
@@ -246,7 +250,7 @@ _scan (const char *name, int depth)
 
   if (!dir)
     {
-      mh_error ("can't scan folder %s: %s", name, strerror (errno));
+      mh_error (_("can't scan folder %s: %s"), name, strerror (errno));
       return;
     }
 
@@ -263,7 +267,7 @@ _scan (const char *name, int depth)
 	{
 	  asprintf (&p, "%s/%s", name, entry->d_name);
 	  if (stat (p, &st) < 0)
-	    mh_error ("can't stat %s: %s", p, strerror (errno));
+	    mh_error (_("can't stat %s: %s"), p, strerror (errno));
 	  else if (S_ISDIR (st.st_mode))
 	    {
 	      info.others++;
@@ -320,8 +324,8 @@ print_all ()
       if (info->message_count)
 	{
 	  printf (info->message_count == 1 ?
-		  " has %4lu message  (%4lu-%4lu)" :
-		  " has %4lu messages (%4lu-%4lu)",
+		  _(" has %4lu message  (%4lu-%4lu)") :
+		  _(" has %4lu messages (%4lu-%4lu)"),
 		  (unsigned long) info->message_count,
 		  (unsigned long) info->min,
 		  (unsigned long) info->max);
@@ -330,7 +334,7 @@ print_all ()
 	}
       else
 	{
-	  printf (" has no messages");
+	  printf (_(" has no messages"));
 	}
       
       if (info->others)
@@ -339,7 +343,7 @@ print_all ()
 	    printf (";           ");
 	  else
 	    printf ("; ");
-	  printf ("(others)");
+	  printf (_("(others)"));
 	}
       printf (".\n");
     }
@@ -397,8 +401,8 @@ action_print ()
       print_all ();
 
       if (print_total)
-	printf ("\n%24.24s=%4lu messages in %4lu folders\n",
-		"TOTAL",
+	printf (_("\n%24.24s=%4lu messages in %4lu folders\n"),
+		_("TOTAL"),
 		(unsigned long) message_count,
 		(unsigned long) folder_info_count);
     }
@@ -481,7 +485,10 @@ main (int argc, char **argv)
 {
   int index = 0;
   mh_msgset_t msgset;
-  
+
+  /* Native Language Support */
+  mu_init_nls ();
+
   mh_argp_parse (argc, argv, options, mh_option, args_doc, doc,
 		 opt_handler, NULL, &index);
 
@@ -501,7 +508,7 @@ main (int argc, char **argv)
     }
   else if (argc - index > 1)
     {
-      mh_error ("too many arguments");
+      mh_error (_("too many arguments"));
       exit (1);
     }
   

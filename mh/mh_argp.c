@@ -1,18 +1,18 @@
-/* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+/* GNU Mailutils -- a suite of utilities for electronic mail
+   Copyright (C) 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
 
-   This program is free software; you can redistribute it and/or modify
+   GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
    the Free Software Foundation; either version 2, or (at your option)
    any later version.
 
-   This program is distributed in the hope that it will be useful,
+   GNU Mailutils is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
+   along with GNU Mailutils; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 /* Coexistence between GNU long options, traditional UNIX-style short
@@ -114,7 +114,7 @@ mh_argp_parse (int argc, char **argv,
       _argv = calloc (_argc+1, sizeof *_argv);
       if (!_argv)
 	{
-	  mh_error ("not enough memory");
+	  mh_error (_("not enough memory"));
 	  abort ();
 	}
       for (i = 0; i < argc; i++)
@@ -135,7 +135,7 @@ mh_argp_parse (int argc, char **argv,
     *pindex = index;
   else if (extra)
     {
-      mh_error ("extra arguments");
+      mh_error (_("extra arguments"));
       exit (1);
     }
   mh_init2 ();
@@ -145,21 +145,22 @@ mh_argp_parse (int argc, char **argv,
 void
 mh_license (const char *name)
 {
-  static char license_text[] =
-"   This program is free software; you can redistribute it and/or modify\n"
-"   it under the terms of the GNU General Public License as published by\n"
-"   the Free Software Foundation; either version 2, or (at your option)\n"
-"   any later version.\n"
-"\n"
-"   This program is distributed in the hope that it will be useful,\n"
-"   but WITHOUT ANY WARRANTY; without even the implied warranty of\n"
-"   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n"
-"   GNU General Public License for more details.\n"
-"\n"
-"   You should have received a copy of the GNU General Public License\n"
-"   along with this program; if not, write to the Free Software\n"
-"   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.\n";
-  printf ("This is %s\n%s", name, license_text);
+  printf (_("This is %s\n\n"), name);
+  printf (
+ _("   GNU Mailutils is free software; you can redistribute it and/or modify\n"
+   "   it under the terms of the GNU General Public License as published by\n"
+   "   the Free Software Foundation; either version 2, or (at your option)\n"
+   "   any later version.\n"
+   "\n"
+   "   GNU Mailutils is distributed in the hope that it will be useful,\n"
+   "   but WITHOUT ANY WARRANTY; without even the implied warranty of\n"
+   "   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n"
+   "   GNU General Public License for more details.\n"
+   "\n"
+   "   You should have received a copy of the GNU General Public License\n"
+   "   along with GNU Mailutils; if not, write to the Free Software\n"
+   "   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.\n\n"));
+
   exit (0);
 }
 

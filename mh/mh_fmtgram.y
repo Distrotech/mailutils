@@ -1,19 +1,19 @@
 %{
-/* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+/* GNU Mailutils -- a suite of utilities for electronic mail
+   Copyright (C) 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
 
-   This program is free software; you can redistribute it and/or modify
+   GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
    the Free Software Foundation; either version 2, or (at your option)
    any later version.
 
-   This program is distributed in the hope that it will be useful,
+   GNU Mailutils is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
+   along with GNU Mailutils; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #include <mh.h>
@@ -94,7 +94,7 @@ pitem     : item
 		  break;
 		  
 		default:
-		  yyerror ("UNEXPECTED item TYPE");
+		  yyerror (_("UNEXPECTED item TYPE"));
 		  abort ();
 		}
 	      $$ = pc;
@@ -200,7 +200,7 @@ function  : FUNCTION
 		}
 	      else
 		{
-		  yyerror ("undefined function");
+		  yyerror (_("undefined function"));
 		  mh_error ($1);
 		  YYERROR;
 		}
@@ -615,13 +615,13 @@ mh_code_builtin (mh_builtin_t *bp, int argtype)
 		  break;
 		  
 		default:
-		  yyerror ("UNKNOWN ARGTYPE");
+		  yyerror (_("UNKNOWN ARGTYPE"));
 		  abort ();
 		}
 	    }
 	  else
 	    {
-	      mh_error ("missing argument for %s", bp->name);
+	      mh_error (_("missing argument for %s"), bp->name);
 	      return 0;
 	    }
 	}
@@ -630,7 +630,7 @@ mh_code_builtin (mh_builtin_t *bp, int argtype)
 	  switch (bp->argtype)
 	    {
 	    case mhtype_none:
-	      mh_error ("extra arguments to %s", bp->name);
+	      mh_error (_("extra arguments to %s"), bp->name);
 	      return 0;
 	      
 	    case mhtype_num:

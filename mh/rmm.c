@@ -1,18 +1,18 @@
-/* GNU mailutils - a suite of utilities for electronic mail
+/* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 2002 Free Software Foundation, Inc.
 
-   This program is free software; you can redistribute it and/or modify
+   GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
    the Free Software Foundation; either version 2, or (at your option)
    any later version.
 
-   This program is distributed in the hope that it will be useful,
+   GNU Mailutils is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
+   along with GNU Mailutils; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 /* MH rmm command */
@@ -21,13 +21,13 @@
 
 const char *argp_program_version = "rmm (" PACKAGE_STRING ")";
 static char doc[] = "GNU MH rmm";
-static char args_doc[] = "[+folder] [msgs]";
+static char args_doc[] = N_("[+folder] [msgs]");
 
 /* GNU options */
 static struct argp_option options[] = {
-  {"folder",  'f', "FOLDER", 0, "Specify folder to operate upon"},
-  { "\nUse -help switch to obtain the list of traditional MH options. ", 0, 0, OPTION_DOC, "" },
-  
+  {"folder",  'f', "FOLDER", 0, N_("Specify folder to operate upon")},
+  { N_("\nUse -help switch to obtain the list of traditional MH options. "),
+   0, 0, OPTION_DOC, "" },
   { 0 }
 };
 
@@ -67,7 +67,10 @@ main (int argc, char **argv)
   mailbox_t mbox;
   mh_msgset_t msgset;
   int status;
-  
+
+  /* Native Language Support */
+  mu_init_nls ();
+
   mh_argp_parse (argc, argv, options, mh_option, args_doc, doc,
 		 opt_handler, NULL, &index);
 
@@ -83,5 +86,3 @@ main (int argc, char **argv)
   return status;
 }
 
-  
-      

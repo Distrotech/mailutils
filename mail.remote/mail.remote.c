@@ -1,18 +1,18 @@
-/* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+/* GNU Mailutils -- a suite of utilities for electronic mail
+   Copyright (C) 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
 
-   This program is free software; you can redistribute it and/or modify
+   GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
    the Free Software Foundation; either version 2, or (at your option)
    any later version.
 
-   This program is distributed in the hope that it will be useful,
+   GNU Mailutils is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
+   along with GNU Mailutils; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #ifdef HAVE_CONFIG_H
@@ -38,10 +38,11 @@
 #include <mailutils/message.h>
 #include <mailutils/registrar.h>
 #include <mailutils/stream.h>
+#include <mailutils/nls.h>
 
 const char *argp_program_version = "mail.remote (" PACKAGE_STRING ")";
 static char doc[] =
-  "GNU mail.remote -- pseudo-sendmail interface for mail delivery\n"
+N_("GNU mail.remote -- pseudo-sendmail interface for mail delivery\n"
   "\v"
   "\n"
   "An RFC2822 formatted message is read from stdin and delivered using\n"
@@ -68,13 +69,12 @@ static char doc[] =
   "\n"
   "If --debug is specified, the envelope commands in the SMTP protocol\n"
   "transaction will be printed to stdout. If specified more than once,\n"
-  "the data part of the protocol transaction will also be printed to stdout.\n"
-  ;
+  "the data part of the protocol transaction will also be printed to stdout.\n");
 
 static struct argp_option options[] = {
-  {"from",  'f', "ADDR", 0, "Override the default from address\n"},
-  {"debug", 'd', NULL,   0, "Enable debugging output"},
-  {      0, 'o', "OPT",  OPTION_HIDDEN, "Ignored for sendmail compatibility"},
+  {"from",  'f', "ADDR", 0, N_("Override the default from address\n")},
+  {"debug", 'd', NULL,   0, N_("Enable debugging output")},
+  {      0, 'o', "OPT",  OPTION_HIDDEN, N_("Ignored for sendmail compatibility")},
   {0}
 };
 
@@ -106,7 +106,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
 static struct argp argp = {
   options,
   parse_opt,
-  "[TO-ADDR]...",
+  N_("[TO-ADDR]..."),
   doc,
 };
 
@@ -132,6 +132,9 @@ main (int argc, char **argv)
 
   int mailer_flags = 0;
 
+  /* Native Language Support */
+  mu_init_nls ();
+
   /* Register mailers. */
   {
     list_t bookie;
@@ -145,7 +148,7 @@ main (int argc, char **argv)
     {
       if ((status = address_create (&from, optfrom)))
 	{
-	  fprintf (stderr, "Parsing from addresses failed: %s\n",
+	  fprintf (stderr, _("Parsing from addresses failed: %s\n"),
 		   mu_errstring (status));
 	  goto end;
 	}
@@ -157,7 +160,7 @@ main (int argc, char **argv)
 
       if ((status = address_createv (&to, (const char **) av, -1)))
 	{
-	  fprintf (stderr, "Parsing to addresses failed: %s\n",
+	  fprintf (stderr, _("Parsing to addresses failed: %s\n"),
 		   mu_errstring (status));
 	  goto end;
 	}
@@ -165,25 +168,25 @@ main (int argc, char **argv)
 
   if ((status = stdio_stream_create (&in, stdin, 0)))
     {
-      fprintf (stderr, "Failed: %s\n", mu_errstring (status));
+      fprintf (stderr, _("Failed: %s\n"), mu_errstring (status));
       goto end;
     }
 
   if ((status = stream_open (in)))
     {
-      fprintf (stderr, "Opening stdin failed: %s\n", mu_errstring (status));
+      fprintf (stderr, _("Opening stdin failed: %s\n"), mu_errstring (status));
       goto end;
     }
 
   if ((status = message_create (&msg, NULL)))
     {
-      fprintf (stderr, "Failed: %s\n", mu_errstring (status));
+      fprintf (stderr, _("Failed: %s\n"), mu_errstring (status));
       goto end;
     }
 
   if ((status = message_set_stream (msg, in, NULL)))
     {
-      fprintf (stderr, "Failed: %s\n",
+      fprintf (stderr, _("Failed: %s\n"),
 	       mu_errstring (status));
       goto end;
     }
@@ -192,7 +195,7 @@ main (int argc, char **argv)
     {
       const char *url = NULL;
       mailer_get_url_default (&url);
-      fprintf (stderr, "Creating mailer '%s' failed: %s\n",
+      fprintf (stderr, _("Creating mailer '%s' failed: %s\n"),
 	  url, mu_errstring (status));
       goto end;
     }
@@ -211,20 +214,20 @@ main (int argc, char **argv)
     {
       const char *url = NULL;
       mailer_get_url_default (&url);
-      fprintf (stderr, "Opening mailer '%s' failed: %s\n",
+      fprintf (stderr, _("Opening mailer '%s' failed: %s\n"),
 	  url, mu_errstring (status));
       goto end;
     }
 
   if ((status = mailer_send_message (mailer, msg, from, to)))
     {
-      fprintf (stderr, "Sending message failed: %s\n", mu_errstring (status));
+      fprintf (stderr, _("Sending message failed: %s\n"), mu_errstring (status));
       goto end;
     }
 
   if ((status = mailer_close (mailer)))
     {
-      fprintf (stderr, "Closing mailer failed: %s\n", mu_errstring (status));
+      fprintf (stderr, _("Closing mailer failed: %s\n"), mu_errstring (status));
       goto end;
     }
 

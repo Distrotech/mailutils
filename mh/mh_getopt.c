@@ -1,18 +1,18 @@
-/* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+/* GNU Mailutils -- a suite of utilities for electronic mail
+   Copyright (C) 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
 
-   This program is free software; you can redistribute it and/or modify
+   GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
    the Free Software Foundation; either version 2, or (at your option)
    any later version.
 
-   This program is distributed in the hope that it will be useful,
+   GNU Mailutils is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
+   along with GNU Mailutils; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 /* Parse traditional MH options. */
@@ -96,9 +96,9 @@ mh_help (struct mh_option *mh_opt, const char *doc)
 {
   struct mh_option *p;
 
-  printf ("Compatibility syntax:\n");
-  printf ("%s [switches] %s\n", program_invocation_short_name, doc);
-  printf ("  switches are:\n");
+  printf (_("Compatibility syntax:\n"));
+  printf (_("%s [switches] %s\n"), program_invocation_short_name, doc);
+  printf (_("  switches are:\n"));
   
   for (p = mh_opt; p->opt; p++)
     {
@@ -119,5 +119,7 @@ mh_help (struct mh_option *mh_opt, const char *doc)
       printf ("\n");
     }
   printf ("  -help\n");
-  printf ("\nPlease use GNU long options instead. Run %s --help for more info on these.\n", program_invocation_short_name);
+  printf (_("\nPlease use GNU long options instead.\n"
+            "Run %s --help for more info on these.\n"),
+            program_invocation_short_name);
 }

@@ -1,18 +1,18 @@
-/* GNU mailutils - a suite of utilities for electronic mail
+/* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 2002 Free Software Foundation, Inc.
 
-   This program is free software; you can redistribute it and/or modify
+   GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
    the Free Software Foundation; either version 2, or (at your option)
    any later version.
 
-   This program is distributed in the hope that it will be useful,
+   GNU Mailutils is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
+   along with GNU Mailutils; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 /* MH refile command */
@@ -26,18 +26,21 @@
 
 const char *argp_program_version = "refile (" PACKAGE_STRING ")";
 static char doc[] = "GNU MH refile";
-static char args_doc[] = "messages folder [folder...]";
+static char args_doc[] = N_("messages folder [folder...]");
 
 /* GNU options */
 static struct argp_option options[] = {
-  {"folder",  'f', "FOLDER", 0, "Specify folder to operate upon"},
-  {"draft",   'd', NULL, 0, "Use <mh-dir>/draft as the source message"},
-  {"link",    'l', "BOOL", OPTION_ARG_OPTIONAL, "(not implemented) Preserve the source folder copy"},
-  {"preserve", 'p', "BOOL", OPTION_ARG_OPTIONAL, "(not implemented) Try to preserve message sequence numbers"},
-  {"source", 's', "FOLDER", 0, "Specify source folder. FOLDER will became the current folder after the program exits."},
+  {"folder",  'f', "FOLDER", 0, N_("Specify folder to operate upon")},
+  {"draft",   'd', NULL, 0, N_("Use <mh-dir>/draft as the source message")},
+  {"link",    'l', "BOOL", OPTION_ARG_OPTIONAL,
+   N_("(not implemented) Preserve the source folder copy")},
+  {"preserve", 'p', "BOOL", OPTION_ARG_OPTIONAL,
+   N_("(not implemented) Try to preserve message sequence numbers")},
+  {"source", 's', "FOLDER", 0,
+   N_("Specify source folder. FOLDER will became the current folder after the program exits.")},
   {"src", 0, NULL, OPTION_ALIAS, NULL},
-  {"file", 'F', "FILE", 0, "Use FILE as the source message"},
-  { "\nUse -help switch to obtain the list of traditional MH options. ", 0, 0, OPTION_DOC, "" },
+  {"file", 'F', "FILE", 0, N_("Use FILE as the source message")},
+  { N_("\nUse -help switch to obtain the list of traditional MH options. "), 0, 0, OPTION_DOC, "" },
   { 0 }
 };
 
@@ -62,7 +65,7 @@ add_folder (const char *folder)
 {
   if (!folder_name_list && list_create (&folder_name_list))
     {
-      mh_error ("can't create folder list");
+      mh_error (_("can't create folder list"));
       exit (1);
     }
   list_append (folder_name_list, strdup (folder));
@@ -75,19 +78,19 @@ open_folders ()
 
   if (!folder_name_list)
     {
-      mh_error ("no folder specified");
+      mh_error (_("no folder specified"));
       exit (1);
     }
 
   if (list_create (&folder_mbox_list))
     {
-      mh_error ("can't create folder list");
+      mh_error (_("can't create folder list"));
       exit (1);
     }
 
   if (iterator_create (&itr, folder_name_list))
     {
-      mh_error ("can't create iterator");
+      mh_error (_("can't create iterator"));
       exit (1);
     }
 
@@ -112,7 +115,7 @@ enumerate_folders (void (*f) __P((void *, mailbox_t)), void *data)
 
   if (iterator_create (&itr, folder_mbox_list))
     {
-      mh_error ("can't create iterator");
+      mh_error (_("can't create iterator"));
       exit (1);
     }
 
@@ -178,7 +181,7 @@ refile_folder (void *data, mailbox_t mbox)
   rc = mailbox_append_message (mbox, msg);
   if (rc)
     {
-      mh_error ("error appending message: %s", mu_errstring (rc));
+      mh_error (_("error appending message: %s"), mu_errstring (rc));
       exit (1);
     }
 }
@@ -208,7 +211,7 @@ open_source (char *file_name)
   
   if (stat (file_name, &st) < 0)
     {
-      mh_error ("can't stat file %s: %s", file_name, strerror (errno));
+      mh_error (_("can't stat file %s: %s"), file_name, strerror (errno));
       return NULL;
     }
 
@@ -216,13 +219,13 @@ open_source (char *file_name)
   fd = open (file_name, O_RDONLY);
   if (fd == -1)
     {
-      mh_error ("can't open file %s: %s", file_name, strerror (errno));
+      mh_error (_("can't open file %s: %s"), file_name, strerror (errno));
       return NULL;
     }
 
   if (read (fd, buffer, st.st_size) != st.st_size)
     {
-      mh_error ("error reading file %s: %s", file_name, strerror (errno));
+      mh_error (_("error reading file %s: %s"), file_name, strerror (errno));
       return NULL;
     }
 
@@ -232,7 +235,7 @@ open_source (char *file_name)
   if (mailbox_create (&tmp, "/dev/null")
       || mailbox_open (tmp, MU_STREAM_READ) != 0)
     {
-      mh_error ("can't create temporary mailbox");
+      mh_error (_("can't create temporary mailbox"));
       return NULL;
     }
 
@@ -240,7 +243,7 @@ open_source (char *file_name)
       || stream_open (stream))
     {
       mailbox_close (tmp);
-      mh_error ("can't create temporary stream");
+      mh_error (_("can't create temporary stream"));
       return NULL;
     }
 
@@ -266,12 +269,12 @@ open_source (char *file_name)
   if (mailbox_messages_count (tmp, &len)
       || len < 1)
     {
-      mh_error ("input file %s is not a valid message file", file_name);
+      mh_error (_("input file %s is not a valid message file"), file_name);
       return NULL;
     }
   else if (len > 1)
     {
-      mh_error ("input file %s contains %lu messages",
+      mh_error (_("input file %s contains %lu messages"),
 		(unsigned long) len);
       return NULL;
     }
@@ -286,7 +289,10 @@ main (int argc, char **argv)
   mh_msgset_t msgset;
   mailbox_t mbox;
   int status;
-  
+
+  /* Native Language Support */
+  mu_init_nls ();
+
   mh_argp_parse (argc, argv, options, mh_option, args_doc, doc,
 		 opt_handler, NULL, &index);
 
@@ -294,7 +300,7 @@ main (int argc, char **argv)
     {
       if (index < argc)
 	{
-	  mh_error ("both message set and source file given");
+	  mh_error (_("both message set and source file given"));
 	  exit (1);
 	}
       mbox = open_source (source_file);

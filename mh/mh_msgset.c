@@ -32,7 +32,7 @@ _expand (size_t *msgcnt, size_t **msglist, size_t inc)
   *msglist = realloc (*msglist, (*msgcnt)*sizeof(**msglist));
   if (!*msglist)
     {
-      mh_error ("not enough memory");
+      mh_error (_("not enough memory"));
       abort ();
     }
 }
@@ -41,7 +41,7 @@ _expand (size_t *msgcnt, size_t **msglist, size_t inc)
 static void
 msgset_abort (const char *arg)
 {
-  mh_error ("bad message list `%s'", arg);
+  mh_error (_("bad message list `%s'"), arg);
   exit (1);
 }
 
@@ -63,7 +63,7 @@ msgset_last (mailbox_t mbox, size_t *pnum)
   rc = mailbox_messages_count (mbox, &count);
   if (rc)
     {
-      mh_error ("can't get last message: %s", mu_errstring (rc));
+      mh_error (_("can't get last message: %s"), mu_errstring (rc));
       exit (1);
     }
   *pnum = count;
@@ -96,7 +96,7 @@ msgset_cur (mailbox_t mbox, size_t *pnum)
 	  return 0;
 	}
     }
-  mh_error ("no cur message");
+  mh_error (_("no cur message"));
   exit (1);
 }
 
@@ -107,7 +107,7 @@ msgset_prev (mailbox_t mbox, size_t *pnum)
   msgset_cur (mbox, &cur_n);
   if (cur_n < 1)
     {
-      mh_error ("mo prev message");
+      mh_error (_("no prev message"));
       exit (1);
     }
   *pnum = cur_n - 1;
@@ -122,7 +122,7 @@ msgset_next (mailbox_t mbox, size_t *pnum)
   mailbox_messages_count (mbox, &total);
   if (cur_n + 1 > total)
     {
-      mh_error ("mo next message");
+      mh_error (_("no next message"));
       exit (1);
     }
   *pnum = cur_n + 1;
@@ -164,7 +164,7 @@ msgset_preproc_part (mailbox_t mbox, char *arg, char **rest)
 	rc = mailbox_get_message (mbox, num, &msg);
 	if (rc)
 	  {
-	    mh_error ("can't get message %d: %s", num, mu_errstring (rc));
+	    mh_error (_("can't get message %d: %s"), num, mu_errstring (rc));
 	    exit (1);
 	  }
 	message_get_uid (msg, &uid);
@@ -334,7 +334,7 @@ _mh_msgset_parse (mailbox_t mbox, mh_msgset_t *msgset, int argc, char **argv)
 	  
 	  if (expand_user_seq (mbox, &m, arg))
 	    {
-	      mh_error ("message set %s does not exist", arg);
+	      mh_error (_("message set %s does not exist"), arg);
 	      exit (1);
 	    }
 	  _expand (&msgcnt, &msglist, m.count);
@@ -351,7 +351,7 @@ _mh_msgset_parse (mailbox_t mbox, mh_msgset_t *msgset, int argc, char **argv)
 	      n = mh_get_message (mbox, start, NULL);
 	      if (!n)
 		{
-		  mh_error ("message %d does not exist", start);
+		  mh_error (_("message %d does not exist"), start);
 		  exit (1);
 		}
 	      msglist[msgno++] = n;
@@ -377,7 +377,7 @@ _mh_msgset_parse (mailbox_t mbox, mh_msgset_t *msgset, int argc, char **argv)
 		}
 	      if (msgno == msg_first)
 		{
-		  mh_error ("no messages in range %s", argv[i]);
+		  mh_error (_("no messages in range %s"), argv[i]);
 		  exit (1);
 		}
 	      break;
@@ -405,7 +405,7 @@ _mh_msgset_parse (mailbox_t mbox, mh_msgset_t *msgset, int argc, char **argv)
 		}
 	      if (msgno == msg_first)
 		{
-		  mh_error ("no messages in range %s", argv[i]);
+		  mh_error (_("no messages in range %s"), argv[i]);
 		  exit (1);
 		}
 	      break;
@@ -590,7 +590,7 @@ mh_msgset_negate (mailbox_t mbox, mh_msgset_t *msgset)
   list = calloc (total, sizeof (list[0]));
   if (!list)
     {
-      mh_error ("not enough memory");
+      mh_error (_("not enough memory"));
       abort ();
     }
 
@@ -603,7 +603,7 @@ mh_msgset_negate (mailbox_t mbox, mh_msgset_t *msgset)
   list = realloc (list, sizeof (list[0]) * msgno);
   if (!list)
     {
-      mh_error ("not enough memory");
+      mh_error (_("not enough memory"));
       abort ();
     }
   mh_msgset_free (msgset);
@@ -611,6 +611,3 @@ mh_msgset_negate (mailbox_t mbox, mh_msgset_t *msgset)
   msgset->list = list;
 }
 
-  
-  
-	

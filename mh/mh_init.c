@@ -1,18 +1,18 @@
-/* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+/* GNU Mailutils -- a suite of utilities for electronic mail
+   Copyright (C) 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
 
-   This program is free software; you can redistribute it and/or modify
+   GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
    the Free Software Foundation; either version 2, or (at your option)
    any later version.
 
-   This program is distributed in the hope that it will be useful,
+   GNU Mailutils is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
+   along with GNU Mailutils; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 /* Initialize MH applications. */
@@ -70,14 +70,14 @@ mh_read_formfile (char *name, char **pformat)
   
   if (stat (name, &st))
     {
-      mh_error ("can't stat format file %s: %s", name, strerror (errno));
+      mh_error (_("can't stat format file %s: %s"), name, strerror (errno));
       return -1;
     }
   
   fp = fopen (name, "r");
   if (!fp)
     {
-      mh_error ("can't open format file %s: %s", name, strerror (errno));
+      mh_error (_("can't open format file %s: %s"), name, strerror (errno));
       return -1;
     }
 
@@ -120,7 +120,7 @@ mh_get_my_name (char *name)
       struct passwd *pw = getpwuid (getuid ());
       if (!pw)
 	{
-	  mh_error ("can't determine my username");
+	  mh_error (_("can't determine my username"));
 	  return;
 	}
       name = pw->pw_name;
@@ -161,7 +161,7 @@ mh_check_folder (char *pathname, int confirm)
     {
       if (errno == ENOENT)
 	{
-	  if (!confirm || mh_getyn ("Create folder \"%s\"", p))
+	  if (!confirm || mh_getyn (_("Create folder \"%s\""), p))
 	    {
 	      int perm = 0711;
 	      char *pb = mh_global_profile_get ("Folder-Protect", NULL);
@@ -169,7 +169,7 @@ mh_check_folder (char *pathname, int confirm)
 		perm = strtoul (pb, NULL, 8);
 	      if (mkdir (p, perm)) 
 		{
-		  mh_error ("Can't create directory %s: %s",
+		  mh_error (_("Can't create directory %s: %s"),
 			    p, strerror (errno));
 		  return 1;
 		}
@@ -180,7 +180,7 @@ mh_check_folder (char *pathname, int confirm)
 	}
       else
 	{
-	  mh_error ("can't stat %s: %s", p, strerror (errno));
+	  mh_error (_("can't stat %s: %s"), p, strerror (errno));
 	  return 1;
 	}
     }
@@ -221,7 +221,7 @@ mh_getyn (const char *fmt, ...)
 	  return 0;
 	}
 
-      fprintf (stdout, "Please answer yes or no: ");
+      fprintf (stdout, _("Please answer yes or no: "));
     }
   return 0; /* to pacify gcc */
 }
@@ -246,7 +246,7 @@ mh_audit_open (char *name, mailbox_t mbox)
       free (home);
       if (!p)
 	{
-	  mh_error ("low memory");
+	  mh_error (_("low memory"));
 	  exit (1);
 	}
       free (namep);
@@ -256,7 +256,7 @@ mh_audit_open (char *name, mailbox_t mbox)
   fp = fopen (namep, "a");
   if (!fp)
     {
-      mh_error ("Can't open audit file %s: %s", namep, strerror (errno));
+      mh_error (_("Can't open audit file %s: %s"), namep, strerror (errno));
       free (namep);
       return NULL;
     }
@@ -299,7 +299,7 @@ mh_open_folder (const char *folder, int create)
     
   if (mailbox_create_default (&mbox, name))
     {
-      mh_error ("Can't create mailbox %s: %s",
+      mh_error (_("Can't create mailbox %s: %s"),
 		name, strerror (errno));
       exit (1);
     }
@@ -309,7 +309,7 @@ mh_open_folder (const char *folder, int create)
   
   if (mailbox_open (mbox, flags))
     {
-      mh_error ("Can't open mailbox %s: %s", name, strerror (errno));
+      mh_error (_("Can't open mailbox %s: %s"), name, strerror (errno));
       exit (1);
     }
 
@@ -368,7 +368,7 @@ mh_iterate (mailbox_t mbox, mh_msgset_t *msgset,
       num = msgset->list[i];
       if ((rc = mailbox_get_message (mbox, num, &msg)) != 0)
 	{
-	  mh_error ("can't get message %d: %s", num, mu_errstring (rc));
+	  mh_error (_("can't get message %d: %s"), num, mu_errstring (rc));
 	  return 1;
 	}
 
