@@ -2071,55 +2071,94 @@ flags_to_string (char **pbuf, int flag)
 
 /* Convert a suite of number to IMAP message number.  */
 static int
+add_number (char **pset, size_t start, size_t end)
+{
+  char buf[128];
+  char *set;
+  char *tmp;
+  size_t set_len = 0;
+
+  if (pset == NULL)
+    return 0;
+
+  set = *pset;
+
+  if (set)
+    set_len = strlen (set);
+
+  /* We had a previous seqence.  */
+  if (start == 0)
+    *buf = '\0';
+  else if (start != end)
+    snprintf (buf, sizeof buf, "%d:%d", start, end);
+  else
+    snprintf (buf, sizeof buf, "%d", start);
+
+  if (set_len)
+    tmp = realloc (set, set_len + strlen (buf) + 2 /* null and comma */);
+  else
+    tmp = calloc (strlen (buf) + 1, 1);
+
+  if (tmp == NULL)
+    {
+      free (set);
+      return ENOMEM;
+    }
+  set = tmp;
+
+  /* If we had something add a comma separator.  */
+  if (set_len)
+    strcat (set, ",");
+  strcat (set, buf);
+
+  *pset = set;
+  return 0;
+}
+
+static int
 delete_to_string (m_imap_t m_imap, char **pset)
 {
+  int status;
   size_t i, prev = 0, is_range = 0;
-  char *set = calloc (1, 1);
-
-  if (set == NULL)
-    return ENOMEM;
+  size_t start = 0, cur = 0;
+  char *set = NULL;
 
   /* Reformat the number for IMAP.  */
   for (i = 0; i < m_imap->imessages_count; ++i)
     {
-      if (m_imap->imessages[i]->flags & MU_ATTRIBUTE_DELETED)
+      if (m_imap->imessages[i]
+	  && (m_imap->imessages[i]->flags & MU_ATTRIBUTE_DELETED))
 	{
-	  char *tmp;
-	  char buf[128];
-	  size_t cur = m_imap->imessages[i]->num;
-	  *buf = '\0';
+	  cur = m_imap->imessages[i]->num;
 	  /* The first number.  */
-	  if (prev == 0)
+	  if (start == 0)
 	    {
-	      snprintf (buf, sizeof buf, "%d", cur);
+	      start = prev = cur;
 	    }
-	  /* Is it still a sequence?  */
+	  /* Is it a sequence?  */
 	  else if ((prev + 1) == cur)
 	    {
+	      prev = cur;
 	      is_range = 1;
-	      continue;
 	    }
-	  /* We had a previous seqence.  */
-	  else if (is_range)
-	    {
-	      snprintf (buf, sizeof buf, ":%d,%d", prev, cur);
-	      is_range = 0;
-	    }
-	  else
-	    {
-	      snprintf (buf, sizeof buf, ",%d", cur);
-	    }
-	  prev = cur;
-	  tmp = realloc (set, strlen (set) + strlen (buf) + 1);
-	  if (tmp == NULL)
-	    {
-	      free (set);
-	      return ENOMEM;
-	    }
-	  set = tmp;
-	  strcat (set, buf);
+	  continue;
+	}
+
+      if (start)
+	{
+	  status = add_number (&set, start, cur);
+	  if (status != 0)
+	    return status;
+	  start = 0;
+	  prev = 0;
+	  cur = 0;
+	  is_range = 0;
 	}
     } /* for () */
+
+  status = add_number (&set, start, cur);
+  if (status != 0)
+    return status;
   *pset = set;
   return 0;
 }
