@@ -26,7 +26,8 @@
 
    beep              --  Produce audible signal
    echo STRING       --  Output STRING to the user's tty
-   exec PROG ARGS... --  Execute given program (not yet implemented)
+   exec PROG ARGS... --  Execute given program (absolute pathname
+                         required) 
 
    Following metacharacters are accepted in strings:
 
@@ -95,7 +96,7 @@ backslash(int c)
 }
 
 int
-expand_escape (char **pp, message_t msg, struct obstack *stk)
+expand_escape (char **pp, message_t msg, char *cr, struct obstack *stk)
 {
   char *p = *pp;
   char *start, *sval, *namep;
@@ -153,7 +154,6 @@ expand_escape (char **pp, message_t msg, struct obstack *stk)
 	    lncount = strtoul (p + 1, &p, 0);
 	  if (*p != ')')
 	    break;
-	  p++;
 	}
       if (size == 0)
 	size = 400;
@@ -177,12 +177,13 @@ expand_escape (char **pp, message_t msg, struct obstack *stk)
 	      while (lncount--)
 		{
 		  char *s = strchr (q, '\n');
-		  if (!q)
+		  if (!s)
 		    break;
-		  size += s - q + 1;
+		  size = s - q;
+		  obstack_grow (stk, q, size);
+		  obstack_grow (stk, cr, strlen (cr));
 		  q = s + 1;
 		}
-	      obstack_grow (stk, buf, size);
 	    }
 	  free (buf);
 	}
@@ -228,7 +229,7 @@ expand_line (char *str, char *cr, message_t msg)
 	    }
 	  break;
 	case '$':
-	  if (expand_escape (&p, msg, &stk) == 0)
+	  if (expand_escape (&p, msg, cr, &stk) == 0)
 	    break;
 	  /*FALLTHRU*/
 	default:
@@ -242,7 +243,8 @@ expand_line (char *str, char *cr, message_t msg)
 }
 
 char *default_action =
-"Mail to \a$u@$h\a ---\n"
+"Mail to \a$u@$h\a\n"
+"---\n"
 "From: $H{from}\n"
 "Subject: $H{Subject}\n"
 "---\n"
@@ -270,12 +272,61 @@ action_echo (FILE *tty, char *str)
   fprintf (tty, "%s", str);
 }
 
+void
+action_exec (FILE *tty, int line, int argc, char **argv)
+{
+  pid_t pid;
+  struct stat stb;
+
+  if (argc == 0)
+    {
+      syslog (LOG_ERR, "%s:.biffrc:%d: No arguments for exec", username, line);
+      return;
+    }
+
+  if (argv[0][0] != '/')
+    {
+      syslog (LOG_ERR, "%s:.biffrc:%d: Not an absolute pathname",
+	      username, line);
+      return;
+    }
+
+  if (stat (argv[0], &stb))
+    {
+      syslog (LOG_ERR, "%s:.biffrc:%d: can't stat %s: %s",
+	      username, line, argv[0], strerror (errno));
+      return;
+    }
+
+  if (stb.st_mode & (S_ISUID|S_ISGID))
+    {
+      syslog (LOG_ERR, "%s:.biffrc:%d: won't execute set[ug]id programs",
+	      username, line);
+      return;
+    }
+
+  pid = fork ();
+  if (pid == 0)
+    {
+      close (1);
+      close (2);
+      dup2 (fileno (tty), 1);
+      dup2 (fileno (tty), 2);
+      fclose (tty);
+      execv (argv[0], argv);
+      syslog (LOG_ERR, "can't execute %s: %s", argv[0], strerror (errno));
+    }
+}
+
 FILE *
 open_rc (char *filename, FILE *tty)
 {
   struct stat stb;
   struct passwd *pw = getpwnam (username);
-  
+
+  /* To be on the safe side, we do not allow root to have his .biffrc */
+  if (!allow_biffrc || pw->pw_uid == 0)
+    return NULL;
   if (stat (filename, &stb) == 0)
     {
       if (stb.st_uid != pw->pw_uid)
@@ -337,8 +388,14 @@ run_user_action (FILE *tty, char *cr, message_t msg)
 	      action_echo (tty, argv[1]);
 	      nact++;
 	    }
+	  else if (strcmp (argv[0], "exec") == 0)
+	    {
+	      action_exec (tty, line, argc-1, argv+1);
+	      nact++;
+	    }
 	  else
 	    {
+	      fprintf (tty, ".biffrc:%d: unknown keyword\r\n");
 	      syslog (LOG_ERR, "%s:.biffrc:%d: unknown keyword %s",
 		      username, line, argv[0]);
 	      break;
