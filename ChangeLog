@@ -17,6 +17,8 @@
 	checking for -lpam: both FreeBSD and OpenBSD lack libdl, but 
 	have working libpam.
 
+	* messages/Makefile.am: Added missing @ARGP.*@ substitutes.
+
 2001-07-21  Jakob 'sparky' Kaivo  <jkaivo@elijah.nodomainname.net>
 
 	* mail/Makefile.am (mail_SOURCES): add decode.c
