@@ -1,3 +1,7 @@
+2003-10-18  Jordi Mallach  <jordi@gnu.org>
+
+	* POTFILES.in: Removed lib/getopt.c.
+
 2003-07-05  Jordi Mallach  <jordi@gnu.org>
 
 	* LINGUAS: Added pl and ru.

@@ -34,7 +34,6 @@ imap4d/search.c
 imap4d/signal.c
 imap4d/util.c
 
-lib/getopt.c
 lib/xmalloc.c
 
 libsieve/actions.c
