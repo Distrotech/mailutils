@@ -119,7 +119,7 @@ echo (char *s)
 		    break;
 
 		  default:
-		    fprintf (ofile, "%d", number);
+		    fprintf (ofile, "%ld", number);
 		    s--;
 		    continue;
 		  }
