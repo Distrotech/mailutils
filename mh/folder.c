@@ -157,7 +157,6 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
       print_total = is_true (arg);
       break;
       
-    case '+':
     case ARG_FOLDER:
       push_folder = mh_current_folder ();
       current_folder = arg;

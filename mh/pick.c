@@ -146,7 +146,6 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
   
   switch (key)
     {
-    case '+':
     case ARG_FOLDER: 
       current_folder = arg;
       break;

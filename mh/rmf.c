@@ -59,7 +59,6 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
 {
   switch (key)
     {
-    case '+':
     case ARG_FOLDER:
       explicit_folder = 1;
       current_folder = arg;

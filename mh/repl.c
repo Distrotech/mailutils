@@ -149,7 +149,6 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
       wh_env.editor = arg;
       break;
       
-    case '+':
     case ARG_FOLDER: 
       current_folder = arg;
       break;

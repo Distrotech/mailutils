@@ -97,7 +97,6 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
       changecur = is_true(arg);
       break;
 
-    case '+':
     case ARG_FOLDER: 
       append_folder = arg;
       break;
