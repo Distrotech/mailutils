@@ -316,6 +316,7 @@ extern int util_get_message __P((mailbox_t mbox, size_t msgno,
 void util_cache_command __P((list_t *list, const char *fmt, ...));
 void util_run_cached_commands __P((list_t *list));
 const char *util_reply_prefix __P((void));
+void util_rfc2047_decode __P((char **value));
 
 extern int ml_got_interrupt __P ((void));
 extern void ml_clear_interrupt __P ((void));

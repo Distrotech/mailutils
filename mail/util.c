@@ -1308,3 +1308,48 @@ util_run_cached_commands (list_t *list)
   list_do (*list, _run_and_free, NULL);
   list_destroy (list);
 }
+
+void
+util_rfc2047_decode (char **value)
+{
+  char *charset = NULL;
+  char *tmp;
+  int rc;
+
+  if (!*value || util_getenv (&charset, "charset", Mail_env_string, 0))
+    return;
+  if (strcasecmp (charset, "auto") == 0)
+    {
+      /* Try to deduce the charset from LC_ALL variable */
+
+      tmp = getenv ("LC_ALL");
+      if (tmp)
+	{
+	  char *sp;
+	  char *lang;
+	  char *terr;
+
+	  lang = strtok_r (tmp, "_", &sp);
+	  terr = strtok_r (NULL, ".", &sp);
+	  charset = strtok_r (NULL, "@", &sp);
+
+	  if (!charset)
+	    charset = mu_charset_lookup (lang, terr);
+	}
+    }
+
+  if (!charset)
+    return;
+  
+  rc = rfc2047_decode (charset, *value, &tmp);
+  if (rc)
+    {
+      if (util_getenv (NULL, "verbose", Mail_env_boolean, 0) == 0)
+	mu_error (_("Can't decode line `%s': %s"), *value, mu_strerror (rc));
+    }
+  else
+    {
+      free (*value);
+      *value = tmp;
+    }
+}
