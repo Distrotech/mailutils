@@ -1,3 +1,9 @@
+2003-07-05  Jordi Mallach  <jordi@gnu.org>
+
+	* LINGUAS: Added pl and ru.
+	* pl.po: Added Polish translation by Sergey Poznyakoff.
+	* ru.po: Added Russian translation by Sergey Poznyakoff.
+
 2003-06-10  Jordi Mallach  <jordi@gnu.org>
 
 	* ca.po: Updated Catalan translation.
