@@ -28,7 +28,8 @@ sieve_machine_t sieve_machine;
 int sieve_error_count;
 
 static void branch_fixup __P((size_t start, size_t end));
- 
+int yyerror (char *s);
+int yylex (); 
 %}
 
 %union {
@@ -509,7 +510,7 @@ string_comp (const void *item, const void *value)
 }
 
 void
-sieve_machine_begin (sieve_machine_t mach, char *file)
+sieve_machine_begin (sieve_machine_t mach, const char *file)
 {
   sieve_machine = mach;
   sieve_error_count = 0;

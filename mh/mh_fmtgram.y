@@ -1,6 +1,6 @@
 %{
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2002, 2004 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -20,7 +20,10 @@
 #define obstack_chunk_alloc malloc
 #define obstack_chunk_free free
 #include <obstack.h>
-  
+
+int yyerror (char *s);
+int yylex ();
+ 
 static mh_format_t format;     /* Format structure being built */
 static size_t pc;              /* Program counter. Poins to current
 				  cell in format.prog */
