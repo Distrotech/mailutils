@@ -63,7 +63,9 @@ extern "C" {
 #define MU_LOCKER_NULL     0x10
   /* Special locker type: means no lock. This is to be used with
      temporary mailboxes stored in memory. */
-
+#define MU_LOCKER_KERNEL   0x20
+  /* Use kernel locking (flock, lockf or ioctl) */  
+  
 #define MU_LOCKER_DEFAULT  (MU_LOCKER_RETRY)
 
 extern int locker_create __P ((locker_t *, const char *filename, int flags));
