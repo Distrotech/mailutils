@@ -26,28 +26,5 @@
 int
 mail_save (int argc, char **argv)
 {
-  message_t msg;
-  int *msglist = NULL;
-  int num = 0, i = 0;
-
-  mail_copy (argc, argv);
-
-  if (argc > 1)
-  argc--;
-
-  num = util_expand_msglist (argc, argv, &msglist);
-  if (num > 0)
-    {
-      for (i = 0; i < num; i++)
-	{
-	  mailbox_get_message (mbox, msglist[i], &msg);
-	  /* mark as saved */
-	}
-    }
-  else
-    {
-      mailbox_get_message (mbox, cursor, &msg);
-    }
-  free (msglist);
-  return 0;
+  return mail_copy0 (argc, argv, 1);
 }
