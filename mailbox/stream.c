@@ -110,6 +110,9 @@ stream_close (stream_t stream)
 {
   if (stream == NULL)
     return EINVAL;
+  if (stream->state == MU_STREAM_STATE_CLOSE)
+    return 0;
+  
   stream->state = MU_STREAM_STATE_CLOSE;
   /* Clear the buffer of any residue left.  */
   if (stream->rbuffer.base)
@@ -700,6 +703,41 @@ stream_sequential_write (stream_t stream, char *buf, size_t size)
       size -= sz;
       stream->offset += sz;
     }
+  return 0;
+}
+
+int
+stream_seek (stream_t stream, off_t off, int whence)
+{
+  size_t size = 0;
+  size_t pos;
+  int rc;
+  
+  if ((rc = stream_size (stream, &size)))
+    return rc;
+  
+  switch (whence)
+    {
+    case SEEK_SET:
+      pos = off;
+      break;
+      
+    case SEEK_CUR:
+      pos = off + stream->offset;
+      break;
+      
+    case SEEK_END:
+      pos = size + off;
+      break;
+      
+    default:
+      return EINVAL;
+    }
+
+  if (pos > size)
+    return EIO;
+  
+  stream->offset = pos;
   return 0;
 }
 

@@ -139,6 +139,7 @@ extern int stream_sequential_readline __P((stream_t stream,
   
 extern int stream_sequential_write __P((stream_t stream,
 					char *buf, size_t size));
+extern int stream_seek __P((stream_t stream, off_t off, int whence));
   
 extern int stream_strerror __P((stream_t stream, char **p));
   
