@@ -33,7 +33,7 @@ static int get_auth (const url_pop_t up, char *s, int n);
 static int
 get_auth (const url_pop_t up, char * s, int n)
 {
-  return _cpystr (up->auth, s, n);
+  return _cpystr (s, up->auth, n);
 }
 
 int

@@ -51,10 +51,11 @@ url_mbox_init (url_t *purl, const char *name)
 {
   url_t url;
   int len;
+  struct url_type *utype = &_url_mbox_type;
 
   /* reject the obvious */
-  if (name == NULL || strncmp ("file://", name, 7) != 0
-      || (len = strlen (name)) < 8 /* 7(scheme)+1(path)*/)
+  if (name == NULL || strncmp (utype->scheme, name, utype->len) != 0
+      || (len = strlen (name)) < utype->len + 1 /* 7(scheme)+1(path)*/)
     {
       return -1;
     }
@@ -72,24 +73,24 @@ url_mbox_init (url_t *purl, const char *name)
 
   /* SCHEME */
   /* strdup ("file://") the hard way */
-  url->scheme = malloc (7 + 1);
+  url->scheme = malloc (utype->len + 1);
   if (url->scheme == NULL)
     {
-      url_mbox_destroy (&url);
+      utype->_destroy (&url);
       return -1;
     }
-  memcpy (url->scheme, "file://", 8);
+  memcpy (url->scheme, utype->scheme, utype->len + 1 /* including the NULL */);
 
   /* PATH */
-  name += 7; /* pass the scheme */
-  len -= 7;
+  name += utype->len; /* pass the scheme */
+  len -= utype->len; /* decremente the len */
   url->path = malloc (len + 1);
   if (url->path == NULL)
     {
-      url_mbox_destroy (&url);
+      utype->_destroy (&url);
       return -1;
     }
-  memcpy (url->path, name, len + 1);
+  memcpy (url->path, name, len + 1 /* including the NULL */);
 
   *purl = url;
   return 0;

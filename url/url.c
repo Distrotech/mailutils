@@ -16,9 +16,12 @@
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #include <url_mbox.h>
+#include <url_unix.h>
+#include <url_mdir.h>
+#include <url_mmdf.h>
 #include <url_pop.h>
 #include <url_imap.h>
-#include <url_mailto.h>
+#include <url_mail.h>
 
 #include <cpystr.h>
 #include <string.h>
@@ -44,11 +47,14 @@ static struct url_builtin
   int is_malloc;
   struct url_builtin * next;
 } url_builtin [] = {
-  { NULL, 0,         &url_builtin[1] }, /* Sentinel, head list */
-  { &_url_mbox_type, 0,   &url_builtin[2] },
-  { &_url_pop_type, 0,    &url_builtin[3] },
-  { &_url_imap_type, 0,   &url_builtin[4] },
-  { &_url_mailto_type, 0, &url_builtin[0] },
+  { NULL, 0,               &url_builtin[1] }, /* Sentinel, head list */
+  { &_url_mbox_type, 0,    &url_builtin[2] },
+  { &_url_unix_type, 0,    &url_builtin[3] },
+  { &_url_maildir_type, 0, &url_builtin[4] },
+  { &_url_mmdf_type, 0,    &url_builtin[5] },
+  { &_url_pop_type, 0,     &url_builtin[6] },
+  { &_url_imap_type, 0,    &url_builtin[7] },
+  { &_url_mailto_type, 0,  &url_builtin[0] },
 };
 
 /*
@@ -108,7 +114,8 @@ url_list_mtype (struct url_type **mlist, int *n)
   struct url_type *utype;
   int i;
 
-  if ((i = url_list_type (NULL, 0)) <= 0 || (utype = malloc (i)) == NULL)
+  if ((i = url_list_type (NULL, 0)) <= 0
+      || (utype = calloc (i, sizeof (*utype))) == NULL)
     {
       return -1;
     }
@@ -188,13 +195,13 @@ url_destroy (url_t *purl)
 static int
 get_scheme (const url_t u, char * s, int n)
 {
-  return _cpystr (u->scheme, s, n);
+  return _cpystr (s, u->scheme, n);
 }
 
 static int
 get_user (const url_t u, char * s, int n)
 {
-  return _cpystr (u->user, s, n);
+  return _cpystr (s, u->user, n);
 }
 
 /* FIXME: We should not store passwd in clear, but rather
@@ -202,13 +209,13 @@ get_user (const url_t u, char * s, int n)
 static int
 get_passwd (const url_t u, char * s, int n)
 {
-  return _cpystr (u->passwd, s, n);
+  return _cpystr (s, u->passwd, n);
 }
 
 static int
 get_host (const url_t u, char * s, int n)
 {
-  return _cpystr (u->host, s, n);
+  return _cpystr (s, u->host, n);
 }
 
 static int
@@ -221,13 +228,13 @@ get_port (const url_t u, long * p)
 static int
 get_path (const url_t u, char * s, int n)
 {
-  return _cpystr(u->path, s, n);
+  return _cpystr(s, u->path, n);
 }
 
 static int
 get_query (const url_t u, char * s, int n)
 {
-  return _cpystr(u->query, s, n);
+  return _cpystr(s, u->query, n);
 }
 
 static int

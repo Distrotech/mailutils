@@ -19,7 +19,7 @@
 #include <string.h>
 
 int
-_cpystr (const char *src, char *dst, unsigned int size)
+_cpystr (char *dst, const char *src, unsigned int size)
 {
   unsigned int len = src ? strlen (src) : 0 ;
 

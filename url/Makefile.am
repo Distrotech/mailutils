@@ -4,12 +4,13 @@ AUTOMAKE_OPTIONS = ../lib/ansi2knr
 
 CFLAGS = -Wall -pedantic -g
 
-include_HEADERS = url.h url_mbox.h url_pop.h url_imap.h url_mailto.h
+include_HEADERS = url.h url_mbox.h url_unix.h url_mdir.h url_mmdf.h url_pop.h \
+ url_imap.h url_mail.h
 
 noinst_HEADERS = cpystr.h
 
-base_sources = _cpystr.c url.c urli.c url_imap.c url_mailto.c \
- url_mbox.c url_pop.c
+base_sources = _cpystr.c url.c urli.c url_mbox.c url_unix.c url_mdir.c \
+ url_mmdf.c url_pop.c url_imap.c url_mail.c
 
 chewurl_SOURCES = $(base_sources) chewurl.c
 

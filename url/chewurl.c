@@ -1,9 +1,11 @@
 #include <url.h>
+#include <url_pop.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 
 int
-main (int argc, char ** argv)
+main ()
 {
   int status, i;
   long port;

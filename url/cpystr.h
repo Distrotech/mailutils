@@ -15,8 +15,8 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-#ifndef _URL0_H
-#define _URL0_H
+#ifndef _CPYSTR_H
+#define _CPYSTR_H
 
 #ifndef __P
 # ifdef __STDC__
@@ -25,6 +25,6 @@
 #  define __P(x)
 # endif
 #endif
-extern int _cpystr __P ((const char *src, char *dst, unsigned int size));
+extern int _cpystr __P ((char *dst, const char *src, unsigned int size));
 
 #endif
