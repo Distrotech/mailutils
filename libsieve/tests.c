@@ -25,17 +25,6 @@
 #include <string.h>  
 #include <sieve.h>
 
-#define TAG_LOCALPART   0
-#define TAG_DOMAIN      1
-#define TAG_ALL         2
-#define TAG_COMPARATOR  3
-#define TAG_IS          4
-#define TAG_CONTAINS    5
-#define TAG_MATCHES     6  
-#define TAG_REGEX       7 
-#define TAG_UNDER       8
-#define TAG_OVER        9
-
 int
 sieve_test_address (sieve_machine_t mach, list_t args, list_t tags)
 {
@@ -43,9 +32,37 @@ sieve_test_address (sieve_machine_t mach, list_t args, list_t tags)
 }
 
 int
+retrieve_header (void *item, void *data, char **pval)
+{
+  return header_aget_value ((header_t) data, (char*)item, pval);
+}
+
+int
 sieve_test_header (sieve_machine_t mach, list_t args, list_t tags)
 {
-  return 0;
+  sieve_value_t *h, *v;
+  header_t header = NULL;
+  sieve_comparator_t comp = sieve_get_comparator (tags);
+  
+  if (mach->debug_level & MU_SIEVE_DEBUG_TRACE)
+    sieve_debug (mach, "HEADER\n");
+
+  h = sieve_value_get (args, 0);
+  if (!h)
+    {
+      sieve_error (mach, "header: can't get argument 1");
+      sieve_abort (mach);
+    }
+  v = sieve_value_get (args, 1);
+  if (!v)
+    {
+      sieve_error (mach, "header: can't get argument 2");
+      sieve_abort (mach);
+    }
+
+  message_get_header (sieve_get_message (mach), &header);
+
+  return sieve_vlist_compare (h, v, comp, retrieve_header, header);
 }
 
 int
@@ -122,7 +139,7 @@ sieve_test_exists (sieve_machine_t mach, list_t args, list_t tags)
       sieve_abort (mach);
     }
 
-  return list_do (val->v.list, _test_exists, header) == 0;
+  return sieve_vlist_do (val, _test_exists, header) == 0;
 }
 
 #define ADDRESS_PART \
