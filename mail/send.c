@@ -126,11 +126,11 @@ mail_send0 (struct send_environ *env, int save_to)
 	    }
 	  else
 	    {
+	      if (buf)
+		free (buf);
 	      if (++int_cnt == 2)
 		break;
 	      util_error("(Interrupt -- one more to kill letter)");
-	      if (buf)
-		free (buf);
 	    }
 	  continue;
 	}
@@ -139,7 +139,9 @@ mail_send0 (struct send_environ *env, int save_to)
 	{
 	  if (util_find_env ("ignoreeof")->set)
 	    {
-	      util_error ("Use \".\" to terminate letter.");
+	      util_error (util_find_env ("dot")->set ?
+			  "Use \".\" to terminate letter." :
+			  "Use \"~.\" to terminate letter.");
 	      continue;
 	    }
 	  else
@@ -147,11 +149,15 @@ mail_send0 (struct send_environ *env, int save_to)
 	}
       
       int_cnt = 0;
-      
-      if (buf[0] == (util_find_env("escape"))->value[0])
+
+      if (buf[0] == '.' && util_find_env("dot")->set)
+	done = 1;
+      else if (buf[0] == (util_find_env("escape"))->value[0])
 	{
 	  if (buf[1] == buf[0])
 	    fprintf (env->file, "%s\n", buf+1);
+	  else if (buf[1] == '.')
+	    done = 1;
 	  else
 	    {
 	      int argc;
@@ -189,7 +195,9 @@ mail_send0 (struct send_environ *env, int save_to)
     {
       if (util_find_env ("save")->set)
 	{
-	  FILE *fp = fopen (getenv("DEAD"), "a");
+	  FILE *fp = fopen (getenv("DEAD"),
+			    util_find_env ("appenddeadletter")->set ?
+                       	    "a" : "w");
 
 	  if (!fp)
 	    {
