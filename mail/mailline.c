@@ -30,7 +30,7 @@ sig_handler (int signo)
   switch (signo)
     {
     case SIGINT:
-      if (util_find_env ("quit")->set)
+      if (util_getenv (NULL, "quit", Mail_env_boolean, 0) == 0)
 	exit (0);
       _interrupted++;
       break;
