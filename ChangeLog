@@ -1,3 +1,10 @@
+2003-04-03  Sergey Poznyakoff
+
+	* examples/base64.c (main): Use custom ISPRINT macro
+	  so we don't depend on the current locale settings.
+	* examples/decode2047.c (print): Likewise.
+	* testsuite/lib/mailutils.exp: Set LC_ALL to C before proceeding.
+
 2003-04-02  Sergey Poznyakoff
 
 	* mh/mhn.c (normalize_path): Bugfix.
