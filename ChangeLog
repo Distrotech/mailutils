@@ -1,3 +1,21 @@
+2002-12-05  Sergey Poznyakoff  
+
+	* lib/Makefile.am (INCLUDES): Fixed path.
+	* configure.ac: Check for libltdl only if enable_shared
+	  is set.
+
+	* examples/mta.c: Do not use asprintf.
+
+	* lib/pin.c: It is needed by argp stuff. Moved to ...
+	* mailbox/pin.c: ... here
+	* lib/Makefile.am: Moved pin.c from lib to mailbox
+	* mailbox/Makefile.am: Likewise.
+	
+	* comsat/comsat.h: Removed unneded inclusion of getopt.h
+	* frm/frm.c: Likewise.
+	* imap4d/imap4d.h: Likewise.
+	* pop3d/pop3d.h: Likewise.
+	
 2002-12-05  Sergey Poznyakoff
 
 	* configure.ac: Check for presense of getopt.h
