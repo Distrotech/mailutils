@@ -363,3 +363,12 @@ mailer_get_debug (mailer_t mailer, mu_debug_t *pdebug)
   *pdebug = mailer->debug;
   return 0;
 }
+
+int
+mailer_get_url (mailer_t mailer, url_t *purl)
+{
+  if (!mailer || !purl)
+    return EINVAL;
+  *purl = mailer->url;
+  return 0;
+}
