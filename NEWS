@@ -1,5 +1,5 @@
-GNU mailutils NEWS -- history of user-visible changes.  2003-10-28
-Copyright (C) 2002, 2003 Free Software Foundation, Inc.
+GNU mailutils NEWS -- history of user-visible changes.  2004-01-09
+Copyright (C) 2002, 2003, 2004 Free Software Foundation, Inc.
 See the end of file for copying conditions.
 
 Please send mailutils bug reports to <bug-mailutils@gnu.org>.
@@ -7,6 +7,22 @@ Please send mailutils bug reports to <bug-mailutils@gnu.org>.
 Version 0.4.1:
 
 * New features:
+
+** movemail: new program
+
+Moves mail from the user maildrop (remote or local) to the local file.
+It supports all mailbox formats, supported by mailutils.
+
+** Support for "maildir" format.
+
+** sieve:
+
+*** Considerably improved debugging diagnostics.
+*** New sieve extension tests:
+
+  spamd	      -		An interface to SpamAssassin daemon
+  list	      -		Test headers, structured as lists of values.
+  timestamp   -		Compares headers containing dates. 
 
 ** mail
 *** Support for -a option (append header)
@@ -246,7 +262,7 @@ The first release.
 ----------------------------------------------------------------------
 Copyright information:
 
-Copyright (C) 2002, 2003 Free Software Foundation, Inc.
+Copyright (C) 2002, 2003, 2004 Free Software Foundation, Inc.
 
    Permission is granted to anyone to make or distribute verbatim copies
    of this document as received, in any medium, provided that the
