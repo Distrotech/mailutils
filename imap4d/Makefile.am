@@ -17,7 +17,8 @@
 ##   Foundation, Inc.
 ##   59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-INCLUDES = -I$(top_srcdir)/lib -I$(top_srcdir)/include @AUTHINCS@ @SERV_AUTHINCS@ @INTLINCS@
+INCLUDES = -I$(top_srcdir)/lib -I$(top_srcdir)/include \
+ -I${top_builddir}/include/mailutils/gnu @AUTHINCS@ @SERV_AUTHINCS@ @INTLINCS@
 SUBDIRS = testsuite
 
 sbin_PROGRAMS =	imap4d

@@ -17,5 +17,9 @@
 ##   Foundation, Inc.
 ##   59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
+AUTOMAKE_OPTIONS=no-dependencies
+ 
 gnudir = $(pkgincludedir)/gnu
-gnu_HEADERS = argp.h getopt.h
+EXTRA_HEADERS =
+gnu_HEADERS = @GNU_INCLS@
+DISTCLEANFILES = getopt.h argp.h regex.h posix/regex.h

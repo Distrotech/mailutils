@@ -120,7 +120,7 @@ mailutils-mh.el: mailutils-mh.eli
 .eli.el:
 	sed "s,BINDIR,$(bindir),g;s,MHLIBDIR,$(mhlibdir),g" $< > $@
 
-INCLUDES = -I${top_srcdir}/include -I${top_srcdir}/lib -I${top_srcdir}/mailbox @INTLINCS@
+INCLUDES = -I${top_srcdir}/include -I${top_srcdir}/lib -I${top_builddir}/include/mailutils/gnu -I${top_srcdir}/mailbox @INTLINCS@
 AM_CPPFLAGS = -DMHLIBDIR=\"$(mhlibdir)\" -DMHBINDIR=\"$(bindir)\"
 mh_LIBS = \
  ./libmh.a\

@@ -18,7 +18,7 @@
 ##   59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 AM_YFLAGS=-vt
-INCLUDES = -I${top_srcdir}/include -I${top_srcdir}/lib -I${top_srcdir}/mailbox @INTLINCS@ @AUTHINCS@ 
+INCLUDES = -I${top_srcdir}/include -I${top_srcdir}/lib -I${top_builddir}/include/mailutils/gnu -I${top_srcdir}/mailbox @INTLINCS@ @AUTHINCS@ 
 AM_CFLAGS = -DSITE_MAIL_RC=\"@SITE_MAIL_RC@\"
 
 bin_PROGRAMS = mail

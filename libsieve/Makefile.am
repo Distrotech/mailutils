@@ -17,7 +17,7 @@
 ##   Foundation, Inc.
 ##   59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-INCLUDES = -I${top_srcdir}/include -I${top_srcdir}/lib @INTLINCS@
+INCLUDES = -I${top_srcdir}/include -I${top_srcdir}/lib -I${top_builddir}/include/mailutils/gnu @INTLINCS@
 YLWRAP = $(SHELL) $(top_srcdir)/scripts/ylwrap
 AM_YFLAGS = -dtv
 AM_CPPFLAGS = -DSIEVE_MODDIR=\"@SIEVE_MODDIR@\"

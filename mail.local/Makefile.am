@@ -17,7 +17,7 @@
 ##   Foundation, Inc.
 ##   59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-INCLUDES =-I$(srcdir) -I$(top_srcdir)/lib -I$(top_srcdir)/mailbox -I$(top_srcdir)/include @GUILE_INCLUDES@ @INTLINCS@
+INCLUDES =-I$(srcdir) -I$(top_srcdir)/lib -I${top_builddir}/include/mailutils/gnu -I$(top_srcdir)/mailbox -I$(top_srcdir)/include @GUILE_INCLUDES@ @INTLINCS@
 SUBDIRS = testsuite
 
 libexec_PROGRAMS = mail.local

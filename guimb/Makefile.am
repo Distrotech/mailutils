@@ -18,7 +18,8 @@
 ##   59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 INCLUDES = -I. -I$(top_builddir) -I$(srcdir) -I$(top_srcdir)/lib \
- -I$(top_srcdir)/mailbox -I$(top_srcdir)/include @GUILE_INCLUDES@ @INTLINCS@
+ -I$(top_srcdir)/mailbox -I$(top_srcdir)/include \
+ -I${top_builddir}/include/mailutils/gnu @GUILE_INCLUDES@ @INTLINCS@
 
 SUBDIRS=scm
 

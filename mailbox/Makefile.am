@@ -17,7 +17,7 @@
 ##   Foundation, Inc.
 ##   59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-INCLUDES = -I${top_srcdir}/include -I${top_srcdir}/mailbox -I${top_srcdir}/mailbox/include -I${top_srcdir}/include/mailutils/gnu @INTLINCS@
+INCLUDES = -I${top_srcdir}/include -I${top_srcdir}/mailbox -I${top_srcdir}/mailbox/include -I${top_builddir}/include/mailutils/gnu @INTLINCS@
 AM_CFLAGS = -DSITE_VIRTUAL_PWDDIR=\"@SITE_VIRTUAL_PWDDIR@\"
 YLWRAP = $(SHELL) $(top_srcdir)/scripts/ylwrap
 AM_YFLAGS=-vt
@@ -33,7 +33,7 @@ DEFS = @DEFS@ -DLOCALEDIR=\"$(localedir)\"
 EXTRA_DIST = strtok_r.c \
  strndup.c strnlen.c strchrnul.c argp-ba.c argp-eexst.c \
  argp-fmtstream.c argp-fs-xinl.c argp-help.c argp-parse.c argp-pv.c \
- argp-pvh.c argp-xinl.c getline.c getline.h parsedate.y pin.c
+ argp-pvh.c argp-xinl.c getline.c getline.h parsedate.y pin.c regex.c
 
 noinst_HEADERS=argp-fmtstream.h argp-namefrob.h md5.h
 
@@ -68,6 +68,7 @@ mime.c \
 monitor.c \
 mu_argp.c \
 mu_auth.c \
+munre.c \
 mutil.c \
 muerror.c \
 muerrno.c \
