@@ -38,6 +38,7 @@
 #include <mailutils/observer.h>
 #include <mailutils/registrar.h>
 #include <mailutils/stream.h>
+#include <mailutils/url.h>
 
 static char* show_field;
 static int show_to;
@@ -348,9 +349,16 @@ main(int argc, char **argv)
 
     if (status != 0)
       {
-	fprintf (stderr, "could not open mailbox <%s>: %s\n",
-	    mailbox_name ? mailbox_name : "default",
-	    mu_errstring(status));
+	url_t url = NULL;
+
+	mailbox_get_url (mbox, &url);
+	if (status == ENOENT)
+	  status = 2;
+	else
+	  fprintf (stderr, "could not open mailbox %s: %s\n",
+		   url_to_string (url),
+		   mu_errstring(status));
+	
 	goto cleanup;
       }
 
@@ -366,9 +374,12 @@ main(int argc, char **argv)
 
     if (status != 0)
       {
+	url_t url = NULL;
+
+	mailbox_get_url (mbox, &url);
 	fprintf (stderr, "could not scan mailbox <%s>: %s\n",
-	    mailbox_name ? mailbox_name : "default",
-	    mu_errstring(status));
+		 url_to_string (url),
+		 mu_errstring(status));
 	goto cleanup;
       }
 
