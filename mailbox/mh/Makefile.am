@@ -25,6 +25,6 @@ lib_LTLIBRARIES = libmu_mh.la
 
 libmu_mh_la_SOURCES = \
  folder.c\
- mbox.c\
- url.c
+ mbox.c
+
 
