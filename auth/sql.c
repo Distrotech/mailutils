@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2002, 2003, 2004 Free Software Foundation, Inc.
+   Copyright (C) 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -50,6 +50,7 @@
 
 #ifdef USE_SQL
 
+
 int sql_interface = 0;
 char *mu_sql_getpwnam_query;
 char *mu_sql_getpass_query;
@@ -62,6 +63,7 @@ char *mu_sql_passwd = "yurpass";   /* Password for mysql access */
 char *mu_sql_db = "accounts";      /* Database Name */
 int  mu_sql_port = 0;              /* Port number to connect to.
 				      0 means default port */
+enum mu_password_type mu_sql_password_type  = password_hash;
 
 static char *
 sql_escape_string (const char *ustr)
@@ -175,6 +177,7 @@ mu_sql_expand_query (const char *query, const char *ustr)
 # define ARG_SQL_PASSWD    262
 # define ARG_SQL_DB        263
 # define ARG_SQL_PORT      264
+# define ARG_SQL_MU_PASSWORD_TYPE 265
 
 static struct argp_option mu_sql_argp_option[] = {
   {"sql-interface", ARG_SQL_INTERFACE, N_("NAME"), 0,
@@ -195,6 +198,8 @@ static struct argp_option mu_sql_argp_option[] = {
    N_("Name of the database to connect to"), 0},
   {"sql-port", ARG_SQL_PORT, N_("NUMBER"), 0,
    N_("Port to use"), 0},
+  {"sql-password-type", ARG_SQL_MU_PASSWORD_TYPE, N_("STRING"), 0,
+   N_("Type of password returned by --sql-getpass query. STRING is one of: plain, hash, scrambled"), 0},
   { NULL,      0, NULL, 0, NULL, 0 }
 };
 
@@ -241,6 +246,17 @@ mu_sql_argp_parser (int key, char *arg, struct argp_state *state)
       mu_sql_port = strtoul (arg, NULL, 0);
       break;
 
+    case ARG_SQL_MU_PASSWORD_TYPE:
+      if (strcmp (arg, "plain") == 0)
+	mu_sql_password_type  = password_plaintext;
+      else if (strcmp (arg, "hash") == 0)
+	mu_sql_password_type  = password_hash;
+      else if (strcmp (arg, "scrambled") == 0)
+	mu_sql_password_type  = password_scrambled;
+      else
+	argp_error (state, _("Unknown password type '%s'"), arg);
+      break;
+      
     default:
       return ARGP_ERR_UNKNOWN;
     }
@@ -283,8 +299,7 @@ mu_auth_sql_by_name (struct mu_auth_data **return_data,
 
   if (status)
     {
-      mu_error ("%s. SQL error: %s",
-		mu_strerror (status), mu_sql_strerror (conn));
+      mu_error ("%s: %s", mu_strerror (status), mu_sql_strerror (conn));
       mu_sql_connection_destroy (&conn);
       free (query_str);
       return status;
@@ -294,8 +309,7 @@ mu_auth_sql_by_name (struct mu_auth_data **return_data,
 
   if (status)
     {
-      mu_error ("%s. SQL error: %s",
-		mu_strerror (status), mu_sql_strerror (conn));
+      mu_error ("%s: %s", mu_strerror (status), mu_sql_strerror (conn));
       mu_sql_connection_destroy (&conn);
       free (query_str);
       return status;
@@ -417,8 +431,7 @@ mu_auth_sql_by_uid (struct mu_auth_data **return_data,
 
   if (status)
     {
-      mu_error ("%s. SQL error: %s",
-		mu_strerror (status), mu_sql_strerror (conn));
+      mu_error ("%s: %s", mu_strerror (status), mu_sql_strerror (conn));
       mu_sql_connection_destroy (&conn);
       free (query_str);
       return status;
@@ -428,8 +441,7 @@ mu_auth_sql_by_uid (struct mu_auth_data **return_data,
 
   if (status)
     {
-      mu_error ("%s. SQL error: %s",
-		mu_strerror (status), mu_sql_strerror (conn));
+      mu_error ("%s: %s", mu_strerror (status), mu_sql_strerror (conn));
       mu_sql_connection_destroy (&conn);
       free (query_str);
       return status;
@@ -518,25 +530,18 @@ mu_auth_sql_by_uid (struct mu_auth_data **return_data,
   return rc;
 }
 
-static int
-mu_sql_authenticate (struct mu_auth_data **return_data ARG_UNUSED,
-		     const void *key,
-		     void *func_data ARG_UNUSED, void *call_data)
+int
+mu_sql_getpass (const char *username, char **passwd)
 {
   mu_sql_connection_t conn;
-  struct mu_auth_data *auth_data = key;
-  char *pass = call_data;
+  char *query_str;
+  int status;
   char *sql_pass;
-  char *query_str = NULL;
-  int rc, status;
   
-  if (!auth_data)
-    return 1;
-
-  query_str = mu_sql_expand_query (mu_sql_getpass_query, auth_data->name);
+  query_str = mu_sql_expand_query (mu_sql_getpass_query, username);
 
   if (!query_str)
-    return 1;
+    return MU_ERR_FAILURE;
 
   status = mu_sql_connection_init (&conn,
 				   sql_interface,
@@ -547,8 +552,7 @@ mu_sql_authenticate (struct mu_auth_data **return_data ARG_UNUSED,
 
   if (status)
     {
-      mu_error ("%s. SQL error: %s",
-		mu_strerror (status), mu_sql_strerror (conn));
+      mu_error ("%s: %s", mu_strerror (status), mu_sql_strerror (conn));
       mu_sql_connection_destroy (&conn);
       free (query_str);
       return status;
@@ -558,8 +562,7 @@ mu_sql_authenticate (struct mu_auth_data **return_data ARG_UNUSED,
 
   if (status)
     {
-      mu_error ("%s. SQL error: %s",
-		mu_strerror (status), mu_sql_strerror (conn));
+      mu_error ("%s: %s", mu_strerror (status), mu_sql_strerror (conn));
       mu_sql_connection_destroy (&conn);
       free (query_str);
       return status;
@@ -574,7 +577,7 @@ mu_sql_authenticate (struct mu_auth_data **return_data ARG_UNUSED,
 		(status == MU_ERR_SQL) ?  mu_sql_strerror (conn) :
 	 	                          mu_strerror (status));
       mu_sql_connection_destroy (&conn);
-      return 1;
+      return status;
     }
 
   status = mu_sql_store_result (conn);
@@ -585,7 +588,7 @@ mu_sql_authenticate (struct mu_auth_data **return_data ARG_UNUSED,
 		(status == MU_ERR_SQL) ?  mu_sql_strerror (conn) :
 	 	                          mu_strerror (status));
       mu_sql_connection_destroy (&conn);
-      return 1;
+      return status;
     }
 
   status = mu_sql_get_column (conn, 0, 0, &sql_pass);
@@ -596,13 +599,58 @@ mu_sql_authenticate (struct mu_auth_data **return_data ARG_UNUSED,
 	 	                          mu_strerror (status));
       mu_sql_release_result (conn);
       mu_sql_connection_destroy (&conn);
-      return 1;
+      return status;
     }
-  
-  rc = strcmp (sql_pass, crypt (pass, sql_pass));
+
+  *passwd = strdup (sql_pass);
 
   mu_sql_disconnect (conn);
   mu_sql_connection_destroy (&conn);
+
+  if (!*passwd)
+    return ENOMEM;
+
+  return 0;
+}
+
+static int
+mu_sql_authenticate (struct mu_auth_data **return_data ARG_UNUSED,
+		     const void *key,
+		     void *func_data ARG_UNUSED, void *call_data)
+{
+  struct mu_auth_data *auth_data = key;
+  char *pass = call_data;
+  char *sql_pass;
+  int rc;
+  
+  if (!auth_data)
+    return 1;
+
+  if (mu_sql_getpass (auth_data->name, &sql_pass))
+    return 1;
+
+  switch (mu_sql_password_type)
+    {
+    case password_hash:
+      rc = strcmp (sql_pass, crypt (pass, sql_pass));
+      break;
+
+    case password_scrambled:
+      /* FIXME: Should this call be implementation-independent? I mean,
+         should we have mu_sql_check_scrambled() that will match the
+	 password depending on the exact type of the underlying database,
+	 just as the rest of mu_sql_.* functions do */
+#ifdef HAVE_MYSQL
+      rc = mu_check_mysql_scrambled_password (sql_pass, pass);
+#endif
+      break;
+
+    case password_plaintext:
+      rc = strcmp (sql_pass, pass);
+      break;
+    }
+
+  free (sql_pass);
   
   return rc;
 }
