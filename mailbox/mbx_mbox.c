@@ -107,8 +107,8 @@ struct _mbox_message
   off_t body_end;
 
   /* Fast header retrieve, we save here the most common header. This will
-     speed the header search.  The header are copied when modified by the
-     header_t object, we should not worry about updating them.  */
+     speed the header search.  The entire headers are copied when modified
+     by the header_t object, we do not have to worry about updating them.  */
   char *fhdr[HDRSIZE];
 
   /* IMAP uid.  */
@@ -205,9 +205,10 @@ static int mbox_tmpfile               __P ((mailbox_t, char **pbox));
 static void mbox_cleanup              __P ((void *));
 #endif
 
-/* We allocate the mbox_data_t struct, but don't do any parsing on the name or
-   even test for existence.  However we do strip any leading "mbox:" part of
-   the name, this is suppose to be the protocol/scheme name.  */
+/* Allocate the mbox_data_t struct(concrete mailbox), but don't do any
+   parsing on the name or even test for existence.  However we do strip any
+   leading "mbox:" part of the name, this is suppose to be the
+   protocol/scheme name.  */
 int
 _mailbox_mbox_init (mailbox_t mailbox)
 {
@@ -251,7 +252,7 @@ _mailbox_mbox_init (mailbox_t mailbox)
   mailbox->_open = mbox_open;
   mailbox->_close = mbox_close;
 
-  /* Messages.  */
+  /* Overloading of the entire mailbox object methods.  */
   mailbox->_get_message = mbox_get_message;
   mailbox->_append_message = mbox_append_message;
   mailbox->_messages_count = mbox_messages_count;
@@ -270,7 +271,7 @@ _mailbox_mbox_init (mailbox_t mailbox)
   return 0; /* okdoke */
 }
 
-/* Free all ressources associated with Unix mailbox.  */
+/* Free all ressources associated with Unix concrete mailbox.  */
 static void
 mbox_destroy (mailbox_t mailbox)
 {
@@ -348,6 +349,8 @@ mbox_open (mailbox_t mailbox, int flags)
       /* All failed, bail out.  */
       if (status != 0)
 	return status;
+      /* Even on top, of normal FILE *, lets agressively cache.  But this
+	 may not be suitable for system tight on memory.  */
       stream_setbufsiz (mailbox->stream, BUFSIZ);
     }
   else
@@ -360,6 +363,7 @@ mbox_open (mailbox_t mailbox, int flags)
   MAILBOX_DEBUG2 (mailbox, MU_DEBUG_TRACE, "mbox_open(%s, 0x%x)\n",
 		  mud->name, mailbox->flags);
 
+  /* Not of any use to try authenticate for a file mailbox.  Do it anyways.  */
   if (mailbox->authority)
     {
       status = authority_authenticate (mailbox->authority);
@@ -368,6 +372,7 @@ mbox_open (mailbox_t mailbox, int flags)
     }
 
   /* Give an appropriate way to file lock.  */
+  /* FIXME: use dotlock external program: we may not be setgid.  */
   if (mailbox->locker == NULL)
     locker_create (&(mailbox->locker), mud->name, strlen (mud->name),
 		   MU_LOCKER_PID | MU_LOCKER_FCNTL);
@@ -385,7 +390,7 @@ mbox_close (mailbox_t mailbox)
 
   MAILBOX_DEBUG1 (mailbox, MU_DEBUG_TRACE,  "mbox_close(%s)\n", mud->name);
 
-  /* Make sure that we do hold any file locking.  */
+  /* Make sure that we do not hold any file locking.  */
   locker_unlock (mailbox->locker);
 
   monitor_wrlock (mailbox->monitor);
@@ -418,6 +423,8 @@ mbox_close (mailbox_t mailbox)
 /* Mailbox Parsing. Routing was way to ugly to put here.  */
 #include "mbx_mboxscan.c"
 
+/* Cover function that call the real thing, mbox_scan(), with
+   notification set.  */
 static int
 mbox_scan (mailbox_t mailbox, size_t msgno, size_t *pcount)
 {
@@ -427,9 +434,10 @@ mbox_scan (mailbox_t mailbox, size_t msgno, size_t *pcount)
 }
 
 /* FIXME:  How to handle a shrink ? meaning, the &^$^@%#@^& user start two
-   browsers and deleted emails in one.  My views is that we should scream
-   bloody murder and hunt them with a machette. But for now just play dumb,
-   but maybe the best approach is to pack our things and leave .i.e exit().  */
+   browsers and deleted emails in one session.  My views is that we should
+   scream bloody murder and hunt them with a machette. But for now just play
+   dumb, but maybe the best approach is to pack our things and leave
+   .i.e exit()/abort().  */
 static int
 mbox_is_updated (mailbox_t mailbox)
 {
@@ -440,15 +448,15 @@ mbox_is_updated (mailbox_t mailbox)
   if (size < mud->size)
     {
       observable_notify (mailbox->observable, MU_EVT_MAILBOX_CORRUPT);
-      /* And be verbose.  */
-      fprintf (stderr, "Mailbox corrupted, shrank size\n");
-      /* FIXME: I should crash.  */
+      /* And be verbose.  ? */
+      fprintf (stderr, "* BAD : Mailbox corrupted, shrank size\n");
+      /* FIXME: should I crash.  */
       return 1;
     }
   return (mud->size == size);
 }
 
-/* Try to create an uniq file.  */
+/* Try to create an uniq file, we no race conditions.   */
 static int
 mbox_tmpfile (mailbox_t mailbox, char **pbox)
 {
@@ -457,7 +465,7 @@ mbox_tmpfile (mailbox_t mailbox, char **pbox)
   const char *basename;
   mbox_data_t mud = mailbox->data;
 
-  /*  P_tmpdir should be define in <stdio.h>.  */
+  /*  P_tmpdir should be in <stdio.h>.  */
 #ifndef P_tmpdir
 #  define P_tmpdir "/tmp"
 #endif

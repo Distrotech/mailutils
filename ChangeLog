@@ -1,3 +1,17 @@
+2001-02-25  Alain Magloire
+
+	* lib/strtok_r.c : If there are no delimiters left save the old string
+	and return NULL.
+
+	* mailbox/folder_imap.c (imap_fetch) : Finish imap FETCH command.
+	(imap_rfc822) : New Function.
+	(imap_rfc822_text) : New Function.
+	(imap_rfc822_size) : New Function.
+	(imap_rfc822_header) : New Function.
+	(imap_uid) : New Function.
+	(imap_body) : New Function.
+	(imap_bodystructure0) : Save the size.
+
 2001-02-22  Alain Magloire
 
 	* mailbox/property.c : New file.

@@ -80,8 +80,7 @@ static int imap_body_fd (stream_t, int *);
 /* Private. */
 static int imap_get_fd (msg_imap_t, int *);
 static int imap_get_message0 (msg_imap_t, message_t *);
-static int message_operation (f_imap_t, msg_imap_t, enum imap_state, char *,
-			      size_t, size_t *);
+static int message_operation (f_imap_t, msg_imap_t, char *, size_t, size_t *);
 static void free_subparts (msg_imap_t);
 
 static const char *MONTHS[] =
@@ -687,8 +686,7 @@ imap_message_read (stream_t stream, char *buffer, size_t buflen,
       MAILBOX_DEBUG0 (m_imap->mailbox, MU_DEBUG_PROT, f_imap->buffer);
       f_imap->state = IMAP_FETCH;
     }
-  return message_operation (f_imap, msg_imap, IMAP_MESSAGE, buffer, buflen,
-			    plen);
+  return message_operation (f_imap, msg_imap, buffer, buflen, plen);
 }
 
 static int
@@ -708,6 +706,19 @@ imap_message_size (message_t msg, size_t *psize)
   f_imap_t f_imap = m_imap->f_imap;
   int status;
 
+  /* If there is a parent it means it is a sub message, IMAP does not give
+     the full size of mime messages, so the message_size was retrieve from
+     doing a bodystructure and represent rather the body_size.  */
+  if (msg_imap->parent)
+    {
+      if (psize)
+	{
+	  *psize = (msg_imap->message_size + msg_imap->header_size)
+	    - msg_imap->message_lines;
+	}
+      return 0;
+    }
+
   /* Select first.  */
   if (f_imap->state == IMAP_NO_STATE)
     {
@@ -723,7 +734,7 @@ imap_message_size (message_t msg, size_t *psize)
       MAILBOX_DEBUG0 (m_imap->mailbox, MU_DEBUG_PROT, f_imap->buffer);
       f_imap->state = IMAP_FETCH;
     }
-  status = message_operation (f_imap, msg_imap, 0, 0, 0, 0);
+  status = message_operation (f_imap, msg_imap, 0, 0, 0);
   if (status == 0)
     {
       if (psize)
@@ -759,7 +770,7 @@ imap_message_uid (message_t msg, size_t *puid)
       MAILBOX_DEBUG0 (m_imap->mailbox, MU_DEBUG_PROT, f_imap->buffer);
       f_imap->state = IMAP_FETCH;
     }
-  status = message_operation (f_imap, msg_imap, 0, 0, 0, 0);
+  status = message_operation (f_imap, msg_imap, 0, 0, 0);
   if (status != 0)
     return status;
   *puid = msg_imap->uid;
@@ -796,13 +807,13 @@ imap_is_multipart (message_t msg, int *ismulti)
       if (status != 0)
 	return status;
       status = imap_writeline (f_imap,
-			       "g%d FETCH %d BODY\r\n",
+			       "g%d FETCH %d BODYSTRUCTURE\r\n",
 			       f_imap->seq++, msg_imap->num);
       CHECK_ERROR (f_imap, status);
       MAILBOX_DEBUG0 (m_imap->mailbox, MU_DEBUG_PROT, f_imap->buffer);
       f_imap->state = IMAP_FETCH;
     }
-  status = message_operation (f_imap, msg_imap, 0, 0, 0, 0);
+  status = message_operation (f_imap, msg_imap, 0, 0, 0);
   if (status != 0)
     return status;
   if (ismulti)
@@ -833,6 +844,7 @@ imap_get_part (message_t msg, size_t partno, message_t *pmsg)
 {
   msg_imap_t msg_imap = message_get_owner (msg);
   int status = 0;
+
   if (msg_imap->num_parts == 0)
     {
       status = imap_get_num_parts (msg, NULL);
@@ -856,7 +868,8 @@ imap_get_part (message_t msg, size_t partno, message_t *pmsg)
 	      header_t header;
 	      message_get_header (message, &header);
 	      header_set_get_value (header, NULL, message);
-	      message_set_size (message, NULL, msg_imap->parts[partno - 1]);
+	      message_set_stream (message, NULL, msg_imap->parts[partno - 1]);
+	      //message_set_size (message, NULL, msg_imap->parts[partno - 1]);
 	      msg_imap->parts[partno - 1]->message = message;
 	      if (pmsg)
 		*pmsg = message;
@@ -880,6 +893,9 @@ imap_envelope_sender (envelope_t envelope, char *buffer, size_t buflen,
   header_t header;
   int status;
 
+  if (buflen == 0)
+    return 0;
+
   message_get_header (msg, &header);
   status = imap_header_get_value (header, MU_HEADER_SENDER, buffer,
 					  buflen, plen);
@@ -896,6 +912,12 @@ imap_envelope_sender (envelope_t envelope, char *buffer, size_t buflen,
 	  address_get_email (address, 1, buffer, buflen, plen);
 	  address_destroy (&address);
 	}
+    }
+  else if (status != EAGAIN)
+    {
+      strncpy (buffer, "Unknown", buflen)[buflen - 1] = '0';
+      if (plen)
+	*plen = strlen (buffer);
     }
   return status;
 }
@@ -928,7 +950,7 @@ imap_envelope_date (envelope_t envelope, char *buffer, size_t buflen,
       MAILBOX_DEBUG0 (m_imap->mailbox, MU_DEBUG_PROT, f_imap->buffer);
       f_imap->state = IMAP_FETCH;
     }
-  status = message_operation (f_imap, msg_imap, 0, buffer, buflen, plen);
+  status = message_operation (f_imap, msg_imap, buffer, buflen, plen);
   if (status != 0)
     return status;
   day = mon = year = hour = min = sec = offt = 0;
@@ -994,7 +1016,7 @@ imap_attr_get_flags (attribute_t attribute, int *pflags)
       MAILBOX_DEBUG0 (m_imap->mailbox, MU_DEBUG_PROT, f_imap->buffer);
       f_imap->state = IMAP_FETCH;
     }
-  status = message_operation (f_imap, msg_imap, 0, NULL, 0, NULL);
+  status = message_operation (f_imap, msg_imap, NULL, 0, NULL);
   if (status == 0)
     {
       if (pflags)
@@ -1028,7 +1050,7 @@ imap_attr_set_flags (attribute_t attribute, int flags)
       msg_imap->flags |= flags;
       f_imap->state = IMAP_FETCH;
     }
-  return message_operation (f_imap, msg_imap, 0, NULL, 0, NULL);
+  return message_operation (f_imap, msg_imap, NULL, 0, NULL);
 }
 
 static int
@@ -1053,7 +1075,7 @@ imap_attr_unset_flags (attribute_t attribute, int flags)
       msg_imap->flags &= ~flags;
       f_imap->state = IMAP_FETCH;
     }
-  return message_operation (f_imap, msg_imap, 0, NULL, 0, NULL);
+  return message_operation (f_imap, msg_imap, NULL, 0, NULL);
 }
 
 /* Header.  */
@@ -1094,8 +1116,7 @@ imap_header_get_value (header_t header, const char *field, char * buffer,
       f_imap->state = IMAP_FETCH;
 
     }
-  status = message_operation (f_imap, msg_imap, IMAP_HEADER_FIELD, value, len,
-			      &len);
+  status = message_operation (f_imap, msg_imap, value, len, &len);
   if (status == 0)
     {
       char *colon;
@@ -1173,8 +1194,7 @@ imap_header_read (header_t header, char *buffer, size_t buflen, off_t offset,
       f_imap->state = IMAP_FETCH;
 
     }
-  return message_operation (f_imap, msg_imap, IMAP_HEADER, buffer, buflen,
-			    plen);
+  return message_operation (f_imap, msg_imap, buffer, buflen, plen);
 }
 
 /* Body.  */
@@ -1185,13 +1205,23 @@ imap_body_size (body_t body, size_t *psize)
   msg_imap_t msg_imap = message_get_owner (msg);
   if (psize && msg_imap)
     {
-      if (msg_imap->body_size)
-	*psize = msg_imap->body_size;
-      else if (msg_imap->message_size)
-	*psize = msg_imap->message_size
-	  - (msg_imap->header_size + msg_imap->header_lines);
+      /* If there is a parent it means it is a sub message, IMAP does not give
+	 the full size of mime messages, so the message_size was retrieve from
+	 doing a bodystructure and represents rather the body_size.  */
+      if (msg_imap->parent)
+	{
+	  *psize = msg_imap->message_size - msg_imap->message_lines;
+	}
       else
-	*psize = 0;
+	{
+	  if (msg_imap->body_size)
+	    *psize = msg_imap->body_size;
+	  else if (msg_imap->message_size)
+	    *psize = msg_imap->message_size
+	      - (msg_imap->header_size + msg_imap->header_lines);
+	  else
+	    *psize = 0;
+	}
     }
   return 0;
 }
@@ -1266,7 +1296,7 @@ imap_body_read (stream_t stream, char *buffer, size_t buflen, off_t offset,
       f_imap->state = IMAP_FETCH;
 
     }
-  status = message_operation (f_imap, msg_imap, IMAP_BODY, buffer, buflen, plen);
+  status = message_operation (f_imap, msg_imap, buffer, buflen, plen);
   if (oldbuf)
     oldbuf[0] = buffer[0];
   return status;
@@ -1294,8 +1324,8 @@ imap_get_fd (msg_imap_t msg_imap, int *pfd)
 }
 
 static int
-message_operation (f_imap_t f_imap, msg_imap_t msg_imap, enum imap_state type,
-		   char *buffer, size_t buflen, size_t *plen)
+message_operation (f_imap_t f_imap, msg_imap_t msg_imap, char *buffer,
+		   size_t buflen, size_t *plen)
 {
   int status = 0;
 
@@ -1308,7 +1338,6 @@ message_operation (f_imap_t f_imap, msg_imap_t msg_imap, enum imap_state type,
       f_imap->callback.buffer = buffer;
       f_imap->callback.buflen = buflen;
       f_imap->callback.total = 0;
-      f_imap->callback.type = type;
       f_imap->callback.msg_imap = msg_imap;
       f_imap->state = IMAP_FETCH_ACK;
 
