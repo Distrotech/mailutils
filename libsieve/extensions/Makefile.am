@@ -1,6 +1,6 @@
 ## Process this file with GNU Automake to create Makefile.in
 
-##   Copyright (C) 2004 Free Software Foundation, Inc.
+##   Copyright (C) 2004, 2005 Free Software Foundation, Inc.
 ##
 ##   GNU Mailutils is free software; you can redistribute it and/or
 ##   modify it under the terms of the GNU General Public License as
@@ -18,7 +18,7 @@
 ##   59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 moddir=@SIEVE_MODDIR@
-mod_LTLIBRARIES = timestamp.la spamd.la list.la
+mod_LTLIBRARIES = timestamp.la spamd.la list.la vacation.la
 
 INCLUDES = -I$(top_srcdir)/include -I$(top_srcdir)/lib\
  -I$(top_builddir)/include/mailutils/gnu\
@@ -37,4 +37,8 @@ spamd_la_LDFLAGS = -module -avoid-version -no-undefined
 list_la_SOURCES = list.c
 list_la_LIBADD = ../libsieve.la 
 list_la_LDFLAGS = -module -avoid-version -no-undefined 
+
+vacation_la_SOURCES = vacation.c
+vacation_la_LIBADD = ../libsieve.la 
+vacation_la_LDFLAGS = -module -avoid-version -no-undefined 
 
