@@ -1,3 +1,11 @@
+2003-12-28  Jeff Bailey  <jbailey@nisa.net>
+
+	* doc/texinfo/Makefile.am: Use ../$(srcdir) instead of .. to
+	support srcdir != builddir invocations of make html.
+
+	* doc/texinfo/programs.texi: Provide sample invocation of
+	mail.local.  Include note about virtual hosting.
+
 2003-12-28  Sergey Poznyakoff 
 
 	* movemail/movemail.c: Minor changes for compatibility with

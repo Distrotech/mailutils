@@ -2046,6 +2046,17 @@ and appends the received data to the local mailboxes.
 @node Invocation
 @subsection Invoking mail.local
 
+General usage of @command{mail.local} program is:
+                                                                                
+@example
+      mail.local [OPTION...] recipient [recipient ...]
+@end example
+
+@noindent
+If recipient part is present is a FQDN, @command{mail.local} 
+will attempt to deliver to a virtual host.
+
+                                                                                
 The program uses following option groups: @xref{mailbox}, @xref{auth},
 @xref{logging}, @xref{sieve}.
 

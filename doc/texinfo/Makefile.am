@@ -84,19 +84,19 @@ html_node:
 	texi2html="$(TEXI2HTML)";\
 	if ! test -d html_node; then mkdir html_node; fi; \
 	cd html_node; \
-	$$texi2html -menu -split_node ../mailutils.texi
+	$$texi2html -menu -split_node ../$(srcdir)/mailutils.texi
 
 html_chapter:
 	texi2html="$(TEXI2HTML)";\
 	if ! test -d html_chapter; then mkdir html_chapter; fi; \
 	cd html_chapter; \
-	$$texi2html -menu -split_chapter ../mailutils.texi
+	$$texi2html -menu -split_chapter ../$(srcdir)/mailutils.texi
 
 html_mono:
 	texi2html="$(TEXI2HTML)";\
 	if ! test -d html_mono; then mkdir html_mono; fi; \
 	cd html_mono; \
-	$$texi2html -menu -monolithic ../mailutils.texi
+	$$texi2html -menu -monolithic ../$(srcdir)/mailutils.texi
 
 ps: mailutils.ps
 
