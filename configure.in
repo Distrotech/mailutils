@@ -179,7 +179,6 @@ AC_SUBST(BUILD_LIBMYSQL)
 AC_SUBST(MYSQLLIBS)
 AC_ARG_ENABLE(mysql, [  --enable-mysql  enable mysql support (default no)], [use_mysql="yes"],,)
 if test x"$use_mysql" = x"yes"; then
-	echo Enabling mysql support, be sure to edit \'MySql/MySql.h\' to change default values
 	AC_CHECK_HEADER(mysql/mysql.h,
 	[AUTHLIBS="$AUTHLIBS -lmailMysql -lmysqlclient -lm -L/usr/lib/mysql -L/usr/local/lib/mysql -L../MySql/"
         BUILD_LIBMYSQL=libmailMysql.a
