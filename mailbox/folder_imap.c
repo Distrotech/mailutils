@@ -29,8 +29,6 @@
 
 #include <imap0.h>
 
-#define PROP_RFC822 1
-
 /* Variable use for the registrar.  */
 static struct _record _imap_record =
 {

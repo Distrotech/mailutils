@@ -205,7 +205,7 @@ property_unset (property_t prop, const char *k)
 int
 property_is_set (property_t prop, const char *k)
 {
-  int n = 0;
+  size_t n = 0;
   property_get_value (prop, k, NULL, 0, &n);
   return (n != 0);
 }
