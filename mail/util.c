@@ -41,7 +41,7 @@ static node *env_cursor = NULL;
 static node *
 util_ll_add (node *c, int data)
 {
-  c->next = malloc (sizeof (node));
+  c->next = util_malloc (sizeof (node));
   c->data = data;
   c->next->env_entry.var = NULL;
   c->next->env_entry.set = 0;
@@ -80,7 +80,7 @@ util_expand_msglist (const int argc, char **argv, int **list)
   int undelete = 0;
   int *ret = NULL;
   /* let's try a linked list */
-  node *first = malloc (sizeof (node));
+  node *first = util_malloc (sizeof (node));
   node *current = first;
   first->next = NULL;
 
@@ -150,7 +150,7 @@ util_expand_msglist (const int argc, char **argv, int **list)
 	{
 	  /* all messages */
 	  util_ll_free (first);
-	  current = first = malloc (sizeof (node));
+	  current = first = util_malloc (sizeof (node));
 	  for (i = 1; i <= total; i++)
 	    current = util_ll_add (current, i);
 	  i = argc + 1;
@@ -237,23 +237,13 @@ util_expand_msglist (const int argc, char **argv, int **list)
 
   if (!lc)
     {
-      ret = calloc (1, sizeof (int));
-      if (!ret)
-	{
-	  util_error("not enough memory");
-	  exit (1);
-	}
+      ret = util_calloc (1, sizeof (int));
       ret [0] = cursor;
       lc = 1;
     }
   else
     {
-      ret = malloc (lc * sizeof (int));
-      if (!ret)
-	{
-	  util_error("not enough memory");
-	  exit (1);
-	}
+      ret = util_malloc (lc * sizeof (int));
       lc = 0;
       for (current = first; current->next != NULL; current = current->next)
 	ret [lc++] = current->data;
@@ -482,7 +472,7 @@ util_find_env (const char *variable)
 
   if (environment == NULL)
     {
-      environment = malloc (sizeof (node));
+      environment = util_malloc (sizeof (node));
       environment->env_entry.var = NULL;
       environment->env_entry.set = 0;
       environment->env_entry.value = NULL;
@@ -790,12 +780,7 @@ util_escape_percent (char **str)
     return; /* nothing to do */
 
   /* expand the string */
-  newstr = malloc (strlen (*str) + 1 + count);
-  if (!newstr)
-    {
-      util_error("not enough memory");
-      exit (1); /* be on the safe side */
-    }
+  newstr = util_malloc (strlen (*str) + 1 + count);
 
   /* and escape percent signs */
   p = newstr;
@@ -1004,4 +989,27 @@ util_tempfile(char **namep)
     }
 
   return fd;
+}
+
+void *
+util_malloc (size_t size)
+{
+  void *p = malloc (size);
+  if (!p)
+    {
+      util_error ("not enough memory (allocating %d bytes)", size);
+      abort ();
+    }
+  return p;
+}
+
+void *
+util_calloc (size_t nitems, size_t size)
+{
+  void *p;
+  
+  size *= nitems;
+  p = util_malloc (size);
+  memset (p, 0, size);
+  return p;
 }
