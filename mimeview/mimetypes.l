@@ -106,7 +106,7 @@ WS [ \t]*
   return STRING;
 }
 <HEX>{X}{X} {
-  int c = digit_to_number (yytext[0]*16 + yytext[1]);
+  int c = digit_to_number (yytext[0])*16 + digit_to_number (yytext[1]);
   obstack_1grow (&stack, c);
 }
 <HEX>">"/[ \t\\\n,)] {
