@@ -40,8 +40,7 @@ attribute_destroy (attribute_t *pattr)
 {
   if (pattr && *pattr)
     {
-      attribute_t attr = *pattr;
-      free (attr);
+      free (*pattr);
       /* loose the link */
       *pattr = NULL;
     }

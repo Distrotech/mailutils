@@ -53,14 +53,12 @@ struct _header
 
   /* owner ? */
   void *owner;
-  int ref_count;
 };
 
 int
 header_create (header_t *ph, const char *blurb, size_t len, void *owner)
 {
   header_t h;
-  int status;
   h = calloc (1, sizeof (*h));
   if (h == NULL)
     return ENOMEM;
@@ -68,15 +66,8 @@ header_create (header_t *ph, const char *blurb, size_t len, void *owner)
 
   header_parse (h, (char *)blurb, len);
 
-  status = stream_create (&(h->stream), MU_STREAM_READ|MU_STREAM_WRITE, h);
-  if (status != 0)
-    return status;
-
-  stream_set_read  (h->stream, header_read, h);
-  stream_set_write (h->stream, header_write, h);
-
   *ph = h;
-  return status;
+  return 0;
 }
 
 void
@@ -86,16 +77,11 @@ header_destroy (header_t *ph, void *owner)
     {
       header_t h = *ph;
 
-      /* if destroy is call always decremente */
-      h->ref_count--;
-
       /* can we destroy ? */
-      if ((h->owner && h->owner == owner) ||
-	  (h->owner == NULL && h->ref_count <= 0))
+      if (h->owner == owner)
 	{
 	  /* io */
 	  stream_destroy (&(h->stream), h);
-
 	  free (h->hdr);
 	  free (h->blurb);
 	  free (h);
@@ -427,6 +413,14 @@ header_get_stream (header_t header, stream_t *pstream)
 {
   if (header == NULL || pstream == NULL)
     return EINVAL;
+  if (header->stream == NULL)
+    {
+      int status = stream_create (&(header->stream), MU_STREAM_RDWR, header);
+      if (status != 0)
+	return status;
+      stream_set_read  (header->stream, header_read, header);
+      stream_set_write (header->stream, header_write, header);
+    }
   *pstream = header->stream;
   return 0;
 }

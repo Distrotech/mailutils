@@ -312,9 +312,10 @@ mailbox_unix_destroy (mailbox_t *pmbox)
 	      if (mum == NULL)
 		continue;
 	      /* Destroy the attach messages */
-	      message_destroy (&(mum->message), mum);
 	      attribute_destroy (&(mum->old_attr));
-	      attribute_destroy (&(mum->new_attr));
+              message_destroy (&(mum->message), mum);
+	      /* new_attr free by message_destroy() */
+	      /* attribute_destroy (&(mum->new_attr)); */
 	      free (mum);
 	    }
 	  free (mud->umessages);
@@ -474,6 +475,11 @@ mailbox_unix_open (mailbox_t mbox, int flags)
     }
     funlockfile (mud->file);
     mud->flags = flags;
+
+    /* give an appriate way to lock */
+    if (mbox->locker == NULL)
+      locker_create (&(mbox->locker), mbox->name,
+		     strlen (mbox->name), MU_LOCKER_PID | MU_LOCKER_FCNTL);
   }
   mailbox_unix_iunlock (mbox);
   return 0;
@@ -547,7 +553,7 @@ mailbox_unix_num_deleted (mailbox_t mbox, size_t *pnum)
   two copies.
 */
 static FILE *
-mailbox_unix_tmpfile (mailbox_t mbox, char *tmpmbox)
+mailbox_unix_tmpfile (mailbox_t mbox, char **pbox)
 {
   mailbox_unix_data_t mud = (mailbox_unix_data_t)mbox->data;
   int fd;
@@ -557,34 +563,34 @@ mailbox_unix_tmpfile (mailbox_t mbox, char *tmpmbox)
 # define P_tmpdir "/tmp"
 #endif
 
-  tmpmbox = calloc (1, strlen (P_tmpdir) + strlen ("MBOX_") +
+  *pbox = calloc (1, strlen (P_tmpdir) + strlen ("MBOX_") +
 		   strlen (mud->basename) + 1);
-  if (tmpmbox == NULL)
+  if (*pbox == NULL)
     return NULL;
-  sprintf (tmpmbox, "%s/%s%s", P_tmpdir, "MBOX_", mud->basename);
+  sprintf (*pbox, "%s/%s%s", P_tmpdir, "MBOX_", mud->basename);
 
   /* FIXME:  I don't think this is the righ approach
    * Creating an anonymous file would be better ?
    * no trace left behind.
    */
   /* Create the file.  It must not exist.  If it does exist, fail. */
-  fd = open(tmpmbox, O_RDWR|O_CREAT|O_EXCL, 0600);
+  fd = open(*pbox, O_RDWR|O_CREAT|O_EXCL, 0600);
   if (fd < 0)
     {
-      fprintf(stderr,"Can't create %s\n", tmpmbox);
-      fprintf(stderr,"delete file <%s>, Please\n", tmpmbox);
+      fprintf(stderr,"Can't create %s\n", *pbox);
+      fprintf(stderr,"delete file <%s>, Please\n", *pbox);
       return NULL;
     }
   fp = fdopen(fd, "w+");
   if (fp == 0)
     {
       close(fd);
-      free (tmpmbox);
-      tmpmbox = NULL;
+      free (*pbox);
+      *pbox = NULL;
     }
 
   /* really I should just remove the file here */
-  /* remove(tmpmbox); */
+  /* remove(*pbox); */
   return fp;
 }
 
@@ -612,7 +618,7 @@ mailbox_unix_expunge (mailbox_t mbox)
   if (mud->messages_count == 0)
     return 0;
 
-  tempfile = mailbox_unix_tmpfile (mbox, tmpmbox);
+  tempfile = mailbox_unix_tmpfile (mbox, &tmpmbox);
   if (tempfile == NULL)
     return errno;
 
@@ -644,7 +650,8 @@ mailbox_unix_expunge (mailbox_t mbox)
 
   /*
    * We can not be NONBLOCKING here.
-   * It would irresponsable.
+   * It would irresponsable. Then again, it suppose
+   * to be a __LOCAL__ file system
    */
   if ((oflags = fcntl (fileno (mud->file), F_GETFL, 0)) < 0)
     {
@@ -672,7 +679,8 @@ mailbox_unix_expunge (mailbox_t mbox)
   for (j = 0; j < mud->messages_count; j++)
     {
       mum = mud->umessages[j];
-      if (! attribute_is_equal (mum->old_attr, mum->new_attr))
+      if (mum->new_attr &&
+	  ! attribute_is_equal (mum->old_attr, mum->new_attr))
 	break;
     }
 
@@ -681,7 +689,7 @@ mailbox_unix_expunge (mailbox_t mbox)
     {
       /* nothing change, bail out */
       status = 0;
-      goto bailout;
+      goto bailout_ok;
     }
 
   /* set the marker position */
@@ -732,31 +740,12 @@ mailbox_unix_expunge (mailbox_t mbox)
 	    }
 	  /* put the new attributes */
 	  {
-	    attribute_t attr = mum->new_attr;
-	    fputs ("Status: ", tempfile);
-	    total += 8;
-	    if (attribute_is_seen (attr))
-	      {
-		fputc ('R', tempfile);
-		total++;
-	      }
-	    if (attribute_is_answered (attr))
-	      {
-		fputc ('A', tempfile);
-		total++;
-	      }
-	    if (attribute_is_flagged (attr))
-	      {
-		fputc ('F', tempfile);
-		total++;
-	      }
-	    if (attribute_is_read (attr))
-	      {
-		fputc ('O', tempfile);
-		total++;
-	      }
-	    fputc ('\n', tempfile);
-	    total++;
+	    char abuf[64];
+	    size_t na = 0;
+	    abuf[0] = '\0';
+	    attribute_to_string (mum->new_attr, abuf, sizeof(abuf), &na);
+	    fputs (abuf, tempfile);
+	    total += na;
 	  }
 	  /* skip the status field */
 	  if (fseek (mud->file, current, SEEK_SET) == -1)
@@ -843,7 +832,7 @@ mailbox_unix_expunge (mailbox_t mbox)
       }
   }
   /* Seek and rewrite it */
-  if (total <= 0 || fseek (mud->file, marker, SEEK_SET) < 0)
+  if (total < 0 || fseek (mud->file, marker, SEEK_SET) < 0)
     {
       status = errno;
       goto bailout;
@@ -877,10 +866,11 @@ mailbox_unix_expunge (mailbox_t mbox)
 
   /* FIXME: update the num of all the messages */
 
+ bailout_ok:
   /* Don't remove the tmp mbox in case of errors */
   remove (tmpmbox);
 
-bailout:
+ bailout:
   free (tmpmbox);
   /* Release the locks */
   if (oflags > 0)
@@ -1181,11 +1171,14 @@ mailbox_unix_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
     }
   stream_set_read (stream, mailbox_unix_readstream, mum);
   stream_set_fd (stream, mailbox_unix_getfd, mum);
+  stream_set_flags (stream, mud->flags, mum);
   body_set_stream (body, stream, mum);
   body_set_size (body, mailbox_unix_body_size, mum);
   body_set_lines (body, mailbox_unix_body_lines, mum);
 
   /* set the attribute */
+  attribute_create (&(mum->new_attr));
+  mum->new_attr->flag = mum->old_attr->flag;
   status = message_set_attribute (msg, mum->new_attr, mum);
   if (status != 0)
     {
@@ -1247,9 +1240,6 @@ mailbox_unix_append_message (mailbox_t mbox, message_t msg)
       }
 
     /* header */
-    if (st.st_size != 0)
-      fputc ('\n', mud->file);
-
     message_get_header (msg, &hdr);
     /* generate a "From " separator */
     {
@@ -1289,6 +1279,7 @@ mailbox_unix_append_message (mailbox_t mbox, message_t msg)
       fwrite (buffer, sizeof (*buffer), nread, mud->file);
       off += nread;
     } while (nread > 0);
+    fputc ('\n', mud->file);
   }
   fflush(mud->file);
   funlockfile (mud->file);

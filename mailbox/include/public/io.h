@@ -71,23 +71,25 @@ extern int stream_set_read __P ((stream_t,
 						    size_t, off_t, size_t *)),
 				 void *owner));
 
-extern int stream_write __P ((stream_t, const char *, size_t, off_t, size_t *));
+extern int stream_write __P ((stream_t, const char *, size_t,
+			      off_t, size_t *));
 extern int stream_set_write __P ((stream_t,
 				  int (*_write) __P ((stream_t, const char *,
 						size_t, off_t,
 						size_t *)),
 				  void *owner));
 
-extern int stream_get_flags __P ((stream_t , int *flags));
+extern int stream_get_flags __P ((stream_t, int *pflags));
+extern int stream_set_flags __P ((stream_t, int flags, void *owner));
 
 /* misc */
 extern int file_stream_create	__P ((stream_t *stream, const char *filename,
 				      int flags));
-extern int encoder_stream_create	__P ((stream_t *stream, stream_t iostream,
-				      const char *encoding));
-extern int decoder_stream_create	__P ((stream_t *stream, stream_t iostream,
-				      const char *encoding));
-extern int tcp_stream_create	__P ((stream_t *stream));
+extern int encoder_stream_create  __P ((stream_t *stream, stream_t iostream,
+					const char *encoding));
+extern int decoder_stream_create  __P ((stream_t *stream, stream_t iostream,
+					const char *encoding));
+extern int tcp_stream_create __P ((stream_t *stream));
 
 #ifdef __cplusplus
 }

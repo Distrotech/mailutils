@@ -111,7 +111,7 @@ typedef struct _mailbox_pop_message * mailbox_pop_message_t;
 struct _mailbox_pop_message
 {
   bio_t bio;
-  int started, inbody;
+  int inbody;
   size_t num;
   off_t body_size;
   message_t message;
@@ -230,10 +230,33 @@ mailbox_pop_create (mailbox_t *pmbox, const char *name)
 }
 
 static void
-mailbox_pop_destroy (mailbox_t *mbox)
+mailbox_pop_destroy (mailbox_t *pmbox)
 {
-  (void)mbox;
-  return;
+  if (pmbox && *pmbox)
+    {
+      if ((*pmbox)->data)
+	{
+	  mailbox_pop_data_t mpd = (*pmbox)->data;
+	  size_t i;
+	  for (i = 0; i < mpd->pmessages_count; i++)
+	    {
+	      if (mpd->pmessages[i])
+		{
+		  bio_destroy (&(mpd->pmessages[i]->bio));
+		  message_destroy (&(mpd->pmessages[i]->message),
+				   mpd->pmessages[i]);
+		}
+	      free (mpd->pmessages[i]);
+	    }
+	  free (mpd->pmessages);
+	  free (mpd);
+	}
+      free ((*pmbox)->name);
+      free ((*pmbox)->event);
+      if ((*pmbox)->url)
+	url_destroy (&((*pmbox)->url));
+      *pmbox = NULL;
+    }
 }
 
 static struct termios stored_settings;
@@ -471,15 +494,45 @@ static int
 mailbox_pop_close (mailbox_t mbox)
 {
   mailbox_pop_data_t mpd;
-  //mailbox_pop_message_t mpm;
+  void *func = mailbox_pop_close;
+  int status;
+  bio_t bio;
 
   if (mbox == NULL || (mpd = mbox->data) == NULL)
     return EINVAL;
 
-  if (mpd->fd != -1)
-    close (mpd->fd);
-  mpd->fd = -1;
+  if (mpd->func && mpd->func != func)
+    return EBUSY;
 
+  mpd->func = func;
+  bio = mpd->bio;
+
+  if (mpd->fd != -1)
+    {
+      switch (mpd->state)
+	{
+	case 0:
+	  bio->len = sprintf (bio->buffer, "QUIT\r\n");
+	  bio->ptr = bio->buffer;
+	  mpd->state = 1;
+	case 1:
+	  status = bio_write (mpd->bio);
+	  if (status != 0)
+	    {
+	       if (status != EAGAIN && status != EINTR)
+		 {
+		   mpd->func = mpd->id = NULL;
+		   mpd->state = 0;
+		 }
+	       return status;
+	    }
+	  close (mpd->fd);
+	  mpd->fd = -1;
+	}
+    }
+
+  mpd->func = mpd->id = NULL;
+  mpd->state = 0;
   return 0;
 }
 
@@ -619,8 +672,8 @@ mailbox_pop_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
 	    mpd->mpm = NULL;
 	    return ERANGE;
 	  }
-	mpd->state = 5;
       }
+      mpd->state = 5;
       /* get the header */
     case 5:
       {
@@ -646,16 +699,12 @@ mailbox_pop_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
 
 	    /* our ticket out */
 	    if (bio->buffer[0] == '\0')
-	      {
-		mpd->mpm->bio->buffer[mpd->mpm->bio->maxlen + 1] = '\0';
-		break;
-	      }
+	      break;
 
-	    nread = (bio->nl) ? bio->nl - bio->buffer :
-	      bio->ptr - bio->buffer + 1;
+	    nread = bio->nl - bio->buffer;
 
 	    tbuf = realloc (mpd->mpm->bio->buffer,
-			    mpd->mpm->bio->maxlen + nread + 1);
+			    mpd->mpm->bio->maxlen + nread);
 	    if (tbuf == NULL)
 	      {
 		mpd->func = mpd->id = NULL;
@@ -667,7 +716,7 @@ mailbox_pop_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
 		return ENOMEM;
 	      }
 	    else
-	      mpd->mpm->bio->buffer = (void *)tbuf;
+	      mpd->mpm->bio->buffer = tbuf;
 	    memcpy (mpd->mpm->bio->buffer + mpd->mpm->bio->maxlen,
 		    bio->buffer, nread);
 	    mpd->mpm->bio->maxlen += nread;
@@ -748,11 +797,11 @@ mailbox_pop_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
       }
     stream_set_read (stream, mailbox_pop_readstream, mpd->mpm);
     stream_set_fd (stream, mailbox_pop_getfd, mpd->mpm);
+    stream_set_flags (stream, mpd->flags, mpd->mpm);
     body_set_size (body, mailbox_pop_body_size, mpd->mpm);
     //body_set_lines (body, mailbox_pop_body_lines, mpd->mpm);
     body_set_stream (body, stream, mpd->mpm);
   }
-
 
   /* add it to the list */
   {
@@ -888,19 +937,74 @@ mailbox_pop_expunge (mailbox_t mbox)
   mailbox_pop_data_t mpd;
   size_t i;
   attribute_t attr;
+  bio_t bio;
+  int status;
+  void *func = mailbox_pop_expunge;
 
   if (mbox == NULL ||
       (mpd = (mailbox_pop_data_t) mbox->data) == NULL)
     return EINVAL;
-  for (i = 0; i < mpd->messages_count; i++)
+
+  /* busy ? */
+  if (mpd->func && mpd->func != func)
+    return EBUSY;
+
+  mpd->func = func;
+  bio = mpd->bio;
+
+  for (i = (int)mpd->id; i < mpd->messages_count; mpd->id = (void *)++i)
     {
-      if (message_get_attribute (mpd->pmessages[i]->message, &attr) != 0)
+      if (message_get_attribute (mpd->pmessages[i]->message, &attr) == 0)
 	{
+	  /* send DELETE */
 	  if (attribute_is_deleted (attr))
 	    {
-	    }
-	}
-    }
+	      switch (mpd->state)
+		{
+		case 0:
+		  bio->len = sprintf (bio->buffer, "DELE %d\r\n",
+				      mpd->pmessages[i]->num);
+		  bio->ptr = bio->buffer;
+		  mpd->state = 1;
+		case 1:
+		  status = bio_write (bio);
+		  if (status != 0)
+		    {
+		      if (status != EAGAIN && status != EINTR)
+			{
+			  mpd->func = mpd->id = NULL;
+			  mpd->state = 0;
+			  fprintf(stderr, "PROBLEM write %d\n", status);
+			}
+		      return status;
+		    }
+		  mpd->state = 2;
+		case 2:
+		  status = bio_readline (bio);
+		  if (status != 0)
+		    {
+		      if (status != EAGAIN && status != EINTR)
+			{
+			  mpd->func = mpd->id = NULL;
+			  mpd->state = 0;
+			  fprintf(stderr, "PROBLEM readline %d\n", status);
+			}
+		      return status;
+		    }
+		  if (strncasecmp (bio->buffer, "+OK", 3) != 0)
+		    {
+		      mpd->func = mpd->id = NULL;
+		      mpd->state = 0;
+			  fprintf(stderr, "PROBLEM strcmp\n");
+		      return ERANGE;
+		    }
+		  mpd->state = 0;
+		} /* switch (state) */
+	    } /* if attribute_is_deleted() */
+	} /* message_get_attribute() */
+    } /* for */
+  mpd->func = mpd->id = NULL;
+  mpd->state = 0;
 
   return 0;
 }
@@ -1180,8 +1284,6 @@ bio_readline (bio_t bio)
       memmove (bio->buffer, bio->nl + 1, bio->ptr - bio->nl);
       bio->ptr = bio->buffer + (bio->ptr - bio->nl) - 1;
       bio->nl = memchr (bio->buffer, '\n', bio->ptr - bio->buffer + 1);
-      //if (bio->nl == NULL)
-      //bio->nl = bio->buffer;
     }
   else
     bio->nl = bio->ptr = bio->buffer;
@@ -1198,10 +1300,11 @@ bio_readline (bio_t bio)
 	  bio->nl = memchr (bio->buffer, '\n', len);
 	  if (bio->nl == NULL)
 	    {
-	      if (len >= bio->maxlen)
+	      if (len >= (bio->maxlen - 1))
 		{
-		  char *tbuf = realloc (bio->buffer,
-				    (2*(bio->maxlen) + 1)*(sizeof(char)));
+		  char *tbuf;
+		  tbuf = realloc (bio->buffer,
+				  (2*(bio->maxlen) + 2)*(sizeof(char)));
 		  if (tbuf == NULL)
 		    return ENOMEM;
 		  bio->buffer = tbuf;

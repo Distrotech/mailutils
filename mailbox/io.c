@@ -42,11 +42,12 @@ stream_destroy (stream_t *pstream, void *owner)
    if (pstream && *pstream)
     {
       stream_t stream = *pstream;
-      if (!(stream->flags & MU_STREAM_NO_CHECK) && stream->owner != owner)
-	return;
-      if (stream->_destroy)
-	stream->_destroy (stream);
-	free (stream);
+      if ((stream->flags & MU_STREAM_NO_CHECK) || stream->owner == owner)
+	{
+	  if (stream->_destroy)
+	    stream->_destroy (stream);
+	  free (stream);
+	}
       *pstream = NULL;
     }
 }
@@ -191,5 +192,16 @@ stream_get_flags (stream_t stream, int *pfl)
   if (stream == NULL && pfl == NULL )
     return EINVAL;
   *pfl = stream->flags;
+  return 0;
+}
+
+int
+stream_set_flags (stream_t stream, int fl, void *owner)
+{
+  if (stream == NULL)
+    return EINVAL;
+  if (stream->owner != owner)
+    return EACCES;
+  stream->flags = fl;
   return 0;
 }

@@ -46,11 +46,9 @@ struct _message
   stream_t stream;
   body_t body;
   attribute_t attribute;
-  size_t num;
 
   /* who is the owner */
   void *owner;
-  int ref_count;
 
   event_t event;
   size_t event_num;

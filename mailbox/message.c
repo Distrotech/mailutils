@@ -39,22 +39,12 @@ int
 message_create (message_t *pmsg, void *owner)
 {
   message_t msg;
-  stream_t stream;
-  int status;
 
   if (pmsg == NULL)
     return EINVAL;
   msg = calloc (1, sizeof (*msg));
   if (msg == NULL)
     return ENOMEM;
-  status = stream_create (&stream, MU_STREAM_RDWR, msg);
-  if (status != 0)
-    {
-      free (msg);
-      return status;
-    }
-  stream_set_read (stream, message_read, msg);
-  stream_set_write (stream, message_write, msg);
   msg->owner = owner;
   *pmsg = msg;
   return 0;
@@ -66,48 +56,32 @@ message_destroy (message_t *pmsg, void *owner)
   if (pmsg && *pmsg)
     {
       message_t msg = *pmsg;
-      int destroy = 0;
 
-      /* always decremente */
-      msg->ref_count--;
-
-      if (msg->owner && msg->owner == owner)
-	destroy = 1;
-
-      if (msg->owner == NULL && msg->ref_count <= 0)
+      if (msg->owner == owner)
 	{
-	  destroy = 1;
-	  owner = msg;
-	}
-
-      if (destroy)
-	{
-	  attribute_t attribute = msg->attribute;
-	  stream_t stream = msg->stream;
-	  header_t header = msg->header;
-	  body_t body = msg->body;
-
 	  /* notify the listeners */
-	  message_notification (msg, MU_EVT_MSG_DESTROY);
+	  if (msg->event_num)
+	    {
+	      message_notification (msg, MU_EVT_MSG_DESTROY);
+	      free (msg->event);
+	    }
 	  /* header */
-	  header_destroy (&header, owner);
+	  header_destroy (&(msg->header), owner);
 	  /* attribute */
-	  attribute_destroy (&attribute);
+	  attribute_destroy (&(msg->attribute));
 	  /* stream */
-	  stream_destroy (&stream, owner);
+	  stream_destroy (&(msg->stream), owner);
 
 	  /* if sometype of floating/temporary message */
-	  body_destroy (&body, owner);
+	  body_destroy (&(msg->body), owner);
 	  /* notifications are done */
-	  free (msg->event);
 
 	  /* check again for resurrection before free()ing
 	   * the memory maybe it was clone, if yes we can not
 	   * free the pointer.
 	   *
 	   */
-	  if (msg->ref_count <= 0)
-	    free (msg);
+	  free (msg);
 	}
       /* loose the link */
       *pmsg = NULL;
@@ -347,7 +321,7 @@ message_get_attribute (message_t msg, attribute_t *pattribute)
 {
   if (msg == NULL || pattribute == NULL)
    return EINVAL;
-  if (msg->attribute == NULL && msg->owner == NULL)
+  if (msg->attribute == NULL)
     {
       attribute_t attribute;
       int status = attribute_create (&attribute);

@@ -267,16 +267,15 @@ do \
     } \
 } while (0)
 
+//    size_t num = 2 * ((mud)->messages_count) + 10;
 /* allocate slots for the new messages */
 #define ALLOCATE_MSGS(mbox,mud,file) \
 do \
 { \
-  if (mud->umessages_count == 0 || \
-      ((mud)->umessages_count + 1) <= (mud)->messages_count) \
+  if ((mud)->messages_count >= (mud)->umessages_count) \
   { \
     mailbox_unix_message_t *m; \
-    size_t i; \
-    size_t num = 2 * ((mud)->messages_count) + 10; \
+    size_t num = ((mud)->umessages_count) + 1; \
     m = realloc ((mud)->umessages, num * sizeof (*m)); \
     if (m == NULL) \
       { \
@@ -286,24 +285,16 @@ do \
         return ENOMEM; \
       } \
     (mud)->umessages = m; \
-    if ((mud)->umessages_count) \
-      i = (mud)->umessages_count + 1; \
-    else \
-      i =  0; \
-    for (; i < num; i++) \
+    (mud)->umessages[num - 1] = calloc (1, sizeof (*(mum))); \
+    if ((mud)->umessages[num - 1] == NULL) \
       { \
-        (mud)->umessages[i] = calloc (1, sizeof (*(mum))); \
-        if ((mud)->umessages[i] == NULL) \
-          { \
-            fclose (file); \
-            mailbox_unix_iunlock (mbox); \
-            mailbox_unix_unlock (mbox); \
-            return ENOMEM; \
-          } \
-        ATTRIBUTE_CREATE (((mud)->umessages[i])->old_attr, mbox); \
-        ATTRIBUTE_CREATE (((mud)->umessages[i])->new_attr, mbox); \
+        fclose (file); \
+        mailbox_unix_iunlock (mbox); \
+        mailbox_unix_unlock (mbox); \
+        return ENOMEM; \
       } \
-    (mud)->umessages_count = num - 1; \
+    ATTRIBUTE_CREATE (((mud)->umessages[num - 1])->old_attr, mbox); \
+    (mud)->umessages_count = num; \
   } \
 } while (0)
 
@@ -433,7 +424,6 @@ mailbox_unix_scan (mailbox_t mbox, size_t msgno, size_t *pcount)
 	      ATTRIBUTE_SET(buf, mum, 'o', 'O', MU_ATTRIBUTE_SEEN);
 	      ATTRIBUTE_SET(buf, mum, 'a', 'A', MU_ATTRIBUTE_ANSWERED);
 	      ATTRIBUTE_SET(buf, mum, 'd', 'D', MU_ATTRIBUTE_DELETED);
-	      mum->new_attr->flag = mum->old_attr->flag;
 	    }
 	}
 
