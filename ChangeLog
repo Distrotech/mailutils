@@ -1,3 +1,10 @@
+2003-09-05  Wojciech Polak
+
+	* mailbox/wicket.c: Moved stat() (checking the file
+	permissions) to wicket_create().
+	* sieve/sieve.c (tickets_default): New variable.
+	(main): Check the tickets_default.
+
 2003-09-05  Sergey Poznyakoff 
 
 	* lib/mu_dbm.c (mu_fcheck_perm, mu_check_perm): Return
