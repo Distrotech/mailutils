@@ -1,3 +1,18 @@
+2002-04-19  Sergey Poznyakoff
+
+	* guimb/scm/sieve.scm (sieve-parse-command): Bugfix: must always
+	  return a list whose car is the token type.
+	  New command line options: --debug and --lib-dir
+	* guimb/scm/mimeheader.scm: (new) Implements "mimeheader"
+	  extension test. The test is similar to "header" but works
+	  on multipart MIME messages also.
+	* guimb/scm/Makefile.am: Added mimeheader.scm
+	
+	* libmu_scm/mu_message.c: New interfaces: mu-message-multipart?,
+	  mu-message-get-num-parts, mu-message-get-part
+	* libmu_scm/mu_port.c (mu_port_mark): Do nothing if the port
+	  is not in open state.
+	
 2002-04-15  Sam Roberts
 
 	* doc/texinfo/programs.texi, include/mailutils/mutil.h,
