@@ -30,7 +30,7 @@
 static struct _record _pop_record =
 {
   MU_POP_SCHEME,
-  _url_pop_init, /* Mailbox init.  */
+  _url_pop_init, /* Url init.  */
   _mailbox_pop_init, /* Mailbox init.  */
   NULL, /* Mailer init.  */
   _folder_pop_init, /* Folder init.  */
