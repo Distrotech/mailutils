@@ -19,7 +19,6 @@
 
 #include "comsat.h"
 #include <argcv.h>
-#include <ctype.h>
 
 typedef struct netdef netdef_t;
 
