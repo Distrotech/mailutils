@@ -15,7 +15,7 @@
    along with GNU Mailutils; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-#include <mu_scm.h>
+#include "mu_scm.h"
 
 static void _scheme_main (void *closure, int argc, char **argv);
 
