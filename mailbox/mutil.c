@@ -28,6 +28,7 @@
 #include <time.h>
 #include <pwd.h>
 #include <unistd.h>
+#include <string.h>
 
 #include <mailutils/mutil.h>
 #include <mailutils/iterator.h>
@@ -342,7 +343,7 @@ mu_getpwnam (const char *name)
   struct passwd *p;
   iterator_t itr;
 
-  p = getpwnam (name); 
+  p = getpwnam (name);
 
   if (!p && iterator_create (&itr, _app_getpwnam) == 0)
     {
@@ -370,7 +371,7 @@ getpwnam_virtual (const char *u)
   FILE *pfile;
   int i = 0, len = strlen (u), delim = 0;
   char *filename;
-  
+
   mu_virtual_domain = 0;
   for (i = 0; i < len && delim == 0; i++)
     if (u[i] == '!' || u[i] == ':' || u[i] == '@')
@@ -380,14 +381,14 @@ getpwnam_virtual (const char *u)
     return NULL;
 
   filename = malloc (strlen (SITE_VIRTUAL_PWDDIR) +
-		     strlen (&u[delim + 1]) + 1);
+		     strlen (&u[delim + 1]) + 2 /* slash and null byte */);
   if (filename == NULL)
     return NULL;
 
   sprintf (filename, "%s/%s", SITE_VIRTUAL_PWDDIR, &u[delim + 1]);
   pfile = fopen (filename, "r");
   free (filename);
-	  
+
   if (pfile)
     while ((pw = fgetpwent (pfile)) != NULL)
       {

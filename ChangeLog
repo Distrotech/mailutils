@@ -1,12 +1,19 @@
+2001-09-02  Alain Magloire
+
+	* mailbox/mutil.c (getpwma_virtual): Memory overrun, did not
+	reserve enough space to accomodate the extra slash, when
+	doing the sprintf().
+	Include <string.h>, since we use strdup().
+
 2001-08-31  Jakob 'sparky' Kaivo  <jkaivo@elijah.nodomainname.net>
 
 	* imap4d/list.c (list_file): don't show INBOX if virtual
 
 2001-08-31 Sergey Poznyakoff
-	
+
 	* mailbix/mutil.c: Fixed declaration of _app_getpwnam.
 	Moved mu_virtual_domain out of #ifdef guard. Fixed typo
-	in getpwnam_virtual: erroneously returned NULL instead of	
+	in getpwnam_virtual: erroneously returned NULL instead of
 	p.
 
 2001-08-31 Sergey Poznyakoff
