@@ -39,6 +39,7 @@
 #include <mailutils/attribute.h>
 #include <mailutils/mailer.h>
 #include <mailutils/envelope.h>
+#include <mailutils/url.h>
 
 #include <libguile.h>
 
