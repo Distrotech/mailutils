@@ -272,15 +272,27 @@ Be sure to include the word ``mailutils'' somewhere in the ``Subject:'' field.
 @cindex Acknowledgement
 
 In no particular order,
+
+@itemize @bullet
+@item
 Jakob Kaivo @email{jkaivo@@ndn.net},
+@item
 Jeff Bailey @email{jbailey@@gnu.org},
+@item
 Sean Perry @email{shaleh@@debian.org},
+@item
 Thomas Fletcher @email{thomasf@@qnx.com},
+@item
 Dave Inglis @email{dinglis@@qnx.com},
+@item
 Brian Edmond @email{briane@@qnx.com},
+@item
 Sam Roberts @email{sroberts@@uniserve.com},
+@item
 Sergey Poznyakoff @email{gray@@Mirddin.farlep.net},
+@item
 Fran@,{c}ois Pinard  @email{pinard@@IRO.UMontreal.CA}.
+@end itemize
 @page
 
 @node Concept Index, Index, Acknowledgement, Top
