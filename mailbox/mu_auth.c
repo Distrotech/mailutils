@@ -47,6 +47,8 @@
 #include <mailutils/error.h>
 #include <mailutils/nls.h>
 
+/* FIXME: The functions from this module assign values to errno and 
+   use ENOENT instead of MU_ERR_NOENT */
 /*#define DEBUG(c) do { printf c; printf("\n"); } while (0)*/
 #define DEBUG(c)
 

@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2003 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2003, 2004 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -55,10 +55,10 @@ mu_mailcap_create (mu_mailcap_t * pmailcap, stream_t stream)
   mu_mailcap_t mailcap;
   int status = 0;
 
-  if (stream == NULL || pmailcap == NULL)
-    {
-      return EINVAL;
-    }
+  if (stream == NULL)
+    return EINVAL;
+  if (pmailcap == NULL)
+    return MU_ERR_OUT_PTR_NULL;
 
   mailcap = calloc (1, sizeof (*mailcap));
   if (mailcap != NULL)
@@ -106,10 +106,9 @@ int
 mu_mailcap_entries_count (mu_mailcap_t mailcap, size_t *pcount)
 {
   int status = 0;
+
   if (mailcap == NULL)
-    {
-      status = EINVAL;
-    }
+    status = EINVAL;
   if (pcount != NULL)
     {
       *pcount = mailcap->entries_count;
@@ -122,13 +121,13 @@ mu_mailcap_get_entry (mu_mailcap_t mailcap, size_t no,
 		      mu_mailcap_entry_t *pentry)
 {
   int status = 0;
-  if (mailcap == NULL || pentry == NULL)
-    {
-      status = EINVAL;
-    }
+  if (mailcap == NULL)
+    status = EINVAL;
+  else if (pentry == NULL)
+    status = MU_ERR_OUT_PTR_NULL;
   else if (no == 0 || no > mailcap->entries_count)
     {
-      status = ENOENT;
+      status = MU_ERR_NOENT;
     }
   else
     {
@@ -223,7 +222,7 @@ mu_mailcap_entry_get_field (mu_mailcap_entry_t entry, size_t no,
     }
   else if ( no == 0 || no > entry->fields_count)
     {
-      status = ENOENT;
+      status = MU_ERR_NOENT;
     }
   else
     {

@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2002, 2004 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -49,7 +49,7 @@ mh_context_read (mh_context_t *ctx)
   FILE *fp;
 
   if (!ctx)
-    return EINVAL;
+    return MU_ERR_OUT_NULL;
   
   if (stat (ctx->name, &st))
     return errno;
@@ -83,14 +83,14 @@ mh_context_write (mh_context_t *ctx)
   FILE *fp;
   
   if (!ctx)
-    return EINVAL;
+    return MU_ERR_OUT_NULL;
 
   fp = fopen (ctx->name, "w");
   if (!fp)
     {
       mh_error (_("can't write context file %s: %s"),
 		ctx->name, strerror (errno));
-      return 1;
+      return MU_ERR_FAILURE;
     }
   
   header_get_stream (ctx->header, &stream);

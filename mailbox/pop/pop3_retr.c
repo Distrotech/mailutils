@@ -29,8 +29,10 @@ mu_pop3_retr (mu_pop3_t pop3, unsigned int msgno, stream_t *pstream)
 {
   int status;
 
-  if (pop3 == NULL || msgno == 0 || pstream == NULL)
+  if (pop3 == NULL || msgno == 0)
     return EINVAL;
+  if (pstream == NULL)
+   return MU_ERR_OUT_PTR_NULL;
 
   switch (pop3->state)
     {

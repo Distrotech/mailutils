@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2004 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -28,6 +28,7 @@
 #include <termios.h>
 
 #include <mailutils/mutil.h>
+#include <mailutils/errno.h>
 #include <auth0.h>
 
 static void
@@ -51,7 +52,7 @@ ticket_create (ticket_t *pticket, void *owner)
 {
   ticket_t ticket;
   if (pticket == NULL)
-    return EINVAL;
+    return MU_ERR_OUT_PTR_NULL;
   ticket = calloc (1, sizeof (*ticket));
   if (ticket == NULL)
     return ENOMEM;
@@ -114,8 +115,10 @@ ticket_pop (ticket_t ticket, url_t url, const char *challenge, char **parg)
 {
   int rc = -1;
   
-  if (ticket == NULL || parg == NULL)
+  if (ticket == NULL)
     return EINVAL;
+  if (parg == NULL)
+    return MU_ERR_OUT_PTR_NULL;
   if (ticket->_pop)
     rc = ticket->_pop (ticket, url, challenge, parg);
   if (rc != 0 && isatty (fileno (stdin)))
@@ -149,8 +152,10 @@ ticket_pop (ticket_t ticket, url_t url, const char *challenge, char **parg)
 int
 ticket_get_data (ticket_t ticket, void **data)
 {
-  if (ticket == NULL || data == NULL)
+  if (ticket == NULL)
     return EINVAL;
+  if (data == NULL)
+    return MU_ERR_OUT_PTR_NULL;
   *data = ticket->data;
   return 0;
 }

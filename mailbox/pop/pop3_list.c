@@ -29,8 +29,10 @@ mu_pop3_list (mu_pop3_t pop3, unsigned int msgno, size_t *psize)
 {
   int status;
 
-  if (pop3 == NULL || msgno == 0 || psize == NULL)
+  if (pop3 == NULL || msgno == 0)
     return EINVAL;
+  if (psize == NULL)
+    return MU_ERR_OUT_NULL;
 
   switch (pop3->state)
     {

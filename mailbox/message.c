@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2002, 2004 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -76,7 +76,7 @@ message_create (message_t *pmsg, void *owner)
   int status;
 
   if (pmsg == NULL)
-    return EINVAL;
+    return MU_ERR_OUT_PTR_NULL;
   msg = calloc (1, sizeof (*msg));
   if (msg == NULL)
     return ENOMEM;
@@ -173,7 +173,9 @@ message_create_copy (message_t *to, message_t from)
   size_t n = 0;
   char buf[512];
 
-  if(!to || !from)
+  if (!to)
+    return MU_ERR_OUT_PTR_NULL;
+  if (!from)
     return EINVAL;
 
   if((status = message_create (to, NULL)))
@@ -249,8 +251,10 @@ message_clear_modified (message_t msg)
 int
 message_get_mailbox (message_t msg, mailbox_t *pmailbox)
 {
-  if (msg == NULL || pmailbox == NULL)
+  if (msg == NULL)
     return EINVAL;
+  if (pmailbox == NULL)
+    return MU_ERR_OUT_PTR_NULL;
   *pmailbox = msg->mailbox;
   return 0;
 }
@@ -269,8 +273,10 @@ message_set_mailbox (message_t msg, mailbox_t mailbox, void *owner)
 int
 message_get_header (message_t msg, header_t *phdr)
 {
-  if (msg == NULL || phdr == NULL)
+  if (msg == NULL)
     return EINVAL;
+  if (phdr == NULL)
+    return MU_ERR_OUT_PTR_NULL;
 
   /* Is it a floating mesg */
   if (msg->header == NULL)
@@ -311,8 +317,10 @@ message_set_header (message_t msg, header_t hdr, void *owner)
 int
 message_get_body (message_t msg, body_t *pbody)
 {
-  if (msg == NULL || pbody == NULL)
+  if (msg == NULL)
     return EINVAL;
+  if (pbody == NULL)
+    return MU_ERR_OUT_PTR_NULL;
 
   /* Is it a floating mesg.  */
   if (msg->body == NULL)
@@ -382,8 +390,10 @@ message_set_stream (message_t msg, stream_t stream, void *owner)
 int
 message_get_stream (message_t msg, stream_t *pstream)
 {
-  if (msg == NULL || pstream == NULL)
+  if (msg == NULL)
     return EINVAL;
+  if (pstream == NULL)
+    return MU_ERR_OUT_PTR_NULL;
 
   if (msg->stream == NULL)
     {
@@ -478,8 +488,10 @@ message_size (message_t msg, size_t *psize)
 int
 message_get_envelope (message_t msg, envelope_t *penvelope)
 {
-  if (msg == NULL || penvelope == NULL)
+  if (msg == NULL)
     return EINVAL;
+  if (penvelope == NULL)
+    return MU_ERR_OUT_PTR_NULL;
 
   if (msg->envelope == NULL)
     {
@@ -512,9 +524,10 @@ message_set_envelope (message_t msg, envelope_t envelope, void *owner)
 int
 message_get_attribute (message_t msg, attribute_t *pattribute)
 {
-  if (msg == NULL || pattribute == NULL)
-   return EINVAL;
-
+  if (msg == NULL)
+    return EINVAL;
+  if (pattribute == NULL)
+    return MU_ERR_OUT_PTR_NULL;
   if (msg->attribute == NULL)
     {
       attribute_t attribute;

@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2004 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -31,6 +31,7 @@
 #include <mailutils/stream.h>
 #include <mailutils/address.h>
 #include <mailutils/mutil.h>
+#include <mailutils/errno.h>
 
 #include <header0.h>
 
@@ -451,7 +452,7 @@ header_get_fvalue (header_t header, const char *name, char *buffer,
 {
   size_t i, fn_len, fv_len = 0;
   size_t name_len;
-  int err = ENOENT;
+  int err = MU_ERR_NOENT;
 
   for (i = 0, name_len = strlen (name); i < header->fhdr_count; i++)
     {
@@ -503,7 +504,7 @@ header_get_value (header_t header, const char *name, char *buffer,
   switch (err)
     {
     case EINVAL: /* Permanent failure.  */
-      err = ENOENT;
+      err = MU_ERR_NOENT;
     case ENOMEM:
       if (pn)
 	*pn = 0;
@@ -603,7 +604,7 @@ header_get_value (header_t header, const char *name, char *buffer,
   if (pn)
     *pn = total;
 
-  return  (total == 0) ? ENOENT : 0;
+  return  (total == 0) ? MU_ERR_NOENT : 0;
 }
 
 int
@@ -701,7 +702,7 @@ header_get_field_name (header_t header, size_t num, char *buf,
     }
 
   if (header->hdr_count == 0 || num > header->hdr_count || num == 0)
-    return ENOENT;
+    return MU_ERR_NOENT;
 
   num--;
   len = (header->hdr[num].fn_end - header->hdr[num].fn);
@@ -755,7 +756,7 @@ header_get_field_value (header_t header, size_t num, char *buf,
     }
 
   if (header->hdr_count == 0 || num > header->hdr_count || num == 0)
-    return ENOENT;
+    return MU_ERR_NOENT;
 
   num--;
   len = header->hdr[num].fv_end - header->hdr[num].fv;
@@ -828,8 +829,11 @@ header_lines (header_t header, size_t *plines)
 {
   int n;
   size_t lines = 0;
-  if (header == NULL || plines == NULL)
+
+  if (header == NULL)
     return EINVAL;
+  if (plines == NULL)
+    return MU_ERR_OUT_PTR_NULL;
 
   /* Overload.  */
   if (header->_lines)
@@ -1195,8 +1199,10 @@ header_readline (stream_t is, char *buf, size_t buflen, off_t off, size_t *pn)
 int
 header_get_stream (header_t header, stream_t *pstream)
 {
-  if (header == NULL || pstream == NULL)
+  if (header == NULL)
     return EINVAL;
+  if (pstream == NULL)
+    return MU_ERR_OUT_PTR_NULL;
   if (header->stream == NULL)
     {
       int status = stream_create (&(header->stream), MU_STREAM_RDWR, header);

@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2004 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -24,12 +24,15 @@
 
 #include <list0.h>
 #include <iterator0.h>
+#include <mailutils/errno.h>
 
 int
 iterator_create (iterator_t *piterator, list_t list)
 {
   iterator_t iterator;
-  if (piterator == NULL || list == NULL)
+  if (piterator == NULL)
+    return MU_ERR_OUT_PTR_NULL;
+  if (list == NULL)
     return EINVAL;
   iterator = calloc (sizeof (*iterator), 1);
   if (iterator == NULL)
@@ -48,7 +51,9 @@ iterator_dup (iterator_t *piterator, iterator_t orig)
 {
   iterator_t iterator;
 
-  if (piterator == NULL || orig == NULL)
+  if (piterator == NULL)
+    return MU_ERR_OUT_PTR_NULL;
+  if (orig == NULL)
     return EINVAL;
   iterator = calloc (sizeof (*iterator), 1);
   if (iterator == NULL)
@@ -108,7 +113,7 @@ int
 iterator_current (iterator_t iterator, void **pitem)
 {
   if (!iterator->cur)
-    return ENOENT;
+    return MU_ERR_NOENT;
   *pitem = iterator->cur->item;
   return 0;
 }
@@ -126,7 +131,9 @@ iterator_get_list (iterator_t iterator, list_t *plist)
 {
   if (!iterator)
     return EINVAL;
-    *plist = iterator->list;
+  if (!plist)
+    return MU_ERR_OUT_PTR_NULL;
+  *plist = iterator->list;
   return 0;
 }
 

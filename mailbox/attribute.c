@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2004 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -28,6 +28,7 @@
 # include <strings.h>
 #endif
 
+#include <mailutils/errno.h>
 #include <attribute0.h>
 
 static int flags_to_string __P ((int, char *, size_t, size_t *));
@@ -37,7 +38,7 @@ attribute_create (attribute_t *pattr, void *owner)
 {
   attribute_t attr;
   if (pattr == NULL)
-    return EINVAL;
+    return MU_ERR_OUT_PTR_NULL;
   attr = calloc (1, sizeof(*attr));
   if (attr == NULL)
     return ENOMEM;
@@ -90,8 +91,10 @@ attribute_set_modified (attribute_t attr)
 int
 attribute_get_flags (attribute_t attr, int *pflags)
 {
-  if (attr == NULL || pflags == NULL)
+  if (attr == NULL)
     return EINVAL;
+  if (pflags == NULL)
+    return MU_ERR_OUT_PTR_NULL;
   if (attr->_get_flags)
     return attr->_get_flags (attr, pflags);
   *pflags = attr->flags;

@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2004 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -36,7 +36,7 @@
 #include <string.h>
 
 #include <mailutils/property.h>
-
+#include <mailutils/errno.h>
 #include <stream0.h>
 
 static int refill (stream_t, off_t);
@@ -52,7 +52,9 @@ int
 stream_create (stream_t *pstream, int flags, void *owner)
 {
   stream_t stream;
-  if (pstream == NULL || owner == NULL)
+  if (pstream == NULL)
+    return MU_ERR_OUT_PTR_NULL;
+  if (owner == NULL)
     return EINVAL;
   stream = calloc (1, sizeof (*stream));
   if (stream == NULL)
@@ -441,8 +443,10 @@ stream_get_fd2 (stream_t stream, int *pfd1, int *pfd2)
 int
 stream_get_flags (stream_t stream, int *pfl)
 {
-  if (stream == NULL || pfl == NULL )
+  if (stream == NULL)
     return EINVAL;
+  if (pfl == NULL)
+    return MU_ERR_OUT_NULL;
   *pfl = stream->flags;
   return 0;
 }
@@ -505,8 +509,10 @@ stream_flush (stream_t stream)
 int
 stream_get_state (stream_t stream, int *pstate)
 {
-  if (stream == NULL || pstate == NULL)
+  if (stream == NULL)
     return EINVAL;
+  if (pstate == NULL)
+    return MU_ERR_OUT_PTR_NULL;
   *pstate = stream->state;
   return 0;
 }

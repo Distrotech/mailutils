@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2004 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -28,9 +28,10 @@ mu_pop3_top (mu_pop3_t pop3, unsigned msgno, unsigned int lines, stream_t *pstre
 {
   int status;
 
-  if (pop3 == NULL || msgno == 0 || pstream == NULL)
+  if (pop3 == NULL || msgno == 0)
     return EINVAL;
-
+  if (pstream == NULL)
+    return MU_ERR_OUT_PTR_NULL;
 
   switch (pop3->state)
     {

@@ -23,7 +23,7 @@
 #include <mailutils/errno.h>
 #include <mailutils/mutil.h>
 
-#define EPARSE ENOENT
+#define EPARSE MU_ERR_NOENT
 
 static int
 parse (const char *str)

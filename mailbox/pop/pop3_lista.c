@@ -30,8 +30,10 @@ mu_pop3_list_all (mu_pop3_t pop3, list_t *plist)
 {
   int status;
 
-  if (pop3 == NULL || plist == NULL)
+  if (pop3 == NULL)
     return EINVAL;
+  if (plist == NULL)
+    return MU_ERR_OUT_PTR_NULL;
 
   switch (pop3->state)
     {

@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2003 Free Software Foundation, Inc.
+   Copyright (C) 2003, 2004 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -29,8 +29,10 @@ mu_pop3_uidl_all (mu_pop3_t pop3, list_t *plist)
 {
   int status;
 
-  if (pop3 == NULL || plist == NULL)
+  if (pop3 == NULL)
     return EINVAL;
+  if (plist == NULL)
+    return MU_ERR_OUT_PTR_NULL;
 
   switch (pop3->state)
     {

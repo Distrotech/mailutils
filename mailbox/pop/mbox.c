@@ -1305,7 +1305,7 @@ pop_message_size (message_t msg, size_t *psize)
   CLEAR_STATE (mpd);
 
   if (status != 2)
-    status = EINVAL;
+    status = MU_ERR_PARSE;
 
   /* The size of the message is with the extra '\r' octet for everyline.
      Substract to get, hopefully, a good count.  */
@@ -1535,7 +1535,7 @@ pop_uidl (message_t msg, char *buffer, size_t buflen, size_t *pnwriten)
   status = sscanf (mpd->buffer, "+OK %d %127s\n", &num, uniq);
   if (status != 2)
     {
-      status = EINVAL;
+      status = MU_ERR_PARSE;
       buflen = 0;
     }
   else

@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2004 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -24,7 +24,7 @@
 
 #include <mailutils/list.h>
 #include <mailutils/iterator.h>
-
+#include <mailutils/errno.h>
 #include <observer0.h>
 
 int
@@ -110,7 +110,7 @@ observable_create (observable_t *pobservable, void *owner)
   observable_t observable;
   int status;
   if (pobservable == NULL)
-    return EINVAL;
+    return MU_ERR_OUT_PTR_NULL;
   observable = calloc (sizeof (*observable), 1);
   if (observable == NULL)
     return ENOMEM;
@@ -208,7 +208,7 @@ observable_detach (observable_t observable, observer_t observer)
       free (event);
     }
   else
-    status = ENOENT;
+    status = MU_ERR_NOENT;
   return status;
 }
 

@@ -170,7 +170,6 @@ char *
 namespace_checkfullpath (char *name, const char *pattern, const char *delim)
 {
   struct namespace_info info;
-  url_t url = NULL;
   char *p, *path = NULL;
   char *scheme = NULL;
 

@@ -985,7 +985,7 @@ mbox_header_get_fvalue (header_t header, const char *name, char *buffer,
   size_t i, fv_len = 0;
   message_t msg = header_get_owner (header);
   mbox_message_t mum = message_get_owner (msg);
-  int err = ENOENT;
+  int err = MU_ERR_NOENT;
   for (i = 0; i < HDRSIZE; i++)
     {
       if (*name == *(fhdr_table[i]) && strcasecmp (fhdr_table[i], name) == 0)
@@ -1004,7 +1004,7 @@ mbox_header_get_fvalue (header_t header, const char *name, char *buffer,
 	      err = 0;
 	    }
 	  else
-	    err = ENOENT;
+	    err = MU_ERR_NOENT;
 	  break;
 	}
     }
@@ -1168,7 +1168,9 @@ mbox_get_message (mailbox_t mailbox, size_t msgno, message_t *pmsg)
   message_t msg = NULL;
 
   /* Sanity checks.  */
-  if (pmsg == NULL || mud == NULL)
+  if (pmsg == NULL)
+    return MU_ERR_OUT_PTR_NULL;
+  if (mud == NULL)
     return EINVAL;
 
   /* If we did not start a scanning yet do it now.  */
@@ -1288,6 +1290,7 @@ mbox_append_message (mailbox_t mailbox, message_t msg)
 {
   int status = 0;
   mbox_data_t mud = mailbox->data;
+
   if (msg == NULL || mud == NULL)
     return EINVAL;
 
@@ -1661,6 +1664,7 @@ static int
 mbox_messages_count (mailbox_t mailbox, size_t *pcount)
 {
   mbox_data_t mud = mailbox->data;
+
   if (mud == NULL)
     return EINVAL;
 

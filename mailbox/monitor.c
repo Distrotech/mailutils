@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2004 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -33,7 +33,7 @@
 #include <stdlib.h>
 
 #include <monitor0.h>
-
+#include <mailutils/errno.h>
 
 #ifdef WITH_PTHREAD
 pthread_mutex_t monitor_lock = PTHREAD_MUTEX_INITIALIZER;
@@ -82,7 +82,7 @@ monitor_create (monitor_t *pmonitor, int flags, void *owner)
   monitor_t monitor;
 
   if (pmonitor == NULL)
-    return EINVAL;
+    return MU_ERR_OUT_PTR_NULL;
 
   monitor = calloc (1, sizeof (*monitor));
   if (monitor == NULL)

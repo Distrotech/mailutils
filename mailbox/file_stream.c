@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2002, 2004 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -486,7 +486,7 @@ file_stream_create (stream_t *stream, const char* filename, int flags)
   int ret;
 
   if (stream == NULL)
-    return EINVAL;
+    return MU_ERR_OUT_PTR_NULL;
 
   fs = calloc (1, sizeof (struct _file_stream));
   if (fs == NULL)
@@ -528,7 +528,7 @@ stdio_stream_create (stream_t *stream, FILE *file, int flags)
   int ret;
 
   if (stream == NULL)
-    return EINVAL;
+    return MU_ERR_OUT_PTR_NULL;
 
   if (file == NULL)
     return EINVAL;
@@ -954,7 +954,7 @@ _prog_stream_create (struct _prog_stream **pfs,
   int ret;
 
   if (stream == NULL)
-    return EINVAL;
+    return MU_ERR_OUT_PTR_NULL;
 
   if (progname == NULL || (flags & MU_STREAM_NO_CLOSE))
     return EINVAL;

@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2003 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2003, 2004 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -38,6 +38,7 @@
 #include <mailutils/url.h>
 #include <mailutils/stream.h>
 #include <mailutils/mutil.h>
+#include <mailutils/errno.h>
 
 /* We export url parsing and the initialisation of
    the mailbox, via the register entry/record.  */
@@ -327,7 +328,7 @@ folder_mbox_lsub (folder_t folder, const char *ref ARG_UNUSED, const char *name,
   size_t j = 0;
 
   if (pflist == NULL)
-    return EINVAL;
+    return MU_ERR_OUT_NULL;
 
   if (name == NULL || *name == '\0')
     name = "*";
@@ -393,7 +394,7 @@ folder_mbox_unsubscribe (folder_t folder, const char *name)
 	  return 0;
 	}
     }
-  return ENOENT;
+  return MU_ERR_NOENT;
 }
 
 static char *

@@ -28,8 +28,10 @@ mu_pop3_stat (mu_pop3_t pop3, unsigned *msg_count, size_t *size)
 {
   int status;
 
-  if (pop3 == NULL || msg_count == NULL || size == NULL)
+  if (pop3 == NULL || msg_count == NULL)
     return EINVAL;
+  if (size == NULL)
+    return MU_ERR_OUT_PTR_NULL;
 
   switch (pop3->state)
     {

@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2004 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -24,6 +24,7 @@
 
 #include <list0.h>
 #include <iterator0.h>
+#include <mailutils/errno.h>
 
 int
 list_create (list_t *plist)
@@ -32,7 +33,7 @@ list_create (list_t *plist)
   int status;
   
   if (plist == NULL)
-    return EINVAL;
+    return MU_ERR_OUT_PTR_NULL;
   list = calloc (sizeof (*list), 1);
   if (list == NULL)
     return ENOMEM;
@@ -131,8 +132,10 @@ list_is_empty (list_t list)
 int
 list_count (list_t list, size_t *pcount)
 {
-  if (list == NULL || pcount == NULL)
+  if (list == NULL)
     return EINVAL;
+  if (pcount == NULL)
+    return MU_ERR_OUT_PTR_NULL;
   *pcount = list->count;
   return 0;
 }
@@ -160,7 +163,7 @@ list_locate (list_t list, void *item, void **ret_item)
 {
   struct list_data *current, *previous;
   list_comparator_t comp;
-  int status = ENOENT;
+  int status = MU_ERR_NOENT;
   
   if (list == NULL)
     return EINVAL;
@@ -186,7 +189,7 @@ list_insert (list_t list, void *item, void *new_item)
 {
   struct list_data *current;
   list_comparator_t comp;
-  int status = ENOENT;
+  int status = MU_ERR_NOENT;
   
   if (list == NULL)
     return EINVAL;
@@ -230,7 +233,7 @@ list_remove (list_t list, void *item)
 {
   struct list_data *current, *previous;
   list_comparator_t comp;
-  int status = ENOENT;
+  int status = MU_ERR_NOENT;
   
   if (list == NULL)
     return EINVAL;
@@ -259,7 +262,7 @@ list_replace (list_t list, void *old_item, void *new_item)
 {
   struct list_data *current, *previous;
   list_comparator_t comp;
-  int status = ENOENT;
+  int status = MU_ERR_NOENT;
   
   if (list == NULL)
     return EINVAL;
@@ -284,10 +287,12 @@ list_get (list_t list, size_t indx, void **pitem)
 {
   struct list_data *current;
   size_t count;
-  int status = ENOENT;
+  int status = MU_ERR_NOENT;
   
-  if (list == NULL || pitem == NULL)
+  if (list == NULL)
     return EINVAL;
+  if (pitem == NULL)
+    return MU_ERR_OUT_PTR_NULL;
   monitor_rdlock (list->monitor);
   for (current = list->head.next, count = 0; current != &(list->head);
        current = current->next, count++)

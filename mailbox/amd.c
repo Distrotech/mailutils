@@ -55,6 +55,7 @@
 #include <mailutils/debug.h>
 #include <mailutils/envelope.h>
 #include <mailutils/error.h>
+#include <mailutils/errno.h>
 #include <mailutils/header.h>
 #include <mailutils/locker.h>
 #include <mailutils/message.h>
@@ -244,7 +245,9 @@ amd_init_mailbox (mailbox_t mailbox, size_t amd_size, struct _amd_data **pamd)
   struct _amd_data *amd;
   size_t name_len;
 
-  if (mailbox == NULL || amd_size < sizeof (*amd))
+  if (mailbox == NULL)
+    return MU_ERR_MBX_NULL;
+  if (amd_size < sizeof (*amd))
     return EINVAL;
 
   amd = mailbox->data = calloc (1, amd_size);
@@ -338,7 +341,7 @@ static int
 amd_close (mailbox_t mailbox)
 {
   if (!mailbox)
-    return EINVAL;
+    return MU_ERR_MBX_NULL;
   return 0;
 }
 
@@ -463,7 +466,9 @@ amd_get_message (mailbox_t mailbox, size_t msgno, message_t *pmsg)
   struct _amd_message *mhm;
 
   /* Sanity checks.  */
-  if (pmsg == NULL || amd == NULL)
+  if (pmsg == NULL)
+    return MU_ERR_OUT_PTR_NULL;
+  if (amd == NULL)
     return EINVAL;
 
   /* If we did not start a scanning yet do it now.  */
@@ -642,7 +647,9 @@ amd_append_message (mailbox_t mailbox, message_t msg)
   struct _amd_data *amd = mailbox->data;
   struct _amd_message *mhm;
 
-  if (!mailbox || !msg)
+  if (!mailbox)
+    return MU_ERR_MBX_NULL;
+  if (!msg)
     return EINVAL;
 
   mhm = calloc (1, amd->msg_size);

@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2004 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -22,6 +22,7 @@
 # include <strings.h>
 #endif
 
+#include <mailutils/errno.h>
 #include <property0.h>
 
 #undef min
@@ -35,7 +36,7 @@ property_create (property_t *pp, void *owner)
 {
   property_t prop;
   if (pp == NULL)
-    return EINVAL;
+    return MU_ERR_OUT_PTR_NULL;
   prop = calloc (1, sizeof *prop);
   if (prop == NULL)
     return ENOMEM;

@@ -500,8 +500,8 @@ message_has_bcc (message_t msg)
 
   status = header_get_value (header, MU_HEADER_BCC, NULL, 0, &bccsz);
 
-  /* ENOENT, or there was a Bcc: field. */
-  return status == ENOENT ? 0 : 1;
+  /* MU_ERR_NOENT, or there was a Bcc: field. */
+  return status == MU_ERR_NOENT ? 0 : 1;
 }
 
 /*
@@ -874,7 +874,7 @@ _smtp_set_from (smtp_t smtp, message_t msg, address_t from)
 	  }
 	  break;
 
-	case ENOENT:
+	case MU_ERR_NOENT:
 	  /* Use the environment. */
 	  mail_from = mu_get_user_email (NULL);
 
@@ -969,7 +969,7 @@ _smtp_set_rcpt (smtp_t smtp, message_t msg, address_t to)
 	  smtp_address_add (&smtp->rcpt_to, value);
 	  free (value);
 	}
-      else if (status != ENOENT)
+      else if (status != MU_ERR_NOENT)
 	goto end;
 
       status = header_aget_value (header, MU_HEADER_CC, &value);
@@ -979,7 +979,7 @@ _smtp_set_rcpt (smtp_t smtp, message_t msg, address_t to)
 	  smtp_address_add (&smtp->rcpt_to, value);
 	  free (value);
 	}
-      else if (status != ENOENT)
+      else if (status != MU_ERR_NOENT)
 	goto end;
 
       status = header_aget_value (header, MU_HEADER_BCC, &value);
@@ -988,7 +988,7 @@ _smtp_set_rcpt (smtp_t smtp, message_t msg, address_t to)
 	  smtp_address_add (&smtp->rcpt_bcc, value);
 	  free (value);
 	}
-      else if (status != ENOENT)
+      else if (status != MU_ERR_NOENT)
 	goto end;
 
       /* If to or bcc is present, the must be OK. */

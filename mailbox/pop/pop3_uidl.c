@@ -29,8 +29,10 @@ mu_pop3_uidl (mu_pop3_t pop3, unsigned int msgno, char **uidl)
 {
   int status;
 
-  if (pop3 == NULL || uidl == NULL)
+  if (pop3 == NULL)
     return EINVAL;
+  if (uidl == NULL)
+    return MU_ERR_OUT_PTR_NULL;
 
   switch (pop3->state)
     {

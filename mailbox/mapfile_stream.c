@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2004 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -30,6 +30,7 @@
 #include <unistd.h>
 
 #include <mailutils/stream.h>
+#include <mailutils/errno.h>
 
 #ifdef _POSIX_MAPPED_FILES
 #include <sys/mman.h>
@@ -347,7 +348,9 @@ mapfile_stream_create (stream_t *stream, const char* filename, int flags)
   struct _mapfile_stream *fs;
   int ret;
 
-  if (stream == NULL || filename == NULL)
+  if (stream == NULL)
+    return MU_ERR_OUT_PTR_NULL;
+  if (filename == NULL)
     return EINVAL;
 
   fs = calloc (1, sizeof (struct _mapfile_stream));

@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2004 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -43,6 +43,7 @@
 #include <mailutils/header.h>
 #include <mailutils/message.h>
 #include <mailutils/stream.h>
+#include <mailutils/errno.h>
 
 #define MAX_HDR_LEN 256
 #define BUF_SIZE	2048
@@ -74,7 +75,9 @@ message_create_attachment (const char *content_type, const char *encoding,
   char *header, *name = NULL, *fname = NULL;
   int ret;
 
-  if (filename == NULL || newmsg == NULL)
+  if (newmsg == NULL)
+    return MU_ERR_OUT_PTR_NULL;	
+  if (filename == NULL)
     return EINVAL;
 
   if ((ret = message_create (newmsg, NULL)) == 0)
@@ -266,7 +269,7 @@ message_get_attachment_name (message_t msg, char *name, size_t bufsz, size_t *sz
 	    ret = ENOMEM;
 	}
       else
-	ret = ENOENT;
+	ret = MU_ERR_NOENT;
     }
   return ret;
 }
@@ -277,8 +280,8 @@ int message_aget_attachment_name(message_t msg, char** name)
   size_t sz = 0;
   int ret = 0;
 
-  if(name == NULL)
-    return EINVAL;
+  if (name == NULL)
+    return MU_ERR_OUT_PTR_NULL;
 
   if((ret = message_get_attachment_name(msg, NULL, 0, &sz)) != 0)
     return ret;
@@ -313,7 +316,7 @@ message_get_attachment_name (message_t msg, char *buf, size_t bufsz, size_t *sz)
 
   /* If the header wasn't there, we'll fall back to Content-Type, but
      other errors are fatal. */
-  if(ret != 0 && ret != ENOENT)
+  if(ret != 0 && ret != MU_ERR_NOENT)
     return ret;
 
   if(ret == 0 && value != NULL)
@@ -350,7 +353,7 @@ message_get_attachment_name (message_t msg, char *buf, size_t bufsz, size_t *sz)
 	strncpy(buf, name, bufsz);
     }
   else
-    ret = ENOENT;
+    ret = MU_ERR_NOENT;
 
   return ret;
 }
@@ -456,8 +459,10 @@ message_encapsulate (message_t msg, message_t * newmsg, void **data)
   size_t nbytes;
   body_t body;
 
-  if (msg == NULL || newmsg == NULL)
+  if (msg == NULL)
     return EINVAL;
+  if (newmsg == NULL)
+    return MU_ERR_OUT_PTR_NULL;
 
   if ((ret = _attachment_setup (&info, msg, &ostream, data)) != 0)
     return ret;
@@ -514,8 +519,10 @@ message_unencapsulate (message_t msg, message_t * newmsg, void **data)
   stream_t istream, ostream;
   struct _msg_info *info = NULL;
 
-  if (msg == NULL || newmsg == NULL)
+  if (msg == NULL)
     return EINVAL;
+  if (newmsg == NULL)
+    return MU_ERR_OUT_PTR_NULL;
 
   if ((data == NULL || *data == NULL)
       && (ret = message_get_header (msg, &hdr)) == 0)

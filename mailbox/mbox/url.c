@@ -30,6 +30,7 @@
 
 #include <registrar0.h>
 #include <url0.h>
+#include <mailutils/errno.h>
 
 static void url_mbox_destroy (url_t purl);
 
@@ -225,7 +226,7 @@ _url_mbox_init (url_t url)
 	      else
 		{
 		  url_mbox_destroy (url);
-		  return ENOENT;
+		  return MU_ERR_NOENT;
 		}
 	    }
 	  else if (strncasecmp (p, "user=", 5) == 0)
@@ -248,7 +249,7 @@ _url_mbox_init (url_t url)
       else
 	{
 	  url_mbox_destroy (url);
-	  return ENOENT;
+	  return MU_ERR_NOENT;
 	}
     }
 

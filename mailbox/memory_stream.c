@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2004 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -29,6 +29,7 @@
 #include <sys/types.h>
 
 #include <mailutils/stream.h>
+#include <mailutils/errno.h>
 
 #undef min
 #define min(a,b) ((a) < (b) ? (a) : (b))
@@ -221,7 +222,7 @@ memory_stream_create (stream_t * stream, const char *filename, int flags)
   int ret;
 
   if (stream == NULL)
-    return EINVAL;
+    return MU_ERR_OUT_PTR_NULL;
 
   mfs = calloc (1, sizeof (*mfs));
 

@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2004 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -48,7 +48,7 @@ authority_create (authority_t *pauthority, ticket_t ticket, void *owner)
 {
   authority_t authority;
   if (pauthority == NULL)
-    return EINVAL;
+    return MU_ERR_OUT_PTR_NULL;
   authority = calloc (1, sizeof (*authority));
   if (authority == NULL)
     return ENOMEM;
@@ -93,8 +93,10 @@ authority_set_ticket (authority_t authority, ticket_t ticket)
 int
 authority_get_ticket (authority_t authority, ticket_t *pticket)
 {
-  if (authority == NULL || pticket == NULL)
+  if (authority == NULL)
     return EINVAL;
+  if (pticket == NULL)
+    return MU_ERR_OUT_PTR_NULL;
   if (authority->ticket == NULL)
     {
       int status = ticket_create (&(authority->ticket), authority);

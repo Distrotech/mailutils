@@ -40,6 +40,7 @@
 #include <mailutils/url.h>
 #include <mailutils/header.h>
 #include <mailutils/body.h>
+#include <mailutils/errno.h>
 
 #include <mailer0.h>
 #include <registrar0.h>
@@ -365,6 +366,7 @@ sendmail_send_message (mailer_t mailer, message_t msg, address_t from,
 	header_t hdr;
 	body_t body;
 	int found_nl = 0;
+	int exit_status;
 	
 	message_get_header (msg, &hdr);
 	header_get_stream (hdr, &stream);
@@ -430,7 +432,7 @@ sendmail_send_message (mailer_t mailer, message_t msg, address_t from,
 
 	close (sendmail->fd);
 
-	rc = waitpid (sendmail->pid, &status, 0);
+	rc = waitpid (sendmail->pid, &exit_status, 0);
 
 	if (rc < 0)
 	  {
@@ -439,13 +441,19 @@ sendmail_send_message (mailer_t mailer, message_t msg, address_t from,
 			   "waitpid(%d) failed: %s\n",
 			   sendmail->pid, strerror (status));
 	  }
-	else if (WIFEXITED (status))
+	else if (WIFEXITED (exit_status))
 	  {
-	    status = WEXITSTATUS (status);
+	    exit_status = WEXITSTATUS (exit_status);
 	    MAILER_DEBUG2 (mailer, MU_DEBUG_TRACE,
-			   "%s exited with: %s\n",
-			   sendmail->path, strerror (status));
+			   "%s exited with: %d\n",
+			   sendmail->path, exit_status);
+	    status = (exit_status == 0) ? 0 : MU_ERR_PROCESS_EXITED;
 	  }
+	else if (WIFSIGNALED (exit_status))
+	  status = MU_ERR_PROCESS_SIGNALED;
+	else
+	  status = MU_ERR_PROCESS_UNKNOWN_FAILURE;
+	
 	/* Shouldn't this notification only happen on success? */
 	observable_notify (mailer->observable, MU_EVT_MAILER_MESSAGE_SENT);
       }
@@ -453,7 +461,7 @@ sendmail_send_message (mailer_t mailer, message_t msg, address_t from,
       break;
     }
 
-  sendmail->state = SENDMAIL_OPEN;
+  sendmail->state = (status == 0) ? SENDMAIL_OPEN : SENDMAIL_CLOSED;
 
   return status;
 }

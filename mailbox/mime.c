@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2003 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2003, 2004 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -34,6 +34,7 @@
 #include <mailutils/stream.h>
 #include <mailutils/body.h>
 #include <mailutils/header.h>
+#include <mailutils/errno.h>
 #include <mime0.h>
 
 #ifndef TRUE
@@ -407,7 +408,7 @@ _mimepart_body_read (stream_t stream, char *buf, size_t buflen, off_t off,
   int ret = 0;
 
   if (nbytes == NULL)
-    return (EINVAL);
+    return MU_ERR_OUT_NULL;
 
   *nbytes = 0;
   read_len = (int) mime_part->len - (int) off;
@@ -761,7 +762,7 @@ mime_create (mime_t * pmime, message_t msg, int flags)
 	    }
 	  else
 	    {
-	      if (ret == ENOENT)
+	      if (ret == MU_ERR_NOENT)
 		{
 		  ret = 0;
 		  if ((mime->content_type =

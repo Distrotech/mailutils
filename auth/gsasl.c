@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2003 Free Software Foundation, Inc.
+   Copyright (C) 2003, 2004 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -27,6 +27,7 @@
 #include <unistd.h>
 #include <mailutils/argp.h>
 #include <mailutils/error.h>
+#include <mailutils/errno.h>
 #include <mailutils/mu_auth.h>
 #include <mailutils/nls.h>
 #include <mailutils/stream.h>
@@ -288,7 +289,7 @@ gsasl_stream_create (stream_t *stream, int fd,
   int rc;
     
   if (stream == NULL)
-    return EINVAL;
+    return MU_ERR_OUT_PTR_NULL;
 
   if ((flags & ~(MU_STREAM_READ|MU_STREAM_WRITE))
       || (flags & (MU_STREAM_READ|MU_STREAM_WRITE)) ==

@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2004 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -29,6 +29,7 @@ First Draft: Dave Inglis.
 #include <string.h>
 
 #include <mailutils/stream.h>
+#include <mailutils/errno.h>
 
 #include <filter0.h>
 
@@ -76,7 +77,9 @@ trans_read (filter_t filter, char *optr, size_t osize, off_t offset,
   int ret = 0, i;
   size_t bytes, *nbytes = &bytes;
 
-  if (optr == NULL || osize == 0)
+  if (optr == NULL)
+    return MU_ERR_OUT_NULL;
+  if (osize == 0)
     return EINVAL;
 
   if (n_bytes)

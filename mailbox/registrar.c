@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2004 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -29,6 +29,7 @@
 #include <mailutils/iterator.h>
 #include <mailutils/list.h>
 #include <mailutils/monitor.h>
+#include <mailutils/errno.h>
 
 #include <registrar0.h>
 
@@ -42,7 +43,7 @@ registrar_get_list (list_t *plist)
 {
   int status = 0;
   if (plist == NULL)
-    return EINVAL;
+    return MU_ERR_OUT_PTR_NULL;
   monitor_wrlock (&registrar_monitor);
   if (registrar_list == NULL)
     status = list_create (&registrar_list);
@@ -108,8 +109,10 @@ record_set_is_scheme (record_t record, int (*_is_scheme)
 int
 record_get_url (record_t record, int (*(*_purl)) __P ((url_t)))
 {
-  if (record == NULL || _purl == NULL)
+  if (record == NULL)
     return EINVAL;
+  if (_purl == NULL)
+    return MU_ERR_OUT_PTR_NULL;
   /* Overload.  */
   if (record->_get_url)
     return record->_get_url (record, _purl);
@@ -139,8 +142,10 @@ record_set_get_url (record_t record, int (*_get_url)
 int
 record_get_mailbox (record_t record, int (*(*_pmailbox)) __P ((mailbox_t)))
 {
-  if (record == NULL || _pmailbox == NULL)
+  if (record == NULL)
     return EINVAL;
+  if (_pmailbox == NULL)
+    return MU_ERR_OUT_PTR_NULL;
   /* Overload.  */
   if (record->_get_mailbox)
     return record->_get_mailbox (record, _pmailbox);
@@ -170,8 +175,10 @@ record_set_get_mailbox (record_t record, int (*_get_mailbox)
 int
 record_get_mailer (record_t record, int (*(*_pmailer)) __P ((mailer_t)))
 {
-  if (record == NULL || _pmailer == NULL)
+  if (record == NULL)
     return EINVAL;
+  if (_pmailer == NULL)
+    return MU_ERR_OUT_PTR_NULL;
   /* Overload.  */
   if (record->_get_mailer)
     return record->_get_mailer (record, _pmailer);
@@ -201,8 +208,10 @@ record_set_get_mailer (record_t record, int (*_get_mailer)
 int
 record_get_folder (record_t record, int (*(*_pfolder)) __P ((folder_t)))
 {
-  if (record == NULL || _pfolder == NULL)
+  if (record == NULL)
     return EINVAL;
+  if (_pfolder == NULL)
+    return MU_ERR_OUT_PTR_NULL;
   /* Overload.  */
   if (record->_get_folder)
     return record->_get_folder (record, _pfolder);

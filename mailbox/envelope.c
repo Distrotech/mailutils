@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2004 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -20,6 +20,7 @@
 #endif
 #include <errno.h>
 #include <stdlib.h>
+#include <mailutils/errno.h>
 #include <envelope0.h>
 
 int
@@ -27,7 +28,7 @@ envelope_create (envelope_t *penvelope, void *owner)
 {
   envelope_t envelope;
   if (penvelope == NULL)
-    return EINVAL;
+    return MU_ERR_OUT_PTR_NULL;
   envelope = calloc (1, sizeof (*envelope));
   if (envelope == NULL)
     return ENOMEM;

@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2004 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -92,7 +92,7 @@ mailer_create (mailer_t * pmailer, const char *name)
   int found = 0;
 
   if (pmailer == NULL)
-    return EINVAL;
+    return MU_ERR_OUT_PTR_NULL;
 
   if (name == NULL)
     mailer_get_url_default (&name);
@@ -339,10 +339,11 @@ mailer_set_stream (mailer_t mailer, stream_t stream)
 int
 mailer_get_stream (mailer_t mailer, stream_t * pstream)
 {
-  if (mailer == NULL || pstream == NULL)
+  if (mailer == NULL)
     return EINVAL;
-  if (pstream)
-    *pstream = mailer->stream;
+  if (pstream == NULL)
+    return MU_ERR_OUT_PTR_NULL;
+  *pstream = mailer->stream;
   return 0;
 }
 
@@ -350,9 +351,10 @@ int
 mailer_get_observable (mailer_t mailer, observable_t * pobservable)
 {
   /* FIXME: I should check for invalid types */
-  if (mailer == NULL || pobservable == NULL)
+  if (mailer == NULL)
     return EINVAL;
-
+  if (pobservable == NULL)
+    return MU_ERR_OUT_PTR_NULL;
   if (mailer->observable == NULL)
     {
       int status = observable_create (&(mailer->observable), mailer);
@@ -366,8 +368,10 @@ mailer_get_observable (mailer_t mailer, observable_t * pobservable)
 int
 mailer_get_property (mailer_t mailer, property_t * pproperty)
 {
-  if (mailer == NULL || pproperty == NULL)
+  if (mailer == NULL)
     return EINVAL;
+  if (pproperty == NULL)
+    return MU_ERR_OUT_PTR_NULL;
   if (mailer->property == NULL)
     {
       int status = property_create (&(mailer->property), mailer);
@@ -391,8 +395,10 @@ mailer_set_debug (mailer_t mailer, mu_debug_t debug)
 int
 mailer_get_debug (mailer_t mailer, mu_debug_t * pdebug)
 {
-  if (mailer == NULL || pdebug == NULL)
+  if (mailer == NULL)
     return EINVAL;
+  if (pdebug == NULL)
+    return MU_ERR_OUT_PTR_NULL;
   if (mailer->debug == NULL)
     {
       int status = mu_debug_create (&(mailer->debug), mailer);
@@ -406,8 +412,10 @@ mailer_get_debug (mailer_t mailer, mu_debug_t * pdebug)
 int
 mailer_get_url (mailer_t mailer, url_t * purl)
 {
-  if (!mailer || !purl)
+  if (!mailer)
     return EINVAL;
+  if (!purl)
+    return MU_ERR_OUT_PTR_NULL;
   *purl = mailer->url;
   return 0;
 }

@@ -275,7 +275,7 @@ mu_dbm_firstkey (DBM_FILE db)
       key.data = NULL;
       key.size = 0;
       if (ret == DB_NOTFOUND)
-	errno = ENOENT;
+	errno = MU_ERR_NOENT;
       else
 	errno = ret;
     }
@@ -299,7 +299,7 @@ mu_dbm_nextkey (DBM_FILE db, DBM_DATUM pkey /*unused*/)
       key.data = NULL;
       key.size = 0;
       if (ret == DB_NOTFOUND)
-	errno = ENOENT;
+	errno = MU_ERR_NOENT;
       else
 	errno = ret;
     }

@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2004 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -154,7 +154,9 @@ _tcp_get_fd (stream_t stream, int *fd, int *fd2)
 {
   struct _tcp_instance *tcp = stream_get_owner (stream);
 
-  if (fd == NULL || tcp->fd == -1)
+  if (fd == NULL)
+    return MU_ERR_OUT_PTR_NULL;
+  if (tcp->fd == -1)
     return EINVAL;
   if (fd2)
     return ENOSYS;
@@ -171,7 +173,7 @@ _tcp_read (stream_t stream, char *buf, size_t buf_size, off_t offset, size_t * b
 
   offset = offset;
   if (br == NULL)
-    return EINVAL;
+    return MU_ERR_OUT_NULL;
   *br = 0;
   if ((bytes = recv (tcp->fd, buf, buf_size, 0)) == -1)
     {
@@ -191,7 +193,7 @@ _tcp_write (stream_t stream, const char *buf, size_t buf_size, off_t offset,
 
   offset = offset;
   if (bw == NULL)
-    return EINVAL;
+    return MU_ERR_OUT_NULL;
   *bw = 0;
   if ((bytes = send (tcp->fd, buf, buf_size, 0)) == -1)
     {

@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2004 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -32,6 +32,7 @@
 #include <mailutils/registrar.h>
 #include <mailutils/stream.h>
 #include <mailutils/url.h>
+#include <mailutils/errno.h>
 
 #include <folder0.h>
 
@@ -61,7 +62,7 @@ folder_create (folder_t *pfolder, const char *name)
   int found = 0;
 
   if (pfolder == NULL)
-    return EINVAL;
+    return MU_ERR_OUT_PTR_NULL;
 
   /* Look in the registrar list(iterator), for a possible concrete mailbox
      implementatio that could match the URL.  */
@@ -147,7 +148,7 @@ folder_create (folder_t *pfolder, const char *name)
 	}
     }
   else
-    status = ENOENT;
+    status = MU_ERR_NOENT;
 
   return status;
 }
@@ -239,8 +240,10 @@ folder_set_stream (folder_t folder, stream_t stream)
 int
 folder_get_stream (folder_t folder, stream_t *pstream)
 {
-  if (folder == NULL || pstream == NULL)
+  if (folder == NULL)
     return EINVAL;
+  if (pstream == NULL)
+    return MU_ERR_OUT_PTR_NULL;
   *pstream = folder->stream;
   return 0;
 }
@@ -259,8 +262,10 @@ folder_set_authority (folder_t folder, authority_t authority)
 int
 folder_get_authority (folder_t folder, authority_t *pauthority)
 {
-  if (folder == NULL || pauthority == NULL)
+  if (folder == NULL)
     return EINVAL;
+  if (pauthority == NULL)
+    return MU_ERR_OUT_PTR_NULL;
   *pauthority = folder->authority;
   return 0;
 }
@@ -268,8 +273,10 @@ folder_get_authority (folder_t folder, authority_t *pauthority)
 int
 folder_get_observable (folder_t folder, observable_t *pobservable)
 {
-  if (folder == NULL  || pobservable == NULL)
+  if (folder == NULL)
     return EINVAL;
+  if (pobservable == NULL)
+    return MU_ERR_OUT_PTR_NULL;
 
   if (folder->observable == NULL)
     {
@@ -304,8 +311,10 @@ folder_set_debug (folder_t folder, mu_debug_t debug)
 int
 folder_get_debug (folder_t folder, mu_debug_t *pdebug)
 {
-  if (folder == NULL || pdebug == NULL)
+  if (folder == NULL)
     return EINVAL;
+  if (pdebug == NULL)
+    return MU_ERR_OUT_PTR_NULL;
   if (folder->debug == NULL)
     {
       int status = mu_debug_create (&(folder->debug), folder);
@@ -391,8 +400,10 @@ folder_rename (folder_t folder, const char *oldname, const char *newname)
 int
 folder_get_url (folder_t folder, url_t *purl)
 {
-  if (folder == NULL || purl == NULL)
+  if (folder == NULL)
     return EINVAL;
+  if (purl == NULL)
+    return MU_ERR_OUT_PTR_NULL;
   *purl = folder->url;
   return 0;
 }

@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2003 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2003, 2004 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -31,7 +31,7 @@ mu_refcount_create (mu_refcount_t *prefcount)
   int status = 0;
   mu_refcount_t refcount;
   if (prefcount == NULL)
-    return EINVAL;
+    return MU_ERR_OUT_PTR_NULL;
   refcount = calloc (1, sizeof *refcount);
   if (refcount != NULL)
     {

@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2004 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -30,6 +30,7 @@
 
 #include <mailutils/stream.h>
 #include <mailutils/mutil.h>
+#include <mailutils/errno.h>
 #include <body0.h>
 
 #define BODY_MODIFIED 0x10000
@@ -53,7 +54,9 @@ body_create (body_t *pbody, void *owner)
 {
   body_t body;
 
-  if (pbody == NULL || owner == NULL)
+  if (pbody == NULL)
+    return MU_ERR_OUT_PTR_NULL;
+  if (owner == NULL)
     return EINVAL;
 
   body = calloc (1, sizeof (*body));
@@ -140,8 +143,10 @@ body_get_filename (body_t body, char *filename, size_t len, size_t *pn)
 int
 body_get_stream (body_t body, stream_t *pstream)
 {
-  if (body == NULL || pstream == NULL)
+  if (body == NULL)
     return EINVAL;
+  if (pstream == NULL)
+    return MU_ERR_OUT_PTR_NULL;
 
   if (body->stream == NULL)
     {

@@ -28,12 +28,8 @@
 #endif
 
 #include <mailutils/mutil.h>
-
+#include <mailutils/errno.h>
 #include <url0.h>
-
-#ifndef EPARSE
-# define EPARSE ENOENT
-#endif
 
 /*
   TODO: implement functions to create a url and encode it properly.
@@ -201,7 +197,7 @@ url_parse0 (url_t u, char *name)
   p = strchr (name, ':');
   if (p == NULL)
     {
-      return EPARSE;
+      return MU_ERR_PARSE;
     }
 
   *p++ = 0;
@@ -280,7 +276,7 @@ url_parse0 (url_t u, char *name)
       /* Check for garbage after the port: we should be on the start
          of a path, a query, or at the end of the string. */
       if (*p && strcspn (p, "/?") != 0)
-	return EPARSE;
+	return MU_ERR_PARSE;
     }
   else
     p = u->host + strcspn (u->host, "/?");

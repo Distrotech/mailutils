@@ -38,8 +38,10 @@ int
 mu_pop3_get_timeout (mu_pop3_t pop3, int *ptimeout)
 {
   /* Sanity checks.  */
-  if (pop3 == NULL || ptimeout == NULL)
+  if (pop3 == NULL)
     return EINVAL;
+  if (ptimeout == NULL)
+    return MU_ERR_OUT_PTR_NULL;
 
   *ptimeout = pop3->timeout;
   return 0;

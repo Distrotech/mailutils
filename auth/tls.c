@@ -32,6 +32,7 @@
 #include <mailutils/tls.h>
 #include <mailutils/nls.h>
 #include <mailutils/stream.h>
+#include <mailutils/errno.h>
 
 #include <lbuf.h>
 
@@ -521,7 +522,7 @@ tls_stream_create (stream_t *stream, int in_fd, int out_fd, int flags)
   int rc;
 
   if (stream == NULL)
-    return EINVAL;
+    return MU_ERR_OUT_PTR_NULL;
 
   s = calloc (1, sizeof (*s));
   if (s == NULL)

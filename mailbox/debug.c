@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2004 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -24,6 +24,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <mailutils/errno.h>
 #include <debug0.h>
 
 int
@@ -31,7 +32,7 @@ mu_debug_create (mu_debug_t *pdebug, void *owner)
 {
   mu_debug_t debug;
   if (pdebug == NULL)
-    return EINVAL;
+    return MU_ERR_OUT_PTR_NULL;
   debug = calloc (sizeof (*debug), 1);
   if (debug == NULL)
     return ENOMEM;

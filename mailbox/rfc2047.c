@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2003 Free Software Foundation, Inc.
+   Copyright (C) 2003, 2004 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -38,8 +38,10 @@ rfc2047_decode (const char *tocode, const char *input, char **ptostr)
   size_t bufpos;
   size_t run_count = 0;
   
-  if (!tocode || !input || !ptostr)
+  if (!tocode || !input)
     return EINVAL;
+  if (!ptostr)
+    return MU_ERR_OUT_PTR_NULL;
 
   /* Prepare a temporary copy of the input string (strtok_r is
      going to modify it. */
@@ -605,10 +607,10 @@ rfc2047_encode (const char *charset, const char *encoding,
   int is_compose;
   int state;
 
-  if (! charset  ||
-      ! encoding || 
-      ! text     || 
-      ! result) return EINVAL;
+  if (!charset || !encoding || !text)
+    return EINVAL;
+  if (!result)
+    return MU_ERR_OUT_PTR_NULL;
 
   /* Check for a known encoding */
   do 
@@ -633,7 +635,7 @@ rfc2047_encode (const char *charset, const char *encoding,
 	  break;
 	}
       
-      return ENOENT;
+      return MU_ERR_NOENT;
     } 
   while (0);
 

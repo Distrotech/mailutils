@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2003 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2003, 2004 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -36,6 +36,7 @@
 #include <mailutils/debug.h>
 #include <mailutils/envelope.h>
 #include <mailutils/error.h>
+#include <mailutils/errno.h>
 #include <mailutils/header.h>
 #include <mailutils/message.h>
 #include <mailutils/mutil.h>
@@ -441,7 +442,9 @@ imap_get_message (mailbox_t mailbox, size_t msgno, message_t *pmsg)
   msg_imap_t msg_imap;
   int status = 0;
 
-  if (pmsg == NULL || msgno == 0 || msgno > m_imap->messages_count)
+  if (pmsg == NULL)
+    return MU_ERR_OUT_PTR_NULL;
+  if (msgno == 0 || msgno > m_imap->messages_count)
     return EINVAL;
 
   /* Check to see if we have already this message.  */
@@ -1768,7 +1771,7 @@ imap_header_get_value (header_t header, const char *field, char * buffer,
       if (plen)
 	*plen = len;
       if (len == 0)
-	status = ENOENT;
+	status = MU_ERR_NOENT;
     }
   free (value);
   return status;
@@ -2057,7 +2060,7 @@ fetch_operation (f_imap_t f_imap, msg_imap_t msg_imap, char *buffer,
 
   /* The server may have timeout any case connection is gone away.  */
   if (status == 0 && f_imap->isopen == 0 && f_imap->string.offset == 0)
-    status = EBADF;
+    status = MU_ERR_CONN_CLOSED;
 
   if (buffer)
     stream_read (f_imap->string.stream, buffer, buflen, 0, plen);

@@ -206,7 +206,7 @@ address_get_nth (address_t addr, size_t no, address_t *pret)
 {
   address_t subaddr = _address_get_nth (addr, no);
   if (!subaddr)
-    return ENOENT;
+    return MU_ERR_NOENT;
   *pret = address_dup (subaddr);
   return 0;
 }
@@ -223,7 +223,7 @@ address_get_personal (address_t addr, size_t no, char *buf, size_t len,
 
   subaddr = _address_get_nth (addr, no);
   if (!subaddr)
-    return ENOENT;
+    return MU_ERR_NOENT;
   
   i = mu_cpystr (buf, subaddr->personal, len);
   if (n)
@@ -243,7 +243,7 @@ address_get_comments (address_t addr, size_t no, char *buf, size_t len,
 
   subaddr = _address_get_nth (addr, no);
   if (!subaddr)
-    return ENOENT;
+    return MU_ERR_NOENT;
 
   i = mu_cpystr (buf, subaddr->comments, len);
   if (n)
@@ -263,7 +263,7 @@ address_get_email (address_t addr, size_t no, char *buf, size_t len,
 
   subaddr = _address_get_nth (addr, no);
   if (!subaddr)
-    return ENOENT;
+    return MU_ERR_NOENT;
   
   i = mu_cpystr (buf, subaddr->email, len);
   if (n)
@@ -348,7 +348,7 @@ address_aget_personal (address_t addr, size_t no, char **buf)
 
   subaddr = _address_get_nth (addr, no);
   if (!subaddr)
-    return ENOENT;
+    return MU_ERR_NOENT;
 
   if (subaddr->personal)
     {
@@ -372,7 +372,7 @@ address_aget_comments (address_t addr, size_t no, char **buf)
 
   subaddr = _address_get_nth (addr, no);
   if (!subaddr)
-    return ENOENT;
+    return MU_ERR_NOENT;
 
   if (subaddr->comments)
     {
@@ -396,7 +396,7 @@ address_aget_email (address_t addr, size_t no, char **buf)
 
   subaddr = _address_get_nth (addr, no);
   if (!subaddr)
-    return ENOENT;
+    return MU_ERR_NOENT;
   
   if (subaddr->email)
     {
@@ -421,7 +421,7 @@ address_aget_local_part (address_t addr, size_t no, char **buf)
 
   subaddr = _address_get_nth (addr, no);
   if (!subaddr)
-    return ENOENT;
+    return MU_ERR_NOENT;
   
   if (subaddr->local_part)
     {
@@ -446,7 +446,7 @@ address_aget_domain (address_t addr, size_t no, char **buf)
 
   subaddr = _address_get_nth (addr, no);
   if (!subaddr)
-    return ENOENT;
+    return MU_ERR_NOENT;
   
   if (subaddr->domain)
     {
@@ -472,7 +472,7 @@ address_get_local_part (address_t addr, size_t no, char *buf, size_t len,
 
   subaddr = _address_get_nth (addr, no);
   if (!subaddr)
-    return ENOENT;
+    return MU_ERR_NOENT;
 
   i = mu_cpystr (buf, subaddr->local_part, len);
   if (n)
@@ -492,7 +492,7 @@ address_get_domain (address_t addr, size_t no, char *buf, size_t len,
 
   subaddr = _address_get_nth (addr, no);
   if (!subaddr)
-    return ENOENT;
+    return MU_ERR_NOENT;
   
   i = mu_cpystr (buf, subaddr->domain, len);
   if (n)
@@ -512,7 +512,7 @@ address_get_route (address_t addr, size_t no, char *buf, size_t len,
 
   subaddr = _address_get_nth (addr, no);
   if (!subaddr)
-    return ENOENT;
+    return MU_ERR_NOENT;
   
   i = mu_cpystr (buf, subaddr->route, len);
   if (n)
@@ -554,7 +554,7 @@ address_is_group (address_t addr, size_t no, int *yes)
 
   subaddr = _address_get_nth (addr, no);
   if (!subaddr)
-    return ENOENT;
+    return MU_ERR_NOENT;
   
   if (yes)
     *yes = _address_is_group (subaddr);

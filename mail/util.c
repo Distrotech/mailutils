@@ -1269,7 +1269,7 @@ util_get_message (mailbox_t mbox, size_t msgno, message_t *msg)
   if (msgno > total)
     {
       util_error_range (msgno);
-      return ENOENT;
+      return MU_ERR_NOENT;
     }
   
   status = mailbox_get_message (mbox, msgno, msg);

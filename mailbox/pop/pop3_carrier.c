@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2003 Free Software Foundation, Inc.
+   Copyright (C) 2003, 2004 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -45,8 +45,10 @@ int
 mu_pop3_get_carrier (mu_pop3_t pop3, stream_t *pcarrier)
 {
   /* Sanity checks.  */
-  if (pop3 == NULL || pcarrier == NULL)
+  if (pop3 == NULL)
     return EINVAL;
+  if (pcarrier == NULL)
+    return MU_ERR_OUT_PTR_NULL;
 
   *pcarrier = pop3->carrier;
   return 0;
