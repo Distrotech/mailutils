@@ -36,8 +36,8 @@ Kind regards\n")
 ;; Reply to the incoming message
 (define (reply in-msg)
   (let* ((out-msg (mu-message-create))
-	 (inbody (mu-message-get-body in-msg))
-	 (outbody (mu-message-get-body out-msg)))
+	 (in-port (mu-message-get-port in-msg "r"))
+	 (out-port (mu-message-get-port out-msg "w")))
     (mu-message-set-header out-msg "To"
 			   (mu-message-get-header in-msg "From"))
     (mu-message-set-header out-msg "Cc"
@@ -47,18 +47,22 @@ Kind regards\n")
 			    "Re: "
 			    (mu-message-get-header in-msg "Subject")))
 
-    (mu-body-write outbody reply-text)
+    (display reply-text out-port)
     
-    (mu-body-write outbody "\n\nOriginal message:\n")
+    (display "\n\nOriginal message:\n" out-port)
     (do ((hdr (mu-message-get-header-fields in-msg) (cdr hdr)))
 	 ((null? hdr) #f)
 	(let ((s (car hdr)))
-	  (mu-body-write outbody (string-append indent-prefix
-						(car s) ": " (cdr s) "\n"))))
-    (mu-body-write outbody (string-append indent-prefix "\n"))
-    (do ((line (mu-body-read-line inbody) (mu-body-read-line inbody)))
+	  (display (string-append
+		    indent-prefix
+		    (car s) ": " (cdr s) "\n") out-port)))
+    (display (string-append indent-prefix "\n") out-port)
+    (do ((line (read-line in-port) (read-line in-port)))
 	((eof-object? line) #f)
-      (mu-body-write outbody (string-append indent-prefix line)))
+      (display (string-append indent-prefix line "\n") out-port))
+
+    (close-input-port in-port)
+    (close-output-port out-port)
  	
     (mu-message-send out-msg)))
 
