@@ -6,6 +6,8 @@
 
 	* mailbox/mapfile_stream.c:  To take care of this will set
 	the mfs->ptr to NULL for len == 0;
+	*mailbox/mbx_mbox.c (mbox_is_updated): Should I have return 0 (FALSE)
+	when size change.
 
 2001-04-23 Sergey Poznyakoff
 
