@@ -47,7 +47,7 @@ status_get_handler (const char *name)
   struct status_table *p;
 
   for (p = status_table; p->name; p++)
-    if (strcmp (p->name, name) == 0)
+    if (strcasecmp (p->name, name) == 0)
       return p->fun;
   return NULL;
 }

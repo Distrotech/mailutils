@@ -224,7 +224,7 @@ imap4d_search0 (char *arg, int isuid, char *replybuf, size_t replysize)
 	}
 
       /* Currently only ASCII is supported */
-      if (strcmp (parsebuf.token, "US-ASCII"))
+      if (strcasecmp (parsebuf.token, "US-ASCII"))
 	{
 	  snprintf (replybuf, replysize, "Charset not supported");
 	  return RESP_NO;
