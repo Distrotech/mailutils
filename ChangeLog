@@ -14,6 +14,8 @@
 	* mail/unset.c: Likewise.
 	* mail/var.c: Likewise.
 
+	* TODO: updated.
+
 2001-07-25 Alain Magloire
 
 	Base on Jakob idea propose an implementation for decode.
