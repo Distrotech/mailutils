@@ -1,5 +1,5 @@
 /* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Library Public License as published by
@@ -314,6 +314,9 @@ header_get_value (header_t header, const char *name, char *buffer,
   if (header == NULL || name == NULL)
     return EINVAL;
 
+  if (header->_get_value)
+    return header->_get_value (header, name, buffer, buflen, pn);
+
   /* Try to fill out the buffer, if we know how.  */
   if (header->blurb == NULL && header->_get_value == NULL)
     {
@@ -363,6 +366,7 @@ header_get_value (header_t header, const char *name, char *buffer,
   if (pn)
     *pn = total;
 
+#if 0
   if (total == 0)
     {
       err = ENOENT;
@@ -374,6 +378,7 @@ header_get_value (header_t header, const char *name, char *buffer,
 	    header_set_value (header, name, buffer, 0);
 	}
     }
+#endif
 
   return err;
 }

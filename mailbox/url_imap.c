@@ -1,5 +1,5 @@
 /* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU Library General Public License as published by
@@ -127,10 +127,23 @@ _url_imap_init (url_t url)
     url->host = strdup (host);
   else
     {
+      char *question;
       url->host = malloc (indexe - host + 1);
       if (url->host)
 	((char *)memcpy (url->host, host, indexe - host))[indexe - host] = '\0';
-      url->query = strdup (indexe + 1);
+      indexe++;
+      /* The query starts after a '?'.  */
+      question = strchr (indexe, '?');
+      if (question == NULL)
+	url->path = strdup (indexe);
+      else
+	{
+	  url->path = malloc (question - indexe + 1);
+	  if (url->path)
+	    ((char *)memcpy (url->path, indexe,
+			     question - indexe))[question - indexe] = '\0';
+	  url->query = strdup (question);
+	}
     }
 
   if (url->host == NULL)

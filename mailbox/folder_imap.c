@@ -610,7 +610,7 @@ imap_literal_string (f_imap_t f_imap)
 	{
 	  /* Check how much we can fill the buffer.  */
 	  int x = (f_imap->callback.buflen - f_imap->callback.total) - len;
-	  x = (x > 0) ? len : -x;
+	  x = (x >= 0) ? len : -x;
 	  memcpy (f_imap->callback.buffer + f_imap->callback.total,
 		  f_imap->buffer, x);
 	  f_imap->callback.total += x;

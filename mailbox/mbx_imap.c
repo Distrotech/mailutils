@@ -58,7 +58,9 @@ static int imap_envelope_sender (envelope_t, char *, size_t, size_t *);
 static int imap_envelope_date (envelope_t, char *, size_t, size_t *);
 
 /* Attributes.  */
-static int imap_attr_flags (attribute_t, int *);
+static int imap_attr_get_flags (attribute_t, int *);
+static int imap_attr_set_flags (attribute_t, int);
+static int imap_attr_unset_flags (attribute_t, int);
 
 /* Header.  */
 static int imap_header_read (stream_t, char*, size_t, off_t, size_t *);
@@ -193,9 +195,10 @@ mailbox_imap_close (mailbox_t mailbox)
   f_imap_t f_imap = m_imap->f_imap;
   int status = 0;
 
-  /* It was not selected.  */
-  if (m_imap != f_imap->selected)
-    return 0;
+ /* Select first.  */
+  status = imap_messages_count (mailbox, NULL);
+  if (status != 0)
+    return status;
 
   switch (f_imap->state)
     {
@@ -212,9 +215,23 @@ mailbox_imap_close (mailbox_t mailbox)
       f_imap->state = IMAP_CLOSE_ACK;
 
     case IMAP_CLOSE_ACK:
-      status = imap_parse (f_imap);
-      CHECK_EAGAIN (f_imap, status);
-      MAILBOX_DEBUG0 (mailbox, MU_DEBUG_PROT, f_imap->buffer);
+      {
+	size_t i;
+	status = imap_parse (f_imap);
+	CHECK_EAGAIN (f_imap, status);
+	MAILBOX_DEBUG0 (mailbox, MU_DEBUG_PROT, f_imap->buffer);
+
+	monitor_wrlock (mailbox->monitor);
+	/* Destroy the imap messages and ressources associated to them.  */
+	for (i = 0; i < m_imap->imessages_count; i++)
+	  if (m_imap->imessages[i])
+	    free_subparts (m_imap->imessages[i]);
+	if (m_imap->imessages)
+	  free (m_imap->imessages);
+	m_imap->imessages = NULL;
+	m_imap->imessages_count = 0;
+	monitor_unlock (mailbox->monitor);
+      }
 
     default:
       break;
@@ -339,6 +356,9 @@ imap_get_message0 (msg_imap_t msg_imap, message_t *pmsg)
     message_set_header (msg, header, msg_imap);
   }
 
+  /* We do not create any special attribute, since nothing is send to the
+     server.  When the attributes change they are cache, they are only
+     sent to the server on mailbox_close or mailbox_expunge.  */
   /* Create the attribute.  */
   {
     attribute_t attribute;
@@ -348,7 +368,9 @@ imap_get_message0 (msg_imap_t msg_imap, message_t *pmsg)
         message_destroy (&msg, msg_imap);
         return status;
       }
-    attribute_set_get_flags (attribute, imap_attr_flags, msg);
+    attribute_set_get_flags (attribute, imap_attr_get_flags, msg);
+    attribute_set_set_flags (attribute, imap_attr_set_flags, msg);
+    attribute_set_unset_flags (attribute, imap_attr_unset_flags, msg);
     message_set_attribute (msg, attribute, msg_imap);
   }
 
@@ -518,12 +540,12 @@ imap_is_updated (mailbox_t mailbox)
 }
 
 
+/* FIXME: Not asyn, please fix to make usable when non blocking.  */
 static int
 imap_expunge (mailbox_t mailbox)
 {
   size_t i;
   int status;
-  attribute_t attr;
   m_imap_t m_imap = mailbox->data;
   f_imap_t f_imap = m_imap->f_imap;
 
@@ -534,14 +556,13 @@ imap_expunge (mailbox_t mailbox)
 
   for (i = 0; i < m_imap->imessages_count; ++i)
     {
-      if (message_get_attribute (m_imap->imessages[i]->message, &attr) == 0
-	  && attribute_is_deleted (attr))
+      if (m_imap->imessages[i]->flags & MU_ATTRIBUTE_DELETED)
 	{
 	  switch (f_imap->state)
 	    {
 	    case IMAP_NO_STATE:
 	      status = imap_writeline (f_imap,
-				       "g%d STORE %d +FLAGS (\\Delete)\r\n",
+				       "g%d STORE %d +FLAGS.SILENT (\\Deleted)\r\n",
 				       f_imap->seq++,
 				       m_imap->imessages[i]->num);
 	      CHECK_ERROR (f_imap, status);
@@ -833,10 +854,88 @@ imap_envelope_date (envelope_t envelope, char *buffer, size_t buflen,
 
 /* Attributes.  */
 static int
-imap_attr_flags (attribute_t attribute, int *pflags)
+imap_attr_get_flags (attribute_t attribute, int *pflags)
 {
-  (void)attribute; (void)pflags;
-  return 0;
+  message_t msg = attribute_get_owner (attribute);
+  msg_imap_t msg_imap = message_get_owner (msg);
+  m_imap_t m_imap = msg_imap->m_imap;
+  f_imap_t f_imap = m_imap->f_imap;
+  int status = 0;
+
+  /* Did we retrieve it alread ?  */
+  if (msg_imap->flags != 0)
+    {
+      if (pflags)
+	*pflags = msg_imap->flags;
+      return 0;
+    }
+
+  if (f_imap->state == IMAP_NO_STATE)
+    {
+      status = imap_writeline (f_imap, "g%d FETCH %d FLAGS\r\n",
+			       f_imap->seq++, msg_imap->num);
+      CHECK_ERROR (f_imap, status);
+      MAILBOX_DEBUG0 (m_imap->mailbox, MU_DEBUG_PROT, f_imap->buffer);
+      f_imap->state = IMAP_FETCH;
+    }
+  status = message_operation (f_imap, msg_imap, 0, NULL, 0, NULL);
+  if (status == 0)
+    {
+      if (pflags)
+	*pflags = msg_imap->flags;
+    }
+  return status;
+}
+
+static int
+imap_attr_set_flags (attribute_t attribute, int flags)
+{
+  message_t msg = attribute_get_owner (attribute);
+  msg_imap_t msg_imap = message_get_owner (msg);
+  m_imap_t m_imap = msg_imap->m_imap;
+  f_imap_t f_imap = m_imap->f_imap;
+  int status = 0;
+
+  /* The delete FLAG is not pass yet but only on the expunge.  */
+  if (f_imap->state == IMAP_NO_STATE)
+    {
+      status = imap_writeline (f_imap, "g%d STORE %d +FLAGS.SILENT (%s %s %s %s)\r\n",
+			       f_imap->seq++, msg_imap->num,
+			       (flags & MU_ATTRIBUTE_SEEN) ? "\\Seen" : "",
+			       (flags & MU_ATTRIBUTE_ANSWERED) ? "\\Answered" : "",
+			       (flags & MU_ATTRIBUTE_DRAFT) ? "\\Draft" : "",
+			       (flags & MU_ATTRIBUTE_FLAGGED) ? "\\Flagged" : "");
+      CHECK_ERROR (f_imap, status);
+      MAILBOX_DEBUG0 (m_imap->mailbox, MU_DEBUG_PROT, f_imap->buffer);
+      msg_imap->flags |= flags;
+      f_imap->state = IMAP_FETCH;
+    }
+  return message_operation (f_imap, msg_imap, 0, NULL, 0, NULL);
+}
+
+static int
+imap_attr_unset_flags (attribute_t attribute, int flags)
+{
+  message_t msg = attribute_get_owner (attribute);
+  msg_imap_t msg_imap = message_get_owner (msg);
+  m_imap_t m_imap = msg_imap->m_imap;
+  f_imap_t f_imap = m_imap->f_imap;
+  int status = 0;
+
+  if (f_imap->state == IMAP_NO_STATE)
+    {
+      status = imap_writeline (f_imap, "g%d STORE %d -FLAGS.SILENT (%s %s %s %s)\r\n",
+			       f_imap->seq++, msg_imap->num,
+			       (flags & MU_ATTRIBUTE_SEEN) ? "\\Seen" : "",
+			       (flags & MU_ATTRIBUTE_ANSWERED) ? "\\Answered" : "",
+			       (flags & MU_ATTRIBUTE_DRAFT) ? "\\Draft" : "",
+			       (flags & MU_ATTRIBUTE_FLAGGED) ? "\\Flagged" : "");
+      CHECK_ERROR (f_imap, status);
+      MAILBOX_DEBUG0 (m_imap->mailbox, MU_DEBUG_PROT, f_imap->buffer);
+      msg_imap->flags &= ~flags;
+      f_imap->state = IMAP_FETCH;
+    }
+  return message_operation (f_imap, msg_imap, 0, NULL, 0, NULL);
 }
 
 /* Header.  */
@@ -852,7 +951,14 @@ imap_header_get_value (header_t header, const char *field, char * buffer,
   size_t len = 0;
   char *value;
 
-  len = strlen (field) + buflen + 4;
+  /* Hack, if buffer == NULL they want to know how big is the field value,
+     Unfortunately IMAP does not say, so we take a guess hoping that the
+     value will not be over 1024.  */
+  /* FIXME: This is stupid, find a way to fix this.  */
+  if (buffer == NULL || buflen == 0)
+    len = 1024;
+  else
+    len = strlen (field) + buflen + 4;
   value = alloca (len);
   /*memset (value, '0', len); */
 
@@ -895,9 +1001,9 @@ imap_header_get_value (header_t header, const char *field, char * buffer,
       if (buffer && buflen)
 	{
 	  strncpy (buffer, colon, buflen);
-	  colon[buflen - 1] = '\0';
+	  buffer[buflen - 1] = '\0';
 	}
-      len = strlen (colon);
+      len = strlen (buffer);
       if (plen)
 	*plen = len;
       if (len == 0)
