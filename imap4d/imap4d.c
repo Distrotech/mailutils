@@ -45,7 +45,6 @@ static struct option long_options[] =
 
 const char *short_options ="d::hip:t:vO:P:S:";
 
-static int syslog_error_printer __P ((const char *fmt, va_list ap));
 static int imap4d_mainloop      __P ((int, int));
 static void imap4d_daemon_init  __P ((void));
 static void imap4d_daemon       __P ((unsigned int, unsigned int));
@@ -171,7 +170,7 @@ main (int argc, char **argv)
 
   /* Redirect any stdout error from the library to syslog, they
      should not go to the client.  */
-  mu_error_set_print (syslog_error_printer);
+  mu_error_set_print (mu_syslog_error_printer);
 
   umask (S_IROTH | S_IWOTH | S_IXOTH);  /* 007 */
 
@@ -388,9 +387,4 @@ imap4d_usage (char *argv0)
   exit (0);
 }
 
-static int
-syslog_error_printer (const char *fmt, va_list ap)
-{
-  vsyslog (LOG_CRIT, fmt, ap);
-  return 0;
-}
+
