@@ -351,15 +351,30 @@ proc default_mail_test { args } {
 
     set result 0
     for {set i 0} {$i < [llength $pattern]} {incr i} {
-	verbose "i=$i, pat=[lindex ${pattern} $i]" 2
-	set pat [lindex ${pattern} $i]
+	regsub "\[ \t\]*$" [lindex ${pattern} $i] "" pat
+	verbose "i=$i, pat=$pat" 2
 	mail_expect $tmt {
-	    -ex "$pat\r\n" {
+	    -ex "$pat" {
 		if { $expect_out(buffer) != $expect_out(0,string) } {
 		    verbose "Got \"$expect_out(buffer)\"" 2
 		    verbose "instead of expected \"$pat\\r\\n\"" 2
 		    set result 1
 		    break
+		}
+		mail_expect $tmt {
+		    -re "\[ \t]*\r\n" { }
+		    default {
+			set result 1
+			break
+		    }
+		    timeout {
+			set result -2
+			break
+		    }
+		    eof {
+			set result -3
+			break
+		    }
 		}
 	    }
 	    default {
