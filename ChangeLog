@@ -1,3 +1,7 @@
+2004-06-30  Sergey Poznyakoff
+
+	* libsieve/extensions/spamd.c (spamd_shutdown): Bugfix
+
 2004-06-29  Alain Magloire
 
 	Continuing the framework for NNTP support
