@@ -265,14 +265,12 @@ if        : IF
 fi        : FI
             {
 	      /* False branch of an if-block */
-	      $$.cond = mh_code_number (0);
-	      mh_code_op (mhop_num_asgn);
+	      $$.cond = mh_code_op (mhop_num_asgn);
 	      /* Jump over the true branch */
 	      mh_code_op (mhop_branch);
-	      mh_code_op (3);
+	      mh_code_op (2);
 	      /* True branch */
-	      $$.end = mh_code_number (1);
-	      mh_code_op (mhop_num_asgn);
+	      $$.end = mh_code_op (mhop_num_asgn);
 	    }
           ;
 
