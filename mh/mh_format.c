@@ -442,7 +442,7 @@ mh_format (mh_format_t *fmt, message_t msg, size_t msgno,
   mach.message = msg;
   mach.msgno = msgno;
   
-  mach.width = width - 1; /* Do not count newlines */
+  mach.width = width - 1; /* Count the newline */
   mach.pc = 1;
   obstack_init (&mach.stk);
   list_create (&mach.addrlist);
