@@ -1,4 +1,4 @@
-GNU mailutils NEWS -- history of user-visible changes.  2004-02-25
+GNU mailutils NEWS -- history of user-visible changes.  2005-03-05
 Copyright (C) 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 See the end of file for copying conditions.
 
@@ -17,6 +17,24 @@ encrypted using MySQL password() function. New option
 --sql-getpass query. Its possible values are: `plain' for plaintext
 passwords, `scrambled' for passwords hashed using MySQL algorithm and
 `hash' for MD5 or DES hashed passwords (default).
+
+* mail: Improved POSIX compatibility.
+In particular, `next' command now works as described by
+POSIX. Following commands change the status of the message to `read':
+mbox, pipe, print, top, undelete, visual and decode (a GNU extension).
+Implemented following variables: flipr, showto, bang.
+The command `touch' does not alter messages that were deleted or saved
+to a file.
+
+* from
+The `from' utility was rewritten. It is now fully compatible with the
+BSD version.
+
+* frm
+Implemented -t (--align) command line option.
+Whenever available, `frm' uses BIDI algorithm for display. This
+allows for correct display of subject lines written in languages
+with right to left script orientation (Arabic, Hebrew).
 
 * New SQL driver: odbc
 

@@ -1,3 +1,33 @@
+2005-03-06  Sergey Poznyakoff 
+
+	* NEWS: Updated
+	
+	* auth/sql.c: Use a uniform way of filename quoting in diagnostic messages.
+	* frm/common.c: Likewise
+	* frm/from.c: Likewise
+	* imap4d/authenticate.c: Likewise
+	* imap4d/login.c: Likewise
+	* libsieve/actions.c: Likewise
+	* libsieve/extensions/vacation.c: Likewise
+	* mail/var.c: Likewise
+	* mail.local/mailquota.c: Likewise
+	* mail.local/main.c: Likewise
+	* mail.remote/mail.remote.c: Likewise
+	* mailbox/mu_argp.c: Likewise
+	* messages/messages.c: Likewise
+	* mh/forw.c: Likewise
+	* mh/mh_ctx.c: Likewise
+	* mh/mh_init.c: Likewise
+	* mh/send.c: Likewise
+	* movemail/movemail.c: Likewise
+	* pop3d/apop.c: Likewise
+	* pop3d/lock.c: Likewise
+	* pop3d/user.c: Likewise
+	* readmsg/readmsg.c: Likewise
+	* sieve/sieve.c: Likewise
+	
+	* mailbox/errors (MU_ERR_NO_QUERY): Fixed wording
+
 2005-03-05  Wojciech Polak
 
 	* frm/Makefile.am: Removed install-exec-hook after the changes
