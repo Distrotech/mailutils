@@ -32,15 +32,12 @@
 #define LOCKFILE_ATTR           0444
 #define LOCK_EXPIRE_TIME        (5 * 60)
 
-/*
- * Waiting for Brian E. to implement this.
- */
+/* First draft by Brian Edmond. */
 
 struct _locker
 {
   int fd;
   char *fname;
-  int locked;
   int flags;
 };
 
@@ -59,7 +56,7 @@ locker_create (locker_t *plocker, char *filename, size_t len, int flags)
   if (l == NULL)
     return ENOMEM;
 
-  l->fname = calloc (len + 5 + 1, sizeof(char));
+  l->fname = calloc (len + 5 /*strlen(".lock")*/ + 1, sizeof(char));
   if (l->fname == NULL)
     {
       free (l);
@@ -68,11 +65,10 @@ locker_create (locker_t *plocker, char *filename, size_t len, int flags)
   memcpy (l->fname, filename, len);
   strcat (l->fname, ".lock");
 
-  l->locked = 0;
   if (flags)
     l->flags = flags;
   else
-    l->flags = MU_LOCKER_TIME;
+    l->flags = MU_LOCKER_TIME; /* Default is time lock implementation.  */
   l->fd = -1;
   *plocker = l;
   return 0;
@@ -101,30 +97,32 @@ locker_lock (locker_t lock, int flags)
   if (lock == NULL)
     return EINVAL;
 
-  /* check for lock existance
-   * if it exists but the process is gone the lock can be removed
-   */
+  /*
+    Check for lock existance:
+    if it exists but the process is gone the lock can be removed,
+    if if the lock is expired and remove it.  */
   if ((fd = open(lock->fname, O_RDONLY)) != -1)
     {
+      /* Check to see if this process is still running.  */
       if (lock->flags & MU_LOCKER_PID)
         {
           if (read(fd, buf, sizeof (pid_t)) > 0)
             {
-              /* check to see if this process is still running */
               if ((pid = atoi(buf)) > 0)
                 {
-                  /* process is gone so we try to remove the lock */
+                  /* Process is gone so we try to remove the lock.  */
                   if (kill(pid, 0) == -1)
                     removed = 1;
                 }
             }
         }
+      /* Check to see if the lock expired.  */
       if (lock->flags & MU_LOCKER_TIME)
         {
           struct stat stbuf;
 
           fstat(fd, &stbuf);
-          /* the lock has expired */
+          /* The lock has expired.  */
           if ((time(NULL) - stbuf.st_mtime) > LOCK_EXPIRE_TIME)
             removed = 1;
         }
@@ -134,15 +132,15 @@ locker_lock (locker_t lock, int flags)
         unlink(lock->fname);
     }
 
-  /* try to create the lockfile */
+  /* Try to create the lockfile.  */
   if ((fd = open(lock->fname,
 		 O_WRONLY | O_CREAT | O_EXCL, LOCKFILE_ATTR)) == -1)
-    return (-1);
-  /* success */
+    return errno;
+  /* Success.  */
   sprintf(buf, "%d", getpid());
   write(fd, buf, strlen(buf));
 
-  /* try to get a file lock */
+  /* Try to get a file lock.  */
   if (lock->flags & MU_LOCKER_FCNTL)
     {
       struct flock fl;
@@ -151,10 +149,11 @@ locker_lock (locker_t lock, int flags)
       fl.l_type = F_WRLCK;
       if (fcntl(fd, F_SETLK, &fl) == -1)
         {
-          /* could not get the file lock */
+	  int err = errno;
+          /* Could not get the file lock.  */
           close (fd);
-          unlink(lock->fname); /* remove the file I created */
-          return -1;
+          unlink(lock->fname); /* Remove the file I created.  */
+          return err;
         }
     }
 
@@ -165,7 +164,7 @@ locker_lock (locker_t lock, int flags)
 int
 locker_touchlock (locker_t lock)
 {
- if (!lock || lock->fname || (lock->fd == -1))
+ if (!lock || ! lock->fname || (lock->fd == -1))
     return EINVAL;
   return (utime(lock->fname, NULL));
 }
@@ -173,7 +172,7 @@ locker_touchlock (locker_t lock)
 int
 locker_unlock (locker_t lock)
 {
-  if (!lock || !lock->fname || (lock->fd == -1))
+  if (!lock || ! lock->fname || (lock->fd == -1))
     return EINVAL;
 
   if (lock->flags & MU_LOCKER_FCNTL)
@@ -182,11 +181,10 @@ locker_unlock (locker_t lock)
 
       memset(&fl, 0, sizeof(struct flock));
       fl.l_type = F_UNLCK;
-      /* unlock failed  ? */
+      /* Unlock failed ?  */
       if (fcntl(lock->fd, F_SETLK, &fl) == -1)
           return errno;
     }
-  lock->locked = 0;
   close(lock->fd);
   lock->fd = -1;
   unlink(lock->fname);

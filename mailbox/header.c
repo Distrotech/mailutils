@@ -27,7 +27,7 @@
 #include <stdio.h>
 #include <errno.h>
 
-static int header_parse (header_t h, char *blurb, int len);
+static int header_parse (header_t h, const char *blurb, int len);
 static int header_read (stream_t is, char *buf, size_t buflen,
 			off_t off, size_t *pnread);
 static int header_write (stream_t os, const char *buf, size_t buflen,
@@ -43,18 +43,18 @@ struct _hdr
 
 struct _header
 {
-  /* Data */
+  /* Owner.  */
+  void *owner;
+  /* Data.  */
   char *blurb;
   size_t blurb_len;
   size_t hdr_count;
   struct _hdr *hdr;
 
-  /* streams */
+  /* Streams.  */
   stream_t stream;
   int (*_get_value) __P ((header_t, const char *, char *, size_t , size_t *));
 
-  /* owner ? */
-  void *owner;
 };
 
 int
@@ -66,7 +66,7 @@ header_create (header_t *ph, const char *blurb, size_t len, void *owner)
     return ENOMEM;
   h->owner = owner;
 
-  header_parse (h, (char *)blurb, len);
+  header_parse (h, blurb, len);
 
   *ph = h;
   return 0;
@@ -79,10 +79,9 @@ header_destroy (header_t *ph, void *owner)
     {
       header_t h = *ph;
 
-      /* can we destroy ? */
+      /* Can we destroy ?.  */
       if (h->owner == owner)
 	{
-	  /* io */
 	  stream_destroy (&(h->stream), h);
 	  free (h->hdr);
 	  free (h->blurb);
@@ -92,25 +91,23 @@ header_destroy (header_t *ph, void *owner)
     }
 }
 
-/*
- * Parsing is done in a rather simple fashion.
- * meaning we just consider an entry to be
- * a field-name an a field-value.  So they
- * maybe duplicate of field-name like "Received"
- * they are just put in the array, see _get_value()
- * on how to handle the case.
- * in the case of error .i.e a bad header construct
- * we do a full stop and return what we have so far.
- */
+/* Parsing is done in a rather simple fashion.
+   meaning we just consider an entry to be
+   a field-name an a field-value.  So they
+   maybe duplicate of field-name like "Received"
+   they are just put in the array, see _get_value()
+   on how to handle the case.
+   in the case of error .i.e a bad header construct
+   we do a full stop and return what we have so far.  */
 static int
-header_parse (header_t header, char *blurb, int len)
+header_parse (header_t header, const char *blurb, int len)
 {
   char *header_end;
   char *header_start;
   char *header_start2;
   struct _hdr *hdr;
 
-  /* nothing to parse */
+  /* Nothing to parse.  */
   if (blurb == NULL || len == 0)
     return 0;
 
@@ -120,22 +117,26 @@ header_parse (header_t header, char *blurb, int len)
     return ENOMEM;
   memcpy (header->blurb, blurb, header->blurb_len);
 
-  free (header->hdr);
+  if (header->hdr)
+    free (header->hdr);
   header->hdr = NULL;
   header->hdr_count = 0;
+
+  /* Get a header, a header is :
+     field-name ':'  ' ' field-value '\r' '\n'
+     [ (' ' | '\t') field-value '\r' '\n' ]
+  */
+  /* First loop goes throught the blurb */
   for (header_start = header->blurb;; header_start = ++header_end)
     {
       char *fn, *fn_end, *fv, *fv_end;
-      /* get a header, a header is :
-       * field-name ':'  ' ' field-value '\r' '\n'
-       * [ (' ' | '\t') field-value '\r' '\n' ]
-       */
 
       if (header_start[0] == ' ' ||
 	  header_start[0] == '\t' ||
 	  header_start[0]== '\n')
 	break;
 
+      /* Second loop extract one header field.  */
       for (header_start2 = header_start;;header_start2 = ++header_end)
 	{
 	  header_end = memchr (header_start2, '\n', len);
@@ -151,15 +152,17 @@ header_parse (header_t header, char *blurb, int len)
 		}
 	      if (header_end[1] != ' '
 		  && header_end[1] != '\t')
-		break; /* new header break the inner for */
+		break; /* New header break the inner for. */
 	    }
 	  /* *header_end = ' ';  smash LF ? NO */
 	}
 
       if (header_end == NULL)
-	break; /* bail out */
+	break; /* Bail out.  */
 
-      /* Treats unix "From " specially */
+      /* Now save the header in the data structure.  */
+
+      /* Treats unix "From " specially.  */
       if ((header_end - header_start >= 5)
 	  && strncmp (header_start, "From ", 5) == 0)
 	{
@@ -168,23 +171,23 @@ header_parse (header_t header, char *blurb, int len)
 	  fv = header_start + 5;
 	  fv_end = header_end;
 	}
-      else
+      else /* Break the header in key: value */
 	{
 	  char *colon = memchr (header_start, ':', header_end - header_start);
 
-	  /* Houston we have a problem */
+	  /* Houston we have a problem.  */
 	  if (colon == NULL)
-	    break; /* disregard the rest and bailout */
+	    break; /* Disregard the rest and bailout.  */
 
 	  fn = header_start;
 	  fn_end = colon;
-	  /* skip leading spaces */
+	  /* Skip leading spaces. */
 	  while (*(++colon) == ' ');
 	  fv = colon;
 	  fv_end = header_end;
 	}
 
-      /* allocate a new slot for the field:value */
+      /* Allocate a new slot for the field:value.  */
       hdr = realloc (header->hdr, (header->hdr_count + 1) * sizeof (*hdr));
       if (hdr == NULL)
 	{
@@ -216,42 +219,40 @@ header_set_value (header_t header, const char *fn, const char *fv, int replace)
     return EINVAL;
 
   /* Easy approach: if replace, overwrite the field-{namve,value}
-   * and readjust the pointers by calling header_parse ()
-   * this is wastefull and bad, we're just fragmenting the memory
-   * it can be done better.  But that may imply a rewite of the headers
-   * So for another day.
-   */
-  {
-    size_t name_len;
-    size_t i;
-    size_t fn_len;
-    size_t fv_len;
-    len = header->blurb_len;
-    for (name_len = strlen (fn), i = 0; i < header->hdr_count; i++)
-      {
-	fn_len = header->hdr[i].fn_end - header->hdr[i].fn;
-	fv_len = header->hdr[i].fv_end - header->hdr[i].fv;
-	if (fn_len == name_len &&
-	    strncasecmp (header->hdr[i].fn, fn, fn_len) == 0)
-	  {
-	    if (replace)
-	      {
-		blurb = header->blurb;
-		memmove (header->hdr[i].fn, header->hdr[i + 1].fn,
-			 header->hdr[header->hdr_count - 1].fv_end
-			 - header->hdr[i + 1].fn + 1 + 1);
-		/* readjust the pointers if move */
-		len -= fn_len + fv_len + 2;
-		i--;
-		blurb = header->blurb;
-		header_parse (header, blurb, len);
-		free (blurb);
-	      }
-	  }
-      }
-  }
+     and readjust the pointers by calling header_parse ()
+     this is wastefull, we're just fragmenting the memory
+     it can be done better.  But that may imply a rewite of the headers
+     So for another day.  */
+  if (replace)
+    {
+      size_t name_len;
+      size_t i;
+      size_t fn_len;
+      size_t fv_len;
+      len = header->blurb_len;
+      for (name_len = strlen (fn), i = 0; i < header->hdr_count; i++)
+	{
+	  fn_len = header->hdr[i].fn_end - header->hdr[i].fn;
+	  fv_len = header->hdr[i].fv_end - header->hdr[i].fv;
+	  if (fn_len == name_len &&
+	      strncasecmp (header->hdr[i].fn, fn, fn_len) == 0)
+	    {
+	      blurb = header->blurb;
+	      memmove (header->hdr[i].fn, header->hdr[i + 1].fn,
+		       header->hdr[header->hdr_count - 1].fv_end
+		       - header->hdr[i + 1].fn + 1 + 1);
+	      /* readjust the pointers if move */
+	      len -= fn_len + fv_len + 2;
+	      i--;
+	      blurb = header->blurb;
+	      header_parse (header, blurb, len);
+	      free (blurb);
+	    }
+	}
+    }
 
-  /* and it's getting worse, we free/malloc at will */
+  /* Replacing was taking care of above now just add to
+     the end the new header.  Really not cute.  */
   len = strlen (fn) + strlen (fv) + 1 + 1 + 1 + 1;
   blurb = calloc (header->blurb_len + len, 1);
   if (blurb == NULL)
@@ -290,18 +291,16 @@ header_get_value (header_t header, const char *name, char *buffer,
   if (header == NULL || name == NULL)
     return EINVAL;
 
-  /* we set the threshold to be 1 less for the null */
+  /* We set the threshold to be 1 less for the null.  */
   threshold = --buflen;
 
-  /*
-   * Caution: We may have more then one value for a field
-   * name, for example a "Received" field-name is added by
-   * each passing MTA.  The way that the parsing (_parse())
-   * is done it's not take to account.  So we just stuff in
-   * the buffer all the field-values to a corresponding field-name.
-   * FIXME: Should we kosher the output ? meaning replace
-   * occurences of " \t\r\n" for spaces ? for now we don't.
-   */
+  /* Caution: We may have more then one value for a field
+     name, for example a "Received" field-name is added by
+     each passing MTA.  The way that the parsing (_parse())
+     is done it's not take to account.  So we just stuff in
+     the buffer all the field-values to a corresponding field-name.
+     FIXME: Should we kosher the output ? meaning replace
+     occurences of " \t\r\n" for spaces ? for now we don't.  */
   for (name_len = strlen (name), i = 0; i < header->hdr_count; i++)
     {
       fn_len = header->hdr[i].fn_end - header->hdr[i].fn;
@@ -310,7 +309,7 @@ header_get_value (header_t header, const char *name, char *buffer,
 	{
 	  fv_len = (header->hdr[i].fv_end - header->hdr[i].fv);
 	  total += fv_len;
-	  /* can everything fit in the buffer */
+	  /* Can everything fit in the buffer.  */
 	  if (buffer && threshold > 0)
 	    {
 	      threshold -= fv_len;
@@ -330,16 +329,16 @@ header_get_value (header_t header, const char *name, char *buffer,
 	}
     }
   if (buffer)
-    *buffer = '\0'; /* null terminated */
+    *buffer = '\0'; /* Null terminated.  */
   if (pn)
     *pn = total;
   if (total == 0)
     {
       int err = ENOENT;
-      /* check if they provided a hook */
+      /* Check if they provided a hook.  */
       if (header->_get_value != NULL)
 	err = header->_get_value (header, name, buffer, buflen, pn);
-      /* cache it locally */
+      /* Cache it locally.  */
       if (err == 0)
 	header_set_value (header, name, buffer, 0);
       return err;
@@ -421,7 +420,7 @@ header_entry_value (header_t header, size_t num, char *buf,
   if (header->hdr_count == 0 || num > header->hdr_count)
     return ENOENT;
   len = header->hdr[num].fv_end - header->hdr[num].fv;
-  /* save one for the null */
+  /* Save one for the null.  */
   --buflen;
   if (buf && buflen > 0)
     {

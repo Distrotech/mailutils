@@ -22,13 +22,13 @@ mailbox_create_default (mailbox_t *pmbox, const char *mail)
 
   if (mail)
     {
-      /* is it a fullpath ? */
+      /* Is it a fullpath ?  */
       if (mail[0] != '/')
 	{
-	  /* is it a URL ? */
+	  /* Is it a URL ?  */
 	  if (strchr (mail, ':') == NULL)
 	    {
-	      /* a user name */
+	      /* A user name.  */
 	      user = mail;
 	      mail = NULL;
 	    }
@@ -44,7 +44,7 @@ mailbox_create_default (mailbox_t *pmbox, const char *mail)
 	  user = (getenv ("LOGNAME")) ? getenv ("LOGNAME") : getenv ("USER");
 	  if (user == NULL)
 	    {
-	      fprintf (stderr, "who am I?\n");
+	      fprintf (stderr, "Who am I ?\n");
 	      return EINVAL;
 	    }
 	}

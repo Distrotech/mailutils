@@ -63,28 +63,28 @@ static int mailbox_pop_body_size (body_t, size_t *psize);
 
 
 /* According to the rfc:
- * RFC 2449                POP3 Extension Mechanism           November 1998
+   RFC 2449                POP3 Extension Mechanism           November 1998
 
- * 4.  Parameter and Response Lengths
+   4.  Parameter and Response Lengths
 
- * This specification increases the length restrictions on commands and
- * parameters imposed by RFC 1939.
+   This specification increases the length restrictions on commands and
+   parameters imposed by RFC 1939.
 
- * The maximum length of a command is increased from 47 characters (4
- * character command, single space, 40 character argument, CRLF) to 255
- * octets, including the terminating CRLF.
+   The maximum length of a command is increased from 47 characters (4
+   character command, single space, 40 character argument, CRLF) to 255
+   octets, including the terminating CRLF.
 
- * Servers which support the CAPA command MUST support commands up to
- * 255 octets.  Servers MUST also support the largest maximum command
- * length specified by any supported capability.
+   Servers which support the CAPA command MUST support commands up to
+   255 octets.  Servers MUST also support the largest maximum command
+   length specified by any supported capability.
 
- * The maximum length of the first line of a command response (including
- * the initial greeting) is unchanged at 512 octets (including the
- * terminating CRLF).
- */
+   The maximum length of the first line of a command response (including
+   the initial greeting) is unchanged at 512 octets (including the
+   terminating CRLF).  */
 
 /* buffered IO */
-struct _bio {
+struct _bio
+{
 #define POP_BUFSIZ 512
   int fd;
   size_t maxlen;
@@ -150,7 +150,7 @@ mailbox_pop_create (mailbox_t *pmbox, const char *name)
   size_t name_len;
   int status;
 
-  /* sanity check */
+  /* Sanity check.  */
   if (pmbox == NULL || name == NULL || *name == '\0')
     return MU_ERROR_INVALID_ARG;
 
@@ -160,7 +160,7 @@ mailbox_pop_create (mailbox_t *pmbox, const char *name)
 #define POP_SCHEME_LEN 6
 #define SEPARATOR '/'
 
-  /* skip the url scheme */
+  /* Skip the url scheme.  */
   if (name_len > POP_SCHEME_LEN &&
       (name[0] == 'p' || name[0] == 'P') &&
       (name[1] == 'o' || name[1] == 'O') &&
@@ -171,12 +171,12 @@ mailbox_pop_create (mailbox_t *pmbox, const char *name)
       name_len -= POP_SCHEME_LEN;
     }
 
-  /* allocate memory for mbox */
+  /* Allocate memory for mbox.  */
   mbox = calloc (1, sizeof (*mbox));
   if (mbox == NULL)
     return MU_ERROR_OUT_OF_MEMORY;
 
-  /* allocate specific pop box data */
+  /* Allocate specific pop box data.  */
   mpd = mbox->data = calloc (1, sizeof (*mpd));
   if (mbox->data == NULL)
     {
@@ -184,7 +184,7 @@ mailbox_pop_create (mailbox_t *pmbox, const char *name)
       return MU_ERROR_OUT_OF_MEMORY;
     }
 
-  /* allocate the struct for buffered I/O */
+  /* Allocate the struct for buffered I/O.  */
   status = bio_create (&(mpd->bio), -1);
   if (status != 0)
     {
@@ -192,7 +192,7 @@ mailbox_pop_create (mailbox_t *pmbox, const char *name)
       return status;
     }
 
-  /* copy the name */
+  /* Copy the name.  */
   mbox->name = calloc (name_len + 1, sizeof (char));
   if (mbox->name == NULL)
     {
@@ -202,19 +202,19 @@ mailbox_pop_create (mailbox_t *pmbox, const char *name)
   memcpy (mbox->name, name, name_len);
 
 #ifdef HAVE_PHTREAD_H
-  /* mutex when accessing the structure fields */
-  /* FIXME: should we use rdwr locks instead ?? */
+  /* Mutex when accessing the structure fields.  */
+  /* FIXME: should we use rdwr locks instead ??  */
   pthread_mutex_init (&(mud->mutex), NULL);
 #endif
 
-  /* initialize the structure */
+  /* Initialize the structure.  */
   mbox->_create = mailbox_pop_create;
   mbox->_destroy = mailbox_pop_destroy;
 
   mbox->_open = mailbox_pop_open;
   mbox->_close = mailbox_pop_close;
 
-  /* messages */
+  /* Messages.  */
   mbox->_get_message = mailbox_pop_get_message;
   mbox->_messages_count = mailbox_pop_messages_count;
   mbox->_expunge = mailbox_pop_expunge;
@@ -227,7 +227,7 @@ mailbox_pop_create (mailbox_t *pmbox, const char *name)
 
   (*pmbox) = mbox;
 
-  return 0; /* okdoke */
+  return 0; /* Okdoke.  */
 }
 
 static void
@@ -328,11 +328,11 @@ mailbox_pop_open (mailbox_t mbox, int flags)
   char host[256]  ;
   long port;
 
-  /* sanity checks */
+  /* Sanity checks.  */
   if (mbox == NULL || mbox->url == NULL || (mpd = mbox->data) == NULL)
     return EINVAL;
 
-  /* create the networking stack */
+  /* Create the networking stack.  */
   if (!mbox->stream)
     {
       if ((status = url_get_host (mbox->url, host, sizeof(host), NULL)) != 0 ||
@@ -345,20 +345,20 @@ mailbox_pop_open (mailbox_t mbox, int flags)
 	}
     }
 
-  /* flag busy */
+  /* Flag busy.  */
   if (mpd->func && mpd->func != func)
     return EBUSY;
   mpd->func = func;
   bio = mpd->bio;
 
-  /* spawn the prologue */
+  /* Spawn the prologue.  */
   if (mbox->auth)
     auth_prologue (mbox->auth);
 
-  /* enter the state machine */
+  /* Enter the state machine.  */
   switch (mpd->state)
     {
-      /* establish the connection */
+      /* Establish the connection.  */
     case 0:
       status = stream_open (mbox->stream, host, port, flags);
       if (status != 0)
@@ -370,11 +370,11 @@ mailbox_pop_open (mailbox_t mbox, int flags)
 	    }
 	  return status;
 	}
-      /* get the fd */
+      /* Get the fd.  */
       stream_get_fd (mbox->stream, &fd);
       mpd->bio->fd = mpd->fd = fd;
       mpd->state = 1;
-      /* glob the Greetings */
+      /* Glob the greetings.  */
     case 1:
       status = bio_readline (bio);
       if (status != 0)
@@ -394,8 +394,8 @@ mailbox_pop_open (mailbox_t mbox, int flags)
 	  mpd->bio->fd = -1;
 	  return EACCES;
 	}
-      /* Dealing whith Authentication */
-      /* so far only normal user/pass supported */
+      /* Dealing whith Authentication.  */
+      /* So far only normal user/pass supported.  */
       if (mbox->auth == NULL)
 	{
 	  status = auth_create (&(mbox->auth), mbox);
@@ -409,14 +409,14 @@ mailbox_pop_open (mailbox_t mbox, int flags)
 	}
 
       auth_authenticate (mbox->auth, &mpd->user, &mpd->passwd);
-      /* FIXME use snprintf */
+      /* FIXME: Use snprintf.  */
       //mpd->len = sprintf (pop->buffer, POP_BUFSIZ, "USER %s\r\n", user);
       bio->len = sprintf (bio->buffer, "USER %s\r\n", mpd->user);
       bio->ptr = bio->buffer;
       mailbox_debug (mbox, MU_MAILBOX_DEBUG_PROT, bio->buffer);
       free (mpd->user); mpd->user = NULL;
       mpd->state = 2;
-      /* send username */
+      /* Send username.  */
     case 2:
       status = bio_write (bio);
       if (status != 0)
@@ -429,7 +429,7 @@ mailbox_pop_open (mailbox_t mbox, int flags)
 	  return status;
 	}
       mpd->state = 3;
-      /* get the ack */
+      /* Get the ack.  */
     case 3:
       status = bio_readline (bio);
       if (status  != 0)
@@ -445,14 +445,14 @@ mailbox_pop_open (mailbox_t mbox, int flags)
       if (strncasecmp (bio->buffer, "+OK", 3) != 0)
 	return EACCES;
 
-      /* FIXME use snprintf */
+      /* FIXME Use snprintf.  */
       //mpd->len = snprintf (mpd->buffer, POP_BUFSIZ, "PASS %s\r\n", passwd);
       bio->len = sprintf (bio->buffer, "PASS %s\r\n", mpd->passwd);
       bio->ptr = bio->buffer;
       mailbox_debug (mbox, MU_MAILBOX_DEBUG_PROT, bio->buffer);
       free (mpd->passwd); mpd->passwd = NULL;
       mpd->state = 4;
-      /* send Passwd */
+      /* Send passwd.  */
     case 4:
       status = bio_write (bio);
       if (status != 0)
@@ -465,7 +465,7 @@ mailbox_pop_open (mailbox_t mbox, int flags)
 	  return status;
 	}
       mpd->state = 5;
-      /* get the ack from passwd */
+      /* Get the ack from passwd.  */
     case 5:
       status = bio_readline (bio);
       if (status  != 0)
@@ -480,13 +480,13 @@ mailbox_pop_open (mailbox_t mbox, int flags)
       mailbox_debug (mbox, MU_MAILBOX_DEBUG_PROT, bio->buffer);
       if (strncasecmp (bio->buffer, "+OK", 3) != 0)
 	return EACCES;
-    }/* swith state */
+    }/* Swith state. */
 
-  /* spawn cleanup functions */
+  /* Spawn cleanup functions.  */
   if (mbox->auth)
     auth_epilogue (mbox->auth);
 
-  /* clear any state */
+  /* Clear any state.  */
   mpd->func = NULL;
   mpd->state = 0;
 
@@ -564,11 +564,11 @@ mailbox_pop_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
   size_t i;
   void *func = (void *)mailbox_pop_get_message;
 
-  /* sanity */
+  /* Sanity.  */
   if (mbox == NULL || pmsg == NULL || (mpd = mbox->data) == NULL)
     return EINVAL;
 
-  /* see if we already have this message */
+  /* See if we already have this message.  */
   for (i = 0; i < mpd->pmessages_count; i++)
     {
       if (mpd->pmessages[i])
@@ -581,7 +581,7 @@ mailbox_pop_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
 	}
     }
 
-  /* are we busy in another function ? */
+  /* Are we busy in another function ? */
   if (mpd->func && mpd->func != func)
     return EBUSY;
 
@@ -592,10 +592,10 @@ mailbox_pop_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
   mpd->func = func;
   bio = mpd->bio;
 
-  /* Ok men, we're going in */
+  /* Ok men, we're going in.  */
   switch (mpd->state)
     {
-      /* the message */
+      /* The message.  */
     case 0:
       {
 	message_t msg;
@@ -605,7 +605,7 @@ mailbox_pop_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
 	if (mpm == NULL)
 	  return ENOMEM;
 
-	/* we'll use the bio to store headers */
+	/* We'll use the bio to store headers.  */
 	mpm->bio = calloc (1, sizeof (*(mpm->bio)));
 	if (mpm->bio == NULL)
 	  {
@@ -614,7 +614,7 @@ mailbox_pop_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
 	    return ENOMEM;
 	  }
 
-	/* create the message */
+	/* Create the message.  */
 	status = message_create (&msg, mpm);
 	if (status != 0)
 	  {
@@ -624,7 +624,7 @@ mailbox_pop_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
 	    return status;
 	  }
 
-	/* the message */
+	/* The message.  */
 	mpm->message = msg;
 	mpm->num = msgno;
 	mpd->mpm = mpm;
@@ -633,20 +633,18 @@ mailbox_pop_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
 	/* set the busy request state */
 	mpd->id = (void *)msg;
 
-	/*
-	 * Get the header.
-	 * FIXME: TOP is an optionnal command, if we want to
-	 * be compliant we can not count on it to exists.
-	 * So we should be prepare when it fails and fall to
-	 * a second scheme
-	 */
+	/* Get the header.
+	   FIXME: TOP is an optionnal command, if we want to
+	   be compliant we can not count on it to exists.
+	   So we should be prepare when it fails and fall to
+	   a second scheme.  */
 	/*bio->len = snprintf (bio->buffer, POP_BUFSIZ, "TOP %d 0\r\n", msgno);*/
 	bio->len = sprintf (bio->buffer, "TOP %d 0\r\n", msgno);
 	bio->ptr = bio->buffer;
 	mailbox_debug (mbox, MU_MAILBOX_DEBUG_PROT, bio->buffer);
 	mpd->state = 1;
       }
-      /* send the TOP */
+      /* Send the TOP.  */
     case 1:
       {
 	status = bio_write (bio);
@@ -665,7 +663,7 @@ mailbox_pop_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
 	  }
 	mpd->state = 2;
       }
-      /* ack from TOP */
+      /* Ack from TOP. */
     case 2:
       {
 	status = bio_readline (bio);
@@ -695,7 +693,7 @@ mailbox_pop_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
 	  }
       }
       mpd->state = 5;
-      /* get the header */
+      /* Get the header.  */
     case 5:
       {
 	char *tbuf;
@@ -705,7 +703,7 @@ mailbox_pop_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
 	    status = bio_readline (bio);
 	    if (status != 0)
 	      {
-		/* recoverable */
+		/* Recoverable.  */
 		if (status != EAGAIN && status != EINTR)
 		  {
 		    mpd->func = mpd->id = NULL;
@@ -718,7 +716,7 @@ mailbox_pop_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
 		return status;
 	      }
 
-	    /* our ticket out */
+	    /* Our ticket out.  */
 	    if (bio->buffer[0] == '\0')
 	      break;
 
@@ -745,15 +743,15 @@ mailbox_pop_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
       } /* case 5: */
       break;
     default:
-      /* error here unknow case */
+      /* Error here unknow case.  */
       fprintf (stderr, "Pop unknown state(get_message)\n");
     } /* switch (state) */
 
-  /* no need to carry a state anymore */
+  /* No need to carry a state anymore.  */
   mpd->func = mpd->id = NULL;
   mpd->state = 0;
 
-  /* create the header */
+  /* Create the header.  */
   {
     header_t header;
     status = header_create (&header, mpd->mpm->bio->buffer,
@@ -769,10 +767,10 @@ mailbox_pop_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
     message_set_header ((mpd->mpm->message), header, mpd->mpm);
   }
 
-  /* reallocate the working buffer */
+  /* Reallocate the working buffer.  */
   bio_create (&(mpd->mpm->bio), mpd->fd);
 
-  /* create the attribute */
+  /* Create the attribute.  */
   {
     attribute_t attribute;
     char hdr_status[64];
@@ -780,7 +778,7 @@ mailbox_pop_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
     hdr_status[0] = '\0';
     message_get_header (mpd->mpm->message, &header);
     header_get_value (header, "Status", hdr_status, sizeof (hdr_status), NULL);
-    /* create the attribute */
+    /* Create the attribute.  */
     status = string_to_attribute (hdr_status, &attribute);
     if (status != 0)
       {
@@ -793,7 +791,7 @@ mailbox_pop_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
     message_set_attribute (mpd->mpm->message, attribute, mpd->mpm);
   }
 
-  /* create the body  */
+  /* Create the body.  */
   {
     stream_t stream;
     body_t body;
@@ -824,7 +822,7 @@ mailbox_pop_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
     body_set_stream (body, stream, mpd->mpm);
   }
 
-  /* add it to the list */
+  /* Add it to the list.  */
   {
     mailbox_pop_message_t *m ;
     m = realloc (mpd->pmessages, (mpd->pmessages_count + 1)*sizeof (*m));
@@ -875,13 +873,13 @@ mailbox_pop_messages_count (mailbox_t mbox, size_t *pcount)
       bio->ptr = bio->buffer;
       mailbox_debug (mbox, MU_MAILBOX_DEBUG_PROT, bio->buffer);
       mpd->state = 1;
-      /* Send the STAT */
+      /* Send the STAT.  */
     case 1:
       status = bio_write (bio);
       if (status != 0)
 	return status;
       mpd->state = 2;
-      /* get the ACK */
+      /* Get the ACK.  */
     case 2:
       status = bio_readline (bio);
       if (status != 0)
@@ -905,7 +903,7 @@ mailbox_pop_messages_count (mailbox_t mbox, size_t *pcount)
 }
 
 
-/* update and scanning*/
+/* Update and scanning.  */
 static int
 mailbox_pop_is_updated (mailbox_t mbox)
 {
@@ -938,7 +936,7 @@ mailbox_pop_num_deleted (mailbox_t mbox, size_t *pnum)
   return 0;
 }
 
-/* We just simulated */
+/* We just simulated.  */
 static int
 mailbox_pop_scan (mailbox_t mbox, size_t msgno, size_t *pcount)
 {
@@ -953,7 +951,7 @@ mailbox_pop_scan (mailbox_t mbox, size_t msgno, size_t *pcount)
   return 0;
 }
 
-/* This were we actually sending the DELE command */
+/* This were we actually sending the DELE command.  */
 static int
 mailbox_pop_expunge (mailbox_t mbox)
 {
@@ -968,7 +966,7 @@ mailbox_pop_expunge (mailbox_t mbox)
       (mpd = (mailbox_pop_data_t) mbox->data) == NULL)
     return EINVAL;
 
-  /* busy ? */
+  /* Busy ?  */
   if (mpd->func && mpd->func != func)
     return EBUSY;
 
@@ -979,7 +977,7 @@ mailbox_pop_expunge (mailbox_t mbox)
     {
       if (message_get_attribute (mpd->pmessages[i]->message, &attr) == 0)
 	{
-	  /* send DELETE */
+	  /* Send DELETE.  */
 	  if (attribute_is_deleted (attr))
 	    {
 	      switch (mpd->state)
@@ -1030,13 +1028,13 @@ mailbox_pop_expunge (mailbox_t mbox)
     } /* for */
   mpd->func = mpd->id = NULL;
   mpd->state = 0;
-  /* invalidate */
+  /* Invalidate.  */
   mpd->is_updated = 0;
 
   return 0;
 }
 
-/* mailbox size ? */
+/* Mailbox size ? */
 static int
 mailbox_pop_size (mailbox_t mbox, off_t *psize)
 {
@@ -1106,11 +1104,11 @@ mailbox_pop_readstream (stream_t is, char *buffer, size_t buflen,
   bio = mpm->bio;
   mpd = mpm->mpd;
 
-  /* busy ? */
+  /* Busy ? */
   if (mpd->func && mpd->func != func)
     return EBUSY;
 
-  /* which request */
+  /* Which request.  */
   if (mpd->id && mpd->id != mpm)
     return EBUSY;
 
@@ -1119,7 +1117,7 @@ mailbox_pop_readstream (stream_t is, char *buffer, size_t buflen,
 
   switch (mpd->state)
     {
-      /* send the RETR command */
+      /* Send the RETR command.  */
     case 0:
       bio->len = sprintf (bio->buffer, "RETR %d\r\n", mpm->num);
       mpd->state = 1;
@@ -1135,7 +1133,7 @@ mailbox_pop_readstream (stream_t is, char *buffer, size_t buflen,
 	  return status;
 	}
       mpd->state = 2;
-      /* RETR ACK */
+      /* RETR ACK.  */
     case 2:
       status = bio_readline (bio);
       if (status != 0)
@@ -1150,7 +1148,7 @@ mailbox_pop_readstream (stream_t is, char *buffer, size_t buflen,
       if (strncasecmp (bio->buffer, "+OK", 3) != 0)
 	return EINVAL;
       mpd->state = 3;
-      /* skip the header */
+      /* Skip the header.  */
     case 3:
       while (!mpm->inbody)
 	{
@@ -1170,15 +1168,15 @@ mailbox_pop_readstream (stream_t is, char *buffer, size_t buflen,
 	      break;
 	    }
 	}
-      /* skip the newline */
+      /* Skip the newline.  */
       bio_readline (bio);
-      /* start taking the header */
+      /* Start taking the header.  */
       mpd->state = 4;
       bio->current = bio->buffer;
     case 4:
       {
 	int nleft, n;
-	/* do we need to fill up */
+	/* Do we need to fill up.  */
 	if (bio->current >= bio->nl)
 	  {
 	    bio->current = bio->buffer;
@@ -1194,7 +1192,7 @@ mailbox_pop_readstream (stream_t is, char *buffer, size_t buflen,
 	  }
 	n = bio->nl - bio->current;
 	nleft = buflen - n;
-	/* we got more then requested */
+	/* We got more then requested.  */
 	if (nleft <= 0)
 	  {
 	    memcpy (buffer, bio->current, buflen);
@@ -1203,13 +1201,13 @@ mailbox_pop_readstream (stream_t is, char *buffer, size_t buflen,
 	  }
 	else
 	  {
-	    /* drain the buffer */
+	    /* Drain the buffer.  */
 	    memcpy (buffer, bio->current, n);
 	    bio->current += n;
 	    nread = n;
 	  }
       }
-    } /* switch state */
+    } /* Switch state.  */
 
   if (nread == 0)
     {
@@ -1291,14 +1289,12 @@ bio_read (bio_t bio)
   return 0;
 }
 
-/*
- * Responses to certain commands are multi-line.  In these cases, which
- * are clearly indicated below, after sending the first line of the
- * response and a CRLF, any additional lines are sent, each terminated
- * by a CRLF pair.  When all lines of the response have been sent, a
- * final line is sent, consisting of a termination octet (decimal code
- * 046, ".") and a CRLF pair.
- */
+/* Responses to certain commands are multi-line.  In these cases, which
+   are clearly indicated below, after sending the first line of the
+   response and a CRLF, any additional lines are sent, each terminated
+   by a CRLF pair.  When all lines of the response have been sent, a
+   final line is sent, consisting of a termination octet (decimal code
+   046, ".") and a CRLF pair.  */
 static int
 bio_readline (bio_t bio)
 {
@@ -1323,7 +1319,7 @@ bio_readline (bio_t bio)
 	  if (status < 0)
 	    return status;
 	  len = bio->ptr  - bio->buffer;
-	  /* a newline */
+	  /* Newline.  */
 	  bio->nl = memchr (bio->buffer, '\n', len);
 	  if (bio->nl == NULL)
 	    {
@@ -1344,12 +1340,10 @@ bio_readline (bio_t bio)
 	}
     }
 
-  /*
-   * When examining a multi-line response, the client checks
-   * to see if the line begins with the termination octet "."(DOT).
-   * If so and if octets other than CRLF follow, the first octet
-   * of the line (the termination octet) is stripped away.
-   */
+  /* When examining a multi-line response, the client checks
+     to see if the line begins with the termination octet "."(DOT).
+     If so and if octets other than CRLF follow, the first octet
+     of the line (the termination octet) is stripped away.  */
   if (bio->buffer[0] == '.')
     {
       if (bio->buffer[1] != '\r' && bio->buffer[2] != '\n')
@@ -1359,10 +1353,9 @@ bio_readline (bio_t bio)
 	  bio->nl--;
 	}
       /* If so and if CRLF immediately
-       * follows the termination character, then the response from the POP
-       * server is ended and the line containing ".CRLF" is not considered
-       * part of the multi-line response.
-       */
+         follows the termination character, then the response from the POP
+         server is ended and the line containing ".CRLF" is not considered
+         part of the multi-line response.  */
         else if (bio->buffer[1] == '\r' && bio->buffer[2] == '\n')
 	{
 	  bio->buffer[0] = '\0';
@@ -1371,7 +1364,7 @@ bio_readline (bio_t bio)
 	}
     }
 
-  /* \r\n --> \n\0 */
+  /* \r\n --> \n\0  */
   if (bio->nl > bio->buffer)
     {
       *(bio->nl - 1) = '\n';

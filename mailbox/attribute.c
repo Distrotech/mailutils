@@ -108,7 +108,7 @@ attribute_set_recent (attribute_t attr)
     return EINVAL;
   if (attr == NULL)
     {
-      attr->flag |= MU_ATTRIBUTE_RECENT;
+      attr->flag = 0;
       return 0;
     }
   return EACCES;
@@ -167,7 +167,7 @@ attribute_is_recent (attribute_t attr)
 {
   if (attr == NULL)
     return 0;
-  return attr->flag & MU_ATTRIBUTE_RECENT;
+  return attr->flag == 0;
 }
 
 int
@@ -229,7 +229,7 @@ attribute_unset_recent (attribute_t attr)
 {
   if (attr == NULL)
     return 0;
-  attr->flag &= ~MU_ATTRIBUTE_RECENT;
+  attr->flag |= MU_ATTRIBUTE_SEEN;
   return 0;
 }
 

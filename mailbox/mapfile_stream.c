@@ -45,7 +45,7 @@ _mapfile_destroy (stream_t stream)
 {
   struct _mapfile_stream *mfs = stream->owner;
 
-  if (mfs->ptr)
+  if (mfs && mfs->ptr)
     {
       munmap (mfs->ptr, mfs->size);
       close (mfs->fd);
@@ -60,8 +60,9 @@ _mapfile_read (stream_t stream, char *optr, size_t osize,
   struct _mapfile_stream *mfs = stream->owner;
   size_t n;
 
-  if (mfs->ptr == NULL)
+  if (mfs == NULL || mfs->ptr == NULL)
     return EINVAL;
+
   if (offset >= (off_t)mfs->size)
     {
       if (nbytes)
@@ -85,9 +86,9 @@ _mapfile_readline (stream_t stream, char *optr, size_t osize,
   char *nl;
   size_t n = 0;
 
-  if (mfs->ptr == NULL)
+  if (mfs == NULL || mfs->ptr == NULL)
     return EINVAL;
-  /* save space for the null byte */
+  /* Save space for the null byte.  */
   osize--;
   if (offset >= (off_t)mfs->size)
     {
@@ -112,13 +113,14 @@ _mapfile_write (stream_t stream, const char *iptr, size_t isize,
 {
   struct _mapfile_stream *mfs = stream->owner;
 
-  if (mfs->ptr == NULL)
+  if (mfs == NULL || mfs->ptr == NULL)
     return EINVAL;
+
   if (! (mfs->flags & PROT_WRITE))
     return EACCES;
 
-  /* not recommanded, really */
-  /* bigger we have to remmap */
+  /* Not recommanded, really.  */
+  /* Bigger we have to remmap.  */
   if (mfs->size < (offset + isize))
     {
       if (munmap (mfs->ptr, mfs->size) != 0)
@@ -150,9 +152,9 @@ static int
 _mapfile_truncate (stream_t stream, off_t len)
 {
   struct _mapfile_stream *mfs = stream->owner;
-  if (mfs->ptr == NULL)
+  if (mfs == NULL || mfs->ptr == NULL)
     return EINVAL;
-  /* remap */
+  /* Remap.  */
   if (munmap (mfs->ptr, mfs->size) != 0)
     {
       int err = errno;
@@ -178,7 +180,8 @@ _mapfile_size (stream_t stream, off_t *psize)
 {
   struct _mapfile_stream *mfs = stream->owner;
   struct stat stbuf;
-  if (mfs->ptr == NULL)
+
+  if (mfs == NULL || mfs->ptr == NULL)
     return EINVAL;
   msync (mfs->ptr, mfs->size, MS_SYNC);
   if (fstat(mfs->fd, &stbuf) != 0)
@@ -192,6 +195,8 @@ static int
 _mapfile_flush (stream_t stream)
 {
   struct _mapfile_stream *mfs = stream->owner;
+  if (mfs == NULL)
+    return EINVAL;
   return msync (mfs->ptr, mfs->size, MS_SYNC);
 }
 
@@ -199,6 +204,8 @@ static int
 _mapfile_get_fd (stream_t stream, int *pfd)
 {
   struct _mapfile_stream *mfs = stream->owner;
+  if (mfs == NULL)
+    return EINVAL;
   if (pfd)
     *pfd = mfs->fd;
   return 0;
@@ -208,16 +215,17 @@ static int
 _mapfile_close (stream_t stream)
 {
   struct _mapfile_stream *mfs = stream->owner;
-  if (mfs->ptr)
+  int err = 0;
+  if (mfs && mfs->ptr)
     {
       if (munmap (mfs->ptr, mfs->size) != 0)
-	return errno;
-      mfs->ptr = NULL;
+	err = errno;
       if (close (mfs->fd) != 0)
-	return errno;
+	err = errno;
+      mfs->ptr = NULL;
       mfs->fd = -1;
     }
-  return 0;
+  return err;
 }
 
 static int
@@ -227,9 +235,12 @@ _mapfile_open (stream_t stream, const char *filename, int port, int flags)
   int mflag, flg;
   struct stat st;
 
-  (void)port; /* shutup gcc */
+  (void)port; /* Ignored.  */
 
-  /* map the flags to the system equivalent */
+  if (mfs == NULL)
+    return EINVAL;
+
+  /* Map the flags to the system equivalent */
   if (flags & MU_STREAM_WRITE)
     {
       mflag = PROT_WRITE;

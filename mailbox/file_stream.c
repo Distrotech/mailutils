@@ -39,7 +39,7 @@ _file_destroy (stream_t stream)
 {
   struct _file_stream *fs = stream->owner;
 
-  if (fs->file)
+  if (fs && fs->file)
     fclose (fs->file);
   free (fs);
 }
@@ -50,26 +50,30 @@ _file_read (stream_t stream, char *optr, size_t osize,
 {
   struct _file_stream *fs = stream->owner;
   size_t n;
+  int err = 0;
+
+  if (fs == NULL)
+    return EINVAL;
 
   if (fs->offset != offset)
     {
-      fseek (fs->file, offset, SEEK_SET);
+      if (fseek (fs->file, offset, SEEK_SET) != 0)
+	return errno;
       fs->offset = offset;
     }
 
   n = fread (optr, sizeof(char), osize, fs->file);
-
   if (n == 0)
     {
       if (ferror(fs->file))
-	return errno;
+	err = errno;
     }
   else
     fs->offset += n;
 
   if (nbytes)
     *nbytes = n;
-  return 0;
+  return err;
 }
 
 static int
@@ -80,9 +84,13 @@ _file_readline (stream_t stream, char *optr, size_t osize,
   size_t n = 0;
   int err = 0;
 
+  if (fs == NULL)
+    return EINVAL;
+
   if (fs->offset != offset)
     {
-      fseek (fs->file, offset, SEEK_SET);
+      if (fseek (fs->file, offset, SEEK_SET) != 0)
+	return errno;
       fs->offset = offset;
     }
 
@@ -110,32 +118,39 @@ _file_write (stream_t stream, const char *iptr, size_t isize,
 {
   struct _file_stream *fs = stream->owner;
   size_t n;
+  int err;
+
+  if (fs == NULL)
+    return EINVAL;
 
   if (fs->offset != offset)
     {
-      fseek (fs->file, offset, SEEK_SET);
+      if (fseek (fs->file, offset, SEEK_SET) != 0)
+	return errno;
       fs->offset = offset;
     }
 
   n = fwrite (iptr, sizeof(char), isize, fs->file);
-
-  if (*nbytes == 0)
+  if (n == 0)
     {
       if (ferror (fs->file))
-	return errno;
+	err = errno;
     }
   else
     fs->offset += *nbytes;
 
   if (nbytes)
     *nbytes = n;
-  return 0;
+  return err;
 }
 
 static int
 _file_truncate (stream_t stream, off_t len)
 {
   struct _file_stream *fs = stream->owner;
+
+  if (fs == NULL)
+    return EINVAL;
   if (ftruncate (fileno(fs->file), len) != 0)
     return errno;
   return 0;
@@ -146,6 +161,9 @@ _file_size (stream_t stream, off_t *psize)
 {
   struct _file_stream *fs = stream->owner;
   struct stat stbuf;
+
+  if (fs == NULL)
+    return EINVAL;
   fflush (fs->file);
   if (fstat(fileno(fs->file), &stbuf) == -1)
     return errno;
@@ -158,6 +176,9 @@ static int
 _file_flush (stream_t stream)
 {
   struct _file_stream *fs = stream->owner;
+
+  if (fs == NULL)
+    return EINVAL;
   return fflush (fs->file);
 }
 
@@ -165,6 +186,9 @@ static int
 _file_get_fd (stream_t stream, int *pfd)
 {
   struct _file_stream *fs = stream->owner;
+
+  if (fs == NULL)
+    return EINVAL;
   if (pfd)
     *pfd = fileno (fs->file);
   return 0;
@@ -174,10 +198,17 @@ static int
 _file_close (stream_t stream)
 {
   struct _file_stream *fs = stream->owner;
+  int err = 0;
+
+  if (fs == NULL)
+    return EINVAL;
   if (fs->file)
-    if (fclose (fs->file) != 0)
-      return errno;
-  return 0;
+    {
+      if (fclose (fs->file) != 0)
+	err = errno;
+      fs->file = NULL;
+    }
+  return err;
 }
 
 static int
@@ -188,8 +219,12 @@ _file_open (stream_t stream, const char *filename, int port, int flags)
   int fd;
   const char *mode;
 
-  (void)port; /* shutup gcc */
-  /* map the flags to the system equivalent */
+  (void)port; /* Ignored.  */
+
+  if (fs == NULL)
+    return EINVAL;
+
+  /* Map the flags to the system equivalent.  */
   if (flags & MU_STREAM_WRITE)
     flg = O_WRONLY;
   else if (flags & MU_STREAM_RDWR)
@@ -197,24 +232,23 @@ _file_open (stream_t stream, const char *filename, int port, int flags)
   else /* default */
     flg = O_RDONLY;
 
-  /* local folders should not block it is local disk ???
-   * We simply ignore the O_NONBLOCK flag
-   * But take care of the APPEND.
-   */
+  /* Local folders should not block it is local disk ???
+     We simply ignore the O_NONBLOCK flag
+     But take care of the APPEND.  */
   if (flags & MU_STREAM_APPEND)
     flg |= O_APPEND;
 
-  /* handle CREAT with care, not to follow symlinks */
+  /* Handle CREAT with care, not to follow symlinks.  */
   if (flags & MU_STREAM_CREAT)
     {
-      /* first see if the file already exists */
+      /* First see if the file already exists.  */
       fd = open(filename, flg);
       if (fd == -1)
 	{
-	  /* oops bail out */
+	  /* Oops bail out.  */
 	  if (errno != ENOENT)
 	    return errno;
-	  /* Race condition here when creating the file ?? */
+	  /* Race condition here when creating the file ??.  */
 	  fd = open(filename, flg|O_CREAT|O_EXCL, 0600);
 	  if (fd < 0)
 	    return errno;
@@ -227,23 +261,22 @@ _file_open (stream_t stream, const char *filename, int port, int flags)
         return errno;
     }
 
-  /* we have to make sure that We did not open
-   * a symlink. From Casper D. in bugtraq.
-   */
+  /* We have to make sure that We did not open
+     a symlink. From Casper D. in bugtraq.  */
   if ((flg & MU_STREAM_CREAT) ||
       (flg & MU_STREAM_RDWR) ||
       (flg & MU_STREAM_WRITE))
     {
       struct stat fdbuf, filebuf;
 
-      /* the next two stats should never fail */
+      /* The next two stats should never fail.  */
       if (fstat(fd, &fdbuf) == -1)
 	return errno;
       if (lstat(filename, &filebuf) == -1)
 	return errno;
 
       /* Now check that: file and fd reference the same file,
-	 file only has one link, file is plain file */
+	 file only has one link, file is plain file.  */
       if (fdbuf.st_dev != filebuf.st_dev ||
 	  fdbuf.st_ino != filebuf.st_ino ||
 	  fdbuf.st_nlink != 1 ||
@@ -253,14 +286,14 @@ _file_open (stream_t stream, const char *filename, int port, int flags)
 	return EINVAL;
       }
     }
-  /* we use FILE * object */
+  /* We use FILE * object.  */
   if (flags & MU_STREAM_APPEND)
     mode = "a";
   else if (flags & MU_STREAM_RDWR)
     mode = "r+b";
   else if (flags & MU_STREAM_WRITE)
     mode = "wb";
-  else /* default readonly*/
+  else /* Default readonly.  */
     mode = "rb";
 
   fs->file = fopen (filename, mode);
@@ -271,6 +304,7 @@ _file_open (stream_t stream, const char *filename, int port, int flags)
       return ret;
     }
 #if BUFSIZ <= 1024
+  /* Give us some roo to breathe, for OS with two small stdio buffers.  */
   {
     char *iobuffer;
     iobuffer = malloc (8192);
