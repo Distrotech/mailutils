@@ -58,6 +58,7 @@ struct mu_pop3_work_buf
   char *ptr;
   char *nl;
   size_t len;
+  off_t offset; /* To synchronize with the stream buffering. */
 };
 
 /* Structure to hold things general to POP3 mailbox, like its state, etc ... */
