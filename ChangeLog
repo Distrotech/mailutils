@@ -1,3 +1,11 @@
+2001-10-30  Alain Magloire
+
+	* mailbox/body.c: Remove unneeded prototype.
+	* mailbox/mbx_imap.c (mailbox_imap_close): Clear the callback
+	string structure.
+	(imap_scan0): Clear the callback string structure.
+	(imap_append_message): Remove unused variable.
+
 2001-10-30  Sam Roberts
 
 	* mailbox/: folder_imap.c, mbx_imap.c, include/imap0.h: Implemented
