@@ -26,7 +26,10 @@ lib_LTLIBRARIES = libmuauth.la
 libmuauth_la_SOURCES = \
 gsasl.c \
 pam.c \
+sql.h \
 sql.c \
+mysql.c \
+pgsql.c \
 tls.c \
 virtual.c 
 
