@@ -1,5 +1,13 @@
 2002-03-13  Sergey Poznyakoff 
 
+	* mail/echo.c: Make it aware of escape char '\'.
+	* mail/next.c: Should print the message also.
+	* mail/previous.c: Should print the message also.
+	* mail/util.c(util_do_command): Memory leak cmd
+	was not free(cmd).  An empty line means now "next".
+
+2002-03-13  Sergey Poznyakoff 
+
 	* include/mailutils/Makefile.am: Added types.h
 
 	* argp/{argp-eexst.c,argp-namefrob.h,argp.h,

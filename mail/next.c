@@ -1,5 +1,5 @@
 /* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999, 2001 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001, 2002 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -29,7 +29,6 @@ mail_next (int argc, char **argv)
     {
       cursor++;
       realcursor++;
-      return 0;
     }
   else
     {
@@ -38,7 +37,7 @@ mail_next (int argc, char **argv)
       cursor = list->msg_part[0];
       realcursor = cursor;
       msgset_free (list);
-      return 0;
     }
+  util_do_command("print");
   return 1;
 }

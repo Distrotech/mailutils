@@ -1,5 +1,5 @@
 /* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -97,20 +97,29 @@ util_do_command (const char *c, ...)
     {
       struct mail_command_entry entry;
 
-      if (cmd[0] == '#')
+      /*  Ignore comments */
+      if (cmd[0] == '#') {
+	free (cmd);
 	return 0;
+      }
 
-      if (argcv_get (cmd, delim, NULL, &argc, &argv) != 0)
-	return argcv_free (argc, argv);
+      /* Hitting return i.e. no command, is equivalent to next
+	 according to the POSIX spec.  */
+      if (cmd[0] == '\0') {
+	free (cmd);
+	cmd = strdup ("next");
+      }
 
-      entry = util_find_entry (mail_command_table, argv[0]);
-
-      if (if_cond () == 0 && (entry.flags & EF_FLOW) == 0)
+      if (argcv_get (cmd, delim, NULL, &argc, &argv) == 0)
 	{
-	  argcv_free (argc, argv);
-	  return 0;
+
+	  entry = util_find_entry (mail_command_table, argv[0]);
+
+	  /* Make sure we are not in any if/else */
+	  if (! (if_cond () == 0 && (entry.flags & EF_FLOW) == 0))
+	    command = entry.func;
 	}
-      command = entry.func;
+      free (cmd);
     }
   else
     command = util_command_get ("quit");
