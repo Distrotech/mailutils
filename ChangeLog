@@ -1,3 +1,8 @@
+2003-01-19  Wojciech Polak
+
+	* auth/tls.c (mu_check_tls_environment): Removed file permissions
+	  check for `ssl_cert'. Thanks Simon Josefsson for reporting.
+
 2003-01-18  Sergey Poznyakoff 
 
 	* imap4d/util.c (util_token): Fixed comment.
