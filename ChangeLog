@@ -1,3 +1,21 @@
+2001-08-06 Sergey Poznyakoff
+	* mail/msgset.y: (new) A parser for message set specifications
+	of arbitrary complexity. Returns a singly linked list of
+	message specifications that can be iterated without need
+	for recursion.
+	* mail/mail.h: Prototypes for msgset_ functions. Removed proto
+	for util_expand_msglist.
+	* mail/Makefile.am: Added msgset.y
+	* mail/{copy.c, followup.c, headers.c, next.c, pipe.c,
+	previous.c, util.c, write.c}: Use msgset_parse instead of
+	util_expand_msglist.
+	* mail/util.c: Added util_msgset_iterate() to iterate over a
+	message set. Added util_get_content_type() and
+	util_get_hdr_value() (from decode.c).
+	* mail/decode.c: Use util_msgset_iterate(). Moved get_content_type()
+	and get_hdr_value() to util.c
+	* mail/table.c: Fixed synopsis for decode. 
+
 2001-08-06  Alain Magloire
 
 	* sieve/{exitcodes.h hmac-md5.h md5.c md5.h md5global.h}: Removed.
