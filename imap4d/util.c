@@ -26,6 +26,27 @@ static const char * sc2string (int rc);
 char *
 util_getword (char *s, char **save)
 {
+  /* Take care of words between double quotes.  */
+  {
+    char *p;
+    if ((p = s) || (p = *save))
+      {
+	while (isspace ((unsigned)*p))
+	  p++;
+	if (*p == '"')
+	  {
+	    s = p;
+	    p++;
+	    while (*p && *p != '"')
+	      p++;
+	    if (*p == '"')
+		p++;
+	    *save = (*p) ? p + 1 : p;
+	    *p = '\0';
+	    return s;
+	  }
+      }
+  }
   return strtok_r (s, " \r\n", save);
 }
 

@@ -66,8 +66,10 @@ AC_FUNC_ALLOCA
 # Not use.
 #AC_FUNC_MEMCMP
 AC_FUNC_MMAP
-# FIXME: Provide the GNU one for loosing platforms
 AC_FUNC_FNMATCH
+if test "$ac_cv_func_fnmatch_works" = "no"; then
+    AC_LIBOBJ(fnmatch)
+fi
 AC_REPLACE_FUNCS(setenv snprintf strtok_r strncasecmp strcasecmp vasprintf)
 AC_CHECK_FUNCS(mkstemp)
 

@@ -62,6 +62,7 @@ struct _smtp
   char *nl;
   char *buffer;
   size_t buflen;
+  off_t s_offset;
 
   enum smtp_state
   {
@@ -818,7 +819,7 @@ smtp_readline (smtp_t smtp)
   do
     {
       status = stream_readline (smtp->mailer->stream, smtp->buffer + total,
-				smtp->buflen - total, 0, &n);
+				smtp->buflen - total, smtp->s_offset, &n);
       if (status != 0)
         return status;
 
@@ -827,6 +828,7 @@ smtp_readline (smtp_t smtp)
 	return EIO;
 
       total += n;
+      smtp->s_offset += n;
       smtp->nl = memchr (smtp->buffer, '\n', total);
       if (smtp->nl == NULL)  /* Do we have a full line.  */
         {

@@ -225,7 +225,7 @@ folder_mbox_rename (folder_t folder, const char *oldpath, const char *newpath)
 }
 
 /* The listing is not recursif and we use glob() some expansion for us.
-   Unfortunately glov() does not expand the '~'.  We also return
+   Unfortunately glob() does not expand the '~'.  We also return
    The full pathname so it can be use to create other folders.  */
 static int
 folder_mbox_list (folder_t folder, const char *dirname, const char *pattern,

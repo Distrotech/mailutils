@@ -1,3 +1,17 @@
+2001-04-19  Alain Magloire
+
+	* mailbox/smtp.c(smtp_readline): Because of the buffering mechanism,
+	we must maintain the offset.
+
+	* imap4d/list.c: partially implemented the LIST command.
+	* imap4d/imap4d.c: homedir new global variable.
+	* imap4d/login.c: same ${HOME} in homedir.
+	* imap4d/util.c (util_getword): Be aware of the quotes.
+
+	* lib/fnmatch.c: New replacement file.
+	* lib/fnmatch.h: New replacement file.
+	* configure.in: Check for fnmatch().
+
 2001-04-18  Alain Magloire
 
 	Finally took time to put the code in from Jakob first draft, in

@@ -51,12 +51,6 @@ Return non-zero value if message is multi-part.
 @deftypefun int message_get_part (message_t @var{msg}, size_t part, message_t *msg)
 @end deftypefun
 
-@deftypefun int message_add_part (message_t @var{msg}, message_t  @var{msg})
-@end deftypefun
-
-@deftypefun int message_set_add_part (message_t @var{msg}, message_t  @var{msg})
-@end deftypefun
-
 @deftypefun int message_get_stream (message_t @var{msg}, stream_t *@var{pstream})
 @end deftypefun
 

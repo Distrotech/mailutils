@@ -21,6 +21,7 @@ int *ifile;
 FILE *ofile;
 unsigned int timeout = 1800; /* RFC2060: 30 minutes, if enable.  */
 mailbox_t mbox;
+char *homedir;
 int state = STATE_NONAUTH;
 
 static int imap4_mainloop __P ((int, int));

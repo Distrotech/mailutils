@@ -128,5 +128,9 @@ imap4d_login (struct imap4d_command *command, char *arg)
 
   if (pw->pw_uid > 1)
     setuid (pw->pw_uid);
+
+  homedir = strdup (pw->pw_dir);
+  /* FIXME: Check for errors.  */
+  chdir (homedir);
   return util_finish (command, RESP_OK, "Completed");
 }

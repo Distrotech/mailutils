@@ -799,6 +799,8 @@ fetch_header_fields_not (message_t msg, char *arg, unsigned long start,
   return 0;
 }
 
+/* FIXME: The address is limit by a buffer of 128, no good.  We should
+   allocate the buffer.  */
 static int
 fetch_send_address (char *addr)
 {

@@ -107,6 +107,7 @@ extern struct imap4d_command imap4d_command_table[];
 extern FILE *ofile;
 extern unsigned int timeout;
 extern mailbox_t mbox;
+extern char *homedir;
 extern int state;
 
 /* Imap4 commands */
