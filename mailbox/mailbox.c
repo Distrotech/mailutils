@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2004 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -257,6 +257,7 @@ mailbox_messages_recent (mailbox_t mbox, size_t *num)
     return MU_ERR_EMPTY_VFN;
   return mbox->_messages_recent (mbox, num);
 }
+
 int
 mailbox_message_unseen (mailbox_t mbox, size_t *num)
 {
@@ -492,3 +493,20 @@ mailbox_set_folder (mailbox_t mbox, folder_t folder)
    mbox->folder = folder;
   return 0;
 }
+
+int
+mailbox_lock (mailbox_t mbox)
+{
+  locker_t lock = NULL;
+  mailbox_get_locker (mbox, &lock);
+  return locker_lock (lock);
+}
+
+int
+mailbox_unlock (mailbox_t mbox)
+{
+  locker_t lock = NULL;
+  mailbox_get_locker (mbox, &lock);
+  return locker_unlock (lock);
+}
+  

@@ -78,6 +78,10 @@ extern int  mailbox_set_debug       __P ((mailbox_t, mu_debug_t));
 /* Events.  */
 extern int  mailbox_get_observable  __P ((mailbox_t, observable_t *));
 
+/* Locking */  
+extern int mailbox_lock __P ((mailbox_t mbox));
+extern int mailbox_unlock __P ((mailbox_t mbox));
+  
 #ifdef __cplusplus
 }
 #endif
