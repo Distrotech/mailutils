@@ -1,3 +1,9 @@
+2003-09-02  Sergey Poznyakoff  
+
+	* mail/mail.c: Fixed description of --file argument.
+	* mailbox/filter_trans.c (qp_decode): Fixed bug that
+	could overflow the receiving buffer.
+
 2008-09-02  Wojciech Polak
 
 	* mail/next.c (mail_next): Check return code from msgset_parse
