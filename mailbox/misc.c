@@ -59,9 +59,9 @@ struct token
 
 /* Skip everything between quotes. */
 static void
-quotes (char **ptr)
+quotes (const char **ptr)
 {
-  char *p = *ptr;
+  const char *p = *ptr;
 
   p++;
   while (*p && *p != '"')
@@ -75,11 +75,11 @@ quotes (char **ptr)
 
 /* Return the next token. A token can be "<>()," or any "word". */
 static struct token *
-gettoken (char **ptr)
+gettoken (const char **ptr)
 {
   struct token	*tok;
-  char *p = *ptr;
-  char *begin;
+  const char *p = *ptr;
+  const char *begin;
   int l, quit = 0;
 
   SKIPSPACE(p);

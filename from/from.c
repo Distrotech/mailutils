@@ -34,17 +34,20 @@
 #include <unistd.h>
 
 #include <mailutils/mailbox.h>
+#include <mailutils/address.h>
 #include <mailutils/registrar.h>
 
 int
 main(int argc, char **argv)
 {
-  mailbox_t mbox = NULL;
+  mailbox_t mbox;
   size_t i;
   size_t count = 0;
   char *mailbox_name = NULL;
-  char from[BUFSIZ];
-  char subject[BUFSIZ];
+  /* Arbitrary limits.  A better approach would be to allocate
+     as we go along but it is not worth the trouble.  */
+  char buf[128];
+  char personal[128];
   int status;
 
   /* have an argument */
@@ -60,8 +63,7 @@ main(int argc, char **argv)
     list_append (bookie, pop_record);
   }
 
-  if ((status = mailbox_create_default (&mbox, mailbox_name)) != 0
-      || (status = mailbox_open (mbox, MU_STREAM_READ)) != 0)
+  if ((status = mailbox_create_default (&mbox, mailbox_name)) != 0)
     {
       fprintf (stderr, "could not create/open: %s\n", strerror (status));
       exit (1);
@@ -74,21 +76,43 @@ main(int argc, char **argv)
     //debug_set_level (debug, MU_DEBUG_TRACE|MU_DEBUG_PROT);
   }
 
+  if ((status = mailbox_open (mbox, MU_STREAM_READ)) != 0)
+    {
+      fprintf (stderr, "could not create/open: %s\n", strerror (status));
+      exit (1);
+    }
+
   mailbox_messages_count (mbox, &count);
   for (i = 1; i <= count; ++i)
     {
       message_t msg;
       header_t hdr;
+      size_t len = 0;
       if ((status = mailbox_get_message (mbox, i, &msg)) != 0
 	  || (status = message_get_header (msg, &hdr)) != 0)
 	{
 	  fprintf (stderr, "msg %d : %s\n", i, strerror(status));
 	  exit(2);
 	}
-      header_get_value (hdr, MU_HEADER_FROM, from, 30, NULL);
-      header_get_value (hdr, MU_HEADER_SUBJECT, subject, 40, NULL);
 
-      fprintf (stdout, "%s\t%s\n", from, subject);
+      header_get_value (hdr, MU_HEADER_FROM, buf, sizeof (buf), &len);
+      if (len != 0)
+	{
+	  address_t address = NULL;
+	  address_create (&address, buf);
+	  len = 0;
+	  address_get_personal (address, personal, sizeof (personal), &len);
+	  printf ("%s\t", (len != 0) ? personal : buf);
+	  address_destroy (&address);
+	}
+      else
+	{
+	  header_get_value (hdr, MU_HEADER_TO, buf, sizeof (buf), &len);
+	  printf ("%s\t", buf);
+	}
+
+      header_get_value (hdr, MU_HEADER_SUBJECT, buf, sizeof (buf), NULL);
+      printf ("%s\n", buf);
     }
   mailbox_close (mbox);
   return 0;
