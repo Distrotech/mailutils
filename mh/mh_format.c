@@ -70,8 +70,6 @@ strobj_free (strobj_t *obj)
 static void
 strobj_create (strobj_t *lvalue, char *str)
 {
-  int len;
-
   if (!str)
     {
       lvalue->size = 0;
