@@ -66,10 +66,10 @@ size_t mu_hexstr2ul(unsigned long* ul, const char* hex, size_t len)
 }
 
 /* Convert struct tm into time_t, taking into account timezone offset.
- 
+
  mktime() always treats tm as if it was localtime, so convert it
  to UTC, then adjust by the tm's real timezone, if it is known.
- 
+
  NOTE: 1. mktime converts localtime struct tm to *time_t in UTC*
        2. adding mu_utc_offset() compensates for the localtime
           corrections in mktime(), i.e. it yields the time_t in
@@ -80,7 +80,7 @@ time_t
 mu_tm2time (struct tm *timeptr, mu_timezone* tz)
 {
   int offset = tz ? tz->utc_offset : 0;
-  
+
   return mktime(timeptr) + mu_utc_offset() - offset;
 }
 
@@ -249,7 +249,7 @@ mu_get_homedir (void)
   if (!homedir)
     {
       struct passwd *pwd;
-      
+
       pwd = getpwuid(getuid());
       if (!pwd)
 	return NULL;
@@ -264,7 +264,7 @@ char *
 mu_tilde_expansion (const char *ref, const char *delim, const char *homedir)
 {
   char *p = strdup (ref);
-  
+
   if (*p == '~')
     {
       p++;
@@ -308,4 +308,19 @@ mu_tilde_expansion (const char *ref, const char *delim, const char *homedir)
         }
     }
   return p;
+}
+
+/* Smart strncpy that always add the null and returns the number of bytes
+   written.  */
+size_t
+util_cpystr (char *dst, const char *src, size_t size)
+{
+  size_t len = src ? strlen (src) : 0 ;
+  if (dst == NULL || size == 0)
+    return len;
+  if (len >= size)
+    len = size - 1;
+  memcpy (dst, src, len);
+  dst[len] = '\0';
+  return len;
 }

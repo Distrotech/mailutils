@@ -28,7 +28,6 @@
 #include <mailutils/list.h>
 #include <mailutils/monitor.h>
 
-#include <misc.h>
 #include <folder0.h>
 
 /* Internal folder list.  */

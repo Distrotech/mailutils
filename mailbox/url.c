@@ -28,9 +28,7 @@
 #endif
 
 #include <mailutils/mutil.h>
-#include <mailutils/registrar.h>
 
-#include <misc.h>
 #include <url0.h>
 
 #ifndef EPARSE
@@ -351,7 +349,7 @@ url_get_scheme (const url_t url, char *scheme, size_t len, size_t *n)
     return EINVAL;
   if (url->_get_scheme)
     return url->_get_scheme (url, scheme, len, n);
-  i = _cpystr (scheme, url->scheme, len);
+  i = util_cpystr (scheme, url->scheme, len);
   if (n)
     *n = i;
   return 0;
@@ -365,7 +363,7 @@ url_get_user (const url_t url, char *user, size_t len, size_t *n)
     return EINVAL;
   if (url->_get_user)
     return url->_get_user (url, user, len, n);
-  i = _cpystr (user, url->user, len);
+  i = util_cpystr (user, url->user, len);
   if (n)
     *n = i;
   return 0;
@@ -381,7 +379,7 @@ url_get_passwd (const url_t url, char *passwd, size_t len, size_t *n)
     return EINVAL;
   if (url->_get_passwd)
     return url->_get_passwd (url, passwd, len, n);
-  i = _cpystr (passwd, url->passwd, len);
+  i = util_cpystr (passwd, url->passwd, len);
   if (n)
     *n = i;
   return 0;
@@ -395,7 +393,7 @@ url_get_auth (const url_t url, char *auth, size_t len, size_t *n)
     return EINVAL;
   if (url->_get_auth)
     return url->_get_auth (url, auth, len, n);
-  i = _cpystr (auth, url->auth, len);
+  i = util_cpystr (auth, url->auth, len);
   if (n)
     *n = i;
   return 0;
@@ -409,7 +407,7 @@ url_get_host (const url_t url, char *host, size_t len, size_t *n)
     return EINVAL;
   if (url->_get_host)
     return url->_get_host (url, host, len, n);
-  i = _cpystr (host, url->host, len);
+  i = util_cpystr (host, url->host, len);
   if (n)
     *n = i;
   return 0;
@@ -434,7 +432,7 @@ url_get_path (const url_t url, char *path, size_t len, size_t *n)
     return EINVAL;
   if (url->_get_path)
     return url->_get_path (url, path, len, n);
-  i = _cpystr(path, url->path, len);
+  i = util_cpystr(path, url->path, len);
   if (n)
     *n = i;
   return 0;
@@ -448,7 +446,7 @@ url_get_query (const url_t url, char *query, size_t len, size_t *n)
     return EINVAL;
   if (url->_get_query)
     return url->_get_query (url, query, len, n);
-  i = _cpystr(query, url->query, len);
+  i = util_cpystr(query, url->query, len);
   if (n)
     *n = i;
   return 0;

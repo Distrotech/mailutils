@@ -1,5 +1,5 @@
 /* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Library Public License as published by
@@ -26,8 +26,8 @@
 #include <termios.h>
 
 #include <mailutils/mailbox.h>
+#include <mailutils/mutil.h>
 #include <auth0.h>
-#include <misc.h>
 
 static void
 echo_off(struct termios *stored_settings)
@@ -134,7 +134,7 @@ ticket_get_type (ticket_t ticket, char *type, size_t len, size_t *pwriten)
   size_t n;
   if (ticket == NULL || type == NULL)
     return EINVAL;
-  n = _cpystr (type, ticket->type, len);
+  n = util_cpystr (type, ticket->type, len);
   if (pwriten)
     *pwriten = n;
   return 0;
