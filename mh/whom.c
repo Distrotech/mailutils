@@ -25,7 +25,7 @@ static char args_doc[] = "[file]";
 /* GNU options */
 static struct argp_option options[] = {
   {"alias",         ARG_ALIAS,         N_("FILE"), 0,
-   N_("* Specify additional alias file") },
+   N_("Specify additional alias file") },
   {"draft",         ARG_DRAFT,         NULL, 0,
    N_("Use prepared draft") },
   {"draftfolder",   ARG_DRAFTFOLDER,   N_("FOLDER"), 0,
@@ -65,7 +65,8 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
   switch (key)
     {
     case ARG_ALIAS:
-      return 1;
+      mh_alias_read (arg, 1);
+      break;
       
     case ARG_DRAFT:
       use_draft = 1;
@@ -124,6 +125,8 @@ main (int argc, char **argv)
   if (!draft_folder)
     draft_folder = mh_global_profile_get ("Draft-Folder",
 					  mu_path_folder_dir);
+
+  
   return mh_whom (mh_expand_name (draft_folder, name, 0), check_recipients) ?
           1 : 0;
 }
