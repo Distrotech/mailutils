@@ -32,7 +32,7 @@ else
   ]ifelse([$4], , [:], [$4])[
 fi]])dnl
 
-AC_DEFUN(MU_CHECK_GUILE,
+AC_DEFUN([MU_CHECK_GUILE],
 [
  if test "x$mu_cv_lib_guile" = x; then
    cached=""

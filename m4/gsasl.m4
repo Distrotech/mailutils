@@ -15,7 +15,7 @@ dnl You should have received a copy of the GNU General Public License
 dnl along with GNU Mailutils; if not, write to the Free Software
 dnl Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA  
 dnl
-AC_DEFUN(MU_CHECK_GSASL,
+AC_DEFUN([MU_CHECK_GSASL],
 [AC_CACHE_CHECK([whether to use GNU SASL library],
                  [mu_cv_lib_gsasl],
  [if test "x$mu_cv_lib_gsasl" = x; then

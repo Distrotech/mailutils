@@ -5,7 +5,7 @@ dnl   $3     --    Any additional libraries that might be needed
 dnl   $4     --    Action to be taken when test succeeds
 dnl   $5     --    Action to be taken when test fails
 dnl   $6     --    Directories where the library may reside
-AC_DEFUN(MU_CHECK_LIB,
+AC_DEFUN([MU_CHECK_LIB],
 [
   save_LIBS=$LIBS
   AC_CACHE_CHECK([for -l$1], mu_cv_lib_$1,

@@ -17,26 +17,26 @@ dnl Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 dnl
 
 AC_SUBST(MU_LIBOBJS)
-AC_DEFUN(MU_LIBOBJ,[
+AC_DEFUN([MU_LIBOBJ],[
  MU_LIBOBJS="$MU_LIBOBJS $1.o"])
 
-AC_DEFUN(MU_CHECK_FUNC,[
+AC_DEFUN([MU_CHECK_FUNC],[
  AC_CHECK_FUNC($1,,
       [MU_LIBOBJ($1)])])
 
-AC_DEFUN(MU_CHECK_FUNCS,[
+AC_DEFUN([MU_CHECK_FUNCS],[
  for mu_func in $1
  do
    MU_CHECK_FUNC($mu_func)
  done])
 
 AC_SUBST(GNU_INCLS)
-AC_DEFUN(MU_HEADER,[
+AC_DEFUN([MU_HEADER],[
  pushdef([mu_upcase],translit($1,[a-z-],[A-Z_]))
  pushdef([mu_cache_var],[mu_cv_header_]translit($1,[-./],[___]))
 
  if test x"[$]mu_cache_var" != xyes; then
-   mu_header_list="$mu_header_list include/mailutils/gnu/$1:headers/$1"
+   AC_CONFIG_LINKS(include/mailutils/gnu/$1:headers/$1)
    GNU_INCLS="$GNU_INCLS $1"
    mu_cache_var=yes
  fi
@@ -45,6 +45,3 @@ AC_DEFUN(MU_HEADER,[
  popdef([mu_cache_var])
 ])
 
-AC_DEFUN(MU_FINISH_LINKS,[
- AC_CONFIG_LINKS([$mu_header_list])
-])

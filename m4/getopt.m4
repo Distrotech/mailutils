@@ -7,8 +7,12 @@
 
 AH_TEMPLATE(HAVE_GNU_GETOPT, [Define if your system has GNU getopt functions])
 
-AC_DEFUN(MU_REPLACE_GNU_GETOPT,
+AC_DEFUN([MU_REPLACE_GNU_GETOPT],
 [
+ AC_CHECK_HEADER([getopt.h],
+		 mu_cv_have_getopt_h=yes
+                 AC_DEFINE(HAVE_GETOPT_H,1,[Define if the system has getopt.h]),
+                 mu_cv_have_getopt_h=no)
  AC_CACHE_CHECK([for GNU getopt], mu_cv_have_gnu_getopt,
   [
 AC_TRY_RUN([
@@ -33,11 +37,14 @@ int argc; char **argv;
               mu_cv_have_gnu_getopt=no)])
 
  if test x"$mu_cv_have_gnu_getopt" != xyes ; then
-   MU_HEADER(getopt.h)
+   mu_cv_have_getopt_h=no
    MU_LIBOBJ(getopt)
    MU_LIBOBJ(getopt1)
  else
    AC_DEFINE(HAVE_GNU_GETOPT)
+ fi
+ if test "$mu_cv_have_getopt_h" = no; then
+   MU_HEADER(getopt.h)
  fi
 ])
 

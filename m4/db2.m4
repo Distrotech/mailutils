@@ -23,7 +23,7 @@ dnl The cursor member of DB structure used to take three arguments in older
 dnl implementations of Berkeley DB. Newer versions (>= 4.0) declare
 dnl it as taking four arguments.
 dnl This macro checks which of the variants we have.
-AC_DEFUN(MU_DB2_CURSOR,
+AC_DEFUN([MU_DB2_CURSOR],
  [AC_CACHE_CHECK([whether db->cursor takes 4 arguments],
                  [mu_cv_bdb2_cursor_four_args],
   [AC_TRY_COMPILE([#include <db.h>],

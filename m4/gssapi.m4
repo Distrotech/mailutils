@@ -5,7 +5,7 @@ dnl Search for a GSSAPI implementation in the standard locations plus PREFIX,
 dnl if it is set and not "yes".
 dnl Defines GSSAPI_CFLAGS and GSSAPI_LIBS if found.
 dnl Defines GSSAPI_IMPL to "Heimdal", "MIT", or "OldMIT", or "none" if not found
-AC_DEFUN(MU_CHECK_GSSAPI,
+AC_DEFUN([MU_CHECK_GSSAPI],
 [
  if test "x$mu_cv_lib_gssapi_libs" = x; then
   cached=""

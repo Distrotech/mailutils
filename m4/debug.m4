@@ -13,7 +13,7 @@ dnl Check for --enable-debug switch. When the switch is specified, add
 dnl -ggdb to CFLAGS and remove any optimization options from there.
 dnl 
 
-AC_DEFUN(MU_DEBUG_MODE,
+AC_DEFUN([MU_DEBUG_MODE],
   [AC_ARG_ENABLE(debug,                     
     [  --enable-debug          enable debugging mode],
     [if test x"$enableval" = xyes; then

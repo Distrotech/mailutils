@@ -340,9 +340,6 @@ MU_CHECK_FUNCS(fgetpwent strtok_r getline strndup strnlen strchrnul)
 ## Check for presence of utmp.h and utmp-related functions
 MU_CHECK_UTMP
 
-AC_CHECK_HEADER([getopt.h],
-                AC_DEFINE(HAVE_GETOPT_H,1,[Define if the system has getopt.h]),
-                MU_HEADER(getopt.h))
 MU_REPLACE_GNU_GETOPT
 
 dnl Check for libraries
@@ -498,16 +495,16 @@ if test ".$MU_BUILD_MH" = ".no"; then
 	BUILD_MH_PROGRAMS=
 	BUILD_MH_LIBRARIES=
 	BUILD_MH_EXEC_HOOK=
-else
-	AC_ARG_WITH([mh-bindir],
-		    AC_HELP_STRING([--with-mh-bindir],
-                                   [Set the directory where to install the MH binaries. If it starts with '/' it is taken as an absolute path specification, otherwise ${prefix} is prepended to it. (Default: ${exec_prefix}/bin/mu-mh)]),
+fi
+
+AC_ARG_WITH([mh-bindir],
+	    AC_HELP_STRING([--with-mh-bindir],
+                           [Set the directory where to install the MH binaries. If it starts with '/' it is taken as an absolute path specification, otherwise ${prefix} is prepended to it. (Default: ${exec_prefix}/bin/mu-mh)]),
 		    [case "${withval}" in
 		     /*)  MH_BIN_DIR=${withval};;
                      *)   MH_BIN_DIR="\${prefix}/${withval}";;
                      esac],
                     [MH_BIN_DIR='${exec_prefix}/bin/mu-mh'])
-fi
 
 if test x"$testpam" = x"yes"; then
 	AC_CHECK_HEADERS(security/pam_appl.h)
@@ -718,8 +715,6 @@ AC_SUBST(MU_LTLIBOBJS)
 
 AC_SUBST(SIEVE_MODDIR)
 SIEVE_MODDIR='$(libdir)/$(PACKAGE)'
-
-MU_FINISH_LINKS
 
 dnl Output Makefiles
 AC_CONFIG_FILES([Makefile
