@@ -33,9 +33,12 @@ changequote([,])dnl
     (load-extension "libguile-mailutils-v-VERSION" "mu_scm_init"))))
 
 (export mu-package)
+(export mu-package-string)
 (export mu-version)
 (export mu-mailer)
 (export mu-debug)
+(export mu-path-maildir)
+(export mu-path-folder-dir)
 
 (export MU-ATTRIBUTE-ANSWERED)
 (export MU-ATTRIBUTE-FLAGGED)

@@ -52,6 +52,8 @@ SCM _mu_scm_package;        /* STRING: PACKAGE */
 SCM _mu_scm_version;        /* STRING: VERSION */
 SCM _mu_scm_mailer;         /* STRING: Default mailer path. */
 SCM _mu_scm_debug;          /* NUM: Default debug level. */
+SCM _mu_scm_path_maildir;   /* STRING: mu_path_maildir */
+SCM _mu_scm_path_folder_dir;/* STRING: mu_path_folder_dir */
 
 struct format_record {
   char *name;
@@ -183,6 +185,12 @@ mu_scm_init ()
   _mu_scm_package_string = scm_makfrom0str (PACKAGE_STRING);
   mu_set_variable ("mu-package-string", _mu_scm_package_string);
 
+  _mu_scm_path_maildir = scm_makfrom0str (mu_path_maildir);
+  mu_set_variable ("mu-path-maildir", _mu_scm_path_maildir);
+
+  _mu_scm_path_folder_dir = scm_makfrom0str (mu_path_folder_dir);
+  mu_set_variable ("mu-path-folder-dir", _mu_scm_path_folder_dir);
+  
   /* Create MU- attribute names */
   for (i = 0; attr_kw[i].name; i++)
     scm_c_define(attr_kw[i].name, SCM_MAKINUM(attr_kw[i].value));
