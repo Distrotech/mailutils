@@ -483,7 +483,7 @@ mu_mailcap_parse_entry (mu_mailcap_entry_t entry, char *buffer)
 	  entry->viewcommand = strdup (stripwhite(token));
 	  break;
 
-	  /* The rest are the optionnal fields.  */
+	  /* The rest are the optional fields.  */
 	default:
 	  {
 	    char **fields = realloc (entry->fields,

@@ -408,7 +408,8 @@ folder_get_url (folder_t folder, url_t *purl)
   return 0;
 }
 
-static int is_known_folder (url_t url, folder_t *pfolder)
+static int
+is_known_folder (url_t url, folder_t *pfolder)
 {
   int ret = 0;
   folder_t folder = NULL;
