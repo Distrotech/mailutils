@@ -298,7 +298,7 @@ open_mailer ()
   mailer_t mailer;
   int status;
     
-  WATCH(("creating mailer %s", url));
+  WATCH ((_("Creating mailer %s"), url));
   status = mailer_create (&mailer, url);
   if (status)
     {
@@ -313,7 +313,7 @@ open_mailer ()
       mu_debug_set_level (debug, MU_DEBUG_TRACE | MU_DEBUG_PROT);
     }
 
-  WATCH(("opening mailer %s", url));
+  WATCH ((_("Opening mailer %s"), url));
   status = mailer_open (mailer, MU_STREAM_RDWR);
   if (status)
     {
@@ -444,7 +444,7 @@ _action_send (void *item, void *data)
   header_t hdr;
   size_t n;
 
-  WATCH(("Getting message"));
+  WATCH ((_("Getting message")));
 
   if (message_get_header (msg, &hdr) == 0)
     {
@@ -484,7 +484,7 @@ _action_send (void *item, void *data)
   if (!mailer)
     return 1;
 
-  WATCH(("Sending message"));
+  WATCH ((_("Sending message")));
   rc = mailer_send_message (mailer, msg, NULL, NULL);
   if (rc)
     {
@@ -492,7 +492,7 @@ _action_send (void *item, void *data)
       return 1;
     }
 
-  WATCH(("Destroying the mailer"));
+  WATCH ((_("Destroying the mailer")));
   mailer_close (mailer);
   mailer_destroy (&mailer);
   
