@@ -1,5 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2002, 2004,
+   2005 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -138,13 +139,7 @@ dbm_retrieve_quota (char *name, size_t *quota)
 #include <mailutils/sql.h>
 
 /* FIXME: defined in auth/sql.c */
-extern int sql_interface;
-extern char *mu_sql_host;
-extern char *mu_sql_user;
-extern char *mu_sql_passwd;
-extern char *mu_sql_db;
-extern int  mu_sql_port;
-extern char *mu_sql_expand_query (const char *query, const char *ustr);
+#include <auth/sql.h>
 
 int
 sql_retrieve_quota (char *name, size_t *quota)
