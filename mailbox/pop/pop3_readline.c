@@ -24,6 +24,7 @@
 #include <string.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <errno.h>
 #include <mailutils/sys/pop3.h>
 #include <mailutils/error.h>
 
@@ -40,12 +41,12 @@ mu_pop3_carrier_is_read_ready(stream_t carrier, int timeout)
       fd_set fset;
  
       FD_ZERO (&fset);
-      FD_SET (fds->fd, &fset);
+      FD_SET (fd, &fset);
  
       tv.tv_sec  = timeout / 100;
       tv.tv_usec = (timeout % 1000) * 1000;
  
-      ready = select (fds->fd + 1, &fset, NULL, NULL, (timeout == -1) ? NULL: &tv);
+      ready = select (fd + 1, &fset, NULL, NULL, (timeout == -1) ? NULL: &tv);
       ready = (ready == -1) ? 0 : 1;
     }
   return ready;
@@ -55,7 +56,7 @@ mu_pop3_carrier_is_read_ready(stream_t carrier, int timeout)
    the stuff byte termination octet ".", put a null in the buffer
    when done.  And Do a select() (stream_is_readready()) for the timeout.  */
 static int
-mu_pop3_getline (pop3_t pop3)
+mu_pop3_getline (mu_pop3_t pop3)
 {
   size_t n = 0;
   size_t total = pop3->io.ptr - pop3->io.buf;
@@ -138,7 +139,7 @@ mu_pop3_getline (pop3_t pop3)
    with a buffer != NULL.
   */
 int
-mu_pop3_readline (pop3_t pop3, char *buffer, size_t buflen, size_t *pnread)
+mu_pop3_readline (mu_pop3_t pop3, char *buffer, size_t buflen, size_t *pnread)
 {
   size_t nread = 0;
   size_t n = 0;
@@ -147,7 +148,7 @@ mu_pop3_readline (pop3_t pop3, char *buffer, size_t buflen, size_t *pnread)
   /* Do we need to fill up? Yes if no NL or the buffer is empty.  */
   if (pop3->carrier && (pop3->io.nl == NULL || pop3->io.ptr == pop3->io.buf))
     {
-      status = pop3_getline (pop3);
+      status = mu_pop3_getline (pop3);
       if (status != 0)
 	return status;
     }
