@@ -1,3 +1,27 @@
+2001-08-04 Sergey Poznyakoff
+	* mailbox/header.c: Return value of header_aget_value() was always
+	0. Made it consistent with that of header_get_value(). Same for
+	header_aget_field_value().
+
+	* guimb/main.c: Fixed handling of default mailbox in the absence of
+	other mailbox arguments.
+	* guimb/collect.c: Likewise.
+	* guimb/guimb.h: Removed unused declarations.
+
+	* libmu_scm/mu_message.c: Changed mu-message-get-header-fields
+	to allow for second optional argument. The argument is a list
+	of header names to narrow output to.
+
+	* guimb/scm/sieve-core.scm: Changed action-keep: it couldn't be just
+	#f. Fixed and tested action-stop, action-redirect and test-exists.
+	Fixed handling of null-length keys in sieve-str-str.
+	test-address and test-header: use mu-message-get-header-fields
+	to speed the things up.
+	Implemented "envelope" test.
+
+	* guimb/scm/sieve.scm: Add final #t to the generated code, so the
+	empty scripts work.
+
 2001-08-03 Sergey Poznyakoff
 	* libmu_scm/mu_logger.c: (new) Interface to syslog functions.
 	* libmu_scm/mu_mailbox.c: Added mu-mailbox-get-url.
