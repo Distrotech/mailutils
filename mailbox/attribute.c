@@ -45,12 +45,11 @@ attribute_destroy (attribute_t *pattr, void *owner)
   if (pattr && *pattr)
     {
       attribute_t attr = *pattr;
-      if (attr->owner != owner)
+      if (attr->owner == owner)
 	free (*pattr);
       /* loose the link */
       *pattr = NULL;
     }
-  return;
 }
 
 void *
