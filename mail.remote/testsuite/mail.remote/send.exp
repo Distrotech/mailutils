@@ -36,7 +36,8 @@ for {gets $chan line} {![eof $chan]} {gets $chan line} {
 	    if {$to != ""} {
 		append args " $to"
 	    }
-	    mailer_remote_test -message $message -input $input -pattern $pattern -args $args
+	    mail_remote_test -message $message -input $input \
+		             -pattern $pattern -args $args
 	    set state 0
 	}
 	"^MESSAGE" {
