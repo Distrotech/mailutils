@@ -1,3 +1,23 @@
+2001-09-17  Alain Magloire
+
+	Pop3 now has a debug object, mu_debug_t, to follow the protocol
+	exchanges between the library and the server.
+
+	* mailbox2/pop3/*: Add debug prints in all.
+	* mailbox2/sdebug.c: New entry.
+	* mailbox2/debug.c: New entry.
+	* mailbox2/Makefile.am: Add debug object
+	* mailbox2/include/mailutils/Makefile.am: Add debug.h
+	* mailbox2/include/mailutils/sys/Makefile.am: Add debug.h and sdebug.h
+	* mailbox2/include/mailutils/debug.h: New file.
+	* mailbox2/include/mailutils/sys/debug.h: New file.
+	* mailbox2/include/mailutils/sys/sdebug.h: New file.
+
+	* mailbox2/fdstream.c: Bug in fdstream do not call FD_SET if
+	the file descriptor is -1;
+	* mailbox2/tcpstream.c: Bug in fdstream do not call FD_SET if
+	the file descriptor is -1;
+
 2001-09-17 Sergey Poznyakoff
 
 	* mail/mailline.c: fixed declaration of ml_reread, it did not
@@ -16,13 +36,13 @@
 
 	* mh/Makefile.am: Added inc.c. Restructured .*_LDADD assignments.
 	* mh/mh.h: Extern declarations for current_folder, current_message,
-	mh_list_format, etc.	
+	mh_list_format, etc.
 	* mh/mh_format.c: builtin_msg(): return sequence number of the
 	message, not its ordinal number in mailbox.
 	builtin_cur(): implemented.
 
 	* mh/mh_init.c: New globals: current_folder, current_message,
-	mh_list_format, etc.	
+	mh_list_format, etc.
 	mh_init(): initialize current_folder and current message.
 	mh_read_context_file(), mh_read_formfile(): new functions.
 	* mh/scan.c: Changed initialization of format_str. Removed
@@ -30,7 +50,7 @@
 	-form and -header options. Use \f to clear screen if
 	stdout is not a tty.
 	* mh/inc.c: (new) Implementation of inc command.
-	
+
 2001-09-16  Alain Magloire
 
 	* doc/mbox.texi: Starts to document the concrete Unix mbox
