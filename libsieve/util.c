@@ -359,7 +359,35 @@ sieve_print_tag_list (list_t list, sieve_printf_t printer, void *data)
   list_do (list, (list_action_t*) tag_printer, &dbg);
 }
 
-  
+static int
+tag_finder (void *item, void *data)
+{
+  sieve_runtime_tag_t *val = item;
+  sieve_runtime_tag_t *target = data;
+
+  if (strcmp (val->tag, target->tag) == 0)
+    {
+      target->arg = val->arg;
+      return 1;
+    }
+  return 0;
+}
+
+int
+sieve_tag_lookup (list_t taglist, char *name, sieve_value_t **arg)
+{
+  sieve_runtime_tag_t t;
+
+  t.tag = name;
+  if (list_do (taglist, tag_finder, &t))
+    {
+      if (arg)
+	*arg = t.arg;
+      return 1;
+    }
+  return 0;
+}
+
 int
 sieve_mark_deleted (message_t msg, int deleted)
 {
