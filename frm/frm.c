@@ -24,12 +24,23 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <fcntl.h>
 #include <sys/types.h>
 #ifdef HAVE_TERMIOS_H
 # include <termios.h>
 #endif
 #include <sys/ioctl.h>
 #include <sys/stat.h>
+
+#ifdef HAVE_ICONV_H
+# include <iconv.h>
+#endif
+#ifndef MB_LEN_MAX
+# define MB_LEN_MAX 4
+#endif
+
+#include <mbswidth.h>
+#include <xalloc.h>
 
 #include <mailutils/address.h>
 #include <mailutils/argp.h>
@@ -50,16 +61,17 @@
 #include <mailutils/mutil.h>
 #include <mailutils/mime.h>
 
-static char *show_field;
-static int show_to;
-static int show_from = 1;
-static int show_subject = 1;
-static int show_number;
-static int show_summary;
-static int be_quiet;
-static int align = 1;
-static int show_query;
-static int dbug;
+static char *show_field;   /* Show this header field instead of the default
+			      `From: Subject:' pair. -f option */
+static int show_to;        /* Additionally display To: field. -l option */ 
+static int show_number;    /* Prefix each line with the message number. -n */
+static int show_summary;   /* Summarize the number of messages by message
+			      status in each mailbox. -S option */
+static int be_quiet;       /* Quiet mode. -q option. */
+static int show_query;     /* Additional flag toggled by -q to display 
+			      a one-line summary for each mailbox */
+static int align = 0;      /* Tidy mode. -t option. */
+static int dbug;           /* Debug level. -d option.*/
 
 #define IS_READ 0x001
 #define IS_OLD  0x010
@@ -179,9 +191,138 @@ static struct argp_option options[] = {
   {"query",  'q', NULL,   0, N_("Print a message if the mailbox contains some unread mail"), 0},
   {"summary",'S', NULL,   0, N_("Print a summary of messages"), 0},
   {"status", 's', N_("STATUS"), 0, attr_help, 0},
-  {"align",  't', NULL,   0, N_("Try to align"), 0},
+  {"align",  't', NULL,   0, N_("Tidy mode: align subject lines"), 0},
   {0, 0, 0, 0}
 };
+
+/* Number of columns in output:
+
+     Maximum     4     message number, to, from, subject   -ln
+     Default     2     from, subject                       [none]
+     Minimum     1     FIELD                               -f FIELD
+*/
+
+static int numfields;      /* Number of output fields */
+static int fieldwidth[4];  /* Field start positions */
+static char *linebuf;      /* Output line buffer */
+static size_t linemax;     /* Size of linebuf */
+static size_t linepos;     /* Position in the output line buffer */
+static int curfield;       /* Current output field */
+static int nextstart;      /* Start position of the next field */
+static int curcol;         /* Current output column */
+
+typedef void (*fmt_formatter) (const char *fmt, ...);
+
+static fmt_formatter format_field;
+
+void
+print_line ()
+{
+  if (linebuf)
+    {
+      puts (linebuf);
+      linebuf[0] = 0;
+      linepos = 0;
+      curcol = nextstart = 0;
+      curfield = 0;
+    }
+  else
+    putchar ('\n');
+}
+
+void
+format_field_simple (const char *fmt, ...)
+{
+  va_list ap;
+  va_start (ap, fmt);
+  vprintf (fmt, ap);
+  putchar (' ');
+  va_end (ap);
+}
+
+void
+format_field_align (const char *fmt, ...)
+{
+  size_t n, width;
+  va_list ap;
+
+  va_start (ap, fmt);
+  if (nextstart != 0)
+    {
+      if (curcol >= nextstart)
+	{
+	  if (curfield == numfields - 1)
+	    {
+	      puts (linebuf);
+	      linepos = 0;
+	      printf ("%*s", nextstart, "");
+	    }
+	  else
+	    {
+	      linebuf[linepos++] = ' ';
+	      curcol++;
+	    }
+	}
+      else if (nextstart != curcol)
+	{
+	  /* align to field start */
+	  n = snprintf (linebuf + linepos, linemax - linepos,
+			"%*s", nextstart - curcol, "");
+	  linepos += n;
+	  curcol = nextstart;
+	}
+    }
+
+  n = vsnprintf (linebuf + linepos, linemax - linepos, fmt, ap);
+  va_end (ap);
+
+  /* Compute output width */
+  if (curfield == numfields - 1)
+    {
+      for ( ; n > 0; n--)
+	{
+	  int c = linebuf[linepos + n];
+	  linebuf[linepos + n] = 0;
+	  width = mbswidth (linebuf + linepos, 0);
+	  if (width <= fieldwidth[curfield])
+	    break;
+	  linebuf[linepos + n] = c;
+	}
+    }
+  else
+    width = mbswidth (linebuf + linepos, 0);
+
+  /* Increment counters */
+  linepos += n;
+  curcol += width;
+  nextstart += fieldwidth[curfield++];
+}
+
+/*
+ * Get the number of columns on the screen
+ * First try an ioctl() call not all shells set the COLUMNS environ.
+ * This function was taken from mail/util.c.
+ */
+int
+util_getcols (void)
+{
+  struct winsize ws;
+  
+  ws.ws_col = ws.ws_row = 0;
+  if (ioctl (1, TIOCGWINSZ, (char *) &ws) < 0)
+    {
+      int fd = open ("/dev/tty", O_RDWR);
+      ioctl (fd, TIOCGWINSZ, (char *) &ws);
+      close (fd);
+    }
+  if (ws.ws_row == 0)
+    {
+      const char *columns = getenv ("COLUMNS");
+      if (columns)
+	ws.ws_col = strtol (columns, NULL, 10);
+    }
+  return ws.ws_col;
+}
 
 static error_t
 parse_opt (int key, char *arg, struct argp_state *state)
@@ -194,8 +335,6 @@ parse_opt (int key, char *arg, struct argp_state *state)
 
     case 'f':
       show_field = arg;
-      show_from = 0;
-      show_subject = 0;
       align = 0;
       break;
 
@@ -210,11 +349,6 @@ parse_opt (int key, char *arg, struct argp_state *state)
     case 'Q':
       /* Very silent.  */
       be_quiet += 2;
-      if (freopen ("/dev/null", "w", stdout) == NULL)
-	{
-	  perror (_("Cannot be very quiet"));
-	  exit (3);
-	}
       break;
 
     case 'q':
@@ -232,6 +366,42 @@ parse_opt (int key, char *arg, struct argp_state *state)
       
     case 't':
       align = 1;
+      break;
+
+    case ARGP_KEY_FINI:
+      if (align && (linemax = util_getcols ()))
+	{
+	  int i;
+	  size_t width = 0;
+	  
+	  format_field = format_field_align;
+	  
+	  /* Allocate the line buffer */
+	  linemax = linemax * MB_LEN_MAX + 1;
+	  linebuf = xmalloc (linemax);
+	  
+	  /* Set up column widths */
+	  if (show_number)
+	    fieldwidth[numfields++] = 5;
+	  
+	  if (show_to)
+	    fieldwidth[numfields++] = 20;
+	  
+	  if (show_field)
+	    fieldwidth[numfields++] = 0;
+	  else
+	    {
+	      fieldwidth[numfields++] = 20;
+	      fieldwidth[numfields++] = 0;
+	    }
+	  
+	  for (i = 0; i < numfields; i++)
+	    width += fieldwidth[i];
+	  
+	  fieldwidth[numfields-1] = util_getcols () - width;
+	}
+      else
+	format_field = format_field_simple;
       break;
       
     default: 
@@ -267,36 +437,43 @@ static const char *frm_argp_capa[] = {
 static char *
 rfc2047_decode_wrapper (char *buf, size_t buflen)
 {
-  char locale[32];
-  char *charset = NULL;
-  char *tmp;
   int rc;
-
-  memset (locale, 0, sizeof (locale));
-
-  /* Try to deduce the charset from LC_ALL or LANG variables */
-
-  tmp = getenv ("LC_ALL");
-  if (!tmp)
-    tmp = getenv ("LANG");
-
-  if (tmp)
-    {
-      char *sp = NULL;
-      char *lang;
-      char *terr;
-
-      strncpy (locale, tmp, sizeof (locale) - 1);
-
-      lang = strtok_r (locale, "_", &sp);
-      terr = strtok_r (NULL, ".", &sp);
-      charset = strtok_r (NULL, "@", &sp);
-
-      if (!charset)
-	charset = mu_charset_lookup (lang, terr);
-    }
+  char *tmp;
+  static char *charset = NULL;
 
   if (!charset)
+    {
+      char locale[32];
+
+      memset (locale, 0, sizeof (locale));
+
+      /* Try to deduce the charset from LC_ALL or LANG variables */
+
+      tmp = getenv ("LC_ALL");
+      if (!tmp)
+	tmp = getenv ("LANG");
+
+      if (tmp)
+	{
+	  char *sp = NULL;
+	  char *lang;
+	  char *terr;
+
+	  strncpy (locale, tmp, sizeof (locale) - 1);
+	  
+	  lang = strtok_r (locale, "_", &sp);
+	  terr = strtok_r (NULL, ".", &sp);
+	  charset = strtok_r (NULL, "@", &sp);
+	  
+	  if (!charset)
+	    charset = mu_charset_lookup (lang, terr);
+
+	  if (!charset)
+	    charset = "ASCII";
+	}
+    }
+  
+  if (strcmp (charset, "ASCII") == 0)
     return strdup (buf);
 
   rc = rfc2047_decode (charset, buf, &tmp);
@@ -313,61 +490,39 @@ rfc2047_decode_wrapper (char *buf, size_t buflen)
 
 /* Retrieve the Personal Name from the header To: or From:  */
 static int
-get_personal (header_t hdr, const char *field, char *personal, size_t buflen)
+get_personal (header_t hdr, const char *field, char **personal)
 {
-  char hfield[512];
+  char *hfield;
   int status;
 
-  /* Empty string.  */
-  *hfield = '\0';
-
-  status = header_get_value_unfold (hdr, field, hfield, sizeof (hfield), NULL);
+  status = header_aget_value_unfold (hdr, field, &hfield);
   if (status == 0)
     {
       address_t address = NULL;
-      size_t len = 0;
-
-      char *s = rfc2047_decode_wrapper (hfield, strlen (hfield));
-      address_create (&address, s);
-      free (s);
+      char *s;
       
-      address_get_personal (address, 1, personal, buflen, &len);
+      address_create (&address, hfield);
+      
+      address_aget_personal (address, 1, &s);
       address_destroy (&address);
+      if (s == NULL)
+	s = hfield;
+      else
+	free (hfield);
 
-      if (len == 0)
-	strncpy (personal, hfield, buflen)[buflen - 1] = '\0';
+      *personal = rfc2047_decode_wrapper (s, strlen (s));
+      free (s);
     }
   return status;
 }
 
-static struct {
+static struct
+{
   size_t index;
   size_t new;
   size_t read;
   size_t unread;
 } counter;
-
-/*
- * Get the number of columns on the screen
- * First try an ioctl() call not all shells set the COLUMNS environ.
- * This function was taken from mail/util.c.
- */
-int
-util_getcols (void)
-{
-  struct winsize ws;
-
-  ws.ws_col = ws.ws_row = 0;
-  if ((ioctl(1, TIOCGWINSZ, (char *) &ws) < 0) || ws.ws_row == 0)
-    {
-      const char *columns = getenv ("COLUMNS");
-      if (columns)
-	ws.ws_col = strtol (columns, NULL, 10);
-    }
-
-  /* FIXME: Should we exit()/abort() if col <= 0 ?  */
-  return ws.ws_col;
-}
 
 /* Observable action is being called on discovery of each message. */
 /* FIXME: The format of the display is poorly done, please correct.  */
@@ -375,7 +530,6 @@ static int
 action (observer_t o, size_t type)
 {
   int status;
-  int col_cnt = 0;
 
   switch (type)
     {
@@ -412,79 +566,57 @@ action (observer_t o, size_t type)
 	  break;
 	
 	if (show_number)
+	  format_field ("%4lu: ", (u_long) counter.index);
+
+	if (show_to)
 	  {
-	    printf ("%4lu: ", (u_long) counter.index);
-	    col_cnt += 6;
+	    char *hto;
+	    status = get_personal (hdr, MU_HEADER_TO, &hto);
+
+	    if (status == 0)
+	      {
+		format_field ("(%s) ", hto);
+		free (hto);
+	      }
+	    else
+	      format_field ("(none)");
 	  }
 
 	if (show_field) /* FIXME: This should be also rfc2047_decode. */
 	  {
-	    char hfield[256];
-	    status = header_get_value_unfold (hdr, show_field, hfield,
-					      sizeof (hfield), NULL);
-	    if (status == 0)
-	      printf ("%s", hfield);
-	  }
-
-	if (show_to)
-	  {
-	    char hto[16];
-	    status = get_personal (hdr, MU_HEADER_TO, hto, sizeof (hto));
-
+	    char *hfield;
+	    status = header_aget_value_unfold (hdr, show_field, &hfield);
 	    if (status == 0)
 	      {
-		printf ("(%s) ", hto);
-		col_cnt += strlen (hto) + 3;
+		format_field ("%s", hfield);
+		free (hfield);
 	      }
 	    else
-	      {
-		printf ("(-----) ");
-		col_cnt += 8;
-	      }
+	      format_field ("");
 	  }
-
-	if (show_from)
+	else
 	  {
-	    char hfrom[32];
-	    status = get_personal (hdr, MU_HEADER_FROM, hfrom, sizeof (hfrom));
+	    char *tmp;
+	    status = get_personal (hdr, MU_HEADER_FROM, &tmp);
 	    if (status == 0)
 	      {
-		printf ("%s\t", hfrom);
-		col_cnt += strlen (hfrom) + 4; // tab=4, sigh.
+		format_field ("%s", tmp);
+		free (tmp);
 	      }
 	    else
-	      {
-		printf ("-----\t");
-		col_cnt += 9;
-	      }
-	  }
+	      format_field ("");
 
-	/*
-	  A temporary fix for (correct) displaying:
-	  util_getcols() - col_cnt - ~1. It's ugly, I know.
-	*/
-
-	if (show_subject)
-	  {
-	    char *hsubject;
 	    status = header_aget_value_unfold (hdr, MU_HEADER_SUBJECT,
-					       &hsubject);
+					       &tmp);
 	    if (status == 0)
 	      {
-		char *s = rfc2047_decode_wrapper (hsubject, strlen (hsubject));
-		char out[80];
-		int fspace = util_getcols () - col_cnt - 1;
-
-		fspace = (fspace > (sizeof (out) - 1))
-		       ? (sizeof (out) - 1) : fspace;
-
-		memset  (out, 0, sizeof (out));
-		strncpy (out, s, fspace);
-		printf ("%s", out);
+		char *s = rfc2047_decode_wrapper (tmp, strlen (tmp));
+		format_field ("%s", s);
 		free (s);
+		free (tmp);
 	      }
 	  }
-	putchar ('\n');
+	print_line ();
 	break;
       }
 
