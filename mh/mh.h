@@ -35,7 +35,10 @@
 #include <mailutils/iterator.h>
 #include <mailutils/address.h>
 #include <mailutils/mutil.h>
+#include <mailutils/stream.h>
 #include <mailutils/filter.h>
+#include <mailutils/url.h>
+#include <mailutils/attribute.h>
 
 #define MH_FMT_RALIGN 0x1000
 #define MH_FMT_ZEROPAD 0x2000
@@ -138,7 +141,6 @@ extern size_t current_message;
 extern char mh_list_format[];
 extern header_t ctx_header;
 extern header_t profile_header;
-extern char *program_invocation_short_name;
 
 void mh_init (void);
 void mh_read_profile (void);
