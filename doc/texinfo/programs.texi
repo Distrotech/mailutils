@@ -1834,6 +1834,16 @@ Controls whether saved messages should be kept in system mailbox too.
 This variable is in effect only when operating upon a user's system
 mailbox.
 
+@item mailx
+@*Type: Boolean.
+@*Default: False.
+
+When set, enables @dfn{mailx compatibility mode}. This is mainly visible
+when composing a message. In mailx compatibility mode, @command{mail} asks
+for @code{Cc} and @code{Bcc} addresses after composing the body.
+The default behavior is to ask for these values before composing
+the body.
+
 @item metoo
 @*Type: Boolean.
 @*Default: False.
