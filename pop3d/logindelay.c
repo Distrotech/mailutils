@@ -1,0 +1,113 @@
+/* GNU Mailutils -- a suite of utilities for electronic mail
+   Copyright (C) 2003 Free Software Foundation, Inc.
+
+   GNU Mailutils is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 2, or (at your option)
+   any later version.
+
+   GNU Mailutils is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with GNU Mailutils; if not, write to the Free Software
+   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA  */
+
+#include "pop3d.h"
+
+#ifdef ENABLE_LOGIN_DELAY
+
+static int
+open_stat_db (DBM_FILE *db, int mode)
+{
+  int rc = mu_dbm_open (login_stat_file, db, mode, 0600);
+  if (rc)
+    {
+      if (rc == -1)
+	syslog (LOG_INFO, _("Bad permissions on statistics db"));
+      else
+	syslog (LOG_ERR, _("Unable to open statistics db: %s"),
+		mu_strerror (rc));
+    }
+  return rc;
+}
+
+int
+check_login_delay (char *username)
+{
+  time_t now, prev_time;
+  DBM_FILE db;
+  DBM_DATUM key, data;
+  char text[64], *p;
+  int rc;
+
+  if (login_delay == 0)
+    return 0;
+  
+  time (&now);
+  if (open_stat_db (&db, MU_STREAM_READ))
+    return 0;
+  
+  MU_DATUM_PTR(key) = username;
+  MU_DATUM_SIZE(key) = strlen (username);
+  memset (&data, 0, sizeof data);
+
+  rc = mu_dbm_fetch (db, key, &data);
+  mu_dbm_close (db);
+  if (rc)
+    {
+      syslog (LOG_ERR, _("Can't fetch APOP data: %s"), mu_strerror (rc));
+      return 0;
+    }
+
+  if (MU_DATUM_SIZE(data) > sizeof (text) - 1)
+    {
+      syslog (LOG_ERR, _("Invalid entry for '%s': wrong timestamp size"),
+	      username);
+      return 0;
+    }
+
+  memcpy (text, MU_DATUM_PTR(data), MU_DATUM_SIZE(data));
+  text[MU_DATUM_SIZE(data)] = 0;
+
+  prev_time = strtoul (text, &p, 0);
+  if (*p)
+    {
+      syslog (LOG_ERR, _("Malformed timestamp for '%s': %s"),
+	      username, text);
+      return 0;
+    }
+
+  return now - prev_time < login_delay;
+}
+
+void
+update_login_delay (char *username)
+{
+  time_t now;
+  DBM_FILE db;
+  DBM_DATUM key, data;
+  char text[64];
+  
+  if (login_delay == 0 || username == NULL)
+    return;
+
+  time (&now);
+  if (open_stat_db (&db, MU_STREAM_RDWR))
+    return;
+  
+  MU_DATUM_PTR(key) = username;
+  MU_DATUM_SIZE(key) = strlen (username);
+  snprintf (text, sizeof text, "%lu", (unsigned long) now);
+  MU_DATUM_PTR(data) = text;
+  MU_DATUM_SIZE(data) = strlen (text);
+  if (mu_dbm_insert (db, key, data, 1))
+    mu_error (_("%s: can't store datum %s/%s"),
+	      login_stat_file, username, text);
+  
+  mu_dbm_close (db);
+}
+
+#endif
