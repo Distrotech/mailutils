@@ -30,6 +30,7 @@
 #endif
 
 #include <mailutils/auth.h>
+#include <mailutils/errno.h>
 #include <mailutils/mailbox.h>
 
 #include <folder0.h>
@@ -123,7 +124,7 @@ folder_pop_get_authority (folder_t folder, authority_t *pauth)
 	}
       else
 	{
-	  status = ENOSYS;
+	  status = MU_ERR_BAD_AUTH_SCHEME;
 	}
     }
   if (pauth)
