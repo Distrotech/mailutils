@@ -36,9 +36,5 @@ SUFFIXES=.x .doc
 guile-procedures.txt: $(DOT_DOC_FILES)
 	cat $(DOT_DOC_FILES) > $@
 
-if MAINTAINER_MODE
-
 ## Add -MG to make the .x magic work with auto-dep code.
 MKDEP = $(CC) -M -MG $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)
-
-endif

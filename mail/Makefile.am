@@ -1,7 +1,5 @@
 AUTOMAKE_OPTIONS = ../lib/ansi2knr no-dependencies
-if MAINTAINER_MODE
 AM_YFLAGS=-vt
-endif
 INCLUDES = -I${top_srcdir}/include -I${top_srcdir}/lib @ARGPINCS@
 AM_CFLAGS = -DSITE_MAIL_RC=\"@SITE_MAIL_RC@\"
 
