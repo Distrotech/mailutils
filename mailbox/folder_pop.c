@@ -19,9 +19,13 @@
 # include <config.h>
 #endif
 
+#include <errno.h>
 #include <stdlib.h>
 #include <string.h>
-#include <errno.h>
+
+#ifdef HAVE_STRINGS_H
+# include <strings.h>
+#endif
 
 #include <folder0.h>
 #include <url0.h>
