@@ -35,8 +35,7 @@ libsieve/comparator.c
 libsieve/prog.c
 libsieve/require.c
 libsieve/runtime.c
-libsieve/sieve-gram.c
-libsieve/sieve-lex.c
+libsieve/sieve.y
 libsieve/tests.c
 libsieve/util.c
 
@@ -86,7 +85,7 @@ mh/folder.c
 mh/inc.c
 mh/mh_argp.c
 mh/mh_ctx.c
-mh/mh_fmtgram.c
+mh/mh_fmtgram.y
 mh/mh_getopt.c
 mh/mh_init.c
 mh/mh_msgset.c
