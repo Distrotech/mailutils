@@ -122,48 +122,17 @@ IMPORTANT:
 
 [sieve]
 
-- need to deal with the envelope addressing issues
-
-+ make sure there's a SV_DBG_ERR, so REAL info on errors gets printed
-
-- add copyrights, including CMUs to the docs
-
-+ argp
-
-- clean up diagnostics
- - fileinto action dies badly when the mailbox lock failed
- + make log function a callback
- - get rid of the awful xalloc()
-
-- need user contexts, and for the action_log to be only if verbose
++ need to deal with the envelope addressing issues
 
 - uid isn't good to identify messages, use message-id?
-
-- also need to provide context to the sv_*() functions (I could tuck
-  message number in it, and mailbox name).
 
 - run as daemon, sieveing mail on arrival (need interface for notification
   of message arrival, this is supported by imap, but we'll have to fake
   for pop and local spools my polling, why can't you select() on a unix
   file?)
+  Do we need it? mail.local already provides this functionality.
 
-The 5 actions:
-
-+ keep
-
-+ fileinto
-
-+ discard
-
-+ redirect
-
-- reject (need to form MDNs)
-
-Extention actions:
-
-- REGEX
-
-- vacation
+- Add loadable extention actions/tests/comparators.
 
 [utilities]
 

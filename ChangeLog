@@ -1,3 +1,59 @@
+2002-11-19  Sergey Poznyakoff
+
+	* sieve/sieve.c: New options: --verbose to verbosely log executed
+	  actions, --log-facility to switch all diagnostic output to
+	  syslog.
+	* libsieve/comparator.c (i_ascii_numeric_is): Support for
+	  :comparator i;ascii-numeric. Fixed handling of
+	  :comparator i;ascii-casemap :matches and :contains.
+	  Added i;ascii-numeric :is comparator.
+	* libsieve/runtime.c (sieve_message): New function.
+	* libsieve/sieve.y (sieve_machine_init,sieve_machine_destroy):
+	  Fixed inconsistencies.
+	* libsieve/tests.c (_get_address_part): Made static to avoid
+	  name clashes.
+	* libmu_scm/mu_address.c: Likewise.
+	* libsieve/util.c (sieve_slist_destroy): Use list_do. It is
+	  faster.
+	
+	* sieve/testsuite/lib/sieve.exp (sieve_test): Pass --verbose
+	  switch to sieve. Added -retcode option.
+
+	* sieve/testsuite/scripts/i-casemap-contains.sv: New file.
+	* sieve/testsuite/scripts/i-casemap-is.sv: New file.
+	* sieve/testsuite/scripts/i-casemap-matches.sv: New file.
+	* sieve/testsuite/scripts/i-casemap-regex.sv: New file.
+	* sieve/testsuite/scripts/i-numeric-contains.sv: New file.
+	* sieve/testsuite/scripts/i-numeric-is.sv: New file.
+	* sieve/testsuite/scripts/i-octet-contains.sv: New file.
+	* sieve/testsuite/scripts/i-octet-is.sv: New file.
+	* sieve/testsuite/scripts/i-octet-matches.sv: New file.
+	* sieve/testsuite/scripts/i-octet-regex.sv: New file.
+  	* sieve/testsuite/scripts/DISTFILES: Added scripts for testing
+	  comparators.
+
+	* sieve/testsuite/sieve/i-casemap.exp: New file.
+	* sieve/testsuite/sieve/i-numeric.exp: New file.
+	* sieve/testsuite/sieve/i-octet.exp: New file.
+	* sieve/testsuite/sieve/DISTFILES: Added scripts for testing
+	  comparators.
+
+	* testsuite/spool/sieve.mbox: Add X-Number header to msg 2
+	  for testing i;ascii-numeric comparator.
+	* sieve/testsuite/Redirect: Reflect changed headers in msg 2
+	* sieve/testsuite/Reject: Likewise
+	* sieve/testsuite/sieve/action.exp: Likewise.
+
+	* testsuite/lib/mailutils.exp: Bugfix: always check for newline
+	  after matched pattern.
+
+	* mail.local/Makefile.am: Added libsieve.la
+	* mail.local/mail.local.h: Include libsieve.h
+	* mail.local/main.c: Support for user-defined sieve filters.
+	  Improved debugging.
+	
+	* TODO: Updated.
+	
 2002-11-18  Sergey Poznyakoff 
 
 	* mailbox/mailer.c (mailer_get_url): New function.
