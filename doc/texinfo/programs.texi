@@ -407,22 +407,81 @@ imap4d --daemon=20 --timeout=1800 --log-facility local1
 @section IMAP4 daemon
 @pindex imap4d
 
-@command{imap4d} has two operation modes:
+GNU imap4d is a daemon implementing @sc{imap4} rev1 protocol for
+accessing and handling electronic mail messages on a server. It can
+be run either as a standalone program or from @file{inetd.conf} file.
+
+@menu
+* Namespace::       Imap4d namespace.
+* Starting imap4d:: Invocation options.
+@end menu
+
+@node Namespace
+@subsection Imap4d Namespace
+@cindex namespace
+@cindex IMAP4 namespace
+
+GNU imap4d supports a notion of @dfn{namespaces} defined in RFC 2342. A
+namespace is a set of directories upon which the user has certain
+permissions. It should be understood that these persmissions apply
+only if the underlying filesystem allows them.
+
+The three namespaces supported by @command{imap4d} are:
 
 @table @asis
-@item Inetd
-The server is started from @file{/etc/inetd.conf} file:
+@item Personal Namespace
+A namespace that is within the personal scope of the authenticated user
+on a particular connection. The user has all permissions on this namespace.
+
+@item Other Users' Namespace
+A namespace that consists of mailboxes from the ``Personal Namespaces''
+of other users. The user can read and list mailboxes from this
+namespace. However, he is not allowed to use @samp{%} and @samp{*}
+wildcards with @command{LIST} command, that is he can access a
+mailbox only if he knows exactly its location.
+
+@item Shared Namespace
+A namespace that consists of mailboxes that are intended to be shared
+amongst users and do not exist within a user's Personal Namespace.
+The user has all permissions on this namespace.
+
+@end table
+
+@noindent
+By default, @command{imap4d} starts with the following namespaces:
+
+@table @asis
+@item Personal Namespace
+The home directory of the user, if exists.
+
+@item Other Users' Namespace
+Empty
+@item Shared Namespace
+Empty
+@end table
+
+@emph{Note}, that this means that by default, a user won't be able to
+see or otherwise access mailboxes residing in the directories other than
+his own home.
+
+To change these defaults, use @option{--shared-namespace} and
+@option{--other-namespace} options.
+
+@node Starting imap4d
+@subsection Starting imap4d
+
+@command{imap4d} may run either in @dfn{standalone} or in @dfn{inetd}
+operation modes. When run in ``standalone'' mode, the server disconnects
+from the terminal and runs as a daemon, forking a child for each new
+connection.
+
+The ``inetd'' mode allows to start the server from
+@file{/etc/inetd.conf} file. This is the default operation mode. 
 
 @example
 imap4  stream tcp nowait  root  /usr/local/sbin/imap4d imap4d
 @end example
 
-This is the default operation mode.
-
-@item Standalone
-The server runs as daemon, forking a child for each new connection. This
-mode is triggered by @option{-d} command line switch.
-@end table
 
 The program uses following option groups: @xref{mailbox},
 @xref{daemon}, @xref{logging}, @xref{auth}.
@@ -2072,8 +2131,124 @@ Default is --weedlist=''From Subject Date To CC Apparently-''
 @section sieve
 @pindex sieve
 
-The program is currently in development
+Sieve is a language for filtering e-mail messages at time of final
+delivery, described in RFC 3028. GNU mailutils provides two
+implementations of this language: a stand-alone @dfn{sieve interpreter}
+and a @dfn{sieve translator and filter}. The following sections describe these
+utilities in detail.
 
+@menu
+* sieve interpreter::   A Sieve Interpreter
+* sieve.scm::           A Sieve to Scheme Translator and Filter
+@end menu
+
+@node sieve interpreter
+@subsection A Sieve Interpreter
+
+Sieve interpreter @command{sieve} allows to apply Sieve scripts to an
+arbitrary number of mailboxes. Currently @command{sieve} supports the
+following actions:
+
+@itemize
+@item stop
+@item keep
+@item discard
+@item fileinto
+@end itemize
+
+@subheading Invocation
+
+The @command{sieve} invocation syntax is:
+
+@example
+        sieve [@var{options}] @var{script}
+@end example
+
+@noindent
+where @var{script} denotes the filename of the sieve program to parse,
+and @var{options} is one or more of the following:
+
+@table @option
+@item -c
+@itemx --compile-only
+Compile script and exit.
+
+@item -d[@var{flags}]
+@itemx --debug[=@var{flags}]
+Specify debug flags. The @var{flags} argument is a sequence of one or
+more of the following letters:
+
+@multitable @columnfractions .40 .45
+@item @samp{a} @tab Enable address parser traces
+@item @samp{g} @tab Enable main parser traces
+@item @samp{T} @tab Enable mailutil traces
+@item @samp{P} @tab Trace network protocols
+@item @samp{t} @tab Enable sieve trace 
+@item @samp{h} @tab Debug sieve header filling
+@item @samp{q} @tab Trace sieve message queries
+@end multitable
+
+When omitted, @var{flags} defaults to @samp{TPt}.
+
+@item -f
+@itemx --mbox-url=@var{mbox}
+Mailbox to sieve (defaults to user's system mailbox)
+
+@item -k
+@itemx --keep-going
+Keep on going if execution fails on a message
+
+@item -M
+@itemx --mailer-url=@var{mailer}
+Override the mailer URL (defaults to "sendmail:")
+
+@item -n
+@itemx --no-actions
+Dry run: do not execute any actions, just print what would be done.
+
+@item -t @var{ticket}
+@itemx --ticket=@var{ticket}
+Ticket file for mailbox authentication
+@end table
+
+Apart from these, @command{sieve} understands the options from the
+@code{mailbox} option group (@pxref{mailbox}).
+
+@c ***********************************************************************
+
+@page
+@node sieve.scm
+@subsection A Sieve to Scheme Translator and Filter
+
+A Sieve to Scheme Translator @command{sieve.scm} translates a given
+Sieve script into an equivalent Scheme program and optionally executes
+it. The program itself is written in Scheme and requires presence of
+Guile 1.4 on the system. For more information on Guile refer to
+@ref{Top,,Overview,guile,The Guile Reference Manual}.
+
+@table @option
+@item -f @var{filename}
+@itemx --file @var{filename}
+Set input file name.
+
+@item -o @var{filename}
+@itemx --output @var{filename}
+Set output file name
+
+@item -L @var{dirname}
+@itemx --lib-dir @var{dirname}
+Set sieve library directory name
+
+@item -d @var{level}
+@item --debug @var{level}
+Set debugging level
+
+@end table            
+
+The Scheme programs produced by @command{sieve.scm} can be used with
+@command{guimb} or @command{mail.local}.
+
+@c ***********************************************************************
 @page
 @node guimb
 @section guimb --- A mailbox scanning and processing language.
