@@ -62,7 +62,8 @@ struct mh_option mh_option[] = {
 static char *format_str = mh_list_format;
 static int width = 80;
 static char *input_file;
-static char *audit_file; /*FIXME: unused*/
+static char *audit_file; 
+static FILE *audit_fp;
 static int changecur = -1;
 static int truncate = -1;
 static int quiet = 0;
@@ -130,6 +131,8 @@ list_message (mh_format_t *format, mailbox_t mbox, size_t msgno,
   mailbox_get_message (mbox, msgno, &msg);
   mh_format (format, msg, msgno, buffer, width);
   printf ("%s\n", buffer);
+  if (audit_fp)
+    fprintf (audit_fp, "%s\n", buffer);
 }
 
 int
@@ -217,6 +220,10 @@ main (int argc, char **argv)
     truncate = f_truncate;
   if (changecur == -1)
     changecur = f_changecur;
+
+  /* Open audit file, if specified */
+  if (audit_file)
+    audit_fp = mh_audit_open (audit_file, input);
   
   for (n = 1; n <= total; n++)
     {
@@ -265,6 +272,9 @@ main (int argc, char **argv)
   mailbox_close (input);
   mailbox_destroy (&input);
 
+  if (audit_fp)
+    mh_audit_close (audit_fp);
+  
   return 0;
 }
 
