@@ -1,3 +1,24 @@
+2003-10-09  Alain Magloire
+
+	Scenario: the attribute_set_delete() use the header field
+	"Status: d" to store the information.  During a POP session,
+	if messages had the "Status: D", the messages would be
+	deleted during the update state(QUIT), not what is expected.
+	Only messages mark deleted with the command DELE, should be deleted.
+	Sergey proposed an implementation, using attribute_xxx_userflag()
+	instead for delete markers.
+
+	* pop3d/dele.c: Use for attribute_is_userflag()
+	* pop3d/list.c: Use for attribute_is_userflag()
+	* pop3d/retr.c: Use for attribute_is_userflag()
+	* pop3d/rset.c: Use for attribute_is_userflag()
+	* pop3d/top.c: Use for attribute_is_userflag()
+	* pop3d/uidl.c: Use for attribute_is_userflag()
+	* pop3d/pop3d.h (POP3_ATTRIBUTE_DELE): New define. 
+	* pop3d/quit.c (pop3d_fix_mark): Use for attribute_is_userflag()
+	(pop3d_quit): Call to pop3d_fix_mark.
+
+
 2003-10-07  Alain Magloire
 
 	Reuse the mailutils mu_debug_t object to do debug tracing
