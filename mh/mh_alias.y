@@ -85,7 +85,7 @@ ali_list_to_string (list_t *plist)
   list_destroy (plist);
   return string;
 }
-	     
+
 static list_t unix_group_to_list __P((char *name));
 static list_t unix_gid_to_list __P((char *name));
 static list_t unix_passwd_to_list __P((void));
@@ -111,6 +111,8 @@ int yylex __P((void));
 input        : /* empty */
              | alias_list
              | alias_list nl
+             | nl alias_list
+             | nl alias_list nl
              ;
 
 alias_list   : alias
@@ -129,18 +131,20 @@ nl           : '\n'
              | nl '\n'
              ;
 
-alias        : STRING ':' address_group
+alias        : STRING ':' { ali_verbatim (1); } address_group
                {
+		 ali_verbatim (0);
 		 $$ = xmalloc (sizeof (*$$));
 		 $$->name = $1;
-		 $$->rcpt_list = $3;
+		 $$->rcpt_list = $4;
 		 $$->inclusive = 0;
 	       }
-             | STRING ';' address_group
+             | STRING ';' { ali_verbatim (1); } address_group
                {
+		 ali_verbatim (0);
 		 $$ = xmalloc (sizeof (*$$));
 		 $$->name = $1;
-		 $$->rcpt_list = $3;
+		 $$->rcpt_list = $4;
 		 $$->inclusive = 1;
 	       }
              ;
@@ -223,22 +227,27 @@ static int
 ali_member (list_t list, char *name)
 {
   iterator_t itr;
-  int rc = 1;
-  
+  int found = 0;
+
   if (iterator_create (&itr, list))
-    return 1;
-  for (iterator_first (itr); !iterator_is_done (itr); iterator_next (itr))
+    return 0;
+  for (iterator_first (itr); !found && !iterator_is_done (itr);
+       iterator_next (itr))
     {
       char *item;
+      address_t tmp;
+      
       iterator_current (itr, (void **)&item);
-      if (strcmp (name, item) == 0)
+      if (strcmp (item, name) == 0)
+	found = 1;
+      else if (address_create (&tmp, item) == 0)
 	{
-	  rc = 0;
-	  break;
+	  found = address_contains_email (tmp, name);
+	  address_destroy (&tmp);
 	}
     }
   iterator_destroy (&itr);
-  return rc;
+  return found;
 }
 
 int
@@ -413,7 +422,7 @@ mh_alias_get_alias (char *uname, list_t *return_list)
     {
       struct mh_alias *alias;
       iterator_current (itr, (void **)&alias);
-      if (ali_member (alias->rcpt_list, uname) == 0)
+      if (ali_member (alias->rcpt_list, uname))
 	{
 	  if (*return_list == NULL && list_create (return_list))
 	    break;
