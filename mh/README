@@ -54,11 +54,15 @@ Return: none
 
 Appends whitespace + arg to string register.
 
-*** printstr
+*** printhdr
 Argument: string
 Return: none
 
-Prints the value of string register, prefixed by the given argument.
+Prints the value of string register, prefixed by the given
+argument. The output is formatted as RFC 822 header, i.e.
+it is split at whitespace characters nearest to the width boundary
+and each subsequent segment is prefixed with horizontal tabulation.
+
 
 *** in_reply_to
 Argument: none
