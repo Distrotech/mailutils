@@ -45,6 +45,8 @@
 #include <mailutils/mutil.h>
 #include <mailutils/parse822.h>
 #include <mailutils/mu_auth.h>
+#include <mailutils/header.h>
+#include <mailutils/message.h>
 
 /* convert a sequence of hex characters into an integer */
 
@@ -838,4 +840,178 @@ mu_expand_path_pattern (const char *pattern, const char *username)
   if (auth)
     mu_auth_data_free (auth);
   return path;
+}
+
+#define ST_INIT  0
+#define ST_MSGID 1
+
+static int
+strip_message_id (char *msgid, char **pval)
+{
+  char *p, *q;
+  int state;
+  
+  *pval = strdup (msgid);
+  if (!*pval)
+    return ENOMEM;
+  state = ST_INIT;
+  for (p = q = *pval; *p; p++)
+    {
+      switch (state)
+	{
+	case ST_INIT:
+	  if (*p == '<')
+	    {
+	      *q++ = *p;
+	      state = ST_MSGID;
+	    }
+	  else if (isspace (*p))
+	    *q++ = *p;
+	  break;
+
+	case ST_MSGID:
+	  *q++ = *p;
+	  if (*p == '>')
+	    state = ST_INIT;
+	  break;
+	}
+    }
+  *q = 0;
+  return 0;
+}
+
+int
+get_msgid_header (header_t hdr, const char *name, char **val)
+{
+  char *p;
+  int status = header_aget_value (hdr, name, &p);
+  if (status)
+    return status;
+  status = strip_message_id (p, val);
+  free (p);
+  return status;
+}
+
+static char *
+concat (const char *s1, const char *s2)
+{
+  int len = (s1 ? strlen (s1) : 0) + (s2 ? strlen (s2) : 0) + 2;
+  char *s = malloc (len);
+  if (s)
+    {
+      char *p = s;
+      
+      if (s1)
+	{
+	  strcpy (p, s1);
+	  p += strlen (s1);
+	  *p++ = ' ';
+	}
+      if (s2)
+	strcpy (p, s2);
+    }
+  return s;
+}
+
+/* rfc2822:
+   
+   The "References:" field will contain the contents of the parent's
+   "References:" field (if any) followed by the contents of the parent's
+   "Message-ID:" field (if any).  If the parent message does not contain
+   a "References:" field but does have an "In-Reply-To:" field
+   containing a single message identifier, then the "References:" field
+   will contain the contents of the parent's "In-Reply-To:" field
+   followed by the contents of the parent's "Message-ID:" field (if
+   any).  If the parent has none of the "References:", "In-Reply-To:",
+   or "Message-ID:" fields, then the new message will have no
+   References:" field. */
+
+int
+mu_rfc2822_references (message_t msg, char **pstr)
+{
+  char *ref = NULL, *msgid = NULL;
+  header_t hdr;
+  int rc;
+  
+  rc = message_get_header (msg, &hdr);
+  if (rc)
+    return rc;
+  get_msgid_header (hdr, MU_HEADER_MESSAGE_ID, &msgid);
+  if (get_msgid_header (hdr, MU_HEADER_REFERENCES, &ref))
+    get_msgid_header (hdr, MU_HEADER_IN_REPLY_TO, &ref);
+
+  if (ref || msgid)
+    {
+      *pstr = concat (ref, msgid);
+      free (ref);
+      free (msgid);
+    }
+  return 0;
+}
+
+#define DATEBUFSIZE 128
+#define COMMENT "Your message of "
+
+/*
+   The "In-Reply-To:" field will contain the contents of the "Message-
+   ID:" field of the message to which this one is a reply (the "parent
+   message").  If there is more than one parent message, then the "In-
+   Reply-To:" field will contain the contents of all of the parents'
+   "Message-ID:" fields.  If there is no "Message-ID:" field in any of
+   the parent messages, then the new message will have no "In-Reply-To:"
+   field.
+*/
+int
+mu_rfc2822_in_reply_to (message_t msg, char **pstr)
+{
+  char *value, *s1 = NULL, *s2 = NULL;
+  header_t hdr;
+  int rc;
+  
+  rc = message_get_header (msg, &hdr);
+  if (rc)
+    return rc;
+  
+  if (header_aget_value (hdr, MU_HEADER_DATE, &value))
+    {
+      envelope_t envelope = NULL;
+      value = malloc (DATEBUFSIZE);
+      if (value)
+	{
+	  message_get_envelope (msg, &envelope);
+	  envelope_date (envelope, value, DATEBUFSIZE, NULL);
+	}
+    }
+
+  if (value)
+    {
+      s1 = malloc (sizeof (COMMENT) + strlen (value));
+      if (s1)
+	strcat (strcpy (s1, COMMENT), value);
+      free (value);
+      if (!s1)
+	return ENOMEM;
+    }
+  
+  if (header_aget_value (hdr, MU_HEADER_MESSAGE_ID, &value) == 0)
+    {
+      s2 = malloc (strlen (value) + 3);
+      if (s2)
+	strcat (strcpy (s2, "\n\t"), value);
+	  
+      free (value);
+      if (!s2)
+	{
+	  free (s1);
+	  return ENOMEM;
+	}
+    }
+
+  if (s1 || s2)
+    {
+      *pstr = concat (s1, s2);
+      free (s1);
+      free (s2);
+    }
+  return 0;
 }
