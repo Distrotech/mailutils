@@ -227,6 +227,33 @@ SCM_DEFINE (mu_message_set_header, "mu-message-set-header", 3, 1, 0,
 }
 #undef FUNC_NAME
 
+SCM_DEFINE (mu_message_get_size, "mu-message-get-size", 1, 0, 0,
+	    (SCM MESG),
+	    "Returns the size of the given message.")
+#define FUNC_NAME s_mu_message_get_size
+{
+  message_t msg;
+  size_t size;
+  SCM_ASSERT (mu_scm_is_message (MESG), MESG, SCM_ARG1, FUNC_NAME);
+  msg = mu_scm_message_get (MESG);
+  message_size (msg, &size);
+  return scm_makenum (size);
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (mu_message_get_lines, "mu-message-get-lines", 1, 0, 0,
+	    (SCM MESG),
+	    "Returns number of lines in the given message.")
+#define FUNC_NAME s_mu_message_get_lines
+{
+  message_t msg;
+  size_t lines;
+  SCM_ASSERT (mu_scm_is_message (MESG), MESG, SCM_ARG1, FUNC_NAME);
+  msg = mu_scm_message_get (MESG);
+  message_lines (msg, &lines);
+  return scm_makenum (lines);
+}
+#undef FUNC_NAME
 
 SCM_DEFINE (mu_message_get_sender, "mu-message-get-sender", 1, 0, 0,
 	    (SCM MESG),
