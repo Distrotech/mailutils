@@ -975,7 +975,7 @@ _prog_get_transport2 (stream_t stream, mu_transport_t *pin, mu_transport_t *pout
 
 int
 _prog_stream_create (struct _prog_stream **pfs,
-		     stream_t *stream, char *progname, int flags)
+		     stream_t *stream, const char *progname, int flags)
 {
   struct _prog_stream *fs;
   int ret;
@@ -1029,13 +1029,14 @@ _prog_stream_create (struct _prog_stream **pfs,
 }
 
 int
-prog_stream_create (stream_t *stream, char *progname, int flags)
+prog_stream_create (stream_t *stream, const char *progname, int flags)
 {
   return _prog_stream_create (NULL, stream, progname, flags);
 }
 
 int
-filter_prog_stream_create (stream_t *stream, char *progname, stream_t input)
+filter_prog_stream_create (stream_t *stream, const char *progname,
+			   stream_t input)
 {
   struct _prog_stream *fs;
   int rc = _prog_stream_create (&fs, stream, progname, MU_STREAM_RDWR);
