@@ -324,7 +324,9 @@ pop_source ()
   context_stack = ctx;
   return 0;
 }
-  
+
+extern int yyparse __P((void));
+
 %}
 WS [ \t]+
 WORD [^ \t\n,:;<+=\*]+
