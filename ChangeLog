@@ -1,3 +1,17 @@
+2001-09-18 Sam Roberts
+
+	* mailbox/mbx_pop.c: Check url authentication type at
+	initialization to trap invalid ones early.
+	* mailbox/: mbx_mbox.c, mbx_mh.c: The pthread headers seem to
+	define things that make the system headers not prototype some
+	non-POSIX but essential APIS, so I moved them (on QNX6).
+	* mailbox/url.c: Set zero-length strings to NULL.
+	* mailbox/: url_imap.c, url_pop.c: Check harder for URLs that are
+	not invalid for the particular scheme.
+	* mailbox/auth.c: authority_authenticate() was returning success if
+	authority was NULL, this is an error for all the other authority_*
+	APIs, now it is here, as well.
+
 2001-09-18 Sergey Poznyakoff
 
 	* mh/mh.h: Changed proto of mh_read_formfile(). Thanks to Alain
