@@ -241,6 +241,7 @@ char *mh_current_folder __P((void));
 char *mh_global_sequences_get __P((const char *name, const char *defval));
 int mh_global_sequences_set __P((const char *name, const char *value));
 void mh_global_save_state __P((void));
+int mh_global_profile_iterate __P((mh_context_iterator fp, void *data));
 int mh_global_context_iterate __P((mh_context_iterator fp, void *data));
 int mh_global_sequences_iterate __P((mh_context_iterator fp, void *data));
 

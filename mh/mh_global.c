@@ -41,6 +41,12 @@ mh_global_profile_set (const char *name, const char *value)
   return mh_context_set_value (profile, name, value);
 }
 
+int
+mh_global_profile_iterate (mh_context_iterator fp, void *data)
+{
+  return mh_context_iterate (profile, fp, data);
+}
+
 void
 mh_read_profile ()
 {
