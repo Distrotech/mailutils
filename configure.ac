@@ -275,8 +275,7 @@ AC_SUBST(MYSQLLIBS)
 AC_ARG_ENABLE(mysql, [  --enable-mysql  enable mysql support (default no)], [use_mysql="yes"],,)
 if test x"$use_mysql" = x"yes"; then
 	AC_CHECK_HEADER(mysql/mysql.h,
-	[AUTHLIBS="$AUTHLIBS -lmailMysql -lmysqlclient -lm -L/usr/lib/mysql -L/usr/local/lib/mysql -L../MySql/"
-        BUILD_LIBMYSQL=libmailMysql.a
+	[AUTHLIBS="$AUTHLIBS -lmysqlclient -lm -L/usr/lib/mysql -L/usr/local/lib/mysql"
 	AC_DEFINE(HAVE_MYSQL,1,[Define this if you have mysql libraries])])
 fi
 
@@ -479,7 +478,6 @@ AC_CONFIG_FILES([Makefile mailutils.spec
  guimb/Makefile
  guimb/scm/Makefile
  readmsg/Makefile
- MySql/Makefile
  comsat/Makefile
  mail.local/Makefile
  mail.remote/Makefile
