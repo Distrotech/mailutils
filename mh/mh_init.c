@@ -544,7 +544,7 @@ mh_file_copy (const char *from, const char *to)
   return rc;
 }
 
-static int
+int
 _mh_delim (char *str)
 {
   if (str[0] == '-')
@@ -679,12 +679,30 @@ mh_stream_to_message (stream_t instream)
   struct msg_envelope *mp;
   envelope_t env;
   message_t msg;
+  stream_t draftstream;
+  int rc;
   
+  if ((rc = mhdraft_stream_create (&draftstream, instream, 0)))
+    {
+      mh_error(_("cannot create draft message stream: %s"),
+	       mu_strerror (rc));
+      return NULL;
+    }
+
+  if ((rc = stream_open (draftstream)))
+    {
+      mh_error(_("cannot open draft message stream: %s"),
+	       mu_strerror (rc));
+      stream_destroy (&draftstream, stream_get_owner (draftstream));
+      return NULL;
+    }
+
   restore_envelope (instream, &mp);
+
   if (message_create (&msg, mp))
     return NULL;
   
-  message_set_stream (msg, instream, mp);
+  message_set_stream (msg, draftstream, mp);
   
   if (envelope_create (&env, msg))
     return NULL;
