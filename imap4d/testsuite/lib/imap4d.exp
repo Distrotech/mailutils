@@ -1,6 +1,6 @@
 # -*- tcl -*-
 # This file is part of Mailutils testsuite.
-# Copyright (C) 2002, Free Software Foundation
+# Copyright (C) 2002, 2005, Free Software Foundation
 #  
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -183,7 +183,7 @@ proc imap4d_auth {args} {
     }
 }    
     
-# imap4d_test [-message MESSAGE][-default (FAIL|XFAIL)][-long][-silent]
+# imap4d_test [-message MESSAGE][-default (FAIL|XFAIL)][-long][-silent][-sort]
 #            COMMAND [UNTAGGED...][TAGGED]
 # COMMAND   - Command to send.
 # UNTAGGED  - A list of untagged responses to expect in return. 
@@ -192,11 +192,12 @@ proc imap4d_auth {args} {
 proc imap4d_test {args} {
     global IMAP4D_TAG
     global verbose
-	
+    
     set default ""
     set message ""
     set long 0
     set silent 0
+    set sort 0
     for {set i 0} {$i < [llength $args]} {incr i} {
 	set a [lindex $args $i]
 	if {"$a" == "-default"} {
@@ -209,6 +210,8 @@ proc imap4d_test {args} {
 	    set long 1
 	} elseif {"$a" == "-silent"} {
 	    set silent 1
+	} elseif {"$a" == "-sort"} {
+	    set sort 1
 	} else {
 	    set args [lrange $args $i end]
 	    break
@@ -263,6 +266,7 @@ proc imap4d_test {args} {
 	set tagged "OK"
     }
 
+    verbose "TAGGED $tagged"
     if {$long} {
 	set command "$command {[string length $command_data]}"
 	imap4d_command $command
@@ -282,6 +286,37 @@ proc imap4d_test {args} {
 	set s [split $command_data "\n"]
         set s [lrange $s 0 [expr [llength $s] - 2]]
         set result [mu_expect_list 360 [concat $s $pattern]]
+    } elseif {$sort && [llength $pattern] > 0} {
+	set command [imap4d_make_command $command]
+	set result [mu_test $command [list "-re" "(.*)\n$IMAP4D_TAG $tagged"]]
+	if {$result == 0} {
+	    if [info exists expect_out(1,string)] {
+		set out [lsort -ascii [split $expect_out(1,string) "\n"]]
+		set in [lsort -ascii $pattern]
+		if {[llength $in] == [llength $out]} {
+		    for {set i 0} {$i < [llength $in]} {incr i} {
+			regexp "(\[^\r\]*)" [lindex $out $i] dummy tmp
+			if [string compare [lindex $in $i] $tmp] {
+			    verbose "Item $i comparison failed"
+			    set result 1
+			    break
+			}
+		    }
+		} else {
+		    verbose "Input and output lists have different lengths"
+		    set result 1
+		}
+
+		if {$result} {
+		    verbose "Input: $in"
+		    verbose "Output: $out"
+		}
+		
+	    } else {
+		verbose "expect_out(1,string) does not exist. Buffer: $expect_out(buffer)"
+		set result 1
+	    }
+	} 
     } else {
 	set command [imap4d_make_command $command]
 	set pattern [concat $pattern [list "$IMAP4D_TAG $tagged"]]
