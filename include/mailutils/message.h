@@ -19,14 +19,18 @@
 #define _MAILUTILS_MESSAGE_H
 
 #include <sys/types.h>
+
+/* forward declaration */
+struct _message;
+typedef struct _message *message_t;
+
 #include <mailutils/envelope.h>
 #include <mailutils/header.h>
 #include <mailutils/body.h>
 #include <mailutils/stream.h>
 #include <mailutils/observer.h>
 #include <mailutils/attribute.h>
-#include <mailutils/monitor.h>
-
+#include <mailutils/mailbox.h>
 
 #ifndef __P
 # ifdef __STDC__
@@ -40,10 +44,6 @@
 extern "C" {
 #endif
 
-/* forward declaration */
-struct _message;
-typedef struct _message *message_t;
-
 /* A message is considered to be a container for:
  * header_t, body_t, and its attribute_t.
  */
@@ -51,6 +51,7 @@ typedef struct _message *message_t;
 extern int message_create            __P ((message_t *, void *owner));
 extern void message_destroy          __P ((message_t *, void *owner));
 extern void * message_get_owner      __P ((message_t));
+extern int message_set_mailbox       __P ((message_t, mailbox_t));
 
 extern int message_ref               __P ((message_t));
 #define message_unref(msg)           message_destroy (&msg, NULL)

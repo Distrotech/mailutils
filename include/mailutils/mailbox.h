@@ -16,9 +16,13 @@
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #ifndef _MAILUTILS_MAILBOX_H
-# define _MAILUTILS_MAILBOX_H
+#define _MAILUTILS_MAILBOX_H
 
 #include <sys/types.h>
+
+/* Forward declaration.  */
+struct _mailbox;
+typedef struct _mailbox *mailbox_t;
 
 #include <mailutils/url.h>
 #include <mailutils/observer.h>
@@ -27,7 +31,7 @@
 #include <mailutils/auth.h>
 #include <mailutils/locker.h>
 #include <mailutils/stream.h>
-
+#include <mailutils/folder.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -41,10 +45,6 @@ extern "C" {
 # endif
 #endif /*__P */
 
-/* Forward declaration.  */
-struct _mailbox;
-typedef struct _mailbox *mailbox_t;
-
 /* Constructor/destructor and possible types.  */
 extern int  mailbox_create        __P ((mailbox_t *, const char *));
 extern void mailbox_destroy       __P ((mailbox_t *));
@@ -52,6 +52,7 @@ extern int mailbox_create_default __P ((mailbox_t *, const char *));
 
 extern int mailbox_open           __P ((mailbox_t, int flag));
 extern int mailbox_close          __P ((mailbox_t));
+extern int mailbox_set_folder     __P ((mailbox_t, folder_t));
 
 /* Messages.  */
 extern int mailbox_get_message    __P ((mailbox_t, size_t msgno, message_t *));

@@ -15,8 +15,8 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-#ifndef _OBSERVER_H
-#define _OBSERVER_H
+#ifndef _MAILUTILS_OBSERVER_H
+#define _MAILUTILS_OBSERVER_H
 
 #include <sys/types.h>
 
@@ -68,4 +68,4 @@ extern int observable_notify    __P ((observable_t, int type));
 }
 #endif
 
-#endif /* _OBSERVER_H */
+#endif /* _MAILUTILS_OBSERVER_H */

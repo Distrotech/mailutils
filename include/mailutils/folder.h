@@ -46,11 +46,17 @@ typedef struct _folder *folder_t;
 
 #define MU_FOLDER_ATTRIBUTE_DIRECTORY 0x001
 #define MU_FOLDER_ATTRIBUTE_FILE      0x002
-struct folder_list
+struct list_response
 {
   int type;
   int separator;
   char *name;
+};
+
+struct folder_list
+{
+  struct list_response **element;
+  size_t num;
 };
 
 /* Constructor/destructor and possible types.  */
@@ -64,11 +70,11 @@ extern int folder_delete         __P ((folder_t, const char *));
 extern int folder_rename         __P ((folder_t, const char *, const char *));
 extern int folder_subscribe      __P ((folder_t, const char *));
 extern int folder_unsubscribe    __P ((folder_t, const char *));
-extern int folder_list           __P ((folder_t, const char *pattern,
-				       struct folder_list ***flist, size_t *));
-extern int folder_lsub           __P ((folder_t, const char *pattern,
-				       struct folder_list ***flist, size_t *));
-extern int folder_list_destroy   __P ((struct folder_list ***, size_t));
+extern int folder_list           __P ((folder_t, const char *,
+				       struct folder_list *));
+extern int folder_lsub           __P ((folder_t, const char *,
+				       struct folder_list *));
+extern int folder_list_destroy   __P ((struct folder_list *));
 
 /* Stream settings.  */
 extern int folder_get_stream     __P ((folder_t, stream_t *));

@@ -1,5 +1,5 @@
 /* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Library Public License as published by
@@ -71,33 +71,37 @@ extern int stream_set_fd       __P ((stream_t, int (*_get_fd)(stream_t, int *),
 
 extern int stream_read         __P ((stream_t, char *, size_t,
 				     off_t, size_t *));
-extern int stream_set_read     __P ((stream_t, int (*_read)
-				     __P ((stream_t, char *, size_t,
-					   off_t, size_t *)),
+extern int stream_set_read     __P ((stream_t, int
+				     (*_read) __P ((stream_t, char *, size_t,
+						    off_t, size_t *)),
 				     void *owner));
 
 extern int stream_readline     __P ((stream_t, char *, size_t,
 				     off_t, size_t *));
-extern int stream_set_readline __P ((stream_t, int (*_readline)
-				     __P ((stream_t, char *, size_t,
-					   off_t, size_t *)),
+extern int stream_set_readline __P ((stream_t, int
+				     (*_readline) __P ((stream_t, char *,
+							size_t, off_t,
+							size_t *)),
 				     void *owner));
 
 extern int stream_size         __P ((stream_t, off_t *));
-extern int stream_set_size     __P ((stream_t, int (*_size)
-				     __P ((stream_t, off_t *)), void *owner));
+extern int stream_set_size     __P ((stream_t, int
+				     (*_size) __P ((stream_t, off_t *)),
+				     void *owner));
 
 extern int stream_truncate     __P ((stream_t, off_t));
-extern int stream_set_truncate __P ((stream_t, int (*_truncate)
-				     __P ((stream_t, off_t)), void *owner));
+extern int stream_set_truncate __P ((stream_t, int
+				     (*_truncate) __P ((stream_t, off_t)),
+				     void *owner));
 
 extern int stream_write        __P ((stream_t, const char *, size_t,
 				     off_t, size_t *));
-extern int stream_set_write    __P ((stream_t, int (*_write)
-				     __P ((stream_t, const char *,
-					   size_t, off_t, size_t *)),
+extern int stream_set_write    __P ((stream_t, int
+				     (*_write) __P ((stream_t, const char *,
+						     size_t, off_t, size_t *)),
 				     void *owner));
 
+  extern int stream_setbufsiz    __P ((stream_t stream, size_t size));
 extern int stream_flush        __P ((stream_t));
 extern int stream_set_flush    __P ((stream_t, int (*_flush)
 				     __P ((stream_t)), void *owner));

@@ -15,8 +15,8 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-#ifndef _MIME_H
-#define _MIME_H
+#ifndef _MAILUTILS_MIME_H
+#define _MAILUTILS_MIME_H
 
 #include <sys/types.h>
 #include <mailutils/header.h>
@@ -47,7 +47,7 @@ typedef struct _mime *mime_t;
 int mime_create						__P ((mime_t *pmime, message_t msg, int flags));
 void mime_destroy					__P ((mime_t *pmime));
 int mime_is_multipart				__P ((mime_t mime));
-int mime_get_num_parts				__P ((mime_t mime, int *nparts));
+int mime_get_num_parts				__P ((mime_t mime, size_t *nparts));
 
 int mime_get_part					__P ((mime_t mime, int part, message_t *msg));
 
@@ -56,7 +56,7 @@ int mime_add_part					__P ((mime_t mime, message_t msg));
 int mime_get_message				__P ((mime_t mime, message_t *msg));
 
 #ifdef _cplusplus
-}           
+}
 #endif
 
-#endif /* _MIME_H */
+#endif /* _MAILUTILS_MIME_H */
