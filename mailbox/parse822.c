@@ -198,12 +198,7 @@ int parse822_is_smtp_q(char c)
 	&& c != '\n';
 }
 
-/*
- * Lexical Analysis - these tokens are all from RFC822,
- * section 3.3, Lexical Tokens, though not all tokens are
- * implemented. The names match those used int the extended
- * BNF of the RFC where possible.
- */
+/***** From RFC 822, 3.3 Lexical Tokens *****/
 
 int parse822_skip_ws(const char** p, const char* e)
 {
@@ -483,6 +478,8 @@ int parse822_phrase(const char** p, const char* e, char** phrase)
     return rc;
 }
 
+/***** From RFC 822, 6.1 Address Specification Syntax *****/
+
 static address_t new_mb(void) {
     return calloc(1, sizeof(struct _address));
 }
@@ -505,7 +502,7 @@ static int fill_mb(
     /* this is wrong, local must be quoted */
     do {
 	/* loop exists only to break out of */
-	if((rc = str_append(&(*a)->email, local)))
+	if((rc = parse822_quote_local_part(&(*a)->email, local)))
 	    break;
 	if((rc = str_append(&(*a)->email, "@")))
 	    break;
@@ -1032,6 +1029,9 @@ int parse822_domain_literal(const char** p, const char* e, char** domain_literal
 }
 
 #if 0
+
+/***** From RFC 822, 3.2 Header Field Definitions *****/
+
 int parse822_field_name(const char** p, const char* e, char** fieldname)
 {
     /* field-name = 1*<any char, excluding ctlS, space, and ":"> ":" */
@@ -1113,4 +1113,75 @@ int parse822_field_body(const char** p, const char* e, Rope& fieldbody)
     return 1;
 }
 #endif
+
+/***** RFC 822 Quoting Functions *****/
+
+int parse822_quote_string(char** quoted, const char* raw)
+{
+  /* quoted-string = <"> *(qtext/quoted-pair) <">
+   *
+   * So double quote the string, and back quote anything that
+   * isn't qtext.
+   */
+
+  int rc = EOK;
+  const char* s;
+
+  if(!raw || !quoted || *quoted) {
+    return EINVAL;
+  }
+
+  s = raw;
+
+  rc = str_append_char(quoted, '"');
+
+  while(!rc && *s) {
+    if(!parse822_is_q_text(*s)) {
+      rc = str_append_char(quoted, '\\');
+    }
+
+    if(!rc) {
+      rc = str_append_char(quoted, *s);
+    }
+    ++s;
+  }
+
+  if(!rc) {
+    rc = str_append_char(quoted, '"');
+  }
+
+  if(rc) {
+    str_free(quoted);
+  }
+  return rc;
+}
+
+int parse822_quote_local_part(char** quoted, const char* raw)
+{
+  /* local-part = word * ("." word)
+   * word = atom / quoted-string
+   *
+   * So, if any character isn't a "." or an atom character, we quote
+   * the whole thing as a string, for simplicity, otherwise just
+   * copy it.
+   */
+
+  const char* s = 0;
+ 
+  if(!raw || !quoted || *quoted) {
+    return EINVAL;
+  }
+  s = raw;
+
+  while(*s) {
+    if(*s != '.' && !parse822_is_atom_char(*s)) {
+	return parse822_quote_string(quoted, raw);
+    }
+    ++s;
+  }
+
+  /* if we don't have to quote it, just copy it over */
+
+  return str_append(quoted, raw);
+}
 

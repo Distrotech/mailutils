@@ -37,9 +37,8 @@ extern "C" {
 #endif
 
 /**
-* Reads an RFC822 defined lexical token from an input. If some of
-* the names seem strange, they are taken from the names as defined
-* in the extended BNF of the RFC.
+* Reads an RFC822 defined lexical token from an input. All names are
+* as close as possible to those used in the extended BNF of the RFC.
 */
 
 /* From RFC 822, 3.3 Lexical Tokens */
@@ -69,6 +68,7 @@ extern int parse822_word           __P ((const char** p, const char* e, char** w
 extern int parse822_phrase         __P ((const char** p, const char* e, char** phrase));
 extern int parse822_d_text         __P ((const char** p, const char* e, char** dtext));
 
+
 /* From RFC 822, 6.1 Address Specification Syntax */
 
 extern int parse822_address_list   __P ((address_t* a, const char* s));
@@ -83,6 +83,16 @@ extern int parse822_domain         __P ((const char** p, const char* e, char** d
 extern int parse822_sub_domain     __P ((const char** p, const char* e, char** sub_domain));
 extern int parse822_domain_ref     __P ((const char** p, const char* e, char** domain_ref));
 extern int parse822_domain_literal __P ((const char** p, const char* e, char** domain_literal));
+
+/* RFC 822 Quoting Functions
+* Various elements must be quoted if then contain non-safe characters. What
+* characters are allowed depend on the element. The following functions will
+* allocate a quoted version of the raw element, it may not actually be
+* quoted if no unsafe characters were in the raw string.
+*/
+
+extern int parse822_quote_string     __P ((char** quoted, const char* raw));
+extern int parse822_quote_local_part __P ((char** quoted, const char* raw));
 
 #ifdef __cplusplus
 }
