@@ -325,4 +325,4 @@ AC_OUTPUT(Makefile mailutils.spec include/Makefile include/mailutils/Makefile
  frm/Makefile sieve/Makefile messages/Makefile scripts/Makefile
  libmu_scm/Makefile guimb/Makefile guimb/scm/Makefile
  readmsg/Makefile
- MySql/Makefile mh/Makefile comsat/Makefile mail.local/Makefile)
+ MySql/Makefile comsat/Makefile mail.local/Makefile)
