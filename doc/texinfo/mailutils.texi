@@ -258,7 +258,7 @@ Notifications}
 @comment @chapter Concrete API
 @comment @cindex Concrete API
 
-@include c-api.texi
+@comment @include c-api.texi
 
 @node Framework, Programs, Introduction, Top
 @comment  node-name,  next,  previous,  up
