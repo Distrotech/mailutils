@@ -1,3 +1,15 @@
+2002-08-06  Sergey Poznyakoff
+
+	* Makefile.am: Removed distcheck kludge. Testsuite doesn't
+	  need it anymore.
+	* mail/testsuite/makespool: New file. Prepares data
+	  for testsuite.
+	* mail/testsuite/Makefile.am: Added EXTA_DIST and
+	  distclean-local
+	* mail/testsuite/lib/mail.exp: Fixed paths.
+	  (mail_prepare_spools,mail_cleanup_spools): new procedures.
+	* mail/testsuite/mail/folder.exp: Corrected paths.
+	
 2002-08-06  Sergey Poznyakoff  
 
 	* Makefile.am: Added distcheck rule needed for
