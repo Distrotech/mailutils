@@ -34,7 +34,7 @@ noinst_PROGRAMS = \
 moddir=@SIEVE_MODDIR@
 mod_LTLIBRARIES = numaddr.la
 
-INCLUDES = -I$(top_srcdir)/include -I$(top_srcdir)/lib @INTLINCS@
+INCLUDES = -I$(top_srcdir)/include -I$(top_srcdir)/lib -I$(top_srcdir)/mailbox @INTLINCS@
 AM_LDFLAGS = ../mailbox/libmailbox.la ../lib/libmailutils.la
 
 numaddr_la_SOURCES = numaddr.c
