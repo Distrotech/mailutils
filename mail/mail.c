@@ -103,6 +103,13 @@ parse_opt (int key, char *arg, struct argp_state *state)
     case 'F':
       util_do_command ("set byname");
       break;
+    case ARGP_KEY_ARG:
+      args->args = realloc (args->args,
+			    sizeof (char *) * (state->arg_num + 2));
+      args->args[state->arg_num] = arg;
+      args->args[state->arg_num + 1] = NULL;
+      util_do_command ("set mode=send");
+      break;
     default:
       return ARGP_ERR_UNKNOWN;
     }
@@ -193,6 +200,7 @@ main (int argc, char **argv)
   util_do_command ("set rc");
   util_do_command ("set noquit");
 
+  args.args = NULL;
   args.file = NULL;
   args.user = NULL;
 
@@ -203,30 +211,13 @@ main (int argc, char **argv)
   if ((util_find_env ("rc"))->set)
     util_do_command ("source %s", getenv ("MAILRC"));
 
-  /* Initialize readline */
-  rl_readline_name = "mail";
-  rl_attempted_completion_function = (CPPFunction *)util_command_completion;
-
-  /* open the mailbox */
-  if (args.file == NULL)
-    {
-      if (mailbox_create_default (&mbox, args.user) != 0)
-	exit (EXIT_FAILURE);
-    }
-  else if (mailbox_create (&mbox, args.file) != 0)
-    exit (EXIT_FAILURE);
-
-  if (mailbox_open (mbox, MU_STREAM_READ) != 0)
-    exit (EXIT_FAILURE);
-
-  if (mailbox_messages_count (mbox, &total) != 0)
-    exit (EXIT_FAILURE);
-
   /* how should we be running? */
   if ((mode = util_find_env ("mode")) == NULL || mode->set == 0)
     exit (EXIT_FAILURE);
+  modelen = strlen (mode->value);
 
-  if (!(util_find_env("quit"))->set)
+  /* Interactive mode */
+  if (!(util_find_env("quiet"))->set)
     {
       printf ("%s, Copyright (C) 2001 Free Software Foundation, Inc.\n"
 	      "mail comes with ABSOLUTELY NO WARRANTY; for details type\n"
@@ -235,49 +226,81 @@ main (int argc, char **argv)
 	      "for details.\n",
 	      argp_program_version);
     }
-
-  modelen = strlen (mode->value);
-  if (strlen ("exist") == modelen && !strcmp ("exist", mode->value))
-    return (total < 1) ? 1 : 0;
-  else if (strlen ("print") == modelen && !strcmp ("print", mode->value))
-    return util_do_command ("print *");
-  else if (strlen ("headers") == modelen && !strcmp ("headers", mode->value))
-    return util_do_command ("from *");
-  else if (strlen ("send") == modelen && !strcmp ("send", mode->value))
+  
+  /* Mode is just sending */
+  if (strlen ("send") == modelen && !strcmp ("send", mode->value))
     {
       /* FIXME: set cmd to "mail [add1...]" */
-      cmd = strdup ("mail");
-      return util_do_command (cmd);
+      char *buf = NULL;
+      int num = 0;
+      if (args.args != NULL)
+	while (args.args[num] != NULL)
+	  num++;
+      argcv_string (num, args.args, &buf);
+      return util_do_command ("mail %s", buf);
     }
-
-  /* initial commands */
-  if ((util_find_env("header"))->set)
-    util_do_command ("from *");
-
-  prompt = util_find_env ("prompt");
-
-  while (1)
+  /* Or acting as a normal reader */
+  else
     {
-      int len;
-      if (command)
-	free (command);
-      command = readline (prompt->set && prompt->value != NULL ? prompt->value : " ");
-      len = strlen (command);
-      while (command[len-1] == '\\')
-	{
-	  char *buf;
-	  char *command2 = readline ("> ");
+      /* Initialize readline */
+      rl_readline_name = "mail";
+      rl_attempted_completion_function = (CPPFunction*)util_command_completion;
 
-	  command[len-1] = '\0';
-	  buf = malloc ((len + strlen (command2)) * sizeof (char));
-	  strcpy (buf, command);
-	  strcat (buf, command2);
-	  free (command);
-	  command = buf;
-	  len = strlen (command);
+      /* open the mailbox */
+      if (args.file == NULL)
+	{
+	  if (mailbox_create_default (&mbox, args.user) != 0)
+	    exit (EXIT_FAILURE);
 	}
-      cmd = util_stripwhite (command);
-      util_do_command (cmd);
-      add_history (cmd);
+      else if (mailbox_create (&mbox, args.file) != 0)
+	exit (EXIT_FAILURE);
+      
+      if (mailbox_open (mbox, MU_STREAM_READ) != 0)
+	exit (EXIT_FAILURE);
+      
+      if (mailbox_messages_count (mbox, &total) != 0)
+	exit (EXIT_FAILURE);
+      
+      if (strlen ("exist") == modelen && !strcmp ("exist", mode->value))
+	return (total < 1) ? 1 : 0;
+      else if (strlen ("print") == modelen && !strcmp ("print", mode->value))
+	return util_do_command ("print *");
+      else if (strlen ("headers") == modelen
+	       && !strcmp ("headers", mode->value))
+	return util_do_command ("from *");
+      
+      /* initial commands */
+      if ((util_find_env("header"))->set)
+	util_do_command ("from *");
+      
+      prompt = util_find_env ("prompt");
+      
+      while (1)
+	{
+	  int len;
+	  if (command)
+	    free (command);
+	  command = readline (prompt->set && prompt->value != NULL
+			      ? prompt->value : "? ");
+	  len = strlen (command);
+	  while (command[len-1] == '\\')
+	    {
+	      char *buf;
+	      char *command2 = readline ("> ");
+	      
+	      command[len-1] = '\0';
+	      buf = malloc ((len + strlen (command2)) * sizeof (char));
+	      strcpy (buf, command);
+	      strcat (buf, command2);
+	      free (command);
+	      command = buf;
+	      len = strlen (command);
+	    }
+	  cmd = util_stripwhite (command);
+	  util_do_command (cmd);
+	  add_history (cmd);
+	}
     }
+  /* We should never reach this point */
+  return 1;
 }

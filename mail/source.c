@@ -39,7 +39,6 @@ mail_source (int argc, char **argv)
 	      util_do_command("%s", buf);
 	      free (buf);
 	      buf = NULL;
-	      s = 0;
 	    }
 	  fclose (rc);
 	  return 0;

@@ -29,6 +29,7 @@ mail_send (int argc, char **argv)
   FILE *file = fopen (filename, "w");
   char *buf = NULL;
   size_t n;
+  int done = 0;
 
   if (argc < 2)
     to = readline ("To: ");
@@ -47,7 +48,7 @@ mail_send (int argc, char **argv)
   else
     subj = (util_find_env ("subject"))->value;
 
-  while (getline (&buf, &n, stdin) != -1)
+  while (getline (&buf, &n, stdin) >= 0 && !done)
     {
       if (buf[0] == (util_find_env("escape"))->value[0])
 	{
@@ -57,14 +58,14 @@ mail_send (int argc, char **argv)
 	  switch (buf[1])
 	    {
 	    case '!':
-	      util_do_command ("!%s", &buf[3]);
+	      util_do_command ("!%s", &buf[2]);
 	      break;
 	    case '.':
-	      /* eof */
+	      done = 1;
 	      break;
 	    case ':':
 	    case '-':
-	      util_do_command ("%s", &buf[3]);
+	      util_do_command ("%s", &buf[2]);
 	      break;
 	    case '?':
 	      /* escape help */
@@ -182,7 +183,19 @@ mail_send (int argc, char **argv)
       /* free (buf); */
     }
 
-  /* read in filename, send it */
+  file = fopen (filename, "r");
+  if (file != NULL)
+    {
+      /* FIXME: create a mailer here */
+      while (getline (&buf, &n, file) >= 0)
+	{
+	  printf("%s", buf);
+	  free (buf);
+	  buf = NULL;
+	}
+      fclose (file);
+      return 0;
+    }
   
   return 1;
 }
