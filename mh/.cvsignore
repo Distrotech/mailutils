@@ -15,5 +15,8 @@ repl
 whatnow
 comp
 send
+install-mh
+mark
+anno
 *.output
 .gdbinit
