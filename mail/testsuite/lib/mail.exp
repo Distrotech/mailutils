@@ -23,6 +23,12 @@ if [info exists TOOL_EXECUTABLE] {
 if ![info exists MAIL] {
     if ![is_remote host] {
 	set MAIL [findfile $base_dir/../mail "$base_dir/../mail" [transform mail]]
+	set MAIL_SPOOL_SOURCE "$srcdir/spool"
+	set MAIL_FOLDER_SOURCE "$srcdir/folder"
+	set MAIL_SPOOL_DIR "$objdir/data/spool"
+	set MAIL_FOLDER_DIR "$objdir/data/folder"
+	set MAIL_RC_DIR "$srcdir/etc"
+	set MAKESPOOL "$srcdir/makespool"
     } else {
 	if [info exists host_board] {
 	    if [board_info $host_board exists top_builddir] {
@@ -37,19 +43,25 @@ if ![info exists MAIL] {
 	    perror "Please, read file README in mail/testsuite subdirectory"
 	    perror "for instructions on how to set up it."
 	    exit 1
-	}
+	}	
+	set MAIL_RC_DIR "[board_info $host_board srcdir]/etc"
+	set MAIL_SPOOL_SOURCE "[board_info $host_board srcdir]/spool"
+	set MAIL_FOLDER_SOURCE "[board_info $host_board srcdir]/folder" 
+	set MAIL_SPOOL_DIR "[board_info $host_board objdir]/data/spool"
+	set MAIL_FOLDER_DIR "[board_info $host_board objdir]/data/folder"
+	set MAKESPOOL "[board_info $host_board srcdir]/makespool"
     }
 }
 
 verbose "using MAIL = $MAIL" 2
 
 if ![info exists MAILFLAGS] {
-    set MAILFLAGS "--nosum --norc --mail-spool $srcdir/spool"
+    set MAILFLAGS "--nosum --norc --mail-spool $MAIL_SPOOL_DIR"
 }
 
-#FIXME:
-set env(MAILRC) $srcdir/etc/mail.rc
-set env(MBOX) $srcdir/spool/mbox
+#FIXME: this doesn't work with remote testing
+set env(MAILRC) $MAIL_RC_DIR/mail.rc
+set env(MBOX) "$MAIL_SPOOL_DIR/mbox"
 
 # The variable mail_prompt is a regexp which matches the mail prompt.
 global mail_prompt
@@ -59,6 +71,31 @@ if ![info exists mail_prompt] then {
 
 ### Only procedures should come after this point.
 
+proc mail_prepare_spools {} {
+    global MAIL_SPOOL_SOURCE
+    global MAIL_SPOOL_DIR
+    global MAIL_FOLDER_SOURCE
+    global MAIL_FOLDER_DIR
+    global MAKESPOOL
+
+    set output [remote_exec host "$MAKESPOOL \
+		    $MAIL_SPOOL_SOURCE $MAIL_SPOOL_DIR\
+	            $MAIL_FOLDER_SOURCE $MAIL_FOLDER_DIR"]
+}
+
+proc mail_cleanup_spools {} {
+    global MAIL_SPOOL_SOURCE
+    global MAIL_SPOOL_DIR
+    global MAIL_FOLDER_SOURCE
+    global MAIL_FOLDER_DIR
+    global MAKESPOOL
+
+    if { $MAIL_SPOOL_SOURCE != $MAIL_SPOOL_DIR } {
+	set output [remote_exec host "$MAKESPOOL -r \
+		    $MAIL_SPOOL_DIR $MAIL_FOLDER_DIR"]
+    }
+}
+	    
 proc default_mail_version {} {
     global MAIL
     global MAILFLAGS
@@ -96,7 +133,8 @@ proc default_mail_start {args} {
     global expect_out
     
     default_mail_version
-
+    mail_prepare_spools
+    
     set sw $args
     append sw " "
     
@@ -107,7 +145,7 @@ proc default_mail_start {args} {
     }
 
     set mail_cmd "$MAIL $MAILFLAGS $args"
-verbose "MAILRC is $srcdir/etc/mail.rc" 2
+    verbose "MAILRC is $srcdir/etc/mail.rc" 2
     verbose "Spawning $mail_cmd"
 
     set res [remote_spawn host $mail_cmd]
@@ -131,7 +169,7 @@ verbose "MAILRC is $srcdir/etc/mail.rc" 2
 proc default_mail_stop {} {
 
     verbose "Stopping mail"
-    
+
 }
 
 proc mail_start {args} {
@@ -156,7 +194,7 @@ proc mail_send { string } {
 proc mail_command { cmd } {
     set res [mail_send "$cmd\n"]
     mail_expect 30 {
-	-ex "${cmd}\r\n" { }
+	-ex "\r\n" { }
 	default {
 	    perror "mail_command for target failed";
 	    return -1
