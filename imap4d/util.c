@@ -1087,9 +1087,39 @@ util_setio (FILE *in, FILE *out)
   if (!out || !in)
     imap4d_bye (ERR_NO_OFILE);
 
+  setvbuf (in, NULL, _IOLBF, 0);
+  setvbuf (out, NULL, _IOLBF, 0);
   if (stdio_stream_create (&istream, in, MU_STREAM_NO_CLOSE)
       || stdio_stream_create (&ostream, out, MU_STREAM_NO_CLOSE))
     imap4d_bye (ERR_NO_OFILE);
+}
+
+void
+util_get_input (stream_t *pstr)
+{
+  *pstr = istream;
+}
+
+void
+util_get_output (stream_t *pstr)
+{
+  *pstr = ostream;
+}
+
+void
+util_set_input (stream_t str)
+{
+  if (istream)
+    stream_destroy (istream, stream_get_owner (istream));
+  istream = str;
+}
+
+void
+util_set_output (stream_t str)
+{
+  if (ostream)
+    stream_destroy (ostream, stream_get_owner (ostream));
+  ostream = str;
 }
 
 void
@@ -1135,18 +1165,37 @@ imap4d_init_tls_server ()
 }
 #endif /* WITH_TLS */
 
+static list_t atexit_list;
+
+void
+util_atexit (void (*fp) (void))
+{
+  if (!atexit_list)
+    list_create (&atexit_list);
+  list_append (atexit_list, (void*)fp);
+}
+
+static int
+atexit_run (void *item, void *data)
+{
+  ((void (*) (void)) item) ();
+  return 0;
+}
+
 void
 util_bye ()
 {
-  if (istream == ostream)
+  int rc = istream != ostream;
+  
+  stream_close (istream);
+  stream_destroy (&istream, stream_get_owner (istream));
+
+  if (rc)
     {
-      stream_close (istream);
-      stream_destroy (&istream, stream_get_owner (istream));
+      stream_close (ostream);
+      stream_destroy (&ostream, stream_get_owner (ostream));
     }
-  /* There's no reason closing in/out streams otherwise */
-#ifdef WITH_TLS
-  if (tls_available)
-    mu_deinit_tls_libs ();
-#endif /* WITH_TLS */
+      
+  list_do (atexit_list, atexit_run, 0);
 }
 
