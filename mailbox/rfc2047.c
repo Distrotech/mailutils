@@ -28,6 +28,18 @@
 #include <mailutils/errno.h>
 #include <mailutils/mutil.h>
 
+static int
+realloc_buffer (char **bufp, size_t *bufsizep, size_t incr)
+{
+  size_t newsize = *bufsizep + incr;
+  char *newp = realloc (*bufp, newsize);
+  if (newp == NULL)
+    return 1;
+  *bufp = newp;
+  *bufsizep = newsize;
+  return 0;
+}
+
 int
 rfc2047_decode (const char *tocode, const char *input, char **ptostr)
 {
@@ -38,6 +50,22 @@ rfc2047_decode (const char *tocode, const char *input, char **ptostr)
   size_t bufsize;
   size_t bufpos;
   size_t run_count = 0;
+
+#define BUFINC 128  
+#define CHKBUF(count) do {                       \
+  if (bufpos+count >= bufsize)                   \
+    {                                            \
+      size_t s = bufpos + count - bufsize;       \
+      if (s < BUFINC)                            \
+        s = BUFINC;                              \
+      if (realloc_buffer (&buffer, &bufsize, s)) \
+	{                                        \
+	  free (tmpcopy);                        \
+	  free (buffer);                         \
+	  return ENOMEM;                         \
+	}                                        \
+     }                                           \
+ } while (0) 
   
   if (!tocode || !input)
     return EINVAL;
@@ -124,10 +152,9 @@ rfc2047_decode (const char *tocode, const char *input, char **ptostr)
 
 	  while (stream_sequential_read (filter, buffer + bufpos,
 					 bufsize - bufpos,
-					 &nbytes) == 0 && nbytes)
-	    {
-	      bufpos += nbytes;
-	    }
+					 &nbytes) == 0
+		 && nbytes)
+	    bufpos += nbytes;
 
 	  stream_close (filter);
 	  stream_destroy (&filter, stream_get_owner (filter));
@@ -147,30 +174,31 @@ rfc2047_decode (const char *tocode, const char *input, char **ptostr)
 	    {
 	      if (--run_count)
 		{
+		  CHKBUF(run_count);
 		  memcpy (buffer + bufpos, fromstr - run_count, run_count);
 		  bufpos += run_count;
 		  run_count = 0;
 		}
-		
+	      CHKBUF(1);
 	      buffer[bufpos++] = *fromstr++;
 	    }
 	}
       else
-	buffer[bufpos++] = *fromstr++;
+	{
+	  CHKBUF(1);
+	  buffer[bufpos++] = *fromstr++;
+	}
     }
   
   if (*fromstr)
     {
       size_t len = strlen (fromstr);
-      if (bufpos + len + 1 > bufsize) /* just in case */
-	status = MU_ERR_BAD_2047_INPUT;
-      else
-	{
-	  memcpy (buffer + bufpos, fromstr, strlen (fromstr));
-	  bufpos += strlen (fromstr);
-	}
+      CHKBUF(len);
+      memcpy (buffer + bufpos, fromstr, strlen (fromstr));
+      bufpos += strlen (fromstr);
     }
 
+  CHKBUF(1);
   buffer[bufpos++] = 0;
   
   free (tmpcopy);
