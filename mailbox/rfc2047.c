@@ -69,7 +69,7 @@ rfc2047_decode (const char *tocode, const char *input, char **ptostr)
 	  char *fromcode = NULL;
 	  char *encoding_type = NULL;
 	  char *encoded_text = NULL;
-	  stream_t filter = NULL;
+	  stream_t filter = NULL, cvt = NULL;
 	  stream_t in_stream = NULL;
 	  const char *filter_type = NULL;
 	  size_t nbytes = 0, size;
@@ -116,19 +116,28 @@ rfc2047_decode (const char *tocode, const char *input, char **ptostr)
 
 	  memory_stream_create (&in_stream, 0, 0);
 	  stream_write (in_stream, encoded_text, size, 0, NULL);
-	  filter_create (&filter, in_stream, filter_type, MU_FILTER_DECODE,
-			 MU_STREAM_READ);
+	  status = filter_create (&filter, in_stream, filter_type,
+				  MU_FILTER_DECODE, MU_STREAM_READ);
+	  if (status != 0)
+	    break;
 
-	  while (stream_sequential_read (filter, buffer + bufpos,
+	  status = filter_iconv_create (&cvt, filter, fromcode, tocode, 0);
+	  if (status)
+	    cvt = filter;
+	  if (stream_open (cvt))
+	    {
+	      stream_destroy (cvt, stream_get_owner (cvt));
+	      cvt = filter;
+	    }
+	  while (stream_sequential_read (cvt, buffer + bufpos,
 					 bufsize - bufpos,
 					 &nbytes) == 0 && nbytes)
 	    {
-	      /* FIXME: Need to convert character set */
 	      bufpos += nbytes;
 	    }
 
-	  stream_close (filter);
-	  stream_destroy (&filter, stream_get_owner (filter));
+	  stream_close (cvt);
+	  stream_destroy (&cvt, stream_get_owner (cvt));
 	  
 	  fromstr = sp + 1;
 	  run_count = 1;
