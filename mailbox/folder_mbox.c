@@ -23,6 +23,7 @@
 #include <sys/types.h>
 #include <dirent.h>
 #include <sys/stat.h>
+#include <fcntl.h>
 #include <unistd.h>
 #include <string.h>
 #include <glob.h>
@@ -163,7 +164,11 @@ folder_mbox_destroy (folder_t folder)
 static int
 folder_mbox_open (folder_t folder, int flags)
 {
-  (void)(folder);
+  fmbox_t fmbox = folder->data;
+  if (flags & MU_STREAM_CREAT)
+    {
+      return (mkdir (fmbox->dirname, S_IRWXU) == 0) ? 0 : errno;
+    }
   (void)(flags);
   return 0;
 }

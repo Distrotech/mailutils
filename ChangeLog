@@ -1,3 +1,7 @@
+2001-09-06  Alain Magloire
+
+	* mailbox/folder_mbox.c (folder_mbox_open): Implemeted.
+
 2001-09-05 Sergey Poznyakoff
 
 	* MySql/MySql.h: New defines MHOST, MPORT, etc.
