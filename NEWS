@@ -1,8 +1,28 @@
-GNU mailutils NEWS -- history of user-visible changes.  2004-06-26
+GNU mailutils NEWS -- history of user-visible changes.  2004-11-15
 Copyright (C) 2002, 2003, 2004 Free Software Foundation, Inc.
 See the end of file for copying conditions.
 
 Please send mailutils bug reports to <bug-mailutils@gnu.org>.
+
+Version 0.5.1:
+
+* New features:
+
+** Both imap4d and pop3d accept new command line option `--tls-required'.
+
+The option disables any authentication commands until the client party
+establishes TLS connection with the server.
+
+** Pop3d server accepts new option `--disable-expired'.
+
+This option is to be used together with `--expire'. It enables
+automatic deletion of expired messages before closing the
+mailbox. Previous versions of pop3d relied on a cron job that
+was supposed to purge users' mailboxes, but such usage is extremely
+ineffective for mail servers with considerable number of users.
+
+* Mainly bug fixes
+
 
 Version 0.5:
 
