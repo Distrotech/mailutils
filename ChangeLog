@@ -1,3 +1,19 @@
+2001-11-13  Sergey Poznyakoff
+
+	* lib/daemon.c: Use of errx() is a bsd-ism.
+
+	* comsat/action.c: Use maxlines instead of hardcoding the default
+	value. Exit if execv() fails.
+	* comsat/comsat.c: Missed newline in help output.
+
+	* doc/texinfo/mailutils.texi: Common index is too hard
+	to use. Split it into Function, Program and Concept indices.
+	* doc/texinfo/programs.texi: Added nodes for comsatd. Put
+	@pindex and page breaks wherever needed. Fixed use of @deffn.
+	* doc/texinfo/.cvsignore: Updated
+
+	* Makefile.am: Enabled comsat directory.
+	
 2001-11-12  Sergey Poznyakoff
 
 	* examples/comsat.conf: (new) A sample configuration file
