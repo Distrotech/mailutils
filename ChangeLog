@@ -1,3 +1,38 @@
+2004-11-15  Sergey Poznyakoff 
+
+	* imap4d/imap4d.c: New option --tls-required: do not allow
+	authentication until TLS negotiation succeeds.
+	* imap4d/authenticate.c (imap4d_authenticate): Do not proceed if
+	tls_required is set.
+	* imap4d/login.c (imap4d_login): Likewise.
+	* imap4d/imap4d.h (IMAP_CAPA_STARTTLS,IMAP_CAPA_LOGINDISABLED)
+	(IMAP_CAPA_XTLSREQUIRED): New defines
+	* imap4d/starttls.c (imap4d_starttls): Clear tls_required upon
+	successfull TLS handshake.
+	(starttls_init): Use IMAP_CAPA_STARTTLS instead of hardcoded
+	literal.
+	* include/mailutils/header.h (MU_HEADER_X_EXPIRE_TIMESTAMP): New
+	define.
+
+	* pop3d/pop3d.c: New option --tls-required: do not allow
+	authentication until TLS negotiation succeeds.
+	New option --delete-expired: delete expired messages before
+	closing the mailbox.
+	* pop3d/capa.c (pop3d_capa): Announce XTLSREQUIRED if appropriate
+	* pop3d/expire.c (expire_mark_message): New function
+	* pop3d/pop3d.h: New declarations.
+	* pop3d/quit.c (pop3d_fix_mark): Use expire_mark_message to
+	process expired messages. Apart from the new functionality, it
+	also fixes a bug: len was incorrectly used as a replace indicator
+	in header_set_value, thus each retrieval of the message was
+	resetting its expiration date.
+	
+	* pop3d/stls.c (pop3d_stls): Set state to AUTHORIZATION upon
+	successful completion of TLS negotiation.
+
+	* configure.ac: Raised version number to 0.5.1
+	* NEWS: Entry for 0.5.1
+
 2004-11-03  Sergey Poznyakoff 
 
 	* dotlock/dotlock.c: Removed -T option (CAN-2004-0984)
