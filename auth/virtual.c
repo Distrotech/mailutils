@@ -52,7 +52,7 @@
 #include <mailutils/argp.h>
 #include <mailutils/mu_auth.h>
 
-#ifdef USE_VIRTUAL_DOMAINS
+#ifdef ENABLE_VIRTUAL_DOMAINS
 
 static char *site_virtual_pwddir = SITE_VIRTUAL_PWDDIR;
 
@@ -154,7 +154,7 @@ mu_auth_virt_domain_by_name (void *return_data, void *key,
 	return 1;
     }
   
-  mailbox_name = calloc (strlen (pw->pw_dir) + strlen ("/INBOX"), 1);
+  mailbox_name = calloc (strlen (pw->pw_dir) + strlen ("/INBOX") + 1, 1);
   sprintf (mailbox_name, "%s/INBOX", pw->pw_dir);
 
   rc = mu_auth_data_alloc ((struct mu_auth_data **) return_data,
@@ -211,7 +211,7 @@ mu_auth_virt_domain_by_name (void *return_data, void *key,
 
 struct mu_auth_module mu_auth_virtual_module = {
   "virtdomain",
-#ifdef USE_VIRTUAL_DOMAINS
+#ifdef ENABLE_VIRTUAL_DOMAINS
   &mu_virt_argp,
 #else
   NULL,
