@@ -1,3 +1,25 @@
+2001-10-01 Alain Magloire
+
+	* mailbox2/attribute.c: Add user flags.
+	* mailbox2/dattribute.c: Add user flags.
+
+	To be compatible with the old mailbox, all stream read
+	and write take an offset. Removed stream_seek () and add
+	stream_is_seekable() instead.
+	* mailbox2/stream.c: Likewised.
+	* mailbox2/bstream.c: Likewised.
+	* mailbox2/fdstream.c: Likewised.
+	* mailbox2/fstream.c: Likewised.
+	* mailbox2/mapstream.c: Likewised.
+	* mailbox2/memstream.c: Likewised.
+	* mailbox2/tcpstream.c: Likewised.
+
+	* mailbox2/include/mailutils/error.h: Add EBADFD.
+
+	* mailbox2/include/mailutils/mbox.h: New prototypes.
+	* mailbox2/include/mailutils/sys/mbox.h: New prototypes.
+	* mailbox2/mbox/*.c: Finish implementation.
+
 2001-09-26 Alain Magloire
 
 	* mailbox2/mbox/mbox_append.c: Implemented, first draft.
