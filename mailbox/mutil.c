@@ -463,7 +463,7 @@ mu_getpwnam (const char *name)
 static list_t _app_getpwuid = NULL;
 
 void
-mu_register_getpwuid (struct passwd *(*fun) __P((uid_t)))
+mu_register_getpwuid (struct passwd *(*fun) __P((uid_t *)))
 {
   mu_register_retriever (&_app_getpwuid, (mu_retrieve_fp)fun);
 }
