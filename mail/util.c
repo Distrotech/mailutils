@@ -1342,14 +1342,18 @@ util_run_cached_commands (list_t *list)
 void
 util_rfc2047_decode (char **value)
 {
+  char locale[32];
   char *charset = NULL;
   char *tmp;
   int rc;
 
   if (!*value || util_getenv (&charset, "charset", Mail_env_string, 0))
     return;
+
   if (strcasecmp (charset, "auto") == 0)
     {
+      memset (locale, 0, sizeof (locale));
+
       /* Try to deduce the charset from LC_ALL or LANG variables */
 
       tmp = getenv ("LC_ALL");
@@ -1362,7 +1366,9 @@ util_rfc2047_decode (char **value)
 	  char *lang;
 	  char *terr;
 
-	  lang = strtok_r (tmp, "_", &sp);
+	  strncpy (locale, tmp, sizeof (locale) - 1);
+
+	  lang = strtok_r (locale, "_", &sp);
 	  terr = strtok_r (NULL, ".", &sp);
 	  charset = strtok_r (NULL, "@", &sp);
 
