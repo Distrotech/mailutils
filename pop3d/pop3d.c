@@ -74,7 +74,7 @@ static struct argp_option options[] = {
    N_("Name of login statistics file"), 0},
 #endif
   {"expire", OPT_EXPIRE, N_("DAYS"), 0,
-   N_("Minimum advertise retention days of messages, default -1 means NEVER"), 0},
+   N_("Minimum retention period for messages in the maildrop, default -1 means NEVER"), 0},
   {NULL, 0, NULL, 0, NULL, 0}
 };
 
@@ -120,7 +120,7 @@ pop3d_parse_opt (int key, char *arg, struct argp_state *astate)
       login_delay = strtoul (arg, &p, 10);
       if (*p)
 	{
-	  argp_error (state, _("Invalid number"));
+	  argp_error (astate, _("Invalid number"));
 	  exit (1);
 	}
       break;
@@ -130,8 +130,13 @@ pop3d_parse_opt (int key, char *arg, struct argp_state *astate)
       break;
 #endif  
  
-    case OPT_STAT_FILE:
+    case OPT_EXPIRE:
       expire = strtoul (arg, &p, 10);
+      if (*p)
+	{
+	  argp_error (astate, _("Invalid number"));
+	  exit (1);
+	}
       break;
       
     default:
