@@ -709,7 +709,7 @@ stream_sequential_write (stream_t stream, char *buf, size_t size)
 int
 stream_seek (stream_t stream, off_t off, int whence)
 {
-  size_t size = 0;
+  off_t size = 0;
   size_t pos;
   int rc;
   
