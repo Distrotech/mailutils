@@ -116,8 +116,7 @@ imap4d_fetch (struct imap4d_command *command, char *arg)
   if (status != 0)
     return util_finish (command, RESP_BAD, "Bogus number set");
 
-  /* We use the states to hold the msgno/uid, the success to say if we're
-     The first.  */
+  /* We use the states to hold the msgno/uid.  */
   for (i = 0; i < n; i++)
     {
       fcmd->states = set[i];
@@ -178,29 +177,64 @@ fetch_envelope (struct imap4d_command *command, char *arg)
   header_t header = NULL;
   message_t msg = NULL;
   int status;
+  /* FIXME: K&R compilers will choke at this, initializing local arrays was
+     not permitted.  Even AIX xlc use to choke.  */
   mailbox_get_message (mbox, command->states, &msg);
   message_get_header (msg, &header);
   util_send (" %s", command->name);
+
   status = header_get_value (header, "Date", buffer, sizeof (buffer), NULL);
-  util_send (" \"%s\"", buffer);
+  if (status != 0)
+    util_send (" NIL");
+  else
+    util_send (" \"%s\"", buffer);
+
   status = header_get_value (header, "Subject", buffer, sizeof (buffer), NULL);
-  util_send (" \"%s\"", buffer);
-  status = header_get_value (header, "From", buffer, sizeof (buffer), NULL);
+  if (status != 0)
+    util_send (" NIL");
+  else
+    util_send (" \"%s\"", buffer);
+
+  *buffer = '\0';
+  header_get_value (header, "From", buffer, sizeof (buffer), NULL);
   util_send (" ((NIL NIL NIL \"%s\"))", buffer);
-  status = header_get_value (header, "Sender", buffer, sizeof (buffer), NULL);
+  /* FIXME:
+     Note that the server MUST default the reply-to and sender fields from
+     the from field; a client is not expected to know to do this. */
+  *buffer = '\0';
+  header_get_value (header, "Sender", buffer, sizeof (buffer), NULL);
   util_send (" ((NIL NIL NIL \"%s\"))", buffer);
-  status = header_get_value (header, "Reply-to", buffer, sizeof (buffer), NULL);
+
+  *buffer = '\0';
+  header_get_value (header, "Reply-to", buffer, sizeof (buffer), NULL);
   util_send (" ((NIL NIL NIL \"%s\"))", buffer);
-  status = header_get_value (header, "To", buffer, sizeof (buffer), NULL);
+
+  *buffer = '\0';
+  header_get_value (header, "To", buffer, sizeof (buffer), NULL);
   util_send (" ((NIL NIL NIL \"%s\"))", buffer);
-  status = header_get_value (header, "Cc", buffer, sizeof (buffer), NULL);
+
+  *buffer = '\0';
+  header_get_value (header, "Cc", buffer, sizeof (buffer), NULL);
   util_send (" ((NIL NIL NIL \"%s\"))", buffer);
-  status = header_get_value (header, "Bcc", buffer, sizeof (buffer), NULL);
+
+  *buffer = '\0';
+  header_get_value (header, "Bcc", buffer, sizeof (buffer), NULL);
   util_send (" ((NIL NIL NIL \"%s\"))", buffer);
-  status = header_get_value (header, "In-Reply-To", buffer, sizeof (buffer), NULL);
-  util_send (" \"%s\"", buffer);
-  status = header_get_value (header, "Message-ID", buffer, sizeof (buffer), NULL);
-  util_send (" \"%s\"", buffer);
+
+  status = header_get_value (header, "In-Reply-To", buffer,
+			     sizeof (buffer), NULL);
+  if (status != 0)
+    util_send (" NIL");
+  else
+    util_send (" \"%s\"", buffer);
+
+  status = header_get_value (header, "Message-ID", buffer,
+			     sizeof (buffer), NULL);
+  if (status != 0)
+    util_send (" NIL");
+  else
+    util_send (" \"%s\"", buffer);
+
   return 0;
 }
 
@@ -326,7 +360,7 @@ static int
 fetch_body_peek (struct imap4d_command *command, char *arg)
 {
   message_t msg = NULL;
-  char *partial = strchr (arg, '<');
+  //char *partial = strchr (arg, '<');
 
   mailbox_get_message (mbox, command->states, &msg);
 
@@ -363,7 +397,7 @@ fetch_body_peek (struct imap4d_command *command, char *arg)
       header_size (header, &size);
       header_lines (header, &lines);
       util_send (" BODY[HEADER] {%u}\r\n", size + lines);
-      header_get_stream (msg, &stream);
+      header_get_stream (header, &stream);
       while (stream_readline (stream, buffer, sizeof (buffer), off, &n) == 0
 	     && n > 0)
 	{
@@ -385,7 +419,7 @@ fetch_body_peek (struct imap4d_command *command, char *arg)
       body_size (body, &size);
       body_lines (body, &lines);
       util_send (" BODY[TEXT] {%u}\r\n", size + lines);
-      body_get_stream (msg, &stream);
+      body_get_stream (body, &stream);
       while (stream_readline (stream, buffer, sizeof (buffer), off, &n) == 0
 	     && n > 0)
 	{
