@@ -209,7 +209,7 @@ check_user_perm (int action, struct action_data *ap)
 	  if (mu_dbm_open (ap->input_name, &db, MU_STREAM_CREAT, 0600))
 	    {
 	      mu_error (_("can't create %s: %s"),
-			ap->input_name, strerror (errno));
+			ap->input_name, mu_strerror (errno));
 	      exit (1);
 	    }
 	  mu_dbm_close (db);
@@ -217,7 +217,7 @@ check_user_perm (int action, struct action_data *ap)
 	}
       else
 	{
-	  mu_error (_("can't stat %s: %s"), ap->input_name, strerror (errno));
+	  mu_error (_("can't stat %s: %s"), ap->input_name, mu_strerror (errno));
 	  exit (1);
 	}
     }
@@ -255,7 +255,7 @@ action_list (struct action_data *ap)
   check_user_perm (ACT_LIST, ap);
   if (mu_dbm_open (ap->input_name, &db, MU_STREAM_READ, 0600))
     {
-      mu_error (_("can't open %s: %s"), ap->input_name, strerror (errno));
+      mu_error (_("can't open %s: %s"), ap->input_name, mu_strerror (errno));
       return 1;
     }
   
@@ -264,7 +264,7 @@ action_list (struct action_data *ap)
       fp = fopen (ap->output_name, "w");
       if (!fp)
 	{
-	  mu_error (_("can't create %s: %s"), ap->output_name, strerror (errno));
+	  mu_error (_("can't create %s: %s"), ap->output_name, mu_strerror (errno));
 	  return 1;
 	}
     }
@@ -326,7 +326,7 @@ action_create (struct action_data *ap)
       fp = fopen (ap->input_name, "r");
       if (!fp)
 	{
-	  mu_error (_("can't open %s: %s"), ap->input_name, strerror (errno));
+	  mu_error (_("can't open %s: %s"), ap->input_name, mu_strerror (errno));
 	  return 1;
 	}
     }
@@ -340,7 +340,7 @@ action_create (struct action_data *ap)
     ap->output_name = APOP_PASSFILE;
   if (mu_dbm_open (ap->output_name, &db, MU_STREAM_CREAT, 0600))
     {
-      mu_error (_("can't create %s: %s"), ap->output_name, strerror (errno));
+      mu_error (_("can't create %s: %s"), ap->output_name, mu_strerror (errno));
       return 1;
     }
 
@@ -400,7 +400,7 @@ open_io (int action, struct action_data *ap, DBM_FILE *db, int *not_owner)
     *not_owner = rc;
   if (mu_dbm_open (ap->input_name, db, MU_STREAM_RDWR, 0600))
     {
-      mu_error (_("can't open %s: %s"), ap->input_name, strerror (errno));
+      mu_error (_("can't open %s: %s"), ap->input_name, mu_strerror (errno));
       return 1;
     }
   return 0;
