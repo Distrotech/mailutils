@@ -50,7 +50,9 @@ char *alloca ();
 #include <string.h>
 #include <assert.h>
 #include <stdarg.h>
-#include <malloc.h>
+#ifdef HAVE_MALLOC_H
+# include <malloc.h>
+#endif
 #include <ctype.h>
 
 #ifdef HAVE_STRINGS_H
