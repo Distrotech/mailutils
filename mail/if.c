@@ -111,8 +111,8 @@ mail_if (int argc, char **argv)
 	case 'r': /* Read mode */
 	  cond = strcmp(mode, "send") != 0;
 	  break;
-	case 't': /* Reading from a terminal */
-	  cond = interactive;
+	case 't': /* Stdout is a terminal device? */
+	  cond = isatty (fileno (stdout));
 	  break;
 	default:
 	  util_error(_("valid if arguments are: s | r | t"));
