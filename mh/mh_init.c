@@ -21,6 +21,7 @@
 #include <pwd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/time.h>
 #include <stdarg.h>
 #include <unistd.h>
 #include <errno.h>
@@ -733,3 +734,30 @@ mh_draft_name ()
   return mh_expand_name (draftfolder, "draft", 0);
 }
 
+char *
+mh_create_message_id (int m)
+{
+  char date[4+2+2+2+2+2+1];
+  time_t t = time (NULL);
+  struct tm *tm = localtime (&t);
+  char *host;
+  char *p;
+	  
+  strftime (date, sizeof date, "%Y%m%d%H%M%S", tm);
+  mu_get_host_name (&host);
+
+  if (m)
+    {
+      struct timeval tv;
+      gettimeofday (&tv, NULL);
+      asprintf (&p, "<%s.%lu.%lu@%s>",
+		date,
+		(unsigned long) tv.tv_usec,
+		(unsigned long) getpid (),
+		host);
+    }
+  else
+    asprintf (&p, "<%s.%lu@%s>", date, (unsigned long) getpid (), host);
+  free (host);
+  return p;
+}

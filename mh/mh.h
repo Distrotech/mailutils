@@ -303,6 +303,7 @@ int mh_disposition __P((const char *filename));
 int mh_usedraft __P((const char *filename));
 int mh_file_copy __P((const char *from, const char *to));
 char *mh_draft_name __P((void));
+char *mh_create_message_id __P((int));
 int mh_whom __P((char *filename, int check));
 
 void mh_annotate __P((message_t msg, char *field, char *text, int date));
@@ -325,4 +326,5 @@ int mhdraft_stream_create __P((stream_t *stream, stream_t src, int flags));
 
 void mh_comp_draft __P((char *formfile, char *defformfile, char *draftfile));
 int check_draft_disposition __P((struct mh_whatnow_env *wh, int use_draft));
+
 
