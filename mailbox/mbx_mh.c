@@ -58,7 +58,7 @@
 #include <mailutils/property.h>
 #include <mailutils/stream.h>
 #include <mailutils/url.h>
-
+#include <mailutils/observer.h>
 #include <mailbox0.h>
 #include <registrar0.h>
 
@@ -66,6 +66,24 @@
 
 #define MH_ENV_SENDER_HEADER "X-Envelope-Sender"
 #define MH_ENV_DATE_HEADER "X-Envelope-Date"
+
+/* Notifications ADD_MESG. */
+#define DISPATCH_ADD_MSG(mbox,mhd) \
+do \
+{ \
+  int bailing = 0; \
+  monitor_unlock (mbox->monitor); \
+  if (mbox->observable) \
+     bailing = observable_notify (mbox->observable, MU_EVT_MESSAGE_ADD); \
+  if (bailing != 0) \
+    { \
+      if (pcount) \
+        *pcount = (mhd)->msg_count; \
+      locker_unlock (mbox->locker); \
+      return EINTR; \
+    } \
+  monitor_wrlock (mbox->monitor); \
+} while (0);
 
 /* Note: In this particular implementation the message sequence number
    serves also as its UID. This allows to avoid many problems related
@@ -128,7 +146,8 @@ static int mh_save_attributes __P ((mailbox_t));
 static int mh_uidvalidity __P ((mailbox_t, unsigned long *));
 static int mh_uidnext __P ((mailbox_t, size_t *));
 static int mh_scan __P ((mailbox_t, size_t, size_t *));
-static int mh_scan0 __P ((mailbox_t mailbox, size_t msgno, size_t *pcount));
+static int mh_scan0 __P ((mailbox_t mailbox, size_t msgno, size_t *pcount,
+			  int do_notify));
 static int mh_is_updated __P ((mailbox_t));
 static int mh_get_size __P ((mailbox_t, off_t *));
 
@@ -441,7 +460,7 @@ mh_get_message (mailbox_t mailbox, size_t msgno, message_t *pmsg)
   /* If we did not start a scanning yet do it now.  */
   if (mhd->msg_count == 0)
     {
-      status = mh_scan0 (mailbox, 1, NULL);
+      status = mh_scan0 (mailbox, 1, NULL, 0);
       if (status != 0)
 	return status;
     }
@@ -609,7 +628,7 @@ mh_append_message (mailbox_t mailbox, message_t msg)
   /* If we did not start a scanning yet do it now.  */
   if (mhd->msg_count == 0)
     {
-      status = mh_scan0 (mailbox, 1, NULL);
+      status = mh_scan0 (mailbox, 1, NULL, 0);
       if (status != 0)
 	return status;
     }
@@ -633,7 +652,7 @@ mh_messages_count (mailbox_t mailbox, size_t *pcount)
     return EINVAL;
 
   if (!mh_is_updated (mailbox))
-    return mh_scan0 (mailbox,  mhd->msg_count, pcount);
+    return mh_scan0 (mailbox,  mhd->msg_count, pcount, 0);
 
   if (pcount)
     *pcount = mhd->msg_count;
@@ -654,7 +673,7 @@ mh_messages_recent (mailbox_t mailbox, size_t *pcount)
   /* If we did not start a scanning yet do it now.  */
   if (mhd->msg_count == 0)
     {
-      int status = mh_scan0 (mailbox, 1, NULL);
+      int status = mh_scan0 (mailbox, 1, NULL, 0);
       if (status != 0)
 	return status;
     }
@@ -679,7 +698,7 @@ mh_message_unseen (mailbox_t mailbox, size_t *pmsgno)
   /* If we did not start a scanning yet do it now.  */
   if (mhd->msg_count == 0)
     {
-      int status = mh_scan0 (mailbox, 1, NULL);
+      int status = mh_scan0 (mailbox, 1, NULL, 0);
       if (status != 0)
 	return status;
     }
@@ -767,7 +786,7 @@ mh_uidvalidity (mailbox_t mailbox, unsigned long *puidvalidity)
   /* If we did not start a scanning yet do it now.  */
   if (mhd->msg_count == 0)
     {
-      status = mh_scan0 (mailbox, 1, NULL);
+      status = mh_scan0 (mailbox, 1, NULL, 0);
       if (status != 0)
 	return status;
     }
@@ -786,7 +805,7 @@ mh_uidnext (mailbox_t mailbox, size_t *puidnext)
   /* If we did not start a scanning yet do it now.  */
   if (mhd->msg_count == 0)
     {
-      status = mh_scan0 (mailbox, 1, NULL);
+      status = mh_scan0 (mailbox, 1, NULL, 0);
       if (status != 0)
 	return status;
     }
@@ -933,7 +952,7 @@ mh_scan_message (struct _mh_message *mhm)
 
 /* Scan the mailbox */
 static int
-mh_scan0 (mailbox_t mailbox, size_t msgno, size_t *pcount)
+mh_scan0 (mailbox_t mailbox, size_t msgno, size_t *pcount, int do_notify)
 {
   struct _mh_data *mhd = mailbox->data;
   DIR *dir;
@@ -1005,6 +1024,10 @@ mh_scan0 (mailbox_t mailbox, size_t msgno, size_t *pcount)
 	  /* This scans the message */
 	  mh_message_stream_open (msg);
 	  mh_message_stream_close (msg);
+
+	  /* Notify */
+	  if (do_notify)
+	    DISPATCH_ADD_MSG(mailbox, mhd);
 	}
       else
 	{
@@ -1049,7 +1072,7 @@ mh_scan (mailbox_t mailbox, size_t msgno, size_t *pcount)
   struct _mh_data *mhd = mailbox->data;
 
   if (! mh_is_updated (mailbox))
-    return mh_scan0 (mailbox, msgno, pcount);
+    return mh_scan0 (mailbox, msgno, pcount, 1);
 
   if (pcount)
     *pcount = mhd->msg_count;
