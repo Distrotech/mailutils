@@ -122,6 +122,15 @@ main (int argc, char **argv)
   cursor = 1;
   realcursor = cursor;
 
+  /* Register the desire formats.  */
+  {
+    list_t bookie;
+    registrar_get_list (&bookie);
+    list_append (bookie, mbox_record);
+    list_append (bookie, path_record);
+    list_append (bookie, pop_record);
+  }
+
   signal (SIGPIPE, SIG_IGN);
 
   /* set up the default environment */

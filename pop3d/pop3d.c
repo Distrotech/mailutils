@@ -92,6 +92,15 @@ main (int argc, char **argv)
       exit (1);
     }
 
+  /* Register the desire formats.  */
+  {
+    list_t bookie;
+    registrar_get_list (&bookie);
+    list_append (bookie, mbox_record);
+    list_append (bookie, path_record);
+    list_append (bookie, pop_record);
+  }
+
   /* Set the signal handlers */
   signal (SIGINT, pop3_signal);
   signal (SIGQUIT, pop3_signal);

@@ -30,13 +30,10 @@ The validation is base on the scheme of the url @var{name} or @var{id}.
 
 The return value is @code{0} on success and a code number on error conditions:
 @table @code
-@item MU_ERROR_INVALID_NAME
+@item EINVAL
 The url @var{name} supply is invalid or not supported.
-@item MU_ERROR_INVALID_ID
-The @var{id} is not pointing to a valid reference.
-@item MU_ERROR_INVALID_ARG
 @var{pmbox} is NULL.
-@item MU_ERROR_OUT_OF_MEMORY
+@item ENOMEM
 Not enough memory to allocate resources.
 @end table
 @end deftypefun
@@ -52,7 +49,7 @@ The mailbox stream is put in @var{pstream}.
 
 The return value is @code{0} on success and a code number on error conditions:
 @table @code
-@item MU_ERROR_INVALID_ARG
+@item EINVAL
 @var{mbox} is invalid or @var{pstream} is NULL.
 @end table
 @end deftypefun
@@ -62,7 +59,7 @@ Set the @var{stream} connection to use for the mailbox.
 
 The return value is @code{0} on success and a code number on error conditions:
 @table @code
-@item MU_ERROR_INVALID_ARG
+@item EINVAL
 @var{mbox} or @var{stream} are NULL.
 @end table
 @end deftypefun
@@ -74,14 +71,14 @@ See @code{stream_create} for @var{flag} description.
 
 The return value is @code{0} on success and a code number on error conditions:
 @table @code
-@item MU_ERROR_EAGAIN
-@itemx MU_ERROR_EINPROGRESS
+@item EAGAIN
+@itemx EINPROGRESS
 Operation in progress.
-@item MU_ERROR_BUSY
+@item EBUSY
 Resource busy.
-@item MU_ERROR_INVALID_ARG
+@item EINVAL
 @var{mbox} is null or flag is invalid.
-@item MU_ERROR_OUT_OF_MEMORY
+@item ENOMEM
 Not enough memory.
 @end table
 @end deftypefun
@@ -91,7 +88,7 @@ The stream attach to @var{mbox} is close.
 
 The return value is @code{0} on success and a code number on error conditions:
 @table @code
-@item MU_ERROR_INVALID_ARG
+@item EINVAL
 @var{mbox} is null.
 @end table
 @end deftypefun
@@ -106,9 +103,9 @@ initialize.
 
 The return value is @code{0} on success and a code number on error conditions:
 @table @code
-@item MU_ERROR_INVALID_ARG
+@item EINVAL
 @var{mbox} is null or @var{msgno} is invalid.
-@item MU_ERROR_OUT_OF_MEMORY
+@item ENOMEM
 Not enough memory.
 @end table
 @end deftypefun
@@ -118,7 +115,7 @@ The @var{message} is append to the mailbox @var{mbox}.
 
 The return value is @code{0} on success and a code number on error conditions:
 @table @code
-@item MU_ERROR_INVALID_ARG
+@item EINVAL
 @var{mbox} is null or @var{message} is invalid.
 @end table
 @end deftypefun
@@ -128,7 +125,7 @@ Give the number of message is @var{mbox}.
 
 The return value is @code{0} on success and a code number on error conditions:
 @table @code
-@item MU_ERROR_INVALID_ARG
+@item EINVAL
 @var{mbox} is null.
 @end table
 @end deftypefun
@@ -138,7 +135,7 @@ All the messages set deleted are removed.
 
 The return value is @code{0} on success and a code number on error conditions:
 @table @code
-@item MU_ERROR_INVALID_ARG
+@item EINVAL
 @var{mbox} is null.
 @end table
 @end deftypefun
@@ -148,7 +145,7 @@ Return the @var{locker} object.
 
 The return value is @code{0} on success and a code number on error conditions:
 @table @code
-@item MU_ERROR_INVALID_ARG
+@item EINVAL
 @var{mbox} is null.
 @end table
 @end deftypefun
@@ -158,7 +155,7 @@ Set the type of locking done by the @var{mbox}.
 
 The return value is @code{0} on success and a code number on error conditions:
 @table @code
-@item MU_ERROR_INVALID_ARG
+@item EINVAL
 @var{mbox} is null.
 @end table
 @end deftypefun
@@ -168,7 +165,7 @@ Retriever the @var{*pauth} of the @var{mbox}.
 
 The return value is @code{0} on success and a code number on error conditions:
 @table @code
-@item MU_ERROR_INVALID_ARG
+@item EINVAL
 @var{mbox} is null.
 @end table
 @end deftypefun
@@ -178,7 +175,7 @@ Set the type of authaurity for the mailbox.
 
 The return value is @code{0} on success and a code number on error conditions:
 @table @code
-@item MU_ERROR_INVALID_ARG
+@item EINVAL
 @var{mbox} is null.
 @end table
 @end deftypefun
@@ -188,7 +185,7 @@ Check if the mailbox is uptodate.
 
 The return value is @code{0} on success and a code number on error conditions:
 @table @code
-@item MU_ERROR_INVALID_ARG
+@item EINVAL
 @var{mbox} is null.
 @end table
 @end deftypefun
@@ -198,9 +195,9 @@ Scan the mailbox for new messages starting at message @var{msgno}.
 
 The return value is @code{0} on success and a code number on error conditions:
 @table @code
-@item MU_ERROR_INVALID_ARG
+@item EINVAL
 @var{mbox} is null.
-@item MU_ERROR_OUT_OF_MEMORY
+@item ENOMEM
 Not enough memory.
 @end table
 @end deftypefun
@@ -210,7 +207,7 @@ Gives the @var{mbox} size.
 
 The return value is @code{0} on success and a code number on error conditions:
 @table @code
-@item MU_ERROR_INVALID_ARG
+@item EINVAL
 @var{mbox} is null.
 @end table
 @end deftypefun
@@ -220,79 +217,31 @@ Gives the constructed @var{url}.
 
 The return value is @code{0} on success and a code number on error conditions:
 @table @code
-@item MU_ERROR_INVALID_ARG
+@item EINVAL
 @var{mbox} is null.
 @end table
 @end deftypefun
 
 
-@deftypefun  int mailbox_register (mailbox_t mbox @var{mbox}, size_t @var{type}, int (*@var{action}) (size_t @var{type}, void *@var{arg}), void *@var{arg})
+@deftypefun  int mailbox_get_observable (mailbox_t mbox @var{mbox}, observable_t*@var{observable})
 
-Register a notification for a event @var{type}:
-@table @code
-@item MU_EVT_MBX_DESTROY
-Mailbox destruction.
-@item MU_EVT_MBX_CORRUPTED
-When doing expunge an error condition occured.
-@item MU_EVT_MBX_MSG_ADD
-On every new message when scanning.
-@item MU_EVT_MBX_PROGRESS
-When scanning notification is send.
-@end table
-@var{action} will be call when the event occured.
+Get the observable object.
 
 The return value is @code{0} on success and a code number on error conditions:
 @table @code
-@item MU_ERROR_INVALID_ARG
+@item EINVAL
 @var{mbox} is null.
-@item MU_ERROR_OUT_OF_MEMORY
+@item ENOMEM
 Not enough memory.
 @end table
 @end deftypefun
 
-@deftypefun  int mailbox_deregister (mailbox_t @var{mbox}, void *@var{action})
-Delete a register @var{action} for an event.
-
+@deftypefun  int mailbox_get_debug (mailbox_t @var{mbox}, debug_t *@var{debug})
+Get a debug object.
 The return value is @code{0} on success and a code number on error conditions:
 @table @code
-@item MU_ERROR_INVALID_ARG
+@item EINVAL
 @var{mbox} is null.
-@end table
-@end deftypefun
-
-@deftypefun  int mailbox_set_debug_level (mailbox_t @var{mbox}, size_t @var{level})
-Set a trace @var{level}:
-@table @code
-@item MU_MAILBOX_DEBUG_TRACE
-Trace the functions.
-@item MU_MAILBOX_DEBUG_PROT
-Trace the protocol.
-@end table
-
-The return value is @code{0} on success and a code number on error conditions:
-@table @code
-@table @code
-@item MU_ERROR_INVALID_ARG
-@var{mbox} is null.
-@end table
-@end table
-@end deftypefun
-
-@deftypefun  int mailbox_get_debug_level (mailbox_t @var{mbox}, size_t *@var{plevel})
-
-The return value is @code{0} on success and a code number on error conditions:
-@table @code
-@item MU_ERROR_INVALID_ARG
-@var{mbox} is null.
-@end table
-@end deftypefun
-
-@deftypefun  int mailbox_set_debug_print (mailbox_t @var{mbox}, int (*@var{debug_print}) (void *@var{arg}, const char *@var{buffer}, size_t @var{buffler_length}), void *@var{arg})
-Set the function @var{debug_print} being call for the trace.
-
-The return value is @code{0} on success and a code number on error conditions:
-@table @code
-@item MU_ERROR_INVALID_ARG
-@var{mbox} is null.
+@item ENOMEM
 @end table
 @end deftypefun

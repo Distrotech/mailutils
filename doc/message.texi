@@ -90,14 +90,7 @@ Return non-zero value if message is multi-part.
 @deftypefun int message_set_uidl (message_t @var{msg}, int (*@var{_get_uidl})(message_t, char *, size_t, size_t *), void *@var{owner})
 @end deftypefun
 
-@deftypefun int message_register (message_t @var{msg}, size_t @var{type}, int (*@var{action}) (size_t, void *), void *@var{arg})
-@table @code
-@item MU_EVT_MSG_DESTROY
-Message destruction.
-@end table
-@end deftypefun
-
-@deftypefun int message_deregister (message_t @var{msg}, void *@var{action})
+@deftypefun int message_get_observable (message_t @var{msg}, observable_t *@var{observable})
 @end deftypefun
 
 @deftypefun int message_create_attachment (const char *@var{content_type}, const char *@var{encoding}, const char *@var{filename}, message_t *@var{newmsg})

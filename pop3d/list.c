@@ -24,6 +24,7 @@ pop3_list (const char *arg)
 {
   size_t mesgno;
   size_t size = 0;
+  size_t lines = 0;
   message_t msg;
   attribute_t attr;
 
@@ -47,7 +48,8 @@ pop3_list (const char *arg)
 	  if (!attribute_is_deleted (attr))
 	    {
 	      message_size (msg, &size);
-	      fprintf (ofile, "%d %d\r\n", mesgno, size);
+	      message_lines (msg, &lines);
+	      fprintf (ofile, "%d %d\r\n", mesgno, size + lines);
 	    }
 	}
       fprintf (ofile, ".\r\n");
@@ -61,7 +63,8 @@ pop3_list (const char *arg)
       if (attribute_is_deleted (attr))
 	return ERR_MESG_DELE;
       message_size (msg, &size);
-      fprintf (ofile, "+OK %d %d\r\n", mesgno, size);
+      message_lines (msg, &lines);
+      fprintf (ofile, "+OK %d %d\r\n", mesgno, size + lines);
     }
 
   return OK;

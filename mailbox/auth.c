@@ -104,7 +104,11 @@ ticket_pop (ticket_t ticket, const char *challenge, char **parg)
 	echo_off (&stored_settings);
       fgets (arg, sizeof (arg), stdin);
       if (!echo)
-	echo_on (&stored_settings);
+	{
+	  echo_on (&stored_settings);
+	  putchar ('\n');
+	  fflush (stdout);
+	}
       arg [strlen (arg) - 1] = '\0'; /* nuke the trailing line.  */
       *parg = strdup (arg);
     }

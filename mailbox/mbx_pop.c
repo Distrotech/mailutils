@@ -1177,10 +1177,6 @@ pop_top (stream_t is, char *buffer, size_t buflen,
 
   mpd = mpm->mpd;
 
-  /* We do not carry the offset backward(for pop), should be doc somewhere.  */
-  if ((size_t)offset < mpm->header_size)
-    return ESPIPE;
-
   /* Busy ? */
   CHECK_BUSY (mpd->mbox, mpd, func, msg);
 
@@ -1380,11 +1376,6 @@ pop_retr (pop_message_t mpm, char *buffer, size_t buflen, off_t offset,
       return 0;
     }
 
-  /* We do not carry the offset backward(for pop), should be doc somewhere.  */
-  /*if (offset < mpm->header_size)
-    return ESPIPE;
-  */
-
   /* pop_retr() is not call directly so we assume that the locks were set.  */
 
   switch (mpd->state)
@@ -1453,7 +1444,7 @@ pop_retr (pop_message_t mpm, char *buffer, size_t buflen, off_t offset,
 	  if (!mpm->skip_header)
 	    {
 	      ssize_t pos = offset  - mpm->header_size;
-	      if (pos)
+	      if (pos > 0)
 		{
 		  nread = fill_buffer (mpd, NULL, pos);
 		  mpm->header_size += nread;

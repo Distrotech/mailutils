@@ -1,5 +1,5 @@
 /* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -34,7 +34,7 @@ mail_top (int argc, char **argv)
       size_t n;
       off_t off;
       int lines = strtol ((util_find_env("toplines"))->value, NULL, 10);
-      
+
       if (lines < 0)
 	return 1;
 
@@ -56,5 +56,3 @@ mail_top (int argc, char **argv)
     }
   return 1;
 }
-
-

@@ -33,19 +33,8 @@
 #include <string.h>
 #include <unistd.h>
 
-#ifdef HAVE_PATHS_H
-# include <paths.h>
-#endif
-
 #include <mailutils/mailbox.h>
-
-#ifndef _PATH_MAILDIR
-# define _PATH_MAILDIR "/var/spool/mail"
-#endif
-
-#ifndef VERSION
-# define VERSION "unknow"
-#endif
+#include <mailutils/registrar.h>
 
 int
 main(int argc, char **argv)
@@ -62,15 +51,31 @@ main(int argc, char **argv)
   if (argc > 1)
     mailbox_name = argv[1];
 
+  /* Register the desire formats.  */
+  {
+    list_t bookie;
+    registrar_get_list (&bookie);
+    list_append (bookie, mbox_record);
+    list_append (bookie, path_record);
+    list_append (bookie, pop_record);
+  }
+
   if ((status = mailbox_create_default (&mbox, mailbox_name)) != 0
-      || (status = mailbox_open (mbox, MU_MAILBOX_RDONLY)) != 0)
+      || (status = mailbox_open (mbox, MU_STREAM_READ)) != 0)
     {
       fprintf (stderr, "could not create/open: %s\n", strerror (status));
       exit (1);
     }
 
+  /* Debuging Trace.  */
+  {
+    //debug_t debug;
+    //mailbox_get_debug (mbox, &debug);
+    //debug_set_level (debug, MU_DEBUG_TRACE|MU_DEBUG_PROT);
+  }
+
   mailbox_messages_count (mbox, &count);
-  for(i = 1; i <= count; ++i)
+  for (i = 1; i <= count; ++i)
     {
       message_t msg;
       header_t hdr;
@@ -83,9 +88,8 @@ main(int argc, char **argv)
       header_get_value (hdr, MU_HEADER_FROM, from, 30, NULL);
       header_get_value (hdr, MU_HEADER_SUBJECT, subject, 40, NULL);
 
-      fprintf(stdout, "%s\t%s\n", from, subject);
-
+      fprintf (stdout, "%s\t%s\n", from, subject);
     }
-  mailbox_close(mbox);
+  mailbox_close (mbox);
   return 0;
 }

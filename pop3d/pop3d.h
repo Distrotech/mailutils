@@ -99,6 +99,7 @@
 #include <mailutils/message.h>
 #include <mailutils/header.h>
 #include <mailutils/body.h>
+#include <mailutils/registrar.h>
 
 /* For Berkley DB2 APOP password file */
 #ifdef BDB2
