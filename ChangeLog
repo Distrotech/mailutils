@@ -1,3 +1,51 @@
+2002-11-03  Sergey Poznyakoff
+
+	* configure.ac: Added testsuite for mail.remote
+	
+	* examples/mta.c: New file. A "fake" MTA for testing "mail" and
+	  "mail.remote"
+	* examples/Makefile.am: Added mta.c
+	* examples/.cvsignore: Likewise.
+	
+	* testsuite/etc/mail.rc: Added indentprefix.
+	* mail/testsuite/mail/send.exp: New file. Test sending commands.
+	* mail/testsuite/mail/DISTFILES: Added send.exp
+	* mail/testsuite/Makefile.am: Add top_builddir to site.exp
+	
+	* mail.remote/testsuite: New directory.
+	* mail.remote/Makefile.am: Added testsuite
+	* mail.remote/testsuite/Makefile.am: New file.
+	* mail.remote/testsuite/.cvsignore: New file.
+	* mail.remote/testsuite/Data: New file. Data for testing mail.remote.
+	* mail.remote/testsuite/lib: New direcory
+	* mail.remote/testsuite/lib/mail.remote.exp: New file.
+	* mail.remote/testsuite/lib/DISTFILES: New file.
+	* mail.remote/testsuite/mail.remote: New directory
+	* mail.remote/testsuite/mail.remote/send.exp: New file.
+	* mail.remote/testsuite/mail.remote/DISTFILES: New file.
+
+	* mail.local/main.c: Fixed indentation.
+	* mailbox/smtp.c: Likewise.
+	  (smtp_address_add): New function. A wrapper around
+	  address_union.
+	  (_smtp_set_rcpt): Rewritten based on address_union call.
+	* mail.remote/Makefile.am: Renamed some variables to avoid name
+	  clashes.
+	* mh/Makefile.am: Likewise.
+
+	* mailbox/file_stream.c: Some applications (e.g. mail.remote)
+	  implicitly rely on the possibility to seek on stdin streams.
+	  To provide this functionality:
+	  (struct _file_stram): Added cache member.
+	  It is a memory stream used to provide seeking capability for
+	  stdio streams.
+	  (_file_destroy): Destroy cache if necessary.
+	  (_stdin_file_read,_stdin_file_readline,_stdout_file_write): New
+	  functions. Provide IO operations for stdio streams.
+	  (stdio_stream_create): Register new IO functions.
+
+	* testsuite/lib/mailutils.exp (mu_test_file): Minor fixes.
+	  
 2002-11-01  Jeff Bailey  <jbailey@gnu.org>
 
 	* mh/Makefile.am: Use MHPROGRAMS and MHLIBRARIES instead of
