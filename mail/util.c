@@ -121,7 +121,7 @@ util_do_command (const char *c, ...)
 	    return 0;
 	}
 
-      if (argcv_get (cmd, delim, NULL, &argc, &argv) == 0)
+      if (argcv_get (cmd, delim, NULL, &argc, &argv) == 0 && argc > 0)
 	{
 	  struct mail_command_entry entry;
 	  char *p;
@@ -152,9 +152,13 @@ util_do_command (const char *c, ...)
     }
   else
     {
-      util_error (_("Unknown command: %s"), argv[0]);
+      if (argc)
+	util_error (_("Unknown command: %s"), argv[0]);
+      else
+	util_error (_("Invalid command"));
       status = 1;
     }
+      
 
   argcv_free (argc, argv);
   return status;
