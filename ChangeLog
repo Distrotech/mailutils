@@ -1,3 +1,10 @@
+2002-02-17  Sergey Poznyakoff
+
+	* imap4d/list.c: Take into account st_dev. Patch provided
+          by Sam Roberts.
+	* acconfig.h: Placeholder for dev_t.
+	* configure.in: AC_CHECK_TYPE(dev_t)
+
 2002-02-17  Sergey Poznyakoff  
 
 	* imap4d/list.c: Prevent possible infinite recursion (Fixes
