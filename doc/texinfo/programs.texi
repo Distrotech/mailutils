@@ -6,19 +6,19 @@
 @sc{gnu} Mailutils provides a set of programs for handling the email.
 
 @menu
-* authentication:: Authorization and authentication principles.        
-* configuration:: Common configuration file.
-* imap4d::        IMAP4 daemon.
-* pop3d::         POP3 daemon.
-* frm::           List headers from a mailbox.
-* mail::          Send and receive mail.
-* mail.local::    Deliver mail to the local mailbox.
-* messages::      Count the number of messages in a mailbox.
-* readmsg::       Extract messages from a folder.
-* sieve::         Mail filtering utility.
-* guimb::         Mailbox scanning and processing language.
-* comsatd::       Comsat daemon.
-* mailutils-config:: Get the information about the Mailutils build.
+* authentication::    Authorization and authentication principles.        
+* configuration::     Common configuration file.
+* imap4d::            IMAP4 daemon.
+* pop3d::             POP3 daemon.
+* frm::               List headers from a mailbox.
+* mail::              Send and receive mail.
+* mail.local::        Deliver mail to the local mailbox.
+* messages::          Count the number of messages in a mailbox.
+* readmsg::           Extract messages from a folder.
+* sieve::             Mail filtering utility.
+* guimb::             Mailbox scanning and processing language.
+* comsatd::           Comsat daemon.
+* mailutils-config::  Get the information about the Mailutils build.
 @end menu
 
 @page
@@ -56,7 +56,7 @@ We represent the module lists as column-separated lists of module
 names. For example, the authorization list
 
 @example
-        system:sql:virtdomains
+system:sql:virtdomains
 @end example
 
 @noindent
@@ -111,7 +111,7 @@ Unless overridden by @option{--authentication} command line option,
 the list of authentication modules is:
 
 @example
-        generic:system:pam:sql
+generic:system:pam:sql
 @end example
 
 @noindent
@@ -119,7 +119,7 @@ Unless overridden by @option{--authorization} command line option,
 the list of authorization modules is:
 
 @example
-        system:sql:virtdomains
+system:sql:virtdomains
 @end example
 
 @page
@@ -673,7 +673,7 @@ Tidy mode. Currently is not implemented. Included for compatibility with
 
 @page
 @node mail
-@section mail ---  send and receive mail.
+@section mail --- send and receive mail.
 @pindex mail
 
 @command{Mail} is an enhanced version of standard @command{/bin/mail} program.
@@ -757,8 +757,8 @@ Print all mail to standard output. It is equivalent to issuing following
 commands after starting @samp{mail -N}:
 
 @example
- print *
- quit
+print *
+quit
 @end example
 @item -q
 @itemx --quit
@@ -774,8 +774,9 @@ Switch to sending mode.
 Operate on USER's mailbox. This is equivalent to:
 
 @example
-        mail -f/@var{spool_path}/USER
+mail -f/@var{spool_path}/USER
 @end example
+
 @noindent
 with @var{spool_path} being the full path to your mailspool directory
 @*(@file{/var/spool/mail} or @file{/var/mail} on most systems).
@@ -2048,7 +2049,7 @@ All examples in this section suppose that @command{mail.local}
 must receive following command line switches:
 
 @example
-  -s %h/.filter.scm -q /etc/mail/userquota
+-s %h/.filter.scm -q /etc/mail/userquota
 @end example
 
 @menu
@@ -2131,8 +2132,9 @@ are specified, it operates upon user's system mailbox. For each
 folder, the following output line is produced:
 
 @example
-     Number of messages in @var{folder}: @var{number}
+Number of messages in @var{folder}: @var{number}
 @end example
+
 @noindent
 where @var{folder} represents the folder name, @var{number} represents
 the number of messages.
@@ -2175,7 +2177,7 @@ A list of message numbers may be specified.  Values
 of  ``0''  and ``$'' in the list both mean the last
 message in the mailbox.  For example:
 @example
-     readmsg 1 3 0
+readmsg 1 3 0
 @end example
 extracts  three messages from the folder:  the first, the third, and the last.
 
@@ -2183,7 +2185,7 @@ extracts  three messages from the folder:  the first, the third, and the last.
 Finally, the selection may be some text to match.  This  will  select  a  mail
 message which exactly matches the specified text.  For example,
 @example
-     readmsg staff meeting
+readmsg staff meeting
 @end example
 extracts the message which contains the words ``staff meeting.''  Note that it
 will not match a message containing ``Staff Meeting'' - the matching  is  case
@@ -2266,7 +2268,7 @@ its standard.
 The @command{sieve} invocation syntax is:
 
 @example
-        sieve [@var{options}] @var{script}
+sieve [@var{options}] @var{script}
 @end example
 
 @noindent
