@@ -34,9 +34,23 @@ extern int mbox_uidnext         __P ((mbox_t, unsigned long));
 extern int mbox_open            __P ((mbox_t, const char *, int));
 extern int mbox_close           __P ((mbox_t));
 
-extern int mbox_get_message     __P ((mbox_t, unsigned int, message_t *));
+extern int mbox_get_envelope    __P ((mbox_t, unsigned int, envelope_t *));
+extern int mbox_set_envelope    __P ((mbox_t, unsigned int, envelope_t));
 
-extern int mbox_get_size        __P ((mbox_t, unsigned long *));
+extern int mbox_get_header      __P ((mbox_t, unsigned int, stream_t *));
+extern int mbox_set_header      __P ((mbox_t, unsigned int, stream_t));
+extern int mbox_header_size     __P ((mbox_t, unsigned int, size_t *));
+extern int mbox_hdr_get_value   __P ((mbox_t, unsigned int, char *, size_t, size_t *));
+extern int mbox_hdr_set_value   __P ((mbox_t, unsigned int, char *, size_t, int));
+
+extern int mbox_get_body        __P ((mbox_t, unsigned int, stream_t *));
+extern int mbox_set_body        __P ((mbox_t, unsigned int, stream_t));
+extern int mbox_body_size       __P ((mbox_t, unsigned int, size_t *));
+
+extern int mbox_get_flags       __P ((mbox_t, unsigned int, int *));
+extern int mbox_set_flags       __P ((mbox_t, unsigned int, int));
+
+extern int mbox_size            __P ((mbox_t, unsigned long *));
 
 extern int mbox_save_attributes __P ((mbox_t));
 extern int mbox_expunge         __P ((mbox_t));

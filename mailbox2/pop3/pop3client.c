@@ -125,7 +125,7 @@ main (int argc, char **argv)
   for ( ; done == 0; )
     {
 
-      line = readline ("pop3> ");
+      line = readline ((char *)"pop3> ");
 
       if (!line)
         break;

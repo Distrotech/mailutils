@@ -53,9 +53,9 @@ extern int stream_destroy     __P ((stream_t));
 extern int stream_open        __P ((stream_t, const char *, int, int));
 extern int stream_close       __P ((stream_t));
 
-extern int stream_read        __P ((stream_t, char *, size_t, size_t *));
+extern int stream_read        __P ((stream_t, void *, size_t, size_t *));
 extern int stream_readline    __P ((stream_t, char *, size_t, size_t *));
-extern int stream_write       __P ((stream_t, const char *, size_t, size_t*));
+extern int stream_write       __P ((stream_t, const void *, size_t, size_t*));
 
 extern int stream_seek        __P ((stream_t, off_t, enum stream_whence));
 extern int stream_tell        __P ((stream_t, off_t *));

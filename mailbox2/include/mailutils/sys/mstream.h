@@ -15,28 +15,23 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-#ifndef MAILUTILS_SYS_BSTREAM_H
-#define MAILUTILS_SYS_BSTREAM_H
+#ifndef MAILUTILS_SYS_MSTREAM_H
+#define MAILUTILS_SYS_MSTREAM_H
 
 #include <mailutils/sys/stream.h>
 #include <mailutils/monitor.h>
 
-/* Read buffer */
-struct _rbuffer
-{
-  char *base;
-  char *ptr;
-  int  count;
-  size_t bufsize;
-};
-
-struct _bs
+struct _ms
 {
   struct _stream base;
   int ref;
-  stream_t stream;
-  struct _rbuffer rbuffer;
+  int fd;
+  int flags;
+  int mflags;
+  char *ptr;
+  size_t size;
+  off_t offset;
   monitor_t lock;
 };
 
-#endif /* _MAILUTILS_SYS_BSTREAM_H */
+#endif /* _MAILUTILS_SYS_MSTREAM_H */

@@ -69,7 +69,7 @@ int
 }
 
 int
-(stream_read) (stream_t stream, char *buf, size_t buflen, size_t *n)
+(stream_read) (stream_t stream, void *buf, size_t buflen, size_t *n)
 {
   if (stream == NULL || stream->vtable == NULL
       || stream->vtable->read == NULL)
@@ -87,7 +87,7 @@ int
 }
 
 int
-(stream_write) (stream_t stream, const char *buf, size_t buflen, size_t *n)
+(stream_write) (stream_t stream, const void *buf, size_t buflen, size_t *n)
 {
   if (stream == NULL || stream->vtable == NULL
       || stream->vtable->write == NULL)

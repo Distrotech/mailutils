@@ -49,10 +49,10 @@ pop3_get_stream (pop3_t pop3, stream_t *pstream)
   if (pop3->stream == NULL)
     {
       stream_t stream = NULL;
-      int status = stream_tcp_create (&stream));
+      int status = stream_tcp_create (&stream);
       if (status)
 	return status;
-      stream_buffer_create (&(pop3->stream), stream, 1024); */
+      stream_buffer_create (&(pop3->stream), stream, 1024);
     }
   *pstream = pop3->stream;
   return 0;
@@ -66,9 +66,9 @@ static int p_destroy       __P ((stream_t));
 static int p_open          __P ((stream_t, const char *, int, int));
 static int p_close         __P ((stream_t));
 
-static int p_read          __P ((stream_t, char *, size_t, size_t *));
+static int p_read          __P ((stream_t, void *, size_t, size_t *));
 static int p_readline      __P ((stream_t, char *, size_t, size_t *));
-static int p_write         __P ((stream_t, const char *, size_t, size_t *));
+static int p_write         __P ((stream_t, const void *, size_t, size_t *));
 
 static int p_seek          __P ((stream_t, off_t, enum stream_whence));
 static int p_tell          __P ((stream_t, off_t *));
@@ -191,11 +191,12 @@ p_close (stream_t stream)
 }
 
 static int
-p_read (stream_t stream, char *buf, size_t buflen, size_t *pn)
+p_read (stream_t stream, void *buf, size_t buflen, size_t *pn)
 {
   struct p_stream *p_stream = (struct p_stream *)stream;
   size_t n = 0;
   int status = 0;
+  char *p = buf;
   if (p_stream)
     {
       monitor_lock (p_stream->lock);
@@ -208,17 +209,17 @@ p_read (stream_t stream, char *buf, size_t buflen, size_t *pn)
 	      /* The pop3_readline () function will always read one less to
 		 be able to terminate the buffer, this will cause serious grief
 		 for stream_read() where it is legitimate to have a buffer of
-		 1 char.  So we must catch here or change the behavoiour of
+		 1 char.  So we must catch it here or change the behaviour of
 		 XXX_readline.  */
 	      if (buflen == 1)
 		{
 		  char buffer[2];
 		  *buffer = '\0';
 		  status = pop3_readline (p_stream->pop3, buffer, 2, &nread);
-		  *buf = *buffer;
+		  *p = *buffer;
 		}
 	      else
-		status = pop3_readline (p_stream->pop3, buf, buflen, &nread);
+		status = pop3_readline (p_stream->pop3, p, buflen, &nread);
 
 	      if (status != 0)
 		break;
@@ -230,7 +231,7 @@ p_read (stream_t stream, char *buf, size_t buflen, size_t *pn)
 		}
 	      n += nread;
 	      buflen -= nread;
-	      buf += nread;
+	      p += nread;
 	    }
 	  while (buflen > 0);
 	}
@@ -267,7 +268,7 @@ p_readline (stream_t stream, char *buf, size_t buflen, size_t *pn)
 }
 
 static int
-p_write (stream_t stream, const char *buf, size_t buflen, size_t *pn)
+p_write (stream_t stream, const void *buf, size_t buflen, size_t *pn)
 {
   struct p_stream *p_stream = (struct p_stream *)stream;
   return stream_write (p_stream->pop3->stream, buf, buflen, pn);

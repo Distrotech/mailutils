@@ -118,7 +118,7 @@ _bs_close (stream_t stream)
    networking. Lots of code between POP and IMAP can be share this way.
    The buffering is on the read only, the writes fall through.  */
 static int
-_bs_read (stream_t stream, char *buf, size_t count, size_t *pnread)
+_bs_read (stream_t stream, void *buf, size_t count, size_t *pnread)
 {
   int status = 0;
   struct _bs *bs = (struct _bs *)stream;
@@ -138,6 +138,7 @@ _bs_read (stream_t stream, char *buf, size_t count, size_t *pnread)
   else
     {
       size_t residue = count;
+      char *p = buf;
       int r;
 
       monitor_lock (bs->lock);
@@ -151,12 +152,12 @@ _bs_read (stream_t stream, char *buf, size_t count, size_t *pnread)
 	  /* Drain our buffer first.  */
 	  if (bs->rbuffer.count > 0)
 	    {
-	      memcpy(buf, bs->rbuffer.ptr, bs->rbuffer.count);
+	      memcpy(p, bs->rbuffer.ptr, bs->rbuffer.count);
 	      residue -= bs->rbuffer.count;
-	      buf += bs->rbuffer.count;
+	      p += bs->rbuffer.count;
 	    }
 	  bs->rbuffer.count = 0; /* Signal we will need to refill.  */
-	  status = stream_read (bs->stream, buf, residue, &r);
+	  status = stream_read (bs->stream, p, residue, &r);
 	  residue -= r;
 	  if (pnread)
 	    *pnread = count - residue;
@@ -172,10 +173,10 @@ _bs_read (stream_t stream, char *buf, size_t count, size_t *pnread)
 	  /* Drain the buffer, if we have less then requested.  */
 	  while (residue > (size_t)(r = bs->rbuffer.count))
 	    {
-	      (void)memcpy (buf, bs->rbuffer.ptr, (size_t)r);
+	      (void)memcpy (p, bs->rbuffer.ptr, (size_t)r);
 	      bs->rbuffer.ptr += r;
 	      /* bs->rbuffer.count = 0 ... done in refill */
-	      buf += r;
+	      p += r;
 	      residue -= r;
 	      status = refill (bs);
 	      /* Did we reach the end.  */
@@ -192,7 +193,7 @@ _bs_read (stream_t stream, char *buf, size_t count, size_t *pnread)
 	    }
 	  if (!done)
 	    {
-	      memcpy(buf, bs->rbuffer.ptr, residue);
+	      memcpy(p, bs->rbuffer.ptr, residue);
 	      bs->rbuffer.count -= residue;
 	      bs->rbuffer.ptr += residue;
 	      if (pnread)
@@ -290,23 +291,24 @@ _bs_readline (stream_t stream, char *buf, size_t count, size_t *pnread)
 }
 
 static int
-_bs_write (stream_t stream, const char *buf, size_t count, size_t *pnwrite)
+_bs_write (stream_t stream, const void *buf, size_t count, size_t *pnwrite)
 {
   struct _bs *bs = (struct _bs *)stream;
   int err = 0;
   size_t nwriten = 0;
   size_t total = 0;
   int nleft = count;
+  const char *p = buf;
 
   /* First try to send it all.  */
   while (nleft > 0)
     {
-      err = stream_write (bs->stream, buf, nleft, &nwriten);
+      err = stream_write (bs->stream, p, nleft, &nwriten);
       if (err != 0 || nwriten == 0)
         break;
       nleft -= nwriten;
       total += nwriten;
-      buf += nwriten;
+      p += nwriten;
     }
   if (pnwrite)
     *pnwrite = total;

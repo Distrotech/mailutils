@@ -32,9 +32,9 @@ struct _stream_vtable
   int (*open)      __P ((stream_t, const char *, int, int));
   int (*close)     __P ((stream_t));
 
-  int (*read)      __P ((stream_t, char *, size_t, size_t *));
+  int (*read)      __P ((stream_t, void *, size_t, size_t *));
   int (*readline)  __P ((stream_t, char *, size_t, size_t *));
-  int (*write)     __P ((stream_t, const char *, size_t, size_t *));
+  int (*write)     __P ((stream_t, const void *, size_t, size_t *));
 
   int (*seek)      __P ((stream_t, off_t, enum stream_whence));
   int (*tell)      __P ((stream_t, off_t *));

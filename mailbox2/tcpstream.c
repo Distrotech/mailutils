@@ -24,7 +24,6 @@
 #include <errno.h>
 #include <netdb.h>
 #include <fcntl.h>
-//#define __USE_BSD
 #include <string.h>
 #include <strings.h>
 #include <sys/types.h>
@@ -33,7 +32,7 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 
-#include <mailutils/sys/tcp.h>
+#include <mailutils/sys/tcpstream.h>
 #include <mailutils/error.h>
 
 /* On solaris inet_addr() return -1.  */
@@ -226,7 +225,7 @@ _tcp_get_fd (stream_t stream, int *fd)
 }
 
 static int
-_tcp_read (stream_t stream, char *buf, size_t buf_size, size_t *br)
+_tcp_read (stream_t stream, void *buf, size_t buf_size, size_t *br)
 {
   struct _tcp_instance *tcp = (struct _tcp_instance *)stream;
   int bytes;
@@ -282,7 +281,7 @@ _tcp_readline (stream_t stream, char *buf, size_t buf_size, size_t *br)
 }
 
 static int
-_tcp_write (stream_t stream, const char *buf, size_t buf_size, size_t *bw)
+_tcp_write (stream_t stream, const void *buf, size_t buf_size, size_t *bw)
 {
   struct _tcp_instance *tcp = (struct _tcp_instance *)stream;
   int 	bytes;
@@ -339,6 +338,8 @@ static int
 _tcp_get_flags (stream_t stream, int *flags)
 {
   struct _tcp_instance *tcp = (struct _tcp_instance *)stream;
+  if (flags == NULL)
+    return MU_ERROR_INVALID_PARAMETER;
   *flags = tcp->flags;
   return 0;
 }
@@ -347,6 +348,8 @@ static int
 _tcp_get_state (stream_t stream, enum stream_state *state)
 {
   struct _tcp_instance *tcp = (struct _tcp_instance *)stream;
+  if (state == NULL)
+    return MU_ERROR_INVALID_PARAMETER;
   *state = tcp->state;
   return 0;
 }
@@ -380,6 +383,9 @@ int
 stream_tcp_create (stream_t *pstream)
 {
   struct _tcp_instance *tcp;
+
+  if (pstream == NULL)
+    return MU_ERROR_INVALID_PARAMETER;
 
   tcp = calloc (1, sizeof *tcp);
   if (tcp == NULL)
