@@ -1,3 +1,22 @@
+2001-07-22 Sergey Poznyakoff
+	Renamed debug_.* symbols to mu_debug_.* to avoid nameclashes.
+	Files affected:
+	* examples/mbox-dates.c, mbox-explode.c;
+	* from/from.c;
+	* include/mailutils/{debug.h,folder.h,mailbox.h,mailer.h};
+	* libmu_scm/mu_message.c;
+	* mail/send.c;
+	* mailbox/{debug.c,folder.c,mailbox.c,mailer.c};
+	* mailbox/include/{debug0.h,folder0.h,mailbox0.h,mailer0.h};
+	* mailbox2/include/mailutils/base.h;
+	* readmsg/readmsg.c;
+	* sieve/sieve.c;
+
+	* configure.in: Added --without-guile. Uncommented making
+	libmu_scm and guimb. Added check for -ldl before
+	checking for -lpam: both FreeBSD and OpenBSD lack libdl, but 
+	have working libpam.
+
 2001-07-21  Jakob 'sparky' Kaivo  <jkaivo@elijah.nodomainname.net>
 
 	* mail/Makefile.am (mail_SOURCES): add decode.c
