@@ -120,7 +120,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
 
 const char *argp_program_version = "guimb (" PACKAGE_STRING ")";
 static char doc[] =
-N_("GNU guimb -- Process the contents of the specified mailboxes\n"
+N_("GNU guimb -- Process the contents of the specified mailboxes "
 "using a Scheme program or expression.");
 static char args_doc[] = N_("[mailbox...]");
 

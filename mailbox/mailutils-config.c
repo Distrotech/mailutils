@@ -33,8 +33,8 @@ static struct argp_option options[] = {
    "guile, to display libraries needed for linking against libmu_scm. "
    "Both can be given simultaneously"), 0},
   {"info", 'i', NULL, 0,
-   N_("print a list of compilation options used to build mailutils. If arguments "
-   "are given, they are interpreted as a list of compilation options to check "
+   N_("print a list of configuration options used to build mailutils. If arguments "
+   "are given, they are interpreted as a list of configuration options to check "
    "for. In this case the program prints those options from this list that "
    "have been defined. It exits with zero status if all of the "
    "specified options are defined. Otherwise, the exit status is 1."), 0},
