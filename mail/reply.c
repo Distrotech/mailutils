@@ -235,12 +235,12 @@ mail_reply (int argc, char **argv)
       else
 	compose_header_set (&env, MU_HEADER_SUBJECT, "", COMPOSE_REPLACE);
 
-      fprintf (ofile, _("To: %s\n"),
+      fprintf (ofile, "To: %s\n",
 	       compose_header_get (&env, MU_HEADER_TO, ""));
       str = compose_header_get (&env, MU_HEADER_CC, NULL);
       if (str)
-	fprintf (ofile, _("Cc: %s\n"), str);
-      fprintf (ofile, _("Subject: %s\n\n"),
+	fprintf (ofile, "Cc: %s\n", str);
+      fprintf (ofile, "Subject: %s\n\n",
 	       compose_header_get (&env, MU_HEADER_SUBJECT, ""));
 
       make_in_reply_to (&env, msg);
