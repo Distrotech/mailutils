@@ -109,7 +109,8 @@ mu_scm_message_print (SCM message_smob, SCM port, scm_print_state * pstate)
       message_size (mum->msg, &m_size);
       message_lines (mum->msg, &m_lines);
       
-      snprintf (buffer, sizeof (buffer), "%3ld %-5ld", m_lines, m_size);
+      snprintf (buffer, sizeof (buffer), "%3lu %-5lu",
+		(unsigned long) m_lines, (unsigned long) m_size);
       scm_puts (buffer, port);
     }
   scm_puts (">", port);

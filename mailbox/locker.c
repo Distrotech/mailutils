@@ -629,10 +629,10 @@ _locker_lock_dotlock (locker_t lock)
   gethostname (host, sizeof (host));
   host[MAXHOSTNAMELEN] = 0;
 
-  snprintf (now, sizeof (now), "%d", time (0));
+  snprintf (now, sizeof (now), "%lu", (unsigned long) time (0));
   now[sizeof (now) - 1] = 0;
 
-  snprintf (pid, sizeof (pid), "%d", getpid ());
+  snprintf (pid, sizeof (pid), "%lu", (unsigned long) getpid ());
   pid[sizeof (pid) - 1] = 0;
 		  
   sz = strlen (lock->file) + 1 /* "." */

@@ -251,7 +251,7 @@ auth_gssapi (struct imap4d_command *command, char **username)
   if (imap4d_gss_userok (&client_name, *username))
     {
       syslog (LOG_NOTICE, "GSSAPI user %s is NOT authorized as %s",
-	      client_name.value, *username);
+	      (char *) client_name.value, *username);
       util_finish (command, RESP_NO,
 		   "GSSAPI user %s is NOT authorized as %s",
 		   client_name.value, *username);
@@ -264,7 +264,7 @@ auth_gssapi (struct imap4d_command *command, char **username)
   else
     {
       syslog (LOG_NOTICE, "GSSAPI user %s is authorized as %s",
-	      client_name.value, *username);
+	      (char *) client_name.value, *username);
     }
 
   gss_release_buffer (&min_stat, &client_name);

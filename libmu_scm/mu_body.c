@@ -66,7 +66,8 @@ mu_scm_body_print (SCM body_smob, SCM port, scm_print_state * pstate)
   scm_puts (buffer, port);
   scm_puts ("\" ", port);
 
-  snprintf (buffer, sizeof (buffer), "%3ld %-5ld", b_lines, b_size);
+  snprintf (buffer, sizeof (buffer), "%3lu %-5lu",
+	    (unsigned long) b_lines, (unsigned long) b_size);
   scm_puts (buffer, port);
 
   scm_puts (">", port);
