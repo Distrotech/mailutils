@@ -55,3 +55,6 @@ extern const message_t mu_scm_message_get __P((SCM MESG));
 extern int mu_scm_is_body __P((SCM scm));
 extern void mu_scm_body_init __P((void));
 extern SCM mu_scm_body_create __P((SCM mesg, body_t body));
+
+extern void mu_scm_address_init __P((void));
+extern void mu_scm_logger_init __P((void));
