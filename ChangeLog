@@ -1,3 +1,35 @@
+2002-07-16  Sergey Poznyakoff
+
+	Based on ideas of Matthew Whitworth, moved mailbox file
+	expansion into a separate function:
+	
+	* mail/file.c (mail_expand_name): New function. Expands mail
+	  special characters in a filename.
+	* mail/mail.h: Likewise.
+	* mail/copy.c (mail_copy0): Use mail_expand_name(). 
+
+	* mail/quit.c (mail_mbox_commit): Fixed typo.
+	  (mail_mbox_close): Do not expunge mailboxes if readonly is set.
+	  Helps in testing mail. 
+	* mail/alt.c: Use mu_errstring() where appropriate.
+
+	* mail/testsuite/mail/folder.exp: (new file) A regression test
+	  for folder and file commands.
+	* mail/testsuite/mail/DISTFILES: Added folder.exp
+	* mail/testsuite/folder: (new dir) Data for folder.exp test.
+	* mail/testsuite/folder/DISTFILES: New file
+	* mail/testsuite/folder/one: New file
+	* mail/testsuite/folder/two: New file
+	
+	* mail/testsuite/Makefile.am: Added folder.
+	* mail/testsuite/lib/mail.exp: Set MBOX variable.
+	* mail/testsuite/mail/read.exp: Force readonly mode before
+	  proceeding.
+	* mail/testsuite/spool/mbox: (new)  
+	* mail/testsuite/spool/DISTFILES: Added mbox  
+	
+	* THANKS: Added Matthew Whitworth
+
 2002-07-15  Sergey Poznyakoff  
 
 	* mail/folders.c (mail_folders): If the value of "folder" variable
