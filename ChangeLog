@@ -1,3 +1,10 @@
+2001-10-10 Alain Magloire
+
+	* mailbox/mbx_pop.c (_mbox_pop_init): Authority is set on the folder.
+	For pop this a little hackish, since there is no proper folder.
+	As a hack we set for the pop folder the actual mailbox as data pointer.
+	(pop_user): the owner of the authority is the folder.
+
 2001-10-08 Alain Magloire
 
 	* mailbox/mbx_mbox.c (mbox_expunge0): New function.

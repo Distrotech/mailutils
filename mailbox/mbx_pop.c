@@ -47,6 +47,7 @@
 #include <mailutils/auth.h>
 #include <mailutils/error.h>
 #include <mailbox0.h>
+#include <folder0.h>
 #include <registrar0.h>
 #include <url0.h>
 
@@ -290,21 +291,23 @@ _mailbox_pop_init (mailbox_t mbox)
   pop_data_t mpd;
   int status = 0;
   ticket_t ticket = NULL;
-  const char *auth = mbox->url->auth;
+  char auth[64];
+  authority_t authority = NULL;
 
   /* Allocate authority based on AUTH type, default to user/pass */
   if (mbox->folder)
     folder_get_ticket (mbox->folder, &ticket);
   if (ticket == NULL)
     ticket = mbox->ticket;
-  if ((status = authority_create (&mbox->authority, ticket, mbox)))
-    {
-      return status;
-    }
 
-  if (auth == NULL || strcasecmp (auth, "*") == 0)
+  if ((status = authority_create (&authority, ticket, mbox->folder)))
+    return status;
+
+  *auth = '\0';
+  url_get_auth (mbox->url, auth, sizeof auth, NULL);
+  if (*auth == '\0' || strcasecmp (auth, "*") == 0)
     {
-      authority_set_authenticate (mbox->authority, pop_user, mbox);
+      authority_set_authenticate (authority, pop_user, mbox->folder);
     }
   /*
   else...
@@ -317,17 +320,16 @@ _mailbox_pop_init (mailbox_t mbox)
    */
   else
     {
-      authority_destroy (&mbox->authority, mbox);
+      authority_destroy (&authority, mbox->folder);
       return ENOSYS;
     }
+
+  folder_set_authority (mbox->folder, authority);
 
   /* Allocate specifics for pop data.  */
   mpd = mbox->data = calloc (1, sizeof (*mpd));
   if (mbox->data == NULL)
-    {
-      authority_destroy (&mbox->authority, mbox);
-      return ENOMEM;
-    }
+    return ENOMEM;
 
   mpd->mbox = mbox;		/* Back pointer.  */
 
@@ -367,6 +369,9 @@ _mailbox_pop_init (mailbox_t mbox)
       goto END;
     }
 
+  /* Hack!  */
+  mbox->folder->data = mbox;
+
 END:
   if (status != 0)
     {
@@ -378,7 +383,6 @@ END:
 	free (mbox->properties);
       if (mbox->data)
 	free (mbox->data);
-      authority_destroy (&mbox->authority, mbox);
     }
 
   return status;
@@ -421,7 +425,8 @@ pop_destroy (mailbox_t mbox)
 static int
 pop_user (authority_t auth)
 {
-  mailbox_t mbox = authority_get_owner (auth);
+  folder_t folder = authority_get_owner (auth);
+  mailbox_t mbox = folder->data;
   pop_data_t mpd = mbox->data;
   ticket_t ticket;
   int status;
@@ -638,7 +643,7 @@ pop_open (mailbox_t mbox, int flags)
     case POP_AUTH_PASS:
     case POP_AUTH_PASS_ACK:
       /* Authenticate.  */
-      status = authority_authenticate (mbox->authority);
+      status = authority_authenticate (mbox->folder->authority);
       CHECK_EAGAIN (mpd, status);
 
     case POP_AUTH_DONE:
