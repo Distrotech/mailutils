@@ -92,6 +92,7 @@ messages/messages.c
 mh/anno.c
 mh/fmtcheck.c
 mh/folder.c
+mh/forw.c
 mh/inc.c
 mh/install-mh.c
 mh/mark.c
