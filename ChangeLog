@@ -1,3 +1,13 @@
+2001-09-10 Sergey Poznyakoff
+
+	* mailbox/mbx_mh.c: Implemented append. Disabled reading of deleted
+	messages when doing mailbox scan.
+
+	* mail/summary.c: Do not set first_unread or first_new to the
+	message which is marked as deleted.
+	* mail/z.c: Do not count deleted messages into the total number
+	of lines output.
+
 2001-09-09  Alain Magloire
 
 	This was done when cranking the number of warning generated
