@@ -4,6 +4,7 @@ allof.exp
 anyof.exp
 envelope.exp
 exists.exp
+ext.exp
 false.exp
 header.exp
 i-casemap.exp
