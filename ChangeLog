@@ -1,3 +1,7 @@
+2003-01-12  Wojciech Polak
+
+	* auth/sql.c: Added missing NLS markers.
+
 2003-01-12  Jordi Mallach  <jordi@gnu.org>
 
 	* mail/mail.c: Update year in copyright notice.
