@@ -27,10 +27,9 @@
 #include <mailbox0.h>
 
 /* The Mailbox Factory.
-   We create an iterator for the mailbox_register and see if any scheme
-   match, if not we check in the mailbox_manager register for a match.
-   Then we call the mailbox's >url_create() to parse the URL. Last
-   initiliaze the concrete mailbox.  */
+   Create an iterator for registrar and see if any url scheme match,
+   Then we call the mailbox's url_create() to parse the URL. Last
+   initiliaze the concrete mailbox and folder.  */
 int
 mailbox_create (mailbox_t *pmbox, const char *name)
 {
@@ -45,7 +44,7 @@ mailbox_create (mailbox_t *pmbox, const char *name)
   if (pmbox == NULL)
     return EINVAL;
 
-  /* Look in the mailbox_register, for a match  */
+  /* Look in the registrar, for a match  */
   registrar_get_list (&list);
   status = iterator_create (&iterator, list);
   if (status != 0)
@@ -137,15 +136,17 @@ mailbox_destroy (mailbox_t *pmbox)
 	  observable_destroy (&(mbox->observable), mbox);
 	}
 
-      /* Call the concrete mailbox.  */
+      /* Call the concrete mailbox _destroy method. So it can clean itself.  */
       if (mbox->_destroy)
 	mbox->_destroy (mbox);
 
       monitor_wrlock (monitor);
 
-      /* Nuke the stream and close it */
+      /* Close the stream and nuke it */
       if (mbox->stream)
 	{
+	  /* FIXME:  Is this right, should be the client responsabilty to
+	     the stream?  */
 	  stream_close (mbox->stream);
 	  stream_destroy (&(mbox->stream), mbox);
 	}
@@ -167,6 +168,20 @@ mailbox_destroy (mailbox_t *pmbox)
 
       if (mbox->folder)
 	folder_destroy (&(mbox->folder));
+
+      if (mbox->properties)
+	{
+	  size_t i;
+	  for (i = 0; i < mbox->properties_count; i++)
+	    {
+	      if (mbox->properties[i].key)
+		free (mbox->properties[i].key);
+	    }
+	  free (mbox->properties);
+	}
+
+      if (mbox->property)
+	property_destroy (&(mbox->property), mbox);
 
       free (mbox);
       *pmbox = NULL;
@@ -246,7 +261,7 @@ int
 mailbox_is_updated (mailbox_t mbox)
 {
   if (mbox == NULL || mbox->_is_updated == NULL)
-    return 0;
+    return ENOSYS;
   return mbox->_is_updated (mbox);
 }
 
@@ -254,7 +269,7 @@ int
 mailbox_scan (mailbox_t mbox, size_t msgno, size_t *pcount)
 {
   if (mbox == NULL || mbox->_scan == NULL)
-    return 0;
+    return ENOSYS;
   return mbox->_scan (mbox, msgno, pcount);
 }
 
@@ -262,7 +277,7 @@ int
 mailbox_size (mailbox_t mbox, off_t *psize)
 {
   if (mbox == NULL || mbox->_size == NULL)
-    return 0;
+    return ENOSYS;
   return mbox->_size (mbox, psize);
 }
 
@@ -270,7 +285,7 @@ int
 mailbox_uidvalidity (mailbox_t mbox, unsigned long *pvalid)
 {
   if (mbox == NULL || mbox->_uidvalidity == NULL)
-    return 0;
+    return ENOSYS;
   return mbox->_uidvalidity (mbox, pvalid);
 }
 
@@ -278,7 +293,7 @@ int
 mailbox_uidnext (mailbox_t mbox, size_t *puidnext)
 {
   if (mbox == NULL || mbox->_uidnext == NULL)
-    return 0;
+    return ENOSYS;
   return mbox->_uidnext (mbox, puidnext);
 }
 
@@ -308,6 +323,7 @@ mailbox_set_authority (mailbox_t mbox, authority_t authority)
 {
   if (mbox == NULL)
     return EINVAL;
+  /* The authority is set on the folder if exist, not the mailbox.  */
   if (mbox->folder)
     return folder_set_authority (mbox->folder, authority);
   if (mbox->authority)
@@ -321,6 +337,7 @@ mailbox_get_authority (mailbox_t mbox, authority_t *pauthority)
 {
   if (mbox == NULL || pauthority == NULL)
     return EINVAL;
+  /* The authority is set on the folder if exist, not the mailbox.  */
   if (mbox->folder)
     return folder_get_authority  (mbox->folder, pauthority);
   *pauthority = mbox->authority;
@@ -332,6 +349,7 @@ mailbox_set_ticket (mailbox_t mbox, ticket_t ticket)
 {
   if (mbox == NULL)
     return EINVAL;
+  /* The ticket is set on the folder if exist, not the mailbox.  */
   if (mbox->folder)
     return folder_set_ticket (mbox->folder, ticket);
   if (mbox->ticket)
@@ -345,6 +363,7 @@ mailbox_get_ticket (mailbox_t mbox, ticket_t *pticket)
 {
   if (mbox == NULL || pticket == NULL)
     return EINVAL;
+  /* The ticket is set on the folder if exist, not the mailbox.  */
   if (mbox->folder)
     return folder_get_ticket (mbox->folder, pticket);
   *pticket = mbox->ticket;
@@ -356,6 +375,7 @@ mailbox_set_stream (mailbox_t mbox, stream_t stream)
 {
   if (mbox == NULL)
     return EINVAL;
+  /* The stream is set on the folder if exist, not the mailbox.  */
   if (mbox->folder)
     return folder_set_stream (mbox->folder, stream);
   if (mbox->stream)
@@ -369,6 +389,7 @@ mailbox_get_stream (mailbox_t mbox, stream_t *pstream)
 {
   if (mbox == NULL || pstream)
     return EINVAL;
+  /* The stream is set on the folder if exist, not the mailbox.  */
   if (mbox->folder)
     return folder_get_stream (mbox->folder, pstream);
   *pstream = mbox->stream;
@@ -398,17 +419,27 @@ mailbox_get_property (mailbox_t mbox, property_t *pproperty)
     return EINVAL;
   if (mbox->property == NULL)
     {
-      int status;
-      if (mbox->_get_property)
-	return mbox->_get_property (mbox, pproperty);
-      status = property_create (&(mbox->property), mbox);
+      size_t i;
+      int status = property_create (&(mbox->property), mbox);
       if (status != 0)
 	return status;
+      /* Add the defaults.  */
+      for (i = 0; i < mbox->properties_count; i++)
+	{
+	  status = property_add_default (mbox->property,
+					 mbox->properties[i].key,
+					 &(mbox->properties[i].value),
+					 mbox);
+	  if (status != 0)
+	    {
+	      property_destroy (&(mbox->property), mbox);
+	      return status;
+	    }
+	}
     }
   *pproperty = mbox->property;
   return 0;
 }
-
 
 int
 mailbox_set_debug (mailbox_t mbox, debug_t debug)

@@ -40,17 +40,18 @@ static int fill_blurb      __P ((header_t));
 int
 header_create (header_t *ph, const char *blurb, size_t len, void *owner)
 {
-  header_t h;
+  header_t header;
   int status = 0;
-  h = calloc (1, sizeof (*h));
-  if (h == NULL)
+
+  header = calloc (1, sizeof (*header));
+  if (header == NULL)
     return ENOMEM;
-  h->owner = owner;
 
-  /* Ignore the return value.  */
-  status = header_parse (h, blurb, len);
+  header->owner = owner;
 
-  *ph = h;
+  status = header_parse (header, blurb, len);
+
+  *ph = header;
   return status;
 }
 
@@ -59,27 +60,37 @@ header_destroy (header_t *ph, void *owner)
 {
   if (ph && *ph)
     {
-      header_t h = *ph;
+      header_t header = *ph;
 
       /* Can we destroy ?.  */
-      if (h->owner == owner)
+      if (header->owner == owner)
 	{
-	  size_t i;
-	  stream_destroy (&(h->stream), h);
-	  if (h->hdr)
-	    free (h->hdr);
-	  if (h->blurb)
-	    free (h->blurb);
-	  for (i = 0; i < h->fhdr_count; i++)
+	  stream_destroy (&(header->stream), header);
+
+	  if (header->hdr)
+	    free (header->hdr);
+
+	  if (header->blurb)
+	    free (header->blurb);
+
+	  /* Clean up the fast header cache.  */
+	  if (header->fhdr)
 	    {
-	      if (h->fhdr[i].fn)
-		free (h->fhdr[i].fn);
-	      if (h->fhdr[i].fv)
-		free (h->fhdr[i].fv);
+	      size_t i;
+	      for (i = 0; i < header->fhdr_count; i++)
+		{
+		  if (header->fhdr[i].fn)
+		    free (header->fhdr[i].fn);
+		  if (header->fhdr[i].fv)
+		    free (header->fhdr[i].fv);
+		}
+	      free (header->fhdr);
 	    }
-	  if (h->fhdr)
-	    free (h->fhdr);
-	  free (h);
+
+	  if (header->property)
+	    property_destroy (&(header->property), header);
+
+	  free (header);
 	}
       *ph = NULL;
     }
@@ -142,9 +153,9 @@ header_parse (header_t header, const char *blurb, int len)
     {
       char *fn, *fn_end, *fv, *fv_end;
 
-      if (header_start[0] == ' ' ||
-	  header_start[0] == '\t' ||
-	  header_start[0]== '\n')
+      if (header_start[0] == ' '
+	  || header_start[0] == '\t'
+	  || header_start[0] == '\n')
 	break;
 
       /* Second loop extract one header field.  */
@@ -245,13 +256,13 @@ header_set_value (header_t header, const char *fn, const char *fv, int replace)
   /* Easy approach: if replace, overwrite the field-{name,value} and readjust
      the pointers by calling header_parse () this is wastefull, we're just
      fragmenting the memory it can be done better.  But that may imply a
-     rewite of the headers So for another day.  */
+     rewite of the headers ... for another day.  */
   if (replace)
     {
       size_t name_len;
       size_t i;
-      size_t fn_len;
-      size_t fv_len;
+      size_t fn_len; /* Field Name len.  */
+      size_t fv_len; /* Field Value len.  */
       len = header->blurb_len;
       for (name_len = strlen (fn), i = 0; i < header->hdr_count; i++)
 	{
@@ -401,7 +412,8 @@ header_get_value (header_t header, const char *name, char *buffer,
   size_t i = 0;
   size_t name_len;
   size_t total = 0, fn_len = 0, fv_len = 0;
-  int threshold;
+  size_t threshold;
+  int rfc822 = 0;
   int err = 0;
 
   if (header == NULL || name == NULL)
@@ -444,6 +456,10 @@ header_get_value (header_t header, const char *name, char *buffer,
 	return err;
     }
 
+  /* Do they want rfc822 format  */
+  if (header->property)
+    rfc822 = property_is_set (header->property, "RFC822");
+
   /* We set the threshold to be 1 less for the null.  */
   threshold = --buflen;
 
@@ -464,19 +480,28 @@ header_get_value (header_t header, const char *name, char *buffer,
 	  /* Can everything fit in the buffer.  */
 	  if (buffer && threshold > 0)
 	    {
-	      threshold -= fv_len;
-	      if (threshold >= 0)
+	      buflen = (fv_len < threshold) ? fv_len : threshold;
+	      if (rfc822)
 		{
-		  memcpy (buffer, header->hdr[i].fv, fv_len);
-		  buffer += fv_len;
+		  /* Convert to \r\n */
+		  char *s = header->hdr[i].fv;
+		  size_t j;
+		  for (j = 0; j < buflen; s++, j++)
+		    {
+		      if (*s == '\n')
+			{
+			  buffer[j] = '\r';
+			  /* Side effect.  */
+			  if (++j >= buflen)
+			    break;
+			}
+		      buffer[j] = *s;
+		    }
 		}
-	      else if (threshold < 0)
-		{
-		  threshold += fv_len;
-		  memcpy (buffer, header->hdr[i].fv, threshold);
-		  buffer += threshold;
-		  threshold = 0;
-		}
+	      else
+		memcpy (buffer, header->hdr[i].fv, buflen);
+	      buffer += buflen;
+	      threshold -= buflen;
 	    }
 	}
     }
@@ -659,9 +684,30 @@ header_size (header_t header, size_t *psize)
 }
 
 int
+header_set_property (header_t header, property_t property, void *owner)
+{
+  if (header == NULL)
+    return EINVAL;
+  if (header->owner != owner)
+    return EACCES;
+  property_destroy (&(header->property), header);
+  header->property = property;
+  return 0;
+}
+
+int
+header_get_property (header_t header, property_t *pp)
+{
+  if (header == NULL || pp == NULL)
+    return EINVAL;
+  *pp = header->property;
+  return 0;
+}
+
+int
 header_set_get_fvalue (header_t header, int (*_get_fvalue)
-		       __P ((header_t, const char *, char *, size_t, size_t *)),
-		       void *owner)
+		       __P ((header_t, const char *, char *, size_t,
+			     size_t *)), void *owner)
 {
   if (header == NULL)
     return EINVAL;
@@ -746,7 +792,14 @@ fill_blurb (header_t header)
       free (header->fhdr);
       header->fhdr = NULL;
     }
+
+  /* The entire header is now ours(part of header_t), clear all the
+     overloading.  */
   header->_get_fvalue = NULL;
+  header->_get_value = NULL;
+  header->_set_value = NULL;
+  header->_size = NULL;
+  header->_lines = NULL;
 
   do
     {
@@ -811,11 +864,19 @@ header_write (stream_t os, const char *buf, size_t buflen,
 static int
 header_read (stream_t is, char *buf, size_t buflen, off_t off, size_t *pnread)
 {
-  header_t header = stream_get_owner (is);
   int len;
+  header_t header = stream_get_owner (is);
+  int rfc822 = 0;
 
   if (is == NULL || header == NULL)
     return EINVAL;
+
+  if (buf == NULL || buflen == 0)
+    {
+      if (pnread)
+	*pnread = 0;
+      return 0;
+    }
 
   /* Try to fill out the buffer, if we know how.  */
   if (header->blurb == NULL)
@@ -825,17 +886,53 @@ header_read (stream_t is, char *buf, size_t buflen, off_t off, size_t *pnread)
 	return err;
     }
 
-  len = header->blurb_len - off;
-  if (len > 0)
+  if (header->property)
+    rfc822 = property_is_set (header->property, "RFC822");
+
+  if (rfc822)
     {
-      if (buf)
+      size_t j;
+      int residue = 0;
+      char *s = header->blurb;
+      char *e = header->blurb + header->blurb_len;
+      /* Get to the offset.  */
+      for (j = 0; j < (size_t)off && s <= e; j++, s++)
+	{
+	  if (*s == '\n')
+	    {
+	      if (++j >= (size_t)off)
+		{
+		  residue = 1;
+		  break;
+		}
+	    }
+	}
+      if (residue)
+	buf[0] = '\r';
+      /* Copy.  */
+      for (j = residue ; j < buflen && s <= e; j++, s++)
+	{
+	  if (*s == '\n')
+	    {
+	      buf[j] = '\r';
+	      if (++j >= buflen)
+		break;
+	    }
+	  buf[j] = *s;
+	}
+      len = j;
+    }
+  else
+    {
+      len = header->blurb_len - off;
+      if (len > 0)
 	{
 	  len = (buflen < (size_t)len) ? buflen : len;
 	  memcpy (buf, header->blurb + off, len);
 	}
+      else
+	len = 0;
     }
-  else
-    len = 0;
 
   if (pnread)
     *pnread = len;
@@ -845,8 +942,9 @@ header_read (stream_t is, char *buf, size_t buflen, off_t off, size_t *pnread)
 static int
 header_readline (stream_t is, char *buf, size_t buflen, off_t off, size_t *pn)
 {
-  header_t header = stream_get_owner (is);
   int len;
+  header_t header = stream_get_owner (is);
+  int rfc822 = 0;
 
   if (is == NULL || header == NULL)
     return EINVAL;
@@ -866,24 +964,57 @@ header_readline (stream_t is, char *buf, size_t buflen, off_t off, size_t *pn)
 	return err;
     }
 
+  if (header->property)
+    rfc822 = property_is_set (header->property, "RFC822");
+
   buflen--; /* Space for the null.  */
 
-  len = header->blurb_len - off;
-  if (len > 0)
+  if (rfc822)
     {
-      char *nl = memchr (header->blurb + off, '\n', len);
-      if (nl)
-	len = nl - (header->blurb + off) + 1;
-
-      len = (buflen < (size_t)len) ? buflen : len;
-      memcpy (buf, header->blurb + off, len);
-      buf[len] = '\0';
+      size_t j;
+      char *s = header->blurb;
+      char *e = header->blurb + header->blurb_len;
+      char *nl;
+      /* Get to the offset.  */
+      for (j = 0; j < (size_t)off && s <= e; j++, s++)
+	{
+	  if (*s == '\n')
+	    {
+	      if (++j >= (size_t)off)
+		break;
+	    }
+	}
+      /* Copy.  */
+      e = (nl = memchr (s, '\n', e - s)) ? nl : e;
+      for (j = 0 ; j < buflen && s <= e; j++, s++)
+	{
+	  if (*s == '\n')
+	    {
+	      buf[j] = '\r';
+	      if (++j >= buflen)
+		break;
+	    }
+	  buf[j] = *s;
+	}
+      len = j;
     }
   else
-    len = 0;
-
+    {
+      len = header->blurb_len - off;
+      if (len > 0)
+	{
+	  char *nl = memchr (header->blurb + off, '\n', len);
+	  if (nl)
+	    len = nl - (header->blurb + off) + 1;
+	  len = (buflen < (size_t)len) ? buflen : len;
+	  memcpy (buf, header->blurb + off, len);
+	}
+      else
+	len = 0;
+    }
   if (pn)
     *pn = len;
+  buf[len] = '\0';
   return 0;
 }
 

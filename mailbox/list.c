@@ -154,6 +154,9 @@ list_remove (list_t list, void *item)
   return ENOENT;
 }
 
+/* FIXME: FIXME: FIXME: URGENT:
+   Every time we iterate through the loop to get the data, an easy
+   fix is to a an index to the current.  */
 int
 list_get (list_t list, size_t index, void **pitem)
 {

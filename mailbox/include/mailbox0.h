@@ -27,7 +27,6 @@
 
 #include <mailutils/monitor.h>
 #include <mailutils/mailbox.h>
-#include <mailutils/folder.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -49,6 +48,8 @@ struct _mailbox
   ticket_t ticket;
   authority_t authority;
   property_t property;
+  struct property_list *properties;
+  size_t properties_count;
   locker_t locker;
   stream_t stream;
   url_t url;

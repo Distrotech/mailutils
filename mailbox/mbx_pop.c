@@ -38,6 +38,8 @@
 #include <mailbox0.h>
 #include <registrar0.h>
 
+#define PROP_RFC822 1
+
 /* Advance declarations.  */
 struct _pop_data;
 struct _pop_message;
@@ -292,6 +294,15 @@ _mailbox_pop_init (mailbox_t mbox)
 
   mbox->_size = pop_size;
 
+  /* Properties.  */
+  mbox->properties = calloc (2, sizeof (*(mbox->properties)));
+  if (mbox->properties == NULL)
+    return ENOMEM;
+  mbox->properties_count = 2;
+  mbox->properties[0].key = strdup ("POP3");
+  mbox->properties[0].value = 1;
+  mbox->properties[1].key = strdup ("RFC822");
+  mbox->properties[1].value = 0;
   return 0; /* Okdoke.  */
 }
 
@@ -460,7 +471,7 @@ pop_open (mailbox_t mbox, int flags)
   url_get_host (mbox->url, host, hostlen + 1, NULL);
   url_get_port (mbox->url, &port);
 
-  mbox->flags = flags | MU_STREAM_POP;
+  mbox->flags = flags;
 
   CHECK_BUSY (mbox, mpd, func, 0);
 
@@ -1844,12 +1855,14 @@ pop_readline (pop_data_t mpd)
 	  mpd->nl = NULL;
 	}
     }
-  /* \r\n --> \n\0  */
-  if (mpd->nl > mpd->buffer)
-    {
-      *(mpd->nl - 1) = '\n';
-      *(mpd->nl) = '\0';
-      mpd->ptr = mpd->nl;
-    }
+  /* \r\n --> \n\0, conversion,  If the propety is set no conversion
+     is done.  */
+  if (mpd->mbox->properties[PROP_RFC822].value == 0)
+    if (mpd->nl > mpd->buffer)
+      {
+	*(mpd->nl - 1) = '\n';
+	*(mpd->nl) = '\0';
+	mpd->ptr = mpd->nl;
+      }
   return 0;
 }

@@ -19,50 +19,22 @@
 #include <config.h>
 #endif
 
-#include <errno.h>
-#include <stdlib.h>
+#include <property0.h>
 
-#include <mailutils/property.h>
-#include <mailutils/list.h>
-#include <mailutils/iterator.h>
-
-#ifdef DMALLOC
-# include <dmalloc.h>
-#endif
-
-struct property_data
-{
-  size_t hash;
-  const void *value;
-};
-
-struct _property
-{
-  void *owner;
-  list_t list;
-  int (*_set_value) __P ((property_t , const char *, const void *));
-  int (*_get_value) __P ((property_t, const char *, void **));
-};
-
-static int property_find __P ((list_t, const char *, struct property_data **));
-static size_t hash __P ((const char *));
+static int property_find __P ((list_t, const char *, struct property_list **));
+static int property_add __P ((property_t, const char *, int, int *));
+static void property_update __P ((struct property_list *));
+static size_t property_hash __P ((const char *));
 
 int
 property_create (property_t *pp, void *owner)
 {
   property_t prop;
-  int status;
   if (pp == NULL)
     return EINVAL;
   prop = calloc (1, sizeof (*prop));
   if (prop == NULL)
     return ENOMEM;
-  status = list_create (&(prop->list));
-  if (status != 0)
-    {
-      free (prop);
-      return status;
-    }
   prop->owner = owner;
   *pp = prop;
   return 0;
@@ -76,7 +48,30 @@ property_destroy (property_t *pp, void *owner)
       property_t prop = *pp;
       if (prop->owner == owner)
 	{
-	  list_destroy (&(prop->list));
+	  /* Destroy the list and is properties.  */
+	  if (prop->list)
+	    {
+	      struct property_list *pl = NULL;
+	      iterator_t iterator = NULL;
+
+	      iterator_create (&iterator, prop->list);
+
+	      for (iterator_first (iterator); !iterator_is_done (iterator);
+		   iterator_next (iterator))
+		{
+		  iterator_current (iterator, (void **)&pl);
+		  if (pl)
+		    {
+		      if (pl->key)
+			free (pl->key);
+		      if (pl->private_)
+			free (pl->private_);
+		      free (pl);
+		    }
+		}
+	      iterator_destroy (&iterator);
+	      list_destroy (&(prop->list));
+	    }
 	  free (prop);
 	}
       *pp = NULL;
@@ -90,148 +85,103 @@ property_get_owner (property_t prop)
 }
 
 int
-property_set_set_value (property_t prop, int (*_set_value)
-			__P ((property_t , const char *, const void *)),
-			void *owner)
+property_add_default (property_t prop, const char *key, int *address,
+		      void *owner)
 {
   if (prop == NULL)
     return EINVAL;
   if (prop->owner != owner)
     return EACCES;
-  prop->_set_value = _set_value;
-  return 0;
+  return property_add (prop, key, 0, address);
 }
 
 int
-property_set_value (property_t prop, const char *key,  const void *value)
+property_set_value (property_t prop, const char *key,  int value)
 {
-  struct property_data *pd = NULL;
+
+  if (prop == NULL)
+    return EINVAL;
+  return property_add (prop, key, value, NULL);
+}
+
+int
+property_get_value (property_t prop, const char *key, int *pvalue)
+{
+  struct property_list *pl = NULL;
   int status;
 
   if (prop == NULL)
     return EINVAL;
 
-  if (prop->_set_value)
-    return prop->_set_value (prop, key, value);
-
-  status = property_find (prop->list, key, &pd);
+  status = property_find (prop->list, key, &pl);
   if (status != 0)
     return status;
 
-  if (pd == NULL)
-    {
-      pd = calloc (1, sizeof (*pd));
-      if (pd == NULL)
-	return ENOMEM;
-      pd->hash = hash (key);
-      pd->value = (void *)value;
-      list_append (prop->list, (void *)pd);
-    }
-  else
-    pd->value = (void *)value;
-  return 0;
-}
-
-int
-property_set_get_value (property_t prop, int (*_get_value)
-			__P ((property_t, const char *, void **)),
-			void *owner)
-{
-  if (prop == NULL)
-    return EINVAL;
-  if (prop->owner != owner)
-    return EACCES;
-  prop->_get_value = _get_value;
-  return 0;
-}
-
-int
-property_get_value (property_t prop, const char *key, void **pvalue)
-{
-  struct property_data *pd = NULL;
-  int status;
-
-  if (prop == NULL)
-    return EINVAL;
-
-  if (prop->_get_value)
-    return prop->_get_value (prop, key, pvalue);
-
-  status = property_find (prop->list, key, &pd);
-  if (status != 0)
-    return status;
-
-  if (pd == NULL)
+  if (pl == NULL)
     return ENOENT;
 
+  /* Update the value.  */
+  property_update (pl);
   if (pvalue)
-    *pvalue =  (void *)pd->value;
+    *pvalue = pl->value;
   return 0;
 }
 
 int
 property_set  (property_t prop, const char *k)
 {
-  return property_set_int (prop, k, 1);
+  return property_set_value (prop, k, 1);
 }
 
 int
 property_unset (property_t prop, const char *k)
 {
-  return property_set_int (prop, k, 0);
+  int v = 0;
+  property_get_value (prop, k, &v);
+  if (v != 0)
+    return property_set_value (prop, k, 0);
+  return 0;
 }
 
 int
 property_is_set (property_t prop, const char *k)
 {
-  return property_get_int (prop, k);
+  int v = 0;
+  property_get_value (prop, k, &v);
+  return (v != 0);
 }
 
 int
-property_set_int (property_t prop, const char *k, int i)
+property_get_list (property_t prop, list_t *plist)
 {
-  return property_set_value (prop, k, (void *)i);
-}
+  struct property_list *pl = NULL;
+  iterator_t iterator = NULL;
+  int status;
 
-int
-property_get_int (property_t prop, const char *k)
-{
-  int value = 0;
-  property_get_value (prop, k, (void **)&value);
-  return value;
-}
+  if (plist == NULL || prop == NULL)
+    return EINVAL;
 
-int
-property_set_long (property_t prop, const char *k, long l)
-{
-  return property_set_value (prop, k, (const void *)l);
-}
+  status = iterator_create (&iterator, prop->list);
+  if (status != 0)
+    return status;
 
-long
-property_get_long (property_t prop, const char *k)
-{
-  long value = 0;
-  property_get_value (prop, k, (void **)&value);
-  return value;
-}
+  /* Make sure the values are updated before passing it outside.  */
+  for (iterator_first (iterator); !iterator_is_done (iterator);
+       iterator_next (iterator))
+    {
+      iterator_current (iterator, (void **)&pl);
+      if (pl)
+	property_update (pl);
+    }
+  iterator_destroy (&iterator);
 
-int
-property_set_pointer (property_t prop, const char *k, void *p)
-{
-  return property_set_value (prop, k, p);
-}
-
-void *
-property_get_pointer (property_t prop, const char *k)
-{
-  void *value = NULL;
-  property_get_value (prop, k, &value);
-  return value;
+  *plist = prop->list;
+  return 0;
 }
 
 /* Taking from an article in Dr Dobbs.  */
 static size_t
-hash (const char *s)
+property_hash (const char *s)
 {
   size_t hashval;
   for (hashval = 0; *s != '\0' ; s++)
@@ -246,30 +196,106 @@ hash (const char *s)
   return hashval;
 }
 
+static void
+property_update (struct property_list *pl)
+{
+  /* Update the value.  */
+  if (pl->private_)
+    {
+      struct property_private *private_ = pl->private_;
+      if (private_->address)
+	pl->value =  *(private_->address);
+    }
+}
+
 static int
-property_find (list_t list, const char *key, struct property_data **p)
+property_find (list_t list, const char *key, struct property_list **p)
 {
   int status;
   size_t h;
-  struct property_data *pd = NULL;
+  struct property_list *pl = NULL;
   iterator_t iterator;
 
   status = iterator_create (&iterator, list);
   if (status != 0)
     return status;
 
-  h = hash (key);
+  h = property_hash (key);
   for (iterator_first (iterator); !iterator_is_done (iterator);
        iterator_next (iterator))
     {
-      iterator_current (iterator, (void **)&pd);
-      if (pd && pd->hash == h)
+      iterator_current (iterator, (void **)&pl);
+      if (pl)
         {
-	  break;
+	  struct property_private *private_ = pl->private_;
+	  if (private_->hash == h)
+	    if (strcasecmp (pl->key, key) == 0)
+	      break;
 	}
-      pd = NULL;
+      pl = NULL;
     }
   iterator_destroy (&iterator);
-  *p = pd;
+  *p = pl;
+  return 0;
+}
+
+static int
+property_add (property_t prop, const char *key, int value, int *address)
+{
+  struct property_list *pl = NULL;
+  int status;
+
+  if (key == NULL)
+    return EINVAL;
+
+  if (prop->list == NULL)
+    {
+      status = list_create (&(prop->list));
+      if (status != 0)
+	return status;
+    }
+
+  status = property_find (prop->list, key, &pl);
+  if (status != 0)
+    return status;
+
+  /* None find create a new one.  */
+  if (pl == NULL)
+    {
+      struct property_private *private_;
+      pl = calloc (1, sizeof (*pl));
+      if (pl == NULL)
+	return ENOMEM;
+      private_ = calloc (1, sizeof (*private_));
+      if (private_ == NULL)
+	{
+	  free (pl);
+	  return ENOMEM;
+	}
+      pl->key = strdup (key);
+      if (pl->key == NULL)
+	{
+	  free (private_);
+	  free (pl);
+	  return ENOMEM;
+	}
+      pl->value = value;
+      private_->hash = property_hash (key);
+      private_->address = address;
+      pl->private_ = private_;
+      list_append (prop->list, (void *)pl);
+    }
+  else
+    {
+      struct property_private *private_ = pl->private_;
+      if (address)
+	private_->address = address;
+      else
+	{
+	  if (private_->address)
+	    *(private_->address) = value;
+	  pl->value = value;
+	}
+    }
   return 0;
 }

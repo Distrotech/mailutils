@@ -144,6 +144,15 @@ _mailbox_imap_init (mailbox_t mailbox)
   /* maibox back pointer.  */
   m_imap->mailbox = mailbox;
 
+  /* Set our properties.  */
+  mailbox->properties = calloc (2, sizeof (*(mailbox->properties)));
+  if (mailbox->properties == NULL)
+    return ENOMEM;
+  mailbox->properties_count = 2;
+  mailbox->properties[0].key = strdup ("IMAP4");
+  mailbox->properties[0].value = 1;
+  mailbox->properties[1].key = strdup ("RFC822");
+  mailbox->properties[1].value = 0;
   return 0;
 }
 

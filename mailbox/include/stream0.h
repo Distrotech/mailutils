@@ -54,7 +54,7 @@ struct _stream
 
   /* Read space.  */
   off_t roff;
-  struct rbuffer rbuffer; /* The buffer (at least 1 byte, if !NULL) */
+  struct rbuffer rbuffer;
 
   void (*_destroy) __P ((stream_t));
   int (*_open)     __P ((stream_t, const char *, int port, int flags));

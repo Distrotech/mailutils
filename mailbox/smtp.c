@@ -159,6 +159,14 @@ _mailer_smtp_init (mailer_t mailer)
   mailer->_close = smtp_close;
   mailer->_send_message = smtp_send_message;
 
+  /* Set our properties.  */
+  mailer->properties = calloc (1, sizeof (*(mailer->properties)));
+  if (mailer->properties == NULL)
+    return ENOMEM;
+  mailer->properties_count = 1;
+  mailer->properties[0].key = strdup ("SMTP");
+  mailer->properties[0].value = 1;
+
   return 0;
 }
 
@@ -193,7 +201,7 @@ smtp_open (mailer_t mailer, int flags)
   if (smtp == NULL)
     return EINVAL;
 
-  mailer->flags = flags | MU_STREAM_SMTP;
+  mailer->flags = flags;
 
   /* Fetch the mailer server name and the port in the url_t.  */
   if ((status = url_get_host (mailer->url, NULL, 0, &buf_len)) != 0

@@ -17,6 +17,7 @@ mime0.h \
 misc.h  \
 monitor0.h  \
 observer0.h \
+property0.h \
 registrar0.h \
 stream0.h \
 tcp0.h \

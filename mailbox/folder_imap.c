@@ -29,6 +29,8 @@
 
 #include <imap0.h>
 
+#define PROP_RFC822 1
+
 /* Variable use for the registrar.  */
 static struct _record _imap_record =
 {
@@ -222,7 +224,7 @@ folder_imap_open (folder_t folder, int flags)
   url_get_host (folder->url, host, len + 1, NULL);
   url_get_port (folder->url, &port);
 
-  folder->flags = flags | MU_STREAM_IMAP;
+  folder->flags = flags;
 
   switch (f_imap->state)
     {
@@ -1579,13 +1581,15 @@ imap_readline (f_imap_t f_imap)
   while (f_imap->nl == NULL);
 
   /* Conversion \r\n --> \n\0  */
-  /* FIXME: We should use a property to enable or disable conversion.  */
-  if (f_imap->nl > f_imap->buffer)
-    {
-      *(f_imap->nl - 1) = '\n';
-      *(f_imap->nl) = '\0';
-      f_imap->ptr = f_imap->nl;
-    }
+  /**/
+  if (f_imap->selected == NULL
+      || f_imap->selected->mailbox->properties[PROP_RFC822].value == 0)
+    if (f_imap->nl > f_imap->buffer)
+      {
+	*(f_imap->nl - 1) = '\n';
+	*(f_imap->nl) = '\0';
+	f_imap->ptr = f_imap->nl;
+      }
   return 0;
 }
 

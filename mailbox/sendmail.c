@@ -1,5 +1,5 @@
 /* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Library Public License as published by
@@ -81,6 +81,13 @@ _mailer_sendmail_init (mailer_t mailer)
   mailer->_close = sendmail_close;
   mailer->_send_message = sendmail_send_message;
 
+  /* Set our properties.  */
+  mailer->properties = calloc (1, sizeof (*(mailer->properties)));
+  if (mailer->properties == NULL)
+    return ENOMEM;
+  mailer->properties_count = 1;
+  mailer->properties[0].key = strdup ("SENDMAIL");
+  mailer->properties[0].value = 1;
   return 0;
 }
 
@@ -109,7 +116,7 @@ sendmail_open (mailer_t mailer, int flags)
   if (sendmail == NULL)
     return EINVAL;
 
-  mailer->flags = flags | MU_STREAM_SENDMAIL;
+  mailer->flags = flags;
 
   /* Fetch the mailer server name and the port in the url_t.  */
   if ((status = url_get_path (mailer->url, NULL, 0, &pathlen)) != 0

@@ -1,5 +1,5 @@
 /* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU Library General Public License as published by
@@ -25,6 +25,7 @@
 #include <sys/types.h>
 #include <mailutils/mailer.h>
 #include <mailutils/monitor.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -38,8 +39,8 @@ extern "C" {
 #endif /*__P */
 
 // mailer states
-#define MAILER_STATE_HDR		1
-#define MAILER_STATE_MSG		2
+#define MAILER_STATE_HDR	1
+#define MAILER_STATE_MSG	2
 #define MAILER_STATE_COMPLETE	3
 
 // mailer messages
@@ -60,6 +61,9 @@ struct _mailer
   url_t url;
   int flags;
   monitor_t monitor;
+  property_t property;
+  struct property_list *properties;
+  size_t properties_count;
 
   /* Pointer to the specific mailer data.  */
   void *data;

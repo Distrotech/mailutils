@@ -47,6 +47,10 @@
 #include <mailbox0.h>
 
 
+/* See porperties in _init.  */
+#define PROP_TYPE 0
+#define PROP_RFC822  1
+
 #define ATTRIBUTE_IS_DELETED(flag)        (flag & MU_ATTRIBUTE_DELETED)
 #define ATTRIBUTE_IS_EQUAL(flag1, flag2)  (flag1 == flag2)
 
@@ -96,33 +100,37 @@ const char *fhdr_table[] =
   "X-UIDL"
 };
 
-/* Keep the positions of where the headers and bodies start and end.
+/* Keep the file positions of where the headers and bodies start and end.
    attr_flags is the "Status:" message.  */
 struct _mbox_message
 {
-  /* Offset of the parts of the messages in the mailbox.  */
+  /* Offset of the messages in the mailbox.  */
   off_t header_from;
   off_t header_from_end;
   off_t body;
   off_t body_end;
 
-  /* Fast header retrieve, we save here the most common header. This will
-     speed the header search.  The entire headers are copied when modified
+  /* Save the offset for rfc822 format.  */
+  struct _rfc822
+  {
+    off_t r_offset;
+    off_t f_offset;
+    int residue;
+  } rfc822;
+
+  /* Fast header retrieve, we save here the most common headers. This will
+     speed the header search.  The entire headers are copied, when modified,
      by the header_t object, we do not have to worry about updating them.  */
   char *fhdr[HDRSIZE];
 
-  /* IMAP uid.  */
-  size_t uid;
+  size_t uid; /* IMAP uid.  */
 
-  /* The attr_flags contains the "Status:" attribute  */
-  int attr_flags;
+  int attr_flags; /* The attr_flags contains the "Status:" attribute  */
 
   size_t header_lines;
   size_t body_lines;
-  stream_t stream;
 
-  /* A message attach to it.  */
-  message_t message;
+  message_t message; /* A message attach to it.  */
   mbox_data_t mud; /* Back pointer.  */
 };
 
@@ -136,8 +144,7 @@ struct _mbox_data
   mbox_message_t *umessages; /* Array.  */
   size_t umessages_count; /* How big is the umessages[].  */
   size_t messages_count; /* How many valid entry in umessages[].  */
-  stream_t stream;
-  off_t size;
+  off_t size; /* Size of the mailbox.  */
   unsigned long uidvalidity;
   size_t uidnext;
   char *name;
@@ -153,7 +160,6 @@ struct _mbox_data
   char *sender;
   char *date;
   off_t off;
-  property_t property;
   mailbox_t mailbox; /* Back pointer. */
 };
 
@@ -172,7 +178,6 @@ static int mbox_uidnext               __P ((mailbox_t, size_t *));
 static int mbox_scan                  __P ((mailbox_t, size_t, size_t *));
 static int mbox_is_updated            __P ((mailbox_t));
 static int mbox_size                  __P ((mailbox_t, off_t *));
-static int mbox_get_property          __P ((mailbox_t, property_t *));
 
 /* private stuff */
 static int mbox_scan0                 __P ((mailbox_t, size_t, size_t *, int));
@@ -181,8 +186,6 @@ static int mbox_append_message0       __P ((mailbox_t, message_t, off_t *,
 static int mbox_message_uid           __P ((message_t, size_t *));
 static int mbox_header_fill           __P ((header_t, char *, size_t, off_t,
 					    size_t *));
-static int mbox_get_header_readstream __P ((message_t, char *, size_t, off_t,
-					    size_t *, int));
 static int mbox_get_body_fd           __P ((stream_t, int *));
 static int mbox_get_fd                __P ((mbox_message_t, int *));
 static int mbox_get_attr_flags        __P ((attribute_t, int *));
@@ -192,8 +195,13 @@ static int mbox_body_read             __P ((stream_t, char *, size_t, off_t,
 					    size_t *));
 static int mbox_body_readline         __P ((stream_t, char *, size_t, off_t,
 					    size_t *));
-static int mbox_body_readstream       __P ((stream_t, char *, size_t, off_t,
-					    size_t *, int));
+static int mbox_readstream_rfc822     __P ((mbox_message_t, char *, size_t,
+					    off_t, size_t *, int, off_t,
+					    off_t));
+static int mbox_readstream            __P ((mbox_message_t, char *, size_t,
+					    off_t, size_t *, int, off_t,
+					    off_t));
+
 static int mbox_header_size           __P ((header_t, size_t *));
 static int mbox_header_lines          __P ((header_t, size_t *));
 static int mbox_body_size             __P ((body_t, size_t *));
@@ -228,7 +236,7 @@ _mailbox_mbox_init (mailbox_t mailbox)
   /* Back pointer.  */
   mud->mailbox = mailbox;
 
-  /* Copy the name.
+  /* Copy the name:
      We do not do any further interpretation after the scheme "mbox:"
      Because for example on distributed system like QnX4 a file name is
      //390/etc/passwd.  So the best approach is to let the OS handle it
@@ -269,7 +277,15 @@ _mailbox_mbox_init (mailbox_t mailbox)
 
   mailbox->_size = mbox_size;
 
-  mailbox->_get_property = mbox_get_property;
+  /* Set our properties.  */
+  mailbox->properties = calloc (2, sizeof (*(mailbox->properties)));
+  if (mailbox->properties == NULL)
+    return ENOMEM;
+  mailbox->properties_count = 2;
+  mailbox->properties[0].key = strdup ("MBOX");
+  mailbox->properties[0].value = 1;
+  mailbox->properties[1].key = strdup ("RFC822");
+  mailbox->properties[1].value = 0;
 
   MAILBOX_DEBUG1 (mailbox, MU_DEBUG_TRACE, "mbox_init(%s)\n", mud->name);
   return 0; /* okdoke */
@@ -320,7 +336,7 @@ mbox_open (mailbox_t mailbox, int flags)
   if (mud == NULL)
     return EINVAL;
 
-  mailbox->flags = flags | MU_STREAM_FILE;
+  mailbox->flags = flags;
 
   /* Get a stream.  */
   if (mailbox->stream == NULL)
@@ -329,7 +345,7 @@ mbox_open (mailbox_t mailbox, int flags)
       status = (flags & MU_STREAM_CREAT)
 	|| (mailbox->flags & MU_STREAM_APPEND);
 
-      /* Try to mmap() the file first.  */
+      /* Try to mmap () the file first.  */
       if (status == 0)
 	{
 	  status = mapfile_stream_create (&(mailbox->stream));
@@ -928,7 +944,7 @@ mbox_get_fd (mbox_message_t mum, int *pfd)
   int status;
   if (mum == NULL)
     return EINVAL;
-  status = stream_get_fd (mum->stream, pfd);
+  status = stream_get_fd (mum->mud->mailbox->stream, pfd);
   return status;
 }
 
@@ -970,66 +986,129 @@ mbox_unset_attr_flags (attribute_t attr, int flags)
 }
 
 static int
-mbox_property_set_value (property_t property, const char *k, const void *v)
-{
-  mailbox_t mbox = property_get_owner (property);
-  mbox_data_t mud = mbox->data;
-  return property_set_value (mud->property, k, v);
-}
-
-static int
-mbox_property_get_value (property_t property, const char *k, void **v)
-{
-  mailbox_t mbox = property_get_owner (property);
-  mbox_data_t mud = mbox->data;
-  return property_get_value (mud->property, k, v);
-}
-
-static int
-mbox_get_property (mailbox_t mbox, property_t *pprop)
-{
-  mbox_data_t mud = mbox->data;
-  int status = property_create (&(mbox->property), mbox);
-  if (status != 0)
-    return status;
-  status = property_create (&(mud->property), mud);
-  if (status != 0)
-    {
-      property_destroy (&(mbox->property), mbox);
-      return status;
-    }
-  property_set_set_value (mbox->property, mbox_property_set_value, mbox);
-  property_set_get_value (mbox->property, mbox_property_get_value, mbox);
-  *pprop = mbox->property;
-  return 0;
-}
-
-static int
 mbox_body_readline (stream_t is, char *buffer, size_t buflen,
 		    off_t off, size_t *pnread)
 {
-  return mbox_body_readstream (is, buffer, buflen, off, pnread, 1);
+  body_t body = stream_get_owner (is);
+  message_t msg = body_get_owner (body);
+  mbox_message_t mum = message_get_owner (msg);
+
+  if (mum->mud->mailbox->properties[PROP_RFC822].value)
+    return mbox_readstream_rfc822 (mum, buffer, buflen, off, pnread, 1,
+				   mum->body, mum->body_end);
+  else
+    return mbox_readstream (mum, buffer, buflen, off, pnread, 1,
+			    mum->body, mum->body_end);
 }
 
 static int
 mbox_body_read (stream_t is, char *buffer, size_t buflen,
 		off_t off, size_t *pnread)
 {
-  return mbox_body_readstream (is, buffer, buflen, off, pnread, 0);
-}
-
-static int
-mbox_body_readstream (stream_t is, char *buffer, size_t buflen,
-		off_t off, size_t *pnread, int isreadline)
-{
   body_t body = stream_get_owner (is);
   message_t msg = body_get_owner (body);
   mbox_message_t mum = message_get_owner (msg);
-  size_t nread = 0;
+  if (mum->mud->mailbox->properties[PROP_RFC822].value)
+    return mbox_readstream_rfc822 (mum, buffer, buflen, off, pnread, 0,
+				   mum->body, mum->body_end);
+  else
+    return mbox_readstream (mum, buffer, buflen, off, pnread, 0,
+			    mum->body, mum->body_end);
+}
+
+static int
+mbox_readstream_rfc822 (mbox_message_t mum, char *buffer, size_t buflen,
+			off_t off, size_t *pnread, int isreadline,
+			off_t start, off_t end)
+{
+  size_t total = 0;
   int status = 0;
 
-  if (mum == NULL)
-    return EINVAL;
+  if (isreadline)
+    buflen--;
+  /* Catch up i.e bring us to the current offset.  */
+  if (mum->rfc822.r_offset != off)
+    {
+      mum->rfc822.r_offset = off - mum->body_lines;
+      mum->rfc822.residue = 0;
+
+      if (mum->rfc822.r_offset < 0)
+	mum->rfc822.r_offset = 0;
+      mum->rfc822.f_offset = mum->rfc822.r_offset;
+      while (mum->rfc822.r_offset < off)
+	{
+	  char c;
+	  size_t n = 0;
+	  status = stream_read (mum->mud->mailbox->stream, &c, 1,
+				mum->rfc822.f_offset, &n);
+	  if (status != 0)
+	    return status;
+	  if (n == 0)
+	    break;
+	  if (c == '\n')
+	    {
+	      mum->rfc822.r_offset++;
+	      if (mum->rfc822.r_offset == off)
+		{
+		  mum->rfc822.residue = 1;
+		  break;
+		}
+	    }
+	  mum->rfc822.r_offset++;
+	  mum->rfc822.f_offset++;
+	}
+    }
+
+  do
+    {
+      size_t nread = 0;
+      status = mbox_readstream (mum, buffer, buflen, mum->rfc822.f_offset,
+				&nread, 1, start, end);
+      if (status != 0)
+	return status;
+      if (nread == 0)
+	break;
+      mum->rfc822.f_offset += nread;
+      mum->rfc822.r_offset += nread;
+      total += nread;
+      buflen -= nread;
+      if (buffer[nread - 1] == '\n')
+	{
+	  if (!mum->rfc822.residue)
+	    {
+	      buffer[nread - 1] = '\r';
+	      if (buflen == 0)
+		{
+		  mum->rfc822.residue = 1;
+		  break;
+		}
+	      buffer[nread] = '\n';
+	      buflen--;
+	      nread++;
+	      total++;
+	      mum->rfc822.r_offset++;
+	    }
+	  else
+	    mum->rfc822.residue = 0;
+	}
+      buffer += nread;
+    } while (buflen > 0 || !isreadline);
+
+  if (isreadline)
+    *buffer = '\0';
+
+  if (pnread)
+    *pnread = total;
+  return status;
+}
+
+static int
+mbox_readstream (mbox_message_t mum, char *buffer, size_t buflen,
+		 off_t off, size_t *pnread, int isreadline,
+		 off_t start, off_t end)
+{
+  size_t nread = 0;
+  int status = 0;
 
   if (buffer == NULL || buflen == 0)
     {
@@ -1045,29 +1124,17 @@ mbox_body_readstream (stream_t is, char *buffer, size_t buflen,
   pthread_cleanup_push (mbox_cleanup, (void *)mum->mud->mailbox);
 #endif
   {
-    off_t ln = mum->body_end - (mum->body + off);
+    off_t ln = end - (start + off);
     if (ln > 0)
       {
 	/* Position the file pointer and the buffer.  */
+	nread = ((size_t)ln < buflen) ? ln : buflen;
 	if (isreadline)
-	  {
-	    status = stream_readline (mum->stream, buffer, buflen,
-				      mum->body + off, &nread);
-	    /* This mean we went pass the message boundary, technically it
-	       should not be since we are reading by line, but just in case
-	       truncate the string.  */
-	    if (nread > (size_t)ln)
-	      {
-		buffer[ln] = '\0';
-		nread = ln;
-	      }
-	  }
+	  status = stream_readline (mum->mud->mailbox->stream, buffer, buflen,
+				    start + off, &nread);
 	else
-	  {
-	    nread = ((size_t)ln < buflen) ? ln : buflen;
-	    status = stream_read (mum->stream, buffer, nread,
-				  mum->body + off, &nread);
-	  }
+	  status = stream_read (mum->mud->mailbox->stream, buffer, nread,
+				start + off, &nread);
       }
   }
   monitor_unlock (mum->mud->mailbox->monitor);
@@ -1097,14 +1164,19 @@ mbox_header_fill (header_t header, char *buffer, size_t len,
 	  mum->fhdr[j] = NULL;
 	}
     }
-  return mbox_get_header_readstream (msg, buffer, len, off, pnread, 0);
+  if (mum->mud->mailbox->properties[PROP_RFC822].value)
+    return mbox_readstream_rfc822 (mum, buffer, len, off, pnread, 0,
+				   mum->header_from_end, mum->body);
+  else
+    return mbox_readstream (mum, buffer, len, off, pnread, 0,
+			    mum->header_from_end, mum->body);
 }
 
 static int
 mbox_header_get_fvalue (header_t header, const char *name, char *buffer,
 		       size_t buflen, size_t *pnread)
 {
-  size_t i, fv_value = 0;
+  size_t i, fv_len = 0;
   message_t msg = header_get_owner (header);
   mbox_message_t mum = message_get_owner (msg);
   int err = ENOENT;
@@ -1114,13 +1186,34 @@ mbox_header_get_fvalue (header_t header, const char *name, char *buffer,
 	{
 	  if (mum->fhdr[i])
 	    {
-	      fv_value = strlen (mum->fhdr[i]);
+	      fv_len = strlen (mum->fhdr[i]);
 	      if (buffer && buflen > 0)
 		{
+		  /* For the null.  */
 		  buflen--;
-		  fv_value = (fv_value < buflen) ? fv_value : buflen;
-		  memcpy (buffer, mum->fhdr[i], fv_value);
-		  buffer[fv_value] = '\0';
+		  /* Convert to \r\n */
+		  if (mum->mud->mailbox->properties[PROP_RFC822].value)
+		    {
+		      char *s = mum->fhdr[i];
+		      for (fv_len = 0; *s && fv_len < buflen;
+			   s++, fv_len++)
+			{
+			  if (*s == '\n')
+			    {
+			      buffer[fv_len] = '\r';
+			      /* Side effect.  */
+			      if (++fv_len >= buflen)
+				break;
+			    }
+			  buffer[fv_len] = *s;
+			}
+		    }
+		  else
+		    {
+		      fv_len = (fv_len < buflen) ? fv_len : buflen;
+		      memcpy (buffer, mum->fhdr[i], fv_len);
+		    }
+		  buffer[fv_len] = '\0';
 		}
 	      err = 0;
 	    }
@@ -1131,46 +1224,8 @@ mbox_header_get_fvalue (header_t header, const char *name, char *buffer,
     }
 
   if (pnread)
-    *pnread = fv_value;
+    *pnread = fv_len;
   return err;
-}
-
-static int
-mbox_get_header_readstream (message_t msg, char *buffer, size_t len,
-			    off_t off, size_t *pnread, int isreadline)
-{
-  mbox_message_t mum = message_get_owner (msg);
-  size_t nread = 0;
-  int status = 0;
-  off_t ln;
-
-  if (mum == NULL)
-    return EINVAL;
-
-  monitor_rdlock (mum->mud->mailbox->monitor);
-#ifdef WITH_PTHREAD
-  /* read() is cancellation point since we're doing a potentially
-     long operation.  Lets make sure we clean the state.  */
-  pthread_cleanup_push (mbox_cleanup, (void *)mum->mud->mailbox);
-#endif
-  ln = mum->body - (mum->header_from_end + off);
-  if (ln > 0)
-    {
-      nread = ((size_t)ln < len) ? ln : len;
-      /* Position the file pointer and the buffer.  */
-      status = (isreadline) ?
-	stream_readline (mum->stream, buffer, nread,
-			 mum->header_from_end + off, &nread) :
-	stream_read (mum->stream, buffer, nread,
-		     mum->header_from_end + off, &nread);
-    }
-  monitor_unlock (mum->mud->mailbox->monitor);
-#ifdef WITH_PTHREAD
-  pthread_cleanup_pop (0);
-#endif
-  if (pnread)
-    *pnread = nread;
-  return status;
 }
 
 static int
@@ -1181,7 +1236,11 @@ mbox_header_size (header_t header, size_t *psize)
   if (mum == NULL)
     return EINVAL;
   if (psize)
-    *psize = mum->body - mum->header_from_end;
+    {
+      *psize = mum->body - mum->header_from_end;
+      if (mum->mud->mailbox->properties[PROP_RFC822].value)
+	*psize += mum->header_lines;
+    }
   return 0;
 }
 
@@ -1205,7 +1264,11 @@ mbox_body_size (body_t body, size_t *psize)
   if (mum == NULL)
     return EINVAL;
   if (psize)
-    *psize = mum->body_end - mum->body + 1;
+    {
+      *psize = mum->body_end - mum->body + 1;
+      if (mum->mud->mailbox->properties[PROP_RFC822].value)
+	*psize += mum->body_lines;
+    }
   return 0;
 }
 
@@ -1235,7 +1298,7 @@ mbox_envelope_date (envelope_t envelope, char *buf, size_t len,
   if (mum == NULL)
     return EINVAL;
 
-  status = stream_readline (mum->stream, buffer, sizeof(buffer),
+  status = stream_readline (mum->mud->mailbox->stream, buffer, sizeof(buffer),
 			    mum->header_from, &n);
   if (status != 0)
     {
@@ -1279,7 +1342,7 @@ mbox_envelope_sender (envelope_t envelope, char *buf, size_t len,
   if (mum == NULL)
     return EINVAL;
 
-  status = stream_readline (mum->stream, buffer, sizeof(buffer),
+  status = stream_readline (mum->mud->mailbox->stream, buffer, sizeof(buffer),
 			    mum->header_from, &n);
   if (status != 0)
     {
@@ -1358,12 +1421,16 @@ mbox_get_message (mailbox_t mailbox, size_t msgno, message_t *pmsg)
   /* Set the header.  */
   {
     header_t header = NULL;
+    property_t property = NULL;
     status = header_create (&header, NULL, 0, msg);
     if (status != 0)
       {
 	message_destroy (&msg, mum);
 	return status;
       }
+    /* Force the mailbox to register the properties.  */
+    mailbox_get_property (mailbox, &property);
+    header_set_property (header, property, msg);
     header_set_fill (header, mbox_header_fill, msg);
     header_set_get_fvalue (header, mbox_header_get_fvalue, msg);
     header_set_size (header, mbox_header_size, msg);

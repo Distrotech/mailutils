@@ -118,7 +118,8 @@ mailer_destroy (mailer_t *pmailer)
 	  observable_notify (mailer->observable, MU_EVT_MAILER_DESTROY);
 	  observable_destroy (&(mailer->observable), mailer);
 	}
-     /* Call the object.  */
+
+     /* Call the object destructor.  */
       if (mailer->_destroy)
 	mailer->_destroy (mailer);
 
@@ -126,13 +127,30 @@ mailer_destroy (mailer_t *pmailer)
 
       if (mailer->stream)
 	{
+	  /* FIXME: Should we close this?  */
 	  stream_close (mailer->stream);
 	  stream_destroy (&(mailer->stream), mailer);
 	}
+
       if (mailer->url)
         url_destroy (&(mailer->url));
+
       if (mailer->debug)
 	debug_destroy (&(mailer->debug), mailer);
+
+      if (mailer->properties)
+        {
+          size_t i;
+          for (i = 0; i < mailer->properties_count; i++)
+            {
+              if (mailer->properties[i].key)
+                free (mailer->properties[i].key);
+            }
+          free (mailer->properties);
+        }
+
+      if (mailer->property)
+        property_destroy (&(mailer->property), mailer);
 
       free (mailer);
       *pmailer = NULL;
@@ -202,6 +220,35 @@ mailer_get_observable (mailer_t mailer, observable_t *pobservable)
 	return status;
     }
   *pobservable = mailer->observable;
+  return 0;
+}
+
+int
+mailer_get_property (mailer_t mailer, property_t *pproperty)
+{
+  if (mailer == NULL || pproperty == NULL)
+    return EINVAL;
+  if (mailer->property == NULL)
+    {
+      size_t i;
+      int status = property_create (&(mailer->property), mailer);
+      if (status != 0)
+        return status;
+      /* Add the defaults.  */
+      for (i = 0; i < mailer->properties_count; i++)
+        {
+          status = property_add_default (mailer->property,
+                                         mailer->properties[i].key,
+                                         &(mailer->properties[i].value),
+                                         mailer);
+          if (status != 0)
+            {
+              property_destroy (&(mailer->property), mailer);
+              return status;
+            }
+	}
+    }
+  *pproperty = mailer->property;
   return 0;
 }
 

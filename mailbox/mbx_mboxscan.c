@@ -639,7 +639,6 @@ mbox_scan0 (mailbox_t mailbox, size_t msgno, size_t *pcount, int do_notif)
 	      ALLOCATE_MSGS(mailbox, mud);
 	      mud->messages_count++;
 	      mum = mud->umessages[mud->messages_count - 1];
-	      mum->stream = mailbox->stream;
 	      mum->mud = mud;
               mum->header_from = total - n;
               mum->header_from_end = total;
