@@ -1,3 +1,28 @@
+2005-01-05  Sergey Poznyakoff 
+
+	* configure.ac (AUTHLIBS_DEPENDENCY,SQLLIB_DEPENDENCY): New
+	variables. I still hope to find a better solution, though
+	(see comment to imap4d_DEPENDENCIES in imap4d/Makefile.am).
+	New SQL driver: ODBC (--with-sql=odbc or --with-odbc)
+	Raised version number to 0.6.1
+	* NEWS: Updated
+	* README: Updated
+	* auth/Makefile.am: Use explicit PROG_DEPENDENCIES
+	* imap4d/Makefile.am: Likewise.
+	* pop3d/Makefile.am: Likewise.
+	
+	* include/mailutils/sql.h (mu_sql_dispatch.errstr): Changed
+	return type to const char*
+	* sql/mysql.c: Likewise
+	* sql/postgres.c: Likewise
+	* sql/sql.c: Likewise
+	
+	* sql/odbc.c: New file. ODBC SQL driver.	
+	* sql/Makefile.am: Add odbc.c
+	
+	* mail/testsuite/mail/read.exp: Updated to match recent changes
+	in diagnostic messages.
+
 2005-01-04  Sergey Poznyakoff 
 
 	* libsieve/extensions/vacation.c: New action. Based on

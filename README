@@ -60,14 +60,14 @@ specific configuration options:
 
         Enable support for authentication using given SQL modules. MODLIST
         is a colon-separated list of SQL modules to use. Available modules
-        are 'mysql' and 'postgres'. E.g.:
+        are 'mysql', 'postgres' and 'odbc'. E.g., to enable all modules:
 
-		--with-sql=mysql:postgres
+		--with-sql=mysql:postgres:odbc
 
 
-        Note that depending
-	on how your SQL systems are installed, this may require adding
-	appropriate directories to the library and include paths, e.g.
+        Note that depending on how your SQL systems are installed,
+        this may require adding appropriate directories to the library
+        and include paths, e.g.
 
 
 	./configure LIBS='-L/usr/local/mysql/lib -L/usr/local/pgsql/lib' \
@@ -92,6 +92,16 @@ specific configuration options:
         Equivalent to --with-sql=postgres 
 
 	You may have to explicitly specify LIBS and CPPFLAGS (see above).
+
+    --with-odbc[={odbc|iodbc}]
+
+        Without arguments or with 'odbc' as its argument it is equivalent
+        to --with-sql=odbc.
+
+	--with-odbc=iodbc enables ODBC support via libiodbc.
+
+	You may have to explicitly specify LIBS and CPPFLAGS (see above).
+
 
     --enable-mh-utils
 

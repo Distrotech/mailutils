@@ -4,6 +4,13 @@ See the end of file for copying conditions.
 
 Please send mailutils bug reports to <bug-mailutils@gnu.org>.
 
+Version 0.6.1:
+
+* libsieve: New action 'vacation'
+
+* New SQL driver: odbc
+
+
 Version 0.6:
 
 * New features:
