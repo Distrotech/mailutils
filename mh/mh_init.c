@@ -67,7 +67,7 @@ mh_read_formfile (char *name, char **pformat)
   char *ptr;
   size_t off = 0;
   char *format_str;
-  
+
   if (stat (name, &st))
     {
       mh_error (_("can't stat format file %s: %s"), name, strerror (errno));
@@ -342,15 +342,31 @@ mh_expand_name (const char *base, const char *name, int is_folder)
   tmp = mu_tilde_expansion (name, "/", NULL);
   if (tmp[0] == '+')
     name = tmp + 1;
+  else if (strncmp (tmp, "../", 3) == 0 || strncmp (tmp, "./", 2) == 0)
+    {
+      char *cwd = mu_getcwd ();
+      asprintf (&name, "%s/%s", cwd, tmp);
+      free (cwd);
+      free (tmp);
+      tmp = NULL;
+    }
   else
     name = tmp;
-
+  
   if (!base)
     base = mu_path_folder_dir;
   if (is_folder)
-    asprintf (&p, "mh:%s/%s", base, name);
-  else
+    {
+      if (name[0] == '/')
+	asprintf (&p, "mh:%s", name);
+      else
+	asprintf (&p, "mh:%s/%s", base, name);
+    }
+  else if (name[0] != '/')
     asprintf (&p, "%s/%s", base, name);
+  else
+    return name;
+  
   free (tmp);
   return p;
 }
