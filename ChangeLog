@@ -1,3 +1,10 @@
+2001-04-23 Sergey Poznyakoff
+
+	* mailbox/mbx_mbox.c (mbx_expunge): It assumes that mbox_get_message()
+	will place the pointer to message into mum->message member. But
+	mbox_get_message() relies on 1-based message numbers, whereas `mum'
+	pointer is obtained using 0-based indexing:
+
 2001-04-23 Alain Magloire
 
 	Sergey Poznyakoff noted: When the user's mailbox ha zeor size mmap

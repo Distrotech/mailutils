@@ -700,7 +700,7 @@ mbox_expunge (mailbox_t mailbox)
 	  if (mum->message == 0)
 	    {
 	      message_t msg;
-	      status = mbox_get_message (mailbox, i, &msg);
+	      status = mbox_get_message (mailbox, i + 1, &msg);
 	      if (status != 0)
 		{
 		  mu_error ("Error expunge:%d: %s", __LINE__,
