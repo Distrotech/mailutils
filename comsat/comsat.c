@@ -286,7 +286,10 @@ comsat_daemon (int port)
 	      unsigned delay;
 
 	      delay = overflow_delay_time << (overflow_count + 1);
-	      syslog (LOG_NOTICE, _("too many requests: pausing for %u seconds"),
+	      syslog (LOG_NOTICE,
+		      ngettext ("too many requests: pausing for %u second",
+				"too many requests: pausing for %u seconds",
+				delay),
 		      delay);
 	      sleep (delay);
 	      reqcount = 0;
@@ -344,7 +347,10 @@ comsat_main (int fd)
       return 1;
     }
 
-  syslog (LOG_INFO, _("%d bytes from %s"), rdlen, inet_ntoa (sin_from.sin_addr));
+  syslog (LOG_INFO,
+	  ngettext ("%d byte from %s",
+		    "%d bytes from %s", rdlen),
+	  rdlen, inet_ntoa (sin_from.sin_addr));
 
   buffer[rdlen] = 0;
 
