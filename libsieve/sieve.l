@@ -26,7 +26,8 @@
 #include <sys/file.h>
 #include <sys/stat.h>
 #include <errno.h>
-#include <string.h>  
+#include <string.h>
+#include <mailutils/argcv.h>
 #include <sieve.h>
 #include <sieve-gram.h>
   
@@ -40,6 +41,9 @@ static int strip_tabs;
 
 static int number __P ((void));
 static int string __P ((void));
+static void line_begin __P ((void));
+static void line_add __P((char *text, size_t len));
+static void line_finish __P ((void));
 static void multiline_begin __P ((void));
 static void multiline_add __P ((char *));
 static void multiline_finish __P ((void));
@@ -47,7 +51,7 @@ static char *multiline_strip_tabs __P((char *text));
 static void ident __P((const char *text));
 static void sieve_include __P((void));
 static void sieve_searchpath __P((void));
-static char *str_escape __P((void));
+static char *str_unescape __P((char *text, size_t len));
 static int isemptystr __P((char *text));
  
 #ifdef FLEX_SCANNER
@@ -352,12 +356,13 @@ not     return NOT;
          /* Quoted strings */
 \"[^\\"\n]*\"                 { return string (); }
 \"[^\\"\n]*\\.    { BEGIN(STR);
-                   multiline_begin ();
-		   multiline_add (str_escape ()); }
-<STR>[^\\"\n]*\\. { multiline_add (str_escape ()); }
+                   line_begin ();
+		   line_add (str_unescape (yytext + 1, yyleng - 1), 0); }
+<STR>[^\\"\n]*\\. { line_add (str_unescape (yytext, yyleng), 0); }
 <STR>[^\\"\n]*\" { BEGIN(INITIAL);
-                   multiline_add (NULL); 
-                   multiline_finish ();
+                   if (yyleng > 1) 
+                     line_add (yytext, yyleng - 1); 
+                   line_finish ();
 		   return STRING; }
          /* Multiline strings */
 text:-?[ \t]*#.*\n       { BEGIN(ML); multiline_begin (); sieve_line_num++; }
@@ -576,24 +581,50 @@ multiline_strip_tabs (char *text)
 }
 
 void
+line_add (char *text, size_t len)
+{
+  char *s;
+  
+  if (len == 0)
+    len = strlen (text);
+  s = malloc (len + 1);
+  if (!s)
+    {
+      yyerror (_("not enough memory"));
+      exit (1);
+    }
+  memcpy (s, text, len);
+  s[len] = 0;
+  list_append (string_list, s);
+}
+
+void
 multiline_add (char *s)
 {
   if (!s)
+    s = multiline_strip_tabs (yytext);
+  line_add (s, 0);
+}
+
+void
+line_begin ()
+{
+  int status;
+
+  if (string_list)
+    sieve_slist_destroy (&string_list);
+  status = list_create (&string_list);
+  if (status)
     {
-      s = strdup (multiline_strip_tabs (yytext));
-      if (!s)
-	{
-	  yyerror (_("not enough memory"));
-	  exit (1);
-	}
+      sieve_compile_error (sieve_filename, sieve_line_num,
+                           "list_create: %s", mu_strerror (status));
+      exit (1);
     }
-  list_append (string_list, s);
 }
 
 void
 multiline_begin ()
 {
-  int status;
   char *p = yytext + 5; /* past the text: keyword */
 
   if (*p == '-')
@@ -627,21 +658,12 @@ multiline_begin ()
 	  exit (1);
 	}
     }
-  
-  if (string_list)
-    sieve_slist_destroy (&string_list);
-  status = list_create (&string_list);
-  if (status)
-    {
-      sieve_compile_error (sieve_filename, sieve_line_num,
-                           "list_create: %s", mu_strerror (status));
-      exit (1);
-    }
 
+  line_begin ();
 }
 
 void
-multiline_finish ()
+line_finish ()
 {
   iterator_t itr;
   int length = 0;
@@ -675,6 +697,12 @@ multiline_finish ()
 }
 
 void
+multiline_finish ()
+{
+  line_finish ();
+}
+
+void
 ident (const char *text)
 {
   yylval.string = strdup (text);
@@ -687,11 +715,11 @@ ident (const char *text)
 
 /* Escapes the last character from yytext */
 char *
-str_escape ()
+str_unescape (char *text, size_t len)
 {
-  char *str = sieve_alloc (yyleng - 1);
-  memcpy (str, yytext, yyleng - 2);
-  str[yyleng - 2] = yytext[yyleng - 1];
-  str[yyleng - 1] = 0;
+  char *str = sieve_alloc (len);
+  memcpy (str, text, len - 2);
+  str[len - 2] = argcv_unescape_char (text[len - 1]);
+  str[len - 1] = 0;
   return str;
 }
