@@ -527,13 +527,15 @@ fetch_send_header_value (header_t header, const char *name,
       util_send_qstring (buffer);
       free (buffer);
     }
+  else if (defval)
+    util_send_qstring (defval);
   else
-    util_send (defval ? defval : "NIL");
+    util_send ("NIL");
 }
 
 static void
 fetch_send_header_list (header_t header, const char *name,
-			 const char *defval, int space)
+			const char *defval, int space)
 {
   char *buffer;
   
@@ -544,8 +546,10 @@ fetch_send_header_list (header_t header, const char *name,
       send_parameter_list (buffer);
       free (buffer);
     }
+  else if (defval)
+    send_parameter_list (defval);
   else
-    util_send (defval ? defval : "NIL");
+    util_send ("NIL");
 }
 
 static void
@@ -562,7 +566,7 @@ fetch_send_header_address (header_t header, const char *name,
       free (buffer);
     }
   else
-    fetch_send_address (defval ? defval : "NIL");
+    fetch_send_address (defval);
 }
 
 /* ENVELOPE:
@@ -880,7 +884,7 @@ bodystructure (message_t msg, int extension)
   else
     {
       /* Default? If Content-Type is not present consider as text/plain.  */
-      util_send ("TEXT PLAIN (\"CHARSET\" \"US-ASCII\")");
+      util_send ("\"TEXT\" \"PLAIN\" (\"CHARSET\" \"US-ASCII\")");
       text_plain = 1;
     }
   
