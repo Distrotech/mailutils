@@ -25,7 +25,6 @@ int ex_quota_tempfail;     /* Return temporary failure if mailbox quota is
 int exit_code = EX_OK;     /* Exit code to be used */
 uid_t uid;                 /* Current user name */
 char *quotadbname = NULL;  /* Name of mailbox quota database */
-int lock_timeout = 300;    /* Locking timeout in seconds */
 
 /* Debuggig options */
 int debug_level;           /* General debugging level */ 
@@ -90,8 +89,6 @@ static struct argp_option options[] =
 #endif
   { "debug", 'x', N_("FLAGS"), 0,
     N_("Enable debugging"), 0 },
-  { "timeout", 't', N_("NUMBER"), 0,
-    N_("Set timeout for acquiring the lockfile") },
   { NULL,      0, NULL, 0, NULL, 0 }
 };
 
@@ -166,10 +163,6 @@ parse_opt (int key, char *arg, struct argp_state *state)
       sieve_pattern = optarg;
       break;
       
-    case 't':
-      lock_timeout = strtoul (optarg, NULL, 0);
-      break;
-	
     case 'x':
       do
 	{
@@ -305,11 +298,20 @@ main (int argc, char *argv[])
 
   /* Native Language Support */
   mu_init_nls ();
-  
+
+  /* Default locker settings */
+  locker_set_default_flags (MU_LOCKER_PID|MU_LOCKER_RETRY,
+			    mu_locker_set_flags);
+  locker_set_default_retry_timeout (1);
+  locker_set_default_retry_count (300);
+
+  /* Default error code for command line errors */
   mu_argp_error_code = EX_CONFIG;
+  /* Register needed modules */
   MU_AUTH_REGISTER_ALL_MODULES();
   mu_argp_init (program_version, NULL);
   sieve_argp_init ();
+  /* Parse command line */
   mu_argp_parse (&argp, &argc, &argv, 0, argp_capa, &arg_index, NULL);
   
   openlog ("mail.local", LOG_PID, log_facility);
@@ -687,8 +689,6 @@ deliver (mailbox_t imbx, char *name)
     }
   
   mailbox_get_locker (mbox, &lock);
-  locker_set_flags (lock, MU_LOCKER_PID|MU_LOCKER_RETRY);
-  locker_set_retries (lock, lock_timeout);
 
   status = locker_lock (lock);
 
