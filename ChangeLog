@@ -1,3 +1,33 @@
+2001-07-31  Alain Magloire
+
+	More intelligence was put in decode to detect mime messages.
+	This temporary until we articulate how to present mime messages.
+	decode will probably replace print.c.  Parsing of mailcap is
+	not yet done.
+
+	* mail/decode.c: Aware of the content_type and the encoding
+	for mime message, will superced [Pp]rint.
+
+	* mail/mail.c: Set the columns variable at startup.
+	* mail/mail.h: Prototype fpr util_screen_columns().
+	* mail/mailline.c: Reset COLUMNS on SIGWINCH.
+	* mail/util.c: New function util_screen_columns();
+
+	* sieve/Makefile.am: Remove gcc specific flags.
+	* sieve/xmalloc.c: Removed, use lib/xmalloc.c instead.
+	* sieve/xmalloc.h: Removed.
+	* sieve/sysexists.h: Removed.
+
+2001-07-31  Alain Magloire
+
+	* mailbox2/Makefile.am: add new files.
+	* mailbox2/fstream.c (_fs_write): n uninitialize.
+	(_fs_open): Use S_ISREG() macro.
+	* mailbox2/include/mailutils/base.h: Remove superfluous.
+	* mailbox2/iterator.c: Define struct _iterator.
+	* mailbox2: New files: observer.c observable.c
+	address.c parse822.c list.c attribute.c envelope.c
+
 2001-07-30 Sergey Poznyakoff
 	* guimb/main.c: Set g_argv[0] to the program file name for consistency
 	with guile.
@@ -32,16 +62,16 @@
 
 2001-07-25 Alain Magloire
 
-	Base on Jakob idea propose an implementation for decode.
+	Based on Jakob's idea, an implementation for decode.
 	But it is clearly not flexible enough:
 
 	  decode [msgno] [part]
 	  ? decode 28 2
 
-	Suppose message 28 is a mime with two part, the second part
+	IF message 28 is a multipart(mime) with two parts, the second part
 	will be decoded and sent to stdout.
 
-	* mail/decode.c: First implementation behind Jakobs idea.
+	* mail/decode.c: First implementation behind Jakob's proposal.
 
 2001-07-23 Sergey Poznyakoff
 	* configure.in,libmu_scm/Makefile.am,guimb/Makefile.am : Fixed to
