@@ -34,6 +34,7 @@ PROGRAMS_MH = \
  rmm\
  scan\
  send\
+ sortm\
  whatnow
 
 EXTRA_PROGRAMS = \
@@ -53,6 +54,7 @@ EXTRA_PROGRAMS = \
  rmm\
  scan\
  send\
+ sortm\
  whatnow
 
 LIBRARIES_MH = libmh.a
