@@ -1,5 +1,23 @@
 2002-09-02  Sergey Poznyakoff  
 
+	* NEWS: Updated.
+	* README: Updated.
+	* TODO: Updated.
+	* doc/texinfo/mailer.texi: Removed confusing note: yes, one
+	  always has to give -t to sendmail to force it to get recepient
+	  addresses from the headers.
+	* doc/texinfo/mailutils.texi: Commented out references to
+	  mailbox2 stuff.
+	* examples/addr.c: Untabified. Needed for proper conversion to
+	  *.texi
+	* examples/mimetest.c: Likewise.
+	* examples/msg-send.c: Likewise.
+	* examples/muemail.c: Likewise.
+	* examples/sfrom.c: Likewise.
+	* examples/url-parse.c: Likewise.
+
+2002-09-02  Sergey Poznyakoff  
+
 	* comsat/comsat.c: Removed erroneous redeclaration of
 	  getutent.
 	* doc/texinfo/c-api.texi: Removed reference to non-implemented
