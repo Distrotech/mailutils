@@ -1,3 +1,17 @@
+2002-10-14  Sergey Poznyakoff
+
+	* configure.ac: Provide GUILE_BINDIR variable for Makefiles.
+	* guimb/scm/Makefile.am: Likewise.
+	* guimb/scm/reject.scm: Fixed Reporting-UA line.
+	* guimb/scm/sieve-core.scm: Allow to be executed directly by
+	  guile.
+	* guimb/scm/sieve.scm.in: Cleaned up the source.
+	* libmu_scm/Makefile.am: Use install-data-hook to create the
+	  libguile-mailutils symlink.
+	* libmu_scm/mu_scm.c (mu-path-maildir, mu-path-folder-dir): New
+	  globals.
+	* libmu_scm/mailutils.scm.in: Export new globals.
+	
 2002-10-13  Sergey Poznyakoff
 
 	* guimb/scm/sieve-core.scm: Changed sieve-register-.* functions
