@@ -84,8 +84,6 @@ static int use_draft = 0;  /* --use flag */
 static int
 opt_handler (int key, char *arg, void *unused)
 {
-  char *s;
-  
   switch (key)
     {
     case 'b':
