@@ -28,10 +28,6 @@ static char *_pwd;
 static char *_user;
 static int _perr = 0;
 
-#define PAM_ERROR if (_perr || (pamerror != PAM_SUCCESS)) { \
-    pam_end(pamh, 0); \
-    return util_finish (command, RESP_NO, "User name or passwd rejected"); }
-
 static int
 PAM_gnuimap4d_conv (int num_msg, const struct pam_message **msg,
 		   struct pam_response **resp, void *appdata_ptr)
@@ -76,6 +72,8 @@ PAM_gnuimap4d_conv (int num_msg, const struct pam_message **msg,
 
 static struct pam_conv PAM_conversation = { &PAM_gnuimap4d_conv, NULL };
 #endif /* USE_LIBPAM */
+
+#define PAM_ERROR if (_perr || (pamerror != PAM_SUCCESS)) goto pam_errlab;
 
 int
 imap4d_login (struct imap4d_command *command, char *arg)
@@ -138,9 +136,11 @@ imap4d_login (struct imap4d_command *command, char *arg)
       pamerror = pam_acct_mgmt (pamh, 0);
       PAM_ERROR;
       pamerror = pam_setcred (pamh, PAM_ESTABLISH_CRED);
-      PAM_ERROR;
+ pam_errlab:
       pam_end (pamh, PAM_SUCCESS);
       openlog ("gnu-imap4d", LOG_PID, log_facility);
+      if (_perr || (pamerror != PAM_SUCCESS))
+	return util_finish (command, RESP_NO, "User name or passwd rejected");
 #endif /* USE_LIBPAM */
 
   if (pw->pw_uid > 0 && !mu_virtual_domain)
