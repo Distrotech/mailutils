@@ -21,7 +21,7 @@
 
 const char *argp_program_version = "rmm (" PACKAGE_STRING ")";
 static char doc[] = "GNU MH rmm";
-static char args_doc[] = "[messages]";
+static char args_doc[] = "[+folder][messages]";
 
 /* GNU options */
 static struct argp_option options[] = {
