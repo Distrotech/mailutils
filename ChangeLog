@@ -1,3 +1,22 @@
+2001-04-15  Alain Magloire
+
+	* Makefile.am: Add argp in the list of subdirs.
+	* configure.am:  Check for argp.h and look for
+	argp_parse().
+	* lib/strchrnul.c: New function.
+	* lib/strndup.c: New function.
+	* lib/strnlen.c: New function.
+	* lib/vasnprintf.c: New function.
+	* lib/getopt.c: Updated.
+	* lib/getopt1.c: Updated.
+	* lib/getopt.h: Updated.
+	* frm/Makefile.am: Remove -DTESTING in CFLAGS.
+	* from/Makefile.am: Remove -DTESTING in CFLAGS.
+	Add AUTOMAKE_OPTIONS.
+	* imapd/Makefile.am: Likewised.
+	* pop3d/Makefile.am: Likewised.
+	* mail/Makefile.am: Likewised. Added ARGPLIB macro
+
 2001-04-14  Sam Roberts
 	* examples/{Makefile,Addrs,addr.c,Addrs.good}: address test f/w.
 	* include/mailutils/address.h,mailbox/{address.c,parse822.c}: now
