@@ -27,6 +27,7 @@ typedef struct _mailbox *mailbox_t;
 #include <mailutils/url.h>
 #include <mailutils/observer.h>
 #include <mailutils/debug.h>
+#include <mailutils/property.h>
 #include <mailutils/message.h>
 #include <mailutils/auth.h>
 #include <mailutils/locker.h>
@@ -82,6 +83,9 @@ extern int mailbox_get_authority   __P ((mailbox_t, authority_t *));
 extern int mailbox_set_authority   __P ((mailbox_t, authority_t));
 extern int mailbox_get_ticket      __P ((mailbox_t, ticket_t *));
 extern int mailbox_set_ticket      __P ((mailbox_t, ticket_t));
+
+/* Property.  */
+extern int mailbox_get_property    __P ((mailbox_t, property_t *));
 
 /* URL.  */
 extern int mailbox_get_url         __P ((mailbox_t, url_t *));

@@ -1,5 +1,17 @@
 2001-02-22  Alain Magloire
 
+	* mailbox/property.c : New file.
+	* include/mailutils/property.h : New file.
+	* mailbox/mailbox.c (mailbox_get_property) : New function,
+	a first draft to let set "property" on a mailbox that can
+	change its behaviour.
+	* mailbox/include/mailbox0.h : New field in struct _mailbox, property.
+
+	* sieve/lex-sieve.lex : Add LGPL banner.
+	* sieve/gram-sieve.y : Add LGPL banner.
+
+2001-02-22  Alain Magloire
+
 	* sieve : New Directory.
 	* sieve/lex-sieve.lex : RFC3028 tokenizer.
 	* sieve/gram-sieve.y : RFC3028 grammar.

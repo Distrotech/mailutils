@@ -392,6 +392,16 @@ mailbox_get_observable (mailbox_t mbox, observable_t *pobservable)
 }
 
 int
+mailbox_get_property (mailbox_t mbox, property_t *pproperty)
+{
+  if (mbox == NULL || pproperty == NULL)
+    return EINVAL;
+  *pproperty = mbox->property;
+  return 0;
+}
+
+
+int
 mailbox_set_debug (mailbox_t mbox, debug_t debug)
 {
   if (mbox == NULL)
