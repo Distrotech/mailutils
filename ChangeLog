@@ -1,8 +1,71 @@
+2001-04-10  Alain Magloire
+
+	* pop3d/retr.c (pop3_retr): Typo.
+	* pop3d/top.c (pop3_top): No need to reallocate when sending the
+	headers.
+	* doc/mailbox.texi: Put the functions in alphabetic orders.
+
+2001-04-10  Alain Magloire
+
+	* mailbox/Makefile.am: filter_trans.c added, trans_stream.c deleted.
+	* mailbox/attachment.c (message_create_attachment): use
+	filter_create().
+	(message_save_attachment): use filter_create().
+	* mailbox/body.c (body_set_lines): Wrong comparison for the owner.
+	* mailbox/mbx_mbox.c: Do not count the line separtor of part
+	of the mailbox.
+
+	* mailbox/url.c (url_is_same_sheme): New function.
+	(url_is_same_user): New function.
+	(url_is_same_path): New function.
+	(url_is_same_host): New function.
+	(url_is_same_port): New function.
+	* mailbox/folder.c : Moved the is_same_*() functions in url.c
+	they can be generally usefull.
+	(is_same_sheme): Removed.
+	(is_same_user): Removed.
+	(is_same_path): Removed.
+	(is_same_host): Removed.
+	(is_same_port): Removed.
+
+	* mailbox/folder_imap.c (folder_imap_create): New function,
+	CREATE a new mailbox.
+	(folder_imap_open): Calls folder_imap_create when the MU_STREAM_CREAT
+	flag is set.
+	* mailbox/mbx_imap.c: Appending messages implemented, if the message
+	comes from the same imap folder, it is COPY otherwise APPEND.
+	(is_same_folder): New function.
+	(imap_append_message): Implemented.
+	(attribute_string): New functions.
+	(imap_copy_message): New function.
+	* mailbox/include/imap0.h: New enum, IMAP_APPEND, IMAP_APPEND_ACK,
+	IMAP_APPEND_CONT, IMAP_APPEND_SEND, IMAP_COPY, IMAP_COPY_ACK,
+	IMAP_CREATE, IMAP_CREATE_ACK.
+
 2001-04-06  Alain Magloire
 
 	* mailbox/parse822.c: New parser.
 	* include/mailutils/parse822.h: New file.
-	From Sam Roberts.
+	* mailbox/address.c (address_create): Remove the old parsing and use
+	parse822 as the underlying engine.
+	(address_parse): Removed.
+	(gettoken): Removed.
+	(quotes): Removed.
+	(address_get_personal): Remove the code to unquote, parse822 takes
+	care if it. Return value when no field is ENOENT.
+	(address_get_comments): Reutrn value when no field ENOENT.
+	(address_get_local_part): Reutrn value when no field ENOENT.
+	(address_get_domain): Reutrn value when no field ENOENT.
+	(address_get_email): Reutrn value when no field ENOENT.
+	(address_get_route): Reutrn value when no field ENOENT.
+	* mailbox/message.c (message_sender): Use parse822 to retrieve
+	the email from the From: field.
+	(message_set_mailbox): New function.
+	* mailbox/misc.c : Removed the old parsing code.
+	(gettoken): Removed.
+	(parseaddr): Removed.
+	* mailbox/include/misc.h : Removed parseaddr() prototypes.
+	From Sam Roberts, the new parse822 parser..
 
 2001-04-04  Alain Magloire
 
@@ -12,7 +75,7 @@
 	permit users to add to the list new filters.  Still work in progress.
 
 	* mailbox/Makefile.am : Add filter.c filter_rfc822.c.
-	* mailbox/body.c ( : When creating a floating body i.e creating
+	* mailbox/body.c : When creating a floating body i.e creating
 	a temporary file, the stream was not "own" by the body_t.
 	(_body_get_fd): Likewised.
 	(_body_read):_ Likewised.
