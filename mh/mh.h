@@ -245,6 +245,7 @@ void mh_global_save_state __P((void));
 int mh_global_profile_iterate __P((mh_context_iterator fp, void *data));
 int mh_global_context_iterate __P((mh_context_iterator fp, void *data));
 int mh_global_sequences_iterate __P((mh_context_iterator fp, void *data));
+void mh_global_sequences_drop __P((void));
 
 int mh_interactive_mode_p __P((void));
 int mh_getyn __P((const char *fmt, ...));
@@ -315,9 +316,10 @@ int mh_whom __P((char *filename, int check));
 
 int mh_alias_read __P((char *name, int fail));
 int mh_alias_get __P((char *name, list_t *return_list));
-int mh_alias_get_address __P((char *name, address_t *addr));
+int mh_alias_get_address __P((char *name, address_t *addr, int *incl));
 int mh_alias_get_alias __P((char *uname, list_t *return_list));
 int mh_read_aliases __P((void));
+int mh_alias_expand __P((char *str, address_t *paddr, int *incl));
 
 typedef int (*mh_alias_enumerator_t) __PMT((char *alias, list_t names,
 					    void *data));
@@ -340,9 +342,8 @@ void mh_seq_add __P((char *name, mh_msgset_t *mset, int flags));
 int mh_seq_delete __P((char *name, mh_msgset_t *mset, int flags));
 char *mh_seq_read __P((char *name, int flags));
 
-int mhdraft_stream_create __P((stream_t *stream, stream_t src, int flags));
-
 void mh_comp_draft __P((char *formfile, char *defformfile, char *draftfile));
 int check_draft_disposition __P((struct mh_whatnow_env *wh, int use_draft));
 
+void ali_parse_error __P((char *fmt, ...));
 
