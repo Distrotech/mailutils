@@ -16,6 +16,7 @@
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #include "mu_scm.h"
+#include <mailutils/registrar.h>
 
 #ifndef _PATH_SENDMAIL
 # define _PATH_SENDMAIL "/usr/lib/sendmail"
@@ -43,18 +44,103 @@ scm_makenum (unsigned long val)
 void
 mu_set_variable (const char *name, SCM value)
 {
-#if GUILE_VERSION == 14
-  scm_c_define (name, value); /*FIXME*/
-#else
   scm_c_define (name, value);
-#endif
 }
-
 
 SCM _mu_scm_package; /* STRING: PACKAGE */
 SCM _mu_scm_version; /* STRING: VERSION */
 SCM _mu_scm_mailer;  /* STRING: Default mailer path. */
 SCM _mu_scm_debug;   /* NUM: Default debug level. */
+
+struct format_record {
+  char *name;
+  record_t *record;
+};
+
+static struct format_record format_table[] = {
+  { "mbox", &mbox_record },
+  { "mh",   &mh_record },
+  { "pop",  &pop_record },
+  { "imap", &imap_record },
+  { "sendmail", &sendmail_record },
+  { "smtp", &smtp_record },
+  { NULL, NULL },
+};
+
+static record_t *
+find_format (const struct format_record *table, const char *name)
+{
+  for (; table->name; table++)
+    if (strcmp (table->name, name) == 0)
+      break;
+  return table->record;
+}
+		
+static int
+register_format (const char *name)
+{
+  int status = 0;
+  list_t reglist = NULL;
+  
+  status = registrar_get_list (&reglist);
+  if (status)
+    return status;
+  
+  if (!name)
+    {
+      struct format_record *table;
+      for (table = format_table; table->name; table++)
+	list_append (reglist, *table->record);
+      status = 0;
+    }
+  else
+    {
+      record_t *record = find_format (format_table, name);
+      if (record)
+	status = list_append (reglist, *record);
+      else
+	status = EINVAL;
+    }
+  return status;
+}
+    
+
+SCM_DEFINE (mu_register_format, "mu-register-format", 0, 0, 1,
+	    (SCM REST),
+"Registers desired mailutils formats. Takes any number of arguments.\n"
+"Allowed arguments are:\n"
+"  \"mbox\"       Regular UNIX mbox format\n"
+"  \"mh\"         MH mailbox format\n"
+"  \"pop\"        POP mailbox format\n"
+"  \"imap\"       IMAP mailbox format\n"
+"  \"sendmail\"   sendmail mailer\n"
+"  \"smtp\"       smtp mailer\n"
+"\n"
+"If called without arguments, registers all available formats\n")
+#define FUNC_NAME s_mu_register_format
+{
+  SCM status;
+
+  if (REST == SCM_EOL)
+    {
+      register_format (NULL);
+      status = SCM_BOOL_T;
+    }
+  else
+    {
+      status = SCM_BOOL_T;
+      for (; REST != SCM_EOL; REST = SCM_CDR (REST))
+	{
+	  SCM scm = SCM_CAR (REST);
+	  SCM_ASSERT (SCM_NIMP (scm) && SCM_STRINGP (scm),
+		      scm, SCM_ARGn, FUNC_NAME);
+	  if (register_format (SCM_STRING_CHARS (scm)))
+	    status = SCM_BOOL_F;
+	}
+    }
+  return status;
+}
+#undef FUNC_NAME
 
 static struct
 {
@@ -71,7 +157,6 @@ static struct
   { "MU-ATTRIBUTE-RECENT",    MU_ATTRIBUTE_RECENT },
   { NULL, 0 }
 };
-  
 
 /* Initialize the library */
 void
@@ -79,7 +164,8 @@ mu_scm_init ()
 {
   char *defmailer;
   int i;
-  
+  list_t lst;
+
   asprintf (&defmailer, "sendmail:%s", _PATH_SENDMAIL);
   _mu_scm_mailer = scm_makfrom0str (defmailer);
   mu_set_variable ("mu-mailer", _mu_scm_mailer);
@@ -105,4 +191,8 @@ mu_scm_init ()
   mu_scm_logger_init ();
   mu_scm_port_init ();
   mu_scm_mime_init ();
+#include "mu_scm.x"
+
+  registrar_get_list (&lst);
+  list_append (lst, path_record);
 }
