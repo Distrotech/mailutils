@@ -76,6 +76,14 @@ char *alloca ();
 #include "argp-fmtstream.h"
 #include "argp-namefrob.h"
 
+#ifndef __P
+# if defined PROTOTYPES || (defined __STDC__ && __STDC__)
+#  define __P(Args) Args
+# else
+#  define __P(Args) ()
+# endif
+#endif
+
 #if !HAVE_DECL_STRCHRNUL
 extern char *strchrnul __P((const char *s, int c_in));
 #endif
