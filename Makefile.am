@@ -1,8 +1,7 @@
 AUTOMAKE_OPTIONS = gnu 1.4
 ACLOCAL_AMFLAGS = -I m4
 
-# imap4d
-SUBDIRS = include doc m4 lib argp mailbox frm from pop3d imap4d mail
+SUBDIRS = include doc m4 lib argp mailbox frm from pop3d imap4d mail sieve scripts libmu_scm guimb
 
 EXTRA_DIST = mailutils.spec mailutils.spec.in README-alpha COPYING.FDL
 
