@@ -32,6 +32,7 @@
 # define scm_c_define scm_sysintern
 # define scm_primitive_eval_x scm_eval_x
 # define scm_i_big2dbl scm_big2dbl
+# define scm_c_eval_string scm_eval_0str
 
 extern SCM scm_long2num (long val);
 
