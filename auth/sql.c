@@ -33,6 +33,9 @@
 #ifdef HAVE_STRINGS_H
 # include <strings.h>
 #endif
+#ifdef HAVE_CRYPT_H
+# include <crypt.h>
+#endif
 
 #include <mailutils/list.h>
 #include <mailutils/iterator.h>
