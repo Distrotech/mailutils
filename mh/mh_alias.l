@@ -232,7 +232,7 @@ push_source (const char *name, int fail)
   struct buffer_ctx *ctx;
   struct stat st;
   const char *filename;
-  
+
   filename = mh_expand_name (NULL, name, 0);
   if (stat (filename, &st))
     {
@@ -310,13 +310,14 @@ pop_source ()
 #ifndef FLEX_SCANNER
   lex_delete_buffer (current_buffer);
 #endif
+  if (ali_filename)
+    free (ali_filename);
+  ali_filename = NULL;
   if (!context_stack)
     {
       yyin = NULL;
       return 1;
     }
-  if (ali_filename)
-    free (ali_filename);
   /* Restore previous context */
   ali_filename = context_stack->filename;
   ali_line_num = context_stack->line + 1; /* < line did not increment it */
@@ -333,31 +334,34 @@ extern int yyparse __P((void));
 %}
 WS [ \t]+
 WORD [^ \t\n,:;<+=\*]+
+SPEC [,:;+=\*]
+%s VERBATIM
 %%
 \\\n           { ali_line_num++; }
 \n             { ali_line_num++; return '\n';}
 ^[ \t]*\;.*\n  ali_line_num++; 
 ^[ \t]*{WORD}\*  { char *p;
-                 for (p = yytext; p < yytext + yyleng; p++)
-		   if (!isspace (*p))
-		     break;
-		 yylval.string = strdup (p);
-		 return STRING;}
+                   for (p = yytext; p < yytext + yyleng; p++)
+		     if (!isspace (*p))
+		       break;
+		   yylval.string = strdup (p);
+		   return STRING;}
 {WS}           ;
 {WORD}         { yylval.string = strdup (yytext); return STRING;}
-^{WS}?"<"{WS}?{WORD} { char *p;
+^{WS}?"<"{WS}?{WORD} {
+                 char *p;
                  for (p = yytext; p < yytext + yyleng && isblank(*p); p++)
 		   ;
                  for (p++; p < yytext + yyleng; p++)
 		   if (!isspace (*p))
 		     break;
                  push_source (p, 1); }
-"<"{WORD}      { yylval.string = xmalloc (yyleng + 2);
-                 yylval.string[0] = '<';
-		 memcpy(yylval.string, yytext, yyleng);
-		 yylval.string[yyleng+1] = 0;
-		 return STRING;}
-=|\*|\+|,|:|\; return yytext[0];
+{SPEC}         return yytext[0];
+<VERBATIM>[^ \t\n,:;+=\*][^\n,]* {
+                    yylval.string = xmalloc (yyleng + 1);
+ 		    memcpy(yylval.string, yytext, yyleng);
+		    yylval.string[yyleng] = 0;
+		    return STRING;}
 .              { char *p;
                  asprintf (&p,
 			   _("Stray character %03o in alias file"), yytext[0]);
@@ -371,15 +375,29 @@ yywrap ()
   return pop_source();
 }
 
-
 /* Parses the named alias file */
 int
 mh_alias_read (char *name, int fail)
 {
   extern int yydebug;
+  char *p = getenv("ALI_YYDEBUG");
+
+  if (p && *p > '0' && *p < '9')
+    yydebug = 1;
+  
   if (push_source (name, fail))
     return 1;
+  if (yydebug)
+    fprintf (stderr, "Starting parse of %s\n", name);
   return yyparse ();
 }
 
-
+void
+ali_verbatim (int enable)
+{
+  if (enable)
+    BEGIN(VERBATIM);
+  else
+    BEGIN(INITIAL);
+}
+  
