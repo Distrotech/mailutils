@@ -47,6 +47,7 @@ extern error_t mu_argp_parse __P ((const struct argp * argp,
 				   unsigned flags,
 				   const char *capa[],
 				   int *arg_index, void *input));
+extern int mu_register_capa __P((const char *name, struct argp_child *child));
 
 #endif
 
