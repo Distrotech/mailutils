@@ -197,7 +197,7 @@ _free_reglist (void *data)
 }
 
 static int
-comp_false (void *pattern, void *text)
+comp_false (const char *pattern, const char *text)
 {
   return 0;
 }
@@ -210,7 +210,7 @@ sieve_match_part_checker (const char *name, list_t tags, list_t args)
   sieve_runtime_tag_t *comp = NULL;
   sieve_runtime_tag_t *tmp;
   sieve_comparator_t compfun = NULL;
-  char *compname;
+  char *compname = "false";
   
   int matchtype;
   int err = 0;
@@ -276,6 +276,7 @@ sieve_match_part_checker (const char *name, list_t tags, list_t args)
 	      return 1;
 	    }
 
+          matchtype = MU_SIEVE_MATCH_LAST; /* to not leave it undefined */
 	  compfun = comp_false;
 	  val = sieve_value_get (args, 1);
 	  if (!val)
