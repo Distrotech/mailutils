@@ -315,9 +315,12 @@ print_dir (const char *ref, const char *file, const char *delim)
 		strlen (ref) + strlen ((*ref) ? delim : "") + strlen (file));
       util_send ("%s%s%s\r\n", ref, (*ref) ? delim : "", file);
     }
-  else
+  else if (*file)
     util_out (RESP_NONE, "LIST (\\NoSelect) \"%s\" %s%s%s", delim,
 	      ref, (*ref) ? delim : "", file);
+  else
+    util_out (RESP_NONE, "LIST (\\NoSelect) \"%s\" \"%s%s\"", delim,
+	      ref, (*ref) ? delim : "");
 }
 
 /* Calls the imap_matcher if a match found out the attribute. */
