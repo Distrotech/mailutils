@@ -27,7 +27,10 @@
  * SUCH DAMAGE.
  */
 
-#include <config.h>
+#ifdef HAVE_CONFIG_H
+# include <config.h>
+#endif
+#include <stdio.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <signal.h>
@@ -97,7 +100,10 @@ waitdaemon_timeout (int signo)
   left = alarm (0);
   signal (SIGALRM, SIG_DFL);
   if (left == 0)
-    errx (1, "timed out waiting for child");
+    {
+      fprintf (stderr, "timed out waiting for child\n");
+      exit (1);
+    }
 }
 
 /* waitdaemon is like daemon, but optionally the parent pause up
