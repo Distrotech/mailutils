@@ -64,8 +64,12 @@ extern void stream_destroy    __P ((stream_t *, void *owner));
 extern int stream_open        __P ((stream_t));
 extern int stream_close       __P ((stream_t));
 extern int stream_is_seekable __P ((stream_t));
-extern int stream_get_fd      __P ((stream_t, int *));
-extern int stream_get_fd2     __P ((stream_t, int *, int *));
+extern int stream_get_transport2 __P ((stream_t stream,
+				       mu_transport_t *pt,
+				       mu_transport_t *pt2));
+extern int stream_get_transport __P ((stream_t stream,
+				      mu_transport_t *pt));
+
 extern int stream_read        __P ((stream_t, char *, size_t, off_t,
 				    size_t *));
 extern int stream_readline    __P ((stream_t, char *, size_t, off_t,
@@ -77,6 +81,9 @@ extern int stream_write       __P ((stream_t, const char *, size_t, off_t,
 extern int stream_setbufsiz   __P ((stream_t stream, size_t size));
 extern int stream_flush       __P ((stream_t));
 
+#define MU_STREAM_READY_RD 0x1
+#define MU_STREAM_READY_WR 0x2  
+extern int stream_wait        __P((stream_t stream, int *pflags, struct timeval *));
 
 /* Functions useful to implementors of new stream types. */
 
@@ -107,8 +114,9 @@ extern int stream_set_open     __P ((stream_t,
 extern int stream_set_close    __P ((stream_t,
       int (*_close) __PMT ((stream_t)), void *owner));
 
-extern int stream_set_fd       __P ((stream_t,
-      int (*_get_fd) __PMT ((stream_t, int *, int *)), void *owner));
+extern int stream_set_get_transport2  __P ((stream_t,
+      int (*_get_fd) __PMT ((stream_t, mu_transport_t *, mu_transport_t *)),
+      void *owner));
 
 extern int stream_set_read     __P ((stream_t,
       int (*_read) __PMT ((stream_t, char *, size_t, off_t, size_t *)),
@@ -133,6 +141,9 @@ extern int stream_set_flush    __P ((stream_t,
 
 extern int stream_set_strerror __P ((stream_t stream,
       int (*fp) (stream_t, char **), void *owner));
+
+extern int stream_set_wait __P ((stream_t stream,
+      int (*wait) (stream_t, int *, struct timeval *), void *owner));
   
 extern int stream_sequential_read __P((stream_t stream,
       char *buf, size_t size, size_t *nbytes));

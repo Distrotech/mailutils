@@ -425,19 +425,19 @@ stream_write (stream_t os, const char *buf, size_t count,
 }
 
 int
-stream_get_fd (stream_t stream, int *pfd)
+stream_get_transport2 (stream_t stream,
+		       mu_transport_t *p1, mu_transport_t *p2)
 {
-  if (stream == NULL || stream->_get_fd == NULL)
+  if (stream == NULL || stream->_get_transport2 == NULL)
     return EINVAL;
-  return stream->_get_fd (stream, pfd, NULL);
+  return stream->_get_transport2 (stream, p1, p2);
 }
 
 int
-stream_get_fd2 (stream_t stream, int *pfd1, int *pfd2)
+stream_get_transport (stream_t stream,
+		      mu_transport_t *pt)
 {
-  if (stream == NULL || stream->_get_fd == NULL)
-    return EINVAL;
-  return stream->_get_fd (stream, pfd1, pfd2);
+  return stream_get_transport2 (stream, pt, NULL);
 }
 
 int
@@ -558,14 +558,15 @@ stream_set_close (stream_t stream, int (*_close) (stream_t), void *owner)
 }
 
 int
-stream_set_fd (stream_t stream, int (*_get_fd) (stream_t, int *, int *),
-	       void *owner)
+stream_set_get_transport2 (stream_t stream,
+			   int (*_get_trans) (stream_t, mu_transport_t *, mu_transport_t *),
+			   void *owner)
 {
   if (stream == NULL)
     return EINVAL;
   if (owner == stream->owner)
     {
-      stream->_get_fd = _get_fd;
+      stream->_get_transport2 = _get_trans;
       return 0;
     }
   return EACCES;
@@ -673,6 +674,18 @@ stream_set_strerror (stream_t stream,
 }
 
 int
+stream_set_wait (stream_t stream,
+		 int (*wait) (stream_t, int *, struct timeval *), void *owner)
+{
+  if (stream == NULL)
+    return EINVAL;
+  if (stream->owner != owner)
+    return EACCES;
+  stream->_wait = wait;
+  return 0;
+}
+
+int
 stream_sequential_read (stream_t stream, char *buf, size_t size,
 			size_t *nbytes)
 {
@@ -754,6 +767,16 @@ stream_seek (stream_t stream, off_t off, int whence)
   
   stream->offset = pos;
   return 0;
+}
+
+int
+stream_wait (stream_t stream, int *pflags, struct timeval *tvp)
+{
+  if (stream == NULL)
+    return EINVAL;
+  if (stream->_wait)
+    return stream->_wait (stream, pflags, tvp);
+  return ENOSYS;
 }
 
 int
