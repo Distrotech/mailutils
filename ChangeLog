@@ -1,3 +1,11 @@
+2002-08-01  Sergey Poznyakoff  
+
+	* imap4d/util.c (util_msgset): Some comments
+	* mailbox/mu_argp.c (read_rc): Bugfix. linebuf must be freed
+	  no matter was the string accepted or not.
+	* pop3d/pop3d.c (pop3d_argp_capa): Bugfix. Was missing
+	  "mailbox" capability.
+	
 2002-08-01  Sergey Poznyakoff 
 
 	* imap4d/util.c (util_msgset): Bugfix.
