@@ -78,7 +78,6 @@ struct mh_whatnow_env wh_env = { 0 };
 const char *formfile;
 static int initial_edit = 1;
 static int build_only = 0; /* --build flag */
-static int query_mode = 0; /* --query flag */
 static int use_draft = 0;  /* --use flag */
 
 static int
