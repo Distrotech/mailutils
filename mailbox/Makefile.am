@@ -5,7 +5,7 @@ AUTOMAKE_OPTIONS = ../lib/ansi2knr
 INCLUDES = -I${top_srcdir}/include -I${top_srcdir}/mailbox/include -I${top_srcdir}/lib
 AM_CFLAGS = -DSITE_VIRTUAL_PWDDIR=\"@SITE_VIRTUAL_PWDDIR@\"
 
-SUBDIRS = include
+SUBDIRS = include testsuite
 
 lib_LTLIBRARIES = libmailbox.la
 
