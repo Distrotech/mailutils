@@ -507,7 +507,7 @@ AC_SUBST(MU_LTLIBOBJS)
 
 dnl Output Makefiles
 AC_CONFIG_FILES([Makefile mailutils.spec
- include/Makefile include/mailutils/Makefile
+ include/Makefile include/mailutils/Makefile include/mailutils/gnu/Makefile
  m4/Makefile
  doc/Makefile doc/man/Makefile doc/rfc/Makefile doc/texinfo/Makefile
  lib/Makefile lib/posix/Makefile
