@@ -119,16 +119,23 @@ AC_SUBST(AUTHLIBS)
 #When using thread support some platforms need -D_REENTRANT to get the
 #right prototypes including errno.
 dnl Check threading support
+# We have to rearrange things a little, it appears that the new autoconf
+# does not like long cascading AC_CHECK_LIB.
 if test x"$usepthread" = x"yes"; then
-	AC_CHECK_LIB(pthread, pthread_cancel, [AC_CHECK_HEADERS(pthread.h,
-		AC_DEFINE(WITH_PTHREAD))
-		LIBS="$LIBS -lpthread"
-		AC_DEFINE(_REENTRANT)
-		AC_CHECK_FUNCS(pthread_rwlock_init)],
+	AC_CHECK_LIB(pthread, pthread_cancel, have_libpthread=yes
+		 have_libpthread=no)
+        if test x"$have_libpthread" = x"yes"; then
+		AC_CHECK_HEADERS(pthread.h, AC_DEFINE(WITH_PTHREAD))
+			LIBS="$LIBS -lpthread"
+			AC_DEFINE(_REENTRANT)
+			AC_CHECK_FUNCS(pthread_rwlock_init)
+	else
 		AC_SEARCH_LIBS(pthread_cancel, pthread,
 			[AC_CHECK_FUNCS(pthread_rwlock_init)
-			AC_CHECK_HEADERS(pthread.h, AC_DEFINE(WITH_PTHREAD))
-			AC_DEFINE(_REENTRANT)]))
+				AC_CHECK_HEADERS(pthread.h,
+					AC_DEFINE(WITH_PTHREAD))
+					AC_DEFINE(_REENTRANT)])
+	fi
 fi
 
 dnl Do we need extra libs for networking?

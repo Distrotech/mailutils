@@ -1,5 +1,23 @@
 2001-05-21  Alain Magloire
 
+	GNU md5 is GPL, but we agreed that the libraries should
+	fall under LGPL.
+
+	* mailbox/message.c (message_get_uidl): Remove the dependency
+	from GNU md5.
+	* mailbox/md5-rsa.c: New File.
+	* mailbox/md5-rsa.h: New File.
+
+	* lib/signame.c: Replace in favor of the wellknown strsignal().
+	* lib/strsignal.c: New file, use the mu_signame() written by
+	Sergey.
+
+	* configure.in: autoconf-2.50 is having difficulty parsing
+	a long AC_CHECK_LIB, break it in two.
+	Check for strsignal()
+
+2001-05-21  Alain Magloire
+
 	* configure.in, imap4d/signal.c, pop3d/signal.c:
 	sys_siglist is not defined on some systems (namely, Solaris).
 	* lib/signame.c: (added) Provide mu_signame() function to convert
