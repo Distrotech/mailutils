@@ -1,0 +1,259 @@
+/* GNU Mailutils -- a suite of utilities for electronic mail
+   Copyright (C) 2003 Free Software Foundation, Inc.
+
+   GNU Mailutils is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 2, or (at your option)
+   any later version.
+
+   GNU Mailutils is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with GNU Mailutils; if not, write to the Free Software
+   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA  */
+
+#if defined(HAVE_CONFIG_H)
+# include <config.h>
+#endif
+
+#include <stdlib.h>
+#include <string.h>
+#include <mailutils/mailutils.h>
+#include <mailutils/tls.h>
+#include <mu_asprintf.h>
+
+const char *program_version = "movemail (" PACKAGE_STRING ")";
+static char doc[] = N_("GNU movemail");
+static char args_doc[] = N_("inbox destfile [POP-password]");
+
+static struct argp_option options[] = {
+  { "preserve", 'p', NULL, 0, N_("Preserve the source mailbox"), 0 },
+  { "reverse",  'r', NULL, 0, N_("Reverse the sorting order"), 0 },
+    
+  { NULL,      0, NULL, 0, NULL, 0 }
+};
+
+static int reverse_order;
+static int preserve_mail; 
+
+static error_t
+parse_opt (int key, char *arg, struct argp_state *state)
+{
+  switch (key)
+    {
+    case 'r':
+      reverse_order++;
+      break;
+
+    case 'p':
+      preserve_mail++;
+      break;
+
+    default:
+      return ARGP_ERR_UNKNOWN;
+    }
+  return 0;
+}
+
+static struct argp argp = {
+  options,
+  parse_opt,
+  args_doc,
+  doc,
+  NULL,
+  NULL, NULL
+};
+
+static const char *mail_capa[] = {
+	"common",
+	"license",
+	"mailbox",
+#ifdef WITH_TLS
+	"tls",
+#endif
+	 NULL 
+};
+
+void
+die (mailbox_t mbox, char *msg, int status)
+{
+  url_t url = NULL;
+  
+  mailbox_get_url (mbox, &url);
+  mu_error (_("mailbox '%s': %s: %s"),
+	    url_to_string (url), msg, mu_strerror (status));
+  exit (1);
+}
+
+void
+lock_mailbox (mailbox_t mbox)
+{
+  locker_t lock;
+  int status;
+  
+  status = mailbox_get_locker (mbox, &lock);
+  if (status)
+    die (mbox, _("Cannot retrieve locker"), status);
+      
+  if (!lock)
+    /* Remote mailboxes have no lockers */
+    return;
+
+  /* FIXME: locker_set_retries (lock, lock_timeout); */
+
+  status = locker_lock (lock);
+
+  if (status)
+    die (mbox, _("Cannot lock"), status);
+}
+
+void
+open_mailbox (mailbox_t *mbx, char *name, int flags)
+{
+  int status = mailbox_create_default (mbx, name);
+
+  if (status)
+    {
+      mu_error (_("could not create mailbox <%s>: %s\n"),
+		name ? name : _("default"),
+		mu_strerror (status));
+      exit (1);
+    }
+
+  status = mailbox_open (*mbx, flags);
+  if (status)
+    die (*mbx, _("cannot open"), status);
+  lock_mailbox (*mbx);
+}
+
+int
+move_message (mailbox_t src, mailbox_t dst, size_t msgno)
+{
+  int rc;
+  message_t msg;
+
+  if ((rc = mailbox_get_message (src, msgno, &msg)) != 0)
+    {
+      fprintf (stderr, _("Cannot read message: %s"), mu_strerror (rc));
+      return rc;
+    }
+  if ((rc = mailbox_append_message (dst, msg)) != 0)
+    {
+      fprintf (stderr, _("Cannot append message: %s"), mu_strerror (rc));
+      return rc;
+    }
+  if (!preserve_mail)
+    {
+      attribute_t attr;
+      message_get_attribute (msg, &attr);
+      attribute_set_deleted (attr);
+    }
+  return rc;
+}
+
+/* Open source mailbox using compatibility syntax. Source_name is
+   of the form:
+
+     po:USERNAME[:POP-SERVER]
+
+   if POP-SERVER part is omitted, the MAILHOST environment variable
+   will be consulted. */
+void
+compatibility_mode (mailbox_t *mbx, char *source_name, char *password,
+		    int flags)
+{
+  char *tmp;
+  char *user_name = strtok (source_name+3, ":");
+  char *host = strtok (NULL, ":");
+  if (!host)
+    host = getenv ("MAILHOST");
+  if (!host)
+    {
+      mu_error (_("Hostname of the POP3 server is unknown"));
+      exit (1);
+    }
+  if (password)
+    asprintf (&tmp, "pop://%s:%s@%s", user_name, password, host);
+  else
+    asprintf (&tmp, "pop://%s@%s", user_name, host);
+  open_mailbox (mbx, tmp, flags);
+  free (tmp);
+}
+
+int
+main (int argc, char **argv)
+{
+  int index;
+  mailbox_t source, dest;
+  size_t i, total;
+  int rc = 0;
+  char *source_name, *dest_name;
+  int flags;
+  
+  /* Native Language Support */
+  mu_init_nls ();
+  /* Register the desired formats.  */
+  {
+    list_t bookie;
+    registrar_get_list (&bookie);
+    list_append (bookie, mbox_record);
+    list_append (bookie, path_record);
+    list_append (bookie, pop_record);
+    list_append (bookie, imap_record);
+    list_append (bookie, mh_record);
+    /* Possible supported mailers.  */
+    list_append (bookie, sendmail_record);
+    list_append (bookie, smtp_record);
+  }
+  /* argument parsing */
+
+  mu_argp_init (program_version, NULL);
+#ifdef WITH_TLS
+  mu_tls_init_client_argp ();
+#endif
+  mu_argp_parse (&argp, &argc, &argv, 0, mail_capa, &index, NULL);
+
+  argc -= index;
+  argv += index;
+
+  if (argc < 2 || argc > 3)
+    {
+      mu_error (_("Wrong number of arguments"));
+      return 1;
+    }
+
+  source_name = argv[0];
+  dest_name = argv[1];
+
+  flags = preserve_mail ? MU_STREAM_READ : MU_STREAM_RDWR;
+  
+  if (strncmp (source_name, "po:", 3) == 0)
+    compatibility_mode (&source, source_name, argv[2], flags);
+  else 
+    open_mailbox (&source, source_name, flags);
+
+  open_mailbox (&dest, dest_name, MU_STREAM_RDWR | MU_STREAM_CREAT);
+  
+  mailbox_messages_count (source, &total);
+  if (reverse_order)
+    {
+      for (i = total; rc == 0 && i > 0; i--)
+	move_message (source, dest, i);
+    }
+  else
+    {
+      for (i = 1; rc == 0 && i <= total; i++)
+	move_message (source, dest, i);
+    }
+  if (rc)
+    return rc;
+  mailbox_flush (source, 1);
+  mailbox_close (source);
+  mailbox_destroy (&source);
+  mailbox_close (dest);
+  mailbox_destroy (&dest);
+  return 0;
+}
