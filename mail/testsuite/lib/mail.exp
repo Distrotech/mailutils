@@ -16,16 +16,9 @@
 # along with this program; if not, write to the Free Software Foundation,
 # Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. 
 
-source ../../testsuite/lib/mailutils.exp
+source $top_srcdir/testsuite/lib/mailutils.exp
 
-set TOOL_NAME "mail"
-mu_init
-
-if ![info exists MAILFLAGS] {
-    set MAILFLAGS "--nosum --norc --mail-spool $MU_SPOOL_DIR"
-}
-
-set MU_TOOL_FLAGS $MAILFLAGS
+mu_init "--nosum --norc"
 
 #FIXME: this doesn't work with remote testing
 set env(MAILRC) $MU_RC_DIR/mail.rc
