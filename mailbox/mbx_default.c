@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2003 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -41,6 +41,15 @@ const char *mu_path_folder_dir = "Mail";
 
 /* Is this a security risk?  */
 #define USE_ENVIRON 1
+
+static int
+is_proto (char *p)
+{
+  for (; *p && *p != '/'; p++)
+    if (*p == ':')
+      return 1;
+  return 0;
+}
 
 static int
 split_shortcut (const char *file, const char pfx[], char **user, char **rest)
@@ -175,7 +184,7 @@ plus_expand (const char *file, char **buf)
   char *home;
   int status, len;
   
-  if ((status = split_shortcut (file, "+=", &user, &path)))
+  if ((status = split_shortcut (file, "+=", &path, &user)))
     return status;
 
   if (!path)
@@ -192,7 +201,7 @@ plus_expand (const char *file, char **buf)
       return ENOENT;
     }
 
-  if (mu_path_folder_dir[0] == '/')
+  if (mu_path_folder_dir[0] == '/' || is_proto (mu_path_folder_dir))
     {
       len = strlen (mu_path_folder_dir) + strlen (path) + 2;
       *buf = malloc (len);
@@ -334,7 +343,7 @@ mailbox_create_default (mailbox_t *pmbox, const char *mail)
       break;
       
     default:
-      if (!strchr (mail, ':'))
+      if (!is_proto (mail))
 	{
 	  tmp_mbox = mu_getcwd();
 	  mbox = malloc (strlen (tmp_mbox) + strlen (mail) + 2);
