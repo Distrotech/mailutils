@@ -17,7 +17,7 @@
 # Foundation, Inc.
 # 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-AC_INIT([GNU Mailutils], [0.3.1], [bug-mailutils@gnu.org], [mailutils])
+AC_INIT([GNU Mailutils], [0.3.2], [bug-mailutils@gnu.org], [mailutils])
 AC_CONFIG_SRCDIR([mailbox/mailbox.c])
 AC_CONFIG_AUX_DIR([scripts])
 AC_CANONICAL_TARGET([])
