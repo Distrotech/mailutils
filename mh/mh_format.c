@@ -70,10 +70,19 @@ strobj_free (strobj_t *obj)
 static void
 strobj_create (strobj_t *lvalue, char *str)
 {
-  int len = strlen (str);
-  lvalue->size = len+1;
-  lvalue->ptr = xmalloc (lvalue->size);
-  memcpy (lvalue->ptr, str, lvalue->size);
+  int len;
+
+  if (!str)
+    {
+      lvalue->size = 0;
+      lvalue->ptr = NULL;
+    }
+  else
+    {
+      lvalue->size = strlen (str) + 1;
+      lvalue->ptr = xmalloc (lvalue->size);
+      memcpy (lvalue->ptr, str, lvalue->size);
+    }
 }
 
 static void
@@ -127,6 +136,7 @@ compress_ws (char *str, size_t *size)
       if (isprint (*q))
 	*p++ = *q;
     }
+  *p = 0;
   *size = p - (unsigned char*) str;
 }
 
@@ -142,7 +152,6 @@ print_string (struct mh_machine *mach, char *str, size_t len)
   if (len > rest)
     len = rest;
   memcpy (mach->outbuf + mach->ind, str, len);
-  compress_ws (mach->outbuf + mach->ind, &len);
   mach->ind += len;
 }
 
@@ -207,14 +216,14 @@ mh_format (mh_format_t *fmt, message_t msg, size_t msgno,
 	  break;
 
 	case mhop_num_branch:
-	  if (!mach.reg_num)
+	  if (!mach.arg_num)
 	    mach.pc += mach.prog[mach.pc];
 	  else
 	    mach.pc++;
 	  break;
 
 	case mhop_str_branch:
-	  if (!*strobj_ptr (&mach.reg_str))
+	  if (!*strobj_ptr (&mach.arg_str))
 	    mach.pc += mach.prog[mach.pc];
 	  else
 	    mach.pc++;
@@ -230,11 +239,13 @@ mh_format (mh_format_t *fmt, message_t msg, size_t msgno,
 	    char *value = NULL;
 	    message_get_header (mach.message, &hdr);
 	    header_aget_value (hdr, strobj_ptr (&mach.arg_str), &value);
-	    strobj_free (&mach.reg_str);
+	    strobj_free (&mach.arg_str);
 	    if (value)
 	      {
-		mach.reg_str.size = strlen (value) + 1;
-		mach.reg_str.ptr = value;
+		int len = strlen (value);
+		mach.arg_str.size = len + 1;
+      		compress_ws (value, &len);
+		mach.arg_str.ptr = value;
 	      }
 	  }
 	  break;
@@ -246,7 +257,7 @@ mh_format (mh_format_t *fmt, message_t msg, size_t msgno,
 	    size_t size = 0, off, str_off, nread;
 	    size_t rest = mach.width - mach.ind;
 
-	    strobj_free (&mach.reg_str);
+	    strobj_free (&mach.arg_str);
 	    message_get_body (mach.message, &body);
 	    body_size (body, &size);
 	    body_get_stream (body, &stream);
@@ -255,22 +266,22 @@ mh_format (mh_format_t *fmt, message_t msg, size_t msgno,
 	    if (size > rest)
 	      size = rest;
 
-	    mach.reg_str.ptr = xmalloc (size+1);
-	    mach.reg_str.size = size;
+	    mach.arg_str.ptr = xmalloc (size+1);
+	    mach.arg_str.size = size;
 	    
 	    off = 0;
 	    str_off = 0;
-	    while (!stream_read (stream, mach.reg_str.ptr + str_off,
-				 mach.reg_str.size - str_off, off, &nread)
+	    while (!stream_read (stream, mach.arg_str.ptr + str_off,
+				 mach.arg_str.size - str_off, off, &nread)
 		   && nread != 0
 		   && str_off < size)
 	      {
 		off += nread;
-       		compress_ws (mach.reg_str.ptr + str_off, &nread);
+       		compress_ws (mach.arg_str.ptr + str_off, &nread);
 		if (nread)
 		  str_off += nread;
 	      }
-	    mach.reg_str.ptr[str_off] = 0;
+	    mach.arg_str.ptr[str_off] = 0;
 	  }
 	  break;
 	  
@@ -398,7 +409,7 @@ builtin_msg (struct mh_machine *mach)
 {
   size_t msgno = mach->msgno;
   mh_message_number (mach->message, &msgno);
-  mach->reg_num = msgno;
+  mach->arg_num = msgno;
 }
 
 static void
@@ -406,31 +417,31 @@ builtin_cur (struct mh_machine *mach)
 {
   size_t msgno = mach->msgno;
   mh_message_number (mach->message, &msgno);
-  mach->reg_num = msgno == current_message;
+  mach->arg_num = msgno == current_message;
 }
 
 static void
 builtin_size (struct mh_machine *mach)
 {
-  message_size (mach->message, &mach->reg_num);
+  message_size (mach->message, &mach->arg_num);
 }
 
 static void
 builtin_strlen (struct mh_machine *mach)
 {
-  mach->reg_num = strlen (strobj_ptr (&mach->reg_str));
+  mach->arg_num = strlen (strobj_ptr (&mach->arg_str));
 }
 
 static void
 builtin_width (struct mh_machine *mach)
 {
-  mach->reg_num = mach->width;
+  mach->arg_num = mach->width;
 }
 
 static void
 builtin_charleft (struct mh_machine *mach)
 {
-  mach->reg_num = mach->width - mach->ind;
+  mach->arg_num = mach->width - mach->ind;
 }
 
 static void
@@ -439,38 +450,38 @@ builtin_timenow (struct mh_machine *mach)
   time_t t;
   
   time (&t);
-  mach->reg_num = t;
+  mach->arg_num = t;
 }
 
 static void
 builtin_me (struct mh_machine *mach)
 {
   /*FIXME*/
-  /*  mach->reg_str = "me";*/
+  /*  mach->arg_str = "me";*/
 }
 
 static void
 builtin_eq (struct mh_machine *mach)
 {
-  mach->reg_num = mach->reg_num == mach->arg_num;
+  mach->arg_num = mach->reg_num == mach->arg_num;
 }
 
 static void
 builtin_ne (struct mh_machine *mach)
 {
-  mach->reg_num = mach->reg_num != mach->arg_num;
+  mach->arg_num = mach->reg_num != mach->arg_num;
 }
 
 static void
 builtin_gt (struct mh_machine *mach)
 {
-  mach->reg_num = mach->reg_num > mach->arg_num;
+  mach->arg_num = mach->reg_num > mach->arg_num;
 }
 
 static void
 builtin_match (struct mh_machine *mach)
 {
-  mach->reg_num = strstr (strobj_ptr (&mach->reg_str),
+  mach->arg_num = strstr (strobj_ptr (&mach->reg_str),
 			  strobj_ptr (&mach->arg_str));
 }
 
@@ -478,20 +489,20 @@ static void
 builtin_amatch (struct mh_machine *mach)
 {
   int len = strobj_len (&mach->arg_str);
-  mach->reg_num = strncmp (strobj_ptr (&mach->reg_str),
+  mach->arg_num = strncmp (strobj_ptr (&mach->reg_str),
 			   strobj_ptr (&mach->arg_str), len);
 }
 
 static void
 builtin_plus (struct mh_machine *mach)
 {
-  mach->reg_num += mach->arg_num;
+  mach->arg_num += mach->reg_num;
 }
 
 static void
 builtin_minus (struct mh_machine *mach)
 {
-  mach->reg_num -= mach->arg_num;
+  mach->arg_num -= mach->reg_num;
 }
 
 static void
@@ -503,7 +514,7 @@ builtin_divide (struct mh_machine *mach)
       mach->stop = 1;
     }
   else
-    mach->reg_num /= mach->arg_num;
+    mach->arg_num = mach->reg_num / mach->arg_num;
 }
 
 static void
@@ -515,7 +526,7 @@ builtin_modulo (struct mh_machine *mach)
       mach->stop = 1;
     }
   else
-    mach->reg_num %= mach->arg_num;
+    mach->arg_num = mach->reg_num % mach->arg_num;
 }
 
 static void
@@ -533,41 +544,42 @@ builtin_lit (struct mh_machine *mach)
 static void
 builtin_getenv (struct mh_machine *mach)
 {
-  strobj_free (&mach->reg_str);
-  strobj_create (&mach->reg_str, getenv (strobj_ptr (&mach->arg_str)));
+  char *val = getenv (strobj_ptr (&mach->arg_str));
+  strobj_free (&mach->arg_str);
+  strobj_create (&mach->arg_str, val);
 }
 
 static void
 builtin_profile (struct mh_machine *mach)
 {
   /*FIXME*/
-  /*mach->reg_str = "profile";*/
+  /*mach->arg_str = "profile";*/
 }
 
 static void
 builtin_nonzero (struct mh_machine *mach)
 {
-  /*nothing*/
+    mach->arg_num = mach->reg_num;
 }
 
 static void
 builtin_zero (struct mh_machine *mach)
 {
-  mach->reg_num = !mach->reg_num;
+  mach->arg_num = !mach->reg_num;
 }
 
 static void
 builtin_null (struct mh_machine *mach)
 {
   char *s = strobj_ptr (&mach->reg_str);
-  mach->reg_num = !s && !s[0];
+  mach->arg_num = !s && !s[0];
 }
 
 static void
 builtin_nonnull (struct mh_machine *mach)
 {
   char *s = strobj_ptr (&mach->reg_str);
-  mach->reg_num = s && s[0];
+  mach->arg_num = s && s[0];
 }
 
 /*     comp       comp     string   Set str to component text*/
@@ -601,7 +613,6 @@ builtin_trim (struct mh_machine *mach)
   for (p = start + len - 1; p >= start && isspace (*p); p--)
     ;
   p[1] = 0;
-  strobj_copy (&mach->reg_str, &mach->arg_str);
 }
 
 /*     putstr     expr              print str*/
@@ -656,7 +667,7 @@ builtin_sec (struct mh_machine *mach)
   if (_parse_date (mach, &tm, &tz))
     return;
 
-  mach->reg_num = tm.tm_sec;
+  mach->arg_num = tm.tm_sec;
 }
 
 /*     min        date     integer  minutes of the hour*/
@@ -669,7 +680,7 @@ builtin_min (struct mh_machine *mach)
   if (_parse_date (mach, &tm, &tz))
     return;
 
-  mach->reg_num = tm.tm_min;
+  mach->arg_num = tm.tm_min;
 }
 
 /*     hour       date     integer  hours of the day (0-23)*/
@@ -682,7 +693,7 @@ builtin_hour (struct mh_machine *mach)
   if (_parse_date (mach, &tm, &tz))
     return;
 
-  mach->reg_num = tm.tm_hour;
+  mach->arg_num = tm.tm_hour;
 }
 
 /*     wday       date     integer  day of the week (Sun=0)*/
@@ -695,7 +706,7 @@ builtin_wday (struct mh_machine *mach)
   if (_parse_date (mach, &tm, &tz))
     return;
 
-  mach->reg_num = tm.tm_wday;
+  mach->arg_num = tm.tm_wday;
 }
 
 /*     day        date     string   day of the week (abbrev.)*/
@@ -740,9 +751,9 @@ builtin_sday (struct mh_machine *mach)
 
   /*FIXME: more elaborate check needed */
   if (_parse_date (mach, &tm, &tz))
-    mach->reg_num = -1;
+    mach->arg_num = -1;
   else
-    mach->reg_num = 1;
+    mach->arg_num = 1;
 }
 
 /*     mday       date     integer  day of the month*/
@@ -755,7 +766,7 @@ builtin_mday (struct mh_machine *mach)
   if (_parse_date (mach, &tm, &tz))
     return;
 
-  mach->reg_num = tm.tm_mday;
+  mach->arg_num = tm.tm_mday;
 }
 
 /*      yday       date     integer  day of the year */
@@ -768,7 +779,7 @@ builtin_yday (struct mh_machine *mach)
   if (_parse_date (mach, &tm, &tz))
     return;
 
-  mach->reg_num = tm.tm_yday;
+  mach->arg_num = tm.tm_yday;
 }
 
 /*     mon        date     integer  month of the year*/
@@ -781,7 +792,7 @@ builtin_mon (struct mh_machine *mach)
   if (_parse_date (mach, &tm, &tz))
     return;
 
-  mach->reg_num = tm.tm_mon+1;
+  mach->arg_num = tm.tm_mon+1;
 }
 
 /*     month      date     string   month of the year (abbrev.) */
@@ -826,7 +837,7 @@ builtin_year (struct mh_machine *mach)
   if (_parse_date (mach, &tm, &tz))
     return;
 
-  mach->reg_num = tm.tm_year + 1900;
+  mach->arg_num = tm.tm_year + 1900;
 }
 
 /*     zone       date     integer  timezone in hours*/
@@ -839,7 +850,7 @@ builtin_zone (struct mh_machine *mach)
   if (_parse_date (mach, &tm, &tz))
     return;
 
-  mach->reg_num = tz.utc_offset;
+  mach->arg_num = tz.utc_offset;
 }
 
 /*     tzone      date     string   timezone string */
@@ -851,8 +862,25 @@ builtin_tzone (struct mh_machine *mach)
   
   if (_parse_date (mach, &tm, &tz))
     return;
+  
   strobj_free (&mach->arg_str);
-  strobj_create (&mach->arg_str, (char*) tz.tz_name);
+  if (tz.tz_name)
+    strobj_create (&mach->arg_str, (char*) tz.tz_name);
+  else
+    {
+      char buf[6];
+      int s;
+      if (tz.utc_offset < 0)
+	{
+	  s = '-';
+	  tz.utc_offset = - tz.utc_offset;
+	}
+      else
+	s = '+';
+      snprintf (buf, sizeof buf, "%c%02d%02d", s,
+		tz.utc_offset/3600, tz.utc_offset/60);
+      strobj_create (&mach->arg_str, buf);
+    }
 }
 
 /*      szone      date     integer  timezone explicit?
@@ -865,9 +893,9 @@ builtin_szone (struct mh_machine *mach)
 
   /*FIXME: more elaborate check needed */
   if (_parse_date (mach, &tm, &tz))
-    mach->reg_num = -1;
+    mach->arg_num = -1;
   else
-    mach->reg_num = 1;
+    mach->arg_num = 1;
 }
 
 /*     date2local date              coerce date to local timezone*/
@@ -894,9 +922,9 @@ builtin_dst (struct mh_machine *mach)
   if (_parse_date (mach, &tm, &tz))
     return;
 #ifdef HAVE_TM_ISDST  
-  mach->reg_num = tm.tm_isdst;
+  mach->arg_num = tm.tm_isdst;
 #else
-  mach->reg_num = 0;
+  mach->arg_num = 0;
 #endif
 }
 
@@ -909,7 +937,7 @@ builtin_clock (struct mh_machine *mach)
 
   if (_parse_date (mach, &tm, &tz))
     return;
-  mach->reg_num = mu_tm2time (&tm, &tz);
+  mach->arg_num = mu_tm2time (&tm, &tz);
 }
 
 /*     rclock     date     integer  seconds prior to current time*/
@@ -922,7 +950,7 @@ builtin_rclock (struct mh_machine *mach)
   
   if (_parse_date (mach, &tm, &tz))
     return;
-  mach->reg_num = now - mu_tm2time (&tm, &tz);
+  mach->arg_num = now - mu_tm2time (&tm, &tz);
 }
 
 /*      tws        date     string   official 822 rendering */
@@ -930,7 +958,6 @@ static void
 builtin_tws (struct mh_machine *mach)
 {
   /*FIXME: noop*/
-  strobj_copy (&mach->reg_str, &mach->arg_str);
 }
 
 /*     pretty     date     string   user-friendly rendering*/
@@ -938,7 +965,6 @@ static void
 builtin_pretty (struct mh_machine *mach)
 {
   /*FIXME: noop*/
-  strobj_copy (&mach->reg_str, &mach->arg_str);
 }
 
 /*     nodate     date     integer  str not a date string */
@@ -948,7 +974,7 @@ builtin_nodate (struct mh_machine *mach)
   struct tm tm;
   mu_timezone tz;
   
-  mach->reg_num = _parse_date (mach, &tm, &tz);
+  mach->arg_num = _parse_date (mach, &tm, &tz);
 }
 
 /*     proper     addr     string   official 822 rendering */
@@ -956,7 +982,6 @@ static void
 builtin_proper (struct mh_machine *mach)
 {
   /*FIXME: noop*/
-  strobj_copy (&mach->reg_str, &mach->arg_str);
 }
 
 /*     friendly   addr     string   user-friendly rendering*/
@@ -964,7 +989,6 @@ static void
 builtin_friendly (struct mh_machine *mach)
 {
   /*FIXME: noop*/
-  strobj_copy (&mach->reg_str, &mach->arg_str);
 }
 
 /*     addr       addr     string   mbox@host or host!mbox rendering*/
@@ -974,13 +998,15 @@ builtin_addr (struct mh_machine *mach)
   address_t addr;
   size_t n;
   char buf[80];
+  int rc;
   
-  strobj_free (&mach->reg_str);
-  if (address_create (&addr, strobj_ptr (&mach->arg_str)))
+  rc = address_create (&addr, strobj_ptr (&mach->arg_str));
+  strobj_free (&mach->arg_str);
+  if (rc)
     return;
 
   if (address_get_email (addr, 1, buf, sizeof buf, &n) == 0)
-    strobj_create (&mach->reg_str, buf);
+    strobj_create (&mach->arg_str, buf);
   address_destroy (&addr);
 }
 
@@ -991,13 +1017,15 @@ builtin_pers (struct mh_machine *mach)
   address_t addr;
   size_t n;
   char buf[80];
+  int rc;
   
-  strobj_free (&mach->reg_str);
-  if (address_create (&addr, strobj_ptr (&mach->arg_str)))
+  rc = address_create (&addr, strobj_ptr (&mach->arg_str));
+  strobj_free (&mach->arg_str);
+  if (rc)
     return;
 
   if (address_get_personal (addr, 1, buf, sizeof buf, &n) == 0)
-    strobj_create (&mach->reg_str, buf);
+    strobj_create (&mach->arg_str, buf);
   address_destroy (&addr);
 }
 
@@ -1008,13 +1036,15 @@ builtin_note (struct mh_machine *mach)
   address_t addr;
   size_t n;
   char buf[80];
+  int rc;
   
-  strobj_free (&mach->reg_str);
-  if (address_create (&addr, strobj_ptr (&mach->arg_str)))
+  rc = address_create (&addr, strobj_ptr (&mach->arg_str));
+  strobj_free (&mach->arg_str);
+  if (rc)
     return;
 
   if (address_get_comments (addr, 1, buf, sizeof buf, &n) == 0)
-    strobj_create (&mach->reg_str, buf);
+    strobj_create (&mach->arg_str, buf);
   address_destroy (&addr);
 }
 
@@ -1025,9 +1055,11 @@ builtin_mbox (struct mh_machine *mach)
   address_t addr;
   size_t n;
   char buf[80];
+  int rc;
   
-  strobj_free (&mach->reg_str);
-  if (address_create (&addr, strobj_ptr (&mach->arg_str)))
+  rc = address_create (&addr, strobj_ptr (&mach->arg_str));
+  strobj_free (&mach->arg_str);
+  if (rc)
     return;
 
   if (address_get_email (addr, 1, buf, sizeof buf, &n) == 0)
@@ -1035,7 +1067,7 @@ builtin_mbox (struct mh_machine *mach)
       char *p = strchr (buf, '@');
       if (p)
 	*p = NULL;
-      strobj_create (&mach->reg_str, p);
+      strobj_create (&mach->arg_str, p);
     }
   address_destroy (&addr);
 }
@@ -1048,12 +1080,12 @@ builtin_mymbox (struct mh_machine *mach)
   size_t n;
   char buf[80];
   
-  mach->reg_num = 0;
+  mach->arg_num = 0;
   if (address_create (&addr, strobj_ptr (&mach->arg_str)))
     return;
 
   if (address_get_email (addr, 1, buf, sizeof buf, &n) == 0)
-    mach->reg_num = mh_is_my_name (buf);
+    mach->arg_num = mh_is_my_name (buf);
   address_destroy (&addr);
 }
 
@@ -1064,16 +1096,18 @@ builtin_host (struct mh_machine *mach)
   address_t addr;
   size_t n;
   char buf[80];
+  int rc;
   
-  strobj_free (&mach->reg_str);
-  if (address_create (&addr, strobj_ptr (&mach->arg_str)))
+  rc = address_create (&addr, strobj_ptr (&mach->arg_str));
+  strobj_free (&mach->arg_str);
+  if (rc)
     return;
 
   if (address_get_email (addr, 1, buf, sizeof buf, &n) == 0)
     {
       char *p = strchr (buf, '@');
       if (p)
-	strobj_create (&mach->reg_str, p+1);
+	strobj_create (&mach->arg_str, p+1);
     }
   address_destroy (&addr);
 }
@@ -1085,15 +1119,17 @@ builtin_nohost (struct mh_machine *mach)
   address_t addr;
   size_t n;
   char buf[80];
+  int rc;
   
-  strobj_free (&mach->reg_str);
-  if (address_create (&addr, strobj_ptr (&mach->arg_str)))
+  rc = address_create (&addr, strobj_ptr (&mach->arg_str));
+  strobj_free (&mach->arg_str);
+  if (rc)
     return;
 
   if (address_get_email (addr, 1, buf, sizeof buf, &n) == 0)
-    mach->reg_num = strchr (buf, '@') != NULL;
+    mach->arg_num = strchr (buf, '@') != NULL;
   else
-    mach->reg_num = 0;
+    mach->arg_num = 0;
   address_destroy (&addr);
 }
 
@@ -1105,22 +1141,24 @@ builtin_type (struct mh_machine *mach)
   address_t addr;
   size_t n;
   char buf[80];
-  
-  strobj_free (&mach->reg_str);
-  if (address_create (&addr, strobj_ptr (&mach->arg_str)))
+  int rc;
+
+  rc = address_create (&addr, strobj_ptr (&mach->arg_str));
+  strobj_free (&mach->arg_str);
+  if (rc)
     return;
 
   if (address_get_email (addr, 1, buf, sizeof buf, &n) == 0)
     {
       if (strchr (buf, '@'))
-	mach->reg_num = 1;
+	mach->arg_num = 1;
       else if (strchr (buf, '@'))
-	mach->reg_num = -1;
+	mach->arg_num = -1;
       else
-	mach->reg_num = 0; /* assume local */
+	mach->arg_num = 0; /* assume local */
     }
   else
-    mach->reg_num = 2;
+    mach->arg_num = 2;
   address_destroy (&addr);
 }
 
@@ -1131,12 +1169,14 @@ builtin_path (struct mh_machine *mach)
   address_t addr;
   size_t n;
   char buf[80];
+  int rc;
   
-  strobj_free (&mach->reg_str);
-  if (address_create (&addr, strobj_ptr (&mach->arg_str)))
+  rc = address_create (&addr, strobj_ptr (&mach->arg_str));
+  strobj_free (&mach->arg_str);
+  if (rc)
     return;
   if (address_get_route (addr, 1, buf, sizeof buf, &n))
-    strobj_create (&mach->reg_str, buf);
+    strobj_create (&mach->arg_str, buf);
   address_destroy (&addr);
 }
 
