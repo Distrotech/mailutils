@@ -83,6 +83,7 @@ util_do_command (const char *c, ...)
   char **argv = NULL;
   int status = 0;
   function_t *command;
+  int exec = 1;
   char *cmd = NULL;
   va_list ap;
   static const char *delim = "=";
@@ -95,29 +96,29 @@ util_do_command (const char *c, ...)
 
   if (cmd)
     {
-      struct mail_command_entry entry;
-
       /*  Ignore comments */
-      if (cmd[0] == '#') {
-	free (cmd);
-	return 0;
-      }
+      if (cmd[0] == '#')
+	{
+	  free (cmd);
+	  return 0;
+	}
 
       /* Hitting return i.e. no command, is equivalent to next
 	 according to the POSIX spec.  */
-      if (cmd[0] == '\0') {
-	free (cmd);
-	cmd = strdup ("next");
-      }
+      if (cmd[0] == '\0')
+	{
+	  free (cmd);
+	  cmd = strdup ("next");
+	}
 
       if (argcv_get (cmd, delim, NULL, &argc, &argv) == 0)
 	{
+	  struct mail_command_entry entry;
 
 	  entry = util_find_entry (mail_command_table, argv[0]);
-
+	  command = entry.func;
 	  /* Make sure we are not in any if/else */
-	  if (! (if_cond () == 0 && (entry.flags & EF_FLOW) == 0))
-	    command = entry.func;
+	  exec = !(if_cond () == 0 && (entry.flags & EF_FLOW) == 0);
 	}
       free (cmd);
     }
@@ -125,10 +126,13 @@ util_do_command (const char *c, ...)
     command = util_command_get ("quit");
 
   if (command != NULL)
-    status = command (argc, argv);
+    {
+      if (exec)
+	status = command (argc, argv);
+    }
   else
     {
-      util_error("Unknown command: %s", argv[0]);
+      util_error ("Unknown command: %s", argv[0]);
       status = 1;
     }
 
