@@ -95,14 +95,17 @@ pop3_abquit (int reason)
       fprintf (ofile, "-ERR Out of memory, quitting\r\n");
       syslog (LOG_ERR, "Out of memory");
       break;
+
     case ERR_DEAD_SOCK:
       fprintf (ofile, "-ERR Socket closed, quitting\r\n");
       syslog (LOG_ERR, "Socket closed");
       break;
+
     case ERR_SIGNAL:
       fprintf (ofile, "-ERR Quitting on signal\r\n");
       syslog (LOG_ERR, "Quitting on signal");
       break;
+
     case ERR_TIMEOUT:
       fprintf (ofile, "-ERR Session timed out\r\n");
       if (state == TRANSACTION)
@@ -110,12 +113,19 @@ pop3_abquit (int reason)
       else
 	syslog (LOG_INFO, "Session timed out for no user");
       break;
+
+    case ERR_NO_OFILE:
+      syslog (LOG_INFO, "No socket to send to");
+      break;
+
     default:
       fprintf (ofile, "-ERR Quitting (reason unknown)\r\n");
       syslog (LOG_ERR, "Unknown quit");
       break;
     }
-  fflush (ofile);
+
+  if (ofile)
+    fflush (ofile);
   closelog();
   exit (1);
 }

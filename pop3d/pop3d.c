@@ -213,6 +213,7 @@ pop3_mainloop (int infile, int outfile)
   state = AUTHORIZATION;
   curr_time = time (NULL);
 
+  /* FIXME:  Retreive hostname with getpeername() and log.  */
   syslog (LOG_INFO, "Incoming connection opened");
 
   /* Prepare the shared secret for APOP.  */

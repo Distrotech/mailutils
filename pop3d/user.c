@@ -134,18 +134,14 @@ pop3_user (const char *arg)
 
       pw = getpwnam (arg);
 #ifndef USE_LIBPAM
-      if (pw == NULL)
-	return ERR_BAD_LOGIN;
-      if (pw->pw_uid < 1)
+      if (pw == NULL || pw->pw_uid < 1)
 	return ERR_BAD_LOGIN;
       if (strcmp (pw->pw_passwd, crypt (pass, pw->pw_passwd)))
 	{
 #ifdef HAVE_SHADOW_H
 	  struct spwd *spw;
 	  spw = getspnam (arg);
-	  if (spw == NULL)
-	    return ERR_BAD_LOGIN;
-	  if (strcmp (spw->sp_pwdp, crypt (pass, spw->sp_pwdp)))
+	  if (spw == NULL || strcmp (spw->sp_pwdp, crypt (pass, spw->sp_pwdp)))
 #endif /* HAVE_SHADOW_H */
 	    return ERR_BAD_LOGIN;
 	}
