@@ -112,7 +112,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
     case 'f':
       if (from != NULL)
 	{
-	  mu_error ("multiple --from options");
+	  argp_error (state, "multiple --from options");
 	  return EX_USAGE;
 	}
       from = arg;
