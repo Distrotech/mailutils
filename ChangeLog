@@ -1,3 +1,34 @@
+2003-01-31  Sergey Poznyakoff
+
+	* mailbox/file_stream.c (_file_readline): Make sure the
+	  terminal zero is always added.
+
+	* mh/mh.h (mh_format): Changed declaration.
+	  (mh_format_debug): New function.
+	* mh/mh_format.c (mh_format): Use dynamically allocated buffer.
+	  (builtin_printstr): Removed.
+	  (builtin_printhdr): New function.
+	  (builtin_putnum,builtin_putnumf)
+	  (builtin_putstr,builtin_putstrf): Bugfix.
+	
+	* mh/mh_fmtgram.y (mh_format_debug): New function.
+	* mh/inc.c: Updated calls to mh_format
+	* mh/scan.c: Likewise.
+	* mh/repl.c: Updated calls to mh_format.
+	  (format_str): Use printhdr.
+	  (make_draft): Disable interactive prompting when build_only
+	  flag is set.
+	* mh/replcomps: Use printhdr. 
+	* mh/mh_init.c (mh_read_formfile): Bugfix.
+	
+	* mh/fmtcheck.c: New command line option --debug.
+	* mh/README: Changed printstr to printhdr
+
+	* pop3d/extra.c (pop3d_readline): Fixed misguiding diagnostics.
+	  Check for eof.
+	* pop3d/signal.c (pop3d_sigchld): Don't try to print to stdout
+	  if SIGPIPE received.
+	
 2003-01-30  Sergey Poznyakoff 
 
 	* mailbox/rfc2047.c (rfc2047_decode): Bugfix.
