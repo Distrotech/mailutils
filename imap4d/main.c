@@ -13,7 +13,11 @@ static void init(void);
 static int mainloop(void);
 static void cleanup(void);
 static void greeting(void);
-static STATUS action(Command *command);
+static Command* parse_command(char *string);
+
+#define action(cmd) cmd->info->action ? cmd->info->action(cmd) : BAD;
+
+#define free_command(cmd) free(cmd);
 
 /* state the server is in */
 STATES state = NON_AUTH;
@@ -24,6 +28,14 @@ FILE *output = NULL;
 /* output strings, maps STATUS to strings */
 static char *status_word[3] = {"BAD", "NO", "OK"};
 static char *status_code[3] = {"invalid", "failed", "completed"};
+
+static imap4_cmd_t COMMANDS[] = {
+	{ "capability", imap_capability, , , },
+	{ "noop"      , imap_noop,       , , },
+	{ "logout"    , imap_logout,     , , },
+	{ "login"     , imap_login,      , , },
+	{ "",         , NULL,            , , }
+};
 
 
 int main(int argc, char *argv[]) {
@@ -77,12 +89,16 @@ static int mainloop(void) {
 
 	while( getline(&client_string, &len, input) != -1 ) {
 		command = parse_command(client_string);
-		status = action(command);
-
-		fprintf(output, "%s %s %s %s\r\n", command->tag, status_word[status],
-				command->cmd, status_code[status]);
-
-		free_command(command);
+		if(command) {
+			status = action(command);
+			fprintf(output, "%s %s %s %s\r\n", command->tag, status_word[status],
+					command->cmd, status_code[status]);
+			free_command(command);
+		}
+		else {
+			/* FIXME: properly handle this */
+			fprintf(output, "");
+		}
 
 		if( state == LOGOUT ) /* all done, let's go */
 			break;
@@ -92,20 +108,52 @@ static int mainloop(void) {
 	return 1;
 }
 
-STATUS action(Command *command) {
+imap4_action_t check_command(const char *command) {
 
-	if( strcasecmp(command->cmd, "capability") == 0 ) {
-		return imap_capability(command);
+	for(i = 0; COMMANDS[i]; ++i) {
+		if(strcasecmp(command, COMMANDS[i].cmd) == 0)
+			return COMMANDS[i];
 	}
-	else if( strcasecmp(command->cmd, "noop") == 0 ) {
-		return imap_noop(command);
-	}
-	else if( strcasecmp(command->cmd, "logout") == 0 ) {
-		return imap_logout(command);
-	}
-	else if( strcasecmp(command->cmd, "login") == 0 ) {
-		return imap_login(command);
+	return NULL;
+}
+
+Command* parse_command(char *string) {
+
+	size_t len, tmp;
+	Command *command;
+
+	if( string == NULL )
+		return NULL;
+
+	command = malloc(sizeof(Command));
+	memset(command, '\0', sizeof(Command));
+
+	len = strcspn(string, " ");
+	if( len > 0 ) {
+		tmp = strcspn(string, "\r\n");
+		string[tmp] = '\0';
+		strncpy(command->tag, string, len > 15 ? 15 : len);
+	} else {
+		strcpy(command->tag, "gibberish");
+		return command;
 	}
 
-	return BAD;
+	tmp = len;
+	++tmp; /* skip space char */
+	len = strcspn(string + tmp, " ");
+	if( len > 0 )
+		strncpy(command->cmd, string + tmp, len > 15 ? 15 : len);
+	else {
+		strcpy(command->cmd, "gibberish");
+		return command;
+	}	
+	/* args is the rest of the string */
+	command->args = string + len + tmp + 1;
+
+	if( command->args[0] == '\0' ) /* no args */
+		command->args = NULL;
+
+	command->info = check_command(command->cmd);
+
+	return command;
 }
