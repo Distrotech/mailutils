@@ -97,6 +97,7 @@ extern int debug_level;
 #define MQUOTA_UNLIMITED  2
 
 extern char *quotadbname;
+extern char *quota_query;
 extern int exit_code;
 
 extern void setgroupquota __P((char *str));
