@@ -33,7 +33,6 @@
 #include <header0.h>
 #include <attribute0.h>
 #include <bio.h>
-#include <ctype.h>
 
 /* Advance declarations.  */
 struct _pop_data;
@@ -127,16 +126,18 @@ struct _pop_message
    many messages we have so far etc ...  */
 struct _pop_data
 {
+  /*  Pop is a serial protocol, we need only one global mutex.  */
+#ifdef HAVE_PTHREAD_H
+  pthread_mutex_t mutex;
+#else
   void *func;  /*  Indicate a command is in operation, busy.  */
+#endif
   size_t id; /* Use in pop_expunge to hold the message num, if EAGAIN.  */
   enum pop_state state;
   pop_message_t *pmessages;
   size_t pmessages_count;
   size_t messages_count;
   size_t size;
-#ifdef HAVE_PTHREAD_H
-  pthread_mutex_t mutex;
-#endif
   int flags;  /* Flags of for the stream_t object.  */
 
   /* Working I/O buffers.  */
@@ -152,7 +153,7 @@ struct _pop_data
   mailbox_t mbox; /* Back pointer.  */
 } ;
 
-/* Usefull little Macros, since this is very repetitive.  */
+/* Usefull little Macros, since these are very repetitive.  */
 #define CLEAR_STATE(mpd) \
  mpd->id = 0, mpd->func = NULL, \
  mpd->state = POP_NO_STATE
@@ -217,11 +218,11 @@ pop_create (mailbox_t *pmbox, const char *name)
 #define SEPARATOR '/'
 
   /* Skip the url scheme.  */
-  if (name_len > POP_SCHEME_LEN &&
-      (name[0] == 'p' || name[0] == 'P') &&
-      (name[1] == 'o' || name[1] == 'O') &&
-      (name[2] == 'p' || name[2] == 'P') &&
-      (name[3] == ':' && name[4] == '/' && name[5] == '/'))
+  if (name_len > POP_SCHEME_LEN
+      && (name[0] == 'p' || name[0] == 'P')
+      && (name[1] == 'o' || name[1] == 'O')
+      && (name[2] == 'p' || name[2] == 'P')
+      && (name[3] == ':' && name[4] == '/' && name[5] == '/'))
     {
       name += POP_SCHEME_LEN;
       name_len -= POP_SCHEME_LEN;
@@ -338,23 +339,20 @@ pop_destroy (mailbox_t *pmbox)
     }
 }
 
-/*  We should probably use getpass () or something similar.  */
-static struct termios stored_settings;
-
 static void
-echo_off(void)
+echo_off(struct termios *stored_settings)
 {
   struct termios new_settings;
-  tcgetattr (0, &stored_settings);
-  new_settings = stored_settings;
+  tcgetattr (0, stored_settings);
+  new_settings = *stored_settings;
   new_settings.c_lflag &= (~ECHO);
   tcsetattr (0, TCSANOW, &new_settings);
 }
 
 static void
-echo_on(void)
+echo_on(struct termios *stored_settings)
 {
-  tcsetattr (0, TCSANOW, &stored_settings);
+  tcsetattr (0, TCSANOW, stored_settings);
 }
 
 /* User/pass authentication for pop.  */
@@ -367,9 +365,12 @@ pop_authenticate (auth_t auth, char **user, char **passwd)
   char p[128];
   mailbox_t mbox = auth->owner;
   int status;
+  /*  We should probably use getpass () or something similar.  */
+  struct termios stored_settings;
 
   *u = '\0';
   *p = '\0';
+  memset (&stored_settings, 0, sizeof (stored_settings));
 
   /* Prompt for the user/login name.  */
   status = url_get_user (mbox->url, u, sizeof (u), NULL);
@@ -385,9 +386,9 @@ pop_authenticate (auth_t auth, char **user, char **passwd)
     {
       printf ("Pop Passwd: ");
       fflush (stdout);
-      echo_off ();
+      echo_off (&stored_settings);
       fgets (p, sizeof(p), stdin);
-      echo_on ();
+      echo_on (&stored_settings);
       p [strlen (p) - 1] = '\0';
     }
   *user = strdup (u);
@@ -699,8 +700,8 @@ pop_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
 	free (mpm);
 	return status;
       }
-    //stream_set_read (stream, pop_top, mpm);
-    stream_set_read (stream, pop_read_header, mpm);
+    stream_set_read (stream, pop_top, mpm);
+    //stream_set_read (stream, pop_read_header, mpm);
     stream_set_fd (stream, pop_get_fd, mpm);
     stream_set_flags (stream, MU_STREAM_READ, mpm);
     header_set_stream (header, stream, mpm);
