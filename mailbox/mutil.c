@@ -31,23 +31,30 @@
  
  mktime() always treats tm as if it was localtime, so convert it
  to UTC, then adjust by the tm's real timezone, if it is known.
+ 
+ NOTE: 1. mktime converts localtime struct tm to *time_t in UTC*
+       2. adding mu_utc_offset() compensates for the localtime
+          corrections in in mktime(), i.e. it yields the time_t in
+	  the current zone of struct tm.
+       3. finally, subtracting TZ offset yields the UTC.
 */
 time_t
 mu_tm2time (struct tm *timeptr, mu_timezone* tz)
 {
   int offset = tz ? tz->utc_offset : 0;
   
-  return mktime(timeptr) - mu_utc_offset() + offset;
+  return mktime(timeptr) + mu_utc_offset() - offset;
 }
 
 /* Convert time 0 at UTC to our localtime, that tells us the offset
    of our current timezone from UTC. */
-time_t mu_utc_offset(void)
+time_t
+mu_utc_offset(void)
 {
   time_t t = 0;
   struct tm* tm = gmtime(&t);
 
-  return mktime(tm);
+  return - mktime(tm);
 }
 
 static const char *months[] =
