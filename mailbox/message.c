@@ -162,6 +162,41 @@ message_destroy (message_t *pmsg, void *owner)
 }
 
 int
+message_create_copy (message_t *to, message_t from)
+{
+  int status = 0;
+  stream_t fromstr = NULL;
+  stream_t tostr = NULL;
+  off_t off = 0;
+  size_t n = 0;
+  char buf[512];
+
+  if(!to || !from)
+    return EINVAL;
+
+  if((status = message_create (to, NULL)))
+    return status;
+
+  message_get_stream (from, &fromstr);
+  message_get_stream (*to, &tostr);
+
+  while (
+      (status = stream_readline (fromstr, buf, sizeof(buf), off, &n)) == 0
+	 &&
+      n > 0
+      )
+    {
+      stream_write (tostr, buf, n, off, NULL);
+      off += n;
+    }
+
+  if(status)
+    message_destroy(to, NULL);
+  
+  return status;
+}
+
+int
 message_ref (message_t msg)
 {
   if (msg)

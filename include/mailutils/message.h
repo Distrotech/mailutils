@@ -30,6 +30,8 @@ extern "C" {
 extern int message_create           __P ((message_t *, void *owner));
 extern void message_destroy         __P ((message_t *, void *owner));
 
+extern int message_create_copy      __P ((message_t *to, message_t from));
+
 extern void * message_get_owner     __P ((message_t));
 extern int message_is_modified      __P ((message_t));
 extern int message_clear_modified   __P ((message_t));
