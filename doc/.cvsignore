@@ -1,5 +1,7 @@
 Makefile
 Makefile.in
 stamp-vti
-mailutils.info
+mdate-sh
+mailutils.info*
 version.texi
+_*
