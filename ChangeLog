@@ -1,3 +1,37 @@
+2002-03-24 Sam Roberts
+
+	* dotlock/dotlock.c, include/mailutils/locker.h, mailbox/locker.c:
+	  Added lock mode MU_LOCK_EXTERNAL which calls an external program to
+	  do the locking. Default is "dotlock", which is setgid mail so can
+	  lock in a mailspool that users may not have write permissions to.
+	* mailbox/mutil.c: mu_spawnvp(): new function - like system, but
+	  doesn't use /bin/sh, just forks and calls execvp(), with
+	  system-like signal handling.
+	* configure.in: Check for vfork().
+	* mail/echo.c: %d fmt not matching long arg
+	* mail/msgset.y: fixed warning about included regex.h redefineing
+	  RE_DUP_MAX from limits.h
+	* TODO: Added alains suggestions about read/write lock
+	  optimization, etc.
+	* include/mailutils/*.h, comsat/comsat.h, frm/frm.c, from/from.h,
+	  imap4d/imap4d.h, url.h, mail/mail.h, mail.local/mail.local.h,
+	  mailbox/attachment.c, mailbox/filter.c, mailbox/filter_rfc822.c,
+	  mailbox/filter_trans.c, mailbox/folder.c, mailbox/folder_imap.c,
+	  mailbox/folder_mbox.c, mailbox/folder_pop.c, mailbox/iterator.c,
+	  mailbox/mailbox.c, mailbox/mailer.c, mailbox/mbx_default.c,
+	  mailbox/mbx_file.c, mailbox/mbx_imap.c, mailbox/mbx_mbox.c,
+	  mailbox/mbx_mh.c, mailbox/mbx_pop.c, mailbox/message.c,
+	  mailbox/muerrno.c, mailbox/observer.c, mailbox/registrar.c,
+	  mailbox/sendmail.c, mailbox/smtp.c, mailbox/stream.c,
+	  mailbox/url_mbox.c, mailbox2/include/mailutils/authority.h,
+	  messages/messages.c, pop3d/pop3d.h, readmsg/readmsg.h,
+	  sieve/sieve.c, sieve/sieve.h, sieve/sv.h, sieve/svcb.c,
+	  sieve/svctx.c, sieve/svfield.c, sieve/svfield.h, sieve/svutil.c:
+	    Finished split of forward declarations into <mailutils/types.h>.
+	    Now you have to include the header for the functions you want to
+	    use, but you can change a header without causing a recompile of
+	    everything. Also added some missing LGPL file headers.
+
 2002-03-21  Sergey Poznyakoff  
 
 	* include/mailutils/locker.h: New flag MU_LOCKER_NULL
