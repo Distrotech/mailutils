@@ -1,4 +1,4 @@
-CPPFLAGS = -I$(top_srcdir)/libmailbox -Wall -pedantic
+CPPFLAGS = -I$(top_srcdir)/libmailbox -Wall -pedantic -g -DTESTING
 
 bin_PROGRAMS = mail
 

@@ -36,6 +36,11 @@
 #define mbox_get_body(m,n)	m->_get_body(m,n)
 #define mbox_get_header(m,n)	m->_get_header(m,n)
 #define mbox_lock(m,n)		m->_lock(m,n)
+#ifdef TESTING
+#define mbox_tester(m,n)      m->_tester(m,n)
+#endif
+
+#include <stdlib.h>
 
 /* Lock settings */
 /* define this way so that it is opaque and can later become a struct w/o
@@ -50,7 +55,7 @@ typedef struct _mailbox
     char *name;
     unsigned int messages;
     unsigned int num_deleted;
-    unsigned int *sizes;
+    size_t *sizes;
     void *_data;
 
     /* Functions */
@@ -63,6 +68,9 @@ typedef struct _mailbox
     int (*_lock) __P((struct _mailbox *, mailbox_lock_t));
     char *(*_get_body) __P ((struct _mailbox *, unsigned int));
     char *(*_get_header) __P ((struct _mailbox *, unsigned int));
+#ifdef TESTING
+    void (*_tester) __P ((struct _mailbox *, unsigned int));
+#endif
   }
 mailbox;
 

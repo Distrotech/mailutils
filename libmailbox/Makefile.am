@@ -1,6 +1,6 @@
 # Use automake to process this file -*-Makefile-*-
 
-CPPFLAGS = -Wall -pedantic
+CFLAGS = -Wall -pedantic -g -DTESTING
 
 include_HEADERS = mailbox.h
 lib_LTLIBRARIES = libmailbox.la

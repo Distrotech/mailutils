@@ -83,6 +83,9 @@ mbox_open (const char *name)
   mbox->_lock = _mbox_dummy2;
   mbox->_get_body = _mbox_dummy4;
   mbox->_get_header = _mbox_dummy4;
+#ifdef TESTING
+  mbox->_tester = _mbox_dummy2;
+#endif
 
   if (S_ISREG (st.st_mode))
     {

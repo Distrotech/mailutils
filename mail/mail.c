@@ -100,7 +100,8 @@ Report bugs to <bug-mailutils@gnu.org>.\n");
       fgets (bar, 80, stdin);
       c = bar[0];
       if (c == 'd' || c == 'D' || c == 'b' || c == 'B' || c == 'h' ||
-	  c == 'H' || c == 'r' || c == 'R' || c == 'f' || c == 'F')
+	  c == 'H' || c == 'r' || c == 'R' || c == 'f' || c == 'F' ||
+	  c == 'T' || c == 't' )
 	{
 	  printf ("# ");
 	  fgets (bar, 80, stdin);
@@ -136,9 +137,9 @@ Report bugs to <bug-mailutils@gnu.org>.\n");
 	case 'b':
 	case 'B':
 	  foo = mbox_get_body (mbox, atoi (bar) - 1);
-          printf ("%s", foo);
-          free (foo);
-          break;
+      printf ("%s", foo);
+      free (foo);
+      break;
 	case 'd':
 	case 'D':
 	  mbox_delete (mbox, atoi (bar) - 1);
@@ -147,6 +148,10 @@ Report bugs to <bug-mailutils@gnu.org>.\n");
 	case 'X':
 	  mbox_expunge (mbox);
 	  break;
+    case 't':
+    case 'T':
+      mbox_tester (mbox, atoi (bar) - 1);
+      break;
 	default:
 	  break;
 	}

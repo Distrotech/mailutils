@@ -145,6 +145,9 @@ END:
   mbox->_lock = unixmbox_lock;
   mbox->_get_body = unixmbox_get_body;
   mbox->_get_header = unixmbox_get_header;
+#ifdef TESTING
+  mbox->_tester = unixmbox_tester;
+#endif
 
   return 0;
 }
@@ -164,7 +167,8 @@ unixmbox_close (mailbox * mbox)
     }
   data = mbox->_data;
   unixmbox_lock (mbox, MO_ULOCK);
-  fclose (data->file);
+  if (data->file)
+    fclose (data->file);
   free (data->messages);
   free (mbox->sizes);
   free (data);
@@ -234,7 +238,7 @@ unixmbox_expunge (mailbox * mbox)
 {
   unixmbox_data *data;
   int i = 0;
-  ssize_t size = 0, size_read = 0;
+  size_t size = 0, size_read = 0;
   char *buf = NULL;
   int file;
   int deletion_needed = 0; /* true when a deleted message has been found */
@@ -261,7 +265,7 @@ unixmbox_expunge (mailbox * mbox)
 	{
       if (deletion_needed)
       {
-        tmp = data->messages[i + 1].header - data->messages[i].header;
+        tmp = mbox->sizes[i];
 		if (tmp > buff_size)
           {
             buff_size = tmp;
@@ -275,6 +279,10 @@ unixmbox_expunge (mailbox * mbox)
         write (file, buf, size_read);
 		/* error checking */
       	size += size_read;
+      }
+      else
+      {
+        size += mbox->sizes[i];
       }
 	}
 	  else
@@ -330,7 +338,7 @@ char *
 unixmbox_get_body (mailbox * mbox, unsigned int num)
 {
   unixmbox_data *data;
-  unsigned int size;
+  size_t size;
   char *buf;
 
   if (mbox == NULL)
@@ -374,7 +382,7 @@ char *
 unixmbox_get_header (mailbox * mbox, unsigned int num)
 {
   unixmbox_data *data;
-  unsigned int size;
+  size_t size;
   char *buf;
 
   if ( mbox == NULL )
@@ -426,3 +434,14 @@ unixmbox_lock (mailbox *mbox, mailbox_lock_t mode)
   return 0;
 }
 
+#ifdef TESTING
+void unixmbox_tester (mailbox *mbox, unsigned int num)
+{
+  unixmbox_data *data = mbox->_data;
+  if (!data || num > mbox->messages || num < 0)
+    return;
+  printf ("Message size: %u\n", mbox->sizes[num]);
+  printf ("Message length: %lu\n",
+        data->messages[num].end - data->messages[num].header);
+}
+#endif

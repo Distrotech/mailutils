@@ -51,7 +51,7 @@ typedef struct _unixmbox_message
     off_t header;
     off_t body;
     off_t end;
-    short deleted;
+    char deleted;
   }
 unixmbox_message;
 
@@ -73,5 +73,9 @@ int unixmbox_lock (mailbox *mbox, mailbox_lock_t mode);
 int unixmbox_add_message (mailbox *mbox, char *message);
 char *unixmbox_get_body (mailbox *mbox, unsigned int num);
 char *unixmbox_get_header (mailbox *mbox, unsigned int num);
+
+#ifdef TESTING
+void unixmbox_tester (mailbox *mbox, unsigned int num);
+#endif
 
 #endif

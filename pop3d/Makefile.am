@@ -1,5 +1,5 @@
 INCLUDES =-I$(srcdir) -I$(top_srcdir)/lib -I$(top_srcdir)/libmailbox
-CPPFLAGS = -Wall -pedantic
+CFLAGS = -Wall -pedantic -g
 
 sbin_PROGRAMS = pop3d
 

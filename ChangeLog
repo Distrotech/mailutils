@@ -1,5 +1,11 @@
 1999-11-06  Sean 'Shaleh' Perry  <shaleh@debian.org>
 
+	* libmailbox/*: more work on expunge
+	* libmailbox/*: added a tester routine
+	* *: added -g to Makefile.am
+
+1999-11-06  Sean 'Shaleh' Perry  <shaleh@debian.org>
+
 	* libmailbox/unixmbox.*: work on expunge
 	    use read/write along with lseek
 		still blows up -- getting there

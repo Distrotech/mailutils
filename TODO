@@ -11,6 +11,9 @@
 
 - libmailbox needs an interface to set and create values in the header
 
+- libmailbox/unixmbox the open function needs to be split into an open and a
+  parse function
+
 - clean up 'mail''s compilation
 
 - find out why the pop3 server quits on a signal when the 'quit' command is
