@@ -69,8 +69,8 @@ struct _header;
 typedef struct _header * header_t;
 
 extern int header_init         __P ((header_t *, const char *blurb,
-				     size_t ln, int flag));
-extern void header_destroy     __P ((header_t *));
+				     size_t ln, int flag, void *owner));
+extern void header_destroy     __P ((header_t *, void *owner));
 
 extern int header_set_value    __P ((header_t, const char *fn,
 				     const char *fv, size_t n, int replace));

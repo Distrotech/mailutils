@@ -33,8 +33,8 @@ extern "C" {
 struct _attribute;
 typedef struct _attribute * attribute_t;
 
-extern int attribute_init __P ((attribute_t *));
-extern void attribute_destroy __P ((attribute_t *));
+extern int attribute_init __P ((attribute_t *, void *owner));
+extern void attribute_destroy __P ((attribute_t *, void *owner));
 
 extern int attribute_is_seen __P ((attribute_t));
 extern int attribute_is_answered __P ((attribute_t));

@@ -40,23 +40,23 @@ extern "C" {
 struct _message;
 typedef struct _message *message_t;
 
-extern int message_init        __P ((message_t *));
-extern void message_destroy    __P ((message_t *));
+extern int message_init        __P ((message_t *, void *owner));
+extern void message_destroy    __P ((message_t *, void *owner));
 
 extern int message_get_header  __P ((message_t, header_t *));
-extern int message_set_header  __P ((message_t, header_t));
+extern int message_set_header  __P ((message_t, header_t, void *owner));
 
 extern int message_get_istream __P ((message_t, istream_t *));
-extern int message_set_istream __P ((message_t, istream_t *));
+extern int message_set_istream __P ((message_t, istream_t, void *owner));
 extern int message_get_ostream __P ((message_t, ostream_t *));
-extern int message_set_ostream __P ((message_t, ostream_t *));
+extern int message_set_ostream __P ((message_t, ostream_t, void *owner));
 
 extern int message_is_multipart __P ((message_t));
 
 extern int message_get_size     __P ((message_t, size_t *));
 
 extern int message_get_attribute __P ((message_t, attribute_t *));
-extern int message_set_attribute __P ((message_t, attribute_t));
+extern int message_set_attribute __P ((message_t, attribute_t, void *owner));
 
 extern int message_clone __P ((message_t, message_t *));
 

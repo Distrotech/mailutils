@@ -22,7 +22,7 @@
 #include <errno.h>
 
 int
-attribute_init (attribute_t *pattr)
+attribute_init (attribute_t *pattr, void *owner)
 {
   attribute_t attr;
   if (pattr == NULL)
@@ -30,19 +30,24 @@ attribute_init (attribute_t *pattr)
   attr = calloc (1, sizeof(*attr));
   if (attr == NULL)
     return ENOMEM;
+  attr->owner = owner;
   *pattr = attr;
   return 0;
 }
 
 void
-attribute_destroy (attribute_t *pattr)
+attribute_destroy (attribute_t *pattr, void *owner)
 {
   if (pattr && *pattr)
     {
       attribute_t attr = *pattr;
-      /* no owner we really can free it */
-      if (! attr->message)
-	free (*pattr);
+
+      attr->ref_count--;
+      if ((attr->owner && attr->owner == owner) ||
+	  (attr->owner == NULL && attr->ref_count <= 0))
+	{
+	  free (attr);
+	}
       /* loose the link */
       *pattr = NULL;
     }
@@ -249,20 +254,11 @@ attribute_copy (attribute_t dest, attribute_t src)
 }
 
 int
-attribute_set_owner (attribute_t attr, message_t *msg)
+attribute_get_owner (attribute_t attr, void **powner)
 {
   if (attr == NULL)
     return EINVAL;
-  attr->message = msg;
-  return 0;
-}
-
-int
-attribute_get_owner (attribute_t attr, message_t *msg)
-{
-  if (attr == NULL)
-    return EINVAL;
-  if (msg)
-    *msg = attr->message;
+  if (powner)
+    *powner = attr->owner;
   return 0;
 }

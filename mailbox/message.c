@@ -26,8 +26,116 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+static int message_read (istream_t is, char *buf, size_t buflen,
+			 off_t off, ssize_t *pnread );
+static int message_write (ostream_t os, const char *buf, size_t buflen,
+			  off_t off, ssize_t *pnwrite);
+
+int message_clone (message_t omsg, message_t *pmsg)
+{
+  int status;
+  FILE *file;
+  message_t msg;
+  istream_t is;
+  ostream_t os;
+  header_t header;
+  char buffer[BUFSIZ];
+  char *pbuf = NULL;
+  char *tbuf = NULL;
+  off_t offset = 0;
+  size_t nread = 0;
+
+  /* retreive the header */
+  {
+    status = message_get_header (omsg, &header);
+    if (status != 0)
+      return status;
+    status = header_get_istream (header, &is);
+    if (status != 0)
+      return status;
+
+    do {
+      status = istream_read (is, buffer, sizeof (buffer), offset, &nread);
+      if (status != 0)
+	{
+	  free (pbuf);
+	  return status;
+	}
+      tbuf = realloc (pbuf, offset + nread);
+      if (tbuf == NULL)
+	{
+	  free (pbuf);
+	  return ENOMEM;
+	}
+      else
+	pbuf = tbuf;
+      memcpy (pbuf + offset, buffer, nread);
+      offset += nread;
+    } while (nread > 0);
+
+
+    status = header_init (&header, pbuf, offset, MU_HEADER_RFC822, NULL);
+    if (status != 0)
+      {
+	free (pbuf);
+	return status;
+      }
+    free (pbuf);
+
+  }
+
+  /* retrieve the body */
+  {
+    file = tmpfile ();
+    if (file == NULL)
+      {
+	header_destroy (&header, NULL);
+	return errno;
+      }
+    offset = 0;
+    message_get_istream (omsg, &is);
+    do {
+      istream_read (is, buffer, sizeof (buffer), offset, &nread);
+      fwrite (buffer, sizeof (*buffer), nread, file);
+      offset += nread;
+    } while (nread > 0);
+    rewind (file);
+  }
+
+  /* create the message */
+  status = message_init (&msg, NULL);
+  if (status != 0)
+    return status;
+
+  /* set the header */
+  message_set_header (msg, header, NULL);
+
+  /* set the body with the streams */
+  msg->body = calloc (1, sizeof (*(msg->body)));
+  if (msg->body == NULL)
+    {
+      fclose (file);
+      message_destroy (&msg, NULL);
+      return ENOMEM;
+    }
+  status = istream_init (&is, message_read, NULL);
+  if (status != 0)
+    {
+      message_destroy (&msg, NULL);
+      return status;
+    }
+  status = ostream_init (&os, message_write, NULL);
+  if (status != 0)
+    {
+      message_destroy (&msg, NULL);
+      return status;
+    }
+  *pmsg = msg;
+  return 0;
+}
+
 int
-message_init (message_t *pmsg)
+message_init (message_t *pmsg, void *owner)
 {
   message_t msg;
 
@@ -36,60 +144,42 @@ message_init (message_t *pmsg)
   msg = calloc (1, sizeof (*msg));
   if (msg == NULL)
     return ENOMEM;
+  msg->owner = owner;
   *pmsg = msg;
   return 0;
 }
 
 void
-message_destroy (message_t *pmsg)
+message_destroy (message_t *pmsg, void *owner)
 {
   if (pmsg && *pmsg)
     {
       message_t msg = *pmsg;
-      /*
-       * The message has a mailbox owner
-       * let the mailbox destroy when it finishes
-       */
-      if (msg->mailbox)
+
+      msg->ref_count--;
+      if ((msg->owner && msg->owner != owner) ||
+	  (msg->owner == NULL && msg->ref_count <= 0))
 	{
-	  /* but still loose the link */
-	  *pmsg = NULL;
-	  return;
+	  /* header */
+	  header_destroy (&(msg->header), owner);
+	  /* attribute */
+	  attribute_destroy (&(msg->attribute), owner);
+	  /* istream */
+	  istream_destroy (&(msg->is), owner);
+	  /* ostream */
+	  ostream_destroy (&(msg->os), owner);
+
+	  /* if sometype of floating/temporary message */
+	  if (msg->body)
+	    {
+	      body_t body = msg->body;
+	      if (body->file)
+		fclose (body->file);
+	      free (body->content);
+	      free (msg->body);
+	    }
+	  free (msg);
 	}
-      /* is the header own by us ? */
-      if (msg->header && msg->header->message == msg)
-	{
-	  msg->header->message = NULL;
-	  header_destroy (&(msg->header));
-	}
-      /* is the attribute own by us ? */
-      if (msg->attribute && msg->attribute->message == msg)
-	{
-	  msg->attribute->message = NULL;
-	  attribute_destroy (&(msg->attribute));
-	}
-      /* is the istream own by us */
-      if (msg->is && msg->is->owner == msg)
-	{
-	  msg->is->owner = NULL;
-	  istream_destroy (&(msg->is));
-	}
-      /* is the ostream own by us */
-      if (msg->os && msg->os->owner == msg)
-	{
-	  msg->os->owner = NULL;
-	  ostream_destroy (&(msg->os));
-	}
-      /* is it sometype of floating/temporary message */
-      if (msg->body)
-	{
-	  body_t body = msg->body;
-	  if (body->file)
-	    fclose (body->file);
-	  free (body->content);
-	  free (msg->body);
-	}
-      free (msg);
       /* loose the link */
       *pmsg = NULL;
     }
@@ -98,115 +188,105 @@ message_destroy (message_t *pmsg)
 int
 message_get_header (message_t msg, header_t *phdr)
 {
-  int err = 0;
-  int nread;
-  char *tbuf = NULL;
-  char buf[BUFSIZ];
-
   if (phdr == NULL || msg == NULL)
     return EINVAL;
 
-  /* header allready retrieve ? */
-  if (msg->header != NULL)
-    {
-      *phdr = msg->header;
-      return 0;
-    }
-
-  if (msg->mailbox == NULL)
-    return EINVAL;
-
-  /* Ok this is where the fun begins, we have to take to account
-   * the F&$#*#^#&g O_NONBLOCKING, thanks very much to Brian and David.
-   * So POP for example is a stream protocol where the server
-   * keeps on sending the data til' the wire turn red. So when
-   * we hit a bottleneck (EAGAIN, EWOULDBLOCK, EINPROGRESS, etc ..)
-   * we save our state and propagate the error up.  Hopefully
-   * the people upstairs will do the right thing by recalling
-   * us again.
-   * To resume my thoughts ... I do not like it.
-   */
-  while ((nread = mailbox_get_header (msg->mailbox,
-				      msg->num, buf, sizeof(buf),
-				      msg->header_offset, &err)) > 0)
-    {
-      tbuf = realloc (msg->header_buffer, msg->header_offset + nread);
-      if (tbuf == NULL)
-	{
-	  free (msg->header_buffer);
-	  msg->header_buffer = NULL;
-	  msg->header_offset = 0;
-	  return ENOMEM;
-	}
-      else
-	msg->header_buffer = tbuf;
-      memcpy (msg->header_buffer + msg->header_offset, buf, nread);
-      msg->header_offset += nread;
-    }
-
-  if (nread < 0)
-    {
-      if (err == EAGAIN || err == EINPROGRESS || err == EWOULDBLOCK)
-	return EAGAIN;
-      free (msg->header_buffer);
-      msg->header_buffer = NULL;
-      msg->header_offset = 0;
-      return err;
-    }
-
-  err = header_init (&(msg->header), msg->header_buffer,
-		     msg->header_offset, MU_HEADER_RFC822);
-  if (err == 0)
-    {
-      /* we own it */
-      msg->header->message = msg;
-      *phdr = msg->header;
-      msg->header = NULL;
-    }
-  /* we can discard it */
-  free (msg->header_buffer);
-  msg->header_buffer = NULL;
-  msg->header_offset = 0;
-  return err;
+  *phdr = msg->header;
+  return 0;
 }
 
 int
-message_set_header (message_t msg, header_t hdr)
+message_set_header (message_t msg, header_t hdr, void *owner)
 {
-  /* Can not do that on a mailbox */
-  if (msg == NULL || msg->mailbox == NULL)
+  if (msg == NULL )
     return EINVAL;
-  /* we own it ? */
-  if (msg->header && msg->header->message == msg)
-    {
-      msg->header->message = NULL;
-      header_destroy (&(msg->header));
-    }
+  if (msg->owner != owner)
+     return EACCES;
   msg->header = hdr;
   return 0;
 }
 
-static ssize_t
-message_read (istream_t is, char *buf, size_t buflen, off_t off)
+int
+message_get_istream (message_t msg, istream_t *pis)
+{
+  if (msg == NULL || pis == NULL)
+    return EINVAL;
+  *pis = msg->is;
+  return 0;
+}
+
+int
+message_set_istream (message_t msg, istream_t is, void *owner)
+{
+  if (msg == NULL)
+   return EINVAL;
+  if (msg->owner != owner)
+    return EACCES;
+  msg->is = is;
+  return 0;
+}
+
+int
+message_get_ostream (message_t msg, ostream_t *pos)
+{
+  if (msg == NULL || pos == NULL)
+    return EINVAL;
+  *pos = msg->os;
+  return 0;
+}
+
+int
+message_set_ostream (message_t msg, ostream_t os, void *owner)
+{
+  if (msg == NULL)
+   return EINVAL;
+  if (msg->owner != owner)
+    return EACCES;
+  msg->os = os;
+  return 0;
+}
+
+int
+message_size (message_t msg, size_t *size)
+{
+  if (msg == NULL)
+    return EINVAL;
+  if (msg->_size)
+    return msg->_size (msg, size);
+  return ENOSYS;
+}
+
+int
+message_get_attribute (message_t msg, attribute_t *pattribute)
+{
+  if (msg == NULL || pattribute == NULL)
+   return EINVAL;
+  *pattribute = msg->attribute;
+  return 0;
+}
+
+int
+message_set_attribute  (message_t msg, attribute_t attribute, void *owner)
+{
+  if (msg == NULL)
+   return EINVAL;
+  if (msg->owner != owner)
+    return EACCES;
+  msg->attribute = attribute;
+  return 0;
+}
+
+static int
+message_read (istream_t is, char *buf, size_t buflen,
+	      off_t off, ssize_t *pnread )
 {
   message_t msg = NULL;
-  ssize_t nread = -1;
-  int err = 0;
+  ssize_t nread = 0;
 
-  if (is == NULL || (msg = (message_t)is->owner) == NULL)
-    {
-      errno = EINVAL;
-      return -1;
-    }
+  if (is == NULL)
+    return EINVAL;
 
-  /* is it own by a mailbox ? */
-  if (msg->mailbox)
-    {
-      nread = mailbox_get_body (msg->mailbox, msg->num, buf,
-				buflen, off, &err);
-      errno = err;
-    }
-  else if (msg->body)
+  if (msg->body)
     {
       body_t body = msg->body;
       if (body->file)
@@ -221,8 +301,8 @@ message_read (istream_t is, char *buf, size_t buflen, off_t off)
 	  if (nread == 0)
 	    {
 	      if (ferror (body->file))
-		nread = -1;
-	      /* clear the error even for feof() */
+		return errno;
+	      /* clear the error for feof() */
 	      clearerr (body->file);
 	    }
 	  /* errno set by fread()/fseek() ? */
@@ -241,54 +321,26 @@ message_read (istream_t is, char *buf, size_t buflen, off_t off)
 	}
       else
 	{
-	  errno = EINVAL;
-	  nread = -1;
+	  return EINVAL;
 	}
     }
 
-  return nread;
-}
-
-int
-message_get_istream (message_t msg, istream_t *pis)
-{
-  int err;
-  if (msg == NULL || pis == NULL)
-    return EINVAL;
-  /* already done */
-  if  (msg->is)
-    *pis = msg->is;
-
-  err = istream_init (&(msg->is));
-  if (err != 0)
-    return err;
-  /* tell the world this is ours */
-  msg->is->owner = msg;
-  msg->is->_read = message_read;
-  *pis = msg->is;
+  if (pnread)
+    *pnread = nread;
   return 0;
 }
 
 static int
-message_write (ostream_t os, const char *buf, size_t buflen, off_t off)
+message_write (ostream_t os, const char *buf, size_t buflen,
+	       off_t off, ssize_t *pnwrite)
 {
   message_t msg = NULL;
-  ssize_t nwrite = -1;
+  ssize_t nwrite = 0;
 
-  if (os == NULL || (msg = (message_t)os->owner) == NULL)
-    {
-      errno = EINVAL;
-      return -1;
-    }
+  if (os == NULL)
+    return EINVAL;
 
-  /* is it own by a mailbox ? */
-  if (msg->mailbox)
-    {
-      /* We can not write in a mailbox this way */
-      errno = ENOSYS;
-      return -1;
-    }
-  else if (msg->body)
+  if (msg->body)
     {
       body_t body = msg->body;
       if (body->file)
@@ -303,8 +355,8 @@ message_write (ostream_t os, const char *buf, size_t buflen, off_t off)
 	  if (nwrite == 0)
 	    {
 	      if (ferror (body->file))
-		nwrite = -1;
-	      /* clear the error even for feof() */
+		return errno;
+	      /* clear the error for feof() */
 	      clearerr (body->file);
 	    }
 	  /* errno set by fread()/fseek() ? */
@@ -319,108 +371,14 @@ message_write (ostream_t os, const char *buf, size_t buflen, off_t off)
 	    }
 	  else
 	    nwrite = 0;
-	  errno = 0;
 	}
       else
 	{
-	  errno = EINVAL;
-	  nwrite = -1;
+	  return EINVAL;
 	}
     }
 
-  return nwrite;
-}
-
-int
-message_get_ostream (message_t msg, ostream_t *pos)
-{
-  int err;
-  if (msg == NULL || pos == NULL)
-    return EINVAL;
-  /* already done */
-  if  (msg->os)
-    *pos = msg->os;
-
-  err = ostream_init (&(msg->os));
-  if (err != 0)
-    return err;
-  /* tell the world this is ours */
-  msg->os->owner = msg;
-  msg->os->_write = message_write;
-  *pos = msg->os;
-  return 0;
-}
-
-int
-message_size (message_t msg, size_t *size)
-{
-  if (msg == NULL || size == NULL)
-   return EINVAL;
-  if (msg->mailbox)
-    {
-      size_t hs, bs;
-      int status;
-      status = mailbox_get_size (msg->mailbox, msg->num, &hs, &bs);
-      if (status != 0)
-	return status;
-      *size = hs + bs;
-      return 0;
-    }
-  return ENOSYS;
-}
-
-int
-message_get_attribute (message_t msg, attribute_t *pattribute)
-{
-  int status;
-
-  if (msg == NULL || pattribute == NULL)
-   return EINVAL;
-
-  /* killroy was here ? */
-  if (msg->attribute)
-    *pattribute = msg->attribute;
-
-  if (msg->mailbox)
-    {
-      int status;
-      status = mailbox_get_attribute (msg->mailbox, msg->num, pattribute);
-      if (status != 0)
-	return status;
-      msg->attribute = *pattribute;
-      /* set the owner of the attribute to be us */
-      (*pattribute)->message = msg;
-      return 0;
-    }
-
-  status = attribute_init (&(msg->attribute));
-  if (status == 0)
-    {
-      /* we own this baby */
-      msg->attribute->message = msg;
-      *pattribute = msg->attribute;
-    }
-
-  return status;
-}
-
-int
-message_set_attribute  (message_t msg, attribute_t attribute)
-{
-  if (msg == NULL)
-   return EINVAL;
-
-  /* own by a mailbox can no set attribute this way */
-  if (msg->mailbox)
-    return ENOSYS;
-
-  /* we own it ? */
-  if (msg->attribute && msg->attribute->message == msg)
-    {
-      /* orphan it */
-      msg->attribute->message = NULL;
-      attribute_destroy (&(msg->attribute));
-    }
-  msg->attribute = attribute;
+  if (pnwrite)
+    *pnwrite = nwrite;
   return 0;
 }

@@ -46,13 +46,13 @@ extern "C" {
 struct _attribute
 {
   size_t flag;
-  void *message;
+  void *owner;
+  int ref_count;
 };
 
 /* not user visible ?? */
 extern int attribute_copy       __P ((attribute_t dst, attribute_t src));
-extern int attribute_set_owner  __P ((attribute_t attr, message_t *msg));
-extern int attribute_get_owner  __P ((attribute_t attr, message_t *msg));
+extern int attribute_get_owner  __P ((attribute_t attr, void **owner));
 
 #ifdef __cplusplus
 }

@@ -26,18 +26,19 @@
 #include <errno.h>
 
 int
-header_init (header_t *ph, const char *blurb, size_t len, int flag)
+header_init (header_t *ph, const char *blurb, size_t len,
+	     int flag, void *owner)
 {
   if (flag != MU_HEADER_RFC822)
     return ENOTSUP;
-  return rfc822_init (ph, blurb, len);
+  return rfc822_init (ph, blurb, len, owner);
 }
 
 void
-header_destroy (header_t *ph)
+header_destroy (header_t *ph, void *owner)
 {
   if (ph && *ph)
-    (*ph)->_destroy (ph);
+    (*ph)->_destroy (ph, owner);
 }
 
 /* stub functions */

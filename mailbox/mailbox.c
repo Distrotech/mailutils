@@ -112,17 +112,9 @@ mailbox_append_message (mailbox_t mbox, message_t msg)
 int
 mailbox_get_message (mailbox_t mbox, size_t msgno,  message_t *pmsg)
 {
-  int status;
-  if (mbox == NULL || pmsg == NULL)
+  if (mbox == NULL || mbox->_get_message == NULL)
     return EINVAL;
-  if (mailbox_is_deleted (mbox, msgno))
-    return EINVAL;
-  status = message_init (pmsg);
-  if (status != 0)
-    return status;
-  (*pmsg)->mailbox = mbox;
-  (*pmsg)->num = msgno;
-  return 0;
+  return mbox->_get_message (mbox, msgno, pmsg);
 }
 
 int
@@ -194,24 +186,6 @@ mailbox_get_size (mailbox_t mbox, size_t msgno, size_t *h, size_t *b)
   return mbox->_get_size (mbox, msgno, h, b);
 }
 
-ssize_t
-mailbox_get_header (mailbox_t mbox, size_t msgno, char *h,
-		    size_t len, off_t off, int *err)
-{
-  if (mbox == NULL || mbox->_get_header == NULL)
-    return ENOSYS;
-  return mbox->_get_header (mbox, msgno, h, len, off, err);
-}
-
-ssize_t
-mailbox_get_body (mailbox_t mbox, size_t msgno, char *b,
-		  size_t len, off_t off, int *err)
-{
-  if (mbox == NULL || mbox->_get_body == NULL)
-    return ENOSYS;
-  return mbox->_get_body (mbox, msgno, b, len, off, err);
-}
-
 /* locking */
 int
 mailbox_set_locker (mailbox_t mbox, locker_t locker)
@@ -251,18 +225,3 @@ mailbox_get_auth (mailbox_t mbox, auth_t *pauth)
   return 0;
 }
 
-int
-mailbox_get_attribute (mailbox_t mbox, size_t msgno, attribute_t *pattr)
-{
-  if (mbox == NULL || mbox->_get_attribute == NULL)
-    return ENOSYS;
-  return mbox->_get_attribute (mbox, msgno, pattr);
-}
-
-int
-mailbox_set_attribute (mailbox_t mbox, size_t msgno, attribute_t attr)
-{
-  if (mbox == NULL || mbox->_set_attribute == NULL)
-    return ENOSYS;
-  return mbox->_set_attribute (mbox, msgno, attr);
-}

@@ -48,15 +48,17 @@ struct _header
   size_t num;
   /* Data */
   void *data;
-  /* owner ? */
-  void *message;
   /* streams */
   istream_t is;
   ostream_t os;
 
+  /* owner ? */
+  void *owner;
+  int ref_count;
+
   /* Functions */
-  int (*_init)        __P ((header_t *, const char *, size_t));
-  void (*_destroy)    __P ((header_t *));
+  int (*_init)        __P ((header_t *, const char *, size_t, void *owner));
+  void (*_destroy)    __P ((header_t *, void *owner));
   int (*_set_value)   __P ((header_t, const char *fn, const char *fv,
 			     size_t n, int replace));
   int (*_get_value)   __P ((header_t, const char *fn, char *fv,
@@ -72,8 +74,9 @@ struct _header
 };
 
 /* rfc822 */
-extern int rfc822_init __P ((header_t *ph, const char *blurb, size_t len));
-extern void rfc822_destroy __P ((header_t *ph));
+extern int rfc822_init __P ((header_t *ph, const char *blurb,
+			     size_t len, void *owner));
+extern void rfc822_destroy __P ((header_t *ph, void *owner));
 
 #ifdef _cpluscplus
 }

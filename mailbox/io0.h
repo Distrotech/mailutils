@@ -36,20 +36,28 @@ struct _istream
 {
   /* owner of the stream can not be a specific type */
   void *owner;
-  ssize_t (*_read) __P ((istream_t, char *, size_t, off_t));
+  int ref_count;
+  int (*_read) __P ((istream_t, char *, size_t, off_t, ssize_t *));
 };
 
 struct _ostream
 {
   /* owner of the stream can not be a specific type */
   void *owner;
-  ssize_t (*_write) __P ((ostream_t, const char *, size_t, off_t));
+  int ref_count;
+  int (*_write) __P ((ostream_t, const char *, size_t, off_t, ssize_t *));
 };
 
-extern int istream_init __P ((istream_t *));
-extern void istream_destroy __P ((istream_t *));
-extern int ostream_init __P ((ostream_t *));
-extern void ostream_destroy __P ((ostream_t *));
+extern int istream_init __P ((istream_t *,
+			      int (*_read) __P ((istream_t, char *,
+						 size_t, off_t, ssize_t *)),
+			      void *owner));
+extern void istream_destroy __P ((istream_t *, void *owner));
+extern int ostream_init __P ((ostream_t *,
+			      int (*_write) __P ((ostream_t, const char *,
+						  size_t, off_t, ssize_t *)),
+			      void *owner));
+extern void ostream_destroy __P ((ostream_t *, void *owner));
 
 #ifdef __cplusplus
 }

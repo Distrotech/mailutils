@@ -37,7 +37,8 @@ static int rfc822_entry_value (header_t h, size_t num, char *buf,
 			       size_t buflen, size_t *total);
 static int rfc822_get_istream (header_t h, istream_t *pis);
 static int rfc822_get_ostream (header_t h, ostream_t *pos);
-static ssize_t rfc822_read (istream_t is, char *buf, size_t buflen, off_t off);
+static int rfc822_read (istream_t is, char *buf, size_t buflen,
+			off_t off, ssize_t *pnread);
 
 struct _rfc822
 {
@@ -51,13 +52,14 @@ typedef struct _rfc822 * rfc822_t;
 
 
 int
-rfc822_init (header_t *ph, const char *blurb, size_t len)
+rfc822_init (header_t *ph, const char *blurb, size_t len, void *owner)
 {
   header_t h;
   int status;
   h = calloc (1, sizeof (*h));
   if (h == NULL)
     return ENOMEM;
+  h->owner = owner;
   h->_init = rfc822_init;
   h->_destroy = rfc822_destroy;
   h->_parse = rfc822_parse;
@@ -77,37 +79,32 @@ rfc822_init (header_t *ph, const char *blurb, size_t len)
 }
 
 void
-rfc822_destroy (header_t *ph)
+rfc822_destroy (header_t *ph, void *owner)
 {
   if (ph && *ph)
     {
       header_t h = *ph;
-      /* own by a message */
-      if (h->message)
+
+      /* if destroy is call always decremente */
+      h->ref_count--;
+
+      /* can we destroy ? */
+      if ((h->owner && h->owner == owner) ||
+	  (h->owner == NULL && h->ref_count <= 0))
 	{
-	  *ph = NULL;
-	  return;
+	  /* io */
+	  istream_destroy (&(h->is), owner);
+	  ostream_destroy (&(h->os), owner);
+
+	  if (h->data)
+	    {
+	      rfc822_t rfc = (rfc822_t)h->data;
+	      free (rfc->hdr);
+	      free (rfc->blurb);
+	      free (rfc);
+	    }
+	  free (h);
 	}
-      /* is the istream own by us */
-      if (h->is && h->is->owner == h)
-        {
-          h->is->owner = NULL;
-          istream_destroy (&(h->is));
-        }
-      /* is the ostream own by us */
-      if (h->os && h->os->owner == h)
-        {
-          h->os->owner = NULL;
-          ostream_destroy (&(h->os));
-        }
-      if (h->data)
-	{
-	  rfc822_t rfc = (rfc822_t)h->data;
-	  free (rfc->hdr);
-	  free (rfc->blurb);
-	  free (rfc);
-	}
-      free (h);
       *ph = NULL;
     }
 }
@@ -342,8 +339,9 @@ rfc822_entry_value (header_t h, size_t num, char *buf,
   return 0;
 }
 
-static ssize_t
-rfc822_read (istream_t is, char *buf, size_t buflen, off_t off)
+static int
+rfc822_read (istream_t is, char *buf, size_t buflen,
+	     off_t off, ssize_t *pnread)
 {
   header_t h;
   rfc822_t rfc = NULL;
@@ -351,10 +349,7 @@ rfc822_read (istream_t is, char *buf, size_t buflen, off_t off)
 
   if (is == NULL || (h = (header_t)is->owner) == NULL ||
       (rfc = (rfc822_t)h->data) == NULL)
-    {
-      errno = EINVAL;
-      return -1;
-    }
+    return EINVAL;
 
   len = rfc->blurb_len - off;
   if ((rfc->blurb_len - off) > 0)
@@ -368,7 +363,9 @@ rfc822_read (istream_t is, char *buf, size_t buflen, off_t off)
   else
     len = 0;
 
-  return len;
+  if (pnread)
+    *pnread = len;
+  return 0;
 }
 
 int
@@ -381,7 +378,7 @@ rfc822_get_istream (header_t h, istream_t *pis)
   if  (h->is)
     *pis = h->is;
 
-  err = istream_init (&(h->is));
+  err = istream_init (&(h->is), rfc822_read, h->owner);
   if (err != 0)
     return err;
   /* tell the world this is ours */

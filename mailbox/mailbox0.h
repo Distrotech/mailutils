@@ -38,17 +38,10 @@ extern "C" {
 struct _mailbox
 {
   /* Data */
-
   char *name;
-  FILE *file;
-  message_t *messages;
-  size_t messages_num;
-  off_t size;
-
   auth_t auth;
   locker_t locker;
   url_t url;
-
   int  (*_progress)  __P ((int, void *arg));
   void *progress_arg;
 
@@ -80,15 +73,6 @@ struct _mailbox
   int  (*_num_deleted)     __P ((mailbox_t, size_t *));
   int  (*_get_size)        __P ((mailbox_t, size_t msgno,
 				 size_t *h, size_t *b));
-
-  ssize_t (*_get_header)   __P ((mailbox_t, size_t msgno, char *h,
-				 size_t len, off_t off, int *err));
-  ssize_t (*_get_body)     __P ((mailbox_t, size_t msgno, char *b,
-				 size_t len, off_t off, int *err));
-  int (*_get_attribute)    __P ((mailbox_t mbox, size_t msgno,
-				 attribute_t *attr));
-  int (*_set_attribute)    __P ((mailbox_t mbox, size_t msgno,
-				 attribute_t attr));
 };
 
 /* private */

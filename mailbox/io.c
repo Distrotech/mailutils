@@ -22,7 +22,9 @@
 #include <stdio.h>
 
 int
-istream_init (istream_t *pis)
+istream_init (istream_t *pis, int (*_read)
+	      __P ((istream_t, char *, size_t, off_t, ssize_t *)),
+	      void *owner)
 {
   istream_t is;
   if (pis == NULL)
@@ -30,12 +32,16 @@ istream_init (istream_t *pis)
   is = calloc (1, sizeof (*is));
   if (is == NULL)
     return ENOMEM;
+  is->owner = owner;
+  is->_read = _read;
   *pis = is;
   return 0;
 }
 
 int
-ostream_init (ostream_t *pos)
+ostream_init (ostream_t *pos, int (*_write)
+		   __P ((ostream_t, const char *, size_t, off_t, ssize_t *)),
+	      void *owner)
 {
   ostream_t os;
   if (pos == NULL)
@@ -43,60 +49,54 @@ ostream_init (ostream_t *pos)
   os = calloc (1, sizeof (*os));
   if (os == NULL)
     return ENOMEM;
+  os->owner = owner;
+  os->_write = _write;
   *pos = os;
   return 0;
 }
 
 void
-istream_destroy (istream_t *pis)
+istream_destroy (istream_t *pis, void *owner)
 {
-  free (pis);
+  if (pis && *pis)
+    {
+      istream_t is = *pis;
+      is->ref_count--;
+      if ((is->owner && is->owner == owner) ||
+	  (is->owner == NULL && is->ref_count <= 0))
+	free (pis);
+      *pis = NULL;
+    }
 }
 
 void
-ostream_destroy (ostream_t *pos)
+ostream_destroy (ostream_t *pos, void *owner)
 {
-  free (pos);
+  if (pos && (*pos))
+    {
+      ostream_t os = *pos;
+      os->ref_count--;
+      if ((os->owner && os->owner == owner) ||
+	  (os->owner == NULL && os->ref_count <= 0))
+	free (*pos);
+      *pos = NULL;
+    }
 }
 
 int
-istream_set_read (istream_t is, ssize_t (*read)
-		  __P ((istream_t, char *, size_t, off_t)))
-{
-  if (is == NULL)
-    return EINVAL;
-  is->_read = read;
-  return 0;
-}
-
-int
-ostream_set_write (ostream_t os, ssize_t (*write)
-		   __P ((ostream_t, const char *, size_t, off_t)))
-{
-  if (os == NULL)
-    return EINVAL;
-  os->_write = write;
-  return 0;
-}
-
-ssize_t
-istream_read (istream_t is, char *buf, size_t count, off_t offset)
+istream_read (istream_t is, char *buf, size_t count,
+	      off_t offset, ssize_t *pnread)
 {
   if (is == NULL || is->_read == NULL)
-    {
-      errno = EINVAL;
-      return -1;
-    }
-  return is->_read (is, buf, count, offset);
+    return EINVAL;
+  return is->_read (is, buf, count, offset, pnread);
 }
 
-ssize_t
-ostream_write (ostream_t os, const char *buf, size_t count, off_t offset)
+int
+ostream_write (ostream_t os, const char *buf, size_t count,
+	       off_t offset, ssize_t *pnwrite)
 {
   if (os == NULL || os->_write == NULL)
-    {
-      errno = EINVAL;
-      return -1;
-    }
-  return os->_write (os, buf, count, offset);
+      return EINVAL;
+  return os->_write (os, buf, count, offset, pnwrite);
 }

@@ -33,13 +33,14 @@ extern "C" {
 #endif /*__P */
 
 struct _istream;
-typedef struct _istream * istream_t;
+typedef struct _istream *istream_t;
 struct _ostream;
-typedef struct _ostream * ostream_t;
+typedef struct _ostream *ostream_t;
 
-extern ssize_t istream_read __P ((istream_t, char *, size_t, off_t));
+extern int istream_read __P ((istream_t, char *, size_t, off_t, ssize_t *));
 
-extern ssize_t ostream_write __P ((ostream_t, const char *, size_t, off_t));
+extern int ostream_write __P ((ostream_t, const char *, size_t,
+			       off_t, ssize_t *));
 
 #ifdef __cplusplus
 }
