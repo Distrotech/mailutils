@@ -33,7 +33,6 @@
 	* mailbox/nntp/nntp_stream.c: New file
 	* mailbox/nntp/nntp_timeout.c: New file
 
->>>>>>> 1.888
 2004-06-12  Sergey Poznyakoff
 
 	* auth/gsasl.c: Revised use of const modifiers
