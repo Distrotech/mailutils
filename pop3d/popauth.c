@@ -28,6 +28,8 @@ int db_make (char *input_name, char *output_name);
 #define ACT_LIST    3
 #define ACT_CHPASS  4
 
+static int permissions = 0600;
+
 struct action_data {
   int action;
   char *input_name;
@@ -80,6 +82,7 @@ static struct argp_option options[] =
   { "output", 'o', N_("FILE"), 0, N_("Direct output to file"), 3 },
   { "password", 'p', N_("STRING"), 0, N_("Specify user's password"), 3 },
   { "user", 'u', N_("USERNAME"), 0, N_("Specify user name"), 3 },
+  { "permissions", 'P', N_("PERM"), 0, N_("Force given permissions on the database"), 3 },
   { NULL, }
 };
 
@@ -97,6 +100,24 @@ static const char *popauth_argp_capa[] = {
   "license",
   NULL
 };
+
+static void
+set_db_perms (struct argp_state *astate, char *opt, int *pperm)
+{
+  int perm = 0;
+   
+  if (isdigit(opt[0]))
+    {
+      char *p;
+      perm = strtoul (opt, &p, 8);
+      if (*p)
+	{
+	  argp_error (astate, _("invalid octal number: %s"), opt);
+	  exit (1);
+	}
+    }
+  *pperm = perm;
+}
 
 static error_t
 popauth_parse_opt (int key, char *arg, struct argp_state *astate)
@@ -150,6 +171,10 @@ popauth_parse_opt (int key, char *arg, struct argp_state *astate)
       ap->username = optarg;
       break;
 	
+    case 'P':
+      set_db_perms (astate, optarg, &permissions);
+      break;
+      
     case ARGP_KEY_FINI:
       if (ap->action == -1)
 	{
@@ -159,7 +184,8 @@ popauth_parse_opt (int key, char *arg, struct argp_state *astate)
 	  else
 	    ap->action = ACT_CHPASS;
 	}
-      
+      break;
+
     default:
       return ARGP_ERR_UNKNOWN;
     }
@@ -206,7 +232,7 @@ check_user_perm (int action, struct action_data *ap)
       if (ap->action == ACT_ADD)
 	{
 	  DBM_FILE db;
-	  if (mu_dbm_open (ap->input_name, &db, MU_STREAM_CREAT, 0600))
+	  if (mu_dbm_open (ap->input_name, &db, MU_STREAM_CREAT, permissions))
 	    {
 	      mu_error (_("can't create %s: %s"),
 			ap->input_name, mu_strerror (errno));
@@ -253,7 +279,7 @@ action_list (struct action_data *ap)
   DBM_DATUM contents;
   
   check_user_perm (ACT_LIST, ap);
-  if (mu_dbm_open (ap->input_name, &db, MU_STREAM_READ, 0600))
+  if (mu_dbm_open (ap->input_name, &db, MU_STREAM_READ, permissions))
     {
       mu_error (_("can't open %s: %s"), ap->input_name, mu_strerror (errno));
       return 1;
@@ -338,7 +364,7 @@ action_create (struct action_data *ap)
   
   if (!ap->output_name)
     ap->output_name = APOP_PASSFILE;
-  if (mu_dbm_open (ap->output_name, &db, MU_STREAM_CREAT, 0600))
+  if (mu_dbm_open (ap->output_name, &db, MU_STREAM_CREAT, permissions))
     {
       mu_error (_("can't create %s: %s"), ap->output_name, mu_strerror (errno));
       return 1;
@@ -398,7 +424,7 @@ open_io (int action, struct action_data *ap, DBM_FILE *db, int *not_owner)
   int rc = check_user_perm (action, ap);
   if (not_owner)
     *not_owner = rc;
-  if (mu_dbm_open (ap->input_name, db, MU_STREAM_RDWR, 0600))
+  if (mu_dbm_open (ap->input_name, db, MU_STREAM_RDWR, permissions))
     {
       mu_error (_("can't open %s: %s"), ap->input_name, mu_strerror (errno));
       return 1;
