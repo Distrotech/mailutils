@@ -1,3 +1,9 @@
+2002-02-20  Sergey Poznyakoff  
+
+	* imap4d/status.c (imap4d_status): Bugfix: was using improperly
+	  created mailbox name for INBOX. Be more robust in handling
+	  erroneous constructs. Thanks Sam for reporting.
+
 2002-02-20  Jeff Bailey  <jbailey@outpost.dnsalias.org>
 
 	* argp/Makefile.am: Remove inter-library dependancy.  Until QNX
