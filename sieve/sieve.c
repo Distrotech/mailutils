@@ -226,8 +226,7 @@ main (int argc, char *argv[])
 	  fprintf (stderr, "mu_debug_create failed: %s\n", strerror (rc));
 	  goto cleanup;
 	}
-      if ((rc =
-	   mu_debug_set_level (debug, opt_debug_level)))
+      if ((rc = mu_debug_set_level (debug, opt_debug_level)))
 	{
 	  fprintf (stderr, "mu_debug_set_level failed: %s\n", strerror (rc));
 	  goto cleanup;
@@ -237,7 +236,6 @@ main (int argc, char *argv[])
 	  fprintf (stderr, "mu_debug_set_print failed: %s\n", strerror (rc));
 	  goto cleanup;
 	}
-      mailbox_set_debug (mbox, debug);
     }
 
   /* Create, give a ticket to, and open the mailbox. */
@@ -247,7 +245,12 @@ main (int argc, char *argv[])
 	       opt_mbox ? opt_mbox : "default", strerror (rc));
       goto cleanup;
     }
-
+  
+  if (debug && (rc = mailbox_set_debug (mbox, debug)))
+    {
+      fprintf (stderr, "mailbox_set_debug failed: %s\n", strerror (rc));
+      goto cleanup;
+    }
 
   if (ticket)
     {
