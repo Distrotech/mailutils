@@ -74,15 +74,18 @@ mail_send (int argc, char **argv)
 	}
     }
 
-  if ((util_find_env ("askcc"))->set)
+  if (util_getenv (NULL, "askcc", Mail_env_boolean, 0) == 0)
     env.cc = ml_readline ((char *)"Cc: ");
-  if ((util_find_env ("askbcc"))->set)
+  if (util_getenv (NULL, "askbcc", Mail_env_boolean, 0) == 0)
     env.bcc = ml_readline ((char *)"Bcc: ");
 
-  if ((util_find_env ("asksub"))->set)
+  if (util_getenv (NULL, "asksub", Mail_env_boolean, 0) == 0)
     env.subj = ml_readline ((char *)"Subject: ");
   else
-    env.subj = (util_find_env ("subject"))->value;
+    {
+      env.subj = NULL;
+      util_getenv (&env.subj, "subject", Mail_env_string, 0);
+    }
 
   status = mail_send0 (&env, isupper(argv[0][0]));
   free_env_headers (&env);
@@ -135,6 +138,7 @@ mail_send0 (struct send_environ *env, int save_to)
   FILE *file;
   char *savefile = NULL;
   int int_cnt;
+  char *escape;
 
   fd = mu_tempfile (NULL, &filename);
 
@@ -159,7 +163,7 @@ mail_send0 (struct send_environ *env, int save_to)
 
       if (ml_got_interrupt ())
 	{
-	  if (util_find_env ("ignore")->set)
+	  if (util_getenv (NULL, "ignore", Mail_env_boolean, 0) == 0)
 	    {
 	      fprintf (stdout, "@\n");
 	    }
@@ -176,9 +180,9 @@ mail_send0 (struct send_environ *env, int save_to)
 
       if (!buf)
 	{
-	  if (util_find_env ("ignoreeof")->set)
+	  if (util_getenv (NULL, "ignore", Mail_env_boolean, 0) == 0)
 	    {
-	      util_error (util_find_env ("dot")->set ?
+	      util_error (util_getenv (NULL, "dot", Mail_env_boolean, 0) == 0 ?
 			  "Use \".\" to terminate letter." :
 			  "Use \"~.\" to terminate letter.");
 	      continue;
@@ -189,9 +193,10 @@ mail_send0 (struct send_environ *env, int save_to)
 
       int_cnt = 0;
 
-      if (buf[0] == '.' && util_find_env ("dot")->set)
+      if (buf[0] == '.' && util_getenv (NULL, "dot", Mail_env_boolean, 0) == 0)
 	done = 1;
-      else if (buf[0] == (util_find_env ("escape"))->value[0])
+      else if (util_getenv (&escape, "escape", Mail_env_string, 0) == 0
+               && buf[0] == escape[0])
 	{
 	  if (buf[1] == buf[0])
 	    fprintf (env->file, "%s\n", buf+1);
@@ -240,10 +245,11 @@ mail_send0 (struct send_environ *env, int save_to)
   /* If interrupted dumpt the file to dead.letter.  */
   if (int_cnt)
     {
-      if (util_find_env ("save")->set)
+      if (util_getenv (NULL, "save", Mail_env_boolean, 0) == 0)
 	{
 	  FILE *fp = fopen (getenv ("DEAD"),
-			    util_find_env ("appenddeadletter")->set ?
+			    util_getenv (NULL, "appenddeadletter",
+			                 Mail_env_boolean, 0) == 0 ?
 			    "a" : "w");
 
 	  if (!fp)
@@ -369,13 +375,13 @@ mail_send0 (struct send_environ *env, int save_to)
 	  || (env->cc && *env->cc != '\0')
 	  || (env->bcc && *env->bcc != '\0'))
 	{
-	  if (util_find_env ("sendmail")->set)
+	  char *sendmail;
+	  if (util_getenv (&sendmail, "sendmail", Mail_env_string, 0) == 0)
 	    {
-	      char *sendmail = util_find_env ("sendmail")->value;
 	      int status = mailer_create (&mailer, sendmail);
 	      if (status == 0)
 		{
-		  if (util_find_env ("verbose")->set)
+		  if (util_getenv (NULL, "verbose", Mail_env_boolean, 0) == 0)
 		    {
 		      mu_debug_t debug = NULL;
 		      mailer_get_debug (mailer, &debug);

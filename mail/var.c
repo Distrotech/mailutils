@@ -30,8 +30,9 @@ static int var_check_args (int argc, char **argv)
 {
   if (argc == 1)
     {
-      util_error ("%c%s requires an argument",
-                   util_find_env ("escape")->value[0], argv[0]);
+      char *escape = "~";
+      util_getenv (&escape, "escape", Mail_env_string, 0);
+      util_error ("%c%s requires an argument", escape[0], argv[0]);
       return 1;
     }
   return 0;
@@ -102,19 +103,16 @@ var_help(int argc, char **argv, struct send_environ *env)
 int
 var_sign(int argc, char **argv, struct send_environ *env)
 {
-  struct mail_env_entry *p;
+  char *p;
 
   (void)argc; (void)env;
 
-  if (isupper(argv[0][0]))
-    p = util_find_env("Sign");
-  else
-    p = util_find_env("sign");
-  if (p->set)
+  if (util_getenv (&p, isupper (argv[0][0]) ? "Sign" : "sign",
+                   Mail_env_string, 1) == 0)
     {
-      if (isupper(argv[0][0]))
+      if (isupper (argv[0][0]))
 	{
-	  char *name = util_fullpath(p->value);
+	  char *name = util_fullpath (p);
 	  FILE *fp = fopen(name, "r");
 	  char *buf = NULL;
 	  size_t n = 0;
@@ -134,11 +132,9 @@ var_sign(int argc, char **argv, struct send_environ *env)
 	  free(name);
 	}
       else
-	fprintf(ofile, "%s", p->value);
+	fprintf(ofile, "%s", p);
       var_continue();
     }
-  else
-    util_error("\"sign\" not set");
   return 0;
 }
 
@@ -232,12 +228,32 @@ var_headers(int argc, char **argv, struct send_environ *env)
 
 /* ~i[var-name] */
 int
-var_insert(int argc, char **argv, struct send_environ *env)
+var_insert (int argc, char **argv, struct send_environ *env)
 {
+  struct mail_env_entry *env;
+  
   (void)env;
   if (var_check_args (argc, argv))
     return 1;
-  fprintf(ofile, "%s", util_find_env(argv[1])->value);
+  env = util_find_env (argv[1], 0);
+  if (env)
+    switch (env->type)
+      {
+        case Mail_env_string:
+          fprintf (ofile, "%s", env->value.string);
+          break;
+
+        case Mail_env_number:
+          fprintf (ofile, "%d", env->value.number);
+	  break;
+	  
+        case Mail_env_boolean:
+          fprintf (ofile, "%s", env->set ? "yes" : "no");
+          break;
+          
+        default:
+          break;
+     }
   return 0;
 }
 
@@ -257,12 +273,14 @@ var_quote(int argc, char **argv, struct send_environ *env)
       char buffer[512];
       off_t off = 0;
       size_t n = 0;
-      char *prefix = util_find_env("indentprefix")->value;
+      char *prefix = "\t";
 
       if (mailbox_get_message(mbox, cursor, &mesg) != 0)
 	return 1;
 
       fprintf(stdout, "Interpolating: %d\n", cursor);
+
+      util_getenv(&prefix, "indentprefix", Mail_env_string, 0);
 
       if (islower(argv[0][0]))
 	{

@@ -25,17 +25,12 @@ int
 mail_folders (int argc, char **argv)
 {
   char *path;
-  struct mail_env_entry *env = util_find_env ("folder");
 
   (void)argc; (void)argv;
 
-  if (!env->set)
-    {
-      util_error ("No value set for \"folder\"");
-      return 1;
-    }
+  if (util_getenv (&path, "folder", Mail_env_string, 1))
+    return 1;
 
-  path = env->value;
   if (path[0] != '/' && path[0] != '~')
     {
       char *tmp = alloca (strlen (path) + 3);

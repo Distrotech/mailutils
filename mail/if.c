@@ -80,7 +80,7 @@ _cond_pop()
 int
 mail_if (int argc, char **argv)
 {
-  struct mail_env_entry *mode;
+  char *mode;
   int cond;
 
   if (argc != 2)
@@ -95,11 +95,8 @@ mail_if (int argc, char **argv)
       return 1;
     }
 
-  mode = util_find_env("mode");
-  if (!mode)
-    {
-      exit (EXIT_FAILURE);
-    }
+  if (util_getenv (&mode, "mode", Mail_env_string, 1))
+    exit (EXIT_FAILURE);
 
   if (if_cond() == 0)
     /* Propagate negative condition */
@@ -109,10 +106,10 @@ mail_if (int argc, char **argv)
       switch (argv[1][0])
 	{
 	case 's': /* Send mode */
-	  cond = strcmp(mode->value, "send") == 0;
+	  cond = strcmp(mode, "send") == 0;
 	  break;
 	case 'r': /* Read mode */
-	  cond = strcmp(mode->value, "send") != 0;
+	  cond = strcmp(mode, "send") != 0;
 	  break;
 	case 't': /* Reading from a terminal */
 	  cond = interactive;

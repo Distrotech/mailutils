@@ -33,9 +33,10 @@ mail_top (int argc, char **argv)
       char buf[512];
       size_t n;
       off_t off;
-      int lines = strtol ((util_find_env("toplines"))->value, NULL, 10);
+      int lines;
 
-      if (lines < 0)
+      if (util_getenv (&lines, "toplines", Mail_env_number, 1)
+          || lines < 0)
 	return 1;
 
       if (mailbox_get_message (mbox, cursor, &msg) != 0)

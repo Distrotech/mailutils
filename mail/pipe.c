@@ -36,9 +36,7 @@ mail_pipe (int argc, char **argv)
 
   if (argc > 1)
     cmd = argv[--argc];
-  else if ((util_find_env ("cmd"))->set)
-    cmd = (util_find_env ("cmd"))->value;
-  else
+  else if (util_getenv (&cmd, "cmd", Mail_env_boolean, 1))
     return 1;
 
   if (msgset_parse (argc, argv, &list))
@@ -59,7 +57,7 @@ mail_pipe (int argc, char **argv)
 	      fprintf (tube, "%s", buffer);
 	      off += n;
 	    }
-	  if ((util_find_env("page"))->set && mp->next)
+	  if (util_getenv (NULL, "page", Mail_env_boolean, 0) == 0)
 	    fprintf (tube, "\f\n");
 	}
     }

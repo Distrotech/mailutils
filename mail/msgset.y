@@ -504,7 +504,7 @@ select_header (message_t msg, void *closure)
   message_get_header (msg, &hdr);
   if (header_aget_value (hdr, header, &contents) == 0)
     {
-      if (!(util_find_env ("noregex"))->set)
+      if (util_getenv (NULL, "regex", Mail_env_boolean, 0) == 0)
 	{
 	  /* Match string against the extended regular expression(ignoring
 	     case) in pattern, treating errors as no match.
@@ -542,7 +542,7 @@ int
 select_body (message_t msg, void *closure)
 {
   char *expr = closure;
-  int noregex = util_find_env ("noregex")->set;
+  int noregex = util_getenv (NULL, "regex", Mail_env_boolean, 0);
   regex_t re;
   int status;
   body_t body = NULL;

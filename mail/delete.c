@@ -64,7 +64,7 @@ mail_delete (int argc, char **argv)
       cursor = realcursor;
     }
 
-  if (util_find_env("autoprint")->set)
+  if (util_getenv (NULL, "autoprint", Mail_env_boolean, 0) == 0)
     util_do_command("print");
 
   return rc;

@@ -77,7 +77,7 @@ mail_set_my_name (char *name)
 int
 mail_is_my_name (char *name)
 {
-  if (util_find_env("metoo")->set)
+  if (util_getenv (NULL, "metoo", Mail_env_boolean, 0) == 0)
     return 0;
   if (strchr(name, '@') == NULL && strcasecmp (name, my_name) == 0)
     return 1;

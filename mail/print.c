@@ -52,7 +52,7 @@ mail_print (int argc, char **argv)
 	 to be smart about it.  */
       if (lines == 0)
 	{
-	  if ((util_find_env("crt"))->set)
+	  if (util_getenv (NULL, "crt", Mail_env_boolean, 0) == 0)
 	    {
 	      size_t col = (size_t)util_getcols ();
 	      if (col)
@@ -64,8 +64,9 @@ mail_print (int argc, char **argv)
 	    }
 	}
 
-      if ((util_find_env("crt"))->set && lines > (size_t)util_getlines ())
-	    out = popen (getenv("PAGER"), "w");
+      if (util_getenv (NULL, "crt", Mail_env_boolean, 0) == 0
+          && lines > (size_t)util_getlines ())
+	    out = popen (getenv ("PAGER"), "w");
 
       if (islower (argv[0][0]))
 	{
