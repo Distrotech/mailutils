@@ -221,6 +221,8 @@ int mh_is_my_name __P((char *name));
 int mh_iterate __P((mailbox_t mbox, mh_msgset_t *msgset,
 		    mh_iterator_fp itr, void *data));
 
+size_t mh_get_message (mailbox_t mbox, size_t seqno, message_t *mesg);
+
 void *xmalloc __P((size_t));
 void *xrealloc __P((void *, size_t));
      
