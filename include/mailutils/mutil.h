@@ -125,7 +125,9 @@ extern int munre_set_regex __P((char *str, int caseflag, char **errp));
 extern int munre_subject  __P((const char *subject, const char **new_subject));
 
 extern char *mu_charset_lookup __P((char *lang, char *terr));
-  
+
+extern int mu_true_answer_p __P((const char *p));
+
 #ifdef __cplusplus
 }
 #endif

@@ -49,6 +49,7 @@
 #include <mailutils/header.h>
 #include <mailutils/message.h>
 #include <mailutils/envelope.h>
+#include <mailutils/nls.h>
 
 /* convert a sequence of hex characters into an integer */
 
@@ -758,6 +759,7 @@ mu_unroll_symlink (char *out, size_t outsz, const char *in)
    ---------+------------
    %u         user name
    %h         user's home dir
+   ~          Likewise
    ---------+------------
 
    Allocates memory. 
@@ -773,7 +775,17 @@ mu_expand_path_pattern (const char *pattern, const char *username)
   
   for (p = pattern; *p; p++)
     {
-      if (*p == '%')
+      if (*p == '~')
+        {
+          if (!auth)
+            {
+              auth = mu_get_auth_by_name (username);
+              if (!auth)
+                return NULL;
+            }
+          len += strlen (auth->dir);
+        }
+      else if (*p == '%')
 	switch (*++p)
 	  {
 	  case 'u':
@@ -1113,4 +1125,30 @@ mu_string_unfold (char *text, size_t *plen)
   if (plen)
     *plen = p - text;
   return 0;
+}
+
+int
+mu_true_answer_p (const char *p)
+{
+  if (!p)
+    return -1;
+
+  /* TRANSLATORS: This is a list of characters which start
+     an affirmative answer. Whenever possible, please preserve
+     'yY' in your translation, e.g., for Euskara:
+
+     msgstr "yYbB";
+  */
+  if (strchr (_("yY"), *p))
+    return 1;
+
+  /* TRANSLATORS: This is a list of characters which start
+     a negative answer. Whenever possible, please preserve
+     'nN' in your translation, e.g., for Euskara:
+
+     msgstr "nNeE";
+  */
+  else if (strchr (_("nN"), *p))
+    return 0;
+  return -1;
 }
