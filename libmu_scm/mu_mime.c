@@ -16,7 +16,6 @@
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #include "mu_scm.h"
-#include <mailutils/mime.h>
 
 long mime_tag;
 

@@ -16,7 +16,6 @@
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #include "mu_scm.h"
-#include <mailutils/registrar.h>
 
 #ifndef _PATH_SENDMAIL
 # define _PATH_SENDMAIL "/usr/lib/sendmail"

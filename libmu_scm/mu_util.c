@@ -16,7 +16,6 @@
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #include "mu_scm.h"
-#include <mailutils/mu_auth.h>
 
 SCM_DEFINE (mu_scm_getpwuid, "mu-getpwuid", 1, 0, 0,
             (SCM USER),
