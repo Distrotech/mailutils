@@ -7,7 +7,7 @@ msgstr ""
 "Project-Id-Version: GNU mailutils 0.4\n"
 "Report-Msgid-Bugs-To: bug-mailutils@gnu.org\n"
 "POT-Creation-Date: 2003-10-06 16:19+0300\n"
-"PO-Revision-Date: 2004-03-16 08:00-0500\n"
+"PO-Revision-Date: 2004-03-23 08:00-0500\n"
 "Last-Translator: Michel Robitaille <robitail@IRO.UMontreal.CA>\n"
 "Language-Team: French <traduc@traduc.org>\n"
 "MIME-Version: 1.0\n"
@@ -454,7 +454,7 @@ msgstr "Afficher les numéros de message"
 
 #: frm/frm.c:72
 msgid "Very quiet"
-msgstr ""
+msgstr "Très silencieux"
 
 #: frm/frm.c:73
 msgid "Print a message if unread mail"
@@ -474,7 +474,7 @@ msgstr "Essayer d'aligner"
 
 #: frm/frm.c:110
 msgid "Can not be very quiet"
-msgstr ""
+msgstr "Ne peut être très silencieux"
 
 #: frm/frm.c:348
 #, c-format
@@ -654,11 +654,11 @@ msgstr "PATHLIST"
 
 #: imap4d/imap4d.c:45
 msgid "set the `other' namespace"
-msgstr ""
+msgstr "fixer l'espace nom `other'"
 
 #: imap4d/imap4d.c:47
 msgid "set the `shared' namespace"
-msgstr ""
+msgstr "fixer l'espace nom `shared'"
 
 #: imap4d/imap4d.c:49
 msgid "Disable LOGIN command"
@@ -674,21 +674,21 @@ msgstr ""
 
 #: imap4d/imap4d.c:241 pop3d/pop3d.c:219
 msgid "Incoming connection opened"
-msgstr ""
+msgstr "Connexion entrante ouverte"
 
 #: imap4d/imap4d.c:243 pop3d/pop3d.c:231
 #, c-format
 msgid "can't obtain IP address of client: %s"
-msgstr ""
+msgstr "ne peut obtenir l'adresse IP du client: %s"
 
 #: imap4d/imap4d.c:246 pop3d/pop3d.c:234
 #, c-format
 msgid "connect from %s"
-msgstr ""
+msgstr "connexion à partir de %s"
 
 #: imap4d/imap4d.c:251 pop3d/pop3d.c:224
 msgid "Started in debugging mode"
-msgstr ""
+msgstr "Démarré en mode de mise au point"
 
 #: imap4d/imap4d.c:283
 msgid "fork failed"
@@ -696,12 +696,12 @@ msgstr ""
 
 #: imap4d/imap4d.c:339
 msgid "GNU imap4d started"
-msgstr ""
+msgstr "GNU imap4d démarré"
 
 #: imap4d/imap4d.c:345 pop3d/pop3d.c:442
 #, c-format
 msgid "too many children (%lu)"
-msgstr ""
+msgstr "trop d'anfants (%lu)"
 
 #: imap4d/bye.c:42 pop3d/extra.c:103
 msgid "Out of memory"
@@ -709,16 +709,16 @@ msgstr "Mémoire épuisée"
 
 #: imap4d/bye.c:46 pop3d/extra.c:107
 msgid "Quitting on signal"
-msgstr ""
+msgstr "Abandon sur réception de signal"
 
 #: imap4d/bye.c:52 pop3d/extra.c:115
 msgid "Session timed out for no user"
-msgstr ""
+msgstr "Fin session par expiration de la minuterie pour aucun usager"
 
 #: imap4d/bye.c:54 pop3d/extra.c:113
 #, c-format
 msgid "Session timed out for user: %s"
-msgstr ""
+msgstr "Fin session par expiration de la minuterie pour l'usager: %s"
 
 #: imap4d/bye.c:58 pop3d/extra.c:119
 msgid "No socket to send to"
@@ -796,7 +796,7 @@ msgstr ""
 
 #: libsieve/actions.c:63
 msgid "fileinto: can't get filename!"
-msgstr ""
+msgstr "fileinto: ne peut obtenir le nom de fichier!"
 
 #: libsieve/actions.c:66
 #, c-format
@@ -806,7 +806,7 @@ msgstr "livraison en cours dans %s"
 #: libsieve/actions.c:73
 #, c-format
 msgid "fileinto: cannot save to mailbox: %s"
-msgstr ""
+msgstr "fileinfo: ne peut sauvegarder dans la boîte aux lettres: %s"
 
 #: libsieve/actions.c:242
 msgid "reject: can't get text!"
@@ -883,105 +883,105 @@ msgstr "erreur regex"
 #: libsieve/comparator.c:237
 #, c-format
 msgid "match type specified twice in call to `%s'"
-msgstr ""
+msgstr "type de concordance spécifié deux fois dans l'appel à `%s'"
 
 #: libsieve/comparator.c:273
 #, c-format
 msgid "comparator %s is incompatible with :count in call to `%s'"
-msgstr ""
+msgstr "comparateur %s est incompatible avec : compteur dans l'appel à `%s'"
 
 #: libsieve/comparator.c:289
 msgid "second argument must be a list of one element"
-msgstr ""
+msgstr "le second arguement doit être une liste d'un élément"
 
 #: libsieve/comparator.c:297
 msgid "second argument cannot be converted to number"
-msgstr ""
+msgstr "le second argument ne peut pas être converti en nombre"
 
 #: libsieve/comparator.c:307
 #, c-format
 msgid "invalid relational match `%s' in call to `%s'"
-msgstr ""
+msgstr "concordance relationnelle invalide `%s' dans l'appel à `%s'"
 
 #: libsieve/comparator.c:320
 #, c-format
 msgid "comparator `%s' is incompatible with match type `%s' in call to `%s'"
-msgstr ""
+msgstr "comparateur `%s' est incompatible avec le type de concordance `%s' dans l'appel à `%s'"
 
 #: libsieve/prog.c:38
 msgid "out of memory!"
-msgstr ""
+msgstr "mémoire épuisée!"
 
 #: libsieve/prog.c:157
 #, c-format
 msgid "can't create iterator: %s"
-msgstr ""
+msgstr "ne peut créer l'itérateur: %s"
 
 #: libsieve/prog.c:176
 #, c-format
 msgid "invalid tag name `%s' for `%s'"
-msgstr ""
+msgstr "nom d'étiquette invalide `%s' pour `%s'"
 
 #: libsieve/prog.c:185
 #, c-format
 msgid "%s:%d: can't create tag list: %s"
-msgstr ""
+msgstr "%s:%d: ne peut créer une liste d'étiquettes: %s"
 
 #: libsieve/prog.c:209
 #, c-format
 msgid "%s:%d: can't create check list: %s"
-msgstr ""
+msgstr "%s:%d: ne peut créer une liste de vérification: %s"
 
 #: libsieve/prog.c:221
 #, c-format
 msgid "too many arguments in call to `%s'"
-msgstr ""
+msgstr "trop d'argument dans l'appel à `%s'"
 
 #: libsieve/prog.c:242
 #, c-format
 msgid "type mismatch in argument %d to `%s'"
-msgstr ""
+msgstr "non cocordance de type dans l'argument %d pour `%s'"
 
 #: libsieve/prog.c:246
 #, c-format
 msgid "Expected %s but passed %s"
-msgstr ""
+msgstr "%s attendu mais %s a été fourni"
 
 #: libsieve/prog.c:257
 #, c-format
 msgid "can't create arg list: %s"
-msgstr ""
+msgstr "ne peut créel la liste d'arguments: %s"
 
 #: libsieve/prog.c:275
 #, c-format
 msgid "too few arguments in call to `%s'"
-msgstr ""
+msgstr "trop peu d'argument dans l'appel à `%s'"
 
 #: libsieve/require.c:38
 #, c-format
 msgid "cannot create iterator: %s"
-msgstr ""
+msgstr "ne peut créer l'itérateur: %s"
 
 #: libsieve/require.c:55
 msgid "required comparator"
-msgstr ""
+msgstr "comparateur requis"
 
 #: libsieve/require.c:61
 msgid "required test"
-msgstr ""
+msgstr "test requis"
 
 #: libsieve/require.c:71
 msgid "required action"
-msgstr ""
+msgstr "action requise"
 
 #: libsieve/require.c:77
 #, c-format
 msgid "source for the %s %s is not available"
-msgstr ""
+msgstr "la source pour %s %s n'est pas disponible"
 
 #: libsieve/runtime.c:98
 msgid "can't create stack"
-msgstr ""
+msgstr "ne peut créer la pile"
 
 #: libsieve/runtime.c:116
 msgid "stack underflow"
@@ -990,35 +990,35 @@ msgstr ""
 #: libsieve/runtime.c:296
 #, c-format
 msgid "mailbox_scan: %s"
-msgstr ""
+msgstr "mailbox_scan: %s"
 
 #: libsieve/sieve.l:232
 #, c-format
 msgid "can't stat `%s': %s"
-msgstr ""
+msgstr "ne peut évaluer par stat() `%s': %s"
 
 #: libsieve/sieve.l:238 libsieve/sieve.l:243
 msgid "recursive inclusion"
-msgstr ""
+msgstr "inclusion récursive"
 
 #: libsieve/sieve.l:246
 #, c-format
 msgid "`%s' already included here"
-msgstr ""
+msgstr "`%s' est déjà inclus ici"
 
 #: libsieve/sieve.l:250
 #, c-format
 msgid "`%s' already included at top level"
-msgstr ""
+msgstr "`%s' est déjà inclus au niveau supérieur"
 
 #: libsieve/sieve.l:259 mail/source.c:58
 #, c-format
 msgid "can't open `%s': %s"
-msgstr ""
+msgstr "ne peut ouvrir `%s': %s"
 
 #: libsieve/sieve.l:429
 msgid "preprocessor syntax"
-msgstr ""
+msgstr "syntaxe du préprocesseur"
 
 #: libsieve/sieve.l:438
 msgid "missing closing quote in preprocessor statement"
@@ -1027,107 +1027,109 @@ msgstr ""
 #: libsieve/sieve.y:233
 #, c-format
 msgid "unknown test: %s"
-msgstr ""
+msgstr "test inconnu: %s"
 
 #: libsieve/sieve.y:237
 #, c-format
 msgid "test `%s' has not been required"
-msgstr ""
+msgstr "test `%s' n'a pas été requis"
 
 #: libsieve/sieve.y:259
 #, c-format
 msgid "unknown action: %s"
-msgstr ""
+msgstr "action inconnue: %s"
 
 #: libsieve/sieve.y:263
 #, c-format
 msgid "action `%s' has not been required"
-msgstr ""
+msgstr "action `%s' n'a pas été requise"
 
 #: libsieve/tests.c:127
 msgid "address: can't get argument 1"
-msgstr ""
+msgstr "address: ne peut obtenir l'argument 1"
 
 #: libsieve/tests.c:133
 msgid "address: can't get argument 2"
-msgstr ""
+msgstr "address: ne peut obtenir l'argument 2"
 
 #: libsieve/tests.c:191 libsieve/tests.c:276
 msgid "header: can't get argument 1"
-msgstr ""
+msgstr "header: ne peut obtenir l'argument 1"
 
 #: libsieve/tests.c:197 libsieve/tests.c:282
 msgid "header: can't get argument 2"
-msgstr ""
+msgstr "header: ne peut obtenir l'argument 2"
 
 #: libsieve/tests.c:305
 msgid "size: can't get argument!"
-msgstr ""
+msgstr "size: ne peut obtenir l'argument!"
 
 #: libsieve/tests.c:359
 msgid "exists: can't get argument!"
-msgstr ""
+msgstr "exists: ne peut obtenir l'argument!"
 
 #: libsieve/util.c:174
 msgid "Invalid data type"
-msgstr ""
+msgstr "type de donnée invalide"
 
 #: mail/alias.c:194
 #, c-format
 msgid "\"%s\": not a group"
-msgstr ""
+msgstr "\"%s\": n'est pas un groupe"
 
 #: mail/alt.c:63 mh/mh_init.c:136
 msgid "can't determine my username"
-msgstr ""
+msgstr "ne peut déterminer mon nom d'usager"
 
 #: mail/alt.c:72
 #, c-format
 msgid "can't determine my email address: %s"
-msgstr ""
+msgstr "ne peut déterminer mon adresse de courrier: %s"
 
 #: mail/copy.c:67 mail/quit.c:109 mail/send.c:428
 #, c-format
 msgid "can't create mailbox %s"
-msgstr ""
+msgstr "ne peut créer la boîte aux lettres %s"
 
 #: mail/decode.c:137
 #, c-format
 msgid "| Message=%d"
-msgstr ""
+msgstr "| Message=%d"
 
 #: mail/decode.c:144
 #, c-format
 msgid "| Type=%s\n"
-msgstr ""
+msgstr "| Type=%s\n"
 
 #: mail/decode.c:145
 #, c-format
 msgid "| encoding=%s\n"
-msgstr ""
+msgstr "| encodage=%s\n"
 
 #: mail/decode.c:246 mail/print.c:96
 msgid ""
 "\n"
 "Interrupt"
 msgstr ""
+"\n"
+"Interruption"
 
 #: mail/file.c:39
 msgid "No previous file"
-msgstr ""
+msgstr "Pas de fichier précédent"
 
 #: mail/file.c:47
 msgid "MBOX environment variable not set"
-msgstr ""
+msgstr "MBOX variable d'environnement n,est pas initialisée"
 
 #: mail/file.c:124
 #, c-format
 msgid "%s takes only one arg"
-msgstr ""
+msgstr "%s prend un seul argument"
 
 #: mail/folders.c:37
 msgid "Not enough memory"
-msgstr ""
+msgstr "Pas assez de mémoire"
 
 #: mail/if.c:66
 msgid "internal error: condition stack underflow"
@@ -1135,11 +1137,11 @@ msgstr ""
 
 #: mail/if.c:88
 msgid "if requires an argument: s | r | t"
-msgstr ""
+msgstr "s'il requiert un argument alors soit: s | r | t"
 
 #: mail/if.c:94 mail/if.c:118
 msgid "valid if arguments are: s | r | t"
-msgstr ""
+msgstr "valide si les arguments sont: s | r | t"
 
 #: mail/if.c:134
 msgid "else without matching if"
