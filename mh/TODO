@@ -33,7 +33,8 @@ State	Nice	Utility		Comments
 *	4	mhl		Following format variables are ignored:
 				center,split,datefield
 +	5	mark
--	5	pick
+*	5	pick		--before and --after are not supported. See
+				also the README entry for it.
 +	10	anno
 -	10	burst
 -	10	whom

@@ -1,3 +1,57 @@
+2003-02-16  Sergey Poznyakoff  
+
+	* configure.ac: Added check for declaration of strerror.
+	  Raised version number to 0.3
+	* NEWS: Updated
+
+	* guimb/Makefile.am: Added $(top_srcdir)/mailbox to INCLUDES.
+	* guimb/guimb.h: Include <getline.h>
+	* mail/mail.h (util_noapp): Added prototype.
+	* mail/msgset.y: Declaration of check_set().
+	* mail.remote/mail.remote.c: Include <mailutils/error.h>
+	* mailbox/date.c: Added a clarifying comment.
+	* mailbox/stream.c (stream_seek): Fixed type of size auto
+	  variable.
+
+	* mh/mh_sequence.c: New file.
+	* mh/pick.h: New file.	
+	* mh/pick.y: New file.
+	* mh/pick.c: Implemented.
+	* mh/Makefile.am: Added mh_sequence.c and pick.y. Provide
+	  for multiple parsers within an application.
+	* mh/.cvsignore: Updated.
+	* mh/README: Updated
+	* mh/TODO: Updated
+	
+	* mh/mh.h (mh_seq_add, mh_seq_delete, mh_seq_read): New functions.
+	* mh/mh_argp.c (parse_opt): Pass argp_state to the handler
+	  (my_argp_parse): Changed declaration. The new argument `flags'
+	  is accepted. Use my_argp_parse() wrapper instead of
+	  argp_parse().
+	* mh/mh_getopt.h: Updated.  
+	  
+	* mh/anno.c: Changed invocation of mh_argp_parse and updated
+	  the definition of opt_handler.
+	* mh/comp.c: Likewise.
+	* mh/mhl.c: Likewise.
+	* mh/mhpath.c: Likewise.
+	* mh/refile.c: Likewise.
+	* mh/repl.c: Likewise.
+	* mh/rmf.c: Likewise.
+	* mh/rmm.c: Likewise.
+	* mh/scan.c: Likewise.
+	* mh/send.c: Likewise.
+	* mh/whatnow.c: Likewise.
+	* mh/fmtcheck.c: Likewise.
+	* mh/folder.c: Likewise.
+	* mh/inc.c: Likewise.
+	* mh/install-mh.c: Likewise.
+	* mh/mark.c: Likewise. Use new mh_sequence functions.
+	
+	* doc/texinfo/fdl.texi: Minor change.
+	* doc/texinfo/programs.texi: Advice on how to use mail.local
+	  with SQL authentication.
+	
 2003-02-14  Wojciech Polak
 
 	* po/POTFILES.in: Added auth/tls.c.

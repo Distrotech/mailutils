@@ -117,6 +117,35 @@ overflowtext="" (see supplied mhl.format file).
 
 Ineractive prompting is not yet implemented.
 
+* pick
+
+** The non-standard command line syntax `--FIELD STRING' where `FIELD' is
+any string is deprecated. It is recognized only if pick is called from
+within another program, so that existing application continue to work.
+Please use the following syntax instead: `--component FIELD --pattern STRING'
+
+** The command line options --cflags allows to control the type of 
+regular expressions used. The option must occur right before --pattern
+or --component option (or one of its aliases, like --cc, --from, etc.)
+The argument to this option is a string of type specifications:
+
+    B	     Use basic regular expressions
+    E	     Use extended regular expressions
+    I	     Ignore case
+    C	     Case sensitive.
+
+Default is "EI".
+
+The flags remain in effect until the next occurrence of --cflags
+option.
+
+Sample usage:
+
+       pick --cflag BC --subject '*a string' 
+
+** The date comparisons (the options --before and --after) are not yet
+supported.
+
 
 Local variables:
 mode: outline

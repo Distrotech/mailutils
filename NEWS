@@ -55,7 +55,9 @@ returned by EXAMINE, SELECT, and NOOP.
 
 * mail: Fixed error diagnostics and removed startup banner.
 
-* mh: Initial implementation. 
+* mh: Initial implementation. The basic MH utilities are implemented
+that allow to use the package with the GNU Emacs mh-e module. Please
+refer to the files README and TODO in the mh subdirectory.
 
 
 Version 0.2:

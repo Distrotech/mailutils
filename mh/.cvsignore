@@ -3,6 +3,8 @@ Makefile.in
 .deps
 .libs
 mh_fmtgram.c
+pick-gram.c 
+pick-gram.h
 scan
 inc
 rmm
