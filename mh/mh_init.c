@@ -82,7 +82,7 @@ mh_read_formfile (char *name, char **pformat)
     }
 
   format_str = xmalloc (st.st_size+1);
-  while ((ptr = fgets (format_str + off, st.st_size - off, fp)) != NULL)
+  while ((ptr = fgets (format_str + off, st.st_size - off + 1, fp)) != NULL)
     {
       int len = strlen (ptr);
       if (len == 0)
