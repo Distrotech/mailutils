@@ -150,6 +150,9 @@ mh_builtin_t *mh_lookup_builtin (char *name, int *rest);
 
 void mh_error(const char *fmt, ...);
 
+FILE *mh_audit_open (char *name, mailbox_t mbox);
+void mh_audit_close (FILE *fp);
+
 void *xmalloc (size_t);
 void *xrealloc (void *, size_t);
      
