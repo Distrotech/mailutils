@@ -620,11 +620,14 @@ proc mu_test_file {args} {
     for {set i 0} {$i < [llength $args]} {incr i} {
 	set a [lindex $args $i]
 	if {"$a" == "-default"} {
-	    set default [lindex $args [expr $i + 1]]
 	    incr i
+	    set default [lindex $args $i]
+	} elseif {"$a" == "-pattern"} {
+	    incr i
+	    set pattern [lindex $args $i]
 	} elseif {"$a" == "-message"} {
-	    set message [lindex $args [expr $i + 1]]
 	    incr i
+	    set message [lindex $args $i]
 	} else {
 	    set args [lrange $args $i end]
 	    break
@@ -640,8 +643,10 @@ proc mu_test_file {args} {
     }
 
     set filename [lindex $args 0]
-    set pattern [lrange $args 1 end]
-
+    if ![info exists pattern] {
+        set pattern [lrange $args 1 end]
+    }
+    
     set res [remote_spawn host "/bin/cat $filename"]
     if { $res < 0 || $res == "" } {
 	perror "Reading $filename failed."
