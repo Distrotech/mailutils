@@ -132,8 +132,6 @@ IMPORTANT:
   file?)
   Do we need it? mail.local already provides this functionality.
 
-- Add loadable extention actions/tests/comparators.
-
 [utilities]
 
 - forward only MTA, nullmailer like, but accepting SMTP on 25 from localhost

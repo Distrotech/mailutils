@@ -1,3 +1,13 @@
+2002-12-04  Sergey Poznyakoff 
+
+	* TODO: Updated
+	* configure.ac: Add mysql libraries to MYSQLLIBS
+	* mailbox/Makefile.am: New target mailutils-config
+	* mailbox/mailutils-config.c: New file. A utility
+	  program that prints compiler and loader flags
+	  necessary to build a program using mailutils
+	  libraries.
+	
 2002-12-03  Sergey Poznyakoff 
 
 	* libsieve/actions.c (sieve_action_reject): Fixed diagnostic
