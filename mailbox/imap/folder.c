@@ -251,8 +251,9 @@ tls (folder_t folder)
   if (!mu_tls_enable || check_capa (f_imap, "STARTTLS"))
     return -1;
   
+  FOLDER_DEBUG1 (folder, MU_DEBUG_PROT, "g%u STARTTLS\n", f_imap->seq);
   status = imap_writeline (f_imap, "g%u STARTTLS\r\n",
-			   f_imap->seq, f_imap->user, f_imap->passwd);
+			   f_imap->seq++, f_imap->user, f_imap->passwd);
   CHECK_ERROR (f_imap, status);
   status = imap_send (f_imap);
   CHECK_ERROR (f_imap, status);
@@ -313,9 +314,13 @@ authenticate_imap_login (authority_t auth)
 	    url_get_passwd (folder->url, f_imap->passwd, n + 1, NULL);
 	  }
 
-	if (f_imap->user == NULL || f_imap->passwd == NULL)
+	if (f_imap->user == NULL)
 	  {
-	    CHECK_ERROR_CLOSE (folder, f_imap, EINVAL);
+	    CHECK_ERROR_CLOSE (folder, f_imap, MU_ERR_NOUSERNAME);
+	  }
+	if (f_imap->passwd == NULL)
+	  {
+	    CHECK_ERROR_CLOSE (folder, f_imap, MU_ERR_NOPASSWORD);
 	  }
 	status = imap_writeline (f_imap, "g%u LOGIN %s %s\r\n",
 				 f_imap->seq, f_imap->user, f_imap->passwd);
