@@ -93,11 +93,6 @@ The framework is implemented. Needs extensive testing.
 
 * Mime.types API
 
-* libmuauth
-
-** First argument to mu_auth_fp (and second one to mu_auth_runlist) should
-be struct mu_auth_data ** instead of void *.
-
 * examples
 
 ** unify the mbox-* and mimetest examples with messages, it would be nice
@@ -106,8 +101,6 @@ to have a general purpose tool
 * mh -- see mh/TODO
 
 * sieve
-
-** Implement boolean shortcut evaluation for `allof' and `anyof'
 
 ** uid isn't good to identify messages, use message-id?
 
@@ -138,10 +131,6 @@ have it look up .blah in mime.types, and do the action spec'ed in mailcap.
 * optimize everything
 
 * test everything
-
-* util_strcasestr() from mail/util.c provides the same functionality
-as i_ascii_casemap_contains() from libsieve/comparator. Merge both
-versions.
 
 
 Local variables:

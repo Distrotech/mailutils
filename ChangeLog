@@ -1,3 +1,74 @@
+2003-07-26  Sergey Poznyakoff  
+
+	Done the following from the TODO:
+	
+	-** First argument to mu_auth_fp (and second one to
+	mu_auth_runlist) should be struct mu_auth_data ** instead
+	of void	*.
+	-** (sieve) Implement boolean shortcut evaluation for
+	`allof' and `anyof'
+	-* util_strcasestr() from mail/util.c provides the same
+	functionality as i_ascii_casemap_contains() from
+	libsieve/comparator. Merge both versions.
+
+	Detailed list of changes: 
+	
+	* TODO: Updated
+	* configure.ac: Fixed --with-mysql, --with-postgres
+
+	* include/mailutils/mu_auth.h (mu_auth_fp, mu_auth_runlist):
+	Changed prototypes.
+	* include/mailutils/libsieve.h (struct sieve_runtime_tag): Minor
+	change.
+	* include/mailutils/mutil.h (mu_strcasestr): New function.
+	
+	* auth/mysql.c: Reflect changes to mu_auth_fp
+	* auth/pam.c: Likewise.
+	* auth/pgsql.c: Likewise.
+	* auth/sql.c: Likewise.
+	* auth/tls.c: Likewise.
+	* auth/virtual.c: Likewise.
+	* mailbox/system.c: Likewise.
+	
+	* examples/Makefile.am (INCLUDES): Add mailbox (for getline.h)
+	* examples/mta.c: include getline.h
+
+	* imap4d/authenticate.c (comp): Minor change
+	* imap4d/fetch.c (send_parameter_list): Minor change
+	* imap4d/util.c (util_strcasestr): Reimplemented via
+	mu_strcasestr()
+
+	* libsieve/README: Documented boolean shortcuts
+	* libsieve/comparator.c (i_ascii_casemap_contains): Reimplemented
+	via mu_strcasestr()
+	* libsieve/prog.c (sieve_code_anyof, sieve_code_allof): New
+        functions.
+	(struct check_arg): Minor change
+	* libsieve/runtime.c (instr_nop): New function
+	(instr_allof, instr_anyof): Removed
+	* libsieve/sieve.h (sieve_code_anyof,sieve_code_allof): New
+        functions.
+	(instr_allof, instr_anyof): Removed
+	* libsieve/sieve.y: Implemented boolean shortcuts for ALLOF and
+	ANYOF
+	
+	* mail/mail.h (ml_readline, readline): Removed const from
+	the declaration.
+	* mail/mailline.c: Likewise.
+	
+	* mailbox/body.c (lazy_create): Removed unused function.
+	* mailbox/iterator.c (iterator_get_list): Minor change
+	* mailbox/mailcap.c: include <mailutils/stream.h>
+	* mailbox/mbx_default.c (is_proto): Minor change
+	* mailbox/rfc2047.c (insert_quoted): Minor change
+	
+	* mailbox/mu_auth.c (mu_auth_runlist,mu_auth_nosupport): Changed
+	type of the first argument.
+
+	* mailbox/mutil.c (mu_strcasestr): New function.
+
+	* pop3d/pop3d.h (pop3d_bye): Added missing prototype
+	
 2003-07-22  Sergey Poznyakoff
 
 	* mailbox/argcv.c: Implemented escaping/unescaping
