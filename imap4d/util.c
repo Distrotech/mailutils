@@ -292,11 +292,13 @@ util_msgset (char *s, size_t **set, int *n, int isuid)
 	}
     }
 
+  /* Sort the resulting message set */
   qsort (*set, *n, sizeof (**set), comp_int);
 
+  /* Remove duplicates. tmp serves to avoid extra dereferences */
   tmp = *set;
   for (i = 0, j = 1; i < *n; i++)
-    if (tmp[j-1] != (*set)[i])
+    if (tmp[j-1] != tmp[i])
       tmp[j++] = tmp[i];
   *n = j;
   return 0;
