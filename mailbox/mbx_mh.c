@@ -479,7 +479,7 @@ static int
 _mh_message_save (struct _mh_data *mhd, struct _mh_message *mhm, int expunge)
 {
   stream_t stream = NULL;
-  char *name, *buf, *msg_name;
+  char *name, *buf = NULL, *msg_name;
   size_t n, off = 0;
   size_t bsize;
   FILE *fp;
@@ -488,6 +488,8 @@ _mh_message_save (struct _mh_data *mhd, struct _mh_message *mhm, int expunge)
   int status;
   attribute_t attr;
   body_t body;
+
+  (void)expunge;
   
   fp = _mh_tempfile (mhm->mhd, &name);
   if (!fp)

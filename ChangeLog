@@ -1,5 +1,14 @@
 2001-09-16  Alain Magloire
 
+	* doc/mbox.texi: Starts to document the concrete Unix mbox
+	API.
+	* doc/pop3.texi: Typos.
+	* mailbox/mbx_mh.c: Initialised variables. Typecast to void
+	expunge since it is never used.
+	* mail/delete.c : Typo.
+
+2001-09-16  Alain Magloire
+
 	This is after a exchange with Dave Inglis and Sam Roberts.
 	Basically they recommand to drop the XX_release() functions
 	and only to keep XX_create (), XX_destroy ().  We have simple

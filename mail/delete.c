@@ -43,7 +43,7 @@ mail_delete (int argc, char **argv)
   else
     rc = mail_delete0 ();
 
-  /* Reajust the realcursor to no point to the deleted messages.  */
+  /* Readjust the realcursor to no point to the deleted messages.  */
   if (cursor == realcursor)
     {
       unsigned int here = realcursor;

@@ -101,7 +101,7 @@ Allocate and initialize a @var{pop3} handle.
 @end table
 @end deftypefun
 
-@deftypefun int pop3_destroy (pop3_t @var{pop3})
+@deftypefun void pop3_destroy (pop3_t *@var{pop3})
 
 When a POP3 session is finished, the structure must be @code{free ()}'ed to
 reclaim memory.
@@ -130,8 +130,8 @@ until the return value is not MU_ERROR_TRY_AGAIN or MU_ERROR_IN_PROGRESS.
 
 @deftypefun int pop3_set_carrier (pop3_t, stream_t @var{carrier});
 
-A connection may have been opened elsewhere, in this case the @var{carrier}
-is set in the @code{pop3_t} handle.  Any  previous @var{carrier} stream in
+The type of stream use to contact as server will be set to @var{carrier}
+in the @var{pop3_t} handle.  Any  previous @var{carrier} stream in
 the handle, will be close and release.
 
 @table @code
@@ -141,7 +141,7 @@ the handle, will be close and release.
 
 @deftypefun int pop3_get_carrier (pop3_t, stream_t *@var{carrier});
 
-Return the @var{pop3_t} carrier.  If none was set, a new stream will be
+Return the @var{pop3_t} carrier.  If none was set, a new tcp stream will be
 created.
 
 @table @code
