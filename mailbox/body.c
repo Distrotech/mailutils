@@ -14,6 +14,7 @@
    You should have received a copy of the GNU Library General Public License
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
+
 #ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
@@ -21,19 +22,14 @@
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 
 #include <mailutils/stream.h>
 #include <body0.h>
 
-
-static int body_read (stream_t is, char *buf, size_t buflen,
-			 off_t off, size_t *pnread );
-static int body_write (stream_t os, const char *buf, size_t buflen,
-			  off_t off, size_t *pnwrite);
-static FILE *lazy_create (void);
-static int body_get_fd (stream_t stream, int *pfd);
+static int lazy_create __P ((body_t));
 
 int
 body_create (body_t *pbody, void *owner)
@@ -60,10 +56,11 @@ body_destroy (body_t *pbody, void *owner)
       body_t body = *pbody;
       if (body->owner == owner)
 	{
-	  if (body->file)
-	    fclose (body->file);
 	  if (body->filename)
-	    free (body->filename);
+	    {
+	      remove (body->filename);
+	      free (body->filename);
+	    }
 	  stream_destroy (&(body->stream), body);
 	  free (body);
 	}
@@ -78,6 +75,26 @@ body_get_owner (body_t body)
 }
 
 int
+body_get_filename (body_t body, char *filename, size_t len, size_t *pn)
+{
+  int n = 0;
+  if (body == NULL)
+    return EINVAL;
+  if (body->filename)
+    {
+      n = strlen (body->filename);
+      if (filename && len > 0)
+	{
+	  len--; /* Space for the null.  */
+	  strncpy (filename, body->filename, len)[len] = '\0';
+	}
+    }
+  if (pn)
+    *pn = n;
+  return 0;
+}
+
+int
 body_get_stream (body_t body, stream_t *pstream)
 {
   if (body == NULL || pstream == NULL)
@@ -86,19 +103,18 @@ body_get_stream (body_t body, stream_t *pstream)
   if (body->stream == NULL)
     {
       stream_t stream;
-      int status;
-      /* lazy floating body it is created when
-       * doing the first body_write call
-       */
-      status = stream_create (&stream, MU_STREAM_RDWR, body);
+      int fd;
+      int status = file_stream_create (&stream);
       if (status != 0)
 	return status;
-      stream_set_read (stream, body_read, body);
-      stream_set_write (stream, body_write, body);
-      stream_set_fd (stream, body_get_fd, body);
+      fd = lazy_create (body);
+      if (fd == -1)
+	return errno;
+      status = stream_open (stream, body->filename, 0, MU_STREAM_RDWR);
+      if (status != 0)
+	return status;
       body->stream = stream;
     }
-
   *pstream = body->stream;
   return 0;
 }
@@ -112,11 +128,6 @@ body_set_stream (body_t body, stream_t stream, void *owner)
     return EACCES;
   /* make sure we destroy the old one if it is own by the body */
   stream_destroy (&(body->stream), body);
-  if (body->file)
-    {
-      fclose (body->file);
-      body->file = NULL;
-    }
   body->stream = stream;
   return 0;
 }
@@ -147,6 +158,7 @@ body_lines (body_t body, size_t *plines)
 int
 body_size (body_t body, size_t *psize)
 {
+  int status;
   if (body == NULL)
     return EINVAL;
 
@@ -156,26 +168,29 @@ body_size (body_t body, size_t *psize)
     return body->_size (body, psize);
 
   /* ok we should handle this */
-  if (body->file)
+  if (body->stream)
     {
-      struct stat st;
-      if (fstat (fileno (body->file), &st) == -1)
-	return errno;
-      if (psize)
-	*psize = st.st_size;
+      off_t off = 0;
+      status = stream_size (body->stream, &off);
+      if (status == 0)
+	if (psize)
+	  *psize = off;
     }
   else if (body->filename)
     {
       struct stat st;
-      if (stat (body->filename, &st) == -1)
-	return errno;
-      if (psize)
-	*psize = st.st_size;
+      if (stat (body->filename, &st) == 0)
+	{
+	  if (psize)
+	    *psize = st.st_size;
+	}
+      else
+	status = errno;
     }
   else if (psize)
     *psize = 0;
 
-  return 0;
+  return status;
 }
 
 int
@@ -189,128 +204,29 @@ body_set_size (body_t body, int (*_size)(body_t, size_t*) , void *owner)
   return 0;
 }
 
-static int
-body_read (stream_t is, char *buf, size_t buflen,
-	      off_t off, size_t *pnread )
-{
-  body_t body = stream_get_owner (is);
-  size_t nread = 0;
-
-  if (body == NULL)
-    return EINVAL;
-
-  /* check if they want to read from a file */
-  if (body->file == NULL && body->filename)
-    {
-      /* try read only, we don't want to
-       * handle nasty security issues here.
-       */
-      body->file = fopen (body->filename, "r");
-      if (body->file == NULL)
-	{
-	  if (pnread)
-	    *pnread = 0;
-	  return errno;
-	}
-    }
-
-  if (body->file)
-    {
-      /* should we check the error of fseek for some handlers
-       * like socket where fseek () will fail.
-       * FIXME: Alternative is to check fseeck and errno == EBADF
-       * if not a seekable stream.
-       */
-      if (fseek (body->file, off, SEEK_SET) == -1)
-	return errno;
-
-      nread = fread (buf, sizeof (char), buflen, body->file);
-      if (nread == 0)
-	{
-	  if (ferror (body->file))
-	    return errno;
-	  /* clear the error for feof() */
-	  clearerr (body->file);
-	}
-    }
-
-  if (pnread)
-    *pnread = nread;
-  return 0;
-}
+#ifndef P_tmpdir
+#  define P_tmpdir "/tmp"
+#endif
 
 static int
-body_write (stream_t os, const char *buf, size_t buflen,
-	       off_t off, size_t *pnwrite)
+lazy_create (body_t body)
 {
-  body_t body = stream_get_owner (os);
-  size_t nwrite = 0;
-
-  if (body == NULL)
-    return EINVAL;
-
-  /* FIXME: security issues, Refuse to write to an unknow file */
-  if (body->file == NULL && body->filename)
-    return EINVAL;
-
-  /* Probably being lazy, then create a body for the stream */
-  if (body->file == NULL)
-    {
-      body->file = lazy_create ();
-      if (body->file == NULL)
-	return errno;
-    }
-
-  /* should we check the error of fseek for some handlers
-   * like socket where it does not make sense.
-   * FIXME: Alternative is to check fseeck and errno == EBADF
-   * if not a seekable stream.
-   */
-  if (fseek (body->file, off, SEEK_SET) == -1)
-    return errno;
-
-  nwrite = fwrite (buf, sizeof (char), buflen, body->file);
-  if (nwrite == 0)
-    {
-      if (ferror (body->file))
-	return errno;
-      /* clear the error for feof() */
-      clearerr (body->file);
-    }
-
-  if (pnwrite)
-    *pnwrite = nwrite;
-  return 0;
-}
-
-static int
-body_get_fd (stream_t stream, int *pfd)
-{
-  body_t body = stream_get_owner (stream);
-
-  if (body == NULL)
-    return EINVAL;
-
-  /* Probably being lazy, then create a body for the stream */
-  if (body->file == NULL)
-    {
-      body->file = lazy_create ();
-      if (body->file == 0)
-        return errno;
-    }
-
-  if (pfd)
-    *pfd = fileno (body->file);
-  return 0;
-}
-
-static FILE *
-lazy_create ()
-{
-  FILE *file = tmpfile ();
-  //file = fopen ("/tmp/mystuff", "w+");
-  /* make sure the mode is right */
-  if (file)
-    fchmod (fileno (file), 0600);
-  return file;
+  const char *tmpdir = getenv ("TMPDIR");
+  int fd;
+  if (tmpdir == NULL)
+    tmpdir = P_tmpdir;
+  body->filename = calloc (strlen (tmpdir) + 1 + /* "muXXXXXX" */ 8 + 1,
+			   sizeof (char));
+  if (body->filename == NULL)
+    return ENOMEM;
+  sprintf (body->filename, "%s/muXXXXXX", tmpdir);
+#ifdef HAVE_MKSTEMP
+  fd = mkstemp (body->filename);
+#else
+  if (mktemp (body->filename))
+    fd = open (*pbox, O_RDWR|O_CREAT|O_EXCL, 0600);
+  else
+    fd = -1;
+#endif
+  return fd;
 }

@@ -135,7 +135,6 @@ static int mbox_header_fill           __P ((header_t, char *, size_t, off_t,
 					    size_t *));
 static int mbox_get_header_readstream __P ((message_t, char *, size_t, off_t,
 					    size_t *, int));
-static int mbox_get_hdr_fd            __P ((stream_t, int *));
 static int mbox_get_body_fd           __P ((stream_t, int *));
 static int mbox_get_fd                __P ((mbox_message_t, int *));
 static int mbox_get_attr_flags        __P ((attribute_t, int *));
@@ -756,15 +755,6 @@ mbox_get_body_fd (stream_t is, int *pfd)
 }
 
 static int
-mbox_get_hdr_fd (stream_t is, int *pfd)
-{
-  header_t header = stream_get_owner (is);
-  message_t msg = header_get_owner (header);
-  mbox_message_t mum = message_get_owner (msg);
-  return mbox_get_fd (mum, pfd);
-}
-
-static int
 mbox_get_fd (mbox_message_t mum, int *pfd)
 {
   int status;
@@ -853,14 +843,16 @@ mbox_body_readstream (stream_t is, char *buffer, size_t buflen,
 #endif
   {
     off_t ln = mum->body_end - (mum->body + off);
-    size_t n = 0;
     if (ln > 0)
       {
 	nread = ((size_t)ln < buflen) ? ln : buflen;
 	/* Position the file pointer and the buffer.  */
-	status = (isreadline) ?
-	  stream_readline (mum->stream, buffer, nread, mum->body + off, &n) :
-	  stream_read (mum->stream, buffer, nread, mum->body + off, &n);
+	if (isreadline)
+	  status = stream_readline (mum->stream, buffer, nread,
+				    mum->body + off, &nread);
+	else
+	  status = stream_read (mum->stream, buffer, nread,
+				mum->body + off, &nread);
       }
   }
   monitor_unlock (mum->mud->mailbox->monitor);
@@ -1104,7 +1096,6 @@ mbox_get_message (mailbox_t mailbox, size_t msgno, message_t *pmsg)
   /* Set the header.  */
   {
     header_t header = NULL;
-    stream_t stream = NULL;
     status = header_create (&header, NULL, 0, msg);
     if (status != 0)
       {
