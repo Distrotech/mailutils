@@ -17,14 +17,20 @@
 
 #include "pop3d.h"
 
-static char short_options[] = "f:hlo:v";
+static char short_options[] = "acdf:hlmo:p:u:v";
 
 static struct option long_options[] =
 {
+  { "add", no_argument, 0, 'a' },
+  { "create", no_argument, 0, 'c' },
+  { "modify", no_argument, 0, 'm' },
+  { "delete", no_argument, 0, 'd' },
   { "file", required_argument, 0, 'f' },
   { "help", no_argument, 0, 'h' },
   { "list", no_argument, 0, 'l' },
   { "output", required_argument, 0, 'o' },
+  { "password", required_argument, 0, 'p' },
+  { "user", required_argument, 0, 'u' },
   { "version", no_argument, 0, 'v', },
   { 0, 0, 0, 0 }
 };
@@ -34,91 +40,228 @@ int db_make (char *input_name, char *output_name);
 static void help (void);
 static void version (void);
 
+#define ACT_CREATE  0
+#define ACT_ADD     1
+#define ACT_DELETE  2
+#define ACT_LIST    3
+#define ACT_CHPASS  4
+
+struct action_data {
+  char *input_name;
+  char *output_name;
+  char *username;
+  char *passwd;
+};
+
+void check_action(int action);
+int action_create __P((struct action_data *ap));
+int action_add __P((struct action_data *ap));
+int action_delete __P((struct action_data *ap));
+int action_list __P((struct action_data *ap));
+int action_chpass __P((struct action_data *ap));
+
+int (*ftab[]) __P((struct action_data *)) = {
+  action_create,
+  action_add,
+  action_delete,
+  action_list,
+  action_chpass
+};
+
 int
 main(int argc, char **argv)
 {
   int c;
-  int list = 0;
-  char *input_name = NULL;
-  char *output_name = NULL;
-  
+  int action = -1;
+  struct action_data adata;
+
+  memset (&adata, 0, sizeof adata);
+
   while ((c = getopt_long (argc, argv, short_options, long_options, NULL))
 	 != -1)
     {
       switch (c)
 	{
-	case 'f':
-	  input_name = optarg;
+	case 'a':
+	  check_action (action);
+	  action = ACT_ADD;
 	  break;
+
+	case 'c':
+	  check_action (action);
+	  action = ACT_CREATE;
+	  break;
+	  
+	case 'l':
+	  check_action (action);
+	  action = ACT_LIST;
+	  break;
+	  
+	case 'd':
+	  check_action (action);
+	  action = ACT_DELETE;
+	  break;
+	  
+	case 'p':
+	  adata.passwd = optarg;
+	  break;
+
+	case 'm':
+	  check_action (action);
+	  action = ACT_CHPASS;
+	  break;
+	  
+	case 'f':
+	  adata.input_name = optarg;
+	  break;
+	  
 	case 'h':
 	  help ();
 	  break;
-	case 'l':
-	  list = 1;
-	  break;
+	  
 	case 'o':
-	  output_name = optarg;
+	  adata.output_name = optarg;
 	  break;
+
+	case 'u':
+	  adata.username = optarg;
+	  break;
+	  
 	case 'v':
 	  version ();
 	  break;
+	  
 	default:
 	  break;
 	}
     }
 
-  if (list)
-    return db_list (input_name, output_name);
+  if (action == -1)
+    {
+      /* Deduce the default action */
+      if (getuid () == 0)
+	action = ACT_LIST;
+      else
+	action = ACT_CHPASS;
+    }
 
-  return db_make (input_name, output_name);
+  return (*ftab[action]) (&adata);
 }
 
+void
+check_action (int action)
+{
+  if (action != -1)
+    {
+      mu_error ("You may not specify more than one `-aldp' option");
+      exit (1);
+    }
+}
 
 int
-db_list (char *input_name, char *output_name)
+check_user_perm (int action, struct action_data *ap)
+{
+  struct stat sb;
+  struct passwd *pw;
+  uid_t uid;
+  
+  if (!ap->input_name)
+    ap->input_name = APOP_PASSFILE;
+
+  if (mu_dbm_stat (ap->input_name, &sb))
+    {
+      mu_error ("can't stat %s: %s", ap->input_name, strerror (errno));
+      exit (1);
+    }
+
+  uid = getuid ();
+  if (uid == 0 || sb.st_uid == uid)
+    return 0;
+
+  if (ap->username)
+    {
+      mu_error ("Only the file owner can use --username");
+      exit (1);
+    }
+
+  if (action != ACT_CHPASS)
+    {
+      mu_error ("Operation not allowed");
+      exit (1);
+    }
+  pw = getpwuid (uid);
+  if (!pw)
+    exit (1);
+  ap->username = pw->pw_name;
+  return 1;
+}
+
+int
+action_list (struct action_data *ap)
 {
   FILE *fp;
   DBM_FILE db;
   DBM_DATUM key;
   DBM_DATUM contents;
   
-  if (!input_name)
-    input_name = APOP_PASSFILE;
-  if (mu_dbm_open (input_name, &db, MU_STREAM_READ, 0600))
+  check_user_perm (ACT_LIST, ap);
+  if (mu_dbm_open (ap->input_name, &db, MU_STREAM_READ, 0600))
     {
-      mu_error("can't open %s: %s", input_name, strerror (errno));
+      mu_error("can't open %s: %s", ap->input_name, strerror (errno));
       return 1;
     }
   
-  if (output_name)
+  if (ap->output_name)
     {
-      fp = fopen (output_name, "w");
+      fp = fopen (ap->output_name, "w");
       if (!fp)
 	{
-	  mu_error("can't create %s: %s", output_name, strerror (errno));
+	  mu_error("can't create %s: %s", ap->output_name, strerror (errno));
 	  return 1;
 	}
     }
   else
     fp = stdout;
 
-  for (key = mu_dbm_firstkey (db); MU_DATUM_PTR(key);
-       key = mu_dbm_nextkey (db, key))
+  if (ap->username)
     {
-      mu_dbm_fetch (db, key, &contents);
-      fprintf (fp, "%.*s: %.*s\n",
-	       (int) MU_DATUM_SIZE (key),
-	       (char*) MU_DATUM_PTR (key),
-	       (int) MU_DATUM_SIZE (contents),
-	       (char*) MU_DATUM_PTR (contents));
+      memset (&key, 0, sizeof key);
+      memset (&contents, 0, sizeof contents);
+      MU_DATUM_PTR (key) = ap->username;
+      MU_DATUM_SIZE (key) = strlen (ap->username);
+      if (mu_dbm_fetch (db, key, &contents))
+	{
+	  mu_error ("no such user: %s", ap->username);
+	}
+      else
+	fprintf (fp, "%.*s: %.*s\n",
+		 (int) MU_DATUM_SIZE (key),
+		 (char*) MU_DATUM_PTR (key),
+		 (int) MU_DATUM_SIZE (contents),
+		 (char*) MU_DATUM_PTR (contents));
     }
+  else
+    {
+      for (key = mu_dbm_firstkey (db); MU_DATUM_PTR(key);
+	   key = mu_dbm_nextkey (db, key))
+	{
+	  memset (&contents, 0, sizeof contents);
+	  mu_dbm_fetch (db, key, &contents);
+	  fprintf (fp, "%.*s: %.*s\n",
+		   (int) MU_DATUM_SIZE (key),
+		   (char*) MU_DATUM_PTR (key),
+		   (int) MU_DATUM_SIZE (contents),
+		   (char*) MU_DATUM_PTR (contents));
+	}
+    }
+  
   mu_dbm_close (db);
   fclose (fp);
   return 0;
 }
 
 int
-db_make (char *input_name, char *output_name)
+action_create (struct action_data *ap)
 {
   FILE *fp;
   DBM_FILE db;
@@ -127,26 +270,26 @@ db_make (char *input_name, char *output_name)
   char buf[256];
   int line = 0;
   
-  if (input_name)
+  if (ap->input_name)
     {
-      fp = fopen (input_name, "r");
+      fp = fopen (ap->input_name, "r");
       if (!fp)
 	{
-	  mu_error("can't create %s: %s", input_name, strerror (errno));
+	  mu_error("can't create %s: %s", ap->input_name, strerror (errno));
 	  return 1;
 	}
     }
   else
     {
-      input_name = "";
+      ap->input_name = "";
       fp = stdin;
     }
   
-  if (!output_name)
-    output_name = APOP_PASSFILE;
-  if (mu_dbm_open (output_name, &db, MU_STREAM_CREAT, 0600))
+  if (!ap->output_name)
+    ap->output_name = APOP_PASSFILE;
+  if (mu_dbm_open (ap->output_name, &db, MU_STREAM_CREAT, 0600))
     {
-      mu_error("can't create %s: %s", output_name, strerror (errno));
+      mu_error("can't create %s: %s", ap->output_name, strerror (errno));
       return 1;
     }
 
@@ -176,7 +319,7 @@ db_make (char *input_name, char *output_name)
       
       if (argc != 3 || argv[1][0] != ':' || argv[1][1] != 0)
 	{
-	  mu_error ("%s:%d: malformed line", input_name, line);
+	  mu_error ("%s:%d: malformed line", ap->input_name, line);
 	  argcv_free (argc, argv);
 	  continue;
 	}
@@ -189,7 +332,7 @@ db_make (char *input_name, char *output_name)
       MU_DATUM_SIZE (contents) = strlen (argv[2]);
 
       if (mu_dbm_insert (db, key, contents, 1))
-	mu_error ("%s:%d: can't store datum", input_name, line);
+	mu_error ("%s:%d: can't store datum", ap->input_name, line);
 
       argcv_free (argc, argv);
     }
@@ -198,17 +341,181 @@ db_make (char *input_name, char *output_name)
   return 0;
 }
 
+int
+open_io (int action, struct action_data *ap, DBM_FILE *db, int *not_owner)
+{
+  int rc = check_user_perm (action, ap);
+  if (not_owner)
+    *not_owner = rc;
+  if (mu_dbm_open (ap->input_name, db, MU_STREAM_RDWR, 0600))
+    {
+      mu_error("can't open %s: %s", ap->input_name, strerror (errno));
+      return 1;
+    }
+  return 0;
+}
+
+void
+fill_pass (struct action_data *ap)
+{
+  if (!ap->passwd)
+    {
+      char *p;
+
+      while (1) {
+	if (ap->passwd)
+	  free (ap->passwd);
+	p = getpass ("Password:");
+	if (!p)
+	  exit (1);
+	ap->passwd = strdup (p);
+	p = getpass ("Confirm :");
+	if (strcmp (ap->passwd, p) == 0)
+	  break;
+	mu_error ("Passwords differ. Please retry.");
+      } 
+    }
+}
+
+int
+action_add (struct action_data *ap)
+{
+  DBM_FILE db;
+  DBM_DATUM key;
+  DBM_DATUM contents;
+  int rc;
+  
+  if (!ap->username)
+    {
+      mu_error ("missing username to add");
+      return 1;
+    }
+
+  if (open_io (ACT_ADD, ap, &db, NULL))
+    return 1;
+
+  fill_pass (ap);
+  
+  memset (&key, 0, sizeof key);
+  memset (&contents, 0, sizeof contents);
+  MU_DATUM_PTR (key) = ap->username;
+  MU_DATUM_SIZE (key) = strlen (ap->username);
+  MU_DATUM_PTR (contents) = ap->passwd;
+  MU_DATUM_SIZE (contents) = strlen (ap->passwd);
+
+  rc = mu_dbm_insert (db, key, contents, 1);
+  if (rc)
+    mu_error ("can't store datum");
+
+  mu_dbm_close (db);
+  return rc;
+}
+
+int
+action_delete (struct action_data *ap)
+{
+  DBM_FILE db;
+  DBM_DATUM key;
+  int rc;
+  
+  if (!ap->username)
+    {
+      mu_error ("missing username to delete");
+      return 1;
+    }
+
+  if (open_io (ACT_DELETE, ap, &db, NULL))
+    return 1;
+  
+  MU_DATUM_PTR (key) = ap->username;
+  MU_DATUM_SIZE (key) = strlen (ap->username);
+
+  rc = mu_dbm_delete (db, key);
+  if (rc)
+    mu_error ("can't remove record for %s", ap->username);
+
+  mu_dbm_close (db);
+  return rc;
+}
+
+int
+action_chpass (struct action_data *ap)
+{
+  DBM_FILE db;
+  DBM_DATUM key;
+  DBM_DATUM contents;
+  int rc;
+  int not_owner;
+  
+  if (open_io (ACT_CHPASS, ap, &db, &not_owner))
+    return 1;
+
+  if (!ap->username)
+    {
+      mu_error ("missing username");
+      return 1;
+    }
+
+  memset (&key, 0, sizeof key);
+  memset (&contents, 0, sizeof contents);
+
+  MU_DATUM_PTR (key) = ap->username;
+  MU_DATUM_SIZE (key) = strlen (ap->username);
+  if (mu_dbm_fetch (db, key, &contents))
+    {
+      mu_error ("no such user: %s", ap->username);
+      return 1;
+    }
+
+  if (not_owner)
+    {
+      char *oldpass, *p;
+      
+      oldpass = xmalloc (MU_DATUM_SIZE (contents) + 1);
+      memcpy (oldpass, MU_DATUM_PTR (contents), MU_DATUM_SIZE (contents));
+      oldpass[MU_DATUM_SIZE (contents)] = 0;
+      p = getpass ("Old Password:");
+      if (!p)
+	return 1;
+      if (strcmp (oldpass, p))
+	{
+	  mu_error ("Sorry");
+	  return 1;
+	}
+    }
+
+  fill_pass (ap);
+  
+  MU_DATUM_PTR (contents) = ap->passwd;
+  MU_DATUM_SIZE (contents) = strlen (ap->passwd);
+  rc = mu_dbm_insert (db, key, contents, 1);
+  if (rc)
+    mu_error ("can't replace datum");
+
+  mu_dbm_close (db);
+  return rc;
+}
+
 static void
 help ()
 {
-  printf ("Usage: popauth [OPTIONS]\n");
+  printf ("Usage: popauth [OPTIONS] [ACTION]\n");
   printf ("Manipulates pop3d authentication database.\n\n");
+  printf ("Options are:\n");
   printf ("  -f, --file=FILE          Read input from FILE (default stdin)\n");
   printf ("  -o, --output=FILE        Direct output to FILE\n");
-  printf ("  -l, --list               List the contents of DBM file\n");
   printf ("  -h, --help               Display this help and exit\n");
+  printf ("  -u, --user=USERNAME      Specify the user name\n");
+  printf ("  -p, --password=PASS      Specify user's password\n");
   printf ("  -v, --version            Display program version\n");
-  printf ("\nDefault action is to convert plaintext to DBM file.\n");
+  printf ("Actions are:\n");
+  printf ("  -a, --add                Add user\n");
+  printf ("  -l, --list               List the contents of DBM file\n");
+  printf ("  -d, --delete             Delete the given user\n");
+  printf ("  -m, --modify             Modify user's record (change password)\n");
+  printf ("\nDefault action is:\n");
+  printf ("  For the file owner: --list\n");
+  printf ("  For a user: --modify --username <username>\n");
   printf ("\nReport bugs to bug-mailutils@gnu.org\n");
   exit (EXIT_SUCCESS);
 }
