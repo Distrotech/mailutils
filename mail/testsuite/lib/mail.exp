@@ -124,6 +124,7 @@ verbose "MAILRC is $srcdir/etc/mail.rc" 2
             return 1
 	}
     }
+    mail_send "#\n"
     return 0
 }
 
@@ -153,6 +154,14 @@ proc mail_send { string } {
 }
 
 proc mail_command { cmd } {
+    global mail_prompt
+    mail_expect 30 {
+	-re "\[\r\n\]?${mail_prompt}$" {}
+	default {
+	    perror "mail not initialized"
+            return 1
+	}
+    }
     set res [mail_send "$cmd\n"]
     mail_expect 30 {
 	-ex "${cmd}\r\n" { }
@@ -208,6 +217,7 @@ proc mail_expect { args } {
 	    }
 	}
     }
+
     global suppress_flag;
     global remote_suppress_flag;
     global verbose
@@ -220,10 +230,10 @@ proc mail_expect { args } {
 	}
     }
 
-    verbose "RUNNING remote_expect host $gtimeout $notransfer" 2
+    verbose "RUNNING remote_expect host $gtimeout $notransfer $expcode" 2
 
     set code [catch \
-	{uplevel remote_expect host "$gtimeout $notransfer" $expcode} string];
+	{uplevel remote_expect host $gtimeout $notransfer $expcode} string];
     if [info exists old_val] {
 	set remote_suppress_flag $old_val;
     } else {
@@ -296,9 +306,16 @@ proc default_mail_test { args } {
     set result 0
     for {set i 0} {$i < [llength $pattern]} {incr i} {
 	verbose "i=$i, pat=[lindex ${pattern} $i]" 2
+	set pat [lindex ${pattern} $i]
 	mail_expect $tmt {
-	    -ex "[lindex ${pattern} $i]" { }
-	    -ex "[lindex ${pattern} $i]\r\n" { }
+	    -ex "$pat\r\n" {
+		if { $expect_out(buffer) != $expect_out(0,string) } {
+		    verbose "Got \"$expect_out(buffer)\"" 2
+		    verbose "instead of expected \"$pat\\r\\n\"" 2
+		    set result 1
+		    break
+		}
+	    }
 	    default {
 		set result 1
 		break
