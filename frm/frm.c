@@ -41,6 +41,8 @@
 #include <mailutils/url.h>
 #include <mailutils/nls.h>
 #include <mailutils/tls.h>
+#include <mailutils/error.h>
+#include <mailutils/mutil.h>
 
 static char* show_field;
 static int show_to;
@@ -65,6 +67,104 @@ static int action (observer_t, size_t);
 const char *program_version = "frm (" PACKAGE_STRING ")";
 static char doc[] = N_("GNU frm -- display From: lines");
 
+static struct attr_tab {
+  char *name;      /* Attribute name */
+  int code;        /* Corresponding IS_.* flag */
+  size_t len;      /* Minimum abbreviation length */
+} attr_tab[] = {
+  /* TRANSLATORS: See comment marked [frm status] below */
+  { N_("new"), IS_NEW, 0 },
+  /* TRANSLATORS: See comment marked [frm status] below */
+  { N_("old"), IS_OLD, 0 },
+  /* TRANSLATORS: See comment marked [frm status] below */
+  { N_("unread"), IS_OLD, 0 },
+  /* TRANSLATORS: See comment marked [frm status] below */
+  { N_("read"), IS_READ, 0 },
+  { NULL }
+};
+
+static char attr_help[] =
+/* TRANSLATORS: [frm status]
+   
+   1) Please make sure the words "new", "unread", "old" and
+   "read" are translated exactly as in four preceeding messages.
+   
+   2) If possible, select such translations for these words, that
+   differ by the first letter.
+*/
+N_("Select messages with the specific attribute. STATUS is one \
+of the following: new, unread, old (same as unread) or read. Any unambiguous \
+abbreviation of those is also accepted.");
+
+
+/* Attribute table handling */
+
+/* Prepares the table for use: computes minimum abbreviation lengths */
+static void
+prepare_attrs (void)
+{
+  struct attr_tab *p, *q;
+
+  for (p = attr_tab; p->name; p++)
+    {
+      const char *name = gettext (p->name);
+      size_t len = strlen (name);
+      size_t n = 1;
+
+      for (q = attr_tab; q->name; q++)
+	{
+	  if (p != q)
+	    {
+	      const char *str = gettext (q->name);
+	      size_t slen = strlen (str);
+
+	      if (memcmp (name, str, n) == 0)
+		{
+		  for (n++;
+		       memcmp (name, str, n) == 0
+			 && n < len
+			 && n < slen; n++)
+		    ;
+		  
+		  q->len = n < slen ? n : slen;
+		}
+	    }
+	}
+      p->len = n < len ? n : len;
+    }
+}
+
+/* Translates the textual status representation to the corresponding
+   IS_.* flag */
+static int
+decode_attr (char *arg)
+{
+  struct attr_tab *p;
+  int len = strlen (arg);
+  int pretendents = 0;
+  
+  for (p = attr_tab; p->name; p++)
+    {
+      const char *str = gettext (p->name);
+      if (str[0] == arg[0])
+	{
+	  if (len < p->len)
+	    pretendents++;
+	  else if (len > strlen (str))
+	    continue;
+	  if (memcmp (str, arg, p->len) == 0)
+	    return p->code;
+	}
+    }
+  if (pretendents)
+    mu_error (_("%s: ambiguous abbreviation"), arg);
+  else
+    mu_error (_("%s: unknown attribute"), arg);
+  return 0;
+}
+
+
+
 static struct argp_option options[] = {
   {"debug",  'd', NULL,   0, N_("Enable debugging output"), 0},
   {"field",  'f', N_("NAME"), 0, N_("Header field to display"), 0},
@@ -73,8 +173,7 @@ static struct argp_option options[] = {
   {"Quiet",  'Q', NULL,   0, N_("Very quiet"), 0},
   {"query",  'q', NULL,   0, N_("Print a message if unread mail"), 0},
   {"summary",'S', NULL,   0, N_("Print a summary of messages"), 0},
-  {"status", 's', "[nor]",0,
-   N_("Select message with the specific attribute: [n]ew, [r]ead, [u]nread."), 0 },
+  {"status", 's', N_("STATUS"), 0, attr_help, 0},
   {"align",  't', NULL,   0, N_("Try to align"), 0},
   {0, 0, 0, 0}
 };
@@ -123,22 +222,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
       break;
 
     case 's':
-      if (optarg)
-	switch (*optarg)
-	  {
-	  case 'r':
-	    select_attribute |= IS_READ;
-	    break;
-	    
-	  case 'o':
-	    select_attribute |= IS_OLD;
-	    break;
-	    
-	  case 'n':
-	    select_attribute |= IS_NEW;
-	    break;
-	    
-	  }
+      select_attribute = decode_attr (optarg);
       break;
       
     case 't':
@@ -366,6 +450,8 @@ main (int argc, char **argv)
   /* Native Language Support */
   mu_init_nls ();
 
+  prepare_attrs ();
+  
   mu_argp_init (program_version, NULL);
 #ifdef WITH_TLS
   mu_tls_init_client_argp ();
