@@ -1,3 +1,9 @@
+2001-04-06  Alain Magloire
+
+	* mailbox/parse822.c: New parser.
+	* include/mailutils/parse822.h: New file.
+	From Sam Roberts.
+
 2001-04-04  Alain Magloire
 
 	Introduction of the notion of filter_t object takes a stream and
