@@ -24,6 +24,7 @@
 #include <mbx_mbox.h>
 #include <mbx_unix.h>
 #include <mbx_mdir.h>
+#include <string.h>
 
 #include <errno.h>
 #include <sys/stat.h>
@@ -52,12 +53,18 @@ int
 mailbox_mbox_init (mailbox_t *mbox, const char *name)
 {
   struct stat st;
+  char *scheme = strstr (name, "://");
 
+  if (scheme)
+    {
+      scheme += 3;
+      name = scheme;
+    }
   /*
     If they want to creat ?? should they  know the type ???
     What is the best course of action ??
   */
-  if (stat (name, &st) == -1)
+  if (stat (name, &st) < 0)
     {
       return errno; /* errno set by stat () */
     }
@@ -117,8 +124,7 @@ mailbox_mbox_init (mailbox_t *mbox, const char *name)
     }
 
   /* Why can't a mailbox be FIFO ? or a DOOR/Portal ? */
-  errno = EINVAL;
-  return -1;
+  return EINVAL;
 }
 
 void

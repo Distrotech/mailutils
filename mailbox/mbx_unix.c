@@ -226,11 +226,17 @@ mailbox_unix_init (mailbox_t *pmbox, const char *name)
   mailbox_unix_data_t mud;
   char *sep;
 
+
   /* sanity check */
   if (name == NULL || *name == '\0')
     {
       return EINVAL;
     }
+
+  /* pass the url */
+  sep = strstr (name, "unix://");
+  if (sep)
+    name += 7;
 
   /* allocate memory for mbox */
   mbox = calloc (1, sizeof (*mbox));
