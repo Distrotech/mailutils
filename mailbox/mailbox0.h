@@ -19,6 +19,7 @@
 #define _MAILBOX0_H
 
 #include <mailbox.h>
+#include <event.h>
 
 #include <sys/types.h>
 #include <stdio.h>
@@ -42,8 +43,10 @@ struct _mailbox
   auth_t auth;
   locker_t locker;
   url_t url;
-  int  (*_progress)  __P ((int, void *arg));
-  void *progress_arg;
+
+  /* register events */
+  event_t event;
+  size_t event_num;
 
   /* Back pointer to the specific mailbox */
   void *data;
@@ -87,9 +90,7 @@ extern int mailbox_get_attribute  __P ((mailbox_t mbox, size_t msgno,
 					attribute_t *attr));
 extern int mailbox_set_attribute  __P ((mailbox_t mbox, size_t msgno,
 					attribute_t attr));
-extern int mailbox_progress       __P ((mailbox_t mbox,
-					int (*progress) (int, void *arg),
-					void *arg));
+extern void mailbox_notification   __P ((mailbox_t mbox, size_t type));
 
 
 #ifdef __cplusplus

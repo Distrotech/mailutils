@@ -26,9 +26,11 @@
 #include <stdlib.h>
 #include <errno.h>
 
-static int header_parse (header_t *h, const char *blurb, size_t len);
+static int header_parse (header_t h, const char *blurb, size_t len);
 static int header_read (istream_t is, char *buf, size_t buflen,
 			off_t off, ssize_t *pnread);
+static int header_write (ostream_t os, const char *buf, size_t buflen,
+			 off_t off, ssize_t *pnwrite);
 
 struct _hdr
 {
@@ -67,9 +69,18 @@ header_init (header_t *ph, const char *blurb, size_t len, void *owner)
     return ENOMEM;
   h->owner = owner;
 
-  status = header_parse (&h, blurb, len);
+  status = header_parse (h, blurb, len);
   if (status != 0)
     free (h);
+
+  status = istream_init (&(h->is), header_read, h);
+  if (status != 0)
+    return status;
+
+  status = ostream_init (&(h->os), header_write, h);
+  if (status != 0)
+    return status;
+
   *ph = h;
   return status;
 }
@@ -109,20 +120,15 @@ header_destroy (header_t *ph, void *owner)
  * on how to handle the case.
  */
 static int
-header_parse (header_t *h, const char *blurb, size_t len)
+header_parse (header_t header, const char *blurb, size_t len)
 {
-  header_t header;
   char *header_end;
   char *header_start;
   char *header_start2;
   struct _hdr *hdr;
 
-  if (h == NULL || blurb == NULL || len == 0)
+  if (header == NULL || blurb == NULL || len == 0)
     return EINVAL;
-
-  header = calloc (1, sizeof (*header));
-  if (header == NULL)
-    return ENOMEM;
 
   header->blurb = calloc (1, len);
   if (header->blurb == NULL)
@@ -200,7 +206,6 @@ header_parse (header_t *h, const char *blurb, size_t len)
 	  header->hdr[header->hdr_count - 1].fv_end = header_end;
 	}
     }
-  *h = header;
   return 0;
 }
 
@@ -336,6 +341,24 @@ header_entry_value (header_t header, size_t num, char *buf,
 }
 
 static int
+header_write (ostream_t os, const char *buf, size_t buflen,
+	      off_t off, ssize_t *pnwrite)
+{
+  header_t header;
+  if (os == NULL || (header = (header_t)os->owner) == NULL)
+    return EINVAL;
+
+  (void)buf; (void)off;
+  if (buflen == 0)
+    return 0;
+
+  if (pnwrite)
+    *pnwrite = 0;
+
+  return ENOSYS;
+}
+
+static int
 header_read (istream_t is, char *buf, size_t buflen,
 	     off_t off, ssize_t *pnread)
 {
@@ -365,16 +388,8 @@ header_read (istream_t is, char *buf, size_t buflen,
 int
 header_get_istream (header_t header, istream_t *pis)
 {
-  int err;
   if (header == NULL || pis == NULL)
     return EINVAL;
-  /* already done */
-  if  (header->is)
-    *pis = header->is;
-
-  err = istream_init (&(header->is), header_read, header->owner);
-  if (err != 0)
-    return err;
   *pis = header->is;
   return 0;
 }
@@ -384,5 +399,6 @@ rfc822_get_ostream (header_t header, ostream_t *pos)
 {
   if (header == NULL || pos == NULL)
     return EINVAL;
+  *pos = header->os;
   return ENOSYS;
 }

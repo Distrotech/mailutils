@@ -22,6 +22,7 @@
 #include <header.h>
 #include <message.h>
 #include <mailbox.h>
+#include <event.h>
 
 #include <sys/types.h>
 #include <stdio.h>
@@ -29,6 +30,14 @@
 #ifdef _cpluscplus
 extern "C" {
 #endif
+
+#ifndef __P
+# ifdef __STDC__
+#  define __P(args) args
+# else
+#  define __P(args) ()
+# endif
+#endif /*__P */
 
 struct _body
 {
@@ -54,6 +63,9 @@ struct _message
   void *owner;
   int ref_count;
 
+  event_t event;
+  size_t event_num;
+
   int (*_get_header)  __P ((message_t msg, header_t *hdr));
   int (*_set_header)  __P ((message_t msg, header_t hdr, void *owner));
 
@@ -74,4 +86,5 @@ struct _message
 }
 #endif
 
+extern void message_notification (message_t msg, size_t type);
 #endif /* _MESSAGE_H */

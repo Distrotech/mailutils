@@ -81,6 +81,17 @@ extern int mailbox_size          __P ((mailbox_t, off_t size));
 
 extern int mailbox_get_url       __P ((mailbox_t, url_t *));
 
+/* events */
+#define MU_EVT_MBX_DESTROY      1
+#define MU_EVT_MBX_CORRUPTED    2
+#define MU_EVT_MBX_MSG_ADD      4
+#define MU_EVT_MBX_PROGRESS     8
+
+extern int mailbox_register __P ((mailbox_t mbox, size_t type,
+				  int (*action) (size_t type, void *arg),
+				  void *arg));
+extern int mailbox_deregister __P ((mailbox_t mbox, void *action));
+
 #ifdef __cplusplus
 }
 #endif

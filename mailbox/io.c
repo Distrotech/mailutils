@@ -64,7 +64,7 @@ istream_destroy (istream_t *pis, void *owner)
       is->ref_count--;
       if ((is->owner && is->owner == owner) ||
 	  (is->owner == NULL && is->ref_count <= 0))
-	free (pis);
+	free (is);
       *pis = NULL;
     }
 }
@@ -78,7 +78,7 @@ ostream_destroy (ostream_t *pos, void *owner)
       os->ref_count--;
       if ((os->owner && os->owner == owner) ||
 	  (os->owner == NULL && os->ref_count <= 0))
-	free (*pos);
+	free (os);
       *pos = NULL;
     }
 }

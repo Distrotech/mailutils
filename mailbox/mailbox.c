@@ -157,19 +157,6 @@ mailbox_num_deleted (mailbox_t mbox, size_t *num)
   return mbox->_num_deleted (mbox, num);
 }
 
-/* hook to allow some sort of "progress bar" .. I don't like it
- * but can not find any other way yet
- */
-int
-mailbox_progress (mailbox_t mbox, int (*progress) (int, void *arg), void *arg)
-{
-  if (mbox == NULL)
-    return EINVAL;
-  mbox->_progress = progress;
-  mbox->progress_arg = arg;
-  return 0;
-}
-
 int
 mailbox_is_updated (mailbox_t mbox)
 {
@@ -217,3 +204,73 @@ mailbox_get_auth (mailbox_t mbox, auth_t *pauth)
   return 0;
 }
 
+int
+mailbox_register (mailbox_t mbox, size_t type,
+		  int (*action) (size_t type, void *arg),
+		  void *arg)
+{
+  size_t i;
+  event_t event;
+
+  /* FIXME: I should check for invalid types */
+  if (mbox == NULL || action == NULL)
+    return EINVAL;
+
+  /* find a free spot */
+  for (i = 0; i < mbox->event_num; i++)
+    {
+      event = &(mbox->event[i]);
+      if (event->_action == NULL)
+	{
+	  event->_action = action;
+	  event->type = type;
+	  event->arg = arg;
+	  return 0;
+	}
+    }
+
+  /* a new one */
+  event = realloc (mbox->event, (mbox->event_num + 1) * sizeof (*event));
+  if (event == NULL)
+    return ENOMEM;
+
+  mbox->event = event;
+  event[mbox->event_num]._action = action;
+  event[mbox->event_num].type = type;
+  event[mbox->event_num].arg = arg;
+  mbox->event_num++;
+  return 0;
+}
+
+int
+mailbox_deregister (mailbox_t mbox, void *action)
+{
+  size_t i;
+  event_t event;
+
+  for (i = 0; i < mbox->event_num; i++)
+    {
+      event = &(mbox->event[i]);
+      if (event->_action == action)
+	{
+	  event->type = 0;
+	  event->_action = NULL;
+	  event->arg = NULL;
+	  return 0;
+	}
+    }
+  return ENOENT;
+}
+
+void
+mailbox_notification (mailbox_t mbox, size_t type)
+{
+  size_t i;
+  event_t event;
+  for (i = 0; i < mbox->event_num; i++)
+    {
+      event = &(mbox->event[i]);
+      if ((event->_action) &&  (event->type & type))
+	event->_action (type, event->arg);
+    }
+}
