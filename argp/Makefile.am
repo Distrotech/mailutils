@@ -13,5 +13,7 @@ EXTRA_LTLIBRARIES = libargp.la
 
 noinst_HEADERS = argp-fmtstream.h argp-namefrob.h argp.h
 
-libargp_la_LIBADD = ../lib/libmailutils.la
+# Feb 20, 2002 - JB Consider putting this back in when QNX has
+# a recent libtool
+# libargp_la_LIBADD = ../lib/libmailutils.la
 

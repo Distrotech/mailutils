@@ -1,3 +1,9 @@
+2002-02-20  Jeff Bailey  <jbailey@outpost.dnsalias.org>
+
+	* argp/Makefile.am: Remove inter-library dependancy.  Until QNX
+	has a recent libtool that will support this.  Thanks Sam,
+	Sergey for reporting and finding the fix.
+
 2002-02-20 Sam Roberts <sroberts@uniserve.com>
 
 	* frm/Makefile.am, from/Makefile.am, imap4d/Makefile.am,
