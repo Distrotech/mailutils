@@ -212,6 +212,10 @@ filename do not begin with '/'
 exists. If so it asks whether the user wishes to rewrite it. This
 behaviour is disabled when --quiet option was given.
 
+* mhparam
+
+The -all mode does not display commented out entries.
+
 
 Local variables:
 mode: outline

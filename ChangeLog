@@ -1,6 +1,13 @@
 2003-08-17  Sergey Poznyakoff
 
 	* mail/send.c (mail_send0): Fixed typo in variable name.
+	* mh/mhparam.c: New file
+	* mh/Makefile.am: Added mhparam
+	* mh/.cvsignore: Likewise.
+	* mh/mh.h (mh_global_profile_iterate): New function
+	* mh/mh_global.c: Likewise.
+	* mh/mh_getopt.c (mh_getopt): Implemented -version option.
+	* mh/README: Updated
 
 2003-08-13  Sergey Poznyakoff 
 
