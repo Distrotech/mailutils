@@ -39,6 +39,7 @@
 	* mail/testsuite/mail/send.exp: Changed to reflect new reply behaviour.
 
 	* include/mailutils/header.h: Added MU_HEADER_REFERENCES.
+	* mail.local/main.c (make_tmp): Initialize auth to NULL. 
 	
 2002-11-04  Sergey Poznyakoff
 
