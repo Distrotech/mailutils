@@ -133,3 +133,6 @@ void instr_brz __P((sieve_machine_t mach));
 int sieve_mark_deleted __P((message_t msg, int deleted));
 
 int sieve_match_part_checker __P((const char *name, list_t tags, list_t args));
+
+int sieve_load_add_path __P((list_t path));
+int sieve_load_add_dir __P((sieve_machine_t mach, const char *name));

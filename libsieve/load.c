@@ -23,7 +23,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>  
-#include <string.h>  
+#include <string.h>
 #include <sieve.h>
 #include <ltdl.h>
 
@@ -96,11 +96,46 @@ sieve_load_ext (sieve_machine_t mach, const char *name)
   return handle == NULL;
 }
 
+static int
+_load_dir (void *item, void *unused)
+{
+  return lt_dladdsearchdir (item);
+}
+
+int
+sieve_load_add_path (list_t path)
+{
+  if (lt_dlinit ())
+    return 1;
+  return list_do (path, _load_dir, NULL);
+}
+
+int
+sieve_load_add_dir (sieve_machine_t mach, const char *name)
+{
+  if (lt_dlinit ())
+    return 1;
+  sieve_machine_add_destructor (mach, (sieve_destructor_t) lt_dlexit, NULL);
+  return lt_dladdsearchdir (name);
+}
+
 #else
 #include <sieve.h>
 
 int
 sieve_load_ext (sieve_machine_t mach, const char *name)
+{
+  return 1;
+}
+
+int
+sieve_load_add_path (list_t path)
+{
+  return 1;
+}
+
+int
+sieve_load_add_dir (sieve_machine_t mach, const char *name)
 {
   return 1;
 }
