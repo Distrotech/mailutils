@@ -17,8 +17,8 @@
 ##   Foundation, Inc.
 ##   59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-PROGRAMS_MH = scan inc rmm refile mhpath folder rmf fmtcheck repl whatnow
-EXTRA_PROGRAMS = scan inc rmm refile mhpath folder rmf fmtcheck repl whatnow
+PROGRAMS_MH = scan inc rmm refile mhpath folder rmf fmtcheck repl whatnow comp
+EXTRA_PROGRAMS = scan inc rmm refile mhpath folder rmf fmtcheck repl whatnow comp
 
 LIBRARIES_MH = libmh.a
 EXTRA_LIBRARIES = libmh.a
@@ -55,6 +55,7 @@ folder_LDADD = $(mh_LIBS)
 rmf_LDADD = $(mh_LIBS)
 fmtcheck_LDADD = $(mh_LIBS)
 repl_LDADD = $(mh_LIBS)
+comp_LDADD = $(mh_LIBS)
 whatnow_LDADD = $(mh_LIBS)
 
 AM_YFLAGS=-vt
