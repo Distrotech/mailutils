@@ -98,7 +98,6 @@ collect_append_file (char *name)
 void
 collect_create_mailbox ()
 {
-  size_t count;
   size_t nmesg;
 
   if (!temp_file)
