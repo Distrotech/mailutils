@@ -134,8 +134,13 @@ extern size_t current_message;
 extern char mh_list_format[];
 
 void mh_init (void);
-int  mh_read_context_file (char *path, header_t *header);
+void mh_save_context (void);
+int mh_read_context_file (char *path, header_t *header);
+int mh_write_context_file (char *path, header_t header);
 int mh_read_formfile (char *name, char **pformat);
+
+int mh_getyn (const char *fmt, ...);
+int mh_check_folder (char *pathname);
 
 int mh_format (mh_format_t *fmt, message_t msg, size_t msgno,
 	       char *buffer, size_t bufsize);
