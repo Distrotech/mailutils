@@ -1,3 +1,4 @@
+#include <mailutils/mailbox.h>
 #include <argp.h>
 
 #define MODE_INTERACTIVE 0
@@ -13,7 +14,6 @@ struct daemon_param {
 #ifdef USE_LIBPAM
 extern char *pam_service;
 #endif
-extern char *maildir;
 extern int log_facility;
 extern int mu_argp_error_code;
 extern struct argp_child mu_common_argp_child[];
