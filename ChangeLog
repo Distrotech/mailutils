@@ -1,3 +1,10 @@
+2001-08-29  Jakob 'sparky' Kaivo  <jkaivo@elijah.nodomainname.net>
+
+	* configure.in (USE_VIRTUAL_DOMAINS): add virtual domain option
+
+	* pop3d/user.c (pop3d_virtual): new function for "virtual domains"
+	(pop3d_user): call pop3d_virtual
+
 2001-08-28  Alain Magloire
 
 	* mailbox2/include/mailutils/list.h:  the typedef list_t
