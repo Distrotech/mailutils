@@ -48,7 +48,7 @@ pop3d_apopuser (const char *user)
   char *password;
   int rc;
   char buf[POP_MAXCMDLEN];
-    
+
 #ifdef USE_DBM
   {
     DBM_FILE db;
@@ -64,7 +64,7 @@ pop3d_apopuser (const char *user)
 		  strerror (rc));
 	return NULL;
       }
-      
+
     memset (&key, 0, sizeof key);
     memset (&data, 0, sizeof data);
 
@@ -107,7 +107,7 @@ pop3d_apopuser (const char *user)
 		strerror (errno));
 	return NULL;
       }
-    
+
     password = calloc (APOP_DIGEST, sizeof (*password));
     if (password == NULL)
       {
@@ -143,7 +143,7 @@ pop3d_apopuser (const char *user)
 
     return password;
   }
-#endif 
+#endif
 }
 
 int

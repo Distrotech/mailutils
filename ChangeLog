@@ -1,3 +1,27 @@
+2001-11-12  Alain Magloire
+
+	Support in POP3 maibox client for APOP authentication.
+	This should work, now:
+	#MAIL='pop://alain;AUTH=+APOP@localhost' ./frm
+	Pop passwd: secret  <--- apop secret
+	...
+
+	* mailbox/folder_pop.c (folder_pop_get_authority):
+	Enable APOP code.
+	* mailbx/mbx_pop.c: Add md5-rsa.h.
+	(_pop_apop): New function to do APOP authentication.
+	(_pop_user): Factor some code in pop_get_user() and
+	pop_get_passwd() to share with _pop_apop().
+	(pop_get_user): New function, get the user login.
+	(pop_get_passwd): New function, get the user passwd.
+	(pop_get_md5): New function get timestamp.
+	* mailbox/url_pop.c: Add 2001 in Copyright.
+	* pop3d/apop.c: Remove trailing spaces.
+
+	* frm/frm.c: New option -d, --debug.
+	To put the mailbox_t in debug mode, very practicle
+	to watch the traffic.
+
 2001-11-11  Alain Magloire
 
 	Most daemon will share the same code to daemonize(), we use

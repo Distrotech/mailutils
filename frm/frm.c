@@ -37,6 +37,7 @@ static void usage (const char *argv);
 
 static struct option long_options[] =
 {
+  {"debug", no_argument, 0, 'd'},
   {"help", no_argument, 0, 'h'},
   {"field", required_argument, 0, 'f'},
   {"to", no_argument, 0, 'l'},
@@ -50,7 +51,7 @@ static struct option long_options[] =
   {0, 0, 0, 0}
 };
 
-const char *short_options ="hf:lnQqSs:tv";
+const char *short_options ="dhf:lnQqSs:tv";
 
 static char* show_field;
 static int show_to;
@@ -62,6 +63,7 @@ static int be_quiet;
 static int align = 1;
 static int show_query;
 static int have_new_mail;
+static int dbug;
 
 #define IS_READ 0x001
 #define IS_OLD  0x010
@@ -199,6 +201,7 @@ usage (const char *argv)
 {
   printf ("GNU Mailutils.\n");
   printf ("Usage: %s [OPTIONS]\n\n", argv);
+  printf ("  -d, --debug              display debuging information\n");
   printf ("  -h, --help               display this help and exit\n");
   printf ("  -f, --field=string       header field to display\n");
   printf ("  -l, --to                 include the To: information\n");
@@ -235,6 +238,10 @@ main(int argc, char **argv)
     {
       switch (c)
 	{
+	case 'd':
+	  dbug++;
+	  break;
+
 	case 'h':
 	  usage (argv[0]);
 	  break;
@@ -325,11 +332,25 @@ main(int argc, char **argv)
     observer_t observer;
     observable_t observable;
 
-    if ((status = mailbox_create_default (&mbox, mailbox_name) != 0)
-	|| (status = mailbox_open (mbox, MU_STREAM_READ) != 0))
+    status = mailbox_create_default (&mbox, mailbox_name);
+    if (status != 0)
+      {
+	fprintf (stderr, "could not create mailbox object\n");
+	exit (3);
+      }
+
+    if (dbug)
+      {
+	mu_debug_t debug;
+	mailbox_get_debug (mbox, &debug);
+	mu_debug_set_level (debug, MU_DEBUG_TRACE|MU_DEBUG_PROT);
+      }
+
+    status = mailbox_open (mbox, MU_STREAM_READ);
+    if (status != 0)
       {
 	fprintf (stderr, "could not open mailbox\n");
-	exit (3);
+	exit (4);
       }
 
     if (! be_quiet)

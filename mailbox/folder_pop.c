@@ -50,6 +50,7 @@ static int folder_pop_open  __P ((folder_t, int));
 static int folder_pop_close __P ((folder_t));
 static int folder_pop_get_authority __P ((folder_t, authority_t *));
 extern int _pop_user         __P ((authority_t));
+extern int _pop_apop         __P ((authority_t));
 
 /* XXX: The way, the POP folder is handle is not clean at all.
    the I/O functions should have been here on folder, not in  mbx_pop.c  */
@@ -102,11 +103,15 @@ folder_pop_get_authority (folder_t folder, authority_t *pauth)
 	  authority_set_authenticate (folder->authority, _pop_user, folder);
 	}
       /*
-	else...
 	"+apop" could be supported.
 	Anything else starting with "+" is an extension mechanism.
 	Without a "+" it's a SASL mechanism.
       */
+      else if (strcasecmp (folder->url->auth, "+APOP") == 0)
+	{
+	  status = authority_create (&folder->authority, NULL, folder);
+	  authority_set_authenticate (folder->authority, _pop_apop, folder);
+	}
       else
 	{
 	  status = ENOSYS;

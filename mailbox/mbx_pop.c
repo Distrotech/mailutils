@@ -38,6 +38,8 @@
 # include <strings.h>
 #endif
 
+#include <md5-rsa.h>
+
 #include <mailutils/stream.h>
 #include <mailutils/body.h>
 #include <mailutils/message.h>
@@ -100,6 +102,7 @@ static int pop_is_updated      __P ((mailbox_t));
 
 /* The implementation of message_t */
 int _pop_user            __P ((authority_t));
+int _pop_apop            __P ((authority_t));
 static int pop_get_size        __P ((mailbox_t, off_t *));
 /* We use pop_top for retreiving headers.  */
 /* static int pop_header_read (header_t, char *, size_t, off_t, size_t *); */
@@ -124,6 +127,10 @@ static int pop_readline        __P ((pop_data_t));
 static int pop_read_ack        __P ((pop_data_t));
 static int pop_writeline       __P ((pop_data_t, const char *, ...));
 static int pop_write           __P ((pop_data_t));
+static int pop_get_user        __P ((authority_t));
+static int pop_get_passwd      __P ((authority_t));
+static char *pop_get_timestamp __P ((pop_data_t));
+static int pop_get_md5         __P ((pop_data_t));
 
 /* This structure holds the info for a message. The pop_message_t
    type, will serve as the owner of the message_t and contains the command to
@@ -371,38 +378,23 @@ _pop_user (authority_t auth)
   folder_t folder = authority_get_owner (auth);
   mailbox_t mbox = folder->data;
   pop_data_t mpd = mbox->data;
-  ticket_t ticket;
   int status;
 
   switch (mpd->state)
     {
     case POP_AUTH:
-      {
-	/*  Fetch the user from them.  */
-	size_t n = 0;
-	authority_get_ticket (auth, &ticket);
-	if (mpd->user)
-	  free (mpd->user);
-	/* Was it in the URL? */
-	status = url_get_user (mbox->url, NULL, 0, &n);
-	if (status != 0 || n == 0)
-	  ticket_pop (ticket, "Pop User: ",  &mpd->user);
-	else
-	  {
-	    mpd->user = calloc (1, n + 1);
-	    url_get_user (mbox->url, mpd->user, n + 1, NULL);
-	  }
-	if (mpd->user == NULL || mpd->user[0] == '\0')
-	  {
-	    CHECK_ERROR_CLOSE (mbox, mpd, EINVAL);
-	  }
-	status = pop_writeline (mpd, "USER %s\r\n", mpd->user);
-	CHECK_ERROR_CLOSE(mbox, mpd, status);
-	MAILBOX_DEBUG0 (mbox, MU_DEBUG_PROT, mpd->buffer);
-	free (mpd->user);
-	mpd->user = NULL;
-	mpd->state = POP_AUTH_USER;
-      }
+      /*  Fetch the user from them.  */
+      status = pop_get_user (auth);
+      if (status != 0 || mpd->user == NULL || mpd->user[0] == '\0')
+	{
+	  CHECK_ERROR_CLOSE (mbox, mpd, EINVAL);
+	}
+      status = pop_writeline (mpd, "USER %s\r\n", mpd->user);
+      CHECK_ERROR_CLOSE(mbox, mpd, status);
+      MAILBOX_DEBUG0 (mbox, MU_DEBUG_PROT, mpd->buffer);
+      free (mpd->user);
+      mpd->user = NULL;
+      mpd->state = POP_AUTH_USER;
 
     case POP_AUTH_USER:
       /* Send username.  */
@@ -423,30 +415,14 @@ _pop_user (authority_t auth)
 	  observable_notify (observable, MU_EVT_AUTHORITY_FAILED);
 	  CHECK_ERROR_CLOSE (mbox, mpd, EACCES);
 	}
-      if (mpd->passwd)
-	{
-	  free (mpd->passwd);
-	  mpd->passwd = NULL;
-	}
-      /* Was it in the URL? */
-      {
-	size_t n = 0;
-	status = url_get_passwd (mbox->url, NULL, 0, &n);
-	if (status != 0 || n == 0)
-	  ticket_pop (ticket, "Pop Passwd: ",  &mpd->passwd);
-	else
-	  {
-	    mpd->passwd = calloc (1, n + 1);
-	    url_get_passwd (mbox->url, mpd->passwd, n + 1, NULL);
-	  }
-      }
-      if (mpd->passwd == NULL || mpd->passwd[0] == '\0')
+      status = pop_get_passwd (auth);
+      if (status != 0 || mpd->passwd == NULL || mpd->passwd[0] == '\0')
 	{
 	  CHECK_ERROR_CLOSE (mbox, mpd, EINVAL);
 	}
       status = pop_writeline (mpd, "PASS %s\r\n", mpd->passwd);
       MAILBOX_DEBUG0 (mbox, MU_DEBUG_PROT, mpd->buffer);
-      /* We have to nuke the passwd.  */
+      /* Leave not trail of the passwd.  */
       memset (mpd->passwd, '\0', strlen (mpd->passwd));
       free (mpd->passwd);
       mpd->passwd = NULL;
@@ -483,6 +459,79 @@ _pop_user (authority_t auth)
   CLEAR_STATE (mpd);
   return 0;
 }
+
+int
+_pop_apop (authority_t auth)
+{
+  folder_t folder = authority_get_owner (auth);
+  mailbox_t mbox = folder->data;
+  pop_data_t mpd = mbox->data;
+  int status;
+
+  switch (mpd->state)
+    {
+    case POP_AUTH:
+      /* Fetch the user from them.  */
+      status = pop_get_user (auth);
+      if (status != 0 || mpd->user == NULL || mpd->user[0] == '\0')
+	{
+	  CHECK_ERROR_CLOSE (mbox, mpd, EINVAL);
+	}
+
+      /* Fetch the secret from them.  */
+      status = pop_get_passwd (auth);
+      if (status != 0 || mpd->passwd == NULL || mpd->passwd[0] == '\0')
+	{
+	  CHECK_ERROR_CLOSE (mbox, mpd, EINVAL);
+	}
+
+      /* Make the MD5 digest string.  */
+      status = pop_get_md5 (mpd);
+      if (status != 0)
+	{
+	  CHECK_ERROR_CLOSE (mbox, mpd, status);
+	}
+      status = pop_writeline (mpd, "APOP %s %s\r\n", mpd->user, mpd->passwd);
+      MAILBOX_DEBUG0 (mbox, MU_DEBUG_PROT, mpd->buffer);
+      /* We have to obscure the md5 string.  */
+      memset (mpd->passwd, '\0', strlen (mpd->passwd));
+      free (mpd->user);
+      free (mpd->passwd);
+      mpd->user = NULL;
+      mpd->passwd = NULL;
+      CHECK_ERROR_CLOSE (mbox, mpd, status);
+      mpd->state = POP_APOP;
+
+    case POP_APOP:
+      /* Send apop.  */
+      status = pop_write (mpd);
+      CHECK_EAGAIN (mpd, status);
+      /* Clear the buffer it contains the md5.  */
+      memset (mpd->buffer, '\0', mpd->buflen);
+      mpd->state = POP_APOP_ACK;
+
+    case POP_APOP_ACK:
+      status = pop_read_ack (mpd);
+      CHECK_EAGAIN (mpd, status);
+      MAILBOX_DEBUG0 (mbox, MU_DEBUG_PROT, mpd->buffer);
+      if (strncasecmp (mpd->buffer, "+OK", 3) != 0)
+        {
+          observable_t observable = NULL;
+          mailbox_get_observable (mbox, &observable);
+          CLEAR_STATE (mpd);
+          observable_notify (observable, MU_EVT_AUTHORITY_FAILED);
+          CHECK_ERROR_CLOSE (mbox, mpd, EACCES);
+        }
+      mpd->state = POP_AUTH_DONE;
+      break;  /* We're outta here.  */
+
+    default:
+      break;
+    }
+  CLEAR_STATE (mpd);
+  return 0;
+}
+
 
 /* Open the connection to the sever, and send the authentication.
    FIXME: Should also send the CAPA command to detect for example the suport
@@ -585,6 +634,8 @@ pop_open (mailbox_t mbox, int flags)
     case POP_AUTH_USER_ACK:
     case POP_AUTH_PASS:
     case POP_AUTH_PASS_ACK:
+    case POP_APOP:
+    case POP_APOP_ACK:
       /* Authenticate.  */
       status = authority_authenticate (mbox->folder->authority);
       CHECK_EAGAIN (mpd, status);
@@ -1783,6 +1834,121 @@ pop_retr (pop_message_t mpm, char *buffer, size_t buflen, off_t offset,
 
   CLEAR_STATE (mpd);
   mpm->skip_header = mpm->skip_body = 0;
+  return 0;
+}
+
+/* Extract the User from the URL or the ticket.  */
+static int
+pop_get_user (authority_t auth)
+{
+  folder_t folder = authority_get_owner (auth);
+  mailbox_t mbox = folder->data;
+  pop_data_t mpd = mbox->data;
+  ticket_t ticket = NULL;
+  int status;
+  /*  Fetch the user from them.  */
+  size_t n = 0;
+
+  authority_get_ticket (auth, &ticket);
+  if (mpd->user)
+    {
+      free (mpd->user);
+      mpd->user = NULL;
+    }
+  /* Was it in the URL? */
+  status = url_get_user (mbox->url, NULL, 0, &n);
+  if (status != 0 || n == 0)
+    ticket_pop (ticket, "Pop User: ",  &mpd->user);
+  else
+    {
+      mpd->user = calloc (1, n + 1);
+      url_get_user (mbox->url, mpd->user, n + 1, NULL);
+    }
+  return 0;
+}
+
+/* Extract the User from the URL or the ticket.  */
+static int
+pop_get_passwd (authority_t auth)
+{
+  folder_t folder = authority_get_owner (auth);
+  mailbox_t mbox = folder->data;
+  pop_data_t mpd = mbox->data;
+  ticket_t ticket = NULL;
+  int status;
+  /*  Fetch the user from them.  */
+  size_t n = 0;
+
+  authority_get_ticket (auth, &ticket);
+  if (mpd->passwd)
+    {
+      free (mpd->passwd);
+      mpd->passwd = NULL;
+    }
+  /* Was it in the URL? */
+  status = url_get_passwd (mbox->url, NULL, 0, &n);
+  if (status != 0 || n == 0)
+    ticket_pop (ticket, "Pop Passwd: ",  &mpd->passwd);
+  else
+    {
+      mpd->passwd = calloc (1, n + 1);
+      url_get_passwd (mbox->url, mpd->passwd, n + 1, NULL);
+    }
+  return 0;
+}
+
+
+static char *
+pop_get_timestamp (pop_data_t mpd)
+{
+  char *right, *left;
+  char *timestamp = NULL;
+  size_t len;
+
+  len = strlen (mpd->buffer);
+  right = memchr (mpd->buffer, '<', len);
+  if (right)
+    {
+      len = len - (right - mpd->buffer);
+      left = memchr (right, '>', len);
+      if (left)
+	{
+	  len = left - right + 1;
+	  timestamp = calloc (len + 1, 1);
+	  if (timestamp != NULL)
+	    {
+	      memcpy (timestamp, right, len);
+	    }
+	}
+    }
+  return timestamp;
+}
+
+/*  Make the MD5 string.  */
+static int
+pop_get_md5 (pop_data_t mpd)
+{
+  MD5_CTX md5context;
+  unsigned char md5digest[16];
+  char digest[64]; /* Really it just has to be 32 + 1(null).  */
+  char *tmp;
+  size_t n;
+  char *timestamp;
+
+  timestamp = pop_get_timestamp (mpd);
+  if (timestamp == NULL)
+    return EINVAL;
+
+  MD5Init (&md5context);
+  MD5Update (&md5context, (unsigned char *)timestamp, strlen (timestamp));
+  MD5Update (&md5context, (unsigned char *)mpd->passwd, strlen (mpd->passwd));
+  MD5Final (md5digest, &md5context);
+  for (tmp = digest, n = 0; n < 16; n++, tmp += 2)
+    sprintf (tmp, "%02x", md5digest[n]);
+  *tmp = '\0';
+  free (timestamp);
+  free (mpd->passwd);
+  mpd->passwd = strdup (digest);
   return 0;
 }
 
