@@ -140,9 +140,9 @@ imap4d_store0 (char *arg, int isuid, char *resp, size_t resplen)
 	}
       if (ack)
 	{
-	  util_send ("* %d FETCH ", msgno);
+	  util_send ("* %d FETCH (", msgno);
 	  fetch_flags0 ("FLAGS", msg, isuid);
-	  util_send ("\n");
+	  util_send (")\n");
 	}
       free (p);
       /* Update the flags of uid table.  */

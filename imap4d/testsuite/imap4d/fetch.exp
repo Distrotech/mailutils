@@ -392,10 +392,10 @@ imap4d_test "FETCH 4 BODY\[2.2.TEXT\]"\
 # Clean \Seen flags
 
 imap4d_test "STORE 1:* -FLAGS (\\Seen)"\
-"1 FETCH FLAGS (\\Recent)"\
-"2 FETCH FLAGS (\\Recent)"\
-"3 FETCH FLAGS (\\Recent)"\
-"4 FETCH FLAGS (\\Recent)"\
+"1 FETCH (FLAGS (\\Recent))"\
+"2 FETCH (FLAGS (\\Recent))"\
+"3 FETCH (FLAGS (\\Recent))"\
+"4 FETCH (FLAGS (\\Recent))"\
 "OK"
 
 # RFC822         Functionally equivalent to BODY[], differing in the

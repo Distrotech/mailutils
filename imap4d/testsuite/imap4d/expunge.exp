@@ -43,9 +43,9 @@ imap4d_test "SELECT mbox1" \
 "OK"
 
 imap4d_test "STORE 2:* +FLAGS (\\Deleted)"\
-"2 FETCH FLAGS (\\Deleted \\Recent)"\
-"3 FETCH FLAGS (\\Deleted \\Recent)"\
-"4 FETCH FLAGS (\\Deleted \\Recent)"\
+"2 FETCH (FLAGS (\\Deleted \\Recent))"\
+"3 FETCH (FLAGS (\\Deleted \\Recent))"\
+"4 FETCH (FLAGS (\\Deleted \\Recent))"\
 "OK"	
 
 imap4d_test "EXPUNGE"\

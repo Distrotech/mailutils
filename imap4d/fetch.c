@@ -290,14 +290,11 @@ fetch_flags0 (const char *prefix, message_t msg, int isuid)
     {
       struct fetch_command *fcmd = &fetch_command_table[F_UID];
       fcmd->msg = msg;
-      util_send ("(");
       fetch_uid (fcmd, NULL);
       util_send (" ");
     }
   util_send ("%s (", prefix);
   util_print_flags(attr);
-  if (isuid)
-    util_send (")");
   util_send (")");
 }
 

@@ -159,9 +159,9 @@ imap4d_test "SEARCH SINCE \"29-Jul-2002 22:01:36 +0000\""\
 "OK"
 
 imap4d_test "STORE 3,5,89 +FLAGS (\\Answered)"\
-"3 FETCH FLAGS (\\Answered \\Recent)"\
-"5 FETCH FLAGS (\\Answered \\Recent)"\
-"89 FETCH FLAGS (\\Answered \\Recent)"\
+"3 FETCH (FLAGS (\\Answered \\Recent))"\
+"5 FETCH (FLAGS (\\Answered \\Recent))"\
+"89 FETCH (FLAGS (\\Answered \\Recent))"\
 "OK"
 
 # ANSWERED       Messages with the \Answered flag set.
