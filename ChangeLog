@@ -1,3 +1,28 @@
+2003-01-11  Sergey Poznyakoff  
+
+	* mailbox/mbx_mh.c (mh_scan0): Do not actually read 
+	  contents of the message files, only register them in
+	  the message pool.
+	  Moved notification into a separate loop. This way
+	  observable action receives notifications
+	  in the proper order.
+
+	* mh/mh_format.c (builtin_unre): New function. Implements
+	  extension format function 'unre': remove leading whitespace
+	  and eventual 're:' prefix from the subject header line.
+	* mh/mh.h (mh_expand_name): Changed declaration.
+	* mh/mh_init.c: Likewise.
+	* mh/mh_global.c: Changed calls to mh_expand_name.
+	* mh/refile.c: Likewise.
+	* mh/rmf.c: Likewise.
+	
+	* mh/scan.c: When called without arguments do the work by
+	  installing observable action. This speeds up execution
+	  by the factor of three.
+
+	* mh/repl.c: Added --build option. Implemented --[no]draftfolder
+	  --[no]query.
+	  
 2003-01-10  Sergey Poznyakoff 
 
 	* libmu_scm/Makefile.am (mailutils.scm target): Bugfix. Use $<
