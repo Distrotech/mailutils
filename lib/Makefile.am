@@ -15,5 +15,5 @@ EXTRA_DIST = alloca.c fnmatch.c fgetpwent.c getpass.c malloc.c obstack.c \
 noinst_HEADERS = argcv.h error.h fnmatch.h getline.h getopt.h md5.h mu_dbm.h\
  regex.h snprintf.h xalloc.h xstrtol.h obstack.h mu_argp.h
 
-libmailutils_la_LIBADD = @LIBOBJS@ @ALLOCA@
+libmailutils_la_LIBADD = @LTLIBOBJS@ @LTALLOCA@
 

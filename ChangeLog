@@ -1,3 +1,10 @@
+2002-02-15  Jeff Bailey  <jbailey@outpost.dnsalias.org>
+
+	* configure.in: Hack to make AC_REPLACE_FUNCS refer to .lo instead
+	of .o
+
+	* lib/Makefile.am: Use libtool objects instead.
+
 2002-02-14  Sergey Poznyakoff
 
 	* mail.local/main.c: Removed confusing print_help()

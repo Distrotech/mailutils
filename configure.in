@@ -335,6 +335,13 @@ dnl get sysconfdir expanded.
 
 CPPFLAGS="$CPPFLAGS -DSYSCONFDIR=\\\"\$(sysconfdir)\\\""
 
+dnl This is really UGLY!  This works around a libtool/autoconf bug that only
+dnl allows LIBOBJS to contain .o, not .lo for libtool.
+LTLIBOBJS=`echo "$LIBOBJS" | sed 's/\.[^.]* /.lo /g;s/\.[^.]*$/.lo/'`
+AC_SUBST(LTLIBOBJS)
+LTALLOCA=`echo "$ALLOCA" | sed 's/\.[^.]* /.lo /g;s/\.[^.]*$/.lo/'`
+AC_SUBST(LTALLOCA)
+
 dnl Output Makefiles
 AC_OUTPUT(Makefile mailutils.spec include/Makefile include/mailutils/Makefile
  m4/Makefile doc/Makefile doc/man/Makefile doc/rfc/Makefile
