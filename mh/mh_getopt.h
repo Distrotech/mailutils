@@ -25,14 +25,20 @@ struct mh_option
 {
   char *opt;
   int match_len;
-  int key;
+  char *longopt;
   int flags;
   char *arg;
 };
 
-extern int mh_optind;
-extern char *mh_optarg;
+struct mh_argp_data
+{
+  struct mh_option *mh_option;
+  int (*handler)();
+  void *closure;
+  char *doc;
+};
 
+void mh_argv_preproc __P((int argc, char **argv, struct mh_argp_data *data));
 int mh_getopt __P((int argc, char **argv, struct mh_option *mh_opt,
 		   const char *doc));
 int mh_argp_parse __P((int argc, char **argv,
