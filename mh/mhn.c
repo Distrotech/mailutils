@@ -1586,24 +1586,24 @@ store_handler (message_t msg, msg_part_t part, char *type, char *encoding,
 
 	  if (header_aget_value (hdr, MU_HEADER_CONTENT_DISPOSITION, &val) == 0)
 	    {
-	  if (argcv_get (val, "=", NULL, &argc, &argv) == 0)
-	    {
-	      int i;
-
-	      for (i = 0; i < argc; i++)
+	      if (argcv_get (val, "=", NULL, &argc, &argv) == 0)
 		{
-		  if (strcmp (argv[i], "filename") == 0
-		      && ++i < argc
-		      && argv[i][0] == '='
-		      && ++i < argc)
+		  int i;
+
+		  for (i = 0; i < argc; i++)
 		    {
-		      name = normalize_path (dir, argv[i]);
-		      break;
+		      if (strcmp (argv[i], "filename") == 0
+			  && ++i < argc
+			  && argv[i][0] == '='
+			  && ++i < argc)
+			{
+			  name = normalize_path (dir, argv[i]);
+			  break;
+			}
 		    }
+		  argcv_free (argc, argv);
 		}
-	      argcv_free (argc, argv);
-	    }
-	  free (val);
+	      free (val);
 	    }
 
 	  if (!name
