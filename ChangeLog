@@ -1,3 +1,18 @@
+2003-02-12  Sergey Poznyakoff
+
+	* mailbox/file_stream.c (prog_stream_create): New function.
+	  Creates a stream connected to the stdin or stdout of
+	  a given program. 
+	* include/mailutils/stream.h (prog_stream_create): New function.
+	* mh/mhl.c: New file. A framework for mhl program.
+	* mh/Makefile.am: Added mhl
+	* mh/.cvsignore: Likewise.
+	* mh/TODO: Updated.
+	* mh/mh_getopt.h: Added new ARG_ macros.
+
+	* NEWS: Added entry for version 0.3
+	* README: Updated.
+
 2003-02-12  Sergey Poznyakoff  
 
 	* mh/mh_format.c (builtin_formataddr): Do not include

@@ -4,9 +4,9 @@ This is the GNU Mailutils package
 This package contains a series of useful mail clients, servers, and
 libraries.  These are the primary mail utilities of the GNU system.
 
-Specifically, this package contains a POP3 server, and an IMAP4
-server.  It also provides a POSIX `mailx' client, and a collection of
-other tools.
+Specifically, this package contains a POP3 server, an IMAP4 server,
+and a Sieve mail filter. It also provides a POSIX `mailx' client,
+and a collection of other tools.
 
 The central library is capable of reading mail from an `mbox' mailbox,
 as well as off of local or remote POP3 and IMAP4 servers.
