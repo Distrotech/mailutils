@@ -21,7 +21,7 @@
 #include <mailbox.h>
 
 extern int mailbox_imap_init    __P ((mailbox_t *mbox, const char *name));
-extern int mailbox_imap_destroy __P ((mailbox_t *mbox));
+extern void mailbox_imap_destroy __P ((mailbox_t *mbox));
 
 extern struct mailbox_type _mailbox_imap_type;
 

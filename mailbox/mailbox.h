@@ -19,6 +19,7 @@
 # define _MAILBOX_H
 
 #include <url.h>
+#include <stdlib.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -44,8 +45,8 @@ struct mailbox_type
   char *name;
   int  id;
   struct url_type *utype;
-  int  (*_init)    __P ((mailbox_t *, const char *name, int id));
-  int  (*_destroy) __P ((mailbox_t *);
+  int  (*_init)    __P ((mailbox_t *, const char *name));
+  void (*_destroy) __P ((mailbox_t *));
 };
 
 struct _mailbox
@@ -58,27 +59,27 @@ struct _mailbox
   int timeout;
   int refresh;
   mailbox_lock_t lock;
-  int (*notif) __P ((mailbox_t));
+  int (*func) __P ((mailbox_t));
 
   void *data;
   struct mailbox_type *mtype;
 
   /* Functions */
 
-  void (*_destroy)         __P ((maibox_t *));
+  //void (*_destroy)         __P ((mailbox_t *));
 
   int  (*_open)            __P ((mailbox_t, int flag));
   int  (*_close)           __P ((mailbox_t, int flag));
 
   /* type */
-  int  (*_get_name)        __P ((mailbox_t, int *type, char *desc,
+  int  (*_get_name)       __P ((mailbox_t, int *id, char *name,
 				 int offset, int len));
-  int  (*_get_mtype)       __P ((mailbox_t, int *type, char **desc,
+  int  (*_get_mname)      __P ((mailbox_t, int *id, char **name,
 				 int *len));
 
   /* passwd if needed */
   int  (*_get_passwd)      __P ((mailbox_t, char * passwd, int offset, int n));
-  int  (*_get_mpasswd)     __P ((mailbox_t, char ** passwd, int *n));
+  int  (*_get_mpasswd)     __P ((mailbox_t, char **passwd, int *n));
   int  (*_set_passwd)      __P ((mailbox_t, const char * passwd,
 				 int offset, int n));
   /* deleting mesgs */
@@ -108,15 +109,22 @@ struct _mailbox
 				 int offset, int n));
   int  (*_get_mheader)     __P ((mailbox_t, int id, char **h, int *n));
 
-  /* misc */
+  /* setting flags */
+  int  (*_msg_is_read)     __P ((mailbox_t, int id));
+  int  (*_msg_set_read)    __P ((mailbox_t, int id));
+  int  (*_msg_is_seen)     __P ((mailbox_t, int id));
+  int  (*_msg_set_seen)    __P ((mailbox_t, int id));
+
+  /* miscellany */
   int  (*_scan)            __P ((mailbox_t, int *msgs));
   int  (*_is_updated)      __P ((mailbox_t));
   int  (*_get_timeout)     __P ((mailbox_t, int *timeout));
   int  (*_set_timeout)     __P ((mailbox_t, int timeout));
-  int  (*_get_size)        __P ((mailbox_t, int id, long *size));
+  int  (*_get_size)        __P ((mailbox_t, int id, size_t *size));
   int  (*_get_refresh)     __P ((mailbox_t, int *refresh));
   int  (*_set_refresh)     __P ((mailbox_t, int refresh));
-  int  (*_set_notification) __P ((mailbox_t, int (*notif) __P ((mailbox_t))));
+  int  (*_set_notification) __P ((mailbox_t,
+				  int (*func) __P ((mailbox_t, void * arg))));
 };
 
 /* constructor/destructor and possible types */
@@ -125,11 +133,10 @@ extern void mailbox_destroy __P ((mailbox_t *));
 
 /* mailbox registration */
 extern int mailbox_list_type   __P ((struct mailbox_type mtype[], int size));
-extern int mailbox_list_mtype  __P ((struct mailbox_type **mtype, int *size));
-extern int mailbox_add_type    __P ((struct mailbox_type *mlist));
-extern int mailbox_remove_type __P ((const struct mailbox_type  *mlist));
-extern int mailbox_get_type    __P ((struct mailbox_type * const *mtype,
-				      int id));
+extern int mailbox_list_mtype  __P ((struct mailbox_type *mtype[], int *size));
+extern int mailbox_add_type    __P ((struct mailbox_type *mtype));
+extern int mailbox_remove_type __P ((struct mailbox_type *mtype));
+extern int mailbox_get_type    __P ((struct mailbox_type **mtype, int id));
 
 #ifndef INLINE
 # ifdef __GNUC__
@@ -143,17 +150,17 @@ extern INLINE int mailbox_open        __P ((mailbox_t, int flag));
 extern INLINE int mailbox_close       __P ((mailbox_t, int flag));
 
 /* type */
-extern INLINE int mailbox_get_name    __P ((mailbox_t, int *type, char *desc,
+extern INLINE int mailbox_get_name    __P ((mailbox_t, int *id, char *name,
 					    int offset, int len));
-extern INLINE int mailbox_get_mname   __P ((mailbox_t, int *type, char **desc,
+extern INLINE int mailbox_get_mname   __P ((mailbox_t, int *id, char **name,
 					    int *len));
 
 /* passwd */
-extern INLINE int mailbox_get_passwd  __P ((mailbox_t, char * passwd,
+extern INLINE int mailbox_get_passwd  __P ((mailbox_t, char *passwd,
 					    int offset, int len));
-extern INLINE int mailbox_get_mpasswd __P ((mailbox_t, char ** passwd,
+extern INLINE int mailbox_get_mpasswd __P ((mailbox_t, char **passwd,
 					    int *len));
-extern INLINE int mailbox_set_passwd  __P ((mailbox_t, const char * passwd,
+extern INLINE int mailbox_set_passwd  __P ((mailbox_t, const char *passwd,
 					    int offset, int len));
 
 /* deleting */
@@ -185,15 +192,16 @@ extern INLINE int mailbox_get_mheader  __P ((mailbox_t, int id, char **h,
 extern INLINE int mailbox_lock        __P ((mailbox_t, int flag));
 extern INLINE int mailbox_unlock      __P ((mailbox_t));
 
-/* misc */
+/* miscellany */
 extern INLINE int mailbox_scan        __P ((mailbox_t, int *msgs));
 extern INLINE int mailbox_is_updated  __P ((mailbox_t));
 extern INLINE int mailbox_get_timeout __P ((mailbox_t, int *timeout));
 extern INLINE int mailbox_set_timeout __P ((mailbox_t, int timeout));
 extern INLINE int mailbox_get_refresh __P ((mailbox_t, int *refresh));
 extern INLINE int mailbox_set_refresh __P ((mailbox_t, int refresh));
+extern INLINE int mailbox_get_size    __P ((mailbox_t, int id, size_t *size));
 extern INLINE int mailbox_set_notification  __P ((mailbox_t, int
-						  (*notif) __P ((mailbox_t))));
+						  (*func) __P ((mailbox_t))));
 
 #ifdef MU_USE_MACROS
 #define mailbox_open(m, f)	         m->_open (m, f)
@@ -231,14 +239,15 @@ extern INLINE int mailbox_set_notification  __P ((mailbox_t, int
 #define mailbox_get_body(m, id, b, o, n)      m->_get_body (m, id, b, o, n)
 #define mailbox_get_mbody(m, id, b, n)        m->_get_body (m, id, b, n)
 
-/* misc */
+/* miscellany */
 #define mailbox_scan(m, t)                    m->_scan (m, t)
 #define mailbox_is_updated(m)                 m->_is_updated (m)
 #define mailbox_get_timeout(m, t)             m->_get_timeout (m, t)
 #define mailbox_set_timeout(m, t)             m->_set_timeout (m, t)
 #define mailbox_get_refresh(m, r)             m->_get_refresh (m, r)
 #define mailbox_set_refresh(m, r)             m->_set_refresh (m, r)
-#define mailbox_set_notification(m, notif)    m->_set_notification (m, notif)
+#define mailbox_get_size(m, id, size)         m->_get_size(m, id, size)
+#define mailbox_set_notification(m, func)    m->_set_notification (m, func)
 #endif /* MU_USE_MACROS */
 
 #ifdef __cplusplus

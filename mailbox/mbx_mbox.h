@@ -2,7 +2,7 @@
    Copyright (C) 1999 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
-   it under the terms of the GNU General Library Public License as published by
+   it under the terms of the GNU Library General Public License as published by
    the Free Software Foundation; either version 2, or (at your option)
    any later version.
 
@@ -15,24 +15,16 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-#include <url_pop.h>
-#include <mbx_pop.h>
+#ifndef _MBX_UNIX_H
+#define _MBX_UNIX_H	1
 
-struct mailbox_type _mailbox_pop_type =
-{
-  "POP3",
-  (int)&_url_pop_type, &_url_pop_type,
-  mailbox_pop_init, mailbox_pop_destroy
-};
+#include <mailbox.h>
+#include <stdlib.h>
+#include <stdio.h>
 
-void
-mailbox_pop_destroy (mailbox_t *mbox)
-{
-  return;
-}
+extern int  mailbox_mbox_init    __P ((mailbox_t *mbox, const char *name));
+extern void mailbox_mbox_destroy __P ((mailbox_t *mbox));
 
-int
-mailbox_pop_init (mailbox_t *mbox, const char *name)
-{
-  return -1;
-}
+extern struct mailbox_type _mailbox_mbox_type;
+
+#endif /* _MBX_UNIX_H */

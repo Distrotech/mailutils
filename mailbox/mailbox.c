@@ -19,7 +19,7 @@
 #include <config.h>
 #endif
 
-#include <mbx_unix.h>
+#include <mbx_mbox.h>
 #include <mbx_pop.h>
 #include <mbx_imap.h>
 
@@ -70,7 +70,9 @@ static int mbx_get_timeout (mailbox_t, int *timeout);
 static int mbx_set_timeout (mailbox_t, int timeout);
 static int mbx_get_refresh (mailbox_t, int *refresh);
 static int mbx_set_refresh (mailbox_t, int refresh);
-static int mbx_set_notification (mailbox_t, int (*notif) (mailbox_t));
+static int mbx_get_size    (mailbox_t, int id, size_t *size);
+static int mbx_set_notification (mailbox_t,
+				 int (*func) (mailbox_t, void *arg));
 
 /* init all the functions to a default value */
 static void mbx_check_struct (mailbox_t);
@@ -82,12 +84,12 @@ static void mbx_check_struct (mailbox_t);
   FIXME: not thread-safe. */
 static struct mailbox_builtin
 {
-  const struct mailbox_type *mtype;
+  struct mailbox_type *mtype;
   int is_malloc;
   struct mailbox_builtin * next;
 } mailbox_builtin [] = {
-  { NULL, 0,                  &url_builtin[1] }, /* sentinel, head list */
-  { &_mailbox_unix_type, 0,   &mailbox_builtin[2] },
+  { NULL, 0,                  &mailbox_builtin[1] }, /* sentinel, head list */
+  { &_mailbox_mbox_type, 0,   &mailbox_builtin[2] },
   { &_mailbox_pop_type, 0,    &mailbox_builtin[3] },
   { &_mailbox_imap_type, 0,   &mailbox_builtin[0] },
 };
@@ -105,7 +107,7 @@ malibox_add_type (struct mailbox_type *mtype)
 	  free (current);
 	  return -1;
 	}
-      mtype->id = url_get_id (mtype->utype); /* same ID as the url_tupe */
+      mtype->id = mtype->utype->id; /* same ID as the url_type */
     }
   else
     {
@@ -119,7 +121,7 @@ malibox_add_type (struct mailbox_type *mtype)
 }
 
 int
-mailbox_remove_type (const struct mailbox_type *mtype)
+mailbox_remove_type (struct mailbox_type *mtype)
 {
   struct mailbox_builtin *current, *previous;
   for (previous = mailbox_builtin, current = mailbox_builtin->next;
@@ -153,7 +155,7 @@ mailbox_list_type (struct mailbox_type *list, int n)
 }
 
 int
-mailbox_list_mtype (struct url_type **mlist, int *n)
+mailbox_list_mtype (struct mailbox_type **mlist, int *n)
 {
   struct mailbox_type *mtype;
   int i;
@@ -167,13 +169,13 @@ mailbox_list_mtype (struct url_type **mlist, int *n)
 }
 
 int
-mailbox_get_type (struct mailbox_type * const *mtype, int id)
+mailbox_get_type (struct mailbox_type **mtype, int id)
 {
   struct mailbox_builtin *current;
   for (current = mailbox_builtin->next; current != mailbox_builtin;
        current = current->next)
     {
-      if (current->mtype->type == type)
+      if (current->mtype->id == id)
         {
 	  *mtype = current->mtype;
           return 0;;
@@ -218,7 +220,7 @@ mailbox_init (mailbox_t *mbox, const char *name, int id)
 	      if (status == 0)
 		mbx_check_struct (*mbox);
 	    }
-	  url_destroy (url);
+	  url_destroy (&url);
 	}
     }
 
@@ -226,7 +228,7 @@ mailbox_init (mailbox_t *mbox, const char *name, int id)
      this should take care of the case where the filename is use */
   if (status != 0 )
     {
-      status = mailbox_unix_init (mbox, name);
+      status = mailbox_mbox_init (mbox, name);
       if (status == 0)
 	mbx_check_struct (*mbox);
     }
@@ -234,9 +236,10 @@ mailbox_init (mailbox_t *mbox, const char *name, int id)
 }
 
 void
-mailbox_destroy (mailbox_t * mbox)
+mailbox_destroy (mailbox_t *mbox)
 {
-  return mbox->_destroy (mbox);
+  struct mailbox_type *mtype = (*mbox)->mtype;
+  return mtype->_destroy (mbox);
 }
 
 /* -------------- stub functions ------------------- */
@@ -244,22 +247,22 @@ static void
 mbx_check_struct (mailbox_t mbox)
 {
   if (mbox->_open == NULL)
-    mbox->open = mbx_open;
+    mbox->_open = mbx_open;
 
   if (mbox->_close == NULL)
-    mbox->close = mbx_close;
+    mbox->_close = mbx_close;
 
   if (mbox->_get_name == NULL)
     mbox->_get_name = mbx_get_name;
 
   if (mbox->_get_passwd == NULL)
-    mbox->_get_passw = mbx_get_passwd;
+    mbox->_get_passwd = mbx_get_passwd;
 
   if (mbox->_get_mpasswd == NULL)
-    mbox->_get_mpasswd = mbx_getmpasswd;
+    mbox->_get_mpasswd = mbx_get_mpasswd;
 
   if (mbox->_set_passwd  == NULL)
-    mbox->_set_passwd == mbx_set_passwd;
+    mbox->_set_passwd = mbx_set_passwd;
 
   if (mbox->_delete == NULL)
     mbox->_delete = mbx_delete;
@@ -324,6 +327,9 @@ mbx_check_struct (mailbox_t mbox)
   if (mbox->_set_refresh == NULL)
     mbox->_set_refresh = mbx_set_refresh;
 
+  if (mbox->_get_size == NULL)
+    mbox->_get_size = mbx_get_size;
+
   if (mbox->_set_notification == NULL)
     mbox->_set_notification = mbx_set_notification;
 
@@ -365,7 +371,8 @@ mbx_get_mpasswd (mailbox_t mbox, char **passwd, int *len)
 {
   int i;
   char *p;
-  if ((i = mbox->_get_passwd (NULL, 0)) <= 0 || (p = malloc (i)) == NULL)
+  if ((i = mbox->_get_passwd (mbox, NULL, 0, 0)) <= 0
+      || (p = malloc (i)) == NULL)
     {
       return -1;
     }
@@ -461,7 +468,8 @@ mbx_get_mbody (mailbox_t mbox, int id, char **body, int *len)
 {
   int i;
   char *b;
-  if ((i = mbox->_get_body (NULL, 0)) <= 0 || (b = malloc (i)) == NULL)
+  if ((i = mbox->_get_body (mbox, id, NULL, 0, 0)) <= 0
+      || (b = malloc (i)) == NULL)
     {
       return -1;
     }
@@ -481,7 +489,8 @@ mbx_get_mheader (mailbox_t mbox, int id, char **header, int *len)
 {
   int i;
   char *h;
-  if ((i = mbox->_get_header (NULL, 0)) <= 0 || (h = malloc (i)) == NULL)
+  if ((i = mbox->_get_header (mbox, id, NULL, 0, 0)) <= 0
+      || (h = malloc (i)) == NULL)
     {
       return -1;
     }
@@ -542,6 +551,13 @@ mbx_get_refresh (mailbox_t mbox, int *refresh)
 
 static int
 mbx_set_refresh (mailbox_t mbox, int refresh)
+{
+  errno = ENOSYS;
+  return -1;
+}
+
+static int
+mbx_get_size (mailbox_t mbox, int id, size_t *size)
 {
   errno = ENOSYS;
   return -1;

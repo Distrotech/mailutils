@@ -16,16 +16,17 @@
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #include <mbx_imap.h>
+#include <url_imap.h>
 
 
 struct mailbox_type _mailbox_imap_type =
 {
-  "IMAP",
+  "IMAP4",
   (int)&_url_imap_type, &_url_imap_type,
   mailbox_imap_init, mailbox_imap_destroy
 };
 
-int
+void
 mailbox_imap_destroy (mailbox_t *mbox)
 {
   return;
