@@ -1,3 +1,20 @@
+2003-01-28  Sergey Poznyakoff
+
+	* auth/gsasl.c (_gsasl_get_fd): New function.
+	  (gsasl_stream_create): Install _get_fd method
+	* auth/tls.c (_tls_get_fd): New function.
+	  (tls_stream_create): Install _get_fd method
+	* imap4d/idle.c: New file. Implements IDLE command
+	  (rfc 2177)
+	* imap4d/Makefile.am: Added imap4d/idle.c
+	* imap4d/capability.c (imap4d_capability_init): Announce
+	  IDLE capability.
+	* imap4d/commands.c: Added entry for IDLE command.
+	* imap4d/imap4d.h (imap4d_idle, util_wait_input): New functions.
+	* imap4d/util.c (util_wait_input): New function.
+	* imap4d/noop.c: Removed misleading comment.	
+	* imap4d/testsuite/imap4d/anystate.exp: Reflect IDLE capability.
+	
 2003-01-28  Sergey Poznyakoff 
 
 	* comsat/comsat.c: Removed unneded colon in the argument to perror.
