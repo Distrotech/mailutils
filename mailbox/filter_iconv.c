@@ -138,7 +138,7 @@ internal_icvt_read (stream_t stream, char *optr, size_t osize, size_t *pnbytes)
 	}
       else if (nbytes == 0)
 	{
-	  if (*pnbytes)
+	  if (pnbytes)
 	    *pnbytes = 0;
 	  return 0;
 	}
@@ -232,7 +232,7 @@ internal_icvt_read (stream_t stream, char *optr, size_t osize, size_t *pnbytes)
 	return MU_ERR_FAILURE;
     }
       
-  if (*pnbytes)
+  if (pnbytes)
     *pnbytes = ob - optr;
   return 0;
 }
@@ -311,7 +311,7 @@ copy_pass (struct icvt_stream *s, char *optr, size_t osize, size_t *pnbytes)
       s->bufpos -= sz;
       if (s->bufpos)
 	memmove (s->buf, s->buf + sz, s->bufpos);
-      if (*pnbytes)
+      if (pnbytes)
 	*pnbytes = sz;
       return 0;
     }
@@ -324,7 +324,7 @@ copy_pass (struct icvt_stream *s, char *optr, size_t osize, size_t *pnbytes)
       if (s->bufpos == 0)
 	return MU_ERR_FAILURE;
     }
-  if (*pnbytes)
+  if (pnbytes)
     *pnbytes = nbytes;
   return 0;
 }
