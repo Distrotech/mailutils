@@ -201,6 +201,8 @@ extern int pop3d_noop           __P ((const char *));
 extern int pop3d_quit           __P ((const char *));
 extern int pop3d_retr           __P ((const char *));
 extern int pop3d_rset           __P ((const char *));
+extern void process_cleanup     __P ((void));
+
 extern RETSIGTYPE pop3d_sigchld __P ((int));
 extern RETSIGTYPE pop3d_signal  __P ((int));
 extern int pop3d_stat           __P ((const char *));
