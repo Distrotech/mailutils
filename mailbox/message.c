@@ -44,6 +44,7 @@ static int message_sender __P ((envelope_t envelope, char *buf, size_t len,
 				size_t *pnwrite));
 static int message_date   __P ((envelope_t envelope, char *buf, size_t len,
 				size_t *pnwrite));
+static int message_stream_size __P((stream_t stream, off_t *psize));
 
 /*  Allocate ressources for the message_t.  */
 int
@@ -333,6 +334,7 @@ message_get_stream (message_t msg, stream_t *pstream)
       stream_set_read (stream, message_read, msg);
       stream_set_write (stream, message_write, msg);
       stream_set_fd (stream, message_get_fd, msg);
+      stream_set_size (stream, message_stream_size, msg);
       stream_set_flags (stream, MU_STREAM_RDWR);
       msg->stream = stream;
     }
@@ -855,6 +857,13 @@ message_get_fd (stream_t stream, int *pfd)
 
   body_get_stream (body, &is);
   return stream_get_fd (is, pfd);
+}
+
+int
+message_stream_size (stream_t stream, off_t *psize)
+{
+  message_t msg = stream_get_owner (stream);
+  return message_size (msg, (size_t*) psize);
 }
 
 static int
