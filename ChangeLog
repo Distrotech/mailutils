@@ -1,3 +1,35 @@
+2001-08-05 Sergey Poznyakoff
+	* mailbox/mbx_mbox.c: Added mbox_stream_size().
+	* mailbox/message.c: Added message_stream_size().
+	* mailbox/stream.c: Fixed some comments.
+
+	* libmu_scm/mu_port.c: (new) I/O port functions. This allows to
+	write and read mailboxes/messages using usual scheme primitives
+	and thus effectively obsoletes mu_body interface, but I'll keep
+	it for a while.
+	* libmu_scm/mu_scm.c: Call to mu_scm_port_init().
+	* libmu_scm/mu_scm.h: Prototypes for port functions.
+	* libmu_scm/mu_message.c: Added mu-message-get-port.
+	mu-message-set-header: don't bail out if third argument is boolean,
+	to allow for constructs like
+		(mu-message-set-header
+                  m1 "From"
+                  (mu-message-get-header m2 "To"))
+	* libmu_scm/mu_maibox.c: Added mu-mailbox-get-port.
+
+	* guimb/scm/sieve.scm: Documented some obscure data structures.
+	* guimb/scm/sieve-core.scm: Use sieve-mailbox-open instead of
+	mu-mailbox-open. The former searches the list of open mailboxes
+	and returns one if found. All the mailboxes get closed at once
+	when the sieve program finishes execution. This saves memory and
+	speeds up the execution (fewer calls to gc, if any).
+	sieve-regexp-to-posix: escape special characters.
+	action-reject: Use ports instead of mu-body- interface.
+
+	* examples/reply.scm: Use ports instead of mu-body- interface.
+
+	* mail/var.c: Added checks for missing arguments.
+
 2001-08-04 Sergey Poznyakoff
 	* mailbox/header.c: Return value of header_aget_value() was always
 	0. Made it consistent with that of header_get_value(). Same for
