@@ -38,6 +38,14 @@
 #include <ctype.h>
 #include <getopt.h>
 
+#ifdef HAVE_PATHS_H
+# include <paths.h>
+#endif
+
+#ifdef HAVE_STRINGS_H
+# include <strings.h>
+#endif
+
 #include <mailutils/mailbox.h>
 #include <mailutils/message.h>
 #include <mailutils/header.h>
