@@ -83,9 +83,11 @@ extern time_t login_delay;
 extern char *login_stat_file;
 extern int check_login_delay __P((char *username));
 extern void update_login_delay __P((char *username));
+extern void login_delay_capa __P((void));
 #else
 # define check_login_delay(u) 0
 # define update_login_delay(u)
+# define login_delay_capa()
 #endif
 
 /* Minimum advertise retention time for messages.  */

@@ -115,4 +115,15 @@ update_login_delay (char *username)
   mu_dbm_close (db);
 }
 
+void
+login_delay_capa ()
+{
+  DBM_FILE db;
+  
+  if (login_delay && open_stat_db (&db, MU_STREAM_RDWR) == 0)
+    {
+      pop3d_outf ("LOGIN-DELAY %lu\r\n", (unsigned long)login_delay);
+      mu_dbm_close (db);
+    }
+}
 #endif
