@@ -19,6 +19,8 @@
 
 INCLUDES = -I${top_srcdir}/include -I${top_srcdir}/mailbox -I${top_srcdir}/mailbox/include -I${top_srcdir}/include/mailutils/gnu @INTLINCS@
 AM_CFLAGS = -DSITE_VIRTUAL_PWDDIR=\"@SITE_VIRTUAL_PWDDIR@\"
+YLWRAP = $(SHELL) $(top_srcdir)/scripts/ylwrap
+AM_YFLAGS=-vt
 
 SUBDIRS = include mbox pop imap mh maildir testsuite 
 
@@ -73,6 +75,7 @@ muerrno.c \
 nls.c \
 observer.c \
 parse822.c \
+parsedate.c \
 property.c \
 registrar.c \
 rfc2047.c \
@@ -88,6 +91,13 @@ url_path.c \
 url_sendmail.c \
 url_smtp.c \
 wicket.c
+
+BUILT_SOURCES = parsedate.c
+
+parsedate.c: $(srcdir)/parsedate.y
+	$(YLWRAP) "$(YACC) $(AM_YFLAGS)" $< \
+	          y.tab.c parsedate.c y.output parsedate.y.output \
+                  -- -yy pd_yy
 
 libmailbox_la_DEPENDENCIES = \
  mbox/libmbox.la\

@@ -1,3 +1,19 @@
+2003-03-22  Sergey Poznyakoff 
+
+	* configure.ac: Raised version number to 0.3.1
+	  Define macro ATTRIBUTE_UNUSED.
+	* mailbox/parsedate.y: New file
+	* mailbox/.cvsignore: Updated
+	* mailbox/Makefile.am: Updated
+	* mh/Makefile.am: Minor formatting change.
+	* mh/README: Updated.
+	* mh/TODO: Updated.
+	* mh/pick.c: Implemented --after and --before.
+	* mh/pick.h: Likewise.
+	* mh/pick.y: Likewise.
+	* mail/from.c (mail_from0): Bugfix.
+	* include/mailutils/mutil.h (mu_parse_date): New function.
+	
 2003-03-20  Sergey Poznyakoff
 
 	* mh/README: Updated.

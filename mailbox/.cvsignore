@@ -8,3 +8,5 @@ T
 _*
 .gdbinit
 mailutils-config
+parsedate.c
+*y.output
