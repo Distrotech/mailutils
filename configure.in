@@ -1,0 +1,21 @@
+dnl Process this file with autoconf to procude a configure script. -*-m4-*-
+AC_INIT(libmailbox/mailbox.c)
+AM_INIT_AUTOMAKE(libmailbox, 0.0.19990909)
+AM_CONFIG_HEADER(config.h)
+AM_MAINTAINER_MODE
+
+AC_PROG_CC
+AC_PROG_INSTALL
+AC_PROG_LN_S
+AC_PROG_LIBTOOL
+
+AC_ARG_ENABLE(-mailbox-install,
+[  --enable-mailbox-install	install libmailbox])
+
+AM_CONDITIONAL(INSTALL_MAILBOX, test x"${enable_mailbox_install-no}" != xno)
+
+AC_HEADER_STDC
+AC_CHECK_HEADERS(malloc.h stdlib.h stdio.h errno.h unistd.h)
+AC_CHECK_HEADERS(string.h strings.h, break)
+
+AC_OUTPUT(Makefile libmailbox/Makefile mail/Makefile)

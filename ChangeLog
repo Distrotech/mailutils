@@ -1,0 +1,8 @@
+1999-09-11  Jeff Bailey  <jbailey@cr499794-a.crdva1.bc.wave.home.com>
+
+	* libmailbox/unixmbox.h: Do not prefix config.h defines with _
+
+1999-09-10  Jeff Bailey  <jbailey@cr499794-a.crdva1.bc.wave.home.com>
+
+	* */*: Accomidate directory rearrange
+
