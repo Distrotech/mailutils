@@ -25,7 +25,41 @@
 int
 mail_followup (int argc, char **argv)
 {
-  fprintf (ofile, "Function not implemented in %s line %d\n",
-	   __FILE__, __LINE__);
-  return 1;
+  message_t msg;
+  header_t hdr;
+  char *to = NULL, *subj = NULL;
+  char *str;
+  int i, num, *msglist;
+  char *savefile = NULL;
+  
+  num = util_expand_msglist (argc, argv, &msglist);
+  
+  if (mailbox_get_message(mbox, cursor, &msg))
+    {
+      fprintf(ofile, "%d: can't get message\n", cursor);
+      free(msglist);
+      return 1;
+    }
+
+  /* Create subject value */
+  message_get_header(msg, &hdr);
+  header_aget_value(hdr, MU_HEADER_SUBJECT, &str);
+  util_strcat(&subj, "Re: ");
+  util_strcat(&subj, str);
+  free(str);
+
+  /* Generate "to" list */
+  to = util_get_sender(cursor, 0);
+
+  /* Add authors of the subsequent messages to the to list
+     (or should it be cc?)*/
+  for (i = 1; i < num; i++)
+    util_strcat(&to, util_get_sender(msglist[i], 0));
+
+  free(msglist);
+
+  fprintf(ofile, "To: %s\n", to);
+  fprintf(ofile, "Subject: %s\n\n", subj);
+      
+  return mail_send0(to, NULL, NULL, subj, isupper(argv[0][0]));
 }
