@@ -82,6 +82,8 @@
 #include <mailutils/stream.h>
 #include <mailutils/mutil.h>
 
+#include <mu_argp.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -103,10 +105,6 @@ struct imap4d_command
   int success;
   char *tag;
 };
-
-/* Daemon modes.  */
-#define INTERACTIVE     0
-#define DAEMON          1
 
 /* Global variables and constants*/
 #define STATE_NONE	(0)
@@ -140,15 +138,14 @@ struct imap4d_command
 
 extern struct imap4d_command imap4d_command_table[];
 extern FILE *ofile;
-extern unsigned int timeout;
 extern mailbox_t mbox;
 extern char *homedir;
 extern char *rootdir;
-extern char *maildir;  
 extern int state;
 extern volatile size_t children;
 extern int is_virtual;
-
+extern struct daemon_param daemon_param;
+  
 #ifndef HAVE_STRTOK_R
 extern char *strtok_r __P((char *s, const char *delim, char **save_ptr));
 #endif

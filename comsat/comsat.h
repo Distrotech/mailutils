@@ -56,6 +56,7 @@
 #include <mailutils/error.h>
 
 #include <argcv.h>
+#include <mu_argp.h>
 
 #ifndef INADDR_NONE
 # define INADDR_NONE -1
@@ -71,6 +72,7 @@ extern time_t overflow_delay_time;
 extern int maxlines;
 extern const char *username;
 extern char hostname[];
+extern struct daemon_param daemon_param;
 
 extern void read_config (const char *config_file);
 int acl_match (struct sockaddr_in *sa_in);

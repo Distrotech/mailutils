@@ -386,7 +386,7 @@ imap4d_readline (FILE *fp)
   line[0] = '\0'; /* start with a empty string.  */
   do
     {
-      alarm (timeout);
+      alarm (daemon_param.timeout);
       if (fgets (buffer, sizeof (buffer), fp) == NULL)
 	{
 	  imap4d_bye (ERR_NO_OFILE); /* Logout.  */

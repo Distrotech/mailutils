@@ -72,6 +72,7 @@
 #include <mailutils/stream.h>
 #include <mailutils/mutil.h>
 #include <mu_dbm.h>
+#include <mu_argp.h>
 
 #ifdef HAVE_MYSQL
 # include "../MySql/MySql.h"

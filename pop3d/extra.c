@@ -136,7 +136,7 @@ pop3d_readline (FILE *fp)
   static char buffer[512];
   char *ptr;
 
-  alarm (timeout);
+  alarm (daemon_param.timeout);
   ptr = fgets (buffer, sizeof (buffer), fp);
   alarm (0);
 

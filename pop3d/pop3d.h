@@ -117,6 +117,8 @@
 #include <mailutils/error.h>
 #include <mailutils/mutil.h>
 
+#include <mu_argp.h>
+
 /* For Berkley DB2 APOP password file */
 #ifdef HAVE_DB_H
 #include <db.h>
@@ -140,9 +142,6 @@
 #define AUTHORIZATION	0
 #define TRANSACTION	1
 #define UPDATE		2
-
-#define INTERACTIVE	0
-#define DAEMON		1
 
 #define OK		0
 #define ERR_WRONG_STATE	1
@@ -171,7 +170,6 @@
 #endif /* __P */
 
 extern mailbox_t mbox;
-extern unsigned int timeout;
 extern int state;
 extern char *username;
 extern char *maildir;
@@ -179,6 +177,7 @@ extern FILE *ifile;
 extern FILE *ofile;
 extern char *md5shared;
 extern volatile size_t children;
+extern struct daemon_param daemon_param;
 
 extern int pop3d_abquit         __P ((int));
 extern int pop3d_apop           __P ((const char *));
