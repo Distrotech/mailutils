@@ -1,4 +1,10 @@
+2001-06-03  Alain Magloire
+
+	* doc/*; Bunch of typos corrected.
+	Patch from Thomas Fletcher.
+
 2001-06-02  Sam Roberts
+
 	* mailbox/parse822.c,include/mailutils/parse822.h: functions
 	  to parse rfc822 date-time.
 	* examples/mbox-explode.c: example of saving all mime attachments
