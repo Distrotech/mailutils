@@ -4,6 +4,41 @@ See the end for copying conditions.
 
 Please send mailutils bug reports to <bug-mailutils@gnu.org>.
 
+Version 0.2:
+
+* libmailbox: Several bugfixes. The configuration testsute allows
+  to disable support for any protocol or mailbox format to reduce
+  the size of the library.
+
+* libsieve: New library. Supports Sieve language as described in
+  RFC 3028 and provides a mechanism for dynamic loading of
+  user-defined actions, tests and comparators.
+
+* sieve: Completely rewritten using libsieve.
+
+* sieve.scm: Added vacation extension action.
+
+* mail.local: Allows to apply user-defined sieve filters before delivering
+  messages.
+
+* mail utility: Added `editheaders' boolean variable. When set, the
+  user is allowed to edit headers of the message.
+  Message set specification allows negation of search primitives, e.g.
+  `from ! subject:/daily/' outputs all messages whose subject
+  does not contain the word 'daily'.
+  Reply command correctly adds `In-Reply-To' and `References' headers
+  to outgoing messages.
+  When used with a numeric argument '=' command sets the current
+  message to this number.
+  New command `setenv' allows to set and examine environment
+  variables.
+  The semantics of `crt' variable is made compatible with that of
+  other implementations.
+  Fixed several bugs.
+
+* libmu_scm: Added support for Guile 1.7.0
+
+
 Version 0.1:
 
 The first release.

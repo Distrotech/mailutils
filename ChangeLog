@@ -1,3 +1,39 @@
+2002-11-29  Sergey Poznyakoff 
+
+	* mailbox/date.c: New version of mu_tm2time function.
+	  The previous version of mu_tm2time incorrectly handled dates within
+	  the DST period.
+	* mailbox/mutil.c: Moved time functions to date.c
+	* mailbox/Makefile.am: Added date.c
+	* imap4d/fetch.c (fetch_internaldate): Use
+	  mu_parse_ctime_date_time.
+	* imap4d/testsuite/imap4d/fetch.exp: Fixed wrong dates.
+	
+	* NEWS: Updated.
+	* doc/texinfo/libsieve.texi: Updated.
+
+	* libsieve/actions.c (sieve_action_keep): Remove the delete
+	  mark from the message.
+	* guimb/scm/sieve-core.scm (action-keep): Likewise.
+	* libsieve/sieve.y (sieve_machine_init): Fixed inconsistent return
+	  value.
+	
+	* auth/Makefile.am: Removed traces of ansi2knr.c
+	* comsat/Makefile.am: Likewise.
+	* dotlock/Makefile.am: Likewise.
+	* frm/Makefile.am: Likewise.
+	* from/Makefile.am: Likewise.
+	* guimb/Makefile.am: Likewise.
+	* imap4d/Makefile.am: Likewise.
+	* libmu_scm/Makefile.am: Likewise.
+	* mail/Makefile.am: Likewise.
+	* mail.local/Makefile.am: Likewise.
+	* mail.remote/Makefile.am: Likewise.
+	* mapi/Makefile.am: Likewise.
+	* messages/Makefile.am: Likewise.
+	* pop3d/Makefile.am: Likewise.
+	* readmsg/Makefile.am: Likewise.
+
 2002-11-29  Sergey Poznyakoff  
 
 	* mailbox/file_stream.c (_stdin_file_read): Test for eof

@@ -228,6 +228,12 @@ These two arguments give the detaied description of the action.
 @example
 typedef int (*sieve_comparator_t) (const char *, const char *);
 @end example
+
+A pointer to the comparator handler function. The function compares
+its two operands and returns 1 if they are equal, and 0 otherwise.
+@emph{Notice}, that the sense of the return value is inverted
+in comparison with most standard libc functions like @code{stcmp()}, etc.
+
 @end deftp
 
 @deftp {Function Type} sieve_retrieve_t
@@ -235,108 +241,262 @@ typedef int (*sieve_comparator_t) (const char *, const char *);
 typedef int (*sieve_retrieve_t) (void *item, void *data, int idx,
                                  char **pval);
 @end example
+
+A pointer to generic retriever function. See description of
+@code{sieve_vlist_compare()} for details of its usage.
 @end deftp
 
 @deftp {Function Type} sieve_destructor_t
 @example
 typedef void (*sieve_destructor_t) (void *data);
 @end example
+
+A pointer to destructor function. The function frees any resources
+associated with @code{data}. See the description of
+@code{sieve_machine_add_destructor()} for more information.
 @end deftp
 
 @deftp {Function Type} sieve_tag_checker_t
 @example
-typedef int (*sieve_tag_checker_t) (const char *name, list_t tags, list_t args)
+typedef int (*sieve_tag_checker_t) (const char *@var{name}, list_t @var{tags}, list_t @var{args})
 @end example
-@end deftp
 
+A pointer to tag checker function. The purpose of the function is to
+perform compilation-time consistency test on tags. Its arguments are:
+
+@table @var
+@item name
+Name of the test or action whose tags are being checked.
+
+@item tags
+A list of @code{sieve_runtime_tag_t} representing tags.
+
+@item args
+A list of @code{sieve_value_t} representing required arguments to
+@var{name}.
+@end table
+
+The function is allowed to make any changes in @var{tags} and
+@var{args}. It should return 0 if the syntax is correct and non-zero
+otherwise. It is responsible for issuing the diagnostics in the latter
+case. [FIXME: describe how to do that]
+
+@end deftp
 
 @node Manipulating the Sieve Machine
 @section Manipulating the Sieve Machine
 
+This section describes functions used to create an instance of the
+sieve machine, read or alter its internal fields and destroy it.
+
 @deftypefn int sieve_machine_init (sieve_machine_t *@var{mach}, void *@var{data})
+
+The @code{sieve_machine_init()} function creates an instance of a sieve
+machine. A pointer to the instance itself is returned in the argument
+@var{mach}. The user-specific data to be associated with the new machine
+are passed in @var{data} argument. The function returns 0 on success,
+non-zero error code otherwise,
 @end deftypefn
 
 @deftypefn void sieve_machine_destroy (sieve_machine_t *@var{pmach})
+
+This function destroys the instance of sieve machine pointed to by
+@var{mach} parameter. After execution of @code{sieve_machine_destroy()}
+@var{pmach} contains @code{NULL}. The destructors registered with
+@code{sieve_machine_add_destructor()} are executed in @sc{lifo}
+order.
 @end deftypefn
 
 @deftypefn int sieve_machine_add_destructor (sieve_machine_t @var{mach}, sieve_destructor_t @var{destr}, void *@var{ptr});
+
+This function registers a destructor function @var{dest}. The purpose
+of the destructor is to free any resourses assotiated with the item
+@var{ptr}. The desctructor function takes a single argument --- a
+pointer to the data being destroyed. All registered destructors are
+called in reverse order upon execution of
+@code{sieve_machine_destroy()}. Here's a short example of the use
+of this function:
+
+@example
+static void
+free_regex (void *data)
+@{
+  regfree ((regex_t*)data);        
+@}
+
+int
+match_part_checker (const char *name, list_t tags, list_t args)
+@{
+  regex_t *regex;
+
+  /* Initialise the regex: */
+  regex = sieve_malloc (mach, sizeof (*regex));
+  /* Make sure it will be freed when necessary */
+  sieve_machine_add_destructor (sieve_machine, free_regex, regex);
+  .
+  .
+  .
+@}
+@end example
 @end deftypefn
 
 @deftypefn void *sieve_get_data (sieve_machine_t @var{mach})
+This function returns the application-specific data associated with
+the instance of sieve machine. See @code{sieve_machine_init()}.
 @end deftypefn
 
 @deftypefn message_t sieve_get_message (sieve_machine_t @var{mach})
+This function returns the current message.
 @end deftypefn
 
 @deftypefn size_t sieve_get_message_num (sieve_machine_t @var{mach});
+This function returns the current message number in the mailbox.
+If there are no mailbox, i.e. the execution of the sieve code is started
+with @code{sieve_message}, this function returns 1.
 @end deftypefn
 
 @deftypefn int sieve_get_debug_level (sieve_machine_t @var{mach})
+Returns the debug level set for this instance of sieve machine.
 @end deftypefn
 
 @deftypefn ticket_t sieve_get_ticket (sieve_machine_t @var{mach})
+Returns the authentication ticket for this machine.
 @end deftypefn
 
 @deftypefn mailer_t sieve_get_mailer (sieve_machine_t @var{mach})
+Returns the mailer.
 @end deftypefn
 
 @deftypefn {char *} sieve_get_daemon_email __P((sieve_machine_t @var{mach})
+This function returns the @dfn{daemon email} associated with this
+instance of sieve machine. The daemon email is an email address used in
+envelope from addresses of automatic reply messages. By default it local
+part is @samp{<MAILER-DAEMON>} and the domain part is the machine name.
 @end deftypefn
 
 
-@deftypefn void sieve_set_error (sieve_machine_t @var{mach},
-sieve_printf_t @var{error_printer})
+@deftypefn void sieve_set_error (sieve_machine_t @var{mach}, sieve_printf_t @var{error_printer})
+This function sets the error printer function for the machine. If it is
+not set, the default error printer will be used. It is defined as
+follows:
+
+@example
+int
+_sieve_default_error_printer (void *unused, const char *fmt, va_list ap)
+@{
+  return mu_verror (fmt, ap);
+@}
+@end example
 @end deftypefn
 
 @deftypefn void sieve_set_parse_error (sieve_machine_t @var{mach}, sieve_parse_error_t @var{p})
+This function sets the parse error printer function for the machine. If it is
+not set, the default parse error printer will be used. It is defined as
+follows:
+
+@example
+int
+_sieve_default_parse_error (void *unused, const char *filename, int lineno,
+			    const char *fmt, va_list ap)
+@{
+  if (filename)
+    fprintf (stderr, "%s:%d: ", filename, lineno);
+  vfprintf (stderr, fmt, ap);
+  fprintf (stderr, "\n");
+  return 0;
+@}
+@end example
 @end deftypefn
 
 @deftypefn void sieve_set_debug (sieve_machine_t @var{mach}, sieve_printf_t @var{debug}));
+This function sets the debug printer function for the machine. If it is
+not set, the default debug printer is @code{NULL} which means no
+debugging information will be displayed.
 @end deftypefn
 
 @deftypefn void sieve_set_debug_level (sieve_machine_t @var{mach}, mu_debug_t @var{dbg}, int @var{level})
+This function sets the debug level for the given instance of sieve
+machine. The @var{dbg} argument is the @code{mu_debug_t} object to be
+used with mailutils library, the @var{level} argument specifies the
+debugging level for the sieve library itself. It is a bitwise or of
+the following values:
+
+@table @code
+@item MU_SIEVE_DEBUG_TRACE
+Trace the execution of the sieve script.
+
+@item MU_SIEVE_DEBUG_INSTR 
+Print the sieve machine instructions as they are executed.
+
+@item MU_SIEVE_DEBUG_DISAS
+Dump the disassembled code of the sieve machine. Do not run it.
+
+@item MU_SIEVE_DRY_RUN
+Do not executed the actions, only show what would have been done.
+@end table
 @end deftypefn
 
 @deftypefn void sieve_set_logger (sieve_machine_t @var{mach}, sieve_action_log_t @var{logger})
+This function sets the logger function. By default the logger function
+is @code{NULL}, which means that the executed actions are not logged.
 @end deftypefn
 
 @deftypefn void sieve_set_ticket (sieve_machine_t @var{mach}, ticket_t @var{ticket})
+This function sets the authentication ticket to be used with this machine.
 @end deftypefn
 
 @deftypefn void sieve_set_mailer (sieve_machine_t @var{mach}, mailer_t @var{mailer})
+This function sets the mailer. The default mailer is @code{"sendmail:"}.
 @end deftypefn
 
 @deftypefn void sieve_set_daemon_email (sieve_machine_t @var{mach}, const char *@var{email})
+This functions sets the @dfn{daemon email} for @code{reject} and
+@code{redirect} actions.
 @end deftypefn
 
 @deftypefn int sieve_is_dry_run (sieve_machine_t @var{mach})
+The @code{sieve_is_dry_run()} returns 1 if the machine is in @dfn{dry
+run} state, i.e. it will only log the actions that would have been
+executed without actually executing them. The dry run state is set
+by calling @code{sieve_set_debug_level()} if its last argument has
+the @code{MU_SIEVE_DRY_RUN} bit set.
 @end deftypefn
 
 @deftypefn {const char *} sieve_type_str (sieve_data_type @var{type})
+Returns the string representation for the given sieve data type. The
+return value is a pointer to a static constant string.
 @end deftypefn
 
 @node Logging and Diagnostic Functions 
 @section Logging and Diagnostic Functions 
 
 @deftypefn void sieve_error (sieve_machine_t @var{mach}, const char *@var{fmt}, @dots{})
+Format and output an error message using error printer of the machine @var{mach}.
 @end deftypefn
 
 @deftypefn void sieve_debug (sieve_machine_t @var{mach}, const char *@var{fmt}, @dots{})
+Format and output a debug message using debug printer of the machine @var{mach}.
 @end deftypefn
 
 @deftypefn void sieve_log_action (sieve_machine_t @var{mach}, const char *@var{action}, const char *@var{fmt}, @dots{})
+Log a sieve action using logger function associated with the machine @var{mach}.
 @end deftypefn
 
 @deftypefn void sieve_abort (sieve_machine_t @var{mach})
+Immediately abort the execution of the script.
 @end deftypefn
 
 @node Symbol Space Functions
 @section Symbol Space Functions
 
 @deftypefn {sieve_register_t *} sieve_test_lookup (sieve_machine_t @var{mach}, const char *@var{name})
+Find a register object describing the test @var{name}. Returns
+@code{NULL} if no such test exists.
 @end deftypefn
 
 @deftypefn sieve_register_t *sieve_action_lookup (sieve_machine_t @var{mach}, const char *@var{name})
+Find a register object describing the action @var{name}. Returns
+@code{NULL} if no such action exists.
 @end deftypefn
                                            
 @deftypefn int sieve_register_test (sieve_machine_t @var{mach}, const char *@var{name}, sieve_handler_t @var{handler}, sieve_data_type *@var{arg_types}, sieve_tag_group_t *@var{tags}, int @var{required})
@@ -395,15 +555,21 @@ If @var{ptr} is @code{NULL}, no operation is performed.
 @section Compiling and Executing the Script
 
 @deftypefn int sieve_compile (sieve_machine_t @var{mach}, const char *@var{name})
+Compile the seive script from the file @var{name}.
 @end deftypefn
 
 @deftypefn int sieve_mailbox (sieve_machine_t @var{mach}, mailbox_t @var{mbox})
+Execute the code from the given instance of sieve machine @var{mach}
+over each message in the mailbox @var{mbox}.
 @end deftypefn
 
 @deftypefn int sieve_message (sieve_machine_t @var{mach}, message_t @var{message})
+Execute the code from the given instance of sieve machine @var{mach}
+over the @var{message}.
 @end deftypefn
 
 @deftypefn int sieve_disass (sieve_machine_t @var{mach})
+Dump the disassembled code of the sieve machine @var{mach}.
 @end deftypefn
 
 
