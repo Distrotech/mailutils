@@ -73,6 +73,10 @@
 #include <mailutils/mutil.h>
 #include <mu_dbm.h>
 
+#ifdef HAVE_MYSQL
+# include "../MySql/MySql.h"
+#endif
+
 /* Debug */
 extern int debug_level;
 #define dbg() if (debug_level) debug
