@@ -50,3 +50,58 @@ mail_mbox_close ()
   return 0;
 }
 
+int
+mail_mbox_commit ()
+{
+  int i;
+  mailbox_t dest_mbox = NULL;
+  int saved_count = 0;
+  message_t msg;
+  attribute_t attr;
+  int keepsave = util_find_env("keepsave")->set;
+  
+  for (i = 1; i <= total; i++)
+    {
+      if (mailbox_get_message (mbox, i, &msg))
+	{
+	  fprintf (ofile, "%d: can't get message\n", i);
+	  return 1;
+	}
+      message_get_attribute (msg, &attr);
+      if (attribute_is_userflag (attr, MAIL_ATTRIBUTE_MBOXED))
+	{
+	  if (!dest_mbox)
+	    {
+	      char *name = getenv ("MBOX");
+      
+	      if (mailbox_create_default (&dest_mbox, name)
+		  || mailbox_open (dest_mbox,
+				   MU_STREAM_WRITE | MU_STREAM_CREAT))
+		{
+		  fprintf (ofile, "can't create mailbox %s\n", name);
+		  return 1;
+		}
+	    }
+	  
+	  mailbox_append_message (dest_mbox, msg);
+	  attribute_set_deleted (attr);
+	  saved_count++;
+	}
+      else if (!keepsave && attribute_is_userflag (attr, MAIL_ATTRIBUTE_SAVED))
+	{
+	  attribute_set_deleted (attr);
+	}
+    }
+
+  if (saved_count)
+    {
+      url_t url = NULL;
+
+      mailbox_get_url (dest_mbox, &url);
+      fprintf(ofile, "Saved %d messages in %s\n", saved_count,
+	      url_to_string (url));
+      mailbox_close (dest_mbox);
+      mailbox_destroy (&dest_mbox);
+    }
+  return 0;
+}
