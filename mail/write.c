@@ -45,44 +45,27 @@ mail_write (int argc, char **argv)
   if (isupper (argv[0][0]))
     sender = 1;
   else if (argc >= 2)
-    filename = argv[--argc];
+    filename = strdup (argv[--argc]);
   else
-    {
-      filename = strdup ("mbox");
-    }
+    filename = strdup ("mbox");
 
   num = util_expand_msglist (argc, argv, &msglist);
 
   if (sender)
     {
-      mailbox_get_message (mbox, num > 0 ? msglist[0] : cursor, 0);
-      /* get from */
-      /* filename = login name part */
+      filename = util_get_sender(msglist[0], 1);
+      if (!filename)
+	{
+	  free (msglist);
+	  return 1;
+	}
     }
 
   output = fopen (filename, "a");
 
-  if (num > 0)
+  for (i = 0; i < num; i++)
     {
-      for (i=0; i < num; i++)
-	{
-	  mailbox_get_message (mbox, msglist[i], &msg);
-	  message_get_body (msg, &bod);
-	  body_get_stream (bod, &stream);
-	  /* should there be a separator? */
-	  while (stream_read(stream, buffer, sizeof (buffer) - 1, off, &n)
-		 == 0 && n != 0)
-	    {
-	      buffer[n] = '\0';
-	      fprintf (output, "%s", buffer);
-	      off += n;
-	    }
-	  /* mark as saved */
-	}
-    }
-  else
-    {
-      mailbox_get_message (mbox, cursor, &msg);
+      mailbox_get_message (mbox, msglist[i], &msg);
       message_get_body (msg, &bod);
       body_get_stream (bod, &stream);
       /* should there be a separator? */
@@ -93,7 +76,7 @@ mail_write (int argc, char **argv)
 	  fprintf (output, "%s", buffer);
 	  off += n;
 	}
-      /* mark as save */
+      /* mark as saved */
     }
 
   fclose (output);
