@@ -122,15 +122,6 @@
 #include <db.h>
 #endif
 
-/* The path to the mail spool files */
-#ifdef HAVE_PATHS_H
-#include <paths.h>
-#endif
-
-#ifndef _PATH_MAILDIR
-# define _PATH_MAILDIR "/usr/spool/mail"
-#endif
-
 #ifdef HAVE_SECURITY_PAM_APPL_H
 #include <security/pam_appl.h>
 #endif

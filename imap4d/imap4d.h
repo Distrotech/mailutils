@@ -82,10 +82,6 @@
 #include <mailutils/stream.h>
 #include <mailutils/mutil.h>
 
-#ifndef _PATH_MAILDIR
-# define _PATH_MAILDIR "/usr/spool/mail"
-#endif
-
 #ifdef __cplusplus
 extern "C" {
 #endif
