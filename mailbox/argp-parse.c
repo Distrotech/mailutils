@@ -36,6 +36,8 @@
 # include <alloca.h>
 #endif
 
+#include <mailutils/nls.h>
+
 #ifndef _
 /* This is for other GNU distributions with internationalized messages.
    When compiling libc, the _ macro is predefined.  */
