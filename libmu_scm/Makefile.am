@@ -12,6 +12,7 @@ libmu_scm_a_SOURCES=\
  mu_mime.c\
  mu_logger.c\
  mu_port.c\
+ mu_util.c\
  mu_scm.c\
  mu_scm.h
 
