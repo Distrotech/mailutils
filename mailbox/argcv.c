@@ -52,7 +52,9 @@ argcv_scan (int len, const char *command, const char *delim, const char* cmnt,
 	{
 	case '"':
 	case '\'':
-	  while (++i < len && command[i] != command[*start])
+	  while (++i < len
+		 && (command[i] != command[*start]
+		     || command[i-1] == '\\'))
 	    ;
 	  if (i < len)		/* found matching quote */
 	    break;
@@ -89,9 +91,185 @@ argcv_scan (int len, const char *command, const char *delim, const char* cmnt,
   return *save;
 }
 
+static char escape_transtab[] = "\\\\a\ab\bf\fn\nr\rt\t";
+
+static int
+unescape_char (int c)
+{
+  char *p;
+
+  for (p = escape_transtab; *p; p += 2)
+    {
+      if (*p == c)
+	return p[1];
+    }
+  return c;
+}
+
+static int
+escape_char (int c)
+{
+  char *p;
+  
+  for (p = escape_transtab + sizeof(escape_transtab) - 2;
+       p > escape_transtab; p -= 2)
+    {
+      if (*p == c)
+	return p[-1];
+    }
+  return c;
+}
+  
+
+static int
+xtonum (const char *src, int base, size_t cnt)
+{
+  int val;
+  char *p;
+  char tmp[4]; /* At most three characters + zero */
+  
+  /* Notice: No use to check `cnt'. It should be either 2 or 3 */
+  memcpy (tmp, src, cnt);
+  tmp[cnt] = 0;
+  val = strtoul (tmp, &p, base);
+  return (*p == 0) ? val : -1;
+}
+
+static size_t
+escaped_length (const char *str, int *quote)
+{
+  size_t len = 0;
+
+  for (; *str; str++)
+    {
+      if (*str == ' ')
+	{
+	  len++;
+	  *quote = 1;
+	}
+      else if (*str == '"')
+	{
+	  len += 2;
+	  *quote = 1;
+	}
+      else if (isprint (*str))
+	len++;
+      else if (escape_char (*str) != -1)
+	len += 2;
+      else
+	len += 4;
+    }
+  return len;
+}
+
+static void
+unescape_copy (char *dst, const char *src, size_t n)
+{
+  int c;
+  
+  while (n > 0)
+    {
+      n--;
+      if (*src == '\\')
+	{
+	  switch (*++src)
+	    {
+	    case 'x':
+	    case 'X':
+	      ++src;
+	      --n;
+	      if (n == 0)
+		{
+		  *dst++ = '\\';
+		  *dst++ = src[-1];
+		}
+	      else
+		{
+		  c = xtonum(src, 16, 2);
+		  if (c == -1)
+		    {
+		      *dst++ = '\\';
+		      *dst++ = src[-1];
+		    }
+		  else
+		    {
+		      *dst++ = c;
+		      src += 2;
+		      n -= 2;
+		    }
+		}
+	      break;
+	      
+	    case '0':
+	      ++src;
+	      --n;
+	      if (n == 0)
+		{
+		  *dst++ = '\\';
+		  *dst++ = src[-1];
+		}
+	      else
+		{
+		  c = xtonum(src, 8, 3);
+		  if (c == -1)
+		    {
+		      *dst++ = '\\';
+		      *dst++ = src[-1];
+		    }
+		  else
+		    {
+		      *dst++ = c;
+		      src += 3;
+		      n -= 3;
+		    }
+		}
+	      break;
+	      
+	    default:
+	      *dst++ = unescape_char (*src++);
+	      n--;
+	    }
+	}
+      else
+	{
+	  *dst++ = *src++;
+	}
+    }
+  *dst = 0;
+}
+
+static void
+escape_copy (char *dst, const char *src)
+{
+  for (; *src; src++)
+    {
+      if (*src == '"')
+	{
+	  *dst++ = '\\';
+	  *dst++ = '"';
+	}
+      else if (*src != '\t' && isprint(*src))
+	*dst++ = *src;      
+      else
+	{
+	  int c = escape_char (*src);
+	  *dst++ = '\\';
+	  if (c != -1)
+	    *dst++ = c;
+	  else
+	    {
+	      char tmp[4];
+	      snprintf (tmp, sizeof tmp, "%03o", *src);
+	      memcpy (dst, tmp, 3);
+	      dst += 3;
+	    }
+	}
+    }
+}
+
 int
 argcv_get (const char *command, const char *delim, const char* cmnt,
-    int *argc, char ***argv)
+	   int *argc, char ***argv)
 {
   int len = strlen (command);
   int i = 0;
@@ -115,14 +293,8 @@ argcv_get (const char *command, const char *delim, const char* cmnt,
       int n;
       argcv_scan (len, command, delim, cmnt, &start, &end, &save);
 
-      /* FIXME: this is the right place to do unescaping as well
-	 as stripping of quotes. */
-      if (command[start] == '"' && command[end] == '"')
-	{
-	  start++;
-	  end--;
-	}
-      else if (command[start] == '\'' && command[end] == '\'')
+      if ((command[start] == '"' || command[end] == '\'')
+	  && command[end] == command[start])
 	{
 	  start++;
 	  end--;
@@ -131,7 +303,7 @@ argcv_get (const char *command, const char *delim, const char* cmnt,
       (*argv)[i] = calloc (n+1,  sizeof (char));
       if ((*argv)[i] == NULL)
 	return 1;
-      memcpy ((*argv)[i], &command[start], n);
+      unescape_copy ((*argv)[i], &command[start], n);
       (*argv)[i][n] = 0;
     }
   (*argv)[i] = NULL;
@@ -158,8 +330,7 @@ argcv_free (int argc, char **argv)
 int
 argcv_string (int argc, char **argv, char **pstring)
 {
-  int i;
-  size_t len;
+  size_t i, j, len;
   char *buffer;
 
   /* No need.  */
@@ -171,41 +342,54 @@ argcv_string (int argc, char **argv, char **pstring)
     return 1;
   *buffer = '\0';
 
-  for (len = i = 0; i < argc; i++)
+  for (len = i = j = 0; i < argc; i++)
     {
-      len += strlen (argv[i]) + 2;
+      int quote = 0;
+      int toklen;
+
+      toklen = escaped_length (argv[i], &quote);
+      
+      len += toklen + 2;
+      if (quote)
+	len += 2;
+      
       buffer = realloc (buffer, len);
       if (buffer == NULL)
-	return 1;
+        return 1;
+
       if (i != 0)
-	strcat (buffer, " ");
-      strcat (buffer, argv[i]);
+	buffer[j++] = ' ';
+      if (quote)
+	buffer[j++] = '"';
+      escape_copy (buffer + j, argv[i]);
+      j += toklen;
+      if (quote)
+	buffer[j++] = '"';
     }
 
-  /* Strip off trailing space.  */
-  if (*buffer != '\0')
-    {
-      while (buffer[strlen (buffer) - 1] == ' ')
-	{
-	  buffer[strlen (buffer) - 1] = '\0';
-	}
-    }
+  for (; j > 0 && isspace (buffer[j-1]); j--)
+    ;
+  buffer[j] = 0;
   if (pstring)
     *pstring = buffer;
   return 0;
 }
 
 #if 0
-char *command = "set prompt=\"& \" ";
+char *command = "set prompt=\"& \a\\\"\" \\x25\\0145\\098\\ta";
 
 main(int xargc, char **xargv)
 {
   int i, argc;
   char **argv;
-
+  char *s;
+  
   argcv_get (xargv[1] ? xargv[1]:command, "=", "#", &argc, &argv);
   printf ("%d args:\n", argc);
   for (i = 0; i < argc; i++)
     printf ("%s\n", argv[i]);
+  printf ("===\n");
+  argcv_string (argc, argv, &s);
+  printf ("%s\n", s);
 }
 #endif
