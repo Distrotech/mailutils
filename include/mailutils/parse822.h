@@ -70,7 +70,6 @@ extern int parse822_word           __P ((const char** p, const char* e, char** w
 extern int parse822_phrase         __P ((const char** p, const char* e, char** phrase));
 extern int parse822_d_text         __P ((const char** p, const char* e, char** dtext));
 
-
 /* From RFC 822, 6.1 Address Specification Syntax */
 
 extern int parse822_address_list   __P ((address_t* a, const char* s));
@@ -99,6 +98,15 @@ extern int parse822_quote_local_part __P ((char** quoted, const char* raw));
 
 extern int parse822_field_body       __P ((const char** p, const char *e, char** fieldbody));
 extern int parse822_field_name       __P ((const char** p, const char *e, char** fieldname));
+
+/***** From RFC 822, 5.1 Date and Time Specification Syntax *****/
+
+extern int parse822_day       __P ((const char** p, const char* e, int* day));
+extern int parse822_date      __P ((const char** p, const char* e, int* day, int* mon, int* year));
+extern int parse822_time      __P ((const char** p, const char* e, int* h, int* m, int* s, int* tz, const char** tzname));
+extern int parse822_date_time __P ((const char** p, const char* e, struct tm* tm));
+
+
 #ifdef __cplusplus
 }
 #endif
