@@ -64,7 +64,7 @@
 
 (define (sieve-expand-filename filename)
   (case (string-ref filename 0)
-    ((#\/ #% #~ #+ #=)
+    ((#\/ #\% #\~ #\+ #\=)
       filename)
     (else
      (let ((pw (getpwuid (geteuid))))
