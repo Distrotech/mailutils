@@ -449,6 +449,7 @@ SCM_DEFINE (mu_message_set_header_fields, "mu-message-set-header-fields", 2, 1, 
       replace = REPLACE == SCM_BOOL_T;
     }
 
+  message_get_header (msg, &hdr);
   for (list = LIST; list != SCM_EOL; list = SCM_CDR (list))
     {
       SCM cell = SCM_CAR (list);
