@@ -65,7 +65,7 @@ main (int argc, char **argv)
   list_append (bookie, imap_record);
   list_append (bookie, pop_record);
 
-  if (args.argc < 1 && messages_count (getenv("MAIL")) < 0)
+  if (args.argc < 1 && messages_count (NULL) < 0)
       err = 1;
   else if (args.argc >= 1)
     {
@@ -81,18 +81,27 @@ static int
 messages_count (char *box)
 {
   mailbox_t mbox;
+  url_t url = NULL;
   int count;
+
+  if (box == NULL)
+    box = (char *)"";
 
   if (mailbox_create_default (&mbox, box) != 0)
     {
       fprintf (stderr, "Couldn't create mailbox %s.\n", box);
       return -1;
     }
+
+  mailbox_get_url (mbox, &url);
+  box = url_to_string (url);
+
   if (mailbox_open (mbox, MU_STREAM_READ) != 0)
     {
       fprintf (stderr, "Couldn't open mailbox %s.\n", box);
       return -1;
     }
+
   if (mailbox_messages_count (mbox, &count) != 0)
     {
       fprintf (stderr, "Couldn't count messages in %s.\n", box);
