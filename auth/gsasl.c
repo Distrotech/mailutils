@@ -110,7 +110,7 @@ _gsasl_readline (stream_t stream, char *optr, size_t osize,
   struct _gsasl_stream *s = stream_get_owner (stream);
   int rc;
   size_t len, sz;
-  char *bufp;
+  char *bufp = NULL;
   
   if (_auth_lb_level (s->lb))
     {
@@ -120,7 +120,7 @@ _gsasl_readline (stream_t stream, char *optr, size_t osize,
 	*nbytes = len;
       return 0;
     }
-  
+
   do
     {
       char buf[80];
@@ -131,38 +131,28 @@ _gsasl_readline (stream_t stream, char *optr, size_t osize,
       if (status == EINTR)
 	continue;
       else if (status)
-	return status;
-      
+	{
+	  free (bufp);
+	  return status;
+	}
       rc = _auth_lb_grow (s->lb, buf, sz);
       if (rc)
 	return rc;
 
-      len = UINT_MAX; /* override the bug in libgsasl */
       rc = gsasl_decode (s->sess_ctx,
 			 _auth_lb_data (s->lb),
 			 _auth_lb_level (s->lb),
-			 NULL, &len);
+			 &bufp, &len);
     }
   while (rc == GSASL_NEEDS_MORE);
 
   if (rc != GSASL_OK)
     {
       s->last_err = rc;
+      free (bufp);
       return EIO;
     }
       
-  bufp = malloc (len + 1);
-  if (!bufp)
-    return ENOMEM;
-  rc = gsasl_decode (s->sess_ctx,
-		     _auth_lb_data (s->lb), _auth_lb_level (s->lb), bufp, &len);
-  if (rc != GSASL_OK)
-    {
-      s->last_err = rc;
-      return EIO;
-    }
-  bufp[len++] = '\0';
-
   sz = len > osize ? osize : len;
   
   if (len > osize)
@@ -177,6 +167,9 @@ _gsasl_readline (stream_t stream, char *optr, size_t osize,
       _auth_lb_drop (s->lb);
       memcpy (optr, bufp, len);
     }
+
+  if (len < osize)
+    optr[len] = 0;
   
   if (nbytes)
     *nbytes = len;
@@ -191,17 +184,11 @@ write_chunk (void *data, char *start, char *end)
 {
   struct _gsasl_stream *s = data;
   size_t chunk_size = end - start + 1;
-  size_t len;
+  size_t len = 0;
   char *buf = NULL;
   int status;
     
-  len = UINT_MAX; /* override the bug in libgsasl */
-  gsasl_encode (s->sess_ctx, start, chunk_size, NULL, &len);
-  buf = malloc (len);
-  if (!buf)
-    return ENOMEM;
-
-  gsasl_encode (s->sess_ctx, start, chunk_size, buf, &len);
+  gsasl_encode (s->sess_ctx, start, chunk_size, &buf, &len);
 
   status = stream_sequential_write (s->stream, buf, len);
   
