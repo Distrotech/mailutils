@@ -297,6 +297,7 @@ extern void util_msgset_iterate __P ((msgset_t *msgset, int (*fun) __P ((message
 extern int util_get_content_type __P ((header_t hdr, char **value));
 extern int util_get_hdr_value __P ((header_t hdr, const char *name, char **value));
 extern int util_merge_addresses __P((char **addr_str, const char *value));
+extern int util_header_expand __P((header_t *hdr));
 
 extern int ml_got_interrupt __P ((void));
 extern void ml_clear_interrupt __P ((void));

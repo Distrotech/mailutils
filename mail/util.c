@@ -29,6 +29,7 @@
 #else
 # include <sys/fcntl.h>
 #endif
+#include <mu_asprintf.h>
 
 typedef struct _node {
   /* for the msglist expander */
@@ -1115,5 +1116,113 @@ util_merge_addresses (char **addr_str, const char *value)
   address_destroy (&new_addr);
   return rc;
 }
+
+static int
+is_address_field (const char *name)
+{
+  static char *address_fields[] = {
+    MU_HEADER_TO,
+    MU_HEADER_CC,
+    MU_HEADER_BCC,
+    0
+  };
+  char **p;
   
-     
+  for (p = address_fields; *p; p++)
+    if (strcasecmp (*p, name) == 0)
+      return 1;
+  return 0;
+}
+
+int
+util_header_expand (header_t *phdr)
+{
+  size_t i, nfields = 0;
+  header_t hdr;
+  int errcnt = 0, rc;
+  
+  rc = header_create (&hdr, "", 0, NULL);
+  if (rc)
+    {
+      util_error ("can't create temporary header: %s", mu_errstring (rc));
+      return 1;
+    }
+      
+  header_get_field_count (*phdr, &nfields);
+  for (i = 1; i <= nfields; i++)
+    {
+      char *name, *value;
+      
+      if (header_aget_field_name (*phdr, i, &name))
+	continue;
+
+      if (header_aget_field_value (*phdr, i, &value))
+	{
+	  free (name);
+	  continue;
+	}
+      
+      if (is_address_field (name))
+	{
+	  char *p, *s, *exp;
+	  address_t addr = NULL;
+
+	  if (header_aget_value (hdr, name, &exp) == 0)
+	    {
+	      address_create (&addr, exp);
+	      free (exp);
+	    }
+	  
+	  for (p = strtok_r (value, ",", &s); p; p = strtok_r (NULL, ",", &s))
+	    {
+	      address_t new_addr;
+	      
+	      while (*p && isspace (*p))
+		p++;
+	      exp = alias_expand (p);
+	      rc = address_create (&new_addr, exp ? exp : p);
+	      if (rc)
+		{
+		  errcnt++;
+		  if (exp)
+		    util_error ("can't parse address `%s' (while expanding `%s'): %s",
+				exp, p, mu_errstring (rc));
+		  else
+		    util_error ("can't parse address `%s': %s",
+				p, mu_errstring (rc));
+		}
+	      
+	      free (exp);
+	      address_union (&addr, new_addr);
+	      address_destroy (&new_addr);
+	    }
+	  
+	  if (addr)
+	    {
+	      size_t n = 0;
+	      
+	      free (value);
+	      address_to_string (addr, NULL, 0, &n);
+	      value = xmalloc (n + 1);
+	      address_to_string (addr, value, n + 1, NULL);
+	      address_destroy (&addr);
+	      header_set_value (hdr, name, value, 1);
+	    }
+	}
+      else
+	header_set_value (hdr, name, value, 0);
+      
+      free (value);
+      free (name);
+    }
+
+  if (errcnt == 0)
+    {
+      header_destroy (phdr, NULL);
+      *phdr = hdr;
+    }
+  else
+    header_destroy (&hdr, NULL);
+
+  return errcnt;
+}
