@@ -109,6 +109,14 @@ mh_read_formfile (char *name, char **pformat)
   return 0;
 }
 
+void
+mh_err_memory (int fatal)
+{
+  mh_error (_("not enough memory"));
+  if (fatal)
+    abort ();
+}
+
 static char *my_name;
 static char *my_email;
 
@@ -412,7 +420,7 @@ mh_spawnp (const char *prog, const char *file)
   xargv = calloc (argc + 2, sizeof (*xargv));
   if (!xargv)
     {
-      mh_error (_("not enough memory"));
+      mh_err_memory (0);
       argcv_free (argc, argv);
       return 1;
     }
@@ -427,5 +435,71 @@ mh_spawnp (const char *prog, const char *file)
   free (xargv);
   argcv_free (argc, argv);
 
+  return rc;
+}
+
+int
+mh_file_copy (const char *from, const char *to)
+{
+  char *buffer;
+  size_t bufsize, rdsize;
+  struct stat st;
+  stream_t in;
+  stream_t out;
+  int rc;
+  
+  if (stat (from, &st))
+    {
+      mh_error ("mh_copy: %s", mu_errstring (errno));
+      return -1;
+    }
+
+  for (bufsize = st.st_size; bufsize > 0 && (buffer = malloc (bufsize)) == 0;
+       bufsize /= 2)
+    ;
+
+  if (!bufsize)
+    mh_err_memory (1);
+
+  if ((rc = file_stream_create (&in, from, MU_STREAM_READ)) != 0
+      || (rc = stream_open (in)))
+    {
+      mh_error (_("cannot open input file \"%s\": %s"),
+		from, mu_errstring (rc));
+      free (buffer);
+      return 1;
+    }
+
+  if ((rc = file_stream_create (&out, to, MU_STREAM_RDWR|MU_STREAM_CREAT)) != 0
+      || (rc = stream_open (out)))
+    {
+      mh_error (_("cannot open output file \"%s\": %s"),
+		to, mu_errstring (rc));
+      free (buffer);
+      stream_close (in);
+      stream_destroy (&in, stream_get_owner (in));
+      return 1;
+    }
+
+  while (st.st_size > 0
+	 && (rc = stream_sequential_read (in, buffer, bufsize, &rdsize)) == 0
+	 && rdsize > 0)
+    {
+      if ((rc = stream_sequential_write (out, buffer, rdsize)) != 0)
+	{
+	  mh_error (_("write error on \"%s\": %s"),
+		    to, mu_errstring (rc));
+	  break;
+	}
+      st.st_size -= rdsize;
+    }
+
+  free (buffer);
+
+  stream_close (in);
+  stream_close (out);
+  stream_destroy (&in, stream_get_owner (in));
+  stream_destroy (&out, stream_get_owner (out));
+  
   return rc;
 }

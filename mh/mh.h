@@ -231,6 +231,7 @@ void mh_format_free __P((mh_format_t *fmt));
 mh_builtin_t *mh_lookup_builtin __P((char *name, int *rest));
 
 void mh_error __P((const char *fmt, ...));
+void mh_err_memory __P((int fatal));
 
 FILE *mh_audit_open __P((char *name, mailbox_t mbox));
 void mh_audit_close __P((FILE *fp));
@@ -274,3 +275,4 @@ void *xrealloc __P((void *, size_t));
 int mh_spawnp __P((const char *prog, const char *file));
 int mh_whatnow __P((struct mh_whatnow_env *wh, int initial_edit));
 int mh_disposition __P((const char *filename));
+int mh_file_copy __P((const char *from, const char *to));
