@@ -74,6 +74,9 @@ SCM
 mda_catch_body (void *data, mailbox_t mbox)
 {
   struct mda_data *md = data;
+  message_t mesg = NULL;
+  attribute_t attr = NULL;
+  FILE *fp = md->fp;
 
   if (access (md->progfile, R_OK))
     {
@@ -82,7 +85,34 @@ mda_catch_body (void *data, mailbox_t mbox)
     }
   else
     scm_primitive_load (scm_makfrom0str (md->progfile));
-  mda (md->fp, md->argv[0], mbox);
+
+  mailbox_get_message (mbox, 1, &mesg);
+  message_get_attribute (mesg, &attr);
+  if (attribute_is_deleted (attr))
+    return SCM_BOOL_F;
+
+  if (message_is_modified (mesg))
+    {
+      char *tname;
+      int fd = mu_tempfile (NULL, &tname);
+      mailbox_t tmp;
+      
+      close (fd);
+      if (mailbox_create (&tmp, tname) == 0
+	  && mailbox_open (tmp, MU_STREAM_RDWR) == 0)
+	{
+	  mailbox_append_message (tmp, mesg);
+	  mailbox_close (tmp);
+	  mailbox_destroy (&tmp);
+
+	  fp = fopen (tname, "r");
+	}
+      unlink (tname);
+    }
+      
+  mda (fp, md->argv[0]);
+  if (fp != md->fp)
+    fclose (fp);
   return SCM_BOOL_F;
 }
 
