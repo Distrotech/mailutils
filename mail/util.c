@@ -40,7 +40,6 @@ typedef struct _node {
 } node;
 
 static node *environment = NULL;
-static node *env_cursor = NULL;
 
 /*
  * add a new node to the list
@@ -420,6 +419,7 @@ util_getenv (void *ptr, const char *variable, mail_env_data_t type, int warn)
 struct mail_env_entry *
 util_find_env (const char *variable, int create)
 {
+  node *ep;
   /* Annoying, variable "ask" is equivalent to "asksub".  */
   static const char *asksub = "asksub";
   const char *var = variable;
@@ -447,20 +447,19 @@ util_find_env (const char *variable, int create)
       environment->next = NULL;
     }
 
-  for (env_cursor = environment; env_cursor->next;
-       env_cursor = env_cursor->next)
+  for (ep = environment; ep->next; ep = ep->next)
     {
-      if (strlen (env_cursor->env_entry.var) == len &&
-	  !strcmp (var, env_cursor->env_entry.var))
-	return &env_cursor->env_entry;
+      if (strlen (ep->env_entry.var) == len &&
+	  !strcmp (var, ep->env_entry.var))
+	return &ep->env_entry;
     }
 
-  env_cursor->env_entry.var = strdup (var);
-  env_cursor->env_entry.set = 0;
-  env_cursor->env_entry.type = Mail_env_whatever;
-  env_cursor->env_entry.value.number = 0;
-  t = env_cursor;
-  env_cursor = util_ll_add (env_cursor, 0);
+  ep->env_entry.var = strdup (var);
+  ep->env_entry.set = 0;
+  ep->env_entry.type = Mail_env_whatever;
+  ep->env_entry.value.number = 0;
+  t = ep;
+  ep = util_ll_add (ep, 0);
   return &t->env_entry;
 }
 
@@ -468,20 +467,20 @@ util_find_env (const char *variable, int create)
 int
 util_printenv (int set)
 {
-  for (env_cursor = environment; env_cursor != NULL;
-       env_cursor = env_cursor->next)
+  node *ep;
+  for (ep = environment; ep != NULL; ep = ep->next)
     {
-      if (env_cursor->env_entry.set == set)
+      if (ep->env_entry.set == set)
 	{
-	  fprintf (ofile, "%s", env_cursor->env_entry.var);
-	  switch (env_cursor->env_entry.type)
+	  fprintf (ofile, "%s", ep->env_entry.var);
+	  switch (ep->env_entry.type)
 	    {
 	    case Mail_env_number:
-	      fprintf (ofile, "=%d", env_cursor->env_entry.value.number);
+	      fprintf (ofile, "=%d", ep->env_entry.value.number);
 	      break;
 	      
 	    case Mail_env_string:
-	      fprintf (ofile, "=\"%s\"", env_cursor->env_entry.value.string);
+	      fprintf (ofile, "=\"%s\"", ep->env_entry.value.string);
 	      break;
 	      
 	    case Mail_env_boolean:
