@@ -16,6 +16,7 @@
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #include <mailutils/libsieve.h>
+#include <mu_asprintf.h>
 #include <setjmp.h>
 
 #define SIEVE_CODE_INCR 128
@@ -77,16 +78,8 @@ extern int sieve_line_num;
 extern sieve_machine_t sieve_machine;
 extern int sieve_error_count; 
 
-#define TAG_LOCALPART   0
-#define TAG_DOMAIN      1
-#define TAG_ALL         2
-#define TAG_COMPARATOR  3
-#define TAG_IS          4
-#define TAG_CONTAINS    5
-#define TAG_MATCHES     6  
-#define TAG_REGEX       7 
-#define TAG_UNDER       8
-#define TAG_OVER        9
+#define TAG_COMPFUN "__compfun__"
+#define TAG_RELFUN  "__relfun__"
 
 void sieve_compile_error __P((const char *filename, int linenum,
 			      const char *fmt, ...));
@@ -133,6 +126,7 @@ void instr_brz __P((sieve_machine_t mach));
 int sieve_mark_deleted __P((message_t msg, int deleted));
 
 int sieve_match_part_checker __P((const char *name, list_t tags, list_t args));
+int sieve_relational_checker __P((const char *name, list_t tags, list_t args));
 
 int sieve_load_add_path __P((list_t path));
 int sieve_load_add_dir __P((sieve_machine_t mach, const char *name));

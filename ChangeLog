@@ -10,6 +10,12 @@
 	* sieve/testsuite/sieve/relational.exp: Enabled rel-header.sv
 	  testcase.
 
+	* libsieve/require.c: Handle "relational" as a special case.
+	* libsieve/sieve.h: Updated.
+	* libsieve/sieve.l (multiline_strip_tabs): Forward declaration.
+	* libsieve/util.c (sieve_tag_lookup): Check for taglist != NULL
+	  before calling list_do().
+	
 2003-01-05  Sergey Poznyakoff 
 
 	* doc/rfc/rfc3431.txt: New file.
