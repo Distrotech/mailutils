@@ -17,7 +17,13 @@
 #ifndef MUASPRINTF_H
 #define MUASPRINTF_H
 
-#include <mailutils/mu_features.h>
+#ifndef __P
+# if defined PROTOTYPES || (defined __STDC__ && __STDC__)
+#  define __P(args) args
+# else
+#  define __P(args) ()
+# endif
+#endif /*__P */
 
 #include <stdarg.h>
 
