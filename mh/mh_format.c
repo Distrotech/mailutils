@@ -97,7 +97,8 @@ strobj_assign (strobj_t *lvalue, strobj_t *rvalue)
 {
   strobj_free (lvalue);
   *lvalue = *rvalue;
-  strobj_free (rvalue);
+  rvalue->size = 0;
+  rvalue->ptr = NULL;
 }
 
 static void
