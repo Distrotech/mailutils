@@ -176,6 +176,7 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
 	  s = mh_expand_name (MHLIBDIR, "replgroupcomps", 0);
 	  mh_read_formfile (s, &format_str);
 	  free (s);
+	  rcpt_mask |= RCPT_ALL;
 	}
       else
 	{
