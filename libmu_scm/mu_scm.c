@@ -62,6 +62,7 @@ struct format_record {
 static struct format_record format_table[] = {
   { "mbox", &mbox_record },
   { "mh",   &mh_record },
+  { "maildir", &maildir_record },
   { "pop",  &pop_record },
   { "imap", &imap_record },
   { "sendmail", &sendmail_record },

@@ -36,52 +36,58 @@ extern "C" {
 */
 #define MU_POP_PORT 110
 #define MU_POP_SCHEME "pop://"
-#define MU_POP_SCHEME_LEN 6
+#define MU_POP_SCHEME_LEN (sizeof (MU_POP_SCHEME) - 1)
 extern int _url_pop_init          __P ((url_t));
 extern int _mailbox_pop_init      __P ((mailbox_t));
 extern int _folder_pop_init       __P ((folder_t));
 
 #define MU_IMAP_PORT 143
 #define MU_IMAP_SCHEME "imap://"
-#define MU_IMAP_SCHEME_LEN 7
+#define MU_IMAP_SCHEME_LEN (sizeof (MU_IMAP_SCHEME) - 1)
 extern int _url_imap_init         __P ((url_t));
 extern int _mailbox_imap_init     __P ((mailbox_t));
 extern int _folder_imap_init      __P ((folder_t));
 
 #define MU_MBOX_SCHEME "mbox:"
-#define MU_MBOX_SCHEME_LEN 5
+#define MU_MBOX_SCHEME_LEN (sizeof (MU_MBOX_SCHEME) - 1)
 extern int _url_mbox_init         __P ((url_t));
 extern int _mailbox_mbox_init     __P ((mailbox_t));
 extern int _folder_mbox_init      __P ((folder_t));
 
 #define MU_FILE_SCHEME "file:"
-#define MU_FILE_SCHEME_LEN 5
+#define MU_FILE_SCHEME_LEN (sizeof (MU_FILE_SCHEME) - 1)
 extern int _url_file_init         __P ((url_t));
 extern int _mailbox_file_init     __P ((mailbox_t));
 extern int _folder_file_init      __P ((folder_t));
 
 #define MU_PATH_SCHEME "/"
-#define MU_PATH_SCHEME_LEN 1
+#define MU_PATH_SCHEME_LEN (sizeof (MU_PATH_SCHEME) - 1)
 extern int _url_path_init         __P ((url_t));
 extern int _mailbox_path_init     __P ((mailbox_t));
 extern int _folder_path_init      __P ((folder_t));
 
 #define MU_SMTP_SCHEME "smtp://"
-#define MU_SMTP_SCHEME_LEN 7
+#define MU_SMTP_SCHEME_LEN (sizeof (MU_SMTP_SCHEME) - 1)
 #define MU_SMTP_PORT 25
 extern int _url_smtp_init         __P ((url_t));
 extern int _mailer_smtp_init      __P ((mailer_t));
 
 #define MU_SENDMAIL_SCHEME "sendmail:"
-#define MU_SENDMAIL_SCHEME_LEN 9
+#define MU_SENDMAIL_SCHEME_LEN (sizeof (MU_SENDMAIL_SCHEME) - 1)
 extern int _url_sendmail_init     __P ((url_t));
 extern int _mailer_sendmail_init  __P ((mailer_t));
 
 #define MU_MH_SCHEME "mh:"
-#define MU_MH_SCHEME_LEN 3
+#define MU_MH_SCHEME_LEN (sizeof (MU_MH_SCHEME) - 1)
 extern int _url_mh_init     __P ((url_t));
 extern int _mailbox_mh_init __P((mailbox_t mailbox));
 extern int _folder_mh_init  __P ((folder_t));
+
+#define MU_MAILDIR_SCHEME "maildir:"
+#define MU_MAILDIR_SCHEME_LEN (sizeof (MU_MAILDIR_SCHEME) - 1)
+extern int _url_maildir_init     __P ((url_t));
+extern int _mailbox_maildir_init __P((mailbox_t mailbox));
+extern int _folder_maildir_init  __P ((folder_t));
   
 #ifdef __cplusplus
 }

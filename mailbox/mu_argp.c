@@ -318,6 +318,9 @@ static char *mu_conf_option[] = {
 #ifdef ENABLE_MH
   "ENABLE_MH",
 #endif
+#ifdef ENABLE_MAILDIR
+  "ENABLE_MAILDIR",
+#endif
 #ifdef ENABLE_SMTP
   "ENABLE_SMTP",
 #endif
