@@ -1,3 +1,10 @@
+2003-02-22  Alain Magloire
+
+	First implementation of rfc1524.
+
+	* mailbox/mailcap.c: First implementation of rfc1524. 
+	* include/mailutils/mailcap.h: First implementation of rfc1524. 
+
 2003-02-22  Sergey Poznyakoff 
 
 	* include/mailutils/header.h (MU_HEADER_FCC): New macro
@@ -36,6 +43,7 @@
 	* mh/mh.h (mhdraft_stream_create): New function.
 	* mh/mh_init.c (mh_stream_to_message): Use MH draft streams.
 
+>>>>>>> 1.685
 2003-02-20  Sergey Poznyakoff 
 
 	* mh/README: Updated
