@@ -33,7 +33,7 @@ OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>
-#include "xmalloc.h"
+#include "xalloc.h"
 #include "comparator.h"
 #include "interp.h"
 #include "script.h"
