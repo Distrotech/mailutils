@@ -166,7 +166,7 @@ static char usage_str[] =
   "  -d, --debug               Start with debugging evaluator and backtraces.\n"
   "  -e, --expression EXPR     Execute scheme expression.\n"
   "  -f, --file PROGFILE       Read program from PROGFILE.\n"
-  "  -g, --guile-command ARG   Append ARG to the command line passed to guile.\n"
+  "  -g, --guile-command ARG   Append ARG to the command line passed to scheme\n"
   "                            program.\n"
   "  -m, --mailbox MBOX        Set default mailbox name.\n"
   "  -u, --user NAME           Act as local MDA for user NAME.\n"
