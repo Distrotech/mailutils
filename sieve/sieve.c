@@ -85,6 +85,7 @@ parser (int key, char *arg, struct argp_state *state)
     {
     case ARGP_KEY_INIT:
       opts->mailer = "sendmail:";
+      opts->debug_level = MU_DEBUG_ERROR;
       break;
     case 'n':
       opts->no_actions = SV_FLAG_NO_ACTIONS;
@@ -189,10 +190,10 @@ action_log (const char *script, message_t msg, const char *action,
 }
 
 static int
-debug_print (mu_debug_t debug, const char *fmt, va_list ap)
+debug_print (mu_debug_t debug, size_t level, const char *fmt, va_list ap)
 {
   (void) debug;
-  vfprintf (stdout, fmt, ap);
+  vfprintf ((level == MU_DEBUG_ERROR) ? stderr : stdout, fmt, ap);
   return 0;
 }
 

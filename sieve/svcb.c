@@ -169,7 +169,7 @@ void* ac; // action context, the member of the union Action.u associated
 void* ic, // from sieve_interp_alloc(, ic);
 void* sc, // from sieve_script_parse(, , sc, );
 void* mc, // from sieve_execute_script(, mc);
-const char** errmsg // fill it in if you return failure
+const char** errmsg // you can fill it in if you return failure
 */
 
 static void
@@ -193,7 +193,6 @@ sv_keep (void *ac, void *ic, void *sc, void *mc, const char **errmsg)
 {
   sv_msg_ctx_t *m = (sv_msg_ctx_t *) mc;
   //sieve_keep_context_t * a = (sieve_keep_context_t *) ac;
-  *errmsg = "keep";
   m->rc = 0;
 
   action_log (mc, "KEEP", "");
@@ -215,11 +214,9 @@ sv_fileinto (void *ac, void *ic, void *sc, void *mc, const char **errmsg)
 
   if ((m->svflags & SV_FLAG_NO_ACTIONS) == 0)
     {
-      *errmsg = "fileinto, saving msg";
       m->rc = message_save_to_mailbox (m->msg, m->ticket, m->debug, a->mailbox);
       if (!m->rc)
 	{
-	  *errmsg = "fileinto, deleting msg";
 	  m->rc = sv_mu_mark_deleted (m->msg, 1);
 	}
     }
@@ -232,7 +229,7 @@ sv_redirect (void *ac, void *ic, void *sc, void *mc, const char **errmsg)
 {
   sv_msg_ctx_t *m = (sv_msg_ctx_t *) mc;
   sieve_redirect_context_t *a = (sieve_redirect_context_t *) ac;
-  char* fromaddr = 0;
+  char *fromaddr = 0;
   address_t to = 0;
   address_t from = 0;
 
@@ -240,58 +237,71 @@ sv_redirect (void *ac, void *ic, void *sc, void *mc, const char **errmsg)
 
   if (!m->mailer)
     {
-      *errmsg = "redirect not supported";
       m->rc = ENOTSUP;
+      mu_debug_print (m->debug, MU_DEBUG_ERROR, "%s\n",
+	  "redirect - requires a mailer");
       return SIEVE_FAIL;
     }
 
-  *errmsg = "redirect, parsing address";
-
-  if((m->rc = address_create(&to, a->addr)))
-    goto end;
-
-  *errmsg = "redirect, getting envelope sender";
+  if ((m->rc = address_create (&to, a->addr)))
+    {
+      mu_debug_print (m->debug, MU_DEBUG_ERROR,
+		      "redirect - parsing to '%s' failed: [%d] %s\n",
+		      a->addr, m->rc, strerror (m->rc));
+      goto end;
+    }
 
   {
     envelope_t envelope = 0;
     size_t sz = 0;
-  if((m->rc = message_get_envelope(m->msg, &envelope)))
-    goto end;
-
-    if((m->rc = envelope_sender(envelope, NULL, 0, &sz)))
+    if ((m->rc = message_get_envelope (m->msg, &envelope)))
       goto end;
 
-    if(!(fromaddr = malloc(sz + 1)))
-    {
-      m->rc = ENOMEM;
+    if ((m->rc = envelope_sender (envelope, NULL, 0, &sz)))
       goto end;
-    }
-    if((m->rc = envelope_sender(envelope, fromaddr, sz + 1, NULL)))
+
+    if (!(fromaddr = malloc (sz + 1)))
+      {
+	m->rc = ENOMEM;
+	goto end;
+      }
+    if ((m->rc = envelope_sender (envelope, fromaddr, sz + 1, NULL)))
       goto end;
   }
 
-  if((m->rc = address_create(&from, fromaddr)))
+  if ((m->rc = address_create (&from, fromaddr)))
+  {
+    mu_debug_print (m->debug, MU_DEBUG_ERROR,
+		    "redirect - parsing from '%s' failed: [%d] %s\n",
+		    a->addr, m->rc, strerror (m->rc));
     goto end;
+  }
 
-  *errmsg = "redirect, opening mailer";
-
-  if((m->rc = mailer_open(m->mailer, 0)))
+  if ((m->rc = mailer_open (m->mailer, 0)))
+  {
+    mu_debug_print (m->debug, MU_DEBUG_ERROR,
+		    "redirect - opening mailer '%s' failed: [%d] %s\n",
+		    m->mailer, m->rc, strerror (m->rc));
     goto end;
+  }
 
-  *errmsg = "redirect, sending message";
-
-  if((m->rc = mailer_send_message(m->mailer, m->msg, from, to)))
+  if ((m->rc = mailer_send_message (m->mailer, m->msg, from, to)))
+  {
+    mu_debug_print (m->debug, MU_DEBUG_ERROR,
+		    "redirect - send from '%s' to '%s' failed: [%d] %s\n",
+		    fromaddr, a->addr, m->rc, strerror (m->rc));
     goto end;
+  }
 
 end:
 
-  if(fromaddr)
-    free(fromaddr);
-  mailer_close(m->mailer);
-  address_destroy(&to);
-  address_destroy(&from);
+  if (fromaddr)
+    free (fromaddr);
+  mailer_close (m->mailer);
+  address_destroy (&to);
+  address_destroy (&from);
 
-  return sieve_err(m->rc);
+  return sieve_err (m->rc);
 }
 
 int
@@ -300,7 +310,6 @@ sv_discard (void *ac, void *ic, void *sc, void *mc, const char **errmsg)
   sv_msg_ctx_t *m = (sv_msg_ctx_t *) mc;
 //sv_interp_ctx_t *i = (sv_interp_ctx_t *) ic;
 
-  *errmsg = "discard";
   m->rc = 0;
 
   action_log (mc, "DISCARD", "marking as deleted");
@@ -308,6 +317,9 @@ sv_discard (void *ac, void *ic, void *sc, void *mc, const char **errmsg)
   if ((m->svflags & SV_FLAG_NO_ACTIONS) == 0)
     {
       m->rc = sv_mu_mark_deleted (m->msg, 1);
+      mu_debug_print (m->debug, MU_DEBUG_ERROR,
+		      "discard - deleting failed: [%d] %s\n",
+		      m->rc, strerror (m->rc));
     }
 
   return sieve_err (m->rc);
@@ -318,12 +330,11 @@ sv_reject (void *ac, void *ic, void *sc, void *mc, const char **errmsg)
 {
   sv_msg_ctx_t *m = (sv_msg_ctx_t *) mc;
 
-  *errmsg = "reject";
-  m->rc = 0;
+  m->rc = ENOSYS;
 
   action_log (mc, "REJECT", "");
 
-  return SIEVE_FAIL;
+  return sieve_err (m->rc);
 }
 
 #if 0
