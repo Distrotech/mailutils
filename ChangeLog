@@ -1,5 +1,10 @@
 2001-10-14  Alain Magloire
 
+	* mailbox/mbx_imap.c(imap_message_readline imap_body_readline):
+	The buffer was not null terminated if no newline was found.
+
+2001-10-14  Alain Magloire
+
 	The code for IMAP, is a pain, the rewrite should clean all those
 	hacks.  Something to remember for the mailbox2 is to do some
 	smart caching, the current buffered stream is not good enough.

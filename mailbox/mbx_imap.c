@@ -955,7 +955,6 @@ imap_message_readline (stream_t stream, char *buffer, size_t buflen,
 {
   message_t msg = stream_get_owner (stream);
   msg_imap_t msg_imap = message_get_owner (msg);
-  m_imap_t m_imap = msg_imap->m_imap;
   size_t lines = msg_imap->message_lines;
   int status;
   size_t len = 0;
@@ -973,14 +972,15 @@ imap_message_readline (stream_t stream, char *buffer, size_t buflen,
       if (nl)
 	{
 	  nl++;
-	  *nl = '\0';
 	  msg_imap->message_lines = lines + 1;
 	}
       else
 	nl = buffer + len;
+      len = nl - buffer;
+      *nl = '\0';
     }
   if (plen)
-    *plen = nl - buffer;
+    *plen = len;
   return status;
 }
 
@@ -1744,15 +1744,18 @@ imap_body_readline (stream_t stream, char *buffer, size_t buflen, off_t offset,
 {
   message_t msg = stream_get_owner (stream);
   msg_imap_t msg_imap = message_get_owner (msg);
-  m_imap_t m_imap = msg_imap->m_imap;
-  size_t lines = msg_imap->body_lines;
+  size_t blines = msg_imap->body_lines;
+  size_t bsize = msg_imap->body_size;
   int status;
   size_t len = 0;
   char *nl = buffer;
 
   /* Start over.  */
   if (offset == 0)
-    lines = 0;
+    {
+      blines = 0;
+      bsize = 0;
+    }
 
   buflen--; /* for the NULL. */
   status = imap_body_read (stream, buffer, buflen, offset, &len);
@@ -1762,14 +1765,16 @@ imap_body_readline (stream_t stream, char *buffer, size_t buflen, off_t offset,
       if (nl)
         {
           nl++;
-          *nl = '\0';
-          msg_imap->body_lines = lines + 1;
+          msg_imap->body_lines = blines + 1;
         }
       else
         nl = buffer + len;
+      len = nl - buffer;
+      msg_imap->body_size = bsize + len;
+      *nl = '\0';
     }
   if (plen)
-    *plen = nl - buffer;
+    *plen = len;
   return status;
 }
 
@@ -1802,7 +1807,10 @@ imap_body_read (stream_t stream, char *buffer, size_t buflen, off_t offset,
 
   /* Start over.  */
   if (offset == 0)
+    {
       msg_imap->body_lines = 0;
+      msg_imap->body_size = 0;
+    }
 
   /* Select first.  */
   if (f_imap->state == IMAP_NO_STATE)
