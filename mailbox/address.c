@@ -125,6 +125,7 @@ gettoken (const char **ptr)
 /* Note: This again as for header.c an awfull way of doing things.
    Meaning I need a correct rfc822 Parser.  This one does not
    understand group.  There is not doubt a better way to do this.  */
+
 static int
 address_parse (address_t *paddress, const char **paddr)
 {
@@ -337,6 +338,12 @@ address_destroy (address_t *paddress)
 	    free (address->personal);
 	  if (address->email)
 	    free (address->email);
+	  if (address->local_part)
+	    free (address->local_part);
+	  if (address->domain)
+	    free (address->domain);
+	  if (address->route)
+	    free (address->route);
 	  current = address->next;
 	  free (address);
 	}
@@ -420,6 +427,70 @@ address_get_email (address_t addr, size_t no, char *buf, size_t len, size_t *n)
     }
   return status;
 }
+
+int
+address_get_local_part (address_t addr, size_t no, char *buf, size_t len, size_t *n)
+{
+  size_t i, j;
+  int status = EINVAL;
+  if (addr == NULL)
+    return EINVAL;
+  for (j = 1; addr; addr = addr->next, j++)
+    {
+      if (j == no)
+	{
+	  i = _cpystr (buf, addr->local_part, len);
+	  if (n)
+	    *n = i;
+	  status = 0;
+	  break;
+	}
+    }
+  return status;
+}
+
+int
+address_get_domain (address_t addr, size_t no, char *buf, size_t len, size_t *n)
+{
+  size_t i, j;
+  int status = EINVAL;
+  if (addr == NULL)
+    return EINVAL;
+  for (j = 1; addr; addr = addr->next, j++)
+    {
+      if (j == no)
+	{
+	  i = _cpystr (buf, addr->domain, len);
+	  if (n)
+	    *n = i;
+	  status = 0;
+	  break;
+	}
+    }
+  return status;
+}
+
+int
+address_get_route (address_t addr, size_t no, char *buf, size_t len, size_t *n)
+{
+  size_t i, j;
+  int status = EINVAL;
+  if (addr == NULL)
+    return EINVAL;
+  for (j = 1; addr; addr = addr->next, j++)
+    {
+      if (j == no)
+	{
+	  i = _cpystr (buf, addr->route, len);
+	  if (n)
+	    *n = i;
+	  status = 0;
+	  break;
+	}
+    }
+  return status;
+}
+
 
 int
 address_to_string (address_t addr, char *buf, size_t len, size_t *n)

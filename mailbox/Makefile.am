@@ -41,6 +41,7 @@ mime.c \
 misc.c \
 monitor.c \
 observer.c \
+parse822.c \
 property.c \
 registrar.c \
 sendmail.c \
@@ -57,6 +58,4 @@ url_pop.c \
 url_sendmail.c \
 url_smtp.c
 
-
 libmailbox_la_LDFLAGS = -version-info 0:0:0
-

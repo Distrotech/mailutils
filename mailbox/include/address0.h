@@ -36,13 +36,34 @@
 extern "C" {
 #endif
 
+/*
+ * The data-structure representing an RFC822 MAILBOX. It may be
+ * one MAILBOX in a list of them, as found in an ADDRESS list or
+ * a MAILBOX list (as found in a GROUP).
+ *
+ * Capitalized names are from RFC 822, section 6.1 (Address Syntax).
+ */
 struct _address
 {
-  char *comments;
-  char *personal;
-  char *email;
   char *addr;
-  size_t num;
+  	/* the original string that this list of addresses was created
+	 * from, only present at the head of the list */
+
+  char *comments;
+  	/* the collection of comments stripped during parsing this MAILBOX */
+  char *personal;
+  	/* the PHRASE portion of a MAILBOX, called the DISPLAY-NAME in drums */
+  char *email;
+  	/* the ADDR-SPEC, the LOCAL-PART@DOMAIN */
+  char *local_part;
+  	/* the LOCAL-PART of a MAILBOX */
+  char *domain;
+  	/* the DOMAIN of a MAILBOX */
+  char *route;
+  	/* the optional ROUTE in the ROUTE-ADDR form of MAILBOX */
+
+//  size_t num; -- didn't appear to be used anywhere...
+
   struct _address *next;
 };
 
