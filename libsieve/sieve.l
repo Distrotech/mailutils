@@ -43,6 +43,7 @@ static void multiline_add __P ((void));
 static void multiline_finish __P ((void));
 static void ident __P((const char *text));
 static void sieve_include __P((void));
+static void sieve_searchpath __P((void));
 
 #ifdef FLEX_SCANNER
 #define xinput() (yyin ? getc(yyin) : EOF)
@@ -324,6 +325,7 @@ SIZESUF [kKmMgG]
 <COMMENT>"*"+"/"        BEGIN(INITIAL);
          /* Preprocessor directives (an extension) */
 #[ \t]*include.*\n      { sieve_include (); }
+#[ \t]*searchpath.*\n          { sieve_searchpath (); } 
          /* End-of-line comments */
 #.*\n   { sieve_line_num++; }
 #.*     /* end-of-file comment */;
@@ -361,16 +363,14 @@ yywrap ()
   return pop_source();
 }
 
-void
-sieve_include ()
+static char *
+get_file_name (char *p, char *endp, int *usepath)
 {
-  char *p, *startp, *endp = yytext + yyleng, exp, *name;
+  char exp, *name, *startp;
   int n;
   
-  p = strstr (yytext, "include");
-  for (p += 7; p < endp && isspace (*p); p++)
-    ;
-
+  if (usepath)
+    *usepath = 0;
   switch (*p)
     {
     case '"':
@@ -379,11 +379,13 @@ sieve_include ()
 
     case '<':
       exp = '>';
+      if (usepath)
+	*usepath = 1;
       break;
 
     default:
-      yyerror ("include syntax");
-      return;
+      yyerror ("preprocessor syntax");
+      return NULL;
     }
 
   for (startp = ++p; p < endp && *p != exp; p++)
@@ -391,17 +393,86 @@ sieve_include ()
 
   if (*p != exp)
     {
-      yyerror ("missing closing quote in include statement");
-      return;
+      yyerror ("missing closing quote in preprocessor statement");
+      return NULL;
     }
   
   n = p - startp;
   name = sieve_alloc (n + 1);
   memcpy (name, startp, n);
   name[n] = 0;
+  return name;
+}
+
+static int
+_try_include (void *item, void *data)
+{
+  char **dir = data;
+  char *name = malloc (strlen (item) + 1 + strlen (*dir) + 1);
+
+  if (!name)
+    return 0;
+  sprintf (name, "%s/%s", (char*) item, *dir);
+  if (access (name, R_OK) == 0)
+    {
+      *(char**) data = name;
+      return 1;
+    }
+  free (name);
+  return 0;
+}
+
+void
+sieve_include ()
+{
+  char *p, *endp = yytext + yyleng, *name;
+  int usepath;
+  
+  p = strstr (yytext, "include");
+  for (p += 7; p < endp && isspace (*p); p++)
+    ;
+
+  name = get_file_name (p, endp, &usepath);
+  if (!name)
+    return;
+  
+  if (usepath && name[0] != '/' && memcmp (name, "..", 2))
+    {
+      char *p = name;
+      if (list_do (sieve_include_path, _try_include, &p))
+	{
+	  push_source (p);
+	  free (name);
+	  free (p);
+	  return;
+	}
+    }
 
   push_source (name);
   free (name);
+}
+
+void
+sieve_searchpath ()
+{
+  int append = 0;
+  char *p, *endp = yytext + yyleng, *name;
+  
+  p = strstr (yytext, "searchpath");
+  for (p += 10; p < endp && isspace (*p); p++)
+    ;
+  if (strcmp (p, "add") == 0)
+    {
+      append = 1;
+      for (p += 3; p < endp && isspace (*p); p++)
+	;
+    }
+  name = get_file_name (p, endp, NULL);
+  if (name)
+    {
+      sieve_load_add_dir (sieve_machine, name);
+      free (name);
+    }
 }
 
 int
