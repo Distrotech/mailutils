@@ -213,11 +213,11 @@ sv_fileinto (void *ac, void *ic, void *sc, void *mc, const char **errmsg)
 
   if ((m->svflags & SV_FLAG_NO_ACTIONS) == 0)
     {
-      *errmsg = "fileinto(delivering)";
-      m->rc = sv_mu_save_to (a->mailbox, m->msg, m->ticket, m->debug);
+      *errmsg = "fileinto, saving msg";
+      m->rc = message_save_to_mailbox (m->msg, m->ticket, m->debug, a->mailbox);
       if (!m->rc)
 	{
-	  *errmsg = "fileinto(deleting)";
+	  *errmsg = "fileinto, deleting msg";
 	  m->rc = sv_mu_mark_deleted (m->msg, 1);
 	}
     }
@@ -280,6 +280,7 @@ sv_notify (void *ac, void *ic, void *sc, void *mc, const char **errmsg)
 }
 #endif
 
+#if 0
 int
 sv_autorespond (void *ac, void *ic, void *sc, void *mc, const char **errmsg)
 {
@@ -292,7 +293,6 @@ sv_send_response (void *ac, void *ic, void *sc, void *mc, const char **errmsg)
   return SIEVE_FAIL;
 }
 
-#if 0
 sieve_vacation_t vacation = {
   0,				/* min response */
   0,				/* max response */
