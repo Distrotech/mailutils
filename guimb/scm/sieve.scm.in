@@ -929,10 +929,16 @@
   (display "   -o, --output FILENAME    Set output file name\n")
   (display "   -L, --lib-dir DIRNAME    Set sieve library directory name\n")
   (display "   -g, --guimb              Make output file executable for guimb\n")
-  (display "   -d, --debug LEVEL        Set debugging level\n\n")
+  (display "   -d, --debug LEVEL        Set debugging level\n")
+  (display "       --version            Show program version\n\n")
   (display "If -o option is not given, the compiled program is executed\n")
   (display "immediately. It operates on the user system mailbox unless\n")
   (display "mailbox is given in the command line.\n")
+  (exit 0))
+
+(define (sieve-version)
+  (display "sieve.scm (GNU %PACKAGE% %VERSION%)")
+  (newline)
   (exit 0))
 
 ;;; Parse command line 
@@ -948,6 +954,7 @@
     (lib-dir (single-char #\L)
 	     (value #t))
     (guimb  (single-char #\g))
+    (version)
     (help   (single-char #\h))))
 
 (define program-name (car (command-line)))
@@ -967,6 +974,8 @@
 	(set! output (cdr x)))
        ((guimb)
 	(set! guimb-header #t))
+       ((version)
+	(sieve-version))
        ((help)
 	(sieve-usage))
        ('()
