@@ -19,7 +19,7 @@
 INCLUDES = -I$(top_srcdir)/include -I$(top_srcdir)/lib\
  -I${top_builddir}/include/mailutils/gnu @INTLINCS@
 
-AM_CFLAGS = -DSYSCONFDIR=\"$(sysconfdir)\"
+AM_CFLAGS = -DDEFAULT_CUPS_CONFDIR=\"@DEFAULT_CUPS_CONFDIR@\"
 
 bin_PROGRAMS = mimeview
 mimeview_SOURCES = \
