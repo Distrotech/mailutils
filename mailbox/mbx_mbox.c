@@ -25,29 +25,101 @@
 #include <mbx_unix.h>
 #include <mbx_mdir.h>
 
+#include <errno.h>
+#include <sys/stat.h>
+
 struct mailbox_type _mailbox_mbox_type =
 {
-  "UNIX MBOX",
+  "UNIX_MBOX/Maildir/MMDF",
   (int)&_url_mbox_type, &_url_mbox_type,
   mailbox_mbox_init, mailbox_mbox_destroy
 };
 
 /*
-  There is no specific URL for file mailbox,  until we
-  come up with a url for each like :
-  maildir://
-  mmdf://
-  ubox://
-  they all share the same url which is
-  file://<path_name> */
+  if there is no specific URL for file mailbox,
+    file://<path_name>
+
+  It would be preferrable to use :
+    maildir://<path>
+    unix://<path>
+    mmdf://<path>
+  This would eliminate heuristic discovery that would turn
+  out to be wrong. Caveat, there is no std URL for those
+  mailbox.
+*/
+
 int
 mailbox_mbox_init (mailbox_t *mbox, const char *name)
 {
+  struct stat st;
+
+  /*
+    If they want to creat ?? should they  know the type ???
+    What is the best course of action ??
+  */
+  if (stat (name, &st) == -1)
+    {
+      return -1; /* errno set by stat () */
+    }
+
+  if (S_ISREG (st.st_mode))
+    {
+      /*
+	FIXME: We should do an open() and try
+	to do a better reconnaissance of the type,
+	maybe MMDF.  For now assume Unix MBox */
+#if 0
+      char head[6];
+      ssize_t cout;
+      int fd;
+
+      fd = open (name, O_RDONLY);
+      if (fd == -1)
+	{
+	  /* Oops !! wrong permission ? file deleted ? */
+	  return -1; /* errno set by open () */
+	}
+
+      /* Read a small chunck */
+      count = read (fd, head, sizeof(head));
+
+      /* Try Unix Mbox */
+
+      /* FIXME:
+	 What happen if the file is empty ???
+	 Do we default to Unix ??
+      */
+      if (count == 0) /*empty file*/
+	{
+	  return mailbox_unix_init (mbox, name);
+	}
+
+      if (count >= 5)
+	{
+	  if (strncmp (head, "From ", 5) == 0)
+	    {
+	      /* This is Unix Mbox */
+	      return mailbox_unix_init (mbox, name);
+	    }
+	}
+
+      /* Try MMDF */
+#endif
+      return mailbox_unix_init (mbox, name);
+    }
+  else if (S_ISDIR (st.st_mode))
+    {
+      /* Is that true ?  Are all directories Maildir ?? */
+      return mailbox_maildir_init (mbox, name);
+    }
+
+  /* Why can't a mailbox be FIFO ? or a DOOR/Portal ? */
+  errno = EINVAL;
   return -1;
 }
 
 void
 mailbox_mbox_destroy (mailbox_t *mbox)
 {
-  return ;
+  return (*mbox)->mtype->_destroy (mbox);
 }

@@ -15,16 +15,14 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-#ifndef _MBX_UNIX_H
-#define _MBX_UNIX_H	1
+#ifndef _MBX_MBOX_H
+#define _MBX_MBOX_H	1
 
 #include <mailbox.h>
-#include <stdlib.h>
-#include <stdio.h>
 
 extern int  mailbox_mbox_init    __P ((mailbox_t *mbox, const char *name));
 extern void mailbox_mbox_destroy __P ((mailbox_t *mbox));
 
 extern struct mailbox_type _mailbox_mbox_type;
 
-#endif /* _MBX_UNIX_H */
+#endif /* _MBX_MBOX_H */

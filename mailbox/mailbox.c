@@ -20,6 +20,9 @@
 #endif
 
 #include <mbx_mbox.h>
+#include <mbx_unix.h>
+#include <mbx_mdir.h>
+#include <mbx_mmdf.h>
 #include <mbx_pop.h>
 #include <mbx_imap.h>
 
@@ -88,10 +91,13 @@ static struct mailbox_builtin
   int is_malloc;
   struct mailbox_builtin * next;
 } mailbox_builtin [] = {
-  { NULL, 0,                  &mailbox_builtin[1] }, /* sentinel, head list */
-  { &_mailbox_mbox_type, 0,   &mailbox_builtin[2] },
-  { &_mailbox_pop_type, 0,    &mailbox_builtin[3] },
-  { &_mailbox_imap_type, 0,   &mailbox_builtin[0] },
+  { NULL, 0,                   &mailbox_builtin[1] }, /* sentinel, head list */
+  { &_mailbox_mbox_type, 0,    &mailbox_builtin[2] },
+  { &_mailbox_unix_type, 0,    &mailbox_builtin[3] },
+  { &_mailbox_maildir_type, 0, &mailbox_builtin[4] },
+  { &_mailbox_mmdf_type, 0,    &mailbox_builtin[5] },
+  { &_mailbox_pop_type, 0,     &mailbox_builtin[6] },
+  { &_mailbox_imap_type, 0,    &mailbox_builtin[0] },
 };
 
 int
@@ -160,7 +166,8 @@ mailbox_list_mtype (struct mailbox_type **mlist, int *n)
   struct mailbox_type *mtype;
   int i;
 
-  if ((i = mailbox_list_type (NULL, 0)) <= 0 || (mtype = malloc (i)) == NULL)
+  if ((i = mailbox_list_type (NULL, 0)) <= 0
+      || (mtype = calloc (i, sizeof (*mtype))) == NULL)
     {
       return -1;
     }
@@ -224,7 +231,7 @@ mailbox_init (mailbox_t *mbox, const char *name, int id)
 	}
     }
 
-  /* 3nd run: nothing yet ?? try unixmbox/maildir directly as the last resort.
+  /* 3nd run: nothing yet ?? try mbox directly as the last resort.
      this should take care of the case where the filename is use */
   if (status != 0 )
     {
@@ -372,7 +379,7 @@ mbx_get_mpasswd (mailbox_t mbox, char **passwd, int *len)
   int i;
   char *p;
   if ((i = mbox->_get_passwd (mbox, NULL, 0, 0)) <= 0
-      || (p = malloc (i)) == NULL)
+      || (p = calloc (i, sizeof (*p))) == NULL)
     {
       return -1;
     }
@@ -469,7 +476,7 @@ mbx_get_mbody (mailbox_t mbox, int id, char **body, int *len)
   int i;
   char *b;
   if ((i = mbox->_get_body (mbox, id, NULL, 0, 0)) <= 0
-      || (b = malloc (i)) == NULL)
+      || (b = calloc (i, sizeof (*b))) == NULL)
     {
       return -1;
     }
@@ -490,7 +497,7 @@ mbx_get_mheader (mailbox_t mbox, int id, char **header, int *len)
   int i;
   char *h;
   if ((i = mbox->_get_header (mbox, id, NULL, 0, 0)) <= 0
-      || (h = malloc (i)) == NULL)
+      || (h = calloc (i, sizeof (*h))) == NULL)
     {
       return -1;
     }
