@@ -35,7 +35,6 @@ imap4d_select0 (struct imap4d_command *command, char *arg, int flags)
 {
   char *mailbox_name, *sp = NULL;
   int status;
-  struct passwd *pw;
 
   /* FIXME: Check state.  */
 
