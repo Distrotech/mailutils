@@ -18,7 +18,6 @@
    Boston, MA 02111-1307, USA. */
 
 #include "comsat.h"
-#include <argcv.h>
 
 typedef struct netdef netdef_t;
 
