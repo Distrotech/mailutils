@@ -24,7 +24,31 @@
 int
 mail_eq (int argc, char **argv)
 {
-  (void)argc; (void)argv;
-  fprintf (ofile, "%d\n", realcursor);
+  msgset_t *list = NULL;
+    
+  switch (argc)
+    {
+    case 1:
+      fprintf (ofile, "%d\n", realcursor);
+      break;
+
+    case 2:
+      if (msgset_parse (argc, argv, &list) == 0)
+	{
+	  if (list->msg_part[0] <= total)
+	    {
+	      realcursor = cursor = list->msg_part[0];
+	      fprintf (ofile, "%d\n", realcursor);
+	    }
+	  else
+	    util_error_range (list->msg_part[0]);
+	  msgset_free (list);
+	}
+      break;
+
+    default:
+      return 1;
+    }
+  
   return 0;
 }
