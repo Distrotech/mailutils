@@ -75,7 +75,7 @@ static int  imap_copy_message     __P ((mailbox_t, message_t));
 static int  imap_submessage_size  __P ((msg_imap_t, size_t *));
 static int  imap_message_size     __P ((message_t, size_t *));
 static int  imap_message_lines    __P ((message_t, size_t *));
-static int  imap_message_fd       __P ((stream_t, int *));
+static int  imap_message_fd       __P ((stream_t, int *, int *));
 static int  imap_message_read     __P ((stream_t , char *, size_t, off_t, size_t *));
 static int  imap_message_uid      __P ((message_t, size_t *));
 
@@ -830,9 +830,6 @@ imap_is_updated (mailbox_t mailbox)
 }
 
 
-/* It is only here that the Deleted flags are sent.  Expunge is not
-   call rather the mailbox is close explicitely, letting the server
-   do the expunge without sending the notifications.  It's faster.  */
 static int
 imap_expunge (mailbox_t mailbox)
 {
@@ -879,11 +876,11 @@ imap_expunge (mailbox_t mailbox)
       MAILBOX_DEBUG0 (m_imap->mailbox, MU_DEBUG_PROT, f_imap->buffer);
       f_imap->state = IMAP_NO_STATE;
 
-      /* We are not sending EXPUNGE, rather we close the mailbox
-	 which will purge.  */
-    case IMAP_CLOSE:
-    case IMAP_CLOSE_ACK:
-      status = mailbox_imap_close (mailbox);
+    case IMAP_EXPUNGE:
+    case IMAP_EXPUNGE_ACK:
+      status = imap_writeline (f_imap, "g%d EXPUNGE\r\n", f_imap->seq++);
+      CHECK_ERROR (f_imap, status);
+      status = imap_send (f_imap);
       CHECK_EAGAIN (f_imap, status);
 
       /* Rescan after expunging but do not trigger the observers.  */
@@ -893,7 +890,7 @@ imap_expunge (mailbox_t mailbox)
       CHECK_EAGAIN (f_imap, status);
 
     default:
-      /* mu_error ("imap_expunge: unknow state\n"); */
+      /* mu_error ("imap_expunge: unknown state\n"); */
       break;
     }
 
@@ -1331,11 +1328,16 @@ imap_message_uid (message_t msg, size_t *puid)
 }
 
 static int
-imap_message_fd (stream_t stream, int * pfd)
+imap_message_fd (stream_t stream, int *pfd, int *pfd2)
 {
-  message_t msg = stream_get_owner (stream);
-  msg_imap_t msg_imap = message_get_owner (msg);
-  return imap_get_fd (msg_imap, pfd);
+  if (pfd2)
+    return ENOSYS;
+  else
+    {
+      message_t msg = stream_get_owner (stream);
+      msg_imap_t msg_imap = message_get_owner (msg);
+      return imap_get_fd (msg_imap, pfd);
+    }
 }
 
 /* Mime.  */
@@ -2020,6 +2022,18 @@ imap_get_fd (msg_imap_t msg_imap, int *pfd)
       && msg_imap->m_imap->f_imap
       && msg_imap->m_imap->f_imap->folder)
     return stream_get_fd (msg_imap->m_imap->f_imap->folder->stream, pfd);
+  return EINVAL;
+}
+
+static int
+imap_get_fd2 (msg_imap_t msg_imap, int *pfd1, int *pfd2)
+{
+  if (   msg_imap
+      && msg_imap->m_imap
+      && msg_imap->m_imap->f_imap
+      && msg_imap->m_imap->f_imap->folder)
+    return stream_get_fd2 (msg_imap->m_imap->f_imap->folder->stream,
+			   pfd1, pfd2);
   return EINVAL;
 }
 
