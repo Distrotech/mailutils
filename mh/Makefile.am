@@ -2,13 +2,15 @@
 # Copyright (C) 2000,2001,2002 Free Software Foundation
 # See file COPYING in the distribution root directory for copying conditions.
 
-MHPROGRAMS = scan inc rmm refile mhpath folder rmf fmtcheck repl
+PROGRAMS_MH = scan inc rmm refile mhpath folder rmf fmtcheck repl
 EXTRA_PROGRAMS = scan inc rmm refile mhpath folder rmf fmtcheck repl
-MHLIBRARIES = libmh.a
+
+LIBRARIES_MH = libmh.a
 EXTRA_LIBRARIES = libmh.a
 
-bin_PROGRAMS = @MHPROGRAMS@
-noinst_LIBRARIES = @MHLIBRARIES@
+bin_PROGRAMS = @BUILD_MH_PROGRAMS@
+noinst_LIBRARIES = @BUILD_MH_LIBRARIES@
+
 libmh_a_SOURCES= \
  mh_argp.c\
  mh_ctx.c\
