@@ -1,3 +1,4 @@
+#include <mailutils/errno.h>
 #include <mailutils/url.h>
 #include <stdio.h>
 #include <string.h>
@@ -21,13 +22,13 @@ main ()
       if ((rc = url_create(&u, str)) != 0)
       {
 	fprintf(stderr, "url_create %s ERROR: [%d] %s",
-	  str, rc, strerror(rc));
+	  str, rc, mu_errstring(rc));
 	exit (1);
       }
       if ((rc = url_parse (u)) != 0)
 	{
 	  printf ("%s --> FAILED: [%d] %s\n",
-	    str, rc, strerror(rc));
+	    str, rc, mu_errstring(rc));
 	  continue;
 	}
       printf ("%s --> SUCCESS\n", str);

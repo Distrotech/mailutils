@@ -248,7 +248,7 @@ main (int argc, char **argv)
   status = mailbox_create_default (&mbox, mailbox_name);
   if (status != 0)
     {
-      fprintf (stderr, "could not create - %s\n", strerror(status));
+      fprintf (stderr, "could not create - %s\n", mu_errstring(status));
       exit (2);
     }
 
@@ -263,7 +263,7 @@ main (int argc, char **argv)
   status = mailbox_open (mbox, MU_STREAM_READ);
   if (status != 0)
     {
-      fprintf (stderr, "mailbox open - %s\n", strerror(status));
+      fprintf (stderr, "mailbox open - %s\n", mu_errstring(status));
       exit (2);
     }
 
@@ -282,7 +282,7 @@ main (int argc, char **argv)
       status = mailbox_get_message (mbox, set[i], &msg);
       if (status != 0)
 	{
-	  fprintf (stderr, "mailbox_get_message - %s\n", strerror (status));
+	  fprintf (stderr, "mailbox_get_message - %s\n", mu_errstring (status));
 	  exit (2);
 	}
 

@@ -28,7 +28,9 @@
 #include <unistd.h>
 #include <ctype.h>
 
+#include <mailutils/errno.h>
 #include <mailutils/mutil.h>
+
 #include <auth0.h>
 #include <url0.h>
 
@@ -324,7 +326,7 @@ get_ticket (url_t url, const char *user, const char *filename, url_t * ticket)
 	{
 	  /* TODO: send output to the debug stream */
 	  /*
-	     printf ("url_parse %s failed: [%d] %s\n", str, err, strerror (err));
+	     printf ("url_parse %s failed: [%d] %s\n", str, err, mu_errstring (err));
 	   */
 	  url_destroy (&u);
 	  continue;

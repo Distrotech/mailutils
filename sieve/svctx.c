@@ -14,7 +14,7 @@ sv_strerror (int e)
     case SV_EPARSE:
       return "parse failure";
     }
-  return strerror (e);
+  return mu_errstring (e);
 }
 
 int

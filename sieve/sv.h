@@ -1,6 +1,7 @@
 #ifndef SV_H
 #define SV_H
 
+#include <mailutils/errno.h>
 #include <mailutils/mailbox.h>
 #include <mailutils/address.h>
 #include <mailutils/registrar.h>

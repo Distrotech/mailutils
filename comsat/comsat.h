@@ -54,6 +54,7 @@
 #include <mailutils/stream.h>
 #include <mailutils/mutil.h>
 #include <mailutils/error.h>
+#include <mailutils/errno.h>
 
 #include <argcv.h>
 #include <mu_argp.h>

@@ -61,7 +61,7 @@ pop3d_apopuser (const char *user)
 	  syslog (LOG_INFO, "Bad permissions on APOP password db");
 	else
 	  syslog (LOG_ERR, "Unable to open APOP db: %s",
-		  strerror (rc));
+		  mu_errstring (rc));
 	return NULL;
       }
 
@@ -78,7 +78,7 @@ pop3d_apopuser (const char *user)
     mu_dbm_close (db);
     if (rc)
       {
-	syslog (LOG_ERR, "Can't fetch APOP data: %s", strerror (rc));
+	syslog (LOG_ERR, "Can't fetch APOP data: %s", mu_errstring (rc));
 	return NULL;
       }
     password = calloc (MU_DATUM_SIZE(data) + 1, sizeof (*password));

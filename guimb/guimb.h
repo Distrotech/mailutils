@@ -26,6 +26,7 @@
 #include <errno.h>
 #include <string.h>  /* strerror(3), strdup(3) */
 
+#include <mailutils/errno.h>
 #include <mailutils/mailbox.h>
 #include <mailutils/message.h>
 #include <mailutils/header.h>

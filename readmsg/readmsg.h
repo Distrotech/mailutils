@@ -28,6 +28,7 @@
 #include <errno.h>
 #include <getopt.h>
 
+#include <mailutils/errno.h>
 #include <mailutils/mailbox.h>
 #include <mailutils/header.h>
 #include <mailutils/mime.h>

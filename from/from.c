@@ -33,8 +33,9 @@
 #include <string.h>
 #include <unistd.h>
 
-#include <mailutils/mailbox.h>
 #include <mailutils/address.h>
+#include <mailutils/errno.h>
+#include <mailutils/mailbox.h>
 #include <mailutils/registrar.h>
 
 int
@@ -66,7 +67,7 @@ main(int argc, char **argv)
 
   if ((status = mailbox_create_default (&mbox, mailbox_name)) != 0)
     {
-      fprintf (stderr, "could not create/open: %s\n", strerror (status));
+      fprintf (stderr, "could not create/open: %s\n", mu_errstring (status));
       exit (1);
     }
 
@@ -79,7 +80,7 @@ main(int argc, char **argv)
 
   if ((status = mailbox_open (mbox, MU_STREAM_READ)) != 0)
     {
-      fprintf (stderr, "could not create/open: %s\n", strerror (status));
+      fprintf (stderr, "could not create/open: %s\n", mu_errstring (status));
       exit (1);
     }
 
@@ -92,7 +93,7 @@ main(int argc, char **argv)
       if ((status = mailbox_get_message (mbox, i, &msg)) != 0
 	  || (status = message_get_header (msg, &hdr)) != 0)
 	{
-	  fprintf (stderr, "msg %d : %s\n", i, strerror(status));
+	  fprintf (stderr, "msg %d : %s\n", i, mu_errstring(status));
 	  exit(2);
 	}
 

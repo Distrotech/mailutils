@@ -11,6 +11,7 @@
 #include <time.h>
 #include <unistd.h>
 
+#include <mailutils/errno.h>
 #include <mailutils/mailbox.h>
 #include <mailutils/registrar.h>
 
@@ -51,7 +52,7 @@ main (int argc, char **argv)
   if ((status = mailbox_create_default (&mbox, mbox_name)) != 0)
     {
       fprintf (stderr, "could not create <%s>: %s\n",
-	       mbox_name, strerror (status));
+	       mbox_name, mu_errstring (status));
       exit (1);
     }
   if(debug)
@@ -64,7 +65,7 @@ main (int argc, char **argv)
   if ((status = mailbox_open (mbox, MU_STREAM_READ)) != 0)
     {
       fprintf (stderr, "could not open <%s>: %s\n",
-	       mbox_name, strerror (status));
+	       mbox_name, mu_errstring (status));
       exit (1);
     }
   mailbox_messages_count (mbox, &count);
@@ -85,14 +86,14 @@ main (int argc, char **argv)
       if ((status = mailbox_get_message (mbox, msgno, &msg)) != 0)
 	{
 	  fprintf (stderr, "msg %d: get message failed: %s\n",
-		   msgno, strerror (status));
+		   msgno, mu_errstring (status));
 	  mailbox_close (mbox);
 	  exit (1);
 	}
       if ((status = message_get_num_parts (msg, &nparts)))
 	{
 	  fprintf (stderr, "msg %d: get num parts failed: %s\n",
-		   msgno, strerror (status));
+		   msgno, mu_errstring (status));
 	  mailbox_close (mbox);
 	  exit (1);
 	}
@@ -110,14 +111,14 @@ main (int argc, char **argv)
 	  if ((status = message_get_part (msg, partno, &part)))
 	    {
 	      fprintf (stderr, "msg %d: get part %d failed: %s\n",
-		       msgno, partno, strerror (status));
+		       msgno, partno, mu_errstring (status));
 	      mailbox_close (mbox);
 	      exit (1);
 	    }
 	  if ((status = message_save_attachment (part, path, 0)))
 	    {
 	      fprintf (stderr, "msg %d part %d: save failed: %s\n",
-		       msgno, partno, strerror (status));
+		       msgno, partno, mu_errstring (status));
 	      break;
 	    }
 	}

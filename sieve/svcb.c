@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <mailutils/errno.h>
 #include <mailutils/envelope.h>
 
 #include "sv.h"
@@ -247,7 +248,7 @@ sv_redirect (void *ac, void *ic, void *sc, void *mc, const char **errmsg)
     {
       mu_debug_print (m->debug, MU_DEBUG_ERROR,
 		      "redirect - parsing to '%s' failed: [%d] %s\n",
-		      a->addr, m->rc, strerror (m->rc));
+		      a->addr, m->rc, mu_errstring (m->rc));
       goto end;
     }
 
@@ -273,7 +274,7 @@ sv_redirect (void *ac, void *ic, void *sc, void *mc, const char **errmsg)
   {
     mu_debug_print (m->debug, MU_DEBUG_ERROR,
 		    "redirect - parsing from '%s' failed: [%d] %s\n",
-		    a->addr, m->rc, strerror (m->rc));
+		    a->addr, m->rc, mu_errstring (m->rc));
     goto end;
   }
 
@@ -281,7 +282,7 @@ sv_redirect (void *ac, void *ic, void *sc, void *mc, const char **errmsg)
   {
     mu_debug_print (m->debug, MU_DEBUG_ERROR,
 		    "redirect - opening mailer '%s' failed: [%d] %s\n",
-		    m->mailer, m->rc, strerror (m->rc));
+		    m->mailer, m->rc, mu_errstring (m->rc));
     goto end;
   }
 
@@ -289,7 +290,7 @@ sv_redirect (void *ac, void *ic, void *sc, void *mc, const char **errmsg)
   {
     mu_debug_print (m->debug, MU_DEBUG_ERROR,
 		    "redirect - send from '%s' to '%s' failed: [%d] %s\n",
-		    fromaddr, a->addr, m->rc, strerror (m->rc));
+		    fromaddr, a->addr, m->rc, mu_errstring (m->rc));
     goto end;
   }
 
@@ -319,7 +320,7 @@ sv_discard (void *ac, void *ic, void *sc, void *mc, const char **errmsg)
       m->rc = sv_mu_mark_deleted (m->msg, 1);
       mu_debug_print (m->debug, MU_DEBUG_ERROR,
 		      "discard - deleting failed: [%d] %s\n",
-		      m->rc, strerror (m->rc));
+		      m->rc, mu_errstring (m->rc));
     }
 
   return sieve_err (m->rc);

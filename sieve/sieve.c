@@ -24,6 +24,7 @@ sieve script interpreter.
 
 #include "sieve.h"
 
+#include <mailutils/errno.h>
 #include <mailutils/mailbox.h>
 #include <mailutils/mutil.h>
 #include <mailutils/registrar.h>
@@ -188,10 +189,10 @@ execute_error (const char *script, message_t msg, int rc, const char *errmsg)
   message_get_uid (msg, &uid);
 
   if (rc)
-    fprintf (stderr, "%s on msg uid %d failed: %s\n", script, uid, errmsg);
-  else
     fprintf (stderr, "%s on msg uid %d failed: %s (%s)\n", script, uid,
-	     errmsg, strerror (rc));
+	     errmsg, mu_errstring (rc));
+  else
+    fprintf (stderr, "%s on msg uid %d failed: %s\n", script, uid, errmsg);
 }
 
 static void
@@ -343,12 +344,12 @@ main (int argc, char *argv[])
       if ((rc = wicket_create (&wicket, opts.tickets)) != 0)
 	{
 	  fprintf (stderr, "wicket create <%s> failed: %s\n",
-		   opts.tickets, strerror (rc));
+		   opts.tickets, mu_errstring (rc));
 	  goto cleanup;
 	}
       if ((rc = wicket_get_ticket (wicket, &ticket, 0, 0)) != 0)
 	{
-	  fprintf (stderr, "ticket get failed: %s\n", strerror (rc));
+	  fprintf (stderr, "ticket get failed: %s\n", mu_errstring (rc));
 	  goto cleanup;
 	}
     }
@@ -358,17 +359,17 @@ main (int argc, char *argv[])
     {
       if ((rc = mu_debug_create (&debug, interp)))
 	{
-	  fprintf (stderr, "mu_debug_create failed: %s\n", strerror (rc));
+	  fprintf (stderr, "mu_debug_create failed: %s\n", mu_errstring (rc));
 	  goto cleanup;
 	}
       if ((rc = mu_debug_set_level (debug, opts.debug_level)))
 	{
-	  fprintf (stderr, "mu_debug_set_level failed: %s\n", strerror (rc));
+	  fprintf (stderr, "mu_debug_set_level failed: %s\n", mu_errstring (rc));
 	  goto cleanup;
 	}
       if ((rc = mu_debug_set_print (debug, debug_print, interp)))
 	{
-	  fprintf (stderr, "mu_debug_set_print failed: %s\n", strerror (rc));
+	  fprintf (stderr, "mu_debug_set_print failed: %s\n", mu_errstring (rc));
 	  goto cleanup;
 	}
     }
@@ -377,12 +378,12 @@ main (int argc, char *argv[])
   if ((rc = mailer_create(&mailer, opts.mailer)))
   {
       fprintf (stderr, "mailer create <%s> failed: %s\n",
-	       opts.mailer, strerror (rc));
+	       opts.mailer, mu_errstring (rc));
       goto cleanup;
   }
   if (debug && (rc = mailer_set_debug (mailer, debug)))
     {
-      fprintf (stderr, "mailer_set_debug failed: %s\n", strerror (rc));
+      fprintf (stderr, "mailer_set_debug failed: %s\n", mu_errstring (rc));
       goto cleanup;
     }
 
@@ -390,13 +391,13 @@ main (int argc, char *argv[])
   if ((rc = mailbox_create_default (&mbox, opts.mbox)) != 0)
     {
       fprintf (stderr, "mailbox create <%s> failed: %s\n",
-	       opts.mbox ? opts.mbox : "default", strerror (rc));
+	       opts.mbox ? opts.mbox : "default", mu_errstring (rc));
       goto cleanup;
     }
   
   if (debug && (rc = mailbox_set_debug (mbox, debug)))
     {
-      fprintf (stderr, "mailbox_set_debug failed: %s\n", strerror (rc));
+      fprintf (stderr, "mailbox_set_debug failed: %s\n", mu_errstring (rc));
       goto cleanup;
     }
 
@@ -407,20 +408,20 @@ main (int argc, char *argv[])
 
       if ((rc = mailbox_get_folder (mbox, &folder)))
 	{
-	  fprintf (stderr, "mailbox_get_folder failed: %s", strerror (rc));
+	  fprintf (stderr, "mailbox_get_folder failed: %s", mu_errstring (rc));
 	  goto cleanup;
 	}
 
       if ((rc = folder_get_authority (folder, &auth)))
 	{
-	  fprintf (stderr, "folder_get_authority failed: %s", strerror (rc));
+	  fprintf (stderr, "folder_get_authority failed: %s", mu_errstring (rc));
 	  goto cleanup;
 	}
 
       /* Authentication-less folders don't have authorities. */
       if (auth && (rc = authority_set_ticket (auth, ticket)))
 	{
-	  fprintf (stderr, "authority_set_ticket failed: %s", strerror (rc));
+	  fprintf (stderr, "authority_set_ticket failed: %s", mu_errstring (rc));
 	  goto cleanup;
 	}
     }
@@ -434,7 +435,7 @@ main (int argc, char *argv[])
   if (rc != 0)
     {
       fprintf (stderr, "open on %s failed: %s\n",
-	       opts.mbox ? opts.mbox : "default", strerror (rc));
+	       opts.mbox ? opts.mbox : "default", mu_errstring (rc));
       goto cleanup;
     }
 
@@ -444,7 +445,7 @@ main (int argc, char *argv[])
   if (rc != 0)
     {
       fprintf (stderr, "message count on %s failed: %s\n",
-	       opts.mbox ? opts.mbox : "default", strerror (rc));
+	       opts.mbox ? opts.mbox : "default", mu_errstring (rc));
       goto cleanup;
     }
 
@@ -455,7 +456,7 @@ main (int argc, char *argv[])
       if ((rc = mailbox_get_message (mbox, msgno, &msg)) != 0)
 	{
 	  fprintf (stderr, "get message on %s (msg %d) failed: %s\n",
-	      opts.mbox ? opts.mbox : "default", msgno, strerror (rc));
+	      opts.mbox ? opts.mbox : "default", msgno, mu_errstring (rc));
 	  goto cleanup;
 	}
 
@@ -484,7 +485,7 @@ cleanup:
 	 on a later message. */
       if ((e = mailbox_expunge (mbox)) != 0)
 	fprintf (stderr, "expunge on %s failed: %s\n",
-	    opts.mbox ? opts.mbox : "default", strerror (e));
+	    opts.mbox ? opts.mbox : "default", mu_errstring (e));
 
       if(e && !rc)
 	rc = e;

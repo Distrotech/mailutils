@@ -28,6 +28,7 @@
 
 #include <sys/types.h>
 
+#include <mailutils/errno.h>
 #include <mailutils/mailbox.h>
 #include <mailutils/header.h>
 #include <mailutils/filter.h>
@@ -67,7 +68,7 @@ main (int argc, char **argv)
 
   if ((ret = mailbox_create_default (&mbox, mailbox_name)) != 0)
     {
-      fprintf (stderr, "could not create - %s\n", strerror (ret));
+      fprintf (stderr, "could not create - %s\n", mu_errstring (ret));
       exit (2);
     }
 
@@ -82,7 +83,7 @@ main (int argc, char **argv)
   /* Open the mailbox for reading only.  */
   if ((ret = mailbox_open (mbox, MU_STREAM_RDWR)) != 0)
     {
-      fprintf (stderr, "mailbox open - %s\n", strerror (ret));
+      fprintf (stderr, "mailbox open - %s\n", mu_errstring (ret));
       exit (2);
     }
 
@@ -98,17 +99,17 @@ main (int argc, char **argv)
 
       if ((ret = mailbox_get_message (mbox, i, &msg)) != 0)
 	{
-	  fprintf (stderr, "mailbox_get_message - %s\n", strerror (ret));
+	  fprintf (stderr, "mailbox_get_message - %s\n", mu_errstring (ret));
 	  exit (2);
 	}
       if ((ret = message_size (msg, &msize)) != 0)
 	{
-	  fprintf (stderr, "message_size - %s\n", strerror (ret));
+	  fprintf (stderr, "message_size - %s\n", mu_errstring (ret));
 	  exit (2);
 	}
       if ((ret = message_get_header (msg, &hdr)) != 0)
 	{
-	  fprintf (stderr, "message_get_header - %s\n", strerror (ret));
+	  fprintf (stderr, "message_get_header - %s\n", mu_errstring (ret));
 	  exit (2);
 	}
       header_get_value (hdr, MU_HEADER_FROM, from, sizeof (from), NULL);
@@ -120,7 +121,7 @@ main (int argc, char **argv)
 
       if ((ret = message_get_num_parts (msg, &nparts)) != 0)
 	{
-	  fprintf (stderr, "message_get_num_parts - %s\n", strerror (ret));
+	  fprintf (stderr, "message_get_num_parts - %s\n", mu_errstring (ret));
 	  exit (2);
 	}
       printf ("-- Number of parts in message - %d\n", nparts);
@@ -151,7 +152,7 @@ message_display_parts (message_t msg, const char *indent)
   /* How many parts does the message has? */
   if ((ret = message_get_num_parts (msg, &nparts)) != 0)
     {
-      fprintf (stderr, "message_get_num_parts - %s\n", strerror (ret));
+      fprintf (stderr, "message_get_num_parts - %s\n", mu_errstring (ret));
       exit (2);
     }
 
@@ -162,17 +163,17 @@ message_display_parts (message_t msg, const char *indent)
     {
       if ((ret = message_get_part (msg, j, &part)) != 0)
 	{
-	  fprintf (stderr, "mime_get_part - %s\n", strerror (ret));
+	  fprintf (stderr, "mime_get_part - %s\n", mu_errstring (ret));
 	  exit (2);
 	}
       if ((ret = message_size (part, &msize)) != 0)
 	{
-	  fprintf (stderr, "message_size - %s\n", strerror (ret));
+	  fprintf (stderr, "message_size - %s\n", mu_errstring (ret));
 	  exit (2);
 	}
       if ((ret = message_get_header (part, &hdr)) != 0)
 	{
-	  fprintf (stderr, "message_get_header - %s\n", strerror (ret));
+	  fprintf (stderr, "message_get_header - %s\n", mu_errstring (ret));
 	  exit (2);
 	}
       header_get_value (hdr, MU_HEADER_CONTENT_TYPE, type, sizeof (type),
@@ -194,12 +195,12 @@ message_display_parts (message_t msg, const char *indent)
 	      ret = message_unencapsulate (part, &part, NULL);
 	      if (ret != 0)
 		fprintf (stderr, "message_unencapsulate - %s\n",
-			 strerror (ret));
+			 mu_errstring (ret));
 	      break;
 	    }
 	  if ((ret = message_get_header (part, &hdr)) != 0)
 	    {
-	      fprintf (stderr, "message_get_header - %s\n", strerror (ret));
+	      fprintf (stderr, "message_get_header - %s\n", mu_errstring (ret));
 	      exit (2);
 	    }
 	  header_get_value (hdr, MU_HEADER_FROM, from, sizeof (from), NULL);
@@ -211,7 +212,7 @@ message_display_parts (message_t msg, const char *indent)
 	     indent);
 	  if ((ret = message_get_num_parts (part, &nsubparts)) != 0)
 	    {
-	      fprintf (stderr, "mime_get_num_parts - %s\n", strerror (ret));
+	      fprintf (stderr, "mime_get_num_parts - %s\n", mu_errstring (ret));
 	      exit (2);
 	    }
 	  strcpy (tmp, indent);

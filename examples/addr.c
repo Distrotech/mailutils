@@ -4,35 +4,6 @@
 
 #define EPARSE ENOENT
 
-static const char *
-err_name (int e)
-{
-  struct
-  {
-    int e;
-    const char *s;
-  }
-  map[] =
-  {
-#define E(e) { e, #e },
-    E (EPARSE) E (EINVAL) E (ENOMEM)
-#undef E
-    {
-    0, NULL}
-  };
-  static char s[sizeof (int) * 8 + 3];
-  int i;
-
-  for (i = 0; map[i].s; i++)
-    {
-      if (map[i].e == e)
-	return map[i].s;
-    }
-  sprintf (s, "[%d]", e);
-
-  return s;
-}
-
 static int
 parse (const char *str)
 {
@@ -50,7 +21,7 @@ parse (const char *str)
 
   if (status)
     {
-      printf ("%s=> error %s\n\n", str, err_name (status));
+      printf ("%s=> error %s\n\n", str, mu_errname (status));
       return 0;
     }
   else

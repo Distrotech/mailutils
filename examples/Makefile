@@ -7,7 +7,7 @@ LDLIBS 	= -lsocket
 # On GNU/Linux (if compile with threads)
 #LDLIBS 	= -lpthread
 
-MULIBS	= ../mailbox/.libs/libmailbox.a ../lib/libmailutils.a
+MULIBS	= ../mailbox/.libs/libmailbox.a ../lib/.libs/libmailutils.a
 
 EXES    = addr mbox-explode mbox-dates mbox-auth url-parse mbox-check mimetest msg-send
 

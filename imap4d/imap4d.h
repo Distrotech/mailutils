@@ -71,6 +71,7 @@
 
 #include <mailutils/address.h>
 #include <mailutils/body.h>
+#include <mailutils/errno.h>
 #include <mailutils/error.h>
 #include <mailutils/filter.h>
 #include <mailutils/folder.h>

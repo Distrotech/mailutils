@@ -33,7 +33,9 @@
 #include "md5-rsa.h"
 
 #include <message0.h>
+
 #include <mailutils/address.h>
+#include <mailutils/errno.h>
 #include <mailutils/mutil.h>
 
 #define MESSAGE_MODIFIED 0x10000;
@@ -1017,7 +1019,7 @@ message_save_to_mailbox (message_t msg, ticket_t ticket, mu_debug_t debug,
     {
       mu_debug_print (debug, MU_DEBUG_TRACE,
 		      "mailbox_create_default (%s) failed: %s\n", toname,
-		      strerror (rc));
+		      mu_errstring (rc));
       goto end;
     }
 
@@ -1048,7 +1050,7 @@ message_save_to_mailbox (message_t msg, ticket_t ticket, mu_debug_t debug,
     {
       mu_debug_print (debug, MU_DEBUG_TRACE,
 		      "mailbox_open (%s) failed: %s\n", toname,
-		      strerror (rc));
+		      mu_errstring (rc));
       goto end;
     }
 
@@ -1056,7 +1058,7 @@ message_save_to_mailbox (message_t msg, ticket_t ticket, mu_debug_t debug,
     {
       mu_debug_print (debug, MU_DEBUG_TRACE,
 		      "mailbox_append_message (%s) failed: %s\n", toname,
-		      strerror (rc));
+		      mu_errstring (rc));
       goto end;
     }
 
@@ -1068,7 +1070,7 @@ end:
 	{
 	  mu_debug_print (debug, MU_DEBUG_TRACE,
 			  "mailbox_close (%s) failed: %s\n", toname,
-			  strerror (rc));
+			  mu_errstring (rc));
 	}
     }
   else

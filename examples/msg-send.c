@@ -8,13 +8,14 @@
 #include <unistd.h>
 
 #include <mailutils/address.h>
+#include <mailutils/errno.h>
 #include <mailutils/mailer.h>
 #include <mailutils/message.h>
 #include <mailutils/registrar.h>
 #include <mailutils/stream.h>
 
 #define C(X) {int e; if((e = X) != 0) { \
-  fprintf(stderr, "%s failed: %s\n", #X, strerror(e)); \
+  fprintf(stderr, "%s failed: %s\n", #X, mu_errstring(e)); \
   exit(1); } }
 
 const char USAGE[] =

@@ -109,6 +109,7 @@
 # include <strings.h>
 #endif
 
+#include <mailutils/errno.h>
 #include <mailutils/mailbox.h>
 #include <mailutils/message.h>
 #include <mailutils/header.h>
