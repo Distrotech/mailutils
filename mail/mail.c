@@ -124,7 +124,14 @@ parse_opt (int key, char *arg, struct argp_state *state)
   return 0;
 }
 
-static struct argp argp = { options, parse_opt, args_doc, doc, NULL, NULL, NULL };
+static struct argp argp = {
+  options,
+  parse_opt,
+  args_doc,
+  doc,
+  mu_common_argp_child,
+  NULL, NULL
+};
 
 static char *
 mail_cmdline(void *closure, int cont)
@@ -280,6 +287,8 @@ main (int argc, char **argv)
   args.user = NULL;
 
   /* argument parsing */
+  
+  mu_create_argcv (argc, argv, &argc, &argv);
   argp_parse (&argp, argc, argv, 0, 0, &args);
 
   /* read system-wide mail.rc and user's .mailrc */

@@ -26,32 +26,12 @@
 #include <unistd.h>
 #include "getopt.h"
 
+#include <mu_argp.h>
 #include <mailutils/mailbox.h>
 #include <mailutils/header.h>
 #include <mailutils/registrar.h>
 #include <mailutils/observer.h>
 #include <mailutils/address.h>
-
-static int action (observer_t, size_t);
-static void usage (const char *argv);
-
-static struct option long_options[] =
-{
-  {"debug", no_argument, 0, 'd'},
-  {"help", no_argument, 0, 'h'},
-  {"field", required_argument, 0, 'f'},
-  {"to", no_argument, 0, 'l'},
-  {"number", no_argument, 0, 'n'},
-  {"Quiet", no_argument, 0, 'Q'},
-  {"query", no_argument, 0, 'q'},
-  {"summary", no_argument, 0, 'S'},
-  {"status", required_argument, 0, 's'},
-  {"align", no_argument, 0, 't'},
-  {"version", no_argument, 0, 'v'},
-  {0, 0, 0, 0}
-};
-
-const char *short_options ="dhf:lnQqSs:tv";
 
 static char* show_field;
 static int show_to;
@@ -70,6 +50,107 @@ static int dbug;
 #define IS_NEW  0x100
 static int select_attribute;
 static int selected;
+
+static int action (observer_t, size_t);
+
+const char *argp_program_version = "frm (" PACKAGE ") " VERSION;
+const char *argp_program_bug_address = "<bug-mailutils@gnu.org>";
+static char doc[] = "GNU frm -- display From: lines";
+
+static struct argp_option options[] = {
+  {"debug", 'd', NULL, 0, "Enable debugging output", 0},
+  {"field", 'f', "NAME", 0,
+			      "Header field to display", 0},
+  {"to", 'l', NULL, 0, "Include the To: information", 0},
+  {"number", 'n', NULL, 0, "Display message numbers", 0},
+  {"Quiet", 'Q', NULL, 0, "Very quiet", 0},
+  {"query", 'q', NULL, 0, "Print a message if unread mail", 0},
+  {"summary", 'S', NULL, 0, "Print a summary of messages", 0},
+  {"status", 's', "[nor]", 0,
+   "Select message with the specific attribute: [n]ew, [r]ead, [u]nread.", 0 },
+  {"align", 't', NULL, 0, "Try to align", 0},
+  {0, 0, 0, 0}
+};
+
+static error_t
+parse_opt (int key, char *arg, struct argp_state *state)
+{
+  switch (key)
+    {
+    case 'd':
+      dbug++;
+      break;
+
+    case 'f':
+      show_field = arg;
+      show_from = 0;
+      show_subject = 0;
+      align = 0;
+      break;
+
+    case 'l':
+      show_to = 1;
+      break;
+
+    case 'n':
+      show_number = 1;
+      break;
+
+    case 'Q':
+      /* Very silent.  */
+      be_quiet += 2;
+      if (freopen("/dev/null", "w", stdout) == NULL)
+	{
+	  perror ("Can not be very quiet");
+	  exit (3);
+	}
+      break;
+
+    case 'q':
+      be_quiet = show_query = 1;
+      break;
+
+    case 'S':
+      show_summary = 1;
+      break;
+
+    case 's':
+      if (optarg)
+	switch (*optarg)
+	  {
+	  case 'r':
+	    select_attribute |= IS_READ;
+	    break;
+	    
+	  case 'o':
+	    select_attribute |= IS_OLD;
+	    break;
+	    
+	  case 'n':
+	    select_attribute |= IS_NEW;
+	    break;
+	    
+	  }
+      break;
+      
+    case 't':
+      align = 1;
+      break;
+      
+    default: 
+      return ARGP_ERR_UNKNOWN;
+    }
+  return 0;
+}
+
+static struct argp argp = {
+  options,
+  parse_opt,
+  NULL,
+  doc,
+  mu_common_argp_child,
+  NULL, NULL
+};
 
 
 /* Retrieve the Personal Name from the header To: or From:  */
@@ -196,28 +277,6 @@ action (observer_t o, size_t type)
   return 0;
 }
 
-static void
-usage (const char *argv)
-{
-  printf ("GNU Mailutils.\n");
-  printf ("Usage: %s [OPTIONS]\n\n", argv);
-  printf ("  -d, --debug              display debuging information\n");
-  printf ("  -h, --help               display this help and exit\n");
-  printf ("  -f, --field=string       header field to display\n");
-  printf ("  -l, --to                 include the To: information\n");
-  printf ("  -n, --number             display the message numbered\n");
-  printf ("  -Q, --Quiet              very quiet\n");
-  printf ("  -q, --query              print a message if unread mail\n");
-  printf ("  -S, --summary            print a summary of messages\n");
-  printf ("  -s, --status=[nor]       select message with the specific \
- attribute\n");
-  printf ("                           [n]ew, [r]ead, [u]nread.\n");
-  printf ("  -t, --align              Try to align\n");
-  printf ("  -v, --version            display version information and exit\n");
-  printf ("\nReport bugs to bug-mailutils@gnu.org\n");
-  exit (3);
-}
-
 /* This is a clone of the elm program call "frm".  It is a good example on
    how to use the observable(callback) of libmailutils.  "frm" has to
    be very interactive, it is not possible to call mailbox_messages_count()
@@ -232,89 +291,16 @@ main(int argc, char **argv)
   size_t total = 0;
   int c;
   int status = 0;
-
-  while ((c = getopt_long (argc, argv, short_options, long_options, NULL))
-	 != -1)
-    {
-      switch (c)
-	{
-	case 'd':
-	  dbug++;
-	  break;
-
-	case 'h':
-	  usage (argv[0]);
-	  break;
-
-	case 'f':
-	  show_field = optarg;
-	  show_from = 0;
-	  show_subject = 0;
-	  align = 0;
-	  break;
-
-	case 'l':
-	  show_to = 1;
-	  break;
-
-	case 'n':
-	  show_number = 1;
-	  break;
-
-	case 'Q':
-	  /* Very silent.  */
-	  be_quiet += 2;
-	  if (freopen("/dev/null", "w", stdout) == NULL)
-	    {
-	      perror ("Can not be very quiet");
-	      exit (3);
-	    }
-	  break;
-
-	case 'q':
-	  be_quiet = show_query = 1;
-	  break;
-
-	case 'S':
-	  show_summary = 1;
-	  break;
-
-	case 's':
-	  if (optarg)
-	    switch (*optarg)
-	      {
-	      case 'r':
-		select_attribute |= IS_READ;
-		break;
-
-	      case 'o':
-		select_attribute |= IS_OLD;
-		break;
-
-	      case 'n':
-		select_attribute |= IS_NEW;
-		break;
-
-	      }
-	  break;
-
-	case 't':
-	  align = 1;
-	  break;
-
-	case 'v':
-	  printf ("Mailutils 0.0.0: frm\n");
-	  exit (3);
-	  break;
-
-	default:
-	  break;
-	}
-    }
+  
+  mu_create_argcv (argc, argv, &argc, &argv);
+  argp_parse (&argp, argc, argv, 0, &c, NULL);
 
   /* have an argument */
-  if (optind < argc)
-    mailbox_name = argv[optind];
+  argc -= c;
+  argv += c;
+
+  if (argc)
+    mailbox_name = argv[0];
 
   /* register the formats.  */
   {

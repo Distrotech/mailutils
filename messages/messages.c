@@ -1,7 +1,7 @@
 #include "config.h"
 #include <mailutils/mailutils.h>
 #include <stdio.h>
-#include <argp.h>
+#include <mu_argp.h>
 
 static int messages_count (const char *);
 
@@ -48,7 +48,14 @@ parse_opt (int key, char *arg, struct argp_state *state)
   return 0;
 }
 
-static struct argp argp = { options, parse_opt, args_doc, doc };
+static struct argp argp = {
+  options,
+  parse_opt,
+  args_doc,
+  doc,
+  mu_common_argp_child,
+  NULL, NULL
+};
 
 int
 main (int argc, char **argv)
@@ -58,6 +65,7 @@ main (int argc, char **argv)
   int err = 0;
   struct arguments args = {0, NULL};
 
+  mu_create_argcv (argc, argv, &argc, &argv);
   argp_parse (&argp, argc, argv, 0, 0, &args);
 
   registrar_get_list (&bookie);
