@@ -4,6 +4,7 @@
 * --> in progress
 
 [libmailbox]
+
 * autogen.sh (libtool) complains about libmailbox.la in noinst (JB Oct 08/99)
 
 - added more includes, make sure autoconf finds them
@@ -24,9 +25,11 @@
 * Maildir is VERY rough
   
 [mail]
+
 - clean up 'mail''s compilation, why is there a mail script?
 
 [pop3]
+
 - find out why the pop3 server quits on a signal when the 'quit' command is
   given
 
@@ -35,6 +38,40 @@
 - test network code
 
 + crypt is linked even if pam was detected, it should be one or the other (JB Oct 08/99)
+
+[imap4d]
+
+- Check interaction with imap clients.
+
+- implement charsets in search: 1 SEARCH CHARSET ISO-8859-2 TEXT ...
+
+- implement AUTHENTICATE command (at least kerberos?)
+
+[mail]
+
+- Add MIME support.
+
+[sieve]
+
+* clean up diagnostics
+
+The 5 actions:
+
++ keep
+
++ fileinto
+
++ discard
+
+- redirect (need to modify mail sending interface to control envelope
+    addresses)
+
+- reject (need to from MDNs)
+
+- run as daemon, sieveing mail on arrival (need interface for notification
+  of message arrival, this is supported by imap, but we'll have to fake
+  for pop and local spools my polling, why can't you select() on a unix
+  file?)
 
 [all]
 - add more features
