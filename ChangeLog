@@ -1,3 +1,9 @@
+2003-04-30  Wojciech Polak
+
+	* doc/texinfo/mailutils.texi: Changed @dircategory according
+	  to the GNU Directory.
+	* po/POTFILES.in: Added auth/mysql.c and auth/pgsql.c.
+
 2003-04-23  Sergey Poznyakoff
 
 	* configure.ac: Renamed --enable-mysql to --with-mysql. Added
