@@ -25,6 +25,7 @@ mh_context_t *context;
 mh_context_t *profile;
 mh_context_t *sequences;
 int rcpt_mask = RCPT_DEFAULT;
+int mh_auto_install = 1;
 
 /* Global profile */
 
@@ -56,6 +57,10 @@ mh_read_profile ()
       asprintf (&p, "%s/%s", home, MH_USER_PROFILE);
       free (home);
     }
+
+  if (mh_auto_install && access (p, R_OK))
+    mh_install (p, 1);
+  
   profile = mh_context_create (p, 1);
   mh_context_read (profile);
 }
@@ -72,7 +77,7 @@ _mh_init_global_context ()
   mu_path_folder_dir = mh_get_dir ();
   p = getenv ("CONTEXT");
   if (!p)
-    p = "context";
+    p = MH_CONTEXT_FILE;
   ctx_name = mh_expand_name (NULL, p, 0);
   context = mh_context_create (ctx_name, 1);
   mh_context_read (context);
@@ -95,6 +100,13 @@ mh_global_context_set (const char *name, const char *value)
 {
   _mh_init_global_context ();
   return mh_context_set_value (context, name, value);
+}
+
+int
+mh_global_context_iterate (mh_context_iterator fp, void *data)
+{
+  _mh_init_global_context ();
+  return mh_context_iterate (context, fp, data);
 }
 
 char *
@@ -139,6 +151,13 @@ mh_global_sequences_set (const char *name, const char *value)
 {
   _mh_init_global_sequences ();
   return mh_context_set_value (sequences, name, value);
+}
+
+int
+mh_global_sequences_iterate (mh_context_iterator fp, void *data)
+{
+  _mh_init_global_context ();
+  return mh_context_iterate (sequences, fp, data);
 }
 
 /* Global state */
