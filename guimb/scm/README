@@ -1,0 +1,8 @@
+To convert a sieve script into equivalent Scheme program, executable
+by guimb, run:
+
+  guile -s sieve.scm --file <sieve-script-name> --output <output-file-name>
+
+To compile and execute a sieve script upon a mailbox, run:
+
+  guimb -f sieve.scm -{ --file <sieve-script-name> -} --mailbox ~/mbox
