@@ -696,16 +696,21 @@ smtp_send_message (mailer_t mailer, message_t argmsg, address_t argfrom,
 	stream_t stream;
 	size_t n = 0;
 	char data[256] = "";
+	header_t hdr;
+	body_t body;
+	int found_nl;
 	
 	/* We may be here after an EAGAIN so check if we have something
 	   in the buffer and flush it.  */
 	status = smtp_write (smtp);
 	CHECK_EAGAIN (smtp, status);
 
-	message_get_stream (smtp->msg, &stream);
+	message_get_header (smtp->msg, &hdr);
+	header_get_stream (hdr, &stream);
 	while ((status = stream_readline (stream, data, sizeof (data) - 1,
 					  smtp->offset, &n)) == 0 && n > 0)
 	  {
+	    found_nl = (n == 1 && data[0] == '\n');
 	    if (data[n - 1] == '\n')
 	      data[n - 1] = '\0';
 	    if (data[0] == '.')
@@ -723,6 +728,33 @@ smtp_send_message (mailer_t mailer, message_t argmsg, address_t argfrom,
 	      }
 	    smtp->offset += n;
 	  }
+	
+	if (!found_nl)
+	  {
+	    status = smtp_writeline (smtp, "\r\n");
+	    CHECK_ERROR (smtp, status);
+	    status = smtp_write (smtp);
+	    CHECK_EAGAIN (smtp, status);
+	  }
+	
+	message_get_body (smtp->msg, &body);
+	body_get_stream (body, &stream);
+	smtp->offset = 0;
+	while ((status = stream_readline (stream, data, sizeof (data) - 1,
+					  smtp->offset, &n)) == 0 && n > 0)
+	  {
+	    if (data[n - 1] == '\n')
+	      data[n - 1] = '\0';
+	    if (data[0] == '.')
+	      status = smtp_writeline (smtp, ".%s\r\n", data);
+	    else
+	      status = smtp_writeline (smtp, "%s\r\n", data);
+	    CHECK_ERROR (smtp, status);
+	    status = smtp_write (smtp);
+	    CHECK_EAGAIN (smtp, status);
+	    smtp->offset += n;
+	  }
+	
 	smtp->offset = 0;
 	status = smtp_writeline (smtp, ".\r\n");
 	CHECK_ERROR (smtp, status);
