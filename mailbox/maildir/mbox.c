@@ -95,6 +95,7 @@ static struct info_map {
 };
 #define info_map_size (sizeof (info_map) / sizeof (info_map[0]))
 
+/* FIXME: is not used */
 static int
 info_map_letter (int c)
 {
@@ -200,7 +201,7 @@ maildir_gethostname ()
     {
       char *q;
       
-      hp = malloc (strlen (hostname)) + s + 1;
+      hp = malloc (strlen (hostname) + s + 1);
       for (p = hostname, q = hp; *p; p++)
 	switch (*p)
 	  {
