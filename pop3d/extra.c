@@ -88,10 +88,13 @@ int
 pop3d_abquit (int reason)
 {
   /* Unlock spool */
-  pop3d_unlock ();
-  mailbox_flush (mbox, 0);
-  mailbox_close (mbox);
-  mailbox_destroy (&mbox);
+  if (state != AUTHORIZATION)
+    {
+      pop3d_unlock ();
+      mailbox_flush (mbox, 0);
+      mailbox_close (mbox);
+      mailbox_destroy (&mbox);
+    }
 
   switch (reason)
     {
@@ -101,7 +104,6 @@ pop3d_abquit (int reason)
       break;
 
     case ERR_SIGNAL:
-      pop3d_outf ("-ERR Quitting on signal\r\n");
       syslog (LOG_ERR, _("Quitting on signal"));
       break;
 
