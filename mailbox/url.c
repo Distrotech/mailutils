@@ -19,24 +19,42 @@
 # include <config.h>
 #endif
 
-#include <string.h>
-#include <stdlib.h>
+#include <ctype.h>
 #include <errno.h>
+#include <stdlib.h>
+#include <string.h>
 #ifdef HAVE_STRINGS_H
 # include <strings.h>
 #endif
 
+#include <mailutils/mutil.h>
 #include <mailutils/registrar.h>
+
 #include <misc.h>
 #include <url0.h>
 
+#ifndef EPARSE
+# define EPARSE ENOENT
+#endif
+
+/*
+  TODO: implement functions to create a url and encode it properly.
+*/
+
+static int url_parse0(url_t, char*);
+
 int
-url_create (url_t *purl, const char *name)
+url_create (url_t * purl, const char *name)
 {
-  url_t url = calloc(1, sizeof (*url));
+  url_t url = calloc (1, sizeof (*url));
   if (url == NULL)
     return ENOMEM;
   url->name = strdup (name);
+  if (url->name == NULL)
+    {
+      free (url);
+      return ENOMEM;
+    }
   *purl = url;
   return 0;
 }
@@ -79,6 +97,250 @@ url_destroy (url_t *purl)
 
       *purl = NULL;
     }
+}
+
+/* From RFC 1738, section 2.2 */
+char *
+url_decode (const char *s)
+{
+  char *d = strdup (s);
+  const char *eos = s + strlen (s);
+  int i;
+
+  if (!d)
+    return NULL;
+
+  for (i = 0; s < eos; i++)
+    {
+      if (*s != '%')
+	{
+	  d[i] = *s;
+	  s++;
+	}
+      else
+	{
+	  unsigned long ul = 0;
+
+	  s++;
+
+	  /* don't check return value, it's correctly coded, or it's not,
+	     in which case we just skip the garbage, this is a decoder,
+	     not an AI project */
+
+	  mu_hexstr2ul (&ul, s, 2);
+
+	  s += 2;
+
+	  d[i] = (char) ul;
+	}
+    }
+
+  d[i] = 0;
+
+  return d;
+}
+
+int
+url_parse (url_t url)
+{
+  int err = 0;
+  char *n = NULL;
+  struct _url u = { 0, };
+
+  if (!url || !url->name)
+    return EINVAL;
+
+  /* can't have been parsed already */
+  if(url->scheme || url->user || url->passwd || url->auth ||
+      url->host || url->path || url->query)
+    return EINVAL;
+
+  n = strdup (url->name);
+
+  if (!n)
+    return ENOMEM;
+
+  err = url_parse0 (&u, n);
+
+  if (!err)
+    {
+      /* Dup the strings we found. We wouldn't have to do this
+         if we did a single alloc of the source url name, and
+	 kept it around. It's also a good time to do hex decoding,
+	 though.
+       */
+
+
+#define UALLOC(X) \
+  		if(u.X && (url->X = url_decode(u.X)) == 0) { \
+		  err = ENOMEM; \
+		  goto CLEANUP; \
+		}
+
+	UALLOC (scheme)
+	UALLOC (user)
+	UALLOC (passwd)
+	UALLOC (auth)
+	UALLOC (host)
+	UALLOC (path)
+	UALLOC (query)
+
+#undef UALLOC
+
+        url->port = u.port;
+    }
+
+CLEANUP:
+  free (n);
+
+  if (err)
+    {
+#define UFREE(X) if(X) { free(X); X = 0; }
+
+      UFREE(url->scheme)
+      UFREE(url->user)
+      UFREE(url->passwd)
+      UFREE(url->auth)
+      UFREE(url->host)
+      UFREE(url->path)
+      UFREE(url->query)
+
+#undef UFREE
+    }
+
+  return err;
+}
+
+/*
+
+Syntax, condensed from RFC 1738, and extended with the ;auth=
+of RFC 2384 (for POP) and RFC 2192 (for IMAP):
+
+url =
+    scheme ":" = "//"
+
+    [ user [ ( ":" password ) | ( ";auth=" auth ) ] "@" ]
+
+    host [ ":" port ]
+
+    [ ( "/" urlpath ) | ( "?" query ) ]
+
+All hell will break loose in this parser if the user/pass/auth
+portion is missing, and the urlpath has any @ or : characters
+in it. A imap mailbox, say, named after the email address of
+the person the mail is from:
+
+  imap://imap.uniserve.com/alain@qnx.com
+
+Is this required to be % quoted, though? I hope so!
+
+*/
+
+static int
+url_parse0 (url_t u, char *name)
+{
+  char *p; /* pointer into name */
+
+  /* reject the obvious */
+  if (name == NULL)
+    return EINVAL;
+
+  /* Parse out the SCHEME. */
+  p = strchr (name, ':');
+  if (p == NULL)
+    {
+      return EPARSE;
+    }
+
+  *p++ = 0;
+
+  u->scheme = name;
+
+  /* RFC 1738, section 2.1, lower the scheme case */
+  for ( ; name < p; name++)
+    *name = tolower(*name);
+
+  name = p;
+
+  if (strncmp (name, "//", 2) != 0)
+    return EPARSE;
+
+  name += 2;
+
+  /* Split into LHS and RHS of the '@', and then parse each side. */
+  u->host = strchr (name, '@');
+  if (u->host == NULL)
+    u->host = name;
+  else
+    {
+      /* Parse the LHS into an identification/authentication pair. */
+      *u->host++ = 0;
+
+      u->user = name;
+
+      /* Try to split the user into a:
+         <user>:<password>
+        or
+         <user>;AUTH=<auth>
+       */
+
+      for (; *name; name++)
+	{
+	  if (*name == ';')
+	    {
+	      /* Make sure it's the auth token. */
+	      if (strncasecmp (name + 1, "auth=", 5) == 0)
+		{
+		  *name++ = 0;
+
+		  name += 5;
+
+		  u->auth = name;
+
+		  break;
+		}
+	    }
+	  if (*name == ':')
+	    {
+	      *name++ = 0;
+	      u->passwd = name;
+	      break;
+	    }
+	}
+    }
+
+  /* Parse the host and port from the RHS. */
+  p = strchr (u->host, ':');
+
+  if (p)
+    {
+      *p++ = 0;
+
+      u->port = strtol (p, &p, 10);
+
+      /* Check for garbage after the port: we should be on the start
+       of a path, a query, or at the end of the string. */
+      if (*p && strcspn (p, "/?") != 0)
+	return EPARSE;
+    }
+  else
+    p = u->host + strcspn (u->host, "/?");
+
+  /* Either way, if we're not at a nul, we're at a path or query. */
+  if (*p == '?')
+    {
+      /* found a query */
+      *p++ = 0;
+      u->query = p;
+    }
+  if (*p == '/')
+    {
+      /* found a path */
+      *p++ = 0;
+      u->path = p;
+    }
+
+  return 0;
 }
 
 int
