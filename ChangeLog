@@ -1,3 +1,10 @@
+2004-01-03  Sergey Poznyakoff
+
+	* examples/Makefile.am: Reverted to mod_LTLIBRARY for
+	numaddr.la
+	* libmu_scm/Makefile.am: Removed a too general implicit rule.
+	It caused config.h to be rebuilt incorrectly.
+
 2004-01-02  Wojciech Polak
 
 	Happy GNU Year! :)
