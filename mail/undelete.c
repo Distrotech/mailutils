@@ -28,6 +28,8 @@ undelete0 (msgset_t *mspec, message_t msg, void *data)
 
   message_get_attribute (msg, &attr);
   attribute_unset_deleted (attr);
+  if (cursor == 0)
+    cursor = mspec->msg_part[0];
   return 0;
 }
 
