@@ -50,6 +50,8 @@ static int folder_pop_close __P ((folder_t));
 static int folder_pop_get_authority __P ((folder_t, authority_t *));
 extern int _pop_user         __P ((authority_t));
 
+/* XXX: The way, the POP folder is handle is not clean at all.
+   the I/O functions should have been here on folder, not in  mbx_pop.c  */
 int
 _folder_pop_init (folder_t folder)
 {

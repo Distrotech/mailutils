@@ -1,3 +1,61 @@
+2001-11-01  Alain Magloire
+
+	There were confusion, about the authority_t and the ticket_t.
+	An authority_t is an object that implementes an authentication
+	mechanism i.e. APOP, SASL, User/Passwd.  To retrieve or get
+	information from the client/user, authority_t will use the
+	ticket_t, it will call ticket_pop ().  For example, on an
+	authority_t object that implements the user/passwd mechanism
+	ticket_pop () will be call two times once for the user and
+	the other for the passwd, by the authority_t object.
+
+	So far so good, but the problem here was we had
+	mailbox_{g,s}et_ticket(), folder_{g,s}et_ticket() and
+	mailbox_{g,s}et_authority() and folder_{g,s}_authority().
+	For example for a ticket , depending on when xx_set_ticket ()
+	was done, a ticket_t could have been set on the mailbox_t structure
+	or on the folder_t structure.  This was leading to use the wrong one,
+	folder->ticket or mailbox->ticket.  Same problem occurs for
+	authority_t.  To clear this up, ticket_t can only be set on the
+	authority_t and autority_t can only be on a folder.  Having only one
+	way to get at the authority or at the ticket fix the race conditions:
+	{
+	   // No error checking is done.
+	   mailbox_t mbox;
+	   folder_t folder;
+	   authority_t auth;
+	   ticket_t ticket; ..
+	   ..
+	   // Setting the ticket
+	   mailbox_create (&mbox, where);
+	   mailbox_get_folder (mbox, &folder);
+	   folder_get_authority (folder, &auth)
+	   authority_set_ticket (auth, ticket);
+	   ....
+	}
+
+	* include/mailutils/mailbox.h: Remove mailbox_{g,s}et_ticket().
+	mailbox_{gs}et_authority ().
+	* include/mailutils/folder.h: Remove folder_{gs}et_authority().
+	* mailbox/mailbox.c (mailbox_get_folder): New function.
+	(mailbox_get_ticket): Removed.
+	(mailbox_set_ticket): Removed.
+	(mailbox_set_authority): Removed.
+	(mailbox_get_authority): Removed.
+	* mailbox/folder.c (folder_get_ticket): Removed.
+	(folder_set_ticket): Removed.
+	(folder_destroy): Removed destruction of ticket.
+	* mailbox/folder_imap.c (folder_imap_get_authority): New function.
+	(_folder_imap_init): Create authority.
+	* mailbox/folder_pop.c (folder_pop_get_authority): New function.
+	(folder_pop_open): New function.
+	(folder_pop_close): New function.
+	(_folder_pop_init): Create authority.
+	* mailbox/mbx_imap.c (_mailbox_imap_init): Remove the creation
+	of authority here, moved to _folder_imap_init().
+	* mailbox/mbx_pop.c (_mailbox_pop_init): Remove the creation
+	of authority here, moved to _folder_imap_init().
+
 2001-11-01  Sergey Poznyakoff
 
 	* configure.in: Added check for utmp.h & utmpx.h
