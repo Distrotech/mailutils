@@ -1,3 +1,23 @@
+2001-11-14  Alain Magloire
+
+	To provide an easy way to crete a ticket_t from
+	a file, one can create a wicket_t and fetch ticket_t's
+	for different users to set on the authority.
+	{
+	  wicket_t (&wicket, "/home/alain/.tickets");
+	  wicket_get_ticket (wicket, &ticket, "alain", NULL);
+	  authority_set_ticket (wicket, ticket);
+	}
+
+	* include/mailutils/auth.h: Added wicket_t prototypes
+	functions: wicket_create(), wicket_destroy,
+	wicket_get_ticket().  New prototype ticket_set_data ()
+	ticket_get_data () ticket_set_destroy (), ticket_set_owner();
+	* mailbox/wicket.c: New file, implements wicket_t.
+	* mailbox/ticket.c: New file, implements ticket_t.
+	* mailbox/auth.c: Implements only authority_t.
+	* mailbox/Makefile.am: Update for ticket.c and wicket.c
+
 2001-11-14  Sergey Poznyakoff
 
 	* comsat/action.c: Expand \n only for `echo'.

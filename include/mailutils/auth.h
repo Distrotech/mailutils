@@ -1,5 +1,5 @@
 /* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Library Public License as published by
@@ -36,15 +36,16 @@ extern "C" {
 struct _ticket;
 typedef struct _ticket *ticket_t;
 
-extern int ticket_create           __P ((ticket_t *, void *owner));
+extern int  ticket_create          __P ((ticket_t *, void *owner));
 extern void ticket_destroy         __P ((ticket_t *, void *owner));
-extern void * ticket_get_owner     __P ((ticket_t));
+extern int  ticket_set_destroy     __P ((ticket_t, void (*)
+					 __P ((ticket_t)), void *owner));
+extern void *ticket_get_owner      __P ((ticket_t));
 
 extern int ticket_set_pop          __P ((ticket_t, int (*_pop) __P ((ticket_t, const char *, char **)), void *));
 extern int ticket_pop              __P ((ticket_t, const char *, char **));
-
-extern int ticket_get_type         __P ((ticket_t, char *, size_t, size_t *));
-extern int ticket_set_type         __P ((ticket_t, char *));
+extern int ticket_set_data         __P ((ticket_t, void *, void *owner));
+extern int ticket_get_data         __P ((ticket_t, void **));
 
 struct _authority;
 typedef struct _authority *authority_t;
@@ -56,6 +57,18 @@ extern int authority_set_ticket       __P ((authority_t, ticket_t));
 extern int authority_get_ticket       __P ((authority_t, ticket_t *));
 extern int authority_authenticate     __P ((authority_t));
 extern int authority_set_authenticate __P ((authority_t, int (*_authenticate) __P ((authority_t)), void *));
+
+struct _wicket;
+typedef struct _wicket *wicket_t;
+
+extern int wicket_create       __P ((wicket_t *, const char *));
+extern int wicket_destroy      __P ((wicket_t *));
+extern int wicket_set_filename __P ((wicket_t, const char *));
+extern int wicket_get_filename __P ((wicket_t, char *, size_t, size_t *));
+extern int wicket_set_ticket   __P ((wicket_t, int (*)
+				     __P ((wicket_t, const char *,
+					   const char *, ticket_t *))));
+extern int wicket_get_ticket   __P ((wicket_t, ticket_t *, const char *, const char *));
 
 #ifdef __cplusplus
 }

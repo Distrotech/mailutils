@@ -1,5 +1,5 @@
 /* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Library Public License as published by
@@ -41,8 +41,9 @@ struct _ticket
 {
   void *owner;
   char *challenge;
-  char *type;
-  int (*_pop)      __P ((ticket_t, const char *challenge, char **));
+  void *data;
+  int  (*_pop)      __P ((ticket_t, const char *challenge, char **));
+  void (*_destroy)  __P ((ticket_t));
 };
 
 struct _authority
@@ -50,6 +51,12 @@ struct _authority
   void *owner;
   ticket_t ticket;
   int (*_authenticate) __P ((authority_t));
+};
+
+struct _wicket
+{
+  char *filename;
+  int (*_get_ticket) __P ((wicket_t, const char *, const char *, ticket_t *));
 };
 
 

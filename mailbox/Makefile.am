@@ -56,6 +56,7 @@ sendmail.c \
 smtp.c \
 stream.c \
 tcp.c \
+ticket.c \
 url.c \
 url_file.c \
 url_imap.c \
@@ -64,6 +65,7 @@ url_mh.c \
 url_path.c \
 url_pop.c \
 url_sendmail.c \
-url_smtp.c
+url_smtp.c \
+wicket.c
 
 libmailbox_la_LDFLAGS = -version-info 0:0:0
