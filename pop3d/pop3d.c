@@ -32,7 +32,8 @@ struct daemon_param daemon_param = {
   MODE_INTERACTIVE,     /* Start in interactive (inetd) mode */
   20,                   /* Default maximum number of children */
   110,                  /* Standard POP3 port */
-  600                   /* Idle timeout */
+  600,                  /* Idle timeout */
+  0,                    /* No transcript by default */
 };
 
 /* Number of child processes.  */
@@ -255,7 +256,7 @@ pop3d_mainloop (int infile, int outfile)
   }
 
   /* Lets boogie.  */
-  fprintf (ofile, "+OK POP3 Ready %s\r\n", md5shared);
+  pop3d_outf ("+OK POP3 Ready %s\r\n", md5shared);
 
   while (state != UPDATE)
     {
@@ -323,27 +324,27 @@ pop3d_mainloop (int infile, int outfile)
       if (status == OK)
 	; /* Everything is good.  */
       else if (status == ERR_WRONG_STATE)
-	fprintf (ofile, "-ERR " BAD_STATE "\r\n");
+	pop3d_outf ("-ERR " BAD_STATE "\r\n");
       else if (status == ERR_BAD_ARGS)
-	fprintf (ofile, "-ERR " BAD_ARGS "\r\n");
+	pop3d_outf ("-ERR " BAD_ARGS "\r\n");
       else if (status == ERR_NO_MESG)
-	fprintf (ofile, "-ERR " NO_MESG "\r\n");
+	pop3d_outf ("-ERR " NO_MESG "\r\n");
       else if (status == ERR_MESG_DELE)
-	fprintf (ofile, "-ERR " MESG_DELE "\r\n");
+	pop3d_outf ("-ERR " MESG_DELE "\r\n");
       else if (status == ERR_NOT_IMPL)
-	fprintf (ofile, "-ERR " NOT_IMPL "\r\n");
+	pop3d_outf ("-ERR " NOT_IMPL "\r\n");
       else if (status == ERR_BAD_CMD)
-	fprintf (ofile, "-ERR " BAD_COMMAND "\r\n");
+	pop3d_outf ("-ERR " BAD_COMMAND "\r\n");
       else if (status == ERR_BAD_LOGIN)
-	fprintf (ofile, "-ERR " BAD_LOGIN "\r\n");
+	pop3d_outf ("-ERR " BAD_LOGIN "\r\n");
       else if (status == ERR_MBOX_LOCK)
-	fprintf (ofile, "-ERR [IN-USE] " MBOX_LOCK "\r\n");
+	pop3d_outf ("-ERR [IN-USE] " MBOX_LOCK "\r\n");
       else if (status == ERR_TOO_LONG)
-	fprintf (ofile, "-ERR " TOO_LONG "\r\n");
+	pop3d_outf ("-ERR " TOO_LONG "\r\n");
       else if (status == ERR_FILE)
-	fprintf (ofile, "-ERR " FILE_EXP "\r\n");
+	pop3d_outf ("-ERR " FILE_EXP "\r\n");
       else
-	fprintf (ofile, "-ERR unknown error\r\n");
+	pop3d_outf ("-ERR unknown error\r\n");
 
       free (cmd);
       free (arg);
