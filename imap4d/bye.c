@@ -72,7 +72,7 @@ imap4d_bye0 (int reason, struct imap4d_command *command)
 
     default:
       util_out (RESP_BYE, "Quitting (reason unknown)");
-      syslog (LOG_ERR, _("Quitting (numeric reason %d)"));
+      syslog (LOG_ERR, _("Quitting (numeric reason %d)"), reason);
       break;
     }
 
