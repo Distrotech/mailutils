@@ -3,7 +3,7 @@
 @c See file mailutils.texi for copying conditions.
 @comment *******************************************************************
 
-@subsection Mailutils Object Model
+@chapter Mailutils Object Model
 Mailutils is written in C, the language is widely supported on
 many platforms and the ABI (Binary Interface) for linking objects
 with other languages (like Guile, Java, ...) is well-defined.
@@ -54,7 +54,7 @@ Instead of using macros or the vtable directly.
 #define mu_object_notify(o, evt, d)  ((o)->vtable->notify(o, evt, d))
 @end example
 
-@subsubsection Implementing an interface
+@section Implementing an interface
 
 @comment ***********************************************************
 @comment This is not a very good/usefull example, we should do one using
