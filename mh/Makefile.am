@@ -17,8 +17,8 @@
 ##   Foundation, Inc.
 ##   59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-PROGRAMS_MH = scan inc rmm refile mhpath folder rmf fmtcheck repl
-EXTRA_PROGRAMS = scan inc rmm refile mhpath folder rmf fmtcheck repl
+PROGRAMS_MH = scan inc rmm refile mhpath folder rmf fmtcheck repl whatnow
+EXTRA_PROGRAMS = scan inc rmm refile mhpath folder rmf fmtcheck repl whatnow
 
 LIBRARIES_MH = libmh.a
 EXTRA_LIBRARIES = libmh.a
@@ -35,18 +35,11 @@ libmh_a_SOURCES= \
  mh_format.c\
  mh_init.c\
  mh_fmtgram.y\
- mh_msgset.c
+ mh_msgset.c\
+ mh_whatnow.c
 noinst_HEADERS = mh.h mh_getopt.h
-scan_SOURCES = scan.c
-inc_SOURCES = inc.c
-rmm_SOURCES = rmm.c
-rmf_SOURCES = rmf.c
-refile_SOURCES = refile.c
-mhpath_SOURCES = mhpath.c
-folder_SOURCES = folder.c
-fmtcheck_SOURCES = fmtcheck.c
-repl_SOURCES = repl.c
-INCLUDES = -I${top_srcdir}/include -I${top_srcdir}/lib @INTLINCS@
+
+INCLUDES = -I${top_srcdir}/include -I${top_srcdir}/lib -I${top_srcdir}/mailbox @INTLINCS@
 mh_LIBS = ./libmh.a ../mailbox/libmailbox.la ../lib/libmailutils.la @LTLIBINTL@
 scan_LDADD = $(mh_LIBS) @CURSES_LIBS@
 inc_LDADD = $(mh_LIBS)
@@ -57,6 +50,7 @@ folder_LDADD = $(mh_LIBS)
 rmf_LDADD = $(mh_LIBS)
 fmtcheck_LDADD = $(mh_LIBS)
 repl_LDADD = $(mh_LIBS)
+whatnow_LDADD = $(mh_LIBS)
 
 AM_YFLAGS=-vt
 
