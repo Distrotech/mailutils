@@ -87,7 +87,7 @@ int
 file_stream_create (stream_t *stream, const char *filename, int flags)
 {
   struct _file_stream *fs;
-  char *mode;
+  const char *mode;
   int ret;
 
   if (stream == NULL || filename == NULL)

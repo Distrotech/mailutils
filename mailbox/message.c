@@ -168,6 +168,7 @@ message_get_stream (message_t msg, stream_t *pstream)
       stream_set_read (stream, message_read, msg);
       stream_set_write (stream, message_write, msg);
       stream_set_fd (stream, message_get_fd, msg);
+      stream_set_flags (stream, MU_STREAM_RDWR, msg);
       msg->stream = stream;
     }
 
@@ -457,11 +458,74 @@ message_write (stream_t os, const char *buf, size_t buflen,
 	       off_t off, size_t *pnwrite)
 {
   message_t msg;
-  (void)buf; (void)buflen; (void)off; (void)pnwrite;
+  int status;
 
   if (os == NULL || (msg = os->owner) == NULL)
     return EINVAL;
-  return ENOSYS;
+
+  /* skip the obvious */
+  if (buf == NULL || *buf == '\0' || buflen == 0)
+    {
+      if (pnwrite)
+	*pnwrite = 0;
+      return 0;
+    }
+
+  if (!msg->hdr_done)
+    {
+      size_t len;
+      char *nl;
+      char *thdr;
+      while (!msg->hdr_done && (nl = memchr (buf, '\n', buflen)) != NULL)
+	{
+	  len = nl - buf + 1;
+	  thdr = realloc (msg->hdr_buf, msg->hdr_buflen + len);
+	  if (thdr == NULL)
+	    {
+	      free (msg->hdr_buf);
+	      msg->hdr_buf = NULL;
+	      msg->hdr_buflen = 0;
+	      return ENOMEM;
+	    }
+	  else
+	    msg->hdr_buf = thdr;
+	  memcpy (msg->hdr_buf + msg->hdr_buflen, buf, len);
+	  msg->hdr_buflen += len;
+	  if (buf == nl)
+	    {
+	      header_destroy (&(msg->header), msg);
+	      status = header_create (&(msg->header), msg->hdr_buf,
+				      msg->hdr_buflen, msg);
+	      free (msg->hdr_buf);
+	      msg->hdr_buf = NULL;
+	      if (status != 0)
+		{
+		  msg->hdr_buflen = 0;
+		  return status;
+		}
+	      msg->hdr_done = 1;
+	    }
+	  buf = nl + 1;
+	  buflen -= len;
+	}
+    }
+  if (buflen)
+    {
+      stream_t bs;
+      body_t body;
+      if ((status = message_get_body (msg, &body)) != 0 ||
+	  (status = body_get_stream (msg->body, &bs)) != 0)
+	{
+	  free (msg->hdr_buf);
+	  msg->hdr_buf = NULL;
+	  msg->hdr_buflen = msg->hdr_done = 0;
+	  return status;
+	}
+      if (off > (off_t)msg->hdr_buflen)
+	off -= msg->hdr_buflen;
+      return stream_write (bs, buf, buflen, off, pnwrite);
+    }
+  return 0;
 }
 
 static int

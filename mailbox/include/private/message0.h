@@ -53,6 +53,11 @@ struct _message
   event_t event;
   size_t event_num;
 
+  /* for message_write */
+  char *hdr_buf;
+  size_t hdr_buflen;
+  int hdr_done;
+
   int (*_from)       __P ((message_t msg, char *, size_t, size_t *));
   int (*_received)   __P ((message_t msg, char *, size_t, size_t *));
 
