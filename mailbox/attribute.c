@@ -23,7 +23,7 @@
 #include <errno.h>
 
 int
-attribute_create (attribute_t *pattr)
+attribute_create (attribute_t *pattr, void *owner)
 {
   attribute_t attr;
   if (pattr == NULL)
@@ -31,16 +31,19 @@ attribute_create (attribute_t *pattr)
   attr = calloc (1, sizeof(*attr));
   if (attr == NULL)
     return ENOMEM;
+  attr->owner = owner;
   *pattr = attr;
   return 0;
 }
 
 void
-attribute_destroy (attribute_t *pattr)
+attribute_destroy (attribute_t *pattr, void *owner)
 {
   if (pattr && *pattr)
     {
-      free (*pattr);
+      attribute_t attr = *pattr;
+      if (attr->owner != owner)
+	free (*pattr);
       /* loose the link */
       *pattr = NULL;
     }
@@ -48,68 +51,144 @@ attribute_destroy (attribute_t *pattr)
 }
 
 int
-attribute_set_seen (attribute_t attr)
+attribute_get_flags (attribute_t attr, int *pflags)
+{
+  if (attr->_get_flags)
+    return attr->_get_flags (attr, pflags);
+  if (pflags)
+    *pflags = attr->flags;
+  return 0;
+}
+
+int
+attribute_set_flags (attribute_t attr, int flags)
+{
+  if (attr->_set_flags)
+    return attr->_set_flags (attr, flags);
+  attr->flags |= flags;
+  return 0;
+}
+
+int
+attribute_set_get_flags (attribute_t attr, int (*_get_flags)
+			 (attribute_t, int *), void *owner)
 {
   if (attr == NULL)
     return EINVAL;
-  attr->flag |= MU_ATTRIBUTE_SEEN;
+  if (attr->owner != owner)
+    return EACCES;
+  attr->_get_flags = _get_flags;
+  return 0;
+}
+
+int
+attribute_set_set_flags (attribute_t attr, int (*_set_flags)
+			 (attribute_t, int), void *owner)
+{
+  if (attr == NULL)
+    return EINVAL;
+  if (attr->owner != owner)
+    return EACCES;
+  attr->_set_flags = _set_flags;
+  return 0;
+}
+
+int
+attribute_set_unset_flags (attribute_t attr, int (*_unset_flags)
+			 (attribute_t, int), void *owner)
+{
+  if (attr == NULL)
+    return EINVAL;
+  if (attr->owner != owner)
+    return EACCES;
+  attr->_unset_flags = _unset_flags;
+  return 0;
+}
+
+int
+attribute_set_seen (attribute_t attr)
+{
+  int status = 0;
+  if (attr == NULL)
+    return EINVAL;
+  if (attr->_get_flags)
+    status = attr->_get_flags (attr, &(attr->flags));
+  attr->flags |= MU_ATTRIBUTE_SEEN;
   return 0;
 }
 
 int
 attribute_set_answered (attribute_t attr)
 {
+  int status = 0;
   if (attr == NULL)
     return EINVAL;
-  attr->flag |= MU_ATTRIBUTE_ANSWERED;
+  if (attr->_get_flags)
+    status = attr->_get_flags (attr, &(attr->flags));
+  attr->flags |= MU_ATTRIBUTE_ANSWERED;
   return 0;
 }
 
 int
 attribute_set_flagged (attribute_t attr)
 {
+  int status = 0;
   if (attr == NULL)
     return EINVAL;
-  attr->flag |= MU_ATTRIBUTE_FLAGGED;
+  if (attr->_get_flags)
+    status = attr->_get_flags (attr, &(attr->flags));
+  attr->flags |= MU_ATTRIBUTE_FLAGGED;
   return 0;
 }
 
 int
 attribute_set_read (attribute_t attr)
 {
+  int status = 0;
   if (attr == NULL)
     return EINVAL;
-  attr->flag |= MU_ATTRIBUTE_READ;
+  if (attr->_get_flags)
+    status = attr->_get_flags (attr, &(attr->flags));
+  attr->flags |= MU_ATTRIBUTE_READ;
   return 0;
 }
 
 int
 attribute_set_deleted (attribute_t attr)
 {
+  int status = 0;
   if (attr == NULL)
     return EINVAL;
-  attr->flag |= MU_ATTRIBUTE_DELETED;
+  if (attr->_get_flags)
+    status = attr->_get_flags (attr, &(attr->flags));
+  attr->flags |= MU_ATTRIBUTE_DELETED;
   return 0;
 }
 
 int
 attribute_set_draft (attribute_t attr)
 {
+  int status = 0;
   if (attr == NULL)
     return EINVAL;
-  attr->flag |= MU_ATTRIBUTE_DRAFT;
+  if (attr->_get_flags)
+    status = attr->_get_flags (attr, &(attr->flags));
+  attr->flags |= MU_ATTRIBUTE_DRAFT;
   return 0;
 }
 
 int
 attribute_set_recent (attribute_t attr)
 {
+  int status = 0;
   if (attr == NULL)
     return EINVAL;
+  if (attr->_get_flags)
+    status = attr->_get_flags (attr, &(attr->flags));
   if (attr == NULL)
     {
-      attr->flag &= ~MU_ATTRIBUTE_READ;
-      attr->flag &= ~MU_ATTRIBUTE_SEEN;
+      attr->flags &= ~MU_ATTRIBUTE_READ;
+      attr->flags &= ~MU_ATTRIBUTE_SEEN;
       return 0;
     }
   return EACCES;
@@ -118,131 +197,176 @@ attribute_set_recent (attribute_t attr)
 int
 attribute_is_seen (attribute_t attr)
 {
+  int status = 0;
   if (attr == NULL)
     return 0;
-  return attr->flag & MU_ATTRIBUTE_SEEN;
+  if (attr->_get_flags)
+    status = attr->_get_flags (attr, &(attr->flags));
+  return attr->flags & MU_ATTRIBUTE_SEEN;
 }
 
 int
 attribute_is_answered (attribute_t attr)
 {
+  int status = 0;
   if (attr == NULL)
     return 0;
-  return attr->flag & MU_ATTRIBUTE_ANSWERED;
+  if (attr->_get_flags)
+    status = attr->_get_flags (attr, &(attr->flags));
+  return attr->flags & MU_ATTRIBUTE_ANSWERED;
 }
 
 int
 attribute_is_flagged (attribute_t attr)
 {
+  int status = 0;
   if (attr == NULL)
     return 0;
-  return attr->flag & MU_ATTRIBUTE_FLAGGED;
+  if (attr->_get_flags)
+    status = attr->_get_flags (attr, &(attr->flags));
+  return attr->flags & MU_ATTRIBUTE_FLAGGED;
 }
 
 int
 attribute_is_read (attribute_t attr)
 {
+  int status = 0;
   if (attr == NULL)
     return 0;
-  return attr->flag & MU_ATTRIBUTE_READ;
+  if (attr->_get_flags)
+    status = attr->_get_flags (attr, &(attr->flags));
+  return attr->flags & MU_ATTRIBUTE_READ;
 }
 
 int
 attribute_is_deleted (attribute_t attr)
 {
+  int status = 0;
   if (attr == NULL)
     return 0;
-  return attr->flag & MU_ATTRIBUTE_DELETED;
+  if (attr->_get_flags)
+    status = attr->_get_flags (attr, &(attr->flags));
+  return attr->flags & MU_ATTRIBUTE_DELETED;
 }
 
 int
 attribute_is_draft (attribute_t attr)
 {
+  int status = 0;
   if (attr == NULL)
     return 0;
-  return attr->flag & MU_ATTRIBUTE_DRAFT;
+  if (attr->_get_flags)
+    status = attr->_get_flags (attr, &(attr->flags));
+  return attr->flags & MU_ATTRIBUTE_DRAFT;
 }
 
 int
 attribute_is_recent (attribute_t attr)
 {
+  int status = 0;
   if (attr == NULL)
     return 0;
+  if (attr->_get_flags)
+    status = attr->_get_flags (attr, &(attr->flags));
   /* something is recent when it is not read and not seen.  */
-  return (attr->flag == 0
-	  || ! ((attr->flag & MU_ATTRIBUTE_SEEN)
-		&& (attr->flag & MU_ATTRIBUTE_READ)));
+  return (attr->flags == 0
+	  || ! ((attr->flags & MU_ATTRIBUTE_SEEN)
+		&& (attr->flags & MU_ATTRIBUTE_READ)));
 }
 
 int
 attribute_unset_seen (attribute_t attr)
 {
+  int status = 0;
   if (attr == NULL)
     return 0;
-  attr->flag &= ~MU_ATTRIBUTE_SEEN;
-  return 0;
+  if (attr->_unset_flags)
+    status = attr->_unset_flags (attr, MU_ATTRIBUTE_SEEN);
+  attr->flags &= ~MU_ATTRIBUTE_SEEN;
+  return status;
 }
 
 int
 attribute_unset_answered (attribute_t attr)
 {
+  int status = 0;
   if (attr == NULL)
     return 0;
-  attr->flag &= ~MU_ATTRIBUTE_ANSWERED;
-  return 0;
+  if (attr->_unset_flags)
+    status = attr->_unset_flags (attr, MU_ATTRIBUTE_ANSWERED);
+  attr->flags &= ~MU_ATTRIBUTE_ANSWERED;
+  return status;
 }
 
 int
 attribute_unset_flagged (attribute_t attr)
 {
+  int status = 0;
   if (attr == NULL)
     return 0;
-  attr->flag &= ~MU_ATTRIBUTE_FLAGGED;
-  return 0;
+  if (attr->_unset_flags)
+    status = attr->_unset_flags (attr, MU_ATTRIBUTE_FLAGGED);
+  attr->flags &= ~MU_ATTRIBUTE_FLAGGED;
+  return status;
 }
 
 int
 attribute_unset_read (attribute_t attr)
 {
+  int status = 0;
   if (attr == NULL)
     return 0;
-  attr->flag &= ~MU_ATTRIBUTE_READ;
-  return 0;
+  if (attr->_unset_flags)
+    status = attr->_unset_flags (attr, MU_ATTRIBUTE_READ);
+  attr->flags &= ~MU_ATTRIBUTE_READ;
+  return status;
 }
 
 int
 attribute_unset_deleted (attribute_t attr)
 {
+  int status = 0;
   if (attr == NULL)
     return 0;
-  attr->flag &= ~MU_ATTRIBUTE_DELETED;
-  return 0;
+  if (attr->_unset_flags)
+    status = attr->_unset_flags (attr, MU_ATTRIBUTE_DELETED);
+  attr->flags &= ~MU_ATTRIBUTE_DELETED;
+  return status;
 }
 
 int
 attribute_unset_draft (attribute_t attr)
 {
+  int status = 0;
   if (attr == NULL)
     return 0;
-  attr->flag &= ~MU_ATTRIBUTE_DRAFT;
-  return 0;
+  if (attr->_unset_flags)
+    status = attr->_unset_flags (attr, MU_ATTRIBUTE_DRAFT);
+  attr->flags &= ~MU_ATTRIBUTE_DRAFT;
+  return status;
 }
 
 int
 attribute_unset_recent (attribute_t attr)
 {
+  int status = 0;
   if (attr == NULL)
     return 0;
-  attr->flag |= MU_ATTRIBUTE_SEEN;
-  return 0;
+  if (attr->_unset_flags)
+    status = attr->_unset_flags (attr, MU_ATTRIBUTE_SEEN);
+  attr->flags |= MU_ATTRIBUTE_SEEN;
+  return status;
 }
 
 int
 attribute_is_equal (attribute_t attr, attribute_t attr2)
 {
+  int status = 0;
   if (attr == NULL || attr2 == NULL)
     return 0;
-  return attr->flag == attr2->flag;
+  if (attr->_get_flags)
+    status = attr->_get_flags (attr, &(attr->flags));
+  return attr->flags == attr2->flags;
 }
 
 int
@@ -255,14 +379,12 @@ attribute_copy (attribute_t dest, attribute_t src)
 }
 
 int
-string_to_attribute (const char *buffer, attribute_t *pattr)
+string_to_flags (const char *buffer, int *pflags)
 {
   const char *sep;
-  int status;
 
-  status = attribute_create (pattr);
-  if (status != 0)
-    return status;
+  if (pflags == NULL)
+    return EINVAL;
 
   /* Set the attribute */
   if (strncasecmp (buffer, "Status:", 7) == 0)
@@ -271,22 +393,22 @@ string_to_attribute (const char *buffer, attribute_t *pattr)
       sep++;
     }
   else
-    sep = buffer;
+    return EINVAL;
 
   while (*sep == ' ') sep++; /* glob spaces */
   if (strchr (sep, 'R') != NULL || strchr (sep, 'r') != NULL)
-    attribute_set_read (*pattr);
+     *pflags |= MU_ATTRIBUTE_READ;
   if (strchr (sep, 'O') != NULL || strchr (sep, 'o') != NULL)
-    attribute_set_seen (*pattr);
+     *pflags |= MU_ATTRIBUTE_SEEN;
   if (strchr (sep, 'A') != NULL || strchr (sep, 'a') != NULL)
-    attribute_set_answered (*pattr);
+     *pflags |= MU_ATTRIBUTE_ANSWERED;
   if (strchr (sep, 'F') != NULL || strchr (sep, 'f') != NULL)
-    attribute_set_flagged (*pattr);
+     *pflags |= MU_ATTRIBUTE_FLAGGED;
   return 0;
 }
 
-int
-attribute_to_string (attribute_t attr, char *buffer, size_t len, size_t *pn)
+ int
+flags_to_string (int flags, char *buffer, size_t len, size_t *pn)
 {
   char status[32];
   char a[8];
@@ -294,14 +416,16 @@ attribute_to_string (attribute_t attr, char *buffer, size_t len, size_t *pn)
 
   *status = *a = '\0';
 
-  if (attribute_is_seen (attr))
+  if (flags & MU_ATTRIBUTE_SEEN)
     strcat (a, "R");
-  if (attribute_is_answered (attr))
+  if (flags & MU_ATTRIBUTE_ANSWERED)
     strcat (a, "A");
-  if (attribute_is_flagged (attr))
+  if (flags & MU_ATTRIBUTE_FLAGGED)
     strcat (a, "F");
-  if (attribute_is_read (attr))
+  if (flags & MU_ATTRIBUTE_READ)
     strcat (a, "O");
+  if (flags & MU_ATTRIBUTE_DELETED)
+    strcat (a, "d");
 
   if (*a != '\0')
     {

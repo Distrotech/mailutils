@@ -35,8 +35,16 @@ extern "C" {
 struct _attribute;
 typedef struct _attribute * attribute_t;
 
-extern int attribute_create         __P ((attribute_t *));
-extern void attribute_destroy       __P ((attribute_t *));
+#define MU_ATTRIBUTE_ANSWERED 0x01
+#define MU_ATTRIBUTE_FLAGGED  0x02
+#define MU_ATTRIBUTE_DELETED  0x04
+#define MU_ATTRIBUTE_DRAFT    0x08
+#define MU_ATTRIBUTE_SEEN     0x10
+#define MU_ATTRIBUTE_READ     0x20
+#define MU_ATTRIBUTE_RECENT   0x00
+
+extern int attribute_create         __P ((attribute_t *, void *));
+extern void attribute_destroy       __P ((attribute_t *, void *));
 
 extern int attribute_is_seen        __P ((attribute_t));
 extern int attribute_is_answered    __P ((attribute_t));
@@ -62,14 +70,22 @@ extern int attribute_unset_draft    __P ((attribute_t));
 extern int attribute_unset_recent   __P ((attribute_t));
 extern int attribute_unset_read     __P ((attribute_t));
 
+extern int attribute_get_flags      __P ((attribute_t, int *));
+extern int attribute_set_flags      __P ((attribute_t, int));
+
+extern int attribute_set_set_flags  __P ((attribute_t, int (*_set_flags)
+					  __P ((attribute_t, int)), void *));
+extern int attribute_set_unset_flags  __P ((attribute_t, int (*_unset_flags)
+					    __P ((attribute_t, int)), void *));
+extern int attribute_set_get_flags  __P ((attribute_t, int (*_get_flags)
+					  __P ((attribute_t, int *)), void *));
 extern int attribute_is_equal       __P ((attribute_t att1, attribute_t att2));
 
 extern int attribute_copy           __P ((attribute_t dst,
 					  attribute_t src));
 
-extern int string_to_attribute      __P ((const char *buf,
-					  attribute_t *pattr));
-extern int attribute_to_string      __P ((attribute_t attr, char *buf,
+extern int string_to_flags          __P ((const char *buf, int *pattr));
+extern int flags_to_string          __P ((int flags, char *buf,
 					  size_t len, size_t *));
 
 #ifdef __cplusplus

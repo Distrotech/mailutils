@@ -20,7 +20,7 @@
 # include "config.h"
 #endif
 
-#include <header.h>
+#include <header0.h>
 #include <io0.h>
 #include <string.h>
 #include <stdlib.h>
@@ -33,30 +33,6 @@ static int header_read (stream_t is, char *buf, size_t buflen,
 static int header_write (stream_t os, const char *buf, size_t buflen,
 			 off_t off, size_t *pnwrite);
 
-struct _hdr
-{
-  char *fn;
-  char *fn_end;
-  char *fv;
-  char *fv_end;
-};
-
-struct _header
-{
-  /* Owner.  */
-  void *owner;
-  /* Data.  */
-  char *blurb;
-  size_t blurb_len;
-  size_t hdr_count;
-  struct _hdr *hdr;
-
-  /* Streams.  */
-  stream_t stream;
-  int (*_get_value) __P ((header_t, const char *, char *, size_t , size_t *));
-
-};
-
 int
 header_create (header_t *ph, const char *blurb, size_t len, void *owner)
 {
@@ -66,6 +42,7 @@ header_create (header_t *ph, const char *blurb, size_t len, void *owner)
     return ENOMEM;
   h->owner = owner;
 
+  /* Ignore the return value.  */
   header_parse (h, blurb, len);
 
   *ph = h;
@@ -83,8 +60,10 @@ header_destroy (header_t *ph, void *owner)
       if (h->owner == owner)
 	{
 	  stream_destroy (&(h->stream), h);
-	  free (h->hdr);
-	  free (h->blurb);
+	  if (h->hdr)
+	    free (h->hdr);
+	  if (h->blurb)
+	    free (h->blurb);
 	  free (h);
 	}
       *ph = NULL;
@@ -207,8 +186,7 @@ header_parse (header_t header, const char *blurb, int len)
 }
 
 /* FIXME: grossly inneficient, to many copies and reallocating.
- * This all header business need a good rewrite.
- */
+   This all header business need a good rewrite.  */
 int
 header_set_value (header_t header, const char *fn, const char *fv, int replace)
 {
@@ -218,11 +196,14 @@ header_set_value (header_t header, const char *fn, const char *fv, int replace)
   if (header == NULL || fn == NULL || fv == NULL)
     return EINVAL;
 
-  /* Easy approach: if replace, overwrite the field-{namve,value}
-     and readjust the pointers by calling header_parse ()
-     this is wastefull, we're just fragmenting the memory
-     it can be done better.  But that may imply a rewite of the headers
-     So for another day.  */
+  /* Try to fill out the buffer, if we know how.  */
+  if (header->_set_value != NULL)
+    return header->_set_value (header, fn, fv, replace);
+
+  /* Easy approach: if replace, overwrite the field-{name,value} and readjust
+     the pointers by calling header_parse () this is wastefull, we're just
+     fragmenting the memory it can be done better.  But that may imply a
+     rewite of the headers So for another day.  */
   if (replace)
     {
       size_t name_len;
@@ -251,8 +232,8 @@ header_set_value (header_t header, const char *fn, const char *fv, int replace)
 	}
     }
 
-  /* Replacing was taking care of above now just add to
-     the end the new header.  Really not cute.  */
+  /* Replacing was taking care of above now just add to the end the new
+     header.  Really not cute.  */
   len = strlen (fn) + strlen (fv) + 1 + 1 + 1 + 1;
   blurb = calloc (header->blurb_len + len, 1);
   if (blurb == NULL)
@@ -266,20 +247,6 @@ header_set_value (header_t header, const char *fn, const char *fv, int replace)
 }
 
 int
-header_set_get_value (header_t header, int (*_get_value)
-		     (header_t, const char *, char *, size_t, size_t *),
-		     void *owner)
-{
-  if (header == NULL)
-    return EINVAL;
-  if (header->owner != owner)
-    return EACCES;
-
-  header->_get_value = _get_value;
-  return 0;
-}
-
-int
 header_get_value (header_t header, const char *name, char *buffer,
 		  size_t buflen, size_t *pn)
 {
@@ -287,20 +254,61 @@ header_get_value (header_t header, const char *name, char *buffer,
   size_t name_len;
   size_t total = 0, fn_len = 0, fv_len = 0;
   int threshold;
+  int err = 0;
 
   if (header == NULL || name == NULL)
     return EINVAL;
 
+  if (header->_get_value != NULL)
+    return header->_get_value (header, name, buffer, buflen, pn);
+
+  /* Try to fill out the buffer, if we know how.  */
+  if (header->blurb == NULL)
+    {
+      stream_t is;
+      err = header_get_stream (header, &is);
+      if (err != 0)
+	return err;
+      else
+	{
+	  char buf[1024];
+	  char *tbuf;
+	  size_t nread = 0;
+	  do
+	    {
+	      err = stream_read (is, buf, sizeof (buf), header->temp_blurb_len,
+				 &nread);
+	      if (err != 0
+		  || (tbuf = realloc (header->temp_blurb,
+				      header->temp_blurb_len + nread)) == NULL)
+		{
+		  free (header->temp_blurb);
+		  header->temp_blurb = NULL;
+		  header->temp_blurb_len = 0;
+		  return err;
+		}
+	      else
+		header->temp_blurb = tbuf;
+	      memcpy (header->temp_blurb + header->temp_blurb_len, buf, nread);
+	      header->temp_blurb_len += nread;
+	    } while (nread != 0);
+	  /* parse it. */
+	  header_parse (header, header->temp_blurb, header->temp_blurb_len);
+	  free (header->temp_blurb);
+	  header->temp_blurb = NULL;
+	  header->temp_blurb_len = 0;
+	}
+    }
+
   /* We set the threshold to be 1 less for the null.  */
   threshold = --buflen;
 
-  /* Caution: We may have more then one value for a field
-     name, for example a "Received" field-name is added by
-     each passing MTA.  The way that the parsing (_parse())
-     is done it's not take to account.  So we just stuff in
-     the buffer all the field-values to a corresponding field-name.
-     FIXME: Should we kosher the output ? meaning replace
-     occurences of " \t\r\n" for spaces ? for now we don't.  */
+  /* Caution: We may have more then one value for a field name, for example
+     a "Received" field-name is added by each passing MTA.  The way that the
+     parsing (_parse()) is done it's not take to account.  So we just stuff
+     in the buffer all the field-values to a corresponding field-name.
+     FIXME: Should we kosher the output ? meaning replace occurences of
+     " \t\r\n" for spaces ? for now we don't.  */
   for (name_len = strlen (name), i = 0; i < header->hdr_count; i++)
     {
       fn_len = header->hdr[i].fn_end - header->hdr[i].fn;
@@ -332,48 +340,35 @@ header_get_value (header_t header, const char *name, char *buffer,
     *buffer = '\0'; /* Null terminated.  */
   if (pn)
     *pn = total;
+
+  /* Check if they provided a hook.  */
   if (total == 0)
     {
-      int err = ENOENT;
-      /* Check if they provided a hook.  */
+      err = ENOENT;
       if (header->_get_value != NULL)
 	err = header->_get_value (header, name, buffer, buflen, pn);
-      /* Cache it locally.  */
+      /* Success.  Cache it locally.  */
       if (err == 0)
 	header_set_value (header, name, buffer, 0);
-      return err;
     }
-  return 0;
-}
-
-int
-header_entry_count (header_t header, size_t *pnum)
-{
-  if (header == NULL)
-    {
-      if (pnum)
-	*pnum = 0;
-      return EINVAL;
-    }
-  if (pnum)
-    *pnum = header->hdr_count;
-  return 0;
+  return err;
 }
 
 int
 header_lines (header_t header, size_t *plines)
 {
   int n;
-  size_t t = 0;
+  size_t lines = 0;
   if (header == NULL)
     return EINVAL;
+
   for (n = header->blurb_len - 1; n >= 0; n--)
     {
       if (header->blurb[n] == '\n')
-	t++;
+	lines++;
     }
   if (plines)
-    *plines = t;
+    *plines = lines;
   return 0;
 }
 
@@ -382,56 +377,49 @@ header_size (header_t header, size_t *pnum)
 {
   if (header == NULL)
       return EINVAL;
+
   if (pnum)
     *pnum = header->blurb_len;
   return 0;
 }
 
 int
-header_entry_name (header_t header, size_t num, char *buf,
-		   size_t buflen, size_t *nwritten)
+header_set_get_value (header_t header, int (*_get_value)
+		     (header_t, const char *, char *, size_t, size_t *),
+		     void *owner)
 {
-  size_t len;
   if (header == NULL)
     return EINVAL;
-  if (header->hdr_count == 0 || num > header->hdr_count)
-    return ENOENT;
-  len = header->hdr[num].fn_end - header->hdr[num].fn;
-  /* save one for the null */
-  --buflen;
-  if (buf && buflen > 0)
-    {
-      buflen = (len > buflen) ? buflen : len;
-      memcpy (buf, header->hdr[num].fn, buflen);
-      buf[buflen] = '\0';
-    }
-  if (nwritten)
-    *nwritten = len;
+  if (header->owner != owner)
+    return EACCES;
+  header->_get_value = _get_value;
   return 0;
 }
 
 int
-header_entry_value (header_t header, size_t num, char *buf,
-		    size_t buflen, size_t *nwritten)
+header_set_set_value (header_t header, int (*_set_value)
+		      (header_t , const char *, const char *, int),
+		      void *owner)
 {
-  size_t len;
   if (header == NULL)
     return EINVAL;
-  if (header->hdr_count == 0 || num > header->hdr_count)
-    return ENOENT;
-  len = header->hdr[num].fv_end - header->hdr[num].fv;
-  /* Save one for the null.  */
-  --buflen;
-  if (buf && buflen > 0)
-    {
-      buflen = (len > buflen) ? buflen : len;
-      memcpy (buf, header->hdr[num].fv, buflen);
-      buf[buflen] = '\0';
-    }
-  if (nwritten)
-    *nwritten = len;
+  if (header->owner != owner)
+    return EACCES;
+  header->_set_value = _set_value;
   return 0;
 }
+
+int
+header_set_stream (header_t header, stream_t stream, void *owner)
+{
+  if (header == NULL)
+    return EINVAL;
+  if (header->owner != owner)
+    return EACCES;
+  header->stream = stream;
+  return 0;
+}
+
 
 static int
 header_write (stream_t os, const char *buf, size_t buflen,

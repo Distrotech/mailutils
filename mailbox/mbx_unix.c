@@ -49,57 +49,57 @@
 #include <ctype.h>
 #include <limits.h>
 
-static int mailbox_unix_create (mailbox_t *pmbox, const char *name);
-static void mailbox_unix_destroy (mailbox_t *pmbox);
+#define ATTRIBUTE_IS_DELETED(flag)        (flag & MU_ATTRIBUTE_DELETED)
+#define ATTRIBUTE_IS_EQUAL(flag1, flag2)  (flag1 == flag2)
+
+static int unix_create (mailbox_t *pmbox, const char *name);
+static void unix_destroy (mailbox_t *pmbox);
 
 struct mailbox_registrar _mailbox_unix_registrar =
 {
   "UNIX MBOX",
-  mailbox_unix_create, mailbox_unix_destroy
+  unix_create, unix_destroy
 };
 
-/*
- * Keep the position of where the header and body starts
- * and ends. old_attr is the "Status:" message.
- */
-typedef struct _mailbox_unix_message
+/* Keep the position of where the header and body starts and ends.
+   old_flags is the "Status:" message.  */
+typedef struct _unix_message
 {
-  /* offset of the parts of the messages in the mailbox*/
+  /* Offset of the parts of the messages in the mailbox.  */
   off_t header_from;
   off_t header_from_end;
-  /* little hack to make things easier
-   * when updating the attribute
-   */
+  /* Little hack to make things easier * when updating the attribute.  */
   off_t header_status;
   off_t header_status_end;
   off_t body;
   off_t body_end;
 
-  /* old_attr contains the definition of Header: */
-  /* new_attr what we want when expunging */
-  attribute_t old_attr;
-  attribute_t new_attr;
+  /* The old_flags contains the definition of Header.  */
+  int old_flags;
+  /* The new_flags holds the attributes changes for the current session. We
+     use this so when expunging we can tell when an attribute been modified.
+     This is a big help so we can jump to the first modify email for speed
+     in expunging (see mark dirty).  */
+  int new_flags;
 
   size_t header_lines;
   size_t body_lines;
   stream_t stream;
 
-  /* if we have a message attach to it */
+  /* A message attach to it.  */
   message_t message;
 
-} *mailbox_unix_message_t;
+} *unix_message_t;
 
-/*
- * umessages is an array of pointers that contains umessages_count
- * of mailbox_unix_message_t*; umessages[umessages_count].
- * We do it this because realloc() can move everything to
- * a new memory region and invalidating all the pointers someone
- * has on the messages.  Thanks to <Dave Inglis> for pointing this out.
- * messages_count is the count number of messages parsed so far.
- */
-typedef struct _mailbox_unix_data
+/* The umessages is an array of pointers that contains umessages_count of
+   unix_message_t*; umessages[umessages_count].  We do it this because
+   realloc() can move everything to a new memory region and invalidating all
+   the pointers someone has on the messages.  Thanks to <Dave Inglis> for
+   pointing this out.  The messages_count is the count number of messages
+   parsed so far.  */
+typedef struct _unix_data
 {
-  mailbox_unix_message_t *umessages;
+  unix_message_t *umessages;
   size_t umessages_count;
   size_t messages_count;
   stream_t stream;
@@ -110,59 +110,55 @@ typedef struct _mailbox_unix_data
 #endif
   off_t size;
 
-} *mailbox_unix_data_t;
+} *unix_data_t;
 
-static int mailbox_unix_open (mailbox_t mbox, int flag);
-static int mailbox_unix_close (mailbox_t mbox);
-
-static int mailbox_unix_get_message (mailbox_t, size_t msgno, message_t *msg);
-static int mailbox_unix_append_message (mailbox_t, message_t msg);
-static int mailbox_unix_messages_count (mailbox_t, size_t *msgno);
-static int mailbox_unix_expunge (mailbox_t);
-static int mailbox_unix_num_deleted (mailbox_t, size_t *);
-
-static int mailbox_unix_scan0 (mailbox_t, size_t count, size_t *pcount, int);
-static int mailbox_unix_scan (mailbox_t, size_t count, size_t *pcount);
-static int mailbox_unix_is_updated (mailbox_t);
-
-static int mailbox_unix_size (mailbox_t, off_t *size);
+static int unix_open (mailbox_t mbox, int flag);
+static int unix_close (mailbox_t mbox);
+static int unix_get_message (mailbox_t, size_t msgno, message_t *msg);
+static int unix_append_message (mailbox_t, message_t msg);
+static int unix_messages_count (mailbox_t, size_t *msgno);
+static int unix_expunge (mailbox_t);
+static int unix_num_deleted (mailbox_t, size_t *);
+static int unix_scan (mailbox_t, size_t count, size_t *pcount);
+static int unix_is_updated (mailbox_t);
+static int unix_size (mailbox_t, off_t *size);
 
 
 /* private stuff */
-
-static int mailbox_unix_get_header (mailbox_unix_message_t mum, char *buffer,
-				    size_t len, off_t off, ssize_t *pnread);
-static int mailbox_unix_getfd (stream_t is, int *pfd);
-static int mailbox_unix_readstream (stream_t is, char *buffer, size_t buflen,
+static int unix_scan0 (mailbox_t, size_t count, size_t *pcount, int);
+static int unix_get_header_read (stream_t is, char *buffer, size_t len,
+				 off_t off, size_t *pnread);
+static int unix_get_fd (stream_t is, int *pfd);
+static int unix_get_flags (attribute_t, int *);
+static int unix_set_flags (attribute_t, int);
+static int unix_unset_flags (attribute_t, int);
+static int unix_readstream (stream_t is, char *buffer, size_t buflen,
 				    off_t off, size_t *pnread);
-static int mailbox_unix_body_size (body_t body, size_t *psize);
-static int mailbox_unix_body_lines (body_t body, size_t *plines);
-static int mailbox_unix_msg_from (message_t msg, char *buf, size_t len,
+static int unix_body_size (body_t body, size_t *psize);
+static int unix_body_lines (body_t body, size_t *plines);
+static int unix_msg_from (message_t msg, char *buf, size_t len,
 				  size_t *pnwrite);
-static int mailbox_unix_msg_received (message_t msg, char *buf, size_t len,
+static int unix_msg_received (message_t msg, char *buf, size_t len,
 				      size_t *pnwrite);
-static int mailbox_unix_lock (mailbox_t mbox, int flag);
-static int mailbox_unix_touchlock (mailbox_t mbox);
-static int mailbox_unix_unlock (mailbox_t mbox);
-static int mailbox_unix_ilock (mailbox_t mbox, int flag);
-static int mailbox_unix_iunlock (mailbox_t mbox);
+static int unix_lock (mailbox_t mbox, int flag);
+static int unix_touchlock (mailbox_t mbox);
+static int unix_unlock (mailbox_t mbox);
+static int unix_ilock (mailbox_t mbox, int flag);
+static int unix_iunlock (mailbox_t mbox);
 
-/* We allocate the mailbox_t struct, but don't do any
- * parsing on the name or even test for existence.
- * However we do strip any leading "unix:" part of
- * the name, this is suppose to be the protocol/scheme name.
- * Hopefully there will not be a mailbox name "unix:"
- */
+/* We allocate the mailbox_t struct, but don't do any parsing on the name or
+   even test for existence.  However we do strip any leading "unix:" part of
+   the name, this is suppose to be the protocol/scheme name. Hopefully there
+   will not be a mailbox name "unix:".  */
 static int
-mailbox_unix_create (mailbox_t *pmbox, const char *name)
+unix_create (mailbox_t *pmbox, const char *name)
 {
   mailbox_t mbox;
-  mailbox_unix_data_t mud;
+  unix_data_t mud;
   const char *sep;
   size_t name_len;
-  int i;
 
-  /* sanity check */
+  /* Sanity check.  */
   if (name == NULL || *name == '\0')
     return MU_ERROR_INVALID_ARG;
 
@@ -172,7 +168,7 @@ mailbox_unix_create (mailbox_t *pmbox, const char *name)
 #define UNIX_SCHEME_LEN 5
 #define SEPARATOR '/'
 
-  /* skip the url scheme */
+  /* Skip the url scheme.  */
   if (name_len > UNIX_SCHEME_LEN &&
       (name[0] == 'u' || name[0] == 'U') &&
       (name[1] == 'n' || name[1] == 'N') &&
@@ -184,50 +180,38 @@ mailbox_unix_create (mailbox_t *pmbox, const char *name)
       name_len -= UNIX_SCHEME_LEN;
     }
 
-  /* allocate memory for mbox */
+  /* Allocate memory for mbox.  */
   mbox = calloc (1, sizeof (*mbox));
   if (mbox == NULL)
     return MU_ERROR_OUT_OF_MEMORY;
 
-  /* allocate specific unix mbox data */
+  /* Allocate specific unix mbox data.  */
   mud = mbox->data = calloc (1, sizeof (*mud));
   if (mbox->data == NULL)
     {
-      mailbox_unix_destroy (&mbox);
+      unix_destroy (&mbox);
       return MU_ERROR_OUT_OF_MEMORY;
     }
 
-  /* copy the name */
+  /* Copy the name.  */
   mbox->name = calloc (name_len + 1, sizeof (char));
   if (mbox->name == NULL)
     {
-      mailbox_unix_destroy (&mbox);
+      unix_destroy (&mbox);
       return MU_ERROR_OUT_OF_MEMORY;
     }
   memcpy (mbox->name, name, name_len);
 
-  /* save the basename and dirname
-   * So we split the name.  But this should probably be
-   * supported via "maildir:" or the mailbox mgr.
-   */
-  /* equivalent to strrchr (name, '/'); */
-  for (i = name_len, sep = NULL; i >= 0; i--)
-    {
-      /* break on the first separator */
-      if (name[i] == SEPARATOR)
-	{
-	  sep = &(name[i]);
-	  break;
-	}
-    }
-
+  /* Save the basename and dirname.  We split the name, but this should
+     probably be supported via "maildir:" or the mailbox mgr.  */
+  sep = strrchr (name, SEPARATOR);
   if (sep)
     {
-      /* split it into two */
+      /* Split it into two.  */
       mud->dirname = calloc ((sep - name) + 1, sizeof (char));
       if (mud->dirname == NULL)
 	{
-	  mailbox_unix_destroy (&mbox);
+	  unix_destroy (&mbox);
 	  return MU_ERROR_OUT_OF_MEMORY;
 	}
       memcpy (mud->dirname, name, sep - name);
@@ -236,19 +220,19 @@ mailbox_unix_create (mailbox_t *pmbox, const char *name)
       mud->basename = calloc (name_len - (sep - name) + 1, sizeof (char));
       if (mud->basename == NULL)
 	{
-	  mailbox_unix_destroy (&mbox);
+	  unix_destroy (&mbox);
 	  return MU_ERROR_OUT_OF_MEMORY;
 	}
       memcpy (mud->basename, sep, name_len - (sep - name));
     }
   else
     {
-      /* use the relative directory "." */
-      /* FIXME: should we call getcwd() instead ? */
+      /* Use the relative directory ".".  */
+      /* FIXME: should we call getcwd () instead ?  */
       mud->dirname = calloc (2 , sizeof (char));
       if (mud->dirname == NULL)
 	{
-	  mailbox_unix_destroy (&mbox);
+	  unix_destroy (&mbox);
 	  return MU_ERROR_OUT_OF_MEMORY;
 	}
       mud->dirname[0] = '.';
@@ -256,37 +240,37 @@ mailbox_unix_create (mailbox_t *pmbox, const char *name)
       mud->basename = calloc (name_len + 1, sizeof (char));
       if (mud->basename == NULL)
 	{
-	  mailbox_unix_destroy (&mbox);
+	  unix_destroy (&mbox);
 	  return MU_ERROR_OUT_OF_MEMORY;
 	}
       memcpy (mud->basename, name, name_len);
     }
 
 #ifdef HAVE_PHTREAD_H
-  /* mutex when accessing the structure fields */
-  /* FIXME: should we use rdwr locks instead ?? */
+  /* Mutex when accessing the structure fields.  */
+  /* FIXME: should we use rdwr locks instead ??  */
   pthread_mutex_init (&(mbox->mutex), NULL);
 #endif
 
-  mbox->_create = mailbox_unix_create;
-  mbox->_destroy = mailbox_unix_destroy;
+  mbox->_create = unix_create;
+  mbox->_destroy = unix_destroy;
 
-  mbox->_open = mailbox_unix_open;
-  mbox->_close = mailbox_unix_close;
+  mbox->_open = unix_open;
+  mbox->_close = unix_close;
 
-  /* messages */
-  mbox->_get_message = mailbox_unix_get_message;
-  mbox->_append_message = mailbox_unix_append_message;
-  mbox->_messages_count = mailbox_unix_messages_count;
-  mbox->_expunge = mailbox_unix_expunge;
-  mbox->_num_deleted = mailbox_unix_num_deleted;
+  /* Messages.  */
+  mbox->_get_message = unix_get_message;
+  mbox->_append_message = unix_append_message;
+  mbox->_messages_count = unix_messages_count;
+  mbox->_expunge = unix_expunge;
+  mbox->_num_deleted = unix_num_deleted;
 
-  mbox->_scan = mailbox_unix_scan;
-  mbox->_is_updated = mailbox_unix_is_updated;
+  mbox->_scan = unix_scan;
+  mbox->_is_updated = unix_is_updated;
 
-  mbox->_size = mailbox_unix_size;
+  mbox->_size = unix_size;
 
-  mailbox_debug (mbox, MU_MAILBOX_DEBUG_TRACE, "mailbox_unix_create (%s/%s)\n",
+  mailbox_debug (mbox, MU_MAILBOX_DEBUG_TRACE, "unix_create (%s/%s)\n",
 		 mud->dirname, mud->basename);
   (*pmbox) = mbox;
 
@@ -294,40 +278,37 @@ mailbox_unix_create (mailbox_t *pmbox, const char *name)
 }
 
 static void
-mailbox_unix_destroy (mailbox_t *pmbox)
+unix_destroy (mailbox_t *pmbox)
 {
   if (pmbox && *pmbox)
     {
       mailbox_t mbox = *pmbox;
-      mailbox_unix_close (mbox);
+      unix_close (mbox);
       if (mbox->data)
 	{
 	  size_t i;
-	  mailbox_unix_data_t mud = mbox->data;
+	  unix_data_t mud = mbox->data;
 	  mailbox_debug (mbox, MU_MAILBOX_DEBUG_TRACE,
-			 "mailbox_unix_destroy (%s/%s)\n",
+			 "unix_destroy (%s/%s)\n",
 			 mud->dirname, mud->basename);
 	  free (mud->dirname);
 	  free (mud->basename);
 	  for (i = 0; i < mud->umessages_count; i++)
 	    {
-	      mailbox_unix_message_t mum = mud->umessages[i];
+	      unix_message_t mum = mud->umessages[i];
 	      if (mum == NULL)
-		continue;
-	      /* Destroy the attach messages */
-	      attribute_destroy (&(mum->old_attr));
-              message_destroy (&(mum->message), mum);
-	      /* new_attr free by message_destroy() */
-	      /* attribute_destroy (&(mum->new_attr)); */
-	      free (mum);
+		{
+		  message_destroy (&(mum->message), mum);
+		  free (mum);
+		}
 	    }
 	  free (mud->umessages);
 	  free (mbox->data);
 	}
       free (mbox->name);
-      /* free the event array */
+      /* Free the event array.  */
       free (mbox->event);
-      /* destroy the url */
+      /* Destroy the url.  */
       if (mbox->url)
 	url_destroy (&(mbox->url));
       if  (mbox->locker)
@@ -336,38 +317,38 @@ mailbox_unix_destroy (mailbox_t *pmbox)
 	auth_destroy (&(mbox->auth), mbox);
       if(mbox->stream)
 	stream_destroy (&(mbox->stream), mbox);
-      mailbox_unix_iunlock (mbox);
+      unix_iunlock (mbox);
 #ifdef HAVE_PTHREAD_H
       if (mbox->mutex)
 	ptread_mutex_destroy (&(mbox->mutex));
 #endif
-      free (*pmbox);
+      free (mbox);
       *pmbox = NULL;
     }
 }
 
-/* Open the file. */
+/* Open the file.  */
 static int
-mailbox_unix_open (mailbox_t mbox, int flags)
+unix_open (mailbox_t mbox, int flags)
 {
-  mailbox_unix_data_t mud;
+  unix_data_t mud;
   int status = 0;
 
   if (mbox == NULL ||
-      (mud = (mailbox_unix_data_t)mbox->data) == NULL)
+      (mud = (unix_data_t)mbox->data) == NULL)
     return EINVAL;
 
-  /* Authentication prologues */
+  /* Authentication prologues.  */
   if (mbox->auth)
     auth_prologue (mbox->auth);
 
-  /* get a stream */
+  /* Get a stream.  */
   if (mbox->stream == NULL)
     {
-      /* FIXME: for small mbox we shout try to mmap() */
+      /* FIXME: for small mbox we shout try to mmap ().  */
 
-      status = (flags & MU_STREAM_CREAT) || (flags & MU_STREAM_APPEND);
-      if (status == 0)
+      int trymap = (flags & MU_STREAM_CREAT) || (flags & MU_STREAM_APPEND);
+      if (trymap == 0)
 	status = mapfile_stream_create (&(mbox->stream));
       if (status != 0)
 	{
@@ -377,76 +358,55 @@ mailbox_unix_open (mailbox_t mbox, int flags)
 	}
       status = stream_open (mbox->stream, mbox->name, 0, flags);
       if (status != 0)
-	{
-	  stream_destroy (&(mbox->stream), mbox);
-	  return status;
-	}
+	return status;
     }
   else
     {
       status = stream_open (mbox->stream, mbox->name, 0, flags);
       if (status != 0)
-	{
-	  stream_destroy (&(mbox->stream), mbox);
-	  return status;
-	}
-    }
-
-  /* Authentication */
-  if (mbox->auth)
-    {
-      char *user = NULL;
-      char *passwd = NULL;
-      status = auth_authenticate (mbox->auth, &user, &passwd);
-      free (user);
-      free (passwd);
-      if (status != 0)
 	return status;
     }
 
-  /* Authentication epilogues */
+  /* Authentication epilogue.  */
   if (mbox->auth)
     auth_epilogue (mbox->auth);
 
-  mailbox_debug (mbox, MU_MAILBOX_DEBUG_TRACE, "mailbox_unix_open(%s, %d)\n",
+  mailbox_debug (mbox, MU_MAILBOX_DEBUG_TRACE, "unix_open(%s, %d)\n",
 		 mbox->name, flags);
-  /* give an appopriate way to lock */
+
+  /* Give an appopriate way to lock.  */
   if (mbox->locker == NULL)
-    locker_create (&(mbox->locker), mbox->name,
-		   strlen (mbox->name), MU_LOCKER_PID | MU_LOCKER_FCNTL);
+    locker_create (&(mbox->locker), mbox->name, strlen (mbox->name),
+		   MU_LOCKER_PID | MU_LOCKER_FCNTL);
   return 0;
 }
 
 static int
-mailbox_unix_close (mailbox_t mbox)
+unix_close (mailbox_t mbox)
 {
-  mailbox_unix_data_t mud;
+  unix_data_t mud;
   size_t i;
 
-  if (mbox == NULL ||
-      (mud = (mailbox_unix_data_t)mbox->data) == NULL)
+  if (mbox == NULL || (mud = (unix_data_t)mbox->data) == NULL)
     return EINVAL;
 
-  /* make sure we do not hold any lock for that file */
-  mailbox_unix_unlock (mbox);
-  mailbox_debug (mbox, MU_MAILBOX_DEBUG_TRACE,  "mailbox_unix_close(%s)\n",
+  /* Make sure we do not hold any lock for that file.  */
+  unix_unlock (mbox);
+  mailbox_debug (mbox, MU_MAILBOX_DEBUG_TRACE,  "unix_close(%s)\n",
 		 mbox->name);
 
-  /* before closing we need to remove all the messages
-   * - to reclaim the memory
-   * - to prepare for another scan.
-   */
+  /* Before closing we need to remove all the messages
+     - to reclaim the memory
+     - to prepare for another scan.  */
   for (i = 0; i < mud->umessages_count; i++)
     {
-      mailbox_unix_message_t mum = mud->umessages[i];
+      unix_message_t mum = mud->umessages[i];
+      /* Destroy the attach messages.  */
       if (mum == NULL)
-	continue;
-      /* Destroy the attach messages */
-      attribute_destroy (&(mum->old_attr));
-      message_destroy (&(mum->message), mum);
-      /* new_attr free by message_destroy() */
-      /* attribute_destroy (&(mum->new_attr)); */
-      free (mum);
+	{
+	  message_destroy (&(mum->message), mum);
+	  free (mum);
+	}
     }
   free (mud->umessages);
   mud->umessages = NULL;
@@ -455,30 +415,26 @@ mailbox_unix_close (mailbox_t mbox)
   return stream_close (mbox->stream);
 }
 
-/* Mailbox Parsing */
+/* Mailbox Parsing.  */
 #include "mbx_unixscan.c"
 
 static int
-mailbox_unix_scan (mailbox_t mbox, size_t msgno, size_t *pcount)
+unix_scan (mailbox_t mbox, size_t msgno, size_t *pcount)
 {
-  mailbox_debug (mbox, MU_MAILBOX_DEBUG_TRACE, "mailbox_unix_scan(%s)\n",
-		 mbox->name);
-  return mailbox_unix_scan0 (mbox, msgno, pcount, 1);
+  mailbox_debug (mbox, MU_MAILBOX_DEBUG_TRACE, "unix_scan(%s)\n", mbox->name);
+  return unix_scan0 (mbox, msgno, pcount, 1);
 }
 
 
-/* FIXME:  How to handle a shrink ? meaning, the &^$^@%#@^& user
- * start two browsers and delete files in one.  My views
- * is that we should scream bloody murder and hunt them with
- * a machette.
- */
+/* FIXME:  How to handle a shrink ? meaning, the &^$^@%#@^& user start two
+   browsers and delete files in one.  My views is that we should scream
+   bloody murder and hunt them with a machette.  */
 static int
-mailbox_unix_is_updated (mailbox_t mbox)
+unix_is_updated (mailbox_t mbox)
 {
   off_t size;
-  mailbox_unix_data_t mud;
-  if (mbox == NULL ||
-      (mud = (mailbox_unix_data_t) mbox->data) == NULL)
+  unix_data_t mud;
+  if (mbox == NULL || (mud = (unix_data_t) mbox->data) == NULL)
     return EINVAL;
   if (stream_size (mbox->stream, &size) != 0)
     return 0;
@@ -486,18 +442,17 @@ mailbox_unix_is_updated (mailbox_t mbox)
 }
 
 static int
-mailbox_unix_num_deleted (mailbox_t mbox, size_t *pnum)
+unix_num_deleted (mailbox_t mbox, size_t *pnum)
 {
-  mailbox_unix_data_t mud;
-  mailbox_unix_message_t mum;
+  unix_data_t mud;
+  unix_message_t mum;
   size_t i, total;
-  if (mbox == NULL ||
-      (mud = (mailbox_unix_data_t) mbox->data) == NULL)
+  if (mbox == NULL || (mud = (unix_data_t) mbox->data) == NULL)
     return EINVAL;
   for (i = total = 0; i < mud->messages_count; i++)
     {
       mum = mud->umessages[i];
-      if (attribute_is_deleted (mum->new_attr))
+      if (ATTRIBUTE_IS_DELETED (mum->new_flags))
 	total++;
     }
 
@@ -506,42 +461,41 @@ mailbox_unix_num_deleted (mailbox_t mbox, size_t *pnum)
   return 0;
 }
 
-/*
-  FIXME: the use of tmpfile() on some system can lead to
-  race condition, We should use a safer approach.
-  We take a very naive approach for this, it involves unfortunately
-  two copies.
-*/
+/* FIXME: the use of tmpfile() on some system can lead to race condition, We
+   should use a safer approach. We take a very naive approach for this, it
+   involves unfortunately two copies.  */
 static FILE *
-mailbox_unix_tmpfile (mailbox_t mbox, char **pbox)
+unix_tmpfile (mailbox_t mbox, char **pbox)
 {
-  mailbox_unix_data_t mud = (mailbox_unix_data_t)mbox->data;
+  const char *tmpdir;
   int fd;
   FILE *fp;
+  unix_data_t mud = (unix_data_t)mbox->data;
 
+  /*  P_tmpdir should be define in <stdio.h>.  */
 #ifndef P_tmpdir
-# define P_tmpdir "/tmp"
+#  define P_tmpdir "/tmp"
 #endif
 
-  *pbox = calloc (1, strlen (P_tmpdir) + strlen ("MBOX_") +
-		   strlen (mud->basename) + 1);
+  tmpdir =  getenv ("TEMPDIR") ? getenv ("TEMPDIR") : P_tmpdir;
+  *pbox = calloc (1, strlen (tmpdir) + strlen ("MBOX_") +
+		  strlen (mud->basename) + 1);
   if (*pbox == NULL)
     return NULL;
-  sprintf (*pbox, "%s/%s%s", P_tmpdir, "MBOX_", mud->basename);
+  sprintf (*pbox, "%s/%s%s", tmpdir, "MBOX_", mud->basename);
 
-  /* FIXME:  I don't think this is the righ approach
-   * Creating an anonymous file would be better ?
-   * no trace left behind.
-   */
-  /* Create the file.  It must not exist.  If it does exist, fail. */
-  fd = open(*pbox, O_RDWR|O_CREAT|O_EXCL, 0600);
+  /* FIXME:  I don't think this is the righ approach, creating an anonymous
+     file would be better ?  no trace left behind.  */
+  /* Create the file.  It must not exist.  If it does exist, fail.  */
+  fd = open (*pbox, O_RDWR|O_CREAT|O_EXCL, 0600);
   if (fd < 0)
     {
-      fprintf(stderr,"Can't create %s\n", *pbox);
-      fprintf(stderr,"delete file <%s>, Please\n", *pbox);
+      fprintf (stderr,"Can't create %s\n", *pbox);
+      fprintf (stderr,"delete file <%s>, Please\n", *pbox);
+      fprintf (stderr, "It was likely due to an error when expunging\n");
       return NULL;
     }
-  fp = fdopen(fd, "w+");
+  fp = fdopen (fd, "w+");
   if (fp == 0)
     {
       close(fd);
@@ -549,16 +503,16 @@ mailbox_unix_tmpfile (mailbox_t mbox, char **pbox)
       *pbox = NULL;
     }
 
-  /* really I should just remove the file here */
+  /* Really I should just remove the file here.  */
   /* remove(*pbox); */
   return fp;
 }
 
 static int
-mailbox_unix_expunge (mailbox_t mbox)
+unix_expunge (mailbox_t mbox)
 {
-  mailbox_unix_data_t mud;
-  mailbox_unix_message_t mum;
+  unix_data_t mud;
+  unix_message_t mum;
   int status = 0;
   sigset_t sigset;
   FILE *tempfile;
@@ -569,74 +523,65 @@ mailbox_unix_expunge (mailbox_t mbox)
   char buffer [BUFSIZ];
   char *tmpmbox = NULL;
 
-  if (mbox == NULL ||
-      (mud = (mailbox_unix_data_t)mbox->data) == NULL)
+  if (mbox == NULL || (mud = (unix_data_t)mbox->data) == NULL)
     return EINVAL;
 
-  /* noop */
+  /* Noop.  */
   if (mud->messages_count == 0)
     return 0;
 
-  /* Do we have a consistent view of the mailbox */
+  /* Do we have a consistent view of the mailbox.  */
   /* FIXME: this is not enough, we can do better
-   * - by checking the file size and scream bloody murder
-   * if it has shrink.
-   * - if its bigger we should be able to handle it
-   * before the ftruncate() by copying back the new messages.
-   */
-  if (! mailbox_unix_is_updated (mbox))
-    return  EAGAIN;
+     - by checking the file size and scream bloody murder if it has shrink.
+     - if its bigger we should be able to handle it before the ftruncate ()
+     by copying back the new messages.  */
+  if (! unix_is_updated (mbox))
+    {
+      fprintf (stderr, "mailbox is not updated, try again.\n");
+      return  EAGAIN;
+    }
 
-  /* mark dirty the first mail with an attribute change */
+  /* Mark dirty the first mail with an attribute change.  */
   for (dirty = 0; dirty < mud->messages_count; dirty++)
     {
       mum = mud->umessages[dirty];
-      if (mum->new_attr &&
-	  ! attribute_is_equal (mum->old_attr, mum->new_attr))
+      if (mum->new_flags &&
+	  ! ATTRIBUTE_IS_EQUAL (mum->old_flags, mum->new_flags))
 	break;
     }
 
-  /* did something change ? */
+  /* Did something change ?  */
   if (dirty == mud->messages_count)
-    return 0; /* nothing change, bail out */
+    return 0; /* Nothing change, bail out.  */
 
-  mailbox_debug (mbox, MU_MAILBOX_DEBUG_TRACE, "mailbox_unix_expunge (%s)\n",
+  mailbox_debug (mbox, MU_MAILBOX_DEBUG_TRACE, "unix_expunge (%s)\n",
 		 mbox->name);
 
-  /* Send notification to all the listeners
-   * this is redundant, we go to the loop again
-   * But it's more secure here since we don't
-   * want to be disturb when expunging.
-   */
+  /* This is redundant, we go to the loop again.  But it's more secure here
+     since we don't want to be disturb when expunging.  */
   for (j = 0; j < mud->messages_count; j++)
     {
       mum = mud->umessages[j];
-      if (mum && mum->new_attr && attribute_is_deleted (mum->new_attr))
-	{
-	  attribute_t attr;
-	  attribute_create (&attr);
-	  attribute_copy (attr, mum->new_attr);
-	  /* Hack: message_destroy() will free() the attribute, save it */
-	  message_destroy (&(mum->message), mum);
-	  mum->new_attr = attr;
-	}
+      if (mum && mum->new_flags && ATTRIBUTE_IS_DELETED (mum->new_flags))
+	message_destroy (&(mum->message), mum);
     }
 
-  /* create a tempory file */
-  tempfile = mailbox_unix_tmpfile (mbox, &tmpmbox);
+  /* Create a tempory file.  */
+  tempfile = unix_tmpfile (mbox, &tmpmbox);
   if (tempfile == NULL)
     return errno;
 
-  /* Get the lock */
-  if (mailbox_unix_lock (mbox, MU_LOCKER_WRLOCK) < 0)
+  /* Get the lock.  */
+  if (unix_lock (mbox, MU_LOCKER_WRLOCK) < 0)
     {
       fclose (tempfile);
       remove (tmpmbox);
       free (tmpmbox);
+      fprintf (stderr, "Failed to grab the lock\n");
       return ENOLCK;
     }
 
-  /* Critical section, we can not allowed signal here */
+  /* Critical section, we can not allowed signal here.  */
   sigemptyset (&sigset);
   sigaddset (&sigset, SIGTERM);
   sigaddset (&sigset, SIGHUP);
@@ -645,21 +590,21 @@ mailbox_unix_expunge (mailbox_t mbox)
   sigaddset (&sigset, SIGWINCH);
   sigprocmask (SIG_BLOCK, &sigset, 0);
 
-  mailbox_unix_ilock (mbox, MU_LOCKER_RDLOCK);
+  unix_ilock (mbox, MU_LOCKER_RDLOCK);
 
-  /* set the marker position */
+  /* Set the marker position.  */
   total = marker = mud->umessages[dirty]->header_from;
 
-  /* copy to tempfile emails not mark deleted */
+  /* Copy to tempfile emails not mark deleted.  */
   for (first = 1, i = dirty; i < mud->messages_count; i++)
     {
       mum = mud->umessages[i];
 
-      /* skip it, if mark for deletion */
-      if (attribute_is_deleted (mum->new_attr))
+      /* Skip it, if mark for deletion.  */
+      if (ATTRIBUTE_IS_DELETED (mum->new_flags))
 	continue;
 
-      /* add a NL separator between messages */
+      /* Add a NL separator between messages.  */
       if (first)
 	first = 0;
       else
@@ -668,19 +613,18 @@ mailbox_unix_expunge (mailbox_t mbox)
 	  total++;
 	}
 
-      /* Begining of header copy */
+      /* Begining of header copy.  */
       {
 	off_t current;
-	/* This is done in two parts first we check if the attribute
-	 * changed, if yes then we have to update the "Status:" field.
-	 * Unfortunately there is no requirement for the "Status:"
-	 * to be the last field, so we take the long approach;
-	 * Copy up to the Status, update the Status and copy the rest.
-	 */
+	/* This is done in two parts first we check if the attribute changed,
+	   if yes then we have to update the "Status:" field.  Unfortunately
+	   there is no requirement for the "Status:" to be the last field, so
+	   we take the long approach; Copy up to the Status, update the
+	   Status and copy the rest.  */
 
-	/* attribute change ? */
-	if (mum->new_attr
-	    &&! attribute_is_equal (mum->old_attr, mum->new_attr)
+	/* Attribute change ?  */
+	if (mum->new_flags
+	    &&! ATTRIBUTE_IS_EQUAL (mum->old_flags, mum->new_flags)
 	    && mum->header_status > mum->header_from)
 	  {
 	    size_t n = 0;
@@ -696,6 +640,8 @@ mailbox_unix_expunge (mailbox_t mbox)
 		  {
 		    if (status == 0)
 		      status = errno;
+		    fprintf (stderr, "expunge:%d: (%s)\n", __LINE__,
+			     strerror (status));
 		    goto bailout;
 		  }
 		len -= n;
@@ -703,20 +649,20 @@ mailbox_unix_expunge (mailbox_t mbox)
 		offset += n;
 	      }
 
-	    /* put the new attributes */
+	    /* Put the new attributes.  */
 	    {
 	      char abuf[64];
 	      size_t na = 0;
 	      abuf[0] = '\0';
-	      attribute_to_string (mum->new_attr, abuf, sizeof(abuf), &na);
+	      flags_to_string (mum->new_flags, abuf, sizeof(abuf), &na);
 	      fputs (abuf, tempfile);
 	      total += na;
 	    }
 	  }
-	else /* attribute did not change */
+	else /* Attribute did not change.  */
 	  current = mum->header_from;
 
-	/* copy the rest of header without changes */
+	/* Copy the rest of header without changes.  */
 	{
 	  size_t n = 0;
 	  off_t offset = current;
@@ -730,6 +676,8 @@ mailbox_unix_expunge (mailbox_t mbox)
 		{
 		  if (status == 0)
 		    status = errno;
+		  fprintf (stderr, "expunge:%d: %s", __LINE__,
+			   strerror (status));
 		  goto bailout;
 		}
 	      len -= n;
@@ -737,9 +685,9 @@ mailbox_unix_expunge (mailbox_t mbox)
 	      offset += n;
 	    }
 	}
-      } /* end of header copy */
+      } /* End of header copy.  */
 
-      /* copy the body */
+      /* Copy the body.  */
       {
 	size_t n = 0;
 	off_t offset = mum->body;
@@ -753,21 +701,20 @@ mailbox_unix_expunge (mailbox_t mbox)
 	      {
 		if (status == 0)
 		  status = errno;
+		fprintf (stderr, "expunge:%d: %s", __LINE__,
+			 strerror (status));
 		goto bailout;
 	      }
 	    len -= n;
 	    total += n;
 	    offset += n;
 	  }
-      } /* end of body copy */
+      } /* End of body copy.  */
     } /* for (;;) */
 
-  /*
-   * Caution:
-   * before ftruncate()ing the file see if we've receiving new mail
-   * Some program may not respect the lock, or the lock was held
-   * for too long.
-   */
+  /* Caution: before ftruncate()ing the file see if we've receiving new mail
+     Some program may not respect the lock, or the lock was held for too
+     long. */
   {
     off_t size = 0;
     if (stream_size (mbox->stream, &size) == 0)
@@ -784,6 +731,8 @@ mailbox_unix_expunge (mailbox_t mbox)
 	      {
 		if (status == 0)
 		  status = errno;
+		fprintf (stderr, "expunge:%d: %s", __LINE__,
+			 strerror (status));
 		goto bailout;
 	      }
 	    len -= n;
@@ -791,9 +740,9 @@ mailbox_unix_expunge (mailbox_t mbox)
 	    offset += n;
 	  }
       }
-  } /* end of precaution */
+  } /* End of precaution.  */
 
-  /* Seek and rewrite it */
+  /* Seek and rewrite it.  */
   rewind (tempfile);
   if (total > 0)
     {
@@ -813,39 +762,42 @@ mailbox_unix_expunge (mailbox_t mbox)
 	}
     }
 
-  /* how can I handle error here ?? */
+  /* How can I handle error here ??  */
   clearerr (tempfile);
 
-  /* flush/truncation */
+  /* Flush/truncation.  */
   stream_flush (mbox->stream);
   status = stream_truncate (mbox->stream, total);
   if (status != 0)
-    goto bailout;
+    {
+      fprintf (stderr, "expunge:%d: %s", __LINE__,
+	       strerror (status));
+      goto bailout;
+    }
 
-  /* Don't remove the tmp mbox in case of errors */
+  /* Don't remove the tmp mbox in case of errors.  */
   remove (tmpmbox);
 
  bailout:
 
   free (tmpmbox);
-  /* Release the locks */
-  mailbox_unix_unlock (mbox);
-  mailbox_unix_iunlock (mbox);
+  /* Release the locks.  */
+  unix_unlock (mbox);
+  unix_iunlock (mbox);
   fclose (tempfile);
   sigprocmask (SIG_UNBLOCK, &sigset, 0);
 
-  /* we need to readjust the pointers */
+  /* We need to readjust the pointers.  */
   if (status == 0)
     {
       size_t dlast;
       for (j = dirty, dlast = mud->messages_count - 1;
 	   j < mud->messages_count; j++)
 	{
-	  /* clear all the references,
-	   * any attach messages been already destroy above
-	   */
+	  /* Clear all the references, any attach messages been already
+	     destroy above.  */
 	  mum = mud->umessages[j];
-	  if (mum->new_attr && attribute_is_deleted (mum->new_attr))
+	  if (mum->new_flags && ATTRIBUTE_IS_DELETED (mum->new_flags))
 	    {
 	      memmove (mud->umessages + j, mud->umessages + j + 1,
 		       (dlast - dirty) * sizeof (mum));
@@ -853,7 +805,6 @@ mailbox_unix_expunge (mailbox_t mbox)
 	      mum->header_status = mum->header_status_end = 0;
 	      mum->body = mum->body_end = 0;
 	      mum->header_lines = mum->body_lines = 0;
-	      attribute_destroy (&(mum->new_attr));
 	      mud->umessages[dlast] = mum;
 	      dlast--;
 	      mum = mud->umessages[j];
@@ -863,18 +814,17 @@ mailbox_unix_expunge (mailbox_t mbox)
 	  mum->body = mum->body_end = 0;
 	  mum->header_lines = mum->body_lines = 0;
 	}
-      /* this is should reset the messages_count, the last
-       * argument 0 means not to send event notification
-       */
-      mailbox_unix_scan0 (mbox, dirty, NULL, 0);
+      /* This is should reset the messages_count, the last * argument 0 means
+	 not to send event notification.  */
+      unix_scan0 (mbox, dirty, NULL, 0);
     }
   return status;
 }
 
 static int
-mailbox_unix_getfd (stream_t is, int *pfd)
+unix_get_fd (stream_t is, int *pfd)
 {
-  mailbox_unix_message_t mum;
+  unix_message_t mum;
 
   if (is == NULL || (mum = is->owner) == NULL)
     return EINVAL;
@@ -883,13 +833,50 @@ mailbox_unix_getfd (stream_t is, int *pfd)
 }
 
 static int
-mailbox_unix_readstream (stream_t is, char *buffer, size_t buflen,
-			off_t off, size_t *pnread)
+unix_get_flags (attribute_t attr, int *pflags)
 {
-  mailbox_unix_message_t mum;
+  unix_message_t mum;
+
+  if (attr == NULL || (mum = attr->owner) == NULL)
+    return EINVAL;
+
+  if (pflags)
+    *pflags = mum->new_flags;
+  return 0;
+}
+
+static int
+unix_set_flags (attribute_t attr, int flags)
+{
+  unix_message_t mum;
+
+  if (attr == NULL || (mum = attr->owner) == NULL)
+    return EINVAL;
+
+  mum->new_flags |= flags;
+  return 0;
+}
+
+static int
+unix_unset_flags (attribute_t attr, int flags)
+{
+  unix_message_t mum;
+
+  if (attr == NULL || (mum = attr->owner) == NULL)
+    return EINVAL;
+
+  mum->new_flags &= flags;
+  return 0;
+}
+
+static int
+unix_readstream (stream_t is, char *buffer, size_t buflen,
+		 off_t off, size_t *pnread)
+{
+  unix_message_t mum;
   size_t nread = 0;
 
-  if (is == NULL || (mum = (mailbox_unix_message_t)is->owner) == NULL)
+  if (is == NULL || (mum = (unix_message_t)is->owner) == NULL)
     return EINVAL;
 
   if (buffer == NULL || buflen == 0)
@@ -906,7 +893,7 @@ mailbox_unix_readstream (stream_t is, char *buffer, size_t buflen,
     if (ln > 0)
       {
 	nread = ((size_t)ln < buflen) ? ln : buflen;
-	/* position the file pointer and the buffer */
+	/* Position the file pointer and the buffer.  */
 	status = stream_read (mum->stream, buffer, nread, mum->body + off, &n);
 	if (status != 0)
 	  return status;
@@ -919,30 +906,34 @@ mailbox_unix_readstream (stream_t is, char *buffer, size_t buflen,
 }
 
 static int
-mailbox_unix_get_header (mailbox_unix_message_t mum, char *buffer,
-			 size_t len, off_t off, ssize_t *pnread)
+unix_get_header_read (stream_t is, char *buffer, size_t len,
+		      off_t off, size_t *pnread)
 {
+  unix_message_t mum;
   size_t nread = 0;
-  size_t n = 0;
-  int status;
-  off_t ln = mum->body - (mum->header_from_end + off);
+  int status = 0;
+  off_t ln;
+
+  if (is == NULL || (mum = is->owner) == NULL)
+    return EINVAL;
+
+  ln = mum->body - (mum->header_from_end + off);
   if (ln > 0)
     {
       nread = ((size_t)ln < len) ? ln : len;
-      /* position the file pointer and the buffer */
+      /* Position the file pointer and the buffer.  */
       status = stream_read (mum->stream, buffer, nread,
-			    mum->header_from_end + off, &n);
-      if (status != 0)
-	return status;
+			    mum->header_from_end + off, &nread);
     }
-  *pnread = nread;
-  return 0;
+  if (pnread)
+    *pnread = nread;
+  return status;
 }
 
 static int
-mailbox_unix_body_size (body_t body, size_t *psize)
+unix_body_size (body_t body, size_t *psize)
 {
-  mailbox_unix_message_t mum = body->owner;
+  unix_message_t mum = body->owner;
   if (mum == NULL)
     return EINVAL;
   if (psize)
@@ -951,9 +942,9 @@ mailbox_unix_body_size (body_t body, size_t *psize)
 }
 
 static int
-mailbox_unix_body_lines (body_t body, size_t *plines)
+unix_body_lines (body_t body, size_t *plines)
 {
-  mailbox_unix_message_t mum = body->owner;
+  unix_message_t mum = body->owner;
   if (mum == NULL)
     return EINVAL;
   if (plines)
@@ -962,10 +953,10 @@ mailbox_unix_body_lines (body_t body, size_t *plines)
 }
 
 static int
-mailbox_unix_msg_received (message_t msg, char *buf, size_t len,
+unix_msg_received (message_t msg, char *buf, size_t len,
 			   size_t *pnwrite)
 {
-  mailbox_unix_message_t mum = msg->owner;
+  unix_message_t mum = msg->owner;
   size_t n = 0;
   int status;
   char buffer[512];
@@ -975,7 +966,6 @@ mailbox_unix_msg_received (message_t msg, char *buf, size_t len,
 
   status = stream_readline (mum->stream, buffer, sizeof(buffer),
 			    mum->header_from, &n);
-
   if (status != 0)
     {
       if (pnwrite)
@@ -1008,9 +998,9 @@ mailbox_unix_msg_received (message_t msg, char *buf, size_t len,
 }
 
 static int
-mailbox_unix_msg_from (message_t msg, char *buf, size_t len, size_t *pnwrite)
+unix_msg_from (message_t msg, char *buf, size_t len, size_t *pnwrite)
 {
-  mailbox_unix_message_t mum = msg->owner;
+  unix_message_t mum = msg->owner;
   size_t n = 0;
   int status;
   char buffer[512];
@@ -1053,31 +1043,22 @@ mailbox_unix_msg_from (message_t msg, char *buf, size_t len, size_t *pnwrite)
 }
 
 static int
-mailbox_unix_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
+unix_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
 {
   int status;
-  ssize_t nread;
-  char *pbuf = NULL;
-  char *tbuf = NULL;
-  char buf[BUFSIZ];
-  off_t offset = 0;
-  mailbox_unix_data_t mud;
-  mailbox_unix_message_t mum;
+  unix_data_t mud;
+  unix_message_t mum;
   message_t msg = NULL;
-  stream_t stream = NULL;
-  header_t header = NULL;
-  body_t body = NULL;
-  int flags = 0;
 
-  if (mbox == NULL || pmsg == NULL ||
-      (mud = (mailbox_unix_data_t)mbox->data) == NULL ||
-      (!(mud->messages_count > 0 && msgno > 0 &&
-	 msgno <= mud->messages_count)))
+  /* Sanity checks.  */
+  if (mbox == NULL || pmsg == NULL || (mud = (unix_data_t)mbox->data) == NULL
+      || (!(mud->messages_count > 0 && msgno > 0
+	    && msgno <= mud->messages_count)))
     return EINVAL;
 
   mum = mud->umessages[msgno - 1];
 
-  /* check if we already have it */
+  /* Check if we already have it.  */
   if (mum->message)
     {
       if (pmsg)
@@ -1086,89 +1067,72 @@ mailbox_unix_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
     }
 
   mailbox_debug (mbox, MU_MAILBOX_DEBUG_TRACE,
-		 "mailbox_unix_get_message(%s, %d)\n", mbox->name, msgno);
-  /* get the headers */
-  do
-    {
-      status = mailbox_unix_get_header (mum, buf, sizeof(buf), offset, &nread);
-      if (status != 0)
-	{
-	  free (pbuf);
-	  return status;
-	}
+		 "unix_get_message(%s, %d)\n", mbox->name, msgno);
 
-      if (nread == 0)
-	break;
-
-      tbuf = realloc (pbuf, offset + nread);
-      if (tbuf == NULL)
-	{
-	  free (pbuf);
-	  return ENOMEM;
-	}
-      else
-	pbuf = tbuf;
-      memcpy (pbuf + offset, buf, nread);
-      offset += nread;
-    } while (nread > 0);
-
-  /* get an empty message struct */
+  /* Get an empty message struct.  */
   status = message_create (&msg, mum);
   if (status != 0)
-    {
-      free (pbuf);
-      return status;
-    }
+    return status;
 
-  /* set the header */
-  status = header_create (&header, pbuf, offset, mum);
-  if (status != 0)
-    {
-      free (pbuf);
-      message_destroy (&msg, mum);
-      return status;
-    }
-  free (pbuf);
-  message_set_header (msg, header, mum);
+  /* Set the header.  */
+  {
+    header_t header;
+    stream_t stream;
+    if ((status = header_create (&header, NULL, 0, mum)) != 0
+	|| (status = stream_create (&stream, MU_STREAM_READ, mum)) != 0)
+      {
+	message_destroy (&msg, mum);
+	return status;
+      }
+    stream_set_read (stream, unix_get_header_read, mum);
+    stream_set_fd (stream, unix_get_fd, mum);
+    stream_set_flags (stream, MU_STREAM_READ, mum);
+    header_set_stream (header, stream, mum);
+    message_set_header (msg, header, mum);
+  }
 
-  /* prepare the body */
-  status = body_create (&body, mum);
-  if (status != 0)
-    {
-      message_destroy (&msg, mum);
-      return status;
-    }
-  message_set_body (msg, body, mum);
+  /* Set the attribute.  */
+  {
+    attribute_t attribute;
+    status = attribute_create (&attribute, mum);
+    if (status != 0)
+      {
+	message_destroy (&msg, mum);
+	return status;
+      }
+    mum->new_flags = mum->old_flags;
+    attribute_set_get_flags (attribute, unix_get_flags, mum);
+    attribute_set_set_flags (attribute, unix_set_flags, mum);
+    attribute_set_unset_flags (attribute, unix_unset_flags, mum);
+    message_set_attribute (msg, attribute, mum);
+  }
 
-  status = stream_create (&stream, MU_STREAM_READ, mum);
-  if (status != 0)
-    {
-      message_destroy (&msg, mum);
-      return status;
-    }
-  stream_set_read (stream, mailbox_unix_readstream, mum);
-  stream_set_fd (stream, mailbox_unix_getfd, mum);
-  stream_get_flags (mbox->stream, &flags);
-  stream_set_flags (stream, flags, mum);
-  body_set_stream (body, stream, mum);
-  body_set_size (body, mailbox_unix_body_size, mum);
-  body_set_lines (body, mailbox_unix_body_lines, mum);
+  /* Prepare the body.  */
+  {
+    body_t body;
+    stream_t stream;
+    int flags = MU_STREAM_READ;
+    if ((status = body_create (&body, mum)) != 0
+	|| (status = stream_create (&stream, flags, mum)) != 0)
+      {
+	message_destroy (&msg, mum);
+	return status;
+      }
+    stream_set_read (stream, unix_readstream, mum);
+    stream_set_fd (stream, unix_get_fd, mum);
+    stream_get_flags (mbox->stream, &flags);
+    stream_set_flags (stream, flags, mum);
+    body_set_stream (body, stream, mum);
+    body_set_size (body, unix_body_size, mum);
+    body_set_lines (body, unix_body_lines, mum);
+    message_set_body (msg, body, mum);
+  }
 
-  /* set the attribute */
-  attribute_create (&(mum->new_attr));
-  mum->new_attr->flag = mum->old_attr->flag;
-  status = message_set_attribute (msg, mum->new_attr, mum);
-  if (status != 0)
-    {
-      message_destroy (&msg, mum);
-      return status;
-    }
+  /* Set the envelope.  */
+  message_set_from (msg, unix_msg_from, mum);
+  message_set_received (msg, unix_msg_received, mum);
 
-  /* set the envelope */
-  message_set_from (msg, mailbox_unix_msg_from, mum);
-  message_set_received (msg, mailbox_unix_msg_received, mum);
-
-  /* attach the message to the mailbox unix data */
+  /* Attach the message to the mailbox unix data.  */
   mum->message = msg;
 
   if (pmsg)
@@ -1177,17 +1141,17 @@ mailbox_unix_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
 }
 
 static int
-mailbox_unix_append_message (mailbox_t mbox, message_t msg)
+unix_append_message (mailbox_t mbox, message_t msg)
 {
-  mailbox_unix_data_t mud;
+  unix_data_t mud;
   if (mbox == NULL || msg == NULL ||
-      (mud = (mailbox_unix_data_t)mbox->data) == NULL)
+      (mud = (unix_data_t)mbox->data) == NULL)
     return EINVAL;
 
   mailbox_debug (mbox, MU_MAILBOX_DEBUG_TRACE,
-		 "mailbox_unix_append_message (%s)\n", mbox->name);
+		 "unix_append_message (%s)\n", mbox->name);
 
-  mailbox_unix_lock (mbox, MU_LOCKER_WRLOCK);
+  unix_lock (mbox, MU_LOCKER_WRLOCK);
   {
     off_t size;
     char buffer[BUFSIZ];
@@ -1199,16 +1163,16 @@ mailbox_unix_append_message (mailbox_t mbox, message_t msg)
     size_t n = 0;
     char nl = '\n';
 
-    /* move to the end of the file, not necesary if _APPEND mode */
+    /* Move to the end of the file, not necesary if _APPEND mode.  */
     status = stream_size (mbox->stream, &size);
     if (status != 0)
       {
-	mailbox_unix_unlock (mbox);
+	unix_unlock (mbox);
 	return status;
       }
-    /* header */
+    /* Header.  */
     message_get_header (msg, &hdr);
-    /* generate a "From " separator */
+    /* Generate a "From " separator.  */
     {
       char from[128];
       char date[128];
@@ -1249,10 +1213,10 @@ mailbox_unix_append_message (mailbox_t mbox, message_t msg)
     } while (nread > 0);
 
     *buffer = '\0';
-    /* separator */
+    /* Separator.  */
     /*fputc ('\n', mud->file);*/
 
-    /* body */
+    /* Body.  */
     message_get_stream (msg, &is);
     do {
       stream_read (is, buffer, sizeof (buffer), off, &nread);
@@ -1263,12 +1227,12 @@ mailbox_unix_append_message (mailbox_t mbox, message_t msg)
     stream_write (mbox->stream, &nl, 1, size, &n);
   }
   stream_flush (mbox->stream);
-  mailbox_unix_unlock (mbox);
+  unix_unlock (mbox);
   return 0;
 }
 
 static int
-mailbox_unix_size (mailbox_t mbox, off_t *psize)
+unix_size (mailbox_t mbox, off_t *psize)
 {
   off_t size;
   int status;
@@ -1276,7 +1240,7 @@ mailbox_unix_size (mailbox_t mbox, off_t *psize)
   if (mbox == NULL)
     return EINVAL;
 
-  /* maybe was not open yet ?? */
+  /* Maybe was not open yet ??  */
   status  = stream_size (mbox->stream, &size);
   if (status != 0)
     return status;
@@ -1286,14 +1250,14 @@ mailbox_unix_size (mailbox_t mbox, off_t *psize)
 }
 
 static int
-mailbox_unix_messages_count (mailbox_t mbox, size_t *pcount)
+unix_messages_count (mailbox_t mbox, size_t *pcount)
 {
-  mailbox_unix_data_t mud;
-  if (mbox == NULL || (mud = (mailbox_unix_data_t) mbox->data) == NULL)
+  unix_data_t mud;
+  if (mbox == NULL || (mud = (unix_data_t) mbox->data) == NULL)
     return EINVAL;
 
-  if (! mailbox_unix_is_updated (mbox))
-    return mailbox_unix_scan0 (mbox,  1, pcount, 1);
+  if (! unix_is_updated (mbox))
+    return unix_scan0 (mbox,  1, pcount, 1);
 
   if (pcount)
     *pcount = mud->messages_count;
@@ -1301,9 +1265,9 @@ mailbox_unix_messages_count (mailbox_t mbox, size_t *pcount)
   return 0;
 }
 
-/* locking */
+/* Locking.  */
 static int
-mailbox_unix_lock (mailbox_t mbox, int flag)
+unix_lock (mailbox_t mbox, int flag)
 {
   if (mbox && mbox->locker != NULL)
     {
@@ -1314,7 +1278,7 @@ mailbox_unix_lock (mailbox_t mbox, int flag)
 }
 
 static int
-mailbox_unix_touchlock (mailbox_t mbox)
+unix_touchlock (mailbox_t mbox)
 {
   if (mbox && mbox->locker != NULL)
     {
@@ -1325,7 +1289,7 @@ mailbox_unix_touchlock (mailbox_t mbox)
 }
 
 static int
-mailbox_unix_unlock (mailbox_t mbox)
+unix_unlock (mailbox_t mbox)
 {
   if (mbox && mbox->locker != NULL)
     {
@@ -1336,10 +1300,10 @@ mailbox_unix_unlock (mailbox_t mbox)
 }
 
 static int
-mailbox_unix_ilock (mailbox_t mbox, int flag)
+unix_ilock (mailbox_t mbox, int flag)
 {
 #ifdef HAVE_PTHREAD_H
-  (void)flag; /* we should use rwlocks for more concurency */
+  (void)flag; /* We should use rwlocks for more concurency.  */
   if (mbox == NULL)
     return EINVAL;
   return pthread_mutex_lock (&(mbox->mutex));
@@ -1350,7 +1314,7 @@ mailbox_unix_ilock (mailbox_t mbox, int flag)
 }
 
 static int
-mailbox_unix_iunlock (mailbox_t mbox)
+unix_iunlock (mailbox_t mbox)
 {
 #ifdef HAVE_PTHREAD_H
   if (mbox == NULL)

@@ -34,16 +34,12 @@ extern "C" {
 
 struct _attribute
 {
-  size_t flag;
+  void *owner;
+  size_t flags;
+  int (*_get_flags)   __P ((attribute_t, int *));
+  int (*_set_flags)   __P ((attribute_t, int));
+  int (*_unset_flags) __P ((attribute_t, int));
 };
-
-#define MU_ATTRIBUTE_ANSWERED 0x01
-#define MU_ATTRIBUTE_FLAGGED  0x02
-#define MU_ATTRIBUTE_DELETED  0x04
-#define MU_ATTRIBUTE_DRAFT    0x08
-#define MU_ATTRIBUTE_SEEN     0x10
-#define MU_ATTRIBUTE_READ     0x20
-#define MU_ATTRIBUTE_RECENT   0x00
 
 #ifdef __cplusplus
 }

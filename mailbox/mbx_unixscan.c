@@ -173,7 +173,7 @@ do \
   { \
     if (*s == c0 || *s == c1) \
       { \
-        (mum)->old_attr->flag |= (type); \
+        (mum)->old_flags |= (type); \
         break; \
       } \
   } \
@@ -206,16 +206,16 @@ do \
 do \
 { \
   int bailing = 0; \
-  mailbox_unix_iunlock (mbox); \
+  unix_iunlock (mbox); \
   MAILBOX_NOTIFICATION (mbox, MU_EVT_MBX_MSG_ADD, bailing); \
   if (bailing != 0) \
     { \
       if (pcount) \
         *pcount = (mud)->messages_count; \
-      mailbox_unix_unlock (mbox); \
+      unix_unlock (mbox); \
       return EINTR; \
     } \
-  mailbox_unix_ilock (mbox, MU_LOCKER_WRLOCK); \
+  unix_ilock (mbox, MU_LOCKER_WRLOCK); \
 } while (0);
 
 /* notification MBX_PROGRESS
@@ -234,33 +234,38 @@ do \
 { \
     { \
       int bailing = 0; \
-      mailbox_unix_iunlock (mbox); \
+      unix_iunlock (mbox); \
       mud->messages_count--; \
       MAILBOX_NOTIFICATION (mbox, MU_EVT_MBX_PROGRESS,bailing); \
       if (bailing != 0) \
 	{ \
 	  if (pcount) \
 	    *pcount = (mud)->messages_count; \
-          mailbox_unix_unlock (mbox); \
+          unix_unlock (mbox); \
 	  return EINTR; \
 	} \
       mud->messages_count++; \
-      mailbox_unix_ilock (mbox, MU_LOCKER_WRLOCK); \
+      unix_ilock (mbox, MU_LOCKER_WRLOCK); \
     } \
 } while (0)
 
+#if 0
 /* skip a function call, ?? do we gain that much */
-#define ATTRIBUTE_CREATE(attr,mbox) \
+#define ATTRIBUTE_CREATE(attr, m, mbox) \
 do \
 { \
   attr = calloc (1, sizeof(*(attr))); \
+  attr->owner = m; \
   if ((attr) == NULL) \
     { \
-      mailbox_unix_iunlock (mbox); \
-      mailbox_unix_unlock (mbox); \
+      unix_iunlock (mbox); \
+      unix_unlock (mbox); \
       return ENOMEM; \
     } \
 } while (0)
+#else
+#  define ATTRIBUTE_CREATE
+#endif
 
 /* allocate slots for the new messages */
 /*    size_t num = 2 * ((mud)->messages_count) + 10; */
@@ -269,38 +274,37 @@ do \
 { \
   if ((mud)->messages_count >= (mud)->umessages_count) \
   { \
-    mailbox_unix_message_t *m; \
+    unix_message_t *m; \
     size_t num = ((mud)->umessages_count) + 1; \
     m = realloc ((mud)->umessages, num * sizeof (*m)); \
     if (m == NULL) \
       { \
-        mailbox_unix_iunlock (mbox); \
-        mailbox_unix_unlock (mbox); \
+        unix_iunlock (mbox); \
+        unix_unlock (mbox); \
         return ENOMEM; \
       } \
     (mud)->umessages = m; \
     (mud)->umessages[num - 1] = calloc (1, sizeof (*(mum))); \
     if ((mud)->umessages[num - 1] == NULL) \
       { \
-        mailbox_unix_iunlock (mbox); \
-        mailbox_unix_unlock (mbox); \
+        unix_iunlock (mbox); \
+        unix_unlock (mbox); \
         return ENOMEM; \
       } \
-    ATTRIBUTE_CREATE (((mud)->umessages[num - 1])->old_attr, mbox); \
     (mud)->umessages_count = num; \
   } \
 } while (0)
 
 static int
-mailbox_unix_scan0 (mailbox_t mbox, size_t msgno, size_t *pcount, int do_notif)
+unix_scan0 (mailbox_t mbox, size_t msgno, size_t *pcount, int do_notif)
 {
 #define MSGLINELEN 1024
   char buf[MSGLINELEN];
   int inheader;
   int inbody;
   off_t total = 0;
-  mailbox_unix_data_t mud;
-  mailbox_unix_message_t mum = NULL;
+  unix_data_t mud;
+  unix_message_t mum = NULL;
   int status = 0;
   size_t lines;
   int newline;
@@ -311,7 +315,7 @@ mailbox_unix_scan0 (mailbox_t mbox, size_t msgno, size_t *pcount, int do_notif)
 
   /* sanity */
   if (mbox == NULL ||
-      (mud = (mailbox_unix_data_t)mbox->data) == NULL)
+      (mud = (unix_data_t)mbox->data) == NULL)
     return EINVAL;
 
   /* save the timestamp and size */
@@ -320,8 +324,8 @@ mailbox_unix_scan0 (mailbox_t mbox, size_t msgno, size_t *pcount, int do_notif)
     return status;
 
   /* grab the locks */
-  mailbox_unix_ilock (mbox, MU_LOCKER_WRLOCK);
-  mailbox_unix_lock (mbox, MU_LOCKER_RDLOCK);
+  unix_ilock (mbox, MU_LOCKER_WRLOCK);
+  unix_lock (mbox, MU_LOCKER_RDLOCK);
 
   /* seek to the starting point */
   if (mud->umessages && msgno > 0 && mud->messages_count > 0
@@ -403,7 +407,7 @@ mailbox_unix_scan0 (mailbox_t mbox, size_t msgno, size_t *pcount, int do_notif)
 
       /* every 50 mesgs update the lock, it should be every minute */
       if ((mud->messages_count % 50) == 0)
-	mailbox_unix_touchlock (mbox);
+	unix_touchlock (mbox);
 
       /* ping them every 1000 lines */
       if (do_notif)
@@ -419,8 +423,8 @@ mailbox_unix_scan0 (mailbox_t mbox, size_t msgno, size_t *pcount, int do_notif)
       if (do_notif)
 	DISPATCH_ADD_MSG(mbox, mud);
     }
-  mailbox_unix_iunlock (mbox);
-  mailbox_unix_unlock (mbox);
+  unix_iunlock (mbox);
+  unix_unlock (mbox);
   if (pcount)
     *pcount = mud->messages_count;
   return status;

@@ -67,27 +67,27 @@ extern "C" {
 struct _header;
 typedef struct _header * header_t;
 
-extern int header_create       __P ((header_t *, const char *blurb,
-				     size_t ln, void *owner));
-extern void header_destroy     __P ((header_t *, void *owner));
+extern int header_create        __P ((header_t *, const char *,
+				      size_t, void *));
+extern void header_destroy      __P ((header_t *, void *));
+extern int header_set_value     __P ((header_t, const char *,
+				      const char *, int));
+extern int header_get_value     __P ((header_t, const char *, char *,
+				      size_t, size_t *));
+extern int header_get_stream    __P ((header_t, stream_t *));
+extern int header_size          __P ((header_t, size_t *));
+extern int header_lines         __P ((header_t, size_t *));
 
-extern int header_set_value    __P ((header_t, const char *fn,
-				     const char *fv, int replace));
+extern int header_set_stream    __P ((header_t, stream_t, void *));
 
+extern int header_set_set_value __P ((header_t, int (*_set_value)
+				      __P ((header_t, const char *,
+					    const char *, int)),
+				      void *));
 extern int header_set_get_value __P ((header_t, int (*_get_value)
-				     __P ((header_t, const char *fn, char *buf,
-					   size_t buflen, size_t *nwritten)),
-				     void *owner));
-extern int header_get_value    __P ((header_t, const char *fn, char *buf,
-				     size_t buflen, size_t *nwritten));
-extern int header_entry_count  __P ((header_t, size_t *num));
-extern int header_entry_name   __P ((header_t, size_t num, char *buf,
-				     size_t buflen, size_t *total));
-extern int header_entry_value  __P ((header_t, size_t num, char *buf,
-				     size_t buflen, size_t *total));
-extern int header_get_stream   __P ((header_t, stream_t *stream));
-extern int header_size         __P ((header_t, size_t *size));
-extern int header_lines        __P ((header_t, size_t *lines));
+				      __P ((header_t, const char *,
+					    char *, size_t, size_t *)),
+				      void *));
 
 #ifdef _cplusplus
 }

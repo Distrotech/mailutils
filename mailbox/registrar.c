@@ -25,13 +25,12 @@
 #include <string.h>
 #include <errno.h>
 
-/*
-  Builtin mailbox types.
-  A circular list is use for the builtin.
+/* Builtin mailbox types. A circular list is use for the builtin.
   Proper locking is not done when accessing the list.
   FIXME: not thread-safe. */
 
-static struct _registrar registrar [] = {
+static struct _registrar registrar [] =
+{
   { NULL, NULL, 0, &registrar[1] }, /* sentinel, head list */
   { &_url_file_registrar, &_mailbox_mbox_registrar, 0, &registrar[2] },
   { &_url_mbox_registrar, &_mailbox_mbox_registrar, 0, &registrar[3] },

@@ -68,7 +68,7 @@ message_destroy (message_t *pmsg, void *owner)
 	  /* header */
 	  header_destroy (&(msg->header), owner);
 	  /* attribute */
-	  attribute_destroy (&(msg->attribute));
+	  attribute_destroy (&(msg->attribute), owner);
 	  /* stream */
 	  stream_destroy (&(msg->stream), owner);
 
@@ -325,7 +325,7 @@ message_get_attribute (message_t msg, attribute_t *pattribute)
   if (msg->attribute == NULL)
     {
       attribute_t attribute;
-      int status = attribute_create (&attribute);
+      int status = attribute_create (&attribute, msg);
       if (status != 0)
 	return status;
       msg->attribute = attribute;
@@ -341,7 +341,7 @@ message_set_attribute (message_t msg, attribute_t attribute, void *owner)
    return EINVAL;
   if (msg->owner != owner)
     return EACCES;
-  attribute_destroy (&(msg->attribute));
+  attribute_destroy (&(msg->attribute), owner);
   msg->attribute = attribute;
   return 0;
 }
@@ -532,7 +532,11 @@ message_read (stream_t is, char *buf, size_t buflen,
   header_size (msg->header, &hsize);
   body_size (msg->body, &bsize);
 
-  if ((size_t)off <= hsize)
+  /* On some remote sever (POP) the size of the header and body is not known
+     until you start reading them.  So by checking hsize == bsize == 0, we
+     This kludge of a way of detecting the anomalie and start by the
+     header.  */
+  if ((size_t)off <= hsize || (hsize == 0 && bsize == 0))
     {
       header_get_stream (msg->header, &his);
       stream_read (his, buf, buflen, off, &hread);
