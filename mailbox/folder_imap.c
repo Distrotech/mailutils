@@ -73,7 +73,6 @@ char *strtok_r                      __P ((char *, const char *, char **));
 
 /* Concrete folder_t IMAP implementation.  */
 static int  folder_imap_open        __P ((folder_t, int));
-static int  folder_imap_create      __P ((folder_t));
 static int  folder_imap_close       __P ((folder_t));
 static void folder_imap_destroy     __P ((folder_t));
 static int  folder_imap_delete      __P ((folder_t, const char *));
@@ -112,6 +111,7 @@ static int  imap_search             __P ((f_imap_t));
 static int  imap_literal_string     __P ((f_imap_t, char **));
 static int  imap_string             __P ((f_imap_t, char **));
 static int  imap_quoted_string      __P ((f_imap_t, char **));
+static int  imap_mailbox_name_match __P ((const char* pattern, const char* mailbox));
 
 static int  imap_token              __P ((char *, size_t, char **));
 
@@ -246,9 +246,11 @@ authenticate_imap_login (authority_t auth)
 	    CHECK_ERROR_CLOSE (folder, f_imap, EINVAL);
 	  }
 	status = imap_writeline (f_imap, "g%u LOGIN %s %s\r\n",
-				 f_imap->seq++, f_imap->user, f_imap->passwd);
+				 f_imap->seq, f_imap->user, f_imap->passwd);
 	CHECK_ERROR_CLOSE(folder, f_imap, status);
-	FOLDER_DEBUG1 (folder, MU_DEBUG_PROT, "LOGIN %s *\n", f_imap->user);
+	FOLDER_DEBUG2 (folder, MU_DEBUG_PROT, "g%u LOGIN %s *\n",
+	    f_imap->seq, f_imap->user);
+	f_imap->seq++;
 	free (f_imap->user);
 	f_imap->user = NULL;
 	/* We have to nuke the passwd.  */
@@ -403,8 +405,6 @@ folder_imap_open (folder_t folder, int flags)
   if (f_imap->isopen)
     {
       monitor_unlock (folder->monitor);
-      if (flags & MU_STREAM_CREAT)
-	status = folder_imap_create (folder);
       return 0;
     }
   monitor_unlock (folder->monitor);
@@ -508,13 +508,9 @@ folder_imap_open (folder_t folder, int flags)
   monitor_wrlock (folder->monitor);
   f_imap->isopen++;
   monitor_unlock (folder->monitor);
-  if (flags & MU_STREAM_CREAT)
-    {
-      status = folder_imap_create (folder);
-      CHECK_EAGAIN (f_imap, status);
-    }
   return 0;
 }
+
 
 /* Shutdown the connection.  */
 static int
@@ -560,51 +556,6 @@ folder_imap_close (folder_t folder)
   f_imap->state = IMAP_NO_STATE;
   f_imap->selected = NULL;
   return 0;
-}
-
-/* Create a folder/mailbox.  */
-static int
-folder_imap_create (folder_t folder)
-{
-  f_imap_t f_imap = folder->data;
-  int status = 0;
-
-  switch (f_imap->state)
-    {
-    case IMAP_NO_STATE:
-      {
-	char *path;
-	size_t len;
-	url_get_path (folder->url, NULL, 0, &len);
-	if (len == 0)
-	  return 0;
-	path = calloc (len + 1, sizeof (*path));
-	if (path == NULL)
-	  return ENOMEM;
-	url_get_path (folder->url, path, len + 1, NULL);
-	status = imap_writeline (f_imap, "g%u CREATE %s\r\n", f_imap->seq++,
-				 path);
-	free (path);
-	CHECK_ERROR (f_imap, status);
-	FOLDER_DEBUG0 (folder, MU_DEBUG_PROT, f_imap->buffer);
-	f_imap->state = IMAP_CREATE;
-      }
-
-    case IMAP_CREATE:
-      status = imap_send (f_imap);
-      CHECK_EAGAIN (f_imap, status);
-      f_imap->state = IMAP_CREATE_ACK;
-
-    case IMAP_CREATE_ACK:
-      status = imap_parse (f_imap);
-      CHECK_EAGAIN (f_imap, status);
-      FOLDER_DEBUG0 (folder, MU_DEBUG_PROT, f_imap->buffer);
-
-    default:
-      break;
-    }
-  f_imap->state = IMAP_NO_STATE;
-  return status;
 }
 
 /* Remove a mailbox.  */
@@ -779,9 +730,12 @@ folder_imap_list (folder_t folder, const char *ref, const char *name,
 	  for (i = 0; i < num; i++)
 	    {
 	      struct list_response *lr = f_imap->flist.element[i];
-	      /* printf ("%s --> %s\n", lr->name, name); */
-	      if (fnmatch (name, lr->name, 0) == 0)
+	      if (imap_mailbox_name_match (name, lr->name) == 0)
 		{
+		  /*
+		  FOLDER_DEBUG2(folder, MU_DEBUG_TRACE,
+		      "fnmatch against %s: %s - match!\n", name, lr->name);
+		      */
 		  plist[i] = calloc (1, sizeof (**plist));
 		  if (plist[i] == NULL
 		      || (plist[i]->name = strdup (lr->name)) == NULL)
@@ -792,6 +746,11 @@ folder_imap_list (folder_t folder, const char *ref, const char *name,
 		  plist[i]->separator = lr->separator;
 		  j++;
 		}
+	      /*
+	      else
+		  FOLDER_DEBUG2(folder, MU_DEBUG_TRACE,
+		      "fnmatch against %s: %s - no match!\n", name, lr->name);
+	      */
 	    }
 	}
       pflist->element = plist;
@@ -1152,6 +1111,7 @@ imap_list (f_imap_t f_imap)
   char *buffer;
   struct list_response **plr;
   struct list_response *lr;
+  int status = 0;
 
   buffer = alloca (len);
   memcpy (buffer, f_imap->buffer, len);
@@ -1212,17 +1172,33 @@ imap_list (f_imap_t f_imap)
 	{
 	  size_t n = strtoul (s + 1, NULL, 10);
 	  lr->name = calloc (n + 1, 1);
-	  f_imap->ptr = f_imap->buffer;
-	  imap_readline (f_imap);
-	  memcpy (lr->name, f_imap->buffer, n);
-	  lr->name[n] = '\0';
+	  if (!lr->name)
+	    status = ENOMEM;
+	  else
+	    {
+	      f_imap->ptr = f_imap->buffer;
+	      imap_readline (f_imap);
+	      memcpy (lr->name, f_imap->buffer, n);
+	    }
 	}
-      else
-	lr->name = strdup (tok);
-    }
-  return 0;
-}
+      else if ((status = imap_string (f_imap, &tok)) == 0)
+	{
+	  size_t sz = 0;
 
+	  stream_size (f_imap->string.stream, &sz);
+	  lr->name = calloc (sz + 1, 1);
+	  if (!lr->name)
+	    status = ENOMEM;
+	  else
+	    stream_read (f_imap->string.stream, lr->name, sz, 0, NULL);
+	  stream_truncate (f_imap->string.stream, 0);
+	  f_imap->string.offset = 0;
+	  f_imap->string.nleft = 0;
+
+	}
+    }
+  return status;
+}
 /* Helping function to figure out the section name of the message: for example
    a 2 part message with the first part being sub in two will be:
    {1}, {1,1} {1,2}  The first subpart of the message and its sub parts
@@ -1518,7 +1494,7 @@ imap_body (f_imap_t f_imap, char **ptr)
 	  /* strupper.  */
 	  for (; *p; p++) if (isupper((unsigned)*p)) *p = toupper ((unsigned)*p);
 	  /* Set the string type to update the correct line count.  */
-	  //if (!strstr (section, "FIELD"))
+	  /*if (!strstr (section, "FIELD"))*/
 	    {
               if (strstr (section, "MIME") || (strstr (section, "HEADER")))
                 {
@@ -1805,6 +1781,20 @@ imap_token (char *buf, size_t len, char **ptr)
   return  *ptr - start;;
 }
 
+/* Checks to see if a mailbox name matches a pattern, treating
+   INBOX case insensitively, as required (INBOX is a special
+   name no matter what the case is).
+   */
+static int
+imap_mailbox_name_match(const char* pattern, const char* mailbox)
+{
+  if(strcasecmp(pattern, "inbox") == 0)
+  {
+    return strcasecmp(pattern, mailbox);
+  }
+  return fnmatch(pattern, mailbox, 0);
+}
+
 /* C99 says that a conforming implementations of snprintf () should return the
    number of char that would have been call but many GNU/Linux && BSD
    implementations return -1 on error.  Worse QnX/Neutrino actually does not
@@ -1977,6 +1967,7 @@ imap_parse (f_imap_t f_imap)
   int status = 0;
   char empty[2];
   char *buffer = NULL;
+  folder_t folder = f_imap->folder;
 
   /* We use that moronic hack to not check null for the tockenize strings.  */
   empty[0] = '\0';
@@ -2019,6 +2010,8 @@ imap_parse (f_imap_t f_imap)
       /* Is the response untagged ?  */
       if (tag && tag[0] == '*')
 	{
+	  FOLDER_DEBUG2(folder, MU_DEBUG_PROT, "* %s %s\n",
+	      response, remainder);
 	  /* Is it a Status Response.  */
 	  if (strcasecmp (response, "OK") == 0)
 	    {
