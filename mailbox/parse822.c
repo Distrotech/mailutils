@@ -617,6 +617,33 @@ parse822_word (const char **p, const char *e, char **word)
   return EPARSE;
 }
 
+/* rfc822 says:
+        The local-part of an  addr-spec  in  a  mailbox  specification
+        (i.e.,  the  host's  name for the mailbox) is understood to be
+        whatever the receiving mail protocol server allows.  For exam-
+        ple,  some systems do not understand mailbox references of the
+        form "P. D. Q. Bach", but others do.
+
+        This specification treats periods (".") as lexical separators.
+        Hence,  their  presence  in  local-parts which are not quoted-
+        strings, is detected.   However,  such  occurrences  carry  NO
+        semantics.  That is, if a local-part has periods within it, an
+        address parser will divide the local-part into several tokens,
+        but  the  sequence  of  tokens will be treated as one uninter-
+        preted unit.  The sequence  will  be  re-assembled,  when  the
+        address is passed outside of the system such as to a mail pro-
+        tocol service.
+*/	
+	
+int
+parse822_word_dot (const char **p, const char *e, char **word)
+{
+  int rc = parse822_word (p, e, word);
+  for (;rc == 0 && (*p != e) && **p == '.'; ++*p)
+    rc = str_append (word, ".");
+  return rc;
+}
+
 int
 parse822_phrase (const char **p, const char *e, char **phrase)
 {
@@ -625,14 +652,14 @@ parse822_phrase (const char **p, const char *e, char **phrase)
   const char *save = *p;
   int rc;
 
-  if ((rc = parse822_word (p, e, phrase)))
+  if ((rc = parse822_word_dot (p, e, phrase)))
     return rc;
 
   /* ok, got the 1 word, now append all the others we can */
   {
     char *word = 0;
 
-    while ((rc = parse822_word (p, e, &word)) == EOK)
+    while ((rc = parse822_word_dot (p, e, &word)) == EOK)
       {
 	rc = str_append_char (phrase, ' ');
 
