@@ -9,7 +9,6 @@ lib_LTLIBRARIES = libmuauth.la
 
 libmuauth_la_SOURCES = \
 pam.c \
-system.c \
 sql.c \
 virtual.c 
 

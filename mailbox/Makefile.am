@@ -58,6 +58,7 @@ registrar.c \
 sendmail.c \
 smtp.c \
 stream.c \
+system.c \
 tcp.c \
 ticket.c \
 url.c \
