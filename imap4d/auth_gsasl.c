@@ -93,7 +93,6 @@ auth_gsasl (struct imap4d_command *command,
       util_send ("+ %s\r\n", output);
       input = imap4d_readline_ex ();
     }
-  while (rc == GSASL_NEEDS_MORE);
 
   if (rc != GSASL_OK)
     {
