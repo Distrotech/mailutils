@@ -28,8 +28,10 @@ int
 mbox_changed_on_disk (mbox_t mbox)
 {
   int changed = 0;
-  /* Check if the mtime stamp changed, random modifications can give
-     us back the same size.  */
+
+  /* If the modification time is greater then the access time, the file has
+     been modified since the last time it was accessed.  This typically means
+     new mail or someone tempered with the mailbox.  */
   if (mbox->carrier)
     {
       int fd = -1;
@@ -38,7 +40,7 @@ mbox_changed_on_disk (mbox_t mbox)
 	  struct stat statbuf;
 	  if (fstat (fd, &statbuf) == 0)
 	    {
-	      if (difftime (mbox->mtime, statbuf.st_mtime) != 0)
+	      if (difftime (statbuf.st_mtime, statbuf.st_atime) > 0)
 		changed = 1;
 	    }
 	}

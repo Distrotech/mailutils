@@ -49,9 +49,8 @@ struct _mbox
   stream_t carrier; /* File stream.  */
 
   off_t size; /* Size of the mailbox.  */
-  time_t mtime; /* Modified time.  */
   unsigned long uidvalidity;
-  size_t uidnext;
+  unsigned long uidnext;
   char *filename;
 
   struct _hcache hcache;
@@ -59,10 +58,11 @@ struct _mbox
   /* The variables below are use to hold the state when appending messages.  */
   enum mbox_state
   {
-    MBOX_NO_STATE = 0,
-    MBOX_STATE_APPEND_HEADER,
-    MBOX_STATE_APPEND_BODY
-  } state ;
+    MU_MBOX_NO_STATE = 0,
+    MU_MBOX_STATE_APPEND_SEPARATOR,
+    MU_MBOX_STATE_APPEND_HEADER,
+    MU_MBOX_STATE_APPEND_BODY
+  } state;
 
   lockfile_t  lockfile;
   struct

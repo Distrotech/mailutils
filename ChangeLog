@@ -1,3 +1,7 @@
+2001-09-26 Alain Magloire
+
+	* mailbox2/mbox/mbox_append.c: Implemented, first draft.
+
 2001-09-23 Alain Magloire
 
 	First draft of the mailbox/mbox2.  Not functional.

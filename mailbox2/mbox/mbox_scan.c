@@ -150,7 +150,6 @@ mbox_scan (mbox_t mbox, unsigned int msgno, unsigned int *pcount, int do_notif)
 	     reality if expunge.  */
 	  /*	  mbox->size = statbuf.st_size; */
 	  file_size = statbuf.st_size;
-	  mbox->mtime = statbuf.st_mtime;
 	}
       else
 	status = MU_ERROR_IO;

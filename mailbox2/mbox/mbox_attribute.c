@@ -20,6 +20,7 @@
 #endif
 
 #include <stdlib.h>
+#include <string.h>
 
 #include <mailutils/error.h>
 #include <mailutils/refcount.h>
@@ -196,4 +197,50 @@ mbox_get_attribute (mbox_t mbox, unsigned int msgno, attribute_t *pattribute)
 	mbox->umessages[msgno]->attribute = *pattribute;
     }
   return status;
+}
+
+int
+mbox_attribute_to_status (attribute_t attribute, char *buf, size_t buflen,
+			  size_t *pn)
+{
+  char Status[32];
+  char a[8];
+  size_t i;
+
+  *Status = *a = '\0';
+
+  if (attribute)
+    {
+      if (attribute_is_read (attribute))
+	strcat (a, "R");
+      if (attribute_is_seen (attribute))
+	strcat (a, "O");
+      if (attribute_is_answered (attribute))
+	strcat (a, "A");
+      if (attribute_is_deleted (attribute))
+	strcat (a, "d");
+      if (attribute_is_flagged (attribute))
+	strcat (a, "F");
+    }
+
+  if (*a != '\0')
+    {
+      strcpy (Status, "Status: ");
+      strcat (Status, a);
+      strcat (Status, "\n");
+    }
+
+  if (buf && buflen)
+    {
+      *buf = '\0';
+      strncpy (buf, Status, buflen - 1);
+      buf[buflen - 1] = '\0';
+      i = strlen (buf);
+    }
+  else
+    i = strlen (Status);
+
+  if (pn)
+    *pn = i;
+  return 0;
 }

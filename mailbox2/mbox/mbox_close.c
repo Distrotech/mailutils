@@ -65,7 +65,6 @@ mbox_close (mbox_t mbox)
   mbox->umessages = NULL;
   mbox->umessages_count = 0;
   mbox->size = 0;
-  mbox->mtime = 0;
   mbox->uidvalidity = 0;
   mbox->uidnext = 0;
   if (mbox->filename)

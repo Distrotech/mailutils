@@ -125,6 +125,7 @@ mbox_expunge (mbox_t mbox, int remove_deleted)
   int tmp_fd;
   char *tmp_name = NULL;
   mbox_t tmp_mbox = NULL;
+  size_t save_uidvalidity = 0; /* uidvalidity is save in the first message.  */
 
   if (mbox == NULL)
     return MU_ERROR_INVALID_PARAMETER;
@@ -167,7 +168,7 @@ mbox_expunge (mbox_t mbox, int remove_deleted)
 	return status;
       }
 
-    /* Must be flag CREATE if not the mailbox_open will try to mmap()
+    /* Must be flag CREATE if not the mailbox_open will/may try to mmap()
        the file.  */
     status = mbox_open (tmp_mbox, tmp_name, MU_STREAM_CREAT | MU_STREAM_RDWR);
     if (status != 0)
@@ -195,7 +196,19 @@ mbox_expunge (mbox_t mbox, int remove_deleted)
       return status;
     }
 
-  /* Critical section, we can not allowed signal here.  */
+  /* _Must_ have and updated view of the size of the mailbox.  */
+  status = mbox_changed_on_disk (mbox);
+  if (status != 0)
+    {
+      mbox_close (tmp_mbox);
+      mbox_destroy (&tmp_mbox);
+      remove (tmp_name);
+      free (tmp_name);
+      /* mu_error ("Failed to grab the lock\n"); */
+      return status;
+    }
+
+  /* Critical section, can not allowed signal here.  */
   sigemptyset (&signalset);
   sigaddset (&signalset, SIGTERM);
   sigaddset (&signalset, SIGHUP);
@@ -216,40 +229,50 @@ mbox_expunge (mbox_t mbox, int remove_deleted)
       /* Skip it, if mark for deletion.  */
       if (remove_deleted && ATTRIBUTE_IS_DELETED (mum->attr_flags))
 	{
+	  /* We save the uidvalidity in the first message, if it is being
+             deleted we need to move the uidvalidity to the first available
+             (non-deleted) message.  */
+          if (i == save_uidvalidity)
+            {
+              save_uidvalidity = i + 1;
+            }
 	  continue;
 	}
-
-      {
-	stream_t hstream = NULL, bstream = NULL;
-	char *sep = NULL;
-	/* The message was not instanciated, probably the dirty flag was
-	   set by mbox_scan(), create one here.  */
-	if (mum->separator == NULL || mum->header.stream == NULL
-	    || mum->body.stream == NULL)
-	  {
-	    if (mbox_get_hstream (mbox, i + 1, &hstream) != 0
-		|| mbox_get_bstream (mbox, i + 1, &bstream) != 0
-		|| mbox_get_separator (mbox, i + 1, &sep) != 0)
-	      {
-		/* mu_error ("Error expunge:%d", __LINE__); */
-		goto bailout0;
-	      }
-	  }
-	status = mbox_append_hb (tmp_mbox, mum->separator, mum->header.stream,
-				 mum->body.stream);
-	if (sep)
-	  free (sep);
-	stream_destroy (&hstream);
-	stream_destroy (&bstream);
-	if (status != 0)
-	  {
-	    /* mu_error ("Error expunge:%d: %s", __LINE__,
-	       strerror (status)); */
-	    goto bailout0;
-	  }
-	/* Clear the dirty bits.  */
-	mum->attr_flags &= ~MU_ATTRIBUTE_MODIFIED;
-      }
+      else
+	{
+	  stream_t hstream = NULL, bstream = NULL;
+	  attribute_t attribute = NULL;
+	  char *sep = NULL;
+	  /* The message was not instanciated, probably the dirty flag was
+	     set by mbox_scan(), create one here.  */
+	  if (mum->separator == NULL || mum->header.stream == NULL
+	      || mum->body.stream == NULL || mum->attribute == NULL)
+	    {
+	      if (mbox_get_hstream (mbox, i + 1, &hstream) != 0
+		  || mbox_get_bstream (mbox, i + 1, &bstream) != 0
+		  || mbox_get_separator (mbox, i + 1, &sep) != 0)
+		{
+		  /* mu_error ("Error expunge:%d", __LINE__); */
+		  goto bailout0;
+		}
+	    }
+	  status = mbox_append_hb0 (tmp_mbox, mum->separator, mum->attribute,
+				    save_uidvalidity, mum->header.stream,
+				    mum->body.stream);
+	  if (sep)
+	    free (sep);
+	  stream_destroy (&hstream);
+	  stream_destroy (&bstream);
+	  attribute_destroy (&attribute);
+	  if (status != 0)
+	    {
+	      /* mu_error ("Error expunge:%d: %s", __LINE__,
+		 strerror (status)); */
+	      goto bailout0;
+	    }
+	  /* Clear the dirty bits.  */
+	  mum->attr_flags &= ~MU_ATTRIBUTE_MODIFIED;
+	}
     } /* for (;;) */
 
   /* Caution: before ftruncate()ing the file see
@@ -266,7 +289,7 @@ mbox_expunge (mbox_t mbox, int remove_deleted)
 	if (len > 0)
 	  {
 	    stream_seek (mbox->carrier, mbox->size, MU_STREAM_WHENCE_SET);
-	    stream_seek (mbox->carrier, tmp_mbox->size, MU_STREAM_WHENCE_SET);
+	    stream_seek (tmp_mbox->carrier, tmp_mbox->size, MU_STREAM_WHENCE_SET);
 	    while ((status = stream_read (mbox->carrier, buffer,
 					  sizeof buffer, &n)) == 0 && n > 0)
 	      {
@@ -345,11 +368,22 @@ mbox_expunge (mbox_t mbox, int remove_deleted)
       size_t dlast;
       for (j = dirty, dlast = mbox->messages_count - 1; j <= dlast; j++)
 	{
-	  /* Clear all the references, any attach messages been already
-	     destroy above.  */
+	  /* Clear all the references to streams.  */
 	  mum = mbox->umessages[j];
 	  if (remove_deleted && ATTRIBUTE_IS_DELETED (mum->attr_flags))
 	    {
+	      if (mum->separator)
+		free (mum->separator);
+	      mum->separator = NULL;
+	      if (mum->attribute)
+		attribute_destroy (&mum->attribute);
+	      if (mum->header.stream)
+		stream_destroy (&mum->header.stream);
+	      if (mum->body.stream)
+		stream_destroy (&mum->body.stream);
+	      mbox_hcache_free (mbox, i + 1);
+	      /* memset (mum, 0, sizeof (*mum)); */
+
 	      if ((j + 1) <= dlast)
 		{
 		  /* Move all the pointers up.  So the message pointer
@@ -361,8 +395,6 @@ mbox_expunge (mbox_t mbox, int remove_deleted)
 		  mum->body.start = mum->body.end = 0;
 		  mum->header.lines = mum->body.lines = 0;
 #endif
-		  mbox_hcache_free (mbox, i + 1);
-		  memset (mum, 0, sizeof (*mum));
 		  /* We are not free()ing the useless mum, but instead
 		     we put it back in the pool, to be reuse.  */
 		  mbox->umessages[dlast] = mum;
@@ -371,16 +403,10 @@ mbox_expunge (mbox_t mbox, int remove_deleted)
 		     gets cleared to.  */
 		  mum = mbox->umessages[j];
 		}
-	      else
-		{
-		  mbox_hcache_free (mbox, i + 1);
-		  memset (mum, 0, sizeof (*mum));
-		}
 	    }
 	  mum->from_ = mum->header.start = 0;
 	  mum->body.start = mum->body.end = 0;
 	  mum->header.lines = mum->body.lines = 0;
-	  mbox_hcache_free (mbox, i + 1);
 	}
       /* This is should reset the messages_count, the last argument 0 means
 	 not to send event notification.  */
