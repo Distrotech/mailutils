@@ -1,3 +1,10 @@
+2003-10-17  Sergey Poznyakoff  <gray@Mirddin.farlep.net>
+
+	* doc/texinfo/programs.texi (pop3d): Documented new option.
+	* examples/timestamp.c: New file. Implements sieve extension
+	test "timestamp".
+	* examples/Makefile.am: Added timestamp.c
+
 2003-10-13  Sergey Poznyakoff
 
 	* NEWS: Updated
