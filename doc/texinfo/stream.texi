@@ -1,6 +1,8 @@
 @code{#include <mailutils/stream.h>}
 
-@deftypefun int stream_create (stream_t *@var{pstream}, int @var{flags}, void *@var{owner})
+These generic flags are interpreted as appropriate to the specific
+streams.
+
 @table @code
 @item MU_STREAM_READ
 @findex MU_STREAM_READ
@@ -16,23 +18,47 @@ The stream is open read and write.
 The stream is open in append mode for writing.
 @item MU_STREAM_CREAT
 @findex MU_STREAM_CREAT
-The stream is created.
+The stream open will create the underlying resource (such as a file)
+if it doesn't exist already.
 @item MU_STREAM_NONBLOCK
 @findex MU_STREAM_NONBLOCK
 The stream is set non blocking.
 @item MU_STREAM_NO_CHECK
 @findex MU_STREAM_NO_CHECK
 Stream is destroyed without checking for the owner.
+@item MU_STREAM_NO_CLOSE
+@findex MU_STREAM_NO_CLOSE
+Stream doesn't close it's underlying resource when it is closed or destroyed.
 @end table
+
+@deftypefun int file_stream_create (stream_t *@var{pstream}, const char *@var{filename}, int @var{flags})
+@end deftypefun
+
+@deftypefun int tcp_stream_create (stream_t *@var{pstream}, const char *@var{host}, int @var{port}, int @var{flags})
+@end deftypefun
+
+@deftypefun int mapfile_stream_create (stream_t *@var{pstream}, const char *@var{filename}, int @var{flags})
+@end deftypefun
+
+@deftypefun int memory_stream_create (stream_t *@var{pstream}, const char *@var{filename}, int @var{flags})
+@end deftypefun
+
+@deftypefun int encoder_stream_create (stream_t *@var{pstream}, stream_t @var{iostream}, const char *@var{encoding})
+@end deftypefun
+
+@deftypefun int decoder_stream_create (stream_t *@var{pstream}, stream_t @var{iostream}, const char *@var{encoding})
 @end deftypefun
 
 @deftypefun void stream_destroy (stream_t *@var{pstream}, void *@var{owner})
 @end deftypefun
 
-@deftypefun int stream_open (stream_t @var{stream}, const char *@var{name}, int@var{port}, int @var{flag})
+@deftypefun int stream_open (stream_t @var{stream})
 @end deftypefun
 
 @deftypefun int stream_close (stream_t @var{stream})
+@end deftypefun
+
+@deftypefun int stream_is_seekable (stream_t @var{stream})
 @end deftypefun
 
 @deftypefun int stream_get_fd (stream_t @var{stream}, int *@var{pfd})
@@ -53,7 +79,16 @@ Stream is destroyed without checking for the owner.
 @deftypefun int stream_write (stream_t @var{stream}, const char *@var{buffer}, size_t @var{buflen}, off_t @var{offset}, size_t *@var{pwriten})
 @end deftypefun
 
+@deftypefun int stream_setbufsiz (stream_t @var{stream}, size_t @var{size})
+@end deftypefun
+
 @deftypefun int stream_flush (stream_t @var{stream})
+@end deftypefun
+
+These functions will typically only be useful to implementors of streams.
+
+@deftypefun int stream_create (stream_t *@var{pstream}, int @var{flags}, void *@var{owner})
+Used to implement a new kind of stream.
 @end deftypefun
 
 @deftypefun int stream_get_flags (stream_t @var{stream}, int *@var{pflags})
@@ -72,23 +107,10 @@ Last action was @code{stream_close}.
 @end table
 @end deftypefun
 
-@deftypefun int file_stream_create (stream_t *@var{pstream})
-@end deftypefun
-
-@deftypefun int mapfile_stream_create (stream_t *@var{pstream})
-@end deftypefun
-
-@deftypefun int encoder_stream_create (stream_t *@var{pstream}, stream_t @var{iostream}, const char *@var{encoding})
-@end deftypefun
-
-@deftypefun int decoder_stream_create (stream_t *@var{pstream}, stream_t @var{iostream}, const char *@var{encoding})
-@end deftypefun
-
-@deftypefun int tcp_stream_create (stream_t *@var{pstream})
-@end deftypefun
-
-
 An example using @code{tcp_stream_create} to make a simple web client:
+
+FIXME: this example won't build anymore.
+
 @example
 #include <stdlib.h>
 #include <stdio.h>
