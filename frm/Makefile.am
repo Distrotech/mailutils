@@ -21,9 +21,14 @@ INCLUDES = -I$(top_srcdir)/include -I$(top_srcdir)/lib\
 
 SUBDIRS = testsuite
 
-bin_PROGRAMS = frm
-frm_SOURCES = frm.c
-frm_LDADD = \
+bin_PROGRAMS = frm from
+frm_SOURCES = frm.c common.c frm.h
+from_SOURCES = from.c common.c frm.h
+
+frm_LDADD =  $(common_ldadd)
+from_LDADD = $(common_ldadd)
+
+common_ldadd = \
  ../mailbox/mbox/libmu_mbox.la\
  ../mailbox/imap/libmu_imap.la\
  ../mailbox/pop/libmu_pop.la\
