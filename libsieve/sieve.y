@@ -351,7 +351,6 @@ sieve_machine_init (sieve_machine_t *pmach, void *data)
       free (mach);
       return 1;
     }
-  list_append (mach->memory_pool, mach);
   
   mach->data = data;
   mach->error_printer = _sieve_default_error_printer;
@@ -478,10 +477,10 @@ void
 sieve_machine_destroy (sieve_machine_t *pmach)
 {
   sieve_machine_t mach = *pmach;
+  mailer_destroy (&mach->mailer);
   list_do (mach->destr_list, _run_destructor, NULL);
   list_destroy (&mach->destr_list);
   sieve_slist_destroy (&mach->memory_pool);
-  mailer_destroy (&mach->mailer);
   free (mach);
   *pmach = NULL;
 }
