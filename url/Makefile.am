@@ -8,7 +8,8 @@ include_HEADERS = url.h
 
 noinst_HEADERS = url0.h
 
-base_sources = _cpystr.c url.c url_imap.c url_mailto.c url_mbox.c url_pop.c
+base_sources = _cpystr.c url.c urli.c url_imap.c url_mailto.c \
+ url_mbox.c url_pop.c
 
 chewurl_SOURCES = $(base_sources) chewurl.c
 

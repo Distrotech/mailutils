@@ -25,20 +25,22 @@ static struct _supported_scheme
     { "imap://", 7, url_imap_create, url_imap_destroy },
     { "file://", 7, url_mbox_create, url_mbox_destroy },
     { "/", 1, url_mbox_create, url_mbox_destroy },         /* hack ? */
-    { NULL, (int (*)())NULL, (void (*)())NULL }
+    { NULL, NULL, NULL, NULL }
 };
 
 static int
 get_scheme (const url_t u, char * s, unsigned int n)
 {
-    if (u == NULL) return -1;
+    if (u == NULL)
+	return -1;
     return _cpystr (u->scheme, s, n);
 }
 
 static int
 get_user (const url_t u, char * s, unsigned int n)
 {
-    if (u == NULL) return -1;
+    if (u == NULL)
+	return -1;
     return _cpystr (u->user, s, n);
 }
 
@@ -47,35 +49,40 @@ get_user (const url_t u, char * s, unsigned int n)
 static int
 get_passwd (const url_t u, char * s, unsigned int n)
 {
-    if (u == NULL) return -1;
+    if (u == NULL)
+	return -1;
     return _cpystr (u->passwd, s, n);
 }
 
 static int
 get_host (const url_t u, char * s, unsigned int n)
 {
-    if (u == NULL) return -1;
+    if (u == NULL)
+	return -1;
     return _cpystr (u->host, s, n);
 }
 
 static int
 get_port (const url_t u, long * p)
 {
-    if (u == NULL) return -1;
+    if (u == NULL)
+	return -1;
     return *p = u->port;
 }
 
 static int
 get_path (const url_t u, char * s, unsigned int n)
 {
-    if (u == NULL) return -1;
+    if (u == NULL)
+	return -1;
     return _cpystr(u->path, s, n);
 }
 
 static int
 get_query (const url_t u, char * s, unsigned int n)
 {
-    if (u == NULL) return -1;
+    if (u == NULL)
+	return -1;
     return _cpystr(u->query, s, n);
 }
 
@@ -98,90 +105,93 @@ is_unixmbox (const url_t u)
 }
 
 int
-(url_get_scheme) (const url_t url, char * scheme, unsigned int n)
-{ return url->_get_scheme(url, scheme, n); }
-
-int
-(url_get_user) (const url_t url, char *user, unsigned int n)
-{ return url->_get_user(url, user, n); }
-
-int
-(url_get_passwd) (const url_t url, char *passwd, unsigned int n)
-{ return url->_get_passwd(url, passwd, n); }
-
-int
-(url_get_host) (const url_t url, char * host, unsigned int n)
-{ return url->_get_host(url, host, n); }
-
-int
-(url_get_port) (const url_t url, long * port)
-{ return url->_get_port(url, port); }
-
-int
-(url_get_path) (const url_t url, char *path, unsigned int n)
-{ return url->_get_path(url, path, n); }
-
-int
-(url_get_query) (const url_t url, char *query, unsigned int n)
-{ return url->_get_query(url, query, n); }
-
-int
-(url_is_pop) (const url_t url)
-{ return (url->type & URL_POP); }
-
-int
-(url_is_imap) (const url_t url)
-{ return (url->type & URL_IMAP); }
-
-int
-(url_is_unixmbox) (const url_t url)
-{ return (url->type & URL_MBOX); }
-
-int
 url_create (url_t * url, const char * name)
 {
     int status = -1, i ;
     
     /* sanity checks */
-    if (name == NULL || *name == '\0') {
+    if (name == NULL || *name == '\0')
+      {
 	return status;
-    }
+      }
 
     /* scheme://scheme-specific-part */
-    for (i = 0; _supported_scheme[i].scheme; i++) {
-	if (strncasecmp (name, _supported_scheme[i].scheme, strlen(_supported_scheme[i].scheme)) == 0) {
+    for (i = 0; _supported_scheme[i].scheme; i++)
+      {
+	if (strncasecmp (name, _supported_scheme[i].scheme,
+		    strlen(_supported_scheme[i].scheme)) == 0)
+	  {
 	    status = 1;
 	    break;
-	}
-    }
+	  }
+      }
     
-    if (status == 1) {
+    if (status == 1)
+      {
 	status =_supported_scheme[i]._create(url, name);
-	if (status == 0) {
+	if (status == 0)
+	  {
 	    url_t u = *url;
-	    if (u->_get_scheme == NULL) u->_get_scheme = get_scheme;
-	    if (u->_get_user == NULL) u->_get_user = get_user;
-	    if (u->_get_passwd == NULL) u->_get_passwd = get_passwd;
-	    if (u->_get_host == NULL) u->_get_host = get_host;
-	    if (u->_get_port == NULL) u->_get_port = get_port;
-	    if (u->_get_path == NULL) u->_get_path = get_path;
-	    if (u->_get_query == NULL) u->_get_query = get_query;
-	    if (u->_is_pop == NULL) u->_is_pop = is_pop;
-	    if (u->_is_imap == NULL) u->_is_imap = is_imap;
-	    if (u->_is_unixmbox == NULL) u->_is_unixmbox = is_unixmbox;
-	    if (u->_create == NULL) u->_create = _supported_scheme[i]._create;
-	    if (u->_destroy == NULL) u->_destroy= _supported_scheme[i]._destroy;
-	}
-    }
+	    if (u->_get_scheme == NULL)
+	      {
+		u->_get_scheme = get_scheme;
+	      }
+	    if (u->_get_user == NULL)
+	      {
+		u->_get_user = get_user;
+	      }
+	    if (u->_get_passwd == NULL)
+	      {
+		u->_get_passwd = get_passwd;
+	      }
+	    if (u->_get_host == NULL)
+	      {
+		u->_get_host = get_host;
+	      }
+	    if (u->_get_port == NULL)
+	      {
+		u->_get_port = get_port;
+	      }
+	    if (u->_get_path == NULL)
+	      {
+		u->_get_path = get_path;
+	      }
+	    if (u->_get_query == NULL)
+	      {
+		u->_get_query = get_query;
+	      }
+	    if (u->_is_pop == NULL)
+	      {
+		u->_is_pop = is_pop;
+	      }
+	    if (u->_is_imap == NULL)
+	      {
+		u->_is_imap = is_imap;
+	      }
+	    if (u->_is_unixmbox == NULL)
+	      {
+		u->_is_unixmbox = is_unixmbox;
+	      }
+	    if (u->_create == NULL)
+	      {
+		u->_create = _supported_scheme[i]._create;
+	      }
+	    if (u->_destroy == NULL)
+	      {
+		u->_destroy= _supported_scheme[i]._destroy;
+	      }
+	  }
+      }
     return status;
 }
 
 void
 url_destroy (url_t * url)
 {
-    if (url && *url) {
+    if (url && *url)
+      {
 	url_t u = *url;
 	u->_destroy(url);
 	u = NULL;
-    }
+      }
 }

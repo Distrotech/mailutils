@@ -5,7 +5,6 @@
 int
 main (int argc, char ** argv)
 {
-    int i;
     int status;
     long port;
     url_t u;
@@ -38,7 +37,7 @@ main (int argc, char ** argv)
 	printf("\thost %s\n", buffer);
 
 	url_get_port (u, &port);
-	printf("\tport %d\n", port);
+	printf("\tport %ld\n", port);
 	
 	url_destroy (&u);
     }

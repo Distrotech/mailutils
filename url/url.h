@@ -18,12 +18,9 @@
 #ifndef _URL_H
 #define _URL_H	1
 
-#include <stdlib.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
-
 
 #ifndef __P
 #ifdef __STDC__
@@ -34,8 +31,10 @@ extern "C" {
 #endif /*!__P */
 
 /* forward declaration */
+struct _url;
+typedef struct _url * url_t;
 
-typedef struct _url
+struct _url
 {
     /* Data */
 #define URL_POP ((int)1)
@@ -52,32 +51,36 @@ typedef struct _url
 
     
     void * data;
-    int (*_create) __P((struct _url **, const char *));
-    void (*_destroy) __P((struct _url **));
+    int  (*_create)      __P ((url_t *, const char *));
+    void (*_destroy)     __P ((url_t *));
 
     /* Methods */
-    int (*_get_scheme) __P ((const struct _url *, char *, unsigned int));
-    int (*_get_user) __P ((const struct _url *, char *, unsigned int));
-    int (*_get_passwd) __P ((const struct _url *, char *, unsigned int));
-    int (*_get_host) __P ((const struct _url *, char *, unsigned int));
-    int (*_get_port) __P ((const struct _url *, long *));
-    int (*_get_path) __P ((const struct _url *, char *, unsigned int));
-    int (*_get_query) __P ((const struct _url *, char *, unsigned int));
-    int (*_is_pop) __P ((const struct _url *));
-    int (*_is_imap) __P((const struct _url *));
-    int (*_is_unixmbox) __P((const struct _url *));
-} * url_t;
+    int  (*_get_scheme)  __P ((const url_t, char *, unsigned int));
+    int  (*_get_user)    __P ((const url_t, char *, unsigned int));
+    int  (*_get_passwd)  __P ((const url_t, char *, unsigned int));
+    int  (*_get_host)    __P ((const url_t, char *, unsigned int));
+    int  (*_get_port)    __P ((const url_t, long *));
+    int  (*_get_path)    __P ((const url_t, char *, unsigned int));
+    int  (*_get_query)   __P ((const url_t, char *, unsigned int));
+    int  (*_is_pop)      __P ((const url_t));
+    int  (*_is_imap)     __P ((const url_t));
+    int  (*_is_unixmbox) __P ((const url_t));
+};
 
 extern int url_mailto_create __P ((url_t *, const char *name));
 extern void url_mailto_destroy __P ((url_t *));
 
-typedef struct _url_pop
+/* foward decl */
+struct _url_pop;
+typedef struct _url_pop * url_pop_t;
+
+struct _url_pop
 {
     /* we use the fields from url_t */
     /* user, passwd, host, port */
     char * auth;
-    int (*_get_auth) __P((const struct _url_pop *, char *, unsigned int));
-} * url_pop_t;
+    int (*_get_auth) __P ((const url_pop_t, char *, unsigned int));
+};
 
 extern int url_pop_create __P ((url_t *, const char *name));
 extern void url_pop_destroy __P ((url_t *));
@@ -88,15 +91,6 @@ extern void url_imap_destroy __P ((url_t *));
 extern int url_mbox_create __P ((url_t *, const char *name));
 extern void url_mbox_destroy __P ((url_t *));
 
-/*
-struct _supported_scheme
-{
-    char * scheme;
-    int (*_create) __P ((url_t *, const char *name));
-    void (*_destroy) __P ((url_t *));
-};
-*/
-
 extern int url_create __P ((url_t *, const char *name));
 extern void url_destroy __P ((url_t *));
 
@@ -106,18 +100,18 @@ extern void url_destroy __P ((url_t *));
 #define INLINE
 #endif
 
-extern INLINE int url_get_scheme (const url_t url, char * pr, unsigned int n);
-extern INLINE int url_get_user (const url_t url, char *user, unsigned int n);
-extern INLINE int url_get_passwd (const url_t url, char * pwd, unsigned int n);
-extern INLINE int url_get_host (const url_t url, char * host, unsigned int n);
-extern INLINE int url_get_port (const url_t url, long * port);
-extern INLINE int url_get_path (const url_t url, char * path, unsigned int n);
-extern INLINE int url_get_query (const url_t url, char * query, unsigned int n);
-extern INLINE int url_is_pop (const url_t url);
-extern INLINE int url_is_imap(const url_t url);
-extern INLINE int url_is_unixmbox(const url_t url);
+extern INLINE int url_get_scheme  (const url_t, char *, unsigned int);
+extern INLINE int url_get_user    (const url_t , char *, unsigned int);
+extern INLINE int url_get_passwd  (const url_t, char *, unsigned int);
+extern INLINE int url_get_host    (const url_t, char *, unsigned int);
+extern INLINE int url_get_port    (const url_t, long *);
+extern INLINE int url_get_path    (const url_t, char *, unsigned int);
+extern INLINE int url_get_query   (const url_t, char *, unsigned int);
+extern INLINE int url_is_pop      (const url_t);
+extern INLINE int url_is_imap     (const url_t);
+extern INLINE int url_is_unixmbox (const url_t);
 /* pop*/
-extern INLINE int url_pop_get_auth(const url_t u, char * a, unsigned int n);
+extern INLINE int url_pop_get_auth (const url_t, char *, unsigned int);
 
 #ifdef URL_MACROS
 # define url_get_scheme(url, prot, n)		url->_get_scheme(url, prot, n)
