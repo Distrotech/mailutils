@@ -37,11 +37,10 @@
 # include <paths.h>
 #endif
 
-#include <paths.h>
-
 #include <mailbox.h>
 #include <header.h>
 
+/* FIXME: this should be in the mailbox header */
 #ifndef _PATH_MAILDIR
 # define _PATH_MAILDIR "/var/spool/mail"
 #endif

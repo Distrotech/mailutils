@@ -66,8 +66,8 @@ mbox_open (const char *name)
   if (stat (mbox->name, &st) == -1)
     {
       free (mbox->name);
-	  free (mbox);
-	  return NULL; /* errno set by stat() */
+      free (mbox);
+      return NULL; /* errno set by stat() */
     }
 
   mbox->messages = 0;
@@ -108,8 +108,8 @@ mbox_open (const char *name)
     {
       /* for example...
          if (maildir_open (mbox, name) == 1)
-           return mbox;
-       */
+	 return mbox;
+      */
       errno = ENOSYS;
     }
   else
@@ -153,12 +153,12 @@ mbox_header_line (mailbox *mbox, unsigned int num, const char *header)
 	  if (!strncasecmp(&full[i], header, lh) && full[i+lh] == ':')
 	    {
 	      tmp = strdup (&full[i+lh+2]);
-		  if (tmp == NULL)
-            {
-              free(full);
-              return NULL;
-            }
-          break;
+	      if (tmp == NULL)
+		{
+		  free(full);
+		  return NULL;
+		}
+	      break;
 	    }
 	  else
 	    try = 0;
@@ -189,7 +189,7 @@ mbox_header_line (mailbox *mbox, unsigned int num, const char *header)
       else if (tmp[i] == '\n')
 	{
 	  tmp[i] = '\0';
-      break;
+	  break;
 	}
     }
   line = strdup (tmp);
@@ -209,7 +209,7 @@ mbox_body_lines (mailbox *mbox, unsigned int num, unsigned int lines)
   if (mbox == NULL)
     {
       errno = EINVAL;
-	  return NULL;
+      return NULL;
     }
   if (lines == 0)
     return strdup ("");
@@ -226,7 +226,7 @@ mbox_body_lines (mailbox *mbox, unsigned int num, unsigned int lines)
 	    {
 	      full[i+1] = '\0';
 	      buf = strdup (full);
-          break;
+	      break;
 	    }
 	}
     }

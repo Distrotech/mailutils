@@ -36,7 +36,7 @@ unixmbox_open (mailbox * mbox)
   if (mbox == NULL)
     {
       errno = EINVAL;
-	  return -1;
+      return -1;
     }
 
   data = malloc (sizeof (unixmbox_data));
@@ -67,7 +67,7 @@ unixmbox_open (mailbox * mbox)
   if (stat (mbox->name, &st) == -1)
     {
       unixmbox_close (mbox);
-	  return -1;
+      return -1;
     }
   data->last_mod_time = st.st_mtime;
 
@@ -75,8 +75,8 @@ unixmbox_open (mailbox * mbox)
     {
       if (feof(data->file))
         goto END; /* empty file, no messages */
-	  unixmbox_close (mbox);
-	  return -1;
+      unixmbox_close (mbox);
+      return -1;
     }
   if (strncmp (buf, "From ", 5))
     {
@@ -93,12 +93,12 @@ unixmbox_open (mailbox * mbox)
 	  /* Beginning of a header */
 	  while (strchr (buf, '\n') == NULL)
 	    if (fgets (buf, 80, data->file) == NULL) /* eat the From line */
-          {
-            if (feof (data->file))
-              errno = EIO; /* corrupted mailbox? */
-            unixmbox_close (mbox);
-            return -1;
-          }
+	      {
+		if (feof (data->file))
+		  errno = EIO; /* corrupted mailbox? */
+		unixmbox_close (mbox);
+		return -1;
+	      }
 
 	  mbox->messages++;
 
@@ -106,7 +106,7 @@ unixmbox_open (mailbox * mbox)
 	    {
 	      max_count = mbox->messages * 2;
 	      data->messages = realloc (data->messages,
-				     max_count * sizeof (unixmbox_message));
+					max_count * sizeof (unixmbox_message));
 	      mbox->sizes = realloc (mbox->sizes, max_count * sizeof (int));
 	      if (data->messages == NULL || mbox->sizes == NULL)
 		{
@@ -142,7 +142,7 @@ unixmbox_open (mailbox * mbox)
       return -1; /* errno is set */
     }
 
-END:
+ END:
   mbox->_close = unixmbox_close;
   mbox->_delete = unixmbox_delete;
   mbox->_undelete = unixmbox_undelete;
@@ -170,7 +170,7 @@ unixmbox_close (mailbox * mbox)
   if (mbox == NULL)
     {
       errno = EINVAL;
-	  return -1;
+      return -1;
     }
   data = mbox->_data;
   unixmbox_lock (mbox, MO_ULOCK);
@@ -255,52 +255,52 @@ unixmbox_expunge (mailbox * mbox)
   if (mbox == NULL)
     {
       errno = EINVAL;
-	  return -1;
+      return -1;
     }
   if (mbox->num_deleted)
-  {
-    data = mbox->_data;
-    fclose(data->file);
-    /* error handling */
-    data->file = NULL;
-    file = open(mbox->name, O_RDWR);
-    /* error handling */
+    {
+      data = mbox->_data;
+      fclose(data->file);
+      /* error handling */
+      data->file = NULL;
+      file = open(mbox->name, O_RDWR);
+      /* error handling */
 
-  for (i = 0; i < mbox->messages; i++)
-    {
-      if (data->messages[i].deleted == 0)
+      for (i = 0; i < mbox->messages; i++)
 	{
-      if (deletion_needed)
-      {
-        tmp = mbox->sizes[i];
-		if (tmp > buff_size)
-          {
-            buff_size = tmp;
-            buf = realloc (buf, tmp);
-			/* error checking */
-          }
-        lseek (file, data->messages[i].header, SEEK_SET);
-        size_read = read (file, buf, tmp);
-		/* error checking */
-		lseek (file, size, SEEK_SET);
-        write (file, buf, size_read);
-		/* error checking */
-      	size += size_read;
-      }
-      else
-      {
-        size += mbox->sizes[i];
-      }
-	}
+	  if (data->messages[i].deleted == 0)
+	    {
+	      if (deletion_needed)
+		{
+		  tmp = mbox->sizes[i];
+		  if (tmp > buff_size)
+		    {
+		      buff_size = tmp;
+		      buf = realloc (buf, tmp);
+		      /* error checking */
+		    }
+		  lseek (file, data->messages[i].header, SEEK_SET);
+		  size_read = read (file, buf, tmp);
+		  /* error checking */
+		  lseek (file, size, SEEK_SET);
+		  write (file, buf, size_read);
+		  /* error checking */
+		  size += size_read;
+		}
+	      else
+		{
+		  size += mbox->sizes[i];
+		}
+	    }
 	  else
-    {
-        deletion_needed = 1;
+	    {
+	      deletion_needed = 1;
+	    }
+	}
+      close (file);
+      truncate (mbox->name, size);
+      free (buf);
     }
-    }
-    close (file);
-    truncate (mbox->name, size);
-    free (buf);
-  }
   return 0;
 }
 
@@ -335,7 +335,7 @@ unixmbox_is_updated (mailbox *mbox)
       return -1;
     }
   if (stat (mbox->name, &st) == -1)
-      return -1;
+    return -1;
   data = mbox->_data;
   return (st.st_mtime > data->last_mod_time);
 }
@@ -368,7 +368,7 @@ unixmbox_get_body (mailbox * mbox, unsigned int num)
   if (mbox == NULL)
     {
       errno = EINVAL;
-	  return NULL;
+      return NULL;
     }
   if (num > mbox->messages || num < 0)
     {
@@ -412,7 +412,7 @@ unixmbox_get_header (mailbox * mbox, unsigned int num)
   if ( mbox == NULL )
     {
       errno = EINVAL;
-	  return NULL;
+      return NULL;
     }
 
   if (num > mbox->messages)
@@ -474,6 +474,6 @@ void unixmbox_tester (mailbox *mbox, unsigned int num)
     return;
   printf ("Message size: %u\n", mbox->sizes[num]);
   printf ("Message length: %lu\n",
-        data->messages[num].end - data->messages[num].header);
+	  data->messages[num].end - data->messages[num].header);
 }
 #endif
