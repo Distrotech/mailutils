@@ -1,3 +1,7 @@
+Sean 'Shaleh' Perry <shaleh@debian.org>  Tue,  5 Oct 1999 17:46:31 -0700
+	
+	* added pop3d/signal.c -- contains pop3_sigchld() currently
+
 Sean 'Shaleh' Perry <shaleh@debian.org>  Mon,  4 Oct 1999 17:57:17 -0700
 
 	* initial fork() rewrite, not even compiled it yet

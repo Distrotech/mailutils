@@ -145,10 +145,7 @@ pop3_usage (char *argv0)
 void
 pop3_signal (int signal)
 {
-  if (signal == SIGCHLD)
-    --children;
-  else
-    pop3_abquit (ERR_SIGNAL);
+  pop3_abquit (ERR_SIGNAL);
 }
 
 /* Gets a line of input from the client */

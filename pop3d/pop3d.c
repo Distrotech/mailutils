@@ -18,8 +18,9 @@
 #include "pop3d.h"
 
 typedef struct sockaddr_in SA;
+
+/* count of number of child processes */
 unsigned int children = 0;
-#define strorepid(foo) /* will add more code here later */
 
 static struct option long_options[] =
 {
@@ -165,7 +166,7 @@ pop3_daemon_init (void)
   for (i = 0; i < MAXFD; ++i)
       close(i);
 
-  signal (SIGCHLD, pop3_signal);	/* for forking */
+  signal (SIGCHLD, pop3_sigchld);
 }
 
 /* The main part of the daemon. This function reads input from the client and
@@ -336,11 +337,11 @@ pop3_daemon (unsigned int maxchildren)
       else if(pid == 0) /* child */
         {
           close(listenfd);
+		  /* syslog(); FIXME log the info on the connectiing client */
           pop3_mainloop(connfd, connfd);
         }
       else
         {
-          storepid(pid);
           ++children;
         }
 

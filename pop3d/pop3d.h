@@ -168,6 +168,7 @@ int pop3_mainloop (int infile, int outfile);
 int pop3_daemon (int maxchildren);
 void pop3_usage (char *argv0);
 void pop3_signal (int signal);
+void pop3_sigchld (int signal);
 void pop3_daemon_init (void);
 #ifdef _USE_APOP
 char *pop3_apopuser (const char *user);
