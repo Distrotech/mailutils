@@ -1,5 +1,4 @@
-info_TEXINFOS = \
- mailutils.texi
+info_TEXINFOS = mailutils.texi
 
 EXTRA_DIST = \
  rfc1734.txt \
@@ -13,6 +12,7 @@ EXTRA_DIST = \
  auth.texi \
  body.texi \
  encoding.texi \
+ ex-address.texi \
  headers.texi \
  locker.texi \
  mailbox.texi \
@@ -23,6 +23,11 @@ EXTRA_DIST = \
  url.texi \
  version.texi
 
-ex-address.texi: ${top_srdir}/examples/addr.c
-	sed -es/{/@{/g -e s/}/@}/g < $< > $@
+## Sam, the examples dir is not part of the distribution so this will not work
+## but we should probably have a "addrmsg" program and reenable this.
+## Alain.
+#ex-address.texi: ${top_srcdir}/examples/addr.c
+#	sed -es/{/@{/g -e s/}/@}/g < $< > $@
 
+#mailutils.info: mailutils.texi version.texi ex-address.texi
+#mailutils.dvi: mailutils.texi version.texi ex-address.texi

@@ -25,6 +25,10 @@
 	a long AC_CHECK_LIB, break it in two.
 	Check for strsignal()
 
+	* doc/auth.texi: Bug fixes in texinfo.
+	* doc/Makefile.am: Commented the ex-address.texi generation.
+	* doc/ex-address.texi: New file.
+
 2001-05-21  Alain Magloire
 
 	* configure.in, imap4d/signal.c, pop3d/signal.c:
