@@ -78,6 +78,7 @@ mh_init ()
 	  mh_error ("low memory");
 	  exit (1);
 	}
+      free (p);
     }
   else if (strchr (current_folder, ':') == NULL)
     {
@@ -122,6 +123,7 @@ mh_read_profile ()
       if (!home)
 	abort (); /* shouldn't happen */
       asprintf (&p, "%s/%s", home, MH_USER_PROFILE);
+      free (home);
     }
   mh_read_context_file (p, &profile_header);
 }
@@ -377,7 +379,10 @@ mh_audit_open (char *name, mailbox_t mbox)
   if (strchr (namep, '/') == NULL)
     {
       char *p = NULL;
-      asprintf (&p, "%s/Mail/%s", mu_get_homedir (), namep);
+      char *home;
+
+      asprintf (&p, "%s/Mail/%s", home = mu_get_homedir (), namep);
+      free (home);
       if (!p)
 	{
 	  mh_error ("low memory");
