@@ -1,3 +1,23 @@
+2002-11-08  Sergey Poznyakoff 
+
+	* include/mailutils/libsieve.h: New file.
+	* include/mailutils/Makefile.am: Added libsieve.h
+	* libsieve/sieve.h: Moved publicly available declarations to
+	  <mailutils/libsieve.h>
+	* libsieve/sieve.y: Fixed the grammar. Added union, types and the
+	  basic actions.  
+	* libsieve/sieve.l: Likewise.  
+	* libsieve/Makefile.am: Added new files.
+	* libsieve/util.c (sieve_slist_destroy, sieve_value_create): New
+	  functions.
+	* libsieve/tests.c: New file. Provides standard sieve tests (all
+	  noops, so far).
+	* libsieve/actions.c: New file. Provides standard sieve actions (all
+	  noops, so far).
+	* libsieve/require.c: New file. Handles "require" statement.
+	* libsieve/register.c: New file. Contains the sieve namespace
+	  functions.
+
 2002-11-07  Sergey Poznyakoff  
 
 	* mailbox/stream.c: Fix memory leak. Patch provided by
