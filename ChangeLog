@@ -1,3 +1,17 @@
+2001-03-09  Sam Roberts
+
+	* include/mailutils/address.h - api for new parser,
+	address_create0(), and to get route, local-part, and domain.
+	* mailbox/address.c - implmentation of 3 new get functions, first
+	cut, needs cleanup
+	* mailbox/include/address0.h - new members of _address, deleted
+	one that looked unused.
+	* mailbox/parse822.c - implementation of address_create0(),
+	which handles groups, routes, and the hoary old comment phrase
+	* addr/addr.c - parses addresses from its command line or
+	stding using create() or create0().
+	* mailbox/mbx_imap.c - need strings.h on some systems, like Nto
+
 2001-03-12  Sam Roberts
 
 	* frm/frm.c (main) : Changed to only print subject if
