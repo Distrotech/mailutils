@@ -37,7 +37,7 @@ instr_run (sieve_machine_t mach)
   sieve_handler_t han = SIEVE_ARG (mach, 0, handler);
   list_t arg_list = SIEVE_ARG (mach, 1, list);
   list_t tag_list = SIEVE_ARG (mach, 2, list);
-  int rc;
+  int rc = 0;
   
   if (INSTR_DEBUG (mach))
     {
@@ -48,7 +48,8 @@ instr_run (sieve_machine_t mach)
       sieve_debug (mach, "\n");
     }
 
-  rc = han (mach, arg_list, tag_list);
+  if (!INSTR_DISASS(mach))
+    rc = han (mach, arg_list, tag_list);
   SIEVE_ADJUST(mach, 4);
   return rc;
 }
