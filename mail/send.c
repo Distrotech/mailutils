@@ -340,7 +340,8 @@ mail_send0 (compose_env_t * env, int save_to)
 
       if (!buf)
 	{
-	  if (util_getenv (NULL, "ignoreeof", Mail_env_boolean, 0) == 0)
+	  if (interactive 
+	      && util_getenv (NULL, "ignoreeof", Mail_env_boolean, 0) == 0)
 	    {
 	      util_error (util_getenv (NULL, "dot", Mail_env_boolean, 0) == 0 ?
 			  _("Use \".\" to terminate letter.") :
