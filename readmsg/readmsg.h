@@ -26,7 +26,6 @@
 #include <unistd.h>
 #include <limits.h>
 #include <errno.h>
-#include <getopt.h>
 
 #include <mailutils/body.h>
 #include <mailutils/debug.h>

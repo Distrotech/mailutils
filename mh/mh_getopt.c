@@ -24,7 +24,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <mh_getopt.h>
-#include <getopt.h>
 
 int mh_optind = 1;
 char *mh_optarg;

@@ -35,8 +35,6 @@
 #include <sys/socket.h>
 #include <sys/stat.h>
 
-#include "getopt.h"
-
 #ifdef HAVE_STRINGS_H
 # include <strings.h>
 #endif
