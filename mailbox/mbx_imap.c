@@ -1008,7 +1008,7 @@ imap_message_size (message_t msg, size_t *psize)
   msg_imap_t msg_imap = message_get_owner (msg);
   m_imap_t m_imap = msg_imap->m_imap;
   f_imap_t f_imap = m_imap->f_imap;
-  int status;
+  int status = 0;;
 
   /* If there is a parent it means it is a sub message, IMAP does not give
      the full size of mime messages, so the message_size retrieved from
@@ -1018,22 +1018,27 @@ imap_message_size (message_t msg, size_t *psize)
       return imap_submessage_size (msg_imap, psize);
     }
 
-  /* Select first.  */
-  if (f_imap->state == IMAP_NO_STATE)
+  if (msg_imap->message_size == 0)
     {
-      status = imap_messages_count (m_imap->mailbox, NULL);
-      if (status != 0)
-	return status;
-      /* We strip the \r, but the offset/size on the imap server is with that
-	 octet so add it in the offset, since it's the number of lines.  */
-      status = imap_writeline (f_imap,
-			       "g%d FETCH %d RFC822.SIZE\r\n",
-			       f_imap->seq++, msg_imap->num);
-      CHECK_ERROR (f_imap, status);
-      MAILBOX_DEBUG0 (m_imap->mailbox, MU_DEBUG_PROT, f_imap->buffer);
-      f_imap->state = IMAP_FETCH;
+      /* Select first.  */
+      if (f_imap->state == IMAP_NO_STATE)
+	{
+	  status = imap_messages_count (m_imap->mailbox, NULL);
+	  if (status != 0)
+	    return status;
+	  /* We strip the \r, but the offset/size on the imap server is with
+	     that octet so add it in the offset, since it's the number of
+	     lines.  */
+	  status = imap_writeline (f_imap,
+				   "g%d FETCH %d RFC822.SIZE\r\n",
+				   f_imap->seq++, msg_imap->num);
+	  CHECK_ERROR (f_imap, status);
+	  MAILBOX_DEBUG0 (m_imap->mailbox, MU_DEBUG_PROT, f_imap->buffer);
+	  f_imap->state = IMAP_FETCH;
+	}
+      status = message_operation (f_imap, msg_imap, 0, 0, 0);
     }
-  status = message_operation (f_imap, msg_imap, 0, 0, 0);
+
   if (status == 0)
     {
       if (psize)
@@ -1583,10 +1588,11 @@ imap_header_get_fvalue (header_t header, const char *field, char * buffer,
       status = imap_messages_count (m_imap->mailbox, NULL);
       if (status != 0)
         return status;
-#define CACHE_HEADERS "Bcc Cc Content-Language Content-Transfer-Encoding Content-Type Date From In-Reply-To Message-ID Reference Reply-To Sender Subject To X-UIDL"
+#define MU_IMAP_CACHE_HEADERS "Bcc Cc Content-Language Content-Transfer-Encoding Content-Type Date From In-Reply-To Message-ID Reference Reply-To Sender Subject To X-UIDL"
       status = imap_writeline (f_imap,
-                               "g%d FETCH %d BODY.PEEK[HEADER.FIELDS (%s)]\r\n",
-                               f_imap->seq++, msg_imap->num, CACHE_HEADERS);
+                               "g%d FETCH %d FLAGS RFC822.SIZE BODY.PEEK[HEADER.FIELDS (%s)]\r\n",
+                               f_imap->seq++, msg_imap->num,
+			       MU_IMAP_CACHE_HEADERS);
       CHECK_ERROR (f_imap, status);
       MAILBOX_DEBUG0 (m_imap->mailbox, MU_DEBUG_PROT, f_imap->buffer);
       f_imap->state = IMAP_FETCH;

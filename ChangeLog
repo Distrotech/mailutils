@@ -1,10 +1,23 @@
+2001-10-05 Alain Magloire
+
+	* mailbox/folder_imap.c (imap_flags): Bailout at the matching
+	LPAREN.
+	* mailbox/header.c (header_get_fvalue): Return 0 in the
+	number of byte return argument even when no header is found.
+	(header_get_value): Likewised.
+
+	* mailbox/mbx_imap.c (imap_header_get_fvalue): Also cache
+	the message size and the FLAGS.
+	(imap_message_size): If we already have the size do not request
+	it again.
+
 2001-10-05 Sergey Poznyakoff
 
 	* guimb/scm/Makefile.am: Added reject.scm.
 	* mailbox/parse822.c: (parse822_word): Additional check
 	for qstr != NULL: parse822_quoted_string() sometimes returns
 	EOK and does not fill qstr (e.g. when parsing empty string: "")
-	
+
 2001-10-04 Alain Magloire
 
 	* imap4d/select.c(imap4_select_status): According to RFC2060

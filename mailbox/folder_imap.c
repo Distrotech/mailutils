@@ -1232,34 +1232,42 @@ imap_bodystructure (f_imap_t f_imap, char **ptr)
 static int
 imap_flags (f_imap_t f_imap, char **ptr)
 {
-  char *flag;
+  char *start_flag;
+  char *end_flag;
   /* msg_imap may be null for an untag response deal with it.  */
   msg_imap_t msg_imap = f_imap->callback.msg_imap;
 
   /* Skip space.  */
   while (**ptr == ' ')
     (*ptr)++;
+
   /* Skip LPAREN.  */
   if (**ptr == '(')
     (*ptr)++;
-  for (;**ptr && **ptr != ')'; ++(*ptr))
+
+  /* Go through the list and break on ')'  */
+  do
     {
       /* Skip space before next word.  */
       while (**ptr == ' ')
 	(*ptr)++;
+
       /* Save the beginning of the word.  */
-      flag = *ptr;
+      start_flag = *ptr;
+
       /* Get the next word boundary.  */
       while (**ptr && **ptr != ' ' && **ptr != ')')
-	++*ptr;
+	++(*ptr);
+
       /* Make a C string for the strcasecmp.  */
-      **ptr = '\0';
+      end_flag = *ptr;
+
       /* Bail out.  */
-      if (*flag == '\0')
+      if (*start_flag == '\0')
 	break;
 
       /* Guess the flag.  */
-      if (strcasecmp (flag, "\\Seen") == 0)
+      if (strncasecmp (start_flag, "\\Seen", end_flag - start_flag) == 0)
 	{
 	  if (msg_imap)
 	    {
@@ -1269,28 +1277,28 @@ imap_flags (f_imap_t f_imap, char **ptr)
 	  else
 	    f_imap->flags |= MU_ATTRIBUTE_SEEN;
 	}
-      else if (strcasecmp (flag, "\\Answered") == 0)
+      else if (strncasecmp (start_flag, "\\Answered", end_flag - start_flag) == 0)
 	{
 	  if (msg_imap)
 	    msg_imap->flags |= MU_ATTRIBUTE_ANSWERED;
 	  else
 	    f_imap->flags |= MU_ATTRIBUTE_ANSWERED;
 	}
-      else if (strcasecmp (flag, "\\Flagged") == 0)
+      else if (strncasecmp (start_flag, "\\Flagged", end_flag - start_flag) == 0)
 	{
 	  if (msg_imap)
 	    msg_imap->flags |= MU_ATTRIBUTE_FLAGGED;
 	  else
 	    f_imap->flags |= MU_ATTRIBUTE_FLAGGED;
 	}
-      else if (strcasecmp (flag, "\\Deleted") == 0)
+      else if (strncasecmp (start_flag, "\\Deleted", end_flag - start_flag) == 0)
 	{
 	  if (msg_imap)
 	    msg_imap->flags |= MU_ATTRIBUTE_DELETED;
 	  else
 	    f_imap->flags |= MU_ATTRIBUTE_DELETED;
 	}
-      else if (strcasecmp (flag, "\\Draft") == 0)
+      else if (strncasecmp (start_flag, "\\Draft", end_flag - start_flag) == 0)
 	{
 	  if (msg_imap)
 	    msg_imap->flags |= MU_ATTRIBUTE_DRAFT;
@@ -1298,6 +1306,9 @@ imap_flags (f_imap_t f_imap, char **ptr)
 	    f_imap->flags |= MU_ATTRIBUTE_DRAFT;
 	}
     }
+  while (**ptr && **ptr != ')');
+  if (**ptr == ')')
+    (*ptr)++;
   return 0;
 }
 
@@ -1306,6 +1317,7 @@ imap_body (f_imap_t f_imap, char **ptr)
 {
   int status;
 
+  /* Skip leading spaces.  */
   while (**ptr && **ptr == ' ')
     (*ptr)++;
 
@@ -1322,8 +1334,10 @@ imap_body (f_imap_t f_imap, char **ptr)
 	  section[len] = '\0';
 	  /* strupper.  */
 	  for (; *p; p++)
-	    if (isalpha((unsigned)*p))
-	      *p = toupper ((unsigned)*p);
+	    {
+	      if (isalpha((unsigned)*p))
+		*p = toupper ((unsigned)*p);
+	    }
 	  /* Check to see the callback type to update the line count.  */
 	  if (!strstr (section, "FIELD"))
 	    {
