@@ -41,7 +41,7 @@
 #include <mailutils/locker.h>
 #include <mailutils/mutil.h>
 
-#define LOCKFILE_ATTR           0444
+#define LOCKFILE_ATTR           0644
 
 /* First draft by Brian Edmond. */
 /* For subsequent modifications, see the GNU mailutils ChangeLog. */
@@ -714,7 +714,7 @@ _locker_lock_dotlock (locker_t lock)
       return errno;
     }
 
-  if ((fd = open (lock->data.dot.dotlock, O_RDONLY)) == -1)
+  if ((fd = open (lock->data.dot.dotlock, O_RDWR)) == -1)
     {
       unlink (lock->data.dot.nfslock);
       return errno;
