@@ -1,6 +1,19 @@
-README -- Differences between Mailutils and the RAND implementation of MH:
+README for GNU Mailutils implementation of MH 
+
+The primary aim of this implementation is to provide an interface
+between Mailutils and Emacs using mh-e module. 
+
+To use Mailutils MH with Emacs, add the following line to your
+site-start.el or .emacs file:
+
+(load "mailutils-mh")
+
+Refer to the file TODO in this directory for information about the
+current state of Mailutils MH implementation.
 
 
+The list of differences between Mailutils and the RAND implementation of MH:
+
 * All programs use usual GNU long options. The support for MH single-dot
 options is provided for backward compatibility.
 
@@ -100,7 +113,7 @@ Understands --build option.
 If the argument to 'ignores' contains more than one component name
 it must be enclosed in double-quotes. Dangling equal sign is an error,
 to set a string variable to the empty value use = "", e.g.:
-overflowtext=""
+overflowtext="" (see supplied mhl.format file).
 
 Ineractive prompting is not yet implemented.
 

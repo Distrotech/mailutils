@@ -1,3 +1,21 @@
+2003-02-14  Sergey Poznyakoff
+
+	* configure.ac: New option --enable-mh-utils.
+	  Added check for Emacs lisp directory
+	* include/mailutils/address.h (address_get_nth): New function.
+	  Get Nth subaddress from an address.
+	* mailbox/address.c: Likewise.
+	* mh/mailutils-mh.eli: New file. Source for mailutils-mh.el --
+	  an elisp module that configures mh-e.el for use with mailutils.
+	* mh/Makefile.am: Added rules for generating mailutils-mh.el
+	* mh/mh_format.c (builtin_formataddr): Rewritten to prevent
+	  formatting the duplicate addresses.
+	  (builtin_putaddr): Use print_hdr_string to format output string.
+
+	* po/POTFILES.in: Added more files.
+	* README: Updated
+	* mh/README: Updated
+	
 2003-02-13  Sergey Poznyakoff 
 
 	* imap4d/append.c (imap4d_append): Bugfix.

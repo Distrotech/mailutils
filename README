@@ -44,11 +44,6 @@ specific configuration options:
 	Compile Mailutils with debugging support. This disables compiler
 	optimizations and adds debugging information to the binaries.
 
-    --enable-experimental
-
-        Build experimental and/or unfinished utilities as well. In the
-        current version (0.2), this option enables building of MH utilities.
-
     --disable-pam
 
 	Do not build PAM support. By default configure will build PAM support
@@ -67,6 +62,13 @@ specific configuration options:
 
 	./configure LIBS='-L/usr/local/mysql/lib' \
                     CPPLAGS='-I/usr/local/mysql/include' --enable-mysql
+
+    --enable-mh-utils
+
+        Build a suite of MH utilities. The GNU implementation of MH is
+        primarily aiming to provide an interface between Mailutils and
+        Emacs using mh-e module. For more information, refer to files
+        README and TODO in the mh subdirectory.
 
     --with-virtual-pwddir=DIR
 
@@ -152,8 +154,8 @@ options:
 
 	Use old DBM
 
-Only one dbm option may be specified. Which one depends on the flavor
-of DBM you are using. GDBM is most common for GNU system.
+        Only one dbm option may be specified. Which one depends on the flavor
+        of DBM you are using. GDBM is most common for GNU system.
 
     --with-log-facility=facility
 
