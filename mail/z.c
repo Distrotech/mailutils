@@ -156,8 +156,7 @@ mail_z (int argc, char **argv)
   
   for (i = 0; i < nlines; i++)
     {
-      if (mail_from(0, NULL))
-	break;
+      mail_from(0, NULL);
       cursor++;
     }
 
