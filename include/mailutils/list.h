@@ -42,6 +42,8 @@ extern int list_do       __P ((list_t list, list_action_t * action, void *cbdata
 typedef int (*list_comparator_t) __PMT((const void*, const void*));
 
 extern list_comparator_t list_set_comparator __P((list_t, list_comparator_t));
+
+extern int list_set_destroy_item __P ((list_t list, void (*destoy_item) __P((void *))));
   
 #ifdef __cplusplus
 }
