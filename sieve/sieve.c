@@ -207,7 +207,7 @@ main (int argc, char *argv[])
   mailer_t mailer = 0;
   mailbox_t mbox = 0;
 
-  struct options opts;
+  struct options opts = { 0 };
 
   size_t count = 0;
   int msgno = 0;
