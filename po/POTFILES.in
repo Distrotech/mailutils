@@ -94,15 +94,18 @@ mh/inc.c
 mh/mh_argp.c
 mh/mh_ctx.c
 mh/mh_fmtgram.y
+mh/mh_format.c
 mh/mh_getopt.c
 mh/mh_init.c
 mh/mh_msgset.c
+mh/mh_whatnow.c
 mh/mhpath.c
 mh/refile.c
 mh/repl.c
 mh/rmf.c
 mh/rmm.c
 mh/scan.c
+mh/whatnow.c
 
 pop3d/apop.c
 pop3d/extra.c
