@@ -31,6 +31,8 @@ static char doc[] = "GNU mail -- the standard /bin/mail interface";
 static char args_doc[] = "[address...]";
 
 static struct argp_option options[] = {
+  {NULL, 0, NULL, 0,
+   "mail specific switches:", 0},
   {"exist",   'e', 0,      0, "Return true if mail exists", 0},
   {"file",    'f', "FILE", OPTION_ARG_OPTIONAL,
 			      "Operate on mailbox FILE (default ~/mbox)", 0},
@@ -129,10 +131,12 @@ static struct argp argp = {
   parse_opt,
   args_doc,
   doc,
-  mu_common_argp_child,
+  NULL,
   NULL, NULL
 };
 
+static const char *mail_capa[] = { "mailutils", NULL };
+			     
 static char *
 mail_cmdline(void *closure, int cont)
 {
@@ -287,9 +291,8 @@ main (int argc, char **argv)
   args.user = NULL;
 
   /* argument parsing */
-  
-  mu_create_argcv (argc, argv, &argc, &argv);
-  argp_parse (&argp, argc, argv, 0, 0, &args);
+
+  mu_argp_parse (&argp, &argc, &argv, 0, mail_capa, NULL, &args);
 
   /* read system-wide mail.rc and user's .mailrc */
   if ((util_find_env ("rc"))->set)

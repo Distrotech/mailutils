@@ -58,6 +58,8 @@ const char *argp_program_bug_address = "<bug-mailutils@gnu.org>";
 static char doc[] = "GNU frm -- display From: lines";
 
 static struct argp_option options[] = {
+  {NULL, 0, NULL, 0,
+   "frm specific switches:", 0},
   {"debug", 'd', NULL, 0, "Enable debugging output", 0},
   {"field", 'f', "NAME", 0,
 			      "Header field to display", 0},
@@ -148,10 +150,14 @@ static struct argp argp = {
   parse_opt,
   NULL,
   doc,
-  mu_common_argp_child,
+  NULL,
   NULL, NULL
 };
 
+static const char *frm_argp_capa[] = {
+  "mailutils",
+  NULL
+};
 
 /* Retrieve the Personal Name from the header To: or From:  */
 static int
@@ -292,8 +298,7 @@ main(int argc, char **argv)
   int c;
   int status = 0;
   
-  mu_create_argcv (argc, argv, &argc, &argv);
-  argp_parse (&argp, argc, argv, 0, &c, NULL);
+  mu_argp_parse (&argp, &argc, &argv, 0, frm_argp_capa, &c, NULL);
 
   /* have an argument */
   argc -= c;

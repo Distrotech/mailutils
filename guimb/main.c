@@ -77,11 +77,13 @@ parse_opt (int key, char *arg, struct argp_state *state)
     {
     case 'c':
       program_expr = optarg;
+      *(int *)state->input = state->next;
       state->next = state->argc;
       break;
       
     case 's':
       program_file = optarg;
+      *(int *)state->input = state->next;
       state->next = state->argc;
       break;
 
@@ -127,10 +129,11 @@ static struct argp argp = {
   parse_opt,
   args_doc,
   doc,
-  mu_common_argp_child,
+  NULL,
   NULL, NULL
 };
 
+static const char *guimb_argp_capa[] = {"mailutils", NULL};
     
 int
 main (int argc, char *argv[])
@@ -140,9 +143,8 @@ main (int argc, char *argv[])
   struct guimb_data gd;
   
   append_arg ("");
-  mu_create_argcv (argc, argv, &argc, &argv);
-  argp_parse (&argp, argc, argv, 0, &c, NULL);
-
+  mu_argp_parse (&argp, &argc, &argv, 0, guimb_argp_capa, NULL, &c);
+  
   for (; c < argc; c++)
       append_arg (argv[c]);
 

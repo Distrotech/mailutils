@@ -53,6 +53,8 @@ static char doc[] = "GNU comsatd";
 
 static struct argp_option options[] = 
 {
+  {NULL, 0, NULL, 0,
+   "comsatd specific switches:", 0},
   {"config", 'c', "FILE", 0, "Read configuration from FILE", 0},
   { NULL,      0, NULL, 0, NULL, 0 }
 };
@@ -64,8 +66,15 @@ static struct argp argp = {
   comsatd_parse_opt,
   NULL, 
   doc,
-  mu_daemon_argp_child,
+  NULL,
   NULL, NULL
+};
+
+static const char *comsat_argp_capa[] = {
+  "mailutils",
+  "daemon",
+  "logging",
+  NULL
 };
 
 #define SUCCESS 0
@@ -106,7 +115,7 @@ comsatd_parse_opt (int key, char *arg, struct argp_state *state)
   switch (key)
     {
     case ARGP_KEY_INIT:
-      state->child_inputs[0] = state->input;
+      state->child_inputs[1] = state->input;
       break;
       
     case 'c':
@@ -124,9 +133,9 @@ int
 main(int argc, char **argv)
 {
   int c;
-  
-  mu_create_argcv (argc, argv, &argc, &argv);
-  argp_parse (&argp, argc, argv, 0, 0, &daemon_param);
+
+  mu_argp_parse (&argp, &argc, &argv, 0, comsat_argp_capa,
+		 NULL, &daemon_param);
 
   if (daemon_param.timeout > 0 && daemon_param.mode == MODE_DAEMON)
     {

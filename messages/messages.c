@@ -11,9 +11,16 @@ static char doc[] = "GNU messages -- count the number of messages in a mailbox";
 static char args_doc[] = "[mailbox...]";
 
 static struct argp_option options[] = {
+  {NULL, 0, NULL, 0,
+   "messages specific switches:", 0},
   {"quiet",	'q',	0,	0,	"Only display number of messages"},
   {"silent",	's',	0,	0,	"Same as -q"},
   { 0 }
+};
+
+static const char *argp_capa[] = {
+  "mailutils",
+  NULL
 };
 
 struct arguments
@@ -53,7 +60,7 @@ static struct argp argp = {
   parse_opt,
   args_doc,
   doc,
-  mu_common_argp_child,
+  NULL,
   NULL, NULL
 };
 
@@ -65,8 +72,7 @@ main (int argc, char **argv)
   int err = 0;
   struct arguments args = {0, NULL};
 
-  mu_create_argcv (argc, argv, &argc, &argv);
-  argp_parse (&argp, argc, argv, 0, 0, &args);
+  mu_argp_parse (&argp, &argc, &argv, 0, argp_capa, NULL, &args);
 
   registrar_get_list (&bookie);
   list_append (bookie, path_record);

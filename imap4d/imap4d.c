@@ -42,6 +42,8 @@ static char doc[] = "GNU imap4d -- the IMAP4D daemon";
 
 static struct argp_option options[] = 
 {
+  {NULL, 0, NULL, 0,
+   "imap4d specific switches:", 0},
   {"other-namespace", 'O', "PATHLIST", 0,
    "set the `other' namespace", 0},
   {"shared-namespace", 'S', "PATHLIST", 0,
@@ -56,8 +58,16 @@ static struct argp argp = {
   imap4d_parse_opt,
   NULL, 
   doc,
-  mu_daemon_argp_child,
+  NULL,
   NULL, NULL
+};
+
+static const char *imap4d_capa[] = {
+  "mailutils",
+  "daemon",
+  "logging",
+  "auth",
+  NULL
 };
 
 static int imap4d_mainloop      __P ((int, int));
@@ -71,7 +81,7 @@ imap4d_parse_opt (int key, char *arg, struct argp_state *state)
     switch (key)
       {
       case ARGP_KEY_INIT:
-       	state->child_inputs[0] = state->input;
+       	state->child_inputs[1] = state->input;
 	break;
 	
       case 'O':
@@ -96,8 +106,7 @@ main (int argc, char **argv)
 
   state = STATE_NONAUTH; /* Starting state in non-auth.  */
 
-  mu_create_argcv (argc, argv, &argc, &argv);
-  argp_parse (&argp, argc, argv, 0, 0, &daemon_param);
+  mu_argp_parse (&argp, &argc, &argv, 0, imap4d_capa, NULL, &daemon_param);
 
 #ifdef USE_LIBPAM
   if (!pam_service)

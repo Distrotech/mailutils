@@ -41,19 +41,43 @@ volatile size_t children;
 static int pop3d_mainloop       __P ((int, int));
 static void pop3d_daemon_init   __P ((void));
 static void pop3d_daemon        __P ((unsigned int, unsigned int));
-
+static error_t pop3d_parse_opt  __P((int key, char *arg,
+				     struct argp_state *state));
 const char *argp_program_version = "pop3d (" PACKAGE ") " VERSION;
 const char *argp_program_bug_address = "<bug-mailutils@gnu.org>";
 static char doc[] = "GNU pop3d -- the POP3 daemon";
 
 static struct argp argp = {
   NULL,
-  NULL,
+  pop3d_parse_opt,
   NULL, 
   doc,
-  mu_daemon_argp_child,
+  NULL,
   NULL, NULL
 };
+
+static const char *pop3d_argp_capa[] = {
+  "mailutils",
+  "daemon",
+  "logging",
+  "auth",
+  NULL
+};
+
+static error_t
+pop3d_parse_opt (int key, char *arg, struct argp_state *state)
+{
+    switch (key)
+      {
+      case ARGP_KEY_INIT:
+       	state->child_inputs[1] = state->input;
+	break;
+	
+    default:
+      return ARGP_ERR_UNKNOWN;
+    }
+  return 0;
+}
 
 
 int
@@ -62,8 +86,7 @@ main (int argc, char **argv)
   struct group *gr;
   int status = OK;
   
-  mu_create_argcv (argc, argv, &argc, &argv);
-  argp_parse (&argp, argc, argv, 0, 0, &daemon_param);
+  mu_argp_parse (&argp, &argc, &argv, 0, pop3d_argp_capa, NULL, &daemon_param);
 
 #ifdef USE_LIBPAM
   if (!pam_service)
