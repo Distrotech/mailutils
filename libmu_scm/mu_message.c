@@ -77,32 +77,39 @@ mu_scm_message_print (SCM message_smob, SCM port, scm_print_state * pstate)
 
   scm_puts ("#<message ", port);
 
-  p = _get_envelope_sender (env);
-  scm_puts ("\"", port);
-  if (p)
+  if (message_smob == SCM_BOOL_F)
     {
-      scm_puts (p, port);
-      free ((void *) p);
+      /* several mu_message.* functions may return #f */
+      scm_puts ("#f", port);
     }
   else
-    scm_puts ("UNKNOWN", port);
-
-  envelope_date (env, buffer, sizeof (buffer), NULL);
-  p = buffer;
-  if (mu_parse_ctime_date_time (&p, &tm, &tz) == 0)
-    strftime (buffer, sizeof (buffer), "%a %b %e %H:%M", &tm);
-  else
-    strcpy (buffer, "UNKNOWN");
-  scm_puts ("\" \"", port);
-  scm_puts (buffer, port);
-  scm_puts ("\" ", port);
-
-  message_size (mum->msg, &m_size);
-  message_lines (mum->msg, &m_lines);
-
-  snprintf (buffer, sizeof (buffer), "%3ld %-5ld", m_lines, m_size);
-  scm_puts (buffer, port);
-
+    {
+      p = _get_envelope_sender (env);
+      scm_puts ("\"", port);
+      if (p)
+	{
+	  scm_puts (p, port);
+	  free ((void *) p);
+	}
+      else
+	scm_puts ("UNKNOWN", port);
+      
+      envelope_date (env, buffer, sizeof (buffer), NULL);
+      p = buffer;
+      if (mu_parse_ctime_date_time (&p, &tm, &tz) == 0)
+	strftime (buffer, sizeof (buffer), "%a %b %e %H:%M", &tm);
+      else
+	strcpy (buffer, "UNKNOWN");
+      scm_puts ("\" \"", port);
+      scm_puts (buffer, port);
+      scm_puts ("\" ", port);
+      
+      message_size (mum->msg, &m_size);
+      message_lines (mum->msg, &m_lines);
+      
+      snprintf (buffer, sizeof (buffer), "%3ld %-5ld", m_lines, m_size);
+      scm_puts (buffer, port);
+    }
   scm_puts (">", port);
   return 1;
 }
