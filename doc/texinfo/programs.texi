@@ -3059,7 +3059,6 @@ The @sc{gnu} wrapper library @file{libltdl} is present and is used
 by Mailutils. @xref{Using libltdl,,,libtool,Using libltdl}, for
 more information on @file{libltdl} library.
 
-
 @item WITH_BDB2
 Support for Berkeley DB is compiled in (the package was configured with
 @option{--with-db2} option).
@@ -3073,9 +3072,18 @@ Support for old style DBM is compiled in (the package was configured with
 @option{--with-dbm} option).
 
 @item WITH_GDBM
-Support for GDBM is compiled in (the package was configured with
-@option{--with-gdbm} option). @xref{Top,,Introduction,gdbm,GNU DBM Manual}, for
-information about this library.
+Support for GNU DBM is compiled in (the package was configured with
+@option{--with-gdbm} option). @xref{Top,,Introduction,gdbm,The GNU DBM Manual},
+for more information about this library.
+
+@item WITH_GNUTLS
+Support for GnuTLS (a Transport Layer Security Library) is compiled in
+(the package was configured with @option{--with-gnutls} option).
+
+@item WITH_GSASL
+Support for GNU SASL is compiled in (the package was configured with
+@option{--with-gsasl} option). @xref{Top,,Introduction,gsasl,The GNU SASL Manual},
+for more information about this library.
 
 @item WITH_GSSAPI
 Support for @sc{gssapi} is compiled in (the package was configured with
@@ -3084,8 +3092,8 @@ Support for @sc{gssapi} is compiled in (the package was configured with
 @item WITH_GUILE
 Support for Guile extension language is built (the package was
 configured with @option{--with-guile} option).
-@xref{Top,,Overview,guile,The Guile Reference Manual}, for information
-about Guile.
+@xref{Top,,Overview,guile,The Guile Reference Manual},
+for more information about Guile.
 
 @item WITH_PTHREAD
 The @sc{posix} thread support is compiled in.
@@ -3093,7 +3101,7 @@ The @sc{posix} thread support is compiled in.
 @item WITH_READLINE
 The readline support is enabled (the package was
 configured with @option{--with-readline} option).
-@xref{Top,,,readline,GNU Readline Library}, for more information.
+@xref{Top,,,readline,The GNU Readline Library}, for more information.
 
 @item HAVE_MYSQL
 Authentication via MySQL is supported (the package was
