@@ -74,6 +74,8 @@ mail_print_msg (msgset_t *mspec, message_t mesg, void *data)
 	    {
 	      fprintf (out, "%s: ", buf);
 	      header_aget_field_value (hdr, i, &tmp);
+	      if (mail_header_is_unfoldable (buf))
+		mu_string_unfold (tmp, NULL);
 	      util_rfc2047_decode (&tmp);
 	      fprintf (out, "%s\n", tmp);
 	      free (tmp);
