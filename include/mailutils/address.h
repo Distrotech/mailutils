@@ -19,14 +19,13 @@
 #define _MAILUTILS_ADDRESS_H
 
 #include <sys/types.h>
+
 #include <mailutils/mu_features.h>
+#include <mailutils/types.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-struct _address;
-typedef struct _address *address_t;
 
 extern int address_create   __P ((address_t *, const char *));
 extern int address_createv  __P ((address_t *, const char *v[], size_t));

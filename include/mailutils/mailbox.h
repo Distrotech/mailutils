@@ -19,20 +19,17 @@
 #define _MAILUTILS_MAILBOX_H
 
 #include <sys/types.h>
-#include <mailutils/mu_features.h>
 
-/* Forward declaration.  */
-struct _mailbox;
-typedef struct _mailbox *mailbox_t;
-
-#include <mailutils/url.h>
-#include <mailutils/observer.h>
 #include <mailutils/debug.h>
-#include <mailutils/property.h>
-#include <mailutils/message.h>
-#include <mailutils/locker.h>
-#include <mailutils/stream.h>
 #include <mailutils/folder.h>
+#include <mailutils/locker.h>
+#include <mailutils/message.h>
+#include <mailutils/mu_features.h>
+#include <mailutils/observer.h>
+#include <mailutils/property.h>
+#include <mailutils/stream.h>
+#include <mailutils/types.h>
+#include <mailutils/url.h>
 
 #ifdef __cplusplus
 extern "C" {

@@ -19,14 +19,13 @@
 #define _MAILUTILS_LOCKER_H
 
 #include <mailutils/mu_features.h>
+#include <mailutils/types.h>
+
 #include <sys/types.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-struct _locker;
-typedef struct _locker *locker_t;
 
 /* lock expiry time */
 #define MU_LOCKER_EXPIRE_TIME        (10 * 60)
@@ -76,4 +75,5 @@ extern int locker_remove_lock   __P ((locker_t));
 }
 #endif
 
-#endif /* _MAILUTILS_MAILBOX_H */
+#endif
+

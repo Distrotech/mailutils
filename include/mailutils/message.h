@@ -19,11 +19,6 @@
 #define _MAILUTILS_MESSAGE_H
 
 #include <sys/types.h>
-#include <mailutils/mu_features.h>
-
-/* forward declaration */
-struct _message;
-typedef struct _message *message_t;
 
 #include <mailutils/attribute.h>
 #include <mailutils/auth.h>
@@ -31,6 +26,7 @@ typedef struct _message *message_t;
 #include <mailutils/envelope.h>
 #include <mailutils/header.h>
 #include <mailutils/mailbox.h>
+#include <mailutils/mu_features.h>
 #include <mailutils/observer.h>
 #include <mailutils/stream.h>
 
