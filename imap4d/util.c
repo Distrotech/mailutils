@@ -58,7 +58,7 @@ util_getitem (char *s, const char *delim, char **save)
   return strtok_r (s, delim, save);
 }
 
-/* Stop a the first char that IMAP4 represent as a special characters.  */
+/* Stop at the first char that represents an IMAP4 special character. */
 int
 util_token (char *buf, size_t len, char **ptr)
 {
