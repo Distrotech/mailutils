@@ -110,7 +110,46 @@ _auth_lb_readline (struct _line_buffer *s, const char *ptr, size_t size)
     size = p - s->buffer + 1;
   return _auth_lb_read (s, ptr, size);
 }
-  
+
+int
+_auth_lb_writelines (struct _line_buffer *s, const char *iptr, size_t isize,
+		     off_t offset,
+		     int (*wr) (void *data, char *start, char *end),
+		     void *data,
+		     size_t *nbytes)
+{
+  if (s->level > 2)
+    {
+      char *start, *end;
+      
+      for (start = s->buffer, end = strchr (start, '\n');
+	   end && end < s->buffer + s->level;
+	   start = end + 1, end = strchr (start, '\n'))
+	if (end[-1] == '\r')
+	  {
+	    int rc = wr (data, start, end);
+	    if (rc)
+	      return rc;
+	  }
+
+      if (start > s->buffer)
+	{
+	  if (start < s->buffer + s->level)
+	    {
+	      int rest = s->buffer + s->level - start + 1;
+	      memmove (s->buffer, start, rest);
+	      s->level = rest;
+	    }
+	  else 
+	    s->level = 0;
+	}
+    }
+
+  if (nbytes)
+    *nbytes = isize;
+  return 0;
+}
+
 int
 _auth_lb_level (struct _line_buffer *s)
 {
