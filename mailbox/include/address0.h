@@ -38,7 +38,7 @@ extern "C" {
 
 /*
  * The data-structure representing an RFC822 MAILBOX. It may be
- * one MAILBOX in a list of them, as found in an ADDRESS list or
+ * one MAILBOX or a list of them, as found in an ADDRESS or
  * a MAILBOX list (as found in a GROUP).
  *
  * Capitalized names are from RFC 822, section 6.1 (Address Syntax).
@@ -62,7 +62,8 @@ struct _address
   char *route;
   	/* the optional ROUTE in the ROUTE-ADDR form of MAILBOX */
 
-//  size_t num; -- didn't appear to be used anywhere...
+/*  size_t num; this didn't appear to be used anywhere... so I commented
+ it out, is that ok? -sam */
 
   struct _address *next;
 };
