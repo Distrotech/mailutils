@@ -54,14 +54,19 @@ specific configuration options:
 
 	Do not build thread-safe libraries.
 
-    --enable-mysql
+    --with-mysql
 
 	Enable support for authentication via MySQL. Note that depending
 	on how your MySQL system is installed, this may require adding
 	appropriate directories to the library and include paths, e.g.:
 
 	./configure LIBS='-L/usr/local/mysql/lib' \
-                    CPPLAGS='-I/usr/local/mysql/include' --enable-mysql
+                    CPPLAGS='-I/usr/local/mysql/include' --with-mysql
+
+    --with-postgres
+
+	Enable support for authentication via PostgreSQL. You may 
+        have to explicitly specify LIBS and CPPFLAGS (see above).
 
     --enable-mh-utils
 
