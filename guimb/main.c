@@ -35,8 +35,7 @@ char *program_file;
 char *program_expr;
 int debug_guile;
 char *user_name;
-char *output_mailbox;
-int   store_mailbox;
+char *default_mailbox;
 static void usage (void);
 
 static int g_size;
@@ -87,8 +86,7 @@ main (int argc, char *argv[])
 	usage ();
 	exit (0);
       case 'm':
-	output_mailbox = optarg;
-	store_mailbox = 1;
+	default_mailbox = optarg;
 	break;
       case 'u':
 	user_name = optarg;
@@ -133,23 +131,26 @@ main (int argc, char *argv[])
     list_append (lst, smtp_record);
   }
 
-  collect_open_mailbox_file ();
-  if (store_mailbox && !argv[optind])
+  if (default_mailbox && !argv[optind])
     {
-      append_arg (output_mailbox);
-      collect_append_file (output_mailbox);
+      append_arg (default_mailbox);
+      collect_open_default ();
     }
-  
-  if (argv[optind])
+  else
     {
-      for (; argv[optind]; optind++)
+      collect_open_mailbox_file ();
+
+      if (argv[optind])
 	{
-	  append_arg (argv[optind]);
-	  collect_append_file (argv[optind]);
+	  for (; argv[optind]; optind++)
+	    {
+	      append_arg (argv[optind]);
+	      collect_append_file (argv[optind]);
+	    }
 	}
+      else 
+	collect_append_file ("-");
     }
-  else if (!store_mailbox)
-    collect_append_file ("-");
 
   append_arg (NULL);
   g_argc--;
@@ -175,12 +176,11 @@ static char usage_str[] =
   "Any arguments between -{ and -} are passed to the Scheme program verbatim.\n"
   "When both --file and --expression are specified, file is evaluated first.\n"
   "If no mailboxes are specified, the standard input is read.\n\n"
-  "The semantics of the default mailbox differs depending on whether\n"
-  "more mailbox arguments are specified in the command line. If they\n"
-  "are, any messages that are not deleted after executing the script\n"
-  "are appended to the default mailbox. Otherwise its contents is read,\n"
-  "processed and *replaced* by messages that remain undeleted after\n"
-  "executing the script.\n";
+  "The semantics of the default mailbox depends on whether more mailbox\n"
+  "arguments are specified in the command line. If they are, any messages\n"
+  "that are not deleted after executing the script are appended to the default\n"
+  "mailbox. Otherwise its contents is read, processed and *replaced* by\n" 
+  "messages that remain undeleted after executing the script.\n";
 
 void
 usage ()

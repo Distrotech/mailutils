@@ -28,7 +28,24 @@ char *temp_filename;
 FILE *temp_file;
 mailbox_t mbox;
 
-/* Open temporary file for collecting incoming message */
+void
+collect_open_default ()
+{
+  size_t nmesg;
+  
+  if (mailbox_create (&mbox, default_mailbox) != 0
+      || mailbox_open (mbox, MU_STREAM_RDWR) != 0)
+    {
+      util_error ("can't open default mailbox %s: %s",
+		  default_mailbox, strerror (errno));
+      exit (1);
+    }
+
+  /* Suck in the messages */
+  mailbox_messages_count (mbox, &nmesg);
+}
+
+/* Open temporary file for collecting incoming messages */
 void
 collect_open_mailbox_file ()
 {
@@ -84,6 +101,9 @@ collect_create_mailbox ()
   size_t count;
   size_t nmesg;
 
+  if (!temp_file)
+    return;
+  
   fclose (temp_file);
 
   if (mailbox_create (&mbox, temp_filename) != 0
@@ -111,33 +131,34 @@ collect_output ()
   size_t i, count = 0;
   mailbox_t outbox = NULL;
   int saved_umask;
-  
-  if (!output_mailbox)
+
+  if (!temp_filename)
+    {
+      mailbox_expunge (mbox);
+      return 0;
+    }
+
+  if (!default_mailbox)
     {
       if (!user_name)
 	return 0;
-      asprintf (&output_mailbox, "%s/%s", _PATH_MAILDIR, user_name);
-      if (!output_mailbox)
+      asprintf (&default_mailbox, "%s/%s", _PATH_MAILDIR, user_name);
+      if (!default_mailbox)
 	{
 	  fprintf (stderr, "guimb: not enough memory\n");
 	  return 1;
 	}
     }
 
-  if (store_mailbox)
-    unlink (output_mailbox);
-  
   if (user_name)
-    {
-      saved_umask = umask (077);
-    }
+    saved_umask = umask (077);
   
-  if (mailbox_create_default (&outbox, output_mailbox) != 0
+  if (mailbox_create_default (&outbox, default_mailbox) != 0
       || mailbox_open (outbox, MU_STREAM_RDWR|MU_STREAM_CREAT) != 0)
     {
       mailbox_destroy (&outbox);
       fprintf (stderr, "guimb: can't open output mailbox %s: %s\n",
-	       output_mailbox, strerror (errno));
+	       default_mailbox, strerror (errno));
       return 1;
     }
 
@@ -171,6 +192,9 @@ collect_drop_mailbox ()
 {
   mailbox_close (mbox);
   mailbox_destroy (&mbox);
-  unlink (temp_filename);
-  free (temp_filename);
+  if (temp_filename)
+    {
+      unlink (temp_filename);
+      free (temp_filename);
+    }
 }
