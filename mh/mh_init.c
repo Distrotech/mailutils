@@ -138,6 +138,14 @@ mh_is_my_name (char *name)
   return strcasecmp (name, my_email) == 0;
 }
 
+char *
+mh_my_email ()
+{
+  if (!my_email)
+    mh_get_my_name (NULL);
+  return my_email;
+}
+
 int
 mh_check_folder (char *pathname, int confirm)
 {
