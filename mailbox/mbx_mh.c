@@ -1170,7 +1170,8 @@ mh_message_stream_open (struct _mh_message *mhm)
   if (!filename)
     return ENOMEM;
 
-  status = file_stream_create (&mhm->stream, filename, mhd->mailbox->flags);
+  status = file_stream_create (&mhm->stream, filename,
+			       mhd->mailbox->flags | MU_STREAM_ALLOW_LINKS);
 
   free (filename);
 
