@@ -28,6 +28,14 @@
 # endif
 #endif
 
+#ifndef __PMT
+# if defined PROTOTYPES || (defined __STDC__ && STDC__)
+#  define __PMT(Args) Args
+# else
+#  define __PMT(Args) ()
+# endif
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
