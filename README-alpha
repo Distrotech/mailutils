@@ -48,7 +48,10 @@ autotools. At the time of this writing these are:
 
 To prepare the package for building run autogen.sh. Then run
 ./configure with the desired options (See INSTALL and README for
-the detailed instructions). Finally, run make.
+the detailed instructions). Finally, run make. Notice that the
+first make of the package should be made in the source directory.
+Subsequent makes make use build directory different from the source
+one.
 
 * Debugging
 

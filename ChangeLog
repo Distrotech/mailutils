@@ -1,6 +1,7 @@
 2005-03-18  Sergey Poznyakoff
 
 	* TODO: Updated
+	* README-alpha: Updated
 	* mail/shell.c (mail_execute): Restore argv[0] before exiting,
 	else argcv_free coredumps.
 

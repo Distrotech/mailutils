@@ -1,4 +1,4 @@
-GNU mailutils TODO list.  2005-03-10
+GNU mailutils TODO list.  2005-03-18
 Copyright (C) 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 * Documentation
@@ -88,15 +88,12 @@ mail (from mailutils itself), mutt, pine, netscape, mozilla.
 
 ** implement AUTHENTICATE KERBEROS_V4 and SKEY and SRP?
 
-* mail
-
-** Add support for /etc/mailcap
-
 * Mailcap API
 
 The framework is implemented. Needs extensive testing.
 
-* Mime.types API
+* Mime.types API is available in mimeview. Do we need to move it to
+libmailbox?
 
 * examples
 
