@@ -397,11 +397,13 @@ pop3d_daemon (unsigned int maxchildren, unsigned int port)
     {
       if (children > maxchildren)
         {
-	  syslog (LOG_ERR, "too many children (%d)", children);
+	  syslog (LOG_ERR, "too many children (%lu)",
+		  (unsigned long) children);
           pause ();
           continue;
         }
-      connfd = accept (listenfd, (struct sockaddr *)&client, &size);
+      connfd = accept (listenfd, (struct sockaddr *)&client,
+		       (socklen_t *) &size);
       if (connfd == -1)
         {
           if (errno == EINTR)

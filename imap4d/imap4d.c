@@ -171,7 +171,7 @@ main (int argc, char **argv)
   /* Redirect any stdout error from the library to syslog, they
      should not go to the client.  */
   mu_error_set_print (mu_syslog_error_printer);
-
+  
   umask (S_IROTH | S_IWOTH | S_IXOTH);  /* 007 */
 
   /* Actually run the daemon.  */
@@ -313,11 +313,13 @@ imap4d_daemon (unsigned int maxchildren, unsigned int port)
     {
       if (children > maxchildren)
         {
-          syslog (LOG_ERR, "too many children (%d)", children);
+          syslog (LOG_ERR, "too many children (%lu)",
+		  (unsigned long) children);
           pause ();
           continue;
         }
-      connfd = accept (listenfd, (struct sockaddr *)&client, &size);
+      connfd = accept (listenfd, (struct sockaddr *)&client,
+		       (socklen_t*) &size);
       if (connfd == -1)
         {
           if (errno == EINTR)
