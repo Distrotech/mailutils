@@ -63,7 +63,8 @@ mu_copy_debug_level (const mailbox_t from, mailbox_t to)
 }
 
 int
-mu_save_to (const char *toname, message_t mesg, const char **errmsg)
+mu_save_to (const char *toname, message_t mesg,
+	    ticket_t ticket, const char **errmsg)
 {
   int res = 0;
   mailbox_t to = 0;
@@ -74,6 +75,29 @@ mu_save_to (const char *toname, message_t mesg, const char **errmsg)
   if (res == ENOENT)
     *errmsg = "no handler for this type of mailbox";
 
+  if (ticket)
+    {
+      folder_t folder = NULL;
+      authority_t auth = NULL;
+
+      if (!res)
+      {
+	*errmsg = "mailbox_get_folder";
+	res = mailbox_get_folder (to, &folder);
+      }
+
+      if (!res)
+      {
+	*errmsg = "folder_get_authority";
+	res = folder_get_authority (folder, &auth);
+      }
+
+      if (!res)
+      {
+	*errmsg = "authority_set_ticket";
+	res = authority_set_ticket (auth, ticket);
+      }
+    }
   if (!res)
     {
       if (message_get_mailbox (mesg, &from) == 0)
@@ -100,6 +124,9 @@ mu_save_to (const char *toname, message_t mesg, const char **errmsg)
 	}
     }
   mailbox_destroy (&to);
+
+  if(res == 0)
+    *errmsg = 0;
 
   return res;
 }
@@ -135,7 +162,7 @@ sv_errno (int rc)
 
 /** sieve context structures
 
-The object relationship diagram is this, with the names in []
+The object relationship diagram is this, with the names in ""
 being the argument name when the context's are provided as
 arguments to callback functions.
 
@@ -159,15 +186,19 @@ arguments to callback functions.
 typedef struct sv_interp_ctx_t
 {
   /* cmd line options */
-  int  opt_no_actions;
-  int  opt_verbose;
-  int  opt_no_run;
-  int  opt_watch;
-  char*opt_mbox;
-  char*opt_script;
+  int   opt_no_actions;
+  int   opt_verbose;
+  int   opt_no_run;
+  int   opt_watch;
+  char* opt_mbox;
+  char* opt_tickets;
+  char* opt_script;
 
-  int  print_mask;
-  FILE*print_stream;
+  int   print_mask;
+  FILE* print_stream;
+
+  /* Ticket for use by mailbox URLs for implicit authentication. */
+  ticket_t ticket;
 
   /* mailutils debug handle, we need to destroy it */
   mu_debug_t debug;
@@ -446,7 +477,7 @@ sv_fileinto (void *ac, void *ic, void *sc, void *mc, const char **errmsg)
 
   if (!i->opt_no_actions)
     {
-      res = mu_save_to (a->mailbox, m->msg, errmsg);
+      res = mu_save_to (a->mailbox, m->msg, i->ticket, errmsg);
     }
   if (res && !errmsg)
     *errmsg = strerror (res);
@@ -652,26 +683,30 @@ sieve_register_mailutils (sieve_interp_t * i)
   return res;
 }
 
-const char USAGE[] = "usage: sieve [-hnvcd] [-D mask] [-f mbox] script\n";
+const char USAGE[] =
+  "usage: sieve [-hnvcd] [-D mask] [-f mbox] [-t tickets] script\n";
 
 const char HELP[] =
   "	-h   print this helpful message and exit.\n"
   "	-n   no actions taken, implies -v.\n"
   "	-v   verbose, print actions taken, more v's, more verbose.\n"
   "	-c   compile script but don't run it against an mbox.\n"
+  "	-f   the mbox to sieve, defaults to the users spool file.\n"
+  "	-t   a ticket file to use for authentication to mailboxes.\n"
   "	-d   daemon mode, sieve mbox, then go into background and sieve.\n"
   "	     new message as they are delivered to mbox.\n"
   "	-D   debug mask, see source for meaning (sorry).\n"
-  "	-f   the mbox to sieve, defaults to the users spool file.\n";
+  ;
 
 int
 main (int argc, char *argv[])
 {
-  list_t bookie = 0;
+  list_t    bookie = 0;
   mailbox_t mbox = 0;
+  wicket_t  wicket = 0;
 
-  sieve_interp_t *interp;
-  sieve_script_t *script;
+  sieve_interp_t *interp = 0;
+  sieve_script_t *script = 0;
 
   sv_interp_ctx_t ic = { 0, };
   sv_script_ctx_t sc = { 0, };
@@ -679,12 +714,12 @@ main (int argc, char *argv[])
   size_t count = 0;
   int i = 0;
 
-  int res;
+  int res = 0;
   FILE *f = 0;
 
   int opt;
 
-  while ((opt = getopt (argc, argv, "hnvcdf:D:")) != -1)
+  while ((opt = getopt (argc, argv, "hnvcf:t:dD:")) != -1)
     {
       switch (opt)
 	{
@@ -702,6 +737,9 @@ main (int argc, char *argv[])
 	  break;
 	case 'f':
 	  ic.opt_mbox = optarg;
+	  break;
+	case 't':
+	  ic.opt_tickets = optarg;
 	  break;
 	case 'd':
 	  ic.opt_watch = 1;
@@ -728,6 +766,21 @@ main (int argc, char *argv[])
       case 2: ic.print_mask |= SV_PRN_ACT; break;
       default: ic.print_mask = ~0; break;
     }
+
+  if (ic.opt_tickets)
+  {
+    if ((res = wicket_create (&wicket, ic.opt_tickets)) != 0)
+    {
+      fprintf (stderr, "wicket create <%s> failed: %s\n",
+	       ic.opt_tickets, strerror (res));
+      return 1;
+    }
+     if ((res = wicket_get_ticket (wicket, &ic.ticket, 0, 0)) != 0)
+    {
+      fprintf (stderr, "ticket get failed: %s\n", strerror (res));
+      return 1;
+    }
+  }
     
   registrar_get_list (&bookie);
   list_append (bookie, path_record);
@@ -742,6 +795,7 @@ main (int argc, char *argv[])
 	       ic.opt_mbox ? ic.opt_mbox : "default", strerror (res));
       return 1;
     }
+
   if (ic.print_mask & SV_PRN_MU)
     {
       if ((res = mu_debug_create(&ic.debug, &ic)))
@@ -761,6 +815,31 @@ main (int argc, char *argv[])
 	}
       mailbox_set_debug (mbox, ic.debug);
     }
+
+  if (ic.ticket)
+    {
+      folder_t folder = NULL;
+      authority_t auth = NULL;
+
+      if ((res = mailbox_get_folder (mbox, &folder)))
+      {
+	fprintf (stderr, "mailbox_get_folder failed: %s", strerror(res));
+	return 1;
+      }
+
+      if ((res = folder_get_authority (folder, &auth)))
+      {
+	fprintf (stderr, "folder_get_authority failed: %s", strerror(res));
+	return 1;
+      }
+
+      if ((res = authority_set_ticket (auth, ic.ticket)))
+      {
+	fprintf (stderr, "authority_set_ticket failed: %s", strerror(res));
+	return 1;
+      }
+    }
+
   if (ic.opt_no_actions)
     res = mailbox_open (mbox, MU_STREAM_READ);
   else
