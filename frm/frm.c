@@ -180,8 +180,9 @@ action (observer_t o, size_t type)
 	    int status = header_get_value (hdr, MU_HEADER_SUBJECT, hsubject,
 					   sizeof (hsubject), NULL);
 	    if(status == 0)
-	      printf("%s\n", hsubject);
+	      printf("%s", hsubject);
 	  }
+	printf ("\n");
 	break;
       }
 
