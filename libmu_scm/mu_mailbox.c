@@ -98,7 +98,7 @@ mu_scm_mailbox_create (mailbox_t mbox)
 int
 mu_scm_is_mailbox (SCM scm)
 {
-  return SCM_NIMP (scm) && SCM_CAR (scm) == mailbox_tag;
+  return SCM_NIMP (scm) && (long) SCM_CAR (scm) == mailbox_tag;
 }
 
 /* ************************************************************************* */

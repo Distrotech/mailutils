@@ -81,7 +81,7 @@ mu_scm_mime_get (SCM MIME)
 int
 mu_scm_is_mime (SCM scm)
 {
-  return SCM_NIMP (scm) && SCM_CAR (scm) == mime_tag;
+  return SCM_NIMP (scm) && (long) SCM_CAR (scm) == mime_tag;
 }
 
 /* ************************************************************************* */

@@ -167,7 +167,7 @@ mu_scm_message_get (SCM MESG)
 int
 mu_scm_is_message (SCM scm)
 {
-  return SCM_NIMP (scm) && SCM_CAR (scm) == message_tag;
+  return SCM_NIMP (scm) && (long) SCM_CAR (scm) == message_tag;
 }
 
 /* ************************************************************************* */

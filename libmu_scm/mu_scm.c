@@ -164,12 +164,10 @@ static struct
 void
 mu_scm_init ()
 {
-  char *defmailer;
   int i;
   list_t lst;
 
-  asprintf (&defmailer, "sendmail:%s", _PATH_SENDMAIL);
-  _mu_scm_mailer = scm_makfrom0str (defmailer);
+  _mu_scm_mailer = scm_makfrom0str ("sendmail:" _PATH_SENDMAIL);
   mu_set_variable ("mu-mailer", _mu_scm_mailer);
 
   _mu_scm_debug = scm_makenum(0);

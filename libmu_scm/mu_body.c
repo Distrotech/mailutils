@@ -79,7 +79,7 @@ mu_scm_body_print (SCM body_smob, SCM port, scm_print_state * pstate)
 int
 mu_scm_is_body (SCM scm)
 {
-  return SCM_NIMP (scm) && SCM_CAR (scm) == body_tag;
+  return SCM_NIMP (scm) && (long) SCM_CAR (scm) == body_tag;
 }
 
 SCM
