@@ -34,16 +34,104 @@ url_mbox_destroy (url_t url)
   (void) url;
 }
 
+/* Default mailbox path generator */
+static char *
+_url_path_default (const char *spooldir, const char *user, int unused)
+{
+  char *mbox = malloc (sizeof(spooldir) + strlen(user) + 2);
+  if (!mbox)
+    errno = ENOMEM;
+  else
+    sprintf (mbox, "%s/%s", spooldir, user);
+  return mbox;
+}
+
+/* Hashed indexing */
+static char *
+_url_path_hashed (const char *spooldir, const char *user, int param)
+{
+  int i;
+  int ulen = strlen (user);
+  char *mbox;
+  unsigned hash;
+
+  if (param > ulen)
+    param = ulen;
+  for (i = 0, hash = 0; i < param; i++) 
+    hash += user[i];
+
+  mbox = malloc (ulen + strlen (spooldir) + 5);
+  sprintf (mbox, "%s/%02X/%s", spooldir, hash % 256, user);
+  return mbox;
+}
+
+/* Forward Indexing */
+static char *
+_url_path_index (const char *spooldir, const char *user, int index_depth)
+{
+  int i, ulen = strlen (user);
+  char *mbox, *p;
+  
+  if (ulen == 0)
+    return NULL;
+  
+  mbox = malloc (ulen + strlen (spooldir) + 2*index_depth + 1);
+  strcpy (mbox, spooldir);
+  p = mbox + strlen (mbox);
+  for (i = 0; i < index_depth && i < ulen; i++)
+    {
+      *p++ = '/';
+      *p++ = user[i];
+    }
+  for (; i < index_depth; i++)
+    {
+      *p++ = '/';
+      *p++ = user[ulen-1];
+    }
+  *p++ = '/';
+  strcpy (p, user);
+  return mbox;
+}
+
+/* Reverse Indexing */
+static char *
+_url_path_rev_index (const char *spooldir, const char *user, int index_depth)
+{
+  int i, ulen = strlen (user);
+  char *mbox, *p;
+  
+  if (ulen == 0)
+    return NULL;
+  
+  mbox = malloc (ulen + strlen (spooldir) + 2*index_depth + 1);
+  strcpy (mbox, spooldir);
+  p = mbox + strlen (mbox);
+  for (i = 0; i < index_depth && i < ulen; i++)
+    {
+      *p++ = '/';
+      *p++ = user[ulen - i - 1];
+    }
+  for (; i < index_depth; i++)
+    {
+      *p++ = '/';
+      *p++ = user[0];
+    }
+  *p++ = '/';
+  strcpy (p, user);
+  return mbox;
+}
+
 /*
   UNIX Mbox
-  mbox:path
+  mbox:path[;type=TYPE][;param=PARAM][;user=USERNAME]
 */
 int
 _url_mbox_init (url_t url)
 {
   const char *name = url_to_string (url);
   size_t len = strlen (name);
-
+  char *p;
+  
   /* reject the obvious */
   if (name == NULL || strncmp (MU_MBOX_SCHEME, name, MU_MBOX_SCHEME_LEN) != 0
       || len < (MU_MBOX_SCHEME_LEN + 1) /* (scheme)+1(path)*/)
@@ -70,6 +158,59 @@ _url_mbox_init (url_t url)
       url_mbox_destroy (url);
       return ENOMEM;
     }
+  p = strchr (url->path, ';');
+  if (p)
+    {
+      char *(*fun)() = _url_path_default;
+      char *user = NULL;
+      int param = 0;
+      
+      *p++ = 0;
+      while (p)
+	{
+	  char *q = strchr (p, ';');
+	  if (q)
+	    *q++ = 0;
+	  if (strncasecmp (p, "type=", 5) == 0)
+	    {
+	      char *type = p + 5;
+
+	      if (strcmp (type, "hash") == 0)
+		fun = _url_path_hashed;
+	      else if (strcmp (type, "index") == 0)
+		fun = _url_path_index;
+	      else if (strcmp (type, "rev-index") == 0)
+		fun = _url_path_rev_index;
+	      else
+		{
+		  url_mbox_destroy (url);
+		  return ENOENT;
+		}
+	    }
+	  else if (strncasecmp (p, "user=", 5) == 0)
+	    {
+	      user = p + 5;
+	    }
+	  else if (strncasecmp (p, "param=", 6) == 0)
+	    {
+	      param = strtoul (p+6, NULL, 0);
+	    }
+	  p = q;
+	}
+
+      if (user)
+	{
+	  p = fun (url->path, user, param);
+	  free (url->path);
+	  url->path = p;
+	}
+      else
+	{
+	  url_mbox_destroy (url);
+	  return ENOENT;
+	}
+    }
 
   return 0;
 }
+

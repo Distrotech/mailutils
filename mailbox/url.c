@@ -347,7 +347,7 @@ url_parse0 (url_t u, char *name)
       *p++ = 0;
       u->path = p;
     }
-
+  
   return 0;
 }
 
