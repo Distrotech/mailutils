@@ -171,7 +171,8 @@ main (int argc, char **argv)
   int index;
   mailbox_t mbox;
   int status;
-
+  size_t total = 0;
+  
   /* Native Language Support */
   mu_init_nls ();
 
@@ -194,7 +195,6 @@ main (int argc, char **argv)
       /* Fast approach */
       observer_t observer;
       observable_t observable;
-      size_t total;
         
       print_header (mbox);
       
@@ -207,13 +207,22 @@ main (int argc, char **argv)
     }
   else
     {
+      mailbox_messages_count (mbox, &total);
       mh_msgset_parse (mbox, &msgset, argc, argv, "all");
-  
+
       if (reverse)
 	mh_msgset_reverse (&msgset);
 
       print_header (mbox);
       status = mh_iterate (mbox, &msgset, list_message, NULL);
+    }
+
+  if (total == 0)
+    {
+      url_t url = NULL;
+
+      mailbox_get_url (mbox, &url);
+      mh_error (_("no messages in %s"), url_to_string (url));
     }
 
   clear_screen ();
