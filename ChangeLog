@@ -1,3 +1,21 @@
+2004-07-05  Sergey Poznyakoff 
+
+	* mailbox/include/iterator0.h (_iterator.getitem): Changed
+	declaration. There's no use passing a pointer to the const
+	location, since the function *must* assign to it anyway.
+	* include/mailutils/iterator.h (iterator_set_getitem): Changed
+	declaration
+	* mailbox/iterator.c (iterator_set_getitem): Changed
+	declaration
+	(iterator_current): Additional typecast on pitem
+	
+	* mailbox/list.c: Updated declaration of getitem method.
+	* mailbox/nntp/nntp_iterator.c: Likewise
+	* mailbox/pop/pop3_iterator.c: Likewise
+	
+	* mailbox/mailbox.c: Include <list.h>
+	* mailbox/mailer.c: Likewise
+
 2004-07-05  Alain Magloire
 
 	* configure.ac: enable NNTP support.
