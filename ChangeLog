@@ -18,6 +18,9 @@
 	* lib/strsignal.c: New file, use the mu_signame() written by
 	Sergey.
 
+	* pop3d/signal.c: Use strsignal() unconditionnaly.
+	* imap4d/signal.c: Use strsignal() unconditionnaly.
+
 	* configure.in: autoconf-2.50 is having difficulty parsing
 	a long AC_CHECK_LIB, break it in two.
 	Check for strsignal()
