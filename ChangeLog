@@ -1,5 +1,18 @@
 2001-08-07 Alain Magloire
 
+	* m4/regex.m4: New file to check for GNU regex.
+	* lib/regex.c: New file, GNU regex implementation.
+	* lib/regex.h: New file.
+	* lib/posix: New directory.
+	* lib/posix/Makefile.am: New file.
+	* lib/posix/regex.h: New file.
+	* lib/Makefile.am: Add SUBDIRS=posix and regex.c dependencies.
+
+	* mail/msgset.y: Remove HAVE_REGEX macro and check variable
+	"noregex" before using regex.
+
+2001-08-07 Alain Magloire
+
 	* mail/msgset.y:  Draft implementation of a proposition
 	to allow regular expressions.
 	(REGEXP): Passing the address of the pointer instead of the pointer.
