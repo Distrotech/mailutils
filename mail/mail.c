@@ -359,11 +359,13 @@ main (int argc, char **argv)
       /* FIXME: set cmd to "mail [add1...]" */
       char *buf = NULL;
       int num = 0;
+      int rc;
       if (args.args != NULL)
 	while (args.args[num] != NULL)
 	  num++;
       argcv_string (num, args.args, &buf);
-      return util_do_command ("mail %s", buf);
+      rc = util_do_command ("mail %s", buf);
+      return util_getenv (NULL, "mailx", Mail_env_boolean, 0) ? rc : 0;
     }
   /* Or acting as a normal reader */
   else
