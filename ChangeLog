@@ -1,3 +1,19 @@
+2004-01-02  Wojciech Polak
+
+	Happy GNU Year! :)
+
+	* libsieve/extensions: New directory.
+	* libsieve/extensions/Makefile.am: New file.
+	* libsieve/Makefile.am: Added `SUBDIRS = . extensions'.
+	* examples/timestamp.c: Moved to ../libsieve/extensions/
+	* examples/list.c: Likewise.
+	* examples/spamd.c: Likewise.
+	* examples/Makefile.am: Updated.
+	Added `noinst_LTLIBRARIES = numaddr.la'.
+	* configure.ac (AC_PREREQ): Bump to 2.59.
+	(AC_CONFIG_FILES): Added libsieve/extensions/Makefile.
+	* Makefile.am: Require at least version 1.8.
+
 2003-12-30  Sergey Poznyakoff 
 
 	* examples/spamd.c (spamd_test): Use EUID to determine
