@@ -15,6 +15,10 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h> 
+#endif
+
 #include "unixmbox.h"
 
 /*
@@ -357,7 +361,7 @@ unixmbox_get_header (mailbox * mbox, unsigned int num)
  * Get locking code from Procmail and/or Exim
  */
 int
-unixmbox_lock (mailbox *mbox, int mode)
+unixmbox_lock (mailbox *mbox, unsigned int mode)
 {
   unixmbox_data *data = mbox->_data;
   data->lockmode = mode;

@@ -1,6 +1,32 @@
-This is the GNU mailutils package.
+This is the GNU mailutils package
+=================================
 
-This is a *pre-release* version, and not ready for production use yet. If you
-are taking source from CVS, you will need to have libtool, automake, and autoconf
-installed to help contribute. See the file 'INSTALL' for (generic) installation
-instructions.
+This package contains a POP3 server and a simple replacement for `/bin/mail'.
+An IMAP4 server is being worked on.  These applications are tied around a
+central library that handles all mailbox activity called libmailbox, which is
+GPLd (See COPYING).  If you want to use this in your own programs, see the
+examples subdirectory.
+
+This software is part of the GNU project and belongs to the Free Software 
+Foundation.
+
+Why use this package?
+=====================
+
+Most POP3 servers load the entire email box into RAM and deal with it
+there.  This server, instead, creates an index in RAM of all of the messages
+in the mailbox, allowing for quick access.  You can expect this server
+to use approx 750kb base code (on IA32) + 32 bytes per message indexed.
+
+How to install
+==============
+
+Please see the INSTALL file in this directory.
+
+Where to report BUGS
+====================
+
+Please report any bugs to <bug-mailutils@gnu.org>.  We encourage sysadmins
+who will be using this package to subscribe to this list by sending an email
+to <bug-mailutils-request@gnu.org> with the word `subscribe' in the body of
+the message.

@@ -58,7 +58,7 @@ typedef struct _mailbox
     int (*_expunge) __P ((struct _mailbox *));
     int (*_add_message) __P ((struct _mailbox *, char *));
     int (*_is_deleted) __P ((struct _mailbox *, unsigned int));
-    int (*_lock) __P((struct _mailbox *, int));
+    int (*_lock) __P((struct _mailbox *, unsigned int));
     char *(*_get_body) __P ((struct _mailbox *, unsigned int));
     char *(*_get_header) __P ((struct _mailbox *, unsigned int));
   }

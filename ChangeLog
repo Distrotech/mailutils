@@ -1,3 +1,31 @@
+1999-10-03  Jeff Bailey  <jbailey@cr499794-a.crdva1.bc.wave.home.com>
+
+	* mail/Makefile.am: Add -Wall to compile line.
+
+	* libmailbox/Makefile.am: Add -Wall to compile line.
+
+	* libmailbox/mailbox.c: Warning cleanup, second parameter of lock
+	should be unsigned int, not int.
+
+	* libmailbox/mailbox.h: ""
+
+	* libmailbox/unixmbox.h: ""
+
+	* libmailbox/unixmbox.c: ""
+
+	* AUTHORS: Include my name. =)
+
+	* README: Rewrite for public consumption
+
+	* README-alpha: New file, add mailing list address, CVS information.
+
+	* libmailbox/unixmbox.c: Include config.h if defined
+
+	* libmailbox/mailbox.c: Include config.h if defined
+
+	* mail/mail.c: Include config.h if defined, update copyright.
+	
+
 Fri Oct  1 01:00:00 1999  Sean 'Shaleh' Perry  <shaleh@debian.org>
 
 	* added an examples directory and the first example, from.c

@@ -1,5 +1,7 @@
 # Use automake to process this file -*-Makefile-*-
 
+CPPFLAGS = -Wall
+
 if INSTALL_MAILBOX
 include_HEADERS = mailbox.h
 lib_LTLIBRARIES = libmailbox.la
