@@ -54,7 +54,7 @@ struct _stream
   void (*_destroy) __P ((stream_t));
   int (*_open)     __P ((stream_t));
   int (*_close)    __P ((stream_t));
-  int (*_get_fd)   __P ((stream_t, int *));
+  int (*_get_fd)   __P ((stream_t, int *, int *));
   int (*_read)     __P ((stream_t, char *, size_t, off_t, size_t *));
   int (*_readline) __P ((stream_t, char *, size_t, off_t, size_t *));
   int (*_write)    __P ((stream_t, const char *, size_t, off_t, size_t *));
