@@ -62,6 +62,8 @@ main (int argc, char **argv)
 
   registrar_get_list (&bookie);
   list_append (bookie, path_record);
+  list_append (bookie, imap_record);
+  list_append (bookie, pop_record);
 
   if (args.argc < 1 && messages_count (getenv("MAIL")) < 0)
       err = 1;
@@ -96,12 +98,12 @@ messages_count (char *box)
       fprintf (stderr, "Couldn't count messages in %s.\n", box);
       return -1;
     }
-  
+
   if (silent)
     printf ("%d\n", count);
   else
     printf ("Number of messages in %s: %d\n", box, count);
-  
+
   if (mailbox_close (mbox) != 0)
     {
       fprintf (stderr, "Couldn't close %s.\n", box);
