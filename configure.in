@@ -187,7 +187,29 @@ dnl Check for libraries
 AC_CHECK_FUNCS(argp_parse, :,
                [LIBOBJS="$LIBOBJS argp-ba.o argp-eexst.o argp-fmtstream.o \
                          argp-fs-xinl.o argp-help.o argp-parse.o argp-pv.o \
-                         argp-pvh.o argp-xinl.o pin.o"])
+                         argp-pvh.o argp-xinl.o"])
+
+AC_MSG_CHECKING(whether extern program_invocation_name is present)
+AC_TRY_COMPILE([#include <argp.h>
+#include <errno.h>],
+[ program_invocation_name = "test"; ],
+[AC_DEFINE(PROGRAM_INVOCATION_NAME_DECLARED)
+ AC_MSG_RESULT(yes)],
+[AC_MSG_RESULT(no)])
+
+
+AC_MSG_CHECKING(whether program_invocation_name is declared)
+AC_TRY_COMPILE([#include <argp.h>
+#include <errno.h>],
+[
+#ifndef PROGRAM_INVOCATION_NAME_DECLARED
+	extern char *program_invocation_name;
+#endif
+	program_invocation_name = "test";
+],
+[AC_DEFINE(HAVE_PROGRAM_INVOCATION_NAME)
+ AC_MSG_RESULT(yes)],
+[AC_MSG_RESULT(no)])
 
 AC_CHECK_FUNCS(_obstack_begin,
                [AC_DEFINE(HAVE_OBSTACK)],
@@ -387,5 +409,5 @@ AC_OUTPUT(Makefile mailutils.spec
  MySql/Makefile
  comsat/Makefile
  mail.local/Makefile
- mh/Makefile
- dotlock/Makefile)
+ dotlock/Makefile
+ )
