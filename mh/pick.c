@@ -89,6 +89,8 @@ static struct argp_option options[] = {
   {"zero",     ARG_ZERO,     N_("BOOL"), OPTION_ARG_OPTIONAL,
    N_("Empty the sequence before adding messages"), 4},
   {"nozero", ARG_NOZERO, NULL, OPTION_HIDDEN, "", 4 },
+  {"license", ARG_LICENSE, 0,      0,
+   N_("Display software license"), -1},
   {NULL},
 };
 
@@ -280,6 +282,10 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
 	}
       
       pick_add_token (&lexlist, T_STRING, p);
+      break;
+
+    case ARG_LICENSE:
+      mh_license (argp_program_version);
       break;
 
     default:

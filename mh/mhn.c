@@ -82,6 +82,8 @@ static struct argp_option options[] = {
   {"noverbose",     ARG_NOVERBOSE,   NULL, OPTION_HIDDEN, "", 41 },
   {"quiet",         ARG_QUIET, 0, 0,
    N_("Be quiet")},
+  {"license", ARG_LICENSE, 0,      0,
+   N_("Display software license"), -1},
   {NULL}
 };
 
@@ -388,6 +390,10 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
       mode_options |= OPT_QUIET;
       break;
 	
+    case ARG_LICENSE:
+      mh_license (argp_program_version);
+      break;
+
     default:
       return 1;
     }

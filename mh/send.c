@@ -71,6 +71,8 @@ static struct argp_option options[] = {
   {"nowatch",       ARG_NOWATCH,       NULL, OPTION_HIDDEN, "" },
   {"width",         ARG_WIDTH,         N_("NUMBER"), 0,
    N_("* Make header fields no longer than NUMBER columns") },
+  {"license", ARG_LICENSE, 0,      0,
+   N_("Display software license"), -1},
   { 0 }
 };
 
@@ -224,6 +226,10 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
 	}
       break;
       
+    case ARG_LICENSE:
+      mh_license (argp_program_version);
+      break;
+
     default:
       return 1;
     }

@@ -37,6 +37,7 @@ static struct argp_option options[] = {
    N_("Specify folder to scan")},
   {"clear",   ARG_CLEAR, N_("BOOL"),   OPTION_ARG_OPTIONAL,
    N_("Clear screen after displaying the list")},
+  {"noclear", ARG_NOCLEAR, NULL, OPTION_HIDDEN, ""},
   {"form",    ARG_FORM, N_("FILE"),   0,
    N_("Read format from given file")},
   {"format",  ARG_FORMAT, N_("FORMAT"), 0,
@@ -47,6 +48,7 @@ static struct argp_option options[] = {
    N_("Set output width")},
   {"reverse", ARG_REVERSE, N_("BOOL"),   OPTION_ARG_OPTIONAL,
    N_("List messages in reverse order")},
+  {"noreverse", ARG_NOREVERSE, NULL, OPTION_HIDDEN, ""},
   {"file",    ARG_FILE, N_("FILE"),   0,
    N_("[Not yet implemented]")},
   
@@ -95,6 +97,10 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
     case ARG_CLEAR:
       clear = is_true(arg);
       break;
+
+    case ARG_NOCLEAR:
+      clear = 0;
+      break;
       
     case ARG_FORM:
       mh_read_formfile (arg, &format_str);
@@ -119,6 +125,10 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
       
     case ARG_REVERSE:
       reverse = is_true(arg);
+      break;
+
+    case ARG_NOREVERSE:
+      reverse = 0;
       break;
       
     case ARG_FILE:

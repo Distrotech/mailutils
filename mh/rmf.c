@@ -39,8 +39,12 @@ static struct argp_option options[] = {
    N_("Specify the folder to delete")},
   {"interactive", ARG_INTERACTIVE, N_("BOOL"), OPTION_ARG_OPTIONAL,
     N_("Interactive mode: ask for confirmation before removing each folder")},
+  {"nointeractive", ARG_NOINTERACTIVE, NULL, OPTION_HIDDEN, ""},
   {"recursive", ARG_RECURSIVE, NULL, 0,
    N_("Recursively delete all subfolders")},
+  {"norecursive", ARG_NORECURSIVE, NULL, OPTION_HIDDEN, ""},
+  {"license", ARG_LICENSE, 0,      0,
+   N_("Display software license"), -1},
   { 0 }
 };
 
@@ -68,10 +72,22 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
       interactive = is_true (arg);
       break;
 
+    case ARG_NOINTERACTIVE:
+      interactive = 0;
+      break;
+	
     case ARG_RECURSIVE:
       recurse = is_true (arg);
       break;
       
+    case ARG_NORECURSIVE:
+      recurse = 0;
+      break;
+
+    case ARG_LICENSE:
+      mh_license (argp_program_version);
+      break;
+
     default:
       return 1;
     }

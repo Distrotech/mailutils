@@ -1,3 +1,29 @@
+2003-03-19  Sergey Poznyakoff 
+
+	* mh/anno.c: Minor changes for consistency with the overall
+	  GNU mh options layout.
+	* mh/comp.c: Likewise.
+	* mh/fmtcheck.c: Likewise.
+	* mh/folder.c: Likewise.
+	* mh/forw.c: Likewise.
+	* mh/inc.c: Likewise.
+	* mh/install-mh.c: Likewise.
+	* mh/mark.c: Likewise.
+	* mh/mh_getopt.h: Likewise.
+	* mh/mhl.c: Likewise.
+	* mh/mhn.c: Likewise.
+	* mh/mhpath.c: Likewise.
+	* mh/pick.c: Likewise.
+	* mh/refile.c: Likewise.
+	* mh/repl.c: Likewise.
+	* mh/rmf.c: Likewise.
+	* mh/rmm.c: Likewise.
+	* mh/scan.c: Likewise.
+	* mh/send.c: Likewise.
+	* mh/sortm.c: Likewise.
+	* mh/whatnow.c: Likewise.
+	* mh/whom.c: Likewise.
+	
 2003-03-19  Sergey Poznyakoff
 
 	* doc/rfc/Makefile.am: Added rfc1521.txt

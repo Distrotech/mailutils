@@ -53,6 +53,9 @@ static struct argp_option options[] = {
    N_("* Ignore whatnowproc variable. Use standard `whatnow' shell instead.")},
   {"use",           ARG_USE, N_("BOOL"), OPTION_ARG_OPTIONAL,
    N_("Use draft file preserved after the last session") },
+  {"nouse",         ARG_NOUSE, NULL, OPTION_HIDDEN, ""},
+  {"license",       ARG_LICENSE, 0,      0,
+   N_("Display software license"), -1},
   { 0 }
 };
 
@@ -111,6 +114,10 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
       use_draft = is_true (arg);
       break;
 
+    case ARG_NOUSE:
+      use_draft = 0;
+      break;
+      
     case ARG_FILE:
       wh_env.draftfile = mh_expand_name (NULL, arg, 0);
       break;
@@ -128,6 +135,10 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
       argp_error (state, _("option is not yet implemented"));
       exit (1);
       
+    case ARG_LICENSE:
+      mh_license (argp_program_version);
+      break;
+
     default:
       return 1;
     }

@@ -59,15 +59,23 @@ static struct argp_option options[] = {
    N_("List all folders"), 3},
   {"create", ARG_CREATE, N_("BOOL"), OPTION_ARG_OPTIONAL, 
     N_("Create non-existing folders"), 3},
+  {"nocreate", ARG_NOCREATE, NULL, OPTION_HIDDEN, ""},
   {"fast",   ARG_FAST, N_("BOOL"), OPTION_ARG_OPTIONAL, 
     N_("List only the folder names"), 3},
+  {"nofast", ARG_NOFAST, NULL, OPTION_HIDDEN, ""},
   {"header", ARG_HEADER, N_("BOOL"), OPTION_ARG_OPTIONAL, 
     N_("Print the header line"), 3},
+  {"noheader", ARG_NOHEADER, NULL, OPTION_HIDDEN, ""},
   {"recurse",ARG_RECURSIVE, N_("BOOL"), OPTION_ARG_OPTIONAL,
     N_("Scan folders recursively"), 3},
+  {"norecurse", ARG_NORECURSIVE, NULL, OPTION_HIDDEN, ""},
   {"total",  ARG_TOTAL, N_("BOOL"), OPTION_ARG_OPTIONAL, 
     N_("Output the total statistics"), 3},
+  {"nototal", ARG_NOTOTAL, NULL, OPTION_HIDDEN, ""},
   
+  {"license", ARG_LICENSE, 0,      0,
+   N_("Display software license"), -1},
+
   {NULL},
 };
 
@@ -141,20 +149,39 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
       create_flag = is_true (arg);
       break;
 
+    case ARG_NOCREATE:
+      create_flag = 0;
+      
     case ARG_FAST:
       fast_mode = is_true (arg);
       break;
 
+    case ARG_NOFAST:
+      fast_mode = 0;
+      break;
+      
     case ARG_HEADER:
       print_header = is_true (arg);
       break;
 
+    case ARG_NOHEADER:
+      print_header = 0;
+      break;
+      
     case ARG_RECURSIVE:
       recurse = is_true (arg);
       break;
 
+    case ARG_NORECURSIVE:
+      recurse = 0;
+      break;
+      
     case ARG_TOTAL:
       print_total = is_true (arg);
+      break;
+
+    case ARG_NOTOTAL:
+      print_total = 0;
       break;
       
     case ARG_FOLDER:
@@ -162,6 +189,10 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
       current_folder = arg;
       break;
       
+    case ARG_LICENSE:
+      mh_license (argp_program_version);
+      break;
+
     default:
       return 1;
     }

@@ -40,6 +40,8 @@ static struct argp_option options[] = {
   {"zero", ARG_ZERO, N_("BOOL"), OPTION_ARG_OPTIONAL,
    N_("Empty the sequence before adding messages")},
   {"nozero", ARG_NOZERO, NULL, OPTION_HIDDEN, "" },
+  {"license", ARG_LICENSE, 0,      0,
+   N_("Display software license"), -1},
   {NULL}
 };
 
@@ -112,6 +114,10 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
       seq_flags &= ~SEQ_ZERO;
       break;
       
+    case ARG_LICENSE:
+      mh_license (argp_program_version);
+      break;
+
     default:
       return 1;
     }

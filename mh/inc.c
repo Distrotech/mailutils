@@ -36,12 +36,14 @@ static struct argp_option options[] = {
    N_("Disable audit")},
   {"changecur", ARG_CHANGECUR, N_("BOOL"), OPTION_ARG_OPTIONAL,
    N_("Mark first incorporated message as current (default)")},
+  {"nochangecur", ARG_NOCHANGECUR, NULL, OPTION_HIDDEN, ""},
   {"form",    ARG_FORM, N_("FILE"),   0,
    N_("Read format from given file")},
   {"format",  ARG_FORMAT, N_("FORMAT"), 0,
    N_("Use this format string")},
   {"truncate", ARG_TRUNCATE, N_("BOOL"), OPTION_ARG_OPTIONAL,
    N_("Truncate source mailbox after incorporating (default)")},
+  {"notruncate", ARG_NOTRUNCATE, NULL, OPTION_HIDDEN, ""},
   {"width",   ARG_WIDTH, N_("NUMBER"), 0,
    N_("Set output width")},
   {"quiet",   ARG_QUIET, 0,        0,
@@ -97,6 +99,10 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
       changecur = is_true(arg);
       break;
 
+    case ARG_NOCHANGECUR:
+      changecur = 0;
+      break;
+      
     case ARG_FOLDER: 
       append_folder = arg;
       break;
@@ -113,6 +119,10 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
       truncate_source = is_true(arg);
       break;
 
+    case ARG_NOTRUNCATE:
+      truncate_source = 0;
+      break;
+      
     case ARG_WIDTH:
       width = strtoul (arg, NULL, 0);
       if (!width)

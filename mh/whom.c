@@ -37,6 +37,10 @@ static struct argp_option options[] = {
   {"check",         ARG_CHECK,         N_("BOOL"), OPTION_ARG_OPTIONAL,
    N_("Check if addresses are deliverable") },
   {"nocheck",       ARG_NOCHECK,       NULL, OPTION_HIDDEN, "" },
+
+  {"license",       ARG_LICENSE,       0,    0,
+   N_("Display software license"), -1},
+
   {NULL}
 };
 
@@ -87,6 +91,10 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
 
     case ARG_NOCHECK:
       check_recipients = 0;
+      break;
+
+    case ARG_LICENSE:
+      mh_license (argp_program_version);
       break;
 
     default:

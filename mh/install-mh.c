@@ -26,6 +26,8 @@ static char args_doc[] = "";
 static struct argp_option options[] = {
   {"auto",  ARG_AUTO, NULL, 0, N_("Do not ask for anything")},
   {"compat", ARG_COMPAT, NULL, OPTION_HIDDEN, ""},
+  {"license", ARG_LICENSE, 0,      0,
+   N_("Display software license"), -1},
   {NULL}
 };
 
@@ -47,6 +49,10 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
       break;
 
     case ARG_COMPAT:
+      break;
+
+    case ARG_LICENSE:
+      mh_license (argp_program_version);
       break;
 
     default:

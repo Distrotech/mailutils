@@ -73,6 +73,10 @@ static struct argp_option options[] = {
    N_("Use shell algorithm"), 40 },
   {"quicksort", ARG_QUICKSORT,  0, 0,
    N_("Use quicksort algorithm (default)"), 40 },
+
+  {"license", ARG_LICENSE, 0,      0,
+   N_("Display software license"), -1},
+
   { NULL },
 };
 
@@ -185,6 +189,10 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
       algorithm = key;
       break;
       
+    case ARG_LICENSE:
+      mh_license (argp_program_version);
+      break;
+
     default:
       return 1;
     }

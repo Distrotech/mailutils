@@ -34,6 +34,9 @@ static struct argp_option options[] = {
    N_("Dump the listing of compiled format code")},
   { "debug",  ARG_DEBUG, NULL,     0,
     N_("Enable parser debugging output"),},
+  {"license", ARG_LICENSE, 0,      0,
+   N_("Display software license"), -1},
+
   { 0 }
 };
 
@@ -84,6 +87,10 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
       mh_format_debug (1);
       break;
       
+    case ARG_LICENSE:
+      mh_license (argp_program_version);
+      break;
+
     default:
       return 1;
     }

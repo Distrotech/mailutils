@@ -28,6 +28,8 @@ static char args_doc[] = N_("[+folder] [msgs]");
 static struct argp_option options[] = {
   {"folder",  ARG_FOLDER, N_("FOLDER"), 0,
    N_("Specify folder to operate upon")},
+  {"license", ARG_LICENSE, 0,      0,
+   N_("Display software license"), -1},
   { 0 }
 };
 
@@ -45,6 +47,10 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
       current_folder = arg;
       break;
       
+    case ARG_LICENSE:
+      mh_license (argp_program_version);
+      break;
+
     default:
       return 1;
     }
