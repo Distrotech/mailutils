@@ -63,7 +63,7 @@ static msgset_t *result;
 %token <type> TYPE
 %token <string> IDENT REGEXP HEADER BODY
 %token <number> NUMBER
-%type <mset> msgset msgspec msg rangeset range partno number
+%type <mset> msgset msgspec msgexpr msg rangeset range partno number
 %type <string> header
 
 %%
@@ -102,14 +102,25 @@ input    : /* empty */
 	   }
          ;
 
-msgset   : msgspec
-         | msgset ',' msgspec
+msgset   : msgexpr
+         | msgset ',' msgexpr
            {
 	     $$ = msgset_append ($1, $3);
 	   }
-         | msgset msgspec
+         | msgset msgexpr
            {
 	     $$ = msgset_append ($1, $2);
+	   }
+         ;
+
+msgexpr  : msgspec
+         | '{' msgset '}'
+           {
+	     $$ = $2;
+	   }
+         | '!' msgexpr
+           {
+	     $$ = msgset_negate ($2);
 	   }
          ;
 
@@ -388,6 +399,36 @@ msgset_append (msgset_t *one, msgset_t *two)
     ;
   last->next = two;
   return one;
+}
+
+int
+msgset_member (msgset_t *set, size_t n)
+{
+  for (; set; set = set->next)
+    if (set->msg_part[0] == n)
+      return 1;
+  return 0;
+}
+
+msgset_t *
+msgset_negate (msgset_t *set)
+{
+  size_t i;
+  msgset_t *first = NULL, *last = NULL;
+
+  for (i = 1; i < total; i++)
+    {
+      if (!msgset_member (set, i))
+	{
+	  msgset_t *mp = msgset_make_1 (i);
+	  if (!first)
+	    first = mp;
+	  else
+	    last->next = mp;
+	  last = mp;
+	}
+    }
+  return first;
 }
 
 msgset_t *
