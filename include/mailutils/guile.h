@@ -33,9 +33,12 @@
 # define scm_primitive_eval_x scm_eval_x
 # define scm_i_big2dbl scm_big2dbl
 # define scm_c_eval_string scm_eval_0str
+# define MU_SCM_SYMBOL_VALUE(p) scm_symbol_value0(p)
 
 extern SCM scm_long2num (long val);
 
+#else
+# define MU_SCM_SYMBOL_VALUE(p) SCM_VARIABLE_REF(scm_c_lookup(p))
 #endif
 
 typedef struct
@@ -50,9 +53,6 @@ typedef struct
   int (*exit) __PMT ((void *data, mailbox_t mbox));
   void *data;
 } guimb_param_t;
-
-extern SCM _mu_scm_mailer;
-extern SCM _mu_scm_debug;
 
 #ifdef __cplusplus
 extern "C" {
