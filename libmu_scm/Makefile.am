@@ -3,7 +3,7 @@
 # See file COPYING in the distribution root directory for copying conditions.
 
 AUTOMAKE_OPTIONS = ../lib/ansi2knr
-INCLUDES =-I. -I$(top_builddir) -I$(srcdir) -I$(top_srcdir)/lib -I$(top_srcdir)/include
+INCLUDES =-I. -I$(top_builddir) -I$(srcdir) -I$(top_srcdir)/lib -I$(top_srcdir)/include @GUILE_INCLUDES@
 
 noinst_LIBRARIES=@MU_SCM@
 EXTRA_LIBRARIES=libmu_scm.a
@@ -33,16 +33,19 @@ CPPFLAGS=-DDATADIR=\"$(pkgdatadir)\"
 ETAGS_ARGS = --regex='/SCM_\(GLOBAL_\)?\(G?PROC\|G?PROC1\|SYMBOL\|VCELL\|CONST_LONG\).*\"\([^\"]\)*\"/\3/' \
    --regex='/[ \t]*SCM_[G]?DEFINE1?[ \t]*(\([^,]*\),[^,]*/\1/'
 
-GUILE_DOC_SNARF=$(top_srcdir)/scripts/guile-doc-snarf
+GUILE_DOC_SNARF=$(top_srcdir)/scripts/guile-$(GUILE_SNARF_VERSION)/guile-doc-snarf
+
 SUFFIXES=.x .doc
 
 .c.x:
-	$(GUILE_DOC_SNARF) $< $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS) \
-                           $< > $@ || { rm $@; false; }
+	AWK=$(AWK) \
+	$(GUILE_DOC_SNARF) -o $@ \
+                           $< $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS) 
 
 .c.doc:
-	$(GUILE_DOC_SNARF) $< $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS) \
-                           $< > /dev/null || { rm $@; false; }
+	AWK=$(AWK) \
+	$(GUILE_DOC_SNARF) -d -o $@ \
+                           $< $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS) 
 
 guile-procedures.txt: $(DOT_DOC_FILES)
 	cat $(DOT_DOC_FILES) > $@
