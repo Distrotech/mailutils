@@ -20,11 +20,11 @@
 # include <config.h>
 #endif
 
-#include <sys/types.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <sys/types.h>
 
 #include <mailutils/address.h>
 #include <mailutils/argp.h>
@@ -170,6 +170,50 @@ static const char *frm_argp_capa[] = {
   NULL
 };
 
+static void
+frm_rfc2047_decode (char *personal, size_t buflen)
+{
+  char *charset = NULL;
+  char *tmp;
+  int rc;
+
+  /* Try to deduce the charset from LC_ALL or LANG variables */
+
+  tmp = getenv ("LC_ALL");
+  if (!tmp)
+    tmp = getenv ("LANG");
+
+  if (tmp)
+    {
+      char *sp;
+      char *lang;
+      char *terr;
+
+      lang = strtok_r (tmp, "_", &sp);
+      terr = strtok_r (NULL, ".", &sp);
+      charset = strtok_r (NULL, "@", &sp);
+
+      if (!charset)
+	charset = mu_charset_lookup (lang, terr);
+    }
+
+  if (!charset)
+    return;
+
+  rc = rfc2047_decode (charset, personal, &tmp);
+  if (rc)
+    {
+      if (dbug)
+	mu_error (_("Can't decode line `%s': %s"),
+		  personal, mu_strerror (rc));
+    }
+  else
+    {
+      strncpy (personal, tmp, buflen - 1);
+      free (tmp);
+    }
+}
+
 /* Retrieve the Personal Name from the header To: or From:  */
 static int
 get_personal (header_t hdr, const char *field, char *personal, size_t buflen)
@@ -188,6 +232,9 @@ get_personal (header_t hdr, const char *field, char *personal, size_t buflen)
       address_create (&address, hfield);
       address_get_personal (address, 1, personal, buflen, &len);
       address_destroy (&address);
+
+      frm_rfc2047_decode (personal, buflen);
+
       if (len == 0)
 	strncpy (personal, hfield, buflen)[buflen - 1] = '\0';
     }
@@ -282,7 +329,7 @@ action (observer_t o, size_t type)
 						  hsubject,
 						  sizeof (hsubject), NULL);
 	    if(status == 0)
-	      printf("%s", hsubject);
+	      printf ("%s", hsubject);
 	  }
 	printf ("\n");
 	break;
@@ -303,7 +350,7 @@ action (observer_t o, size_t type)
    an observable type MU_MAILBOX_MSG_ADD.  The rest is formating code.  */
 
 int
-main(int argc, char **argv)
+main (int argc, char **argv)
 {
   char *mailbox_name = NULL;
   size_t total = 0;
@@ -334,14 +381,14 @@ main(int argc, char **argv)
     mailbox_t mbox;
     observer_t observer;
     observable_t observable;
+    url_t url = NULL;
 
     status = mailbox_create_default (&mbox, mailbox_name);
-
     if (status != 0)
       {
-	fprintf (stderr, _("Couldn't create mailbox <%s>: %s.\n"),
-	    mailbox_name ? mailbox_name : _("default"),
-	    mu_strerror(status));
+	mu_error (_("Couldn't create mailbox <%s>: %s.\n"),
+		  mailbox_name ? mailbox_name : _("default"),
+		  mu_strerror (status));
 	exit (3);
       }
 
@@ -352,20 +399,17 @@ main(int argc, char **argv)
 	mu_debug_set_level (debug, MU_DEBUG_TRACE|MU_DEBUG_PROT);
       }
 
-    status = mailbox_open (mbox, MU_STREAM_READ);
+    mailbox_get_url (mbox, &url);
 
+    status = mailbox_open (mbox, MU_STREAM_READ);
     if (status != 0)
       {
-	url_t url = NULL;
-
-	mailbox_get_url (mbox, &url);
 	if (status == ENOENT)
 	  goto cleanup1;
 	else
 	  {
-	    fprintf (stderr, _("Couldn't open mailbox <%s>: %s.\n"),
-		     url_to_string (url), mu_strerror(status));
-	    
+	    mu_error (_("Couldn't open mailbox <%s>: %s.\n"),
+		      url_to_string (url), mu_strerror (status));
 	    goto cleanup;
 	  }
       }
@@ -379,14 +423,10 @@ main(int argc, char **argv)
       }
 
     status = mailbox_scan (mbox, 1, &total);
-
     if (status != 0)
       {
-	url_t url = NULL;
-
-	mailbox_get_url (mbox, &url);
-	fprintf (stderr, _("Couldn't scan mailbox <%s>: %s.\n"),
-		 url_to_string (url), mu_strerror(status));
+	mu_error (_("Couldn't scan mailbox <%s>: %s.\n"),
+		  url_to_string (url), mu_strerror (status));
 	goto cleanup;
       }
 
@@ -395,9 +435,16 @@ main(int argc, char **argv)
 	observable_detach (observable, observer);
 	observer_destroy (&observer, mbox);
       }
+
 cleanup:
-    mailbox_close(mbox);
-    mailbox_destroy(&mbox);
+    if (mailbox_close (mbox) != 0)
+      {
+	mu_error (_("Couldn't close <%s>: %s.\n"),
+		  url_to_string (url), mu_strerror (status));
+	return -1;
+      }
+
+    mailbox_destroy (&mbox);
 
     if(status != 0)
       return 3;
@@ -416,11 +463,13 @@ cleanup:
      1 - have messages.
      2 - no message.
   */
+
   if (selected)
     status = 0;
   else if (total > 0)
     status = 1;
   else
     status = 2;
+
   return status;
 }
