@@ -237,6 +237,10 @@ AC_CHECK_DECLS([strtok_r, strchrnul, strndup, asprintf, vasprintf] , , , [
 # include <strings.h>
 #endif])
 
+AC_CHECK_DECLS(environ, , ,
+  [ #include <unistd.h>
+    #include <stdlib.h> ])
+
 AH_BOTTOM([
 #if !HAVE_DECL_STRTOK_R
 extern char *strtok_r (char *s, const char *delim, char **save_ptr);
