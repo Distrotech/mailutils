@@ -42,6 +42,8 @@
 #include <mailutils/errno.h>
 #include <mailutils/nls.h>
 #include <mailutils/argcv.h>
+#include <mailutils/debug.h>
+#include <mailutils/mailer.h>
 
 #include <mu_asprintf.h>
 #include <getline.h>
@@ -210,6 +212,7 @@ void mh_init __P((void));
 void mh_init2 __P((void));
 void mh_read_profile __P((void));
 int mh_read_formfile __P((char *name, char **pformat));
+mailbox_t mh_open_msg_file (char *file_name);
 
 char *mh_global_profile_get __P((char *name, char *defval));
 int mh_global_profile_set __P((const char *name, const char *value));
