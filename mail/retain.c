@@ -17,6 +17,9 @@
 
 #include "mail.h"
 
+static list_t retained_headers = NULL;
+static list_t ignored_headers = NULL;
+
 /*
  * ret[ain] [heder-field...]
  */
@@ -24,7 +27,48 @@
 int
 mail_retain (int argc, char **argv)
 {
-  fprintf (ofile, "Function not implemented in %s line %d\n",
-	   __FILE__, __LINE__);
-  return 1;
+  if (argc == 1)
+    {
+      if (!retained_headers)
+	fprintf (ofile, "No fields are currently being retained\n");
+      else
+	util_slist_print (retained_headers, 1);
+      return 0;
+    }
+
+  while (--argc)
+    util_slist_add (&retained_headers, *++argv);
+  return 0;
+}
+
+/*
+ * di[scard] [header-field...]
+ * ig[nore] [header-field...]
+ */
+
+int
+mail_discard (int argc, char **argv)
+{
+  if (argc == 1)
+    {
+      if (!ignored_headers)
+	fprintf (ofile, "No fields are currently being ignored\n");
+      else
+	util_slist_print (ignored_headers, 1);
+      return 0;
+    }
+
+  while (--argc)
+    util_slist_add (&ignored_headers, *++argv);
+  return 0;
+}
+
+
+int
+mail_header_is_visible (char *str)
+{
+  if (retained_headers)
+    return util_slist_lookup (retained_headers, str);
+  else
+    return !util_slist_lookup (ignored_headers, str);
 }
