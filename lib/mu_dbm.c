@@ -266,7 +266,7 @@ mu_dbm_firstkey (DBM_FILE db)
 
   if (!db->dbc)
     {
-      if (db->db->cursor(db->db, NULL, &db->dbc, 0) != 0)
+      if (db->db->cursor(db->db, NULL, &db->dbc BDB2_CURSOR_LASTARG) != 0)
 	return key;
     }
 
