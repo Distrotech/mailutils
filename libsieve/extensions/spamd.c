@@ -109,7 +109,7 @@ spamd_shutdown (stream_t stream, int flag)
   mu_transport_t trans;
   stream_flush (stream);
   stream_get_transport (stream, &trans);
-  shutdown ((int)trans, flag);
+  shutdown (fileno ((FILE*)trans), flag);
 }
 
 static void
