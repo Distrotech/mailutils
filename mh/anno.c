@@ -50,9 +50,8 @@ struct mh_option mh_option[] = {
   { NULL }
 };
 
-static char datebuf[80];
 static int inplace;       /* Annotate the message in place */
-static char *anno_date;   /* Annotation date */
+static int anno_date = 1; /* Add date to the annotation */
 static char *component;   /* header field */
 static char *anno_text;   /* header field value */
 
@@ -75,11 +74,11 @@ opt_handler (int key, char *arg, void *unused)
       break;
 
     case ARG_DATE:
-      anno_date = datebuf;
+      anno_date = is_true (arg);
       break;
 
     case ARG_NODATE:
-      anno_date = NULL;
+      anno_date = 0;
       break;
 
     case ARG_COMPONENT:
@@ -99,18 +98,7 @@ opt_handler (int key, char *arg, void *unused)
 void
 anno (mailbox_t mbox, message_t msg, size_t num, void *data)
 {
-  header_t hdr;
-  attribute_t attr;
-  
-  if (message_get_header (msg, &hdr))
-    return;
-
-  if (anno_date)
-    header_set_value (hdr, component, anno_date, 0);
-  header_set_value (hdr, component, anno_text, 0);
-
-  message_get_attribute (msg, &attr);
-  attribute_set_modified (attr);
+  mh_annotate (msg, component, anno_text, anno_date);
 }
 
 int
@@ -120,15 +108,9 @@ main (int argc, char **argv)
   int index;
   mailbox_t mbox;
   mh_msgset_t msgset;
-  time_t t;
-  struct tm *tm;
   
   mu_init_nls ();
 
-  t = time (NULL);
-  tm = localtime (&t);
-  strftime (datebuf, sizeof datebuf, "%a, %d %b %Y %H:%M:%S %Z", tm);
-  
   mh_argp_parse (argc, argv, options, mh_option, args_doc, doc,
 		 opt_handler, NULL, &index);
 
