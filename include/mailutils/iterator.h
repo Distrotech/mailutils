@@ -39,7 +39,7 @@ extern void iterator_advance (iterator_t iterator, void *e);
 extern int iterator_set_first (iterator_t, int (*first) (void *));  
 extern int iterator_set_next (iterator_t, int (*next) (void *));  
 extern int iterator_set_getitem (iterator_t,
-				 int (*getitem) (void *, void * const *));  
+				 int (*getitem) (void *, void **));  
 extern int iterator_set_finished_p (iterator_t,
 				    int (*finished_p) (void *));  
 extern int iterator_set_dup (iterator_t itr,
