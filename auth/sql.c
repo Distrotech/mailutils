@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2002 Free Software Foundation, Inc.
+   Copyright (C) 2002, 2003 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as published by
@@ -13,8 +13,7 @@
 
    You should have received a copy of the GNU Lesser General Public License
    along with GNU Mailutils; if not, write to the Free Software
-   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
-
+   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA  */
 
 #ifdef HAVE_CONFIG_H
 # include <config.h>
@@ -158,7 +157,7 @@ mu_auth_sql_by_name (void *return_data, void *key,
   if (!mysql_real_connect (m, sql_host, sql_user, sql_passwd, sql_db, sql_port,
 			   sql_socket, MFLAGS))
     {
-      mu_error ("MySQL: connect failed: %s", mysql_error (m));
+      mu_error (_("MySQL: connect failed: %s"), mysql_error (m));
       mysql_close (m);
       return 1;
     }
@@ -173,7 +172,7 @@ mu_auth_sql_by_name (void *return_data, void *key,
   
   if (mysql_query (m, query_str) != 0)
     {
-      mu_error ("MySQL: query failed: %s", mysql_error (m));
+      mu_error (_("MySQL: query failed: %s"), mysql_error (m));
       free (query_str);
       mysql_close (m);
       return 1;
@@ -183,14 +182,14 @@ mu_auth_sql_by_name (void *return_data, void *key,
 
   if ((res = mysql_store_result (m)) == NULL)
     {
-      mu_error ("MySQL: can't store result: %s", mysql_error (m));
+      mu_error (_("MySQL: can't store result: %s"), mysql_error (m));
       mysql_close (m);
       return 1;
     }
   
   if ((row = mysql_fetch_row (res)) == NULL)
     {
-      mu_error ("MySQL: can't fetch row: %s", mysql_error (m));
+      mu_error (_("MySQL: can't fetch row: %s"), mysql_error (m));
       mysql_close (m);
       return 1;
     }
@@ -252,7 +251,7 @@ mu_auth_sql_by_uid (void *return_data, void *key,
   if (!mysql_real_connect (m, sql_host, sql_user, sql_passwd, sql_db, sql_port,
 			   sql_socket, MFLAGS))
     {
-      mu_error ("MySQL: connect failed: %s", mysql_error (m));
+      mu_error (_("MySQL: connect failed: %s"), mysql_error (m));
       mysql_close (m);
       return 1;
     }
@@ -268,7 +267,7 @@ mu_auth_sql_by_uid (void *return_data, void *key,
   
   if (mysql_query (m, query_str) != 0)
     {
-      mu_error ("MySQL: query failed: %s", mysql_error (m));
+      mu_error (_("MySQL: query failed: %s"), mysql_error (m));
       free (query_str);
       mysql_close (m);
       return 1;
@@ -278,14 +277,14 @@ mu_auth_sql_by_uid (void *return_data, void *key,
   
   if ((res = mysql_store_result (m)) == NULL)
     {
-      mu_error ("MySQL: can't store result: %s", mysql_error (m));
+      mu_error (_("MySQL: can't store result: %s"), mysql_error (m));
       mysql_close (m);
       return 1;
     }
   
   if ((row = mysql_fetch_row (res)) == NULL)
     {
-      mu_error ("MySQL: can't fetch row: %s", mysql_error (m));
+      mu_error (_("MySQL: can't fetch row: %s"), mysql_error (m));
       mysql_close (m);
       return 1;
     }
@@ -343,7 +342,7 @@ mu_sql_authenticate (void *ignored_return_data, void *key,
   if (!mysql_real_connect (m, sql_host, sql_user, sql_passwd, sql_db, sql_port,
 			   sql_socket, MFLAGS))
     {
-      mu_error ("MySQL: connect failed: %s", mysql_error (m));
+      mu_error (_("MySQL: connect failed: %s"), mysql_error (m));
       mysql_close (m);
       return 1;
     }
@@ -358,7 +357,7 @@ mu_sql_authenticate (void *ignored_return_data, void *key,
 
   if (mysql_query (m, query_str) != 0)
     {
-      mu_error ("MySQL: query failed: %s", mysql_error (m));
+      mu_error (_("MySQL: query failed: %s"), mysql_error (m));
       free (query_str);
       mysql_close (m);
       return 1;
@@ -368,14 +367,14 @@ mu_sql_authenticate (void *ignored_return_data, void *key,
   
   if ((res = mysql_store_result (m)) == NULL)
     {
-      mu_error ("MySQL: can't store result: %s", mysql_error (m));
+      mu_error (_("MySQL: can't store result: %s"), mysql_error (m));
       mysql_close (m);
       return 1;
     }
   
   if ((row = mysql_fetch_row (res)) == NULL)
     {
-      mu_error ("MySQL: can't fetch row: %s", mysql_error (m));
+      mu_error (_("MySQL: can't fetch row: %s"), mysql_error (m));
       mysql_close (m);
       return 1;
     }
