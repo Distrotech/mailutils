@@ -98,9 +98,8 @@ main (int argc, char **argv)
       else
 	{
 	  const char *s = date;
-	  struct tm tm;
 
-	  if (parse822_date_time (&s, s + strlen (s), &tm))
+	  if (parse822_date_time (&s, s + strlen (s), NULL, NULL))
 	    {
 	      printf ("%s, msg %d: BAD DATE <%s> (mua? %s)\n",
 		      mboxname, i, date, UserAgent (hdr));
