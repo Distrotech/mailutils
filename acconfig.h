@@ -48,6 +48,9 @@
 /* Define if using libreadline */
 #undef WITH_READLINE
 
+/* Define when using GSSAPI */
+#undef WITH_GSSAPI
+
 /* Define when using Guile */
 #undef WITH_GUILE
 
