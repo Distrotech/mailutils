@@ -21,22 +21,29 @@
  * se[t] [name[=[string]] ...] [name=number ...] [noname ...]
  */
 
+/*
+ * NOTE: ask is a synonym for asksub
+ */
+
 int
 mail_set (int argc, char **argv)
 {
   if (argc < 2)
     {
-      /* step through the environment */
+      return util_printenv ();
     }
   else
     {
       int i = 0;
       char *var = NULL, *value = NULL;
+      struct mail_env_entry *entry = NULL;
       for (i = 1; i < argc; i++)
 	{
 	  if (!strncmp ("no", argv[i], 2))
 	    {
-	      /* unset variable */
+	      entry = util_find_env (&argv[i][2]);
+	      entry->set = 0;
+	      free (entry->value);
 	    }
 	  else if (strchr (argv[i], '=') != NULL)
 	    {
@@ -49,13 +56,18 @@ mail_set (int argc, char **argv)
 		    break;
 		  }
 	      value = strdup (&var[j+1]);
-	      /* set var = value */
+	      entry = util_find_env (var);
+	      entry->set = 1;
+	      free (entry->value);
+	      entry->value = value;
 	      free (var);
-	      free (value);
 	    }
 	  else
 	    {
-	      /* set var = NULL */
+	      entry = util_find_env(argv[i]);
+	      entry->set = 1;
+	      free (entry->value);
+	      entry->value = NULL;
 	    }
 	}
       return 0;

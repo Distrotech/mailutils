@@ -26,14 +26,14 @@ static struct argp_option options[] = {
   {"exist",   'e', 0,      0, "Return true if mail exists"},
   {"file",    'f', "FILE", OPTION_ARG_OPTIONAL,
 			      "Operate on mailbox FILE (default ~/mbox)"},
-  {"FIXME",   'F', 0,      0, "Save messages according to sender"},
+  {"byname",  'F', 0,      0, "Save messages according to sender"},
   {"headers", 'H', 0,      0, "Write a header summary and exit"},
   {"ignore",  'i', 0,      0, "Ignore interrupts"},
   {"norc",    'n', 0,      0, "Do not read the system mailrc file"},
   {"nosum",   'N', 0,      0, "Do not display initial header summary"},
-  {"print",   'p', 0,      0, "Print all mail to standard out"},
+  {"print",   'p', 0,      0, "Print all mail to standard output"},
   {"quit",    'q', 0,      0, "Cause interrupts to terminate program"},
-  {"read",    'r', 0,      0, "Write messages in FIFO order"},
+  {"read",    'r', 0,      0, "Same as -p"},
   {"subject", 's', "SUBJ", 0, "Send a message with a Subject of SUBJ"},
   {"to",      't', 0,      0, "Preced message by a list of addresses"},
   {"user",    'u', "USER", 0, "Operate on USER's mailbox"},
@@ -43,9 +43,7 @@ static struct argp_option options[] = {
 struct arguments
 {
   char **args;
-  int exist, print, quit, read, to, header, ignore, norc, nosum;
   char *file;
-  char *subject;
   char *user;
 };
 
@@ -57,7 +55,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
   switch (key)
     {
     case 'e':
-      args->exist = 1;
+      util_do_command ("set mode=exist");
       break;
     case 'f':
       if (arg != NULL)
@@ -78,34 +76,37 @@ parse_opt (int key, char *arg, struct argp_state *state)
 	}
       break;
     case 'p':
-      args->print = 1;
+    case 'r':
+      util_do_command ("set mode=print");
       break;
     case 'q':
-      args->quit = 1;
-      break;
-    case 'r':
-      args->read = 1;
+      util_do_command ("set quit");
       break;
     case 't':
-      args->to = 1;
+      util_do_command ("set mode=send");
       break;
     case 'H':
-      args->header = 1;
+      util_do_command ("set mode=headers");
       break;
     case 'i':
-      args->ignore = 1;
+      util_do_command ("set ignore");
       break;
     case 'n':
-      args->norc = 1;
+      util_do_command ("set norc");
       break;
     case 'N':
-      args->nosum = 1;
+      util_do_command ("set noheader");
       break;
     case 's':
-      args->subject = arg;
+      util_do_command ("set mode=send");
+      util_do_command ("set noasksub");
+      util_do_command ("set subject=\"%s\"", arg);
       break;
     case 'u':
       args->user = arg;
+      break;
+    case 'F':
+      util_do_command ("set byname");
       break;
     default:
       return ARGP_ERR_UNKNOWN;
@@ -119,26 +120,69 @@ int
 main (int argc, char **argv)
 {
   char *command = NULL, *cmd = NULL;
+  struct mail_env_entry *mode = NULL, *prompt = NULL;
+  int modelen = 0;
   struct arguments args;
 
   cursor = 1;
   realcursor = cursor;
 
-  args.exist = 0;
-  args.print = 0;
-  args.quit = 0;
-  args.read = 0;
-  args.to = 0;
-  args.header = 0;
-  args.ignore = 0;
-  args.norc = 0;
-  args.nosum = 0;
+  /* set defaults for execution */
+  util_do_command ("set noallnet");
+  util_do_command ("set noappend");
+  if (isatty (fileno(stdin))) { util_do_command ("set asksub"); }
+  else { util_do_command ("set noasksub"); }
+  util_do_command ("set noaskbcc");
+  util_do_command ("set askcc");
+  util_do_command ("set noautoprint");
+  util_do_command ("set nobang");
+  util_do_command ("set nocmd");
+  util_do_command ("set nocrt");
+  util_do_command ("set nodebug");
+  util_do_command ("set nodot");
+  util_do_command ("set escape=~");
+  util_do_command ("set noflipr");
+  util_do_command ("set nofolder");
+  util_do_command ("set header");
+  util_do_command ("set nohold");
+  util_do_command ("set noignore");
+  util_do_command ("set noignoreeof");
+  util_do_command ("set indentprefix=\t");
+  util_do_command ("set nokeep");
+  util_do_command ("set nokeepsave");
+  util_do_command ("set nometoo");
+  util_do_command ("set noonehop");
+  util_do_command ("set nooutfolder");
+  util_do_command ("set nopage");
+  util_do_command ("set prompt=? "); /* FIXME: "set prompt=\"? \"" */
+  util_do_command ("set noquiet");
+  util_do_command ("set norecord");
+  util_do_command ("set save");
+  util_do_command ("set screen=%d", util_getlines());
+  util_do_command ("set nosendmail");
+  util_do_command ("set nosendwait");
+  util_do_command ("set noshowto");
+  util_do_command ("set nosign");
+  util_do_command ("set noSign");
+  util_do_command ("set toplines=5");
+
+  /* GNU extensions to the environment, for sparky's sanity */
+  util_do_command ("set mode=read");
+  util_do_command ("set nobyname");
+  util_do_command ("set rc");
+  util_do_command ("set noquit");
+
   args.file = NULL;
-  args.subject = NULL;
   args.user = NULL;
 
+  /* argument parsing */
   argp_parse (&argp, argc, argv, 0, 0, &args);
 
+  /* Initialize readline */
+  rl_readline_name = "mail";
+  rl_attempted_completion_function = (CPPFunction *)util_command_completion;
+
+  /* open the mailbox */
   if (args.file == NULL)
     {
       if (mailbox_create_default (&mbox, args.user) != 0)
@@ -153,25 +197,34 @@ main (int argc, char **argv)
   if (mailbox_messages_count (mbox, &total) != 0)
     exit (EXIT_FAILURE);
 
-  if (args.exist)
+  /* how should we be running? */
+  if ((mode = util_find_env ("mode")) == NULL || mode->set == 0)
+    exit (EXIT_FAILURE);
+
+  modelen = strlen (mode->value);
+  if (strlen ("exist") == modelen && !strcmp ("exist", mode->value))
+    return (total < 1) ? 1 : 0;
+  else if (strlen ("print") == modelen && !strcmp ("print", mode->value))
+    return util_do_command ("print *");
+  else if (strlen ("headers") == modelen && !strcmp ("headers", mode->value))
+    return util_do_command ("from *");
+  else if (strlen ("send") == modelen && !strcmp ("send", mode->value))
     {
-      if (total < 1)
-	exit (1);
-      else
-	exit (0);
+      /* set cmd to "mail [add1...]" */
+      cmd = strdup ("mail");
+      return util_do_command (cmd);
     }
 
+  /* initial commands */
   util_do_command ("from *");
 
-  /* Initialize readline */
-  rl_readline_name = "mail";
-  rl_attempted_completion_function = (CPPFunction *)util_command_completion;
+  prompt = util_find_env ("prompt");
 
   while (1)
     {
       int len;
       free (command);
-      command = readline ("? ");
+      command = readline (prompt->set && prompt->value != NULL ? prompt->value : "");
       len = strlen (command);
       while (command[len-1] == '\\')
 	{

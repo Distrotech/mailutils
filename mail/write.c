@@ -18,12 +18,85 @@
 #include "mail.h"
 
 /*
+ * w[rite] [file]	GNU extension
  * w[rite] [msglist] file
+ * W[rite] [msglist]	GNU extension
+ */
+
+/*
+ * NOTE: outfolder variable, see save.c
  */
 
 int
 mail_write (int argc, char **argv)
 {
-  printf ("Function not implemented in %s line %d\n", __FILE__, __LINE__);
-  return 1;
+  message_t msg;
+  body_t bod;
+  stream_t stream;
+  FILE *output;
+  char *filename = NULL;
+  char buffer[BUFSIZ];
+  off_t off = 0;
+  size_t n = 0;
+  int *msglist = NULL;
+  int num = 0, i = 0;
+  int sender = 0;
+  
+  if (isupper (argv[0][0]))
+    sender = 1;
+  else if (argc >= 2)
+    filename = argv[--argc];
+  else
+    {
+      filename = strdup ("mbox");
+    }
+
+  num = util_expand_msglist (argc, argv, &msglist);
+
+  if (sender)
+    {
+      mailbox_get_message (mbox, num > 0 ? msglist[0] : cursor, 0);
+      /* get from */
+      /* filename = login name part */
+    }
+
+  output = fopen (filename, "a");
+
+  if (num > 0)
+    {
+      for (i=0; i < num; i++)
+	{
+	  mailbox_get_message (mbox, msglist[i], &msg);
+	  message_get_body (msg, &bod);
+	  body_get_stream (bod, &stream);
+	  /* should there be a separator? */
+	  while (stream_read(stream, buffer, sizeof (buffer) - 1, off, &n)
+		 == 0 && n != 0)
+	    {
+	      buffer[n] = '\0';
+	      fprintf (output, "%s", buffer);
+	      off += n;
+	    }
+	  /* mark as saved */
+	}
+    }
+  else
+    {
+      mailbox_get_message (mbox, cursor, &msg);
+      message_get_body (msg, &bod);
+      body_get_stream (bod, &stream);
+      /* should there be a separator? */
+      while (stream_read(stream, buffer, sizeof (buffer) - 1, off, &n)
+	     == 0 && n != 0)
+	{
+	  buffer[n] = '\0';
+	  fprintf (output, "%s", buffer);
+	  off += n;
+	}
+      /* mark as save */
+    }
+
+  fclose (output);
+  free (msglist);
+  return 0;
 }

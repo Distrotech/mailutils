@@ -18,19 +18,37 @@
 #include "mail.h"
 
 typedef struct _node {
+  /* for the msglist expander */
   int data;
+  /* for the environment table */
+  struct mail_env_entry env_entry;
   struct _node *next;
 } node;
 
+static node *environment = NULL;
+static node *env_cursor = NULL;
+
+/*
+ * add a new node to the list
+ */
 static node *
 util_ll_add (node *c, int data)
 {
   c->next = malloc (sizeof (node));
   c->data = data;
+  /*  c->env_entry.var = NULL;
+  c->env_entry.set = 0;
+  c->env_entry.value = NULL;*/
+  c->next->env_entry.var = NULL;
+  c->next->env_entry.set = 0;
+  c->next->env_entry.value = NULL;
   c->next->next = NULL;
   return c->next;
 }
 
+/*
+ * free a linked list
+ */
 static void
 util_ll_free (node *c)
 {
@@ -172,12 +190,17 @@ util_expand_msglist (const int argc, char **argv, int **list)
  * returns exit status of the command
  */
 int
-util_do_command (const char *cmd)
+util_do_command (const char *c, ...)
 {
   int argc = 0;
   char **argv = NULL;
   int status = 0;
   function_t *command;
+  char *cmd = NULL;
+  va_list ap;
+  va_start (ap, c);
+  if (vasprintf (&cmd, c, ap) < 1)
+    return 0;
 
   if (cmd[0] == '#')
     return 0;
@@ -345,4 +368,72 @@ util_getlines (void)
   if (lin)
     lines = strtol (lin, NULL, 10);
   return lines;
+}
+
+/*
+ * find environment entry var
+ */
+struct mail_env_entry *
+util_find_env (char *variable)
+{
+  char *var = variable;
+  int len = strlen (var), need_free = 0;
+  node *t;
+
+  if (len == strlen ("ask") && !strcmp ("ask", var))
+    {
+      var = strdup ("asksub");
+      len = strlen (var);
+      need_free = 1;
+    }
+
+  if (environment == NULL)
+    {
+      environment = malloc (sizeof (node));
+      environment->env_entry.var = NULL;
+      environment->env_entry.set = 0;
+      environment->env_entry.value = NULL;
+      environment->next = NULL;
+    }
+
+  for (env_cursor = environment; env_cursor->next != NULL;
+       env_cursor = env_cursor->next)
+    {
+      if (strlen (env_cursor->env_entry.var) == len &&
+	  !strcmp (var, env_cursor->env_entry.var))
+	{
+	  if (need_free)
+	    free (var);
+	  return &(env_cursor->env_entry);
+	}
+    }
+  /*  env_cursor = util_ll_add (env_cursor, 0); */
+  env_cursor->env_entry.var = strdup (var);
+  env_cursor->env_entry.set = 0;
+  env_cursor->env_entry.value = NULL;
+  t = env_cursor;
+  env_cursor = util_ll_add (env_cursor, 0);
+  if (need_free)
+    free (var);
+  return &(t->env_entry);
+}
+
+/*
+ * print the environment 
+ */
+int
+util_printenv (void)
+{
+  for (env_cursor = environment; env_cursor != NULL;
+       env_cursor = env_cursor->next)
+    {
+      if (env_cursor->env_entry.set)
+	{
+	  printf ("%s", env_cursor->env_entry.var);
+	  if (env_cursor->env_entry.value != NULL)
+	    printf ("=%s", env_cursor->env_entry.value);
+	  printf ("\n");
+	}
+    }
+  return 0;
 }

@@ -20,6 +20,8 @@
 /*
  * p[rint] [msglist]
  * t[ype] [msglist]
+ * P[rint] [msglist]
+ * T[ype] [msglist]
  */
 
 int
@@ -36,37 +38,54 @@ mail_print (int argc, char **argv)
       stream_t stream;
       char buffer[BUFSIZ];
       off_t off = 0;
-      size_t n = 0;
+      size_t n = 0, lines = 0;
+      FILE *out = stdout;
 
       if (mailbox_get_message (mbox, cursor, &mesg) != 0)
+	return 1;
+
+      message_lines (mesg, &lines);
+
+      if ((util_find_env("crt"))->set && lines > util_getlines ())
 	{
-	  printf ("Could not read message %d\n", cursor);
-	  return 1;
+	  char *pager = getenv ("PAGER");
+	  if (pager)
+	    out = popen (pager, "w");
+	  else
+	    out = popen ("more", "w");
 	}
 
-      message_get_header (mesg, &hdr);
-      if (header_get_value (hdr, MU_HEADER_FROM, buffer, sizeof (buffer),
-			    NULL) == 0)
+      if (islower (argv[0][0]))
 	{
-	  printf ("From: %s\n", buffer);
-	  /* free (buf); */
+	  message_get_header (mesg, &hdr);
+	  if (header_get_value (hdr, MU_HEADER_FROM, buffer, sizeof (buffer),
+				NULL) == 0)
+	    {
+	      printf ("From: %s\n", buffer);
+	      /* free (buf); */
+	    }
+	  if (header_get_value (hdr, MU_HEADER_SUBJECT, buffer,
+				sizeof (buffer), NULL) == 0)
+	    {
+	      printf ("Subject: %s\n", buffer);
+	      /* free (buf); */
+	    }
+	  
+	  message_get_body (mesg, &body);
+	  body_get_stream (body, &stream);
 	}
-      if (header_get_value (hdr, MU_HEADER_SUBJECT, buffer, sizeof (buffer),
-			    NULL) == 0)
-	{
-	  printf ("Subject: %s\n", buffer);
-	  /* free (buf); */
-	}
-
-      message_get_body (mesg, &body);
-      body_get_stream (body, &stream);
+      else
+	message_get_stream (mesg, &stream);
+	  
       while (stream_read (stream, buffer, sizeof (buffer) - 1, off, &n) == 0
              && n != 0)
         {
           buffer[n] = '\0';
-          printf ("%s", buffer);
+          fprintf (out, "%s", buffer);
           off += n;
         }
+      if (out != stdout)
+	pclose (out);
       return 0;
     }
   return 1;

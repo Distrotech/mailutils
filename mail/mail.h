@@ -29,6 +29,7 @@
 #include <string.h>
 #include <sys/wait.h>
 #include <sys/types.h>
+#include <stdarg.h>
 
 #include <argp.h>
 
@@ -64,6 +65,12 @@ struct mail_command_entry {
   char *longname;
   function_t *func;
   char *synopsis;
+};
+
+struct mail_env_entry {
+  char *var;
+  int set;
+  char *value;
 };
 
 /* Global variables and constants*/
@@ -122,7 +129,7 @@ int mail_bang __P((int argc, char **argv));	/* command ! */
 int mail_eq __P((int argc, char **argv));	/* command = */
 
 int util_expand_msglist __P((const int argc, char **argv, int **list));
-int util_do_command __P((const char *cmd));
+int util_do_command __P((const char *cmd, ...));
 int util_msglist_command __P((function_t *func, int argc, char **argv));
 function_t* util_command_get __P((char *cmd));
 char **util_command_completion __P((char *cmd, int start, int end));
@@ -131,6 +138,8 @@ char *util_stripwhite __P((char *string));
 struct mail_command_entry util_find_entry __P((char *cmd));
 int util_getcols __P((void));
 int util_getlines __P((void));
+struct mail_env_entry *util_find_env __P((char *var));
+int util_printenv __P((void));
 
 #ifdef __cplusplus
 }

@@ -23,9 +23,60 @@
  * S[ave] [msglist]
  */
 
+/*
+ * NOTE: outfolder variable
+ */
+
 int
 mail_save (int argc, char **argv)
 {
-  printf ("Function not implemented in %s line %d\n", __FILE__, __LINE__);
-  return 1;
+  message_t msg;
+  mailbox_t mbx;
+  char *filename = NULL;
+  int *msglist = NULL;
+  int num = 0, i = 0;
+  int sender = 0;
+  
+  if (isupper (argv[0][0]))
+    sender = 1;
+  else if (argc >= 2)
+    filename = argv[--argc];
+  else
+    {
+      filename = strdup ("mbox");
+    }
+
+  num = util_expand_msglist (argc, argv, &msglist);
+
+  if (sender)
+    {
+      mailbox_get_message (mbox, num > 0 ? msglist[0] : cursor, 0);
+      /* get from */
+      /* filename = login name part */
+    }
+
+  mailbox_create (&mbx, filename, 0);
+  mailbox_open (mbx, MU_STREAM_WRITE | MU_STREAM_CREAT);
+  
+  if (num > 0)
+    {
+      for (i=0; i < num; i++)
+	{
+	  mailbox_get_message (mbox, msglist[i], &msg);
+	  mailbox_append_message (mbx, msg);
+	  /* mark as saved */
+	}
+    }
+  else
+    {
+      mailbox_get_message (mbox, cursor, &msg);
+      mailbox_append_message (mbx, msg);
+      /* mark as saved */
+    }
+
+  mailbox_close (mbx);
+  mailbox_destroy (&mbx);
+
+  free (msglist);
+  return 0;
 }

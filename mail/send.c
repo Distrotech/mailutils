@@ -24,6 +24,25 @@
 int
 mail_send (int argc, char **argv)
 {
+  char *to = NULL, *cc = NULL, *bcc = NULL, *subj = NULL;
+
+  if (argc < 2)
+    to = readline ("To: ");
+  else
+    {
+      /* figure it out from argv */
+    }
+
+  if ((util_find_env ("askcc"))->set)
+    cc = readline ("Cc: ");
+  if ((util_find_env ("askbcc"))->set)
+    bcc = readline ("Bcc: ");
+
+  if ((util_find_env ("asksub"))->set)
+    subj = readline ("Subject: ");
+  else
+    subj = (util_find_env ("subject"))->value;
+      
   printf ("Function not implemented in %s line %d\n", __FILE__, __LINE__);
   return 1;
 }
