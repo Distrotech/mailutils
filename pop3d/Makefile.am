@@ -1,3 +1,4 @@
+AUTOMAKE_OPTIONS = ../lib/ansi2knr
 INCLUDES =-I$(srcdir) -I$(top_srcdir)/lib -I$(top_srcdir)/include
 CFLAGS = -Wall -pedantic -g
 
