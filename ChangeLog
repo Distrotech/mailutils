@@ -1,3 +1,15 @@
+2001-10-30  Sam Roberts
+
+	* mailbox/: folder_imap.c, mbx_imap.c, include/imap0.h: Implemented
+	AUTH=ANON, the anonymous SASL mechanism.
+	* TODO: Updated AUTH=ANON todo, and added some wish-list utilities.
+	* doc/rfc/: rfc2195.txt, rfc2222.txt, rfc2444.txt, rfc2595.txt,
+	rfc2808.txt, rfc2831.txt, sasl-mechanisms: added SASL rfcs and
+	registry
+	* examples/.cvsignore: mbox-check
+	* examples/: Makefile, mbox-check.c: Added new example,
+	mbox-check.c
+
 2001-10-30  Alain Magloire
 
 	* acconfig.h: #define ssize_t.
