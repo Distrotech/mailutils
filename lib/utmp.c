@@ -16,6 +16,8 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. */
 
+#include <sys/types.h> 
+#include <sys/time.h>
 #include <utmp.h>
 #include <fcntl.h>
 #include <unistd.h>
@@ -27,20 +29,20 @@ static int fd = -1;
 static struct utmp ut;
 
 void
+endutent ()
+{
+  if (fd > 0)
+    close (fd);
+  fd = -1;
+}
+
+void
 setutent ()
 {
   endutent ();
   if ((fd = open (utmp_name, O_RDWR)) < 0
       && ((fd = open (utmp_name, O_RDONLY)) < 0))
     perror ("setutent: Can't open utmp file");
-}
-
-void
-endutent ()
-{
-  if (fd > 0)
-    close (fd);
-  fd = -1;
 }
 
 struct utmp *
