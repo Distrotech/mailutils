@@ -486,6 +486,12 @@ yylex ()
   return STRING;
 }
 
+void
+mh_format_debug (int val)
+{
+  yydebug = val;
+}
+
 int
 mh_format_parse (char *format_str, mh_format_t *fmt)
 {
