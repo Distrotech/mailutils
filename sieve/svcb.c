@@ -237,7 +237,7 @@ sv_redirect (void *ac, void *ic, void *sc, void *mc, const char **errmsg)
 
   if (!m->mailer)
     {
-      m->rc = ENOTSUP;
+      m->rc = ENOSYS;
       mu_debug_print (m->debug, MU_DEBUG_ERROR, "%s\n",
 	  "redirect - requires a mailer");
       return SIEVE_FAIL;
