@@ -3,4 +3,5 @@ Makefile
 .deps
 .libs
 frm
+from
 .gdbinit
