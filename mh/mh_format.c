@@ -1913,7 +1913,7 @@ builtin_in_reply_to (struct mh_machine *mach)
   char *value;
 
   strobj_free (&mach->arg_str);
-  if (mu_rfc2822_in_reply_to (mach->message, &value))
+  if (mu_rfc2822_in_reply_to (mach->message, &value) == 0)
     {
       strobj_create (&mach->arg_str, value);
       free (value);
