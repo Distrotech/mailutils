@@ -1,5 +1,5 @@
 /* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -30,6 +30,7 @@ util_expand_msglist (const int argc, char **argv, int **list)
 {
   int i = 0, lc = 0;
   int undelete = 0;
+  int hyphen = 0;
 
   if (util_command_get (argv[0]) == util_command_get ("undelete"))
     undelete = 1;
@@ -43,7 +44,7 @@ util_expand_msglist (const int argc, char **argv, int **list)
 	}
       else if (!strcmp (argv[i], "-"))
 	{
-	  *list[lc++] = i; /* FIXME: previous [un]deleted message */
+	  hyphen = 1; /* FIXME: previous [un]deleted message */
 	}
       else if (!strcmp (argv[i], "."))
 	{
@@ -61,8 +62,8 @@ util_expand_msglist (const int argc, char **argv, int **list)
 	{
 	  free (*list);
 	  *list = malloc (total * sizeof(int));
-	  for (i=0; i < total; i++)
-	    *list[i] = i+1;
+	  for (i = 0; i < total; i++)
+	    *list[i] = i + 1;
 	  return total;
 	}
       else if (argv[i][0] == '/')
@@ -80,19 +81,44 @@ util_expand_msglist (const int argc, char **argv, int **list)
 	}
       else
 	{
-	  int j = 0, hyphen = 0;
+	  int j;
 	  int len = strlen (argv[i]);
-	  
-	  for (j=0; j < len; j++)
-	    if (argv[i][j] == '-')
-	      hyphen = 1;
 
-	  if (!hyphen)
-	    *list[lc++] = atoi (argv[i]);
-	  else
-	    {
-	      *list[lc++] = i; /* FIXME: range in argv[i] (x-y) */
-	    }
+	  for (j = 0; j < len; j++)
+	    if (argv[i][j] == '-')
+	      {
+		hyphen = 1;
+		break;
+	      }
+	  if (hyphen)
+            {
+              if (j != len) /* One argument "x-y".  */
+                {
+                  int x, y;
+                  char *arg = strdup (argv[i]);
+                  arg[j] = '\0';
+                  x = atoi (arg);
+                  y = atoi (&(arg[j + 1]));
+                  /* In this case, we also have to realloc() the list.  */
+                  *list = realloc (*list, (argc + 2) * sizeof (int));
+                  for (; x <= y; x++, lc++)
+                    *list[lc] = x;
+                  free (arg);
+                }
+              else if (i == 3)  /* 3 arguments "x" "-" "y".  */
+                {
+                  int x, y;
+                  x = *list[lc - 1];
+                  y = atoi (argv[i]);
+                  for (; x <= y; x++, lc++)
+                    *list[lc] = x;
+                }
+              else  /* Badly form.  */
+                *list[lc++] = atoi (argv[i]);
+              hyphen = 0;
+            }
+          else
+            *list[lc++] = atoi(argv[i]);
 	}
     }
   return lc;
@@ -146,17 +172,18 @@ int
 util_msglist_command (int (*func)(int, char**), int argc, char **argv)
 {
   int i;
-  int *list;
+  int *list = NULL;
   int status = 0;
   int number = util_expand_msglist (argc, argv, &list);
   realcursor = cursor;
 
-  for (i = 0; i <= number; i++)
+  for (i = 0; i < number; i++)
     {
       cursor = list[i];
       if (func (1, argv) != 0)
 	status = 1;
     }
+  free (list);
 
   cursor = realcursor;
   return status;
@@ -215,13 +242,13 @@ util_command_generator (char *text, int state)
 {
   static int i, len;
   char *name;
-  
+
   if (!state)
     {
       i = 0;
       len = strlen (text);
     }
-  
+
   while ((name = mail_command_table[i].longname))
     {
       if (strlen (mail_command_table[i].shortname) > strlen(name))
@@ -230,7 +257,7 @@ util_command_generator (char *text, int state)
       if (strncmp (name, text, len) == 0)
 	return (strdup(name));
     }
-  
+
   return NULL;
 }
 

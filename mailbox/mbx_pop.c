@@ -657,11 +657,13 @@ pop_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
 
   /* Create the message.  */
   {
-    message_t msg;
-    stream_t is;
+    message_t msg = NULL;
+    stream_t is = NULL;
     if ((status = message_create (&msg, mpm)) != 0
 	|| (status = stream_create (&is, MU_STREAM_READ, mpm)) != 0)
       {
+	message_destroy (&msg, mpm);
+	stream_destroy (&is, mpm);
 	free (mpm);
 	return status;
       }
@@ -673,11 +675,13 @@ pop_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
 
   /* Create the header.  */
   {
-    header_t header;
-    stream_t stream;
+    header_t header = NULL;
+    stream_t stream = NULL;
     if ((status = header_create (&header, NULL, 0,  mpm)) != 0
 	|| (status = stream_create (&stream, MU_STREAM_READ, mpm)) != 0)
       {
+	header_destroy (&header, mpm);
+	stream_destroy (&stream, mpm);
 	message_destroy (&(mpm->message), mpm);
 	free (mpm);
 	return status;
@@ -706,11 +710,13 @@ pop_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
 
   /* Create the body and its stream.  */
   {
-    stream_t stream;
-    body_t body;
+    body_t body = NULL;
+    stream_t stream = NULL;
     if ((status = body_create (&body, mpm)) != 0
 	|| (status = stream_create (&stream, MU_STREAM_READ, mpm)) != 0)
       {
+	body_destroy (&body, mpm);
+	stream_destroy (&stream, mpm);
 	message_destroy (&(mpm->message), mpm);
 	free (mpm);
 	return status;

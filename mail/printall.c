@@ -1,5 +1,5 @@
 /* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -25,6 +25,29 @@
 int
 mail_printall (int argc, char **argv)
 {
-  printf ("Function not implemented in %s line %d\n", __FILE__, __LINE__);
+  if (argc > 1)
+    return util_msglist_command (mail_printall, argc, argv);
+  else
+    {
+      message_t msg;
+      stream_t is;
+      char buffer[BUFSIZ];
+      off_t off = 0;
+      size_t n = 0;
+
+      if (mailbox_get_message (mbox, cursor, &msg) != 0)
+        return 1;
+
+      message_get_stream (msg, &is);
+
+      while (stream_read (is, buffer, sizeof (buffer) - 1, off, &n) == 0
+             && n != 0)
+        {
+          buffer[n] = '\0';
+          printf ("%s", buffer);
+          off += n;
+        }
+      return 0;
+    }
   return 1;
 }

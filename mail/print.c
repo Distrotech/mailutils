@@ -1,5 +1,5 @@
 /* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -25,44 +25,49 @@
 int
 mail_print (int argc, char **argv)
 {
-  message_t mesg;
-  header_t hdr;
-  body_t body;
-  stream_t stream;
 
   if (argc > 1)
     return util_msglist_command (mail_print, argc, argv);
-  else if (mailbox_get_message (mbox, cursor, &mesg) != 0)
-    printf ("Couldn't read message %d\n", cursor);
-  else if (message_get_header (mesg, &hdr) != 0)
-    printf ("Couldn't read message header on message %d\n", cursor);
-  else if (message_get_body (mesg, &body) != 0)
-    printf ("Couldn't read message body from message %d\n", cursor);
-  else if (body_get_stream (body, &stream) != 0)
-    printf ("Couldn't get stream for message %d\n", cursor);
   else
     {
-      char *buf = NULL;
-      size_t len = 0;
-      buf = malloc (80 * sizeof (char));
-      if (header_get_value (hdr, MU_HEADER_FROM, buf, 80, NULL) == 0)
-	{
-	  printf ("From: %s\n", buf);
-	  /* free (buf); */
-	}
-      if (header_get_value (hdr, MU_HEADER_SUBJECT, buf, 80,NULL) == 0)
-	{
-	  printf ("Subject: %s\n", buf);
-	  /* free (buf); */
-	}
-      free (buf);
-      body_size (body, &len);
-      buf = malloc ((len+1) * sizeof(char));
-      memset (buf, '\0', len+1);
-      stream_read (stream, buf, len, 0, NULL);
-      printf ("\n%s\n", buf);
-      free (buf);
-    }
+      message_t mesg;
+      header_t hdr;
+      body_t body;
+      stream_t stream;
+      char buffer[BUFSIZ];
+      off_t off = 0;
+      size_t n = 0;
 
+      if (mailbox_get_message (mbox, cursor, &mesg) != 0)
+	{
+	  printf ("Could not read message %d\n", cursor);
+	  return 1;
+	}
+
+      message_get_header (mesg, &hdr);
+      if (header_get_value (hdr, MU_HEADER_FROM, buffer, sizeof (buffer),
+			    NULL) == 0)
+	{
+	  printf ("From: %s\n", buffer);
+	  /* free (buf); */
+	}
+      if (header_get_value (hdr, MU_HEADER_SUBJECT, buffer, sizeof (buffer),
+			    NULL) == 0)
+	{
+	  printf ("Subject: %s\n", buffer);
+	  /* free (buf); */
+	}
+
+      message_get_body (mesg, &body);
+      body_get_stream (body, &stream);
+      while (stream_read (stream, buffer, sizeof (buffer) - 1, off, &n) == 0
+             && n != 0)
+        {
+          buffer[n] = '\0';
+          printf ("%s", buffer);
+          off += n;
+        }
+      return 0;
+    }
   return 1;
 }

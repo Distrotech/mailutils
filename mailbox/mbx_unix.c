@@ -1090,11 +1090,13 @@ unix_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
 
   /* Set the header.  */
   {
-    header_t header;
-    stream_t stream;
+    header_t header = NULL;
+    stream_t stream = NULL;
     if ((status = header_create (&header, NULL, 0, mum)) != 0
 	|| (status = stream_create (&stream, MU_STREAM_READ, mum)) != 0)
       {
+	stream_destroy (&stream, mum);
+	header_destroy (&header, mum);
 	message_destroy (&msg, mum);
 	return status;
       }
@@ -1125,12 +1127,14 @@ unix_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
 
   /* Prepare the body.  */
   {
-    body_t body;
-    stream_t stream;
+    body_t body = NULL;
+    stream_t stream = NULL;
     int flags = MU_STREAM_READ;
     if ((status = body_create (&body, mum)) != 0
 	|| (status = stream_create (&stream, flags, mum)) != 0)
       {
+	body_destroy (&body, mum);
+	stream_destroy (&stream, mum);
 	message_destroy (&msg, mum);
 	return status;
       }

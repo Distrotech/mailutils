@@ -1,5 +1,5 @@
 /* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -64,12 +64,17 @@ parse_opt (int key, char *arg, struct argp_state *state)
 	args->file = arg;
       else
 	{
+	  int len;
 	  char *home = getenv("HOME");
-	  int len = strlen (home) + strlen ("/mbox") + 1;
+	  if (home == NULL)
+	    {
+	      fprintf (stderr, "No Home!\n");
+	      home = (char *)"";
+	    }
+	  len = strlen (home) + strlen ("/mbox") + 1;
 	  args->file = malloc(len * sizeof (char));
 	  strcpy (args->file, home);
 	  strcat (args->file, "/mbox");
-	  free (home);
 	}
       break;
     case 'p':
@@ -132,7 +137,7 @@ main (int argc, char **argv)
   args.file = NULL;
   args.subject = NULL;
   args.user = NULL;
-  
+
   argp_parse (&argp, argc, argv, 0, 0, &args);
 
   if (args.file == NULL)
@@ -142,7 +147,7 @@ main (int argc, char **argv)
     }
   else if (mailbox_create (&mbox, args.file, 0) != 0)
     exit (EXIT_FAILURE);
-  
+
   if (mailbox_open (mbox, MU_STREAM_READ) != 0)
     exit (EXIT_FAILURE);
 
@@ -159,7 +164,7 @@ main (int argc, char **argv)
 
   /* mail_from (2, from); */
   /* FIXME: this is bad form */
-  for (cursor=1; cursor < total; cursor++)
+  for (cursor = 1; cursor <= total; cursor++)
     mail_from (1, from);
   cursor = realcursor;
 
@@ -191,4 +196,3 @@ main (int argc, char **argv)
       add_history (cmd);
     }
 }
-
