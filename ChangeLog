@@ -1,3 +1,7 @@
+2002-04-15  Sam Roberts
+
+	* doc/texinfo/programs.texi: Updated to match lib/mu_argp.c.
+
 2002-04-15  Sergey Poznyakoff
 
 	* acconfig.h: Added placeholders for
@@ -29,7 +33,7 @@
 	* imap4d/select.c: Likewise.
 	* imap4d/status.c: Likewise.
 	
-2002-04-14 22:34  sroberts
+2002-04-14  Sam Roberts
 
 	* include/mailutils/mutil.h, mailbox/locker.c, mailbox/mutil.c:
 	  Implemented symlink unrolling before locking.
