@@ -16,9 +16,14 @@ extern char *pam_service;
 #endif
 extern int log_facility;
 extern int mu_argp_error_code;
-extern struct argp_child mu_common_argp_child[];
-extern struct argp_child mu_daemon_argp_child[];
 
-extern void mu_create_argcv (int argc, char **argv,
-			     int *p_argc, char ***p_argv);
+extern void mu_create_argcv __P((const char *capa[],
+				 int argc, char **argv,
+				 int *p_argc, char ***p_argv));
+extern error_t mu_argp_parse __P((const struct argp *argp, 
+				  int *p_argc, char ***p_argv,  
+				  unsigned flags,
+				  const char *capa[],
+				  int *arg_index,     
+				  void *input));
 
