@@ -300,7 +300,6 @@ SCM_DEFINE (mu_message_set_header_fields, "mu-message-set-header-fields", 2, 1, 
 		  REPLACE, SCM_ARG3, FUNC_NAME);
       replace = REPLACE == SCM_BOOL_T;
     }
-  else
 
   for (list = LIST; list != SCM_EOL; list = SCM_CDR (list))
     {
