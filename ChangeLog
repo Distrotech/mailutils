@@ -1,3 +1,16 @@
+2001-07-06 Sergey Poznyakoff
+	* imap4d/fetch.c: imap4d_fetch0(): return RESP_OK on success.
+	* imap4d/bye.c: split imap4d_bye() into imap4d_bye() and imap4d_bye0().
+	* imap4d/logout.c: call imap4d_bye0() instead of imap4d_bye().
+	Reason: rfc 2060 requires that the server send a BYE untagged response
+	before the (tagged) OK response. With our implementation it was
+	vice-versa.
+	* imap4d/imap4d.h: proto for imap4d_bye0().
+	* mail/mail.c: changed startup banner.
+	* mail/mailline.c: handle SIGWINCH.
+	* mail/util.c: Include <termios.h> when present.
+	* configure.in: test for the presence of <termios.h>
+
 2001-07-05  Alain Magloire
 
 	* mail/send.c(mail_send0): Put the mailer in debug mode
