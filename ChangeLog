@@ -1,3 +1,9 @@
+2002-12-28  Sergey Poznyakoff 
+
+	* dotlock/dotlock.c: Exclude '\v' from xgettext markers.
+	* mail.local/main.c: Likewise.
+	* mail.remote/mail.remote.c: Likewise.
+
 2002-12-27  Wojciech Polak <polak@gnu.org>
 
 	* doc/texinfo/mailutils.texi: Use @copying.
