@@ -274,8 +274,8 @@ _mime_parse_mpart_message(mime_t mime)
 								mb_length = mime->cur_offset - mb_offset - mime->line_ndx + 1;
 								if ( mime->header_length ) /* this skips the preamble */
 									_mime_append_part(mime, NULL, mb_offset, mb_length, mb_lines);
-								if ( ( cp2 + blength + 2 < cp && !strncasecmp(cp2+2+blength, "--",2) ) ||
-									!strncasecmp(cp2+blength, "--",2) ) { /* very last boundary */
+								if ( ( cp2 + blength + 2 < cp && !strncasecmp(cp2+blength, "--",2) ) ||
+									!strncasecmp(cp2+blength+2, "--",2) ) { /* very last boundary */
 									mime->parser_state = MIME_STATE_BEGIN_LINE;
 									mime->header_length = 0;
 									break;
