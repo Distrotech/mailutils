@@ -36,6 +36,7 @@ rfc2047_decode (const char *tocode, const char *input, char **ptostr)
   char *buffer;
   size_t bufsize;
   size_t bufpos;
+  size_t run_count = 0;
   
   if (!tocode || !input || !ptostr)
     return EINVAL;
@@ -61,83 +62,99 @@ rfc2047_decode (const char *tocode, const char *input, char **ptostr)
   
   while (*fromstr)
     {
-      char *fromcode = NULL;
-      char *encoding_type = NULL;
-      char *encoded_text = NULL;
-      stream_t filter = NULL;
-      stream_t in_stream = NULL;
-      const char *filter_type = NULL;
-      size_t nbytes = 0, size;
-      char *sp = NULL;
-
-      start_position = strstr (fromstr, "=?");
-      if (!start_position)
-	break;
-
-      /* Copy the unencoded part */
-      nbytes = start_position - fromstr;
-      if (bufpos + nbytes > bufsize) /* just in case */
+      if (strncmp (fromstr, "=?", 2) == 0)
 	{
-	  status = MU_ERR_BAD_2047_INPUT;
-	  break;
-	}
+	  char *fromcode = NULL;
+	  char *encoding_type = NULL;
+	  char *encoded_text = NULL;
+	  stream_t filter = NULL;
+	  stream_t in_stream = NULL;
+	  const char *filter_type = NULL;
+	  size_t nbytes = 0, size;
+	  char *sp = NULL;
+
+	  start_position = fromstr;
+
+	  fromcode = strtok_r (start_position + 2, "?", &sp);
+	  encoding_type = strtok_r (NULL, "?", &sp);
+	  encoded_text = strtok_r (NULL, "?", &sp);
+	  if (sp[0] != '=')
+	    {
+	      status = MU_ERR_BAD_2047_INPUT;
+	      break;
+	    }
+      
+	  if (fromcode == NULL
+	      || encoding_type == NULL
+	      || encoded_text == NULL)
+	    {
+	      status = MU_ERR_BAD_2047_INPUT;
+	      break;
+	    }
+
+	  size = strlen (encoded_text);
+
+	  switch (toupper (encoding_type[0]))
+	    {
+	    case 'B':
+	      filter_type = "base64";
+	      break;
+	      
+	    case 'Q':
+	      filter_type = "quoted-printable";
+	      break;
+
+	    default:
+	      status = MU_ERR_BAD_2047_INPUT;
+	      break;
+	    }
 	  
-      memcpy (buffer + bufpos, fromstr, nbytes);
-      bufpos += nbytes;
-      
-      fromcode = strtok_r (start_position + 2, "?", &sp);
-      encoding_type = strtok_r (NULL, "?", &sp);
-      encoded_text = strtok_r (NULL, "?", &sp);
-      if (sp[0] != '=')
-	{
-	  status = MU_ERR_BAD_2047_INPUT;
-	  break;
+	  if (status != 0)
+	    break;
+
+	  memory_stream_create (&in_stream, 0, 0);
+	  stream_write (in_stream, encoded_text, size, 0, NULL);
+	  filter_create (&filter, in_stream, filter_type, MU_FILTER_DECODE,
+			 MU_STREAM_READ);
+
+	  while (stream_sequential_read (filter, buffer + bufpos,
+					 bufsize - bufpos,
+					 &nbytes) == 0 && nbytes)
+	    {
+	      /* FIXME: Need to convert character set */
+	      bufpos += nbytes;
+	    }
+
+	  stream_close (filter);
+	  stream_destroy (&filter, stream_get_owner (filter));
+	  
+	  fromstr = sp + 1;
+	  run_count = 1;
 	}
-      
-      if (fromcode == NULL || encoding_type == NULL || encoded_text == NULL)
+      else if (run_count)
 	{
-	  status = MU_ERR_BAD_2047_INPUT;
-	  break;
+	  if (*fromstr == ' ' || *fromstr == '\t')
+	    {
+	      run_count++;
+	      fromstr++;
+	      continue;
+	    }
+	  else
+	    {
+	      if (--run_count)
+		{
+		  memcpy (buffer + bufpos, fromstr - run_count, run_count);
+		  bufpos += run_count;
+		  run_count = 0;
+		}
+		
+	      buffer[bufpos++] = *fromstr++;
+	    }
 	}
-
-      size = strlen (encoded_text);
-
-      switch (toupper (encoding_type[0]))
-	{
-	case 'B':
-	  filter_type = "base64";
-	  break;
-
-	case 'Q':
-	  filter_type = "quoted-printable";
-	  break;
-
-	default:
-	  status = MU_ERR_BAD_2047_INPUT;
-	  break;
-	}
-
-      if (status != 0)
-	break;
-
-      memory_stream_create (&in_stream, 0, 0);
-      stream_write (in_stream, encoded_text, size, 0, NULL);
-      filter_create (&filter, in_stream, filter_type, MU_FILTER_DECODE,
-                     MU_STREAM_READ);
-
-      while (stream_sequential_read (filter, buffer + bufpos, bufsize - bufpos,
-				     &nbytes) == 0 && nbytes)
-        {
-          /* FIXME: Need to convert character set */
-	  bufpos += nbytes;
-        }
-
-      stream_close (filter);
-      stream_destroy (&filter, stream_get_owner (filter));
-      
-      fromstr = sp + 1;
+      else
+	buffer[bufpos++] = *fromstr++;
     }
-
+  
   if (*fromstr)
     {
       size_t len = strlen (fromstr);
