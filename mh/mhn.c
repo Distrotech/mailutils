@@ -595,6 +595,80 @@ _mhn_profile_get (char *prefix, char *type, char *subtype, char *defval)
 }
 
 char *
+mhn_compose_command (char *typestr, int *flags, char *file)
+{
+  char *p, *str;
+  char *type, *subtype, *typeargs;
+  struct obstack stk;
+
+  split_content (typestr, &type, &subtype);
+  str = _mhn_profile_get ("compose", type, subtype, NULL);
+  if (!str) 
+    return NULL;
+  
+  /* Expand macro-notations:
+    %a  additional arguments
+    %f  filename containing content
+    %F  %f, and stdout is not redirected
+    %s  subtype */
+
+  obstack_init (&stk);
+  for (p = str; *p && isspace (*p); p++)
+    ;
+  
+  if (*p == '|')
+    p++;
+
+  for ( ; *p; p++)
+    {
+      if (*p == '%')
+	{
+	  switch (*++p)
+	    {
+	    case 'a':
+	      /* additional arguments */
+	      obstack_grow (&stk, typeargs, strlen (typeargs));
+	      break;
+	      
+	    case 'F':
+	      /* %f, and stdout is not redirected */
+	      *flags |= MHN_STDIN;
+	      /*FALLTHRU*/
+	    case 'f':
+	      obstack_grow (&stk, file, strlen (file));
+	      break;
+	      
+	    case 's':
+	      /* subtype */
+	      obstack_grow (&stk, subtype, strlen (subtype));
+	      break;
+	      
+	    default:
+	      obstack_1grow (&stk, *p);
+	      p++;
+	    }
+	}
+      else
+	obstack_1grow (&stk, *p);
+    }
+  obstack_1grow (&stk, 0);
+
+  free (type);
+  free (subtype);
+
+  str = obstack_finish (&stk);
+  for (p = str; *p && isspace (*p); p++)
+    ;
+  if (!*p)
+    str = NULL;
+  else
+    str = strdup (str);
+
+  obstack_free (&stk, NULL);
+  return str;
+}
+
+char *
 mhn_show_command (message_t msg, msg_part_t part, int *flags, char **tempfile)
 {
   char *p, *str, *tmp;
@@ -720,7 +794,7 @@ mhn_store_command (message_t msg, msg_part_t part, char *name)
   message_get_header (msg, &hdr);
   _get_content_type (hdr, &typestr, &typeargs);
   split_content (typestr, &type, &subtype);
-  str = _mhn_profile_get ("show", type, subtype, "%m%P.%s");
+  str = _mhn_profile_get ("store", type, subtype, "%m%P.%s");
   
   /* Expand macro-notations:
      %m  message number
@@ -1056,25 +1130,33 @@ show_internal (message_t msg, msg_part_t part, char *encoding, stream_t out)
 }
 
 int
-exec_internal (message_t msg, msg_part_t part, char *encoding, char *cmd)
+mhn_exec (stream_t *str, char *cmd, int flags)
 {
-  int rc;
-  stream_t tmp;
-
-  rc = prog_stream_create (&tmp, cmd, MU_STREAM_WRITE);
+  int rc = prog_stream_create (str, cmd, MU_STREAM_WRITE);
   if (rc)
     {
       mh_error (_("can't create proc stream (command %s): %s"),
 		cmd, mu_strerror (rc));
-      return rc;
     }
-  rc = stream_open (tmp);
-  if (rc)
+  else
     {
-      mh_error (_("can't open proc stream (command %s): %s"),
-		cmd, mu_strerror (rc));
-      return rc;
+      rc = stream_open (*str);
+      if (rc)
+	mh_error (_("can't open proc stream (command %s): %s"),
+		  cmd, mu_strerror (rc));
     }
+  return rc;
+}
+
+int
+exec_internal (message_t msg, msg_part_t part, char *encoding, char *cmd,
+	       int flags)
+{
+  int rc;
+  stream_t tmp;
+
+  if ((rc = mhn_exec (&tmp, cmd, flags)))
+    return rc;
   show_internal (msg, part, encoding, tmp);      
   stream_destroy (&tmp, stream_get_owner (tmp));
   return rc;
@@ -1130,7 +1212,7 @@ mhn_run_command (message_t msg, msg_part_t part,
       argcv_free (argc, argv);
     }
   else
-    rc = exec_internal (msg, part, encoding, cmd);
+    rc = exec_internal (msg, part, encoding, cmd, flags);
 
   return rc;
 }
@@ -1190,7 +1272,7 @@ show_handler (message_t msg, msg_part_t part, char *type, char *encoding,
     {
       char *pager = mh_global_profile_get ("moreproc", getenv ("PAGER"));
       if (pager)
-	exec_internal (msg, part, encoding, pager);
+	exec_internal (msg, part, encoding, pager, 0);
       else
 	show_internal (msg, part, encoding, out);
     }
@@ -1870,15 +1952,32 @@ edit_mime (char *cmd, struct compose_env *env, message_t *msg, int level)
   body_t body;
   stream_t in, out = NULL, fstr;
   char *encoding;
-  char *p;
+  char *p, *typestr;
+  char *shell_cmd;
+  int flags;
   
   if (!*msg)
     message_create (msg, NULL);
   message_get_header (*msg, &hdr);
   rc = parse_type_command (&cmd, env, hdr);
+  if (rc)
+    return 1;
+  
   for (p = cmd + strlen (cmd) - 1; p > cmd && isspace (*p); p--)
     ;
-  if (p == cmd)
+  p[1] = 0;
+
+  _get_content_type (hdr, &typestr, NULL);
+  shell_cmd = mhn_compose_command (typestr, &flags, cmd);
+  free (typestr);
+
+  /* Open the input stream, whatever it is */
+  if (shell_cmd)
+    {
+      if (mhn_exec (&in, cmd, flags))
+	return 1;
+    }
+  else if (p == cmd)
     {
       mh_error (_("%s:%lu: missing filename"),
 		input_file,
@@ -1886,25 +1985,25 @@ edit_mime (char *cmd, struct compose_env *env, message_t *msg, int level)
       finish_msg (env, msg);
       return 1;
     }
-  p[1] = 0;
-
-  /* Open input stream */
-  rc = file_stream_create (&in, cmd, MU_STREAM_READ);
-  if (rc)
+  else
     {
-      mh_error (_("can't create input stream (file %s): %s"),
-		cmd, mu_strerror (rc));
-      return rc;
+      rc = file_stream_create (&in, cmd, MU_STREAM_READ);
+      if (rc)
+	{
+	  mh_error (_("can't create input stream (file %s): %s"),
+		    cmd, mu_strerror (rc));
+	  return rc;
+	}
+      rc = stream_open (in);
+      if (rc)
+	{
+	  mh_error (_("can't open input stream (file %s): %s"),
+		    cmd, mu_strerror (rc));
+	  stream_destroy (&in, stream_get_owner (in));
+	  return rc;
+	}
     }
-  rc = stream_open (in);
-  if (rc)
-    {
-      mh_error (_("can't open input stream (file %s): %s"),
-		cmd, mu_strerror (rc));
-      stream_destroy (&in, stream_get_owner (in));
-      return rc;
-    }
-
+  
   /* Create filter */
 
   if (_get_hdr_value (hdr, MU_HEADER_CONTENT_TRANSFER_ENCODING, &encoding))
@@ -2183,7 +2282,6 @@ mhn_compose ()
   rename (name, input_file);
 
   free (name);
-  free (input_file);
   
   return 0;
 }
