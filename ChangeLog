@@ -1,3 +1,7 @@
+2002-08-21  Jeff Bailey  <jbailey@outpost.dnsalias.org>
+
+	* README: Make this a bit more current.
+
 2002-08-21  Sergey Poznyakoff 
 
 	Added pop3d testsuite.

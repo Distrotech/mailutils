@@ -1,16 +1,21 @@
 This is the GNU mailutils package
 =================================
 
-This package contains a POP3 server and a simple replacement for
-`/bin/mail'.  An IMAP4 server is being worked on.  These applications
-are tied around a central library that handles all mailbox activity
-called libmailbox.  If you want to use this in your own programs, see
-the examples subdirectory.
+This package contains a series of useful mail clients, servers, and
+libraries.  These are the primary mail utilities of the GNU system.
 
-The library is licensed under the GNU LGPL.  The documentation is
-licensed under the GNU Free Documentation License.  All other code is
-licensed under the GNU GPL.  See the files COPYING, COPYING.LIB, and
-COPYING.FDL for details.
+Specifically, this package contains a pop3 server, and an imap4
+server.  It also provides a POSIX `mailx' client, and a collection of
+other tools.
+
+The central library is capable of reading mail from an `mbox' mailbox,
+as well as off of local or remote pop3 and imap4 servers.
+
+You're welcome to use this library in your own programs, please see
+the examples subdirectory or these other applications.  All libraries
+are licensd using the GNU LGPL.  The documentation is licensed under
+the GNU FDL, and the Sieve library is licensed under a CMU license.
+Everything else is licensed using the GNU GPL.
 
 This software is part of the GNU project and belongs to the Free Software 
 Foundation.
@@ -18,10 +23,15 @@ Foundation.
 Why use this package?
 =====================
 
-Most POP3 servers load the entire email box into RAM and deal with it
-there.  This server, instead, creates an index in RAM of all of the messages
-in the mailbox, allowing for quick access.  You can expect this server
-to use approx 750kb base code (on IA32) + 32 bytes per message indexed.
+This package started off to try and handle large mailbox files more
+gracefully then current pop3 servers did.  While it handles this task,
+it also allows you to support a variety of different mailbox formats
+without any real effort on your part.  Also, if a new format is added
+at a later date, your program will support that new format
+automatically as soon as it is compiled against the new library.
+
+This server is also released as part of Debian, so you should expect
+it to compile cleanly on all the platforms supported there.
 
 How to install
 ==============
