@@ -1,5 +1,12 @@
 2002-12-25  Sergey Poznyakoff  
 
+	* comsat/action.c: Do not include \r\n to the i18n strings.
+	* pop3d/popauth.c: Fixed typo in docstring.
+
+	Thanks to Jordi Mallach for both.
+
+2002-12-25  Sergey Poznyakoff  
+
 	* imap4d/fetch.c (fetch_internaldate) Do not use %X in strftime
 	  format: it produces locale-dependent output.
 	* mh/mh_format.c (mh_format): Fixed format spec.
