@@ -1164,17 +1164,24 @@ mh_message_stream_open (struct _mh_message *mhm)
   char *filename = NULL;
   int status;
 
-  if (file_stream_create (&mhm->stream))
-    return errno;
-
   filename = _mh_message_name (mhm, mhm->deleted);
 
   if (!filename)
     return ENOMEM;
 
-  status = stream_open (mhm->stream, filename, 0, mhd->mailbox->flags);
+  status = file_stream_create (&mhm->stream, filename, mhd->mailbox->flags);
 
   free (filename);
+
+  if (status != 0)
+    return status;
+
+  status = stream_open (mhm->stream);
+
+  if (status != 0)
+  {
+    stream_destroy (&mhm->stream, NULL);
+  }
 
   if (status == 0)
     status = mh_scan_message (mhm);

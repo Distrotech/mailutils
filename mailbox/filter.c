@@ -80,11 +80,11 @@ filter_write (stream_t stream, const char *buffer, size_t buflen,
 }
 
 static int
-filter_open (stream_t stream, const char *filename, int port, int flags)
+filter_open (stream_t stream)
 {
   filter_t filter = stream_get_owner (stream);
-  stream_set_flags (stream, flags);
-  return stream_open (filter->stream, filename, port, flags);
+
+  return stream_open (filter->stream);
 }
 
 static int

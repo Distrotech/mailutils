@@ -481,7 +481,7 @@ notify_user (const char *user, const char *device, const char *path, off_t offse
       return;
     }
 
-  if ((status = memory_stream_create (&stream)))
+  if ((status = memory_stream_create (&stream, 0, 0)))
     {
       syslog (LOG_ERR, "can't create temporary stream: %s",
 	      strerror (status));

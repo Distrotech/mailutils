@@ -302,7 +302,7 @@ smtp_open (mailer_t mailer, int flags)
       /* Create a TCP stack if one is not given.  */
       if (mailer->stream == NULL)
 	{
-	  status = tcp_stream_create (&(mailer->stream));
+	  status = tcp_stream_create (&mailer->stream, smtp->mailhost, port, mailer->flags);
 	  CHECK_ERROR (smtp, status);
 	  stream_setbufsiz (mailer->stream, BUFSIZ);
 	}
@@ -312,8 +312,7 @@ smtp_open (mailer_t mailer, int flags)
     case SMTP_OPEN:
       MAILER_DEBUG2 (mailer, MU_DEBUG_PROT, "smtp_open (%s:%d)\n",
 		     smtp->mailhost, port);
-      status = stream_open (mailer->stream, smtp->mailhost, port,
-			    mailer->flags);
+      status = stream_open (mailer->stream);
       CHECK_EAGAIN (smtp, status);
       smtp->state = SMTP_GREETINGS;
 

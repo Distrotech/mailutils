@@ -32,7 +32,20 @@
 #include <unistd.h>
 
 #include <mailutils/stream.h>
-#include <tcp0.h>
+
+#define TCP_STATE_INIT 		1
+#define TCP_STATE_RESOLVE	2
+#define TCP_STATE_RESOLVING	3
+#define TCP_STATE_CONNECTING 	4
+#define TCP_STATE_CONNECTED	5
+
+struct _tcp_instance {
+	int 		fd;
+	char 		*host;
+	int 		port;
+	int		state;
+	unsigned long	address;
+};
 
 /* On solaris inet_addr() return -1.  */
 #ifndef INADDR_NONE
@@ -52,7 +65,7 @@ _tcp_close (stream_t stream)
 }
 
 static int
-_tcp_open (stream_t stream, const char *host, int port, int flags)
+_tcp_open (stream_t stream)
 {
   struct _tcp_instance *tcp = stream_get_owner (stream);
   int flgs, ret;
@@ -60,6 +73,11 @@ _tcp_open (stream_t stream, const char *host, int port, int flags)
   struct sockaddr_in peer_addr;
   struct hostent *phe;
   struct sockaddr_in soc_addr;
+  char* host = tcp->host;
+  int port = tcp->port;
+  int flags;
+
+  stream_get_flags(stream, &flags);
 
   if (tcp->state == TCP_STATE_INIT)
     {
@@ -197,11 +215,13 @@ _tcp_destroy (stream_t stream)
   if (tcp->fd != -1)
     close (tcp->fd);
 
+  if(tcp->host)
+    free (tcp->host);
   free (tcp);
 }
 
 int
-tcp_stream_create (stream_t * stream)
+tcp_stream_create (stream_t * stream, const char* host, int port, int flags)
 {
   struct _tcp_instance *tcp;
   int ret;
@@ -209,17 +229,30 @@ tcp_stream_create (stream_t * stream)
   if ((tcp = malloc (sizeof (*tcp))) == NULL)
     return ENOMEM;
   tcp->fd = -1;
-  tcp->host = NULL;
-  tcp->port = -1;
+  tcp->host = strdup (host);
+  if(!tcp->host)
+  {
+    free (tcp);
+    return ENOMEM;
+  }
+  tcp->port = port;
   tcp->state = TCP_STATE_INIT;
-  if ((ret =
-       stream_create (stream, MU_STREAM_NO_CHECK | MU_STREAM_RDWR, tcp)) != 0)
+
+  if ((ret = stream_create (stream,
+	  flags | MU_STREAM_NO_CHECK | MU_STREAM_RDWR, tcp)) != 0)
+  {
+    free (tcp->host);
+    free (tcp);
+
     return ret;
+  }
+
   stream_set_open (*stream, _tcp_open, tcp);
   stream_set_close (*stream, _tcp_close, tcp);
   stream_set_read (*stream, _tcp_read, tcp);
   stream_set_write (*stream, _tcp_write, tcp);
   stream_set_fd (*stream, _tcp_get_fd, tcp);
   stream_set_destroy (*stream, _tcp_destroy, tcp);
+
   return 0;
 }

@@ -19,6 +19,7 @@
 # include <config.h>
 #endif
 
+#include <assert.h>
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -34,16 +35,22 @@
 
 struct _file_stream
 {
-  FILE		*file;
-  int 		offset;
+  FILE *file;
+  int offset;
+
+  char *filename;
 };
 
 static void
 _file_destroy (stream_t stream)
 {
   struct _file_stream *fs = stream_get_owner (stream);
-  if (fs->file)
-    fclose (fs->file);
+
+  stream_close (stream);
+
+  if (fs->filename)
+    free (fs->filename);
+
   free (fs);
 }
 
@@ -222,30 +229,50 @@ _file_close (stream_t stream)
 {
   struct _file_stream *fs = stream_get_owner (stream);
   int err = 0;
+
+  if (!stream)
+    return EINVAL;
+
   if (fs->file)
     {
-      if (fclose (fs->file) != 0)
-	err = errno;
+      int flags = 0;
+
+      stream_get_flags (stream, &flags);
+
+      if ((flags & MU_STREAM_NO_CLOSE) == 0)
+	{
+	  if (fclose (fs->file) != 0)
+	    err = errno;
+	}
+      
       fs->file = NULL;
     }
   return err;
 }
 
 static int
-_file_open (stream_t stream, const char *filename, int port, int flags)
+_file_open (stream_t stream)
 {
   struct _file_stream *fs = stream_get_owner (stream);
   int flg;
   int fd;
   const char *mode;
+  char* filename = 0;
+  int flags = 0;
 
-  (void)port; /* Ignored.  */
+  assert(fs);
+
+  filename = fs->filename;
+
+  assert(filename);
 
   if (fs->file)
     {
       fclose (fs->file);
       fs->file = NULL;
     }
+
+  stream_get_flags(stream, &flags);
 
   /* Map the flags to the system equivalent.  */
   if (flags & MU_STREAM_WRITE && flags & MU_STREAM_READ)
@@ -327,15 +354,14 @@ _file_open (stream_t stream, const char *filename, int port, int flags)
   if (fs->file == NULL)
     {
       int ret = errno;
-      free (fs);
       return ret;
     }
-  stream_set_flags (stream, flags |MU_STREAM_NO_CHECK);
+
   return 0;
 }
 
 int
-file_stream_create (stream_t *stream)
+file_stream_create (stream_t *stream, const char* filename, int flags)
 {
   struct _file_stream *fs;
   int ret;
@@ -347,10 +373,17 @@ file_stream_create (stream_t *stream)
   if (fs == NULL)
     return ENOMEM;
 
-  ret = stream_create (stream, MU_STREAM_NO_CHECK, fs);
+  if ((fs->filename = strdup(filename)) == NULL)
+  {
+    free (fs);
+    return ENOMEM;
+  }
+
+  ret = stream_create (stream, flags|MU_STREAM_NO_CHECK, fs);
   if (ret != 0)
     {
       free (fs);
+      free (fs->filename);
       return ret;
     }
 
@@ -364,5 +397,46 @@ file_stream_create (stream_t *stream)
   stream_set_size (*stream, _file_size, fs);
   stream_set_flush (*stream, _file_flush, fs);
   stream_set_destroy (*stream, _file_destroy, fs);
+
   return 0;
 }
+
+int
+stdio_stream_create (stream_t *stream, FILE* file, int flags)
+{
+  struct _file_stream *fs;
+  int ret;
+
+  if (stream == NULL)
+    return EINVAL;
+
+  if (file == NULL)
+    return EINVAL;
+
+  fs = calloc (1, sizeof (struct _file_stream));
+  if (fs == NULL)
+    return ENOMEM;
+
+  fs->file = file;
+
+  ret = stream_create (stream, flags|MU_STREAM_NO_CHECK, fs);
+  if (ret != 0)
+    {
+      free (fs);
+      return ret;
+    }
+
+  /* We don't need to open the FILE, just return success. */
+
+  stream_set_open (*stream, NULL, fs);
+  stream_set_close (*stream, _file_close, fs);
+  stream_set_fd (*stream, _file_get_fd, fs);
+  stream_set_read (*stream, _file_read, fs);
+  stream_set_readline (*stream, _file_readline, fs);
+  stream_set_write (*stream, _file_write, fs);
+  stream_set_flush (*stream, _file_flush, fs);
+  stream_set_destroy (*stream, _file_destroy, fs);
+
+  return 0;
+}
+

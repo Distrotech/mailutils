@@ -58,7 +58,7 @@ struct _stream
   struct rbuffer rbuffer;
 
   void (*_destroy) __P ((stream_t));
-  int (*_open)     __P ((stream_t, const char *, int port, int flags));
+  int (*_open)     __P ((stream_t));
   int (*_close)    __P ((stream_t));
   int (*_get_fd)   __P ((stream_t, int *));
   int (*_read)     __P ((stream_t, char *, size_t, off_t, size_t *));

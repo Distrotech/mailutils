@@ -345,34 +345,34 @@ mbox_open (mailbox_t mailbox, int flags)
       /* Try to mmap () the file first.  */
       if (status == 0)
 	{
-	  status = mapfile_stream_create (&(mailbox->stream));
+	  status = mapfile_stream_create (&mailbox->stream, mud->name, mailbox->flags);
 	  if (status == 0)
 	    {
-	      status = stream_open (mailbox->stream, mud->name, 0,
-				    mailbox->flags);
-	      if (status != 0)
-		stream_destroy (&mailbox->stream, NULL);
+	      status = stream_open (mailbox->stream);
 	    }
 	}
 
       /* Fall back to normal file if mmap() failed.  */
       if (status != 0)
 	{
-	  status = file_stream_create (&(mailbox->stream));
+	  status = file_stream_create (&mailbox->stream, mud->name, mailbox->flags);
 	  if (status != 0)
 	    return status;
-	  status = stream_open (mailbox->stream, mud->name, 0, mailbox->flags);
+	  status = stream_open (mailbox->stream);
 	}
       /* All failed, bail out.  */
       if (status != 0)
+      {
+	stream_destroy (&mailbox->stream, NULL);
 	return status;
+      }
       /* Even on top, of normal FILE *, lets agressively cache.  But this
 	 may not be suitable for system tight on memory.  */
       stream_setbufsiz (mailbox->stream, BUFSIZ);
     }
   else
     {
-      status = stream_open (mailbox->stream, mud->name, 0, mailbox->flags);
+      status = stream_open (mailbox->stream);
       if (status != 0)
 	return status;
     }

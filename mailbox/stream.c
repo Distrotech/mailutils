@@ -71,8 +71,7 @@ stream_destroy (stream_t *pstream, void *owner)
       stream_t stream = *pstream;
       if ((stream->flags & MU_STREAM_NO_CHECK) || stream->owner == owner)
 	{
-	  if (stream->_destroy)
-	    stream->_destroy (stream);
+	  stream_close(stream);
 	  if (stream->rbuffer.base)
 	    free (stream->rbuffer.base);
 	  free (stream);
@@ -88,14 +87,14 @@ stream_get_owner (stream_t stream)
 }
 
 int
-stream_open (stream_t stream, const char *name, int port, int flags)
+stream_open (stream_t stream)
 {
   if (stream == NULL)
     return EINVAL;
   stream->state = MU_STREAM_STATE_OPEN;
-  stream->flags |= flags;
+
   if (stream->_open)
-    return stream->_open (stream, name, port, flags);
+    return stream->_open (stream);
   return  0;
 }
 
@@ -424,7 +423,7 @@ stream_get_fd (stream_t stream, int *pfd)
 int
 stream_get_flags (stream_t stream, int *pfl)
 {
-  if (stream == NULL && pfl == NULL )
+  if (stream == NULL || pfl == NULL )
     return EINVAL;
   *pfl = stream->flags;
   return 0;
@@ -509,7 +508,7 @@ stream_set_destroy (stream_t stream, void (*_destroy) (stream_t),  void *owner)
 
 int
 stream_set_open (stream_t stream,
-	         int (*_open) (stream_t, const char *, int, int), void *owner)
+	         int (*_open) (stream_t), void *owner)
 {
   if (stream == NULL)
     return EINVAL;

@@ -587,7 +587,7 @@ pop_open (mailbox_t mbox, int flags)
       /* Create the networking stack.  */
       if (mbox->stream == NULL)
 	{
-	  status = tcp_stream_create (&(mbox->stream));
+	  status = tcp_stream_create (&mbox->stream, host, port, mbox->flags);
 	  CHECK_ERROR(mpd, status);
 	  /* Using the awkward stream_t buffering.  */
 	  stream_setbufsiz (mbox->stream, BUFSIZ);
@@ -610,7 +610,7 @@ pop_open (mailbox_t mbox, int flags)
     case POP_OPEN_CONNECTION:
       /* Establish the connection.  */
       MAILBOX_DEBUG2 (mbox, MU_DEBUG_PROT, "open (%s:%d)\n", host, port);
-      status = stream_open (mbox->stream, host, port, mbox->flags);
+      status = stream_open (mbox->stream);
       CHECK_EAGAIN (mpd, status);
       /* Can't recover bailout.  */
       CHECK_ERROR_CLOSE (mbox, mpd, status);

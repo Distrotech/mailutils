@@ -1174,7 +1174,7 @@ fetch_header_fields (message_t msg, char **arg, unsigned long start,
   stream_t stream = NULL;
   int status;
 
-  status = memory_stream_create (&stream);
+  status = memory_stream_create (&stream, 0, 0);
   if (status != 0)
     imap4d_bye (ERR_NO_MEM);
 
@@ -1275,7 +1275,7 @@ fetch_header_fields_not (message_t msg, char **arg, unsigned long start,
   stream_t stream = NULL;
   int status;
 
-  status = memory_stream_create (&stream);
+  status = memory_stream_create (&stream, 0, 0);
   if (status)
     imap4d_bye (ERR_NO_MEM);
 

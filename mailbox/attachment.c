@@ -92,8 +92,8 @@ int message_create_attachment(const char *content_type, const char *encoding, co
 				sprintf(header, MSG_HDR, content_type, name, encoding, name);
 				if ( ( ret = header_create( &hdr, header, strlen(header), *newmsg ) ) == 0 ) {
 					message_get_body(*newmsg, &body);
-					if ( ( ret = file_stream_create(&fstream) ) == 0 ) {
-						if ( ( ret = stream_open(fstream, filename, 0,  MU_STREAM_READ) ) == 0 ) {
+					if ( ( ret = file_stream_create(&fstream, filename, MU_STREAM_READ) ) == 0 ) {
+						if ( ( ret = stream_open(fstream) ) == 0 ) {
 							if ( ( ret = filter_create(&tstream, fstream, encoding, MU_FILTER_ENCODE, MU_STREAM_READ) ) == 0 ) {
 								body_set_stream(body, tstream, *newmsg);
 								message_set_header(*newmsg, hdr, NULL);
@@ -255,8 +255,8 @@ int message_save_attachment(message_t msg, const char *filename, void **data)
 			ret = message_attachment_filename(msg, &fname);
 		else
 			fname = filename;
-		if ( fname && ( ret = file_stream_create(&info->fstream) ) == 0 ) {
-			if ( ( ret = stream_open(info->fstream, fname, 0,  MU_STREAM_WRITE|MU_STREAM_CREAT) ) == 0 ) {
+		if ( fname && ( ret = file_stream_create(&info->fstream, fname, MU_STREAM_WRITE|MU_STREAM_CREAT) ) == 0 ) {
+			if ( ( ret = stream_open(info->fstream) ) == 0 ) {
 				header_get_value(hdr, "Content-Transfer-Encoding", NULL, 0, &size);
 				if ( size ) {
 					if ( ( content_encoding = alloca(size+1) ) == NULL )

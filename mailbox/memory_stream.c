@@ -37,6 +37,7 @@
 
 struct _memory_stream
 {
+  char *filename;
   char *ptr;
   size_t size;
   size_t capacity;
@@ -48,6 +49,8 @@ _memory_destroy (stream_t stream)
   struct _memory_stream *mfs = stream_get_owner (stream);
   if (mfs && mfs->ptr != NULL)
     free (mfs->ptr);
+  if(mfs->filename)
+    free (mfs->filename);
   free (mfs);
 }
 
@@ -160,14 +163,10 @@ _memory_close (stream_t stream)
 }
 
 static int
-_memory_open (stream_t stream, const char *filename, int port, int flags)
+_memory_open (stream_t stream)
 {
   struct _memory_stream *mfs = stream_get_owner (stream);
   int status = 0;
-
-  (void)port; /* Ignored.  */
-  (void)filename; /* Ignored.  */
-  (void)flags; /* Ignored.  */
 
   /* Close any previous file.  */
   if (mfs->ptr)
@@ -175,11 +174,12 @@ _memory_open (stream_t stream, const char *filename, int port, int flags)
   mfs->ptr = NULL;
   mfs->size = 0;
   mfs->capacity = 0;
-  stream_set_flags (stream, flags |MU_STREAM_NO_CHECK);
-  if (filename)
+
+  /* Initialize the data with file contents, if a filename was provided. */
+  if (mfs->filename)
     {
       struct stat statbuf;
-      if (stat (filename, &statbuf) == 0)
+      if (stat (mfs->filename, &statbuf) == 0)
         {
           mfs->ptr = calloc (statbuf.st_size, 1);
           if (mfs->ptr)
@@ -187,7 +187,7 @@ _memory_open (stream_t stream, const char *filename, int port, int flags)
               FILE *fp;
               mfs->capacity = statbuf.st_size;
               mfs->size = statbuf.st_size;
-              fp = fopen (filename, "r");
+              fp = fopen (mfs->filename, "r");
               if (fp)
                 {
                   size_t r = fread (mfs->ptr, mfs->size, 1, fp);
@@ -215,7 +215,7 @@ _memory_open (stream_t stream, const char *filename, int port, int flags)
 }
 
 int
-memory_stream_create (stream_t *stream)
+memory_stream_create (stream_t * stream, const char *filename, int flags)
 {
   struct _memory_stream *mfs;
   int ret;
@@ -224,16 +224,29 @@ memory_stream_create (stream_t *stream)
     return EINVAL;
 
   mfs = calloc (1, sizeof (*mfs));
+
   if (mfs == NULL)
     return ENOMEM;
+
+  if (filename)
+    {
+      mfs->filename = strdup (filename);
+      if (!mfs->filename)
+	{
+	  free (mfs);
+	  return ENOMEM;
+	}
+    }
 
   mfs->ptr = NULL;
   mfs->size = 0;
 
-  ret = stream_create (stream, MU_STREAM_NO_CHECK, mfs);
+  ret = stream_create (stream, flags | MU_STREAM_NO_CHECK, mfs);
   if (ret != 0)
     {
+      free (mfs->filename);
       free (mfs);
+
       return ret;
     }
 
@@ -245,5 +258,6 @@ memory_stream_create (stream_t *stream)
   stream_set_truncate (*stream, _memory_truncate, mfs);
   stream_set_size (*stream, _memory_size, mfs);
   stream_set_destroy (*stream, _memory_destroy, mfs);
+
   return 0;
 }

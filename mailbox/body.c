@@ -147,16 +147,16 @@ body_get_stream (body_t body, stream_t *pstream)
   if (body->stream == NULL)
     {
       int fd;
-      int status = stream_create (&(body->stream), MU_STREAM_RDWR, body);
+      int status = stream_create (&body->stream, MU_STREAM_RDWR, body);
       if (status != 0)
 	return status;
-      status = file_stream_create (&(body->fstream));
+      status = file_stream_create (&body->fstream, body->filename, MU_STREAM_RDWR);
       if (status != 0)
 	return status;
       fd = lazy_create (body);
       if (fd == -1)
 	return errno;
-      status = stream_open (body->fstream, body->filename, 0, MU_STREAM_RDWR);
+      status = stream_open (body->fstream);
       close (fd);
       if (status != 0)
 	return status;

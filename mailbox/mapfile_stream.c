@@ -44,6 +44,7 @@ struct _mapfile_stream
   int flags;
   char *ptr;
   size_t size;
+  char* filename;
 };
 
 static void
@@ -57,6 +58,7 @@ _mapfile_destroy (stream_t stream)
 	munmap (mfs->ptr, mfs->size);
       close (mfs->fd);
     }
+  free (mfs->filename);
   free (mfs);
 }
 
@@ -259,13 +261,15 @@ _mapfile_close (stream_t stream)
 }
 
 static int
-_mapfile_open (stream_t stream, const char *filename, int port, int flags)
+_mapfile_open (stream_t stream)
 {
   struct _mapfile_stream *mfs = stream_get_owner (stream);
   int mflag, flg;
   struct stat st;
+  char* filename = mfs->filename;
+  int flags;
 
-  (void)port; /* Ignored.  */
+  stream_get_flags (stream, &flags);
 
   /* Close any previous file.  */
   if (mfs->ptr != MAP_FAILED)
@@ -331,7 +335,7 @@ _mapfile_open (stream_t stream, const char *filename, int port, int flags)
 #endif /* _POSIX_MAPPED_FILES */
 
 int
-mapfile_stream_create (stream_t *stream)
+mapfile_stream_create (stream_t *stream, const char* filename, int flags)
 {
 #ifndef _POSIX_MAPPED_FILES
   return ENOSYS;
@@ -339,19 +343,27 @@ mapfile_stream_create (stream_t *stream)
   struct _mapfile_stream *fs;
   int ret;
 
-  if (stream == NULL)
+  if (stream == NULL || filename == NULL)
     return EINVAL;
 
   fs = calloc (1, sizeof (struct _mapfile_stream));
   if (fs == NULL)
     return ENOMEM;
 
+  fs->filename = strdup (filename);
+  if (!fs->filename)
+  {
+    free (fs);
+    return ENOMEM;
+  }
+
   fs->fd = -1;
   fs->ptr = MAP_FAILED;
 
-  ret = stream_create (stream, MU_STREAM_NO_CHECK, fs);
+  ret = stream_create (stream, flags | MU_STREAM_NO_CHECK, fs);
   if (ret != 0)
     {
+      free (fs->filename);
       free (fs);
       return ret;
     }

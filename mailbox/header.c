@@ -864,10 +864,10 @@ fill_blurb (header_t header)
 
   if (header->mstream == NULL)
     {
-      status = memory_stream_create (&(header->mstream));
+      status = memory_stream_create (&header->mstream, NULL, MU_STREAM_RDWR);
       if (status != 0)
 	return status;
-      stream_open (header->mstream, NULL, 0, MU_STREAM_RDWR);
+      stream_open (header->mstream);
       header->stream_len = 0;
     }
 
@@ -940,10 +940,15 @@ header_write (stream_t os, const char *buf, size_t buflen,
 
   if (header->mstream == NULL)
     {
-      status = memory_stream_create (&(header->mstream));
+      status = memory_stream_create (&header->mstream, NULL, MU_STREAM_RDWR);
       if (status != 0)
 	return status;
-      stream_open (header->mstream, NULL, 0, MU_STREAM_RDWR);
+      status = stream_open (header->mstream);
+      if (status != 0)
+      {
+	stream_destroy(&header->mstream, NULL);
+	return status;
+      }
       header->stream_len = 0;
     }
 

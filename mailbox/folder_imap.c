@@ -434,9 +434,9 @@ folder_imap_open (folder_t folder, int flags)
             {
               CHECK_ERROR (f_imap, ENOMEM);
             }
-	  status = memory_stream_create (&f_imap->string.stream);
+	  status = memory_stream_create (&f_imap->string.stream, NULL, MU_STREAM_RDWR);
           CHECK_ERROR (f_imap, status);
-	  stream_open (f_imap->string.stream, NULL, 0, MU_STREAM_RDWR);
+	  stream_open (f_imap->string.stream);
         }
       else
         {
@@ -451,7 +451,7 @@ folder_imap_open (folder_t folder, int flags)
       /* Create the networking stack.  */
       if (folder->stream == NULL)
         {
-          status = tcp_stream_create (&(folder->stream));
+          status = tcp_stream_create (&folder->stream, host, port, folder->flags);
           CHECK_ERROR (f_imap, status);
 	  /* Ask for the stream internal buffering mechanism scheme.  */
 	  stream_setbufsiz (folder->stream, BUFSIZ);
@@ -463,7 +463,7 @@ folder_imap_open (folder_t folder, int flags)
 
     case IMAP_OPEN_CONNECTION:
       /* Establish the connection.  */
-      status = stream_open (folder->stream, host, port, folder->flags);
+      status = stream_open (folder->stream);
       CHECK_EAGAIN (f_imap, status);
       /* Can't recover bailout.  */
       CHECK_ERROR_CLOSE (folder, f_imap, status);
