@@ -81,6 +81,11 @@ mail_print (int argc, char **argv)
       while (stream_read (stream, buffer, sizeof (buffer) - 1, off, &n) == 0
              && n != 0)
         {
+	  if (ml_got_interrupt())
+	    {
+	      util_error("\nInterrupt");
+	      break;
+	    }
           buffer[n] = '\0';
 	  fprintf (out, "%s", buffer);
           off += n;
@@ -89,7 +94,7 @@ mail_print (int argc, char **argv)
 	pclose (out);
 
       message_get_attribute (mesg, &attr);
-      attribute_set_read (attr);
+      attribute_set_seen (attr);
       
       return 0;
     }
