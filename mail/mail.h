@@ -193,6 +193,7 @@ extern int mail_quit __P ((int argc, char **argv));
 extern int mail_reply __P ((int argc, char **argv));
 extern int mail_retain __P ((int argc, char **argv));
 extern int mail_save __P ((int argc, char **argv));
+extern int mail_sendheader __P((int argc, char **argv));
 extern int mail_set __P ((int argc, char **argv));
 extern int mail_shell __P ((int argc, char **argv));
 extern int mail_execute __P((int shell, int argc, char **argv));
@@ -231,6 +232,9 @@ extern int mail_header_is_visible __P ((char *str));
 extern int mail_header_is_unfoldable __P((char *str));
 extern int mail_mbox_close __P ((void));
 extern char *mail_expand_name __P((const char *name));
+
+extern void send_append_header __P((char *text));
+extern void send_append_header2 __P((char *name, char *value, int mode));
 
 extern int var_shell __P ((int argc, char **argv, compose_env_t *env));
 extern int var_command __P ((int argc, char **argv, compose_env_t *env));

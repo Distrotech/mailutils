@@ -25,6 +25,116 @@
 static int isfilename __P ((const char *));
 static void msg_to_pipe __P ((const char *cmd, message_t msg));
 
+
+/* Additional message headers */
+struct add_header
+{
+  int mode;
+  char *name;
+  char *value;
+};
+
+static list_t add_header_list;
+
+static int
+seed_headers (void *item, void *data)
+{
+  struct add_header *hp = item;
+  compose_env_t *env = data;
+
+  compose_header_set (env, hp->name, hp->value, hp->mode);
+  return 0;
+}
+
+static int
+list_headers (void *item, void *data)
+{
+  struct add_header *hp = item;
+  char *name = data;
+
+  if (!name || strcmp (name, hp->name) == 0)
+    {
+      printf ("%s: %s\n", hp->name, hp->value);
+    }
+  return 0;
+}
+    
+static void
+add_header (char *name, char *value, int mode)
+{
+  struct add_header *hp;
+  
+  if (!add_header_list)
+    {
+      int rc = list_create (&add_header_list);
+      if (rc)
+	{
+	  util_error (_("Cannot create header list: %s"), mu_strerror (rc));
+	  exit (1);
+	}
+    }
+
+  hp = xmalloc (sizeof (*hp));
+  hp->mode = mode;
+  hp->name = name;
+  hp->value = value;
+  list_append (add_header_list, hp);
+}
+
+void
+send_append_header (char *text)
+{
+  char *p;
+  size_t len;
+  char *name;
+
+  p = strchr (text, ':');
+  if (!p)
+    {
+      util_error (_("Invalid header: %s"), text);
+      return;
+    }
+  len = p - text;
+  name = xmalloc (len + 1);
+  memcpy (name, text, len);
+  name[len] = 0;
+  for (p++; *p && isspace (*p); p++)
+    ;
+
+  add_header (name, strdup (p), COMPOSE_APPEND);
+}
+
+void
+send_append_header2 (char *name, char *value, int mode)
+{
+  add_header (strdup (name), strdup (value), mode);
+}
+
+int
+mail_sendheader (int argc, char **argv)
+{
+  if (argc == 1)
+    list_do (add_header_list, list_headers, NULL);
+  else if (argc == 2)
+    {
+      if (strchr (argv[1], ':'))
+	send_append_header (argv[1]);
+      else
+	list_do (add_header_list, list_headers, argv[1]);
+    }
+  else
+    {
+      size_t len = strlen (argv[1]);
+      if (len > 0 && argv[1][len - 1] == ':') 
+	argv[1][len - 1] = 0;
+      add_header (strdup (argv[1]), strdup (argv[2]), COMPOSE_APPEND);
+    }
+  return 0;
+}
+
+
+/* Send-related commands */
+
 static void
 read_cc_bcc (compose_env_t *env)
 {
@@ -92,12 +202,6 @@ mail_send (int argc, char **argv)
   if (util_getenv (NULL, "asksub", Mail_env_boolean, 0) == 0)
     compose_header_set (&env, MU_HEADER_SUBJECT,
 			ml_readline_with_intr ("Subject: "), COMPOSE_REPLACE);
-  else
-    {
-      char *p;
-      if (util_getenv (&p, "subject", Mail_env_string, 0) == 0)
-	compose_header_set (&env, MU_HEADER_SUBJECT, p, COMPOSE_REPLACE);
-    }
 
   status = mail_send0 (&env, save_to);
   compose_destroy (&env);
@@ -108,6 +212,7 @@ void
 compose_init (compose_env_t * env)
 {
   memset (env, 0, sizeof (*env));
+  list_do (add_header_list, seed_headers, env);
 }
 
 int
