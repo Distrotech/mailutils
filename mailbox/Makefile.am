@@ -46,6 +46,7 @@ mapfile_stream.c \
 mbx_default.c \
 mbx_file.c \
 mbx_imap.c \
+mbx_maildir.c \
 mbx_mbox.c \
 mbx_mh.c \
 mbx_pop.c \
