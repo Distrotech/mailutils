@@ -212,17 +212,21 @@ mh_context_t *mh_context_create __P((char *name, int copy));
 int mh_context_read __P((mh_context_t *ctx));
 int mh_context_write __P((mh_context_t *ctx));
 char *mh_context_get_value __P((mh_context_t *ctx, const char *name,
-				char *defval));
+				const char *defval));
 int mh_context_set_value __P((mh_context_t *ctx, const char *name,
-			      char *value));
+			      const char *value));
 
 int mh_message_number __P((message_t msg, size_t *pnum));
 
 mailbox_t mh_open_folder __P((const char *folder, int create));
 
 int mh_msgset_parse __P((mailbox_t mbox, mh_msgset_t *msgset,
-			 int argc, char **argv));
+			 int argc, char **argv, char *def));
 int mh_msgset_member __P((mh_msgset_t *msgset, size_t num));
+void mh_msgset_reverse __P((mh_msgset_t *msgset));
+void mh_msgset_negate __P((mailbox_t mbox, mh_msgset_t *msgset));
+int mh_msgset_current __P((mailbox_t mbox, mh_msgset_t *msgset, int index));
+void mh_msgset_free __P((mh_msgset_t *msgset));
 
 char *mh_get_dir __P((void));
 char *mh_expand_name __P((const char *name, int is_folder));
