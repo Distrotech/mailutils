@@ -288,11 +288,11 @@ main (int argc, char **argv)
   /* Interactive mode */
   if (!(util_find_env("quiet"))->set)
     {
-      fprintf (ofile, "%s, Copyright (C) 2001 Free Software Foundation, Inc.\n"
-	       "mail comes with ABSOLUTELY NO WARRANTY; for details type\n"
-	       "'warranty'. This is free software, and you are welcome to\n"
-	       "redistribute it under certain conditions; type 'copying'\n"
-	       "for details.\n",
+      fprintf (ofile,
+	       "%s, Copyright (C) 2001 Free Software Foundation, Inc.\n"
+	       "mail is free software with ABSOLUTELY NO WARRANTY.\n"
+	       "For details type `warranty'.\n"
+	       "Send bug reports to <bug-mailutils@gnu.org>.\n",
 	       argp_program_version);
     }
 
