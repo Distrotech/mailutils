@@ -85,8 +85,8 @@
 #include <mailutils/parse822.h>
 #include <mailutils/registrar.h>
 #include <mailutils/stream.h>
+#include <mailutils/mu_argp.h>
 
-#include <mu_argp.h>
 
 #ifdef __cplusplus
 extern "C" {

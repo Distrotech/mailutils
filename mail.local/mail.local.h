@@ -79,9 +79,9 @@
 #include <mailutils/registrar.h>
 #include <mailutils/stream.h>
 #include <mailutils/url.h>
+#include <mailutils/mu_argp.h>
 
 #include <mu_dbm.h>
-#include <mu_argp.h>
 
 #ifdef HAVE_MYSQL
 # include "../MySql/MySql.h"

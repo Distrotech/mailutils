@@ -121,8 +121,7 @@
 #include <mailutils/mutil.h>
 #include <mailutils/registrar.h>
 #include <mailutils/url.h>
-
-#include <mu_argp.h>
+#include <mailutils/mu_argp.h>
 
 /* For Berkley DB2 APOP password file */
 #ifdef HAVE_DB_H

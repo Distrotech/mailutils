@@ -16,7 +16,7 @@
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #include "guimb.h"
-#include <mu_argp.h>
+#include <mailutils/mu_argp.h>
 
 char *program_file;
 char *program_expr;

@@ -51,7 +51,6 @@
 # include <paths.h>
 #endif
 
-#include <mu_argp.h>
 #include <xalloc.h>
 
 #ifdef HAVE_READLINE_READLINE_H
@@ -76,6 +75,7 @@
 #include <mailutils/registrar.h>
 #include <mailutils/stream.h>
 #include <mailutils/url.h>
+#include <mailutils/mu_argp.h>
 
 #include <argcv.h>
 #include <getline.h>

@@ -56,9 +56,9 @@
 #include <mailutils/mutil.h>
 #include <mailutils/registrar.h>
 #include <mailutils/stream.h>
+#include <mailutils/mu_argp.h>
 
 #include <argcv.h>
-#include <mu_argp.h>
 
 #ifndef INADDR_NONE
 # define INADDR_NONE -1

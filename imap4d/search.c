@@ -291,7 +291,7 @@ do_search (struct parsebuf *pb)
 	      util_send (" %d", uid);
 	    }
 	  else
-	util_send (" %d", pb->msgno);
+	    util_send (" %d", pb->msgno);
 	}
     }
   util_send ("\r\n");

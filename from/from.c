@@ -42,7 +42,7 @@
 #include <mailutils/message.h>
 #include <mailutils/registrar.h>
 #include <mailutils/stream.h>
-#include "mu_argp.h"
+#include <mailutils/mu_argp.h>
 
 const char *argp_program_version = "from (" PACKAGE ") " VERSION;
 const char *argp_program_bug_address = "<bug-mailutils@gnu.org>";
