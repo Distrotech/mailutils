@@ -1,3 +1,96 @@
+2001-10-14 Sergey Poznyakoff
+
+	Small fixes:
+
+	* frm/frm.c: Do not output extra newline when running with
+	--field option.
+	* mail/reply.c: Do not prefix subject line with Re: if it
+	already starts with it
+	* mail/send.c: Handle ~x escape properly.
+	* mail/table.c: Removed entry for ~x: it is handled by send.c
+	* mail/var.c: Delimit addresses with space (~t, ~c and ~b escapes).
+	Removed var_exit().
+
+	* guimb/main.c: Fixed typo in --help output.
+	* guimb/scm/README: (new).
+
+	Reorganized /doc. Added some documentation (primarily, program.texi)
+
+	* configure.in: Added doc/*/Makefile
+	* doc/*.texi, doc/*.rfc: removed.
+	* doc/Makefile.am: Reorganized doc structure
+	* doc/.cvsignore: Likewise.
+
+	* doc/texinfo: New directory
+	* doc/texinfo/Makefile.am: (new)
+	* doc/texinfo/.cvsignore: (new)
+	* doc/texinfo/.ispell_english: (new) User dictionary for spell-checking
+	docs.
+	* doc/texinfo/address.texi: Moved from ..
+	* doc/texinfo/attribute.texi: Likewise.
+	* doc/texinfo/auth.texi: Likewise.
+	* doc/texinfo/body.texi: Likewise.
+	* doc/texinfo/c-api.texi: Likewise.
+	* doc/texinfo/encoding.texi: Likewise.
+	* doc/texinfo/envelope.texi: Likewise.
+	* doc/texinfo/ex-address.texi: Likewise.
+	* doc/texinfo/ex-url.texi: Likewise.
+	* doc/texinfo/folder.texi: Likewise.
+	* doc/texinfo/framework.texi: Likewise.
+	* doc/texinfo/headers.texi: Likewise.
+	* doc/texinfo/imap4.texi: Likewise.
+	* doc/texinfo/iterator.texi: Likewise.
+	* doc/texinfo/locker.texi: Likewise.
+	* doc/texinfo/mailbox.texi: Likewise.
+	* doc/texinfo/maildir.texi: Likewise.
+	* doc/texinfo/mailer.texi: Likewise.
+	* doc/texinfo/mailutils.texi: Likewise.
+	* doc/texinfo/mbox.texi: Likewise.
+	* doc/texinfo/message.texi: Likewise.
+	* doc/texinfo/mh.texi: Likewise.
+	* doc/texinfo/mime.texi: Likewise.
+	* doc/texinfo/nntp.texi: Likewise.
+	* doc/texinfo/parse822.texi: Likewise.
+	* doc/texinfo/pop3.texi: Likewise.
+	* doc/texinfo/programs.texi: Likewise.
+	* doc/texinfo/sendmail.texi: Likewise.
+	* doc/texinfo/sfrom.c.texi: Likewise.
+	* doc/texinfo/smtp.texi: Likewise.
+	* doc/texinfo/stream.texi: Likewise.
+	* doc/texinfo/url.texi: Likewise.
+	* doc/texinfo/version.texi: Likewise.
+
+	* doc/rfc: New directory
+	* doc/rfc/Makefile.am: (new)
+	* doc/rfc/.cvsignore: (new)
+        * doc/rfc/rfc1731.txt: Moved from ..
+        * doc/rfc/rfc1734.txt: Likewise.
+        * doc/rfc/rfc1738.txt: Likewise.
+        * doc/rfc/rfc1939.txt: Likewise.
+        * doc/rfc/rfc1957.txt: Likewise.
+        * doc/rfc/rfc2045.txt: Likewise.
+        * doc/rfc/rfc2046.txt: Likewise.
+        * doc/rfc/rfc2047.txt: Likewise.
+        * doc/rfc/rfc2049.txt: Likewise.
+        * doc/rfc/rfc2060-errata: Likewise.
+        * doc/rfc/rfc2060.txt: Likewise.
+        * doc/rfc/rfc2088.txt: Likewise.
+        * doc/rfc/rfc2111.txt: Likewise.
+        * doc/rfc/rfc2192.txt: Likewise.
+        * doc/rfc/rfc2193.txt: Likewise.
+        * doc/rfc/rfc2221.txt: Likewise.
+        * doc/rfc/rfc2245.txt: Likewise.
+        * doc/rfc/rfc2298.txt: Likewise.
+        * doc/rfc/rfc2342.txt: Likewise.
+        * doc/rfc/rfc2368.txt: Likewise.
+        * doc/rfc/rfc2384.txt: Likewise.
+        * doc/rfc/rfc2449.txt: Likewise.
+        * doc/rfc/rfc2821.txt: Likewise.
+        * doc/rfc/rfc2822.txt: Likewise.
+        * doc/rfc/rfc3028.txt: Likewise.
+        * doc/rfc/rfc821.txt: Likewise.
+        * doc/rfc/rfc822.txt: Likewise.
+
 2001-10-13  Alain Malgoire
 
 	* mail/mail.c: Possibility to enable debuging output.
