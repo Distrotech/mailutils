@@ -60,7 +60,8 @@ mail_headers (int argc, char **argv)
 	}
     }
 
-  util_do_command ("from %d-%d", low, high);
+  for (; low <= high; low++)
+    mail_from0 (low, 0);
 
   msgset_free (list);
   return 0;
