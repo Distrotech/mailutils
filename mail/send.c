@@ -369,6 +369,12 @@ mail_send0 (struct send_environ *env, int save_to)
 	      status = mailer_create (&mailer, sendmail);
 	      if (status == 0)
 		{
+		  if (util_find_env ("verbose")->set)
+		    {
+		      debug_t debug = NULL;
+		      mailer_get_debug (mailer, &debug);
+		      debug_set_level (debug, MU_DEBUG_TRACE|MU_DEBUG_PROT);
+		    }
 		  status = mailer_open (mailer, MU_STREAM_RDWR);
 		  if (status == 0)
 		    {

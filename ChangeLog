@@ -1,5 +1,10 @@
 2001-07-05  Alain Magloire
 
+	* mail/send.c(mail_send0): Put the mailer in debug mode
+	if util_find_env("verbose")->set, good for debuging.
+
+2001-07-05  Alain Magloire
+
 	According to the man page:
 	"sendmail contains a command, possibly with options, that mailx
 	invokes to send mail. You must manually set the default for this
