@@ -3,6 +3,8 @@
 	* po/POTFILES.in: Updated.
 	* sieve/sieve.c: Enabled NLS.
 	* doc/texinfo/mailutils.texi: Small improvement.
+	* COPYING.FDL: The Free Documentation License has been
+	  upgraded from 1.1 to 1.2.
 
 2002-12-25  Wojciech Polak <polak@gnu.org>
 
