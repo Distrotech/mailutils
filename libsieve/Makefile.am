@@ -1,6 +1,6 @@
 ## Process this file with GNU Automake to create Makefile.in
 
-##   Copyright (C) 2002 Free Software Foundation, Inc.
+##   Copyright (C) 2002, 2003, 2004 Free Software Foundation, Inc.
 ##
 ##   GNU Mailutils is free software; you can redistribute it and/or
 ##   modify it under the terms of the GNU General Public License as
@@ -17,10 +17,14 @@
 ##   Foundation, Inc.
 ##   59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-INCLUDES = -I${top_srcdir}/include -I${top_srcdir}/lib -I${top_builddir}/include/mailutils/gnu @INTLINCS@
+INCLUDES = -I${top_srcdir}/include -I${top_srcdir}/lib\
+ -I${top_builddir}/include/mailutils/gnu @INTLINCS@
+
 YLWRAP = $(SHELL) $(top_srcdir)/scripts/ylwrap
 AM_YFLAGS = -dtv
 AM_CPPFLAGS = -DSIEVE_MODDIR=\"@SIEVE_MODDIR@\"
+
+SUBDIRS = . extensions
 
 lib_LTLIBRARIES = libsieve.la
 
@@ -39,11 +43,11 @@ libsieve_la_SOURCES = \
  sieve-lex.c\
  tests.c\
  util.c
-libsieve_la_LIBADD=@LTDL_LIB@
+libsieve_la_LIBADD = @LTDL_LIB@
 
 noinst_HEADERS = sieve.h
 
-BUILT_SOURCES= \
+BUILT_SOURCES = \
   sieve-gram.c sieve-gram.h \
   sieve-lex.c
 
@@ -60,5 +64,4 @@ sieve-gram.c sieve-gram.h: $(srcdir)/sieve.y
 	$(YLWRAP) "$(YACC) $(AM_YFLAGS) $(YFLAGS)" $(srcdir)/sieve.y \
 	          y.tab.c sieve-gram.c y.tab.h sieve-gram.h y.output y.output \
                   -- -yy sieve_yy
-
 
