@@ -71,9 +71,10 @@ struct _mh_message
   int attr_flags;           /* Attribute flags */
   int deleted;              /* Was the message originally deleted */
 
-  size_t header_lines;
-  size_t body_lines;
-
+  time_t mtime;             /* Time of last modification */
+  size_t header_lines;      /* Number of lines in the header part */ 
+  size_t body_lines;        /* Number of lines in the body */
+  
   message_t message; /* Corresponding message_t */
   struct _mh_data *mhd; /* Back pointer.  */
 };
@@ -479,19 +480,26 @@ static int
 _mh_message_save (struct _mh_data *mhd, struct _mh_message *mhm, int expunge)
 {
   stream_t stream = NULL;
-  char *name, *buf = NULL, *msg_name;
+  char *name = NULL, *buf = NULL, *msg_name;
   size_t n, off = 0;
   size_t bsize;
+  size_t nlines;
   FILE *fp;
   message_t msg = mhm->message;
   header_t hdr;
   int status;
   attribute_t attr;
   body_t body;
-
-  (void)expunge;
   
-  fp = _mh_tempfile (mhm->mhd, &name);
+  if (expunge)
+    fp = _mh_tempfile (mhm->mhd, &name);
+  else
+    {
+      msg_name = _mh_message_name (mhm, mhm->deleted);
+      fp = fopen (msg_name, "w");
+      free (msg_name);
+    }
+  
   if (!fp)
     {
       free (mhm);
@@ -515,11 +523,14 @@ _mh_message_save (struct _mh_data *mhd, struct _mh_message *mhm, int expunge)
   message_get_header (msg, &hdr);
   header_get_stream (hdr, &stream);
   off = 0;
+  nlines = 0;
   while ((status = stream_readline (stream, buf, bsize, off, &n)) == 0
 	 && n != 0)
     {
       if (buf[0] == '\n')
 	break;
+
+      nlines++;
        
       if (!(strncasecmp (buf, "status:", 7) == 0
 	    || strncasecmp (buf, "x-imapbase:", 11) == 0
@@ -527,6 +538,10 @@ _mh_message_save (struct _mh_data *mhd, struct _mh_message *mhm, int expunge)
 	fprintf (fp, "%s", buf);
       off += n;
     }
+
+  mhm->header_lines = nlines;
+  mhm->body_start = off;
+
   /* Add imapbase */
   if (!mhd->msg_head || (mhd->msg_head == mhm)) /*FIXME*/
     fprintf (fp, "X-IMAPbase: %lu %u\n", mhd->uidvalidity, mhd->uidnext);
@@ -545,19 +560,30 @@ _mh_message_save (struct _mh_data *mhd, struct _mh_message *mhm, int expunge)
   message_get_body (msg, &body);
   body_get_stream (body, &stream);
   off = 0;
+  nlines = 0;
   while (stream_read (stream, buf, bsize, off, &n) == 0 && n != 0)
     {
+      char *p;
+      for (p = buf; p < buf + n; p++)
+	if (*p == '\n')
+	  nlines++;
       fwrite (buf, 1, n, fp);
       off += n;
     }
 
+  mhm->body_lines = nlines;
+  mhm->body_end = off;
+
   free (buf);
   fclose (fp);
 
-  msg_name = _mh_message_name (mhm, mhm->deleted);
-  rename (name, msg_name);
-  free (name);
-  free (msg_name);
+  if (expunge)
+    {
+      msg_name = _mh_message_name (mhm, mhm->deleted);
+      rename (name, msg_name);
+      free (name);
+      free (msg_name);
+    }
   
   return 0;
 }
@@ -584,8 +610,6 @@ mh_append_message (mailbox_t mailbox, message_t msg)
   mhm->message = NULL;
   /* Insert and re-scan the message */
   _mh_message_insert (mhd, mhm);
-  mh_message_stream_open (mhm);
-  mh_message_stream_close (mhm);
   return status;
 }
 
@@ -851,9 +875,7 @@ _mh_message_delete (struct _mh_data *mhd, struct _mh_message *msg)
 }
 
 /* Scan given message and fill mh_message_t fields.
-   NOTE: the function assumes mhm->stream != NULL.
-   FIXME: Cache all the information and do not rescan the message when
-   re-opening it. */
+   NOTE: the function assumes mhm->stream != NULL. */
 static int
 mh_scan_message (struct _mh_message *mhm)
 {
@@ -867,6 +889,21 @@ mh_scan_message (struct _mh_message *mhm)
   size_t blines = 0;
   size_t body_start = 0;
 
+  /* Check if the message was modified after the last scan */
+  if (mhm->mtime)
+    {
+      struct stat st;
+      char *msg_name = _mh_message_name (mhm, mhm->deleted);
+
+      if (stat (msg_name, &st) == 0 && st.st_mtime == mhm->mtime)
+	{
+	  /* Nothing to do */
+	  free (msg_name);
+	  return 0;
+	}
+      free (msg_name);
+    }  
+	
   while ((status = stream_readline (stream, buf, sizeof (buf), off, &n) == 0)
 	 && n != 0)
     {
@@ -1391,8 +1428,7 @@ mh_envelope_date (envelope_t envelope, char *buf, size_t len,
 }
 
 static int
-mh_envelope_sender (envelope_t envelope, char *buf, size_t len,
-		    size_t *psize)
+mh_envelope_sender (envelope_t envelope, char *buf, size_t len, size_t *psize)
 {
   message_t msg = envelope_get_owner (envelope);
   struct _mh_message *mhm = message_get_owner (msg);
