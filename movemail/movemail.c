@@ -27,7 +27,7 @@
 
 const char *program_version = "movemail (" PACKAGE_STRING ")";
 static char doc[] = N_("GNU movemail");
-static char args_doc[] = N_("inbox destfile [POP-password]");
+static char args_doc[] = N_("inbox-url destfile [POP-password]");
 
 static struct argp_option options[] = {
   { "preserve", 'p', NULL, 0, N_("Preserve the source mailbox"), 0 },
@@ -103,16 +103,57 @@ lock_mailbox (mailbox_t mbox)
     /* Remote mailboxes have no lockers */
     return;
 
-  /* FIXME: locker_set_retries (lock, lock_timeout); */
-
   status = locker_lock (lock);
 
   if (status)
     die (mbox, _("Cannot lock"), status);
 }
 
+
+/* A password ticket: returns the cleantext password. */
 void
-open_mailbox (mailbox_t *mbx, char *name, int flags)
+password_destroy (ticket_t t)
+{
+  char *p = ticket_get_owner (t);
+  free (p);
+}
+
+int
+password_pop (ticket_t t, url_t u, const char *challenge, char **ppwd)
+{
+  char *p = ticket_get_owner (t);
+  *ppwd = strdup (p);
+  return 0;
+}
+
+void
+attach_passwd_ticket (mailbox_t mbx, char *passwd)
+{
+  folder_t folder = NULL;
+  authority_t auth = NULL;
+  char *p = strdup (passwd);
+  ticket_t t;
+  int rc;
+  
+  ticket_create (&t, p);
+  ticket_set_destroy (t, password_destroy, p);
+  ticket_set_pop (t, password_pop, p);
+
+  if ((rc = mailbox_get_folder (mbx, &folder)))
+    die (mbx, _("mailbox_get_folder failed"), rc);
+
+  if ((rc = folder_get_authority (folder, &auth)))
+    die (mbx, _("folder_get_authority failed"), rc);
+
+  if (auth && (rc = authority_set_ticket (auth, t)))
+    die (mbx, _("authority_set_ticket failed"), rc);
+}
+
+
+/* Create and open a mailbox associated with the given URL,
+   flags and (optionally) password */
+void
+open_mailbox (mailbox_t *mbx, char *name, int flags, char *passwd)
 {
   int status = mailbox_create_default (mbx, name);
 
@@ -124,6 +165,8 @@ open_mailbox (mailbox_t *mbx, char *name, int flags)
       exit (1);
     }
 
+  if (passwd)
+    attach_passwd_ticket (*mbx, passwd);
   status = mailbox_open (*mbx, flags);
   if (status)
     die (*mbx, _("cannot open"), status);
@@ -176,11 +219,8 @@ compatibility_mode (mailbox_t *mbx, char *source_name, char *password,
       mu_error (_("Hostname of the POP3 server is unknown"));
       exit (1);
     }
-  if (password)
-    asprintf (&tmp, "pop://%s:%s@%s", user_name, password, host);
-  else
-    asprintf (&tmp, "pop://%s@%s", user_name, host);
-  open_mailbox (mbx, tmp, flags);
+  asprintf (&tmp, "pop://%s@%s", user_name, host);
+  open_mailbox (mbx, tmp, flags, password);
   free (tmp);
 }
 
@@ -245,10 +285,10 @@ main (int argc, char **argv)
   
   if (strncmp (source_name, "po:", 3) == 0)
     compatibility_mode (&source, source_name, argv[2], flags);
-  else 
-    open_mailbox (&source, source_name, flags);
-
-  open_mailbox (&dest, dest_name, MU_STREAM_RDWR | MU_STREAM_CREAT);
+  else
+    open_mailbox (&source, source_name, flags, argv[2]);
+  
+  open_mailbox (&dest, dest_name, MU_STREAM_RDWR | MU_STREAM_CREAT, NULL);
   
   mailbox_messages_count (source, &total);
   if (reverse_order)
