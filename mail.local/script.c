@@ -20,6 +20,8 @@
 #ifdef WITH_GUILE
 #include <mu_scm.h>
 
+int debug_guile;
+
 SCM mda_catch_body (void *data, mailbox_t mbox);
 SCM mda_catch_handler (void *unused, SCM tag, SCM throw_args);
 int mda_next (void *data, mailbox_t mbox);
@@ -46,7 +48,7 @@ prog_mda (struct mda_data *data)
 
   unlink (data->tempfile);
   
-  param.debug_guile = 1 /*FIXME*/;
+  param.debug_guile = debug_guile;
   param.mbox = mbox;
   param.user_name = NULL;
   param.init = mda_init;
@@ -75,7 +77,8 @@ mda_catch_body (void *data, mailbox_t mbox)
 
   if (access (md->progfile, R_OK))
     {
-      syslog (LOG_ERR, "access to %s failed: %m", md->progfile);
+      if (debug_level > 2)
+	syslog (LOG_DEBUG, "access to %s failed: %m", md->progfile);
     }
   else
     scm_primitive_load (scm_makfrom0str (md->progfile));
