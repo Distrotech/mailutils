@@ -47,6 +47,7 @@ struct mu_timezone
 
 typedef struct mu_timezone mu_timezone;
 
+int mu_parse_date __P ((const char *p, time_t *rettime, const time_t *now));
 extern int mu_parse_imap_date_time __P ((const char **p, struct tm * tm,
 					 mu_timezone * tz));
 extern int mu_parse_ctime_date_time __P ((const char **p, struct tm * tm,
