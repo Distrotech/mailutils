@@ -17,11 +17,8 @@
 
 #include "imap4d.h"
 
-static FILE *ifile;
-static FILE *ofile;
-#ifdef WITH_TLS
-static gnutls_session sfile;
-#endif /* WITH_TLS */
+static stream_t istream;
+static stream_t ostream;
 
 static int add2set __P ((size_t **, int *, unsigned long));
 static const char *sc2string __P ((int));
@@ -318,24 +315,6 @@ util_msgset (char *s, size_t ** set, int *n, int isuid)
   return 0;
 }
 
-static int
-util_send_lowlevel (char *buf)
-{
-  int status;
-
-  if (buf)
-    {
-#ifdef WITH_TLS
-      if (tls_done)
-	status = gnutls_record_send (sfile, buf, strlen (buf));
-      else
-#endif /* WITH_TLS */
-	status = fprintf (ofile, buf);
-    }
-
-  return status;
-}
-
 int
 util_send (const char *format, ...)
 {
@@ -345,17 +324,16 @@ util_send (const char *format, ...)
 
   va_start (ap, format);
   vasprintf (&buf, format, ap);
-
-  if (buf)
-    {
-      if (daemon_param.transcript)
-	syslog (LOG_DEBUG, "sent: %s", buf);
-
-      status = util_send_lowlevel (buf);
-      free (buf);
-    }
-
   va_end (ap);
+  if (!buf)
+      imap4d_bye (ERR_NO_MEM);
+
+  if (daemon_param.transcript)
+    syslog (LOG_DEBUG, "sent: %s", buf);
+
+  status = stream_sequential_write (ostream, buf, strlen (buf));
+  free (buf);
+
   return status;
 }
 
@@ -400,17 +378,15 @@ util_out (int rc, const char *format, ...)
   asprintf (&tempbuf, "* %s%s\r\n", sc2string (rc), format);
   va_start (ap, format);
   vasprintf (&buf, tempbuf, ap);
-
-  if (buf)
-    {
-      if (daemon_param.transcript)
-	syslog (LOG_DEBUG, "sent: %s", buf);
-
-      status = util_send_lowlevel (buf);
-      free (buf);
-    }
-
   va_end (ap);
+  if (!buf)
+    imap4d_bye (ERR_NO_MEM);
+
+  if (daemon_param.transcript)
+    syslog (LOG_DEBUG, "sent: %s", buf);
+
+  status = stream_sequential_write (ostream, buf, strlen (buf));
+  free (buf);
   free (tempbuf);
   return status;
 }
@@ -429,17 +405,15 @@ util_finish (struct imap4d_command *command, int rc, const char *format, ...)
 	    command->name, format);
   va_start (ap, format);
   vasprintf (&buf, tempbuf, ap);
-
-  if (buf)
-    {
-      if (daemon_param.transcript)
-	syslog (LOG_DEBUG, "sent: %s", buf);
-
-      status = util_send_lowlevel (buf);
-      free (buf);
-    }
-
   va_end (ap);
+  if (!buf)
+    imap4d_bye (ERR_NO_MEM);
+
+  if (daemon_param.transcript)
+    syslog (LOG_DEBUG, "sent: %s", buf);
+
+  status = stream_sequential_write (ostream, buf, strlen (buf));
+  free (buf);
   free (tempbuf);
 
   /* Reset the state.  */
@@ -477,30 +451,23 @@ imap4d_readline (void)
   line[0] = '\0';		/* start with a empty string.  */
   do
     {
+      size_t sz;
+      int rc;
+      
       alarm (daemon_param.timeout);
-#ifdef WITH_TLS
-      if (tls_done)
+      rc = stream_sequential_readline (istream, buffer, sizeof (buffer), &sz);
+      if (sz == 0)
 	{
-	  len = gnutls_record_recv (sfile, buffer, sizeof (buffer) - 1);
-	  if (len < 0)
-	    {
-	      syslog (LOG_INFO, _("TLS error on read: %s"),
-		      gnutls_strerror (len));
-	      imap4d_bye (ERR_TLS);
-	    }
-	  else
-	    buffer[len] = 0;
+	  syslog (LOG_INFO, _("unexpected eof on input"));
+	  imap4d_bye (ERR_NO_OFILE);
 	}
-      else
-#endif /* WITH_TLS */
-      if (fgets (buffer, sizeof (buffer), ifile) == NULL)
+      else if (rc)
 	{
-	  if (feof (ifile))
-	    syslog (LOG_INFO, _("unexpected eof on input"));
-	  else if (errno)
-	    syslog (LOG_INFO, _("error reading from input file: %m"));
-	  else
-	    continue;
+	  const char *p;
+	  if (stream_strerror (istream, &p))
+	    p = strerror (errno);
+
+	  syslog (LOG_INFO, _("error reading from input file: %s"), p);
 	  imap4d_bye (ERR_NO_OFILE);
 	}
       alarm (0);
@@ -799,24 +766,13 @@ struct
 }
 _imap4d_attrlist[] =
 {
-  {
-  "\\Answered", MU_ATTRIBUTE_ANSWERED}
-  ,
-  {
-  "\\Flagged", MU_ATTRIBUTE_FLAGGED}
-  ,
-  {
-  "\\Deleted", MU_ATTRIBUTE_DELETED}
-  ,
-  {
-  "\\Draft", MU_ATTRIBUTE_DRAFT}
-  ,
-  {
-  "\\Seen", MU_ATTRIBUTE_READ}
-  ,
-  {
-  "\\Recent", MU_ATTRIBUTE_RECENT}
-,};
+  { "\\Answered", MU_ATTRIBUTE_ANSWERED },
+  { "\\Flagged", MU_ATTRIBUTE_FLAGGED },
+  { "\\Deleted", MU_ATTRIBUTE_DELETED },
+  { "\\Draft", MU_ATTRIBUTE_DRAFT },
+  { "\\Seen", MU_ATTRIBUTE_READ },
+  { "\\Recent", MU_ATTRIBUTE_RECENT },
+};
 
 #define NATTR sizeof(_imap4d_attrlist)/sizeof(_imap4d_attrlist[0])
 
@@ -1138,45 +1094,73 @@ util_uidvalidity (mailbox_t smbox, unsigned long *uidvp)
 
 
 void
-util_setio (int infile, int outfile)
+util_setio (FILE *in, FILE *out)
 {
-  ifile = fdopen (infile, "r");
-  ofile = fdopen (outfile, "w");
-  if (!ofile || !ifile)
+  if (!out || !in)
     imap4d_bye (ERR_NO_OFILE);
 
-  setvbuf (ofile, NULL, _IOLBF, 0);
+  if (stdio_stream_create (&istream, in, MU_STREAM_NO_CLOSE)
+      || stdio_stream_create (&ostream, out, MU_STREAM_NO_CLOSE))
+    imap4d_bye (ERR_NO_OFILE);
 }
 
 void
 util_flush_output ()
 {
-  if (!tls_done)
-    fflush (ofile);
+  stream_flush (ostream);
 }
 
-FILE *
-util_is_ofile ()
+int
+util_is_master ()
 {
-  return ofile;
+  return ostream == NULL;
 }
 
 #ifdef WITH_TLS
-
 int
 imap4d_init_tls_server ()
 {
-  sfile =
-    (gnutls_session) mu_init_tls_server (fileno (ifile), fileno (ofile));
-  if (!sfile)
+  stream_t stream;
+  int in_fd;
+  int out_fd;
+  int rc;
+  
+  if (stream_get_fd (istream, &in_fd)
+      || stream_get_fd (ostream, &out_fd))
     return 0;
+  rc = tls_stream_create (&stream, in_fd, out_fd, 0);
+  if (rc)
+    return 0;
+
+  if (stream_open (stream))
+    {
+      const char *p;
+      stream_strerror (stream, &p);
+      syslog (LOG_ERR, _("cannot open TLS stream: %s"), p);
+      return 0;
+    }
+
+  stream_destroy (&istream, stream_get_owner (istream));
+  stream_destroy (&ostream, stream_get_owner (ostream));
+  istream = ostream = stream;
   return 1;
 }
+#endif /* WITH_TLS */
 
 void
-imap4d_deinit_tls_server ()
+util_bye ()
 {
-  mu_deinit_tls_server (sfile);
+  if (istream == ostream)
+    {
+      stream_close (istream);
+      stream_destroy (&istream, stream_get_owner (istream));
+    }
+  /* There's no reason closing in/out streams otherwise */
+#ifdef WITH_TLS
+  mu_deinit_tls_libs ();
+#endif /* WITH_TLS */
 }
 
-#endif /* WITH_TLS */
+
+
+
