@@ -1,3 +1,33 @@
+2003-01-05  Sergey Poznyakoff 
+
+	* doc/rfc/rfc3431.txt: New file.
+	* doc/rfc/Makefile.am: Add rfc3431.txt
+	* testsuite/spool/relational.mbox: Mailbox for testing relational
+	  operations in sieve.
+	* testsuite/spool/DISTFILES (relational.mbox): Added.
+	* include/mailutils/libsieve.h (sieve_relcmp_t,sieve_relcmpn_t):
+	  New types.
+	  (sieve_register_comparator): Changed prototype.
+	  (sieve_require_relational,sieve_str_to_relcmp)
+	  (sieve_get_relcmp): New functions.
+	* libsieve/relational.c: New file.
+	* libsieve/Makefile.am: Added relational.c.
+	* libsieve/comparator.c (sieve_register_comparator)
+	  (_find_comparator,comp_false,sieve_match_part_checker):
+	  Added support for relational tests.
+	* libsieve/tests.c (sieve_test_address,sieve_test_header):
+	  Likewise.
+	* sieve/testsuite/scripts/rel-address.sv: New file.
+	* sieve/testsuite/scripts/rel-hairy.sv: New file.
+	* sieve/testsuite/scripts/rel-header.sv: New file.
+	* sieve/testsuite/scripts/DISTFILES (rel-address.sv,rel-hairy.sv)
+	  (rel-header.sv): New files
+	* sieve/testsuite/sieve/relational.exp: New file.
+	* sieve/testsuite/sieve/DISTFILES (relational.exp): Added
+	
+	* mail/z.c (mail_z): Fixed scrolling.
+	* po/POTFILES.in: Added libsieve/relational.c.
+
 2003-01-03  Wojciech Polak
 
 	* pop3d/extra.c (pop3d_readline): Don't use `static char buffer[512]'.
