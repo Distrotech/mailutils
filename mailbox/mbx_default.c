@@ -298,15 +298,29 @@ mailbox_create_default (mailbox_t *pmbox, const char *mail)
     case '%':
       status = percent_expand (mail, &mbox);
       break;
+      
     case '~':
       status = tilde_expand (mail, &mbox);
       break;
+      
     case '+':
     case '=':
       status = plus_expand (mail, &mbox);
       break;
-    default:
+
+    case '/':
       mbox = strdup (mail);
+      break;
+      
+    default:
+      if (!strchr (mail, ':'))
+	{
+	  tmp_mbox = mu_getcwd();
+	  mbox = malloc (strlen (tmp_mbox) + strlen (mail) + 2);
+	  sprintf (mbox, "%s/%s", tmp_mbox, mail);
+	}
+      else
+	mbox = strdup (mail);
       break;
     }
 
