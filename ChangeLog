@@ -1,3 +1,19 @@
+2002-01-22 Sam Roberts
+
+	* sieve/: sieve.c, sieve.h, sv.h, svcb.c, svctx.c: Implemented
+	  redirect action, and added option for sieve to specify the mailer.
+	* configure.in: Check for <sysexits.h>.
+	* mail.local/mail.local.h: Work around missing <sysexits.h>.
+	* mailbox/sendmail.c: State now tracks whether its been opened,
+	  rather than segving.
+	* include/mailutils/address.h: Removed prototype for function that
+	  isn't defined anywhere.
+	* mailbox/mailer.c: Return ENOENT if the url type wasn't
+	  registered, like the other factory creation functions.
+	* include/mailutils/list.h, mailbox/list.c: New function:
+	  list_do(), calls a function on each item in the list.
+	* mailbox/mutil.c: Needed <sys/stat.h> on QNX6.
+
 2002-01-22  Sergey Poznyakoff 
 
 	* mail.local/mail.local.h: Added network-related includes.
