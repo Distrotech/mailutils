@@ -83,6 +83,7 @@ observer.c \
 parse822.c \
 property.c \
 registrar.c \
+rfc2047.c \
 sendmail.c \
 smtp.c \
 stream.c \
