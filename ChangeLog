@@ -21,9 +21,13 @@
 	* imap4d/logout.c: Initialise variable sp.
 	* imap4d/noop.c: Initialise variable sp.
 
+	* mailbox/attachement.c (message_create_attachment): Use base_name().
+	* mailbox/mbx_mbox.c (mbox_tmpfile): Use base_name().
 	* configure.in: AC_REP_FUNC(vasprintf).
 	* include/mailutils/Makefile.am: Add property.h, parse822.h.
 	* lib/vasprintf.c: Taken from libit.
+	* lib/basename.c: Taken from libit/fileutils.
+	* lib/Makefile.am.c: Always use our basename(base_name).
 	(AM_INIT_AUTOMAKE): Change version to 0.0.9
 
 2001-04-13  Sam Roberts

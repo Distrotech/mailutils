@@ -43,6 +43,7 @@
 
 /* FIXME: this should be in a public header.  */
 extern int message_attachment_filename __P ((message_t, const char **filename));
+extern char *base_name __P ((char const *));
 
 struct _msg_info {
 	char	*buf;
@@ -76,7 +77,7 @@ int message_create_attachment(const char *content_type, const char *encoding, co
 		if ( encoding == NULL )
 			encoding = "7bit";
 		if ( ( fname = strdup(filename) ) != NULL ) {
-			name = basename(fname);
+			name = base_name(fname);
 			if ( ( header = alloca(strlen(MSG_HDR) + strlen(content_type) + strlen(name) * 2 + strlen(encoding) + 1) ) == NULL )
 				ret = ENOMEM;
 			else {
