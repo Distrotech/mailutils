@@ -1664,6 +1664,28 @@ builtin_printstr (struct mh_machine *mach)
   print_obj (mach, mach->reg_num, &mach->reg_str);
 }
 
+static void
+builtin_in_reply_to (struct mh_machine *mach)
+{
+  char *value;
+
+  strobj_free (&mach->arg_str);
+  mu_rfc2822_in_reply_to (mach->message, &value);
+  strobj_create (&mach->arg_str, value);
+  free (value);
+}
+
+static void
+builtin_references (struct mh_machine *mach)
+{
+  char *value;
+
+  strobj_free (&mach->reg_str);
+  mu_rfc2822_references (mach->message, &value);
+  strobj_create (&mach->arg_str, value);
+  free (value);
+}
+
 /* Builtin function table */
 
 mh_builtin_t builtin_tab[] = {
@@ -1743,6 +1765,8 @@ mh_builtin_t builtin_tab[] = {
   { "rcpt",     builtin_rcpt,     mhtype_num,  mhtype_str },
   { "concat",   builtin_concat,   mhtype_none, mhtype_str,     1 },
   { "printstr", builtin_printstr, mhtype_none, mhtype_str },
+  { "in_reply_to", builtin_in_reply_to, mhtype_str,  mhtype_none },
+  { "references", builtin_references, mhtype_str,  mhtype_none },
   { 0 }
 };
 
