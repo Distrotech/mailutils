@@ -8,6 +8,7 @@ AM_CFLAGS = -DSITE_VIRTUAL_PWDDIR=\"@SITE_VIRTUAL_PWDDIR@\"
 SUBDIRS = include testsuite
 
 lib_LTLIBRARIES = libmailbox.la
+bin_PROGRAMS = mailutils-config
 
 EXTRA_DIST = mbx_mboxscan.c strtok_r.c \
  strndup.c strnlen.c strchrnul.c argp-ba.c argp-eexst.c \
@@ -82,3 +83,7 @@ wicket.c
 libmailbox_la_DEPENDENCIES = @MU_LTLIBOBJS@
 libmailbox_la_LIBADD = @MU_LTLIBOBJS@
 libmailbox_la_LDFLAGS = -version-info 0:0:0
+
+mailutils_config_SOURCES = mailutils-config.c
+mailutils_config_LDADD = ./libmailbox.la
+mailutils_config_CFLAGS = -DCOMPILE_FLAGS="\"-I$(includedir)\"" -DLINK_FLAGS="\"-L$(libdir)\"" -DAUTHLIBS="\"$(MYSQLLIBS)\"" -DGUILE_LIBS="\"$(GUILE_LIBS)\""
