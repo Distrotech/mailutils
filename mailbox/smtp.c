@@ -50,19 +50,18 @@
 #include <mailer0.h>
 #include <registrar0.h>
 
-static struct _record _smtp_record =
-{
+static struct _record _smtp_record = {
   MU_SMTP_SCHEME,
-  _url_smtp_init,      /* url init.  */
-  NULL,                /* Mailbox init.  */
-  &_mailer_smtp_init,  /* Mailer init.  */
-  NULL, /* Folder init.  */
-  NULL, /* No need for a back pointer.  */
-  NULL, /* _is_scheme method.  */
-  NULL, /* _get_url method.  */
-  NULL, /* _get_mailbox method.  */
-  NULL, /* _get_mailer method.  */
-  NULL  /* _get_folder method.  */
+  _url_smtp_init,		/* url init.  */
+  NULL,				/* Mailbox init.  */
+  &_mailer_smtp_init,		/* Mailer init.  */
+  NULL,				/* Folder init.  */
+  NULL,				/* No need for a back pointer.  */
+  NULL,				/* _is_scheme method.  */
+  NULL,				/* _get_url method.  */
+  NULL,				/* _get_mailbox method.  */
+  NULL,				/* _get_mailer method.  */
+  NULL				/* _get_folder method.  */
 };
 /* We export : url parsing and the initialisation of
    the mailbox, via the register entry/record.  */
@@ -75,7 +74,7 @@ struct _smtp
   char *localhost;
 
   /* IO buffering. */
-  char *buffer; /* Must be freed. */
+  char *buffer;			/* Must be freed. */
   size_t buflen;
 
   char *ptr;
@@ -89,19 +88,20 @@ struct _smtp
     SMTP_ENV_RCPT, SMTP_MAIL_FROM, SMTP_MAIL_FROM_ACK, SMTP_RCPT_TO,
     SMTP_RCPT_TO_ACK, SMTP_DATA, SMTP_DATA_ACK, SMTP_SEND, SMTP_SEND_ACK,
     SMTP_SEND_DOT
-  } state;
+  }
+  state;
 
   int extended;
 
-  char* mail_from;
-  address_t rcpt_to; /* Destroy this if not the same as argto below. */
+  char *mail_from;
+  address_t rcpt_to;		/* Destroy this if not the same as argto below. */
   address_t rcpt_bcc;
   size_t rcpt_to_count;
   size_t rcpt_bcc_count;
   size_t rcpt_index;
   size_t rcpt_count;
   int bccing;
-  message_t msg; /* Destroy this if not same argmsg. */
+  message_t msg;		/* Destroy this if not same argmsg. */
 
   off_t offset;
 
@@ -111,7 +111,7 @@ struct _smtp
   address_t argto;
 };
 
-typedef struct _smtp * smtp_t;
+typedef struct _smtp *smtp_t;
 
 static void smtp_destroy (mailer_t);
 static int smtp_open (mailer_t, int);
@@ -122,8 +122,8 @@ static int smtp_readline (smtp_t);
 static int smtp_read_ack (smtp_t);
 static int smtp_write (smtp_t);
 
-static int _smtp_set_from (smtp_t, message_t , address_t);
-static int _smtp_set_rcpt (smtp_t, message_t , address_t);
+static int _smtp_set_from (smtp_t, message_t, address_t);
+static int _smtp_set_rcpt (smtp_t, message_t, address_t);
 
 /* Useful little macros, since these are very repetitive. */
 
@@ -173,9 +173,9 @@ CLEAR_STATE (smtp_t smtp)
    as that which is ongoing. Check this. */
 static int
 smtp_check_send_resumption (smtp_t smtp,
-		       message_t msg, address_t from, address_t to)
+			    message_t msg, address_t from, address_t to)
 {
-  if(smtp->state == SMTP_NO_STATE)
+  if (smtp->state == SMTP_NO_STATE)
     return 0;
 
   /* FIXME: state should be one of the "send" states if its not
@@ -248,7 +248,7 @@ _mailer_smtp_init (mailer_t mailer)
   if (mailer->data == NULL)
     return ENOMEM;
 
-  smtp->mailer = mailer; /* Back pointer.  */
+  smtp->mailer = mailer;	/* Back pointer.  */
   smtp->state = SMTP_NO_STATE;
 
   mailer->_destroy = smtp_destroy;
@@ -267,11 +267,11 @@ _mailer_smtp_init (mailer_t mailer)
 }
 
 static void
-smtp_destroy(mailer_t mailer)
+smtp_destroy (mailer_t mailer)
 {
   smtp_t smtp = mailer->data;
 
-  CLEAR_STATE(smtp);
+  CLEAR_STATE (smtp);
 
   /* Not our responsability to close.  */
 
@@ -334,7 +334,7 @@ smtp_open (mailer_t mailer, int flags)
 	}
       /* Fetch our local host name.  */
 
-      status = mu_get_host_name(&smtp->localhost);
+      status = mu_get_host_name (&smtp->localhost);
 
       if (status != 0)
 	{
@@ -346,20 +346,22 @@ smtp_open (mailer_t mailer, int flags)
 
       /* allocate a working io buffer.  */
       if (smtp->buffer == NULL)
-        {
-          smtp->buflen = 512; /* Initial guess.  */
-          smtp->buffer = malloc (smtp->buflen + 1);
-          if (smtp->buffer == NULL)
-            {
-              CHECK_ERROR (smtp, ENOMEM);
-            }
-          smtp->ptr = smtp->buffer;
-        }
+	{
+	  smtp->buflen = 512;	/* Initial guess.  */
+	  smtp->buffer = malloc (smtp->buflen + 1);
+	  if (smtp->buffer == NULL)
+	    {
+	      CHECK_ERROR (smtp, ENOMEM);
+	    }
+	  smtp->ptr = smtp->buffer;
+	}
 
       /* Create a TCP stack if one is not given.  */
       if (mailer->stream == NULL)
 	{
-	  status = tcp_stream_create (&mailer->stream, smtp->mailhost, port, mailer->flags);
+	  status =
+	    tcp_stream_create (&mailer->stream, smtp->mailhost, port,
+			       mailer->flags);
 	  CHECK_ERROR (smtp, status);
 	  stream_setbufsiz (mailer->stream, BUFSIZ);
 	}
@@ -412,7 +414,7 @@ smtp_open (mailer_t mailer, int flags)
 	}
 
     case SMTP_HELO:
-      if (!smtp->extended) /* FIXME: this will always be false! */
+      if (!smtp->extended)	/* FIXME: this will always be false! */
 	{
 	  status = smtp_write (smtp);
 	  CHECK_EAGAIN (smtp, status);
@@ -437,7 +439,7 @@ smtp_open (mailer_t mailer, int flags)
       break;
     }
 
-  CLEAR_STATE(smtp);
+  CLEAR_STATE (smtp);
 
   return 0;
 }
@@ -486,7 +488,7 @@ message_set_header_value (message_t msg, const char *field, const char *value)
 }
 
 static int
-message_has_bcc(message_t msg)
+message_has_bcc (message_t msg)
 {
   int status;
   header_t header = NULL;
@@ -547,7 +549,7 @@ smtp_send_message (mailer_t mailer, message_t argmsg, address_t argfrom,
   smtp_t smtp = NULL;
   int status;
 
-  if(mailer == NULL)
+  if (mailer == NULL)
     return EINVAL;
 
   smtp = mailer->data;
@@ -572,7 +574,7 @@ smtp_send_message (mailer_t mailer, message_t argmsg, address_t argfrom,
       CHECK_ERROR (smtp, status);
 
       /* Clear the Bcc: field if we found one. */
-      if (message_has_bcc(smtp->argmsg))
+      if (message_has_bcc (smtp->argmsg))
 	{
 	  smtp->msg = NULL;
 	  status = message_create_copy (&smtp->msg, smtp->argmsg);
@@ -630,11 +632,11 @@ smtp_send_message (mailer_t mailer, message_t argmsg, address_t argfrom,
 	CHECK_ERROR (smtp, status);
 
 	/* Add the Bcc: field back in for recipient. */
-	if(smtp->bccing)
-	{
-	  status = message_set_header_value (smtp->msg, MU_HEADER_BCC, to);
-	  CHECK_ERROR (smtp, status);
-	}
+	if (smtp->bccing)
+	  {
+	    status = message_set_header_value (smtp->msg, MU_HEADER_BCC, to);
+	    CHECK_ERROR (smtp, status);
+	  }
 
 	status = smtp_writeline (smtp, "RCPT TO: %s\r\n", to);
 
@@ -686,18 +688,20 @@ smtp_send_message (mailer_t mailer, message_t argmsg, address_t argfrom,
       smtp->offset = 0;
       smtp->state = SMTP_SEND;
 
-      if((smtp->mailer->flags & MAILER_FLAG_DEBUG_DATA) == 0)
-        MAILER_DEBUG0 (smtp->mailer, MU_DEBUG_PROT, "> (data...)\n");
+      if ((smtp->mailer->flags & MAILER_FLAG_DEBUG_DATA) == 0)
+	MAILER_DEBUG0 (smtp->mailer, MU_DEBUG_PROT, "> (data...)\n");
 
     case SMTP_SEND:
       {
 	stream_t stream;
 	size_t n = 0;
 	char data[256] = "";
+	
 	/* We may be here after an EAGAIN so check if we have something
 	   in the buffer and flush it.  */
 	status = smtp_write (smtp);
 	CHECK_EAGAIN (smtp, status);
+
 	message_get_stream (smtp->msg, &stream);
 	while ((status = stream_readline (stream, data, sizeof (data) - 1,
 					  smtp->offset, &n)) == 0 && n > 0)
@@ -862,21 +866,29 @@ _smtp_set_from (smtp_t smtp, message_t msg, address_t from)
   return status;
 }
 
+int
+smtp_address_add (address_t *paddr, const char *value)
+{
+  address_t addr = NULL;
+  int status;
+
+  status = address_create (&addr, value);
+  if (status)
+    return status;
+  status = address_union (paddr, addr);
+  address_destroy (&addr);
+  return status;
+}
+
 static int
 _smtp_set_rcpt (smtp_t smtp, message_t msg, address_t to)
 {
   int status = 0;
   header_t header = NULL;
-  char *toaddrv[3] = { NULL, NULL };
-  char *bccaddr = NULL;
-  address_t rcpt_to = NULL;
-  address_t rcpt_bcc = NULL;
-
+  char *value;
+  
   /* Get RCPT_TO from TO, or the message. */
 
-/* FIXME: even if there are TO addresses on the command-line, I have
-   to blank out the Bcc: header in the message!
-   */
   if (to)
     {
       /* Use the specified address_t. */
@@ -889,103 +901,71 @@ _smtp_set_rcpt (smtp_t smtp, message_t msg, address_t to)
       smtp->rcpt_to = to;
       address_get_count (smtp->rcpt_to, &smtp->rcpt_to_count);
 
-      return status;
+      if (status)
+	return status;
     }
 
   if ((status = message_get_header (msg, &header)))
     return status;
 
-  status = header_aget_value (header, MU_HEADER_TO, toaddrv + 0);
+  status = header_aget_value (header, MU_HEADER_TO, &value);
 
-  if (status && status != ENOENT)
+  if (status == 0)
+    {
+      smtp_address_add (&smtp->rcpt_to, value);
+      free (value);
+    }
+  else if (status && status != ENOENT)
     goto end;
 
-  status = header_aget_value (header, MU_HEADER_CC, toaddrv + 1);
+  status = header_aget_value (header, MU_HEADER_CC, &value);
 
-  if (status && status != ENOENT)
+  if (status == 0)
+    {
+      smtp_address_add (&smtp->rcpt_to, value);
+      free (value);
+    }
+  else if (status && status != ENOENT)
     goto end;
 
-  status = header_aget_value (header, MU_HEADER_BCC, &bccaddr);
-
-  if (status && status != ENOENT)
+  status = header_aget_value (header, MU_HEADER_BCC, &value);
+  if (status == 0)
+    {
+      smtp_address_add (&smtp->rcpt_bcc, value);
+      free (value);
+    }
+  else if (status && status != ENOENT)
     goto end;
-
-  status = 0;
-
-  {
-    const char **av = (const char **) toaddrv;
-    int tostatus = address_createv (&rcpt_to, av, 2);
-
-    /* Any error other than EMPTY_ADDRESS is fatal */
-    if (tostatus)
-      {
-	if (tostatus == MU_ERR_EMPTY_ADDRESS)
-	  tostatus = MU_ERR_MAILER_NO_RCPT_TO;
-	else
-	  goto end;
-      }
-
-    if (!bccaddr)
-      status = MU_ERR_EMPTY_ADDRESS;
-    else
-      {
-	status = address_create (&rcpt_bcc, bccaddr);
-
-	if (status)
-	  {
-	    if (status == MU_ERR_EMPTY_ADDRESS)
-	      status = MU_ERR_MAILER_NO_RCPT_TO;
-	    else
-	      goto end;
-	  }
-      }
-
-    /* If both to and bcc are empty, it is fatal */
-    if (status == MU_ERR_EMPTY_ADDRESS && tostatus == status)
-      goto end;
-
-    /* otherwise, at least rcpt_to or rcpt_bcc is defined */
-    status = 0;
-  }
 
   /* If to or bcc is present, the must be OK. */
-  if (rcpt_to && (status = mailer_check_to (rcpt_to)))
+  if (smtp->rcpt_to && (status = mailer_check_to (smtp->rcpt_to)))
     goto end;
 
-  if (rcpt_bcc && (status = mailer_check_to (rcpt_bcc)))
+  if (smtp->rcpt_bcc && (status = mailer_check_to (smtp->rcpt_bcc)))
     goto end;
 
 end:
 
-  if (toaddrv[0])
-    free (toaddrv[0]);
-
-  if (toaddrv[1])
-    free (toaddrv[1]);
-
-  if (bccaddr)
-    free (bccaddr);
-
   if (status)
     {
-      address_destroy (&rcpt_to);
-      address_destroy (&rcpt_bcc);
+      address_destroy (&smtp->rcpt_to);
+      address_destroy (&smtp->rcpt_bcc);
     }
   else
     {
-      smtp->rcpt_to = rcpt_to;
-
       if (smtp->rcpt_to)
 	address_get_count (smtp->rcpt_to, &smtp->rcpt_to_count);
 
-      smtp->rcpt_bcc = rcpt_bcc;
-
       if (smtp->rcpt_bcc)
 	address_get_count (smtp->rcpt_bcc, &smtp->rcpt_bcc_count);
+
+      if (smtp->rcpt_to_count + smtp->rcpt_bcc_count == 0)
+	status = MU_ERR_MAILER_NO_RCPT_TO;
     }
 
   return status;
 }
+
 /* C99 says that a conforming implementations of snprintf ()
    should return the number of char that would have been call
    but many GNU/Linux && BSD implementations return -1 on error.
@@ -1026,11 +1006,8 @@ smtp_writeline (smtp_t smtp, const char *format, ...)
   while (len > 0 && isspace (smtp->buffer[len - 1]))
     len--;
 
-  if (
-      (smtp->state != SMTP_SEND && smtp->state != SMTP_SEND_DOT)
-      ||
-      smtp->mailer->flags & MAILER_FLAG_DEBUG_DATA
-      )
+  if ((smtp->state != SMTP_SEND && smtp->state != SMTP_SEND_DOT)
+      || smtp->mailer->flags & MAILER_FLAG_DEBUG_DATA)
     {
       MAILER_DEBUG2 (smtp->mailer, MU_DEBUG_PROT, "> %.*s\n", len,
 		     smtp->buffer);
