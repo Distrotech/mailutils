@@ -1,3 +1,63 @@
+2002-12-31  Jeff Bailey  <jbailey@gnu.org>
+
+	* auth/Makefile.am: Correct copyright year, add license
+	information.
+	* sieve/testsuite/Makefile.am: Likewise.
+	* testsuite/Makefile.am: Likewise.
+	* sieve/Makefile.am: Likewise.
+	* scripts/guile-1.6/Makefile.am: Likewise.
+	* scripts/guile-1.4/Makefile.am: Likewise.
+	* scripts/Makefile.am: Likewise.
+	* readmsg/testsuite/Makefile.am: Likewise.
+	* readmsg/Makefile.am: Likewise.
+	* mh/Makefile.am: Likewise.
+	* messages/testsuite/Makefile.am: Likewise.
+	* messages/Makefile.am: Likewise.
+	* pop3d/testsuite/Makefile.am: Likewise.
+	* pop3d/Makefile.am: Likewise.
+	* mapi/Makefile.am: Likewise.
+	* mail.remote/testsuite/Makefile.am: Likewise.
+	* mail.remote/Makefile.am: Likewise.
+	* mail.local/testsuite/Makefile.am: Likewise.
+	* mail.local/Makefile.am: Likewise.
+	* mailbox2/pop3/Makefile.am: Likewise.
+	* mailbox2/mbox/Makefile.am: Likewise.
+	* mailbox2/include/mailutils/sys/Makefile.am: Likewise.
+	* mailbox2/include/mailutils/Makefile.am: Likewise.
+	* mailbox2/include/Makefile.am: Likewise.
+	* mailbox2/Makefile.am: Likewise.
+	* mailbox/testsuite/Makefile.am: Likewise.
+	* mailbox/include/Makefile.am: Likewise.
+	* mailbox/Makefile.am: Likewise.
+	* mail/testsuite/Makefile.am: Likewise.
+	* mail/Makefile.am: Likewise.
+	* m4/Makefile.am: Likewise.
+	* libsieve/Makefile.am: Likewise.
+	* libmu_scm/Makefile.am: Likewise.
+	* lib/posix/Makefile.am: Likewise.
+	* lib/Makefile.am: Likewise.
+	* include/mailutils/gnu/Makefile.am: Likewise.
+	* include/mailutils/Makefile.am: Likewise.
+	* include/Makefile.am: Likewise.
+	* imap4d/Makefile.am: Likewise.
+	* imap4d/testsuite/Makefile.am: Likewise.
+	* guimb/scm/Makefile.am: Likewise.
+	* guimb/Makefile.am: Likewise.
+	* from/testsuite/Makefile.am: Likewise.
+	* from/Makefile.am: Likewise.
+	* frm/testsuite/Makefile.am: Likewise.
+	* examples/Makefile.am: Likewise.
+	* frm/Makefile.am: Likewise.
+	* dotlock/Makefile.am: Likewise.
+	* doc/texinfo/Makefile.am: Likewise.
+	* doc/rfc/Makefile.am: Likewise.
+	* doc/man/Makefile.am: Likewise.
+	* doc/Makefile.am: Likewise.
+	* comsat/Makefile.am: Likewise.
+	* Makefile.am: Likewise.
+
+	* configure.ac: Update FSF Address
+
 2002-12-31  Wojciech Polak <polak@gnu.org>
 
 	* COPYING: New file.
