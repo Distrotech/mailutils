@@ -1,12 +1,16 @@
-AUTOMAKE_OPTIONS = gnu 1.6 
+# This file is part of GNU Mailutils
+# Copyright (C) 2000,2001,2002 Free Software Foundation
+# See file COPYING in the distribution root directory for copying conditions.
+
+AUTOMAKE_OPTIONS = gnu 1.6 readme-alpha
 ACLOCAL_AMFLAGS = -I m4
 
 SUBDIRS = include m4 lib testsuite mailbox examples doc \
           auth frm from pop3d imap4d \
           mail sieve scripts libmu_scm guimb messages comsat readmsg \
-          mail.local mail.remote dotlock mh
+          mail.local mail.remote dotlock 
 
-EXTRA_DIST = mailutils.spec mailutils.spec.in COPYING.FDL README-alpha
+EXTRA_DIST = mailutils.spec mailutils.spec.in COPYING.FDL
 
 release:
 	$(MAKE) dist distdir=$(PACKAGE)-`date +"%Y%m%d"`
