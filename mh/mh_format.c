@@ -1570,6 +1570,49 @@ builtin_putaddr (struct mh_machine *mach)
   print_obj (mach, mach->reg_num, &mach->reg_str);
 }
 
+/* GNU extension: Strip leading whitespace and eventual Re: (or Re\[[0-9]+\]:)
+   prefix from the argument */
+static void
+builtin_unre (struct mh_machine *mach)
+{
+  char *start, *p;
+
+  for (p = strobj_ptr (&mach->arg_str); *p; p++)
+    if (!isspace (*p))
+      break;
+
+  start = p;
+  
+  if (strncasecmp (p, "re", 2) == 0)
+    {
+      if (p[2] == ':')
+	p += 3;
+      else if (p[2] == '[')
+	{
+	  for (p += 3; *p; p++)
+	    if (*p == ']' || !isdigit (*p))
+	      break;
+	  if (*p == ']' && p[1] == ':') 
+	    p += 2;
+	  else
+	    p = start;
+	}
+      else
+	p = start;
+    }
+
+  if (p != strobj_ptr (&mach->arg_str))
+    {
+      for (; *p && isspace (*p); p++)
+	;
+      
+      p = strdup (p);
+      strobj_free (&mach->arg_str);
+      strobj_create (&mach->arg_str, p);
+      free (p);
+    }
+}  
+
 /* Builtin function table */
 
 mh_builtin_t builtin_tab[] = {
@@ -1645,6 +1688,7 @@ mh_builtin_t builtin_tab[] = {
   { "gname",    builtin_gname,    mhtype_str,  mhtype_str},
   { "formataddr", builtin_formataddr, mhtype_none, mhtype_str, 1 },
   { "putaddr",  builtin_putaddr,  mhtype_none, mhtype_str },
+  { "unre",     builtin_unre,     mhtype_str,  mhtype_str },
   { 0 }
 };
 
