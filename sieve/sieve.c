@@ -24,6 +24,8 @@ sieve script interpreter.
 
 #include "sieve.h"
 
+#include "mu_argp.h"
+
 #include <mailutils/errno.h>
 #include <mailutils/mailbox.h>
 #include <mailutils/mutil.h>
@@ -63,7 +65,7 @@ static struct argp_option options[] = {
   {"ticket", 't', "TICKET", 0,
    "Ticket file for mailbox authentication", 0},
 
-  {"mailer-url", 'm', "MAILER", 0,
+  {"mailer-url", 'M', "MAILER", 0,
    "Mailer URL (defaults to \"sendmail:\")", 0},
 
   {"debug", 'd', "FLAGS", OPTION_ARG_OPTIONAL,
@@ -82,8 +84,6 @@ struct options
   int debug_level;
   char *mailer;
   char *script;
-
-  int final; /* final arg pass */
 };
 
 static error_t
@@ -98,7 +98,7 @@ parser (int key, char *arg, struct argp_state *state)
 	opts->tickets = mu_tilde_expansion ("~/.tickets", "/", NULL);
       if (!opts->mailer)
 	opts->mailer = strdup ("sendmail:");
-      if(!opts->debug_level)
+      if (!opts->debug_level)
 	opts->debug_level = MU_DEBUG_ERROR;
       break;
     case 'n':
@@ -111,20 +111,20 @@ parser (int key, char *arg, struct argp_state *state)
       opts->compile_only = 1;
       break;
     case 'f':
-      if(opts->mbox)
+      if (opts->mbox)
 	argp_error (state, "only one MBOX can be specified");
-      opts->mbox = strdup(arg);
+      opts->mbox = strdup (arg);
       break;
     case 't':
       free (opts->tickets);
       opts->tickets = mu_tilde_expansion (arg, "/", NULL);
       break;
-    case 'm':
+    case 'M':
       free (opts->mailer);
-      opts->mailer = strdup(arg);
+      opts->mailer = strdup (arg);
       break;
     case 'd':
-      if(!arg)
+      if (!arg)
 	arg = D_DEFAULT;
       for (; *arg; arg++)
 	{
@@ -159,8 +159,7 @@ parser (int key, char *arg, struct argp_state *state)
       break;
 
     case ARGP_KEY_NO_ARGS:
-      if (opts->final && !opts->script)
-	argp_error (state, "SCRIPT must be specified");
+      argp_error (state, "SCRIPT must be specified");
 
     default:
       return ARGP_ERR_UNKNOWN;
@@ -220,72 +219,6 @@ debug_print (mu_debug_t debug, size_t level, const char *fmt, va_list ap)
   return 0;
 }
 
-static int
-dot_parse (int argc, char *argv[], struct options *opts)
-{
-  int err = 0;
-  char *rcfile = mu_tilde_expansion ("~/.sieverc", "/", NULL);
-  struct stat s;
-  char *cmd = 0;
-  int fd = -1;
-  int ac = 0;
-  char **av = 0;
-
-  if (!rcfile)
-    return ENOMEM;
-
-  /* Chomp argv[0] down to the last path component. */
-  {
-    char* n = argv[0] + strlen(argv[0]);
-    while(n > argv[0] && *n != '/')
-      n--;
-    if(*n == '/')
-      n++;
-    argv[0] = n;
-  }
-
-  fd = open (rcfile, O_RDONLY, 0);
-
-  free (rcfile);
-  rcfile = 0;
-
-  if (fd != -1)
-    {
-      if ((err = fstat (fd, &s)) == -1)
-	return errno;
-
-      if ((cmd = malloc (s.st_size + 1 + strlen (argv[0]) + 1)) == NULL)
-	return ENOMEM;
-
-      strcpy (cmd, argv[0]);
-      strcat (cmd, " ");
-      err = read (fd, &cmd[strlen (argv[0]) + 1], s.st_size);
-
-      close (fd);
-
-      if (err == -1)
-	{
-	  free (cmd);
-	  return errno;
-	}
-
-      cmd[strlen (argv[0]) + 1 + err] = '\0';
-
-      argcv_get (cmd, "", "#", &ac, &av);
-
-      argp_parse (&argp, ac, av, ARGP_IN_ORDER, NULL, opts);
-
-      argcv_free (ac, av);
-
-      free (cmd);
-    }
-
-  opts->final = 1;
-
-  argp_parse (&argp, argc, argv, ARGP_IN_ORDER, NULL, opts);
-
-  return 0;
-}
 int
 main (int argc, char *argv[])
 {
@@ -298,13 +231,14 @@ main (int argc, char *argv[])
   mailbox_t mbox = 0;
 
   struct options opts = { 0 };
+  const char* capa[] = { 0 };
 
   size_t count = 0;
   int msgno = 0;
 
   int rc = 0;
 
-  rc = dot_parse(argc, argv, &opts);
+  rc = mu_argp_parse(&argp, &argc, &argv, ARGP_IN_ORDER, 0, 0, &opts);
 
   if(rc) {
       fprintf (stderr, "arg parsing failed: %s\n", sv_strerror (rc));
