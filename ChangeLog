@@ -1,3 +1,44 @@
+2002-03-25  Sergey Poznyakoff
+	
+	Bunch of fixes:
+
+	Use of ~/.<program>rc caused problems with mail utility,
+	whose native profile is ~/.mailrc:
+	* lib/mu_argp.c: Renamed program-specific profiles to
+	  ~/.mu.<program>rc. 
+	* doc/texinfo/programs.texi: Documented use of ~/.mu.<program>rc 
+
+	* libmu_scm/mu_scm.h: Added some includes, needed after
+	  yesterday's modifications.
+	* mailbox/locker.c: include <sys/wait.h>
+	* mailbox/mutil.c: _exit is not portable.
+
+	* mailbox2/include/mailutils/types.h: (new)
+	* mailbox2/include/mailutils/Makefile.am: Added types.h
+	* mailbox2/debug.c: Include <mailutils/debug.h>
+	* mailbox2/include/mailutils/address.h: Removed typedefs. Included
+	  <mailutils/types.h>
+	* mailbox2/include/mailutils/attribute.h: Likewise.
+	* mailbox2/include/mailutils/body.h: Likewise.
+	* mailbox2/include/mailutils/debug.h: Likewise.
+	* mailbox2/include/mailutils/envelope.h: Likewise.
+	* mailbox2/include/mailutils/folder.h: Likewise.
+	* mailbox2/include/mailutils/header.h: Likewise.
+	* mailbox2/include/mailutils/iterator.h: Likewise.
+	* mailbox2/include/mailutils/list.h: Likewise.
+	* mailbox2/include/mailutils/lockfile.h: Likewise.
+	* mailbox2/include/mailutils/mailbox.h: Likewise.
+	* mailbox2/include/mailutils/mbox.h: Likewise.
+	* mailbox2/include/mailutils/message.h: Likewise.
+	* mailbox2/include/mailutils/observable.h: Likewise.
+	* mailbox2/include/mailutils/observer.h: Likewise.
+	* mailbox2/include/mailutils/pop3.h: Likewise.
+	* mailbox2/include/mailutils/property.h: Likewise.
+	* mailbox2/include/mailutils/refcount.h: Likewise.
+	* mailbox2/include/mailutils/stream.h: Likewise.
+	* mailbox2/include/mailutils/ticket.h: Likewise.
+	* mailbox2/include/mailutils/url.h: Likewise.
+	
 2002-03-24 Sam Roberts
 
 	* dotlock/dotlock.c, include/mailutils/locker.h, mailbox/locker.c:
