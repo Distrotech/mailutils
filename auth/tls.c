@@ -205,7 +205,7 @@ mu_init_tls_server (int fd_in, int fd_out)
 					     GNUTLS_X509_FMT_PEM);
   if (rs < 0)
     {
-      mu_error (_("cannot parse cerificate/key: %s"), gnutls_strerror (rs));
+      mu_error (_("cannot parse certificate/key: %s"), gnutls_strerror (rs));
       return 0;
     }
   
