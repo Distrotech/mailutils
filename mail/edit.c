@@ -29,11 +29,8 @@ mail_edit (int argc, char **argv)
   else
     {
       char *file = tempnam(getenv("TMPDIR"), "mu");
-      char *editor = getenv ("EDITOR");
-      if (!editor)
-	editor = strdup ("ed");
       util_do_command ("copy %s", file);
-      util_do_command ("shell %s %s", editor, file);
+      util_do_command ("shell %s %s", getenv("EDITOR"), file);
       remove (file);
       free (file);
       return 0;

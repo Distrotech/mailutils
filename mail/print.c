@@ -50,13 +50,7 @@ mail_print (int argc, char **argv)
       message_lines (mesg, &lines);
 
       if ((util_find_env("crt"))->set && lines > util_getlines ())
-	{
-	  char *pager = getenv ("PAGER");
-	  if (pager)
-	    out = popen (pager, "w");
-	  else
-	    out = popen ("more", "w");
-	}
+	    out = popen (getenv("PAGER"), "w");
 
       if (islower (argv[0][0]))
 	{
@@ -64,13 +58,13 @@ mail_print (int argc, char **argv)
 	  if (header_get_value (hdr, MU_HEADER_FROM, buffer, sizeof (buffer),
 				NULL) == 0)
 	    {
-	      printf ("From: %s\n", buffer);
+	      fprintf (out, "From: %s\n", buffer);
 	      /* free (buf); */
 	    }
 	  if (header_get_value (hdr, MU_HEADER_SUBJECT, buffer,
 				sizeof (buffer), NULL) == 0)
 	    {
-	      printf ("Subject: %s\n", buffer);
+	      fprintf (out, "Subject: %s\n", buffer);
 	      /* free (buf); */
 	    }
 	  

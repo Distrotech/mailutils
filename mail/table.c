@@ -90,5 +90,9 @@ const struct mail_command_entry mail_command_table[] = {
   { "+",	"+",		mail_next,	"+ [message]" },
   { "|",	"|",		mail_pipe,	"| [[msglist] command]" },
   { "-",	"-",		mail_previous,	"- [message]" },
-  { 0, 0, 0, 0,}
+  { 0, 0, 0, 0}
+};
+
+const struct mail_command_entry mail_escape_table[] = {
+  {0, 0, 0, 0}
 };

@@ -382,11 +382,7 @@ util_stripwhite (char *string)
 int
 util_getcols (void)
 {
-  int columns = 80;
-  char *col = getenv ("COLUMNS");
-  if (col)
-    columns = strtol (col, NULL, 10);
-  return columns;
+    return strtol (getenv("COLUMNS"), NULL, 10);
 }
 
 /*
@@ -395,11 +391,7 @@ util_getcols (void)
 int
 util_getlines (void)
 {
-  int lines = 24;
-  char *lin = getenv ("LINES");
-  if (lin)
-    lines = strtol (lin, NULL, 10);
-  return lines;
+    return strtol (getenv("LINES"), NULL, 10);
 }
 
 /*

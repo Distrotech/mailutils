@@ -43,6 +43,7 @@
 #include <mailutils/body.h>
 
 #include <argcv.h>
+#include <getline.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -106,10 +107,8 @@ int mail_mbox __P((int argc, char **argv));
 int mail_next __P((int argc, char **argv));
 int mail_pipe __P((int argc, char **argv));
 int mail_previous __P((int argc, char **argv));
-int mail_printall __P((int argc, char **argv));	/* command Print */
 int mail_print __P((int argc, char **argv));
 int mail_quit __P((int argc, char **argv));
-int mail_relist __P((int argc, char **argv));	/* command Reply */
 int mail_reply __P((int argc, char **argv));
 int mail_retain __P((int argc, char **argv));
 int mail_save __P((int argc, char **argv));
@@ -126,7 +125,6 @@ int mail_visual __P((int argc, char **argv));
 int mail_write __P((int argc, char **argv));
 int mail_z __P((int argc, char **argv));
 
-int mail_bang __P((int argc, char **argv));	/* command ! */
 int mail_eq __P((int argc, char **argv));	/* command = */
 
 int util_expand_msglist __P((const int argc, char **argv, int **list));

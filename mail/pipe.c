@@ -60,7 +60,7 @@ mail_pipe (int argc, char **argv)
 		  off =+ n;
 		}
 	      if ((util_find_env("page"))->set)
-		fprintf (pipe, "\f");
+		fprintf (pipe, "\f");	/* FIXME: is this formfeed ? */
 	    }
 	}
     }

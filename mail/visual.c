@@ -29,11 +29,8 @@ mail_visual (int argc, char **argv)
   else
     {
       char *file = tempnam(getenv("TMPDIR"), "mu");
-      char *editor = getenv ("VISUAL");
-      if (!editor)
-	editor = strdup ("vi");
       util_do_command ("copy %s", file);
-      util_do_command ("shell %s %s", editor, file);
+      util_do_command ("shell %s %s", getenv("VISUAL"), file);
       remove (file);
       free (file);
       return 0;

@@ -64,11 +64,6 @@ parse_opt (int key, char *arg, struct argp_state *state)
 	{
 	  int len;
 	  char *home = getenv("HOME");
-	  if (home == NULL)
-	    {
-	      fprintf (stderr, "No Home!\n");
-	      home = (char *)"";
-	    }
 	  len = strlen (home) + strlen ("/mbox") + 1;
 	  args->file = malloc(len * sizeof (char));
 	  strcpy (args->file, home);
@@ -128,6 +123,20 @@ main (int argc, char **argv)
   realcursor = cursor;
 
   signal (SIGPIPE, SIG_IGN);
+
+  /* set up the default environment */
+  if (!getenv ("HOME"))
+    exit (1);			/* FIXME: how to start with no $HOME ?  */
+  setenv ("DEAD", "~/dead.letter", 0); /* FIXME: expand ~ */
+  setenv ("EDITOR", "ed", 0);
+  setenv ("LISTER", "ls", 0);
+  setenv ("MAILRC", "~/.mailrc", 0); /* FIXME: expand ~ */
+  setenv ("MBOX", "~/mbox", 0);	/* FIXME: expand ~ */
+  setenv ("PAGER", "more", 0);
+  setenv ("SHELL", "sh", 0);
+  setenv ("VISUAL", "vi", 0);
+  setenv ("COLUMNS", "80", 0);
+  setenv ("LINES", "24", 0);
 
   /* set defaults for execution */
   util_do_command ("set noallnet");

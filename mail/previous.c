@@ -31,10 +31,13 @@ mail_previous (int argc, char **argv)
       realcursor--;
       return 0;
     }
-  else if ( argc == 2)
+  else
     {
-      cursor = strtol (argv[1], NULL, 10);
+      int *list = NULL;
+      util_expand_msglist (argc, argv, &list);
+      cursor = list[0];
       realcursor = cursor;
+      free (list);
       return 0;
     }
   return 1;
