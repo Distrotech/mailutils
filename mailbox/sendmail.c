@@ -30,7 +30,6 @@
 #include <mailutils/stream.h>
 #include <mailer0.h>
 #include <registrar0.h>
-#include <misc.h>
 
 static int sendmail_init (mailer_t);
 

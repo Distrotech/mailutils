@@ -24,10 +24,7 @@
 
 #include <sys/types.h>
 #include <mailutils/mailer.h>
-#ifdef HAVE_PTHREAD_H
-#  define __USE_UNIX98 /* ?? */
-#  include <pthread.h>
-#endif
+#include <mailutils/monitor.h>
 #ifdef _cplusplus
 extern "C" {
 #endif
@@ -62,9 +59,7 @@ struct _mailer
   debug_t debug;
   url_t url;
   int flags;
-#ifdef WITH_PTHREAD
-  pthread_rwlock_t rwlock;
-#endif
+  monitor_t monitor;
 
   /* Pointer to the specific mailer data.  */
   void *data;
@@ -76,11 +71,6 @@ struct _mailer
   int (*_close)        __P ((mailer_t));
   int (*_send_message) __P ((mailer_t, message_t));
 };
-
-/* Mail locks.  */
-extern int mailer_rdlock __P ((mailer_t));
-extern int mailer_wrlock __P ((mailer_t));
-extern int mailer_unlock __P ((mailer_t));
 
 #define MAILER_NOTIFY(mailer, type) \
 if (mailer->observer) observer_notify (mailer->observer, type)

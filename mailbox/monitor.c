@@ -31,7 +31,7 @@ monitor_create (monitor_t *pmonitor, void *owner)
     return ENOMEM;
   monitor->owner = owner;
   status = RWLOCK_INIT (&(monitor->lock), NULL);
-  if (status == 0)
+  if (status != 0)
     {
       free (monitor);
       return status;

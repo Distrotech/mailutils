@@ -27,7 +27,6 @@
 
 #include <mailutils/registrar.h>
 #include <mailutils/iterator.h>
-#include <misc.h>
 #include <mailer0.h>
 
 /*
@@ -74,7 +73,7 @@ mailer_create (mailer_t *pmailer, const char *name, int id)
       if (mailer == NULL)
 	return ENOMEM;
 
-      status = RWLOCK_INIT (&(mailer->rwlock), NULL);
+      status = monitor_create (&(mailer->monitor), mailer);
       if (status != 0)
         {
           mailer_destroy (&mailer);
@@ -109,9 +108,8 @@ mailer_destroy (mailer_t *pmailer)
   if (pmailer && *pmailer)
     {
       mailer_t mailer = *pmailer;
-#ifdef WITH_PTHREAD
-      pthread_rwlock_t rwlock = mailer->rwlock;
-#endif
+      monitor_t monitor = mailer->monitor;
+
       if (mailer->observable)
 	{
 	  observable_notify (mailer->observable, MU_EVT_MAILER_DESTROY);
@@ -121,7 +119,7 @@ mailer_destroy (mailer_t *pmailer)
       if (mailer->_destroy)
 	mailer->_destroy (mailer);
 
-      RWLOCK_WRLOCK (&rwlock);
+      monitor_wrlock (monitor);
 
       if (mailer->stream)
 	{
@@ -135,8 +133,8 @@ mailer_destroy (mailer_t *pmailer)
 
       free (mailer);
       *pmailer = NULL;
-      RWLOCK_UNLOCK (&rwlock);
-      RWLOCK_DESTROY (&rwlock);
+      monitor_unlock (monitor);
+      monitor_destroy (&monitor, mailer);
     }
 }
 
@@ -227,42 +225,4 @@ mailer_get_debug (mailer_t mailer, debug_t *pdebug)
     }
   *pdebug = mailer->debug;
   return 0;
-}
-
-/* Mailer Internal Locks. Put the name of the functions in parenteses To make
-   they will not be redefine by the macro.  If the flags was non-blocking we
-   should not block on the lock, so we try with pthread_rwlock_try*lock().  */
-int
-(mailer_wrlock) (mailer_t mailer)
-{
-#ifdef WITH_PTHREAD
-  int err = (mailer->flags & MU_STREAM_NONBLOCK) ?
-    RWLOCK_TRYWRLOCK (&(mailer->rwlock)) :
-    RWLOCK_WRLOCK (&(mailer->rwlock)) ;
-  if (err != 0 && err != EDEADLK)
-    return err;
-#endif
-  return 0;
-}
-int
-(mailer_rdlock) (mailer_t mailer)
-{
-#ifdef WITH_PTHREAD
-  int err = (mailer->flags & MU_STREAM_NONBLOCK) ?
-    RWLOCK_TRYRDLOCK (&(mailer->rwlock)) :
-    RWLOCK_RDLOCK (&(mailer->rwlock)) ;
-  if (err != 0 && err != EDEADLK)
-    return err;
-#endif
-  return 0;
-}
-
-int
-(mailer_unlock) (mailer_t mailer)
-{
-#ifdef WITH_PTHREAD
-  return RWLOCK_UNLOCK (&(mailer->rwlock));
-#else
-  return 0;
-#endif
 }

@@ -127,6 +127,7 @@ int
 list_remove (list_t list, void *item)
 {
   struct list_data *current, *previous;
+  int status = ENOENT;
   if (list == NULL)
     return EINVAL;
   monitor_wrlock (list->monitor);
@@ -139,8 +140,8 @@ list_remove (list_t list, void *item)
 	  current->next->prev = previous;
 	  free (current);
 	  list->count--;
-	  monitor_unlock (list->monitor);
-	  return 0;
+	  status = 0;
+	  break;
 	}
     }
   monitor_unlock (list->monitor);
@@ -152,6 +153,7 @@ list_get (list_t list, size_t index, void **pitem)
 {
   struct list_data *current;
   size_t count;
+  int status = ENOENT;
   if (list == NULL || pitem == NULL)
     return EINVAL;
   monitor_rdlock (list->monitor);
@@ -161,10 +163,10 @@ list_get (list_t list, size_t index, void **pitem)
       if (count == index)
         {
           *pitem = current->item;
-	  monitor_unlock (list->monitor);
-          return 0;
+	  status = 0;
+	  break;
         }
     }
   monitor_unlock (list->monitor);
-  return ENOENT;
+  return status;
 }
