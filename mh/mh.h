@@ -319,4 +319,6 @@ char *mh_seq_read __P((char *name, int flags));
 
 int mhdraft_stream_create __P((stream_t *stream, stream_t src, int flags));
 
+void mh_comp_draft __P((char *formfile, char *defformfile, char *draftfile));
+int check_draft_disposition __P((struct mh_whatnow_env *wh, int use_draft));
 
