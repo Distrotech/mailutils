@@ -1,3 +1,28 @@
+2002-09-24  Sergey Poznyakoff
+
+	* mail/mail.c (mail_cmdline): removed unnecesary conditional.
+	* mail/send.c (mail_send0): Bugfix. A dot ends the message
+	  only if it is the only character on the line. Thanks
+	  to Thomas Esser <te@dbs.uni-hannover.de> for noticing.
+	* mail/util.c (util_save_outgoing): Removed extra newline
+	  at the end of the envelope `from' line.
+
+	* mh/folder.c: Fixed scanning of folders and output.
+	* mh/mh.h: Changed mh_opcode_t type.
+	* mh/mh_fmtgram.y: Stricter typing of productions. The cntl
+	  production allows for empty lists (e.g. %<{reply-to}%?{from}%>).
+	  Enable debugging when MHFORMAT_DEBUG environment variable is
+	  set.
+	  (yylex): Skip whitespace after the function name.
+	  (branch_fixup): The produced jump offset was wrong. Fixed.
+	  (mh_code_builtin): Fixed passing of escape arguments.
+	* mh/mh_format.c (strobj_is_null,strobj_realloc): New function.
+	  (print_string): Accept an explicit width argument.
+	  (print_obj): New function.
+	  (mh_format): Use the new functions.
+	  (builtin_lit): Fixed.
+	  (builtin_formataddr,builtin_putaddr): Implemented.
+
 2002-09-22  Sergey Poznyakoff
 
 	* mh/mh_argp.c (mh_argp_parse): Complain about non-processed
