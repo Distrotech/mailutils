@@ -583,45 +583,55 @@ static address_t new_mb(void) {
     return calloc(1, sizeof(struct _address));
 }
 
-static int fill_mb(
-	address_t* a,
-	char* comments, char* personal, char* local, char* domain)
+static int
+fill_mb (address_t * a,
+	 char *comments, char *personal, char *local, char *domain)
 {
-    int rc = EOK;
+  int rc = EOK;
 
-    *a = new_mb();
+  *a = new_mb ();
 
-    if(!*a) {
-	return ENOMEM;
+  if (!*a)
+    {
+      return ENOMEM;
     }
 
-    (*a)->comments = comments;
-    (*a)->personal = personal;
+  (*a)->comments = comments;
+  (*a)->personal = personal;
 
-    do {
-	/* loop exists only to break out of */
-        if(!local || !domain) {
+  do
+    {
+      /* loop exists only to break out of */
+      const char *d = domain;
+      if (!d)
+	{
+	  mu_get_user_email_domain (&d);
+	}
+      if (!local || !d)
+	{
 	  /* no email to construct */
 	  break;
 	}
-	if((rc = parse822_quote_local_part(&(*a)->email, local)))
-	    break;
-	if((rc = str_append(&(*a)->email, "@")))
-	    break;
-	if((rc = str_append(&(*a)->email, domain)))
-	    break;
-    } while(0);
+      if ((rc = parse822_quote_local_part (&(*a)->email, local)))
+	break;
+      if ((rc = str_append (&(*a)->email, "@")))
+	break;
+      if ((rc = str_append (&(*a)->email, d)))
+	break;
+    }
+  while (0);
 
-    (*a)->local_part = local;
-    (*a)->domain = domain;
+  (*a)->local_part = local;
+  (*a)->domain = domain;
 
-    if(rc != EOK) {
-	/* note that the arguments have NOT been freed, we only own
-	 * them on success. */
-	free(*a);
+  if (rc != EOK)
+    {
+      /* note that the arguments have NOT been freed, we only own
+       * them on success. */
+      free (*a);
     }
 
-    return rc;
+  return rc;
 }
 
 int parse822_address_list(address_t* a, const char* s)
