@@ -33,12 +33,12 @@ struct status_table {
   char *name;
   status_funcp fun;
 } status_table[] = {
-  "MESSAGES", status_messages,
-  "RECENT", status_recent,
-  "UIDNEXT", status_uidnext,
-  "UIDVALIDITY", status_uidvalidity,
-  "UNSEEN", status_unseen,
-  NULL
+  {"MESSAGES", status_messages},
+  {"RECENT", status_recent},
+  {"UIDNEXT", status_uidnext},
+  {"UIDVALIDITY", status_uidvalidity},
+  {"UNSEEN", status_unseen},
+  { NULL }
 };
 
 static status_funcp
@@ -107,7 +107,6 @@ imap4d_status (struct imap4d_command *command, char *arg)
 	  /* Get the status item names.  */
 	  while (*sp && *sp != ')')
 	    {
-	      int err = 1;
 	      status_funcp fun;
 	      
 	      util_token (item, sizeof (item), &sp);
