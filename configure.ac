@@ -17,7 +17,7 @@
 # Foundation, Inc.
 # 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-AC_INIT([GNU Mailutils], [0.2.2], [bug-mailutils@gnu.org], [mailutils])
+AC_INIT([GNU Mailutils], [0.3], [bug-mailutils@gnu.org], [mailutils])
 AC_CONFIG_SRCDIR([mailbox/mailbox.c])
 AC_CONFIG_AUX_DIR([scripts])
 AC_CANONICAL_TARGET([])
@@ -296,7 +296,8 @@ jm_INCLUDED_REGEX(lib/regex.c)
 AC_FUNC_MMAP
 AC_FUNC_FNMATCH
 
-AC_CHECK_DECLS([strtok_r, strchrnul, strndup, asprintf, vasprintf] , , , [
+AC_CHECK_DECLS([strtok_r, strchrnul, strndup, asprintf, vasprintf, strsignal],
+ , , [
 #include <stdio.h>
 #include <string.h>
 #ifdef HAVE_STRINGS_H
@@ -310,7 +311,11 @@ AC_CHECK_DECLS(environ, , ,
 AH_BOTTOM([
 #if !HAVE_DECL_STRTOK_R
 extern char *strtok_r (char *s, const char *delim, char **save_ptr);
-#endif])
+#endif
+#if !HAVE_DECL_STRSIGNAL
+extern char *strsignal (int);
+#endif
+])
 
 AC_REPLACE_FUNCS(fgetpwent getpass setenv snprintf strncasecmp \
  strcasecmp strsignal vasprintf)
