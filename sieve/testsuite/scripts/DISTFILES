@@ -36,6 +36,9 @@ null.sv
 numaddr.sv
 redirect.sv
 reject.sv
+rel-address.sv
+rel-hairy.sv
+rel-header.sv
 size1.sv
 size2.sv
 stop.sv
