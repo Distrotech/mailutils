@@ -21,6 +21,8 @@
 
 #include <sys/types.h>
 
+#include <mailutils/error.h>
+
 #if STDC_HEADERS
 # include <stdlib.h>
 #else
