@@ -143,6 +143,10 @@ sieve_value_create (sieve_data_type type, void *data)
       val->v.string = data;
       break;
 
+    case SVT_POINTER:
+      val->v.ptr = data;
+      break;
+	
     default:
       sieve_compile_error (sieve_filename, sieve_line_num,
 			   "Invalid data type");
@@ -233,7 +237,7 @@ _sieve_default_parse_error (void *unused, const char *filename, int lineno,
   return 0;
 }
 
-char *
+const char *
 sieve_type_str (sieve_data_type type)
 {
   switch (type)
@@ -258,6 +262,9 @@ sieve_type_str (sieve_data_type type)
 
     case SVT_VALUE_LIST:
       return "value-list";
+
+    case SVT_POINTER:
+      return "pointer";
     }
 
   return "unknown";
@@ -313,6 +320,9 @@ sieve_print_value (sieve_value_t *val, sieve_printf_t printer, void *data)
 
     case SVT_VALUE_LIST:
       list_do (val->v.list, (list_action_t*) value_printer, &dbg);
+
+    case SVT_POINTER:
+      sieve_debug_internal (printer, data, "%p", val->v.ptr);
     }
   sieve_debug_internal (printer, data, ")");
 } 
@@ -330,7 +340,7 @@ sieve_print_value_list (list_t list, sieve_printf_t printer, void *data)
 static int
 tag_printer (sieve_runtime_tag_t *val, struct debug_data *dbg)
 {
-  sieve_debug_internal (dbg->printer, dbg->data, "%d", val->tag);
+  sieve_debug_internal (dbg->printer, dbg->data, "%s", val->tag);
   if (val->arg)
     {
       sieve_debug_internal (dbg->printer, dbg->data, "(");
@@ -409,13 +419,15 @@ _comp_action (void *item, void *data)
 {
   struct comp_data *cp = data;
   struct comp_data2 d;
-  int rc;
-  
-  if (cp->retr (item, cp->data, &d.sample))
-    return 0;
+  int rc = 0;
+  int i;
+
   d.comp = cp->comp;
-  rc = sieve_vlist_do (cp->val, _comp_action2, &d);
-  free (d.sample);
+  for (i = 0; cp->retr (item, cp->data, i, &d.sample) == 0; i++)
+    {
+      rc = sieve_vlist_do (cp->val, _comp_action2, &d);
+      free (d.sample);
+    }
   return rc;
 }
 
