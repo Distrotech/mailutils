@@ -4,3 +4,4 @@ mail.remote
 .deps
 .libs
 .*.swp
+_*
