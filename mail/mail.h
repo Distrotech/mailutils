@@ -23,7 +23,7 @@
 #endif
 
 #ifdef DMALLOC
-#  include <dmalloc.h>
+# include <dmalloc.h>
 #endif
 
 #include <errno.h>
@@ -45,6 +45,7 @@
 #endif
 
 #include <argp.h>
+#include <xalloc.h>
 
 #ifdef HAVE_READLINE_READLINE_H
 #include <readline/readline.h>
@@ -244,8 +245,6 @@ void util_save_outgoing __P((message_t msg, char *savefile));
 void util_error __P((const char *format, ...));
 int util_help __P((const struct mail_command_entry *table, char *word));
 int util_tempfile __P((char **namep));
-void *util_malloc __P((size_t size));
-void *util_calloc __P((size_t nitems, size_t size));
 
 int ml_got_interrupt __P((void));
 void ml_clear_interrupt __P((void));
