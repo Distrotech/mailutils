@@ -106,7 +106,7 @@ mh_argp_parse (int argc, char **argv,
       char **_argv;
       int xargc;
       char **xargv;
-      int i;
+      int i, j;
       
       argcv_get (p, "", NULL, &xargc, &xargv);
 
@@ -117,14 +117,20 @@ mh_argp_parse (int argc, char **argv,
 	  mh_error (_("not enough memory"));
 	  abort ();
 	}
-      for (i = 0; i < argc; i++)
-	_argv[i] = argv[i];
-      for (; i < _argc; i++)
-	_argv[i] = xargv[i-argc];
+
+      i = 0;
+      _argv[i++] = argv[0];
+      for (j = 0; j < xargc; i++, j++)
+	_argv[i] = xargv[j];
+      for (j = 1; i < _argc; i++, j++)
+	_argv[i] = argv[j];
       _argv[i] = NULL;
       argp_parse (&argp, _argc, _argv, 0, &index, &data);
       free (_argv);
       extra = index < _argc;
+      index -= xargc;
+      if (index < 0)
+	index = argc;
     }
   else
     {
