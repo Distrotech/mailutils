@@ -349,24 +349,17 @@ if test x"$use_mysql" = x"yes"; then
 	AC_DEFINE(HAVE_MYSQL,1,[Define this if you have mysql libraries])])
 fi
 
-dnl Virtual domain support, at least for pop3d
-AC_ARG_ENABLE([virtual-domains],
-              AC_HELP_STRING([--enable-virtual-domains],
-                             [enable virtual domain support (default no)]),
-              [use_virtual_domains="yes"],,)
-if test x"$use_virtual_domains" = x"yes"; then
-   AC_DEFINE(USE_VIRTUAL_DOMAINS,1,[Enable use of virtual domains])
-   AC_SUBST(SITE_VIRTUAL_PWDDIR)
-   AC_ARG_WITH([virtual-pwddir],
-               AC_HELP_STRING([--with-virtual-pwddir=DIR],
-                              [use DIR instead of $sysconfdir/domain]),
-               [
-case "${withval}" in
-     /*) SITE_VIRTUAL_PWDDIR="${withval}";;
-     *)  SITE_VIRTUAL_PWDDIR="\$(sysconfdir)/${withval}";;
-esac],
-    [SITE_VIRTUAL_PWDDIR="\$(sysconfdir)/domain"])
-fi
+dnl Virtual domain support
+MU_ENABLE_SUPPORT(virtual-domains)
+AC_SUBST(SITE_VIRTUAL_PWDDIR)
+AC_ARG_WITH([virtual-pwddir],
+             AC_HELP_STRING([--with-virtual-pwddir=DIR],
+                              [use DIR instead of $sysconfdir/domain]),[
+             case "${withval}" in
+		/*) SITE_VIRTUAL_PWDDIR="${withval}";;
+		*)  SITE_VIRTUAL_PWDDIR="\$(sysconfdir)/${withval}";;
+	     esac],
+             [SITE_VIRTUAL_PWDDIR="\$(sysconfdir)/domain"])
 
 MU_ENABLE_SUPPORT(imap)
 MU_ENABLE_SUPPORT(pop)
@@ -599,6 +592,7 @@ AC_CONFIG_FILES([Makefile mailutils.spec
  readmsg/testsuite/Makefile
  comsat/Makefile
  mail.local/Makefile
+ mail.local/testsuite/Makefile
  mail.remote/Makefile
  mail.remote/testsuite/Makefile
  dotlock/Makefile
