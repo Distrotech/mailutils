@@ -1150,6 +1150,13 @@ imap_flags (f_imap_t f_imap, char **ptr)
 	  else
 	    f_imap->flags |= MU_ATTRIBUTE_DRAFT;
 	}
+      else if (strcasecmp (flag, "\\Read") == 0)
+	{
+	  if (msg_imap)
+	    msg_imap->flags |= MU_ATTRIBUTE_READ;
+	  else
+	    f_imap->flags |= MU_ATTRIBUTE_READ;
+	}
     }
   return 0;
 }
@@ -1260,12 +1267,20 @@ imap_fetch (f_imap_t f_imap)
 	{
 	  status = imap_internaldate (f_imap, &sp);
 	}
-      else if (strncmp (command, "RFC822.SIZE", 10) == 0)
+      else if (strncmp (command, "RFC822", 10) == 0)
 	{
-	  imap_token (command, &sp);
-	  if (f_imap->callback.msg_imap)
-	    f_imap->callback.msg_imap->message_size = strtoul (command,
-							       NULL, 10);
+	  if (*sp == '.')
+	    {
+	      sp++;
+	      imap_token (command, &sp);
+	      if (strcasecmp (command, "SIZE") == 0)
+		{
+		  imap_token (command, &sp);
+		  if (f_imap->callback.msg_imap)
+		    f_imap->callback.msg_imap->message_size =
+		      strtoul (command, NULL, 10);
+		}
+	    }
 	}
       else if (strncmp (command, "UID", 3) == 0)
 	{
@@ -1281,6 +1296,7 @@ static int
 imap_token (char *buf, char **ptr)
 {
   char *start = *ptr;
+  /* Skip leading space.  */
   while (**ptr && **ptr == ' ')
     (*ptr)++;
   for (; **ptr; (*ptr)++, buf++)
@@ -1297,6 +1313,9 @@ imap_token (char *buf, char **ptr)
       *buf = **ptr;
   }
   *buf = '\0';
+  /* Skip tail space.  */
+  while (**ptr && **ptr == ' ')
+    (*ptr)++;
   return  *ptr - start;;
 }
 

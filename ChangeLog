@@ -1,3 +1,20 @@
+2001-02-20  Alain Magloire
+
+	* mailbox/mailbox.c (mailbox_set_ticket mailbox_set_authority
+	mailbox_set_stream) : Those objects are now part of th folder
+	if a folder is attached to the mailbox.
+	* mailbox/mbx_imap.c (imap_message_read imap_body_read) :
+	If offset == 0, reset the lines to 0.
+
+2001-02-19  Alain Magloire
+
+	* mailbox/mbx_pop.c (pop_body_read) : Move the CHECK_BUSY higher
+	it should be the first thing done.  If the state is POP_NO_STATE
+	reset the offset and the size to 0 i.e we are starting fresh.
+	(pop_header_read) : Likewise.
+	(pop_message_read) : Likewise.
+	* mailbox/stream.c (stream_write) : Don't call stream_flush().
+
 2001-02-04  Alain Magloire
 
 	* mailbox/message.c (message_get_uid) : Add message_get_uid() for

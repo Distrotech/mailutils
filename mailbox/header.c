@@ -424,9 +424,11 @@ header_get_value (header_t header, const char *name, char *buffer,
 	      buflen = (len < buflen) ? len : buflen;
 	      memcpy (buffer, buf, buflen);
 	      buffer[buflen] = '\0';
-	      if (pn)
-		*pn = buflen;
 	    }
+	  else
+	    buflen = len;
+	  if (pn)
+	    *pn = buflen;
 	}
       return err;
     }

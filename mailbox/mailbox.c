@@ -308,6 +308,8 @@ mailbox_set_authority (mailbox_t mbox, authority_t authority)
 {
   if (mbox == NULL)
     return EINVAL;
+  if (mbox->folder)
+    return folder_set_authority (mbox->folder, authority);
   if (mbox->authority)
     authority_destroy (&(mbox->authority), mbox);
   mbox->authority = authority;
@@ -319,6 +321,8 @@ mailbox_get_authority (mailbox_t mbox, authority_t *pauthority)
 {
   if (mbox == NULL || pauthority == NULL)
     return EINVAL;
+  if (mbox->folder)
+    return folder_get_authority  (mbox->folder, pauthority);
   *pauthority = mbox->authority;
   return 0;
 }
@@ -328,6 +332,8 @@ mailbox_set_ticket (mailbox_t mbox, ticket_t ticket)
 {
   if (mbox == NULL)
     return EINVAL;
+  if (mbox->folder)
+    return folder_set_ticket (mbox->folder, ticket);
   if (mbox->ticket)
     ticket_destroy (&(mbox->ticket), mbox);
   mbox->ticket = ticket;
@@ -339,6 +345,8 @@ mailbox_get_ticket (mailbox_t mbox, ticket_t *pticket)
 {
   if (mbox == NULL || pticket == NULL)
     return EINVAL;
+  if (mbox->folder)
+    return folder_get_ticket (mbox->folder, pticket);
   *pticket = mbox->ticket;
   return 0;
 }
@@ -348,6 +356,8 @@ mailbox_set_stream (mailbox_t mbox, stream_t stream)
 {
   if (mbox == NULL)
     return EINVAL;
+  if (mbox->folder)
+    return folder_set_stream (mbox->folder, stream);
   if (mbox->stream)
     stream_destroy (&(mbox->stream), mbox);
   mbox->stream = stream;
@@ -359,6 +369,8 @@ mailbox_get_stream (mailbox_t mbox, stream_t *pstream)
 {
   if (mbox == NULL || pstream)
     return EINVAL;
+  if (mbox->folder)
+    return folder_get_stream (mbox->folder, pstream);
   *pstream = mbox->stream;
   return 0;
 }

@@ -649,6 +649,10 @@ imap_message_read (stream_t stream, char *buffer, size_t buflen,
   m_imap_t m_imap = msg_imap->m_imap;
   f_imap_t f_imap = m_imap->f_imap;
 
+  /* Start over.  */
+  if (offset == 0)
+    msg_imap->message_lines = 0;
+
   /* Select first.  */
   if (f_imap->state == IMAP_NO_STATE)
     {
@@ -1007,8 +1011,10 @@ imap_attr_set_flags (attribute_t attribute, int flags)
     {
       status = imap_writeline (f_imap, "g%d STORE %d +FLAGS.SILENT (%s %s %s %s)\r\n",
 			       f_imap->seq++, msg_imap->num,
-			       (flags & MU_ATTRIBUTE_SEEN) ? "\\Seen" : "",
 			       (flags & MU_ATTRIBUTE_ANSWERED) ? "\\Answered" : "",
+			       (flags & MU_ATTRIBUTE_RECENT) ? "\\Recent" : "",
+			       (flags & MU_ATTRIBUTE_READ) ? "\\Read" : "",
+			       (flags & MU_ATTRIBUTE_SEEN) ? "\\Seen" : "",
 			       (flags & MU_ATTRIBUTE_DRAFT) ? "\\Draft" : "",
 			       (flags & MU_ATTRIBUTE_FLAGGED) ? "\\Flagged" : "");
       CHECK_ERROR (f_imap, status);
@@ -1128,6 +1134,10 @@ imap_header_read (header_t header, char *buffer, size_t buflen, off_t offset,
   m_imap_t m_imap = msg_imap->m_imap;
   f_imap_t f_imap = m_imap->f_imap;
 
+  /* Start over.  */
+  if (offset == 0)
+    msg_imap->header_lines = 0;
+
   /* Select first.  */
   if (f_imap->state == IMAP_NO_STATE)
     {
@@ -1168,7 +1178,15 @@ imap_body_size (body_t body, size_t *psize)
   message_t msg = body_get_owner (body);
   msg_imap_t msg_imap = message_get_owner (msg);
   if (psize && msg_imap)
-    *psize = msg_imap->body_size;
+    {
+      if (msg_imap->body_size)
+	*psize = msg_imap->body_size;
+      else if (msg_imap->message_size)
+	*psize = msg_imap->message_size
+	  - (msg_imap->header_size + msg_imap->header_lines);
+      else
+	*psize = 0;
+    }
   return 0;
 }
 
@@ -1200,7 +1218,7 @@ imap_body_read (stream_t stream, char *buffer, size_t buflen, off_t offset,
      example "\n" to retrieve from the server, IMAP will transform this to
      "\r\n" and since you ask for only 1, the server will send '\r' only.
      And ... '\r' will be stripped by (imap_readline()) the number of char
-     read will be 0 which means we're done .... sigh ...  So we guard to at
+     read will be 0 which means we're done .... sigh ...  So we guard by at
      least ask for 2 chars.  */
   if (buflen == 1)
     {
@@ -1208,6 +1226,11 @@ imap_body_read (stream_t stream, char *buffer, size_t buflen, off_t offset,
       buffer = newbuf;
       buflen = 2;
     }
+
+  /* Start over.  */
+  if (offset == 0)
+      msg_imap->body_lines = 0;
+
   /* Select first.  */
   if (f_imap->state == IMAP_NO_STATE)
     {
