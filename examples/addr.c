@@ -20,6 +20,7 @@
 
 #include <mailutils/address.h>
 #include <mailutils/errno.h>
+#include <mailutils/mutil.h>
 
 #define EPARSE ENOENT
 
