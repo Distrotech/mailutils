@@ -32,6 +32,8 @@
 
 const char *program_version = "GNU dotlock (" PACKAGE_STRING ")";
 static char doc[] =
+/* TRANSLATORS: Please, preserve the vertical tabulation (^K character)
+   in this message */
 N_("GNU dotlock -- lock mail spool files"
    "\v"
    "Returns 0 on success, 3 if the locking the file fails because"

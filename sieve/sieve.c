@@ -49,6 +49,8 @@ void mutil_register_all_mbox_formats (void);
 const char *program_version = "sieve (" PACKAGE_STRING ")";
 
 static char doc[] =
+/* TRANSLATORS: Please, preserve the vertical tabulation (^K character)
+   in this message */
 N_("GNU sieve -- a mail filtering tool\n"
 "\v"
 "Debug flags:\n"
@@ -509,6 +511,7 @@ mutil_register_all_mbox_formats (void)
   list_append (bookie, pop_record);
   list_append (bookie, imap_record);
   list_append (bookie, mh_record);
+  list_append (bookie, maildir_record);
   list_append (bookie, sendmail_record);
   list_append (bookie, smtp_record);
 }

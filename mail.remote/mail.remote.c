@@ -43,6 +43,8 @@
 
 const char *program_version = "mail.remote (" PACKAGE_STRING ")";
 static char doc[] =
+/* TRANSLATORS: Please, preserve the vertical tabulation (^K character)
+   in this message */
 N_("GNU mail.remote -- pseudo-sendmail interface for mail delivery\n"
   "\v"
   "\n"

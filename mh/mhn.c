@@ -25,6 +25,8 @@
 #include <obstack.h>
 
 const char *program_version = "mhn (" PACKAGE_STRING ")";
+/* TRANSLATORS: Please, preserve the vertical tabulation (^K character)
+   in this message */
 static char doc[] = N_("GNU MH mhn\v"
 "Options marked with `*' are not yet implemented.\n"
 "Use -help to obtain the list of traditional MH options.");
@@ -1747,7 +1749,7 @@ stream_getline (stream_t str, char **buf, size_t *bufsize, size_t *pnum)
     }
   numread = 0;
   while ((rc = stream_sequential_readline (str, *buf + numread,
-					   *bufsize, &n)) == 0
+					   *bufsize - numread, &n)) == 0
 	 && n > 0)
     {
       numread += n;
@@ -2429,7 +2431,7 @@ copy_header (message_t msg, stream_t stream)
   header_t hdr;
   stream_t in;
   char *buf = NULL;
-  size_t bufsize, n;
+  size_t bufsize = 0, n = 0;
   
   message_get_header (msg, &hdr);
   header_get_stream (hdr, &in);

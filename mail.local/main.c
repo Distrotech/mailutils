@@ -43,6 +43,8 @@ void notify_biff __P((mailbox_t mbox, char *name, size_t size));
 
 const char *program_version = "mail.local (" PACKAGE_STRING ")";
 static char doc[] =
+/* TRANSLATORS: Please, preserve the vertical tabulation (^K character)
+   in this message */
 N_("GNU mail.local -- the local MDA"
    "\v"
    "Debug flags are:\n"
