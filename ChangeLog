@@ -1,3 +1,22 @@
+2001-11-26  Sam Roberts
+
+	* doc/texinfo/mailer.texi: Hacked up work-in-progress of the mailer
+	  API, but worth committing before I commit all the code.
+	* mailbox/folder_pop.c: Added <strings.h> for QNX6.
+	* .cvsignore, doc/.cvsignore: ignores sorted, and added _*
+	* doc/texinfo/address.texi, include/mailutils/address.h,
+	  mailbox/address.c:
+	    address_aget_email() - like _get_email() but mallocs.
+	    address_createv()    - like address_create(), but takes an
+	                           array of strings.
+	* examples/: Makefile, Urls, Urls.good: Updated url_parse() test
+	  case.
+	* comsat/comsat.h: Need <paths.h> and <strings.h> under QNX6.
+	* doc/texinfo/url.texi, mailbox/url.c: Url syntax extended. If
+	  scheme: is not followed by a "//", then the rest of the line is
+	  returned as the path. Also a bare  scheme is now legal. So
+	  "sendmail:" and "sendmail:/sbin/mail-inject" are now legal.
+
 2001-11-21  Sergey Poznyakoff
 
 	* comsat/comsat.c: Provide default for _PATH_MAILDIR for
