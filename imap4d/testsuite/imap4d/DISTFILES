@@ -1,5 +1,9 @@
-anystate.exp
-fetch.exp
-examine.exp 
-search.exp
+anystate.exp  
+append.exp    
+create.exp    
+examine.exp  
+expunge.exp  
+fetch.exp    
+list.exp   
+search.exp 
 x.exp
