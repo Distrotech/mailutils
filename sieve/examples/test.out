@@ -1,0 +1,325 @@
+== Parse testing
+Test: ex-1.10.2.sv
+Test: ex-2.3a.sv
+Test: ex-2.5.1.sv
+Test: ex-2.7.3.sv
+Test: ex-3.1a.sv
+Test: ex-3.1b.sv
+Test: ex-3.2.sv
+Test: ex-4.1.sv
+Test: ex-4.2.sv
+Test: ex-4.4a.sv
+Test: ex-4.4b.sv
+Test: ex-4.5.sv
+Test: ex-5.1.sv
+Test: ex-5.7.sv
+Test: ex-9.sv
+Test: ex-null.sv
+Test: exn-2.3b.sv might fail
+Test: exn-5.4.sv might fail
+== Action testing
+
+Test: ex-1.10.2.sv
+mbox had 2 messages...
+getsize -> 587
+action => DISCARD
+action => KEEP
+Action(s) taken:
+Discarded
+Kept
+
+getsize -> 539
+action => DISCARD
+action => KEEP
+Action(s) taken:
+Discarded
+Kept
+
+
+Test: ex-2.3a.sv
+mbox had 2 messages...
+getsize -> 587
+action => DISCARD
+Action(s) taken:
+Discarded
+
+getsize -> 539
+action => KEEP
+Action(s) taken:
+Kept
+
+
+Test: ex-2.5.1.sv
+mbox had 2 messages...
+getheader, filling cache with 4 fields
+getheader, cacheing X-Caffeine=C8H10N4O2
+getheader, cacheing Subject=I have a present for you
+getheader, cacheing To=roadrunner@acme.example.com
+getheader, cacheing From=coyote@desert.example.org
+getheader, From=coyote@desert.example.org
+getheader Date, failed No such file or directory
+getheader, from=coyote@desert.example.org
+action => DISCARD
+action => FILEINTO
+  into <popbox>
+  fail with [2] no handler for this type of mailbox
+runtime error: Fileinto: no handler for this type of mailbox
+Action(s) taken:
+Discarded
+Fileinto action failed: no handler for this type of mailbox
+
+sieve_execute_script(1): sieve -1237848064 rc No error
+
+Test: ex-2.7.3.sv
+mbox had 2 messages...
+getheader, filling cache with 4 fields
+getheader, cacheing X-Caffeine=C8H10N4O2
+getheader, cacheing Subject=I have a present for you
+getheader, cacheing To=roadrunner@acme.example.com
+getheader, cacheing From=coyote@desert.example.org
+getheader, Subject=I have a present for you
+action => KEEP
+Action(s) taken:
+Kept
+
+getheader, filling cache with 4 fields
+getheader, cacheing Date=TBD
+getheader, cacheing Subject=$$$ YOU, TOO, CAN BE A MILLIONAIRE! $$$
+getheader, cacheing To=rube@landru.example.edu
+getheader, cacheing From=youcouldberich!@reply-by-postal-mail.invalid
+getheader, Subject=$$$ YOU, TOO, CAN BE A MILLIONAIRE! $$$
+action => KEEP
+Action(s) taken:
+Kept
+
+
+Test: ex-3.1a.sv
+mbox had 2 messages...
+getheader, filling cache with 4 fields
+getheader, cacheing X-Caffeine=C8H10N4O2
+getheader, cacheing Subject=I have a present for you
+getheader, cacheing To=roadrunner@acme.example.com
+getheader, cacheing From=coyote@desert.example.org
+getheader, from=coyote@desert.example.org
+action => DISCARD
+Action(s) taken:
+Discarded
+
+getheader, filling cache with 4 fields
+getheader, cacheing Date=TBD
+getheader, cacheing Subject=$$$ YOU, TOO, CAN BE A MILLIONAIRE! $$$
+getheader, cacheing To=rube@landru.example.edu
+getheader, cacheing From=youcouldberich!@reply-by-postal-mail.invalid
+getheader, from=youcouldberich!@reply-by-postal-mail.invalid
+getheader, subject=$$$ YOU, TOO, CAN BE A MILLIONAIRE! $$$
+action => DISCARD
+Action(s) taken:
+Discarded
+
+
+Test: ex-3.1b.sv
+mbox had 2 messages...
+getheader, filling cache with 4 fields
+getheader, cacheing X-Caffeine=C8H10N4O2
+getheader, cacheing Subject=I have a present for you
+getheader, cacheing To=roadrunner@acme.example.com
+getheader, cacheing From=coyote@desert.example.org
+getheader, From=coyote@desert.example.org
+action => REDIRECT
+Action(s) taken:
+Redirected to acm@example.edu
+
+getheader, filling cache with 4 fields
+getheader, cacheing Date=TBD
+getheader, cacheing Subject=$$$ YOU, TOO, CAN BE A MILLIONAIRE! $$$
+getheader, cacheing To=rube@landru.example.edu
+getheader, cacheing From=youcouldberich!@reply-by-postal-mail.invalid
+getheader, From=youcouldberich!@reply-by-postal-mail.invalid
+getheader, Subject=$$$ YOU, TOO, CAN BE A MILLIONAIRE! $$$
+action => REDIRECT
+Action(s) taken:
+Redirected to postmaster@example.edu
+
+
+Test: ex-3.2.sv
+mbox had 2 messages...
+action => KEEP
+Action(s) taken:
+Kept
+
+action => KEEP
+Action(s) taken:
+Kept
+
+
+Test: ex-4.1.sv
+mbox had 2 messages...
+getheader, filling cache with 4 fields
+getheader, cacheing X-Caffeine=C8H10N4O2
+getheader, cacheing Subject=I have a present for you
+getheader, cacheing To=roadrunner@acme.example.com
+getheader, cacheing From=coyote@desert.example.org
+getheader, from=coyote@desert.example.org
+action => REJECT
+Action(s) taken:
+Rejected with: I am not taking mail from you, and I don't want
+  your birdseed, either!
+
+getheader, filling cache with 4 fields
+getheader, cacheing Date=TBD
+getheader, cacheing Subject=$$$ YOU, TOO, CAN BE A MILLIONAIRE! $$$
+getheader, cacheing To=rube@landru.example.edu
+getheader, cacheing From=youcouldberich!@reply-by-postal-mail.invalid
+getheader, from=youcouldberich!@reply-by-postal-mail.invalid
+action => KEEP
+Action(s) taken:
+Kept
+
+
+Test: ex-4.2.sv
+mbox had 2 messages...
+getheader, filling cache with 4 fields
+getheader, cacheing X-Caffeine=C8H10N4O2
+getheader, cacheing Subject=I have a present for you
+getheader, cacheing To=roadrunner@acme.example.com
+getheader, cacheing From=coyote@desert.example.org
+getheader, from=coyote@desert.example.org
+action => FILEINTO
+  into <INBOX.harassment>
+  fail with [2] no handler for this type of mailbox
+runtime error: Fileinto: no handler for this type of mailbox
+Action(s) taken:
+Fileinto action failed: no handler for this type of mailbox
+
+sieve_execute_script(1): sieve -1237848064 rc No error
+
+Test: ex-4.4a.sv
+mbox had 2 messages...
+getsize -> 587
+action => KEEP
+Action(s) taken:
+Kept
+
+getsize -> 539
+action => KEEP
+Action(s) taken:
+Kept
+
+
+Test: ex-4.4b.sv
+mbox had 2 messages...
+getsize -> 587
+action => KEEP
+Action(s) taken:
+Kept
+
+getsize -> 539
+action => KEEP
+Action(s) taken:
+Kept
+
+
+Test: ex-4.5.sv
+mbox had 2 messages...
+getheader, filling cache with 4 fields
+getheader, cacheing X-Caffeine=C8H10N4O2
+getheader, cacheing Subject=I have a present for you
+getheader, cacheing To=roadrunner@acme.example.com
+getheader, cacheing From=coyote@desert.example.org
+getheader, from=coyote@desert.example.org
+action => KEEP
+Action(s) taken:
+Kept
+
+getheader, filling cache with 4 fields
+getheader, cacheing Date=TBD
+getheader, cacheing Subject=$$$ YOU, TOO, CAN BE A MILLIONAIRE! $$$
+getheader, cacheing To=rube@landru.example.edu
+getheader, cacheing From=youcouldberich!@reply-by-postal-mail.invalid
+getheader, from=youcouldberich!@reply-by-postal-mail.invalid
+action => KEEP
+Action(s) taken:
+Kept
+
+
+Test: ex-5.1.sv
+mbox had 2 messages...
+getheader, filling cache with 4 fields
+getheader, cacheing X-Caffeine=C8H10N4O2
+getheader, cacheing Subject=I have a present for you
+getheader, cacheing To=roadrunner@acme.example.com
+getheader, cacheing From=coyote@desert.example.org
+getheader, from=coyote@desert.example.org
+action => KEEP
+Action(s) taken:
+Kept
+
+getheader, filling cache with 4 fields
+getheader, cacheing Date=TBD
+getheader, cacheing Subject=$$$ YOU, TOO, CAN BE A MILLIONAIRE! $$$
+getheader, cacheing To=rube@landru.example.edu
+getheader, cacheing From=youcouldberich!@reply-by-postal-mail.invalid
+getheader, from=youcouldberich!@reply-by-postal-mail.invalid
+action => KEEP
+Action(s) taken:
+Kept
+
+
+Test: ex-5.7.sv
+mbox had 2 messages...
+getheader, filling cache with 4 fields
+getheader, cacheing X-Caffeine=C8H10N4O2
+getheader, cacheing Subject=I have a present for you
+getheader, cacheing To=roadrunner@acme.example.com
+getheader, cacheing From=coyote@desert.example.org
+getheader, X-Caffeine=C8H10N4O2
+getheader, X-Caffeine=C8H10N4O2
+action => KEEP
+Action(s) taken:
+Kept
+
+getheader, filling cache with 4 fields
+getheader, cacheing Date=TBD
+getheader, cacheing Subject=$$$ YOU, TOO, CAN BE A MILLIONAIRE! $$$
+getheader, cacheing To=rube@landru.example.edu
+getheader, cacheing From=youcouldberich!@reply-by-postal-mail.invalid
+getheader X-Caffeine, failed No such file or directory
+getheader X-Caffeine, failed No such file or directory
+action => DISCARD
+Action(s) taken:
+Discarded
+
+
+Test: ex-9.sv
+mbox had 2 messages...
+getsize -> 587
+getheader, filling cache with 4 fields
+getheader, cacheing X-Caffeine=C8H10N4O2
+getheader, cacheing Subject=I have a present for you
+getheader, cacheing To=roadrunner@acme.example.com
+getheader, cacheing From=coyote@desert.example.org
+getheader Sender, failed No such file or directory
+getheader, From=coyote@desert.example.org
+getheader, To=roadrunner@acme.example.com
+getheader, To=roadrunner@acme.example.com
+getheader Cc, failed No such file or directory
+getheader Bcc, failed No such file or directory
+action => FILEINTO
+  into <spam>
+  fail with [2] no handler for this type of mailbox
+runtime error: Fileinto: no handler for this type of mailbox
+Action(s) taken:
+Fileinto action failed: no handler for this type of mailbox
+
+sieve_execute_script(1): sieve -1237848064 rc No such file or directory
+
+Test: ex-null.sv
+mbox had 2 messages...
+action => KEEP
+Action(s) taken:
+Kept
+
+action => KEEP
+Action(s) taken:
+Kept
+
