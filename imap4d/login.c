@@ -101,9 +101,11 @@ imap4d_login (struct imap4d_command *command, char *arg)
     return util_finish (command, RESP_NO, "Too many args");
 
   pw = getpwnam (username);
+  if (pw == NULL)
+    return util_finish (command, RESP_NO, "User name or passwd rejected");
 
 #ifndef USE_LIBPAM
-  if (pw == NULL || pw->pw_uid < 1)
+  if (pw->pw_uid < 1)
     return util_finish (command, RESP_NO, "User name or passwd rejected");
   if (strcmp (pw->pw_passwd, (char *)crypt (pass, pw->pw_passwd)))
     {

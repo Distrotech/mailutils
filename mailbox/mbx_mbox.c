@@ -396,7 +396,7 @@ static int
 mbox_close (mailbox_t mailbox)
 {
   mbox_data_t mud = mailbox->data;
-  size_t i;
+  /* size_t i; */
 
   if (mud == NULL)
     return EINVAL;
@@ -407,6 +407,9 @@ mbox_close (mailbox_t mailbox)
   locker_unlock (mailbox->locker);
 
 #if 0
+  /* RFC: I'm not sure on the right approach especially if the client is
+     working in disconnected mode, where it can mailbox_close/mailbox_open
+     for each request, maybe we should keep them for a while.  */
   monitor_wrlock (mailbox->monitor);
   /* Before closing we need to remove all the messages
      - to reclaim the memory

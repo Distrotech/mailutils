@@ -134,8 +134,14 @@ pop3d_user (const char *arg)
 #endif
 
       pw = getpwnam (arg);
+      if (pw == NULL)
+	{
+	  syslog (LOG_INFO, "User '%s': nonexistent", arg);
+	  return ERR_BAD_LOGIN;
+	}
+
 #ifndef USE_LIBPAM
-      if (pw == NULL || pw->pw_uid < 1)
+      if (pw->pw_uid < 1)
 	return ERR_BAD_LOGIN;
       if (strcmp (pw->pw_passwd, (char *)crypt (pass, pw->pw_passwd)))
 	{
@@ -177,7 +183,7 @@ pop3d_user (const char *arg)
       }
 #endif /* USE_LIBPAM */
 
-      if (pw != NULL && pw->pw_uid > 1)
+      if (pw->pw_uid > 1)
 	setuid (pw->pw_uid);
 
       mailbox_name  = calloc (strlen (_PATH_MAILDIR) + 1
