@@ -17,7 +17,7 @@
 # Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #
 
-AC_INIT([GNU Mailutils], [0.1], [bug-mailutils@gnu.org])
+AC_INIT([GNU Mailutils], [0.1.1], [bug-mailutils@gnu.org])
 AC_CONFIG_SRCDIR([mailbox/mailbox.c])
 AC_CANONICAL_TARGET([])
 AM_INIT_AUTOMAKE
@@ -457,24 +457,29 @@ esac
 dnl Check for Guile
 AC_SUBST(GUILE_INCLUDES)
 AC_SUBST(GUILE_LIBS)
+AC_SUBST(GUILE_SNARF_VERSION)
 AC_SUBST(GUIMB)
 AC_SUBST(MU_SCM)
 AC_SUBST(LIBMU_SCM)
 AC_SUBST(GUILE_PROCEDURES_TXT)
 AC_SUBST(GUILE_BUILT_SOURCES)
+
 if test x"$useguile" = x"yes"; then
-	AC_PATH_PROG(GUILE_CONFIG, guile-config, no, $PATH)
-	AC_CHECK_HEADER(libguile.h, :, [GUILE_CONFIG=no])
-	if test x$GUILE_CONFIG != xno; then
-		AC_DEFINE(WITH_GUILE,1,[Enable Guile support])
-  		GUILE_INCLUDES=`guile-config compile`
-  		GUILE_LIBS=`guile-config link`
-		GUIMB=guimb
-		MU_SCM=libmu_scm.a
-		LIBMU_SCM=../libmu_scm/libmu_scm.a
-		GUILE_PROCEDURES_TXT=guile-procedures.txt
-		GUILE_BUILT_SOURCES='$(DOT_X_FILES) $(DOT_DOC_FILES)'
-	fi
+	MU_CHECK_GUILE(,[
+            AC_DEFINE(WITH_GUILE,1,[Enable Guile support])
+            GUILE_INCLUDES=`guile-config compile`
+  	    GUILE_LIBS=`guile-config link`
+	    GUIMB=guimb
+	    MU_SCM=libmu_scm.a
+	    LIBMU_SCM=../libmu_scm/libmu_scm.a
+	    GUILE_PROCEDURES_TXT=guile-procedures.txt
+	    GUILE_BUILT_SOURCES='$(DOT_X_FILES) $(DOT_DOC_FILES)'
+            case "$GUILE_VERSION" in
+	      14) GUILE_SNARF_VERSION="1.4";;
+	      16|17) GUILE_SNARF_VERSION="1.6";;
+	      *) GUILE_SNARF_VERSION="1.6";;
+            esac
+         ],[useguile=no])
 fi
 
 dnl Make sysconfdir available to the application
@@ -519,6 +524,8 @@ AC_CONFIG_FILES([Makefile mailutils.spec
  messages/Makefile
  messages/testsuite/Makefile
  scripts/Makefile
+ scripts/guile-1.4/Makefile
+ scripts/guile-1.6/Makefile
  libmu_scm/Makefile
  guimb/Makefile
  guimb/scm/Makefile
@@ -528,6 +535,7 @@ AC_CONFIG_FILES([Makefile mailutils.spec
  mail.local/Makefile
  mail.remote/Makefile
  dotlock/Makefile
+ mh/Makefile
  ])
 AC_OUTPUT
 
