@@ -1,3 +1,51 @@
+2002-08-07  Sergey Poznyakoff 
+
+	* mail/mail.h (struct mail_env_entry): Reorganized. Added
+	  type member and changed "value" to be a union.
+	  (environment functions): Changed prototypes.
+	  (util_folder_path): New prototype.
+	* mail/util.c: Rewritten internal environment functions.
+	  Environment variables are now typed, so setting "set folder=1"
+	  won't cause coredumps anymore. The function util_getenv() is
+	  used to retrieve a variable of given data type. util_find_env()
+	  takes second argument specifying whether it should create a
+	  missing variable. This function is used only in util.c and
+	  var.c.
+	* mail/set.c: Use util_setenv().
+
+	* mail/alt.c: Use util_getenv().
+	* mail/copy.c: Use util_getenv(). Honour outfolder variable, when
+	  set.
+	* mail/decode.c: Use util_getenv().
+	* mail/delete.c: Likewise.
+	* mail/file.c (mail_expand_name): Use util_getenv() and
+	  util_folder_path().
+	* mail/folders.c: Use util_getenv().
+	* mail/if.c: Likewise.
+	* mail/mail.c: Likewise. Provide default for "regexp" internal
+	  variable.
+	* mail/msgset.y: Likewise.
+	* mail/pipe.c: Likewise.
+	* mail/print.c: Likewise.
+	* mail/quit.c: Likewise.
+	* mail/send.c: Likewise.
+	* mail/top.c: Likewise.
+	* mail/var.c: Likewise.
+	* mail/mailline.c: Likewise.
+	
+	* mail/write.c: Honour "outfolder" variable. If called without
+	  arguments, deduce output file name from the number of current
+	  message.
+
+	* mail/testsuite/makespool: Bugfix.
+	* mail/testsuite/lib/mail.exp (mail_start): New flag -reuse-spool.
+	  (default_mail_test): If command is empty do not send anything.
+	  (mail_test_file): New function. Test the contents of an
+	  arbitrary file.
+	* mail/testsuite/mail/write.exp: New file. Tests for message
+	  saving and disposing commands: delete, mbox, [sS]ave, [wW]rite 
+	* mail/testsuite/mail/DISTFILES: Added write.exp
+
 2002-08-06  Sergey Poznyakoff
 
 	* Makefile.am: Removed distcheck kludge. Testsuite doesn't
