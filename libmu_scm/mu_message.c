@@ -302,18 +302,40 @@ SCM_DEFINE (mu_message_get_header, "mu-message-get-header", 2, 0, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (mu_message_get_header_fields, "mu-message-get-header-fields", 1, 0, 0,
-	    (SCM MESG),
-	    "Returns the list of headers in the MESG.")
+static int
+string_sloppy_member (SCM lst, char *name)
+{
+  for(; SCM_CONSP (lst); lst = SCM_CDR(lst))
+    {
+      SCM car = SCM_CAR (lst);
+      if ((SCM_NIMP (car) && SCM_STRINGP (car))
+	  && strcasecmp (SCM_CHARS (car), name) == 0)
+	return 1;
+    }
+  return 0;
+}
+
+SCM_DEFINE (mu_message_get_header_fields, "mu-message-get-header-fields", 1, 1, 0,
+	    (SCM MESG, SCM HEADERS),
+	    "Returns the list of headers in the MESG. If optional HEADERS is\n"
+	    "specified it should be a list of header names to restrict return\n"
+	    "value to.\n")
 #define FUNC_NAME s_mu_message_get_header_fields
 {
   size_t i, nfields = 0;
   message_t msg;
   header_t hdr = NULL;
   SCM scm_first = SCM_EOL, scm_last;
+  SCM headers = NULL;
     
   SCM_ASSERT (mu_scm_is_message (MESG), MESG, SCM_ARG1, FUNC_NAME);
   msg = mu_scm_message_get (MESG);
+  if (!SCM_UNBNDP (HEADERS))
+    {
+      SCM_ASSERT (SCM_NIMP (HEADERS) && SCM_CONSP (HEADERS),
+		  HEADERS, SCM_ARG2, FUNC_NAME);
+      headers = HEADERS;
+    }
 
   message_get_header (msg, &hdr);
   header_get_field_count (hdr, &nfields);
@@ -322,13 +344,15 @@ SCM_DEFINE (mu_message_get_header_fields, "mu-message-get-header-fields", 1, 0, 
       SCM new_cell, scm_name, scm_value;
       char *name, *value;
       
-      SCM_NEWCELL(new_cell);
       header_aget_field_name (hdr, i, &name);
+      if (headers && string_sloppy_member (headers, name) == 0)
+	continue;
       header_aget_field_value (hdr, i, &value);
 
       scm_name = scm_makfrom0str (name);
       scm_value = scm_makfrom0str (value);
 
+      SCM_NEWCELL(new_cell);
       SCM_SETCAR(new_cell, scm_cons(scm_name, scm_value));
       
       if (scm_first == SCM_EOL)
