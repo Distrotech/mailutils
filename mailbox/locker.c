@@ -600,6 +600,10 @@ check_file_permissions (const char *file)
   return 0;
 }
 
+#ifndef MAXHOSTNAMELEN
+# define MAXHOSTNAMELEN 256
+#endif
+
 /* Locker-specific lock/unlock functions */
 int
 _locker_lock_dotlock (locker_t lock)
