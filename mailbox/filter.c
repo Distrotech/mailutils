@@ -152,6 +152,7 @@ filter_get_list (list_t *plist)
       list_append (filter_list, bit8_filter);
       list_append (filter_list, bit7_filter);
       list_append (filter_list, rfc822_filter);
+      list_append (filter_list, rfc_2047_Q_filter);
       /* FIXME: add the default encodings?  */
     }
   *plist = filter_list;
