@@ -20,7 +20,6 @@
 /* Global variables and constants*/
 mailbox_t mbox;
 unsigned int cursor;
-unsigned int realcursor;
 size_t total;
 FILE *ofile;
 int interactive;
@@ -219,7 +218,6 @@ main (int argc, char **argv)
   
   ofile = stdout;
   cursor = 1;
-  realcursor = cursor;
 
   /* Native Language Support */
   mu_init_nls ();
