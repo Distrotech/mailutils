@@ -41,6 +41,8 @@ mail_headers (int argc, char **argv)
   for (mp = list; mp; mp = mp->next)
      num++;
 
+  if (num == 0)
+     return 0;
   lines = (lines / num) - 2;
   if (lines < 0)
     lines = util_screen_lines ();
