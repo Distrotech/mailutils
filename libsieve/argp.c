@@ -64,6 +64,13 @@ sieve_argp_parser (int key, char *arg, struct argp_state *state)
       plist = &sieve_library_path;
       break;
 
+    case ARGP_KEY_INIT:
+#ifdef SIEVE_MODDIR
+      plist = &sieve_library_path;
+      arg = SIEVE_MODDIR;
+#endif
+      break;
+      
     case ARGP_KEY_FINI:
       sieve_load_add_path (sieve_library_path);
       break;
