@@ -28,9 +28,6 @@ int lock_timeout = 300;
 #define MAXFD 64
 #define EX_QUOTA() (ex_quota_tempfail ? EX_TEMPFAIL : EX_UNAVAILABLE)
 
-static void print_help (void);
-static void print_license (void);
-static void print_version (void);
 void close_fds ();
 int switch_user_id (uid_t uid);
 FILE *make_tmp (const char *from, char **tempfile);
@@ -183,7 +180,10 @@ main (int argc, char *argv[])
   argv += arg_index;
 
   if (!argc)
-    print_help ();
+    {
+      mu_error ("Missing arguments. Try --help for more info");
+      return EX_USAGE;
+    }
 
   maildir = mu_normalize_maildir (maildir);
   if (!maildir)
@@ -730,37 +730,7 @@ guess_retval (int ec)
   exit_code = EX_UNAVAILABLE;
 }
 
-void
-print_help ()
-{
-static char help_message[] = 
-"Usage: mail.local [OPTIONS] recipient [recipient...]\n"
-"Options are:\n"
-"   -f, --from ADDR          Specify the sender's name\n"
-"   -h, --help               Display this help and exit\n"
-"   -L, --license            Display GNU General Public License\n"
-"   -m, --maildir PATH       Specify path to mailspool directory\n"
-#ifdef USE_DBM
-"   -q, --quota-db FILE      Specify path to quota database.\n"
-#endif
-#ifdef WITH_GUILE
-"   -s, --source PATTERN     Set name pattern for user-defined mail filters.\n"
-#endif
-"   -t, --timeout NUMBER     Set timeout for acquiring the lockfile\n"
-#ifdef WITH_GUILE
-"   -x, --debug guile        Start with guile debugging evaluator and backtraces\n"
-#endif
-"   -x, --debug NUMBER       Set debugging level\n"
-"   -v, --version            Display program version and exit.\n"
-"   --ex-multiple-delivery-success Don't return errors when delivering to\n"
-"                            multiple recipients\n"
-"   --ex-quota-tempfail      Return temporary failure if disk or mailbox quota\n"
-"                            is exceeded\n"
-"\nReport bugs to bug-mailutils@gnu.org\n";
 
-  printf ("%s", help_message);
-  exit (0);
-}
 
 
 
