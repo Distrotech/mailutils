@@ -14,6 +14,7 @@ mailutils_TEXINFOS = \
  c-api.texi \
  encoding.texi \
  envelope.texi \
+ fdl.texi \
  framework.texi \
  folder.texi \
  headers.texi \
