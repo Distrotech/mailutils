@@ -52,6 +52,9 @@ struct _message
   mime_t mime;
   observable_t observable;
 
+  /* Reference count.  */
+  int ref;
+
   /* Holder for message_write. */
   char *hdr_buf;
   size_t hdr_buflen;

@@ -50,6 +50,7 @@ message_create (message_t *pmsg, void *owner)
   if (msg == NULL)
     return ENOMEM;
   msg->owner = owner;
+  msg->ref = 1;
   *pmsg = msg;
   return 0;
 }
@@ -61,6 +62,7 @@ message_destroy (message_t *pmsg, void *owner)
     {
       message_t msg = *pmsg;
 
+      msg->ref--;
       if (msg->owner == owner)
 	{
 	  /* Notify the listeners.  */
@@ -91,11 +93,20 @@ message_destroy (message_t *pmsg, void *owner)
 	  if (msg->mime)
 	    mime_destroy (&(msg->mime));
 
-	  free (msg);
+	  if (msg->ref <= 0)
+	    free (msg);
 	}
       /* Loose the link */
       *pmsg = NULL;
     }
+}
+
+int
+message_ref (message_t msg)
+{
+  if (msg)
+    msg->ref++;
+  return 0;
 }
 
 void *
@@ -132,7 +143,7 @@ message_set_header (message_t msg, header_t hdr, void *owner)
      return EACCES;
   /* Make sure we destoy the old if it was own by the mesg */
   /* FIXME:  I do not know if somebody has already a ref on this ? */
-  /* header_destroy (&(msg->header), msg); */
+  header_destroy (&(msg->header), msg);
   msg->header = hdr;
   return 0;
 }
@@ -165,7 +176,7 @@ message_set_body (message_t msg, body_t body, void *owner)
     return EACCES;
   /* Make sure we destoy the old if it was own by the mesg.  */
   /* FIXME:  I do not know if somebody has already a ref on this ? */
-  /* body_destroy (&(msg->body), msg); */
+  body_destroy (&(msg->body), msg);
   msg->body = body;
   return 0;
 }
@@ -177,6 +188,9 @@ message_set_stream (message_t msg, stream_t stream, void *owner)
     return EINVAL;
   if (msg->owner != owner)
     return EACCES;
+  /* Make sure we destoy the old if it was own by the mesg.  */
+  /* FIXME:  I do not know if somebody has already a ref on this ? */
+  stream_destroy (&(msg->stream), msg);
   msg->stream = stream;
   return 0;
 }

@@ -74,8 +74,7 @@ struct _mailer
   void (*_destroy)     __P ((mailer_t));
   int (*_open)         __P ((mailer_t, int flags));
   int (*_close)        __P ((mailer_t));
-  int (*_send_message) __P ((mailer_t, const char *from, const char *rcpt,
-			     int dsn, message_t));
+  int (*_send_message) __P ((mailer_t, message_t));
 };
 
 /* Mail locks.  */

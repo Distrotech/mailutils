@@ -156,12 +156,11 @@ mailer_close (mailer_t mailer)
 
 /* messages */
 int
-mailer_send_message (mailer_t mailer, const char *from, const char *rcpt,
-		     int dsn, message_t msg)
+mailer_send_message (mailer_t mailer, message_t msg)
 {
   if (mailer == NULL || mailer->_send_message == NULL)
     return ENOSYS;
-  return mailer->_send_message (mailer, from, rcpt, dsn, msg);
+  return mailer->_send_message (mailer, msg);
 }
 
 int

@@ -47,8 +47,7 @@ extern void mailer_destroy      __P ((mailer_t *));
 extern int mailer_open          __P ((mailer_t, int flags));
 extern int mailer_close         __P ((mailer_t));
 
-extern int mailer_send_message	__P ((mailer_t, const char *from,
-				      const char *rcpt, int dsn, message_t));
+extern int mailer_send_message	__P ((mailer_t, message_t));
 /* stream settings */
 extern int mailer_get_stream    __P ((mailer_t, stream_t *));
 extern int mailer_set_stream    __P ((mailer_t, stream_t));

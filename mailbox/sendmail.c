@@ -72,8 +72,7 @@ typedef struct _sendmail * sendmail_t;
 static void sendmail_destroy (mailer_t);
 static int sendmail_open (mailer_t, int);
 static int sendmail_close (mailer_t);
-static int sendmail_send_message (mailer_t, const char *from, const char *rcpt,
-			      int dsn, message_t);
+static int sendmail_send_message (mailer_t, message_t);
 
 int
 sendmail_init (mailer_t mailer)
@@ -148,16 +147,13 @@ sendmail_close (mailer_t mailer)
 }
 
 static int
-sendmail_send_message (mailer_t mailer, const char *from, const char *rcpt,
-		       int dsn, message_t msg)
+sendmail_send_message (mailer_t mailer, message_t msg)
 {
   sendmail_t sendmail = mailer->data;
   int status = 0;
 
   if (sendmail == NULL || msg == NULL)
     return EINVAL;
-
-  sendmail->dsn = dsn;
 
   switch (sendmail->state)
     {
@@ -172,45 +168,6 @@ sendmail_send_message (mailer_t mailer, const char *from, const char *rcpt,
 	/* do not treat '.' as message terminator*/
 	argvec[1] = strdup ("-oi");
 	argvec[2] = strdup ("-t");
-
-	if (from)
-	  {
-	    size_t len = strlen (from) + 1;
-	    char *addr = calloc (len, sizeof (char));
-	    if (parseaddr (from, addr, len) == 0)
-	      {
-		argc++;
-		argvec = realloc (argvec, argc * (sizeof (*argvec)));
-		argvec[argc - 1] = strdup ("-f");
-		argc++;
-		argvec = realloc (argvec, argc * (sizeof (*argvec)));
-		argvec[argc - 1] = addr;
-	      }
-	    else
-	      free (addr);
-	  }
-
-	if (rcpt)
-	  {
-	    const char *p = rcpt;
-	    do
-	      {
-		size_t len = strlen (p) + 1;
-		char *addr = calloc (len, sizeof (char));
-		if (parseaddr (rcpt, addr, len) == 0)
-		  {
-		    argc++;
-		    argvec = realloc (argvec, argc * (sizeof (*argvec)));
-		    argvec[argc - 1] = addr;
-		  }
-		else
-		  free (addr);
-		p = strchr (p, ',');
-		if (p != NULL)
-		  p++;
-	      }
-	    while (p != NULL && *p != '\0');
-	  }
 
 	argc++;
 	argvec = realloc (argvec, argc * (sizeof (*argvec)));
