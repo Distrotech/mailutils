@@ -316,7 +316,7 @@ list_do (list_t list, list_action_t * action, void *cbdata)
   
   if (list == NULL || action == NULL)
     return EINVAL;
-  status = iterator_create(&itr, list);
+  status = list_get_iterator(list, &itr);
   if (status)
     return status;
   for (iterator_first (itr); !iterator_is_done (itr); iterator_next (itr))
@@ -362,3 +362,102 @@ list_to_array (list_t list, void **array, size_t count, size_t *pcount)
     *pcount = total; 
   return 0;
 }
+
+
+/* Iterator interface */
+
+struct list_iterator
+{
+  list_t list;
+  struct list_data *cur;
+};
+
+static int
+first (void *owner)
+{
+  struct list_iterator *itr = owner;
+  itr->cur = itr->list->head.next;
+  return 0;
+}
+
+static int
+next (void *owner)
+{
+  struct list_iterator *itr = owner;
+  itr->cur = itr->cur->next;
+  return 0;
+}
+
+static int
+getitem (void *owner, void **pret)
+{
+  struct list_iterator *itr = owner;
+  *pret = itr->cur->item;
+  return 0;
+}
+
+static int
+finished_p (void *owner)
+{
+  struct list_iterator *itr = owner;
+  return itr->cur == &itr->list->head;
+}
+
+static int
+destroy (iterator_t iterator, void *data)
+{
+  struct list_iterator *itr = data;
+  iterator_detach (&itr->list->itr, iterator);
+  free (data);
+  return 0;
+}
+
+static int
+curitem_p (void *owner, void *item)
+{
+  struct list_iterator *itr = owner;
+  return itr->cur == item;
+}
+
+static int
+list_data_dup (void **ptr, void *data)
+{
+  *ptr = malloc (sizeof (struct list_iterator *));
+  memcpy (*ptr, data, sizeof (struct list_iterator *));
+  return 0;
+}
+
+int
+list_get_iterator (list_t list, iterator_t *piterator)
+{
+  iterator_t iterator;
+  int status;
+  struct list_iterator *itr;
+
+  if (!list)
+    return EINVAL;
+      
+  itr = calloc (1, sizeof (struct list_iterator *));
+  if (!itr)
+    return ENOMEM;
+  itr->list = list;
+  itr->cur = NULL;
+  
+  status = iterator_create (&iterator, itr);
+  if (status)
+    return status;
+
+  iterator_set_first (iterator, first);
+  iterator_set_next (iterator, next);
+  iterator_set_getitem (iterator, getitem);
+  iterator_set_finished_p (iterator, finished_p);
+  iterator_set_curitem_p (iterator, curitem_p);
+  iterator_set_destroy (iterator, destroy);
+  iterator_set_dup (iterator, list_data_dup);
+  
+  iterator_attach (&list->itr, iterator);
+  
+  *piterator = iterator;
+  return 0;
+}
+
