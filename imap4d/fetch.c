@@ -17,7 +17,7 @@
 
 #include "imap4d.h"
 #include <ctype.h>
-#include <argcv.h>
+#include <mailutils/argcv.h>
 
 /* This will suck, too.
    Alain: Yes it does.  */

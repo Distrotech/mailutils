@@ -24,7 +24,7 @@
 
 #include <mh.h>
 #include <string.h>
-#include <argcv.h>
+#include <mailutils/argcv.h>
 
 struct mh_argp_data
 {

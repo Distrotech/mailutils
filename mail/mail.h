@@ -77,7 +77,7 @@
 #include <mailutils/stream.h>
 #include <mailutils/url.h>
 
-#include <argcv.h>
+#include <mailutils/argcv.h>
 #include <getline.h>
 
 #ifdef __cplusplus

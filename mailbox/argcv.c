@@ -17,7 +17,7 @@
 
 #include <ctype.h>
 
-#include "argcv.h"
+#include <mailutils/argcv.h>
 
 /*
  * takes a string and splits it into several strings, breaking at ' '

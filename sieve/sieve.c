@@ -34,8 +34,7 @@ sieve script interpreter.
 
 #include <sys/stat.h>
 
-#include <argcv.h>
-#include <argp.h>
+#include <mailutils/argcv.h>
 
 #include "sieve.h"
 #include "sieve_interface.h"
