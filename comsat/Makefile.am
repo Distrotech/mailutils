@@ -27,4 +27,4 @@ comsatd_LDADD = \
  ../mailbox/mbox/libmu_mbox.la\
  ../mailbox/libmailbox.la\
  ../lib/libmailutils.la\
- @LTLIBINTL@
+ @MU_COMMON_LIBRARIES@

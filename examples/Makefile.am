@@ -22,6 +22,7 @@ noinst_PROGRAMS = \
  listop\
  url-parse\
  sfrom\
+ iconv\
  mimetest\
  murun\
  muemail\
@@ -43,7 +44,7 @@ INCLUDES = -I$(top_srcdir)/include -I$(top_srcdir)/lib\
  -I$(top_builddir)/include/mailutils/gnu\
  -I$(top_srcdir)/mailbox @INTLINCS@
 
-AM_LDFLAGS = ../mailbox/libmailbox.la ../lib/libmailutils.la
+AM_LDFLAGS = ../mailbox/libmailbox.la ../lib/libmailutils.la @MU_COMMON_LIBRARIES@
 
 numaddr_la_SOURCES = numaddr.c
 numaddr_la_LIBADD = ../libsieve/libsieve.la 

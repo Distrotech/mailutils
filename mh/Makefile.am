@@ -131,7 +131,7 @@ mh_LIBS = \
  ../mailbox/maildir/libmu_maildir.la\
  ../mailbox/libmailbox.la\
  ../lib/libmailutils.la\
- @AUTHLIBS@ @LTLIBINTL@
+ @AUTHLIBS@ @MU_COMMON_LIBRARIES@
 LDADD = $(mh_LIBS)
 scan_LDADD = $(mh_LIBS) @CURSES_LIBS@
 pick_SOURCES = pick.c pick.h pick-gram.c pick-gram.h

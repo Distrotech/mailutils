@@ -30,7 +30,7 @@ mail_local_LDADD = \
  ../mailbox/libmailbox.la \
  @AUTHLIBS@\
  ../libsieve/libsieve.la\
- ../lib/libmailutils.la @LTLIBINTL@
+ ../lib/libmailutils.la @MU_COMMON_LIBRARIES@
 
 install-exec-hook:
 	for i in $(libexec_PROGRAMS); do\

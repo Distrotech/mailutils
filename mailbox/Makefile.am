@@ -54,6 +54,7 @@ debug.c \
 envelope.c \
 file_stream.c \
 filter.c \
+filter_iconv.c \
 filter_rfc822.c \
 filter_trans.c \
 folder.c \
@@ -104,15 +105,16 @@ parsedate.c: $(srcdir)/parsedate.y
                   -- -yy pd_yy
 
 libmailbox_la_DEPENDENCIES = @MU_LTLIBOBJS@
-libmailbox_la_LIBADD = @MU_LTLIBOBJS@ @LTLIBINTL@
+libmailbox_la_LIBADD = @MU_LTLIBOBJS@ @MU_COMMON_LIBRARIES@
 libmailbox_la_LDFLAGS = -version-info 0:0:0
 
 mailutils_config_SOURCES = mailutils-config.c
-mailutils_config_LDADD = ./libmailbox.la ../lib/libmailutils.la @LTLIBINTL@
+mailutils_config_LDADD = ./libmailbox.la ../lib/libmailutils.la @MU_COMMON_LIBRARIES@
 mailutils_config_CFLAGS = -DCOMPILE_FLAGS="\"-I$(includedir)\"" \
   -I$(top_srcdir)/intl \
   -I${top_srcdir}/lib \
   -DLINK_FLAGS="\"-L$(libdir)\"" \
+  -DLINK_POSTFLAGS="\"$(LTLIBICONV)\"" \
   -DAUTHLIBS="\"`echo $(AUTHLIBS) | sed 's/.*libmuauth.la *//'`\"" \
   -DGUILE_LIBS="\"$(GUILE_LIBS)\"" \
   -DI18NLIBS="\"`test $(BUILD_INCLUDED_LIBINTL) = no && echo $(LIBINTL)`\""

@@ -35,4 +35,4 @@ guimb_LDADD = \
  ../mailbox/maildir/libmu_maildir.la\
  ../mailbox/libmailbox.la\
  ../lib/libmailutils.la\
- @AUTHLIBS@ @GUILE_LIBS@ @LTLIBINTL@
+ @AUTHLIBS@ @GUILE_LIBS@ @MU_COMMON_LIBRARIES@

@@ -32,4 +32,4 @@ readmsg_LDADD =\
  ../mailbox/maildir/libmu_maildir.la\
  ../mailbox/libmailbox.la\
  ../lib/libmailutils.la\
- @AUTHLIBS@ @LTLIBINTL@
+ @AUTHLIBS@ @MU_COMMON_LIBRARIES@

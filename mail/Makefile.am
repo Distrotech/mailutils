@@ -31,7 +31,7 @@ mail_LDADD = \
  ../mailbox/maildir/libmu_maildir.la\
  ../mailbox/libmailbox.la\
  ../lib/libmailutils.la\
- @AUTHLIBS@ @READLINE_LIBS@ @LTLIBINTL@
+ @AUTHLIBS@ @READLINE_LIBS@ @MU_COMMON_LIBRARIES@
 
 EXTRA_DIST = msgset.c
 
