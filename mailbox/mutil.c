@@ -348,16 +348,16 @@ mu_set_user_email_domain (const char *domain)
 {
   char* d = NULL;
   
-  if(!domain)
+  if (!domain)
     return EINVAL;
   
-  d = strdup(domain);
+  d = strdup (domain);
 
-  if(!d)
+  if (!d)
     return ENOMEM;
 
-  if(mu_user_email_domain)
-    free(mu_user_email_domain);
+  if (mu_user_email_domain)
+    free (mu_user_email_domain);
 
   mu_user_email_domain = d;
 
@@ -365,13 +365,13 @@ mu_set_user_email_domain (const char *domain)
 }
 
 int
-mu_get_user_email_domain (const char** domain)
+mu_get_user_email_domain (const char **domain)
 {
   int err = 0;
 
   if (!mu_user_email_domain)
     {
-      if((err = mu_get_host_name(&mu_user_email_domain)))
+      if ((err = mu_get_host_name (&mu_user_email_domain)))
 	return err;
     }
 
@@ -380,6 +380,7 @@ mu_get_user_email_domain (const char** domain)
   return 0;
 }
 
+/* Note: allocates memory */
 char *
 mu_get_user_email (const char *name)
 {
