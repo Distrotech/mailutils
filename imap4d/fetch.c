@@ -51,7 +51,7 @@ static int bodystructure           __P ((message_t, int));
 static int fetch_body              __P ((struct fetch_command *, char*));
 static int fetch_uid               __P ((struct fetch_command *, char*));
 
-static int fetch_operation         __P ((size_t, char *, int));
+static int fetch_operation         __P ((message_t, char *, int));
 static int fetch_message           __P ((message_t, unsigned long, unsigned long));
 static int fetch_header            __P ((message_t, unsigned long, unsigned long));
 static int fetch_content           __P ((message_t, unsigned long, unsigned long));
@@ -66,7 +66,7 @@ struct fetch_command
 {
   const char *name;
   int (*func) __P ((struct fetch_command *, char *));
-  size_t msgno;
+  message_t msg;
 } fetch_command_table [] =
 {
 #define F_ALL 0
@@ -98,18 +98,7 @@ struct fetch_command
   { NULL, 0, 0}
 };
 
-int
-imap4d_fetch (struct imap4d_command *command, char *arg)
-{
-  int rc;
-  char buffer[64];
-
-  if (! (command->states & state))
-    return util_finish (command, RESP_BAD, "Wrong state");
-
-  rc = imap4d_fetch0 (arg, 0, buffer, sizeof buffer);
-  return util_finish (command, rc, buffer);
-}
+/* Go through the fetch array sub command and returns the the structure.  */
 
 static struct fetch_command *
 fetch_getcommand (char *cmd, struct fetch_command command_table[])
@@ -125,6 +114,24 @@ fetch_getcommand (char *cmd, struct fetch_command command_table[])
   return NULL;
 }
 
+/* The FETCH command retrieves data associated with a message in the
+   mailbox.  The data items to be fetched can be either a single atom
+   or a parenthesized list.  */
+int
+imap4d_fetch (struct imap4d_command *command, char *arg)
+{
+  int rc;
+  char buffer[64];
+
+  if (! (command->states & state))
+    return util_finish (command, RESP_BAD, "Wrong state");
+
+  rc = imap4d_fetch0 (arg, 0, buffer, sizeof buffer);
+  return util_finish (command, rc, buffer);
+}
+
+/* Where the real implementation is.  It is here since UID command also
+   calls FETCH.  */
 int
 imap4d_fetch0 (char *arg, int isuid, char *resp, size_t resplen)
 {
@@ -159,10 +166,10 @@ imap4d_fetch0 (char *arg, int isuid, char *resp, size_t resplen)
       char *p = items;
       size_t msgno;
       int space = 0;
-      int uid_sent = !isuid; /* Pretend we sent the uid if via fetch.  */
+      message_t msg = NULL;
 
       msgno = (isuid) ? uid_to_msgno (set[i]) : set[i];
-      if (msgno)
+      if (msgno && mailbox_get_message (mbox, msgno, &msg) == 0)
 	{
 	  fcmd = NULL;
 	  util_send ("* %d FETCH (", msgno);
@@ -171,18 +178,18 @@ imap4d_fetch0 (char *arg, int isuid, char *resp, size_t resplen)
 	     include the UID message data item as part of any FETCH response
 	     caused by a UID command, regardless of whether a UID was specified
 	     as a message data item to the FETCH. */
-	  if (!uid_sent)
+	  if (isuid)
 	    {
 	      fcmd = &fetch_command_table[F_UID];
-	      fcmd->msgno = msgno;
+	      fcmd->msg = msg;
 	      rc = fetch_uid (fcmd, p);
-	      uid_sent = 1;
 	    }
 	  /* Get the fetch command names.  */
 	  while (*items && *items != ')')
 	    {
 	      util_token (item, sizeof (item), &items);
-	      if (uid_sent && strcasecmp (item, "UID") == 0)
+	      /* Do not send the UID again.  */
+	      if (isuid && strcasecmp (item, "UID") == 0)
 		  continue;
 	      if (fcmd)
 		space = 1;
@@ -195,7 +202,7 @@ imap4d_fetch0 (char *arg, int isuid, char *resp, size_t resplen)
 		      util_send (" ");
 		      space = 0;
 		    }
-		  fcmd->msgno = msgno;
+		  fcmd->msg = msg;
 		  rc = fcmd->func (fcmd, items);
 		}
 	    }
@@ -208,7 +215,7 @@ imap4d_fetch0 (char *arg, int isuid, char *resp, size_t resplen)
   return rc;
 }
 
-/* The Fetch comand retireves data associated with a message in the
+/* The Fetch comand retrieves data associated with a message in the
    mailbox,  The data items to be fetched can be either a single  atom
    or a parenthesized list.  */
 
@@ -220,7 +227,7 @@ fetch_all (struct fetch_command *command, char *arg)
   struct fetch_command c_env = fetch_command_table[F_ENVELOPE];
   fetch_fast (command, arg);
   util_send (" ");
-  c_env.msgno = command->msgno;
+  c_env.msg = command->msg;
   fetch_envelope (&c_env, arg);
   return RESP_OK;
 }
@@ -232,7 +239,7 @@ fetch_full (struct fetch_command *command, char *arg)
   struct fetch_command c_body = fetch_command_table[F_BODY];
   fetch_all (command, arg);
   util_send (" ");
-  c_body.msgno = command->msgno;
+  c_body.msg = command->msg;
   fetch_body (&c_body, arg);
   return RESP_OK;
 }
@@ -244,13 +251,13 @@ fetch_fast (struct fetch_command *command, char *arg)
   struct fetch_command c_idate = fetch_command_table[F_INTERNALDATE];
   struct fetch_command c_rfc = fetch_command_table[F_RFC822_SIZE];
   struct fetch_command c_flags = fetch_command_table[F_FLAGS];
-  c_flags.msgno = command->msgno;
+  c_flags.msg = command->msg;
   fetch_flags (&c_flags, arg);
   util_send (" ");
-  c_idate.msgno = command->msgno;
+  c_idate.msg = command->msg;
   fetch_internaldate (&c_idate, arg);
   util_send (" ");
-  c_rfc.msgno = command->msgno;
+  c_rfc.msg = command->msg;
   fetch_rfc822_size (&c_rfc, arg);
   return RESP_OK;
 }
@@ -260,16 +267,14 @@ fetch_fast (struct fetch_command *command, char *arg)
 static int
 fetch_envelope (struct fetch_command *command, char *arg)
 {
-  message_t msg = NULL;
   int status;
-  mailbox_get_message (mbox, command->msgno, &msg);
+  (void)arg;
   util_send ("%s (", command->name);
-  status = fetch_envelope0 (msg);
+  status = fetch_envelope0 (command->msg);
   util_send (")");
   return status;
 }
 
-/* FIXME: - strings change to literals when detecting '"'  */
 static int
 fetch_envelope0 (message_t msg)
 {
@@ -279,21 +284,15 @@ fetch_envelope0 (message_t msg)
 
   message_get_header (msg, &header);
 
-  /* FIXME: Incorrect Date.  */
+  /* Date.  */
   header_aget_value (header, "Date", &buffer);
-  if (*buffer == '\0')
-    util_send ("NIL");
-  else
-    util_send ("\"%s\"", buffer);
+  util_send_string (buffer);
   free (buffer);
   util_send (" ");
 
   /* Subject.  */
   header_aget_value (header, "Subject", &buffer);
-  if (*buffer == '\0')
-    util_send ("NIL");
-  else
-    util_send ("\"%s\"", buffer);
+  util_send_string (buffer);
   free (buffer);
   util_send (" ");
 
@@ -335,10 +334,7 @@ fetch_envelope0 (message_t msg)
   util_send (" ");
 
   header_aget_value (header, "Message-ID", &buffer);
-  if (*buffer == '\0')
-    util_send ("NIL");
-  else
-    util_send ("\"%s\"", buffer);
+  util_send_string (buffer);
 
   free (buffer);
   free (from);
@@ -351,22 +347,43 @@ static int
 fetch_flags (struct fetch_command *command, char *arg)
 {
   attribute_t attr = NULL;
-  message_t msg = NULL;
+  int space = 0;
   (void)arg;
-  mailbox_get_message (mbox, command->msgno, &msg);
-  message_get_attribute (msg, &attr);
+  message_get_attribute (command->msg, &attr);
   util_send ("%s (", command->name);
   if (attribute_is_deleted (attr))
-    util_send (" \\Deleted");
+    {
+      util_send ("\\Deleted");
+      space = 1;
+    }
   if (attribute_is_answered (attr))
-    util_send (" \\Answered");
+    {
+      if (space)
+	util_send (" ");
+      util_send ("\\Answered");
+      space = 1;
+    }
   if (attribute_is_flagged (attr))
-    util_send (" \\Flagged");
+    {
+      if (space)
+	util_send (" ");
+      util_send ("\\Flagged");
+      space = 1;
+    }
   if (attribute_is_seen (attr) && attribute_is_read (attr))
-    util_send (" \\Seen");
+    {
+      if (space)
+	util_send (" ");
+      util_send ("\\Seen");
+      space = 1;
+    }
   if (attribute_is_draft (attr))
-    util_send (" \\Draft");
-  util_send (" )");
+    {
+      if (space)
+	util_send (" ");
+      util_send (" \\Draft");
+    }
+  util_send (")");
   return RESP_OK;
 }
 
@@ -376,13 +393,6 @@ static const char *MONTHS[] =
   "Jan", "Feb", "Mar", "Apr", "May", "Jun",
   "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
 };
-#if 0
-/* The week day is recompute by mktime().  */
-static const char *WEEKDAYS[] =
-{
- "Sun", "Mon",  "Tue", "Wed", "Thu", "Fri", "Sat"
-};
-#endif
 
 static const char *
 get_timezone (const struct tm *tptr)
@@ -419,12 +429,10 @@ fetch_internaldate (struct fetch_command *command, char *arg)
 {
   char date[512];
   envelope_t env = NULL;
-  message_t msg = NULL;
   struct tm tm;
   struct tm *tptr;
   (void)arg;
-  mailbox_get_message (mbox, command->msgno, &msg);
-  message_get_envelope (msg, &env);
+  message_get_envelope (command->msg, &env);
   date[0] = '\0';
   envelope_date (env, date, sizeof (date), NULL);
   {
@@ -452,17 +460,6 @@ fetch_internaldate (struct fetch_command *command, char *arg)
 	    break;
 	  }
       }
-    /* No need the week day is recompute by mktime.  */
-#if 0
-    for (i = 0; i < 7; i++)
-      {
-	if (strncasecmp(wday, WEEKDAYS[i], 3) == 0)
-	  {
-	    /* day = i; */
-	    break;
-	  }
-      }
-#endif
     tm.tm_mday = day;
     tm.tm_mon = mon;
     tm.tm_year = (year > 1900) ? year - 1900 : year;
@@ -482,8 +479,6 @@ fetch_internaldate (struct fetch_command *command, char *arg)
   }
   strftime (date, sizeof (date), "%d-%b-%Y %X", &tm);
   util_send ("%s", command->name);
-  if (date[strlen (date) - 1] == '\n')
-    date[strlen (date) - 1] = '\0';
   util_send (" \"%s %s\"", date, get_timezone (&tm));
   return RESP_OK;
 }
@@ -496,7 +491,7 @@ fetch_rfc822_header (struct fetch_command *command, char *arg)
   (void)arg;
   util_send ("%s ", command->name);
   strcpy (buffer, "[HEADER]");
-  fetch_operation (command->msgno, buffer, 1);
+  fetch_operation (command->msg, buffer, 1);
   return RESP_OK;
 }
 
@@ -506,10 +501,8 @@ fetch_rfc822_text (struct fetch_command *command, char *arg)
 {
   char buffer[16];
   attribute_t attr = NULL;
-  message_t msg = NULL;
   (void)arg;
-  mailbox_get_message (mbox, command->msgno, &msg);
-  message_get_attribute (msg, &attr);
+  message_get_attribute (command->msg, &attr);
   if (!attribute_is_seen (attr) && !attribute_is_read (attr))
     {
       util_send ("FLAGS (\\Seen) ");
@@ -518,7 +511,7 @@ fetch_rfc822_text (struct fetch_command *command, char *arg)
     }
   util_send ("%s ", command->name);
   strcpy (buffer, "[TEXT]");
-  fetch_operation (command->msgno, buffer, 1);
+  fetch_operation (command->msg, buffer, 1);
   return RESP_OK;
 }
 
@@ -528,11 +521,9 @@ fetch_rfc822_size (struct fetch_command *command, char *arg)
 {
   size_t size = 0;
   size_t lines = 0;
-  message_t msg = NULL;
   (void)arg;
-  mailbox_get_message (mbox, command->msgno, &msg);
-  message_size (msg, &size);
-  message_lines (msg, &lines);
+  message_size (command->msg, &size);
+  message_lines (command->msg, &lines);
   util_send ("%s %u", command->name, size + lines);
   return RESP_OK;
 }
@@ -546,19 +537,19 @@ fetch_rfc822 (struct fetch_command *command, char *arg)
       if (strncasecmp (arg, ".SIZE", 5) == 0)
 	{
 	  struct fetch_command c_rfc= fetch_command_table[F_RFC822_SIZE];
-	  c_rfc.msgno = command->msgno;
+	  c_rfc.msg = command->msg;
 	  fetch_rfc822_size (&c_rfc, arg);
 	}
       else if (strncasecmp (arg, ".TEXT", 5) == 0)
 	{
 	  struct fetch_command c_rfc = fetch_command_table[F_RFC822_TEXT];
-	  c_rfc.msgno = command->msgno;
+	  c_rfc.msg = command->msg;
 	  fetch_rfc822_text (&c_rfc, arg);
 	}
       else if (strncasecmp (arg, ".HEADER", 7) == 0)
 	{
 	  struct fetch_command c_rfc = fetch_command_table[F_RFC822_HEADER];
-	  c_rfc.msgno = command->msgno;
+	  c_rfc.msg = command->msg;
 	  fetch_rfc822_header (&c_rfc, arg);
 	}
     }
@@ -566,9 +557,7 @@ fetch_rfc822 (struct fetch_command *command, char *arg)
     {
       char buffer[16];
       attribute_t attr = NULL;
-      message_t msg = NULL;
-      mailbox_get_message (mbox, command->msgno, &msg);
-      message_get_attribute (msg, &attr);
+      message_get_attribute (command->msg, &attr);
       if (!attribute_is_seen (attr) && !attribute_is_read (attr))
 	{
 	  util_send ("FLAGS (\\Seen) ");
@@ -577,7 +566,7 @@ fetch_rfc822 (struct fetch_command *command, char *arg)
 	}
       util_send ("%s ", command->name);
       strcpy (buffer, "[]");
-      fetch_operation (command->msgno, buffer, 1);
+      fetch_operation (command->msg, buffer, 1);
     }
   return RESP_OK;
 }
@@ -587,10 +576,8 @@ static int
 fetch_uid (struct fetch_command *command, char *arg)
 {
   size_t uid = 0;
-  message_t msg = NULL;
   (void)arg;
-  mailbox_get_message (mbox, command->msgno, &msg);
-  message_get_uid (msg, &uid);
+  message_get_uid (command->msg, &uid);
   util_send ("%s %d", command->name, uid);
   return RESP_OK;
 }
@@ -598,11 +585,9 @@ fetch_uid (struct fetch_command *command, char *arg)
 static int
 fetch_bodystructure (struct fetch_command *command, char *arg)
 {
-  message_t message = NULL;
   (void)arg;
   util_send ("%s (", command->name);
-  mailbox_get_message (mbox, command->msgno, &message);
-  fetch_bodystructure0 (message, 1);
+  fetch_bodystructure0 (command->msg, 1);
   util_send (")");
   return RESP_OK;
 }
@@ -632,7 +617,7 @@ fetch_bodystructure0 (message_t message, int extension)
 	  char *buffer = NULL;
 	  char *sp = NULL;
 	  char *s;
-	      /* The subtype.  */
+	  /* The subtype.  */
 	  message_get_header (message, &header);
 	  header_aget_value (header, MU_HEADER_CONTENT_TYPE, &buffer);
 	  s = strtok_r (buffer, " \t\r\n;", &sp);
@@ -647,39 +632,50 @@ fetch_bodystructure0 (message_t message, int extension)
 	  /* Content-type parameter list. */
 	  util_send (" (");
 	  {
+	    int space = 0;
 	    while ((s = strtok_r (NULL, " \t\r\n;", &sp)))
 	      {
 		char *p = strchr (s, '=');
 		if (p)
 		  *p++ = '\0';
+		if (space)
+		  util_send (" ");
 		util_send ("\"%s\"", s);
-		util_send (" \"%s\"", (p) ? p : "NIL");
+		if (p)
+		  util_send (" \"%s\"", p);
+		space = 1;
 	      }
 	  }
+	  util_send (")");
 	  free (buffer);
 	  /* Content-Disposition.  */
 	  header_aget_value (header, MU_HEADER_CONTENT_DISPOSITION, &buffer);
 	  if (*buffer)
 	    {
+	      char *t = buffer;
 	      util_send (" (");
-	      while ((s = strtok_r (buffer, " \t\r\n;", &sp)))
+	      while ((s = strtok_r (t, " \t\r\n;", &sp)))
 		{
 		  char *p = strchr (s, '=');
 		  if (p)
 		    *p++ = '\0';
+		  if (t == NULL)
+		    util_send (" ");
 		  util_send ("\"%s\"", s);
-		  util_send (" \"%s\"", (p) ? p : "NIL");
+		  if (p)
+		    util_send (" \"%s\"", (p) ? p : "NIL");
+		  t = NULL;
 		}
+	      util_send (")");
 	    }
 	  else
 	    util_send (" NIL");
 	  free (buffer);
 	  /* Content-Language.  */
 	  header_aget_value (header, MU_HEADER_CONTENT_LANGUAGE, &buffer);
-	  if (*buffer)
-	    util_send (" \"%s\"", buffer);
-	  else
-	    util_send (" NIL");
+	  util_send (" ");
+	  util_send_string (buffer);
+	  free (buffer);
 	} /* extension */
     }
   else
@@ -726,11 +722,14 @@ bodystructure (message_t msg, int extension)
   util_send (" (");
     {
       int have_charset = 0;
+      int space = 0;
       while ((s = strtok_r (NULL, " \t\r\n;", &sp)))
 	{
 	  char *p = strchr (s, '=');
 	  if (p)
 	    *p++ = '\0';
+	  if (space)
+	    util_send (" ");
 	  util_send ("\"%s\"", s);
 	  util_send (" \"%s\"", (p) ? p : "NIL");
 	  if (strcasecmp (s, "charset") == 0)
@@ -748,23 +747,20 @@ bodystructure (message_t msg, int extension)
 
   /* Content-ID. */
   header_aget_value (header, MU_HEADER_CONTENT_ID, &buffer);
-  if (*buffer)
-    util_send (" \"%s\"", buffer);
-  else
-    util_send (" NIL");
+  util_send (" ");
+  util_send_string (buffer);
   free (buffer);
 
   /* Content-Description. */
   header_aget_value (header, MU_HEADER_CONTENT_DESCRIPTION, &buffer);
-  if (*buffer)
-    util_send (" \"%s\"", buffer);
-  else
-    util_send (" NIL");
+  util_send (" ");
+  util_send_string (buffer);
   free (buffer);
 
   /* Content-Transfer-Encoding. */
   header_aget_value (header, MU_HEADER_CONTENT_TRANSFER_ENCODING, &buffer);
-  util_send (" \"%s\"", (*buffer) ? buffer : "7bit");
+  util_send (" ");
+  util_send_string ((*buffer) ? buffer : "7BIT");
   free (buffer);
 
   /* Body size RFC822 format.  */
@@ -803,34 +799,35 @@ bodystructure (message_t msg, int extension)
     {
       /* Content-MD5.  */
       header_aget_value (header, MU_HEADER_CONTENT_MD5, &buffer);
-      if (*buffer)
-	util_send (" \"%s\"", buffer);
-      else
-	util_send (" NIL");
+      util_send (" ");
+      util_send_string (buffer);
       free (buffer);
       /* Content-Disposition.  */
       header_aget_value (header, MU_HEADER_CONTENT_DISPOSITION, &buffer);
       if (*buffer)
 	{
+	  char *t = buffer;
 	  util_send (" (");
-	  while ((s = strtok_r (buffer, " \t\r\n;", &sp)))
+	  while ((s = strtok_r (t, " \t\r\n;", &sp)))
 	    {
 	      char *p = strchr (s, '=');
 	      if (p)
 		*p++ = '\0';
+	      if (t == NULL)
+		util_send (" ");
 	      util_send ("\"%s\"", s);
 	      util_send (" \"%s\"", (p) ? p : "NIL");
+	      t = NULL;
 	    }
+	  util_send (")");
 	}
       else
 	util_send (" NIL");
       free (buffer);
       /* Content-Language.  */
       header_aget_value (header, MU_HEADER_CONTENT_LANGUAGE, &buffer);
-      if (*buffer)
-	util_send (" \"%s\"", buffer);
-      else
-	util_send (" NIL");
+      util_send (" ");
+      util_send_string (buffer);
       free (buffer);
     }
   return RESP_OK;
@@ -843,10 +840,8 @@ fetch_body (struct fetch_command *command, char *arg)
   /* It's BODY set the message as seen  */
   if (*arg == '[')
     {
-      message_t msg = NULL;
       attribute_t attr = NULL;
-      mailbox_get_message (mbox, command->msgno, &msg);
-      message_get_attribute (msg, &attr);
+      message_get_attribute (command->msg, &attr);
       if (!attribute_is_seen (attr) && !attribute_is_read (attr))
 	{
 	  util_send ("FLAGS (\\Seen) ");
@@ -863,24 +858,21 @@ fetch_body (struct fetch_command *command, char *arg)
     }
   else if (*arg != '[' && *arg != '.')
     {
-      message_t message = NULL;
-      mailbox_get_message (mbox, command->msgno, &message);
       /* Call body structure without the extension.  */
       util_send ("%s (", command->name);
-      fetch_bodystructure0 (message, 0);
+      fetch_bodystructure0 (command->msg, 0);
       util_send (")");
       return RESP_OK;
     }
   util_send ("%s", command->name);
-  return fetch_operation (command->msgno, arg, 0);
+  return fetch_operation (command->msg, arg, 0);
 }
 
 static int
-fetch_operation (size_t msgno, char *arg, int silent)
+fetch_operation (message_t msg, char *arg, int silent)
 {
   unsigned long start = ULONG_MAX;
   unsigned long end = ULONG_MAX; /* No limit. */
-  message_t msg = NULL;
   char *partial = strchr (arg, '<');
 
   /* Check for section specific offset.  */
@@ -897,8 +889,6 @@ fetch_operation (size_t msgno, char *arg, int silent)
 	  end = strtoul (partial, NULL, 10);
 	}
     }
-
-  mailbox_get_message (mbox, msgno, &msg);
 
   /* Retreive the sub message.  */
   for (arg++; isdigit ((unsigned)*arg) || *arg == '.'; arg++)

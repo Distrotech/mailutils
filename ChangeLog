@@ -1,3 +1,9 @@
+2001-05-11  Alain Magloire
+
+	* imap4d/fetch.c: More cleanup in the bodystructure code,
+	arrange response indentation etc ...
+	* impa4d/utils.c (util_send_string): New helper function.
+
 2001-05-10  Alain Magloire
 
 	* imap4d/fetch.c: Implemented INTERNALDATE.

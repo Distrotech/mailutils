@@ -175,6 +175,7 @@ extern int imap4d_bye __P ((int));
 /* Helper functions.  */
 extern int  util_out __P ((int, const char *, ...));
 extern int  util_send __P ((const char *, ...));
+extern int  util_send_string __P ((const char *));
 extern int  util_start __P ((char *));
 extern int  util_finish __P ((struct imap4d_command *, int, const char *, ...));
 extern int  util_getstate __P ((void));

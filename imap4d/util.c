@@ -18,7 +18,7 @@
 #include "imap4d.h"
 #include <ctype.h>
 
-static int add2set __P ((size_t **, int *, unsigned long, size_t));
+static int add2set __P ((size_t **, int *, unsigned long));
 static const char *sc2string __P ((int));
 
 /* Get the next space/CR/NL separated word, some words are between double
@@ -184,9 +184,6 @@ util_msgset (char *s, size_t **set, int *n, int isuid)
   status = mailbox_messages_count (mbox, &max);
   if (status != 0)
     return status;
-  /* The number after the "*" in an untagged FETCH response is always a
-     message sequence number, not a unique identifier, even for a UID
-     command response. But do what they meant not what they say.  */
   /* If it is a uid sequence, override max with the UID.  */
   if (isuid)
     {
@@ -216,9 +213,23 @@ util_msgset (char *s, size_t **set, int *n, int isuid)
 	      }
 	    if (low)
 	      {
+		/* Reverse it. */
+		if (low > val)
+		  {
+		    long tmp = low;
+		    tmp -= 2;
+		    if (tmp <= 0 || val == 0)
+		      {
+			free (*set);
+			*n = 0;
+			return EINVAL;
+		      }
+		    low = val;
+		    val = tmp;
+		  }
 		for (;low && low <= val; low++)
 		  {
-		    status = add2set (set, n, low, max);
+		    status = add2set (set, n, low);
 		    if (status != 0)
 		      return status;
 		  }
@@ -226,7 +237,7 @@ util_msgset (char *s, size_t **set, int *n, int isuid)
 	      }
 	    else
 	      {
-		status = add2set(set, n, val, max);
+		status = add2set(set, n, val);
 		if (status != 0)
 		  return status;
 	      }
@@ -284,9 +295,23 @@ util_msgset (char *s, size_t **set, int *n, int isuid)
 
   if (low)
     {
+      /* Reverse it. */
+      if (low > val)
+	{
+	  long tmp = low;
+	  tmp -= 2;
+	  if (tmp <= 0 || val == 0)
+	    {
+	      free (set);
+	      *n = 0;
+	      return EINVAL;
+	    }
+	  low = val;
+	  val = tmp;
+	}
       for (;low && low <= val; low++)
 	{
-	  status = add2set (set, n, low, max);
+	  status = add2set (set, n, low);
 	  if (status != 0)
 	    return status;
 	}
@@ -304,6 +329,18 @@ util_send (const char *format, ...)
   status = vfprintf (ofile, format, ap);
   va_end (ap);
   return status;
+}
+
+/* Send NIL if empty string, a literal if the string contains double quotes
+   or the string surrounded by double quotes.  */
+int
+util_send_string (const char *buffer)
+{
+  if (*buffer == '\0')
+    return util_send ("NIL");
+  if (strchr (buffer, '"'))
+    return util_send ("{%u}\r\n%s", strlen (buffer), buffer);
+  return util_send ("\"%s\"", buffer);
 }
 
 /* Send an unsolicited response.  */
@@ -417,7 +454,7 @@ imap4d_readline (FILE *fp)
         }
     }
   while (number > 0);
-  /* syslog (LOG_INFO, "readline: %s", line); */
+  syslog (LOG_INFO, "readline: %s", line);
   return line;
 }
 
@@ -522,11 +559,11 @@ sc2string (int rc)
 }
 
 static int
-add2set (size_t **set, int *n, unsigned long val, size_t max)
+add2set (size_t **set, int *n, unsigned long val)
 {
   int *tmp;
-  if (val == 0 || val > max
-      || (tmp = realloc (*set, (*n + 1) * sizeof (**set))) == NULL)
+  tmp = realloc (*set, (*n + 1) * sizeof (**set));
+  if (tmp == NULL)
     {
       if (*set)
 	free (*set);
