@@ -6,17 +6,64 @@
 GNU Mailutils provides a set of programs for handling the email.
 
 @menu
-* imap4d::      IMAP4 daemon.
-* pop3d::       POP3 daemon.
-* frm::         List headers from a mailbox.
-* mail::        Send and receive mail.
-* mail.local::  Deliver mail to the local mailbox.
-* messages::    Count the number of messages in a mailbox.
-* readmsg::     Extract messages from a folder.
-* sieve::       Filter a mailbox.
-* guimb::       Mailbox scanning and processing language.
-* comsatd::     Comsat daemon.
+* configuration:: Common configuration file.
+* imap4d::        IMAP4 daemon.
+* pop3d::         POP3 daemon.
+* frm::           List headers from a mailbox.
+* mail::          Send and receive mail.
+* mail.local::    Deliver mail to the local mailbox.
+* messages::      Count the number of messages in a mailbox.
+* readmsg::       Extract messages from a folder.
+* sieve::         Filter a mailbox.
+* guimb::         Mailbox scanning and processing language.
+* comsatd::       Comsat daemon.
 @end menu
+
+@page
+@node configuration
+@section Mailutils configuration file
+@cindex Mailutils configuration file
+@cindex mailutils.rc
+
+There are some command line options that are used so often that it is
+inconvenient to specify them in the command line each time you run
+a mailutils utility. The @file{mailutils.rc} provides a way to
+add default command line arguments without having to type them in
+the command line. The file is located in your system configuration
+directory (usually, @file{/etc} or @file{/usr/local/etc}).
+@footnote{Currently, the mailutils programs that use @file{mailutils.rc}
+are:
+
+@itemize @bullet
+@item imap4d
+@item pop3d
+@item mail.local
+@item comsatd
+@end itemize}
+
+The @file{mailutils.rc} has a simple line-oriented syntax. Upon
+startup, each mailutils program scans this file for a line that
+begins either with a program name or with word `mailutils'. When
+found, the rest of the line following the first word is split up
+at whitespace characters and resulting words are added to the 
+program arguments @emph{before} the command line options. Thus,
+the options specified in the command line override those from
+@file{mailutils.rc} file.
+
+The very long lines may be split across several lines of text by
+escaping final newline with a backslash (@samp{\}) character.
+The @samp{#} character introduces comment.
+
+Here is an example of a simple @file{mailutils.rc} file. It tells
+all mailutils programs to use @file{/var/spool/mail} as a mailspool
+directory. All programs, except @command{imap4d} will issue diagnostics
+via @code{local1} @file{syslog} facility. @command{imap4d} will use
+@code{local2}.
+
+@example
+mailutils --log-facility local1 --maildir /var/spool/mail
+imap4d --log-facility local2 --daemon=10
+@end example
 
 @page
 @node imap4d
