@@ -18,10 +18,11 @@
 #ifndef _MAILUTILS_SYS_STREAM_H
 #define _MAILUTILS_SYS_STREAM_H
 
-#include <mailutils/base.h>
 #include <mailutils/stream.h>
 
-__MAILUTILS_BEGIN_DECLS
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 struct _stream_vtable
 {
@@ -75,6 +76,8 @@ struct _stream
 #define stream_get_flags(s,f)      ((s)->vtable->get_flags)(s,f)
 #define stream_get_state(s,f)      ((s)->vtable->get_state)(s,f)
 
-__MAILUTILS_END_DECLS
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* _MAILUTILS_SYS_STREAM_H */

@@ -20,7 +20,9 @@
 
 #include <mailutils/iterator.h>
 
-__MAILUTILS_BEGIN_DECLS
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 struct _iterator_vtable
 {
@@ -50,6 +52,8 @@ struct _iterator
 #define iterator_current(i,a)  ((i)->vtable->current)(i,a)
 #define iterator_is_done(i)    ((i)->vtable->is_done)(i)
 
-__MAILUTILS_END_DECLS
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* _MAILUTILS_SYS_ITERATOR_H */

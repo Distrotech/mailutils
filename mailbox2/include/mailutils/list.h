@@ -15,35 +15,39 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-#ifndef _MAILUTILS_ITERATOR_H
-#define _MAILUTILS_ITERATOR_H
+#ifndef _MAILUTILS_LIST_H
+#define _MAILUTILS_LIST_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include <sys/types.h>
+#include <mailutils/iterator.h>
 
 #ifndef __P
 # ifdef __STDC__
 #  define __P(args) args
 # else
 #  define __P(args) ()
-# endif /* __STDC__  */
-#endif /* __P  */
+# endif
+#endif /*__P */
 
-struct _iterator;
-typedef struct _iterator *iterator_t;
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-extern int iterator_add_ref __P ((iterator_t));
-extern int iterator_destroy __P ((iterator_t));
-extern int iterator_release __P ((iterator_t));
+struct _list;
+typedef struct _list *list_t;
 
-extern int iterator_first   __P ((iterator_t));
-extern int iterator_next    __P ((iterator_t));
-extern int iterator_current __P ((iterator_t, void *));
-extern int iterator_is_done __P ((iterator_t));
+extern int list_create       __P ((list_t *));
+extern int list_destroy      __P ((list_t));
+extern int list_append       __P ((list_t, void *));
+extern int list_prepend      __P ((list_t, void *));
+extern int list_is_empty     __P ((list_t));
+extern int list_count        __P ((list_t, size_t *));
+extern int list_remove       __P ((list_t, void *));
+extern int list_get          __P ((list_t, size_t, void **));
+extern int list_get_iterator __P ((list_t, iterator_t *));
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* _MAILUTILS_ITERATOR_H */
+#endif /* _MAILUTILS_LIST_H */

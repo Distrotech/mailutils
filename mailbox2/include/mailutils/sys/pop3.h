@@ -30,7 +30,9 @@
 # include <dmalloc.h>
 #endif
 
-__MAILUTILS_BEGIN_DECLS
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 enum pop3_state
 {
@@ -150,6 +152,8 @@ do \
   } \
 while (0)
 
-__MAILUTILS_END_DECLS
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* _MAILUTILS_SYS_POP3_H */

@@ -26,8 +26,9 @@
 
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <fcntl.h>
 #include <unistd.h>
+#include <fcntl.h>
+#include <stdio.h>
 
 #include <mailutils/sys/fstream.h>
 #include <mailutils/error.h>
@@ -76,7 +77,7 @@ static int
 _fs_read (stream_t stream, void *optr, size_t osize, size_t *nbytes)
 {
   struct _fs *fs = (struct _fs *)stream;
-  size_t n;
+  size_t n = 0;
   int err = 0;
 
   if (fs->file)
@@ -123,7 +124,7 @@ static int
 _fs_write (stream_t stream, const void *iptr, size_t isize, size_t *nbytes)
 {
   struct _fs *fs = (struct _fs *)stream;
-  size_t n;
+  size_t n = 0;
   int err = 0;
 
   if (fs->file)
@@ -334,7 +335,7 @@ _fs_open (stream_t stream, const char *filename, int port, int flags)
 	  || fdbuf.st_ino != filebuf.st_ino
 	  || fdbuf.st_nlink != 1
 	  || filebuf.st_nlink != 1
-	  || (fdbuf.st_mode & S_IFMT) != S_IFREG)
+	  || !S_ISREG(fdbuf.st_mode))
 	{
 	  mu_error ("%s must be a plain file with one link\n", filename);
 	  close (fd);

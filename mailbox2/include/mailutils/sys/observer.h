@@ -15,35 +15,59 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-#ifndef _MAILUTILS_ITERATOR_H
-#define _MAILUTILS_ITERATOR_H
+#ifndef _MAILUTILS_SYS_OBSERVER_H
+#define _MAILUTILS_SYS_OBSERVER_H
+
+#ifdef DMALLOC
+#  include <dmalloc.h>
+#endif
+
+#include <mailutils/monitor.h>
+#include <mailutils/observer.h>
+#include <mailutils/list.h>
+
+#ifndef __P
+#ifdef __STDC__
+#define __P(args) args
+#else
+#define __P(args) ()
+#endif
+#endif /*__P */
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#ifndef __P
-# ifdef __STDC__
-#  define __P(args) args
-# else
-#  define __P(args) ()
-# endif /* __STDC__  */
-#endif /* __P  */
+struct _observer_vtable
+{
+  int (*add_ref) __P ((observer_t));
+  int (*release) __P ((observer_t));
+  int (*destroy) __P ((observer_t));
 
-struct _iterator;
-typedef struct _iterator *iterator_t;
+  int (*action)  __P ((observer_t, struct event));
+};
 
-extern int iterator_add_ref __P ((iterator_t));
-extern int iterator_destroy __P ((iterator_t));
-extern int iterator_release __P ((iterator_t));
+struct _observer
+{
+  struct _observer_vtable *vtable;
+};
 
-extern int iterator_first   __P ((iterator_t));
-extern int iterator_next    __P ((iterator_t));
-extern int iterator_current __P ((iterator_t, void *));
-extern int iterator_is_done __P ((iterator_t));
+struct _observable
+{
+  list_t list;
+};
+
+struct _dobserver
+{
+  struct _observer base;
+  int ref;
+  void *arg;
+  int (*action) __P ((void *, struct event));
+  monitor_t lock;
+};
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* _MAILUTILS_ITERATOR_H */
+#endif /* _MAILUTILS_SYS_OBSERVER_H */

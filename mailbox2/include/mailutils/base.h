@@ -57,12 +57,6 @@ struct _mime *mime_t;
 struct _message;
 typedef struct _message *message_t;
 
-struct _attribute;
-typedef struct _attribute *attribute_t;
-
-struct _envelope;
-typedef struct _envelope *envelope_t;
-
 struct _header;
 typedef struct _header *header_t;
 
@@ -75,35 +69,17 @@ typedef struct _ticket *ticket_t;
 struct _authority;
 typedef struct _authority *authority_t;
 
-struct _observable;
-typedef struct _observable *observable_t;
-
 struct _locker;
 typedef struct _locker *locker_t;
-
-struct _address;
-typedef struct _address *address_t;
 
 struct _debug;
 typedef struct _debug *mu_debug_t;
 
-struct _stream;
-typedef struct _stream *stream_t;
-
 struct _filter;
 typedef struct _filter *filter_t;
 
-struct _iterator;
-typedef struct _iterator *iterator_t;
-
 struct _property;
 typedef struct _property *property_t;
-
-struct _monitor;
-typedef struct _monitor *monitory_t;
-
-struct _list;
-typedef struct _list *list_t;
 
 __MAILUTILS_END_DECLS
 

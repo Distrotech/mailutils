@@ -15,8 +15,14 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-#ifndef _MAILUTILS_ITERATOR_H
-#define _MAILUTILS_ITERATOR_H
+#ifndef _MAILUTILS_SYS_ENVELOPE_H
+#define _MAILUTILS_SYS_ENVELOPE_H
+
+#ifdef DMALLOC
+#include <dmalloc.h>
+#endif
+
+#include <mailutils/envelope.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -27,23 +33,26 @@ extern "C" {
 #  define __P(args) args
 # else
 #  define __P(args) ()
-# endif /* __STDC__  */
-#endif /* __P  */
+# endif
+#endif /*__P */
 
-struct _iterator;
-typedef struct _iterator *iterator_t;
+struct _envelope_vtable
+{
+  int (*add_ref)   __P ((envelope_t));
+  int (*release)   __P ((envelope_t));
+  int (*destroy)   __P ((envelope_t));
+  int (*sender)    __P ((envelope_t, address_t *));
+  int (*recipient) __P ((envelope_t, address_t *));
+  int (*date)      __P ((envelope_t, struct tm *, struct mu_timezone *));
+};
 
-extern int iterator_add_ref __P ((iterator_t));
-extern int iterator_destroy __P ((iterator_t));
-extern int iterator_release __P ((iterator_t));
-
-extern int iterator_first   __P ((iterator_t));
-extern int iterator_next    __P ((iterator_t));
-extern int iterator_current __P ((iterator_t, void *));
-extern int iterator_is_done __P ((iterator_t));
+struct _envelope
+{
+  struct _envelope_vtable *vtable;
+};
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* _MAILUTILS_ITERATOR_H */
+#endif /* _MAILUTILS_SYS_ENVELOPE_H */

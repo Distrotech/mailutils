@@ -15,8 +15,11 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-#ifndef _MAILUTILS_ITERATOR_H
-#define _MAILUTILS_ITERATOR_H
+#ifndef _MAILUTILS_ENVELOPE_H
+# define _MAILUTILS_ENVELOPE_H
+
+#include <mailutils/address.h>
+#include <mailutils/mutil.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -27,23 +30,22 @@ extern "C" {
 #  define __P(args) args
 # else
 #  define __P(args) ()
-# endif /* __STDC__  */
-#endif /* __P  */
+# endif
+#endif /*__P */
 
-struct _iterator;
-typedef struct _iterator *iterator_t;
+struct _envelope;
+typedef struct _envelope *envelope_t;
 
-extern int iterator_add_ref __P ((iterator_t));
-extern int iterator_destroy __P ((iterator_t));
-extern int iterator_release __P ((iterator_t));
+extern int envelope_add_ref   __P ((envelope_t));
+extern int envelope_release   __P ((envelope_t));
+extern int envelope_destroy   __P ((envelope_t));
 
-extern int iterator_first   __P ((iterator_t));
-extern int iterator_next    __P ((iterator_t));
-extern int iterator_current __P ((iterator_t, void *));
-extern int iterator_is_done __P ((iterator_t));
+extern int envelope_sender    __P ((envelope_t, address_t *));
+extern int envelope_recipient __P ((envelope_t, address_t *));
+extern int envelope_date      __P ((envelope_t, struct tm *, struct mu_timezone *));
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* _MAILUTILS_ITERATOR_H */
+#endif /* _MAILUTILS_ENVELOPE_H */

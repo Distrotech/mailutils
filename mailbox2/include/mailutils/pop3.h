@@ -21,7 +21,17 @@
 #include <mailutils/iterator.h>
 #include <mailutils/stream.h>
 
-__MAILUTILS_BEGIN_DECLS
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#ifndef __P
+# ifdef __STDC__
+#  define __P(args) args
+# else
+#  define __P(args) ()
+# endif
+#endif /*__P */
 
 struct _pop3;
 typedef struct _pop3* pop3_t;
@@ -72,6 +82,8 @@ extern int  pop3_writeline   __P ((pop3_t, const char *, ...));
 extern int  pop3_sendline    __P ((pop3_t, const char *));
 extern int  pop3_send        __P ((pop3_t));
 
-__MAILUTILS_END_DECLS
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* _MAILUTILS_POP3_H */

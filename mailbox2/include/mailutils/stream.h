@@ -16,12 +16,13 @@
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #ifndef _MAILUTILS_STREAM_H
-# define _MAILUTILS_STREAM_H
+#define _MAILUTILS_STREAM_H
 
-#include <mailutils/base.h>
 #include <sys/types.h>
 
-__MAILUTILS_BEGIN_DECLS
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #define MU_STREAM_READ	   0x00000001
 #define MU_STREAM_WRITE	   0x00000002
@@ -45,6 +46,9 @@ enum stream_state
   MU_STREAM_STATE_WRITE,
   MU_STREAM_STATE_CLOSE
 };
+
+struct _stream;
+typedef struct _stream *stream_t;
 
 extern int stream_add_ref     __P ((stream_t));
 extern int stream_release     __P ((stream_t));
@@ -75,6 +79,8 @@ extern int stream_memory_create  __P ((stream_t *));
 extern int stream_tcp_create     __P ((stream_t *));
 extern int stream_buffer_create  __P ((stream_t *, stream_t, size_t));
 
-__MAILUTILS_END_DECLS
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* _MAILUTILS_STREAM_H */
