@@ -1,6 +1,6 @@
 ## Process this file with GNU Automake to create Makefile.in
 
-##   Copyright (C) 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
+##   Copyright (C) 1999, 2000, 2001, 2002, 2005 Free Software Foundation, Inc.
 ##
 ##   GNU Mailutils is free software; you can redistribute it and/or
 ##   modify it under the terms of the GNU General Public License as
@@ -19,24 +19,69 @@
 
 noinst_LTLIBRARIES = libmailutils.la
 
-INCLUDES = -I${top_srcdir}/include -I${top_builddir}/include/mailutils/gnu @INTLINCS@
+INCLUDES = -I${top_srcdir}/include -I${top_srcdir}/mailbox -I${top_builddir}/include/mailutils/gnu @INTLINCS@
 libmailutils_la_SOURCES = \
- basename.c\
  daemon.c\
- md5.c\
  mu_dbm.c\
- xstrdup.c\
- xmalloc.c 
+ xalloc_die.c
 
-EXTRA_DIST = alloca.c fnmatch.c getpass.c malloc.c obstack.c \
- realloc.c setenv.c snprintf.c strncasecmp.c \
- strcasecmp.c strsignal.c xstrtol.c  vasprintf.c vsyslog.c \
- utmp.c 
+EXTRA_DIST = utmp.c 
 
-noinst_HEADERS = error.h fnmatch.h md5.h \
+noinst_HEADERS =\
  mu_dbm.h\
- snprintf.h xalloc.h xstrtol.h obstack.h \
  mu_asprintf.h
 
-libmailutils_la_LIBADD = @LTLIBOBJS@ @ALLOCA@
+libmailutils_la_LIBADD = @LTLIBOBJS@
+
+BUILT_SOURCES=
+MOSTLYCLEANFILES=
+
+##:## EOF marker for gnulib-sync script. Please, do not remove ##:##
+## Do not change anything below this line ##
+libmailutils_la_SOURCES += allocsa.h allocsa.c
+EXTRA_DIST += allocsa.valgrind
+
+
+libmailutils_la_SOURCES += exit.h
+
+libmailutils_la_SOURCES += exitfail.h exitfail.c
+
+BUILT_SOURCES += $(STDBOOL_H)
+EXTRA_DIST += stdbool_.h
+
+# We need the following in order to create an <stdbool.h> when the system
+# doesn't have one that works.
+all-local $(libmailutils_la_OBJECTS): $(STDBOOL_H)
+stdbool.h: stdbool_.h
+	sed -e 's/@''HAVE__BOOL''@/$(HAVE__BOOL)/g' < $(srcdir)/stdbool_.h > $@-t
+	mv $@-t $@
+MOSTLYCLEANFILES += stdbool.h stdbool.h-t
+
+libmailutils_la_SOURCES += xalloc.h xmalloc.c
+
+BUILT_SOURCES += $(FNMATCH_H)
+EXTRA_DIST += fnmatch_.h fnmatch_loop.c
+
+# We need the following in order to create an <fnmatch.h> when the system
+# doesn't have one that supports the required API.
+all-local $(libmailutils_la_OBJECTS): $(FNMATCH_H)
+fnmatch.h: fnmatch_.h
+	cp $(srcdir)/fnmatch_.h $@-t
+	mv $@-t $@
+MOSTLYCLEANFILES += fnmatch.h fnmatch.h-t
+
+libmailutils_la_SOURCES += getpass.h
+
+
+
+
+libmailutils_la_SOURCES += setenv.h
+
+libmailutils_la_SOURCES += snprintf.h
+
+libmailutils_la_SOURCES += xstrtol.h xstrtol.c xstrtoul.c
+
+libmailutils_la_SOURCES += vasprintf.h
+
+libmailutils_la_SOURCES += xsize.h
 

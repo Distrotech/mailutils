@@ -1,3 +1,207 @@
+2005-02-23  Sergey Poznyakoff  
+
+	Synchronized with the recent gnulib. Provide a way to
+	facilitate further synchronizations.
+	
+	* gnulib.modules: New file
+	* scripts/gnulib-sync: New file. Script for synchronizing
+	mailutils tree with gnulib.
+	* configure.ac: Updated to use new gnulib files.
+	* m4/mu_libobj.m4 (MU_LIBSOURCES,MU_REPLACE_FUNCS): New defun.
+	(MU_CHECK_FUNCS): Removed.
+
+	* Makefile.am: Remove headers/
+	* frm/frm.c (parse_opt): Bugfix. Was using optarg instead of arg
+	* mail.local/main.c: Likewise
+	* pop3d/popauth.c: Likewise
+	* readmsg/readmsg.c: Likewise
+	* include/mailutils/argp.h: Include errno.h
+	* include/mailutils/gnu/Makefile.am: Remove posix/regex.h
+	* libsieve/argp.c (sieve_argp_option): Use N_()
+	* mailbox/message.c: Use new md5 calls
+	* mailbox/pop/mbox.c: Likewise
+	* mailbox/pop/pop3_apop.c: Likewise
+	* mailbox/message.c: Likewise
+	* mh/mh_error.c: Include mailutils/argp.h
+	* mh/mh_getopt.c: Include string.h
+	* pop3d/Makefile.am (INCLUDES): Add $(top_srcdir)/mailbox
+	* pop3d/pop3d.h: Minor fix
+
+	* lib/xalloc_die.c: New file
+	* m4/gnulib.m4: New file
+
+	* headers/.cvsignore
+	* headers/Makefile.am
+	* headers/getopt.h
+	* headers/regex.h
+	* headers/argp.h
+	* headers/posix/.cvsignore
+	* headers/posix/Makefile.am
+	* headers/posix/regex.h
+	* headers/posix
+
+	Update by gnulib-sync. 
+
+	* lib/asprintf.c: New file 
+	* mailbox/alloca.h: New file
+	* mailbox/argp.h: New file
+	* mailbox/getopt.h: New file
+	* lib/allocsa.c: Added to the repository
+	* lib/allocsa.h: Added to the repository
+	* lib/allocsa.valgrind: Added to the repository
+	* lib/asprintf.c: Updated
+	* lib/error.c: Added to the repository
+	* lib/error.h: Updated
+	* lib/exit.h: Added to the repository
+	* lib/exitfail.c: Added to the repository
+	* lib/exitfail.h: Added to the repository
+	* lib/fnmatch.c: Updated
+	* lib/fnmatch_.h: Added to the repository
+	* lib/fnmatch_loop.c: Added to the repository
+	* lib/getpass.c: Updated
+	* lib/getpass.h: Added to the repository
+	* lib/malloc.c: Updated
+	* lib/obstack.c: Updated
+	* lib/obstack.h: Updated
+	* lib/realloc.c: Updated
+	* lib/setenv.c: Updated
+	* lib/setenv.h: Added to the repository
+	* lib/snprintf.c: Updated
+	* lib/snprintf.h: Updated
+	* lib/stdbool_.h: Added to the repository
+	* lib/unsetenv.c: Added to the repository
+	* lib/vasprintf.c: Updated
+	* lib/vasprintf.h: Added to the repository
+	* lib/xalloc.h: Updated
+	* lib/xmalloc.c: Updated
+	* lib/xsize.h: Added to the repository
+	* lib/xstrtol.c: Updated
+	* lib/xstrtol.h: Updated
+	* lib/xstrtoul.c: Added to the repository
+	* m4/alloca.m4: Added to the repository
+	* m4/allocsa.m4: Added to the repository
+	* m4/argp.m4: Added to the repository
+	* m4/eealloc.m4: Added to the repository
+	* m4/eoverflow.m4: Added to the repository
+	* m4/error.m4: Added to the repository
+	* m4/exitfail.m4: Added to the repository
+	* m4/extensions.m4: Added to the repository
+	* m4/fnmatch.m4: Added to the repository
+	* m4/getline.m4: Added to the repository
+	* m4/getndelim2.m4: Added to the repository
+	* m4/getopt.m4: Updated
+	* m4/getpass.m4: Added to the repository
+	* m4/gettext_gl.m4: Added to the repository
+	* m4/glibc21_gl.m4: Added to the repository
+	* m4/iconv.m4: Added to the repository
+	* m4/intmax.m4: Added to the repository
+	* m4/intmax_t.m4: Added to the repository
+	* m4/intmax_t.m4: Added to the repository
+	* m4/inttypes.m4: Added to the repository
+	* m4/inttypes_h_gl.m4: Added to the repository
+	* m4/inttypes_h_gl.m4: Added to the repository
+	* m4/lib-ld_gl.m4: Added to the repository
+	* m4/lib-prefix_gl.m4: Added to the repository
+	* m4/longdouble.m4: Added to the repository
+	* m4/longdouble.m4: Added to the repository
+	* m4/longlong_gl.m4: Added to the repository
+	* m4/longlong_gl.m4: Added to the repository
+	* m4/mailbox-link.m4: Added to the repository
+	* m4/mbstate_t.m4: Added to the repository
+	* m4/md5.m4: Added to the repository
+	* m4/mempcpy.m4: Added to the repository
+	* m4/nls.m4: Added to the repository
+	* m4/obstack.m4: Added to the repository
+	* m4/onceonly.m4: Added to the repository
+	* m4/onceonly.m4: Added to the repository
+	* m4/po_gl.m4: Added to the repository
+	* m4/printf-posix.m4: Added to the repository
+	* m4/progtest.m4: Added to the repository
+	* m4/regex.m4: Updated
+	* m4/restrict.m4: Added to the repository
+	* m4/setenv.m4: Added to the repository
+	* m4/signed.m4: Added to the repository
+	* m4/size_max.m4: Added to the repository
+	* m4/size_max.m4: Added to the repository
+	* m4/snprintf.m4: Added to the repository
+	* m4/ssize_t.m4: Added to the repository
+	* m4/stdbool.m4: Added to the repository
+	* m4/stdint_h_gl.m4: Added to the repository
+	* m4/stdint_h_gl.m4: Added to the repository
+	* m4/strcase.m4: Added to the repository
+	* m4/strchrnul.m4: Added to the repository
+	* m4/strerror_r.m4: Added to the repository
+	* m4/strndup.m4: Added to the repository
+	* m4/strnlen.m4: Added to the repository
+	* m4/strtok_r.m4: Added to the repository
+	* m4/sysexits.m4: Added to the repository
+	* m4/uint32_t.m4: Added to the repository
+	* m4/uintmax_t_gl.m4: Added to the repository
+	* m4/uintmax_t_gl.m4: Added to the repository
+	* m4/ulonglong_gl.m4: Added to the repository
+	* m4/ulonglong_gl.m4: Added to the repository
+	* m4/vasnprintf.m4: Added to the repository
+	* m4/vasprintf.m4: Added to the repository
+	* m4/vsnprintf.m4: Added to the repository
+	* m4/wchar_t.m4: Added to the repository
+	* m4/wint_t.m4: Added to the repository
+	* m4/xalloc.m4: Added to the repository
+	* m4/xsize.m4: Added to the repository
+	* m4/xsize.m4: Added to the repository
+	* m4/xstrtol.m4: Added to the repository
+	* mailbox/alloca.c: Added to the repository
+	* mailbox/alloca_.h: Added to the repository
+	* mailbox/argp-ba.c: Updated
+	* mailbox/argp-eexst.c: Updated
+	* mailbox/argp-fmtstream.c: Updated
+	* mailbox/argp-fmtstream.h: Updated
+	* mailbox/argp-fs-xinl.c: Updated
+	* mailbox/argp-help.c: Updated
+	* mailbox/argp-namefrob.h: Updated
+	* mailbox/argp-parse.c: Updated
+	* mailbox/argp-pv.c: Updated
+	* mailbox/argp-pvh.c: Updated
+	* mailbox/argp-xinl.c: Updated
+	* mailbox/argp.h: Updated
+	* mailbox/asnprintf.c: Added to the repository
+	* mailbox/getline.c: Updated
+	* mailbox/getline.h: Updated
+	* mailbox/getndelim2.c: Added to the repository
+	* mailbox/getndelim2.h: Added to the repository
+	* mailbox/getopt.c: Updated
+	* mailbox/getopt1.c: Updated
+	* mailbox/getopt_.h: Added to the repository
+	* mailbox/getopt_int.h: Added to the repository
+	* mailbox/gettext.h: Added to the repository
+	* mailbox/md5.c: Updated
+	* mailbox/md5.h: Updated
+	* mailbox/mempcpy.c: Added to the repository
+	* mailbox/mempcpy.h: Added to the repository
+	* mailbox/minmax.h: Added to the repository
+	* mailbox/printf-args.c: Added to the repository
+	* mailbox/printf-args.h: Added to the repository
+	* mailbox/printf-parse.c: Added to the repository
+	* mailbox/printf-parse.h: Added to the repository
+	* mailbox/regex.c: Updated
+	* mailbox/regex.h: Added to the repository
+	* mailbox/strcase.h: Added to the repository
+	* mailbox/strcasecmp.c: Added to the repository
+	* mailbox/strchrnul.c: Updated
+	* mailbox/strchrnul.h: Added to the repository
+	* mailbox/strncasecmp.c: Added to the repository
+	* mailbox/strndup.c: Updated
+	* mailbox/strndup.h: Added to the repository
+	* mailbox/strnlen.c: Updated
+	* mailbox/strtok_r.c: Updated
+	* mailbox/strtok_r.h: Added to the repository
+	* mailbox/sysexit_.h: Added to the repository
+	* mailbox/vasnprintf.c: Added to the repository
+	* mailbox/vasnprintf.h: Added to the repository
+	* mailbox/vsnprintf.c: Added to the repository
+	* mailbox/vsnprintf.h: Added to the repository
+	* mailbox/xsize.h: Added to the repository
+	* scripts/config.rpath: Added to the repository
+	
 2005-02-21  Sergey Poznyakoff
 
 	* libsieve/actions.c: Further unification of diagnostic style.
