@@ -14,10 +14,13 @@ GNU Mailutils provides a set of programs for handling the email.
 * readmsg::     Extract messages from a folder.
 * sieve::       Filter a mailbox.
 * guimb::       Mailbox scanning and processing language.
+* comsatd::     Comsat daemon.
 @end menu
 
+@page
 @node imap4d
 @section IMAP4 daemon
+@pindex imap4d
 
 imap4d has two operation modes:
 
@@ -66,8 +69,10 @@ from the client within that number of seconds.
 Display program version and exit.
 @end table
 
+@page
 @node pop3d
 @section POP3 daemon
+@pindex pop3d
 
 The @file{pop3d} daemon implements the Post Office Protocol server.
 
@@ -118,8 +123,10 @@ from the client within that number of seconds.
 Display program version and exit.
 @end table
 
+@page
 @node frm
 @section frm --- List headers from a mailbox.
+@pindex frm
 
 The @file{frm} command outputs a header information of
 the selected messages in a mailbox. By default, @file{frm} reads the
@@ -170,8 +177,10 @@ Tidy mode. Currently is not implemented. Included for compatibility with
 Display version information and exit
 @end table
 
+@page
 @node mail
 @section mail ---  send and receive mail.
+@pindex mail
 
 @code{Mail} is an enhanced version of standard @file{/bin/mail} program.
 As well as its predecessor, it can be used either in sending mode or
@@ -1395,8 +1404,10 @@ the system-wide configuration file is determined when configuring the
 package via @samp{--with-mail-rc} option. It defaults to
 @file{@var{sysconfdir}/mail.rc}.
 
+@page
 @node messages
 @section messages --- Count the number of messages in a mailbox.
+@pindex messages
 
 @code{Messages} prints on standard output the number of messages
 contained in each folder specified in command line. If no folders
@@ -1428,18 +1439,24 @@ Output short usage summary and exit.
 Output program version and exit.
 @end table
 
+@page
 @node readmsg
 @section readmsg --- Extract messages from a folder.
+@pindex readmsg
 
 The program is currently in development
 
+@page
 @node sieve
 @section sieve
+@pindex sieve
 
 The program is currently in development
 
+@page
 @node guimb
 @section guimb --- A mailbox scanning and processing language.
+@pindex guimb
 
 @file{Guimb} is for mailboxes what @file{awk} is for text files.
 It processes mailboxes, applying the user-supplied scheme procedures
@@ -1574,108 +1591,108 @@ Display program version.
 @node Address Functions
 @subsubsection Address Functions
 
-@deffn mu-address-get-personal ADDRESS NUM
+@deffn Function mu-address-get-personal ADDRESS NUM
 Return personal part of an email address.
 @end deffn
 
-@deffn mu-address-get-comments ADDRESS NUM
+@deffn Function mu-address-get-comments ADDRESS NUM
 @end deffn
 
-@deffn mu-address-get-email ADDRESS NUM
+@deffn Function mu-address-get-email ADDRESS NUM
 Return email part of an email address.
 @end deffn
 
-@deffn mu-address-get-domain ADDRESS NUM
+@deffn Function mu-address-get-domain ADDRESS NUM
 Return domain part of an email address
 @end deffn
 
-@deffn mu-address-get-local ADDRESS NUM
+@deffn Function mu-address-get-local ADDRESS NUM
 Return local part of an email address.
 @end deffn
 
-@deffn mu-address-get-count ADDRESS
+@deffn Function mu-address-get-count ADDRESS
 Return number of parts in email address.
 @end deffn
 
 @node Mailbox Functions
 @subsubsection Mailbox Functions
 
-@deffn mu-mailbox-open URL MODE
+@deffn Function mu-mailbox-open URL MODE
 Opens a mailbox specified by URL.
 @end deffn
 
-@deffn mu-mailbox-close MBOX
+@deffn Function mu-mailbox-close MBOX
 Closes mailbox MBOX
 @end deffn
 
-@deffn mu-mailbox-get-url MBOX
+@deffn Function mu-mailbox-get-url MBOX
 Returns the URL of the mailbox.
 @end deffn
 
-@deffn mu-mailbox-get-port MBOX MODE
+@deffn Function mu-mailbox-get-port MBOX MODE
 Returns a port associated with the contents of the MBOX.
 MODE is a string defining operation mode of the stream. It may
 contain any of the two characters: @samp{r} for reading, @samp{w} for
 writing.
 @end deffn
 
-@deffn mu-mailbox-get-message MBOX MSGNO
+@deffn Function mu-mailbox-get-message MBOX MSGNO
 Retrieve from MBOX message # MSGNO.
 @end deffn
 
-@deffn mu-mailbox-messages-count MBOX
+@deffn Function mu-mailbox-messages-count MBOX
 Returns number of messages in the mailbox.
 @end deffn
 
-@deffn mu-mailbox-expunge MBOX
+@deffn Function mu-mailbox-expunge MBOX
 Expunges deleted messages from the mailbox.
 @end deffn
 
-@deffn mu-mailbox-url MBOX
+@deffn Function mu-mailbox-url MBOX
 Returns the URL of the mailbox
 @end deffn
 
-@deffn mu-mailbox-append-message MBOX MESG
+@deffn Function mu-mailbox-append-message MBOX MESG
 Appends the message to the mailbox
 @end deffn
 
 @node Message Functions
 @subsubsection Message Functions
 
-@deffn mu-message-copy MESG
+@deffn Function mu-message-copy MESG
 Creates the copy of the given message.
 @end deffn
 
-@deffn mu-message-set-header MESG HEADER VALUE REPLACE
+@deffn Function mu-message-set-header MESG HEADER VALUE REPLACE
 Sets new VALUE to the header HEADER of the message MESG.
 If the HEADER is already present in the message its value
 is replaced with the supplied one if the optional REPLACE is
 #t. Otherwise new header is created and appended.
 @end deffn
 
-@deffn mu-message-get-size MESG
+@deffn Function mu-message-get-size MESG
 Returns the size of the given message.
 @end deffn
 
-@deffn mu-message-get-lines MESG
+@deffn Function mu-message-get-lines MESG
 Returns number of lines in the given message.
 @end deffn
 
-@deffn mu-message-get-sender MESG
+@deffn Function mu-message-get-sender MESG
 Returns the sender email address for the message MESG.
 @end deffn
 
-@deffn mu-message-get-header MESG HEADER
+@deffn Function mu-message-get-header MESG HEADER
 Returns the header value of the HEADER in the MESG.
 @end deffn
 
-@deffn mu-message-get-header-fields MESG HEADERS
+@deffn Function mu-message-get-header-fields MESG HEADERS
 Returns the list of headers in the MESG. If optional HEADERS is
 specified it should be a list of header names to restrict return
 value to.
 @end deffn
 
-@deffn mu-message-set-header-fields MESG LIST REPLACE
+@deffn Function mu-message-set-header-fields MESG LIST REPLACE
 Set the headers in the message MESG from LIST
 LIST is a list of (cons HEADER VALUE)
 Optional parameter REPLACE specifies whether the new header
@@ -1683,30 +1700,30 @@ values should replace the headers already present in the
 message.
 @end deffn
 
-@deffn mu-message-delete MESG FLAG
+@deffn Function mu-message-delete MESG FLAG
 Mark given message as deleted. Optional FLAG allows to toggle deleted mark
 The message is deleted if it is #t and undeleted if it is #f
 @end deffn
 
-@deffn mu-message-get-flag MESG FLAG
+@deffn Function mu-message-get-flag MESG FLAG
 Return value of the attribute FLAG.
 @end deffn
 
-@deffn mu-message-set-flag MESG FLAG VALUE
+@deffn Function mu-message-set-flag MESG FLAG VALUE
 Set the given attribute of the message. If optional VALUE is #f, the
 attribute is unset.
 @end deffn
 
-@deffn mu-message-get-user-flag MESG FLAG
+@deffn Function mu-message-get-user-flag MESG FLAG
 Returns value of the user attribute FLAG.
 @end deffn
 
-@deffn mu-message-set-user-flag MESG FLAG VALUE
+@deffn Function mu-message-set-user-flag MESG FLAG VALUE
 Set the given user attribute of the message. If optional VALUE is
 #f, the attribute is unset.
 @end deffn
 
-@deffn mu-message-get-port MESG MODE FULL
+@deffn Function mu-message-get-port MESG MODE FULL
 Returns a port associated with the given MESG. MODE is a string
 defining operation mode of the stream. It may contain any of the
 two characters: @samp{r} for reading, @samp{w} for writing.
@@ -1716,11 +1733,11 @@ part of the message (including headers). If it is #f then the port
 accesses only the message body (the default).
 @end deffn
 
-@deffn mu-message-get-body MESG
+@deffn Function mu-message-get-body MESG
 Returns the message body for the message MESG.
 @end deffn
 
-@deffn mu-message-send MESG MAILER
+@deffn Function mu-message-send MESG MAILER
 Sends the message MESG. Optional MAILER overrides default
 mailer settings in mu-mailer.
 @end deffn
@@ -1728,43 +1745,279 @@ mailer settings in mu-mailer.
 @node MIME Functions
 @subsubsection MIME Functions
 
-@deffn mu-mime-create FLAGS MESG
+@deffn Function mu-mime-create FLAGS MESG
 Creates a new MIME object.
 @end deffn
 
-@deffn mu-mime-multipart? MIME
+@deffn Function mu-mime-multipart? MIME
 Returns #t if MIME is a multipart object.
 @end deffn
 
-@deffn mu-mime-get-num-parts MIME
+@deffn Function mu-mime-get-num-parts MIME
 Returns number of parts in a MIME object.
 @end deffn
 
-@deffn mu-mime-get-part MIME PART
+@deffn Function mu-mime-get-part MIME PART
 Returns part number PART from a MIME object.
 @end deffn
 
-@deffn mu-mime-add-part MIME MESG
+@deffn Function mu-mime-add-part MIME MESG
 Adds MESG to the MIME object.
 @end deffn
 
-@deffn mu-mime-get-message MIME
+@deffn Function mu-mime-get-message MIME
 Converts MIME object to a message.
 @end deffn
 
 @node Log Functions
 @subsubsection Log Functions
 
-@deffn mu-openlog IDENT OPTION FACILITY
+@deffn Function mu-openlog IDENT OPTION FACILITY
 Opens a connection to the system logger for Guile program.
 @end deffn
 
-@deffn mu-logger PRIO TEXT
+@deffn Function mu-logger PRIO TEXT
 Generates a log message to be distributed via syslogd.
 @end deffn
 
-@deffn mu-closelog
+@deffn Function mu-closelog
 Closes the channel to the system logger open by mu-openlog.
 @end deffn
 
+@page
+@node comsatd
+@section Comsat daemon
+@pindex comsatd
 
+Comsatd is the server which receives reports of incoming mail and
+notifies users, wishing to get this service. It can be started
+either from @file{inetd.conf} or as a standalone daemon.
+
+@menu
+* Starting comsatd::       Invocation.
+* Configuring comsatd::    Configuration of comsatd.
+* dot.biffrc::             A per-user configuration file.
+@end menu
+
+@node Starting comsatd
+@subsection Starting comsatd
+
+@table @samp
+@item -c @var{file}
+@itemx --config @var{file}
+Read configuration from given @var{file}. For more information about
+comsatd configuration files, see @ref{Configuring comsatd}.
+@item -d
+@itemx --daemon
+Run as a standalone daemon.
+@item -i
+@itemx --inetd
+The server is started from @file{/etc/inetd.conf} file:
+
+@example
+comsat dgram  udp wait  root  /usr/sbin/comsatd \
+comsatd -c /etc/comsat.conf 
+@end example
+
+This is the default operation mode.
+@item -p @var{number}
+@itemx --port @var{number}
+Specify the port number to listen on. Default is 512.
+@item -v
+@itemx --version
+Output version and exit successfully.
+@item -h
+@itemx --help
+Display short help message and exit.
+@end table
+
+@node Configuring comsatd
+@subsection Configuring comsatd
+
+The configuration parameters for comsatd are kept in a single
+configuration file. The file uses line-oriented format: each line
+contains a single statement. Comments are introduced with the @samp{#}
+sign and empty lines are ignored. You can specify the configuration
+file to use by using @samp{-c} or @samp{--config} command line switch.
+
+The configuration file statements can logically be subdivided into
+@dfn{General Settings}, @dfn{Security Settings} and @dfn{Access Control
+Lists}. The following sections address each of these statement group in
+detail.
+
+@menu
+* General Settings::
+* Security Settings::
+* Access Control Lists::
+@end menu
+
+@node General Settings
+@subsubsection General Settings
+
+These statements control the general behavior of the comsat daemon:
+
+@table @asis
+@item max-lines @var{number}
+Set maximum number of message body lines to be output.
+@item allow-biffrc ( yes | no )
+Enable or disable processing of user's @file{.biffrc} file. By default,
+it is enabled.
+@end table
+
+@node Security Settings
+@subsubsection Security Settings
+
+These statements control the way @file{comsatd} fights possible
+flooding attacks. 
+
+@table @asis
+@item max-requests @var{number}
+Set maximum number of incoming requests per @samp{request-control-interval}.
+@item request-control-interval @var{number}
+Set the request control interval (seconds).
+@item overflow-delay-time @var{number}
+Set the initial amount of time to sleep, after the first overflow occurs.
+@item overflow-control-interval @var{number}
+Set the overflow control interval. If two consecutive overflows happen
+within @var{number} seconds, the overflow-delay-time is doubled.
+@end table
+
+@node Access Control Lists
+@subsubsection Access Control Lists
+
+Access control lists determine from which addresses @file{comsatd}
+will receive mail notification messages. 
+
+The access control lists are introduced in configuration file using
+keyword @samp{acl}. General format for an ACL rule is
+
+@example
+acl @var{action} @var{netlist}
+@end example
+
+@noindent
+Here, @var{action} specifies the action to be taken when a request
+arrives from one of the networks, listed in @var{netlist}. There are
+two possible actions: @samp{allow} and @samp{deny}.
+
+The @var{netlist} is a whitespace-separated list of network numbers.
+Each network number may be specified in one of the following forms:
+
+@table @asis
+@item @var{netnum}
+Means a single host with IP address @var{netnum}.
+@item @var{netnum}/@var{netmask}
+@item @var{netnum}/@var{masklen}
+@item @samp{any}
+Denotes any IP address. It is equivalent to @samp{0.0.0.0/0}.
+@end table
+
+Upon receiving a notification message, @file{comsatd} compares its
+source address against each ACL rule in the order of their appearance
+in the configuration file. The first rule that matches the packet
+determines whether the message will be processed or rejected. If
+no matching rule was found, the default rule applies. Currently, default
+rule is
+
+@example
+acl allow any
+@end example
+
+@noindent
+If you don't need such behavior, specify the default rule explicitly.
+For example, the common use would be:
+
+@example
+@group
+acl allow 127.0.0.1
+acl deny any
+@end group
+@end example
+
+@noindent
+which makes @file{comsatd} receive the notification messages from
+localhost only.
+
+@node dot.biffrc
+@subsection A per-user configuration file.
+
+By default, when a notification arrives, @file{comsatd} prints subject,
+from headers and the first five lines from the new message to the user's
+tty. The user is allowed to change this behavior by using his own
+configuration file. This file should be located in the user's home
+directory and should be named @file{.biffrc}. It must be owned by the
+user and have its permissions bits set to 0600. (@emph{Please note},
+that the use of per-user configuration files may be disabled, by
+specifying @samp{allow-biffrc no} in the main configuration file, see
+@pxref{Configuring comsatd}).
+
+The @file{.biffrc} file consists of a series of statements. Each
+statement occupies one line and defines an action to be taken upon
+arrival of a new mail. Very long lines may be split using @samp{\} as
+the last character on the line. As usual, comments may be introduced with
+@samp{#} character.
+
+The actions specified in @file{.biffrc} file are executed in turn.
+The following actions are defined:
+
+@table @asis
+@item beep
+Produce an audible signal.
+@item echo @var{string}
+Output @var{string} to user's terminal device.
+@item exec @var{prog} @var{arglist}
+Execute program @var{prog} with arguments from @var{arglist}. @var{prog}
+must be specified with absolute pathname. It may not be a setuid or
+setgid program.
+@end table
+
+In the description above, @var{string} denotes any sequence of
+characters. This sequence must be enclosed in a pair of double-quotes,
+if it contains whitespace characters. The @samp{\} character inside a
+string starts a C escape sequence. Following meta-characters may be
+used in strings:
+
+@table @asis
+@item $u
+Expands to username
+@item $h
+Expands to hostname
+@item $H@{name@}
+Expands to value of message header @samp{name}.
+@item $B(@var{c},@var{l})
+Expands to message body. @var{c} and @var{l} give maximum number of
+characters and lines in the expansion. When omitted, they default to 400, 5.
+@end table
+
+@subsubsection Example I.
+
+Dump to the user's terminal the contents of @samp{From} and
+@samp{Subject} headers followed by at most 5 lines of message body.
+@example
+@group
+echo "Mail to \a$u@@$h\a\n---\n\
+From: $H@{from@}\n\
+Subject: $H@{Subject@}\n\
+---\n\
+$B(,5)\
+---\n"
+@end group
+@end example
+
+@subsubsection Example II.
+
+Produce a bell, then pop up the xmessage window on display :0.0 with
+the text formatted in the same manner as in the previous example.
+
+@example
+@group
+beep
+exec /usr/X11R6/bin/xmessage \
+-display :0.0 -timeout 10 "Mail to $u@@$h \n---\n\
+From: $H@{from@}\n\
+Subject: $H@{Subject@}\n\
+---\n\
+$B(,5)\
+---\n"
+@end group
+@end example
