@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2001 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001, 2004 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -20,17 +20,31 @@
 /*
  */
 
+/* The CLOSE command permanently removes from the currently selected
+   mailbox all messages that have the \\Deleted flag set, and returns
+   to authenticated state from selected state.  */
 int
 imap4d_close (struct imap4d_command *command, char *arg ARG_UNUSED)
 {
-  /* FIXME: Check and report errors.  */
-  /* The CLOSE command permanently removes from the currently selected
-     mailbox all messages that have the \\Deleted flag set, and returns
-     to authenticated state from selected state.  */
-  mailbox_flush (mbox, 1);
-  /* No messages are removed, and no error is give, if the mailbox is
+  const char *msg = NULL;
+  int status = mailbox_flush (mbox, 1);
+  if (status)
+    {
+      syslog (LOG_ERR, _("flushing mailbox failed: %s"), mu_strerror (status));
+      msg = "flushing mailbox failed";
+    }
+  
+  /* No messages are removed, and no error is given, if the mailbox is
      selected by an EXAMINE command or is otherwise selected read-only.  */
-  mailbox_close (mbox);
+  status = mailbox_close (mbox);
+  if (status)
+    {
+      syslog (LOG_ERR, _("closing mailbox failed: %s"), mu_strerror (status));
+      msg = "closing mailbox failed";
+    }
   mailbox_destroy (&mbox);
+
+  if (msg)
+    util_finish (command, RESP_NO, msg);
   return util_finish (command, RESP_OK, "Completed");
 }
