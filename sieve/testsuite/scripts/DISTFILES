@@ -22,6 +22,8 @@ header3.sv
 keep.sv
 not.sv
 null.sv
+redirect.sv
+reject.sv
 size1.sv
 size2.sv
 stop.sv
