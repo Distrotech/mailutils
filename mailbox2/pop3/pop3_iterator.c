@@ -25,7 +25,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <mailutils/sys/pop3.h>
-#include <mailutils/sys/iterator.h>
 
 static int  p_add_ref              __P ((iterator_t));
 static int  p_release              __P ((iterator_t));
@@ -62,6 +61,7 @@ pop3_iterator_create (pop3_t pop3, iterator_t *piterator)
   p_iterator->item = NULL;
   p_iterator->done = 0;
   p_iterator->pop3= pop3;
+  monitor_create (&p_iterator->lock);
   *piterator = &p_iterator->base;
   return 0;
 }
@@ -69,38 +69,57 @@ pop3_iterator_create (pop3_t pop3, iterator_t *piterator)
 static int
 p_add_ref (iterator_t iterator)
 {
+  int status = 0;
   struct p_iterator *p_iterator = (struct p_iterator *)iterator;
-  return ++p_iterator->ref;
+  if (p_iterator)
+    {
+      monitor_lock (p_iterator->lock);
+      status = ++p_iterator->ref;
+      monitor_unlock (p_iterator->lock);
+    }
+  return status;
 }
 
 static int
 p_release (iterator_t iterator)
 {
+  int status = 0;
   struct p_iterator *p_iterator = (struct p_iterator *)iterator;
-  if (--p_iterator->ref == 0)
+  if (p_iterator)
     {
-      p_destroy (iterator);
-      return 0;
+      monitor_lock (p_iterator->lock);
+      status = --p_iterator->ref;
+      if (status <= 0)
+	{
+	  monitor_unlock (p_iterator->lock);
+	  p_destroy (iterator);
+	  return 0;
+	}
+      monitor_unlock (p_iterator->lock);
     }
-  return p_iterator->ref;
+  return status;
 }
 
 static int
 p_destroy (iterator_t iterator)
 {
   struct p_iterator *p_iterator = (struct p_iterator *)iterator;
-  if (!p_iterator->done)
+  if (p_iterator)
     {
-      char buf[128];
-      size_t n = 0;
-      while (pop3_readline (p_iterator->pop3, buf, sizeof buf, &n) > 0
-	     && n > 0)
-	n = 0;
+      if (!p_iterator->done)
+	{
+	  char buf[128];
+	  size_t n = 0;
+	  while (pop3_readline (p_iterator->pop3, buf, sizeof buf, &n) > 0
+		 && n > 0)
+	    n = 0;
+	}
+      if (p_iterator->item)
+	free (p_iterator->item);
+      p_iterator->pop3->state = POP3_NO_STATE;
+      monitor_destroy (p_iterator->lock);
+      free (p_iterator);
     }
-  if (p_iterator->item)
-    free (p_iterator->item);
-  p_iterator->pop3->state = POP3_NO_STATE;
-  free (iterator);
   return 0;
 }
 
@@ -116,131 +135,174 @@ p_next (iterator_t iterator)
 {
   struct p_iterator *p_iterator = (struct p_iterator *)iterator;
   size_t n = 0;
-  int status;
+  int status = 0;
 
-  if (p_iterator->done)
-    return 0;
-
-  status = pop3_readline (p_iterator->pop3, NULL, 0, &n);
-  if (status != 0)
-    return status;
-
-  if (n == 0)
+  if (p_iterator)
     {
-      p_iterator->done = 1;
-      p_iterator->pop3->state = POP3_NO_STATE;
-      return 0;
+      monitor_lock (p_iterator->lock);
+      if (!p_iterator->done)
+	{
+	  /* The first readline will not consume the buffer, we just need to
+	     know how much to read.  */
+	  status = pop3_readline (p_iterator->pop3, NULL, 0, &n);
+	  if (status == 0)
+	    {
+	      if (n)
+		{
+		  switch (p_iterator->pop3->state)
+		    {
+		    case POP3_CAPA_RX:
+		      {
+			char *buf;
+			buf = calloc (n + 1, 1);
+			if (buf)
+			  {
+			    /* Consume.  */
+			    pop3_readline (p_iterator->pop3, buf, n + 1, NULL);
+			    if (buf[n - 1] == '\n')
+			      buf[n - 1] = '\0';
+			    if (p_iterator->item)
+			      free (p_iterator->item);
+			    p_iterator->item = buf;
+			  }
+			else
+			  status = MU_ERROR_NO_MEMORY;
+			break;
+		      }
+
+		    case POP3_UIDL_RX:
+		      {
+			struct pop3_uidl_item *pitem;
+			char *buf = calloc (n + 1, 1);
+			if (buf)
+			  {
+			    if (p_iterator->item)
+			      {
+				pitem = p_iterator->item;
+				if (pitem->uidl)
+				  free (pitem->uidl);
+				free (pitem);
+			      }
+			    p_iterator->item = calloc (1, sizeof *pitem);
+			    pitem = p_iterator->item;
+			    if (pitem)
+			      {
+				unsigned msgno;
+				char *space;
+				/* Consume.  */
+				pop3_readline (p_iterator->pop3, buf,
+					       n + 1, NULL);
+				msgno = 0;
+				/* The format is:
+				   msgno uidlsttring  */
+				space = strchr (buf, ' ');
+				if (space)
+				  {
+				    *space++ = '\0';
+				    msgno = strtoul (buf, NULL, 10);
+				  }
+				if (space && space[strlen (space) - 1] == '\n')
+				  space[strlen (space) - 1] = '\0';
+				if (space == NULL)
+				  space = (char *)"";
+				pitem->msgno = msgno;
+				pitem->uidl = strdup (space);
+			      }
+			    else
+			      status = MU_ERROR_NO_MEMORY;
+			    free (buf);
+			  }
+			else
+			  status = MU_ERROR_NO_MEMORY;
+			break;
+		      }
+
+		    case POP3_LIST_RX:
+		      {
+			struct pop3_list_item *pitem;
+			char *buf = calloc (n + 1, 1);
+
+			if (buf)
+			  {
+			    if (p_iterator->item)
+			      free (p_iterator->item);
+			    pitem = calloc (1, sizeof *pitem);
+			    p_iterator->item = pitem;
+			    if (pitem)
+			      {
+				unsigned msgno;
+				size_t size;
+				/* Consume.  */
+				pop3_readline (p_iterator->pop3, buf,
+					       n + 1, NULL);
+				size = msgno = 0;
+				sscanf (buf, "%d %d", &msgno, &size);
+				pitem->msgno = msgno;
+				pitem->size = size;
+			      }
+			    else
+			      status = MU_ERROR_NO_MEMORY;
+			    free (buf);
+			  }
+			else
+			  status = MU_ERROR_NO_MEMORY;
+			break;
+		      }
+
+		    default:
+		    }
+		}
+	      else
+		{
+		  p_iterator->done = 1;
+		  p_iterator->pop3->state = POP3_NO_STATE;
+		}
+	    }
+	}
+      monitor_unlock (p_iterator->lock);
     }
-
-  if (p_iterator->item)
-    free (p_iterator->item);
-
-  switch (p_iterator->pop3->state)
-    {
-    case POP3_CAPA_RX:
-      {
-	char *buf;
-
-	buf = calloc (n + 1, 1);
-	if (buf == NULL)
-	  return MU_ERROR_NO_MEMORY;
-
-	/* Consume.  */
-	pop3_readline (p_iterator->pop3, buf, n + 1, NULL);
-	if (n && buf[n - 1] == '\n')
-	  buf[n - 1] = '\0';
-	p_iterator->item = buf;
-      }
-      break;
-
-    case POP3_UIDL_RX:
-      {
-	unsigned msgno;
-	char *space;
-	char *buf = calloc (n + 1, 1);
-
-	if (buf == NULL)
-	  return MU_ERROR_NO_MEMORY;
-
-	p_iterator->item = calloc (1, sizeof (struct pop3_uidl_item));
-	if (p_iterator->item == NULL)
-	  return MU_ERROR_NO_MEMORY;
-
-	/* Consume.  */
-	pop3_readline (p_iterator->pop3, buf, n + 1, NULL);
-	msgno = 0;
-	space = strchr (buf, ' ');
-	if (space)
-	  {
-	    *space++ = '\0';
-	    msgno = strtoul (buf, NULL, 10);
-	  }
-	if (space && space[strlen (space) - 1] == '\n')
-	  space[strlen (space) - 1] = '\0';
-	if (space == NULL)
-	  space = (char *)"";
-	((struct pop3_uidl_item *)(p_iterator->item))->msgno = msgno;
-	((struct pop3_uidl_item *)(p_iterator->item))->uidl = strdup (space);
-	free (buf);
-      }
-      break;
-
-    case POP3_LIST_RX:
-      {
-	char *buf = calloc (n + 1, 1);
-	unsigned msgno;
-	size_t size;
-
-	if (buf == NULL)
-	  return MU_ERROR_NO_MEMORY;
-
-	p_iterator->item = calloc (1, sizeof (struct pop3_list_item));
-	if (p_iterator->item == NULL)
-	  return MU_ERROR_NO_MEMORY;
-
-	/* Consume.  */
-	pop3_readline (p_iterator->pop3, buf, n + 1, NULL);
-	size = msgno = 0;
-	sscanf (buf, "%d %d", &msgno, &size);
-	((struct pop3_list_item *)(p_iterator->item))->msgno = msgno;
-	((struct pop3_list_item *)(p_iterator->item))->size = size;
-	free (buf);
-      }
-      break;
-
-    default:
-    }
-
-  return 0;
+  return status;
 }
 
 static int
 p_is_done (iterator_t iterator)
 {
   struct p_iterator *p_iterator = (struct p_iterator *)iterator;
-  return p_iterator->done;
+  int status = 1;
+  if (p_iterator)
+    {
+      monitor_lock (p_iterator->lock);
+      status = p_iterator->done;
+      monitor_unlock (p_iterator->lock);
+    }
+  return status;
 }
 
 static int
 p_current (iterator_t iterator, void *item)
 {
   struct p_iterator *p_iterator = (struct p_iterator *)iterator;
-  if (item)
+  if (p_iterator)
     {
-      switch (p_iterator->pop3->state)
+      monitor_lock (p_iterator->lock);
+      if (item)
 	{
-	case POP3_CAPA_RX:
-	case POP3_UIDL_RX:
-	  *((char **)item) = p_iterator->item;
-	  break;
+	  switch (p_iterator->pop3->state)
+	    {
+	    case POP3_CAPA_RX:
+	    case POP3_UIDL_RX:
+	      *((char **)item) = p_iterator->item;
+	      break;
 
-	case POP3_LIST_RX:
-	  *((struct pop3_list_item **)item) = p_iterator->item;
-	  break;
+	    case POP3_LIST_RX:
+	      *((struct pop3_list_item **)item) = p_iterator->item;
+	      break;
 
-	default:
+	    default:
+	    }
 	}
+      p_iterator->item = NULL;
+      monitor_unlock (p_iterator->lock);
     }
-  p_iterator->item = NULL;
   return 0;
 }

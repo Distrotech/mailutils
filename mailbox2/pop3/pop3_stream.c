@@ -119,6 +119,7 @@ pop3_stream_create (pop3_t pop3, stream_t *pstream)
   p_stream->ref = 1;
   p_stream->done = 0;
   p_stream->pop3 = pop3;
+  monitor_create (&p_stream->lock);
   *pstream = &p_stream->base;
   return 0;
 }
@@ -127,35 +128,50 @@ static int
 p_add_ref (stream_t stream)
 {
   struct p_stream *p_stream = (struct p_stream *)stream;
-  return ++p_stream->ref;
+  int status = 0;
+  if (p_stream)
+    {
+      monitor_lock (p_stream->lock);
+      status = ++p_stream->ref;
+      monitor_unlock (p_stream->lock);
+    }
+  return status;
 }
 
 static int
 p_release (stream_t stream)
 {
   struct p_stream *p_stream = (struct p_stream *)stream;
-  if (--p_stream->ref == 0)
+  int status = 0;
+  if (p_stream)
     {
-      p_destroy (stream);
-      return 0;
+      monitor_lock (p_stream->lock);
+      status = --p_stream->ref;
+      if (status <= 0)
+	p_destroy (stream);
+      monitor_unlock (p_stream->lock);
     }
-  return p_stream->ref;
+  return status;
 }
 
 static int
 p_destroy (stream_t stream)
 {
   struct p_stream *p_stream = (struct p_stream *)stream;
-  if (!p_stream->done)
+  if (p_stream)
     {
-      char buf[128];
-      size_t n = 0;
-      while (pop3_readline (p_stream->pop3, buf, sizeof buf, &n) > 0
-             && n > 0)
-        n = 0;
+      if (!p_stream->done)
+	{
+	  char buf[128];
+	  size_t n = 0;
+	  while (pop3_readline (p_stream->pop3, buf, sizeof buf, &n) > 0
+		 && n > 0)
+	    n = 0;
+	}
+      p_stream->pop3->state = POP3_NO_STATE;
+      monitor_destroy (p_stream->lock);
+      free (p_stream);
     }
-  p_stream->pop3->state = POP3_NO_STATE;
-  free (stream);
   return 0;
 }
 
@@ -180,40 +196,45 @@ p_read (stream_t stream, char *buf, size_t buflen, size_t *pn)
   struct p_stream *p_stream = (struct p_stream *)stream;
   size_t n = 0;
   int status = 0;
-  if (!p_stream->done)
+  if (p_stream)
     {
-      do
+      monitor_lock (p_stream->lock);
+      if (!p_stream->done)
 	{
-	  size_t nread = 0;
-
-	  /* The pop3_readline () function will always read one less to
-	     be able to terminate the buffer, this will cause serious grief
-	     for stream_read() where it is legitimate to have a buffer of
-	     1 char.  So we must catch here or change the behavoiour of
-	     XXX_readline.  */
-	  if (buflen == 1)
+	  do
 	    {
-	      char buffer[2];
-	      *buffer = '\0';
-	      status = pop3_readline (p_stream->pop3, buffer, 2, &nread);
-	      *buf = *buffer;
-	    }
-	  else
-	    status = pop3_readline (p_stream->pop3, buf, buflen, &nread);
+	      size_t nread = 0;
 
-	  if (status != 0)
-	    break;
-	  if (nread == 0)
-	    {
-	      p_stream->pop3->state = POP3_NO_STATE;
-	      p_stream->done = 1;
-	      break;
+	      /* The pop3_readline () function will always read one less to
+		 be able to terminate the buffer, this will cause serious grief
+		 for stream_read() where it is legitimate to have a buffer of
+		 1 char.  So we must catch here or change the behavoiour of
+		 XXX_readline.  */
+	      if (buflen == 1)
+		{
+		  char buffer[2];
+		  *buffer = '\0';
+		  status = pop3_readline (p_stream->pop3, buffer, 2, &nread);
+		  *buf = *buffer;
+		}
+	      else
+		status = pop3_readline (p_stream->pop3, buf, buflen, &nread);
+
+	      if (status != 0)
+		break;
+	      if (nread == 0)
+		{
+		  p_stream->pop3->state = POP3_NO_STATE;
+		  p_stream->done = 1;
+		  break;
+		}
+	      n += nread;
+	      buflen -= nread;
+	      buf += nread;
 	    }
-	  n += nread;
-	  buflen -= nread;
-	  buf += nread;
+	  while (buflen > 0);
 	}
-      while (buflen > 0);
+      monitor_unlock (p_stream->lock);
     }
   if (pn)
     *pn = n;
@@ -226,14 +247,19 @@ p_readline (stream_t stream, char *buf, size_t buflen, size_t *pn)
   struct p_stream *p_stream = (struct p_stream *)stream;
   size_t n = 0;
   int status = 0;
-  if (!p_stream->done)
+  if (p_stream)
     {
-      status = pop3_readline (p_stream->pop3, buf, buflen, &n);
-      if (n == 0)
+      monitor_lock (p_stream->lock);
+      if (!p_stream->done)
 	{
-	  p_stream->pop3->state = POP3_NO_STATE;
-	  p_stream->done = 1;
+	  status = pop3_readline (p_stream->pop3, buf, buflen, &n);
+	  if (n == 0)
+	    {
+	      p_stream->pop3->state = POP3_NO_STATE;
+	      p_stream->done = 1;
+	    }
 	}
+      monitor_unlock (p_stream->lock);
     }
   if (pn)
     *pn = n;

@@ -1,5 +1,11 @@
 2001-07-01 Alain Magloire
 
+	* mailbox2/pop3/*: Pop3 functions are thread-safe and cancel-safe.
+	The problem is monitor.h, we will probably end up doing a monitor.h.in
+	and set a compile time if threading was enable or not.
+
+2001-07-01 Alain Magloire
+
 	* mail/util.c (util_expand_msglist): Cleanup the expand by pattern
 	by moving some code in util_strupper(), the comparison must be
 	case insensitive.

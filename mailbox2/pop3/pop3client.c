@@ -14,6 +14,7 @@
 #include <strings.h>
 #include <stdlib.h>
 #include <termios.h>
+#include <signal.h>
 
 #include <readline/readline.h>
 #include <readline/history.h>
@@ -55,6 +56,8 @@ void *xmalloc (size_t);
 char *dupstr (const char *);
 int execute_line (char *);
 int valid_argument (const char *, char *);
+
+void sig_int (int);
 
 COMMAND commands[] = {
   { "apop", com_apop, "Authenticate with APOP: APOP user secret" },
@@ -121,6 +124,7 @@ main (int argc, char **argv)
   /* Loop reading and executing lines until the user quits. */
   for ( ; done == 0; )
     {
+
       line = readline ("pop3> ");
 
       if (!line)
@@ -354,9 +358,10 @@ com_uidl (char *arg)
     {
       char *uidl = NULL;
       unsigned int msgno = strtoul (arg, NULL, 10);
-      pop3_uidl (pop3, msgno, &uidl);
-      print_response ();
-      printf ("Msg: %d UIDL: %s\n", msgno, (uidl) ? uidl : "");
+      if (pop3_uidl (pop3, msgno, &uidl) == 0)
+	printf ("Msg: %d UIDL: %s\n", msgno, (uidl) ? uidl : "");
+      else
+	print_response ();
     }
   return 0;
 }
@@ -387,9 +392,10 @@ com_list (char *arg)
     {
       size_t size = 0;
       unsigned int msgno = strtoul (arg, NULL, 10);
-      pop3_list (pop3, msgno, &size);
-      print_response ();
-      printf ("Msg: %d Size: %d\n", msgno, size);
+      if (pop3_list (pop3, msgno, &size) == 0)
+	printf ("Msg: %d Size: %d\n", msgno, size);
+      else
+	print_response ();
     }
   return 0;
 }
@@ -619,10 +625,19 @@ com_quit (char *arg)
   (void)arg;
   if (pop3)
     {
-      pop3_quit (pop3);
-      pop3_disconnect (pop3);
-      print_response ();
+      if (pop3_quit (pop3) == 0)
+	{
+	  print_response ();
+	  pop3_disconnect (pop3);
+	}
+      else
+	{
+	  print_response ();
+	  fprintf (stdout, "Try 'exit' to leave %s\n", progname);
+	}
     }
+  else
+    fprintf (stdout, "Try 'exit' to leave %s\n", progname);
   return 0;
 }
 

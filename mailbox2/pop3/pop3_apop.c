@@ -22,20 +22,17 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <mailutils/sys/pop3.h>
 #include <mailutils/md5-rsa.h>
+#include <mailutils/sys/pop3.h>
 
 /*
   APOP name digest
   a string identifying a mailbox and a MD5 digest string (both required)
 */
-int
-pop3_apop (pop3_t pop3, const char *user, const char *secret)
+static int
+pop3_apop0 (pop3_t pop3, const char *user, const char *secret)
 {
-  int status = 0;
-
-  if (pop3 == NULL)
-    return MU_ERROR_INVALID_PARAMETER;
+  int status;
 
   /* The server did not offer a time stamp in the greeting, bailout early.  */
   if (pop3->timestamp == NULL)
@@ -91,5 +88,21 @@ pop3_apop (pop3_t pop3, const char *user, const char *secret)
       status = MU_ERROR_OPERATION_IN_PROGRESS;
     }
 
+  return status;
+}
+
+int
+pop3_apop (pop3_t pop3, const char *user, const char *secret)
+{
+  int status;
+
+  if (pop3 == NULL)
+    return MU_ERROR_INVALID_PARAMETER;
+
+  monitor_lock (pop3->lock);
+  monitor_cleanup_push (pop3_cleanup, pop3);
+  status = pop3_apop0 (pop3, user, secret);
+  monitor_unlock (pop3->lock);
+  monitor_cleanup_pop (0);
   return status;
 }

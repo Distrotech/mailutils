@@ -38,13 +38,20 @@ pop3_response (pop3_t pop3, char *buffer, size_t buflen, size_t *pnread)
       size_t len = pop3->ack.len - (pop3->ack.ptr  - pop3->ack.buf);
       status = pop3_readline (pop3, pop3->ack.ptr, len, &n);
       pop3->ack.ptr += n;
-      if (status != 0)
-	return status;
-      len = pop3->ack.ptr - pop3->ack.buf;
-      if (len && pop3->ack.buf[len - 1] == '\n')
-	pop3->ack.buf[len - 1] = '\0';
-      pop3->acknowledge = 1; /* Flag that we have the ack.  */
-      pop3->ack.ptr = pop3->ack.buf;
+      if (status == 0)
+	{
+	  len = pop3->ack.ptr - pop3->ack.buf;
+	  if (len && pop3->ack.buf[len - 1] == '\n')
+	    pop3->ack.buf[len - 1] = '\0';
+	  pop3->acknowledge = 1; /* Flag that we have the ack.  */
+	  pop3->ack.ptr = pop3->ack.buf;
+	}
+      else
+	{
+	  const char *econ = "-ERR POP3 Failed";
+	  n = strlen (econ);
+	  strcpy (pop3->ack.buf, econ);
+	}
     }
   else
     n = strlen (pop3->ack.buf);

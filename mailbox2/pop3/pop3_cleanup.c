@@ -19,45 +19,17 @@
 # include <config.h>
 #endif
 
-#include <mailutils/sys/pop3.h>
-#include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 
-/* Sudden death.  */
-static int
-pop3_disconnect0 (pop3_t pop3)
+#include <mailutils/sys/pop3.h>
+#include <mailutils/md5-rsa.h>
+#include <mailutils/monitor.h>
+
+void
+pop3_cleanup (void *arg)
 {
-  /* We can keep some of the fields, if they decide to pop3_open() again but
-     clear the states.  */
-  pop3->state = POP3_NO_STATE;
-  pop3->acknowledge = 0;
-  memset (pop3->io.buf, '\0', pop3->io.len);
-  memset (pop3->ack.buf, '\0', pop3->ack.len);
-
-  /* Free the timestamp, it will be different on each connection.  */
-  if (pop3->timestamp)
-    {
-      free (pop3->timestamp);
-      pop3->timestamp = NULL;
-    }
-  if (pop3->stream)
-    return stream_close (pop3->stream);
-  return 0;
-}
-
-int
-pop3_disconnect (pop3_t pop3)
-{
-  int status;
-
-  /* Sanity checks.  */
-  if (pop3 == NULL)
-    return MU_ERROR_INVALID_PARAMETER;
-
-  monitor_lock (pop3->lock);
-  monitor_cleanup_push (pop3_cleanup, pop3);
-  status = pop3_disconnect0 (pop3);
+  pop3_t pop3 = (pop3_t)arg;
   monitor_unlock (pop3->lock);
-  monitor_cleanup_pop (0);
-  return status;
+  pop3->state = POP3_ERROR;
 }

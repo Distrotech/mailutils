@@ -60,6 +60,8 @@ pop3_create (pop3_t *ppop3)
   pop3->timeout = 10 * 60; /* The default Timeout is 10 minutes.  */
   pop3->acknowledge = 0; /* No Ack received.  */
 
+  monitor_create (&(pop3->lock));
+
   *ppop3 = pop3;
   return 0; /* Okdoke.  */
 }

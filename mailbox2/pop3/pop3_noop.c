@@ -19,20 +19,18 @@
 # include <config.h>
 #endif
 
-#include <string.h>
-#ifdef HAVE_STRINGS_H
+#ifdef HAVE_STRING_H
+# include <string.h>
+#else
 # include <strings.h>
 #endif
 
 #include <mailutils/sys/pop3.h>
 
-int
-pop3_noop (pop3_t pop3)
+static int
+pop3_noop0 (pop3_t pop3)
 {
-  int status = 0;
-
-  if (pop3 == NULL)
-    return MU_ERROR_INVALID_PARAMETER;
+  int status;
 
   switch (pop3->state)
     {
@@ -63,5 +61,22 @@ pop3_noop (pop3_t pop3)
       status = MU_ERROR_OPERATION_IN_PROGRESS;
     }
 
+  return status;
+}
+
+
+int
+pop3_noop (pop3_t pop3)
+{
+  int status;
+
+  if (pop3 == NULL)
+    return MU_ERROR_INVALID_PARAMETER;
+
+  monitor_lock (pop3->lock);
+  monitor_cleanup_push (pop3_cleanup, pop3);
+  status = pop3_noop0 (pop3);
+  monitor_unlock (pop3->lock);
+  monitor_cleanup_pop (0);
   return status;
 }

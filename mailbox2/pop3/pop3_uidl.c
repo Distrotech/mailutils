@@ -19,21 +19,19 @@
 # include <config.h>
 #endif
 
-#include <string.h>
-#ifdef HAVE_STRINGS_H
+#ifdef HAVE_STRING_H
+# include <string.h>
+#else
 # include <strings.h>
 #endif
 
 #include <stdlib.h>
 #include <mailutils/sys/pop3.h>
 
-int
-pop3_uidl (pop3_t pop3, unsigned msgno, char **uidl)
+static int
+pop3_uidl0 (pop3_t pop3, unsigned msgno, char **uidl)
 {
-  int status = 0;
-
-  if (pop3 == NULL)
-    return MU_ERROR_INVALID_PARAMETER;
+  int status;
 
   switch (pop3->state)
     {
@@ -98,5 +96,21 @@ pop3_uidl (pop3_t pop3, unsigned msgno, char **uidl)
       status = MU_ERROR_OPERATION_IN_PROGRESS;
     }
 
+  return status;
+}
+
+int
+pop3_uidl (pop3_t pop3, unsigned msgno, char **uidl)
+{
+  int status;
+
+  if (pop3 == NULL)
+    return MU_ERROR_INVALID_PARAMETER;
+
+  monitor_lock (pop3->lock);
+  monitor_cleanup_push (pop3_cleanup, pop3);
+  status = pop3_uidl0 (pop3, msgno, uidl);
+  monitor_unlock (pop3->lock);
+  monitor_cleanup_pop (0);
   return status;
 }

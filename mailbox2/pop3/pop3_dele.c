@@ -26,13 +26,10 @@
 
 #include <mailutils/sys/pop3.h>
 
-int
-pop3_dele (pop3_t pop3, unsigned msgno)
+static int
+pop3_dele0 (pop3_t pop3, unsigned msgno)
 {
-  int status = 0;
-
-  if (pop3 == NULL || msgno == 0)
-    return MU_ERROR_INVALID_PARAMETER;
+  int status;
 
   switch (pop3->state)
     {
@@ -62,5 +59,21 @@ pop3_dele (pop3_t pop3, unsigned msgno)
     default:
       status = MU_ERROR_OPERATION_IN_PROGRESS;
     }
+  return status;
+}
+
+int
+pop3_dele (pop3_t pop3, unsigned msgno)
+{
+  int status;
+
+  if (pop3 == NULL || msgno == 0)
+    return MU_ERROR_INVALID_PARAMETER;
+
+  monitor_lock (pop3->lock);
+  monitor_cleanup_push (pop3_cleanup, pop3);
+  status = pop3_dele0 (pop3, msgno);
+  monitor_unlock (pop3->lock);
+  monitor_cleanup_pop (0);
   return status;
 }
