@@ -64,18 +64,7 @@
 
 (define (sieve-expand-filename filename)
   (case (string-ref filename 0)
-    ((#\~)
-     (let ((pw (mu-getpwuid (geteuid))))
-	(if (and (vector? pw)
-		 (let ((dir (vector-ref pw 5)))
-		   (and
-		    (access? dir W_OK)
-		    (eq? (vector-ref (stat (vector-ref pw 5)) 13) 'directory))))
-	    (string-append (vector-ref pw 5) 
-			   (substring filename
-				      1 (string-length filename)))
-	    #f)))
-    ((#\/)
+    ((#\/ #% #~ #+ #=)
       filename)
     (else
      (let ((pw (getpwuid (geteuid))))
