@@ -304,16 +304,43 @@ sieve_code_command (sieve_register_t *reg, list_t arglist)
 }
 
 int
+sieve_code_source (const char *name)
+{
+  char *s;
+  
+  if (list_locate (sieve_machine->source_list, (void*) name, (void **) &s))
+    {
+      s = sieve_mstrdup (sieve_machine, name);
+      list_append (sieve_machine->source_list, s);
+    }
+  
+  return sieve_code_instr (instr_source)
+	 || sieve_code_string (s);
+}
+
+int
+sieve_code_line (size_t line)
+{
+  sieve_op_t op;
+
+  op.line = line;
+  return sieve_code_instr (instr_line)
+	 || sieve_code (&op);
+}
+
+int
 sieve_code_action (sieve_register_t *reg, list_t arglist)
 {
-  return sieve_code_instr (instr_action)
+  return sieve_code_line (sieve_line_num)
+         || sieve_code_instr (instr_action)
          || sieve_code_command (reg, arglist);
 }
 
 int
 sieve_code_test (sieve_register_t *reg, list_t arglist)
 {
-  return sieve_code_instr (instr_test)
+  return sieve_code_line (sieve_line_num)
+         || sieve_code_instr (instr_test)
          || sieve_code_command (reg, arglist);
 }
 
