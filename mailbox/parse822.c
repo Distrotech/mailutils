@@ -551,11 +551,12 @@ parse822_quoted_string (const char **p, const char *e, char **qstr)
       if (rc)
 	{
 	  *p = save;
+	  str_free (qstr);
 	  return rc;
 	}
     }
   *p = save;
-
+  str_free (qstr);
   return EPARSE;		/* end-of-qstr not found */
 }
 
@@ -617,22 +618,8 @@ parse822_word (const char **p, const char *e, char **word)
   return EPARSE;
 }
 
-/* rfc822 says:
-        The local-part of an  addr-spec  in  a  mailbox  specification
-        (i.e.,  the  host's  name for the mailbox) is understood to be
-        whatever the receiving mail protocol server allows.  For exam-
-        ple,  some systems do not understand mailbox references of the
-        form "P. D. Q. Bach", but others do.
-
-        This specification treats periods (".") as lexical separators.
-        Hence,  their  presence  in  local-parts which are not quoted-
-        strings, is detected.   However,  such  occurrences  carry  NO
-        semantics.  That is, if a local-part has periods within it, an
-        address parser will divide the local-part into several tokens,
-        but  the  sequence  of  tokens will be treated as one uninter-
-        preted unit.  The sequence  will  be  re-assembled,  when  the
-        address is passed outside of the system such as to a mail pro-
-        tocol service.
+/* Some mailers do not quote personal part even if it contains dot.
+   Try to be smart about it.
 */	
 	
 int
