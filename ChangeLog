@@ -1,3 +1,11 @@
+2002-07-27  Sergey Poznyakoff
+
+	* imap4d/fetch.c: Do not use strtok_r to parse header values (it
+	  ignores the quotes). *Lots* of bugfixes beside that.
+	* imap4d/util.c (util_msgset): Always return sorted msgset with
+	  no duplicates. Fixed transcript support.
+	* THANKS: Added Jordy Mallach
+
 2002-07-26  Sergey Poznyakoff 
 
 	Provide session transcript support for the daemons. The
