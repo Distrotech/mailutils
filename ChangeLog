@@ -1,3 +1,58 @@
+2001-06-25 Sergey Poznyakoff
+	* mail/if.c: Removed confusing comment.
+	* mail/copy.c: Split off mail_copy0. It is shared between mail_copy
+		and mail_save. Implemented Copy command.
+		Use mailbox_open_default() instead of mailbox_open().
+		Fixed possible memory leaks. 
+	* mail/write.c: Implemented Write. Fixed memory leaks.
+	* mail/Makefile.am: removed discard.c
+	* mail/discard.c: removed. Implemented in retain.c.
+	* mail/retain.c: Implemented retain/ignore. It is more convenient
+		to keep them in one module so they can share static data.
+	* mail/alias.c: Implemented.
+	* mail/unalias.c: Implemented.
+	* mail/alt.c: Implemented.
+	* mail/file.c:
+		Check number of arguments.
+		Display current mailbox name when called without args.
+		Honour %, &, and + in mailbox names (possibly should
+		be implemented in mailbox_open_default ?).
+		Use mail_mbox_close(). After opening new mailbox,
+		run "z." instead of "from *".
+	* mail/folders.c: A (very rudimentary) implementation.
+	* mail/headers.c: Removed if (num) clause: util_expand_msglist()
+		now returns at least 1.
+	* mail/pipe.c: Likewise.
+	* mail/hold.c: Implemented.
+	* mail/mail.c: Escape % signs in the command line before passing
+		it to util_do_command().
+	* mail/mail.h: Protos for implemented functions. Proto for
+		readline() if libreadline is not linked in.
+		Definition for MAIL_ATTRIBUTE_MBOXED.
+	* mail/mbox.c: Implemented.
+	* mail/print.c: Print only header fields allowed by retain/ignore
+		settings.
+	* mail/quit.c: mail_mbox_close() shared between this module and
+		file.c.
+		Print statistics information on closing the mailbox (number
+		of messages held and saved in mbox).
+	* mail/reply.c: Implemented.
+	* mail/save.c: Use mail_copy0().
+	* mail/send.c: Split off mail_send0(). It is used by mail_send()
+		and mail_reply().
+	* mail/util.c:
+		util_expand_msglist(): return 1 and set msglist[0]=cursor
+		if argc == 1.
+		util_do_command(): Added missing va_end().
+		util_get_sender(): Returns sender email for the given msgno.
+			Optionally strips off domain part.
+		util_slist_.*(): "string lists" used by alias,alt,retain,
+			ignore.
+		util_strcat(): Concat two strings, reallocating first
+			to the necessary length.
+		util_escape_percent(): Excape % signs in a string, so
+			it can be used as format in .*printf calls.
+
 2001-06-22 Sergey Poznyakoff
 	* mailbox/mutil.c: added mu_get_homedir() and mu_tilde_expansion();
 	* include/mailutils/mutil.h: protos for new mu_ functions
