@@ -38,7 +38,7 @@ struct _iterator
   int (*destroy) (iterator_t itr, void *owner);
   int (*first) (void *owner);
   int (*next) (void *owner);
-  int (*getitem) (void *owner, void * const *pret);
+  int (*getitem) (void *owner, void **pret);
   int (*curitem_p) (void *owner, void *item);
   int (*finished_p) (void *owner);
 };
