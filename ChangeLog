@@ -1,3 +1,11 @@
+2002-12-12  Sergey Poznyakoff
+
+	* mail.local/main.c (_sieve_action_log): Use vasprintf.
+	* libsieve/sieve.l: Allow #include within a :text block
+	* mh/inc.c: Use mu_errstring instead of strerror.
+	* mh/mh_init.c (mh_open_folder): Changed default open
+	  flags to MU_STREAM_RDWR.
+	  
 2002-12-11  Sergey Poznyakoff 
 
 	* examples/numaddr.c: Fixed malformed comment.
