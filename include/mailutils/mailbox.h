@@ -66,7 +66,7 @@ extern int mailbox_message_unseen  __P ((mailbox_t, size_t *));
 extern int mailbox_expunge         __P ((mailbox_t));
 
 /* Update and scanning.  */
-extern int mailbox_size            __P ((mailbox_t, off_t *size));
+extern int mailbox_get_size        __P ((mailbox_t, off_t *size));
 extern int mailbox_is_updated      __P ((mailbox_t));
 extern int mailbox_scan            __P ((mailbox_t, size_t no, size_t *count));
 

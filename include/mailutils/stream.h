@@ -20,6 +20,8 @@
 
 #include <sys/types.h>
 
+#include <mailutils/property.h>
+
 #ifdef __cplusplus
 extern "C" { /*}*/
 #endif
@@ -43,6 +45,7 @@ typedef struct _stream *stream_t;
 #define MU_STREAM_NONBLOCK 0x00000020
 /* Stream will be destroy on stream_destroy whitout checking the owner.  */
 #define MU_STREAM_NO_CHECK 0x00000040
+#define MU_STREAM_SEEKABLE 0x00000080
 
 extern int stream_create       __P ((stream_t *, int flags, void *owner));
 extern void stream_destroy     __P ((stream_t *, void *owner));
@@ -57,6 +60,8 @@ extern int stream_set_open     __P ((stream_t, int (*_open)
 extern int stream_close        __P ((stream_t));
 extern int stream_set_close    __P ((stream_t, int (*_close) __P ((stream_t)),
 				     void *owner));
+
+extern int stream_is_seekable  __P ((stream_t));
 
 extern int stream_get_fd       __P ((stream_t , int *));
 extern int stream_set_fd       __P ((stream_t, int (*_get_fd)(stream_t, int *),
@@ -94,13 +99,16 @@ extern int stream_set_write    __P ((stream_t, int
 						     size_t, off_t, size_t *)),
 				     void *owner));
 
-  extern int stream_setbufsiz    __P ((stream_t stream, size_t size));
+extern int stream_setbufsiz    __P ((stream_t stream, size_t size));
 extern int stream_flush        __P ((stream_t));
 extern int stream_set_flush    __P ((stream_t, int (*_flush)
 				     __P ((stream_t)), void *owner));
 
 extern int stream_get_flags    __P ((stream_t, int *pflags));
 extern int stream_set_flags    __P ((stream_t, int flags));
+
+extern int stream_get_property __P ((stream_t, property_t *));
+extern int stream_set_property __P ((stream_t, property_t, void *));
 
 #define MU_STREAM_STATE_OPEN  1
 #define MU_STREAM_STATE_READ  2

@@ -15,10 +15,18 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-#ifndef _MAILUTILS_PROPERTY_H
-#define _MAILUTILS_PROPERTY_H
+/* Notes:
 
-#include <sys/types.h>
+ */
+
+#ifndef _MAILUTILS_FILTER_H
+#define _MAILUTILS_FILTER_H
+
+#include <mailutils/list.h>
+#include <mailutils/monitor.h>
+#include <mailutils/iterator.h>
+#include <mailutils/property.h>
+#include <mailutils/stream.h>
 
 #ifndef __P
 # ifdef __STDC__
@@ -32,30 +40,31 @@
 extern "C" {
 #endif
 
-struct _property;
-typedef struct _property *property_t;
+struct _filter;
+typedef struct _filter * filter_t;
 
-extern int property_create   __P ((property_t *, void *));
-extern void property_destroy __P ((property_t *, void *));
-extern void *property_get_owner __P ((property_t));
+struct _filter
+{
+  const char *encoding;
+  int (*_init)     __P ((filter_t));
+  int (*_read)     __P ((filter_t, char *, size_t, off_t, size_t *));
+  int (*_readline) __P ((filter_t, char *, size_t, off_t, size_t *));
+  int (*_write)    __P ((filter_t, const char *, size_t, off_t, size_t *));
+  void (*_destroy) __P ((filter_t));
+  stream_t stream;
+  stream_t filter_stream;
+  property_t property;
+  int direction;
+  void *data;
+};
 
-extern int property_set_value __P ((property_t, const char *, const char *));
-extern int property_get_value
-__P ((property_t, const char *, char *, size_t, size_t *));
+extern int filter_create __P ((stream_t *, stream_t, const char *));
+extern int filter_get_list __P ((list_t *));
 
-extern int property_add_defaults
-__P ((property_t, const char *, const char *,
-      int (*) __P ((property_t, const char *, const char *)),
-      int (*) __P ((property_t, const char *, char *, size_t, size_t *)),
-      void *));
-
-/* Helper functions.  */
-extern int property_set  __P ((property_t, const char *));
-extern int property_unset __P ((property_t, const char *));
-extern int property_is_set __P ((property_t, const char *));
+extern filter_t rfc822_filter;
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* _MAILUTILS_PROPERTY_H */
+#endif /* _MAILUTILS_FILTER_H */

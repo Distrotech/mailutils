@@ -6,6 +6,7 @@ pkginclude_HEADERS = \
  body.h \
  debug.h \
  envelope.h \
+ filter.h \
  folder.h \
  header.h \
  iterator.h \

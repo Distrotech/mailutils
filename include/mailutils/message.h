@@ -30,6 +30,7 @@ typedef struct _message *message_t;
 #include <mailutils/stream.h>
 #include <mailutils/observer.h>
 #include <mailutils/attribute.h>
+#include <mailutils/property.h>
 #include <mailutils/mailbox.h>
 
 #ifndef __P
@@ -53,23 +54,25 @@ extern void message_destroy         __P ((message_t *, void *owner));
 extern void * message_get_owner     __P ((message_t));
 extern int message_is_modified      __P ((message_t));
 extern int message_clear_modified   __P ((message_t));
-extern int message_set_mailbox      __P ((message_t, mailbox_t));
+extern int message_set_mailbox      __P ((message_t, mailbox_t, void *));
 
 extern int message_ref              __P ((message_t));
 #define message_unref(msg)          message_destroy (&msg, NULL)
 
 extern int message_get_envelope     __P ((message_t, envelope_t *));
-extern int message_set_envelope     __P ((message_t, envelope_t, void *owner));
+extern int message_set_envelope     __P ((message_t, envelope_t, void *));
 
 extern int message_get_header       __P ((message_t, header_t *));
-extern int message_set_header       __P ((message_t, header_t, void *owner));
+extern int message_set_header       __P ((message_t, header_t, void *));
 
 extern int message_get_body         __P ((message_t, body_t *));
-extern int message_set_body         __P ((message_t, body_t, void *owner));
+extern int message_set_body         __P ((message_t, body_t, void *));
 
 extern int message_get_stream       __P ((message_t, stream_t *));
-extern int message_set_stream       __P ((message_t, stream_t, void *owner));
+extern int message_set_stream       __P ((message_t, stream_t, void *));
 
+extern int message_get_property     __P ((message_t, property_t *));
+extern int message_set_property     __P ((message_t, property_t, void *));
 extern int message_get_attribute    __P ((message_t, attribute_t *));
 extern int message_set_attribute    __P ((message_t, attribute_t, void *));
 
