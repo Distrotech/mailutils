@@ -18,17 +18,24 @@
 #include "pop3d.h"
 
 /* Enters the UPDATE phase and deletes marked messages */
+/* Note:
+   Whether the removal was successful or not, the server
+   then releases any exclusive-access lock on the maildrop
+   and closes the TCP connection.  */
 
 int
 pop3_quit (const char *arg)
 {
+  int err = OK;
   if (strlen (arg) != 0)
     return ERR_BAD_ARGS;
 
   if (state == TRANSACTION)
     {
-      if (mailbox_expunge (mbox) != 0 || mailbox_close (mbox) != 0 )
-	return ERR_FILE;
+      if (mailbox_expunge (mbox) != 0)
+	err = ERR_FILE;
+      if (mailbox_close (mbox) != 0)
+	err = ERR_FILE;
       mailbox_destroy (&mbox);
       syslog (LOG_INFO, "Session ended for user: %s", username);
     }
@@ -39,6 +46,7 @@ pop3_quit (const char *arg)
   free (username);
   free (md5shared);
 
-  fprintf (ofile, "+OK\r\n");
-  return OK;
+  if (err == OK)
+    fprintf (ofile, "+OK\r\n");
+  return err;
 }

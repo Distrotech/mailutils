@@ -169,6 +169,7 @@ pop3_readline (int fd)
   struct timeval tv;
   char buf[512], *ret = NULL;
   int nread;
+  int total = 0;
   int available;
 
   FD_ZERO (&rfds);
@@ -190,19 +191,13 @@ pop3_readline (int fd)
 	pop3_abquit (ERR_DEAD_SOCK);
 
       buf[nread] = '\0';
-
+      ret = realloc (ret, (total + nread + 1) * sizeof (char));
       if (ret == NULL)
-	{
-	  ret = malloc ((nread + 1) * sizeof (char));
-	  strcpy (ret, buf);
-	}
-      else
-	{
-	  ret = realloc (ret, (strlen (ret) + nread + 1) * sizeof (char));
-	  strcat (ret, buf);
-	}
+	pop3_abquit (ERR_NO_MEM);
+      memcpy (ret + total, buf, nread + 1);
+      total += nread;
     }
-  while (strchr (buf, '\n') == NULL);
+  while (memchr (buf, '\n', nread) == NULL);
 
   return ret;
 }

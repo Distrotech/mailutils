@@ -56,6 +56,9 @@
 /* The command argument was > 40 characters */
 #define TOO_LONG	"Argument too long"
 
+/* An error occured when expunging.  */
+#define FILE_EXP        "Some deleted messages not removed"
+
 /* APOP password file, without .db or .passwd, which are added based on file
    type automatically */
 #define APOP_PASSFILE	"/etc/apop"

@@ -117,6 +117,7 @@ main (int argc, char **argv)
   {
     list_t bookie;
     registrar_get_list (&bookie);
+    /* list_append (bookie, mbox_record); */
     list_append (bookie, path_record);
   }
 
@@ -300,6 +301,8 @@ pop3_mainloop (int infile, int outfile)
 	fprintf (ofile, "-ERR [IN-USE] " MBOX_LOCK "\r\n");
       else if (status == ERR_TOO_LONG)
 	fprintf (ofile, "-ERR " TOO_LONG "\r\n");
+      else if (status == ERR_FILE)
+	fprintf (ofile, "-ERR " FILE_EXP "\r\n");
       else
 	fprintf (ofile, "-ERR unknown error\r\n");
 
