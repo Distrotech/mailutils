@@ -91,4 +91,4 @@ libmailbox_la_LDFLAGS = -version-info 0:0:0
 
 mailutils_config_SOURCES = mailutils-config.c
 mailutils_config_LDADD = ./libmailbox.la ../lib/libmailutils.la @LTLIBINTL@
-mailutils_config_CFLAGS = -DCOMPILE_FLAGS="\"-I$(includedir)\"" -I$(top_srcdir)/intl -DLINK_FLAGS="\"-L$(libdir)\"" -DAUTHLIBS="\"$(MYSQLLIBS)\"" -DGUILE_LIBS="\"$(GUILE_LIBS)\""
+mailutils_config_CFLAGS = -DCOMPILE_FLAGS="\"-I$(includedir)\"" -I$(top_srcdir)/intl -DLINK_FLAGS="\"-L$(libdir)\"" -DAUTHLIBS="\"`echo $(AUTHLIBS) | sed 's/.*libmuauth.la *//'`\"" -DGUILE_LIBS="\"$(GUILE_LIBS)\""
