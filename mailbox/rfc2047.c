@@ -432,7 +432,6 @@ qp_next (rfc2047_encoder * enc)
 	  if (enc->dst)
 	    {
 	      * (enc->dst ++) = '_';
-	      enc->src ++;
 	    }
 
 	  done = 1;
@@ -444,8 +443,6 @@ qp_next (rfc2047_encoder * enc)
 	    * (enc->dst ++) = '=';
 	    * (enc->dst ++) = _hexdigit [* (enc->src) >> 4];
 	    * (enc->dst ++) = _hexdigit [* (enc->src) & 0xF];
-	    
-	    enc->src ++;
 	  }
 	
 	done = 3;
@@ -455,11 +452,13 @@ qp_next (rfc2047_encoder * enc)
     {
       if (enc->dst)
 	{
-	  * (enc->dst ++) = * (enc->src ++);
+	  * (enc->dst ++) = * enc->src;
 	}
 
       done = 1;
     }
+
+  enc->src ++;
 
   enc->done += done;
   enc->todo --;
