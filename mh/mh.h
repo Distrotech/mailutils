@@ -314,3 +314,5 @@ void mhl_format_destroy (list_t *fmt);
 void mh_seq_add __P((char *name, mh_msgset_t *mset, int flags));
 int mh_seq_delete __P((char *name, mh_msgset_t *mset, int flags));
 char *mh_seq_read __P((char *name, int flags));
+
+int mhdraft_stream_create __P((stream_t *stream, stream_t src, int flags));
