@@ -289,7 +289,6 @@ int
 mh_getyn (const char *fmt, ...)
 {
   va_list ap;
-  char repl[64];
   int rc;
   
   if (mh_interactive_mode_p ())
@@ -304,7 +303,6 @@ int
 mh_getyn_interactive (const char *fmt, ...)
 {
   va_list ap;
-  char repl[64];
   int rc;
   
   va_start (ap, fmt);
