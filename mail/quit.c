@@ -37,12 +37,15 @@ mail_mbox_close ()
   url_t url = NULL;
   size_t held_count;
 
-  if (mail_mbox_commit ())
-    return 1;
+  if (!util_find_env ("readonly")->set) 
+    {
+      if (mail_mbox_commit ())
+	return 1;
 
-  mailbox_save_attributes (mbox);
-  mailbox_expunge (mbox);
-
+      mailbox_save_attributes (mbox);
+      mailbox_expunge (mbox);
+    }
+  
   mailbox_get_url (mbox, &url);
   mailbox_messages_count (mbox, &held_count);
   fprintf (ofile, "Held %d messages in %s\n", held_count, url_to_string (url));
@@ -72,7 +75,7 @@ mail_mbox_commit ()
     mailbox_t mb;
     url_t u;
     mailbox_create_default (&mb, NULL);
-    mailbox_get_url (mbox, &u);
+    mailbox_get_url (mb, &u);
     if (strcmp (url_to_string (u), url_to_string (url)) != 0)
       {
 	/* The mailbox we are closing is not a system one (%). Raise
