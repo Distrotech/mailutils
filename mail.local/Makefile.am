@@ -4,6 +4,7 @@
 
 AUTOMAKE_OPTIONS = ../lib/ansi2knr
 INCLUDES =-I$(srcdir) -I$(top_srcdir)/lib -I$(top_srcdir)/mailbox -I$(top_srcdir)/include -I$(top_srcdir)/libmu_scm @GUILE_INCLUDES@
+SUBDIRS = testsuite
 
 libexec_PROGRAMS = mail.local
 mail_local_SOURCES = main.c mailquota.c script.c mail.local.h
