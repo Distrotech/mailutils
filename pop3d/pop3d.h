@@ -170,7 +170,8 @@
 #define ERR_TIMEOUT	14
 #define ERR_UNKNOWN	15
 #define ERR_MBOX_SYNC   16
-#define ERR_TLS_ACTIVE 17
+#define ERR_TLS_ACTIVE  17
+#define ERR_TLS_IO      18
 
 extern mailbox_t mbox;
 extern int state;
