@@ -569,8 +569,13 @@ skipws (char *p, size_t off)
   return p;
 }
 
+struct msg_envelope {
+  char *from;
+  char *date;
+};
+
 static int
-restore_envelope (stream_t str, char **pptr)
+restore_envelope (stream_t str, struct msg_envelope **pmenv)
 {
   size_t offset = 0;
   char *from = NULL;
@@ -626,22 +631,77 @@ restore_envelope (stream_t str, char **pptr)
       env_date = strdup (date);
     }
 
-  asprintf (pptr, "From %s %s\n", env_from, env_date);
+  *pmenv = xmalloc (sizeof (**pmenv)
+		    + strlen (env_from)
+		    + strlen (env_date)
+		    + 2);
+  (*pmenv)->from = (char*) (*pmenv + 1);
+  (*pmenv)->date = (char*) ((*pmenv)->from + strlen (env_from) + 1);
+
+  strcpy ((*pmenv)->from, env_from);
+  strcpy ((*pmenv)->date, env_date);
+
   free (env_from);
   free (env_date);
   free (from);
   return 0;
 }
 
-mailbox_t
-mh_open_msg_file (char *folder, char *file_name)
+static int
+_env_msg_date (envelope_t envelope, char *buf, size_t len, size_t *pnwrite)
+{
+  message_t msg = envelope_get_owner (envelope);
+  struct msg_envelope *env = message_get_owner (msg);
+  
+  if (!env || !env->date)
+    return EINVAL;
+  strncpy (buf, env->date, len);
+  buf[len-1] = 0;
+  return 0;
+    }
+
+static int
+_env_msg_sender (envelope_t envelope, char *buf, size_t len, size_t *pnwrite)
+    {
+  message_t msg = envelope_get_owner (envelope);
+  struct msg_envelope *env = message_get_owner (msg);
+
+  if (!env || !env->from)
+    return EINVAL;
+  strncpy (buf, env->from, len);
+  buf[len-1] = 0;
+  return 0;
+    }
+  
+message_t
+mh_stream_to_message (stream_t instream)
+{
+  struct msg_envelope *mp;
+  envelope_t env;
+  message_t msg;
+  
+  restore_envelope (instream, &mp);
+  if (message_create (&msg, mp))
+    return NULL;
+
+  message_set_stream (msg, instream, mp);
+  
+  if (envelope_create (&env, msg))
+    return NULL;
+  
+  envelope_set_date (env, _env_msg_date, msg);
+  envelope_set_sender (env, _env_msg_sender, msg);
+  message_set_envelope (msg, env, mp);
+  
+  return msg;
+}
+
+message_t
+mh_file_to_message (char *folder, char *file_name)
 {
   struct stat st;
-  char buffer[512];
-  size_t len = 0;
-  mailbox_t tmp;
-  stream_t stream, instream;
-  int rc, headers;
+  int rc;
+  stream_t instream;
   
   if (folder)
     file_name = mh_expand_name (folder, file_name, 0);
@@ -651,14 +711,14 @@ mh_open_msg_file (char *folder, char *file_name)
       mh_error (_("can't stat file %s: %s"), file_name, strerror (errno));
       return NULL;
     }
-
+  
   if ((rc = file_stream_create (&instream, file_name, MU_STREAM_READ)))
     {
       mh_error (_("can't create input stream (file %s): %s"),
 		file_name, mu_strerror (rc));
       return NULL;
     }
-
+  
   if ((rc = stream_open (instream)))
     {
       mh_error (_("can't open input stream (file %s): %s"),
@@ -666,79 +726,8 @@ mh_open_msg_file (char *folder, char *file_name)
       stream_destroy (&instream, stream_get_owner (instream));
       return NULL;
     }
-  
-  if (memory_stream_create (&stream, 0, MU_STREAM_RDWR)
-      || stream_open (stream))
-    {
-      mh_error (_("can't create temporary stream"));
-      stream_destroy (&instream, stream_get_owner (instream));
-      return NULL;
-    }
 
-  stream_readline (instream, buffer, sizeof buffer, 0, NULL);
-  if (strncmp (buffer, "From ", 5))
-    {
-      char *envstr;
-      restore_envelope (instream, &envstr);
-      stream_sequential_write (stream, envstr, strlen (envstr));
-      free (envstr);
-    }      
-
-  headers = 1;
-  while ((rc = stream_sequential_readline (instream,
-					   buffer, sizeof buffer, &len)) == 0
-	 && len > 0)
-    {
-      buffer[len] = 0;
-      if (headers && _mh_delim (buffer))
-	{
-	  headers = 0;
-	  buffer[0] = '\n';
-	  buffer[1] = 0;
-	  len = 1;
-	}
-      rc = stream_sequential_write (stream, buffer, len);
-      if (rc)
-	{
-	  mh_error (_("write error: %s"), mu_strerror (rc));
-	  stream_destroy (&instream, stream_get_owner (instream));
-	  stream_destroy (&stream, stream_get_owner (stream));
-	  return NULL;
-	}
-    }
-
-  stream_destroy (&instream, stream_get_owner (instream));
-  if (rc)
-    {
-      mh_error (_("error reading file %s: %s"),	file_name, mu_strerror (rc));
-      stream_destroy (&stream, stream_get_owner (stream));
-      return NULL;
-    }
-
-  if (mailbox_create (&tmp, "/dev/null")
-      || mailbox_open (tmp, MU_STREAM_READ) != 0)
-    {
-      mh_error (_("can't create temporary mailbox"));
-      return NULL;
-    }
-
-
-  mailbox_set_stream (tmp, stream);
-  if (mailbox_messages_count (tmp, &len)
-      || len < 1)
-    {
-      mh_error (_("input file %s is not a valid message file"), file_name);
-      return NULL;
-    }
-  else if (len > 1)
-    {
-      mh_error (ngettext ("input file %s contains %lu message",
-			  "input file %s contains %lu messages",
-			  len),
-		(unsigned long) len);
-      return NULL;
-    }
-  return tmp;
+  return mh_stream_to_message (instream);
 }
 
 void
