@@ -1,3 +1,27 @@
+2001-10-23  Sergey Poznyakoff
+
+	* mailbox/mutil.c: New function mu_get_user_email.
+	* include/mailutils/mutil.h: Prototype for mu_get_user_email.
+	* mail/alt.c: Determine full user email address (mail_set_my_name).
+	* libmu_scm/mu_address.c: New function mu-username->email, deduces
+	user's email from his username.
+	* libmu_scm/mu_message.c: New function mu-message-destroy.
+	mu_scm_message_free(): Destroy the underlying message if its owner
+	is NULL.
+	* guimb/scm/sieve-core.scm: Use mu-username->email to initialize
+	sieve-my-email.
+	* guimb/scm/redirect.scm: Use close-pipe instead of close-output-port.
+	Use mu-message-destroy.
+
+	MH: Implemented user profiles.
+
+	* mh/mh.h: New prototypes.
+	* mh/mh_argp.c: Honor `progname:' entries in the user's profile.
+	* mh/mh_init.c: Read user's profile. Use values from there instead
+	of hardcoded ones.
+	* mh/inc.c: Do not call mh_init() explicitly.
+	* mh/scan.c: Likewise.
+	
 2001-10-22  Jeff Bailey  <jbailey@outpost.dnsalias.org>
 
 	* doc/texinfo/Makefile.am: Remove version.texi, it's implied.
