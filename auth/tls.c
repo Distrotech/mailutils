@@ -159,7 +159,10 @@ mu_check_tls_environment (void)
       struct stat st;
 
       if (stat (ssl_cert, &st) == -1)
-	return 0;
+	{
+	  mu_error ("%s: %s.", ssl_cert, strerror(errno));
+	  return 0;
+	}
       if (!(st.st_mode & S_IFREG) || !(st.st_mode & S_IFLNK))
 	{
 	  mu_error (_("%s is not a regular file or a symbolic link."),
@@ -168,7 +171,10 @@ mu_check_tls_environment (void)
 	}
 
       if (stat (ssl_key, &st) == -1)
-	return 0;
+	{
+	  mu_error ("%s: %s.", ssl_key, strerror(errno));
+	  return 0;
+	}
       if (!(st.st_mode & S_IFREG) || !(st.st_mode & S_IFLNK))
 	{
 	  mu_error (_("%s is not a regular file or a symbolic link."),
