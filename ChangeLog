@@ -1,3 +1,31 @@
+2002-05-02  Sergey Poznyakoff  
+
+	* comsat/comsat.c: Provide extern declarations for *utent calls.
+
+	* lib/utmp.c: (new) Replacements for {set,get,end}utent calls.
+	* lib/Makefile.am: Added utmp.c
+
+	* m4/utmp.m4: (new) Detect presense of utmp.h and
+	  {set,get,end}utent calls.
+	* m4/Makefile.am: Added utmp.m4
+	* configure.in: Call MU_CHECK_UTMP.
+	
+	* readmsg/msglist.c: Renamed isnumber to is_number. Apparently,
+	  OS X defines a macro with this name.
+	* libmu_scm/mu_address.c (_get_address_part): Bugfix. Was passing
+	  too short a length to fun().
+	* guimb/scm/numaddr.scm: Changed runtime error reporting.
+	* guimb/scm/redirect.scm: Likewise. Initialize sender variable.
+	* guimb/scm/sieve-core.scm: Provide new runtime-message function.
+	
+	* imap4d/select.c (imap4d_select0): Removed unused variable.
+	* mail.local/mail.local.h: Changed mda() declaration.
+	* mail.local/main.c: Likewise.
+	* mail.local/script.c (mda_catch_body): Check if the message is
+	  to be delivered here, instead of doing it in deliver(). If the
+	  message was modified, drop it to the separate temporary file
+	  first, so that all modifications get to the user's maildrop.
+	  
 2002-04-26  Sam Roberts
 
 	* include/mailutils/mutil.h: Included <mailutils/types.h>, which
@@ -166,7 +194,7 @@
 	 2. mail --mail-spool [other than mbox URL]://hostname did not
 	    work (same for frm and others).
 	 3. mail --mail-spool imap://hostname did not work (at least
-	    with out imap4d).
+	    with our imap4d).
 	
 	* imap4d/list.c (print_dir): Enclose empty filename
 	  in doublequotes.
