@@ -1,3 +1,86 @@
+2005-01-04  Sergey Poznyakoff 
+
+	* auth/sql.c: Revise error messages for accordance with GNU standards:
+	begin messages with a capital letter, unless they are prefixed
+	with `file:line:' or their exact look is important due to
+	compatibility reasons. Do not end messages with a period.
+	Avoid using contracted negations
+	* auth/tls.c: Likewise
+	* comsat/action.c: Likewise
+	* comsat/cfg.c: Likewise
+	* comsat/comsat.c: Likewise
+	* dotlock/dotlock.c: Likewise
+	* frm/frm.c: Likewise
+	* from/from.c: Likewise
+	* guimb/collect.c: Likewise
+	* guimb/main.c: Likewise
+	* guimb/util.c: Likewise
+	* imap4d/auth_gss.c: Likewise
+	* imap4d/imap4d.c: Likewise
+	* imap4d/list.c: Likewise
+	* imap4d/signal.c: Likewise
+	* imap4d/util.c: Likewise
+	* libsieve/actions.c: Likewise
+	* libsieve/comparator.c: Likewise
+	* libsieve/prog.c: Likewise
+	* libsieve/runtime.c: Likewise
+	* libsieve/sieve.l: Likewise
+	* libsieve/tests.c: Likewise
+	* libsieve/util.c: Likewise
+	* mail/alt.c: Likewise
+	* mail/copy.c: Likewise
+	* mail/decode.c: Likewise
+	* mail/file.c: Likewise
+	* mail/if.c: Likewise
+	* mail/mail.c: Likewise
+	* mail/mailline.c: Likewise
+	* mail/quit.c: Likewise
+	* mail/send.c: Likewise
+	* mail/source.c: Likewise
+	* mail/unalias.c: Likewise
+	* mail/util.c: Likewise
+	* mail/var.c: Likewise
+	* mail/z.c: Likewise
+	* mail.local/mailquota.c: Likewise
+	* mail.local/main.c: Likewise
+	* mail.local/script.c: Likewise
+	* mailbox/mailutils-config.c: Likewise
+	* mailbox/mu_argp.c: Likewise
+	* messages/messages.c: Likewise
+	* mh/fmtcheck.c: Likewise
+	* mh/folder.c: Likewise
+	* mh/forw.c: Likewise
+	* mh/inc.c: Likewise
+	* mh/mark.c: Likewise
+	* mh/mh_argp.c: Likewise
+	* mh/mh_ctx.c: Likewise
+	* mh/mh_fmtgram.y: Likewise
+	* mh/mh_format.c: Likewise
+	* mh/mh_init.c: Likewise
+	* mh/mh_list.c: Likewise
+	* mh/mh_msgset.c: Likewise
+	* mh/mh_whom.c: Likewise
+	* mh/mhl.c: Likewise
+	* mh/mhn.c: Likewise
+	* mh/pick.c: Likewise
+	* mh/refile.c: Likewise
+	* mh/repl.c: Likewise
+	* mh/rmf.c: Likewise
+	* mh/scan.c: Likewise
+	* mh/send.c: Likewise
+	* movemail/movemail.c: Likewise
+	* pop3d/apop.c: Likewise
+	* pop3d/extra.c: Likewise
+	* pop3d/lock.c: Likewise
+	* pop3d/pop3d.c: Likewise
+	* pop3d/popauth.c: Likewise
+	* pop3d/signal.c: Likewise
+	* readmsg/readmsg.c: Likewise
+	* sieve/sieve.c: Likewise
+
+	* mail/testsuite/mail/read.exp: Updated to match new output format
+	of the decode command
+
 2005-01-04  Sergey Poznyakoff
 
 	* mailbox/errors: Add gettext markers
