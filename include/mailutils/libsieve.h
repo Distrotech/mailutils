@@ -31,6 +31,11 @@ extern "C" {
 
 typedef struct sieve_machine *sieve_machine_t;
 
+typedef struct {
+  const char *source_file;
+  size_t source_line;
+} sieve_locus_t;
+
 typedef int (*sieve_handler_t) __PMT((sieve_machine_t mach,
 				      list_t args, list_t tags));
 typedef int (*sieve_printf_t) __PMT((void *data, const char *fmt, va_list ap));
@@ -38,7 +43,7 @@ typedef int (*sieve_parse_error_t) __PMT((void *data,
 					  const char *filename, int lineno,
 					  const char *fmt, va_list ap));
 typedef void (*sieve_action_log_t) __PMT((void *data,
-					  const char *script,
+					  const sieve_locus_t *locus,
 					  size_t msgno, message_t msg,
 					  const char *action,
 					  const char *fmt, va_list ap));
@@ -194,6 +199,7 @@ size_t sieve_get_message_num __P((sieve_machine_t mach));
 int sieve_get_debug_level __P((sieve_machine_t mach));
 ticket_t sieve_get_ticket __P((sieve_machine_t mach));
 mailer_t sieve_get_mailer __P((sieve_machine_t mach));
+int sieve_get_locus __P((sieve_machine_t mach, sieve_locus_t *));
 char *sieve_get_daemon_email __P((sieve_machine_t mach));
 
 void sieve_set_error __P((sieve_machine_t mach, sieve_printf_t error_printer));
