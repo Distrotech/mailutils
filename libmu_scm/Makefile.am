@@ -1,0 +1,39 @@
+AUTOMAKE_OPTIONS = ../lib/ansi2knr
+INCLUDES =-I$(srcdir) -I$(top_srcdir)/lib -I$(top_srcdir)/include
+
+noinst_LIBRARIES=@MU_SCM@
+EXTRA_LIBRARIES=libmu_scm.a
+libmu_scm_a_SOURCES=mu_scm.c mu_mailbox.c mu_message.c mu_body.c \
+ mu_scm.h
+
+pkgdata_DATA=guile-procedures.txt
+DOT_X_FILES=mu_scm.x mu_mailbox.x mu_message.x mu_body.x 
+DOT_DOC_FILES=mu_scm.doc mu_mailbox.doc mu_message.doc \
+ mu_body.doc 
+BUILT_SOURCES= $(DOT_X_FILES) $(DOT_DOC_FILES)
+#EXTRA_DIST=
+
+CPPFLAGS=-DDATADIR=\"$(pkgdatadir)\"
+ETAGS_ARGS = --regex='/SCM_\(GLOBAL_\)?\(G?PROC\|G?PROC1\|SYMBOL\|VCELL\|CONST_LONG\).*\"\([^\"]\)*\"/\3/' \
+   --regex='/[ \t]*SCM_[G]?DEFINE1?[ \t]*(\([^,]*\),[^,]*/\1/'
+
+GUILE_DOC_SNARF=$(top_srcdir)/scripts/guile-doc-snarf
+SUFFIXES=.x .doc
+
+.c.x:
+	$(GUILE_DOC_SNARF) $< $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS) \
+                           $< > $@ || { rm $@; false; }
+
+.c.doc:
+	$(GUILE_DOC_SNARF) $< $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS) \
+                           $< > /dev/null || { rm $@; false; }
+
+guile-procedures.txt: $(DOT_DOC_FILES)
+	cat $(DOT_DOC_FILES) > $@
+
+if MAINTAINER_MODE
+
+## Add -MG to make the .x magic work with auto-dep code.
+MKDEP = $(CC) -M -MG $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)
+
+endif
