@@ -56,7 +56,8 @@ scan_addrs (char *str, int isbcc)
   address_t addr;
   size_t i, count;
 	      
-  address_create (&addr, str);
+  if (address_create (&addr, str))
+    return;
   address_get_count (addr, &count);
   for (i = 1; i <= count; i++)
     {
