@@ -815,36 +815,39 @@ bodystructure (message_t msg, int extension)
     }
 
   while (sp != NULL && *sp && isspace ((unsigned)*sp)) sp++;
+  
   /* body parameter parenthesized list: Content-type attributes */
   if ((sp != NULL && *sp) || text_plain)
     {
+      int space = 0;
+      int have_charset = 0;
+
       util_send (" (");
-      {
-	int space = 0;
-	int have_charset = 0;
-	/* Content-type parameter list. */
-	while ((s = strtok_r (NULL, " \t\r\n;", &sp)))
-	  {
-	    char *p = strchr (s, '=');
-	    if (p)
-	      *p++ = '\0';
-	    if (space)
+      if (sp)
+	{
+	  /* Content-type parameter list. */
+	  while ((s = strtok_r (NULL, " \t\r\n;", &sp)))
+	    {
+	      char *p = strchr (s, '=');
+	      if (p)
+		*p++ = '\0';
+	      if (space)
+		util_send (" ");
+	      util_send_qstring (s);
 	      util_send (" ");
-	    util_send_qstring (s);
+	      util_unquote (&p);
+	      if (strcasecmp (s, "charset") == 0)
+		have_charset = 1;
+	      util_send_qstring (p);
+	      space = 1;
+	    }
+	}
+      if (!have_charset && text_plain)
+	{
+	  if (space)
 	    util_send (" ");
-	    util_unquote (&p);
-	    if (strcasecmp (s, "charset") == 0)
-	      have_charset = 1;
-	    util_send_qstring (p);
-	    space = 1;
-	  }
-	if (!have_charset && text_plain)
-	  {
-	    if (space)
-	      util_send (" ");
-	    util_send ("\"CHARSET\" \"US-ASCII\"");
-	  }
-      }
+	  util_send ("\"CHARSET\" \"US-ASCII\"");
+	}
       util_send (")");
     }
   else
@@ -1461,8 +1464,10 @@ fetch_send_address (char *addr)
 static int
 send_parameter_list (char *buffer)
 {
-  while (*buffer && isspace ((unsigned)*buffer)) buffer++;
-  if (*buffer)
+  if (buffer)
+    while (*buffer && isspace ((unsigned)*buffer)) buffer++;
+
+  if (buffer && *buffer)
     {
       char *sp = NULL;
       char *s;
