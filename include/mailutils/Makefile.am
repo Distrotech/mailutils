@@ -38,6 +38,7 @@ pkginclude_HEADERS = \
  list.h \
  locker.h \
  mailbox.h \
+ mailcap.h \
  mailer.h \
  mailutils.h \
  message.h \
