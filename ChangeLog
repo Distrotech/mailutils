@@ -1,3 +1,7 @@
+Sean 'Shaleh' Perry <shaleh@debian.org>  Sat,  9 Oct 1999 01:13:56 -0700
+
+  * added examples/gnu-pop3d.pam 
+
 1999-10-08  Jeff Bailey  <jbailey@cr499794-a.crdva1.bc.wave.home.com>
 
 	* doc/: New directory
