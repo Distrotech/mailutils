@@ -165,26 +165,36 @@ compress_ws (char *str, size_t *size)
 
 /* Print len bytes from str into mach->outbuf */
 static void
-print_string (struct mh_machine *mach, size_t width, char *str, size_t len)
+print_string (struct mh_machine *mach, size_t width, char *str, size_t fmtlen)
 {
-  size_t rest;
-
+  size_t rest, len;
+  
   if (!str)
-    {
-      str = "";
-      len = 0;
-    }
+    str = "";
 
-  rest = strlen (str);
-  if (len > rest)
-    len = rest;
   if (!width)
     width = mach->width;
-  rest = mach->width - mach->ind;
+  len = strlen (str);
+  rest = width - mach->ind;
   if (len > rest)
-    len = rest;
+    {
+      if (fmtlen >= len)
+	fmtlen = rest;
+      len = rest;
+    }
+  
+  if (fmtlen < len)
+    len = fmtlen;
+  
   memcpy (mach->outbuf + mach->ind, str, len);
   mach->ind += len;
+
+  if (fmtlen > len)
+    {
+      fmtlen -= len;
+      memset (mach->outbuf + mach->ind, ' ', fmtlen);
+      mach->ind += fmtlen;
+    }
 }
 
 static void
