@@ -1,0 +1,78 @@
+%%comments:
+Copyright (C) 1999,2000,2001,2002,2003,2004 Free Software Foundation, Inc.
+
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.2 or
+any later version published by the Free Software Foundation; with no
+Invariant Sections, with no Front-Cover Texts, and with no Back-Cover
+Texts. A copy of the license is included in the file COPYING.
+
+%%name: Mailutils
+
+%%short-description: A set of libraries and programs for handling e-mail messages.
+
+%%full-description:
+	GNU mailutils is a collection of mail-related utilities. At the
+	core of mailutils is libmailbox, a library which provides access
+	to various forms of mailbox files (including remote mailboxes via
+	popular protocols). It also provides support for parsing of RFC-822
+	style messages and MIME support. The utilities, provided by
+	mailutils include: pop3d, imap4d, comsatd, mail, frm, messages,
+	readmsg, guimb,	sieve, mail.local, mail.remote, movemail,
+        and a subset of	mh utilities.
+
+%%category: mail, system
+
+%%license: GPL
+
+%%maintainer:
+	Jeff Bailey <jbailey@nisa.net>,
+	Alain Magloire <alainm@gnu.org>,
+	Sergey Poznyakoff <gray@Mirddin.farlep.net> 
+
+%%updated: 27 Jun 2004
+
+%%keywords: mail, email, pop3, imap4, sieve, comsat, smtp, mh, maildir
+
+%%interface: Command line, daemon
+
+%%programs: pop3d, imap4d, comsatd, mail, frm, messages, readmsg, guimb, sieve, mail.local, mail.remote, dotlock, anno, ali, comp, fmtcheck, folder, inc, install-mh, mark, mhl, mhpath, pick, refile, repl, rmf, rmm, scan, send, whatnow, movemail
+
+%%GNU: yes
+
+%%web-page: http://www.gnu.org/software/mailutils/mailutils.html
+
+%%doc: English user reference included
+%%doc: English user reference in Texinfo, DVI, PostScript, HTML, and plaintext formats available from http://www.gnu.org/software/mailutils/manual
+
+%%developers:
+	Alain Magloire <alainm@gnu.org>,
+	Brian Edmond <briane@qnx.com>,
+	Dave Inglis <dinglis@qnx.com>,
+	Jakob Kaivo <jkaivo@ndn.net>,
+	Jeff Bailey <jbailey@gnu.org>,
+	Sam Roberts <sroberts@uniserve.com>,
+	Sean 'Shaleh' Perry <shaleh@debian.org>,
+	Sergey Poznyakoff <gray@Mirddin.farlep.net>,
+	Wojciech Polak <polak@gnu.org>
+
+%%source-tarball: ftp://ftp.gnu.org/pub/gnu/mailutils/mailutils-0.5.tar.gz
+%%source-info: http://savannah.gnu.org/projects/mailutils
+
+%%repository:
+	:pserver:anoncvs@subversions.gnu.org:/cvsroot/mailutils login,
+	:pserver:anoncvs@subversions.gnu.org:/cvsroot/mailutils co mailutils,
+	http://savannah.gnu.org/cvs/?group_id=36,
+	http://subversions.gnu.org/cgi-bin/cvsweb/mailutils,
+
+%%source-language: C
+
+%%weak-prerequisites: Guile 1.4, Libtool 1.4.2
+
+%%version: 0.5 released on 27 Jun 2004
+
+%%bug-list: bug-mailutils@gnu.org bug-mailutils@gnu.org http://mail.gnu.org/mailman/listinfo/bug-mailutils
+
+%%entry-written-by: Sergey Poznyakoff <gray@gnu.org>
+
+
