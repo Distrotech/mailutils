@@ -1,5 +1,5 @@
 /* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -18,13 +18,21 @@
 #include "imap4d.h"
 
 /*
- *
  */
 
 int
-imap4d_close (int argc, char **argv)
+imap4d_close (struct imap4d_command *command, char *arg)
 {
-  if (argc > 2)
-    return TOO_MANY;
-  return NOT_IMPL;
+  /* FIXME: Check args.  */
+  /* FIXME: Check state and if they selected.  */
+  /* FIXME: state = AUTHENTICATE.  */
+
+  /* FIXME: Check and report errors.  */
+  mailbox_expunge (mbox);
+  mailbox_close (mbox);
+  mailbox_destroy (&mbox);
+
+  /* FIXME: state = Not selected.  */
+
+  return util_finish (command, RESP_OK, "Completed");
 }

@@ -1,5 +1,5 @@
 /* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -22,11 +22,15 @@
  */
 
 int
-imap4d_logout (int argc, char **argv)
+imap4d_logout (struct imap4d_command *command, char *arg)
 {
-  if (argc > 2)
-    return TOO_MANY;
-  util_out (argv[0], TAG_NONE, "BYE Logging out");
-  util_finish (argc, argv, RESP_OK, NULL, "Completed");
-  exit (0);
+  char *sp;
+  if (util_getword (arg, &sp))
+    return util_finish (command, RESP_BAD, "Too many args");
+  util_out (RESP_BYE, "Logging out");
+  util_finish (command, RESP_OK, "Completed");
+  mailbox_close (mbox);
+  mailbox_destroy (&mbox);
+  util_quit (0);
+  return 0;
 }

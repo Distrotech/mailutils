@@ -1,5 +1,5 @@
 /* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -22,6 +22,12 @@
 #include <config.h>
 #endif
 
+#define _GNU_SOURCE
+
+#ifdef HAVE_SHADOW_H
+#include <shadow.h>
+#endif
+
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -36,14 +42,11 @@
 #include <sys/time.h>
 #include <sys/stat.h>
 
-#include <argp.h>
-
 #include <mailutils/mailbox.h>
 #include <mailutils/message.h>
 #include <mailutils/header.h>
 #include <mailutils/body.h>
-
-#include <argcv.h>
+#include <mailutils/registrar.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -57,72 +60,74 @@ extern "C" {
 # endif
 #endif /*__P */
 
-/* Type definitions */
-#ifndef Function
-typedef int Function ();
-#endif
-
-struct imap4d_command {
-  char *name;
-  Function *func;
+struct imap4d_command
+{
+  const char *name;
+  int (*func) __P ((struct imap4d_command *, char *));
   int states;
   int success;
   int failure;
+  char *tag;
 };
 
 /* Global variables and constants*/
-#define STATE_NONE	1<<0
-#define STATE_NONAUTH	1<<1
-#define STATE_AUTH	1<<2
-#define STATE_SEL	1<<3
-#define STATE_LOGOUT	1<<4
+#define STATE_NONE	(1 << 0)
+#define STATE_NONAUTH	(1 << 1)
+#define STATE_AUTH	(1 << 2)
+#define STATE_SEL	(1 << 3)
+#define STATE_LOGOUT	(1 << 4)
 
 #define STATE_ALL	(STATE_NONE | STATE_NONAUTH | STATE_AUTH | STATE_SEL \
 			| STATE_LOGOUT)
 
-#define TAG_NONE	0
-#define TAG_SEQ		1
-
 #define RESP_OK		0
 #define RESP_BAD	1
 #define RESP_NO		2
+#define RESP_BYE	3
+#define RESP_NONE	4
 
-extern const struct imap4d_command imap4d_command_table[];
+extern struct imap4d_command imap4d_command_table[];
+extern FILE *ofile;
+extern unsigned int timeout;
+extern mailbox_t mbox;
+extern unsigned int state;
 
-#define TOO_MANY (util_finish (argc, argv, RESP_BAD, NULL, "Too many args"))
-#define TOO_FEW  (util_finish (argc, argv, RESP_BAD, NULL, "Too few args"))
-#define NOT_IMPL (util_finish (argc, argv, RESP_BAD, NULL, "Not implemented"))
+/* Imap4 commands */
+int imap4d_capability __P ((struct imap4d_command *, char *));
+int imap4d_noop __P ((struct imap4d_command *, char *));
+int imap4d_logout __P ((struct imap4d_command *, char *));
+int imap4d_authenticate __P ((struct imap4d_command *, char *));
+int imap4d_login __P ((struct imap4d_command *, char *));
+int imap4d_select __P ((struct imap4d_command *, char *));
+int imap4d_select0 __P ((struct imap4d_command *, char *, int));
+int imap4d_examine __P ((struct imap4d_command *, char *));
+int imap4d_create __P ((struct imap4d_command *, char *));
+int imap4d_delete __P ((struct imap4d_command *, char *));
+int imap4d_rename __P ((struct imap4d_command *, char *));
+int imap4d_subscribe __P ((struct imap4d_command *, char *));
+int imap4d_unsubscribe __P ((struct imap4d_command *, char *));
+int imap4d_list __P ((struct imap4d_command *, char *));
+int imap4d_lsub __P ((struct imap4d_command *, char *));
+int imap4d_status __P ((struct imap4d_command *, char *));
+int imap4d_append __P ((struct imap4d_command *, char *));
+int imap4d_check __P ((struct imap4d_command *, char *));
+int imap4d_close __P ((struct imap4d_command *, char *));
+int imap4d_expunge __P ((struct imap4d_command *, char *));
+int imap4d_search __P ((struct imap4d_command *, char *));
+int imap4d_fetch __P ((struct imap4d_command *, char *));
+int imap4d_store __P ((struct imap4d_command *, char *));
+int imap4d_copy __P ((struct imap4d_command *, char *));
+int imap4d_uid __P ((struct imap4d_command *, char *));
 
-/* Functions */
-int imap4d_capability __P ((int argc, char **argv));
-int imap4d_noop __P ((int argc, char **argv));
-int imap4d_logout __P ((int argc, char **argv));
-int imap4d_authenticate __P ((int argc, char **argv));
-int imap4d_login __P ((int argc, char **argv));
-int imap4d_select __P ((int argc, char **argv));
-int imap4d_examine __P ((int argc, char **argv));
-int imap4d_create __P ((int argc, char **argv));
-int imap4d_delete __P ((int argc, char **argv));
-int imap4d_rename __P ((int argc, char **argv));
-int imap4d_subscribe __P ((int argc, char **argv));
-int imap4d_unsubscribe __P ((int argc, char **argv));
-int imap4d_list __P ((int argc, char **argv));
-int imap4d_lsub __P ((int argc, char **argv));
-int imap4d_status __P ((int argc, char **argv));
-int imap4d_append __P ((int argc, char **argv));
-int imap4d_check __P ((int argc, char **argv));
-int imap4d_close __P ((int argc, char **argv));
-int imap4d_expunge __P ((int argc, char **argv));
-int imap4d_search __P ((int argc, char **argv));
-int imap4d_fetch __P ((int argc, char **argv));
-int imap4d_store __P ((int argc, char **argv));
-int imap4d_copy __P ((int argc, char **argv));
-int imap4d_uid __P ((int argc, char **argv));
-
-int util_out __P ((char *seq, int tag, char *f, ...));
-int util_start __P ((char *seq));
-int util_finish __P ((int argc, char **argv, int resp, char *r, char *f, ...));
+/* Helper functions.  */
+int util_out __P ((int rc, const char *f, ...));
+int util_start __P ((char *tag));
+int util_finish __P ((struct imap4d_command *, int rc, const char *f, ...));
 int util_getstate __P ((void));
+int util_do_command __P ((char *prompt));
+char *imap4d_readline __P ((int fd));
+void util_quit __P ((int));
+char *util_getword __P ((char *s, char **save_ptr));
 struct imap4d_command *util_getcommand __P ((char *cmd));
 
 #ifdef __cplusplus
@@ -130,4 +135,3 @@ struct imap4d_command *util_getcommand __P ((char *cmd));
 #endif
 
 #endif /* _IMAP4D_H */
-

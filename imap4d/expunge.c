@@ -1,5 +1,5 @@
 /* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -22,9 +22,14 @@
  */
 
 int
-imap4d_expunge (int argc, char **argv)
+imap4d_expunge (struct imap4d_command *command, char *arg)
 {
-  if (argc > 2)
-    return TOO_MANY;
-  return NOT_IMPL;
+  char *sp;
+
+  if (util_getword (arg, &sp))
+    return util_finish (command, RESP_NO, "Too many args");
+
+  /* FIXME: Check state, check for errors.  */
+  mailbox_expunge (mbox);
+  return util_finish (command, RESP_OK, "Completed");
 }

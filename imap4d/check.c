@@ -1,5 +1,5 @@
 /* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -19,12 +19,12 @@
 
 /*
  * Do we need to do anything here?
+ * FIXME: This is like noop we need to notify the client of
+ *        new mails etc ... and do housekeeping.
  */
 
 int
-imap4d_check (int argc, char **argv)
+imap4d_check (struct imap4d_command *command, char *arg)
 {
-  if (argc > 2)
-    return TOO_MANY;
-  return util_finish (argc, argc, RESP_OK, NULL, "Completed");
+  return util_finish (command, RESP_OK, "Completed");
 }

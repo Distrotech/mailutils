@@ -1,5 +1,5 @@
 /* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -22,11 +22,14 @@
  */
 
 int
-imap4d_status (int argc, char **argv)
+imap4d_status (struct imap4d_command *command, char *arg)
 {
-  if (argc < 4)
-    return TOO_FEW;
-  if (argv[3][0] != '(' || argv[argc-1][strlen(argv[argc-1])-1] != ')')
-    return util_finish (argc, argv, RESP_BAD, NULL, "Invalid args");
-  return NOT_IMPL;
+  char *sp = NULL;
+  char *mailbox_name;
+  char *data;
+  mailbox_name = util_getword (arg, &sp);
+  data = util_getword (NULL, &sp);
+  if (!mailbox_name || !data)
+    return util_finish (command, RESP_BAD, "Too few args");
+  return util_finish (command, RESP_BAD, "Not supported");
 }

@@ -1,5 +1,5 @@
 /* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -17,30 +17,31 @@
 
 #include "imap4d.h"
 
-const struct imap4d_command imap4d_command_table [] = {
-  { "capability", imap4d_capability, STATE_ALL, STATE_NONE, STATE_NONE },
-  { "noop", imap4d_noop, STATE_ALL, STATE_NONE, STATE_NONE },
-  { "logout", imap4d_logout, STATE_ALL, STATE_LOGOUT, STATE_NONE },
-  { "authenticate", imap4d_authenticate, STATE_NONAUTH, STATE_NONE, STATE_AUTH },
-  { "login", imap4d_login, STATE_NONAUTH, STATE_NONE, STATE_AUTH },
-  { "select", imap4d_select, STATE_AUTH | STATE_SEL, STATE_AUTH, STATE_SEL },
-  { "examine", imap4d_examine, STATE_AUTH | STATE_SEL, STATE_AUTH, STATE_SEL },
-  { "create", imap4d_create, STATE_AUTH | STATE_SEL, STATE_NONE, STATE_NONE },
-  { "delete", imap4d_delete, STATE_AUTH | STATE_SEL, STATE_NONE, STATE_NONE },
-  { "rename", imap4d_rename, STATE_AUTH | STATE_SEL, STATE_NONE, STATE_NONE },
-  { "subscribe", imap4d_subscribe, STATE_AUTH | STATE_SEL, STATE_NONE, STATE_NONE },
-  { "unsubscribe", imap4d_unsubscribe, STATE_AUTH | STATE_SEL, STATE_NONE, STATE_NONE },
-  { "list", imap4d_list, STATE_AUTH | STATE_SEL, STATE_NONE, STATE_NONE },
-  { "lsub", imap4d_lsub, STATE_AUTH | STATE_SEL, STATE_NONE, STATE_NONE },
-  { "status", imap4d_status, STATE_AUTH | STATE_SEL, STATE_NONE, STATE_NONE },
-  { "append", imap4d_append, STATE_AUTH | STATE_SEL, STATE_NONE, STATE_NONE },
-  { "check", imap4d_check, STATE_SEL, STATE_NONE, STATE_NONE },
-  { "close", imap4d_close, STATE_SEL, STATE_AUTH, STATE_AUTH },
-  { "expunge", imap4d_expunge, STATE_SEL, STATE_NONE, STATE_NONE },
-  { "search", imap4d_search, STATE_SEL, STATE_NONE, STATE_NONE },
-  { "fetch", imap4d_fetch, STATE_SEL, STATE_NONE, STATE_NONE },
-  { "store", imap4d_store, STATE_SEL, STATE_NONE, STATE_NONE },
-  { "copy", imap4d_copy, STATE_SEL, STATE_NONE, STATE_NONE },
-  { "uid", imap4d_uid, STATE_SEL, STATE_NONE, STATE_NONE },
+struct imap4d_command imap4d_command_table [] =
+{
+  { "CAPABILITY", imap4d_capability, STATE_ALL, STATE_NONE, STATE_NONE },
+  { "NOOP", imap4d_noop, STATE_ALL, STATE_NONE, STATE_NONE },
+  { "LOGOUT", imap4d_logout, STATE_ALL, STATE_LOGOUT, STATE_NONE },
+  { "AUTHENTICATE", imap4d_authenticate, STATE_NONAUTH, STATE_NONE, STATE_AUTH },
+  { "LOGIN", imap4d_login, STATE_NONAUTH, STATE_NONE, STATE_AUTH },
+  { "SELECT", imap4d_select, STATE_AUTH | STATE_SEL, STATE_AUTH, STATE_SEL },
+  { "EXAMINE", imap4d_examine, STATE_AUTH | STATE_SEL, STATE_AUTH, STATE_SEL },
+  { "CREATE", imap4d_create, STATE_AUTH | STATE_SEL, STATE_NONE, STATE_NONE },
+  { "DELETE", imap4d_delete, STATE_AUTH | STATE_SEL, STATE_NONE, STATE_NONE },
+  { "RENAME", imap4d_rename, STATE_AUTH | STATE_SEL, STATE_NONE, STATE_NONE },
+  { "SUBSCRIBE", imap4d_subscribe, STATE_AUTH | STATE_SEL, STATE_NONE, STATE_NONE },
+  { "UNSUBSCRIBE", imap4d_unsubscribe, STATE_AUTH | STATE_SEL, STATE_NONE, STATE_NONE },
+  { "LIST", imap4d_list, STATE_AUTH | STATE_SEL, STATE_NONE, STATE_NONE },
+  { "LSUB", imap4d_lsub, STATE_AUTH | STATE_SEL, STATE_NONE, STATE_NONE },
+  { "STATUS", imap4d_status, STATE_AUTH | STATE_SEL, STATE_NONE, STATE_NONE },
+  { "APPEND", imap4d_append, STATE_AUTH | STATE_SEL, STATE_NONE, STATE_NONE },
+  { "CHECK", imap4d_check, STATE_SEL, STATE_NONE, STATE_NONE },
+  { "CLOSE", imap4d_close, STATE_SEL, STATE_AUTH, STATE_AUTH },
+  { "EXPUNGE", imap4d_expunge, STATE_SEL, STATE_NONE, STATE_NONE },
+  { "SEARCH", imap4d_search, STATE_SEL, STATE_NONE, STATE_NONE },
+  { "FETCH", imap4d_fetch, STATE_SEL, STATE_NONE, STATE_NONE },
+  { "STORE", imap4d_store, STATE_SEL, STATE_NONE, STATE_NONE },
+  { "COPY", imap4d_copy, STATE_SEL, STATE_NONE, STATE_NONE },
+  { "UID", imap4d_uid, STATE_SEL, STATE_NONE, STATE_NONE },
   { 0, 0, 0}
 };

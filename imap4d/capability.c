@@ -1,5 +1,5 @@
 /* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -18,10 +18,8 @@
 #include "imap4d.h"
 
 int
-imap4d_capability (int argc, char **argv)
+imap4d_capability (struct imap4d_command *command, char *arg)
 {
-  if (argc > 2)
-    return TOO_MANY;
-  util_out (argv[0], TAG_NONE, "CAPABILITY IMAP4rev1");
-  return util_finish (argc, argv, RESP_OK, NULL, "Completed");
+  util_out (RESP_NONE,  "CAPABILITY IMAP4rev1");
+  return util_finish (command, RESP_OK, "Completed");
 }

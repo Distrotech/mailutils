@@ -17,163 +17,165 @@
 
 #include "imap4d.h"
 
-extern int ifile;
-extern int ofile;
+static const char *
+rc2string (int rc)
+{
+  switch (rc)
+    {
+    case RESP_OK:
+      return "OK ";
+
+    case RESP_BAD:
+      return "BAD ";
+
+    case RESP_NO:
+      return "NO ";
+
+    case RESP_BYE:
+      return "BYE ";
+    }
+  return "";
+}
+
+/* FIXME:  Some words are:
+   between double quotes, consider like one word.
+   between parenthesis, consider line one word.  */
+char *
+util_getword (char *s, char **save)
+{
+  static char *sp;
+  return strtok_r (s, " \r\n", ((save) ? save : &sp));
+}
 
 int
-util_out (char *seq, int tag, char *f, ...)
+util_out (int rc, const char *format, ...)
 {
   char *buf = NULL;
-  int len = 0;
   va_list ap;
-  va_start (ap, f);
-  len = vasprintf (&buf, f, ap);
 
-  if (tag == TAG_SEQ)
-    {
-      write (ofile, seq, strlen (seq));
-      write (ofile, " ", 1);
-    }
-  else if (tag == TAG_NONE)
-    write (ofile, "* ", 2);
+  va_start (ap, format);
+  vasprintf (&buf, format, ap);
+  va_end (ap);
 
-  write (ofile, buf, len);
-  write (ofile, "\r\n", 2);
+  fprintf (ofile, "* %s%s\r\n", rc2string (rc), buf);
   free (buf);
-
   return 0;
 }
 
 int
-util_finish (int argc, char **argv, int resp, char *rc, char *f, ...)
+util_finish (struct imap4d_command *command, int rc, const char *format, ...)
 {
-  char *buf = NULL, *buf2 = NULL, *code = NULL;
-  /* FIXME: No argc maybe 1, then it will sigsegv.  */
-  /* struct imap4d_command *cmd = util_getcommand (argv[1]); */
-  int len = 0;
+  char *buf = NULL;
+  const char *resp;
   va_list ap;
-  va_start (ap, f);
 
-  switch (resp)
-    {
-    case RESP_OK:
-      code = strdup ("OK");
-      /* set state (cmd->success); */
-      break;
+  va_start (ap, format);
+  vasprintf (&buf, format, ap);
+  va_end(ap);
 
-    case RESP_BAD:
-      code = strdup ("BAD");
-      break;
-
-    case RESP_NO:
-      code = strdup ("NO");
-      /* set state (cmd->failure); */
-      break;
-
-    default:
-      code = strdup ("X-BUG");
-    }
-
-  vasprintf (&buf, f, ap);
-  if (rc != NULL)
-    len = asprintf (&buf, "%s %s %s %s %s\r\n",
-		    argv[0], code, rc, (argc > 1) ? argv[1] : "", buf);
-  else
-    len = asprintf (&buf2, "%s %s %s %s\r\n",
-		    argv[0], code, (argc > 1) ? argv[1] : "", buf);
-
-  write (ofile, buf2, len);
-
+  resp = rc2string (rc);
+  fprintf (ofile, "%s %s%s %s\r\n", command->tag, resp, command->name, buf);
   free (buf);
-  free (buf2);
-  free (code);
-  free (rc);
-  argcv_free (argc, argv);
-
-  return resp;
+  return 0;
 }
 
 char *
-util_getline (void)
+imap4d_readline (int fd)
 {
   fd_set rfds;
   struct timeval tv;
-  char buf[1024], *ret = NULL;
-  int fd = ifile, len = 0;
+  char buf[512], *ret = NULL;
+  int nread;
+  int available;
 
   FD_ZERO (&rfds);
   FD_SET (fd, &rfds);
-  tv.tv_sec = 30;
+  tv.tv_sec = timeout;
   tv.tv_usec = 0;
-  memset (buf, '\0', 1024);
 
   do
     {
-      if (!select (fd + 1, &rfds, NULL, NULL, &tv))
-	return NULL;
-      else if (read (fd, buf, 1024) < 1)
-	exit (1);		/* FIXME: dead socket */
-      else if (ret == NULL)
+      if (timeout > 0)
 	{
-	  ret = malloc ((strlen (buf + 1) * sizeof (char)));
+	  available = select (fd + 1, &rfds, NULL, NULL, &tv);
+	  if (!available)
+	    util_quit (1); /* FIXME: Timeout.  */
+	}
+      nread = read (fd, buf, sizeof (buf) - 1);
+      if (nread < 1)
+	util_quit (1);		/* FIXME: dead socket */
+
+      buf[nread] = '\0';
+
+      if (ret == NULL)
+	{
+	  ret = malloc ((nread + 1) * sizeof (char));
 	  strcpy (ret, buf);
 	}
       else
 	{
-	  ret = realloc (ret, (strlen (ret) + strlen (buf) + 1) *
-			 sizeof (char));
+	  ret = realloc (ret, (strlen (ret) + nread + 1) * sizeof (char));
 	  strcat (ret, buf);
 	}
+      /* FIXME: handle literal strings here.  */
     }
   while (strchr (buf, '\n') == NULL);
-
-  for (len = strlen (ret); len > 0; len--)
-    if (ret[len] == '\r' || ret[len] == '\n')
-      ret[len] = '\0';
 
   return ret;
 }
 
 int
-util_do_command (char *cmd)
+util_do_command (char *prompt)
 {
-  int argc = 0, i = 0;
-  char **argv = NULL;
-  struct imap4d_command *command = NULL;
+  char *sp = NULL, *tag, *cmd, *arg;
+  struct imap4d_command *command;
+  static struct imap4d_command nullcommand;
 
-  if (cmd == NULL)
-    return 0;
-
-  if (argcv_get (cmd, &argc, &argv) != 0)
+  tag = util_getword (prompt, &sp);
+  cmd = util_getword (NULL, &sp);
+  if (!tag)
     {
-      argcv_free (argc, argv);
-      return 1;
+      nullcommand.name = "";
+      nullcommand.tag = (char *)"*";
+      return util_finish (&nullcommand, RESP_BAD, "Null command");
+    }
+  else if (!cmd)
+    {
+      nullcommand.name = "";
+      nullcommand.tag = tag;
+      return util_finish (&nullcommand, RESP_BAD, "Missing arguments");
     }
 
-  util_start (argv[0]);
+  util_start (tag);
 
-  if (argc < 2)
-    return util_finish (argc, argv, RESP_BAD, NULL, "No space after tag");
-
-  command = util_getcommand (argv[1]);
-
-  for (i=0; i < strlen (argv[1]); i++)
-    argv[1][i] = toupper (argv[1][i]);
-
+  command = util_getcommand (cmd);
   if (command == NULL)
-    return util_finish (argc, argv, RESP_BAD, NULL, "Invalid command");
-  else if (! (command->states & util_getstate ()))
-    return util_finish (argc, argv, RESP_BAD, NULL, "Incorrect state");
+    {
+      nullcommand.name = "";
+      nullcommand.tag = tag;
+      return util_finish (&nullcommand, RESP_BAD,  "Invalid command");
+    }
 
-  return command->func (argc, argv);
+  command->tag = tag;
+  return command->func (command, sp);
 }
 
+/* FIXME:  What is this for?  */
 int
-util_start (char *seq)
+util_start (char *tag)
 {
+  (void)tag;
   return 0;
 }
 
+/* FIXME: Incomplete send errmsg to syslog, see pop3d:pop3_abquit().  */
+void
+util_quit (int err)
+{
+  exit (err);
+}
+
+/* FIXME:  What is this for?  */
 int
 util_getstate (void)
 {
@@ -183,7 +185,7 @@ util_getstate (void)
 struct imap4d_command *
 util_getcommand (char *cmd)
 {
-  int i = 0, len = strlen (cmd);
+  size_t i, len = strlen (cmd);
 
   for (i = 0; imap4d_command_table[i].name != 0; i++)
     {
