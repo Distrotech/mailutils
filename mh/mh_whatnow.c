@@ -215,6 +215,38 @@ display_file (const char *name)
     }
 }      
 
+static int
+invoke (char *compname, char *defval, int argc, char **argv,
+	char *extra0, char *extra1, int *status)
+{
+  int i, rc;
+  char **xargv;
+  char *progname;
+
+  progname = mh_global_profile_get (compname, defval);
+  if (!progname)
+    return -1;
+  
+  xargv = calloc (argc+3, sizeof (*xargv));
+  if (!xargv)
+    {
+      mh_err_memory (0);
+      return -1;
+    }
+
+  xargv[0] = progname;
+  for (i = 1; i < argc; i++)
+    xargv[i] = argv[i];
+  if (extra0)
+    xargv[i++] = extra0;
+  if (extra1)
+    xargv[i++] = extra1;
+  xargv[i++] = NULL;
+  rc = mu_spawnvp (xargv[0], (const char **) xargv, status);
+  free (xargv);
+  return rc;
+}
+
 
 /* ************************ Shell Function ************************* */
 
@@ -272,37 +304,12 @@ display (struct mh_whatnow_env *wh, int argc, char **argv, int *status)
 static int
 edit (struct mh_whatnow_env *wh, int argc, char **argv, int *status)
 {
-  char *editor;
   char *name;
-
+  int rc;
+  
   asprintf (&name, "%s-next", wh->editor);
-  editor = mh_global_profile_get (name, wh->editor);
+  invoke (name, wh->editor, argc, argv, wh->file, NULL, &rc);
   free (name);
-
-  if (argc == 1)
-    {
-      mh_spawnp (editor, wh->file);
-    }
-  else
-    {
-      int i, rc, status;
-      char **xargv;
-
-      xargv = calloc (argc+2, sizeof (*xargv));
-      if (!xargv)
-        {
-          mh_err_memory (0);
-	  return 0;
-	}
-
-      xargv[0] = editor;
-      for (i = 1; i < argc; i++)
-	xargv[i] = argv[i];
-      xargv[i++] = wh->file;
-      xargv[i++] = NULL;
-      rc = mu_spawnvp (xargv[0], (const char **) xargv, &status);
-      free (xargv);
-    }
   
   return 0;
 }
@@ -349,6 +356,8 @@ quit (struct mh_whatnow_env *wh, int argc, char **argv, int *status)
 static int
 refile (struct mh_whatnow_env *wh, int argc, char **argv, int *status)
 {
+  int rc;
+  invoke ("fileproc", "refile", argc, argv, "-file", wh->file, &rc);
   return 0;
 }
 
