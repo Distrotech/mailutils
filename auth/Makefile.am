@@ -23,10 +23,12 @@ AM_CFLAGS = -DSITE_VIRTUAL_PWDDIR=\"@SITE_VIRTUAL_PWDDIR@\"
 lib_LTLIBRARIES = libmuauth.la
 
 libmuauth_la_SOURCES = \
+gsasl.c \
 pam.c \
 sql.c \
 tls.c \
 virtual.c 
 
-libmuauth_la_LIBADD = @LTLIBINTL@
+libmuauth_la_LIBADD = @AUTH_AUTHOBJS@ @LTLIBINTL@ 
 libmuauth_la_LDFLAGS = -version-info 0:0:0
+
