@@ -120,58 +120,101 @@ mail_send0 (struct send_environ *env, int save_to)
       
       if (ml_got_interrupt())
 	{
-	  if (++int_cnt == 2)
-	    break;
-	  util_error("(Interrupt -- one more to kill letter)");
-	  if (buf)
-	    free (buf);
+	  if (util_find_env("ignore")->set)
+	    {
+	      fprintf (stdout, "@\n");
+	    }
+	  else
+	    {
+	      if (++int_cnt == 2)
+		break;
+	      util_error("(Interrupt -- one more to kill letter)");
+	      if (buf)
+		free (buf);
+	    }
 	  continue;
 	}
 
       if (!buf)
-	break;
+	{
+	  if (util_find_env ("ignoreeof")->set)
+	    {
+	      util_error ("Use \".\" to terminate letter.");
+	      continue;
+	    }
+	  else
+	    break;
+	}
+      
       int_cnt = 0;
       
       if (buf[0] == (util_find_env("escape"))->value[0])
 	{
-	  int argc;
-	  char **argv;
-	  int status;
-
-	  ofile = env->file;
-	  
-	  if (argcv_get (buf+1, "", &argc, &argv) == 0)
-	    {
-	      struct mail_command_entry entry;
-	      entry = util_find_entry (mail_escape_table, argv[0]);
-
-	      if (entry.func)
-		status = (*entry.func)(argc, argv, env);
-	      else
-		util_error("Unknown escape %s", argv[0]);
-	    }
+	  if (buf[1] == buf[0])
+	    fprintf (env->file, "%s\n", buf+1);
 	  else
 	    {
-	      util_error("can't parse escape sequence");
+	      int argc;
+	      char **argv;
+	      int status;
+
+	      ofile = env->file;
+	      
+	      if (argcv_get (buf+1, "", &argc, &argv) == 0)
+		{
+		  struct mail_command_entry entry;
+		  entry = util_find_entry (mail_escape_table, argv[0]);
+		  
+		  if (entry.func)
+		    status = (*entry.func)(argc, argv, env);
+		  else
+		    util_error("Unknown escape %s", argv[0]);
+		}
+	      else
+		{
+		  util_error("can't parse escape sequence");
+		}
+	      argcv_free (argc, argv);
+	      
+	      ofile =  env->ofile;
 	    }
-	  argcv_free (argc, argv);
-	  
-	  ofile =  env->ofile;
 	}
       else
-	fprintf (env->file, "%s", buf);
+	fprintf (env->file, "%s\n", buf);
       fflush (env->file);
       free (buf); 
     }
 
-  fclose (env->file);
   if (int_cnt)
     {
+      if (util_find_env ("save")->set)
+	{
+	  FILE *fp = fopen (getenv("DEAD"), "a");
+
+	  if (!fp)
+	    {
+	      util_error("can't open file %s: %s", getenv("DEAD"),
+			 strerror(errno));
+	    }
+	  else
+	    {
+	      char *buf = NULL;
+	      int n;
+	      rewind (env->file);
+	      while (getline (&buf, &n, env->file) > 0)
+		fputs(buf, fp);
+	      fclose(fp);
+	    }
+	}
+	      
+      fclose (env->file);
       remove (filename);
       free (filename);
       return 1;
     }
 
+  fclose (env->file); /*FIXME: freopen would be better*/
+  
   file = fopen (filename, "r");
   if (file != NULL)
     {
@@ -203,6 +246,7 @@ mail_send0 (struct send_environ *env, int save_to)
 	  header_set_value (header, MU_HEADER_BCC , strdup (env->bcc), 0);
 	if (env->subj && *env->subj != '\0')
 	  header_set_value (header, MU_HEADER_SUBJECT, strdup (env->subj), 1);
+	header_set_value (header, "X-Mailer", strdup (argp_program_version), 1);
       }
 
       /* Fill the body.  */
