@@ -662,16 +662,16 @@ _env_msg_date (envelope_t envelope, char *buf, size_t len, size_t *pnwrite)
 
 static int
 _env_msg_sender (envelope_t envelope, char *buf, size_t len, size_t *pnwrite)
-    {
+{
   message_t msg = envelope_get_owner (envelope);
   struct msg_envelope *env = message_get_owner (msg);
-
+  
   if (!env || !env->from)
     return EINVAL;
   strncpy (buf, env->from, len);
   buf[len-1] = 0;
   return 0;
-    }
+}
   
 message_t
 mh_stream_to_message (stream_t instream)
@@ -683,7 +683,7 @@ mh_stream_to_message (stream_t instream)
   restore_envelope (instream, &mp);
   if (message_create (&msg, mp))
     return NULL;
-
+  
   message_set_stream (msg, instream, mp);
   
   if (envelope_create (&env, msg))
@@ -811,8 +811,11 @@ mh_real_install (char *name, int automode)
       fclose (fp);
     }
   free (ctx);
+  asprintf (&ctx, "%s/inbox", mhdir);
+  if (mh_check_folder (ctx, !automode))
+    exit (1);
+  free (ctx);
   free (mhdir);
-  /* FIXME: create inbox? */
 }  
 
 void
