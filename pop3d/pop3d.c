@@ -38,8 +38,10 @@ int tls_available;
 int tls_done;
 #endif /* WITH_TLS */
 
+int initial_state = AUTHORIZATION; 
+
 /* Number of child processes.  */
-volatile size_t children;
+size_t children;
 /* Should all the messages be undeleted on startup */
 int undelete_on_startup;
 #ifdef ENABLE_LOGIN_DELAY
@@ -48,8 +50,8 @@ time_t login_delay = 0;
 char *login_stat_file = LOGIN_STAT_FILE;
 #endif
 
-/* Minimum advertise retention times of messages.  */
-int expire = -1;
+time_t expire = EXPIRE_NEVER; /* Expire messages after this number of days */
+int expire_on_exit = 0;       /* Delete expired messages on exit */
 
 static int pop3d_mainloop       __P ((int fd, FILE *, FILE *));
 static void pop3d_daemon_init   __P ((void));
@@ -61,9 +63,11 @@ static void pop3d_log_connection __P((int fd));
 const char *program_version = "pop3d (" PACKAGE_STRING ")";
 static char doc[] = N_("GNU pop3d -- the POP3 daemon");
 
-#define OPT_LOGIN_DELAY 257
-#define OPT_STAT_FILE   258
-#define OPT_EXPIRE      259
+#define OPT_LOGIN_DELAY    257
+#define OPT_STAT_FILE      258
+#define OPT_EXPIRE         259
+#define OPT_EXPIRE_ON_EXIT 260
+#define OPT_TLS_REQUIRED   261
 
 static struct argp_option options[] = {
   {"undelete", 'u', NULL, 0,
@@ -75,7 +79,13 @@ static struct argp_option options[] = {
    N_("Name of login statistics file"), 0},
 #endif
   {"expire", OPT_EXPIRE, N_("DAYS"), 0,
-   N_("Maximum retention period for messages in the maildrop, default -1 means NEVER"), 0},
+   N_("Expire read messages after the given number of days"), 0},
+  {"delete-expired", OPT_EXPIRE_ON_EXIT, NULL, 0,
+   N_("Delete expired messages upon closing the mailbox"), 0},
+#ifdef WITH_TLS
+  {"tls-required", OPT_TLS_REQUIRED, NULL, 0,
+   N_("Always require STLS before entering authentication phase")},
+#endif
   {NULL, 0, NULL, 0, NULL, 0}
 };
 
@@ -139,6 +149,16 @@ pop3d_parse_opt (int key, char *arg, struct argp_state *astate)
 	  exit (1);
 	}
       break;
+
+    case OPT_EXPIRE_ON_EXIT:
+      expire_on_exit = 1;
+      break;
+
+#ifdef WITH_TLS
+    case OPT_TLS_REQUIRED:
+      initial_state = INITIAL;
+      break;
+#endif
       
     default:
       return ARGP_ERR_UNKNOWN;
@@ -165,7 +185,7 @@ main (int argc, char **argv)
 
 #ifdef USE_LIBPAM
   if (!pam_service)
-    pam_service = (char *)"gnu-pop3d";
+    pam_service = "gnu-pop3d";
 #endif
 
   if (daemon_param.mode == MODE_INTERACTIVE && isatty (0))
@@ -313,7 +333,7 @@ pop3d_mainloop (int fd, FILE *infile, FILE *outfile)
 
   pop3d_setio (infile, outfile);
 
-  state = AUTHORIZATION;
+  state = initial_state;
 
   pop3d_log_connection (fd);
 
