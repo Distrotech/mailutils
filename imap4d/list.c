@@ -53,7 +53,6 @@ struct inode_list
   but it does not match ahierarchy delimiter.  */
 
 static int  match __P ((const char *, const char *, const char *));
-static int  imap_match __P ((const char *, const char *, const char *));
 static void list_file __P ((const char *, const char *, const char *, const char *, struct inode_list *));
 static void print_file __P ((const char *, const char *, const char *));
 static void print_dir __P ((const char *, const char *, const char *));
@@ -328,7 +327,20 @@ static int
 match (const char *entry, const char *pattern, const char *delim)
 {
   struct stat stats;
-  int status = imap_match (entry, pattern, delim);
+  int status = util_wcard_match (entry, pattern, delim);
+
+  switch (status)
+    {
+    case WCARD_RECURSE_MATCH:
+      status = RECURSE_MATCH;
+      break;
+    case WCARD_MATCH:
+      status = MATCH;
+      break;
+    case WCARD_NOMATCH:
+      status = NOMATCH;
+    }
+  
   if (status)
     {
       if (stat (entry, &stats) == 0)
@@ -337,52 +349,3 @@ match (const char *entry, const char *pattern, const char *delim)
   return status;
 }
 
-/* Match STRING against the filename pattern PATTERN, returning zero if
-   it matches, nonzero if not.  */
-static int
-imap_match (const char *string, const char *pattern, const char *delim)
-{
-  const char *p = pattern, *n = string;
-  char c;
-
-  for (;(c = *p++) != '\0' && *n; n++)
-    {
-      switch (c)
-	{
-	case '%':
-	  if (*p == '\0')
-	    {
-	      /* Matches everything except '/' */
-	      for (; *n && *n != delim[0]; n++)
-		;
-	      return (*n == '/') ? RECURSE_MATCH : MATCH;
-	    }
-	  else
-	    for (; *n != '\0'; ++n)
-	      if (imap_match (n, p, delim) == MATCH)
-		return MATCH;
-	  break;
-
-	case '*':
-	  if (*p == '\0')
-	    return RECURSE_MATCH;
-	  for (; *n != '\0'; ++n)
-	    {
-	      int status = imap_match (n, p, delim);
-	      if (status == MATCH || status == RECURSE_MATCH)
-		return status;
-	    }
-	  break;
-
-	default:
-	  if (c != *n)
-	    return NOMATCH;
-	}
-    }
-
-  if (!c && !*n)
-    return MATCH;
-
-  return NOMATCH;
-
-}
