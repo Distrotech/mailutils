@@ -1,6 +1,8 @@
 2001-10-24  Alain Magloire
 
 	* configure.in: Check for getdelim().
+	* lib/getline.c: change the return values from int to ssize_t
+	to follow GNU LibC.
 
 2001-10-23  Alain Magloire
 

@@ -1,6 +1,6 @@
 /* getline.c -- Replacement for GNU C library function getline
 
-Copyright (C) 1993, 1996 Free Software Foundation, Inc.
+Copyright (C) 1993, 1996, 2001 Free Software Foundation, Inc.
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License as
@@ -30,7 +30,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. */
 
 #if defined __GNU_LIBRARY__ && HAVE_GETDELIM
 
-int
+ssize_t
 getline (lineptr, n, stream)
      char **lineptr;
      size_t *n;
@@ -60,7 +60,7 @@ char *malloc (), *realloc ();
    as necessary.  Return the number of characters read (not including the
    null terminator), or -1 on error or EOF.  */
 
-int
+ssize_t
 getstr (lineptr, n, stream, terminator, offset)
      char **lineptr;
      size_t *n;
@@ -134,7 +134,7 @@ getstr (lineptr, n, stream, terminator, offset)
   return ret;
 }
 
-int
+ssize_t
 getline (lineptr, n, stream)
      char **lineptr;
      size_t *n;
@@ -143,7 +143,7 @@ getline (lineptr, n, stream)
   return getstr (lineptr, n, stream, '\n', 0);
 }
 
-int
+ssize_t
 getdelim (lineptr, n, delimiter, stream)
      char **lineptr;
      size_t *n;
