@@ -27,8 +27,11 @@ mail_next (int argc, char **argv)
 {
   if (argc < 2)
     {
-      cursor++;
-      realcursor++;
+      if (cursor < total)
+	{
+	  cursor++;
+	  realcursor++;
+	}
     }
   else
     {
