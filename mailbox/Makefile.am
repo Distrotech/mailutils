@@ -40,6 +40,7 @@ noinst_HEADERS=argp-fmtstream.h argp-namefrob.h md5.h
 
 libmailbox_la_SOURCES = \
 address.c \
+amd.c \
 argcv.c \
 attachment.c \
 attribute.c \
