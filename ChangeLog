@@ -1,3 +1,34 @@
+2002-02-20 20:25  Sam Roberts <sroberts@uniserve.com>
+
+	* comsat/action.c, comsat/cfg.c, lib/argcv.c, lib/argcv.h,
+	  lib/mu_argp.c, mail/send.c, mail/util.c, mh/mh_argp.c,
+	  pop3d/popauth.c: argcv_get() now (optionally) strips comments while
+	  parsing. Its the right place because it tokenizes, and whether a
+	  char is a comment or not depends on whether its in the middle of a
+	  token or not:  "hi # there"  # comment.
+	* sieve/sieve.c: Now supports a ~/.sieverc file. Mine looks like:  
+	  # ~/.sieverc
+	  #   Just moves my mail into my local spool.
+	  -dTt --ticket=~/.tickets
+	  -f pop://pop.uniserve.com
+	  ~/.filter.sv
+	* include/mailutils/debug.h: The debug levels are a bitmask, and
+	  I'd started to enumerate them. Oops.
+	* mailbox/muerrno.c: Began the task of returning more informative
+	  error numbers. If this looks useful, we should all spread it
+	  through the files we touch!
+	* doc/texinfo/: mailutils.texi, programs.texi: The info docs were
+	  getting installed in the "Miscellaneous" section of the info
+	  directory, now they go in GNU Libraries, with links to the programs
+	  under GNU Utilities, as seemed to be suggested by the texinfo docs.
+	  Maybe there's a better convention?
+	* include/mailutils/errno.h, mailbox/address.c, mailbox/mailbox.c,
+	  mailbox/parse822.c: Began the task of returning more informative
+	  error numbers. If this looks useful, we should all spread it
+	  through the files we touch!
+	* sieve/svcb.c: Was using the POSIX (1003.1b) ENOTSUP, changed to
+	  ENOSYS, which will exist most places, as Jeff pointed out.
+
 2002-02-20  Sergey Poznyakoff  
 
 	* imap4d/status.c (imap4d_status): Bugfix: was using improperly
