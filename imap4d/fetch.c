@@ -813,9 +813,9 @@ bodystructure (message_t msg, int extension)
       text_plain = 1;
     }
 
-  while (*sp && isspace ((unsigned)*sp)) sp++;
+  while (sp != NULL && *sp && isspace ((unsigned)*sp)) sp++;
   /* body parameter parenthesized list: Content-type attributes */
-  if (*sp || text_plain)
+  if ((sp != NULL && *sp) || text_plain)
     {
       util_send (" (");
       {
