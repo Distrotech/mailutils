@@ -33,6 +33,8 @@ mail_next (int argc, char **argv)
       int rc = 1;
       for (n = cursor + 1; n <= total; n++)
 	{
+	  if (util_isdeleted (n))
+	    continue;
 	  rc = util_get_message (mbox, n, &msg);
 	  if (rc == 0)
 	    break;
