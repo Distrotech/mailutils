@@ -1,3 +1,10 @@
+2001-10-05 Sergey Poznyakoff
+
+	* guimb/scm/Makefile.am: Added reject.scm.
+	* mailbox/parse822.c: (parse822_word): Additional check
+	for qstr != NULL: parse822_quoted_string() sometimes returns
+	EOK and does not fill qstr (e.g. when parsing empty string: "")
+	
 2001-10-04 Alain Magloire
 
 	* imap4d/select.c(imap4_select_status): According to RFC2060
