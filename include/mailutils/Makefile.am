@@ -24,6 +24,7 @@ pkginclude_HEADERS = \
  attribute.h \
  auth.h \
  body.h \
+ daemon.h \
  debug.h \
  envelope.h \
  errno.h \
