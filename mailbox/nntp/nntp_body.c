@@ -30,7 +30,7 @@ mu_nntp_body (mu_nntp_t nntp, unsigned long number, unsigned long *pnum, char **
   char *message_id = NULL;
   if (number != 0)
     {
-      message_id = malloc(128);
+      message_id = malloc (128);
       if (message_id == NULL)
 	{
 	  return ENOMEM;
@@ -49,8 +49,6 @@ int
 mu_nntp_body_id (mu_nntp_t nntp, const char *message_id, unsigned long *pnum, char **mid, stream_t *pstream)
 {
   int status;
-  unsigned long dummy = 0;
-  char *buf;
 
   if (nntp == NULL)
     return EINVAL;
@@ -69,7 +67,7 @@ mu_nntp_body_id (mu_nntp_t nntp, const char *message_id, unsigned long *pnum, ch
 	  status = mu_nntp_writeline (nntp, "BODY %s\r\n", message_id);
 	}
       MU_NNTP_CHECK_ERROR (nntp, status);
-      mu_NNTP_debug_cmd (nntp);
+      mu_nntp_debug_cmd (nntp);
       nntp->state = MU_NNTP_BODY;
 
     case MU_NNTP_BODY:
@@ -81,32 +79,15 @@ mu_nntp_body_id (mu_nntp_t nntp, const char *message_id, unsigned long *pnum, ch
     case MU_NNTP_BODY_ACK:
       status = mu_nntp_response (nntp, NULL, 0, NULL);
       MU_NNTP_CHECK_EAGAIN (nntp, status);
+
       mu_nntp_debug_ack (nntp);
-      MU_NNTP_CHECK_OK (nntp);
-      nntp->state = MU_NNTP_BODY_RX;
+      MU_NNTP_CHECK_CODE (nntp, MU_NNTP_RESP_CODE_BODY_FOLLOW);
+
       /* parse the answer now. */
-      if (pnum == NULL)
-	{
-	  pnum = &dummy;
-	}
-      buf = calloc(1, 128);
-      if (buf == NULL)
-	{
-	  return ENOMEM;
-	}
-      sscanf (nntp->ack.buf, "222 %d %127s", pnum, buf);
-      if (*buf == '\0')
-	{
-	  strcpy (buf, "<0>");
-	}
-      if (mid)
-	{
-	  *mid = buf;
-	}
-      else
-	{
-	  free (buf);
-	}
+      status = mu_nntp_parse_article (nntp, MU_NNTP_RESP_CODE_BODY_FOLLOW, pnum, mid);
+      MU_NNTP_CHECK_ERROR (nntp, status);
+
+      nntp->state = MU_NNTP_BODY_RX;
 
     case MU_NNTP_BODY_RX:
       status = mu_nntp_stream_create (nntp, pstream);

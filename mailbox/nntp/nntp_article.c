@@ -30,12 +30,12 @@ mu_nntp_article (mu_nntp_t nntp, unsigned long number, unsigned long *pnum, char
   char *message_id = NULL;
   if (number != 0)
     {
-      message_id = malloc(128);
+      message_id = malloc (128);
       if (message_id == NULL)
 	{
 	  return ENOMEM;
 	}
-      snprintf(message_id, 127, "%d", number);
+      snprintf (message_id, 127, "%d", number);
     }
   status = mu_nntp_article_id (nntp, message_id, pnum, mid, pstream);
   if (message_id)
@@ -69,7 +69,7 @@ mu_nntp_article_id (mu_nntp_t nntp, const char *message_id, unsigned long *pnum,
 	  status = mu_nntp_writeline (nntp, "ARTICLE %s\r\n", message_id);
 	}
       MU_NNTP_CHECK_ERROR (nntp, status);
-      mu_NNTP_debug_cmd (nntp);
+      mu_nntp_debug_cmd (nntp);
       nntp->state = MU_NNTP_ARTICLE;
 
     case MU_NNTP_ARTICLE:
@@ -82,31 +82,12 @@ mu_nntp_article_id (mu_nntp_t nntp, const char *message_id, unsigned long *pnum,
       status = mu_nntp_response (nntp, NULL, 0, NULL);
       MU_NNTP_CHECK_EAGAIN (nntp, status);
       mu_nntp_debug_ack (nntp);
-      MU_NNTP_CHECK_OK (nntp);
+      MU_NNTP_CHECK_CODE(nntp, MU_NNTP_RESP_CODE_ARTICLE_FOLLOW);
       nntp->state = MU_NNTP_ARTICLE_RX;
+
       /* parse the answer now. */
-      if (pnum == NULL)
-	{
-	  pnum = &dummy;
-	}
-      buf = calloc(sizeof(*buf), 128);
-      if (buf == NULL)
-	{
-	  return ENOMEM;
-	}
-      sscanf (nntp->ack.buf, "220 %d %127s", pnum, buf);
-      if (*buf == '\0')
-	{
-	  strcpy (buf, "<0>");
-	}
-      if (mid)
-	{
-	  *mid = buf;
-	}
-      else
-	{
-	  free (buf);
-	}
+      status = mu_nntp_parse_article(nntp, MU_NNTP_RESP_CODE_ARTICLE_FOLLOW, pnum, mid);
+      MU_NNTP_CHECK_ERROR (nntp, status);
 
     case MU_NNTP_ARTICLE_RX:
       status = mu_nntp_stream_create (nntp, pstream);
@@ -123,4 +104,38 @@ mu_nntp_article_id (mu_nntp_t nntp, const char *message_id, unsigned long *pnum,
     }
 
   return status;
+}
+
+int
+mu_nntp_parse_article(mu_nntp_t nntp, int code, unsigned long *pnum, char **mid)
+{
+  unsigned long dummy = 0;
+  char *buf;
+  char format[24];
+
+  if (pnum == NULL)
+    pnum = &dummy;
+
+  /*  Message ID should not be longer then 250 and smaller then 3.  */
+  buf = calloc(1, 256);
+  if (buf == NULL)
+    {
+      return ENOMEM;
+    }
+
+  sprintf (format, "%d %%ld %%%ds", code, 250);
+  sscanf (nntp->ack.buf, format, pnum, buf);
+  if (*buf == '\0')
+    {
+      strcpy (buf, "<0>"); /* RFC 977 */
+    }
+  if (mid)
+    {
+      *mid = buf;
+    }
+  else
+    {
+      free (buf);
+    }
+  return 0;
 }

@@ -24,7 +24,7 @@
 #include <mailutils/sys/nntp.h>
 
 int
-mu_nntp_head (mu_nntp_t nntp, unsigned long number, unsigned long *pnum, char **mid, stream_t *pstream)
+mu_nntp_stat (mu_nntp_t nntp, unsigned long number, unsigned long *pnumber, char **mid)
 {
   int status;
   char *message_id = NULL;
@@ -35,9 +35,9 @@ mu_nntp_head (mu_nntp_t nntp, unsigned long number, unsigned long *pnum, char **
 	{
 	  return ENOMEM;
 	}
-      snprintf (message_id, 127, "%d", number);
+      snprintf (message_id, 127, "%ld", number);
     }
-  status = mu_nntp_head_id (nntp, message_id, pnum, mid, pstream);
+  status = mu_nntp_stat_id (nntp, message_id, pnumber, mid);
   if (message_id)
     {
       free (message_id);
@@ -46,51 +46,43 @@ mu_nntp_head (mu_nntp_t nntp, unsigned long number, unsigned long *pnum, char **
 }
 
 int
-mu_nntp_head_id (mu_nntp_t nntp, const char *message_id, unsigned long *pnum, char **mid, stream_t *pstream)
+mu_nntp_stat_id (mu_nntp_t nntp, const char *message_id, unsigned long *number, char **mid)
 {
   int status;
-  unsigned long dummy = 0;
-  char *buf;
 
   if (nntp == NULL)
     return EINVAL;
-  if (pstream == NULL)
-    return MU_ERR_OUT_PTR_NULL;
 
   switch (nntp->state)
     {
     case MU_NNTP_NO_STATE:
       if (message_id == NULL || *message_id == '\0')
 	{
-	  status = mu_nntp_writeline (nntp, "HEAD\r\n");
+	  status = mu_nntp_writeline (nntp, "STAT\r\n");
 	}
       else
 	{
-	  status = mu_nntp_writeline (nntp, "HEAD %s\r\n", message_id);
+	  status = mu_nntp_writeline (nntp, "STAT %s\r\n", message_id);
 	}
       MU_NNTP_CHECK_ERROR (nntp, status);
       mu_nntp_debug_cmd (nntp);
-      nntp->state = MU_NNTP_HEAD;
+      nntp->state = MU_NNTP_STAT;
 
-    case MU_NNTP_HEAD:
+    case MU_NNTP_STAT:
       status = mu_nntp_send (nntp);
       MU_NNTP_CHECK_EAGAIN (nntp, status);
       nntp->acknowledge = 0;
-      nntp->state = MU_NNTP_HEAD_ACK;
+      nntp->state = MU_NNTP_STAT_ACK;
 
-    case MU_NNTP_HEAD_ACK:
+    case MU_NNTP_STAT_ACK:
       status = mu_nntp_response (nntp, NULL, 0, NULL);
       MU_NNTP_CHECK_EAGAIN (nntp, status);
       mu_nntp_debug_ack (nntp);
-      MU_NNTP_CHECK_CODE (nntp, MU_NNTP_RESP_CODE_HEAD_FOLLOW);
-      nntp->state = MU_NNTP_HEAD_RX;
+      MU_NNTP_CHECK_CODE(nntp, MU_NNTP_RESP_CODE_ARTICLE_FOUND);
+      nntp->state = MU_NNTP_NO_STATE;
 
       /* parse the answer now. */
-      status = mu_nntp_parse_article (nntp, MU_NNTP_RESP_CODE_HEAD_FOLLOW, pnum, mid);
-      MU_NNTP_CHECK_ERROR (nntp, status);
-
-    case MU_NNTP_HEAD_RX:
-      status = mu_nntp_stream_create (nntp, pstream);
+      status = mu_nntp_parse_article(nntp, MU_NNTP_RESP_CODE_ARTICLE_FOUND, number, mid);
       MU_NNTP_CHECK_ERROR (nntp, status);
       break;
 

@@ -24,74 +24,33 @@
 #include <mailutils/sys/nntp.h>
 
 int
-mu_nntp_head (mu_nntp_t nntp, unsigned long number, unsigned long *pnum, char **mid, stream_t *pstream)
+mu_nntp_mode_reader (mu_nntp_t nntp)
 {
   int status;
-  char *message_id = NULL;
-  if (number != 0)
-    {
-      message_id = malloc (128);
-      if (message_id == NULL)
-	{
-	  return ENOMEM;
-	}
-      snprintf (message_id, 127, "%d", number);
-    }
-  status = mu_nntp_head_id (nntp, message_id, pnum, mid, pstream);
-  if (message_id)
-    {
-      free (message_id);
-    }
-  return status;
-}
-
-int
-mu_nntp_head_id (mu_nntp_t nntp, const char *message_id, unsigned long *pnum, char **mid, stream_t *pstream)
-{
-  int status;
-  unsigned long dummy = 0;
-  char *buf;
 
   if (nntp == NULL)
     return EINVAL;
-  if (pstream == NULL)
-    return MU_ERR_OUT_PTR_NULL;
 
   switch (nntp->state)
     {
     case MU_NNTP_NO_STATE:
-      if (message_id == NULL || *message_id == '\0')
-	{
-	  status = mu_nntp_writeline (nntp, "HEAD\r\n");
-	}
-      else
-	{
-	  status = mu_nntp_writeline (nntp, "HEAD %s\r\n", message_id);
-	}
+      status = mu_nntp_writeline (nntp, "MODE READER\r\n");
       MU_NNTP_CHECK_ERROR (nntp, status);
       mu_nntp_debug_cmd (nntp);
-      nntp->state = MU_NNTP_HEAD;
+      nntp->state = MU_NNTP_MODE_READER;
 
-    case MU_NNTP_HEAD:
+    case MU_NNTP_MODE_READER:
       status = mu_nntp_send (nntp);
       MU_NNTP_CHECK_EAGAIN (nntp, status);
       nntp->acknowledge = 0;
-      nntp->state = MU_NNTP_HEAD_ACK;
+      nntp->state = MU_NNTP_MODE_READER_ACK;
 
-    case MU_NNTP_HEAD_ACK:
+    case MU_NNTP_MODE_READER_ACK:
       status = mu_nntp_response (nntp, NULL, 0, NULL);
       MU_NNTP_CHECK_EAGAIN (nntp, status);
       mu_nntp_debug_ack (nntp);
-      MU_NNTP_CHECK_CODE (nntp, MU_NNTP_RESP_CODE_HEAD_FOLLOW);
-      nntp->state = MU_NNTP_HEAD_RX;
-
-      /* parse the answer now. */
-      status = mu_nntp_parse_article (nntp, MU_NNTP_RESP_CODE_HEAD_FOLLOW, pnum, mid);
-      MU_NNTP_CHECK_ERROR (nntp, status);
-
-    case MU_NNTP_HEAD_RX:
-      status = mu_nntp_stream_create (nntp, pstream);
-      MU_NNTP_CHECK_ERROR (nntp, status);
+      MU_NNTP_CHECK_CODE2(nntp, MU_NNTP_RESP_CODE_POSTING_ALLOWED, MU_NNTP_RESP_CODE_POSTING_PROHIBITED);
+      nntp->state = MU_NNTP_NO_STATE;
       break;
 
       /* They must deal with the error first by reopening.  */

@@ -24,29 +24,8 @@
 #include <mailutils/sys/nntp.h>
 
 int
-mu_nntp_head (mu_nntp_t nntp, unsigned long number, unsigned long *pnum, char **mid, stream_t *pstream)
-{
-  int status;
-  char *message_id = NULL;
-  if (number != 0)
-    {
-      message_id = malloc (128);
-      if (message_id == NULL)
-	{
-	  return ENOMEM;
-	}
-      snprintf (message_id, 127, "%d", number);
-    }
-  status = mu_nntp_head_id (nntp, message_id, pnum, mid, pstream);
-  if (message_id)
-    {
-      free (message_id);
-    }
-  return status;
-}
-
-int
-mu_nntp_head_id (mu_nntp_t nntp, const char *message_id, unsigned long *pnum, char **mid, stream_t *pstream)
+mu_nntp_date (mu_nntp_t nntp, unsigned int *year, unsigned int *month, unsigned int *day,
+	      unsigned int *hour, unsigned int *min, unsigned int *sec)
 {
   int status;
   unsigned long dummy = 0;
@@ -54,43 +33,30 @@ mu_nntp_head_id (mu_nntp_t nntp, const char *message_id, unsigned long *pnum, ch
 
   if (nntp == NULL)
     return EINVAL;
-  if (pstream == NULL)
-    return MU_ERR_OUT_PTR_NULL;
 
   switch (nntp->state)
     {
     case MU_NNTP_NO_STATE:
-      if (message_id == NULL || *message_id == '\0')
-	{
-	  status = mu_nntp_writeline (nntp, "HEAD\r\n");
-	}
-      else
-	{
-	  status = mu_nntp_writeline (nntp, "HEAD %s\r\n", message_id);
-	}
+      status = mu_nntp_writeline (nntp, "DATE\r\n");
       MU_NNTP_CHECK_ERROR (nntp, status);
       mu_nntp_debug_cmd (nntp);
-      nntp->state = MU_NNTP_HEAD;
+      nntp->state = MU_NNTP_DATE;
 
-    case MU_NNTP_HEAD:
+    case MU_NNTP_DATE:
       status = mu_nntp_send (nntp);
       MU_NNTP_CHECK_EAGAIN (nntp, status);
       nntp->acknowledge = 0;
-      nntp->state = MU_NNTP_HEAD_ACK;
+      nntp->state = MU_NNTP_DATE_ACK;
 
-    case MU_NNTP_HEAD_ACK:
+    case MU_NNTP_DATE_ACK:
       status = mu_nntp_response (nntp, NULL, 0, NULL);
       MU_NNTP_CHECK_EAGAIN (nntp, status);
       mu_nntp_debug_ack (nntp);
-      MU_NNTP_CHECK_CODE (nntp, MU_NNTP_RESP_CODE_HEAD_FOLLOW);
-      nntp->state = MU_NNTP_HEAD_RX;
+      MU_NNTP_CHECK_CODE(nntp, MU_NNTP_RESP_CODE_SERVER_DATE);
+      nntp->state = MU_NNTP_NO_STATE;
 
       /* parse the answer now. */
-      status = mu_nntp_parse_article (nntp, MU_NNTP_RESP_CODE_HEAD_FOLLOW, pnum, mid);
-      MU_NNTP_CHECK_ERROR (nntp, status);
-
-    case MU_NNTP_HEAD_RX:
-      status = mu_nntp_stream_create (nntp, pstream);
+      status = mu_parse_date(nntp, MU_NNTP_RESP_CODE_SERVER_DATE, year, month, day, hour, min, sec);
       MU_NNTP_CHECK_ERROR (nntp, status);
       break;
 
@@ -104,4 +70,30 @@ mu_nntp_head_id (mu_nntp_t nntp, const char *message_id, unsigned long *pnum, ch
     }
 
   return status;
+}
+
+static int
+mu_nntp_parse_date (mu_nntp_t nntp, int code, unsigned int *year, unsigned int *month, unsigned int *day,
+		    unsigned int *hour, unsigned int *min, unsigned int *sec)
+{
+  unsigned int dummy = 0;
+  char *buf;
+  char format[32];
+
+  if (year == NULL)
+    year = &dummy;
+  if (month == NULL)
+    month = &dummy;
+  if (day == NULL)
+    day = &dummy;
+  if (hour == NULL)
+    hour = &dummy;
+  if (min == NULL)
+    min = &dummy;
+  if (sec == NULL)
+    sec = &dummy;
+
+  sprintf (format, "%d %%4d%%2d%%2d%%2d%%2d%%2d", code);
+  sscanf (nntp->ack.buf, format, year, month, day, hour, min, sec);
+  return 0;
 }

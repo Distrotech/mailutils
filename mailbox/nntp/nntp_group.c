@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2004 Free Software Foundation, Inc.
+   Copyright (C) 2004 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -21,76 +21,42 @@
 
 #include <string.h>
 #include <errno.h>
+#include <stdlib.h>
 #include <mailutils/sys/nntp.h>
 
 int
-mu_nntp_head (mu_nntp_t nntp, unsigned long number, unsigned long *pnum, char **mid, stream_t *pstream)
+mu_nntp_group (mu_nntp_t nntp, const char *group, unsigned long *total, unsigned long *low, unsigned long *high, char **name)
 {
   int status;
-  char *message_id = NULL;
-  if (number != 0)
-    {
-      message_id = malloc (128);
-      if (message_id == NULL)
-	{
-	  return ENOMEM;
-	}
-      snprintf (message_id, 127, "%d", number);
-    }
-  status = mu_nntp_head_id (nntp, message_id, pnum, mid, pstream);
-  if (message_id)
-    {
-      free (message_id);
-    }
-  return status;
-}
-
-int
-mu_nntp_head_id (mu_nntp_t nntp, const char *message_id, unsigned long *pnum, char **mid, stream_t *pstream)
-{
-  int status;
-  unsigned long dummy = 0;
-  char *buf;
 
   if (nntp == NULL)
     return EINVAL;
-  if (pstream == NULL)
+  if (group == NULL || *group == '\0')
     return MU_ERR_OUT_PTR_NULL;
 
   switch (nntp->state)
     {
     case MU_NNTP_NO_STATE:
-      if (message_id == NULL || *message_id == '\0')
-	{
-	  status = mu_nntp_writeline (nntp, "HEAD\r\n");
-	}
-      else
-	{
-	  status = mu_nntp_writeline (nntp, "HEAD %s\r\n", message_id);
-	}
+      status = mu_nntp_writeline (nntp, "GROUP %s\r\n", group);
       MU_NNTP_CHECK_ERROR (nntp, status);
       mu_nntp_debug_cmd (nntp);
-      nntp->state = MU_NNTP_HEAD;
+      nntp->state = MU_NNTP_GROUP;
 
-    case MU_NNTP_HEAD:
+    case MU_NNTP_GROUP:
       status = mu_nntp_send (nntp);
       MU_NNTP_CHECK_EAGAIN (nntp, status);
       nntp->acknowledge = 0;
-      nntp->state = MU_NNTP_HEAD_ACK;
+      nntp->state = MU_NNTP_GROUP_ACK;
 
-    case MU_NNTP_HEAD_ACK:
+    case MU_NNTP_GROUP_ACK:
       status = mu_nntp_response (nntp, NULL, 0, NULL);
       MU_NNTP_CHECK_EAGAIN (nntp, status);
       mu_nntp_debug_ack (nntp);
-      MU_NNTP_CHECK_CODE (nntp, MU_NNTP_RESP_CODE_HEAD_FOLLOW);
-      nntp->state = MU_NNTP_HEAD_RX;
+      MU_NNTP_CHECK_CODE (nntp, MU_NNTP_RESP_CODE_GROUP_SELECTED);
+      nntp->state = MU_NNTP_NO_STATE;
 
-      /* parse the answer now. */
-      status = mu_nntp_parse_article (nntp, MU_NNTP_RESP_CODE_HEAD_FOLLOW, pnum, mid);
-      MU_NNTP_CHECK_ERROR (nntp, status);
-
-    case MU_NNTP_HEAD_RX:
-      status = mu_nntp_stream_create (nntp, pstream);
+      /* parse group.  */
+      status = mu_nntp_parse_group (nntp, MU_NNTP_RESP_CODE_GROUP_SELECTED, total, low, high, name);
       MU_NNTP_CHECK_ERROR (nntp, status);
       break;
 
@@ -104,4 +70,39 @@ mu_nntp_head_id (mu_nntp_t nntp, const char *message_id, unsigned long *pnum, ch
     }
 
   return status;
+}
+
+
+int
+mu_nntp_parse_group(mu_nntp_t nntp, int code, unsigned long *ptotal, unsigned long *plow, unsigned long *phigh, char **name)
+{
+  unsigned long dummy = 0;
+  char *buf;
+  char format[24];
+
+  if (ptotal == NULL)
+    ptotal = &dummy;
+  if (plow == NULL)
+    plow = &dummy;
+  if (phigh == NULL)
+    phigh = &dummy;
+
+  /* An nntp response is not longer then 512.  */
+  buf = calloc(1, 512);
+  if (buf == NULL)
+    {
+      return ENOMEM;
+    }
+
+  sprintf (format, "%d %%d %%d %%d %%%ds", code, 511);
+  sscanf (nntp->ack.buf, format, ptotal, plow, phigh, buf);
+  if (name)
+    {
+      *name = buf;
+    }
+  else
+    {
+      free (buf);
+    }
+  return 0;
 }

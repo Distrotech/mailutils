@@ -20,6 +20,7 @@
 #endif
 
 #include <string.h>
+#include <stdlib.h>
 #include <errno.h>
 #include <mailutils/sys/nntp.h>
 
@@ -69,4 +70,17 @@ mu_nntp_response (mu_nntp_t nntp, char *buffer, size_t buflen, size_t *pnread)
   if (pnread)
     *pnread = n;
   return status;
+}
+
+int
+mu_nntp_response_code(mu_nntp_t nntp)
+{
+  char buffer[4];
+  int code;
+
+  memset (buffer, '\0', 4);
+  mu_nntp_response(nntp, buffer, 4, NULL);
+  /* translate the number, basically strtol() without the overhead. */
+  code = (buffer[0] - '0')*100 + (buffer[1] - '0')*10 + (buffer[2] - '0');
+  return code;
 }

@@ -24,18 +24,25 @@ INCLUDES = -I${top_srcdir}/include -I${top_srcdir}/mailbox \
 lib_LTLIBRARIES = libmu_nntp.la
 
 libmu_nntp_la_SOURCES = \
+ nntp_article.c \
+ nntp_body.c \
  nntp_carrier.c \
  nntp_connect.c \
  nntp_create.c \
+ nntp_date.c \
  nntp_debug.c \
  nntp_destroy.c \
  nntp_disconnect.c \
+ nntp_group.c \
+ nntp_head.c \
+ nntp_last.c \
+ nntp_list_extensions.c \
+ nntp_mode_reader.c \
+ nntp_next.c \
+ nntp_quit.c \
  nntp_readline.c \
  nntp_response.c \
  nntp_sendline.c \
+ nntp_stat.c \
  nntp_stream.c \
- nntp_timeout.c \
- nntp_article.c \
- nntp_head.c \
- nntp_body.c
-
+ nntp_timeout.c

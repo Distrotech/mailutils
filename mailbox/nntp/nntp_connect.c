@@ -63,11 +63,15 @@ mu_nntp_connect (mu_nntp_t nntp)
       /* Get the greetings.  */
       {
 	size_t len = 0;
+	int code;
 	char *right, *left;
 	status = mu_nntp_response (nntp, NULL, 0, &len);
 	MU_NNTP_CHECK_EAGAIN (nntp, status);
 	mu_nntp_debug_ack (nntp);
-	if (nntp->ack.buf[0] == '2')
+	/* 200 Service available, posting allowed */
+	/* 2001 Servie available, posting prohibited */
+	code = mu_nntp_response_code(nntp);
+	if (code == MU_NNTP_RESP_CODE_POSTING_ALLOWED || code == MU_NNTP_RESP_CODE_POSTING_PROHIBITED)
 	  {
 	    stream_close (nntp->carrier);
 	    nntp->state = MU_NNTP_NO_STATE;
