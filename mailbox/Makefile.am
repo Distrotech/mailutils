@@ -41,6 +41,7 @@ mime.c \
 misc.c \
 monitor.c \
 observer.c \
+property.c \
 registrar.c \
 sendmail.c \
 smtp.c \
