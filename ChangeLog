@@ -1,3 +1,19 @@
+2001-10-26  Sergey Poznyakoff
+
+	Fixed behavior in send mode when the stdin is not a terminal
+	(i.e. when used as mail addr@dom.ain < message): do not ask
+	for cc, bcc, and do not echo the contents of the message
+	(when compiled with readline).
+
+	* mail/mail.c: Use ml_readline(). Check for `!interactive' and
+	force appropriate settings _after_ sourcing mail.rc files.
+	Force `set quiet' if in non-interactive mode.
+	* mail/mail.h: Declaration for ml_readline().
+	* mail/mailline.c: New functions ml_readline_internal(),
+	ml_readline().
+	* mail/send.c: Use ml_readline().
+	* mail/source.c: Do not complain if the file does not exist.
+
 2001-10-24  Alain Magloire
 
 	* configure.in: Check for getdelim().
