@@ -32,8 +32,6 @@ Things to consider:
   - Need a way to parse ",,,", it's a valid address-list, it just doesn't
     have any addresses.
 
-  - Functions for forming email addresses, quoting display-name, etc.
-
   - The personal for ""Sam"" <sam@here> is "Sam", and for "'s@b'" <s@b>
     is 's@b', should I strip those outside parentheses, or is that
     too intrusive? Maybe an apps business if it wants to?
@@ -42,11 +40,29 @@ Things to consider:
     gets one address, or just say it is or it isn't in RFC format?
     Right now we're strict, we'll see how it goes.
 
-  - parse dates?
   - parse Received: field?
 
   - test for memory leaks on malloc failure
+
   - fix the realloc, try a struct _string { char* b, size_t sz };
+
+The lexer finds consecutive sequences of characters, so it should
+define:
+
+struct parse822_token_t {
+    const char* b;  // beginning of token
+    const char* e;  // one past end of token
+}
+typedef struc parse822_token_t TOK;
+
+Then I can have str_append_token(), and the lexer functions can
+look like:
+
+int parse822_atom(const char** p, const char* e, TOK* atom);
+
+Just a quick though, I'll have to see how many functions that will
+actually help.
+
   - get example addresses from rfc2822, and from the perl code.
 */
 
@@ -59,6 +75,11 @@ Things to consider:
 #include <ctype.h>
 #include <string.h>
 #include <stdlib.h>
+#include <time.h>
+
+#ifdef HAVE_STRINGS_H
+# include <strings.h>
+#endif
 
 #include "address0.h"
 
@@ -1146,6 +1167,329 @@ int parse822_domain_literal(const char** p, const char* e, char** domain_literal
 	*p = save;
     }
     return rc;
+}
+
+/***** From RFC 822, 5.1 Date and Time Specification Syntax *****/
+
+int parse822_day(const char** p, const char* e, int* day)
+{
+  /* day = "Mon" / "Tue" / "Wed" / "Thu" / "Fri" / "Sat" / "Sun" */
+
+  const char* days[] = {
+      "Mon",
+      "Tue",
+      "Wed",
+      "Thu",
+      "Fri",
+      "Sat",
+      "Sun",
+      NULL
+    };
+
+  int d;
+
+  parse822_skip_comments(p, e);
+
+  if((e - *p) < 3)
+    return EPARSE;
+ 
+  for(d = 0; days[d]; d++) {
+    if(strncasecmp(*p, days[d], 3) == 0) {
+      *p += 3;
+      if(day)
+        *day = d;
+      return EOK;
+    }
+  }
+  return EPARSE;
+}
+
+int parse822_date(const char** p, const char* e, int* day, int* mon, int* year)
+{
+  /* date = 1*2DIGIT month 2*4DIGIT
+   * month =  "Jan"  /  "Feb" /  "Mar"  /  "Apr"
+   *       /  "May"  /  "Jun" /  "Jul"  /  "Aug"
+   *       /  "Sep"  /  "Oct" /  "Nov"  /  "Dec"
+   */
+
+  const char* mons[] = {
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+      NULL
+    };
+
+  const char* save = *p;
+  int rc = EOK;
+  int m = 0;
+  int yr = 0;
+  const char* yrbeg = 0;
+
+  parse822_skip_comments(p, e);
+
+  if((rc = parse822_digits(p, e, 1, 2, day))) {
+    *p = save;
+    return rc;
+  }
+
+  parse822_skip_comments(p, e);
+
+  if((e - *p) < 3)
+    return EPARSE;
+ 
+  for(m = 0; mons[m]; m++) {
+    if(strncasecmp(*p, mons[m], 3) == 0) {
+      *p += 3;
+      if(mon)
+        *mon = m;
+      break;
+    }
+  }
+
+  if(!mons[m]) {
+    *p = save;
+    return EPARSE;
+  }
+
+  parse822_skip_comments(p, e);
+
+  /* We need to count how many digits their were, and adjust the
+   * interpretation of the year accordingly. This is from RFC 2822,
+   * Section 4.3, Obsolete Date and Time. */
+  yrbeg = *p;
+
+  if((rc = parse822_digits(p, e, 2, 4, &yr))) {
+    *p = save;
+    return rc;
+  }
+
+  /* rationalize year to four digit, then adjust to tz notation */
+  switch(*p - yrbeg)
+  {
+  case 2:
+    if(yr >= 0 && yr <= 49) {
+      yr += 2000;
+      break;
+    }
+  case 3:
+    yr += 1900;
+    break;
+  }
+
+  if(year)
+    *year = yr - 1900;
+
+  return EOK;
+}
+
+int parse822_time(const char** p, const char* e,
+  int* hour, int* min, int* sec, int* tz, const char** tzname)
+{
+  /* time        =  hour zone
+   * hour        =  2DIGIT ":" 2DIGIT [":" 2DIGIT] ; 00:00:00 - 23:59:59
+   * zone        =  "UT"  / "GMT"           ; Universal Time
+   *                                        ; North American : UT
+   *             /  "EST" / "EDT"           ;  Eastern:  - 5/ - 4
+   *             /  "CST" / "CDT"           ;  Central:  - 6/ - 5
+   *             /  "MST" / "MDT"           ;  Mountain: - 7/ - 6
+   *             /  "PST" / "PDT"           ;  Pacific:  - 8/ - 7
+   *             /  1ALPHA                  ; RFC 822 was wrong, RFC 2822
+   *                                        ; says treat these all as -0000.
+   *             / ( ("+" / "-") 4DIGIT )   ; Local differential
+   *                                        ;  hours+min. (HHMM)
+   */
+
+  struct {
+    const char* tzname;
+    int tz;
+  } tzs[] = {
+      { "UT",   0 * 60 * 60 },
+      { "UTC",  0 * 60 * 60 },
+      { "GMT",  0 * 60 * 60 },
+      { "EST", -5 * 60 * 60 },
+      { "EDT", -4 * 60 * 60 },
+      { "CST", -6 * 60 * 60 },
+      { "CDT", -5 * 60 * 60 },
+      { "MST", -7 * 60 * 60 },
+      { "MDT", -6 * 60 * 60 },
+      { "PST", -8 * 60 * 60 },
+      { "PDT", -7 * 60 * 60 },
+      { NULL, }
+  };
+
+  const char* save = *p;
+  int rc = EOK;
+  int z = 0;
+  char* zone = NULL;
+
+  parse822_skip_comments(p, e);
+
+  if((rc = parse822_digits(p, e, 1, 2, hour))) {
+    *p = save;
+    return rc;
+  }
+
+  if((rc = parse822_special(p, e, ':'))) {
+    *p = save;
+    return rc;
+  }
+
+  if((rc = parse822_digits(p, e, 1, 2, min))) {
+    *p = save;
+    return rc;
+  }
+
+  if((rc = parse822_special(p, e, ':'))) {
+    *sec = 0;
+  } else if((rc = parse822_digits(p, e, 1, 2, sec))) {
+    *p = save;
+    return rc;
+  }
+
+  parse822_skip_comments(p, e);
+
+  if((rc = parse822_atom(p, e, &zone))) {
+    /* zone is optional */
+    if(tz)
+	*tz = 0;
+    return EOK;
+  }
+
+  /* see if it's a timezone */
+  for( ; tzs[z].tzname; z++) {
+    if(strcasecmp(zone, tzs[z].tzname) == 0)
+      break;
+  }
+  if(tzs[z].tzname) {
+    if(tzname)
+      *tzname = tzs[z].tzname;
+
+    if(tz)
+      *tz = tzs[z].tz;
+  } else if(strlen(zone) > 5 || strlen(zone) < 4) {
+    str_free(&zone);
+    return EPARSE;
+  } else {
+    /* zone = ( + / - ) hhmm */
+    int hh;
+    int mm;
+    int sign;
+    char* zp = zone;
+
+    switch(zp[0])
+    {
+    case '-': sign = -1; zp++; break;
+    case '+': sign = +1; zp++; break;
+    default: sign = 1; break;
+    }
+
+    if(strspn(zp, "0123456789") != 4) {
+      *p = save;
+      str_free(&zone);
+      return EPARSE;
+    }
+    /* convert to seconds from UTC */
+    hh = (zone[1] - '0') * 10 + (zone[2] - '0');
+    mm = (zone[3] - '0') * 10 + (zone[4] - '0');
+
+    if(tz)
+      *tz = sign * (hh * 60 * 60 + mm * 60);
+  }
+
+  str_free(&zone);
+
+  return EOK;
+};
+
+#if 0
+For reference, especially the for the required range and values of the
+integer fields.
+
+struct tm
+{
+  int tm_sec;			/* Seconds.	[0-60] (1 leap second) */
+  int tm_min;			/* Minutes.	[0-59] */
+  int tm_hour;			/* Hours.	[0-23] */
+  int tm_mday;			/* Day.		[1-31] */
+  int tm_mon;			/* Month.	[0-11] */
+  int tm_year;			/* Year	- 1900.  */
+  int tm_wday;			/* Day of week.	[0-6] */
+  int tm_yday;			/* Days in year.[0-365]	*/
+  int tm_isdst;			/* DST.		[-1/0/1]*/
+
+  int tm_gmtoff;        /* Seconds east of UTC. */
+  const char *tm_zone;	/* Timezone abbreviation.  */
+};
+#endif
+
+int parse822_date_time(const char** p, const char* e, struct tm* tm)
+{
+  /* date-time = [ day "," ] date time */
+
+  const char* save = *p;
+  int rc = 0;
+
+  int wday = 0;
+
+  int mday = 0;
+  int mon = 0;
+  int year = 0;
+
+  int hour = 0;
+  int min = 0;
+  int sec = 0;
+
+  int tz = 0;
+  const char* tzname = 0;
+
+  if((rc = parse822_day(p, e, &wday))) {
+    if(rc != EPARSE)
+      return rc;
+  } else {
+    /* If we got a day, we MUST have a ','. */
+    parse822_skip_comments(p, e);
+
+    if((rc = parse822_special(p, e, ','))) {
+      *p = save;
+      return rc;
+    }
+  }
+
+  if((rc = parse822_date(p, e, &mday, &mon, &year))) {
+    *p = save;
+    return rc;
+  }
+  if((rc = parse822_time(p, e, &hour, &min, &sec, &tz, &tzname))) {
+    *p = save;
+    return rc;
+  }
+
+  if(tm) {
+    memset (tm, 0, sizeof (*tm));
+
+    tm->tm_wday = wday;
+
+    tm->tm_mday = mday;
+    tm->tm_mon  = mon;
+    tm->tm_year = year;
+
+    tm->tm_hour = hour;
+    tm->tm_min  = min;
+    tm->tm_sec  = sec;
+
+    /* TZ ? */
+  }
+
+  return EOK;
 }
 
 /***** From RFC 822, 3.2 Header Field Definitions *****/

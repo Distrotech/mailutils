@@ -1,3 +1,12 @@
+2001-06-02  Sam Roberts
+	* mailbox/parse822.c,include/mailutils/parse822.h: functions
+	  to parse rfc822 date-time.
+	* examples/mbox-explode.c: example of saving all mime attachments
+	  for messages in a mailbox.
+	* examples/mbox-dates.c: example of using the date-time parser, it
+	  prints all the dates in a mailbox that it can't parse.
+	* examples/Makefile: makes the mbox-* examples.
+	
 2001-06-01  Alain Magloire
 
 	* mailbox/mbx_pop.c (pop_writeline): if buffer is NULL noop.
