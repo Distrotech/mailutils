@@ -1,3 +1,30 @@
+2002-01-21  Sergey Poznyakoff 
+
+	* configure.in: New option --with-maildir allows to
+	  specify the location of mailspool instead of the
+	  default _PATH_MAILDIR.
+	* acconfig.h: Include <paths.h>. Define MU_PATH_MAILDIR.
+	* mailbox/mbx_default.c (mailbox_create_default):
+	  Use MU_PATH_MAILDIR.
+	* guimb/collect.c (collect_output): Likewise.
+	* imap4d/imap4d.c: Likewise.
+	* pop3d/pop3d.c: Likewise.
+
+	* comsat/comsat.c: Introduced --maildir option.
+
+	* pop3d/apop.c (pop3d_apop): Use maildir instead of
+	  _PATH_MAILDIR (should have been committed 2002-01-15).
+	
+	* mailbox/parse822.c (str_append): Check for NULL.
+	* mailbox/message.c (message_destroy): Fixed typo in comment.
+	
+	* imap4d/imap4d.h: Removed superfluous definition of
+	  _PATH_MAILDIR.
+	* pop3d/pop3d.h: Likewise.
+	
+	* lib/mu_dbm.c: (mu_fcheck_perm, mu_check_perm): Return
+	  OK if mode is 0.
+
 2002-01-19 Sam Roberts
 
 	* sieve/: svcb.c, svutil.c: sv_mu_save_to() became
