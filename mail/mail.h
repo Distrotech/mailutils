@@ -116,6 +116,16 @@ struct send_environ
   int nfiles;
 };
 
+typedef struct message_set msgset_t;
+
+struct message_set
+{
+  msgset_t *next;       /* Link to the next message set */
+  int npart;            /* Number of parts in this set */
+  int *msg_part;        /* Array of part numbers: msg_part[0] is the message
+			   number */
+};
+  
 /* Global variables and constants*/
 extern mailbox_t mbox;
 extern unsigned int cursor;
@@ -184,7 +194,7 @@ int mail_copy0 __P((int argc, char **argv, int mark));
 int mail_send0 __P((struct send_environ *env, int save_to));
 void free_env_headers __P((struct send_environ *env));
 
-  //void print_message __P((message_t mesg, char *prefix, int all_headers, FILE *file));
+/*void print_message __P((message_t mesg, char *prefix, int all_headers, FILE *file));*/
 
 int mail_mbox_commit __P((void));
 int mail_is_my_name __P((char *name));
@@ -214,8 +224,15 @@ int var_write __P((int argc, char **argv, struct send_environ *env));
 int var_exit __P((int argc, char **argv, struct send_environ *env));
 int var_pipe __P((int argc, char **argv, struct send_environ *env));
 
+/* msgsets */
+void msgset_free __P((msgset_t *msg_set));
+msgset_t *msgset_make_1 __P((int number));
+msgset_t *msgset_append __P((msgset_t *one, msgset_t *two));
+msgset_t *msgset_range __P((int low, int high));
+msgset_t *msgset_expand __P((msgset_t *set, msgset_t *expand_by));
+msgset_t * msgset_dup __P((const msgset_t *set));
+int parse_msgset __P((const int argc, char **argv, msgset_t **mset));
 
-int util_expand_msglist __P((const int argc, char **argv, int **list));
 int util_do_command __P((const char *cmd, ...));
 int util_msglist_command __P((function_t *func, int argc, char **argv, int set_cursor));
 function_t* util_command_get __P((char *cmd));
@@ -246,6 +263,8 @@ void util_save_outgoing __P((message_t msg, char *savefile));
 void util_error __P((const char *format, ...));
 int util_help __P((const struct mail_command_entry *table, char *word));
 int util_tempfile __P((char **namep));
+void util_msgset_iterate __P((msgset_t *msgset, int (*fun)(), void *closure));
+int util_get_content_type __P((header_t hdr, char **value));
 
 int ml_got_interrupt __P((void));
 void ml_clear_interrupt __P((void));
