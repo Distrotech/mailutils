@@ -493,7 +493,7 @@ message_has_bcc(message_t msg)
   if ((status = message_get_header (msg, &header)))
     return status;
 
-  status = header_get_value (header, MU_HEADER_BCC, NULL, NULL, &bccsz);
+  status = header_get_value (header, MU_HEADER_BCC, NULL, 0, &bccsz);
 
   /* ENOENT, or there was a Bcc: field. */
   return status == ENOENT ? 0 : 1;
