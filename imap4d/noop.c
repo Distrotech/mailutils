@@ -26,5 +26,6 @@ imap4d_noop (struct imap4d_command *command, char *arg)
     return util_finish (command, RESP_BAD, "Wrong state");
   if (util_getword (arg, &sp))
     return util_finish (command, RESP_BAD, "Too many args");
+  imap4d_select_status();
   return util_finish (command, RESP_OK, "Completed");
 }

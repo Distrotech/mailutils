@@ -50,7 +50,9 @@ imap4d_rename (struct imap4d_command *command, char *arg)
     return util_finish (command, RESP_NO, "Name Inbox is reservered");
 
   /* Allocates memory.  */
-  newname = util_getfullpath (newname, delim);
+  newname = namespace_getfullpath (newname, delim);
+  if (!newname)
+    return util_finish (command, RESP_NO, "Permission denied");
 
   /* It is an error to attempt to rename from a mailbox name that already
      exist.  */
@@ -118,15 +120,16 @@ imap4d_rename (struct imap4d_command *command, char *arg)
       return util_finish (command, RESP_OK, "Already exist");
     }
 
-  oldname = util_getfullpath (oldname, delim);
+  oldname = namespace_getfullpath (oldname, delim);
 
   /* It must exist.  */
-  if (rename (oldname, newname) != 0)
+  if (!oldname || rename (oldname, newname) != 0)
     {
       rc = RESP_NO;
       msg = "Failed";
     }
-  free (oldname);
+  if (oldname)
+    free (oldname);
   free (newname);
   return util_finish (command, rc, msg);
 }

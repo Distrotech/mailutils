@@ -17,6 +17,8 @@
 
 #include "imap4d.h"
 
+static int select_flags;
+
 /* select          ::= "SELECT" SPACE mailbox  */
 
 int
@@ -67,40 +69,19 @@ imap4d_select0 (struct imap4d_command *command, char *arg, int flags)
 	mailbox_name = strdup ("/dev/null");
     }
   else
-    mailbox_name = util_getfullpath (mailbox_name, "/");
+    mailbox_name = namespace_getfullpath (mailbox_name, "/");
+
+  if (!mailbox_name)
+    return util_finish (command, RESP_NO, "Couldn't open mailbox"); 
 
   if (mailbox_create (&mbox, mailbox_name) == 0
       && mailbox_open (mbox, flags) == 0)
     {
-      const char *mflags = "\\Answered \\Flagged \\Deleted \\Seen \\Draft";
-      const char *pflags = "\\Answered \\Deleted \\Seen";
-      unsigned long uidvalidity = 0;
-      size_t count = 0, recent = 0, unseen = 0, uidnext = 0;
-
       free (mailbox_name);
-
-      mailbox_uidvalidity (mbox, &uidvalidity);
-      mailbox_uidnext (mbox, &uidnext);
-      mailbox_messages_count (mbox, &count);
-      mailbox_messages_recent (mbox, &recent);
-      mailbox_message_unseen (mbox, &unseen);
-      util_out (RESP_NONE, "%d EXISTS", count);
-      util_out (RESP_NONE, "%d RECENT", recent);
-      util_out (RESP_OK, "[UIDVALIDITY (%d)] UID valididy status",
-		uidvalidity);
-      util_out (RESP_OK, "[UIDNEXT %d] Predicted next uid", uidnext);
-      if (unseen)
-	util_out (RESP_OK, "[UNSEEN (%d)] first unseen messsage ", unseen);
-      util_out (RESP_NONE, "FLAGS (%s)", mflags);
-      /* FIXME:
-	 - '\*' can be supported if we use the attribute_set userflag()
-	 - Answered is still not set in the mailbox code.  */
-      if (flags == MU_STREAM_READ)
-	util_out (RESP_OK, "[PERMANENTFLAGS ()] No Permanent flags");
-      else
-	util_out (RESP_OK, "[PERMANENTFLAGS (%s)] Permanent flags", pflags);
-      /* Need to set the state explicitely for select.  */
+      select_flags = flags;
       state = STATE_SEL;
+      imap4d_select_status();
+      /* Need to set the state explicitely for select.  */
       return util_send ("%s OK [%s] %s Completed\r\n", command->tag,
 			(MU_STREAM_READ == flags) ?
 			"READ-ONLY" : "READ-WRITE", command->name);
@@ -108,4 +89,38 @@ imap4d_select0 (struct imap4d_command *command, char *arg, int flags)
   status = util_finish (command, RESP_NO, "Couldn't open %s", mailbox_name);
   free (mailbox_name);
   return status;
+}
+
+/* The code is shared between select and noop */
+void
+imap4d_select_status()
+{
+  const char *mflags = "\\Answered \\Flagged \\Deleted \\Seen \\Draft";
+  const char *pflags = "\\Answered \\Deleted \\Seen";
+  unsigned long uidvalidity = 0;
+  size_t count = 0, recent = 0, unseen = 0, uidnext = 0;
+
+  if (state != STATE_SEL)
+    return;
+  
+  mailbox_uidvalidity (mbox, &uidvalidity);
+  mailbox_uidnext (mbox, &uidnext);
+  mailbox_messages_count (mbox, &count);
+  mailbox_messages_recent (mbox, &recent);
+  mailbox_message_unseen (mbox, &unseen);
+  util_out (RESP_NONE, "%d EXISTS", count);
+  util_out (RESP_NONE, "%d RECENT", recent);
+  util_out (RESP_OK, "[UIDVALIDITY (%d)] UID valididy status",
+	    uidvalidity);
+  util_out (RESP_OK, "[UIDNEXT %d] Predicted next uid", uidnext);
+  if (unseen)
+    util_out (RESP_OK, "[UNSEEN (%d)] first unseen messsage ", unseen);
+  util_out (RESP_NONE, "FLAGS (%s)", mflags);
+  /* FIXME:
+     - '\*' can be supported if we use the attribute_set userflag()
+     - Answered is still not set in the mailbox code.  */
+  if (select_flags & MU_STREAM_READ)
+    util_out (RESP_OK, "[PERMANENTFLAGS ()] No Permanent flags");
+  else
+    util_out (RESP_OK, "[PERMANENTFLAGS (%s)] Permanent flags", pflags);
 }

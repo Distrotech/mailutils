@@ -51,7 +51,10 @@ imap4d_status (struct imap4d_command *command, char *arg)
       mailbox_name = strdup ((pw) ? pw->pw_name : "");
     }
   else
-    mailbox_name = util_getfullpath (name, delim);
+    mailbox_name = namespace_getfullpath (name, delim);
+
+  if (!mailbox_name)
+    return util_finish (command, RESP_NO, "Error opening mailbox");
 
   status = mailbox_create_default (&smbox, mailbox_name);
   if (status == 0)

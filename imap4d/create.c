@@ -52,7 +52,10 @@ imap4d_create (struct imap4d_command *command, char *arg)
     return util_finish (command, RESP_BAD, "Already exist");
 
   /* Allocates memory.  */
-  name = util_getfullpath (name, delim);
+  name = namespace_getfullpath (name, delim);
+
+  if (!name)
+    return util_finish (command, RESP_NO, "Can not create mailbox");
 
   /* It will fail if the mailbox already exists.  */
   if (access (name, F_OK) != 0)

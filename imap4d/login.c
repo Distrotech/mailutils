@@ -136,9 +136,10 @@ imap4d_login (struct imap4d_command *command, char *arg)
   if (pw->pw_uid > 1)
     setuid (pw->pw_uid);
 
-  homedir = strdup (pw->pw_dir);
+  homedir = util_normalize_path (strdup (pw->pw_dir), "/");
   /* FIXME: Check for errors.  */
   chdir (homedir);
+  namespace_init(pw->pw_dir);
   syslog (LOG_INFO, "User '%s' logged in", username);
   return util_finish (command, RESP_OK, "Completed");
 }

@@ -79,7 +79,13 @@ imap4d_copy0 (char *arg, int isuid, char *resp, size_t resplen)
       mailbox_name = strdup ((pw) ? pw->pw_name : "");
     }
   else
-    mailbox_name = util_getfullpath (name, delim);
+    mailbox_name = namespace_getfullpath (name, delim);
+
+  if (!mailbox_name)
+    {
+      snprintf (resp, resplen, "NO Create failed.");
+      return RESP_NO;
+    }
 
   /* If the destination mailbox does not exist, a server should return
      an error.  */

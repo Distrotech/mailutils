@@ -44,7 +44,9 @@ imap4d_delete (struct imap4d_command *command, char *arg)
     return util_finish (command, RESP_NO, "Already exist");
 
  /* Allocates memory.  */
-  name = util_getfullpath (name, delim);
+  name = namespace_getfullpath (name, delim);
+  if (!name)
+    return util_finish (command, RESP_NO, "Can not remove");
 
   if (remove (name) != 0)
     {

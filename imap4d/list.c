@@ -141,13 +141,19 @@ imap4d_list (struct imap4d_command *command, char *arg)
 	}
 
       /* Allocates.  */
-      cwd = util_getfullpath (ref, delim);
+      cwd = namespace_checkfullpath (ref, wcard, delim);
+      if (!cwd)
+	{
+	  free (ref);
+	  return util_finish (command, RESP_NO,
+			      "The requested item could not be found.");
+	}
 
       /* If wcard match inbox return it too, part of the list.  */
       if (!*ref && (match ("INBOX", wcard, delim)
 		    || match ("inbox", wcard, delim)))
 	util_out (RESP_NONE, "LIST (\\NoInferiors) NIL INBOX");
-
+      
       if (chdir (cwd) == 0)
 	{
 	  list_file (cwd, ref, (dir) ? dir : "", delim);
@@ -156,6 +162,7 @@ imap4d_list (struct imap4d_command *command, char *arg)
       free (cwd);
       free (ref);
     }
+
   return util_finish (command, RESP_OK, "Completed");
 }
 

@@ -152,6 +152,71 @@ util_tilde_expansion (const char *ref, const char *delim)
   return p;
 }
 
+/* util_normalize_path: convert pathname containig relative paths specs (../)
+   into an equivalent absolute path. Strip trailing delimiter if present,
+   unless it is the only character left. E.g.:
+
+         /home/user/../smith   -->   /home/smith
+	 /home/user/../..      -->   /
+   
+   FIXME: delim is superfluous. The function deals with unix filesystem
+   paths, so delim should be always "/" */
+char *
+util_normalize_path (char *path, const char *delim)
+{
+  int len;
+  char *p;
+  
+  if (!path)
+    return path;
+
+  len = strlen (path);
+
+  /* Empty string is returned as is */
+  if (len == 0)
+    return path;
+  
+  /* delete trailing delimiter if any */
+  if (len && path[len-1] == delim[0])
+    path[len-1] = 0;
+
+  /* Eliminate any /../ */
+  for (p = strchr (path, '.'); p; p = strchr (p, '.'))
+    {
+      if (p > path && p[-1] == delim[0])
+	{
+	  if (p[1] == '.' && (p[2] == 0 || p[2] == delim[0]))
+	    /* found */
+	    {
+	      char *q, *s;
+
+	      /* Find previous delimiter */
+	      for (q = p-2; *q != delim[0] && q >= path; q--)
+		;
+
+	      if (q < path)
+		break;
+	      /* Copy stuff */
+	      s = p + 2;
+	      p = q;
+	      while (*q++ = *s++)
+		;
+	      continue;
+	    }
+	}
+
+      p++;
+    }
+
+  if (path[0] == 0)
+    {
+      path[0] = delim[0];
+      path[1] = 0;
+    }
+  
+  return path;
+}
+
 /* Get the absolute path.  */
 /* NOTE: Path is allocated and must be free()d by the caller.  */
 char *
@@ -165,7 +230,7 @@ util_getfullpath (char *name, const char *delim)
       free (p);
       p = s;
     }
-  return p;
+  return util_normalize_path (p, delim);
 }
 
 /* Return in set an allocated array contain (n) numbers, for imap messsage set
@@ -226,7 +291,7 @@ util_msgset (char *s, size_t **set, int *n, int isuid)
 		  {
 		    long tmp = low;
 		    tmp -= 2;
-		    if (tmp <= 0 || val == 0)
+		    if (tmp < 0 || val == 0)
 		      {
 			free (*set);
 			*n = 0;
@@ -245,7 +310,7 @@ util_msgset (char *s, size_t **set, int *n, int isuid)
 	      }
 	    else
 	      {
-		status = add2set(set, n, val);
+		status = add2set (set, n, val);
 		if (status != 0)
 		  return status;
 	      }
@@ -397,7 +462,7 @@ util_finish (struct imap4d_command *command, int rc, const char *format, ...)
 
   va_start (ap, format);
   status = vfprintf (ofile, buf, ap);
-  va_end(ap);
+  va_end (ap);
   free (buf);
   /* Reset the state.  */
   new_state = (rc == RESP_OK) ? command->success : command->failure;
@@ -608,5 +673,191 @@ add2set (size_t **set, int *n, unsigned long val)
   *set = tmp;
   (*set)[*n] = val;
   (*n)++;
+  return 0;
+}
+
+static const char *months[] =
+{
+  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+};
+
+#define c2d(c) (c-'0')
+
+int
+util_parse_internal_date (char *date, time_t *timep)
+{
+  struct tm tm;
+  char *save;
+  int n, i;
+  int year, day, hour, min, sec;
+  char mon[4];
+  char sign[2];
+  char tzs[6];
+  time_t time;
+
+  memset (&tm, 0, sizeof (tm));
+  n = sscanf (date, "%2d-%3s-%4d %2d:%2d:%2d %5s\n",
+	      &day, mon, &year,
+	      &hour, &min, &sec, &tzs);
+
+  switch (n)
+    {
+    case 3:
+    case 6:
+    case 7:  break;
+    default: return 1;
+    }
+  
+  tm.tm_mday = day;
+  for (i = 0; i < 11; i++)
+    if (strncmp (months[i], mon, 3) == 0)
+      break;
+  if (i == 12)
+    return 1;
+  tm.tm_mon = i;
+  tm.tm_year = (year < 1900) ? year : year - 1900;
+
+  if (n >= 6)
+    {
+      tm.tm_hour = hour;
+      tm.tm_min = min;
+      tm.tm_sec = sec;
+    }
+  
+  tm.tm_isdst = -1; /* unknown. */
+
+  time = mktime (&tm);
+  if (time == (time_t) -1)
+    return 2;
+
+  if (n == 7)
+    {
+      int sign;
+      int tz;
+
+      if (strlen (tzs) != 5)
+	return 3;
+      
+      for (i = 1; i <= 4; i++)
+	if (!isdigit (tzs[i]))
+	  return 3;
+      
+      tz = (c2d (tzs[1])*10 + c2d (tzs[2]))*60 +
+	    c2d (tzs[3])*10 + c2d (tzs[4]);
+      if (tzs[0] == '-')
+	tz = -tz;
+      else if (tzs[0] != '+')
+	return 4;
+      time -= tz*60;
+    }
+  *timep = time;
+  return 0;
+}
+
+int
+util_parse_header_date (char *date, time_t *timep)
+{
+  struct tm tm;
+  char *save;
+  int n, i;
+  int year, day, hour, min, sec;
+  char wday[5];
+  char mon[4];
+  char sign[2];
+  char tzs[6];
+  time_t time;
+
+  memset (&tm, 0, sizeof (tm));
+  n = sscanf (date, "%3s, %2d %3s %4d %2d:%2d:%2d %5s",
+	      wday, &day, mon, &year,
+	      &hour, &min, &sec, &tzs); 
+
+  if (n < 7)
+    return 1;
+  
+  tm.tm_mday = day;
+  for (i = 0; i < 11; i++)
+    if (strncmp (months[i], mon, 3) == 0)
+      break;
+  if (i == 12)
+    return 1;
+  tm.tm_mon = i;
+  tm.tm_year = (year < 1900) ? year : year - 1900;
+
+  if (n >= 6)
+    {
+      tm.tm_hour = hour;
+      tm.tm_min = min;
+      tm.tm_sec = sec;
+    }
+  
+  tm.tm_isdst = -1; /* unknown. */
+
+  time = mktime (&tm);
+  if (time == (time_t) -1)
+    return 2;
+
+  if (n == 8)
+    {
+      int sign;
+      int tz;
+
+      if (strlen (tzs) != 5)
+	return 3;
+      
+      for (i = 1; i <= 4; i++)
+	if (!isdigit (tzs[i]))
+	  return 3;
+      
+      tz = (c2d (tzs[1])*10 + c2d (tzs[2]))*60 +
+	    c2d (tzs[3])*10 + c2d (tzs[4]);
+      if (tzs[0] == '-')
+	tz = -tz;
+      else if (tzs[0] != '+')
+	return 4;
+      time -= tz*60;
+    }
+  *timep = time;
+  return 0;
+}
+
+int
+util_parse_rfc822_date (char *date, time_t *timep)
+{
+  int year, mon, day, hour, min, sec;
+  int offt;
+  int i;
+  struct tm tm;
+  char month[5];
+  char wday[5];
+    
+  month[0] = '\0';
+  wday[0] = '\0';
+  day = mon = year = hour = min = sec = offt = 0;
+
+  /* RFC822 Date: format.  */
+  if (sscanf (date, "%3s %3s %2d %2d:%2d:%2d %d\n", wday, month, &day,
+	      &hour, &min, &sec, &year) != 7)
+    return 1;
+  tm.tm_sec = sec;
+  tm.tm_min = min;
+  tm.tm_hour = hour;
+  for (i = 0; i < 12; i++)
+    {
+      if (strncasecmp (month, months[i], 3) == 0)
+	{
+	  mon = i;
+	  break;
+	}
+    }
+  tm.tm_mday = day;
+  tm.tm_mon = mon;
+  tm.tm_year = (year > 1900) ? year - 1900 : year;
+  tm.tm_yday = 0; /* unknown. */
+  tm.tm_wday = 0; /* unknown. */
+  tm.tm_isdst = -1; /* unknown. */
+  /* What to do the timezone?  */
+  *timep = mktime (&tm);
   return 0;
 }

@@ -32,12 +32,14 @@ static struct option long_options[] =
   {"help", no_argument, 0, 'h'},
   {"inetd", no_argument, 0, 'i'},
   {"port", required_argument, 0, 'p'},
+  {"other-namespace", required_argument, 0, 'O'},
+  {"shared-namespace", required_argument, 0, 'S'},
   {"timeout", required_argument, 0, 't'},
   {"version", no_argument, 0, 'v'},
   {0, 0, 0, 0}
 };
 
-const char *short_options ="d::hip:t:v";
+const char *short_options ="d::hip:t:vO:P:S:";
 
 static int syslog_error_printer __P ((const char *fmt, va_list ap));
 static int imap4d_mainloop      __P ((int, int));
@@ -90,6 +92,14 @@ main (int argc, char **argv)
           port = strtoul (optarg, NULL, 10);
           break;
 
+	case 'O':
+	  set_namespace (NS_OTHER, optarg);
+	  break;
+
+	case 'S':
+	  set_namespace (NS_SHARED, optarg);
+	  break;
+	  
         case 't':
           timeout = strtoul (optarg, NULL, 10);
           break;

@@ -132,11 +132,18 @@ struct imap4d_command
 #define ERR_TIMEOUT 3
 #define ERR_SIGNAL 4
 
+/* Namespace numbers */
+#define NS_PRIVATE 0
+#define NS_OTHER   1
+#define NS_SHARED  2
+#define NS_MAX     3
+
 extern struct imap4d_command imap4d_command_table[];
 extern FILE *ofile;
 extern unsigned int timeout;
 extern mailbox_t mbox;
 extern char *homedir;
+extern char *rootdir;
 extern int state;
 extern volatile size_t children;
 
@@ -169,7 +176,8 @@ extern int  imap4d_store0 __P ((char *, int, char *, size_t));
 extern int  imap4d_subscribe __P ((struct imap4d_command *, char *));
 extern int  imap4d_uid __P ((struct imap4d_command *, char *));
 extern int  imap4d_unsubscribe __P ((struct imap4d_command *, char *));
-
+extern int  imap4d_namespace __P ((struct imap4d_command *, char *));
+  
 /* Synchronisation on simultenous access.  */
 extern int imap4d_sync __P ((void));
 extern int imap4d_sync_flags __P ((size_t));

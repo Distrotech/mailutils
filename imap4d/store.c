@@ -138,6 +138,7 @@ imap4d_store0 (char *arg, int isuid, char *resp, size_t resplen)
 			}
 		      attribute_set_flags (attr, type);
 		    }
+		  attribute_set_flags (attr, MU_ATTRIBUTE_MODIFIED);
 		  flags = realloc (flags, strlen (flags) + strlen (item) + 2);
 		  if (*flags)
 		    strcat (flags, " ");
