@@ -273,7 +273,7 @@ _url_path_init (url_t url)
   mu_scheme_autodetect_p (name, &path);
   name = strdup (path);
   free (url->name);
-  url->name = name;
+  url->name = (char*) name;
     
   /* TYPE */
   url->_destroy = url_path_destroy;
