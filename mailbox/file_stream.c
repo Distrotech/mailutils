@@ -275,7 +275,7 @@ _file_open (stream_t stream, const char *filename, int port, int flags)
     char *iobuffer;
     iobuffer = malloc (8192);
     if (iobuffer != NULL)
-      if (setvbuf (file, iobuffer, _IOFBF, 8192) != 0)
+      if (setvbuf (fs->file, iobuffer, _IOFBF, 8192) != 0)
 	free (iobuffer);
   }
 #endif

@@ -49,12 +49,17 @@ struct _mailbox
   event_t event;
   size_t event_num;
 
+  /* debug information */
+  int debug_level;
+  void *debug_arg;
+  int (*debug_print)       __P ((const char *, void *arg));
+
   /* Back pointer to the specific mailbox */
   void *data;
 
   /* Public methods */
 
-  int  (*_create)            __P ((mailbox_t *, const char *));
+  int  (*_create)          __P ((mailbox_t *, const char *));
   void (*_destroy)         __P ((mailbox_t *));
 
   int  (*_open)            __P ((mailbox_t, int flag));

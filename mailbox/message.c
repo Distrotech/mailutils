@@ -479,6 +479,7 @@ message_write (stream_t os, const char *buf, size_t buflen,
       while (!msg->hdr_done && (nl = memchr (buf, '\n', buflen)) != NULL)
 	{
 	  len = nl - buf + 1;
+	  /* allocate more buffer to hold the header */
 	  thdr = realloc (msg->hdr_buf, msg->hdr_buflen + len);
 	  if (thdr == NULL)
 	    {
@@ -491,6 +492,8 @@ message_write (stream_t os, const char *buf, size_t buflen,
 	    msg->hdr_buf = thdr;
 	  memcpy (msg->hdr_buf + msg->hdr_buflen, buf, len);
 	  msg->hdr_buflen += len;
+	  /* we detect an empty line .i.e "^\n$" this signal the end
+	   * of the header */
 	  if (buf == nl)
 	    {
 	      header_destroy (&(msg->header), msg);
@@ -509,7 +512,24 @@ message_write (stream_t os, const char *buf, size_t buflen,
 	  buflen -= len;
 	}
     }
-  if (buflen)
+
+  /* message header is not complete but was not a full line */
+  if (!msg->hdr_done && buflen > 0)
+    {
+      char *thdr = realloc (msg->hdr_buf, msg->hdr_buflen + buflen);
+      if (thdr == NULL)
+	{
+	  free (msg->hdr_buf);
+	  msg->hdr_buf = NULL;
+	  msg->hdr_buflen = 0;
+	  return ENOMEM;
+	}
+      else
+	msg->hdr_buf = thdr;
+      memcpy (msg->hdr_buf + msg->hdr_buflen, buf, buflen);
+      msg->hdr_buflen += buflen;
+    }
+  else if (buflen > 0) /* in the body */
     {
       stream_t bs;
       body_t body;

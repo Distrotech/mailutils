@@ -281,3 +281,32 @@ mailbox_notification (mailbox_t mbox, size_t type)
     }
   return status;
 }
+
+int
+mailbox_set_debug_level (mailbox_t mbox, size_t level)
+{
+  if (mbox == NULL)
+    return EINVAL;
+  mbox->debug_level = level;
+  return 0;
+}
+
+int
+mailbox_get_debug_level (mailbox_t mbox, size_t *plevel)
+{
+  if (mbox == NULL || plevel == NULL)
+    return EINVAL;
+  *plevel = mbox->debug_level;
+  return 0;
+}
+
+int
+mailbox_set_debug_print (mailbox_t mbox, int (*debug_print)
+			 (const char *, void *arg), void *arg)
+{
+  if (mbox == NULL)
+    return EINVAL;
+  mbox->debug_print = debug_print;
+  mbox->debug_arg = arg;
+  return 0;
+}

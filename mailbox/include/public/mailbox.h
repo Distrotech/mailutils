@@ -98,6 +98,13 @@ extern int mailbox_register __P ((mailbox_t mbox, size_t type,
 				  void *arg));
 extern int mailbox_deregister __P ((mailbox_t mbox, void *action));
 
+/* trace */
+extern int mailbox_set_debug_level __P ((mailbox_t mbox, size_t level));
+extern int mailbox_get_debug_level __P ((mailbox_t mbox, size_t *plevel));
+extern int mailbox_set_debug_print __P ((mailbox_t mbox, int (*debug_print)
+					 __P ((const char *, void *arg)),
+					 void *arg));
+
 
 #ifdef __cplusplus
 }

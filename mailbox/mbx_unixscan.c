@@ -235,8 +235,7 @@ do \
     { \
       int bailing = 0; \
       mailbox_unix_iunlock (mbox); \
-      if (mud->messages_count != 0) \
-        mud->messages_count--; \
+      mud->messages_count--; \
       MAILBOX_NOTIFICATION (mbox, MU_EVT_MBX_PROGRESS,bailing); \
       if (bailing != 0) \
 	{ \
@@ -245,8 +244,7 @@ do \
           mailbox_unix_unlock (mbox); \
 	  return EINTR; \
 	} \
-      if (mud->messages_count != 0) \
-        mud->messages_count++; \
+      mud->messages_count++; \
       mailbox_unix_ilock (mbox, MU_LOCKER_WRLOCK); \
     } \
 } while (0)
@@ -264,8 +262,8 @@ do \
     } \
 } while (0)
 
-//    size_t num = 2 * ((mud)->messages_count) + 10;
 /* allocate slots for the new messages */
+/*    size_t num = 2 * ((mud)->messages_count) + 10; */
 #define ALLOCATE_MSGS(mbox,mud) \
 do \
 { \

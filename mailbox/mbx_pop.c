@@ -922,7 +922,7 @@ mailbox_pop_scan (mailbox_t mbox, size_t msgno, size_t *pcount)
   status = mailbox_pop_messages_count (mbox, pcount);
   if (status != 0)
     return status;
-  for (i = msgno; i < *pcount; i++)
+  for (i = msgno; i <= *pcount; i++)
     if (mailbox_notification (mbox, MU_EVT_MBX_MSG_ADD) != 0)
       break;
   return 0;
