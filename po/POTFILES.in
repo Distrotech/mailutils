@@ -66,6 +66,7 @@ mail.local/mailquota.c
 mail.local/script.c
 
 mailbox/argp-parse.c
+mailbox/file_stream.c
 mailbox/mailutils-config.c
 mailbox/message.c
 mailbox/mu_argp.c

@@ -2,6 +2,7 @@
 
 	* po/POTFILES.in: Updated.
 	* sieve/sieve.c: Enabled NLS.
+	* doc/texinfo/mailutils.texi: Small improvement.
 
 2002-12-25  Wojciech Polak <polak@gnu.org>
 
