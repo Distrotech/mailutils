@@ -20,7 +20,7 @@ AC_DEFUN(MU_CHECK_GSSAPI,
   AC_PATH_PROG(KRB5CFGPATH, krb5-config, none, $krb5_path)
   if test "$KRB5CFGPATH" != "none"; then
     GSSAPI_CFLAGS="$CPPFLAGS `$KRB5CFGPATH --cflags gssapi`"
-    GSSAPI_LIBS="$MUTTLIBS `$KRB5CFGPATH --libs gssapi`"
+    GSSAPI_LIBS="`$KRB5CFGPATH --libs gssapi`"
     GSSAPI_IMPL="Heimdal"
   else
     ## OK, try the old code
