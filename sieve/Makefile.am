@@ -1,16 +1,19 @@
 CFLAGS = -Wall -pedantic -g -DTESTING
 INCLUDES = -I${top_srcdir}/include -I${top_srcdir}/lib
+YLWRAP = $(SHELL) $(srcdir)/ylwrap
+YFLAGS = -d
+
+BUILT_SOURCES=sieve-gram.c sieve-gram.h \
+              sieve-lex.c addr-lex.c \
+              addr.c addr.h
 
 MOSTLYCLEANFILES=
 CLEANFILES=
 DISTCLEANFILES=
-MAINTAINERCLEANFILES=\
-  sieve-gram.c sieve-gram.h \
-  sieve-lex.c \
-  addr-lex.c \
-  addr.c addr.h
+MAINTAINERCLEANFILES=$(BUILT_SOURCES)
+EXTRA_DIST = $(BUILT_SOURCES)
 
-bin_PROGRAMS = test sieve
+bin_PROGRAMS = sieve
 
 SRC = \
   addr-lex.c \
@@ -30,40 +33,51 @@ SRC = \
   util.c \
   xmalloc.c
 
-test_DEPENDENCIES =
-test_LDADD =
-test_SOURCES = \
-  test.c \
-  ${SRC}
-
+HDR = \
+  comparator.h \
+  exitcodes.h \
+  hmac-md5.h \
+  imparse.h \
+  interp.h \
+  md5.h \
+  md5global.h \
+  message.h \
+  parseaddr.h \
+  script.h \
+  sieve_err.h \
+  sieve_interface.h \
+  svfield.h \
+  sysexits.h \
+  tree.h \
+  util.h \
+  xmalloc.h 
 
 sieve_DEPENDENCIES = ../mailbox/libmailbox.la
 sieve_LDADD = ../mailbox/libmailbox.la ../lib/libmailutils.a
 sieve_SOURCES = \
   sieve.c \
-  ${SRC}
+  ${SRC} $(HDR)
 
-YACC = bison -y
-YFLAGS = -d
-LEX = flex
+addr-lex.c: $(srcdir)/addr-lex.l addr.h
+	$(YLWRAP) "$(LEX)" $(srcdir)/addr-lex.l lex.yy.c \
+                  addr-lex.c -- -yy addr
 
-addr-lex.c: addr-lex.l addr.h
-	$(LEX) -t -Paddr addr-lex.l > $@
+addr.c addr.h: $(srcdir)/addr.y
+	$(YLWRAP) "$(YACC) $(YFLAGS)" $(srcdir)/addr.y \
+                  y.tab.c addr.c y.tab.h addr.h \
+                  -- -yy addr
 
-addr.c addr.h: addr.y
-	$(YACC) $(YFLAGS) -p addr addr.y
-	mv -f y.tab.c addr.c
-	mv -f y.tab.h addr.h
+sieve-lex.c: $(srcdir)/sieve-lex.l sieve-gram.h
+	$(YLWRAP) "$(LEX)" $(srcdir)/sieve-lex.l lex.yy.c sieve-lex.c 
 
-sieve-lex.c: sieve-lex.l sieve-gram.h
-	$(LEX) -t sieve-lex.l > $@
-
-sieve-gram.c sieve-gram.h: sieve-gram.y
-	$(YACC) $(YFLAGS) sieve-gram.y
-	mv -f y.tab.c sieve-gram.c
-	mv -f y.tab.h sieve-gram.h
+sieve-gram.c sieve-gram.h: $(srcdir)/sieve-gram.y
+	$(YLWRAP) "$(YACC) $(YFLAGS)" $(srcdir)/sieve-gram.y \
+	          y.tab.c sieve-gram.c y.tab.h sieve-gram.h 
 
 comparator.o: sieve-gram.h
 script.o: sieve-gram.h
 tree.o: sieve-gram.h
+
+empty: clean
+	rm -f $(BUILT_SOURCES)
 
