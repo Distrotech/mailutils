@@ -1,3 +1,9 @@
+2005-03-18  Sergey Poznyakoff
+
+	* TODO: Updated
+	* mail/shell.c (mail_execute): Restore argv[0] before exiting,
+	else argcv_free coredumps.
+
 2005-03-15  Sergey Poznyakoff  
 
 	* mailbox/mailbox.c (mailbox_flush): Do not re-save all messages
