@@ -13,7 +13,7 @@
 
    You should have received a copy of the GNU General Public License
    along with GNU Mailutils; if not, write to the Free Software
-   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
+   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA  */
 
 #include "mail.h"
 
@@ -506,19 +506,20 @@ mail_warranty (int argc, char **argv)
            "Copyright (C) 1999, 2000, 2001, 2002 Free Software Foundation, Inc.\n\n"),
            ofile);
   fputs (
- _("   GNU Mailutils is free software; you can redistribute it and/or modify\n"
-   "   it under the terms of the GNU General Public License as published by\n"
-   "   the Free Software Foundation; either version 2, or (at your option)\n"
-   "   any later version.\n"
-   "\n"
-   "   GNU Mailutils is distributed in the hope that it will be useful,\n"
-   "   but WITHOUT ANY WARRANTY; without even the implied warranty of\n"
-   "   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n"
-   "   GNU General Public License for more details.\n"
-   "\n"
-   "   You should have received a copy of the GNU General Public License\n"
-   "   along with GNU Mailutils; if not, write to the Free Software\n"
-   "   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.\n\n"), ofile);
+  _("   GNU Mailutils is free software; you can redistribute it and/or modify\n"
+    "   it under the terms of the GNU General Public License as published by\n"
+    "   the Free Software Foundation; either version 2 of the License, or\n"
+    "   (at your option) any later version.\n"
+    "\n"
+    "   GNU Mailutils is distributed in the hope that it will be useful,\n"
+    "   but WITHOUT ANY WARRANTY; without even the implied warranty of\n"
+    "   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n"
+    "   GNU General Public License for more details.\n"
+    "\n"
+    "   You should have received a copy of the GNU General Public License\n"
+    "   along with GNU Mailutils; if not, write to the Free Software\n"
+    "   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA\n\n"),
+    ofile);
 
   return 0;
 }

@@ -13,7 +13,7 @@
 
    You should have received a copy of the GNU Lesser General Public License
    along with GNU Mailutils; if not, write to the Free Software
-   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
+   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA  */
 
 #ifdef HAVE_CONFIG_H
 # include <config.h>
@@ -240,8 +240,8 @@ parse_log_facility (const char *str)
 char *mu_license_text =
  N_("   GNU Mailutils is free software; you can redistribute it and/or modify\n"
     "   it under the terms of the GNU General Public License as published by\n"
-    "   the Free Software Foundation; either version 2, or (at your option)\n"
-    "   any later version.\n"
+    "   the Free Software Foundation; either version 2 of the License, or\n"
+    "   (at your option) any later version.\n"
     "\n"
     "   GNU Mailutils is distributed in the hope that it will be useful,\n"
     "   but WITHOUT ANY WARRANTY; without even the implied warranty of\n"
@@ -250,7 +250,7 @@ char *mu_license_text =
     "\n"
     "   You should have received a copy of the GNU General Public License\n"
     "   along with GNU Mailutils; if not, write to the Free Software\n"
-    "   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.\n\n");
+    "   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA\n\n");
 
 static char *mu_conf_option[] = {
   "VERSION=" VERSION,
