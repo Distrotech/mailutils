@@ -1,6 +1,6 @@
 # Example sieve script.
 
-  require "fileinto";
+  require [ "fileinto", "redirect" ];
   
   if size :over 20 {
       fileinto "/home/sam/p/gnu/mailutils/cmu-sieve/sv/inbox";
