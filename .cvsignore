@@ -11,3 +11,9 @@ config.cache
 config.status
 stamp-h
 mailutils.spec
+config.guess
+config.sub
+ltconfig
+install-sh
+mkinstalldirs
+missing
