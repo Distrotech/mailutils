@@ -19,26 +19,27 @@
 mail_start "--file=%mbox1"
 
 mail_command "alias staff alice tweedledum tweedledee"
-mail_test -message "alias staff" "alias" "staff    alice tweedledum tweedledee "
+mail_test -message "alias staff" "alias" \
+	"staff    alice tweedledum tweedledee"
 
 mail_command "alias teeparty alice march.hare hatter" 
 mail_test -message "alias teeparty" "alias" \
-	"teeparty    alice march.hare hatter "\
-	"staff    alice tweedledum tweedledee "
+	"teeparty    alice march.hare hatter"\
+	"staff    alice tweedledum tweedledee"
 
 mail_command "alias messengers haigha hatta" 
 mail_test -message "alias messengers" "alias" \
-	"teeparty    alice march.hare hatter "\
-	"staff    alice tweedledum tweedledee "\
-	"messengers    haigha hatta "
+	"teeparty    alice march.hare hatter"\
+	"staff    alice tweedledum tweedledee"\
+	"messengers    haigha hatta"
 
 mail_command "unalias teeparty"
 mail_test -message "unalias" "alias" \
-"staff    alice tweedledum tweedledee " \
-"messengers    haigha hatta "
+"staff    alice tweedledum tweedledee" \
+"messengers    haigha hatta"
 
 mail_test -message "alias messengers output"\
-	 "alias messengers" "messengers    haigha hatta "
+	 "alias messengers" "messengers    haigha hatta"
 
 mail_test -message "alias teeparty output" \
 	"alias teeparty" "\"teeparty\": not a group"
@@ -46,8 +47,8 @@ mail_test -message "alias teeparty output" \
 mail_command "alias pretenders lion unicorn"
 mail_test -message "alias pretenders" "alias"\
 "pretenders    lion unicorn "\
-"staff    alice tweedledum tweedledee "\
-"messengers    haigha hatta "
+"staff    alice tweedledum tweedledee"\
+"messengers    haigha hatta"
 
 mail_exit
 

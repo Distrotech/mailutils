@@ -193,7 +193,7 @@ mail_test -message "headers (3)" "headers" \
 # Check for `prev'
 
 mail_test "prev"\
-	"Received: (from foobar@nonexistent.net) "\
+	"Received: (from foobar@nonexistent.net)"\
 	"	by nonexistent.net id fBSKI8N04906"\
 	"	for bar@dontmailme.org; Fri, 28 Dec 2001 22:18:08 +0200"\
 	"Date: Fri, 28 Dec 2001 22:18:08 +0200"\
@@ -446,7 +446,7 @@ mail_test "print"\
 "that's clear, at any rate..."
 
 mail_test -message "Print (2)" "Print 2"\
-"Received: (from bar@dontmailme.org) "\
+"Received: (from bar@dontmailme.org)"\
 "	by dontmailme.org id fERKR9N16790"\
 "	for foobar@nonexistent.net; Fri, 28 Dec 2001 22:18:08 +0200"\
 "Date: Fri, 28 Dec 2001 23:28:08 +0200"\

@@ -49,7 +49,7 @@ mail_test "headers" \
 # Save messages to the third mailbox
 mail_command "set folder=\"$MAIL_FOLDER_DIR\""
 mail_test "save 1 2 +three" \
-	"\"$MAIL_FOLDER_DIR/three\"  28/1008 "
+	"\"$MAIL_FOLDER_DIR/three\"  28/1008"
 
 mail_test "headers" \
 	">*   1 Sergey Poznyakoff  Sun Jul 16 12:11  12/429   MBOX"\
@@ -67,7 +67,7 @@ mail_test "headers" \
 # Test uppercase commands (Save and Copy)
 mail_command "set outfolder=\"$MAIL_FOLDER_DIR\""
 mail_test "Save" \
-	"\"$MAIL_FOLDER_DIR/gray\"  12/429  "
+	"\"$MAIL_FOLDER_DIR/gray\"  12/429"
 
 mail_test "file \"$MAIL_FOLDER_DIR/gray\"" \
 	"Held 1 messages in $MAIL_FOLDER_DIR/three"
@@ -80,13 +80,13 @@ mail_exit
 mail_start -reuse-spool "--file=%teaparty.mbox"
 mail_command "set outfolder=\"$MAIL_FOLDER_DIR\""
 mail_test "write" \
-	"\"$MAIL_FOLDER_DIR/1\"   1/15   "
+	"\"$MAIL_FOLDER_DIR/1\"   1/15"
 
 mail_test "write 2 3 tmp" \
-	"\"$MAIL_FOLDER_DIR/tmp\"   2/37   "
+	"\"$MAIL_FOLDER_DIR/tmp\"   2/37"
 
 mail_test "Write 1 2 3" \
-	"\"$MAIL_FOLDER_DIR/hare\"   3/52   "
+	"\"$MAIL_FOLDER_DIR/hare\"   3/52"
 mail_exit
 
 # Now examine the created files

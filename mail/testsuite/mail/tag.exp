@@ -81,7 +81,7 @@ mail_command "untag :t"
 
 #FIXME: should be 'mail_command "print 2"'
 mail_test "print 2" \
-"Received: (from alice@wonder.land) "\
+"Received: (from alice@wonder.land)"\
 "	by wonder.land id 3d3b1d91"\
 "	for hare@wonder.land; Sun, 21 Jul 2002 23:46:09 EEST"\
 "Date: Sun, 21 Jul 2002 23:46:09 EEST"\
