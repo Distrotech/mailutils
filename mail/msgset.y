@@ -18,9 +18,7 @@
 %{
 #include <stdio.h>
 #include <stdlib.h>
-#ifdef HAVE_REGEXEC
 #include <regex.h>
-#endif
 
 #include <xalloc.h>
 #include <mail.h>
@@ -444,26 +442,29 @@ select_subject (message_t msg, void *closure)
   message_get_header (msg, &hdr);
   if (header_aget_value (hdr, MU_HEADER_SUBJECT, &subject) == 0)
     {
-#ifdef HAVE_REGEXEC
-      /* Match string against the extended regular expression(ignoring
-	 case) in pattern, treating errors as no match.
-	 Return 1 for match, 0 for no match.
-      */
-      regex_t re;
-      int status;
-      if (regcomp (&re, expr, REG_EXTENDED | REG_ICASE) != 0)
-	return 0;
-      status = regexec (&re, subject, 0, NULL, 0);
-      if (status != 0)
-	return 0;
-      return status == 0;
-#else
-      int rc;
-      util_strupper (subject);
-      rc = strstr (subject, expr) != NULL;
-      free (subject);
-      return rc;
-#endif
+      if (!(util_find_env ("noregex"))->set)
+	{
+	  /* Match string against the extended regular expression(ignoring
+	     case) in pattern, treating errors as no match.
+	     Return 1 for match, 0 for no match.
+	  */
+	  regex_t re;
+	  int status;
+	  if (regcomp (&re, expr, REG_EXTENDED | REG_ICASE) != 0)
+	    return 0;
+	  status = regexec (&re, subject, 0, NULL, 0);
+	  if (status != 0)
+	    return 0;
+	  return status == 0;
+	}
+      else
+	{
+	  int rc;
+	  util_strupper (subject);
+	  rc = strstr (subject, expr) != NULL;
+	  free (subject);
+	  return rc;
+	}
     }
   return 0;
 }
