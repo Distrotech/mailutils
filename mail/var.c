@@ -32,7 +32,7 @@ var_shell(int argc, char **argv, struct send_environ *env)
 {
   int status;
   ofile = env->ofile;
-  status = mail_shell (argc, argv);
+  status = mail_shell(argc, argv);
   ofile = env->file;
   return status;
 }
@@ -47,7 +47,7 @@ var_command(int argc, char **argv, struct send_environ *env)
   
   if (argv[1][0] == '#')
     return 0;
-  entry = util_find_entry (mail_command_table, argv[1]);
+  entry = util_find_entry(mail_command_table, argv[1]);
   if (!entry.func)
     {
       util_error("Unknown command: %s", argv[1]);
@@ -70,13 +70,13 @@ int
 var_help(int argc, char **argv, struct send_environ *env)
 {
   if (argc < 2)
-    return util_help (mail_escape_table, NULL);
+    return util_help(mail_escape_table, NULL);
   else
     {
       int status = 0;
 
       while (--argc)
-	status |= util_help (mail_escape_table, *++argv);
+	status |= util_help(mail_escape_table, *++argv);
 
       return status;
     }
@@ -94,7 +94,32 @@ var_sign(int argc, char **argv, struct send_environ *env)
   else
     p = util_find_env("sign");
   if (p->set)
-    fprintf (ofile, "%s", p->value);
+    {
+      if (isupper(argv[0][0]))
+	{
+	  char *name = util_fullpath(p->value);
+	  FILE *fp = fopen(name, "r");
+	  char *buf = NULL;
+	  size_t n = 0;
+	  
+	  if (!fp)
+	    {
+	      util_error("can't open %s: %s", name, strerror(errno));
+	      free(name);
+	    }
+
+	  fprintf(stdout, "Reading %s\n", name);
+	  while (getline(&buf, &n, fp) > 0)
+	    fprintf(ofile, "%s", buf);
+	  
+	  fclose(fp);
+	  free(buf);
+	  free(name);
+	}
+      else
+	fprintf(ofile, "%s", p->value);
+      var_continue();
+    }
   else
     util_error("\"sign\" not set");
   return 0;
@@ -122,22 +147,22 @@ var_cc(int argc, char **argv, struct send_environ *env)
 int
 var_deadletter(int argc, char **argv, struct send_environ *env)
 {
-  FILE *dead = fopen (getenv("DEAD"), "r");
+  FILE *dead = fopen(getenv("DEAD"), "r");
   int c;
   
   while ((c = fgetc(dead)) != EOF)
-    fputc (c, ofile);
-  fclose (dead);
+    fputc(c, ofile);
+  fclose(dead);
   return 0;
 }
 
 static int
 var_run_editor(char *ed, int argc, char **argv, struct send_environ *env)
 {
-  fclose (env->file);
+  fclose(env->file);
   ofile = env->ofile;
-  util_do_command ("!%s %s", ed, env->filename);
-  env->file = fopen (env->filename, "a+");
+  util_do_command("!%s %s", ed, env->filename);
+  env->file = fopen(env->filename, "a+");
   ofile =  env->file;
   var_continue();
   return 0;
@@ -169,10 +194,10 @@ var_print(int argc, char **argv, struct send_environ *env)
 int
 var_headers(int argc, char **argv, struct send_environ *env)
 {
-  ml_reread("To:", &env->to);
-  ml_reread("Cc:", &env->cc);
-  ml_reread("Bcc:", &env->bcc);
-  ml_reread("Subject:", &env->subj);
+  ml_reread("To: ", &env->to);
+  ml_reread("Cc: ", &env->cc);
+  ml_reread("Bcc: ", &env->bcc);
+  ml_reread("Subject: ", &env->subj);
   var_continue();
   return 0;
 }
@@ -181,7 +206,7 @@ var_headers(int argc, char **argv, struct send_environ *env)
 int
 var_insert(int argc, char **argv, struct send_environ *env)
 {
-  fprintf (ofile, "%s", util_find_env(argv[1])->value);
+  fprintf(ofile, "%s", util_find_env(argv[1])->value);
   return 1;
 }
 
@@ -191,7 +216,7 @@ int
 var_quote(int argc, char **argv, struct send_environ *env)
 {
   if (argc > 1)
-    return util_msglist_command (var_quote, argc, argv, 0);
+    return util_msglist_command(var_quote, argc, argv, 0);
   else
     {
       message_t mesg;
@@ -201,9 +226,9 @@ var_quote(int argc, char **argv, struct send_environ *env)
       char buffer[512];
       off_t off = 0;
       size_t n = 0;
-      char *prefix = util_find_env ("indentprefix")->value;
+      char *prefix = util_find_env("indentprefix")->value;
       
-      if (mailbox_get_message (mbox, cursor, &mesg) != 0)
+      if (mailbox_get_message(mbox, cursor, &mesg) != 0)
 	return 1;
 
       fprintf(stdout, "Interpolating: %d\n", cursor);
@@ -213,32 +238,32 @@ var_quote(int argc, char **argv, struct send_environ *env)
 	  size_t i, num = 0;
 	  char buffer[512];
 	  
-	  message_get_header (mesg, &hdr);
-	  header_get_field_count (hdr, &num);
+	  message_get_header(mesg, &hdr);
+	  header_get_field_count(hdr, &num);
 
 	  for (i = 1; i <= num; i++)
 	    {
-	      header_get_field_name (hdr, i, buffer, sizeof(buffer), NULL);
-	      if (mail_header_is_visible (buffer))
+	      header_get_field_name(hdr, i, buffer, sizeof(buffer), NULL);
+	      if (mail_header_is_visible(buffer))
 		{
-		  fprintf (ofile, "%s%s: ", prefix, buffer);
-		  header_get_field_value (hdr, i, buffer, sizeof(buffer),
+		  fprintf(ofile, "%s%s: ", prefix, buffer);
+		  header_get_field_value(hdr, i, buffer, sizeof(buffer),
 					  NULL);
-		  fprintf (ofile, "%s\n", buffer);
+		  fprintf(ofile, "%s\n", buffer);
 		}
 	    }
-	  fprintf (ofile, "\n");
-	  message_get_body (mesg, &body);
-	  body_get_stream (body, &stream);
+	  fprintf(ofile, "\n");
+	  message_get_body(mesg, &body);
+	  body_get_stream(body, &stream);
 	}
       else
-	message_get_stream (mesg, &stream);
+	message_get_stream(mesg, &stream);
 
       while (stream_readline(stream, buffer, sizeof(buffer) - 1, off, &n) == 0
              && n != 0)
         {
           buffer[n] = '\0';
-	  fprintf (ofile, "%s%s", prefix, buffer);
+	  fprintf(ofile, "%s%s", prefix, buffer);
           off += n;
         }
       var_continue();
@@ -353,7 +378,7 @@ var_write(int argc, char **argv, struct send_environ *env)
 int
 var_exit(int argc, char **argv, struct send_environ *env)
 {
-  return util_do_command ("quit");
+  return util_do_command("quit");
 }
 
 /* ~|[shell-command] */
@@ -363,6 +388,12 @@ var_pipe(int argc, char **argv, struct send_environ *env)
   int p[2];
   pid_t pid;
   int fd;
+
+  if (argc == 1)
+    {
+      util_error("pipe: no command specified");
+      return 1;
+    }
   
   if (pipe(p))
     {
@@ -399,12 +430,7 @@ var_pipe(int argc, char **argv, struct send_environ *env)
       close(fd);
       
       /* Execute the process */
-      xargv = calloc(argc, sizeof(xargv[0]));
-      if (!xargv)
-	{
-	  util_error("not enough memory");
-	  exit(1);
-	}
+      xargv = util_calloc(argc, sizeof(xargv[0]));
       for (i = 0; i < argc-1; i++)
 	xargv[i] = argv[i+1];
       xargv[i] = NULL;
@@ -430,7 +456,7 @@ var_pipe(int argc, char **argv, struct send_environ *env)
       env->file = fopen(env->filename, "r"); 
       
       lines = size = 0;
-      while (getline (&buf, &n, env->file) > 0)
+      while (getline(&buf, &n, env->file) > 0)
 	{
 	  lines++;
 	  size += n;
@@ -455,10 +481,10 @@ var_pipe(int argc, char **argv, struct send_environ *env)
 	    rc = 0;
 	}
 
-      fprintf(stdout, "\"|%s\" out: %d/%d ", argv[1], lines, size); 
+      fprintf(stdout, "\"|%s\" in: %d/%d ", argv[1], lines, size); 
       if (rc)
 	{
-	  fprintf(stdout, "no lines in\n");
+	  fprintf(stdout, "no lines out\n");
 	}
       else
 	{
@@ -469,7 +495,7 @@ var_pipe(int argc, char **argv, struct send_environ *env)
 	  env->file = fopen(env->filename, "w+");
 	  
 	  lines = size = 0;
-	  while (getline (&buf, &n, fp) > 0)
+	  while (getline(&buf, &n, fp) > 0)
 	    {
 	      lines++;
 	      size += n;
@@ -477,7 +503,7 @@ var_pipe(int argc, char **argv, struct send_environ *env)
 	    }
 	  fclose(env->file);
 
-	  fprintf(stdout, "in: %d/%d\n", lines, size); 
+	  fprintf(stdout, "out: %d/%d\n", lines, size); 
 	}
 
       /* Clean up the things */
