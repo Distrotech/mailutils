@@ -193,7 +193,8 @@ mail_send0 (struct send_environ *env, int save_to)
 
       int_cnt = 0;
 
-      if (buf[0] == '.' && util_getenv (NULL, "dot", Mail_env_boolean, 0) == 0)
+      if (strcmp (buf, ".") == 0
+	  && util_getenv (NULL, "dot", Mail_env_boolean, 0) == 0)
 	done = 1;
       else if (util_getenv (&escape, "escape", Mail_env_string, 0) == 0
                && buf[0] == escape[0])
@@ -318,7 +319,7 @@ mail_send0 (struct send_environ *env, int save_to)
 	if (offset == 0)
 	  util_error("Null message body; hope that's ok\n");
 	if (buf)
-	    free (buf);
+	  free (buf);
       }
 
       fclose (file);
