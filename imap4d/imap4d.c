@@ -17,14 +17,13 @@
 
 #include "imap4d.h"
 
-int *ifile;
 FILE *ofile;
 unsigned int timeout = 1800; /* RFC2060: 30 minutes, if enable.  */
 mailbox_t mbox;
 char *homedir;
 int state = STATE_NONAUTH;
 
-static int imap4_mainloop __P ((int, int));
+static int imap4d_mainloop __P ((int, int));
 
 int
 main (int argc, char **argv)
@@ -39,18 +38,19 @@ main (int argc, char **argv)
     list_append (bookie, path_record);
   }
   /* FIXME: Incomplete, make it work for standalone, see pop3d.  */
-  imap4_mainloop (fileno (stdin), fileno (stdout));
+  imap4d_mainloop (fileno (stdin), fileno (stdout));
   return 0;
 }
 
 static int
-imap4_mainloop (int infile, int outfile)
+imap4d_mainloop (int infile, int outfile)
 {
   const char *remote_host = "";
-
+  FILE *ifile;
+  ifile = fdopen (infile, "r");
   ofile = fdopen (outfile, "w");
-  if (ofile == NULL)
-    util_quit (1);
+  if (!ofile || !ifile)
+    util_quit (ERR_NO_OFILE);
 
   /* FIXME: Retreive hostname with getpeername() and log.  */
   syslog (LOG_INFO, "Incoming connection from %s", remote_host);
@@ -61,9 +61,11 @@ imap4_mainloop (int infile, int outfile)
 
   while (1)
     {
-      char *cmd = imap4d_readline (infile);
+      char *cmd = imap4d_readline (ifile);
       /* check for updates */
+      imap4d_sync ();
       util_do_command (cmd);
+      imap4d_sync ();
       free (cmd);
       fflush (ofile);
     }

@@ -55,6 +55,13 @@ _file_read (stream_t stream, char *optr, size_t osize,
   size_t n;
   int err = 0;
 
+  if (!fs->file)
+    {
+      if (nbytes)
+	*nbytes = 0;
+      return 0;
+    }
+
   if (fs->offset != offset)
     {
       if (fseek (fs->file, offset, SEEK_SET) != 0)
@@ -83,6 +90,13 @@ _file_readline (stream_t stream, char *optr, size_t osize,
   struct _file_stream *fs = stream_get_owner (stream);
   size_t n = 0;
   int err = 0;
+
+  if (!fs->file)
+    {
+      if (nbytes)
+	*nbytes = 0;
+      return 0;
+    }
 
   if (fs->offset != offset)
     {
@@ -117,6 +131,13 @@ _file_write (stream_t stream, const char *iptr, size_t isize,
   size_t n;
   int err = 0;
 
+  if (!fs->file)
+    {
+      if (nbytes)
+	*nbytes = 0;
+      return 0;
+    }
+
   if (fs->offset != offset)
     {
       if (fseek (fs->file, offset, SEEK_SET) != 0)
@@ -144,7 +165,7 @@ static int
 _file_truncate (stream_t stream, off_t len)
 {
   struct _file_stream *fs = stream_get_owner (stream);
-  if (ftruncate (fileno(fs->file), len) != 0)
+  if (fs->file && ftruncate (fileno(fs->file), len) != 0)
     return errno;
   return 0;
 }
@@ -154,6 +175,12 @@ _file_size (stream_t stream, off_t *psize)
 {
   struct _file_stream *fs = stream_get_owner (stream);
   struct stat stbuf;
+  if (!fs->file)
+    {
+      if (psize)
+	*psize = 0;
+      return 0;
+    }
   fflush (fs->file);
   if (fstat(fileno(fs->file), &stbuf) == -1)
     return errno;
@@ -166,16 +193,24 @@ static int
 _file_flush (stream_t stream)
 {
   struct _file_stream *fs = stream_get_owner (stream);
-  return fflush (fs->file);
+  if (fs->file)
+    return fflush (fs->file);
+  return 0;
 }
 
 static int
 _file_get_fd (stream_t stream, int *pfd)
 {
   struct _file_stream *fs = stream_get_owner (stream);
+  int status = 0;
   if (pfd)
-    *pfd = fileno (fs->file);
-  return 0;
+    {
+      if (fs->file)
+	*pfd = fileno (fs->file);
+      else
+	status = EINVAL;
+    }
+  return status;
 }
 
 static int

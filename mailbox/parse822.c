@@ -18,19 +18,8 @@
 /*
 Things to consider:
 
-  - A group should create an address node for a group, accessable
-    with address_get_personal(). Perhaps an is_group() would be
-    useful? Test that a zero-length phrase is rejected! So these
-    are invalid:
-      : a@b ;
-      "" : ;
-
   - When parsing phrase, should I ignore non-ascii, or replace with a
     '?' character? Right now parsing fails.
-
-  - Make domain optional in addr-spec, for parsing address lists
-    provided to local mail utilities, but NOT in the addr-spec of a
-    route-addr.
 
   - Are comments allowed in domain-literals?
 
@@ -53,14 +42,12 @@ Things to consider:
     gets one address, or just say it is or it isn't in RFC format?
     Right now we're strict, we'll see how it goes.
 
-  - parse field names and bodies?
   - parse dates?
   - parse Received: field?
 
   - test for memory leaks on malloc failure
   - fix the realloc, try a struct _string { char* b, size_t sz };
-
-  - get example mail from drums, and from the perl code.
+  - get example addresses from rfc2822, and from the perl code.
 */
 
 #ifdef HAVE_CONFIG_H
@@ -610,12 +597,15 @@ int parse822_address_list(address_t* a, const char* s)
 
 int parse822_address(const char** p, const char* e, address_t* a)
 {
-    /* address = mailbox / group */
+    /* address = mailbox / group / unix-mbox */
 
     int rc;
 
-    if((rc = parse822_mail_box(p, e, a)) == EPARSE)
-    	rc = parse822_group(p, e, a);
+    if((rc = parse822_mail_box(p, e, a)) == EPARSE) {
+    	if((rc = parse822_group(p, e, a)) == EPARSE) {
+	    rc = parse822_unix_mbox(p, e, a);
+	}
+    }
 
     return rc;
 }
@@ -690,7 +680,9 @@ int parse822_group(const char** p, const char* e, address_t* a)
 
 int parse822_mail_box(const char** p, const char* e, address_t* a)
 {
-    /* mailbox = addr-spec [ "(" comment ")" ] / [phrase] route-addr
+    /* mailbox =
+     *     addr-spec [ "(" comment ")" ] /
+     *     [phrase] route-addr
      *
      *	Note: we parse the ancient comment on the right since
      *	  it's such "common practice". :-(
@@ -717,10 +709,6 @@ int parse822_mail_box(const char** p, const char* e, address_t* a)
 
 	return rc;
     }
-    if(rc != EPARSE) {
-	*p = save;
-	return rc;
-    }
 
     /* -> phrase route-addr */
     {
@@ -732,17 +720,23 @@ int parse822_mail_box(const char** p, const char* e, address_t* a)
 	    return rc;
 	}
 
-	if((rc = parse822_route_addr(p, e, a))) {
+	if((rc = parse822_route_addr(p, e, a)) == EOK) {
+	    /* add the phrase */
+	    (*a)->personal = phrase;
+
+	    return EOK;
+	} else if(rc != EPARSE) {
+	    /* some internal error, fail out */
 	    *p = save;
 	    str_free(&phrase);
 	    return rc;
 	}
+	*p = save;
 
-	/* add the phrase */
-	(*a)->personal = phrase;
+	return rc;
     }
 
-    return EOK;
+    return rc;
 }
 
 int parse822_route_addr(const char** p, const char* e, address_t* a)
@@ -870,6 +864,29 @@ int parse822_addr_spec(const char** p, const char* e, address_t* a)
 	*p = save;
 	str_free(&local_part);
 	str_free(&domain);
+    }
+    return rc;
+}
+
+int parse822_unix_mbox(const char** p, const char* e, address_t* a)
+{
+    /* unix-mbox = atom */
+
+    const char* save = *p;
+    char* mbox = 0;
+    int rc;
+
+    parse822_skip_comments(p, e);
+
+    rc = parse822_atom(p, e, &mbox);
+
+    if(!rc) {
+	rc = fill_mb(a, 0, 0, mbox, 0);
+    }
+
+    if(rc) {
+	*p = save;
+	str_free(&mbox);
     }
     return rc;
 }

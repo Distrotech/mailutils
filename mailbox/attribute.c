@@ -441,7 +441,9 @@ attribute_copy (attribute_t dest, attribute_t src)
 {
   if (dest == NULL || src == NULL)
     return EINVAL;
-  memcpy (dest, src, sizeof (*dest));
+  /* Can not be a deep copy.  */
+  /* memcpy (dest, src, sizeof (*dest)); */
+  dest->flags = src->flags;
   return 0;
 }
 

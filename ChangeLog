@@ -1,3 +1,47 @@
+2001-05-07  Alain Magloire
+
+	Now we can have multiple access to the mailbox and the server
+	will update the mailbox and send the unsollicited responses.
+	This is implemented in imap4d/sync.c.
+
+	* imap4d/copy.c: Move the code into imap4d_copy0() to allow
+	the use of UID COPY.
+	(imaprd_copy0): New function.
+	* imap4d/fetch.c: Define a new structure command for FETCH.
+	(fetch_getcommand): New function.
+	(imap4d_fetch0): New function to allow the use of UID COPY.
+	(fetch_envelope0): New function to permit to reuse the function
+	in bodystructure.
+	(fetch_bodystructure): Implemented.
+	(fetch_bodystructure0): The implementation.
+	(bodystructure): The helper function for fetch_bodystructure.
+	* imap4d/imap4d.c (imap4d_mainloop): call imap4d_sync() in the
+	mainloop.  Now use FILE *ifile.
+	* imap4d/imap4d.h: Update prototypes.  Define ERR_NO_MEM and
+	ERR_NO_OFILE.
+	* imap4d/select.c (imap4d_select0): Call imap4d_sync() to update.
+	* imap4d/store.c (ima4d_store): Cal imap4d_sync_flags() to
+	update the flags in the uid_table.
+	* imap4d/uid.c: Implemented.
+	* imap4d/util.c (imap4d_readline):  Use fgets() and deal
+	with literals send from the client.
+	* imap4d/sync.c: New file.
+
+	* include/mailutils/header.c: Added some new headers.
+	* mailbox/attribute.c (attribute_copy): Do a shalow copy.
+	* mailbox/file_stream.c: Check if FILE * is null in all functions.
+	* mailbox/mailbox.c (mailbox_is_updated): Should not return ENOSYS
+	but rather 1.
+
+2001-05-07  Sam Roberts
+
+	* mailbox/parse822.c: Now allow a unix mailbox in an address.
+	* include/mailutils/parse822.h: Declare the function to parse them.
+	* doc/address.texi: Document the fact.
+	* doc/Makefile.am: Automatically build the example code from addr.c.
+	* examples/addr.c: And update the parser test.
+	* examples/Addrs.good: Update the parser test.
+
 2001-05-03  Sam Roberts
 
 	* mail/mail.c: Typo

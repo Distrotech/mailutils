@@ -97,6 +97,7 @@ imap4d_login (struct imap4d_command *command, char *arg)
     return util_finish (command, RESP_NO, "Too many args");
 
   pw = getpwnam (arg);
+
 #ifndef USE_LIBPAM
   if (pw == NULL || pw->pw_uid < 1)
     return util_finish (command, RESP_NO, "User name or passwd rejected");
@@ -105,7 +106,7 @@ imap4d_login (struct imap4d_command *command, char *arg)
 #ifdef HAVE_SHADOW_H
       struct spwd *spw;
       spw = getspnam (arg);
-      if (spw == NULL || strcmp (spw->sp_pwdp, crypt (pass, spw->sp_pwdp)))
+      if (spw == NULL || strcmp (spw->sp_pwdp, (char *)crypt (pass, spw->sp_pwdp)))
 #endif /* HAVE_SHADOW_H */
 	return util_finish (command, RESP_NO, "User name or passwd rejected");
     }

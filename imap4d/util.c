@@ -18,7 +18,7 @@
 #include "imap4d.h"
 #include <ctype.h>
 
-static int add2set __P ((int **, int *, unsigned long, size_t));
+static int add2set __P ((size_t **, int *, unsigned long, size_t));
 static const char *sc2string __P ((int));
 
 /* Get the next space/CR/NL separated word, some words are between double
@@ -67,7 +67,8 @@ util_token (char *buf, size_t len, char **ptr)
       if (**ptr == ' ' || **ptr == '.'
           || **ptr == '(' || **ptr == ')'
           || **ptr == '[' || **ptr == ']'
-          || **ptr == '<' || **ptr  == '>')
+          || **ptr == '<' || **ptr  == '>'
+	  || **ptr == '\r' || **ptr == '\n')
         {
           /* Advance.  */
           if (start == (*ptr))
@@ -172,7 +173,7 @@ util_getfullpath (char *name, const char *delim)
    FIXME: The algo below is to relaxe, things like <,,,> or <:12> or <20:10>
    will not generate an error.  */
 int
-util_msgset (char *s, int **set, int *n, int isuid)
+util_msgset (char *s, size_t **set, int *n, int isuid)
 {
   unsigned long val = 0;
   unsigned long low = 0;
@@ -340,93 +341,79 @@ util_finish (struct imap4d_command *command, int rc, const char *format, ...)
   return status;
 }
 
-#if 0
-/* Need a replacement for readline that can support literals.  */
+/* Clients are allowed to send literal string to the servers.  this
+   mean that it can me everywhere where a string is allowed.
+   A literal is a sequence of zero or more octets (including CR and LF)
+   prefix-quoted with an octet count in the form of an open brace ("{"),
+   the number of octets, close brace ("}"), and CRLF.
+ */
 char *
 imap4d_readline (FILE *fp)
 {
   char buffer[512];
-  char *line;
   size_t len;
+  long number = 0;
+  size_t total = 0;
+  char *line = malloc (1);
 
-  alarm (timeout);
-  line = fgets (buffer, sizeof (buffer), fp);
-  alarm (0);
   if (!line)
-    util_quit (1);
-  line = strdup (buffer);
-  len = strlen (buffer);
-  if (len > 2)
-    {
-      len--; /* C arrays are 0-based.  */
-      if (line[len] == '\n' && line[len - 1] == '}')
-	{
-	  while (len && line[len] != '{') len--;
-	  if (line [len] == '{')
-	    {
-	      char *sp = NULL;
-	      long number = strtoul (line + len + 1, &sp, 10);
-	      if (*sp != '+')
-		util_send ("+ GO AHEAD\r\n");
-	      line[len] = '\0';
-	      while (number > 0)
-		{
-		  char *literal = imap4d_readline (fd);
-		  size_t n = strlen (literal);
-		  line = realloc (line, strlen (line) + n + 1);
-		  strcat (line, literal);
-		  number -= n;
-		  free (literal);
-		}
-	    }
-	}
-    }
-  return line;
-}
-#endif
+    util_quit (ERR_NO_MEM);
 
-char *
-imap4d_readline (int fd)
-{
-  fd_set rfds;
-  struct timeval tv;
-  char buf[512], *ret = NULL;
-  int nread;
-  int total = 0;
-  int available;
-
-  FD_ZERO (&rfds);
-  FD_SET (fd, &rfds);
-  tv.tv_sec = timeout;
-  tv.tv_usec = 0;
-
+  line[0] = '\0'; /* start with a empty string.  */
   do
     {
-      if (timeout)
+      alarm (timeout);
+      if (fgets (buffer, sizeof (buffer), fp) == NULL)
+        util_quit (0); /* Logout.  */
+      alarm (0);
+
+      len = strlen (buffer);
+      /* If we were in a litteral substract. We have to do it since the CR
+	 is part of the count in a literal.  */
+      if (number)
+        number -= len;
+
+      /* Remove CR.  */
+      if (len > 2 && buffer[len - 1] == '\n')
 	{
-	  available = select (fd + 1, &rfds, NULL, NULL, &tv);
-	  if (!available)
-	    util_quit (1);
+	  if (buffer[len - 2] == '\r')
+	    {
+	      buffer[len - 2] = '\n';
+	      buffer[len - 1] = '\0';
+	    }
 	}
-      nread = read (fd, buf, sizeof (buf) - 1);
-      if (nread < 1)
-	util_quit (1);
 
-      buf[nread] = '\0';
+      line = realloc (line, total + len + 1);
+      if (!line)
+	util_quit (ERR_NO_MEM);
+      strcat (line, buffer);
 
-      ret = realloc (ret, (total + nread + 1) * sizeof (char));
-      if (ret == NULL)
-	util_quit (1);
-      memcpy (ret + total, buf, nread + 1);
-      total += nread;
+      total = strlen (line);
+
+      /* Check if the client try to send a literal and we are not already
+         retrieving a litera.  */
+      if (number <= 0 && len > 2)
+        {
+          size_t n = total - 1; /* C arrays are 0-based.  */
+          if (line[n] == '\n' && line[n - 1] == '}')
+            {
+              while (n && line[n] != '{') n--;
+              if (line [n] == '{')
+                {
+                  char *sp = NULL;
+		  /* Truncate where the literal number was.  */
+                  line[n] = '\0';
+                  number = strtoul (line + n + 1, &sp, 10);
+		  /* Client can ask for non synchronise literal,
+		   if a '+' is append to the octet count. */
+                  if (*sp != '+')
+                    util_send ("+ GO AHEAD\r\n");
+                }
+            }
+        }
     }
-  while (memchr (buf, '\n', nread) == NULL);
-
-  /* Nuke CR'\r'  */
-  for (nread = total; nread > 0; nread--)
-    if (ret[nread] == '\r' || ret[nread] == '\n')
-      ret[nread] = '\0';
-  return ret;
+  while (number > 0);
+  return line;
 }
 
 int
@@ -435,6 +422,7 @@ util_do_command (char *prompt)
   char *sp = NULL, *tag, *cmd;
   struct imap4d_command *command;
   static struct imap4d_command nullcommand;
+  size_t len;
 
   tag = util_getword (prompt, &sp);
   cmd = util_getword (NULL, &sp);
@@ -462,6 +450,9 @@ util_do_command (char *prompt)
     }
 
   command->tag = tag;
+  len = strlen (sp);
+  if (len  && sp[len - 1] == '\n')
+    sp[len - 1] = '\0';
   return command->func (command, sp);
 }
 
@@ -487,8 +478,17 @@ util_start (char *tag)
 void
 util_quit (int err)
 {
-  if (err)
-    util_out (RESP_BYE, "Server terminating");
+  switch (err)
+    {
+    case ERR_NO_OFILE:
+      /*util_out (RESP_BYE, "Server terminating dead socket."); */
+      break;
+    case ERR_NO_MEM:
+      util_out (RESP_BYE, "Server terminating no more ressources.");
+      break;
+    default:
+      util_out (RESP_BYE, "Server terminating");
+    }
   exit (err);
 }
 
@@ -535,7 +535,7 @@ sc2string (int rc)
 }
 
 static int
-add2set (int **set, int *n, unsigned long val, size_t max)
+add2set (size_t **set, int *n, unsigned long val, size_t max)
 {
   int *tmp;
   if (val == 0 || val > max

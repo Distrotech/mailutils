@@ -144,7 +144,7 @@ status_unseen (mailbox_t smbox)
       attribute_t attr = NULL;
       mailbox_get_message (smbox, i, &msg);
       message_get_attribute (msg, &attr);
-      if (!attribute_is_seen (attr))
+      if (!attribute_is_seen (attr) && !attribute_is_read (attr))
 	unseen++;
     }
   util_send ("UNSEEN %d", unseen);

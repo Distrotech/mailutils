@@ -50,6 +50,8 @@ imap4d_select0 (struct imap4d_command *command, char *arg, int flags)
     {
       mailbox_close (mbox);
       mailbox_destroy (&mbox);
+      /* Destroy the old uid table.  */
+      imap4d_sync ();
     }
 
   if (strcasecmp (mailbox_name, "INBOX") == 0)
@@ -63,7 +65,7 @@ imap4d_select0 (struct imap4d_command *command, char *arg, int flags)
       && mailbox_open (mbox, flags) == 0)
     {
       const char *mflags = "\\Answered \\Flagged \\Deleted \\Seen \\Draft";
-      const char *pflags = "\\Answered \\Flagged \\Deleted \\Seen \\Draft";
+      const char *pflags = "\\Answered \\Deleted \\Seen";
       unsigned long uidvalidity = 0;
       size_t count = 0, recent = 0, unseen = 0, uidnext = 0;
 
@@ -83,10 +85,13 @@ imap4d_select0 (struct imap4d_command *command, char *arg, int flags)
       /* FIXME:
 	 - '\*' can be supported if we use the attribute_set userflag()
 	 - Answered is still not set in the mailbox code.  */
-      util_out (RESP_OK, "[PERMANENTFLAGS (%s)] Permanent flags", pflags);
+      if (flags == MU_STREAM_READ)
+	util_out (RESP_OK, "[PERMANENTFLAGS ()] No Permanent flags");
+      else
+	util_out (RESP_OK, "[PERMANENTFLAGS (%s)] Permanent flags", pflags);
       /* Need to set the state explicitely for select.  */
       state = STATE_SEL;
-      return util_send ("%s OK [%s] %s Complete\r\n", command->tag,
+      return util_send ("%s OK [%s] %s Completed\r\n", command->tag,
 			(MU_STREAM_READ == flags) ?
 			"READ-ONLY" : "READ-WRITE", command->name);
     }

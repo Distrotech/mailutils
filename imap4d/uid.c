@@ -25,7 +25,33 @@
 int
 imap4d_uid (struct imap4d_command *command, char *arg)
 {
+  char *cmd;
+  char *sp = NULL;
+  int rc = RESP_NO;
+  char buffer[64];
+
   if (! (command->states & state))
     return util_finish (command, RESP_BAD, "Wrong state");
-  return util_finish (command, RESP_NO, "Not supported");
+
+  cmd = util_getword (arg, &sp);
+  if (!cmd)
+    util_finish (command, RESP_BAD, "Too few args");
+  if (strcasecmp (cmd, "FETCH") == 0)
+    {
+      rc = imap4d_fetch0 (sp, 1, buffer, sizeof buffer);
+    }
+  else if (strcasecmp (cmd, "COPY") == 0)
+    {
+      rc = imap4d_copy0 (sp, 1, buffer, sizeof buffer);
+    }
+  else if (strcasecmp (cmd, "STORE") == 0)
+    {
+      rc = imap4d_store0 (sp, 1, buffer, sizeof buffer);
+    }
+  else
+    {
+      snprintf (buffer, sizeof buffer, "Error uknown uid command");
+      rc = RESP_BAD;
+    }
+  return util_finish (command, rc, "%s %s", cmd, buffer);
 }

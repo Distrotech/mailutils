@@ -99,11 +99,16 @@ struct imap4d_command
 #define STATE_ALL	(STATE_NONE | STATE_NONAUTH | STATE_AUTH | STATE_SEL \
 			| STATE_LOGOUT)
 
+/* Response code.  */
 #define RESP_OK		0
 #define RESP_BAD	1
 #define RESP_NO		2
 #define RESP_BYE	3
 #define RESP_NONE	4
+
+/* Error values.  */
+#define ERR_NO_MEM 1
+#define ERR_NO_OFILE 2
 
 extern struct imap4d_command imap4d_command_table[];
 extern FILE *ofile;
@@ -135,9 +140,17 @@ extern int  imap4d_close __P ((struct imap4d_command *, char *));
 extern int  imap4d_expunge __P ((struct imap4d_command *, char *));
 extern int  imap4d_search __P ((struct imap4d_command *, char *));
 extern int  imap4d_fetch __P ((struct imap4d_command *, char *));
+extern int  imap4d_fetch0 __P ((char *, int, char *, size_t));
 extern int  imap4d_store __P ((struct imap4d_command *, char *));
+extern int  imap4d_store0 __P ((char *, int, char *, size_t));
 extern int  imap4d_copy __P ((struct imap4d_command *, char *));
+extern int  imap4d_copy0 __P ((char *, int, char *, size_t));
 extern int  imap4d_uid __P ((struct imap4d_command *, char *));
+
+/* Synchronisation on simultenous access.  */
+extern int imap4d_sync __P ((void));
+extern int imap4d_sync_flags __P ((size_t));
+extern size_t uid_to_msgno __P ((size_t));
 
 /* Helper functions.  */
 extern int  util_out __P ((int, const char *, ...));
@@ -146,14 +159,14 @@ extern int  util_start __P ((char *));
 extern int  util_finish __P ((struct imap4d_command *, int, const char *, ...));
 extern int  util_getstate __P ((void));
 extern int  util_do_command __P ((char *));
-extern char *imap4d_readline __P ((int));
+extern char *imap4d_readline __P ((FILE*));
 extern void util_quit __P ((int));
 extern char *util_getword __P ((char *, char **));
 extern int  util_token __P ((char *, size_t, char **));
 extern void util_unquote __P ((char **));
 extern char *util_tilde_expansion __P ((const char *, const char *));
 extern char *util_getfullpath __P ((char *, const char *));
-extern int  util_msgset __P ((char *, int **, int *, int));
+extern int  util_msgset __P ((char *, size_t **, int *, int));
 extern int  util_upper __P ((char *));
 extern struct imap4d_command *util_getcommand __P ((char *,
 						    struct imap4d_command []));

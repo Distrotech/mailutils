@@ -25,23 +25,36 @@ static int get_attribute_type __P ((const char *, int *));
 int
 imap4d_store (struct imap4d_command *command, char *arg)
 {
+  int rc;
+  char buffer[64];
+
+  if (! (command->states & state))
+    return util_finish (command, RESP_BAD, "Wrong state");
+
+  rc = imap4d_store0 (arg, 0, buffer, sizeof buffer);
+  return util_finish (command, rc, buffer);
+}
+
+int
+imap4d_store0 (char *arg, int isuid, char *resp, size_t resplen)
+{
   char *msgset;
   char *data;
   char *sp = NULL;
   int status;
   int ack = 0;
   size_t i, n = 0;
-  int *set = NULL;
+  size_t *set = NULL;
   enum value_type { STORE_SET, STORE_ADD, STORE_UNSET } how;
-
-  if (! (command->states & state))
-    return util_finish (command, RESP_BAD, "Wrong state");
 
   msgset = util_getword (arg, &sp);
   data = util_getword (NULL, &sp);
 
   if (!msgset || !data || !sp || *sp == '\0')
-    return util_finish (command, RESP_BAD, "Too few args");
+    {
+      snprintf (resp, resplen, "Too few args");
+      return RESP_BAD;
+    }
 
   /* The parsing of the data-item is a little slugish.  */
   if (strcasecmp (data, "FLAGS") == 0)
@@ -75,12 +88,18 @@ imap4d_store (struct imap4d_command *command, char *arg)
       how = STORE_UNSET;
     }
   else
-    return util_finish (command, RESP_BAD, "Bogus data item");
+    {
+      snprintf (resp, resplen, "Bogus data item");
+      return RESP_BAD;
+    }
 
   /* Get the message numbers in set[].  */
-  status = util_msgset (msgset, &set, &n, 0);
+  status = util_msgset (msgset, &set, &n, isuid);
   if (status != 0)
-    return util_finish (command, RESP_BAD, "Bogus number set");
+    {
+      snprintf (resp, resplen, "Bogus number set");
+      return RESP_BAD;
+    }
 
   for (i = 0; i < n; i++)
     {
@@ -89,8 +108,10 @@ imap4d_store (struct imap4d_command *command, char *arg)
       char *items = strdup (sp); /* Don't use the orignal list.  */
       char *flags = strdup ("");
       int first = 1;
+      size_t msgno;
 
-      mailbox_get_message (mbox, set[i], &msg);
+      msgno = (isuid) ? uid_to_msgno (set[i]) : set[i];
+      mailbox_get_message (mbox, msgno, &msg);
       message_get_attribute (msg, &attr);
 
       /* Get the fetch command names.  */
@@ -124,9 +145,12 @@ imap4d_store (struct imap4d_command *command, char *arg)
 	util_out (RESP_NONE, "%d FETCH FLAGS (%s)", set[i], flags);
       free (items);
       free (flags);
+      /* Update the flags of uid table.  */
+      imap4d_sync_flags (set[i]);
     }
   free (set);
-  return util_finish (command, RESP_OK, "Completed");
+  snprintf (resp, resplen, "Completed");
+  return RESP_OK;
 }
 
 static int

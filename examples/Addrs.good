@@ -228,7 +228,7 @@ list-ietf-wg-apps-drums@faerber.muc.de (=?ISO-8859-1?Q?Claus_F=E4rber?=)=> pcoun
    personal <'sroberts@certicom.ca'>
    local-part <sroberts> domain <certicom.ca>
 
-"=?iso-8859-1?Q?Juan_Carlos_Marcos_Rodr=EDguez?=" <jcmarcos@datavoicees>=> pcount 1
+"=?iso-8859-1?Q?Juan_Carlos_Marcos_Rodr=EDguez?=" <jcmarcos@datavoice.es>=> pcount 1
 1 email <jcmarcos@datavoice.es>
    personal <=?iso-8859-1?Q?Juan_Carlos_Marcos_Rodr=EDguez?=>
    local-part <jcmarcos> domain <datavoice.es>
@@ -432,17 +432,17 @@ list-ietf-wg-apps-drums@faerber.muc.de (=?ISO-8859-1?Q?Claus_F=E4rber?=)=> pcoun
    personal <=?US-ASCII?Q?gary=5Fc?=>
    local-part <gary_c> domain <cunningham-lee.com>
 
-=?iso-8859-1?Q?Fr=E9d=E9ric_L_=2E_W_=2E?= Meunier <0@pervalidusnet>=> pcount 1
+=?iso-8859-1?Q?Fr=E9d=E9ric_L_=2E_W_=2E?= Meunier <0@pervalidus.net>=> pcount 1
 1 email <0@pervalidus.net>
    personal <=?iso-8859-1?Q?Fr=E9d=E9ric_L_=2E_W_=2E?= Meunier>
    local-part <0> domain <pervalidus.net>
 
-=?iso-8859-1?Q?Fr=E9d=E9ric_L_=2E_W_=2E?= Meunier <0@pervalidusnet>,=> pcount 1
+=?iso-8859-1?Q?Fr=E9d=E9ric_L_=2E_W_=2E?= Meunier <0@pervalidus.net>,=> pcount 1
 1 email <0@pervalidus.net>
    personal <=?iso-8859-1?Q?Fr=E9d=E9ric_L_=2E_W_=2E?= Meunier>
    local-part <0> domain <pervalidus.net>
 
-=?iso-8859-1?Q?Fr=E9d=E9ric_L_=2E_W_=2E_Meunier?= <0@pervalidusnet>=> pcount 1
+=?iso-8859-1?Q?Fr=E9d=E9ric_L_=2E_W_=2E_Meunier?= <0@pervalidus.net>=> pcount 1
 1 email <0@pervalidus.net>
    personal <=?iso-8859-1?Q?Fr=E9d=E9ric_L_=2E_W_=2E_Meunier?=>
    local-part <0> domain <pervalidus.net>
@@ -554,14 +554,22 @@ No_Reply-To@mapquest.com=> pcount 1
 1 email <No_Reply-To@mapquest.com>
    local-part <No_Reply-To> domain <mapquest.com>
 
-OSULLIE@rte.ie, skidswam@hotmail.com, boot=> error ENOENT
+OSULLIE@rte.ie, skidswam@hotmail.com, boot=> pcount 3
+1 email <OSULLIE@rte.ie>
+   local-part <OSULLIE> domain <rte.ie>
+2 email <skidswam@hotmail.com>
+   local-part <skidswam> domain <hotmail.com>
+3 email <>
+   local-part <boot>
 
 Paul Hoffman / IMC <phoffman@imc.org>=> pcount 1
 1 email <phoffman@imc.org>
    personal <Paul Hoffman / IMC>
    local-part <phoffman> domain <imc.org>
 
-Sam=> error ENOENT
+Sam=> pcount 1
+1 email <>
+   local-part <Sam>
 
 Sam Roberts <sam@cogent.ca>=> pcount 1
 1 email <sam@cogent.ca>
@@ -605,7 +613,9 @@ mcaustin@eudoramail.com, aposner@usaid.gov, Kieran.O'Leary@anpost.ie,=> pcount 3
 
 rfunk@wks.uts.ohio-state.eduofflinemailer-bounce@dikke.penguin.nl=> error ENOENT
 
-root=> error ENOENT
+root=> pcount 1
+1 email <>
+   local-part <root>
 
 srr <sam@localhost>=> error ENOENT
 

@@ -78,11 +78,15 @@ static int parse(const char* str)
 
 	address_get_local_part(address, no, buf, sizeof(buf), &got);
 
-	if(got) printf("   local-part <%s>", buf);
+	if(got) {
+	    printf("   local-part <%s>", buf);
 
-	address_get_domain(address, no, buf, sizeof(buf), &got);
+	    address_get_domain(address, no, buf, sizeof(buf), &got);
 
-	if(got) printf(" domain <%s>\n", buf);
+	    if(got) printf(" domain <%s>", buf);
+
+	    printf("\n");
+	}
 
 	address_get_route(address, no, buf, sizeof(buf), &got);
 

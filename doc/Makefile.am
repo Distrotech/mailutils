@@ -23,3 +23,6 @@ EXTRA_DIST = \
  url.texi \
  version.texi
 
+ex-address.texi: ../examples/addr.c
+	sed -es/{/@{/g -e s/}/@}/g < $< > $@
+

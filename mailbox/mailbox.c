@@ -261,7 +261,7 @@ int
 mailbox_is_updated (mailbox_t mbox)
 {
   if (mbox == NULL || mbox->_is_updated == NULL)
-    return ENOSYS;
+    return 1;
   return mbox->_is_updated (mbox);
 }
 

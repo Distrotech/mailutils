@@ -78,6 +78,7 @@ extern int parse822_address        __P ((const char** p, const char* e, address_
 extern int parse822_route_addr     __P ((const char** p, const char* e, address_t* a));
 extern int parse822_route          __P ((const char** p, const char* e, char** route));
 extern int parse822_addr_spec      __P ((const char** p, const char* e, address_t* a));
+extern int parse822_unix_mbox      __P ((const char** p, const char* e, address_t* a));
 extern int parse822_local_part     __P ((const char** p, const char* e, char** local_part));
 extern int parse822_domain         __P ((const char** p, const char* e, char** domain));
 extern int parse822_sub_domain     __P ((const char** p, const char* e, char** sub_domain));

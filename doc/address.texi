@@ -1,9 +1,9 @@
-@code{#include <mailutils/mailbox.h>}
+@code{#include <mailutils/address.h>}
 
-The internet address format is defined in RFC 822. RFC 822 is in the
-process of being updated, and will soon be superceeded by a new RFC
-that makes some corrections and clarifications. References to RFC 822
-here apply equally to the new RFC.
+The internet address format is defined in RFC 822. RFC 822 has been
+updated, and is now superceeded by RFC 2822, which
+makes some corrections and clarifications. References to RFC 822
+here apply equally to RFC 2822.
 
 The RFC 822 format is more flexible than many people realize, here
 is a quick summary of the syntax this parser implements, see
@@ -16,9 +16,14 @@ mailbox      = addr-spec ["(" display-name ")"] /
                [display-name] "<" [route] addr-spec ">"
 mailbox-list = mailbox ["," mailbox-list]
 group        = display-name ":" [mailbox-list] ";"
-address      = mailbox / group
+address      = mailbox / group / unix-mbox
 address-list = address ["," address-list]
 @end example
+
+unix-mbox is a non-standard extention meant to deal with the common
+practice of using user names as addresses in mail utilities. It allows
+addresses such as "root" to be parsed correctly. These are NOT valid
+internet email addresses, they must be qualified before use.
 
 Several address functions have a set of common arguments with consistent
 semantics, these are described here to avoid repetition.
@@ -133,7 +138,8 @@ The return value is @code{0} on success and a code number on error conditions:
 @deftypefun  int address_get_email (address_t *@var{addr}, size_t @var{no}, char* @var{buf}, size_t @var{len}, size_t* @var{n})
 
 Acesses the email addr-spec extracted while
-parsing the @var{no}th email address.
+parsing the @var{no}th email address. This will be @code{0}
+length for a unix-mbox.
 
 The return value is @code{0} on success and a code number on error conditions:
 @table @code
@@ -157,7 +163,8 @@ The return value is @code{0} on success and a code number on error conditions:
 @deftypefun  int address_get_domain (address_t *@var{addr}, size_t @var{no}, char* @var{buf}, size_t @var{len}, size_t* @var{n})
 
 Acesses the domain of an email addr-spec extracted while
-parsing the @var{no}th email address.
+parsing the @var{no}th email address. This will be @code{0}
+length for a unix-mbox.
 
 The return value is @code{0} on success and a code number on error conditions:
 @table @code
@@ -223,54 +230,6 @@ The return value is @code{0}.
 
 @section Example
 @example
-#include <stdio.h>
-#include <mailutils/address.h>
-
-int
-main(int argc, const char *argv[])
-@{
-  for(argc = 1; argv[argc]; argc++)
-  @{
-    const char* str = argv[argc];
-    address_t  address = NULL;
-
-    address_create(&address, str);
-
-    printf("'%s' ->\n", str);
-    @{
-      size_t no = 0;
-      size_t pcount;
-
-      address_get_count(address, &pcount);
-
-      printf("  pcount %d\n", pcount);
-
-      for(no = 1; no <= pcount; no++)
-      @{
-        char buf[BUFSIZ];
-
-        address_get_personal(address, no, buf, sizeof(buf), 0);
-
-        printf("  personal '%s'\n", buf);
-
-        address_get_local_part(address, no, buf, sizeof(buf), 0);
-
-        printf("  local_part '%s'\n", buf);
-
-        address_get_domain(address, no, buf, sizeof(buf), 0);
-
-        printf("  domain '%s'\n", buf);
-
-        address_get_email(address, no, buf, sizeof(buf), 0);
-
-        printf("  email '%s'\n", buf);
-      @}
-    @}
-    
-    address_destroy(&address);
-  @}
-
-  return 0;
-@}
+@include ex-address.texi
 @end example
 
