@@ -68,6 +68,9 @@ static const char *imap4d_capa[] = {
 #ifdef WITH_TLS
   "tls",
 #endif /* WITH_TLS */
+#ifdef WITH_GSASL
+  "gsasl",
+#endif
   "common",
   "mailbox",
   "logging",
@@ -121,14 +124,17 @@ main (int argc, char **argv)
   MU_AUTH_REGISTER_ALL_MODULES ();
   imap4d_capability_init ();
 
-  auth_gssapi_init ();
-  auth_gsasl_init ();
-  
 #ifdef WITH_TLS
   mu_tls_init_argp ();
 #endif /* WITH_TLS */
+#ifdef WITH_GSASL
+  mu_gsasl_init_argp ();
+#endif
   mu_argp_parse (&argp, &argc, &argv, 0, imap4d_capa, NULL, &daemon_param);
 
+  auth_gssapi_init ();
+  auth_gsasl_init ();
+  
 #ifdef USE_LIBPAM
   if (!pam_service)
     pam_service = "gnu-imap4d";
