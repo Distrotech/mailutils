@@ -1,3 +1,14 @@
+2002-01-05 Sam Roberts
+
+	* sieve/: Makefile.am, sieve.c, sv.h, svcb.c, svctx.c, svutil.c:
+	  Split the implementation of the mailutils-based sieve engine out of
+	  sieve.c, which now contains only a utility that uses the engine to
+	  sieve mailboxes.
+	* sieve/sieve_interface.h: exposed sieve_errstr() in public API,
+	  and declare sieve_errname()
+	* sieve/script.c: lower-cased some error strings, and added
+	  str_errname() to return the string of an error enum.
+
 2001-12-31 Alain Magloire
 
 	* doc/texinfo/programs.texi:  Descibe the readmsg utility.
