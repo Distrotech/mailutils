@@ -287,6 +287,10 @@ push_source (const char *name)
   sieve_filename = strdup (name);
   sieve_line_num = 1;
   sieve_source_inode = st.st_ino;
+
+  sieve_code_source (sieve_filename);
+  sieve_code_line (sieve_line_num);
+  
   return 0;
 }
 
@@ -316,6 +320,10 @@ pop_source ()
   ctx = context_stack->prev;
   free (context_stack);
   context_stack = ctx;
+
+  sieve_code_source (sieve_filename);
+  sieve_code_line (sieve_line_num);
+
   return 0;
 }
 %}
