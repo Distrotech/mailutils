@@ -6,7 +6,7 @@
 @finalout
 @c %**end of header
 
-@c @include version.texi
+@include version.texi
 
 @ifinfo
 @dircategory GNU libraries
