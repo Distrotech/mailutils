@@ -23,10 +23,6 @@
  * W[rite] [msglist] -- GNU extension
  */
 
-/*
- * NOTE: outfolder variable
- */
-
 int
 mail_write (int argc, char **argv)
 {
@@ -41,11 +37,14 @@ mail_write (int argc, char **argv)
   int *msglist = NULL;
   int num = 0, i = 0;
   int sender = 0;
-
+  size_t total_size, total_lines, size;
+  
   if (isupper (argv[0][0]))
     sender = 1;
   else if (argc >= 2)
-    filename = strdup (argv[--argc]);
+    filename = util_fullpath (argv[--argc]);
+    /* FIXME: Should we use util_outfolder_name() and honour
+       outfolder variable? */
   else
     filename = strdup ("mbox");
 
@@ -62,23 +61,46 @@ mail_write (int argc, char **argv)
     }
 
   output = fopen (filename, "a");
-
+  if (!output)
+    {
+      fprintf (ofile, "can't open %s: %s\n", filename, strerror (errno));
+      free (filename);
+      fclose (output);
+      free (msglist);
+      return 1;
+    }
+  
   for (i = 0; i < num; i++)
     {
+      attribute_t attr;
+
       mailbox_get_message (mbox, msglist[i], &msg);
       message_get_body (msg, &bod);
+
+      body_size (bod, &size);
+      total_size += size;
+      body_lines (bod, &size);
+      total_lines += size;
+      
       body_get_stream (bod, &stream);
       /* should there be a separator? */
-      while (stream_read(stream, buffer, sizeof (buffer) - 1, off, &n)
-	     == 0 && n != 0)
+      while (stream_read(stream, buffer, sizeof (buffer) - 1, off, &n) == 0
+	     && n != 0)
 	{
 	  buffer[n] = '\0';
 	  fprintf (output, "%s", buffer);
 	  off += n;
 	}
-      /* mark as saved */
+      
+      /* mark as saved. */
+
+      message_get_attribute (msg, &attr);
+      attribute_set_userflag (attr, MAIL_ATTRIBUTE_SAVED);
     }
 
+  fprintf (ofile, "\"%s\" %3ld/%-5ld\n", filename, total_lines, total_size);
+
+  free (filename);
   fclose (output);
   free (msglist);
   return 0;
