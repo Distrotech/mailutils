@@ -1,3 +1,45 @@
+2004-06-05  Sergey Poznyakoff 
+
+	* NEWS: Updated
+	* configure.ac: Check for iconv.h and iconv_t
+	(MU_COMMON_LIBRARIES): New subst symbol
+	* comsat/Makefile.am: Use MU_COMMON_LIBRARIES
+	* dotlock/Makefile.am
+	* examples/Makefile.am: Likewise.
+	* frm/Makefile.am: Likewise.
+	* from/Makefile.am: Likewise.
+	* guimb/Makefile.am: Likewise.
+	* imap4d/Makefile.am: Likewise.
+	* mail/Makefile.am: Likewise.
+	* mail.local/Makefile.am: Likewise.
+	* mail.remote/Makefile.am: Likewise.
+	* mailbox/Makefile.am: Likewise.
+	* messages/Makefile.am: Likewise.
+	* mh/Makefile.am: Likewise.
+	* movemail/Makefile.am: Likewise.
+	* pop3d/Makefile.am: Likewise.
+	* readmsg/Makefile.am: Likewise.
+	* sieve/Makefile.am: Likewise.
+	
+	* mailbox/file_stream.c (_file_read, _file_readline): Check for
+	eof.
+	* mailbox/list.c (list_set_destroy_item): Minor fix
+	
+	* include/mailutils/errno.h (MU_ERR_BUFSPACE): New error code
+	* mailbox/muerrno.c: Likewise
+	
+	* include/mailutils/stream.h (MU_STREAM_STRICT): New flag
+	* libsieve/extensions/spamd.c: Minor formatting fix
+	* mailbox/mailutils-config.c (main): add LINK_POSTFLAGS
+
+	* mailbox/rfc2047.c: (rfc2047_decode): Implemented charset
+	recoding using iconv filters.
+	* mailbox/filter_iconv.c: New file. Implementation of
+	iconv filter streams.
+	* examples/iconv.c: New file
+
+	* po/POTFILES.in: Updated
+	
 2004-06-04  Sergey Poznyakoff
 
 	* NEWS: Updated
