@@ -26,14 +26,14 @@ imap4d_append (struct imap4d_command *command, char *arg)
   int flags = 0;
   mailbox_t dest_mbox = NULL;
   int status;
-  
+
   mboxname = util_getword (arg, &sp);
   if (!mboxname)
     return util_finish (command, RESP_BAD, "Too few arguments");
 
   if (*sp == '(' && util_parse_attributes (sp+1, &sp, &flags))
     return util_finish (command, RESP_BAD, "Missing closing parenthesis");
-
+  
   mboxname = namespace_getfullpath (mboxname, "/");
   if (!mboxname)
     return util_finish (command, RESP_NO, "Couldn't open mailbox"); 
@@ -69,7 +69,7 @@ imap4d_append0 (mailbox_t mbox, int flags, char *text)
   struct tm *tm;
   time_t t;
   char date[80];
-  
+
   if (mailbox_create (&tmp, "/dev/null"))
     return 1;
   if (mailbox_open (tmp, MU_STREAM_READ) != 0)
@@ -81,6 +81,9 @@ imap4d_append0 (mailbox_t mbox, int flags, char *text)
       mailbox_close (tmp);
       return 1;
     }
+
+  while (*text && isspace (*text))
+    text++;
 
   /* If a date_time is specified, the internal date SHOULD be set in the
      resulting message; otherwise, the internal date of the resulting
@@ -126,4 +129,3 @@ imap4d_append0 (mailbox_t mbox, int flags, char *text)
   return rc;
 }
 
-  
