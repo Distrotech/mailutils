@@ -210,7 +210,9 @@ mailbox_flush (mailbox_t mbox, int expunge)
 {
   size_t i, total = 0;
   int status = 0;
-  
+
+  if (!(mbox->flags & (MU_STREAM_RDWR|MU_STREAM_WRITE|MU_STREAM_APPEND)))
+    return EACCES;
   mailbox_messages_count (mbox, &total);
   for (i = 1; i <= total; i++)
     {
@@ -233,6 +235,8 @@ mailbox_append_message (mailbox_t mbox, message_t msg)
 {
   if (mbox == NULL || mbox->_append_message == NULL)
     return MU_ERR_EMPTY_VFN;
+  if (!(mbox->flags & (MU_STREAM_RDWR|MU_STREAM_WRITE|MU_STREAM_APPEND)))
+    return EACCES;
   return mbox->_append_message (mbox, msg);
 }
 
@@ -272,6 +276,8 @@ mailbox_save_attributes (mailbox_t mbox)
 {
   if (mbox == NULL || mbox->_save_attributes == NULL)
     return MU_ERR_EMPTY_VFN;
+  if (!(mbox->flags & (MU_STREAM_RDWR|MU_STREAM_WRITE|MU_STREAM_APPEND)))
+    return EACCES;
   return mbox->_save_attributes (mbox);
 }
 
@@ -280,6 +286,8 @@ mailbox_expunge (mailbox_t mbox)
 {
   if (mbox == NULL || mbox->_expunge == NULL)
     return MU_ERR_EMPTY_VFN;
+  if (!(mbox->flags & (MU_STREAM_RDWR|MU_STREAM_WRITE|MU_STREAM_APPEND)))
+    return EACCES;
   return mbox->_expunge (mbox);
 }
 
