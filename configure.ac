@@ -20,6 +20,9 @@ AC_CHECK_LIB(resolv, res_query)
 
 MU_DEBUG_MODE
 
+# Initialize authlibs
+AUTHLIBS=../auth/libmuauth.la
+
 dnl Check for arguments
 AC_ARG_ENABLE(pam,
  [  --disable-pam           disable pam],
@@ -196,6 +199,19 @@ jm_INCLUDED_REGEX(lib/regex.c)
 #AC_FUNC_MEMCMP
 AC_FUNC_MMAP
 AC_FUNC_FNMATCH
+
+AC_CHECK_DECLS([strtok_r, strchrnul, strndup, asprintf, vasprintf] , , , [
+#include <stdio.h>
+#include <string.h>
+#ifdef HAVE_STRINGS_H
+# include <strings.h>
+#endif])
+
+AH_BOTTOM([
+#if !HAVE_DECL_STRTOK_R
+extern char *strtok_r (char *s, const char *delim, char **save_ptr);
+#endif])
+
 AC_REPLACE_FUNCS(fgetpwent getpass setenv snprintf strtok_r strncasecmp \
  strcasecmp strsignal vasprintf strndup strnlen strchrnul)
 AC_CHECK_FUNCS(mkstemp sigaction sysconf getdelim vsyslog setreuid \
@@ -252,6 +268,7 @@ AC_CHECK_FUNCS(_obstack_begin,
                [AC_DEFINE(HAVE_OBSTACK,1,[Define if GNU obstack is present])],
                [AC_LIBOBJ(obstack)])
 
+
 dnl check if mysql support was added
 AC_SUBST(BUILD_LIBMYSQL)
 AC_SUBST(MYSQLLIBS)
@@ -277,7 +294,7 @@ if test x"$use_virtual_domains" = x"yes"; then
     [SITE_VIRTUAL_PWDDIR="\$(sysconfdir)/domain"])
 fi
 
-dnl Use either PAM or CRYPT, not both.
+
 if test x"$testpam" = x"yes"; then
 	AC_CHECK_HEADERS(security/pam_appl.h)
 	if test x"$ac_cv_header_security_pam_appl_h" = x"yes"; then
@@ -289,12 +306,12 @@ if test x"$testpam" = x"yes"; then
 	fi
 fi
 
-if test x"$ac_cv_have_libpam" != x"yes"; then
-	AC_CHECK_FUNCS(crypt)
-	if test x"$ac_cv_func_crypt" = x"no"; then
-		AC_CHECK_LIB(crypt, crypt, AUTHLIBS="-lcrypt",, -lcrypt)
-	fi
+AC_CHECK_HEADERS(crypt.h)
+AC_CHECK_FUNCS(crypt)
+if test x"$ac_cv_func_crypt" = x"no"; then
+	AC_CHECK_LIB(crypt, crypt, AUTHLIBS="$AUTHLIBS -lcrypt",, -lcrypt)
 fi
+
 AC_SUBST(AUTHLIBS)
 AC_SUBST(AUTHINCS)
 
@@ -447,6 +464,7 @@ AC_CONFIG_FILES([Makefile mailutils.spec
  doc/Makefile doc/man/Makefile doc/rfc/Makefile doc/texinfo/Makefile
  lib/Makefile lib/posix/Makefile
  mailbox/Makefile
+ auth/Makefile
  imap4d/Makefile
  mailbox/include/Makefile
  from/Makefile
