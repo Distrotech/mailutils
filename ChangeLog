@@ -1,3 +1,19 @@
+2001-12-03  Sergey Poznyakoff
+
+	* configure.in: Fixed inconsistency: --with-dbm flag
+	was erroneously named --with-old-dbm in the help output.
+	* lib/mu_dbm.c: New function mu_dbm_stat(): retrieve
+	struct stat for a database file (or its *.pag part
+	for ndbm/gdbm).
+	* pop3d/popauth.c: Added --modify, --add, --delete
+	and --create options. Allow only --modify when the user
+	is not the owner of the database. This allows usual
+	users to use popauth the way they use system passwd
+	command, provided popauth is installed setuid.
+
+	* guimb/scm/sieve.scm: Delete temp-file after running
+	the script.
+
 2001-11-26  Alain Magloire
 
 	* doc/texinfo/mailer.texi: Replace @func with @code
