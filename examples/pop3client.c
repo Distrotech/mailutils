@@ -387,7 +387,7 @@ com_capa (char *arg)
 	   iterator_next (iterator))
 	{
 	  char *capa = NULL;
-	  iterator_current (iterator, &capa);
+	  iterator_current (iterator, (void **) &capa);
 	  printf ("Capa: %s\n", (capa) ? capa : "");
 	}
       iterator_destroy (&iterator);
@@ -413,7 +413,7 @@ com_uidl (char *arg)
 	       iterator_next (uidl_iterator))
 	    {
 	      char *uidl = NULL;
-	      iterator_current (uidl_iterator, &uidl);
+	      iterator_current (uidl_iterator, (void **) &uidl);
 	      printf ("UIDL: %s\n", (uidl) ? uidl : "") ;
 	    }
 	  iterator_destroy (&uidl_iterator);
@@ -449,7 +449,7 @@ com_list (char *arg)
 	       iterator_next (list_iterator))
 	    {
 	      char *list = NULL;
-	      iterator_current (list_iterator, &list);
+ 	      iterator_current (list_iterator, (void **) &list);
 	      printf ("LIST: %s\n", (list) ? list : "");
 	    }
 	  iterator_destroy (&list_iterator);
