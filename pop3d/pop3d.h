@@ -198,6 +198,7 @@ extern int pop3d_touchlock      __P ((void));
 extern int pop3d_uidl           __P ((const char *));
 extern int pop3d_user           __P ((const char *));
 extern int pop3d_unlock         __P ((void));
+extern void pop3d_outf          __P ((const char *fmt, ...));
 
 extern struct passwd * getpwnam_ip_virtual   __P ((const char *u));
 extern struct passwd * getpwnam_host_virtual __P ((const char *u));
