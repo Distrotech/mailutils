@@ -22,7 +22,8 @@ Group: Development/Libraries
 %description -n libmailbox
 The runtime library libmailbox. This library contains various mailbox
 access routines and support for a number of mailbox types, such as
-mbox, Maildir, POP3, and IMAP4.
+mbox, mh, POP3, and IMAP4. It also support mime message handling,
+and sending mail via SMTP and /sbin/sendmail.
 
 %package -n libmailbox-dev
 Summary: GNU mail utilities mailbox access library development
