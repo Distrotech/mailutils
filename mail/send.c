@@ -57,14 +57,20 @@ mail_send (int argc, char **argv)
   else
     subj = (util_find_env ("subject"))->value;
 
-  return mail_send0 (to, cc, bcc, subj);
+  return mail_send0 (to, cc, bcc, subj, isupper(argv[0][0]));
 }
 
-/* Shared between mail_send() and mail_reply();
-   NOTE: arguments should be allocated dynamically. They will be freed
+/* mail_send0(): shared between mail_send() and mail_reply();
+
+   If the variable "record" is set, the outgoing message is
+   saved after being sent. If "save_to" argument is non-zero,
+   the name of the save file is derived from "to" argument. Otherwise,
+   it is taken from the value of "record" variable.
+   
+   NOTE: arguments must be allocated dynamically. They will be freed
    before exit */
 int
-mail_send0 (char *to, char *cc, char *bcc, char *subj)
+mail_send0 (char *to, char *cc, char *bcc, char *subj, int save_to)
 {
   char *buf = NULL;
   size_t n = 0;
@@ -73,17 +79,22 @@ mail_send0 (char *to, char *cc, char *bcc, char *subj)
   char *filename;
   FILE *file;
   const char *tmpdir;
-
+  char *savefile = NULL;
+  
   /* We have to be extra careful about opening temporary files, since we
      may be running with extra privilege i.e setgid().  */
   tmpdir = (getenv ("TMPDIR")) ? getenv ("TMPDIR") : "/tmp";
   filename = alloca (strlen (tmpdir) + /*'/'*/1 + /* "muXXXXXX" */8 + 1);
   sprintf (filename, "%s/muXXXXXX", tmpdir);
 #ifdef HAVE_MKSTEMP
-  fd = mkstemp (filename);
+  {
+    int save_mask = umask(077);
+    fd = mkstemp (filename);
+    umask(save_mask);
+  }
 #else
   if (mktemp (filename))
-    fd = open(filename, O_CREAT|O_EXCL|O_WRONLY, 0600);
+    fd = open(filename, O_CREAT|O_EXCL|O_RDWR, 0600);
   else
     fd = -1;
 #endif
@@ -94,7 +105,7 @@ mail_send0 (char *to, char *cc, char *bcc, char *subj)
       return 1;
     }
 
-  file = fdopen (fd, "w");
+  file = fdopen (fd, "w+");
 
   while (getline (&buf, &n, stdin) >= 0 && !done)
     {
@@ -278,9 +289,25 @@ mail_send0 (char *to, char *cc, char *bcc, char *subj)
 	    free (buf);
 	    buf = NULL;
 	  }
-	fclose (file);
       }
 
+      fclose (file);
+
+      /* Save outgoing message */
+      if (save_to)
+	{
+	  savefile = strdup (to);
+	  if (savefile)
+	    {
+	      char *p = strchr(savefile, '@');
+	      if (p)
+		*p = 0;
+	    }
+	}
+      util_save_outgoing (msg, savefile);
+      if (savefile)
+	free (savefile);
+      
       /* Send the message.  */
       mailer_send_message (mailer, msg);
       message_destroy (&msg, NULL);
