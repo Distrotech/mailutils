@@ -62,7 +62,7 @@ struct _stream
   int (*_size)     __P ((stream_t, off_t *));
   int (*_flush)    __P ((stream_t));
   int (*_setbufsiz)__P ((stream_t, size_t));
-  int (*_strerror) __P ((stream_t, const char **));
+  int (*_strerror) __P ((stream_t, char **));
 };
 
 #ifdef __cplusplus
