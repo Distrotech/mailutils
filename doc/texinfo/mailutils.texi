@@ -1,7 +1,7 @@
-\input texinfo  @c -*-texinfo-*-
+\input texinfo @c -*-texinfo-*-
 @c %**start of header
 @setfilename mailutils.info
-@settitle GNU Mailutils, Programming Manual
+@settitle GNU Mailutils Manual
 @setchapternewpage off
 @finalout
 @c %**end of header
@@ -17,30 +17,28 @@
 
 @c Combine indices.
 @syncodeindex ky cp
-
 @defcodeindex op
 @syncodeindex op fn
 @syncodeindex vr fn
 @syncodeindex tp fn
 
 @ifinfo
-@dircategory GNU libraries
+@dircategory Email
 @direntry
-* mailutils: (mailutils).            API for mailboxes and mail protocols.
+* Mailutils: (mailutils).       Utilities & library for mailboxes, protocols.
 @end direntry
-@dircategory GNU utilities
+@dircategory Individual utilities
 @direntry
-* comsatd: (mailutils)comsatd.       Comsat daemon.
-* frm: (mailutils)frm.               List headers from a mailbox.
-* guimb: (mailutils)guimb.           Mailbox scanning and processing language.
-* imap4d: (mailutils)imap4d.         IMAP4 daemon.
-* mail.local: (mailutils)mail.local. Deliver mail to the local mailbox.
-* mail: (mailutils)mail.             Send and receive mail.
-* messages: (mailutils)messages.     Count the number of messages in a mailbox.
-* pop3d: (mailutils)pop3d.           POP3 daemon.
-* readmsg: (mailutils)readmsg.       Extract messages from a folder.
-* sieve: (mailutils)sieve.           Mail filtering utility.
-* mailutils-config: (mailutils)mailutils-config. Get the information about the Mailutils build.
+* comsatd: (mailutils)comsatd.                  Comsat daemon.
+* frm: (mailutils)frm.                          List headers from a mailbox.
+* guimb: (mailutils)guimb.                      Mailbox processing language.
+* imap4d: (mailutils)imap4d.                    IMAP4 daemon.
+* mail.local: (mailutils)mail.local.            Deliver mail to local mailbox.
+* mail: (mailutils)mail.                        Send and receive mail.
+* messages: (mailutils)messages.                Count messages in mailbox.
+* pop3d: (mailutils)pop3d.                      POP3 daemon.
+* readmsg: (mailutils)readmsg.                  Extract messages from a folder.
+* sieve: (mailutils)sieve.                      Mail filtering utility.
 @end direntry
 @end ifinfo
 
@@ -101,6 +99,7 @@ Appendices
 * GNU FDL::                 This manual is under the GNU Free
                             Documentation License.
 Indices
+
 * Function Index::          All Mailutils Functions.
 * Program Index::           All Mailutils Programs.
 * Concept Index::           Index of Concepts.
@@ -215,19 +214,21 @@ miscellaneous related topics
 
 @itemize @minus
 @item
-@cite{RFC 3028: Sieve: A Mail Filtering Language}
+@cite{RFC 1738: Uniform Resource Locators (URL)}
 
 @item
 @cite{RFC 2298: An Extensible Message Format for Message Disposition
 Notifications}
 
 @item
-@cite{RFC 1738: Uniform Resource Locators (URL)}
+@cite{RFC 3028: Sieve: A Mail Filtering Language}
+
+@item
+@cite{RFC 3431: Sieve Extension: Relational Tests}
 
 @item
 @cite{Internet Email Protocols: A Developer's Guide, by Kevin Johnson}
 @end itemize
-
 @end itemize
 
 @node libmailbox, libmuauth, Introduction, Top
