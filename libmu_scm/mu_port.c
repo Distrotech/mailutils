@@ -30,7 +30,6 @@ struct mu_port
 static void
 mu_port_alloc_buffer (SCM port, size_t read_size, size_t write_size)
 {
-  struct mu_port *mp = MU_PORT (port);
   scm_port *pt = SCM_PTAB_ENTRY (port);
   static char *s_mu_port_alloc_buffer = "mu_port_alloc_buffer";
   
@@ -168,7 +167,6 @@ mu_port_fill_input (SCM port)
 static void
 mu_port_write (SCM port, const void *data, size_t size)
 {
-  struct mu_port *mp = MU_PORT (port);
   scm_port *pt = SCM_PTAB_ENTRY (port);
   size_t remaining = size;
   char *input = (char*) data;
@@ -256,7 +254,7 @@ static int
 mu_port_print (SCM exp, SCM port, scm_print_state *pstate)
 {
   struct mu_port *mp = MU_PORT (exp);
-  size_t size = 0;
+  off_t size = 0;
   
   scm_puts ("#<", port);
   scm_print_port_mode (exp, port);
