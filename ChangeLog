@@ -1,3 +1,11 @@
+2002-12-25  Wojciech Polak <polak@gnu.org>
+
+	* po/POTFILES.in: Updated.
+	* mailbox/mu_argp.c: Added NLS.
+	* mailbox/muerrno.c: Likewise.
+	* mailbox/message.c: Likewise.
+	* libsieve/*: Likewise.
+
 2002-12-25  Sergey Poznyakoff  
 
 	* comsat/action.c: Do not include \r\n to the i18n strings.

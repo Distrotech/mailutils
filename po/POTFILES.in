@@ -26,6 +26,17 @@ imap4d/util.c
 lib/getopt.c
 lib/xmalloc.c
 
+libsieve/actions.c
+libsieve/comparator.c
+libsieve/prog.c
+libsieve/require.c
+libsieve/runtime.c
+libsieve/sieve-lex.c
+libsieve/tests.c
+libsieve/util.c
+libsieve/sieve.y
+libsieve/sieve.l
+
 mail/alias.c
 mail/alt.c
 mail/copy.c
@@ -57,6 +68,9 @@ mail.local/script.c
 
 mailbox/argp-parse.c
 mailbox/mailutils-config.c
+mailbox/message.c
+mailbox/mu_argp.c
+mailbox/muerrno.c
 
 messages/messages.c
 
