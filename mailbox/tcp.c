@@ -233,7 +233,7 @@ tcp_stream_create (stream_t * stream, const char* host, int port, int flags)
   int ret;
 
   if (host == NULL)
-    return MU_ERR_TCP_NO_HOST
+    return MU_ERR_TCP_NO_HOST;
 
   if (port < 1)
     return MU_ERR_TCP_NO_PORT;
