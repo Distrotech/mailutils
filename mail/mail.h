@@ -77,6 +77,7 @@
 #include <mailutils/stream.h>
 #include <mailutils/url.h>
 #include <mailutils/nls.h>
+#include <mailutils/tls.h>
 #include <mailutils/argcv.h>
 #include <getline.h>
 #include <mu_asprintf.h>

@@ -40,6 +40,7 @@
 #include <mailutils/stream.h>
 #include <mailutils/url.h>
 #include <mailutils/nls.h>
+#include <mailutils/tls.h>
 
 int msglist __P ((mailbox_t mbox, int show_all, int argc, char **argv, int **set, int *n));
 
