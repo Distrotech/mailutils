@@ -93,8 +93,8 @@ argcv_scan (int len, const char *command, const char *delim, const char* cmnt,
 
 static char escape_transtab[] = "\\\\a\ab\bf\fn\nr\rt\t";
 
-static int
-unescape_char (int c)
+int
+argcv_unescape_char (int c)
 {
   char *p;
 
@@ -106,8 +106,8 @@ unescape_char (int c)
   return c;
 }
 
-static int
-escape_char (int c)
+int
+argcv_escape_char (int c)
 {
   char *p;
   
@@ -154,7 +154,7 @@ escaped_length (const char *str, int *quote)
 	}
       else if (isprint (*str))
 	len++;
-      else if (escape_char (*str) != -1)
+      else if (argcv_escape_char (*str) != -1)
 	len += 2;
       else
 	len += 4;
@@ -226,7 +226,7 @@ unescape_copy (char *dst, const char *src, size_t n)
 	      break;
 	      
 	    default:
-	      *dst++ = unescape_char (*src++);
+	      *dst++ = argcv_unescape_char (*src++);
 	      n--;
 	    }
 	}
@@ -252,7 +252,7 @@ escape_copy (char *dst, const char *src)
 	*dst++ = *src;      
       else
 	{
-	  int c = escape_char (*src);
+	  int c = argcv_escape_char (*src);
 	  *dst++ = '\\';
 	  if (c != -1)
 	    *dst++ = c;

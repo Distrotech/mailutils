@@ -40,6 +40,8 @@ extern int argcv_get    __P ((const char *command, const char *delim,
 			      int *argc, char ***argv));
 extern int argcv_string __P ((int argc, char **argv, char **string));
 extern int argcv_free   __P ((int argc, char **argv));
+extern int argcv_unescape_char __P((int c));
+extern int argcv_escape_char __P((int c));
 
 #ifdef __cplusplus
 }
