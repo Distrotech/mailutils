@@ -18,15 +18,17 @@
 #include "guimb.h"
 #include "getopt.h"
 
-static char short_options[] = "de:f:g:hm:u:v{";
+static char short_options[] = "de:f:g:hM:m:s:u::v{";
 static struct option long_options[] = {
   {"debug", no_argument, 0, 'd'},
   {"expression", required_argument, 0, 'e'},
   {"file", required_argument, 0, 'f'},
   {"help", no_argument, 0, 'h'},
   {"guile-command", required_argument, 0, 'g'},
-  {"mailbox", required_argument, 0, 'm'},
-  {"user", required_argument, 0, 'u'},
+  {"maildir", required_argument, 0, 'm'},
+  {"mailbox", required_argument, 0, 'M'},
+  {"source", required_argument, 0, 's'},
+  {"user", optional_argument, 0, 'u'},
   {"version", no_argument, 0, 'v'},
   {0, 0, 0, 0}
 };
@@ -36,7 +38,10 @@ char *program_expr;
 int debug_guile;
 char *user_name;
 char *default_mailbox;
+char *maildir = MU_PATH_MAILDIR;
+
 static void usage (void);
+char * who_am_i ();
 
 static int g_size;
 static int g_argc;
@@ -64,10 +69,14 @@ int
 main (int argc, char *argv[])
 {
   int c;
+  int stop = 0;
+  guimb_param_t param;
+  struct guimb_data gd;
   
   append_arg ("");
-  while ((c = getopt_long (argc, argv, short_options, long_options, NULL))
-	 != -1)
+  while (!stop
+	 && (c = getopt_long (argc, argv, short_options, long_options, NULL))
+	     != -1)
     switch (c)
       {
       case 'd':
@@ -85,11 +94,18 @@ main (int argc, char *argv[])
       case 'h':
 	usage ();
 	exit (0);
-      case 'm':
+      case 'M':
 	default_mailbox = optarg;
 	break;
+      case 'm':
+	maildir = optarg;
+	break;
       case 'u':
-	user_name = optarg;
+	user_name = optarg ? optarg : who_am_i ();
+	break;
+      case 's':
+	program_file = optarg;
+	stop = 1;
 	break;
       case 'v':
 	printf ("guimb (" PACKAGE " " VERSION ")\n");
@@ -109,15 +125,31 @@ main (int argc, char *argv[])
 	optind++;
 	break;
       default:
-	fprintf (stderr,
-		 "Invalid argument (-%c). Try guimb --help for more info\n",
-		 c);
 	exit (1);
       }
- 
-  if (program_file)
-      g_argv[0] = program_file;
 
+  if (stop)
+    for (; optind < argc; optind++)
+      append_arg (argv[optind]);
+
+  if (!user_name)
+    user_name = who_am_i ();
+  
+  maildir = mu_normalize_maildir (maildir);
+  if (!maildir)
+    {
+      util_error ("Badly formed maildir: %s", maildir);
+      exit (1);
+    }
+  
+  if (program_file)
+    g_argv[0] = program_file;
+  else if (!program_expr)
+    {
+      usage ();
+      exit (0);
+    }
+    
   /* Register the desired formats. */
   {
     list_t lst;
@@ -131,9 +163,10 @@ main (int argc, char *argv[])
     list_append (lst, smtp_record);
   }
 
-  if (default_mailbox && !argv[optind])
+  if (!argv[optind])
     {
-      append_arg (default_mailbox);
+      if (default_mailbox)
+	append_arg (default_mailbox);
       collect_open_default ();
     }
   else
@@ -155,7 +188,37 @@ main (int argc, char *argv[])
   append_arg (NULL);
   g_argc--;
 
-  run_main (g_argc, g_argv);
+  /* Finish creating input mailbox */
+  collect_create_mailbox ();
+
+  gd.program_file = program_file;
+  gd.program_expr = program_expr;
+  
+  param.debug_guile = debug_guile;
+  param.mbox = mbox;
+  param.user_name = user_name;
+  param.init = NULL;
+  param.catch_body = guimb_catch_body;
+  param.catch_handler = guimb_catch_handler;
+  param.next = NULL;
+  param.exit = guimb_exit;
+  param.data = &gd;
+  mu_process_mailbox (g_argc, g_argv, &param);
+  /*NOTREACHED*/
+  return 0;
+}
+
+char *
+who_am_i ()
+{
+  char *name = getenv ("LOGNAME");
+  if (!name)
+    {
+      name = getenv ("USER");
+      if (!name)
+	name = strdup (getlogin ());
+    }
+  return name;
 }
 
 static char usage_str[] =
