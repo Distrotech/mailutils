@@ -66,7 +66,7 @@ strobj_free (strobj_t *obj)
 }
 
 #define strobj_ptr(p) ((p)->ptr ? (p)->ptr : "")
-#define strobj_len(p) strlen((p)->ptr)
+#define strobj_len(p) (strobj_is_null(p) ? 0 : strlen((p)->ptr))
 #define strobj_is_null(p) ((p)->ptr == NULL)
 #define strobj_is_static(p) ((p)->size == 0)
 
@@ -167,8 +167,15 @@ compress_ws (char *str, size_t *size)
 static void
 print_string (struct mh_machine *mach, size_t width, char *str, size_t len)
 {
-  size_t rest = strlen (str);
+  size_t rest;
 
+  if (!str)
+    {
+      str = "";
+      len = 0;
+    }
+
+  rest = strlen (str);
   if (len > rest)
     len = rest;
   if (!width)
@@ -864,9 +871,14 @@ _parse_date (struct mh_machine *mach, struct tm *tm, mu_timezone *tz)
   
   if (parse822_date_time (&p, date+strlen(date), tm, tz))
     {
-      mh_error ("can't parse date: [%s]", date);
-      return -1;
+      time_t t;
+      
+      /*mh_error ("can't parse date: [%s]", date);*/
+      time (&t);
+      *tm = *localtime (&t);
+      tz->utc_offset = mu_utc_offset ();
     }
+  
   return 0;
 }
 
