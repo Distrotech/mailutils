@@ -179,8 +179,23 @@ if test x"${usedb2}" = x"yes"; then
 		LIBS="$LIBS -ldb"])
 fi
 
+dnl Check for Guile
+AC_PATH_PROG(GUILE_CONFIG, guile-config, no, $PATH)
+AC_SUBST(GUILE_INCLUDES)
+AC_SUBST(GUILE_LIBS)
+if test x$GUILE_CONFIG != xno; then
+  GUILE_INCLUDES=`guile-config compile`
+  GUILE_LIBS=`guile-config link`
+# NOTE: uncomment this when debug_print clash is resolved.
+#  GUIMB=guimb
+  AC_SUBST(GUIMB)	
+#  MU_SCM=libmu_scm.a
+  AC_SUBST(MU_SCM)
+fi
+
 dnl Output Makefiles
 AC_OUTPUT(Makefile mailutils.spec include/Makefile include/mailutils/Makefile
  m4/Makefile doc/Makefile argp/Makefile lib/Makefile mailbox/Makefile
  imap4d/Makefile mailbox/include/Makefile from/Makefile mail/Makefile
- pop3d/Makefile frm/Makefile sieve/Makefile)
+ pop3d/Makefile frm/Makefile sieve/Makefile 
+ scripts/Makefile libmu_scm/Makefile guimb/Makefile)
