@@ -2,11 +2,15 @@
 
 default: test-complex
 
+HOME :=$(shell pwd)
+
+export HOME
+
 .PHONY: test-complex
 test-complex:
 	rm -f mbox.complex.*
 	grep -v X-UID < mbox.complex > mbox.complex.in
-	../sieve -k -f mbox.complex.in t-complex.sv
+	HOME=`pwd` ../sieve -k -f mbox.complex.in t-complex.sv
 
 test: INBOX
 	./Test 2>&1 | tee test.out

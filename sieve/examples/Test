@@ -23,6 +23,6 @@
     	cp INBOX.orig INBOX
     	echo
     	echo Test: $t
-    	../sieve -v -f ./INBOX $t
+    	../sieve -f ./INBOX $t
     done
 

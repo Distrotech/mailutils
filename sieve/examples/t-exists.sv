@@ -1,7 +1,5 @@
-require "fileinto";
-
-if exists "subject"
+if exists "X"
 {
-    fileinto "subject";
+    keep;
 }
 
