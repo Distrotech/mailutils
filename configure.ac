@@ -27,6 +27,7 @@ AC_PREREQ(2.59)
 
 dnl Check for programs
 AC_PROG_CC
+AC_PROG_CXX
 AC_PROG_INSTALL
 AC_PROG_LN_S
 AC_LIBTOOL_DLOPEN
@@ -429,7 +430,7 @@ AH_TEMPLATE(HAVE_MYSQL,[Define if you have libmysql])
 AH_TEMPLATE(HAVE_PGSQL,[Define if you have libpq])
 
 if test x"$use_mysql" = x"yes" -a x"$use_postgres" = x"yes"; then
- AC_MSG_ERROR(Use either --with-mysql or --with-postgres, not both)
+ AC_MSG_ERROR([Use either --with-mysql or --with-postgres, not both])
 else
  if test x"$use_mysql" = x"yes"; then
    AC_CHECK_HEADER(mysql/mysql.h,
@@ -683,6 +684,18 @@ if test x"$useguile" = x"yes"; then
          ],[useguile=no])
 fi
 
+dnl Check whether to enable C++ support
+if test -z "$CXX"; then
+	:
+else
+	AC_SUBST(MU_CXX_LIBS)
+	AC_SUBST(MU_CXX_PROGS)
+	AC_SUBST(MU_CXX_INCLUDES)
+	MU_CXX_LIBS='$(MU_CXX_LIBS)'
+	MU_CXX_PROGS='$(MU_CXX_PROGS)'
+	MU_CXX_INCLUDES='$(MU_CXX_INCLUDES)'
+fi
+
 dnl Check for Emacs site-lisp directory
 AM_PATH_LISPDIR
 
@@ -756,6 +769,11 @@ AC_CONFIG_FILES([Makefile
  include/mailutils/sys/Makefile
  intl/Makefile
  lib/Makefile
+ libmu_cpp/Makefile
+ libmu_cpp/examples/Makefile
+ libmu_cpp/include/Makefile
+ libmu_cpp/include/mailutils/Makefile
+ libmu_cpp/include/mailutils/c++/Makefile
  libmu_scm/Makefile
  libsieve/Makefile
  libsieve/extensions/Makefile
