@@ -46,14 +46,14 @@ set_namespace(int i, char *str)
   /* Fill in the array */
   if (ns.subdir_c == 1)
     {
-      ns.subdir_v[0] = util_normalize_path(strdup(str), "/");
+      ns.subdir_v[0] = mu_normalize_path(strdup(str), "/");
     }
   else
     {
       ns.subdir_c = 0;
       for (p = strtok_r(str, ":", &save); p; p = strtok_r(NULL, ":", &save))
 	{
-	  ns.subdir_v[ns.subdir_c++] = util_normalize_path(strdup(p), "/");
+	  ns.subdir_v[ns.subdir_c++] = mu_normalize_path(strdup(p), "/");
 	}
     }
 
@@ -176,8 +176,8 @@ namespace_checkfullpath (char *name, const char *pattern, const char *delim)
   if (!path)
     return path;
 
-  util_normalize_path(path, "/");
-
+  mu_normalize_path(path, "/");
+  
   info.name = path;
   info.namelen = strlen(path);
   if (!namespace_enumerate_all(check_namespace, &info))
