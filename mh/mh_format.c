@@ -1751,10 +1751,12 @@ builtin_formataddr (struct mh_machine *mach)
 	}
     }
   list_append (mach->addrlist, addr);
-  address_to_string (dest, NULL, 0, &size);
-  strobj_realloc (&mach->reg_str, size + 1);
-  address_to_string (dest, strobj_ptr (&mach->reg_str), size + 1, NULL);
-  address_destroy (&dest);
+  if (address_to_string (dest, NULL, 0, &size) == 0)
+    {
+      strobj_realloc (&mach->reg_str, size + 1);
+      address_to_string (dest, strobj_ptr (&mach->reg_str), size + 1, NULL);
+      address_destroy (&dest);
+    }
 }
 
 /*      putaddr    literal        print str address list with
