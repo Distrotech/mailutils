@@ -1,7 +1,7 @@
 AUTOMAKE_OPTIONS = gnu 1.6
 ACLOCAL_AMFLAGS = -I m4
 
-SUBDIRS = include doc m4 lib MySql mailbox frm from pop3d imap4d \
+SUBDIRS = include doc m4 lib MySql mailbox auth frm from pop3d imap4d \
           mail sieve scripts libmu_scm guimb messages comsat readmsg \
           mail.local mail.remote dotlock mh
 
