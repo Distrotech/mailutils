@@ -25,6 +25,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <time.h>
+#include <unistd.h>
 #include <string.h>
 #include <ctype.h>
 #include <pwd.h>
