@@ -1,6 +1,7 @@
 alias.exp  
 read.exp
 folder.exp
+send.exp
 tag.exp
 write.exp
 z.exp
