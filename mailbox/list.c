@@ -62,6 +62,8 @@ list_destroy (list_t *plist)
 	{
 	  previous = current;
 	  current = current->next;
+	  if (list->destroy_item)
+	    list->destroy_item (previous->item);
 	  free (previous);
 	}
       monitor_unlock (list->monitor);
@@ -292,4 +294,12 @@ list_do (list_t list, list_action_t * action, void *cbdata)
     }
   monitor_unlock (list->monitor);
   return status;
+}
+
+int
+list_set_destroy_item (list_t list, void (*destroy_item)(void *item))
+{
+  if (list == NULL)
+    return EINVAL;
+  list->destroy_item = destroy_item;
 }
