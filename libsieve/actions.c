@@ -167,7 +167,8 @@ build_mime (mime_t *pmime, message_t msg, const char *text)
     header_t hdr;
     size_t off = 0;
     body_t body;
-
+    char *email;
+    
     message_create (&newmsg, NULL);
     message_get_header (newmsg, &hdr); 
     header_set_value (hdr, "Content-Type", "message/delivery-status", 1);
@@ -175,8 +176,10 @@ build_mime (mime_t *pmime, message_t msg, const char *text)
     body_get_stream (body, &stream);
     stream_printf (stream, &off, "Reporting-UA: sieve; %s\n", PACKAGE_STRING);
     stream_printf (stream, &off, "Arrival-Date: %s\n", datestr);
+    email = mu_get_user_email (NULL);
     stream_printf (stream, &off, "Final-Recipient: RFC822; %s\n",
-		   mu_get_user_email (NULL));
+		   email ? email : "unknown");
+    free (email);
     stream_printf (stream, &off, "Action: deleted\n");
     stream_printf (stream, &off, 
 		 "Disposition: automatic-action/MDN-sent-automatically;deleted\n");
@@ -333,6 +336,7 @@ check_redirect_loop (message_t msg)
 	  address_destroy (&addr);
 	}
     }
+  free (email);
   return loop;
 }
 
@@ -343,7 +347,7 @@ sieve_action_redirect (sieve_machine_t mach, list_t args, list_t tags)
   address_t addr = NULL, from = NULL;
   header_t hdr = NULL;
   int rc;
-  char *fromaddr;
+  char *fromaddr, *p;
   mailer_t mailer = sieve_get_mailer (mach);
   
   sieve_value_t *val = sieve_value_get (args, 0);
@@ -405,9 +409,21 @@ sieve_action_redirect (sieve_machine_t mach, list_t args, list_t tags)
 		   mu_errstring (rc));
       goto end;
     }
+  
   message_get_header (newmsg, &hdr);
-  header_set_value (hdr, "X-Sender", mu_get_user_email (NULL), 0);
-
+  p = mu_get_user_email (NULL);
+  if (p)
+    {
+      header_set_value (hdr, "X-Sender", p, 0);
+      free (p);
+    }
+  else
+    {
+      sieve_error (mach, "%d: can't get my email address",
+		   sieve_get_message_num (mach));
+      goto end;
+    }
+  
   rc = mailer_open (mailer, 0);
   if (rc)
     {
