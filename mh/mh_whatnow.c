@@ -329,6 +329,8 @@ list (struct mh_whatnow_env *wh, int argc, char **argv, int *status)
 static int
 push (struct mh_whatnow_env *wh, int argc, char **argv, int *status)
 {
+  int rc;
+  invoke ("sendproc", "send", argc, argv, "-push", wh->file, &rc);
   return 0;
 }
 
@@ -365,6 +367,8 @@ refile (struct mh_whatnow_env *wh, int argc, char **argv, int *status)
 static int
 send (struct mh_whatnow_env *wh, int argc, char **argv, int *status)
 {
+  int rc;
+  invoke ("sendproc", "send", argc, argv, wh->file, NULL, &rc);
   return 0;
 }
 
