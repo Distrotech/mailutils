@@ -1,10 +1,11 @@
-GNU mailutils THANKS file
+GNU Mailutils THANKS file.
 
 Many people further contributed to GNU mailutils by reporting problems,
-suggesting various improvements or submitting actual code. Here is a list of
-these people. Help us keep it complete and exempt of errors.
+suggesting various improvements or submitting actual code. Here is a list
+of these people. Help us keep it complete and exempt of errors.
 
 Alain Magloire       <alainm@gnu.org>
+Dan Jacobson         <jidanni@jidanni.org>
 Frank Belew          <frb@wiw.org>
 Jakob 'sparky' Kaivo <jkaivo@elijah.nodomainname.net>
 James Troup          <james@nocrew.org>
@@ -20,4 +21,3 @@ Simon Josefsson      <jas@extundo.com>
 Timothy Carpenter    <timbeau_hk@yahoo.co.uk>
 Vesselin Atanasov    <vesselin@bgnet.bg>
 Wojciech Polak       <polak@gnu.org>
-Dan Jacobson         <jidanni@jidanni.org>
