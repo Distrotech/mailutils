@@ -496,20 +496,28 @@ sieve_machine_destroy (sieve_machine_t *pmach)
   list_destroy (&mach->action_list);
   list_destroy (&mach->test_list);
   list_destroy (&mach->comp_list);
+  list_destroy (&mach->source_list);
   sieve_slist_destroy (&mach->memory_pool);
   free (mach);
   *pmach = NULL;
 }
 
-/* FIXME: When posix thread support is added, sieve_machine_begin() should
-   acquire the global mutex, locking the current compilation session, and
-   sieve_machine_finish() should release it */
+static int
+string_comp (const void *item, const void *value)
+{
+  return strcmp (item, value);
+}
+
 void
-sieve_machine_begin (sieve_machine_t mach)
+sieve_machine_begin (sieve_machine_t mach, char *file)
 {
   sieve_machine = mach;
   sieve_error_count = 0;
   sieve_code_instr (NULL);
+
+  list_create (&mach->source_list);
+  list_set_comparator (mach->source_list, string_comp);
+  
   sieve_register_standard_actions (mach);
   sieve_register_standard_tests (mach);
   sieve_register_standard_comparators (mach);
@@ -526,11 +534,10 @@ sieve_compile (sieve_machine_t mach, const char *name)
 {
   int rc;
   
-  sieve_machine_begin (mach);
+  sieve_machine_begin (mach, name);
 
   if (sieve_lex_begin (name) == 0)
     {
-      sieve_machine->filename = sieve_mstrdup (sieve_machine, name);
       rc = yyparse ();
       if (sieve_error_count)
 	rc = 1;
