@@ -21,12 +21,37 @@
  *
  */
 
+typedef int (*status_funcp) __P ((mailbox_t));
+
 static int status_messages    __P ((mailbox_t));
 static int status_recent      __P ((mailbox_t));
 static int status_uidnext     __P ((mailbox_t));
 static int status_uidvalidity __P ((mailbox_t));
 static int status_unseen      __P ((mailbox_t));
 
+struct status_table {
+  char *name;
+  status_funcp fun;
+} status_table[] = {
+  "MESSAGES", status_messages,
+  "RECENT", status_recent,
+  "UIDNEXT", status_uidnext,
+  "UIDVALIDITY", status_uidvalidity,
+  "UNSEEN", status_unseen,
+  NULL
+};
+
+static status_funcp
+status_get_handler (const char *name)
+{
+  struct status_table *p;
+
+  for (p = status_table; p->name; p++)
+    if (strcmp (p->name, name) == 0)
+      return p->fun;
+  return NULL;
+}
+  
 int
 imap4d_status (struct imap4d_command *command, char *arg)
 {
@@ -36,6 +61,7 @@ imap4d_status (struct imap4d_command *command, char *arg)
   const char *delim = "/";
   mailbox_t smbox = NULL;
   int status;
+  int count = 0;
 
   if (! (command->states & state))
     return util_finish (command, RESP_BAD, "Wrong state");
@@ -48,7 +74,15 @@ imap4d_status (struct imap4d_command *command, char *arg)
   if (strcasecmp (name, "INBOX") == 0 && !mu_virtual_domain)
     {
       struct passwd *pw = mu_getpwuid (getuid());
-      mailbox_name = strdup ((pw) ? pw->pw_name : "");
+      if (!pw)
+	return util_finish (command, RESP_NO, "Cannot map UID to username");
+      mailbox_name = malloc (strlen (maildir) + strlen (pw->pw_name) + 1);
+      if (!mailbox_name)
+	{
+	  syslog (LOG_ERR, "Not enough memory");
+	  return util_finish (command, RESP_NO, "Not enough memory");
+	}
+      sprintf (mailbox_name, "%s%s", maildir, pw->pw_name);
     }
   else
     mailbox_name = namespace_getfullpath (name, delim);
@@ -63,34 +97,46 @@ imap4d_status (struct imap4d_command *command, char *arg)
       if (status == 0)
 	{
 	  char item[32];
-	  util_send ("* STATUS %s (", name);
 	  item[0] = '\0';
+	  
+	  if (*sp == '(')
+	    sp++;
+	  else
+	    *sp = 0;
+	  
 	  /* Get the status item names.  */
 	  while (*sp && *sp != ')')
 	    {
 	      int err = 1;
+	      status_funcp fun;
+	      
 	      util_token (item, sizeof (item), &sp);
-	      if (strcasecmp (item, "MESSAGES") == 0)
-		err = status_messages (smbox);
-	      else if (strcasecmp (item, "RECENT") == 0)
-		err = status_recent (smbox);
-	      else if (strcasecmp (item, "UIDNEXT") == 0)
-		err = status_uidnext (smbox);
-	      else if (strcasecmp (item, "UIDVALIDITY") == 0)
-		err = status_uidvalidity (smbox);
-	      else if (strcasecmp (item, "UNSEEN") == 0)
-		err = status_unseen (smbox);
-	      if (!err)
+	      fun = status_get_handler (item);
+	      if (!fun)
+		{
+		  count = -1;
+		  break;
+		}
+		  
+	      if (count++ == 0)
+		util_send ("* STATUS %s (", name);
+
+	      if (!fun (smbox))
 		util_send (" ");
 	    }
-	  util_send (")\r\n");
+	  if (count)
+	    util_send (")\r\n");
 	  mailbox_close (smbox);
 	}
       mailbox_destroy (&smbox);
     }
   free (mailbox_name);
 
-  if (status == 0)
+  if (count == 0)
+    return util_finish (command, RESP_BAD, "Too few args (empty list)");
+  else if (count == -1)
+    return util_finish (command, RESP_BAD, "Invalid flag in list");
+  else if (status == 0)
     return util_finish (command, RESP_OK, "Completed");
   return util_finish (command, RESP_NO, "Error opening mailbox");
 }
