@@ -6,10 +6,9 @@ noinst_LTLIBRARIES = libmailutils.la
 
 SUBDIRS = posix
 
-INCLUDES = -I${top_srcdir}/include -I${top_srcdir}/include/gnu
+INCLUDES = -I${top_srcdir}/include -I${top_srcdir}/include/mailutils/gnu
 libmailutils_la_SOURCES = basename.c daemon.c getopt.c getopt1.c md5.c \
-                         mu_dbm.c xstrdup.c xmalloc.c \
-                         pin.c 
+                         mu_dbm.c xstrdup.c xmalloc.c 
 
 EXTRA_DIST = alloca.c fnmatch.c fgetpwent.c getpass.c malloc.c obstack.c \
   realloc.c setenv.c snprintf.c strncasecmp.c \
