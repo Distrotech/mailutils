@@ -11,5 +11,6 @@ refile
 mhpath
 folder
 fmtcheck
+repl
 *.output
 .gdbinit
