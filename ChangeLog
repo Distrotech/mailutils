@@ -1,3 +1,11 @@
+2003-12-30  Sergey Poznyakoff 
+
+	* examples/spamd.c (spamd_test): Use EUID to determine
+	user's identity.
+	* movemail/movemail.c: Allow to use traditional Emacs
+	invocation (password as the last argument) with usual
+	Mailutils URLs.
+
 2003-12-30  Sergey Poznyakoff
 
 	* examples/murun.c: Close output stream
