@@ -1,3 +1,12 @@
+2002-01-19 Sam Roberts
+
+	* mailbox/mbx_imap.c: Append to INBOX if an explicit path wasn't
+	  supplied.
+	* mailbox/mbx_mbox.c: X-UID is 5 chars, not 4, and this line will
+	  match X-UIDL too, is that intended?
+	* mailbox/url_mbox.c: including strings.h as well
+	* mailbox/debug.c: Removed a FIXME that seems to have been fixed.
+
 2002-01-18  Sergey Poznyakoff  
 
 	* mailbox/mutil.c: New function mu_tempfile().
