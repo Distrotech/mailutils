@@ -514,7 +514,7 @@ _pop_user (authority_t auth)
 	  CHECK_ERROR_CLOSE (mbox, mpd, MU_ERR_NOPASSWORD);
 	}
       status = pop_writeline (mpd, "PASS %s\r\n", mpd->passwd);
-      MAILBOX_DEBUG0 (mbox, MU_DEBUG_PROT, mpd->buffer);
+      MAILBOX_DEBUG0 (mbox, MU_DEBUG_PROT, "PASS ***\n");
       /* Leave not trail of the passwd.  */
       memset (mpd->passwd, '\0', strlen (mpd->passwd));
       free (mpd->passwd);
