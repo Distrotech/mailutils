@@ -50,3 +50,6 @@
 
 /* Define if virtual domain support is enabled */
 #undef USE_VIRTUAL_DOMAINS
+
+/* Define if libc has obstack functions */
+#undef HAVE_OBSTACK
