@@ -43,7 +43,7 @@ const char *mu_path_folder_dir = "Mail";
 #define USE_ENVIRON 1
 
 static int
-is_proto (char *p)
+is_proto (const char *p)
 {
   for (; *p && *p != '/'; p++)
     if (*p == ':')
