@@ -2,8 +2,7 @@ AUTOMAKE_OPTIONS = dejagnu
 DEJATOOL = mail
 RUNTESTFLAGS = 
 CLEANFILES = *.log
-EXTRA_DIST = makespool
-test_dirs = etc config lib mail spool folder
+test_dirs = config lib mail 
 
 dist-hook:
 	here=`cd $(top_builddir)/$(subdir) && pwd`; \
@@ -33,6 +32,7 @@ site.exp: Makefile remote.exp
 	@echo '# Do not edit here.  If you wish to override these values' >> $@-t
 	@echo '# edit the last section' >> $@-t
 	@echo 'set tool $(DEJATOOL)' >> $@-t
+	@echo "set top_srcdir `cd $(top_srcdir); pwd`" >> $@-t
 	@echo "set srcdir `cd $(srcdir); pwd`" >> $@-t
 	@echo 'set objdir' `pwd` >> $@-t
 	@echo 'set host_alias "$(host_alias)"' >> $@-t
@@ -55,6 +55,7 @@ remote.exp:;
 	@echo "set host_board `hostname`" >> $@-t
 	@echo 'set board_info($$host_board,connect) rlogin' >> $@-t
 	@echo 'set board_info($$host_board,shell_prompt) "\\$$ "' >> $@-t
+	@echo "set board_info(\$$host_board,top_srcdir) `cd $(top_srcdir); pwd`" >> $@-t
 	@echo "set board_info(\$$host_board,srcdir) `cd $(srcdir); pwd`" >> $@-t
 	@echo "set board_info(\$$host_board,objdir) `pwd`" >> $@-t
 	@echo "set board_info(\$$host_board,top_srcdir) `cd $(top_srcdir); pwd`" >> $@-t
