@@ -44,6 +44,7 @@ marks from all messages after opening the mailbox.
 *** Do not save delete marks when exiting on timeout.
 
 
+Version 0.4:
 
 * Bug fixes:
 
