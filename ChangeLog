@@ -1,5 +1,10 @@
 2004-01-03  Sergey Poznyakoff
 
+	* guimb/scm/sieve.scm.in (sieve-version): New function. Supports
+	the required --version option.
+
+2004-01-03  Sergey Poznyakoff
+
 	* configure.ac: Fixed INTLINCS
 	* examples/Makefile.am: Reverted to mod_LTLIBRARY for
 	numaddr.la
