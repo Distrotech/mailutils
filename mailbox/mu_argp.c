@@ -256,6 +256,9 @@ static char *mu_conf_option[] = {
 #ifdef USE_LIBPAM
   "USE_LIBPAM",
 #endif
+#ifdef HAVE_LIBLTDL
+  "HAVE_LIBLTDL",
+#endif
 #ifdef WITH_BDB2
   "WITH_BDB2",
 #endif
@@ -382,10 +385,10 @@ mu_common_argp_parser (int key, char *arg, struct argp_state *state)
 
       /* mailer */
     case 'M':
-      if ((err = mailer_set_url_default(arg)) != 0)
+      if ((err = mailer_set_url_default (arg)) != 0)
 	  {
 	    argp_error (state, "invalid mailer url '%s': %s",
-		arg, mu_errstring(err));
+			arg, mu_errstring(err));
 	  }
       break;
 
