@@ -19,8 +19,8 @@ State	Nice	Utility		Comments
 -------------------------------------------
 +	-20	scan
 +	-20	inc
-*	-20	repl		See comments for whatnow
-*	-20	comp		See comments for whatnow
+*	-20	repl		See comments for whatnow. -filter is not impl.
++	-20	comp		See comments for whatnow
 -	-20	forw
 *	-20	send		Only a framework is implemented.
 *	-20	refile		--link
@@ -28,15 +28,15 @@ State	Nice	Utility		Comments
 *	-15	folder(s)	--pack,--verbose
 -	-15	mhn
 +	-10	rmf
--	0	install-mh	Not necessary. Will be implemented as a noop
++	0	install-mh	
 -	4	mhl
--	5	mark
++	5	mark
 -	5	pick
--	10	anno
++	10	anno
 -	10	burst
 -	10	whom
 +	10	mhpath
-*	10	whatnow		push and send are not supported. 
++	10	whatnow		
 -	20	sortm
 
 Utilities In Alphabetical Order

@@ -1,3 +1,48 @@
+2003-02-10  Sergey Poznyakoff 
+
+	* include/mailutils/header.h (MU_HEADER_ENV_SENDER,
+	  MU_HEADER_ENV_DATE): New macros.
+	* mailbox/mbx_mh.c (_mh_message_save): Bugfix.
+	  (mh_save_attributes): Implemented
+
+	* mh/install-mh.c: New file.
+	* mh/anno.c: New file.
+	* mh/mark.c: New file
+	* mh/Makefile.am: Added install-mh, anno and mark
+	* mh/.cvsignore: Likewise.
+	* mh/mh_global.c (mh_auto_install): New global.
+	  (mh_read_profile): Call mh_install() if necessary.
+	  (mh_global_sequences_iterate)
+	  (mh_global_context_iterate): New functions.
+	* mh/mh_init.c (mh_install_help, mh_real_install)
+	  (mh_install): New functions.
+	  (mh_open_msg_file): Rewritten.
+	* mh/mh_whatnow.c: Implemented push command.
+	* mh/TODO: Updated
+	
+	* mh/mh.h (mh_context_iterator): New type.
+	  (mh_open_msg_file): Changed declaration.
+	  (mh_install, mh_global_context_iterate)
+	  (mh_global_sequences_iterate,mh_context_iterate)
+	  (mh_usedraft): New functions.
+	* mh/mh_ctx.c (mh_context_iterate): New function.
+	* mh/mh_getopt.h: Added ARG_ macros.
+	
+	* mh/comp.c: Fixed option handling.
+	* mh/fmtcheck.c: Likewise.
+	* mh/inc.c: Likewise.
+	* mh/mhpath.c: Likewise.
+	* mh/refile.c: Likewise.
+	* mh/repl.c: Likewise.
+	* mh/rmf.c: Likewise.
+	* mh/rmm.c: Likewise.
+	* mh/scan.c: Likewise.
+	* mh/whatnow.c: Likewise.
+	
+	* mh/send.c: Add from: header to the outgoing message.
+
+	* po/POTFILES.in: Added new files.
+	
 2003-02-08  Sergey Poznyakoff 
 
 	* mh/mh.h: Added new includes.
