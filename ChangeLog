@@ -1,3 +1,19 @@
+2001-07-20 Alain Magloire
+
+	* mailbox/misc.c: Removed, _cpystr() function move in mutil.c
+	and rename to util_cpystr().
+	* mailbox/include/misc.h: Removed.
+	* include/mailutils/mutil.h: Added prototype for util_cpystr().
+	* mailbox/mutil.c (util_cpystr): New function, move
+	the _cpystr() from misc.c and move here.
+	* mailbox/Makefile.am: Removed misc.c in dependencies.
+	* mailbox/include/Makefile.am: Removed misc.h in dependencies.
+	* mailbox/address.c: Use util_cpystr() instead of _cpystr().
+	Added <mailutils/mutil.h> prototype.
+	* mailbox/auth.c: Likewised.
+	* mailbox/url.c: Likewised.
+	* mailbox/folder.c: Likewised.
+
 2001-07-19 Sergey Poznyakoff
 	Added guile interface library.
 
