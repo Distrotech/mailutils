@@ -584,8 +584,8 @@ mailbox_unix_readhdr (mailbox_t mbox, char *buf, size_t len,
       /* Set the attribute */
       else if (strncmp (buf, "Status:", 7) == 0)
         {
-	  mum->hdr_status = ftell (mud->file);
-	  mum->hdr_status_end = mum->hdr_status + strlen (buf);
+	  mum->hdr_status_end = ftell (mud->file);
+	  mum->hdr_status = mum->hdr_status_end - strlen (buf);
           sep = strchr(buf, ':'); /* pass the ':' */
           if (strchr (sep, 'R') != NULL)
 	    attribute_set_read (mum->old_attr);
@@ -976,7 +976,7 @@ mailbox_unix_expunge (mailbox_t mbox)
       if (attribute_is_deleted (mum->new_attr))
 	continue;
 
-      /* add a NL separtor between messages */
+      /* add a NL separator between messages */
       if (first)
 	first = 0;
       else
@@ -1036,6 +1036,12 @@ mailbox_unix_expunge (mailbox_t mbox)
 	    fputc ('\n', tmpfile);
 	    total++;
 	  }
+	  /* skip the status field */
+	  if (fseek (mud->file, current, SEEK_SET) == -1)
+	    {
+	      status = errno;
+	      goto bailout;
+	    }
 	}
       else /* attribute did not change */
 	{

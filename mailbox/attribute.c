@@ -63,7 +63,7 @@ attribute_set_answered (attribute_t attr)
 {
   if (attr == NULL)
     return EINVAL;
-  attr->flag|= MU_ATTRIBUTE_ANSWERED;
+  attr->flag |= MU_ATTRIBUTE_ANSWERED;
   return 0;
 }
 
@@ -173,7 +173,7 @@ attribute_unset_seen (attribute_t attr)
 {
   if (attr == NULL)
     return 0;
-  attr->flag ^= MU_ATTRIBUTE_SEEN;
+  attr->flag &= ~MU_ATTRIBUTE_SEEN;
   return 0;
 }
 
@@ -182,7 +182,7 @@ attribute_unset_answered (attribute_t attr)
 {
   if (attr == NULL)
     return 0;
-  attr->flag ^= MU_ATTRIBUTE_ANSWERED;
+  attr->flag &= ~MU_ATTRIBUTE_ANSWERED;
   return 0;
 }
 
@@ -191,7 +191,7 @@ attribute_unset_flagged (attribute_t attr)
 {
   if (attr == NULL)
     return 0;
-  attr->flag ^= MU_ATTRIBUTE_FLAGGED;
+  attr->flag &= ~MU_ATTRIBUTE_FLAGGED;
   return 0;
 }
 
@@ -200,7 +200,7 @@ attribute_unset_read (attribute_t attr)
 {
   if (attr == NULL)
     return 0;
-  attr->flag ^= MU_ATTRIBUTE_READ;
+  attr->flag &= ~MU_ATTRIBUTE_READ;
   return 0;
 }
 
@@ -209,7 +209,7 @@ attribute_unset_deleted (attribute_t attr)
 {
   if (attr == NULL)
     return 0;
-  attr->flag ^= MU_ATTRIBUTE_DELETED;
+  attr->flag &= ~MU_ATTRIBUTE_DELETED;
   return 0;
 }
 
@@ -218,7 +218,7 @@ attribute_unset_draft (attribute_t attr)
 {
   if (attr == NULL)
     return 0;
-  attr->flag ^= MU_ATTRIBUTE_DRAFT;
+  attr->flag &= ~MU_ATTRIBUTE_DRAFT;
   return 0;
 }
 
@@ -227,7 +227,7 @@ attribute_unset_recent (attribute_t attr)
 {
   if (attr == NULL)
     return 0;
-  attr->flag ^= MU_ATTRIBUTE_RECENT;
+  attr->flag &= ~MU_ATTRIBUTE_RECENT;
   return 0;
 }
 
