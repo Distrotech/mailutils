@@ -181,8 +181,8 @@ mu_parse_imap_date_time (const char **p, struct tm *tm, mu_timezone *tz)
   sign = (zone[0] == '-') ? -1 : +1;
   tzoffset = sign * (hh * 60 * 60 + mm * 60);
 
-#if HAVE_STRUCT_TM_TM_GMTOFFSET
-  tm->tm_gmtoffset = tzoffset;
+#if HAVE_STRUCT_TM_TM_GMTOFF
+  tm->tm_gmtoff = tzoffset;
 #endif
 
   if (tz)
