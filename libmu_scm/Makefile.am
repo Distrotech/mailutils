@@ -4,12 +4,13 @@ INCLUDES =-I$(srcdir) -I$(top_srcdir)/lib -I$(top_srcdir)/include
 noinst_LIBRARIES=@MU_SCM@
 EXTRA_LIBRARIES=libmu_scm.a
 libmu_scm_a_SOURCES=mu_scm.c mu_address.c mu_body.c mu_mailbox.c mu_message.c \
- mu_scm.h
+ mu_logger.c mu_scm.h
 
 pkgdata_DATA=@GUILE_PROCEDURES_TXT@
-DOT_X_FILES=mu_scm.x mu_address.x mu_body.x mu_mailbox.x mu_message.x
-DOT_DOC_FILES=mu_scm.doc mu_address.doc mu_body.doc mu_mailbox.doc \
- mu_message.doc 
+DOT_X_FILES=mu_address.x mu_body.x mu_mailbox.x mu_message.x \
+ mu_logger.x mu_scm.x 
+DOT_DOC_FILES=mu_address.doc mu_body.doc mu_mailbox.doc mu_message.doc \
+ mu_logger.doc mu_scm.doc  
 BUILT_SOURCES=@GUILE_BUILT_SOURCES@ 
 EXTRA_DIST=$(DOT_X_FILES) $(DOT_DOC_FILES) guile-procedures.txt
 
