@@ -1,3 +1,23 @@
+2001-08-30 Sergey Poznyakoff
+
+	* MySql/MySql.c: Use asprintf instead of sprintf, use xmalloc
+	instead of malloc.
+	Return values were allocated dynamically but never freed, this
+	caused memory leaks if authentication functions were called more
+	than once. Made them static, so that they get reallocated at each
+	new invocation of getM functions, thus reclaming lost storage.
+	Made <config.h> the first file to be included and guard it with
+	#ifdef HAVE_CONFIG_H
+	Reindented text to conform to GNU coding style.
+
+	* MySql/Makefile.am: Use @BUILD_LIBMYSQL@ substitution instead
+	of direct assignment to noinst_LIBRARIES, so the subdir gets
+	distributed properly.
+
+	* configure.in: New substitution variable BUILD_LIBMYSQL. Append
+	linker flags to AUTHLIBS, since modifying LIBS effectively
+	breaks compilation.
+
 2001-08-29  Jakob 'sparky' Kaivo  <jkaivo@elijah.nodomainname.net>
 
 	* imap4d/select.c (imap4d_select0): 
