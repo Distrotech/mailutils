@@ -1,3 +1,14 @@
+2003-01-10  Sergey Poznyakoff
+
+	* lib/posix/regex.h: Removed redefinition of __restrict_arr
+	* libsieve/comparator.c (comp_false): Fixed declaration.
+	  (sieve_match_part_checker): shut compiler warnings
+	  about possibly uninitialized variables.
+	* libsieve/sieve.h: include <string.h>
+	* libsieve/tests.c (sieve_test_address,sieve_test_header): Removed
+	  unused variables.
+	* examples/.cvsignore: Added base64 
+	  
 2003-01-06  Sergey Poznyakoff 
 
 	* doc/texinfo/libsieve.texi: Reflect recent changes to
