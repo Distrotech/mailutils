@@ -1,2 +1,3 @@
-set quiet nocrt
+set quiet nocrt dot
 set screen=10 columns=80
+set indentprefix="> "
