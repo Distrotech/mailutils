@@ -51,6 +51,7 @@
 #include <mailutils/envelope.h>
 #include <mailutils/nls.h>
 #include <mailutils/stream.h>
+#include <mailutils/filter.h>
 
 #include <registrar0.h>
 
@@ -1214,5 +1215,56 @@ mu_fd_wait (int fd, int *pflags, struct timeval *tvp)
       if (FD_ISSET (fd, &wrset))
 	*pflags |= MU_STREAM_READY_WR;
     }
+  return 0;
+}
+
+enum mu_iconv_fallback_mode mu_default_fallback_mode = mu_fallback_copy_octal;
+
+int
+mu_set_default_fallback (const char *str)
+{
+  if (strcmp (str, "none") == 0)
+    mu_default_fallback_mode = mu_fallback_none;
+  else if (strcmp (str, "copy-pass") == 0)
+    mu_default_fallback_mode = mu_fallback_copy_pass;
+  else if (strcmp (str, "copy-octal") == 0)
+    mu_default_fallback_mode = mu_fallback_copy_octal;
+  else
+    return EINVAL;
+  return 0;
+}
+
+int
+mu_decode_filter (stream_t *pfilter, stream_t input, char *filter_type,
+		  char *fromcode, char *tocode)
+{
+  stream_t filter;
+  
+  int status = filter_create (&filter, input, filter_type,
+			      MU_FILTER_DECODE, MU_STREAM_READ);
+  if (status)
+    return status;
+
+  if (fromcode && tocode && strcasecmp (fromcode, tocode))
+    {
+      stream_t cvt;
+      status = filter_iconv_create (&cvt, filter, fromcode, tocode,
+				    MU_STREAM_NO_CLOSE,
+				    mu_default_fallback_mode);
+      if (status == 0)
+	{
+	  if (stream_open (cvt))
+	    stream_destroy (&cvt, stream_get_owner (cvt));
+	  else
+	    {
+	      int flags;
+	      stream_get_flags (cvt, &flags);
+	      flags &= ~MU_STREAM_NO_CLOSE;
+	      stream_set_flags (cvt, flags);
+	      filter = cvt;
+	    }
+	}
+    }
+  *pfilter = filter;
   return 0;
 }
