@@ -1,7 +1,7 @@
 2001-08-06  Alain Magloire
 
 	* sieve/{exitcodes.h hmac-md5.h md5.c md5.h md5global.h}: Removed.
-	* sieve/md5-rsa.c: New file, clear identiy that the algo.
+	* sieve/md5-rsa.c: New file, clearly identify that the algo.
 	is from RSA and not GNU md5.
 	* sieve/md5-rsa.h : New file.
 	* sieve/Makefile.am:  added md5-rsa.[ch].
