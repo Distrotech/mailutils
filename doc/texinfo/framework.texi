@@ -13,7 +13,7 @@
 * Address::                     Address.
 * Locker::                      Locker.
 * URL::                         Uniform Resource Locators.
-
+* Parse822::                    Parsing RFC 822 headers
 @end menu
 
 Wherever the mail is and whatever format it is stored in, the same operations
@@ -177,3 +177,7 @@ Fran@,{c}ois Pinard <pinard@@bar.org> recode new alpha
 @cindex URL
 
 @include url.texi
+
+@node Parse822
+@section Parse822 --- Functions for Parsing RFC 822 Headers
+@include parse822.texi
