@@ -641,6 +641,73 @@ stream_set_flags (stream_t stream, int fl)
   return 0;
 }
 
+int
+stream_set_strerror (stream_t stream,
+		     int (*fp) (stream_t, const char **), void *owner)
+{
+  if (stream == NULL)
+    return EINVAL;
+  if (stream->owner != owner)
+    return EACCES;
+  stream->_strerror = fp;
+  return 0;
+}
+
+int
+stream_sequential_read (stream_t stream, char *buf, size_t size,
+			size_t *nbytes)
+{
+  size_t rdbytes;
+  int rc = stream_read (stream, buf, size, stream->offset, &rdbytes);
+  if (!rc)
+    {
+      stream->offset += rdbytes;
+      if (nbytes)
+	*nbytes = rdbytes;
+    }
+  return rc;
+}
+
+int
+stream_sequential_readline (stream_t stream, char *buf, size_t size,
+			    size_t *nbytes)
+{
+  size_t rdbytes;
+  int rc = stream_readline (stream, buf, size, stream->offset, &rdbytes);
+  if (!rc)
+    {
+      stream->offset += rdbytes;
+      if (nbytes)
+	*nbytes = rdbytes;
+    }
+  return rc;
+}
+
+int
+stream_sequential_write (stream_t stream, char *buf, size_t size)
+{
+  while (size > 0)
+    {
+      size_t sz;
+      int rc = stream_write (stream, buf, size, stream->offset, &sz);
+      if (rc)
+	return rc;
+
+      buf += sz;
+      size -= sz;
+      stream->offset += sz;
+    }
+  return 0;
+}
+
+int
+stream_strerror (stream_t stream, const char **p)
+{
+  if (stream->_strerror)
+    return stream->_strerror (stream, p);
+  return ENOSYS;
+}
+
 static int
 refill (stream_t stream, off_t offset)
 {
