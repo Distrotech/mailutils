@@ -37,8 +37,12 @@ It supports all mailbox formats, supported by mailutils.
 
 ** mail
 *** Support for -a option (append header)
-*** New command sendheaders allows to pre-set the headers to be added to
+*** New command 'sendheaders' allows to pre-set the headers to be added to
 the message.
+*** New commands 'sender' and 'nosender' allow to set up a list
+of header fields used to determine the sender of the message.
+*** New variable 'xmailer' controls whether an X-Mailer header should
+be added to outgoing messages.
 
 ** mail.remote
 *** Support for -t option (read recipients from the message). This fixes

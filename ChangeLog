@@ -4,6 +4,7 @@
 	* doc/texinfo/mailutils.texi: Added variable and keyword
 	index
 	* doc/texinfo/programs.texi: Documented new features
+	* doc/texinfo/Makefile.am: Updated
 	
 	* mail/mail.c (main): Changed initialization sequence.
 	Set xmailer and default sender fields on startup.

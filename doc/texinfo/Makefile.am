@@ -69,7 +69,7 @@ SUFFIXES=.c .inc
 .c.inc:
 	sed -f $(top_srcdir)/scripts/texify.sed $< > $@
 
-DISTCLEANFILES=*.pgs
+DISTCLEANFILES=*.pgs *.kys *.vrs
 MAINTAINERCLEANFILES=$(INCFILES)
 
 ## Web documentation
