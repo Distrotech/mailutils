@@ -103,10 +103,11 @@ static int  imap_body_read        __P ((stream_t, char *, size_t, off_t,
 					size_t *));
 static int  imap_body_size        __P ((body_t, size_t *));
 static int  imap_body_lines       __P ((body_t, size_t *));
-static int  imap_body_fd          __P ((stream_t, int *));
+static int  imap_body_fd          __P ((stream_t, int *, int *));
 
 /* Helpers.  */
-static int  imap_get_fd           __P ((msg_imap_t, int *));
+static int  imap_get_fd2          __P ((msg_imap_t msg_imap, int *pfd1,
+					int *pfd2));
 static int  imap_get_message0     __P ((msg_imap_t, message_t *));
 static int  fetch_operation       __P ((f_imap_t, msg_imap_t, char *, size_t, size_t *));
 static void free_subparts         __P ((msg_imap_t));
@@ -1330,14 +1331,9 @@ imap_message_uid (message_t msg, size_t *puid)
 static int
 imap_message_fd (stream_t stream, int *pfd, int *pfd2)
 {
-  if (pfd2)
-    return ENOSYS;
-  else
-    {
-      message_t msg = stream_get_owner (stream);
-      msg_imap_t msg_imap = message_get_owner (msg);
-      return imap_get_fd (msg_imap, pfd);
-    }
+  message_t msg = stream_get_owner (stream);
+  msg_imap_t msg_imap = message_get_owner (msg);
+  return imap_get_fd2 (msg_imap, pfd, pfd2);
 }
 
 /* Mime.  */
@@ -2005,25 +2001,14 @@ imap_body_read (stream_t stream, char *buffer, size_t buflen, off_t offset,
 }
 
 static int
-imap_body_fd (stream_t stream, int *pfd)
+imap_body_fd (stream_t stream, int *pfd, int *pfd2)
 {
   body_t body = stream_get_owner (stream);
   message_t msg = body_get_owner (body);
   msg_imap_t msg_imap = message_get_owner (msg);
-  return imap_get_fd (msg_imap, pfd);
+  return imap_get_fd2 (msg_imap, pfd, pfd2);
 }
 
-
-static int
-imap_get_fd (msg_imap_t msg_imap, int *pfd)
-{
-  if (   msg_imap
-      && msg_imap->m_imap
-      && msg_imap->m_imap->f_imap
-      && msg_imap->m_imap->f_imap->folder)
-    return stream_get_fd (msg_imap->m_imap->f_imap->folder->stream, pfd);
-  return EINVAL;
-}
 
 static int
 imap_get_fd2 (msg_imap_t msg_imap, int *pfd1, int *pfd2)
