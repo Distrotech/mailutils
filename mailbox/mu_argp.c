@@ -291,6 +291,9 @@ static char *mu_conf_option[] = {
 #ifdef HAVE_MYSQL
   "HAVE_MYSQL",
 #endif
+#ifdef HAVE_PGSQL
+  "HAVE_PGSQL",
+#endif
 #ifdef ENABLE_VIRTUAL_DOMAINS
   "ENABLE_VIRTUAL_DOMAINS",
 #endif
