@@ -937,7 +937,7 @@ imap_quoted_string (f_imap_t f_imap, char **ptr)
 {
   char *bquote;
   int escaped = 0;
-  size_t len;
+  int len;
 
   (*ptr)++;
   bquote = *ptr;
