@@ -13,15 +13,27 @@ EXTRA_DIST = \
  body.texi \
  c-api.texi \
  encoding.texi \
+ envelope.texi \
  ex-address.texi \
  framework.texi \
+ folder.texi \
  headers.texi \
+ imap4.texi \
+ iterator.texi \
  locker.texi \
  mailbox.texi \
  mailer.texi \
+ maildir.texi \
+ mbox.texi \
  message.texi \
+ mh.texi \
+ nntp.texi \
+ parse822.texi \
+ pop3.texi \
  programs.texi \
+ sendmail.texi \
  sfrom.c.texi \
+ smtp.texi \
  stream.texi \
  url.texi \
  version.texi

@@ -1,3 +1,9 @@
+2001-07-06  Alain Magloire
+
+	* mail/mail.c: Be a little more verbose when mailbox_{create,open}()
+	fails at startup.
+	* doc/Makefile.am: Add the missing *.texi in the list of EXTRA_DIST.
+
 2001-07-06 Sergey Poznyakoff
 	* imap4d/fetch.c: imap4d_fetch0(): return RESP_OK on success.
 	* imap4d/bye.c: split imap4d_bye() into imap4d_bye() and imap4d_bye0().

@@ -318,16 +318,28 @@ main (int argc, char **argv)
       if (args.file == NULL)
 	{
 	  if (mailbox_create_default (&mbox, args.user) != 0)
-	    exit (EXIT_FAILURE);
+	    {
+	      exit (EXIT_FAILURE);
+	      util_error ("Can not create mailbox for %s", args.user);
+	    }
 	}
       else if (mailbox_create (&mbox, args.file) != 0)
-	exit (EXIT_FAILURE);
+	{
+	  exit (EXIT_FAILURE);
+	  util_error ("Can not create mailbox %s", args.file);
+	}
 
       if (mailbox_open (mbox, MU_STREAM_RDWR) != 0)
-	exit (EXIT_FAILURE);
+	{
+	  exit (EXIT_FAILURE);
+	  util_error ("Can not open mailbox");
+	}
 
       if (mailbox_messages_count (mbox, &total) != 0)
-	exit (EXIT_FAILURE);
+	{
+	  exit (EXIT_FAILURE);
+	  util_error ("Can not read mailbox");
+	}
 
       if (strlen ("exist") == modelen && !strcmp ("exist", mode->value))
 	return (total < 1) ? 1 : 0;
