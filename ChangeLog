@@ -3,6 +3,7 @@ Sean 'Shaleh' Perry <shaleh@debian.org>  Wed,  6 Oct 1999 13:55:42 -0700
   * Cleanup some compilation issues
   * changed "w+" to "w" in called to pop3_mainloop():ofile = fdopen()
       why was it called with w+?  It is only ever used for writing.
+  * catch EINTR in call to accept() (play nice w/ our UNIX friends)
 
 Sean 'Shaleh' Perry <shaleh@debian.org>  Tue,  5 Oct 1999 23:06:33 -0700
 

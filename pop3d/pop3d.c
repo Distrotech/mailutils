@@ -330,6 +330,8 @@ pop3_daemon (unsigned int maxchildren)
         }
       if ( (connfd = accept(listenfd, (SA *) &client, &size)) == -1)
         {
+          if (errno == EINTR)
+              continue;
           syslog(LOG_ERR, "accept: %s", strerror(errno));
           exit(-1);
         }
