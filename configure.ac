@@ -37,12 +37,12 @@ AM_PROG_LEX
 
 dnl Internationalization macros.
 AM_GNU_GETTEXT(no-libtool, need-ngettext)
-AM_GNU_GETTEXT_VERSION(0.11.5)
+AM_GNU_GETTEXT_VERSION(0.12.1)
 AC_SUBST(INTLINCS)
 if test ".$BUILD_INCLUDED_LIBINTL" = ".yes" ; then
         AC_DEFINE(WITH_INCLUDED_LIBINTL,1,
                   [Define if the included libintl is used])
-	INTLINCS='-I${top_srcdir}/intl'
+	INTLINCS='-I../intl -I${top_srcdir}/intl'
 fi
 
 dnl Check for libraries
@@ -705,53 +705,61 @@ AC_SUBST(SIEVE_MODDIR)
 SIEVE_MODDIR='$(libdir)/$(PACKAGE)'
 
 dnl Output Makefiles
-AC_CONFIG_FILES([Makefile mailutils.spec
- include/Makefile include/mailutils/Makefile include/mailutils/gnu/Makefile
+AC_CONFIG_FILES([Makefile
+ auth/Makefile
+ comsat/Makefile
+ doc/Makefile
+ doc/man/Makefile
+ doc/rfc/Makefile
+ doc/texinfo/Makefile
+ dotlock/Makefile
+ examples/Makefile
+ frm/Makefile
+ frm/testsuite/Makefile
+ from/Makefile
+ from/testsuite/Makefile
+ guimb/Makefile
+ guimb/scm/Makefile
+ imap4d/Makefile
+ imap4d/testsuite/Makefile
+ include/Makefile
+ include/mailutils/Makefile
+ include/mailutils/gnu/Makefile
+ intl/Makefile
+ lib/Makefile
+ lib/posix/Makefile
+ libmu_scm/Makefile
+ libsieve/Makefile
  m4/Makefile
- intl/Makefile po/Makefile.in
- doc/Makefile doc/man/Makefile doc/rfc/Makefile doc/texinfo/Makefile
- lib/Makefile lib/posix/Makefile
- testsuite/Makefile
+ mail/Makefile
+ mail/testsuite/Makefile
+ mail.local/Makefile
+ mail.local/testsuite/Makefile
+ mail.remote/Makefile
+ mail.remote/testsuite/Makefile
  mailbox/Makefile
  mailbox/mbox/Makefile
  mailbox/mh/Makefile
  mailbox/maildir/Makefile
  mailbox/pop/Makefile
  mailbox/imap/Makefile
- mailbox/testsuite/Makefile
- examples/Makefile
- auth/Makefile
  mailbox/include/Makefile
- libsieve/Makefile
- imap4d/Makefile
- imap4d/testsuite/Makefile
- from/Makefile
- from/testsuite/Makefile
- mail/Makefile
- mail/testsuite/Makefile
- pop3d/Makefile
- pop3d/testsuite/Makefile
- frm/Makefile
- frm/testsuite/Makefile
- sieve/Makefile
- sieve/testsuite/Makefile
+ mailbox/testsuite/Makefile
+ mailutils.spec
  messages/Makefile
  messages/testsuite/Makefile
+ mh/Makefile
+ po/Makefile.in
+ pop3d/Makefile
+ pop3d/testsuite/Makefile
+ readmsg/Makefile
+ readmsg/testsuite/Makefile
  scripts/Makefile
  scripts/guile-1.4/Makefile
  scripts/guile-1.6/Makefile
- libmu_scm/Makefile
- guimb/Makefile
- guimb/scm/Makefile
- readmsg/Makefile
- readmsg/testsuite/Makefile
- comsat/Makefile
- mail.local/Makefile
- mail.local/testsuite/Makefile
- mail.remote/Makefile
- mail.remote/testsuite/Makefile
- dotlock/Makefile
- mh/Makefile
+ sieve/Makefile
+ sieve/testsuite/Makefile
+ testsuite/Makefile
  ])
 AC_OUTPUT
 
