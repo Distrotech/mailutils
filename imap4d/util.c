@@ -1049,3 +1049,17 @@ util_wcard_match (const char *string, const char *pattern, const char *delim)
 
   return WCARD_NOMATCH;
 }
+
+/* Return the uindvalidity of a mailbox. */
+int
+util_uidvalidity (mailbox_t smbox, unsigned long *uidvp)
+{
+  url_t mbox_url = NULL;
+  url_t smbox_url = NULL;
+
+  mailbox_get_url (mbox, &mbox_url);
+  mailbox_get_url (smbox, &smbox_url);
+  if (strcmp (url_to_string (mbox_url), url_to_string (smbox_url)) == 0)
+    smbox = mbox;
+  return mailbox_uidvalidity (smbox, uidvp);
+}
