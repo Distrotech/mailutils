@@ -286,6 +286,21 @@ static char *mu_conf_option[] = {
 #ifdef HAVE_MYSQL
   "HAVE_MYSQL",
 #endif
+#ifdef ENABLE_IMAP
+  "ENABLE_IMAP",
+#endif
+#ifdef ENABLE_POP
+  "ENABLE_POP", 
+#endif
+#ifdef ENABLE_MH
+  "ENABLE_MH",
+#endif
+#ifdef ENABLE_SMTP
+  "ENABLE_SMTP",
+#endif
+#ifdef ENABLE_SENDMAIL
+  "ENABLE_SENDMAIL",
+#endif  
   NULL
 };
 
