@@ -256,7 +256,7 @@ _sieve_parse_error (void *user_name, const char *filename, int lineno,
       free (loc);
     }
   else
-    syslog (LOG_ERR, "(user %s) %s", user_name, text);
+    syslog (LOG_ERR, "(user %s) %s", (char*)user_name, text);
   free (text);
   return 0;
 }
@@ -591,9 +591,6 @@ deliver (message_t msg, char *name)
   stream_t istream, ostream;
   size_t size;
   int failed = 0;
-#if defined(USE_DBM)
-  struct stat sb;
-#endif  
   
   auth = mu_get_auth_by_name (name);
   if (!auth)
@@ -674,32 +671,39 @@ deliver (message_t msg, char *name)
     }
 
 #if defined(USE_DBM)
-  switch (check_quota (name, size, &n))
-    {
-    case MQUOTA_EXCEEDED:
-      mailer_err ("%s: mailbox quota exceeded for this recipient", name);
-      exit_code = EX_QUOTA();
-      failed++;
-      break;
-    case MQUOTA_UNLIMITED:
-      break;
-    default:
-      if ((status = stream_size (istream, (off_t *) &isize)))
-	{
-	  mailer_err ("can't get stream size (input message): %s",
-		      path, mu_errstring (status));
-	  exit_code = EX_UNAVAILABLE;
-	  failed++;
-	}
-      else if (sb.st_size > n)
-	{
-	  mailer_err ("%s: message would exceed maximum mailbox size for this recipient",
-		      name);
-	  exit_code = EX_QUOTA();
-	  failed++;
-	}
-      break;
-    }
+  {
+    size_t n, isize;
+    struct stat sb;
+
+    switch (check_quota (name, size, &n))
+      {
+      case MQUOTA_EXCEEDED:
+	mailer_err ("%s: mailbox quota exceeded for this recipient", name);
+	exit_code = EX_QUOTA();
+	failed++;
+	break;
+	
+      case MQUOTA_UNLIMITED:
+	break;
+	
+      default:
+	if ((status = stream_size (istream, (off_t *) &isize)))
+	  {
+	    mailer_err ("can't get stream size (input message): %s",
+			path, mu_errstring (status));
+	    exit_code = EX_UNAVAILABLE;
+	    failed++;
+	  }
+	else if (sb.st_size > n)
+	  {
+	    mailer_err ("%s: message would exceed maximum mailbox size for this recipient",
+			name);
+	    exit_code = EX_QUOTA();
+	    failed++;
+	  }
+	break;
+      }
+  }
 #endif
   
   if (!failed && switch_user_id (auth, 1) == 0)
