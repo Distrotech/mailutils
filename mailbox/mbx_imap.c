@@ -889,16 +889,22 @@ imap_append_message0 (mailbox_t mailbox, message_t msg)
 	  url_get_path (mailbox->url, NULL, 0, &n);
 	  if (n == 0)
 	    {
-	      free (abuf);
-	      return EINVAL;
+	      if (!(path = strdup ("INBOX")))
+		{
+		  free (abuf);
+		  return ENOMEM;
+		}
 	    }
-	  path = calloc (n + 1, sizeof (*path));
-	  if (path == NULL)
+	  else
 	    {
-	      free (abuf);
-	      return ENOMEM;
+	      path = calloc (n + 1, sizeof (*path));
+	      if (path == NULL)
+		{
+		  free (abuf);
+		  return ENOMEM;
+		}
+	      url_get_path (mailbox->url, path, n + 1, NULL);
 	    }
-	  url_get_path (mailbox->url, path, n + 1, NULL);
 	}
 
 	/* FIXME: we need to get the envelope_date and use it.
@@ -928,7 +934,7 @@ imap_append_message0 (mailbox_t mailbox, message_t msg)
       CHECK_EAGAIN (f_imap, status);
       MAILBOX_DEBUG0 (mailbox, MU_DEBUG_PROT, f_imap->buffer);
       /* If we did not receive the continuation token, it is an error
-	 bail out.  */
+         bail out.  */
       if (f_imap->buffer[0] != '+')
 	{
 	  status = EACCES;
@@ -970,7 +976,7 @@ imap_append_message0 (mailbox_t mailbox, message_t msg)
       MAILBOX_DEBUG0 (m_imap->mailbox, MU_DEBUG_PROT, f_imap->buffer);
 
     default:
-      /* mu_error ("imap_append: unknow state\n"); */
+      /* mu_error ("imap_append: unknown state\n"); */
       break;
     }
   f_imap->state = IMAP_NO_STATE;
