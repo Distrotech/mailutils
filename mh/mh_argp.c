@@ -81,6 +81,9 @@ mh_argp_parse (int argc, char **argv,
     program_invocation_short_name = p+1;
   else
     program_invocation_short_name = program_invocation_name;
+
+  mh_init ();
+  
   memset (&argp, 0, sizeof (argp));
   argp.options = option;
   argp.parser = parse_opt;
@@ -89,7 +92,36 @@ mh_argp_parse (int argc, char **argv,
   data.mh_option = mh_option;
   data.closure = closure;
   data.handler = handler;
-  return argp_parse (&argp, argc, argv, 0, 0, &data);
+
+  p = mh_profile_value (program_invocation_short_name, NULL);
+  if (p)
+    {
+      int _argc;
+      char **_argv;
+      int xargc;
+      char **xargv;
+      int i;
+      
+      argcv_get (p, "", &xargc, &xargv);
+
+      _argc = argc + xargc;
+      _argv = calloc (_argc+1, sizeof *_argv);
+      if (!_argv)
+	{
+	  mh_error ("not enough memory");
+	  abort ();
+	}
+      for (i = 0; i < argc; i++)
+	_argv[i] = argv[i];
+      for (; i < _argc; i++)
+	_argv[i] = xargv[i-argc];
+      _argv[i] = NULL;
+      argp_parse (&argp, _argc, _argv, 0, 0, &data);
+      free (_argv);
+    }
+  else
+    argp_parse (&argp, argc, argv, 0, 0, &data);
+  return 0;
 }
 
 void
