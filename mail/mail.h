@@ -204,6 +204,7 @@ extern int mail_warranty __P ((int argc, char **argv));
 extern int mail_write __P ((int argc, char **argv));
 extern int mail_z __P ((int argc, char **argv));
 extern int mail_eq __P ((int argc, char **argv));	/* command = */
+extern int mail_setenv __P ((int argc, char **argv));
 
 extern int if_cond __P ((void));
 
@@ -264,6 +265,7 @@ extern int util_getcols __P ((void));
 extern int util_getlines __P ((void));
 extern int util_screen_lines __P ((void));
 extern int util_screen_columns __P ((void));
+extern int util_get_crt __P((void));
 extern struct mail_env_entry *util_find_env __P ((const char *var,
 						  int create));
 extern int util_getenv __P ((void *ptr, const char *variable,
@@ -294,6 +296,7 @@ extern int util_tempfile __P ((char **namep));
 extern void util_msgset_iterate __P ((msgset_t *msgset, int (*fun) __P ((message_t, msgset_t *, void *)), void *closure));
 extern int util_get_content_type __P ((header_t hdr, char **value));
 extern int util_get_hdr_value __P ((header_t hdr, const char *name, char **value));
+extern int util_merge_addresses __P((char **addr_str, const char *value));
 
 extern int ml_got_interrupt __P ((void));
 extern void ml_clear_interrupt __P ((void));
