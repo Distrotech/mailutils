@@ -387,7 +387,10 @@ do {\
     i = 10 * i + (*a - '0'); \
 } while (0)
 
-/* Save/concatenate the field-value in the fast header(fhd) field. */
+/* Save/concatenate the field-value in the fast header(fhd) field.
+   Notice that care is taken to preserve the intermediate newlines
+   in the folded headers. However, the final newline is always
+   removed. */
 #define FAST_HEADER(field,buf,n) \
 do { \
   int i = 0; \
@@ -406,10 +409,11 @@ do { \
       if (!field) \
         SKIPSPACE(p); \
       l = n - (p - buf); \
-      tmp = realloc (field, (l + i + 1) * sizeof (char)); \
+      tmp = realloc (field, (l + (i ? i + 1 : 0) + 1) * sizeof (char)); \
       if (tmp) \
         { \
            field = tmp; \
+           if (i) field[i++] = '\n'; \
            memcpy (field + i, p, l); \
         } \
     } \
