@@ -24,6 +24,7 @@
 
 #include <mailutils/message.h>
 #include <mailutils/mime.h>
+#include <mailutils/monitor.h>
 
 #include <sys/types.h>
 #include <stdio.h>
@@ -54,6 +55,7 @@ struct _message
   monitor_t monitor;
   mime_t mime;
   observable_t observable;
+  mailbox_t mailbox;
 
   /* Reference count.  */
   int ref;

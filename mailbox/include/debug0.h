@@ -15,8 +15,8 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-#ifndef _MAILUTILS_DEBUG0_H
-#define _MAILUTILS_DEBUG0_H
+#ifndef _DEBUG0_H
+#define _DEBUG0_H
 
 #ifdef DMALLOC
 #  include <dmalloc.h>
@@ -49,4 +49,4 @@ struct _debug
 }
 #endif
 
-#endif /* _MAILUTILS_DEBUG0_H */
+#endif /* _DEBUG0_H */

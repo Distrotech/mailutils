@@ -51,8 +51,8 @@ struct _mailbox
   locker_t locker;
   stream_t stream;
   url_t url;
-  folder_t folder;
   int flags;
+  folder_t folder;
   monitor_t monitor;
 
   /* Back pointer to the specific mailbox */

@@ -15,7 +15,7 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-#ifndef _FOLDER_H
+#ifndef _FOLDER0_H
 #define _FOLDER0_H
 
 #ifdef DMALLOC
@@ -63,19 +63,28 @@ struct _folder
 
   int  (*_open)        __P ((folder_t, int flag));
   int  (*_close)       __P ((folder_t));
-  int  (*_list)        __P ((folder_t, const char *,
-			     struct folder_list ***, size_t *));
-  int  (*_lsub)        __P ((folder_t, const char *,
-			     struct folder_list ***, size_t *));
+  int  (*_list)        __P ((folder_t, const char *, struct folder_list *));
+  int  (*_lsub)        __P ((folder_t, const char *, struct folder_list *));
   int  (*_delete)      __P ((folder_t, const char *));
   int  (*_rename)      __P ((folder_t, const char *, const char *));
   int  (*_subscribe)   __P ((folder_t, const char *));
   int  (*_unsubscribe) __P ((folder_t, const char *));
 };
 
+/* Moro(?)ic kluge.  */
+#define FOLDER_DEBUG0(folder, type, format) \
+if (folder->debug) debug_print (folder->debug, type, format)
+#define FOLDER_DEBUG1(folder, type, format, arg1) \
+if (folder->debug) debug_print (folder->debug, type, format, arg1)
+#define FOLDER_DEBUG2(folder, type, format, arg1, arg2) \
+if (folder->debug) debug_print (folder->debug, type, format, arg1, arg2)
+#define FOLDER_DEBUG3(folder, type, format, arg1, arg2, arg3) \
+if (folder->debug) debug_print (folder->debug, type, format, arg1, arg2, arg3)
+#define FOLDER_DEBUG4(folder, type, format, arg1, arg2, arg3, arg4) \
+if (folder->debug) debug_print (folder->debug, type, format, arg1, arg2, arg3, arg4)
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* _MAILBOX0_H */
+#endif /* _FOLDER0_H */
