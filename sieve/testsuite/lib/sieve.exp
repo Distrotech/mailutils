@@ -21,6 +21,7 @@ set sieve_source_dir "${srcdir}/scripts"
 
 mu_init 
 set env(MAIL) $MU_SPOOL_DIR/sieve.mbox
+set env(FOLDER) $env(MAIL)
 
 # sieve_test [-retcode N][-message MESSAGE][-default (FAIL|XFAIL)]
 #            [-reuse-spool]
