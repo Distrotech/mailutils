@@ -1,3 +1,95 @@
+2003-08-28  Sergey Poznyakoff 
+
+	Implemented the TLS protocol for IMAP and POP mailboxes.
+	Split libmailbox to the core library (libmailbox) and
+	the protocol implementation libraries (libmu_$PROTONAME).
+
+	* auth/lbuf.h: New file.
+	* auth/lbuf.c: New file.
+	* auth/tls.c: Implemented client TLS stream.
+	* auth/gsasl.c: Use lbuf stuff.
+	* auth/Makefile.am: Updated.
+
+	* mailbox/mbx_file.c: Moved to ...
+	* mailbox/mbox/file.c: ... here
+	* mailbox/mbox/Makefile.am: Changed target to lib_LTLIBRARY
+	* mailbox/mh/Makefile.am: Likewise
+	* mailbox/imap/Makefile.am: Likewise
+	* mailbox/pop/Makefile.am: Likewise
+	* mailbox/maildir/Makefile.am: Likewise
+	
+	* dotlock/Makefile.am: Adopted _LDADD for the new library layout.
+	* examples/Makefile.am: Likewise
+	* from/Makefile.am: Likewise
+	* guimb/Makefile.am: Likewise
+	* imap4d/Makefile.am: Likewise
+	* mail/Makefile.am: Likewise
+	* mailbox/Makefile.am: Likewise
+	* messages/Makefile.am: Likewise
+	* mh/Makefile.am: Likewise
+	* pop3d/Makefile.am: Likewise
+	* readmsg/Makefile.am: Likewise
+	* sieve/Makefile.am: Likewise
+	* comsat/Makefile.am: Likewise
+	* frm/Makefile.am: Likewise
+	* mail.local/Makefile.am: Likewise
+	
+	* configure.ac: Moved Kerberos libs to SERV_AUTHLIBS.
+	* Makefile.am: Changed the order of SUBDIRS
+	
+	* mailbox/mailutils-config.c: --link part rewritten to reflect
+	the new library layout.
+
+	* mailbox/imap/folder.c: Implemented client side TLS
+	* mailbox/imap/mbox.c (imap_expunge): Use EXPUNGE instead
+	of closing and reopening the mailbox. This way the user
+	is not prompted twice for his credentials. Besides, it
+	appears to be faster, in spite of what the comment before
+	the function said.
+	* mailbox/pop/mbox.c: Implemented client side TLS.
+	* mailbox/include/imap0.h (struct _f_imap): New members
+	capav and capac to hold the array of capabilities.
+	
+	* examples/decode2047.c (ISPRINT): Fixed.
+	* from/from.c: Use "tls" command line capability.
+	* frm/frm.c: Likewise
+	* messages/messages.c: Likewise.
+	* mail/mail.c: Likewise.
+	* readmsg/readmsg.c: Likewise.
+	* sieve/sieve.c: Likewise.
+	
+	* mail/mail.h: Include tls.h
+	* readmsg/readmsg.h: Likewise.
+	
+	* include/mailutils/stream.h (stream_get_fd2): New function.
+	(stream_set_fd): Changed type of the second arg.
+	* mailbox/stream.c: Likewise.
+	* mailbox/include/stream0.h (struct _stream): Changed
+	_get_fd member.
+	
+	* mailbox/body.c: Fixed _get_fd methods.
+	* mailbox/file_stream.c: Likewise.
+	* mailbox/filter.c: Likewise.
+	* mailbox/message.c: Likewise.
+	* mailbox/mime.c: Likewise.
+	* mailbox/mbox/mbox.c: Likewise.
+	* mailbox/mapfile_stream.c: Likewise.
+	* mailbox/tcp.c: Likewise.
+	
+	* include/mailutils/tls.h (tls_stream_create_client)
+	(tls_stream_create_client_from_tcp): New functions.
+	(mu_tls_enable): New variable
+
+	* libmu_scm/mailutils.scm.in: Modified for the new
+	library layout.
+
+	* mailbox/sendmail.c: Added missing includes
+	* mailbox/smtp.c: Likewise.
+	* mailbox/pop/folder.c: Minor wording change.
+	
+	* NEWS: Updated
+	* TODO: Updated
+	
 2003-08-27  Sergey Poznyakoff 
 
 	* NEWS: Updated

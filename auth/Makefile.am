@@ -28,6 +28,8 @@ gsasl.c \
 pam.c \
 sql.h \
 sql.c \
+lbuf.h \
+lbuf.c \
 mysql.c \
 pgsql.c \
 tls.c \
