@@ -1,3 +1,15 @@
+2003-12-28  Sergey Poznyakoff 
+
+	* movemail: New directory
+	* movemail/movemail.c: New file
+	* movemail/Makefile.am: New file
+	* movemail/.cvsignore: New file
+
+	* Makefile.am: Added movemail
+	* configure.ac: Likewise
+	* examples/spamd.c: Minor changes
+	* examples/list.c: Minor changes
+	
 2003-12-26  Sergey Poznyakoff
 
 	* COPYING: New file
