@@ -38,6 +38,7 @@
 #include <mailutils/message.h>
 #include <mailutils/registrar.h>
 #include <mailutils/stream.h>
+#include <mailutils/error.h>
 #include <mailutils/nls.h>
 
 const char *argp_program_version = "mail.remote (" PACKAGE_STRING ")";
