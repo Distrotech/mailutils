@@ -1,3 +1,32 @@
+2003-01-26  Sergey Poznyakoff
+
+	* imap4d/auth_gss.c: Removed newline from the syslog diagnostic
+	  message.
+
+	* imap4d/bye.c: Cleaned wording in diagnostics.
+	* imap4d/search.c: Likewise.
+	* libsieve/require.c: Likewise.
+	* mailbox/mu_argp.c: Likewise.
+	* mh/mh_fmtgram.y: Likewise.
+	* mh/mh_format.c: Likewise.
+	* pop3d/extra.c: Likewise.
+	* sieve/sieve.c: Likewise.
+	
+	* mail/summary.c: Use ngettext
+	* mh/folder.c: Likewise.
+	* mh/refile.c: Likewise.
+	* mh/repl.c: Likewise.
+	* pop3d/user.c: Likewise.
+	
+	* mail.remote/mail.remote.c: Use mu_error instead of fprintf
+	* readmsg/readmsg.c: Likewise.
+
+	* mh/comp.c: Fixed use of OPTION_DOC options.
+	* mh/fmtcheck.c: Likewise.
+	* mh/inc.c: Likewise.
+	* mh/mhpath.c: Likewise.
+	* mh/rmf.c: Likewise.
+	
 2003-01-23  Wojciech Polak
 
 	* mailbox/mu_argp.c: Added WITH_GNUTLS and WITH_GSASL
