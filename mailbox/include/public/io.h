@@ -101,6 +101,7 @@ extern int stream_set_flags    __P ((stream_t, int flags, void *owner));
 
 /* misc */
 extern int file_stream_create     __P ((stream_t *stream));
+extern int mapfile_stream_create  __P ((stream_t *stream));
 extern int encoder_stream_create  __P ((stream_t *stream, stream_t iostream,
 					const char *encoding));
 extern int decoder_stream_create  __P ((stream_t *stream, stream_t iostream,

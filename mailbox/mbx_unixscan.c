@@ -344,7 +344,6 @@ mailbox_unix_scan0 (mailbox_t mbox, size_t msgno, size_t *pcount, int do_notif)
 				    total, &n)) == 0 && n != 0)
     {
       int nl;
-      STRLEN(buf, n);
       total += n;
 
       nl = (*buf == '\n') ? 1 : 0;

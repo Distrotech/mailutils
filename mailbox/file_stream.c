@@ -136,7 +136,7 @@ static int
 _file_truncate (stream_t stream, off_t len)
 {
   struct _file_stream *fs = stream->owner;
-  if (ftruncate (fileno(fs->file), len) == -1)
+  if (ftruncate (fileno(fs->file), len) != 0)
     return errno;
   return 0;
 }
@@ -146,6 +146,7 @@ _file_size (stream_t stream, off_t *psize)
 {
   struct _file_stream *fs = stream->owner;
   struct stat stbuf;
+  fflush (fs->file);
   if (fstat(fileno(fs->file), &stbuf) == -1)
     return errno;
   if (psize)
@@ -166,6 +167,16 @@ _file_get_fd (stream_t stream, int *pfd)
   struct _file_stream *fs = stream->owner;
   if (pfd)
     *pfd = fileno (fs->file);
+  return 0;
+}
+
+static int
+_file_close (stream_t stream)
+{
+  struct _file_stream *fs = stream->owner;
+  if (fs->file)
+    if (fclose (fs->file) != 0)
+      return errno;
   return 0;
 }
 
@@ -288,12 +299,12 @@ file_stream_create (stream_t *stream)
   ret = stream_create (stream, MU_STREAM_NO_CHECK, fs);
   if (ret != 0)
     {
-      fclose (fs->file);
       free (fs);
       return ret;
     }
 
   stream_set_open (*stream, _file_open, fs);
+  stream_set_close (*stream, _file_close, fs);
   stream_set_fd (*stream, _file_get_fd, fs);
   stream_set_read (*stream, _file_read, fs);
   stream_set_readline (*stream, _file_readline, fs);

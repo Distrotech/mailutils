@@ -346,7 +346,7 @@ static int
 mailbox_unix_open (mailbox_t mbox, int flags)
 {
   mailbox_unix_data_t mud;
-  int status;
+  int status = 0;
 
   if (mbox == NULL ||
       (mud = (mailbox_unix_data_t)mbox->data) == NULL)
@@ -359,15 +359,32 @@ mailbox_unix_open (mailbox_t mbox, int flags)
   /* get a stream */
   if (mbox->stream == NULL)
     {
-      status = file_stream_create (&(mbox->stream));
+      /* FIXME: for small mbox we shout try to mmap() */
+
+      status = (flags & MU_STREAM_CREAT) || (flags & MU_STREAM_APPEND);
+      if (status == 0)
+	status = mapfile_stream_create (&(mbox->stream));
       if (status != 0)
-	return status;
+	{
+	  status = file_stream_create (&(mbox->stream));
+	  if (status != 0)
+	    return status;
+	}
+      status = stream_open (mbox->stream, mbox->name, 0, flags);
+      if (status != 0)
+	{
+	  stream_destroy (&(mbox->stream), mbox);
+	  return status;
+	}
     }
-  status = stream_open (mbox->stream, mbox->name, 0, flags);
-  if (status != 0)
+  else
     {
-      stream_destroy (&(mbox->stream), mbox);
-      return status;
+      status = stream_open (mbox->stream, mbox->name, 0, flags);
+      if (status != 0)
+	{
+	  stream_destroy (&(mbox->stream), mbox);
+	  return status;
+	}
     }
 
   /* Authentication */
@@ -765,10 +782,10 @@ mailbox_unix_expunge (mailbox_t mbox)
   clearerr (tempfile);
 
   /* flush/truncation */
+  stream_flush (mbox->stream);
   status = stream_truncate (mbox->stream, total);
   if (status != 0)
     goto bailout;
-  stream_flush (mbox->stream);
 
   /* Don't remove the tmp mbox in case of errors */
   remove (tmpmbox);
