@@ -45,7 +45,6 @@ struct _mailer
   int flags;
   monitor_t monitor;
   property_t property;
-  size_t properties_count;
 
   /* Pointer to the specific mailer data.  */
   void *data;
