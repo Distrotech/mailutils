@@ -1,3 +1,11 @@
+2003-10-24  Sergey Poznyakoff
+
+	* mailbox/list.c (list_do): Rewritten using iterators.
+	* mh/mh_alias.l: Resolve a conflict between the angle bracket
+	indicating file inclusion and the one starting a valid
+	RFC822 address.
+	* mh/mh_alias.y: Allow for full RFC822 addresses.
+	
 2003-10-18  Sergey Poznyakoff 
 
 	* pop3d/quit.c (pop3d_fix_mark): Use only valid C comments.
