@@ -1,5 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2002, 2003,
+   2004 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -1339,9 +1340,12 @@ util_rfc2047_decode (char **value)
     return;
   if (strcasecmp (charset, "auto") == 0)
     {
-      /* Try to deduce the charset from LC_ALL variable */
+      /* Try to deduce the charset from LC_ALL or LANG variables */
 
       tmp = getenv ("LC_ALL");
+      if (!tmp)
+	tmp = getenv ("LANG");
+
       if (tmp)
 	{
 	  char *sp;
