@@ -42,8 +42,7 @@ mail_mbox_close ()
       if (mail_mbox_commit ())
 	return 1;
 
-      mailbox_save_attributes (mbox);
-      mailbox_expunge (mbox);
+      mailbox_flush (mbox, 1);
     }
   
   mailbox_get_url (mbox, &url);
@@ -69,7 +68,7 @@ mail_mbox_commit ()
   int is_user_mbox;
 
   mailbox_get_url (mbox, &url);
-  is_user_mbox = strcmp (url_to_string (url), getenv("MBOX")) == 0;
+  is_user_mbox = strcmp (url_to_string (url), getenv ("MBOX")) == 0;
 
   {
     mailbox_t mb;

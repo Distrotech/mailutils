@@ -30,7 +30,7 @@ imap4d_close (struct imap4d_command *command, char *arg)
   /* The CLOSE command permanently removes from the currently selected
      mailbox all messages that have the \\Deleted flag set, and returns
      to authenticated state from selected state.  */
-  mailbox_expunge (mbox);
+  mailbox_flush (mbox, 1);
   /* No messages are removed, and no error is give, if the mailbox is
      selected by an EXAMINE command or is otherwise selected read-only.  */
   mailbox_close (mbox);

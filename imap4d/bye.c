@@ -34,7 +34,7 @@ imap4d_bye0 (int reason, struct imap4d_command *command)
 
   if (mbox)
     {
-      mailbox_save_attributes (mbox);
+      mailbox_flush (mbox, 0);
       mailbox_close (mbox);
       mailbox_destroy (&mbox);
     }
@@ -48,7 +48,7 @@ imap4d_bye0 (int reason, struct imap4d_command *command)
 
     case ERR_SIGNAL:
       if (ofile) 
-          util_out (RESP_BYE, "Quitting on signal");
+	util_out (RESP_BYE, "Quitting on signal");
       syslog (LOG_ERR, "Quitting on signal");
       break;
 
