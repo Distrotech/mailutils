@@ -22,7 +22,8 @@
 #include <unistd.h>
 
 const char *argp_program_version = "reply (" PACKAGE_STRING ")";
-static char doc[] = "GNU MH repl";
+static char doc[] = N_("GNU MH repl\v"
+"Use -help to obtain the list of traditional MH options.");
 static char args_doc[] = N_("[+folder] [msg]");
 
 #define ARG_NOEDIT      1
@@ -65,7 +66,6 @@ static struct argp_option options[] = {
   {"whatnowproc", ARG_WHATNOWPROC, N_("PROG"), 0,
    N_("Set the replacement for whatnow program")},
   {"use", 'u', N_("BOOL"), OPTION_ARG_OPTIONAL, N_("Use draft file preserved after the last session") },
-  { N_("\nUse -help switch to obtain the list of traditional MH options. "), 0, 0, OPTION_DOC, "" },
   { 0 }
 };
 
@@ -222,7 +222,9 @@ make_draft (mailbox_t mbox, int disp, struct mh_whatnow_env *wh)
 	disp = DISP_USE;
       else
 	{
-	  printf (_("Draft \"%s\" exists (%lu bytes).\n"),
+	  printf (ngettext ("Draft \"%s\" exists (%lu byte).\n",
+			    "Draft \"%s\" exists (%lu bytes).\n",
+			    st.st_size),
 		  wh->draftfile, (unsigned long) st.st_size);
 	  disp = mh_disposition (wh->draftfile);
 	}

@@ -65,11 +65,11 @@ mail_summary (int argc, char **argv)
   }
   printf (ngettext ("%d message", "%d messages", count), count);
   if (mnew > 0)
-    printf (_(" %d new"), mnew);
+    printf (ngettext (" %d new", " %d new", mnew), mnew);
   if (mseen > 0)
-    printf (_(" %d unread"), mseen);
+    printf (ngettext (" %d unread", " %d unread", mseen), mseen);
   if (mdelete > 0)
-    printf (_(" %d deleted"), mdelete);
+    printf (ngettext (" %d deleted", " %d deleted", mdelete), mdelete);
   printf("\n");
 
   /* Set the cursor.  */

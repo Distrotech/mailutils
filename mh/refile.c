@@ -25,7 +25,8 @@
 #include <fcntl.h>
 
 const char *argp_program_version = "refile (" PACKAGE_STRING ")";
-static char doc[] = "GNU MH refile";
+static char doc[] = N_("GNU MH refile\v"
+"Use -help to obtain the list of traditional MH options.");
 static char args_doc[] = N_("messages folder [folder...]");
 
 /* GNU options */
@@ -37,10 +38,9 @@ static struct argp_option options[] = {
   {"preserve", 'p', N_("BOOL"), OPTION_ARG_OPTIONAL,
    N_("(not implemented) Try to preserve message sequence numbers")},
   {"source", 's', N_("FOLDER"), 0,
-   N_("Specify source folder. FOLDER will became the current folder after the program exits.")},
+   N_("Specify source folder. FOLDER will become the current folder after the program exits.")},
   {"src", 0, NULL, OPTION_ALIAS, NULL},
   {"file", 'F', N_("FILE"), 0, N_("Use FILE as the source message")},
-  { N_("\nUse -help switch to obtain the list of traditional MH options. "), 0, 0, OPTION_DOC, "" },
   { 0 }
 };
 
@@ -274,7 +274,9 @@ open_source (char *file_name)
     }
   else if (len > 1)
     {
-      mh_error (_("input file %s contains %lu messages"),
+      mh_error (ngettext ("input file %s contains %lu message",
+			  "input file %s contains %lu messages",
+			  len),
 		(unsigned long) len);
       return NULL;
     }

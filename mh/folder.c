@@ -33,14 +33,15 @@
 #include <obstack.h>
 
 const char *argp_program_version = "folder (" PACKAGE_STRING ")";
-static char doc[] = "GNU MH folder";
+static char doc[] = N_("GNU MH folder\v"
+"Use -help to obtain the list of traditional MH options.");
 static char args_doc[] = N_("[action] [msg]");
 
 #define ARG_PUSH 1
 #define ARG_POP 2
 
 static struct argp_option options[] = {
-  {N_("Actions are:"), 0, 0, OPTION_DOC, "", 0 },
+  {N_("Actions are:"), 0, 0, OPTION_DOC, NULL, 0 },
   {"print", 'p', NULL, 0, N_("List the folders (default)"), 1 },
   {"list", 'l', NULL, 0, N_("List the contents of the folder stack"), 1},
   {"push", ARG_PUSH, N_("FOLDER"), OPTION_ARG_OPTIONAL,
@@ -50,7 +51,7 @@ static struct argp_option options[] = {
        "stack are exchanged"), 1},
   {"pop", ARG_POP, NULL, 0, N_("Pop the folder off the folder stack"), 1},
   
-  {N_("Options are:"), 0, 0, OPTION_DOC, "", 2 },
+  {N_("Options are:"), 0, 0, OPTION_DOC, NULL, 2 },
   {"folder",  'f', N_("FOLDER"), 0, N_("Specify folder to operate upon"), 3},
   {"all", 'a', NULL, 0, N_("List all folders"), 3},
   {"create", 'c', N_("BOOL"), OPTION_ARG_OPTIONAL, 
@@ -63,8 +64,6 @@ static struct argp_option options[] = {
     N_("Scan folders recursively"), 3},
   {"total", 't', N_("BOOL"), OPTION_ARG_OPTIONAL, 
     N_("Output the total statistics"), 3},
-  { N_("\nUse -help switch to obtain the list of traditional MH options. "), 
-    0, 0, OPTION_DOC, "", 4 },
   
   {NULL},
 };
@@ -329,9 +328,9 @@ print_all ()
       
       if (info->message_count)
 	{
-	  printf (info->message_count == 1 ?
-		  _(" has %4lu message  (%4lu-%4lu)") :
-		  _(" has %4lu messages (%4lu-%4lu)"),
+	  printf (ngettext(" has %4lu message  (%4lu-%4lu)",
+			   " has %4lu messages (%4lu-%4lu)",
+			   info->message_count),
 		  (unsigned long) info->message_count,
 		  (unsigned long) info->min,
 		  (unsigned long) info->max);
@@ -401,16 +400,22 @@ action_print ()
     print_fast ();
   else
     {
-      if (print_header)
-	printf ("Folder               # of messages     (  range  )  cur msg   (other files)\n");
+      if (print_header)                                   
+	printf (_("Folder                  # of messages     (  range  )  cur msg   (other files)\n"));
 		
       print_all ();
 
       if (print_total)
-	printf (_("\n%24.24s=%4lu messages in %4lu folders\n"),
-		_("TOTAL"),
-		(unsigned long) message_count,
-		(unsigned long) folder_info_count);
+	{
+	  printf ("\n%24.24s=", _("TOTAL"));
+	  printf (ngettext ("%4lu message  ", "%4lu messages ",
+			    message_count),
+		  (unsigned long) message_count);
+	  printf (ngettext ("in %4lu folder", "in %4lu folders",
+			    folder_info_count),
+		  (unsigned long) folder_info_count);
+	  printf ("\n");
+	}
     }
   if (push_folder)
     mh_global_save_state ();
