@@ -1,3 +1,22 @@
+2001-11-12  Sergey Poznyakoff
+
+	* examples/comsat.conf: (new) A sample configuration file
+	for comsatd utility.
+	* examples/dot.biffrc: (new) A sample per-user biff configuration
+	file.
+	* comsat/action.c: Implemented exec. Fixed trivial bug in
+	expand_escape().
+	* comsat/cfg.c: New keyword: allow-biffrc.
+	* comsat/comsat.c: Likewise.
+	* comsat/comsat.h: extern declarations.
+
+	* lib/argcv.c: Ignore trailing whitespace and terminate output array
+	with a NULL entry.
+
+	* mail/mail.c: Use quotes when setting default string values.
+	* mail/set.c: Bugfix: possible dereference of NULL pointer (on
+	input: set var=<eol> ).
+
 2001-11-12  Alain Magloire
 
 	Support in POP3 maibox client for APOP authentication.
