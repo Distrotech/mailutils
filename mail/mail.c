@@ -47,8 +47,14 @@ static struct argp_option options[] = {
   {"subject", 's', "SUBJ", 0, "Send a message with a Subject of SUBJ", 0},
   {"to",      't', 0,      0, "Precede message by a list of addresses", 0},
   {"user",    'u', "USER", 0, "Operate on USER's mailbox", 0},
+  {NULL,      0,  NULL,    OPTION_DOC,
+   "Note: Argument to --file (-f) option is optional. If it is present, "
+   "it must follow the short option immediately, without any intervening "
+   "whitespace. If it is used with the long option, it must be separated "
+   "from it by an equal sign, with no intervening whitespace.", 0},
   { NULL,      0, NULL, 0, NULL, 0 }
 };
+
 
 struct arguments
 {
@@ -67,6 +73,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
     case 'e':
       util_do_command ("set mode=exist");
       break;
+      
     case 'f':
       if (arg != NULL)
 	args->file = arg;
@@ -80,46 +87,73 @@ parse_opt (int key, char *arg, struct argp_state *state)
 	  strcat (args->file, "/mbox");
 	}
       break;
+      
     case 'p':
     case 'r':
       util_do_command ("set mode=print");
       break;
+      
     case 'q':
-      util_do_command ("set quit");
+      util_do_command ("set quiet");
       break;
+      
     case 't':
       util_do_command ("set mode=send");
       break;
+      
     case 'H':
       util_do_command ("set mode=headers");
       break;
+      
     case 'i':
       util_do_command ("set ignore");
       break;
+      
     case 'n':
       util_do_command ("set norc");
       break;
+      
     case 'N':
       util_do_command ("set noheader");
       break;
+      
     case 's':
       util_do_command ("set mode=send");
       util_do_command ("set noasksub");
       util_do_command ("set subject=\"%s\"", arg);
       break;
+      
     case 'u':
       args->user = arg;
       break;
+      
     case 'F':
       util_do_command ("set byname");
       break;
+      
     case ARGP_KEY_ARG:
-      args->args = realloc (args->args,
-			    sizeof (char *) * (state->arg_num + 2));
-      args->args[state->arg_num] = arg;
-      args->args[state->arg_num + 1] = NULL;
-      util_do_command ("set mode=send");
+      /* People often tend to separate -f option from its argument
+	 with a whitespace. This heuristics tries to catch the
+	 error: */
+
+      if (args->file)
+	{
+	  util_error ("Usage error: --file takes an optional argument, it must follow the option\n"
+	              "without any intervening whitespace.");
+	  util_error ("Run mail --help for more info.");
+	  util_do_command ("set quiet");
+	  args->file = arg;
+	}
+      else
+	{
+	  args->args = realloc (args->args,
+				sizeof (char *) * (state->arg_num + 2));
+	  args->args[state->arg_num] = arg;
+	  args->args[state->arg_num + 1] = NULL;
+	  util_do_command ("set mode=send");
+	}
       break;
+      
     default:
       return ARGP_ERR_UNKNOWN;
     }
@@ -364,7 +398,7 @@ main (int argc, char **argv)
       else if ((rc = mailbox_create_default (&mbox, args.file)) != 0)
 	{
 	  util_error ("Can not create mailbox %s: %s", args.file,
-		      mu_errstring (errno));
+		      mu_errstring (rc));
 	  exit (EXIT_FAILURE);
 	}
 
@@ -389,9 +423,12 @@ main (int argc, char **argv)
 	total = 0;
       else
 	{
-	  if (mailbox_scan (mbox, 1, &total) != 0)
+	  if ((rc = mailbox_scan (mbox, 1, &total)) != 0)
 	    {
-	      util_error ("Can not read mailbox");
+	      url_t url = NULL;
+	      mailbox_get_url (mbox, &url);
+	      util_error ("Can not read mailbox %s: %s",
+			  url_to_string (url), mu_errstring (rc));
 	      exit (EXIT_FAILURE);
 	    }
 
