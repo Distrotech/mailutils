@@ -34,12 +34,13 @@ typedef void (*rdl_done_t) (void);
   mu_sql_dispatch_t __s_cat2__(mod,_dispatch_tab)
 #endif
 
-enum mu_sql_connection_state {
-  mu_sql_not_connected,
-  mu_sql_connected,
-  mu_sql_query_run,
-  mu_sql_result_available
-};
+enum mu_sql_connection_state
+  {
+    mu_sql_not_connected,
+    mu_sql_connected,
+    mu_sql_query_run,
+    mu_sql_result_available
+  };
 
 typedef struct mu_sql_connection *mu_sql_connection_t;
 
@@ -104,5 +105,19 @@ int mu_sql_get_column (mu_sql_connection_t conn, size_t nrow, size_t ncol,
 		       char **pdata);
 
 const char *mu_sql_strerror (mu_sql_connection_t conn);
+
+enum mu_password_type
+  {
+    password_plaintext,       /* Plaintext passwords */
+    password_scrambled,       /* Scrambled MySQL (>=3.21) password */
+    password_hash,            /* MD5 (or DES or whatever) hash */
+  };
+
+extern enum mu_password_type mu_sql_password_type;
+
+extern char *mu_sql_expand_query (const char *query, const char *ustr);
+extern int mu_sql_getpass (const char *username, char **passwd);
+extern int mu_check_mysql_scrambled_password (const char *scrambled,
+					      const char *message);
 
 #endif
