@@ -24,11 +24,11 @@
  */
 
 /*
- * NOTE: outfolder variable
+ * Shared between mail_copy() and mail_save().
  */
 
 int
-mail_copy (int argc, char **argv)
+mail_copy0 (int argc, char **argv, int mark)
 {
   message_t msg;
   mailbox_t mbx;
@@ -40,41 +40,52 @@ mail_copy (int argc, char **argv)
   if (isupper (argv[0][0]))
     sender = 1;
   else if (argc >= 2)
-    filename = argv[--argc];
+    filename = strdup(argv[--argc]);
   else
-    {
-      filename = strdup ("mbox");
-    }
+    filename = strdup("mbox");
 
   num = util_expand_msglist (argc, argv, &msglist);
-
   if (sender)
     {
-      mailbox_get_message (mbox, num > 0 ? msglist[0] : cursor, 0);
-      /* get from */
-      /* filename = login name part */
-    }
-
-  mailbox_create (&mbx, filename);
-  mailbox_open (mbx, MU_STREAM_WRITE | MU_STREAM_CREAT);
-
-  if (num > 0)
-    {
-      for (i=0; i < num; i++)
+      filename = util_get_sender(msglist[0], 1);
+      if (!filename)
 	{
-	  mailbox_get_message (mbox, msglist[i], &msg);
-	  mailbox_append_message (mbx, msg);
+	  free (msglist);
+	  return 1;
 	}
     }
-  else
+
+  if (mailbox_create_default (&mbx, filename)
+      || mailbox_open (mbx, MU_STREAM_WRITE | MU_STREAM_CREAT))
     {
-      mailbox_get_message (mbox, cursor, &msg);
+      fprintf (ofile, "can't create mailbox %s\n", filename);
+      free (filename);
+      free (msglist);
+      return 1;
+    }
+    
+  fprintf (ofile, "%s\n", filename);
+
+  for (i = 0; i < num; i++)
+    {
+      mailbox_get_message (mbox, msglist[i], &msg);
       mailbox_append_message (mbx, msg);
+      if (mark)
+	{
+	  /*FIXME: mark as saved */;
+	}
     }
 
   mailbox_close (mbx);
   mailbox_destroy (&mbx);
 
+  free (filename);
   free (msglist);
   return 0;
+}
+
+int
+mail_copy (int argc, char **argv)
+{
+  return mail_copy0 (argc, argv, 0);
 }
