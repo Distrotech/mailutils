@@ -119,6 +119,7 @@ extern int mu_rfc2822_in_reply_to __P((message_t msg, char **pstr));
 /* Find NEEDLE in the HAYSTACK. Case insensitive comparison */
 extern char *mu_strcasestr __P((const char *haystack, const char *needle));
 
+extern int mu_string_unfold __P((char *text, size_t *plen));
   
 #ifdef __cplusplus
 }

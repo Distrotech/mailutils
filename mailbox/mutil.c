@@ -1097,3 +1097,20 @@ ret0:
 
 #undef U
 }  
+
+int
+mu_string_unfold (char *text, size_t *plen)
+{
+  char *p, *q;
+
+  if (!text)
+    return EINVAL;
+  
+  for (p = q = text; *q; q++)
+    if (*q != '\n')
+      *p++ = *q;
+  *p++ = 0;
+  if (plen)
+    *plen = p - text;
+  return 0;
+}
