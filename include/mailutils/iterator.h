@@ -25,6 +25,7 @@ extern "C" {
 #endif
 
 extern int iterator_create   __P ((iterator_t *, list_t));
+extern int iterator_dup      __P ((iterator_t *piterator, iterator_t orig));
 extern void iterator_destroy __P ((iterator_t *));
 extern int iterator_first    __P ((iterator_t));
 extern int iterator_next     __P ((iterator_t));

@@ -43,6 +43,25 @@ iterator_create (iterator_t *piterator, list_t list)
   return 0;
 }
 
+int
+iterator_dup (iterator_t *piterator, iterator_t orig)
+{
+  iterator_t iterator;
+
+  if (piterator == NULL || orig == NULL)
+    return EINVAL;
+  iterator = calloc (sizeof (*iterator), 1);
+  if (iterator == NULL)
+    return ENOMEM;
+  iterator->list = orig->list;
+  iterator->cur = orig->cur;
+  iterator->is_advanced = orig->is_advanced;
+  iterator->next = orig->list->itr;
+  orig->list->itr = iterator;
+  *piterator = iterator;
+  return 0;
+}
+
 void
 iterator_destroy (iterator_t *piterator)
 {
