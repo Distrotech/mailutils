@@ -29,3 +29,4 @@ whom
 *.output
 .gdbinit
 mailutils-mh.el
+elc-stamp

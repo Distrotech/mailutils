@@ -1,3 +1,10 @@
+2003-06-07  Wojciech Polak
+
+	* configure.ac (AM_GNU_GETTEXT_VERSION): Bump to 0.12.1.
+	  (INTLINCS): Added `-I../intl'.
+	* m4/Makefile.am: Added nls.m4 and po.m4.
+	* po/Makevars: Added MSGID_BUGS_ADDRESS.
+
 2003-06-07  Sergey Poznyakoff  
 
 	* NEWS: Updated
