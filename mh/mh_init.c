@@ -144,10 +144,22 @@ mh_read_formfile (char *name, char **pformat)
       int len = strlen (ptr);
       if (len == 0)
 	break;
+
+      if (*ptr == '%' && ptr[1] == ';')
+	continue;
+      
       if (len > 0 && ptr[len-1] == '\n')
-	ptr[--len] = 0;
+	{
+	  if (ptr[len-2] == '\\')
+	    {
+	      len -= 2;
+	      ptr[len] = 0;
+	    }
+	}
       off += len;
     }
+  if (off > 0 && format_str[off-1] == '\n')
+    off--;
   format_str[off] = 0;
   fclose (fp);
   *pformat = format_str;
