@@ -1740,9 +1740,116 @@ edit_extern (char *cmd, struct compose_env *env, message_t *msg, int level)
 }
 
 int
-edit_forw (char *cmd, struct compose_env *env, message_t *msg, int level)
+edit_forw (char *cmd, struct compose_env *env, message_t *pmsg, int level)
 {
-  return 0;
+  char *sp, *id = NULL, *descr = NULL;
+  int stop = 0, status = 0;
+  int i, argc;
+  char **argv;
+  header_t hdr;
+  mime_t mime;
+  message_t msg;
+  char *val, *newval;
+  
+  skipws (cmd);
+  while (stop == 0 && status == 0 && *cmd)
+    {
+      switch (*cmd++)
+	{
+	case '[':
+	  if (descr)
+	    {
+	      mh_error (_("%s:%lu: description redefined"),
+			input_file,
+			(unsigned long) mhn_error_loc (env));
+	      status = 1;
+	      break;
+	    }
+	  status = parse_brace (&descr, &cmd, ']', env);
+	  break;
+	  
+	case '<':
+	  if (id)
+	    {
+	      mh_error (_("%s:%lu: content id redefined"),
+			input_file,
+			(unsigned long) mhn_error_loc (env));
+	      status = 1;
+	      break;
+	    }
+	  status = parse_brace (&id, &cmd, '>', env);
+	  break;
+
+	default:
+	  cmd--;
+	  stop = 1;
+	  break;
+	}
+      skipws (cmd);
+    }
+  if (status)
+    return status;
+
+  if (argcv_get (cmd, "\n", NULL, &argc, &argv))
+    {
+      mh_error (_("%s:%lu: syntax error"),
+		input_file,
+		(unsigned long) mhn_error_loc (env));
+      return 1;
+    }
+
+  mime_create (&mime, NULL, 0);
+  
+  mbox = mh_open_folder (argv[0], 0);
+  for (i = 1; i < argc; i++)
+    {
+      message_t input_msg;
+      if (mh_get_message (mbox, i, &input_msg) == 0)
+	{
+	  mh_error (_("%s:%lu: no such message: %lu"),
+		    input_file,
+		    (unsigned long) mhn_error_loc (env),
+		    (unsigned long)i);
+	  return 1;
+	}
+
+      if ((status = message_create_copy (&msg, input_msg)))
+	break;
+      mime_add_part (mime, msg);
+    }
+  argcv_free (argc, argv);
+
+  if (*pmsg)
+    {
+      message_unref (*pmsg);
+      *pmsg = NULL;
+    }
+  
+  mime_get_message (mime, &msg);
+  message_get_header (msg, &hdr);
+  header_aget_value (hdr, MU_HEADER_CONTENT_TYPE, &val);
+  sp = strchr (val, ';');
+  if (!sp)
+    abort ();
+  asprintf (&newval, "multipart/digest%s", sp);
+  header_set_value (hdr, MU_HEADER_CONTENT_TYPE, newval, 1);
+  free (val);
+  free (newval);
+
+  if (!id)
+    id = mh_create_message_id (env->subpart);
+
+  header_set_value (hdr, MU_HEADER_CONTENT_ID, id, 1);
+  free (id);
+
+  if (descr)
+    {
+      header_set_value (hdr, MU_HEADER_CONTENT_DESCRIPTION, descr, 1);
+      free (descr);
+    }
+  
+  finish_msg (env, &msg);
+  return status;
 }
 
 int
@@ -2013,7 +2120,7 @@ mhn_compose ()
   stream_t stream, in;
   struct compose_env env;
   message_t msg;
-  char *name;
+  char *name, *backup, *p;
   
   mime_create (&mime, NULL, 0);
 
@@ -2029,7 +2136,23 @@ mhn_compose ()
     return rc;
 
   mime_get_message (mime, &msg);
-  asprintf (&name, "%s/draft.mhn", mu_path_folder_dir);
+
+  p = strrchr (input_file, '/');
+  /* Prepare file names */
+  if (p)
+    {
+      *p = 0;
+      name = mu_tempname (input_file);
+      asprintf (&backup, "%s/,%s.orig", input_file, p + 1);
+      *p = '/';
+    }
+  else
+    {
+      name = mu_tempname (NULL);
+      asprintf (&backup, ",%s.orig", input_file);
+    }
+  
+  /* Create working draft file */
   unlink (name);
   rc = file_stream_create (&stream, name, MU_STREAM_RDWR|MU_STREAM_CREAT);
   if (rc)
@@ -2048,12 +2171,20 @@ mhn_compose ()
       stream_destroy (&stream, stream_get_owner (stream));
       return rc;
     }
-  free (name);
   
   copy_header (message, stream);
   message_get_stream (msg, &in);
   cat_message (stream, in);
   stream_destroy (&stream, stream_get_owner (stream));
+
+  /* Preserve the backup copy and replace the draft */
+  unlink (backup);
+  rename (input_file, backup);
+  rename (name, input_file);
+
+  free (name);
+  free (input_file);
+  
   return 0;
 }
 
