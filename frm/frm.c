@@ -328,6 +328,7 @@ action (observer_t o, size_t type)
 	    int status = header_get_value_unfold (hdr, MU_HEADER_SUBJECT,
 						  hsubject,
 						  sizeof (hsubject), NULL);
+	    frm_rfc2047_decode (hsubject, sizeof (hsubject));
 	    if(status == 0)
 	      printf ("%s", hsubject);
 	  }
