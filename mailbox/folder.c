@@ -67,7 +67,7 @@ folder_create (folder_t *pfolder, const char *name)
   /* Look in the registrar list(iterator), for a possible concrete mailbox
      implementatio that could match the URL.  */
   registrar_get_list (&list);
-  status = iterator_create (&iterator, list);
+  status = list_get_iterator (list, &iterator);
   if (status != 0)
     return status;
   for (iterator_first (iterator); !iterator_is_done (iterator);
@@ -418,7 +418,7 @@ is_known_folder (url_t url, folder_t *pfolder)
   if (url == NULL || pfolder == NULL)
     return ret;
 
-  if (iterator_create (&iterator, known_folder_list) != 0)
+  if (list_get_iterator (known_folder_list, &iterator) != 0)
     return ret;
 
   for (iterator_first (iterator); !iterator_is_done (iterator);

@@ -2,6 +2,8 @@
    GNU Mailutils nntp functions.  This application interactively allows users
    to contact a nntp server.
 
+   Copyright (C) 2003, 2004 Free Software Foundation
+
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
    the Free Software Foundation; either version 2, or (at your option)
@@ -497,7 +499,7 @@ com_list_extensions (char *arg ARG_UNUSED)
   if (status == 0)
     {
       iterator_t iterator = NULL;
-      iterator_create (&iterator, list);
+      list_get_iterator (list, &iterator);
       for (iterator_first (iterator);
 	   !iterator_is_done (iterator); iterator_next (iterator))
 	{

@@ -1,6 +1,6 @@
 %{
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2002, 2004 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -677,7 +677,7 @@ line_finish ()
   int length = 0;
   char *p;
   
-  if (!string_list || iterator_create (&itr, string_list))
+  if (!string_list || list_get_iterator (string_list, &itr))
     return;
 
   /* Count number of characters in the multiline */

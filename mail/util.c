@@ -698,7 +698,7 @@ util_slist_print (list_t list, int nl)
   iterator_t itr;
   char *name;
 
-  if (!list || iterator_create (&itr, list))
+  if (!list || list_get_iterator (list, &itr))
     return;
 
   for (iterator_first (itr); !iterator_is_done (itr); iterator_next (itr))
@@ -717,7 +717,7 @@ util_slist_lookup (list_t list, char *str)
   char *name;
   int rc = 0;
 
-  if (!list || iterator_create (&itr, list))
+  if (!list || list_get_iterator (list, &itr))
     return 0;
 
   for (iterator_first (itr); !iterator_is_done (itr); iterator_next (itr))
@@ -773,7 +773,7 @@ util_slist_destroy (list_t *list)
   iterator_t itr;
   char *name;
 
-  if (!*list || iterator_create (&itr, *list))
+  if (!*list || list_get_iterator (*list, &itr))
     return;
 
   for (iterator_first (itr); !iterator_is_done (itr); iterator_next (itr))
@@ -792,7 +792,7 @@ util_slist_to_string (list_t list, const char *delim)
   char *name;
   char *str = NULL;
 
-  if (!list || iterator_create (&itr, list))
+  if (!list || list_get_iterator (list, &itr))
     return NULL;
 
   for (iterator_first (itr); !iterator_is_done (itr); iterator_next (itr))

@@ -1237,7 +1237,7 @@ util_run_events (int old_state, int new_state)
       ev.old_state = old_state;
       ev.new_state = new_state;
 
-      iterator_create (&itr, event_list);
+      list_get_iterator (event_list, &itr);
       for (iterator_first (itr); !iterator_is_done (itr); iterator_next (itr))
 	{
 	  struct state_event *p;

@@ -1,6 +1,6 @@
 %{
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2003 Free Software Foundation, Inc.
+   Copyright (C) 2003, 2004 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -61,7 +61,7 @@ ali_list_to_string (list_t *plist)
       char *p;
       size_t length = 0;
       iterator_t itr;
-      iterator_create (&itr, *plist);
+      list_get_iterator (*plist, &itr);
       for (iterator_first (itr); !iterator_is_done (itr); iterator_next(itr))
 	{
 	  char *s;
@@ -207,7 +207,7 @@ ali_list_dup (list_t src)
   if (list_create (&dst))
     return NULL;
 
-  if (iterator_create (&itr, src))
+  if (list_get_iterator (src, &itr))
     {
       list_destroy (&dst);
       return NULL;
@@ -229,7 +229,7 @@ ali_member (list_t list, char *name)
   iterator_t itr;
   int found = 0;
 
-  if (iterator_create (&itr, list))
+  if (list_get_iterator (list, &itr))
     return 0;
   for (iterator_first (itr); !found && !iterator_is_done (itr);
        iterator_next (itr))
@@ -266,7 +266,7 @@ _insert_list (list_t list, void *prev, list_t new_list)
 {
   iterator_t itr;
 
-  if (iterator_create (&itr, new_list))
+  if (list_get_iterator (new_list, &itr))
     return 1;
   for (iterator_first (itr); !iterator_is_done (itr); iterator_next (itr))
     {
@@ -288,7 +288,7 @@ alias_expand_list (list_t name_list, iterator_t orig_itr, int *inclusive)
 {
   iterator_t itr;
 
-  if (iterator_create (&itr, name_list))
+  if (list_get_iterator (name_list, &itr))
     return 1;
   for (iterator_first (itr); !iterator_is_done (itr); iterator_next (itr))
     {
@@ -318,7 +318,7 @@ mh_alias_get_internal (char *name, iterator_t start, list_t *return_list,
 
   if (!start)
     {
-      if (iterator_create (&itr, alias_list))
+      if (list_get_iterator (alias_list, &itr))
 	return 1;
       iterator_first (itr);
     }
@@ -368,7 +368,7 @@ mh_alias_get_address (char *name, address_t *paddr, int *incl)
       return 1;
     }
   
-  if (iterator_create (&itr, list) == 0)
+  if (list_get_iterator (list, &itr) == 0)
     {
       for (iterator_first (itr); !iterator_is_done (itr); iterator_next (itr))
 	{
@@ -416,7 +416,7 @@ mh_alias_get_alias (char *uname, list_t *return_list)
   iterator_t itr;
   int rc = 1;
   
-  if (iterator_create (&itr, alias_list))
+  if (list_get_iterator (alias_list, &itr))
     return 1;
   for (iterator_first (itr); !iterator_is_done (itr); iterator_next (itr))
     {
@@ -441,7 +441,7 @@ mh_alias_enumerate (mh_alias_enumerator_t fun, void *data)
   iterator_t itr;
   int rc = 0;
   
-  if (iterator_create (&itr, alias_list))
+  if (list_get_iterator (alias_list, &itr))
     return ;
   for (iterator_first (itr);
        rc == 0 && !iterator_is_done (itr);

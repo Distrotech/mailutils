@@ -98,7 +98,7 @@ mailer_create (mailer_t * pmailer, const char *name)
     mailer_get_url_default (&name);
 
   registrar_get_list (&list);
-  status = iterator_create (&iterator, list);
+  status = list_get_iterator (list, &iterator);
   if (status != 0)
     return status;
   for (iterator_first (iterator); !iterator_is_done (iterator);

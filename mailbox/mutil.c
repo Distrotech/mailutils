@@ -265,7 +265,7 @@ mu_retrieve (list_t flist, void *data)
   void *p = NULL;
   iterator_t itr;
 
-  if (iterator_create (&itr, flist) == 0)
+  if (list_get_iterator (flist, &itr) == 0)
     {
       mu_retrieve_fp fun;
       for (iterator_first (itr); !p && !iterator_is_done (itr);

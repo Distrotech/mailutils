@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2003 Free Software Foundation, Inc.
+   Copyright (C) 2003, 2004 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -41,9 +41,9 @@ print (list_t list)
   iterator_t itr;
   int rc;
   
-  rc = iterator_create (&itr, list);
+  rc = list_get_iterator (list, &itr);
   if (rc)
-    lperror ("iterator_create", rc);
+    lperror ("list_get_iterator", rc);
 
   for (iterator_first (itr); !iterator_is_done (itr); iterator_next (itr))
     {
@@ -222,9 +222,9 @@ shell (list_t list)
 
   for (num = 0; num < NITR; num++)
     {
-      rc = iterator_create (&itr[num], list);
+      rc = list_get_iterator (list, &itr[num]);
       if (rc)
-	lperror ("iterator_create", rc);
+	lperror ("list_get_iterator", rc);
       iterator_first (itr[num]);
     }
 

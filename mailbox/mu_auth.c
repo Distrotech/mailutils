@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2002 Free Software Foundation, Inc.
+   Copyright (C) 2002, 2004 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -129,7 +129,7 @@ mu_auth_runlist (list_t flist, struct mu_auth_data **return_data,
   int rc = 1;
   iterator_t itr;
 
-  if (iterator_create (&itr, flist) == 0)
+  if (list_get_iterator (flist, &itr) == 0)
     {
       struct auth_stack_entry *ep;
       
@@ -330,7 +330,7 @@ _locate (const char *name)
   struct _module_handler *rp = NULL;
   iterator_t itr;
 
-  if (iterator_create (&itr, module_handler_list) == 0)
+  if (list_get_iterator (module_handler_list, &itr) == 0)
     {
       struct _module_handler *p;
       
@@ -431,7 +431,7 @@ mu_auth_begin_setup ()
   
   if (!mu_authenticate_list)
     {
-      if (iterator_create (&itr, module_handler_list) == 0)
+      if (list_get_iterator (module_handler_list, &itr) == 0)
 	{
 	  struct _module_handler *mod;
 	  
@@ -448,7 +448,7 @@ mu_auth_begin_setup ()
 
   if (!mu_auth_by_name_list)
     {
-      if (iterator_create (&itr, module_handler_list) == 0)
+      if (list_get_iterator (module_handler_list, &itr) == 0)
 	{
 	  struct _module_handler *mod;
 	  

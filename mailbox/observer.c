@@ -134,7 +134,7 @@ observable_destroy (observable_t *pobservable, void *owner)
       observable_t observable = *pobservable;
       if (observable->owner == owner)
 	{
-	  int status = iterator_create (&iterator, observable->list);
+	  int status = list_get_iterator (observable->list, &iterator);
 	  if (status == 0)
 	    {
 	      event_t event = NULL;
@@ -185,9 +185,9 @@ observable_detach (observable_t observable, observer_t observer)
   int status;
   int found = 0;
   event_t event = NULL;
-  if (observable == NULL ||observer == NULL)
+  if (observable == NULL || observer == NULL)
     return EINVAL;
-  status = iterator_create (&iterator, observable->list);
+  status = list_get_iterator (observable->list, &iterator);
   if (status != 0)
     return status;
   for (iterator_first (iterator); !iterator_is_done (iterator);
@@ -220,7 +220,7 @@ observable_notify (observable_t observable, int type)
   int status = 0;
   if (observable == NULL)
     return EINVAL;
-  status = iterator_create (&iterator, observable->list);
+  status = list_get_iterator (observable->list, &iterator);
   if (status != 0)
     return status;
   for (iterator_first (iterator); !iterator_is_done (iterator);

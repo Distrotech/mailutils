@@ -173,7 +173,7 @@ filter_create (stream_t *pstream, stream_t stream, const char *name,
     return EINVAL;
 
   filter_get_list (&list);
-  status = iterator_create (&iterator, list);
+  status = list_get_iterator (list, &iterator);
   if (status != 0)
     return status;
 

@@ -1,6 +1,6 @@
 %{
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2003 Free Software Foundation, Inc.
+   Copyright (C) 2003, 2004 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -261,7 +261,7 @@ pick_parse (list_t toklist)
       return 0;
     }
 
-  if (iterator_create (&iterator, toklist))
+  if (list_get_iterator (toklist, &iterator))
     return -1;
   iterator_first (iterator);
   rc = yyparse ();

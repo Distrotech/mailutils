@@ -58,7 +58,7 @@ mailbox_create (mailbox_t *pmbox, const char *name)
 
   /* Look in the registrar, for a match  */
   registrar_get_list (&list);
-  status = iterator_create (&iterator, list);
+  status = list_get_iterator (list, &iterator);
   if (status != 0)
     return status;
   for (iterator_first (iterator); !iterator_is_done (iterator);

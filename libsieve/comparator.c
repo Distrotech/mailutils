@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2002, 2004 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -69,7 +69,7 @@ _lookup (list_t list, const char *name)
   iterator_t itr;
   sieve_comparator_record_t *reg;
 
-  if (!list || iterator_create (&itr, list))
+  if (!list || list_get_iterator (list, &itr))
     return NULL;
 
   for (iterator_first (itr); !iterator_is_done (itr); iterator_next (itr))
@@ -215,7 +215,7 @@ sieve_match_part_checker (const char *name, list_t tags, list_t args)
   int matchtype;
   int err = 0;
   
-  if (!tags || iterator_create (&itr, tags))
+  if (!tags || list_get_iterator (tags, &itr))
     return 0;
 
   for (iterator_first (itr); !err && !iterator_is_done (itr);

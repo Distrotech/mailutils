@@ -2,6 +2,8 @@
    GNU Mailutils pop3 functions.  This application interactively allows users
    to contact a pop3 server.
 
+   Copyright (C) 2003, 2004 Free Software Foundation
+
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
    the Free Software Foundation; either version 2, or (at your option)
@@ -404,7 +406,7 @@ com_capa (char *arg ARG_UNUSED)
   if (status == 0)
     {
       iterator_t iterator = NULL;
-      iterator_create (&iterator, list);
+      list_get_iterator (list, &iterator);
       for (iterator_first (iterator);
 	   !iterator_is_done (iterator); iterator_next (iterator))
 	{
@@ -429,7 +431,7 @@ com_uidl (char *arg)
       if (status == 0)
 	{
 	  iterator_t uidl_iterator = NULL;
-	  iterator_create (&uidl_iterator, list);
+	  list_get_iterator (list, &uidl_iterator);
 	  for (iterator_first (uidl_iterator);
 	       !iterator_is_done (uidl_iterator);
 	       iterator_next (uidl_iterator))
@@ -465,7 +467,7 @@ com_list (char *arg)
       if (status == 0)
 	{
 	  iterator_t list_iterator;
-	  iterator_create (&list_iterator, list);
+	  list_get_iterator (list, &list_iterator);
 	  for (iterator_first (list_iterator);
 	       !iterator_is_done (list_iterator);
 	       iterator_next (list_iterator))

@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2001, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001, 2002, 2004 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -144,7 +144,7 @@ get_sender_address (message_t msg)
   if (message_get_header (msg, &header))
     return NULL;
   
-  if (!sender_headers || iterator_create (&itr, sender_headers))
+  if (!sender_headers || list_get_iterator (sender_headers, &itr))
     return NULL;
 
   for (iterator_first (itr); !addr && !iterator_is_done (itr);
