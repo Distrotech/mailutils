@@ -244,7 +244,9 @@ void mh_global_save_state __P((void));
 int mh_global_context_iterate __P((mh_context_iterator fp, void *data));
 int mh_global_sequences_iterate __P((mh_context_iterator fp, void *data));
 
+int mh_interactive_mode_p __P((void));
 int mh_getyn __P((const char *fmt, ...));
+int mh_getyn_interactive __P((const char *fmt, ...));
 int mh_check_folder __P((char *pathname, int confirm));
 
 int mh_format __P((mh_format_t *fmt, message_t msg, size_t msgno,
