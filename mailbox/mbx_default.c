@@ -34,38 +34,53 @@
 #include <mailutils/mutil.h>
 #include <mailutils/error.h>
 
+char *mu_path_maildir = MU_PATH_MAILDIR; 
+
 /* Is this a security risk?  */
 #define USE_ENVIRON 1
 
-static char * tilde_expansion      __P ((const char *));
-static char * plus_equal_expansion __P ((const char *));
-static char * get_cwd              __P ((void));
-static char * get_full_path        __P ((const char *));
-static const char * get_homedir    __P ((const char *));
-
-/* Do + and = expansion to ~/Mail, if necessary. */
-static char *
-plus_equal_expansion (const char *file)
+static int
+split_shortcut (const char *file, const char pfx[], char **user, char **rest)
 {
-  char *p = NULL;
-  if (file && (*file == '+' || *file == '='))
+  *user = NULL;
+  *rest = NULL;
+
+  if (!strchr (pfx, file[0]))
+    return 0;
+
+  if (*++file == 0)
+    return 0;
+  else
     {
-      char *folder;
-      /* Skip '+' or '='.  */
-      file++;
-      folder = tilde_expansion ("~/Mail");
-      if (folder)
-	{
-	  p = malloc (strlen (folder) + 1 + strlen (file) + 1);
-	  if (p)
-	    sprintf(p, "%s/%s", folder, file);
-	  free (folder);
-	}
+      char *p = strchr (file, '/');
+      int len;
+      if (p)
+        len = p - file + 1;
+      else
+        len = strlen (file) + 1;
+      
+      *user = calloc (1, len);
+      if (!*user)
+        return ENOMEM;
+
+      memcpy (*user, file, len);
+      (*user)[len-1] = 0;
+      file += len-1;
+      if (file[0] == '/')
+        file++;
     }
 
-  if (!p)
-    p = strdup (file);
-  return p;
+  if (file[0])
+    {
+      *rest = strdup (file);
+      if (!*rest)
+        {
+          free (*user);
+          return ENOMEM;
+        }
+    }
+  
+  return 0;
 }
 
 static const char *
@@ -77,7 +92,7 @@ get_homedir (const char *user)
     {
       pw = mu_getpwnam (user);
       if (pw)
-	homedir = pw->pw_dir;
+        homedir = pw->pw_dir;
     }
   else
     {
@@ -85,164 +100,163 @@ get_homedir (const char *user)
       /* NOTE: Should we honor ${HOME}?  */
       homedir = getenv ("HOME");
       if (homedir == NULL)
-	{
-	  pw = mu_getpwuid (getuid ());
-	  if (pw)
-	    homedir = pw->pw_dir;
-	}
+        {
+          pw = mu_getpwuid (getuid ());
+          if (pw)
+            homedir = pw->pw_dir;
+        }
 #else
       pw = mu_getpwuid (getuid ());
       if (pw)
-	homedir = pw->pw_dir;
+        homedir = pw->pw_dir;
 #endif
     }
   return homedir;
 }
 
-/* Do ~ , if necessary.  We do not use $HOME. */
-static char *
-tilde_expansion (const char *file)
+static int
+user_mailbox_name (const char *user, char **mailbox_name)
 {
-  char *p = NULL;
-  const char *homedir = NULL;
-  const char delim = '/'; /* Not portable.  */
-
-  if (file && *file == '~')
+#ifdef USE_ENVIRON
+  if (!user)
+    user = (getenv ("LOGNAME")) ? getenv ("LOGNAME") : getenv ("USER");
+#endif
+  if (user == NULL)
     {
-      /* Skip the tilde.  */
-      file++;
-
-      /* This means we have ~ or ~/something.  */
-      if (*file == delim || *file == '\0')
-        {
-	  homedir = get_homedir (NULL);
-	  if (homedir)
-	    {
-	      p = calloc (strlen (homedir) + strlen (file) + 1, 1);
-	      if (p)
-		{
-		  strcpy (p, homedir);
-		  strcat (p, file);
-		}
-	    }
-	}
-      /* Means we have ~user or ~user/something.  */
+      struct passwd *pw;
+      pw = mu_getpwuid (getuid ());
+      if (pw)
+        user = pw->pw_name;
       else
         {
-          const char *s = file;
-
-	  /* Move  to the first delim.  */
-          while (*s && *s != delim) s++;
-
-	  /* Get the username homedir.  */
-	  {
-	    char *name;
-	    name = calloc (s - file + 1, 1);
-	    if (name)
-	      {
-		memcpy (name, file, s - file);
-		name [s - file] = '\0';
-	      }
-	    homedir = get_homedir (name);
-	    free (name);
-	  }
-
-          if (homedir)
-            {
-              p = calloc (strlen (homedir) + strlen (s) + 1, 1);
-	      if (p)
-		{
-		  strcpy (p, homedir);
-		  strcat (p, s);
-		}
-            }
+          mu_error ("Who am I ?\n");
+          return EINVAL;
         }
     }
-
-  if (!p)
-    p = strdup (file);
-  return p;
+  *mailbox_name = malloc (strlen (user) + strlen (mu_path_maildir) + 2);
+  if (*mailbox_name == NULL)
+    return ENOMEM;
+  sprintf (*mailbox_name, "%s%s", mu_path_maildir, user);
+  return 0;
 }
 
-static char *
-get_cwd ()
+#define MPREFIX "Mail"
+
+static int
+plus_expand (const char *file, char **buf)
 {
-  char *ret;
-  unsigned path_max;
-  char buf[128];
+  char *user = NULL;
+  char *path = NULL;
+  const char *home;
+  int status, len;
+  
+  if ((status = split_shortcut (file, "+=", &user, &path)))
+    return status;
 
-  errno = 0;
-  ret = getcwd (buf, sizeof (buf));
-  if (ret != NULL)
-    return strdup (buf);
-
-  if (errno != ERANGE)
-    return NULL;
-
-  path_max = 128;
-  path_max += 2;                /* The getcwd docs say to do this. */
-
-  for (;;)
+  if (!path)
     {
-      char *cwd = (char *) malloc (path_max);
-
-      errno = 0;
-      ret = getcwd (cwd, path_max);
-      if (ret != NULL)
-        return ret;
-      if (errno != ERANGE)
-        {
-          int save_errno = errno;
-          free (cwd);
-          errno = save_errno;
-          return NULL;
-        }
-
-      free (cwd);
-
-      path_max += path_max / 16;
-      path_max += 32;
+      free (user);
+      return ENOENT;
     }
-  /* oops?  */
-  return NULL;
+  
+  home = get_homedir (user);
+  if (!home)
+    {
+      free (user);
+      free (path);
+      return ENOENT;
+    }
+
+  len = strlen (home) + sizeof (MPREFIX) + strlen (path) + 3;
+  *buf = malloc (len);
+  sprintf (*buf, "%s/%s/%s", home, MPREFIX, path);
+  (*buf)[len-1] = 0;
+  free (user);
+  free (path);
+  return 0;
 }
 
-static char *
-get_full_path (const char *file)
+/* Do ~ , if necessary.  We do not use $HOME. */
+static int
+tilde_expand (const char *file, char **buf)
 {
-  char *p = NULL;
+  char *user = NULL;
+  char *path = NULL;
+  const char *home;
+  int status;
+  int len;
+  
+  if ((status = split_shortcut (file, "~", &user, &path)))
+    return status;
 
-  if (!file)
-    p = get_cwd ();
-  else if (*file != '/')
+  if (!user)
+    return ENOENT;
+  if (!path)
     {
-      char *cwd = get_cwd ();
-      if (cwd)
-	{
-	  p = calloc (strlen (cwd) + 1 + strlen (file) + 1, 1);
-	  if (p)
-	    sprintf (p, "%s/%s", cwd, file);
-	  free (cwd);
-	}
+      free (user);
+      return ENOENT;
+    }
+  
+  home = get_homedir (user);
+  if (!home)
+    {
+      free (user);
+      free (path);
+      return ENOENT;
     }
 
-  if (!p)
-    p = strdup (file);
-  return p;
+  free (user); /* not needed anymore */
+      
+  len = strlen (home) + strlen (path) + 2;
+  *buf = malloc (len);
+  if (*buf)
+    {
+      sprintf (*buf, "%s/%s", home, path);
+      (*buf)[len-1] = 0;
+    }
+
+  free (path);
+  free (user);
+  return *buf ? 0 : ENOMEM;
+}
+
+static int
+percent_expand (const char *file, char **mbox)
+{
+  char *user = NULL;
+  char *path = NULL;
+  int status;
+  
+  if ((status = split_shortcut (file, "%", &user, &path)))
+    return status;
+
+  if (path)
+    {
+      free (user);
+      free (path);
+      return ENOENT;
+    }
+
+  status = user_mailbox_name (user, mbox);
+  free (user);
+  return status;
 }
 
 /* We are trying to be smart about the location of the mail.
    mailbox_create() is not doing this.
-   ~/file  --> /home/user/file
-   ~user/file --> /home/user/file
-   +file --> /home/user/Mail/file
-   =file --> /home/user/Mail/file
+   %           --> system mailbox for the real uid
+   %user       --> system mailbox for the given user
+   ~/file      --> /home/user/file
+   ~user/file  --> /home/user/file
+   +file       --> /home/user/Mail/file
+   =file       --> /home/user/Mail/file
 */
 int
 mailbox_create_default (mailbox_t *pmbox, const char *mail)
 {
   char *mbox = NULL;
-  int status;
+  char *tmp_mbox = NULL;
+  int status = 0;
 
   /* Sanity.  */
   if (pmbox == NULL)
@@ -251,52 +265,44 @@ mailbox_create_default (mailbox_t *pmbox, const char *mail)
   /* Other utilities may not understand GNU mailutils url namespace, so
      use FOLDER instead, to not confuse others by using MAIL.  */
   if (mail == NULL || *mail == '\0')
-    mail = getenv ("FOLDER");
-
-  /* Fallback to wellknown environment.  */
-  if (mail == NULL)
-    mail = getenv ("MAIL");
-
-  /* FIXME: This is weak, it would be better to check
-     for all the known schemes to detect presence of URLs.  */
-  if (mail && *mail && strchr (mail, ':') == NULL)
     {
-      char *mail0;
-      char *mail2;
+      mail = getenv ("FOLDER");
 
-      mail0 = tilde_expansion (mail);
-      mail2 = plus_equal_expansion (mail0);
-      free (mail0);
-      mbox = get_full_path (mail2);
-      free (mail2);
+      /* Fallback to wellknown environment.  */
+      if (!mail)
+        mail = getenv ("MAIL");
+
+      if (!mail)
+        {
+          if (status = user_mailbox_name (NULL, &tmp_mbox))
+            return status;
+          mail = tmp_mbox;
+        }
     }
-  else if (mail)
-    mbox = strdup (mail);
 
-  /* Search the spooldir.  */
-  if (mbox == NULL)
+  switch (mail[0])
     {
-      const char *user = NULL;
-#ifdef USE_ENVIRON
-      user = (getenv ("LOGNAME")) ? getenv ("LOGNAME") : getenv ("USER");
-#endif
-      if (user == NULL)
-	{
-	  struct passwd *pw;
-	  pw = mu_getpwuid (getuid ());
-	  if (pw)
-	    user = pw->pw_name;
-	  else
-	    {
-	      mu_error ("Who am I ?\n");
-	      return EINVAL;
-	    }
-	}
-      mbox = malloc (strlen (user) + strlen (MU_PATH_MAILDIR) + 2);
-      if (mbox == NULL)
-	return ENOMEM;
-      sprintf (mbox, "%s%s", MU_PATH_MAILDIR, user);
+    case '%':
+      status = percent_expand (mail, &mbox);
+      break;
+    case '~':
+      status = tilde_expand (mail, &mbox);
+      break;
+    case '+':
+    case '=':
+      status = plus_expand (mail, &mbox);
+      break;
+    default:
+      mbox = strdup (mail);
+      break;
     }
+
+  if (tmp_mbox)
+    free (tmp_mbox);
+
+  if (status)
+    return status;
+  
   status = mailbox_create (pmbox, mbox);
   free (mbox);
   return status;
