@@ -1356,13 +1356,13 @@ parse822_day (const char **p, const char *e, int *day)
   /* day = "Mon" / "Tue" / "Wed" / "Thu" / "Fri" / "Sat" / "Sun" */
 
   const char *days[] = {
+    "Sun",
     "Mon",
     "Tue",
     "Wed",
     "Thu",
     "Fri",
     "Sat",
-    "Sun",
     NULL
   };
 
