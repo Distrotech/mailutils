@@ -34,6 +34,7 @@
 #include <unistd.h>
 
 #include <mailutils/address.h>
+#include <mailutils/debug.h>
 #include <mailutils/errno.h>
 #include <mailutils/header.h>
 #include <mailutils/list.h>
@@ -41,6 +42,47 @@
 #include <mailutils/message.h>
 #include <mailutils/registrar.h>
 #include <mailutils/stream.h>
+#include "mu_argp.h"
+
+const char *argp_program_version = "from (" PACKAGE ") " VERSION;
+const char *argp_program_bug_address = "<bug-mailutils@gnu.org>";
+static char doc[] = "GNU from -- display from and subject";
+
+static struct argp_option options[] = {
+  {"debug",  'd', NULL,   0, "Enable debugging output", 0},
+  {0, 0, 0, 0}
+};
+
+static int debug;
+
+static error_t
+parse_opt (int key, char *arg, struct argp_state *state)
+{
+  switch (key)
+    {
+    case 'd':
+      debug++;
+      break;
+
+    default: 
+      return ARGP_ERR_UNKNOWN;
+    }
+  return 0;
+}
+
+static struct argp argp = {
+  options,
+  parse_opt,
+  NULL,
+  doc,
+};
+
+static const char *capa[] = {
+  "common",
+  "license",
+  "mailbox",
+  NULL
+};
 
 int
 main(int argc, char **argv)
@@ -55,9 +97,11 @@ main(int argc, char **argv)
   char personal[128];
   int status;
 
-  /* have an argument */
-  if (argc > 1)
-    mailbox_name = argv[1];
+  {
+    int opt;
+    mu_argp_parse (&argp, &argc, &argv, 0, capa, &opt, NULL);
+    mailbox_name = argv[opt];
+  }
 
   /* Register the desire formats.  */
   {
@@ -71,20 +115,27 @@ main(int argc, char **argv)
 
   if ((status = mailbox_create_default (&mbox, mailbox_name)) != 0)
     {
-      fprintf (stderr, "could not create/open: %s\n", mu_errstring (status));
+      fprintf (stderr, "opening %s failed: %s\n",
+	  mailbox_name,
+	  mu_errstring (status)
+	  );
       exit (1);
     }
 
   /* Debuging Trace.  */
+  if(debug)
   {
-    //mu_debug_t debug;
-    //mailbox_get_debug (mbox, &debug);
-    //mu_debug_set_level (debug, MU_DEBUG_TRACE|MU_DEBUG_PROT);
+    mu_debug_t debug;
+    mailbox_get_debug (mbox, &debug);
+    mu_debug_set_level (debug, MU_DEBUG_TRACE|MU_DEBUG_PROT);
   }
 
   if ((status = mailbox_open (mbox, MU_STREAM_READ)) != 0)
     {
-      fprintf (stderr, "could not create/open: %s\n", mu_errstring (status));
+      fprintf (stderr, "opening %s failed: %s\n",
+	  mailbox_name,
+	  mu_errstring (status)
+	  );
       exit (1);
     }
 
