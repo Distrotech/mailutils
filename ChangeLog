@@ -1,3 +1,10 @@
+2001-11-05  Alain Magloire
+
+	* mailbox/mutil.c (mu_parse_imap_date_time): This one is so
+	obvious that it is embarrasing.  In a struct tm { }
+	tv_wday [0,6] Sunday == 0.  Change the Array for it to
+	start with "Sun" instead of "Mon".
+
 2001-11-05  Sergey Poznyakoff
 
 	* configure.in: check for vsyslog

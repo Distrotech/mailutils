@@ -109,7 +109,7 @@ static const char *months[] =
 
 static const char *wdays[] =
 {
-  "Mon", "Teu", "Wed", "Thr", "Fri", "Sat", "Sun", NULL
+  "Sun", "Mon", "Teu", "Wed", "Thr", "Fri", "Sat", NULL
 };
 
 int
