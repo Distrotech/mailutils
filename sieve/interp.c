@@ -31,7 +31,7 @@ OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 #include <stdlib.h>
 
-#include "xmalloc.h"
+#include <xalloc.h>
 
 #include "sieve_interface.h"
 #include "interp.h"

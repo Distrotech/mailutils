@@ -30,7 +30,7 @@ OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #endif
 
 #include <stdlib.h>
-#include "xmalloc.h"
+#include <xalloc.h>
 
 #include "tree.h"
 #include "sieve-gram.h"

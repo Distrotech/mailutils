@@ -47,8 +47,8 @@
 #include <ctype.h>
 #include <string.h>
 
+#include <xalloc.h>
 #include "parseaddr.h"
-#include "xmalloc.h"
 
 static char parseaddr_unspecified_domain[] = "unspecified-domain";
 

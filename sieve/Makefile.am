@@ -1,4 +1,5 @@
-CFLAGS = -Wall -pedantic -g -DTESTING
+#CFLAGS = -Wall -pedantic -g -DTESTING
+AUTOMAKE_OPTIONS = ../lib/ansi2knr
 INCLUDES = -I${top_srcdir}/include -I${top_srcdir}/lib
 YLWRAP = $(SHELL) $(srcdir)/ylwrap
 YFLAGS = -d
@@ -33,8 +34,7 @@ SRC = \
   sieve_err.c \
   svfield.c \
   tree.c \
-  util.c \
-  xmalloc.c
+  util.c
 
 HDR = \
   comparator.h \
@@ -50,10 +50,8 @@ HDR = \
   sieve_err.h \
   sieve_interface.h \
   svfield.h \
-  sysexits.h \
   tree.h \
-  util.h \
-  xmalloc.h 
+  util.h
 
 sieve_DEPENDENCIES = ../mailbox/libmailbox.la
 sieve_LDADD = ../mailbox/libmailbox.la ../lib/libmailutils.a
@@ -71,11 +69,11 @@ addr.c addr.h: $(srcdir)/addr.y
                   -- -yy addr
 
 sieve-lex.c: $(srcdir)/sieve-lex.l sieve-gram.h
-	$(YLWRAP) "$(LEX)" $(srcdir)/sieve-lex.l lex.yy.c sieve-lex.c 
+	$(YLWRAP) "$(LEX)" $(srcdir)/sieve-lex.l lex.yy.c sieve-lex.c
 
 sieve-gram.c sieve-gram.h: $(srcdir)/sieve-gram.y
 	$(YLWRAP) "$(YACC) $(YFLAGS)" $(srcdir)/sieve-gram.y \
-	          y.tab.c sieve-gram.c y.tab.h sieve-gram.h 
+	          y.tab.c sieve-gram.c y.tab.h sieve-gram.h
 
 comparator.o: sieve-gram.h
 script.o: sieve-gram.h

@@ -41,11 +41,11 @@ OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 # include <strings.h>
 #endif
 
+#include <xalloc.h>
 #include "sieve_interface.h"
 #include "interp.h"
 #include "message.h"
 #include "parseaddr.h"
-#include "xmalloc.h"
 #include "util.h"
 
 /* reject message m with message msg
