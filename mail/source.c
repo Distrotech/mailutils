@@ -17,6 +17,25 @@
 
 #include "mail.h"
 
+
+static char *
+source_readline(void *closure, int cont)
+{
+  FILE *fp = closure;
+  size_t s = 0;
+  char *buf = NULL;
+  
+  (void)cont; /*unused*/
+  if (getline (&buf, &s, fp) >= 0)
+    {
+      int len = strlen (buf);
+      if (buf[len-1] == '\n')
+	buf[len-1] = '\0';
+      return buf;
+    }
+  return NULL;
+}
+  
 /*
  * so[urce] file
  */
@@ -24,25 +43,26 @@
 int
 mail_source (int argc, char **argv)
 {
-  if (argc == 2)
+  FILE *fp;
+  int save_term;
+  
+  if (argc != 2)
     {
-      FILE *rc = fopen (argv[1], "r");
-      if (rc != NULL)
-	{
-	  char *buf = NULL;
-	  size_t s = 0;
-	  while (getline (&buf, &s, rc) >= 0)
-	    {
-	      int len = strlen (buf);
-	      if (buf[len-1] == '\n')
-		buf[len-1] = '\0';
-	      util_do_command("%s", buf);
-	      free (buf);
-	      buf = NULL;
- 	    }
-	  fclose (rc);
-	  return 0;
-	}
+      fprintf(ofile, "source requires an argument\n");
+      return 1;
     }
-  return 1;
+  
+  fp = fopen (argv[1], "r");
+  if (!fp)
+    {
+      fprintf(ofile, "can't open `%s': %s\n", argv[1], strerror(errno));
+      return 1;
+    }
+
+  save_term = mail_is_terminal();
+  mail_set_is_terminal(0);
+  mail_mainloop(source_readline, fp, 0);
+  mail_set_is_terminal(save_term);
+  fclose (fp);
+  return 0;
 }
