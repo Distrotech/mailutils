@@ -42,9 +42,13 @@ imap4d_starttls (struct imap4d_command *command, char *arg)
 
   if (tls_done)
     {
-      imap4d_capability_remove ("STARTTLS");
+      imap4d_capability_remove (IMAP_CAPA_STARTTLS);
+      
       login_disabled = 0;
-      imap4d_capability_remove ("LOGINDISABLED");
+      imap4d_capability_remove (IMAP_CAPA_LOGINDISABLED);
+
+      tls_required = 0;
+      imap4d_capability_remove (IMAP_CAPA_XTLSREQUIRED);
     }
   else
     {
@@ -63,7 +67,7 @@ starttls_init ()
   if (tls_available)
     tls_available = mu_init_tls_libs ();
   if (tls_available)
-    imap4d_capability_add ("STARTTLS");
+    imap4d_capability_add (IMAP_CAPA_STARTTLS);
 }
 
 #endif /* WITH_TLS */
