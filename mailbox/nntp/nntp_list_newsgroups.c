@@ -28,17 +28,17 @@
 #include <mailutils/sys/nntp.h>
 
 /*
-  LIST NEWSGROUPS command, return a list that contains the result.
-  It is the responsability of the caller to destroy the list(list_destroy).
+  LIST NEWSGROUPS command, return an iterator that contains the result.
+  It is the responsability of the caller to destroy the iterator(iterator_destroy).
  */
 int
-mu_nntp_list_newsgroups (mu_nntp_t nntp, const char *wildmat, list_t *plist)
+mu_nntp_list_newsgroups (mu_nntp_t nntp, const char *wildmat, iterator_t *piterator)
 {
-  int status;
+  int status = 0;
 
   if (nntp == NULL)
     return EINVAL;
-  if (plist == NULL)
+  if (piterator == NULL)
     return MU_ERR_OUT_PTR_NULL;
 
   switch (nntp->state)
@@ -63,41 +63,12 @@ mu_nntp_list_newsgroups (mu_nntp_t nntp, const char *wildmat, list_t *plist)
       MU_NNTP_CHECK_EAGAIN (nntp, status);
       mu_nntp_debug_ack (nntp);
       MU_NNTP_CHECK_CODE (nntp, MU_NNTP_RESP_CODE_LIST_FOLLOW);
-      status = list_create (plist);
+      status = mu_nntp_iterator_create (nntp, piterator);
       MU_NNTP_CHECK_ERROR(nntp, status);
-      list_set_destroy_item(*plist, free);
       nntp->state = MU_NNTP_LIST_NEWSGROUPS_RX;
 
     case MU_NNTP_LIST_NEWSGROUPS_RX:
-      {
-        /* line are 512 octets maximum according to RFC.  */
-        char *newsgroups;
-        size_t n = 0;
-
-        newsgroups = malloc (512);
-        if (newsgroups == NULL)
-          {
-            /* MU_NNTP_CHECK_ERROR(nntp, ENOMEM);
-	       We need to destroy the list if error.  */
-	    nntp->io.ptr = nntp->io.buf;
-	    nntp->state = MU_NNTP_ERROR;
-	    list_destroy (*plist);
-	    return ENOMEM;
-          }
-        while ((status = mu_nntp_readline (nntp, newsgroups, 512, &n)) == 0 && n > 0)
-          {
-            /* Nuke the trailing newline  */
-            if (newsgroups[n - 1] == '\n')
-              newsgroups[n - 1] = '\0';
-            /* add to the list.  */
-            list_append (*plist, strdup (newsgroups));
-            n = 0;
-          }
-        free (newsgroups);
-        MU_NNTP_CHECK_EAGAIN (nntp, status);
-        nntp->state = MU_NNTP_NO_STATE;
-        break;
-      }
+      break;
 
       /* They must deal with the error first by reopening.  */
     case MU_NNTP_ERROR:

@@ -37,6 +37,7 @@ libmu_nntp_la_SOURCES = \
  nntp_head.c \
  nntp_help.c \
  nntp_ihave.c \
+ nntp_iterator.c \
  nntp_last.c \
  nntp_list_active.c \
  nntp_list_distribpats.c \

@@ -28,17 +28,17 @@
 #include <mailutils/sys/nntp.h>
 
 /*
-  LIST EXTENSIONS command, return a list that contains the result.
-  It is the responsability of the caller to destroy the list(list_destroy).
+  LIST EXTENSIONS command, return an iterator that contains the result.
+  It is the responsability of the caller to destroy the iterator(iterator_destroy).
  */
 int
-mu_nntp_list_extensions (mu_nntp_t nntp, list_t *plist)
+mu_nntp_list_extensions (mu_nntp_t nntp, iterator_t *piterator)
 {
-  int status;
+  int status = 0;
 
   if (nntp == NULL)
     return EINVAL;
-  if (plist == NULL)
+  if (piterator == NULL)
     return MU_ERR_OUT_PTR_NULL;
 
   switch (nntp->state)
@@ -60,42 +60,12 @@ mu_nntp_list_extensions (mu_nntp_t nntp, list_t *plist)
       MU_NNTP_CHECK_EAGAIN (nntp, status);
       mu_nntp_debug_ack (nntp);
       MU_NNTP_CHECK_CODE (nntp, MU_NNTP_RESP_CODE_EXTENSIONS_FOLLOW);
-      status = list_create (plist);
+      status = mu_nntp_iterator_create (nntp, piterator);
       MU_NNTP_CHECK_ERROR(nntp, status);
-      list_set_destroy_item(*plist, free);
       nntp->state = MU_NNTP_LIST_EXTENSIONS_RX;
 
     case MU_NNTP_LIST_EXTENSIONS_RX:
-      {
-        /* CAPA line are 512 octets maximum according to RFC 2449.
-           But do not use the stack and malloc.  */
-        char *capability;
-        size_t n = 0;
-
-        capability = malloc (512);
-        if (capability == NULL)
-          {
-            /* MU_NNTP_CHECK_ERROR(nntp, ENOMEM);
-	       We need to destroy the list if error.  */
-	    nntp->io.ptr = nntp->io.buf;
-	    nntp->state = MU_NNTP_ERROR;
-	    list_destroy (*plist);
-	    return ENOMEM;
-          }
-        while ((status = mu_nntp_readline (nntp, capability, 512, &n)) == 0 && n > 0)
-          {
-            /* Nuke the trailing newline  */
-            if (capability[n - 1] == '\n')
-              capability[n - 1] = '\0';
-            /* add to the list.  */
-            list_append (*plist, strdup (capability));
-            n = 0;
-          }
-        free (capability);
-        MU_NNTP_CHECK_EAGAIN (nntp, status);
-        nntp->state = MU_NNTP_NO_STATE;
-        break;
-      }
+      break;
 
       /* They must deal with the error first by reopening.  */
     case MU_NNTP_ERROR:

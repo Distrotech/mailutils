@@ -26,9 +26,9 @@
 
 int
 mu_nntp_newgroups (mu_nntp_t nntp, unsigned int year, unsigned int month, unsigned int day,
-		   unsigned int hour, unsigned int minute, unsigned int second, int is_gmt, list_t *plist)
+		   unsigned int hour, unsigned int minute, unsigned int second, int is_gmt, iterator_t *piterator)
 {
-  int status;
+  int status = 0;
 
   if (nntp == NULL)
     return EINVAL;
@@ -56,42 +56,12 @@ mu_nntp_newgroups (mu_nntp_t nntp, unsigned int year, unsigned int month, unsign
       mu_nntp_debug_ack (nntp);
       MU_NNTP_CHECK_CODE (nntp, MU_NNTP_RESP_CODE_NEWGROUPS_FOLLOW);
 
-      status = list_create (plist);
+      status = mu_nntp_iterator_create (nntp, piterator);
       MU_NNTP_CHECK_ERROR(nntp, status);
-      list_set_destroy_item(*plist, free);
       nntp->state = MU_NNTP_NEWGROUPS_RX;
 
     case MU_NNTP_NEWGROUPS_RX:
-      {
-	/* line should not be over 512 octets maximum.  */
-	char *lista;
-        size_t n = 0;
-
-        lista = malloc (512);
-        if (lista == NULL)
-          {
-            /* MU_NNTP_CHECK_ERROR(nntp, ENOMEM);
-               Do not use the macro we need to clear the list if errors. */
-            nntp->io.ptr = nntp->io.buf;
-            nntp->state = MU_NNTP_ERROR;
-            list_destroy (plist);
-            return ENOMEM;
-          }
-
-        while ((status = mu_nntp_readline (nntp, lista, 512, &n)) == 0 && n > 0)
-          {
-            /* Nuke the trailing newline  */
-            if (lista[n - 1] == '\n')
-              lista[n - 1] = '\0';
-            /* add to the list.  */
-            list_append (*plist, strdup (lista));
-            n = 0;
-          }
-        free (lista);
-        MU_NNTP_CHECK_EAGAIN (nntp, status);
-        nntp->state = MU_NNTP_NO_STATE;
-        break;
-      }
+      break;
 
       /* They must deal with the error first by reopening.  */
     case MU_NNTP_ERROR:

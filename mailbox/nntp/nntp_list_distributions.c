@@ -28,17 +28,17 @@
 #include <mailutils/sys/nntp.h>
 
 /*
-  LIST xxxx command, return a list that contains the result.
-  It is the responsability of the caller to destroy the list(list_destroy).
+  LIST xxxx command, return an iterator that contains the result.
+  It is the responsability of the caller to destroy the iterator(iterator_destroy).
  */
 int
-mu_nntp_list_distributions (mu_nntp_t nntp, const char *wildmat, list_t *plist)
+mu_nntp_list_distributions (mu_nntp_t nntp, const char *wildmat, iterator_t *piterator)
 {
-  int status;
+  int status = 0;
 
   if (nntp == NULL)
     return EINVAL;
-  if (plist == NULL)
+  if (piterator == NULL)
     return MU_ERR_OUT_PTR_NULL;
 
   switch (nntp->state)
@@ -63,41 +63,12 @@ mu_nntp_list_distributions (mu_nntp_t nntp, const char *wildmat, list_t *plist)
       MU_NNTP_CHECK_EAGAIN (nntp, status);
       mu_nntp_debug_ack (nntp);
       MU_NNTP_CHECK_CODE (nntp, MU_NNTP_RESP_CODE_LIST_FOLLOW);
-      status = list_create (plist);
+      status = mu_nntp_iterator_create (nntp, piterator);
       MU_NNTP_CHECK_ERROR(nntp, status);
-      list_set_destroy_item(*plist, free);
       nntp->state = MU_NNTP_LIST_DISTRIBUTIONS_RX;
 
     case MU_NNTP_LIST_DISTRIBUTIONS_RX:
-      {
-        /* line are 512 octets maximum according to RFC.  */
-        char *distributions;
-        size_t n = 0;
-
-        distributions = malloc (512);
-        if (distributions == NULL)
-          {
-            /* MU_NNTP_CHECK_ERROR(nntp, ENOMEM);
-	       We need to destroy the list if error.  */
-	    nntp->io.ptr = nntp->io.buf;
-	    nntp->state = MU_NNTP_ERROR;
-	    list_destroy (*plist);
-	    return ENOMEM;
-          }
-        while ((status = mu_nntp_readline (nntp, distributions, 512, &n)) == 0 && n > 0)
-          {
-            /* Nuke the trailing newline  */
-            if (distributions[n - 1] == '\n')
-              distributions[n - 1] = '\0';
-            /* add to the list.  */
-            list_append (*plist, strdup (distributions));
-            n = 0;
-          }
-        free (distributions);
-        MU_NNTP_CHECK_EAGAIN (nntp, status);
-        nntp->state = MU_NNTP_NO_STATE;
-        break;
-      }
+      break;
 
       /* They must deal with the error first by reopening.  */
     case MU_NNTP_ERROR:
