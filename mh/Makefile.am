@@ -27,6 +27,7 @@ PROGRAMS_MH = \
  install-mh\
  mark\
  mhl\
+ mhn\
  mhpath\
  pick\
  refile\
@@ -49,6 +50,7 @@ EXTRA_PROGRAMS = \
  install-mh\
  mark\
  mhl\
+ mhn\
  mhpath\
  pick\
  refile\

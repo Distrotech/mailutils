@@ -107,6 +107,7 @@ mh/mh_msgset.c
 mh/mh_whatnow.c
 mh/mh_whom.c
 mh/mhl.c
+mh/mhn.c
 mh/mhpath.c
 mh/pick.c
 mh/refile.c
