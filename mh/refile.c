@@ -26,6 +26,7 @@
 
 const char *argp_program_version = "refile (" PACKAGE_STRING ")";
 static char doc[] = N_("GNU MH refile\v"
+"Options marked with `*' are not yet implemented.\n"
 "Use -help to obtain the list of traditional MH options.");
 static char args_doc[] = N_("messages folder [folder...]");
 
@@ -36,9 +37,9 @@ static struct argp_option options[] = {
   {"draft",   ARG_DRAFT, NULL, 0,
    N_("Use <mh-dir>/draft as the source message")},
   {"link",    ARG_LINK, N_("BOOL"), OPTION_ARG_OPTIONAL,
-   N_("(not implemented) Preserve the source folder copy")},
+   N_("* Preserve the source folder copy")},
   {"preserve", ARG_PRESERVE, N_("BOOL"), OPTION_ARG_OPTIONAL,
-   N_("(not implemented) Try to preserve message sequence numbers")},
+   N_("* Try to preserve message sequence numbers")},
   {"source", ARG_SOURCE, N_("FOLDER"), 0,
    N_("Specify source folder. FOLDER will become the current folder after the program exits.")},
   {"src", 0, NULL, OPTION_ALIAS, NULL},
@@ -130,6 +131,18 @@ enumerate_folders (void (*f) __P((void *, mailbox_t)), void *data)
   iterator_destroy (&itr);
 }
   
+void
+_close_folder (void *unused, mailbox_t mbox)
+{
+  mailbox_close (mbox);
+  mailbox_destroy (&mbox);
+}
+
+void
+close_folders ()
+{
+  enumerate_folders (_close_folder, NULL);
+}
 
 static int
 opt_handler (int key, char *arg, void *unused)
@@ -168,13 +181,6 @@ opt_handler (int key, char *arg, void *unused)
 }
 
 void
-_close_folder (void *unused, mailbox_t mbox)
-{
-  mailbox_close (mbox);
-  mailbox_destroy (&mbox);
-}
-
-void
 refile_folder (void *data, mailbox_t mbox)
 {
   message_t msg = data;
@@ -189,7 +195,13 @@ refile_folder (void *data, mailbox_t mbox)
 }
 
 void
-refile (mailbox_t mbox, message_t msg, size_t num, void *data)
+refile (message_t msg)
+{
+  enumerate_folders (refile_folder, msg);
+}
+
+void
+refile_iterator (mailbox_t mbox, message_t msg, size_t num, void *data)
 {
   enumerate_folders (refile_folder, msg);
   if (!link_flag)
@@ -214,29 +226,36 @@ main (int argc, char **argv)
   mh_argp_parse (argc, argv, options, mh_option, args_doc, doc,
 		 opt_handler, NULL, &index);
 
+  open_folders ();
+
   if (source_file)
     {
+      message_t msg;
+      
       if (index < argc)
 	{
 	  mh_error (_("both message set and source file given"));
 	  exit (1);
 	}
-      mbox = mh_open_msg_file (NULL, source_file);
-      mh_msgset_parse (mbox, &msgset, 0, NULL, "first");
+      msg = mh_file_to_message (NULL, source_file);
+      refile (msg);
+      if (!link_flag)
+	unlink (source_file);
+      status = 0;
     }
   else
     {
       mbox = mh_open_folder (current_folder, 0);
       mh_msgset_parse (mbox, &msgset, argc - index, argv + index, "cur");
-    }
-  
-  open_folders ();
 
-  status = mh_iterate (mbox, &msgset, refile, NULL);
+      status = mh_iterate (mbox, &msgset, refile_iterator, NULL);
  
-  enumerate_folders (_close_folder, NULL);
   mailbox_expunge (mbox);
   mailbox_close (mbox);
   mailbox_destroy (&mbox);
+    }
+
+  close_folders ();
+  
   return status;
 }

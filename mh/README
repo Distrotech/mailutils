@@ -95,6 +95,15 @@ Understands --use option. Disposition shell provides 'use' command.
 
 Understands --build option.
 
+* mhl
+
+If the argument to 'ignores' contains more than one component name
+it must be enclosed in double-quotes. Dangling equal sign is an error,
+to set a string variable to the empty value use = "", e.g.:
+overflowtext=""
+
+Ineractive prompting is not yet implemented.
+
 
 Local variables:
 mode: outline

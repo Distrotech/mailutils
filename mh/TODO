@@ -30,7 +30,8 @@ State	Nice	Utility		Comments
 -	-15	mhn
 +	-10	rmf
 +	0	install-mh	
-*	4	mhl		Only a framework is implemented.
+*	4	mhl		Following format variables are ignored:
+				center,split,datefield
 +	5	mark
 -	5	pick
 +	10	anno
