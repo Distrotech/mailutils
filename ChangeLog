@@ -1,3 +1,8 @@
+2001-09-09 Sergey Poznyakoff
+
+	* mailbox/mbx_mh.c: Bug fix: both pool_first and pool_last must
+	be biased by MAX_OPEN_STREAMS;
+
 2001-09-08 Sergey Poznyakoff
 
 	Initial implementation of MH mailbox format. It is functional
