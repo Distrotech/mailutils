@@ -1,7 +1,8 @@
 2003-06-21  Wojciech Polak
 
 	* mailutils.spec.in: Major changes. Added new packages,
-	changed package names.
+	changed package names. Thanks Bennett Todd <bet@rahul.net>
+	for testing.
 
 2003-06-11  Sergey Poznyakoff
 
