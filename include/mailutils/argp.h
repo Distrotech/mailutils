@@ -44,6 +44,10 @@ extern int log_facility;
 extern int mu_argp_error_code;
 extern char *mu_license_text;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 extern void mu_create_argcv __P ((const char *capa[],
 				  int argc, char **argv,
 				  int *p_argc, char ***p_argv));
@@ -56,6 +60,10 @@ extern int mu_register_capa __P((const char *name, struct argp_child *child));
 
 extern void mu_print_options __P((void));
 extern const char *mu_check_option __P((char *name));
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
 
