@@ -1,3 +1,12 @@
+2004-11-18  Sergey Poznyakoff
+
+	* mailbox/imap/folder.c (authenticate_imap_select): Use
+	ENOSYS as the default status value to allow MU_ERR_AUTH_FAILURE
+	to be propagated back to the caller.
+	(imap_parse): Display "NO/Bad Tagged" error diagnostics only if
+	status != MU_ERR_AUTH_FAILURE. Should we display it at all?
+	* movemail/movemail.c: Emacs-iteraction mode (--emacs)
+
 2004-11-17  Wojciech Polak
 
 	Added initial version of `libmu_cpp',
