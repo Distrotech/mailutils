@@ -89,6 +89,7 @@ pop3d_abquit (int reason)
 {
   /* Unlock spool */
   pop3d_unlock ();
+  mailbox_flush (mbox, 0);
   mailbox_close (mbox);
   mailbox_destroy (&mbox);
 
