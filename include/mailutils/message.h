@@ -51,7 +51,7 @@ extern void message_destroy          __P ((message_t *, void *owner));
 extern void * message_get_owner      __P ((message_t));
 
 extern int message_ref               __P ((message_t));
-#define message_unref(msg)           message_destroy (&msg)
+#define message_unref(msg)           message_destroy (&msg, NULL)
 
 extern int message_get_header        __P ((message_t, header_t *));
 extern int message_set_header        __P ((message_t, header_t, void *owner));
