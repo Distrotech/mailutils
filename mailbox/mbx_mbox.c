@@ -22,13 +22,13 @@
 #include <errno.h>
 #include <sys/stat.h>
 
-static int mailbox_mbox_init (mailbox_t *mbox, const char *name);
+static int mailbox_mbox_create (mailbox_t *mbox, const char *name);
 static void mailbox_mbox_destroy (mailbox_t *mbox);
 
 struct mailbox_registrar _mailbox_mbox_registrar =
 {
   "UNIX_MBOX/Maildir/MMDF",
-  mailbox_mbox_init, mailbox_mbox_destroy
+  mailbox_mbox_create, mailbox_mbox_destroy
 };
 
 /*
@@ -45,7 +45,7 @@ struct mailbox_registrar _mailbox_mbox_registrar =
 */
 
 static int
-mailbox_mbox_init (mailbox_t *mbox, const char *name)
+mailbox_mbox_create (mailbox_t *mbox, const char *name)
 {
   struct stat st;
   size_t len;
@@ -69,7 +69,7 @@ mailbox_mbox_init (mailbox_t *mbox, const char *name)
    * For the default is unix if the file does not exist.
    */
   if (stat (name, &st) < 0)
-    return _mailbox_unix_registrar._init (mbox, name);
+    return _mailbox_unix_registrar._create (mbox, name);
 
   if (S_ISREG (st.st_mode))
     {
@@ -101,7 +101,7 @@ mailbox_mbox_init (mailbox_t *mbox, const char *name)
       if (count == 0) /*empty file*/
 	{
 	  close (fd);
-	  return _mailbox_unix_registrar._init (mbox, name);
+	  return _mailbox_unix_registrar._create (mbox, name);
 	}
 
       if (count >= 5)
@@ -110,18 +110,18 @@ mailbox_mbox_init (mailbox_t *mbox, const char *name)
 	    {
 	      /* This is a Unix Mbox */
 	      close (fd);
-	      return _mailbox_unix_registrar._init (mbox, name);
+	      return _mailbox_unix_registrar._create (mbox, name);
 	    }
 	}
 
       /* Try MMDF */
       close (fd);
 #endif
-      return _mailbox_unix_registrar._init (mbox, name);
+      return _mailbox_unix_registrar._create (mbox, name);
     }
   /* Is that true ?  Are all directories Maildir ?? */
   else if (S_ISDIR (st.st_mode))
-    return _mailbox_maildir_registrar._init (mbox, name);
+    return _mailbox_maildir_registrar._create (mbox, name);
 
   /* Why can't a mailbox be FIFO ? or a DOOR/Portal ??? */
   return EINVAL;

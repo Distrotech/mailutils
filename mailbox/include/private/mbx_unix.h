@@ -24,7 +24,7 @@
 extern "C" {
 #endif
 
-extern int  mailbox_unix_init    __P ((mailbox_t *mbox, const char *name));
+extern int  mailbox_unix_create    __P ((mailbox_t *mbox, const char *name));
 extern void mailbox_unix_destroy __P ((mailbox_t *mbox));
 
 extern struct mailbox_type _mailbox_unix_type;

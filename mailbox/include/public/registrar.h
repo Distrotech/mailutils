@@ -38,14 +38,14 @@ extern "C" {
 struct url_registrar
 {
   const char *scheme;
-  int  (*_init)     __P ((url_t *, const char * name));
+  int  (*_create)     __P ((url_t *, const char * name));
   void (*_destroy)  __P ((url_t *));
 };
 
 struct mailbox_registrar
 {
   const char *name;
-  int  (*_init)    __P ((mailbox_t *, const char *name));
+  int  (*_create)    __P ((mailbox_t *, const char *name));
   void (*_destroy) __P ((mailbox_t *));
 };
 

@@ -20,7 +20,7 @@
 
 #include <mailbox0.h>
 
-extern int  mailbox_maildir_init    __P ((mailbox_t *mbox, const char *name));
+extern int  mailbox_maildir_create    __P ((mailbox_t *mbox, const char *name));
 extern void mailbox_maildir_destroy __P ((mailbox_t *mbox));
 
 extern struct mailbox_type _mailbox_maildir_type;

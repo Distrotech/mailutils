@@ -18,13 +18,14 @@
 #ifndef _MAILBOX_H
 # define _MAILBOX_H
 
-#include <sys/types.h>
-
 #include <url.h>
 #include <message.h>
 #include <attribute.h>
 #include <auth.h>
 #include <locker.h>
+#include <net.h>
+
+#include <sys/types.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -43,7 +44,7 @@ struct _mailbox;
 typedef struct _mailbox *mailbox_t;
 
 /* constructor/destructor and possible types */
-  extern int  mailbox_init __P ((mailbox_t *, const char *, int id));
+extern int  mailbox_create __P ((mailbox_t *, const char *, int id));
 extern void mailbox_destroy __P ((mailbox_t *));
 
 /* flags for mailbox_open () */
@@ -62,6 +63,10 @@ extern int mailbox_get_message __P ((mailbox_t, size_t msgno, message_t *msg));
 extern int mailbox_append_message __P ((mailbox_t, message_t msg));
 extern int mailbox_messages_count __P ((mailbox_t, size_t *num));
 extern int mailbox_expunge  __P ((mailbox_t));
+
+/* netinstance settings */
+extern int mailbox_get_netinstance __P ((mailbox_t, netinstance_t *net));
+extern int mailbox_set_netinstance __P ((mailbox_t, netinstance_t net));
 
 /* Lock settings */
 extern int mailbox_get_locker      __P ((mailbox_t, locker_t *locker));

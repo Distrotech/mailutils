@@ -22,7 +22,7 @@
 #include <stdio.h>
 
 int
-stream_init (stream_t *pstream, void *owner)
+stream_create (stream_t *pstream, void *owner)
 {
   stream_t stream;
   if (pstream == NULL || owner == NULL)

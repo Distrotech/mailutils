@@ -36,7 +36,7 @@ extern "C" {
 struct _url;
 typedef struct _url * url_t;
 
-extern int  url_init    __P ((url_t *, const char *name));
+extern int  url_create    __P ((url_t *, const char *name));
 extern void url_destroy __P ((url_t *));
 
 extern int url_get_id __P ((const url_t, int *id));

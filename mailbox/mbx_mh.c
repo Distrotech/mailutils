@@ -27,13 +27,13 @@
 #include <stdlib.h>
 #include <ctype.h>
 
-static int mailbox_mh_init (mailbox_t *pmbox, const char *name);
+static int mailbox_mh_create (mailbox_t *pmbox, const char *name);
 static void mailbox_mh_destroy (mailbox_t *pmbox);
 
 struct mailbox_registrar _mailbox_mh_registrar =
 {
   "MH",
-  mailbox_mh_init, mailbox_mh_destroy
+  mailbox_mh_create, mailbox_mh_destroy
 };
 
 typedef struct _mh_data
@@ -43,11 +43,11 @@ typedef struct _mh_data
 
 static int mh_open (mailbox_t mbox, int flags);
 static int mh_close (mailbox_t mbox);
-static int mh_scan (mailbox_t mbox, size_t *msgs);
+static int mh_scan (mailbox_t mbox, size_t msgno, size_t *msgs);
 static int mh_sequence(const char *name);
 
 static int
-mailbox_mh_init (mailbox_t *pmbox, const char *name)
+mailbox_mh_create (mailbox_t *pmbox, const char *name)
 {
   mailbox_t mbox;
   mh_data *data;
@@ -57,10 +57,11 @@ mailbox_mh_init (mailbox_t *pmbox, const char *name)
   mbox->name = malloc(strlen(name) + 1);
   strcpy(mbox->name, name);
   mbox->data = data;
-  mbox->_init = mailbox_mh_init;
+  mbox->_create = mailbox_mh_create;
   mbox->_destroy = mailbox_mh_destroy;
   mbox->_open = mh_open;
   mbox->_close = mh_close;
+  mbox->_scan = mh_scan;
   *pmbox = mbox;
 
   return 0;
@@ -110,7 +111,7 @@ mh_close (mailbox_t mbox)
 }
 
 static int
-mh_scan (mailbox_t mbox, size_t *msgs)
+mh_scan (mailbox_t mbox, size_t msgno, size_t *msgs)
 {
   struct stat st;
   DIR *maildir;
@@ -118,6 +119,8 @@ mh_scan (mailbox_t mbox, size_t *msgs)
   mh_data *data;
   unsigned int count = 0;
   int parse_sequence_file = 0;
+
+  (void)msgno;
 
   data = mbox->data;
 

@@ -57,7 +57,7 @@ struct _header
 };
 
 int
-header_init (header_t *ph, const char *blurb, size_t len, void *owner)
+header_create (header_t *ph, const char *blurb, size_t len, void *owner)
 {
   header_t h;
   int status;
@@ -66,14 +66,9 @@ header_init (header_t *ph, const char *blurb, size_t len, void *owner)
     return ENOMEM;
   h->owner = owner;
 
-  status = header_parse (h, (char *)blurb, len);
-  if (status != 0)
-    {
-      free (h);
-      return status;
-    }
+  header_parse (h, (char *)blurb, len);
 
-  status = stream_init (&(h->stream), h);
+  status = stream_create (&(h->stream), h);
   if (status != 0)
     return status;
 
@@ -132,7 +127,7 @@ header_parse (header_t header, char *blurb, int len)
     return 0;
 
   header->blurb_len = len;
-  header->blurb = calloc (1, header->blurb_len);
+  header->blurb = calloc (1, header->blurb_len + 1);
   if (header->blurb == NULL)
     return ENOMEM;
   memcpy (header->blurb, blurb, header->blurb_len);
@@ -214,6 +209,7 @@ header_parse (header_t header, char *blurb, int len)
       header->hdr_count++;
     } /* for (header_start ...) */
 
+#if 0
   header->blurb_len -= len;
   if (header->blurb_len <= 0)
     {
@@ -221,6 +217,10 @@ header_parse (header_t header, char *blurb, int len)
       free (header->hdr);
       return EINVAL;
     }
+  /* always add the separtor LF */
+  header->blurb [header->blurb_len] = '\n';
+  header->blurb_len++;
+#endif
   return 0;
 }
 
@@ -305,7 +305,24 @@ header_entry_count (header_t header, size_t *pnum)
 }
 
 int
-header_get_size (header_t header, size_t *pnum)
+header_lines (header_t header, size_t *plines)
+{
+  int n;
+  size_t t = 0;
+  if (header == NULL)
+    return EINVAL;
+  for (n = header->blurb_len - 1; n >= 0; n--)
+    {
+      if (header->blurb[n] == '\n')
+	t++;
+    }
+  if (plines)
+    *plines = t;
+  return 0;
+}
+
+int
+header_size (header_t header, size_t *pnum)
 {
   if (header == NULL)
       return EINVAL;

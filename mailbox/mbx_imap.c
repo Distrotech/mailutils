@@ -20,13 +20,13 @@
 #include <errno.h>
 
 
-static int mailbox_imap_init (mailbox_t *mbox, const char *name);
+static int mailbox_imap_create (mailbox_t *mbox, const char *name);
 static void mailbox_imap_destroy (mailbox_t *mbox);
 
 struct mailbox_registrar _mailbox_imap_registrar =
 {
   "IMAP4",
-  mailbox_imap_init, mailbox_imap_destroy
+  mailbox_imap_create, mailbox_imap_destroy
 };
 
 void
@@ -37,7 +37,7 @@ mailbox_imap_destroy (mailbox_t *mbox)
 }
 
 int
-mailbox_imap_init (mailbox_t *mbox, const char *name)
+mailbox_imap_create (mailbox_t *mbox, const char *name)
 {
   (void)mbox; (void)name;
   return ENOSYS;

@@ -23,12 +23,12 @@
 #include <string.h>
 
 static void url_maildir_destroy (url_t *purl);
-static int url_maildir_init (url_t *purl, const char *name);
+static int url_maildir_create (url_t *purl, const char *name);
 
 struct url_registrar  _url_maildir_registrar =
 {
   "maildir:",
-  url_maildir_init, url_maildir_destroy
+  url_maildir_create, url_maildir_destroy
 };
 
 static void
@@ -49,7 +49,7 @@ url_maildir_destroy (url_t *purl)
   maildir:
 */
 static int
-url_maildir_init (url_t *purl, const char *name)
+url_maildir_create (url_t *purl, const char *name)
 {
   url_t url;
   struct url_registrar *ureg = &_url_maildir_registrar;
@@ -67,7 +67,7 @@ url_maildir_init (url_t *purl, const char *name)
     return EINVAL;
 
   /* TYPE */
-  url->_init = ureg->_init;
+  url->_create = ureg->_create;
   url->_destroy = ureg->_destroy;
 
   /* SCHEME */

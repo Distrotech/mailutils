@@ -19,17 +19,17 @@
 #include <registrar0.h>
 #include <errno.h>
 
-static int mailbox_maildir_init (mailbox_t *mbox, const char *name);
+static int mailbox_maildir_create (mailbox_t *mbox, const char *name);
 static void mailbox_maildir_destroy (mailbox_t *mbox);
 
 struct mailbox_registrar _mailbox_maildir_registrar =
 {
   "MAILDIR",
-  mailbox_maildir_init, mailbox_maildir_destroy
+  mailbox_maildir_create, mailbox_maildir_destroy
 };
 
 int
-mailbox_maildir_init (mailbox_t *mbox, const char *name)
+mailbox_maildir_create (mailbox_t *mbox, const char *name)
 {
   (void)mbox; (void)name;
   return ENOSYS;

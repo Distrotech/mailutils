@@ -44,7 +44,7 @@ struct _transcoder
 	void 		*tcdata; 
 };
 
-extern int transcode_init			__P ((transcoder_t *, char *encoding));
+extern int transcode_create			__P ((transcoder_t *, char *encoding));
 extern void transcode_destroy		__P ((transcoder_t *));
 extern int transcode_get_stream		__P ((transcoder_t tc, stream_t *pis));
 extern int transcode_set_stream		__P ((transcoder_t tc, stream_t is));

@@ -42,6 +42,7 @@ struct _mailbox
   char *name;
   auth_t auth;
   locker_t locker;
+  netinstance_t netinstance;
   url_t url;
 
   /* register events */
@@ -53,7 +54,7 @@ struct _mailbox
 
   /* Public methods */
 
-  int  (*_init)            __P ((mailbox_t *, const char *));
+  int  (*_create)            __P ((mailbox_t *, const char *));
   void (*_destroy)         __P ((mailbox_t *));
 
   int  (*_open)            __P ((mailbox_t, int flag));
@@ -75,19 +76,8 @@ struct _mailbox
 };
 
 /* private */
-extern int mailbox_delete         __P ((mailbox_t, size_t msgno));
-extern int mailbox_undelete       __P ((mailbox_t, size_t msgno));
-extern int mailbox_is_deleted     __P ((mailbox_t, size_t msgno));
 extern int mailbox_num_deleted    __P ((mailbox_t, size_t *));
 
-extern int mailbox_get_auth       __P ((mailbox_t mbox, auth_t *auth));
-extern int mailbox_set_auth       __P ((mailbox_t mbox, auth_t auth));
-extern int mailbox_get_locker     __P ((mailbox_t mbox, locker_t *locker));
-extern int mailbox_set_locker     __P ((mailbox_t mbox, locker_t locker));
-extern int mailbox_get_attribute  __P ((mailbox_t mbox, size_t msgno,
-					attribute_t *attr));
-extern int mailbox_set_attribute  __P ((mailbox_t mbox, size_t msgno,
-					attribute_t attr));
 extern int mailbox_notification   __P ((mailbox_t mbox, size_t type));
 
 

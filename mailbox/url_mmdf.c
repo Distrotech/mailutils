@@ -23,12 +23,12 @@
 #include <string.h>
 
 static void url_mmdf_destroy (url_t *purl);
-static int url_mmdf_init (url_t *purl, const char *name);
+static int url_mmdf_create (url_t *purl, const char *name);
 
 struct url_registrar  _url_mmdf_registrar =
 {
   "mmdf:",
-  url_mmdf_init, url_mmdf_destroy
+  url_mmdf_create, url_mmdf_destroy
 };
 
 static void
@@ -49,7 +49,7 @@ url_mmdf_destroy (url_t *purl)
   mmdf:
 */
 static int
-url_mmdf_init (url_t *purl, const char *name)
+url_mmdf_create (url_t *purl, const char *name)
 {
   url_t url;
   struct url_registrar *ureg = &_url_mmdf_registrar;
@@ -67,7 +67,7 @@ url_mmdf_init (url_t *purl, const char *name)
     return ENOMEM;
 
   /* TYPE */
-  url->_init = ureg->_init;
+  url->_create = ureg->_create;
   url->_destroy = ureg->_destroy;
 
   /* SCHEME */

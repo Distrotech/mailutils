@@ -35,7 +35,7 @@ extern "C" { /*}*/
 struct _stream;
 typedef struct _stream *stream_t;
 
-extern int stream_init __P ((stream_t *, void *owner));
+extern int stream_create __P ((stream_t *, void *owner));
 extern void stream_destroy __P ((stream_t *, void *owner));
 
 extern int stream_set_fd __P ((stream_t,

@@ -45,7 +45,7 @@ struct _locker
 };
 
 int
-locker_init (locker_t *plocker, char *filename, size_t len, int flags)
+locker_create (locker_t *plocker, char *filename, size_t len, int flags)
 {
   locker_t l;
 

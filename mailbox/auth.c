@@ -32,7 +32,7 @@ struct _auth
 };
 
 int
-auth_init (auth_t *pauth, void *owner)
+auth_create (auth_t *pauth, void *owner)
 {
   auth_t auth;
   if (pauth == NULL)

@@ -35,7 +35,7 @@ extern "C" {
 struct _locker;
 typedef struct _locker *locker_t;
 
-extern int locker_init      __P ((locker_t *, char *filename,
+extern int locker_create      __P ((locker_t *, char *filename,
 				  size_t len, int flags));
 extern void locker_destroy  __P ((locker_t *));
 

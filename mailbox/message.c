@@ -16,20 +16,19 @@
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 
-#include <header.h>
-#include <attribute.h>
-#include <message0.h>
-#include <mailbox0.h>
 #include <io0.h>
+#include <message0.h>
 
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <time.h>
+#include <string.h>
 
-static int body_init (body_t *pbody, void *owner);
-static void body_destroy (body_t *pbody, void *owner);
+static int extract_addr(const char *s, size_t n, char **presult,
+		       size_t *pnwrite);
 static int message_read (stream_t is, char *buf, size_t buflen,
 			 off_t off, size_t *pnread );
 static int message_write (stream_t os, const char *buf, size_t buflen,
@@ -37,142 +36,25 @@ static int message_write (stream_t os, const char *buf, size_t buflen,
 static int message_get_fd (stream_t stream, int *pfd);
 
 int
-message_clone (message_t msg)
-{
-  int status;
-  stream_t stream;
-  header_t header;
-  attribute_t attribute;
-  body_t body;
-  char buffer[BUFSIZ];
-  char *pbuf = NULL;
-  char *tbuf = NULL;
-  off_t offset = 0;
-  size_t nread = 0;
-
-  if (msg == NULL)
-    return EINVAL;
-
-  /* If is not own, then it's a floating message
-   * just bump the reference count.
-   */
-  if (msg->owner == NULL)
-    {
-      if (msg->ref_count <= 0)
-	msg->ref_count = 1;
-      else
-	msg->ref_count++;
-      return 0;
-    }
-
-  /* retreive the header */
-  {
-    header = msg->header;
-    status = header_get_stream (header, &stream);
-    if (status != 0)
-      return status;
-
-    do {
-      status = stream_read (stream, buffer, sizeof (buffer), offset, &nread);
-      if (status != 0)
-	{
-	  free (pbuf);
-	  return status;
-	}
-      if (nread == 0)
-	break;
-      tbuf = realloc (pbuf, offset + nread);
-      if (tbuf == NULL)
-	{
-	  free (pbuf);
-	  return ENOMEM;
-	}
-      else
-	pbuf = tbuf;
-      memcpy (pbuf + offset, buffer, nread);
-      offset += nread;
-    } while (nread > 0);
-
-  }
-  /* set the new header */
-  status = header_init (&header, pbuf, offset, msg);
-  if (status != 0)
-    {
-      free (pbuf);
-      return status;
-    }
-  free (pbuf);
-
-  /* retrieve the body */
-  {
-    status = body_init (&body, msg);
-    if (status != 0)
-      {
-	header_destroy (&header, msg);
-	return status;
-      }
-
-    stream = msg->stream;
-    offset = 0;
-    do {
-      do
-	{
-	  status = stream_read (stream, buffer, sizeof (buffer), offset, &nread);
-	} while (status == EAGAIN);
-      if (status != 0)
-	{
-	  header_destroy (&header, msg);
-	  body_destroy (&body, msg);
-	  return status;
-	}
-      fwrite (buffer, sizeof (*buffer), nread, body->file);
-      offset += nread;
-    } while (nread > 0);
-    rewind (body->file);
-  }
-
-  /* set the body with the streams */
-  status = stream_init (&stream, msg);
-  if (status != 0 )
-    {
-      header_destroy (&header, msg);
-      body_destroy (&body, msg);
-      return status;
-    }
-  stream_set_read (stream, message_read, msg);
-  stream_set_write (stream, message_write, msg);
-
-  /* attribute */
-  status = attribute_init (&attribute, msg);
-  if (status != 0)
-    {
-      header_destroy (&header, msg);
-      body_destroy (&body, msg);
-      stream_destroy (&stream, msg);
-    }
-  attribute_copy (attribute, msg->attribute);
-
-  /* every thing went ok */
-  msg->header = header;
-  msg->attribute =  attribute;
-  msg->stream = stream;
-  msg->body = body;
-  msg->size = offset;
-  msg->ref_count++;
-  msg->owner = NULL; /* orphan */
-  return 0;
-}
-
-int
-message_init (message_t *pmsg, void *owner)
+message_create (message_t *pmsg, void *owner)
 {
   message_t msg;
+  stream_t stream;
+  int status;
 
   if (pmsg == NULL)
     return EINVAL;
   msg = calloc (1, sizeof (*msg));
   if (msg == NULL)
     return ENOMEM;
+  status = stream_create (&stream, msg);
+  if (status != 0)
+    {
+      free (msg);
+      return status;
+    }
+  stream_set_read (stream, message_read, msg);
+  stream_set_write (stream, message_write, msg);
   msg->owner = owner;
   *pmsg = msg;
   return 0;
@@ -200,9 +82,9 @@ message_destroy (message_t *pmsg, void *owner)
 
       if (destroy)
 	{
-	  header_t header = msg->header;
 	  attribute_t attribute = msg->attribute;
 	  stream_t stream = msg->stream;
+	  header_t header = msg->header;
 	  body_t body = msg->body;
 
 	  /* notify the listeners */
@@ -215,12 +97,7 @@ message_destroy (message_t *pmsg, void *owner)
 	  stream_destroy (&stream, owner);
 
 	  /* if sometype of floating/temporary message */
-	  if (body)
-	    {
-	      if (body->file)
-		fclose (body->file);
-	      free (body);
-	    }
+	  body_destroy (&body, owner);
 	  /* notifications are done */
 	  free (msg->event);
 
@@ -240,14 +117,14 @@ message_destroy (message_t *pmsg, void *owner)
 int
 message_get_header (message_t msg, header_t *phdr)
 {
-  if (phdr == NULL || msg == NULL)
+  if (msg == NULL || phdr == NULL)
     return EINVAL;
 
   /* is it a floating mesg */
   if (msg->header == NULL && msg->owner == NULL)
     {
       header_t header;
-      int status = header_init (&header, NULL, 0, msg);
+      int status = header_create (&header, NULL, 0, msg);
       if (status != 0)
 	return status;
       msg->header = header;
@@ -270,26 +147,53 @@ message_set_header (message_t msg, header_t hdr, void *owner)
 }
 
 int
+message_get_body (message_t msg, body_t *pbody)
+{
+  if (msg == NULL || pbody == NULL)
+    return EINVAL;
+
+  /* is it a floating mesg */
+  if (msg->body == NULL)
+    {
+      body_t body;
+      int status = body_create (&body, msg);
+      if (status != 0)
+	return status;
+      msg->body = body;
+    }
+  *pbody = msg->body;
+  return 0;
+}
+
+int
+message_set_body (message_t msg, body_t body, void *owner)
+{
+  if (msg == NULL )
+    return EINVAL;
+  if (msg->owner != owner)
+    return EACCES;
+  /* make sure we destoy the old if it was own by the mesg */
+  body_destroy (&(msg->body), msg);
+  msg->body = body;
+  return 0;
+}
+
+int
 message_get_stream (message_t msg, stream_t *pstream)
 {
   if (msg == NULL || pstream == NULL)
     return EINVAL;
 
-  if (msg->stream == NULL && msg->owner == NULL)
+  if (msg->stream == NULL)
     {
       stream_t stream;
       int status;
-      /* lazy floating message the body is created when
-       * doing the first message_write creation
-       */
-      status = stream_init (&stream, msg);
+      status = stream_create (&stream, msg);
       if (status != 0)
 	return status;
       stream_set_read (stream, message_read, msg);
       stream_set_write (stream, message_write, msg);
       stream_set_fd (stream, message_get_fd, msg);
-      /* make sure we've clean */
-      stream_destroy (&(msg->stream), msg);
       msg->stream = stream;
     }
 
@@ -298,36 +202,143 @@ message_get_stream (message_t msg, stream_t *pstream)
 }
 
 int
-message_set_stream (message_t msg, stream_t stream, void *owner)
+message_lines (message_t msg, size_t *plines)
 {
+  size_t hlines, blines;
   if (msg == NULL)
-   return EINVAL;
-  if (msg->owner != owner)
-    return EACCES;
-  /* make sure we destroy the old one if it is own by the message */
-  stream_destroy (&(msg->stream), msg);
-  msg->stream = stream;
+    return EINVAL;
+  if (plines)
+    {
+      hlines = blines = 0;
+      header_lines (msg->header, &hlines);
+      body_lines (msg->body, &blines);
+      *plines = hlines + blines;
+    }
   return 0;
 }
 
 int
-message_get_size (message_t msg, size_t *psize)
+message_size (message_t msg, size_t *psize)
 {
+  size_t hsize, bsize;
   if (msg == NULL)
     return EINVAL;
   if (psize)
-    *psize = msg->size;
+    {
+      hsize = bsize = 0;
+      header_size (msg->header, &hsize);
+      body_size (msg->body, &bsize);
+      *psize = hsize + bsize;
+    }
   return 0;
 }
 
 int
-message_set_size (message_t msg, size_t size, void *owner)
+message_set_from (message_t msg,
+		  int (*_from)(message_t, char *, size_t, size_t*),
+		  void *owner)
 {
   if (msg == NULL)
     return EINVAL;
   if (msg->owner != owner)
     return EACCES;
-  msg->size = size;
+  msg->_from = _from;
+  return 0;
+}
+
+int
+message_from (message_t msg, char *buf, size_t len, size_t *pnwrite)
+{
+  header_t header = NULL;
+  size_t n = 0;
+  int status;
+
+  if (msg == NULL)
+    return EINVAL;
+
+  /* did they provide a way to get it */
+  if (msg->_from)
+    return msg->_from (msg, buf, len, pnwrite);
+
+  /* can it be extracted from the FROM: */
+  message_get_header (msg, &header);
+  status = header_get_value (header, "FROM", NULL, 0, &n);
+  if (status == 0 && n != 0)
+    {
+      char *from = calloc (1, n + 1);
+      char *addr;
+      header_get_value (header, "FROM", from, n + 1, NULL);
+      if (extract_addr (from, n, &addr, &n) == 0)
+	{
+	  n = (n > len) ? len : n;
+	  if (buf && len > 0)
+	    {
+	      memcpy (buf, addr, n);
+	      buf[n - 1] = '\0';
+	    }
+	  free (addr);
+	  free (from);
+	  if (pnwrite)
+	    *pnwrite = n;
+	  return 0;
+	}
+    }
+
+  /* oops */
+  n = (7 > len) ? len: 7;
+  if (buf && len > 0)
+    {
+      memcpy (buf, "unknown", n);
+      buf [n - 1] = '\0';
+    }
+
+  if (pnwrite)
+    *pnwrite = n;
+  return 0;
+}
+
+int
+message_set_received (message_t msg,
+		      int (*_received) (message_t, char *, size_t , size_t *),
+		      void *owner)
+{
+  if (msg == NULL)
+    return EINVAL;
+  if (msg->owner != owner)
+    return EACCES;
+  msg->_received = _received;
+  return 0;
+}
+
+int
+message_received (message_t msg, char *buf, size_t len, size_t *pnwrite)
+{
+  time_t t;
+  size_t n;
+  if (msg == NULL)
+    return EINVAL;
+  /* is it provided */
+  if (msg->_received)
+    return msg->_received (msg, buf, len, pnwrite);
+
+  /* FIXME: extract the time from "Date:" */
+
+  /* catch all */
+  /* FIXME: ctime() is not thread safe use strftime() */
+  t = time (NULL);
+  n = strlen (ctime (&t));
+
+  if (buf == NULL || len == 0)
+    {
+      if (pnwrite)
+	*pnwrite = n;
+      return 0;
+    }
+  n = (n > len) ? len : n;
+  strncpy (buf, ctime (&t), n);
+  buf [n - 1] = '\0';
+  if (pnwrite)
+    *pnwrite = n;
   return 0;
 }
 
@@ -339,7 +350,7 @@ message_get_attribute (message_t msg, attribute_t *pattribute)
   if (msg->attribute == NULL && msg->owner == NULL)
     {
       attribute_t attribute;
-      int status = attribute_init (&attribute, msg);
+      int status = attribute_create (&attribute, msg);
       if (status != 0)
 	return status;
       msg->attribute = attribute;
@@ -427,100 +438,43 @@ message_notification (message_t msg, size_t type)
     }
 }
 
-/* We use the notion of body_t here */
-static int
-body_init (body_t *pbody, void *owner)
-{
-  body_t body;
-  FILE *file;
-
-  if (pbody == NULL)
-    return EINVAL;
-
-#ifdef HAVE_MKSTEMP
-  {
-    char tmpbuf[L_tmpnam + 1];
-    int fd;
-
-    if (tmpnam (tmpbuf) == NULL ||
-	(fd = mkstemp (tmpbuf)) == -1 ||
-	(file = fdopen(fd, "w+")) == NULL)
-      return errno;
-    (void)remove(tmpbuf);
-  }
-#else
-  file = tmpfile ();
-  if (file == NULL)
-    return errno;
-  /* make sure the mode is right */
-  fchmod (fileno (file), 0600);
-#endif
-
-  /* set the body with the streams */
-  body = calloc (1, sizeof (*body));
-  if (body == NULL)
-    {
-      fclose (file);
-      return ENOMEM;
-    }
-  body->file = file;
-  body->owner = owner;
-  *pbody = body;
-  return 0;
-}
-
-static void
-body_destroy (body_t *pbody, void *owner)
-{
-  if (pbody && *pbody)
-    {
-      body_t body = *pbody;
-      if (body->owner == owner)
-	{
-	  if (body->file)
-	    fclose (body->file);
-	}
-      *pbody = NULL;
-    }
-}
-
 static int
 message_read (stream_t is, char *buf, size_t buflen,
 	      off_t off, size_t *pnread )
 {
   message_t msg;
-  size_t nread = 0;
+  stream_t his, bis;
+  size_t hread, hsize, bread, bsize;
+
 
   if (is == NULL || (msg = is->owner) == NULL)
     return EINVAL;
 
-  if (msg->body)
+  bsize = hsize = bread = hread = 0;
+  his = bis = NULL;
+
+  header_size (msg->header, &hsize);
+  body_size (msg->body, &bsize);
+
+  if ((size_t)off <= hsize)
     {
-      body_t body = msg->body;
-      if (body->file)
+      header_get_stream (msg->header, &his);
+      stream_read (his, buf, buflen, off, &hread);
+      /* still room left for some body, .. a pun ;-) */
+      if ((buflen - hread) > 0)
 	{
-	  /* we're not checking the error of fseek for some handlers
-	   * like socket in those not make sense.
-	   * FIXME: Alternative is to check fseeck and errno == EBADF
-	   * if not a seekable stream.
-	   */
-	  fseek (body->file, off, SEEK_SET);
-	  nread = fread (buf, sizeof (char), buflen, body->file);
-	  if (nread == 0)
-	    {
-	      if (ferror (body->file))
-		return errno;
-	      /* clear the error for feof() */
-	      clearerr (body->file);
-	    }
-	  /* errno set by fread()/fseek() ? */
+	  body_get_stream (msg->body, &bis);
+	  stream_read (bis, buf + hread, buflen - hread, 0, &bread);
 	}
-      else
-	return EINVAL;
+    }
+  else
+    {
+      body_get_stream (msg->body, &bis);
+      stream_read (bis, buf, buflen, off - hsize, &bread);
     }
 
   if (pnread)
-    *pnread = nread;
+    *pnread = hread + bread;
   return 0;
 }
 
@@ -529,47 +483,11 @@ message_write (stream_t os, const char *buf, size_t buflen,
 	       off_t off, size_t *pnwrite)
 {
   message_t msg;
-  size_t nwrite = 0;
-  body_t body;
+  (void)buf; (void)buflen; (void)off; (void)pnwrite;
 
   if (os == NULL || (msg = os->owner) == NULL)
     return EINVAL;
-
-  /* Probably being lazy, then create a body for the stream */
-  if (msg->body == NULL)
-    {
-      int status = body_init (&body, msg);
-      if (status != 0 )
-        return status;
-      msg->body = body;
-    }
-  else
-      body = msg->body;
-
-  if (body->file)
-    {
-      /* we're not checking the error of fseek for some handlers
-       * like socket in those not make sense.
-       * FIXME: Alternative is to check fseeck and errno == EBADF
-       * if not a seekable stream.
-       */
-      fseek (body->file, off, SEEK_SET);
-      nwrite = fwrite (buf, sizeof (char), buflen, body->file);
-      if (nwrite == 0)
-	{
-	  if (ferror (body->file))
-	    return errno;
-	  /* clear the error for feof() */
-	  clearerr (body->file);
-	}
-      /* errno set by fread()/fseek() ? */
-    }
-  else
-    return EINVAL;
-
-  if (pnwrite)
-    *pnwrite = nwrite;
-  return 0;
+  return ENOSYS;
 }
 
 static int
@@ -577,6 +495,7 @@ message_get_fd (stream_t stream, int *pfd)
 {
   message_t msg;
   body_t body;
+  stream_t is;
 
   if (stream == NULL || (msg = stream->owner) == NULL)
     return EINVAL;
@@ -584,7 +503,7 @@ message_get_fd (stream_t stream, int *pfd)
   /* Probably being lazy, then create a body for the stream */
   if (msg->body == NULL)
     {
-      int status = body_init (&body, msg);
+      int status = body_create (&body, msg);
       if (status != 0 )
         return status;
       msg->body = body;
@@ -592,8 +511,75 @@ message_get_fd (stream_t stream, int *pfd)
   else
       body = msg->body;
 
-  if (pfd)
-   *pfd = fileno (body->file);
+  body_get_stream (body, &is);
+  return stream_get_fd (is, pfd);
+}
 
-  return 0;
+static int
+extract_addr (const char *s, size_t n, char **presult, size_t *pnwrite)
+{
+  char *p, *p1, *p2;
+
+  if (s == NULL || n == 0 || presult == NULL)
+    return EINVAL;
+
+  /* skip the double quotes */
+  p = memchr (s, '\"', n);
+  if (p != NULL)
+    {
+      p1 = memchr (s, '<', p - s);
+      p2 = memchr (s, '@', p - s);
+      if (p1 == NULL && p2 == NULL)
+        {
+          p1 = memchr (p + 1, '\"', n - ((p + 1) - s));
+          if (p1 != NULL)
+            {
+              n -= (p1 + 1) - s;
+              s = p1 + 1;
+            }
+        }
+    }
+
+  /*  <name@hostname> ?? */
+  p = memchr (s, '<', n);
+  if (p != NULL)
+    {
+      p1 = memchr (p, '>', n - (p - s));
+      if (p1 != NULL && (p1 - p) > 1)
+        {
+          p2 = memchr (p, ' ', p1 - p);
+          if (p2 == NULL)
+            {
+              /* the NULL is already accounted for */
+              *presult = calloc (1, p1 - p);
+              if (*presult == NULL)
+                return ENOMEM;
+              memcpy (*presult, p + 1, (p1 - p) - 1);
+	      if (pnwrite)
+		*pnwrite = (p1 - p) - 1;
+              return 0;
+            }
+        }
+    }
+  /* name@domain */
+  p = memchr (s, '@', n);
+  if (p != NULL)
+    {
+      p1 = p;
+      while (*p != ' ' && p != s)
+        p--;
+      while (*p1 != ' ' && p1 < (s + n))
+        p1++;
+      *presult = calloc (1, (p1 - p) + 1);
+      if (*presult == NULL)
+        return ENOMEM;
+      memcpy (*presult, p, p1 - p);
+      if (pnwrite)
+	*pnwrite = p1 - p;
+      return 0;
+    }
+
+  *presult = NULL;
+  return EINVAL;
+
 }

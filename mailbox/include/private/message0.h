@@ -39,20 +39,6 @@ extern "C" {
 # endif
 #endif /*__P */
 
-/* The notion of body_t is not exported outside,
- * there was no need for yet another object.
- * since only floating messages need them. The functions
- * that manipulate those objects are static to message.c
- *
- */
-struct _body
-{
-  FILE *file;
-  void *owner;
-};
-
-typedef struct _body * body_t;
-
 /* forward declaration */
 struct _message
 {
@@ -79,9 +65,9 @@ struct _message
   int (*_get_stream) __P ((message_t msg, stream_t *));
   int (*_set_stream) __P ((message_t msg, stream_t, void *owner));
 
-  int (*_size)        __P ((message_t msg, size_t *size));
+  int (*_from)       __P ((message_t msg, char *, size_t, size_t *));
+  int (*_received)   __P ((message_t msg, char *, size_t, size_t *));
 
-  int (*_clone)       __P ((message_t msg, message_t *cmsg));
 };
 
 #ifdef _cplusplus

@@ -88,7 +88,7 @@ registrar_add (struct url_registrar *new_ureg,
 	  return ENOMEM;
 	}
     }
-  mreg->_init = new_mreg->_init;
+  mreg->_create = new_mreg->_create;
   mreg->_destroy = new_mreg->_destroy;
 
   /* URL */
@@ -110,7 +110,7 @@ registrar_add (struct url_registrar *new_ureg,
 	      return ENOMEM;
 	    }
 	}
-      ureg->_init = new_ureg->_init;
+      ureg->_create = new_ureg->_create;
       ureg->_destroy = new_ureg->_destroy;
     }
 

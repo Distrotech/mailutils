@@ -20,13 +20,13 @@
 
 #include <errno.h>
 
-static int mailbox_pop_init (mailbox_t *mbox, const char *name);
+static int mailbox_pop_create (mailbox_t *mbox, const char *name);
 static void mailbox_pop_destroy (mailbox_t *mbox);
 
 struct mailbox_registrar _mailbox_pop_registrar =
 {
   "POP3",
-  mailbox_pop_init, mailbox_pop_destroy
+  mailbox_pop_create, mailbox_pop_destroy
 };
 
 static void
@@ -37,7 +37,7 @@ mailbox_pop_destroy (mailbox_t *mbox)
 }
 
 static int
-mailbox_pop_init (mailbox_t *mbox, const char *name)
+mailbox_pop_create (mailbox_t *mbox, const char *name)
 {
   (void)mbox; (void)name;
   return ENOSYS;

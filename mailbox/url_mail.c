@@ -19,13 +19,13 @@
 #include <registrar.h>
 #include <errno.h>
 
-static int url_mailto_init (url_t *purl, const char *name);
+static int url_mailto_create (url_t *purl, const char *name);
 static void url_mailto_destroy (url_t *purl);
 
 struct url_registrar _url_mailto_registrar =
 {
   "mailto:",
-  url_mailto_init, url_mailto_destroy
+  url_mailto_create, url_mailto_destroy
 };
 
 static void
@@ -36,7 +36,7 @@ url_mailto_destroy (url_t *purl)
 }
 
 static int
-url_mailto_init (url_t *purl, const char *name)
+url_mailto_create (url_t *purl, const char *name)
 {
   (void)purl; (void)name;
   return ENOSYS;

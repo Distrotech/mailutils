@@ -22,7 +22,8 @@
 #include <message0.h>
 #include <url0.h>
 #include <io0.h>
-#include <attribute.h>
+#include <body0.h>
+#include <attribute0.h>
 #include <header.h>
 #include <auth.h>
 #include <locker.h>
@@ -48,13 +49,13 @@
 #include <ctype.h>
 #include <limits.h>
 
-static int mailbox_unix_init (mailbox_t *pmbox, const char *name);
+static int mailbox_unix_create (mailbox_t *pmbox, const char *name);
 static void mailbox_unix_destroy (mailbox_t *pmbox);
 
 struct mailbox_registrar _mailbox_unix_registrar =
 {
   "UNIX MBOX",
-  mailbox_unix_init, mailbox_unix_destroy
+  mailbox_unix_create, mailbox_unix_destroy
 };
 
 /*
@@ -64,13 +65,13 @@ struct mailbox_registrar _mailbox_unix_registrar =
 typedef struct _mailbox_unix_message
 {
   /* offset of the parts of the messages in the mailbox*/
-  off_t header;
-  off_t header_end;
+  off_t header_from;
+  off_t header_from_end;
   /* little hack to make things easier
    * when updating the attribute
    */
-  off_t hdr_status;
-  off_t hdr_status_end;
+  off_t header_status;
+  off_t header_status_end;
   off_t body;
   off_t body_end;
 
@@ -79,11 +80,8 @@ typedef struct _mailbox_unix_message
   attribute_t old_attr;
   attribute_t new_attr;
 
-  /* some sort of uniq id, maybe we should use the
-   * Message-ID of the message, but we'll have to free
-   * when done.
-   */
-  size_t num;
+  size_t header_lines;
+  size_t body_lines;
   FILE *file;
 
   /* if we have a message attach to it */
@@ -130,19 +128,20 @@ static int mailbox_unix_is_updated (mailbox_t);
 
 static int mailbox_unix_size (mailbox_t, off_t *size);
 
-static ssize_t mailbox_unix_get_header (mailbox_t, size_t msgno, char *h,
-					size_t len, off_t off, int *err);
-
 
 /* private stuff */
-static int mailbox_unix_is_deleted (mailbox_t mbox, size_t msgno);
-static int mailbox_unix_validity (mailbox_t mbox, size_t msgno);
+
+static int mailbox_unix_get_header (mailbox_unix_message_t mum, char *buffer,
+				    size_t len, off_t off, ssize_t *pnread);
 static int mailbox_unix_getfd (stream_t is, int *pfd);
 static int mailbox_unix_readstream (stream_t is, char *buffer, size_t buflen,
 				    off_t off, size_t *pnread);
-static int mailbox_unix_is_from (const char *);
-static int mailbox_unix_readhdr (mailbox_t mbox, char *buf, size_t len,
-				 off_t *content_length, size_t msgno);
+static int mailbox_unix_body_size (body_t body, size_t *psize);
+static int mailbox_unix_body_lines (body_t body, size_t *plines);
+static int mailbox_unix_msg_from (message_t msg, char *buf, size_t len,
+				  size_t *pnwrite);
+static int mailbox_unix_msg_received (message_t msg, char *buf, size_t len,
+				      size_t *pnwrite);
 static int mailbox_unix_lock (mailbox_t mbox, int flag);
 static int mailbox_unix_touchlock (mailbox_t mbox);
 static int mailbox_unix_unlock (mailbox_t mbox);
@@ -156,7 +155,7 @@ static int mailbox_unix_iunlock (mailbox_t mbox);
  * Hopefully there will not be a mailbox name "unix:"
  */
 static int
-mailbox_unix_init (mailbox_t *pmbox, const char *name)
+mailbox_unix_create (mailbox_t *pmbox, const char *name)
 {
   mailbox_t mbox;
   mailbox_unix_data_t mud;
@@ -271,7 +270,7 @@ mailbox_unix_init (mailbox_t *pmbox, const char *name)
   pthread_mutex_init (&(mud->mutex), NULL);
 #endif
 
-  mbox->_init = mailbox_unix_init;
+  mbox->_create = mailbox_unix_create;
   mbox->_destroy = mailbox_unix_destroy;
 
   mbox->_open = mailbox_unix_open;
@@ -437,10 +436,11 @@ mailbox_unix_open (mailbox_t mbox, int flags)
     if (mud->file == NULL)
       {
 	/* what's up ?? */
+	int err = errno;
 	mailbox_unix_iunlock (mbox);
-	return ENOMEM;
+	return err;
       }
-    /* Is this necessary ?? */
+    /* Is this check necessary ?? */
     /* Check to make sure this is indeed a Unix Mail format */
     flockfile (mud->file);
     {
@@ -496,410 +496,8 @@ mailbox_unix_close (mailbox_t mbox)
   return 0;
 }
 
-
-/* FIXME: a little weak, we should do full reconnaissance of the
- * the "From " header :
- *    From <user> <weekday> <month> <day> <hr:min:sec>
- *      [T1 [T2]] <year> [remote-list]
-*/
-static int
-mailbox_unix_is_from (const char *from)
-{
-  const char *sep;
-
-  /* From_ */
-  if (strncmp (from, "From ", 5) != 0)
-    return 0;
-  from += 5;
-
-  /* <user> */
-  sep = strchr (from, ' ');
-  if (sep == NULL)
-    return 0;
-  from = ++sep;
-
-  /* weekday */
-  sep = strchr (from, ' ');
-  if (sep == NULL)
-    return 0;
-  from = ++sep;
-
-  /* month */
-  sep = strchr (from, ' ');
-  if (sep == NULL)
-    return 0;
-  from = ++sep;
-
-  /* day */
-  sep = strchr (from, ' ');
-  if (sep == NULL)
-    return 0;
-  from = ++sep;
-
-  /* hr:min:sec */
-  /* hr */
-  sep = strchr (from, ':');
-  if (sep == NULL)
-    return 0;
-  from = ++sep;
-  /* min */
-  sep = strchr (from, ':');
-  if (sep == NULL)
-    return 0;
-  from = ++sep ;
-  /* sec */
-  sep = strchr (from, ' ');
-  if (sep == NULL)
-    return 0;
-
-  /* FIXME PLEASE: the rest is getting more complex, finish it later */
-  return 1;
-}
-
-/*
- * We skip over the rest of the header.  Scan for
- * Status: to set the attribute.  Hopefully the Content-Length
- * in there too.
- */
-static int
-mailbox_unix_readhdr (mailbox_t mbox, char *buf, size_t len,
-		      off_t *content_length, size_t msgno)
-{
-  mailbox_unix_data_t mud = (mailbox_unix_data_t)mbox->data;
-  mailbox_unix_message_t mum = mud->umessages[msgno];
-  char *sep;
-
-  /* skip over the remaining header */
-  errno = 0;
-  while (fgets (buf, len, mud->file))
-    {
-      /* FIXME: The heuristic is still weak
-	 we will break and consider things not to be a header if:
-	 1: an empty line
-	 2: can not be a header
-      */
-      if (strcmp (buf, "\n") == 0 || strcmp (buf, "\r\n") == 0
-	  || (isalpha (buf[0]) && (sep = strchr (buf, ':')) == NULL))
-	break;
-      /* get the the Content lenght of the body if possible */
-      else if (strncmp (buf, "Content-Length:", 15) == 0)
-	{
-	  sep = strchr(buf, ':'); /* pass the ':' */
-	  sep[strlen (sep) - 1] = '\0'; /* chop the newline */
-	  /* FIXME: use xstrtol() if strtol() is not on the platform */
-	  /* FIXME: what an awkward way of handling error
-	     Some damage control can be done here.
-	     for example just set content_length = -1;
-	     and rely above to discover the body part */
-	  errno = 0;
-	  *content_length = strtol (sep + 1, NULL, 10);
-	  if (*content_length == 0 ||
-	      *content_length == LONG_MIN ||
-	      *content_length == LONG_MAX)
-	    {
-	      if (errno != 0)
-		return errno;
-	    }
-	}
-      /* Set the attribute */
-      else if (strncasecmp (buf, "Status:", 7) == 0)
-        {
-	  mum->hdr_status_end = ftell (mud->file);
-	  mum->hdr_status = mum->hdr_status_end - strlen (buf);
-          sep = strchr(buf, ':'); /* pass the ':' */
-          if (strchr (sep, 'R') != NULL || strchr (sep, 'r') != NULL)
-	    attribute_set_read (mum->old_attr);
-          if (strchr (sep, 'O') != NULL || strchr (sep, 'o') != NULL)
-	    attribute_set_seen (mum->old_attr);
-          if (strchr (sep, 'A') != NULL || strchr (sep, 'a') != NULL)
-	    attribute_set_answered (mum->old_attr);
-          if (strchr (sep, 'F') != NULL || strchr (sep, 'f') != NULL)
-	    attribute_set_flagged (mum->old_attr);
-	  attribute_copy (mum->new_attr, mum->old_attr);
-        }
-    }
-  /* check for any dubious conditions */
-  if (feof (mud->file) || ferror (mud->file))
-    return errno;
-  return 0;
-}
-
-/* Parsing.
- * This a bit fragile, I need to secure this.
- * The approach is to detect the "From " as start of a
- * new message, give the position of the header and scan
- * until "\n" then set header_end, set body position, if we have
- * a Content-Length field jump to the point if not
- * scan until we it another "From " and set body_end.
- */
-static int
-mailbox_unix_scan (mailbox_t mbox, size_t msgno, size_t *pcount)
-{
-  char buf[BUFSIZ];
-  int header = 0;
-  int body = 0;
-  off_t content_length = -1;
-  mailbox_unix_data_t mud;
-  mailbox_unix_message_t mum = NULL;
-  struct stat st;
-  int status;
-  size_t progress_counter = 0;
-
-  /* sanity */
-  if (mbox == NULL ||
-      (mud = (mailbox_unix_data_t)mbox->data) == NULL)
-    return EINVAL;
-
-  /* FIXME:  I should also block signals and check cancelstate(Pthread)
-     since We can not afford to be intr */
-  mailbox_unix_ilock (mbox, MU_LOCKER_WRLOCK);
-  mailbox_unix_lock (mbox, MU_LOCKER_RDLOCK);
-  flockfile (mud->file);
-
-  if (fstat (fileno (mud->file), &st) != 0)
-    {
-      status = errno;
-      funlockfile (mud->file);
-      mailbox_unix_iunlock (mbox);
-      mailbox_unix_unlock (mbox);
-      return status;
-    }
-  mud->mtime = st.st_mtime;
-  mud->size = st.st_size;
-
-  rewind (mud->file);
-
-  /* seek to the starting point */
-  if (mud->umessages)
-    {
-      if (mud->messages_count > 0 &&
-	  msgno != 0 &&
-	  msgno <= mud->messages_count)
-	{
-	  mum = mud->umessages[msgno - 1];
-	  if (mum)
-	    fseek (mud->file, mum->body_end, SEEK_SET);
-	  mud->messages_count = msgno;
-	}
-    }
-
-  errno = 0;
-  while (fgets (buf, sizeof (buf), mud->file))
-    {
-      if (mailbox_unix_is_from (buf))
-	{
-	  if (body && mum )
-	    {
-	      int over = strlen (buf);
-              mum->body_end = ftell (mud->file);
-              mum->body_end -= (over);
-	      body = 0;
-	      mud->messages_count++;
-	      /* reset the progress_counter */
-	      progress_counter = 0;
-	      /* notifications ADD_MESG */
-	      {
-		off_t where = ftell (mud->file);
-		funlockfile (mud->file);
-		mailbox_unix_iunlock (mbox);
-		mailbox_unix_unlock (mbox);
-		/*
-		 * My! I do not like this way of bailing out.
-		 */
-		if (mailbox_notification (mbox, MU_EVT_MBX_MSG_ADD) != 0)
-		  {
-		    if (pcount)
-		      *pcount = mud->messages_count;
-		    return EINTR;
-		  }
-		flockfile (mud->file);
-		mailbox_unix_ilock (mbox, MU_LOCKER_WRLOCK);
-		mailbox_unix_lock (mbox, MU_LOCKER_RDLOCK);
-		fseek (mud->file, where, SEEK_SET);
-	      }
-	    }
-	  header = 1;
-	}
-
-      /* header */
-      if (header)
-	{
-	  /* FIXME: What happen if some mailer violates the rfc822 and the
-	     "From " field contains a NULL byte */
-	  int over = strlen (buf);
-
-	  /* allocate a slot for the new message */
-	  if (mud->messages_count >= mud->umessages_count)
-	    {
-	      mailbox_unix_message_t *m;
-	      m = realloc (mud->umessages,
-			   (mud->messages_count + 1) * sizeof (*m));
-	      if (m == NULL)
-		{
-		  funlockfile (mud->file);
-		  mailbox_unix_iunlock (mbox);
-		  mailbox_unix_unlock (mbox);
-		  return ENOMEM;
-		}
-	      mud->umessages = m;
-	      mud->umessages[mud->umessages_count] = NULL;
-	      mud->umessages_count++;
-	    }
-	  /* allocate space for the new message */
-	  if (mud->umessages[mud->messages_count] == NULL)
-	    {
-	      mum = calloc (1, sizeof (*mum));
-	      if (mum == NULL)
-		{
-		  funlockfile (mud->file);
-		  mailbox_unix_iunlock (mbox);
-		  mailbox_unix_unlock (mbox);
-		  return ENOMEM;
-		}
-	      mud->umessages[mud->messages_count] = mum;
-	    }
-	  else
-	    {
-	      /* reuse the message */
-	      mum = mud->umessages[mud->messages_count];
-	    }
-	  status = attribute_init (&(mum->old_attr), mbox);
-	  if (status != 0)
-	    {
-	      funlockfile (mud->file);
-	      mailbox_unix_iunlock (mbox);
-	      mailbox_unix_unlock (mbox);
-	      return ENOMEM;
-	    }
-	  status = attribute_init (&(mum->new_attr), mbox);
-	  if (status != 0)
-	    {
-	      attribute_destroy (&(mum->old_attr), mbox);
-	      funlockfile (mud->file);
-	      mailbox_unix_iunlock (mbox);
-	      mailbox_unix_unlock (mbox);
-	      return ENOMEM;
-	    }
-	  mum->file = mud->file;
-	  mum->num = mud->messages_count + 1;
-	  mum->header = ftell (mud->file);
-	  /* substract the overrun */
-	  mum->header -= over;
-
-	  /* skip the remaining header and set the attributes */
-	  if ((status = mailbox_unix_readhdr (mbox, buf,
-					      sizeof (buf), &content_length,
-					      mud->messages_count)) != 0)
-	    {
-	      funlockfile (mud->file);
-	      mailbox_unix_iunlock (mbox);
-	      mailbox_unix_unlock (mbox);
-	      return status;
-	    }
-	  mum->header_end = ftell (mud->file) - strlen(buf);
-	  header = 0;
-	  body = !header;
-	} /* header */
-
-      /* body */
-      if (body)
-	{
-	  /* set the body position */
-	  if (mum->body == 0)
-	    mum->body = ftell (mud->file);
-
-	  if (content_length >= 0)
-	    {
-	      /* ouf ! we got the lenght, jump */
-	      mum->body_end =  mum->body + content_length;
-	      fseek (mud->file, content_length, SEEK_CUR);
-	      content_length = -1;
-	      body = 0;
-	      mud->messages_count++;
-	      /* reset the progress_counter */
-	      progress_counter = 0;
-	      /* notification ADD MESG*/
-	      {
-		off_t where = ftell (mud->file);
-		funlockfile (mud->file);
-		mailbox_unix_iunlock (mbox);
-		mailbox_unix_unlock (mbox);
-		/*
-		 * Brian E. are sure this is a good idea ??
-		 */
-		if (mailbox_notification (mbox, MU_EVT_MBX_MSG_ADD) != 0)
-		  {
-		    if (pcount)
-		      *pcount = mud->messages_count;
-		    return EINTR;
-		  }
-		flockfile (mud->file);
-		mailbox_unix_ilock (mbox, MU_LOCKER_WRLOCK);
-		mailbox_unix_lock (mbox, MU_LOCKER_RDLOCK);
-		fseek (mud->file, where, SEEK_SET);
-	      }
-	    }
-	}
-      /* notification MBX_PROGRESS
-       * We do not want to fire up the progress notification
-       * every line, it will be too expensive, so we do it
-       * arbitrarely every 10 000 Lines.
-       * FIXME: maybe this should be configurable.
-       */
-      if ((++progress_counter % 10000) == 0)
-      {
-	off_t where = ftell (mud->file);
-	funlockfile (mud->file);
-	mailbox_unix_iunlock (mbox);
-	mailbox_unix_unlock (mbox);
-	/*
-	 * This is more tricky we can not leave the mum
-	 * struct incomplete.  If they want to bailout
-	 * they probably did not care about the last message
-	 * we should free it;
-	 */
-	if (mailbox_notification (mbox, MU_EVT_MBX_PROGRESS) != 0)
-	  {
-	    if (mum)
-	      {
-		attribute_destroy (&(mum->old_attr), mbox);
-		attribute_destroy (&(mum->new_attr), mbox);
-		message_destroy (&(mum->message), mbox);
-		free (mum);
-		mud->umessages[mud->messages_count - 1] = NULL;
-		mud->messages_count--;
-	      }
-	    if (pcount)
-	      *pcount = mud->messages_count;
-	    return EINTR;
-	  }
-	flockfile (mud->file);
-	mailbox_unix_ilock (mbox, MU_LOCKER_WRLOCK);
-	mailbox_unix_lock (mbox, MU_LOCKER_RDLOCK);
-	fseek (mud->file, where, SEEK_SET);
-      }
-      mailbox_unix_touchlock (mbox);
-    } /* while */
-  status = errno;
-
-  if (feof (mud->file))
-    status = 0;
-
-  clearerr (mud->file);
-  if (mum)
-    {
-      mum->body_end = ftell (mud->file);
-      mud->messages_count++;
-    }
-  rewind (mud->file);
-  funlockfile (mud->file);
-  mailbox_unix_iunlock (mbox);
-  mailbox_unix_unlock (mbox);
-  if (pcount)
-    *pcount = mud->messages_count;
-  mailbox_notification (mbox, MU_EVT_MBX_MSG_ADD);
-  return status;
-}
+/* Mailbox Parsing */
+#include "mbx_unixscan.c"
 
 /* FIXME:  How to handle a shrink ? meaning, the &^$^@%#@^& user
  * start two browsers and delete files in one.  My views
@@ -911,35 +509,10 @@ mailbox_unix_is_updated (mailbox_t mbox)
 {
   mailbox_unix_data_t mud;
   struct stat st;
-  if (mbox == NULL ||
-      (mud = (mailbox_unix_data_t)mbox->data) == NULL ||
-      fstat (fileno (mud->file), &st) < 0)
+      if ((mud = (mailbox_unix_data_t)mbox->data) == NULL ||
+	  fstat (fileno (mud->file), &st) < 0)
     return 0;
   return (mud->mtime == st.st_mtime);
-}
-
-static int
-mailbox_unix_validity (mailbox_t mbox, size_t msgno)
-{
-  mailbox_unix_data_t mud;
-  if (mbox == NULL ||
-      (mud = (mailbox_unix_data_t) mbox->data) == NULL)
-    return EINVAL;
-  /* valid ? */
-  return !(mud->messages_count > 0 && msgno > 0 &&
-	  msgno <= mud->messages_count);
-}
-
-static int
-mailbox_unix_is_deleted (mailbox_t mbox, size_t msgno)
-{
-  mailbox_unix_data_t mud;
-  int status = mailbox_unix_validity (mbox, msgno);
-  if (status != 0)
-    return status;
-  msgno--;
-  mud = (mailbox_unix_data_t) mbox->data;
-  return attribute_is_deleted (mud->umessages[msgno]->new_attr);
 }
 
 static int
@@ -1065,6 +638,17 @@ mailbox_unix_expunge (mailbox_t mbox)
   mailbox_unix_ilock (mbox, MU_LOCKER_RDLOCK);
   flockfile (mud->file);
 
+  /*
+   * We can not be NONBLOCKING here.
+   * It would irresponsable.
+   */
+  if ((oflags = fcntl (fileno (mud->file), F_GETFL, 0)) < 0)
+    {
+      status = errno;
+      goto bailout;
+    }
+  fcntl (fileno (mud->file), F_SETFL, oflags & ~O_NONBLOCK);
+
   /* Do we have a consistent view of the mailbox */
   /* FIXME: this is not enough we can do better
    * - by checking the file size and scream bloody murder
@@ -1077,17 +661,6 @@ mailbox_unix_expunge (mailbox_t mbox)
       status = EAGAIN;
       goto bailout;
     }
-
-  /*
-   * We can not be NONBLOCKING here.
-   * It would irresponsable.
-   */
-  if ((oflags = fcntl (fileno (mud->file), F_GETFL, 0)) < 0)
-    {
-      status = errno;
-      goto bailout;
-    }
-  fcntl (fileno (mud->file), F_SETFL, oflags & ~O_NONBLOCK);
 
   rewind (mud->file);
 
@@ -1108,7 +681,7 @@ mailbox_unix_expunge (mailbox_t mbox)
     }
 
   /* set the marker position */
-  total = marker = mud->umessages[j]->header;
+  total = marker = mud->umessages[j]->header_from;
 
   /* copy to tempfile emails not mark changed */
   for (first = 1, i = j; i < mud->messages_count; i++)
@@ -1130,17 +703,17 @@ mailbox_unix_expunge (mailbox_t mbox)
 	  total++;
 	}
       /* copy the header */
-      if (fseek (mud->file, mum->header, SEEK_SET) == -1)
+      if (fseek (mud->file, mum->header_from, SEEK_SET) == -1)
 	{
 	  status = errno;
 	  goto bailout;
 	}
       /* attribute change ? */
       if (! attribute_is_equal (mum->old_attr, mum->new_attr) &&
-	  mum->hdr_status > mum->header)
+	  mum->header_status > mum->header_from)
 	{
-	  len = mum->hdr_status - mum->header;
-	  current = mum->hdr_status_end;
+	  len = mum->header_status - mum->header_from;
+	  current = mum->header_status_end;
 	  while (len > 0)
 	    {
 	      nread = (len < sizeof (buffer)) ? len : sizeof (buffer);
@@ -1190,9 +763,9 @@ mailbox_unix_expunge (mailbox_t mbox)
 	}
       else /* attribute did not change */
 	{
-	  current = mum->header;
+	  current = mum->header_from;
 	}
-      len = mum->header_end - current;
+      len = mum->body - current;
       while (len > 0)
 	{
 	  nread = (len < sizeof (buffer)) ? len : sizeof (buffer);
@@ -1207,8 +780,8 @@ mailbox_unix_expunge (mailbox_t mbox)
 	}
 
       /* Separate the header from body */
-      fputc ('\n', tempfile);
-      total++;
+      /*fputc ('\n', tempfile); */
+      /*total++;*/
 
       /* copy the body */
       if (fseek (mud->file, mum->body, SEEK_SET) < 0)
@@ -1281,8 +854,8 @@ mailbox_unix_expunge (mailbox_t mbox)
 	{
 	  if (errno == EAGAIN || errno == EINTR)
 	    {
-	      continue;
 	      errno = 0;
+	      continue;
 	    }
 	  status = errno;
 	  goto bailout;
@@ -1352,19 +925,13 @@ mailbox_unix_readstream (stream_t is, char *buffer, size_t buflen,
       {
 	nread = ((size_t)ln < buflen) ? ln : buflen;
 	/* position the file pointer and the buffer */
-	if (fseek (mum->file, mum->body + off, SEEK_SET) < 0)
-	  {
-	    funlockfile (mum->file);
-	    return errno;
-	  }
-	if (fread (buffer, sizeof (*buffer), nread, mum->file) != nread)
+	if (fseek (mum->file, mum->body + off, SEEK_SET) < 0 ||
+	    fread (buffer, sizeof (*buffer), nread, mum->file) != nread)
 	  {
 	    funlockfile (mum->file);
 	    return errno;
 	  }
       }
-    else
-      nread = 0;
   }
   funlockfile (mum->file);
 
@@ -1374,56 +941,146 @@ mailbox_unix_readstream (stream_t is, char *buffer, size_t buflen,
 }
 
 static int
-mailbox_unix_get_header (mailbox_t mbox, size_t msgno, char *buffer,
+mailbox_unix_get_header (mailbox_unix_message_t mum, char *buffer,
 			 size_t len, off_t off, ssize_t *pnread)
 {
-  mailbox_unix_data_t mud;
   size_t nread = 0;
-  /* check if valid */
-  int status = mailbox_unix_validity (mbox, msgno);
-  if (status != 0)
-    return status;
+  FILE *file = mum->file;
 
-  mud = (mailbox_unix_data_t) mbox->data;
-  msgno--;
-
-  if (buffer == NULL || len == 0)
-    {
-      if (pnread)
-	*pnread = nread;
-      return 0;
-    }
-
-  mailbox_unix_ilock (mbox, MU_LOCKER_RDLOCK);
-  flockfile (mud->file);
+  flockfile (file);
   {
-    mailbox_unix_message_t mum = mud->umessages[msgno];
-    off_t ln = mum->header_end - (mum->header + off);
+    off_t ln = mum->body - (mum->header_from_end + off);
     if (ln > 0)
       {
 	nread = ((size_t)ln < len) ? ln : len;
 	/* position the file pointer and the buffer */
-	if (fseek (mud->file, mum->header + off, SEEK_SET) < 0)
+	if (fseek (file, mum->header_from_end + off, SEEK_SET) < 0 ||
+	    fread (buffer, sizeof (*buffer), nread, file) != nread)
 	  {
-	    funlockfile (mud->file);
-	    mailbox_unix_iunlock (mbox);
-	    return errno;
-	  }
-	if (fread (buffer, sizeof (*buffer), nread, mud->file) != nread)
-	  {
-	    funlockfile (mud->file);
-	    mailbox_unix_iunlock (mbox);
+	    funlockfile (file);
 	    return errno;
 	  }
       }
-    else
-      nread = 0;
   }
-  funlockfile (mud->file);
-  mailbox_unix_iunlock (mbox);
+  funlockfile (file);
 
-  if (pnread)
-    *pnread = nread;
+  *pnread = nread;
+  return 0;
+}
+
+static int
+mailbox_unix_body_size (body_t body, size_t *psize)
+{
+  mailbox_unix_message_t mum = body->owner;
+  if (mum == NULL)
+    return EINVAL;
+  if (psize)
+    *psize = mum->body_end - mum->body;
+  return 0;
+}
+
+static int
+mailbox_unix_body_lines (body_t body, size_t *plines)
+{
+  mailbox_unix_message_t mum = body->owner;
+  if (mum == NULL)
+    return EINVAL;
+  if (plines)
+    *plines = mum->body_lines;
+  return 0;
+}
+
+static int
+mailbox_unix_msg_received (message_t msg, char *buf, size_t len,
+			   size_t *pnwrite)
+{
+  mailbox_unix_message_t mum = msg->owner;
+  char buffer[512];
+
+  if (mum == NULL)
+    return EINVAL;
+
+  flockfile (mum->file);
+  {
+    if (fseek (mum->file, mum->header_from, SEEK_SET) < 0 ||
+	fgets (buffer, sizeof (buffer), mum->file) == NULL)
+      {
+	if (pnwrite)
+	  *pnwrite = 0;
+	if (buf)
+	  *buf = '\0';
+	return errno;
+      }
+  }
+  funlockfile (mum->file);
+
+  if (strlen (buffer) > 5)
+    {
+      char *s;
+      s = strchr (buffer + 5, ' ');
+      if (s)
+	{
+	  if (buf && len > 0)
+	    {
+	      strncpy (buf, s + 1, len);
+	      buffer [len - 1] = '\0';
+	    }
+	  if (pnwrite)
+	    *pnwrite = strlen (s);
+	  return 0;
+	}
+    }
+  if (pnwrite)
+    *pnwrite = 0;
+  if (buf)
+    *buf = '\0';
+  return 0;
+}
+
+static int
+mailbox_unix_msg_from (message_t msg, char *buf, size_t len, size_t *pnwrite)
+{
+  mailbox_unix_message_t mum = msg->owner;
+  char buffer[512];
+
+  if (mum == NULL)
+    return EINVAL;
+
+  flockfile (mum->file);
+  {
+    if (fseek (mum->file, mum->header_from, SEEK_SET) < 0 ||
+	fgets (buffer, sizeof (buffer), mum->file) == NULL)
+      {
+	if (pnwrite)
+	  *pnwrite = 0;
+	if (buf)
+	  *buf = '\0';
+	return errno;
+      }
+  }
+  funlockfile (mum->file);
+
+  if (strlen (buffer) > 5)
+    {
+      char *s;
+      s = strchr (buffer + 5, ' ');
+      if (s)
+	{
+	  *s = '\0';
+	  if (buf && len > 0)
+	    {
+	      strncpy (buf, buffer + 5, len);
+	      buffer [len - 1] = '\0';
+	    }
+	  if (pnwrite)
+	    *pnwrite = strlen (buffer + 5);
+	  return 0;
+	}
+    }
+  if (pnwrite)
+    *pnwrite = 0;
+  if (buf)
+    *buf = '\0';
   return 0;
 }
 
@@ -1441,9 +1098,12 @@ mailbox_unix_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
   message_t msg = NULL;
   stream_t stream = NULL;
   header_t header = NULL;
+  body_t body = NULL;
 
   if (mbox == NULL || pmsg == NULL ||
-      (mud = (mailbox_unix_data_t)mbox->data) == NULL)
+      (mud = (mailbox_unix_data_t)mbox->data) == NULL ||
+      (!(mud->messages_count > 0 && msgno > 0 &&
+	 msgno <= mud->messages_count)))
     return EINVAL;
 
   mum = mud->umessages[msgno - 1];
@@ -1457,32 +1117,32 @@ mailbox_unix_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
     }
 
   /* get the headers */
-  do {
-    status = mailbox_unix_get_header (mbox, msgno, buf, sizeof(buf),
-				      offset, &nread);
-    if (status != 0)
-      {
-	free (pbuf);
-	return status;
-      }
+  do
+    {
+      status = mailbox_unix_get_header (mum, buf, sizeof(buf), offset, &nread);
+      if (status != 0)
+	{
+	  free (pbuf);
+	  return status;
+	}
 
-    if (nread == 0)
-      break;
+      if (nread == 0)
+	break;
 
-    tbuf = realloc (pbuf, offset + nread);
-    if (tbuf == NULL)
-      {
-	free (pbuf);
-	return ENOMEM;
-      }
-    else
-      pbuf = tbuf;
-    memcpy (pbuf + offset, buf, nread);
-    offset += nread;
-  } while (nread > 0);
+      tbuf = realloc (pbuf, offset + nread);
+      if (tbuf == NULL)
+	{
+	  free (pbuf);
+	  return ENOMEM;
+	}
+      else
+	pbuf = tbuf;
+      memcpy (pbuf + offset, buf, nread);
+      offset += nread;
+    } while (nread > 0);
 
   /* get an empty message struct */
-  status = message_init (&msg, mum);
+  status = message_create (&msg, mum);
   if (status != 0)
     {
       free (pbuf);
@@ -1490,8 +1150,8 @@ mailbox_unix_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
     }
 
   /* set the header */
-  if ((status = header_init (&header, pbuf, offset, mum)) != 0 ||
-      (status = message_set_header (msg, header, mum)) != 0)
+  status = header_create (&header, pbuf, offset, mum);
+  if (status != 0)
     {
       free (pbuf);
       message_destroy (&msg, mum);
@@ -1500,8 +1160,14 @@ mailbox_unix_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
   free (pbuf);
   message_set_header (msg, header, mum);
 
-  /* prepare the stream */
-  status = stream_init (&stream, mum);
+  /* prepare the body */
+  status = body_create (&body, mum);
+  if (status != 0)
+    {
+      message_destroy (&msg, mum);
+      return status;
+    }
+  status = stream_create (&stream, mum);
   if (status != 0)
     {
       message_destroy (&msg, mum);
@@ -1509,7 +1175,11 @@ mailbox_unix_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
     }
   stream_set_read (stream, mailbox_unix_readstream, mum);
   stream_set_fd (stream, mailbox_unix_getfd, mum);
-  message_set_stream (msg, stream, mum);
+  body_set_stream (body, stream, mum);
+  body_set_size (body, mailbox_unix_body_size, mum);
+  /* set the line */
+  body_set_lines (body, mailbox_unix_body_lines, mum);
+  message_set_body (msg, body, mum);
 
   /* set the attribute */
   status = message_set_attribute (msg, mum->new_attr, mum);
@@ -1519,13 +1189,9 @@ mailbox_unix_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
       return status;
     }
 
-  /* set the size */
-  status = message_set_size (msg, mum->body_end - mum->header, mum);
-  if (status != 0)
-    {
-      message_destroy (&msg, mum);
-      return status;
-    }
+  /* set the envelope */
+  message_set_from (msg, mailbox_unix_msg_from, mum);
+  message_set_received (msg, mailbox_unix_msg_received, mum);
 
   /* attach the message to the mailbox unix data */
   mum->message = msg;
@@ -1555,12 +1221,13 @@ mailbox_unix_append_message (mailbox_t mbox, message_t msg)
     struct stat st;
     int fd;
     char buffer[BUFSIZ];
-    size_t nread;
+    size_t nread = 0;
     off_t off = 0;
     stream_t is;
     header_t hdr;
     int status;
 
+    /* move to the end of the file, not necesary if _APPEND mode */
     fd = fileno (mud->file);
     if (fstat (fd, &st) != 0)
       {
@@ -1576,24 +1243,42 @@ mailbox_unix_append_message (mailbox_t mbox, message_t msg)
       }
 
     /* header */
-    message_get_header (msg, &hdr);
-    header_get_stream (hdr, &is);
     if (st.st_size != 0)
       fputc ('\n', mud->file);
+
+    message_get_header (msg, &hdr);
+    /* generate a "From " separator */
+    {
+      char from[128];
+      char date[128];
+      char *s;
+      size_t n = 0;
+      *date = *from = '\0';
+      message_from (msg, from, sizeof (from), &n);
+      s = memchr (from, '\n', n);
+      if (s) *s = '\0'; n = 0;
+      message_received (msg, date, sizeof (date), &n);
+      s = memchr (date, '\n', n);
+      if (s) *s = '\0';
+      fprintf (mud->file, "From %s %s\n", from, date);
+    }
+
+    header_get_stream (hdr, &is);
     do {
       status = stream_read (is, buffer, sizeof (buffer), off, &nread);
       if (status != 0)
 	return status;
+      if (nread == 0)
+	break;
       fwrite (buffer, sizeof (*buffer), nread, mud->file);
       off += nread;
     } while (nread > 0);
 
     *buffer = '\0';
     /* separator */
-    fputc ('\n', mud->file);
+    /*fputc ('\n', mud->file);*/
 
     /* body */
-    off = 0;
     message_get_stream (msg, &is);
     do {
       stream_read (is, buffer, sizeof (buffer), off, &nread);
@@ -1630,17 +1315,17 @@ mailbox_unix_size (mailbox_t mbox, off_t *size)
 }
 
 static int
-mailbox_unix_messages_count (mailbox_t mbox, size_t *count)
+mailbox_unix_messages_count (mailbox_t mbox, size_t *pcount)
 {
   mailbox_unix_data_t mud;
   if (mbox == NULL || (mud = (mailbox_unix_data_t) mbox->data) == NULL)
     return EINVAL;
 
   if (! mailbox_unix_is_updated (mbox))
-    return mailbox_unix_scan (mbox,  1, count);
+    return mailbox_unix_scan (mbox,  1, pcount);
 
-  if (count)
-    *count = mud->messages_count;
+  if (pcount)
+    *pcount = mud->messages_count;
 
   return 0;
 }

@@ -81,6 +81,7 @@ struct _mime
 
 struct _mime_part
 {
+	char		sig[4];
 	mime_t		mime;
 	header_t	hdr;
 	message_t 	msg;

@@ -19,13 +19,13 @@
 #include <registrar.h>
 #include <errno.h>
 
-static int url_imap_init (url_t *purl, const char *name);
+static int url_imap_create (url_t *purl, const char *name);
 static void url_imap_destroy (url_t *purl);
 
 struct url_registrar _url_imap_registrar =
 {
   "imap://",
-  url_imap_init, url_imap_destroy
+  url_imap_create, url_imap_destroy
 };
 
 static void
@@ -36,7 +36,7 @@ url_imap_destroy (url_t *purl)
 }
 
 static int
-url_imap_init (url_t *purl, const char *name)
+url_imap_create (url_t *purl, const char *name)
 {
   (void)purl; (void)name;
   return ENOSYS;

@@ -23,6 +23,7 @@
 #include <message0.h>
 #include <registrar.h>
 #include <locker.h>
+#include <net.h>
 
 #include <stdlib.h>
 #include <string.h>
@@ -32,23 +33,23 @@
  * Point of entry.
  * Simple, first check if they ask for something specific; with the ID.
  * Then try to discover the type of mailbox with the url(name).
- * Then we call the appropriate mailbox_*type*_init() function.
+ * Then we call the appropriate mailbox_*type*_create() function.
  */
 int
-mailbox_init (mailbox_t *pmbox, const char *name, int id)
+mailbox_create (mailbox_t *pmbox, const char *name, int id)
 {
   int status = EINVAL;
   struct mailbox_registrar *mreg;
   url_t url = NULL;
 
-  url_init (&url, name);
+  url_create (&url, name);
 
   /* 1st guest: if an ID is specify, shortcut */
   if (id)
     {
       status = registrar_get (id, NULL, &mreg);
       if (status == 0)
-	status = mreg->_init (pmbox, name);
+	status = mreg->_create (pmbox, name);
     }
   /* 2nd fallback: Use the URL */
   else if (url != NULL)
@@ -56,7 +57,7 @@ mailbox_init (mailbox_t *pmbox, const char *name, int id)
       url_get_id (url, &id);
       status = registrar_get (id, NULL, &mreg);
       if (status == 0)
-	status = mreg->_init (pmbox, name);
+	status = mreg->_create (pmbox, name);
     }
 
   /* set the URL */
@@ -185,6 +186,24 @@ mailbox_get_auth (mailbox_t mbox, auth_t *pauth)
   if (mbox == NULL || pauth == NULL)
     return EINVAL;
   *pauth = mbox->auth;
+  return 0;
+}
+
+int
+mailbox_set_netinstance (mailbox_t mbox, netinstance_t netinstance)
+{
+  if (mbox == NULL)
+    return EINVAL;
+  mbox->netinstance = netinstance;
+  return 0;
+}
+
+int
+mailbox_get_netinstance (mailbox_t mbox, netinstance_t *pnetinstance)
+{
+  if (mbox == NULL || pnetinstance == NULL)
+    return EINVAL;
+  *pnetinstance = mbox->netinstance;
   return 0;
 }
 

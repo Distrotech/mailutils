@@ -39,7 +39,7 @@ static int get_query   (const url_t, char *, size_t, size_t *);
 static int get_id      (const url_t, int *);
 
 int
-url_init (url_t * purl, const char *name)
+url_create (url_t * purl, const char *name)
 {
   int status = EINVAL;
   struct url_registrar *ureg;
@@ -87,7 +87,7 @@ url_init (url_t * purl, const char *name)
   /* Found one initialize it */
   if (status == 0)
     {
-      status = ureg->_init (purl, name);
+      status = ureg->_create (purl, name);
       if (status == 0)
 	{
 	  url_t url = *purl;

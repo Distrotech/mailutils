@@ -36,7 +36,7 @@ extern "C" {
 struct _auth;
 typedef struct _auth *auth_t;
 
-extern int auth_init          __P ((auth_t *, void *owner));
+extern int auth_create          __P ((auth_t *, void *owner));
 extern void auth_destroy      __P ((auth_t *, void *owner));
 
 extern int auth_prologue      __P ((auth_t));

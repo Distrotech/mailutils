@@ -41,7 +41,7 @@ extern "C" {
 struct _mime;
 typedef struct _mime *mime_t;
 
-int mime_init						__P ((mime_t *pmime, message_t msg, int flags));
+int mime_create						__P ((mime_t *pmime, message_t msg, int flags));
 void mime_destroy					__P ((mime_t *pmime));
 int mime_is_multi_part				__P ((mime_t mime));
 int mime_get_part					__P ((mime_t mime, int part, message_t *msg));

@@ -25,12 +25,12 @@
 #include <errno.h>
 
 static void url_pop_destroy (url_t *purl);
-static int url_pop_init (url_t *purl, const char *name);
+static int url_pop_create (url_t *purl, const char *name);
 
 struct url_registrar _url_pop_registrar =
 {
   "pop://",
-  url_pop_init, url_pop_destroy
+  url_pop_create, url_pop_destroy
 };
 
 static int get_auth (const url_pop_t up, char *s, size_t len, size_t *);
@@ -80,7 +80,7 @@ url_pop_destroy (url_t *purl)
   pop://<user>;AUTH=<auth>@<host>:<port>
 */
 static int
-url_pop_init (url_t *purl, const char *name)
+url_pop_create (url_t *purl, const char *name)
 {
   const char *host_port, *indexe;
   struct url_registrar *ureg = &_url_pop_registrar;
@@ -101,7 +101,7 @@ url_pop_init (url_t *purl, const char *name)
   up->_get_auth = get_auth;
 
   /* TYPE */
-  url->_init = _url_pop_registrar._init;
+  url->_create = _url_pop_registrar._create;
   url->_destroy = _url_pop_registrar._destroy;
 
   /* SCHEME */
