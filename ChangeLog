@@ -1,3 +1,11 @@
+2004-06-14 Alain Magloire
+
+	* mailbox/nntp/Makefile.am: New file
+	* mailbox/nntp/nntp_article.c: New file
+	* mailbox/nntp/nntp_header.c: New file
+	* mailbox/nntp/nntp_body.c: New file
+	* include/mailutils/nntp.h: adjustement.
+
 2004-06-12 Alain Magloire
 
 	* THANKS: Move part of it to AUTHORS file, reorder alphabetically
