@@ -3,19 +3,28 @@
 = --> on hold
 * --> in progress
 
+[libmailbox]
 * autogen.sh (libtool) complains about libmailbox.la in noinst (JB Oct 08/99)
 
-- added more includes to libmailbox, make sure autoconf finds them
+- added more includes, make sure autoconf finds them
 
-- libmailbox needs an interface to set flags for each message
+- need an interface to set flags for each message
 
-- libmailbox needs an interface to set and create values in the header
+- need an interface to set and create values in the header
 
-- libmailbox/unixmbox the open function needs to be split into an open and a
-  parse function
+- unixmbox's open function needs to be split into an open and a parse function
 
-- clean up 'mail''s compilation
+- needs a search ability
 
+- unixmbox needs expunge working
+
++ libmailbox has a nasty bug -- if the mailbox is empty, the library has no idea
+  what to do (Shaleh Oct 07/99)
+  
+[mail]
+- clean up 'mail''s compilation, why is there a mail script?
+
+[pop3]
 - find out why the pop3 server quits on a signal when the 'quit' command is
   given
 
@@ -23,16 +32,14 @@
 
 - test network code
 
++ crypt is linked even if pam was detected, it should be one or the other (JB Oct 08/99)
+
+[all]
 - add more features
 
 - optimize everything
 
 - test everything
-
-+ libmailbox has a nasty bug -- if the mailbox is empty, the library has no idea
-  what to do (Shaleh Oct 07/99)
-  
-+ crypt is linked even if pam was detected, it should be one or the other (JB Oct 08/99)
 
 + add imap server code (JB && Shaleh Oct 11/99)
 

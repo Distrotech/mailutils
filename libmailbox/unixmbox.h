@@ -28,6 +28,12 @@
 #include <stdlib.h>
 #endif
 
+/* FIXME need auto* wrapper */
+#include <sys/types.h>
+#include <sys/stat.h>
+
+#include <fcntl.h>
+
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
@@ -41,10 +47,6 @@
 #elif HAVE_STRINGS_H
 #include <strings.h>
 #endif
-
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
 
 typedef struct _unixmbox_message
   {
@@ -60,6 +62,7 @@ typedef struct _unixmbox_data
     unixmbox_message *messages;
     FILE *file;
     mailbox_lock_t lockmode;
+	time_t last_mod_time;
   }
 unixmbox_data;
 
@@ -68,7 +71,9 @@ int unixmbox_close (mailbox *mbox);
 int unixmbox_delete (mailbox *mbox, unsigned int num);
 int unixmbox_undelete (mailbox *mbox, unsigned int num);
 int unixmbox_expunge (mailbox *mbox);
+int unixmbox_scan (mailbox *mbox);
 int unixmbox_is_deleted (mailbox *mbox, unsigned int num);
+int unixmbox_is_updated (mailbox *mbox);
 int unixmbox_lock (mailbox *mbox, mailbox_lock_t mode);
 int unixmbox_add_message (mailbox *mbox, char *message);
 char *unixmbox_get_body (mailbox *mbox, unsigned int num);

@@ -31,6 +31,7 @@ unixmbox_open (mailbox * mbox)
   unsigned int max_count = 10;
   int mess = 0;
   unixmbox_data *data;
+  struct stat st;
   
   if (mbox == NULL)
     {
@@ -63,6 +64,12 @@ unixmbox_open (mailbox * mbox)
       errno = ENOMEM;
       return -1;
     }
+  if (stat (mbox->name, &st) == -1)
+    {
+      unixmbox_close (mbox);
+	  return -1;
+    }
+  data->last_mod_time = st.st_mtime;
 
   if (fgets (buf, 80, data->file) == NULL)
     {
@@ -316,6 +323,23 @@ unixmbox_is_deleted (mailbox * mbox, unsigned int num)
   return (data->messages[num].deleted == 1);
 }
 
+int
+unixmbox_is_updated (mailbox *mbox)
+{
+  struct stat st;
+  unixmbox_data *data;
+
+  if (mbox == NULL)
+    {
+      errno = EINVAL;
+      return -1;
+    }
+  if (stat (mbox->name, &st) == -1)
+      return -1;
+  data = mbox->_data;
+  return (st.st_mtime > data->last_mod_time);
+}
+
 /*
  * Adds a message to the mailbox
  */
@@ -432,6 +456,14 @@ unixmbox_lock (mailbox *mbox, mailbox_lock_t mode)
   unixmbox_data *data = mbox->_data;
   data->lockmode = mode;
   return 0;
+}
+
+/* FIXME: not implemented */
+int
+unixmbox_scan (mailbox *mbox)
+{
+  errno = ENOSYS;
+  return -1;
 }
 
 #ifdef TESTING

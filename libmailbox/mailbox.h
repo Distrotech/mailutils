@@ -31,7 +31,9 @@
 #define mbox_delete(m,n)	m->_delete(m,n)
 #define mbox_undelete(m,n)      m->_undelete(m,n)
 #define mbox_expunge(m)		m->_expunge(m)
+#define mbox_scan(m)		m->_scan(m)
 #define mbox_is_deleted(m,n)	m->_is_deleted(m,n)
+#define mbox_is_updated(m)	m->_is_updated(m)
 #define mbox_add_message(m,s)	m->_add_message(m,s)
 #define mbox_get_body(m,n)	m->_get_body(m,n)
 #define mbox_get_header(m,n)	m->_get_header(m,n)
@@ -64,7 +66,9 @@ typedef struct _mailbox
     int (*_undelete) __P ((struct _mailbox *, unsigned int));
     int (*_expunge) __P ((struct _mailbox *));
     int (*_add_message) __P ((struct _mailbox *, char *));
+	int (*_scan) __P ((struct _mailbox *));
     int (*_is_deleted) __P ((struct _mailbox *, unsigned int));
+	int (*_is_updated) __P ((struct mailbox *));
     int (*_lock) __P((struct _mailbox *, mailbox_lock_t));
     char *(*_get_body) __P ((struct _mailbox *, unsigned int));
     char *(*_get_header) __P ((struct _mailbox *, unsigned int));

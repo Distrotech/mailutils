@@ -78,8 +78,10 @@ mbox_open (const char *name)
   mbox->_delete = _mbox_dummy2;
   mbox->_undelete = _mbox_dummy2;
   mbox->_expunge = _mbox_dummy1;
+  mbox->_scan = _mbox_dummy1;
   mbox->_add_message = _mbox_dummy3;
   mbox->_is_deleted = _mbox_dummy2;
+  mbox->_is_updated = _mbox_dummy1;
   mbox->_lock = _mbox_dummy2;
   mbox->_get_body = _mbox_dummy4;
   mbox->_get_header = _mbox_dummy4;
