@@ -153,7 +153,7 @@ struct mem_chain {
 struct parsebuf
 {
   char *token;                  /* Current token. Either points to tokbuf
-				     or is allocated within `alloc' chain */
+				   or is allocated within `alloc' chain */
   char tokbuf[MAXTOKEN+1];      /* Token buffer for short tokens */
 
   char *arg;                    /* Rest of command line to be parsed */
@@ -250,6 +250,13 @@ imap4d_search0 (char *arg, int isuid, char *replybuf, size_t replysize)
       snprintf (replybuf, replysize, "%s (near %s)",
 			  parsebuf.err_mesg,
 			  *parsebuf.arg ? parsebuf.arg : "end");
+      return RESP_BAD;
+    }
+
+  if (parsebuf.token[0] != 0)
+    {
+      parse_free_mem (&parsebuf);
+      snprintf (replybuf, replysize, "Junk at the end of statement");
       return RESP_BAD;
     }
   
@@ -662,7 +669,7 @@ _scan_header (struct parsebuf *pb, char *name, char *value)
   message_get_header (pb->msg, &header);
   if (!header_get_value (header, name, buffer, sizeof(buffer), NULL))
     {
-      return strstr (buffer, value) != NULL;
+      return util_strcasestr (buffer, value) != NULL;
     }
   return 0;
 }
@@ -695,7 +702,7 @@ _scan_header_all (struct parsebuf *pb, char *text)
   for (i = rc = 0; i < fcount; i++)
     {
       if (header_get_field_value (header, i, buffer, sizeof(buffer), NULL))
-	rc = strstr (buffer, text) != NULL;
+	rc = util_strcasestr (buffer, text) != NULL;
     }
   return rc;
 }
@@ -722,7 +729,7 @@ _scan_body (struct parsebuf *pb, char *text)
 	 && n > 0)
     {
       offset += n;
-      rc = strstr (buffer, text) != NULL;
+      rc = util_strcasestr (buffer, text) != NULL;
     }
   return rc;
 }
@@ -816,7 +823,7 @@ cond_from (struct parsebuf *pb)
   
   message_get_envelope (pb->msg, &env);
   if (envelope_sender (env, buffer, sizeof (buffer), NULL) == 0)
-    rc = strstr (buffer, s) != NULL;
+    rc = util_strcasestr (buffer, s) != NULL;
   _search_push (pb, _scan_header (pb, "from", s));
 }                     
 
