@@ -658,7 +658,7 @@ _env_msg_date (envelope_t envelope, char *buf, size_t len, size_t *pnwrite)
   strncpy (buf, env->date, len);
   buf[len-1] = 0;
   return 0;
-    }
+}
 
 static int
 _env_msg_sender (envelope_t envelope, char *buf, size_t len, size_t *pnwrite)
