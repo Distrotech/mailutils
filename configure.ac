@@ -22,6 +22,7 @@ AC_CONFIG_AUX_DIR([scripts])
 AC_CANONICAL_TARGET([])
 AM_INIT_AUTOMAKE
 AC_CONFIG_HEADERS([config.h])
+gl_USE_SYSTEM_EXTENSIONS
 
 AC_PREREQ(2.59)
 
@@ -313,16 +314,27 @@ AC_CHECK_MEMBERS([struct tm.tm_zone, struct tm.tm_gmtoff, struct tm.tm_isdst],
 
 dnl Check for working functions
 
-AC_FUNC_MALLOC
-AC_FUNC_REALLOC
-AC_FUNC_ALLOCA
+dnl Escape defuns that force automake to add their arguments
+dnl to LIBOBJS.
+dnl All dependencies has been handled by gnulib-sync.
 
-jm_INCLUDED_REGEX(mailbox/regex.c)
+m4_copy([AC_REPLACE_FUNCS],[MU_SAVE_AC_REPLACE_FUNCS])
+m4_copy([AC_LIBOBJ],[MU_SAVE_AC_LIBOBJ])
 
-# Not use.
-#AC_FUNC_MEMCMP
+m4_copy([MU_LIBOBJ],[AC_LIBOBJ])
+AC_DEFUN([AC_REPLACE_FUNCS],
+[AC_CHECK_FUNCS([$1], , [MU_LIBOBJ($ac_func)])
+])
+
+libmailbox_GNULIB
+
+dnl Restore overridden defuns
+m4_copy([MU_SAVE_AC_REPLACE_FUNCS],[AC_REPLACE_FUNCS])
+m4_copy([MU_SAVE_AC_LIBOBJ],[AC_LIBOBJ])
+
+libmailutils_GNULIB
+
 AC_FUNC_MMAP
-AC_FUNC_FNMATCH
 
 AC_CHECK_DECLS([strtok_r, strchrnul, strndup, asprintf, vasprintf, strsignal],
  , , [
@@ -345,8 +357,6 @@ extern char *strsignal (int);
 #endif
 ])
 
-AC_REPLACE_FUNCS(getpass setenv snprintf strncasecmp \
- strcasecmp strsignal vasprintf vsyslog)
 AC_CHECK_FUNCS(mkstemp sigaction sysconf getdelim setreuid \
  setresuid seteuid vfork _exit)
 
@@ -359,37 +369,20 @@ AH_BOTTOM([
 #endif
 ])
 
-MU_CHECK_FUNCS(fgetpwent strtok_r getline strndup strnlen strchrnul)
+MU_CHECK_FUNC(fgetpwent)
 
 ## Check for presence of utmp.h and utmp-related functions
 MU_CHECK_UTMP
 
-MU_REPLACE_GNU_GETOPT
-
 dnl Check for libraries
-USE_INCLUDED_ARGP=
-AC_ARG_WITH([included-argp],
-            AC_HELP_STRING([--with-included-argp],
-                           [Use included argp library]),
-            [USE_INCLUDED_ARGP=${withval}],
-            [AC_CHECK_HEADER(argp.h,
-                             [AC_CHECK_FUNCS(argp_parse, :,
-                                             [USE_INCLUDED_ARGP=yes])],
-                             [USE_INCLUDED_ARGP=yes])])
 
-if test "$USE_INCLUDED_ARGP" = yes; then
-       MU_LIBOBJ(argp-ba)
-       MU_LIBOBJ(argp-eexst)
-       MU_LIBOBJ(argp-fmtstream)
-       MU_LIBOBJ(argp-fs-xinl)
-       MU_LIBOBJ(argp-help)
-       MU_LIBOBJ(argp-parse)
-       MU_LIBOBJ(argp-pv)
-       MU_LIBOBJ(argp-pvh)
-       MU_LIBOBJ(argp-xinl)
-       MU_LIBOBJ(pin)
-       MU_HEADER(argp.h)
-fi
+# FIXME: We used to allow to link against libc copy of argp (if any)
+# The gnulib version fixes a number of bugs and provides new features,
+# so currently we force to use it. This may change when gnulib and glibc
+# are synchronized.
+MU_LIBOBJ(pin)
+MU_HEADER(getopt.h,getopt_.h)
+MU_HEADER(argp.h)
 
 AC_MSG_CHECKING(whether extern program_invocation_name is present)
 AC_TRY_COMPILE([#include <argp.h>
@@ -421,9 +414,9 @@ AC_TRY_COMPILE([#include <argp.h>
  AC_MSG_RESULT(yes)],
 [AC_MSG_RESULT(no)])
 
-AC_CHECK_FUNCS(_obstack_begin,
-               [AC_DEFINE(HAVE_OBSTACK,1,[Define if GNU obstack is present])],
-               [AC_LIBOBJ(obstack)])
+if test "$ac_use_included_regex" = yes; then
+       MU_HEADER(regex.h)
+fi
 
 
 
@@ -909,8 +902,6 @@ AC_CONFIG_FILES([Makefile
  guimb/scm/Makefile
  imap4d/Makefile
  imap4d/testsuite/Makefile
- headers/Makefile
- headers/posix/Makefile
  include/Makefile
  include/mailutils/Makefile
  include/mailutils/gnu/Makefile
