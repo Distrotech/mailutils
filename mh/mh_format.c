@@ -261,7 +261,12 @@ print_simple_segment (struct mh_machine *mach, size_t width,
 
   rest = width - mach->ind;
   if (rest == 0)
-    return;
+    {
+      if (len == 1 && str[0] == '\n')
+	put_string (mach, str, len);
+      return;
+    }
+  
   if (len > rest)
     len = rest;
 
@@ -1879,10 +1884,27 @@ builtin_concat (struct mh_machine *mach)
 static void
 builtin_printhdr (struct mh_machine *mach)
 {
+  char *tmp = NULL;
+  size_t s = 0;
+  
   if (!strobj_is_null (&mach->arg_str))
-    print_hdr_string (mach, strobj_ptr (&mach->arg_str));
+    {
+      s = strobj_len (&mach->arg_str);
+      tmp = strdup (strobj_ptr (&mach->arg_str));
+    }
+  
   if (!strobj_is_null (&mach->reg_str))
-    print_hdr_string (mach, strobj_ptr (&mach->reg_str));
+    {
+      s += strobj_len (&mach->reg_str) + 1;
+      tmp = realloc (tmp, s);
+      strcat (tmp, strobj_ptr (&mach->reg_str));
+    }
+
+  if (tmp)
+    {
+      print_hdr_string (mach, tmp);
+      free (tmp);
+    }
 }
 
 static void
