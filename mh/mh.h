@@ -135,7 +135,7 @@ extern char mh_list_format[];
 
 void mh_init (void);
 int  mh_read_context_file (char *path, header_t *header);
-char *mh_read_formfile (char *name);
+int mh_read_formfile (char *name, char **pformat);
 
 int mh_format (mh_format_t *fmt, message_t msg, size_t msgno,
 	       char *buffer, size_t bufsize);

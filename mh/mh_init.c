@@ -116,8 +116,8 @@ mh_read_context_file (char *path, header_t *header)
   return status;
 }
 
-char *
-mh_read_formfile (char *name)
+int
+mh_read_formfile (char *name, char **pformat)
 {
   FILE *fp;
   struct stat st;
@@ -128,14 +128,14 @@ mh_read_formfile (char *name)
   if (stat (name, &st))
     {
       mh_error ("can't stat format file %s: %s", name, strerror (errno));
-      return;
+      return -1;
     }
   
   fp = fopen (name, "r");
   if (!fp)
     {
       mh_error ("can't open format file %s: %s", name, strerror (errno));
-      return;
+      return -1;
     }
 
   format_str = xmalloc (st.st_size+1);
@@ -150,7 +150,8 @@ mh_read_formfile (char *name)
     }
   format_str[off] = 0;
   fclose (fp);
-  return format_str;
+  *pformat = format_str;
+  return 0;
 }
 
 static char *my_name;

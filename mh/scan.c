@@ -87,7 +87,7 @@ opt_handler (int key, char *arg, void *unused)
       break;
       
     case 'F':
-      format_str = mh_read_formfile (arg);
+      mh_read_formfile (arg, &format_str);
       break;
       
     case 't':
