@@ -17,6 +17,8 @@ The list of differences between Mailutils and the RAND implementation of MH:
 * All programs use usual GNU long options. The support for MH single-dash
 options is provided for backward compatibility.
 
+* UUCP addresses are not supported
+
 * Format specifications
 
 ** New functions

@@ -1,3 +1,61 @@
+2003-03-13  Sergey Poznyakoff 
+
+	Reorganized directory layout under mailbox/.
+	
+	* configure.ac: Added mailbox/ subdirectories
+	* mailbox/Makefile.am: Likewise.
+	* po/POTFILES.in: Added missing files.
+	* mh/README: Updated
+	
+	* mailbox/mbox/Makefile.am: New file
+	* mailbox/mbox/.cvsignore: New file	
+	* mailbox/mbox/folder.c: Moved from ../
+	* mailbox/mbox/mbox.c: Moved from ../
+	* mailbox/mbox/url.c: Moved from ../
+	* mailbox/mbox/mboxscan.c: Moved from ../
+	* mailbox/mbox/mbox0.h: New file
+	
+	* mailbox/mh/Makefile.am: New file
+	* mailbox/mh/.cvsignore: New file	
+	* mailbox/mh/folder.c: Moved from ../
+	* mailbox/mh/mbox.c: Moved from ../
+	* mailbox/mh/url.c: Moved from ../
+	
+	* mailbox/maildir/Makefile.am: New file
+	* mailbox/maildir/.cvsignore: New file	
+	* mailbox/maildir/mbox.c: New file
+
+	* mailbox/imap/Makefile.am: New file
+	* mailbox/imap/.cvsignore: New file	
+	* mailbox/imap/folder.c: Moved from ../
+	* mailbox/imap/mbox.c: Moved from ../
+	* mailbox/imap/url.c: Moved from ../
+
+	* mailbox/pop/Makefile.am: New file
+	* mailbox/pop/.cvsignore: New file	
+	* mailbox/pop/folder.c: Moved from ../
+	* mailbox/pop/mbox.c: Moved from ../
+	* mailbox/pop/url.c: Moved from ../
+
+	* mailbox/folder_mbox.c: Moved to mbox/folder.c
+	* mailbox/mbx_mbox.c: Moved to mbox/mbox.c
+	* mailbox/url_mbox.c: Moved to mbox/url.c
+	* mailbox/mbx_mboxscan.c: Moved to mbox/mboxscan.c
+	
+	* mailbox/folder_mh.c: Moved to mh/folder.c
+	* mailbox/mbx_mh.c: Moved to mh/mh.c
+	* mailbox/url_mh.c: Moved to mh/url.c
+	
+	* mailbox/mbx_maildir.c: Moved to maildir/mbox.c
+
+	* mailbox/folder_imap.c: Moved to imap/folder.c
+	* mailbox/mbx_imap.c: Moved to imap/mbox.c
+	* mailbox/url_imap.c: Moved to imap/url.c
+
+	* mailbox/folder_pop.c: Moved to pop/folder.c
+	* mailbox/mbx_pop.c: Moved to pop/mbox.c
+	* mailbox/url_pop.c: Moved to pop/url.c
+
 2003-03-11  Sergey Poznyakoff  
 
 	* auth/sql.c (mu_sql_authenticate): Bugfix.
