@@ -100,21 +100,26 @@ int locker_set_default_flags(int flags)
 }
 
 int
-locker_create (locker_t *plocker, const char *filename, int flags)
+locker_create (locker_t *plocker, const char *filename_, int flags)
 {
   locker_t l;
+  char filename[_POSIX_PATH_MAX];
+  int err = 0;
 
   if (plocker == NULL)
     return MU_ERR_OUT_PTR_NULL;
 
-  if (filename == NULL)
+  if (filename_ == NULL)
     return EINVAL;
 
+  if((err = mu_unroll_symlink(filename, sizeof(filename), filename_)))
+    return err;
+
   l = calloc (1, sizeof (*l));
+
   if (l == NULL)
     return ENOMEM;
 
-  /* Should make l->file be the result of following the symlinks. */
   l->file = strdup(filename);
 
   if (l->file == NULL)

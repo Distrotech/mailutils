@@ -84,6 +84,7 @@ typedef void *(*mu_retrieve_fp) __P((void *));
 extern void mu_register_retriever __P((list_t *pflist, mu_retrieve_fp fun));
 extern void * mu_retrieve __P((list_t flist, void *data));
 
+extern int mu_unroll_symlink __P((char *out, size_t outsz, const char *in));
   
 #ifdef __cplusplus
 }
