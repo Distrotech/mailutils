@@ -321,3 +321,54 @@ mh_getyn (const char *fmt, ...)
     }
   return 0; /* to pacify gcc */
 }
+
+FILE *
+mh_audit_open (char *name, mailbox_t mbox)
+{
+  FILE *fp;
+  char date[64];
+  time_t t;
+  struct tm *tm;
+  url_t url;
+  char *namep;
+  
+  namep = mu_tilde_expansion (name, "/", NULL);
+  if (strchr (namep, '/') == NULL)
+    {
+      char *p = NULL;
+      asprintf (&p, "%s/Mail/%s", mu_get_homedir (), namep);
+      if (!p)
+	{
+	  mh_error ("low memory");
+	  exit (1);
+	}
+      free (namep);
+      namep = p;
+    }
+
+  fp = fopen (namep, "a");
+  if (!fp)
+    {
+      mh_error ("Can't open audit file %s: %s", namep, strerror (errno));
+      free (namep);
+      return NULL;
+    }
+  free (namep);
+  
+  time (&t);
+  tm = localtime (&t);
+  strftime (date, sizeof date, "%a, %d %b %Y %H:%M:%S %Z", tm);
+  mailbox_get_url (mbox, &url);
+  
+  fprintf (fp, "<<%s>> %s %s\n",
+	   program_invocation_short_name,
+	   date,
+	   url_to_string (url));
+  return fp;
+}
+
+void
+mh_audit_close (FILE *fp)
+{
+  fclose (fp);
+}
