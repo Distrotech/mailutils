@@ -347,6 +347,18 @@ util_screen_columns ()
   return n;
 }
 
+int
+util_get_crt ()
+{
+  int lines;
+
+  if (util_getenv (&lines, "crt", Mail_env_number, 0) == 0)
+    return lines;
+  else if (util_getenv (NULL, "crt", Mail_env_boolean, 0) == 0)
+    return util_getlines ();
+  return 0;
+}
+
 /* Functions for dealing with internal environment variables */
 
 /* Retrieve the value of a specified variable of given type.
@@ -1066,3 +1078,42 @@ util_get_hdr_value (header_t hdr, const char *name, char **value)
     }
   return status;
 }
+
+int
+util_merge_addresses (char **addr_str, const char *value)
+{
+  address_t addr, new_addr;
+  int rc;
+
+  if ((rc = address_create (&new_addr, value)) != 0)
+    return rc;
+      
+  if ((rc = address_create (&addr, *addr_str)) != 0)
+    {
+      address_destroy (&new_addr);
+      return rc;
+    }
+
+  rc = address_union (&addr, new_addr);
+  if (rc == 0)
+    {
+      size_t n;
+
+      rc = address_to_string (addr, NULL, 0, &n);
+      if (rc == 0)
+	{
+	  free (*addr_str);
+	  *addr_str = malloc (n + 1);
+	  if (!*addr_str)
+	    rc = ENOMEM;
+	  else
+	    address_to_string (addr, *addr_str, n + 1, &n);
+	}
+    }
+
+  address_destroy (&addr);
+  address_destroy (&new_addr);
+  return rc;
+}
+  
+     
