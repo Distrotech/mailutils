@@ -171,6 +171,7 @@ extern int mail_file __P ((int argc, char **argv));
 extern int mail_folders __P ((int argc, char **argv));
 extern int mail_followup __P ((int argc, char **argv));
 extern int mail_from __P ((int argc, char **argv));
+extern int mail_from0 __P((int msgno, int verbose));
 extern int mail_headers __P ((int argc, char **argv));
 extern int mail_hold __P ((int argc, char **argv));
 extern int mail_help __P ((int argc, char **argv));
@@ -300,7 +301,7 @@ extern int util_get_hdr_value __P ((header_t hdr, const char *name, char **value
 extern int util_merge_addresses __P((char **addr_str, const char *value));
 extern int util_header_expand __P((header_t *hdr));
 extern int util_get_message __P((mailbox_t mbox, size_t msgno,
-				 message_t *msg, int delflag));
+				 message_t *msg, int flag));
 
 extern int ml_got_interrupt __P ((void));
 extern void ml_clear_interrupt __P ((void));
@@ -329,6 +330,11 @@ extern char *readline __P ((const char *prompt));
 #ifndef _PATH_SENDMAIL
 #define _PATH_SENDMAIL "/usr/lib/sendmail"
 #endif
+
+/* Flags for util_get_message */
+#define MSG_ALL       0
+#define MSG_NODELETED 0x0001
+#define MSG_SILENT    0x0002
 
 /* Message attributes */
 #define MAIL_ATTRIBUTE_MBOXED   0x0001
