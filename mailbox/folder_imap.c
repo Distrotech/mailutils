@@ -196,7 +196,7 @@ imap_user (authority_t auth)
 
     case IMAP_LOGIN:
       /* Send it across.  */
-      imap_send (f_imap);
+      status = imap_send (f_imap);
       CHECK_EAGAIN (f_imap, status);
       /* Clear the buffer it contains the passwd. */
       memset (f_imap->buffer, '\0', f_imap->buflen);

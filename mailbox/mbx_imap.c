@@ -829,7 +829,7 @@ imap_append_message (mailbox_t mailbox, message_t msg)
 	size_t n = 0;
 	char buffer[255];
 	message_get_stream (msg, &stream);
-	while (stream_readline (stream, buffer, sizeof (buffer), off,  &n) == 0
+	while (stream_readline (stream, buffer, sizeof buffer, off, &n) == 0
 	       && n > 0)
 	  {
 	    if (buffer[n - 1] == '\n')
@@ -841,12 +841,14 @@ imap_append_message (mailbox_t mailbox, message_t msg)
 	      imap_writeline (f_imap, "%s", buffer);
 	    off += n;
 	    status = imap_send (f_imap);
+	    CHECK_EAGAIN (f_imap, status);
 	  }
 	f_imap->state = IMAP_APPEND_ACK;
       }
       /* !@#%$ UW-IMAP server hack: insists on the last line.  */
       imap_writeline (f_imap, "\n");
-      imap_send (f_imap);
+      status = imap_send (f_imap);
+      CHECK_EAGAIN (f_imap, status);
 
     case IMAP_APPEND_ACK:
       status = imap_parse (f_imap);
@@ -1241,7 +1243,7 @@ imap_envelope_date (envelope_t envelope, char *buffer, size_t buflen,
       MAILBOX_DEBUG0 (m_imap->mailbox, MU_DEBUG_PROT, f_imap->buffer);
       f_imap->state = IMAP_FETCH;
     }
-  status = message_operation (f_imap, msg_imap, datebuf, sizeof(datebuf), NULL);
+  status = message_operation (f_imap, msg_imap, datebuf, sizeof datebuf, NULL);
   if (status != 0)
     return status;
 
@@ -1257,9 +1259,7 @@ imap_envelope_date (envelope_t envelope, char *buffer, size_t buflen,
       struct tm* gmt;
 
       time(&now);
-
       gmt = gmtime(&now);
-
       tm = *gmt;
     }
 
@@ -1491,10 +1491,11 @@ imap_header_get_value (header_t header, const char *field, char * buffer,
   if (status == 0)
     {
       char *colon;
-      /* The field-matching is case-insensitive.  In all cases, the delimiting
-	 newline between the header and the body is always included.
-	 Nuke it  */
-      value[len - 1] = '\0';
+      /* The field-matching is case-insensitive.  In all cases, the
+	 delimiting newline between the header and the body is always
+	 included. Nuke it  */
+      if (len)
+	value[len - 1] = '\0';
 
       /* Move pass the field-name.  */
       colon = strchr (value, ':');
@@ -1507,7 +1508,7 @@ imap_header_get_value (header_t header, const char *field, char * buffer,
       else
 	colon = value;
 
-      while (colon[strlen (colon) - 1] == '\n')
+      while (*colon && colon[strlen (colon) - 1] == '\n')
 	colon[strlen (colon) - 1] = '\0';
 
       if (buffer && buflen)

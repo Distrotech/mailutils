@@ -454,13 +454,11 @@ mailbox_get_property (mailbox_t mbox, property_t *pproperty)
 int
 mailbox_set_debug (mailbox_t mbox, mu_debug_t debug)
 {
-  int status = 0;
-
   if (mbox == NULL)
     return EINVAL;
   if (mbox->folder)
     {
-      status = folder_set_debug (mbox->folder, debug);
+      int status = folder_set_debug (mbox->folder, debug);
       if (status)
 	return status;
     }
@@ -475,6 +473,17 @@ mailbox_get_debug (mailbox_t mbox, mu_debug_t *pdebug)
 {
   if (mbox == NULL || pdebug == NULL)
     return EINVAL;
+  if (mbox->folder)
+    {
+      int status = folder_get_debug (mbox->folder, pdebug);
+      if (status == 0)
+	{
+	  if (mbox->debug)
+	    mu_debug_destroy (&(mbox->debug), mbox);
+	  mbox->debug = *pdebug;
+	}
+      return status;
+    }
   if (mbox->debug == NULL)
     {
       int status = mu_debug_create (&(mbox->debug), mbox);

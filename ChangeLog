@@ -1,5 +1,15 @@
 2001-09-03  Alain Magloire
 
+	* mailbox/folder_imap.c (imap_use): Check return value.
+	* mailbox/mailbox.c (mailbox_get_debug): Get the mu_debug_t
+	object from the folder if available.
+	* mailbox/mbx_imap.c (imap_append_message): Check for
+	EAGAIN.
+	(imap_header_get_value): If the operation return 0, set
+	error to ENOENT.
+
+2001-09-03  Alain Magloire
+
 	* configure.in: AC_REPLACE_FUNCS(fgetpwent);
 
 	* include/mailutils/parse822.h: Add a prototype for
