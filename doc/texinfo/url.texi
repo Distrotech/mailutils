@@ -157,6 +157,6 @@ a strdup().
 
 @section Example
 @example
-@include ex-url.texi
+@include url-parse.c.texi
 @end example
 
