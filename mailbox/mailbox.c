@@ -43,6 +43,9 @@ mailbox_create (mailbox_t *pmbox, const char *name, int id)
   struct mailbox_registrar *mreg;
   url_t url = NULL;
 
+  if (pmbox == NULL)
+    return EINVAL;
+
   url_create (&url, name);
 
   /* 1st guest: if an ID is specify, shortcut */
@@ -149,6 +152,14 @@ mailbox_scan (mailbox_t mbox, size_t msgno, size_t *pcount)
   if (mbox == NULL || mbox->_scan == NULL)
     return 0;
   return mbox->_scan (mbox, msgno, pcount);
+}
+
+int
+mailbox_size (mailbox_t mbox, off_t *psize)
+{
+  if (mbox == NULL || mbox->_size == NULL)
+    return 0;
+  return mbox->_size (mbox, psize);
 }
 
 /* locking */

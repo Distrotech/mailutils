@@ -153,6 +153,17 @@ message_set_body (message_t msg, body_t body, void *owner)
 }
 
 int
+message_set_stream (message_t msg, stream_t stream, void *owner)
+{
+  if (msg == NULL)
+    return EINVAL;
+  if (msg->owner != owner)
+    return EACCES;
+  msg->stream = stream;
+  return 0;
+}
+
+int
 message_get_stream (message_t msg, stream_t *pstream)
 {
   if (msg == NULL || pstream == NULL)
@@ -177,11 +188,26 @@ message_get_stream (message_t msg, stream_t *pstream)
 }
 
 int
+message_set_lines (message_t msg, int (*_lines)
+		   (message_t, size_t *), void *owner)
+{
+  if (msg == NULL)
+    return EINVAL;
+  if (msg->owner != owner)
+    return EACCES;
+  msg->_lines = _lines;
+  return 0;
+}
+
+int
 message_lines (message_t msg, size_t *plines)
 {
   size_t hlines, blines;
   if (msg == NULL)
     return EINVAL;
+  /* Overload */
+  if (msg->_lines)
+    return msg->_lines (msg, plines);
   if (plines)
     {
       hlines = blines = 0;
@@ -193,11 +219,26 @@ message_lines (message_t msg, size_t *plines)
 }
 
 int
+message_set_size (message_t msg, int (*_size)
+		  (message_t, size_t *), void *owner)
+{
+  if (msg == NULL)
+    return EINVAL;
+  if (msg->owner != owner)
+    return EACCES;
+  msg->_size = _size;
+  return 0;
+}
+
+int
 message_size (message_t msg, size_t *psize)
 {
   size_t hsize, bsize;
   if (msg == NULL)
     return EINVAL;
+  /* Overload ? */
+  if (msg->_size)
+    return msg->_size (msg, psize);
   if (psize)
     {
       hsize = bsize = 0;
@@ -235,14 +276,14 @@ message_from (message_t msg, char *buf, size_t len, size_t *pnwrite)
   if (msg->_from)
     return msg->_from (msg, buf, len, pnwrite);
 
-  /* can it be extracted from the FROM: */
+  /* can it be extracted from the From: */
   message_get_header (msg, &header);
-  status = header_get_value (header, "FROM", NULL, 0, &n);
+  status = header_get_value (header, MU_HEADER_FROM, NULL, 0, &n);
   if (status == 0 && n != 0)
     {
       char *from = calloc (1, n + 1);
       char *addr;
-      header_get_value (header, "FROM", from, n + 1, NULL);
+      header_get_value (header, MU_HEADER_FROM, from, n + 1, NULL);
       if (extract_addr (from, n, &addr, &n) == 0)
 	{
 	  n = (n > len) ? len : n;
@@ -258,6 +299,8 @@ message_from (message_t msg, char *buf, size_t len, size_t *pnwrite)
 	  return 0;
 	}
     }
+  else if (status == EAGAIN)
+    return status;
 
   /* oops */
   n = (7 > len) ? len: 7;
@@ -374,16 +417,43 @@ message_set_uidl (message_t msg, int (* _get_uidl)
 }
 
 int
-message_is_mime (message_t msg)
+message_set_is_multipart (message_t msg, int (*_is_multipart)
+			  __P ((message_t, int *)), void *owner)
+{
+  if (msg == NULL)
+    return EINVAL;
+  if (msg->owner != owner)
+    return EACCES;
+  msg->_is_multipart = _is_multipart;
+  return 0;
+}
+
+int
+message_is_multipart (message_t msg, int *p_is_mp)
 {
   header_t header;
   int status;
+  size_t len = 0;
 
-  status = message_get_header(msg, &header);
-  if (status != 0)
-    return status;
-  status = header_get_value (header, "Mime-Version", NULL, 0, NULL);
-  return (status == 0);
+  if (msg == NULL || p_is_mp)
+    return EINVAL;
+
+  message_get_header(msg, &header);
+  status = header_get_value (header, "Content-Type", NULL, 0, &len);
+  if (status == 0)
+    {
+      char *content_type = calloc (len + 1, sizeof (char));
+      if (content_type == NULL)
+	return ENOMEM;
+      status = header_get_value (header, "Content-Type", content_type,
+				 len, NULL);
+      *p_is_mp = strncasecmp ("multipart", content_type,
+			      strlen ("multipart")) ? 0: 1;
+      free (content_type);
+    }
+  else
+    *p_is_mp = 0;
+  return status;
 }
 
 int
@@ -422,6 +492,7 @@ message_get_part (message_t msg, size_t part, message_t *pmsg)
   if (msg == NULL || pmsg == NULL)
     return EINVAL;
 
+  /* Overload.  */
   if (msg->_get_part)
     return msg->_get_part (msg, part, pmsg);
 
@@ -518,12 +589,11 @@ static int
 message_read (stream_t is, char *buf, size_t buflen,
 	      off_t off, size_t *pnread )
 {
-  message_t msg;
+  message_t msg =  is->owner;
   stream_t his, bis;
   size_t hread, hsize, bread, bsize;
 
-
-  if (is == NULL || (msg = is->owner) == NULL)
+  if (msg == NULL)
     return EINVAL;
 
   bsize = hsize = bread = hread = 0;
@@ -536,16 +606,10 @@ message_read (stream_t is, char *buf, size_t buflen,
      until you start reading them.  So by checking hsize == bsize == 0,
      this kludge is a way of detecting the anomalie and start by the
      header.  */
-  if ((size_t)off <= hsize || (hsize == 0 && bsize == 0))
+  if ((size_t)off < hsize || (hsize == 0 && bsize == 0))
     {
       header_get_stream (msg->header, &his);
       stream_read (his, buf, buflen, off, &hread);
-      /* still room left for some body, .. a pun ;-) */
-      if ((buflen - hread) > 0)
-	{
-	  body_get_stream (msg->body, &bis);
-	  stream_read (bis, buf + hread, buflen - hread, 0, &bread);
-	}
     }
   else
     {

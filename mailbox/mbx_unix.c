@@ -23,6 +23,7 @@
 #include <url0.h>
 #include <stream0.h>
 #include <body0.h>
+#include <header0.h>
 #include <attribute0.h>
 #include <mailutils/header.h>
 #include <mailutils/auth.h>
@@ -103,12 +104,19 @@ typedef struct _unix_data
   size_t umessages_count;
   size_t messages_count;
   stream_t stream;
-  char *dirname;
-  char *basename;
 #ifdef HAVE_PTHREAD_H
   pthread_mutex_t mutex;
 #endif
   off_t size;
+
+  /* The variables below are use to hold the state when appending messages.  */
+  enum unix_state
+  {
+    UNIX_NO_STATE=0, UNIX_STATE_FROM, UNIX_STATE_DATE, UNIX_STATE_APPEND
+  } state ;
+  char *from;
+  char *date;
+  off_t off;
 
 } *unix_data_t;
 
@@ -134,6 +142,8 @@ static int unix_set_flags (attribute_t, int);
 static int unix_unset_flags (attribute_t, int);
 static int unix_readstream (stream_t is, char *buffer, size_t buflen,
 				    off_t off, size_t *pnread);
+static int unix_header_size (header_t header, size_t *psize);
+static int unix_header_lines (header_t header, size_t *plines);
 static int unix_body_size (body_t body, size_t *psize);
 static int unix_body_lines (body_t body, size_t *plines);
 static int unix_msg_from (message_t msg, char *buf, size_t len,
@@ -155,7 +165,6 @@ unix_create (mailbox_t *pmbox, const char *name)
 {
   mailbox_t mbox;
   unix_data_t mud;
-  const char *sep;
   size_t name_len;
 
   /* Sanity check.  */
@@ -169,18 +178,18 @@ unix_create (mailbox_t *pmbox, const char *name)
 #define SEPARATOR '/'
 
   /* Skip the url scheme.  */
-  if (name_len > UNIX_SCHEME_LEN &&
-      (name[0] == 'u' || name[0] == 'U') &&
-      (name[1] == 'n' || name[1] == 'N') &&
-      (name[2] == 'i' || name[2] == 'i') &&
-      (name[3] == 'x' || name[3] == 'x' ) &&
-      name[4] == ':')
+  if (name_len > UNIX_SCHEME_LEN
+      && (name[0] == 'u' || name[0] == 'U')
+      && (name[1] == 'n' || name[1] == 'N')
+      && (name[2] == 'i' || name[2] == 'i')
+      && (name[3] == 'x' || name[3] == 'x' )
+      && name[4] == ':')
     {
       name += UNIX_SCHEME_LEN;
       name_len -= UNIX_SCHEME_LEN;
     }
 
-  /* Allocate memory for mbox.  */
+  /* Allocate memory for mbox (mailbox_t).  */
   mbox = calloc (1, sizeof (*mbox));
   if (mbox == NULL)
     return ENOMEM;
@@ -193,7 +202,14 @@ unix_create (mailbox_t *pmbox, const char *name)
       return ENOMEM;
     }
 
-  /* Copy the name.  */
+  /* Copy the name.
+     We do not do any further interpretation after the scheme "unix:"
+     Because for example on distributed system like QnX4 a file name is
+     //390/etc/passwd.  So the best approach is to let the OS handle it
+     for example if we receive: "unix:///var/mail/alain" the mailbox name
+     will be "///var/mail/alain" we let open() do the right thing.
+     So it will let things like this "unix://390/var/mail/alain" where
+     "//390/var/mail/alain" _is_ the filename, pass correctely.  */
   mbox->name = calloc (name_len + 1, sizeof (char));
   if (mbox->name == NULL)
     {
@@ -201,50 +217,6 @@ unix_create (mailbox_t *pmbox, const char *name)
       return ENOMEM;
     }
   memcpy (mbox->name, name, name_len);
-
-  /* Save the basename and dirname.  We split the name, but this should
-     probably be supported via "maildir:" or the mailbox mgr.  */
-  sep = strrchr (name, SEPARATOR);
-  if (sep)
-    {
-      /* Split it into two.  */
-      mud->dirname = calloc ((sep - name) + 1, sizeof (char));
-      if (mud->dirname == NULL)
-	{
-	  unix_destroy (&mbox);
-	  return ENOMEM;
-	}
-      memcpy (mud->dirname, name, sep - name);
-
-      ++sep;
-      mud->basename = calloc (name_len - (sep - name) + 1, sizeof (char));
-      if (mud->basename == NULL)
-	{
-	  unix_destroy (&mbox);
-	  return ENOMEM;
-	}
-      memcpy (mud->basename, sep, name_len - (sep - name));
-    }
-  else
-    {
-      /* Use the relative directory ".".  */
-      /* FIXME: should we call getcwd () instead ?  */
-      mud->dirname = calloc (2 , sizeof (char));
-      if (mud->dirname == NULL)
-	{
-	  unix_destroy (&mbox);
-	  return ENOMEM;
-	}
-      mud->dirname[0] = '.';
-
-      mud->basename = calloc (name_len + 1, sizeof (char));
-      if (mud->basename == NULL)
-	{
-	  unix_destroy (&mbox);
-	  return ENOMEM;
-	}
-      memcpy (mud->basename, name, name_len);
-    }
 
 #ifdef HAVE_PHTREAD_H
   /* Mutex when accessing the structure fields.  */
@@ -270,8 +242,8 @@ unix_create (mailbox_t *pmbox, const char *name)
 
   mbox->_size = unix_size;
 
-  mailbox_debug (mbox, MU_MAILBOX_DEBUG_TRACE, "unix_create (%s/%s)\n",
-		 mud->dirname, mud->basename);
+  mailbox_debug (mbox, MU_MAILBOX_DEBUG_TRACE, "unix_create(%s)\n",
+		 mbox->name);
   (*pmbox) = mbox;
 
   return 0; /* okdoke */
@@ -289,10 +261,7 @@ unix_destroy (mailbox_t *pmbox)
 	  size_t i;
 	  unix_data_t mud = mbox->data;
 	  mailbox_debug (mbox, MU_MAILBOX_DEBUG_TRACE,
-			 "unix_destroy (%s/%s)\n",
-			 mud->dirname, mud->basename);
-	  free (mud->dirname);
-	  free (mud->basename);
+			 "unix_destroy (%s/%s)\n", mbox->name);
 	  for (i = 0; i < mud->umessages_count; i++)
 	    {
 	      unix_message_t mum = mud->umessages[i];
@@ -331,11 +300,10 @@ unix_destroy (mailbox_t *pmbox)
 static int
 unix_open (mailbox_t mbox, int flags)
 {
-  unix_data_t mud;
+  unix_data_t mud = mbox->data;
   int status = 0;
 
-  if (mbox == NULL ||
-      (mud = (unix_data_t)mbox->data) == NULL)
+  if (mud == NULL)
     return EINVAL;
 
   /* Authentication prologues.  */
@@ -384,10 +352,10 @@ unix_open (mailbox_t mbox, int flags)
 static int
 unix_close (mailbox_t mbox)
 {
-  unix_data_t mud;
+  unix_data_t mud = mbox->data;
   size_t i;
 
-  if (mbox == NULL || (mud = (unix_data_t)mbox->data) == NULL)
+  if (mud == NULL)
     return EINVAL;
 
   /* Make sure we do not hold any lock for that file.  */
@@ -428,13 +396,15 @@ unix_scan (mailbox_t mbox, size_t msgno, size_t *pcount)
 
 /* FIXME:  How to handle a shrink ? meaning, the &^$^@%#@^& user start two
    browsers and delete files in one.  My views is that we should scream
-   bloody murder and hunt them with a machette.  */
+   bloody murder and hunt them with a machette. But for now just play dumb,
+   but maybe the best approach is to pack our things and leave .i.e exit().  */
 static int
 unix_is_updated (mailbox_t mbox)
 {
   off_t size;
-  unix_data_t mud;
-  if (mbox == NULL || (mud = (unix_data_t) mbox->data) == NULL)
+  unix_data_t mud = mbox->data;
+
+  if (mud == NULL)
     return EINVAL;
   if (stream_size (mbox->stream, &size) != 0)
     return 0;
@@ -444,10 +414,10 @@ unix_is_updated (mailbox_t mbox)
 static int
 unix_num_deleted (mailbox_t mbox, size_t *pnum)
 {
-  unix_data_t mud;
+  unix_data_t mud = mbox->data;
   unix_message_t mum;
   size_t i, total;
-  if (mbox == NULL || (mud = (unix_data_t) mbox->data) == NULL)
+  if (mud == NULL)
     return EINVAL;
   for (i = total = 0; i < mud->messages_count; i++)
     {
@@ -462,15 +432,14 @@ unix_num_deleted (mailbox_t mbox, size_t *pnum)
 }
 
 /* FIXME: the use of tmpfile() on some system can lead to race condition, We
-   should use a safer approach. We take a very naive approach for this, it
-   involves unfortunately two copies.  */
+   should use a safer approach.  */
 static FILE *
 unix_tmpfile (mailbox_t mbox, char **pbox)
 {
   const char *tmpdir;
   int fd;
   FILE *fp;
-  unix_data_t mud = (unix_data_t)mbox->data;
+  const char *basename;
 
   /*  P_tmpdir should be define in <stdio.h>.  */
 #ifndef P_tmpdir
@@ -478,11 +447,16 @@ unix_tmpfile (mailbox_t mbox, char **pbox)
 #endif
 
   tmpdir =  getenv ("TEMPDIR") ? getenv ("TEMPDIR") : P_tmpdir;
-  *pbox = calloc (1, strlen (tmpdir) + strlen ("MBOX_") +
-		  strlen (mud->basename) + 1);
+  basename = strrchr (mbox->name, '/');
+  if (basename)
+    basename++;
+  else
+    basename = mbox->name;
+  *pbox = calloc (strlen (tmpdir) + strlen ("MBOX_") +
+		  strlen (basename) + 1, sizeof (char));
   if (*pbox == NULL)
     return NULL;
-  sprintf (*pbox, "%s/%s%s", tmpdir, "MBOX_", mud->basename);
+  sprintf (*pbox, "%s/%s%s", tmpdir, "MBOX_", basename);
 
   /* FIXME:  I don't think this is the righ approach, creating an anonymous
      file would be better ?  no trace left behind.  */
@@ -508,10 +482,21 @@ unix_tmpfile (mailbox_t mbox, char **pbox)
   return fp;
 }
 
+/* For the expunge bits  we took a very cautionnary approach, meaning
+   we create temporary file in the tmpdir copy all the file not mark deleted,
+   and skip the deleted ones, truncate the real mailbox to the desired size
+   and overwrite with the tmp mailbox.  The approach to do everyting
+   in core is tempting but require to much memory, it is not rare now
+   a day to have 30 Megs mailbox, also there is danger for filesystems
+   with quotas, or some program may not respect the advisory lock and
+   decide to append a new message while your expunging etc ...
+   The real downside to the approach we take is that when things go wrong
+   the temporary file bay be left in /tmp, which is not all that bad
+   because at least have something to recuparate when failure.  */
 static int
 unix_expunge (mailbox_t mbox)
 {
-  unix_data_t mud;
+  unix_data_t mud = mbox->data;
   unix_message_t mum;
   int status = 0;
   sigset_t sigset;
@@ -523,7 +508,7 @@ unix_expunge (mailbox_t mbox)
   char buffer [BUFSIZ];
   char *tmpmbox = NULL;
 
-  if (mbox == NULL || (mud = (unix_data_t)mbox->data) == NULL)
+  if (mud == NULL)
     return EINVAL;
 
   /* Noop.  */
@@ -569,7 +554,11 @@ unix_expunge (mailbox_t mbox)
   /* Create a tempory file.  */
   tempfile = unix_tmpfile (mbox, &tmpmbox);
   if (tempfile == NULL)
-    return errno;
+    {
+      fprintf (stderr, "Failed to create temporary file when expunging.\n");
+      free (tmpmbox);
+      return errno;
+    }
 
   /* Get the lock.  */
   if (unix_lock (mbox, MU_LOCKER_WRLOCK) < 0)
@@ -640,9 +629,9 @@ unix_expunge (mailbox_t mbox)
 		  {
 		    if (status == 0)
 		      status = errno;
-		    fprintf (stderr, "expunge:%d: (%s)\n", __LINE__,
+		    fprintf (stderr, "Error expunge:%d: (%s)\n", __LINE__,
 			     strerror (status));
-		    goto bailout;
+		    goto bailout0;
 		  }
 		len -= n;
 		total += n;
@@ -676,9 +665,9 @@ unix_expunge (mailbox_t mbox)
 		{
 		  if (status == 0)
 		    status = errno;
-		  fprintf (stderr, "expunge:%d: %s", __LINE__,
+		  fprintf (stderr, "Error expunge:%d: %s", __LINE__,
 			   strerror (status));
-		  goto bailout;
+		  goto bailout0;
 		}
 	      len -= n;
 	      total += n;
@@ -701,9 +690,9 @@ unix_expunge (mailbox_t mbox)
 	      {
 		if (status == 0)
 		  status = errno;
-		fprintf (stderr, "expunge:%d: %s", __LINE__,
+		fprintf (stderr, "Error expunge:%d: %s", __LINE__,
 			 strerror (status));
-		goto bailout;
+		goto bailout0;
 	      }
 	    len -= n;
 	    total += n;
@@ -731,9 +720,9 @@ unix_expunge (mailbox_t mbox)
 	      {
 		if (status == 0)
 		  status = errno;
-		fprintf (stderr, "expunge:%d: %s", __LINE__,
+		fprintf (stderr, "Error expunge:%d: %s", __LINE__,
 			 strerror (status));
-		goto bailout;
+		goto bailout0;
 	      }
 	    len -= n;
 	    total += n;
@@ -755,7 +744,11 @@ unix_expunge (mailbox_t mbox)
 	    {
 	      status = stream_write (mbox->stream, buffer, nread, offset, &n);
 	      if (status != 0)
-		goto bailout;
+		{
+		  fprintf (stderr, "Error expunge:%d: %s\n", __LINE__,
+			   strerror (status));
+		  goto bailout;
+		}
 	      nread -= n;
 	      offset += n;
 	    }
@@ -770,12 +763,12 @@ unix_expunge (mailbox_t mbox)
   status = stream_truncate (mbox->stream, total);
   if (status != 0)
     {
-      fprintf (stderr, "expunge:%d: %s", __LINE__,
-	       strerror (status));
+      fprintf (stderr, "Error expunging:%d: %s", __LINE__, strerror (status));
       goto bailout;
     }
 
-  /* Don't remove the tmp mbox in case of errors.  */
+ bailout0:
+  /* Don't remove the tmp mbox in case of errors, when writing back.  */
   remove (tmpmbox);
 
  bailout:
@@ -814,7 +807,7 @@ unix_expunge (mailbox_t mbox)
 	  mum->body = mum->body_end = 0;
 	  mum->header_lines = mum->body_lines = 0;
 	}
-      /* This is should reset the messages_count, the last * argument 0 means
+      /* This is should reset the messages_count, the last argument 0 means
 	 not to send event notification.  */
       unix_scan0 (mbox, dirty, NULL, 0);
     }
@@ -824,9 +817,9 @@ unix_expunge (mailbox_t mbox)
 static int
 unix_get_fd (stream_t is, int *pfd)
 {
-  unix_message_t mum;
+  unix_message_t mum = is->owner;
 
-  if (is == NULL || (mum = is->owner) == NULL)
+  if (mum == NULL)
     return EINVAL;
 
   return stream_get_fd (mum->stream, pfd);
@@ -835,9 +828,9 @@ unix_get_fd (stream_t is, int *pfd)
 static int
 unix_get_flags (attribute_t attr, int *pflags)
 {
-  unix_message_t mum;
+  unix_message_t mum = attr->owner;
 
-  if (attr == NULL || (mum = attr->owner) == NULL)
+  if (mum == NULL)
     return EINVAL;
 
   if (pflags)
@@ -848,9 +841,9 @@ unix_get_flags (attribute_t attr, int *pflags)
 static int
 unix_set_flags (attribute_t attr, int flags)
 {
-  unix_message_t mum;
+  unix_message_t mum = attr->owner;
 
-  if (attr == NULL || (mum = attr->owner) == NULL)
+  if (mum == NULL)
     return EINVAL;
 
   mum->new_flags |= flags;
@@ -860,12 +853,12 @@ unix_set_flags (attribute_t attr, int flags)
 static int
 unix_unset_flags (attribute_t attr, int flags)
 {
-  unix_message_t mum;
+  unix_message_t mum = attr->owner;
 
-  if (attr == NULL || (mum = attr->owner) == NULL)
+  if (mum == NULL)
     return EINVAL;
 
-  mum->new_flags &= flags;
+  mum->new_flags &= ~flags;
   return 0;
 }
 
@@ -873,10 +866,10 @@ static int
 unix_readstream (stream_t is, char *buffer, size_t buflen,
 		 off_t off, size_t *pnread)
 {
-  unix_message_t mum;
+  unix_message_t mum = is->owner;
   size_t nread = 0;
 
-  if (is == NULL || (mum = (unix_message_t)is->owner) == NULL)
+  if (mum == NULL)
     return EINVAL;
 
   if (buffer == NULL || buflen == 0)
@@ -909,12 +902,12 @@ static int
 unix_get_header_read (stream_t is, char *buffer, size_t len,
 		      off_t off, size_t *pnread)
 {
-  unix_message_t mum;
+  unix_message_t mum = is->owner;
   size_t nread = 0;
   int status = 0;
   off_t ln;
 
-  if (is == NULL || (mum = is->owner) == NULL)
+  if (mum == NULL)
     return EINVAL;
 
   ln = mum->body - (mum->header_from_end + off);
@@ -931,13 +924,35 @@ unix_get_header_read (stream_t is, char *buffer, size_t len,
 }
 
 static int
+unix_header_size (header_t header, size_t *psize)
+{
+  unix_message_t mum = header->owner;
+  if (mum == NULL)
+    return EINVAL;
+  if (psize)
+    *psize = mum->body - mum->header_from_end;
+  return 0;
+}
+
+static int
+unix_header_lines (header_t header, size_t *plines)
+{
+  unix_message_t mum = header->owner;
+  if (mum == NULL)
+    return EINVAL;
+  if (plines)
+    *plines = mum->header_lines;
+  return 0;
+}
+
+static int
 unix_body_size (body_t body, size_t *psize)
 {
   unix_message_t mum = body->owner;
   if (mum == NULL)
     return EINVAL;
   if (psize)
-    *psize = mum->body_end - mum->body;
+    *psize = mum->body_end - mum->body + 1;
   return 0;
 }
 
@@ -1046,14 +1061,13 @@ static int
 unix_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
 {
   int status;
-  unix_data_t mud;
+  unix_data_t mud = mbox->data;
   unix_message_t mum;
   message_t msg = NULL;
 
   /* Sanity checks.  */
-  if (mbox == NULL || pmsg == NULL || (mud = (unix_data_t)mbox->data) == NULL
-      || (!(mud->messages_count > 0 && msgno > 0
-	    && msgno <= mud->messages_count)))
+  if (pmsg == NULL || mud == NULL || (!(mud->messages_count > 0 && msgno > 0
+					&& msgno <= mud->messages_count)))
     return EINVAL;
 
   mum = mud->umessages[msgno - 1];
@@ -1088,6 +1102,8 @@ unix_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
     stream_set_fd (stream, unix_get_fd, mum);
     stream_set_flags (stream, MU_STREAM_READ, mum);
     header_set_stream (header, stream, mum);
+    header_set_size (header, unix_header_size, mum);
+    header_set_lines (header, unix_header_lines, mum);
     message_set_header (msg, header, mum);
   }
 
@@ -1143,9 +1159,8 @@ unix_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
 static int
 unix_append_message (mailbox_t mbox, message_t msg)
 {
-  unix_data_t mud;
-  if (mbox == NULL || msg == NULL ||
-      (mud = (unix_data_t)mbox->data) == NULL)
+  unix_data_t mud = mbox->data;
+  if (msg == NULL || mud == NULL)
     return EINVAL;
 
   mailbox_debug (mbox, MU_MAILBOX_DEBUG_TRACE,
@@ -1166,53 +1181,129 @@ unix_append_message (mailbox_t mbox, message_t msg)
 	return status;
       }
 
-    /* Generate a "From " separator.  */
-    {
-      char from[128];
-      char date[128];
-      char *s;
-      size_t f = 0, d = 0;
-      *date = *from = '\0';
-      message_from (msg, from, sizeof (from), &f);
-      s = memchr (from, nl, f);
-      if (s)
-	{
-	  *s = '\0';
-	  f--;
-	}
-      message_received (msg, date, sizeof (date), &d);
-      s = memchr (date, nl, d);
-      if (s)
-	{
-	  *s = '\0';
-	  d--;
-	}
-      stream_write (mbox->stream, "From ", 5, size, &n); size += n;
-      stream_write (mbox->stream, from, f, size, &n); size += n;
-      stream_write (mbox->stream, " ", 1, size, &n); size += n;
-      stream_write (mbox->stream, date, d, size, &n); size += n;
-      stream_write (mbox->stream, &nl , 1, size, &n); size += n;
-    }
+    switch (mud->state)
+      {
+      case UNIX_NO_STATE:
+	mud->from = calloc (128, sizeof (char));
+	if (mud->from == NULL)
+	  {
+	    unix_unlock (mbox);
+	    return ENOMEM;
+	  }
+	mud->date = calloc (128, sizeof (char));
+	if (mud->date == NULL)
+	  {
+	    free (mud->from);
+	    mud->from = NULL;
+	    mud->state = UNIX_NO_STATE;
+	    unix_unlock (mbox);
+	    return ENOMEM;
+	  }
+	mud->off = 0;
+	mud->state = UNIX_STATE_FROM;
 
-    /* Append the Message.  */
-    {
-      char buffer[BUFSIZ];
-      size_t nread = 0;
-      off_t off = 0;
-      stream_t is;
-      message_get_stream (msg, &is);
-      do
+      case UNIX_STATE_FROM:
+	/* Generate a "From " separator.  */
 	{
-	  stream_read (is, buffer, sizeof (buffer), off, &nread);
-	  stream_write (mbox->stream, buffer, nread, size, &n);
-	  off += nread;
-	  size += n;
+	  char *s;
+	  size_t len = 0;
+	  status = message_from (msg, mud->from, 127, &len);
+	  if (status != 0)
+	    {
+	      if (status != EAGAIN)
+		{
+		  free (mud->from);
+		  free (mud->date);
+		  mud->date = mud->from = NULL;
+		  mud->state = UNIX_NO_STATE;
+		  unix_unlock (mbox);
+		}
+	      return status;
+	    }
+	  /* Nuke trailing newline.  */
+	  s = memchr (mud->from, nl, len);
+	  if (s)
+	    *s = '\0';
+	  mud->state = UNIX_STATE_DATE;
 	}
-      while (nread > 0);
-      stream_write (mbox->stream, &nl, 1, size, &n);
-    }
+
+      case UNIX_STATE_DATE:
+	/* Generate a date for the "From "  separator.  */
+	{
+	  char *s;
+	  size_t len = 0;
+	  status = message_received (msg, mud->date, 127, &len);
+	  if (status != 0)
+	    {
+	      if (status != EAGAIN)
+		{
+		  free (mud->from);
+		  free (mud->date);
+		  mud->date = mud->from = NULL;
+		  mud->state = UNIX_NO_STATE;
+		  unix_unlock (mbox);
+		}
+	      return status;
+	    }
+	  /* Nuke trailing newline.  */
+	  s = memchr (mud->date, nl, len);
+	  if (s)
+	    *s = '\0';
+	  /* Write the separator to the mailbox.  */
+	  stream_write (mbox->stream, "From ", 5, size, &n);
+	  size += n;
+	  stream_write (mbox->stream, mud->from, strlen (mud->from), size, &n);
+	  size += n;
+	  stream_write (mbox->stream, " ", 1, size, &n);
+	  size += n;
+	  stream_write (mbox->stream, mud->date, strlen (mud->date), size, &n);
+	  size += n;
+	  stream_write (mbox->stream, &nl , 1, size, &n);
+	  size += n;
+	  free (mud->from);
+	  free (mud->date);
+	  mud->from = mud->date = NULL;
+	  mud->state = UNIX_STATE_APPEND;
+	}
+
+      case UNIX_STATE_APPEND:
+	/* Append the Message.  */
+	{
+	  char buffer[BUFSIZ];
+	  size_t nread = 0;
+	  stream_t is;
+	  message_get_stream (msg, &is);
+	  do
+	    {
+	      status = stream_read (is, buffer, sizeof (buffer), mud->off,
+				    &nread);
+	      if (status != 0)
+		{
+		  if (status != EAGAIN)
+		    {
+		      free (mud->from);
+		      free (mud->date);
+		      mud->date = mud->from = NULL;
+		      mud->state = UNIX_NO_STATE;
+		      unix_unlock (mbox);
+		    }
+		  stream_flush (mbox->stream);
+		  return status;
+		}
+	      stream_write (mbox->stream, buffer, nread, size, &n);
+	      mud->off += nread;
+	      size += n;
+	    }
+	  while (nread > 0);
+	  stream_write (mbox->stream, &nl, 1, size, &n);
+	}
+
+      default:
+	break;
+      }
   }
   stream_flush (mbox->stream);
+  mud->state = UNIX_NO_STATE;
   unix_unlock (mbox);
   return 0;
 }
@@ -1238,8 +1329,8 @@ unix_size (mailbox_t mbox, off_t *psize)
 static int
 unix_messages_count (mailbox_t mbox, size_t *pcount)
 {
-  unix_data_t mud;
-  if (mbox == NULL || (mud = (unix_data_t) mbox->data) == NULL)
+  unix_data_t mud = mbox->data;
+  if (mud == NULL)
     return EINVAL;
 
   if (! unix_is_updated (mbox))

@@ -32,14 +32,20 @@
 #include <header0.h>
 #include <attribute0.h>
 
+/* Advance declarations.  */
+struct _pop_data;
+struct _pop_message;
+struct _bio;
 
-/* The different possible states of a Pop client, it maps to the POP3 commands.
-   Note that POP3 is not reentrant. It is only one channel.  */
+typedef struct _pop_data * pop_data_t;
+typedef struct _pop_message * pop_message_t;
+typedef struct _bio *bio_t;
+
+/* The different possible states of a Pop client, Note that POP3 is not
+   reentrant. It is only one channel.  */
 enum pop_state
 {
-  /* The initialisation of POP_NO_STATE is redundant but it is here for
-     info purposes meaning 0 is the starting state.  */
-  POP_NO_STATE = 0,
+  POP_NO_STATE = 0, POP_STATE_DONE,
   POP_OPEN_CONNECTION,
   POP_GREETINGS,
   POP_APOP_TX, POP_APOP_ACK,
@@ -54,8 +60,6 @@ enum pop_state
   POP_TOP_TX,  POP_TOP_ACK,  POP_TOP_RX,
   POP_UIDL_TX, POP_UIDL_ACK,
   POP_USER_TX, POP_USER_ACK,
-  POP_CLOSE_CONNECTION /* I do not think a shutdown of a connection will
-			  block.  More for the symmetry.  */
 };
 
 /*  Those two are exportable funtions i.e. they are visible/call when you
@@ -82,13 +86,17 @@ static int pop_is_updated (mailbox_t);
 
 /* The implementation of message_t */
 static int pop_size (mailbox_t, off_t *);
-static int pop_readstream (stream_t, char *, size_t, off_t, size_t *);
+static int pop_top (stream_t, char *, size_t, off_t, size_t *);
+static int pop_read_header (stream_t, char *, size_t, off_t, size_t *);
+static int pop_read_body (stream_t, char *, size_t, off_t, size_t *);
+static int pop_read_message (stream_t, char *, size_t, off_t, size_t *);
+static int pop_retr (pop_message_t, char *, size_t, off_t, size_t *);
 static int pop_get_fd (stream_t, int *);
 static int pop_get_flags (attribute_t, int *);
 static int pop_body_size (body_t, size_t *);
 static int pop_body_lines (body_t body, size_t *plines);
-static int pop_header_read (stream_t, char *, size_t, off_t, size_t *);
 static int pop_uidl (message_t, char *, size_t, size_t *);
+static int fill_buffer (bio_t bio, char *buffer, size_t buflen);
 
 /* According to the rfc:
    RFC 2449                POP3 Extension Mechanism           November 1998
@@ -130,7 +138,6 @@ struct _bio
   char *ptr;
   char *nl;
 };
-typedef struct _bio *bio_t;
 
 static int  bio_create   (bio_t *, stream_t);
 static void bio_destroy  (bio_t *);
@@ -138,12 +145,6 @@ static int  bio_readline (bio_t);
 static int  bio_read     (bio_t);
 static int  bio_write    (bio_t);
 
-/* Advance declarations.  */
-struct _pop_data;
-struct _pop_message;
-
-typedef struct _pop_data * pop_data_t;
-typedef struct _pop_message * pop_message_t;
 
 /*  This structure holds the info when for a pop_get_message() the
     pop_message_t type  will serve as the owner of the message_t and contains
@@ -156,6 +157,8 @@ typedef struct _pop_message * pop_message_t;
 struct _pop_message
 {
   int inbody;
+  int skip_header;
+  int skip_body;
   size_t body_size;
   size_t body_lines;
   size_t num;
@@ -215,7 +218,7 @@ pop_create (mailbox_t *pmbox, const char *name)
   size_t name_len;
 
   /* Sanity check.  */
-  if (pmbox == NULL || name == NULL || *name == '\0')
+  if (name == NULL || *name == '\0')
     return EINVAL;
 
   name_len = strlen (name);
@@ -394,7 +397,7 @@ pop_authenticate (auth_t auth, char **user, char **passwd)
 static int
 pop_open (mailbox_t mbox, int flags)
 {
-  pop_data_t mpd;
+  pop_data_t mpd = mbox->data;
   int status;
   bio_t bio;
   void *func = (void *)pop_open;
@@ -402,7 +405,7 @@ pop_open (mailbox_t mbox, int flags)
   long port;
 
   /* Sanity checks.  */
-  if (mbox == NULL || mbox->url == NULL || (mpd = mbox->data) == NULL)
+  if (mbox->url == NULL || mpd == NULL)
     return EINVAL;
 
   /* Fetch the pop server name and the port in the url_t.  */
@@ -549,13 +552,13 @@ pop_open (mailbox_t mbox, int flags)
 static int
 pop_close (mailbox_t mbox)
 {
-  pop_data_t mpd;
+  pop_data_t mpd = mbox->data;
   void *func = (void *)pop_close;
   int status;
   bio_t bio;
   size_t i;
 
-  if (mbox == NULL || (mpd = mbox->data) == NULL)
+  if (mpd == NULL)
     return EINVAL;
 
   if (mpd->func && mpd->func != func)
@@ -623,13 +626,13 @@ pop_close (mailbox_t mbox)
 static int
 pop_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
 {
-  pop_data_t mpd;
+  pop_data_t mpd = mbox->data;
   int status;
   pop_message_t mpm;
   size_t i;
 
   /* Sanity.  */
-  if (mbox == NULL || pmsg == NULL || (mpd = mbox->data) == NULL)
+  if (pmsg == NULL || mpd == NULL)
     return EINVAL;
 
   /* See if we have already this message.  */
@@ -655,12 +658,15 @@ pop_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
   /* Create the message.  */
   {
     message_t msg;
-    status = message_create (&msg, mpm);
-    if (status != 0)
+    stream_t is;
+    if ((status = message_create (&msg, mpm)) != 0
+	|| (status = stream_create (&is, MU_STREAM_READ, mpm)) != 0)
       {
 	free (mpm);
 	return status;
       }
+    stream_set_read (is, pop_read_message, mpm);
+    message_set_stream (msg, is, mpm);
     /* The message.  */
     mpm->message = msg;
   }
@@ -676,7 +682,8 @@ pop_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
 	free (mpm);
 	return status;
       }
-    stream_set_read (stream, pop_header_read, mpm);
+    //stream_set_read (stream, pop_read_header, mpm);
+    stream_set_read (stream, pop_top, mpm);
     stream_set_fd (stream, pop_get_fd, mpm);
     stream_set_flags (stream, MU_STREAM_READ, mpm);
     header_set_stream (header, stream, mpm);
@@ -701,21 +708,14 @@ pop_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
   {
     stream_t stream;
     body_t body;
-    status = body_create (&body, mpm);
-    if (status != 0)
+    if ((status = body_create (&body, mpm)) != 0
+	|| (status = stream_create (&stream, MU_STREAM_READ, mpm)) != 0)
       {
 	message_destroy (&(mpm->message), mpm);
 	free (mpm);
 	return status;
       }
-    status = stream_create (&stream, MU_STREAM_READ, mpm);
-    if (status != 0)
-      {
-	message_destroy (&(mpm->message), mpm);
-	free (mpm);
-	return status;
-      }
-    stream_set_read (stream, pop_readstream, mpm);
+    stream_set_read (stream, pop_read_body, mpm);
     stream_set_fd (stream, pop_get_fd, mpm);
     stream_set_flags (stream, mpd->flags, mpm);
     body_set_size (body, pop_body_size, mpm);
@@ -750,12 +750,12 @@ pop_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
 static int
 pop_messages_count (mailbox_t mbox, size_t *pcount)
 {
-  pop_data_t mpd;
+  pop_data_t mpd = mbox->data;
   int status;
   void *func = (void *)pop_messages_count;
   bio_t bio;
 
-  if (mbox == NULL || (mpd = (pop_data_t)mbox->data) == NULL)
+  if (mpd == NULL)
     return EINVAL;
 
   if (pop_is_updated (mbox))
@@ -817,8 +817,8 @@ pop_messages_count (mailbox_t mbox, size_t *pcount)
 static int
 pop_is_updated (mailbox_t mbox)
 {
-  pop_data_t mpd;
-  if ((mpd = (pop_data_t)mbox->data) == NULL)
+  pop_data_t mpd = mbox->data;
+  if (mpd == NULL)
     return 0;
   return mpd->is_updated;
 }
@@ -826,11 +826,11 @@ pop_is_updated (mailbox_t mbox)
 static int
 pop_num_deleted (mailbox_t mbox, size_t *pnum)
 {
-  pop_data_t mpd;
+  pop_data_t mpd = mbox->data;
   size_t i, total;
   attribute_t attr;
 
-  if (mbox == NULL || (mpd = (pop_data_t) mbox->data) == NULL)
+  if (mpd == NULL)
     return EINVAL;
 
   for (i = total = 0; i < mpd->messages_count; i++)
@@ -867,14 +867,14 @@ pop_scan (mailbox_t mbox, size_t msgno, size_t *pcount)
 static int
 pop_expunge (mailbox_t mbox)
 {
-  pop_data_t mpd;
+  pop_data_t mpd = mbox->data;
   size_t i;
   attribute_t attr;
   bio_t bio;
   int status;
   void *func = (void *)pop_expunge;
 
-  if (mbox == NULL || (mpd = (pop_data_t) mbox->data) == NULL)
+  if (mpd == NULL)
     return EINVAL;
 
   /* Busy ?  */
@@ -958,10 +958,10 @@ pop_expunge (mailbox_t mbox)
 static int
 pop_size (mailbox_t mbox, off_t *psize)
 {
-  pop_data_t mpd;
+  pop_data_t mpd = mbox->data;
   int status = 0;
 
-  if (mbox == NULL || (mpd = (pop_data_t)mbox->data) == NULL)
+  if (mpd == NULL)
     return EINVAL;
 
   if (! pop_is_updated (mbox))
@@ -974,8 +974,8 @@ pop_size (mailbox_t mbox, off_t *psize)
 static int
 pop_body_size (body_t body, size_t *psize)
 {
-  pop_message_t mpm;
-  if (body == NULL || (mpm = body->owner) == NULL)
+  pop_message_t mpm = body->owner;
+  if (mpm == NULL)
     return EINVAL;
   if (psize)
     *psize = mpm->body_size;
@@ -985,8 +985,8 @@ pop_body_size (body_t body, size_t *psize)
 static int
 pop_body_lines (body_t body, size_t *plines)
 {
-  pop_message_t mpm;
-  if (body == NULL || (mpm = body->owner) == NULL)
+  pop_message_t mpm = body->owner;
+  if (mpm == NULL)
     return EINVAL;
   if (plines)
     *plines = mpm->body_lines;
@@ -996,12 +996,12 @@ pop_body_lines (body_t body, size_t *plines)
 static int
 pop_get_flags (attribute_t attr, int *pflags)
 {
-  pop_message_t mpm;
+  pop_message_t mpm = attr->owner;
   char hdr_status[64];
   header_t header = NULL;
   int err;
 
-  if (attr == NULL || (mpm = attr->owner) == NULL)
+  if (mpm == NULL)
     return EINVAL;
   hdr_status[0] = '\0';
   message_get_header (mpm->message, &header);
@@ -1015,8 +1015,8 @@ pop_get_flags (attribute_t attr, int *pflags)
 static int
 pop_get_fd (stream_t stream, int *pfd)
 {
-  pop_message_t mpm;
-  if (stream == NULL || (mpm = stream->owner) == NULL)
+  pop_message_t mpm = stream->owner;
+  if (mpm == NULL)
     return EINVAL;
   if (mpm->mpd->bio)
     return stream_get_fd (mpm->mpd->bio->stream, pfd);
@@ -1026,7 +1026,7 @@ pop_get_fd (stream_t stream, int *pfd)
 static int
 pop_uidl (message_t msg, char *buffer, size_t buflen, size_t *pnwriten)
 {
-  pop_message_t mpm;
+  pop_message_t mpm = msg->owner;
   pop_data_t mpd;
   bio_t bio;
   int status = 0;
@@ -1035,7 +1035,7 @@ pop_uidl (message_t msg, char *buffer, size_t buflen, size_t *pnwriten)
   /* According to the RFC uidl's are no longer then 70 chars.  */
   char uniq[128];
 
-  if (msg == NULL || (mpm = msg->owner) == NULL)
+  if (mpm == NULL)
     return EINVAL;
 
   mpd = mpm->mpd;
@@ -1099,19 +1099,20 @@ pop_uidl (message_t msg, char *buffer, size_t buflen, size_t *pnwriten)
 }
 
 static int
-pop_header_read (stream_t is, char *buffer, size_t buflen,
+pop_top (stream_t is, char *buffer, size_t buflen,
 		 off_t offset, size_t *pnread)
 {
-  pop_message_t mpm;
+  pop_message_t mpm = is->owner;
   pop_data_t mpd;
   bio_t bio;
   size_t nread = 0;
   int status = 0;
-  void *func = (void *)pop_header_read;
+  void *func = (void *)pop_top;
 
-  if (is == NULL || (mpm = is->owner) == NULL)
+  if (mpm == NULL)
     return EINVAL;
 
+  /* We do not carry the offset(for pop), should be doc somewhere.  */
   (void)offset;
   mpd = mpm->mpd;
   bio = mpd->bio;
@@ -1147,9 +1148,12 @@ pop_header_read (stream_t is, char *buffer, size_t buflen,
       mailbox_debug (mpd->mbox, MU_MAILBOX_DEBUG_PROT, bio->buffer);
       if (strncasecmp (bio->buffer, "+OK", 3) != 0)
 	{
-	  fprintf (stderr, "TOP not implmented\n");
-	  CLEAR_STATE (mpd);
-	  return ENOSYS;
+	  /* fprintf (stderr, "TOP not implmented\n"); */
+	  /* Fall back to RETR call.  */
+	  mpd->state = POP_NO_STATE;
+	  mpm->skip_header = 0;
+	  mpm->skip_body = 1;
+	  return pop_retr (mpm, buffer, buflen, offset, pnread);
 	}
       mpd->state = POP_TOP_RX;
       bio->current = bio->nl;
@@ -1185,8 +1189,10 @@ pop_header_read (stream_t is, char *buffer, size_t buflen,
       }
       break;
     default:
-	  /* fprintf (stderr, "pop_header_blurb unknown state\n"); */
-      break;
+      /* Probabaly TOP was not supported so we fall back to RETR.  */
+      mpm->skip_header = 0;
+      mpm->skip_body = 1;
+      return pop_retr (mpm, buffer, buflen, offset, pnread);
     } /* switch (state) */
 
   if (nread == 0)
@@ -1199,41 +1205,114 @@ pop_header_read (stream_t is, char *buffer, size_t buflen,
 }
 
 static int
-pop_readstream (stream_t is, char *buffer, size_t buflen,
-			off_t offset, size_t *pnread)
+pop_read_header (stream_t is, char *buffer, size_t buflen, off_t offset,
+		 size_t *pnread)
 {
-  pop_message_t mpm;
+  pop_message_t mpm = is->owner;
+  pop_data_t mpd;
+  void *func = (void *)pop_read_header;
+
+  if (mpm == NULL)
+    return EINVAL;
+  /* Busy ? */
+  if (mpd->func && mpd->func != func)
+    return EBUSY;
+  mpd->func = func;
+
+  mpm->skip_header = 0;
+  mpm->skip_body = 1;
+  return pop_retr (mpm, buffer, buflen, offset, pnread);
+}
+
+static int
+pop_read_body (stream_t is, char *buffer, size_t buflen, off_t offset,
+	       size_t *pnread)
+{
+  pop_message_t mpm = is->owner;
+  pop_data_t mpd;
+  void *func = (void *)pop_read_body;
+
+  if (mpm == NULL)
+    return EINVAL;
+  /* Busy ? */
+  if (mpd->func && mpd->func != func)
+    return EBUSY;
+  mpd->func = func;
+
+  mpm->skip_header = 1;
+  mpm->skip_body = 0;
+  return pop_retr (mpm, buffer, buflen, offset, pnread);
+}
+
+static int
+pop_read_message (stream_t is, char *buffer, size_t buflen, off_t offset,
+	       size_t *pnread)
+{
+  pop_message_t mpm = is->owner;
+  pop_data_t mpd;
+  void *func = (void *)pop_read_message;
+
+  if (mpm == NULL)
+    return EINVAL;
+  mpd = mpm->mpd;
+  /* Busy ? */
+  if (mpd->func && mpd->func != func)
+    return EBUSY;
+  mpd->func = func;
+
+  mpm->skip_header = mpm->skip_body = 0;
+  return pop_retr (mpm, buffer, buflen, offset, pnread);
+}
+
+static int
+fill_buffer (bio_t bio, char *buffer, size_t buflen)
+{
+  int nleft, n, nread = 0;
+  n = bio->nl - bio->current;
+  nleft = buflen - n;
+  /* We got more then requested.  */
+  if (nleft <= 0)
+    {
+      memcpy (buffer, bio->current, buflen);
+      bio->current += buflen;
+      nread = buflen;
+    }
+  else
+    {
+      /* Drain the buffer.  */
+      memcpy (buffer, bio->current, n);
+      bio->current += n;
+      nread = n;
+    }
+  return nread;
+}
+
+static int
+pop_retr (pop_message_t mpm, char *buffer, size_t buflen, off_t offset,
+	  size_t *pnread)
+{
   pop_data_t mpd;
   size_t nread = 0;
   bio_t bio;
   int status = 0;
-  void *func = (void *)pop_readstream;
 
   (void)offset;
-  if (is == NULL || (mpm = is->owner) == NULL)
-    return EINVAL;
 
+  if (pnread)
+    *pnread = nread;
   /*  Take care of the obvious.  */
   if (buffer == NULL || buflen == 0)
-    {
-      if (pnread)
-	*pnread = nread;
-      return 0;
-    }
+    return 0;
 
   mpd = mpm->mpd;
   bio = mpd->bio;
 
-  /* Busy ? */
-  if (mpd->func && mpd->func != func)
-    return EBUSY;
-
-  mpd->func = func;
-
   switch (mpd->state)
     {
     case POP_NO_STATE:
+      mpm->body_lines = mpm->body_size = 0;
       bio->len = sprintf (bio->buffer, "RETR %d\r\n", mpm->num);
+      bio->ptr = bio->buffer;
       mpd->state = POP_RETR_TX;
 
     case POP_RETR_TX:
@@ -1251,14 +1330,33 @@ pop_readstream (stream_t is, char *buffer, size_t buflen,
 	  CLEAR_STATE (mpd);
 	  return EACCES;
 	}
+      bio->current = bio->nl;
       mpd->state = POP_RETR_RX_HDR;
 
     case POP_RETR_RX_HDR:
       /* Skip the header.  */
       while (!mpm->inbody)
 	{
-	  status = bio_readline (bio);
-	  CHECK_NON_RECOVERABLE (mpd, status);
+	  /* Do we need to fill up.  */
+	  if (bio->current >= bio->nl)
+	    {
+	      bio->current = bio->buffer;
+	      status = bio_readline (bio);
+	      CHECK_NON_RECOVERABLE (mpd, status);
+	    }
+	  if (mpm->skip_header == 0)
+	    {
+	      nread = fill_buffer (bio, buffer, buflen);
+	      if (pnread)
+		*pnread += nread;
+	      buflen -= nread ;
+	      if (buflen > 0)
+		buffer += nread;
+	      else
+		return 0;
+	    }
+	  else
+	    bio->current = bio->nl;
 	  if (bio->buffer[0] == '\n')
 	    {
 	      mpm->inbody = 1;
@@ -1266,50 +1364,58 @@ pop_readstream (stream_t is, char *buffer, size_t buflen,
 	    }
 	}
       /* Skip the newline.  */
-      bio_readline (bio);
-      bio->current = bio->current;
+      //bio_readline (bio);
       mpd->state = POP_RETR_RX_BODY;
 
     case POP_RETR_RX_BODY:
       /* Start taking the body.  */
       {
-	int nleft, n;
-	/* Do we need to fill up.  */
-	if (bio->current >= bio->nl)
+	while (mpm->inbody)
 	  {
-	    bio->current = bio->buffer;
-	    status = bio_readline (bio);
-	    CHECK_NON_RECOVERABLE (mpd, status);
+	    /* Do we need to fill up.  */
+	    if (bio->current >= bio->nl)
+	      {
+		bio->current = bio->buffer;
+		status = bio_readline (bio);
+		CHECK_NON_RECOVERABLE (mpd, status);
+		mpm->body_lines++;
+	      }
+	    if (mpm->skip_body == 0)
+	      {
+		nread = fill_buffer (bio, buffer, buflen);
+		mpm->body_size += nread;
+		if (pnread)
+		  *pnread += nread;
+		buflen -= nread ;
+		if (buflen > 0)
+		  buffer += nread;
+		else
+		  return 0;
+	      }
+	    else
+	      {
+		mpm->body_size += (bio->nl - bio->current);
+		bio->current = bio->nl;
+	      }
+	    if (bio->buffer[0] == '\0')
+	      {
+		mpm->inbody = 0;
+		break;
+	      }
 	  }
-	n = bio->nl - bio->current;
-	nleft = buflen - n;
-	/* We got more then requested.  */
-	if (nleft <= 0)
-	  {
-	    memcpy (buffer, bio->current, buflen);
-	    bio->current += buflen;
-	    nread = buflen;
-	  }
-	else
-	  {
-	    /* Drain the buffer.  */
-	    memcpy (buffer, bio->current, n);
-	    bio->current += n;
-	    nread = n;
-	  }
-	break;
       }
+      mpd->state = POP_STATE_DONE;
+      return 0;
+    case POP_STATE_DONE:
+      /* A convenient break, this is here so we can return 0 read on next
+	 call meaning we're done.  */
     default:
-      /* fprintf (stderr, "pop_readstream unknow state\n"); */
+      /* fprintf (stderr, "pop_retr unknow state\n"); */
       break;
     } /* Switch state.  */
 
-  if (nread == 0)
-    {
-      CLEAR_STATE (mpd);
-    }
-  if (pnread)
-    *pnread = nread;
+  CLEAR_STATE (mpd);
+  mpm->skip_header = mpm->skip_body = 0;
   return 0;
 }
 

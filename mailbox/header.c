@@ -198,7 +198,8 @@ header_set_value (header_t header, const char *fn, const char *fv, int replace)
   if (header == NULL || fn == NULL || fv == NULL)
     return EINVAL;
 
-  if (header->_set_value != NULL)
+  /* Overload.  */
+  if (header->_set_value)
     return header->_set_value (header, fn, fv, replace);
 
   /* Try to fill out the buffer, if we know how.  */
@@ -268,7 +269,8 @@ header_get_value (header_t header, const char *name, char *buffer,
   if (header == NULL || name == NULL)
     return EINVAL;
 
-  if (header->_get_value != NULL)
+  /* Overload.  */
+  if (header->_get_value)
     return header->_get_value (header, name, buffer, buflen, pn);
 
   /* Try to fill out the buffer, if we know how.  */
@@ -320,17 +322,22 @@ header_get_value (header_t header, const char *name, char *buffer,
   if (pn)
     *pn = total;
 
-  /* Check if they provided a hook.  */
   if (total == 0)
-    {
-      err = ENOENT;
-      if (header->_get_value != NULL)
-	err = header->_get_value (header, name, buffer, buflen, pn);
-      /* Success.  Cache it locally.  */
-      if (err == 0)
-	header_set_value (header, name, buffer, 0);
-    }
+    err = ENOENT;
+
   return err;
+}
+
+int
+header_set_lines (header_t header, int (*_lines)
+		 (header_t, size_t *), void *owner)
+{
+  if (header ==  NULL)
+    return EINVAL;
+  if (header->owner != owner)
+    return EACCES;
+  header->_lines = _lines;
+  return 0;
 }
 
 int
@@ -338,8 +345,12 @@ header_lines (header_t header, size_t *plines)
 {
   int n;
   size_t lines = 0;
-  if (header == NULL)
+  if (header == NULL || plines == NULL)
     return EINVAL;
+
+  /* Overload.  */
+  if (header->_lines)
+    return header->_lines (header, plines);
 
   /* Try to fill out the buffer, if we know how.  */
   if (header->blurb == NULL)
@@ -360,10 +371,26 @@ header_lines (header_t header, size_t *plines)
 }
 
 int
-header_size (header_t header, size_t *pnum)
+header_set_size (header_t header, int (*_size)
+		 (header_t, size_t *), void *owner)
+{
+  if (header ==  NULL)
+    return EINVAL;
+  if (header->owner != owner)
+    return EACCES;
+  header->_size = _size;
+  return 0;
+}
+
+int
+header_size (header_t header, size_t *psize)
 {
   if (header == NULL)
       return EINVAL;
+
+  /* Overload.  */
+  if (header->_size)
+    return header->_size (header, psize);
 
   /* Try to fill out the buffer, if we know how.  */
   if (header->blurb == NULL)
@@ -373,8 +400,8 @@ header_size (header_t header, size_t *pnum)
 	return err;
     }
 
-  if (pnum)
-    *pnum = header->blurb_len;
+  if (psize)
+    *psize = header->blurb_len;
   return 0;
 }
 

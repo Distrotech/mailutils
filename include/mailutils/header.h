@@ -70,24 +70,29 @@ typedef struct _header * header_t;
 extern int header_create        __P ((header_t *, const char *,
 				      size_t, void *));
 extern void header_destroy      __P ((header_t *, void *));
+
 extern int header_set_value     __P ((header_t, const char *,
 				      const char *, int));
-extern int header_get_value     __P ((header_t, const char *, char *,
-				      size_t, size_t *));
-extern int header_get_stream    __P ((header_t, stream_t *));
-extern int header_size          __P ((header_t, size_t *));
-extern int header_lines         __P ((header_t, size_t *));
-
-extern int header_set_stream    __P ((header_t, stream_t, void *));
-
 extern int header_set_set_value __P ((header_t, int (*_set_value)
 				      __P ((header_t, const char *,
-					    const char *, int)),
-				      void *));
+					    const char *, int)), void *));
+
+extern int header_get_value     __P ((header_t, const char *, char *,
+				      size_t, size_t *));
 extern int header_set_get_value __P ((header_t, int (*_get_value)
-				      __P ((header_t, const char *,
-					    char *, size_t, size_t *)),
-				      void *));
+				      __P ((header_t, const char *, char *,
+					    size_t, size_t *)), void *));
+
+extern int header_get_stream    __P ((header_t, stream_t *));
+extern int header_set_stream    __P ((header_t, stream_t, void *));
+
+extern int header_size          __P ((header_t, size_t *));
+extern int header_set_size      __P ((header_t, int (*_size)
+				      __P ((header_t, size_t *)), void *));
+
+extern int header_lines         __P ((header_t, size_t *));
+extern int header_set_lines     __P ((header_t, int (*_lines)
+				      __P ((header_t, size_t *)), void *));
 
 #ifdef _cplusplus
 }
