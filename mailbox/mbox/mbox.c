@@ -277,7 +277,7 @@ static int
 mbox_close (mailbox_t mailbox)
 {
   mbox_data_t mud = mailbox->data;
-  /* size_t i; */
+  size_t i; 
 
   if (mud == NULL)
     return EINVAL;
@@ -287,10 +287,14 @@ mbox_close (mailbox_t mailbox)
   /* Make sure that we do not hold any file locking.  */
   locker_unlock (mailbox->locker);
 
-#if 0
-  /* RFC: I'm not sure on the right approach especially if the client is
+  /* Alain: I'm not sure on the right approach especially if the client is
      working in disconnected mode, where it can mailbox_close/mailbox_open
-     for each request, maybe we should keep them for a while.  */
+     for each request, maybe we should keep them for a while.
+
+     Sergey: No, it actually breaks reopening the mailbox. We should make
+     sure that the sequence mailbox_open();mailbox_close() will catch all
+     the changes that might have been done to the mailbox */
+  
   monitor_wrlock (mailbox->monitor);
   /* Before closing we need to remove all the messages
      - to reclaim the memory
@@ -317,7 +321,7 @@ mbox_close (mailbox_t mailbox)
   mud->uidvalidity = 0;
   mud->uidnext = 0;
   monitor_unlock (mailbox->monitor);
-#endif
+
   return stream_close (mailbox->stream);
 }
 
@@ -346,11 +350,17 @@ mbox_scan (mailbox_t mailbox, size_t msgno, size_t *pcount)
   return 0;
 }
 
-/* FIXME:  How to handle a shrink ? meaning, the &^$^@%#@^& user start two
+/* Alain: How to handle a shrink ? meaning, the &^$^@%#@^& user start two
    browsers and deleted emails in one session.  My views is that we should
    scream bloody murder and hunt them with a machette. But for now just play
    dumb, but maybe the best approach is to pack our things and leave
-   .i.e exit()/abort().  */
+   .i.e exit()/abort(). 
+
+   Sergey: Nope, we shouldn't abort. Handling it with MU_EVT_MAILBOX_CORRUPT
+   is sensible enough. The caller must decide what's the best approach
+   in this case. The simplest one is reopening the mailbox. Imap4d currently
+   does that. */
+
 static int
 mbox_is_updated (mailbox_t mailbox)
 {
