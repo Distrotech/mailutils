@@ -229,8 +229,117 @@ mailbox_imap_destroy (mailbox_t mailbox)
 static int
 mailbox_imap_open (mailbox_t mailbox, int flags)
 {
+  int status = 0;
+  m_imap_t m_imap = mailbox->data;
+  f_imap_t f_imap = m_imap->f_imap;
+  folder_t folder = f_imap->folder;
+  struct folder_list folders = { 0 };
+
+  /* m_imap must have been created during mailbox initialization. */
+  assert (mailbox->data);
+  assert (m_imap->name);
+
   mailbox->flags = flags;
-  return folder_open (mailbox->folder, flags);
+
+  if ((status = folder_open (mailbox->folder, flags)))
+    return status;
+
+  /* We might not have to SELECT the mailbox, but we need to know it
+     exists, and CREATE it if it doesn't, and CREATE is specified in
+     the flags.
+   */
+
+  switch (m_imap->state)
+    {
+    case IMAP_NO_STATE:
+      m_imap->state = IMAP_LIST;
+
+    case IMAP_LIST:
+      status = folder_list (folder, NULL, m_imap->name, &folders);
+      if (status != 0)
+	{
+	  if (status != EAGAIN && status != EINPROGRESS && status != EINTR)
+	    m_imap->state = IMAP_NO_STATE;
+
+	  return status;
+	}
+      m_imap->state = IMAP_NO_STATE;
+      if (folders.num)
+	return 0;
+
+      if ((flags & MU_STREAM_CREAT) == 0)
+	return ENOENT;
+
+      m_imap->state = IMAP_CREATE;
+
+    case IMAP_CREATE:
+      switch (f_imap->state)
+	{
+	case IMAP_NO_STATE:
+	  {
+	    char *path;
+	    size_t len;
+	    url_get_path (folder->url, NULL, 0, &len);
+	    if (len == 0)
+	      return 0;
+	    path = calloc (len + 1, sizeof (*path));
+	    if (path == NULL)
+	      return ENOMEM;
+	    url_get_path (folder->url, path, len + 1, NULL);
+	    status = imap_writeline (f_imap, "g%u CREATE %s\r\n",
+				     f_imap->seq, path);
+	    MAILBOX_DEBUG2 (folder, MU_DEBUG_PROT, "g%u CREATE %s\n",
+			    f_imap->seq, path);
+	    f_imap->seq++;
+	    free (path);
+	    if (status != 0)
+	      {
+		m_imap->state = f_imap->state = IMAP_NO_STATE;
+		return status;
+	      }
+	    f_imap->state = IMAP_CREATE;
+	  }
+
+	case IMAP_CREATE:
+	  status = imap_send (f_imap);
+	  if (status != 0)
+	    {
+	      if (status != EAGAIN && status != EINPROGRESS
+		  && status != EINTR)
+		m_imap->state = f_imap->state = IMAP_NO_STATE;
+
+	      return status;
+	    }
+	  f_imap->state = IMAP_CREATE_ACK;
+
+	case IMAP_CREATE_ACK:
+	  status = imap_parse (f_imap);
+	  if (status != 0)
+	    {
+	      if (status == EINVAL)
+		status = EACCES;
+
+	      if (status != EAGAIN && status != EINPROGRESS
+		  && status != EINTR)
+		m_imap->state = f_imap->state = IMAP_NO_STATE;
+
+	      return status;
+	    }
+	  f_imap->state = IMAP_NO_STATE;
+
+	default:
+	  status = EINVAL;
+	  break;
+	}
+      m_imap->state = IMAP_NO_STATE;
+      break;
+
+    default:
+      status = EINVAL;
+      break;
+    }
+
+  return status;
 }
 
 /* We can not close the folder in term of shuting down the connection but if
