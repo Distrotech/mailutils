@@ -42,14 +42,13 @@ static int is_same_path (url_t, url_t);
 static int is_same_host (url_t, url_t);
 static int is_same_port (url_t, url_t);
 
-/*  A folder could be a remote one, IMAP, or local, a spool directory
-    like $HOME/Mail etc ..  We maintain a known list of folder to
-    not generate multiple folder of the same URL.  Meaning when
-    folder_create () is call we'll check if we already have a
-    folder for that URL and return the same, if not we create a new one.
-    The downside, the algo to detect the same URL is very weak, and
-    they maybe cases where you want a different folder for the same
-    URL, there is not easy way to do this.  */
+/* A folder could be remote(IMAP), or local(a spool directory) like $HOME/Mail
+   etc ..  We maintain a known list of folder to not generate multiple folder
+   of the same URL.  Meaning when folder_create () is call we'll check if we
+   already have a folder for that URL and return the same, if not we create a
+   new one.  The downside, the scheme to detect the same URL is very weak, and
+   they maybe cases where you want a different folder for the same URL, there
+   is not easy way to do this.  */
 int
 folder_create (folder_t *pfolder, const char *name)
 {
@@ -118,8 +117,8 @@ folder_create (folder_t *pfolder, const char *name)
       if (folder != NULL)
 	{
 	  folder->url = url;
-	  /* Initialize the internal lock, now so the concrete
-	     folder could use it.  */
+	  /* Initialize the internal lock, now so the concrete folder could
+	     use it.  */
 	  status = monitor_create (&(folder->monitor), 0, folder);
 	  if (status == 0)
 	    {
@@ -321,33 +320,29 @@ folder_get_debug (folder_t folder, debug_t *pdebug)
 }
 
 int
-folder_list (folder_t folder, const char *dirname,
-	     struct folder_list ***flist, size_t *pnum)
+folder_list (folder_t folder, const char *dirname, struct folder_list *pflist)
 {
   if (folder == NULL || folder->_list == NULL)
     return ENOSYS;
-  return folder->_list (folder, dirname, flist, pnum);
+  return folder->_list (folder, dirname, pflist);
 }
 
 int
-folder_list_destroy (struct folder_list ***pflist, size_t count)
+folder_list_destroy (struct folder_list *pflist)
 {
-  struct folder_list **list;
   size_t i;
-  if (pflist == NULL || *pflist == NULL || count == 0)
+  if (pflist == NULL)
     return 0;
-  list = *pflist;
-  for (i = 0 ; i < count; i++)
+  for (i = 0 ; i < pflist->num; i++)
     {
-      if (list[i])
+      if (pflist->element[i])
 	{
-	  if (list[i]->name)
-	    free (list[i]->name);
-	  free (list[i]);
+	  if (pflist->element[i]->name)
+	    free (pflist->element[i]->name);
+	  free (pflist->element[i]);
 	}
     }
-  free (list);
-  *pflist = NULL;
+  free (pflist->element);
   return 0;
 }
 

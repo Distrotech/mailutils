@@ -210,7 +210,7 @@ header_set_value (header_t header, const char *fn, const char *fv, int replace)
     return header->_set_value (header, fn, fv, replace);
 
   /* Try to fill out the buffer, if we know how.  */
-  if (header->blurb == NULL)
+  if (header->blurb == NULL && header->_get_value == NULL)
     {
       int err = fill_blurb (header);
       if (err != 0)
@@ -314,12 +314,8 @@ header_get_value (header_t header, const char *name, char *buffer,
   if (header == NULL || name == NULL)
     return EINVAL;
 
-  /* Overload.  */
-  if (header->_get_value)
-    return header->_get_value (header, name, buffer, buflen, pn);
-
   /* Try to fill out the buffer, if we know how.  */
-  if (header->blurb == NULL)
+  if (header->blurb == NULL && header->_get_value == NULL)
     {
       err = fill_blurb (header);
       if (err != 0)
@@ -368,7 +364,16 @@ header_get_value (header_t header, const char *name, char *buffer,
     *pn = total;
 
   if (total == 0)
-    err = ENOENT;
+    {
+      err = ENOENT;
+      /* Overload.  */
+      if (header->_get_value)
+	{
+	  err = header->_get_value (header, name, buffer, buflen + 1, pn);
+	  if (err == 0)
+	    header_set_value (header, name, buffer, 0);
+	}
+    }
 
   return err;
 }

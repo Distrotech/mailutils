@@ -96,6 +96,14 @@ mailbox_create (mailbox_t *pmbox, const char *name)
 	}
       mbox->url = url;
 
+      /* Create the folder before initializing the concrete mailbox.
+	 The mailbox needs it's back pointer. */
+      {
+	folder_t folder;
+	if (folder_create (&folder, name) == 0)
+	  mbox->folder = folder;
+      }
+
       /* Create the concrete mailbox type.  */
       status = m_init (mbox);
       if (status != 0)
@@ -103,7 +111,10 @@ mailbox_create (mailbox_t *pmbox, const char *name)
 	  mailbox_destroy (&mbox);
 	}
       else
-	*pmbox = mbox;
+	{
+	  *pmbox = mbox;
+	}
+
     }
   else
     status = ENOENT;

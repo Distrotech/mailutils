@@ -16,7 +16,6 @@ address.c \
 attachment.c \
 attribute.c \
 auth.c \
-bio.c  \
 body.c \
 debug.c \
 envelope.c \

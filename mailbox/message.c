@@ -28,7 +28,6 @@
 #include <string.h>
 #include <ctype.h>
 
-#include <mailutils/stream.h>
 #include <misc.h>
 #include <message0.h>
 
@@ -116,6 +115,16 @@ message_destroy (message_t *pmsg, void *owner)
 	  /* Loose the owner.  */
 	  msg->owner = NULL;
 
+	  /* Mailbox maybe created floating i.e they were created
+	     implicitely by the message when doing something like:
+	     message_create (&msg, "pop://localhost/msgno=2", NULL);
+	     message_create (&msg, "imap://localhost/alain;uid=xxxxx", NULL);
+	     althought the semantics about this is still flaky we our
+	     making some provisions here for it.
+	     if (msg->floating_mailbox && msg->mailbox)
+	     mailbox_destroy (&(msg->mailbox));
+	  */
+
 	  if (msg->ref <= 0)
 	    free (msg);
 	}
@@ -146,25 +155,29 @@ message_get_owner (message_t msg)
 }
 
 int
+message_set_mailbox (message_t msg, mailbox_t mailbox)
+{
+  if (msg == NULL)
+    return EINVAL;
+  msg->mailbox = mailbox;
+  return 0;
+}
+
+int
 message_get_header (message_t msg, header_t *phdr)
 {
   if (msg == NULL || phdr == NULL)
     return EINVAL;
 
   /* Is it a floating mesg */
-  monitor_wrlock (msg->monitor);
   if (msg->header == NULL)
     {
       header_t header;
       int status = header_create (&header, NULL, 0, msg);
       if (status != 0)
-	{
-	  monitor_unlock (msg->monitor);
-	  return status;
-	}
+	return status;
       msg->header = header;
     }
-  monitor_unlock (msg->monitor);
   *phdr = msg->header;
   return 0;
 }
@@ -178,11 +191,9 @@ message_set_header (message_t msg, header_t hdr, void *owner)
      return EACCES;
   /* Make sure we destoy the old if it was own by the mesg */
   /* FIXME:  I do not know if somebody has already a ref on this ? */
-  monitor_wrlock (msg->monitor);
   if (msg->header)
     header_destroy (&(msg->header), msg);
   msg->header = hdr;
-  monitor_unlock (msg->monitor);
   return 0;
 }
 
@@ -192,20 +203,15 @@ message_get_body (message_t msg, body_t *pbody)
   if (msg == NULL || pbody == NULL)
     return EINVAL;
 
-  monitor_wrlock (msg->monitor);
   /* Is it a floating mesg.  */
   if (msg->body == NULL)
     {
       body_t body;
       int status = body_create (&body, msg);
       if (status != 0)
-	{
-	  monitor_unlock (msg->monitor);
-	  return status;
-	}
+	return status;
       msg->body = body;
     }
-  monitor_unlock (msg->monitor);
   *pbody = msg->body;
   return 0;
 }
@@ -219,11 +225,9 @@ message_set_body (message_t msg, body_t body, void *owner)
     return EACCES;
   /* Make sure we destoy the old if it was own by the mesg.  */
   /* FIXME:  I do not know if somebody has already a ref on this ? */
-  monitor_wrlock (msg->monitor);
   if (msg->body)
     body_destroy (&(msg->body), msg);
   msg->body = body;
-  monitor_unlock (msg->monitor);
   return 0;
 }
 
@@ -236,11 +240,9 @@ message_set_stream (message_t msg, stream_t stream, void *owner)
     return EACCES;
   /* Make sure we destoy the old if it was own by the mesg.  */
   /* FIXME:  I do not know if somebody has already a ref on this ? */
-  monitor_wrlock (msg->monitor);
   if (msg->stream)
     stream_destroy (&(msg->stream), msg);
   msg->stream = stream;
-  monitor_unlock (msg->monitor);
   return 0;
 }
 
@@ -250,24 +252,19 @@ message_get_stream (message_t msg, stream_t *pstream)
   if (msg == NULL || pstream == NULL)
     return EINVAL;
 
-  monitor_wrlock (msg->monitor);
   if (msg->stream == NULL)
     {
       stream_t stream;
       int status;
       status = stream_create (&stream, MU_STREAM_RDWR, msg);
       if (status != 0)
-	{
-	  monitor_unlock (msg->monitor);
-	  return status;
-	}
+	return status;
       stream_set_read (stream, message_read, msg);
       stream_set_write (stream, message_write, msg);
       stream_set_fd (stream, message_get_fd, msg);
       stream_set_flags (stream, MU_STREAM_RDWR);
       msg->stream = stream;
     }
-  monitor_unlock (msg->monitor);
 
   *pstream = msg->stream;
   return 0;
@@ -345,21 +342,16 @@ message_get_envelope (message_t msg, envelope_t *penvelope)
   if (msg == NULL || penvelope == NULL)
     return EINVAL;
 
-  monitor_wrlock (msg->monitor);
   if (msg->envelope == NULL)
     {
       envelope_t envelope;
       int status = envelope_create (&envelope, msg);
       if (status != 0)
-	{
-	  monitor_unlock (msg->monitor);
-	  return status;
-	}
+	return status;
       envelope_set_sender (envelope, message_sender, msg);
       envelope_set_date (envelope, message_date, msg);
       msg->envelope = envelope;
     }
-  monitor_unlock (msg->monitor);
   *penvelope = msg->envelope;
   return 0;
 }
@@ -371,11 +363,9 @@ message_set_envelope (message_t msg, envelope_t envelope, void *owner)
     return EINVAL;
   if (msg->owner != owner)
     return EACCES;
-  monitor_wrlock (msg->monitor);
   if (msg->envelope)
     envelope_destroy (&(msg->envelope), msg);
   msg->envelope = envelope;
-  monitor_unlock (msg->monitor);
   return 0;
 }
 
@@ -385,19 +375,14 @@ message_get_attribute (message_t msg, attribute_t *pattribute)
   if (msg == NULL || pattribute == NULL)
    return EINVAL;
 
-  monitor_wrlock (msg->monitor);
   if (msg->attribute == NULL)
     {
       attribute_t attribute;
       int status = attribute_create (&attribute, msg);
       if (status != 0)
-	{
-	  monitor_unlock (msg->monitor);
-	  return status;
-	}
+	return status;
       msg->attribute = attribute;
     }
-  monitor_unlock (msg->monitor);
   *pattribute = msg->attribute;
   return 0;
 }
@@ -409,11 +394,9 @@ message_set_attribute (message_t msg, attribute_t attribute, void *owner)
    return EINVAL;
   if (msg->owner != owner)
     return EACCES;
-  monitor_wrlock (msg->monitor);
   if (msg->attribute)
     attribute_destroy (&(msg->attribute), owner);
   msg->attribute = attribute;
-  monitor_unlock (msg->monitor);
   return 0;
 }
 
@@ -482,31 +465,21 @@ message_set_is_multipart (message_t msg, int (*_is_multipart)
 }
 
 int
-message_is_multipart (message_t msg, int *p_is_mp)
+message_is_multipart (message_t msg, int *pmulti)
 {
-  header_t header;
-  int status;
-  size_t len = 0;
-
-  if (msg == NULL || p_is_mp)
-    return EINVAL;
-
-  message_get_header(msg, &header);
-  status = header_get_value (header, "Content-Type", NULL, 0, &len);
-  if (status == 0)
+  if (msg && pmulti)
     {
-      char *content_type = calloc (len + 1, sizeof (char));
-      if (content_type == NULL)
-	return ENOMEM;
-      status = header_get_value (header, "Content-Type", content_type,
-				 len, NULL);
-      *p_is_mp = strncasecmp ("multipart", content_type,
-			      strlen ("multipart")) ? 0: 1;
-      free (content_type);
+      if (msg->_is_multipart)
+	return msg->_is_multipart (msg, pmulti);
+      if (msg->mime == NULL)
+	{
+	  int status = mime_create (&(msg->mime), msg, 0);
+	  if (status != 0)
+	    return 0;
+	}
+      *pmulti = mime_is_multipart(msg->mime);
     }
-  else
-    *p_is_mp = 0;
-  return status;
+  return 0;
 }
 
 int
@@ -518,17 +491,12 @@ message_get_num_parts (message_t msg, size_t *pparts)
   if (msg->_get_num_parts)
     return msg->_get_num_parts (msg, pparts);
 
-  monitor_wrlock (msg->monitor);
   if (msg->mime == NULL)
     {
       int status = mime_create (&(msg->mime), msg, 0);
       if (status != 0)
-	{
-	  monitor_unlock (msg->monitor);
-	  return status;
-	}
+	return status;
     }
-  monitor_unlock (msg->monitor);
   return mime_get_num_parts (msg->mime, pparts);
 }
 
@@ -554,17 +522,12 @@ message_get_part (message_t msg, size_t part, message_t *pmsg)
   if (msg->_get_part)
     return msg->_get_part (msg, part, pmsg);
 
-  monitor_wrlock (msg->monitor);
   if (msg->mime == NULL)
     {
       int status = mime_create (&(msg->mime), msg, 0);
       if (status != 0)
-	{
-	  monitor_unlock (msg->monitor);
-	  return status;
-	}
+	return status;
     }
-  monitor_unlock (msg->monitor);
   return mime_get_part (msg->mime, part, pmsg);
 }
 
@@ -587,17 +550,12 @@ message_get_observable (message_t msg, observable_t *pobservable)
   if (msg == NULL || pobservable == NULL)
     return EINVAL;
 
-  monitor_wrlock (msg->monitor);
   if (msg->observable == NULL)
     {
       int status = observable_create (&(msg->observable), msg);
       if (status != 0)
-	{
-	  monitor_unlock (msg->monitor);
-	  return status;
-	}
+	return status;
     }
-  monitor_unlock (msg->monitor);
   *pobservable = msg->observable;
   return 0;
 }
@@ -658,7 +616,6 @@ message_write (stream_t os, const char *buf, size_t buflen,
       return 0;
     }
 
-  monitor_wrlock (msg->monitor);
   if (!msg->hdr_done)
     {
       size_t len;
@@ -674,7 +631,6 @@ message_write (stream_t os, const char *buf, size_t buflen,
 	      free (msg->hdr_buf);
 	      msg->hdr_buf = NULL;
 	      msg->hdr_buflen = 0;
-	      monitor_unlock (msg->monitor);
 	      return ENOMEM;
 	    }
 	  else
@@ -693,7 +649,6 @@ message_write (stream_t os, const char *buf, size_t buflen,
 	      if (status != 0)
 		{
 		  msg->hdr_buflen = 0;
-		  monitor_unlock (msg->monitor);
 		  return status;
 		}
 	      msg->hdr_done = 1;
@@ -702,19 +657,16 @@ message_write (stream_t os, const char *buf, size_t buflen,
 	  buflen -= len;
 	}
     }
-  monitor_unlock (msg->monitor);
 
   /* Message header is not complete but was not a full line.  */
   if (!msg->hdr_done && buflen > 0)
     {
       char *thdr = realloc (msg->hdr_buf, msg->hdr_buflen + buflen);
-      monitor_wrlock (msg->monitor);
       if (thdr == NULL)
 	{
 	  free (msg->hdr_buf);
 	  msg->hdr_buf = NULL;
 	  msg->hdr_buflen = 0;
-	  monitor_unlock (msg->monitor);
 	  return ENOMEM;
 	}
       else
@@ -722,7 +674,6 @@ message_write (stream_t os, const char *buf, size_t buflen,
       memcpy (msg->hdr_buf + msg->hdr_buflen, buf, buflen);
       msg->hdr_buflen += buflen;
       buflen = 0;
-      monitor_unlock (msg->monitor);
     }
   else if (buflen > 0) /* In the body.  */
     {
@@ -759,21 +710,16 @@ message_get_fd (stream_t stream, int *pfd)
   if (msg == NULL)
     return EINVAL;
 
-  monitor_wrlock (msg->monitor);
   /* Probably being lazy, then create a body for the stream.  */
   if (msg->body == NULL)
     {
       int status = body_create (&body, msg);
       if (status != 0 )
-	{
-	  monitor_unlock (msg->monitor);
-	  return status;
-	}
+	return status;
       msg->body = body;
     }
   else
       body = msg->body;
-  monitor_unlock (msg->monitor);
 
   body_get_stream (body, &is);
   return stream_get_fd (is, pfd);

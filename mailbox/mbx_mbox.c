@@ -1,5 +1,5 @@
 /* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Library Public License as published by
@@ -273,7 +273,7 @@ mbox_open (mailbox_t mailbox, int flags)
 	return status;
     }
 
-  MAILBOX_DEBUG2 (mailbox, MU_DEBUG_TRACE, "mbox_open(%s, %d)\n",
+  MAILBOX_DEBUG2 (mailbox, MU_DEBUG_TRACE, "mbox_open(%s, 0x%x)\n",
 		  mud->name, mailbox->flags);
 
   if (mailbox->authority)
@@ -1066,8 +1066,21 @@ mbox_get_message (mailbox_t mailbox, size_t msgno, message_t *pmsg)
   message_t msg = NULL;
 
   /* Sanity checks.  */
-  if (pmsg == NULL || mud == NULL || (!(mud->messages_count > 0 && msgno > 0
-					&& msgno <= mud->messages_count)))
+  if (pmsg == NULL || mud == NULL)
+    return EINVAL;
+
+  /* We did not start a scanning yet do it now.  */
+  if (mud->messages_count == 0)
+    {
+      status = mbox_scan0 (mailbox, 1, NULL, 0);
+      if (status != 0)
+	return status;
+    }
+
+  /* Second sanity: check the message number.  */
+  if (!(mud->messages_count > 0
+	&& msgno > 0
+	&& msgno <= mud->messages_count))
     return EINVAL;
 
   mum = mud->umessages[msgno - 1];
@@ -1160,9 +1173,9 @@ mbox_get_message (mailbox_t mailbox, size_t msgno, message_t *pmsg)
 
   /* Attach the message to the mailbox mbox data.  */
   mum->message = msg;
+  message_set_mailbox (msg, mailbox);
 
-  if (pmsg)
-    *pmsg = msg;
+  *pmsg = msg;
   return 0;
 }
 
@@ -1307,9 +1320,6 @@ mbox_append_message (mailbox_t mailbox, message_t msg)
 		{
 		  if (status != EAGAIN)
 		    {
-		      free (mud->sender);
-		      free (mud->date);
-		      mud->date = mud->sender = NULL;
 		      mud->state = MBOX_NO_STATE;
 		      locker_unlock (mailbox->locker);
 		    }

@@ -88,8 +88,7 @@ static int folder_mbox_open (folder_t, int);
 static int folder_mbox_close (folder_t);
 static int folder_mbox_delete (folder_t, const char *);
 static int folder_mbox_rename (folder_t , const char *, const char *);
-static int folder_mbox_list (folder_t, const char *,
-			     struct folder_list ***, size_t *);
+static int folder_mbox_list (folder_t, const char *, struct folder_list *);
 
 static char *get_pathname (const char *, const char *);
 
@@ -106,7 +105,7 @@ _folder_mbox_init (folder_t folder)
   fmbox_t dfolder;
   size_t name_len = 0;
 
-  dfolder = folder->data = calloc (1, sizeof (dfolder));
+  dfolder = folder->data = calloc (1, sizeof (*dfolder));
   if (dfolder == NULL)
     return ENOMEM;
 
@@ -217,7 +216,7 @@ folder_mbox_rename (folder_t folder, const char *oldpath, const char *newpath)
    The full pathname so it can be use to create other folders.  */
 static int
 folder_mbox_list (folder_t folder, const char *pattern,
-	    struct folder_list ***pflist, size_t *pnum)
+		  struct folder_list *pflist)
 {
   fmbox_t fmbox = folder->data;
   char *pathname = NULL;
@@ -241,17 +240,17 @@ folder_mbox_list (folder_t folder, const char *pattern,
     {
       if (pflist)
 	{
-	  struct folder_list **flist;
-	  flist = calloc (num, sizeof (*flist));
-	  if (flist)
+	  struct list_response **plist;
+	  plist = calloc (num, sizeof (*plist));
+	  if (plist)
 	    {
 	      size_t i;
 	      struct stat stbuf;
 	      for (i = 0; i < num; i++)
 		{
-		  flist[i] = calloc (1, sizeof (**flist));
-		  if (flist[i] == NULL
-		      || (flist[i]->name = strdup (gl.gl_pathv[i])) == NULL)
+		  plist[i] = calloc (1, sizeof (**plist));
+		  if (plist[i] == NULL
+		      || (plist[i]->name = strdup (gl.gl_pathv[i])) == NULL)
 		    {
 		      num = i;
 		      break;
@@ -259,16 +258,15 @@ folder_mbox_list (folder_t folder, const char *pattern,
 		  if (stat (gl.gl_pathv[i], &stbuf) == 0)
 		    {
 		      if (S_ISDIR(stbuf.st_mode))
-			flist[i]->type = MU_FOLDER_ATTRIBUTE_DIRECTORY;
+			plist[i]->type = MU_FOLDER_ATTRIBUTE_DIRECTORY;
 		      if (S_ISREG(stbuf.st_mode))
-			flist[i]->type = MU_FOLDER_ATTRIBUTE_FILE;
+			plist[i]->type = MU_FOLDER_ATTRIBUTE_FILE;
 		    }
-		  flist[i]->separator = '/';
+		  plist[i]->separator = '/';
 		}
 	    }
-	  else
-	    status = ENOMEM;
-	  *pflist = flist;
+	  pflist->element = plist;
+	  pflist->num = num;
 	}
       globfree (&gl);
     }
@@ -277,8 +275,6 @@ folder_mbox_list (folder_t folder, const char *pattern,
       status = (status == GLOB_NOSPACE) ? ENOMEM :
 	((status == GLOB_NOMATCH) ? ENOENT : EINVAL);
     }
-  if (pnum)
-    *pnum = num;
   return status;
 }
 
