@@ -58,6 +58,9 @@ util_token (char *buf, size_t len, char **ptr)
   /* Skip leading space.  */
   while (**ptr && **ptr == ' ')
     (*ptr)++;
+
+  /* Break the string by token, i.e when we reconize IMAP special
+     atoms we stop and send it.  */
   for (i = 1; **ptr && i < len; (*ptr)++, buf++, i++)
     {
       if (**ptr == ' ' || **ptr == '.'
@@ -76,7 +79,82 @@ util_token (char *buf, size_t len, char **ptr)
   /* Skip trailing space.  */
   while (**ptr && **ptr == ' ')
     (*ptr)++;
-  return  *ptr - start;;
+  return  *ptr - start;
+}
+
+/* Remove the surrounding double quotes.  */
+void
+util_unquote (char **ptr)
+{
+  char *s = *ptr;
+  if (*s == '"')
+    {
+      char *p = ++s;
+      while (*p && *p != '"')
+        p++;
+      if (*p == '"')
+        *p = '\0';
+    }
+  *ptr = s;
+}
+
+/* NOTE: Allocates Memory.  */
+/* Expand: ~ --> /home/user and to ~guest --> /home/guest.  */
+char *
+util_tilde_expansion (const char *ref, const char *delim)
+{
+  char *p = strdup (ref);
+  if (*p == '~')
+    {
+      p++;
+      if (*p == delim[0] || *p == '\0')
+        {
+          char *s = calloc (strlen (homedir) + strlen (p) + 1, 1);
+          strcpy (s, homedir);
+          strcat (s, p);
+          free (--p);
+          p = s;
+        }
+      else
+        {
+          struct passwd *pw;
+          char *s = p;
+          char *name;
+          while (*s && *s != delim[0])
+            s++;
+          name = calloc (s - p + 1, 1);
+          memcpy (name, p, s - p);
+          name [s - p] = '\0';
+          pw = getpwnam (name);
+          free (name);
+          if (pw)
+            {
+              char *buf = calloc (strlen (pw->pw_dir) + strlen (s) + 1, 1);
+              strcpy (buf, pw->pw_dir);
+              strcat (buf, s);
+              free (--p);
+              p = buf;
+            }
+          else
+            p--;
+        }
+    }
+  return p;
+}
+
+/* Absolute path.  */
+char *
+util_getfullpath (char *name, const char *delim)
+{
+  char *p = util_tilde_expansion (name, delim);
+  if (*p != delim[0])
+    {
+      char *s = calloc (strlen (homedir) + strlen (delim) + strlen (p) + 1, 1);
+      sprintf (s, "%s%s%s", homedir, delim, p);
+      free (p);
+      p = s;
+    }
+  return p;
 }
 
 /* Return in set an allocated array contain (n) numbers, for imap messsage set

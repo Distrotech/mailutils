@@ -346,7 +346,7 @@ int message_unencapsulate(message_t msg, message_t *newmsg, void **data)
 			if ( ( content_type = alloca(size+1) ) == NULL )
 				return ENOMEM;
 			header_get_value(hdr, "Content-Type", content_type, size+1, 0);
-			if ( strncasecmp(content_type, "message/rfc822", strlen(content_type)) != 0 )
+			if ( strncasecmp(content_type, "message/rfc822", strlen("message/rfc822")) != 0 )
 				return EINVAL;
 		} else
 			return EINVAL;

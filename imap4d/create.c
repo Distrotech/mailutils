@@ -16,6 +16,7 @@
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #include "imap4d.h"
+#include <unistd.h>
 
 /*
  * must create a new mailbox
@@ -24,7 +25,76 @@
 int
 imap4d_create (struct imap4d_command *command, char *arg)
 {
+  char *name;
+  char *sp = NULL;
+  const char *delim = "/";
+  int rc = RESP_OK;
+  const char *msg = "Completed";
+
   if (! (command->states & state))
     return util_finish (command, RESP_BAD, "Wrong state");
-  return util_finish (command, RESP_NO, "Command not supported");
+
+  name = util_getword (arg, &sp);
+  if (!name)
+    return util_finish (command, RESP_BAD, "Too few arguments");
+
+  util_unquote (&name);
+
+  if (*name == '\0')
+    return util_finish (command, RESP_BAD, "Too few arguments");
+
+  /* Creating, "Inbox" should always fail.  */
+  if (strcasecmp (name, "INBOX") == 0)
+    return util_finish (command, RESP_BAD, "Already exist");
+
+  /* Allocates memory.  */
+  name = util_getfullpath (name, delim);
+
+  /* It will fail if the mailbx already exists.  */
+  if (access (name, F_OK) != 0)
+    {
+      char *dir;
+      char *d = name + strlen (delim); /* Pass the root delimeter.  */
+      if (chdir (delim) == 0) /* start on the root.  */
+	for (; (dir = strchr (d, delim[0])); d = dir)
+	  {
+	    *dir++ = '\0';
+	    if (chdir (d) != 0)
+	      {
+		if (mkdir (d, 0700) == 0)
+		  {
+		    if (chdir (d) == 0)
+		      {
+			continue;
+		      }
+		    else
+		      {
+			rc = RESP_NO;
+			msg = "Can not create mailbox";
+			break;
+		      }
+		  }
+	      }
+	  }
+      /* If it ended with the delim they wanted to create a new folder.  */
+      if (rc == RESP_OK && d && *d != '\0')
+	{
+	  int fd = creat (d, 0600);
+	  if (fd != -1)
+	    close (fd);
+	  else
+	    {
+	      rc = RESP_NO;
+	      msg = "Can not create mailbox";
+	    }
+	}
+    }
+  else
+    {
+      rc = RESP_NO;
+      msg = "already exists";
+    }
+  chdir (homedir);
+  free (name);
+  return util_finish (command, rc, msg);
 }

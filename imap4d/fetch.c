@@ -105,7 +105,6 @@ imap4d_fetch (struct imap4d_command *command, char *arg)
   int status;
   const char *errmsg = "Completed";
   struct imap4d_command *fcmd;
-  char item[32];
 
   if (! (command->states & state))
     return util_finish (command, RESP_BAD, "Wrong state");
@@ -114,14 +113,8 @@ imap4d_fetch (struct imap4d_command *command, char *arg)
   if (!msgset)
     return util_finish (command, RESP_BAD, "Too few args");
 
-  /* Get the command name.  */
-  item[0] = '\0';
-  util_token (item, sizeof (item), &sp);
-
-  /* Search in the table.  */
-  fcmd = util_getcommand (item, fetch_command_table);
-  if (!fcmd)
-    return util_finish (command, RESP_BAD, "Command unknown");
+  if (sp == NULL || *sp == '\0')
+    return util_finish (command, RESP_BAD, "Too few args");
 
   /* Get the message numbers in set[].  */
   status = util_msgset (msgset, &set, &n, 0);
@@ -130,10 +123,26 @@ imap4d_fetch (struct imap4d_command *command, char *arg)
 
   for (i = 0; i < n; i++)
     {
-      /* We use the states field to hold the msgno/uid.  */
-      fcmd->states = set[i];
+      char item[32];
+      char *items = strdup (sp);
+      char *p = items;
       util_send ("* FETCH %d (", set[i]);
-      fcmd->func (fcmd, sp);
+      item[0] = '\0';
+      /* Get the fetch command names.  */
+      while (*items && *items != ')')
+	{
+	  util_token (item, sizeof (item), &items);
+	  /* Search in the table.  */
+	  fcmd = util_getcommand (item, fetch_command_table);
+	  if (fcmd)
+	    {
+	      /* We use the states field to hold the msgno/uid.  */
+	      fcmd->states = set[i];
+	      fcmd->func (fcmd, items);
+	      util_send (" ");
+	    }
+	}
+      free (p);
       util_send (")\r\n");
     }
   free (set);
@@ -358,19 +367,19 @@ fetch_rfc822 (struct imap4d_command *command, char *arg)
 {
   if (*arg == '.')
     {
-      if (strcasecmp (arg, ".SIZE") == 0)
+      if (strncasecmp (arg, ".SIZE", 5) == 0)
 	{
 	  struct imap4d_command c_rfc= fetch_command_table[F_RFC822_SIZE];
 	  c_rfc.states = command->states;
 	  fetch_rfc822_size (&c_rfc, arg);
 	}
-      else if (strcasecmp (arg, ".TEXT") == 0)
+      else if (strncasecmp (arg, ".TEXT", 5) == 0)
 	{
 	  struct imap4d_command c_rfc = fetch_command_table[F_RFC822_TEXT];
 	  c_rfc.states = command->states;
 	  fetch_rfc822_text (&c_rfc, arg);
 	}
-      else if (strcasecmp (arg, ".HEADER") == 0)
+      else if (strncasecmp (arg, ".HEADER", 7) == 0)
 	{
 	  struct imap4d_command c_rfc = fetch_command_table[F_RFC822_HEADER];
 	  c_rfc.states = command->states;
@@ -824,33 +833,46 @@ fetch_send_address (char *addr)
       util_send ("(");
 
       *buf = '\0';
-      address_get_personal (address, 1, buf, sizeof (buf), NULL);
+      address_get_personal (address, i, buf, sizeof (buf), NULL);
       if (*buf == '\0')
-	util_send ("NIL ");
+	util_send ("NIL");
       else
-	util_send ("\"%s\" ", buf);
+	util_send ("\"%s\"", buf);
+
+      util_send (" ");
 
       *buf = '\0';
-      address_get_route (address, 1, buf, sizeof (buf), NULL);
+      address_get_route (address, i, buf, sizeof (buf), NULL);
       if (*buf == '\0')
-	util_send ("NIL ");
+	util_send ("NIL");
       else
-	util_send ("\"%s\" ", buf);
-      util_send ("NIL ", buf);
+	util_send ("\"%s\"", buf);
+
+      util_send (" ");
 
       *buf = '\0';
-      address_get_local_part (address, 1, buf, sizeof (buf), NULL);
+      {
+	int is_group = 0;
+
+	address_is_group(address, i, &is_group);
+	if(is_group)
+	  address_get_personal (address, i, buf, sizeof (buf), NULL);
+	else
+	  address_get_local_part (address, i, buf, sizeof (buf), NULL);
+      }
       if (*buf == '\0')
-	util_send ("NIL ");
+	util_send ("NIL");
       else
-	util_send ("\"%s\" ", buf);
+	util_send ("\"%s\"", buf);
+
+      util_send (" ");
 
       *buf = '\0';
-      address_get_domain (address, 1, buf, sizeof (buf), NULL);
+      address_get_domain (address, i, buf, sizeof (buf), NULL);
       if (*buf == '\0')
-	util_send ("NIL ");
+	util_send ("NIL");
       else
-	util_send ("\"%s\" ", buf);
+	util_send ("\"%s\"", buf);
 
       util_send (")");
     }

@@ -1533,6 +1533,7 @@ imap_token (char *buf, size_t len, char **ptr)
   /* Skip leading space.  */
   while (**ptr && **ptr == ' ')
     (*ptr)++;
+  /* Break the string by token, when we recognise Atoms we stop.  */
   for (i = 1; **ptr && i < len; (*ptr)++, buf++, i++)
     {
       if (**ptr == ' ' || **ptr == '.'

@@ -24,7 +24,36 @@
 int
 imap4d_delete (struct imap4d_command *command, char *arg)
 {
+  char *sp = NULL;
+  int rc = RESP_OK;
+  const char *msg = "Completed";
+  const char *delim = "/";
+  char *name;
+
   if (! (command->states & state))
     return util_finish (command, RESP_BAD, "Wrong state");
-  return util_finish (command, RESP_NO, "Command not supported");;
+
+  name = util_getword (arg, &sp);
+  if (!name)
+    return util_finish (command, RESP_BAD, "Too few arguments");
+
+  util_unquote (&name);
+
+  if (*name == '\0')
+    return util_finish (command, RESP_BAD, "Too few arguments");
+
+  /* Deleting, "Inbox" should always fail.  */
+  if (strcasecmp (name, "INBOX") == 0)
+    return util_finish (command, RESP_BAD, "Already exist");
+
+ /* Allocates memory.  */
+  name = util_getfullpath (name, delim);
+
+  if (remove (name) != 0)
+    {
+      rc = RESP_NO;
+      msg = "Can not remove";
+    }
+  free (name);
+  return util_finish (command, rc, msg);
 }

@@ -1,4 +1,354 @@
+2001-04-22  Alain Magloire
+
+	* imap4d/create.c: First implementation.
+	* imap4d/delete.c: First implementation.
+	* imap4d/list.c: First implementation.
+	* imap4d/rename.c: First implementation.
+	* imap4d/util.c: New functions.
+	(util_tilde_expansion): expand ~.
+	(util_unquote): Remove surrounding double quotes.
+	(util_getfullpath): Expand the path to absolute.
+	* imap4d/fetch.c:  Did not cycle throught the items.
+	(fetch_send_address): Patch from Sam Roberts, did not
+	use the index.
+
+	* mailbox/attachement.c (message_unencapsulate): Little buglet
+	strncasemp() passing the wrong size.
+
 2001-04-19  Alain Magloire
+
+	* mailbox/smtp.c(smtp_readline): Because of the buffering mechanism,
+	we must maintain the offset.
+
+	* imap4d/list.c: partially implemented the LIST command.
+	* imap4d/imap4d.c: homedir new global variable.
+	* imap4d/login.c: same ${HOME} in homedir.
+	* imap4d/util.c (util_getword): Be aware of the quotes.
+
+	* lib/fnmatch.c: New replacement file.
+	* lib/fnmatch.h: New replacement file.
+	* configure.in: Check for fnmatch().
+
+2001-04-18  Alain Magloire
+
+	Finally took time to put the code in from Jakob first draft, in
+	an email excerpt:
+	states is the valid states for a command (eg. LOGIN is only valid in
+	non-authenticated state, SELECT is valid in authenticated or
+	selected). success is the state to enter when the command completes
+	successfully (STATE_NONE means no change) and failure is the state to
+	enter when the command fails.
+
+	* imap4d/*.c:  All the commands check there state.
+	* imap4d/fetch.c: Cleanup the fetch code, and broke
+	the fetch_operation() routine in multiple routines.
+	(fetch_message): New function.
+	(fetch_header): Likewised
+	(fetch_content): Likewised
+	(fetch_io): Likewised
+	(fetch_header_fields): Likewised
+	(fetch_header_fields_not): Likewised
+	(fetch_send_address): Likewised
+
+	* mailbox/header.c: Some functions were usefull while
+	programming the imap server, put them here.
+	(header_aget_value): New function.
+	(header_aget_field_name): New function.
+	(header_aget_field_value): New function.
+
+	* mailbox/memory_stream.c: New file, implemented a
+	malloc() buffer that you can access via the stream interface.
+	* mailbox/file_stream.c: Remove spurious checks.
+	* mailbox/mapfile_stream.c: Remove spurious checks.
+	(_mapfile_read): check if there is no newline left.
+
+2001-04-16  Alain Magloire
+
+	To get things to compile on Solaris, change configure to check
+	for -lpthread since in libc the thread functions are defined
+	but all return ENOSYS, you need to explicitely link with -lphtread.
+	the ctype functions is*() arguments should be explicitely cast
+	since Solaris use them as indexes.  __REENTRANT as to be define
+	if compile with support for threads.  Never realize this but
+	setenv() is a BSD/GNU thing, so took a variant from libiberty
+	to cope.
+
+	* configure.in: Check for setenv. First check if -lphtread is ok.
+	* lib/setenv.c: New functions.
+	* lib/Makefile.am: add setenv.c in EXTRA_DIST.
+	* imap4d/imap4d.h: Include <alloca.h>
+	* mailbox/attachment.c: Include <alloca.h>
+	* (_header_get_param): isspace() cast argument.
+	* mail/mail.h: check if <paths.h> is available if not
+	define _PATH_SENDMAIL=/usr/lib/sendmail.
+	* mailbox/folder_imap.c: if pthread available, define _REENTRANT.
+	Include <alloca.h>.
+	(imap_bodystructure0): isdigit() cast argument.
+	* mailbox/mbx_mbox.c: if pthread available, define _REENTRANT.
+	Include <alloca.h>.
+	* mailbox/parse822.c: isdigit() cast argument unsigned.
+
+2001-04-15  Alain Magloire
+
+	The FILE* stream "stdout" is not an lvalue so it is an error to
+	attempt to assign to it.  To be able to redirect at will stdout
+	we need to assign it.  In GNU lib C, it was not error since stdout
+	stderr, and stdin are variables, but to be portable we can not
+	assume this.  The way out is to always use fprintf () and have
+	a global varialbe "ofile" pointing to stdout.
+
+	* mail/*: All the files under mail been change to use fprintf()
+	and ofile as the default stdout.
+	Copyright updated.
+
+2001-04-15  Alain Magloire
+
+	Create a argp directory, it contains the necessary
+	files to build a standalone libargp.a
+
+	* argp: New directory.
+	argp-ba.c, argp-eexst.c, argp-fmtstream.c, argp-fmtstream.h
+	argp-fs-xinl.c, argp-help.c, argp-namefrob.h, argp-parse.c
+	argp-pv.c, argp-pvh.c, argp-xinl.c, argp.h, pin.c.
+
+	* mail/mail.c:  Comment out the code that use readline
+	specifics WITH_READLINE.
+	* mail/mail.h: Likewised.
+	* mail/util.c: Likewised.
+
+2001-04-15  Alain Magloire
+
+	* Makefile.am: Add argp in the list of subdirs.
+	* configure.am:  Check for argp.h and look for
+	argp_parse().
+	* lib/strchrnul.c: New function.
+	* lib/strndup.c: New function.
+	* lib/strnlen.c: New function.
+	* lib/vasnprintf.c: New function.
+	* lib/getopt.c: Updated.
+	* lib/getopt1.c: Updated.
+	* lib/getopt.h: Updated.
+	* frm/Makefile.am: Remove -DTESTING in CFLAGS.
+	* from/Makefile.am: Remove -DTESTING in CFLAGS.
+	Add AUTOMAKE_OPTIONS.
+	* imapd/Makefile.am: Likewised.
+	* pop3d/Makefile.am: Likewised.
+	* mail/Makefile.am: Likewised. Added ARGPLIB macro
+
+2001-04-14  Sam Roberts
+	* examples/{Makefile,Addrs,addr.c,Addrs.good}: address test f/w.
+	* include/mailutils/address.h,mailbox/{address.c,parse822.c}: now
+	  stuff a group name into an _address, and added a function to do
+	  a quick check if it is a group.
+	* mailbox/parse822.c: fixed bug where ",sam@foo.bar" wasn't valid.
+
+2001-04-14  Alain Magloire
+
+	* mailbox/folder_imap.c: When calling imap_writeline () the
+	cookie for the tag should be unsigned %d --> %u.
+	(imap_send) : The number of bytes in memmove was wrong.
+	* mailbox/mbx_imap.c: Some duplicate degug calls MAILBOX_DEBUG0()
+	removed.
+	(attribute_string): IMAP does not have a \\Read flag it should be
+	the same as \\Seen so attribute_read() == attribute_seen().
+	(flag_string): New function.
+	(imap_attr_set_flags): Use flag_string(), instead.
+	* mailbox/include/imap0.h:  CLEAR_STATE() should also deselect
+	the current mailbox.
+
+	* mailbox/mbx_pop.c (pop_write): The number of bytes in the memmove
+	was wrong.
+
+	* imap4d/imap4d.h: Add HAVE_SECURITY_PAM_APPL_H.
+	* imap4d/login.c: PAM_ERROR wrongly define.
+	* imap4d/expunge.c: Initialise variable sp.
+	* imap4d/logout.c: Initialise variable sp.
+	* imap4d/noop.c: Initialise variable sp.
+
+	* mailbox/attachement.c (message_create_attachment): Use base_name().
+	* mailbox/mbx_mbox.c (mbox_tmpfile): Use base_name().
+	* configure.in: AC_REP_FUNC(vasprintf strcasecmp strncasecmp).
+	* include/mailutils/Makefile.am: Add property.h, parse822.h.
+	* lib/vasprintf.c: Taken from libit.
+	* lib/basename.c: Taken from libit/fileutils.
+	* lib/Makefile.am.c: Always use our basename(base_name).
+	(AM_INIT_AUTOMAKE): Change version to 0.0.9
+
+2001-04-13  Sam Roberts
+
+	QNX needed to include <strings.h> for many of the useful string
+	functions also to define _QNX_SOURCE so <sys/time.h> doesn't have
+	an internal warning.
+
+	* configure.in: Check for libgen.h.
+	* imap4d/imap4d.h: Define __QNX_SOURCE.
+	* mailbox/mime.c: wasn't including config.h
+	* mailbox/attachment.c: QNX needed libgen.h for basename(),
+	include <strings.h> if define.
+	* mailbox/filter.c: Include <strings.h>.
+	* mailbox/mbx_mbox.c: Include <strings.h>.
+	* mailbox/folder_imap.c: Include <strings.h>.
+	* mailbox/header.c: Include <strings.h>.
+	* mailbox/property.c: Include <strings.h>.
+	* mailbox/registrar.c: Include <strings.h>.
+	* mailbox/url.c: Include <strings.h>.
+	* mailbox/url_pop.c: Include <strings.h>.
+	* pop3d/user.c: QNX says getspnam(char* n), I cast away the error.
+
+2001-04-13  Sam Roberts
+
+	* mailbox/parse822.c, include/mailutils/parse822.h: now can
+	  quote the local-part of and addr-spec, and a string.
+
+2001-04-13  Sam Roberts
+
+	* doc/address.texi: updated docs, now they match the parse822.
+	* mailbox/parse822.c: small tweaks to the new parser, the changes
+	  made during the tidying over the last month were:
+	  - use C comments only.
+	  - don't use C++ reserved words.
+	  - fix is_digit() to be like the other is functions
+	  - Changed return codes to:
+	   . no mem (ENOMEM)
+	   . function wasn't called correctly, usually a missing
+	     argument (EINVAL)
+	   . invalid syntax found during parsing (ENOENT)
+	   . success == 0
+	  - const-corrected the APIs
+	  - removed unnecessary (in C) casts.
+	  - mailbox_t* removed in favor of address_t.
+	  - fix handful of memory leaks detected by Alain.
+
+2001-04-10  Alain Magloire
+
+	* pop3d/retr.c (pop3_retr): Typo.
+	* pop3d/top.c (pop3_top): No need to reallocate when sending the
+	headers.
+	* doc/mailbox.texi: Put the functions in alphabetic orders.
+
+2001-04-10  Alain Magloire
+
+	* mailbox/Makefile.am: filter_trans.c added, trans_stream.c deleted.
+	* mailbox/attachment.c (message_create_attachment): use
+	filter_create().
+	(message_save_attachment): use filter_create().
+	* mailbox/body.c (body_set_lines): Wrong comparison for the owner.
+	* mailbox/mbx_mbox.c: Do not count the line separtor of part
+	of the mailbox.
+
+	* mailbox/url.c (url_is_same_sheme): New function.
+	(url_is_same_user): New function.
+	(url_is_same_path): New function.
+	(url_is_same_host): New function.
+	(url_is_same_port): New function.
+	* mailbox/folder.c : Moved the is_same_*() functions in url.c
+	they can be generally usefull.
+	(is_same_sheme): Removed.
+	(is_same_user): Removed.
+	(is_same_path): Removed.
+	(is_same_host): Removed.
+	(is_same_port): Removed.
+
+	* mailbox/folder_imap.c (folder_imap_create): New function,
+	CREATE a new mailbox.
+	(folder_imap_open): Calls folder_imap_create when the MU_STREAM_CREAT
+	flag is set.
+	* mailbox/mbx_imap.c: Appending messages implemented, if the message
+	comes from the same imap folder, it is COPY otherwise APPEND.
+	(is_same_folder): New function.
+	(imap_append_message): Implemented.
+	(attribute_string): New functions.
+	(imap_copy_message): New function.
+	* mailbox/include/imap0.h: New enum, IMAP_APPEND, IMAP_APPEND_ACK,
+	IMAP_APPEND_CONT, IMAP_APPEND_SEND, IMAP_COPY, IMAP_COPY_ACK,
+	IMAP_CREATE, IMAP_CREATE_ACK.
+
+2001-04-06  Alain Magloire
+
+	* mailbox/parse822.c: New parser.
+	* include/mailutils/parse822.h: New file.
+	* mailbox/address.c (address_create): Remove the old parsing and use
+	parse822 as the underlying engine.
+	(address_parse): Removed.
+	(gettoken): Removed.
+	(quotes): Removed.
+	(address_get_personal): Remove the code to unquote, parse822 takes
+	care if it. Return value when no field is ENOENT.
+	(address_get_comments): Return value when no field ENOENT.
+	(address_get_local_part): Return value when no field ENOENT.
+	(address_get_domain): Return value when no field ENOENT.
+	(address_get_email): Return value when no field ENOENT.
+	(address_get_route): Return value when no field ENOENT.
+	* mailbox/message.c (message_sender): Use parse822 to retrieve
+	the email from the From: field.
+	(message_set_mailbox): New function.
+	* mailbox/misc.c : Removed the old parsing code.
+	(gettoken): Removed.
+	(parseaddr): Removed.
+	* mailbox/include/misc.h : Removed parseaddr() prototypes.
+	From Sam Roberts, the new parse822 parser..
+
+2001-04-04  Alain Magloire
+
+	Introduction of the notion of filter_t object takes a stream and
+	perform some filtering on it.  All the decoding streams will move
+	to this i.e. quoted-printable, base64 etc .. This scheme will also
+	permit users to add to the list new filters.  Still work in progress.
+
+	* mailbox/Makefile.am : Add filter.c filter_rfc822.c.
+	* mailbox/body.c : When creating a floating body i.e creating
+	a temporary file, the stream was not "own" by the body_t.
+	(_body_get_fd): Likewised.
+	(_body_read):_ Likewised.
+	(_body_readline): Likewised.
+	(_body_write): Likewised.
+	(_body_truncate): Likewised.
+	(_body_size): Likewised.
+	(_body_flush): Likewised.
+
+	* mailbox/folder_imap.c (imap_literal_string): Check if the
+	callback.buffer is NULL.
+	(imap_body): Do no set the callback.type if "FIELDS" is part of the
+	string.
+
+	* mailbox/header.c: Remove the support for RFC822 it will be part
+	of the filter_t object.
+	* mailbox/mbx_mbox.c: Likewised.
+	* mailbox/mailbox.c (mailbox_size): Rename to mailbox_get_size().
+
+	* mailbox/stream.c (stream_is_seekable): New function.
+	(stream_set_property): New function.
+	(stream_get_property): New function.
+
+	* mailbox/trans_stream.c: Beautify.
+
+	* include/mailutils/filter.h: new file.
+
+	* doc/mailbox.texi: Updated.
+	More changes to come.
+
+2001-03-20  Alain Magloire
+
+	* mailbox/folder_imap.c (imap_readline) :  If the server goes away
+	suddenly return an error.
+	* mailbox/smtp.c (smtp_readline) :  If the server goes away
+	suddenly return an error.
+	* mailbox/mbx_pop.c (pop_readline) :  If the server goes away suddenly
+	return an error.
+	* mailbox/mbx_pop.c (pop_open) : The ticket comes from the folder.
+
+2001-03-17  Vesselin Atanasov
+
+	* configure.in: AC_REQUIRE is not .. required.  Just call
+	jm_FUNC_MALLOC and jm_FUNC_REALLOC.
+
+2001-03-17  Alain Magloire
+
+	Clean the property object, mailbox and mailer have property object
+	that you can examine.  Still a draft: the value of objects are ints.
+	This feature was put in to help the imap4d server, in this protocol
+	you can get a substring of the message starting from a certain offset.
+	To make the coding of imap4d simpler the complexity was move to the
 
 	* mailbox/smtp.c(smtp_readline): Because of the buffering mechanism,
 	we must maintain the offset.

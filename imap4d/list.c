@@ -16,168 +16,260 @@
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #include "imap4d.h"
-#include <sys/types.h>
-#include <sys/stat.h>
 #include <dirent.h>
+#include <pwd.h>
 
+#define NOMATCH          (0)
 #define MATCH            (1 << 0)
 #define RECURSE_MATCH    (1 << 1)
-#define NOMATCH          (1 << 2)
-#define NOSELECT         (1 << 3)
-#define NOINFERIORS      (1 << 4)
-#define NOSELECT_RECURSE (1 << 5)
+#define NOSELECT         (1 << 2)
+#define NOINFERIORS      (1 << 3)
+#define NOSELECT_RECURSE (1 << 4)
 
 /*
- *
- */
+  1- IMAP4 insists: the reference argument that is include in the
+  interpreted form SHOULD prefix the interpreted form.  It SHOULD
+  also be in the same form as the reference name argument.  This
+  rule permits the client to determine if the returned mailbox name
+  is in the context of the reference argument, or if something about
+  the mailbox argument overrode the reference argument.
+  ex:
+  Reference         Mailbox         -->  Interpretation
+  ~smith/Mail        foo.*          -->  ~smith/Mail/foo.*
+  archive            %              --> archive/%
+  #news              comp.mail.*     --> #news.comp.mail.*
+  ~smith/Mail        /usr/doc/foo   --> /usr/doc/foo
+  archive            ~fred/Mail     --> ~fred/Mail/ *
 
-static void unquote (char **);
-static int match (const char *, const char *);
-static int imap_match (const char *, const char *);
-static void list_file (const char *, const char *);
-static char *expand (const char *);
-static void print_file (const char *, const char *);
-static void print_dir (const char *, const char *);
+  2- The character "*" is a wildcard, and matches zero or more characters
+  at this position.  The charcater "%" is similar to "*",
+  but it does not match ahierarchy delimiter.  */
+
+static int  match __P ((const char *, const char *, const char *));
+static int  imap_match __P ((const char *, const char *, const char *));
+static void list_file __P ((const char *, const char *, char *, const char *));
+static void print_file __P ((const char *, const char *, const char *));
+static void print_dir __P ((const char *, const char *, const char *));
 
 int
 imap4d_list (struct imap4d_command *command, char *arg)
 {
   char *sp = NULL;
-  char *reference;
-  char *wildcard;
+  char *ref;
+  char *wcard;
+  const char *delim = "/";
 
   if (! (command->states & state))
     return util_finish (command, RESP_BAD, "Wrong state");
 
-  reference = util_getword (arg, &sp);
-  wildcard = util_getword (NULL, &sp);
-  if (!reference || !wildcard)
+  ref = util_getword (arg, &sp);
+  wcard = util_getword (NULL, &sp);
+  if (!ref || !wcard)
     return util_finish (command, RESP_BAD, "Too few arguments");
 
-  unquote (&reference);
-  unquote (&wildcard);
-  if (*wildcard == '\0')
+  /* Remove the double quotes.  */
+  util_unquote (&ref);
+  util_unquote (&wcard);
+
+  /* If wildcard is empty, it is a special case: we have to
+     return the hierarchy.  */
+  if (*wcard == '\0')
     {
-      /* FIXME: How do we know the hierarchy delimeter.  */
-      util_out (RESP_NONE, "LIST (\\NoSelect) \"/\" \"%s\"",
-		(*reference == '\0' || *reference != '/') ? "" : "/");
+      util_out (RESP_NONE, "LIST (\\NoSelect) \"%s\" \"%s\"", delim,
+		(*ref) ? delim : "");
+    }
+  /* There is only one mailbox in the "INBOX" hierarchy ... INBOX.  */
+  else if (strcasecmp (ref, "INBOX") == 0)
+    {
+      util_out (RESP_NONE, "LIST (\\NoInferiors) NIL INBOX");
     }
   else
     {
-      char *p;
-
-      if (*reference == '\0')
-	reference = homedir;
-
-      p = expand (reference);
-      if (chdir (p) == 0)
+      char *cwd;
+      char *dir;
+      switch (*wcard)
 	{
-	  list_file (reference, wildcard);
+	  /* Absolute Path in wcard, dump the old ref.  */
+	case '/':
+	  {
+	    ref = calloc (2, 1);
+	    ref[0] = *wcard;
+	    wcard++;
+	  }
+	  break;
+
+	  /* Absolute Path, but take care of things like ~guest/Mail,
+	     ref becomes ref = ~guest.  */
+	case '~':
+	  {
+	    char *s = strchr (wcard, '/');
+	    if (s)
+	      {
+		ref = calloc (s - wcard + 1, 1);
+		memcpy (ref, wcard, s - wcard);
+		ref [s - wcard] = '\0';
+		wcard = s + 1;
+	      }
+	    else
+	      {
+		ref = strdup (wcard);
+		wcard += strlen (wcard);
+	      }
+	  }
+	  break;
+
+	default:
+	  ref = strdup (ref);
+	}
+
+      /* Move any directory not containing a wildcard into the reference
+	 So (ref = ~guest, wcard = Mail/folder1/%.vf) -->
+	 (ref = ~guest/Mail/folder1, wcard = %.vf).  */
+      for (; (dir = strpbrk (wcard, "/%*")); wcard = dir)
+	{
+	  if (*dir == '/')
+	    {
+	      *dir = '\0';
+	      ref = realloc (ref, strlen (ref) + 1 + (dir - wcard) + 1);
+	      if (*ref && ref[strlen (ref) - 1] != '/')
+		strcat (ref, "/");
+	      strcat (ref, wcard);
+	      dir++;
+	    }
+	  else
+	    break;
+	}
+
+      /* Allocates.  */
+      cwd = util_getfullpath (ref, delim);
+
+      /* If wcard match inbox return it too, part of the list.  */
+      if (!*ref && (match ("INBOX", wcard, delim)
+		    || match ("inbox", wcard, delim)))
+	util_out (RESP_NONE, "LIST (\\NoInferiors) NIL INBOX");
+
+      if (chdir (cwd) == 0)
+	{
+	  list_file (cwd, ref, dir, delim);
 	  chdir (homedir);
 	}
-      free (p);
+      free (cwd);
+      free (ref);
     }
   return util_finish (command, RESP_OK, "Completed");
 }
 
-/* expand the '~'  */
-static char *
-expand (const char *ref)
-{
-  /* FIXME: note done.  */
-  return strdup (ref);
-}
-
-/* Remove the surrounding double quotes.  */
-static void
-unquote (char **ptr)
-{
-  char *s = *ptr;
-  if (*s == '"')
-    {
-      char *p = ++s;
-      while (*p && *p != '"')
-	p++;
-      if (*p == '"')
-	*p = '\0';
-    }
-  *ptr = s;
-}
-
-static void
-print_file (const char *ref, const char *file)
-{
-  if (strpbrk (file, "\"{}"))
-    {
-      util_out (RESP_NONE, "LIST (\\NoInferior \\UnMarked) \"/\" {%d}",
-		strlen (ref) + strlen ((*ref) ? "/" : "") + strlen (file));
-      util_send ("%s%s%s\r\n", ref, (*ref) ? "/" : "", file);
-    }
-  else
-    util_out (RESP_NONE, "LIST (\\NoInferior \\UnMarked) \"/\" %s%s%s",
-	      ref, (*ref) ? "/" : "", file);
-}
-
-static void
-print_dir (const char *ref, const char *file)
-{
-  if (strpbrk (file, "\"{}"))
-    {
-      util_out (RESP_NONE, "LIST (\\NoSelect) \"/\" {%d}",
-		strlen (ref) + strlen ((*ref) ? "/" : "") + strlen (file));
-      util_send ("%s%s%s\r\n", ref, (*ref) ? "/" : "", file);
-    }
-  else
-    util_out (RESP_NONE, "LIST (\\NoSelect) \"/\" %s%s%s",
-	      ref, (*ref) ? "/" : "", file);
-}
-
 /* Recusively calling the files.  */
 static void
-list_file (const char *ref, const char *pattern)
+list_file (const char *cwd, const char *ref, char *pattern, const char *delim)
 {
   DIR *dirp;
   struct dirent *dp;
+  char *next;
+
+  /* Shortcut no wildcards.  */
+  if (!strpbrk (pattern, "%*"))
+    {
+      /* Equivalent to stat().  */
+      int status = match (pattern, pattern, delim);
+      if (status & NOSELECT)
+	print_dir (ref, pattern, delim);
+      else if (status & NOINFERIORS)
+	print_file (ref, pattern, delim);
+      return ;
+    }
 
   dirp = opendir (".");
   if (dirp == NULL)
     return;
 
+  next = strchr (pattern, delim[0]);
+  if (next)
+    *next++ = '\0';
   while ((dp = readdir (dirp)) != NULL)
     {
-      int status = match (dp->d_name, pattern);
-      if (status & (MATCH | RECURSE_MATCH))
+      /* Skip "", ".", and "..".  "" is returned by at least one buggy
+	 implementation: Solaris 2.4 readdir on NFS filesystems.  */
+      char const *entry = dp->d_name;
+      if (entry[entry[0] != '.' ? 0 : entry[1] != '.' ? 1 : 2] != '\0')
 	{
-	  if (status & NOSELECT)
+	  int status = match (entry, pattern, delim);
+	  if (status)
 	    {
-	      print_dir (ref, dp->d_name);
-	      if (status & RECURSE_MATCH)
+	      if (status & NOSELECT)
 		{
-		  if (chdir (dp->d_name) == 0)
+		  if (next || status & RECURSE_MATCH)
 		    {
-		      char *buffer = NULL;
-		      asprintf (&buffer, "%s%s%s", ref,
-				(*ref) ? "/" : "", dp->d_name);
-		      list_file (buffer, pattern);
-		      free (buffer);
-		      chdir ("..");
+		      if (!next)
+			print_dir (ref, entry, delim);
+		      if (chdir (entry) == 0)
+			{
+			  char *rf;
+			  char *cd;
+			  rf = calloc (strlen (ref) + strlen (delim) +
+				       strlen (entry) + 1, 1);
+			  sprintf (rf, "%s%s%s", ref, delim, entry);
+			  cd = calloc (strlen (cwd) + strlen (delim) +
+				      strlen (entry) + 1, 1);
+			  sprintf (cd, "%s%s%s", cwd, delim, entry);
+			  list_file (cd, rf, (next) ? next : pattern, delim);
+			  free (rf);
+			  free (cd);
+			  chdir (cwd);
+			}
 		    }
+		  else
+		    print_dir (ref, entry, delim);
 		}
-	    }
-	  else if (status & NOINFERIORS)
-	    {
-	      print_file (ref, dp->d_name);
+	      else if (status & NOINFERIORS)
+		{
+		  print_file (ref, entry, delim);
+		}
 	    }
 	}
     }
+  closedir (dirp);
 }
 
+/* Make sure that the file name does not contain any undesirable
+   chars like "{}. If yes send it as a literal string.  */
+static void
+print_file (const char *ref, const char *file, const char *delim)
+{
+  if (strpbrk (file, "\"{}"))
+    {
+      util_out (RESP_NONE, "LIST (\\NoInferiors) \"%s\" {%d}", delim,
+		strlen (ref) + strlen ((*ref) ? delim : "") + strlen (file));
+      util_send ("%s%s%s\r\n", ref, (*ref) ? delim : "", file);
+    }
+  else
+    util_out (RESP_NONE, "LIST (\\NoInferiors) \"%s\" %s%s%s", delim,
+	      ref, (*ref) ? delim : "", file);
+}
+
+/* Make sure that the file name does not contain any undesirable
+   chars like "{}. If yes send it as a literal string.  */
+static void
+print_dir (const char *ref, const char *file, const char *delim)
+{
+  if (strpbrk (file, "\"{}"))
+    {
+      util_out (RESP_NONE, "LIST (\\NoSelect) \"%s\" {%d}", delim,
+		strlen (ref) + strlen ((*ref) ? delim : "") + strlen (file));
+      util_send ("%s%s%s\r\n", ref, (*ref) ? delim : "", file);
+    }
+  else
+    util_out (RESP_NONE, "LIST (\\NoSelect) \"%s\" %s%s%s", delim,
+	      ref, (*ref) ? delim : "", file);
+}
+
+/* Calls the imap_matcher if a match found out the attribute. */
 static int
-match (const char *entry, const char *pattern)
+match (const char *entry, const char *pattern, const char *delim)
 {
   struct stat stats;
-  int status = imap_match (entry, pattern);
-  if (status & MATCH || status || RECURSE_MATCH)
+  int status = imap_match (entry, pattern, delim);
+  if (status)
     {
       if (stat (entry, &stats) == 0)
 	status |=  (S_ISREG (stats.st_mode)) ? NOINFERIORS : NOSELECT;
@@ -188,21 +280,27 @@ match (const char *entry, const char *pattern)
 /* Match STRING against the filename pattern PATTERN, returning zero if
    it matches, nonzero if not.  */
 static int
-imap_match (const char *string, const char *pattern)
+imap_match (const char *string, const char *pattern, const char *delim)
 {
   const char *p = pattern, *n = string;
   char c;
 
-  for (;(c = *p++) != '\0'; n++)
+  for (;(c = *p++) != '\0' && *n; n++)
     {
       switch (c)
 	{
 	case '%':
 	  if (*p == '\0')
-	    return (*n == '/') ? NOMATCH : MATCH;
-	  for (; *n != '\0'; ++n)
-	    if (match (n, p) == MATCH)
-	      return MATCH;
+	    {
+	      /* Matches everything except '/' */
+	      for (; *n && *n != delim[0]; n++)
+		;
+	      return (*n == '/') ? RECURSE_MATCH : MATCH;
+	    }
+	  else
+	    for (; *n != '\0'; ++n)
+	      if (imap_match (n, p, delim) == MATCH)
+		return MATCH;
 	  break;
 
 	case '*':
@@ -210,7 +308,7 @@ imap_match (const char *string, const char *pattern)
 	    return RECURSE_MATCH;
 	  for (; *n != '\0'; ++n)
 	    {
-	      int status = match (n, p);
+	      int status = imap_match (n, p, delim);
 	      if (status == MATCH || status == RECURSE_MATCH)
 		return status;
 	    }
@@ -222,10 +320,9 @@ imap_match (const char *string, const char *pattern)
 	}
     }
 
-  if (*n == '\0')
+  if (!c && !*n)
     return MATCH;
 
   return NOMATCH;
 
 }
-
