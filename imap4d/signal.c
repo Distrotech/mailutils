@@ -47,7 +47,18 @@ imap4d_signal (int signo)
        exit (1); /* abort(); */
     }
 
-  if (signo == SIGALRM)
+  switch (signo)
+    {
+    case SIGALRM:
     imap4d_bye (ERR_TIMEOUT);
+
+    case SIGPIPE:
+      exit (0);
+
+    default:
   imap4d_bye (ERR_SIGNAL);
 }
+}
+
+
+
