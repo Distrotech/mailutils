@@ -30,17 +30,19 @@ proc sieve_test {args} {
     global top_builddir
     
     set default ""
-    set sw [list "-M sendmail:$top_builddir/examples/mta" \
+    set sw [list "--verbose" \
+                 "-M sendmail:$top_builddir/examples/mta" \
 	         "--email foobar@nonexistent.net"]
     set reuse_spool 0
+    set retcode 0
     for {set i 0} {$i < [llength $args]} {incr i} {
 	set a [lindex $args $i]
 	if {"$a" == "-default"} {
-	    set default [lindex $args [expr $i + 1]]
 	    incr i
+	    set default [lindex $args $i]
 	} elseif {"$a" == "-message"} {
-	    set message [lindex $args [expr $i + 1]]
 	    incr i
+	    set message [lindex $args $i]
 	} elseif {"$a" == "-pattern"} {
 	    incr i
 	    set pattern [lrange $args $i end]
@@ -48,6 +50,9 @@ proc sieve_test {args} {
 	} elseif {"$a" == "-reuse-spool"} {
 	    set reuse_spool 1
 	    break
+	} elseif {"$a" == "-retcode"} {
+	    incr i
+	    set retcode [lindex $args $i]
 	} else {
 	    set sw [concat $sw [lindex $args $i]]
 	}
@@ -71,9 +76,10 @@ proc sieve_test {args} {
 
     if [info exists pattern] {
 	mu_exec -default $default -message $message -arg-list $sw \
-		-pattern $pattern
+		-pattern $pattern -retcode $retcode
     } else {
-	mu_exec -default $default -message $message -arg-list $sw
+	mu_exec -default $default -message $message -arg-list $sw \
+		-retcode $retcode
     }
     #FIXME: examine the output mailbox
 }
