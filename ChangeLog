@@ -1,3 +1,21 @@
+2001-06-16 Sergey Poznyakoff
+        * mailbox/mu_mktime.c(added): a wrapper around system mktime()
+          function that honours the timezone.
+        * mailbox/Makefile.am: add mu_mktime.c.
+        * imap4d/fetch.c: date conversion in fetch_internaldate.
+          get_timezone() not used anymore, removed.
+        * imap4d/search.c: removed confusing comment.
+        * imap4d/util.c: changed mktime() calls to mu_mktime(), this
+          solves the timezone problem.
+          use imap_parse_date_time() in util_parse_internal_date0().
+	  (Proposed by Sam).
+	* imap4d/imap4d.h: Added missing declarations.
+        * mailbox/mbx_imap.c: Patch from Sam: added imap_parse_date_time(). 
+          imap_parse_date_time() returns tm/timezone pair.
+	* mailbox/folder_mbox.c: added #include <sys/types.h>. It is needed
+          on FreeBSD before inclusion of <dirent.h>
+	* sieve/sieve.c: swapped arguments in a call to va_start().
+
 2001-06-15 Sergey Poznyakoff
 	Bunch of patches provided by Sam Roberts:
 	* imap4d/util.c: Fixed format bugs in util_parse.*_date functions.
