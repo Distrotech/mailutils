@@ -887,10 +887,10 @@ util_base64_encode (const unsigned char *input, size_t input_len,
     {
       unsigned char c = (input[0] << 4) & 0x30;
       *out++ = b64tab[input[0] >> 2];
-      if (input_len > 0)
+      if (input_len > 1)
 	c |= input[1] >> 4;
       *out++ = b64tab[c];
-      *out++ = (input_len < 2) ? '-' : b64tab[(input[1] << 2) & 0x3c];
+      *out++ = (input_len < 2) ? '=' : b64tab[(input[1] << 2) & 0x3c];
       *out++ = '=';
     }
   *output_len = out - *output;
