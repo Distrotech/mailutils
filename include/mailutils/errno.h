@@ -78,6 +78,16 @@ extern "C" {
 
 #define MU_ERR_AUTH_FAILURE         (MU_ERR_BASE + 32)
   /* Authentication failed */
+
+#define MU_ERR_PROCESS_NOEXEC       (MU_ERR_BASE + 33)
+  /* Unable to execute subprocess */
+#define MU_ERR_PROCESS_EXITED       (MU_ERR_BASE + 34)
+  /* Subprocess exited with a non-zero status */
+#define MU_ERR_PROCESS_SIGNALED     (MU_ERR_BASE + 35)
+  /* Subprocess exited on signal */
+
+#define MU_ERR_PROCESS_UNKNOWN_FAILURE (MU_ERR_BASE + 36)
+  /* Unknown failure while executing subprocess */
   
 const char *mu_errname __P((int e));
 const char *mu_strerror __P((int e));

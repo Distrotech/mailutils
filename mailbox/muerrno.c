@@ -85,6 +85,11 @@ mu_errname (int e)
       EN(MU_ERR_UNSAFE_PERMS);
       EN(MU_ERR_BAD_AUTH_SCHEME);
       EN(MU_ERR_AUTH_FAILURE);
+
+      EN(MU_ERR_PROCESS_NOEXEC);
+      EN(MU_ERR_PROCESS_EXITED);
+      EN(MU_ERR_PROCESS_SIGNALED);
+      EN(MU_ERR_PROCESS_UNKNOWN_FAILURE);
     }
 
   return "SYSTEM ERROR";
@@ -140,6 +145,12 @@ mu_strerror (int e)
       ES(MU_ERR_UNSAFE_PERMS,     _("Unsafe file permissions. Set 0600."));
       ES(MU_ERR_BAD_AUTH_SCHEME,  _("Unsupported authentication scheme"));
       ES(MU_ERR_AUTH_FAILURE,     _("Authentication failed"));
+
+      ES(MU_ERR_PROCESS_NOEXEC,   _("Cannot execute"));
+      ES(MU_ERR_PROCESS_EXITED,   _("Process exited with a non-zero status"));
+      ES(MU_ERR_PROCESS_SIGNALED, _("Process exited on signal"));
+      ES(MU_ERR_PROCESS_UNKNOWN_FAILURE,
+	 _("Unknown failure while executing subprocess"));
     }
 
   return strerror (e);
