@@ -288,15 +288,13 @@ list_do (list_t list, list_action_t * action, void *cbdata)
   status = iterator_create(&itr, list);
   if (status)
     return status;
-  monitor_rdlock (list->monitor);
   for (iterator_first (itr); !iterator_is_done (itr); iterator_next (itr))
     {
       void *item;
       iterator_current (itr, &item);
-      if ((status = action (current->item, cbdata)))
+      if ((status = action (item, cbdata)))
 	break;
     }
-  monitor_unlock (list->monitor);
   iterator_destroy (&itr);
   return status;
 }
