@@ -372,19 +372,6 @@ send (struct mh_whatnow_env *wh, int argc, char **argv, int *status)
   return 0;
 }
 
-/* Print an email in more readable form: localpart + "at" + domain */
-static void
-print_readable (char *email)
-{
-  for (; *email && *email != '@'; email++)
-    putchar (*email);
-
-  if (!*email)
-    return;
-
-  printf (_(" at %s\n"), email+1);
-}
-  
 /* Whom action */
 static int
 whom (struct mh_whatnow_env *wh, int argc, char **argv, int *status)
@@ -392,69 +379,9 @@ whom (struct mh_whatnow_env *wh, int argc, char **argv, int *status)
   if (!wh->file)
     mh_error (_("no draft file to display"));
   else
-    {
-      mh_context_t *ctx;
-
-      ctx = mh_context_create (wh->file, 1);
-      if (mh_context_read (ctx))
-	{
-	  mh_error(_("malformed message"));
-	}
-      else
-	{
-	  char *to = mh_context_get_value (ctx, MU_HEADER_TO, NULL);
-	  char *cc = mh_context_get_value (ctx, MU_HEADER_CC, NULL);
-	  char *bcc = mh_context_get_value (ctx, MU_HEADER_BCC, NULL);
-	  char *s = to ? to : (cc ? cc : bcc);
-
-	  if (!s)
-	    {
-	      mh_error(_("No recipients"));
-	    }
-	  else
-	    {
-	      address_t addr;
-	      size_t i, count;
-	      
-	      address_create (&addr, s);
-	      if (cc)
-		{
-		  address_t a;
-		  address_create (&a, cc);
-		  address_concatenate (addr, &a);
-		}
-	      if (bcc)
-		{
-		  address_t a;
-		  address_create (&a, bcc);
-		  address_concatenate (addr, &a);
-		}
-
-	      printf ("  %s\n", _("-- Network Recipients --"));
-	      address_get_count (addr, &count);
-	      for (i = 1; i <= count; i++)
-		{
-		  char *buf;
-		  int rc;
-		  rc = address_aget_email (addr, i, &buf);
-		  if (rc)
-		    {
-		      mh_error("address_aget_email: %s", mu_strerror (rc));
-		      continue;
-		    }
-		  printf ("  ");
-		  print_readable (buf);
-		  free (buf);
-		}
-	    }
-
-	  /* Cleanup everything. Note comment to mh_context_get_value! */
-	  free (bcc);
-	  free (cc);
-	  free (to);
-	}
-      free (ctx);
-    }
+    mh_whom (wh->file, (argc == 2
+			&& (strcmp (argv[1], "-check") == 0
+			    || strcmp (argv[1], "--check") == 0)));
   return 0;
 }
 
