@@ -39,6 +39,28 @@ instr_nop (sieve_machine_t mach)
 		 (unsigned long) (mach->pc - 1));
 }
 
+void
+instr_source (sieve_machine_t mach)
+{
+  mach->locus.source_file = SIEVE_ARG (mach, 0, string);
+  if (INSTR_DEBUG (mach))
+    sieve_debug (mach, "%4lu: SOURCE %s\n",
+		 (unsigned long) (mach->pc - 1),
+		 mach->locus.source_file);
+  SIEVE_ADJUST (mach, 1);
+}
+		 
+void
+instr_line (sieve_machine_t mach)
+{
+  mach->locus.source_line = SIEVE_ARG (mach, 0, line);
+  if (INSTR_DEBUG (mach))
+    sieve_debug (mach, "%4lu: LINE %lu\n",
+		 (unsigned long) (mach->pc - 1),
+		 (unsigned long) mach->locus.source_line);
+  SIEVE_ADJUST (mach, 1);
+}
+		 
 static int
 instr_run (sieve_machine_t mach)
 {
@@ -198,6 +220,17 @@ void *
 sieve_get_data (sieve_machine_t mach)
 {
   return mach->data;
+}
+
+int
+sieve_get_locus (sieve_machine_t mach, sieve_locus_t *loc)
+{
+  if (mach->source_list)
+    {
+      *loc = mach->locus;
+      return 0;
+    }
+  return 1;
 }
 
 message_t
