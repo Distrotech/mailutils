@@ -20,6 +20,7 @@
 #endif
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -147,7 +148,7 @@ mu_init_tls_libs (void)
   return !gnutls_global_init (); /* Returns 1 on success */
 }
 
-int
+void
 mu_deinit_tls_libs (void)
 {
   gnutls_global_deinit ();
@@ -300,7 +301,6 @@ _tls_write (stream_t stream, const char *iptr, size_t isize,
 static int
 _tls_flush (stream_t stream)
 {
-  struct _tls_stream *s = stream_get_owner (stream);
   /* noop */
   return 0;
 }
@@ -314,6 +314,7 @@ _tls_close (stream_t stream)
       gnutls_bye (s->session, GNUTLS_SHUT_RDWR);
       s->state = state_closed;
     }
+  return 0;
 }
 
 static int
