@@ -46,7 +46,7 @@ main (int argc, char **argv)
       fgets (bar, 80, stdin);
       c = bar[0];
       if (c == 'd' || c == 'D' || c == 'b' || c == 'B' || c == 'h' ||
-	  c == 'H' || c == 'r' || c == 'R')
+	  c == 'H' || c == 'r' || c == 'R' || c == 'f' || c == 'F')
 	{
 	  printf ("# ");
 	  fgets (bar, 80, stdin);
@@ -57,6 +57,12 @@ main (int argc, char **argv)
 	case 'Q':
 	  mbox_close (mbox);
 	  return 0;
+	  break;
+	case 'f':
+	case 'F':
+	  foo = mbox_header_line (mbox, atoi (bar) - 1, "from");
+	  printf ("%s\n", foo);
+	  free (foo);
 	  break;
 	case 'r':
 	case 'R':
