@@ -239,7 +239,7 @@ mbox_destroy (mailbox_t mailbox)
       for (i = 0; i < mud->umessages_count; i++)
 	{
 	  mbox_message_t mum = mud->umessages[i];
-	  if (mum == NULL)
+	  if (mum)
 	    {
 	      message_destroy (&(mum->message), mum);
 	      free (mum);
@@ -334,13 +334,14 @@ mbox_close (mailbox_t mailbox)
     {
       mbox_message_t mum = mud->umessages[i];
       /* Destroy the attach messages.  */
-      if (mum == NULL)
+      if (mum)
 	{
 	  message_destroy (&(mum->message), mum);
 	  free (mum);
 	}
     }
-  free (mud->umessages);
+  if (mud->umessages)
+    free (mud->umessages);
   mud->umessages = NULL;
   mud->messages_count = mud->umessages_count = 0;
   mud->size = 0;

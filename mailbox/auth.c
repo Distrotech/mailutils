@@ -82,6 +82,19 @@ ticket_get_owner (ticket_t ticket)
 }
 
 int
+ticket_set_pop (ticket_t ticket,
+		int (*_pop) __P ((ticket_t, const char *, char **)),
+		void *owner)
+{
+  if (ticket == NULL)
+    return EINVAL;
+  if (ticket->owner != owner)
+    return EACCES;
+  ticket->_pop = _pop;
+  return 0;
+}
+
+int
 ticket_pop (ticket_t ticket, const char *challenge, char **parg)
 {
   if (ticket == NULL || parg == NULL)
