@@ -60,6 +60,9 @@ extern "C" {
 #define MU_ERR_MAILER_NO_RCPT_TO    (MU_ERR_BASE | 0x015)
 #define MU_ERR_SMTP_RCPT_FAILED     (MU_ERR_BASE | 0x016)
 
+#define MU_ERR_TCP_NO_HOST          (MU_ERR_BASE | 0x017)
+#define MU_ERR_TCP_NO_PORT          (MU_ERR_BASE | 0x018)
+
 const char* mu_errname __P((int e));
 const char* mu_errstring __P((int e));
 

@@ -232,8 +232,11 @@ tcp_stream_create (stream_t * stream, const char* host, int port, int flags)
   struct _tcp_instance *tcp;
   int ret;
 
-  if (host == NULL || port < 1)
-    return EINVAL;
+  if (host == NULL)
+    return MU_ERR_TCP_NO_HOST
+
+  if (port < 1)
+    return MU_ERR_TCP_NO_PORT;
 
   if ((tcp = malloc (sizeof (*tcp))) == NULL)
     return ENOMEM;

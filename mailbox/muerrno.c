@@ -64,13 +64,16 @@ mu_errname (int e)
     EN(MU_ERR_LOCK_EXT_FAIL)
     EN(MU_ERR_LOCK_EXT_ERR)
     EN(MU_ERR_LOCK_EXT_KILLED)
-    EN(MU_ERR_NO_SUCH_USER)  
-    EN(MU_ERR_GETHOSTBYNAME)  
-    EN(MU_ERR_BAD_RESUMPTION)  
-    EN(MU_ERR_MAILER_BAD_FROM)  
-    EN(MU_ERR_MAILER_BAD_TO)  
-    EN(MU_ERR_MAILER_NO_RCPT_TO)  
-    EN(MU_ERR_SMTP_RCPT_FAILED)  
+
+    EN(MU_ERR_NO_SUCH_USER)
+    EN(MU_ERR_GETHOSTBYNAME)
+    EN(MU_ERR_BAD_RESUMPTION)
+    EN(MU_ERR_MAILER_BAD_FROM)
+    EN(MU_ERR_MAILER_BAD_TO)
+    EN(MU_ERR_MAILER_NO_RCPT_TO)
+    EN(MU_ERR_SMTP_RCPT_FAILED)
+    EN(MU_ERR_TCP_NO_HOST)
+    EN(MU_ERR_TCP_NO_PORT)
   }
 
   return "SYSTEM ERROR";
@@ -105,12 +108,14 @@ const char* mu_errstring (int e)
 
     ES(MU_ERR_NO_SUCH_USER,     "No such user name")
 
-    ES(MU_ERR_GETHOSTBYNAME,    "gethostbyname() failed, check h_errno")
+    ES(MU_ERR_GETHOSTBYNAME,    "DNS name resolution failed")
     ES(MU_ERR_BAD_RESUMPTION,   "State busy, must resume operation")
     ES(MU_ERR_MAILER_BAD_FROM,  "Not a valid mailer from address")
     ES(MU_ERR_MAILER_BAD_TO,    "Not a valid mailer to address")
     ES(MU_ERR_MAILER_NO_RCPT_TO,"No receipt addresses found")
     ES(MU_ERR_SMTP_RCPT_FAILED, "SMTP rcpt to command failed")
+    ES(MU_ERR_TCP_NO_HOST,      "Tcp connections need a host")
+    ES(MU_ERR_TCP_NO_PORT,      "Tcp connections need a postive port")
   }
 
   return strerror(e);
