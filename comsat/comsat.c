@@ -17,15 +17,6 @@
 
 #include "comsat.h"
 
-#include <mailutils/mailbox.h>
-#include <mailutils/message.h>
-#include <mailutils/header.h>
-#include <mailutils/body.h>
-#include <mailutils/registrar.h>
-#include <mailutils/stream.h>
-#include <mailutils/mutil.h>
-#include <mailutils/error.h>
-
 #define	IMPL		"GNU Comsat Daemon"
 
 #ifndef PATH_DEV
@@ -85,6 +76,7 @@ int port = 512; /* Default biff port */
 int timeout = 0;
 int maxlines = 5;
 char hostname[MAXHOSTNAMELEN];
+char *username;
 
 static void comsat_init (void);
 static void comsat_daemon_init (void);
@@ -453,7 +445,6 @@ notify_user (char *user, char *device, char *path, off_t offset)
   stream_t stream = NULL;
   int status;
   size_t size, count, n;
-  int nlines;
 
   change_user (user);
   if ((fp = fopen (device, "w")) == NULL)
@@ -463,9 +454,6 @@ notify_user (char *user, char *device, char *path, off_t offset)
     }
 
   cr = get_newline_str (fp);
-
-  fprintf(fp, "%s\aNew mail for %s@%s\a has arrived:%s----%s",
-	  cr, user, hostname, cr, cr);
 
   if (!path)
     {
@@ -527,51 +515,7 @@ notify_user (char *user, char *device, char *path, off_t offset)
   mailbox_messages_count (tmp, &count);
   mailbox_get_message (tmp, 1, &msg);
   
-  if ((status = message_get_header (msg, &header)))
-    {
-      syslog (LOG_ERR, "can't get header: %s", strerror (status));
-      return;
-    }
-
-  /* Take care to clear eighth bit, so we won't upset some stupid terminals */
-#define LB(c) ((c)&0x7f)
-  
-  nlines = maxlines; 
-  if (header_aget_value (header, MU_HEADER_FROM, &p) == 0)
-    {
-      fprintf (fp, "From: ");
-      for (; *p; p++)
-	fputc (LB (*p), fp);
-      fprintf (fp, cr);
-      if (nlines-- == 0)
-	return;
-    }
-  
-  if (header_aget_value (header, MU_HEADER_SUBJECT, &p) == 0)
-    {
-      fprintf (fp, "Subject: ");
-      for (; *p; p++)
-	fputc (LB (*p), fp);
-      fprintf (fp, cr);
-      if (nlines-- == 0)
-	return;
-    }
-
-  message_get_body (msg, &body);
-  body_get_stream (body, &stream);
-  stream_read (stream, blurb, size, 0, &n);
-  blurb[n] = 0;	    
-      
-  for (p = blurb; *p && nlines-- > 0; )
-    {
-      while (*p && *p == '\n')
-	p++;
-      for (; *p && *p != '\n'; p++)
-	fputc (LB (*p), fp);
-      fprintf (fp, cr);
-    }
-  
-  fprintf (fp, "----%s", cr);
+  run_user_action (fp, cr, msg);
   fclose (fp);
 }
 
@@ -655,6 +599,8 @@ change_user (char *user)
 
   setgid (pw->pw_gid);
   setuid (pw->pw_uid);
+  chdir (pw->pw_dir);
+  username = user;
 }
 
 void
