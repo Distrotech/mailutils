@@ -207,11 +207,13 @@ comsat_daemon_init (void)
     }
 }
 
+int allow_biffrc = 1;            /* Allow per-user biffrc files */
 unsigned maxrequests = 16;       /* Maximum number of request allowed per
 			            control interval */
 time_t request_control_interval = 10;  /* Request control interval */
 time_t overflow_control_interval = 10; /* Overflow control interval */
 time_t overflow_delay_time = 5;
+
 
 void
 comsat_daemon (int port)

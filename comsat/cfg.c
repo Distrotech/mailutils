@@ -169,7 +169,16 @@ read_config (char *config_file)
 	  continue;
 	}
 
-      if (strcmp (argv[0], "max-requests") == 0)
+      if (strcmp (argv[0], "allow-biffrc") == 0)
+	{
+	  if (strcmp (argv[1], "yes") == 0)
+	    allow_biffrc = 1;
+	  else if (strcmp (argv[1], "no") == 0)
+	    allow_biffrc = 0;
+	  else
+	    syslog (LOG_ERR, "%s:%d: yes or no expected", config_file, line);
+	}
+      else if (strcmp (argv[0], "max-requests") == 0)
 	maxrequests = strtoul (argv[1], NULL, 0);
       else if (strcmp (argv[0], "request-control-interval") == 0)
 	request_control_interval = strtoul (argv[1], NULL, 0);
