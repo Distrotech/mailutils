@@ -28,9 +28,8 @@
 
 
 static int
-_authenticate_null (authority_t auth)
+_authenticate_null (authority_t auth ARG_UNUSED)
 {
-  (void) auth;
   return 0;
 }
 

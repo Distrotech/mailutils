@@ -57,11 +57,10 @@ static int _perr = 0;
 
 static int
 mu_pam_conv (int num_msg, const struct pam_message **msg,
-	     struct pam_response **resp, void *appdata_ptr)
+	     struct pam_response **resp, void *appdata_ptr ARG_UNUSED)
 {
   int replies = 0;
   struct pam_response *reply = NULL;
-  (void)appdata_ptr;
 
   reply = malloc (sizeof (*reply) * num_msg);
   if (!reply)

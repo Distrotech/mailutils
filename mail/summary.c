@@ -22,7 +22,7 @@
    The side effect is that is set the cursor/cursor
    to the newest or read message number.  */
 int
-mail_summary (int argc, char **argv)
+mail_summary (int argc ARG_UNUSED, char **argv ARG_UNUSED)
 {
   message_t msg;
   attribute_t attr;
@@ -31,7 +31,6 @@ mail_summary (int argc, char **argv)
   int mseen = 0, mnew = 0, mdelete = 0;
   int first_new = 0, first_unread = 0;
 
-  (void)argc; (void)argv;
   mailbox_messages_count (mbox, &count);
   for (msgno = 1; msgno <= count; msgno++)
     {

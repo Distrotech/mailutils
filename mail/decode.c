@@ -84,12 +84,11 @@ display_message (message_t mesg, msgset_t *msgset, void *arg)
 }
 
 static void
-display_headers (FILE *out, message_t mesg, const msgset_t *msgset,
+display_headers (FILE *out, message_t mesg, const msgset_t *msgset ARG_UNUSED,
 		 int select_hdr)
 {
   header_t hdr = NULL;
 
-  (void)msgset;
   /* Print the selected headers only.  */
   if (select_hdr)
     {
@@ -269,8 +268,7 @@ get_content_encoding (header_t hdr, char **value)
 
 
 static int
-mailcap_lookup (const char *type)
+mailcap_lookup (const char *type ARG_UNUSED)
 {
-  (void)type;
   return 0;
 }

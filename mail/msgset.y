@@ -651,13 +651,12 @@ select_body (message_t msg, void *closure)
 }
 
 int
-select_sender (message_t msg, void *closure)
+select_sender (message_t msg ARG_UNUSED, void *closure ARG_UNUSED)
 {
   /* char *sender = (char*) closure; */
   /* FIXME: all messages from sender argv[i] */
   /* Annoying we can use address_create() for that
      but to compare against what? The email ?  */
-  (void)msg; (void)closure;
   return 0;
 }
 
@@ -690,12 +689,11 @@ select_type (message_t msg, void *closure)
 }
 
 int
-select_deleted (message_t msg, void *closure)
+select_deleted (message_t msg, void *closure ARG_UNUSED)
 {
   attribute_t attr= NULL;
   int rc;
 
-  (void)closure;
   message_get_attribute (msg, &attr);
   rc = attribute_is_deleted (attr);
   return strcmp (xargv[0], "undelete") == 0 ? rc : !rc;

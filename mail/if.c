@@ -125,10 +125,10 @@ mail_if (int argc, char **argv)
 
 
 int
-mail_else (int argc, char **argv)
+mail_else (int argc ARG_UNUSED, char **argv ARG_UNUSED)
 {
   int cond;
-  (void)argc; (void)argv;
+
   if (_cond_level == 0)
     {
       util_error(_("else without matching if"));
@@ -142,9 +142,8 @@ mail_else (int argc, char **argv)
 }
 
 int
-mail_endif (int argc, char **argv)
+mail_endif (int argc ARG_UNUSED, char **argv ARG_UNUSED)
 {
-  (void)argc; (void)argv;
   if (_cond_level == 0)
     {
       util_error(_("endif without matching if"));

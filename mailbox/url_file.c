@@ -29,9 +29,8 @@
 static void url_file_destroy (url_t purl);
 
 static void
-url_file_destroy (url_t url)
+url_file_destroy (url_t url ARG_UNUSED)
 {
-  (void) url;
 }
 
 /*

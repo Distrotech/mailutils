@@ -29,9 +29,8 @@
 #include <registrar0.h>
 
 static void
-url_mh_destroy (url_t url)
+url_mh_destroy (url_t url ARG_UNUSED)
 {
-  (void) url;
 }
 
 /*

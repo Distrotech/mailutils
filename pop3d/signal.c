@@ -18,11 +18,10 @@
 #include "pop3d.h"
 
 RETSIGTYPE
-pop3d_sigchld (int signo)
+pop3d_sigchld (int signo ARG_UNUSED)
 {
   pid_t pid;
   int status;
-  (void)signo;
 
   while ( (pid = waitpid(-1, &status, WNOHANG)) > 0)
       --children;

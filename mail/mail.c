@@ -173,12 +173,10 @@ static const char *mail_capa[] = {
 };
 			     
 static char *
-mail_cmdline(void *closure, int cont)
+mail_cmdline(void *closure, int cont ARG_UNUSED)
 {
   char *prompt = (char*) closure;
   char *rc;
-
-  (void)cont;
 
   while (1)
     {
@@ -498,10 +496,8 @@ mail_mainloop (char *(*input) __P((void *, int)), void *closure, int do_history)
 }
 
 int
-mail_warranty (int argc, char **argv)
+mail_warranty (int argc ARG_UNUSED, char **argv ARG_UNUSED)
 {
-  (void)argc; (void)argv;
-
   fputs (_("GNU Mailutils -- a suite of utilities for electronic mail\n"
            "Copyright (C) 1999, 2000, 2001, 2002, 2003 Free Software Foundation, Inc.\n\n"),
            ofile);

@@ -66,9 +66,8 @@ print_capa (void *item, void *data)
 }
 
 int
-imap4d_capability (struct imap4d_command *command, char *arg)
+imap4d_capability (struct imap4d_command *command, char *arg ARG_UNUSED)
 {
-  (void) arg;
   util_send ("* CAPABILITY");
 
   list_do (capa_list, print_capa, NULL);

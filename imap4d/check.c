@@ -24,8 +24,7 @@
  */
 
 int
-imap4d_check (struct imap4d_command *command, char *arg)
+imap4d_check (struct imap4d_command *command, char *arg ARG_UNUSED)
 {
-  (void)arg;
   return util_finish (command, RESP_OK, "Completed");
 }

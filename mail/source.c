@@ -19,13 +19,12 @@
 
 
 static char *
-source_readline(void *closure, int cont)
+source_readline (void *closure, int cont ARG_UNUSED)
 {
   FILE *fp = closure;
   size_t s = 0;
   char *buf = NULL;
   
-  (void)cont; /*unused*/
   if (getline (&buf, &s, fp) >= 0)
     {
       int len = strlen (buf);

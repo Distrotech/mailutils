@@ -37,9 +37,8 @@ static const char *with_defs[] =
 
 
 int
-mail_version (int argc, char **argv)
-{
-  (void)argc; (void)argv;
+mail_version (int argc ARG_UNUSED, char **argv ARG_UNUSED)
+{ 
   fprintf (ofile, "%s", argp_program_version);
   if (with_defs[0] != NULL)
     {

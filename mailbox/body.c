@@ -105,7 +105,6 @@ body_get_owner (body_t body)
 int
 body_is_modified (body_t body)
 {
-  (void)body;
   return (body) ? (body->flags & BODY_MODIFIED) : 0;
 }
 

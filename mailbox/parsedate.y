@@ -20,7 +20,8 @@
    It was originally written by Steven M. Bellovin <smb@research.att.com>
    while at the University of North Carolina at Chapel Hill.  Later tweaked
    by a couple of people on Usenet.  Completely overhauled by Rich $alz
-   <rsalz@bbn.com> and Jim Berets <jberets@bbn.com> in August, 1990. */
+   <rsalz@bbn.com> and Jim Berets <jberets@bbn.com> in August, 1990.
+   Rewritten using a proper union by Sergey Poznyakoff <gray@gnu.org> */
 
 #ifdef HAVE_CONFIG_H
 # include <config.h>
@@ -787,7 +788,7 @@ static SYMBOL const mil_tz_tab[] = {
 
 /* ARGSUSED */
 static int
-yyerror (char *s ATTRIBUTE_UNUSED)
+yyerror (char *s ARG_UNUSED)
 {
   return 0;
 }
@@ -1169,19 +1170,19 @@ main (int argc, char *argv[])
 
   if (argc > 1 && strcmp (argv[1], "-d") == 0)
     yydebug++;
-  (void) printf ("Enter date, or blank line to exit.\n\t> ");
-  (void) fflush (stdout);
+  printf ("Enter date, or blank line to exit.\n\t> ");
+  fflush (stdout);
 
   buff[MAX_BUFF_LEN] = 0;
   while (fgets (buff, MAX_BUFF_LEN, stdin) && buff[0])
     {
       d = get_date (buff, (time_t *) NULL);
       if (d == -1)
-	(void) printf ("Bad format - couldn't convert.\n");
+	printf ("Bad format - couldn't convert.\n");
       else
-	(void) printf ("%s", ctime (&d));
-      (void) printf ("\t> ");
-      (void) fflush (stdout);
+	printf ("%s", ctime (&d));
+      printf ("\t> ");
+      fflush (stdout);
     }
   exit (0);
   /* NOTREACHED */

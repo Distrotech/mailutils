@@ -35,9 +35,8 @@
 static void url_imap_destroy (url_t url);
 
 static void
-url_imap_destroy (url_t url)
+url_imap_destroy (url_t url ARG_UNUSED)
 {
-  (void)url;
 }
 
 /*

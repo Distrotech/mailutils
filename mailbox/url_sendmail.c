@@ -39,9 +39,8 @@
 static void url_sendmail_destroy (url_t purl);
 
 static void
-url_sendmail_destroy (url_t url)
+url_sendmail_destroy (url_t url ARG_UNUSED)
 {
-  (void) url;
 }
 
 /*

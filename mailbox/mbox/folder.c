@@ -314,7 +314,7 @@ folder_mbox_list (folder_t folder, const char *dirname, const char *pattern,
 }
 
 static int
-folder_mbox_lsub (folder_t folder, const char *ref, const char *name,
+folder_mbox_lsub (folder_t folder, const char *ref ARG_UNUSED, const char *name,
 		  struct folder_list *pflist)
 {
   fmbox_t fmbox = folder->data;
@@ -323,7 +323,6 @@ folder_mbox_lsub (folder_t folder, const char *ref, const char *name,
   if (pflist == NULL)
     return EINVAL;
 
-  (void)ref;
   if (name == NULL || *name == '\0')
     name = "*";
 

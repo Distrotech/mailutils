@@ -186,7 +186,7 @@ stream_read (stream_t is, char *buf, size_t count,
 	  /* Drain the buffer first.  */
 	  if (is->rbuffer.count > 0 && offset == is->rbuffer.offset)
 	    {
-	      (void)memcpy(buf, is->rbuffer.ptr, is->rbuffer.count);
+	      memcpy(buf, is->rbuffer.ptr, is->rbuffer.count);
 	      is->rbuffer.offset += is->rbuffer.count;
 	      residue -= is->rbuffer.count;
 	      buf += is->rbuffer.count;
@@ -219,7 +219,7 @@ stream_read (stream_t is, char *buf, size_t count,
       /* Drain the buffer, if we have less then requested.  */
       while (residue > (size_t)(r = is->rbuffer.count))
 	{
-	  (void)memcpy (buf, is->rbuffer.ptr, (size_t)r);
+	  memcpy (buf, is->rbuffer.ptr, (size_t)r);
 	  /* stream->rbuffer.count = 0 ... done in refill */
 	  is->rbuffer.ptr += r;
 	  is->rbuffer.offset += r;
@@ -246,7 +246,7 @@ stream_read (stream_t is, char *buf, size_t count,
 	      return status;
 	    }
 	}
-      (void)memcpy(buf, is->rbuffer.ptr, residue);
+      memcpy(buf, is->rbuffer.ptr, residue);
       is->rbuffer.count -= residue;
       is->rbuffer.ptr += residue;
       is->rbuffer.offset += residue;
@@ -371,7 +371,7 @@ stream_readline (stream_t is, char *buf, size_t count,
 	      is->rbuffer.count -= len;
 	      is->rbuffer.ptr = nl;
 	      is->rbuffer.offset += len;
-	      (void)memcpy ((void *)s, (void *)p, len);
+	      memcpy ((void *)s, (void *)p, len);
 	      total += len;
 	      s[len] = 0;
 	      if (pnread)
@@ -381,7 +381,7 @@ stream_readline (stream_t is, char *buf, size_t count,
 	  is->rbuffer.count -= len;
 	  is->rbuffer.ptr += len;
 	  is->rbuffer.offset += len;
-	  (void)memcpy((void *)s, (void *)p, len);
+	  memcpy((void *)s, (void *)p, len);
 	  total += len;
 	  s += len;
 	  count -= len;

@@ -92,11 +92,10 @@
 #define MAXFD 64
 
 void
-waitdaemon_timeout (int signo)
+waitdaemon_timeout (int signo ARG_UNUSED)
 {
   int left;
 
-  (void)signo;
   left = alarm (0);
   signal (SIGALRM, SIG_DFL);
   if (left == 0)

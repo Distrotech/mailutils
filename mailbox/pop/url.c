@@ -35,9 +35,8 @@
 static void url_pop_destroy (url_t url);
 
 static void
-url_pop_destroy (url_t url)
+url_pop_destroy (url_t url ARG_UNUSED)
 {
-  (void)url;
 }
 
 /*

@@ -1004,7 +1004,8 @@ mh_scan_message (struct _mh_message *mhm)
 
 /* Scan the mailbox */
 static int
-mh_scan0 (mailbox_t mailbox, size_t msgno, size_t *pcount, int do_notify)
+mh_scan0 (mailbox_t mailbox, size_t msgno ARG_UNUSED, size_t *pcount, 
+          int do_notify)
 {
   struct _mh_data *mhd = mailbox->data;
   struct _mh_message *msg;
@@ -1012,7 +1013,6 @@ mh_scan0 (mailbox_t mailbox, size_t msgno, size_t *pcount, int do_notify)
   struct dirent *entry;
   int status = 0;
   struct stat st;
-  (void)msgno;
 
   if (mhd == NULL)
     return EINVAL;
@@ -1154,11 +1154,9 @@ mh_is_updated (mailbox_t mailbox)
 }
 
 static int
-mh_get_size (mailbox_t mailbox, off_t *psize)
+mh_get_size (mailbox_t mailbox ARG_UNUSED, off_t *psize ARG_UNUSED)
 {
   /*FIXME*/
-  (void)mailbox;
-  (void)psize;
   return ENOSYS;
 }
 

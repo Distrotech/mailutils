@@ -267,13 +267,12 @@ base64_init (filter_t filter)
 
 static int
 base64_decode (const char *iptr, size_t isize, char *optr, size_t osize,
-	       size_t *nbytes, int *line_len)
+	       size_t *nbytes, int *line_len ARG_UNUSED)
 {
   int i = 0, tmp = 0, pad = 0;
   size_t consumed = 0;
   unsigned char data[4];
 
-  (void) line_len;
   *nbytes = 0;
   while (consumed < isize && (*nbytes)+3 < osize)
     {
@@ -376,13 +375,12 @@ qp_init (filter_t filter)
 
 static int
 qp_decode (const char *iptr, size_t isize, char *optr, size_t osize,
-	   size_t *nbytes, int *line_len)
+	   size_t *nbytes, int *line_len ARG_UNUSED)
 {
   char c;
   int last_char = 0;
   size_t consumed = 0;
 
-  (void)line_len;
   *nbytes = 0;
   while (consumed < isize && *nbytes < osize)
     {

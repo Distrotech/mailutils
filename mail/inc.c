@@ -22,9 +22,8 @@
  */
 
 int
-mail_inc (int argc, char **argv)
+mail_inc (int argc ARG_UNUSED, char **argv ARG_UNUSED)
 {
-  (void)argc; (void)argv;
   if (!mailbox_is_updated (mbox))
     {
       mailbox_messages_count (mbox, &total);

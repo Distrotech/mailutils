@@ -23,13 +23,11 @@
  */
 
 int
-mail_list (int argc, char **argv)
+mail_list (int argc ARG_UNUSED, char **argv ARG_UNUSED)
 {
   const char *cmd = NULL;
   int i = 0, pos = 0, len = 0;
   int cols = util_getcols ();
-
-  (void)argc; (void)argv;
 
   for (i=0; mail_command_table[i].shortname != 0; i++)
     {

@@ -22,11 +22,9 @@
  */
 
 int
-mail_folders (int argc, char **argv)
+mail_folders (int argc ARG_UNUSED, char **argv ARG_UNUSED)
 {
   char *path;
-
-  (void)argc; (void)argv;
 
   if (util_getenv (&path, "folder", Mail_env_string, 1))
     return 1;

@@ -192,16 +192,14 @@ monitor_unlock (monitor_t monitor)
 }
 
 int
-monitor_wait (monitor_t monitor)
+monitor_wait (monitor_t monitor ARG_UNUSED)
 {
-  (void)monitor;
   return ENOSYS;
 }
 
 int
-monitor_notify (monitor_t monitor)
+monitor_notify (monitor_t monitor ARG_UNUSED)
 {
-  (void)monitor;
   return ENOSYS;
 }
 

@@ -43,9 +43,8 @@ static struct _record _mh_record =
 record_t mh_record = &_mh_record;
 
 int
-_folder_mh_init (folder_t folder)
+_folder_mh_init (folder_t folder ARG_UNUSED)
 {
-  (void)folder;
   return 0;
 }
 

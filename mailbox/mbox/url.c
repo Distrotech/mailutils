@@ -34,9 +34,8 @@
 static void url_mbox_destroy (url_t purl);
 
 static void
-url_mbox_destroy (url_t url)
+url_mbox_destroy (url_t url ARG_UNUSED)
 {
-  (void) url;
 }
 
 /* Default mailbox path generator */

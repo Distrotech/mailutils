@@ -212,9 +212,8 @@ var_command (int argc, char **argv, compose_env_t *env)
 
 /* ~? */
 int
-var_help (int argc, char **argv, compose_env_t *env)
+var_help (int argc, char **argv, compose_env_t *env ARG_UNUSED)
 {
-  (void) env;
   if (argc < 2)
     return util_help (mail_escape_table, NULL);
   else
@@ -232,12 +231,9 @@ var_help (int argc, char **argv, compose_env_t *env)
 /* ~A */
 /* ~a */
 int
-var_sign (int argc, char **argv, compose_env_t *env)
+var_sign (int argc ARG_UNUSED, char **argv, compose_env_t *env ARG_UNUSED)
 {
   char *p;
-
-  (void) argc;
-  (void) env;
 
   if (util_getenv (&p, isupper (argv[0][0]) ? "Sign" : "sign",
 		   Mail_env_string, 1) == 0)
@@ -290,14 +286,11 @@ var_cc (int argc, char **argv, compose_env_t *env)
 
 /* ~d */
 int
-var_deadletter (int argc, char **argv, compose_env_t *env)
+var_deadletter (int argc ARG_UNUSED, char **argv ARG_UNUSED,
+                compose_env_t *env ARG_UNUSED)
 {
   FILE *dead = fopen (getenv ("DEAD"), "r");
   int c;
-
-  (void) argc;
-  (void) argv;
-  (void) env;
 
   while ((c = fgetc (dead)) != EOF)
     fputc (c, ofile);
@@ -375,9 +368,8 @@ var_visual (int argc, char **argv, compose_env_t *env)
 /* ~f[mesg-list] */
 /* ~F[mesg-list] */
 int
-var_print (int argc, char **argv, compose_env_t *env)
+var_print (int argc, char **argv, compose_env_t *env ARG_UNUSED)
 {
-  (void) env;
   return mail_print (argc, argv);
 }
 
@@ -405,11 +397,10 @@ var_headers (int argc, char **argv, compose_env_t *env)
 
 /* ~i[var-name] */
 int
-var_insert (int argc, char **argv, compose_env_t *send_env)
+var_insert (int argc, char **argv, compose_env_t *send_env ARG_UNUSED)
 {
   struct mail_env_entry *env;
 
-  (void) send_env;
   if (var_check_args (argc, argv))
     return 1;
   env = util_find_env (argv[1], 0);
@@ -531,14 +522,12 @@ var_type_input (int argc, char **argv, compose_env_t *env)
 
 /* ~r[filename] */
 int
-var_read (int argc, char **argv, compose_env_t *env)
+var_read (int argc, char **argv, compose_env_t *env ARG_UNUSED)
 {
   char *filename;
   FILE *inf;
   size_t size, lines;
   char buf[512];
-
-  (void) env;
 
   if (var_check_args (argc, argv))
     return 1;

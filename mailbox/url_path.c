@@ -29,9 +29,8 @@
 static void url_path_destroy (url_t);
 
 static void
-url_path_destroy (url_t url)
+url_path_destroy (url_t url ARG_UNUSED)
 {
-  (void)url;
 }
 
 int

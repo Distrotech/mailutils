@@ -216,9 +216,8 @@ ml_reread (const char *prompt, char **text)
  * readline tab completion
  */
 char **
-ml_command_completion (char *cmd, int start, int end)
+ml_command_completion (char *cmd, int start ARG_UNUSED, int end ARG_UNUSED)
 {
-  (void)end;
   if (start == 0)
     return rl_completion_matches (cmd, ml_command_generator);
   return NULL;

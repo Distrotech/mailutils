@@ -1744,25 +1744,22 @@ imap_fetch (f_imap_t f_imap)
 }
 
 static int
-imap_search (f_imap_t f_imap)
+imap_search (f_imap_t f_imap ARG_UNUSED)
 {
-  (void)f_imap;
   /* Not implemented.  No provision for this in the API, yet.  */
   return 0;
 }
 
 static int
-imap_status (f_imap_t f_imap)
+imap_status (f_imap_t f_imap ARG_UNUSED)
 {
-  (void)f_imap;
   /* Not implemented.  No provision for this in the API, yet.  */
   return 0;
 }
 
 static int
-imap_expunge (f_imap_t f_imap, unsigned msgno)
+imap_expunge (f_imap_t f_imap ARG_UNUSED, unsigned msgno ARG_UNUSED)
 {
-  (void)f_imap; (void)msgno;
   /* We should not have this, since do not send the expunge, but rather
      use SELECT/CLOSE.  */
   return 0;
