@@ -3300,7 +3300,90 @@ To summarize this, here is a working @file{mailutils.rc} entry for
 @section mimeview
 @pindex mimeview
 
-FIXME
+  For each file given in its command line, @command{mimeview} attempts
+to autodetect its type and invoke an appropriate file viewer.
+
+  To detect the file type, @command{mimeview} uses @file{mime.types}
+file. This file is a part of Common UNIX Printing System, see
+@code{man mime.types} for the description of its syntax. [FIXME:
+provide an xref to CUPS]. By default @command{mimeview} searches for
+@file{mime.types} in @file{$prefix/etc/cups/}@footnote{The exact
+location is determined at configuration time by setting environment
+variable @var{DEFAULT_CUPS_CONFDIR}. On most sites running
+
+@smallexample
+./configure DEFAULT_CUPS_CONFDIR=/etc/cups
+@end smallexample
+
+@noindent
+should be recommended.}, however its exact location can be specified
+at runtime as well (see @option{--mimetypes} below).
+
+  Once file MIME type is successfully determined, @command{mimeview}
+consults @file{mailcap} files in order to determine how to display
+the file. It does so essentially in the same manner as
+@command{metamail} utility, i.e., it scans all files specified
+in @code{METAMAIL} environment variable until it finds an entry
+describing the desired file format or until the list of files is
+exhausted. If @code{METAMAIL} variable is not set, @command{mimeview}
+uses the following default path instead:
+
+@smallexample
+$HOME/.mailcap:/usr/local/etc/mailcap:\
+ /usr/etc/mailcap:/etc/mailcap:\
+ /etc/mail/mailcap:/usr/public/lib/mailcap
+@end smallexample
+
+  The following table summarizes options specific for @command{mimeview}:
+
+@table @option
+@item -d[@var{flags}]
+@itemx --debug[=@var{flags}]
+Enables debugging output. @var{Flags} is a sequence of characters
+specifying the desired debugging level. Following characters are
+meaningful in @var{flags}:
+
+@table @asis
+@item g
+Enables debugging of @file{mime.types} parser
+
+@item l
+Enables debugging of @file{mime.types} lexical analyzer (warning:
+produces @emph{very} copious output)
+
+@item 1
+Prints basic information about actions to be executed and reports
+about exit status of executed commands.
+
+@item 2
+Additionally displays each file name along with its MIME type
+
+@item 3
+Additionally traces the process of looking up the matching entry
+in @code{mailcap} files.
+
+@item digits from 4 to 9
+The same as 3, currently.
+@end table
+
+If @var{flags} are not given, the default @samp{9} is assumed.
+
+@item --metamail[=@var{file}]
+Run @command{metamail} to display files, instead of using the internal
+mechanisms. If @var{file} is specified, it is taken as
+@command{metamail} command line.
+
+@item -n
+@itemx --dry-run
+Do not do anything, just print what whould be done. Implies
+@option{--debug=1}, unless the debugging level is set up explicitely.
+
+@item -t @var{file}
+@itemx --mimetypes @var{file}
+Use @var{file} as @file{mime.types} file. If @var{file} is a
+directory, use @file{@var{file}/mime.types}
+@end table
+
 
 @page
 @node pop3d
