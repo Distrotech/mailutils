@@ -49,8 +49,9 @@ ENVELOPE TO: <coyote@desert.example.org>
 -re
   16: [0-9:=-]+
   17: Content-Type: message/delivery-status
-  18: 
-  19: Reporting-UA: sieve; GNU Mailutils 0.1.2
+  18:
+-re
+  19: Reporting-UA: sieve; GNU Mailutils [0-9][0-9.]*
 -re
   20: Arrival-Date: [A-Z][a-z][a-z], [A-Z][a-z][a-z] [ 0-3][0-9] [ 0-2][0-9]:[0-6][0-9]:[0-6][0-9] [0-9][0-9][0-9][0-9] [a-zA-Z0-9]*
   21: Final-Recipient: RFC822; foobar@nonexistent.net
@@ -108,8 +109,9 @@ ENVELOPE TO: <b1ff@de.res.example.com>
 -re
   16: [0-9:=-]+
   17: Content-Type: message/delivery-status
-  18: 
-  19: Reporting-UA: sieve; GNU Mailutils 0.1.2
+  18:
+-re
+  19: Reporting-UA: sieve; GNU Mailutils [0-9][0-9.]*
 -re
   20: Arrival-Date: [A-Z][a-z][a-z], [A-Z][a-z][a-z] [ 0-3][0-9] [ 0-2][0-9]:[0-6][0-9]:[0-6][0-9] [0-9][0-9][0-9][0-9] [a-zA-Z0-9]*
   21: Final-Recipient: RFC822; foobar@nonexistent.net
@@ -165,8 +167,9 @@ ENVELOPE TO: <bar@dontmailme.org>
 -re
   16: [0-9:=-]+
   17: Content-Type: message/delivery-status
-  18: 
-  19: Reporting-UA: sieve; GNU Mailutils 0.1.2
+  18:
+-re
+  19: Reporting-UA: sieve; GNU Mailutils [0-9][0-9.]*
 -re
   20: Arrival-Date: [A-Z][a-z][a-z], [A-Z][a-z][a-z] [ 0-3][0-9] [ 0-2][0-9]:[0-6][0-9]:[0-6][0-9] [0-9][0-9][0-9][0-9] [a-zA-Z0-9]*
   21: Final-Recipient: RFC822; foobar@nonexistent.net
