@@ -274,7 +274,7 @@ extern int util_getenv __P ((void *ptr, const char *variable,
 extern int util_printenv __P ((int set));
 extern int util_setenv __P ((const char *name, void *value,
 			     mail_env_data_t type, int overwrite));
-extern int util_isdeleted __P ((int message));
+extern int util_isdeleted __P ((message_t msg));
 extern char *util_get_homedir __P ((void));
 extern char *util_fullpath __P ((const char *inpath));
 extern char *util_folder_path __P((const char *name));
@@ -291,6 +291,7 @@ extern void util_escape_percent __P ((char **str));
 extern char *util_outfolder_name __P ((char *str));
 extern void util_save_outgoing __P ((message_t msg, char *savefile));
 extern void util_error __P ((const char *format, ...));
+extern int util_error_range __P ((size_t msgno));
 extern int util_help __P ((const struct mail_command_entry *table, char *word));
 extern int util_tempfile __P ((char **namep));
 extern void util_msgset_iterate __P ((msgset_t *msgset, int (*fun) __P ((message_t, msgset_t *, void *)), void *closure));
@@ -298,6 +299,8 @@ extern int util_get_content_type __P ((header_t hdr, char **value));
 extern int util_get_hdr_value __P ((header_t hdr, const char *name, char **value));
 extern int util_merge_addresses __P((char **addr_str, const char *value));
 extern int util_header_expand __P((header_t *hdr));
+extern int util_get_message __P((mailbox_t mbox, size_t msgno,
+				 message_t *msg, int delflag));
 
 extern int ml_got_interrupt __P ((void));
 extern void ml_clear_interrupt __P ((void));

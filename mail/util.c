@@ -563,16 +563,12 @@ util_setenv (const char *variable, void *value, mail_env_data_t type,
  * return 1 if a message is deleted
  */
 int
-util_isdeleted (int n)
+util_isdeleted (message_t msg)
 {
-  message_t msg;
   attribute_t attr;
-  if (mailbox_get_message (mbox, n, &msg) != 0)
-    return 0;
+
   message_get_attribute (msg, &attr);
-  if (attribute_is_deleted (attr))
-    return 1;
-  return 0;
+  return attribute_is_deleted (attr);
 }
 
 char *
@@ -918,6 +914,7 @@ util_save_outgoing (message_t msg, char *savefile)
 		  off += n;
 		}
 	      free (buf);
+	      fprintf (outfile, "\n");
 	    }
 	  fclose (outfile);
 	}
@@ -1225,4 +1222,38 @@ util_header_expand (header_t *phdr)
     header_destroy (&hdr, NULL);
 
   return errcnt;
+}
+
+int
+util_get_message (mailbox_t mbox, size_t msgno, message_t *msg, int delflag)
+{
+  int status;
+
+  if (msgno > total)
+    {
+      util_error_range (msgno);
+      return ENOENT;
+    }
+  
+  status = mailbox_get_message (mbox, msgno, msg);
+  if (status)
+    {
+      util_error ("can't get message %lu: %s",
+		  (unsigned long) msgno, mu_errstring (status));
+      return status;
+    }
+
+  if (delflag && util_isdeleted (*msg))
+    {
+      util_error ("%d: Inappropriate message (has been deleted)");
+      return ENOENT;
+    }
+  return 0;
+}
+
+int
+util_error_range (size_t msgno)
+{
+  util_error ("%d: invalid message number", msgno);
+  return 1;
 }
