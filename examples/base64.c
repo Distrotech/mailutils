@@ -22,6 +22,8 @@
 #include <string.h>
 #include <mailutils/mailutils.h>
 
+#define ISPRINT(c) ((c)>=' '&&(c)<127) 
+
 int
 main (int argc, char * argv [])
 {
@@ -86,7 +88,7 @@ main (int argc, char * argv [])
   while (stream_read (flt, &buffer, sizeof (buffer), total, &size) == 0
 	 && size > 0)
     {
-      if (printable && !isprint (buffer))
+      if (printable && !ISPRINT (buffer))
 	{
 	  char outbuf[24];
 	  sprintf (outbuf, "\\%03o", (unsigned int) buffer);

@@ -22,12 +22,14 @@
 
 #include <mailutils/mailutils.h>
 
+#define ISPRINT(c) ((c)=='\t'||(c)==' '||(c)=='\n'||((c)>' '&&(c)<128)) 
+
 void
 print (char *p, int printable)
 {
   for (; *p; p++)
     {
-      if (printable && *p != '\n' && !isprint (*p))
+      if (printable && *p != '\n' && !ISPRINT (*p))
 	printf ("\\%03o", *(unsigned char *) p);
       else
 	putchar (*p);
