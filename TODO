@@ -11,7 +11,9 @@ IMPORTANT:
   some of the flaws of the old version.
 
 - generalized search interface
-- support AUTH=anonymous imap, imap://cyrus.andrew.cmu.edu/archive.info-cyrus
++ support AUTH=anonymous (imap://cyrus.andrew.cmu.edu/archive.info-cyrus)
++ probably the AUTH should be allocated on creation, when the url is
+  looked at, and rejected then, for now return ENOTSUP at folder_imap.c:327
 
 [pop3]
 + find out why the pop3 server quits on a signal when the 'quit' command is
@@ -80,7 +82,16 @@ The 5 actions:
   for pop and local spools my polling, why can't you select() on a unix
   file?)
 
+[utilities]
+
+- forward only MTA, nullmailer like, but accepting SMTP on 25 from localhost
+
+- utility to move all mail from one mailbox to another, like mbox to
+  IMAP, preserving all flags that are possible. can sieve do this?
+
 [all]
+
+- add nightly build
 
 - add more features
 
