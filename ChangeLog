@@ -1,3 +1,21 @@
+2004-04-26  Wojciech Polak
+
+	Added -P, --pidfile=FILE options for the daemons.
+
+	* mailbox/daemon.c: New file. Added pidfile support
+	and a placeholder for a further universal daemon routines.
+	* mailbox/mu_argp.c: Added new pidfile option.
+	* mailbox/Makefile.am: Added daemon.c.
+	* include/mailutils/daemon.h: New file.
+	* include/mailutils/argp.h (daemon_param): Added *pidfile.
+
+	* pop3d/pop3d.c (main): Call daemon_create_pidfile()
+	if the -P or --pidfile option was specified.
+	(daemon_param): Set initial NULL for the pidfile name.
+	* imap4d/imap4d.c (main): Likewise.
+	* pop3d/pop3d.h: Include <mailutils/daemon.h>.
+	* imap4d/imap4d.h: Likewise.
+
 2004-04-14  Sergey Poznyakoff
 
 	* mail.remote/mail.remote.c: Use "auth" capability. 
