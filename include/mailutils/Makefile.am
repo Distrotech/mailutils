@@ -20,6 +20,7 @@ pkginclude_HEADERS = \
  message.h \
  mime.h \
  monitor.h \
+ mu_auth.h \
  mutil.h \
  observer.h \
  parse822.h \
