@@ -23,7 +23,6 @@ imap4d_append (struct imap4d_command *command, char *arg)
 {
   char *sp;
   char *mboxname;
-  char *attr_str;
   int flags = 0;
   mailbox_t dest_mbox = NULL;
   int status;

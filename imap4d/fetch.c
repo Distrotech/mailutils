@@ -61,12 +61,6 @@ static int fetch_io                __P ((stream_t, unsigned long, unsigned long,
 static int fetch_header_fields     __P ((message_t, char **, unsigned long, unsigned long));
 static int fetch_header_fields_not __P ((message_t, char **, unsigned long, unsigned long));
 static int fetch_send_address      __P ((char *));
-/* The internal date of the message.  */
-static const char *MONTHS[] =
-{
-  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
-};
 
 static struct fetch_command* fetch_getcommand __P ((char *, struct fetch_command[]));
 

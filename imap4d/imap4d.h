@@ -69,15 +69,17 @@
 # include <paths.h>
 #endif
 
+#include <mailutils/address.h>
+#include <mailutils/body.h>
+#include <mailutils/error.h>
+#include <mailutils/filter.h>
+#include <mailutils/folder.h>
+#include <mailutils/header.h>
 #include <mailutils/mailbox.h>
 #include <mailutils/message.h>
-#include <mailutils/header.h>
-#include <mailutils/body.h>
-#include <mailutils/address.h>
+#include <mailutils/parse822.h>
 #include <mailutils/registrar.h>
-#include <mailutils/filter.h>
 #include <mailutils/stream.h>
-#include <mailutils/error.h>
 
 #ifndef _PATH_MAILDIR
 # define _PATH_MAILDIR "/usr/spool/mail"
@@ -150,6 +152,7 @@ extern volatile size_t children;
 
 /* Imap4 commands */
 extern int  imap4d_append __P ((struct imap4d_command *, char *));
+extern int  imap4d_append0 __P((mailbox_t mbox, int flags, char *text));
 extern int  imap4d_authenticate __P ((struct imap4d_command *, char *));
 extern int  imap4d_capability __P ((struct imap4d_command *, char *));
 extern int  imap4d_check __P ((struct imap4d_command *, char *));
@@ -169,6 +172,7 @@ extern int  imap4d_logout __P ((struct imap4d_command *, char *));
 extern int  imap4d_noop __P ((struct imap4d_command *, char *));
 extern int  imap4d_rename __P ((struct imap4d_command *, char *));
 extern int  imap4d_search __P ((struct imap4d_command *, char *));
+extern int  imap4d_search0 __P((char *arg, int isuid, char *replybuf, size_t replysize));
 extern int  imap4d_select __P ((struct imap4d_command *, char *));
 extern int  imap4d_select0 __P ((struct imap4d_command *, char *, int));
 extern void imap4d_select_status __P((void));
@@ -191,6 +195,8 @@ extern RETSIGTYPE imap4d_signal __P ((int));
 extern int imap4d_bye __P ((int));
 
 /* Namespace functions */
+extern int set_namespace __P((int i, char *str));
+extern int namespace_init __P((char *path));
 extern char * namespace_getfullpath __P((char *name, const char *delim));
 extern char * namespace_checkfullpath __P((char *name, const char *pattern,
 					   const char *delim));
@@ -218,9 +224,10 @@ extern struct imap4d_command *util_getcommand __P ((char *,
 extern int util_parse_internal_date0 __P((char *date, time_t *timep, char **endp));
 extern int util_parse_internal_date __P((char *date, time_t *timep));
 extern int util_parse_822_date __P((char *date, time_t *timep));
-extern int util_parse_ctime_date __P((char *date, time_t *timep));
+extern int util_parse_ctime_date __P((const char *date, time_t *timep));
 extern char *util_strcasestr __P((const char *haystack, const char *needle));
-extern char *util_normalize_path (char *path, const char *delim);
+extern char *util_normalize_path __P((char *path, const char *delim));
+extern int util_parse_attributes __P((char *items, char **save, int *flags));
   
 #ifdef __cplusplus
 }

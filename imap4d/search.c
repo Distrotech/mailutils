@@ -81,26 +81,26 @@ struct cond
 /* List of basic conditions. <message set> is handled separately */
 struct cond condlist[] =
 {
-  "ALL",        NULL,   cond_all,
-  "BCC",        "s",  cond_bcc,
-  "BEFORE",     "d",  cond_before,
-  "BODY",       "s",  cond_body,
-  "CC",         "s",  cond_cc,
-  "FROM",       "s",  cond_from,
-  "HEADER",     "ss", cond_header,
-  "KEYWORD",    "s",  cond_keyword,
-  "LARGER",     "n",  cond_larger,
-  "ON",         "d",  cond_on,
-  "SENTBEFORE", "d",  cond_sentbefore,  
-  "SENTON",     "d",  cond_senton,
-  "SENTSINCE",  "d",  cond_sentsince,
-  "SINCE",      "d",  cond_since,
-  "SMALLER",    "n",  cond_smaller,
-  "SUBJECT",    "s",  cond_subject,
-  "TEXT",       "s",  cond_text,
-  "TO",         "s",  cond_to,
-  "UID",        "m",  cond_uid,                      
-  NULL,
+  { "ALL",        NULL,   cond_all },
+  { "BCC",        "s",  cond_bcc },
+  { "BEFORE",     "d",  cond_before },
+  { "BODY",       "s",  cond_body },
+  { "CC",         "s",  cond_cc },
+  { "FROM",       "s",  cond_from },
+  { "HEADER",     "ss", cond_header },
+  { "KEYWORD",    "s",  cond_keyword },
+  { "LARGER",     "n",  cond_larger },
+  { "ON",         "d",  cond_on },
+  { "SENTBEFORE", "d",  cond_sentbefore },
+  { "SENTON",     "d",  cond_senton },
+  { "SENTSINCE",  "d",  cond_sentsince },
+  { "SINCE",      "d",  cond_since },
+  { "SMALLER",    "n",  cond_smaller },
+  { "SUBJECT",    "s",  cond_subject },
+  { "TEXT",       "s",  cond_text },
+  { "TO",         "s",  cond_to },
+  { "UID",        "m",  cond_uid },
+  { NULL }
 };
 
 /* Other search keys described by rfc2060 are implemented on top of these
@@ -115,21 +115,21 @@ struct cond_equiv
 
 struct cond_equiv equiv_list[] =
 {
-  "ANSWERED",   "KEYWORD \\Answered",
-  "DELETED",    "KEYWORD \\Deleted",
-  "DRAFT",      "KEYWORD \\Draft",
-  "FLAGGED",    "KEYWORD \\Flagged",
-  "NEW",        "(RECENT UNSEEN)",
-  "OLD",        "NOT RECENT",
-  "RECENT",     "KEYWORD \\Recent",
-  "SEEN",       "KEYWORD \\Seen",
-  "UNANSWERED", "NOT KEYWORD \\Answered",
-  "UNDELETED",  "NOT KEYWORD \\Deleted",
-  "UNDRAFT",    "NOT KEYWORD \\Draft",
-  "UNFLAGGED",  "NOT KEYWORD \\Flagged",
-  "UNKEYWORD",  "NOT KEYWORD",
-  "UNSEEN",     "NOT KEYWORD \\Seen",
-  NULL
+  { "ANSWERED",   "KEYWORD \\Answered" },
+  { "DELETED",    "KEYWORD \\Deleted" },
+  { "DRAFT",      "KEYWORD \\Draft" },
+  { "FLAGGED",    "KEYWORD \\Flagged" },
+  { "NEW",        "(RECENT UNSEEN)" },
+  { "OLD",        "NOT RECENT" },
+  { "RECENT",     "KEYWORD \\Recent" },
+  { "SEEN",       "KEYWORD \\Seen" },
+  { "UNANSWERED", "NOT KEYWORD \\Answered" },
+  { "UNDELETED",  "NOT KEYWORD \\Deleted" },
+  { "UNDRAFT",    "NOT KEYWORD \\Draft" },
+  { "UNFLAGGED",  "NOT KEYWORD \\Flagged" },
+  { "UNKEYWORD",  "NOT KEYWORD" },
+  { "UNSEEN",     "NOT KEYWORD \\Seen" },
+  { NULL }
 };
 
 /* A memory allocation chain used to keep track of objects allocated during
@@ -204,8 +204,6 @@ imap4d_search (struct imap4d_command *command, char *arg)
 int
 imap4d_search0 (char *arg, int isuid, char *replybuf, size_t replysize)
 {
-  char *sp ;
-  char *str;
   struct parsebuf parsebuf;
   
   memset (&parsebuf, 0, sizeof(parsebuf));
@@ -277,8 +275,6 @@ void
 do_search (struct parsebuf *pb)
 {
   size_t count = 0;
-  size_t *set = NULL;
-  int n = 0;
   
   mailbox_messages_count (mbox, &count);
 
@@ -411,6 +407,9 @@ parse_strdup (struct parsebuf *pb, char *s)
 		   ;
 */
 
+int parse_simple_key (struct parsebuf *pb);
+int parse_equiv_key (struct parsebuf *pb);
+
 int
 parse_search_key_list (struct parsebuf *pb)
 {
@@ -498,7 +497,6 @@ int
 parse_simple_key (struct parsebuf *pb)
 {
   struct cond *condp;
-  char *t;
   time_t time;
   size_t *set = NULL;
   int n = 0;
@@ -614,7 +612,7 @@ _search_arg (struct parsebuf *pb)
   return (void*)pb->code[pb->pc++];
 }
 
-static int
+static void
 _search_push (struct parsebuf *pb, int val)
 {
   if (pb->tos == pb->stacksize)
@@ -793,7 +791,6 @@ cond_before (struct parsebuf *pb)
   time_t mesg_time;
   char buffer[512];
   envelope_t env;
-  int rc = 0;
   
   message_get_envelope (pb->msg, &env);
   envelope_date (env, buffer, sizeof (buffer), NULL);
@@ -878,7 +875,6 @@ cond_on (struct parsebuf *pb)
   time_t mesg_time;
   char buffer[512];
   envelope_t env;
-  int rc = 0;
   
   message_get_envelope (pb->msg, &env);
   envelope_date (env, buffer, sizeof (buffer), NULL);
@@ -923,7 +919,6 @@ cond_since (struct parsebuf *pb)
   time_t mesg_time;
   char buffer[512];
   envelope_t env;
-  int rc = 0;
   
   message_get_envelope (pb->msg, &env);
   envelope_date (env, buffer, sizeof (buffer), NULL);

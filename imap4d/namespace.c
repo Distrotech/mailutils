@@ -74,7 +74,7 @@ printable_pathname(char *str)
   return str;
 }
 
-static int
+static void
 print_namespace(int n)
 {
   int i;
@@ -99,7 +99,7 @@ namespace_enumerate(int ns, nsfp_t f, void *closure)
   int i, rc;
 
   for (i = 0; i < namespace[ns].subdir_c; i++)
-    if (rc = (*f)(closure, ns, namespace[ns].subdir_v[i], '/'))
+    if ((rc = (*f)(closure, ns, namespace[ns].subdir_v[i], '/')))
       return rc;
   return 0;
 }
@@ -207,4 +207,5 @@ int
 namespace_init(char *path)
 {
   set_namespace(NS_PRIVATE, path);
+  return 0;
 }

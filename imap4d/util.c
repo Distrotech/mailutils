@@ -671,21 +671,18 @@ add2set (size_t **set, int *n, unsigned long val)
   return 0;
 }
 
-extern int imap_parse_date_time __P((const char **p, struct tm *tm, int *tz));
-extern time_t mu_mktime __P((struct tm *timeptr, int tz));
-
 int
 util_parse_internal_date0 (char *date, time_t *timep, char **endp)
 {
   struct tm tm;
-  int tz;
+  mu_timezone tz;
   time_t time;
   char **datep = &date;
 
-  if (imap_parse_date_time((const char **)datep, &tm, &tz))
+  if (mu_parse_imap_date_time((const char **)datep, &tm, &tz))
     return 1;
 
-  time = mu_mktime (&tm, tz);
+  time = mu_tm2time (&tm, &tz);
   if (time == (time_t) -1)
     return 2;
 
@@ -706,58 +703,29 @@ int
 util_parse_822_date (char *date, time_t *timep)
 {
   struct tm tm;
+  mu_timezone tz;
+  const char* p = date;
   
-  if (parse822_date_time(&date, date+strlen(date), &tm) == 0)
+  if (parse822_date_time(&p, date+strlen(date), &tm, &tz) == 0)
     {
-      *timep = mu_mktime (&tm, 0);
+      *timep = mu_tm2time (&tm, &tz);
       return 0;
     }
   return 1;
 }
 
-static const char *months[] =
-{
-  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
-};
-
 int
-util_parse_ctime_date (char *date, time_t *timep)
+util_parse_ctime_date (const char *date, time_t *timep)
 {
-  int year, mon, day, hour, min, sec;
-  int offt;
-  int i;
   struct tm tm;
-  char month[5];
-  char wday[5];
-
-  month[0] = '\0';
-  wday[0] = '\0';
-  day = mon = year = hour = min = sec = offt = 0;
-
-  if (sscanf (date, "%3s %3s %2d %2d:%2d:%2d %d\n", wday, month, &day,
-	      &hour, &min, &sec, &year) != 7)
-    return 1;
-  tm.tm_sec = sec;
-  tm.tm_min = min;
-  tm.tm_hour = hour;
-  for (i = 0; i < 12; i++)
+  mu_timezone tz;
+  
+  if (mu_parse_ctime_date_time(&date, &tm, &tz) == 0)
     {
-      if (strncasecmp (month, months[i], 3) == 0)
-	{
-	  mon = i;
-	  break;
-	}
+      *timep = mu_tm2time (&tm, &tz);
+      return 0;
     }
-  tm.tm_mday = day;
-  tm.tm_mon = mon;
-  tm.tm_year = (year > 1900) ? year - 1900 : year;
-  tm.tm_yday = 0; /* unknown. */
-  tm.tm_wday = 0; /* unknown. */
-  tm.tm_isdst = -1; /* unknown. */
-  /* MOTE: UTC */
-  *timep = mu_mktime (&tm, 0);
-  return 0;
+  return 1;
 }
 
 /* Return the first ocurrence of NEEDLE in HAYSTACK. Case insensitive
