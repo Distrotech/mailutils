@@ -14,7 +14,9 @@ as well as off of local or remote POP3 and IMAP4 servers.
 You're welcome to use this library in your own programs, please see
 the examples subdirectory or these other applications.  All libraries
 are licensed using the GNU LGPL.  The documentation is licensed under
-the GNU FDL, and everything else is licensed using the GNU GPL.
+the GNU FDL, and everything else is licensed using the GNU GPL. The
+complete texts of the corresponding licences are included in the files
+COPYING.LIB, COPYING and doc/texinfo/COPYING.DOC.
 
 This software is part of the GNU Project and belongs to the Free Software 
 Foundation.
