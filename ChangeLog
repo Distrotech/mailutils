@@ -1,3 +1,55 @@
+2004-06-12  Sergey Poznyakoff
+
+	* auth/gsasl.c: Revised use of const modifiers
+	* auth/lbuf.c: Likewise
+	* auth/lbuf.h: Likewise
+	* auth/mysql.c: Likewise
+	* auth/pam.c: Likewise
+	* auth/pgsql.c: Likewise
+	* auth/sql.c: Likewise
+	* auth/tls.c: Likewise
+	* auth/virtual.c: Likewise
+	* examples/iconv.c: Likewise
+	* imap4d/auth_gsasl.c: Likewise
+	* imap4d/imap4d.c: Likewise
+	* imap4d/util.c: Likewise
+	* include/mailutils/mu_auth.h: Likewise
+	* include/mailutils/mutil.h: Likewise
+	* include/mailutils/stream.h: Likewise
+	* libmu_scm/mu_mailbox.c: Likewise
+	* mailbox/file_stream.c: Likewise
+	* mailbox/filter_iconv.c: Likewise
+	* mailbox/mapfile_stream.c: Likewise
+	* mailbox/mu_auth.c: Likewise
+	* mailbox/mutil.c: Likewise
+	* mailbox/stream.c: Likewise
+	* mailbox/system.c: Likewise
+	* mailbox/include/stream0.h: Likewise
+	* mailbox/maildir/maildir.h: Likewise
+	* mailbox/maildir/mbox.c: Likewise
+	* mh/mh_format.c: Likewise
+	* mh/mh_init.c: Likewise
+	* mh/send.c: Likewise
+	* pop3d/extra.c: Likewise
+	
+	* mail/util.c: Commented out unused static functions
+	* comsat/cfg.c: Likewise
+	
+	* mail/from.c: Minor fix
+	* mailbox/daemon.c: Likewise
+	
+	* mailbox/muerrno.c: Added missing includes
+	* mailbox/rfc2047.c: Likewise
+	* mailbox/maildir/folder.c: Likewise
+	* mailbox/mbox/url.c: Likewise
+	* mailbox/mh/folder.c: Likewise
+	* mh/mh.h: Likewise
+	* mh/mh_alias.l: Likewise
+
+	* mh/mh_fmtgram.y: Provide forward declarations for yyerror and
+	yylex.
+	* libsieve/sieve.y: Likewise
+	
 2004-06-09  Sergey Poznyakoff
 
 	* NEWS: Updated
