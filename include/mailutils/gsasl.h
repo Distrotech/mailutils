@@ -20,7 +20,7 @@
 
 #include <gsasl.h>
 
-int gsasl_stream_create __P((stream_t *stream, int fd,
+int gsasl_stream_create __P((stream_t *stream, stream_t transport,
 			     Gsasl_session_ctx *ctx,
 			     int flags));
 
