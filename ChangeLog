@@ -1,3 +1,9 @@
+2001-02-22  Alain Magloire
+
+	* sieve : New Directory.
+	* sieve/lex-sieve.lex : RFC3028 tokenizer.
+	* sieve/gram-sieve.y : RFC3028 grammar.
+
 2001-02-20  Alain Magloire
 
 	* mailbox/mailbox.c (mailbox_set_ticket mailbox_set_authority
@@ -102,7 +108,7 @@
 	to mailbox_unseen_count().
 	* include/mailutils/mailbox.h : updated for mailbox_unseen_count()
 
-	
+
 2001-01-25  Alain Magloire
 
 	* frm/frm.c : Forget to add --summary option and fix return status.

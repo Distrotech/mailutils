@@ -45,7 +45,9 @@ reject : SIEVE_REJECT SIEVE_STRING ;
 
 require : SIEVE_REQUIRE string_list ;
 
-test_list : '(' test ')' | '(' test ',' test ')' | test;
+test_list : '(' tests ')' ;
+
+tests : test | test ',' tests ;
 
 test : test_address | test_anyof | test_envelope | test_false | test_exists
      | test_header | test_not | test_size | test_true ;
