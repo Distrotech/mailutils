@@ -483,7 +483,7 @@ static void
 builtin_match (struct mh_machine *mach)
 {
   mach->arg_num = strstr (strobj_ptr (&mach->reg_str),
-			  strobj_ptr (&mach->arg_str));
+			  strobj_ptr (&mach->arg_str)) != NULL;
 }
 
 static void
