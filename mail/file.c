@@ -66,8 +66,19 @@ mail_file (int argc, char **argv)
 	  
 	case '+':
 	  env = util_find_env ("folder");
-	  if (env->set)
-	    name = env->value;
+	  if (env->set && env->value[0] != '/' && env->value[1] != '~')
+	    {
+	      char *home = mu_get_homedir ();
+	      name = alloca (strlen (home) + 1 +
+			     strlen (env->value) + 1 +
+			     strlen (argv[1] + 1) + 1);
+	      if (!name)
+		{
+		  util_error ("Not enough memory");
+		  return 1;
+		} 
+	      sprintf (name, "%s/%s/%s", home, env->value, argv[1] + 1);
+	    }
 	  else
 	    name = argv[1];
 	  break;
@@ -106,7 +117,7 @@ mail_file (int argc, char **argv)
       if ((util_find_env("header"))->set)
 	{
 	  util_do_command ("summary");
-	util_do_command ("z.");
+	  util_do_command ("z.");
 	}
       return 0;
     }

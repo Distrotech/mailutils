@@ -31,12 +31,29 @@ mail_folders (int argc, char **argv)
 
   if (!env->set)
     {
-      util_error("No value set for \"folder\"");
+      util_error ("No value set for \"folder\"");
       return 1;
     }
 
-  path = util_fullpath(env->value);
-  util_do_command("! %s %s", getenv("LISTER"), path);
+  path = env->value;
+  if (path[0] != '/' && path[0] != '~')
+    {
+      char *tmp = alloca (strlen (path) + 3);
+      if (!tmp)
+	{
+	  util_error ("Not enough memory");
+	  return 1;
+	} 
+
+      tmp[0] = '~';
+      tmp[1] = '/';
+      strcpy (tmp + 2, path);
+      path = tmp;
+    }
+  
+  path = util_fullpath (path);
+  
+  util_do_command("! %s %s", getenv ("LISTER"), path);
   free(path);
 
   return 0;
