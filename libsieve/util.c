@@ -100,21 +100,19 @@ sieve_pfree (list_t *pool, void *ptr)
   free (ptr);
 }  
 
+static int
+_destroy_item (void *item, void *data)
+{
+  free (item);
+  return 0;
+}
+
 void
 sieve_slist_destroy (list_t *plist)
 {
-  iterator_t itr;
-
-  if (!plist || iterator_create (&itr, *plist))
+  if (!plist)
     return;
-
-  for (iterator_first (itr); !iterator_is_done (itr); iterator_next (itr))
-    {
-      char *s;
-      iterator_current (itr, (void **)&s);
-      free (s);
-    }
-  iterator_destroy (&itr);
+  list_do (*plist, _destroy_item, NULL);
   list_destroy (plist);
 }
 
@@ -231,7 +229,7 @@ _sieve_default_parse_error (void *unused, const char *filename, int lineno,
 			    const char *fmt, va_list ap)
 {
   if (filename)
-  fprintf (stderr, "%s:%d: ", filename, lineno);
+    fprintf (stderr, "%s:%d: ", filename, lineno);
   vfprintf (stderr, fmt, ap);
   fprintf (stderr, "\n");
   return 0;
