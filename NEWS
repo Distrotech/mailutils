@@ -21,8 +21,13 @@ time units.
 
 ** libmailbox
 
+*** implemented header unfolding
+
 *** argcv_get unescapes all unprintable characters, argcv_string
 escapes them.
+
+** libsieve: Implemented boolean shortcuts for evaluating ALLOF and
+ANYOF
 
 ** pop3d
 

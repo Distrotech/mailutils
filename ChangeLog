@@ -1,3 +1,18 @@
+2003-08-07  Sergey Poznyakoff  
+
+	* NEWS: Updated
+	* TODO: Updated
+	* include/mailutils/header.h (header_get_value_unfold)
+	(header_aget_value_unfold,header_get_field_value_unfold)
+	(header_aget_field_value_unfold): New functions.
+	* mailbox/header.c: Likewise.
+	* include/mailutils/mutil.h (mu_string_unfold): New function.
+	* mailbox/mutil.c: Likewise.
+	* mailbox/mbox/mboxscan.c (FAST_HEADER): Do not remove
+	intermediate newlines from the folded headers.
+	* frm/frm.c: use header_get_value_unfold
+	* mail/from.c: Likewise.
+
 2003-07-26  Sergey Poznyakoff  
 
 	Done the following from the TODO:
