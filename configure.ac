@@ -38,6 +38,16 @@ dnl Internationalization macros.
 AM_GNU_GETTEXT(no-libtool, need-ngettext)
 AM_GNU_GETTEXT_VERSION(0.13)
 AM_ICONV
+AC_CHECK_HEADERS(iconv.h)
+AC_CHECK_TYPE(iconv_t,:,
+              AC_DEFINE(iconv_t, int,
+                        [Conversion descriptor type]),
+              [
+#ifdef HAVE_ICONV_H
+# include <iconv.h>
+#endif
+])
+
 AC_SUBST(INTLINCS)
 if test ".$BUILD_INCLUDED_LIBINTL" = ".yes" ; then
         AC_DEFINE(WITH_INCLUDED_LIBINTL,1,
@@ -715,6 +725,9 @@ AC_SUBST(MU_LTLIBOBJS)
 
 AC_SUBST(SIEVE_MODDIR)
 SIEVE_MODDIR='$(libdir)/$(PACKAGE)'
+
+AC_SUBST(MU_COMMON_LIBRARIES)
+MU_COMMON_LIBRARIES='$(LTLIBINTL) $(LTLIBICONV)'
 
 dnl Output Makefiles
 AC_CONFIG_FILES([Makefile
