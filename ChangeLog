@@ -1,4 +1,11 @@
-2005-01-12  Jordi Mallach
+2005-01-04  Sergey Poznyakoff
+
+	* mailbox/errors: Add gettext markers
+	* po/POTFILES.in: Depend on mailbox/errors directly
+	* scripts/generr.awk: Assume textual messages are
+	already quoted.
+
+2005-01-02  Jordi Mallach
 
 	* doc/texinfo/programs.texi: Typo fix.
 
