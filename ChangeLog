@@ -1,3 +1,14 @@
+2003-06-23  Sergey Poznyakoff 
+
+	* doc/Readme.mysql: Removed. File not relevant anymore.
+	* include/mailutils/nls.h: Minor change.
+	* mail/mail.c (parse_opt): Use util_cache_command, except
+	for -n, which should be executed immediately.
+	(main): Run cached commands after sourcing the startup files.
+	* mail/mail.h (util_cache_command,util_run_cached_commands):
+	New functions.
+	* mail/util.c: Likewise.
+
 2003-06-22  Alain Magloire
 
 	* doc/texinfo/pop3.texi: First draft documenting the new low level
