@@ -1,3 +1,26 @@
+2003-09-10  Sergey Poznyakoff 
+
+	* include/mailutils/errno.h (MU_ERR_BAD_AUTH_SCHEME)
+	(MU_ERR_AUTH_FAILURE): New error codes.
+	* mailbox/muerrno.c: Likewise.
+
+	* mailbox/include/auth0.h (struct _authority): Keep a list
+	of authentication methods.
+	* mailbox/auth.c (authority_authenticate): Authentication
+	methods are now stored as a list.
+	* mailbox/mailbox.c (mailbox_create): Bugfix. Return failure
+	if the folder cannot be created.
+
+	* mailbox/imap/folder.c: Allow user to specify several possible
+	authentication methods after AUTH= (an extension to RFC 2192).
+	(folder_imap_get_authority): Select an appropriate authentication
+	mechanism if AUTH=*, as suggested by RFC.
+
+	* mailbox/pop/folder.c (folder_pop_get_authority): Return
+	an appropriate error code.
+
+	* mh/rmf.c (rmf): Bugfix.
+	
 2003-09-10  Sergey Poznyakoff
 
 	* mailbox/imap/folder.c (read_capa): New function.
