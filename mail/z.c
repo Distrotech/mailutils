@@ -179,12 +179,13 @@ mail_z (int argc, char **argv)
 
   realcursor = cursor;
 
-  for (i = 0; i < nlines; i++)
+  for (i = 0; i < nlines && cursor <= total; )
     {
-      mail_from(0, NULL);
+      if (mail_from(0, NULL) == 0)
+	i++;
       cursor++;
     }
-
+  
   cursor = realcursor;
 
   return 1;
