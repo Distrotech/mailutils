@@ -324,6 +324,7 @@ folder_imap_open (folder_t folder, int flags)
               {
 		/* No other type of Authentication is supported yet.  */
                 /* What can we do ? flag an error ?  */
+		CHECK_ERROR_CLOSE (folder, f_imap, ENOTSUP);
               }
           }
         f_imap->state = IMAP_AUTH;
