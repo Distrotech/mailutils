@@ -403,7 +403,7 @@ sieve_tag_lookup (list_t taglist, char *name, sieve_value_t **arg)
   sieve_runtime_tag_t t;
 
   t.tag = name;
-  if (list_do (taglist, tag_finder, &t))
+  if (taglist && list_do (taglist, tag_finder, &t))
     {
       if (arg)
 	*arg = t.arg;
@@ -448,20 +448,23 @@ sieve_vlist_do (sieve_value_t *val, list_action_t *ac, void *data)
 struct comp_data {
   sieve_value_t *val;
   sieve_comparator_t comp;
+  sieve_relcmp_t test;
   sieve_retrieve_t retr;
   void *data;
+  size_t count;
 };
 
 struct comp_data2 {
   char *sample;
   sieve_comparator_t comp;
+  sieve_relcmp_t test;
 };
 
 int
 _comp_action2 (void *item, void *data)
 {
   struct comp_data2 *cp = data;
-  return cp->comp (item, cp->sample);
+  return cp->test (cp->comp (item, cp->sample), 0);
 }
 
 int
@@ -473,9 +476,11 @@ _comp_action (void *item, void *data)
   int i;
 
   d.comp = cp->comp;
+  d.test = cp->test;
   for (i = 0; cp->retr (item, cp->data, i, &d.sample) == 0; i++)
     if (d.sample)
-      {	    
+      {
+	cp->count++;
         rc = sieve_vlist_do (cp->val, _comp_action2, &d);
         free (d.sample);
       }
@@ -484,14 +489,21 @@ _comp_action (void *item, void *data)
 
 int
 sieve_vlist_compare (sieve_value_t *a, sieve_value_t *b,
-		     sieve_comparator_t comp, sieve_retrieve_t retr,
-		     void *data)
+		     sieve_comparator_t comp, sieve_relcmp_t test,
+		     sieve_retrieve_t retr,
+		     void *data, size_t *count)
 {
   struct comp_data d;
-
+  int rc;
+  
   d.comp = comp;
+  d.test = test;
   d.retr = retr;
   d.data = data;
   d.val = b;
-  return sieve_vlist_do (a, _comp_action, &d);
+  d.count = 0;
+  rc = sieve_vlist_do (a, _comp_action, &d);
+  if (count)
+    *count = d.count;
+  return rc;
 }
