@@ -1,3 +1,18 @@
+2002-07-13  Sergey Poznyakoff  
+
+	* mailbox/mbx_default.c (mailbox_create_default): If the
+	  mailbox name does not start with a '/' and does not contain
+	  a protocol specification, assume it is a file name relative
+	  to the cwd and convert it to the absolute file name.
+	* mail/size.c: Do not move the cursor after running the command.
+
+	* mail/testsuite/lib/mail.exp: Expect the prompt to appear after
+	  the last pattern.
+
+	* mail/testsuite/mail/read.exp: Added tests for size and decode
+	  commands.
+	* mail/testsuite/spool/mbox1: Added two MIME messages.
+
 2002-07-03  Sergey Poznyakoff
 
 	* mail/testsuite/lib/mail.exp: Be more stringent in testing.
