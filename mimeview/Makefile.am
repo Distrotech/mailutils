@@ -48,7 +48,7 @@ mimetypes-lex.c: $(srcdir)/mimetypes.l mimetypes-decl.h
 BUILT_SOURCES = mimetypes-gram.c mimetypes-lex.c mimetypes-decl.h
 
 mimeview_LDADD = \
- ../mailbox/libmailbox.la\
  ../lib/libmailutils.la \
+ ../mailbox/libmailbox.la\
  @LTLIBINTL@
  
