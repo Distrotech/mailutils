@@ -63,14 +63,44 @@ char *mu_sql_db = "accounts";      /* Database Name */
 int  mu_sql_port = 0;              /* Port number to connect to.
 				      0 means default port */
 
+static char *
+sql_escape_string (const char *ustr)
+{
+  char *str, *q;
+  const unsigned char *p;
+  size_t len = strlen (ustr);
+  
+  for (p = (const unsigned char *) ustr; *p; p++)
+    {
+      if (strchr ("'\"", *p))
+	len++;
+    }
+
+  str = malloc (len + 1);
+  if (!str)
+    return NULL;
+
+  for (p = (const unsigned char *) ustr, q = str; *p; p++)
+    {
+      if (strchr ("'\"", *p))
+	*q++ = '\\';
+      *q++ = *p;
+    }
+  *q = 0;
+  return str;
+}
+
 char *
 mu_sql_expand_query (const char *query, const char *ustr)
 {
   char *p, *q, *res;
   int len;
-
+  char *esc_ustr;
+  
   if (!query)
     return NULL;
+
+  esc_ustr = sql_escape_string (ustr);
   
   /* Compute resulting query length */
   for (len = 0, p = (char *) query; *p; )
@@ -79,7 +109,7 @@ mu_sql_expand_query (const char *query, const char *ustr)
 	{
 	  if (p[1] == 'u')
 	    {
-	      len += strlen (ustr);
+	      len += strlen (esc_ustr);
 	      p += 2;
 	    }
 	  else if (p[1] == '%')
@@ -102,7 +132,10 @@ mu_sql_expand_query (const char *query, const char *ustr)
 
   res = malloc (len + 1);
   if (!res)
-    return res;
+    {
+      free (esc_ustr);
+      return res;
+    }
 
   for (p = (char *) query, q = res; *p; )
     {
@@ -111,7 +144,7 @@ mu_sql_expand_query (const char *query, const char *ustr)
 	  switch (*++p)
 	    {
 	    case 'u':
-	      strcpy (q, ustr);
+	      strcpy (q, esc_ustr);
 	      q += strlen (q);
 	      p++;
 	      break;
@@ -128,6 +161,8 @@ mu_sql_expand_query (const char *query, const char *ustr)
 	*q++ = *p++;
     }
   *q = 0;
+
+  free (esc_ustr);
   return res;
 }
 
