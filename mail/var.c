@@ -147,7 +147,10 @@ int
 var_bcc(int argc, char **argv, struct send_environ *env)
 {
   while (--argc)
-    util_strcat(&env->bcc, *++argv);
+    {
+      util_strcat(&env->bcc, " ");
+      util_strcat(&env->bcc, *++argv);
+    }
   return 0;
 }
 
@@ -156,7 +159,10 @@ int
 var_cc(int argc, char **argv, struct send_environ *env)
 {
   while (--argc)
-    util_strcat(&env->cc, *++argv);
+    {
+      util_strcat(&env->cc, " ");
+      util_strcat(&env->cc, *++argv);
+    }
   return 0;
 }
 
@@ -374,7 +380,10 @@ int
 var_to(int argc, char **argv, struct send_environ *env)
 {
   while (--argc)
-    util_strcat(&env->to, *++argv);
+    {
+      util_strcat(&env->to, " ");
+      util_strcat(&env->to, *++argv);
+    }
   return 0;
 }
 
@@ -412,14 +421,6 @@ var_write(int argc, char **argv, struct send_environ *env)
   fprintf(stdout, "\"%s\" %d/%d\n", filename, lines, size);
   free(filename);
   return 0;
-}
-
-/* ~x */
-int
-var_exit(int argc, char **argv, struct send_environ *env)
-{
-  (void)argc; (void)argv; (void)env;
-  return util_do_command("quit");
 }
 
 /* ~|[shell-command] */
