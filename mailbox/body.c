@@ -34,7 +34,6 @@
 
 #define BODY_MODIFIED 0x10000
 
-static int lazy_create    __P ((body_t));
 static int _body_flush    __P ((stream_t));
 static int _body_get_fd   __P ((stream_t, int *));
 static int _body_read     __P ((stream_t, char *, size_t, off_t, size_t *));
@@ -147,19 +146,16 @@ body_get_stream (body_t body, stream_t *pstream)
 
   if (body->stream == NULL)
     {
-      int fd;
       int status = stream_create (&body->stream, MU_STREAM_RDWR, body);
       if (status != 0)
 	return status;
       /* Create the temporary file.  */
-      fd = lazy_create (body);
-      if (fd == -1)
-	return errno;
-      status = file_stream_create (&body->fstream, body->filename, MU_STREAM_RDWR);
+      body->filename = mu_tempname (NULL);
+      status = file_stream_create (&body->fstream, 
+                                   body->filename, MU_STREAM_RDWR);
       if (status != 0)
 	return status;
       status = stream_open (body->fstream);
-      close (fd);
       if (status != 0)
 	return status;
       stream_set_fd (body->stream, _body_get_fd, body);
@@ -339,10 +335,6 @@ _body_get_lines0 (stream_t stream, size_t *plines)
     *plines = lines;
   return status;
 }
-
-#ifndef P_tmpdir
-#  define P_tmpdir "/tmp"
-#endif
 
 static int
 lazy_create (body_t body)
