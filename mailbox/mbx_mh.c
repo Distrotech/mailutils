@@ -53,7 +53,7 @@
 #include <registrar0.h>
 #include <mailbox0.h>
 
-#define MAX_OPEN_STREAMS 64
+#define MAX_OPEN_STREAMS 16
 
 struct _mh_data;
 struct _mh_message
@@ -903,6 +903,8 @@ mh_scan_message (struct _mh_message *mhm)
       off += n;
     }
 
+  if (!body_start)
+    body_start = off;
   mhm->header_lines = hlines;
   mhm->body_lines = blines;
   mhm->body_start = body_start;
@@ -1100,7 +1102,7 @@ mh_pool_open (struct _mh_message *mhm)
   struct _mh_data *mhd = mhm->mhd;
   if (mh_pool_lookup (mhm))
     return 0;
-  if (mh_pool_open_count(mhd) == MAX_OPEN_STREAMS)
+  if (mh_pool_open_count(mhd) == MAX_OPEN_STREAMS-1)
     {
       mh_message_stream_close (mhd->msg_pool[mhd->pool_first++]);
       mhd->pool_first %= MAX_OPEN_STREAMS;
