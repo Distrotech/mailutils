@@ -62,6 +62,8 @@ url_destroy (url_t *purl)
       if (url->host)
 	free (url->host);
 
+      free (url);
+
       *purl = NULL;
     }
 }

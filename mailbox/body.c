@@ -65,6 +65,7 @@ body_destroy (body_t *pbody, void *owner)
 	  if (body->filename)
 	    free (body->filename);
 	  stream_destroy (&(body->stream), body);
+	  free (body);
 	}
       *pbody = NULL;
     }
