@@ -17,6 +17,7 @@ pkginclude_HEADERS = \
  folder.h \
  header.h \
  iterator.h \
+ libsieve.h \
  list.h \
  locker.h \
  mailbox.h \
