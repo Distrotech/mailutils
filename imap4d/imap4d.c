@@ -36,17 +36,22 @@ int tls_available;
 int tls_done;
 #endif /* WITH_TLS */
 
+int login_disabled;
+
 /* Number of child processes.  */
 volatile size_t children;
 
 const char *argp_program_version = "imap4d (" PACKAGE_STRING ")";
 static char doc[] = N_("GNU imap4d -- the IMAP4D daemon");
 
+#define ARG_LOGIN_DISABLED 1
 static struct argp_option options[] = {
   {"other-namespace", 'O', N_("PATHLIST"), 0,
    N_("set the `other' namespace"), 0},
   {"shared-namespace", 'S', N_("PATHLIST"), 0,
    N_("set the `shared' namespace"), 0},
+  {"login-disabled", ARG_LOGIN_DISABLED, NULL, 0,
+   N_("Disable LOGIN command")},
   {NULL, 0, NULL, 0, NULL, 0}
 };
 
@@ -96,6 +101,11 @@ imap4d_parse_opt (int key, char *arg, struct argp_state *state)
       set_namespace (NS_SHARED, arg);
       break;
 
+    case ARG_LOGIN_DISABLED:
+      login_disabled = 1;
+      imap4d_capability_add ("LOGINDISABLED");
+      break;
+      
     default:
       return ARGP_ERR_UNKNOWN;
     }
@@ -114,6 +124,8 @@ main (int argc, char **argv)
   state = STATE_NONAUTH;	/* Starting state in non-auth.  */
 
   MU_AUTH_REGISTER_ALL_MODULES ();
+  imap4d_capability_init ();
+
 #ifdef WITH_TLS
   mu_tls_init_argp ();
 #endif /* WITH_TLS */
@@ -190,6 +202,8 @@ main (int argc, char **argv)
   tls_available = mu_check_tls_environment ();
   if (tls_available)
     tls_available = mu_init_tls_libs ();
+  if (tls_available)
+    imap4d_capability_add ("STARTTLS");
 #endif /* WITH_TLS */
 
   /* Actually run the daemon.  */
