@@ -127,7 +127,7 @@ extern int stream_set_flush    __P ((stream_t,
       int (*_flush) __PMT ((stream_t)), void *owner));
 
 extern int stream_set_strerror __P ((stream_t stream,
-      int (*fp) (stream_t, const char **), void *owner));
+      int (*fp) (stream_t, char **), void *owner));
   
 extern int stream_sequential_read __P((stream_t stream,
       char *buf, size_t size, size_t *nbytes));
@@ -138,7 +138,7 @@ extern int stream_sequential_readline __P((stream_t stream,
 extern int stream_sequential_write __P((stream_t stream,
 					char *buf, size_t size));
   
-extern int stream_strerror __P((stream_t stream, const char **p));
+extern int stream_strerror __P((stream_t stream, char **p));
   
 #ifdef __cplusplus
 }
