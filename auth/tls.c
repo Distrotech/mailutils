@@ -149,6 +149,8 @@ mu_init_tls_libs (void)
 
   if (rs == 0)			/* Reverse for tls_available */
     rs = 1;
+  else
+    rs = 0;
 
   return rs;			/* Returns 1 on success */
 }
