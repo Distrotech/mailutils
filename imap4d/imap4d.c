@@ -35,15 +35,18 @@ struct daemon_param daemon_param = {
   NULL                          /* No PID file by default */
 };
 
-int login_disabled;
+int login_disabled;             /* Disable LOGIN command */
+int tls_required;               /* Require STARTTLS */
 
 /* Number of child processes.  */
-volatile size_t children;
+size_t children;
 
 const char *program_version = "imap4d (" PACKAGE_STRING ")";
 static char doc[] = N_("GNU imap4d -- the IMAP4D daemon");
 
 #define ARG_LOGIN_DISABLED 1
+#define ARG_TLS_REQUIRED   2
+
 static struct argp_option options[] = {
   {"other-namespace", 'O', N_("PATHLIST"), 0,
    N_("set the `other' namespace"), 0},
@@ -51,6 +54,10 @@ static struct argp_option options[] = {
    N_("set the `shared' namespace"), 0},
   {"login-disabled", ARG_LOGIN_DISABLED, NULL, 0,
    N_("Disable LOGIN command")},
+#ifdef WITH_TLS
+  {"tls-required", ARG_TLS_REQUIRED, NULL, 0,
+   N_("Always require STARTTLS before entering authentication phase")},
+#endif
   {NULL, 0, NULL, 0, NULL, 0}
 };
 
@@ -105,8 +112,15 @@ imap4d_parse_opt (int key, char *arg, struct argp_state *state)
 
     case ARG_LOGIN_DISABLED:
       login_disabled = 1;
-      imap4d_capability_add ("LOGINDISABLED");
+      imap4d_capability_add (IMAP_CAPA_LOGINDISABLED);
       break;
+
+#ifdef WITH_TLS
+    case ARG_TLS_REQUIRED:
+      tls_required = 1;
+      imap4d_capability_add (IMAP_CAPA_XTLSREQUIRED);
+      break;
+#endif
       
     default:
       return ARGP_ERR_UNKNOWN;
