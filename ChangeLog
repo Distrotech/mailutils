@@ -1,3 +1,28 @@
+2002-03-28  Sergey Poznyakoff  
+
+	* lib/mu_argp.c: Renamed --maildir to --mail-spool.
+	* doc/texinfo/programs.texi: Documented --mail-spool option.
+	* configure.in: Renamed --with-maildir to --with-mail-spool for
+	  symmetry.
+	
+	* mail/mail.c: Some measures to help avoid the confusion about
+	  --file option:
+	  (Help output): Print additional note about --file taking
+	  optional argument.
+	  (parse_opt): Try to figure out if argument to -f was
+	  separated by a whitespace. If so, print a warning and
+	  switch to mail-reading mode. Hopefully this will help
+	  avoid the confusion.
+	  (main): Print more detailed diagnostics if mailbox_scan
+	  failed.
+	
+	* include/mailutils/errno.h: New error code MU_ERR_NO_SUCH_USER
+	* mailbox/muerrno.c: Likewise.
+	* mailbox/mbx_default.c (split_shortcut): Properly handle "~/"
+	  filenames.
+	  (tilde_expand): Return MU_ERR_NO_SUCH_USER if an invalid username
+	  was specified.
+	
 2002-03-25  Sergey Poznyakoff
 
 	Was too quick about _exit :^)
