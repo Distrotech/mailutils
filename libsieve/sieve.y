@@ -351,7 +351,7 @@ sieve_machine_init (sieve_machine_t *pmach, void *data)
   if (rc)
     {
       free (mach);
-      return 1;
+      return rc;
     }
   
   mach->data = data;
@@ -469,7 +469,7 @@ sieve_machine_add_destructor (sieve_machine_t mach, sieve_destructor_t destr,
     return 1;
   p->destr = destr;
   p->ptr = ptr;
-  return list_append (mach->destr_list, p);
+  return list_prepend (mach->destr_list, p);
 }
 
 static int
