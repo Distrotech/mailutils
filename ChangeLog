@@ -1,3 +1,11 @@
+2003-01-16  Sergey Poznyakoff 
+
+	* mh/mh_getopt.c (mh_getopt): Bugfix
+	* mh/mh.h (struct mh_whatnow_env): Added `draftfile' member.
+	* mh/mh_whatnow.c: Reorganized. Implemented disposition
+	  shell.
+	* mh/repl.c: Handle draft file. Added --use option.
+
 2003-01-16  Sergey Poznyakoff
 
 	* include/mailutils/mutil.h (mu_rfc2822_references)
