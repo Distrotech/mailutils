@@ -229,11 +229,12 @@ get_personal (header_t hdr, const char *field, char *personal, size_t buflen)
     {
       address_t address = NULL;
       size_t len = 0;
+
+      frm_rfc2047_decode (hfield, sizeof (hfield));
+
       address_create (&address, hfield);
       address_get_personal (address, 1, personal, buflen, &len);
       address_destroy (&address);
-
-      frm_rfc2047_decode (personal, buflen);
 
       if (len == 0)
 	strncpy (personal, hfield, buflen)[buflen - 1] = '\0';
