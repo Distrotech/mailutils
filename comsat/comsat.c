@@ -86,7 +86,6 @@ int timeout = 0;
 int maxlines = 5;
 char hostname[MAXHOSTNAMELEN];
 
-static int syslog_error_printer (const char *fmt, va_list ap);
 static void comsat_init (void);
 static void comsat_daemon_init (void);
 static void comsat_daemon (int port);
@@ -156,7 +155,7 @@ main(int argc, char **argv)
 
   /* Set up error messaging  */
   openlog ("gnu-comsat", LOG_PID, LOG_LOCAL1);
-  mu_error_set_print (syslog_error_printer);
+  mu_error_set_print (mu_syslog_error_printer);
 
   if (config_file)
     read_config (config_file);
@@ -375,7 +374,7 @@ comsat_main (int fd)
 
   /* Parse the buffer */
   p = strchr (buffer, '@');
-  if (!p && !isspace (*p))
+  if (!p)
     {
       syslog (LOG_ERR, "malformed input: %s", buffer);
       return 1;
@@ -385,14 +384,14 @@ comsat_main (int fd)
   offset = strtoul (p, &endp, 0);
   switch (*endp)
     {
-    case ' ':
     case 0:
       break;
     case ':':
       path = endp+1;
       break;
     default:
-      syslog (LOG_ERR, "malformed input: %s@%s (near %s)", buffer, p, endp);
+      if (!isspace (*endp))
+	syslog (LOG_ERR, "malformed input: %s@%s (near %s)", buffer, p, endp);
     }
 
   if (find_user (buffer, tty) != SUCCESS)
@@ -537,7 +536,7 @@ notify_user (char *user, char *device, char *path, off_t offset)
   /* Take care to clear eighth bit, so we won't upset some stupid terminals */
 #define LB(c) ((c)&0x7f)
   
-  nlines = maxlines; /*FIXME:configurable*/
+  nlines = maxlines; 
   if (header_aget_value (header, MU_HEADER_FROM, &p) == 0)
     {
       fprintf (fp, "From: ");
@@ -656,13 +655,6 @@ change_user (char *user)
 
   setgid (pw->pw_gid);
   setuid (pw->pw_uid);
-}
-
-static int
-syslog_error_printer (const char *fmt, va_list ap)
-{
-  vsyslog (LOG_CRIT, fmt, ap);
-  return 0;
 }
 
 void
