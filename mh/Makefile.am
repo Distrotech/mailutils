@@ -36,4 +36,5 @@ fmtcheck_LDADD = $(mh_LIBS)
 YFLAGS=-vt
 
 install-exec-hook:
+	-rm -f $(DESTDIR)$(bindir)/folders
 	$(LN_S) $(DESTDIR)$(bindir)/folder $(DESTDIR)$(bindir)/folders
