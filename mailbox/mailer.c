@@ -27,6 +27,7 @@
 
 #include <mailutils/address.h>
 #include <mailutils/debug.h>
+#include <mailutils/errno.h>
 #include <mailutils/iterator.h>
 #include <mailutils/observer.h>
 #include <mailutils/property.h>
@@ -174,34 +175,75 @@ mailer_close (mailer_t mailer)
   return mailer->_close (mailer);
 }
 
-/* messages */
+
+int
+mailer_check_from(address_t from)
+{
+  size_t n = 0;
+
+  if(!from)
+    return EINVAL;
+
+  if(address_get_count(from, &n) || n != 1)
+    return MU_ERR_MAILER_BAD_FROM;
+
+  if(address_get_email_count(from, &n) || n == 0)
+    return MU_ERR_MAILER_BAD_FROM;
+
+  return 0;
+}
+
+int
+mailer_check_to(address_t to)
+{
+  size_t count = 0;
+  size_t emails = 0;
+  size_t groups = 0;
+
+  if(!to)
+    return EINVAL;
+
+  if(address_get_count(to, &count))
+    return MU_ERR_MAILER_BAD_TO;
+
+  if(address_get_email_count(to, &emails))
+    return MU_ERR_MAILER_BAD_TO;
+
+  if(emails == 0)
+    return MU_ERR_MAILER_NO_RCPT_TO;
+
+  if(address_get_group_count(to, &groups))
+    return MU_ERR_MAILER_BAD_TO;
+
+  if(count - emails - groups != 0)
+    /* then not everything is a group or an email address */
+    return MU_ERR_MAILER_BAD_TO;
+
+  return 0;
+}
+
 int
 mailer_send_message (mailer_t mailer, message_t msg, address_t from, address_t to)
 {
   int status;
-  size_t count = 0;
 
   if (mailer == NULL || mailer->_send_message == NULL)
     return ENOSYS;
 
   /* Common API checking. */
 
+  /* FIXME: this should be done in the concrete APIs, sendmail doesn't
+   yet, though, so do it here. */
   if (from)
     {
-      if ((status = address_get_email_count (from, &count)) != 0)
+      if ((status = mailer_check_from (from)) != 0)
 	return status;
-
-      if (count != 1)
-	return EINVAL;
     }
 
   if (to)
     {
-      if ((status = address_get_email_count (to, &count)) != 0)
+      if ((status = mailer_check_to (to)) != 0)
 	return status;
-
-      if (count < 1)
-	return EINVAL;
     }
 
   return mailer->_send_message (mailer, msg, from, to);

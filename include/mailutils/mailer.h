@@ -24,26 +24,29 @@
 extern "C" {
 #endif
 
-extern int mailer_create        __P ((mailer_t *, const char *));
-extern void mailer_destroy      __P ((mailer_t *));
+extern int mailer_create         __P ((mailer_t *, const char *));
+extern void mailer_destroy       __P ((mailer_t *));
+extern int mailer_open           __P ((mailer_t, int flags));
+extern int mailer_close          __P ((mailer_t));
+extern int mailer_send_message   __P ((mailer_t, message_t, address_t from, address_t to));
 
-extern int mailer_open          __P ((mailer_t, int flags));
-extern int mailer_close         __P ((mailer_t));
-
-extern int mailer_send_message  __P ((mailer_t, message_t, address_t from, address_t to));
-
-extern int mailer_get_property  __P ((mailer_t, property_t *));
-/* stream settings */
-extern int mailer_get_stream    __P ((mailer_t, stream_t *));
-extern int mailer_set_stream    __P ((mailer_t, stream_t));
-
-/* stream settings */
-extern int mailer_get_debug     __P ((mailer_t, mu_debug_t *));
-extern int mailer_set_debug     __P ((mailer_t, mu_debug_t));
-
+/* Accessor functions. */
+extern int mailer_get_property   __P ((mailer_t, property_t *));
+extern int mailer_get_stream     __P ((mailer_t, stream_t *));
+extern int mailer_set_stream     __P ((mailer_t, stream_t));
+extern int mailer_get_debug      __P ((mailer_t, mu_debug_t *));
+extern int mailer_set_debug      __P ((mailer_t, mu_debug_t));
 extern int mailer_get_observable __P ((mailer_t, observable_t *));
+extern int mailer_get_url        __P ((mailer_t, url_t *));
 
-extern int mailer_get_url       __P ((mailer_t, url_t *));
+/* Utility functions, primarily for use of implementing concrete mailers. */
+
+/* A valid from address_t contains a single address that has a qualified
+   email address. */
+extern int mailer_check_from     __P((address_t from));
+/* A valid to address_t contains 1 or more addresses, that are
+   qualified email addresses. */
+extern int mailer_check_to       __P((address_t to));
 
 #ifdef __cplusplus
 }
