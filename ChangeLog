@@ -1,3 +1,21 @@
+2003-10-05  Alain Magloire
+
+	When list_destroy() is called, we need to provide also
+	a way to free the item is necessary.  To do this we added a new function:
+
+	extern int list_set_destroy_item __P ((list_t list, void (*destoy_item) __P((void *))));
+
+	This function let us register a function to call on the item
+	when the list is being destroy.
+	Unresolved Problems: What about list_remove() and list_replace() ?
+	should destroy_item() be called when the item is no longer in the list ?
+
+	* mailbox/list.c (list_destroy) : Call to list->destroy_item() when
+	the data is free().
+	(list_set_destroy_item): New function.
+	* mailbox/include/list0.h (destroy_item): New field in the structure.
+	* include/mailutils/list.h (list_set_destroy_item): New declaration.
+
 2003-09-27  Wojciech Polak
 
 	* mailutils.spec.in: Updated and moved to ...
