@@ -409,12 +409,10 @@ base64_next (rfc2047_encoder * enc)
     {
       if (enc->dst)
 	{
-	  * (enc->dst ++) = b64 [(enc->src[0] >> 2)];
-	  * (enc->dst ++) = b64 [((enc->src[0] & 0x3) << 4) | (enc->src[1] >> 4)];
-	  * (enc->dst ++) = b64 [((enc->src[1] & 0xF) << 2) | (enc->src[2] >> 6)];
-	  * (enc->dst ++) = b64 [(enc->src[2] & 0x3F)];
-
-	  enc->src += 3;
+	  * (enc->dst ++) = b64 [(enc->buffer[0] >> 2)];
+	  * (enc->dst ++) = b64 [((enc->buffer[0] & 0x3) << 4) | (enc->buffer[1] >> 4)];
+	  * (enc->dst ++) = b64 [((enc->buffer[1] & 0xF) << 2) | (enc->buffer[2] >> 6)];
+	  * (enc->dst ++) = b64 [(enc->buffer[2] & 0x3F)];
 	}
 
       enc->done += 4;
@@ -435,16 +433,16 @@ base64_flush (rfc2047_encoder * enc)
       switch (enc->state)
 	{
 	case 1:
-	  * (enc->dst ++) = b64 [(enc->src[0] >> 2)];
-	  * (enc->dst ++) = b64 [((enc->src[0] & 0x3) << 4)];
+	  * (enc->dst ++) = b64 [(enc->buffer[0] >> 2)];
+	  * (enc->dst ++) = b64 [((enc->buffer[0] & 0x3) << 4)];
 	  * (enc->dst ++) = '=';
 	  * (enc->dst ++) = '=';
 	  break;
 	
 	case 2:
-	  * (enc->dst ++) = b64 [(enc->src[0] >> 2)];
-	  * (enc->dst ++) = b64 [((enc->src[0] & 0x3) << 4) | (enc->src[1] >> 4)];
-	  * (enc->dst ++) = b64 [((enc->src[1] & 0xF) << 2)];
+	  * (enc->dst ++) = b64 [(enc->buffer[0] >> 2)];
+	  * (enc->dst ++) = b64 [((enc->buffer[0] & 0x3) << 4) | (enc->buffer[1] >> 4)];
+	  * (enc->dst ++) = b64 [((enc->buffer[1] & 0xF) << 2)];
 	  * (enc->dst ++) = '=';
 	  break;
 	}
