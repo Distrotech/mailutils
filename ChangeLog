@@ -1,3 +1,33 @@
+2003-11-04  Sergey Poznyakoff 
+
+	* mailbox/rfc2047.c (rfc2047_decode): Bugfix.
+
+	* mh/mh_argp.c (mh_argp_parse): Changed prototype.
+	* mh/mh_getopt.h: Likewise.
+	* mh/ali.c: Updated calls to mh_argp_parse()
+	* mh/anno.c: Likewise.
+	* mh/comp.c: Likewise.
+	* mh/fmtcheck.c: Likewise.
+	* mh/folder.c: Likewise.
+	* mh/forw.c: Likewise.
+	* mh/inc.c: Likewise.
+	* mh/install-mh.c: Likewise.
+	* mh/mark.c: Likewise.
+	* mh/mhl.c: Likewise.
+	* mh/mhn.c: Likewise.
+	* mh/mhparam.c: Likewise.
+	* mh/mhpath.c: Likewise.
+	* mh/pick.c: Likewise.
+	* mh/refile.c: Likewise.
+	* mh/repl.c: Likewise.
+	* mh/rmf.c: Likewise.
+	* mh/rmm.c: Likewise.
+	* mh/scan.c: Likewise.
+	* mh/send.c: Likewise.
+	* mh/sortm.c: Likewise.
+	* mh/whatnow.c: Likewise.
+	* mh/whom.c: Likewise.
+
 2003-11-04  Sergey Poznyakoff
 
 	* mailbox/parse822.c: Be more liberal in parsing
