@@ -30,11 +30,10 @@
 
 #include <mailutils/address.h>
 #include <mailutils/error.h>
+#include <mailutils/mutil.h>
 #include <mailbox0.h>
 #include <registrar0.h>
 #include <imap0.h>
-
-extern time_t mu_mktime __P((struct tm *timeptr, int tz));
 
 /* Functions to overload the mailbox_t API.  */
 static void mailbox_imap_destroy __P ((mailbox_t));
@@ -90,13 +89,6 @@ static int imap_get_fd           __P ((msg_imap_t, int *));
 static int imap_get_message0     __P ((msg_imap_t, message_t *));
 static int message_operation     __P ((f_imap_t, msg_imap_t, char *, size_t, size_t *));
 static void free_subparts        __P ((msg_imap_t));
-
-static const char *MONTHS[] =
-{
-  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
-};
-
 
 /* Initialize the concrete object mailbox_t by overloading the function of the
    structure.  */
@@ -1232,67 +1224,6 @@ imap_envelope_sender (envelope_t envelope, char *buffer, size_t buflen,
   return status;
 }
 
-int
-imap_parse_date_time (const char **p, struct tm *tm, int *tz)
-{
-  int year, mon, day, hour, min, sec;
-  char zone[6] = "+0000";	/* ( "+" / "-" ) hhmm */
-  char month[5] = "";
-  int hh = 0;
-  int mm = 0;
-  int sign = 1;
-  int scanned = 0, scanned3;
-  int i;
-
-  day = mon = year = hour = min = sec = 0;
-
-  memset (tm, 0, sizeof (*tm));
-
-  switch (sscanf (*p,
-		  "%2d-%3s-%4d%n %2d:%2d:%2d %5s%n",
-		  &day, month, &year, &scanned3, &hour, &min, &sec, zone,
-		  &scanned))
-    {
-    case 3:
-      scanned = scanned3;
-      break;
-    case 7:
-      break;
-    default:
-      return -1;
-    }
-
-  tm->tm_sec = sec;
-  tm->tm_min = min;
-  tm->tm_hour = hour;
-  tm->tm_mday = day;
-
-  for (i = 0; i < 12; i++)
-    {
-      if (strncasecmp (month, MONTHS[i], 3) == 0)
-	{
-	  mon = i;
-	  break;
-	}
-    }
-  tm->tm_mon = mon;
-  tm->tm_year = (year > 1900) ? year - 1900 : year;
-  tm->tm_yday = 0;		/* unknown. */
-  tm->tm_wday = 0;		/* unknown. */
-  tm->tm_isdst = -1;		/* unknown. */
-
-  hh = (zone[1] - '0') * 10 + (zone[2] - '0');
-  mm = (zone[3] - '0') * 10 + (zone[4] - '0');
-  sign = (zone[0] == '-') ? -1 : +1;
-
-  if (tz)
-    *tz = sign * (hh * 60 * 60 + mm * 60);
-
-  *p += scanned;
-
-  return 0;
-}
-
 static int
 imap_envelope_date (envelope_t envelope, char *buffer, size_t buflen,
 		    size_t *plen)
@@ -1302,7 +1233,7 @@ imap_envelope_date (envelope_t envelope, char *buffer, size_t buflen,
   m_imap_t m_imap = msg_imap->m_imap;
   f_imap_t f_imap = m_imap->f_imap;
   struct tm tm;
-  int tz;
+  mu_timezone tz;
   time_t now;
   char datebuf[] = "mm-dd-yyyy hh:mm:ss +0000";
   const char* date = datebuf;
@@ -1326,10 +1257,10 @@ imap_envelope_date (envelope_t envelope, char *buffer, size_t buflen,
   if (status != 0)
     return status;
 
-  if (imap_parse_date_time(datep, &tm, &tz) != 0)
+  if (mu_parse_imap_date_time(datep, &tm, &tz) != 0)
     now = (time_t)-1;
   else
-    now = mu_mktime (&tm, tz);
+    now = mu_tm2time (&tm, &tz);
 
   /* if the time was unparseable, or mktime() didn't like what we
      parsed, use the calendar time. */

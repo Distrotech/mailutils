@@ -1,0 +1,199 @@
+/* Copyright (C) 2001 Free Software Foundation, Inc.
+   A wrapper for mktime function allowing to specify the timezone.
+
+   The GNU C Library is free software; you can redistribute it and/or
+   modify it under the terms of the GNU Library General Public License as
+   published by the Free Software Foundation; either version 2 of the
+   License, or (at your option) any later version.
+
+   The GNU C Library is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+   Library General Public License for more details.
+
+   You should have received a copy of the GNU Library General Public
+   License along with the GNU C Library; see the file COPYING.LIB.  If not,
+   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+   Boston, MA 02111-1307, USA.  */
+
+#if HAVE_CONFIG_H
+# include <config.h>
+#endif
+
+#include <stdio.h>
+#ifdef HAVE_STRINGS_H
+#include <strings.h>
+#endif
+#include <time.h>
+
+#include <mailutils/mutil.h>
+/* Convert struct tm into time_t, taking into account timezone offset.
+ 
+ mktime() always treats tm as if it was localtime, so convert it
+ to UTC, then adjust by the tm's real timezone, if it is known.
+*/
+time_t
+mu_tm2time (struct tm *timeptr, mu_timezone* tz)
+{
+  int offset = tz ? tz->utc_offset : 0;
+  
+  return mktime(timeptr) - mu_utc_offset() + offset;
+}
+
+/* Convert time 0 at UTC to our localtime, that tells us the offset
+   of our current timezone from UTC. */
+time_t mu_utc_offset(void)
+{
+  time_t t = 0;
+  struct tm* tm = gmtime(&t);
+
+  return mktime(tm);
+}
+
+static const char *months[] =
+{
+  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec", NULL
+};
+
+static const char *wdays[] =
+{
+  "Mon", "Teu", "Wed", "Thr", "Fri", "Sat", "Sun", NULL
+};
+
+int
+mu_parse_imap_date_time (const char **p, struct tm *tm, mu_timezone *tz)
+{
+  int year, mon, day, hour, min, sec;
+  char zone[6] = "+0000";	/* ( "+" / "-" ) hhmm */
+  char month[5] = "";
+  int hh = 0;
+  int mm = 0;
+  int sign = 1;
+  int scanned = 0, scanned3;
+  int i;
+  int tzoffset;
+
+  day = mon = year = hour = min = sec = 0;
+
+  memset (tm, 0, sizeof (*tm));
+
+  switch (sscanf (*p,
+		  "%2d-%3s-%4d%n %2d:%2d:%2d %5s%n",
+		  &day, month, &year, &scanned3, &hour, &min, &sec, zone,
+		  &scanned))
+    {
+    case 3:
+      scanned = scanned3;
+      break;
+    case 7:
+      break;
+    default:
+      return -1;
+    }
+
+  tm->tm_sec = sec;
+  tm->tm_min = min;
+  tm->tm_hour = hour;
+  tm->tm_mday = day;
+
+  for (i = 0; i < 12; i++)
+    {
+      if (strncasecmp (month, months[i], 3) == 0)
+	{
+	  mon = i;
+	  break;
+	}
+    }
+  tm->tm_mon = mon;
+  tm->tm_year = (year > 1900) ? year - 1900 : year;
+  tm->tm_yday = 0;		/* unknown. */
+  tm->tm_wday = 0;		/* unknown. */
+#if HAVE_TM_ISDST
+  tm->tm_isdst = -1;		/* unknown. */
+#endif
+
+  hh = (zone[1] - '0') * 10 + (zone[2] - '0');
+  mm = (zone[3] - '0') * 10 + (zone[4] - '0');
+  sign = (zone[0] == '-') ? -1 : +1;
+  tzoffset = sign * (hh * 60 * 60 + mm * 60);
+
+#if HAVE_TM_GMTOFFSET
+  tm->tm_gmtoffset = tzoffset;
+#endif
+
+  if (tz)
+    {
+      tz->utc_offset = tzoffset;
+      tz->tz_name = NULL;
+    }
+
+  *p += scanned;
+
+  return 0;
+}
+
+/* "ctime" format is: Thu Jul 01 15:58:27 1999, with no trailing \n.  */
+int
+mu_parse_ctime_date_time (const char **p, struct tm *tm, mu_timezone * tz)
+{
+  int wday = 0;
+  int year = 0;
+  int mon = 0;
+  int day = 0;
+  int hour = 0;
+  int min = 0;
+  int sec = 0;
+  int n = 0;
+  int i;
+  char weekday[5] = "";
+  char month[5] = "";
+
+  if (sscanf (*p, "%3s %3s %2d %2d:%2d:%2d %d%n\n",
+	weekday, month, &day, &hour, &min, &sec, &year, &n) != 7)
+    return -1;
+
+  *p += n;
+
+  for (i = 0; i < 7; i++)
+    {
+      if (strncasecmp (weekday, wdays[i], 3) == 0)
+	{
+	  wday = i;
+	  break;
+	}
+    }
+
+  for (i = 0; i < 12; i++)
+    {
+      if (strncasecmp (month, months[i], 3) == 0)
+	{
+	  mon = i;
+	  break;
+	}
+    }
+
+  if (tm)
+    {
+      memset (tm, 0, sizeof (struct tm));
+
+      tm->tm_sec = sec;
+      tm->tm_min = min;
+      tm->tm_hour = hour;
+      tm->tm_mday = day;
+      tm->tm_wday = wday;
+      tm->tm_mon = mon;
+      tm->tm_year = (year > 1900) ? year - 1900 : year;
+#ifdef HAVE_TM_ISDST
+      tm->tm_isdst = -1;	/* unknown. */
+#endif
+    }
+
+  /* ctime has no timezone information, set tz to UTC if they ask. */
+  if (tz)
+    memset (tz, 0, sizeof (struct mu_timezone));
+
+  return 0;
+}
+
+

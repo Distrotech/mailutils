@@ -1431,7 +1431,7 @@ struct tm
 };
 #endif
 
-int parse822_date_time(const char** p, const char* e, struct tm* tm)
+int parse822_date_time(const char** p, const char* e, struct tm* tm, struct mu_timezone* tz)
 {
   /* date-time = [ day "," ] date time */
 
@@ -1448,7 +1448,7 @@ int parse822_date_time(const char** p, const char* e, struct tm* tm)
   int min = 0;
   int sec = 0;
 
-  int tz = 0;
+  int tzoffset = 0;
   const char* tzname = 0;
 
   if((rc = parse822_day(p, e, &wday))) {
@@ -1468,7 +1468,7 @@ int parse822_date_time(const char** p, const char* e, struct tm* tm)
     *p = save;
     return rc;
   }
-  if((rc = parse822_time(p, e, &hour, &min, &sec, &tz, &tzname))) {
+  if((rc = parse822_time(p, e, &hour, &min, &sec, &tzoffset, &tzname))) {
     *p = save;
     return rc;
   }
@@ -1486,9 +1486,21 @@ int parse822_date_time(const char** p, const char* e, struct tm* tm)
     tm->tm_min  = min;
     tm->tm_sec  = sec;
 
+#ifdef HAVE_TM_ISDST
     tm->tm_isdst = -1; /* unknown whether it's dst or not */
-    tm->tm_gmtoff = tz;
+#endif
+#ifdef HAVE_TM_GMTOFF
+    tm->tm_gmtoff = tzoffset;
+#endif
+#ifdef HAVE_TM_ZONE
     tm->tm_zone = tzname;
+#endif
+  }
+
+  if(tz)
+  {
+    tz->utc_offset = tzoffset;
+    tz->tz_name = tzname;
   }
 
   return EOK;
