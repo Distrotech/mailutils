@@ -1,0 +1,679 @@
+/* GNU mailutils - a suite of utilities for electronic mail
+   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 2, or (at your option)
+   any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
+
+#include <mail.local.h>
+
+int debug_level;
+int multiple_delivery;
+int bounce_quota;
+int exit_code = EX_OK;
+uid_t uid;
+char *maildir = MU_PATH_MAILDIR;
+char *quotadbname = NULL;
+int lock_timeout = 300;
+
+#define MAXFD 64
+
+static void print_help (void);
+static void print_license (void);
+static void print_version (void);
+void close_fds ();
+int switch_user_id (uid_t uid);
+FILE *make_tmp (const char *from, char **tempfile);
+void deliver (FILE *fp, char *name);
+void guess_retval (int ec);
+void mailer_err (char *fmt, ...);
+
+char short_opts[] = "hf:Llm:q:r:s:x::v";
+
+static struct option long_opts[] = {
+  { "from", required_argument, 0, 'f' },
+  { "help", no_argument, 0, 'h' },
+  { "license", no_argument, 0, 'L' },
+  { "maildir", required_argument, 0, 'm' },
+  { "multiple-delivery", no_argument, 0, 'M' },
+  { "quota-db", required_argument, 0, 'q' },
+  { "source", required_argument, 0, 's' },
+  { "timeout", required_argument, 0, 't' },
+  { "debug", optional_argument, 0, 'x' },
+  { "version", no_argument, 0, 'v' },
+  { 0, 0, 0, 0 }
+};
+    
+
+int
+main (int argc, char *argv[])
+{
+  int c;
+  FILE *fp;
+  char *from = NULL;
+  char *progfile_pattern = NULL;
+  struct mda_data mda_data;
+
+  /* Preparative work: close inherited fds, force a reasonable umask
+     and prepare a logging. */
+  close_fds ();
+  umask (0077);
+
+  openlog ("mail.local", LOG_PID, LOG_FACILITY);
+  mu_error_set_print (mu_syslog_error_printer);
+  
+  uid = getuid ();
+  while ((c = getopt_long (argc, argv, short_opts, long_opts, NULL)) != EOF)
+    switch (c)
+      {
+      case 'r':
+      case 'f':
+	if (from != NULL)
+	  {
+	    mu_error ("multiple --from options");
+	    return 1;
+	  }
+	from = optarg;
+	break;
+
+      case 'h':
+	print_help ();
+	break;
+	
+      case 'L':
+	print_license ();
+	break;
+
+      case 'm':
+	maildir = optarg;
+	break;
+		
+      case 'M':
+	multiple_delivery++;
+	break;
+	
+#ifdef USE_DBM
+      case 'q':
+	quotadbname = optarg;
+	break;
+#endif
+
+#ifdef WITH_GUILE	
+      case 's':
+	progfile_pattern = optarg;
+	break;
+#endif
+	
+      case 't':
+	lock_timeout = strtoul (optarg, NULL, 0);
+	break;
+	
+      case 'x':
+	if (optarg)
+	  debug_level = strtoul (optarg, NULL, 0);
+	else
+	  debug_level = 9;
+	break;
+	
+      case 'v':
+	print_version ();
+	break;
+	
+      default:
+	return 1;
+      }
+
+  argc -= optind;
+  argv += optind;
+
+  if (!argc)
+    print_help ();
+
+  maildir = mu_normalize_maildir (maildir);
+  if (!maildir)
+    {
+      mu_error ("Badly formed maildir: %s", maildir);
+      return 1;
+    }
+	
+  if (!from)
+    {
+      struct passwd *pw = getpwuid (uid);
+      if (pw)
+	from = pw->pw_name;
+      else
+	{
+	  mu_error ("From unknown");
+	  return 1;
+	}
+    }
+
+#ifdef HAVE_MYSQL
+  mu_register_getpwnam (getMpwnam);
+#endif
+  /* Register local mbox formats. */
+  {
+    list_t bookie;
+    registrar_get_list (&bookie);
+    list_append (bookie, mbox_record); 
+    list_append (bookie, path_record);
+    /* Possible supported mailers.  */
+    list_append (bookie, sendmail_record);
+    list_append (bookie, smtp_record);
+  }
+
+  memset (&mda_data, 0, sizeof mda_data);
+  fp = make_tmp (from, &mda_data.tempfile);
+  
+  if (multiple_delivery)
+    multiple_delivery = argc > 1;
+
+#ifdef WITH_GUILE
+  mda_data.fp = fp;
+  mda_data.argv = argv;
+  mda_data.progfile_pattern = progfile_pattern;
+
+  if (progfile_pattern)
+    return prog_mda (&mda_data);
+#endif
+  
+  unlink (mda_data.tempfile);
+  for (; *argv; argv++)
+    mda (fp, *argv, NULL);
+  return exit_code;
+}
+
+char *
+make_progfile_name (char *pattern, char *username)
+{
+  char *homedir = NULL;
+  char *p, *q, *startp;
+  char *progfile;
+  int len = 0;
+  
+  for (p = pattern; *p; p++)
+    {
+      if (*p == '%')
+	switch (*++p)
+	  {
+	  case 'u':
+	    len += strlen (username);
+	    break;
+	  case 'h':
+	    if (!homedir)
+	      {
+		struct passwd *pwd = getpwnam (username);
+		if (!pwd)
+		  return NULL;
+		homedir = pwd->pw_dir;
+	      }
+	    len += strlen (homedir);
+	    break;
+	  case '%':
+	    len++;
+	    break;
+	  default:
+	    len += 2;
+	  }
+      else
+	len++;
+    }
+  
+  progfile = malloc (len + 1);
+  if (!progfile)
+    return NULL;
+
+  startp = pattern;
+  q = progfile;
+  while (*startp && (p = strchr (startp, '%')) != NULL)
+    {
+      memcpy (q, startp, p - startp);
+      q += p - startp;
+      switch (*++p)
+	{
+	case 'u':
+	  strcpy (q, username);
+	  q += strlen (username);
+	  break;
+	case 'h':
+	  strcpy (q, homedir);
+	  q += strlen (homedir);
+	  break;
+	case '%':
+	  *q++ = '%';
+	  break;
+	default:
+	  *q++ = '%';
+	  *q++ = *p;
+	}
+      startp = p + 1;
+    }
+  if (*startp)
+    {
+      strcpy (q, startp);
+      q += strlen (startp);
+    }
+  *q = 0;
+  return progfile;
+}
+
+int
+mda (FILE *fp, char *username, mailbox_t mbox)
+{
+  if (mbox)
+    {
+      message_t mesg = NULL;
+      attribute_t attr = NULL;
+      
+      mailbox_get_message (mbox, 1, &mesg);
+      message_get_attribute (mesg, &attr);
+      if (attribute_is_deleted (attr))
+	return EX_OK;
+    }
+  
+  deliver (fp, username);
+
+  if (multiple_delivery)
+    exit_code = EX_OK;
+
+  return exit_code;
+}
+
+void
+close_fds ()
+{
+  int i;
+  long fdlimit = MAXFD;
+
+#if defined (HAVE_SYSCONF) && defined (_SC_OPEN_MAX)
+  fdlimit = sysconf (_SC_OPEN_MAX);
+#elif defined (HAVE_GETDTABLESIZE)
+  fdlimit = getdtablesize ();
+#endif
+
+  for (i = 3; i < fdlimit; i++)
+    close (i);
+}
+
+int
+switch_user_id (uid_t uid)
+{
+  int rc;
+#if defined(HAVE_SETREUID)
+  rc = setreuid (0, uid);
+#elif defined(HAVE_SETRESUID)
+  rc = setresuid (-1, uid, -1);
+#elif defined(HAVE_SETEUID)
+  rc = seteuid (uid);
+#else
+# error "No way to reset user privileges?"
+#endif
+  if (rc < 0)
+    mailer_err ("setreuid(0, %d): %s (r=%d, e=%d)",
+		uid, strerror (errno), getuid (), geteuid ());
+  return rc;
+}
+
+FILE *
+make_tmp (const char *from, char **tempfile)
+{
+  time_t t;
+  int fd = mu_tempfile (NULL, tempfile);
+  FILE *fp;
+  char *buf = NULL;
+  size_t n = 0;
+  
+  if (fd == -1 || (fp = fdopen(fd, "w+")) == NULL)
+    {
+      mailer_err("unable to open temporary file");
+      exit (exit_code);
+    }
+  
+  time (&t);
+  fprintf (fp, "From %s %s", from, ctime (&t));
+
+  while (getline(&buf, &n, stdin) > 0) {
+    if (!memcmp(buf, "From ", 5))
+      fputc('>', fp);
+    if (fputs (buf, fp) == EOF)
+      {
+	mailer_err ("temporary file write error");
+	fclose(fp);
+	return NULL;
+      }
+  }
+
+  if (buf && strchr(buf, '\n') == NULL)
+    putc('\n', fp);
+
+  putc('\n', fp);
+  free (buf);
+  
+  return fp;
+}
+
+void
+deliver (FILE *fp, char *name)
+{
+  mailbox_t mbox;
+  char *path;
+  url_t url = NULL;
+  size_t n = 0;
+  locker_t lock;
+  int timeout;
+  struct stat sb;
+  struct passwd *pw;
+  int status;
+  stream_t stream;
+  size_t size;
+  int failed = 0;
+  
+  pw = mu_getpwnam (name);
+  if (!pw)
+    {
+      mailer_err ("%s: no such user", name);
+      exit_code = EX_UNAVAILABLE;
+      return;
+    }
+  
+  path = malloc (strlen (maildir) + strlen (name) + 1);
+  if (!path)
+    {
+      mailer_err ("Out of memory");
+      return;
+    }
+  sprintf (path, "%s%s", maildir, name);
+
+  if ((status = mailbox_create (&mbox, path)) != 0)
+    {
+      mailer_err ("can't open mailbox %s: %s", path, strerror (status));
+      free (path);
+      return;
+    }
+
+  free (path);
+      
+  mailbox_get_url (mbox, &url);
+  path = (char*) url_to_string (url);
+
+  /* Actually open the mailbox. Switch to the user's euid to make
+     sure the maildrop file will have right privileges, in case it
+     will be created */
+  if (switch_user_id (pw->pw_uid))
+    return;
+  status = mailbox_open (mbox, MU_STREAM_RDWR|MU_STREAM_CREAT);
+  if (switch_user_id (0))
+    return;
+  if (status != 0)
+    {
+      mailer_err ("can't open mailbox %s: %s", path, strerror (status));
+      mailbox_destroy (&mbox);
+      return;
+    }
+  
+  mailbox_get_locker (mbox, &lock);
+
+  timeout = lock_timeout;
+  while ((status = locker_lock (lock, MU_LOCKER_WRLOCK)))
+    {
+      if (timeout-- <= 0)
+	break;
+      sleep (1);
+    }
+
+  if (status)
+    {
+      mailer_err ("cannot lock mailbox '%s': %s", path, strerror (status));
+      mailbox_destroy (&mbox);
+      return;
+    }
+
+  if ((status = mailbox_get_stream (mbox, &stream)))
+    {
+      mailer_err ("can't get stream for mailbox %s: %s",
+		  path, strerror (status));
+      mailbox_destroy (&mbox);
+      return;
+    }
+
+  if ((status = stream_size (stream, (off_t *) &size)))
+    {
+      mailer_err ("can't get stream size (mailbox %s): %s",
+		  path, strerror (status));
+      mailbox_destroy (&mbox);
+      return;
+    }
+
+#if defined(USE_DBM)
+  switch (check_quota (name, size, &n))
+    {
+    case MQUOTA_EXCEEDED:
+      mailer_err ("%s: mailbox quota exceeded for this recipient", name);
+      exit_code = EX_UNAVAILABLE;
+      failed++;
+      break;
+    case MQUOTA_UNLIMITED:
+      break;
+    default:
+      if (fstat (fileno (fp), &sb))
+	{
+	  mailer_err ("cannot stat tempfile: %s", strerror (errno));
+	  exit_code = EX_UNAVAILABLE;
+	  failed++;
+	}
+      else if (sb.st_size > n)
+	{
+	  mailer_err ("%s: message would exceed maximum mailbox size for this recipient",
+		      name);
+	  exit_code = EX_UNAVAILABLE;
+	  failed++;
+	}
+      break;
+    }
+#endif
+  
+  if (!failed && switch_user_id (pw->pw_uid) == 0)
+    {
+      off_t off = size;
+      size_t nwr;
+      char *buf = NULL;
+
+      n = 0;
+      status = 0;
+      fseek (fp, 0, SEEK_SET);
+      while (getline(&buf, &n, fp) > 0) {
+	status = stream_write (stream, buf, strlen (buf), off, &nwr);
+	if (status)
+	  {
+	    mailer_err ("error writing to mailbox: %s", strerror (status));
+	    break;
+	  }
+	off += nwr;
+      }
+      free (buf);
+      switch_user_id (0);
+    }
+  
+  locker_unlock (lock);
+  /* FIXME: Flush the data */
+  mailbox_close (mbox);
+  mailbox_destroy (&mbox);
+#if 0 /*FIXME*/
+  if (!failed)
+    notify_biff (name, size);
+#endif
+}
+
+void
+mailer_err (char *fmt, ...)
+{
+  va_list ap;
+
+  guess_retval (errno);
+  va_start (ap, fmt);
+  vfprintf (stderr, fmt, ap);
+  fprintf (stderr, "\n");
+  mu_verror (fmt, ap);
+  va_end (ap);
+}
+
+int temp_errors[] = {
+#ifdef EAGAIN
+  EAGAIN, /* Try again */
+#endif
+#ifdef EDQUOT
+  EDQUOT, /* Disk quota esceeded */
+#endif
+#ifdef EBUSY
+  EBUSY, /* Device or resource busy */
+#endif
+#ifdef EPROCLIM
+  EPROCLIM, /* Too many processes */
+#endif
+#ifdef EUSERS
+  EUSERS, /* Too many users */
+#endif
+#ifdef ECONNABORTED
+  ECONNABORTED, /* Software caused connection abort */
+#endif
+#ifdef ECONNREFUSED
+  ECONNREFUSED, /* Connection refused */
+#endif
+#ifdef ECONNRESET
+  ECONNRESET, /* Connection reset by peer */
+#endif
+#ifdef EDEADLK
+  EDEADLK, /* Resource deadlock would occur */
+#endif
+#ifdef EDEADLOCK
+  EDEADLOCK, /* Resource deadlock would occur */
+#endif
+#ifdef EFBIG
+  EFBIG, /* File too large */
+#endif
+#ifdef EHOSTDOWN
+  EHOSTDOWN, /* Host is down */
+#endif
+#ifdef EHOSTUNREACH
+  EHOSTUNREACH, /* No route to host */
+#endif
+#ifdef EMFILE
+  EMFILE, /* Too many open files */
+#endif
+#ifdef ENETDOWN
+  ENETDOWN, /* Network is down */
+#endif
+#ifdef ENETUNREACH
+  ENETUNREACH, /* Network is unreachable */
+#endif
+#ifdef ENETRESET
+  ENETRESET, /* Network dropped connection because of reset */
+#endif
+#ifdef ENFILE
+  ENFILE, /* File table overflow */
+#endif
+#ifdef ENOBUFS
+  ENOBUFS, /* No buffer space available */
+#endif
+#ifdef ENOMEM
+  ENOMEM, /* Out of memory */
+#endif
+#ifdef ENOSPC
+  ENOSPC, /* No space left on device */
+#endif
+#ifdef EROFS
+  EROFS, /* Read-only file system */
+#endif
+#ifdef ESTALE
+  ESTALE, /* Stale NFS file handle */
+#endif
+#ifdef ETIMEDOUT
+  ETIMEDOUT,  /* Connection timed out */
+#endif
+#ifdef EWOULDBLOCK
+  EWOULDBLOCK, /* Operation would block */
+#endif
+};
+  
+
+void
+guess_retval (int ec)
+{
+  int i;
+  /* Temporary failures override hard errors. */
+  if (exit_code == EX_TEMPFAIL)
+    return;
+  for (i = 0; i < sizeof (temp_errors)/sizeof (temp_errors[0]); i++)
+    if (temp_errors[i] == ec)
+      {
+	exit_code = EX_TEMPFAIL;
+	return;
+      }
+  exit_code = EX_UNAVAILABLE;
+}
+
+void
+print_help ()
+{
+static char help_message[] = 
+"Usage: mail.local [OPTIONS] recipient [recipient...]\n"
+"Options are:\n"
+"   -f, --from ADDR          Specify the sender's name\n"
+"   -h, --help               Display this help and exit\n"
+"   -L, --license            Display GNU General Public License\n"
+"   -m, --maildir PATH       Specify path to mailspool directory\n"
+"   -M, --multiple-delivery  Don't return errors when delivering to multiple\n"
+"                            recipients\n"
+#ifdef USE_DBM
+"   -q, --quota-db FILE      Specify path to quota database.\n"
+#endif
+#ifdef WITH_GUILE
+"   -s, --source PATTERN     Set name pattern for user-defined mail filters.\n"
+#endif
+"   -t, --timeout NUMBER     Set timeout for acquiring the lockfile\n"
+"   -x, --debug NUMBER       Set debugging level\n"
+"   -v, --version            Display program version and exit.\n"
+"\nReport bugs to bug-mailutils@gnu.org\n";
+
+  printf ("%s", help_message);
+  exit (0);
+}
+
+void
+print_license ()
+{
+  static char license_text[] =
+    "   This program is free software; you can redistribute it and/or modify\n"
+    "   it under the terms of the GNU General Public License as published by\n"
+    "   the Free Software Foundation; either version 2, or (at your option)\n"
+    "   any later version.\n"
+    "\n"
+    "   This program is distributed in the hope that it will be useful,\n"
+    "   but WITHOUT ANY WARRANTY; without even the implied warranty of\n"
+    "   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n"
+    "   GNU General Public License for more details.\n"
+    "\n"
+    "   You should have received a copy of the GNU General Public License\n"
+    "   along with this program; if not, write to the Free Software\n"
+    "   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.\n";
+    printf ("%s", license_text);
+    exit (0);
+}
+
+void
+print_version ()
+{
+  printf ("mail.local ("PACKAGE " " VERSION ")\n");
+  exit (0);
+}
+
