@@ -84,6 +84,9 @@ static struct argp_option options[] =
   {"debug", 'd', "FLAGS", OPTION_ARG_OPTIONAL,
    "Debug flags (defaults to \"" D_DEFAULT "\")", 0},
 
+  {"email", 'e', "ADDRESS", 0,
+   "Override user email address", 0},
+  
   {0}
 };
 
@@ -102,7 +105,8 @@ static error_t
 parser (int key, char *arg, struct argp_state *state)
 {
   struct options *opts = state->input;
-
+  int rc;
+  
   switch (key)
     {
     case ARGP_KEY_INIT:
@@ -114,6 +118,12 @@ parser (int key, char *arg, struct argp_state *state)
 	opts->debug_level = MU_DEBUG_ERROR;
       break;
 
+    case 'e':
+      rc = mu_set_user_email (arg);
+      if (rc)
+	argp_error (state, "invalid email: %s", mu_errstring (rc));
+      break;
+      
     case 'n':
       opts->sieve_debug |= MU_SIEVE_DRY_RUN;
       break;
@@ -271,8 +281,8 @@ main (int argc, char *argv[])
       mu_error ("can't initialize sieve machine: %s", mu_errstring (rc));
       return 1;
     }
-  sieve_machine_set_debug (mach, sieve_debug_printer);
-  sieve_machine_set_logger (mach, action_log);
+  sieve_set_debug (mach, sieve_debug_printer);
+  sieve_set_logger (mach, action_log);
   
   rc = sieve_compile (mach, opts.script);
   if (rc)
@@ -300,7 +310,7 @@ main (int argc, char *argv[])
 	  mu_error ("ticket get failed: %s\n", mu_errstring (rc));
 	  goto cleanup;
 	}
-      sieve_machine_set_ticket (mach, ticket);
+      sieve_set_ticket (mach, ticket);
     }
 
   /* Create a debug object, if needed. */
@@ -325,7 +335,7 @@ main (int argc, char *argv[])
 	}
     }
   
-  sieve_machine_set_debug_level (mach, debug, opts.sieve_debug);
+  sieve_set_debug_level (mach, debug, opts.sieve_debug);
     
   /* Create a mailer. */
   if (strcmp (opts.mailer, "none"))
@@ -342,6 +352,7 @@ main (int argc, char *argv[])
 		   mu_errstring (rc));
 	  goto cleanup;
 	}
+      sieve_set_mailer (mach, mailer);
     }
   /* Create, give a ticket to, and open the mailbox. */
   if ((rc = mailbox_create_default (&mbox, opts.mbox)) != 0)
