@@ -29,6 +29,7 @@
 #include <mailutils/debug.h>
 #include <mailutils/errno.h>
 #include <mailutils/iterator.h>
+#include <mailutils/list.h>
 #include <mailutils/observer.h>
 #include <mailutils/property.h>
 #include <mailutils/registrar.h>

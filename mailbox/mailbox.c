@@ -27,6 +27,7 @@
 #include <mailutils/error.h>
 #include <mailutils/folder.h>
 #include <mailutils/iterator.h>
+#include <mailutils/list.h>
 #include <mailutils/locker.h>
 #include <mailutils/observer.h>
 #include <mailutils/property.h>
