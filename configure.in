@@ -136,7 +136,7 @@ AC_ARG_ENABLE(mysql, [  --enable-mysql  enable mysql support (default no)], [use
 if test x"$use_mysql" = x"yes"; then
 	echo Enabling mysql support, be sure to edit \'MySql/MySql.h\' to change default values
 	AC_CHECK_HEADER(mysql/mysql.h,
-	[AUTHLIBS="$AUTHLIBS -lmailMysql -lmysqlclient -L/usr/lib/mysql -L/usr/local/lib/mysql -L../MySql/"
+	[AUTHLIBS="$AUTHLIBS -lmailMysql -lmysqlclient -lm -L/usr/lib/mysql -L/usr/local/lib/mysql -L../MySql/"
         BUILD_LIBMYSQL=libmailMysql.a
 	AC_DEFINE(HAVE_MYSQL)])
 fi
@@ -153,7 +153,7 @@ if test x"$testpam" = x"yes"; then
 	if test x"$ac_cv_header_security_pam_appl_h" = x"yes"; then
 		AC_CHECK_LIB(dl, dlopen, [LDL=-ldl], [LDL=])
 		AC_CHECK_LIB(pam, pam_start,
-			AUTHLIBS="-lpam $LDL" ac_cv_have_libpam="yes",, $LDL)
+			AUTHLIBS="$AUTHLIBS -lpam $LDL" ac_cv_have_libpam="yes",, $LDL)
 		AC_DEFINE(USE_LIBPAM)
 		AM_CONDITIONAL(USE_LIBPAM, test x"$ac_cv_have_libpam" != xno)
 	fi
