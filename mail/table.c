@@ -120,7 +120,6 @@ const struct mail_command_entry mail_escape_table[] = {
   {"t",	"t",	"t[name-list]",		0, 0, var_to },
   {"v",	"v",	"v",			0, 0, var_visual },
   {"w",	"w",	"w[filename]",		0, 0, var_write },
-  {"x",	"x",	"x",			0, 0, var_exit },
   {"|",	"|",	"|[shell-command]",	0, 0, var_pipe },
   {0, 0, 0, 0, 0, 0}
 };
