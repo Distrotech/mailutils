@@ -2,7 +2,6 @@
 # Copyright (C) 2000,2001,2002 Free Software Foundation
 # See file COPYING in the distribution root directory for copying conditions.
 
-AUTOMAKE_OPTIONS = ../lib/ansi2knr
 INCLUDES =-I$(srcdir) -I$(top_srcdir)/lib -I$(top_srcdir)/include 
 
 sbin_PROGRAMS = pop3d
