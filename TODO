@@ -29,10 +29,28 @@ IMPORTANT:
 
 - SSL support
 
+- pop3d_readline - should this use select(), avoid the race condition,
+  and touch the lockfile in time intervals smaller than
+  MU_LOCKER_EXPIRE_TIME?
+
 [imap4d]
 
 - support of mailspools in user home directory, particularly when
   they are in maildir format (I think qmail does this).
+
+- why do we do the uw-imapd thing of showing all files in the users
+  home as if they were a mailbox? I figure there should be an option to say
+  where your mail folder is, so that if you say
+
+    --mail-folder=~
+
+  it will be uw-imapd compatible, but if you say
+
+    --mail-folder=~/Mail
+
+  all your IMAP folders will be under ~/Mail.
+
+  Except mbox.
 
 - Check interaction with imap clients.
 
@@ -48,10 +66,23 @@ IMPORTANT:
 
 [mailbox]
 
-- lib/argcv.c should unescape strings as well as unquote them
+- locking:
 
-- need to dotlock with an external program, a gnu_dotlock equivalent
-  to mutt_dotlock. I can't save mail to my spool!
+  - what kind of locking should mh use? See FIXME in mbx_mh.c
+
+  - why does mimetest fail on a symlink, but suceed on a dotlocked file?
+
+  - implement unrolling of symlinks
+
+  - implement NFS-safe locking
+
+  - implement a locker that uses an external dotlock utility
+
+  - implement a force unlock mode... so that when a mailbox
+    is closed or destroyed it can make sure that the lock
+    is definitely gone.
+
+- lib/argcv.c should unescape strings as well as unquote them
 
 - write a fnmatch() that doesn't respect []
 
@@ -60,9 +91,6 @@ IMPORTANT:
 - mailboxes don't remember whether or not they've been opened
 
 - print errors to a debug object, by default
-
-+ the debug object should pass the error level onto the callback,
-  and I want an error level to string convertor.
 
 - does IMAP do an EXAMINE instead of a select if the mailbox is being
   opened readonly? Does list return whether a mailbox is readonly?
@@ -100,12 +128,6 @@ IMPORTANT:
 
 - Maildir mailbox support
 
-- mailbox locking
-  - mutt has a way to lock mailboxes that are symlinks, can mailutils use
-    its algorithm?
-  - could mutt use a setgid external program to do dotlocking?
-  - why does mimetest fail on a symlink, but suceed on a dotlocked file?
-
 + support AUTH=anonymous (imap://cyrus.andrew.cmu.edu/archive.info-cyrus)
 
 [examples]
@@ -114,6 +136,8 @@ IMPORTANT:
   to have a general purpose tool
 
 [sieve]
+
+- need to deal with the envelope addressing issues
 
 + make sure there's a SV_DBG_ERR, so REAL info on errors gets printed
 
