@@ -894,7 +894,7 @@ util_save_outgoing (message_t msg, char *savefile)
 
 	      time(&t);
 	      tm = gmtime(&t);
-	      strftime (date, sizeof (date), "%a %b %e %H:%M:%S %Y%n", tm);
+	      strftime (date, sizeof (date), "%a %b %e %H:%M:%S %Y", tm);
 	      fprintf (outfile, "From %s %s\n", mail_whoami(), date);
 
 	      message_get_stream (msg, &stream);
