@@ -33,6 +33,7 @@ mail_pipe (int argc, char **argv)
   char buffer[512];
   off_t off = 0;
   size_t n = 0;
+  int i;
 
   if (argc > 1)
     cmd = argv[--argc];
@@ -42,36 +43,23 @@ mail_pipe (int argc, char **argv)
     return 1;
 
   pipe = popen (cmd, "w");
-  if ((num = util_expand_msglist (argc, argv, &list)) > 0)
+  num = util_expand_msglist (argc, argv, &list); 
+
+  for (i = 0; i < num; i++)
     {
-      int i = 0;
-      for (i = 0; i < num; i++)
+      if (mailbox_get_message (mbox, list[i], &msg) == 0)
 	{
-	  if (mailbox_get_message (mbox, list[i], &msg) == 0)
+	  message_get_stream (msg, &stream);
+	  off = 0;
+	  while (stream_read (stream, buffer, sizeof (buffer) - 1, off,
+			      &n) == 0 && n != 0)
 	    {
-	      message_get_stream (msg, &stream);
-	      off = 0;
-	      while (stream_read (stream, buffer, sizeof (buffer) - 1, off,
-				  &n) == 0 && n != 0)
-		{
-		  buffer[n] = '\0';
-		  fprintf (pipe, "%s", buffer);
-		  off += n;
-		}
-	      if ((util_find_env("page"))->set && i < num - 1)
-		fprintf (pipe, "\f\n");
+	      buffer[n] = '\0';
+	      fprintf (pipe, "%s", buffer);
+	      off += n;
 	    }
-	}
-    }
-  else if (mailbox_get_message (mbox, cursor, &msg) == 0)
-    {
-      message_get_stream (msg, &stream);
-      while (stream_read (stream, buffer, sizeof (buffer) - 1, off, &n) == 0
-	     && n != 0)
-	{
-	  buffer[n] = '\0';
-	  fprintf (pipe, "%s", buffer);
-	  off += n;
+	  if ((util_find_env("page"))->set && i < num - 1)
+	    fprintf (pipe, "\f\n");
 	}
     }
 

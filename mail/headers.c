@@ -34,13 +34,6 @@ mail_headers (int argc, char **argv)
   int lines = util_getlines ();
   int num = util_expand_msglist (argc, argv, &list);
 
-  if (num == 0)
-    {
-      list = malloc (sizeof(int));
-      *list = cursor;
-      num = 1;
-    }
-
   lines = (lines / num) - 2;
 
   for (i = 0; i < num; i++)
