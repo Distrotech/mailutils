@@ -93,17 +93,17 @@ pop3d_abquit (int reason)
   switch (reason)
     {
     case ERR_NO_MEM:
-      fprintf (ofile, "-ERR Out of memory, quitting\r\n");
+      pop3d_outf ("-ERR Out of memory, quitting\r\n");
       syslog (LOG_ERR, "Out of memory");
       break;
 
     case ERR_SIGNAL:
-      fprintf (ofile, "-ERR Quitting on signal\r\n");
+      pop3d_outf ("-ERR Quitting on signal\r\n");
       syslog (LOG_ERR, "Quitting on signal");
       break;
 
     case ERR_TIMEOUT:
-      fprintf (ofile, "-ERR Session timed out\r\n");
+      pop3d_outf ("-ERR Session timed out\r\n");
       if (state == TRANSACTION)
 	syslog (LOG_INFO, "Session timed out for user: %s", username);
       else
@@ -116,11 +116,11 @@ pop3d_abquit (int reason)
 
     case ERR_MBOX_SYNC:
       syslog (LOG_ERR, "Mailbox was updated by other party: %s", username);
-      fprintf (ofile, "-ERR [OUT-SYNC] Mailbox updated by other party or corrupt\r\n");
+      pop3d_outf ("-ERR [OUT-SYNC] Mailbox updated by other party or corrupt\r\n");
       break;
 
     default:
-      fprintf (ofile, "-ERR Quitting (reason unknown)\r\n");
+      pop3d_outf ("-ERR Quitting (reason unknown)\r\n");
       syslog (LOG_ERR, "Unknown quit");
       break;
     }
@@ -128,6 +128,26 @@ pop3d_abquit (int reason)
   closelog();
   exit (EXIT_FAILURE);
 }
+
+void
+pop3d_outf (const char *fmt, ...)
+{
+  va_list ap;
+  va_start (ap, fmt);
+  if (daemon_param.transcript)
+    {
+      char *buf;
+      vasprintf (&buf, fmt, ap);
+      if (buf)
+	{
+	  syslog (LOG_DEBUG, "sent: %s", buf);
+	  free (buf);
+	}
+    }
+  vfprintf (ofile, fmt, ap);
+  va_end (ap);
+}
+    
 
 /* Gets a line of input from the client, caller should free() */
 char *
@@ -144,6 +164,9 @@ pop3d_readline (FILE *fp)
      are done anyway;  if (!ptr && ferror(fp)) */
   if (!ptr)
     pop3d_abquit (ERR_NO_OFILE);
+
+  if (daemon_param.transcript)
+    syslog (LOG_DEBUG, "recv: %s", ptr);
 
   /* Caller should not free () this ... should we strdup() then?  */
   return ptr;
