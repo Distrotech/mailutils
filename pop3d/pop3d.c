@@ -22,7 +22,7 @@
 #endif
 
 mailbox_t mbox;
-size_t timeout;
+unsigned int timeout;
 int state;
 char *username;
 FILE *ifile;

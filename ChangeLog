@@ -1,3 +1,8 @@
+2001-11-10  Jeff Bailey  <jbailey@outpost.dnsalias.org>
+
+	* pop3d/pop3d.c: Change timeout to unsigned int from size_t.
+	Thanks to James Troup <james@nocrew.org>
+
 2001-11-05  Alain Magloire
 
 	* mailbox/mutil.c (mu_parse_imap_date_time): This one is so
