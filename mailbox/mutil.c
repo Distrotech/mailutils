@@ -577,7 +577,7 @@ mu_tempfile (const char *tmpdir, char **namep)
 
   if (fd == -1)
     {
-      mu_error (_("Cannot open temporary file: %s"), strerror(errno));
+      mu_error (_("Cannot open temporary file: %s"), strerror (errno));
       free (filename);
       return -1;
     }
