@@ -17,6 +17,74 @@
 
 extern void *xmalloc (size_t);
 
+static char *
+sql_expand_query (const char *query, const char *username)
+{
+  char *p, *q, *res;
+  int len;
+
+  if (!query)
+    return NULL;
+  
+  /* Compute resulting query length */
+  for (len = 0, p = query; *p; )
+    {
+      if (*p == '%')
+	{
+	  if (p[1] == 'u')
+	    {
+	      len += strlen (username);
+	      p += 2;
+	    }
+	  else if (p[1] == '%')
+	    {
+	      len++;
+	      p += 2;
+	    }
+	  else
+	    {
+	      len++;
+	      p++;
+	    }
+	}
+      else
+	{
+	  len++;
+	  p++;
+	}
+    }
+
+  res = malloc (len + 1);
+  if (!res)
+    return res;
+
+  for (p = query, q = res; *p; )
+    {
+      if (*p == '%')
+	{
+	  switch (*++p)
+	    {
+	    case 'u':
+	      strcpy (q, username);
+	      q += strlen (q);
+	      p++;
+	      break;
+	      
+	    case '%':
+	      *q++ = *p++;
+	      break;
+	      
+	    default:
+	      *q++ = *p++;
+	    }
+	}
+      else
+	*q++ = *p++;
+    }
+  *q = 0;
+  return res;
+}
+
 struct passwd *
 getMpwnam (const char *username)
 {
@@ -40,18 +108,15 @@ getMpwnam (const char *username)
   if (!m)
     return NULL;
 
-  if (!mysql_real_connect (m, MHOST, MUSER, MPASS, MDB, MPORT,
-			   MSOCKET, MFLAGS))
+  if (!mysql_real_connect (m, sql_host, sql_user, sql_passwd, sql_db, sql_port,
+			   sql_socket, MFLAGS))
     {
       mu_error ("MySQL: connect failed: %s", mysql_error (m));
       mysql_close (m);
       return NULL;
     }
-  
-  asprintf (&QueryStr,
-	   "select %s,%s,%s,%s,%s from %s where %s = '%s'",
-	   Mpassword, Muid, Mgid, Mhomedir, Mshell, Mtable,
-	   Musername, username);
+
+  QueryStr = sql_expand_query (sql_getpwnam_query, username);
 
   if (!QueryStr)
     {
@@ -127,17 +192,21 @@ getMspnam (const char *username)
   if (!m)
     return NULL;
   
-  if (!mysql_real_connect (m, MHOST, MUSER, MPASS, MDB, MPORT,
-			   MSOCKET, MFLAGS))
+  if (!mysql_real_connect (m, sql_host, sql_user, sql_passwd, sql_db, sql_port,
+			   sql_socket, MFLAGS))
     {
       mu_error ("MySQL: connect failed: %s", mysql_error (m));
       mysql_close (m);
       return NULL;
     }
 
-  asprintf (&QueryStr,
-	    "select %s from %s where %s = '%s'",
-	    Mpassword, Mtable, Musername, username);
+  QueryStr = sql_expand_query (sql_getpass_query, username);
+
+  if (!QueryStr)
+    {
+      mysql_close (m);
+      return NULL;
+    }
 
   if (mysql_query (m, QueryStr) != 0)
     {
