@@ -44,6 +44,7 @@
 #include <mailutils/attribute.h>
 #include <mailutils/debug.h>
 #include <mailutils/error.h>
+#include <mailutils/errno.h>
 #include <mailutils/header.h>
 #include <mailutils/observer.h>
 #include <mailutils/stream.h>
@@ -1071,6 +1072,24 @@ imap_quoted_string (f_imap_t f_imap, char **ptr)
   return 0;
 }
 
+/* A number consists of one or more digit characters, and represents a
+   numeric value. */
+      
+static int
+imap_digits (f_imap_t f_imap, char **ptr)
+{
+  char *start = *ptr;
+  int len;
+  
+  for (++*ptr; **ptr && isdigit(**ptr); ++*ptr)
+    ;
+  len = *ptr - start;
+  stream_write (f_imap->string.stream, start, len,
+		f_imap->string.offset, NULL);
+  f_imap->string.offset += len;
+  return 0;
+}
+
 /* Find which type of string the response is: literal or quoted and let the
    function fill the string buffer.  */
 static int
@@ -1093,9 +1112,11 @@ imap_string (f_imap_t f_imap, char **ptr)
 	  status = imap_literal_string (f_imap, ptr);
 	}
       break;
+      
     case '"':
       status = imap_quoted_string (f_imap, ptr);
       break;
+      
       /* NIL */
     case 'N':
     case 'n':
@@ -1103,9 +1124,13 @@ imap_string (f_imap_t f_imap, char **ptr)
       (*ptr)++; /* I|i  */
       (*ptr)++; /* L|l  */
       break;
+      
     default:
-      /* Problem.  */
-      status = 1;
+      if (isdigit (**ptr))
+	status = imap_digits (f_imap, ptr);
+      else
+	/* Problem. FIXME: Return a more appropriate error code */
+	status = MU_ERR_FAILURE;
       break;
     }
   return status;
