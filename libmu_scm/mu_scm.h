@@ -85,3 +85,5 @@ extern void mu_scm_mime_init __P((void));
 extern void mu_scm_message_add_owner __P((SCM MESG, SCM owner));
 
 extern void mu_process_mailbox __P((int argc, char *argv[], guimb_param_t *param));
+
+extern void mu_scm_mutil_init __P((void));
