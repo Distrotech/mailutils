@@ -53,9 +53,12 @@ extern int mu_parse_imap_date_time __P ((const char **p, struct tm * tm,
 					 mu_timezone * tz));
 extern int mu_parse_ctime_date_time __P ((const char **p, struct tm * tm,
 					 mu_timezone * tz));
-
+  
 extern time_t mu_utc_offset __P ((void));
 extern time_t mu_tm2time __P ((struct tm * timeptr, mu_timezone * tz));
+extern char * mu_get_homedir __P((void));
+extern char * mu_tilde_expansion __P((const char *ref, const char *delim, const char *homedir));
+  
 
 #ifdef __cplusplus
 }

@@ -21,10 +21,13 @@
 #endif
 
 #include <stdio.h>
+#include <stdlib.h>
 #ifdef HAVE_STRINGS_H
 #include <strings.h>
 #endif
 #include <time.h>
+#include <pwd.h>
+#include <unistd.h>
 
 #include <mailutils/mutil.h>
 /* Convert struct tm into time_t, taking into account timezone offset.
@@ -34,7 +37,7 @@
  
  NOTE: 1. mktime converts localtime struct tm to *time_t in UTC*
        2. adding mu_utc_offset() compensates for the localtime
-          corrections in in mktime(), i.e. it yields the time_t in
+          corrections in mktime(), i.e. it yields the time_t in
 	  the current zone of struct tm.
        3. finally, subtracting TZ offset yields the UTC.
 */
@@ -204,3 +207,70 @@ mu_parse_ctime_date_time (const char **p, struct tm *tm, mu_timezone * tz)
 }
 
 
+char *
+mu_get_homedir (void)
+{
+  char *homedir = getenv ("HOME");
+  if (!homedir)
+    {
+      struct passwd *pwd;
+      
+      pwd = getpwuid(getuid());
+      if (!pwd)
+	return NULL;
+      homedir = pwd->pw_dir;
+    }
+  return homedir;
+}
+
+/* NOTE: Allocates Memory.  */
+/* Expand: ~ --> /home/user and to ~guest --> /home/guest.  */
+char *
+mu_tilde_expansion (const char *ref, const char *delim, const char *homedir)
+{
+  char *p = strdup (ref);
+  
+  if (*p == '~')
+    {
+      p++;
+      if (*p == delim[0] || *p == '\0')
+        {
+	  char *s;
+	  if (!homedir)
+	    {
+	      homedir = mu_get_homedir ();
+	      if (!homedir)
+		return NULL;
+	    }
+	  s = calloc (strlen (homedir) + strlen (p) + 1, 1);
+          strcpy (s, homedir);
+          strcat (s, p);
+          free (--p);
+          p = s;
+        }
+      else
+        {
+          struct passwd *pw;
+          char *s = p;
+          char *name;
+          while (*s && *s != delim[0])
+            s++;
+          name = calloc (s - p + 1, 1);
+          memcpy (name, p, s - p);
+          name [s - p] = '\0';
+          pw = getpwnam (name);
+          free (name);
+          if (pw)
+            {
+              char *buf = calloc (strlen (pw->pw_dir) + strlen (s) + 1, 1);
+              strcpy (buf, pw->pw_dir);
+              strcat (buf, s);
+              free (--p);
+              p = buf;
+            }
+          else
+            p--;
+        }
+    }
+  return p;
+}
