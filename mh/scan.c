@@ -27,7 +27,7 @@
 
 const char *argp_program_version = "scan (" PACKAGE_STRING ")";
 static char doc[] = "GNU MH scan";
-static char args_doc[] = "";
+static char args_doc[] = "[+folder] [msgs]";
 
 /* GNU options */
 static struct argp_option options[] = {
@@ -68,8 +68,10 @@ static int header;
 
 static mh_format_t format;
 
-void list_message (mailbox_t mbox, size_t msgno, char *bp, size_t width);
-int scan (mailbox_t mbox);
+static mh_msgset_t msgset;
+
+void list_message __P((mailbox_t mbox, message_t msg, size_t num, void *data));
+int scan __P((mailbox_t mbox));
 
 static int
 opt_handler (int key, char *arg, void *unused)
@@ -128,8 +130,11 @@ opt_handler (int key, char *arg, void *unused)
 int
 main (int argc, char **argv)
 {
+  int index;
+  mailbox_t mbox;
+  
   mh_argp_parse (argc, argv, options, mh_option, args_doc, doc,
-		 opt_handler, NULL, NULL);
+		 opt_handler, NULL, &index);
 
   if (mh_format_parse (format_str, &format))
     {
@@ -137,7 +142,13 @@ main (int argc, char **argv)
       exit (1);
     }
 
-  return scan (mh_open_folder (current_folder, 0));
+  mbox = mh_open_folder (current_folder, 0);
+  mh_msgset_parse (mbox, &msgset, argc - index, argv + index, "all");
+  
+  if (reverse)
+    mh_msgset_reverse (&msgset);
+
+  return scan (mbox);
 }
 
 #ifdef HAVE_TERMCAP_H
@@ -181,13 +192,18 @@ clear_screen ()
     }
 }
 
+struct list_data {
+  char *buffer;
+  size_t width;
+};
+
 int
 scan (mailbox_t mbox)
 {
-  size_t i, total;
-  char *buffer;
+  struct list_data list_data;
   
-  buffer = xmalloc (width);
+  list_data.buffer = xmalloc (width);
+  list_data.width  = width;
 
   if (header)
     {
@@ -200,27 +216,20 @@ scan (mailbox_t mbox)
       strftime (datestr, sizeof datestr, "%c", localtime (&t));
       printf ("Folder %s  %s\n", url_to_string (url), datestr);
     }
-  
-  mailbox_messages_count (mbox, &total);
 
-  if (reverse)
-    for (i = total; i >= 1; i--)
-      list_message (mbox, i, buffer, width);
-  else
-    for (i = 1; i <= total; i++)
-      list_message (mbox, i, buffer, width);
+  mh_iterate (mbox, &msgset, list_message, &list_data);
+  
   clear_screen ();
   mh_global_save_state ();
   return 0;
 }
 
 void
-list_message (mailbox_t mbox, size_t msgno, char *buffer, size_t width)
+list_message (mailbox_t mbox, message_t msg, size_t num, void *data)
 {
-  message_t msg;
-
-  buffer[0] = 0;
-  mailbox_get_message (mbox, msgno, &msg);
-  mh_format (&format, msg, msgno, buffer, width);
-  printf ("%s\n", buffer);
+  struct list_data *ld = data;
+  
+  ld->buffer[0] = 0;
+  mh_format (&format, msg, num, ld->buffer, ld->width);
+  printf ("%s\n", ld->buffer);
 }
