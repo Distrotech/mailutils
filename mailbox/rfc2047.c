@@ -159,9 +159,9 @@ rfc2047_decode (const char *tocode, const char *input, char **ptostr)
 
 
 
-/* --------------------------------------------------
+/* ==================================================
    RFC 2047 Encoder
-   -------------------------------------------------- */
+   ================================================== */
 
 #define MAX_QUOTE 75
 
@@ -187,8 +187,15 @@ struct _encoder {
   /* Name of the encoding (either B or Q) */
   char encoding;
 
-  /* Charset of the encoded data */
+  /* Charset of the input stream */
   const char * charset;
+
+  /* Compute the size of the next character (in bytes), according to
+     the charset */
+  int (* charcount) (const char *);
+
+  /* Size of the next character (in bytes) */
+  int charblock;
 
   /* TRUE if we need to open a quoted-word at the next byte */
   int must_open;
@@ -207,12 +214,12 @@ struct _encoder {
   /* Virtual methods implemented for the encoders:
       
       count: return how many bytes would be used by inserting the
-      current input
+             current input and updates 'charblock'
       next:  quote the current input byte on the output
-      flush: output any pending byte and close the quoted-word
+      flush: output any pending byte
   */
   int  (* count) (rfc2047_encoder * enc);
-  void (* next)  (rfc2047_encoder * enc);
+  int  (* next)  (rfc2047_encoder * enc);
   void (* flush) (rfc2047_encoder * enc);
 
   /* Extra data for the Base64 encoder */
@@ -220,6 +227,10 @@ struct _encoder {
   int  state;
 };
 
+
+/* --------------------------------------------------
+   Quoted-words building blocks 
+   -------------------------------------------------- */
 
 /* Write the opening of a quoted-word and return the minimum number of
    bytes it will use */
@@ -273,25 +284,38 @@ insert_quoted (rfc2047_encoder * enc)
   if (enc->must_open)
     {
       enc->must_open = 0;
-      enc->quotesize = _open_quote (enc->charset, enc->encoding, 
-				    & enc->dst, & enc->done);
+
+      /* The quotesize holds the known size of the quoted-word, even
+	 if all the bytes have not yet been inserted in the output
+	 stream. */
+      enc->quotesize = 
+	_open_quote (enc->charset, enc->encoding, 
+		     & enc->dst, & enc->done) + enc->count (enc);
     }
   else 
     {
-      size = enc->count (enc);
-  
-      if (enc->quotesize + size > MAX_QUOTE)
+      if (enc->charblock == 0)
 	{
-	  _close_quote (& enc->dst, & enc->done);
-
-	  if (enc->dst) * (enc->dst ++) = ' ';
-	  enc->done ++;
-
-	  enc->quotesize = _open_quote (enc->charset, enc->encoding, 
-					& enc->dst, & enc->done);
+	  /* The quotesize holds the known size of the quoted-word,
+	     even if all the bytes have not yet been inserted in the
+	     output stream. */
+	  enc->quotesize += enc->count (enc);
+	  if (enc->quotesize > MAX_QUOTE)
+	    {
+	      /* Start a new quoted-word */
+	      _close_quote (& enc->dst, & enc->done);
+	      
+	      if (enc->dst) * (enc->dst ++) = ' ';
+	      enc->done ++;
+	      
+	      enc->quotesize = _open_quote (enc->charset, enc->encoding, 
+					    & enc->dst, & enc->done);
+	    }
 	}
     }
-  
+
+  /* We are ready to process one more byte from the input stream */
+  enc->charblock --;
   enc->next (enc);
 }
 
@@ -336,6 +360,35 @@ is_next_quoted (const char * src)
 
 
 /* --------------------------------------------------
+   Known character encodings
+   -------------------------------------------------- */
+
+static int
+ce_single_byte (const char * src)
+{
+  return 1;
+}
+
+static int
+ce_utf_8 (const char * src)
+{
+  unsigned char c = * src;
+
+  if (c <= 0x7F) return 1;
+
+  if (c >= 0xFC) return 6;
+  if (c >= 0xF8) return 5;
+  if (c >= 0xF0) return 4;
+  if (c >= 0xE0) return 3;
+  if (c >= 0xC0) return 2;
+
+  /* otherwise, this is not a first byte (and the UTF-8 is possibly
+     broken), continue with a single byte. */
+  return 1;
+}
+
+
+/* --------------------------------------------------
    Quoted-printable encoder 
    -------------------------------------------------- */
 
@@ -348,14 +401,29 @@ qp_init (rfc2047_encoder * enc)
 static int
 qp_count (rfc2047_encoder * enc)
 {
-  return must_quote (* enc->src) ? 3 : 1;
+  int len = 0, todo;
+  unsigned const char * curr;
+
+  /* count the size of a complete (multibyte) character */
+  enc->charblock = enc->charcount (enc->src);
+
+  for (todo = 0, curr = enc->src ;
+       todo < enc->charblock && * curr; 
+       todo ++, curr ++)
+    {
+      len += must_quote (* curr) ? 3 : 1;
+    }
+
+  return len;
 }
 
 static const char _hexdigit[16] = "0123456789ABCDEF";
 
-static void
+static int
 qp_next (rfc2047_encoder * enc)
 {
+  int done;
+
   if (* enc->src == '_' || must_quote (* enc->src))
     {
       /* special encoding of space as a '_' to increase readability */
@@ -366,9 +434,8 @@ qp_next (rfc2047_encoder * enc)
 	      * (enc->dst ++) = '_';
 	      enc->src ++;
 	    }
-	
-	enc->done ++;
-	enc->quotesize ++;
+
+	  done = 1;
 	}
       else {
 	/* default encoding */
@@ -381,8 +448,7 @@ qp_next (rfc2047_encoder * enc)
 	    enc->src ++;
 	  }
 	
-	enc->done += 3;
-	enc->quotesize += 3;
+	done = 3;
       }
     }
   else
@@ -392,11 +458,13 @@ qp_next (rfc2047_encoder * enc)
 	  * (enc->dst ++) = * (enc->src ++);
 	}
 
-      enc->done ++;
-      enc->quotesize ++;
+      done = 1;
     }
 
+  enc->done += done;
   enc->todo --;
+
+  return done;
 }
 
 static void
@@ -423,36 +491,42 @@ base64_init (rfc2047_encoder * enc)
 static int
 base64_count (rfc2047_encoder * enc)
 {
-  /* Count the size of the encoded block only once, at the first byte
-     transmitted. */
-  if (enc->state == 0) return 4;
-  return 0;
+  int len = 0, todo;
+
+  /* Check the size of a complete (multibyte) character */
+  enc->charblock = enc->charcount (enc->src);
+
+  for (todo = 0 ; todo < enc->charblock; todo ++)
+    {
+      /* Count the size of the encoded block only once, at the first
+	 byte transmitted. */
+      len += ((enc->state + todo) % 3 == 0) ? 4 : 0;
+    }
+
+  return len;
 }
 
-static void
+static int
 base64_next (rfc2047_encoder * enc)
 {
   enc->buffer [enc->state ++] = * (enc->src ++);
-
   enc->todo --;
 
+  if (enc->state < 3) return 0;
+  
   /* We have a full quantum */
-  if (enc->state >= 3) 
+  if (enc->dst)
     {
-      if (enc->dst)
-	{
-	  * (enc->dst ++) = b64 [(enc->buffer[0] >> 2)];
-	  * (enc->dst ++) = b64 [((enc->buffer[0] & 0x3) << 4) | (enc->buffer[1] >> 4)];
-	  * (enc->dst ++) = b64 [((enc->buffer[1] & 0xF) << 2) | (enc->buffer[2] >> 6)];
-	  * (enc->dst ++) = b64 [(enc->buffer[2] & 0x3F)];
-	}
-
-      enc->done += 4;
-      enc->quotesize += 4;
-
-      enc->state = 0;
+      * (enc->dst ++) = b64 [(enc->buffer[0] >> 2)];
+      * (enc->dst ++) = b64 [((enc->buffer[0] & 0x3) << 4) | (enc->buffer[1] >> 4)];
+      * (enc->dst ++) = b64 [((enc->buffer[1] & 0xF) << 2) | (enc->buffer[2] >> 6)];
+      * (enc->dst ++) = b64 [(enc->buffer[2] & 0x3F)];
     }
-  return;
+  
+  enc->done += 4;
+  
+  enc->state = 0;
+  return 4;
 }
 
 static void
@@ -481,7 +555,6 @@ base64_flush (rfc2047_encoder * enc)
     }
 
   enc->done += 4;
-  enc->quotesize += 4;
   enc->state = 0;
   return;
 }
@@ -495,8 +568,6 @@ enum {
   ST_QUOTED_SPACE, /* waiting for quoted whitespace */
 };
 
-
-
 /**
    Encode a header according to RFC 2047
    
@@ -508,6 +579,8 @@ enum {
      Actual text to encode
    @param result [OUT]
      Encoded string
+
+   @return 0 on success
 */
 int
 rfc2047_encode (const char *charset, const char *encoding,
@@ -523,9 +596,10 @@ rfc2047_encode (const char *charset, const char *encoding,
       ! text     || 
       ! result) return EINVAL;
 
+  /* Check for a known encoding */
   do 
     {
-      if (strcmp (encoding, "base64") == 0) 
+      if (strcasecmp (encoding, "base64") == 0) 
 	{
 	  base64_init (& enc);
 	  enc.encoding = 'B';
@@ -535,7 +609,7 @@ rfc2047_encode (const char *charset, const char *encoding,
 	  break;
 	}
       
-      if (strcmp (encoding, "quoted-printable") == 0) 
+      if (strcasecmp (encoding, "quoted-printable") == 0) 
 	{
 	  qp_init (& enc);
 	  enc.encoding = 'Q';
@@ -549,10 +623,23 @@ rfc2047_encode (const char *charset, const char *encoding,
     } 
   while (0);
 
+  /* Check for a known charset */
+  do
+    {
+      if (strcasecmp (charset, "utf-8") == 0)
+	{
+	  enc.charcount = ce_utf_8;
+	  break;
+	}
+      
+      enc.charcount = ce_single_byte;
+    }
+  while (0);
+
   enc.dst = NULL;
   enc.charset = charset;
 
-  /* proceed in two passes: count, then fill */
+  /* proceed in two passes: estimate the required space, then fill */
   for (is_compose = 0 ; is_compose <= 1 ; is_compose ++) 
     {
       state = ST_SPACE;

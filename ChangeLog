@@ -1,3 +1,8 @@
+2003-02-10  Frederic Gobry  <frederic.gobry@smartdata.ch>
+
+	* mailbox/rfc2047.c: avoid cutting utf-8 strings in the middle of
+	  a multibyte character.
+
 2003-02-10  Sergey Poznyakoff
 
 	* mailbox/mbx_mh.c (mh_expunge, mh_save_attributes): Bugfix
