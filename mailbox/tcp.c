@@ -74,7 +74,7 @@ _tcp_open (stream_t stream)
 {
   struct _tcp_instance *tcp = stream_get_owner (stream);
   int flgs, ret;
-  size_t namelen;
+  socklen_t namelen;
   struct sockaddr_in peer_addr;
   struct hostent *phe;
   struct sockaddr_in soc_addr;
