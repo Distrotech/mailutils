@@ -20,8 +20,6 @@
 mailbox_t mbox;
 int state;
 char *username;
-FILE *ifile;
-FILE *ofile;
 char *md5shared;
 
 struct daemon_param daemon_param = {
@@ -37,11 +35,12 @@ int debug_mode;
 /* Number of child processes.  */
 volatile size_t children;
 
-static int pop3d_mainloop       __P ((int, int));
+static int pop3d_mainloop       __P ((int fd, FILE *, FILE *));
 static void pop3d_daemon_init   __P ((void));
 static void pop3d_daemon        __P ((unsigned int, unsigned int));
 static error_t pop3d_parse_opt  __P((int key, char *arg,
 				     struct argp_state *astate));
+static void pop3d_log_connection __P((int fd));
 
 const char *argp_program_version = "pop3d (" PACKAGE_STRING ")";
 static char doc[] = N_("GNU pop3d -- the POP3 daemon");
@@ -160,7 +159,7 @@ main (int argc, char **argv)
     pop3d_daemon (daemon_param.maxchildren, daemon_param.port);
   /* exit (EXIT_SUCCESS) -- no way out of daemon except a signal.  */
   else
-    status = pop3d_mainloop (fileno (stdin), fileno (stdout));
+    status = pop3d_mainloop (fileno (stdin), stdin, stdout);
 
   /* Close the syslog connection and exit.  */
   closelog ();
@@ -195,26 +194,9 @@ pop3d_daemon_init (void)
 #endif
 }
 
-/* The main part of the daemon. This function reads input from the client and
-   executes the proper functions. Also handles the bulk of error reporting.  */
-static int
-pop3d_mainloop (int infile, int outfile)
+void
+pop3d_log_connection (int fd)
 {
-  int status = OK;
-  char buffer[512];
-
-  /* Reset hup to exit.  */
-  signal (SIGHUP, pop3d_signal);
-  /* Timeout alarm.  */
-  signal (SIGALRM, pop3d_signal);
-
-  ifile = fdopen (infile, "r");
-  ofile = fdopen (outfile, "w");
-  if (!ifile || !ofile)
-    pop3d_abquit (ERR_NO_OFILE);
-
-  state = AUTHORIZATION;
-
   syslog (LOG_INFO, _("Incoming connection opened"));
 
   /* log information on the connecting client */
@@ -226,12 +208,36 @@ pop3d_mainloop (int infile, int outfile)
     {
       struct sockaddr_in cs;
       int len = sizeof cs;
-      if (getpeername (infile, (struct sockaddr*)&cs, &len) < 0)
+      if (getpeername (fd, (struct sockaddr*)&cs, &len) < 0)
 	syslog (LOG_ERR, _("can't obtain IP address of client: %s"),
 		strerror (errno));
       else
-	syslog (LOG_INFO, _("connect from %s"), inet_ntoa(cs.sin_addr));
+	syslog (LOG_INFO, _("connect from %s"), inet_ntoa (cs.sin_addr));
     }
+}
+
+/* The main part of the daemon. This function reads input from the client and
+   executes the proper functions. Also handles the bulk of error reporting.
+   Arguments:
+      fd        --  socket descriptor (for diagnostics)
+      infile    --  input stream
+      outfile   --  output stream */
+static int
+pop3d_mainloop (int fd, FILE *infile, FILE *outfile)
+{
+  int status = OK;
+  char buffer[512];
+
+  /* Reset hup to exit.  */
+  signal (SIGHUP, pop3d_signal);
+  /* Timeout alarm.  */
+  signal (SIGALRM, pop3d_signal);
+
+  pop3d_setio (infile, outfile);
+
+  state = AUTHORIZATION;
+
+  pop3d_log_connection (fd);
 
   /* Prepare the shared secret for APOP.  */
   {
@@ -268,7 +274,7 @@ pop3d_mainloop (int infile, int outfile)
     {
       char *buf, *arg, *cmd;
 
-      fflush (ofile);
+      pop3d_flush_output ();
       status = OK;
       buf = pop3d_readline (buffer, sizeof (buffer));
       cmd = pop3d_cmd (buf);
@@ -423,8 +429,10 @@ pop3d_daemon (unsigned int maxchildren, unsigned int port)
       else if (pid == 0) /* Child.  */
         {
 	  int status;
-          close (listenfd);
-          status = pop3d_mainloop (connfd, connfd);
+	  
+	  close (listenfd);
+          status = pop3d_mainloop (connfd,
+				   fdopen (connfd, "r"), fdopen (connfd, "w"));
 	  closelog ();
 	  exit (status);
         }
