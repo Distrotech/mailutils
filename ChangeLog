@@ -1,3 +1,18 @@
+2001-10-19  Sergey Poznyakoff
+
+	Implemented saving of MH context. 
+
+	* mh/inc.c: Fixed truncate option. Implemented -changecur. The only
+	feature inc lacks so far is -audit.
+	* mh/mh_format.c: Minor fix in builtin_match().
+	* mh/mh_getopt.c: Fixed option recognition heuristics.
+	* mh/mh_init.c: New globals: ctx_name -- keeps full context file
+	name, ctx_header -- keeps current context (as a MU header).
+	mh_init(): Use new globals.
+	New functions: mh_save_context, mh_write_context_file, mh_check_folder,
+	mh_getyn.
+	* mh/mh.h: Prototypes for new functions.
+	
 2001-10-17  Sam Roberts
 
 	* README-alpha : Update cvs repository path.
