@@ -1,9 +1,15 @@
+2003-08-12  Sergey Poznyakoff
+
+	* mh/mh_msgset.c (mh_msgset_uids): New function.
+	* mh/mh.h: Likewise.
+	* mh/mark.c (main): Convert msgset to uids.
+
 2003-08-12  Sergey Poznyakoff  
 
 	* mail/mail.h (mail_execute): New function.
 	* mail/shell.c (mail_execute): New function.
-	* mail/var.c (run_aditor): A wrapper around mail_execute().
-	(var_shell): Use run_aditor.
+	* mail/var.c (run_editor): A wrapper around mail_execute().
+	(var_shell): Use run_editor.
 	* mh/mh_format.c (print_simple_segment): Bugfix.
 	* mh/replcomps: Improved.
 
