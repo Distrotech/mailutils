@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2005 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -40,7 +40,6 @@ _url_smtp_init (url_t url)
     return EINVAL;
 
   /* host isn't optional */
-
   if(!url->host)
     return EINVAL;
 
@@ -48,11 +47,14 @@ _url_smtp_init (url_t url)
   if(!url->port)
     url->port = MU_SMTP_PORT;
 
+  /* accept url->user, pass, and auth
+     for the ESMTP authentication */
+
   /* all other fields must be NULL */
-  if(url->user || url->passwd || url->auth || url->path || url->query)
+  if(url->path || url->query)
     return EINVAL;
 
   return 0;
 }
 
-#endif
+#endif /* ENABLE_SMTP */
