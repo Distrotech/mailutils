@@ -438,7 +438,7 @@ mh_get_message (mailbox_t mailbox, size_t msgno, message_t *pmsg)
 static size_t
 _mh_next_seq (struct _mh_data *mhd)
 {
-  return mhd->msg_tail ? mhd->msg_tail->seq_number : 1;
+  return (mhd->msg_tail ? mhd->msg_tail->seq_number : 0) + 1;
 }
 
 static FILE *
@@ -576,6 +576,7 @@ mh_append_message (mailbox_t mailbox, message_t msg)
   if (!mhm)
     return ENOMEM;
   
+  mhm->mhd = mhd;
   mhm->seq_number = _mh_next_seq (mhd);
   mhm->uid = mhd->uidnext++;
   mhm->message = msg;
@@ -1436,3 +1437,14 @@ mh_envelope_sender (envelope_t envelope, char *buf, size_t len,
     *psize = len;
   return 0;
 }
+
+int
+mh_message_number (message_t msg, size_t *pnum)
+{
+  struct _mh_message *mhm = message_get_owner (msg);
+  if (pnum)
+    *pnum = mhm->seq_number;
+  return 0;
+}
+
+
