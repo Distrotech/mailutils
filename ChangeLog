@@ -1,12 +1,10 @@
 2001-07-02 Alain Magloire
 
-	* imap4d/bye.c: call mailbox_save_attributes() when exiting.
-	it will save the attribute flags.
-	* imap4d/close.c: Typo.
-	* imap4d/logout: Remove the mailbox_close() and mailbox_destroy()
-	it is being call imap4d_bye ().
-	* imap4d/select.c (imapr3d_select0): call mailbox_save_attributes()
-	if a mailbox was already selected.
+	* mailbox2/tcp.c: make it thread-safe.
+	* mailbox2/bstream.c: Implement buffered stream.
+	* mailbox2/pop3_stream.c: Use a buffered stream.
+
+2001-07-02 Alain Magloire
 
 	Feedback from Sergey for the need of saving the attribute flags
 	without expunging.  Note, this is a hack, the code is taken from
@@ -20,6 +18,14 @@
 	* mailbox/mailbox.c: New function mailbox_save_attributes ().
 	* mailbox/mbx_mbox.c: New function mbox_save_attributes (),
 	implement saving the attribute flags in header field "Status:"
+
+	* imap4d/bye.c: call mailbox_save_attributes() when exiting.
+	it will save the attribute flags.
+	* imap4d/close.c: Typo.
+	* imap4d/logout: Remove the mailbox_close() and mailbox_destroy()
+	it is being call imap4d_bye ().
+	* imap4d/select.c (imapr3d_select0): call mailbox_save_attributes()
+	if a mailbox was already selected.
 
 2001-07-01 Alain Magloire
 
