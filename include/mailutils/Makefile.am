@@ -4,6 +4,7 @@
 
 pkginclude_HEADERS = \
  address.h \
+ argcv.h \
  argp.h \
  attribute.h \
  auth.h \
@@ -33,3 +34,5 @@ pkginclude_HEADERS = \
  stream.h \
  types.h \
  url.h 
+
+SUBDIRS = gnu
