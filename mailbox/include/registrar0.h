@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2004 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -81,7 +81,7 @@ extern int _mailbox_mh_init __P((mailbox_t mailbox));
 #define MU_MAILDIR_SCHEME "maildir:"
 #define MU_MAILDIR_SCHEME_LEN (sizeof (MU_MAILDIR_SCHEME) - 1)
 extern int _mailbox_maildir_init __P((mailbox_t mailbox));
-  
+
 #ifdef __cplusplus
 }
 #endif

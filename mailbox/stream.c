@@ -80,7 +80,7 @@ stream_destroy (stream_t *pstream, void *owner)
 	  if (stream->rbuffer.base)
 	    free (stream->rbuffer.base);
 
-	  if (stream->_destroy) 
+	  if (stream->_destroy)
 	    stream->_destroy (stream);
 
 	  free (stream);
@@ -114,7 +114,7 @@ stream_close (stream_t stream)
     return EINVAL;
   if (stream->state == MU_STREAM_STATE_CLOSE)
     return 0;
-  
+
   stream->state = MU_STREAM_STATE_CLOSE;
   /* Clear the buffer of any residue left.  */
   if (stream->rbuffer.base)
@@ -740,31 +740,31 @@ stream_seek (stream_t stream, off_t off, int whence)
   off_t size = 0;
   size_t pos;
   int rc;
-  
+
   if ((rc = stream_size (stream, &size)))
     return rc;
-  
+
   switch (whence)
     {
     case SEEK_SET:
       pos = off;
       break;
-      
+
     case SEEK_CUR:
       pos = off + stream->offset;
       break;
-      
+
     case SEEK_END:
       pos = size + off;
       break;
-      
+
     default:
       return EINVAL;
     }
 
   if (pos > size)
     return EIO;
-  
+
   stream->offset = pos;
   return 0;
 }
@@ -774,6 +774,18 @@ stream_wait (stream_t stream, int *pflags, struct timeval *tvp)
 {
   if (stream == NULL)
     return EINVAL;
+
+  /* Take to acount if we have any buffering.  */
+  if ((*pflags) & MU_STREAM_READY_RD)
+    {
+      if (stream->rbuffer.count > 0)
+	{
+	  *pflags = 0;
+	  *pflags |= MU_STREAM_READY_RD;
+	  return 0;
+	}
+    }
+
   if (stream->_wait)
     return stream->_wait (stream, pflags, tvp);
   return ENOSYS;
