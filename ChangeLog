@@ -1,3 +1,18 @@
+2001-12-12 Sam Roberts
+
+	* lib/: argcv.c, xmalloc.c: Fixed warnings about functions called
+	without prototypes.
+	* sieve/sieve.c: First crack at including wicket_t's ticket, not
+	tested.
+	* m4/debug.m4: Added -Wall in debug mode.
+
+2001-12-10 Sam Roberts
+
+	* comsat/.cvsignore, doc/rfc/.cvsignore, examples/.cvsignore,
+	mail/.cvsignore, sieve/examples/.cvsignore: Ignored.
+	* mailbox/tcp.c: I'm about to modify this file, so I'm GNU
+	indenting it so I can see reasonable diffs. No other changes.
+
 2001-12-03  Alain Magloire
 
 	Suprisingly some OSes do not have getpass()
