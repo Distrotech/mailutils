@@ -427,6 +427,8 @@ qp_decode (const char *iptr, size_t isize, char *optr, size_t osize,
 		    }
 		}
 	      wscount = 0;
+	      if (*nbytes == osize)
+		break;
 	    }
 		
 	  if (c == '=')
