@@ -1,3 +1,15 @@
+2001-08-23 Sergey Poznyakoff
+
+	* mail/msgset.y: Fixed erroneous call to msgset_select
+	(second arg should have been a pointer). Added :t (tagged)
+	and :T (untagged) selection criteria.
+
+	* mail/tag.c: (new) Implementation of tag command.
+	* mail/table.c: Added entries for "tag" and "untag".
+	* mail/Makefile.am: Added tag.c
+	* mail/from.c: Display tagged messages.
+	* mail/mail.h: Added protos and defines for mail_tag().
+
 2001-08-22  Jakob 'sparky' Kaivo  <jkaivo@elijah.nodomainname.net>
 
 	* imap4d/fetch.c (bodystructure): check sp != NULL before using
