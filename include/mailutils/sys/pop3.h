@@ -82,7 +82,7 @@ struct _mu_pop3
     char *timestamp; /* For apop, if supported.  */
     unsigned timeout;  /* Default is 10 minutes.  */
 
-    void (*debug)(const char *log); /* function to print debug long.  */
+    mu_debug_t debug; /* debugging trace.  */
 
     enum mu_pop3_state state;  /* Indicate the state of the running command.  */
 

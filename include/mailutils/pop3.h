@@ -19,6 +19,7 @@
 #define _MAILUTILS_POP3_H
 
 #include <mailutils/list.h>
+#include <mailutils/debug.h>
 #include <mailutils/stream.h>
 
 #ifdef __cplusplus
@@ -40,7 +41,7 @@ extern int  mu_pop3_disconnect   (mu_pop3_t pop3);
 extern int  mu_pop3_set_timeout  (mu_pop3_t pop3, int timeout);
 extern int  mu_pop3_get_timeout  (mu_pop3_t pop3, int *timeout);
 
-extern int  mu_pop3_set_debug    (mu_pop3_t pop3, void (*print) __P((const char *buffer)));
+extern int  mu_pop3_set_debug    (mu_pop3_t pop3, mu_debug_t debug);
 
 extern int  mu_pop3_apop         (mu_pop3_t pop3, const char *name, const char *digest);
 
