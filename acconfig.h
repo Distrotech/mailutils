@@ -33,8 +33,17 @@
 /* Define if enable Posix Thread */
 #undef WITH_PTHREAD
 
+/* Define if using GNU DBM */
+#undef WITH_GDBM
+
 /* Define if using Berkeley DB2 */
 #undef WITH_BDB2
+
+/* Define if using NDBM */
+#undef WITH_NDBM
+
+/* Define if using OLD_DBM */
+#undef WITH_OLD_DBM
 
 /* Define if using libreadline */
 #undef WITH_READLINE
