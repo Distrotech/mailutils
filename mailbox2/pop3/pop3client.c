@@ -1,6 +1,20 @@
 /* pop3client.c -- An application which demonstrates how to use the
-   GNU mailutils pop3 functions.  This application interactively allows users
-   to contact a pop3 server. */
+   GNU Mailutils pop3 functions.  This application interactively allows users
+   to contact a pop3 server.
+
+   GNU Mailutils is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 2, or (at your option)
+   any later version.
+
+   GNU Mailutils is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with GNU Mailutils; if not, write to the Free Software
+   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA  */
 
 #ifdef HAVE_CONFIG_H
 #  include <config.h>
