@@ -15,25 +15,28 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-#include <url_pop.h>
-#include <mbx_pop.h>
+#include <mailbox0.h>
+#include <registrar0.h>
+
 #include <errno.h>
 
-struct mailbox_type _mailbox_pop_type =
+static int mailbox_pop_init (mailbox_t *mbox, const char *name);
+static void mailbox_pop_destroy (mailbox_t *mbox);
+
+struct mailbox_registrar _mailbox_pop_registrar =
 {
   "POP3",
-  (int)&_url_pop_type, &_url_pop_type,
   mailbox_pop_init, mailbox_pop_destroy
 };
 
-void
+static void
 mailbox_pop_destroy (mailbox_t *mbox)
 {
   (void)mbox;
   return;
 }
 
-int
+static int
 mailbox_pop_init (mailbox_t *mbox, const char *name)
 {
   (void)mbox; (void)name;

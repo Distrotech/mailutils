@@ -33,26 +33,36 @@
 extern "C" {
 #endif
 
+struct _hdr
+{
+  char *fn;
+  char *fn_end;
+  char *fv;
+  char *fv_end;
+};
+typedef struct _hdr *hdr_t;
+
 struct _header
 {
   /* Data */
   void *data;
+  /* owner ? */
+  void *message;
 
   /* Functions */
-  int (*_set_value)  __P ((header_t, const char *fn, const char *fv,
-			   size_t n, int replace));
-  int (*_get_value)  __P ((header_t, const char *fn, char *fv,
-			   size_t len, size_t *n));
-  int (*_get_mvalue) __P ((header_t, const char *fn, char **fv, size_t *n));
-  int (*_parse)      __P ((header_t, const char *blurb, size_t len));
+  int (*_init)         __P ((header_t *, const char *, size_t));
+  void (*_destroy)     __P ((header_t *));
+  int (*_set_value)    __P ((header_t, const char *fn, const char *fv,
+			     size_t n, int replace));
+  int (*_get_value)    __P ((header_t, const char *fn, char *fv,
+			     size_t len, size_t *n));
+  ssize_t (*_get_data) __P ((header_t h, char *data,
+			     size_t len, off_t off, int *err));
+  int (*_parse)        __P ((header_t, const char *blurb, size_t len));
 } ;
 
-#ifdef USE_MACROS
-#define header_set_value(h, fn, fv, n, r)  h->_set_value (h, fn, fv, n, r)
-#define header_get_value(h, fn, fv, v, ln, n)  h->_get_value (h, fn, fv, ln, n)
-#define header_get_mvalue(h, fn, fv, v, n) h->_get_mvalue (h, fn, fv, n)
-#endif
-
+extern int rfc822_init __P ((header_t *ph, const char *blurb, size_t len));
+extern void rfc822_destroy __P ((header_t *ph));
 #ifdef _cpluscplus
 }
 #endif

@@ -15,15 +15,17 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-#include <mbx_imap.h>
-#include <url_imap.h>
+#include <mailbox0.h>
+#include <registrar0.h>
 #include <errno.h>
 
 
-struct mailbox_type _mailbox_imap_type =
+static int mailbox_imap_init (mailbox_t *mbox, const char *name);
+static void mailbox_imap_destroy (mailbox_t *mbox);
+
+struct mailbox_registrar _mailbox_imap_registrar =
 {
   "IMAP4",
-  (int)&_url_imap_type, &_url_imap_type,
   mailbox_imap_init, mailbox_imap_destroy
 };
 

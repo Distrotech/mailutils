@@ -32,34 +32,34 @@
 extern "C" {
 #endif
 
-#define MU_HDR_RFC822                0
+#define MU_HEADER_RFC822                0
 
-#define MU_HDR_UNIX_FROM             "From "
-#define MU_HDR_RETURN_PATH           "Return-Path"
-#define MU_HDR_RECEIVED              "Received"
-#define MU_HDR_DATE                  "Date"
-#define MU_HDR_FROM                  "From"
-#define MU_HDR_RESENT_FROM           "Resent-From"
-#define MU_HDR_SUBJECT               "Subject"
-#define MU_HDR_SENDER                "Sender"
-#define MU_HDR_RESENT_SENDER         "Resent-SENDER"
-#define MU_HDR_TO                    "To"
-#define MU_HDR_RESENT_TO             "Resent-To"
-#define MU_HDR_CC                    "Cc"
-#define MU_HDR_RESENT_CC             "Resent-Cc"
-#define MU_HDR_BCC                   "Bcc"
-#define MU_HDR_RESENT_BCC            "Resent-Bcc"
-#define MU_HDR_REPLY_TO              "Reply-To"
-#define MU_HDR_RESENT_REPLY_TO       "Resent-Reply-To"
-#define MU_HDR_MESSAGE_ID            "Message-ID"
-#define MU_HDR_RESENT_MESSAGE_ID     "Resent-Message-ID"
-#define MU_HDR_IN_REPLY_TO           "In-Reply-To"
-#define MU_HDR_ENCRYPTED             "Encrypted"
-#define MU_HDR_PRECEDENCE            "Precedence"
-#define MU_HDR_STATUS                "Status"
-#define MU_HDR_CONTENT_LENGTH        "Content-Length"
-#define MU_HDR_CONTENT_TYPE          "Content-Type"
-#define MU_HDR_MIME_VERSION          "MIME-Version"
+#define MU_HEADER_UNIX_FROM             "From "
+#define MU_HEADER_RETURN_PATH           "Return-Path"
+#define MU_HEADER_RECEIVED              "Received"
+#define MU_HEADER_DATE                  "Date"
+#define MU_HEADER_FROM                  "From"
+#define MU_HEADER_RESENT_FROM           "Resent-From"
+#define MU_HEADER_SUBJECT               "Subject"
+#define MU_HEADER_SENDER                "Sender"
+#define MU_HEADER_RESENT_SENDER         "Resent-SENDER"
+#define MU_HEADER_TO                    "To"
+#define MU_HEADER_RESENT_TO             "Resent-To"
+#define MU_HEADER_CC                    "Cc"
+#define MU_HEADER_RESENT_CC             "Resent-Cc"
+#define MU_HEADER_BCC                   "Bcc"
+#define MU_HEADER_RESENT_BCC            "Resent-Bcc"
+#define MU_HEADER_REPLY_TO              "Reply-To"
+#define MU_HEADER_RESENT_REPLY_TO       "Resent-Reply-To"
+#define MU_HEADER_MESSAGE_ID            "Message-ID"
+#define MU_HEADER_RESENT_MESSAGE_ID     "Resent-Message-ID"
+#define MU_HEADER_IN_REPLY_TO           "In-Reply-To"
+#define MU_HEADER_ENCRYPTED             "Encrypted"
+#define MU_HEADER_PRECEDENCE            "Precedence"
+#define MU_HEADER_STATUS                "Status"
+#define MU_HEADER_CONTENT_LENGTH        "Content-Length"
+#define MU_HEADER_CONTENT_TYPE          "Content-Type"
+#define MU_HEADER_MIME_VERSION          "MIME-Version"
 
 /* Mime support header attribute */
 
@@ -67,30 +67,16 @@ extern "C" {
 struct _header;
 typedef struct _header * header_t;
 
-extern int header_init    __P ((header_t *, const char *blurb,
-				size_t ln, int flag));
-extern void header_destroy __P ((header_t *));
+extern int  header_init       __P ((header_t *, const char *blurb,
+				    size_t ln, int flag));
+extern void header_destroy    __P ((header_t *));
 
-extern int header_gvalue __P ((const char *blurb, size_t bl, const char *fn,
-			       char *fv, size_t len, size_t *n));
-extern int header_gmvalue __P ((const char *blurb, size_t bl, const char *fn,
-			       char **fv, size_t *nv));
-
-#undef INLINE
-#ifdef __GNUC__
-#define INLINE __inline__
-#else
-#define INLINE
-#endif
-
-extern INLINE int header_set_value __P ((header_t, const char *fn,
-					 const char *fv, size_t n,
-					 int replace));
-extern INLINE int header_get_value __P ((header_t, const char *fn, char *fv,
-					size_t len, size_t *n));
-extern INLINE int header_get_mvalue __P ((header_t, const char *fn,
-					 char **fv, size_t *n));
-
+extern int  header_set_value  __P ((header_t, const char *fn,
+				    const char *fv, size_t n, int replace));
+extern int  header_get_value  __P ((header_t, const char *fn, char *fv,
+				    size_t len, size_t *n));
+extern ssize_t  header_get_data   __P ((header_t h, char *data,
+				       size_t len, off_t off, int *err));
 #ifdef _cpluscplus
 }
 #endif

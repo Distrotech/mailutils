@@ -15,24 +15,19 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
+#include <mailbox0.h>
+#include <registrar0.h>
 
-
-#include <url_mbox.h>
-#include <mbx_mbox.h>
-#include <mbx_unix.h>
-#include <mbx_mdir.h>
 #include <string.h>
-
 #include <errno.h>
 #include <sys/stat.h>
 
-struct mailbox_type _mailbox_mbox_type =
+static int mailbox_mbox_init (mailbox_t *mbox, const char *name);
+static void mailbox_mbox_destroy (mailbox_t *mbox);
+
+struct mailbox_registrar _mailbox_mbox_registrar =
 {
   "UNIX_MBOX/Maildir/MMDF",
-  (int)&_url_mbox_type, &_url_mbox_type,
   mailbox_mbox_init, mailbox_mbox_destroy
 };
 
@@ -49,7 +44,7 @@ struct mailbox_type _mailbox_mbox_type =
   mailbox.
 */
 
-int
+static int
 mailbox_mbox_init (mailbox_t *mbox, const char *name)
 {
   struct stat st;
@@ -65,9 +60,7 @@ mailbox_mbox_init (mailbox_t *mbox, const char *name)
     What is the best course of action ??
   */
   if (stat (name, &st) < 0)
-    {
-      return errno; /* errno set by stat () */
-    }
+    return _mailbox_unix_registrar._init (mbox, name);
 
   if (S_ISREG (st.st_mode))
     {
@@ -99,7 +92,7 @@ mailbox_mbox_init (mailbox_t *mbox, const char *name)
       if (count == 0) /*empty file*/
 	{
 	  close (fd);
-	  return mailbox_unix_init (mbox, name);
+	  return _mailbox_unix_registrar._init (mbox, name);
 	}
 
       if (count >= 5)
@@ -108,27 +101,26 @@ mailbox_mbox_init (mailbox_t *mbox, const char *name)
 	    {
 	      /* This is Unix Mbox */
 	      close (fd);
-	      return mailbox_unix_init (mbox, name);
+	      return _mailbox_unix_registrar._init (mbox, name);
 	    }
 	}
 
       /* Try MMDF */
       close (fd);
 #endif
-      return mailbox_unix_init (mbox, name);
+      return _mailbox_unix_registrar._init (mbox, name);
     }
+  /* Is that true ?  Are all directories Maildir ?? */
   else if (S_ISDIR (st.st_mode))
-    {
-      /* Is that true ?  Are all directories Maildir ?? */
-      return mailbox_maildir_init (mbox, name);
-    }
+    return _mailbox_maildir_registrar._init (mbox, name);
 
-  /* Why can't a mailbox be FIFO ? or a DOOR/Portal ? */
+  /* Why can't a mailbox be FIFO ? or a DOOR/Portal ??? */
   return EINVAL;
 }
 
-void
-mailbox_mbox_destroy (mailbox_t *mbox)
+static void
+mailbox_mbox_destroy (mailbox_t *pmbox)
 {
-  (*mbox)->mtype->_destroy (mbox);
+  if (pmbox && *pmbox)
+    _mailbox_unix_registrar._destroy (pmbox);
 }

@@ -10,15 +10,13 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Library General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Library General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
-
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
+#include <mailbox0.h>
+#include <registrar0.h>
 
 #include <dirent.h>
 #include <errno.h>
@@ -26,13 +24,15 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <stdlib.h>
+#include <ctype.h>
 
-typedef int _url_mh_type;
+static int mailbox_mh_init (mailbox_t *pmbox, const char *name);
+static void mailbox_mh_destroy (mailbox_t *pmbox);
 
-struct mailbox_type _mailbox_mh_type =
+struct mailbox_registrar _mailbox_mh_registrar =
 {
-  "MH"
-  (int)&_url_mh_type, &_url_mh_type,
+  "MH",
   mailbox_mh_init, mailbox_mh_destroy
 };
 
@@ -41,9 +41,12 @@ typedef struct _mh_data
   time_t mtime; /* used for checking if mailbox was updated */
 } mh_data;
 
+static int mh_open (mailbox_t mbox, int flags);
+static int mh_close (mailbox_t mbox);
+static int mh_scan (mailbox_t mbox, size_t *msgs);
 static int mh_sequence(const char *name);
 
-int
+static int
 mailbox_mh_init (mailbox_t *pmbox, const char *name)
 {
   mailbox_t mbox;
@@ -54,12 +57,16 @@ mailbox_mh_init (mailbox_t *pmbox, const char *name)
   mbox->name = malloc(strlen(name) + 1);
   strcpy(mbox->name, name);
   mbox->data = data;
+  mbox->_init = mailbox_mh_init;
+  mbox->_destroy = mailbox_mh_destroy;
+  mbox->_open = mh_open;
+  mbox->_close = mh_close;
   *pmbox = mbox;
 
   return 0;
 }
 
-void
+static void
 mailbox_mh_destroy (mailbox_t *pmbox)
 {
   free((*pmbox)->data);
@@ -77,6 +84,7 @@ mh_open (mailbox_t mbox, int flags)
   struct stat st;
   mh_data *data;
 
+  (void) flags;
   if (stat(mbox->name, &st) == -1)
     return errno;
 
@@ -141,8 +149,9 @@ mh_scan (mailbox_t mbox, size_t *msgs)
   closedir(maildir);
 
   if(parse_sequence_file && count) {
+    FILE *fp;
     char *path = malloc(strlen(mbox->name) + strlen(".mh_sequences") + 2);
-	sprintf(path, "%s/.mh_sequences", mbox->name);
+    sprintf(path, "%s/.mh_sequences", mbox->name);
     fp = fopen(path, "r");
     while(!feof(fp)) {
       /* FIXME: parse the contents */
@@ -159,7 +168,7 @@ mh_scan (mailbox_t mbox, size_t *msgs)
   return 0;
 }
 
-/* 
+/*
  * Local atoi()
  * created this to guarantee that name is only digits, normal atoi allows
  * whitespace
@@ -167,7 +176,7 @@ mh_scan (mailbox_t mbox, size_t *msgs)
 static int
 mh_sequence(const char *name)
 {
-  char *sequence;
+  const char *sequence;
   int i;
 
   for(i = 0, sequence = name; *sequence; sequence++) {

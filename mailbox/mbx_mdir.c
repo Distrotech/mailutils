@@ -15,14 +15,16 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-#include <url_mdir.h>
-#include <mbx_mdir.h>
+#include <mailbox0.h>
+#include <registrar0.h>
 #include <errno.h>
 
-struct mailbox_type _mailbox_maildir_type =
+static int mailbox_maildir_init (mailbox_t *mbox, const char *name);
+static void mailbox_maildir_destroy (mailbox_t *mbox);
+
+struct mailbox_registrar _mailbox_maildir_registrar =
 {
   "MAILDIR",
-  (int)&_url_maildir_type, &_url_maildir_type,
   mailbox_maildir_init, mailbox_maildir_destroy
 };
 

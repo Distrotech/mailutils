@@ -15,25 +15,28 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-#include <url_mmdf.h>
-#include <mbx_mmdf.h>
+#include <mailbox0.h>
+#include <registrar0.h>
+
 #include <errno.h>
 
-struct mailbox_type _mailbox_mmdf_type =
+static int mailbox_mmdf_init (mailbox_t *mbox, const char *name);
+static void mailbox_mmdf_destroy (mailbox_t *mbox);
+
+struct mailbox_registrar _mailbox_mmdf_registrar =
 {
   "MMDF",
-  (int)&_url_mmdf_type, &_url_mmdf_type,
   mailbox_mmdf_init, mailbox_mmdf_destroy
 };
 
-int
+static int
 mailbox_mmdf_init (mailbox_t *mbox, const char *name)
 {
   (void)mbox; (void)name;
   return ENOSYS;
 }
 
-void
+static void
 mailbox_mmdf_destroy (mailbox_t *mbox)
 {
   (void)mbox;
