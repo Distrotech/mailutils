@@ -154,7 +154,7 @@ sieve_code_command (sieve_register_t *reg, list_t arglist)
       if (rc)
 	{
 	  sieve_compile_error (sieve_filename, sieve_line_num,
-                               _("can't create iterator: %s"),
+                               _("cannot create iterator: %s"),
   		               mu_strerror (rc));
 	  return 1;
 	}
@@ -182,7 +182,7 @@ sieve_code_command (sieve_register_t *reg, list_t arglist)
 	      if (!tag_list && (rc = list_create (&tag_list)))
 		{
 		  sieve_compile_error (sieve_filename, sieve_line_num,
-                                       _("%s:%d: can't create tag list: %s"),
+                                       _("%s:%d: cannot create tag list: %s"),
 			               mu_strerror (rc));
 		  err = 1;
 		  break;
@@ -206,7 +206,7 @@ sieve_code_command (sieve_register_t *reg, list_t arglist)
 		  if (!chk_list && (rc = list_create (&chk_list)))
 		    {
 		      sieve_compile_error (sieve_filename, sieve_line_num,
-			  	         _("%s:%d: can't create check list: %s"),
+			  	         _("%s:%d: cannot create check list: %s"),
 					   mu_strerror (rc));
 		      err = 1;
 		      break;
@@ -243,9 +243,9 @@ sieve_code_command (sieve_register_t *reg, list_t arglist)
 				      exp_arg - reg->req_args + 1,
 				      reg->name);
 		      sieve_compile_error (sieve_filename, sieve_line_num,
-                                      _("Expected %s but passed %s"),
-				      sieve_type_str (*exp_arg),
-				      sieve_type_str (val->type));
+					   _("expected %s but passed %s"),
+					   sieve_type_str (*exp_arg),
+					   sieve_type_str (val->type));
 		      err = 1;
 		      break;
 		    }
@@ -254,7 +254,7 @@ sieve_code_command (sieve_register_t *reg, list_t arglist)
 	      if (!arg_list && (rc = list_create (&arg_list)))
 		{
 		  sieve_compile_error (sieve_filename, sieve_line_num,
-                                       _("can't create arg list: %s"),
+                                       _("cannot create arg list: %s"),
 			               mu_strerror (rc));
 		  err = 1;
 		  break;

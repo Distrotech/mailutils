@@ -59,7 +59,7 @@ action_dump ()
 {
   if (!format_str)
     {
-      mh_error (_("format string not specified"));
+      mh_error (_("Format string not specified"));
       return 1;
     }
   mh_format_dump (&format);

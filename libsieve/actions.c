@@ -63,7 +63,7 @@ sieve_action_fileinto (sieve_machine_t mach, list_t args, list_t tags)
       sieve_error (mach,
 		   /* TRANSLATORS: 'fileinto' is the name of a Sieve action.
 		      Do not translate it! */
-		   _("fileinto: can't get filename!"));
+		   _("fileinto: cannot get filename!"));
       sieve_abort (mach);
     }
   sieve_log_action (mach, "FILEINTO", _("delivering into %s"), val->v.string);
@@ -248,7 +248,7 @@ sieve_action_reject (sieve_machine_t mach, list_t args, list_t tags)
       sieve_error (mach,
 		   /* TRANSLATORS: 'reject' is the name of a Sieve action.
 		      Do not translate it! */
-		   _("reject: can't get text!"));
+		   _("reject: cannot get text!"));
       sieve_abort (mach);
     }
   sieve_log_action (mach, "REJECT", NULL);  
@@ -266,7 +266,7 @@ sieve_action_reject (sieve_machine_t mach, list_t args, list_t tags)
       sieve_error (mach,
 		   /* TRANSLATORS: 'reject' is the name of a Sieve action.
 		      Do not translate it! */
-		   _("%d: reject - can't create to address <%s>: %s\n"),
+		   _("%d: reject - cannot create to address <%s>: %s\n"),
 		   sieve_get_message_num (mach),
 		   addrtext, mu_strerror (rc));
       free (addrtext);
@@ -280,7 +280,7 @@ sieve_action_reject (sieve_machine_t mach, list_t args, list_t tags)
       sieve_error (mach,
 		   /* TRANSLATORS: 'reject' is the name of a Sieve action.
 		      Do not translate it! */
-		   _("%d: reject - can't create from address <%s>: %s\n"),
+		   _("%d: reject - cannot create from address <%s>: %s\n"),
 		   sieve_get_message_num (mach),
 		   sieve_get_daemon_email (mach),
 		   mu_strerror (rc));
@@ -296,7 +296,7 @@ sieve_action_reject (sieve_machine_t mach, list_t args, list_t tags)
       sieve_error (mach,
 		   /* TRANSLATORS: 'reject' is the name of a Sieve action.
 		      Do not translate it! */
-		   _("%d: reject - can't open mailer %s: %s\n"),
+		   _("%d: reject - cannot open mailer %s: %s\n"),
 		   sieve_get_message_num (mach),
 		   url_to_string (url),
 		   mu_strerror (rc));
@@ -373,7 +373,7 @@ sieve_action_redirect (sieve_machine_t mach, list_t args, list_t tags)
     {
       /* TRANSLATORS: 'redirect' is the name of a Sieve action.
 	 Do not translate it! */
-      sieve_error (mach, _("redirect: can't get address!"));
+      sieve_error (mach, _("redirect: cannot get address!"));
       sieve_abort (mach);
     }
 
@@ -407,7 +407,7 @@ sieve_action_redirect (sieve_machine_t mach, list_t args, list_t tags)
       sieve_error (mach,
 		   /* TRANSLATORS: 'redirect' is the name of a Sieve action.
 		      Do not translate it! */
-		   _("%d: redirect - can't get envelope sender: %s\n"),
+		   _("%d: redirect - cannot get envelope sender: %s\n"),
 		   sieve_get_message_num (mach), mu_strerror (rc));
       goto end;
     }
@@ -418,7 +418,7 @@ sieve_action_redirect (sieve_machine_t mach, list_t args, list_t tags)
       sieve_error (mach,
 		   /* TRANSLATORS: 'redirect' is the name of a Sieve action.
 		      Do not translate it! */
-		   _("%d: redirect - can't create from address <%s>: %s\n"),
+		   _("%d: redirect - cannot create from address <%s>: %s\n"),
 		   sieve_get_message_num (mach),
 		   fromaddr, mu_strerror (rc));
       free (fromaddr);
@@ -430,7 +430,7 @@ sieve_action_redirect (sieve_machine_t mach, list_t args, list_t tags)
   rc = message_create_copy (&newmsg, msg);
   if (rc)
     {
-      sieve_error (mach, _("%d: can't copy message: %s"),
+      sieve_error (mach, _("%d: cannot copy message: %s"),
 		   sieve_get_message_num (mach),
 		   mu_strerror (rc));
       goto end;
@@ -445,7 +445,7 @@ sieve_action_redirect (sieve_machine_t mach, list_t args, list_t tags)
     }
   else
     {
-      sieve_error (mach, _("%d: can't get my email address"),
+      sieve_error (mach, _("%d: cannot get my email address"),
 		   sieve_get_message_num (mach));
       goto end;
     }
@@ -459,7 +459,7 @@ sieve_action_redirect (sieve_machine_t mach, list_t args, list_t tags)
       sieve_error (mach,
 		   /* TRANSLATORS: 'redirect' is the name of a Sieve action.
 		      Do not translate it! */
-		   _("%d: redirect - can't open mailer %s: %s\n"),
+		   _("%d: redirect - cannot open mailer %s: %s\n"),
 		   sieve_get_message_num (mach),
 		   url_to_string (url),
 		   mu_strerror (rc));

@@ -111,7 +111,7 @@ netdef_parse (char *str)
   netdef = malloc (sizeof *netdef);
   if (!netdef)
     {
-      syslog (LOG_ERR, _("out of memory"));
+      syslog (LOG_ERR, _("Out of memory"));
       exit (1);
     }
 
@@ -136,7 +136,7 @@ read_config (const char *config_file)
   fp = fopen (config_file, "r");
   if (!fp)
     {
-      syslog (LOG_ERR, _("can't open config file %s: %m"), config_file);
+      syslog (LOG_ERR, _("Cannot open config file %s: %m"), config_file);
       return;
     }
 
@@ -206,7 +206,7 @@ read_config (const char *config_file)
 	      netdef_t *cur = netdef_parse (argv[i]);
 	      if (!cur)
 		{
-		  syslog (LOG_ERR, _("%s:%d: can't parse netdef: %s"),
+		  syslog (LOG_ERR, _("%s:%d: cannot parse netdef: %s"),
 			  config_file, line, argv[i]);
 		  continue;
 		}
@@ -222,7 +222,7 @@ read_config (const char *config_file)
 	  acl = malloc (sizeof *acl);
 	  if (!acl)
 	    {
-	      syslog (LOG_CRIT, _("out of memory"));
+	      syslog (LOG_CRIT, _("Out of memory"));
 	      exit (1);
 	    }
 	  acl->next = NULL;

@@ -466,7 +466,7 @@ imap4d_readline (void)
       rc = stream_sequential_readline (istream, buffer, sizeof (buffer), &sz);
       if (sz == 0)
 	{
-	  syslog (LOG_INFO, _("unexpected eof on input"));
+	  syslog (LOG_INFO, _("Unexpected eof on input"));
 	  imap4d_bye (ERR_NO_OFILE);
 	}
       else if (rc)
@@ -475,7 +475,7 @@ imap4d_readline (void)
 	  if (stream_strerror (istream, &p))
 	    p = strerror (errno);
 
-	  syslog (LOG_INFO, _("error reading from input file: %s"), p);
+	  syslog (LOG_INFO, _("Error reading from input file: %s"), p);
 	  imap4d_bye (ERR_NO_OFILE);
 	}
       alarm (0);
@@ -962,7 +962,7 @@ util_localname ()
 	}
       if (status)
 	{
-	  syslog (LOG_CRIT, _("Can't find out my own hostname"));
+	  syslog (LOG_CRIT, _("Cannot find out my own hostname"));
 	  exit (1);
 	}
 
@@ -1109,7 +1109,7 @@ util_wait_input (int timeout)
   status = stream_wait (istream, &wflags, &tv);
   if (status)
     {
-      syslog (LOG_ERR, _("cannot poll input stream: %s"),
+      syslog (LOG_ERR, _("Cannot poll input stream: %s"),
 	      mu_strerror(status));
       return -1;
     }
@@ -1143,7 +1143,7 @@ imap4d_init_tls_server ()
     {
       const char *p;
       stream_strerror (stream, &p);
-      syslog (LOG_ERR, _("cannot open TLS stream: %s"), p);
+      syslog (LOG_ERR, _("Cannot open TLS stream: %s"), p);
       return 0;
     }
 

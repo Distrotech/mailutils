@@ -145,7 +145,7 @@ parser (int key, char *arg, struct argp_state *state)
     case 'e':
       rc = mu_set_user_email (arg);
       if (rc)
-	argp_error (state, _("invalid email: %s"), mu_strerror (rc));
+	argp_error (state, _("Invalid email: %s"), mu_strerror (rc));
       break;
       
     case 'n':
@@ -166,7 +166,7 @@ parser (int key, char *arg, struct argp_state *state)
       
     case 'f':
       if (opts->mbox)
-	argp_error (state, _("only one MBOX can be specified"));
+	argp_error (state, _("Only one MBOX can be specified"));
       opts->mbox = strdup (arg);
       break;
       
@@ -220,7 +220,7 @@ parser (int key, char *arg, struct argp_state *state)
       
     case ARGP_KEY_ARG:
       if (opts->script)
-	argp_error (state, _("only one SCRIPT can be specified"));
+	argp_error (state, _("Only one SCRIPT can be specified"));
       opts->script = mu_tilde_expansion (arg, "/", NULL);
       break;
 
@@ -371,7 +371,7 @@ main (int argc, char *argv[])
   rc = sieve_machine_init (&mach, NULL);
   if (rc)
     {
-      mu_error (_("can't initialize sieve machine: %s"), mu_strerror (rc));
+      mu_error (_("Cannot initialize sieve machine: %s"), mu_strerror (rc));
       return 1;
     }
 
@@ -499,7 +499,7 @@ main (int argc, char *argv[])
 
   if (rc != 0)
     {
-      mu_error (_("open on %s failed: %s"),
+      mu_error (_("Opening mailbox `%s' failed: %s"),
 		opts.mbox ? opts.mbox : _("default"), mu_strerror (rc));
       mailbox_destroy (&mbox);
       goto cleanup;
@@ -518,7 +518,7 @@ cleanup:
          any messages that were marked DELETED even if execution failed
          on a later message. */
       if ((e = mailbox_expunge (mbox)) != 0)
-	mu_error (_("expunge on %s failed: %s"),
+	mu_error (_("Expunge on mailbox `%s' failed: %s"),
 		  opts.mbox ? opts.mbox : _("default"), mu_strerror (e));
 
       if (e && !rc)

@@ -60,7 +60,7 @@ mail_set_my_name (char *name)
       struct passwd *pw = getpwuid (getuid ());
       if (!pw)
 	{
-	  util_error (_("can't determine my username"));
+	  util_error (_("Cannot determine my username"));
 	  exit (1);
 	}
       name = pw->pw_name;
@@ -69,7 +69,8 @@ mail_set_my_name (char *name)
   my_email = mu_get_user_email (name);
   if (!my_email)
     {
-      util_error(_("can't determine my email address: %s"), mu_strerror (errno));
+      util_error(_("Cannot determine my email address: %s"),
+		 mu_strerror (errno));
       exit (1);
     }
 }

@@ -167,12 +167,12 @@ _regex_compile (void *item, void *data)
 	{
 	  regerror (rc, preg, errbuf, size);
 	  sieve_compile_error (sieve_filename, sieve_line_num,
-			       _("regex error: %s"), errbuf);
+			       _("Regex error: %s"), errbuf);
 	  free (errbuf);
 	}
       else
 	 sieve_compile_error (sieve_filename, sieve_line_num,
-			      _("regex error"));
+			      _("Regex error"));
       return rc;
     }
 

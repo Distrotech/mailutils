@@ -49,9 +49,9 @@ static char doc[] = N_("GNU imap4d -- the IMAP4D daemon");
 
 static struct argp_option options[] = {
   {"other-namespace", 'O', N_("PATHLIST"), 0,
-   N_("set the `other' namespace"), 0},
+   N_("Set the `other' namespace"), 0},
   {"shared-namespace", 'S', N_("PATHLIST"), 0,
-   N_("set the `shared' namespace"), 0},
+   N_("Set the `shared' namespace"), 0},
   {"login-disabled", ARG_LOGIN_DISABLED, NULL, 0,
    N_("Disable LOGIN command")},
 #ifdef WITH_TLS
@@ -258,10 +258,10 @@ imap4d_mainloop (int fd, FILE *infile, FILE *outfile)
 
       syslog (LOG_INFO, _("Incoming connection opened"));
       if (getpeername (fd, (struct sockaddr *) &cs, &len) < 0)
-	syslog (LOG_ERR, _("can't obtain IP address of client: %s"),
+	syslog (LOG_ERR, _("Cannot obtain IP address of client: %s"),
 		strerror (errno));
       else
-	syslog (LOG_INFO, _("connect from %s"), inet_ntoa (cs.sin_addr));
+	syslog (LOG_INFO, _("Connect from %s"), inet_ntoa (cs.sin_addr));
       text = "IMAP4rev1";
     }
   else
@@ -298,7 +298,7 @@ imap4d_daemon_init (void)
      first three one, in, out, err   */
   if (daemon (0, 0) < 0)
     {
-      perror (_("fork failed"));
+      perror (_("could not become daemon"));
       exit (1);
     }
 
@@ -360,7 +360,7 @@ imap4d_daemon (unsigned int maxchildren, unsigned int port)
     {
       if (children > maxchildren)
 	{
-	  syslog (LOG_ERR, _("too many children (%lu)"),
+	  syslog (LOG_ERR, _("Too many children (%lu)"),
 		  (unsigned long) children);
 	  pause ();
 	  continue;

@@ -131,7 +131,7 @@ rfc2047_decode_wrapper (char *buf, size_t buflen)
   if (rc)
     {
       if (debug)
-	mu_error (_("Can't decode line `%s': %s"),
+	mu_error (_("Cannot decode line `%s': %s"),
 		  buf, mu_strerror (rc));
       return strdup (buf);
     }
@@ -169,7 +169,7 @@ main (int argc, char **argv)
   status = mailbox_create_default (&mbox, mailbox_name);
   if (status != 0)
     {
-      mu_error (_("Couldn't create mailbox <%s>: %s."),
+      mu_error (_("Could not create mailbox <%s>: %s."),
 		mailbox_name ? mailbox_name : _("default"),
 		mu_strerror (status));
       exit (1);
@@ -186,7 +186,7 @@ main (int argc, char **argv)
   status = mailbox_open (mbox, MU_STREAM_READ);
   if (status != 0)
     {
-      mu_error (_("Couldn't open mailbox <%s>: %s."),
+      mu_error (_("Could not open mailbox <%s>: %s."),
 		mailbox_name, mu_strerror (status));
       exit (1);
     }
@@ -244,7 +244,7 @@ main (int argc, char **argv)
   status = mailbox_close (mbox);
   if (status != 0)
     {
-      mu_error (_("Couldn't close <%s>: %s."),
+      mu_error (_("Could not close <%s>: %s."),
 		mailbox_name, mu_strerror (status));
     }
 

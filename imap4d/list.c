@@ -243,7 +243,7 @@ list_file (const char *cwd, const char *ref, const char *pattern,
 
 		  if (stat (entry, &st))
 		    {
-		      mu_error (_("can't stat %s: %s"),
+		      mu_error (_("Cannot stat %s: %s"),
 				entry, strerror (errno));
 		      continue;
 		    }

@@ -41,7 +41,7 @@ append_arg (char *arg)
       g_argv = realloc (g_argv, g_size * sizeof (g_argv[0]));
       if (!g_argv)
 	{
-	  util_error (_("not enough memory"));
+	  util_error (_("Not enough memory"));
 	  exit (1);
 	}
     }

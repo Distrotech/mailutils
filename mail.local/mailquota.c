@@ -104,7 +104,7 @@ dbm_retrieve_quota (char *name, size_t *quota)
       unlimited = 1;
   else if (MU_DATUM_SIZE (contentd) > sizeof(buffer)-1)
     {
-      mu_error (_("mailbox quota for `%s' is too big: %d digits"),
+      mu_error (_("Mailbox quota for `%s' is too big: %d digits"),
 		name, MU_DATUM_SIZE (contentd));
       *quota = groupquota;
     }
@@ -117,7 +117,7 @@ dbm_retrieve_quota (char *name, size_t *quota)
       *quota = strtoul (buffer, &p, 0);
       if (get_size (buffer, quota, &p))
 	{
-	  mu_error (_("bogus mailbox quota for `%s' (near `%s')"), name, p);
+	  mu_error (_("Bogus mailbox quota for `%s' (near `%s')"), name, p);
 	  *quota = groupquota;
 	}
     }
@@ -201,7 +201,7 @@ sql_retrieve_quota (char *name, size_t *quota)
 
   if (status)
     {
-      mu_error (_("cannot store SQL result: %s"),
+      mu_error (_("Cannot store SQL result: %s"),
 		(status == MU_ERR_SQL) ?  mu_sql_strerror (conn) :
 	 	                          mu_strerror (status));
       mu_sql_connection_destroy (&conn);
@@ -220,7 +220,7 @@ sql_retrieve_quota (char *name, size_t *quota)
       status = mu_sql_get_column (conn, 0, 0, &tmp);
       if (status)
 	{
-	  mu_error (_("cannot retrieve SQL quota: %s"),
+	  mu_error (_("Cannot retrieve SQL quota: %s"),
 		    (status == MU_ERR_SQL) ?  mu_sql_strerror (conn) :
 		    mu_strerror (status));
 	  rc = RETR_FAILURE;
@@ -233,7 +233,7 @@ sql_retrieve_quota (char *name, size_t *quota)
 	  
 	  if (get_size (tmp, quota, &p))
 	    {
-	      mu_error (_("bogus mailbox quota for `%s' (near `%s')"),
+	      mu_error (_("Bogus mailbox quota for `%s' (near `%s')"),
 			name, p);
 	      *quota = groupquota;
 	    }

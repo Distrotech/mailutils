@@ -548,7 +548,7 @@ msg_part_parse (char *str)
 	  str = endp;
 	  break;
 	default:
-	  mh_error (_("malformed part specification (near %s)"), endp);
+	  mh_error (_("Malformed part specification (near %s)"), endp);
 	  exit (1);
 	}
       msg_part_incr (p);
@@ -1251,7 +1251,7 @@ show_internal (message_t msg, msg_part_t part, char *encoding, stream_t out)
 
   if ((rc = message_get_body (msg, &body)))
     {
-      mh_error (_("%lu: can't get message body: %s"),
+      mh_error (_("%lu: cannot get message body: %s"),
 		(unsigned long) msg_part_subpart (part, 0),
 		mu_strerror (rc));
       return 0;
@@ -1273,14 +1273,14 @@ mhn_exec (stream_t *str, char *cmd, int flags)
   int rc = prog_stream_create (str, cmd, MU_STREAM_WRITE);
   if (rc)
     {
-      mh_error (_("can't create proc stream (command %s): %s"),
+      mh_error (_("Cannot create proc stream (command %s): %s"),
 		cmd, mu_strerror (rc));
     }
   else
     {
       rc = stream_open (*str);
       if (rc)
-	mh_error (_("can't open proc stream (command %s): %s"),
+	mh_error (_("Cannot open proc stream (command %s): %s"),
 		  cmd, mu_strerror (rc));
     }
   return rc;
@@ -1321,14 +1321,14 @@ mhn_run_command (message_t msg, msg_part_t part,
       
       if (argcv_get (cmd, "", "#", &argc, &argv))
 	{
-	  mh_error (_("can't parse command line `%s'"), cmd);
+	  mh_error (_("Cannot parse command line `%s'"), cmd);
 	  return ENOSYS;
 	}
 
       rc = file_stream_create (&tmp, tempfile, MU_STREAM_RDWR);
       if (rc)
 	{
-	  mh_error (_("can't create temporary stream (file %s): %s"),
+	  mh_error (_("Cannot create temporary stream (file %s): %s"),
 		    tempfile, mu_strerror (rc));
 	  argcv_free (argc, argv);
 	  return rc;
@@ -1336,7 +1336,7 @@ mhn_run_command (message_t msg, msg_part_t part,
       rc = stream_open (tmp);
       if (rc)
 	{
-	  mh_error (_("can't open temporary stream (file %s): %s"),
+	  mh_error (_("Cannot open temporary stream (file %s): %s"),
 		    tempfile, mu_strerror (rc));
 	  stream_destroy (&tmp, stream_get_owner (tmp));
 	  argcv_free (argc, argv);
@@ -1461,13 +1461,13 @@ mhn_show ()
   rc = stdio_stream_create (&ostr, stdout, 0);
   if (rc)
     {
-      mh_error (_("can't create output stream: %s"), mu_strerror (rc));
+      mh_error (_("Cannot create output stream: %s"), mu_strerror (rc));
       exit (1);
     }
   rc = stream_open (ostr);
   if (rc)
     {
-      mh_error (_("can't open output stream: %s"), mu_strerror (rc));
+      mh_error (_("Cannot open output stream: %s"), mu_strerror (rc));
       exit (1);
     }
   
@@ -1676,7 +1676,7 @@ store_handler (message_t msg, msg_part_t part, char *type, char *encoding,
   rc = file_stream_create (&out, name, MU_STREAM_WRITE|MU_STREAM_CREAT);
   if (rc)
     {
-      mh_error (_("can't create output stream (file %s): %s"),
+      mh_error (_("Cannot create output stream (file %s): %s"),
 		name, mu_strerror (rc));
       free (name);
       return rc;
@@ -1684,7 +1684,7 @@ store_handler (message_t msg, msg_part_t part, char *type, char *encoding,
   rc = stream_open (out);
   if (rc)
     {
-      mh_error (_("can't open output stream (file %s): %s"),
+      mh_error (_("Cannot open output stream (file %s): %s"),
 		name, mu_strerror (rc));
       free (name);
       stream_destroy (&out, stream_get_owner (out));
@@ -2019,7 +2019,7 @@ edit_extern (char *cmd, struct compose_env *env, message_t *msg, int level)
   
   if ((rc = header_create (&hdr2, NULL, 0, NULL)) != 0)
     {
-      mh_error (_("cannot create header: %s"),
+      mh_error (_("Cannot create header: %s"),
 		mu_strerror (rc));
       return 1;
     }
@@ -2227,14 +2227,14 @@ edit_mime (char *cmd, struct compose_env *env, message_t *msg, int level)
       rc = file_stream_create (&in, cmd, MU_STREAM_READ);
       if (rc)
 	{
-	  mh_error (_("can't create input stream (file %s): %s"),
+	  mh_error (_("Cannot create input stream (file %s): %s"),
 		    cmd, mu_strerror (rc));
 	  return rc;
 	}
       rc = stream_open (in);
       if (rc)
 	{
-	  mh_error (_("can't open input stream (file %s): %s"),
+	  mh_error (_("Cannot open input stream (file %s): %s"),
 		    cmd, mu_strerror (rc));
 	  stream_destroy (&in, stream_get_owner (in));
 	  return rc;
@@ -2272,7 +2272,7 @@ edit_mime (char *cmd, struct compose_env *env, message_t *msg, int level)
   rc = stream_open (fstr);
   if (rc)
     {
-      mh_error (_("can't open filter stream: %s"),
+      mh_error (_("Cannot open filter stream: %s"),
 		mu_strerror (rc));
       return rc;
     }
@@ -2493,7 +2493,7 @@ mhn_compose ()
   rc = file_stream_create (&stream, name, MU_STREAM_RDWR|MU_STREAM_CREAT);
   if (rc)
     {
-      mh_error (_("can't create output stream (file %s): %s"),
+      mh_error (_("Cannot create output stream (file %s): %s"),
 		name, mu_strerror (rc));
       free (name);
       return rc;
@@ -2501,7 +2501,7 @@ mhn_compose ()
   rc = stream_open (stream);
   if (rc)
     {
-      mh_error (_("can't open output stream (file %s): %s"),
+      mh_error (_("Cannot open output stream (file %s): %s"),
 		name, mu_strerror (rc));
       free (name);
       stream_destroy (&stream, stream_get_owner (stream));

@@ -941,6 +941,7 @@ builtin_divide (struct mh_machine *mach)
 {
   if (!mach->arg_num)
     {
+      /* TRANSLATORS: Do not translate the word 'format'! */
       mh_error (_("format: divide by zero"));
       mach->stop = 1;
     }

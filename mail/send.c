@@ -221,7 +221,7 @@ compose_header_set (compose_env_t * env, char *name, char *value, int mode)
   if (!env->header
       && (status = header_create (&env->header, NULL, 0, NULL)) != 0)
     {
-      util_error (_("can't create header: %s"), mu_strerror (status));
+      util_error (_("Cannot create header: %s"), mu_strerror (status));
       return status;
     }
 
@@ -304,7 +304,7 @@ mail_send0 (compose_env_t * env, int save_to)
 
   if (fd == -1)
     {
-      util_error (_("Can not open temporary file"));
+      util_error (_("Cannot open temporary file"));
       return 1;
     }
 
@@ -395,7 +395,7 @@ mail_send0 (compose_env_t * env, int save_to)
 		}
 	      else
 		{
-		  util_error (_("can't parse escape sequence"));
+		  util_error (_("Cannot parse escape sequence"));
 		}
 	      argcv_free (argc, argv);
 
@@ -420,7 +420,7 @@ mail_send0 (compose_env_t * env, int save_to)
 
 	  if (!fp)
 	    {
-	      util_error (_("can't open file %s: %s"), getenv ("DEAD"),
+	      util_error (_("Cannot open file %s: %s"), getenv ("DEAD"),
 			  strerror (errno));
 	    }
 	  else
@@ -531,14 +531,14 @@ mail_send0 (compose_env_t * env, int save_to)
 			    {
 			      status = mailbox_append_message (mbx, msg);
 			      if (status)
-				util_error (_("can't append message: %s"),
+				util_error (_("Cannot append message: %s"),
 					    mu_strerror (status));
 			      mailbox_close (mbx);
 			    }
 			  mailbox_destroy (&mbx);
 			}
 		      if (status)
-			util_error (_("can't create mailbox %s"), env->outfiles[i]);
+			util_error (_("Cannot create mailbox %s"), env->outfiles[i]);
 		    }
 		}
 	    }
@@ -574,7 +574,7 @@ mail_send0 (compose_env_t * env, int save_to)
 		    msg_to_pipe (sendmail, msg);
 		}
 	      else
-		util_error (_("variable sendmail not set: no mailer"));
+		util_error (_("Variable sendmail not set: no mailer"));
 	    }
 	  message_destroy (&msg, NULL);
 	  remove (filename);

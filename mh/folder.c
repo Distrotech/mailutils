@@ -305,7 +305,7 @@ _scan (const char *name, int depth)
 
   if (!dir)
     {
-      mh_error (_("can't scan folder %s: %s"), name, strerror (errno));
+      mh_error (_("Cannot scan folder %s: %s"), name, strerror (errno));
       return;
     }
 
@@ -322,7 +322,7 @@ _scan (const char *name, int depth)
 	{
 	  asprintf (&p, "%s/%s", name, entry->d_name);
 	  if (stat (p, &st) < 0)
-	    mh_error (_("can't stat %s: %s"), p, strerror (errno));
+	    mh_error (_("Cannot stat %s: %s"), p, strerror (errno));
 	  else if (S_ISDIR (st.st_mode))
 	    {
 	      info.others++;
@@ -564,7 +564,7 @@ main (int argc, char **argv)
     }
   else if (argc - index > 1)
     {
-      mh_error (_("too many arguments"));
+      mh_error (_("Too many arguments"));
       exit (1);
     }
   

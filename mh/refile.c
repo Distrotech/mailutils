@@ -39,7 +39,7 @@ static struct argp_option options[] = {
   {"draft",   ARG_DRAFT, NULL, 0,
    N_("Use <mh-dir>/draft as the source message")},
   {"copy",    ARG_LINK, N_("BOOL"), OPTION_ARG_OPTIONAL,
-   N_("Preserve the source folder copy.")},
+   N_("Preserve the source folder copy")},
   {"link",    0, NULL, OPTION_ALIAS, NULL},
   {"preserve", ARG_PRESERVE, N_("BOOL"), OPTION_ARG_OPTIONAL,
    N_("* Try to preserve message sequence numbers")},
@@ -73,7 +73,7 @@ add_folder (const char *folder)
 {
   if (!folder_name_list && list_create (&folder_name_list))
     {
-      mh_error (_("can't create folder list"));
+      mh_error (_("Cannot create folder list"));
       exit (1);
     }
   list_append (folder_name_list, strdup (folder));
@@ -86,19 +86,19 @@ open_folders ()
 
   if (!folder_name_list)
     {
-      mh_error (_("no folder specified"));
+      mh_error (_("No folder specified"));
       exit (1);
     }
 
   if (list_create (&folder_mbox_list))
     {
-      mh_error (_("can't create folder list"));
+      mh_error (_("Cannot create folder list"));
       exit (1);
     }
 
   if (list_get_iterator (folder_name_list, &itr))
     {
-      mh_error (_("can't create iterator"));
+      mh_error (_("Cannot create iterator"));
       exit (1);
     }
 
@@ -123,7 +123,7 @@ enumerate_folders (void (*f) __P((void *, mailbox_t)), void *data)
 
   if (list_get_iterator (folder_mbox_list, &itr))
     {
-      mh_error (_("can't create iterator"));
+      mh_error (_("Cannot create iterator"));
       exit (1);
     }
 
@@ -197,7 +197,7 @@ refile_folder (void *data, mailbox_t mbox)
   rc = mailbox_append_message (mbox, msg);
   if (rc)
     {
-      mh_error (_("error appending message: %s"), mu_strerror (rc));
+      mh_error (_("Error appending message: %s"), mu_strerror (rc));
       exit (1);
     }
 }
@@ -257,7 +257,7 @@ main (int argc, char **argv)
       
       if (argc > 0)
 	{
-	  mh_error (_("both message set and source file given"));
+	  mh_error (_("Both message set and source file given"));
 	  exit (1);
 	}
       msg = mh_file_to_message (mu_path_folder_dir, source_file);

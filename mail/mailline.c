@@ -398,7 +398,7 @@ ml_reread (const char *prompt, char **text)
 
   if (!line)
     {
-      util_error (_("not enough memory to edit the line"));
+      util_error (_("Not enough memory to edit the line"));
       return -1;
     }
 
@@ -426,7 +426,7 @@ ml_reread (const char *prompt, char **text)
 	  if ((p = realloc (line, line_size + LINE_INC)) == NULL)
 	    {
 	      fputs ("\n", stdout);
-	      util_error (_("not enough memory to edit the line"));
+	      util_error (_("Not enough memory to edit the line"));
 	      break;
 	    }
 	  else
@@ -473,7 +473,7 @@ ml_reread (const char *prompt, char **text)
 	      if ((p = realloc (line, line_size + LINE_INC)) == NULL)
 		{
 		  fputs ("\n", stdout);
-		  util_error (_("not enough memory to edit the line"));
+		  util_error (_("Not enough memory to edit the line"));
 		  break;
 		}
 	      else
@@ -509,7 +509,7 @@ ml_reread (const char *prompt, char **text)
 	  if ((p = realloc (line, line_size + LINE_INC)) == NULL)
 	    {
 	      fputs ("\n", stdout);
-	      util_error (_("not enough memory to edit the line"));
+	      util_error (_("Not enough memory to edit the line"));
 	      break;
 	    }
 	  else

@@ -235,7 +235,7 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
     case ARG_INPLACE:
     case ARG_WHATNOWPROC:
     case ARG_NOWHATNOWPROC:
-      argp_error (state, _("option is not yet implemented"));
+      argp_error (state, _("Option is not yet implemented"));
       exit (1);
       
     case ARG_LICENSE:
@@ -294,7 +294,7 @@ make_draft (mailbox_t mbox, int disp, struct mh_whatnow_env *wh)
   rc = mailbox_get_message (mbox, msgset.list[0], &msg);
   if (rc)
     {
-      mh_error (_("cannot read message %lu: %s"),
+      mh_error (_("Cannot read message %lu: %s"),
 		(unsigned long) msgset.list[0],
 		mu_strerror (rc));
       exit (1);
@@ -309,14 +309,14 @@ make_draft (mailbox_t mbox, int disp, struct mh_whatnow_env *wh)
 			       MU_STREAM_WRITE|MU_STREAM_CREAT);
       if (rc)
 	{
-	  mh_error (_("cannot create draft file stream %s: %s"),
+	  mh_error (_("Cannot create draft file stream %s: %s"),
 		    wh->file, mu_strerror (rc));
 	  exit (1);
 	}
 
       if ((rc = stream_open (str)))
 	{
-	  mh_error (_("cannot open draft file %s: %s"),
+	  mh_error (_("Cannot open draft file %s: %s"),
 		    wh->file, mu_strerror (rc));
 	  exit (1);
 	}	  

@@ -65,14 +65,14 @@ mh_read_formfile (char *name, char **pformat)
 
   if (stat (name, &st))
     {
-      mh_error (_("can't stat format file %s: %s"), name, strerror (errno));
+      mh_error (_("Cannot stat format file %s: %s"), name, strerror (errno));
       return -1;
     }
   
   fp = fopen (name, "r");
   if (!fp)
     {
-      mh_error (_("can't open format file %s: %s"), name, strerror (errno));
+      mh_error (_("Cannot open format file %s: %s"), name, strerror (errno));
       return -1;
     }
 
@@ -107,7 +107,7 @@ mh_read_formfile (char *name, char **pformat)
 void
 mh_err_memory (int fatal)
 {
-  mh_error (_("not enough memory"));
+  mh_error (_("Not enough memory"));
   if (fatal)
     abort ();
 }
@@ -123,7 +123,7 @@ mh_get_my_name (char *name)
       struct passwd *pw = getpwuid (getuid ());
       if (!pw)
 	{
-	  mh_error (_("can't determine my username"));
+	  mh_error (_("Cannot determine my username"));
 	  return;
 	}
       name = pw->pw_name;
@@ -210,7 +210,7 @@ mh_check_folder (char *pathname, int confirm)
 		perm = strtoul (pb, NULL, 8);
 	      if (mkdir (p, perm)) 
 		{
-		  mh_error (_("Can't create directory %s: %s"),
+		  mh_error (_("Cannot create directory %s: %s"),
 			    p, strerror (errno));
 		  return 1;
 		}
@@ -221,7 +221,7 @@ mh_check_folder (char *pathname, int confirm)
 	}
       else
 	{
-	  mh_error (_("can't stat %s: %s"), p, strerror (errno));
+	  mh_error (_("Cannot stat %s: %s"), p, strerror (errno));
 	  return 1;
 	}
     }
@@ -315,7 +315,7 @@ mh_audit_open (char *name, mailbox_t mbox)
       asprintf (&p, "%s/%s", mu_path_folder_dir, namep);
       if (!p)
 	{
-	  mh_error (_("low memory"));
+	  mh_error (_("Not enough memory"));
 	  exit (1);
 	}
       free (namep);
@@ -325,7 +325,7 @@ mh_audit_open (char *name, mailbox_t mbox)
   fp = fopen (namep, "a");
   if (!fp)
     {
-      mh_error (_("Can't open audit file %s: %s"), namep, strerror (errno));
+      mh_error (_("Cannot open audit file %s: %s"), namep, strerror (errno));
       free (namep);
       return NULL;
     }
@@ -368,7 +368,7 @@ mh_open_folder (const char *folder, int create)
     
   if (mailbox_create_default (&mbox, name))
     {
-      mh_error (_("Can't create mailbox %s: %s"),
+      mh_error (_("Cannot create mailbox %s: %s"),
 		name, strerror (errno));
       exit (1);
     }
@@ -378,7 +378,7 @@ mh_open_folder (const char *folder, int create)
   
   if (mailbox_open (mbox, flags))
     {
-      mh_error (_("Can't open mailbox %s: %s"), name, strerror (errno));
+      mh_error (_("Cannot open mailbox %s: %s"), name, strerror (errno));
       exit (1);
     }
 
@@ -456,7 +456,7 @@ mh_iterate (mailbox_t mbox, mh_msgset_t *msgset,
       num = msgset->list[i];
       if ((rc = mailbox_get_message (mbox, num, &msg)) != 0)
 	{
-	  mh_error (_("can't get message %d: %s"), num, mu_strerror (rc));
+	  mh_error (_("Cannot get message %d: %s"), num, mu_strerror (rc));
 	  return 1;
 	}
 
@@ -474,7 +474,7 @@ mh_spawnp (const char *prog, const char *file)
 
   if (argcv_get (prog, "", "#", &argc, &argv))
     {
-      mh_error (_("cannot split line %s"), prog);
+      mh_error (_("Cannot split line %s"), prog);
       argcv_free (argc, argv);
       return 1;
     }
@@ -526,7 +526,7 @@ mh_file_copy (const char *from, const char *to)
   if ((rc = file_stream_create (&in, from, MU_STREAM_READ)) != 0
       || (rc = stream_open (in)))
     {
-      mh_error (_("cannot open input file \"%s\": %s"),
+      mh_error (_("Cannot open input file \"%s\": %s"),
 		from, mu_strerror (rc));
       free (buffer);
       return 1;
@@ -535,7 +535,7 @@ mh_file_copy (const char *from, const char *to)
   if ((rc = file_stream_create (&out, to, MU_STREAM_RDWR|MU_STREAM_CREAT)) != 0
       || (rc = stream_open (out)))
     {
-      mh_error (_("cannot open output file \"%s\": %s"),
+      mh_error (_("Cannot open output file \"%s\": %s"),
 		to, mu_strerror (rc));
       free (buffer);
       stream_close (in);
@@ -549,7 +549,7 @@ mh_file_copy (const char *from, const char *to)
     {
       if ((rc = stream_sequential_write (out, buffer, rdsize)) != 0)
 	{
-	  mh_error (_("write error on \"%s\": %s"),
+	  mh_error (_("Write error on \"%s\": %s"),
 		    to, mu_strerror (rc));
 	  break;
 	}
@@ -578,20 +578,20 @@ mh_file_to_message (char *folder, char *file_name)
   
   if (stat (file_name, &st) < 0)
     {
-      mh_error (_("can't stat file %s: %s"), file_name, strerror (errno));
+      mh_error (_("Cannot stat file %s: %s"), file_name, strerror (errno));
       return NULL;
     }
   
   if ((rc = file_stream_create (&instream, file_name, MU_STREAM_READ)))
     {
-      mh_error (_("can't create input stream (file %s): %s"),
+      mh_error (_("Cannot create input stream (file %s): %s"),
 		file_name, mu_strerror (rc));
       return NULL;
     }
   
   if ((rc = stream_open (instream)))
     {
-      mh_error (_("can't open input stream (file %s): %s"),
+      mh_error (_("Cannot open input stream (file %s): %s"),
 		file_name, mu_strerror (rc));
       stream_destroy (&instream, stream_get_owner (instream));
       return NULL;
@@ -667,7 +667,7 @@ mh_real_install (char *name, int automode)
   fp = fopen (name, "w");
   if (!fp)
     {
-      mu_error (_("cannot open file %s: %s"), name, mu_strerror (errno));
+      mu_error (_("Cannot open file %s: %s"), name, mu_strerror (errno));
       exit (1);
     }
   fprintf (fp, "Path: %s\n", mhdir);
@@ -703,7 +703,7 @@ mh_install (char *name, int automode)
 	}
       else
 	{
-	  mh_error(_("cannot stat %s: %s"), name, mu_strerror (errno));
+	  mh_error(_("Cannot stat %s: %s"), name, mu_strerror (errno));
 	  exit (1);
 	}
     }

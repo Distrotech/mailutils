@@ -31,14 +31,14 @@ collect_open_default ()
       asprintf (&default_mailbox, "%s%s", mu_path_maildir, user_name);
       if (!default_mailbox)
 	{
-	  util_error (_("not enough memory"));
+	  util_error (_("Not enough memory"));
 	  exit (1);
 	}
     }
   if (mailbox_create (&mbox, default_mailbox) != 0
       || mailbox_open (mbox, MU_STREAM_RDWR) != 0)
     {
-      util_error (_("can't open default mailbox %s: %s"),
+      util_error (_("Cannot open default mailbox %s: %s"),
 		  default_mailbox, mu_strerror (errno));
       exit (1);
     }
@@ -82,7 +82,7 @@ collect_append_file (char *name)
       fp = fopen (name, "r");
       if (!fp)
 	{
-	  util_error (_("can't open input file %s: %s"), name, strerror (errno));
+	  util_error (_("Cannot open input file %s: %s"), name, strerror (errno));
 	  return -1;
 	}
     }
@@ -110,7 +110,7 @@ collect_create_mailbox ()
   if (mailbox_create (&mbox, temp_filename) != 0
       || mailbox_open (mbox, MU_STREAM_READ) != 0)
     {
-      util_error (_("can't create temp mailbox %s: %s"),
+      util_error (_("Cannot create temp mailbox %s: %s"),
 		  temp_filename, strerror (errno));
       unlink (temp_filename);
       exit (1);
@@ -121,7 +121,7 @@ collect_create_mailbox ()
 
   if (nmesg == 0)
     {
-      util_error (_("input format not recognized"));
+      util_error (_("Input format not recognized"));
       exit (1);
     }
 }
@@ -146,7 +146,7 @@ collect_output ()
       || mailbox_open (outbox, MU_STREAM_RDWR|MU_STREAM_CREAT) != 0)
     {
       mailbox_destroy (&outbox);
-      fprintf (stderr, _("guimb: can't open output mailbox %s: %s\n"),
+      fprintf (stderr, _("Cannot open output mailbox %s: %s\n"),
 	       default_mailbox, strerror (errno));
       return 1;
     }

@@ -196,7 +196,7 @@ main (int argc, char **argv)
     {
       if ((rc = mailbox_create_default (&input, NULL)) != 0)
 	{
-	  mh_error (_("Can not create default mailbox"),
+	  mh_error (_("Cannot create default mailbox"),
 		    mu_strerror (rc));
 	  exit (1);
 	}
@@ -205,7 +205,7 @@ main (int argc, char **argv)
     }
   else if ((rc = mailbox_create_default (&input, input_file)) != 0)
     {
-      mh_error (_("Can not create mailbox %s: %s"),
+      mh_error (_("Cannot create mailbox %s: %s"),
 		input_file, mu_strerror (rc));
       exit (1);
     }
@@ -214,7 +214,7 @@ main (int argc, char **argv)
     {
       url_t url;
       mailbox_get_url (input, &url);
-      mh_error (_("Can not open mailbox %s: %s"),
+      mh_error (_("Cannot open mailbox %s: %s"),
 		url_to_string (url),
 		mu_strerror (errno));
       exit (1);
@@ -222,14 +222,14 @@ main (int argc, char **argv)
 
   if ((rc = mailbox_messages_count (input, &total)) != 0)
     {
-      mh_error (_("Can not read input mailbox: %s"), mu_strerror (errno));
+      mh_error (_("Cannot read input mailbox: %s"), mu_strerror (errno));
       exit (1);
     }
 
   output = mh_open_folder (append_folder, 1);
   if ((rc = mailbox_messages_count (output, &lastmsg)) != 0)
     {
-      mh_error (_("Can not read output mailbox: %s"),
+      mh_error (_("Cannot read output mailbox: %s"),
 		mu_strerror (errno));
       exit (1);
     }
@@ -250,7 +250,7 @@ main (int argc, char **argv)
       
       if ((rc = mailbox_get_message (input, n, &imsg)) != 0)
 	{
-	  mh_error (_("%d: can't get message: %s"),
+	  mh_error (_("%d: cannot get message: %s"),
 		    n, mu_strerror (errno));
 	  continue;
 	}

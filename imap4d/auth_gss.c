@@ -250,7 +250,7 @@ auth_gssapi (struct imap4d_command *command,
   if ((mech & SUPPORTED_P_MECH) == 0)
     {
       syslog (LOG_NOTICE,
-	      _("client requested unsupported protection mechanism (%d)"),
+	      _("Client requested unsupported protection mechanism (%d)"),
 	      mech);
       gss_release_buffer (&min_stat, &outbuf);
       maj_stat = gss_delete_sec_context (&min_stat, &context, &outbuf);
@@ -263,7 +263,7 @@ auth_gssapi (struct imap4d_command *command,
   *username = malloc (outbuf.length - 4 + 1);
   if (!*username)
     {
-      syslog (LOG_NOTICE, _("not enough memory"));
+      syslog (LOG_NOTICE, _("Not enough memory"));
       gss_release_buffer (&min_stat, &outbuf);
       maj_stat = gss_delete_sec_context (&min_stat, &context, &outbuf);
       gss_release_buffer (&min_stat, &outbuf);

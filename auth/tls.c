@@ -185,7 +185,7 @@ mu_check_tls_environment (void)
 	}
       if ((st.st_mode & S_IRWXG) || (st.st_mode & S_IRWXO))
 	{
-	  mu_error (_("Wrong permissions on %s. Set 0600."), ssl_key);
+	  mu_error (_("Wrong permissions on %s. Set 0600"), ssl_key);
 	  return 0;
 	}
     }

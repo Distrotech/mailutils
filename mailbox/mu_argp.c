@@ -119,7 +119,7 @@ static struct argp_option mu_daemon_argp_option[] = {
   {"timeout", 't', N_("NUMBER"), 0,
    N_("Set idle timeout value to NUMBER seconds"), 0},
   {"transcript", 'x', NULL, 0,
-   N_("output session transcript via syslog"), 0},
+   N_("Output session transcript via syslog"), 0},
   {"pidfile", 'P', N_("FILE"), 0,
    N_("Set PID file"), 0},
   { NULL,      0, NULL, 0, NULL, 0 }
@@ -245,7 +245,7 @@ parse_log_facility (const char *str)
   for (i = 0; i < sizeof (syslog_kw) / sizeof (syslog_kw[0]); i++)
     if (strcasecmp (syslog_kw[i].name, str) == 0)
       return syslog_kw[i].facility;
-  fprintf (stderr, _("unknown facility `%s'\n"), str);
+  fprintf (stderr, _("Unknown facility `%s'\n"), str);
   return LOG_FACILITY;
 }
 
@@ -417,7 +417,7 @@ mu_common_argp_parser (int key, char *arg, struct argp_state *state)
 		break;
 		
 	      default:
-		argp_error (state, _("invalid lock flag '%c'"), *arg);
+		argp_error (state, _("Invalid lock flag '%c'"), *arg);
 	      }
 	  }
 	locker_set_default_flags (flags, mu_locker_set_flags);
@@ -457,7 +457,7 @@ mu_common_argp_parser (int key, char *arg, struct argp_state *state)
     case 'E':
       if ((err = mu_set_user_email(arg)) != 0)
 	  {
-	    argp_error (state, _("invalid email-addr '%s': %s"),
+	    argp_error (state, _("Invalid email address '%s': %s"),
 		arg, mu_strerror(err));
 	  }
       break;
@@ -465,7 +465,7 @@ mu_common_argp_parser (int key, char *arg, struct argp_state *state)
     case 'D':
       if ((err = mu_set_user_email_domain(arg)) != 0)
 	  {
-	    argp_error (state, _("invalid email-domain '%s': %s"),
+	    argp_error (state, _("Invalid email domain '%s': %s"),
 		arg, mu_strerror(err));
 	  }
       break;
@@ -474,7 +474,7 @@ mu_common_argp_parser (int key, char *arg, struct argp_state *state)
     case 'M':
       if ((err = mailer_set_url_default (arg)) != 0)
 	  {
-	    argp_error (state, _("invalid mailer url '%s': %s"),
+	    argp_error (state, _("Invalid mailer URL '%s': %s"),
 			arg, mu_strerror(err));
 	  }
       break;
@@ -488,7 +488,7 @@ mu_common_argp_parser (int key, char *arg, struct argp_state *state)
       p = mu_normalize_maildir (mu_path_maildir);
       if (!p)
 	{
-	  argp_error (state, _("badly formed mailspool path: %s"), mu_path_maildir);
+	  argp_error (state, _("Badly formed mailspool path: %s"), mu_path_maildir);
 	}
       mu_path_maildir = p;
       break;
@@ -861,7 +861,7 @@ mu_build_argp (const struct argp *template, const char *capa[])
   ap = calloc (n + 1, sizeof (*ap));
   if (!ap)
     {
-      mu_error (_("out of memory"));
+      mu_error (_("Out of memory"));
       abort ();
     }
 
@@ -899,7 +899,7 @@ mu_build_argp (const struct argp *template, const char *capa[])
   argp = malloc (sizeof (*argp));
   if (!argp)
     {
-      mu_error (_("out of memory"));
+      mu_error (_("Out of memory"));
       abort ();
     }
 

@@ -88,7 +88,7 @@ mail_file (int argc, char **argv)
 	  || (status = mailbox_open (newbox, MU_STREAM_RDWR)) != 0)
 	{
 	  mailbox_destroy (&newbox);
-	  util_error(_("can't open mailbox %s: %s"), name, mu_strerror (status));
+	  util_error(_("Cannot open mailbox %s: %s"), name, mu_strerror (status));
 	  free (name);
 	  return 1;
 	}
@@ -122,7 +122,7 @@ mail_file (int argc, char **argv)
     }
   else
     {
-      util_error(_("%s takes only one arg"), argv[0]);
+      util_error(_("%s takes only one argument"), argv[0]);
     }
   return 1;
 }

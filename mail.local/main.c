@@ -71,7 +71,7 @@ static char args_doc[] = N_("recipient [recipient ...]");
 static struct argp_option options[] = 
 {
   { "ex-multiple-delivery-success", ARG_MULTIPLE_DELIVERY, NULL, 0,
-    N_("Don't return errors when delivering to multiple recipients"), 0 },
+    N_("Do not return errors when delivering to multiple recipients"), 0 },
   { "ex-quota-tempfail", ARG_QUOTA_TEMPFAIL, NULL, 0,
     N_("Return temporary failure if disk or mailbox quota is exceeded"), 0 },
   { "from", 'f', N_("EMAIL"), 0,
@@ -151,7 +151,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
     case 'f':
       if (from != NULL)
 	{
-	  argp_error (state, _("multiple --from options"));
+	  argp_error (state, _("Multiple --from options"));
 	  return EX_USAGE;
 	}
       from = arg;
@@ -414,7 +414,7 @@ sieve_test (struct mu_auth_data *auth, mailbox_t mbx)
   if (access (progfile, R_OK))
     {
       if (debug_level > 2)
-	syslog (LOG_DEBUG, _("access to %s failed: %m"), progfile);
+	syslog (LOG_DEBUG, _("Access to %s failed: %m"), progfile);
     }
   else
     {
@@ -422,7 +422,7 @@ sieve_test (struct mu_auth_data *auth, mailbox_t mbx)
       rc = sieve_machine_init (&mach, auth->name);
       if (rc)
 	{
-	  mu_error (_("can't initialize sieve machine: %s"),
+	  mu_error (_("Cannot initialize sieve machine: %s"),
 		    mu_strerror (rc));
 	}
       else
@@ -543,7 +543,7 @@ make_tmp (const char *from, mailbox_t *mbox)
   tempfile = mu_tempname (NULL);
   if ((status = file_stream_create (&stream, tempfile, MU_STREAM_RDWR)))
     {
-      mailer_err (_("unable to open temporary file: %s"), mu_strerror (status));
+      mailer_err (_("Unable to open temporary file: %s"), mu_strerror (status));
       exit (exit_code);
     }
 
@@ -580,7 +580,7 @@ make_tmp (const char *from, mailbox_t *mbox)
 		}
 	      else
 		{
-		  mailer_err (_("Can't determine sender address"));
+		  mailer_err (_("Cannot determine sender address"));
 		  exit (EX_UNAVAILABLE);
 		}
 	      if (auth)
@@ -598,7 +598,7 @@ make_tmp (const char *from, mailbox_t *mbox)
       
       if (status)
 	{
-	  mailer_err (_("temporary file write error: %s"), mu_strerror (status));
+	  mailer_err (_("Error writing temporary file: %s"), mu_strerror (status));
 	  stream_destroy (&stream, stream_get_owner (stream));
 	  return status;
 	}
@@ -615,7 +615,7 @@ make_tmp (const char *from, mailbox_t *mbox)
   if (status)
     {
       errno = status;
-      mailer_err (_("temporary file write error: %s"), mu_strerror (status));
+      mailer_err (_("Error writing temporary file: %s"), mu_strerror (status));
       stream_destroy (&stream, stream_get_owner (stream));
       return status;
     }
@@ -625,7 +625,7 @@ make_tmp (const char *from, mailbox_t *mbox)
       || (status = mailbox_open (*mbox, MU_STREAM_READ))
       || (status = mailbox_set_stream (*mbox, stream)))
     {
-      mailer_err (_("temporary file open error: %s"), mu_strerror (status));
+      mailer_err (_("Error opening temporary file: %s"), mu_strerror (status));
       stream_destroy (&stream, stream_get_owner (stream));
       return status;
     }
@@ -634,7 +634,7 @@ make_tmp (const char *from, mailbox_t *mbox)
   if (status)
     {
       errno = status;
-      mailer_err (_("temporary message creation error: %s"),
+      mailer_err (_("Error creating temporary message: %s"),
 		  mu_strerror (status));
       stream_destroy (&stream, stream_get_owner (stream));
       return status;
@@ -673,14 +673,15 @@ deliver (mailbox_t imbx, char *name)
 
   if ((status = mailbox_get_stream (imbx, &istream)) != 0)
     {
-      mailer_err (_("can't get input message stream: %s"), mu_strerror (status));
+      mailer_err (_("Cannot get input message stream: %s"),
+		  mu_strerror (status));
       mu_auth_data_free (auth);
       return;
     }
   
   if ((status = mailbox_create (&mbox, auth->mailbox)) != 0)
     {
-      mailer_err (_("can't open mailbox %s: %s"),
+      mailer_err (_("Cannot open mailbox %s: %s"),
 		  auth->mailbox, mu_strerror (status));
       mu_auth_data_free (auth);
       return;
@@ -699,7 +700,7 @@ deliver (mailbox_t imbx, char *name)
     return;
   if (status != 0)
     {
-      mailer_err (_("can't open mailbox %s: %s"), path, mu_strerror (status));
+      mailer_err (_("Cannot open mailbox %s: %s"), path, mu_strerror (status));
       mailbox_destroy (&mbox);
       return;
     }
@@ -710,7 +711,7 @@ deliver (mailbox_t imbx, char *name)
 
   if (status)
     {
-      mailer_err (_("cannot lock mailbox '%s': %s"), path, mu_strerror (status));
+      mailer_err (_("Cannot lock mailbox '%s': %s"), path, mu_strerror (status));
       mailbox_destroy (&mbox);
       exit_code = EX_TEMPFAIL;
       return;
@@ -718,7 +719,7 @@ deliver (mailbox_t imbx, char *name)
 
   if ((status = mailbox_get_stream (mbox, &ostream)))
     {
-      mailer_err (_("can't get stream for mailbox %s: %s"),
+      mailer_err (_("Cannot get stream for mailbox %s: %s"),
 		  path, mu_strerror (status));
       mailbox_destroy (&mbox);
       return;
@@ -726,7 +727,7 @@ deliver (mailbox_t imbx, char *name)
 
   if ((status = stream_size (ostream, &size)))
     {
-      mailer_err (_("can't get stream size (mailbox %s): %s"),
+      mailer_err (_("Cannot get stream size (mailbox %s): %s"),
 		  path, mu_strerror (status));
       mailbox_destroy (&mbox);
       return;
@@ -751,7 +752,7 @@ deliver (mailbox_t imbx, char *name)
       default:
 	if ((status = stream_size (istream, &isize)))
 	  {
-	    mailer_err (_("can't get stream size (input message): %s"),
+	    mailer_err (_("Cannot get stream size (input message): %s"),
 			path, mu_strerror (status));
 	    exit_code = EX_UNAVAILABLE;
 	    failed++;
@@ -811,10 +812,10 @@ deliver (mailbox_t imbx, char *name)
 	     original size */
 	  int rc = stream_truncate (ostream, size);
 	  if (rc)
-	    mailer_err (_("error writing to mailbox: %s. Mailbox NOT truncated: %s"),
+	    mailer_err (_("Error writing to mailbox: %s. Mailbox NOT truncated: %s"),
 			mu_strerror (status), mu_strerror (rc));
 	  else  
-	    mailer_err (_("error writing to mailbox: %s"),
+	    mailer_err (_("Error writing to mailbox: %s"),
 	  	        mu_strerror (status));
 	}
     }

@@ -47,14 +47,14 @@ util_get_sender (int msgno)
       if (envelope_sender (env, buffer, sizeof (buffer), NULL)
 	  || address_create (&addr, buffer))
 	{
-	  util_error (_("can't determine sender name (msg %d)"), msgno);
+	  util_error (_("Cannot determine sender name (msg %d)"), msgno);
 	  return NULL;
 	}
     }
 
   if (address_get_email (addr, 1, buffer, sizeof (buffer), NULL))
     {
-      util_error (_("can't determine sender name (msg %d)"), msgno);
+      util_error (_("Cannot determine sender name (msg %d)"), msgno);
       address_destroy (&addr);
       return NULL;
     }

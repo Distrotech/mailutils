@@ -636,7 +636,7 @@ mh_code_builtin (mh_builtin_t *bp, int argtype)
 	    }
 	  else
 	    {
-	      mh_error (_("missing argument for %s"), bp->name);
+	      mh_error (_("Missing argument for %s"), bp->name);
 	      return 0;
 	    }
 	}
@@ -645,7 +645,7 @@ mh_code_builtin (mh_builtin_t *bp, int argtype)
 	  switch (bp->argtype)
 	    {
 	    case mhtype_none:
-	      mh_error (_("extra arguments to %s"), bp->name);
+	      mh_error (_("Extra arguments to %s"), bp->name);
 	      return 0;
 	      
 	    case mhtype_num:

@@ -212,7 +212,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
       be_quiet += 2;
       if (freopen ("/dev/null", "w", stdout) == NULL)
 	{
-	  perror (_("Can not be very quiet"));
+	  perror (_("Cannot be very quiet"));
 	  exit (3);
 	}
       break;
@@ -303,7 +303,7 @@ rfc2047_decode_wrapper (char *buf, size_t buflen)
   if (rc)
     {
       if (dbug)
-	mu_error (_("Can't decode line `%s': %s"),
+	mu_error (_("Cannot decode line `%s': %s"),
 		  buf, mu_strerror (rc));
       return strdup (buf);
     }
@@ -504,7 +504,7 @@ frm_abort (mailbox_t *mbox)
     {
       url_t url;
       
-      mu_error (_("Couldn't close <%s>: %s."),
+      mu_error (_("Could not close <%s>: %s."),
 		url_to_string (url), mu_strerror (status));
       exit (3);
     }
@@ -531,7 +531,7 @@ frm (char *mailbox_name)
   status = mailbox_create_default (&mbox, mailbox_name);
   if (status != 0)
     {
-      mu_error (_("Couldn't create mailbox <%s>: %s."),
+      mu_error (_("Could not create mailbox <%s>: %s."),
 		mailbox_name ? mailbox_name : _("default"),
 		mu_strerror (status));
       exit (3);
@@ -551,7 +551,7 @@ frm (char *mailbox_name)
     /* nothing to do */;
   else if (status != 0)
     {
-      mu_error (_("Couldn't open mailbox <%s>: %s."),
+      mu_error (_("Could not open mailbox <%s>: %s."),
 		url_to_string (url), mu_strerror (status));
       frm_abort (&mbox);
     }
@@ -570,7 +570,7 @@ frm (char *mailbox_name)
       status = mailbox_scan (mbox, 1, &total);
       if (status != 0)
 	{
-	  mu_error (_("Couldn't scan mailbox <%s>: %s."),
+	  mu_error (_("Could not scan mailbox <%s>: %s."),
 		    url_to_string (url), mu_strerror (status));
 	  frm_abort (&mbox);
 	}
@@ -580,7 +580,7 @@ frm (char *mailbox_name)
       
       if ((status = mailbox_close (mbox)) != 0)
 	{
-	  mu_error (_("Couldn't close <%s>: %s."),
+	  mu_error (_("Could not close <%s>: %s."),
 		    url_to_string (url), mu_strerror (status));
 	  exit (3);
 	}

@@ -38,7 +38,7 @@ imap4d_sigchld (int signo)
 RETSIGTYPE
 imap4d_signal (int signo)
 {
-  syslog (LOG_CRIT, _("got signal %s"), strsignal (signo));
+  syslog (LOG_CRIT, _("Got signal %s"), strsignal (signo));
   /* Master process.  */
   if (util_is_master ())
     {

@@ -84,7 +84,7 @@ z_parse_args(int argc, char **argv,
 	{
 	  if (dir == D_NONE)
 	    {
-	      util_error (_("argument not applicable for z."));
+	      util_error (_("Argument not applicable for z"));
 	      return 1;
 	    }
 

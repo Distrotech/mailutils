@@ -172,7 +172,7 @@ mh_argp_parse (int *pargc, char **pargv[],
     *pindex = index;
   else if (extra)
     {
-      mh_error (_("extra arguments"));
+      mh_error (_("Extra arguments"));
       exit (1);
     }
   mh_init2 ();

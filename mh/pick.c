@@ -137,7 +137,7 @@ add_sequence (char *name)
 {
   if (!seq_list && list_create (&seq_list))
     {
-      mh_error (_("can't create sequence list"));
+      mh_error (_("Cannot create sequence list"));
       exit (1);
     }
   list_append (seq_list, name);
@@ -264,7 +264,7 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
       s = state->argv[state->next - 1];
       if (memcmp (s, "--", 2))
 	{
-	  argp_error (state, _("invalid option -- %s"), s);
+	  argp_error (state, _("Invalid option -- %s"), s);
 	  exit (1);
 	}
       p = strchr (s, '=');
@@ -277,7 +277,7 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
 	{
 	  if (state->next == state->argc)
 	    {
-	      mh_error (_("invalid option -- %s"), s);
+	      mh_error (_("Invalid option -- %s"), s);
 	      exit (1);
 	    }
 	  p = state->argv[state->next++];

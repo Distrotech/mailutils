@@ -88,7 +88,7 @@ mh_context_write (mh_context_t *ctx)
   fp = fopen (ctx->name, "w");
   if (!fp)
     {
-      mh_error (_("can't write context file %s: %s"),
+      mh_error (_("Cannot write context file %s: %s"),
 		ctx->name, strerror (errno));
       return MU_ERR_FAILURE;
     }
@@ -138,7 +138,7 @@ mh_context_set_value (mh_context_t *ctx, const char *name, const char *value)
       int rc;
       if ((rc = header_create (&ctx->header, NULL, 0, NULL)) != 0)
 	{
-	  mh_error (_("Can't create context %s: %s"),
+	  mh_error (_("Cannot create context %s: %s"),
 		    ctx->name,
 		    mu_strerror (rc));
 	  return 1;

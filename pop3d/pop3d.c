@@ -274,7 +274,7 @@ pop3d_daemon_init (void)
      first three one, in, out, err   */
   if (daemon (0, 0) < 0)
     {
-      perror (_("failed to become a daemon:"));
+      perror (_("Failed to become a daemon:"));
       exit (EXIT_FAILURE);
     }
 
@@ -307,7 +307,7 @@ pop3d_log_connection (int fd)
       struct sockaddr_in cs;
       int len = sizeof cs;
       if (getpeername (fd, (struct sockaddr*)&cs, &len) < 0)
-	syslog (LOG_ERR, _("can't obtain IP address of client: %s"),
+	syslog (LOG_ERR, _("Cannot obtain IP address of client: %s"),
 		strerror (errno));
       else
 	syslog (LOG_INFO, _("connect from %s"), inet_ntoa (cs.sin_addr));

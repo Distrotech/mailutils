@@ -224,7 +224,7 @@ pop3d_outf (const char *fmt, ...)
 
       if (stream_strerror (ostream, &p))
 	p = strerror (errno);
-      syslog (LOG_ERR, _("write failed: %s"), p);
+      syslog (LOG_ERR, _("Write failed: %s"), p);
       pop3d_abquit (ERR_NO_OFILE);
     }
 }
@@ -247,7 +247,7 @@ pop3d_readline (char *buffer, size_t size)
 
       if (stream_strerror (ostream, &p))
 	p = strerror (errno);
-      syslog (LOG_ERR, _("read failed: %s"), p);
+      syslog (LOG_ERR, _("Read failed: %s"), p);
       pop3d_abquit (ERR_NO_OFILE);
     }
   else if (nbytes == 0)

@@ -54,9 +54,6 @@ static struct argp_option options[] = {
   {"debug", 'd', NULL, 0,
    N_("Print details of failure reasons to stderr"), 0},
 
-  {"test", 'T', N_("PROGRAM"), OPTION_HIDDEN,
-   N_("Test external dotlocker"), 0},
-
   {NULL, 0, NULL, 0, NULL, 0}
 };
 
@@ -112,7 +109,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
 
     case ARGP_KEY_ARG:
       if (file)
-	argp_error (state, _("only one FILE can be specified"));
+	argp_error (state, _("Only one FILE can be specified"));
       file = arg;
       break;
 
@@ -148,7 +145,7 @@ main (int argc, char *argv[])
   if ((err = locker_create (&locker, file, flags)))
     {
       if (debug)
-	fprintf (stderr, _("locker create failed: %s\n"), mu_strerror (err));
+	fprintf (stderr, _("Creating locker failed: %s\n"), mu_strerror (err));
       return MU_DL_EX_ERROR;
     }
 
@@ -174,8 +171,8 @@ main (int argc, char *argv[])
 
   if (debug && err)
     fprintf (stderr,
-	     unlock ? _("unlocking the file %s failed: %s\n") :
-	              _("locking the file %s failed: %s\n"),
+	     unlock ? _("Unlocking the file %s failed: %s\n") :
+	              _("Locking the file %s failed: %s\n"),
 	     file, mu_strerror (err));
 
   switch (err)

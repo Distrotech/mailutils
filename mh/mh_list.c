@@ -135,7 +135,7 @@ parse_component (locus_t *loc, list_t formlist, char *compname, char *str)
   stmt->v.component.name = compname;
   if (list_create (&stmt->v.component.format))
     {
-      mh_error (_("%s:%d: can't create list"),
+      mh_error (_("%s:%d: cannot create list"),
 		loc->filename,
 		loc->line);
       exit (1); /* FIXME */
@@ -207,7 +207,7 @@ parse_variable (locus_t *loc, list_t formlist, char *str)
 	case dt_format:
 	  if (mh_format_parse (value, &fmt))
 	    {
-	      mh_error (_("%s:%d: Bad format string"),
+	      mh_error (_("%s:%d: bad format string"),
 			loc->filename,
 			loc->line);
 	      exit (1);
@@ -260,14 +260,14 @@ mhl_format_compile (char *name)
   fp = fopen (name, "r");
   if (!fp)
     {
-      mh_error (_("cannot open file %s: %s"), name, mu_strerror (errno));
+      mh_error (_("Cannot open file %s: %s"), name, mu_strerror (errno));
       return NULL;
     }
 
   if (list_create (&formlist))
     {
       fclose (fp);
-      mh_error (_("can't create list"));
+      mh_error (_("Cannot create list"));
       return NULL;
     }
 

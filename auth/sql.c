@@ -317,7 +317,7 @@ mu_auth_sql_by_name (struct mu_auth_data **return_data,
 
   if (status)
     {
-      mu_error (_("cannot store SQL result: %s"),
+      mu_error (_("Cannot store SQL result: %s"),
 		(status == MU_ERR_SQL) ?  mu_sql_strerror (conn) :
 	 	                          mu_strerror (status));
       mu_sql_connection_destroy (&conn);
@@ -451,7 +451,7 @@ mu_auth_sql_by_uid (struct mu_auth_data **return_data,
 
   if (status)
     {
-      mu_error (_("cannot store SQL result: %s"),
+      mu_error (_("Cannot store SQL result: %s"),
 		(status == MU_ERR_SQL) ?  mu_sql_strerror (conn) :
 	 	                          mu_strerror (status));
       mu_sql_connection_destroy (&conn);
@@ -581,7 +581,7 @@ mu_sql_authenticate (struct mu_auth_data **return_data ARG_UNUSED,
 
   if (status)
     {
-      mu_error (_("cannot store SQL result: %s"),
+      mu_error (_("Cannot store SQL result: %s"),
 		(status == MU_ERR_SQL) ?  mu_sql_strerror (conn) :
 	 	                          mu_strerror (status));
       mu_sql_connection_destroy (&conn);
@@ -591,7 +591,7 @@ mu_sql_authenticate (struct mu_auth_data **return_data ARG_UNUSED,
   status = mu_sql_get_column (conn, 0, 0, &sql_pass);
   if (status)
     {
-      mu_error (_("cannot get password from SQL: %s"),
+      mu_error (_("Cannot get password from SQL: %s"),
 		(status == MU_ERR_SQL) ?  mu_sql_strerror (conn) :
 	 	                          mu_strerror (status));
       mu_sql_release_result (conn);

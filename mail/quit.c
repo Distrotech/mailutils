@@ -108,14 +108,14 @@ mail_mbox_commit ()
 		  || mailbox_open (dest_mbox,
 				   MU_STREAM_WRITE | MU_STREAM_CREAT))
 		{
-		  util_error (_("can't create mailbox %s"), name);
+		  util_error (_("Cannot create mailbox %s"), name);
 		  return 1;
 		}
 	    }
 
 	  status = mailbox_append_message (dest_mbox, msg);
 	  if (status)
-	    util_error (_("can't append message: %s"), mu_strerror (status));
+	    util_error (_("Cannot append message: %s"), mu_strerror (status));
 	  else
 	    {
 	      attribute_set_deleted (attr);

@@ -127,7 +127,7 @@ lex_set_buffer (FILE *fp)
   
   if (!buf)
     {
-      sieve_compile_error (sieve_filename, sieve_line_num, _("not enough memory"));
+      sieve_compile_error (sieve_filename, sieve_line_num, _("Not enough memory"));
       abort ();
     }
 
@@ -229,7 +229,7 @@ push_source (const char *name)
   if (stat (name, &st))
     {
       sieve_compile_error (sieve_filename, sieve_line_num,
-                           _("can't stat `%s': %s"), name, strerror (errno));
+                           _("cannot stat `%s': %s"), name, strerror (errno));
       return 1;
     }
 
@@ -256,7 +256,7 @@ push_source (const char *name)
   if (!fp)
     {
       sieve_compile_error (sieve_filename, sieve_line_num, 
-                           _("can't open `%s': %s"), name, strerror (errno));
+                           _("cannot open `%s': %s"), name, strerror (errno));
       return 1;
     }
 
@@ -598,7 +598,7 @@ line_add (char *text, size_t len)
   s = malloc (len + 1);
   if (!s)
     {
-      yyerror (_("not enough memory"));
+      yyerror (_("Not enough memory"));
       exit (1);
     }
   memcpy (s, text, len);
@@ -662,7 +662,7 @@ multiline_begin ()
       multiline_delimiter = strdup (".");
       if (!multiline_delimiter)
 	{
-	  yyerror (_("not enough memory"));
+	  yyerror (_("Not enough memory"));
 	  exit (1);
 	}
     }
@@ -716,7 +716,7 @@ ident (const char *text)
   yylval.string = strdup (text);
   if (!yylval.string)
     {
-      yyerror (_("not enough memory"));
+      yyerror (_("Not enough memory"));
       exit (1);
     }
 }

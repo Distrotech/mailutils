@@ -73,7 +73,7 @@ pop3d_apopuser (const char *user)
     mu_dbm_close (db);
     if (rc)
       {
-	syslog (LOG_ERR, _("Can't fetch APOP data: %s"), mu_strerror (rc));
+	syslog (LOG_ERR, _("Cannot fetch APOP data: %s"), mu_strerror (rc));
 	return NULL;
       }
     password = calloc (MU_DATUM_SIZE(data) + 1, sizeof (*password));
@@ -210,7 +210,7 @@ pop3d_apop (const char *arg)
   /* Reset the uid.  */
   if (auth->change_uid && setuid (auth->uid) == -1)
     {
-      syslog (LOG_INFO, _("cannot change to uid %lu: %m"),
+      syslog (LOG_INFO, _("Cannot change to uid %lu: %m"),
 	      (unsigned long) auth->uid);
       mu_auth_data_free (auth);
       return ERR_BAD_LOGIN;
@@ -226,7 +226,7 @@ pop3d_apop (const char *arg)
 	  if (mailbox_create (&mbox, "/dev/null") != 0
 	      || mailbox_open (mbox, MU_STREAM_READ) != 0)
 	    {
-	      syslog (LOG_ERR, _("can't create temporary mailbox: %s"),
+	      syslog (LOG_ERR, _("Cannot create temporary mailbox: %s"),
 		      mu_strerror (status));
 	      mu_auth_data_free (auth);
 	      free (mailbox_name);
@@ -236,7 +236,7 @@ pop3d_apop (const char *arg)
 	}
       else
 	{
-	  syslog (LOG_ERR, _("can't open mailbox %s: %s"),
+	  syslog (LOG_ERR, _("Cannot open mailbox %s: %s"),
 		  auth->mailbox,
 		  mu_strerror (status));
 	  state = AUTHORIZATION;

@@ -34,7 +34,9 @@ static char doc[] = N_("GNU messages -- count the number of messages in a mailbo
 static char args_doc[] = N_("[mailbox...]");
 
 static struct argp_option options[] = {
-  { NULL,         0, NULL,  0,  N_("messages specific switches:"), 0},
+  { NULL,         0, NULL,  0,
+    /* TRANSLATORS: 'messages' is a program name. Do not translate it! */
+    N_("messages specific switches:"), 0},
   {"quiet",	'q',	0,	0,	N_("Only display number of messages")},
   {"silent",	's',	0,	0,	N_("Same as -q")},
   { 0 }
@@ -135,7 +137,7 @@ messages_count (const char *box)
   status =  mailbox_create_default (&mbox, box);
   if (status != 0)
     {
-      mu_error (_("Couldn't create mailbox <%s>: %s."),
+      mu_error (_("Could not create mailbox <%s>: %s."),
 		box ? box : _("default"), mu_strerror (status));
       return -1;
     }
@@ -146,7 +148,7 @@ messages_count (const char *box)
   status =  mailbox_open (mbox, MU_STREAM_READ);
   if (status != 0)
     {
-      mu_error (_("Couldn't open mailbox <%s>: %s."),
+      mu_error (_("Could not open mailbox <%s>: %s."),
 		box, mu_strerror (status));
       return -1;
     }
@@ -154,7 +156,7 @@ messages_count (const char *box)
   status = mailbox_messages_count (mbox, &count);
   if (status != 0)
     {
-      mu_error (_("Couldn't count messages in <%s>: %s."),
+      mu_error (_("Could not count messages in <%s>: %s."),
 		box, mu_strerror (status));
       return -1;
     }
@@ -167,7 +169,7 @@ messages_count (const char *box)
   status = mailbox_close (mbox);
   if (status != 0)
     {
-      mu_error (_("Couldn't close <%s>: %s."),
+      mu_error (_("Could not close <%s>: %s."),
 		box, mu_strerror (status));
       return -1;
     }

@@ -274,14 +274,14 @@ action_exec (FILE *tty, int line, int argc, char **argv)
 
   if (stat (argv[0], &stb))
     {
-      syslog (LOG_ERR, _("%s:.biffrc:%d: can't stat %s: %s"),
+      syslog (LOG_ERR, _("%s:.biffrc:%d: cannot stat %s: %s"),
 	      username, line, argv[0], strerror (errno));
       return;
     }
 
   if (stb.st_mode & (S_ISUID|S_ISGID))
     {
-      syslog (LOG_ERR, _("%s:.biffrc:%d: won't execute set[ug]id programs"),
+      syslog (LOG_ERR, _("%s:.biffrc:%d: will not execute set[ug]id programs"),
 	      username, line);
       return;
     }
@@ -295,7 +295,7 @@ action_exec (FILE *tty, int line, int argc, char **argv)
       dup2 (fileno (tty), 2);
       fclose (tty);
       execv (argv[0], argv);
-      syslog (LOG_ERR, _("can't execute %s: %s"), argv[0], strerror (errno));
+      syslog (LOG_ERR, _("Cannot execute %s: %s"), argv[0], strerror (errno));
       exit (0);
     }
 }

@@ -49,7 +49,7 @@ pop3d_signal (int signo)
 {
   int code;
   
-  syslog (LOG_CRIT, _("got signal %s"), strsignal (signo));
+  syslog (LOG_CRIT, _("Got signal %s"), strsignal (signo));
 
   /* Master process.  */
   if (pop3d_is_master ())

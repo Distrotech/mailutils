@@ -118,7 +118,7 @@ instr_push (sieve_machine_t mach)
   
   if (!mach->stack && list_create (&mach->stack))
     {
-      sieve_error (mach, _("can't create stack"));
+      sieve_error (mach, _("cannot create stack"));
       sieve_abort (mach);
     }
   list_prepend (mach->stack, (void*) mach->reg);

@@ -611,7 +611,7 @@ util_get_homedir ()
   if (!homedir)
     {
       /* Shouldn't happen, but one never knows */
-      util_error (_("can't get homedir"));
+      util_error (_("Cannot get homedir"));
       exit (EXIT_FAILURE);
     }
   return homedir;
@@ -673,14 +673,14 @@ util_get_sender (int msgno, int strip)
       if (envelope_sender (env, buffer, sizeof (buffer), NULL)
 	  || address_create (&addr, buffer))
 	{
-	  util_error (_("can't determine sender name (msg %d)"), msgno);
+	  util_error (_("Cannot determine sender name (msg %d)"), msgno);
 	  return NULL;
 	}
     }
 
   if (address_aget_email (addr, 1, &buf))
     {
-      util_error (_("can't determine sender name (msg %d)"), msgno);
+      util_error (_("Cannot determine sender name (msg %d)"), msgno);
       address_destroy (&addr);
       return NULL;
     }
@@ -747,7 +747,7 @@ util_slist_add (list_t *list, char *value)
 
   if ((p = strdup(value)) == NULL)
     {
-      util_error(_("not enough memory\n"));
+      util_error(_("Not enough memory"));
       return;
     }
   list_append (*list, p);
@@ -923,7 +923,7 @@ util_save_outgoing (message_t msg, char *savefile)
       outfile = fopen (filename, "a");
       if (!outfile)
 	{
-	  util_error(_("can't open save file %s: %s"),
+	  util_error(_("Cannot open save file %s: %s"),
 		     filename, strerror (errno));
 	}
       else
@@ -940,7 +940,7 @@ util_save_outgoing (message_t msg, char *savefile)
 
 	  if (!bsize)
 	    {
-	      util_error(_("not enough memory for creating save file"));
+	      util_error(_("Not enough memory for creating save file"));
 	    }
 	  else
 	    {
@@ -1050,7 +1050,7 @@ util_descend_subparts (message_t mesg, msgset_t *msgset, message_t *part)
 	{
 	  if (message_unencapsulate (mesg, &submsg, NULL))
 	    {
-	      util_error (_("can't unencapsulate message/part"));
+	      util_error (_("Cannot unencapsulate message/part"));
 	      return 1;
 	    }
 	  mesg = submsg;
@@ -1059,14 +1059,14 @@ util_descend_subparts (message_t mesg, msgset_t *msgset, message_t *part)
       message_get_num_parts (mesg, &nparts);
       if (nparts < msgset->msg_part[i])
 	{
-	  util_error (_("no such (sub)part in the message: %d"),
+	  util_error (_("No such (sub)part in the message: %d"),
 		      msgset->msg_part[i]);
 	  return 1;
 	}
 
       if (message_get_part (mesg, msgset->msg_part[i], &submsg))
 	{
-	  util_error (_("can't get (sub)part from the message: %d"),
+	  util_error (_("Cannot get (sub)part from the message: %d"),
 		      msgset->msg_part[i]);
 	  return 1;
 	}
@@ -1190,7 +1190,7 @@ util_header_expand (header_t *phdr)
   rc = header_create (&hdr, "", 0, NULL);
   if (rc)
     {
-      util_error (_("can't create temporary header: %s"), mu_strerror (rc));
+      util_error (_("Cannot create temporary header: %s"), mu_strerror (rc));
       return 1;
     }
       
@@ -1231,10 +1231,10 @@ util_header_expand (header_t *phdr)
 		{
 		  errcnt++;
 		  if (exp)
-		    util_error (_("can't parse address `%s' (while expanding `%s'): %s"),
+		    util_error (_("Cannot parse address `%s' (while expanding `%s'): %s"),
 				exp, p, mu_strerror (rc));
 		  else
-		    util_error (_("can't parse address `%s': %s"),
+		    util_error (_("Cannot parse address `%s': %s"),
 				p, mu_strerror (rc));
 		}
 	      
@@ -1287,7 +1287,7 @@ util_get_message (mailbox_t mbox, size_t msgno, message_t *msg)
   status = mailbox_get_message (mbox, msgno, msg);
   if (status)
     {
-      util_error (_("can't get message %lu: %s"),
+      util_error (_("Cannot get message %lu: %s"),
 		  (unsigned long) msgno, mu_strerror (status));
       return status;
     }
@@ -1384,7 +1384,7 @@ util_rfc2047_decode (char **value)
   if (rc)
     {
       if (util_getenv (NULL, "verbose", Mail_env_boolean, 0) == 0)
-	mu_error (_("Can't decode line `%s': %s"), *value, mu_strerror (rc));
+	mu_error (_("Cannot decode line `%s': %s"), *value, mu_strerror (rc));
     }
   else
     {

@@ -192,7 +192,7 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
     case ARG_INPLACE:
     case ARG_WHATNOWPROC:
     case ARG_NOWHATNOWPROC:
-      argp_error (state, _("option is not yet implemented"));
+      argp_error (state, _("Option is not yet implemented"));
       exit (1);
       
     case ARG_LICENSE:
@@ -281,7 +281,7 @@ finish_draft ()
 				MU_STREAM_WRITE|MU_STREAM_CREAT)) != 0
       || (rc = stream_open (stream)))
     {
-      mh_error (_("cannot open output file \"%s\": %s"),
+      mh_error (_("Cannot open output file \"%s\": %s"),
 		wh_env.file, mu_strerror (rc));
       exit (1);
     }

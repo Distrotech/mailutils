@@ -55,7 +55,7 @@ parse_headers (FILE *fp, compose_env_t *env)
   
   if ((status = header_create (&header, NULL, 0, NULL)) != 0)
     {
-      util_error (_("can't create header: %s"), mu_strerror (status));
+      util_error (_("Cannot create header: %s"), mu_strerror (status));
       return 1;
     }
 
@@ -248,7 +248,7 @@ var_sign (int argc ARG_UNUSED, char **argv, compose_env_t *env ARG_UNUSED)
 
 	  if (!fp)
 	    {
-	      util_error (_("can't open %s: %s"), name, strerror (errno));
+	      util_error (_("Cannot open %s: %s"), name, strerror (errno));
 	      free (name);
 	    }
 
@@ -547,7 +547,7 @@ var_read (int argc, char **argv, compose_env_t *env ARG_UNUSED)
   inf = fopen (filename, "r");
   if (!inf)
     {
-      util_error (_("can't open %s: %s\n"), filename, strerror (errno));
+      util_error (_("Cannot open %s: %s\n"), filename, strerror (errno));
       free (filename);
       return 1;
     }
@@ -602,7 +602,7 @@ var_write (int argc, char **argv, compose_env_t *env)
 
   if (!fp)
     {
-      util_error (_("can't open %s: %s\n"), filename, strerror (errno));
+      util_error (_("Cannot open %s: %s\n"), filename, strerror (errno));
       free (filename);
       return 1;
     }
@@ -632,6 +632,7 @@ var_pipe (int argc, char **argv, compose_env_t *env)
 
   if (argc == 1)
     {
+      /* TRANSLATORS: 'pipe' is a command name. Do not translate it! */
       util_error (_("pipe: no command specified"));
       return 1;
     }
@@ -676,7 +677,7 @@ var_pipe (int argc, char **argv, compose_env_t *env)
 	xargv[i] = argv[i + 1];
       xargv[i] = NULL;
       execvp (xargv[0], xargv);
-      util_error (_("cannot exec process `%s': %s"), xargv[0], strerror (errno));
+      util_error (_("Cannot exec process `%s': %s"), xargv[0], strerror (errno));
       exit (1);
     }
   else
@@ -709,14 +710,14 @@ var_pipe (int argc, char **argv, compose_env_t *env)
       waitpid (pid, &status, 0);
       if (!WIFEXITED (status))
 	{
-	  util_error (_("child terminated abnormally: %d"), WEXITSTATUS (status));
+	  util_error (_("Child terminated abnormally: %d"), WEXITSTATUS (status));
 	}
       else
 	{
 	  struct stat st;
 	  if (fstat (fd, &st))
 	    {
-	      util_error (_("can't stat output file: %s"), strerror (errno));
+	      util_error (_("Cannot stat output file: %s"), strerror (errno));
 	    }
 	  else if (st.st_size > 0)
 	    rc = 0;

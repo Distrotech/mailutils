@@ -164,13 +164,13 @@ open_output ()
 
   if (rc)
     {
-      mh_error (_("cannot create output stream: %s"), mu_strerror (rc));
+      mh_error (_("Cannot create output stream: %s"), mu_strerror (rc));
       exit (1);
     }
 
   if ((rc = stream_open (output)))
     {
-      mh_error (_("cannot open output stream: %s"), mu_strerror (rc));
+      mh_error (_("Cannot open output stream: %s"), mu_strerror (rc));
       exit (1);
     }
   return output;
@@ -189,13 +189,13 @@ list_message (char *name, stream_t output)
     rc = file_stream_create (&input, name, MU_STREAM_READ);
   if (rc)
     {
-      mh_error (_("cannot create input stream: %s"), mu_strerror (rc));
+      mh_error (_("Cannot create input stream: %s"), mu_strerror (rc));
       return;
     }
 
   if ((rc = stream_open (input)))
     {
-      mh_error (_("cannot open input stream: %s"), mu_strerror (rc));
+      mh_error (_("Cannot open input stream: %s"), mu_strerror (rc));
       stream_destroy (&input, stream_get_owner (input));
       return;
     }
@@ -203,7 +203,7 @@ list_message (char *name, stream_t output)
   msg = mh_stream_to_message (input);
   if (!msg)
     {
-      mh_error (_("input stream %s is not a message (%s)"),
+      mh_error (_("Input stream %s is not a message (%s)"),
 		name, mu_strerror (rc));
       stream_close (input);
       stream_destroy (&input, stream_get_owner (input));

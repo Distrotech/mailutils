@@ -184,7 +184,7 @@ open_mailbox (mailbox_t *mbx, char *name, int flags, char *passwd)
 
   if (status)
     {
-      mu_error (_("could not create mailbox <%s>: %s\n"),
+      mu_error (_("Could not create mailbox <%s>: %s\n"),
 		name ? name : _("default"),
 		mu_strerror (status));
       exit (1);
@@ -194,7 +194,7 @@ open_mailbox (mailbox_t *mbx, char *name, int flags, char *passwd)
     attach_passwd_ticket (*mbx, passwd);
   status = mailbox_open (*mbx, flags);
   if (status)
-    die (*mbx, _("cannot open"), status);
+    die (*mbx, _("Cannot open"), status);
   lock_mailbox (*mbx);
 }
 

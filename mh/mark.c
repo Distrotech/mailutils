@@ -69,7 +69,7 @@ add_sequence (char *name)
 {
   if (!seq_list && list_create (&seq_list))
     {
-      mh_error (_("can't create sequence list"));
+      mh_error (_("Cannot create sequence list"));
       exit (1);
     }
   list_append (seq_list, name);

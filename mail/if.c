@@ -52,7 +52,7 @@ _cond_push(int val)
 
   if (!_cond_stack)
     {
-      util_error(_("not enough memory"));
+      util_error(_("Not enough memory"));
       exit (EXIT_FAILURE);
     }
   _cond_stack[_cond_level++] = val;
@@ -63,7 +63,7 @@ _cond_pop()
 {
   if (_cond_level == 0)
     {
-      util_error(_("internal error: condition stack underflow"));
+      util_error(_("Internal error: condition stack underflow"));
       abort();
     }
   return _cond_stack[--_cond_level];
@@ -92,7 +92,7 @@ mail_if (int argc, char **argv)
 
   if (argv[1][1] != 0)
     {
-      util_error(_("valid if arguments are: s | r | t"));
+      util_error(_("Valid if arguments are: s | r | t"));
       return 1;
     }
 
@@ -116,7 +116,7 @@ mail_if (int argc, char **argv)
 	  cond = isatty (fileno (stdout));
 	  break;
 	default:
-	  util_error(_("valid if arguments are: s | r | t"));
+	  util_error(_("Valid if arguments are: s | r | t"));
 	  return 1;
 	}
     }

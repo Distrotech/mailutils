@@ -90,7 +90,7 @@ mda_catch_body (void *data, mailbox_t mbox)
   if (access (md->progfile, R_OK))
     {
       if (debug_level > 2)
-	syslog (LOG_DEBUG, _("access to %s failed: %m"), md->progfile);
+	syslog (LOG_DEBUG, _("Access to %s failed: %m"), md->progfile);
     }
   else
     {

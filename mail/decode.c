@@ -142,7 +142,7 @@ display_part_header (FILE *out, const msgset_t *msgset,
   fprintf (out, "\n");
 
   fprintf (out, _("| Type=%s\n"), type);
-  fprintf (out, _("| encoding=%s\n"), encoding);
+  fprintf (out, _("| Encoding=%s\n"), encoding);
   fputc ('+', out);
   for (i = 0; (int)i <= size; i++)
     fputc ('-', out);

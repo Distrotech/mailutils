@@ -171,7 +171,7 @@ sieve_value_create (sieve_data_type type, void *data)
 	
     default:
       sieve_compile_error (sieve_filename, sieve_line_num,
-			   _("Invalid data type"));
+			   _("invalid data type"));
       abort ();
     }
   return val;

@@ -34,7 +34,7 @@ addrcp (list_t *list, char *addr, int isbcc)
   p->isbcc = isbcc;
   if (!*list && (rc = list_create (list)))
     {
-      mh_error (_("can't create list: %s"), mu_strerror (rc));
+      mh_error (_("Cannot create list: %s"), mu_strerror (rc));
       exit (1);
     }
   list_append (*list, p);
@@ -224,7 +224,7 @@ mh_whom (char *filename, int check)
   ctx = mh_context_create (filename, 1);
   if (mh_context_read (ctx))
     {
-      mh_error (_("malformed message"));
+      mh_error (_("Malformed message"));
       rc = -1;
     }
   else

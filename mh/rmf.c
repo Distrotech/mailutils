@@ -124,7 +124,7 @@ rmf (const char *name)
 
   if (!dir)
     {
-      mh_error (_("can't scan folder %s: %s"), name, strerror (errno));
+      mh_error (_("Cannot scan folder %s: %s"), name, strerror (errno));
       return 1;
     }
 
@@ -143,7 +143,7 @@ rmf (const char *name)
       asprintf (&p, "%s/%s", name, entry->d_name);
       if (stat (p, &st) < 0)
 	{
-	  mh_error (_("can't stat %s: %s"), p, strerror (errno));
+	  mh_error (_("Cannot stat %s: %s"), p, strerror (errno));
 	}
       else if (S_ISDIR (st.st_mode))
 	{
@@ -160,7 +160,7 @@ rmf (const char *name)
 	{
 	  if (unlink (p))
 	    {
-	      mh_error (_("can't unlink %s: %s"), p, strerror (errno));
+	      mh_error (_("Cannot unlink %s: %s"), p, strerror (errno));
 	      failures++;
 	    }
 	}

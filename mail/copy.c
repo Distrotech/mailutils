@@ -65,7 +65,7 @@ mail_copy0 (int argc, char **argv, int mark)
   if (mailbox_create_default (&mbx, filename)
       || mailbox_open (mbx, MU_STREAM_WRITE | MU_STREAM_CREAT))
     {
-      util_error (_("can't create mailbox %s"), filename);
+      util_error (_("Cannot create mailbox %s"), filename);
       free (filename);
       msgset_free (msglist);
       return 1;
@@ -80,7 +80,7 @@ mail_copy0 (int argc, char **argv, int mark)
       status = mailbox_append_message (mbx, msg);
       if (status)
 	{
-	  util_error (_("can't append message: %s"), mu_strerror (status));
+	  util_error (_("Cannot append message: %s"), mu_strerror (status));
 	  break;
 	}
       
