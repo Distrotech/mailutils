@@ -24,7 +24,7 @@ REJECT on msg uid 3
 PATTERN END
 
 FILE BEGIN
-ENVELOPE FROM: MAILER-DAEMON@Mirddin.farlep.net
+ENVELOPE FROM: MAILER-DAEMON@nonexistent.net
 ENVELOPE TO: <coyote@desert.example.org>
    0: To: <coyote@desert.example.org>
 -re
@@ -83,7 +83,7 @@ ENVELOPE TO: <coyote@desert.example.org>
   45: [0-9:=-]+
   46: 
 END OF MESSAGE
-ENVELOPE FROM: MAILER-DAEMON@Mirddin.farlep.net
+ENVELOPE FROM: MAILER-DAEMON@nonexistent.net
 ENVELOPE TO: <b1ff@de.res.example.com>
    0: To: <b1ff@de.res.example.com>
 -re
@@ -140,7 +140,7 @@ ENVELOPE TO: <b1ff@de.res.example.com>
   43: [0-9:=-]+
   44: 
 END OF MESSAGE
-ENVELOPE FROM: MAILER-DAEMON@Mirddin.farlep.net
+ENVELOPE FROM: MAILER-DAEMON@nonexistent.net
 ENVELOPE TO: <bar@dontmailme.org>
    0: To: <bar@dontmailme.org>
 -re
