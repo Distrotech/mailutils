@@ -1,3 +1,19 @@
+2004-02-03  Sergey Poznyakoff
+
+       * scripts/texify.sed: New file
+       * scripts/Makefile.am: Added texify.sed
+       * doc/texinfo/Makefile.am (.c.inc rule): Use texify.sed
+
+2004-02-03  Linus Nordberg  <linus@nordberg.se>
+
+       * mailbox/pop/pop3_readline.c: Include sys/time.h.
+
+       * mailbox/maildir/mbox.c: Include limits.h.
+       (maildir_uniq): Use _POSIX_PATH_MAX if PATH_MAX is not
+       defined.
+
+       * mailbox/file_stream.c: Include signal.h.
+
 2004-02-01  Sergey Poznyakoff
 
 	* mailbox/maildir/mbox.c (maildir_message_lookup): Fixed bug
