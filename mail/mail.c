@@ -259,6 +259,7 @@ static char *default_setup[] = {
   "unfold subject",
   "sender mail-followup-to reply-to from",
   "set nocmd",
+  "set metamail",
   
   /* Start in mail reading mode */
   "set mode=read",
