@@ -397,18 +397,58 @@
        (if (isatty? (current-output-port))
 	   (display (string-append level ": " msg "\n")))))
 
+(define (guimb?)
+  (catch #t
+	 (lambda ()
+	   (let ((v current-mailbox))
+	     v))
+	 (lambda args #f)))
+
 ;;; Sieve-main
+(define sieve-mailbox #f)
 (define sieve-current-message #f)
-(define (sieve-main)
+
+(define (sieve-run)
   (if (not sieve-my-email)
       (set! sieve-my-email (mu-username->email)))
-  (let ((count (mu-mailbox-messages-count current-mailbox)))
+;  (DEBUG 1 "Mailbox: " sieve-mailbox)
+  (let ((count (mu-mailbox-messages-count sieve-mailbox)))
     (do ((n 1 (1+ n)))
 	((> n count) #f)
 	(set! sieve-current-message
-	      (mu-mailbox-get-message current-mailbox n))
+	      (mu-mailbox-get-message sieve-mailbox n))
 	(catch 'sieve-stop
 	       sieve-process-message
 	       (lambda args
 		 #f)))
     (sieve-close-mailboxes)))
+
+(define (sieve-command-line)
+  (catch #t
+	 (lambda ()
+	   (let ((args sieve-script-args))
+	     (append (list "<temp-file>") args)))
+	 (lambda args (command-line))))
+
+(define (sieve-main)
+  (cond
+   ((not (guimb?))
+;    (DEBUG 1 "Loading mailutils")
+    (set! %load-path (append %load-path (list sieve-libdir)))
+    (use-modules (mailutils))
+    (let* ((cl (sieve-command-line))
+	   (name (if (and (not (null? (cdr cl)))
+			  (string? (cadr cl)))
+		     (cadr cl)
+		     (string-append mu-path-maildir "/"
+				    (passwd:name (mu-getpwuid (getuid)))))))
+;      (DEBUG 2 "mailbox name " name)
+      (set! sieve-mailbox (mu-mailbox-open name "rw"))
+      (sieve-run)
+      (mu-mailbox-expunge sieve-mailbox)
+      (mu-mailbox-close sieve-mailbox)))
+   (else
+;    (DEBUG 1 "Using current-mailbox")
+    (set! sieve-mailbox current-mailbox)
+    (sieve-run))))
+	 
