@@ -1,3 +1,8 @@
+2005-02-16  Sergey Poznyakoff
+
+	* imap4d/auth_gsasl.c (cb_validate): Provide normal authentication
+	for PLAIN and LOGIN mechanisms.
+
 2005-02-11  Sergey Poznyakoff 
 
 	* imap4d/unsubscribe.c: Rewritten. Thanks Andrew Barnes
