@@ -24,6 +24,7 @@ noinst_PROGRAMS = \
  url-parse\
  sfrom\
  mimetest\
+ murun\
  muemail\
  msg-send\
  http\
