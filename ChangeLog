@@ -1,3 +1,7 @@
+2001-05-14  Sergey Poznyakoff
+
+	* pop3d/user.c: After unsuccessful authorization frees cmd twice,
+
 2001-05-13  Alain Magloire
 
 	* imap4d/fetch.c:  Lots of bug fixing.  To many to enumerate.
