@@ -29,9 +29,8 @@
 int
 mail_headers (int argc, char **argv)
 {
-  char buf[64];
   int low = 1, high = total, *list = NULL, i = 0;
-  int lines = util_getlines ();
+  int lines = util_screen_lines ();
   int num = util_expand_msglist (argc, argv, &list);
 
   lines = (lines / num) - 2;
@@ -51,9 +50,7 @@ mail_headers (int argc, char **argv)
 	    }
 	}
 
-      memset (buf, '\0', 64);
-      snprintf (buf, 64, "from %d-%d", low, high);
-      util_do_command (buf);
+      util_do_command ("from %d-%d", low, high);
     }
 
   free (list);
