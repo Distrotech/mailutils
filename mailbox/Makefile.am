@@ -4,7 +4,7 @@
 
 AUTOMAKE_OPTIONS = ../lib/ansi2knr
 
-INCLUDES = -I${top_srcdir}/include -I${top_srcdir}/mailbox/include -I${top_srcdir}/include/mailutils/gnu
+INCLUDES = -I${top_srcdir}/include -I${top_srcdir}/mailbox -I${top_srcdir}/mailbox/include -I${top_srcdir}/include/mailutils/gnu
 AM_CFLAGS = -DSITE_VIRTUAL_PWDDIR=\"@SITE_VIRTUAL_PWDDIR@\"
 
 SUBDIRS = include testsuite
@@ -14,9 +14,9 @@ lib_LTLIBRARIES = libmailbox.la
 EXTRA_DIST = mbx_mboxscan.c strtok_r.c \
  strndup.c strnlen.c strchrnul.c argp-ba.c argp-eexst.c \
  argp-fmtstream.c argp-fs-xinl.c argp-help.c argp-parse.c argp-pv.c \
- argp-pvh.c argp-xinl.c getline.c
+ argp-pvh.c argp-xinl.c getline.c getline.h
 
-noinst_HEADERS=argp-fmtstream.h argp-namefrob.h getline.h md5.h
+noinst_HEADERS=argp-fmtstream.h argp-namefrob.h md5.h
 
 libmailbox_la_SOURCES = \
 address.c \
