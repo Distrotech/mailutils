@@ -26,7 +26,8 @@ static char args_doc[] = N_("[+folder] [msgs]");
 
 /* GNU options */
 static struct argp_option options[] = {
-  {"folder",  'f', N_("FOLDER"), 0, N_("Specify folder to operate upon")},
+  {"folder",  ARG_FOLDER, N_("FOLDER"), 0,
+   N_("Specify folder to operate upon")},
   { 0 }
 };
 
@@ -41,7 +42,7 @@ opt_handler (int key, char *arg, void *unused)
   switch (key)
     {
     case '+':
-    case 'f': 
+    case ARG_FOLDER: 
       current_folder = arg;
       break;
       

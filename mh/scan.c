@@ -33,17 +33,25 @@ static char args_doc[] = N_("[+folder] [msgs]");
 
 /* GNU options */
 static struct argp_option options[] = {
-  {"folder",  'f', N_("FOLDER"), 0, N_("Specify folder to scan")},
-  {"clear",   'c', N_("BOOL"),   OPTION_ARG_OPTIONAL,
+  {"folder",  ARG_FOLDER, N_("FOLDER"), 0,
+   N_("Specify folder to scan")},
+  {"clear",   ARG_CLEAR, N_("BOOL"),   OPTION_ARG_OPTIONAL,
    N_("Clear screen after displaying the list")},
-  {"form",    'F', N_("FILE"),   0, N_("Read format from given file")},
-  {"format",  't', N_("FORMAT"), 0, N_("Use this format string")},
-  {"header",  'H', N_("BOOL"),   OPTION_ARG_OPTIONAL, N_("Display header")},
-  {"width",   'w', N_("NUMBER"), 0, N_("Set output width")},
-  {"reverse", 'r', N_("BOOL"),   OPTION_ARG_OPTIONAL, N_("List messages in reverse order")},
-  {"file",    'i', N_("FILE"),   0, N_("[Not yet implemented]")},
+  {"form",    ARG_FORM, N_("FILE"),   0,
+   N_("Read format from given file")},
+  {"format",  ARG_FORMAT, N_("FORMAT"), 0,
+   N_("Use this format string")},
+  {"header",  ARG_HEADER, N_("BOOL"),   OPTION_ARG_OPTIONAL,
+   N_("Display header")},
+  {"width",   ARG_WIDTH, N_("NUMBER"), 0,
+   N_("Set output width")},
+  {"reverse", ARG_REVERSE, N_("BOOL"),   OPTION_ARG_OPTIONAL,
+   N_("List messages in reverse order")},
+  {"file",    ARG_FILE, N_("FILE"),   0,
+   N_("[Not yet implemented]")},
   
-  {"license", 'l', 0,        0, N_("Display software license"), -1},
+  {"license", ARG_LICENSE, 0,        0,
+   N_("Display software license"), -1},
 
   { 0 }
 };
@@ -81,27 +89,27 @@ opt_handler (int key, char *arg, void *unused)
   switch (key)
     {
     case '+':
-    case 'f': 
+    case ARG_FOLDER: 
       current_folder = arg;
       break;
       
-    case 'c':
+    case ARG_CLEAR:
       clear = is_true(arg);
       break;
       
-    case 'F':
+    case ARG_FORM:
       mh_read_formfile (arg, &format_str);
       break;
       
-    case 't':
+    case ARG_FORMAT:
       format_str = arg;
       break;
       
-    case 'H':
+    case ARG_HEADER:
       header = is_true(arg);
       break;
       
-    case 'w':
+    case ARG_WIDTH:
       width = strtoul (arg, NULL, 0);
       if (!width)
 	{
@@ -110,15 +118,15 @@ opt_handler (int key, char *arg, void *unused)
 	}
       break;
       
-    case 'r':
+    case ARG_REVERSE:
       reverse = is_true(arg);
       break;
       
-    case 'i':
-      mh_error (_("'i' is not yet implemented."));
+    case ARG_FILE:
+      mh_error (_("option is not yet implemented"));
       break;
       
-    case 'l':
+    case ARG_LICENSE:
       mh_license (argp_program_version);
       break;
       

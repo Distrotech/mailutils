@@ -23,20 +23,17 @@ const char *argp_program_version = "whatnow (" PACKAGE_STRING ")";
 static char doc[] = "GNU MH whatnow";
 static char args_doc[] = N_("[FILE]");
 
-#define ARG_NODRAFTFOLDER 1
-#define ARG_NOEDIT        2
-
 /* GNU options */
 static struct argp_option options[] = {
-  {"draftfolder", 'd', N_("FOLDER"), 0,
+  {"draftfolder", ARG_DRAFTFOLDER, N_("FOLDER"), 0,
    N_("Specify the folder for message drafts")},
   {"nodraftfolder", ARG_NODRAFTFOLDER, 0, 0,
    N_("Undo the effect of the last --draftfolder option")},
-  {"draftmessage" , 'm', N_("MSG"), 0,
+  {"draftmessage" , ARG_DRAFTMESSAGE, N_("MSG"), 0,
    N_("Invoke the draftmessage facility")},
-  {"editor",  'e', N_("PROG"), 0, N_("Set the editor program to use")},
+  {"editor",  ARG_EDITOR, N_("PROG"), 0, N_("Set the editor program to use")},
   {"noedit", ARG_NOEDIT, 0, 0, N_("Suppress the initial edit")},
-  {"prompt", 'p', N_("STRING"), 0, N_("Set the prompt")},
+  {"prompt", ARG_PROMPT, N_("STRING"), 0, N_("Set the prompt")},
   { NULL }
 };
 
@@ -59,11 +56,11 @@ opt_handler (int key, char *arg, void *unused)
 {
   switch (key)
     {
-    case 'd':
+    case ARG_DRAFTFOLDER:
       wh_env.draftfolder = arg;
       break;
       
-    case 'e':
+    case ARG_EDITOR:
       wh_env.editor = arg;
       break;
       
@@ -75,11 +72,11 @@ opt_handler (int key, char *arg, void *unused)
       initial_edit = 0;
       break;
 
-    case 'm':
+    case ARG_DRAFTMESSAGE:
       wh_env.draftmessage = arg;
       break;
 
-    case 'p':
+    case ARG_PROMPT:
       wh_env.prompt = arg;
       break;
       

@@ -26,10 +26,14 @@ static char args_doc[] = "";
 
 /* GNU options */
 static struct argp_option options[] = {
-  {"form",    'F', N_("FILE"),   0, N_("Read format from given file")},
-  {"format",  't', N_("FORMAT"), 0, N_("Use this format string")},
-  {"dump",    'd', NULL,     0, N_("Dump the listing of compiled format code")},
-  { "debug",  'D', NULL,     0, N_("Enable parser debugging output"),},
+  {"form",    ARG_FORM, N_("FILE"),   0,
+   N_("Read format from given file")},
+  {"format",  ARG_FORMAT, N_("FORMAT"), 0,
+   N_("Use this format string")},
+  {"dump",    ARG_DUMP, NULL,     0,
+   N_("Dump the listing of compiled format code")},
+  { "debug",  ARG_DEBUG, NULL,     0,
+    N_("Enable parser debugging output"),},
   { 0 }
 };
 
@@ -64,19 +68,19 @@ opt_handler (int key, char *arg, void *unused)
 {
   switch (key)
     {
-    case 'F':
+    case ARG_FORM:
       mh_read_formfile (arg, &format_str);
       break;
 
-    case 't':
+    case ARG_FORMAT:
       format_str = arg;
       break;
 
-    case 'd':
+    case ARG_DUMP:
       action = action_dump;
       break;
 
-    case 'D':
+    case ARG_DEBUG:
       mh_format_debug (1);
       break;
       

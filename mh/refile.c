@@ -31,16 +31,18 @@ static char args_doc[] = N_("messages folder [folder...]");
 
 /* GNU options */
 static struct argp_option options[] = {
-  {"folder",  'f', N_("FOLDER"), 0, N_("Specify folder to operate upon")},
-  {"draft",   'd', NULL, 0, N_("Use <mh-dir>/draft as the source message")},
-  {"link",    'l', N_("BOOL"), OPTION_ARG_OPTIONAL,
+  {"folder",  ARG_FOLDER, N_("FOLDER"), 0,
+   N_("Specify folder to operate upon")},
+  {"draft",   ARG_DRAFT, NULL, 0,
+   N_("Use <mh-dir>/draft as the source message")},
+  {"link",    ARG_LINK, N_("BOOL"), OPTION_ARG_OPTIONAL,
    N_("(not implemented) Preserve the source folder copy")},
-  {"preserve", 'p', N_("BOOL"), OPTION_ARG_OPTIONAL,
+  {"preserve", ARG_PRESERVE, N_("BOOL"), OPTION_ARG_OPTIONAL,
    N_("(not implemented) Try to preserve message sequence numbers")},
-  {"source", 's', N_("FOLDER"), 0,
+  {"source", ARG_SOURCE, N_("FOLDER"), 0,
    N_("Specify source folder. FOLDER will become the current folder after the program exits.")},
   {"src", 0, NULL, OPTION_ALIAS, NULL},
-  {"file", 'F', N_("FILE"), 0, N_("Use FILE as the source message")},
+  {"file", ARG_FILE, N_("FILE"), 0, N_("Use FILE as the source message")},
   { 0 }
 };
 
@@ -135,27 +137,27 @@ opt_handler (int key, char *arg, void *unused)
   switch (key)
     {
     case '+':
-    case 'f': 
+    case ARG_FOLDER: 
       add_folder (arg);
       break;
 
-    case 'd':
+    case ARG_DRAFT:
       source_file = mh_expand_name (NULL, "draft", 0);
       break;
 
-    case 'l':
+    case ARG_LINK:
       link_flag = is_true(arg);
       break;
       
-    case 'p':
+    case ARG_PRESERVE:
       preserve_flag = is_true(arg);
       break;
 	
-    case 's':
+    case ARG_SOURCE:
       current_folder = arg;
       break;
       
-    case 'F':
+    case ARG_FILE:
       source_file = arg;
       break;
       
@@ -219,7 +221,7 @@ main (int argc, char **argv)
 	  mh_error (_("both message set and source file given"));
 	  exit (1);
 	}
-      mbox = mh_open_msg_file (source_file);
+      mbox = mh_open_msg_file (NULL, source_file);
       mh_msgset_parse (mbox, &msgset, 0, NULL, "first");
     }
   else

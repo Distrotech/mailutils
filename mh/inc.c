@@ -26,19 +26,28 @@ static char args_doc[] = N_("[+folder]");
 
 /* GNU options */
 static struct argp_option options[] = {
-  {"file",    'i', N_("FILE"),   0, N_("Incorporate mail from named file")},
-  {"folder",  'f', N_("FOLDER"), 0, N_("Specify folder to incorporate mail to")},
-  {"audit",   'a', N_("FILE"), 0, N_("Enable audit")},
-  {"noaudit", 'n', 0, 0, N_("Disable audit")},
-  {"changecur", 'c', N_("BOOL"), OPTION_ARG_OPTIONAL,
+  {"file",    ARG_FILE, N_("FILE"),   0,
+   N_("Incorporate mail from named file")},
+  {"folder",  ARG_FOLDER, N_("FOLDER"), 0,
+   N_("Specify folder to incorporate mail to")},
+  {"audit",   ARG_AUDIT, N_("FILE"), 0,
+   N_("Enable audit")},
+  {"noaudit", ARG_NOAUDIT, 0, 0,
+   N_("Disable audit")},
+  {"changecur", ARG_CHANGECUR, N_("BOOL"), OPTION_ARG_OPTIONAL,
    N_("Mark first incorporated message as current (default)")},
-  {"form",    'F', N_("FILE"),   0, N_("Read format from given file")},
-  {"format",  't', N_("FORMAT"), 0, N_("Use this format string")},
-  {"truncate", 'T', N_("BOOL"), OPTION_ARG_OPTIONAL,
+  {"form",    ARG_FORM, N_("FILE"),   0,
+   N_("Read format from given file")},
+  {"format",  ARG_FORMAT, N_("FORMAT"), 0,
+   N_("Use this format string")},
+  {"truncate", ARG_TRUNCATE, N_("BOOL"), OPTION_ARG_OPTIONAL,
    N_("Truncate source mailbox after incorporating (default)")},
-  {"width",   'w', N_("NUMBER"), 0, N_("Set output width")},
-  {"quiet",   'q', 0,        0, N_("Be quiet")},
-  {"license", 'l', 0,        0, N_("Display software license"), -1},
+  {"width",   ARG_WIDTH, N_("NUMBER"), 0,
+   N_("Set output width")},
+  {"quiet",   ARG_QUIET, 0,        0,
+   N_("Be quiet")},
+  {"license", ARG_LICENSE, 0,      0,
+   N_("Display software license"), -1},
   { 0 }
 };
 
@@ -76,36 +85,36 @@ opt_handler (int key, char *arg, void *unused)
 	append_folder = mh_global_profile_get ("Inbox", "inbox");
       break;
 
-    case 'a':
+    case ARG_AUDIT:
       audit_file = arg;
       break;
 
-    case 'n':
+    case ARG_NOAUDIT:
       audit_file = NULL;
       break;
       
-    case 'c':
+    case ARG_CHANGECUR:
       changecur = is_true(arg);
       break;
 
     case '+':
-    case 'f': 
+    case ARG_FOLDER: 
       append_folder = arg;
       break;
       
-    case 'F':
+    case ARG_FORM:
       mh_read_formfile (arg, &format_str);
       break;
       
-    case 'i':
+    case ARG_FILE:
       input_file = arg;
       break;
 
-    case 'T':
+    case ARG_TRUNCATE:
       truncate_source = is_true(arg);
       break;
 
-    case 'w':
+    case ARG_WIDTH:
       width = strtoul (arg, NULL, 0);
       if (!width)
 	{
@@ -114,11 +123,11 @@ opt_handler (int key, char *arg, void *unused)
 	}
       break;
 
-    case 'q':
+    case ARG_QUIET:
       quiet = 1;
       break;
 
-    case 'l':
+    case ARG_LICENSE:
       mh_license (argp_program_version);
       break;
 

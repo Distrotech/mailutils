@@ -23,33 +23,36 @@
 
 const char *argp_program_version = "comp (" PACKAGE_STRING ")";
 static char doc[] = N_("GNU MH comp\v"
+"Options marked with `*' are not yet implemented.\n"
 "Use -help to obtain the list of traditional MH options.");
 static char args_doc[] = "[msg]";
 
-#define ARG_NOEDIT      1
-#define ARG_WHATNOWPROC 2
-#define ARG_NOWHATNOWPROC 3
-#define ARG_NODRAFTFOLDER 4
-#define ARG_FILE 5
-
 /* GNU options */
 static struct argp_option options[] = {
-  {"build", 'b', 0, 0,
+  {"build",         ARG_BUILD, 0, 0,
    N_("Build the draft and quit immediately.")},
-  {"draftfolder", 'd', N_("FOLDER"), 0,
+  {"draftfolder",   ARG_DRAFTFOLDER, N_("FOLDER"), 0,
    N_("Specify the folder for message drafts")},
   {"nodraftfolder", ARG_NODRAFTFOLDER, 0, 0,
    N_("Undo the effect of the last --draftfolder option")},
-  {"draftmessage" , 'm', N_("MSG"), 0,
+  {"draftmessage" , ARG_DRAFTMESSAGE, N_("MSG"), 0,
    N_("Invoke the draftmessage facility")},
-  {"folder",  'f', N_("FOLDER"), 0, N_("Specify folder to operate upon")},
-  {"file",    ARG_FILE, N_("FILE"), 0, N_("Use FILE as the message draft")},
-  {"editor",  'e', N_("PROG"), 0, N_("Set the editor program to use")},
-  {"noedit", ARG_NOEDIT, 0, 0, N_("Suppress the initial edit")},
-  {"form",   'F', N_("FILE"), 0, N_("Read format from given file")},
-  {"whatnowproc", ARG_WHATNOWPROC, N_("PROG"), 0,
-   N_("Set the replacement for whatnow program")},
-  {"use", 'u', N_("BOOL"), OPTION_ARG_OPTIONAL, N_("Use draft file preserved after the last session") },
+  {"folder",        ARG_FOLDER, N_("FOLDER"), 0,
+   N_("Specify folder to operate upon")},
+  {"file",          ARG_FILE, N_("FILE"), 0,
+   N_("Use FILE as the message draft")},
+  {"editor",        ARG_EDITOR, N_("PROG"), 0,
+   N_("Set the editor program to use")},
+  {"noedit",        ARG_NOEDIT, 0, 0,
+   N_("Suppress the initial edit")},
+  {"form",          ARG_FORM, N_("FILE"), 0,
+   N_("Read format from given file")},
+  {"whatnowproc",   ARG_WHATNOWPROC, N_("PROG"), 0,
+   N_("* Set the replacement for whatnow program")},
+  {"nowhatnowproc", ARG_NOWHATNOWPROC, NULL, 0,
+   N_("* Ignore whatnowproc variable. Use standard `whatnow' shell instead.")},
+  {"use",           ARG_USE, N_("BOOL"), OPTION_ARG_OPTIONAL,
+   N_("Use draft file preserved after the last session") },
   { 0 }
 };
 
@@ -86,33 +89,32 @@ opt_handler (int key, char *arg, void *unused)
 {
   switch (key)
     {
-    case 'b':
-    case ARG_NOWHATNOWPROC:
+    case ARG_BUILD:
       build_only = 1;
       break;
       
-    case 'd':
+    case ARG_DRAFTFOLDER:
       wh_env.draftfolder = arg;
       break;
       
-    case 'e':
+    case ARG_EDITOR:
       wh_env.editor = arg;
       break;
       
     case '+':
-    case 'f': 
+    case ARG_FOLDER: 
       current_folder = arg;
       break;
 
-    case 'F':
+    case ARG_FORM:
       formfile = mh_expand_name (MHLIBDIR, arg, 0);
       break;
 
-    case 'm':
+    case ARG_DRAFTMESSAGE:
       wh_env.draftmessage = arg;
       break;
 
-    case 'u':
+    case ARG_USE:
       use_draft = is_true (arg);
       break;
 
@@ -129,6 +131,7 @@ opt_handler (int key, char *arg, void *unused)
       break;
       
     case ARG_WHATNOWPROC:
+    case ARG_NOWHATNOWPROC:
       mh_error (_("option is not yet implemented"));
       exit (1);
       

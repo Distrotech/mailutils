@@ -23,49 +23,44 @@
 
 const char *argp_program_version = "reply (" PACKAGE_STRING ")";
 static char doc[] = N_("GNU MH repl\v"
+"Options marked with `*' are not yet implemented.\n"
 "Use -help to obtain the list of traditional MH options.");
 static char args_doc[] = N_("[+folder] [msg]");
 
-#define ARG_NOEDIT      1
-#define ARG_FCC         2
-#define ARG_FILTER      3
-#define ARG_INPLACE     4
-#define ARG_QUERY       5  
-#define ARG_WHATNOWPROC 6
-#define ARG_NOWHATNOWPROC 7
-#define ARG_NODRAFTFOLDER 8
 
 /* GNU options */
 static struct argp_option options[] = {
-  {"annotate", 'a', N_("BOOL"), OPTION_ARG_OPTIONAL,
-   N_("Add Replied: header to the message being replied to")},
-  {"build", 'b', 0, 0,
+  {"annotate", ARG_ANNOTATE, N_("BOOL"), OPTION_ARG_OPTIONAL,
+   N_("* Add Replied: header to the message being replied to")},
+  {"build",   ARG_BUILD, 0, 0,
    N_("Build the draft and quit immediately.")},
-  {"draftfolder", 'd', N_("FOLDER"), 0,
+  {"draftfolder", ARG_DRAFTFOLDER, N_("FOLDER"), 0,
    N_("Specify the folder for message drafts")},
   {"nodraftfolder", ARG_NODRAFTFOLDER, 0, 0,
    N_("Undo the effect of the last --draftfolder option")},
-  {"draftmessage" , 'm', N_("MSG"), 0,
+  {"draftmessage" , ARG_DRAFTMESSAGE, N_("MSG"), 0,
    N_("Invoke the draftmessage facility")},
-  {"cc",       'c', "{all|to|cc|me}", 0,
+  {"cc", ARG_CC, "{all|to|cc|me}", 0,
    N_("Specify whom to place on the Cc: list of the reply")},
-  {"nocc",     'n', "{all|to|cc|me}", 0,
+  {"nocc", ARG_NOCC, "{all|to|cc|me}", 0,
    N_("Specify whom to remove from the Cc: list of the reply")},
-  {"folder",  'f', N_("FOLDER"), 0, N_("Specify folder to operate upon")},
-  {"editor",  'e', N_("PROG"), 0, N_("Set the editor program to use")},
+  {"folder",  ARG_FOLDER, N_("FOLDER"), 0, N_("Specify folder to operate upon")},
+  {"editor", ARG_EDITOR, N_("PROG"), 0, N_("Set the editor program to use")},
   {"noedit", ARG_NOEDIT, 0, 0, N_("Suppress the initial edit")},
-  {"fcc",    ARG_FCC, N_("FOLDER"), 0, N_("Set the folder to receive Fcc's.")},
+  {"fcc",    ARG_FCC, N_("FOLDER"), 0, N_("* Set the folder to receive Fcc's.")},
   {"filter", ARG_FILTER, N_("PROG"), 0,
-   N_("Set the filter program to preprocess the body of the message being replied")},
-  {"form",   'F', N_("FILE"), 0, N_("Read format from given file")},
+   N_("* Set the filter program to preprocess the body of the message being replied")},
+  {"form",   ARG_FORM, N_("FILE"), 0, N_("Read format from given file")},
   {"inplace", ARG_INPLACE, N_("BOOL"), OPTION_ARG_OPTIONAL,
-   N_("Annotate the message in place")},
+   N_("* Annotate the message in place")},
   {"query", ARG_QUERY, N_("BOOL"), OPTION_ARG_OPTIONAL,
-   N_("Query for addresses to place in To: and Cc: lists")},
-  {"width", 'w', N_("NUMBER"), 0, N_("Set output width")},
+   N_("* Query for addresses to place in To: and Cc: lists")},
+  {"width", ARG_WIDTH, N_("NUMBER"), 0, N_("Set output width")},
   {"whatnowproc", ARG_WHATNOWPROC, N_("PROG"), 0,
-   N_("Set the replacement for whatnow program")},
-  {"use", 'u', N_("BOOL"), OPTION_ARG_OPTIONAL, N_("Use draft file preserved after the last session") },
+   N_("* Set the replacement for whatnow program")},
+  {"nowhatnowproc", ARG_NOWHATNOWPROC, NULL, 0,
+   N_("* Ignore whatnowproc variable. Use standard `whatnow' shell instead.")},
+  {"use", ARG_USE, N_("BOOL"), OPTION_ARG_OPTIONAL, N_("Use draft file preserved after the last session") },
   { 0 }
 };
 
@@ -133,47 +128,46 @@ opt_handler (int key, char *arg, void *unused)
   
   switch (key)
     {
-    case 'b':
-    case ARG_NOWHATNOWPROC:
+    case ARG_BUILD:
       build_only = 1;
       break;
       
-    case 'c':
+    case ARG_CC:
       rcpt_mask |= decode_cc_flag ("-cc", arg);
       break;
 
-    case 'n':
+    case ARG_NOCC:
       rcpt_mask &= ~decode_cc_flag ("-nocc", arg);
       break;
 	
-    case 'd':
+    case ARG_DRAFTFOLDER:
       wh_env.draftfolder = arg;
       break;
       
-    case 'e':
+    case ARG_EDITOR:
       wh_env.editor = arg;
       break;
       
     case '+':
-    case 'f': 
+    case ARG_FOLDER: 
       current_folder = arg;
       break;
 
-    case 'F':
+    case ARG_FORM:
       s = mh_expand_name (MHLIBDIR, arg, 0);
       mh_read_formfile (s, &format_str);
       free (s);
       break;
 
-    case 'm':
+    case ARG_DRAFTMESSAGE:
       wh_env.draftmessage = arg;
       break;
 
-    case 'u':
+    case ARG_USE:
       use_draft = is_true (arg);
       break;
       
-    case 'w':
+    case ARG_WIDTH:
       width = strtoul (arg, NULL, 0);
       if (!width)
 	{
@@ -194,11 +188,12 @@ opt_handler (int key, char *arg, void *unused)
       query_mode = is_true (arg);
       break;
       
-    case 'a':
+    case ARG_ANNOTATE:
     case ARG_FCC:
     case ARG_FILTER:
     case ARG_INPLACE:
     case ARG_WHATNOWPROC:
+    case ARG_NOWHATNOWPROC:
       mh_error (_("option is not yet implemented"));
       exit (1);
       

@@ -35,10 +35,12 @@ static char args_doc[] = N_("[+folder]");
 
 /* GNU options */
 static struct argp_option options[] = {
-  {"folder",  'f', N_("FOLDER"), 0, N_("Specify the folder to delete")},
-  {"interactive", 'i', N_("BOOL"), OPTION_ARG_OPTIONAL,
+  {"folder",  ARG_FOLDER, N_("FOLDER"), 0,
+   N_("Specify the folder to delete")},
+  {"interactive", ARG_INTERACTIVE, N_("BOOL"), OPTION_ARG_OPTIONAL,
     N_("Interactive mode: ask for confirmation before removing each folder")},
-  {"recursive", 'r', NULL, 0, N_("Recursively delete all subfolders")},
+  {"recursive", ARG_RECURSIVE, NULL, 0,
+   N_("Recursively delete all subfolders")},
   { 0 }
 };
 
@@ -58,16 +60,16 @@ opt_handler (int key, char *arg, void *unused)
   switch (key)
     {
     case '+':
-    case 'f':
+    case ARG_FOLDER:
       explicit_folder = 1;
       current_folder = arg;
       break;
 
-    case 'i':
+    case ARG_INTERACTIVE:
       interactive = is_true (arg);
       break;
 
-    case 'r':
+    case ARG_RECURSIVE:
       recurse = is_true (arg);
       break;
       
