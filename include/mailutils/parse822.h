@@ -67,6 +67,7 @@ extern int parse822_quoted_pair    __P ((const char** p, const char* e, char** q
 extern int parse822_quoted_string  __P ((const char** p, const char* e, char** qstr));
 extern int parse822_word           __P ((const char** p, const char* e, char** word));
 extern int parse822_phrase         __P ((const char** p, const char* e, char** phrase));
+extern int parse822_d_text         __P ((const char** p, const char* e, char** dtext));
 
 /* From RFC 822, 6.1 Address Specification Syntax */
 

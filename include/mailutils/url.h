@@ -1,5 +1,5 @@
 /* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU Library General Public License as published by
@@ -48,6 +48,12 @@ extern int url_get_port    __P ((const url_t, long *));
 extern int url_get_path    __P ((const url_t, char *, size_t, size_t *));
 extern int url_get_query   __P ((const url_t, char *, size_t, size_t *));
 extern const char* url_to_string   __P ((const url_t));
+
+extern int url_is_same_scheme __P ((url_t, url_t));
+extern int url_is_same_user   __P ((url_t, url_t));
+extern int url_is_same_path   __P ((url_t, url_t));
+extern int url_is_same_host   __P ((url_t, url_t));
+extern int url_is_same_port   __P ((url_t, url_t));
 
 #ifdef __cplusplus
 }

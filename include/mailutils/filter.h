@@ -22,9 +22,8 @@
 #ifndef _MAILUTILS_FILTER_H
 #define _MAILUTILS_FILTER_H
 
+#include <stdlib.h>
 #include <mailutils/list.h>
-#include <mailutils/monitor.h>
-#include <mailutils/iterator.h>
 #include <mailutils/property.h>
 #include <mailutils/stream.h>
 
@@ -40,28 +39,43 @@
 extern "C" {
 #endif
 
+/* Type.  */
+#define MU_FILTER_DECODE 0
+#define MU_FILTER_ENCODE 1
+
+/* Direction.  */
+#define MU_FILTER_READ  MU_STREAM_READ
+#define MU_FILTER_WRITE MU_STREAM_WRITE
+#define MU_FILTER_RDWR  MU_STREAM_RDWR
+
 struct _filter;
 typedef struct _filter * filter_t;
 
-struct _filter
+struct _filter_record;
+typedef struct _filter_record * filter_record_t;
+
+struct _filter_record
 {
-  const char *encoding;
-  int (*_init)     __P ((filter_t));
-  int (*_read)     __P ((filter_t, char *, size_t, off_t, size_t *));
-  int (*_readline) __P ((filter_t, char *, size_t, off_t, size_t *));
-  int (*_write)    __P ((filter_t, const char *, size_t, off_t, size_t *));
-  void (*_destroy) __P ((filter_t));
-  stream_t stream;
-  stream_t filter_stream;
-  property_t property;
-  int direction;
+  const char *name;
+  int  (*_filter)     __P ((filter_t));
   void *data;
+
+  /* Stub function return the fields.  */
+  int (*_is_filter)  __P ((filter_record_t, const char *));
+  int (*_get_filter) __P ((filter_record_t, int (*(*_filter)) __P ((filter_t))));
 };
 
-extern int filter_create __P ((stream_t *, stream_t, const char *));
+
+extern int filter_create   __P ((stream_t *, stream_t, const char*, int, int));
 extern int filter_get_list __P ((list_t *));
 
-extern filter_t rfc822_filter;
+/* List of defaults.  */
+extern filter_record_t rfc822_filter;
+extern filter_record_t qp_filter; /* quoted-printable.  */
+extern filter_record_t base64_filter;
+extern filter_record_t binary_filter;
+extern filter_record_t bit8_filter;
+extern filter_record_t bit7_filter;
 
 #ifdef __cplusplus
 }
