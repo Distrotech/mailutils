@@ -163,9 +163,9 @@ AC_HEADER_STDC
 AC_HEADER_DIRENT
 AM_C_PROTOTYPES
 AC_CHECK_HEADERS(argp.h errno.h fcntl.h inttypes.h libgen.h limits.h malloc.h \
- paths.h shadow.h stdarg.h stdio.h stdlib.h string.h strings.h sys/file.h \
- sysexits.h syslog.h termios.h termio.h sgtty.h utmp.h utmpx.h unistd.h obstack.h \
- termcap.h)
+ paths.h shadow.h socket.h sys/socket.h stdarg.h stdio.h stdlib.h string.h \
+ strings.h sys/file.h sysexits.h syslog.h termios.h termio.h sgtty.h utmp.h \
+ utmpx.h unistd.h obstack.h termcap.h)
 
 dnl Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
@@ -174,12 +174,24 @@ AC_TYPE_MODE_T
 AC_TYPE_OFF_T
 AC_TYPE_PID_T
 AC_TYPE_SIZE_T
-AC_CHECK_TYPE(ssize_t, int)
+AC_CHECK_TYPE(ssize_t, , AC_DEFINE(ssize_t, int, [Define to int if <sys/types.h> does not define]))
 AC_TYPE_SIGNAL
 AC_DECL_SYS_SIGLIST
 AC_STRUCT_TIMEZONE
-AC_CHECK_TYPE(ino_t, unsigned long)
-AC_CHECK_TYPE(dev_t, unsigned long)
+AC_CHECK_TYPE(ino_t, , AC_DEFINE(ino_t, unsigned long, [Define to unsigned long if <sys/types.h> does not define]))
+AC_CHECK_TYPE(dev_t, , AC_DEFINE(dev_t, unsigned long, [Define to unsigned long if <sys/types.h> does not define]))
+AC_CHECK_TYPE(socklen_t, , AC_DEFINE(socklen_t, int, [Define to int if <sys/types.h> does not define]),
+[
+#if HAVE_SYS_TYPES_H
+# include <sys/types.h>
+#endif
+#ifdef HAVE_SYS_SOCKET_H
+# include <sys/socket.h>
+#endif
+#ifdef HAVE_SOCKET_H
+# include <socket.h>
+#endif
+])
 
 AC_STRUCT_TM
 AC_CHECK_MEMBERS([struct tm.tm_zone, struct tm.tm_gmtoff, struct tm.tm_isdst],
