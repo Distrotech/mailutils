@@ -1,5 +1,12 @@
 2001-10-11 Alain Magloire
 
+	* mailbox/folder_imap.c (imap_quoted_string): Free the buffer.
+	(imap_string): Free the buffer.
+	(imap_body): Check if we already have the fheader header.
+	(imap_scan): Forgot the break in the switch.
+
+2001-10-11 Alain Magloire
+
 	In order to boost performance, when doing the scan we use
 	the approach of downloading part of the header of the total
 	set of messages.  The it was done before is that the headers

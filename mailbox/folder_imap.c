@@ -912,6 +912,8 @@ imap_quoted_string (f_imap_t f_imap, char **ptr)
       (*ptr)++;
     }
   f_imap->callback.total = *ptr - bquote;
+  if (f_imap->callback.buffer)
+    free (f_imap->callback.buffer);
   f_imap->callback.buffer = calloc (f_imap->callback.total + 1, 1);
   f_imap->callback.buflen = f_imap->callback.total;
   /* Fill the call back buffer. The if is redundant there should always
@@ -942,6 +944,8 @@ imap_string (f_imap_t f_imap, char **ptr)
 	{
 	  (*ptr)++;
 	  /* Reset the buffer to the beginning.  */
+	  if (f_imap->callback.buffer)
+	    free (f_imap->callback.buffer);
 	  f_imap->callback.buffer = calloc (f_imap->callback.nleft + 1, 1);
 	  f_imap->callback.buflen = f_imap->callback.nleft;
 	  f_imap->ptr = f_imap->buffer;
@@ -1370,7 +1374,8 @@ imap_body (f_imap_t f_imap, char **ptr)
 	}
     }
   status = imap_string (f_imap, ptr);
-  if (f_imap->state == IMAP_SCAN_ACK && f_imap->callback.total)
+  if (f_imap->callback.msg_imap->fheader == NULL
+      && f_imap->state == IMAP_SCAN_ACK && f_imap->callback.total)
     {
       status = header_create (&f_imap->callback.msg_imap->fheader,
 			      f_imap->callback.buffer, f_imap->callback.total,

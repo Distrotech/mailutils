@@ -568,6 +568,7 @@ imap_scan (mailbox_t mailbox, size_t msgno, size_t *pcount)
       status = imap_parse (f_imap);
       CHECK_EAGAIN (f_imap, status);
       MAILBOX_DEBUG0 (mailbox, MU_DEBUG_PROT, f_imap->buffer);
+      break;
 
     default:
       CHECK_EAGAIN (f_imap, status);
