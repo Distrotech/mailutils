@@ -23,15 +23,15 @@
 
 int
 mail_delete0 ()
-    {
-      message_t msg;
-      attribute_t attr;
-      if (mailbox_get_message (mbox, cursor, &msg) != 0)
-	return 1;
-      message_get_attribute (msg, &attr);
-      attribute_set_deleted (attr);
-      return 0;
-    }
+{
+  message_t msg;
+  attribute_t attr;
+  if (mailbox_get_message (mbox, cursor, &msg) != 0)
+    return 1;
+  message_get_attribute (msg, &attr);
+  attribute_set_deleted (attr);
+  return 0;
+}
 
 int
 mail_delete (int argc, char **argv)
@@ -62,6 +62,10 @@ mail_delete (int argc, char **argv)
       
       cursor = realcursor;
     }
+  
+  if (util_find_env("autoprint")->set)
+    util_do_command("print");
+  
   return rc;
 }
 
