@@ -46,6 +46,7 @@ extern "C" {
 #define MU_HEADER_RESENT_MESSAGE_ID         "Resent-Message-ID"
 #define MU_HEADER_IN_REPLY_TO               "In-Reply-To"
 #define MU_HEADER_REFERENCE                 "Reference"
+#define MU_HEADER_REFERENCES                "References"
 #define MU_HEADER_ENCRYPTED                 "Encrypted"
 #define MU_HEADER_PRECEDENCE                "Precedence"
 #define MU_HEADER_STATUS                    "Status"
