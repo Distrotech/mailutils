@@ -1,3 +1,9 @@
+2003-01-14  Wojciech Polak
+
+	* auth/tls.c (mu_init_tls_libs): gnutls_global_init() returns
+	  zero on success, so reverse this state for 'tls_available'
+	  variable.
+
 2003-01-14  Sergey Poznyakoff 
 
 	* m4/db2.m4: New file. Version-specific stuff for Berkeley DB.
@@ -45,9 +51,6 @@
 	* mail/write.c: Likewise.
 	  
 2003-01-14  Wojciech Polak
-
-	* doc/rfc/Makefile.am: Added rfc2595.txt
-	* TODO: Updated.
 
 	* pop3d/pop3d.h (ERR_TLS_ACTIVE, TLS_ACTIVE): New defines.
 	* pop3d/pop3d.c: Added support for ERR_TLS_ACTIVE.
