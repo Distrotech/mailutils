@@ -68,7 +68,7 @@ typedef struct _mailbox
     int (*_add_message) __P ((struct _mailbox *, char *));
 	int (*_scan) __P ((struct _mailbox *));
     int (*_is_deleted) __P ((struct _mailbox *, unsigned int));
-	int (*_is_updated) __P ((struct mailbox *));
+	int (*_is_updated) __P ((struct _mailbox *));
     int (*_lock) __P((struct _mailbox *, mailbox_lock_t));
     char *(*_get_body) __P ((struct _mailbox *, unsigned int));
     char *(*_get_header) __P ((struct _mailbox *, unsigned int));

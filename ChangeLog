@@ -1,3 +1,7 @@
+1999-11-08  Sean 'Shaleh' Perry  <shaleh@debian.org>
+
+	* cleaned up some of the auto{make,conf} magic for non-Linux 
+
 1999-11-07  Sean 'Shaleh' Perry  <shaleh@debian.org>
 
 	* TODO: restructuring, now split into sections 

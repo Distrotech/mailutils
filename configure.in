@@ -45,6 +45,13 @@ fi
 
 AC_SUBST(AUTHLIBS)
 
+dnl Do we need extra libs for networking?
+AC_CHECK_FUNC(gethostbyname, [true],
+    AC_CHECK_LIB(nsl, gethostbyaddr, LIBS="-lnsl $LIBS"))
+
+AC_CHECK_FUNC(socket, [true],
+    AC_CHECK_LIB(socket, socket, LIBS="-lsocket $LIBS"))
+
 dnl Output Makefiles
 AC_OUTPUT(Makefile libmailbox/Makefile mail/Makefile pop3d/Makefile
 	imap4d/Makefile lib/Makefile doc/Makefile)
