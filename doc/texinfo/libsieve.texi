@@ -115,7 +115,7 @@ typedef struct @{
   sieve_data_type type;        /* Type of the data */
   union @{
     char *string;              /* String value or identifier */
-    long number;               /* Numeric value */
+    size_t number;               /* Numeric value */
     list_t list;               /* List value */
     sieve_runtime_tag_t *tag;  /* Tag value */
     void *ptr;                 /* Pointer value */ 
@@ -308,7 +308,9 @@ associated with @code{data}. See the description of
 
 @deftp {Function Type} sieve_tag_checker_t
 @example
-typedef int (*sieve_tag_checker_t) (const char *@var{name}, list_t @var{tags}, list_t @var{args})
+typedef int (*sieve_tag_checker_t) (const char *@var{name}, 
+                                    list_t @var{tags}, 
+                                    list_t @var{args})
 @end example
 
 A pointer to tag checker function. The purpose of the function is to
@@ -422,7 +424,7 @@ Returns the mailer.
 @deftypefn {char *} sieve_get_daemon_email __P((sieve_machine_t @var{mach})
 This function returns the @dfn{daemon email} associated with this
 instance of sieve machine. The daemon email is an email address used in
-envelope from addresses of automatic reply messages. By default it local
+envelope from addresses of automatic reply messages. By default its local
 part is @samp{<MAILER-DAEMON>} and the domain part is the machine name.
 @end deftypefn
 
@@ -434,7 +436,8 @@ follows:
 
 @example
 int
-_sieve_default_error_printer (void *unused, const char *fmt, va_list ap)
+_sieve_default_error_printer (void *unused, const char *fmt, 
+                              va_list ap)
 @{
   return mu_verror (fmt, ap);
 @}
@@ -715,7 +718,8 @@ markers are taken verbatim. For example:
 
 @example
 text:
-**This is an authomatic response from my message filtering program.**
+** This is an authomatic response from my message **
+** filtering program.                             **
 
 I can not attend your message right now. However it
 will be saved, and I will read it as soon as I am back.
@@ -860,7 +864,7 @@ The effect of this statement is that the sequence of actions between the
 curly braces is executed only if the @code{condition} evaluates to
 @code{true}.
 
-The more elaborate form of this statement allows to execute two
+A more elaborate form of this statement allows to execute two
 different sets of actions depending on whether the condition is
 true or not:
 

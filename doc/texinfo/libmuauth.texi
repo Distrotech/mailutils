@@ -13,7 +13,7 @@ library mechanism.
 
 @menu
 * Data Types::
-* Initializing the lubmuauth::
+* Initializing the libmuauth::
 * Module Creation and Destruction::
 * Obtaining Authorization Information::
 * Existing Modules::
@@ -57,8 +57,8 @@ For authorization handlers it is @code{const char*} if the handler is called by
 @code{mu_get_auth_by_uid()}.
 
 For authentication handlers it is always @code{struct mu_auth_data*}
-representing the user's data obtained by a previous call to
-@code{mu_get_auth_by_@dots{}} call.
+representing the user's data obtained by a previous call to a
+@code{mu_get_auth_by_@dots{}} function.
 
 @item func_data
 Any data associated with this handler.
@@ -114,8 +114,8 @@ struct mu_auth_module @{
 @end example
 @end deftp
 
-@node Initializing the lubmuauth
-@section Initializing the lubmuauth
+@node Initializing the libmuauth
+@section Initializing the libmuauth
 
 @deftypefn void mu_auth_init (void)
 
@@ -289,7 +289,7 @@ main (int argc, char **argv)
 @end group
 @end example
 
-Otherwise, if you program will use it's own modules, first register
+Otherwise, if your program will use it's own modules, first register
 them with @code{mu_auth_register_module} and then call
 @code{mu_auth_init()}, e.g.:
 
