@@ -43,7 +43,7 @@ mail_test -noprompt "quit" \
 # Now check the mbox contents
 mail_start -reuse-spool "--file=%mbox"
 mail_test "headers" \
-	">N   1 Sergey Poznyakoff  Sun Jul 16 12:11  12/425   MBOX"\
+	">N   1 Sergey Poznyakoff  Tue Jul 16 12:11  12/425   MBOX"\
 	" U   2 Bar                Fri Dec 28 23:28  16/579   Re: Jabberwocky"
 
 # Save messages to the third mailbox
@@ -52,7 +52,7 @@ mail_test "save 1 2 +three" \
 	"\"$MU_FOLDER_DIR/three\"  28/1004"
 
 mail_test "headers" \
-	">*   1 Sergey Poznyakoff  Sun Jul 16 12:11  12/425   MBOX"\
+	">*   1 Sergey Poznyakoff  Tue Jul 16 12:11  12/425   MBOX"\
 	" *   2 Bar                Fri Dec 28 23:28  16/579   Re: Jabberwocky"
 
 mail_test -noprompt "quit" \
@@ -61,7 +61,7 @@ mail_test -noprompt "quit" \
 # Examine its contents
 mail_start -reuse-spool "--file=$MU_FOLDER_DIR/three"
 mail_test "headers" \
-	">N   1 Sergey Poznyakoff  Sun Jul 16 12:11  12/425   MBOX"\
+	">N   1 Sergey Poznyakoff  Tue Jul 16 12:11  12/425   MBOX"\
 	" U   2 Bar                Fri Dec 28 23:28  16/579   Re: Jabberwocky"
 
 # Test uppercase commands (Save and Copy)
@@ -73,7 +73,7 @@ mail_test "file \"$MU_FOLDER_DIR/gray\"" \
 	"Held 1 message in $MU_FOLDER_DIR/three"
 
 mail_test "headers" \
-	">N   1 Sergey Poznyakoff  Sun Jul 16 12:11  12/425   MBOX"
+	">N   1 Sergey Poznyakoff  Tue Jul 16 12:11  12/425   MBOX"
 mail_exit
 
 # Test write 
