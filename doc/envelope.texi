@@ -1,26 +1,46 @@
 @example
 @code{/* Prefix @emph{envelope_} is reserved */}
 @code{#include <mailutils/envelope.h>}
-
 @end example
 
-@deftypefun int envelope_create (envelope_t *, void *);
+@deftypefun int envelope_date (envelope_t, char *, size_t, size_t *);
+
+Get the date that the message was delivered to the mailbox, in
+something close to ANSI ctime() format: Mon Jul 05 13:08:27 1999.
+
 @end deftypefun
 
-@deftypefun void envelope_destroy (envelope_t *, void *);
+@deftypefun int envelope_sender (envelope_t, char *, size_t, size_t *);
+
+Get the address that this message was reportedly received from. This
+would be the "mail from" argument if the message was delivered
+or received via SMTP, for example.
+
 @end deftypefun
 
 @deftypefun int envelope_get_message (envelope_t, message_t *);
 @end deftypefun
 
-@deftypefun int envelope_set_sender (envelope_t, int (*_sender) __P ((envelope_t, char *, size_t, size_t*)), void *);
+@deftypefun int envelope_create (envelope_t *, void *);
+Primarily for internal use.
 @end deftypefun
 
-@deftypefun int envelope_sender (envelope_t, char *, size_t, size_t *);
+@deftypefun void envelope_destroy (envelope_t *, void *);
+Primarily for internal use.
+@end deftypefun
+
+@deftypefun int envelope_set_sender (envelope_t, int (*_sender) __P ((envelope_t, char *, size_t, size_t*)), void *);
+
+Primarily for internal use. The implementation of envelope_t depends
+on the mailbox type, this allows the function which actually gets
+the sender to be set by the creator of an envelope_t.
+
 @end deftypefun
 
 @deftypefun int envelope_set_date (envelope_t, int (*_date) __P ((envelope_t, char *, size_t, size_t *)), void *);
-@end deftypefun
 
-@deftypefun int envelope_date (envelope_t, char *, size_t, size_t *);
+Primarily for internal use. The implementation of envelope_t depends
+on the mailbox type, this allows the function which actually gets
+the date to be set by the creator of an envelope_t.
+
 @end deftypefun
