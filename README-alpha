@@ -3,8 +3,9 @@ This is the GNU mailutils package.
 This is a *pre-release* version, and not ready for production use yet. If you
 are taking source from CVS, you will need to have libtool, automake, and
 autoconf installed to help contribute. The script autogen.sh is provided to
-help autoconfigure mailutils from the cvs src.  See the file 'INSTALL' for
-(generic) installation instructions.
+help autoconfigure mailutils from the cvs src.  After you run
+autogen.sh, there should be a file 'INSTALL' with (generic)
+installation instructions.
 
 Report bugs to <bug-mailutils@gnu.org>
 
