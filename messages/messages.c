@@ -105,7 +105,7 @@ main (int argc, char **argv)
 
   mu_argp_init (program_version, NULL);
 #ifdef WITH_TLS
-    mu_tls_init_client_argp ();
+  mu_tls_init_client_argp ();
 #endif
   mu_argp_parse (&argp, &argc, &argv, 0, argp_capa, NULL, &args);
 

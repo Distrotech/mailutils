@@ -20,8 +20,13 @@
 noinst_LTLIBRARIES = libmailutils.la
 
 INCLUDES = -I${top_srcdir}/include -I${top_builddir}/include/mailutils/gnu @INTLINCS@
-libmailutils_la_SOURCES = basename.c daemon.c md5.c \
-                         mu_dbm.c xstrdup.c xmalloc.c 
+libmailutils_la_SOURCES = \
+ basename.c\
+ daemon.c\
+ md5.c\
+ mu_dbm.c\
+ xstrdup.c\
+ xmalloc.c 
 
 EXTRA_DIST = alloca.c fnmatch.c getpass.c malloc.c obstack.c \
  realloc.c setenv.c snprintf.c strncasecmp.c \
