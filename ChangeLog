@@ -1,3 +1,8 @@
+2003-03-24  Sergey Poznyakoff 
+
+	* mh/mhn.c (stream_getline,parse_content_type): A couple of
+	  bugfixes.
+
 2003-03-24  Sergey Poznyakoff
 
 	* mh/mhn.c: Implemented external-body.
