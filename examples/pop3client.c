@@ -681,7 +681,7 @@ com_connect (char *arg)
       stream_t tcp;
 
       if (verbose)
-	com_verbose ("verbose on");
+	com_verbose ("on");
       status =
 	tcp_stream_create (&tcp, host, port,
 			   MU_STREAM_READ | MU_STREAM_NO_CHECK);
@@ -703,7 +703,7 @@ com_connect (char *arg)
 }
 
 int
-com_disconnect (char *arg)
+com_disconnect (char *arg ARG_UNUSED)
 {
   (void) arg;
   if (pop3)
@@ -718,11 +718,12 @@ com_disconnect (char *arg)
 int
 com_quit (char *arg ARG_UNUSED)
 {
+  int status = 0;
   if (pop3)
     {
       if (mu_pop3_quit (pop3) == 0)
 	{
-	  mu_pop3_disconnect (pop3);
+	  status = com_disconnect (arg);
 	}
       else
 	{
@@ -731,7 +732,7 @@ com_quit (char *arg ARG_UNUSED)
     }
   else
     fprintf (stdout, "Try 'exit' to leave %s\n", progname);
-  return 0;
+  return status;
 }
 
 int

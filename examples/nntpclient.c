@@ -32,6 +32,7 @@
 #include <termios.h>
 #include <signal.h>
 #include <ctype.h>
+#include <time.h>
 
 #ifdef WITH_READLINE
 # include <readline/readline.h>
@@ -57,23 +58,31 @@ COMMAND;
 /* The names of functions that actually do the manipulation. */
 int com_article (char *);
 int com_body (char *);
+int com_connect (char *);
 int com_date (char *);
+int com_disconnect (char *);
+int com_exit (char *);
 int com_group (char *);
 int com_head (char *);
-int com_last (char *);
-int com_list_extensions (char *);
-int com_mode_reader (char *);
-int com_next (char *);
-int com_quit (char *);
-int com_mode_reader (char *);
-
-int com_exit (char *);
-
 int com_help (char *);
+int com_ihave (char *);
+int com_info (char *);
+int com_last (char *);
+int com_list (char *);
+int com_list_active (char *);
+int com_list_active_times (char *);
+int com_list_distributions (char *);
+int com_list_distribpats (char *);
+int com_list_extensions (char *);
+int com_list_newsgoups (char *);
+int com_mode (char *);
+int com_mode_reader (char *);
+int com_newgroups (char *);
+int com_newnews (char *);
+int com_next (char *);
+int com_post (char *);
+int com_quit (char *);
 int com_stat (char *);
-
-int com_connect (char *);
-int com_disconnect (char *);
 int com_verbose (char *);
 
 void initialize_readline (void);
@@ -86,28 +95,27 @@ int valid_argument (const char *, char *);
 void sig_int (int);
 
 COMMAND commands[] = {
-  {"mode reader", com_mode_reader, "Set mode reader: MODE READER"},
-  {"list extensions", com_list_extensions, "List extensions: LIST EXTENSIONS"},
-  {"quit", com_quit, "Terminate the session: QUIT"},
-  {"group", com_group, "Select a group: GROUP group"},
-  {"next", com_next, "Set current to the next article: NEXT"},
-  {"last", com_last, "Set current to the previous article: LAST"},
-
   {"article", com_article, "Retrieve an article: ARTICLE [message_id|number]"},
-  {"header", com_head, "Retrieve the head of an article: HEAD [message_id|number]"},
   {"body", com_body, "Retrieve the body of an article: BODY [message_id|number]"},
-
-  {"date", com_date, "Server date: DATE"},
-  {"stat", com_stat, "Check the status of an article : STAT [message_id|number]"},
-
   {"connect", com_connect, "Open connection: connect hostname [port]"},
+  {"date", com_date, "Server date: DATE"},
   {"disconnect", com_disconnect, "Close connection: disconnect"},
-
-  {"verbose", com_verbose, "Enable Protocol tracing: verbose [on|off]"},
   {"exit", com_exit, "exit program"},
-
-  {"help", com_help, "Display this text"},
-  {"?", com_help, "Synonym for `help'"},
+  {"group", com_group, "Select a group: GROUP group"},
+  {"head", com_head, "Retrieve the head of an article: HEAD [message_id|number]"},
+  {"help", com_help, "Ask the server for info: HELP"},
+  {"ihave", com_ihave, "Transfer an article to the server : IHAVE <<enter the article, finish with a '.' or ctrl-D>>"},
+  {"last", com_last, "Set current to the previous article: LAST"},
+  {"list", com_list, "List : LIST [ACTIVE|ACTIVE.TIMES|DISTRIB.PATS|DISTRIBUTIONS|EXTENSIONS|NEWSGROUPS]"},
+  {"mode", com_mode, "Set mode reader: MODE READER"},
+  {"newgroups", com_newgroups, "Ask for new groups : NEWGROUPS [yyyymmdd hhmmss [GMT]]"},
+  {"newnews", com_newnews, "Ask for new news : NEWNEWS wildmat [yyyymmdd hhmmss]"},
+  {"next", com_next, "Set current to the next article: NEXT"},
+  {"post", com_post, "Post an article to the server : POST <<enter the article, finish with a '.' or ctrl-D>>"},
+  {"quit", com_quit, "Terminate the session: QUIT"},
+  {"stat", com_stat, "Check the status of an article : STAT [message_id|number]"},
+  {"verbose", com_verbose, "Enable Protocol tracing: verbose {on|off}"},
+  {"?", com_info, "Dysplay this help"},
   {NULL, NULL, NULL}
 };
 
@@ -365,7 +373,7 @@ com_verbose (char *arg)
   verbose = (strcmp (arg, "on") == 0);
   if (nntp != NULL)
     {
-      if (verbose == 1)
+      if (verbose)
 	{
 	  mu_debug_t debug;
 	  mu_debug_create (&debug, NULL);
@@ -378,6 +386,15 @@ com_verbose (char *arg)
 	}
     }
   return status;
+}
+
+int com_mode (char *arg)
+{
+  if (!valid_argument("mode", arg))
+    return EINVAL;
+  if (strncasecmp (arg, "READER", 6) == 0)
+    return com_mode_reader (arg);
+  return EINVAL;
 }
 
 int
@@ -455,11 +472,11 @@ com_article (char *arg)
     return EINVAL;
 
   if ((arg == NULL || *arg == '\0') || (arg != NULL && *arg == '<'))
-    status = mu_nntp_body_id (nntp, arg, NULL, NULL, &stream);
+    status = mu_nntp_article_id (nntp, arg, NULL, NULL, &stream);
   else
     {
       unsigned long number = strtoul (arg, NULL, 10);
-      status = mu_nntp_body (nntp, number, NULL, NULL, &stream);
+      status = mu_nntp_article (nntp, number, NULL, NULL, &stream);
     }
 
    if (status == 0 && stream != NULL)
@@ -490,6 +507,59 @@ com_group (char *arg)
   return status;
 }
 
+int com_list (char *arg)
+{
+  int status = EINVAL;
+  char *keyword = NULL;
+
+  if (arg != NULL)
+    {
+      char *p = strchr (arg, ' ');
+      if (p)
+	{
+	  *p++ = '\0';
+	  keyword = arg;
+	  arg = p;
+	}
+      else
+	{
+	  keyword = arg;
+	}
+    }
+  else
+    keyword = arg;
+
+  if (keyword == NULL || *keyword == '\0')
+    {
+      status = com_list_active (arg);
+   }
+  else if (strncasecmp (keyword, "ACTIVE.TIMES", 12) == 0)
+    {
+      status = com_list_active_times (arg);
+    }
+  else if (strncasecmp (keyword, "ACTIVE", 6) == 0)
+    {
+      status = com_list_active (arg);
+    }
+  else if (strncasecmp (keyword, "EXTENSIONS", 10) == 0)
+    {
+      status = com_list_extensions (arg);
+    }
+  else if (strncasecmp (keyword, "DISTRIBUTIONS", 13) == 0)
+    {
+      status = com_list_distributions (arg);
+    }
+  else if (strncasecmp (keyword, "DISTRIB.PATS", 12) == 0)
+    {
+      status = com_list_distrib_pats (arg);
+    }
+  else if (strncasecmp (keyword, "NEWSGROUPS", 10) == 0)
+    {
+      status = com_list_newsgroups (arg);
+    }
+  return status;
+}
+
 int
 com_list_extensions (char *arg ARG_UNUSED)
 {
@@ -500,12 +570,13 @@ com_list_extensions (char *arg ARG_UNUSED)
     {
       iterator_t iterator = NULL;
       list_get_iterator (list, &iterator);
+      printf ("List Extension:\n");
       for (iterator_first (iterator);
 	   !iterator_is_done (iterator); iterator_next (iterator))
 	{
 	  char *extension = NULL;
 	  iterator_current (iterator, (void **) &extension);
-	  printf ("Extension: %s\n", (extension) ? extension : "");
+	  printf (" %s\n", extension);
 	}
       iterator_destroy (&iterator);
       list_destroy (&list);
@@ -513,7 +584,206 @@ com_list_extensions (char *arg ARG_UNUSED)
   return status;
 }
 
-int com_last (char *arg ARG_UNUSED)
+int
+com_list_active (char *arg)
+{
+  list_t list = NULL;
+
+  int status = mu_nntp_list_active (nntp, arg, &list);
+
+  if (status == 0)
+    {
+      iterator_t iterator = NULL;
+      list_get_iterator (list, &iterator);
+      printf ("List Active:\n");
+      for (iterator_first (iterator);
+	   !iterator_is_done (iterator); iterator_next (iterator))
+	{
+	  char *buffer = NULL;
+	  char *group = NULL;
+	  unsigned long high;
+	  unsigned long low;
+	  char stat;
+	  iterator_current (iterator, (void **) &buffer);
+	  mu_nntp_parse_list_active (buffer, &group, &high, &low, &stat);
+	  if (group)
+	    {
+	      printf (" group(%s)", group);
+	      free (group);
+	    }
+	  printf (" high(%ld) low(%ld) status(%c)\n", high, low, stat);
+	}
+      iterator_destroy (&iterator);
+      list_destroy (&list);
+    }
+  return status;
+}
+
+int
+com_list_active_times (char *arg)
+{
+  list_t list = NULL;
+  int status = mu_nntp_list_active_times (nntp, arg, &list);
+
+  if (status == 0)
+    {
+      iterator_t iterator = NULL;
+      list_get_iterator (list, &iterator);
+      printf ("List Active.Times:\n");
+      for (iterator_first (iterator);
+	   !iterator_is_done (iterator); iterator_next (iterator))
+	{
+	  char *buffer = NULL;
+	  char *group = NULL;
+	  char *creator = NULL;
+	  unsigned long time = 0;
+	  iterator_current (iterator, (void **) &buffer);
+	  mu_nntp_parse_list_active_times (buffer, &group, &time, &creator);
+	  if (group)
+	    {
+	      printf (" group(%s)", group);
+	      free (group);
+	    }
+	  if (time)
+	    {
+	      char *p = ctime((time_t *)&time);
+	      char *buf = strdup (p);
+	      p = strchr (buf, '\n');
+	      if (p)
+		{
+		  buf[p - buf] = '\0';
+		}
+	      printf (" times(%s)", buf);
+	      free (buf);
+	    }
+	  if (creator)
+	    {
+	      printf (" creator(%s)", creator);
+	      free (creator);
+	    }
+	  printf ("\n");
+	}
+      iterator_destroy (&iterator);
+      list_destroy (&list);
+    }
+  return status;
+}
+
+int
+com_list_distributions (char *arg ARG_UNUSED)
+{
+  list_t list = NULL;
+  int status = mu_nntp_list_distributions (nntp, arg, &list);
+
+  if (status == 0)
+    {
+      iterator_t iterator = NULL;
+      list_get_iterator (list, &iterator);
+      printf ("List Distributions:\n");
+      for (iterator_first (iterator);
+	   !iterator_is_done (iterator); iterator_next (iterator))
+	{
+	  char *buffer = NULL;
+	  char *key = NULL;
+	  char *value = NULL;
+	  iterator_current (iterator, (void **) &buffer);
+	  mu_nntp_parse_list_distributions (buffer, &key, &value);
+	  if (key)
+	    {
+	      printf (" %s", key);
+	      free (key);
+	    }
+	  if (value)
+	    {
+	      printf (": %s", value);
+	      free (value);
+	    }
+	  printf ("\n");
+	}
+      iterator_destroy (&iterator);
+      list_destroy (&list);
+    }
+  return status;
+}
+
+int
+com_list_distrib_pats (char *arg ARG_UNUSED)
+{
+  list_t list = NULL;
+  int status = mu_nntp_list_distrib_pats (nntp, &list);
+
+  if (status == 0)
+    {
+      iterator_t iterator = NULL;
+      list_get_iterator (list, &iterator);
+      printf ("List Distrib Pats:\n");
+      for (iterator_first (iterator);
+	   !iterator_is_done (iterator); iterator_next (iterator))
+	{
+	  char *buffer = NULL;
+	  unsigned long weight = 0;
+	  char *wildmat = NULL;
+	  char *distrib = NULL;
+	  iterator_current (iterator, (void **) &buffer);
+	  mu_nntp_parse_list_distrib_pats (buffer, &weight, &wildmat, &distrib);
+	  printf (" weight(%ld)", weight);
+	  if (wildmat)
+	    {
+	      printf (":%s", wildmat);
+	      free (wildmat);
+	    }
+	  if (distrib)
+	    {
+	      printf (":%s", distrib);
+	      free (distrib);
+	    }
+	  printf ("\n");
+	}
+      iterator_destroy (&iterator);
+      list_destroy (&list);
+    }
+  return status;
+}
+
+int
+com_list_newsgroups (char *arg)
+{
+  list_t list = NULL;
+  int status = mu_nntp_list_newsgroups (nntp, arg, &list);
+
+  if (status == 0)
+    {
+      iterator_t iterator = NULL;
+      list_get_iterator (list, &iterator);
+      printf ("Newsgroups:\n");
+      for (iterator_first (iterator);
+	   !iterator_is_done (iterator); iterator_next (iterator))
+	{
+	  char *buffer = NULL;
+	  char *group = NULL;
+	  char *desc = NULL;
+	  iterator_current (iterator, (void **) &buffer);
+	  mu_nntp_parse_list_newsgroups (buffer, &group, &desc);
+	  if (group)
+	    {
+	      printf (" %s", group);
+	      free (group);
+	    }
+	  if (desc)
+	    {
+	      printf (":%s", desc);
+	      free (desc);
+	    }
+	  printf ("\n");
+	}
+      iterator_destroy (&iterator);
+      list_destroy (&list);
+    }
+  return status;
+}
+
+int
+com_last (char *arg ARG_UNUSED)
 {
   char *mid = NULL;
   unsigned long number = 0;
@@ -527,7 +797,8 @@ int com_last (char *arg ARG_UNUSED)
   return status;
 }
 
-int com_next (char *arg ARG_UNUSED)
+int
+com_next (char *arg ARG_UNUSED)
 {
   char *mid = NULL;
   unsigned long number = 0;
@@ -537,6 +808,114 @@ int com_next (char *arg ARG_UNUSED)
     {
       fprintf (stdout, "%ld %s\n", number, (mid == NULL) ? "" : mid);
       free (mid);
+    }
+  return status;
+}
+
+int
+com_newgroups (char *arg)
+{
+  list_t list = NULL;
+  struct tm stime;
+  int year, month, day, hour, min, sec, is_gmt;
+  year = month = day = hour = min = sec = is_gmt = 0;
+
+  if (arg != NULL && *arg != '\0')
+    {
+      char gmt[4];
+      memset (gmt, 0, 4);
+      sscanf (arg, "%4d%2d%2d %2d%2d%2d %3s", &year, &month, &day, &hour, &min, &sec, gmt);
+      is_gmt = strncasecmp ("GMT", gmt, 3) == 0;
+    }
+
+  /* If nothing defined take the current time.  */
+  if (year == 0)
+    {
+      time_t now = time (NULL);
+      struct tm *stime = localtime (&now);
+      sec = stime->tm_sec;         /* seconds */
+      min = stime->tm_min;         /* minutes */
+      hour = stime->tm_hour;       /* hours */
+      day = stime->tm_mday;        /* day of the month */
+      month = stime->tm_mon;        /* month */
+      year = stime->tm_year + 1900;       /* year */
+    }
+
+  int status = mu_nntp_newgroups (nntp, year, month, day, hour, min, sec, is_gmt, &list);
+  if (status == 0)
+    {
+      iterator_t iterator = NULL;
+      list_get_iterator (list, &iterator);
+      printf ("New Groups:\n");
+      for (iterator_first (iterator);
+	   !iterator_is_done (iterator); iterator_next (iterator))
+	{
+	  char *buffer = NULL;
+	  char *group = NULL;
+	  unsigned long high = 0;
+	  unsigned long low = 0;
+	  char stat = 0;
+	  iterator_current (iterator, (void **) &buffer);
+	  mu_nntp_parse_newgroups (buffer, &group, &high, &low, &stat);
+	  if (group)
+	    {
+	      printf (" group(%s)", group);
+	      free (group);
+	    }
+	  printf (" hig(%d) low(%d) status(%c)\n", high, low, stat);
+	}
+      iterator_destroy (&iterator);
+      list_destroy (&list);
+    }
+  return status;
+}
+
+int
+com_newnews (char *arg)
+{
+  list_t list = NULL;
+  struct tm stime;
+  char *wildmat;
+  char gmt[4];
+  int year, month, day, hour, min, sec, is_gmt;
+
+  if (!valid_argument ("newnews", arg))
+    return EINVAL;
+
+  year = month = day = hour = min = sec = is_gmt = 0;
+  memset (gmt, 0, 4);
+
+  wildmat = calloc (1, 512);
+  sscanf (arg, "%511s %4d%2d%2d %2d%2d%2d %3s", wildmat, &year, &month, &day, &hour, &min, &sec, gmt);
+  is_gmt = strncasecmp ("GMT", gmt, 3) == 0;
+
+  if (year == 0)
+    {
+      time_t now = time (NULL);
+      struct tm *stime = localtime (&now);
+      sec = stime->tm_sec;         /* seconds */
+      min = stime->tm_min;         /* minutes */
+      hour = stime->tm_hour;       /* hours */
+      day = stime->tm_mday;        /* day of the month */
+      month = stime->tm_mon;        /* month */
+      year = stime->tm_year + 1900;       /* year */
+    }
+
+  int status = mu_nntp_newnews (nntp, wildmat, year, month, day, hour, min, sec, is_gmt, &list);
+  if (status == 0)
+    {
+      iterator_t iterator = NULL;
+      list_get_iterator (list, &iterator);
+      printf ("New News:\n");
+      for (iterator_first (iterator);
+	   !iterator_is_done (iterator); iterator_next (iterator))
+	{
+	  char *mid = NULL;
+	  iterator_current (iterator, (void **) &mid);
+	  printf (" %s\n", mid);
+	}
+      iterator_destroy (&iterator);
+      list_destroy (&list);
     }
   return status;
 }
@@ -567,7 +946,8 @@ com_stat (char *arg)
   return status;
 }
 
-int com_date (char *arg ARG_UNUSED)
+int
+com_date (char *arg ARG_UNUSED)
 {
   unsigned int year, month, day, hour, min, sec;
   int status;
@@ -575,7 +955,39 @@ int com_date (char *arg ARG_UNUSED)
   status = mu_nntp_date (nntp, &year, &month, &day, &hour, &min, &sec);
   if (status == 0)
     {
-      fprintf (stdout, "%d %d %d %d %d %d\n", year, month, day, hour, min, sec);
+      fprintf (stdout, "date: year(%d) month(%d) day(%d) hour(%d) min(%d) sec(%d)\n", year, month, day, hour, min, sec);
+    }
+  return status;
+}
+
+int
+com_post (char *arg)
+{
+  fprintf (stderr, "Not implemented\n");
+  return 0;
+}
+
+int
+com_ihave (char *arg)
+{
+  fprintf (stderr, "Not implemented\n");
+  return 0;
+}
+
+int
+com_help (char *arg ARG_UNUSED)
+{
+  stream_t stream = NULL;
+  int status;
+
+  status = mu_nntp_help (nntp, &stream);
+  if (status == 0 && stream != NULL)
+    {
+      size_t n = 0;
+      char buf[128];
+      while ((stream_readline (stream, buf, sizeof buf, 0, &n) == 0) && n)
+        printf ("%s", buf);
+      stream_destroy (&stream, NULL);
     }
   return status;
 }
@@ -583,7 +995,7 @@ int com_date (char *arg ARG_UNUSED)
 /* Print out help for ARG, or for all of the commands if ARG is
    not present. */
 int
-com_help (char *arg)
+com_info (char *arg)
 {
   int i;
   int printed = 0;
@@ -624,11 +1036,16 @@ int
 com_connect (char *arg)
 {
   char host[256];
-  int port = 110;
+  int port = 119;
   int status;
-  if (!valid_argument ("connect", arg))
-    return 1;
+
   *host = '\0';
+
+  /* Try with the environment.  */
+  if (arg == NULL || *arg == '\0')
+    arg = getenv ("NNTPSERVER");
+  if (!valid_argument ("connect", arg))
+    return EINVAL;
   sscanf (arg, "%256s %d", host, &port);
   if (!valid_argument ("connect", host))
     return EINVAL;
@@ -640,7 +1057,7 @@ com_connect (char *arg)
       stream_t tcp;
 
       if (verbose)
-	com_verbose ("verbose on");
+	com_verbose ("on");
       status =
 	tcp_stream_create (&tcp, host, port,
 			   MU_STREAM_READ | MU_STREAM_NO_CHECK);
@@ -662,7 +1079,7 @@ com_connect (char *arg)
 }
 
 int
-com_disconnect (char *arg)
+com_disconnect (char *arg ARG_UNUSED)
 {
   (void) arg;
   if (nntp)
@@ -677,11 +1094,12 @@ com_disconnect (char *arg)
 int
 com_quit (char *arg ARG_UNUSED)
 {
+  int status = 0;
   if (nntp)
     {
       if (mu_nntp_quit (nntp) == 0)
 	{
-	  mu_nntp_disconnect (nntp);
+	  status = com_disconnect (arg);
 	}
       else
 	{
@@ -690,7 +1108,7 @@ com_quit (char *arg ARG_UNUSED)
     }
   else
     fprintf (stdout, "Try 'exit' to leave %s\n", progname);
-  return 0;
+  return status;
 }
 
 int
@@ -710,7 +1128,7 @@ com_exit (char *arg ARG_UNUSED)
 int
 valid_argument (const char *caller, char *arg)
 {
-  if (arg == NULL || *arg == '\0' || strchr (arg, ' ') != NULL)
+  if (arg == NULL || *arg == '\0')
     {
       fprintf (stderr, "%s: Argument required.\n", caller);
       return 0;
