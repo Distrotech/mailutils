@@ -194,6 +194,36 @@ errstr (mu_sql_connection_t conn)
   return mysql_error (mp->mysql);
 }
 
+/* Check whether a plaintext password MESSAGE matches MySQL scrambled password
+   PASSWORD */
+int
+mu_check_mysql_scrambled_password (const char *scrambled, const char *message)
+{
+  unsigned long hash_pass[2], hash_message[2];
+  char buf[17];
+
+  if (strlen (scrambled) < 16)
+    return 1;
+  if (strlen (scrambled) > 16)
+    {
+      const char *p;
+      /* Try to normalize it by cutting off trailing whitespace */
+      for (p = scrambled + strlen (scrambled) - 1;
+	   p > scrambled && isspace (*p); p--)
+	;
+      if (p - scrambled != 15)
+	return 1;
+      memcpy (buf, scrambled, 16);
+      buf[17] = 0;
+      scrambled = buf;
+    }
+  
+  get_salt_from_password (hash_pass, scrambled);
+  hash_password (hash_message, message);
+  return !(hash_message[0] == hash_pass[0]
+	   && hash_message[1] == hash_pass[1]);
+}
+
 MU_DECL_SQL_DISPATCH_T(mysql) = {
   "mysql",
   3306,
