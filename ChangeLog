@@ -1,3 +1,9 @@
+2002-12-29  Sergey Poznyakoff
+
+	* mail/util.c: Removed unneded global env_cursor.
+	* mailbox/mailutils-config.c: Reflect addition
+	  of NLS libraries.
+
 2002-12-28  Sergey Poznyakoff  
 
 	* dotlock/dotlock.c: Reverted today's changes. Failed experiment.
