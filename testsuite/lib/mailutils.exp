@@ -78,6 +78,179 @@ proc mu_init {args} {
     }
 }
     
+proc mu_start {args} {
+    global verbose
+    global MU_TOOL
+    global MU_TOOL_FLAGS
+    global expect_out
+    
+    mu_version
+
+    set args [lindex $args 0]
+    if [info exists MU_TOOL_FLAGS] {
+	set sw $MU_TOOL_FLAGS
+    } else {
+	set sw ""
+    }
+    
+    if [llength $args] {
+	append sw $args
+    } 
+    
+    if [info exists host_board] {
+	if [board_info $host_board exists top_srcdir] {
+	    append sw " --mail-spool [board_info $host_board top_srcdir]/mail/testsuite/spool"
+	}
+    }
+
+    set cmd "$MU_TOOL $sw"
+    verbose "Spawning $cmd"
+
+    set res [remote_spawn host $cmd]
+    if { $res < 0 || $res == "" } {
+	perror "Spawning $cmd failed."
+	return 1;
+    }
+
+    return 0
+}
+
+# mu_exec [-retcode N][-message S][-default (FAIL | XFAIL)][-arg S...]
+#         [PATTERN...]
+#
+# Executes $MU_TOOL and checks whether it returns with the given exit status
+# and its output matches supplied PATTERN.
+# Switches:
+# -retcode N        Expect program to finish with exit code N instead of the
+#                   default 0 (search for word 'Pity' below, though).
+# -arg S            Supply additional arguments to the program.
+# -message S        Set message to output when printing results of the test.
+# -default          Supply the expected testcase result
+proc mu_exec {args} {
+    global verbose
+    global MU_TOOL
+    global MU_TOOL_FLAGS
+    global expect_out
+    
+    mu_version
+
+    if [info exists MU_TOOL_FLAGS] {
+	set sw $MU_TOOL_FLAGS
+    } else {
+	set sw ""
+    }
+    
+    set default 0
+    set message ""
+    set result 0
+    set retcode 0
+    for {set i 0} {$i < [llength $args]} {incr i} {
+	set opt [lindex $args $i]
+	if {"$opt" == "-retcode"} {
+	    set retcode [lindex $args [expr $i + 1]]
+	    incr i
+	} elseif {"$opt" == "-message"} {
+	    set message [lindex $args [expr $i + 1]]
+	    incr i
+	} elseif {"$opt" == "-default"} {
+	    set default [lindex $args [expr $i + 1]]
+	    incr i
+	} elseif {"$opt" == "-arg"} {
+	    append sw " [lindex $args [expr $i + 1]]"
+	    incr i
+	} else {
+	    break
+	}
+    }	
+
+    set args [lrange $args $i end]
+    
+    if [info exists host_board] {
+	if [board_info $host_board exists top_srcdir] {
+	    append sw " --mail-spool [board_info $host_board top_srcdir]/mail/testsuite/spool"
+	}
+    }
+
+    # Pity, dejagnu provides no way to retrieve exit status of the process.
+    # This ugli construction is used to work around this. Hopefully, it
+    # should execute on any decent platform...
+    set cmd "sh -c \"$MU_TOOL $sw\; echo \$?\""
+    verbose "Executing $cmd"
+
+    set res [remote_exec host $cmd]
+
+    set args [concat $args "$retcode"]
+	    
+    set output [lindex $res 1]
+
+    if {[llength $args] == 0 && [string length $output] != 0} {
+	verbose "Expected \"[lindex $args 1]\" but founf EOF" 1
+	set result 1
+    }
+
+    for {set i 0} {$result == 0 && $i < [llength $args]} {incr i} {
+	if {[string length $output] == 0} {
+	    verbose "Not enough output from $cmd" 1
+	    verbose "Stopped waiting for \"[lindex $args $i]\"" 1
+	    set result 1
+	    break
+	}
+	set regexp 0
+
+	switch -regexp -- "[lindex $args $i]" {
+	    ^-re     { set regexp 1; incr i }
+	    ^-ex     -
+	    ^--      { incr i }
+	}
+	    
+	set pattern [lindex $args $i]
+	verbose "PATTERN $pattern"
+
+	if {$regexp} {
+	    verbose "does \"$output\" match regular expression \"$pattern\"?" 1
+	    if {![regexp -- "$pattern(.*)" "$output" dummy output]} {
+		set result 1
+	    }
+	} else {
+	    verbose "does \"$output\" match exact string \"$pattern\"?" 1
+	    if {"$pattern" != ""} {
+		if {[string first "$pattern" "$output"] != 0} {
+		    set result 1
+		}
+		set output [string range $output [string length $pattern] end]
+	    }
+	    if {![regexp -- "\[ \t]*\r\n(.*)" "$output" dummy output]} {
+		set result 1
+	    }
+	}
+
+	if {$result} {
+	    verbose "NO" 1
+	} else {
+	    verbose "yes" 1
+	}
+    }
+
+    if {$result == 0} {
+	pass "$message"
+    } elseif {$result == 1} {
+	if { "$default" == "" || "$default" != "FAIL" } {
+	    fail "$message"
+	} else {
+	    xfail "$message"
+	    set result 0
+	}
+    } elseif {$result == -2} {
+	fail "$message (timeout)"
+    } elseif {$result == -3} {
+	fail "$message (eof)"
+    } else {
+	fail "$message"
+    }
+
+    return $result
+}
+
 ### Only procedures should come after this point.
 
 proc mu_prepare_spools {} {
@@ -306,7 +479,7 @@ proc mu_expect_list {args} {
 }    
 
 # mu_test COMMAND PATTERN
-# COMMAND   - Command to send to mail
+# COMMAND   - Command to send to the program
 # PATTERN   - A list of strings to expect in return
 # Return value:
 #        -3 - eof
