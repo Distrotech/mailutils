@@ -22,10 +22,12 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-char *current_folder = "inbox";
+char *current_folder = NULL;
 size_t current_message;
 char *ctx_name;
 header_t ctx_header;
+header_t profile_header;
+
 char mh_list_format[] = 
 "%4(msg)%<(cur)+%| %>%<{replied}-%?{encrypted}E%| %>"
 "%02(mon{date})/%02(mday{date})"
@@ -39,6 +41,7 @@ void
 mh_init ()
 {
   list_t bookie;
+  char *mh_sequences_name;
 
   /* Register mailbox formats */
   registrar_get_list (&bookie);
@@ -51,12 +54,24 @@ mh_init ()
   list_append (bookie, sendmail_record);
   list_append (bookie, smtp_record);
 
+  /* Read user's profile */
+  mh_read_profile ();
+  
   /* Set MH context */
-  current_folder = mu_tilde_expansion (current_folder, "/", NULL);
+  if (current_folder)
+    current_folder = mu_tilde_expansion (current_folder, "/", NULL);
+  else
+    current_folder = mh_profile_value ("Current-Folder",
+				       mh_profile_value ("Inbox", "inbox"));
   if (strchr (current_folder, '/') == NULL)
     {
+      char *mhdir = mh_profile_value ("Path", "Mail");
       char *p = mu_get_homedir ();
-      asprintf (&current_folder, "mh:%s/Mail/%s", p, current_folder);
+
+      if (mhdir[0] == '/')
+	asprintf (&current_folder, "mh:%s/%s", mhdir, current_folder);
+      else
+	asprintf (&current_folder, "mh:%s/%s/%s", p, mhdir, current_folder);
       if (!current_folder)
 	{
 	  mh_error ("low memory");
@@ -71,18 +86,45 @@ mh_init ()
       current_folder = p;
     }
 
-  ctx_name = xmalloc (strlen (current_folder)+sizeof (MH_SEQUENCES_FILE)+2);
-  sprintf (ctx_name, "%s/%s", current_folder+3, MH_SEQUENCES_FILE);
+  mh_sequences_name = mh_profile_value ("mh-sequences", MH_SEQUENCES_FILE);
+  asprintf (&ctx_name, "%s/%s", current_folder+3, mh_sequences_name);
   if (mh_read_context_file (ctx_name, &ctx_header) == 0)
     {
       char buf[64];
       size_t n;
        
       if (!header_get_value (ctx_header, "cur", buf, sizeof buf, &n))
- 	current_message = strtoul (buf, NULL, 10);
+	current_message = strtoul (buf, NULL, 10);
     }
 }
 
+char *
+mh_profile_value (char *name, char *defval)
+{
+  char *p;
+  if (header_aget_value (profile_header, name, &p))
+    p = defval;
+  return p;
+}
+
+void
+mh_read_profile ()
+{
+  char *p;
+  
+  p = getenv ("MH");
+  if (p)
+    p = mu_tilde_expansion (p, "/", NULL);
+  else
+    {
+      char *home = mu_get_homedir ();
+      if (!home)
+	abort (); /* shouldn't happen */
+      asprintf (&p, "%s/%s", home, MH_USER_PROFILE);
+    }
+  mh_read_context_file (p, &profile_header);
+}
+  
 void
 mh_save_context ()
 {
@@ -213,12 +255,9 @@ mh_read_formfile (char *name, char **pformat)
 static char *my_name;
 static char *my_email;
 
-/* FIXME: this lacks domain name part! */
 void
 mh_get_my_name (char *name)
 {
-  char hostname[256];
-
   if (!name)
     {
       struct passwd *pw = getpwuid (getuid ());
@@ -231,10 +270,7 @@ mh_get_my_name (char *name)
     }
 
   my_name = strdup (name);
-  gethostname(hostname, sizeof(hostname));
-  hostname[sizeof(hostname)-1] = 0;
-  my_email = xmalloc (strlen (name) + strlen (hostname) + 2);
-  sprintf (my_email, "%s@%s", name, hostname);
+  my_email = mu_get_user_email (name);
 }
 
 
@@ -263,7 +299,11 @@ mh_check_folder (char *pathname)
 	{
 	  if (mh_getyn ("Create folder \"%s\"", p))
 	    {
-	      if (mkdir (p, 0777)) /* FIXME: Permissions */
+	      int perm = 0711;
+	      char *pb = mh_profile_value ("Folder-Protect", NULL);
+	      if (pb)
+		perm = strtoul (pb, NULL, 8);
+	      if (mkdir (p, perm)) 
 		{
 		  mh_error ("Can't create directory %s: %s",
 			    p, strerror (errno));
