@@ -162,14 +162,14 @@ util_foreach_msg (int argc, char **argv, int flags,
   msgset_t *list = NULL, *mp;
   int status = 0;
 
-  if (msgset_parse (argc, argv, &list))
+  if (msgset_parse (argc, argv, flags, &list))
       return 1;
 
   for (mp = list; mp; mp = mp->next)
     {
       message_t mesg;
 
-      if (util_get_message (mbox, mp->msg_part[0], &mesg, flags) == 0)
+      if (util_get_message (mbox, mp->msg_part[0], &mesg) == 0)
 	{
 	  if (func (mp, mesg, data) != 0)
 	    status = 1;
@@ -197,7 +197,15 @@ util_range_msg (size_t low, size_t high, int flags,
     {
      message_t mesg;
 
-     if (util_get_message (mbox, low, &mesg, flags) == 0)
+     if ((flags & MSG_NODELETED) && util_isdeleted (low))
+       {
+	 if (!(flags & MSG_SILENT))
+	   util_error (_("%lu: Inappropriate message (has been deleted)"),
+		       (unsigned long) low);
+	 continue;
+       }
+     
+     if (util_get_message (mbox, low, &mesg) == 0)
        {
 	 count ++;
 	 func (&msgspec, mesg, data) ;
@@ -545,11 +553,14 @@ util_setenv (const char *variable, void *value, mail_env_data_t type,
 /*
  * return 1 if a message is deleted
  */
-int
-util_isdeleted (message_t msg)
-{
-  attribute_t attr;
 
+int
+util_isdeleted (size_t n)
+{
+  message_t msg = NULL;
+  attribute_t attr = NULL;
+
+  mailbox_get_message (mbox, n, &msg);
   message_get_attribute (msg, &attr);
   return attribute_is_deleted (attr);
 }
@@ -1208,7 +1219,7 @@ util_header_expand (header_t *phdr)
 }
 
 int
-util_get_message (mailbox_t mbox, size_t msgno, message_t *msg, int flag)
+util_get_message (mailbox_t mbox, size_t msgno, message_t *msg)
 {
   int status;
 
@@ -1226,13 +1237,6 @@ util_get_message (mailbox_t mbox, size_t msgno, message_t *msg, int flag)
       return status;
     }
 
-  if ((flag & MSG_NODELETED) && util_isdeleted (*msg))
-    {
-      if (!(flag & MSG_SILENT))
-	util_error (_("%lu: Inappropriate message (has been deleted)"),
-		    (unsigned long) msgno);
-      return ENOENT;
-    }
   return 0;
 }
 
@@ -1241,4 +1245,10 @@ util_error_range (size_t msgno)
 {
   util_error (_("%d: invalid message number"), msgno);
   return 1;
+}
+
+void
+util_noapp ()
+{
+  util_error (_("No applicable messages"));
 }
