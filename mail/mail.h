@@ -48,6 +48,9 @@
 #include <mailutils/header.h>
 #include <mailutils/body.h>
 #include <mailutils/registrar.h>
+#include <mailutils/list.h>
+#include <mailutils/iterator.h>
+#include <mailutils/address.h>
 
 #include <argcv.h>
 #include <getline.h>
@@ -135,8 +138,16 @@ int mail_unset __P((int argc, char **argv));
 int mail_visual __P((int argc, char **argv));
 int mail_write __P((int argc, char **argv));
 int mail_z __P((int argc, char **argv));
+  
 void mail_mainloop __P((char *(*input) __P((void *, int)), void *closure, int do_history));
+int mail_copy0 __P((int argc, char **argv, int mark));
+int mail_send0 __P((char *to, char *cc, char *bcc, char *subj));
+int mail_mbox_commit __P((void));
+int mail_is_alt_name __P((char *name));
+int mail_header_is_visible __P((char *str));
+int mail_mbox_close __P((void));
 
+int if_cond __P((void));
 void mail_set_is_terminal __P((int val));
 int mail_is_terminal __P((void));
        
@@ -157,11 +168,30 @@ int util_printenv __P((int set));
 int util_isdeleted __P((int message));
 char *util_get_homedir __P((void));
 char *util_fullpath __P((char *inpath));
+char *util_get_sender __P((int msgno, int strip));
+  
+void util_slist_print __P((list_t list, int nl));
+int util_slist_lookup __P((list_t list, char *str));
+void util_slist_add __P((list_t *list, char *value));
+void util_slist_destroy __P((list_t *list));
+char *util_slist_to_string __P((list_t list, char *delim));
+void util_strcat __P((char **dest, char *str));
+void util_escape_percent (char **str);
+
+char *alias_expand __P((char *name));
+void alias_destroy __P((char *name));
+
+#ifndef HAVE_READLINE_READLINE_H
+char *readline __P((const char *prompt));
+#endif  
 
 #ifndef _PATH_SENDMAIL
 #define _PATH_SENDMAIL "/usr/lib/sendmail"
 #endif
 
+/* Message attributes */  
+#define MAIL_ATTRIBUTE_MBOXED   0x0001
+  
 #ifdef __cplusplus
 }
 #endif
