@@ -117,7 +117,8 @@ mu_mailcap_entries_count (mu_mailcap_t mailcap, size_t *pcount)
 }
 
 int
-mu_mailcap_get_entry (mu_mailcap_t mailcap, size_t no, mu_mailcap_entry_t *pentry)
+mu_mailcap_get_entry (mu_mailcap_t mailcap, size_t no,
+		      mu_mailcap_entry_t *pentry)
 {
   int status = 0;
   if (mailcap == NULL || pentry == NULL)
@@ -136,7 +137,8 @@ mu_mailcap_get_entry (mu_mailcap_t mailcap, size_t no, mu_mailcap_entry_t *pentr
 }
 
 int
-mu_mailcap_entry_get_typefield(mu_mailcap_entry_t entry, char *buffer, size_t buflen, size_t *pn)
+mu_mailcap_entry_get_typefield (mu_mailcap_entry_t entry, char *buffer,
+				size_t buflen, size_t *pn)
 {
   int status = 0;
   int len = 0;
@@ -164,7 +166,8 @@ mu_mailcap_entry_get_typefield(mu_mailcap_entry_t entry, char *buffer, size_t bu
 }
 
 int
-mu_mailcap_entry_get_viewcommand(mu_mailcap_entry_t entry, char *buffer, size_t buflen, size_t *pn)
+mu_mailcap_entry_get_viewcommand (mu_mailcap_entry_t entry, char *buffer,
+				  size_t buflen, size_t *pn)
 {
   int status = 0;
   int len = 0;
@@ -207,7 +210,8 @@ mu_mailcap_entry_fields_count (mu_mailcap_entry_t entry, size_t *pcount)
 }
 
 int
-mu_mailcap_entry_get_field (mu_mailcap_entry_t entry, size_t no, char *buffer, size_t buflen, size_t *pn)
+mu_mailcap_entry_get_field (mu_mailcap_entry_t entry, size_t no,
+			    char *buffer, size_t buflen, size_t *pn)
 {
   int status = 0;
   int len = 0;
@@ -239,43 +243,49 @@ mu_mailcap_entry_get_field (mu_mailcap_entry_t entry, size_t no, char *buffer, s
 }
 
 int
-mu_mailcap_entry_get_compose(mu_mailcap_entry_t entry, char *buffer, size_t buflen, size_t *pn)
+mu_mailcap_entry_get_compose (mu_mailcap_entry_t entry,
+			      char *buffer, size_t buflen, size_t *pn)
 {
   return mu_mailcap_entry_get_value (entry, "compose", buffer, buflen, pn);
 }
 
 int
-mu_mailcap_entry_get_composetyped(mu_mailcap_entry_t entry, char *buffer, size_t buflen, size_t *pn)
+mu_mailcap_entry_get_composetyped (mu_mailcap_entry_t entry, char *buffer,
+				   size_t buflen, size_t *pn)
 {
   return mu_mailcap_entry_get_value (entry, "composetyped", buffer, buflen, pn);
 }
 
 int
-mu_mailcap_entry_get_edit(mu_mailcap_entry_t entry, char *buffer, size_t buflen, size_t *pn)
+mu_mailcap_entry_get_edit (mu_mailcap_entry_t entry, char *buffer,
+			   size_t buflen, size_t *pn)
 {
   return mu_mailcap_entry_get_value (entry, "edit", buffer, buflen, pn);
 }
 
 int
-mu_mailcap_entry_get_test(mu_mailcap_entry_t entry, char *buffer, size_t buflen, size_t *pn)
+mu_mailcap_entry_get_test (mu_mailcap_entry_t entry,
+			   char *buffer, size_t buflen, size_t *pn)
 {
   return mu_mailcap_entry_get_value (entry, "test", buffer, buflen, pn);
 }
 
 int
-mu_mailcap_entry_get_x11bitmap(mu_mailcap_entry_t entry, char *buffer, size_t buflen, size_t *pn)
+mu_mailcap_entry_get_x11bitmap (mu_mailcap_entry_t entry,
+				char *buffer, size_t buflen, size_t *pn)
 {
   return mu_mailcap_entry_get_value (entry, "x11-bitmap", buffer, buflen, pn);
 }
 
 int
-mu_mailcap_entry_get_description(mu_mailcap_entry_t entry, char *buffer, size_t buflen, size_t *pn)
+mu_mailcap_entry_get_description (mu_mailcap_entry_t entry,
+				  char *buffer, size_t buflen, size_t *pn)
 {
   return mu_mailcap_entry_get_value (entry, "description", buffer, buflen, pn);
 }
 
 int
-mu_mailcap_entry_needsterminal(mu_mailcap_entry_t entry, int *on)
+mu_mailcap_entry_needsterminal (mu_mailcap_entry_t entry, int *on)
 {
   int status = 0;
   int found = 0;
@@ -302,7 +312,7 @@ mu_mailcap_entry_needsterminal(mu_mailcap_entry_t entry, int *on)
 }
 
 int
-mu_mailcap_entry_coupiousoutput(mu_mailcap_entry_t entry, int *on)
+mu_mailcap_entry_coupiousoutput (mu_mailcap_entry_t entry, int *on)
 {
   int status = 0;
   int found = 0;
@@ -329,7 +339,8 @@ mu_mailcap_entry_coupiousoutput(mu_mailcap_entry_t entry, int *on)
 }
 
 int
-mu_mailcap_entry_get_value (mu_mailcap_entry_t entry, const char *key, char *buffer, size_t buflen, size_t *pn)
+mu_mailcap_entry_get_value (mu_mailcap_entry_t entry, const char *key,
+			    char *buffer, size_t buflen, size_t *pn)
 {
   int len = 0;
   int status = 0;
@@ -457,7 +468,8 @@ mu_mailcap_parse_entry (mu_mailcap_entry_t entry, char *buffer)
   char *token = NULL;
   char *s = NULL;
   int i;
-  for (i = 0, token = tokenize (buffer, &s); token != NULL; token = tokenize (NULL, &s), i++)
+  for (i = 0, token = tokenize (buffer, &s);
+       token != NULL; token = tokenize (NULL, &s), i++)
     {
       switch (i)
 	{
@@ -474,7 +486,9 @@ mu_mailcap_parse_entry (mu_mailcap_entry_t entry, char *buffer)
 	  /* The rest are the optionnal fields.  */
 	default:
 	  {
-	    char **fields = realloc (entry->fields, (entry->fields_count + 1) * sizeof (*fields));
+	    char **fields = realloc (entry->fields,
+				     (entry->fields_count + 1) *
+				     sizeof (*fields));
 	    if (fields != NULL)
 	      {
 		entry->fields = fields;
@@ -523,14 +537,19 @@ mu_mailcap_parse (mu_mailcap_t mailcap, stream_t stream)
     }
 
   /*
-   * We are doing this a little more complexe then expected, because we do not want
-   * to seek() back in the stream:
+   * We are doing this a little more complex then expected, because we do not
+   * want to seek() back in the stream:
    * - we have to take care of continuation line i.e. line ending with '\'
-   * - we have to take to account that the line may be bigger then the buffer and reallocate
+   * - we have to take to account that the line may be bigger then the buffer
+   *   and reallocate
    * - check the return of malloc/realloc
-   * The old continuation line is save in the "previous" pointer and prepend to the buffer.
+   * The old continuation line is saved in the "previous" pointer and
+   * prepended to the buffer.
    */
-  for (previous = NULL, off = n = 0; (status = stream_readline (stream, buffer, buflen, off, &n)) == 0 && n > 0; off += n)
+  for (previous = NULL, off = n = 0;
+       (status = stream_readline (stream, buffer, buflen, off, &n)) == 0
+	 && n > 0;
+       off += n)
     {
       int len;
 
@@ -625,11 +644,14 @@ mu_mailcap_parse (mu_mailcap_t mailcap, stream_t stream)
 	if (*line != '#' && *line != '\0')
 	  {
 	    mu_mailcap_entry_t *entries;
-	    entries = realloc (mailcap->entries, (mailcap->entries_count + 1) * sizeof (*entries));
+	    entries = realloc (mailcap->entries,
+			       (mailcap->entries_count + 1) *
+			       sizeof (*entries));
 	    if (entries != NULL)
 	      {
 		mailcap->entries = entries;
-		mailcap->entries[mailcap->entries_count] = calloc (1, sizeof(**entries));
+		mailcap->entries[mailcap->entries_count] = calloc (1,
+							   sizeof(**entries));
 		if (mailcap->entries[mailcap->entries_count] != NULL)
 		  {
 		    mu_mailcap_parse_entry (mailcap->entries[mailcap->entries_count], line);
@@ -688,22 +710,26 @@ int main()
 
 		  mu_mailcap_get_entry (mailcap, i, &entry);
 		  /* Print typefield.  */
-		  mu_mailcap_entry_get_typefield (entry, buffer, sizeof (buffer), NULL);
+		  mu_mailcap_entry_get_typefield (entry, buffer,
+						  sizeof (buffer), NULL);
 		  printf ("\ttypefield: %s\n", buffer);
 
 		  /* Print view-command.  */
-		  mu_mailcap_entry_get_viewcommand (entry, buffer, sizeof (buffer), NULL);
+		  mu_mailcap_entry_get_viewcommand (entry, buffer,
+						    sizeof (buffer), NULL);
 		  printf ("\tview-command: %s\n", buffer);
 
 		  /* Print fields.  */
 		  mu_mailcap_entry_fields_count (entry, &fields_count);
 		  for (j = 1; j <= fields_count; j++)
 		    {
-		      mu_mailcap_entry_get_field (entry, j, buffer, sizeof (buffer), NULL);
+		      mu_mailcap_entry_get_field (entry, j, buffer,
+						  sizeof (buffer), NULL);
 		      printf("\tfields[%d]: %s\n", j, buffer);
 		    }
 		  n = 0;
-		  mu_mailcap_entry_get_compose (entry, buffer, sizeof (buffer), &n);
+		  mu_mailcap_entry_get_compose (entry, buffer,
+						sizeof (buffer), &n);
 		  if (n > 0)
 		    {
 		      printf("\tcompose[%s]\n", buffer);
