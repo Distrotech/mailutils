@@ -47,7 +47,7 @@
 #endif
 
 #ifndef VERSION
-# define VERSION "unknow"
+# define VERSION "unknown"
 #endif
 
 #include "getopt.h"
