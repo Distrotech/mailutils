@@ -25,6 +25,34 @@
 int
 mail_file (int argc, char **argv)
 {
-  printf ("Function not implemented in %s line %d\n", __FILE__, __LINE__);
+  if (argc == 1)
+    {
+      /* display current folder info */
+    }
+  else if (argc == 2)
+    {
+      /* switch folders */
+      /*
+       * special characters:
+       * %	system mailbox
+       * %user	system mailbox of user
+       * #	the previous file
+       * &	the current mbox
+       * +file	the file named in the folder directory (set folder=foo)
+       */
+      mailbox_t newbox;
+      if (mailbox_create (&newbox, argv[1]) != 0)
+	return 1;
+      if (mailbox_open (newbox, MU_STREAM_READ) != 0)
+	return 1;
+      mailbox_messages_count (newbox, &total);
+      mailbox_expunge (mbox);
+      mailbox_close (mbox);
+      mbox = newbox;
+      /* mailbox_destroy (&newbox); */
+      if ((util_find_env("header"))->set)
+	util_do_command ("from *");
+      return 0;
+    }
   return 1;
 }

@@ -24,11 +24,6 @@
 int
 mail_source (int argc, char **argv)
 {
-#if 1
-
-  /* On sparky's machine, there is an odd SEGV coming from a free() deep
-     withing fopen(). I don't get it */
-
   if (argc == 2)
     {
       FILE *rc = fopen (argv[1], "r");
@@ -38,7 +33,9 @@ mail_source (int argc, char **argv)
 	  size_t s = 0;
 	  while (getline (&buf, &s, rc) >= 0)
 	    {
-	      buf[strlen(buf) - 1] = '\0';
+	      int len = strlen (buf);
+	      if (buf[len-1] == '\n')
+		buf[len-1] = '\0';
 	      util_do_command("%s", buf);
 	      free (buf);
 	      buf = NULL;
@@ -48,6 +45,5 @@ mail_source (int argc, char **argv)
 	  return 0;
 	}
     }
-#endif
   return 1;
 }

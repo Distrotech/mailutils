@@ -44,7 +44,7 @@ mail_shell (int argc, char **argv)
       int pid = fork ();
       if (pid == 0)
 	{
-	  const char **argvec;
+	  char **argvec;
 	  char *buf = NULL;
 	  
 	  /* 1(shell) + 1 (-c) + 1(arg) + 1 (null) = 4  */
@@ -57,14 +57,12 @@ mail_shell (int argc, char **argv)
 	  argvec[2] = buf;
 	  argvec[3] = NULL;
 	  
-	  /* why does this complain if argvec[2] is in the path but not
-	     fully qualified ? */
 	  execvp (argvec[0], argvec);
 	  free (buf); /* Being cute, nuke it when finish testing.  */
 	  free (argvec);
 	  return 1;
 	}
-      else if (pid > 0)
+        if (pid > 0)
 	{
 	  while (waitpid(pid, NULL, 0) == -1)
 	    /* do nothing */;

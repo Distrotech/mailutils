@@ -60,4 +60,4 @@ strtok_r (s, delim, save_ptr)
     }
   return token;
 }
-weak_alias (__strtok_r, strtok_r)
+/* weak_alias (__strtok_r, strtok_r) */

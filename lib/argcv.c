@@ -49,7 +49,7 @@ argcv_get (const char *command, int *argc, char ***argv)
 	{
 	  /* Reserve space for the null.  */
 	  (*argv)[j] = calloc ((i - start + 1),  sizeof (char));
-	  if ((*argv[j]) == NULL)
+	  if ((*argv)[j] == NULL)
 	    return 1;
 	  strncpy ((*argv)[j], &command[start], i - start);
 	  j++;
@@ -94,7 +94,7 @@ argcv_string (int argc, char **argv, char **pstring)
 
   for (len = i = 0; i < argc; i++)
     {
-      len += strlen (argv[i] + 2);
+      len += strlen (argv[i]) + 2;
       buffer = realloc (buffer, len);
       if (buffer == NULL)
 	return 1;

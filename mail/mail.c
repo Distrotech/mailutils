@@ -226,6 +226,16 @@ main (int argc, char **argv)
   if ((mode = util_find_env ("mode")) == NULL || mode->set == 0)
     exit (EXIT_FAILURE);
 
+  if (!(util_find_env("quit"))->set)
+    {
+      printf ("%s, Copyright (C) 2001 Free Software Foundation, Inc.\n"
+	      "mail comes with ABSOLUTELY NO WARRANTY; for details type\n"
+	      "'warranty'. This is free software, and you are welcome to\n"
+	      "redistribute it under certain conditions; type 'copying'\n"
+	      "for details.\n",
+	      argp_program_version);
+    }
+
   modelen = strlen (mode->value);
   if (strlen ("exist") == modelen && !strcmp ("exist", mode->value))
     return (total < 1) ? 1 : 0;
