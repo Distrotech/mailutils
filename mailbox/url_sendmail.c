@@ -23,6 +23,14 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifdef HAVE_PATHS_H
+# include <paths.h>
+#endif
+
+#ifndef _PATH_SENDMAIL
+# define _PATH_SENDMAIL "/usr/lib/sendmail"
+#endif
+
 #include <registrar0.h>
 #include <url0.h>
 
@@ -35,41 +43,35 @@ url_sendmail_destroy (url_t url)
 }
 
 /*
-  UNIX Sendmail
-  sendmail:path
+  Sendmail URL:
+    sendmail:/path/to/sendmail
 */
+
 int
 _url_sendmail_init (url_t url)
 {
-  const char *name = url_to_string (url);
-  size_t len = strlen (name);
+  int status = 0;
 
-  /* reject the obvious */
-  if (name == NULL || strncmp (MU_SENDMAIL_SCHEME, name, MU_SENDMAIL_SCHEME_LEN) != 0
-      || len < (MU_SENDMAIL_SCHEME_LEN + 1) /* (scheme)+1(path)*/)
-    return EINVAL;
-
-  /* do I need to decode url encoding '% hex hex' ? */
-
-  /* TYPE */
   url->_destroy = url_sendmail_destroy;
 
-  /* SCHEME */
-  url->scheme = strdup (MU_SENDMAIL_SCHEME);
-  if (url->scheme == NULL)
-    {
-      url_sendmail_destroy (url);
-      return ENOMEM;
-    }
+  status = url_parse(url);
 
-  /* PATH */
-  name += MU_SENDMAIL_SCHEME_LEN; /* pass the scheme */
-  url->path = strdup (name);
-  if (url->path == NULL)
-    {
-      url_sendmail_destroy (url);
-      return ENOMEM;
-    }
+  if(status)
+    return status;
 
-  return 0;
+  /* is it sendmail? */
+  if (strcmp ("sendmail", url->scheme) != 0)
+    return EINVAL;
+
+  /* not valid in a sendmail url */
+  if (url->user || url->passwd || url->auth || url->query
+      || url->host || url->port)
+    return EINVAL;
+
+  if (url->path == 0)
+    if((url->path = strdup(_PATH_SENDMAIL)) == 0)
+      status = ENOMEM;
+
+  return status;
 }
+
