@@ -25,13 +25,7 @@
 
 #include <time.h>
 
-#ifndef __P
-# ifdef __STDC__
-#  define __P(args) args
-# else
-#  define __P(args) ()
-# endif
-#endif /*__P */
+#include <mailutils/mu_features.h>
 
 #ifdef __cplusplus
 extern "C" {

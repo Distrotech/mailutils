@@ -24,6 +24,7 @@
 struct _mailbox;
 typedef struct _mailbox *mailbox_t;
 
+#include <mailutils/mu_features.h>
 #include <mailutils/url.h>
 #include <mailutils/observer.h>
 #include <mailutils/debug.h>
@@ -36,14 +37,6 @@ typedef struct _mailbox *mailbox_t;
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#ifndef __P
-# ifdef __STDC__
-#  define __P(args) args
-# else
-#  define __P(args) ()
-# endif
-#endif /*__P */
 
 /* Constructor/destructor and possible types.  */
 extern int  mailbox_ref             __P ((mailbox_t));

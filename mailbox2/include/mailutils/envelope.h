@@ -18,20 +18,13 @@
 #ifndef _MAILUTILS_ENVELOPE_H
 # define _MAILUTILS_ENVELOPE_H
 
+#include <mailutils/mu_features.h>
 #include <mailutils/address.h>
 #include <mailutils/mutil.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#ifndef __P
-# ifdef __STDC__
-#  define __P(args) args
-# else
-#  define __P(args) ()
-# endif
-#endif /*__P */
 
 struct _envelope;
 typedef struct _envelope *envelope_t;

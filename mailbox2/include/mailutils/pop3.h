@@ -18,6 +18,7 @@
 #ifndef _MAILUTILS_POP3_H
 #define _MAILUTILS_POP3_H
 
+#include <mailutils/mu_features.h>
 #include <mailutils/iterator.h>
 #include <mailutils/debug.h>
 #include <mailutils/stream.h>
@@ -25,14 +26,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#ifndef __P
-# ifdef __STDC__
-#  define __P(args) args
-# else
-#  define __P(args) ()
-# endif
-#endif /*__P */
 
 struct _pop3;
 typedef struct _pop3* pop3_t;

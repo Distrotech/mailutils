@@ -22,16 +22,9 @@
 #ifndef _MAILUTILS_PARSE822_H
 #define _MAILUTILS_PARSE822_H
 
+#include <mailutils/mu_features.h>
 #include <mailutils/address.h>
 #include <mailutils/mutil.h>
-
-#ifndef __P
-# ifdef __STDC__
-#  define __P(args) args
-# else
-#  define __P(args) ()
-# endif
-#endif /*__P */
 
 #ifdef __cplusplus
 extern "C" {

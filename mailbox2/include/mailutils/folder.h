@@ -20,6 +20,7 @@
 
 #include <sys/types.h>
 
+#include <mailutils/mu_features.h>
 #include <mailutils/url.h>
 #include <mailutils/observable.h>
 #include <mailutils/debug.h>
@@ -32,14 +33,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#ifndef __P
-# ifdef __STDC__
-#  define __P(args) args
-# else
-#  define __P(args) ()
-# endif
-#endif /*__P */
 
 /* Forward declaration.  */
 struct _folder;

@@ -18,17 +18,11 @@
 #ifndef _MAILUTILS_ATTRIBUTE_H
 #define _MAILUTILS_ATTRIBUTE_H
 
+#include <mailutils/mu_features.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#ifndef __P
-# ifdef __STDC__
-#  define __P(args) args
-# else
-#  define __P(args) ()
-# endif
-#endif /*__P */
 
 struct _attribute;
 typedef struct _attribute * attribute_t;

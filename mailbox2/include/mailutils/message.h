@@ -24,20 +24,13 @@
 struct _message;
 typedef struct _message *message_t;
 
+#include <mailutils/mu_features.h>
 #include <mailutils/envelope.h>
 #include <mailutils/header.h>
 #include <mailutils/body.h>
 #include <mailutils/stream.h>
 #include <mailutils/attribute.h>
 #include <mailutils/mailbox.h>
-
-#ifndef __P
-# ifdef __STDC__
-#  define __P(args) args
-# else
-#  define __P(args) ()
-# endif
-#endif /* __P */
 
 #ifdef __cplusplus
 extern "C" {

@@ -18,17 +18,11 @@
 #ifndef _MAILUTILS_ITERATOR_H
 #define _MAILUTILS_ITERATOR_H
 
+#include <mailutils/mu_features.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#ifndef __P
-# ifdef __STDC__
-#  define __P(args) args
-# else
-#  define __P(args) ()
-# endif /* __STDC__  */
-#endif /* __P  */
 
 struct _iterator;
 typedef struct _iterator *iterator_t;

@@ -28,14 +28,6 @@
 extern "C" {
 #endif
 
-#ifndef __P
-# if __STDC__
-#  define __P(args) args
-# else
-#  define __P(args) ()
-# endif
-#endif /*!__P */
-
 struct _url
 {
   /* Data */

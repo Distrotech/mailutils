@@ -20,6 +20,7 @@
 
 #include <sys/types.h>
 #include <stdio.h>
+#include <mailutils/mu_features.h>
 
 #ifdef __cplusplus
 extern "C" {
