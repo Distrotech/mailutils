@@ -24,6 +24,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <time.h>
+#include <mailutils/observer.h>
 
 const char *argp_program_version = "scan (" PACKAGE_STRING ")";
 static char doc[] = "GNU MH scan";
@@ -72,8 +73,11 @@ static mh_format_t format;
 
 static mh_msgset_t msgset;
 
+static char *buffer;
+
 void list_message __P((mailbox_t mbox, message_t msg, size_t num, void *data));
-int scan __P((mailbox_t mbox));
+void print_header __P((mailbox_t mbox));
+void clear_screen __P((void));
 
 static int
 opt_handler (int key, char *arg, void *unused)
@@ -128,12 +132,32 @@ opt_handler (int key, char *arg, void *unused)
   return 0;
 }
 
+/* Observable Action this is being call at every message discover.  */
+static int
+action (observer_t o, size_t type)
+{
+  static int counter;
+  mailbox_t mbox;
+  message_t msg = NULL;
+  size_t num;
+
+  if (type == MU_EVT_MESSAGE_ADD)
+    {
+      mbox = observer_get_owner (o);
+      counter++;
+      mailbox_get_message (mbox, counter, &msg);
+      mh_message_number (msg, &num);
+      list_message (mbox, msg, num, NULL);
+    }
+  return 0;
+}
 
 int
 main (int argc, char **argv)
 {
   int index;
   mailbox_t mbox;
+  int status;
 
   /* Native Language Support */
   mu_init_nls ();
@@ -148,12 +172,58 @@ main (int argc, char **argv)
     }
 
   mbox = mh_open_folder (current_folder, 0);
-  mh_msgset_parse (mbox, &msgset, argc - index, argv + index, "all");
-  
-  if (reverse)
-    mh_msgset_reverse (&msgset);
 
-  return scan (mbox);
+  buffer = xmalloc (width);
+  
+  argc -= index;
+  argv += index;
+  if ((argc == 0 || strcmp (argv[0], "all") == 0) && !reverse)
+    {
+      /* Fast approach */
+      observer_t observer;
+      observable_t observable;
+      size_t total;
+        
+      print_header (mbox);
+      
+      observer_create (&observer, mbox);
+      observer_set_action (observer, action, mbox);
+      mailbox_get_observable (mbox, &observable);
+      observable_attach (observable, MU_EVT_MESSAGE_ADD, observer);
+
+      status = mailbox_scan (mbox, 1, &total);
+    }
+  else
+    {
+      mh_msgset_parse (mbox, &msgset, argc, argv, "all");
+  
+      if (reverse)
+	mh_msgset_reverse (&msgset);
+
+      print_header (mbox);
+      status = mh_iterate (mbox, &msgset, list_message, NULL);
+    }
+
+  clear_screen ();
+  mh_global_save_state ();
+  
+  return status;
+}
+
+void
+print_header (mailbox_t mbox)
+{
+  if (header)
+    {
+      url_t url = NULL;
+      char datestr[64];
+      time_t t;
+	  
+      mailbox_get_url (mbox, &url);
+      time (&t);
+      strftime (datestr, sizeof datestr, "%c", localtime (&t));
+      printf (_("Folder %s  %s\n"), url_to_string (url), datestr);
+    }
 }
 
 #ifdef HAVE_TERMCAP_H
@@ -197,44 +267,10 @@ clear_screen ()
     }
 }
 
-struct list_data {
-  char *buffer;
-  size_t width;
-};
-
-int
-scan (mailbox_t mbox)
-{
-  struct list_data list_data;
-  
-  list_data.buffer = xmalloc (width);
-  list_data.width  = width;
-
-  if (header)
-    {
-      url_t url = NULL;
-      char datestr[64];
-      time_t t;
-      
-      mailbox_get_url (mbox, &url);
-      time (&t);
-      strftime (datestr, sizeof datestr, "%c", localtime (&t));
-      printf (_("Folder %s  %s\n"), url_to_string (url), datestr);
-    }
-
-  mh_iterate (mbox, &msgset, list_message, &list_data);
-  
-  clear_screen ();
-  mh_global_save_state ();
-  return 0;
-}
-
 void
 list_message (mailbox_t mbox, message_t msg, size_t num, void *data)
 {
-  struct list_data *ld = data;
-  
-  ld->buffer[0] = 0;
-  mh_format (&format, msg, num, ld->buffer, ld->width);
-  printf ("%s\n", ld->buffer);
+  buffer[0] = 0;
+  mh_format (&format, msg, num, buffer, width);
+  printf ("%s\n", buffer);
 }
