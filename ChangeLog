@@ -1,3 +1,24 @@
+2002-12-10  Sergey Poznyakoff
+
+	* include/mailutils/libsieve.h
+	  (sieve_include_path,sieve_library_path): New globals
+	* libmu_scm/Makefile.am: Fixed install-data-hook. Thanks to
+	  Jordi Mallach.
+	* libsieve/argp.c: New file. Sieve-specific command line handling.
+	* libsieve/Makefile.am: Added argp.c
+	* libsieve/load.c (sieve_load_add_path,sieve_load_add_dir): New
+	  functions.
+	* libsieve/sieve.h: Likewise.
+	* libsieve/sieve.l: New extension statement #searchpath controls
+	  the search path for dynamically loaded extensions.
+	* mail.local/main.c (argp_capa): Added "sieve" capability.
+	  (main): Invoke mu_sieve_argp_init().
+	* sieve/sieve.c: Likewise.
+	* sieve/testsuite/sieve/ext.exp: Use -L option instead of setting
+	  environment variable.
+	* mailbox/mu_argp.c (mu_license_argp_option): Removed short
+	  option 'L', it is used by sieve argp stuff.
+	
 2002-12-09  Sergey Poznyakoff 
 
 	* libsieve/actions.c (build_mime,sieve_action_redirect): free
