@@ -87,7 +87,7 @@ util_do_command (const char *c, ...)
   char *cmd = NULL;
   va_list ap;
   static const char *delim = "=";
-
+  
   va_start (ap, c);
   status = vasprintf (&cmd, c, ap);
   va_end (ap);
@@ -114,6 +114,16 @@ util_do_command (const char *c, ...)
       if (argcv_get (cmd, delim, NULL, &argc, &argv) == 0)
 	{
 	  struct mail_command_entry entry;
+	  char *p;
+
+	  /* Special case: a number alone implies "print" */
+	  if (argc == 1 && strtoul (argv[0], &p, 10) > 0 && *p == 0)
+	    {
+	      asprintf (&p, "print %s", argv[0]);
+	      argcv_free (argc, argv);
+	      argcv_get (p, delim, NULL, &argc, &argv);
+	      free (p);
+	    }
 
 	  entry = util_find_entry (mail_command_table, argv[0]);
 	  command = entry.func;
