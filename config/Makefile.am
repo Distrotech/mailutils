@@ -1,0 +1,38 @@
+## Process this file with GNU Automake to create Makefile.in
+
+##   Copyright (C) 2005 Free Software Foundation, Inc.
+##
+##   GNU Mailutils is free software; you can redistribute it and/or
+##   modify it under the terms of the GNU General Public License as
+##   published by the Free Software Foundation; either version 2, or (at
+##   your option) any later version.
+##
+##   This program is distributed in the hope that it will be useful, but
+##   WITHOUT ANY WARRANTY; without even the implied warranty of
+##   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+##   General Public License for more details.
+##
+##   You should have received a copy of the GNU General Public License
+##   along with this program; if not, write to the Free Software
+##   Foundation, Inc. 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+INCLUDES = -I${top_srcdir}/include -I${top_srcdir}/mailbox \
+ -I${top_srcdir}/mailbox/include -I${top_builddir}/include/mailutils/gnu \
+ @INTLINCS@
+
+bin_PROGRAMS = mailutils-config
+
+mailutils_config_SOURCES = mailutils-config.c
+mailutils_config_LDADD = \
+ ../lib/libmailutils.la \
+ ../mailbox/libmailbox.la \
+ @MU_COMMON_LIBRARIES@
+
+mailutils_config_CFLAGS = -DCOMPILE_FLAGS="\"-I$(includedir)\"" \
+  -I$(top_srcdir)/intl \
+  -I${top_srcdir}/lib \
+  -DLINK_FLAGS="\"-L$(libdir)\"" \
+  -DLINK_POSTFLAGS="\"$(LTLIBICONV)\"" \
+  -DAUTHLIBS="\"`echo $(AUTHLIBS) | sed 's/.*libmuauth.la *//'`\"" \
+  -DGUILE_LIBS="\"$(GUILE_LIBS)\"" \
+  -DI18NLIBS="\"`test $(BUILD_INCLUDED_LIBINTL) = no && echo $(LIBINTL)`\""
