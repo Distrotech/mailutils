@@ -190,8 +190,14 @@ auth_gssapi (struct imap4d_command *command,
   sec_level = htonl ((SUPPORTED_P_MECH << 24) | server_buffer_size);
   tokbuf.length = 4;
   tokbuf.value = &sec_level;
-  gss_wrap (&min_stat, context, 0, GSS_C_QOP_DEFAULT,
-	    &tokbuf, &cflags, &outbuf);
+  maj_stat = gss_wrap (&min_stat, context, 0, GSS_C_QOP_DEFAULT,
+		       &tokbuf, &cflags, &outbuf);
+  if (maj_stat != GSS_S_COMPLETE)
+    {
+      display_status ("wrap", maj_stat, min_stat);
+      return RESP_NO;
+    }
+  
   util_base64_encode (outbuf.value, outbuf.length, &tmp, &size);
   util_send ("+ %*.*s\r\n", size, size, tmp);
   free (tmp);
@@ -201,9 +207,15 @@ auth_gssapi (struct imap4d_command *command,
 		      (unsigned char **) &tokbuf.value, &tokbuf.length);
   free (token_str);
 
-  gss_unwrap (&min_stat, context, &tokbuf, &outbuf, &cflags, &quality);
+  maj_stat = gss_unwrap (&min_stat, context, &tokbuf, &outbuf, &cflags,
+			 &quality);
   free (tokbuf.value);
-
+  if (maj_stat != GSS_S_COMPLETE)
+    {
+      display_status ("unwrap", maj_stat, min_stat);
+      return RESP_NO;
+    }
+  
   sec_level = ntohl (*(OM_uint32 *) outbuf.value);
 
   /* FIXME: parse sec_level and act accordingly to its settings */
