@@ -203,8 +203,8 @@ action_add (void *item, void *data)
 static int
 cmp_msgnum (const void *a, const void *b)
 {
-  size_t *as = a;
-  size_t *bs = b;
+  const size_t *as = a;
+  const size_t *bs = b;
 
   if (*as < *bs)
     return -1;
