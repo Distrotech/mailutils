@@ -1,3 +1,29 @@
+2002-08-23  Sergey Poznyakoff  
+
+	* configure.ac: Check if crypt is declared.
+	* auth/sql.c: Include <crypt.h> when available
+	* imap4d/imap4d.h: Include <url.h>
+	* imap4d/util.c: Descriptive comment on util_uidvalididty.
+
+	* lib/mu_asprintf.c: Removed.
+	* lib/mu_asprintf.h: Provide declarations for (v)asprintf.
+	* lib/Makefile.am: Removed mu_asprintf.c
+
+	* mailbox/mu_argp.c: Do not use asprintf.
+	* mailbox/mutil.c: Do not use asprintf.
+	* mailbox/parse822.c (parse822_time): Tolerate unknown
+	  timezone abbreviations.
+	* mailbox/system.c: Include <crypt.h> when available
+	
+	* imap4d/testsuite/imap4d/search.exp: New file. Provides tests
+	  for SEARCH command.
+	* imap4d/testsuite/imap4d/DISTFILES: Added search.exp
+
+	* testsuite/spool/teaparty.mbox: Fixed timestamps.
+	* pop3d/testsuite/pop3d/read.exp: Updated to match new mailbox.
+	* mail/testsuite/mail/z.exp: Likewise.
+	* mail/testsuite/mail/tag.exp: Likewise.
+	
 2002-08-22  Sergey Poznyakoff 
 
 	* configure.ac: Create imap4d/testsuite/Makefile
