@@ -17,45 +17,6 @@
 
 ;;;; This module provides sieve's "redirect" action.
 
-(use-modules (ice-9 popen))
-
-(define PATH-SENDMAIL "/usr/lib/sendmail")
-(define sieve-my-email "")
-
-;;; Bounce a message.
-;;; Current mailutils API does not provide a way to send a message
-;;; specifying its recipients (like "sendmail -t foo@bar.org" does),
-;;; hence the need for this function.
-(define (sieve-message-bounce message addr-list)
-  (catch #t
-	 (lambda ()
-	   (let ((port (open-output-pipe
-			(apply string-append
-			       (append
-				(list
-				 PATH-SENDMAIL
-				 " -oi -t ")
-				(map
-				 (lambda (addr)
-				   (string-append addr " "))
-				 addr-list))))))
-	     ;; Write headers
-	     (for-each
-	      (lambda (hdr)
-		(display (string-append (car hdr) ": " (cdr hdr)) port)
-		(newline port))
-	      (mu-message-get-header-fields message))
-	     (newline port)
-	     ;; Write body
-	     (let ((body (mu-message-get-body message)))
-	       (do ((line (mu-body-read-line body) (mu-body-read-line body)))
-		   ((eof-object? line) #f)
-		   (display line port)))
-	     (close-output-port port)))
-	 (lambda args
-	   (runtime-error LOG_ERR "redirect: Can't send message")
-	   (write args))))
-
 ;;; rfc3028 says: 
 ;;; "Implementations SHOULD take measures to implement loop control,"
 ;;; We do this by appending an "X-Sender" header to each message
@@ -89,5 +50,6 @@
 ;;; Register action
 (if sieve-parser
     (sieve-register-action "redirect" action-redirect 'string))
+
 
 
