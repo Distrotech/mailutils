@@ -27,9 +27,11 @@ set env(MAIL) $MU_SPOOL_DIR/sieve.mbox
 #            [ARGS...][-pattern PATTERN...]
 proc sieve_test {args} {
     global sieve_source_dir
+    global top_builddir
     
     set default ""
-    set sw [list "-M none"]
+    set sw [list "-M sendmail:$top_builddir/examples/mta" \
+	         "--email foobar@nonexistent.net"]
     set reuse_spool 0
     for {set i 0} {$i < [llength $args]} {incr i} {
 	set a [lindex $args $i]
@@ -76,3 +78,53 @@ proc sieve_test {args} {
     #FIXME: examine the output mailbox
 }
 
+proc sieve_driver_test {name mailer diag} {
+    global srcdir
+    set chan [open "${srcdir}/$name" r]
+
+    set state 0
+    set command ""
+    for {gets $chan line} {![eof $chan]} {gets $chan line} {
+	verbose "LINE $line" 1
+	switch -regexp -- "$line" {
+	    "^#.*" { }
+	    "^TEST END" {
+		verbose "ARGS $args" 1
+		verbose "PATTERN $pattern" 1
+		verbose "OUTPUT $output" 1
+		eval sieve_test $args -pattern $pattern
+		eval mu_test_file "$diag" $output		
+		set state 0
+	    }
+	    "^TEST" {
+		regexp "^TEST (.*)" $line dummy args
+	        set pattern [list]
+		set output [list]
+	        set state 1
+	    }
+	    "^PATTERN BEGIN" {
+		set state 2
+	    }
+	    "^PATTERN END" {
+		set state 1
+	    }
+	    "^FILE BEGIN" {
+		set state 3
+	    }
+	    "^FILE END" {
+		set state 1
+	    }
+	    "^STOP" {
+		break
+	    }
+	    default {
+		if {$state == 2} {
+		    lappend pattern $line
+		} elseif {$state == 3} {
+		    lappend output $line
+		}
+	    }
+	}
+    }
+    close $chan
+}
