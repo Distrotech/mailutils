@@ -100,8 +100,10 @@ mh/mh_fmtgram.y
 mh/mh_format.c
 mh/mh_getopt.c
 mh/mh_init.c
+mh/mh_list.c
 mh/mh_msgset.c
 mh/mh_whatnow.c
+mh/mhl.c
 mh/mhpath.c
 mh/refile.c
 mh/repl.c
