@@ -576,6 +576,10 @@ _mh_message_save (struct _mh_data *mhd, struct _mh_message *mhm, int expunge)
       while (isspace (*p))
 	p++;
       fprintf (fp, "%s: %s", MU_HEADER_ENV_DATE, p);
+
+      if (*p && p[strlen (p) - 1] != '\n')
+	fprintf (fp, "\n");
+      
       nlines++;
     }
 	  
