@@ -1,3 +1,10 @@
+2004-01-14  Sergey Poznyakoff
+
+	* mailbox/mbox/mbox.c (mbox_append_message0): Truncate the
+	stream back to its original size if an error occured.
+	* mail.local/main.c (deliver): Likewise.
+	* frm/frm.c: Minor fix in help output.
+
 2004-01-13  Sergey Poznyakoff 
 
 	* frm/frm.c: Lots of changes for compatibility with ELM.
