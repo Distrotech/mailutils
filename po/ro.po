@@ -363,12 +363,8 @@ msgid "user nonexistent: %s"
 msgstr "user inexistent: %s"
 
 #: dotlock/dotlock.c:35
-msgid "GNU dotlock -- lock mail spool filesReturns 0 on success, 3 if the locki
-ng the file fails because it's already locked, and 1 if some other kind of erro
-r occurred."
-msgstr "GNU dotlock -- blocheazã(lock) fiºierele spool de mail. Returneazã 0 în
- caz de succes, 3 dacã blocarea fiºierului eºueazã din cauza faptului cã este d
-eja blocat, ºi 1 dacã s-a produs un alt fel de eroare."
+msgid "GNU dotlock -- lock mail spool filesReturns 0 on success, 3 if the locking the file fails because it's already locked, and 1 if some other kind of error occurred."
+msgstr "GNU dotlock -- blocheazã(lock) fiºierele spool de mail. Returneazã 0 în caz de succes, 3 dacã blocarea fiºierului eºueazã din cauza faptului cã este deja blocat, ºi 1 dacã s-a produs un alt fel de eroare."
 
 #: dotlock/dotlock.c:44
 msgid "Unlock"
@@ -380,8 +376,7 @@ msgstr "MINUTE"
 
 #: dotlock/dotlock.c:47
 msgid "Forcibly break an existing lock older than a certain time"
-msgstr "Deblocheazã cu forþa o blocare(lock) existentã mai veche de un anumit t
-imp"
+msgstr "Deblocheazã cu forþa o blocare(lock) existentã mai veche de un anumit timp"
 
 #: dotlock/dotlock.c:49
 msgid "RETRIES"
@@ -608,10 +603,8 @@ msgid "Act as local MDA for user NAME"
 msgstr "Comportare ca MDA local pentru userul NUME"
 
 #: guimb/main.c:121
-msgid "GNU guimb -- Process the contents of the specified mailboxes using a Sch
-eme program or expression."
-msgstr "GNU guimb -- Proceseazã conþinutul mailbox-urilor specificate folosind 
-un program Scheme sau o expresie."
+msgid "GNU guimb -- Process the contents of the specified mailboxes using a Scheme program or expression."
+msgstr "GNU guimb -- Proceseazã conþinutul mailbox-urilor specificate folosind un program Scheme sau o expresie."
 
 #: guimb/main.c:123 messages/messages.c:35
 msgid "[mailbox...]"
@@ -619,8 +612,7 @@ msgstr "[mailbox...]"
 
 #: guimb/main.c:165
 msgid "At least one of -fecs must be used. Try guimb --help for more info."
-msgstr "Cel puþin unul dintre -fecs trebuie folosit. Încercaþi guimb --help pen
-tru mai multe informaþii."
+msgstr "Cel puþin unul dintre -fecs trebuie folosit. Încercaþi guimb --help pentru mai multe informaþii."
 
 #: guimb/util.c:50 guimb/util.c:57 mail/util.c:664 mail/util.c:671
 #, c-format
@@ -914,8 +906,7 @@ msgstr "potrivire relaþionalã `%s' invalidã în apelarea cãtre `%s'"
 #: libsieve/comparator.c:320
 #, c-format
 msgid "comparator `%s' is incompatible with match type `%s' in call to `%s'"
-msgstr "comparatorul `%s' este incompatibil cu tipul de potrivire `%s' în apela
-rea cãtre `%s'"
+msgstr "comparatorul `%s' este incompatibil cu tipul de potrivire `%s' în apelarea cãtre `%s'"
 
 #: libsieve/prog.c:38
 msgid "out of memory!"
@@ -1306,8 +1297,7 @@ msgid ""
 "   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA\n"
 "\n"
 msgstr ""
-"   GNU Mailutils este software liber; puteþi sã-l redistribuiþi ºi/sau modific
-aþi\n"
+"   GNU Mailutils este software liber; puteþi sã-l redistribuiþi ºi/sau modificaþi\n"
 "   în termenii Licenþei Publice Generale\n"
 "\n"
 "   GNU Mailutils este software liber; puteþi sã-l redistribuiþi ºi/sau\n"
@@ -1528,8 +1518,7 @@ msgstr "nu se poate crea header-ul temporar: %s"
 #: mail/util.c:1223
 #, c-format
 msgid "can't parse address `%s' (while expanding `%s'): %s"
-msgstr "nu se poate analiza(parse) adresa `%s' (în timp ce se expanda `%s'): %s
-"
+msgstr "nu se poate analiza(parse) adresa `%s' (în timp ce se expanda `%s'): %s"
 
 #: mail/util.c:1226
 #, c-format
@@ -1650,7 +1639,7 @@ msgstr "În ultimul ecran(screenful) cu mesaje\n"
 
 #: mail.local/main.c:46
 msgid ""
-"GNU mail.local -- the local MDADebug flags are:\n"
+"GNU mail.local -- the local MDADebug flags are:\n"
 "  g - guimb stack traces\n"
 "  T - mailutil traces (MU_DEBUG_TRACE)\n"
 "  P - network protocols (MU_DEBUG_PROT)\n"
@@ -1676,8 +1665,7 @@ msgstr "Nu returneazã erori când se livreazã înspre recipiente multiple"
 
 #: mail.local/main.c:66
 msgid "Return temporary failure if disk or mailbox quota is exceeded"
-msgstr "Returneazã eroare temporarã dacã quota disk-ului sau mailbox-ului este 
-depãºitã"
+msgstr "Returneazã eroare temporarã dacã quota disk-ului sau mailbox-ului este depãºitã"
 
 #: mail.local/main.c:67 mailbox/mu_argp.c:77
 msgid "EMAIL"
@@ -1697,13 +1685,11 @@ msgstr "TIPAR"
 
 #: mail.local/main.c:75
 msgid "Set name pattern for user-defined sieve mail filters"
-msgstr "Seteazã numele tiparului pentru filtrele de mail sieve definite de util
-izator"
+msgstr "Seteazã numele tiparului pentru filtrele de mail sieve definite de utilizator"
 
 #: mail.local/main.c:78
 msgid "Set name pattern for user-defined mail filters"
-msgstr "Seteazã numele tiparului pentru filtrele de mail definite de utilizator
-"
+msgstr "Seteazã numele tiparului pentru filtrele de mail definite de utilizator"
 
 #: mail.local/main.c:80 mailbox/mu_argp.c:70 sieve/sieve.c:83
 msgid "FLAGS"
@@ -1715,8 +1701,7 @@ msgstr "Activeazã debugging-ul"
 
 #: mail.local/main.c:83
 msgid "Set timeout for acquiring the lockfile"
-msgstr "Seteazã timpul de expirare pentru achiziþionarea fiºierului de lock(loc
-kfile)"
+msgstr "Seteazã timpul de expirare pentru achiziþionarea fiºierului de lock(lockfile)"
 
 #: mail.local/main.c:132
 msgid "multiple --from options"
@@ -1823,8 +1808,7 @@ msgstr "nu se poate stabili mãrimea secvenþei (mesaj de input): %s"
 #: mail.local/main.c:715
 #, c-format
 msgid "%s: message would exceed maximum mailbox size for this recipient"
-msgstr "%s: mesajul va depãºi mãrimea maximã a mailbox-ului pentru acest recipi
-ent"
+msgstr "%s: mesajul va depãºi mãrimea maximã a mailbox-ului pentru acest recipient"
 
 #: mail.local/main.c:764
 #, c-format
@@ -1844,7 +1828,7 @@ msgstr "quota mailbox bogus pentru `%s' (aproape de `%s')"
 #: mail.remote/mail.remote.c:46
 msgid ""
 "GNU mail.remote -- pseudo-sendmail interface for mail delivery\n"
-"\n"
+"\n"
 "An RFC2822 formatted message is read from stdin and delivered using\n"
 "the mailer. This utility can be used as a drop-in replacement\n"
 "for /bin/sendmail to forward mail directly to an SMTP gateway.\n"
@@ -1873,16 +1857,12 @@ msgid ""
 msgstr ""
 "GNU mail.remote -- interfaþã pseudo-sendmailpentur livrare de email\n"
 " \n"
-"Un mesaj formatat RFC2822 este citit de la stdin ºi livrat folosind mailerul.\
-n"
-" Acest utilitar poate fi folosit ca o înlocuire mai slabã pentru /bin/sendmail
-\n"
+"Un mesaj formatat RFC2822 este citit de la stdin ºi livrat folosind mailerul.\n"
+" Acest utilitar poate fi folosit ca o înlocuire mai slabã pentru /bin/sendmail\n"
 "folositã pentru a înainta(forward) emailul direct într-un gateway SMTP.\n"
 "\n"
-"Mailerul implicit este \"sendmail\", care nu este suportat de acest utilitar\n
-"
-"(intenþia acestuia este sã fie folosit când nu aveþi un sendmail funcþional).\
-n"
+"Mailerul implicit este \"sendmail\", care nu este suportat de acest utilitar\n"
+"(intenþia acestuia este sã fie folosit când nu aveþi un sendmail funcþional).\n"
 " Ar Trebui sã specificaþi gateway-ul vostru SMTP specificând un --mailer\n"
 "ca de exemplu \"smtp://mail.example.com\". Acesta va fi în mod normal\n"
 "adãugat în fiºierul vostru specific de configuraþie,\n"
@@ -1896,8 +1876,7 @@ n"
 "derivatã din câmpul \"From:\" din mesaj, dacã este prezent, sau adresa\n"
 "de email implicitã a user-ului dacã nu este prezent.\n"
 "\n"
-"Dacã nu sunt specificate în mod explicit, adresele to implicite sunt derivate\
-n"
+"Dacã nu sunt specificate în mod explicit, adresele to implicite sunt derivate\n"
 "din câmpurile \"To:\", \"Cc:\" ºi \"Bcc:\" din mesaj.\n"
 "\n"
 "Dacã este specificat --debug, comenzile de plic(envelope) din tranzacþia\n"
@@ -1978,11 +1957,8 @@ msgid "Garbage in ARGP_HELP_FMT: %s"
 msgstr "Gunoi(garbage) în ARGP_HELP_FMT: %s"
 
 #: mailbox/argp-help.c:1216
-msgid "Mandatory or optional arguments to long options are also mandatory or op
-tional for any corresponding short options."
-msgstr "Argumentele obligatorii sau opþionale pentru opþiunile lungi sunt de as
-emenea obligatorii sau opþionale pentru toate opþiunile scurte corespunzãtoare.
-"
+msgid "Mandatory or optional arguments to long options are also mandatory or optional for any corresponding short options."
+msgstr "Argumentele obligatorii sau opþionale pentru opþiunile lungi sunt de asemenea obligatorii sau opþionale pentru toate opþiunile scurte corespunzãtoare."
 
 #: mailbox/argp-help.c:1596
 msgid "Usage:"
@@ -2045,10 +2021,8 @@ msgid "%s must be a plain file with one link\n"
 msgstr "%s trebuie sã fie un fiºier normal(plain) cu o legãturã\n"
 
 #: mailbox/mailutils-config.c:27
-msgid "GNU mailutils-config -- Display compiler and loader options needed for b
-uilding a program with mailutils"
-msgstr "GNU mailutils-config -- Afiºeazã opþiunile compilatorului ºi încãrcãtor
-ului(loader) necesare pentru construirea(building) unui program cu mailutils"
+msgid "GNU mailutils-config -- Display compiler and loader options needed for building a program with mailutils"
+msgstr "GNU mailutils-config -- Afiºeazã opþiunile compilatorului ºi încãrcãtorului(loader) necesare pentru construirea(building) unui program cu mailutils"
 
 #: mailbox/mailutils-config.c:28
 msgid "[arg...]"
@@ -2059,23 +2033,12 @@ msgid "print C compiler flags to compile with"
 msgstr "afiºeazã flag-urile compilatorului C cu care se va compila"
 
 #: mailbox/mailutils-config.c:33
-msgid "print libraries to link with. Possible arguments are: auth, guile, all, 
-mbox, mh, maildir, imap, pop"
-msgstr "afiºeazã bibliotecile cu care se va face legãtura. Argumente posibile s
-unt:  auth, guile, all, mbox, mh, maildir, imap, pop"
+msgid "print libraries to link with. Possible arguments are: auth, guile, all, mbox, mh, maildir, imap, pop"
+msgstr "afiºeazã bibliotecile cu care se va face legãtura. Argumente posibile sunt:  auth, guile, all, mbox, mh, maildir, imap, pop"
 
 #: mailbox/mailutils-config.c:36
-msgid "print a list of configuration options used to build mailutils. If argume
-nts are given, they are interpreted as a list of configuration options to check
- for. In this case the program prints those options from this list that have be
-en defined. It exits with zero status if all of the specified options are defin
-ed. Otherwise, the exit status is 1."
-msgstr "afiºeazã o listã de opþiuni de configurare folosite pentru a construi(b
-uild) mailutils. Dacã sunt specificate argumente, acestea sunt interpretate ca 
-o listã de opþiuni de configurare ce va fi verificatã. În acest caz programul a
-fiºeazã acele opþiuni care au fost definite din aceastã listã. Se iese cu stare
- zero dacã toate opþiunile specificate sunt definite. În caz contrar, starea de
- ieºire este 1."
+msgid "print a list of configuration options used to build mailutils. If arguments are given, they are interpreted as a list of configuration options to check for. In this case the program prints those options from this list that have been defined. It exits with zero status if all of the specified options are defined. Otherwise, the exit status is 1."
+msgstr "afiºeazã o listã de opþiuni de configurare folosite pentru a construi(build) mailutils. Dacã sunt specificate argumente, acestea sunt interpretate ca o listã de opþiuni de configurare ce va fi verificatã. În acest caz programul afiºeazã acele opþiuni care au fost definite din aceastã listã. Se iese cu stare zero dacã toate opþiunile specificate sunt definite. În caz contrar, starea de ieºire este 1."
 
 #: mailbox/mailutils-config.c:123
 msgid "Too many arguments"
@@ -2123,8 +2086,7 @@ msgstr "Flag-uri locker implicite (E=extern, R=reîncercare, T=timp, P=pid)"
 
 #: mailbox/mu_argp.c:78
 msgid "Set current user's email address (default is loginname@defaultdomain)"
-msgstr "Seteazã adresa de email a user-ului curent (implicit este loginname@def
-aultdomain)"
+msgstr "Seteazã adresa de email a user-ului curent (implicit este loginname@defaultdomain)"
 
 #: mailbox/mu_argp.c:79
 msgid "DOMAIN"
@@ -2132,8 +2094,7 @@ msgstr "DOMENIU"
 
 #: mailbox/mu_argp.c:80
 msgid "Set domain for unqualified user names (default is this host)"
-msgstr "Seteazã domeniul pentru nume de useri necalificate (implicit este acest
- host)"
+msgstr "Seteazã domeniul pentru nume de useri necalificate (implicit este acest host)"
 
 #: mailbox/mu_argp.c:86
 msgid "MAILER"
@@ -2228,13 +2189,11 @@ msgstr "%s nu este memorie suficientã\n"
 #: mailbox/mu_argp.c:842
 #, c-format
 msgid "INTERNAL ERROR: requested unknown argp capability %s (please report)"
-msgstr "EROARE INTERNÃ: capabilitate argp cerutã necunoscutã %s (vã rugãm rapor
-taþi)"
+msgstr "EROARE INTERNÃ: capabilitate argp cerutã necunoscutã %s (vã rugãm raportaþi)"
 
 #: mailbox/mu_argp.c:905
 msgid "INTERNAL ERROR: cannot register argp capability auth (please report)"
-msgstr "EROARE INTERNÃ: nu se poate înregistra capabilitatea argp auth (vã rugã
-m raportaþi)"
+msgstr "EROARE INTERNÃ: nu se poate înregistra capabilitatea argp auth (vã rugãm raportaþi)"
 
 #: mailbox/mu_auth.c:211 mailbox/mu_auth.c:213
 msgid "MODLIST"
@@ -2470,7 +2429,7 @@ msgstr "Nu s-a putut închide %s.\n"
 
 #: mh/anno.c:23
 msgid ""
-"GNU MH annoOptions marked with `*' are not yet implemented.\n"
+"GNU MH annoOptions marked with `*' are not yet implemented.\n"
 "Use -help to obtain the list of traditional MH options."
 msgstr ""
 "GNU MH anno- Opþiunile marcate cu `*' nu sunt încã implementate\n"
@@ -2526,9 +2485,8 @@ msgid "Component name: "
 msgstr "Nume componentã: "
 
 #: mh/fmtcheck.c:23
-msgid "GNU MH fmtcheckUse -help to obtain the list of traditional MH options."
-msgstr "GNU MH fmtcheck- Folosiþi -helppentru a obþine o listã cu opþiunile MH 
-tradiþionale."
+msgid "GNU MH fmtcheckUse -help to obtain the list of traditional MH options."
+msgstr "GNU MH fmtcheck- Folosiþi -helppentru a obþine o listã cu opþiunile MH tradiþionale."
 
 #: mh/fmtcheck.c:30 mh/forw.c:51 mh/inc.c:41 mh/mhl.c:40 mh/repl.c:55
 #: mh/scan.c:42
@@ -2560,9 +2518,8 @@ msgid "Bad format string"
 msgstr "ªirul de format este greºit"
 
 #: mh/folder.c:36
-msgid "GNU MH folderUse -help to obtain the list of traditional MH options."
-msgstr "Dosarul(folder) GNU MH Folosiþi -help pentru a obþine o listã cu opþiun
-ile tradiþionale MH."
+msgid "GNU MH folderUse -help to obtain the list of traditional MH options."
+msgstr "Dosarul(folder) GNU MH Folosiþi -help pentru a obþine o listã cu opþiunile tradiþionale MH."
 
 #: mh/folder.c:38
 msgid "[action] [msg]"
@@ -2581,17 +2538,8 @@ msgid "List the contents of the folder stack"
 msgstr "Listeazã conþinutul stivei(stack) de dosare(folder)"
 
 #: mh/folder.c:47
-msgid "Push the folder on the folder stack. If FOLDER is specified, it is pushe
-d. Otherwise, if a folder is given in the command line (via + or --folder), it 
-is pushed on stack. Otherwise, the current folder and the top of the folder sta
-ck are exchanged"
-msgstr "Trimite(push) dosarul în stiva de dosare. Dacã este specificat DOSAR es
-te trimis. În caz contrar, dacã este dat un dosar în linia de comandã (prin + s
-au --folder), el va fi trimis în stivã. În caz contrar, dosarul curent ºi parte
-a superioarã (top) a stivei de dosare sunt interschimbate.Push the folder on th
-e folder stack. If FOLDER is specified, it is pushed. Otherwise, if a folder is
- given in the command line (via + or --folder), it is pushed on stack. Otherwis
-e, the current folder and the top of the folder stack are exchanged"
+msgid "Push the folder on the folder stack. If FOLDER is specified, it is pushed. Otherwise, if a folder is given in the command line (via + or --folder), it is pushed on stack. Otherwise, the current folder and the top of the folder stack are exchanged"
+msgstr "Trimite(push) dosarul în stiva de dosare. Dacã este specificat DOSAR este trimis. În caz contrar, dacã este dat un dosar în linia de comandã (prin + sau --folder), el va fi trimis în stivã. În caz contrar, dosarul curent ºi partea superioarã (top) a stivei de dosare sunt interschimbate.Push the folder on the folder stack. If FOLDER is specified, it is pushed. Otherwise, if a folder is given in the command line (via + or --folder), it is pushed on stack. Otherwise, the current folder and the top of the folder stack are exchanged"
 
 #: mh/folder.c:52
 msgid "Pop the folder off the folder stack"
@@ -2646,10 +2594,8 @@ msgid "(others)"
 msgstr "(altele)"
 
 #: mh/folder.c:446
-msgid "Folder                  # of messages     (  range  )  cur msg   (other 
-files)\n"
-msgstr "Dosar                  # de mesaje      (  inteval  )  msj crt   (alte 
-fiºiere)\n"
+msgid "Folder                  # of messages     (  range  )  cur msg   (other files)\n"
+msgstr "Dosar                  # de mesaje      (  inteval  )  msj crt   (alte fiºiere)\n"
 
 #: mh/folder.c:452
 msgid "TOTAL"
@@ -2675,7 +2621,7 @@ msgstr "prea multe argumente"
 
 #: mh/forw.c:23
 msgid ""
-"GNU MH forwOptions marked with `*' are not yet implemented.\n"
+"GNU MH forwOptions marked with `*' are not yet implemented.\n"
 "Use -help to obtain the list of traditional MH options."
 msgstr ""
 "GNU MH forw Opþiunile marcate cu `*' nu sunt implementate încã\n"
@@ -2748,8 +2694,7 @@ msgstr "* Seteazã înlocuitorul pentru programul whatnow"
 
 #: mh/forw.c:66 mh/repl.c:66
 msgid "* Ignore whatnowproc variable. Use standard `whatnow' shell instead."
-msgstr "* Ignorã variabila whatnowproc. Foloseºte în loc shell standard `whatno
-w'."
+msgstr "* Ignorã variabila whatnowproc. Foloseºte în loc shell standard `whatnow'."
 
 #: mh/forw.c:68 mh/repl.c:67
 msgid "Use draft file preserved after the last session"
@@ -2785,9 +2730,8 @@ msgid "End of Forwarded messages"
 msgstr "Sfârºit de mesaje înaintate(forwarded)"
 
 #: mh/inc.c:23
-msgid "GNU MH incUse -help to obtain the list of traditional MH options."
-msgstr "GNU MH inc Folosiþi -help pentru a obþine o listã de opþiuni MH tradiþi
-onale."
+msgid "GNU MH incUse -help to obtain the list of traditional MH options."
+msgstr "GNU MH inc Folosiþi -help pentru a obþine o listã de opþiuni MH tradiþionale."
 
 #: mh/inc.c:25 mh/rmf.c:34
 msgid "[+folder]"
@@ -2846,19 +2790,16 @@ msgid "%d: error appending message: %s"
 msgstr "%d: eroare în adãugarea mesajului: %s"
 
 #: mh/install-mh.c:21
-msgid "GNU MH install-mhUse -help to obtain the list of traditional MH options.
-"
-msgstr "GNU MH install-mh Folosiþi -help pentru a obþine o listã de opþiuni MH 
-tradiþionale."
+msgid "GNU MH install-mhUse -help to obtain the list of traditional MH options."
+msgstr "GNU MH install-mh Folosiþi -help pentru a obþine o listã de opþiuni MH tradiþionale."
 
 #: mh/install-mh.c:27
 msgid "Do not ask for anything"
 msgstr "Nu întreba de nimic"
 
 #: mh/mark.c:21
-msgid "GNU MH markUse -help to obtain the list of traditional MH options."
-msgstr "GNU MH mark Folosiþi -help pentru a obþine o listã de opþiuni MH tradiþ
-ionale."
+msgid "GNU MH markUse -help to obtain the list of traditional MH options."
+msgstr "GNU MH mark Folosiþi -help pentru a obþine o listã de opþiuni MH tradiþionale."
 
 #: mh/mark.c:30
 msgid "Specify sequence name to operate upon"
@@ -3069,10 +3010,8 @@ msgid ""
 "is the path to use for all MH folder operations.  The suggested MH\n"
 "path for you is %s...\n"
 msgstr ""
-"Înainte a folosi MH, e necesar sã aveþi un fiºier în directorul vostru de logi
-n\n"
-"(%s) numit .mh_profile care conþine informaþii despre anumite operaþii directe
-\n"
+"Înainte a folosi MH, e necesar sã aveþi un fiºier în directorul vostru de login\n"
+"(%s) numit .mh_profile care conþine informaþii despre anumite operaþii directe\n"
 "MH.  Singurul element care este necesar este calea(path) care se va folosi\n"
 "pentru toate operaþiile de dosar(folder) MH.  Calea MH sugeratã pentru voi\n"
 "este %s...\n"
@@ -3122,8 +3061,7 @@ msgid ""
 "You already have file %s which is not a regular file or a symbolic link.\n"
 "Please remove it and try again"
 msgstr ""
-"Aveþi deja fiºierul %s care nu este un fiºier regulat sau o legãturã simbolicã
-.\n"
+"Aveþi deja fiºierul %s care nu este un fiºier regulat sau o legãturã simbolicã.\n"
 "Vã rugãm ºtergeþi-l ºi încercaþi din nou"
 
 #: mh/mh_list.c:138
@@ -3225,16 +3163,11 @@ msgstr "ciornã lãsatã în \"%s\".\n"
 
 #: mh/mh_whatnow.c:391
 msgid "List the message being distributed/replied-to on the terminal."
-msgstr "Listeazã mesajele care sunt distribuite/la care s-a rãspuns în terminal
-."
+msgstr "Listeazã mesajele care sunt distribuite/la care s-a rãspuns în terminal."
 
 #: mh/mh_whatnow.c:393
-msgid "Edit the message. If EDITOR is omitted use the one that was used on the 
-preceeding round unless the profile entry \"LASTEDITOR-next\" names an alternat
-e editor."
-msgstr "Editeazã mesajul. Dacã EDITOR este opis se foloseºte cel care a fost fo
-losit în runda precedentã în cazul în care intrarea profilului \"LASTEDITOR-nex
-t\" numeºte un editor alternativ."
+msgid "Edit the message. If EDITOR is omitted use the one that was used on the preceeding round unless the profile entry \"LASTEDITOR-next\" names an alternate editor."
+msgstr "Editeazã mesajul. Dacã EDITOR este opis se foloseºte cel care a fost folosit în runda precedentã în cazul în care intrarea profilului \"LASTEDITOR-next\" numeºte un editor alternativ."
 
 #: mh/mh_whatnow.c:397 mh/mh_whatnow.c:427 mh/mh_whatnow.c:517
 msgid "List the draft on the terminal."
@@ -3245,26 +3178,20 @@ msgid "Send the message in the background."
 msgstr "Trimite mesajul în fundal."
 
 #: mh/mh_whatnow.c:401
-msgid "Terminate the session. Preserve the draft, unless -delete flag is given.
-"
-msgstr "Terminã sesiunea. Pãstreazã ciorna, în cazul în care nu este dat flag-u
-l -delete."
+msgid "Terminate the session. Preserve the draft, unless -delete flag is given."
+msgstr "Terminã sesiunea. Pãstreazã ciorna, în cazul în care nu este dat flag-ul -delete."
 
 #: mh/mh_whatnow.c:403 mh/mh_whatnow.c:428
 msgid "Refile the draft into the given FOLDER."
 msgstr "Pune(refile) ciorna în DOSARul(FOLDER) dat."
 
 #: mh/mh_whatnow.c:405
-msgid "Send the message. The -watch flag causes the delivery process to be moni
-tored. SWITCHES are passed to send program verbatim."
-msgstr "Trimite mesajul. Flagul -watch cauzeazã monitorizarea procesului de liv
-rare. SWITCH-urile sunt pasate pentru a trimite programul verbatim."
+msgid "Send the message. The -watch flag causes the delivery process to be monitored. SWITCHES are passed to send program verbatim."
+msgstr "Trimite mesajul. Flagul -watch cauzeazã monitorizarea procesului de livrare. SWITCH-urile sunt pasate pentru a trimite programul verbatim."
 
 #: mh/mh_whatnow.c:408
-msgid "List the addresses and verify that they are acceptable to the transport 
-service."
-msgstr "Listeazã adresele ºi verificã dacã sunt acceptabile serviciului de tran
-sport."
+msgid "List the addresses and verify that they are acceptable to the transport service."
+msgstr "Listeazã adresele ºi verificã dacã sunt acceptabile serviciului de transport."
 
 #: mh/mh_whatnow.c:424
 msgid "Terminate the session. Preserve the draft."
@@ -3331,9 +3258,8 @@ msgid "No recipients"
 msgstr "Nu existã recipiente"
 
 #: mh/mhl.c:25
-msgid "GNU MH mhlUse -help to obtain the list of traditional MH options."
-msgstr "GNU MH mhl.Folosiþi -help pentru a obþine o listã cu opþiunile tradiþio
-nale MH."
+msgid "GNU MH mhlUse -help to obtain the list of traditional MH options."
+msgstr "GNU MH mhl.Folosiþi -help pentru a obþine o listã cu opþiunile tradiþionale MH."
 
 #: mh/mhl.c:27
 msgid "[files]"
@@ -3390,7 +3316,7 @@ msgstr "secvenþa(stream) de intrare(input) %s nu este un mesaj (%s)"
 
 #: mh/mhn.c:28
 msgid ""
-"GNU MH mhnOptions marked with `*' are not yet implemented.\n"
+"GNU MH mhnOptions marked with `*' are not yet implemented.\n"
 "Use -help to obtain the list of traditional MH options."
 msgstr ""
 "GNU MH mhn.Opþiunile marcate cu `*' nu sunt încã implementate\n"
@@ -3618,9 +3544,8 @@ msgid "%s:%lu: unmatched #end"
 msgstr "%s:%lu: #end fãrã corespondent"
 
 #: mh/mhpath.c:23
-msgid "GNU MH mhpathUse -help to obtain the list of traditional MH options."
-msgstr "GNU MH mhpath.Folosiþi -help pentru a obþine o listã de opþiuni tradiþi
-onale MH."
+msgid "GNU MH mhpathUse -help to obtain the list of traditional MH options."
+msgstr "GNU MH mhpath.Folosiþi -help pentru a obþine o listã de opþiuni tradiþionale MH."
 
 #: mh/mhpath.c:25 mh/rmm.c:25 mh/scan.c:32
 msgid "[+folder] [msgs]"
@@ -3628,7 +3553,7 @@ msgstr "[+folder] [msj]"
 
 #: mh/pick.c:29
 msgid ""
-"GNU MH pickOptions marked with `*' are not yet implemented.\n"
+"GNU MH pickOptions marked with `*' are not yet implemented.\n"
 "Use -help to obtain the list of traditional MH options."
 msgstr ""
 "GNU MH pick.Opþiunile marcate cu `*' nu sunt încã implementate\n"
@@ -3651,16 +3576,8 @@ msgid "A pattern to look for"
 msgstr "Un tipar(pattern) de cãutat"
 
 #: mh/pick.c:46
-msgid "Flags controlling the type of regular expressions. STRING must consist o
-f one or more of the following letters: B=basic, E=extended, I=ignore case, C=c
-ase sensitive. Default is \"EI\". The flags remain in effect until the next occ
-urrence of --cflags option. The option must occur right before --pattern or --c
-omponent option (or its alias)."
-msgstr "Flagurile controleazã tipul expresiilor regulate. ªIR trebuie sã aibã u
-na sau mai multe din urmãtoarele litere: B=bazic, E=extins, I=Ignorã cazul, C=c
-az senzitiv. Implicit este \"EI\". Flag-urile rãmân efective pânã la urmãtoarea
- întâlnire a opþiunii -cflags. Opþiunea trebuie sã se afle chiar înainte de opþ
-iunile--pattern sau --component (sau aliasurile lor)."
+msgid "Flags controlling the type of regular expressions. STRING must consist of one or more of the following letters: B=basic, E=extended, I=ignore case, C=case sensitive. Default is \"EI\". The flags remain in effect until the next occurrence of --cflags option. The option must occur right before --pattern or --component option (or its alias)."
+msgstr "Flagurile controleazã tipul expresiilor regulate. ªIR trebuie sã aibã una sau mai multe din urmãtoarele litere: B=bazic, E=extins, I=Ignorã cazul, C=caz senzitiv. Implicit este \"EI\". Flag-urile rãmân efective pânã la urmãtoarea întâlnire a opþiunii -cflags. Opþiunea trebuie sã se afle chiar înainte de opþiunile--pattern sau --component (sau aliasurile lor)."
 
 #: mh/pick.c:48
 msgid "Same as --component cc --pattern STRING"
@@ -3745,7 +3662,7 @@ msgstr "opþiune invalidã -- %s"
 
 #: mh/refile.c:28
 msgid ""
-"GNU MH refileOptions marked with `*' are not yet implemented.\n"
+"GNU MH refileOptions marked with `*' are not yet implemented.\n"
 "Use -help to obtain the list of traditional MH options."
 msgstr ""
 "GNU MH refile.Opþiunile marcate u `*' nu sunt încã implementate\n"
@@ -3768,10 +3685,8 @@ msgid "* Try to preserve message sequence numbers"
 msgstr "* Încearcã sã pãstreze numerele secvenþei de mesaj"
 
 #: mh/refile.c:45
-msgid "Specify source folder. FOLDER will become the current folder after the p
-rogram exits."
-msgstr "Specificã dosarul sursã. DOSAR va deveni dosarul curent dupã ce se iese
- din program."
+msgid "Specify source folder. FOLDER will become the current folder after the program exits."
+msgstr "Specificã dosarul sursã. DOSAR va deveni dosarul curent dupã ce se iese din program."
 
 #: mh/refile.c:47
 msgid "Use FILE as the source message"
@@ -3800,7 +3715,7 @@ msgstr "sunt specificate atât setul mesajului ºi fiºierul sursã"
 
 #: mh/repl.c:25
 msgid ""
-"GNU MH replOptions marked with `*' are not yet implemented.\n"
+"GNU MH replOptions marked with `*' are not yet implemented.\n"
 "Use -help to obtain the list of traditional MH options."
 msgstr ""
 "GNU MH repl.Opþiunile marcate u `*' nu sunt încã implementate\n"
@@ -3832,16 +3747,11 @@ msgstr "FILTRU-MHL"
 
 #: mh/repl.c:54
 msgid "Set the mhl filter to preprocess the body of the message being replied"
-msgstr "Seteazã filtrul mhl pentru preprocesarea corpului mesajului la care se 
-rãspunde"
+msgstr "Seteazã filtrul mhl pentru preprocesarea corpului mesajului la care se rãspunde"
 
 #: mh/repl.c:57
-msgid "Include a copy of the message being replied. The message will be process
-ed using either the default filter \"mhl.reply\", or the filter specified by --
-filter option."
-msgstr "Include o copie a mesajului la care se rãspunde. Mesajul va fi procesat
- folosind fie filtrul implicit \"mhl.reply\", fie filtrul specificat de opþiune
-a --filter."
+msgid "Include a copy of the message being replied. The message will be processed using either the default filter \"mhl.reply\", or the filter specified by --filter option."
+msgstr "Include o copie a mesajului la care se rãspunde. Mesajul va fi procesat folosind fie filtrul implicit \"mhl.reply\", fie filtrul specificat de opþiunea --filter."
 
 #: mh/repl.c:61
 msgid "Query for addresses to place in To: and Cc: lists"
@@ -3879,9 +3789,8 @@ msgid "only one message at a time!"
 msgstr "doar un singur mesaj odatã!"
 
 #: mh/rmf.c:32
-msgid "GNU MH rmfUse -help to obtain the list of traditional MH options."
-msgstr "GNU MH rmf.Folosiþi -help pentru a obþine o listã de opþiuni MH tradiþi
-onale."
+msgid "GNU MH rmfUse -help to obtain the list of traditional MH options."
+msgstr "GNU MH rmf.Folosiþi -help pentru a obþine o listã de opþiuni MH tradiþionale."
 
 #: mh/rmf.c:39
 msgid "Specify the folder to delete"
@@ -3906,14 +3815,12 @@ msgid "can't unlink %s: %s"
 msgstr "nu se poate elimina legãtura cãtre(unlink) %s: %s"
 
 #: mh/rmm.c:23
-msgid "GNU MH rmmUse -help to obtain the list of traditional MH options."
-msgstr "GNU MH rmm.Folosiþi -help pentru a obtine o listã de opþiuni MH tradiþi
-onale."
+msgid "GNU MH rmmUse -help to obtain the list of traditional MH options."
+msgstr "GNU MH rmm.Folosiþi -help pentru a obtine o listã de opþiuni MH tradiþionale."
 
 #: mh/scan.c:30
-msgid "GNU MH scanUse -help to obtain the list of traditional MH options."
-msgstr "GNU MH scan.Folosiþi -help pentru a obtine o listã de opþiuni MH tradiþ
-ionale."
+msgid "GNU MH scanUse -help to obtain the list of traditional MH options."
+msgstr "GNU MH scan.Folosiþi -help pentru a obtine o listã de opþiuni MH tradiþionale."
 
 #: mh/scan.c:37
 msgid "Specify folder to scan"
@@ -3947,7 +3854,7 @@ msgstr "Dosarul %s  %s\n"
 
 #: mh/send.c:27
 msgid ""
-"GNU MH sendOptions marked with `*' are not yet implemented.\n"
+"GNU MH sendOptions marked with `*' are not yet implemented.\n"
 "Use -help to obtain the list of traditional MH options."
 msgstr ""
 "GNU MH send.Opþiunile marcate cu `*' nu sunt încã implementate\n"
@@ -3967,8 +3874,7 @@ msgstr "Foloseºte ciornã pregãtitã"
 
 #: mh/send.c:42 mh/whom.c:34
 msgid "Treat the arguments as a list of messages from the draftfolder"
-msgstr "Trateazã argumentele ca o listã de mesaje din dosarul de ciorne(draftfo
-lder)"
+msgstr "Trateazã argumentele ca o listã de mesaje din dosarul de ciorne(draftfolder)"
 
 #: mh/send.c:46
 msgid "* Use filter FILE to preprocess the body of the message"
@@ -3983,10 +3889,8 @@ msgid "* Reformat To: and Cc: addresses"
 msgstr "* Reformateazã adresele To: ºi Cc:"
 
 #: mh/send.c:53
-msgid "* In case of failure forward the draft along with the failure notice to 
-the sender."
-msgstr "* În caz de eºec înainteazã(forward) ciorna împreunã cu o notificare de
- eroare expeditorului."
+msgid "* In case of failure forward the draft along with the failure notice to the sender."
+msgstr "* În caz de eºec înainteazã(forward) ciorna împreunã cu o notificare de eroare expeditorului."
 
 #: mh/send.c:56
 msgid "* Use MIME encapsulation"
@@ -4005,10 +3909,8 @@ msgid "SECONDS"
 msgstr "SECUNDE"
 
 #: mh/send.c:65
-msgid "* Split the draft into several partial messages and send them with SECON
-DS interval"
-msgstr "* Împarte ciorna în câteva mesaje parþiale ºi trimitele într-un interva
-l de SECUNDE"
+msgid "* Split the draft into several partial messages and send them with SECONDS interval"
+msgstr "* Împarte ciorna în câteva mesaje parþiale ºi trimitele într-un interval de SECUNDE"
 
 #: mh/send.c:67
 msgid "Print the transcript of interactions with the transport system"
@@ -4059,9 +3961,8 @@ msgid "Set the prompt"
 msgstr "Seteazã promptul"
 
 #: mh/whom.c:21
-msgid "GNU MH whomUse -help to obtain the list of traditional MH options."
-msgstr "GNU MH whom.Folosiþi -help pentru a obþine o listã de opþiuni tradiþion
-ale MH."
+msgid "GNU MH whomUse -help to obtain the list of traditional MH options."
+msgstr "GNU MH whom.Folosiþi -help pentru a obþine o listã de opþiuni tradiþionale MH."
 
 #: mh/whom.c:38
 msgid "Check if addresses are deliverable"
@@ -4348,8 +4249,7 @@ msgstr "Afiºeazã(output) formfeed-uri între mesaje"
 
 #: readmsg/readmsg.c:45
 msgid "Print all messages matching pattern, not just the first"
-msgstr "Tipãreºte toate mesajele care se potrivesc tiparului(pattern), nu doar 
-primul"
+msgstr "Tipãreºte toate mesajele care se potrivesc tiparului(pattern), nu doar primul"
 
 #: readmsg/readmsg.c:252
 #, c-format
@@ -4359,7 +4259,7 @@ msgstr "nu s-a putut crea mailbox: %s"
 #: sieve/sieve.c:52
 msgid ""
 "GNU sieve -- a mail filtering tool\n"
-"Debug flags:\n"
+"Debug flags:\n"
 "  g - main parser traces\n"
 "  T - mailutil traces (MU_DEBUG_TRACE)\n"
 "  P - network protocols (MU_DEBUG_PROT)\n"
@@ -4388,8 +4288,7 @@ msgstr "Compileazã scriptul ºi iese"
 
 #: sieve/sieve.c:75
 msgid "Compile script, dump disassembled sieve code to terminal and exit"
-msgstr "Compileazã scriptul, lasã(dump) codul sieve dezasamblat la terminal ºi 
-iese"
+msgstr "Compileazã scriptul, lasã(dump) codul sieve dezasamblat la terminal ºi iese"
 
 #: sieve/sieve.c:77
 msgid "MBOX"
@@ -4512,4 +4411,3 @@ msgstr "eroare la deschiderea %s: %s"
 #, c-format
 msgid "expunge on %s failed: %s"
 msgstr "eroare la eliminarea(expunge) %s: %s"
-
