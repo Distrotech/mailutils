@@ -50,7 +50,7 @@ main (int argc, char *argv[])
   int i = 1;
   char *cmdline;
   int flags = MU_STREAM_READ;
-  
+
   if (argc > 1 && strcmp (argv[i], "--stdin") == 0)
     {
       read_stdin = 1;
@@ -96,5 +96,7 @@ main (int argc, char *argv[])
   read_and_print (stream, out);
   stream_close (stream);
   stream_destroy (&stream, stream_get_owner (stream));
+  stream_close (out);
+  stream_destroy (&out, stream_get_owner (stream));
   return 0;
 }
