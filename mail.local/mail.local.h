@@ -102,18 +102,18 @@ extern int exit_code;
 extern void setgroupquota __P((char *str));
 extern int check_quota __P((char *name, size_t size, size_t *rest));
 
-int mda __P((FILE *fp, char *username));
+int mda __P((message_t msg, char *username));
 int switch_user_id __P((struct mu_auth_data *auth, int user));
 void mailer_err __P((char *fmt, ...));
 
 #ifdef WITH_GUILE
 struct mda_data
 {
-  FILE *fp;
+  message_t msg;
+  char *tempfile;
   char *progfile;
   char *progfile_pattern;
   char **argv;
-  char *tempfile;
 };
 
 int prog_mda (struct mda_data *data);

@@ -34,11 +34,13 @@ prog_mda (struct mda_data *data)
   char *x_argv[2];
   guimb_param_t param;
   mailbox_t mbox;
-      
+  stream_t stream = NULL;
+  
   x_argv[0] = "mail.local";
   x_argv[1] = NULL;
 
-  fflush (data->fp);
+  message_get_stream (data->msg, &stream);
+  stream_flush (stream);
   if (mailbox_create (&mbox, data->tempfile)
       || mailbox_open (mbox, MU_STREAM_RDWR) != 0)
     {
@@ -97,7 +99,6 @@ mda_catch_body (void *data, mailbox_t mbox)
   struct mda_data *md = data;
   message_t mesg = NULL;
   attribute_t attr = NULL;
-  FILE *fp = md->fp;
 
   if (access (md->progfile, R_OK))
     {
@@ -115,29 +116,8 @@ mda_catch_body (void *data, mailbox_t mbox)
   if (attribute_is_deleted (attr))
     return SCM_BOOL_F;
 
-  if (message_is_modified (mesg))
-    {
-      char *tname;
-      int fd = mu_tempfile (NULL, &tname);
-      mailbox_t tmp;
-      
-      close (fd);
-      if (mailbox_create (&tmp, tname) == 0
-	  && mailbox_open (tmp, MU_STREAM_RDWR) == 0)
-	{
-	  mailbox_append_message (tmp, mesg);
-	  mailbox_close (tmp);
-	  mailbox_destroy (&tmp);
-
-	  fp = fopen (tname, "r");
-	}
-      unlink (tname);
-    }
-
   mda_switch_to_user (NULL);
-  mda (fp, md->argv[0]);
-  if (fp != md->fp)
-    fclose (fp);
+  mda (md->msg, md->argv[0]);
   return SCM_BOOL_F;
 }
 
