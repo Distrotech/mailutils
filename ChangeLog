@@ -1,3 +1,12 @@
+2005-02-28  Sergey Poznyakoff
+
+	* configure.ac: Check for FriBidi
+	* frm/Makefile.am: Link with libfribidi
+	* frm/frm.c: Rewritten output routines using FriBidi. Arabic
+	subject lines look almost OK, except that all characters are
+	displayed in isolated variant. 
+	* frm/testsuite/frm/test.exp: Fixed to match the new frm output.
+
 2005-02-27  Wojciech Polak
 
 	* frm/Makefile.am: Added install-exec-hook for creating
