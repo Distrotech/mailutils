@@ -1,9 +1,11 @@
 2005-03-13  Sergey Poznyakoff 
 
-	* lib/mailcap.c (mime_context_fill): Remove leading whitespace
+	* lib/mailcap.c Include ctype.h
+	(mime_context_fill): Remove leading whitespace
 	when preparing lists.
 	(mime_context_get_content_type_value): Return integer code.
 	(expand_string): Fixed expansion of %{name}
+	* mh/send.c: Use gettext markers in verbose diagnostics.
 
 2005-03-12  Sergey Poznyakoff 
 
