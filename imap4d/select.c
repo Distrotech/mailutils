@@ -44,12 +44,13 @@ imap4d_select0 (struct imap4d_command *command, char *arg, int flags)
   if (mailbox_name == NULL || *mailbox_name == '\0')
     return util_finish (command, RESP_BAD, "Too few arguments");
 
-  /* Even if a mailbox is slected, a SLECT EXAMINE or LOGOUT
+  /* Even if a mailbox is selected, a SELECT EXAMINE or LOGOUT
      command MAY be issued without previously issuing a CLOSE command.
      The SELECT, EXAMINE, and LOGUT commands implictly close the
-     currently selected mailbox withut doing an expunge.  */
+     currently selected mailbox without doing an expunge.  */
   if (mbox)
     {
+      mailbox_save_attributes (mbox);
       mailbox_close (mbox);
       mailbox_destroy (&mbox);
       /* Destroy the old uid table.  */
@@ -72,7 +73,7 @@ imap4d_select0 (struct imap4d_command *command, char *arg, int flags)
     mailbox_name = namespace_getfullpath (mailbox_name, "/");
 
   if (!mailbox_name)
-    return util_finish (command, RESP_NO, "Couldn't open mailbox"); 
+    return util_finish (command, RESP_NO, "Couldn't open mailbox");
 
   if (mailbox_create (&mbox, mailbox_name) == 0
       && mailbox_open (mbox, flags) == 0)
@@ -102,7 +103,7 @@ imap4d_select_status()
 
   if (state != STATE_SEL)
     return;
-  
+
   mailbox_uidvalidity (mbox, &uidvalidity);
   mailbox_uidnext (mbox, &uidnext);
   mailbox_messages_count (mbox, &count);

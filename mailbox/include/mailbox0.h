@@ -82,6 +82,7 @@ struct _mailbox
   int  (*_messages_recent) __P ((mailbox_t, size_t *num));
   int  (*_message_unseen)  __P ((mailbox_t, size_t *num));
   int  (*_expunge)         __P ((mailbox_t));
+  int  (*_save_attributes) __P ((mailbox_t));
   int  (*_uidvalidity)     __P ((mailbox_t, unsigned long *num));
   int  (*_uidnext)         __P ((mailbox_t, size_t *num));
   int  (*_get_property)    __P ((mailbox_t, property_t *num));

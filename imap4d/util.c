@@ -513,7 +513,7 @@ imap4d_readline (FILE *fp)
         }
     }
   while (number > 0);
-  /* syslog (LOG_INFO, "readline: %s", line);  */
+  /*syslog (LOG_INFO, "readline: %s", line); */
   return line;
 }
 
@@ -669,7 +669,7 @@ util_parse_822_date (char *date, time_t *timep)
   struct tm tm;
   mu_timezone tz;
   const char* p = date;
-  
+
   if (parse822_date_time(&p, date+strlen(date), &tm, &tz) == 0)
     {
       *timep = mu_tm2time (&tm, &tz);
@@ -683,7 +683,7 @@ util_parse_ctime_date (const char *date, time_t *timep)
 {
   struct tm tm;
   mu_timezone tz;
-  
+
   if (mu_parse_ctime_date_time(&date, &tm, &tz) == 0)
     {
       *timep = mu_tm2time (&tm, &tz);

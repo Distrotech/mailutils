@@ -26,8 +26,12 @@ imap4d_bye (int reason)
   int status = EXIT_FAILURE;
   username = (pw) ? pw->pw_name : "Unknown";
 
-  mailbox_close (mbox);
-  mailbox_destroy (&mbox);
+  if (mbox)
+    {
+      mailbox_save_attributes (mbox);
+      mailbox_close (mbox);
+      mailbox_destroy (&mbox);
+    }
 
   switch (reason)
     {

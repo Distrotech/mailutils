@@ -171,6 +171,7 @@ static int mbox_messages_count        __P ((mailbox_t, size_t *));
 static int mbox_messages_recent       __P ((mailbox_t, size_t *));
 static int mbox_message_unseen        __P ((mailbox_t, size_t *));
 static int mbox_expunge               __P ((mailbox_t));
+static int mbox_save_attributes       __P ((mailbox_t));
 static int mbox_uidvalidity           __P ((mailbox_t, unsigned long *));
 static int mbox_uidnext               __P ((mailbox_t, size_t *));
 static int mbox_scan                  __P ((mailbox_t, size_t, size_t *));
@@ -264,6 +265,7 @@ _mailbox_mbox_init (mailbox_t mailbox)
   mailbox->_messages_recent = mbox_messages_recent;
   mailbox->_message_unseen = mbox_message_unseen;
   mailbox->_expunge = mbox_expunge;
+  mailbox->_save_attributes = mbox_save_attributes;
   mailbox->_uidvalidity = mbox_uidvalidity;
   mailbox->_uidnext = mbox_uidnext;
 
@@ -536,6 +538,305 @@ mbox_tmpfile (mailbox_t mailbox, char **pbox)
   return fd;
 }
 
+/* FIXME:  This is the code of _expunge(), duplicating code like this is really
+   not elegant  ... but since we are moving with a new API of the mailbox,
+   this hack will suffice, for now.
+   - Check if messages/attributeds are modified
+   - create a temporary mailbox
+   - copy the messages to the temporay mailbox
+   - copy the temporary mailbox back to the original
+   - truncate ()
+   - re-scan ()
+*/
+static int
+mbox_save_attributes (mailbox_t mailbox)
+{
+  mbox_data_t mud = mailbox->data;
+  mbox_message_t mum;
+  int status = 0;
+  sigset_t signalset;
+  int tempfile;
+  size_t i, dirty;  /* dirty will indicate the first modified message.  */
+  off_t marker = 0; /* marker will be the position to truncate.  */
+  off_t total = 0;
+  char *tmpmboxname = NULL;
+  mailbox_t tmpmailbox = NULL;
+  size_t save_imapbase = 0;  /* uidvalidity is save in the first message.  */
+#ifdef WITH_PTHREAD
+  int state;
+#endif
+
+  if (mud == NULL)
+    return EINVAL;
+
+  MAILBOX_DEBUG1 (mailbox, MU_DEBUG_TRACE, "mbox_save_attribute (%s)\n",
+		  mud->name);
+
+  /* Noop.  */
+  if (mud->messages_count == 0)
+    return 0;
+
+  /* Find the first dirty(modified) message.  */
+  for (dirty = 0; dirty < mud->messages_count; dirty++)
+    {
+      mum = mud->umessages[dirty];
+      /* Attribute may have been tampered, break here.  */
+      if ((mum->attr_flags & MU_ATTRIBUTE_MODIFIED)
+	  || (mum->message && message_is_modified (mum->message)))
+        break;
+    }
+
+  /* Did something change ?  */
+  if (dirty == mud->messages_count)
+    return 0; /* Noop. Nothing change, bail out.  */
+
+  /* Create a temporary file, for our temp mailbox.  */
+  tempfile = mbox_tmpfile (mailbox, &tmpmboxname);
+  if (tempfile == -1)
+    {
+      if (tmpmboxname)
+        free (tmpmboxname);
+      mu_error ("Failed to create temporary file when saving attributes.\n");
+      return errno;
+    }
+
+  /* Create the temporary mailbox_t.  */
+  {
+    mbox_data_t tmp_mud;
+    char *m = alloca (5 + strlen (tmpmboxname) + 1);
+
+    /* Try via the mbox: protocol.  */
+    sprintf (m, "mbox:%s", tmpmboxname);
+    status = mailbox_create (&tmpmailbox, m);
+    if (status != 0)
+      {
+        /* Do not give up just yet, maybe they register the path_record.  */
+        sprintf (m, "%s", tmpmboxname);
+        status = mailbox_create (&tmpmailbox, m);
+        if (status != 0)
+          {
+            /* Ok give up now.  */
+            close (tempfile);
+            remove (tmpmboxname);
+            free (tmpmboxname);
+            return status;
+          }
+      }
+
+    /* Caution:Must be flag CREATE if not the mailbox_open will try to mmap()
+       the file.  */
+    status = mailbox_open (tmpmailbox, MU_STREAM_CREAT | MU_STREAM_RDWR);
+    if (status != 0)
+      {
+        close (tempfile);
+        remove (tmpmboxname);
+        free (tmpmboxname);
+        return status;
+      }
+    close (tempfile); /* This one is useless the mailbox have its own.  */
+    tmp_mud = tmpmailbox->data;
+    /* May need when appending.  */
+    tmp_mud->uidvalidity = mud->uidvalidity;
+    tmp_mud->uidnext = mud->uidnext;
+  }
+
+  /* Get the File lock.  */
+  if (locker_lock (mailbox->locker, MU_LOCKER_WRLOCK) != 0)
+    {
+      mailbox_close (tmpmailbox);
+      mailbox_destroy (&tmpmailbox);
+      remove (tmpmboxname);
+      free (tmpmboxname);
+      mu_error ("Failed to grab the lock\n");
+      return ENOLCK;
+    }
+
+  /* Critical section, we can not allowed signal here.  */
+#ifdef WITH_PTHREAD
+  pthread_setcancelstate (PTHREAD_CANCEL_DISABLE, &state);
+#endif
+  sigemptyset (&signalset);
+  sigaddset (&signalset, SIGTERM);
+  sigaddset (&signalset, SIGHUP);
+  sigaddset (&signalset, SIGTSTP);
+  sigaddset (&signalset, SIGINT);
+  sigaddset (&signalset, SIGWINCH);
+  sigprocmask (SIG_BLOCK, &signalset, 0);
+
+  /* Set the marker position.  */
+  marker = mud->umessages[dirty]->header_from;
+  total = 0;
+
+  /* Copy to the temporary mailbox all messages starting from the dirty.  */
+  for (i = dirty; i < mud->messages_count; i++)
+    {
+      mum = mud->umessages[i];
+
+      /* Do the expensive mbox_append_message0() only if mark dirty.  */
+      if ((mum->attr_flags & MU_ATTRIBUTE_MODIFIED)
+	  || (mum->message && message_is_modified (mum->message)))
+        {
+          /* The message was not instanciated, probably the dirty attribute
+	     flag was set by mbox_scan(), create one here.  */
+          if (mum->message == 0)
+            {
+              message_t msg;
+              status = mbox_get_message (mailbox, i + 1, &msg);
+              if (status != 0)
+                {
+                  mu_error ("Error expunge:%d: %s", __LINE__,
+                            strerror (status));
+                  goto bailout0;
+                }
+            }
+          status = mbox_append_message0 (tmpmailbox, mum->message,
+                                         &total, 1, (i == save_imapbase));
+          if (status != 0)
+            {
+              mu_error ("Error expunge:%d: %s", __LINE__,
+                        strerror (status));
+              goto bailout0;
+            }
+          /* Clear the dirty bits.  */
+          mum->attr_flags &= ~MU_ATTRIBUTE_MODIFIED;
+          message_clear_modified (mum->message);
+        }
+      else
+        {
+          /* Nothing changed, copy the message straight.  */
+          char buffer [1024];
+          size_t n;
+          off_t offset = mum->header_from;
+          size_t len = mum->body_end - mum->header_from;
+          while (len > 0)
+            {
+              n = (len < sizeof (buffer)) ? len : sizeof (buffer);
+              if ((status = stream_read (mailbox->stream, buffer, n, offset,
+                                         &n) != 0)
+                  || (status = stream_write (tmpmailbox->stream, buffer, n,
+                                             total, &n) != 0))
+                {
+                  mu_error ("Error expunge:%d: %s", __LINE__,
+                            strerror (status));
+                  goto bailout0;
+                }
+              len -= n;
+              total += n;
+              offset += n;
+            }
+          /* Add the newline separator.  */
+          status = stream_write (tmpmailbox->stream, "\n", 1, total, &n);
+          if (status != 0)
+            {
+              mu_error ("Error expunge:%d: %s", __LINE__,
+                        strerror (status));
+              goto bailout0;
+            }
+          total++;
+        }
+    } /* for (;;) */
+
+  /* Caution: before ftruncate()ing the file see
+     - if we've receive new mails.  Some programs may not respect the lock,
+     - or the lock was held for too long.
+     - The mailbox may not have been properly updated before expunging.  */
+  {
+    off_t size = 0;
+    if (stream_size (mailbox->stream, &size) == 0)
+      {
+        off_t len = size - mud->size;
+        off_t offset = mud->size;
+        char buffer [1024];
+        size_t n = 0;
+        if (len > 0 )
+          {
+            while ((status = stream_read (mailbox->stream, buffer,
+                                          sizeof (buffer), offset, &n)) == 0
+                   && n > 0)
+              {
+                status = stream_write (tmpmailbox->stream, buffer, n,
+                                       total, &n);
+                if (status != 0)
+                  {
+                    mu_error ("Error expunge:%d: %s", __LINE__,
+                              strerror (status));
+                    goto bailout0;
+                  }
+                total += n;
+                offset += n;
+              }
+          }
+        else if (len < 0)
+          {
+            /* Corrupted mailbox.  */
+            mu_error ("Error expunge:%d: %s", __LINE__,
+                      strerror (status));
+            goto bailout0;
+          }
+      }
+  } /* End of precaution.  */
+
+  /* Seek and rewrite it.  */
+  if (total > 0)
+    {
+      char buffer [1024];
+      size_t n = 0;
+      off_t off = 0;
+      off_t offset = marker;
+      while ((status = stream_read (tmpmailbox->stream, buffer,
+                                    sizeof (buffer), off, &n)) == 0
+             && n > 0)
+        {
+          status = stream_write (mailbox->stream, buffer, n, offset, &n);
+          if (status != 0)
+            {
+              mu_error ("Error expunge:%d: %s\n", __LINE__,
+                        strerror (status));
+              goto bailout;
+            }
+          off += n;
+          offset += n;
+        }
+    }
+
+  /* Flush/truncation. Need to flush before truncate.  */
+  stream_flush (mailbox->stream);
+  status = stream_truncate (mailbox->stream, total + marker);
+  if (status != 0)
+    {
+      mu_error ("Error expunging:%d: %s\n", __LINE__,
+                strerror (status));
+      goto bailout;
+    }
+
+  /* Don't remove the tmp mbox in case of errors, when writing back.  */
+ bailout0:
+  remove (tmpmboxname);
+
+ bailout:
+
+  free (tmpmboxname);
+  /* Release the File lock.  */
+  locker_unlock (mailbox->locker);
+  mailbox_close (tmpmailbox);
+  mailbox_destroy (&tmpmailbox);
+
+  /* Reenable interruption.  */
+#ifdef WITH_PTHREAD
+  pthread_setcancelstate (state, &state);
+#endif
+  sigprocmask (SIG_UNBLOCK, &signalset, 0);
+
+  /* We need to readjust the pointers i.e the offsets of the msg structures. */
+  if (status == 0)
+    {
+      /* This should reset the messages_count, the last argument 0 means
+	 not to send event notification.  */
+      status = mbox_scan0 (mailbox, dirty, NULL, 0);
+    }
+  return status;
+}
+
 /* For the expunge bits  we took a very cautionnary approach, meaning
    we create a temporary mailbox in the tmpdir copy all the message not mark
    deleted(Actually we copy all the message that may have been modified
@@ -543,12 +844,12 @@ mbox_tmpfile (mailbox_t mailbox, char **pbox)
    and skip the deleted ones, truncate the real mailbox to the desired size
    and overwrite with the tmp mailbox.  The approach to do everyting
    in core is tempting but require
-   - to much memory, it is not rare now a day to have 30 Megs mailbox,
+   - to much memory, it is not rare nowadays to have 30 Megs mailbox,
    - also there is danger for filesystems with quotas,
    - if we run out of disk space everything is lost.
    - or some program may not respect the advisory lock and decide to append
    a new message while your expunging etc ...
-   The real downside to the approach we take is that when things go wrong
+   The real downside to the approach is that when things go wrong
    the temporary file may be left in /tmp, which is not all that bad
    because at least, we have something to recuperate when failure.  */
 static int
@@ -560,7 +861,7 @@ mbox_expunge (mailbox_t mailbox)
   sigset_t signalset;
   int tempfile;
   size_t i, j, dirty;  /* dirty will indicate the first modified message.  */
-  off_t marker = 0;   /* marker will be the position to truncate.  */
+  off_t marker = 0;    /* marker will be the position to truncate.  */
   off_t total = 0;
   char *tmpmboxname = NULL;
   mailbox_t tmpmailbox = NULL;
@@ -723,7 +1024,7 @@ mbox_expunge (mailbox_t mailbox)
 			strerror (status));
 	      goto bailout0;
 	    }
-	  /* Clear the dirty bit.  */
+	  /* Clear the dirty bits.  */
 	  mum->attr_flags &= ~MU_ATTRIBUTE_MODIFIED;
 	  message_clear_modified (mum->message);
 	}
@@ -764,7 +1065,7 @@ mbox_expunge (mailbox_t mailbox)
 
   /* Caution: before ftruncate()ing the file see
      - if we've receive new mails.  Some programs may not respect the lock,
-     or the lock was held for too long.
+     - or the lock was held for too long.
      - The mailbox may not have been properly updated before expunging.  */
   {
     off_t size = 0;
@@ -846,12 +1147,18 @@ mbox_expunge (mailbox_t mailbox)
   locker_unlock (mailbox->locker);
   mailbox_close (tmpmailbox);
   mailbox_destroy (&tmpmailbox);
+
+  /* Reenable signal.  */
 #ifdef WITH_PTHREAD
   pthread_setcancelstate (state, &state);
 #endif
   sigprocmask (SIG_UNBLOCK, &signalset, 0);
 
-  /* We need to readjust the pointers.  */
+  /* We need to readjust the pointers.
+     It is a little hairy because we need to keep the message pointers alive
+     So we are going through the array and "defragmentize".  For example
+     in (1 2 3 4) if 2 was deleted we need to move 3 4 up by one etc ..
+  */
   if (status == 0)
     {
       size_t dlast;

@@ -250,6 +250,14 @@ mailbox_message_unseen (mailbox_t mbox, size_t *num)
 }
 
 int
+mailbox_save_attributes (mailbox_t mbox)
+{
+  if (mbox == NULL || mbox->_save_attributes == NULL)
+    return ENOSYS;
+  return mbox->_save_attributes (mbox);
+}
+
+int
 mailbox_expunge (mailbox_t mbox)
 {
   if (mbox == NULL || mbox->_expunge == NULL)
