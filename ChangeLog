@@ -1,3 +1,8 @@
+2002-02-11  Sergey Poznyakoff 
+
+	* imap4d/auth_gss.c (auth_gssapi): Use imap4d_gss_userok() to
+	  check if the principal is allowed to use a given mailbox.
+
 2002-02-08  Sam Roberts
 
 	* TODO: More things I think should be done, or did.
