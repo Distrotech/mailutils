@@ -43,12 +43,14 @@ typedef struct _mime *mime_t;
 
 int mime_create						__P ((mime_t *pmime, message_t msg, int flags));
 void mime_destroy					__P ((mime_t *pmime));
-int mime_is_multi_part				__P ((mime_t mime));
-int mime_get_part					__P ((mime_t mime, int part, message_t *msg));
-int mime_add_part					__P ((mime_t mime, message_t msg));
+int mime_is_multipart				__P ((mime_t mime));
 int mime_get_num_parts				__P ((mime_t mime, int *nparts));
+
+int mime_get_part					__P ((mime_t mime, int part, message_t *msg));
+
+int mime_add_part					__P ((mime_t mime, message_t msg));
+
 int mime_get_message				__P ((mime_t mime, message_t *msg));
-int mime_unencapsulate				__P ((mime_t mime, message_t msg, message_t *newmsg));
 
 #ifdef _cplusplus
 }           

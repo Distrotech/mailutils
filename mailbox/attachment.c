@@ -223,6 +223,8 @@ int message_unencapsulate(message_t msg, message_t *newmsg, void **data)
 					}
 					info->line_ndx = 0;
 				}
+				if ( info->line_ndx == MAX_HDR_LEN ) /* prevent overflow */
+					info->line_ndx--;
 				info->ioffset++;
 				info->nbytes--;
 				cp++;

@@ -38,43 +38,46 @@
  *  Define mbx i/f for protocols that support mime parsing (IMAP).
  */
 
-static int _mime_append_part(mime_t mime, message_t msg, int body_offset, int body_len, int encap_msg)
+#define DIGEST_TYPE "Content-Type: message/rfc822"
+
+static int _mime_is_multipart_digest(mime_t mime)
+{
+	if ( mime->content_type )
+		return(strncasecmp("multipart/digest", mime->content_type, strlen("multipart/digest")) ? 0: 1);
+	return 0;
+}
+
+static int _mime_append_part(mime_t mime, message_t msg, int body_offset, int body_len)
 {
 	struct _mime_part	*mime_part, **part_arr;
 	int 				ret;
+	size_t				size;
 
 	if ( ( mime_part = calloc(1, sizeof(*mime_part)) ) == NULL )
 		return ENOMEM;
 
 	memcpy(mime_part->sig,"MIME", 4);
-	if ( encap_msg ) {
-		if ( mime->ncap_msgs >= mime->tmsgs ) {
-			if ( ( part_arr = realloc(mime->cap_msgs, ( mime->tmsgs + 2 ) * sizeof(mime_part)) ) == NULL ) {
-				free(mime_part);
-				return ENOMEM;
-			}
-			mime->cap_msgs = part_arr;
-			mime->tmsgs += 2;
+	if ( mime->nmtp_parts >= mime->tparts ) {
+		if ( ( part_arr = realloc(mime->mtp_parts, ( mime->tparts + 5 ) * sizeof(mime_part)) ) == NULL ) {
+			free(mime_part);
+			return ENOMEM;
 		}
-		mime->cap_msgs[mime->ncap_msgs++] = mime_part;
+		mime->mtp_parts = part_arr;
+		mime->tparts += 5;
 	}
-	else {
-		if ( mime->nmtp_parts >= mime->tparts ) {
-			if ( ( part_arr = realloc(mime->mtp_parts, ( mime->tparts + 5 ) * sizeof(mime_part)) ) == NULL ) {
-				free(mime_part);
-				return ENOMEM;
-			}
-			mime->mtp_parts = part_arr;
-			mime->tparts += 5;
-		}
-		mime->mtp_parts[mime->nmtp_parts++] = mime_part;
-	}
+	mime->mtp_parts[mime->nmtp_parts++] = mime_part;
 	if ( msg == NULL ) {
 		if ( ( ret = header_create(&mime_part->hdr, mime->header_buf, mime->header_length, mime_part) ) != 0 ) {
 			free(mime_part);
 			return ret;
 		}
 		mime->header_length = 0;
+		if ( ( ret = header_get_value(mime_part->hdr, "Content-Type", NULL, 0, &size) ) != 0 || size == 0 ) {
+			if ( _mime_is_multipart_digest(mime) )
+				header_set_value(mime_part->hdr, "Content-Type", "message/rfc822", 0, 0);
+			else
+				header_set_value(mime_part->hdr, "Content-Type", "text/plain", 0, 0);
+		}			
 	}
 	mime_part->body_len = body_len;
 	mime_part->body_offset = body_offset;
@@ -245,7 +248,7 @@ static int _mime_parse_mpart_message(mime_t mime)
 								mime->flags &= ~MIME_PARSER_HAVE_CR;
 								body_length = mime->cur_offset - body_offset - mime->line_ndx + 1;
 								if ( mime->header_length ) /* this skips the preamble */
-									_mime_append_part(mime, NULL, body_offset, body_length, FALSE );
+									_mime_append_part(mime, NULL, body_offset, body_length);
 								if ( ( cp2 + blength + 2 < cp && !strncasecmp(cp2+2+blength, "--",2) ) ||
 									!strncasecmp(cp2+blength, "--",2) ) { /* very last boundary */
 									mime->parser_state = MIME_STATE_BEGIN_LINE;
@@ -279,27 +282,26 @@ static int _mime_parse_mpart_message(mime_t mime)
 			nbytes--;
 			cp++;
 		}
-		if ( mime->flags & MIME_INCREAMENTAL_PARSER ) {
+		if ( mime->flags & MIME_INCREAMENTAL_PARSER ) { 
+			/* 
+			 * can't really do this since returning EAGAIN will make the MUA think 
+			 * it should select on the messages stream fd. re-think this whole 
+			 * non-blocking thing.....
+		
 			ret = EAGAIN;
 			break;
+			*/
 		}
 	}
 	mime->body_length = body_length;
 	mime->body_offset = body_offset;
 	if ( ret != EAGAIN ) { /* finished cleanup */
 		if ( mime->header_length ) /* this skips the preamble */
-			_mime_append_part(mime, NULL, body_offset, body_length, FALSE );
+			_mime_append_part(mime, NULL, body_offset, body_length);
 		mime->flags &= ~MIME_PARSER_ACTIVE;
 		mime->body_offset = mime->body_length = mime->header_length = 0;
 	}
 	return ret;
-}
-
-static int _mime_message_fd(stream_t stream, int *fd)
-{
-	struct _mime_part *mime_part = stream->owner;
-
-	return stream_get_fd(mime_part->mime->stream, fd);
 }
 
 static int _mime_message_read(stream_t stream, char *buf, size_t buflen, off_t off, size_t *nbytes)
@@ -317,6 +319,13 @@ static int _mime_message_read(stream_t stream, char *buf, size_t buflen, off_t o
 	read_len = (buflen <= read_len)? buflen : read_len;
 
 	return stream_read(mime_part->mime->stream, buf, read_len, mime_part->body_offset + off, nbytes );
+}
+
+static int _mime_message_fd(stream_t stream, int *fd)
+{
+	struct _mime_part *mime_part = stream->owner;
+
+	return stream_get_fd(mime_part->mime->stream, fd);
 }
 
 static int _mime_new_message_read(stream_t stream, char *buf, size_t buflen, off_t off, size_t *nbytes)
@@ -397,16 +406,7 @@ void mime_destroy(mime_t *pmime)
 				mime_part = mime->mtp_parts[i];
 				if ( mime_part->msg )
 					message_destroy(&mime_part->msg, mime_part);
-				else
-					header_destroy(&mime_part->hdr, mime_part);
-			}
-		}
-		if ( mime->cap_msgs != NULL ) {
-			for ( i = 0; i < mime->ncap_msgs; i++ ) {
-				mime_part = mime->cap_msgs[i];
-				if ( mime_part->msg )
-					message_destroy(&mime_part->msg, mime_part);
-				else
+				else if ( mime_part->hdr )
 					header_destroy(&mime_part->hdr, mime_part);
 			}
 		}
@@ -424,14 +424,6 @@ void mime_destroy(mime_t *pmime)
 		*pmime = NULL;
 	}
 }
-
-int mime_is_multi_part(mime_t mime)
-{
-	if ( mime->content_type )
-		return(strncasecmp("multipart", mime->content_type, strlen("multipart")) ? 0: 1);
-	return 0;
-}
-
 
 int mime_get_part(mime_t mime, int part, message_t *msg)
 {
@@ -474,7 +466,7 @@ int mime_get_num_parts(mime_t mime, int *nmtp_parts)
 	int 		ret = 0;
 
 	if ( mime->nmtp_parts == 0 || mime->flags & MIME_PARSER_ACTIVE ) {
-		if ( mime_is_multi_part(mime) ) {
+		if ( mime_is_multipart(mime) ) {
 			if ( ( ret = _mime_parse_mpart_message(mime) ) != 0 )
 				return(ret);
 		} else
@@ -489,7 +481,7 @@ int mime_add_part(mime_t mime, message_t msg)
 {
 	if ( mime == NULL || msg == NULL || ( mime->flags & MIME_NEW_MESSAGE ) == 0 )
 		return EINVAL;
-	return _mime_append_part(mime, msg, 0, 0, FALSE);
+	return _mime_append_part(mime, msg, 0, 0);
 }
 
 int mime_get_message(mime_t mime, message_t *msg)
@@ -500,3 +492,9 @@ int mime_get_message(mime_t mime, message_t *msg)
 	return 0;
 }
 
+int mime_is_multipart(mime_t mime)
+{
+	if ( mime->content_type )
+		return(strncasecmp("multipart", mime->content_type, strlen("multipart")) ? 0: 1);
+	return 0;
+}

@@ -327,6 +327,10 @@ mailbox_unix_destroy (mailbox_t *pmbox)
       /* destroy the url */
       if (mbox->url)
 	url_destroy (&(mbox->url));
+      if  (mbox->locker)
+	locker_destroy (&(mbox->locker));
+      if (mbox->auth)
+	auth_destroy (&(mbox->auth), (*pmbox));
       free (*pmbox);
       *pmbox = NULL;
     }

@@ -60,10 +60,6 @@ struct _mime
 	int					nmtp_parts;		
 	struct _mime_part	**mtp_parts;		/* list of parts in the msg */
 
-	int					tmsgs;
-	int 				ncap_msgs; 		
-	struct _mime_part	**cap_msgs;    /* list of encapsulated msgs */
-	
 	/* parser state */	
 	char 	*boundary;
 	char	*cur_line;
