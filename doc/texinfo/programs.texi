@@ -9,7 +9,7 @@
 * configuration::     Common Configuration File.
 * authentication::    Authorization and Authentication Principles.
 
-* frm::               List Headers from a Mailbox.
+* frm and from::      List Headers from a Mailbox.
 * mail::              Send and Receive Mail.
 * messages::          Count the Number of Messages in a Mailbox.
 * movemail::          Moves Mail from the User Maildrop to the Local File.
@@ -476,8 +476,13 @@ system:sql:virtdomains
 @end smallexample
 
 @page
-@node frm
-@section @command{frm} --- List Headers from a Mailbox
+@node frm and from
+@section @command{frm} and @command{from} --- List Headers from a Mailbox
+
+GNU mailutils provides two commands for listing messages in a mailbox.
+These are @command{from} and @command{frm}.
+
+@subheading @command{frm}
 @pindex frm
 
 The @command{frm} command outputs a header information of
@@ -522,8 +527,44 @@ Only display headers from messages with the given status.
 an @var{attr}. Multiple @option{-s} options are allowed.
 @item -t
 @itemx --align
-Tidy mode. Currently is not implemented. Included for compatibility with
-@command{frm} program from Elm package.
+Tidy mode. In this mode @command{frm} tries to preserve the alignment of
+the output fields. It also enables the use of BIDI algorithm for
+displaying subject lines that contain text in right-to-left
+orientation (such as Arabic or Hebrew).
+@end table
+
+@subheading @command{from}
+@pindex from
+
+The @command{from} utility displays sender and subject of each message
+in a mailbox. By default, it reads the user's system mailbox. If the
+program is given a single argument, it is interpreted as a user
+name whose mailbox is to be read. Obviously, permissions are required
+to access that user's mailbox, so such invocations may be used only
+by superuser.
+
+Option @option{-f} (@option{--file}) instructs the program to read
+the given mailbox.
+
+The full list of options, supported by @command{from} follows:
+
+@table @option
+@item -c
+@itemx --count
+Prints only a count of messages in the mailbox and exit.
+
+@item -d
+@itemx --debug
+Prints additional debugging outut.
+
+@item -s @var{string}
+@itemx --sender=@var{string}
+Prints only mail from addresses containing the supplied string.
+FIXME: only @code{From:} header is examined.
+
+@item -f @var{url}
+@itemx --file=@var{url}
+Examine mailbox from the given @var{url}.
 @end table
 
 @page
