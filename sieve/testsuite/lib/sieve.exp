@@ -1,0 +1,78 @@
+# -*- tcl -*-
+# This file is part of Mailutils testsuite.
+# Copyright (C) 2002, Free Software Foundation
+#  
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#   
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#  
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software Foundation,
+# Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. 
+
+source $top_srcdir/testsuite/lib/mailutils.exp
+set sieve_source_dir "${srcdir}/scripts"
+
+mu_init 
+set env(MAIL) $MU_SPOOL_DIR/sieve.mbox
+
+# sieve_test [-retcode N][-message MESSAGE][-default (FAIL|XFAIL)]
+#            [-reuse-spool]
+#            [ARGS...][-pattern PATTERN...]
+proc sieve_test {args} {
+    global sieve_source_dir
+    
+    set default ""
+    set sw [list]
+    set reuse_spool 0
+    for {set i 0} {$i < [llength $args]} {incr i} {
+	set a [lindex $args $i]
+	if {"$a" == "-default"} {
+	    set default [lindex $args [expr $i + 1]]
+	    incr i
+	} elseif {"$a" == "-message"} {
+	    set message [lindex $args [expr $i + 1]]
+	    incr i
+	} elseif {"$a" == "-pattern"} {
+	    incr i
+	    set pattern [lrange $args $i end]
+	    break
+	} elseif {"$a" == "-reuse-spool"} {
+	    set reuse_spool 1
+	    break
+	} else {
+	    set sw [concat $sw [lindex $args $i]]
+	}
+    }
+
+    switch -- "[lindex $sw end]" {
+	^/.*   { }
+	default {
+	    set sw [concat [lrange $sw 0 [expr [llength $sw] - 2]] \
+		    [list "${sieve_source_dir}/[lindex $sw end]"]]
+	}
+    }
+
+    if {![info exists message]} {
+	set message "[lindex $sw end]"
+    }
+    
+    if {!$reuse_spool} {
+	mu_prepare_spools
+    }
+
+    if [info exists pattern] {
+	mu_exec -default $default -message $message -arg-list $sw \
+		-pattern $pattern
+    } else {
+	mu_exec -default $default -message $message -arg-list $sw
+    }
+    #FIXME: examine the output mailbox
+}
+
