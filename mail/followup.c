@@ -34,21 +34,21 @@ mail_followup (int argc, char **argv)
 
   compose_init (&env);
   if (msgset_parse (argc, argv, &msglist))
-      return 1;
+    return 1;
 
-  if (mailbox_get_message(mbox, cursor, &msg))
+  if (mailbox_get_message (mbox, cursor, &msg))
     {
-      util_error("%d: can't get message", cursor);
+      util_error ("%d: can't get message", cursor);
       msgset_free (msglist);
       return 1;
     }
 
   /* Create subject value */
-  message_get_header(msg, &hdr);
-  if (header_aget_value(hdr, MU_HEADER_SUBJECT, &str) == 0)
+  message_get_header (msg, &hdr);
+  if (header_aget_value (hdr, MU_HEADER_SUBJECT, &str) == 0)
     {
       char *p = NULL;
-      
+
       if (strncasecmp (str, "Re:", 3))
 	util_strcat (&p, "Re: ");
       util_strcat (&p, str);
@@ -62,20 +62,19 @@ mail_followup (int argc, char **argv)
 		      COMPOSE_SINGLE_LINE);
 
   /* Add authors of the subsequent messages to the to list
-     (or should it be cc?)*/
+     (or should it be cc?) */
   for (mp = msglist; mp; mp = mp->next)
     compose_header_set (&env, MU_HEADER_TO,
-			util_get_sender(mp->msg_part[0], 0), 
+			util_get_sender (mp->msg_part[0], 0),
 			COMPOSE_SINGLE_LINE);
 
-  msgset_free(msglist);
+  msgset_free (msglist);
 
-  fprintf (ofile, "To: %s\n",
-	   compose_header_get (&env, MU_HEADER_TO, ""));
+  fprintf (ofile, "To: %s\n", compose_header_get (&env, MU_HEADER_TO, ""));
   fprintf (ofile, "Subject: %s\n\n",
 	   compose_header_get (&env, MU_HEADER_SUBJECT, ""));
-  
-  status = mail_send0(&env, isupper(argv[0][0]));
+
+  status = mail_send0 (&env, isupper (argv[0][0]));
   compose_destroy (&env);
   return status;
 }

@@ -88,7 +88,7 @@ ml_readline_init ()
     return;
 
 #ifdef WITH_READLINE
-  rl_readline_name = (char *)"mail";
+  rl_readline_name = "mail";
   rl_attempted_completion_function = (CPPFunction*)ml_command_completion;
   rl_getc_function = ml_getc;
 #endif
