@@ -85,7 +85,7 @@ mu_scm_init ()
   for (i = 0; attr_kw[i].name; i++)
     scm_sysintern(attr_kw[i].name, SCM_MAKINUM(attr_kw[i].value));
   
-  
+  mu_scm_mutil_init ();
   mu_scm_mailbox_init ();
   mu_scm_message_init ();
   mu_scm_address_init ();
