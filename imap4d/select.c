@@ -17,9 +17,7 @@
 
 #include "imap4d.h"
 
-/*
- * argv[2] == mailbox
- */
+/* select          ::= "SELECT" SPACE mailbox  */
 
 int
 imap4d_select (struct imap4d_command *command, char *arg)
@@ -58,18 +56,32 @@ imap4d_select0 (struct imap4d_command *command, char *arg, int flags)
   if (mailbox_create_default (&mbox, mailbox_name) == 0
       && mailbox_open (mbox, flags) == 0)
     {
-      const char *sflags = "\\Answered \\Flagged \\Deleted \\Seen \\Draft";
-      int num = 0, recent = 0, uid = 0;
+      const char *mflags = "\\Answered \\Flagged \\Deleted \\Seen \\Draft";
+      const char *pflags = "\\Answered \\Flagged \\Deleted \\Seen \\Draft";
+      unsigned long uidvalidity = 0;
+      size_t count = 0, recent = 0, unseen = 0, uidnext = 0;
 
-      mailbox_messages_count (mbox, &num);
-      mailbox_recent_count (mbox, &recent);
-      util_out (RESP_NONE, "%d EXISTS", num);
+      mailbox_uidvalidity (mbox, &uidvalidity);
+      mailbox_uidnext (mbox, &uidnext);
+      mailbox_messages_count (mbox, &count);
+      mailbox_messages_recent (mbox, &recent);
+      mailbox_message_unseen (mbox, &unseen);
+      util_out (RESP_NONE, "%d EXISTS", count);
       util_out (RESP_NONE, "%d RECENT", recent);
-      util_out (RESP_NONE, "FLAGS (%s)", sflags);
-      util_out (RESP_OK, "[UIDNEXT %d]", num + 1);
-      /*util_out (RESP_OK, "[UIDVALIDITY (%d)]", uid);*/
-      /*util_out (RESP_OK, "[PERMANENTFLAGS (%s)]", flags);*/
-      return util_finish (command, RESP_OK, "Complete");
+      util_out (RESP_NONE, "FLAGS (%s)", mflags);
+      util_out (RESP_OK, "[UIDNEXT %d] Predicted next uid", uidnext);
+      util_out (RESP_OK, "[UIDVALIDITY (%d)] UID valididy status",
+		uidvalidity);
+      if (unseen)
+	util_out (RESP_OK, "[UNSEEN (%d)] %d is first unseen messsage ",
+		  unseen, unseen);
+      /* FIXME:
+	 - '\*' can be supported if we use the attribute_set userflag()
+	 - Answered is still not set in the mailbox code.  */
+      util_out (RESP_OK, "[PERMANENTFLAGS (%s)]", pflags);
+      return util_send ("%s OK [%s] %s Complete\r\n", command->tag,
+			(MU_STREAM_READ == flags) ?
+			"READ-ONLY" : "READ-WRITE", command->name);
     }
   return util_finish (command, RESP_NO, "Couldn't open %s", mailbox_name);
 }

@@ -29,6 +29,7 @@
 #endif
 
 #include <errno.h>
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -121,14 +122,17 @@ int imap4d_uid __P ((struct imap4d_command *, char *));
 
 /* Helper functions.  */
 int util_out __P ((int rc, const char *f, ...));
+int util_send __P ((const char *f, ...));
 int util_start __P ((char *tag));
-int util_finish __P ((struct imap4d_command *, int rc, const char *f, ...));
+int util_finish __P ((struct imap4d_command *, int sc, const char *f, ...));
 int util_getstate __P ((void));
 int util_do_command __P ((char *prompt));
 char *imap4d_readline __P ((int fd));
 void util_quit __P ((int));
 char *util_getword __P ((char *s, char **save_ptr));
-struct imap4d_command *util_getcommand __P ((char *cmd));
+int util_msgset __P ((char *s, int **set, int *n, int isuid));
+struct imap4d_command *util_getcommand __P ((char *cmd,
+					     struct imap4d_command []));
 
 #ifdef __cplusplus
 }

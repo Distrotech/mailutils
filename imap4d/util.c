@@ -17,34 +17,144 @@
 
 #include "imap4d.h"
 
-static const char *
-rc2string (int rc)
-{
-  switch (rc)
-    {
-    case RESP_OK:
-      return "OK ";
-
-    case RESP_BAD:
-      return "BAD ";
-
-    case RESP_NO:
-      return "NO ";
-
-    case RESP_BYE:
-      return "BYE ";
-    }
-  return "";
-}
+static int add2set (int **set, int *n, unsigned long val, size_t max);
+static const char * sc2string (int rc);
 
 /* FIXME:  Some words are:
-   between double quotes, consider like one word.
-   between parenthesis, consider line one word.  */
+   between double quotes, between parenthesis.  */
 char *
 util_getword (char *s, char **save)
 {
-  static char *sp;
-  return strtok_r (s, " \r\n", ((save) ? save : &sp));
+  return strtok_r (s, " \r\n", save);
+}
+
+/* Return in set an allocated array contain (n) numbers, for imap messsage set
+
+   set ::= sequence_num / (sequence_num ":" sequence_num) / (set "," set)
+   sequence_num    ::= nz_number / "*"
+   ;; * is the largest number in use.  For message
+   ;; sequence numbers, it is the number of messages
+   ;; in the mailbox.  For unique identifiers, it is
+   ;; the unique identifier of the last message in
+   ;; the mailbox.
+   nz_number       ::= digit_nz *digit
+
+   FIXME: The algo below is to relaxe, things like <,,,> or <:12> or <20:10>
+   will not generate an error.  */
+int
+util_msgset (char *s, int **set, int *n, int isuid)
+{
+  unsigned long val = 0;
+  unsigned long low = 0;
+  int done = 0;
+  int status = 0;
+  size_t max = 0;
+
+  status = mailbox_messages_count (mbox, &max);
+  if (status != 0)
+    return status;
+  if (isuid)
+    {
+      message_t msg = NULL;
+      mailbox_get_message (mbox, max, &msg);
+      message_get_uid (msg, &max);
+    }
+
+  *n = 0;
+  *set = NULL;
+  while (*s)
+    {
+      switch (*s)
+	{
+	  /* isdigit */
+	case '0': case '1': case '2': case '3': case '4':
+	case '5': case '6': case '7': case '8': case '9':
+	  {
+	    errno = 0;
+	    val = strtoul (s, &s, 10);
+	    if (val == ULONG_MAX && errno == ERANGE)
+	      {
+		if (*set)
+		  free (*set);
+		*n = 0;
+		return EINVAL;
+	      }
+	    if (low)
+	      {
+		for (;low && low <= val; low++)
+		  {
+		    status = add2set (set, n, low, max);
+		    if (status != 0)
+		      return status;
+		  }
+		low = 0;
+	      }
+	    else
+	      {
+		status = add2set(set, n, val, max);
+		if (status != 0)
+		  return status;
+	      }
+	    break;
+	  }
+
+	case ':':
+	  low = val + 1;
+	  s++;
+	  break;
+
+	case '*':
+	  {
+	    if (status != 0)
+	      {
+		if (*set)
+		  free (*set);
+		*n = 0;
+		return status;
+	      }
+	    val = max;
+	    s++;
+	    break;
+	  }
+
+	case ',':
+	  s++;
+	  break;
+
+	default:
+	  done = 1;
+	  if (*set)
+	    free (*set);
+	  *n = 0;
+	  return EINVAL;
+
+	} /* switch */
+
+      if (done)
+	break;
+    } /* while */
+
+  if (low)
+    {
+      for (;low && low <= val; low++)
+	{
+	  status = add2set (set, n, low, max);
+	  if (status != 0)
+	    return status;
+	}
+    }
+  return 0;
+}
+
+int
+util_send (const char *format, ...)
+{
+  int status;
+  va_list ap;
+  va_start (ap, format);
+  status = vfprintf (ofile, format, ap);
+  va_end (ap);
+  return status;
 }
 
 int
@@ -57,7 +167,7 @@ util_out (int rc, const char *format, ...)
   vasprintf (&buf, format, ap);
   va_end (ap);
 
-  fprintf (ofile, "* %s%s\r\n", rc2string (rc), buf);
+  fprintf (ofile, "* %s%s\r\n", sc2string (rc), buf);
   free (buf);
   return 0;
 }
@@ -73,7 +183,7 @@ util_finish (struct imap4d_command *command, int rc, const char *format, ...)
   vasprintf (&buf, format, ap);
   va_end(ap);
 
-  resp = rc2string (rc);
+  resp = sc2string (rc);
   fprintf (ofile, "%s %s%s %s\r\n", command->tag, resp, command->name, buf);
   free (buf);
   return 0;
@@ -86,6 +196,7 @@ imap4d_readline (int fd)
   struct timeval tv;
   char buf[512], *ret = NULL;
   int nread;
+  int total = 0;
   int available;
 
   FD_ZERO (&rfds);
@@ -99,35 +210,35 @@ imap4d_readline (int fd)
 	{
 	  available = select (fd + 1, &rfds, NULL, NULL, &tv);
 	  if (!available)
-	    util_quit (1); /* FIXME: Timeout.  */
+	    util_quit (1); /* FIXME: Timeout, send a "* BYE".  */
 	}
       nread = read (fd, buf, sizeof (buf) - 1);
       if (nread < 1)
-	util_quit (1);		/* FIXME: dead socket */
+	util_quit (1);	/* FIXME: dead socket, need to do something?  */
 
       buf[nread] = '\0';
 
+      ret = realloc (ret, (total + nread + 1) * sizeof (char));
       if (ret == NULL)
-	{
-	  ret = malloc ((nread + 1) * sizeof (char));
-	  strcpy (ret, buf);
-	}
-      else
-	{
-	  ret = realloc (ret, (strlen (ret) + nread + 1) * sizeof (char));
-	  strcat (ret, buf);
-	}
-      /* FIXME: handle literal strings here.  */
-    }
-  while (strchr (buf, '\n') == NULL);
+	util_quit (1); /* FIXME: ENOMEM, send a "* BYE" to the client.  */
+      memcpy (ret + total, buf, nread + 1);
+      total += nread;
 
+      /* FIXME: handle literal strings here.  */
+
+    }
+  while (memchr (buf, '\n', nread) == NULL);
+
+  for (nread = total; nread > 0; nread--)
+    if (ret[nread] == '\r' || ret[nread] == '\n')
+      ret[nread] = '\0';
   return ret;
 }
 
 int
 util_do_command (char *prompt)
 {
-  char *sp = NULL, *tag, *cmd, *arg;
+  char *sp = NULL, *tag, *cmd;
   struct imap4d_command *command;
   static struct imap4d_command nullcommand;
 
@@ -148,7 +259,7 @@ util_do_command (char *prompt)
 
   util_start (tag);
 
-  command = util_getcommand (cmd);
+  command = util_getcommand (cmd, imap4d_command_table);
   if (command == NULL)
     {
       nullcommand.name = "";
@@ -183,15 +294,54 @@ util_getstate (void)
 }
 
 struct imap4d_command *
-util_getcommand (char *cmd)
+util_getcommand (char *cmd, struct imap4d_command command_table[])
 {
   size_t i, len = strlen (cmd);
 
-  for (i = 0; imap4d_command_table[i].name != 0; i++)
+  for (i = 0; command_table[i].name != 0; i++)
     {
-      if (strlen (imap4d_command_table[i].name) == len &&
-	  !strcasecmp (imap4d_command_table[i].name, cmd))
-	return &imap4d_command_table[i];
+      if (strlen (command_table[i].name) == len &&
+	  !strcasecmp (command_table[i].name, cmd))
+	return &command_table[i];
     }
   return NULL;
+}
+
+/* Status Code to String.  */
+static const char *
+sc2string (int rc)
+{
+  switch (rc)
+    {
+    case RESP_OK:
+      return "OK ";
+
+    case RESP_BAD:
+      return "BAD ";
+
+    case RESP_NO:
+      return "NO ";
+
+    case RESP_BYE:
+      return "BYE ";
+    }
+  return "";
+}
+
+static int
+add2set (int **set, int *n, unsigned long val, size_t max)
+{
+  int *tmp;
+  if (val == 0 || val > max
+      || (tmp = realloc (*set, (*n + 1) * sizeof (**set))) == NULL)
+    {
+      if (*set)
+	free (*set);
+      *n = 0;
+      return ENOMEM;
+    }
+  *set = tmp;
+  (*set)[*n] = val;
+  (*n)++;
+  return 0;
 }
