@@ -30,11 +30,9 @@ sql.h \
 sql.c \
 lbuf.h \
 lbuf.c \
-mysql.c \
-pgsql.c \
 tls.c \
 virtual.c 
 
-libmuauth_la_LIBADD = @LTLIBINTL@ 
+libmuauth_la_LIBADD =  @SQLLIB@ @LTLIBINTL@
 libmuauth_la_LDFLAGS = -version-info 0:0:0
 
