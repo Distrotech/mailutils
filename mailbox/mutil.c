@@ -973,3 +973,95 @@ mu_unroll_symlink (char *out, size_t outsz, const char *in)
 
   return 0;
 }
+
+/* Expand a PATTERN to the pathname. PATTERN may contain the following
+   macro-notations:
+   ---------+------------ 
+   notation |  expands to
+   ---------+------------
+   %u         user name
+   %h         user's home dir
+   ---------+------------
+
+   Allocates memory. 
+*/   
+char *
+mu_expand_path_pattern (const char *pattern, const char *username)
+{
+  char *homedir = NULL;
+  const char *p, *startp;
+  char *q;
+  char *path;
+  int len = 0;
+  
+  for (p = pattern; *p; p++)
+    {
+      if (*p == '%')
+	switch (*++p)
+	  {
+	  case 'u':
+	    len += strlen (username);
+	    break;
+	    
+	  case 'h':
+	    if (!homedir)
+	      {
+		struct passwd *pwd = mu_getpwnam (username);
+		if (!pwd)
+		  return NULL;
+		homedir = pwd->pw_dir;
+	      }
+	    len += strlen (homedir);
+	    break;
+	    
+	  case '%':
+	    len++;
+	    break;
+	    
+	  default:
+	    len += 2;
+	  }
+      else
+	len++;
+    }
+  
+  path = malloc (len + 1);
+  if (!path)
+    return NULL;
+
+  startp = pattern;
+  q = path;
+  while (*startp && (p = strchr (startp, '%')) != NULL)
+    {
+      memcpy (q, startp, p - startp);
+      q += p - startp;
+      switch (*++p)
+	{
+	case 'u':
+	  strcpy (q, username);
+	  q += strlen (username);
+	  break;
+	  
+	case 'h':
+	  strcpy (q, homedir);
+	  q += strlen (homedir);
+	  break;
+	  
+	case '%':
+	  *q++ = '%';
+	  break;
+	  
+	default:
+	  *q++ = '%';
+	  *q++ = *p;
+	}
+      startp = p + 1;
+    }
+  if (*startp)
+    {
+      strcpy (q, startp);
+      q += strlen (startp);
+    }
+  *q = 0;
+  return path;
+}
