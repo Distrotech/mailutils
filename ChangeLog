@@ -1,5 +1,23 @@
 2002-04-15  Sam Roberts
 
+	* doc/texinfo/programs.texi, include/mailutils/mutil.h,
+	  lib/mu_argp.c, mailbox/mutil.c: mu_get_user_email() assumed
+	  we could deliver to the current host, on dialup systems,
+	  and workstations this may not be true, so allow user names
+	  to be qualified with the domain that should be used for email
+	   mu_set_user_email() - email address to use for NULL (current) user
+	   mu_set_user_email_domain() - domain to use to qualify an @-less
+	     username
+	   mu_get_user_email() - now uses default address and domain, if set
+	   -E,--email-addr - config option, calls mu_set_user_email()
+	   -D,--email-domain - config option, calls mu_set_user_email_domain()
+	   :address - group for the above config options
+	* lib/Makefile.am, lib/mu_asprintf.c, lib/mu_asprintf.h,
+	  mailbox/Makefile.am: One way to get rid of the annoying warnings
+	  about asprintf() not being declared is to always call a mailutils
+	  wrapper function, which in turn calls the real function. That means
+	  the wrappers (and other functions in lib) will still compile with
+	  warnings, but the mailbox and utility code can compile clean.
 	* doc/texinfo/programs.texi: Updated to match lib/mu_argp.c.
 
 2002-04-15  Sergey Poznyakoff
