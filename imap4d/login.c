@@ -131,7 +131,7 @@ imap4d_login (struct imap4d_command *command, char *arg)
       _pwd = pass;
       /* libpam doesn't log to LOG_MAIL */
       closelog ();
-      pamerror = pam_start ("gnu-imap4d", username, &PAM_conversation, &pamh);
+      pamerror = pam_start (pam_service, username, &PAM_conversation, &pamh);
       PAM_ERROR;
       pamerror = pam_authenticate (pamh, 0);
       PAM_ERROR;
@@ -140,7 +140,7 @@ imap4d_login (struct imap4d_command *command, char *arg)
       pamerror = pam_setcred (pamh, PAM_ESTABLISH_CRED);
       PAM_ERROR;
       pam_end (pamh, PAM_SUCCESS);
-      openlog ("gnu-imap4d", LOG_PID, LOG_FACILITY);
+      openlog ("gnu-imap4d", LOG_PID, log_facility);
 #endif /* USE_LIBPAM */
 
   if (pw->pw_uid > 0 && !mu_virtual_domain)

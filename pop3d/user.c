@@ -175,7 +175,7 @@ pop3d_user (const char *arg)
 	_pwd = pass;
 	/* libpam doesn't log to LOG_MAIL */
 	closelog ();
-	pamerror = pam_start ("gnu-pop3d", arg, &PAM_conversation, &pamh);
+	pamerror = pam_start (pam_service, arg, &PAM_conversation, &pamh);
 	PAM_ERROR;
 	pamerror = pam_authenticate (pamh, 0);
 	PAM_ERROR;
@@ -185,7 +185,7 @@ pop3d_user (const char *arg)
 	PAM_ERROR;
       pam_errlab:
 	pam_end (pamh, PAM_SUCCESS);
-	openlog ("gnu-pop3d", LOG_PID, LOG_FACILITY);
+	openlog ("gnu-pop3d", LOG_PID, log_facility);
 	if (pamerror != PAM_SUCCESS)
 	  {
 	    syslog (LOG_INFO, "User '%s': authentication failed", _user);
