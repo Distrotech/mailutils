@@ -54,8 +54,7 @@ HDR = \
   tree.h \
   util.h
 
-sieve_DEPENDENCIES = ../mailbox/libmailbox.la
-sieve_LDADD = @ARGPLIBS@ ../mailbox/libmailbox.la ../lib/libmailutils.la
+sieve_LDADD = ../mailbox/libmailbox.la ../lib/libmailutils.la @ARGPLIBS@
 sieve_SOURCES = \
   sieve.c \
   ${SRC} $(HDR)
