@@ -282,6 +282,7 @@ authenticate_imap_sasl_anon (authority_t auth)
       return ENOSYS;
     }
 
+  /* FIXME: auth_state is never set explicitely before this function */
   switch (f_imap->auth_state)
     {
     case IMAP_AUTH_ANON_REQ_WRITE:
@@ -292,13 +293,13 @@ authenticate_imap_sasl_anon (authority_t auth)
 				 f_imap->seq);
 	f_imap->seq++;
 	CHECK_ERROR_CLOSE (folder, f_imap, status);
-	f_imap->state = IMAP_AUTH_ANON_REQ_SEND;
+	f_imap->auth_state = IMAP_AUTH_ANON_REQ_SEND;
       }
 
     case IMAP_AUTH_ANON_REQ_SEND:
       status = imap_send (f_imap);
       CHECK_EAGAIN (f_imap, status);
-      f_imap->state = IMAP_AUTH_ANON_WAIT_CONT;
+      f_imap->auth_state = IMAP_AUTH_ANON_WAIT_CONT;
 
     case IMAP_AUTH_ANON_WAIT_CONT:
       status = imap_parse (f_imap);
@@ -306,25 +307,25 @@ authenticate_imap_sasl_anon (authority_t auth)
       FOLDER_DEBUG0 (folder, MU_DEBUG_PROT, f_imap->buffer);
       if (strncmp ("+", f_imap->buffer, 2) == 0)
 	{
-	  f_imap->state = IMAP_AUTH_ANON_MSG;
+	  f_imap->auth_state = IMAP_AUTH_ANON_MSG;
 	}
       else
 	{
 	  /* Something is wrong! */
 	}
-      f_imap->state = IMAP_AUTH_ANON_MSG;
+      f_imap->auth_state = IMAP_AUTH_ANON_MSG;
 
     case IMAP_AUTH_ANON_MSG:
       FOLDER_DEBUG0 (folder, MU_DEBUG_PROT, "\n");
       status = imap_writeline (f_imap, "\r\n");
       CHECK_ERROR_CLOSE (folder, f_imap, status);
-      f_imap->state = IMAP_AUTH_ANON_MSG_SEND;
+      f_imap->auth_state = IMAP_AUTH_ANON_MSG_SEND;
 
     case IMAP_AUTH_ANON_MSG_SEND:
       status = imap_send (f_imap);
       CHECK_EAGAIN (f_imap, status);
 
-      f_imap->state = IMAP_AUTH_ANON_WAIT_RESP;
+      f_imap->auth_state = IMAP_AUTH_ANON_WAIT_RESP;
 
     case IMAP_AUTH_ANON_WAIT_RESP:
       status = imap_parse (f_imap);
