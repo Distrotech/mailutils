@@ -134,15 +134,43 @@ info_to_flags (char *buf)
 static int
 maildir_message_cmp (struct _amd_message *a, struct _amd_message *b)
 {
+  char *name_a, *name_b;
   unsigned long na = strtoul (((struct _maildir_message *) a)->file_name,
-			      NULL, 10);
+			      &name_a, 10);
   unsigned long nb = strtoul (((struct _maildir_message *) b)->file_name,
-			      NULL, 10);
+			      &name_b, 10);
+  int rc;
+  
   if (na > nb)
     return 1;
   if (na < nb)
     return -1;
-  return 0;
+
+  /* If timestamps are equal, compare rests of the filenames up to the
+     info marker */
+
+  if (name_a && !name_b)
+    return 1;
+  else if (!name_a)
+    {
+      if (name_b)
+	return -1;
+      else 
+	return 0;
+    }
+  
+  for (; *name_a && *name_a != ':' && *name_b && *name_b != ':';
+       name_a++, name_b++)
+    if ((rc = (*name_a - *name_b)))
+      return rc;
+
+  if (*name_a == ':' && *name_b == ':')
+    {
+      name_a++;
+      name_b++;
+    }
+
+  return *name_a - *name_b;
 }
 
 void
