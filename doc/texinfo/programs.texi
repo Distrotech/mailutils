@@ -1838,11 +1838,19 @@ mailbox.
 @*Type: Boolean.
 @*Default: False.
 
-When set, enables @dfn{mailx compatibility mode}. This is mainly visible
-when composing a message. In mailx compatibility mode, @command{mail} asks
+When set, enables @dfn{mailx compatibility mode}. This mode
+has the following effects:
+
+@itemize @bullet
+@item When composing a message @command{mail} will ask
 for @code{Cc} and @code{Bcc} addresses after composing the body.
 The default behavior is to ask for these values before composing
 the body.
+
+@item In send mode, if the composition was interrupted, @command{mail}
+will exit with zero status. By default it exits with zero status only
+if the message was sent successfully.
+@end itemize
 
 @item metoo
 @*Type: Boolean.
