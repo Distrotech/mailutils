@@ -1,3 +1,7 @@
+2003-04-02  Sergey Poznyakoff
+
+	* mh/mhn.c (normalize_path): Bugfix.
+
 2003-03-29  Sergey Poznyakoff  
 
 	Minor changes to avoid duplicating some symbols (namely
