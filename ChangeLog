@@ -1,3 +1,8 @@
+2001-11-21  Sergey Poznyakoff
+
+	* comsat/comsat.c: Provide default for _PATH_MAILDIR for
+	systems lacking it.
+
 2001-11-20  Jeff Bailey  <jbailey@outpost.dnsalias.org>
 
 	* configure.in: Set CPPFLAGS last.  $(sysconfdir) requires
