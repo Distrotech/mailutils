@@ -48,6 +48,7 @@ struct rbuffer
 struct _stream
 {
   void *owner;
+  property_t property;
 
   int flags;
   int state;

@@ -145,14 +145,12 @@ _mailbox_imap_init (mailbox_t mailbox)
   m_imap->mailbox = mailbox;
 
   /* Set our properties.  */
-  mailbox->properties = calloc (2, sizeof (*(mailbox->properties)));
+  mailbox->properties = calloc (1, sizeof (*(mailbox->properties)));
   if (mailbox->properties == NULL)
     return ENOMEM;
-  mailbox->properties_count = 2;
-  mailbox->properties[0].key = strdup ("IMAP4");
-  mailbox->properties[0].value = 1;
-  mailbox->properties[1].key = strdup ("RFC822");
-  mailbox->properties[1].value = 0;
+  mailbox->properties_count = 1;
+  mailbox->properties[0].key = strdup ("TYPE");
+  mailbox->properties[0].value = strdup ("IMAP");
   return 0;
 }
 
@@ -436,6 +434,7 @@ imap_get_message0 (msg_imap_t msg_imap, message_t *pmsg)
 
   /* Set the UID on the message. */
   message_set_uid (msg, imap_message_uid, msg_imap);
+  message_set_mailbox (msg, mailbox, msg_imap);
 
   *pmsg = msg;
   return 0;
@@ -720,6 +719,7 @@ imap_submessage_size (msg_imap_t msg_imap, size_t *psize)
 {
   if (psize)
     {
+      *psize = 0;
       if (msg_imap->message_size == 0)
 	{
 	  size_t i, size;
@@ -1129,13 +1129,10 @@ imap_header_get_value (header_t header, const char *field, char * buffer,
   /* Hack, if buffer == NULL they want to know how big is the field value,
      Unfortunately IMAP does not say, so we take a guess hoping that the
      value will not be over 1024.  */
-  /* FIXME: This is stupid, find a way to fix this.  */
   if (buffer == NULL || buflen == 0)
     len = 1024;
   else
     len = strlen (field) + buflen + 4;
-  value = alloca (len);
-  /*memset (value, '0', len); */
 
   if (f_imap->state == IMAP_NO_STATE)
     {
@@ -1151,14 +1148,18 @@ imap_header_get_value (header_t header, const char *field, char * buffer,
       f_imap->state = IMAP_FETCH;
 
     }
+
+  value = calloc (len, sizeof (*value));
   status = message_operation (f_imap, msg_imap, value, len, &len);
   if (status == 0)
     {
       char *colon;
-      /* The field-matching is case-insensitive but otherwise exact.  In all
-	 cases, the delimiting blank line between the header and the body is
-	 always included.  */
+      /* The field-matching is case-insensitive.  In all cases, the delimiting
+	 newline between the header and the body is always included.
+	 Nuke it  */
       value[len - 1] = '\0';
+
+      /* Move pass the field-name.  */
       colon = strchr (value, ':');
       if (colon)
 	{
@@ -1183,8 +1184,8 @@ imap_header_get_value (header_t header, const char *field, char * buffer,
       if (len == 0)
 	status = ENOENT;
     }
+  free (value);
   return status;
-
 }
 
 static int

@@ -164,8 +164,8 @@ _mailer_smtp_init (mailer_t mailer)
   if (mailer->properties == NULL)
     return ENOMEM;
   mailer->properties_count = 1;
-  mailer->properties[0].key = strdup ("SMTP");
-  mailer->properties[0].value = 1;
+  mailer->properties[0].key = strdup ("TYPE");
+  mailer->properties[0].value = strdup ("SMTP");
 
   return 0;
 }

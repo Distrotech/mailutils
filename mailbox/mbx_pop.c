@@ -87,7 +87,7 @@ static int pop_is_updated      __P ((mailbox_t));
 
 /* The implementation of message_t */
 static int pop_user            __P ((authority_t));
-static int pop_size            __P ((mailbox_t, off_t *));
+static int pop_get_size        __P ((mailbox_t, off_t *));
 /* We use pop_top for retreiving headers.  */
 /* static int pop_header_read (header_t, char *, size_t, off_t, size_t *); */
 static int pop_body_fd         __P ((stream_t, int *));
@@ -292,17 +292,15 @@ _mailbox_pop_init (mailbox_t mbox)
   mbox->_scan = pop_scan;
   mbox->_is_updated = pop_is_updated;
 
-  mbox->_size = pop_size;
+  mbox->_get_size = pop_get_size;
 
   /* Properties.  */
-  mbox->properties = calloc (2, sizeof (*(mbox->properties)));
+  mbox->properties = calloc (1, sizeof (*(mbox->properties)));
   if (mbox->properties == NULL)
     return ENOMEM;
-  mbox->properties_count = 2;
-  mbox->properties[0].key = strdup ("POP3");
-  mbox->properties[0].value = 1;
-  mbox->properties[1].key = strdup ("RFC822");
-  mbox->properties[1].value = 0;
+  mbox->properties_count = 1;
+  mbox->properties[0].key = strdup ("TYPE");
+  mbox->properties[0].value = strdup ("POP3");
   return 0; /* Okdoke.  */
 }
 
@@ -799,7 +797,7 @@ pop_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
   monitor_unlock (mbox->monitor);
 
   /* Save The message pointer.  */
-  message_set_mailbox (msg, mbox);
+  message_set_mailbox (msg, mbox, mpm);
   *pmsg = mpm->message = msg;
 
   return 0;
@@ -1005,7 +1003,7 @@ pop_expunge (mailbox_t mbox)
 
 /* Mailbox size ? It is part of the STAT command */
 static int
-pop_size (mailbox_t mbox, off_t *psize)
+pop_get_size (mailbox_t mbox, off_t *psize)
 {
   pop_data_t mpd = mbox->data;
   int status = 0;
@@ -1865,14 +1863,12 @@ pop_readline (pop_data_t mpd)
 	  mpd->nl = NULL;
 	}
     }
-  /* \r\n --> \n\0, conversion,  If the propety is set no conversion
-     is done.  */
-  if (mpd->mbox->properties[PROP_RFC822].value == 0)
-    if (mpd->nl > mpd->buffer)
-      {
-	*(mpd->nl - 1) = '\n';
-	*(mpd->nl) = '\0';
-	mpd->ptr = mpd->nl;
-      }
+  /* \r\n --> \n\0, conversion.  */
+  if (mpd->nl > mpd->buffer)
+    {
+      *(mpd->nl - 1) = '\n';
+      *(mpd->nl) = '\0';
+      mpd->ptr = mpd->nl;
+    }
   return 0;
 }

@@ -86,8 +86,8 @@ _mailer_sendmail_init (mailer_t mailer)
   if (mailer->properties == NULL)
     return ENOMEM;
   mailer->properties_count = 1;
-  mailer->properties[0].key = strdup ("SENDMAIL");
-  mailer->properties[0].value = 1;
+  mailer->properties[0].key = strdup ("TYPE");
+  mailer->properties[0].value = strdup ("SENDMAIL");
   return 0;
 }
 

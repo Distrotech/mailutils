@@ -1,5 +1,5 @@
 /* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Library Public License as published by
@@ -43,11 +43,12 @@ extern "C" {
 struct _body
 {
   void *owner;
-
-  /* it's better and more portable to use stdio */
-  FILE *file;
   char *filename;
   stream_t stream;
+  stream_t fstream;
+  property_t property;
+  int flags;
+
   int (*_size)  (body_t, size_t*);
   int (*_lines) (body_t, size_t*);
 };

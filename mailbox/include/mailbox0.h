@@ -40,6 +40,14 @@ extern "C" {
 # endif
 #endif /*__P */
 
+struct default_properties
+{
+  char *key;
+  char *value;
+  int (*_set_value) __P ((property_t, const char *, const char *));
+  int (*_get_value) __P ((property_t, const char *, char *, size_t, size_t *));
+};
+
 struct _mailbox
 {
   /* Data */
@@ -48,7 +56,7 @@ struct _mailbox
   ticket_t ticket;
   authority_t authority;
   property_t property;
-  struct property_list *properties;
+  struct default_properties *properties;
   size_t properties_count;
   locker_t locker;
   stream_t stream;
@@ -81,7 +89,7 @@ struct _mailbox
   int  (*_scan)            __P ((mailbox_t, size_t msgno, size_t *count));
   int  (*_is_updated)      __P ((mailbox_t));
 
-  int  (*_size)            __P ((mailbox_t, off_t *size));
+  int  (*_get_size)        __P ((mailbox_t, off_t *size));
 
 };
 

@@ -756,11 +756,11 @@ imap_literal_string (f_imap_t f_imap, char **ptr)
       f_imap->ptr = f_imap->buffer;
 
       /* How much ?  */
-      len0= len = f_imap->nl - f_imap->buffer;
+      len0 = len = f_imap->nl - f_imap->buffer;
       /* Check if the last read did not finish on a line, if yes do not copy in
 	 callback buffer the terminating sequence ")\r\n".  We are doing this
          by checking if the amount(total) we got so far + the len of the line
-         +1 (taking to account the strip '\r').  */
+         +1 (taking to account the strip '\r') goes behond the request.  */
       if ((total + len + 1) > f_imap->callback.nleft)
 	{
 	  len0 = len = f_imap->callback.nleft - total;
@@ -777,8 +777,9 @@ imap_literal_string (f_imap_t f_imap, char **ptr)
 	  /* Check how much we can fill the callback buffer.  */
           int x = (f_imap->callback.buflen - f_imap->callback.total) - len0;
           x = (x >= 0) ? len0 : (x + len0);
-          memcpy (f_imap->callback.buffer + f_imap->callback.total,
-                  f_imap->buffer, x);
+	  if (f_imap->callback.buffer)
+	    memcpy (f_imap->callback.buffer + f_imap->callback.total,
+		    f_imap->buffer, x);
           f_imap->callback.total += x;
 
 	  /* Depending on the type of request we incremente the xxxx_lines
@@ -838,7 +839,8 @@ imap_quoted_string (f_imap_t f_imap, char **ptr)
   f_imap->callback.total = *ptr - bquote;
   /* Fill the call back buffer. The if is redundant there should always
      be enough room since the request is base on the buffer size.  */
-  if (f_imap->callback.total <= f_imap->callback.buflen)
+  if (f_imap->callback.total <= f_imap->callback.buflen
+      && f_imap->callback.buffer)
     memcpy (f_imap->callback.buffer, bquote, f_imap->callback.total);
   if (**ptr == '"')
     (*ptr)++;
@@ -1238,6 +1240,7 @@ imap_body (f_imap_t f_imap, char **ptr)
   if (**ptr == '[')
     {
       char *sep = strchr (*ptr, ']');
+      (*ptr)++; /* Move pass the '[' */
       if (sep)
 	{
 	  size_t len = sep - *ptr;
@@ -1250,20 +1253,22 @@ imap_body (f_imap_t f_imap, char **ptr)
 	    if (isalpha((unsigned)*p))
 	      *p = toupper ((unsigned)*p);
 	  /* Check to see the callback type to update the line count.  */
-	  if (strstr (section, "MIME")
-	      || (strstr (section, "HEADER") && ! strstr (section, "FIELD")))
+	  if (!strstr (section, "FIELD"))
 	    {
-	      f_imap->callback.type = IMAP_HEADER;
+	      if (strstr (section, "MIME") || (strstr (section, "HEADER")))
+		{
+		  f_imap->callback.type = IMAP_HEADER;
+		}
+	      else if (strstr (section, "TEXT") || len > 0)
+		{
+		  f_imap->callback.type = IMAP_BODY;
+		}
+	      else if (len == 0) /* body[]  */
+		{
+		  f_imap->callback.type = IMAP_MESSAGE;
+		}
 	    }
-	  else if (strstr (section, "TEXT"))
-	    {
-	      f_imap->callback.type = IMAP_BODY;
-	    }
-	  else if (len == 1) /* body[]  */
-	    {
-	      f_imap->callback.type = IMAP_MESSAGE;
-	    }
-	  sep++;
+	  sep++; /* Move pass the ']'  */
 	  *ptr = sep;
 	}
     }
@@ -1586,15 +1591,12 @@ imap_readline (f_imap_t f_imap)
   while (f_imap->nl == NULL);
 
   /* Conversion \r\n --> \n\0  */
-  /**/
-  if (f_imap->selected == NULL
-      || f_imap->selected->mailbox->properties[PROP_RFC822].value == 0)
-    if (f_imap->nl > f_imap->buffer)
-      {
-	*(f_imap->nl - 1) = '\n';
-	*(f_imap->nl) = '\0';
-	f_imap->ptr = f_imap->nl;
-      }
+  if (f_imap->nl > f_imap->buffer)
+    {
+      *(f_imap->nl - 1) = '\n';
+      *(f_imap->nl) = '\0';
+      f_imap->ptr = f_imap->nl;
+    }
   return 0;
 }
 

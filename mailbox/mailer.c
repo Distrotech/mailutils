@@ -145,6 +145,8 @@ mailer_destroy (mailer_t *pmailer)
             {
               if (mailer->properties[i].key)
                 free (mailer->properties[i].key);
+              if (mailer->properties[i].value)
+                free (mailer->properties[i].value);
             }
           free (mailer->properties);
         }
@@ -237,10 +239,12 @@ mailer_get_property (mailer_t mailer, property_t *pproperty)
       /* Add the defaults.  */
       for (i = 0; i < mailer->properties_count; i++)
         {
-          status = property_add_default (mailer->property,
-                                         mailer->properties[i].key,
-                                         &(mailer->properties[i].value),
-                                         mailer);
+          status = property_add_defaults (mailer->property,
+					  mailer->properties[i].key,
+					  mailer->properties[i].value,
+					  mailer->properties[i]._set_value,
+					  mailer->properties[i]._get_value,
+					  mailer);
           if (status != 0)
             {
               property_destroy (&(mailer->property), mailer);

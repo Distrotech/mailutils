@@ -274,11 +274,11 @@ mailbox_scan (mailbox_t mbox, size_t msgno, size_t *pcount)
 }
 
 int
-mailbox_size (mailbox_t mbox, off_t *psize)
+mailbox_get_size (mailbox_t mbox, off_t *psize)
 {
-  if (mbox == NULL || mbox->_size == NULL)
+  if (mbox == NULL || mbox->_get_size == NULL)
     return ENOSYS;
-  return mbox->_size (mbox, psize);
+  return mbox->_get_size (mbox, psize);
 }
 
 int
@@ -426,10 +426,12 @@ mailbox_get_property (mailbox_t mbox, property_t *pproperty)
       /* Add the defaults.  */
       for (i = 0; i < mbox->properties_count; i++)
 	{
-	  status = property_add_default (mbox->property,
-					 mbox->properties[i].key,
-					 &(mbox->properties[i].value),
-					 mbox);
+	  status = property_add_defaults (mbox->property,
+					  mbox->properties[i].key,
+					  mbox->properties[i].value,
+					  mbox->properties[i]._set_value,
+					  mbox->properties[i]._get_value,
+					  mbox);
 	  if (status != 0)
 	    {
 	      property_destroy (&(mbox->property), mbox);

@@ -20,6 +20,8 @@ body.c \
 debug.c \
 envelope.c \
 file_stream.c \
+filter.c \
+filter_rfc822.c \
 folder.c \
 folder_imap.c \
 folder_mbox.c \

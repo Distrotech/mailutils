@@ -41,7 +41,9 @@ static int refill (stream_t, off_t);
 /* Stream is a way for object to do I/O, they can take over(overload) the
    the read/write functions for there needs.  We are doing some very
    minimal buffering on the read when the stream_bufsiz is set, this
-   unfortunately does not take to account the offset, this buffering is more
+   unfortunately does not take to account the offset i.e if the offset ask
+   is different then the offset we maintain internally, the buffer is flushed
+   and a new buffer is use, this buffering is more
    for networking stream (POP/IMAP).  No buffering on the write. */
 int
 stream_create (stream_t *pstream, int flags, void *owner)
@@ -113,6 +115,12 @@ stream_close (stream_t stream)
   if (stream->_close)
     return stream->_close (stream);
   return  0;
+}
+
+int
+stream_is_seekable (stream_t stream)
+{
+  return (stream) ? stream->flags & MU_STREAM_SEEKABLE : 0;
 }
 
 int
@@ -392,6 +400,34 @@ stream_get_flags (stream_t stream, int *pfl)
   if (stream == NULL && pfl == NULL )
     return EINVAL;
   *pfl = stream->flags;
+  return 0;
+}
+
+int
+stream_set_property (stream_t stream, property_t property, void *owner)
+{
+  if (stream == NULL)
+    return EINVAL;
+  if (stream->owner != owner)
+    return EACCES;
+  if (stream->property)
+    property_destroy (&(stream->property), stream);
+  stream->property = property;
+  return 0;
+}
+
+int
+stream_get_property (stream_t stream, property_t *pp)
+{
+  if (stream == NULL)
+    return EINVAL;
+  if (stream->property == NULL)
+    {
+      int status = property_create (&(stream->property), stream);
+      if (status != 0)
+	return status;
+    }
+  *pp = stream->property;
   return 0;
 }
 

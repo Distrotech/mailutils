@@ -53,6 +53,14 @@ extern "C" {
 
 #define MAILER_LINE_BUF_SIZE	1000
 
+struct default_properties
+{
+  char *key;
+  char *value;
+  int (*_set_value) __P ((property_t, const char *, const char *));
+  int (*_get_value) __P ((property_t, const char *, char *, size_t, size_t *));
+};
+
 struct _mailer
 {
   stream_t stream;
@@ -62,7 +70,7 @@ struct _mailer
   int flags;
   monitor_t monitor;
   property_t property;
-  struct property_list *properties;
+  struct default_properties *properties;
   size_t properties_count;
 
   /* Pointer to the specific mailer data.  */

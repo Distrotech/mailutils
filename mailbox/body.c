@@ -32,6 +32,13 @@
 #include <body0.h>
 
 static int lazy_create __P ((body_t));
+static int _body_flush __P ((stream_t));
+static int _body_get_fd __P ((stream_t, int *));
+static int _body_read __P ((stream_t, char *, size_t, off_t, size_t *));
+static int _body_readline __P ((stream_t, char *, size_t, off_t, size_t *));
+static int _body_write __P ((stream_t, const char *, size_t, off_t, size_t *));
+static int _body_truncate __P ((stream_t, off_t));
+static int _body_size __P ((stream_t, off_t *));
 
 int
 body_create (body_t *pbody, void *owner)
@@ -60,10 +67,23 @@ body_destroy (body_t *pbody, void *owner)
 	{
 	  if (body->filename)
 	    {
+	      /* FIXME: should we do this?  */
 	      remove (body->filename);
 	      free (body->filename);
 	    }
-	  stream_destroy (&(body->stream), body);
+
+	  if (body->stream)
+	    stream_destroy (&(body->stream), body);
+
+	  if (body->fstream)
+	    {
+	      stream_close (body->fstream);
+	      stream_destroy (&(body->fstream), NULL);
+	    }
+
+	  if (body->property)
+	    property_destroy (&(body->property), body);
+
 	  free (body);
 	}
       *pbody = NULL;
@@ -89,6 +109,33 @@ int
 body_clear_modified (body_t body)
 {
   (void)body;
+  return 0;
+}
+
+int
+body_set_property (body_t body, property_t property, void *owner)
+{
+  if (body == NULL)
+    return EINVAL;
+  if (body->owner != owner)
+    return EACCES;
+  property_destroy (&(body->property), body);
+  body->property = property;
+  return 0;
+}
+
+int
+body_get_property (body_t body, property_t *pproperty)
+{
+  if (body == NULL || pproperty == NULL)
+    return EINVAL;
+  if (body->property == NULL)
+    {
+      int status = property_create (&(body->property), body);
+      if (status != 0)
+	return status;
+    }
+  *pproperty = body->property;
   return 0;
 }
 
@@ -120,19 +167,27 @@ body_get_stream (body_t body, stream_t *pstream)
 
   if (body->stream == NULL)
     {
-      stream_t stream;
       int fd;
-      int status = file_stream_create (&stream);
+      int status = stream_create (&(body->stream), MU_STREAM_RDWR, body);
+      if (status != 0)
+	return status;
+      status = file_stream_create (&(body->fstream));
       if (status != 0)
 	return status;
       fd = lazy_create (body);
       if (fd == -1)
 	return errno;
-      status = stream_open (stream, body->filename, 0, MU_STREAM_RDWR);
+      status = stream_open (body->fstream, body->filename, 0, MU_STREAM_RDWR);
       close (fd);
       if (status != 0)
 	return status;
-      body->stream = stream;
+      stream_set_fd (body->stream, _body_get_fd, body);
+      stream_set_read (body->stream, _body_read, body);
+      stream_set_readline (body->stream, _body_readline, body);
+      stream_set_write (body->stream, _body_write, body);
+      stream_set_truncate (body->stream, _body_truncate, body);
+      stream_set_size (body->stream, _body_size, body);
+      stream_set_flush (body->stream, _body_flush, body);
     }
   *pstream = body->stream;
   return 0;
@@ -221,6 +276,55 @@ body_set_size (body_t body, int (*_size)(body_t, size_t*) , void *owner)
     return EACCES;
   body->_size = _size;
   return 0;
+}
+
+static int
+_body_get_fd (stream_t stream, int *fd)
+{
+  body_t body = stream_get_owner (stream);
+  return stream_get_fd (body->fstream, fd);
+}
+
+static int
+_body_read (stream_t stream,  char *buffer, size_t n, off_t off, size_t *pn)
+{
+  body_t body = stream_get_owner (stream);
+  return stream_read (body->fstream, buffer, n, off, pn);
+}
+
+static int
+_body_readline (stream_t stream, char *buffer, size_t n, off_t off, size_t *pn)
+{
+  body_t body = stream_get_owner (stream);
+  return stream_readline (body->fstream, buffer, n, off, pn);
+}
+
+static int
+_body_write (stream_t stream, const char *buf, size_t n, off_t off, size_t *pn)
+{
+  body_t body = stream_get_owner (stream);
+  return stream_write (body->fstream, buf, n, off, pn);
+}
+
+static int
+_body_truncate (stream_t stream, off_t n)
+{
+  body_t body = stream_get_owner (stream);
+  return stream_truncate (body->fstream, n);
+}
+
+static int
+_body_size (stream_t stream, off_t *size)
+{
+  body_t body = stream_get_owner (stream);
+  return stream_size (body->fstream, size);
+}
+
+static int
+_body_flush (stream_t stream)
+{
+  body_t body = stream_get_owner (stream);
+  return stream_flush (body->fstream);
 }
 
 #ifndef P_tmpdir

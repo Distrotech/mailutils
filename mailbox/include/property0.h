@@ -41,10 +41,13 @@
 extern "C" {
 #endif
 
-struct property_private
+struct property_data
 {
   size_t hash;
-  int *address;
+  char *key;
+  char *value;
+  int (*_set_value) __P ((property_t, const char *, const char *));
+  int (*_get_value) __P ((property_t, const char *, char *, size_t, size_t *));
 };
 
 struct _property

@@ -50,7 +50,9 @@ struct _message
   header_t header;
   body_t body;
 
+  int flags;
   stream_t stream;
+  property_t property;
   attribute_t attribute;
   monitor_t monitor;
   mime_t mime;
