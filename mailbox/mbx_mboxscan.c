@@ -687,8 +687,6 @@ mbox_scan0 (mailbox_t mailbox, size_t msgno, size_t *pcount, int do_notif)
 	    }
 	  else if (ISFROM(buf))
 	    {
-	      char *ss = NULL;
-	      if (mum->fhdr[H_FROM]) *ss = 1;
 	      FAST_H_FROM(mum, sfield, buf, n);
 	    }
 	  else if (ISIN_REPLY_TO(buf))
