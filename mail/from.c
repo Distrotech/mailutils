@@ -84,10 +84,12 @@ mail_from (int argc, char **argv)
 	cflag = 'M';
       else if (attribute_is_userflag(attr, MAIL_ATTRIBUTE_SAVED))
 	cflag = '*';
-      else if (flags == MU_ATTRIBUTE_RECENT) /*FIXME*/
-	cflag = 'N';
       else if (flags & MU_ATTRIBUTE_READ)
+	cflag = 'O';
+      else if (flags & MU_ATTRIBUTE_SEEN)
 	cflag = 'R';
+      else if (attribute_is_recent(attr))
+	cflag = 'N';
       else
 	cflag = 'U';
 
