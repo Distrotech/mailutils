@@ -31,17 +31,18 @@
 /** mailutils errno to sieve error code translation. */
 
 /*
-Note:
+   Note:
 
-The sieve engine doesn't really care what you return from the callbacks, it's
-either SIEVE_OK (== 0) or an error. This has the effect that if getheader()
-fails due to, for example, an IMAP protocol error, it will be assumed the
-header isn't present, which isn't true.
+   The sieve engine doesn't really care what you return from the callbacks, it's
+   either SIEVE_OK (== 0) or an error. This has the effect that if getheader()
+   fails due to, for example, an IMAP protocol error, it will be assumed the
+   header isn't present, which isn't true.
 
-On the other hand, it makes this really simple mapping below possible.
-*/
+   On the other hand, it makes this really simple mapping below possible.
+ */
 
-static int sieve_err(int rc)
+static int 
+sieve_err (int rc)
 {
   return rc;
 }
@@ -68,9 +69,9 @@ sv_getsize (void *mc, int *size)
 }
 
 /*
-A given header can occur multiple times, so we return a pointer to a null
-terminated array of pointers to the values found for the named header.
-*/
+   A given header can occur multiple times, so we return a pointer to a null
+   terminated array of pointers to the values found for the named header.
+ */
 int
 sv_getheader (void *mc, const char *name, const char ***body)
 {
@@ -149,51 +150,61 @@ sv_getheader (void *mc, const char *name, const char ***body)
   return sieve_err (m->rc);
 }
 
-/*
-We need to do a little more work to deduce the envelope addresses, they
-aren't necessarily stored in the mailbox.
-
-CMU sieve cheesy sample implementation:
-
-name will always be "to" or "from"
-
+/* We need to do a little more work to deduce the envelope addresses, they
+   aren't necessarily stored in the mailbox. */
 int
-getenvelope (void *mc, const char *name, const char ***body)
+sv_getenvelope (void *m, const char *name, const char ***body)
 {
-  static const char *buf[2];
-
-  if (buf[0] == NULL)
+  if (!name || strcasecmp (name, "from") == 0)
     {
-      buf[0] = malloc (sizeof (char) * 256);
-      buf[1] = NULL;
-    }
-  printf ("Envelope body of '%s'? ", head);
-  scanf ("%s", buf[0]);
-  body = buf;
+      sv_msg_ctx_t *mc = m;
+      envelope_t env = NULL;
+      char buffer[128];
+      address_t addr;
+      const char **tmp;
+      
+      message_get_envelope (mc->msg, &env);
+      if (envelope_sender (env, buffer, sizeof (buffer), NULL)
+	  || address_create (&addr, buffer))
+	return SIEVE_RUN_ERROR;
 
-  return SIEVE_OK;
+      if (address_get_email (addr, 1, buffer, sizeof (buffer), NULL))
+	{
+	  address_destroy (&addr);
+	  return SIEVE_RUN_ERROR;
+	}
+      address_destroy (&addr);
+
+      tmp = calloc (2, sizeof (tmp[0]));
+      if (!tmp
+	  || !(tmp[0] = strdup (buffer)))
+	return SIEVE_NOMEM;
+      tmp[1] = NULL;
+      *body = tmp;
+      return SIEVE_OK;
+    }
+  return SIEVE_RUN_ERROR;
 }
-*/
 
 /** message action callbacks */
 
 /*
-The actions arguments are mostly callback data provided during the
-setup of the intepreter object, script object, and the execution of
-a script.
+   The actions arguments are mostly callback data provided during the
+   setup of the intepreter object, script object, and the execution of
+   a script.
 
-The args are:
+   The args are:
 
-void* ac; // action context, the member of the union Action.u associated
-	  // with this kind of action.
-void* ic, // from sieve_interp_alloc(, ic);
-void* sc, // from sieve_script_parse(, , sc, );
-void* mc, // from sieve_execute_script(, mc);
-const char** errmsg // you can fill it in if you return failure
-*/
+   void* ac; // action context, the member of the union Action.u associated
+   // with this kind of action.
+   void* ic, // from sieve_interp_alloc(, ic);
+   void* sc, // from sieve_script_parse(, , sc, );
+   void* mc, // from sieve_execute_script(, mc);
+   const char** errmsg // you can fill it in if you return failure
+ */
 
 static void
-action_log (sv_msg_ctx_t * mc, const char *action, const char *fmt, ...)
+action_log (sv_msg_ctx_t * mc, const char *action, const char *fmt,...)
 {
   const char *script = mc->sc->file;
   message_t msg = mc->msg;
@@ -259,7 +270,7 @@ sv_redirect (void *ac, void *ic, void *sc, void *mc, const char **errmsg)
     {
       m->rc = ENOSYS;
       mu_debug_print (m->debug, MU_DEBUG_ERROR, "%s\n",
-	  "redirect - requires a mailer");
+		      "redirect - requires a mailer");
       return SIEVE_FAIL;
     }
 
@@ -290,28 +301,28 @@ sv_redirect (void *ac, void *ic, void *sc, void *mc, const char **errmsg)
   }
 
   if ((m->rc = address_create (&from, fromaddr)))
-  {
-    mu_debug_print (m->debug, MU_DEBUG_ERROR,
-		    "redirect - parsing from '%s' failed: [%d] %s\n",
-		    a->addr, m->rc, mu_errstring (m->rc));
-    goto end;
-  }
+    {
+      mu_debug_print (m->debug, MU_DEBUG_ERROR,
+		      "redirect - parsing from '%s' failed: [%d] %s\n",
+		      a->addr, m->rc, mu_errstring (m->rc));
+      goto end;
+    }
 
   if ((m->rc = mailer_open (m->mailer, 0)))
-  {
-    mu_debug_print (m->debug, MU_DEBUG_ERROR,
-		    "redirect - opening mailer '%s' failed: [%d] %s\n",
-		    m->mailer, m->rc, mu_errstring (m->rc));
-    goto end;
-  }
+    {
+      mu_debug_print (m->debug, MU_DEBUG_ERROR,
+		      "redirect - opening mailer '%s' failed: [%d] %s\n",
+		      m->mailer, m->rc, mu_errstring (m->rc));
+      goto end;
+    }
 
   if ((m->rc = mailer_send_message (m->mailer, m->msg, from, to)))
-  {
-    mu_debug_print (m->debug, MU_DEBUG_ERROR,
-		    "redirect - send from '%s' to '%s' failed: [%d] %s\n",
-		    fromaddr, a->addr, m->rc, mu_errstring (m->rc));
-    goto end;
-  }
+    {
+      mu_debug_print (m->debug, MU_DEBUG_ERROR,
+		      "redirect - send from '%s' to '%s' failed: [%d] %s\n",
+		      fromaddr, a->addr, m->rc, mu_errstring (m->rc));
+      goto end;
+    }
 
 end:
 
@@ -328,7 +339,6 @@ int
 sv_discard (void *ac, void *ic, void *sc, void *mc, const char **errmsg)
 {
   sv_msg_ctx_t *m = (sv_msg_ctx_t *) mc;
-//sv_interp_ctx_t *i = (sv_interp_ctx_t *) ic;
 
   m->rc = 0;
 
@@ -337,9 +347,10 @@ sv_discard (void *ac, void *ic, void *sc, void *mc, const char **errmsg)
   if ((m->svflags & SV_FLAG_NO_ACTIONS) == 0)
     {
       m->rc = sv_mu_mark_deleted (m->msg, 1);
-      mu_debug_print (m->debug, MU_DEBUG_ERROR,
-		      "discard - deleting failed: [%d] %s\n",
-		      m->rc, mu_errstring (m->rc));
+      if (m->rc)
+	mu_debug_print (m->debug, MU_DEBUG_ERROR,
+			"discard - deleting failed: [%d] %s\n",
+			m->rc, mu_errstring (m->rc));
     }
 
   return sieve_err (m->rc);
@@ -380,15 +391,18 @@ sv_send_response (void *ac, void *ic, void *sc, void *mc, const char **errmsg)
   return SIEVE_FAIL;
 }
 
-sieve_vacation_t vacation = {
+sieve_vacation_t vacation =
+{
   0,				/* min response */
   0,				/* max response */
   &sv_autorespond,		/* autorespond() */
   &sv_send_response		/* send_response() */
 };
 
-char *markflags[] = { "\\flagged" };
-sieve_imapflags_t mark = { markflags, 1 };
+char *markflags[] =
+{"\\flagged"};
+sieve_imapflags_t mark =
+{markflags, 1};
 #endif
 
 /* sieve error callbacks */
@@ -435,12 +449,12 @@ sv_register_callbacks (sieve_interp_t * i)
   if (!rc)
     rc = sieve_register_keep (i, &sv_keep);
 
-#if 0
   if (!rc)
     rc = sieve_register_envelope (i, &sv_getenvelope);
-#endif
+
   if (!rc)
     rc = sieve_register_discard (i, &sv_discard);
+
 #if 0
   if (!rc)
     rc = sieve_register_reject (i, &sv_reject);
