@@ -59,7 +59,7 @@ Examples:\n\
 Deliver mail via SMTP gateway at \"mail.example.com\", reading its\n\
 contents for recipients of the message.\n\
 \n\
-   mail.remote --mailer smtp://mail.example.com\n\
+   mail.remote --mailer smtp://mail.example.com -t\n\
 \n\
 Deliver mail only to \"devnull@foo.bar\"\n\
 \n\
