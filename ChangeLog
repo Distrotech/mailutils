@@ -1,3 +1,14 @@
+2002-03-21  Sergey Poznyakoff  
+
+	* include/mailutils/locker.h: New flag MU_LOCKER_NULL
+	  to be used with temporary mailboxes stored in memory.
+	* mailbox/locker.c: Do not try to lock "/dev/null"
+	  mailboxes. These are used in several programs
+	  (namely, comsat, imap4d, pop3d).
+
+	* mailbox2/pop3/Makefile.am: libpop3_la_SOURCES was
+	  missing.
+	
 2002-03-19  Sam Roberts
 
 	* doc/texinfo/programs.texi: Document use of ~/.<program>rc.
