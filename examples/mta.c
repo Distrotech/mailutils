@@ -59,7 +59,6 @@
 #include <netinet/in.h>
 #include <mu_asprintf.h>
 #include <mailutils/argcv.h>
-#include <mailutils/argp.h>
 #include <mailutils/mailutils.h>
 
 FILE *diag = NULL;       /* diagnostic output */
@@ -71,6 +70,7 @@ int dot = 1;             /* Message is terminated by a lone dot on a line */
 
 header_t header;
 address_t recipients = NULL;
+char *progname;
 
 int mta_stdin __P((int argc, char **argv));
 int mta_smtp __P((int argc, char **argv));
@@ -82,6 +82,10 @@ main (int argc, char **argv)
   int c, status;
   char *domain;
 
+  progname = strrchr (argv[0], '/');
+  if (!progname)
+    progname = argv[0];
+  
   while ((c = getopt (argc, argv, "b:f:p:to:")) != EOF)
     {
       switch (c)
@@ -137,7 +141,7 @@ main (int argc, char **argv)
 	  if (!diag)
 	    {
 	      mu_error ("%s: can't open diagnostic output: %s",
-			program_invocation_short_name, name);
+			progname, name);
 	      return 1;
 	    }
 	}
@@ -153,7 +157,7 @@ main (int argc, char **argv)
   if ((status = header_create (&header, NULL, 0, NULL)) != 0)
     {
       mu_error ("%s: can't create header: %s",
-		program_invocation_short_name, mu_errstring (status));
+		progname, mu_errstring (status));
       return 1;
     }
 
@@ -191,8 +195,7 @@ make_tmp (FILE *input, const char *from, char **tempfile)
   
   if (fd == -1 || (fp = fdopen (fd, "w+")) == NULL)
     {
-      mu_error ("%s: unable to open temporary file",
-		program_invocation_short_name);
+      mu_error ("%s: unable to open temporary file", progname);
       exit (1);
     }
 
@@ -221,8 +224,7 @@ make_tmp (FILE *input, const char *from, char **tempfile)
 		}
 	      else
 		{
-		  mu_error ("%s: can't determine sender address",
-			    program_invocation_short_name);
+		  mu_error ("%s: can't determine sender address", progname);
 		  exit (1);
 		}
 	    }
@@ -236,8 +238,7 @@ make_tmp (FILE *input, const char *from, char **tempfile)
       
       if (fputs (buf, fp) == EOF)
 	{
-	  mu_error ("%s: temporary file write error",
-		    program_invocation_short_name);
+	  mu_error ("%s: temporary file write error", progname);
 	  fclose (fp);
 	  exit (1);
 	}
@@ -297,13 +298,13 @@ mta_send (message_t msg)
   if (c)
     {
       mu_error ("%s: address_to_string failure: %s",
-		program_invocation_short_name, mu_errstring (c));
+		progname, mu_errstring (c));
       return 1;
     }
   value = malloc (n + 1);
   if (!value)
     {
-      mu_error ("%s: not enough memory", program_invocation_short_name);
+      mu_error ("%s: not enough memory", progname);
       return 1;
     }
 
@@ -361,8 +362,7 @@ message_finalize (message_t msg, int warn)
 	{
 	  if (add_recipient (value))
 	    {
-	      mu_error ("%s: bad address %s",
-			program_invocation_short_name, value);
+	      mu_error ("%s: bad address %s", progname, value);
 	      return 1;
 	    }
 	  free (value);
@@ -372,8 +372,7 @@ message_finalize (message_t msg, int warn)
 	{
 	  if (add_recipient (value))
 	    {
-	      mu_error ("%s: bad address %s",
-			program_invocation_short_name, value);
+	      mu_error ("%s: bad address %s", progname, value);
 	      return 1;
 	    }
 	  free (value);
@@ -383,8 +382,7 @@ message_finalize (message_t msg, int warn)
 	{
 	  if (add_recipient (value))
 	    {
-	      mu_error ("%s: bad address %s: %s",
-			program_invocation_short_name, value);
+	      mu_error ("%s: bad address %s: %s", progname, value);
 	      return 1;
 	    }
 	  free (value);
@@ -401,14 +399,13 @@ message_finalize (message_t msg, int warn)
       if (c)
 	{
 	  mu_error ("%s: address_to_string failure: %s",
-		    program_invocation_short_name, mu_errstring (c));
+		    progname, mu_errstring (c));
 	  return 1;
 	}
       value = malloc (n + 1);
       if (!value)
 	{
-	  mu_error ("%s: not enough memory",
-		    program_invocation_short_name);
+	  mu_error ("%s: not enough memory", progname);
 	  return 1;
 	}
 
@@ -431,8 +428,7 @@ mta_stdin (int argc, char **argv)
     {
       if (add_recipient (argv[c]))
 	{
-	  mu_error ("%s: bad address %s",
-		    program_invocation_short_name, argv[c]);
+	  mu_error ("%s: bad address %s", progname, argv[c]);
 	  return 1;
 	}
     }
@@ -441,7 +437,7 @@ mta_stdin (int argc, char **argv)
   if ((c = mailbox_create_default (&mbox, tempfile)) != 0)
     {
       mu_error ("%s: can't create mailbox %s: %s",
-		program_invocation_short_name, tempfile, mu_errstring (c));
+		progname, tempfile, mu_errstring (c));
       unlink (tempfile);
       return 1;
     }
@@ -449,7 +445,7 @@ mta_stdin (int argc, char **argv)
   if ((c = mailbox_open (mbox, MU_STREAM_RDWR)) != 0)
     {
       mu_error ("%s: can't open mailbox %s: %s",
-		program_invocation_short_name, tempfile, mu_errstring (c));
+		progname, tempfile, mu_errstring (c));
       unlink (tempfile);
       return 1;
     }
@@ -460,8 +456,7 @@ mta_stdin (int argc, char **argv)
 
   if (!recipients)
     {
-      mu_error ("%s: Recipient names must be specified",
-		program_invocation_short_name);
+      mu_error ("%s: Recipient names must be specified", progname);
       return 1;
     }
 
@@ -654,7 +649,7 @@ smtp (int fd)
 	      if ((c = mailbox_create_default (&mbox, tempfile)) != 0)
 		{
 		  mu_error ("%s: can't create mailbox %s: %s",
-			    program_invocation_short_name,
+			    progname,
 			    tempfile, mu_errstring (c));
 		  unlink (tempfile);
 		  exit (1);
@@ -663,7 +658,7 @@ smtp (int fd)
 	      if ((c = mailbox_open (mbox, MU_STREAM_RDWR)) != 0)
 		{
 		  mu_error ("%s: can't open mailbox %s: %s",
-			    program_invocation_short_name, 
+			    progname, 
 			    tempfile, mu_errstring (c));
 		  unlink (tempfile);
 		  exit (1);
@@ -706,8 +701,7 @@ mta_smtp (int argc, char **argv)
   fd = socket (PF_INET, SOCK_STREAM, 0);
   if (fd < 0)
     {
-      mu_error ("%s: socket: %s", program_invocation_short_name,
-		strerror (errno));
+      mu_error ("%s: socket: %s", progname, strerror (errno));
       return 1;
     }
 
@@ -723,8 +717,7 @@ mta_smtp (int argc, char **argv)
       if (bind (fd, (struct sockaddr *) &address, sizeof (address)) < 0)
 	{
 	  close (fd);
-	  mu_error ("%s: bind: %s", program_invocation_short_name,
-		    strerror(errno));
+	  mu_error ("%s: bind: %s", progname, strerror(errno));
 	  return 1;
 	}
     }
@@ -738,7 +731,7 @@ mta_smtp (int argc, char **argv)
 	  if (++port >= 65535)
 	    {
 	      mu_error ("%s: can't bind socket: all ports in use?",
-			program_invocation_short_name);
+			progname);
 	      return 1;
 	    }
 	  address.sin_port = htons (port);
@@ -764,16 +757,14 @@ mta_smtp (int argc, char **argv)
 	{
 	  if (errno == EINTR)
 	    continue;
-	  mu_error ("%s: select: %s", program_invocation_short_name,
-		    strerror (errno));
+	  mu_error ("%s: select: %s", progname, strerror (errno));
 	  return 1;
 	}
 
       len = sizeof (his_addr);
       if ((sfd = accept (fd, (struct sockaddr *)&his_addr, &len)) < 0)
 	{
-	  mu_error ("%s: accept: %s", program_invocation_short_name,
-		    strerror (errno));
+	  mu_error ("%s: accept: %s", progname, strerror (errno));
 	  return 1;
 	}
 
