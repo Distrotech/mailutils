@@ -269,6 +269,16 @@ int util_uidvalidity __P((mailbox_t smbox, unsigned long *uidvp));
 
 void util_setio __P((FILE*, FILE*));
 void util_flush_output __P((void));
+void util_get_input __P((stream_t *pstr));
+void util_get_output __P((stream_t *pstr));
+void util_set_input __P((stream_t str));
+void util_set_output __P((stream_t str));
+
+void util_register_event __P((int old_state, int new_state,
+			      list_action_t *action, void *data));
+void util_event_remove __P((void *id));
+void util_run_events __P((int old_state, int new_state));
+  
 int util_is_master __P((void));
 void util_bye __P((void));  
 void util_atexit __P((void (*fp) __PMT((void))));
