@@ -152,41 +152,69 @@ util_expand_msglist (const int argc, char **argv, int **list)
 	}
       else if (argv[i][0] == '/')
 	{
-	  /* FIXME: all messages with pattern following / in
+	  /* All messages with pattern following / in
 	     the subject line, case insensitive */
-	  /* This currently appears to be quit b0rked */
-	  message_t msg;
-	  header_t hdr;
-	  char subj[128];
-	  int j = 1, k = 0, l2 = 0;
-	  int len = strlen (&argv[i][1]);
+	  int j;
 	  for (j = 1; j <= total; j++)
 	    {
+	      message_t msg = NULL;
+	      header_t hdr = NULL;
+	      char *subject = NULL;
+	      size_t subjlen;
+	      char *pattern;
+	      size_t patlen;
+	      int k;
+
 	      mailbox_get_message (mbox, j, &msg);
 	      message_get_header (msg, &hdr);
-	      header_get_value (hdr, MU_HEADER_SUBJECT, subj, 128, NULL);
-	      l2 = strlen (subj);
-	      for (k = 0; i < strlen (subj); k++)
+
+	      header_aget_value (hdr, MU_HEADER_SUBJECT, &subject);
+	      subjlen = (subject) ? strlen (subject) : 0;
+	      for (k = 0; k < subjlen; k++)
+		subject[k] = toupper ((int)subject[k]);
+
+	      pattern = strdup (&argv[i][1]);
+	      patlen = (pattern) ? strlen (pattern) : 0;
+	      for (k = 0; k < patlen; k++)
+		pattern[k] = toupper ((int)pattern[k]);
+
+	      if (pattern && subject && strstr (subject, pattern))
 		{
-		  if (l2-k >= len && !strncasecmp (&argv[i][1], &subj[k], len))
-		    {
-		      current = util_ll_add (current, j);
-		      k = 128;
-		    }
+		  current = util_ll_add (current, j);
 		}
+
+	      free (pattern);
+	      free (subject);
 	    }
 	}
       else if (argv[i][0] == ':')
 	{
-	  /* FIXME: all messages of type argv[i][1] */
+	  /* All messages of type argv[i][1] */
+	  int j;
+	  for (j = 1; j <= total; j++)
+	    {
+	      message_t msg = NULL;
+	      attribute_t attr= NULL;
+
+	      mailbox_get_message (mbox, j, &msg);
+	      message_get_attribute (msg, &attr);
+	      if ((argv[i][1] == 'd' && attribute_is_deleted (attr))
+		  || (argv[i][1] == 'n' && attribute_is_recent (attr))
+		  || (argv[i][1] == 'o' && attribute_is_seen (attr))
+		  || (argv[i][1] == 'r' && attribute_is_read (attr))
+		  || (argv[i][1] == 'u' && !attribute_is_read (attr)))
+		current = util_ll_add (current, j);
+	    }
 	}
       else if (isalpha(argv[i][0]))
 	{
 	  /* FIXME: all messages from sender argv[i] */
+	  /* Annoying we can use address_create() for that
+	     but to compare against what? The email ?  */
 	}
       else if (strchr (argv[i], '-') != NULL)
 	{
-	  /* message range */
+	  /* Message range.  */
 	  int j, x, y;
 	  char *arg = strdup (argv[i]);
 	  for (j=0; j < strlen (arg); j++)
@@ -201,7 +229,7 @@ util_expand_msglist (const int argc, char **argv, int **list)
 	}
       else
 	{
-	  /* single message */
+	  /* Single message.  */
 	  current = util_ll_add (current, strtol (argv[i], NULL, 10));
 	}
     }
@@ -252,13 +280,13 @@ util_do_command (const char *c, ...)
   char *cmd = NULL;
   va_list ap;
   int i, zcnt = 0;
-  
+
   va_start (ap, c);
   status = vasprintf (&cmd, c, ap);
   va_end (ap);
   if (status < 0)
     return 0;
-  
+
   if (cmd)
     {
       struct mail_command_entry entry;
@@ -290,7 +318,7 @@ util_do_command (const char *c, ...)
 	      zcnt++;
 	    }
 	}
-      
+
       entry = util_find_entry (argv[0]);
 
       if (if_cond() == 0 && entry.isflow == 0)
@@ -320,7 +348,7 @@ util_do_command (const char *c, ...)
  * func is the function to run
  * argc is the number of arguments inculding the command and msglist
  * argv is the list of strings containing the command and msglist
- * set_cursor means whether the function should set the cursor to 
+ * set_cursor means whether the function should set the cursor to
  * the number of the last message processed. If set_cursor = 0, the
  * cursor is not altered.
  */
@@ -424,7 +452,7 @@ util_screen_lines()
 {
   struct mail_env_entry *ep = util_find_env("screen");
   size_t n;
-  
+
   if (ep && ep->set && (n = atoi(ep->value)) != 0)
     return n;
   return util_getlines();
@@ -625,7 +653,7 @@ util_get_homedir()
     }
   return strdup(homedir);
 }
-		 
+
 char *
 util_fullpath(char *inpath)
 {
@@ -639,7 +667,7 @@ util_get_sender(int msgno, int strip)
   address_t addr = NULL;
   message_t msg = NULL;
   char buffer[512], *p;
-      
+
   mailbox_get_message (mbox, msgno, &msg);
   message_get_header (msg, &header);
   if (header_get_value (header, MU_HEADER_FROM, buffer, sizeof(buffer), NULL)
@@ -661,14 +689,14 @@ util_get_sender(int msgno, int strip)
       address_destroy (&addr);
       return NULL;
     }
-  
+
   if (strip)
     {
       p = strchr (buffer, '@');
       if (p)
 	*p = 0;
     }
-  
+
   p = strdup (buffer);
   address_destroy (&addr);
   return p;
@@ -679,15 +707,15 @@ util_slist_print(list_t list, int nl)
 {
   iterator_t itr;
   char *name;
-  
+
   if (!list || iterator_create (&itr, list))
     return;
-  
+
   for (iterator_first (itr); !iterator_is_done (itr); iterator_next (itr))
     {
       iterator_current (itr, (void **)&name);
       fprintf (ofile, "%s%c", name, nl ? '\n' : ' ');
-      
+
     }
   iterator_destroy (&itr);
 }
@@ -698,10 +726,10 @@ util_slist_lookup(list_t list, char *str)
   iterator_t itr;
   char *name;
   int rc = 0;
-  
+
   if (!list || iterator_create (&itr, list))
     return 0;
-  
+
   for (iterator_first (itr); !iterator_is_done (itr); iterator_next (itr))
     {
       iterator_current (itr, (void **)&name);
@@ -719,10 +747,10 @@ void
 util_slist_add (list_t *list, char *value)
 {
   char *p;
-  
+
   if (!*list && list_create (list))
     return;
-  
+
   if ((p = strdup(value)) == NULL)
     {
       fprintf (ofile, "not enough memory\n");
@@ -736,10 +764,10 @@ util_slist_destroy (list_t *list)
 {
   iterator_t itr;
   char *name;
-  
+
   if (!*list || iterator_create (&itr, *list))
     return;
-  
+
   for (iterator_first (itr); !iterator_is_done (itr); iterator_next (itr))
     {
       iterator_current (itr, (void **)&name);
@@ -755,10 +783,10 @@ util_slist_to_string (list_t list, char *delim)
   iterator_t itr;
   char *name;
   char *str = NULL;
-  
+
   if (!list || iterator_create (&itr, list))
     return NULL;
-  
+
   for (iterator_first (itr); !iterator_is_done (itr); iterator_next (itr))
     {
       iterator_current (itr, (void **)&name);
@@ -788,14 +816,14 @@ util_strcat(char **dest, char *str)
       memcpy (newp + dlen - 1, str, slen);
     }
 }
-      
+
 void
 util_escape_percent (char **str)
 {
   int count;
   char *p, *q;
   char *newstr;
-  
+
   /* Count ocurrences of % in the string */
   count = 0;
   for (p = *str; *p; p++)
@@ -805,7 +833,7 @@ util_escape_percent (char **str)
   if (!count)
     return; /* nothing to do */
 
-  /* expand the string */ 
+  /* expand the string */
   newstr = malloc (strlen (*str) + 1 + count);
   if (!newstr)
     {
@@ -813,7 +841,7 @@ util_escape_percent (char **str)
       exit (1); /* be on the safe side */
     }
 
-  /* and escape percent signs */ 
+  /* and escape percent signs */
   p = newstr;
   q = *str;
   while (*p = *q++)
@@ -837,7 +865,7 @@ util_outfolder_name (char *str)
     case '+':
       str = util_fullpath (str);
       break;
-      
+
     default:
       if (ep && ep->set)
 	{
@@ -881,14 +909,14 @@ util_save_outgoing (message_t msg, char *savefile)
 	{
 	  char *buf;
 	  size_t bsize = 0;
-	  
+
 	  message_size (msg, &bsize);
 
 	  /* Try to allocate large buffer */
 	  for (; bsize > 1; bsize /= 2)
 	    if ((buf = malloc (bsize)))
 	      break;
-	  
+
 	  if (!bsize)
 	    {
 	      fprintf (ofile, "not enough memory for creating save file\n");
@@ -920,8 +948,3 @@ util_save_outgoing (message_t msg, char *savefile)
       free (filename);
     }
 }
-  
-
-
-
-

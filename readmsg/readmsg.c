@@ -85,7 +85,7 @@ main(int argc, char **argv)
     msgset (argc - 1, &argv[1], &set, &n);
   else
     {
-      char *av[] = { "*" };
+      const char *av[] = { "*" };
       msgset (1, av, &set, &n);
     }
 

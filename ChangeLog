@@ -1,3 +1,14 @@
+2001-06-29  Alain Magloire
+
+	* mail/util.c (util_expand_msglist): Implement expansion of
+	:d       All deleted messages
+	:n       All new messages
+	:o       All old messages
+	:r       All messages that have already been read
+	:u       All unread messages
+	/string  All messages with string in the subject line
+                 (the case of characters in string is ignored)
+
 2001-06-27  Alain Magloire
 
 	* configure.in:  We were not checking for thread support
