@@ -251,10 +251,8 @@ mh_audit_open (char *name, mailbox_t mbox)
   if (strchr (namep, '/') == NULL)
     {
       char *p = NULL;
-      char *home;
 
-      asprintf (&p, "%s/Mail/%s", home = mu_get_homedir (), namep);
-      free (home);
+      asprintf (&p, "%s/%s", mu_path_folder_dir, namep);
       if (!p)
 	{
 	  mh_error (_("low memory"));
@@ -507,16 +505,107 @@ mh_file_copy (const char *from, const char *to)
   return rc;
 }
 
+static int
+_mh_delim (char *str)
+{
+  if (str[0] == '-')
+    {
+      for (; *str == '-'; str++)
+	;
+      for (; *str == ' ' || *str == '\t'; str++)
+	;
+    }
+  return str[0] == '\n';
+}
+
+char *
+skipws (char *p, size_t off)
+{
+  int len;
+  for (p += off; *p && isspace (*p); p++)
+    ;
+  len = strlen (p);
+  if (len > 0 && p[len-1] == '\n')
+    p[len-1] = 0;
+  return p;
+}
+
+static int
+restore_envelope (stream_t str, char **pptr)
+{
+  size_t offset = 0;
+  char *from = NULL;
+  char *env_from = NULL;
+  char *env_date = NULL;
+  int rc;
+  char buffer[80];
+  size_t len;
+  
+  while ((rc = stream_readline (str, buffer, sizeof buffer, offset, &len)) == 0
+	 && len > 0)
+    {
+      if (_mh_delim (buffer))
+	break;
+      buffer[len] = 0;
+      offset += len;
+      if (strncasecmp (buffer, MU_HEADER_FROM,
+		       sizeof (MU_HEADER_FROM) - 1) == 0)
+	from = strdup (skipws (buffer, sizeof (MU_HEADER_FROM)));
+      else if (strncasecmp (buffer, MU_HEADER_ENV_SENDER,
+			    sizeof (MU_HEADER_ENV_SENDER) - 1) == 0)
+	env_from = strdup (skipws (buffer, sizeof (MU_HEADER_ENV_SENDER)));
+      else if (strncasecmp (buffer, MU_HEADER_ENV_DATE,
+			    sizeof (MU_HEADER_ENV_DATE) - 1) == 0)
+	env_date = strdup (skipws (buffer, sizeof (MU_HEADER_ENV_DATE)));
+    }
+
+  if (!env_from)
+    {
+      if (from)
+	{
+	  address_t addr;
+	  
+	  address_create (&addr, from);
+	  if (!addr
+	      || address_aget_email (addr, 1, &env_from))
+	    env_from = strdup ("GNU-MH");
+	  address_destroy (&addr);
+	}
+      else
+	env_from = strdup ("GNU-MH");
+    }
+	  
+  if (!env_date)
+    {
+      struct tm *tm;
+      time_t t;
+      char date[80];
+
+      time(&t);
+      tm = gmtime(&t);
+      strftime (date, sizeof (date), "%a %b %e %H:%M:%S %Y", tm);
+      env_date = strdup (date);
+    }
+
+  asprintf (pptr, "From %s %s\n", env_from, env_date);
+  free (env_from);
+  free (env_date);
+  free (from);
+  return 0;
+}
+
 mailbox_t
-mh_open_msg_file (char *file_name)
+mh_open_msg_file (char *folder, char *file_name)
 {
   struct stat st;
-  char *buffer;
-  int fd;
+  char buffer[512];
   size_t len = 0;
   mailbox_t tmp;
-  stream_t stream;
-  char *p;
+  stream_t stream, instream;
+  int rc, headers;
+  
+  if (folder)
+    file_name = mh_expand_name (folder, file_name, 0);
   
   if (stat (file_name, &st) < 0)
     {
@@ -524,22 +613,68 @@ mh_open_msg_file (char *file_name)
       return NULL;
     }
 
-  buffer = xmalloc (st.st_size+1);
-  fd = open (file_name, O_RDONLY);
-  if (fd == -1)
+  if ((rc = file_stream_create (&instream, file_name, MU_STREAM_READ)))
     {
-      mh_error (_("can't open file %s: %s"), file_name, strerror (errno));
+      mh_error (_("can't create input stream (file %s): %s"),
+		file_name, mu_strerror (rc));
       return NULL;
     }
 
-  if (read (fd, buffer, st.st_size) != st.st_size)
+  if ((rc = stream_open (instream)))
     {
-      mh_error (_("error reading file %s: %s"), file_name, strerror (errno));
+      mh_error (_("can't open input stream (file %s): %s"),
+		file_name, mu_strerror (rc));
+      stream_destroy (&instream, stream_get_owner (instream));
+      return NULL;
+    }
+  
+  if (memory_stream_create (&stream, 0, MU_STREAM_RDWR)
+      || stream_open (stream))
+    {
+      mh_error (_("can't create temporary stream"));
+      stream_destroy (&instream, stream_get_owner (instream));
       return NULL;
     }
 
-  buffer[st.st_size] = 0;
-  close (fd);
+  stream_readline (instream, buffer, sizeof buffer, 0, NULL);
+  if (strncmp (buffer, "From ", 5))
+    {
+      char *envstr;
+      restore_envelope (instream, &envstr);
+      stream_sequential_write (stream, envstr, strlen (envstr));
+      free (envstr);
+    }      
+
+  headers = 1;
+  while ((rc = stream_sequential_readline (instream,
+					   buffer, sizeof buffer, &len)) == 0
+	 && len > 0)
+    {
+      buffer[len] = 0;
+      if (headers && _mh_delim (buffer))
+	{
+	  headers = 0;
+	  buffer[0] = '\n';
+	  buffer[1] = 0;
+	  len = 1;
+	}
+      rc = stream_sequential_write (stream, buffer, len);
+      if (rc)
+	{
+	  mh_error (_("write error: %s"), mu_strerror (rc));
+	  stream_destroy (&instream, stream_get_owner (instream));
+	  stream_destroy (&stream, stream_get_owner (stream));
+	  return NULL;
+	}
+    }
+
+  stream_destroy (&instream, stream_get_owner (instream));
+  if (rc)
+    {
+      mh_error (_("error reading file %s: %s"),	file_name, mu_strerror (rc));
+      stream_destroy (&stream, stream_get_owner (stream));
+      return NULL;
+    }
 
   if (mailbox_create (&tmp, "/dev/null")
       || mailbox_open (tmp, MU_STREAM_READ) != 0)
@@ -548,32 +683,7 @@ mh_open_msg_file (char *file_name)
       return NULL;
     }
 
-  if (memory_stream_create (&stream, 0, MU_STREAM_RDWR)
-      || stream_open (stream))
-    {
-      mailbox_close (tmp);
-      mh_error (_("can't create temporary stream"));
-      return NULL;
-    }
 
-  for (p = buffer; *p && isspace (*p); p++)
-    ;
-
-  if (strncmp (p, "From ", 5))
-    {
-      struct tm *tm;
-      time_t t;
-      char date[80];
-      
-      time(&t);
-      tm = gmtime(&t);
-      strftime (date, sizeof (date),
-		"From GNU-MH-refile %a %b %e %H:%M:%S %Y%n",
-		tm);
-      stream_write (stream, date, strlen (date), 0, &len);
-    }      
-
-  stream_write (stream, p, strlen (p), len, &len);
   mailbox_set_stream (tmp, stream);
   if (mailbox_messages_count (tmp, &len)
       || len < 1)
@@ -589,6 +699,124 @@ mh_open_msg_file (char *file_name)
 		(unsigned long) len);
       return NULL;
     }
-  free (buffer);
   return tmp;
 }
+
+void
+mh_install_help (char *mhdir)
+{
+  static char *text = N_(
+"Prior to using MH, it is necessary to have a file in your login\n"
+"directory (%s) named .mh_profile which contains information\n"
+"to direct certain MH operations.  The only item which is required\n"
+"is the path to use for all MH folder operations.  The suggested MH\n"
+"path for you is %s...\n");
+
+  printf (_(text), mu_get_homedir (), mhdir);
+}
+
+void
+mh_real_install (char *name, int automode)
+{
+  char *home = mu_get_homedir ();
+  char *mhdir;
+  char *ctx;
+  FILE *fp;
+  
+  asprintf (&mhdir, "%s/%s", home, "Mail");
+  
+  if (!automode)
+    {
+      size_t n = 0;
+      
+      if (mh_getyn (_("Do you need help")))
+	mh_install_help (mhdir);
+
+      if (!mh_getyn (_("Do you want the standard MH path \"%s\""), mhdir))
+	{
+	  int local;
+	  char *p;
+	  
+	  local = mh_getyn (_("Do you want a path below your login directory"));
+	  if (local)
+	    printf (_("What is the path?"));
+	  else
+	    printf (_("What is the full path?"));
+	  if (getline (&p, &n, stdin) <= 0)
+	    exit (1);
+
+	  n = strlen (p);
+	  if (n == 0)
+	    exit (1);
+
+	  if (p[n-1] == '\n')
+	    p[n-1] = 0;
+
+	  free (mhdir);
+	  if (local)
+	    {
+	      asprintf (&mhdir, "%s/%s", home, p);
+	      free (p);
+	    }
+	  else
+	    mhdir = p;
+	}
+    }
+
+  if (mh_check_folder (mhdir, !automode))
+    exit (1);
+
+  fp = fopen (name, "w");
+  if (!fp)
+    {
+      mu_error (_("cannot open file %s: %s"), name, mu_strerror (errno));
+      exit (1);
+    }
+  fprintf (fp, "Path: %s\n", mhdir);
+  fclose (fp);
+
+  asprintf (&ctx, "%s/%s", mhdir, MH_CONTEXT_FILE);
+  fp = fopen (ctx, "w");
+  if (fp)
+    {
+      fprintf (fp, "Current-Folder: inbox\n");
+      fclose (fp);
+    }
+  free (ctx);
+  free (mhdir);
+  /* FIXME: create inbox? */
+}  
+
+void
+mh_install (char *name, int automode)
+{
+  struct stat st;
+  
+  if (stat(name, &st))
+    {
+      if (errno == ENOENT)
+	{
+	  if (automode)
+	    printf(_("I'm going to create the standard MH path for you.\n"));
+	  mh_real_install (name, automode);
+	}
+      else
+	{
+	  mh_error(_("cannot stat %s: %s"), name, mu_strerror (errno));
+	  exit (1);
+	}
+    }
+  else if ((st.st_mode & S_IFREG) || (st.st_mode & S_IFLNK)) 
+    {
+      mu_error(_("You already have an MH profile, use an editor to modify it"));
+      exit (0);
+    }
+  else
+    {
+      mu_error(_("You already have file %s which is not a regular file or a symbolic link.\n"
+		 "Please remove it and try again"));
+      exit (1);
+    }
+}
+      
+  
