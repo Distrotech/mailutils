@@ -3,6 +3,7 @@
 #ifdef HAVE_MYSQL
 extern char *sql_getpwnam_query;
 extern char *sql_getpass_query;
+extern char *sql_getpwuid_query;
 extern char *sql_host;
 extern char *sql_user;
 extern char *sql_passwd;
@@ -11,6 +12,7 @@ extern char *sql_socket;
 extern int  sql_port;
 
 struct passwd *getMpwnam (const char *username);
+struct passwd *getMpwuid (uid_t uid);
 struct spwd *getMspnam (const char *username);
 
 #define MHOST NULL              /* Hostname to connect to. NULL for UNIX
