@@ -28,7 +28,6 @@ _get_address_part (const char *func_name, address_get_fp fun,
   char *str;
   SCM ret;
   int num;
-  int rc;
   
   SCM_ASSERT (SCM_NIMP (ADDRESS) && SCM_STRINGP (ADDRESS),
 	      ADDRESS, SCM_ARG1, func_name);
