@@ -26,6 +26,14 @@ AC_ARG_ENABLE(pthread,
   *)   AC_MSG_ERROR(bad value ${enableval} for --disable-pthread) ;;
   esac],[usepthread=yes])
 
+AC_ARG_WITH(readline,
+ [  --without-readline          do not use readline],
+ [case "${withval}" in
+  yes) usereadline=yes ;;
+  no)  usereadline=no ;;
+  *)   AC_MSG_ERROR(bad value ${withval} for --without-readline) ;;
+  esac],[usereadline=yes])
+
 dnl Check for headers
 AC_HEADER_STDC
 AC_HEADER_DIRENT
@@ -84,6 +92,12 @@ AC_CHECK_FUNC(gethostbyname, [true],
 
 AC_CHECK_FUNC(socket, [true],
     AC_CHECK_LIB(socket, socket, LIBS="-lsocket $LIBS"))
+
+dnl Check for readline
+if test x"$usereadline" = x"yes"; then
+    AC_CHECK_LIB(readline, readline,
+      AC_CHECK_HEADERS(readline/readline.h, AC_DEFINE(WITH_READLINE)))
+fi
 
 dnl Output Makefiles
 AC_OUTPUT(Makefile mailutils.spec include/Makefile include/mailutils/Makefile

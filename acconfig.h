@@ -19,3 +19,7 @@
 #undef USE_LIBPAM
 #undef HAVE_SNPRINTF
 #undef WITH_PTHREAD
+
+/* Define if using libreadline */
+#undef WITH_READLINE
+
