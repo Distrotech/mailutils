@@ -283,7 +283,12 @@ void
 list_message (mailbox_t mbox, message_t msg, size_t num, void *data)
 {
   char *buffer;
+  int len;
+  
   mh_format (&format, msg, num, width, &buffer);
-  printf ("%s\n", buffer);
+  printf ("%s", buffer);
+  len = strlen (buffer);
+  if (len > 0 && buffer[len-1] != '\n')
+    printf("\n");
   free (buffer);
 }
