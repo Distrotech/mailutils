@@ -24,12 +24,13 @@
 #include <mailutils/sys/pop3.h>
 
 int
-mu_pop3_set_debug (mu_pop3_t pop3, void (*print)(const char *buffer))
+mu_pop3_set_debug (mu_pop3_t pop3, mu_debug_t debug)
 {
   if (pop3 == NULL)
     return EINVAL;
-
-  pop3->debug = print;
+  if (pop3->debug)
+    mu_debug_destroy (&pop3->debug, NULL);
+  pop3->debug = debug;
   return 0;
 }
 
@@ -37,7 +38,7 @@ int
 mu_pop3_debug_cmd (mu_pop3_t pop3)
 {
   if (pop3->debug)
-    pop3->debug (pop3->io.buf);
+    mu_debug_print(pop3->debug, MU_DEBUG_PROT, "%s", pop3->io.buf);
   return 0;
 }
 
@@ -46,8 +47,7 @@ mu_pop3_debug_ack (mu_pop3_t pop3)
 {
   if (pop3->debug)
     {
-      pop3->debug (pop3->ack.buf);
-      pop3->debug ("\n");
+      mu_debug_print (pop3->debug, MU_DEBUG_PROT, "%s\n", pop3->ack.buf);
     }
   return 0;
 }
