@@ -1,3 +1,23 @@
+2001-07-03 Sergey Poznyakoff
+	* configure.in: --with-mail-rc option: set path to system-wide
+	mail.rc file.
+	* mail/Makefile.am,mail/mail.c: Likewise.
+	* mail/send.c: check for "dot" variable. Implemented "~.",
+	"appenddeadletter".
+	* mail/inc.c: (new) inc[orporate] command.
+	* mail/{mail.c,mail.h,table.c}: Ditto.
+	* mail/print.c: Handle interrupts when fetching message body.
+	* mail/followup.c: insert ',' between recepients' addresses.
+	* mail/quit.c: use mailbox_save_attributes(). Implemented
+	"hold" variable. Raise MU_ATTRIBUTE_READ on every message with
+	MU_ATTRIBUTE_SEEN bit set (compatibility with existing mails).
+	* mail/from.c: Changed order of checking message attribute bits to
+	be compatible with existing implementations.
+	* mail/z.c: removed break from the loop.
+	* mailbox/attribute.c: added attribute_set_modified() function.
+	Fixed attribute_unset.* functions to raise MU_ATTRIBUTE_MODIFIED bit.
+	* include/mailutils/attribute.h: Proto for attribute_set_modified().
+	
 2001-07-02 Alain Magloire
 
 	* mailbox2/tcp.c: make it thread-safe.
