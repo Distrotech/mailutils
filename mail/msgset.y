@@ -126,12 +126,12 @@ msg      : header REGEXP /* /.../ */
 	   }
          | TYPE  /* :n, :d, etc */
            {
-	     if (strchr ("dnoru", $1) == NULL)
+	     if (strchr ("dnorTtu", $1) == NULL)
 	       {
 		 yyerror ("unknown message type");
 		 YYERROR;
 	       }
-	     $$ = msgset_select (select_type, (void *)$1, 0, 0);
+	     $$ = msgset_select (select_type, (void *)&$1, 0, 0);
 	   }
          | IDENT /* Sender name */
            {
@@ -599,6 +599,10 @@ select_type (message_t msg, void *closure)
       return attribute_is_read (attr);
     case 'u':
       return !attribute_is_read (attr);
+    case 't':
+      return attribute_is_userflag (attr, MAIL_ATTRIBUTE_TAGGED);
+    case 'T':
+      return !attribute_is_userflag (attr, MAIL_ATTRIBUTE_TAGGED);
     }
   return 0;
 }
