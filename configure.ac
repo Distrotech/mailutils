@@ -56,6 +56,7 @@ if test ".$BUILD_INCLUDED_LIBINTL" = ".yes" ; then
 fi
 
 dnl Check for libraries
+USE_LOADABLE_MODULES=no
 AC_CHECK_LIB(resolv, res_query)
 LTDL_LIB=
 AC_SUBST(LTDL_LIB)
@@ -64,9 +65,16 @@ if test "$enable_shared" = yes; then
     AC_DEFINE(HAVE_LIBLTDL,
 	      1,
 	      [Define to 1 if you have the `ltdl' library (-lltdl).])
-    LTDL_LIB=-lltdl],
+    LTDL_LIB=-lltdl
+    _USE_LOADABLE_MODULES=yes], # FIXME: Remove leading _ when ltd support
+                                # is added to SQL.
     [LTDL_LIB=""])
 fi
+if test $USE_LOADABLE_MODULES = yes; then
+  AC_DEFINE(USE_LOADABLE_MODULES,1,
+            [Define if mailutils is able to use loadable modules])
+fi
+
 MU_DEBUG_MODE
 
 # Initialize authlibs
@@ -412,50 +420,133 @@ AC_CHECK_FUNCS(_obstack_begin,
                [AC_LIBOBJ(obstack)])
 
 
-dnl check if SQL support is required
-AC_SUBST(SQLLIBS)
-AC_ARG_WITH([mysql],
-            AC_HELP_STRING([--with-mysql],
-                           [enable mysql support (default no)]),
-            [use_mysql=${withval}],,)
+
 
-AC_ARG_WITH([postgres],
-            AC_HELP_STRING([--with-postgres],
-                           [enable postgres support (default no)]),
-            [use_postgres=${withval}],,)
+
+## SQL support
 
 AH_TEMPLATE(USE_SQL,[Enables SQL support])
 AH_TEMPLATE(HAVE_MYSQL,[Define if you have libmysql])
 AH_TEMPLATE(HAVE_PGSQL,[Define if you have libpq])
 
-if test x"$use_mysql" = x"yes" -a x"$use_postgres" = x"yes"; then
- AC_MSG_ERROR([Use either --with-mysql or --with-postgres, not both])
-else
- if test x"$use_mysql" = x"yes"; then
-   AC_CHECK_HEADER(mysql/mysql.h,
-                        [MU_CHECK_LIB(mysqlclient, mysql_real_connect, "-lm",
-                            [ USE_SQL=1
-                              AC_DEFINE(USE_SQL)
-                              AC_DEFINE(HAVE_MYSQL)
-                              SQLLIBS="$mu_cv_lib_mysqlclient"
-                            ],
-			    [ AC_MSG_ERROR(-lmysqlclient not found) ],
-                         [/usr/local/lib/mysql /usr/lib/mysql])])
- fi
- if test x"$use_postgres" = x"yes"; then
-   MU_CHECK_LIB(pq, PQconnectStart, [],
-		[ USE_SQL=1
-                  AC_DEFINE(HAVE_PGSQL)
-                  SQLLIBS=$mu_cv_lib_pq],
-                [ AC_MSG_ERROR(-lpq not found) ],
-                [/usr/local/pgsql/lib /usr/pgsql/lib])
- fi
+SQL_MODULES=
+AC_SUBST(SQL_MODULES)
+
+SQL_LIBOBJS=
+AC_SUBST(SQL_LIBOBJS)
+
+SQL_LTLIBOBJS=
+AC_SUBST(SQL_LTLIBOBJS)
+
+BUILD_SQL=
+AC_SUBST(BUILD_SQL)
+AC_SUBST(SQLLIB)
+
+SQL_LOADABLE_MODULES=
+AC_SUBST(SQL_LOADABLE_MODULES)
+
+AC_DEFUN([MU_SQL_LDADD],[
+  if test "$USE_LOADABLE_MODULES" = yes; then
+    $1=$2
+  else
+    SQLLIB="$SQLLIB $2" 
+  fi 			
+])
+
+## *********
+## MySQL
+## *********
+AC_SUBST(MYSQLLIBS)
+
+mysql_init() {
+  MU_CHECK_LIB(mysqlclient, 
+	       mysql_real_connect, 
+	       [-lm],
+               [ AC_DEFINE(USE_SQL)
+                 AC_DEFINE(HAVE_MYSQL)
+	         MU_SQL_LDADD(MYSQLLIBS, $mu_cv_lib_mysqlclient) ],
+	       [ AC_MSG_FAILURE([The requested library libmysqlclient is not found or is unusable])],
+               [/usr/local/lib/mysql /usr/lib/mysql])
+}
+
+AC_ARG_WITH(mysql,
+	AC_HELP_STRING([--with-mysql],
+	[Configure to work with MySQL]),
+	[case $withval in
+	 yes)   SQL_MODULES="$SQL_MODULES mysql"
+		;;
+	 no)    ;;
+        esac])
+
+
+# *********
+# Postgres
+# *********
+
+postgres_init() {
+  MU_CHECK_LIB(pq, PQconnectStart, [],
+	       [ AC_DEFINE(USE_SQL)
+                 AC_DEFINE(HAVE_PGSQL)
+	         MU_SQL_LDADD(POSTGRESLIBS, $mu_cv_lib_pq)],
+	       [ AC_MSG_FAILURE([The requested library libpq is not found or is unusable])],
+               [/usr/local/pgsql/lib /usr/pgsql/lib])
+}
+
+AC_ARG_WITH(postgres,
+	AC_HELP_STRING([--with-postgres],
+	[Configure to work with Postgres]),
+	[case $withval in
+	 yes)	SQL_MODULES="$SQL_MODULES postgres"
+		;;
+	 no)    ;;
+        esac])
+
+### General SQL support
+AC_ARG_WITH(sql,
+        AC_HELP_STRING([--with-sql=modlist],
+                       [Configure to work with SQL]),
+	[for mod in `echo $withval | tr ':,' '  '`
+         do
+		if test -r $srcdir/sql/${mod}.c; then
+			SQL_MODULES="$SQL_MODULES ${mod}"
+		else
+			AC_MSG_ERROR(No such SQL module: $mod)
+		fi
+	 done])
+
+dummy_init() {
+	:
+}
+
+if test -n "$SQL_MODULES"; then
+  USE_SQL=1
+  AC_DEFINE(USE_SQL)
+  BUILD_SQL=libsql.la
+  SQLLIB=../sql/libsql.la
+
+  for module in $SQL_MODULES
+  do
+    ${module:-dummy}_init
+    if test $USE_LOADABLE_MODULES = yes; then
+      SQL_LOADABLE_MODULES="$SQL_LOADABLE_MODULES ${module}.la"
+    else
+      SQL_LIBOBJS="$SQL_LIBOBJS ${module}.o"
+    fi
+  done
+  S=`echo "$SQL_LIBOBJS" |
+                  sed 's,\.[[^.]]* ,$U&,g;s,\.[[^.]]*$,$U&,'`
+  SQL_LTLIBOBJS=`echo "$S" |
+                  sed 's,\.[[^.]]* ,.lo ,g;s,\.[[^.]]*$,.lo,'`
+
+  AC_CONFIG_COMMANDS([sql/modlist.h],
+                     [$srcdir/scripts/sqlmod.sh $SQL_MODULES > sql/modlist.h],
+                     [if test $USE_LOADABLE_MODULES = yes; then
+			SQL_MODULES=
+                      else
+                        SQL_MODULES="$SQL_MODULES"
+                      fi])
 fi
 
-if test x"$USE_SQL" = x1; then
-  AUTHLIBS="$AUTHLIBS $SQLLIBS"
-  AC_DEFINE(USE_SQL,1,[Define this to enable SQL support])
-fi
 
 dnl Virtual domain support
 MU_ENABLE_SUPPORT(virtual-domains)
@@ -732,6 +823,7 @@ MU_COMMON_LIBRARIES='$(LTLIBINTL) $(LTLIBICONV)'
 
 dnl Output Makefiles
 AC_CONFIG_FILES([Makefile
+ sql/Makefile
  auth/Makefile
  comsat/Makefile
  doc/Makefile
