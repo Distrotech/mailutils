@@ -621,7 +621,7 @@ get_from (message_t msg, char *localhost, address_t *pmail_from)
   /* If it's not in the header create one form the passwd.  */
   if (status != 0 || size == 0)
     {
-      struct passwd *pwd = getpwuid (getuid ());
+      struct passwd *pwd = mu_getpwuid (getuid ());
       /* Not in the passwd ???? We have a problem.  */
       if (pwd == 0 || pwd->pw_name == NULL)
 	{

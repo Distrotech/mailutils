@@ -27,7 +27,7 @@ imap4d_bye (int reason)
 int
 imap4d_bye0 (int reason, struct imap4d_command *command)
 {
-  struct passwd *pw = getpwuid (getuid ());
+  struct passwd *pw = mu_getpwuid (getuid ());
   const char *username;
   int status = EXIT_FAILURE;
   username = (pw) ? pw->pw_name : "Unknown";

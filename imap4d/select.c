@@ -59,7 +59,7 @@ imap4d_select0 (struct imap4d_command *command, char *arg, int flags)
 
   if (strcasecmp (mailbox_name, "INBOX") == 0 && !mu_virtual_domain)
     {
-      pw = getpwuid (getuid ());
+      pw = mu_getpwuid (getuid ());
       if (pw)
 	{
 	  mailbox_name = malloc (strlen (maildir) + strlen (pw->pw_name) + 1);

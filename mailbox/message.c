@@ -925,7 +925,7 @@ message_sender (envelope_t envelope, char *buf, size_t len, size_t *pnwrite)
   {
     struct passwd *pw;
     const char *sender;
-    pw = getpwuid (getuid ());
+    pw = mu_getpwuid (getuid ());
     sender = (pw) ? pw->pw_name : "unknown";
     n = strlen (sender);
     if (buf && len > 0)

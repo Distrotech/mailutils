@@ -75,7 +75,7 @@ imap4d_copy0 (char *arg, int isuid, char *resp, size_t resplen)
 
   if (strcasecmp (name, "INBOX") == 0 && !mu_virtual_domain)
     {
-      struct passwd *pw = getpwuid (getuid());
+      struct passwd *pw = mu_getpwuid (getuid());
       mailbox_name = strdup ((pw) ? pw->pw_name : "");
     }
   else

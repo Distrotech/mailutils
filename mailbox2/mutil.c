@@ -254,7 +254,7 @@ mu_get_homedir (void)
     {
       struct passwd *pwd;
 
-      pwd = getpwuid (getuid ());
+      pwd = mu_getpwuid (getuid ());
       if (!pwd)
 	return NULL;
       homedir = pwd->pw_dir;

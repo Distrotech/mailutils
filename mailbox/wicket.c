@@ -397,7 +397,7 @@ get_user (url_t url, const char *filename, char **user)
     }
   else
     {
-      struct passwd *pw = getpwuid (getuid ());
+      struct passwd *pw = mu_getpwuid (getuid ());
       if (pw && pw->pw_name)
 	{
 	  u = strdup (pw->pw_name);

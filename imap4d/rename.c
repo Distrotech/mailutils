@@ -89,7 +89,7 @@ imap4d_rename (struct imap4d_command *command, char *arg)
 	}
       free (name);
       free (newname);
-      pw = getpwuid (getuid ());
+      pw = mu_getpwuid (getuid ());
       if (pw)
 	{
 	  mailbox_t inbox = NULL;

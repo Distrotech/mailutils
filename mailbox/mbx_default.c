@@ -86,12 +86,12 @@ get_homedir (const char *user)
       homedir = getenv ("HOME");
       if (homedir == NULL)
 	{
-	  pw = getpwuid (getuid ());
+	  pw = mu_getpwuid (getuid ());
 	  if (pw)
 	    homedir = pw->pw_dir;
 	}
 #else
-      pw = getpwuid (getuid ());
+      pw = mu_getpwuid (getuid ());
       if (pw)
 	homedir = pw->pw_dir;
 #endif
@@ -283,7 +283,7 @@ mailbox_create_default (mailbox_t *pmbox, const char *mail)
       if (user == NULL)
 	{
 	  struct passwd *pw;
-	  pw = getpwuid (getuid ());
+	  pw = mu_getpwuid (getuid ());
 	  if (pw)
 	    user = pw->pw_name;
 	  else

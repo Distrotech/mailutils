@@ -47,7 +47,7 @@ imap4d_status (struct imap4d_command *command, char *arg)
 
   if (strcasecmp (name, "INBOX") == 0 && !mu_virtual_domain)
     {
-      struct passwd *pw = getpwuid (getuid());
+      struct passwd *pw = mu_getpwuid (getuid());
       mailbox_name = strdup ((pw) ? pw->pw_name : "");
     }
   else
