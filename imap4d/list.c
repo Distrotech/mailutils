@@ -153,7 +153,14 @@ imap4d_list (struct imap4d_command *command, char *arg)
 			      "The requested item could not be found.");
 	}
 
-      /* If wcard match inbox return it too, part of the list.  */
+      /* The special name INBOX is included in the output from LIST, if
+	 INBOX is supported by this server for this user and if the
+	 uppercase string "INBOX" matches the interpreted reference and
+	 mailbox name arguments with wildcards as described above.  The
+	 criteria for omitting INBOX is whether SELECT INBOX will return
+	 failure; it is not relevant whether the user's real INBOX resides
+	 on this or some other server. */
+
       if (!*ref && (match ("INBOX", wcard, delim)
 		    || match ("inbox", wcard, delim)))
 	util_out (RESP_NONE, "LIST (\\NoInferiors) NIL INBOX");
