@@ -155,7 +155,7 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
       break;
 
     case ARG_DRAFT:
-      source_file = mh_expand_name (NULL, "draft", 0);
+      source_file = "draft";
       break;
 
     case ARG_LINK:
@@ -251,7 +251,7 @@ main (int argc, char **argv)
 	  mh_error (_("both message set and source file given"));
 	  exit (1);
 	}
-      msg = mh_file_to_message (NULL, source_file);
+      msg = mh_file_to_message (mu_path_folder_dir, source_file);
       refile (msg);
       if (!link_flag)
 	unlink (source_file);
