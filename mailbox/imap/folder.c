@@ -372,9 +372,9 @@ authenticate_imap_select (authority_t auth)
   folder_t folder = authority_get_owner (auth);
   f_imap_t f_imap = folder->data;
   struct auth_tab *p;
-  int status = MU_ERR_AUTH_FAILURE;
+  int status = ENOSYS;
   
-  for (p = auth_tab; status && p->name; p++)
+  for (p = auth_tab; status == ENOSYS && p->name; p++)
     {
       f_imap->state = IMAP_AUTH;
       status = p->method (auth);
@@ -2475,8 +2475,10 @@ imap_parse (f_imap_t f_imap)
 		  status = MU_ERR_AUTH_FAILURE;
 		}
 	      else
-		status = EINVAL;
-	      mu_error ("NO/Bad Tagged: %s %s\n", response, remainder);
+		{
+		  status = EINVAL;
+		  mu_error ("NO/Bad Tagged: %s %s\n", response, remainder);
+		}
 	    }
 	}
       f_imap->ptr = f_imap->buffer;
