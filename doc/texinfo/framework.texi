@@ -17,7 +17,8 @@
 * Address::                     Address.
 * Locker::                      Locker.
 * URL::                         Uniform Resource Locators.
-* Parse822::                    Parsing RFC 822 headers
+* Parse822::                    Parsing RFC 822 headers.
+* Mailcap::                     Parsing RFC 1524 file.
 @end menu
 
 Wherever the mail is and whatever format it is stored in, it is operated
@@ -188,3 +189,8 @@ Fran@,{c}ois Pinard <pinard@@bar.org> recode new alpha
 @node Parse822
 @section Parse822 --- Functions for Parsing RFC 822 Headers
 @include parse822.texi
+
+@node Mailcap
+@section Mailcap --- Functions for Parsing RFC 1524 Files
+@include mailcap.texi
+

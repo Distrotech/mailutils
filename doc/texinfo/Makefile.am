@@ -19,7 +19,7 @@
 
 info_TEXINFOS = mailutils.texi
 
-INCFILES=addr.inc http.inc numaddr.inc sfrom.inc url-parse.inc 
+INCFILES=addr.inc http.inc numaddr.inc sfrom.inc url-parse.inc mailcap.inc
 
 mailutils_TEXINFOS = \
  address.texi \
@@ -40,6 +40,7 @@ mailutils_TEXINFOS = \
  libsieve.texi \
  locker.texi \
  mailbox.texi \
+ mailcap.texi \
  mailer.texi \
  maildir.texi \
  mbox.texi \
