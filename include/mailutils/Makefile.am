@@ -60,4 +60,7 @@ pkginclude_HEADERS = \
  types.h \
  url.h 
 
+nobase_pkginclude_HEADERS = \
+  sys/nntp.h \
+  sys/pop3.h
 SUBDIRS = gnu sys
