@@ -29,6 +29,7 @@
 #endif
 
 #include <mailutils/mailbox.h>
+#include <mailutils/error.h>
 
 #ifndef _PATH_MAILDIR
 # define _PATH_MAILDIR "/usr/spool/mail"
@@ -69,7 +70,7 @@ mailbox_create_default (mailbox_t *pmbox, const char *mail)
 	  user = (getenv ("LOGNAME")) ? getenv ("LOGNAME") : getenv ("USER");
 	  if (user == NULL)
 	    {
-	      fprintf (stderr, "Who am I ?\n");
+	      mu_error ("Who am I ?\n");
 	      return EINVAL;
 	    }
 	}

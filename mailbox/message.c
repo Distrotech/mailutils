@@ -258,7 +258,7 @@ message_set_header (message_t msg, header_t hdr, void *owner)
     return EINVAL;
   if (msg->owner != owner)
      return EACCES;
-  /* Make sure we destoy the old if it was own by the mesg */
+  /* Make sure we destroy the old if it was own by the mesg */
   /* FIXME:  I do not know if somebody has already a ref on this ? */
   if (msg->header)
     header_destroy (&(msg->header), msg);

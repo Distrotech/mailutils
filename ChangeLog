@@ -1,5 +1,25 @@
 2001-04-23 Alain Magloire
 
+	Sergey Poznyakoff noted: When the user's mailbox ha zeor size mmap
+	fails on Solaris. On GNU/Linux it reuturn NULL buf subsequet munmap
+	fails.
+
+	* mailbox/mapfile_stream.c:  To take care of this will set
+	the mfs->ptr to NULL for len == 0;
+
+2001-04-23 Sergey Poznyakoff
+
+	Several sources from mailbox subdirectory call fprintf(stderr,...)
+	to issue error messages. As the stderr usually gets connected to
+	the output socket, the client program receives all these error
+	messages and gets confused, since they do not start with
+	rfc-compliant +OK, -ERR keywords. So I have added a module
+	error.c and changed all these fprintf's to error()'s. Actual
+	function that ouputs the messages can be supplied by the
+	application using error_set_print() call.
+
+2001-04-23 Alain Magloire
+
 	* pop3d/*.[ch]:  Rename all the pop function pop3d_xx()
 	instead of pop3_xx() to be consistent with imap4d/*.
 

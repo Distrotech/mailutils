@@ -36,6 +36,7 @@
 #endif
 
 #include <imap0.h>
+#include <mailutils/error.h>
 
 /* Variable use for the registrar.  */
 static struct _record _imap_record =
@@ -1505,7 +1506,7 @@ imap_fetch (f_imap_t f_imap)
 		{
 		  status = imap_rfc822_header (f_imap, &sp);
 		}
-	      /* else fprintf (stderr, "not supported RFC822 option\n");  */
+	      /* else mu_error ("not supported RFC822 option\n");  */
 	    }
 	  else
 	    {
@@ -1516,7 +1517,7 @@ imap_fetch (f_imap_t f_imap)
 	{
 	  status = imap_uid (f_imap, &sp);
 	}
-      /* else fprintf (stderr, "not supported FETCH command\n");  */
+      /* else mu_error ("not supported FETCH command\n");  */
     }
   return status;
 }
@@ -1734,7 +1735,7 @@ imap_parse (f_imap_t f_imap)
 	}
 #if 0
       /* Comment out to see all reading traffic.  */
-      fprintf (stderr, "\t\t%s", f_imap->buffer);
+      mu_error ("\t\t%s", f_imap->buffer);
 #endif
 
       /* We do not want to step over f_imap->buffer since it can be use
@@ -1775,7 +1776,7 @@ imap_parse (f_imap_t f_imap)
 		      /* The human-readable text contains a special alert that
 			 MUST be presented to the user in a fashion that calls
 			 the user's attention to the message.  */
-		      fprintf (stderr, "ALERT: %s\n", (sp) ? sp : "");
+		      mu_error ("ALERT: %s\n", (sp) ? sp : "");
 		    }
 		  else if (strcasecmp (subtag, "BADCHARSET") == 0)
 		    {
@@ -1882,18 +1883,18 @@ imap_parse (f_imap_t f_imap)
 		{
 		  /* Not sure why we would get an untagged ok...but we do... */
 		  /* Still should we be verbose about is ? */
-		  fprintf (stderr, "Untagged OK: %s\n", remainder);
+		  mu_error ("Untagged OK: %s\n", remainder);
 		}
 	    }
 	  else if (strcasecmp (response, "NO") == 0)
 	    {
 	      /* This does not mean failure but rather a strong warning.  */
-	      fprintf (stderr, "Untagged NO: %s\n", remainder);
+	      mu_error ("Untagged NO: %s\n", remainder);
 	    }
 	  else if (strcasecmp (response, "BAD") == 0)
 	    {
 	      /* We're dead, protocol/syntax error.  */
-	      fprintf (stderr, "Untagged BAD: %s\n", remainder);
+	      mu_error ("Untagged BAD: %s\n", remainder);
 	    }
 	  else if (strcasecmp (response, "PREAUTH") == 0)
 	    {
@@ -1953,8 +1954,8 @@ imap_parse (f_imap_t f_imap)
 	  else
 	    {
 	      /* Once again, check for something strange.  */
-	      fprintf (stderr, "unknown untagged response: \"%s\"  %s\n",
-		       response, remainder);
+	      mu_error ("unknown untagged response: \"%s\"  %s\n",
+			response, remainder);
 	    }
 	}
       /* Continuation token ???.  */
@@ -1977,7 +1978,7 @@ imap_parse (f_imap_t f_imap)
 		  folder_get_observable (f_imap->folder, &observable);
 		  observable_notify (observable, MU_EVT_AUTHORITY_FAILED);
 		}
-	      fprintf (stderr, "NO/Bad Tagged: %s %s\n", response, remainder);
+	      mu_error ("NO/Bad Tagged: %s %s\n", response, remainder);
 	      status = EINVAL;
 	    }
 	}

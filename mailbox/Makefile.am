@@ -45,6 +45,7 @@ memory_stream.c \
 mime.c \
 misc.c \
 monitor.c \
+muerror.c \
 observer.c \
 parse822.c \
 property.c \

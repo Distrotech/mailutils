@@ -29,6 +29,7 @@
 #include <time.h>
 
 #include <mailutils/address.h>
+#include <mailutils/error.h>
 #include <mailbox0.h>
 #include <registrar0.h>
 #include <imap0.h>
@@ -636,7 +637,7 @@ imap_expunge (mailbox_t mailbox)
 	      f_imap->state = IMAP_NO_STATE;
 
 	    default:
-	      /* fprintf (stderr, "imap_expunge: unknow state\n"); */
+	      /* mu_error ("imap_expunge: unknow state\n"); */
 	      break;
 	    } /* switch (state) */
         } /* message_get_attribute() */
@@ -742,7 +743,7 @@ static int
 imap_append_message (mailbox_t mailbox, message_t msg)
 {
   size_t total;
-  int status;
+  int status = 0;
   m_imap_t m_imap = mailbox->data;
   f_imap_t f_imap = m_imap->f_imap;
 
@@ -859,7 +860,7 @@ imap_append_message (mailbox_t mailbox, message_t msg)
       MAILBOX_DEBUG0 (m_imap->mailbox, MU_DEBUG_PROT, f_imap->buffer);
 
     default:
-      /* fprintf (stderr, "imap_expunge: unknow state\n"); */
+      /* mu_error ("imap_expunge: unknow state\n"); */
       break;
     }
   f_imap->state = IMAP_NO_STATE;

@@ -53,7 +53,8 @@ _mapfile_destroy (stream_t stream)
 
   if (mfs->ptr != MAP_FAILED)
     {
-      munmap (mfs->ptr, mfs->size);
+      if (mfs->ptr)
+	munmap (mfs->ptr, mfs->size);
       close (mfs->fd);
     }
   free (mfs);
@@ -122,7 +123,7 @@ _mapfile_write (stream_t stream, const char *iptr, size_t isize,
   /* Bigger we have to remmap.  */
   if (mfs->size < (offset + isize))
     {
-      if (munmap (mfs->ptr, mfs->size) != 0)
+      if (mfs->ptr && munmap (mfs->ptr, mfs->size) != 0)
 	{
 	  int err = errno;
 	  mfs->ptr = MAP_FAILED;
@@ -154,7 +155,7 @@ _mapfile_truncate (stream_t stream, off_t len)
   if (mfs->ptr == MAP_FAILED)
     return EINVAL;
   /* Remap.  */
-  if (munmap (mfs->ptr, mfs->size) != 0)
+  if (mfs->ptr && munmap (mfs->ptr, mfs->size) != 0)
     {
       int err = errno;
       mfs->ptr = MAP_FAILED;
@@ -163,13 +164,13 @@ _mapfile_truncate (stream_t stream, off_t len)
     }
   if (ftruncate (mfs->fd, len) != 0)
     return errno;
-  mfs->ptr = mmap (0, len, mfs->flags, MAP_SHARED, mfs->fd, 0);
-  if (mfs->ptr == MAP_FAILED)
-    {
-      int err = errno;
-      close (mfs->fd);
-      return err;
-    }
+   mfs->ptr = (len) ? mmap (0, len, mfs->flags, MAP_SHARED, mfs->fd, 0) : NULL;
+   if (mfs->ptr == MAP_FAILED)
+     {
+       int err = errno;
+       close (mfs->fd);
+       return err;
+     }
   mfs->size = len;
   return 0;
 }
@@ -183,17 +184,26 @@ _mapfile_size (stream_t stream, off_t *psize)
 
   if (mfs->ptr == MAP_FAILED)
     return EINVAL;
-  msync (mfs->ptr, mfs->size, MS_SYNC);
+  if (mfs->ptr)
+    msync (mfs->ptr, mfs->size, MS_SYNC);
   if (fstat(mfs->fd, &stbuf) != 0)
     return errno;
   if (mfs->size != (size_t)stbuf.st_size)
     {
-      if (munmap (mfs->ptr, mfs->size) == 0)
+      if (mfs->ptr)
+	err = munmap (mfs->ptr, mfs->size);
+      if (err == 0)
 	{
 	  mfs->size = stbuf.st_size;
-	  mfs->ptr = mmap (0, mfs->size, mfs->flags , MAP_SHARED, mfs->fd, 0);
-	  if (mfs->ptr == MAP_FAILED)
-	    err = errno;
+	  if (mfs->size)
+	    {
+	      mfs->ptr = mmap (0, mfs->size, mfs->flags , MAP_SHARED,
+			       mfs->fd, 0);
+	      if (mfs->ptr == MAP_FAILED)
+		err = errno;
+	    }
+	  else
+	    mfs->ptr = NULL;
 	}
       else
 	err = errno;
@@ -216,7 +226,9 @@ static int
 _mapfile_flush (stream_t stream)
 {
   struct _mapfile_stream *mfs = stream_get_owner (stream);
-  return msync (mfs->ptr, mfs->size, MS_SYNC);
+  if (mfs->ptr != MAP_FAILED && mfs->ptr != NULL)
+    return msync (mfs->ptr, mfs->size, MS_SYNC);
+  return 0;
 }
 
 static int
@@ -235,7 +247,7 @@ _mapfile_close (stream_t stream)
   int err = 0;
   if (mfs->ptr != MAP_FAILED)
     {
-      if (munmap (mfs->ptr, mfs->size) != 0)
+      if (mfs->ptr && munmap (mfs->ptr, mfs->size) != 0)
 	err = errno;
       if (close (mfs->fd) != 0)
 	err = errno;
@@ -257,7 +269,8 @@ _mapfile_open (stream_t stream, const char *filename, int port, int flags)
   /* Close any previous file.  */
   if (mfs->ptr != MAP_FAILED)
     {
-      munmap (mfs->ptr, mfs->size);
+      if (mfs->ptr)
+	munmap (mfs->ptr, mfs->size);
       mfs->ptr = MAP_FAILED;
     }
   if (mfs->fd != -1)
@@ -277,7 +290,7 @@ _mapfile_open (stream_t stream, const char *filename, int port, int flags)
       flg = O_RDWR;
     }
   else if (flags & MU_STREAM_CREAT)
-    return ENOTSUP;
+    return ENOSYS;
   else /* default */
     {
       mflag = PROT_READ;
@@ -294,14 +307,19 @@ _mapfile_open (stream_t stream, const char *filename, int port, int flags)
       return err;
     }
   mfs->size = st.st_size;
-  mfs->ptr = mmap (0, mfs->size, mflag , MAP_SHARED, mfs->fd, 0);
-  if (mfs->ptr == MAP_FAILED)
+  if (mfs->size)
     {
-      int err = errno;
-      close (mfs->fd);
-      mfs->ptr = MAP_FAILED;
-      return err;
+      mfs->ptr = mmap (0, mfs->size, mflag , MAP_SHARED, mfs->fd, 0);
+      if (mfs->ptr == MAP_FAILED)
+	{
+	  int err = errno;
+	  close (mfs->fd);
+	  mfs->ptr = MAP_FAILED;
+	  return err;
+	}
     }
+  else
+    mfs->ptr = NULL;
   mfs->flags = mflag;
   stream_set_flags (stream, flags |MU_STREAM_NO_CHECK);
   return 0;
@@ -313,7 +331,7 @@ int
 mapfile_stream_create (stream_t *stream)
 {
 #ifndef _POSIX_MAPPED_FILES
-  return ENOTSUP;
+  return ENOSYS;
 #else
   struct _mapfile_stream *fs;
   int ret;

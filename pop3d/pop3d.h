@@ -104,6 +104,7 @@
 #include <mailutils/header.h>
 #include <mailutils/body.h>
 #include <mailutils/registrar.h>
+#include <mailutils/error.h>
 
 /* For Berkley DB2 APOP password file */
 #ifdef HAVE_DB_H

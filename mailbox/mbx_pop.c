@@ -45,6 +45,7 @@
 #include <mailutils/attribute.h>
 #include <mailutils/url.h>
 #include <mailutils/auth.h>
+#include <mailutils/error.h>
 #include <mailbox0.h>
 #include <registrar0.h>
 
@@ -592,7 +593,7 @@ pop_open (mailbox_t mbox, int flags)
 
     default:
       /*
-	fprintf (stderr, "pop_open unknown state\n");
+	mu_error ("pop_open unknown state\n");
       */
       break;
     }/* End AUTHORISATION state. */
@@ -648,13 +649,13 @@ pop_close (mailbox_t mbox)
 	  lets just be verbose about the error but close the connection
 	  anyway.  */
       if (strncasecmp (mpd->buffer, "+OK", 3) != 0)
-	fprintf (stderr, "pop_close: %s\n", mpd->buffer);
+	mu_error ("pop_close: %s\n", mpd->buffer);
       stream_close (mbox->stream);
       break;
 
     default:
       /*
-	fprintf (stderr, "pop_close unknow state");
+	mu_error ("pop_close unknow state");
       */
       break;
     } /* UPDATE state.  */
@@ -895,7 +896,7 @@ pop_messages_count (mailbox_t mbox, size_t *pcount)
 
     default:
       /*
-	fprintf (stderr, "pop_messages_count: unknow state\n");
+	mu_error ("pop_messages_count: unknow state\n");
       */
       break;
     }
@@ -1010,7 +1011,7 @@ pop_expunge (mailbox_t mbox)
 		  break;
 
 		default:
-		  /* fprintf (stderr, "pop_expunge: unknow state\n"); */
+		  /* mu_error ("pop_expunge: unknow state\n"); */
 		  break;
 		} /* switch (state) */
 	    } /* if attribute_is_deleted() */
@@ -1100,7 +1101,7 @@ pop_message_size (message_t msg, size_t *psize)
 
     default:
       /*
-	fprintf (stderr, "pop_message_size state\n");
+	mu_error ("pop_message_size state\n");
       */
       break;
     }
@@ -1291,7 +1292,7 @@ pop_uidl (message_t msg, char *buffer, size_t buflen, size_t *pnwriten)
 
     default:
       /*
-	fprintf (stderr, "pop_uidl state\n");
+	mu_error ("pop_uidl state\n");
       */
       break;
     }
@@ -1385,7 +1386,7 @@ pop_top (header_t header, char *buffer, size_t buflen,
       MAILBOX_DEBUG0 (mpd->mbox, MU_DEBUG_PROT, mpd->buffer);
       if (strncasecmp (mpd->buffer, "+OK", 3) != 0)
 	{
-	  /* fprintf (stderr, "TOP not implemented\n"); */
+	  /* mu_error ("TOP not implemented\n"); */
 	  /* Fall back to RETR call.  */
 	  mpd->state = POP_NO_STATE;
 	  mpm->skip_header = 0;
@@ -1744,7 +1745,7 @@ pop_retr (pop_message_t mpm, char *buffer, size_t buflen, off_t offset,
       /* A convenient break, this is here we can return 0, we're done.  */
 
     default:
-      /* fprintf (stderr, "pop_retr unknow state\n"); */
+      /* mu_error ("pop_retr unknow state\n"); */
       break;
     } /* Switch state.  */
 

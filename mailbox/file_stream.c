@@ -30,6 +30,7 @@
 #include <unistd.h>
 
 #include <mailutils/stream.h>
+#include <mailutils/error.h>
 
 struct _file_stream
 {
@@ -266,7 +267,7 @@ _file_open (stream_t stream, const char *filename, int port, int flags)
 	  || filebuf.st_nlink != 1
 	  || (fdbuf.st_mode & S_IFMT) != S_IFREG)
 	{
-	  fprintf(stderr,"%s must be a plain file with one link\n", filename);
+	  mu_error ("%s must be a plain file with one link\n", filename);
 	  close (fd);
 	  return EINVAL;
 	}

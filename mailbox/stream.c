@@ -167,8 +167,8 @@ stream_read (stream_t is, char *buf, size_t count,
       int r;
 
       /* Fill the buffer, do not want to start empty hand.  */
-      //      if (is->rbuffer.count <= 0 || offset < is->rbuffer.offset
-      //  || offset > (is->rbuffer.offset + is->rbuffer.count))
+      /*      if (is->rbuffer.count <= 0 || offset < is->rbuffer.offset */
+      /*  || offset > (is->rbuffer.offset + is->rbuffer.count)) */
       if (is->rbuffer.count <= 0 || offset != is->rbuffer.offset)
 	{
 	  status = refill (is, offset);
@@ -286,8 +286,8 @@ stream_readline (stream_t is, char *buf, size_t count,
       count--;  /* Leave space for the null.  */
 
       /* If out of range refill.  */
-      //      if ((offset < is->rbuffer.offset
-      //	   || offset > (is->rbuffer.offset + is->rbuffer.count)))
+      /*      if ((offset < is->rbuffer.offset */
+      /*	   || offset > (is->rbuffer.offset + is->rbuffer.count))) */
       if (offset != is->rbuffer.offset)
 	{
 	  status = refill (is, offset);
@@ -335,7 +335,6 @@ stream_readline (stream_t is, char *buf, size_t count,
 	      (void)memcpy ((void *)s, (void *)p, len);
 	      total += len;
 	      s[len] = 0;
-	      //fprintf (stderr, ":%d %d:%s", len, total, s);
 	      if (pnread)
 		*pnread = total;
 	      return 0;
@@ -344,13 +343,11 @@ stream_readline (stream_t is, char *buf, size_t count,
 	  is->rbuffer.ptr += len;
 	  is->rbuffer.offset += len;
 	  (void)memcpy((void *)s, (void *)p, len);
-	  //fprintf (stderr, "!:%d %d\n", len, total);
 	  total += len;
 	  s += len;
 	  count -= len;
         }
       *s = 0;
-      //fprintf (stderr, "1:%s", s);
       if (pnread)
 	*pnread = s - buf;
     }
@@ -627,10 +624,7 @@ refill (stream_t stream, off_t offset)
       status = stream->_read (stream, stream->rbuffer.ptr,
 			      stream->rbuffer.bufsiz, offset,
 			      (size_t *)&(stream->rbuffer.count));
-      //fprintf (stderr, "COUNT%d\n", stream->rbuffer.count);
-      //stream->rbuffer.ptr[stream->rbuffer.count] = 0;
-      //fprintf (stderr, "%s\n", stream->rbuffer.ptr);
       return status;
     }
-  return ENOTSUP;
+  return ENOSYS;
 }

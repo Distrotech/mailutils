@@ -49,6 +49,8 @@ static struct option long_options[] =
 
 const char *short_options ="d::hip:t:v";
 
+static int syslog_error_printer __P ((const char *fmt, va_list ap));
+
 int
 main (int argc, char **argv)
 {
@@ -143,7 +145,8 @@ main (int argc, char **argv)
   chdir ("/");
 
   /* Set up for syslog.  */
-  openlog ("gnu-pop3d", LOG_PID, LOG_MAIL);
+  openlog ("gnu-pop3d", LOG_PID, LOG_FACILITY);
+  mu_error_set_print(syslog_error_printer);
 
   umask (S_IROTH | S_IWOTH | S_IXOTH);	/* 007 */
 
@@ -421,4 +424,11 @@ pop3d_daemon (unsigned int maxchildren)
         }
       close (connfd);
     }
+}
+
+static int
+syslog_error_printer (const char *fmt, va_list ap)
+{
+  vsyslog (LOG_CRIT, fmt, ap);
+  return 0;
 }
