@@ -1,3 +1,13 @@
+2002-01-30  Sergey Poznyakoff  <gray@Mirddin.farlep.net>
+
+	* mail.local/main.c (main): Return EX_USAGE on command line
+  	  usage errors.
+	  (deliver): Return EX_TEMPFAIL if mailbox cannot be locked.
+	* mailbox/url_mbox.c (_url_path_index): Use character translation
+	  table to allow for '.', etc. in the usernames.
+	  Fixed memory overrun.
+	  (_url_path_rev_index): Use character translation table.
+	
 2002-01-26 Sam Roberts
 
 	* mailbox/folder_imap.c:
