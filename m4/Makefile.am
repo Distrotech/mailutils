@@ -18,6 +18,7 @@
 ##   59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 EXTRA_DIST = \
+ db2.m4 \
  debug.m4 \
  enable.m4 \
  gssapi.m4 \
