@@ -277,7 +277,7 @@ util_msgset (char *s, size_t **set, int *n, int isuid)
 	  tmp -= 2;
 	  if (tmp < 0 || val == 0)
 	    {
-	      free (set);
+	      free (*set);
 	      *n = 0;
 	      return EINVAL;
 	    }
