@@ -1,0 +1,112 @@
+# -*- tcl -*-
+# This file is part of Mailutils testsuite.
+# Copyright (C) 2003, Free Software Foundation
+#  
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#   
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#  
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software Foundation,
+# Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. 
+
+set current_text [list "NULL" "NULL" "NULL" "NULL"]
+set current_iter 0
+
+proc make_promt {} {
+    global current_iter
+    global current_text
+    global mailbox_prog_prompt
+    
+    set mailbox_prog_prompt "${current_iter}:\\([lindex $current_text $current_iter]\\)> "
+}
+
+proc prompt_text {text} {
+    global current_iter
+    global current_text
+
+    set current_text [lreplace $current_text $current_iter $current_iter $text]
+    make_promt 
+}
+	
+proc prompt_iterator {iter} {
+    global current_iter
+
+    set current_iter $iter
+    make_promt
+}
+
+prompt_iterator 0
+prompt_text "NULL"
+
+mailbox_prog_start "${top_builddir}/examples/listop"
+
+mailbox_prog_command "add en to tre fire fem"
+mailbox_prog_test "print" \
+	"en" \
+	"to" \
+	"tre" \
+	"fire" \
+	"fem"
+
+prompt_text "en"
+mailbox_prog_test "next"
+
+prompt_text "tre"
+mailbox_prog_test "next 2"
+
+prompt_iterator 1
+mailbox_prog_test "iter 1"
+
+prompt_text "to"
+mailbox_prog_test "find to"
+
+mailbox_prog_test "del tre fire"
+
+prompt_text "fem"
+mailbox_prog_test "next"
+
+prompt_iterator 0
+prompt_text "fem"
+mailbox_prog_test "iter 0"
+mailbox_prog_test "print" \
+	"en" \
+	"to" \
+	"fem"
+
+mailbox_prog_command "prep jeden dwa trzy cztery"
+
+mailbox_prog_test "print" \
+	"cztery" \
+	"trzy" \
+	"dwa" \
+	"jeden" \
+	"en" \
+	"to" \
+	"fem"
+
+prompt_text "cztery"
+mailbox_prog_test "first"
+
+prompt_text "trzy"
+mailbox_prog_test "del cztery"
+
+prompt_text "3"
+mailbox_prog_test "repl trzy 3"
+
+prompt_iterator 1
+mailbox_prog_test "iter 1"
+
+prompt_text "3"
+mailbox_prog_test "next 2"
+
+mailbox_prog_send "quit"
+mailbox_prog_stop
+
+# End of list.exp
