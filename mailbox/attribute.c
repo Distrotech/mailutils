@@ -73,7 +73,7 @@ attribute_is_modified (attribute_t attr)
 int
 attribute_clear_modified (attribute_t attr)
 {
-  if (!attr)
+  if (attr)
     attr->flags &= ~MU_ATTRIBUTE_MODIFIED;
   return 0;
 }
@@ -81,7 +81,7 @@ attribute_clear_modified (attribute_t attr)
 int
 attribute_set_modified (attribute_t attr)
 {
-  if (!attr)
+  if (attr)
     attr->flags |= MU_ATTRIBUTE_MODIFIED;
   return 0;
 }
