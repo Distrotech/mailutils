@@ -34,8 +34,7 @@ mail_copy0 (int argc, char **argv, int mark)
   message_t msg;
   mailbox_t mbx;
   char *filename = NULL;
-  int *msglist = NULL;
-  int num = 0, i = 0;
+  msgset_t *msglist = NULL, *mp;
   int sender = 0;
   size_t total_size = 0, total_lines = 0, size;
   
@@ -46,13 +45,19 @@ mail_copy0 (int argc, char **argv, int mark)
   else
     filename = strdup("mbox");
 
-  num = util_expand_msglist (argc, argv, &msglist);
+  if (msgset_parse (argc, argv, &msglist))
+    {
+      if (filename)
+          free (filename);
+      return 1;
+    }
+
   if (sender)
     {
-      filename = util_get_sender(msglist[0], 1);
+      filename = util_get_sender(msglist->msg_part[0], 1);
       if (!filename)
 	{
-	  free (msglist);
+	  msgset_free (msglist);
 	  return 1;
 	}
     }
@@ -62,13 +67,13 @@ mail_copy0 (int argc, char **argv, int mark)
     {
       util_error ("can't create mailbox %s", filename);
       free (filename);
-      free (msglist);
+      msgset_free (msglist);
       return 1;
     }
 
-  for (i = 0; i < num; i++)
+  for (mp = msglist; mp; mp = mp->next)
     {
-      mailbox_get_message (mbox, msglist[i], &msg);
+      mailbox_get_message (mbox, mp->msg_part[0], &msg);
       mailbox_append_message (mbx, msg);
 
       message_size (msg, &size);
@@ -90,7 +95,7 @@ mail_copy0 (int argc, char **argv, int mark)
   mailbox_destroy (&mbx);
 
   free (filename);
-  free (msglist);
+  msgset_free (msglist);
   return 0;
 }
 

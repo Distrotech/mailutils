@@ -29,11 +29,10 @@ mail_pipe (int argc, char **argv)
   stream_t stream;
   char *cmd;
   FILE *pipe;
-  int *list, num = 0;
+  msgset_t *list, *mp;
   char buffer[512];
   off_t off = 0;
   size_t n = 0;
-  int i;
 
   if (argc > 1)
     cmd = argv[--argc];
@@ -42,12 +41,14 @@ mail_pipe (int argc, char **argv)
   else
     return 1;
 
-  pipe = popen (cmd, "w");
-  num = util_expand_msglist (argc, argv, &list); 
+  if (msgset_parse (argc, argv, &list))
+      return 1;
 
-  for (i = 0; i < num; i++)
+  pipe = popen (cmd, "w");
+
+  for (mp = list; mp; mp = mp->next)
     {
-      if (mailbox_get_message (mbox, list[i], &msg) == 0)
+      if (mailbox_get_message (mbox, mp->msg_part[0], &msg) == 0)
 	{
 	  message_get_stream (msg, &stream);
 	  off = 0;
@@ -58,12 +59,12 @@ mail_pipe (int argc, char **argv)
 	      fprintf (pipe, "%s", buffer);
 	      off += n;
 	    }
-	  if ((util_find_env("page"))->set && i < num - 1)
+	  if ((util_find_env("page"))->set && mp->next)
 	    fprintf (pipe, "\f\n");
 	}
     }
 
-  free (list);
+  msgset_free (list);
   pclose (pipe);
   return 0;
 }

@@ -29,9 +29,17 @@
 int
 mail_headers (int argc, char **argv)
 {
-  int low = 1, high = total, *list = NULL;
+  int low = 1, high = total;
+  msgset_t *list = NULL, *mp;
   int lines = util_screen_lines ();
-  int num = util_expand_msglist (argc, argv, &list);
+  int num;
+
+  if (msgset_parse (argc, argv, &list))
+     return 1;
+
+  num = 0;
+  for (mp = list; mp; mp = mp->next)
+     num++;
 
   lines = (lines / num) - 2;
   if (lines < 0)
@@ -39,7 +47,7 @@ mail_headers (int argc, char **argv)
 
   if (lines < total)
     {
-      low = list[0] - (lines / 2);
+      low = list->msg_part[0] - (lines / 2);
       if (low < 1)
 	low = 1;
       high = low + lines;
@@ -52,6 +60,6 @@ mail_headers (int argc, char **argv)
 
   util_do_command ("from %d-%d", low, high);
 
-  free (list);
+  msgset_free (list);
   return 0;
 }

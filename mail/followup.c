@@ -28,18 +28,20 @@ mail_followup (int argc, char **argv)
   message_t msg;
   header_t hdr;
   char *str;
-  int i, num, *msglist;
+  int i;
+  msgset_t *msglist, *mp;
   struct send_environ env;
   int status;
 
   env.to = env.cc = env.bcc = env.subj = NULL;
   env.outfiles = NULL; env.nfiles = 0;
-  num = util_expand_msglist (argc, argv, &msglist);
+  if (msgset_parse (argc, argv, &msglist))
+      return 1;
 
   if (mailbox_get_message(mbox, cursor, &msg))
     {
       util_error("%d: can't get message", cursor);
-      free(msglist);
+      msgset_free (msglist);
       return 1;
     }
 
@@ -55,13 +57,13 @@ mail_followup (int argc, char **argv)
 
   /* Add authors of the subsequent messages to the to list
      (or should it be cc?)*/
-  for (i = 1; i < num; i++)
+  for (mp = msglist; mp; mp = mp->next)
     {
       util_strcat(&env.to, ",");
-      util_strcat(&env.to, util_get_sender(msglist[i], 0));
+      util_strcat(&env.to, util_get_sender(mp->msg_part[0], 0));
     }
 
-  free(msglist);
+  msgset_free(msglist);
 
   fprintf(ofile, "To: %s\n", env.to);
   fprintf(ofile, "Subject: %s\n\n", env.subj);

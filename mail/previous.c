@@ -33,11 +33,12 @@ mail_previous (int argc, char **argv)
     }
   else
     {
-      int *list = NULL;
-      util_expand_msglist (argc, argv, &list);
-      cursor = list[0];
+      msgset_t *list = NULL;
+      if (msgset_parse (argc, argv, &list))
+          return 1;
+      cursor = list->msg_part[0];
       realcursor = cursor;
-      free (list);
+      msgset_free (list);
       return 0;
     }
   return 1;
