@@ -24,7 +24,7 @@ size_t current_message = 0;
 mh_context_t *context;
 mh_context_t *profile;
 mh_context_t *sequences;
-int rcpt_mask = RCPT_ALL;
+int rcpt_mask = RCPT_DEFAULT;
 
 /* Global profile */
 
