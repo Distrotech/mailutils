@@ -34,7 +34,7 @@ PAM_gnupop3d_conv (int num_msg, const struct pam_message **msg, struct pam_respo
   int replies = 0;
   struct pam_response *reply = NULL;
 
-  reply = (struct pam_response *) malloc (sizeof (struct pam_response) * num_msg);
+  reply = malloc (sizeof (*reply) * num_msg);
   if (!reply)
     return PAM_CONV_ERR;
 
@@ -47,16 +47,19 @@ PAM_gnupop3d_conv (int num_msg, const struct pam_message **msg, struct pam_respo
 	  reply[replies].resp = COPY_STRING (_user);
 	  /* PAM frees resp */
 	  break;
+
 	case PAM_PROMPT_ECHO_OFF:
 	  reply[replies].resp_retcode = PAM_SUCCESS;
 	  reply[replies].resp = COPY_STRING (_pwd);
 	  /* PAM frees resp */
 	  break;
+
 	case PAM_TEXT_INFO:
 	case PAM_ERROR_MSG:
 	  reply[replies].resp_retcode = PAM_SUCCESS;
 	  reply[replies].resp = NULL;
 	  break;
+
 	default:
 	  free (reply);
 	  _perr = 1;
@@ -67,8 +70,7 @@ PAM_gnupop3d_conv (int num_msg, const struct pam_message **msg, struct pam_respo
   return PAM_SUCCESS;
 }
 
-static struct pam_conv PAM_conversation =
-{&PAM_gnupop3d_conv, NULL};
+static struct pam_conv PAM_conversation = { &PAM_gnupop3d_conv, NULL };
 #endif /* USE_LIBPAM */
 
 /* Basic user authentication. This also takes the PASS command and verifies
