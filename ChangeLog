@@ -3,7 +3,10 @@
 	* doc/texinfo/muint.texi: Include version.texi
 	* NEWS: Updated
 	* configure.ac: Raised version number to 0.5
-
+        * mailbox/memory_stream.c (_memory_write): Minor fix
+        * mailbox/filter_iconv.c (internal_icvt_read)
+	(copy_octal): Fixed memory allocation errors.
+			
 2004-06-23  Sergey Poznyakoff
 
 	* guimb/collect.c (guimb_catch_body): Use scm_c_eval_string
