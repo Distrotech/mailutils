@@ -25,6 +25,7 @@
 #include <string.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <fcntl.h>
 
 #include <mailutils/stream.h>
 #include <body0.h>
@@ -224,7 +225,7 @@ lazy_create (body_t body)
   fd = mkstemp (body->filename);
 #else
   if (mktemp (body->filename))
-    fd = open (*pbox, O_RDWR|O_CREAT|O_EXCL, 0600);
+    fd = open (body->filename, O_RDWR|O_CREAT|O_EXCL, 0600);
   else
     fd = -1;
 #endif
