@@ -128,13 +128,14 @@ struct imap4d_command
 #define RESP_NONE	4
 
 /* Error values.  */
-#define OK 0
-#define ERR_NO_MEM 1
-#define ERR_NO_OFILE 2
-#define ERR_TIMEOUT 3
-#define ERR_SIGNAL 4
-#define ERR_TLS 5
-
+#define OK                    0
+#define ERR_NO_MEM            1
+#define ERR_NO_OFILE          2
+#define ERR_TIMEOUT           3
+#define ERR_SIGNAL            4
+#define ERR_TLS               5
+#define ERR_MAILBOX_CORRUPTED 6
+  
 /* Namespace numbers */
 #define NS_PRIVATE 0
 #define NS_OTHER   1
@@ -216,7 +217,8 @@ extern void fetch_flags0 (const char *prefix, message_t msg, int isuid);
 extern int imap4d_sync __P ((void));
 extern int imap4d_sync_flags __P ((size_t));
 extern size_t uid_to_msgno __P ((size_t));
-
+extern void imap4d_set_observer (mailbox_t mbox);
+  
 /* Signal handling.  */
 extern RETSIGTYPE imap4d_sigchld __P ((int));
 extern RETSIGTYPE imap4d_signal __P ((int));
