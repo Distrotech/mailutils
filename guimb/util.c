@@ -1,18 +1,18 @@
-/* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+/* GNU Mailutils -- a suite of utilities for electronic mail
+   Copyright (C) 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
 
-   This program is free software; you can redistribute it and/or modify
+   GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
    the Free Software Foundation; either version 2, or (at your option)
    any later version.
 
-   This program is distributed in the hope that it will be useful,
+   GNU Mailutils is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
+   along with GNU Mailutils; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #include "guimb.h"
@@ -47,14 +47,14 @@ util_get_sender (int msgno)
       if (envelope_sender (env, buffer, sizeof (buffer), NULL)
 	  || address_create (&addr, buffer))
 	{
-	  util_error ("can't determine sender name (msg %d)", msgno);
+	  util_error (_("can't determine sender name (msg %d)"), msgno);
 	  return NULL;
 	}
     }
 
   if (address_get_email (addr, 1, buffer, sizeof (buffer), NULL))
     {
-      util_error ("can't determine sender name (msg %d)", msgno);
+      util_error (_("can't determine sender name (msg %d)"), msgno);
       address_destroy (&addr);
       return NULL;
     }
@@ -62,3 +62,4 @@ util_get_sender (int msgno)
   address_destroy (&addr);
   return strdup (buffer);
 }
+

@@ -1,18 +1,18 @@
-/* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999, 2001 Free Software Foundation, Inc.
+/* GNU Mailutils -- a suite of utilities for electronic mail
+   Copyright (C) 1999, 2001, 2002 Free Software Foundation, Inc.
 
-   This program is free software; you can redistribute it and/or modify
+   GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
    the Free Software Foundation; either version 2, or (at your option)
    any later version.
 
-   This program is distributed in the hope that it will be useful,
+   GNU Mailutils is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
+   along with GNU Mailutils; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 /* GSSAPI authentication for imap (rfc 1731). 
@@ -49,7 +49,7 @@ display_status_1 (char *m, OM_uint32 code, int type)
 				     type, GSS_C_NULL_OID,
 				     &msg_ctx, &msg);
       syslog (LOG_ERR,
-	      "GSS-API error %s: %s\n", m,
+	      _("GSS-API error %s: %s\n"), m,
 	      (char *)msg.value);
       gss_release_buffer (&min_stat, &msg);
     }
@@ -220,7 +220,7 @@ auth_gssapi (struct imap4d_command *command, char **username)
   if ((mech & SUPPORTED_P_MECH) == 0)
     {
       syslog (LOG_NOTICE,
-	      "client requested unsupported protection mechanism (%d)",
+	      _("client requested unsupported protection mechanism (%d)"),
 	      mech);
       gss_release_buffer (&min_stat, &outbuf);
       maj_stat = gss_delete_sec_context (&min_stat, &context, &outbuf);
@@ -250,7 +250,7 @@ auth_gssapi (struct imap4d_command *command, char **username)
 
   if (imap4d_gss_userok (&client_name, *username))
     {
-      syslog (LOG_NOTICE, "GSSAPI user %s is NOT authorized as %s",
+      syslog (LOG_NOTICE, _("GSSAPI user %s is NOT authorized as %s"),
 	      (char *) client_name.value, *username);
       util_finish (command, RESP_NO,
 		   "GSSAPI user %s is NOT authorized as %s",
@@ -263,7 +263,7 @@ auth_gssapi (struct imap4d_command *command, char **username)
     }
   else
     {
-      syslog (LOG_NOTICE, "GSSAPI user %s is authorized as %s",
+      syslog (LOG_NOTICE, _("GSSAPI user %s is authorized as %s"),
 	      (char *) client_name.value, *username);
     }
 

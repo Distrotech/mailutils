@@ -1,18 +1,18 @@
-/* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+/* GNU Mailutils -- a suite of utilities for electronic mail
+   Copyright (C) 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
 
-   This program is free software; you can redistribute it and/or modify
+   GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Library Public License as published by
    the Free Software Foundation; either version 2, or (at your option)
    any later version.
 
-   This program is distributed in the hope that it will be useful,
+   GNU Mailutils is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU Library General Public License for more details.
 
    You should have received a copy of the GNU Library General Public License
-   along with this program; if not, write to the Free Software
+   along with GNU Mailutils; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #ifdef HAVE_CONFIG_H
@@ -41,51 +41,52 @@
 #include <mailutils/mutil.h>
 #include <mailutils/registrar.h>
 #include <mailutils/stream.h>
+#include <mailutils/nls.h>
 
 void mutil_register_all_mbox_formats (void);
 
 const char *argp_program_version = "sieve (" PACKAGE_STRING ")";
 
 static char doc[] =
-"GNU sieve -- a mail filtering tool\n"
+N_("GNU sieve -- a mail filtering tool\n"
 "\v"
 "Debug flags:\n"
 "  g - main parser traces\n"
 "  T - mailutil traces (MU_DEBUG_TRACE)\n"
 "  P - network protocols (MU_DEBUG_PROT)\n"
 "  t - sieve trace (MU_SIEVE_DEBUG_TRACE)\n"
-"  i - sieve instructions trace (MU_SIEVE_DEBUG_INSTR)\n";
+"  i - sieve instructions trace (MU_SIEVE_DEBUG_INSTR)\n");
 
 #define D_DEFAULT "TPt"
 
 static struct argp_option options[] =
 {
   {"no-actions", 'n', 0, 0,
-   "No actions executed, just print what would be done", 0},
+   N_("No actions executed, just print what would be done"), 0},
 
   {"keep-going", 'k', 0, 0,
-   "Keep on going if execution fails on a message", 0},
+   N_("Keep on going if execution fails on a message"), 0},
 
   {"compile-only", 'c', 0, 0,
-   "Compile script and exit", 0},
+   N_("Compile script and exit"), 0},
 
   {"dump", 'D', 0, 0,
-   "Compile script, dump disassembled sieve code to terminal and exit", 0 },
+   N_("Compile script, dump disassembled sieve code to terminal and exit"), 0 },
   
   {"mbox-url", 'f', "MBOX", 0,
-   "Mailbox to sieve (defaults to user's mail spool)", 0},
+   N_("Mailbox to sieve (defaults to user's mail spool)"), 0},
 
   {"ticket", 't', "TICKET", 0,
-   "Ticket file for mailbox authentication", 0},
+   N_("Ticket file for mailbox authentication"), 0},
 
   {"debug", 'd', "FLAGS", OPTION_ARG_OPTIONAL,
-   "Debug flags (defaults to \"" D_DEFAULT "\")", 0},
+   N_("Debug flags (defaults to \"" D_DEFAULT "\")"), 0},
 
   {"verbose", 'v', NULL, 0,
-   "Log all actions", 0},
+   N_("Log all actions"), 0},
   
   {"email", 'e', "ADDRESS", 0,
-   "Override user email address", 0},
+   N_("Override user email address"), 0},
   
   {0}
 };
@@ -120,7 +121,7 @@ parser (int key, char *arg, struct argp_state *state)
     case 'e':
       rc = mu_set_user_email (arg);
       if (rc)
-	argp_error (state, "invalid email: %s", mu_errstring (rc));
+	argp_error (state, _("invalid email: %s"), mu_errstring (rc));
       break;
       
     case 'n':
@@ -141,7 +142,7 @@ parser (int key, char *arg, struct argp_state *state)
       
     case 'f':
       if (opts->mbox)
-	argp_error (state, "only one MBOX can be specified");
+	argp_error (state, _("only one MBOX can be specified"));
       opts->mbox = strdup (arg);
       break;
       
@@ -178,7 +179,7 @@ parser (int key, char *arg, struct argp_state *state)
 	      break;
 	      
 	    default:
-	      argp_error (state, "%c is not a valid debug flag", *arg);
+	      argp_error (state, _("%c is not a valid debug flag"), *arg);
 	      break;
 	    }
 	}
@@ -190,12 +191,12 @@ parser (int key, char *arg, struct argp_state *state)
       
     case ARGP_KEY_ARG:
       if (opts->script)
-	argp_error (state, "only one SCRIPT can be specified");
+	argp_error (state, _("only one SCRIPT can be specified"));
       opts->script = mu_tilde_expansion (arg, "/", NULL);
       break;
 
     case ARGP_KEY_NO_ARGS:
-      argp_error (state, "SCRIPT must be specified");
+      argp_error (state, _("SCRIPT must be specified"));
 
     default:
       return ARGP_ERR_UNKNOWN;
@@ -262,7 +263,7 @@ stdout_action_log (void *unused,
 
   message_get_uid (msg, &uid);
 
-  fprintf (stdout, "%s on msg uid %lu", action, (unsigned long) uid);
+  fprintf (stdout, _("%s on msg uid %lu"), action, (unsigned long) uid);
   if (fmt && strlen (fmt))
     {
       fprintf (stdout, ": ");
@@ -281,7 +282,7 @@ syslog_action_log (void *unused,
   
   message_get_uid (msg, &uid);
 
-  asprintf (&text, "%s on msg uid %d", action, uid);
+  asprintf (&text, _("%s on msg uid %d"), action, uid);
   if (fmt && strlen (fmt))
     {
       char *diag = NULL;
@@ -305,7 +306,10 @@ main (int argc, char *argv[])
   int rc;
   struct options opts = {0};
   int (*debugfp) __P ((mu_debug_t, size_t level, const char *, va_list));
-    
+
+  /* Native Language Support */
+  /* mu_init_nls (); */
+
   sieve_argp_init ();
   rc = mu_argp_parse (&argp, &argc, &argv, ARGP_IN_ORDER, sieve_argp_capa,
 		      0, &opts);
@@ -319,7 +323,7 @@ main (int argc, char *argv[])
   rc = sieve_machine_init (&mach, NULL);
   if (rc)
     {
-      mu_error ("can't initialize sieve machine: %s", mu_errstring (rc));
+      mu_error (_("can't initialize sieve machine: %s"), mu_errstring (rc));
       return 1;
     }
 
@@ -357,13 +361,13 @@ main (int argc, char *argv[])
     {
       if ((rc = wicket_create (&wicket, opts.tickets)) != 0)
 	{
-	  mu_error ("wicket create <%s> failed: %s\n",
+	  mu_error (_("wicket create <%s> failed: %s\n"),
 		   opts.tickets, mu_errstring (rc));
 	  goto cleanup;
 	}
       if ((rc = wicket_get_ticket (wicket, &ticket, 0, 0)) != 0)
 	{
-	  mu_error ("ticket get failed: %s\n", mu_errstring (rc));
+	  mu_error (_("ticket get failed: %s\n"), mu_errstring (rc));
 	  goto cleanup;
 	}
       sieve_set_ticket (mach, ticket);
@@ -374,18 +378,18 @@ main (int argc, char *argv[])
     {
       if ((rc = mu_debug_create (&debug, mach)))
 	{
-	  mu_error ("mu_debug_create failed: %s\n", mu_errstring (rc));
+	  mu_error (_("mu_debug_create failed: %s\n"), mu_errstring (rc));
 	  goto cleanup;
 	}
       if ((rc = mu_debug_set_level (debug, opts.debug_level)))
 	{
-	  mu_error ("mu_debug_set_level failed: %s\n",
+	  mu_error (_("mu_debug_set_level failed: %s\n"),
 		    mu_errstring (rc));
 	  goto cleanup;
 	}
       if ((rc = mu_debug_set_print (debug, debugfp, mach)))
 	{
-	  mu_error ("mu_debug_set_print failed: %s\n",
+	  mu_error (_("mu_debug_set_print failed: %s\n"),
 		    mu_errstring (rc));
 	  goto cleanup;
 	}
@@ -396,14 +400,14 @@ main (int argc, char *argv[])
   /* Create, give a ticket to, and open the mailbox. */
   if ((rc = mailbox_create_default (&mbox, opts.mbox)) != 0)
     {
-      mu_error ("mailbox create <%s> failed: %s\n",
-	       opts.mbox ? opts.mbox : "default", mu_errstring (rc));
+      mu_error (_("mailbox create <%s> failed: %s\n"),
+	       opts.mbox ? opts.mbox : _("default"), mu_errstring (rc));
       goto cleanup;
     }
 
   if (debug && (rc = mailbox_set_debug (mbox, debug)))
     {
-      mu_error ("mailbox_set_debug failed: %s\n", mu_errstring (rc));
+      mu_error (_("mailbox_set_debug failed: %s\n"), mu_errstring (rc));
       goto cleanup;
     }
 
@@ -414,14 +418,14 @@ main (int argc, char *argv[])
 
       if ((rc = mailbox_get_folder (mbox, &folder)))
 	{
-	  mu_error ("mailbox_get_folder failed: %s",
+	  mu_error (_("mailbox_get_folder failed: %s"),
 		   mu_errstring (rc));
 	  goto cleanup;
 	}
 
       if ((rc = folder_get_authority (folder, &auth)))
 	{
-	  mu_error ("folder_get_authority failed: %s",
+	  mu_error (_("folder_get_authority failed: %s"),
 		   mu_errstring (rc));
 	  goto cleanup;
 	}
@@ -429,7 +433,7 @@ main (int argc, char *argv[])
       /* Authentication-less folders don't have authorities. */
       if (auth && (rc = authority_set_ticket (auth, ticket)))
 	{
-	  mu_error ("authority_set_ticket failed: %s",
+	  mu_error (_("authority_set_ticket failed: %s"),
 		   mu_errstring (rc));
 	  goto cleanup;
 	}
@@ -443,8 +447,8 @@ main (int argc, char *argv[])
 
   if (rc != 0)
     {
-      mu_error ("open on %s failed: %s\n",
-	       opts.mbox ? opts.mbox : "default", mu_errstring (rc));
+      mu_error (_("open on %s failed: %s\n"),
+	       opts.mbox ? opts.mbox : _("default"), mu_errstring (rc));
       goto cleanup;
     }
 
@@ -461,8 +465,8 @@ cleanup:
          any messages that were marked DELETED even if execution failed
          on a later message. */
       if ((e = mailbox_expunge (mbox)) != 0)
-	mu_error ("expunge on %s failed: %s\n",
-		  opts.mbox ? opts.mbox : "default", mu_errstring (e));
+	mu_error (_("expunge on %s failed: %s\n"),
+		  opts.mbox ? opts.mbox : _("default"), mu_errstring (e));
 
       if (e && !rc)
 	rc = e;

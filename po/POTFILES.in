@@ -9,6 +9,23 @@ comsat/comsat.c
 
 frm/frm.c
 
+guimb/collect.c
+guimb/main.c
+guimb/util.c
+
+imap4d/auth_gss.c
+imap4d/authenticate.c
+imap4d/imap4d.c
+imap4d/bye.c
+imap4d/list.c
+imap4d/login.c
+imap4d/search.c
+imap4d/signal.c
+imap4d/util.c
+
+lib/getopt.c
+lib/xmalloc.c
+
 mail/alias.c
 mail/alt.c
 mail/copy.c
@@ -35,6 +52,7 @@ mail/var.c
 mail/z.c
 
 mailbox/argp-parse.c
+mailbox/mailutils-config.c
 
 messages/messages.c
 
@@ -47,6 +65,8 @@ pop3d/quit.c
 pop3d/user.c
 
 readmsg/readmsg.c
+
+sieve/sieve.c
 
 # EOF
 

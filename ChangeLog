@@ -1,3 +1,10 @@
+2002-12-24  Wojciech Polak <polak@gnu.org>
+
+	* po/POTFILES.in: Updated.
+	* imap4d/*: Added NLS.
+	* guimb/*: Likewise.
+	* sieve/sieve.c: Likewise.
+
 2002-12-23  Wojciech Polak <polak@gnu.org>
 
 	* po/: New directory.

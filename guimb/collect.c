@@ -1,18 +1,18 @@
-/* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+/* GNU Mailutils -- a suite of utilities for electronic mail
+   Copyright (C) 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
 
-   This program is free software; you can redistribute it and/or modify
+   GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
    the Free Software Foundation; either version 2, or (at your option)
    any later version.
 
-   This program is distributed in the hope that it will be useful,
+   GNU Mailutils is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
+   along with GNU Mailutils; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #include "guimb.h"
@@ -31,14 +31,14 @@ collect_open_default ()
       asprintf (&default_mailbox, "%s%s", mu_path_maildir, user_name);
       if (!default_mailbox)
 	{
-	  util_error ("not enough memory");
+	  util_error (_("not enough memory"));
 	  exit (1);
 	}
     }
   if (mailbox_create (&mbox, default_mailbox) != 0
       || mailbox_open (mbox, MU_STREAM_RDWR) != 0)
     {
-      util_error ("can't open default mailbox %s: %s",
+      util_error (_("can't open default mailbox %s: %s"),
 		  default_mailbox, mu_errstring (errno));
       exit (1);
     }
@@ -82,7 +82,7 @@ collect_append_file (char *name)
       fp = fopen (name, "r");
       if (!fp)
 	{
-	  util_error ("can't open input file %s: %s", name, strerror (errno));
+	  util_error (_("can't open input file %s: %s"), name, strerror (errno));
 	  return -1;
 	}
     }
@@ -110,7 +110,7 @@ collect_create_mailbox ()
   if (mailbox_create (&mbox, temp_filename) != 0
       || mailbox_open (mbox, MU_STREAM_READ) != 0)
     {
-      util_error ("can't create temp mailbox %s: %s",
+      util_error (_("can't create temp mailbox %s: %s"),
 		  temp_filename, strerror (errno));
       unlink (temp_filename);
       exit (1);
@@ -121,7 +121,7 @@ collect_create_mailbox ()
 
   if (nmesg == 0)
     {
-      util_error ("input format not recognized");
+      util_error (_("input format not recognized"));
       exit (1);
     }
 }
@@ -146,7 +146,7 @@ collect_output ()
       || mailbox_open (outbox, MU_STREAM_RDWR|MU_STREAM_CREAT) != 0)
     {
       mailbox_destroy (&outbox);
-      fprintf (stderr, "guimb: can't open output mailbox %s: %s\n",
+      fprintf (stderr, _("guimb: can't open output mailbox %s: %s\n"),
 	       default_mailbox, strerror (errno));
       return 1;
     }

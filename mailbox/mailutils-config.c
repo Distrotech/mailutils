@@ -1,18 +1,18 @@
-/* GNU mailutils - a suite of utilities for electronic mail
+/* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
 
-   This program is free software; you can redistribute it and/or modify
+   GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
    the Free Software Foundation; either version 2, or (at your option)
    any later version.
 
-   This program is distributed in the hope that it will be useful,
+   GNU Mailutils is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
+   along with GNU Mailutils; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #ifdef HAVE_CONFIG_H
@@ -22,22 +22,22 @@
 #include <mailutils/argp.h>
 
 const char *argp_program_version = "mailutils-config (" PACKAGE_STRING ")";
-static char doc[] = "GNU mailutils-config -- Display compiler and loader options needed for building a program with mailutils";
-static char args_doc[] = "[arg...]";
+static char doc[] = N_("GNU mailutils-config -- Display compiler and loader options needed for building a program with mailutils");
+static char args_doc[] = N_("[arg...]");
 
 static struct argp_option options[] = {
-  {"compile", 'c', NULL,   0, "print C compiler flags to compile with", 0},
+  {"compile", 'c', NULL,   0, N_("print C compiler flags to compile with"), 0},
   {"link",    'l', NULL,   0,
-   "print libraries to link with. Up to two args can be given. Arguments are: "
+   N_("print libraries to link with. Up to two args can be given. Arguments are: "
    "auth, to display libraries needed for linking against libmuauth, and "
    "guile, to display libraries needed for linking against libmu_scm. "
-   "Both can be given simultaneously", 0},
+   "Both can be given simultaneously"), 0},
   {"info", 'i', NULL, 0,
-   "print a list of compilation options used to build mailutils. If arguments "
+   N_("print a list of compilation options used to build mailutils. If arguments "
    "are given, they are interpreted as a list of compilation options to check "
    "for. In this case the program prints those options from this list that "
    "have been defined. It exits with zero status if all of the "
-   "specified options are defined. Otherwise, the exit status is 1.", 0},
+   "specified options are defined. Otherwise, the exit status is 1."), 0},
   {0, 0, 0, 0}
 };
 

@@ -1,18 +1,18 @@
-/* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999, 2001 Free Software Foundation, Inc.
+/* GNU Mailutils -- a suite of utilities for electronic mail
+   Copyright (C) 1999, 2001, 2002 Free Software Foundation, Inc.
 
-   This program is free software; you can redistribute it and/or modify
+   GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
    the Free Software Foundation; either version 2, or (at your option)
    any later version.
 
-   This program is distributed in the hope that it will be useful,
+   GNU Mailutils is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
+   along with GNU Mailutils; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #include "imap4d.h"
@@ -447,9 +447,9 @@ imap4d_readline (FILE *fp)
       if (fgets (buffer, sizeof (buffer), fp) == NULL)
 	{
 	  if (feof (fp)) 
-	    syslog (LOG_INFO, "unexpected eof on input");
+	    syslog (LOG_INFO, _("unexpected eof on input"));
 	  else if (errno)
-	    syslog (LOG_INFO, "error reading from input file: %m");
+	    syslog (LOG_INFO, _("error reading from input file: %m"));
 	  else
 	    continue;
 	  imap4d_bye (ERR_NO_OFILE);
@@ -979,7 +979,7 @@ util_localname ()
 	}
       if (status)
 	{
-	  syslog (LOG_CRIT, "Can't find out my own hostname");
+	  syslog (LOG_CRIT, _("Can't find out my own hostname"));
 	  exit (1);
         }
 

@@ -1,18 +1,18 @@
-/* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999, 2001 Free Software Foundation, Inc.
+/* GNU Mailutils -- a suite of utilities for electronic mail
+   Copyright (C) 1999, 2001, 2002 Free Software Foundation, Inc.
 
-   This program is free software; you can redistribute it and/or modify
+   GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
    the Free Software Foundation; either version 2, or (at your option)
    any later version.
 
-   This program is distributed in the hope that it will be useful,
+   GNU Mailutils is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
+   along with GNU Mailutils; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #include "imap4d.h"
@@ -37,14 +37,14 @@ struct daemon_param daemon_param = {
 volatile size_t children;
 
 const char *argp_program_version = "imap4d (" PACKAGE_STRING ")";
-static char doc[] = "GNU imap4d -- the IMAP4D daemon";
+static char doc[] = N_("GNU imap4d -- the IMAP4D daemon");
 
 static struct argp_option options[] = 
 {
   {"other-namespace", 'O', "PATHLIST", 0,
-   "set the `other' namespace", 0},
+   N_("set the `other' namespace"), 0},
   {"shared-namespace", 'S', "PATHLIST", 0,
-   "set the `shared' namespace", 0},
+   N_("set the `shared' namespace"), 0},
   { NULL,      0, NULL, 0, NULL, 0 }
 };
 
@@ -102,7 +102,10 @@ main (int argc, char **argv)
 {
   struct group *gr;
   int status = EXIT_SUCCESS;
- 
+
+  /* Native Language Support */
+  mu_init_nls ();
+
   state = STATE_NONAUTH; /* Starting state in non-auth.  */
 
   MU_AUTH_REGISTER_ALL_MODULES();
@@ -125,13 +128,13 @@ main (int argc, char **argv)
       gr = getgrnam ("mail");
       if (gr == NULL)
 	{
-	  perror ("Error getting mail group");
+	  perror (_("Error getting mail group"));
 	  exit (1);
 	}
       
       if (setgid (gr->gr_gid) == -1)
 	{
-	  perror ("Error setting mail group");
+	  perror (_("Error setting mail group"));
 	  exit (1);
 	}
     }
@@ -210,17 +213,17 @@ imap4d_mainloop (int infile, int outfile)
       struct sockaddr_in cs;
       int len = sizeof cs;
 
-      syslog (LOG_INFO, "Incoming connection opened");
+      syslog (LOG_INFO, _("Incoming connection opened"));
       if (getpeername (infile, (struct sockaddr*)&cs, &len) < 0)
-	syslog (LOG_ERR, "can't obtain IP address of client: %s",
+	syslog (LOG_ERR, _("can't obtain IP address of client: %s"),
 		strerror (errno));
       else
-	syslog (LOG_INFO, "connect from %s", inet_ntoa(cs.sin_addr));
+	syslog (LOG_INFO, _("connect from %s"), inet_ntoa(cs.sin_addr));
       text = "IMAP4rev1";
     }
   else
     {
-      syslog (LOG_INFO, "Started in debugging mode");
+      syslog (LOG_INFO, _("Started in debugging mode"));
       text = "IMAP4rev1 Debugging mode";
     }
   
@@ -253,7 +256,7 @@ imap4d_daemon_init (void)
      first three one, in, out, err   */
   if (daemon (0, 0) < 0)
     {
-      perror("fork failed:");
+      perror(_("fork failed:"));
       exit (1);
     }
 
@@ -313,7 +316,7 @@ imap4d_daemon (unsigned int maxchildren, unsigned int port)
     {
       if (children > maxchildren)
         {
-          syslog (LOG_ERR, "too many children (%lu)",
+          syslog (LOG_ERR, _("too many children (%lu)"),
 		  (unsigned long) children);
           pause ();
           continue;
@@ -346,6 +349,4 @@ imap4d_daemon (unsigned int maxchildren, unsigned int port)
       close (connfd);
     }
 }
-
-
 

@@ -4,8 +4,8 @@
 
 INCLUDES = -I${top_srcdir}/include -I${top_srcdir}/lib 
 SUBDIRS  = testsuite
-bin_PROGRAMS = sieve
 
+bin_PROGRAMS = sieve
 sieve_SOURCES = sieve.c
 sieve_LDADD = ../libsieve/libsieve.la ../mailbox/libmailbox.la ../lib/libmailutils.la
 sieve_LDFLAGS = -export-dynamic
