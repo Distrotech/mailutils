@@ -280,10 +280,47 @@ add_recipient (const char *name)
   return status;
 }
 
+/* Convert addr to a comma-separated list of email addresses,
+   suitable as an argument to RCPT TO command */
+char *
+address_email_string (address_t addr)
+{
+  size_t count, i, n, length;
+  char *value, *p;
+  
+  address_get_email_count (addr, &count);
+  length = 0;
+  for (i = 1; i <= count; i++)
+    {
+      char *str;
+      address_aget_email (recipients, i, &str);
+      length += strlen (str) + 3;
+      free (str);
+    }
+
+  value = malloc (length + 1);
+  if (!value)
+    {
+      mu_error ("%s: not enough memory", progname);
+      return NULL;
+    }
+  p = value;
+  for (i = 1; i <= count; i++)
+    {
+      *p++ = '<';
+      address_get_email (recipients, i, p, length - (p - value), &n);
+      p += n;
+      *p++ = '>';
+      if (i + 1 <= count)
+	*p++ = ',';
+    }
+  *p = 0;
+  return value;
+}
+
 int
 mta_send (message_t msg)
 {
-  int c;
   size_t n;
   char buffer[512];    
   stream_t stream = NULL;
@@ -297,21 +334,7 @@ mta_send (message_t msg)
       free (value);
     }
   
-  c = address_to_string (recipients, NULL, 0, &n);
-  if (c)
-    {
-      mu_error ("%s: address_to_string failure: %s",
-		progname, mu_strerror (c));
-      return 1;
-    }
-  value = malloc (n + 1);
-  if (!value)
-    {
-      mu_error ("%s: not enough memory", progname);
-      return 1;
-    }
-
-  address_to_string (recipients, value, n + 1, &n);
+  value = address_email_string (recipients);
   fprintf (diag, "ENVELOPE TO: %s\n", value);
   free (value);
 
