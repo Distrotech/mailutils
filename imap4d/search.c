@@ -44,6 +44,7 @@ static void cond_or __P((struct parsebuf *pb));
 static void cond_not __P((struct parsebuf *pb));
 
 static void cond_all __P((struct parsebuf *pb));                      
+static void cond_msgset __P((struct parsebuf *pb));                      
 static void cond_bcc __P((struct parsebuf *pb));                      
 static void cond_before __P((struct parsebuf *pb));                   
 static void cond_body __P((struct parsebuf *pb));                     
@@ -77,7 +78,7 @@ struct cond
 	      m -- message set
 */
 
-/* List of basic conditions */
+/* List of basic conditions. <message set> is handled separately */
 struct cond condlist[] =
 {
   "ALL",        NULL,   cond_all,
@@ -170,7 +171,9 @@ struct parsebuf
   int *stack;                   /* Stack buffer. */
   int tos;                      /* Top of stack */
 
-  message_t msg;                /* Execution time only: current message */
+                                /* Execution time only: */
+  size_t msgno;                 /* Number of current message */
+  message_t msg;                /* Current message */ 
 };
 
 static void put_code __P((struct parsebuf *pb, inst_t inst));
@@ -237,18 +240,18 @@ imap4d_search (struct imap4d_command *command, char *arg)
 void
 do_search (struct parsebuf *pb)
 {
-  size_t i, count = 0;
+  size_t count = 0;
   size_t *set = NULL;
   int n = 0;
   
   mailbox_messages_count (mbox, &count);
 
   util_send ("* SEARCH");
-  for (i = 1; i <= count; i++)
+  for (pb->msgno = 1; pb->msgno <= count; pb->msgno++)
     {
-      if (mailbox_get_message (mbox, i, &pb->msg) == 0
+      if (mailbox_get_message (mbox, pb->msgno, &pb->msg) == 0
 	  && search_run (pb))
-	util_send (" %d", i);
+	util_send (" %d", pb->msgno);
     }
   util_send ("\r\n");
 }
@@ -452,6 +455,8 @@ parse_simple_key (struct parsebuf *pb)
   struct cond *condp;
   char *t;
   time_t time;
+  size_t *set = NULL;
+  int n = 0;
   
   for (condp = condlist; condp->name && strcasecmp (condp->name, pb->token);
        condp++)
@@ -459,8 +464,19 @@ parse_simple_key (struct parsebuf *pb)
 
   if (!condp->name)
     {
-      pb->err_mesg = "Unknown search criterion";
-      return 1;
+      if (util_msgset (pb->token, &set, &n, 0) == 0) /*FIXME: isuid? */
+	{
+	  put_code (pb, cond_msgset);
+	  put_code (pb, (inst_t) n);
+	  put_code (pb, (inst_t) parse_regmem (pb, set));
+	  parse_gettoken (pb, 0);
+	  return 0;
+	}
+      else
+	{
+	  pb->err_mesg = "Unknown search criterion";
+	  return 1;
+	}
     }
 
   put_code (pb, condp->inst);
@@ -705,6 +721,19 @@ cond_all (struct parsebuf *pb)
 {
   _search_push (pb, 1);
 }                      
+
+void
+cond_msgset (struct parsebuf *pb)
+{
+  int  n = (int)_search_arg (pb);
+  size_t *set = (size_t*)_search_arg (pb);
+  int i, rc;
+  
+  for (i = rc = 0; rc == 0 && i < n; i++)
+    rc = set[i] == pb->msgno;
+      
+  _search_push (pb, rc);
+}
 
 void
 cond_bcc (struct parsebuf *pb)
