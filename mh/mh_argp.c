@@ -103,7 +103,7 @@ mh_argp_parse (int argc, char **argv,
       char **xargv;
       int i;
       
-      argcv_get (p, "", &xargc, &xargv);
+      argcv_get (p, "", NULL, &xargc, &xargv);
 
       _argc = argc + xargc;
       _argv = calloc (_argc+1, sizeof *_argv);

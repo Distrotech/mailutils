@@ -308,7 +308,7 @@ action_create (struct action_data *ap)
 	buf[--len] = 0;
       
       line++;
-      if (argcv_get (buf, ":", &argc, &argv))
+      if (argcv_get (buf, ":", NULL, &argc, &argv))
 	{
 	  argcv_free (argc, argv);
 	  continue;

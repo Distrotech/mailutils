@@ -100,7 +100,7 @@ util_do_command (const char *c, ...)
       if (cmd[0] == '#')
 	return 0;
 
-      if (argcv_get (cmd, delim, &argc, &argv) != 0)
+      if (argcv_get (cmd, delim, NULL, &argc, &argv) != 0)
 	return argcv_free (argc, argv);
 
       entry = util_find_entry (mail_command_table, argv[0]);

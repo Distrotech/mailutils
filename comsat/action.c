@@ -367,7 +367,7 @@ run_user_action (FILE *tty, const char *cr, message_t msg)
 	  str = expand_line (stmt, msg);
 	  if (!str)
 	    continue;
-	  if (argcv_get (str, "", &argc, &argv)
+	  if (argcv_get (str, "", NULL, &argc, &argv)
 	      || argc == 0
 	      || argv[0][0] == '#')
 	    {

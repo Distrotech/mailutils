@@ -210,7 +210,7 @@ mail_send0 (struct send_environ *env, int save_to)
 
 	      ofile = env->file;
 
-	      if (argcv_get (buf+1, "", &argc, &argv) == 0)
+	      if (argcv_get (buf+1, "", NULL, &argc, &argv) == 0)
 		{
 		  struct mail_command_entry entry;
 		  entry = util_find_entry (mail_escape_table, argv[0]);

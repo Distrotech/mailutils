@@ -387,7 +387,7 @@ mu_create_argcv (int argc, char **argv, int *p_argc, char ***p_argv)
               int n_argc = 0;
               char **n_argv;
               
-              if (argcv_get (p, "", &n_argc, &n_argv))
+              if (argcv_get (p, "", NULL, &n_argc, &n_argv))
                 {
                   argcv_free (n_argc, n_argv);
                   if (linebuf)

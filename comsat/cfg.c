@@ -161,7 +161,7 @@ read_config (const char *config_file)
       if (!*ptr || *ptr == '#')
 	continue;
 
-      argcv_get (ptr, "", &argc, &argv);
+      argcv_get (ptr, "", NULL, &argc, &argv);
       if (argc < 2)
 	{
 	  syslog (LOG_ERR, "%s:%d: too few fields", config_file, line);

@@ -19,6 +19,8 @@
 
 #include "argcv.h"
 
+char srtime[] = __TIME__;
+
 /*
  * takes a string and splits it into several strings, breaking at ' '
  * command is the string to split
@@ -27,47 +29,71 @@
  * returns 0 on success, nonzero on failure
  */
 
-#define isws(c) ((c)==' '||(c)=='\t')
+#define isws(c) ((c)==' '||(c)=='\t'||(c)=='\n')
 #define isdelim(c,delim) ((c)=='"'||strchr(delim,(c))!=NULL)
 
 static int
-argcv_scan (int len, const char *command, const char *delim,
+argcv_scan (int len, const char *command, const char *delim, const char* cmnt,
 	    int *start, int *end, int *save)
 {
-  int i = *save;
+  int i = 0;
 
-  /* Skip initial whitespace */
-  while (i < len && isws (command[i]))
-    i++;
-  *start = i;
-
-  switch (command[i])
+  for (;;)
     {
-    case '"':
-    case '\'':
-      while (++i < len && command[i] != command[*start])
-	;
-      if (i < len)  /* found matching quote */
-	break;
-      /*FALLTHRU*/
-    default:
-      if (isdelim (command [i], delim))
-	break;
-      /* Skip until next whitespace character or end of line */
-      while (++i < len &&
-	     !(isws (command [i]) || isdelim (command [i], delim)))
-	;
-      i--;
+      i = *save;
+
+      if (i >= len)
+	return i;
+
+      /* Skip initial whitespace */
+      while (i < len && isws (command[i]))
+	i++;
+      *start = i;
+
+      switch (command[i])
+	{
+	case '"':
+	case '\'':
+	  while (++i < len && command[i] != command[*start])
+	    ;
+	  if (i < len)		/* found matching quote */
+	    break;
+	 /*FALLTHRU*/ default:
+	  if (isdelim (command[i], delim))
+	    break;
+	  /* Skip until next whitespace character or end of line */
+	  while (++i < len &&
+		 !(isws (command[i]) || isdelim (command[i], delim)))
+	    ;
+	  i--;
+	  break;
+	}
+
+      *end = i;
+      *save = i + 1;
+
+      /* If we have a token, and it starts with a comment character, skip
+         to the newline and restart the token search. */
+      if (*save < len)
+	{
+	  if (cmnt && strchr (cmnt, command[*start]) != NULL)
+	    {
+	      i = *save;
+	      while (i < len && command[i] != '\n')
+		i++;
+
+	      *save = i;
+	      continue;
+	    }
+	}
       break;
     }
-
-  *end = i;
-  *save = i+1;
   return *save;
 }
 
 int
-argcv_get (const char *command, const char *delim, int *argc, char ***argv)
+argcv_get (const char *command, const char *delim, const char* cmnt,
+    int *argc, char ***argv)
 {
   int len = strlen (command);
   int i = 0;
@@ -76,15 +102,10 @@ argcv_get (const char *command, const char *delim, int *argc, char ***argv)
   *argc = 0;
   *argv = NULL;
 
-  while (len > 0 && isspace (command[len-1]))
-    len--;
-  if (len < 1)
-    return 1;
-
   /* Count number of arguments */
-  *argc = 1;
   save = 0;
-  while (argcv_scan (len, command, delim, &start, &end, &save) < len)
+
+  while (argcv_scan (len, command, delim, cmnt, &start, &end, &save) < len)
       (*argc)++;
 
   *argv = calloc ((*argc + 1), sizeof (char *));
@@ -94,8 +115,10 @@ argcv_get (const char *command, const char *delim, int *argc, char ***argv)
   for (i = 0; i < *argc; i++)
     {
       int n;
-      argcv_scan (len, command, delim, &start, &end, &save);
+      argcv_scan (len, command, delim, cmnt, &start, &end, &save);
 
+      /* FIXME: this is the right place to do unescaping as well
+	 as stripping of quotes. */
       if (command[start] == '"' && command[end] == '"')
 	{
 	  start++;
@@ -182,7 +205,7 @@ main()
   int i, argc;
   char **argv;
 
-  argcv_get (command, "=", &argc, &argv);
+  argcv_get (command, "=", NULL, &argc, &argv);
   printf ("%d args:\n", argc);
   for (i = 0; i < argc; i++)
     printf ("%s\n", argv[i]);
