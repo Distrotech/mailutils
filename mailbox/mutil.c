@@ -485,7 +485,8 @@ mu_set_user_email (const char *candidate)
   address_t addr = NULL;
   size_t emailno = 0;
   char *email = NULL;
-
+  char *domain = NULL;
+  
   if ((err = address_create (&addr, candidate)) != 0)
     return err;
 
@@ -501,12 +502,15 @@ mu_set_user_email (const char *candidate)
   if ((err = address_aget_email (addr, 1, &email)) != 0)
     goto cleanup;
 
-
   if (mu_user_email)
     free (mu_user_email);
 
   mu_user_email = email;
 
+  address_aget_domain (addr, 1, &domain);
+  mu_set_user_email_domain (domain);
+  free (domain);
+  
 cleanup:
   address_destroy (&addr);
 
@@ -582,10 +586,10 @@ mu_get_user_email (const char *name)
   status = mu_get_user_email_domain (&domainpart);
 
   if (status)
-  {
-    errno = status;
-    return NULL;
-  }
+    {
+      errno = status;
+      return NULL;
+    }
 
   if ((status = parse822_quote_local_part (&localpart, name)))
     {
