@@ -5,12 +5,11 @@ necessary information to initialize @code{mailbox_t}, or @code{mailer_t}
 properly.
 
 @subsection POP3
-The POP URL scheme contains a pop server, optional port number
+The POP URL scheme contains a POP server, optional port number
 and the authentication mechanism.  The general form is
 
 @example
-@url{pop://user;AUTH=type@@hostname:port}
-@url{pop://obelix;AUTH=+APOP@@village.gaulois.org:2000}
+@url{pop://[<user>[;AUTH=<auth>]@@]<host>[:<port>]}
 @end example
 
 If @emph{:port} is omitted the default value is 110. Different forms of
@@ -21,14 +20,29 @@ a default scheme base on the capability of the server.
 @url{pop://obelix@@gaulois.org}
 @url{pop://asterix;AUTH=*@@france.com}
 @url{pop://falbala;AUTH=+APOP@@france.com}
+@url{pop://obelix;AUTH=+APOP@@village.gaulois.org:2000}
 @end example
 
 For more complete information see @cite{rfc2368}.
 
 @subsection IMAP
-imap://.....
+The IMAP URL scheme contains an IMAP server, optional port number
+and the authentication mechanism.  The general form is
 
-Description of the fields and examples are needed.
+@example
+@url{imap://[user[;AUTH=type]]@@hostname[:port][/mailbox]}
+@end example
+
+If @emph{:port} is omitted the default value is 220. Different forms of
+authentication can be specified with @emph{;AUTH=type}.
+The special string @emph{;AUTH=*} indicates that the client will use
+a default scheme base on the capability of the server.
+@example
+@url{pop://obelix@@imap.gaulois.org}
+@url{pop://asterix;AUTH=*@@france.com}
+@end example
+
+For more complete information see @cite{rfc2192}.
 
 @subsection File
 
