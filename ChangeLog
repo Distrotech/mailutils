@@ -1,3 +1,34 @@
+2002-05-13  Sam Roberts
+
+	* comsat/comsat.h, frm/frm.c, from/from.c, guimb/main.c,
+	  imap4d/imap4d.h, include/mailutils/Makefile.am,
+	  include/mailutils/argp.h, include/mailutils/mailutils.h,
+	  include/mailutils/mu_argp.h, mail/mail.h, mail.local/mail.local.h,
+	  messages/messages.c, pop3d/pop3d.h, sieve/sieve.c: Removed
+	  redundant mu_ prefix from mailutils/mu_argp.h.
+	* TODO: Updated.
+	* Makefile.am, mail.remote/.cvsignore, mail.remote/mail.remote.c,
+	  configure.in: mail.remote now working as an SMTP forwarder.
+	* include/mailutils/: mu_features.h, types.h: Merged mu_features.h
+	  into types.h.
+	* mailbox/mu_argp.c: Added :mailer group, with option --mailer,-M
+	  to set the default mailer URL.
+	* mailbox/smtp.c: Now clearing Bcc: even when there is an explicit
+	  TO argument. Not the best thing to do, but it seems to be What
+	  Everybody Does.
+	* doc/texinfo/mailer.texi: Updated now that smtp mailer is working.
+	* mailbox/sendmail.c: Looking at other utilities makes me think
+	  that providing -t to sendmail is optional, need to test this.
+	* mailbox/parse822.c: Updated TODO list and ran through GNU indent.
+	* include/mailutils/errno.h, mailbox/muerrno.c: An unsupported
+	  mailer URL now gives a more specific error than EINVAL.
+	* mail/mailline.c: Silenced warnings that can appear depending on
+	  the presence of readline, and various terminal APIs.
+	* include/mailutils/mailer.h, mailbox/mailer.c,
+	  mailbox/include/mailer0.h: mailer_get|set_url_default() new
+	  functions to set the default mailer
+	* lib/mu_asprintf.h: Removed dependency on mailutils.
+
 2002-05-13  Sergey Poznyakoff 
 
 	To avoid dependency problems moved mu_argp.c to mailbox. Changed
@@ -26,7 +57,12 @@
 	
 	* lib/utmp.c: Added missing includes.
 
-2002-05-10 Sam Roberts
+2002-05-12  Sam Roberts
+
+	* doc/xml2texi.rb: Converts doxygen XML output to texinfo function
+	  documentation.
+
+2002-05-10  Sam Roberts
 
 	* mailbox/tcp.c: Not a good day, second typo in a row in
 	  tcp_stream_create.
