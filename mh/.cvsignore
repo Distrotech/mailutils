@@ -8,5 +8,6 @@ inc
 rmm
 refile
 mhpath
+folder
 *.output
 .gdbinit
