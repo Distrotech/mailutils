@@ -59,6 +59,9 @@ static struct argp argp = {
 static const char *readmsg_argp_capa[] = {
   "common",
   "mailbox",
+#ifdef WITH_TLS
+  "tls",
+#endif
   NULL
 };
 
@@ -229,6 +232,9 @@ main (int argc, char **argv)
   mu_init_nls ();
 
   mu_argp_init (program_version, NULL);
+#ifdef WITH_TLS
+  mu_tls_init_client_argp ();
+#endif
   mu_argp_parse (&argp, &argc, &argv, 0, readmsg_argp_capa, &index, NULL);
 
   /* Registration.  */

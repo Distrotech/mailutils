@@ -136,10 +136,6 @@ parse_opt (int key, char *arg, struct argp_state *state)
 
       if (args->file)
 	{
-	  util_error (_("Usage error: --file takes an optional argument, "
-	              "it must follow the option\n"
-	              "without any intervening whitespace."));
-	  util_error (_("Run mail --help for more info."));
 	  args->file = arg;
 	}
       else
@@ -171,6 +167,9 @@ static const char *mail_capa[] = {
 	"common",
 	"license",
 	"mailbox",
+#ifdef WITH_TLS
+	"tls",
+#endif
 	 NULL 
 };
 			     
@@ -222,7 +221,7 @@ main (int argc, char **argv)
   /* Native Language Support */
   mu_init_nls ();
 
-  /* Register the desire formats.  */
+  /* Register the desired formats.  */
   {
     list_t bookie;
     registrar_get_list (&bookie);
@@ -252,7 +251,7 @@ main (int argc, char **argv)
   /* set up the default environment */
   if (!getenv ("HOME"))
     {
-      char *p = util_get_homedir();
+      char *p = util_get_homedir ();
       setenv ("HOME", p, 0);
     }
   setenv ("DEAD", util_fullpath("~/dead.letter"), 0);
@@ -326,6 +325,9 @@ main (int argc, char **argv)
   /* argument parsing */
 
   mu_argp_init (program_version, NULL);
+#ifdef WITH_TLS
+  mu_tls_init_client_argp ();
+#endif
   mu_argp_parse (&argp, &argc, &argv, 0, mail_capa, NULL, &args);
 
   /* read system-wide mail.rc and user's .mailrc */

@@ -39,6 +39,7 @@
 #include <mailutils/stream.h>
 #include <mailutils/url.h>
 #include <mailutils/nls.h>
+#include <mailutils/tls.h>
 
 static char* show_field;
 static int show_to;
@@ -161,6 +162,9 @@ static const char *frm_argp_capa[] = {
   "common",
   "license",
   "mailbox",
+#ifdef WITH_TLS
+  "tls",
+#endif
   NULL
 };
 
@@ -308,6 +312,9 @@ main(int argc, char **argv)
   mu_init_nls ();
 
   mu_argp_init (program_version, NULL);
+#ifdef WITH_TLS
+  mu_tls_init_client_argp ();
+#endif
   mu_argp_parse (&argp, &argc, &argv, 0, frm_argp_capa, &c, NULL);
 
   /* have an argument */
@@ -323,6 +330,7 @@ main(int argc, char **argv)
     registrar_get_list (&bookie);
     list_append (bookie, mbox_record);
     list_append (bookie, path_record);
+    list_append (bookie, mh_record);
     list_append (bookie, pop_record);
     list_append (bookie, imap_record);
   }

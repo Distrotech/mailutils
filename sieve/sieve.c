@@ -42,6 +42,7 @@
 #include <mailutils/registrar.h>
 #include <mailutils/stream.h>
 #include <mailutils/nls.h>
+#include <mailutils/tls.h>
 
 void mutil_register_all_mbox_formats (void);
 
@@ -221,6 +222,9 @@ static const char *sieve_argp_capa[] =
   "logging",
   "mailer",
   "sieve",
+#ifdef WITH_TLS
+  "tls",
+#endif
   NULL
 };
 
@@ -311,6 +315,9 @@ main (int argc, char *argv[])
   mu_init_nls ();
 
   mu_argp_init (program_version, NULL);
+#ifdef WITH_TLS
+  mu_tls_init_client_argp ();
+#endif
   sieve_argp_init ();
   rc = mu_argp_parse (&argp, &argc, &argv, ARGP_IN_ORDER, sieve_argp_capa,
 		      0, &opts);

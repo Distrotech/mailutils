@@ -82,6 +82,9 @@ static const char *capa[] = {
   "common",
   "license",
   "mailbox",
+#ifdef WITH_TLS
+  "tls",
+#endif
   NULL
 };
 
@@ -104,6 +107,9 @@ main(int argc, char **argv)
   {
     int opt;
     mu_argp_init (program_version, NULL);
+#ifdef WITH_TLS
+    mu_tls_init_client_argp ();
+#endif
     mu_argp_parse (&argp, &argc, &argv, 0, capa, &opt, NULL);
     mailbox_name = argv[opt];
   }
@@ -114,6 +120,7 @@ main(int argc, char **argv)
     registrar_get_list (&bookie);
     list_append (bookie, mbox_record);
     list_append (bookie, path_record);
+    list_append (bookie, mh_record);
     list_append (bookie, pop_record);
     list_append (bookie, imap_record);
   }
