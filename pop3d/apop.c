@@ -17,6 +17,10 @@
 
 #include "pop3d.h"
 
+#ifdef HAVE_MYSQL
+#include "../MySql/MySql.h"
+#endif
+
 /*
   APOP name digest
 
@@ -203,6 +207,10 @@ pop3d_apop (const char *arg)
 
   free (user_digest);
   pw = getpwnam (user);
+#ifdef HAVE_MYSQL
+  if (!pw)
+    pw = getMpwnam (user);
+#endif /* HAVE_MYSQL */
   free (user);
   if (pw == NULL)
     return ERR_BAD_LOGIN;

@@ -31,6 +31,10 @@
 
 #include <mailutils/mutil.h>
 
+#ifdef HAVE_MYSQL
+#include "../MySql/MySql.h"
+#endif
+
 /* convert a sequence of hex characters into an integer */
 
 unsigned long mu_hex2ul(char hex)
@@ -294,6 +298,10 @@ mu_tilde_expansion (const char *ref, const char *delim, const char *homedir)
           memcpy (name, p, s - p);
           name [s - p] = '\0';
           pw = getpwnam (name);
+#ifdef HAVE_MYSQL
+          if (!pw)
+             pw = getMpwnam(name);
+#endif /* HAVE_MYSQL */
           free (name);
           if (pw)
             {

@@ -1,3 +1,25 @@
+2001-08-24  Jim Hull
+
+	* Makefile.am:
+	* acconfig.h:   Added support for new MySql addition to mailutils
+	* configure.in:
+
+	* MySql/Makefile.am:
+	* MySql/MySql.c:        Mini lib to link to when mysql support
+	* MySql/MySql.h:        enabled (with --enable-mysql)
+
+	* doc/Readme.mysql:             Readme file for setup.
+
+	* imap4d/login.c:
+	* mailbox/mbx_default.c:        The Patch pretty much works the same
+	* mailbox/mutil.c:              all around. if getpwnam() returns null
+	* mailbox2/mutil.c:             then your db is checked for the user,
+	* pop3d/apop.c:                 and the struct is filled if found,
+	* pop3d/user.c:                 returns null if not. If shadow support
+                               is used, then the same is done with getspnam().
+
+	* examples/mail.MysqlMailer.c:  Simple sendmail backend support.
+
 2001-08-24  Alain Magloire
 
 	* sieve/Makefile.am: To EXTRA_DIST add md5-rsa.{c,h}.

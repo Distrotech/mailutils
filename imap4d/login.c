@@ -17,6 +17,10 @@
 
 #include "imap4d.h"
 
+#ifdef HAVE_MYSQL
+#include "../MySql/MySql.h"
+#endif
+
 /*
  * FIXME: this should support PAM, shadow, and normal password
  */
@@ -102,7 +106,15 @@ imap4d_login (struct imap4d_command *command, char *arg)
 
   pw = getpwnam (username);
   if (pw == NULL)
+#ifdef HAVE_MYSQL
+  {
+    pw = getMpwnam (username);
+    if (pw == NULL)
+      return util_finish (command, RESP_NO, "User name or passwd rejected");
+   }
+#else /* HAVE_MYSQL */
     return util_finish (command, RESP_NO, "User name or passwd rejected");
+#endif /* HAVE_MYSQL */
 
 #ifndef USE_LIBPAM
   if (pw->pw_uid < 1)
@@ -113,9 +125,18 @@ imap4d_login (struct imap4d_command *command, char *arg)
       struct spwd *spw;
       spw = getspnam (username);
       if (spw == NULL || strcmp (spw->sp_pwdp, (char *)crypt (pass, spw->sp_pwdp)))
+#ifdef HAVE_MYSQL
+      {
+         spw = getMspnam (username);
+         if (spw == NULL || strcmp (spw->sp_pwdp, (char *)crypt (pass, spw->sp_pwdp)))
+           return util_finish (command, RESP_NO, "User name or passwd rejected");
+      }
+#else /* HAVE_MYSQL */
 #endif /* HAVE_SHADOW_H */
 	return util_finish (command, RESP_NO, "User name or passwd rejected");
+#endif /* HAVE_MYSQL */
     }
+
 #else /* !USE_LIBPAM */
       _user = (char *) username;
       _pwd = pass;

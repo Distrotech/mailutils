@@ -30,6 +30,10 @@
 # include <paths.h>
 #endif
 
+#ifdef HAVE_MYSQL
+#include "../MySql/MySql.h"
+#endif
+
 #include <mailutils/mailbox.h>
 #include <mailutils/error.h>
 
@@ -79,6 +83,12 @@ get_homedir (const char *user)
   if (user)
     {
       pw = getpwnam (user);
+
+#ifdef HAVE_MYSQL
+      if (!pw)
+         pw = getMpwnam(user);
+#endif /* HAVE_MYSQL */
+
       if (pw)
 	homedir = pw->pw_dir;
     }

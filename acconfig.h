@@ -44,3 +44,6 @@
 
 /* Define the default loggin facility.  */
 #undef LOG_FACILITY
+
+/* Define HAVE_MYSQL when using mysql */
+#undef HAVE_MYSQL

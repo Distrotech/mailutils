@@ -17,6 +17,10 @@
 
 #include "pop3d.h"
 
+#ifdef HAVE_MYSQL
+#include "../MySql/MySql.h"
+#endif
+
 #ifdef USE_LIBPAM
 #define COPY_STRING(s) (s) ? strdup(s) : NULL
 
@@ -134,6 +138,10 @@ pop3d_user (const char *arg)
 #endif
 
       pw = getpwnam (arg);
+#ifdef HAVE_MYSQL
+      if (pw == NULL)
+        pw = getMpwnam (arg);
+#endif /* HAVE_MYSQL */
       if (pw == NULL)
 	{
 	  syslog (LOG_INFO, "User '%s': nonexistent", arg);
@@ -148,6 +156,10 @@ pop3d_user (const char *arg)
 #ifdef HAVE_SHADOW_H
 	  struct spwd *spw;
 	  spw = getspnam ((char *)arg);
+#ifdef HAVE_MYSQL
+          if (spw == NULL)
+            spw = getMspnam (arg);
+#endif /* HAVE_MYSQL */
 	  if (spw == NULL || strcmp (spw->sp_pwdp,
 				     (char *)crypt (pass, spw->sp_pwdp)))
 #endif /* HAVE_SHADOW_H */
