@@ -94,9 +94,10 @@ mail_mbox_commit ()
       message_get_attribute (msg, &attr);
 
       if (!is_user_mbox
-	  && !attribute_is_deleted (attr)
 	  && (attribute_is_userflag (attr, MAIL_ATTRIBUTE_MBOXED)
-	      || (!hold && attribute_is_read (attr))))
+	      || (!hold
+		  && !attribute_is_deleted (attr)
+		  && attribute_is_read (attr))))
 	{
 	  int status;
 	  
@@ -122,6 +123,8 @@ mail_mbox_commit ()
 	      saved_count++;
 	    }
 	}
+      else if (attribute_is_deleted (attr))
+	/* Skip this one */;
       else if (!keepsave && attribute_is_userflag (attr, MAIL_ATTRIBUTE_SAVED))
 	attribute_set_deleted (attr);
       else if (attribute_is_read (attr))
