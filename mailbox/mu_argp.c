@@ -538,10 +538,10 @@ read_rc (const char *progname, const char *name, const char *capa[],
 
   fp = fopen (rcfile, "r");
   if (!fp)
-  {
-    free(rcfile);
-    return;
-  }
+    {
+      free(rcfile);
+      return;
+    }
   
   while (getline (&buf, &n, fp) > 0)
     {
@@ -589,10 +589,10 @@ read_rc (const char *progname, const char *name, const char *capa[],
 
       len = 0;
       if(progname)
-      {
-      for (p = kwp; *p && !isspace (*p); p++)
-	len++;
-      }
+	{
+	  for (p = kwp; *p && !isspace (*p); p++)
+	    len++;
+	}
       else
 	p = kwp; /* Use the whole line. */
 
@@ -624,10 +624,10 @@ read_rc (const char *progname, const char *name, const char *capa[],
 	    x_argv[x_argc++] = n_argv[i];
 	  
 	  free (n_argv);
-	  if (linebuf)
-	    free (linebuf);
-	  linebuf = NULL;
 	}
+      if (linebuf)
+	free (linebuf);
+      linebuf = NULL;
     }
   fclose (fp);
   free(rcfile);
@@ -689,29 +689,29 @@ mu_create_argcv (const char *capa[],
 
   /* Add per-user config file. */
   if(!rcdir)
-  {
-    read_rc (progname, MU_USER_CONFIG_FILE, capa, &x_argc, &x_argv);
-  }
+    {
+      read_rc (progname, MU_USER_CONFIG_FILE, capa, &x_argc, &x_argv);
+    }
   else
-  {
-    char* userrc = NULL;
+    {
+      char* userrc = NULL;
 
-    mu_asprintf(&userrc, "%s/mailutils", MU_USER_CONFIG_FILE);
+      mu_asprintf(&userrc, "%s/mailutils", MU_USER_CONFIG_FILE);
 
-    if (!userrc)
-      {
-	fprintf (stderr, "%s: not enough memory\n", progname);
-	exit (1);
-      }
-    read_rc (progname, userrc, capa, &x_argc, &x_argv);
-
-    free(userrc);
-  }
+      if (!userrc)
+	{
+	  fprintf (stderr, "%s: not enough memory\n", progname);
+	  exit (1);
+	}
+      read_rc (progname, userrc, capa, &x_argc, &x_argv);
+      
+      free(userrc);
+    }
 
   /* Add per-user, per-program config file. */
   {
     char* progrc = NULL;
-
+    
     if(rcdir)
       mu_asprintf(&progrc, "%s/%src", MU_USER_CONFIG_FILE, progname);
     else
