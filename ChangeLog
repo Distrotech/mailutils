@@ -1,3 +1,18 @@
+2003-03-11  Sergey Poznyakoff  
+
+	* auth/sql.c (mu_sql_authenticate): Bugfix.
+	* mh/.cvsignore: Added 'whom'.
+	* mh/mh_whom.c: New file.
+	* mh/whom.c: New file.
+	* mh/Makefile.am: Added new files
+	* mh/TODO: Updated
+	* mh/mh.h (mh_draft_name,mh_whom): New functions.
+	* mh/mh_getopt.h: Updated
+	* mh/mh_init.c (mh_draft_name): New function.
+	* mh/mh_whatnow.c (whom): Use mh_whom.
+	* mh/send.c (draft_name): Removed.
+	* mh/whatnow.c (main): Use 'draft' by default.
+	
 2003-03-10  Sergey Poznyakoff 
 
 	* comsat/comsat.c: Use ngettext.

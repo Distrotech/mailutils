@@ -35,7 +35,8 @@ PROGRAMS_MH = \
  scan\
  send\
  sortm\
- whatnow
+ whatnow\
+ whom
 
 EXTRA_PROGRAMS = \
  anno\
@@ -55,7 +56,8 @@ EXTRA_PROGRAMS = \
  scan\
  send\
  sortm\
- whatnow
+ whatnow\
+ whom
 
 LIBRARIES_MH = libmh.a
 EXTRA_LIBRARIES = libmh.a
@@ -78,7 +80,8 @@ libmh_a_SOURCES= \
  mh_msgset.c\
  mh_sequence.c\
  mh_stream.c\
- mh_whatnow.c
+ mh_whatnow.c\
+ mh_whom.c
 noinst_HEADERS = mh.h mh_getopt.h
 
 LISPSRC = mailutils-mh.el

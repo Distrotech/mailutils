@@ -3,6 +3,11 @@ between Mailutils and Emacs using mh-e module. Therefore, a subset of MH
 utilities has been selected that would provide such basic functionality.
 When this functionality is achieved, other utilities may be implemented.
 
+General information
+====================
+
+Aliases are not supported
+
 Utilities Ordered by Importance
 ===============================
 
@@ -37,7 +42,7 @@ State	Nice	Utility		Comments
 				also the README entry for it.
 +	10	anno
 -	10	burst
--	10	whom
+*	10	whom		--check 
 +	10	mhpath
 +	10	whatnow		
 +	20	sortm
