@@ -238,6 +238,38 @@ _memory_tell (stream_t stream, off_t *off)
 }
 
 static int
+_memory_is_open (stream_t stream)
+{
+  (void)stream;
+  return 1;
+}
+
+static int
+_memory_is_readready (stream_t stream, int timeout)
+{
+  (void)stream;
+  (void)timeout;
+  return 1;
+}
+
+static int
+_memory_is_writeready (stream_t stream, int timeout)
+{
+  (void)stream;
+  (void)timeout;
+  return 1;
+}
+
+static int
+_memory_is_exceptionpending (stream_t stream, int timeout)
+{
+  (void)stream;
+  (void)timeout;
+  return 0;
+}
+
+
+static int
 _memory_open (stream_t stream, const char *filename, int port, int flags)
 {
   struct _memory_stream *mem = (struct _memory_stream *)stream;
@@ -278,7 +310,13 @@ static struct _stream_vtable _mem_vtable =
 
   _memory_get_fd,
   _memory_get_flags,
-  _memory_get_state
+  _memory_get_state,
+
+  _memory_is_readready,
+  _memory_is_writeready,
+  _memory_is_exceptionpending,
+
+  _memory_is_open
 };
 
 int

@@ -32,6 +32,7 @@ typedef struct {
 
 /* The names of functions that actually do the manipulation. */
 int com_apop (char *);
+int com_capa (char *);
 int com_disconnect (char *);
 int com_dele (char *);
 int com_exit (char *);
@@ -61,6 +62,7 @@ void sig_int (int);
 
 COMMAND commands[] = {
   { "apop", com_apop, "Authenticate with APOP: APOP user secret" },
+  { "capa", com_capa, "List capabilities: capa" },
   { "disconnect", com_disconnect, "Close connection: disconnect" },
   { "dele", com_dele, "Mark message: DELE msgno" },
   { "exit", com_exit, "exit program" },
@@ -333,6 +335,29 @@ com_apop (char *arg)
 }
 
 int
+com_capa (char *arg)
+{
+  iterator_t iterator;
+  int status = pop3_capa (pop3, &iterator);
+  (void)arg;
+  print_response ();
+  if (status == 0)
+    {
+      for (iterator_first (iterator);
+	   !iterator_is_done (iterator);
+	   iterator_next (iterator))
+	{
+	  char *capa = (char *)"";
+	  iterator_current (iterator, &capa);
+	  printf ("Capa: %s\n", capa);
+	  free (capa);
+	}
+      iterator_destroy (iterator);
+    }
+  return status;
+}
+
+int
 com_uidl (char *arg)
 {
   if (arg == NULL || *arg == '\0')
@@ -346,10 +371,11 @@ com_uidl (char *arg)
 	       !iterator_is_done (uidl_iterator);
 	       iterator_next (uidl_iterator))
 	    {
-	      struct pop3_uidl_item *pl;
-	      iterator_current (uidl_iterator, (void *)&pl);
-	      printf ("Msg: %d UIDL: %s\n", pl->msgno, pl->uidl);
-	      free (pl);
+	      unsigned int msgno = 0;
+	      char *uidl = (char *)"";
+	      pop3_uidl_current (uidl_iterator, &msgno, &uidl);
+	      printf ("Msg: %d UIDL: %s\n", msgno, uidl);
+	      free (uidl);
 	    }
 	  iterator_destroy (uidl_iterator);
 	}
@@ -380,10 +406,10 @@ com_list (char *arg)
 	       !iterator_is_done (list_iterator);
 	       iterator_next (list_iterator))
 	    {
-	      struct pop3_list_item *pl;
-	      iterator_current (list_iterator, (void *)&pl);
-	      printf ("Msg: %d Size: %d\n", pl->msgno, pl->size);
-	      free (pl);
+	      unsigned int msgno = 0;
+	      size_t size = 0;
+	      pop3_list_current (list_iterator, &msgno, &size);
+	      printf ("Msg: %d Size: %d\n", msgno, size);
 	    }
 	  iterator_destroy (list_iterator);
 	}

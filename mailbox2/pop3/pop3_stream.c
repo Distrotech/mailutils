@@ -27,37 +27,6 @@
 #include <stdlib.h>
 #include <mailutils/sys/pop3.h>
 
-int
-pop3_set_stream (pop3_t pop3, stream_t stream)
-{
-  /* Sanity checks.  */
-  if (pop3 == NULL)
-    return MU_ERROR_INVALID_PARAMETER;
-
-  /* If the stream was set before we will leak.  But do what they say.  */
-  pop3->stream = stream;
-  return 0;
-}
-
-int
-pop3_get_stream (pop3_t pop3, stream_t *pstream)
-{
-  /* Sanity checks.  */
-  if (pop3 == NULL || pstream == NULL)
-    return MU_ERROR_INVALID_PARAMETER;
-
-  if (pop3->stream == NULL)
-    {
-      stream_t stream = NULL;
-      int status = stream_tcp_create (&stream);
-      if (status)
-	return status;
-      stream_buffer_create (&(pop3->stream), stream, 1024);
-    }
-  *pstream = pop3->stream;
-  return 0;
-}
-
 /* Implementation of the stream for TOP and RETR.  */
 static int p_add_ref       __P ((stream_t));
 static int p_release       __P ((stream_t));
@@ -80,6 +49,12 @@ static int p_flush         __P ((stream_t));
 static int p_get_fd        __P ((stream_t, int *));
 static int p_get_flags     __P ((stream_t, int *));
 static int p_get_state     __P ((stream_t, enum stream_state *));
+
+static int p_is_readready  __P ((stream_t, int timeout));
+static int p_is_writeready __P ((stream_t, int timeout));
+static int p_is_exceptionpending  __P ((stream_t, int timeout));
+
+static int p_is_open       __P ((stream_t));
 
 static struct _stream_vtable p_s_vtable =
 {
@@ -104,6 +79,12 @@ static struct _stream_vtable p_s_vtable =
   p_get_fd,
   p_get_flags,
   p_get_state,
+
+  p_is_readready,
+  p_is_writeready,
+  p_is_exceptionpending,
+
+  p_is_open
 };
 
 int
@@ -207,10 +188,9 @@ p_read (stream_t stream, void *buf, size_t buflen, size_t *pn)
 	      size_t nread = 0;
 
 	      /* The pop3_readline () function will always read one less to
-		 be able to terminate the buffer, this will cause serious grief
-		 for stream_read() where it is legitimate to have a buffer of
-		 1 char.  So we must catch it here or change the behaviour of
-		 XXX_readline.  */
+		 be able to null terminate the buffer, this will cause
+		 serious grief for stream_read() where it is legitimate to
+		 have a buffer of 1 char.  So we must catch it here.  */
 	      if (buflen == 1)
 		{
 		  char buffer[2];
@@ -271,61 +251,89 @@ static int
 p_write (stream_t stream, const void *buf, size_t buflen, size_t *pn)
 {
   struct p_stream *p_stream = (struct p_stream *)stream;
-  return stream_write (p_stream->pop3->stream, buf, buflen, pn);
+  return stream_write (p_stream->pop3->carrier, buf, buflen, pn);
 }
 
 static int
 p_seek (stream_t stream, off_t offset, enum stream_whence whence)
 {
   struct p_stream *p_stream = (struct p_stream *)stream;
-  return stream_seek (p_stream->pop3->stream, offset, whence);
+  return stream_seek (p_stream->pop3->carrier, offset, whence);
 }
 
 static int
 p_tell (stream_t stream, off_t *offset)
 {
   struct p_stream *p_stream = (struct p_stream *)stream;
-  return stream_tell (p_stream->pop3->stream, offset);
+  return stream_tell (p_stream->pop3->carrier, offset);
 }
 
 static int
 p_get_size (stream_t stream, off_t *size)
 {
   struct p_stream *p_stream = (struct p_stream *)stream;
-  return stream_get_size (p_stream->pop3->stream, size);
+  return stream_get_size (p_stream->pop3->carrier, size);
 }
 
 static int
 p_truncate (stream_t stream, off_t size)
 {
   struct p_stream *p_stream = (struct p_stream *)stream;
-  return stream_truncate (p_stream->pop3->stream, size);
+  return stream_truncate (p_stream->pop3->carrier, size);
 }
 
 static int
 p_flush (stream_t stream)
 {
   struct p_stream *p_stream = (struct p_stream *)stream;
-  return stream_flush (p_stream->pop3->stream);
+  return stream_flush (p_stream->pop3->carrier);
 }
 
 static int
 p_get_fd (stream_t stream, int *fd)
 {
   struct p_stream *p_stream = (struct p_stream *)stream;
-  return stream_get_fd (p_stream->pop3->stream, fd);
+  return stream_get_fd (p_stream->pop3->carrier, fd);
 }
 
 static int
 p_get_flags (stream_t stream, int *flags)
 {
   struct p_stream *p_stream = (struct p_stream *)stream;
-  return stream_get_flags (p_stream->pop3->stream, flags);
+  return stream_get_flags (p_stream->pop3->carrier, flags);
 }
 
 static int
 p_get_state (stream_t stream, enum stream_state *state)
 {
   struct p_stream *p_stream = (struct p_stream *)stream;
-  return stream_get_state (p_stream->pop3->stream, state);
+  return stream_get_state (p_stream->pop3->carrier, state);
+}
+
+static int
+p_is_readready (stream_t stream, int timeout)
+{
+  struct p_stream *p_stream = (struct p_stream *)stream;
+  return stream_is_readready (p_stream->pop3->carrier, timeout);
+}
+
+static int
+p_is_writeready (stream_t stream, int timeout)
+{
+  struct p_stream *p_stream = (struct p_stream *)stream;
+  return stream_is_writeready (p_stream->pop3->carrier, timeout);
+}
+
+static int
+p_is_exceptionpending (stream_t stream, int timeout)
+{
+  struct p_stream *p_stream = (struct p_stream *)stream;
+  return stream_is_exceptionpending (p_stream->pop3->carrier, timeout);
+}
+
+static int
+p_is_open (stream_t stream)
+{
+  struct p_stream *p_stream = (struct p_stream *)stream;
+  return stream_is_open (p_stream->pop3->carrier);
 }

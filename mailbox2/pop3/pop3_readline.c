@@ -19,9 +19,9 @@
 # include <config.h>
 #endif
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/time.h>
 #include <sys/types.h>
 #include <unistd.h>
 #include <mailutils/sys/pop3.h>
@@ -29,7 +29,7 @@
 
 /* Read a complete line from the pop server. Transform CRLF to LF, remove
    the stuff byte termination octet ".", put a null in the buffer
-   when done.  */
+   when done.  And Do a select() (stream_is_readready()) for the timeout.  */
 static int
 pop3_getline (pop3_t pop3)
 {
@@ -44,38 +44,12 @@ pop3_getline (pop3_t pop3)
 	 since on linux tv is modified when error.  */
       if (pop3->timeout)
 	{
-	  /* Heavy hand but continue if select trip on a signal.  */
-	  for (;;)
-	    {
-	      int fd = -1;
-	      struct timeval tv;
-	      fd_set rfds;
-
-	      status = stream_get_fd (pop3->stream, &fd);
-	      if (status != 0)
-		return status;
-
-	      if (fd == -1)
-		return MU_ERROR_IO;
-
-	      FD_ZERO (&rfds);
-	      FD_SET (fd, &rfds);
-	      tv.tv_sec = pop3->timeout;
-	      tv.tv_usec = 0;
-	      status = select (fd + 1, &rfds, NULL, NULL, &tv);
-	      if (status == 0)
-		return MU_ERROR_TIMEOUT;
-	      else if (status == -1)
-		{
-		  if (errno == EINTR)
-		    continue;
-		  return MU_ERROR_IO;
-		}
-	      break;
-	    }
+	  int ready = stream_is_readready (pop3->carrier, pop3->timeout);
+	  if (ready == 0)
+	    return MU_ERROR_TIMEOUT;
 	}
 
-      status = stream_readline (pop3->stream, pop3->io.buf + total,
+      status = stream_readline (pop3->carrier, pop3->io.buf + total,
 				pop3->io.len - total, &n);
       if (status != 0)
 	return status;
@@ -90,7 +64,7 @@ pop3_getline (pop3_t pop3)
       if (pop3->io.nl == NULL)  /* Do we have a full line.  */
 	{
 	  /* Allocate a bigger buffer ?  */
-	  if (total >= pop3->io.len -1)
+	  if (total >= pop3->io.len - 1)
 	    {
 	      pop3->io.len *= 2;
 	      pop3->io.buf = realloc (pop3->io.buf, pop3->io.len + 1);
@@ -134,6 +108,11 @@ pop3_getline (pop3_t pop3)
   return status;
 } /* if need to fill up.  */
 
+/* Call pop3_getline() for the dirty work,  and consume i.e. put
+   in the user buffer only buflen. If buflen == 0 or buffer == NULL
+   nothing is consume, the data is save for another call to pop3_readline()
+   with a buffer != NULL.
+  */
 int
 pop3_readline (pop3_t pop3, char *buffer, size_t buflen, size_t *pnread)
 {
@@ -142,7 +121,7 @@ pop3_readline (pop3_t pop3, char *buffer, size_t buflen, size_t *pnread)
   int status;
 
   /* Do we need to fill up? Yes if no NL or the buffer is empty.  */
-  if (pop3->stream && (pop3->io.nl == NULL || pop3->io.ptr == pop3->io.buf))
+  if (pop3->carrier && (pop3->io.nl == NULL || pop3->io.ptr == pop3->io.buf))
     {
       status = pop3_getline (pop3);
       if (status != 0)

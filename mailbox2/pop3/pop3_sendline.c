@@ -40,7 +40,7 @@ int
 pop3_send (pop3_t pop3)
 {
   int status = 0;
-  if (pop3->stream && (pop3->io.ptr > pop3->io.buf))
+  if (pop3->carrier && (pop3->io.ptr > pop3->io.buf))
     {
       size_t n = 0;
       size_t len = pop3->io.ptr - pop3->io.buf;
@@ -49,34 +49,12 @@ pop3_send (pop3_t pop3)
 	 since on linux tv is modified when error.  */
       if (pop3->timeout)
 	{
-	  for (;;)
-	    {
-	      int fd = -1;
-	      struct timeval tv;
-	      fd_set wfds;
-	      status = stream_get_fd (pop3->stream, &fd);
-	      if (status != 0)
-		return status;
-
-	      FD_ZERO (&wfds);
-	      FD_SET (fd, &wfds);
-	      tv.tv_sec = pop3->timeout;
-	      tv.tv_usec = 0;
-
-	      status = select (fd + 1, NULL, &wfds, NULL, &tv);
-	      if (status == 0)
-		return MU_ERROR_TIMEOUT;
-	      else if (status == -1)
-		{
-		  if (errno == EINTR)
-		    continue;
-		  return MU_ERROR_IO;
-		}
-	      break;
-	    }
+	  int ready = stream_is_writeready (pop3->carrier, pop3->timeout);
+	  if (ready == 0)
+	    return MU_ERROR_TIMEOUT;
 	}
 
-      status = stream_write (pop3->stream, pop3->io.buf, len, &n);
+      status = stream_write (pop3->carrier, pop3->io.buf, len, &n);
       if (n)
 	{
 	  /* Consume what we sent.  */

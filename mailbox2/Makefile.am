@@ -27,7 +27,7 @@ libmailbox_la_SOURCES = \
  md5-rsa.c    \
  memstream.c  \
  message.c    \
- mstream.c    \
+ mapstream.c  \
  mutil.c      \
  observable.c \
  observer.c   \

@@ -10,6 +10,7 @@ lib_LTLIBRARIES = libpop3.la
 libmailbox_la_SOURCES = \
  pop3_apop.c       \
  pop3_capa.c       \
+ pop3_carrier.c    \
  pop3_cleanup.c    \
  pop3_connect.c    \
  pop3_create.c     \

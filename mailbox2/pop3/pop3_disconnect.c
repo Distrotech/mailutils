@@ -23,10 +23,14 @@
 #include <stdlib.h>
 #include <string.h>
 
-/* Sudden death.  */
-static int
-pop3_disconnect0 (pop3_t pop3)
+int
+pop3_disconnect (pop3_t pop3)
 {
+
+  /* Sanity checks.  */
+  if (pop3 == NULL)
+    return MU_ERROR_INVALID_PARAMETER;
+
   /* We can keep some of the fields, if they decide to pop3_open() again but
      clear the states.  */
   pop3->state = POP3_NO_STATE;
@@ -40,24 +44,7 @@ pop3_disconnect0 (pop3_t pop3)
       free (pop3->timestamp);
       pop3->timestamp = NULL;
     }
-  if (pop3->stream)
-    return stream_close (pop3->stream);
+  if (pop3->carrier)
+    return stream_close (pop3->carrier);
   return 0;
-}
-
-int
-pop3_disconnect (pop3_t pop3)
-{
-  int status;
-
-  /* Sanity checks.  */
-  if (pop3 == NULL)
-    return MU_ERROR_INVALID_PARAMETER;
-
-  monitor_lock (pop3->lock);
-  monitor_cleanup_push (pop3_cleanup, pop3);
-  status = pop3_disconnect0 (pop3);
-  monitor_unlock (pop3->lock);
-  monitor_cleanup_pop (0);
-  return status;
 }

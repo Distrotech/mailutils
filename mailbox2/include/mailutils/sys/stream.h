@@ -47,6 +47,12 @@ struct _stream_vtable
   int (*get_fd)    __P ((stream_t , int *));
   int (*get_flags) __P ((stream_t, int *));
   int (*get_state) __P ((stream_t, enum stream_state *));
+
+  int (*is_readready) __P ((stream_t, int));
+  int (*is_writeready) __P ((stream_t, int));
+  int (*is_exceptionpending) __P ((stream_t, int));
+
+  int (*is_open) __P ((stream_t));
 };
 
 struct _stream

@@ -31,6 +31,9 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <unistd.h>
+#include <sys/time.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 #include <mailutils/sys/tcpstream.h>
 #include <mailutils/error.h>
@@ -354,6 +357,67 @@ _tcp_get_state (stream_t stream, enum stream_state *state)
   return 0;
 }
 
+static int
+_tcp_is_readready (stream_t stream, int timeout)
+{
+  struct _tcp_instance *tcp = (struct _tcp_instance *)stream;
+  int ready;
+  struct timeval tv;
+  fd_set fds;
+
+  FD_ZERO (&fds);
+  FD_SET (tcp->fd, &fds);
+
+  tv.tv_sec  = timeout / 100;
+  tv.tv_usec = (timeout % 1000) * 1000;
+
+  ready = select (tcp->fd + 1, &fds, NULL, NULL, (timeout == -1) ? NULL: &tv);
+  return (ready == -1) ? 0 : 1;
+}
+
+static int
+_tcp_is_writeready (stream_t stream, int timeout)
+{
+  struct _tcp_instance *tcp = (struct _tcp_instance *)stream;
+  int ready;
+  struct timeval tv;
+  fd_set fds;
+
+  FD_ZERO (&fds);
+  FD_SET (tcp->fd, &fds);
+
+  tv.tv_sec  = timeout / 100;
+  tv.tv_usec = (timeout % 1000) * 1000;
+
+  ready = select (tcp->fd + 1, NULL, &fds, NULL, (timeout == -1) ? NULL: &tv);
+  return (ready == -1) ? 0 : 1;
+}
+
+static int
+_tcp_is_exceptionpending (stream_t stream, int timeout)
+{
+  struct _tcp_instance *tcp = (struct _tcp_instance *)stream;
+  int ready;
+  struct timeval tv;
+  fd_set fds;
+
+  FD_ZERO (&fds);
+  FD_SET  (tcp->fd, &fds);
+
+  tv.tv_sec  = timeout / 100;
+  tv.tv_usec = (timeout % 1000) * 1000;
+
+  ready = select (tcp->fd + 1, NULL, NULL, &fds, (timeout == -1) ? NULL: &tv);
+  return (ready == -1) ? 0 : 1;
+}
+
+static int
+_tcp_is_open (stream_t stream)
+{
+  struct _tcp_instance *tcp = (struct _tcp_instance *)stream;
+  return tcp->fd >= 0;
+}
+
 static struct _stream_vtable _tcp_vtable =
 {
   _tcp_add_ref,
@@ -376,7 +440,13 @@ static struct _stream_vtable _tcp_vtable =
 
   _tcp_get_fd,
   _tcp_get_flags,
-  _tcp_get_state
+  _tcp_get_state,
+
+  _tcp_is_readready,
+  _tcp_is_writeready,
+  _tcp_is_exceptionpending,
+
+  _tcp_is_open
 };
 
 int

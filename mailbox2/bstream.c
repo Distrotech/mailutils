@@ -268,9 +268,7 @@ _bs_readline (stream_t stream, char *buf, size_t count, size_t *pnread)
 	      bs->rbuffer.ptr = nl;
 	      memcpy (s, p, len);
 	      total += len;
-	      s[len] = '\0';
-	      if (pnread)
-		*pnread = total;
+	      s += len;
 	      break;
 	    }
 	  bs->rbuffer.count -= len;
@@ -371,6 +369,38 @@ _bs_tell (stream_t stream, off_t *off)
   return stream_tell (bs->stream, off);
 }
 
+static int
+_bs_is_readready (stream_t stream, int timeout)
+{
+  struct _bs *bs = (struct _bs *)stream;
+  /* Drain our buffer first.  */
+  if (bs->rbuffer.count > 0)
+    return 1;
+  return stream_is_readready (bs->stream, timeout);
+}
+
+static int
+_bs_is_writeready (stream_t stream, int timeout)
+{
+  struct _bs *bs = (struct _bs *)stream;
+  return stream_is_writeready (bs->stream, timeout);
+}
+
+static int
+_bs_is_exceptionpending (stream_t stream, int timeout)
+{
+  struct _bs *bs = (struct _bs *)stream;
+  return stream_is_exceptionpending (bs->stream, timeout);
+}
+
+static int
+_bs_is_open (stream_t stream)
+{
+  struct _bs *bs = (struct _bs *)stream;
+  return stream_is_open (bs->stream);
+}
+
+
 static struct _stream_vtable _bs_vtable =
 {
   _bs_add_ref,
@@ -394,6 +424,12 @@ static struct _stream_vtable _bs_vtable =
   _bs_get_fd,
   _bs_get_flags,
   _bs_get_state,
+
+  _bs_is_readready,
+  _bs_is_writeready,
+  _bs_is_exceptionpending,
+
+  _bs_is_open
 };
 
 int

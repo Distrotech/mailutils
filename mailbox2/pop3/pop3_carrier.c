@@ -24,43 +24,47 @@
 # include <strings.h>
 #endif
 
+#include <stdlib.h>
 #include <mailutils/sys/pop3.h>
 
 int
-pop3_dele (pop3_t pop3, unsigned msgno)
+pop3_set_carrier (pop3_t pop3, stream_t carrier)
 {
-  int status;
-
-  if (pop3 == NULL || msgno == 0)
+  /* Sanity checks.  */
+  if (pop3 == NULL)
     return MU_ERROR_INVALID_PARAMETER;
 
-  switch (pop3->state)
+  if (pop3->carrier)
     {
-    case POP3_NO_STATE:
-      status = pop3_writeline (pop3, "DELE %d\r\n", msgno);
-      POP3_CHECK_ERROR (pop3, status);
-      pop3->state = POP3_DELE;
-
-    case POP3_DELE:
-      status = pop3_send (pop3);
-      POP3_CHECK_EAGAIN (pop3, status);
-      pop3->acknowledge = 0;
-      pop3->state = POP3_DELE_ACK;
-
-    case POP3_DELE_ACK:
-      status = pop3_response (pop3, NULL, 0, NULL);
-      POP3_CHECK_EAGAIN (pop3, status);
-      POP3_CHECK_OK (pop3);
-      pop3->state = POP3_NO_STATE;
-      break;
-
-      /* They must deal with the error first by reopening.  */
-    case POP3_ERROR:
-      status = MU_ERROR_OPERATION_CANCELED;
-      break;
-
-    default:
-      status = MU_ERROR_OPERATION_IN_PROGRESS;
+      stream_close (pop3->carrier);
+      stream_release (pop3->carrier);
     }
-  return status;
+  pop3->carrier = carrier;
+  return 0;
+}
+
+int
+pop3_get_carrier (pop3_t pop3, stream_t *pcarrier)
+{
+  /* Sanity checks.  */
+  if (pop3 == NULL || pcarrier == NULL)
+    return MU_ERROR_INVALID_PARAMETER;
+
+  if (pop3->carrier == NULL)
+    {
+      stream_t carrier = NULL;
+      int status = stream_tcp_create (&carrier);
+      if (status != 0)
+	return status;
+      status = stream_buffer_create (&(pop3->carrier), carrier, 1024);
+      if (status != 0)
+	{
+	  stream_release (carrier);
+	  return status;
+	}
+    }
+  /* Incremente the ref count, since we are exposing it.  */
+  stream_add_ref (pop3->carrier);
+  *pcarrier = pop3->carrier;
+  return 0;
 }

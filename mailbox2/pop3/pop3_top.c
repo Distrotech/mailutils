@@ -27,16 +27,18 @@
 
 #include <mailutils/sys/pop3.h>
 
-static int
-pop3_top0 (pop3_t pop3, unsigned msgno, size_t lines, stream_t *pstream)
+int
+pop3_top (pop3_t pop3, unsigned msgno, unsigned int lines, stream_t *pstream)
 {
   int status;
+
+  if (pop3 == NULL || msgno == 0 || pstream == NULL)
+    return MU_ERROR_INVALID_PARAMETER;
+
 
   switch (pop3->state)
     {
     case POP3_NO_STATE:
-      if (pstream == NULL)
-	return MU_ERROR_INVALID_PARAMETER;
       status = pop3_writeline (pop3, "TOP %d %d\r\n", msgno, lines);
       POP3_CHECK_ERROR (pop3, status);
       pop3->state = POP3_TOP;
@@ -67,21 +69,5 @@ pop3_top0 (pop3_t pop3, unsigned msgno, size_t lines, stream_t *pstream)
       status = MU_ERROR_OPERATION_IN_PROGRESS;
     }
 
-  return status;
-}
-
-int
-pop3_top (pop3_t pop3, unsigned msgno, size_t lines, stream_t *pstream)
-{
-  int status;
-
-  if (pop3 == NULL)
-    return MU_ERROR_INVALID_PARAMETER;
-
-  monitor_lock (pop3->lock);
-  monitor_cleanup_push (pop3_cleanup, pop3);
-  status = pop3_top0 (pop3, msgno, lines, pstream);
-  monitor_unlock (pop3->lock);
-  monitor_cleanup_pop (0);
   return status;
 }

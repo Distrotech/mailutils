@@ -29,12 +29,16 @@
   APOP name digest
   a string identifying a mailbox and a MD5 digest string (both required)
 */
-static int
-pop3_apop0 (pop3_t pop3, const char *user, const char *secret)
+int
+pop3_apop (pop3_t pop3, const char *user, const char *secret)
 {
   int status;
 
-  /* The server did not offer a time stamp in the greeting, bailout early.  */
+  /* Sanity checks.  */
+  if (pop3 == NULL || user == NULL || secret == NULL)
+    return MU_ERROR_INVALID_PARAMETER;
+
+  /* The server did not offer a timestamp in the greeting, bailout early.  */
   if (pop3->timestamp == NULL)
     return MU_ERROR_NOT_SUPPORTED;
 
@@ -48,9 +52,6 @@ pop3_apop0 (pop3_t pop3, const char *user, const char *secret)
 	char digest[64]; /* Really it just has to be 32 + 1(null).  */
 	char *tmp;
 	size_t n;
-
-	if (user == NULL || secret == NULL)
-	  return MU_ERROR_INVALID_PARAMETER;
 
 	MD5Init (&md5context);
 	MD5Update (&md5context, (unsigned char *)pop3->timestamp,
@@ -88,21 +89,5 @@ pop3_apop0 (pop3_t pop3, const char *user, const char *secret)
       status = MU_ERROR_OPERATION_IN_PROGRESS;
     }
 
-  return status;
-}
-
-int
-pop3_apop (pop3_t pop3, const char *user, const char *secret)
-{
-  int status;
-
-  if (pop3 == NULL)
-    return MU_ERROR_INVALID_PARAMETER;
-
-  monitor_lock (pop3->lock);
-  monitor_cleanup_push (pop3_cleanup, pop3);
-  status = pop3_apop0 (pop3, user, secret);
-  monitor_unlock (pop3->lock);
-  monitor_cleanup_pop (0);
   return status;
 }

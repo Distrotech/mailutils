@@ -33,10 +33,14 @@ static int pop3_sleep (int seconds);
 
 /* Open the connection to the server. The server sends an affirmative greeting
    that may contain a timestamp for APOP.  */
-static int
-pop3_connect0 (pop3_t pop3, const char *host, unsigned int port)
+int
+pop3_connect (pop3_t pop3, const char *host, unsigned int port)
 {
   int status;
+
+  /* Sanity checks.  */
+  if (pop3 == NULL || host == NULL)
+    return MU_ERROR_INVALID_PARAMETER;
 
   /* Default is 110.  */
   if (!port)
@@ -46,15 +50,18 @@ pop3_connect0 (pop3_t pop3, const char *host, unsigned int port)
   switch (pop3->state)
     {
     default:
-      /* __Fallthrough__, they want to clear an error.  */
+      /* FALLTHROUGH */
+      /* If pop3 was in an error state going through here should clear it.  */
+
     case POP3_NO_STATE:
       /* Create the networking stack.  */
-      if (pop3->stream == NULL)
+      if (pop3->carrier == NULL)
 	{
-	  status = stream_tcp_create (&(pop3->stream));
+	  stream_t carrier;
+	  status = pop3_get_carrier (pop3, &carrier);
 	  POP3_CHECK_ERROR (pop3, status);
-	  /* Using the awkward stream_t buffering.  */
-	  /*stream_setbufsiz (pop3->stream, 1024); */
+	  /* A add_ref was done part of pop3_get_carrier().  */
+	  stream_release (carrier);
 	}
       else
 	{
@@ -65,8 +72,8 @@ pop3_connect0 (pop3_t pop3, const char *host, unsigned int port)
 	     to read a new message, closing the connection and immediately
 	     contacting the server again, and he'll end up having
 	     "-ERR Mail Lock busy" or something similar. To prevent this race
-	     condition we sleep 2 seconds.  This really obvious for in
-	     environment where QPopper is use, the user as a big mailbox. */
+	     condition we sleep 2 seconds.  This is really obvious for in
+	     environment where QPopper is use and the user as a big mailbox. */
 	  pop3_disconnect (pop3);
           pop3_sleep (2);
 	}
@@ -74,7 +81,7 @@ pop3_connect0 (pop3_t pop3, const char *host, unsigned int port)
 
     case POP3_CONNECT:
       /* Establish the connection.  */
-      status = stream_open (pop3->stream, host, port,
+      status = stream_open (pop3->carrier, host, port,
 			    MU_STREAM_READ|MU_STREAM_WRITE);
       POP3_CHECK_EAGAIN (pop3, status);
       pop3->acknowledge = 0;
@@ -89,7 +96,7 @@ pop3_connect0 (pop3_t pop3, const char *host, unsigned int port)
 	POP3_CHECK_EAGAIN (pop3, status);
 	if (strncasecmp (pop3->ack.buf, "+OK", 3) != 0)
 	  {
-	    stream_close (pop3->stream);
+	    stream_close (pop3->carrier);
 	    pop3->state = POP3_NO_STATE;
 	    return MU_ERROR_OPERATION_DENIED;
 	  }
@@ -106,7 +113,7 @@ pop3_connect0 (pop3_t pop3, const char *host, unsigned int port)
 		pop3->timestamp = calloc (len + 1, 1);
 		if (pop3->timestamp == NULL)
 		  {
-		    stream_close (pop3->stream);
+		    stream_close (pop3->carrier);
 		    POP3_CHECK_ERROR (pop3, MU_ERROR_NO_MEMORY);
 		  }
 		/* Do not copy the surrounding '<>'.  */
@@ -129,22 +136,4 @@ pop3_sleep (int seconds)
   tval.tv_sec = seconds;
   tval.tv_usec = 0;
   return select (1, NULL, NULL, NULL, &tval);
-}
-
-int
-pop3_connect (pop3_t pop3, const char *host, unsigned int port)
-{
-  int status;
-
-  /* Sanity checks.  */
-  if (pop3 == NULL || host == NULL)
-    return MU_ERROR_INVALID_PARAMETER;
-
-  monitor_lock (pop3->lock);
-  monitor_cleanup_push (pop3_cleanup, pop3);
-  status = pop3_connect0 (pop3, host, port);
-  monitor_unlock (pop3->lock);
-  monitor_cleanup_pop (0);
-  return status;
-
 }

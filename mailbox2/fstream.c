@@ -247,6 +247,36 @@ _fs_get_state (stream_t stream, enum stream_state *state)
 }
 
 static int
+_fs_is_open (stream_t stream)
+{
+  struct _fs *fs = (struct _fs *)stream;
+  return (fs->file) ? 1 : 0;
+}
+
+static int
+_fs_is_readready (stream_t stream, int timeout)
+{
+  (void)timeout;
+  return _fs_is_open (stream);
+}
+
+static int
+_fs_is_writeready (stream_t stream, int timeout)
+{
+  (void)timeout;
+  return _fs_is_open (stream);
+}
+
+static int
+_fs_is_exceptionpending (stream_t stream, int timeout)
+{
+  (void)stream;
+  (void)timeout;
+  return 0;
+}
+
+
+static int
 _fs_close (stream_t stream)
 {
   struct _fs *fs = (struct _fs *)stream;
@@ -385,7 +415,13 @@ static struct _stream_vtable _fs_vtable =
 
   _fs_get_fd,
   _fs_get_flags,
-  _fs_get_state
+  _fs_get_state,
+
+  _fs_is_readready,
+  _fs_is_writeready,
+  _fs_is_exceptionpending,
+
+  _fs_is_open
 };
 
 int

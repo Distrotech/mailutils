@@ -23,8 +23,8 @@
 #include <mailutils/pop3.h>
 #include <mailutils/sys/stream.h>
 #include <mailutils/sys/iterator.h>
-#include <mailutils/monitor.h>
 #include <mailutils/error.h>
+#include <mailutils/monitor.h>
 
 #ifdef DMALLOC
 # include <dmalloc.h>
@@ -61,7 +61,7 @@ struct p_iterator
   pop3_t pop3;
   unsigned int ref;
   int done;
-  void *item;
+  char *item;
   monitor_t lock;
 };
 
@@ -103,13 +103,11 @@ struct _pop3
   unsigned timeout;  /* Default is 10 minutes.  */
 
   enum pop3_state state;
-  stream_t stream; /* TCP Connection.  */
-  monitor_t lock;
+  stream_t carrier; /* TCP Connection.  */
 };
 
 extern int  pop3_iterator_create __P ((pop3_t, iterator_t *));
 extern int  pop3_stream_create   __P ((pop3_t, stream_t *));
-extern void pop3_cleanup         __P ((void *));
 
 /* Check for non recoverable error.  */
 #define POP3_CHECK_EAGAIN(pop3, status) \

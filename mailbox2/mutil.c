@@ -25,20 +25,19 @@
 #ifdef HAVE_STRINGS_H
 #include <strings.h>
 #endif
-#include <string.h>
 #include <time.h>
 #include <pwd.h>
 #include <unistd.h>
+#include <string.h>
 
 #include <mailutils/mutil.h>
-
-#ifdef HAVE_MYSQL
-#include "../MySql/MySql.h"
-#endif
+#include <mailutils/list.h>
+#include <mailutils/iterator.h>
 
 /* convert a sequence of hex characters into an integer */
 
-unsigned long mu_hex2ul(char hex)
+unsigned long
+mu_hex2ul (char hex)
 {
   if (hex >= '0' && hex <= '9')
     return hex - '0';
@@ -52,21 +51,22 @@ unsigned long mu_hex2ul(char hex)
   return -1;
 }
 
-size_t mu_hexstr2ul(unsigned long* ul, const char* hex, size_t len)
+size_t
+mu_hexstr2ul (unsigned long *ul, const char *hex, size_t len)
 {
   size_t r;
 
   *ul = 0;
 
   for (r = 0; r < len; r++)
-  {
-    unsigned long v = mu_hex2ul(hex[r]);
+    {
+      unsigned long v = mu_hex2ul (hex[r]);
 
-    if (v == (unsigned long)-1)
-      return r;
+      if (v == (unsigned long)-1)
+	return r;
 
-    *ul = *ul * 16 + v;
-  }
+      *ul = *ul * 16 + v;
+    }
   return r;
 }
 
@@ -86,18 +86,18 @@ mu_tm2time (struct tm *timeptr, mu_timezone* tz)
 {
   int offset = tz ? tz->utc_offset : 0;
 
-  return mktime(timeptr) + mu_utc_offset() - offset;
+  return mktime (timeptr) + mu_utc_offset () - offset;
 }
 
 /* Convert time 0 at UTC to our localtime, that tells us the offset
    of our current timezone from UTC. */
 time_t
-mu_utc_offset(void)
+mu_utc_offset (void)
 {
   time_t t = 0;
-  struct tm* tm = gmtime(&t);
+  struct tm* tm = gmtime (&t);
 
-  return - mktime(tm);
+  return - mktime (tm);
 }
 
 static const char *months[] =
@@ -246,7 +246,6 @@ mu_parse_ctime_date_time (const char **p, struct tm *tm, mu_timezone * tz)
   return 0;
 }
 
-
 char *
 mu_get_homedir (void)
 {
@@ -255,7 +254,7 @@ mu_get_homedir (void)
     {
       struct passwd *pwd;
 
-      pwd = getpwuid(getuid());
+      pwd = getpwuid (getuid ());
       if (!pwd)
 	return NULL;
       homedir = pwd->pw_dir;
@@ -298,11 +297,7 @@ mu_tilde_expansion (const char *ref, const char *delim, const char *homedir)
           name = calloc (s - p + 1, 1);
           memcpy (name, p, s - p);
           name [s - p] = '\0';
-          pw = getpwnam (name);
-#ifdef HAVE_MYSQL
-          if (!pw)
-            pw = getMpwnam(name);
-#endif /* HAVE_MYSQL */
+          pw = mu_getpwnam (name);
           free (name);
           if (pw)
             {
@@ -333,3 +328,80 @@ util_cpystr (char *dst, const char *src, size_t size)
   dst[len] = '\0';
   return len;
 }
+
+static list_t _app_getpwnam = NULL;
+
+void
+mu_register_getpwnam (struct passwd *(*fun) __P((const char *)))
+{
+  if (!_app_getpwnam && list_create (&_app_getpwnam))
+    return;
+  list_append (_app_getpwnam, fun);
+}
+
+struct passwd *
+mu_getpwnam (const char *name)
+{
+  struct passwd *p;
+  iterator_t itr;
+
+  p = getpwnam (name);
+
+  if (!p && iterator_create (&itr, _app_getpwnam) == 0)
+    {
+      struct passwd *(*fun) __P((const char *));
+      for (iterator_first (itr); !p && !iterator_is_done (itr);
+	   iterator_next (itr))
+	{
+	  iterator_current (itr, (void **)&fun);
+	  p = (*fun) (name);
+	}
+
+      iterator_destroy (&itr);
+    }
+  return p;
+}
+
+int mu_virtual_domain;
+
+#ifdef USE_VIRTUAL_DOMAINS
+
+struct passwd *
+getpwnam_virtual (const char *u)
+{
+  struct passwd *pw = NULL;
+  FILE *pfile;
+  size_t i = 0, len = strlen (u), delim = 0;
+  char *filename;
+
+  mu_virtual_domain = 0;
+  for (i = 0; i < len && delim == 0; i++)
+    if (u[i] == '!' || u[i] == ':' || u[i] == '@')
+      delim = i;
+
+  if (delim == 0)
+    return NULL;
+
+  filename = malloc (strlen (SITE_VIRTUAL_PWDDIR) +
+		     strlen (&u[delim + 1]) + 2 /* slash and null byte */);
+  if (filename == NULL)
+    return NULL;
+
+  sprintf (filename, "%s/%s", SITE_VIRTUAL_PWDDIR, &u[delim + 1]);
+  pfile = fopen (filename, "r");
+  free (filename);
+
+  if (pfile)
+    while ((pw = fgetpwent (pfile)) != NULL)
+      {
+	if (strlen (pw->pw_name) == delim && !strncmp (u, pw->pw_name, delim))
+	  {
+	    mu_virtual_domain = 1;
+	    break;
+	  }
+      }
+
+  return pw;
+}
+
+#endif

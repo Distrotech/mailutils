@@ -24,11 +24,13 @@
 #include <mailutils/sys/pop3.h>
 
 /* Initialise a pop3_t handle.  */
+
 int
 pop3_create (pop3_t *ppop3)
 {
   pop3_t pop3;
 
+  /* Sanity check.  */
   if (ppop3 == NULL)
     return MU_ERROR_INVALID_PARAMETER;
 
@@ -36,31 +38,32 @@ pop3_create (pop3_t *ppop3)
   if (pop3 == NULL)
     return MU_ERROR_NO_MEMORY;
 
+  /* Reserve space for the ack(nowledgement) response.  */
   /* According to RFC 2449: The maximum length of the first line of a
      command response (including the initial greeting) is unchanged at
      512 octets (including the terminating CRLF).  */
   pop3->ack.len = 512;
-  pop3->ack.ptr = pop3->ack.buf = calloc (pop3->ack.len, 1);
+  pop3->ack.buf = calloc (pop3->ack.len, 1);
   if (pop3->ack.buf == NULL)
     {
       pop3_destroy (pop3);
       return MU_ERROR_NO_MEMORY;
     }
+  pop3->ack.ptr = pop3->ack.buf;
 
   /* RFC 2449 recommands 255, but we grow it as needed.  */
   pop3->io.len = 255;
-  pop3->io.ptr = pop3->io.buf = calloc (pop3->io.len, 1);
+  pop3->io.buf = calloc (pop3->io.len, 1);
   if (pop3->io.buf == NULL)
     {
       pop3_destroy (pop3);
       return MU_ERROR_NO_MEMORY;
     }
+  pop3->io.ptr = pop3->io.buf;
 
   pop3->state = POP3_NO_STATE; /* Init with no state.  */
-  pop3->timeout = 10 * 60; /* The default Timeout is 10 minutes.  */
+  pop3->timeout = (10 * 60) * 100; /* The default Timeout is 10 minutes.  */
   pop3->acknowledge = 0; /* No Ack received.  */
-
-  monitor_create (&(pop3->lock));
 
   *ppop3 = pop3;
   return 0; /* Okdoke.  */

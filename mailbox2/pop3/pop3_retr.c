@@ -27,10 +27,13 @@
 
 #include <mailutils/sys/pop3.h>
 
-static int
-pop3_retr0 (pop3_t pop3, unsigned msgno, stream_t *pstream)
+int
+pop3_retr (pop3_t pop3, unsigned int msgno, stream_t *pstream)
 {
   int status;
+
+  if (pop3 == NULL || msgno == 0 || pstream == NULL)
+    return MU_ERROR_INVALID_PARAMETER;
 
   switch (pop3->state)
     {
@@ -65,21 +68,5 @@ pop3_retr0 (pop3_t pop3, unsigned msgno, stream_t *pstream)
       status = MU_ERROR_OPERATION_IN_PROGRESS;
     }
 
-  return status;
-}
-
-int
-pop3_retr (pop3_t pop3, unsigned msgno, stream_t *pstream)
-{
-  int status;
-
-  if (pop3 == NULL || pstream == NULL)
-    return MU_ERROR_INVALID_PARAMETER;
-
-  monitor_lock (pop3->lock);
-  monitor_cleanup_push (pop3_cleanup, pop3);
-  status = pop3_retr0 (pop3, msgno, pstream);
-  monitor_unlock (pop3->lock);
-  monitor_cleanup_pop (0);
   return status;
 }

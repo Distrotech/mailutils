@@ -28,10 +28,13 @@
 #include <stdio.h>
 #include <mailutils/sys/pop3.h>
 
-static int
-pop3_list0 (pop3_t pop3, unsigned msgno, size_t *psize)
+int
+pop3_list (pop3_t pop3, unsigned int msgno, size_t *psize)
 {
   int status;
+
+  if (pop3 == NULL || msgno == 0 || psize == NULL)
+    return MU_ERROR_INVALID_PARAMETER;
 
   switch (pop3->state)
     {
@@ -68,20 +71,5 @@ pop3_list0 (pop3_t pop3, unsigned msgno, size_t *psize)
       status = MU_ERROR_OPERATION_IN_PROGRESS;
     }
 
-  return status;
-}
-
-int
-pop3_list (pop3_t pop3, unsigned msgno, size_t *psize)
-{
-  int status;
-  if (pop3 == NULL)
-    return MU_ERROR_INVALID_PARAMETER;
-
-  monitor_lock (pop3->lock);
-  monitor_cleanup_push (pop3_cleanup, pop3);
-  status = pop3_list0 (pop3, msgno, psize);
-  monitor_unlock (pop3->lock);
-  monitor_cleanup_pop (0);
   return status;
 }

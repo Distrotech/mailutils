@@ -72,6 +72,12 @@ extern int stream_get_fd      __P ((stream_t , int *));
 extern int stream_get_flags   __P ((stream_t, int *));
 extern int stream_get_state   __P ((stream_t, enum stream_state  *));
 
+extern int stream_is_readready __P ((stream_t, int));
+extern int stream_is_writeready __P ((stream_t, int));
+extern int stream_is_exceptionpending __P ((stream_t, int));
+
+extern int stream_is_open __P ((stream_t));
+
 /* Misc.  */
 extern int stream_file_create    __P ((stream_t *));
 extern int stream_mapfile_create __P ((stream_t *));

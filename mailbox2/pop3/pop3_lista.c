@@ -25,19 +25,21 @@
 # include <strings.h>
 #endif
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <mailutils/sys/pop3.h>
 
-static int
-pop3_list_all0 (pop3_t pop3, iterator_t *piterator)
+int
+pop3_list_all (pop3_t pop3, iterator_t *piterator)
 {
   int status;
+
+  if (pop3 == NULL || piterator == NULL)
+    return MU_ERROR_INVALID_PARAMETER;
 
   switch (pop3->state)
     {
     case POP3_NO_STATE:
-      if (piterator == NULL)
-	return MU_ERROR_INVALID_PARAMETER;
       status = pop3_writeline (pop3, "LIST\r\n");
       POP3_CHECK_ERROR (pop3, status);
       pop3->state = POP3_LIST;
@@ -72,17 +74,21 @@ pop3_list_all0 (pop3_t pop3, iterator_t *piterator)
 }
 
 int
-pop3_list_all (pop3_t pop3, iterator_t *piterator)
+pop3_list_current (iterator_t iterator, unsigned int *pno, size_t *plen)
 {
-  int status;
-
-  if (pop3 == NULL)
-    return MU_ERROR_INVALID_PARAMETER;
-
-  monitor_lock (pop3->lock);
-  monitor_cleanup_push (pop3_cleanup, pop3);
-  status = pop3_list_all0 (pop3, piterator);
-  monitor_unlock (pop3->lock);
-  monitor_cleanup_pop (0);
+  char *buf;
+  int status = iterator_current (iterator, (void *)&buf);
+  if (status == 0)
+    {
+      size_t size;
+      unsigned int msgno;
+      size = msgno = 0;
+      sscanf (buf, "%d %d", &msgno, &size);
+      if (pno)
+	*pno = msgno;
+      if (plen)
+	*plen = size;
+      free (buf);
+    }
   return status;
 }

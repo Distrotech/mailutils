@@ -27,10 +27,13 @@
 
 #include <mailutils/sys/pop3.h>
 
-static int
-pop3_rset0 (pop3_t pop3)
+int
+pop3_rset (pop3_t pop3)
 {
   int status;
+
+  if (pop3 == NULL)
+    return MU_ERROR_INVALID_PARAMETER;
 
   switch (pop3->state)
     {
@@ -61,21 +64,5 @@ pop3_rset0 (pop3_t pop3)
       status = MU_ERROR_OPERATION_IN_PROGRESS;
     }
 
-  return status;
-}
-
-int
-pop3_rset (pop3_t pop3)
-{
-  int status;
-
-  if (pop3 == NULL)
-    return MU_ERROR_INVALID_PARAMETER;
-
-  monitor_lock (pop3->lock);
-  monitor_cleanup_push (pop3_cleanup, pop3);
-  status = pop3_rset0 (pop3);
-  monitor_unlock (pop3->lock);
-  monitor_cleanup_pop (0);
   return status;
 }

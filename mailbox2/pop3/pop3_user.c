@@ -27,16 +27,17 @@
 
 #include <mailutils/sys/pop3.h>
 
-static int
-pop3_user0 (pop3_t pop3, const char *user)
+int
+pop3_user (pop3_t pop3, const char *user)
 {
   int status;
+
+  if (pop3 == NULL || user == NULL)
+    return MU_ERROR_INVALID_PARAMETER;
 
   switch (pop3->state)
     {
     case POP3_NO_STATE:
-      if (user == NULL)
-	return MU_ERROR_INVALID_PARAMETER;
       status = pop3_writeline (pop3, "USER %s\r\n", user);
       POP3_CHECK_ERROR (pop3, status);
       pop3->state = POP3_USER;
@@ -63,21 +64,5 @@ pop3_user0 (pop3_t pop3, const char *user)
       status = MU_ERROR_OPERATION_IN_PROGRESS;
     }
 
-  return status;
-}
-
-int
-pop3_user (pop3_t pop3, const char *user)
-{
-  int status;
-
-  if (pop3 == NULL)
-    return MU_ERROR_INVALID_PARAMETER;
-
-  monitor_lock (pop3->lock);
-  monitor_cleanup_push (pop3_cleanup, pop3);
-  status = pop3_user0 (pop3, user);
-  monitor_unlock (pop3->lock);
-  monitor_cleanup_pop (0);
   return status;
 }

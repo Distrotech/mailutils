@@ -23,7 +23,7 @@
 #include <mailutils/sys/pop3.h>
 #include <stdlib.h>
 
-void
+int
 pop3_destroy (pop3_t pop3)
 {
   if (pop3)
@@ -37,8 +37,7 @@ pop3_destroy (pop3_t pop3)
       if (pop3->timestamp)
 	free (pop3->timestamp);
 
-      monitor_destroy (pop3->lock);
-
       free (pop3);
     }
+  return 0;
 }

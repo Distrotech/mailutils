@@ -24,7 +24,7 @@
 #include <mailutils/sys/stream.h>
 
 int
-(stream_add_ref) (stream_t stream)
+stream_add_ref (stream_t stream)
 {
   if (stream == NULL || stream->vtable == NULL
       || stream->vtable->add_ref == NULL)
@@ -33,7 +33,7 @@ int
 }
 
 int
-(stream_release) (stream_t stream)
+stream_release (stream_t stream)
 {
   if (stream == NULL || stream->vtable == NULL
       || stream->vtable->release == NULL)
@@ -42,7 +42,7 @@ int
 }
 
 int
-(stream_destroy) (stream_t stream)
+stream_destroy (stream_t stream)
 {
   if (stream == NULL || stream->vtable == NULL
       || stream->vtable->destroy == NULL)
@@ -51,7 +51,7 @@ int
 }
 
 int
-(stream_open) (stream_t stream, const char *host, int port, int flag)
+stream_open (stream_t stream, const char *host, int port, int flag)
 {
   if (stream == NULL || stream->vtable == NULL
       || stream->vtable->open == NULL)
@@ -60,7 +60,7 @@ int
 }
 
 int
-(stream_close) (stream_t stream)
+stream_close (stream_t stream)
 {
   if (stream == NULL || stream->vtable == NULL
       || stream->vtable->close == NULL)
@@ -69,7 +69,7 @@ int
 }
 
 int
-(stream_read) (stream_t stream, void *buf, size_t buflen, size_t *n)
+stream_read (stream_t stream, void *buf, size_t buflen, size_t *n)
 {
   if (stream == NULL || stream->vtable == NULL
       || stream->vtable->read == NULL)
@@ -78,7 +78,7 @@ int
 }
 
 int
-(stream_readline) (stream_t stream, char *buf, size_t buflen, size_t *n)
+stream_readline (stream_t stream, char *buf, size_t buflen, size_t *n)
 {
   if (stream == NULL || stream->vtable == NULL
       || stream->vtable->readline == NULL)
@@ -87,7 +87,7 @@ int
 }
 
 int
-(stream_write) (stream_t stream, const void *buf, size_t buflen, size_t *n)
+stream_write (stream_t stream, const void *buf, size_t buflen, size_t *n)
 {
   if (stream == NULL || stream->vtable == NULL
       || stream->vtable->write == NULL)
@@ -96,7 +96,7 @@ int
 }
 
 int
-(stream_seek) (stream_t stream, off_t off, enum stream_whence whence)
+stream_seek (stream_t stream, off_t off, enum stream_whence whence)
 {
   if (stream == NULL || stream->vtable == NULL
       || stream->vtable->seek == NULL)
@@ -105,7 +105,7 @@ int
 }
 
 int
-(stream_tell) (stream_t stream, off_t *off)
+stream_tell (stream_t stream, off_t *off)
 {
   if (stream == NULL || stream->vtable == NULL
       || stream->vtable->tell == NULL)
@@ -114,7 +114,7 @@ int
 }
 
 int
-(stream_get_size) (stream_t stream, off_t *off)
+stream_get_size (stream_t stream, off_t *off)
 {
   if (stream == NULL || stream->vtable == NULL
       || stream->vtable->get_size == NULL)
@@ -123,7 +123,7 @@ int
 }
 
 int
-(stream_truncate) (stream_t stream, off_t off)
+stream_truncate (stream_t stream, off_t off)
 {
   if (stream == NULL || stream->vtable == NULL
       || stream->vtable->truncate == NULL)
@@ -132,7 +132,7 @@ int
 }
 
 int
-(stream_flush) (stream_t stream)
+stream_flush (stream_t stream)
 {
   if (stream == NULL || stream->vtable == NULL
       || stream->vtable->flush == NULL)
@@ -141,7 +141,7 @@ int
 }
 
 int
-(stream_get_fd) (stream_t stream, int *fd)
+stream_get_fd (stream_t stream, int *fd)
 {
   if (stream == NULL || stream->vtable == NULL
       || stream->vtable->get_fd == NULL)
@@ -150,7 +150,7 @@ int
 }
 
 int
-(stream_get_flags) (stream_t stream, int *flags)
+stream_get_flags (stream_t stream, int *flags)
 {
   if (stream == NULL || stream->vtable == NULL
       || stream->vtable->get_flags == NULL)
@@ -158,11 +158,48 @@ int
   return stream->vtable->get_flags (stream, flags);
 }
 
+
 int
-(stream_get_state) (stream_t stream, enum stream_state *state)
+stream_get_state (stream_t stream, enum stream_state *state)
 {
   if (stream == NULL || stream->vtable == NULL
       || stream->vtable->get_state == NULL)
     return MU_ERROR_NOT_SUPPORTED;
   return stream->vtable->get_state (stream, state);
+}
+
+int
+stream_is_readready (stream_t stream, int timeout)
+{
+  if (stream == NULL || stream->vtable == NULL
+      || stream->vtable->is_readready == NULL)
+    return MU_ERROR_NOT_SUPPORTED;
+  return stream->vtable->is_readready (stream, timeout);
+}
+
+int
+stream_is_writeready (stream_t stream, int timeout)
+{
+  if (stream == NULL || stream->vtable == NULL
+      || stream->vtable->is_writeready == NULL)
+    return MU_ERROR_NOT_SUPPORTED;
+  return stream->vtable->is_writeready (stream, timeout);
+}
+
+int
+stream_is_exceptionpending (stream_t stream, int timeout)
+{
+  if (stream == NULL || stream->vtable == NULL
+      || stream->vtable->is_exceptionpending == NULL)
+    return MU_ERROR_NOT_SUPPORTED;
+  return stream->vtable->is_exceptionpending (stream, timeout);
+}
+
+int
+stream_is_open (stream_t stream)
+{
+  if (stream == NULL || stream->vtable == NULL
+      || stream->vtable->is_open == NULL)
+    return MU_ERROR_NOT_SUPPORTED;
+  return stream->vtable->is_open (stream);
 }

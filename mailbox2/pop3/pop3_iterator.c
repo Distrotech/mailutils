@@ -123,7 +123,6 @@ p_destroy (iterator_t iterator)
   return 0;
 }
 
-
 static int
 p_first  (iterator_t iterator)
 {
@@ -149,108 +148,20 @@ p_next (iterator_t iterator)
 	    {
 	      if (n)
 		{
-		  switch (p_iterator->pop3->state)
+		  char *buf;
+		  buf = calloc (n + 1, 1);
+		  if (buf)
 		    {
-		    case POP3_CAPA_RX:
-		      {
-			char *buf;
-			buf = calloc (n + 1, 1);
-			if (buf)
-			  {
-			    /* Consume.  */
-			    pop3_readline (p_iterator->pop3, buf, n + 1, NULL);
-			    if (buf[n - 1] == '\n')
-			      buf[n - 1] = '\0';
-			    if (p_iterator->item)
-			      free (p_iterator->item);
-			    p_iterator->item = buf;
-			  }
-			else
-			  status = MU_ERROR_NO_MEMORY;
-			break;
-		      }
-
-		    case POP3_UIDL_RX:
-		      {
-			struct pop3_uidl_item *pitem;
-			char *buf = calloc (n + 1, 1);
-			if (buf)
-			  {
-			    if (p_iterator->item)
-			      {
-				pitem = p_iterator->item;
-				if (pitem->uidl)
-				  free (pitem->uidl);
-				free (pitem);
-			      }
-			    p_iterator->item = calloc (1, sizeof *pitem);
-			    pitem = p_iterator->item;
-			    if (pitem)
-			      {
-				unsigned msgno;
-				char *space;
-				/* Consume.  */
-				pop3_readline (p_iterator->pop3, buf,
-					       n + 1, NULL);
-				msgno = 0;
-				/* The format is:
-				   msgno uidlsttring  */
-				space = strchr (buf, ' ');
-				if (space)
-				  {
-				    *space++ = '\0';
-				    msgno = strtoul (buf, NULL, 10);
-				  }
-				if (space && space[strlen (space) - 1] == '\n')
-				  space[strlen (space) - 1] = '\0';
-				if (space == NULL)
-				  space = (char *)"";
-				pitem->msgno = msgno;
-				pitem->uidl = strdup (space);
-			      }
-			    else
-			      status = MU_ERROR_NO_MEMORY;
-			    free (buf);
-			  }
-			else
-			  status = MU_ERROR_NO_MEMORY;
-			break;
-		      }
-
-		    case POP3_LIST_RX:
-		      {
-			struct pop3_list_item *pitem;
-			char *buf = calloc (n + 1, 1);
-
-			if (buf)
-			  {
-			    if (p_iterator->item)
-			      free (p_iterator->item);
-			    pitem = calloc (1, sizeof *pitem);
-			    p_iterator->item = pitem;
-			    if (pitem)
-			      {
-				unsigned msgno;
-				size_t size;
-				/* Consume.  */
-				pop3_readline (p_iterator->pop3, buf,
-					       n + 1, NULL);
-				size = msgno = 0;
-				sscanf (buf, "%d %d", &msgno, &size);
-				pitem->msgno = msgno;
-				pitem->size = size;
-			      }
-			    else
-			      status = MU_ERROR_NO_MEMORY;
-			    free (buf);
-			  }
-			else
-			  status = MU_ERROR_NO_MEMORY;
-			break;
-		      }
-
-		    default:
+		      /* Consume.  */
+		      pop3_readline (p_iterator->pop3, buf, n + 1, NULL);
+		      if (buf[n - 1] == '\n')
+			buf[n - 1] = '\0';
+		      if (p_iterator->item)
+			free (p_iterator->item);
+		      p_iterator->item = buf;
 		    }
+		  else
+		    status = MU_ERROR_NO_MEMORY;
 		}
 	      else
 		{
@@ -287,21 +198,9 @@ p_current (iterator_t iterator, void *item)
       monitor_lock (p_iterator->lock);
       if (item)
 	{
-	  switch (p_iterator->pop3->state)
-	    {
-	    case POP3_CAPA_RX:
-	    case POP3_UIDL_RX:
-	      *((char **)item) = p_iterator->item;
-	      break;
-
-	    case POP3_LIST_RX:
-	      *((struct pop3_list_item **)item) = p_iterator->item;
-	      break;
-
-	    default:
-	    }
+	  *((char **)item) = p_iterator->item;
+	  p_iterator->item = NULL;
 	}
-      p_iterator->item = NULL;
       monitor_unlock (p_iterator->lock);
     }
   return 0;

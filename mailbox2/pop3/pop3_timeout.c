@@ -23,7 +23,7 @@
 #include <stdlib.h>
 
 int
-pop3_set_timeout (pop3_t pop3, unsigned int timeout)
+pop3_set_timeout (pop3_t pop3, int timeout)
 {
   /* Sanity checks.  */
   if (pop3 == NULL)
@@ -34,7 +34,7 @@ pop3_set_timeout (pop3_t pop3, unsigned int timeout)
 }
 
 int
-pop3_get_timeout (pop3_t pop3, unsigned int *ptimeout)
+pop3_get_timeout (pop3_t pop3, int *ptimeout)
 {
   /* Sanity checks.  */
   if (pop3 == NULL || ptimeout == NULL)
