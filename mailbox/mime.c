@@ -208,7 +208,7 @@ _mime_setup_buffers(mime_t mime)
 	if ( mime->cur_buf == NULL && ( mime->cur_buf = malloc( mime->buf_size ) ) == NULL ) {
 		return ENOMEM;
 	}
-	if ( mime->cur_line == NULL && ( mime->cur_line = malloc( MIME_MAX_HDR_LEN ) ) == NULL ) {
+	if ( mime->cur_line == NULL && ( mime->cur_line = calloc( MIME_MAX_HDR_LEN, 1 ) ) == NULL ) {
 		free(mime->cur_buf);
 		return ENOMEM;
 	}
@@ -235,8 +235,6 @@ _mime_parse_mpart_message(mime_t mime)
 	char 		*cp, *cp2;
 	int 		blength, mb_length, mb_offset, mb_lines, ret;
 	size_t		nbytes;
-	body_t body;
-	stream_t stream;
 
 	if ( !(mime->flags & MIME_PARSER_ACTIVE) ) {
 		char *boundary;
@@ -258,12 +256,9 @@ _mime_parse_mpart_message(mime_t mime)
 	mb_length = mime->body_length;
 	mb_offset = mime->body_offset;
 	mb_lines = mime->body_lines;
+	blength = strlen(mime->boundary);
 
-	body = NULL;
-	stream = NULL;
-	message_get_body (mime->msg, &body);
-	body_get_stream (body, &stream);
-	while ( ( ret = stream_read(stream, mime->cur_buf, mime->buf_size, mime->cur_offset, &nbytes) ) == 0 && nbytes ) {
+	while ( ( ret = stream_read(mime->stream, mime->cur_buf, mime->buf_size, mime->cur_offset, &nbytes) ) == 0 && nbytes ) {
 		cp = mime->cur_buf;
 		while ( nbytes ) {
 			mime->cur_line[mime->line_ndx] = *cp;
@@ -276,7 +271,6 @@ _mime_parse_mpart_message(mime_t mime)
 						break;
 					case MIME_STATE_SCAN_BOUNDARY:
 						cp2 = mime->cur_line[0] == '\n' ? mime->cur_line + 1 : mime->cur_line;
-						blength = strlen(mime->boundary);
 						if ( mime->header_length )
 							mb_lines++;
 						if ( mime->line_ndx >= blength ) {
@@ -287,8 +281,10 @@ _mime_parse_mpart_message(mime_t mime)
 								mb_length = mime->cur_offset - mb_offset - mime->line_ndx + 1;
 								if ( mime->header_length ) /* this skips the preamble */
 									_mime_append_part(mime, NULL, mb_offset, mb_length, mb_lines);
-								if ( ( cp2 + blength + 2 < cp && !strncasecmp(cp2+blength, "--",2) ) ||
-									!strncasecmp(cp2+blength+2, "--",2) ) { /* very last boundary */
+								if ( ( &mime->cur_line[mime->line_ndx] - cp2 - 1 > blength 
+									&& !strncasecmp(cp2+blength+2, "--",2) ) 
+									|| ( &mime->cur_line[mime->line_ndx] - cp2 - 1 == blength
+									&& !strncasecmp(cp2+blength, "--",2) ) ) { /* last boundary */
 									mime->parser_state = MIME_STATE_BEGIN_LINE;
 									mime->header_length = 0;
 									break;
@@ -353,11 +349,7 @@ _mimepart_body_read(stream_t stream, char *buf, size_t buflen, off_t off, size_t
 		return 0;
 	read_len = (buflen <= read_len)? buflen : read_len;
 
-	body = NULL;
-	stream = NULL;
-	message_get_body (mime_part->mime->msg, &body);
-	body_get_stream (body, &stream);
-	return stream_read(stream, buf, read_len, mime_part->offset + off, nbytes );
+	return stream_read(mime_part->mime->stream, buf, read_len, mime_part->offset + off, nbytes );
 }
 
 static int
@@ -367,11 +359,7 @@ _mimepart_body_fd(stream_t stream, int *fd)
 	message_t			msg = body_get_owner(body);
 	struct _mime_part 	*mime_part = message_get_owner(msg);
 
-	body = NULL;
-	stream = NULL;
-	message_get_body (mime_part->mime->msg, &body);
-	body_get_stream (body, &stream);
-	return stream_get_fd(stream, fd);
+	return stream_get_fd(mime_part->mime->stream, fd);
 }
 
 static int
@@ -412,7 +400,7 @@ _mime_set_content_type(mime_t mime)
 	/* Delayed the creation of the header 'til they create the final message via
 	   mime_get_message()  */
 	if (mime->hdrs == NULL)
-		return 0;
+	   return 0;
 	if ( mime->nmtp_parts > 1 ) {
 		if ( mime->flags & MIME_ADDED_MULTIPART_CT )
 			return 0;
@@ -594,6 +582,7 @@ mime_create(mime_t *pmime, message_t msg, int flags)
 	mime_t 	mime = NULL;
 	int 	ret = 0;
 	size_t 	size;
+	body_t	body;
 
 	if (pmime == NULL)
 		return EINVAL;
@@ -615,6 +604,8 @@ mime_create(mime_t *pmime, message_t msg, int flags)
 			if  (ret == 0 ) {
 				mime->msg = msg;
 				mime->buf_size = MIME_DFLT_BUF_SIZE;
+				message_get_body(msg, &body);
+				body_get_stream(body, &(mime->stream));
 			}
 		}
 	}
@@ -686,7 +677,7 @@ mime_get_part(mime_t mime, size_t part, message_t *msg)
 			*msg = mime->msg;
 		else {
 			mime_part = mime->mtp_parts[part-1];
-			if ( ( ret = body_create(&body, mime_part->msg) ) == 0 ) {
+			if ( !mime_part->body_created && ( ret = body_create(&body, mime_part->msg) ) == 0 ) {
 				body_set_size (body, _mimepart_body_size, mime_part->msg);
 				body_set_lines (body, _mimepart_body_lines, mime_part->msg);
 				if ( ( ret = stream_create(&stream, MU_STREAM_READ, body) ) == 0 ) {
@@ -694,10 +685,10 @@ mime_get_part(mime_t mime, size_t part, message_t *msg)
 					stream_set_fd(stream, _mimepart_body_fd, body);
 					body_set_stream(body, stream, mime_part->msg);
 					message_set_body(mime_part->msg, body, mime_part);
-					*msg = mime_part->msg;
-					return 0;
+					mime_part->body_created = 1;
 				}
 			}
+		   *msg = mime_part->msg;
 		}
 	}
 	return ret;
@@ -764,6 +755,7 @@ mime_get_message(mime_t mime, message_t *msg)
 				}
 			}
 			message_destroy(&(mime->msg), mime);
+			mime->msg = NULL;
 		}
 	}
 	if ( ret == 0 )

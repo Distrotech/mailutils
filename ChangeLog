@@ -1,3 +1,8 @@
+2001-05-16  Dave Inglis
+
+	* mailbox/mime.c (_mime_parse_mpart): Better check for the
+	boundary.
+
 2001-05-14  Sergey Poznyakoff
 
 	* pop3d/user.c: After unsuccessful authorization frees cmd twice,
@@ -116,7 +121,7 @@
 	* pop3d/user.c: Cast the return of crypt(), since in may not be
 	declare in <unistd.h>.
 
-	* lib/snprintf.c: Use only __STDC__ to detect <stdar.h>
+	* lib/snprintf.c: Use only __STDC__ to detect <stdarg.h>
 	* lib/snprintf.h: Use only __STDC__.
 
 	* mail/mail.h: The global variable should be declare extern.

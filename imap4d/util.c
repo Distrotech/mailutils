@@ -489,7 +489,7 @@ imap4d_readline (FILE *fp)
         }
     }
   while (number > 0);
-  /* syslog (LOG_INFO, "readline: %s", line); */
+  /* syslog (LOG_INFO, "readline: %s", line);  */
   return line;
 }
 

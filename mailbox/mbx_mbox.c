@@ -408,6 +408,7 @@ mbox_close (mailbox_t mailbox)
   /* Make sure that we do not hold any file locking.  */
   locker_unlock (mailbox->locker);
 
+#if 0
   monitor_wrlock (mailbox->monitor);
   /* Before closing we need to remove all the messages
      - to reclaim the memory
@@ -434,6 +435,7 @@ mbox_close (mailbox_t mailbox)
   mud->uidvalidity = 0;
   mud->uidnext = 0;
   monitor_unlock (mailbox->monitor);
+#endif
   return stream_close (mailbox->stream);
 }
 

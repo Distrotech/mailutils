@@ -1,5 +1,5 @@
 /* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU Library General Public License as published by
@@ -60,12 +60,12 @@ struct _mime
 {
 	message_t 			msg;
 	header_t			hdrs;
-  /*stream_t			stream; */
+	stream_t			stream;
 	int					flags;
 	char 				*content_type;
 
 	int					tparts;
-	int					nmtp_parts;
+	int					nmtp_parts;		
 	struct _mime_part	**mtp_parts;		/* list of parts in the msg */
 	char 				*boundary;
 	int					cur_offset;
@@ -73,8 +73,8 @@ struct _mime
 	int					part_offset;
 	int					boundary_len;
 	int					preamble;
-	int					postamble;
-	/* parser state */
+	int					postamble;	
+	/* parser state */	
 	char	*cur_line;
 	int 	line_ndx;
 	char 	*cur_buf;
@@ -92,6 +92,7 @@ struct _mime_part
 {
 	mime_t		mime;
 	message_t 	msg;
+	int         body_created;
 	int 		offset;
 	size_t		len;
 	size_t		lines;

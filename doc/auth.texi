@@ -1,3 +1,9 @@
+There are many ways to authenticate to a server, to be flexible the
+authentication process is provided by two objects @code{auth_t} and
+@{ticket_t}.  The @{auth_t} can implement different protocol like
+APOP, MD5-AUTH, One Time Passwd etc .. By default if a mailbox
+does not understand or know how to authenticate it falls back to
+user/passwd authentication.  The @{ticket_t} is away to
 Mailboxes and Mailers provide a way to authenticate when the URL does not
 contain enough information.  The default action is to call function
 @code{auth_authenticate} who will get the @emph{user} and @emph{passwd}
