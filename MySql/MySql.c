@@ -40,26 +40,46 @@ getMpwnam (const char *username)
   if (!m)
     return NULL;
 
-  if (!mysql_real_connect (m, NULL, MUSER, MPASS, MDB, 0, NULL, 0))
-    return NULL;
-
+  if (!mysql_real_connect (m, MHOST, MUSER, MPASS, MDB, MPORT,
+			   MSOCKET, MFLAGS))
+    {
+      mu_error ("MySQL: connect failed: %s", mysql_error (m));
+      mysql_close (m);
+      return NULL;
+    }
+  
   asprintf (&QueryStr,
 	   "select %s,%s,%s,%s,%s from %s where %s = '%s'",
 	   Mpassword, Muid, Mgid, Mhomedir, Mshell, Mtable,
 	   Musername, username);
 
   if (!QueryStr)
-    return NULL;
+    {
+      mysql_close (m);
+      return NULL;
+    }
   
   if (mysql_query (m, QueryStr) != 0)
-    return NULL;
+    {
+      mu_error ("MySQL: query failed: %s", mysql_error (m));
+      mysql_close (m);
+      return NULL;
+    }
 
   if ((res = mysql_store_result (m)) == NULL)
-    return NULL;
-
+    {
+      mu_error ("MySQL: can't store result: %s", mysql_error (m));
+      mysql_close (m);
+      return NULL;
+    }
+  
   if ((row = mysql_fetch_row (res)) == NULL)
-    return NULL;
-
+    {
+      mu_error ("MySQL: can't fetch row: %s", mysql_error (m));
+      mysql_close (m);
+      return NULL;
+    }
+  
   if (!tpw)
     tpw = (struct passwd *)xmalloc (sizeof (struct passwd));
   tpw->pw_name = xmalloc (strlen (username)+1);
@@ -80,10 +100,10 @@ getMpwnam (const char *username)
   tpw->pw_shell = xmalloc (strlen (row[4])+1);
   strcpy (tpw->pw_shell, row[4]);
 	
-  mysql_free_result (res);	
+  mysql_free_result (res);
+  mysql_close (m);
   return tpw;
 }
-
 
 #ifdef HAVE_SHADOW_H
 
@@ -107,21 +127,38 @@ getMspnam (const char *username)
   if (!m)
     return NULL;
   
-  if (!mysql_real_connect (m, NULL, MUSER, MPASS, MDB, 0, NULL, 0))
-    return NULL;
+  if (!mysql_real_connect (m, MHOST, MUSER, MPASS, MDB, MPORT,
+			   MSOCKET, MFLAGS))
+    {
+      mu_error ("MySQL: connect failed: %s", mysql_error (m));
+      mysql_close (m);
+      return NULL;
+    }
 
   asprintf (&QueryStr,
-	   "select %s from %s where %s = '%s'",
-	   Mpassword, Mtable, Musername, username);
+	    "select %s from %s where %s = '%s'",
+	    Mpassword, Mtable, Musername, username);
 
   if (mysql_query (m, QueryStr) != 0)
-    return NULL;
-	 
-  if ((res = mysql_store_result (m)) == NULL)
-    return NULL;
+    {
+      mu_error ("MySQL: query failed: %s", mysql_error (m));
+      mysql_close (m);
+      return NULL;
+    }
 
+  if ((res = mysql_store_result (m)) == NULL)
+    {
+      mu_error ("MySQL: can't store result: %s", mysql_error (m));
+      mysql_close (m);
+      return NULL;
+    }
+  
   if ((row = mysql_fetch_row (res)) == NULL)
-    return NULL;
+    {
+      mu_error ("MySQL: can't fetch row: %s", mysql_error (m));
+      mysql_close (m);
+      return NULL;
+    }
 
   if (!tpw)
     tpw = (struct spwd *)xmalloc (sizeof (struct spwd));
@@ -137,7 +174,8 @@ getMspnam (const char *username)
   tpw->sp_max = 99999;
   tpw->sp_warn = 7;
 
-  mysql_free_result (res);	
+  mysql_free_result (res);
+  mysql_close (m);
   return tpw;
 }
 
