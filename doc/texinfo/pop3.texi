@@ -1,383 +1,407 @@
 @c This is part of the GNU Mailutils manual.
-@c Copyright (C) 1999,2000,2001,2002 Free Software Foundation, Inc.
+@c Copyright (C) 1999, 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
 @c See file mailutils.texi for copying conditions.
 @comment *******************************************************************
 @example
-@code{/* Prefix @emph{pop3_} is reserved */}
+@code{/* Prefix @emph{ pop3_ } is reserved */}
 @code{#include <mailutils/pop3.h>}
 
 @end example
 
-The purpose of the Post Office Protocol Version 3 (POP3) is to permit a
-client to download a maildrop from a remote server.  It does not provide
-complex or extensive operation on the maildrop.  When the client successfully
-authenticates, the server acquires an exclusive access lock on the mailbox and
-holds it the entire duration of the session.  After the authentication, the
-session enters transaction state and the client may issues commands to access
-messages in the  mailbox.
+The purpose of the Post Office Protocol Version 3 (POP3) is to permit a client to download a maildrop from a remote server.  It does
+not provide complex or extensive operation on the maildrop.  When the client successfully authenticates, the server acquires an
+exclusive access lock on the mailbox and holds it the entire duration of the session.  After the authentication, the session enters
+transaction state and the client may issues commands to access messages in the  mailbox.
 @itemize @bullet
 @item
 Authorization state
   @itemize @bullet
   @item
-  User
+  USER
   @item
-  Pass
+  PASS
   @item
-  Quit
+  QUIT
   @item
-  Capa (extension)
+  CAPA (extension)
   @item
-  Auth (extension)
+  AUTH (extension)
   @end itemize
 @item
 Transaction state
   @itemize @bullet
   @item
-  Stat
+  STAT
   @item
-  List
+  LIST
   @item
-  Retr
+  RETR
   @item
-  Dele
+  DELE
   @item
-  Noop
+  NOOP
   @item
-  Rset
+  RSET
   @item
-  Top
+  TOP
   @item
-  Uidl (extension)
+  UIDL (extension)
   @item
-  Quit
+  QUIT
   @item
-  Capa (extension)
+  CAPA (extension)
   @end itemize
 @end itemize
 
-When the command Quit is issue the session enters the update state.
+When the command QUIT is issue the session enters the update state.
 The servers removes all messages marked deleted, releases the exclusive lock
 and closes the TCP connection.
 
 @subsection Commands
 @cindex pop3_t
 
-An opaque structure @var{pop3_t} is use as a handle for the session, it is
-allocated and initialized by calling @code{pop3_create ()}.  All Functions will
-wait for a reply from the POP3 server before returning.  The duration of
-the wait can be set by calling @code{pop3_set_timeout ()}, the default
-is 10 minutes@footnote{@strong{Caution:} Although the @cite{RFC 1939}
-specifies that the minimum default timeout is ten minutes many servers has
-shorter idle period, care should be taken to at least send a
-@code{pop3_noop ()} between lengthy period of times.}.  Once a successful
-connection is established with @code{pop3_connect ()}, two builtins
-authentications are provided @code{pop3_apop ()} or
-@code{pop3_user ()}/@code{pop3_pass ()}.  The @code{pop3_stat ()} and
-@code{pop3_list ()} functions can be use to get the number and size of
-messages. Downloading of messages is done via a stream provided by
-@code{pop3_retr ()} or @code{pop3_top ()}@footnote{@strong{Caution:} Some
-Internet Service Providers do not permit to leave mail
-on server and the message will be deleted once downloaded.}.
-The @code{stream_t} should be destroyed to indicate to the library that the
-action is finished.  POP3 only provide a single channel for operation, it
-means only one operation can be done at a time, all the functions will return
-MU_ERROR_OPERATION_IN_PROGRESS if call during another operation.  The
-functions @code{pop3_list_all ()}, @code{pop3_uidl_all ()} and
-@code{pop3_capa ()} return iterators @code{pop3_list_current ()},
-@code{pop3_uidl_current ()} are provided as cover function. The iterator must
-be destroy when finish.
+An opaque structure @var{pop3_t} is use as a handle for the session, it is allocated and initialized by calling @code{pop3_create ()}.
+All Functions will wait for a reply from the POP3 server before returning.  The duration of the wait can be set by calling
+@code{pop3_set_timeout ()}, the default is 2 minutes.  On the server side, there is also an idle timeout of 10 minutes
+before the POP3 server closes the connection.  Although the @cite{RFC 1939} specifies that the minimum default timeout to be ten
+minutes many servers has shorter idle period, care should be taken to at least send a @code{pop3_noop ()} between lengthy period
+of idle time.  Once a successful connection is established with @code{pop3_connect ()}, two built-ins authentications are
+provided @code{pop3_apop ()} or @code{pop3_user ()}/@code{pop3_pass ()}.  The @code{pop3_stat ()} and @code{pop3_list ()} functions
+can be use to get the number and size of messages. The functions @code{pop3_list_all ()}, @code{pop3_uidl_all ()} and
+@code{pop3_capa ()} provide the information by going throught there iterators; @code{pop3_list_iterate ()}, @code{pop3_uidl_iterate ()}
+and @code{pop3_capa_iterate ()}.  Downloading of messages is done via a two methods @code{pop3_retr ()} or @code{pop3_top ()}
+@footnote{@strong{Caution:} Some Internet Service Providers do not permit to leave mail on
+server and the message will be deleted once downloaded.}.  The functions @code{pop3_retr ()} or @code{pop3_top ()} initiates the
+dowloading of the message, the content is retrive with @code{pop_retr_read ()} or @code{pop3_top_read ()}.
+POP3 provides only a single channel for operation, it means only one operation can be done at a time, all the functions
+will return POP3_OPERATION_IN_PROGRESS if a different operation is call during another.
 
-In a multithreaded application, only one thread should access @var{pop3_t}
-handles.
 
 @subsubsection Initialization
 @cindex POP3 Initialization
 
-@deftypefun int pop3_create (pop3_t * @var{pop3})
+@deftypefun int pop3_create (pop3_t *@var{pop3})
 
-Allocate and initialize a @var{pop3} handle.
+Allocate and initialize a @var{pop3}, only memory is allocated.
 
+Errors:
 @table @code
-@item MU_ERROR_NO_MEMORY
-@item MU_ERROR_INVALID_PARAMETER
+@item POP3_NO_MEMORY
+@item POP3_INVALID_PARAMETER
 @end table
 @end deftypefun
 
 @deftypefun void pop3_destroy (pop3_t *@var{pop3})
 
-When a POP3 session is finished, the structure must be @code{free ()}'ed to
-reclaim memory.
+When a POP3 session is finished, any data use by the library is release.
 @end deftypefun
 
-@deftypefun int pop3_connect (pop3_t, const char *@var{host}, unsigned @var{port}, int @var{flags})
+@deftypefun int pop3_connect (pop3_t @var{pop3}, const char *@var{hostname}, int @var{port}, int @var{flags})
 
-A connection is established by calling @code{pop3d_open ()}, the previous
-connection is close first.  If non-blocking the function should be recalled
-until the return value is not MU_ERROR_TRY_AGAIN or MU_ERROR_IN_PROGRESS.
+A connection is established on @var{hostname:port},  if there was any previous connection it is close first.  If non-blocking the
+function should be recalled until the return value is not POP3_TRY_AGAIN or POP3_IN_PROGRESS.
 
+Errors:
 @table @code
-@item MU_ERROR_NO_MEMORY
-@item MU_ERROR_INVALID_PARAMETER
-@item MU_ERROR_IO
-@item MU_ERROR_IN_PROGRESS
-@item MU_ERROR_TRY_AGAIN
-@item MU_ERROR_OPERATION_DENIED
-@item MU_ERROR_TIMEOUT
-@item MU_ERROR_NO_LOCK
+@item POP3_NO_MEMORY
+@item POP3_TRY_AGAIN
+@item POP3_TIMEOUT
+@item POP3_CONN_REFUSED
+@item POP3_NO_CONN
+@item POP3_INTERRUPTED
 @end table
+
 @end deftypefun
 
-@subsubsection Carrier
-@cindex POP3 channel
+@deftypefun int pop3_disconnect (pop3_t @var{pop3})
 
-@deftypefun int pop3_set_carrier (pop3_t, stream_t @var{carrier});
+Disconnect an establised POP3 session.
 
-The type of stream use to contact as server will be set to @var{carrier}
-in the @var{pop3_t} handle.  Any  previous @var{carrier} stream in
-the handle, will be close and release.
-
+Errors:
 @table @code
-@item MU_ERROR_INVALID_PARAMETER
+@item POP3_NO_CONN
+@item POP3_INTERRUPTED
 @end table
+
 @end deftypefun
+@cindex POP3 carrier
 
-@deftypefun int pop3_get_carrier (pop3_t, stream_t *@var{carrier});
+@deftypefun int pop3_set_carrier (pop3_t @var{pop3}, pop3_carrier_t @var{carrier})
 
-Return the @var{pop3_t} carrier.  If none was set, a new tcp stream will be
-created.
+The pop3 library abstracts the creation of the stream to the server and let the user overrides the access methods.  The default,
+when no special carrier is provided, is to provide a carrier implemented with sockets and the use of @code{select ()}.
 
+Errors:
 @table @code
-@item MU_ERROR_INVALID_PARAMETER
-@item MU_ERROR_NO_MEMORY
+@item POP3_INVALID_PARAMETER
 @end table
-@end deftypefun
 
-@subsubsection Apop
-@cindex POP3 Apop
-
-@deftypefun int pop3_apop (pop3_t, const char *@var{user}, const char *@var{secret})
-
-Apop offers an alternative to User/Pass authentication.  For intermittent
-use of POP3, like checking for new mail, it is the preferred the
-authentication.  It reduces the risk of password capture.  The @var{user}
-and the shared @var{secret} are pass to @code{pop3_apop ()}, the MD5 digest
-is calculated by applying the times tamp given by the server in the greeting
-followed by the @var{secret}.
-
-@table @code
-@item MU_ERROR_INVALID_PARAMETER
-@item MU_ERROR_IO
-@item MU_ERROR_TIMEOUT
-@item MU_ERROR_TRY_AGAIN
-@item MU_ERROR_OPERATION_DENIED
-@end table
-@end deftypefun
-
-@subsubsection Capa
-@cindex POP3 Capa
-
-@deftypefun int pop3_capa (pop3_t, pop3_capa_iterator_t *@var{iterator})
-
-The Capa command is send to the sever and the list of capabilities is
-return in an @var{iterator}. @code{iterator_current ()} gives an allocated
-string that should be @code{free ()}'ed.
-@strong{Caution:} The iterator must be destroy after use, it will discard
-any remaining responses from CAPA and clear the way for new operations.
-
-@table @code
-@item MU_ERROR_INVALID_PARAMETER
-@item MU_ERROR_IO
-@item MU_ERROR_TIMEOUT
-@item MU_ERROR_TRY_AGAIN
-@item MU_ERROR_OPERATION_DENIED
-@end table
+@deftp {Data Type} pop3_carrier_t
+The @code{pop3_carrier_t} is defined as follows:
 
 @example
-#include <stdio.h>
-#include <stdlib.h>
-#include <mailutils/pop3.h>
+@group
+struct _pop3_carrier;
+typedef struct _pop3_carrier* pop3_carrier_t;
 
-void print_capabilities (pop3_t pop3)
-@{
-   pop3_capa_iterator_t iterator;
-   status = pop3_capa (pop3, &iterator);
-   if (status == 0)
-    @{
-        for (pop3_capa_first (iterator);
-             !pop3_capa_is_done (iterator);
-             pop3_capa_next (iterator))
-          @{
-              char *capa;
-              if (pop3_capa_current (iterator, &capa) == 0)
-               @{;
-                   printf ("CAPA: %s\n", capa);
-                   free (capa);
-               @}
-          @}
-        pop3_capa_destroy (&iterator);
-    @}
-   else
-     printf ("NONE\n");
-@}
+#define POP3_CARRIER_NON_BLOCKING 1
+
+struct _pop3_carrier @{
+  int  (*open)      (pop3_carrier_t, const char *hostname, int port, int flags);
+  int  (*close)     (pop3_carrier_t);
+
+  int  (*read)      (pop3_carrier_t, void *, size_t, size_t *);
+  int  (*write)     (pop3_carrier_t, const void *, size_t, size_t *);
+
+  int  (*is_readready) (pop3_carrier_t, int timeout_seconds, int *ready);
+  int  (*is_writeready) (pop3_carrier_t, int timeout_seconds, int *ready);
+
+  void  (*destroy) (pop3_carrier_t *carrier);
+
+  void *data;
+@};
+@end group
 @end example
 
-@end deftypefun
+@end deftp
 
-@subsubsection Dele
-@cindex POP3 Dele
-
-@deftypefun int pop3_dele (pop3_t, unsigned @var{msgno})
-
-Sends a Dele to the servers who will mark the @var{msgno} for deletion.
-The @var{msgno} may not refer to a message already marked deleted.
-If successful any future reference to @var{msgno} in other operations will
-be an error, unless unmarked by RSET.
-
+The errors return by the carrier functions
 @table @code
-@item MU_ERROR_INVALID_PARAMETER
-@item MU_ERROR_IO
-@item MU_ERROR_TIMEOUT
-@item MU_ERROR_TRY_AGAIN
-@item MU_ERROR_OPERATION_DENIED
+@item POP3_CARRIER_BAD
+@item POP3_CARRIER_TRY_AGAIN
+@item POP3_CARRIER_TIMEOUT
+@item POP3_CARRIER_CONN_REFUSED
+@item POP3_CARRIER_NOT_CONNECTED
+@item POP3_CARRIER_INTERRUPTED
 @end table
 
 @end deftypefun
 
-@subsubsection List
-@cindex POP3 List
-@cindex struct pop3_list
+@subsubsection Authentication State
+@cindex POP3 APOP
 
-@deftypefun int pop3_list (pop3_t, unsigned @var{msgno}, size_t *@var{size})
+@deftypefun int pop3_apop (pop3_t @var{pop3}, const char *@var{user}, const char *@var{secret})
 
-Sends a List for a specific @var{msgno} and returns the @var{size}.
-
-@table @code
-@item MU_ERROR_INVALID_PARAMETER
-@item MU_ERROR_IO
-@item MU_ERROR_TIMEOUT
-@item MU_ERROR_TRY_AGAIN
-@item MU_ERROR_OPERATION_DENIED
-@end table
-@end deftypefun
-
-@deftypefun int pop3_list_all (pop3_t, iterator_t *@var{iterator})
-
-Sends A List with no argument to the server. The @var{iterator} must be
-destroy after use, it will discard any remaining response from LIST and
-clear the way for new operations. A cover function @code{pop3_list_current ()}
-around to scan properly the string return by the @code{iterator_current ()}.
-
-@example
-#include <stdio.h>
-#include <stdlib.h>
-#include <mailutils/pop3.h>
-
-void print_list (pop3_t pop3)
-@{
-   pop3_list_iterator_t iterator;
-   status = pop3_list_all (pop3, &iterator);
-   if (status == 0)
-    @{
-        for (pop3_list_first (iterator);
-             !pop3_list_is_done (iterator);
-             pop3_list_next (iterator))
-          @{
-              unsigned int msgno, size;
-              if (pop3_list_current (iterator, &msgno, &size) == 0)
-               @{
-                   printf ("LIST: %d %d\n", msgno, size);
-               @}
-          @}
-        pop3_list_destroy (&iterator);
-    @}
-   else
-     printf ("NONE\n");
-@}
-@end example
-
-@table @code
-@item MU_ERROR_INVALID_PARAMETER
-@item MU_ERROR_IO
-@item MU_ERROR_TIMEOUT
-@item MU_ERROR_TRY_AGAIN
-@item MU_ERROR_OPERATION_DENIED
-@end table
+APOP offers an alternative to USER/PASS authentication.  For intermittent use of POP3, like checking for new mail, it is the
+preferred way to authenticate.  It reduces the risk of password capture.  The @var{user} and the shared @var{secret} are pass
+to @code{pop3_apop ()}, the MD5 digest is calculated by applying the timestamp given by the server in the greeting followed by
+the @var{secret}.
 
 @end deftypefun
 
-@deftypefun int pop3_list_current (pop3_t, unsigned int *@var{msgno}, size_t *@var{size})
+@cindex POP3 USER
 
-Cover functions around @code{iterator_current ()} from an iterator created
-by @code{pop3_list_all ()} to format the result.
+@deftypefun int pop3_user (pop3_t, const char *@var{user})
 
+Sends the USER command.
+
+Errors:
 @table @code
-@item MU_ERROR_INVALID_PARAMETER
-@item MU_ERROR_IO
-@item MU_ERROR_TIMEOUT
-@item MU_ERROR_TRY_AGAIN
-@item MU_ERROR_OPERATION_DENIED
-@end table
-
-@end deftypefun
-
-@subsubsection Noop
-@cindex POP3 Noop
-
-@deftypefun int pop3_noop (pop3_t)
-
-Sends a NOOP, useful to reset the timeout on the server.
-
-@table @code
-@item MU_ERROR_INVALID_PARAMETER
-@item MU_ERROR_IO
-@item MU_ERROR_TIMEOUT
-@item MU_ERROR_TRY_AGAIN
-@item MU_ERROR_OPERATION_DENIED
+@item POP3_INVALID_PARAMETER
+@item POP3_OPERATION_DENIED
+@item any carrier errors.
 @end table
 @end deftypefun
 
-@subsubsection Pass
-@cindex POP3 Pass
+@cindex POP3 PASS
 
 @deftypefun int pop3_pass (pop3_t, const char *@var{passwd})
 
 Sends the PASS, to authenticate after the USER command.
 
+Errors:
 @table @code
-@item MU_ERROR_INVALID_PARAMETER
-@item MU_ERROR_IO
-@item MU_ERROR_TIMEOUT
-@item MU_ERROR_TRY_AGAIN
-@item MU_ERROR_OPERATION_DENIED
+@item POP3_INVALID_PARAMETER
+@item POP3_OPERATION_DENIED
+@item any carrier errors
 @end table
 @end deftypefun
 
-@subsubsection Quit
-@cindex POP3 Quit
+@cindex POP3 CAPA
 
-@deftypefun int pop3_quit (pop3_t)
+@deftypefun int pop3_capa (pop3_t @var{pop3})
 
-Enter the UPDATE state.  The server will delete all messages marked
-deleted before closing the connection.
+The CAPA command is send to the sever and the list of capabilities is retrieve by calling @code{pop3_capa_iterate()}.
 
+Errors:
 @table @code
-@item MU_ERROR_INVALID_PARAMETER
-@item MU_ERROR_IO
-@item MU_ERROR_TIMEOUT
-@item MU_ERROR_TRY_AGAIN
-@item MU_ERROR_OPERATION_DENIED
+@item POP3_INVALID_PARAMETER
+@item POP3_OPERATION_DENIED
+@item any carrier errors.
 @end table
 @end deftypefun
 
-@subsubsection Retr
-@cindex POP3 Retr
+@deftypefun int pop3_capa_iterate (pop3_t @var{pop3}, char **@var{capa})
 
-@deftypefun int pop3_retr (pop3_t, unsigned @var{msgno}, stream_t *)
+To iterate through the capabilities response from the server, this function should be call in the loop.  @var{capa} will be set
+to @code{NULL} to indicate termination.  Any other operations then @code{pop3_capa_iterate ()} will return
+@var{POP3_OPERATION_IN_PROGRESS} until the CAPA command is complete.
 
-If successful a @code{stream_t} is created to allow downloading of the
-message, byte-stuff lines or handle internally, CRLFs are converted to LF.
-All other operations will fail until the stream is destroyed by the caller.
+Errors:
+@table @code
+@item POP3_INVALID_PARAMETER
+@item POP3_OPERATION_DENIED
+@item any carrier errors.
+@end table
+@end deftypefun
+
+@example
+#include <stdio.h>
+#include <stdlib.h>
+#include <mailutils/pop3.h>
+
+/* Assuming the pop3 is a valid connection.  */
+void print_capabilities (pop3_t pop3)
+@{
+   status = pop3_capa (pop3);
+   if (status == 0)
+    @{
+        char *capa;
+        while ((status = pop3_capa_iterate(pop3, &capa) == 0) && capa != NULL)
+          @{
+              printf ("CAPA: %s\n", capa);
+              free (capa);
+          @}
+    @}
+    else
+      printf ("NONE\n");
+@}
+@end example
+
+
+@subsubsection Transaction State
+@cindex POP3 DELE
+
+@deftypefun int pop3_dele (pop3_t @var{pop3}, unsigned @var{msgno})
+
+Sends a DELE to the servers who will mark the @var{msgno} for deletion. The @var{msgno} may not refer to a message already marked
+deleted. If successful any future reference to @var{msgno} in other operations will be an error, unless unmarked by RSET.
+
+Errors:
+@table @code
+@item POP3_INVALID_PARAMETER
+@item POP3_OPERATION_DENIED
+@item POP3_OPERATION_IN_PROGRESS
+@item any carrier errors.
+@end table
+
+@end deftypefun
+
+@cindex POP3 LIST
+@cindex struct pop3_list
+
+@deftypefun int pop3_list (pop3_t @var{pop3}, unsigned @var{msgno}, size_t *@var{size})
+
+Sends a List for a specific @var{msgno} and returns the @var{size}.
+
+Errors:
+@table @code
+@item POP3_INVALID_PARAMETER
+@item POP3_OPERATION_DENIED
+@item POP3_OPERATION_IN_PROGRESS
+@item any carrier errors.
+@end table
+@end deftypefun
+
+@deftypefun int pop3_list_all (pop3_t @var{pop3})
+
+Sends a LIST with no argument to the server. The @var{iterator} must be destroy after use, it will discard any remaining response
+from LIST and clear the way for new operations. A cover function @code{pop3_list_current ()} around to scan properly the string
+return by the @code{iterator_current ()}.
+
+Errors:
+@table @code
+@item POP3_INVALID_PARAMETER
+@item POP3_OPERATION_DENIED
+@item POP3_OPERATION_IN_PROGRESS
+@item any carrier errors.
+@end table
+@end deftypefun
+
+@deftypefun int pop3_list_iterate (pop3_t @var{pop3}, unsigned int *@var{msgno}, sie_t *@var{size})
+
+To iterate through the capabilities response from the server, this function should be call in the loop.  @var{msgno} will be set
+to @code{0} to indicate termination.  Any other operations then @code{pop3_list_iterate ()} will return
+@var{POP3_OPERATION_IN_PROGRESS} until the LIST command is complete.
+
+Errors:
+@table @code
+@item POP3_INVALID_PARAMETER
+@item POP3_OPERATION_DENIED
+@item POP3_OPERATION_IN_PROGRESS
+@item any carrier errors.
+@end table
+@end deftypefun
+
+@example
+#include <stdio.h>
+#include <stdlib.h>
+#include <mailutils/pop3.h>
+
+/* Assuming pop3 is a valid session.  */
+void print_list (pop3_t pop3)
+@{
+   status = pop3_list_all (pop3);
+   if (status == 0)
+    @{
+        unsigned int msgno = 0;
+        size_t size = 0;
+        while ((status = pop3_list_iterate (pop3, &msgno, &size)) == 0 &&  msgno != 0)
+          @{
+              printf ("LIST: %u %d\n", msgno, size);
+          @}
+    @}
+   else
+     printf ("NONE\n");
+@}
+@end example
+
+@cindex POP3 NOOP
+
+@deftypefun int pop3_noop (pop3_t @var{pop3})
+
+Sends a NOOP, useful to reset the timeout on the server.
+
+Errors:
+@table @code
+@item POP3_INVALID_PARAMETER
+@item POP3_OPERATION_DENIED
+@item POP3_OPERATION_IN_PROGRESS
+@item any carrier errors.
+@end table
+@end deftypefun
+
+@cindex POP3 RETR
+
+@deftypefun int pop3_retr (pop3_t @var{pop3}, unsigned @var{msgno})
+
+If successful @code{pop3_retr_read} should be call to download the message, byte-stuff lines or handle internally, CRLFs are
+converted to LF. All other operations will fail until the downloaed is complete by the caller.
+
+Errors:
+@table @code
+@item POP3_INVALID_PARAMETER
+@item POP3_OPERATION_DENIED
+@item POP3_OPERATION_IN_PROGRESS
+@item any carrier errors.
+@end table
+@end deftypefun
+
+@deftypefun int pop3_retr_read (pop3_t @var{pop3}, char *@var{buffer}, size_t @var{len}, size_t *@var{nread})
+
+After a @code{pop3_retr ()}, this function is use to get the content of the message, it will fill the @var{buffer} up to
+a maximum of @var{len} and return in @var{nread} how much the @var{buffer} contains.  If @var{nread} is zero, it signals
+the termination of the command. Any other operations then @code{pop3_retr_read ()} will return
+@var{POP3_OPERATION_IN_PROGRESS} until the RETR command is completed.
+
+Errors:
+@table @code
+@item POP3_INVALID_PARAMETER
+@item POP3_OPERATION_DENIED
+@item POP3_OPERATION_IN_PROGRESS
+@item any carrier errors.
+@end table
+@end deftypefun
 
 @example
 #include <stdio.h>
@@ -386,72 +410,51 @@ All other operations will fail until the stream is destroyed by the caller.
 int
 print_message (pop3_t pop3, unsigned int msgno)
 @{
-   stream_t stream;
-   int status = pop3_retr (pop3, msgno, &stream);
+   int status = pop3_retr (pop3, msgno);
    if (status == 0)
     @{
        size_t n = 0;
        char buf[128];
-       while ((stream_readline (stream, buf, sizeof buf, &n) == 0)
-              && n)
-         printf ("%s", buf);
-       stream_destroy (&stream);
+       while ((status = pop_retr_read (pop3, buf, sizeof buf, &n)) == 0) && n > 0)
+        @{
+           printf ("%s", buf);
+        @}
     @}
    return status;
 @}
 @end example
 
+@cindex POP3 TOP
+
+@deftypefun int pop3_top  (pop3_t @var{pop3}, unsigned int @var{msgno}, unsigned int @var{lines})
+
+If successful @code{pop3_top_read} should be call to download the header, byte-stuff lines or handle internally, CRLFs are
+converted to LF.  All other operations will failed until the operation is completed by the caller.
+
+Errors:
 @table @code
-@item MU_ERROR_INVALID_PARAMETER
-@item MU_ERROR_IO
-@item MU_ERROR_TIMEOUT
-@item MU_ERROR_TRY_AGAIN
-@item MU_ERROR_OPERATION_DENIED
+@item POP3_INVALID_PARAMETER
+@item POP3_OPERATION_DENIED
+@item POP3_OPERATION_IN_PROGRESS
+@item any carrier errors.
 @end table
 @end deftypefun
 
-@subsubsection Rset
-@cindex POP3 Rset
+@deftypefun int pop3_top_read (pop3_t @var{pop3}, char *@var{buffer}, size_t @var{len}, size_t *@var{nread})
 
-@deftypefun int pop3_rset (pop3_t)
+After a @code{pop3_top ()}, this function is use to get the content of the message, it will fill the @var{buffer} up to
+a maximum of @var{len} and return in @var{nread} how much the @var{buffer} contains.  If @var{nread} is zero, it signals
+the termination of the command. Any other operations then @code{pop3_retr_read ()} will return
+@var{POP3_OPERATION_IN_PROGRESS} until the TOP command is completed.
 
-Sends a RSET to unmark the messages marked as deleted.
-
+Errors:
 @table @code
-@item MU_ERROR_INVALID_PARAMETER
-@item MU_ERROR_IO
-@item MU_ERROR_TIMEOUT
-@item MU_ERROR_TRY_AGAIN
-@item MU_ERROR_OPERATION_DENIED
+@item POP3_INVALID_PARAMETER
+@item POP3_OPERATION_DENIED
+@item POP3_OPERATION_IN_PROGRESS
+@item any carrier errors.
 @end table
 @end deftypefun
-
-@subsubsection Stat
-@cindex POP3 Stat
-
-@deftypefun int pop3_stat (pop3_t, unsigned @var{msgno}, unsigned *@var{msg_count}, size_t *@var{size})
-
-The number of messages in the mailbox and the size of the mailbox in octets.
-@strong{Caution:} The size is in RFC822 where line termination is CRLF,
-messages marked as deleted are not counted in either total.
-
-@table @code
-@item MU_ERROR_INVALID_PARAMETER
-@item MU_ERROR_IO
-@item MU_ERROR_TIMEOUT
-@item MU_ERROR_TRY_AGAIN
-@item MU_ERROR_OPERATION_DENIED
-@end table
-@end deftypefun
-
-@subsubsection Top
-@cindex POP3 Top
-
-@deftypefun int pop3_top  (pop3_t, unsigned int @var{msgno}, unsigned int @var{lines}, stream_t *@var{stream})
-
-If successful a @code{stream} is created to allow downloading of the header,
-byte-stuff lines or handle internally, CRLFs are converted to LF.  All other
-operations will failed until the stream is destroyed by the caller.
 
 @example
 #include <stdio.h>
@@ -460,51 +463,93 @@ operations will failed until the stream is destroyed by the caller.
 int
 print_top (pop3_t pop3, unsigned int msgno, unsigned int lines)
 @{
-    stream_t stream;
-    int status = pop3_top (pop3, msgno, lines, &stream);
+    int status = pop3_top (pop3, msgno, lines);
     if (status == 0)
      @{
         size_t n = 0;
         char buf[128];
-        while ((stream_readline (stream, buf, sizeof buf, &n) == 0)
-               && n)
+        while ((status = pop3_top_read (pop3, buf, sizeof buf, &n)) == 0)
+               && n > 0)
           printf ("%s", buf);
-        stream_destroy (&stream);
      @}
   return status;
 @}
 @end example
 
+
+@cindex POP3 RSET
+
+@deftypefun int pop3_rset (pop3_t @var{pop3})
+
+Sends a RSET to unmark the messages marked as deleted.
+
+Errors:
 @table @code
-@item MU_ERROR_INVALID_PARAMETER
-@item MU_ERROR_IO
-@item MU_ERROR_TIMEOUT
-@item MU_ERROR_TRY_AGAIN
-@item MU_ERROR_OPERATION_DENIED
+@item POP3_INVALID_PARAMETER
+@item POP3_OPERATION_DENIED
+@item POP3_OPERATION_IN_PROGRESS
+@item any carrier errors.
 @end table
 @end deftypefun
 
-@subsubsection Uidl
-@cindex POP3 Uidl
+@cindex POP3 STAT
 
-@deftypefun int pop3_uidl (pop3_t, unsigned int @var{msgno}, char **@var{uidl})
+@deftypefun int pop3_stat (pop3_t @var{pop3}, unsigned @var{msgno}, unsigned *@var{msg_count}, size_t *@var{size})
 
-The Uniq Identifier is return in @var{uidl}, the string must be
-@code{free ()}'ed, by the caller.
+The number of messages in the mailbox and the size of the mailbox in octets. @strong{Caution:} The size is in RFC822 where
+line termination is CRLF, messages marked as deleted are not counted in either total.
 
+Errors:
 @table @code
-@item MU_ERROR_INVALID_PARAMETER
-@item MU_ERROR_IO
-@item MU_ERROR_TIMEOUT
-@item MU_ERROR_TRY_AGAIN
-@item MU_ERROR_OPERATION_DENIED
+@item POP3_INVALID_PARAMETER
+@item POP3_OPERATION_DENIED
+@item POP3_OPERATION_IN_PROGRESS
+@item any carrier errors.
 @end table
 @end deftypefun
 
-@deftypefun int pop3_uidl_all (pop3_t, iterator_t * @var{iterator})
+@cindex POP3 UIDL
 
-An @code{iterator} object is return to iterate through the response and
-must be destroyed by the caller.
+@deftypefun int pop3_uidl (pop3_t @var{pop3}, unsigned int @var{msgno}, char **@var{uidl})
+
+The UIDL is return in @var{uidl}, the string must be @code{free ()}'ed, by the caller.
+
+Errors:
+@table @code
+@item POP3_INVALID_PARAMETER
+@item POP3_OPERATION_DENIED
+@item POP3_OPERATION_IN_PROGRESS
+@item any carrier errors.
+@end table
+@end deftypefun
+
+@deftypefun int pop3_uidl_all (pop3_t @var{pop3})
+
+A UIDL command is executed.  The call should iterate with @code{pop3_uidl_iterate ()} to fetch the response.
+
+Errors:
+@table @code
+@item POP3_INVALID_PARAMETER
+@item POP3_OPERATION_DENIED
+@item POP3_OPERATION_IN_PROGRESS
+@item any carrier errors.
+@end table
+@end deftypefun
+
+@deftypefun int pop3_uidl_iterate (pop3_t @var{pop3}, unsigned int *@var{msgno}, char **@var{uidl})
+
+To iterate through the uidl responses from the server, @code{pop3_uidl_iterate ()} should be call in a loop,  @var{msgno} will be set
+to zero to indicate termination.  Any other operations then @code{pop3_uidl;_iterate ()} will return
+@var{POP3_OPERATION_IN_PROGRESS} until the UIDL command is completed.  The @var{uidl} is @code{malloc()}
+and should be @code{free()} by the caller.
+
+Errors:
+@table @code
+@item POP3_INVALID_PARAMETER
+@item POP3_OPERATION_DENIED
+@item any carrier errors.
+@end table
+@end deftypefun
 
 @example
 #include <stdio.h>
@@ -513,83 +558,52 @@ must be destroyed by the caller.
 
 void print_uidl (pop3_t pop3)
 @{
-   pop3_uidl_iterator_t iterator;
-   status = pop3_uidl_all (pop3, &iterator);
+   status = pop3_uidl_all (pop3);
    if (status == 0)
     @{
-        for (pop3_uidl_first (iterator);
-             !pop3_uidl_is_done (iterator);
-             pop3_uidl_next (iterator))
+        unsigned int msgno;
+        char *uidl;
+        while (pop3_uidl_iterate (pop3, &msgno, &uidl) == 0 && msgno != 0)
           @{
-              unsigned int msgno;
-              char *uidl;
-              if (pop3_uidl_current (iterator, &msgno, &uidl) == 0)
-               @{
-                   printf ("LIST: %d %s\n", msgno, uidl);
-                   free (uidl);
-               @}
+              printf ("LIST: %d %s\n", msgno, uidl);
+              free (uidl);
           @}
-        pop3_uidl_destroy (&iterator);
     @}
    else
      printf ("NONE\n");
 @}
 @end example
 
+
+@subsubsection Update State
+@cindex POP3 QUIT
+
+@deftypefun int pop3_quit (pop3_t)
+
+QUIT will be send to enter the update state, if the command is successfull, the connection is close and any statein
+the library is cleared. On the server side, all messages marked deleted before closing the connection will be removed..
+
+Errors:
 @table @code
-@item MU_ERROR_INVALID_PARAMETER
-@item MU_ERROR_IO
-@item MU_ERROR_TIMEOUT
-@item MU_ERROR_TRY_AGAIN
-@item MU_ERROR_OPERATION_DENIED
+@item POP3_INVALID_PARAMETER
+@item POP3_OPERATION_DENIED
+@item POP3_OPERATION_IN_PROGRESS
+@item any carrier errors.
 @end table
 @end deftypefun
 
-@deftypefun int pop3_uidl_current (iterator_t @var{iterator}, unsigned int *@var{msgno}, char **@var{uidl})
-
-Cover functions around @code{iterator_current ()} from an iterator created
-by @code{pop3_uidl_all ()} to format the result.  The variable @var{uidl}
-should be @code{free ()}'ed.
-
-@table @code
-@item MU_ERROR_INVALID_PARAMETER
-@item MU_ERROR_IO
-@item MU_ERROR_TIMEOUT
-@item MU_ERROR_TRY_AGAIN
-@item MU_ERROR_OPERATION_DENIED
-@end table
-@end deftypefun
-
-@subsubsection User
-@cindex POP3 User
-
-@deftypefun int pop3_user (pop3_t, const char *@var{user})
-
-Sends the User command.
-
-@table @code
-@item MU_ERROR_INVALID_PARAMETER
-@item MU_ERROR_IO
-@item MU_ERROR_TIMEOUT
-@item MU_ERROR_TRY_AGAIN
-@item MU_ERROR_OPERATION_DENIED
-@end table
-@end deftypefun
 
 @subsubsection Help functions
 
 @deftypefun int pop3_writeline (pop3_t, const char *@var{format}, ...);
 
-Copy in the internal buffer of @code{pop3_t} the formatted string,
-@code{pop3_send ()} should be called later to flush the string to the
-POP3 server.
+Copy in the internal buffer of @code{pop3_t} the formatted string, @code{pop3_send ()} should be called later to flush the string
+to the POP3 server.
 
+Errors:
 @table @code
-@item MU_ERROR_INVALID_PARAMETER
-@item MU_ERROR_IO
-@item MU_ERROR_TIMEOUT
-@item MU_ERROR_TRY_AGAIN
-@item MU_ERROR_OPERATION_DENIED
+@item POP3_INVALID_PARAMETER
+@item any carrier errors.
 @end table
 @end deftypefun
 
@@ -597,27 +611,21 @@ POP3 server.
 
 Cover function for @code{pop3_writeline ()} and @code{pop3_send ()}.
 
+Errors:
 @table @code
-@item MU_ERROR_INVALID_PARAMETER
-@item MU_ERROR_IO
-@item MU_ERROR_TIMEOUT
-@item MU_ERROR_TRY_AGAIN
-@item MU_ERROR_OPERATION_DENIED
+@item POP3_INVALID_PARAMETER
+@item any carrier errors.
 @end table
-
 @end deftypefun
 
-@deftypefun int pop3_send (pop3_t, const char *@var{cmd});
+@deftypefun int pop3_send (pop3_t);
 
-Flushes out the strings written by @code{pop3_writeline ()} in the internal
-buffer to the channel.
+Flushes out the strings written by @code{pop3_writeline ()} in the internal buffer to the channel.
 
+Errors:
 @table @code
-@item MU_ERROR_INVALID_PARAMETER
-@item MU_ERROR_IO
-@item MU_ERROR_TIMEOUT
-@item MU_ERROR_TRY_AGAIN
-@item MU_ERROR_OPERATION_DENIED
+@item POP3_INVALID_PARAMETER
+@item any carrier errors.
 @end table
 @end deftypefun
 
@@ -626,14 +634,11 @@ buffer to the channel.
 The last response from the last command is save and can be examine after
 a failure or success.
 
+Errors:
 @table @code
-@item MU_ERROR_INVALID_PARAMETER
-@item MU_ERROR_IO
-@item MU_ERROR_TIMEOUT
-@item MU_ERROR_TRY_AGAIN
-@item MU_ERROR_OPERATION_DENIED
+@item POP3_INVALID_PARAMETER
+@item any carrier errors.
 @end table
-
 @end deftypefun
 
 @subsubsection Timeout
@@ -641,14 +646,21 @@ a failure or success.
 
 @deftypefun int pop3_set_timeout (pop3_t, int @var{timeout})
 
-Set the timeout time for I/O on the carrier.  The default is 10 minutes.
-The @var{timeout} is given in milliseconds.
+Set the timeout time for I/O on the carrier.  The default is 10 minutes. The @var{timeout} is given in milliseconds.
 
+Errors:
+@table @code
+@item POP3_INVALID_PARAMETER
+@end table
 @end deftypefun
 
 @deftypefun int pop3_get_timeout (pop3_t, int *@var{timeout})
 
-Get the timeout time for I/O on the carrier.
-The @var{timeout} is given in milliseconds.
+Get the timeout time for I/O on the carrier. The @var{timeout} is given in milliseconds.
+
+Errors:
+@table @code
+@item POP3_INVALID_PARAMETER
+@end table
 
 @end deftypefun
