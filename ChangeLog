@@ -1,3 +1,8 @@
+2002-03-14  Sergey Poznyakoff  <gray@Mirddin.farlep.net>
+
+	* mail/util.c (util_do_command): Coredumped in false branches
+	  of `if ... endif' statement. Fixed.
+
 2002-03-13  Alain Magloire
 
 	* lib/mu_dmb.c(mu_check_perm): Reinforce
