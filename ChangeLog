@@ -1,3 +1,10 @@
+2001-10-31  Alain Magloire
+
+	* mailbox/mbx_imap.c (delete_to_string): Try to turn a sequence
+	of number to IMAP msgset. Call add_number for the work.
+	(add_number): New function to add number to string for
+	IMAP msgset.
+
 2001-10-30  Alain Magloire
 
 	* mailbox/body.c: Remove unneeded prototype.
