@@ -46,6 +46,8 @@ mu_errname (int e)
     EN(EEXIST);
     EN(EINVAL);
 
+    EN(MU_ERR_FAILURE);
+    
     EN(MU_ERR_NO_HANDLER);
     EN(MU_ERR_EMPTY_VFN);
 
@@ -89,6 +91,8 @@ mu_strerror (int e)
   {
 #define ES(x, d)  case x: return d
     ES(EOK,                     _("Success"));
+
+    ES(MU_ERR_FAILURE,          _("Operation failed"));
 
     ES(MU_ERR_NO_HANDLER,       _("No registered handler"));
     ES(MU_ERR_EMPTY_VFN,        _("Empty virtual function"));

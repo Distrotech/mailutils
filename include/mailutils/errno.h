@@ -26,48 +26,49 @@ extern "C" {
 
 #define MU_ERR_BASE            0x1000
 
-#define MU_ERR_NO_HANDLER           (MU_ERR_BASE | 0x001)
-#define MU_ERR_EMPTY_VFN            (MU_ERR_BASE | 0x002)
+#define MU_ERR_FAILURE              (MU_ERR_BASE + 1)
+#define MU_ERR_NO_HANDLER           (MU_ERR_BASE + 2)
+#define MU_ERR_EMPTY_VFN            (MU_ERR_BASE + 3)
 
-#define MU_ERR_OUT_NULL             (MU_ERR_BASE | 0x003)
-#define MU_ERR_OUT_PTR_NULL         (MU_ERR_BASE | 0x004)
+#define MU_ERR_OUT_NULL             (MU_ERR_BASE + 4)
+#define MU_ERR_OUT_PTR_NULL         (MU_ERR_BASE + 5)
 
-#define MU_ERR_MBX_NULL             (MU_ERR_BASE | 0x005)
+#define MU_ERR_MBX_NULL             (MU_ERR_BASE + 6)
 
-#define MU_ERR_BAD_822_FORMAT       (MU_ERR_BASE | 0x006)
-#define MU_ERR_EMPTY_ADDRESS        (MU_ERR_BASE | 0x007)
+#define MU_ERR_BAD_822_FORMAT       (MU_ERR_BASE + 7)
+#define MU_ERR_EMPTY_ADDRESS        (MU_ERR_BASE + 8)
 
-#define MU_ERR_LOCKER_NULL          (MU_ERR_BASE | 0x008)
-#define MU_ERR_LOCK_CONFLICT        (MU_ERR_BASE | 0x009)
-#define MU_ERR_LOCK_BAD_LOCK        (MU_ERR_BASE | 0x00a)
-#define MU_ERR_LOCK_BAD_FILE        (MU_ERR_BASE | 0x00b)
-#define MU_ERR_LOCK_NOT_HELD        (MU_ERR_BASE | 0x00c)
-#define MU_ERR_LOCK_EXT_FAIL        (MU_ERR_BASE | 0x00d)
+#define MU_ERR_LOCKER_NULL          (MU_ERR_BASE + 9)
+#define MU_ERR_LOCK_CONFLICT        (MU_ERR_BASE + 10)
+#define MU_ERR_LOCK_BAD_LOCK        (MU_ERR_BASE + 11)
+#define MU_ERR_LOCK_BAD_FILE        (MU_ERR_BASE + 12)
+#define MU_ERR_LOCK_NOT_HELD        (MU_ERR_BASE + 13)
+#define MU_ERR_LOCK_EXT_FAIL        (MU_ERR_BASE + 14)
   /* external program not found, or lack of system resources */
-#define MU_ERR_LOCK_EXT_ERR         (MU_ERR_BASE | 0x00e)
+#define MU_ERR_LOCK_EXT_ERR         (MU_ERR_BASE + 15)
   /* external program failed, specific reason unknown */
-#define MU_ERR_LOCK_EXT_KILLED      (MU_ERR_BASE | 0x00f)
+#define MU_ERR_LOCK_EXT_KILLED      (MU_ERR_BASE + 16)
   /* external program was interrupted */
 
-#define MU_ERR_NO_SUCH_USER         (MU_ERR_BASE | 0x010)
+#define MU_ERR_NO_SUCH_USER         (MU_ERR_BASE + 17)
 
-#define MU_ERR_GETHOSTBYNAME        (MU_ERR_BASE | 0x011)
+#define MU_ERR_GETHOSTBYNAME        (MU_ERR_BASE + 18)
 
-#define MU_ERR_BAD_RESUMPTION       (MU_ERR_BASE | 0x012)
+#define MU_ERR_BAD_RESUMPTION       (MU_ERR_BASE + 19)
 
-#define MU_ERR_MAILER_BAD_FROM      (MU_ERR_BASE | 0x013)
-#define MU_ERR_MAILER_BAD_TO        (MU_ERR_BASE | 0x014)
-#define MU_ERR_MAILER_NO_RCPT_TO    (MU_ERR_BASE | 0x015)
-#define MU_ERR_MAILER_BAD_URL       (MU_ERR_BASE | 0x016)
-#define MU_ERR_SMTP_RCPT_FAILED     (MU_ERR_BASE | 0x017)
+#define MU_ERR_MAILER_BAD_FROM      (MU_ERR_BASE + 20)
+#define MU_ERR_MAILER_BAD_TO        (MU_ERR_BASE + 21)
+#define MU_ERR_MAILER_NO_RCPT_TO    (MU_ERR_BASE + 22)
+#define MU_ERR_MAILER_BAD_URL       (MU_ERR_BASE + 23)
+#define MU_ERR_SMTP_RCPT_FAILED     (MU_ERR_BASE + 24)
 
-#define MU_ERR_TCP_NO_HOST          (MU_ERR_BASE | 0x018)
-#define MU_ERR_TCP_NO_PORT          (MU_ERR_BASE | 0x019)
+#define MU_ERR_TCP_NO_HOST          (MU_ERR_BASE + 25)
+#define MU_ERR_TCP_NO_PORT          (MU_ERR_BASE + 26)
 
-#define MU_ERR_BAD_2047_INPUT       (MU_ERR_BASE | 0x020)
+#define MU_ERR_BAD_2047_INPUT       (MU_ERR_BASE + 27)
   
-const char* mu_errname __P((int e));
-const char* mu_strerror __P((int e));
+const char *mu_errname __P((int e));
+const char *mu_strerror __P((int e));
 
 #ifdef __cplusplus
 }
