@@ -167,7 +167,16 @@ imap_user (authority_t auth)
 	    f_imap->user = calloc (1, n + 1);
 	    url_get_user (folder->url, f_imap->user, n + 1, NULL);
 	  }
-	ticket_pop (ticket, "Imap Passwd: ",  &f_imap->passwd);
+	/* Was it in the URL?  */
+	status = url_get_passwd (folder->url, NULL, 0, &n);
+        if (status != 0 || n == 0)
+	  ticket_pop (ticket, "Imap Passwd: ",  &f_imap->passwd);
+	else
+	  {
+	    f_imap->passwd = calloc (1, n + 1);
+	    url_get_passwd (folder->url, f_imap->passwd, n + 1, NULL);
+	  }
+
 	if (f_imap->user == NULL || f_imap->passwd == NULL)
 	  {
 	    CHECK_ERROR_CLOSE (folder, f_imap, EINVAL);
