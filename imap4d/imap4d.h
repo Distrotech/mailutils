@@ -87,6 +87,7 @@
 #include <mailutils/registrar.h>
 #include <mailutils/stream.h>
 #include <mailutils/mu_auth.h>
+#include <mailutils/url.h>
 
 #ifdef __cplusplus
 extern "C" {
