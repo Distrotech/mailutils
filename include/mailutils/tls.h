@@ -27,9 +27,9 @@ extern "C" {
 #endif
 
 extern int tls_stream_create __P((stream_t *stream, 
-                                  int in_fd, int out_fd, int flags));
+                                  stream_t strin, stream_t strout, int flags));
 extern int tls_stream_create_client __P((stream_t *stream,
-					 int in_fd, int out_fd,
+					 stream_t strin, stream_t strout,
 					 int flags));
 extern int tls_stream_create_client_from_tcp __P((stream_t *stream,
 						  stream_t tcp_str,
