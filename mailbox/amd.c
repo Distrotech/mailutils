@@ -1329,9 +1329,9 @@ amd_url_init (url_t url, const char *scheme)
     
   if (!name)
     return 0;
-  
-  if (strncmp (MU_PATH_SCHEME, name, MU_PATH_SCHEME_LEN) == 0)
-    path_ptr = name;
+
+  if (mu_scheme_autodetect_p (name, &path_ptr))
+    /* nothing */ ;
   /* reject the obvious */
   else if (strncmp (scheme, name, scheme_len) != 0
 	   || len < scheme_len + 1) 
