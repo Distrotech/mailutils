@@ -1,8 +1,8 @@
 2000-05-15  Sean 'Shaleh' Perry <shaleh@debian.org>
 
-	* libmailbox/* ran some files thru emacs indent, I think I introduced
+	* libmailbox/*: ran some files thru emacs indent, I think I introduced
 	some oddness with vi
-	* libmailbox/mh.[ch] new files, based on maildir
+	* libmailbox/mh.[ch]: new files, based on maildir
 	the mh work is very empty -- just mh_open right now
 	
 2000-04-19  Jeff Bailey  <jbailey@nisa.net>
@@ -32,7 +32,7 @@
 
 	* mailbox/mbx_mh.c: new file
 	no header, no error checking, no hable englais
-	* url/url_mh.{c,h}: new files
+	* url/url_mh.[ch]: new files
 	url support for MH mailboxes
 
 2000-01-17  Sean 'Shaleh' Perry
