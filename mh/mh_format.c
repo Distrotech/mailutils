@@ -50,6 +50,7 @@ struct mh_machine
   size_t width;             /* Output buffer width */
   size_t ind;               /* Output buffer index */
 
+  list_t addrlist;          /* The list of email addresses output this far */
   int fmtflags;             /* Current formatting flags */
   
   message_t message;        /* Current message */
@@ -384,6 +385,47 @@ format_str (struct mh_machine *mach, char *str)
     print_string (mach, 0, str);
 }
 
+static int
+addr_cmp (void *item, void *data)
+{
+  address_t a = item;
+  address_t b = data;
+  size_t i, count;
+  int rc = 0;
+  
+  address_get_count (a, &count);
+  for (i = 1; rc == 0 && i <= count; i++)
+    {
+      char *str;
+      if (address_aget_email (a, i, &str))
+	continue;
+      rc = address_contains_email (b, str);
+      free (str);
+    }
+  return rc;
+}
+
+static int
+addrlist_lookup (list_t list, address_t addr)
+{
+  return list_do (list, addr_cmp, addr);
+}
+
+static int
+addr_free (void *item, void *data)
+{
+  address_t addr = item;
+  address_destroy (&addr);
+  return 0;
+}
+
+static void
+addrlist_destroy (list_t *list)
+{
+  list_do (*list, addr_free, NULL);
+  list_destroy (list);
+}
+
 /* Execute pre-compiled format on message msg with number msgno.
    buffer and bufsize specify output storage */
 int
@@ -403,6 +445,8 @@ mh_format (mh_format_t *fmt, message_t msg, size_t msgno,
   mach.width = width;
   mach.pc = 1;
   obstack_init (&mach.stk);
+  list_create (&mach.addrlist);
+
   reset_fmt_defaults (&mach);
   
   while (!mach.stop)
@@ -549,7 +593,8 @@ mh_format (mh_format_t *fmt, message_t msg, size_t msgno,
     }
   strobj_free (&mach.reg_str);
   strobj_free (&mach.arg_str);
-
+  addrlist_destroy (&mach.addrlist);
+  
   if (pret)
     {
       obstack_1grow (&mach.stk, 0);
@@ -1660,64 +1705,71 @@ builtin_gname (struct mh_machine *mach)
 static void
 builtin_formataddr (struct mh_machine *mach)
 {
-  address_t addr;
-  size_t num = 0, n, i, length = 0, reglen;
-  char buf[80], *p;
+  address_t addr, dest;
+  size_t size;
   
-  if (address_create (&addr, strobj_ptr (&mach->arg_str)))
-    return;
-  address_get_count (addr, &num);
-  for (i = 1; i <= num; i++)
-    {
-      if (address_get_personal (addr, i, buf, sizeof buf, &n) == 0
-	  && n != 0)
-	length += n+1; /* + space */
-      address_get_email (addr, i, buf, sizeof buf, &n);
-      length += n+3; /* two brackets + (eventual) comma */
-    }
-
   if (strobj_is_null (&mach->reg_str))
-    reglen = 0;
-  else
-    reglen = strobj_len (&mach->reg_str);
-  length += reglen + 1;
-  strobj_realloc (&mach->reg_str, length);
-  p = strobj_ptr (&mach->reg_str) + reglen;
-  for (i = 1; i <= num; i++)
+    dest = NULL;
+  else if (address_create (&dest, strobj_ptr (&mach->reg_str)))
+    return;
+    
+  if (address_create (&addr, strobj_ptr (&mach->arg_str)))
     {
-      if (!(rcpt_mask & RCPT_ME))
-	{
-	  address_get_email (addr, i, buf, sizeof buf, &n);
-	  if (mh_is_my_name (buf))
-	    continue;
-	}
-
-      if (reglen > 0)
-	*p++ = ',';
-
-      if (address_get_personal (addr, i, buf, sizeof buf, &n) == 0 && n > 0)
-	{
-	  memcpy (p, buf, n);
-	  p += n;
-	  *p++ = ' ';
-	}
-      address_get_email (addr, i, buf, sizeof buf, &n);
-      *p++ = '<';
-      memcpy (p, buf, n);
-      p += n;
-      *p++ = '>';
+      address_destroy (&dest);
+      return;
     }
-  *p = 0;
+
+  if (addrlist_lookup (mach->addrlist, addr))
+    {
+      address_destroy (&dest);
+      address_destroy (&addr);
+      return;
+    }
+  
+  if (rcpt_mask & RCPT_ME)
+    address_union (&dest, addr);
+  else
+    {
+      int i;
+      size_t num;
+      char *buf;
+      
+      address_get_count (addr, &num);
+      for (i = 1; i <= num; i++)
+	{
+	  if (address_aget_email (addr, i, &buf) == 0)
+	    {
+	      if (!mh_is_my_name (buf))
+		{
+		  address_t subaddr;
+		  address_get_nth (addr, i, &subaddr);
+		  address_union (&dest, subaddr);
+		  address_destroy (&subaddr);
+		}
+	      free (buf);
+	    }
+	}
+    }
+  list_append (mach->addrlist, addr);
+  address_to_string (dest, NULL, 0, &size);
+  strobj_realloc (&mach->reg_str, size + 1);
+  address_to_string (dest, strobj_ptr (&mach->reg_str), size + 1, NULL);
+  address_destroy (&dest);
 }
 
 /*      putaddr    literal        print str address list with
                                   arg as optional label;
-                                  get line width from num */
+                                  get line width from num
+   FIXME: Currently it's the same as puthdr. Possibly it should do
+   some address-checking as well.
+*/
 static void
 builtin_putaddr (struct mh_machine *mach)
 {
-  print_obj (mach, mach->reg_num, &mach->arg_str);
-  print_obj (mach, mach->reg_num, &mach->reg_str);
+  if (!strobj_is_null (&mach->arg_str))
+    print_hdr_string (mach, strobj_ptr (&mach->arg_str));
+  if (!strobj_is_null (&mach->reg_str))
+    print_hdr_string (mach, strobj_ptr (&mach->reg_str));
 }
 
 /* GNU extension: Strip leading whitespace and eventual Re: (or Re\[[0-9]+\]:)
