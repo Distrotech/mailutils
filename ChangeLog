@@ -1,3 +1,39 @@
+2002-12-29  Sergey Poznyakoff 
+
+	* mail/mail.c (realcursor): Removed. The position of the point
+	  is kept in the cursor variable.
+	* mail/util.c (util_msglist_command, util_msglist_esccmd): Removed.
+	  (util_foreach_msg,util_range_msg): New functions. Iterate across
+	  message set or range calling given function for each message.
+	  
+	* mail/mail.h (util_msglist_command, util_msglist_esccmd): Removed.
+	  (realcursor): Removed.
+	  (util_foreach_msg,util_range_msg): New functions.
+	
+	* mail/delete.c: Rewritten using new iterator functions.
+	* mail/dp.c: Likewise.
+	* mail/edit.c: Likewise.
+	* mail/eq.c: Likewise.
+	* mail/file.c: Likewise.
+	* mail/followup.c: Likewise.
+	* mail/from.c: Likewise.
+	* mail/headers.c: Likewise.
+	* mail/hold.c: Likewise.
+	* mail/mbox.c: Likewise.
+	* mail/msgset.y: Likewise.
+	* mail/next.c: Likewise.
+	* mail/previous.c: Likewise.
+	* mail/print.c: Likewise.
+	* mail/reply.c: Likewise.
+	* mail/size.c: Likewise.
+	* mail/summary.c: Likewise.
+	* mail/top.c: Likewise.
+	* mail/undelete.c: Likewise.
+	* mail/var.c: Likewise.
+	* mail/visual.c: Likewise.
+	* mail/write.c: Likewise.
+	* mail/z.c: Likewise.
+	
 2002-12-29  Wojciech Polak <polak@gnu.org>
 
 	* auth/*: Fixed C source copyrights to be compatible with the
