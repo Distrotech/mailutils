@@ -158,7 +158,7 @@ expand_escape (char **pp, message_t msg, char *cr, struct obstack *stk)
       if (size == 0)
 	size = 400;
       if (lncount == 0)
-	lncount = 5;
+	lncount = maxlines;
       if (message_get_body (msg, &body) == 0
 	  && body_get_stream (body, &stream) == 0)
 	{
