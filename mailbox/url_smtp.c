@@ -26,51 +26,30 @@
 #include <registrar0.h>
 #include <url0.h>
 
-static void url_smtp_destroy (url_t purl);
-
-static void
-url_smtp_destroy (url_t url)
-{
-  (void) url;
-}
-
-/*
-  UNIX File
-  file:path
-*/
 int
 _url_smtp_init (url_t url)
 {
-  const char *name = url_to_string (url);
-  size_t len = strlen (name);
+  int status = 0;
 
-  /* reject the obvious */
-  if (name == NULL || strncmp (MU_SMTP_SCHEME, name, MU_SMTP_SCHEME_LEN) != 0
-      || len < (MU_SMTP_SCHEME_LEN + 1) /* (scheme)+1(path)*/)
+  if((status = url_parse(url)))
+    return status;
+
+  if(!url_is_scheme(url, "smtp"))
     return EINVAL;
 
-  /* do I need to decode url encoding '% hex hex' ? */
+  /* host isn't optional */
 
-  /* TYPE */
-  url->_destroy = url_smtp_destroy;
+  if(!url->host)
+    return EINVAL;
 
-  /* SCHEME */
-  url->scheme = strdup (MU_SMTP_SCHEME);
-  if (url->scheme == NULL)
-    {
-      url_smtp_destroy (url);
-      return ENOMEM;
-    }
+  /* port has a default */
+  if(!url->port)
+    url->port = MU_SMTP_PORT;
 
-  /* PATH */
-  name += MU_SMTP_SCHEME_LEN; /* pass the scheme */
-  url->host = strdup (name);
-  if (url->host == NULL)
-    {
-      url_smtp_destroy (url);
-      return ENOMEM;
-    }
-  url->port = MU_SMTP_PORT;
+  /* all other fields must be NULL */
+  if(url->user || url->passwd || url->auth || url->path || url->query)
+    return EINVAL;
 
   return 0;
 }
+
