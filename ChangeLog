@@ -1,3 +1,8 @@
+2001-12-16 Alain Magloire
+
+	* mailbox/body.c: Call lazy_create() _before__ file_stream_create()
+	to create the temporary file.
+
 2001-12-16 Sam Roberts
 
 	* comsat/: comsat.c

@@ -150,12 +150,13 @@ body_get_stream (body_t body, stream_t *pstream)
       int status = stream_create (&body->stream, MU_STREAM_RDWR, body);
       if (status != 0)
 	return status;
-      status = file_stream_create (&body->fstream, body->filename, MU_STREAM_RDWR);
-      if (status != 0)
-	return status;
+      /* Create the temporary file.  */
       fd = lazy_create (body);
       if (fd == -1)
 	return errno;
+      status = file_stream_create (&body->fstream, body->filename, MU_STREAM_RDWR);
+      if (status != 0)
+	return status;
       status = stream_open (body->fstream);
       close (fd);
       if (status != 0)
