@@ -338,6 +338,7 @@ tag_printer (sieve_runtime_tag_t *val, struct debug_data *dbg)
       sieve_debug_internal (dbg->printer, dbg->data, ")");
     }
   sieve_debug_internal (dbg->printer, dbg->data, " ");
+  return 0;
 }
 
 void
@@ -370,4 +371,64 @@ sieve_mark_deleted (message_t msg, int deleted)
   return rc;
 }
 
+int
+sieve_vlist_do (sieve_value_t *val, list_action_t *ac, void *data)
+{
+  switch (val->type)
+    {
+    case SVT_VALUE_LIST:
+    case SVT_STRING_LIST:
+      return list_do (val->v.list, ac, data);
+      
+    default:
+      return -1;
+    }
+}
 
+struct comp_data {
+  sieve_value_t *val;
+  sieve_comparator_t comp;
+  sieve_retrieve_t retr;
+  void *data;
+};
+
+struct comp_data2 {
+  char *sample;
+  sieve_comparator_t comp;
+};
+
+int
+_comp_action2 (void *item, void *data)
+{
+  struct comp_data2 *cp = data;
+  return cp->comp (item, cp->sample);
+}
+
+int
+_comp_action (void *item, void *data)
+{
+  struct comp_data *cp = data;
+  struct comp_data2 d;
+  int rc;
+  
+  if (cp->retr (item, cp->data, &d.sample))
+    return 0;
+  d.comp = cp->comp;
+  rc = sieve_vlist_do (cp->val, _comp_action2, &d);
+  free (d.sample);
+  return rc;
+}
+
+int
+sieve_vlist_compare (sieve_value_t *a, sieve_value_t *b,
+		     sieve_comparator_t comp, sieve_retrieve_t retr,
+		     void *data)
+{
+  struct comp_data d;
+
+  d.comp = comp;
+  d.retr = retr;
+  d.data = data;
+  d.val = b;
+  return sieve_vlist_do (a, _comp_action, &d);
+}
