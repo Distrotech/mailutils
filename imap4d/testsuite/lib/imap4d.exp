@@ -155,6 +155,11 @@ proc imap4d_command { cmd } {
     return [mu_command [imap4d_make_command $cmd]]
 }
 
+proc imap4d_uidvalidity {} {
+	regsub "(\[0-9\]*)\[0-9\]" "[clock seconds]" "\\1\[0-9\]" val
+	return $val
+}
+
 proc imap4d_exit {} {
     if [imap4d_test "LOGOUT"\
 	    "BYE Session terminating." \
@@ -217,17 +222,24 @@ proc imap4d_test { args } {
 
     if {$len >= 2} {
 	set regexp 0
+	set literal 0
 	for {set i 1} {$i <= [expr $len - 1]} {incr i} {
 	    switch -regexp -- "[lindex $args $i]" {
-		-re.*$	-
-		--      { set item "[lindex $args $i]"; set regexp 1 }
-		default { if {$regexp} {
-		              set item "\\* [lindex $args $i]"
-		          } else {
-			      set item "* [lindex $args $i]"
-			  }
-			  set regexp 0
-		      }
+		^-re.*$	-
+		^--     { set item "[lindex $args $i]"; set regexp 1 }
+		^-literal   { set literal 1; continue }
+		^-noliteral { set literal 0; continue }
+		default {  if {!$literal} {
+				if {$regexp} {
+				    set item "\\* [lindex $args $i]"
+				} else {
+				    set item "* [lindex $args $i]"
+				}
+			   } else {
+				set item [lindex $args $i]
+			   }
+ 		           set regexp 0
+		       }
 	    }
 	    
 	    set pattern [concat $pattern [list $item]]
