@@ -13,7 +13,7 @@ bin_PROGRAMS = mailutils-config
 EXTRA_DIST = mbx_mboxscan.c strtok_r.c \
  strndup.c strnlen.c strchrnul.c argp-ba.c argp-eexst.c \
  argp-fmtstream.c argp-fs-xinl.c argp-help.c argp-parse.c argp-pv.c \
- argp-pvh.c argp-xinl.c getline.c getline.h
+ argp-pvh.c argp-xinl.c getline.c getline.h pin.c
 
 noinst_HEADERS=argp-fmtstream.h argp-namefrob.h md5.h
 
