@@ -32,6 +32,12 @@
 	
 	* po/POTFILES.in: Added missing files.
 	
+2003-01-14  Wojciech Polak
+
+        * auth/tls.c (mu_init_tls_libs): gnutls_global_init() returns
+          zero on success, so reverse this state for 'tls_available'
+          variable.
+
 2003-01-14  Sergey Poznyakoff 
 
 	* m4/db2.m4: New file. Version-specific stuff for Berkeley DB.
