@@ -1,4 +1,4 @@
-AUTOMAKE_OPTIONS = gnu 1.4
+AUTOMAKE_OPTIONS = gnu 1.6
 ACLOCAL_AMFLAGS = -I m4
 
 SUBDIRS = include doc m4 lib MySql mailbox frm from pop3d imap4d \

@@ -19,5 +19,5 @@ noinst_HEADERS = argcv.h error.h fnmatch.h getline.h getopt.h md5.h mu_dbm.h\
  regex.h snprintf.h xalloc.h xstrtol.h obstack.h \
  argp-fmtstream.h argp-namefrob.h argp.h mu_asprintf.h
 
-libmailutils_la_LIBADD = @LTLIBOBJS@ @LTALLOCA@
+libmailutils_la_LIBADD = @LIBOBJS@ @ALLOCA@
 

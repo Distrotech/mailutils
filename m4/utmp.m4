@@ -10,5 +10,5 @@ AC_DEFUN([MU_CHECK_UTMP],
                  AC_DEFINE(HAVE_GETUTENT_CALLS,,
          [Define if your system has the three ???utent functions]),
                  [if test "$ac_cv_header_utmp_h" = "yes"; then
-                   LIBOBJS="$LIBOBJS utmp.o"
+		   AC_LIBOBJ(utmp)
 		 fi])])

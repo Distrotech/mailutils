@@ -1,3 +1,23 @@
+2002-08-05  Jeff Bailey  <jbailey@outpost.dnsalias.org>
+
+	* lib/Makefile.am: Remove libtool hacks, automake now handles
+	LIBOBJS correctly.
+	
+	* .cvsignore: Add autom4te.cache
+
+	* configure.in: Rename to ...
+	* configure.ac: ... this, and update to autoconf 2.5
+
+	* Makefile.am: Now requires Automake 1.6
+
+	* m4/malloc.m4: Update from gnulib
+
+	* m4/realloc.m4: Update from gnulib
+
+	* m4/regex.m4: Update from gnulib
+
+	* m4/utmp.m4: Change LIBOBJS to use AC_LIBOBJ
+
 2002-08-05  Sergey Poznyakoff
 
 	* imap4d/version.c: New file. Support for X-VERSION command

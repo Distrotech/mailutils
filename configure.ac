@@ -1,8 +1,11 @@
-dnl Process this file with autoconf to procude a configure script.
-AC_INIT(mailbox/mailbox.c)
-AC_CANONICAL_SYSTEM
-AM_INIT_AUTOMAKE(mailutils, 0.0.9d)
+sdnl Process this file with autoconf to procude a configure script.
+AC_INIT([GNU Mailutils], [0.0.9d], [bug-mailutils@gnu.org])
+AC_CONFIG_SRCDIR([mailbox/mailbox.c])
+AC_CANONICAL_TARGET([])
+AM_INIT_AUTOMAKE
 AM_CONFIG_HEADER(config.h)
+
+AC_PREREQ(2.52)
 
 dnl Check for programs
 AC_PROG_CC
@@ -167,18 +170,11 @@ jm_FUNC_REALLOC
 AC_FUNC_ALLOCA
 
 jm_INCLUDED_REGEX(lib/regex.c)
-# This no-op line works around a bug in automake 1.4:
-# it doesn't recognize the assignment to LIBOBJS
-# in m4/regex.m4.
-: LIBOBJS="$LIBOBJS regex.o"
 
 # Not use.
 #AC_FUNC_MEMCMP
 AC_FUNC_MMAP
 AC_FUNC_FNMATCH
-if test "$ac_cv_func_fnmatch_works" = "no"; then
-: LIBOBJS="$LIBOBJS fnmatch.o"
-fi
 AC_REPLACE_FUNCS(fgetpwent getpass setenv snprintf strtok_r strncasecmp \
  strcasecmp strsignal vasprintf strndup strnlen strchrnul)
 AC_CHECK_FUNCS(mkstemp sigaction sysconf getdelim vsyslog setreuid \
@@ -189,9 +185,17 @@ MU_CHECK_UTMP
 
 dnl Check for libraries
 AC_CHECK_FUNCS(argp_parse, :,
-               [LIBOBJS="$LIBOBJS argp-ba.o argp-eexst.o argp-fmtstream.o \
-                         argp-fs-xinl.o argp-help.o argp-parse.o argp-pv.o \
-                         argp-pvh.o argp-xinl.o"])
+               [
+	       AC_LIBOBJ(argp-ba)
+	       AC_LIBOBJ(argp-eexst)
+	       AC_LIBOBJ(argp-fmtstream)
+	       AC_LIBOBJ(argp-fs-xinl)
+	       AC_LIBOBJ(argp-help)
+	       AC_LIBOBJ(argp-parse)
+	       AC_LIBOBJ(argp-pv)
+	       AC_LIBOBJ(argp-pvh)
+	       AC_LIBOBJ(argp-xinl)
+	       ])
 
 AC_MSG_CHECKING(whether extern program_invocation_name is present)
 AC_TRY_COMPILE([#include <argp.h>
@@ -217,7 +221,7 @@ AC_TRY_COMPILE([#include <argp.h>
 
 AC_CHECK_FUNCS(_obstack_begin,
                [AC_DEFINE(HAVE_OBSTACK)],
-               [LIBOBJS="$LIBOBJS obstack.o"])
+               [AC_LIBOBJ(obstack)])
 
 dnl check if mysql support was added
 AC_SUBST(BUILD_LIBMYSQL)
@@ -383,15 +387,8 @@ dnl get sysconfdir expanded.
 
 CPPFLAGS="$CPPFLAGS -DSYSCONFDIR=\\\"\$(sysconfdir)\\\""
 
-dnl This is really UGLY!  This works around a libtool/autoconf bug that only
-dnl allows LIBOBJS to contain .o, not .lo for libtool.
-LTLIBOBJS=`echo "$LIBOBJS" | sed 's/\.[[^.]]* /.lo /g;s/\.[[^.]]*$/.lo/'`
-AC_SUBST(LTLIBOBJS)
-LTALLOCA=`echo "$ALLOCA" | sed 's/\.[[^.]]* /.lo /g;s/\.[[^.]]*$/.lo/'`
-AC_SUBST(LTALLOCA)
-
 dnl Output Makefiles
-AC_OUTPUT(Makefile mailutils.spec
+AC_CONFIG_FILES([Makefile mailutils.spec
  include/Makefile include/mailutils/Makefile
  m4/Makefile
  doc/Makefile doc/man/Makefile doc/rfc/Makefile doc/texinfo/Makefile
@@ -417,5 +414,6 @@ AC_OUTPUT(Makefile mailutils.spec
  mail.remote/Makefile
  mh/Makefile
  dotlock/Makefile
- )
+ ])
+AC_OUTPUT
 
