@@ -1,3 +1,14 @@
+2003-06-11  Sergey Poznyakoff
+
+	* autogen.sh: A hack to force automake to install COPYING file.
+	* Makefile.am: Changed AUTOMAKE_OPTIONS, added COPYING.LIB
+	to EXTRA_DIST.
+	* README: Minor change.
+	* COPYING.FDL: Moved to ...
+	* doc/texinfo/COPYING.DOC: ... here
+	* doc/texinfo/Makefile.am: Added COPYING.DOC.
+	* mh/mhn.c (store_handler): Fixed indentation.
+
 2003-06-07  Wojciech Polak
 
 	* configure.ac (AM_GNU_GETTEXT_VERSION): Bump to 0.12.1.
