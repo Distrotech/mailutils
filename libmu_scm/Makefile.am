@@ -66,7 +66,9 @@ mailutils.scm: mailutils.scm.in $(libmu_scm_la_SOURCES:.c=.inc)
 MKDEP = $(CC) -M -MG $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)
 
 install-data-hook:
-	@if test -f $(DESTDIR)$(libdir)/libmu_scm.so; then \
-		$(LN_S) -f $(DESTDIR)$(libdir)/libmu_scm.so \
-                        $(DESTDIR)$(libdir)/libguile-mailutils-v-$(VERSION).so; \
-	fi
+	@here=`pwd`
+         cd $(DESTDIR)$(libdir);\
+	 if test -f libmu_scm.so; then \
+		$(LN_S) -f libmu_scm.so libguile-mailutils-v-$(VERSION).so; \
+	 fi; \
+         cd $$here
