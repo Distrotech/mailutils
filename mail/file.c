@@ -51,21 +51,11 @@ mail_file (int argc, char **argv)
       
       switch (argv[1][0])
 	{
-	case '%':
-	  if (argv[1][1] == 0)
-	    name = NULL; /* our system mailbox */
-	  else
-	    {
-	      util_error("%%user not supported");
-	      return 1;
-	    }
-	  break;
-	  
 	case '#':
 	  if (!prev_name)
 	    {
 	      util_error("No previous file");
-	  return 1;
+	      return 1;
 	    }
 	  name = prev_name;
 	  break;
