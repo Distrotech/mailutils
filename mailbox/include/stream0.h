@@ -54,7 +54,7 @@ struct _stream
   void (*_destroy) __P ((stream_t));
   int (*_open)     __P ((stream_t));
   int (*_close)    __P ((stream_t));
-  int (*_get_fd)   __P ((stream_t, int *, int *));
+  int (*_get_transport2) __P ((stream_t, mu_transport_t *, mu_transport_t *));
   int (*_read)     __P ((stream_t, char *, size_t, off_t, size_t *));
   int (*_readline) __P ((stream_t, char *, size_t, off_t, size_t *));
   int (*_write)    __P ((stream_t, const char *, size_t, off_t, size_t *));
@@ -63,6 +63,7 @@ struct _stream
   int (*_flush)    __P ((stream_t));
   int (*_setbufsiz)__P ((stream_t, size_t));
   int (*_strerror) __P ((stream_t, char **));
+  int (*_wait)     __P((stream_t, int *pflags, struct timeval *tvp));
 };
 
 #ifdef __cplusplus
