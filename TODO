@@ -3,6 +3,11 @@
 = --> on hold
 * --> in progress
 
+[docs]
+
+- review examples in docs. many don't build. I think there needs to be a way
+  of building the examples, and then converting them to texinfo, its the
+  only way we'll always know they aren't garbage. Broken examples: stream.texi
 
 [mailbox or mailbox2]
 
