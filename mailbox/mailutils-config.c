@@ -119,9 +119,12 @@ main (int argc, char **argv)
 	  asprintf (&entry[n].ptr, "%s -lmailbox", LINK_FLAGS);
 	  n++;
 #ifdef ENABLE_NLS
-	  entry[n].level = 10;
-	  asprintf (&entry[n].ptr, "-lintl -liconv");
-	  n++;
+	  if (sizeof (I18NLIBS) > 1)
+	    {
+	      entry[n].level = 10;
+	      asprintf (&entry[n].ptr, I18NLIBS);
+	      n++;
+	    }
 #endif
 	  for (; n < sizeof(entry)/sizeof(entry[0]) && argc > 0;
 	       argc--, argv++, n++)
