@@ -1794,43 +1794,44 @@ builtin_putaddr (struct mh_machine *mach)
 static void
 builtin_unre (struct mh_machine *mach)
 {
-  char *start, *p;
-
-  for (p = strobj_ptr (&mach->arg_str); *p; p++)
-    if (!isspace (*p))
-      break;
-
-  start = p;
-  
-  if (strncasecmp (p, "re", 2) == 0)
+  char *p;
+  int rc = munre_subject (strobj_ptr (&mach->arg_str), &p);
+  if (rc == 0 && p != strobj_ptr (&mach->arg_str))
     {
-      if (p[2] == ':')
-	p += 3;
-      else if (p[2] == '[')
-	{
-	  for (p += 3; *p; p++)
-	    if (*p == ']' || !isdigit (*p))
-	      break;
-	  if (*p == ']' && p[1] == ':') 
-	    p += 2;
-	  else
-	    p = start;
-	}
-      else
-	p = start;
-    }
-
-  if (p != strobj_ptr (&mach->arg_str))
-    {
-      for (; *p && isspace (*p); p++)
-	;
-      
       p = strdup (p);
       strobj_free (&mach->arg_str);
       strobj_create (&mach->arg_str, p);
       free (p);
     }
 }  
+
+static void
+builtin_isreply (struct mh_machine *mach)
+{
+  char *p;
+  int rc;
+  
+  if (strobj_is_null (&mach->arg_str))
+    {
+      header_t hdr = NULL;
+      char *value = NULL;
+      message_get_header (mach->message, &hdr);
+      
+      header_aget_value (hdr, MU_HEADER_SUBJECT, &value);
+      rc = munre_subject (value, NULL);
+      free (value);
+    }
+  else
+    rc = munre_subject (strobj_ptr (&mach->arg_str), NULL);
+
+  mach->arg_num = !rc;
+}
+
+static void
+builtin_reply_regex (struct mh_machine *mach)
+{
+  mh_set_reply_regex (strobj_ptr (&mach->arg_str));
+}
 
 int
 mh_decode_rcpt_flag (const char *arg)
@@ -2038,6 +2039,8 @@ mh_builtin_t builtin_tab[] = {
   { "package",  builtin_package,  mhtype_str, mhtype_none },
   { "package_string",  builtin_package_string,  mhtype_str, mhtype_none },
   { "version",  builtin_version,  mhtype_str, mhtype_none },
+  { "reply_regex", builtin_reply_regex, mhtype_none, mhtype_str },
+  { "isreply", builtin_isreply, mhtype_num, mhtype_str, MHA_OPTARG },
   { 0 }
 };
 
