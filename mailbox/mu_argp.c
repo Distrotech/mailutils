@@ -329,6 +329,9 @@ static char *mu_conf_option[] = {
 #ifdef ENABLE_SENDMAIL
   "ENABLE_SENDMAIL",
 #endif
+#ifdef ENABLE_NNTP
+  "ENABLE_NNTP",
+#endif
 #ifdef WITH_INCLUDED_LIBINTL
   "WITH_INCLUDED_LIBINTL",
 #endif
