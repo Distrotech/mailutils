@@ -44,10 +44,14 @@
 #include <mailutils/nls.h>
 #include <mailutils/argcv.h>
 
-#define ARG_LOG_FACILITY 1
-#define ARG_LOCK_FLAGS 2
-#define ARG_SHOW_OPTIONS 3
-#define ARG_LICENSE 4
+#define ARG_LOG_FACILITY          1
+#define ARG_LOCK_FLAGS            2
+#define ARG_LOCK_RETRY_COUNT      3
+#define ARG_LOCK_RETRY_TIMEOUT    4
+#define ARG_LOCK_EXPIRE_TIMEOUT   5
+#define ARG_LOCK_EXTERNAL_PROGRAM 6
+#define ARG_SHOW_OPTIONS          7
+#define ARG_LICENSE               8
 
 static struct argp_option mu_common_argp_options[] = 
 {
@@ -69,6 +73,14 @@ static struct argp_option mu_mailbox_argp_option[] = {
    N_("Use specified URL as a mailspool directory"), 0},
   {"lock-flags", ARG_LOCK_FLAGS, N_("FLAGS"), 0,
    N_("Default locker flags (E=external, R=retry, T=time, P=pid)"), 0},
+  {"lock-retry-timeout", ARG_LOCK_RETRY_TIMEOUT, N_("SECONDS"), 0,
+   N_("Set timeout for acquiring the lockfile") },
+  {"lock-retry-count", ARG_LOCK_RETRY_COUNT, N_("NUMBER"), 0,
+   N_("Set the maximum number of times to retry acquiring the lockfile") },
+  {"lock-expire-timeout", ARG_LOCK_EXPIRE_TIMEOUT, N_("SECONDS"), 0,
+   N_("Number of seconds after which the lock expires"), },
+  {"external-locker", ARG_LOCK_EXTERNAL_PROGRAM, N_("PATH"), 0,
+   N_("Set full path to the external locker program.") },
   { NULL,      0, NULL, 0, NULL, 0 }
 };
 
@@ -400,10 +412,39 @@ mu_common_argp_parser (int key, char *arg, struct argp_state *state)
 		argp_error (state, _("invalid lock flag '%c'"), *arg);
 	      }
 	  }
-	locker_set_default_flags (flags);
+	locker_set_default_flags (flags, mu_locker_set_flags);
       }
       break;
 
+    case ARG_LOCK_RETRY_COUNT:
+      {
+	size_t t = strtoul (arg, NULL, 0);
+	locker_set_default_retry_count (t);
+	locker_set_default_flags (MU_LOCKER_RETRY, mu_locker_set_bit);
+      }
+      break;
+	  
+    case ARG_LOCK_RETRY_TIMEOUT:
+      {
+	time_t t = strtoul (arg, NULL, 0);
+	locker_set_default_retry_timeout (t);
+	locker_set_default_flags (MU_LOCKER_RETRY, mu_locker_set_bit);
+      }
+      break;
+
+    case ARG_LOCK_EXPIRE_TIMEOUT:
+      {
+	time_t t = strtoul (arg, NULL, 0);
+	locker_set_default_expire_timeout (t);
+	locker_set_default_flags (MU_LOCKER_EXTERNAL, mu_locker_set_bit);
+      }
+      break;
+
+    case ARG_LOCK_EXTERNAL_PROGRAM:
+      locker_set_default_external_program (arg);
+      locker_set_default_flags (MU_LOCKER_TIME, mu_locker_set_bit);
+      break;
+      
       /* address */
     case 'E':
       if ((err = mu_set_user_email(arg)) != 0)
