@@ -907,8 +907,6 @@ AC_CONFIG_FILES([Makefile
  examples/scheme/Makefile
  frm/Makefile
  frm/testsuite/Makefile
- from/Makefile
- from/testsuite/Makefile
  guimb/Makefile
  guimb/scm/Makefile
  imap4d/Makefile
