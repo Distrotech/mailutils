@@ -81,10 +81,14 @@ struct _mailbox
   int  (*_get_size)        __P ((mailbox_t, size_t msgno,
 				 size_t *h, size_t *b));
 
-  ssize_t  (*_get_header)  __P ((mailbox_t, size_t msgno, char *h,
+  ssize_t (*_get_header)   __P ((mailbox_t, size_t msgno, char *h,
 				 size_t len, off_t off, int *err));
-  ssize_t  (*_get_body)    __P ((mailbox_t, size_t msgno, char *b,
+  ssize_t (*_get_body)     __P ((mailbox_t, size_t msgno, char *b,
 				 size_t len, off_t off, int *err));
+  int (*_get_attribute)    __P ((mailbox_t mbox, size_t msgno,
+				 attribute_t *attr));
+  int (*_set_attribute)    __P ((mailbox_t mbox, size_t msgno,
+				 attribute_t attr));
 };
 
 /* private */
@@ -103,6 +107,10 @@ extern int mailbox_get_auth       __P ((mailbox_t mbox, auth_t *auth));
 extern int mailbox_set_auth       __P ((mailbox_t mbox, auth_t auth));
 extern int mailbox_get_locker     __P ((mailbox_t mbox, locker_t *locker));
 extern int mailbox_set_locker     __P ((mailbox_t mbox, locker_t locker));
+extern int mailbox_get_attribute  __P ((mailbox_t mbox, size_t msgno,
+					attribute_t *attr));
+extern int mailbox_set_attribute  __P ((mailbox_t mbox, size_t msgno,
+					attribute_t attr));
 extern int mailbox_progress       __P ((mailbox_t mbox,
 					int (*progress) (int, void *arg),
 					void *arg));

@@ -44,6 +44,7 @@ typedef struct _hdr *hdr_t;
 
 struct _header
 {
+  size_t num;
   /* Data */
   void *data;
   /* owner ? */
@@ -56,13 +57,23 @@ struct _header
 			     size_t n, int replace));
   int (*_get_value)    __P ((header_t, const char *fn, char *fv,
 			     size_t len, size_t *n));
-  ssize_t (*_get_data) __P ((header_t h, char *data,
-			     size_t len, off_t off, int *err));
+  int (*_entry_count)      __P ((header_t, size_t *));
+  int (*_entry_name)    __P ((header_t, size_t num, char *buf,
+			      size_t buflen, size_t *nwritten));
+  int (*_entry_value)    __P ((header_t, size_t num, char *buf,
+			       size_t buflen, size_t *nwritten));
+  ssize_t (*_get_data) __P ((header_t h, char *data, size_t len,
+			     off_t off, int *err));
   int (*_parse)        __P ((header_t, const char *blurb, size_t len));
-} ;
+};
 
+extern ssize_t header_get_data __P ((header_t h, char *data,
+				     size_t len, off_t off, int *err));
+
+/* rfc822 */
 extern int rfc822_init __P ((header_t *ph, const char *blurb, size_t len));
 extern void rfc822_destroy __P ((header_t *ph));
+
 #ifdef _cpluscplus
 }
 #endif

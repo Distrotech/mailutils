@@ -45,7 +45,7 @@ int
 header_set_value (header_t h, const char *fn, const char *fb, size_t n,
 					 int replace)
 {
-  if (h == NULL)
+  if (h == NULL || h->_set_value == NULL)
     return EINVAL;
   return h->_set_value (h, fn, fb, n, replace);
 }
@@ -54,15 +54,41 @@ int
 header_get_value (header_t h, const char *fn, char *fb,
 		      size_t len, size_t *n)
 {
-  if (h == NULL)
+  if (h == NULL || h->_get_value == NULL )
     return EINVAL;
   return h->_get_value (h, fn, fb, len, n);
+}
+
+int
+header_entry_name (header_t h, size_t num, char *buf, size_t len, size_t *n)
+{
+  if (h == NULL || h->_entry_name == NULL)
+    return EINVAL;
+
+  return h->_entry_name (h, num, buf, len, n);
+}
+
+int
+header_entry_value (header_t h, size_t num, char *buf, size_t len, size_t *n)
+{
+  if (h == NULL || h->_entry_value == NULL)
+    return EINVAL;
+
+  return h->_entry_value (h, num, buf, len, n);
+}
+
+int
+header_entry_count (header_t h, size_t *num)
+{
+  if (h == NULL || h->_entry_count)
+    return EINVAL;
+  return h->_entry_count (h, num);
 }
 
 ssize_t
 header_get_data (header_t h, char *data, size_t len, off_t off, int *err)
 {
-  if (h == NULL)
+  if (h == NULL || h->_get_data)
     return EINVAL;
   return h->_get_data (h, data, len, off, err);
 }

@@ -32,33 +32,42 @@ struct mailbox_registrar _mailbox_mbox_registrar =
 };
 
 /*
-  if there is no specific URL for file mailbox,
-    file://<path_name>
+  Caveat there is no specific URL for file mailbox or simple path name,
+    <path_name>
+    file:<path_name>
 
   It would be preferrable to use :
-    maildir://<path>
-    unix://<path>
-    mmdf://<path>
+    maildir:<path>
+    unix:<path>
+    mmdf:<path>
   This would eliminate heuristic discovery that would turn
-  out to be wrong. Caveat, there is no std URL for those
-  mailbox.
+  out to be wrong.
 */
 
 static int
 mailbox_mbox_init (mailbox_t *mbox, const char *name)
 {
   struct stat st;
-  char *scheme = strstr (name, "://");
+  size_t len;
 
-  if (scheme)
+  if (name == NULL || mbox == NULL)
+    return EINVAL;
+
+  len = strlen (name);
+  if (len >= 5 &&
+      (name[0] == 'f' || name[0] == 'F') &&
+      (name[1] == 'i' || name[1] == 'I') &&
+      (name[2] == 'l' || name[2] == 'L') &&
+      (name[3] == 'e' || name[3] == 'E') &&
+      name[4] == ':')
     {
-      scheme += 3;
-      name = scheme;
+      name += 5;
     }
   /*
-    If they want to creat ?? should they  know the type ???
-    What is the best course of action ??
-  */
+   * If they want to creat ?? should they  know the type ???
+   * What is the best course of action ??
+   * For the default is unix if the file does not exist.
+   */
   if (stat (name, &st) < 0)
     return _mailbox_unix_registrar._init (mbox, name);
 
@@ -99,7 +108,7 @@ mailbox_mbox_init (mailbox_t *mbox, const char *name)
 	{
 	  if (strncmp (head, "From ", 5) == 0)
 	    {
-	      /* This is Unix Mbox */
+	      /* This is a Unix Mbox */
 	      close (fd);
 	      return _mailbox_unix_registrar._init (mbox, name);
 	    }

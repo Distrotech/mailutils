@@ -62,7 +62,6 @@ attribute_set_answered (attribute_t attr)
   if (attr == NULL)
     return EINVAL;
   attr->flag|= MU_ATTRIBUTE_ANSWERED;
-  attr->flag |= MU_ATTRIBUTE_SEEN;
   return 0;
 }
 
@@ -72,7 +71,6 @@ attribute_set_flagged (attribute_t attr)
   if (attr == NULL)
     return EINVAL;
   attr->flag |= MU_ATTRIBUTE_FLAGGED;
-  attr->flag |= MU_ATTRIBUTE_SEEN;
   return 0;
 }
 
@@ -82,7 +80,6 @@ attribute_set_read (attribute_t attr)
   if (attr == NULL)
     return EINVAL;
   attr->flag |= MU_ATTRIBUTE_READ;
-  attr->flag |= MU_ATTRIBUTE_SEEN;
   return 0;
 }
 
@@ -175,9 +172,6 @@ attribute_unset_seen (attribute_t attr)
   if (attr == NULL)
     return 0;
   attr->flag ^= MU_ATTRIBUTE_SEEN;
-  attr->flag ^= MU_ATTRIBUTE_ANSWERED;
-  attr->flag ^= MU_ATTRIBUTE_FLAGGED;
-  attr->flag ^= MU_ATTRIBUTE_READ;
   return 0;
 }
 
@@ -235,3 +229,38 @@ attribute_unset_recent (attribute_t attr)
   return 0;
 }
 
+int
+attribute_is_equal (attribute_t attr, attribute_t attr2)
+{
+  if (attr == NULL || attr2 == NULL)
+    return 0;
+  return attr->flag == attr2->flag;
+}
+
+int
+attribute_copy (attribute_t dest, attribute_t src)
+{
+  if (dest == NULL || src == NULL)
+    return EINVAL;
+  memcpy (dest, src, sizeof (*dest));
+  return 0;
+}
+
+int
+attribute_set_owner (attribute_t attr, message_t *msg)
+{
+  if (attr == NULL)
+    return EINVAL;
+  attr->message = msg;
+  return 0;
+}
+
+int
+attribute_get_owner (attribute_t attr, message_t *msg)
+{
+  if (attr == NULL)
+    return EINVAL;
+  if (msg)
+    *msg = attr->message;
+  return 0;
+}

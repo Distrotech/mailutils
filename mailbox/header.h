@@ -67,16 +67,19 @@ extern "C" {
 struct _header;
 typedef struct _header * header_t;
 
-extern int  header_init       __P ((header_t *, const char *blurb,
-				    size_t ln, int flag));
-extern void header_destroy    __P ((header_t *));
+extern int header_init         __P ((header_t *, const char *blurb,
+				     size_t ln, int flag));
+extern void header_destroy     __P ((header_t *));
 
-extern int  header_set_value  __P ((header_t, const char *fn,
-				    const char *fv, size_t n, int replace));
-extern int  header_get_value  __P ((header_t, const char *fn, char *fv,
-				    size_t len, size_t *n));
-extern ssize_t  header_get_data   __P ((header_t h, char *data,
-				       size_t len, off_t off, int *err));
+extern int header_set_value    __P ((header_t, const char *fn,
+				     const char *fv, size_t n, int replace));
+extern int header_get_value    __P ((header_t, const char *fn, char *fv,
+				     size_t len, size_t *nwritten));
+extern int header_entry_count  __P ((header_t, size_t *num));
+extern int header_entry_name   __P ((header_t, size_t num, char *buf,
+				     size_t buflen, size_t *total));
+extern int header_entry_value  __P ((header_t, size_t num, char *buf,
+				     size_t buflen, size_t *total));
 #ifdef _cpluscplus
 }
 #endif

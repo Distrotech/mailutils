@@ -59,6 +59,10 @@ extern int registrar_add    __P ((struct url_registrar *ureg,
 extern int registrar_remove __P ((int id));
 extern int registrar_get  __P ((int id, struct url_registrar **ureg,
 				struct mailbox_registrar **mreg));
+extern int registrar_num __P ((size_t *num));
+extern int registrar_get_entry __P ((size_t num, struct url_registrar **ureg,
+				     struct mailbox_registrar **mreg,
+				     int *id));
 extern int registrar_list __P ((struct url_registrar **ureg,
 			   struct mailbox_registrar **mreg,
 			   int *id, registrar_t *reg));

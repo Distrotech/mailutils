@@ -183,12 +183,37 @@ message_size (message_t msg, size_t *size)
       size_t hs, bs;
       int status;
       status = mailbox_get_size (msg->mailbox, msg->num, &hs, &bs);
-      if (status == 0)
-	{
-	  if (size)
-	    *size = hs + bs;
-	}
-      return status;
+      if (status != 0)
+	return status;
+      *size = hs + bs;
+      return 0;
     }
+  return ENOSYS;
+}
+
+int
+message_get_attribute (message_t msg, attribute_t *pattribute)
+{
+  if (msg == NULL || pattribute == NULL)
+   return EINVAL;
+  if (msg->attribute)
+    *pattribute = msg->attribute;
+  if (msg->mailbox)
+    {
+      int status;
+      status = mailbox_get_attribute (msg->mailbox, msg->num, pattribute);
+      if (status != 0)
+	return status;
+      msg->attribute = *pattribute;
+      (*pattribute)->message = msg;
+      return 0;
+    }
+  return ENOSYS;
+}
+
+int
+message_set_attribute  (message_t msg, attribute_t attribute)
+{
+  (void)msg; (void)attribute;
   return ENOSYS;
 }

@@ -28,10 +28,15 @@
 static int rfc822_parse (header_t h, const char *blurb, size_t len);
 static int rfc822_set_value (header_t h, const char *fn, const char *fb,
 			     size_t n, int replace);
-ssize_t rfc822_get_data (header_t h, char *buf, size_t buflen,
-			 off_t off, int *err);
-static int rfc822_get_value (header_t h, const char *fn,
-			     char *fb, size_t len, size_t *n);
+static int rfc822_get_value (header_t h, const char *fn, char *fb,
+			     size_t len, size_t *n);
+static int rfc822_entry_count (header_t, size_t *num);
+static int rfc822_entry_name (header_t h, size_t num, char *buf,
+			      size_t buflen, size_t *total);
+static int rfc822_entry_value (header_t h, size_t num, char *buf,
+			       size_t buflen, size_t *total);
+static ssize_t rfc822_get_data (header_t h, char *buf, size_t buflen,
+				off_t off, int *err);
 
 struct _rfc822
 {
@@ -57,6 +62,9 @@ rfc822_init (header_t *ph, const char *blurb, size_t len)
   h->_parse = rfc822_parse;
   h->_get_value = rfc822_get_value;
   h->_set_value = rfc822_set_value;
+  h->_entry_count = rfc822_entry_count;
+  h->_entry_name = rfc822_entry_name;
+  h->_entry_value = rfc822_entry_value;
   h->_get_data = rfc822_get_data;
 
   status = h->_parse (h, blurb, len);
@@ -90,6 +98,14 @@ rfc822_destroy (header_t *ph)
     }
 }
 
+/*
+ * Parsing is done in a rather simple fashion.
+ * meaning we just  consider an entry to be
+ * a field-name an a field-value.  So they
+ * maybe duplicate of field-name like "Received"
+ * they are just put in the array, see _get_value()
+ * on how to handle the case.
+ */
 static int
 rfc822_parse (header_t h, const char *blurb, size_t len)
 {
@@ -118,9 +134,9 @@ rfc822_parse (header_t h, const char *blurb, size_t len)
   for (header_start = rfc->blurb;; header_start = ++header_end)
     {
       /* get a header, a header is :
-	 field-name ':' field-body1
-	 [ ' ' '\t' field-body2 ] '\r' '\n'
-      */
+       * field-name ':'  ' ' field-value '\r' '\n'
+       * [ (' ' | '\t') field-value '\r' '\n' ]
+       */
       for (header_start2 = header_start;;header_start2 = ++header_end)
 	{
 	  header_end = memchr (header_start2, '\n', len);
@@ -195,36 +211,124 @@ rfc822_set_value (header_t h, const char *fn, const char *fv,
 }
 
 static int
-rfc822_get_value (header_t h, const char *fn, char *fv, size_t len, size_t *n)
+rfc822_get_value (header_t h, const char *name, char *buffer,
+		  size_t buflen, size_t *n)
 {
   size_t i = 0;
-  size_t j = 0;
-  size_t name_len, fn_len, fv_len;
+  size_t name_len;
+  size_t total = 0, fn_len = 0, fv_len = 0;
+  int threshold;
   rfc822_t rfc;
 
-  if (h == NULL || fn == NULL || (rfc = (rfc822_t)h->data) == NULL)
+  if (h == NULL || name == NULL ||
+      (rfc = (rfc822_t)h->data) == NULL)
     return EINVAL;
 
-  for (name_len = strlen (fn), i = 0; i < rfc->hdr_count; i++)
+  /* we set the threshold to be 1 less for the null */
+  threshold = --buflen;
+
+  /*
+   * Caution: We may have more then one value for a field
+   * name, for example a "Received" field-name is added by
+   * each passing MTA.  The way that the parsing (_parse())
+   * is done it's not take to account.  So we just stuff in
+   * the buffer all the field-values to a corresponding field-name.
+   * FIXME: Should we kosher the output ? meaning replace
+   * occurences of " \t\r\n" for spaces ? for now we don't.
+   */
+  for (name_len = strlen (name), i = 0; i < rfc->hdr_count; i++)
     {
       fn_len = rfc->hdr[i].fn_end - rfc->hdr[i].fn;
-      if (fn_len == name_len && memcmp (rfc->hdr[i].fn, fn, fn_len) == 0)
+      if (fn_len == name_len && memcmp (rfc->hdr[i].fn, name, fn_len) == 0)
 	{
-	  fv_len = rfc->hdr[i].fv_end - rfc->hdr[i].fv;
-	  j = (len < fv_len) ? len : fv_len;
-	  if (fv)
-	    memcpy (fv, rfc->hdr[i].fv, j);
-	  break;
+	  fv_len = (rfc->hdr[i].fv_end - rfc->hdr[i].fv);
+	  total += fv_len;
+	  /* can everything fit in the buffer */
+	  if (buffer && threshold > 0)
+	    {
+	      threshold -= fv_len;
+	      if (threshold > 0)
+		{
+		  memcpy (buffer, rfc->hdr[i].fv, fv_len);
+		  buffer += fv_len;
+		}
+	      else if (threshold < 0)
+		{
+		  threshold += fv_len;
+		  memcpy (buffer, rfc->hdr[i].fv, threshold);
+		  buffer += threshold;
+		  threshold = 0;
+		}
+	    }
 	}
     }
-  if (fv)
-    fv[j] = '\0'; /* null terminated */
+  if (buffer)
+    *buffer = '\0'; /* null terminated */
   if (n)
-    *n = fv_len;
+    *n = total;
   return 0;
 }
 
-ssize_t
+static int
+rfc822_entry_count (header_t h, size_t *num)
+{
+  rfc822_t rfc;
+  if (h == NULL || (rfc = (rfc822_t)h->data) == NULL)
+      return EINVAL;
+  if (num)
+    *num = rfc->hdr_count;
+  return 0;
+}
+
+static int
+rfc822_entry_name (header_t h, size_t num, char *buf,
+		   size_t buflen, size_t *nwritten)
+{
+  rfc822_t rfc;
+  size_t len;
+  if (h == NULL || (rfc = (rfc822_t)h->data) == NULL)
+    return EINVAL;
+  if (rfc->hdr_count == 0 || num > rfc->hdr_count)
+    return ENOENT;
+  len = rfc->hdr[num].fn_end - rfc->hdr[num].fn;
+  /* save one for the null */
+  --buflen;
+  if (buf && buflen > 0)
+    {
+      buflen = (len > buflen) ? buflen : len;
+      memcpy (buf, rfc->hdr[num].fn, buflen);
+      buf[buflen] = '\0';
+    }
+  if (nwritten)
+    *nwritten = len;
+  return 0;
+}
+
+static int
+rfc822_entry_value (header_t h, size_t num, char *buf,
+		    size_t buflen, size_t *nwritten)
+{
+  rfc822_t rfc;
+  size_t len;
+  if (h == NULL || (rfc = (rfc822_t)h->data) == NULL)
+    return EINVAL;
+  if (rfc->hdr_count == 0 || num > rfc->hdr_count)
+    return ENOENT;
+  len = rfc->hdr[num].fv_end - rfc->hdr[num].fv;
+  /* save one for the null */
+  --buflen;
+  if (buf && buflen > 0)
+    {
+      buflen = (len > buflen) ? buflen : len;
+      memcpy (buf, rfc->hdr[num].fv, buflen);
+      buf[buflen] = '\0';
+    }
+  if (nwritten)
+    *nwritten = len;
+  return 0;
+}
+
+static ssize_t
 rfc822_get_data (header_t h, char *buf, size_t buflen, off_t off, int *err)
 {
   rfc822_t rfc;

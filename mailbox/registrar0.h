@@ -46,10 +46,21 @@ struct _registrar
   struct _registrar *next;
 };
 
+
+/* This is function is obsolete use the registrar_entry_*() ones */
+extern int registrar_list __P ((struct url_registrar **ureg,
+				struct mailbox_registrar **mreg,
+				int *id, registrar_t *reg));
+extern int registrar_entry_count __P ((size_t *num));
+extern int registrar_entry __P ((size_t num, struct url_registrar **ureg,
+				struct mailbox_registrar **mreg,
+				int *id));
 /* IMAP */
 extern struct mailbox_registrar _mailbox_imap_registrar;
 extern struct url_registrar _url_imap_registrar;
 
+/* FILE */
+extern struct url_registrar  _url_file_registrar;
 /* MBOX */
 extern struct mailbox_registrar _mailbox_mbox_registrar;
 extern struct url_registrar  _url_mbox_registrar;

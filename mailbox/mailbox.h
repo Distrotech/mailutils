@@ -22,6 +22,7 @@
 
 #include <url.h>
 #include <message.h>
+#include <attribute.h>
 #include <auth.h>
 #include <locker.h>
 

@@ -61,11 +61,7 @@ mailbox_init (mailbox_t *pmbox, const char *name, int id)
 
   /* if things went ok set mreg for mailbox_destroy and the URL */
   if (status == 0)
-    {
-      (*pmbox)->url = url;
-      (*pmbox)->_init = mreg->_init;
-      (*pmbox)->_destroy = mreg->_destroy;
-    }
+    (*pmbox)->url = url;
   return status;
 }
 
@@ -245,10 +241,26 @@ mailbox_set_auth (mailbox_t mbox, auth_t auth)
 }
 
 int
-mailbox_get_auth (mailbox_t mbox, auth_t *auth)
+mailbox_get_auth (mailbox_t mbox, auth_t *pauth)
 {
-  if (mbox == NULL || auth == NULL)
+  if (mbox == NULL || pauth == NULL)
     return EINVAL;
-  *auth = mbox->auth;
+  *pauth = mbox->auth;
   return 0;
+}
+
+int
+mailbox_get_attribute (mailbox_t mbox, size_t msgno, attribute_t *pattr)
+{
+  if (mbox == NULL || mbox->_get_attribute == NULL)
+    return ENOSYS;
+  return mbox->_get_attribute (mbox, msgno, pattr);
+}
+
+int
+mailbox_set_attribute (mailbox_t mbox, size_t msgno, attribute_t attr)
+{
+  if (mbox == NULL || mbox->_set_attribute == NULL)
+    return ENOSYS;
+  return mbox->_set_attribute (mbox, msgno, attr);
 }

@@ -18,6 +18,7 @@
 #ifndef _ATTRIBUTE0_H
 #define _ATTRIBUTE0_H
 
+#include <message.h>
 #include <attribute.h>
 
 #include <sys/types.h>
@@ -47,6 +48,11 @@ struct _attribute
   size_t flag;
   void *message;
 };
+
+/* not user visible ?? */
+extern int attribute_copy       __P ((attribute_t dst, attribute_t src));
+extern int attribute_set_owner  __P ((attribute_t attr, message_t *msg));
+extern int attribute_get_owner  __P ((attribute_t attr, message_t *msg));
 
 #ifdef __cplusplus
 }

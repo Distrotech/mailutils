@@ -60,6 +60,8 @@ extern int attribute_unset_draft __P ((attribute_t));
 extern int attribute_unset_recent __P ((attribute_t));
 extern int attribute_unset_read __P ((attribute_t));
 
+extern int attribute_is_equal __P ((attribute_t att1, attribute_t att2));
+
 #ifdef __cplusplus
 }
 #endif

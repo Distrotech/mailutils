@@ -47,6 +47,7 @@ url_init (url_t * purl, const char *name)
   registrar_t reg = NULL;
   size_t name_len;
   int id;
+  size_t i, entry_count = 0;
 
   /* Sanity checks */
   if (name == NULL || *name == '\0')
@@ -55,6 +56,22 @@ url_init (url_t * purl, const char *name)
   name_len = strlen (name);
 
   /* Search for a known scheme */
+  registrar_entry_count (&entry_count);
+  for (i = 0; i < entry_count; i++)
+    {
+      if (registrar_entry (i, &ureg, &mreg, &id) == 0)
+	{
+	  size_t scheme_len;
+	  if (ureg && ureg->scheme &&
+	      name_len > (scheme_len = strlen (ureg->scheme)) &&
+	      memcmp (name, ureg->scheme, scheme_len) == 0)
+	    {
+	      status = 0;
+	      break;
+	    }
+	}
+    }
+  /*
   while (registrar_list (&ureg, &mreg, &id, &reg) == 0)
     {
       size_t scheme_len;
@@ -66,6 +83,7 @@ url_init (url_t * purl, const char *name)
 	  break;
 	}
     }
+  */
 
   /* Found one initialize it */
   if (status == 0)

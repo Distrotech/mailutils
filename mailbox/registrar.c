@@ -33,11 +33,12 @@
 
 static struct _registrar registrar [] = {
   { NULL, NULL, 0, &registrar[1] }, /* sentinel, head list */
-  { &_url_mbox_registrar, &_mailbox_mbox_registrar, 0, &registrar[2] },
-  { &_url_unix_registrar, &_mailbox_unix_registrar, 0, &registrar[3] },
-  { &_url_maildir_registrar, &_mailbox_maildir_registrar, 0, &registrar[4] },
-  { &_url_mmdf_registrar, &_mailbox_mmdf_registrar, 0, &registrar[5] },
-  { &_url_pop_registrar, &_mailbox_pop_registrar, 0, &registrar[6] },
+  { &_url_file_registrar, &_mailbox_mbox_registrar, 0, &registrar[2] },
+  { &_url_mbox_registrar, &_mailbox_mbox_registrar, 0, &registrar[3] },
+  { &_url_unix_registrar, &_mailbox_unix_registrar, 0, &registrar[4] },
+  { &_url_maildir_registrar, &_mailbox_maildir_registrar, 0, &registrar[5] },
+  { &_url_mmdf_registrar, &_mailbox_mmdf_registrar, 0, &registrar[6] },
+  { &_url_pop_registrar, &_mailbox_pop_registrar, 0, &registrar[7] },
   { &_url_imap_registrar, &_mailbox_imap_registrar, 0, &registrar[0] },
 };
 
@@ -172,6 +173,43 @@ registrar_get (int id,
         }
     }
   return EINVAL;
+}
+
+int
+registrar_entry_count (size_t *num)
+{
+  struct _registrar *current;
+  size_t count;
+  for (count = 0, current = registrar->next; current != registrar;
+       current = current->next, count++)
+    ;
+  if (num)
+    *num = count;
+  return 0;
+}
+
+int
+registrar_entry (size_t num, struct url_registrar **ureg,
+		 struct mailbox_registrar **mreg, int *id)
+{
+  struct _registrar *current;
+  size_t count, status;
+  for (status = ENOENT, count = 0, current = registrar->next;
+       current != registrar; current = current->next, count++)
+    {
+      if (num == count)
+	{
+	  if (ureg)
+	    *ureg = current->ureg;
+	  if (mreg)
+	    *mreg = current->mreg;
+	  if (id)
+	    *id = (int)current;
+	  status = 0;
+	  break;
+	}
+    }
+ return status;
 }
 
 int
