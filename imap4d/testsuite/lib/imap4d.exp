@@ -65,7 +65,7 @@ proc default_imap4d_start {args} {
 
     set args [lindex $args 0]
     if [info exists MU_TOOL_FLAGS] {
-	set sw $MU_TOOL_FLAGS
+	set sw "$MU_TOOL_FLAGS "
     } else {
 	set sw ""
     }
@@ -110,7 +110,7 @@ proc default_imap4d_stop {} {
 proc imap4d_start {args} {
     global MU_SPOOL_DIR
     
-    verbose "Starting pop3d"
+    verbose "Starting imap4d"
 
     set reuse_spool 0
     for {set i 0} {$i < [llength $args]} {incr i} {
@@ -179,20 +179,20 @@ proc imap4d_auth {args} {
     }
 }    
     
-# imap4d_test [-message MESSAGE][-default (FAIL|XFAIL)]
+# imap4d_test [-message MESSAGE][-default (FAIL|XFAIL)][-long][-silent]
 #            COMMAND [UNTAGGED...][TAGGED]
 # COMMAND   - Command to send.
 # UNTAGGED  - A list of untagged responses to expect in return. 
 # TAGGED    - A tagged response to expect in return. Defaults to "OK"
 # MESSAGE   - [optional] message to output
-proc imap4d_test { args } {
-    global verbose
-    global suppress_flag;
+proc imap4d_test {args} {
     global IMAP4D_TAG
-    upvar timeout timeout
-
+    global verbose
+	
     set default ""
     set message ""
+    set long 0
+    set silent 0
     for {set i 0} {$i < [llength $args]} {incr i} {
 	set a [lindex $args $i]
 	if {"$a" == "-default"} {
@@ -201,6 +201,10 @@ proc imap4d_test { args } {
 	} elseif {"$a" == "-message"} {
 	    set message [lindex $args [expr $i + 1]]
 	    incr i
+	} elseif {"$a" == "-long"} {
+	    set long 1
+	} elseif {"$a" == "-silent"} {
+	    set silent 1
 	} else {
 	    set args [lrange $args $i end]
 	    break
@@ -215,8 +219,12 @@ proc imap4d_test { args } {
 	send_user "Message is \"$message\"\n"
     }
 
-    set command [imap4d_make_command [lindex $args 0]]
-
+    set command [lindex $args 0]
+    if {$long} {
+	set command_data [lindex $args 1]
+	set args [lrange $args 1 end]
+    } 
+	
     set pattern [list]
     set len [expr [llength $args] - 1]
 
@@ -251,26 +259,50 @@ proc imap4d_test { args } {
 	set tagged "OK"
     }
 
-    set pattern [concat $pattern [list "$IMAP4D_TAG $tagged"]]
-    set result [mu_test $command $pattern]
+    if {$long} {
+	set command "$command {[string length $command_data]}"
+	imap4d_command $command
+	set pattern [concat $pattern [list "$IMAP4D_TAG $tagged"]]
 
-    if {$result == 0} {
-	pass "$message"
-    } elseif {$result == 1} {
-	if { "$default" == "" || "$default" != "FAIL" } {
-	    fail "$message"
-	} else {
-	    xfail "$message"
-	    set result 0
+	mu_expect 360 {
+	    -re "^\\+ GO AHEAD.*$" { }
+	    default {
+		perror "imap4d_long_test failed"
+		return 1
+	    }
 	}
-    } elseif {$result == -2} {
-	fail "$message (timeout)"
-    } elseif {$result == -3} {
-	fail "$message (eof)"
+
+	verbose "Sending $command_data" 3
+	mu_send $command_data
+
+	set s [split $command_data "\n"]
+        set s [lrange $s 0 [expr [llength $s] - 2]]
+        set result [mu_expect_list 360 [concat $s $pattern]]
     } else {
-	fail "$message"
+	set command [imap4d_make_command $command]
+	set pattern [concat $pattern [list "$IMAP4D_TAG $tagged"]]
+        set result [mu_test $command $pattern]
+    }
+
+    if {!$silent} {
+	if {$result == 0} {
+	    pass "$message"
+	} elseif {$result == 1} {
+	    if { "$default" == "" || "$default" != "FAIL" } {
+		fail "$message"
+	    } else {
+		xfail "$message"
+		set result 0
+	    }
+	} elseif {$result == -2} {
+	    fail "$message (timeout)"
+        } elseif {$result == -3} {
+	    fail "$message (eof)"
+        } else {
+	    fail "$message"
+        }
     }
     return $result
 }
-
+	    
 
