@@ -357,7 +357,7 @@ address_aget_personal (address_t addr, size_t no, char **buf)
 	status = ENOMEM;
     }
   else
-    buf = NULL;
+    *buf = NULL;
   return status;
 }
 
@@ -381,7 +381,7 @@ address_aget_comments (address_t addr, size_t no, char **buf)
 	status = ENOMEM;
     }
   else
-    buf = NULL;
+    *buf = NULL;
   return status;
 }
 
