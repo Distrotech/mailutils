@@ -99,6 +99,13 @@ dnl Check for working functions
 jm_FUNC_MALLOC
 jm_FUNC_REALLOC
 AC_FUNC_ALLOCA
+
+jm_INCLUDED_REGEX(lib/regex.c)
+# This no-op line works around a bug in automake 1.4:
+# it doesn't recognize the assignment to LIBOBJS
+# in m4/regex.m4.
+: LIBOBJS="$LIBOBJS regex.o"
+
 # Not use.
 #AC_FUNC_MEMCMP
 AC_FUNC_MMAP
@@ -191,13 +198,13 @@ fi
 dnl Check for Guile
 AC_SUBST(GUILE_INCLUDES)
 AC_SUBST(GUILE_LIBS)
-AC_SUBST(GUIMB)	
+AC_SUBST(GUIMB)
 AC_SUBST(MU_SCM)
 AC_SUBST(GUILE_PROCEDURES_TXT)
 AC_SUBST(GUILE_BUILT_SOURCES)
 if test x"$useguile" = x"yes"; then
 	AC_PATH_PROG(GUILE_CONFIG, guile-config, no, $PATH)
-	AC_CHECK_HEADER(libguile.h, :, [GUILE_CONFIG=no])     
+	AC_CHECK_HEADER(libguile.h, :, [GUILE_CONFIG=no])
 	if test x$GUILE_CONFIG != xno; then
   		GUILE_INCLUDES=`guile-config compile`
   		GUILE_LIBS=`guile-config link`
