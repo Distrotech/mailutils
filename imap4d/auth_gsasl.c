@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2003, 2004 Free Software Foundation, Inc.
+   Copyright (C) 2003, 2004, 2005 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -192,10 +192,22 @@ cb_validate (Gsasl_session_ctx *ctx,
 	     const char *authentication_id,
 	     const char *password)
 {
+  int rc;
+  struct mu_auth_data *auth;
   char **username = gsasl_server_application_data_get (ctx);
+
   *username = strdup (authentication_id ?
 		      authentication_id : authorization_id);
-  return GSASL_OK;
+  
+  auth_data = mu_get_auth_by_name (*username);
+
+  if (auth_data == NULL)
+    return GSASL_AUTHENTICATION_ERROR;
+
+  rc = mu_authenticate (auth, password);
+  mu_auth_data_free (auth);
+  
+  return rc == 0 ? GSASL_OK : GSASL_AUTHENTICATION_ERROR;
 }
 
 #define GSSAPI_SERVICE "imap"
@@ -252,7 +264,7 @@ cb_retrieve (Gsasl_session_ctx *ctx,
 
   if (username && authentication_id)
     *username = strdup (authentication_id);
-
+  
   return gsasl_md5pwd_get_password (gsasl_cram_md5_pwd, authentication_id,
 				    key, keylen);
 }
