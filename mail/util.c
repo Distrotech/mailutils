@@ -71,212 +71,6 @@ util_ll_free (node *c)
 }
 
 /*
- * expands a standard message list into an array of numbers
- * argc is the number of elements being passed in
- * argv is the array of strings to parse
- * list will be populated with message numbers
- * returns the number of items in list
- */
-
-int
-util_expand_msglist (const int argc, char **argv, int **list)
-{
-  int i = 0, lc = 0;
-  int undelete = 0;
-  int *ret = NULL;
-  /* let's try a linked list */
-  node *first = xmalloc (sizeof (node));
-  node *current = first;
-  first->next = NULL;
-
-  if (util_command_get (argv[0]) == util_command_get ("undelete"))
-    undelete = 1;
-
-  for (i = 1; i < argc; i++)
-    {
-      if (!strcmp (argv[i], "+"))
-	{
-	  /* first [un]deleted message */
-	  int n = realcursor + 1;
-	  while (n <= total)
-	    {
-	      if (util_isdeleted (n) && !undelete)
-		n++;
-	      else
-		break;
-	    }
-	  current = util_ll_add (current, n);
-	}
-      else if (!strcmp (argv[i], "-"))
-	{
-	  /* previous [un]deleted message */
-	  int n = realcursor - 1;
-	  while (n > 0)
-	    {
-	      if (util_isdeleted (n) && !undelete)
-		n--;
-	      else
-		break;
-	    }
-	  current = util_ll_add (current, n);
-	}
-      else if (!strcmp (argv[i], "."))
-	{
-	  /* the current cursor location */
-	  current = util_ll_add (current, realcursor);
-	}
-      else if (!strcmp (argv[i], "^"))
-	{
-	  /* first [un]deleted message */
-	  int n = 1;
-	  while (n <= total)
-	    {
-	      if (util_isdeleted (n) && !undelete)
-		n++;
-	      else
-		break;
-	    }
-	  current = util_ll_add (current, 1);
-	}
-      else if (!strcmp (argv[i], "$"))
-	{
-	  /* last [un]deleted message */
-	  int n = total;
-	  while (n > 0)
-	    {
-	      if (util_isdeleted (n) && !undelete)
-		n--;
-	      else
-		break;
-	    }
-	  current = util_ll_add (current, total);
-	}
-      else if (!strcmp (argv[i], "*"))
-	{
-	  /* all messages */
-	  util_ll_free (first);
-	  current = first = xmalloc (sizeof (node));
-	  for (i = 1; i <= total; i++)
-	    current = util_ll_add (current, i);
-	  i = argc + 1;
-	}
-      else if (argv[i][0] == '/')
-	{
-	  /* All messages with pattern following / in
-	     the subject line, case insensitive */
-	  int j;
-	  char *pattern;
-
-	  pattern = strdup (&argv[i][1]);
-	  util_strupper (pattern);
-
-	  for (j = 1; j <= total; j++)
-	    {
-	      message_t msg = NULL;
-	      header_t hdr = NULL;
-	      char *subject = NULL;
-	      size_t subjlen;
-	      int k;
-
-	      mailbox_get_message (mbox, j, &msg);
-	      message_get_header (msg, &hdr);
-
-	      header_aget_value (hdr, MU_HEADER_SUBJECT, &subject);
-	      util_strupper (subject);
-
-	      if (pattern && subject && strstr (subject, pattern))
-		current = util_ll_add (current, j);
-	      free (subject);
-	    }
-	  free (pattern);
-	}
-      else if (argv[i][0] == ':')
-	{
-	  /* All messages of type argv[i][1] */
-	  int j;
-	  for (j = 1; j <= total; j++)
-	    {
-	      message_t msg = NULL;
-	      attribute_t attr= NULL;
-
-	      mailbox_get_message (mbox, j, &msg);
-	      message_get_attribute (msg, &attr);
-	      if ((argv[i][1] == 'd' && attribute_is_deleted (attr))
-		  || (argv[i][1] == 'n' && attribute_is_recent (attr))
-		  || (argv[i][1] == 'o' && attribute_is_seen (attr))
-		  || (argv[i][1] == 'r' && attribute_is_read (attr))
-		  || (argv[i][1] == 'u' && !attribute_is_read (attr)))
-		current = util_ll_add (current, j);
-	    }
-	}
-      else if (isalpha(argv[i][0]))
-	{
-	  /* FIXME: all messages from sender argv[i] */
-	  /* Annoying we can use address_create() for that
-	     but to compare against what? The email ?  */
-	}
-      else if (strchr (argv[i], '-') != NULL)
-	{
-	  /* Message range.  */
-	  int j, x, y;
-	  char *arg = strdup (argv[i]);
-	  for (j=0; j < strlen (arg); j++)
-	    if (arg[j] == '-')
-	      break;
-	  arg[j] = '\0';
-	  x = strtol (arg, NULL, 10);
-	  y = strtol (&(arg[j + 1]), NULL, 10);
-	  for (; x <= y; x++)
-	    current = util_ll_add (current, x);
-	  free (arg);
-	}
-      else if (strchr (argv[i], '[') != NULL)
-	{
-	  /* attachments - GNU extension */
-	  /*
-	   * This is a general extension to the msglist format. Basicallay,
-	   * it adds C-like array subscripting to msg numbers to allow access
-	   * to just a single part of a MIME multipart message. I.e.:
-	   * print 7[1],8[1-2]
-	   * should print the first attachment of message 7 and the first
-	   * and second attachments of message 8. The format inside the
-	   * brackets is the same as a msglist, so we should be able to
-	   * reuse this function for its expansion. This will primarily
-	   * be used by the new decode command, which needs discussion on
-	   * the mailing list to nail its syntax down (should it default to
-	   * saving to a file, printing to stdout, or piping?)
-	   * -- sparky
-	   */
-	}
-      else
-	{
-	  /* Single message.  */
-	  current = util_ll_add (current, strtol (argv[i], NULL, 10));
-	}
-    }
-
-  for (current = first; current->next != NULL; current = current->next)
-    lc++;
-
-  if (!lc)
-    {
-      ret = xcalloc (1, sizeof (int));
-      ret [0] = cursor;
-      lc = 1;
-    }
-  else
-    {
-      ret = xmalloc (lc * sizeof (int));
-      lc = 0;
-      for (current = first; current->next != NULL; current = current->next)
-	ret [lc++] = current->data;
-    }
-  util_ll_free (first);
-  *list = ret;
-  return lc;
-}
-
-/*
  * expands command into its command and arguments, then runs command
  * cmd is the command to parse and run
  * returns exit status of the command
@@ -345,15 +139,17 @@ util_do_command (const char *c, ...)
 int
 util_msglist_command (function_t *func, int argc, char **argv, int set_cursor)
 {
-  int i;
-  int *list = NULL;
+  msgset_t *list = NULL, *mp;
   int status = 0;
-  int number = util_expand_msglist (argc, argv, &list);
+  
+  if (msgset_parse (argc, argv, &list))
+      return 1;
+
   realcursor = cursor;
 
-  for (i = 0; i < number; i++)
+  for (mp = list; mp; mp = mp->next)
     {
-      cursor = list[i];
+      cursor = mp->msg_part[0];
       /* NOTE: Should we bail on error also?  */
       if (func (1, argv) != 0)
 	status = 1;
@@ -361,7 +157,7 @@ util_msglist_command (function_t *func, int argc, char **argv, int set_cursor)
       if (ml_got_interrupt () != 0)
 	break;
     }
-  free (list);
+  msgset_free (list);
 
   if (set_cursor)
     realcursor = cursor;
@@ -1033,3 +829,94 @@ util_tempfile(char **namep)
   return fd;
 }
 
+int
+util_descend_subparts (message_t mesg, msgset_t *msgset, message_t *part)
+{
+  int i;
+
+  for (i = 1; i < msgset->npart; i++)
+    {
+      message_t submsg = NULL;
+      int nparts = 0;
+      char *type = NULL;
+      header_t hdr = NULL;
+      
+      message_get_header (mesg, &hdr);
+      util_get_content_type (hdr, &type);
+      if (strncasecmp (type, "message/rfc822", strlen (type)) == 0)
+	{
+	  if (message_unencapsulate (mesg, &submsg, NULL))
+	    {
+	      util_error ("can't unencapsulate message/part");
+	      return 1;
+	    }
+	  mesg = submsg;
+	}
+      
+      message_get_num_parts (mesg, &nparts);
+      if (nparts < msgset->msg_part[i])
+	{
+	  util_error ("no such (sub)part in the message: %d",
+		      msgset->msg_part[i]);
+	  return 1;
+	}
+      
+      if (message_get_part (mesg, msgset->msg_part[i], &submsg))
+	{
+	  util_error ("can't get (sub)part from the message: %d",
+		      msgset->msg_part[i]);
+	  return 1;
+	}
+
+      mesg = submsg;
+    }
+
+  *part = mesg;
+  return 0;
+}
+      
+void
+util_msgset_iterate (msgset_t *msgset, int (*fun)(), void *closure)
+{
+  for (; msgset; msgset = msgset->next)
+    {
+      message_t mesg;
+      
+      if (mailbox_get_message (mbox, msgset->msg_part[0], &mesg) != 0)
+	return;
+
+      if (util_descend_subparts (mesg, msgset, &mesg) == 0)
+	  (*fun)(mesg, msgset, closure);
+    }	  
+}
+
+int
+util_get_content_type (header_t hdr, char **value)
+{
+  char *type = NULL;
+  util_get_hdr_value (hdr, MU_HEADER_CONTENT_TYPE, &type);
+  if (type == NULL || *type == '\0')
+    {
+      if (type)
+	free (type);
+      type = strdup ("text/plain"); /* Default.  */
+    }
+  *value = type;
+  return 0;
+}
+
+int
+util_get_hdr_value (header_t hdr, const char *name, char **value)
+{
+  int status = header_aget_value (hdr, name, value);
+  if (status == 0)
+    {
+      /* Remove the newlines.  */
+      char *nl;
+      while ((nl = strchr (*value, '\n')) != NULL)
+	{
+	  *nl = ' ';
+	}
+    }
+  return status;
+}
