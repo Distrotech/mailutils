@@ -18,7 +18,7 @@
 
 verbose "STARTED" 1
 
-proc mu_init {} {
+proc mu_init {args} {
     global TOOL_EXECUTABLE
     global MU_TOOL
     global MU_SPOOL_SOURCE 
@@ -27,8 +27,9 @@ proc mu_init {} {
     global MU_FOLDER_DIR
     global MU_RC_DIR 
     global MU_MAKESPOOL
-    global TOOL_NAME
-    global MU_TOOL_ARGS
+    global tool
+    global MU_TOOL_FLAGS
+    global MU_DATA_DIR
     global base_dir
     global top_srcdir
     global objdir
@@ -40,34 +41,39 @@ proc mu_init {} {
 
     if ![info exists MU_TOOL] {
 	if ![is_remote host] {
-	    set MU_TOOL [findfile $base_dir/../$TOOL_NAME "$base_dir/../$TOOL_NAME" [transform $TOOL_NAME]]
+	    set MU_TOOL [findfile $base_dir/../$tool "$base_dir/../$tool" [transform $tool]]
 	    set MU_SPOOL_SOURCE "$top_srcdir/testsuite/spool"
 	    set MU_FOLDER_SOURCE "$top_srcdir/testsuite/folder"
-	    set MU_SPOOL_DIR "$objdir/data/spool"
-	    set MU_FOLDER_DIR "$objdir/data/folder"
+	    set MU_DATA_DIR "$objdir/data"
 	    set MU_RC_DIR "$top_srcdir/testsuite/etc"
 	    set MU_MAKESPOOL "$top_srcdir/testsuite/makespool"
 	} else {
 	    if [info exists host_board] {
 		if [board_info $host_board exists top_builddir] {
-		    append MU_TOOL "[board_info $host_board top_builddir]/$TOOL_NAME/$TOOL_NAME"
+		    append MU_TOOL "[board_info $host_board top_builddir]/$tool/$tool"
 		} elseif [board_info $host_board exists top_srcdir] {
-		    append MU_TOOL "[board_info $host_board top_srcdir]/$TOOL_NAME/$TOOL_NAME"
+		    append MU_TOOL "[board_info $host_board top_srcdir]/$tool/$tool"
 	        }
 	    }
 
 	    if ![info exists MU_TOOL] {
 		perror "The test suite is not set up for the remote testing"
-	        perror "Please, read file README in $TOOL_NAME/testsuite subdirectory"
+	        perror "Please, read file README in $tool/testsuite subdirectory"
 	        perror "for instructions on how to set up it."
 	        exit 1
 	    }
-	    set MU_RC_DIR "[board_info $host_board top_srcdir]/etc"
+	    set MU_RC_DIR "[board_info $host_board top_srcdir]/testsuite/etc"
 	    set MU_SPOOL_SOURCE "[board_info $host_board top_srcdir]/spool"
 	    set MU_FOLDER_SOURCE "[board_info $host_board top_srcdir]/folder" 
-	    set MU_SPOOL_DIR "[board_info $host_board objdir]/data/spool"
-	    set MU_FOLDER_DIR "[board_info $host_board objdir]/data/folder"
-	    set MU_MAKESPOOL "[board_info $host_board top_srcdir]/makespool"
+	    set MU_DATA_DIR "[board_info $host_board objdir]/data"
+	    set MU_MAKESPOOL "[board_info $host_board top_srcdir]/testsuite/makespool"
+	}
+
+        set MU_SPOOL_DIR "$MU_DATA_DIR/spool"
+	set MU_FOLDER_DIR "$MU_DATA_DIR/folder"
+	set MU_TOOL_FLAGS "--mail-spool $MU_SPOOL_DIR"
+	for {set i 0} {$i < [llength $args]} {incr i} {
+	    append MU_TOOL_FLAGS " [lindex $args $i]"
 	}
     }
 }
@@ -103,13 +109,33 @@ proc mu_version {} {
     global MU_TOOL
     global MU_TOOL_FLAGS
     global MU_TOOL_VERSION
-
+    global MU_CAPABILITY
+    
     if [info exists MU_TOOL_VERSION] {
 	return
     }
     
-    set output [remote_exec host "$MU_TOOL --version"]
-    regexp " \[0-9\]\[^ \t\n\r\]+" "$output" MU_TOOL_VERSION
+    set output [remote_exec host "$MU_TOOL --show-config-options"]
+    set flg [split [lindex $output 1]]   	
+    for {set i 0} {$i < [llength $flg]} {incr i} {
+	if [regexp "(.*)=(.*)" [lindex $flg $i] var name value] {
+	    set MU_CAPABILITY($name) $value
+	} else {
+	    set MU_CAPABILITY([lindex $flg $i]) 1
+	}
+    }
+    set MU_TOOL_VERSION $MU_CAPABILITY(VERSION)
+}
+
+proc mu_check_capability {args} {
+    global MU_CAPABILITY
+    
+    set name [lindex $args 0]
+    if ![info exists MU_CAPABILITY($name)] {
+	return 0
+    } else {
+	return $MU_CAPABILITY($name)
+    }
 }
 
 ##
@@ -263,45 +289,64 @@ proc mu_test { args } {
     for {set i 0} {$i < [llength $pattern]} {incr i} {
 	regsub "\[ \t\]*$" [lindex ${pattern} $i] "" pat
 	verbose "i=$i, pat=$pat" 2
-	mu_expect $tmt {
-	    -ex "$pat" {
-		if { $expect_out(buffer) != $expect_out(0,string) } {
-		    verbose "Got \"$expect_out(buffer)\"" 2
-		    verbose "instead of expected \"$pat\\r\\n\"" 2
-		    set result 1
-		    break
-		}
-		mu_expect $tmt {
-		    -re "\[ \t]*\r\n" { }
-		    default {
-			set result 1
-			break
-		    }
-		    timeout {
-			set result -2
-			break
-		    }
-		    eof {
-			set result -3
-			break
-		    }
-		}
-	    }
-	    default {
-		set result 1
-		break
-	    }
-	    timeout {
-		set result -2
-		break
-	    }
-	    eof {
-		set result -3
-		break
-	    }
-	}
-    }
 
+	if [regexp -- "-re.*$" $pat] {
+	   verbose "REGEX for $pat / [llength $pat] " 3
+	   mu_expect $tmt {
+	       $pat { }
+	       default {
+		   set result 1
+		   break
+	       }
+	       timeout {
+		   set result -2
+		   break
+	       }
+	       eof {
+		   set result -3
+		   break
+	       }
+	   }
+       } else {
+	   mu_expect $tmt {
+	       -ex "$pat" {
+		   if { $expect_out(buffer) != $expect_out(0,string) } {
+		       verbose "Got \"$expect_out(buffer)\"" 2
+		       verbose "instead of expected \"$pat\\r\\n\"" 2
+		       set result 1
+		       break
+		   }
+		   mu_expect $tmt {
+		       -re "\[ \t]*\r\n" { }
+		       default {
+			   set result 1
+			   break
+		       }
+		       timeout {
+			   set result -2
+			   break
+		       }
+		       eof {
+			   set result -3
+			   break
+		       }
+		   }
+	       }
+ 	       default {
+		   set result 1
+		   break
+	       }
+	       timeout {
+		   set result -2
+		   break
+	       }
+	       eof {
+		   set result -3
+		   break
+	       }
+	   }
+       }
+    }
     return $result
 }
 
