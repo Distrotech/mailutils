@@ -33,12 +33,14 @@
 
 #define ARG_LOG_FACILITY 1
 #define ARG_SQL_GETPWNAM 2
-#define ARG_SQL_GETPASS 3
-#define ARG_SQL_HOST 4
-#define ARG_SQL_USER 5
-#define ARG_SQL_PASSWD 6
-#define ARG_SQL_DB 7
-#define ARG_SQL_PORT 8
+#define ARG_SQL_GETPWUID 3
+#define ARG_SQL_GETPASS 4
+#define ARG_SQL_HOST 5
+#define ARG_SQL_USER 6
+#define ARG_SQL_PASSWD 7
+#define ARG_SQL_DB 8
+#define ARG_SQL_PORT 9
+#define ARG_PAM_SERVICE 10
 
 static struct argp_option mu_common_argp_option[] =
 {
@@ -47,9 +49,15 @@ static struct argp_option mu_common_argp_option[] =
   {"log-facility", ARG_LOG_FACILITY, "FACILITY", 0,
    "output logs to syslog FACILITY", 0},
   { "license", 'L', NULL, 0, "print license and exit", 0 },
+#ifdef USE_LIBPAM
+  { "pam-service", ARG_PAM_SERVICE, "STRING", 0,
+    "Use STRING as PAM service name", 0},
+#endif
 #ifdef HAVE_MYSQL
   {"sql-getpwnam", ARG_SQL_GETPWNAM, "QUERY", 0,
-   "SQL query to retrieve a passwd entry from the database", 0},
+   "SQL query to retrieve a passwd entry based on username", 0},
+  {"sql-getpwuid", ARG_SQL_GETPWUID, "QUERY", 0,
+   "SQL query to retrieve a passwd entry based on UID", 0},
   {"sql-getpass", ARG_SQL_GETPASS, "QUERY", 0,
    "SQL query to retrieve a password from the database", 0},
   {"sql-host", ARG_SQL_HOST, "HOSTNAME", 0,
@@ -169,12 +177,16 @@ static char license_text[] =
 #ifdef HAVE_MYSQL
 char *sql_getpwnam_query;
 char *sql_getpass_query;
+char *sql_getpwuid_query;
 char *sql_host = MHOST;
 char *sql_user = MUSER;
 char *sql_passwd = MPASS;
 char *sql_db = MDB;
 char *sql_socket = MSOCKET;
 int  sql_port = MPORT;
+#endif
+#ifdef USE_LIBPAM
+char *pam_service = NULL;
 #endif
 
 static error_t 
@@ -193,12 +205,22 @@ mu_common_argp_parser (int key, char *arg, struct argp_state *state)
     case ARG_LOG_FACILITY:
       log_facility = parse_log_facility (arg);
       break;
+
+#ifdef USE_LIBPAM
+    case ARG_PAM_SERVICE:
+      pam_service = arg;
+      break;
+#endif
       
 #ifdef HAVE_MYSQL
     case ARG_SQL_GETPWNAM:
       sql_getpwnam_query = arg;
       break;
 
+    case ARG_SQL_GETPWUID:
+      sql_getpwuid_query = arg;
+      break;
+      
     case ARG_SQL_GETPASS:
       sql_getpass_query = arg;
       break;
