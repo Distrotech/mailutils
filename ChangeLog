@@ -1,3 +1,10 @@
+2003-12-24  Sergey Poznyakoff 
+
+	* examples/spamd.c: New file.
+	* examples/Makefile.am: Added spamd.c
+	* include/mailutils/libsieve.h (sieve_match_part_checker):
+	Prototype.
+
 2003-12-23  Sergey Poznyakoff 
 
 	* examples/pop3client.c: Added typecasts
