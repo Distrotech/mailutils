@@ -21,7 +21,7 @@
 #include <regex.h>
 
 #include <xalloc.h>
-#include <mail.h>
+#include "mail.h"
 
 struct header_data
 {
