@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2004 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -129,6 +129,8 @@ extern char *mu_charset_lookup __P((char *lang, char *terr));
 extern int mu_true_answer_p __P((const char *p));
 extern int mu_scheme_autodetect_p __P((const char *scheme, const char **path));
 
+extern int mu_fd_wait __P((int fd, int *pflags, struct timeval *tvp));
+  
 #ifdef __cplusplus
 }
 #endif
