@@ -66,12 +66,16 @@ extern size_t util_cpystr __P ((char *dst, const char *src, size_t size));
 
 struct passwd;
 
-extern void mu_register_getpwnam __P ((struct passwd *(*fun) __P((const char *))));
-extern struct passwd * mu_getpwnam __P ((const char *name));
+extern void mu_register_getpwnam __P((struct passwd *(*fun) __P((const char *))));
+extern struct passwd * mu_getpwnam __P((const char *name));
+  
+extern int mu_virtual_domain;
 
-
+extern struct passwd * getpwnam_virtual __P((const char *u));
+  
 #ifdef __cplusplus
 }
 #endif
 
 #endif /* _MAILUTILS_MUTIL_H */
+
