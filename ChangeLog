@@ -1,3 +1,12 @@
+2002-11-07  Sergey Poznyakoff  
+
+	* mail/mail.h (msgset_member,msgset_negate): New functions.
+	* mail/msgset.y: Added negation of message sets.
+	  `from ! subject:/daily/' outputs all messages whose subject
+	  does not contain the word 'daily'.
+	* mail/z.c: Fixed behaviour of z. when the total number of
+	  messages is less than the number of line per page of output.
+	  
 2002-11-05  Sergey Poznyakoff 
 
 	* mail/reply.c: Add In-Reply-To and References headers to the
