@@ -1037,7 +1037,6 @@ mh_scan0 (mailbox_t mailbox, size_t msgno, size_t *pcount, int do_notify)
   if (do_notify)
     for (msg = mhd->msg_head; msg; msg = msg->next)
       {
-	
 	DISPATCH_ADD_MSG(mailbox, mhd);
       }
 	  
@@ -1186,9 +1185,7 @@ mh_message_stream_open (struct _mh_message *mhm)
   status = stream_open (mhm->stream);
 
   if (status != 0)
-  {
     stream_destroy (&mhm->stream, NULL);
-  }
 
   if (status == 0)
     status = mh_scan_message (mhm);
@@ -1205,6 +1202,13 @@ mh_message_stream_close (struct _mh_message *mhm)
       stream_close (mhm->stream);
       mhm->stream = NULL;
     }
+}
+
+void
+mh_check_message (struct _mh_message *mhm)
+{
+  if (mhm->body_end == 0)
+    mh_pool_open (mhm);
 }
 
 /* Reading functions */
@@ -1295,11 +1299,11 @@ mh_body_size (body_t body, size_t *psize)
   struct _mh_message *mhm = message_get_owner (msg);
   if (mhm == NULL)
     return EINVAL;
+  mh_check_message (mhm);
   if (psize)
     *psize = mhm->body_end - mhm->body_start;
   return 0;
 }
-
 
 static int
 mh_body_lines (body_t body, size_t *plines)
@@ -1308,6 +1312,7 @@ mh_body_lines (body_t body, size_t *plines)
   struct _mh_message *mhm = message_get_owner (msg);
   if (mhm == NULL)
     return EINVAL;
+  mh_check_message (mhm);
   if (plines)
     *plines = mhm->body_lines;
   return 0;
@@ -1342,6 +1347,7 @@ mh_header_size (header_t header, size_t *psize)
   struct _mh_message *mhm = message_get_owner (msg);
   if (mhm == NULL)
     return EINVAL;
+  mh_check_message (mhm);
   if (psize)
     *psize = mhm->body_start;
   return 0;
@@ -1354,6 +1360,7 @@ mh_header_lines (header_t header, size_t *plines)
   struct _mh_message *mhm = message_get_owner (msg);
   if (mhm == NULL)
     return EINVAL;
+  mh_check_message (mhm);
   if (plines)
     *plines = mhm->header_lines;
   return 0;
