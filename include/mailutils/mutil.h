@@ -25,8 +25,8 @@
 
 #include <time.h>
 
-#include <mailutils/mu_features.h>
 #include <mailutils/list.h>
+#include <mailutils/types.h>
 
 #ifdef __cplusplus
 extern "C" {
