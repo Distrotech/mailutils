@@ -25,9 +25,12 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
-#include <sys/mman.h>
 
 #include <io0.h>
+
+#ifdef _POSIX_MAPPED_FILES
+
+#include <sys/mman.h>
 
 struct _mapfile_stream
 {
@@ -257,9 +260,14 @@ _mapfile_open (stream_t stream, const char *filename, int port, int flags)
   return 0;
 }
 
+#endif /* _POSIX_MAPPED_FILES */
+
 int
 mapfile_stream_create (stream_t *stream)
 {
+#ifndef _POSIX_MAPPED_FILES
+  return ENOTSUP;
+#else
   struct _mapfile_stream *fs;
   int ret;
 
@@ -288,4 +296,5 @@ mapfile_stream_create (stream_t *stream)
   stream_set_flush (*stream, _mapfile_flush, fs);
   stream_set_destroy (*stream, _mapfile_destroy, fs);
   return 0;
+#endif /* _POSIX_MAPPED_FILES */
 }
