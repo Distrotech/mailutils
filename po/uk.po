@@ -1,4 +1,4 @@
-# Ukrainian messages for GNU mailutils -*- mode: po; buffer-file-coding-system: utf-8; -*-
+# Ukrainian messages for GNU mailutils -*- mode: po; buffer-file-coding-system: utf-8; default-input-method: cyrillic-translit -*-
 # Copyright (C) 2005 Free Software Foundation, Inc.
 # Sergey Poznyakoff <gray@gnu.org>, 2005.
 #
@@ -11,7 +11,7 @@ msgstr ""
 "Project-Id-Version: mailutils 0.6\n"
 "Report-Msgid-Bugs-To: bug-mailutils@gnu.org\n"
 "POT-Creation-Date: 2004-12-22 11:55+0200\n"
-"PO-Revision-Date: 2005-02-22 18:58+0200\n"
+"PO-Revision-Date: 2005-02-25 21:45+0200\n"
 "Last-Translator: Sergey Poznyakoff <gray@gnu.org>\n"
 "Language-Team: Ukrainian <translation-team-uk@lists.sourceforge.net>\n"
 "MIME-Version: 1.0\n"
@@ -93,7 +93,7 @@ msgstr "Невідомий інтерфейс SQL '%s'"
 #: auth/sql.c:309 auth/sql.c:443 auth/sql.c:573 mail.local/mailquota.c:193
 #, c-format
 msgid "SQL Query failed: %s"
-msgstr "Запитання SQL не вдалося: %s"
+msgstr "Запит SQL не вдалося: %s"
 
 #: auth/sql.c:320 auth/sql.c:454 auth/sql.c:584 mail.local/mailquota.c:204
 #, c-format
@@ -202,12 +202,12 @@ msgstr "Файл %2$s користувача %1$s не належить до %3$
 
 #: comsat/action.c:323
 msgid "Warning: your .biffrc has wrong permissions"
-msgstr "Попередження: Ваш файл .biffrc має неправильні права"
+msgstr "Попередження: Ваш файл .biffrc має невірні права"
 
 #: comsat/action.c:324
 #, c-format
 msgid "%s's %s has wrong permissions"
-msgstr "Файл %2$s користувача %1$s має неправильні права"
+msgstr "Файл %2$s користувача %1$s має невірні права"
 
 #: comsat/action.c:381
 #, c-format
@@ -247,7 +247,7 @@ msgstr "%s:%d: невідоме ключове слово"
 #: comsat/cfg.c:209
 #, c-format
 msgid "%s:%d: can't parse netdef: %s"
-msgstr "%s:%d: не вдається проаналізувати означення мережі %s"
+msgstr "%s:%d: не вдається проаналізувати визначення мережі %s"
 
 #: comsat/comsat.c:58
 msgid "Read configuration from FILE"
@@ -292,8 +292,8 @@ msgstr "ВІДХИЛЕНО спробу з'єднання з %s"
 msgid "received %d byte from %s"
 msgid_plural "received %d bytes from %s"
 msgstr[0] "отримано %d байт з %s"
-msgstr[1] "отримано %d байт з %s"
-msgstr[2] "отримано %d байт з %s"
+msgstr[1] "отримано %d байти з %s"
+msgstr[2] "отримано %d байтів з %s"
 
 #: comsat/comsat.c:362
 #, c-format
@@ -360,7 +360,7 @@ msgstr "користувач не існує: %s"
 #. in this message
 #: dotlock/dotlock.c:37
 msgid "GNU dotlock -- lock mail spool filesReturns 0 on success, 3 if locking the file fails because it's already locked, and 1 if some other kind of error occurred."
-msgstr "GNU dotlock -- блокує поштові скринькиПовертає 0 в припадку успішного завершення операції, 3 якщо скриньку вже заблоковано і 1 якщо сталася якась помилка."
+msgstr "GNU dotlock -- блокує поштові скринькиПовертає 0 у випадку успішного завершення операції, 3 якщо скриньку вже заблоковано і 1 якщо сталася якась помилка."
 
 #: dotlock/dotlock.c:46
 msgid "Unlock"
@@ -372,7 +372,7 @@ msgstr "ХВИЛИНИ"
 
 #: dotlock/dotlock.c:49
 msgid "Forcibly break an existing lock older than a certain time"
-msgstr "Скасувати існуючу блокировку якщо її створено пізніше ніж вказану кількість хвилин тому"
+msgstr "Скасувати існуюче блокування якщо його створено пізніше за вказану кількість хвилин"
 
 #: dotlock/dotlock.c:51
 msgid "RETRIES"
@@ -396,11 +396,11 @@ msgstr "Перевірка зовнішньої програми блокува�
 
 #: dotlock/dotlock.c:97
 msgid "RETRIES must be greater than 0"
-msgstr "Кількість повторювань має бути більшою ніж 0"
+msgstr "Кількість повторювань має бути більшою за 0"
 
 #: dotlock/dotlock.c:107
 msgid "MINUTES must be greater than 0"
-msgstr "Кількість хвилин має бути більшою ніж 0"
+msgstr "Кількість хвилин має бути більшою за 0"
 
 #: dotlock/dotlock.c:115
 msgid "only one FILE can be specified"
@@ -459,7 +459,7 @@ msgstr "прочитане"
 #.
 #: frm/frm.c:95
 msgid "Select messages with the specific attribute. STATUS is one of the following: new, unread, old (same as unread) or read. Any unambiguous abbreviation of those is also accepted."
-msgstr "Вибрати повідомлення що мають вказаний стан. Стан є одним з наступних: нове, непрочитане, старе (те ж саме, що непрочитане), прочитане, або будь-яке однозначне скорочення тих слів."
+msgstr "Вибрати повідомлення, що мають вказаний стан. Стан є одним з наступних: нове, непрочитане, старе (те ж саме, що непрочитане), прочитане, або будь-яке однозначне скорочення цих слів."
 
 #: frm/frm.c:160
 #, c-format
@@ -601,7 +601,7 @@ msgstr "Тека містить повідомлення.\n"
 #: frm/frm.c:581
 #, c-format
 msgid "No messages in that folder!\n"
-msgstr "В цієї теці немає повідомлень!\n"
+msgstr "В цій теці немає повідомлень!\n"
 
 #: from/from.c:54
 msgid "GNU from -- display from and subject"
@@ -653,7 +653,7 @@ msgstr "guimb: неможливо відкрити вихідний файл %s:
 msgid ""
 "The following switches stop argument processing, and pass all\n"
 "remaining arguments as the value of (command-line):"
-msgstr "Подальші опції вимикають обробку аргументів. Решта аргументів передається програмі через значення (command-line):"
+msgstr "Подальші опції зупиняють обробку аргументів. Решта аргументів передається програмі через значення (command-line):"
 
 #: guimb/main.c:58 guimb/main.c:63
 msgid "EXPR"
@@ -723,7 +723,7 @@ msgstr "помилка GSS-API %s (%s): %.*s"
 
 #: imap4d/auth_gss.c:70
 msgid "major"
-msgstr "більший"
+msgstr "головний"
 
 #: imap4d/auth_gss.c:70
 msgid "minor"
@@ -851,12 +851,12 @@ msgstr "Вихід (підстава %d)"
 #: pop3d/popauth.c:246
 #, c-format
 msgid "can't stat %s: %s"
-msgstr "не можу виконати stat %s: %s"
+msgstr "не можна виконати stat %s: %s"
 
 #: imap4d/login.c:45 pop3d/user.c:77
 #, c-format
 msgid "User '%s': nonexistent"
-msgstr "Користувач `%s' не існує"
+msgstr "Користувача `%s' не існує"
 
 #: imap4d/login.c:53
 #, c-format
@@ -937,21 +937,21 @@ msgstr "reject: не вдається отримати текст!"
 #: libsieve/actions.c:269
 #, c-format
 msgid "%d: reject - can't create to address <%s>: %s\n"
-msgstr "%d: reject - не вдається створити адрес одержувача <%s>: %s\n"
+msgstr "%d: reject - не вдається створити адресу одержувача <%s>: %s\n"
 
 #. TRANSLATORS: 'reject' is the name of a Sieve action.
 #. Do not translate it!
 #: libsieve/actions.c:283
 #, c-format
 msgid "%d: reject - can't create from address <%s>: %s\n"
-msgstr "%d: reject - не вдається створити адрес відправника <%s>: %s\n"
+msgstr "%d: reject - не вдається створити адресу відправника <%s>: %s\n"
 
 #. TRANSLATORS: 'reject' is the name of a Sieve action.
 #. Do not translate it!
 #: libsieve/actions.c:299
 #, c-format
 msgid "%d: reject - can't open mailer %s: %s\n"
-msgstr "%d: reject - не вдається відкрити відправник %s: %s\n"
+msgstr "%d: reject - не вдається відкрити відправника %s: %s\n"
 
 #. TRANSLATORS: 'redirect' is the name of a Sieve action.
 #. Do not translate it!
@@ -1005,7 +1005,7 @@ msgstr "%d: не вдається встановити власну адресу
 #: libsieve/actions.c:462
 #, c-format
 msgid "%d: redirect - can't open mailer %s: %s\n"
-msgstr "%d: redirect - не вдається відкрити відправник %s: %s\n"
+msgstr "%d: redirect - не вдається відкрити відправника %s: %s\n"
 
 #: libsieve/comparator.c:170
 #, c-format
@@ -1025,15 +1025,15 @@ msgstr "тип допасування вказано двічі у виклик�
 #: libsieve/comparator.c:274
 #, c-format
 msgid "comparator %s is incompatible with :count in call to `%s'"
-msgstr "порівнювач %s не є сумісний з :count у виклику `%s'"
+msgstr "порівнювач %s несумісний з :count у виклику `%s'"
 
 #: libsieve/comparator.c:290
 msgid "second argument must be a list of one element"
-msgstr "другий аргумент має бути списком з єдиного елементу"
+msgstr "другий аргумент має бути списком з одного елементу"
 
 #: libsieve/comparator.c:298
 msgid "second argument cannot be converted to number"
-msgstr "не вдається перетворити другий аргумент у число"
+msgstr "не вдається перетворити другий аргумент на число"
 
 #: libsieve/comparator.c:308
 #, c-format
@@ -1043,7 +1043,7 @@ msgstr "недійсне відносне порівняння `%s' у викл�
 #: libsieve/comparator.c:321
 #, c-format
 msgid "comparator `%s' is incompatible with match type `%s' in call to `%s'"
-msgstr "порівнювач %s не є сумісний з типом порівняння `%s' у виклику `%s'"
+msgstr "порівнювач %s несумісний з типом порівняння `%s' у виклику `%s'"
 
 #: libsieve/prog.c:38
 msgid "out of memory!"
@@ -1283,7 +1283,7 @@ msgstr "%s бере лише один аргумент"
 
 #: mail/folders.c:37
 msgid "Not enough memory"
-msgstr "Не вистачає пам'яті"
+msgstr "Недостатньо пам'яті"
 
 #: mail/if.c:66
 msgid "internal error: condition stack underflow"
@@ -1340,7 +1340,7 @@ msgstr "Працювати зі скринькою з вказаним URL (ти
 
 #: mail/mail.c:37
 msgid "Save messages according to sender"
-msgstr "Зберігати повідомлення згідно із назвою відправника"
+msgstr "Зберігати повідомлення згідно з назвою відправника"
 
 #: mail/mail.c:38
 msgid "Write a header summary and exit"
@@ -1463,7 +1463,7 @@ msgid ""
 "   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA\n"
 "\n"
 msgstr ""
-"   GNU mailutils є вільна програма; ви можете розповсюджувати її чи/та\n"
+"   GNU mailutils є вільною програмою; ви можете розповсюджувати чи/та\n"
 "   змінювати її на умовах ліцензії GNU General Public License\n"
 "   опублікованої Free Software Foundation; версії 2 цієї ліцензії, або\n"
 "   (за вашим бажанням) будь-якої пізнішої версії.\n"
@@ -1503,7 +1503,7 @@ msgstr "помилка діапазону"
 #: mail/msgset.y:735 mail/util.c:212
 #, c-format
 msgid "%lu: Inappropriate message (has been deleted)"
-msgstr "%lu: Недійсне повідомлення (повідомлення видалено)"
+msgstr "%lu: Недійсне повідомлення (повідомлення було видалено)"
 
 #: mail/next.c:45 mail/next.c:62 mail/previous.c:45 mail/previous.c:62
 msgid "No applicable message"
@@ -1567,7 +1567,7 @@ msgid ""
 "(Interrupt -- one more to kill letter)"
 msgstr ""
 "\n"
-"(Переривання -- дайте ще одно щоб знищити лист)"
+"(Переривання -- додайте ще одне щоб знищити лист)"
 
 #: mail/send.c:347
 msgid "Use \".\" to terminate letter."
@@ -1581,15 +1581,15 @@ msgstr "Використовуйте \"~.\" щоб закінчити лист."
 #: mail/send.c:391
 #, c-format
 msgid "Unknown escape %s"
-msgstr "Невідома послідовність втечи %s"
+msgstr "Невідома послідовність втечі %s"
 
 #: mail/send.c:394
 msgid "Unfinished escape"
-msgstr "Не завершена послідовність втечи"
+msgstr "Не завершена послідовність втечі"
 
 #: mail/send.c:398
 msgid "can't parse escape sequence"
-msgstr "не вдається розібрати послідовність втечи"
+msgstr "не вдається розібрати послідовність втечі"
 
 #: mail/send.c:423
 #, c-format
@@ -1749,7 +1749,7 @@ msgstr "Повернутися до редагування?"
 #: mail/var.c:156
 #, c-format
 msgid "(continue)\n"
-msgstr "(продовжуй)\n"
+msgstr "(продовжуйте)\n"
 
 #: mail/var.c:166
 #, c-format
@@ -1758,7 +1758,7 @@ msgstr "%c%s вимагає вказування аргументу"
 
 #: mail/var.c:204
 msgid "Command not allowed in an escape sequence\n"
-msgstr "Команда не допустима у послідовності втечи\n"
+msgstr "Команда не допустима у послідовності втечі\n"
 
 #: mail/var.c:251 pop3d/popauth.c:284 pop3d/popauth.c:355 pop3d/popauth.c:429
 #, c-format
@@ -1807,7 +1807,7 @@ msgstr "stat для файлу виводу не вдалася: %s"
 #: mail/var.c:729
 #, c-format
 msgid "no lines out\n"
-msgstr "жодної стрічки на виході\n"
+msgstr "жодного рядка на виході\n"
 
 #: mail/z.c:64
 msgid "Bad arguments for the scrolling command"
@@ -1881,7 +1881,7 @@ msgstr "Шлях до бази обмежень розміру у форматі
 
 #: mail.local/main.c:86
 msgid "SQL query to retrieve mailbox quota"
-msgstr "Запитання SQL що повертає обмеження розміру скриньки"
+msgstr "Запит SQL, що повертає обмеження розміру скриньки"
 
 #: mail.local/main.c:88 mail.local/main.c:93
 msgid "PATTERN"
@@ -2007,7 +2007,7 @@ msgstr "неможливо заблокувати скриньку `%s': %s"
 #: mail.local/main.c:743
 #, c-format
 msgid "%s: mailbox quota exceeded for this recipient"
-msgstr "%s: вичерпано обмеження на розмір скриньки для цього одержувача"
+msgstr "%s: вичерпано обмеження розміру скриньки для цього одержувача"
 
 #: mail.local/main.c:754
 #, c-format
@@ -2017,7 +2017,7 @@ msgstr "не вдається встановити розмір потоку (в
 #: mail.local/main.c:761
 #, c-format
 msgid "%s: message would exceed maximum mailbox size for this recipient"
-msgstr "%s: доставка повідомлення перевищила-б обмеження на розмір скриньки для цього одержувача"
+msgstr "%s: доставка повідомлення перевищила-б обмеження розміру скриньки для цього одержувача"
 
 #: mail.local/main.c:814
 #, c-format
@@ -2036,17 +2036,17 @@ msgstr "Немає механізму встановлення обмеженн�
 #: mail.local/mailquota.c:107
 #, c-format
 msgid "mailbox quota for `%s' is too big: %d digits"
-msgstr "обмеження скриньки користувача `%s' надто велике: %d цифри"
+msgstr "обмеження розміру скриньки користувача `%s' надто велике: %d цифри"
 
 #: mail.local/mailquota.c:120 mail.local/mailquota.c:236
 #, c-format
 msgid "bogus mailbox quota for `%s' (near `%s')"
-msgstr "недійсне обмеження скриньки користувача `%s' (біля `%s')"
+msgstr "недійсне обмеження розміру скриньки користувача `%s' (біля `%s')"
 
 #: mail.local/mailquota.c:223
 #, c-format
 msgid "cannot retrieve SQL quota: %s"
-msgstr "неможливо відібрати значення обмеження скриньки з SQL: %s"
+msgstr "неможливо відібрати значення обмеження розміру скриньки з SQL: %s"
 
 #. TRANSLATORS: Please, preserve the vertical tabulation (^K character)
 #. in this message
@@ -2116,7 +2116,7 @@ msgstr "ОПЦІЯ"
 #: mail.remote/mail.remote.c:77 mail.remote/mail.remote.c:78
 #: mail.remote/mail.remote.c:79
 msgid "Ignored for sendmail compatibility"
-msgstr "Ігнорується, для сумісності із sendmail"
+msgstr "Ігнорується, для сумісності з sendmail"
 
 #: mail.remote/mail.remote.c:118
 msgid "[TO-ADDR]..."
@@ -2146,12 +2146,12 @@ msgstr "Неможливо відкрити стандартний ввід: %s"
 #: mail.remote/mail.remote.c:219
 #, c-format
 msgid "Creating mailer '%s' failed: %s"
-msgstr "Не вдалося створити відправник `%s': %s"
+msgstr "Не вдалося створити відправника `%s': %s"
 
 #: mail.remote/mail.remote.c:246
 #, c-format
 msgid "Opening mailer '%s' failed: %s"
-msgstr "Не вдалося відкрити відправник `%s': %s"
+msgstr "Не вдалося відкрити відправника `%s': %s"
 
 #: mail.remote/mail.remote.c:253
 #, c-format
@@ -2161,7 +2161,7 @@ msgstr "Не вдалося відіслати повідомлення: %s"
 #: mail.remote/mail.remote.c:259
 #, c-format
 msgid "Closing mailer failed: %s"
-msgstr "Не вдалося закрити відправник: %s"
+msgstr "Не вдалося закрити відправника: %s"
 
 #: mailbox/getopt.c:686
 #, c-format
@@ -2261,36 +2261,37 @@ msgstr "Про помилки звітуйте на %s.\n"
 
 #: mailbox/argp-parse.c:103
 msgid "Give this help list"
-msgstr "Показати цю довідку"
+msgstr ""
 
 #: mailbox/argp-parse.c:104
 msgid "Give a short usage message"
-msgstr "Показати коротке повідомлення про використання"
+msgstr ""
 
 #: mailbox/argp-parse.c:105
+#, fuzzy
 msgid "Set the program name"
-msgstr "Встановити назву програми"
+msgstr "Встановити текст запрошення"
 
 #: mailbox/argp-parse.c:107
 msgid "Hang for SECS seconds (default 3600)"
-msgstr "Зачекати вказане число секунд (типово 3600)"
+msgstr ""
 
 #: mailbox/argp-parse.c:164
 msgid "Print program version"
-msgstr "Вивести версію програми"
+msgstr ""
 
 #: mailbox/argp-parse.c:180
 msgid "(PROGRAM ERROR) No version known!?"
-msgstr "(ВНУТРІШНЯ ПОМИЛКА) Невідома версія!?"
+msgstr ""
 
 #: mailbox/argp-parse.c:661
-#, c-format
+#, fuzzy, c-format
 msgid "%s: Too many arguments\n"
-msgstr "%s: Забагато аргументів\n"
+msgstr "Забагато аргументів"
 
 #: mailbox/argp-parse.c:802
 msgid "(PROGRAM ERROR) Option should have been recognized!?"
-msgstr "(ВНУТРІШНЯ ПОМИЛКА) Опція мала бути розпізнана!?"
+msgstr ""
 
 #: mailbox/file_stream.c:478
 #, c-format
@@ -2318,7 +2319,7 @@ msgstr "Потік закритий"
 
 #: mailbox/mailutils-config.c:27
 msgid "GNU mailutils-config -- Display compiler and loader options needed for building a program with mailutils"
-msgstr "GNU mailutils-config -- Виводить опції компілятора та завантажувача необхідні для використання mailutils в іншої програмі"
+msgstr "GNU mailutils-config -- Виводить опції компілятора та завантажувача необхідні для використання mailutils в іншій програмі"
 
 #: mailbox/mailutils-config.c:28
 msgid "[arg...]"
@@ -2334,7 +2335,7 @@ msgstr "Виводить опції завантажувача та потріб
 
 #: mailbox/mailutils-config.c:36
 msgid "print a list of configuration options used to build mailutils. If arguments are given, they are interpreted as a list of configuration options to check for. In this case the program prints those options from this list that have been defined. It exits with zero status if all of the specified options are defined. Otherwise, the exit status is 1."
-msgstr "Виводить перелік конфігураційних опцій, що їх використано під час компіляції mailutils. Аргументи, якщо вони вказані, трактуються як список опцій що треба перевірити. У такому разі програма виводить такі опції з цього списку, що були визначені під час компіляції. Програма повертає код 0 якщо усі вказані опції були визначені. Інакше повертається код 1."
+msgstr "Виводить перелік конфігураційних опцій, використаних під час компіляції mailutils. Аргументи, якщо вони вказані, трактуються як список опцій що треба перевірити. У такому разі програма виводить такі опції з цього списку, що були визначені під час компіляції. Програма повертає код 0 якщо усі вказані опції були визначені. Інакше повертається код 1."
 
 #: mailbox/mailutils-config.c:124
 msgid "Too many arguments"
@@ -2406,7 +2407,7 @@ msgstr "Встановити повний шлях до зовнішньої п�
 
 #: mailbox/mu_argp.c:90
 msgid "Set current user's email address (default is loginname@defaultdomain)"
-msgstr "Поточна адреса користувача (типово назва_користувача@типовий_домен)"
+msgstr "Поточна адреса користувача (типово: назва_користувача@типовий_домен)"
 
 #: mailbox/mu_argp.c:91
 msgid "DOMAIN"
@@ -2414,7 +2415,7 @@ msgstr "ДОМЕН"
 
 #: mailbox/mu_argp.c:92
 msgid "Set domain for unqualified user names (default is this host)"
-msgstr "Додавати цей домен до неповних поштових адрес (типово: адрес машини)"
+msgstr "Додавати цей домен до неповних поштових адрес (типово: адреса машини)"
 
 #: mailbox/mu_argp.c:98
 msgid "MAILER"
@@ -2450,7 +2451,7 @@ msgstr "Слухати на вказаному номері порту"
 
 #: mailbox/mu_argp.c:120
 msgid "Set idle timeout value to NUMBER seconds"
-msgstr "Обмеження часу бездіяльності у ЧИСЛО секунд"
+msgstr "Встановити обмеження часу бездіяльності у ЧИСЛО секунд"
 
 #: mailbox/mu_argp.c:122
 msgid "output session transcript via syslog"
@@ -2569,7 +2570,7 @@ msgstr "Невірний формат об'єкту RFC822"
 
 #: mailbox/muerrno.c:138
 msgid "Address contains no addr specs"
-msgstr "Об'єкт address не містить осібних адрес"
+msgstr "Об'єкт address не містить окремих адрес"
 
 #: mailbox/muerrno.c:140
 msgid "Locker null"
@@ -2577,7 +2578,7 @@ msgstr "Нульовий блокувач"
 
 #: mailbox/muerrno.c:141
 msgid "Conflict with previous locker"
-msgstr "Конфлікт із попереднім блокуванням"
+msgstr "Конфлікт з попереднім блокуванням"
 
 #: mailbox/muerrno.c:142
 msgid "Lock file check failed"
@@ -2589,7 +2590,7 @@ msgstr "Перевірка файлу не вдалася"
 
 #: mailbox/muerrno.c:144
 msgid "Lock not held on file"
-msgstr "Файл не є блокований"
+msgstr "Файл не заблокований"
 
 #: mailbox/muerrno.c:145
 msgid "Failed to exec external locker"
@@ -2609,7 +2610,7 @@ msgstr "Немає такої назви користувача"
 
 #: mailbox/muerrno.c:151
 msgid "DNS name resolution failed"
-msgstr "Помилка визначення імені через DNS"
+msgstr "Помилка визначення назви через DNS"
 
 #: mailbox/muerrno.c:152
 msgid "State busy, must resume operation"
@@ -2649,7 +2650,7 @@ msgstr "Вхідний рядок не закодований згідно з RF
 
 #: mailbox/muerrno.c:163
 msgid "User name is not supplied"
-msgstr "Не вказано назву користувача"
+msgstr "Не вказано назви користувача"
 
 #: mailbox/muerrno.c:164
 msgid "User password is not supplied"
@@ -2705,11 +2706,11 @@ msgstr "Помилка SQL"
 
 #: mailbox/muerrno.c:181
 msgid "Already connected to the database"
-msgstr "Вже поєднано з базою даних"
+msgstr "Вже з'єднано з базою даних"
 
 #: mailbox/muerrno.c:182
 msgid "Not connected to the database"
-msgstr "не поєднано з базою даних"
+msgstr "не з'єднано з базою даних"
 
 #: mailbox/muerrno.c:183
 msgid "Result of the previous query is not released"
@@ -2717,11 +2718,11 @@ msgstr "Результат попереднього запиту не звіль
 
 #: mailbox/muerrno.c:184
 msgid "No query was executed"
-msgstr "Ще не виконано жодного запитання"
+msgstr "Ще не виконано жодного запиту"
 
 #: mailbox/muerrno.c:185
 msgid "Bad column address"
-msgstr "Неправильна адреса стовпчику"
+msgstr "Неправильна адреса стовпчика"
 
 #: mailbox/muerrno.c:186
 msgid "No result from the previous query available"
@@ -2859,11 +2860,11 @@ msgstr "ФОРМАТ"
 
 #: mh/fmtcheck.c:34 mh/inc.c:45 mh/scan.c:46
 msgid "Use this format string"
-msgstr "Використовуйте цей рядок формату"
+msgstr "Використовати цей рядок формату"
 
 #: mh/fmtcheck.c:36
 msgid "Dump the listing of compiled format code"
-msgstr "Вивести лістінг скомпільованого коду формату"
+msgstr "Вивести роздрук скомпільованого коду формату"
 
 #: mh/fmtcheck.c:38
 msgid "Enable parser debugging output"
@@ -2901,7 +2902,7 @@ msgstr "Вивести вміст стеку тек"
 
 #: mh/folder.c:49
 msgid "Push the folder on the folder stack. If FOLDER is specified, it is pushed. Otherwise, if a folder is given in the command line (via + or --folder), it is pushed on stack. Otherwise, the current folder and the top of the folder stack are exchanged"
-msgstr "Покласти на стек теку, що її вказано через аргумент ТЕКА або у командному рядку (через + або --folder). Якщо теку не вказано, поміняти місцями теку з вершини стеку із поточною"
+msgstr "Покласти на стек теку, що її вказано через аргумент ТЕКА або у командному рядку (через + або --folder). Якщо теку не вказано, поміняти місцями теку на вершині стеку з поточною"
 
 # Вірші...
 #: mh/folder.c:54
@@ -3009,7 +3010,7 @@ msgstr "Створити чернетку і негайно вийти"
 
 #: mh/forw.c:37 mh/repl.c:40 mh/send.c:42 mh/whatnow.c:29 mh/whom.c:34
 msgid "Specify the folder for message drafts"
-msgstr "Розміщати чорнові файли у вказаної теці"
+msgstr "Розміщати чорнові файли у вказаній теці"
 
 #: mh/forw.c:39 mh/repl.c:42 mh/send.c:46 mh/whatnow.c:31 mh/whom.c:38
 msgid "Undo the effect of the last --draftfolder option"
@@ -3021,7 +3022,7 @@ msgstr "ПОВІДОМЛЕННЯ"
 
 #: mh/forw.c:41 mh/repl.c:44 mh/whatnow.c:33
 msgid "Invoke the draftmessage facility"
-msgstr "Запустити пристосування `draftmessage'"
+msgstr "Запустити устаткування `draftmessage'"
 
 #: mh/forw.c:44 mh/forw.c:65 mh/mhl.c:47 mh/repl.c:52 mh/repl.c:65
 #: mh/whatnow.c:34
@@ -3286,12 +3287,12 @@ msgstr "Синтаксис сумісності:\n"
 #: mh/mh_getopt.c:123
 #, c-format
 msgid "%s [switches] %s\n"
-msgstr "%s [ключи] %s\n"
+msgstr "%s [ключі] %s\n"
 
 #: mh/mh_getopt.c:124
 #, c-format
 msgid "  switches are:\n"
-msgstr "  ключи є:\n"
+msgstr "  ключі є:\n"
 
 #: mh/mh_getopt.c:146
 #, c-format
@@ -3392,7 +3393,7 @@ msgid ""
 "to direct certain MH operations.  The only item which is required\n"
 "is the path to use for all MH folder operations.  The suggested MH\n"
 "path for you is %s...\n"
-msgstr "Для використання MH Ваш домашній каталог (%s) повинен містити файл .mh_profile із необхідною для роботи MH інформацією. Єдиним обов'язковим елементом цього файлу є шлях до каталогу в якому містяться усі теки MH. Запропонований шлях: %s...\n"
+msgstr "Для використання MH Ваш домашній каталог (%s) повинен містити файл .mh_profile з необхідною для роботи MH інформацією. Єдиним обов'язковим елементом цього файлу є шлях до каталогу в якому містяться усі теки MH. Запропонований шлях: %s...\n"
 
 #: mh/mh_init.c:630
 msgid "Do you need help"
@@ -3523,7 +3524,7 @@ msgstr "Невідома команда %s. Натисніть <CR> щоб от�
 
 #: mh/mh_whatnow.c:91
 msgid "SWITCHES"
-msgstr "КЛЮЧИ"
+msgstr "КЛЮЧІ"
 
 #: mh/mh_whatnow.c:97
 msgid "EDITOR"
@@ -3548,7 +3549,7 @@ msgstr "Вивести поточне повідомлення на термін
 
 #: mh/mh_whatnow.c:393
 msgid "Edit the message. If EDITOR is omitted use the one that was used on the preceeding round unless the profile entry \"LASTEDITOR-next\" names an alternate editor."
-msgstr "Редагувати повідомлення. Якщо РЕДАКТОР не вказано, використати назву редактора зі змінної \"LASTEDITOR-next\". Якщо та змінна не вказана, повернутися до редактора, якого було використано останньо."
+msgstr "Редагувати повідомлення. Якщо РЕДАКТОРА не вказано, використати назву редактора зі змінної \"LASTEDITOR-next\". Якщо цю змінну не вказано, повернутися до редактора, якого було використано востаннє."
 
 #: mh/mh_whatnow.c:397 mh/mh_whatnow.c:427 mh/mh_whatnow.c:517
 msgid "List the draft on the terminal."
@@ -3568,7 +3569,7 @@ msgstr "Перемістити чорновий файл у вказану те�
 
 #: mh/mh_whatnow.c:405
 msgid "Send the message. The -watch flag causes the delivery process to be monitored. SWITCHES are passed to send program verbatim."
-msgstr "Надіслати повідомлення. Опція -watch вмикає трасування процесу доставки. ОПЦІЇ передаються програмі `send' дослівно. "
+msgstr "Надіслати повідомлення. Опція -watch вмикає трасування процесу доставки. ОПЦІЇ передаються програмі `send' дослівно."
 
 #: mh/mh_whatnow.c:408
 msgid "List the addresses and verify that they are acceptable to the transport service."
@@ -3695,7 +3696,7 @@ msgstr "не вдається відкрити потік вводу: %s"
 #: mh/mhl.c:206
 #, c-format
 msgid "input stream %s is not a message (%s)"
-msgstr "вхідний потік (%s) не є повідомлення (%s)"
+msgstr "вхідний потік (%s) не є повідомленням (%s)"
 
 #. TRANSLATORS: Please, preserve the vertical tabulation (^K character)
 #. in this message
@@ -3799,7 +3800,7 @@ msgstr "недійсна специфікація частини (біля %s)"
 #: mh/mhn.c:1217
 #, c-format
 msgid " msg part type/subtype              size  description\n"
-msgstr " пвд част  тип/подтип              розмір опис\n"
+msgstr " пвд част  тип/підтип              розмір опис\n"
 
 #: mh/mhn.c:1254
 #, c-format
@@ -4076,7 +4077,7 @@ msgstr "Не видаляти повідомлення-джерело"
 
 #: mh/refile.c:45
 msgid "* Try to preserve message sequence numbers"
-msgstr "* Намагатися заховати нумерацію повідомлень"
+msgstr "* Намагатися зберегти нумерацію повідомлень"
 
 #: mh/refile.c:47
 msgid "Specify source folder. FOLDER will become the current folder after the program exits."
@@ -4092,11 +4093,11 @@ msgstr "не вдається створити перелік тек"
 
 #: mh/refile.c:89
 msgid "no folder specified"
-msgstr "не вказано теки"
+msgstr "не вказано теку"
 
 #: mh/refile.c:101 mh/refile.c:126
 msgid "can't create iterator"
-msgstr "не вдається створити ітератор"
+msgstr "не вдається створити ітератора"
 
 #: mh/refile.c:200
 #, c-format
@@ -4105,7 +4106,7 @@ msgstr "помилка додання повідомлення: %s"
 
 #: mh/refile.c:260
 msgid "both message set and source file given"
-msgstr "збір повідомлень і джерельний файл вказано разом"
+msgstr "збір повідомлень та джерельний файл вказано разом"
 
 #. TRANSLATORS: Please, preserve the vertical tabulation (^K character)
 #. in this message
@@ -4127,7 +4128,7 @@ msgstr "Додати вказані адреси до заголовка Cc: в�
 
 #: mh/repl.c:48
 msgid "Specify whom to remove from the Cc: list of the reply"
-msgstr "Видалити вказані адреси до заголовка Cc: відповіді"
+msgstr "Видалити вказані адреси з заголовка Cc: відповіді"
 
 #: mh/repl.c:51
 msgid "Construct a group or followup reply"
@@ -4135,7 +4136,7 @@ msgstr "Створити відповідь до списку розсилки"
 
 #: mh/repl.c:54
 msgid "* Set the folder to receive Fcc's."
-msgstr "* Розміщати копії Fcc: у вказаної теці"
+msgstr "* Розміщати копії Fcc: у вказаній теці"
 
 #: mh/repl.c:55
 msgid "MHL-FILTER"
@@ -4236,11 +4237,11 @@ msgstr "Очищати екран після виводу переліку"
 
 #: mh/scan.c:48
 msgid "Display header"
-msgstr "Показати заголовок"
+msgstr "Показувати заголовок"
 
 #: mh/scan.c:52
 msgid "List messages in reverse order"
-msgstr "Показати повідомлення у зворотному порядку"
+msgstr "Показувати повідомлення у зворотному порядку"
 
 #: mh/scan.c:55
 msgid "[Not yet implemented]"
@@ -4312,7 +4313,7 @@ msgstr "Виконання у фоновому режимі."
 
 #: mh/send.c:67
 msgid "* Split the draft into several partial messages and send them with SECONDS interval"
-msgstr "* Розділити чернетку на кілька частин й вислати їх через вказаний інтервал"
+msgstr "* Розділити чернетку на кілька частин та вислати їх через вказаний інтервал"
 
 #: mh/send.c:69
 msgid "Print the transcript of interactions with the transport system"
@@ -4337,12 +4338,12 @@ msgstr "не вдається створити перелік повідомле
 #: mh/send.c:305
 #, c-format
 msgid "cannot create mailer \"%s\""
-msgstr "не вдається створити відправник `%s'"
+msgstr "не вдається створити відправника `%s'"
 
 #: mh/send.c:320
 #, c-format
 msgid "cannot open mailer \"%s\""
-msgstr "не вдається відкрити відправник `%s'"
+msgstr "не вдається відкрити відправника `%s'"
 
 #: mh/send.c:488
 #, c-format
@@ -4404,7 +4405,7 @@ msgstr "скринька '%s': %s: %s"
 
 #: movemail/movemail.c:125
 msgid "Cannot retrieve locker"
-msgstr "Не вдається одібрати блокувач"
+msgstr "Не вдається відібрати блокувача"
 
 #: movemail/movemail.c:134
 msgid "Cannot lock"
@@ -4465,12 +4466,12 @@ msgstr "Не вдається отримати дані APOP: %s"
 
 #: pop3d/apop.c:94
 msgid "Bad permissions on APOP password file"
-msgstr "Неправильні права на файл паролів APOP"
+msgstr "Невірні права на файл паролів APOP"
 
 #: pop3d/apop.c:101
 #, c-format
 msgid "Unable to open APOP password file %s"
-msgstr "Не можна відкрити файл паролів APOP %s"
+msgstr "Неможливо відкрити файл паролів APOP %s"
 
 #: pop3d/apop.c:165
 #, c-format
@@ -4527,7 +4528,7 @@ msgstr "Після запуску скасувати ознаку видален
 
 #: pop3d/pop3d.c:77
 msgid "Allowed delay between the two successive logins"
-msgstr "Дозволений найменшій інтервал між завершенням попередньої ї початком наступної сесії"
+msgstr "Дозволений найменший інтервал між завершенням попередньої й початком наступної сесії"
 
 #: pop3d/pop3d.c:78
 msgid "FILENAME"
@@ -4547,7 +4548,7 @@ msgstr "Встановити термін дійсності прочитани�
 
 #: pop3d/pop3d.c:84
 msgid "Delete expired messages upon closing the mailbox"
-msgstr "Після закриття скриньки видаляти повідомлення що стратили дійсність"
+msgstr "Після закриття скриньки видаляти повідомлення що втратили дійсність"
 
 #: pop3d/pop3d.c:87
 msgid "Always require STLS before entering authentication phase"
@@ -4601,7 +4602,7 @@ msgstr ""
 
 #: pop3d/popauth.c:81
 msgid "Read input from FILE (default stdin)"
-msgstr "Читати вхід з ФАЙЛА (типово стандартний ввід)"
+msgstr "Читати вхід з ФАЙЛУ (типово стандартний ввід)"
 
 #: pop3d/popauth.c:82
 msgid "Direct output to file"
@@ -4667,7 +4668,7 @@ msgstr "Пароль    :"
 #. the same length as the translation of 'Password:' above
 #: pop3d/popauth.c:451
 msgid "Confirm :"
-msgstr "Підтвердить:"
+msgstr "Підтвердіть:"
 
 #: pop3d/popauth.c:454
 msgid "Passwords differ. Please retry."
@@ -4675,7 +4676,7 @@ msgstr "Паролі відрізняються. Будь ласка, спроб
 
 #: pop3d/popauth.c:469
 msgid "missing username to add"
-msgstr "не вказана назва користувача для додання"
+msgstr "не вказано назву користувача для додання"
 
 #: pop3d/popauth.c:487
 msgid "can't store datum"
@@ -4683,7 +4684,7 @@ msgstr "не вдається записати дані"
 
 #: pop3d/popauth.c:502
 msgid "missing username to delete"
-msgstr "не вказана назва користувача для видалення"
+msgstr "не вказано назву користувача для видалення"
 
 #: pop3d/popauth.c:514
 #, c-format
@@ -4692,7 +4693,7 @@ msgstr "не вдається видалити запис %s"
 
 #: pop3d/popauth.c:534
 msgid "missing username"
-msgstr "не вказана назва користувача"
+msgstr "не вказано назву користувача"
 
 #: pop3d/popauth.c:556
 msgid "Old Password:"
@@ -4832,7 +4833,7 @@ msgstr "Скомпілювати сценарій та вийти"
 
 #: sieve/sieve.c:77
 msgid "Compile script, dump disassembled sieve code to terminal and exit"
-msgstr "Скомпілювати сценарій, вивести код на термінал, та вийти"
+msgstr "Скомпілювати сценарій, вивести код на термінал та вийти"
 
 #: sieve/sieve.c:79
 msgid "MBOX"
@@ -4844,11 +4845,11 @@ msgstr "Просівати вказану скриньку (типово сис�
 
 #: sieve/sieve.c:82
 msgid "TICKET"
-msgstr "КВІТОК"
+msgstr "КВИТОК"
 
 #: sieve/sieve.c:83
 msgid "Ticket file for mailbox authentication"
-msgstr "Файл квітку для ідентифікації скриньки"
+msgstr "Файл квитка для ідентифікації скриньки"
 
 #: sieve/sieve.c:86
 msgid "Debug flags (defaults to \""
