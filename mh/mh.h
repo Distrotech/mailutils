@@ -38,6 +38,8 @@
 #include <mailutils/filter.h>
 #include <mailutils/url.h>
 #include <mailutils/attribute.h>
+#include <mailutils/error.h>
+#include <mailutils/errno.h>
 
 #define MH_FMT_RALIGN 0x1000
 #define MH_FMT_ZEROPAD 0x2000
@@ -182,6 +184,8 @@ FILE *mh_audit_open (char *name, mailbox_t mbox);
 void mh_audit_close (FILE *fp);
 
 int mh_message_number (message_t msg, size_t *pnum);
+
+mailbox_t mh_open_folder (void);
 
 void *xmalloc (size_t);
 void *xrealloc (void *, size_t);
