@@ -7,5 +7,7 @@ exists.exp
 false.exp
 header.exp
 not.exp
+redirect.exp
+reject.exp
 size.exp
 true.exp
