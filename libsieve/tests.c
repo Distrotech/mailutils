@@ -25,16 +25,103 @@
 #include <string.h>  
 #include <sieve.h>
 
+typedef int (*address_aget_t) __PMT ((address_t addr, size_t no, char **buf));
+
 int
-sieve_test_address (sieve_machine_t mach, list_t args, list_t tags)
+_get_address_part (void *item, void *data)
 {
-  return 0;
+  sieve_runtime_tag_t *t = item;
+  address_aget_t ret;
+  
+  if (strcmp (t->tag, "all") == 0)
+    ret =  address_aget_email;
+  else if (strcmp (t->tag, "domain") == 0)
+    ret =  address_aget_domain;
+  else if (strcmp (t->tag, "localpart") == 0)
+    ret = address_aget_local_part;
+  *(address_aget_t*)data = ret;
+  return ret != NULL;
+}
+
+address_aget_t
+sieve_get_address_part (list_t tags)
+{
+  address_aget_t ret = address_aget_email;
+  list_do (tags, _get_address_part, &ret);
+  return ret;
+}
+
+/* Structure shared between address and envelope tests */
+struct address_closure
+{
+  address_aget_t aget;     /* appropriate address_aget_ function */
+  void *data;              /* Either header_t or envelope_t */
+  address_t addr;          /* Obtained address */
+};  
+
+int
+retrieve_address (void *item, void *data, int idx, char **pval)
+{
+  struct address_closure *ap = data;
+  char *val;
+  int rc;
+      
+  if (!ap->addr)
+    {
+      if (header_aget_value ((header_t)ap->data, (char*)item, &val))
+	return 1;
+      rc = address_create (&ap->addr, val);
+      free (val);
+      if (rc)
+	return rc;
+    }
+
+  rc = ap->aget (ap->addr, idx+1, pval);
+  if (rc)
+    address_destroy (&ap->addr);
+  return rc;
 }
 
 int
-retrieve_header (void *item, void *data, char **pval)
+sieve_test_address (sieve_machine_t mach, list_t args, list_t tags)
 {
-  return header_aget_value ((header_t) data, (char*)item, pval);
+  sieve_value_t *h, *v;
+  header_t header = NULL;
+  sieve_comparator_t comp = sieve_get_comparator (tags);
+  struct address_closure clos;
+  int rc;
+  
+  if (mach->debug_level & MU_SIEVE_DEBUG_TRACE)
+    sieve_debug (mach, "ADDRESS\n");
+
+  h = sieve_value_get (args, 0);
+  if (!h)
+    {
+      sieve_error (mach, "address: can't get argument 1");
+      sieve_abort (mach);
+    }
+  v = sieve_value_get (args, 1);
+  if (!v)
+    {
+      sieve_error (mach, "address: can't get argument 2");
+      sieve_abort (mach);
+    }
+
+  message_get_header (sieve_get_message (mach), &header);
+  clos.data = header;
+  clos.aget = sieve_get_address_part (tags);
+  clos.addr = NULL;
+  rc = sieve_vlist_compare (h, v, comp, retrieve_address, &clos);
+  address_destroy (&clos.addr);
+  return rc;
+}
+
+int
+retrieve_header (void *item, void *data, int idx, char **pval)
+{
+  if (idx == 0)
+    return header_aget_value ((header_t) data, (char*)item, pval);
+  return 1;
 }
 
 int
@@ -66,9 +153,63 @@ sieve_test_header (sieve_machine_t mach, list_t args, list_t tags)
 }
 
 int
+retrieve_envelope (void *item, void *data, int idx, char **pval)
+{
+  struct address_closure *ap = data;
+  int rc;
+      
+  if (!ap->addr)
+    {
+      char buf[512];
+      size_t n;
+      
+      if (strcasecmp ((char*)item, "from") != 0)
+	return 1;
+
+      if (envelope_sender ((envelope_t)ap->data, buf, sizeof(buf), &n))
+	return 1;
+
+      rc = address_create (&ap->addr, buf);
+      if (rc)
+	return rc;
+    }
+
+  rc = ap->aget (ap->addr, idx+1, pval);
+  if (rc)
+    address_destroy (&ap->addr);
+  return rc;
+}
+
+int
 sieve_test_envelope (sieve_machine_t mach, list_t args, list_t tags)
 {
-  return 0;
+  sieve_value_t *h, *v;
+  sieve_comparator_t comp = sieve_get_comparator (tags);
+  struct address_closure clos;
+  int rc;
+  
+  if (mach->debug_level & MU_SIEVE_DEBUG_TRACE)
+    sieve_debug (mach, "HEADER\n");
+
+  h = sieve_value_get (args, 0);
+  if (!h)
+    {
+      sieve_error (mach, "header: can't get argument 1");
+      sieve_abort (mach);
+    }
+  v = sieve_value_get (args, 1);
+  if (!v)
+    {
+      sieve_error (mach, "header: can't get argument 2");
+      sieve_abort (mach);
+    }
+
+  message_get_envelope (sieve_get_message (mach), (envelope_t*)&clos.data);
+  clos.aget = sieve_get_address_part (tags);
+  clos.addr = NULL;
+  rc = sieve_vlist_compare (h, v, comp, retrieve_envelope, &clos);
+  address_destroy (&clos.addr);
+  return rc;
 }
 
 int
@@ -89,9 +230,9 @@ sieve_test_size (sieve_machine_t mach, list_t args, list_t tags)
   list_get (tags, 0, (void **)&tag);
   if (!tag)
     rc = size == val->v.number;
-  else if (tag->tag == TAG_OVER)
+  else if (strcmp (tag->tag, "over") == 0)
     rc = size > val->v.number;
-  else if (tag->tag == TAG_UNDER)
+  else if (strcmp (tag->tag, "under") == 0)
     rc = size < val->v.number;
 
   return rc;
@@ -142,29 +283,39 @@ sieve_test_exists (sieve_machine_t mach, list_t args, list_t tags)
   return sieve_vlist_do (val, _test_exists, header) == 0;
 }
 
-#define ADDRESS_PART \
-  { "localpart", TAG_LOCALPART, SVT_VOID },\
-  { "domain", TAG_DOMAIN, SVT_VOID },\
-  { "all", TAG_ALL, SVT_VOID }
+static sieve_tag_def_t address_part_tags[] = {
+  { "localpart", SVT_VOID },
+  { "domain", SVT_VOID },
+  { "all", SVT_VOID },
+  { NULL }
+};
 
-#define MATCH_PART \
-  { "is", TAG_IS, SVT_VOID },\
-  { "contains", TAG_CONTAINS, SVT_VOID },\
-  { "matches", TAG_MATCHES, SVT_VOID },\
-  { "regex", TAG_REGEX, SVT_VOID }
+static sieve_tag_def_t match_part_tags[] = {
+  { "is", SVT_VOID },
+  { "contains", SVT_VOID },
+  { "matches", SVT_VOID },
+  { "regex", SVT_VOID },
+  { "comparator", SVT_STRING },
+  { NULL }
+};
 
-#define COMP_PART \
-  { "comparator", TAG_COMPARATOR, SVT_STRING }
+static sieve_tag_def_t size_tags[] = {
+  { "over", SVT_VOID },
+  { "under", SVT_VOID },
+  { NULL }
+};
 
-#define SIZE_PART \
-  { "under", TAG_UNDER, SVT_VOID },\
-  { "over", TAG_OVER, SVT_VOID }
+#define ADDRESS_PART_GROUP \
+  { address_part_tags, NULL }
+
+#define MATCH_PART_GROUP \
+  { match_part_tags, sieve_match_part_checker }
+
+#define SIZE_GROUP { size_tags, NULL }
     
-  
-sieve_tag_def_t address_tags[] = {
-  ADDRESS_PART,
-  COMP_PART,
-  MATCH_PART,
+sieve_tag_group_t address_tag_groups[] = {
+  ADDRESS_PART_GROUP,
+  MATCH_PART_GROUP,
   { NULL }
 };
 
@@ -174,8 +325,8 @@ sieve_data_type address_req_args[] = {
   SVT_VOID
 };
 
-sieve_tag_def_t size_tags[] = {
-  SIZE_PART,
+sieve_tag_group_t size_tag_groups[] = {
+  SIZE_GROUP,
   { NULL }
 };
 
@@ -184,10 +335,9 @@ sieve_data_type size_req_args[] = {
   SVT_VOID
 };
 
-sieve_tag_def_t envelope_tags[] = {
-  COMP_PART,
-  ADDRESS_PART,
-  MATCH_PART,
+sieve_tag_group_t envelope_tag_groups[] = {
+  ADDRESS_PART_GROUP,
+  MATCH_PART_GROUP,
   { NULL }
 };
 
@@ -196,10 +346,9 @@ sieve_data_type exists_req_args[] = {
   SVT_VOID
 };
 
-sieve_tag_def_t header_tags[] = {
-  COMP_PART,
-  MATCH_PART,
-  { NULL },
+sieve_tag_group_t header_tag_groups[] = {
+  MATCH_PART_GROUP,
+  { NULL }
 };
 
 void
@@ -208,13 +357,13 @@ sieve_register_standard_tests ()
   sieve_register_test ("false", sieve_test_false, NULL, NULL, 1);
   sieve_register_test ("true", sieve_test_true, NULL, NULL, 1);
   sieve_register_test ("address", sieve_test_address,
-		       address_req_args, address_tags, 1);
+		       address_req_args, address_tag_groups, 1);
   sieve_register_test ("size", sieve_test_size,
-		       size_req_args, size_tags, 1);
+		       size_req_args, size_tag_groups, 1);
   sieve_register_test ("envelope", sieve_test_envelope,
-		       address_req_args, envelope_tags, 1);
+		       address_req_args, envelope_tag_groups, 1);
   sieve_register_test ("exists", sieve_test_exists,
 		       exists_req_args, NULL, 1);
   sieve_register_test ("header", sieve_test_header,
-		       address_req_args, header_tags, 1);
+		       address_req_args, header_tag_groups, 1);
 }
