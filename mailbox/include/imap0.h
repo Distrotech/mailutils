@@ -192,9 +192,6 @@ struct _msg_imap
   size_t header_lines;
 };
 
-int folder_imap_open  __P ((folder_t, int));
-int folder_imap_close __P ((folder_t));
-
 int imap_writeline    __P ((f_imap_t,  const char *format, ...));
 int imap_write        __P ((f_imap_t));
 int imap_send         __P ((f_imap_t));

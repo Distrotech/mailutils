@@ -1,5 +1,5 @@
 /* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Library Public License as published by
@@ -352,17 +352,29 @@ address_get_personal (address_t addr, size_t no, char *buf, size_t len,
   int status = EINVAL;
   if (addr == NULL)
     return EINVAL;
-  for (j = 1; addr; addr = addr->next, j++)
+  for (i = 0, j = 1; addr; addr = addr->next, j++)
     {
       if (j == no)
 	{
 	  i = _cpystr (buf, addr->personal, len);
-	  if (n)
-	    *n = i;
 	  status = 0;
 	  break;
 	}
     }
+  /* Remove the leading doublequotes.  */
+  if (i && buf && *buf == '"')
+    {
+      memmove (buf, buf + 1, i - 1);
+      i--;
+    }
+  /* Remove the trailing doublequotes.  */
+  if (i && buf && buf[i - 1] == '"')
+    {
+      buf[i - 1] = '\0';
+      i--;
+    }
+  if (n)
+    *n = i;
   return status;
 }
 
@@ -415,6 +427,8 @@ address_to_string (address_t addr, char *buf, size_t len, size_t *n)
   size_t i;
   if (addr == NULL)
     return EINVAL;
+  if (buf)
+    *buf = '\0';
   i = _cpystr (buf, addr->addr, len);
   if (n)
     *n = i;

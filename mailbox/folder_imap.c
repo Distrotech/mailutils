@@ -50,6 +50,8 @@ static struct _record _imap_record =
 record_t imap_record = &_imap_record;
 
 /* Concrete IMAP implementation.  */
+static int folder_imap_open        __P ((folder_t, int));
+static int folder_imap_close       __P ((folder_t));
 static void folder_imap_destroy    __P ((folder_t));
 static int folder_imap_delete      __P ((folder_t, const char *));
 static int folder_imap_list        __P ((folder_t, const char *, const char *,
@@ -193,7 +195,7 @@ imap_user (authority_t auth)
 }
 
 /* Create/Open the stream for IMAP.  */
-int
+static int
 folder_imap_open (folder_t folder, int flags)
 {
   f_imap_t f_imap = folder->data;
@@ -204,8 +206,13 @@ folder_imap_open (folder_t folder, int flags)
   int preauth = 0; /* Do we have "preauth"orisation ?  */
 
   /* If we are already open for business, noop.  */
+  monitor_wrlock (folder->monitor);
   if (f_imap->isopen)
-    return 0;
+    {
+      monitor_wrlock (folder->monitor);
+      return 0;
+    }
+  monitor_unlock (folder->monitor);
 
   /* Fetch the pop server name and the port in the url_t.  */
   status = url_get_host (folder->url, NULL, 0, &len);
@@ -312,16 +319,27 @@ folder_imap_open (folder_t folder, int flags)
       break;
     }
   f_imap->state = IMAP_NO_STATE;
-  f_imap->isopen = 1;
+  monitor_wrlock (folder->monitor);
+  f_imap->isopen++;
+  monitor_unlock (folder->monitor);
   return 0;
 }
 
 /* Shutdown the connection.  */
-int
+static int
 folder_imap_close (folder_t folder)
 {
   f_imap_t f_imap = folder->data;
   int status = 0;
+
+  monitor_wrlock (folder->monitor);
+  f_imap->isopen--;
+  if (f_imap->isopen)
+    {
+      monitor_unlock (folder->monitor);
+      return 0;
+    }
+  monitor_unlock (folder->monitor);
 
   switch (f_imap->state)
     {
@@ -1814,7 +1832,9 @@ imap_parse (f_imap_t f_imap)
 	    {
 	      /* We should close the stream. This is not recoverable.  */
 	      done = 1;
+	      monitor_wrlock (f_imap->folder->monitor);
 	      f_imap->isopen = 0;
+	      monitor_unlock (f_imap->folder->monitor);
 	      stream_close (f_imap->folder->stream);
 	    }
 	  else if (strcasecmp (response, "CAPABILITY") == 0)

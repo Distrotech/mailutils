@@ -46,6 +46,7 @@ static int fetch_body_peek (struct imap4d_command *, char*);
 static int fetch_body (struct imap4d_command *, char*);
 static int fetch_uid (struct imap4d_command *, char*);
 
+static int fetch_send_address (char *addr);
 static int fetch_operation (size_t, char *);
 
 struct imap4d_command fetch_command_table [] =
@@ -164,6 +165,59 @@ fetch_fast (struct imap4d_command *command, char *arg)
   return 0;
 }
 
+static int
+fetch_send_address (char *addr)
+{
+  address_t address;
+  size_t i, count = 0;
+
+  if (*addr == '\0')
+    {
+      util_send ("NIL");
+      return 0;
+    }
+
+  address_create (&address, addr);
+  address_get_count (address, &count);
+
+  util_send ("(", count);
+  for (i = 1; i <= count; i++)
+    {
+      char buf[128];
+      char *at;
+      size_t len = 0;
+
+      util_send ("(");
+
+      *buf = '\0';
+      address_get_personal (address, 1, buf, sizeof (buf), NULL);
+      if (*buf == '\0')
+	util_send ("NIL ");
+      else
+	util_send ("\"%s\" ", buf);
+
+      /* FIXME: Source route.  */
+      util_send ("NIL ", buf);
+
+      *buf = '\0';
+      address_get_email (address, 1, buf, sizeof (buf), &len);
+      if (*buf == '\0')
+	strcpy (buf, "NIL");
+      at = memchr (buf, '@', len);
+      if (at)
+	{
+	  *at = '\0';
+	  at++;
+	  util_send ("\"%s\" \"%s\"", buf, at);
+	}
+      else
+	util_send ("\"%s\" NIL", buf);
+
+      util_send (")");
+    }
+  util_send (")");
+  return 0;
+}
 /* Header: Date, Subject, From, Sender, Reply-To, To, Cc, Bcc, In-Reply-To,
    and Message-Id.  */
 /* FIXME, FIXME:
@@ -175,68 +229,79 @@ static int
 fetch_envelope (struct imap4d_command *command, char *arg)
 {
   char buffer[512];
+  char from[128];
   header_t header = NULL;
   message_t msg = NULL;
-  int status;
   /* FIXME: K&R compilers will choke at this, initializing local arrays was
      not permitted.  Even AIX xlc use to choke.  */
   mailbox_get_message (mbox, command->states, &msg);
   message_get_header (msg, &header);
-  util_send (" %s", command->name);
+  util_send (" %s(", command->name);
 
   /* FIXME: Incorrect Date.  */
-  status = header_get_value (header, "Date", buffer, sizeof (buffer), NULL);
-  if (status != 0)
-    util_send (" NIL");
-  else
-    util_send (" \"%s\"", buffer);
-
-  status = header_get_value (header, "Subject", buffer, sizeof (buffer), NULL);
-  if (status != 0)
-    util_send (" NIL");
-  else
-    util_send (" \"%s\"", buffer);
-
   *buffer = '\0';
-  header_get_value (header, "From", buffer, sizeof (buffer), NULL);
-  util_send (" ((NIL NIL NIL \"%s\"))", buffer);
-  /* FIXME:
-     Note that the server MUST default the reply-to and sender fields from
+  header_get_value (header, "Date", buffer, sizeof (buffer), NULL);
+  if (*buffer == '\0')
+    util_send ("NIL");
+  else
+    util_send ("\"%s\"", buffer);
+  util_send (" ");
+
+  /* Subject.  */
+  *buffer = '\0';
+  header_get_value (header, "Subject", buffer, sizeof (buffer), NULL);
+  if (*buffer == '\0')
+    util_send ("NIL");
+  else
+    util_send ("\"%s\"", buffer);
+  util_send (" ");
+
+  /* From.  */
+  *from = '\0';
+  header_get_value (header, "From", from, sizeof (from), NULL);
+  fetch_send_address (from);
+  util_send (" ");
+
+  /* Note that the server MUST default the reply-to and sender fields from
      the from field; a client is not expected to know to do this. */
   *buffer = '\0';
   header_get_value (header, "Sender", buffer, sizeof (buffer), NULL);
-  util_send (" ((NIL NIL NIL \"%s\"))", buffer);
+  fetch_send_address ((*buffer == '\0') ? from : buffer);
+  util_send (" ");
 
   *buffer = '\0';
   header_get_value (header, "Reply-to", buffer, sizeof (buffer), NULL);
-  util_send (" ((NIL NIL NIL \"%s\"))", buffer);
+  fetch_send_address ((*buffer == '\0') ? from : buffer);
+  util_send (" ");
 
   *buffer = '\0';
   header_get_value (header, "To", buffer, sizeof (buffer), NULL);
-  util_send (" ((NIL NIL NIL \"%s\"))", buffer);
+  fetch_send_address (buffer);
+  util_send (" ");
 
   *buffer = '\0';
   header_get_value (header, "Cc", buffer, sizeof (buffer), NULL);
-  util_send (" ((NIL NIL NIL \"%s\"))", buffer);
+  fetch_send_address (buffer);
+  util_send (" ");
 
   *buffer = '\0';
   header_get_value (header, "Bcc", buffer, sizeof (buffer), NULL);
-  util_send (" ((NIL NIL NIL \"%s\"))", buffer);
+  fetch_send_address (buffer);
+  util_send (" ");
 
-  status = header_get_value (header, "In-Reply-To", buffer,
-			     sizeof (buffer), NULL);
-  if (status != 0)
-    util_send (" NIL");
+  *buffer = '\0';
+  header_get_value (header, "In-Reply-To", buffer, sizeof (buffer), NULL);
+  fetch_send_address (buffer);
+  util_send (" ");
+
+  *buffer = '\0';
+  header_get_value (header, "Message-ID", buffer, sizeof (buffer), NULL);
+  if (*buffer == '\0')
+    util_send ("NIL");
   else
-    util_send (" \"%s\"", buffer);
+    util_send ("\"%s\"", buffer);
 
-  status = header_get_value (header, "Message-ID", buffer,
-			     sizeof (buffer), NULL);
-  if (status != 0)
-    util_send (" NIL");
-  else
-    util_send (" \"%s\"", buffer);
-
+  util_send (")");
   return 0;
 }
 

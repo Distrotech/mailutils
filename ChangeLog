@@ -1,3 +1,14 @@
+2001-02-28  Alain Magloire
+
+	* mailbox/address.c (address_get_personal) : Remove surrounding quotes.
+	* mailbox/mbx_mbox.c (mbox_scan) : If the mailbox is updated don't
+	rescan again.
+	(mbox_expunge) : Same the uidvalidity in the header field "IMABase:"
+	on the first message of the mailbox.
+
+	* imap4d/fetch.c (fetch_envelope) : Envelope imap4 command implemented.
+	(fetch_send_address) : New function.
+
 2001-02-26  Alain Magloire
 
 	* mailbox/mbx_imap.c (imap_submessage_size) : New function to

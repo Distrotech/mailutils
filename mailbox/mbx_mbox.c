@@ -416,6 +416,8 @@ mbox_close (mailbox_t mailbox)
   mud->umessages = NULL;
   mud->messages_count = mud->umessages_count = 0;
   mud->size = 0;
+  mud->uidvalidity = 0;
+  mud->uidnext = 0;
   monitor_unlock (mailbox->monitor);
   return stream_close (mailbox->stream);
 }
@@ -428,9 +430,24 @@ mbox_close (mailbox_t mailbox)
 static int
 mbox_scan (mailbox_t mailbox, size_t msgno, size_t *pcount)
 {
+  size_t i;
   mbox_data_t mud = mailbox->data;
   MAILBOX_DEBUG1 (mailbox, MU_DEBUG_TRACE, "mbox_scan(%s)\n", mud->name);
-  return mbox_scan0 (mailbox, msgno, pcount, 1);
+  if (! mbox_is_updated (mailbox))
+    return mbox_scan0 (mailbox, msgno, pcount, 1);
+  /* Since the mailbox is already updated fake the scan. */
+  if (msgno > 0)
+    msgno--; /* The fist message is number "1", decremente for the C array.  */ 
+  for (i = msgno; i < mud->messages_count; i++)
+    {
+      if (observable_notify (mailbox->observable, MU_EVT_MESSAGE_ADD) != 0)
+	break;
+      if (((i +1) % 50) == 0)
+	{
+	  observable_notify (mailbox->observable, MU_EVT_MAILBOX_PROGRESS);
+	}
+    }
+  return 0;
 }
 
 /* FIXME:  How to handle a shrink ? meaning, the &^$^@%#@^& user start two
@@ -653,10 +670,14 @@ mbox_expunge (mailbox_t mailbox)
       if (ATTRIBUTE_IS_DELETED (mum->attr_flags))
 	{
 	  /* We save the uidvalidity in the first message, if it is being
-	     deleted we need to the header to the first available(non-deleted)
-	     message.  */
-	  if (i == 0)
-	    save_imapbase = i + 1;
+	     deleted we need to move the uidvalidity to the first available
+	     (non-deleted) message.  */
+	  if (i == save_imapbase)
+	    {
+	      save_imapbase = i + 1;
+	      if (save_imapbase < mud->messages_count)
+		(mud->umessages[save_imapbase])->attr_flags |= MU_ATTRIBUTE_MODIFIED;
+	    }
 	  continue;
 	}
 

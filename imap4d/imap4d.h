@@ -47,6 +47,7 @@
 #include <mailutils/message.h>
 #include <mailutils/header.h>
 #include <mailutils/body.h>
+#include <mailutils/address.h>
 #include <mailutils/registrar.h>
 
 #ifdef __cplusplus

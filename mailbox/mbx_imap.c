@@ -254,7 +254,7 @@ mailbox_imap_close (mailbox_t mailbox)
   f_imap->selected = NULL;
 
   f_imap->state = IMAP_NO_STATE;
-  return status;
+  return folder_close (mailbox->folder);
 }
 
 /* Construction of the message_t, nothing else is done then this setup.  To
