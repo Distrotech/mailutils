@@ -318,7 +318,7 @@ _mailbox_pop_init (mailbox_t mbox)
   else
     {
       authority_destroy (&mbox->authority, mbox);
-      return ENOTSUP;
+      return ENOSYS;
     }
 
   /* Allocate specifics for pop data.  */
