@@ -1,3 +1,13 @@
+2003-10-07  Alain Magloire
+
+	Reuse the mailutils mu_debug_t object to do debug tracing
+	no need to reinvent another scheme.
+
+	* include/mailutils/pop3.h: New declaration mu_pop3_set_debug.
+	* include/mailutils/sys/pop3.h: new field mu_debug_t in structure.
+	* mailbox/pop/pop3_debug.c:  Use of mu_debug_t object.
+	* examples/pop3client.c: Fix sigsegv and print error messages.
+
 2003-10-06  Alain Magloire
 
 	* mailbox/pop/pop3_stls.c: New file.
