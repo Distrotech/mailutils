@@ -120,6 +120,8 @@ mh/send.c
 mh/whatnow.c
 mh/whom.c
 
+movemail/movemail.c
+
 pop3d/apop.c
 pop3d/extra.c
 pop3d/lock.c
