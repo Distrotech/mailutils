@@ -24,9 +24,8 @@ static char *_pwd;
 static char *_user;
 static int _perr = 0;
 
-#define PAM_ERROR if (_perr || (pamerror != PAM_SUCCESS)) { \
-    pam_end(pamh, 0); \
-    return ERR_BAD_LOGIN; }
+#define PAM_ERROR if (_perr || (pamerror != PAM_SUCCESS)) \
+    goto pam_errlab;
 
 static int
 PAM_gnupop3d_conv (int num_msg, const struct pam_message **msg, struct pam_response **resp, void *appdata_ptr)
@@ -119,6 +118,7 @@ pop3_user (const char *arg)
       free (cmd);
       return ERR_BAD_CMD;
     }
+
   if ((strcasecmp (cmd, "PASS") == 0))
     {
       free (cmd);
@@ -145,7 +145,10 @@ pop3_user (const char *arg)
 	  spw = getspnam ((char *)arg);
 	  if (spw == NULL || strcmp (spw->sp_pwdp, crypt (pass, spw->sp_pwdp)))
 #endif /* HAVE_SHADOW_H */
-	    return ERR_BAD_LOGIN;
+	    {
+	      syslog (LOG_INFO, "User '%s': authentication failed", arg);
+	      return ERR_BAD_LOGIN;
+	    }
 	}
 #else /* !USE_LIBPAM */
       _user = (char *) arg;
@@ -160,8 +163,14 @@ pop3_user (const char *arg)
       PAM_ERROR;
       pamerror = pam_setcred (pamh, PAM_ESTABLISH_CRED);
       PAM_ERROR;
+pam_errlab:
       pam_end (pamh, PAM_SUCCESS);
-      openlog ("gnu-pop3d", LOG_PID, LOG_MAIL);
+      openlog ("gnu-pop3d", LOG_PID, LOG_FACILITY);
+      if (pamerror != PAM_SUCCESS)
+	{
+	  syslog (LOG_INFO, "User '%s': authentication failed", _user);
+	  return ERR_BAD_LOGIN;
+	}
 #endif /* USE_LIBPAM */
 
 
@@ -210,6 +219,7 @@ pop3_user (const char *arg)
     }
   else if (strcasecmp (cmd, "QUIT") == 0)
     {
+      syslog (LOG_INFO, "Possible probe of account '%s'", arg);
       free (cmd);
       return pop3_quit (pass);
     }

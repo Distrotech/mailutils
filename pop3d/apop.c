@@ -20,7 +20,7 @@
 /* Check if a username exists in APOP password file
    returns pointer to password if found, otherwise NULL */
 char *
-pop3_apopuser (const char *user)
+pop3d_apopuser (const char *user)
 {
   char *password;
   char buf[POP_MAXCMDLEN];
@@ -88,7 +88,7 @@ pop3_apopuser (const char *user)
   if (password == NULL)
     {
       fclose (apop_file);
-      pop3_abquit (ERR_NO_MEM);
+      pop3d_abquit (ERR_NO_MEM);
     }
   password[0] = '\0';
 
@@ -122,7 +122,7 @@ pop3_apopuser (const char *user)
 }
 
 int
-pop3_apop (const char *arg)
+pop3d_apop (const char *arg)
 {
   char *tmp, *user_digest, *password;
   struct passwd *pw;
@@ -138,15 +138,15 @@ pop3_apop (const char *arg)
   if (strlen (arg) == 0)
     return ERR_BAD_ARGS;
 
-  username = pop3_cmd (arg);
+  username = pop3d_cmd (arg);
   if (strlen (username) > (POP_MAXCMDLEN - APOP_DIGEST))
     {
       free (username);
       return ERR_BAD_ARGS;
     }
-  user_digest = pop3_args (arg);
+  user_digest = pop3d_args (arg);
 
-  password = pop3_apopuser (username);
+  password = pop3d_apopuser (username);
   if (password == NULL)
     {
       free (username);

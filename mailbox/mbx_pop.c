@@ -24,6 +24,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <sys/time.h>
+#include <sys/types.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <stdarg.h>
@@ -112,6 +114,7 @@ static int pop_attr_flags      __P ((attribute_t, int *));
 static int pop_uidl            __P ((message_t, char *, size_t, size_t *));
 static int pop_uid             __P ((message_t, size_t *));
 static int fill_buffer         __P ((pop_data_t, char *, size_t));
+static int pop_sleep           __P ((int));
 static int pop_readline        __P ((pop_data_t));
 static int pop_read_ack        __P ((pop_data_t));
 static int pop_writeline       __P ((pop_data_t, const char *, ...));
@@ -512,7 +515,18 @@ pop_open (mailbox_t mbox, int flags)
 	  stream_setbufsiz (mbox->stream, BUFSIZ);
 	}
       else
-	stream_close (mbox->stream);
+	{
+	  /* This is sudden death: for many pop servers, it is important to
+	     let them time to remove locks or move the .user.pop files.  This
+	     happen when we do BUSY_CHECK().  For example, the user does not
+	     want to read the entire file, and wants start to read a new
+	     message, closing the connection and immediately contact the
+	     server again, and we'll end up having "-ERR Mail Lock busy" or
+	     something similar. To prevent this race condition we sleep 2
+	     seconds. */
+	  stream_close (mbox->stream);
+	  pop_sleep (2);
+	}
       mpd->state = POP_OPEN_CONNECTION;
 
     case POP_OPEN_CONNECTION:
@@ -1737,6 +1751,17 @@ pop_retr (pop_message_t mpm, char *buffer, size_t buflen, off_t offset,
   CLEAR_STATE (mpd);
   mpm->skip_header = mpm->skip_body = 0;
   return 0;
+}
+
+/* GRRRRR!!  We can not use sleep in the library since this we'll
+   muck up any alarm() done by the user.  */
+static int
+pop_sleep (int seconds)
+{
+  struct timeval tval;
+  tval.tv_sec = seconds;
+  tval.tv_usec = 0;
+  return select (1, NULL, NULL, NULL, &tval);
 }
 
 /* C99 says that a conforming implementation of snprintf () should return the

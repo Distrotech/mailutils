@@ -29,5 +29,10 @@ pop3_sigchld (int signo)
   errno = 0;
   while ( (pid = waitpid(-1, &status, WNOHANG)) > 0)
       --children;
+#ifndef HAVE_SIGACTION
+  /* On some system, signal implements the unreliabe sematic and
+     has to be rearm.  */
+  signal (SIGCHLD, pop3_sigchld);
+#endif
   errno = old_errno;
 }

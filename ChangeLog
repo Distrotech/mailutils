@@ -1,6 +1,61 @@
+2001-04-23 Alain Magloire
+
+	* pop3d/*.[ch]:  Rename all the pop function pop3d_xx()
+	instead of pop3_xx() to be consistent with imap4d/*.
+
+	* mailbox/mbx_pop.c (pop_user): This is sudden death; for many pop
+	servers, it is important to let them time to remove locks or move
+	the .user.pop files.  This happen when we do BUSY_CHECK().  For
+	example, the user does not want to read the entire file, and wants
+	start to read a new message, closing the connection and immediately
+	contact the server again, and we'll end up having
+	"-ERR Mail Lock busy" or something similar. To prevent this race
+	condition we sleep 2 seconds.
+
+2001-04-23 Sergey Poznyakoff
+
+	It is often convenient to separte log outputs from POP and SMTP
+	servers. --with-log-facility flag which allows to specify to which
+	log facility the loggin output should be directed.
+	System administrators often prefere to have more information about
+	unsuccessfull authentications. I have added more verbose logging
+	to pop3d/user.c. Both failed attempts and possible account probes
+	(USER immediately followed by QUIT) are logged.
+	Made pop3d to be less verbose about its WELCOME prompt. When the
+	symbol TERSE_MODE is defined, pop3d introduces itself just as
+	+OK POP3 ready <apop_hash>
+	insead of divulging its type and version. This is a bit paranoid,
+	but it is better to be on the safe side...
+
+	* configure.in: ARGPINC gets assigne a relative path, due
+	to which the compilation fails if the package is configure with
+	--srdir=<path> option.
+	* configure.in: --with-log-facility new option.
+	* acconfig.h: LOG_FACILITY
+
+	* doc/mailutils.texi: Typo.
+
+	* mailbox/mapfile_stream.c: Define MAP_FAILED.
+
+	* pop3d/extra.c (pop3_abquit): new case ERR_MBOX_SYNC.
+	(pop3_signal): Syslog the reason.
+	* pop3d/pop3d.c (pop_mainloop): Syslog the hostname of
+	the user on connect.
+	(pop3_daemon): Log to many children.  Lacks call to exit(), so if
+	pop3d is run as a daemon, any child after exiting from
+	pop3_mainloop  tries to accept() from already closed socket
+	and issues spurious error messages.
+	(pop3_mainloop):  Check if the mailbox is uptodate if not
+	and the size shrink, bail out.  Do not send version number.
+	* pop3d/pop3d.h: ERR_MBOX_SYNC define. WELCOME removed.
+	* pop3d/signal (pop3_sigchld): Lacks signal() call, due to which
+	the signal handler gets cleared after first SIGCHLD and all
+	subsequent children, when finished, just hang around like zombies.
+	* pop3d/user.c: Log to LOG_FACILITY all the errors.
+
 2001-04-23  Alain Magloire
 
-	Sergey Poznyakoff pointed out that errno change depending
+	Sergey Poznyakoff pointed out that errno changes depending
 	if _REENTRANT is set or not.  So for enable thread we take
 	the approach of always defining _REENTRANT.
 	He also noted that when in standalone the child was not exiting.

@@ -32,3 +32,6 @@
 
 /* Define _REENTRANT when using threads.  */
 #undef _REENTRANT
+
+/* Define the default loggin facility.  */
+#undef LOG_FACILITY

@@ -21,7 +21,7 @@
    after the first space, or a zero length string if no space */
 
 char *
-pop3_args (const char *cmd)
+pop3d_args (const char *cmd)
 {
   int space = -1, i = 0, len;
   char *buf;
@@ -29,7 +29,7 @@ pop3_args (const char *cmd)
   len = strlen (cmd) + 1;
   buf = malloc (len * sizeof (char));
   if (buf == NULL)
-    pop3_abquit (ERR_NO_MEM);
+    pop3d_abquit (ERR_NO_MEM);
 
   while (space < 0 && i < len)
     {
@@ -58,7 +58,7 @@ pop3_args (const char *cmd)
    the string, whichever occurs first */
 
 char *
-pop3_cmd (const char *cmd)
+pop3d_cmd (const char *cmd)
 {
   char *buf;
   int i = 0, len;
@@ -66,7 +66,7 @@ pop3_cmd (const char *cmd)
   len = strlen (cmd) + 1;
   buf = malloc (len * sizeof (char));
   if (buf == NULL)
-    pop3_abquit (ERR_NO_MEM);
+    pop3d_abquit (ERR_NO_MEM);
 
   for (i = 0; i < len; i++)
     {
@@ -84,7 +84,7 @@ pop3_cmd (const char *cmd)
    being killed on a signal */
 
 int
-pop3_abquit (int reason)
+pop3d_abquit (int reason)
 {
   mailbox_close (mbox);
   mailbox_destroy (&mbox);
@@ -118,6 +118,11 @@ pop3_abquit (int reason)
       syslog (LOG_INFO, "No socket to send to");
       break;
 
+    case ERR_MBOX_SYNC:
+      syslog (LOG_ERR, "Mailbox was updated by other party: %s", username);
+      fprintf (ofile, "-ERR Mailbox updated by other party or corrupt\r\n");
+      break;
+
     default:
       fprintf (ofile, "-ERR Quitting (reason unknown)\r\n");
       syslog (LOG_ERR, "Unknown quit");
@@ -133,7 +138,7 @@ pop3_abquit (int reason)
 /* Prints out usage information and exits the program */
 
 void
-pop3_usage (char *argv0)
+pop3d_usage (char *argv0)
 {
   printf ("Usage: %s [OPTIONS]\n", argv0);
   printf ("Runs the GNU POP3 daemon.\n\n");
@@ -151,19 +156,20 @@ pop3_usage (char *argv0)
   exit (0);
 }
 
-/* Default signal handler to call the pop3_abquit() function */
+/* Default signal handler to call the pop3d_abquit() function */
 
 void
-pop3_signal (int signo)
+pop3d_signal (int signo)
 {
   (void)signo;
-  pop3_abquit (ERR_SIGNAL);
+  syslog (LOG_CRIT, "got signal %d", signo);
+  pop3d_abquit (ERR_SIGNAL);
 }
 
 /* Gets a line of input from the client */
 
 char *
-pop3_readline (int fd)
+pop3d_readline (int fd)
 {
   fd_set rfds;
   struct timeval tv;
@@ -183,17 +189,17 @@ pop3_readline (int fd)
 	{
 	  available = select (fd + 1, &rfds, NULL, NULL, &tv);
 	  if (!available)
-	    pop3_abquit (ERR_TIMEOUT);
+	    pop3d_abquit (ERR_TIMEOUT);
 	}
 
       nread = read (fd, buf, sizeof (buf) - 1);
       if (nread < 1)
-	pop3_abquit (ERR_DEAD_SOCK);
+	pop3d_abquit (ERR_DEAD_SOCK);
 
       buf[nread] = '\0';
       ret = realloc (ret, (total + nread + 1) * sizeof (char));
       if (ret == NULL)
-	pop3_abquit (ERR_NO_MEM);
+	pop3d_abquit (ERR_NO_MEM);
       memcpy (ret + total, buf, nread + 1);
       total += nread;
     }

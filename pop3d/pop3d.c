@@ -74,7 +74,7 @@ main (int argc, char **argv)
 	  break;
 
 	case 'h':
-	  pop3_usage (argv[0]);
+	  pop3d_usage (argv[0]);
 	  break;
 
 	case 'i':
@@ -123,21 +123,21 @@ main (int argc, char **argv)
   }
 
   /* Set the signal handlers.  */
-  signal (SIGINT, pop3_signal);
-  signal (SIGQUIT, pop3_signal);
-  signal (SIGILL, pop3_signal);
-  signal (SIGBUS, pop3_signal);
-  signal (SIGFPE, pop3_signal);
-  signal (SIGSEGV, pop3_signal);
-  signal (SIGTERM, pop3_signal);
-  signal (SIGSTOP, pop3_signal);
-  signal (SIGPIPE, pop3_signal);
+  signal (SIGINT, pop3d_signal);
+  signal (SIGQUIT, pop3d_signal);
+  signal (SIGILL, pop3d_signal);
+  signal (SIGBUS, pop3d_signal);
+  signal (SIGFPE, pop3d_signal);
+  signal (SIGSEGV, pop3d_signal);
+  signal (SIGTERM, pop3d_signal);
+  signal (SIGSTOP, pop3d_signal);
+  signal (SIGPIPE, pop3d_signal);
 
   if (timeout < 600)		/* RFC 1939 says no less than 10 minutes.  */
     timeout = 0;		/* So we'll turn it off.  */
 
   if (mode == DAEMON)
-    pop3_daemon_init ();
+    pop3d_daemon_init ();
 
   /* Change directory.  */
   chdir ("/");
@@ -149,10 +149,10 @@ main (int argc, char **argv)
 
   /* Actually run the daemon.  */
   if (mode == DAEMON)
-    pop3_daemon (maxchildren);
-  /* exit() -- no way out of daemon except a signal.  */
+    pop3d_daemon (maxchildren);
+  /* exit (0) -- no way out of daemon except a signal.  */
   else
-    status = pop3_mainloop (fileno (stdin), fileno (stdout));
+    status = pop3d_mainloop (fileno (stdin), fileno (stdout));
 
   /* Close the syslog connection and exit.  */
   closelog ();
@@ -161,7 +161,7 @@ main (int argc, char **argv)
 
 /* Sets things up for daemon mode.  */
 void
-pop3_daemon_init (void)
+pop3d_daemon_init (void)
 {
   pid_t pid;
   unsigned int i;
@@ -171,7 +171,7 @@ pop3_daemon_init (void)
   if (pid == -1)
     {
       perror ("fork failed:");
-      exit (-1);
+      exit (1);
     }
   else if (pid > 0)
     exit (0);			/* Parent exits.  */
@@ -191,18 +191,18 @@ pop3_daemon_init (void)
 
   /* Close inherited file descriptors.  */
   for (i = 0; i < MAXFD; ++i)
-    close(i);
+    close (i);
 
 #ifdef HAVE_SIGACTION
   {
     struct sigaction act;
-    act.sa_handler = pop3_sigchld;
+    act.sa_handler = pop3d_sigchld;
     sigemptyset (&act.sa_mask);
     act.sa_flags = 0;
     sigaction (SIGCHLD, &act, NULL);
   }
 #else
-  signal (SIGCHLD, pop3_sigchld);
+  signal (SIGCHLD, pop3d_sigchld);
 #endif
 }
 
@@ -210,7 +210,7 @@ pop3_daemon_init (void)
    executes the proper functions. Also handles the bulk of error reporting.  */
 
 int
-pop3_mainloop (int infile, int outfile)
+pop3d_mainloop (int infile, int outfile)
 {
   int status = OK;
   char *buf, *arg, *cmd;
@@ -220,17 +220,28 @@ pop3_mainloop (int infile, int outfile)
   ifile = infile;
   ofile = fdopen (outfile, "w");
   if (ofile == NULL)
-    pop3_abquit (ERR_NO_OFILE);
+    pop3d_abquit (ERR_NO_OFILE);
   state = AUTHORIZATION;
   curr_time = time (NULL);
 
   /* FIXME:  Retreive hostname with getpeername() and log.  */
   syslog (LOG_INFO, "Incoming connection opened");
 
+  /* log information on the connecting client */
+  {
+    struct sockaddr_in cs;
+    int len = sizeof cs;
+    if (getpeername (infile, (struct sockaddr*)&cs, &len) < 0)
+      syslog (LOG_ERR, "can't obtain IP address of client: %s",
+	      strerror (errno));
+    else
+      syslog (LOG_INFO, "connect from %s", inet_ntoa(cs.sin_addr));
+  }
+
   /* Prepare the shared secret for APOP.  */
   local_hostname = malloc (MAXHOSTNAMELEN + 1);
   if (local_hostname == NULL)
-    pop3_abquit (ERR_NO_MEM);
+    pop3d_abquit (ERR_NO_MEM);
 
   gethostname (local_hostname, MAXHOSTNAMELEN);
   htbuf = gethostbyname (local_hostname);
@@ -242,52 +253,64 @@ pop3_mainloop (int infile, int outfile)
 
   md5shared = malloc (strlen (local_hostname) + 51);
   if (md5shared == NULL)
-    pop3_abquit (ERR_NO_MEM);
+    pop3d_abquit (ERR_NO_MEM);
 
   snprintf (md5shared, strlen (local_hostname) + 50, "<%u.%u@%s>", getpid (),
 	    (int)time (NULL), local_hostname);
   free (local_hostname);
 
-  fprintf (ofile, "+OK POP3 " WELCOME " %s\r\n", md5shared);
+  fprintf (ofile, "+OK POP3 Ready %s\r\n", md5shared);
 
   while (state != UPDATE)
     {
       fflush (ofile);
       status = OK;
-      buf = pop3_readline (ifile);
-      cmd = pop3_cmd (buf);
-      arg = pop3_args (buf);
+      buf = pop3d_readline (ifile);
+      cmd = pop3d_cmd (buf);
+      arg = pop3d_args (buf);
+
+      if (state == TRANSACTION && !mailbox_is_updated (mbox))
+	{
+	  static size_t mailbox_size;
+	  size_t newsize = 0;
+	  mailbox_get_size (mbox, &newsize);
+	  /* Did we shrink?  */
+	  if (!mailbox_size)
+	    mailbox_size = newsize;
+	  else (newsize < mailbox_size)
+	    pop3d_abquit (ERR_MBOX_SYNC);
+	}
 
       if (strlen (arg) > POP_MAXCMDLEN || strlen (cmd) > POP_MAXCMDLEN)
 	status = ERR_TOO_LONG;
       else if (strlen (cmd) > 4)
 	status = ERR_BAD_CMD;
       else if (strncasecmp (cmd, "RETR", 4) == 0)
-	status = pop3_retr (arg);
+	status = pop3d_retr (arg);
       else if (strncasecmp (cmd, "DELE", 4) == 0)
-	status = pop3_dele (arg);
+	status = pop3d_dele (arg);
       else if (strncasecmp (cmd, "USER", 4) == 0)
-	status = pop3_user (arg);
+	status = pop3d_user (arg);
       else if (strncasecmp (cmd, "QUIT", 4) == 0)
-	status = pop3_quit (arg);
+	status = pop3d_quit (arg);
       else if (strncasecmp (cmd, "APOP", 4) == 0)
-	status = pop3_apop (arg);
+	status = pop3d_apop (arg);
       else if (strncasecmp (cmd, "AUTH", 4) == 0)
-	status = pop3_auth (arg);
+	status = pop3d_auth (arg);
       else if (strncasecmp (cmd, "STAT", 4) == 0)
-	status = pop3_stat (arg);
+	status = pop3d_stat (arg);
       else if (strncasecmp (cmd, "LIST", 4) == 0)
-	status = pop3_list (arg);
+	status = pop3d_list (arg);
       else if (strncasecmp (cmd, "NOOP", 4) == 0)
-	status = pop3_noop (arg);
+	status = pop3d_noop (arg);
       else if (strncasecmp (cmd, "RSET", 4) == 0)
-	status = pop3_rset (arg);
+	status = pop3d_rset (arg);
       else if ((strncasecmp (cmd, "TOP", 3) == 0) && (strlen (cmd) == 3))
-	status = pop3_top (arg);
+	status = pop3d_top (arg);
       else if (strncasecmp (cmd, "UIDL", 4) == 0)
-	status = pop3_uidl (arg);
+	status = pop3d_uidl (arg);
       else if (strncasecmp (cmd, "CAPA", 4) == 0)
-	status = pop3_capa (arg);
+	status = pop3d_capa (arg);
       else
 	status = ERR_BAD_CMD;
 
@@ -326,12 +349,12 @@ pop3_mainloop (int infile, int outfile)
 }
 
 /* Runs GNU POP3 in standalone daemon mode. This opens and binds to a port
-   (default 110) then executes a pop3_mainloop() upon accepting a connection.
+   (default 110) then executes a pop3d_mainloop() upon accepting a connection.
    It starts maxchildren child processes to listen to and accept socket
    connections.  */
 
 void
-pop3_daemon (unsigned int maxchildren)
+pop3d_daemon (unsigned int maxchildren)
 {
   SA server, client;
   pid_t pid;
@@ -342,7 +365,7 @@ pop3_daemon (unsigned int maxchildren)
   if (listenfd == -1)
     {
       syslog (LOG_ERR, "socket: %s", strerror(errno));
-      exit (-1);
+      exit (1);
     }
   size = 1; /* Use size here to avoid making a new variable.  */
   setsockopt (listenfd, SOL_SOCKET, SO_REUSEADDR, &size, sizeof(size));
@@ -355,19 +378,20 @@ pop3_daemon (unsigned int maxchildren)
   if (bind (listenfd, (struct sockaddr *)&server, size) == -1)
     {
       syslog (LOG_ERR, "bind: %s", strerror (errno));
-      exit (-1);
+      exit (1);
     }
 
   if (listen (listenfd, 128) == -1)
     {
       syslog (LOG_ERR, "listen: %s", strerror (errno));
-      exit (-1);
+      exit (1);
     }
 
   for (;;)
     {
       if (children > maxchildren)
         {
+	  syslog (LOG_ERR, "too many children");
           pause ();
           continue;
         }
@@ -377,7 +401,7 @@ pop3_daemon (unsigned int maxchildren)
           if (errno == EINTR)
 	    continue;
           syslog (LOG_ERR, "accept: %s", strerror (errno));
-          exit (-1);
+          exit (1);
         }
 
       pid = fork ();
@@ -387,8 +411,7 @@ pop3_daemon (unsigned int maxchildren)
         {
 	  int status;
           close (listenfd);
-	  /* syslog(); FIXME log the info on the connecting client.  */
-          status = pop3_mainloop (connfd, connfd);
+          status = pop3d_mainloop (connfd, connfd);
 	  closelog ();
 	  exit (status);
         }

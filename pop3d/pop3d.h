@@ -26,9 +26,6 @@
 
 /* You can edit the messages the POP server prints out here */
 
-/* Initial greeting */
-#define WELCOME		"Welcome to " IMPL " (" PACKAGE " " VERSION ")"
-
 /* A command that doesn't exist */
 #define BAD_COMMAND	"Invalid command"
 
@@ -158,6 +155,7 @@
 #define ERR_NO_OFILE    14
 #define ERR_TIMEOUT	15
 #define ERR_UNKNOWN	16
+#define ERR_MBOX_SYNC   17
 
 #ifndef __P
 # ifdef __STDC__
@@ -179,32 +177,30 @@ extern time_t curr_time;
 extern char *md5shared;
 extern unsigned int children;
 
-extern int pop3_dele         __P ((const char *arg));
-extern int pop3_list         __P ((const char *arg));
-extern int pop3_noop         __P ((const char *arg));
-extern int pop3_quit         __P ((const char *arg));
-extern int pop3_retr         __P ((const char *arg));
-extern int pop3_rset         __P ((const char *arg));
-extern int pop3_stat         __P ((const char *arg));
-extern int pop3_top          __P ((const char *arg));
-extern int pop3_uidl         __P ((const char *arg));
-extern int pop3_user         __P ((const char *arg));
-extern int pop3_apop         __P ((const char *arg));
-extern int pop3_auth         __P ((const char *arg));
-extern int pop3_capa         __P ((const char *arg));
-extern char *pop3_args       __P ((const char *cmd));
-extern char *pop3_cmd        __P ((const char *cmd));
-extern int pop3_mesg_exist   __P ((int mesg));
-extern int pop3_abquit       __P ((int reason));
-extern int pop3_lock         __P ((void));
-extern int pop3_unlock       __P ((void));
-extern int pop3_getsizes     __P ((void));
-extern int pop3_mainloop     __P ((int infile, int outfile));
-extern void pop3_daemon      __P ((unsigned int maxchildren));
-extern void pop3_usage       __P ((char *argv0));
-extern void pop3_signal      __P ((int));
-extern void pop3_sigchld     __P ((int));
-extern void pop3_daemon_init __P ((void));
-extern char *pop3_apopuser   __P ((const char *user));
-extern char *pop3_readline   __P ((int fd));
+extern int pop3d_dele         __P ((const char *arg));
+extern int pop3d_list         __P ((const char *arg));
+extern int pop3d_noop         __P ((const char *arg));
+extern int pop3d_quit         __P ((const char *arg));
+extern int pop3d_retr         __P ((const char *arg));
+extern int pop3d_rset         __P ((const char *arg));
+extern int pop3d_stat         __P ((const char *arg));
+extern int pop3d_top          __P ((const char *arg));
+extern int pop3d_uidl         __P ((const char *arg));
+extern int pop3d_user         __P ((const char *arg));
+extern int pop3d_apop         __P ((const char *arg));
+extern int pop3d_auth         __P ((const char *arg));
+extern int pop3d_capa         __P ((const char *arg));
+extern char *pop3d_args       __P ((const char *cmd));
+extern char *pop3d_cmd        __P ((const char *cmd));
+extern int pop3d_abquit       __P ((int reason));
+extern int pop3d_lock         __P ((void));
+extern int pop3d_unlock       __P ((void));
+extern int pop3d_mainloop     __P ((int infile, int outfile));
+extern void pop3d_daemon      __P ((unsigned int maxchildren));
+extern void pop3d_usage       __P ((char *argv0));
+extern void pop3d_signal      __P ((int));
+extern void pop3d_sigchld     __P ((int));
+extern void pop3d_daemon_init __P ((void));
+extern char *pop3d_apopuser   __P ((const char *user));
+extern char *pop3d_readline   __P ((int fd));
 #endif /* _POP3D_H */

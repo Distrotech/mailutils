@@ -34,6 +34,9 @@
 #ifdef _POSIX_MAPPED_FILES
 #include <sys/mman.h>
 
+#ifndef MAP_FAILED
+# define MAP_FAILED (void*)-1
+#endif
 
 struct _mapfile_stream
 {

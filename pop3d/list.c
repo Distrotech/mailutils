@@ -20,7 +20,7 @@
 /* Displays the size of message number arg or all messages (if no arg) */
 
 int
-pop3_list (const char *arg)
+pop3d_list (const char *arg)
 {
   size_t mesgno;
   size_t size = 0;

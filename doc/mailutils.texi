@@ -158,7 +158,7 @@ mailers.
 @end group
 @end example
 
-For example writing a simple @command{from} command that will list the
+For example writing a simple @code{from} command that will list the
 @emph{From} and @emph{Subject} headers of every mail in a folder.
 
 @example

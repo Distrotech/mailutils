@@ -18,7 +18,7 @@
 #include "pop3d.h"
 
 int
-pop3_capa (const char *arg)
+pop3d_capa (const char *arg)
 {
   if (strlen (arg) != 0)
     return ERR_BAD_ARGS;

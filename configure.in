@@ -42,6 +42,15 @@ AC_ARG_WITH(db2,
   *)   AC_MSG_ERROR(bad value ${withval} for --with-db) ;;
   esac],[usedb2=no])
 
+AC_MSG_CHECKING(for log facility)
+log_facility="LOG_MAIL"
+AC_ARG_WITH(log-facility,
+ [  --with-log-facility=facility   enable logging to the given facility],
+ AC_TRY_COMPILE([#include <syslog.h>], int lf = $withval,
+	log_facility=$withval))
+AC_DEFINE_UNQUOTED(LOG_FACILITY, $log_facility)
+AC_MSG_RESULT($log_facility)
+
 dnl Check for headers
 AC_HEADER_STDC
 AC_HEADER_DIRENT
@@ -79,7 +88,7 @@ if test x"$ac_cv_func_argp_parse" != xyes; then
 	AC_REPLACE_FUNCS(strndup strnlen strchrnul)
 	ARGPLIBS="../argp/libargp.a"
 	ARGPLIB="libargp.a"
-	ARGPINCS="-I../argp"
+	ARGPINCS='-I$(top_srcdir)/argp'
 	AC_SUBST(ARGPLIBS)
 	AC_SUBST(ARGPLIB)
 	AC_SUBST(ARGPINCS)

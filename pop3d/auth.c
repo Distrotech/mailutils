@@ -20,7 +20,7 @@
 /* AUTH is not yet implemented */
 
 int
-pop3_auth (const char *arg)
+pop3d_auth (const char *arg)
 {
   (void)arg;
   if (state != AUTHORIZATION)
