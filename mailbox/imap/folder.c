@@ -970,6 +970,14 @@ imap_literal_string (f_imap_t f_imap, char **ptr)
   size_t len, len0, total;
   int status = 0;
   int nl;
+
+  if (f_imap->string.nleft==0)
+    {
+      status = imap_readline (f_imap);
+      *ptr = f_imap->buffer;
+      return status;
+    }
+
   /* The (len + 1) in the for is to count the strip '\r' by imap_readline.  */
   for (len0 = len = total = 0; total < f_imap->string.nleft; total += (len + 1))
     {
