@@ -20,11 +20,6 @@
 
 #include <mailutils/types.h>
 
-typedef int (*mu_auth_fp) __P((void *return_data,
-			       void *key,
-			       void *func_data,
-			       void *call_data));
-
 struct mu_auth_data {
   /* These are from struct passwd */
   char    *name;       /* user name */
@@ -39,6 +34,11 @@ struct mu_auth_data {
   int     change_uid;
 };
 
+typedef int (*mu_auth_fp) __P((struct mu_auth_data **data,
+			       void *key,
+			       void *func_data,
+			       void *call_data));
+
 struct mu_auth_module {
   char           *name;
   struct argp    *argp;
@@ -50,7 +50,8 @@ struct mu_auth_module {
   void           *auth_by_uid_data;
 };
 
-extern int mu_auth_runlist __P((list_t flist, void *return_data,
+extern int mu_auth_runlist __P((list_t flist,
+				struct mu_auth_data **return_data,
 				void *key, void *data));
 extern struct mu_auth_data *
 mu_get_auth_by_name __P ((const char *username));
@@ -61,7 +62,7 @@ mu_get_auth_by_uid __P((uid_t uid));
 extern int
 mu_authenticate __P((struct mu_auth_data *auth_data, char *pass));
 
-extern int mu_auth_nosupport __P((void *return_data,
+extern int mu_auth_nosupport __P((struct mu_auth_data **return_data,
 				  void *key,
 				  void *func_data,
 				  void *call_data));
