@@ -1,0 +1,133 @@
+# -*- tcl -*-
+# This file is part of Mailutils testsuite.
+# Copyright (C) 2002, Free Software Foundation
+#  
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#   
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#  
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software Foundation,
+# Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. 
+
+source $top_srcdir/testsuite/lib/mailutils.exp
+
+mu_init 
+
+proc mailbox_run {args} {
+    global verbose
+    global expect_out
+
+    set sw ""
+    for {set i 0} {$i < [llength $args]} {incr i} {
+	set a [lindex $args $i]
+	if {"$a" == "-mail-spool"} {
+	    if [info exists host_board] {
+		if [board_info $host_board exists top_srcdir] {
+		    append sw "--mail-spool [board_info $host_board top_srcdir]/mail/testsuite/spool"
+		}
+	    }
+	    if {![info exists init_spool]} {
+		set init_spool 1
+	    }
+	} elseif {"$a" == "-reuse-spool"} {
+	    set init_spool 0
+	} else {
+	    break
+	}
+    }
+
+    if [info exists init_spool] {
+	mu_prepare_spools
+    }
+    
+    set args "[lrange $args $i end] $sw"
+
+    verbose "Spawning $args"
+
+    set res [remote_spawn host $args]
+    if { $res < 0 || $res == "" } {
+	perror "Spawning $args failed."
+	return 1;
+    }
+
+    return 0
+}
+
+proc mailbox_send { string } {
+    return [mu_send "$string"]
+}
+
+# mailbox_test [-message MESSAGE][-default (FAIL|XFAIL)]
+#            COMMAND [-pattern PATTERN-LIST][PATTERN...]
+# COMMAND   - Command to send.
+# PATTERN   - Sequence to expect in return. 
+# MESSAGE   - [optional] message to output
+proc mailbox_test { args } {
+    global verbose
+    global suppress_flag;
+    upvar timeout timeout
+
+    set default ""
+    set message ""
+    for {set i 0} {$i < [llength $args]} {incr i} {
+	set a [lindex $args $i]
+	if {"$a" == "-default"} {
+	    incr i
+	    set default [lindex $args $i]
+	} elseif {"$a" == "-message"} {
+	    incr i
+	    set message [lindex $args $i]
+	} elseif {"$a" == "-pattern"} {
+	    incr i
+	    set pattern [lindex $args $i]
+	} else {
+	    set args [lrange $args $i end]
+	    break
+	}
+    }
+    
+    if {"$message" == ""}  {
+	set message [lindex $args 0]
+    }
+
+    if $verbose>2 then {
+	send_user "Message is \"$message\"\n"
+    }
+    set command [lindex $args 0]
+    if {[llength $args] >= 2} {
+	set pattern [lrange $args 1 end]
+    }
+
+    if [info exists pattern] {
+	set result [mu_test $command $pattern]
+    } else {
+	set result [mu_test $command]
+    }
+
+    if {$result == 0} {
+	pass "$message"
+    } elseif {$result == 1} {
+	if { "$default" == "" || "$default" != "FAIL" } {
+	    fail "$message"
+	} else {
+	    xfail "$message"
+	    set result 0
+	}
+    } elseif {$result == -2} {
+	fail "$message (timeout)"
+    } elseif {$result == -3} {
+	fail "$message (eof)"
+    } else {
+	fail "$message"
+    }
+    return $result
+}
+
+
