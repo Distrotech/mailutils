@@ -399,12 +399,12 @@ AC_SUBST(SQLLIBS)
 AC_ARG_WITH([mysql],
             AC_HELP_STRING([--with-mysql],
                            [enable mysql support (default no)]),
-            [use_mysql="yes"],,)
+            [use_mysql=${withval}],,)
 
 AC_ARG_WITH([postgres],
             AC_HELP_STRING([--with-postgres],
                            [enable postgres support (default no)]),
-            [use_postgres="yes"],,)
+            [use_postgres=${withval}],,)
 
 AH_TEMPLATE(USE_SQL,[Enables SQL support])
 AH_TEMPLATE(HAVE_MYSQL,[Define if you have libmysql])
