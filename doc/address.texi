@@ -1,0 +1,131 @@
+@code{#include <mailutils/mailbox.h>}
+@deftp {Data Type} address_t
+The @code{address_t} object is used to hold information about a parsed
+RFC822 address list, and is an opaque
+data structure to the user. Functions are provided to retrieve information
+about the address list. An address list is a sequence of addresses, each
+of which has four components: an optional phrase describing the address, the
+local-part of the address, the domain of the address, and an optional
+comment field.
+
+If the phrase is present it is probably the personal name
+associated with the the address, if not, the comment may contain some
+identifying information.
+
+Since the address-list may contain multiple addresses, they are accessed
+by a @strong{one-based index number}, @var{no}.
+
+Comment: Why is this one-based? nobody
+familiar with C would ever expect that!
+
+The size of a particular component
+may be queried by providing @code{0} for the @var{len} of the buffer,
+in which case the buffer is optional and if @var{n} is provided
+*@var{n} is assigned the length of the component string.
+
+If @var{len}
+is greater than @code{0} it is the length of the buffer @var{buf}, and
+as much of the component as possible will be copied into the buffer.
+
+Comments:
+
+The API isn't complete, there are useful things you can't do.
+
+There needs to be a way of accessing the local-part and the
+domain of an email address seperately, the syntax of local-part is too complex
+to expect somebody to parse it, in particular strchring for '@@'
+will fail if there is an '@@' in the local-part, which is valid if
+its quoted or escaped.
+
+You can't create an address or an address list.
+
+Creating one should apropriately quote unsafe characters in the local
+part and phrase/personal name, not allow a comment (its deprecated), etc.
+
+What about groups? They are easy to parse, but a pain from an api point
+of view. _address, instead of being a pure linked list, could
+be more tree-like, so each _address also contained and _address* group
+member. If there was a group, then email would be the name of the group,
+something like "my special group: ;", and group would be the (possibly
+empty) list of addresses in the group, and each of those addresses
+could in turn be a group, etc.
+
+This data structure reflects the structure of an address ok, but doesn't
+address (;-)) what happens if you had a program that just wanted to print
+out all the recipients email addresses. The @var{no} could still be
+a linear index into the tree, so those not wanting to know could not
+know, and the group nodes could silently dissappear.
+
+But what if you wanted to iterate the whole tree?
+  address_is_group(addr, no)? address_get_group_name(addr, no)?
+  address_get_group(addr, &addr)?
+
+For creating, maybe the easy way is to splice an address list.
+
+address_create(&addr, NULL)
+
+address_insert(addr, -1, "Big John", "bluesman", "yahoo.com");
+
+// -1 is the end, anything else is position to be inserted at, for ex.
+
+address_create(&group, NULL)
+
+address_insert(group, -1, "Sam", "sroberts", "uniserve.com");
+
+address_insert(group, -1, "Joe @ \"home\"", "joe", "uniserve.com");
+
+address_insert_group(addr, group, "the uniserve boys");
+
+This would be:
+@example
+  Big John <bluesman@@yahoo.com>, the uniserve boys: Sam
+  <sroberts@@uniserve.com>, "Joe @@ \"home\"" <joe@@uniserve.com> ;
+@end example
+
+This is just a sketch of what I think should be conceptually possible
+in a complete address parser class. Basically the goals are to be
+able to see the structure of an RFC822 address exactly (except for
+comments... they get munged together if present, but what the hell,
+they're comments!) and to build as complex an address as is
+possible. Simple things should still be simple.
+
+Two problems are domain literals, and non-ascii characters. I
+think domain literals should be parsed from [127.0.0.1] into
+the more commonly groked 127.0.0.1 when somebody does a get_domain()
+on one, and that if somebody wants to provide one as a domain, they
+can.
+
+Non ascii chars are uglier, perhaps a warning? Perhaps a non-strict
+switch that makes it an error, and otherwise if they want umlauts
+and utf-8 in the strings, just allow it? The machinery to encode
+and decode header fields according to the MIME spec doesn't really
+belong here, it's a layer on top of rfc822.
+
+@end deftp
+
+@deftypefun int address_create (address_t *@var{addr}, const char *@var{string})
+This function allocates and initializes @var{addr} by parsing the
+RFC822 address-list @var{string}.
+
+The return value is @code{0} on success and a code number on error conditions:
+@table @code
+@item ENOMEM
+Not enough memory to allocate resources.
+@end table
+@end deftypefun
+
+@deftypefun  void address_destroy (address_t *@var{addr})
+The @var{addr} is destroyed.
+@end deftypefun
+
+@deftypefun  int address_get_email (address_t *@var{addr},
+	size_t no, char* buf, size_t len, size_t* n)
+Acesses the @var{no}th email address component.
+
+The return value is @code{0} on success and a code number on error conditions:
+@table @code
+@item EINVAL
+@var{addr} is NULL.
+@end table
+@end deftypefun
+

@@ -110,6 +110,7 @@ This document was produced for version @value{VERSION} of @sc{gnu}
 * Attribute::                   Attribute.
 * Stream::                      Stream API.
 * Authenticator::               Authenticator.
+* Address::                     Address.
 * Locker::                      Locker.
 * Encoding::                    Encoding API.
 * URL::                         Unified Ressource Locator.
@@ -210,14 +211,21 @@ For example writing a simple @command{from} command that will list the
 
 @include stream.texi
 
-@node Authenticator, Locker, Stream, Top
+@node Authenticator, Address, Stream, Top
 @comment  node-name,  next,  previous,  up
 @chapter Authenticator
 @cindex Authenticator
 
 @include auth.texi
 
-@node Locker , Encoding, Authenticator, Top
+@node Address, Locker, Authenticator, Top
+@comment  node-name,  next,  previous,  up
+@chapter Address
+@cindex Address
+
+@include address.texi
+
+@node Locker, Encoding, Address, Top
 @comment  node-name,  next,  previous,  up
 @chapter Locker
 @cindex Locker
