@@ -1,3 +1,36 @@
+2003-08-22  Sergey Poznyakoff
+
+	* examples/mta.c (mta_send): Fixed printing of envelope
+	to addresses.
+	* include/mailutils/address.h (address_format_string): Missed
+	prototype.
+	* mailbox/header.c: Added missing include
+	* mailbox/sendmail.c (sendmail_send_message): Use header
+	and body streams sequentially instead of using message
+	stream. This allows to catch the modified/added headers.
+	* mailbox/smtp.c (smtp_send_message): Likewise.
+	* mh/TODO: Updated
+	* mh/ali.c (main): Minor change.
+	* mh/comp.c (query_mode): Unused variable
+	* mh/folder.c (create_flag): A three-state flag.
+	(_scan): Fixed behavior on non-existing folders.
+	* mh/mh.h: Added new protos
+	* mh/mh_alias.l (yyparse): Forward declaration.
+	* mh/mh_alias.y (yyerror,yylex): Forward declarations.
+	(alias_expand_list,mh_alias_get_internal)
+	(mh_alias_get_address): Get an extra argument (for handling
+	';' aliases).
+	* mh/mh_global.c (mh_global_sequences_drop): New function
+	* mh/mh_init.c (mh_getyn): Bugfix
+	* mh/mh_stream.c (struct _mhdraft_message.body_start,body_end):
+	Changed type to off_t.
+	* mh/mh_whom.c (mh_alias_expand): New function
+	(scan_addrs): Expand aliases
+	* mh/rmf.c: Switch to +inbox after deleting the current folder.
+	Improved diagnostics.
+	* mh/send.c: Handle aliases.
+	* mh/whom.c (main): Bugfix.
+
 2003-08-21  Sergey Poznyakoff 
 
 	* include/mailutils/iterator.h (iterator_dup): New function
