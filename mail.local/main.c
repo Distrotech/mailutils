@@ -45,15 +45,15 @@ const char *program_version = "mail.local (" PACKAGE_STRING ")";
 static char doc[] =
 /* TRANSLATORS: Please, preserve the vertical tabulation (^K character)
    in this message */
-N_("GNU mail.local -- the local MDA"
-   "\v"
-   "Debug flags are:\n"
-   "  g - guimb stack traces\n"
-   "  T - mailutil traces (MU_DEBUG_TRACE)\n"
-   "  P - network protocols (MU_DEBUG_PROT)\n"
-   "  t - sieve trace (MU_SIEVE_DEBUG_TRACE)\n"
-   "  l - sieve action logs\n"
-   "  0-9 - Set mail.local debugging level\n");
+N_("GNU mail.local -- the local MDA\
+\v\
+Debug flags are:\n\
+  g - guimb stack traces\n\
+  T - mailutil traces (MU_DEBUG_TRACE)\n\
+  P - network protocols (MU_DEBUG_PROT)\n\
+  t - sieve trace (MU_SIEVE_DEBUG_TRACE)\n\
+  l - sieve action logs\n\
+  0-9 - Set mail.local debugging level\n");
 
 static char args_doc[] = N_("recipient [recipient ...]");
 

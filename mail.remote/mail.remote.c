@@ -45,34 +45,34 @@ const char *program_version = "mail.remote (" PACKAGE_STRING ")";
 static char doc[] =
 /* TRANSLATORS: Please, preserve the vertical tabulation (^K character)
    in this message */
-N_("GNU mail.remote -- pseudo-sendmail interface for mail delivery\n"
-  "\v"
-  "\n"
-  "An RFC2822 formatted message is read from stdin and delivered using\n"
-  "the mailer. This utility can be used as a drop-in replacement\n"
-  "for /bin/sendmail to forward mail directly to an SMTP gateway.\n"
-  "\n"
-  "The default mailer is \"sendmail:\", which is not supported by this\n"
-  "utility (it is intended to be used when you don't have a working\n"
-  "sendmail). You should specify your SMTP gateway by specifying\n"
-  "a --mailer as something like \"smtp://mail.example.com\". This would\n"
-  "normally be added to your user-specific configuration file,\n"
-  "  ~/.mailutils/mailutils,\n"
-  "or the global configuration file,\n"
-  "  /etc/mailutils.rc,\n"
-  "with a line such as:\n"
-  "  :mailer --mailer=smtp://mail.example.com\n"
-  "\n"
-  "If not explicitly specified, the default from address is derived from the\n"
-  "\"From:\" field in the message, if present, or the default user's email\n"
-  "address if not present.\n"
-  "\n"
-  "If not explicitly specified, the default to addresses are derived from the\n"
-  "\"To:\", \"Cc:\", and \"Bcc:\" fields in the message.\n"
-  "\n"
-  "If --debug is specified, the envelope commands in the SMTP protocol\n"
-  "transaction will be printed to stdout. If specified more than once,\n"
-  "the data part of the protocol transaction will also be printed to stdout.\n");
+N_("GNU mail.remote -- pseudo-sendmail interface for mail delivery\n\
+\v\
+\n\
+An RFC2822 formatted message is read from stdin and delivered using\n\
+the mailer. This utility can be used as a drop-in replacement\n\
+for /bin/sendmail to forward mail directly to an SMTP gateway.\n\
+\n\
+The default mailer is \"sendmail:\", which is not supported by this\n\
+utility (it is intended to be used when you don't have a working\n\
+sendmail). You should specify your SMTP gateway by specifying\n\
+a --mailer as something like \"smtp://mail.example.com\". This would\n\
+normally be added to your user-specific configuration file,\n\
+  ~/.mailutils/mailutils,\n\
+or the global configuration file,\n\
+  /etc/mailutils.rc,\n\
+with a line such as:\n\
+  :mailer --mailer=smtp://mail.example.com\n\
+\n\
+If not explicitly specified, the default from address is derived from the\n\
+\"From:\" field in the message, if present, or the default user's email\n\
+address if not present.\n\
+\n\
+If not explicitly specified, the default to addresses are derived from the\n\
+\"To:\", \"Cc:\", and \"Bcc:\" fields in the message.\n\
+\n\
+If --debug is specified, the envelope commands in the SMTP protocol\n\
+transaction will be printed to stdout. If specified more than once,\n\
+the data part of the protocol transaction will also be printed to stdout.\n");
 
 static struct argp_option options[] = {
   {"from",  'f', N_("ADDR"), 0, N_("Override the default from address")},

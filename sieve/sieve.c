@@ -51,14 +51,14 @@ const char *program_version = "sieve (" PACKAGE_STRING ")";
 static char doc[] =
 /* TRANSLATORS: Please, preserve the vertical tabulation (^K character)
    in this message */
-N_("GNU sieve -- a mail filtering tool\n"
-"\v"
-"Debug flags:\n"
-"  g - main parser traces\n"
-"  T - mailutil traces (MU_DEBUG_TRACE)\n"
-"  P - network protocols (MU_DEBUG_PROT)\n"
-"  t - sieve trace (MU_SIEVE_DEBUG_TRACE)\n"
-"  i - sieve instructions trace (MU_SIEVE_DEBUG_INSTR)\n");
+N_("GNU sieve -- a mail filtering tool\n\
+\v\
+Debug flags:\n\
+  g - main parser traces\n\
+  T - mailutil traces (MU_DEBUG_TRACE)\n\
+  P - network protocols (MU_DEBUG_PROT)\n\
+  t - sieve trace (MU_SIEVE_DEBUG_TRACE)\n\
+  i - sieve instructions trace (MU_SIEVE_DEBUG_INSTR)\n");
 
 #define D_DEFAULT "TPt"
 
