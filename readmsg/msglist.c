@@ -15,14 +15,8 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-#include <errno.h>
-#include <sys/types.h>
-#include <stdlib.h>
-#include <string.h>
-#include <mailutils/mailbox.h>
+#include "readmsg.h"
 
-extern mailbox_t mbox;
-extern unsigned int total;
 
 static int
 addset (int **set, int *n, unsigned val)

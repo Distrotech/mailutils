@@ -19,7 +19,6 @@
 # include <config.h>
 #endif
 
-
 #include "readmsg.h"
 
 mailbox_t mbox;

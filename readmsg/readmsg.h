@@ -16,7 +16,7 @@
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #ifndef _READMSG_H
-#define _REAMSG_H
+#define _READMSG_H
 
 #include <sys/types.h>
 #include <stdio.h>
@@ -24,6 +24,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <limits.h>
+#include <errno.h>
 
 #include <mailutils/mailbox.h>
 #include <mailutils/header.h>
