@@ -1,3 +1,10 @@
+2003-08-12  Sergey Poznyakoff 
+
+	* mh/folder.c (_scan): Prompt for creating the folder
+	unless --create was given.
+	* mh/scan.c (main): Display "no messages in ..." warning
+	for empty folders.
+
 2003-08-12  Sergey Poznyakoff
 
 	* mh/mh_msgset.c (mh_msgset_uids): New function.
