@@ -18,16 +18,10 @@
 #ifndef _MAILUTILS_MAILCAP_H
 #define _MAILUTILS_MAILCAP_H
 
-#include <mailutils/stream.h>
+#include <mailutils/types.h>
 #include <mailutils/errno.h>
 
 /* See RFC1524 (A User Agent Configuration Mechanism).  */
-
-struct _mu_mailcap;
-struct _mu_mailcap_entry;
-
-typedef struct _mu_mailcap* mu_mailcap_t;
-typedef struct _mu_mailcap_entry* mu_mailcap_entry_t;
 
 /* Create a mailcap from stream.  */
 int mu_mailcap_create (mu_mailcap_t * mailcap, stream_t stream);
