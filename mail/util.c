@@ -155,18 +155,9 @@ util_do_command (const char *c, ...)
   return status;
 }
 
-/*
- * runs a function repeatedly on a msglist
- * func is the function to run
- * argc is the number of arguments inculding the command and msglist
- * argv is the list of strings containing the command and msglist
- * set_cursor means whether the function should set the cursor to
- * the number of the last message processed. If set_cursor = 0, the
- * cursor is not altered.
- */
-
 int
-util_msglist_command (function_t *func, int argc, char **argv, int set_cursor)
+util_foreach_msg (int argc, char **argv, int flags,
+		  msg_handler_t func, void *data)
 {
   msgset_t *list = NULL, *mp;
   int status = 0;
@@ -174,60 +165,48 @@ util_msglist_command (function_t *func, int argc, char **argv, int set_cursor)
   if (msgset_parse (argc, argv, &list))
       return 1;
 
-  realcursor = cursor;
-
   for (mp = list; mp; mp = mp->next)
     {
-      cursor = mp->msg_part[0];
-      /* NOTE: Should we bail on error also?  */
-      if (func (1, argv) != 0)
-	status = 1;
-      /* Bail out if we receive an interrupt.  */
-      if (ml_got_interrupt () != 0)
-	break;
+      message_t mesg;
+
+      if (util_get_message (mbox, mp->msg_part[0], &mesg, flags) == 0)
+	{
+	  if (func (mp, mesg, data) != 0)
+	    status = 1;
+	  /* Bail out if we receive an interrupt.  */
+	  if (ml_got_interrupt () != 0)
+	    break;
+	}
     }
   msgset_free (list);
 
-  if (set_cursor)
-    realcursor = cursor;
-  else
-    cursor = realcursor;
   return status;
 }
 
-/* Same as util_msglis_command but the function comes from the escape
-   cmd table, so will have a different argument signature.  */
 int
-util_msglist_esccmd (int (*escfunc)
-		     __P ((int, char **, compose_env_t *)),
-		     int argc, char **argv, compose_env_t *env,
-		     int set_cursor)
+util_range_msg (size_t low, size_t high, int flags, 
+		msg_handler_t func, void *data)
 {
-  msgset_t *list = NULL, *mp;
-  int status = 0;
-
-  if (msgset_parse (argc, argv, &list))
-      return 1;
-
-  realcursor = cursor;
-
-  for (mp = list; mp; mp = mp->next)
+  msgset_t msgspec = { 0 };
+  int count = 0;
+  
+  msgspec.next = NULL;
+  msgspec.npart = 0;
+  msgspec.msg_part = &low;
+  for (; low <= high; low++)
     {
-      cursor = mp->msg_part[0];
-      /* NOTE: Should we bail on error also?  */
-      if (escfunc (1, argv, env) != 0)
-	status = 1;
-      /* Bail out if we receive an interrupt.  */
-      if (ml_got_interrupt () != 0)
-	break;
-    }
-  msgset_free (list);
+     message_t mesg;
 
-  if (set_cursor)
-    realcursor = cursor;
-  else
-    cursor = realcursor;
-  return status;
+     if (util_get_message (mbox, low, &mesg, flags) == 0)
+       {
+	 count ++;
+	 func (&msgspec, mesg, data) ;
+	 /* Bail out if we receive an interrupt.  */
+	 if (ml_got_interrupt () != 0)
+	   break;
+       }
+    }
+  return count;
 }
 
 /*

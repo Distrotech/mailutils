@@ -144,10 +144,11 @@ struct message_set
 			    number */
 };
 
+typedef int (*msg_handler_t) __P((msgset_t *mp, message_t mesg, void *data));
+
 /* Global variables and constants*/
 extern mailbox_t mbox;
 extern unsigned int cursor;
-extern unsigned int realcursor;
 extern size_t total;
 extern FILE *ofile;
 extern int interactive;
@@ -172,7 +173,7 @@ extern int mail_file __P ((int argc, char **argv));
 extern int mail_folders __P ((int argc, char **argv));
 extern int mail_followup __P ((int argc, char **argv));
 extern int mail_from __P ((int argc, char **argv));
-extern int mail_from0 __P((int msgno, int verbose));
+extern int mail_from0 __P((msgset_t *mspec, message_t msg, void *data));
 extern int mail_headers __P ((int argc, char **argv));
 extern int mail_hold __P ((int argc, char **argv));
 extern int mail_help __P ((int argc, char **argv));
@@ -258,10 +259,12 @@ extern int msgset_member __P ((msgset_t *set, size_t n));
 extern msgset_t *msgset_negate __P((msgset_t *set));
 
 extern int util_do_command __P ((const char *cmd, ...));
-extern int util_msglist_command __P ((function_t *func, int argc, char **argv, int set_cursor));
-extern int util_msglist_esccmd
-__P ((int (*escfunc) __P ((int, char **, compose_env_t *)),
-      int argc, char **argv, compose_env_t *env, int set_cursor));
+
+extern int util_foreach_msg __P((int argc, char **argv, int flags,
+				 msg_handler_t func, void *data));
+extern int util_range_msg __P((size_t low, size_t high, int flags, 
+			       msg_handler_t func, void *data));
+
 extern function_t* util_command_get __P ((const char *cmd));
 extern char *util_stripwhite __P ((char *string));
 extern struct mail_command_entry util_find_entry __P ((const struct mail_command_entry *table, const char *cmd));
