@@ -692,7 +692,7 @@ mu_normalize_maildir (const char *dir)
     }
 }
 
-/* Create and open a temporary file. Be vary careful about it, since we
+/* Create and open a temporary file. Be very careful about it, since we
    may be running with extra privilege i.e setgid().
    Returns file descriptor of the open file.
    If namep is not NULL, the pointer to the malloced file name will
@@ -746,6 +746,21 @@ mu_tempfile (const char *tmpdir, char **namep)
     }
 
   return fd;
+}
+
+/* Create a unique temporary file name in tmpdir. The function
+   creates an empty file with this name to avoid possible race
+   conditions. Returns a pointer to the malloc'ed file name.
+   If tmpdir is NULL, the value of the environment variable
+   TMPDIR or the hardcoded P_tmpdir is used, whichever is defined. */
+
+char *
+mu_tempname (const char *tmpdir)
+{
+  char *filename = NULL;
+  int fd = mu_tempfile (tmpdir, &filename);
+  close (fd);
+  return filename;
 }
 
 /* See Advanced Programming in the UNIX Environment, Stevens,
