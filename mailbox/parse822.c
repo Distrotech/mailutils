@@ -53,14 +53,14 @@ struct parse822_token_t {
     const char* b;  // beginning of token
     const char* e;  // one past end of token
 }
-typedef struc parse822_token_t TOK;
+typedef struct parse822_token_t TOK;
 
 Then I can have str_append_token(), and the lexer functions can
 look like:
 
 int parse822_atom(const char** p, const char* e, TOK* atom);
 
-Just a quick though, I'll have to see how many functions that will
+Just a quick thought, I'll have to see how many functions that will
 actually help.
 
   - get example addresses from rfc2822, and from the perl code.
@@ -708,6 +708,11 @@ int parse822_address(const char** p, const char* e, address_t* a)
     return rc;
 }
 
+/* No longer put groups into an address node, it wasn't useful, was
+ * troublesome, and since there wasn't an end-group marker, wasn't
+ * even conceivably useful.
+ */
+#undef ADD_GROUPS
 int parse822_group(const char** p, const char* e, address_t* a)
 {
     /* group = phrase ":" [#mailbox] ";" */
@@ -732,7 +737,7 @@ int parse822_group(const char** p, const char* e, address_t* a)
 	str_free(&phrase);
 	return rc;
     }
-
+#ifdef ADD_GROUPS
     /* fake up an address node for the group's descriptive phrase, if
      * it fails, clean-up will happen after the loop
      */
@@ -741,6 +746,9 @@ int parse822_group(const char** p, const char* e, address_t* a)
     } else {
       str_free(&phrase);
     }
+#else
+    str_free(&phrase);
+#endif
 
     /* Basically, on each loop, we may find a mailbox, but we must find
      * a comma after the mailbox, otherwise we've popped off the end
