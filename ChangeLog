@@ -1,3 +1,27 @@
+2005-03-02  Sergey Poznyakoff
+
+	* frm/Makefile.am: Build `from'
+	* frm/frm.c: Moved part of code to be shared between `frm' and
+	`from' to common.c
+	* frm/common.c: New file
+	* mail/quit.c: Save messages that were marked for saving to mbox
+	and then deleted
+	* mailbox/mbox/mbox.c (mbox_scan): Store the number of messages
+	into *pcount if we don't need to rescan the mailbox.
+
+	* po/POTFILES.in: Updated
+
+	* from/from.c: Removed
+	* from/Makefile.am: Removed
+	* from/.cvsignore: Removed
+	* from/testsuite: Removed
+	* from/testsuite/from/test.exp: Removed
+	* from/testsuite/from/DISTFILES: Removed
+
+	* configure.ac: Removed from
+	* Makefile.am: Likewise
+	* doc/texinfo/programs.texi: Document `from'
+	
 2005-02-28  Sergey Poznyakoff
 
 	* configure.ac: Check for FriBidi
