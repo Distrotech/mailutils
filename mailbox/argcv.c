@@ -61,10 +61,11 @@ argcv_scan (int len, const char *command, const char *delim, const char* cmnt,
 	 /*FALLTHRU*/ default:
 	  if (isdelim (command[i], delim))
 	    break;
-	  /* Skip until next whitespace character or end of line */
+	  /* Skip until next whitespace character or end of line. Honor
+	     escaped whitespace. */
 	  while (++i < len &&
-		 !(isws (command[i]) || isdelim (command[i], delim)))
-	    ;
+		 !((isws (command[i]) && command[i-1] != '\\')
+		   || isdelim (command[i], delim)));
 	  i--;
 	  break;
 	}
