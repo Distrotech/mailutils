@@ -1,3 +1,48 @@
+2003-02-03  Sergey Poznyakoff
+
+	* auth/Makefile.am: Removed leftover AUTH_AUTHOBJS from LIBADD
+	* auth/gsasl.c (buffer_grow, _gsasl_strerror): Fixed declarations.
+	* auth/tls.c (_tls_strerror): Fixed declaration.
+	* guimb/guimb.h: Added missing includes
+	* guimb/main.c: Removed include <mailutils/argp.h>
+	* imap4d/auth_gsasl.c (create_gsasl_stream,gsasl_replace_streams):
+	  Fixed declarations.
+	  (auth_step_base64): New function. A wrapper around
+	  gsasl_server_step_base64 to cope with GSASL_TOO_SMALL_BUFFER
+	  error code.
+	  (auth_gsasl): Use auth_step_base64(). Output any surplus
+	  data returned with GSASL_OK code (proposed by Simon Josefsson
+	  <jas@extundo.com>) 
+	* imap4d/bye.c (imap4d_bye0): Added missing argument to syslog.
+	* imap4d/util.c (util_set_input, util_set_output): Bugfix
+	
+	* include/mailutils/stream.h (stream_set_strerror)
+	  (stream_strerror): Changed prototype
+	* mailbox/stream.c: Likewise.
+	* mailbox/include/stream0.h (struct _stream): Changed declaration
+	  of _strerror method.
+	* mailbox/file_stream.c (_file_strerror): Changed prototype
+	* mailbox/list.c (list_set_comparator): Bugfix.
+	* mailbox/mailutils-config.c: include <mu_asprintf.h>
+	* mailbox/monitor.c [!WITH_PTHREAD] (STATIC_UNLOCK): expand
+	  to empty string to avoid spurious warnings.
+	* mailbox/mutil.c: Added missing includes
+	* mailbox/rfc2047.c: Likewise.
+	
+	* libmu_scm/mu_body.c: Added missing typecasts.
+	* libmu_scm/mu_mailbox.c: Likewise.
+	* libmu_scm/mu_message.c: Likewise.
+	* libmu_scm/mu_mime.c: Likewise.
+	* libmu_scm/mu_scm.c: Likewise.
+	* mail.local/script.c (prog_mda): Removed unused variables.
+	* mailbox/Makefile.am (mailutils_config_CFLAGS): Added
+	  -I${top_srcdir}/lib.
+	  
+	* mh/mh_format.c (print_hdr_segment): Count a tab for eight
+	  spaces.
+	  (builtin_concat): Compress whitespace before further processing.
+	* mh/mh_getopt.c: Added missing includes.
+	
 2003-01-31  Sergey Poznyakoff
 
 	* mailbox/file_stream.c (_file_readline): Make sure the
