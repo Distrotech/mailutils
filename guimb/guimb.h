@@ -32,9 +32,7 @@
 #include <mailutils/address.h>
 #include <mailutils/registrar.h>
 
-#ifdef HAVE_LIBGUILE_H
 #include <libguile.h>
-#endif
 
 extern char *program_file;
 extern char *program_expr;
