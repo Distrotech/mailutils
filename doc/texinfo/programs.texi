@@ -6,6 +6,7 @@
 GNU Mailutils provides a set of programs for handling the email.
 
 @menu
+* authentication:: Authorization and authentication principles.        
 * configuration:: Common configuration file.
 * imap4d::        IMAP4 daemon.
 * pop3d::         POP3 daemon.
@@ -18,6 +19,107 @@ GNU Mailutils provides a set of programs for handling the email.
 * guimb::         Mailbox scanning and processing language.
 * comsatd::       Comsat daemon.
 @end menu
+
+@page
+@node authentication
+@section Authorization and authentication principles.        
+@cindex authorization
+@cindex authentication
+
+Some mail utilities provide access to their services only after
+verifying that the user is actually the person he is claiming
+to be. Such programs are, for example, @command{pop3d} and
+@command{imap4d}. The process of the verification is broken
+down into two stages: @dfn{authorization} and @dfn{authentication}.
+In @dfn{authorization} stage the program retrieves the information
+about a particular user. In @dfn{authentication} stage, this information
+is compared against the user-supplied credentials. Only if both stages
+succeed is the user allowed to use the service.
+
+A set of @dfn{modules} is involved in performing each stage. For
+example, the authorization stage can retrieve the user description
+from various sources: system database, sql database, virtual domain
+table, etc. Each module is responsible for retrieving the description
+from a particular source of information. The modules are arranged in
+a @dfn{module list}. The modules from the list are invoked in turn, until
+either a one of them succeeds or the list is exhausted. In latter case
+the authorization fails. Otherwise the data returned by the succeeded
+module are used in authentication.
+
+Similarly, authentication may be performed in several ways. The
+authentication modules are also grouped in a list. Each module
+is tried in turn until either a module succeeds, in which case the
+authentication succeeds, or the end of the list is reached.
+
+We represent the module lists as column-separated lists of module
+names. For example, the authorization list
+
+@example
+        system:sql:virtdomains
+@end example
+
+@noindent
+means that first the system user database (@file{/etc/password}) is
+searched for a description of a user in question. If the search fails,
+the @acronym{sql} database is searched. Finally, if it also fails, the
+search is performed in the virtual domain database.
+
+@emph{Note}, that some authentication and/or authorization modules may
+be disabled when configuring the package before compilation. The names
+of the disabled modules are nevertheless available for use in runtime
+configuration options, but they represent a ``fail-only'' functionality,
+e.g. if the package was compiled without @acronym{sql} support then the
+module @samp{sql} in the above example will always fail, thus passing
+the execution on to the next module.
+
+The modules available for use in authorization list are:
+
+@table @asis
+@item system
+User credentials are retrieved from the system user database
+(@file{/etc/password}).
+@item sql
+User credentials are retrieved from the @acronym{sql} database. The set
+of @option{--sql-} options (@pxref{auth}) is used to configure
+access to the database.
+@item virtdomain
+User credentials are retrieved from a ``virtual domain'' user
+database.
+@end table
+
+The modules available for use in authentication list are:
+
+@table @asis
+@item generic
+The generic authentication type. User password is hashed and compared
+against the hash value returned in authorization stage.
+@item system
+The hashed value of the user password is retrieved from
+@file{/etc/shadow} file on systems that support it.
+@item sql
+The hashed value of the user password is retrieved from the @acronym{sql}
+database using query supplied by @option{--sql-getpass} option
+(@pxref{auth}).
+@item pam
+The user is authenticated via pluggable authentication module
+(@acronym{pam}). The @acronym{pam} service name to be used is
+configured via @option{--pam-service} option (@pxref{auth})
+@end table
+
+Unless overridden by @option{--authentication} command line option,
+the list of authentication modules is:
+
+@example
+        generic:system:pam:sql
+@end example
+
+@noindent
+Unless overridden by @option{--authorization} command line option,
+the list of authorization modules is:
+
+@example
+        system:sql:virtdomains
+@end example
 
 @page
 @node configuration
@@ -193,30 +295,78 @@ of seconds.
 @subsection auth --- Authentication-specific options.
 @cindex :auth
 
+These options control the authorization and authentication module
+lists. For a description of auhtentication concepts, refer to
+@xref{authentication}.
+
 @table @option
+@item --authorization @var{modlist}
+
+This option allows to set up a list of modules to be used for
+authorization. @var{modlist} is a colon-separated list of
+modules. Valid modules are:
+
+@table @asis
+@item system
+User credentials are retrieved from the system user database
+(@file{/etc/password}).
+@item sql
+User credentials are retrieved from the @acronym{sql} database. The set
+of @option{--sql-} options (see below) is used to configure
+access to the database.
+@item virtdomain
+User credentials are retrieved from a ``virtual domain'' user
+database.
+@end table
+
+@item --authentication @var{modlist}
+
+This option allows to set up a list of modules to be used for
+authentication. @var{modlist} is a colon-separated list of
+modules. Valid modules are:
+
+@table @asis
+@item generic
+The generic authentication type. User password is hashed and compared
+against the hash value returned in authorization stage.
+@item system
+The hashed value of the user password is retrieved from
+@file{/etc/shadow} file on systems that support it.
+@item sql
+The hashed value of the user password is retrieved from the @acronym{sql}
+database using query supplied by @option{--sql-getpass} option
+(see below).
+@item pam
+The user is authenicated via pluggable authentication module
+(@acronym{pam}). The @acronym{pam} service name to be used is
+configured via @option{--pam-service} option (see below)
+@end table
+
 @item --pam-service @var{name}
 When compiled with @acronym{pam} support, this option specifies the
 name of @acronym{pam} service to be used when authenticating.
 @end table
 
 The following options exist in this group if the package was configured
-with @samp{--enable-sql} option:
+with @option{--enable-sql} option. They take effect only if the
+@samp{sql} module is used in authentication and/or authorization.
+Currently only MySQL is supported.  
 
 @table @option
-@item sql-getpwnam @var{query}
-SQL query to retrieve a passwd entry based on username
-@item sql-getpwuid @var{query} 
-@item sql-getpass @var{query}
-SQL query to retrieve a password from the database
-@item sql-host @var{name}
+@item --sql-getpwnam @var{query}
+@acronym{sql} query to retrieve a passwd entry based on username
+@item --sql-getpwuid @var{query} 
+@item --sql-getpass @var{query}
+@acronym{sql} query to retrieve a password from the database
+@item --sql-host @var{name}
 Name or IP of MySQL server to connect to.
-@item sql-user @var{name}
-SQL user name
-@item sql-passwd @var{string}
-SQL connection password
-@item sql-db @var{string}
+@item --sql-user @var{name}
+@acronym{sql} user name
+@item --sql-passwd @var{string}
+@acronym{sql} connection password
+@item --sql-db @var{string}
 Name of the database to connect to.
-@item sql-port @var{number}
+@item --sql-port @var{number}
 Port to use
 @end table
 
@@ -246,7 +396,7 @@ facility @samp{local1}.
 @example
 @group
 :mailbox --mail-spool /var/spool/mail
-:auth --pam-service mailutils
+:auth --authentication pam --pam-service mailutils
 :logging --log-facility mail
 imap4d --daemon=20 --timeout=1800 --log-facility local1
 @end group
