@@ -38,20 +38,20 @@ addset (int **set, int *n, unsigned val)
 }
 
 static int
-isnumber (const char *s)
+is_number (const char *s)
 {
-  int is_number = 1;
+  int result = 1;
   if (*s == '\0')
-    is_number = 0;
+    result = 0;
   for (; *s; s++)
     {
       if (!isdigit ((unsigned char)*s))
 	{
-	  is_number = 0;
+	  result = 0;
 	  break;
 	}
     }
-  return is_number;
+  return result;
 }
 
 /*
@@ -107,7 +107,7 @@ msglist (mailbox_t mbox, int show_all, int argc, char **argv, int **set, int *n)
 	}
       /* 3.     Finally, the selection may be some text to match.  This  will  select  a  mail
 	 message which exactly matches the specified text.  */
-      else if (!isnumber(argv[i]))
+      else if (!is_number(argv[i]))
 	{
 	  size_t j;
 	  int found = 0;
