@@ -21,7 +21,6 @@
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
-
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -29,11 +28,15 @@
 #include <string.h>
 #include <sys/wait.h>
 #include <sys/types.h>
-#include <stdarg.h>
+#ifdef HAVE_STDARG_H
+# include <stdarg.h>
+#else
+# include <varargs.h>
+#endif
 #include <signal.h>
 #include <ctype.h>
 #ifdef HAVE_PATHS_H
-#include <paths.h>
+# include <paths.h>
 #endif
 
 #include <argp.h>
@@ -73,10 +76,15 @@ extern "C" {
 typedef int function_t ();
 #endif
 
+/* Values for mail_command_entry.flags */
+#define EF_REG  0x00    /* Regular command */
+#define EF_FLOW 0x01    /* Flow control command */
+#define EF_SEND 0x02    /* Send command */
+  
 struct mail_command_entry {
   char *shortname;
   char *longname;
-  int isflow;          /* 1 if this is a flow-control function */
+  int flags;     
   function_t *func;
   char *synopsis;
 };
@@ -87,13 +95,27 @@ struct mail_env_entry {
   char *value;
 };
 
+struct send_environ
+{
+  char *to;
+  char *cc;
+  char *bcc;
+  char *subj;
+  int done;
+  char *filename;
+  FILE *file;
+  FILE *ofile;
+};
+
 /* Global variables and constants*/
 extern mailbox_t mbox;
 extern unsigned int cursor;
 extern unsigned int realcursor;
 extern unsigned int total;
 extern FILE *ofile;
+extern int interactive;  
 extern const struct mail_command_entry mail_command_table[];
+extern const struct mail_command_entry mail_escape_table[];
 
 /* Functions */
 int mail_alias __P((int argc, char **argv));
@@ -137,31 +159,55 @@ int mail_unalias __P((int argc, char **argv));
 int mail_undelete __P((int argc, char **argv));
 int mail_unset __P((int argc, char **argv));
 int mail_visual __P((int argc, char **argv));
+int mail_warranty __P((int argc, char **argv));
 int mail_write __P((int argc, char **argv));
 int mail_z __P((int argc, char **argv));
+int mail_eq __P((int argc, char **argv));	/* command = */
+
+int if_cond __P((void));
   
 void mail_mainloop __P((char *(*input) __P((void *, int)), void *closure, int do_history));
 int mail_copy0 __P((int argc, char **argv, int mark));
-int mail_send0 __P((char *to, char *cc, char *bcc, char *subj, int save_to));
+int mail_send0 __P((struct send_environ *env, int save_to));
+void free_env_headers __P((struct send_environ *env));
+
+void print_message __P((message_t mesg, char *prefix, int all_headers, FILE *file));
+
 int mail_mbox_commit __P((void));
-int mail_is_alt_name __P((char *name));
+int mail_is_my_name __P((char *name));
+void mail_set_my_name __P((char *name));
+char *mail_whoami __P((void));
 int mail_header_is_visible __P((char *str));
 int mail_mbox_close __P((void));
 
-int if_cond __P((void));
-void mail_set_is_terminal __P((int val));
-int mail_is_terminal __P((void));
-       
-int mail_eq __P((int argc, char **argv));	/* command = */
+int var_shell __P((int argc, char **argv, struct send_environ *env));
+int var_command __P((int argc, char **argv, struct send_environ *env));
+int var_help __P((int argc, char **argv, struct send_environ *env));
+int var_sign __P((int argc, char **argv, struct send_environ *env));
+int var_bcc __P((int argc, char **argv, struct send_environ *env));
+int var_cc __P((int argc, char **argv, struct send_environ *env));
+int var_deadletter __P((int argc, char **argv, struct send_environ *env));
+int var_editor __P((int argc, char **argv, struct send_environ *env));
+int var_print __P((int argc, char **argv, struct send_environ *env));
+int var_headers __P((int argc, char **argv, struct send_environ *env));
+int var_insert __P((int argc, char **argv, struct send_environ *env));
+int var_quote __P((int argc, char **argv, struct send_environ *env));
+int var_type_input __P((int argc, char **argv, struct send_environ *env));
+int var_read __P((int argc, char **argv, struct send_environ *env));
+int var_subj __P((int argc, char **argv, struct send_environ *env));
+int var_to __P((int argc, char **argv, struct send_environ *env));
+int var_visual __P((int argc, char **argv, struct send_environ *env));
+int var_write __P((int argc, char **argv, struct send_environ *env));
+int var_exit __P((int argc, char **argv, struct send_environ *env));
+int var_pipe __P((int argc, char **argv, struct send_environ *env));
 
+  
 int util_expand_msglist __P((const int argc, char **argv, int **list));
 int util_do_command __P((const char *cmd, ...));
 int util_msglist_command __P((function_t *func, int argc, char **argv, int set_cursor));
 function_t* util_command_get __P((char *cmd));
-char **util_command_completion __P((char *cmd, int start, int end));
-char *util_command_generator __P((char *text, int state));
 char *util_stripwhite __P((char *string));
-struct mail_command_entry util_find_entry __P((char *cmd));
+struct mail_command_entry util_find_entry __P((const struct mail_command_entry *table, char *cmd));
 int util_getcols __P((void));
 int util_getlines __P((void));
 int util_screen_lines __P((void));
@@ -181,7 +227,15 @@ void util_strcat __P((char **dest, char *str));
 void util_escape_percent __P((char **str));
 char *util_outfolder_name __P((char *str));
 void util_save_outgoing __P((message_t msg, char *savefile));
+void util_error __P((const char *format, ...));
+int util_help __P((const struct mail_command_entry *table, char *word));
+int util_tempfile __P((char **namep));
 
+int ml_got_interrupt __P((void));
+void ml_clear_interrupt __P((void));
+void ml_readline_init __P((void));
+int ml_reread __P((char *prompt, char **text));
+  
 char *alias_expand __P((char *name));
 void alias_destroy __P((char *name));
 
