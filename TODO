@@ -7,6 +7,7 @@
 [mailbox or mailbox2]
 
 - generalized search interface
+- support AUTH=anonymous imap, imap://cyrus.andrew.cmu.edu/archive.info-cyrus
 
 [pop3]
 + find out why the pop3 server quits on a signal when the 'quit' command is
@@ -31,6 +32,9 @@
 - Add MIME support.
 
 [sieve]
+
+- bug: imap_fetch() can loop forever when sieve tries fileinto (sr - seen
+    at work against a Domino IMAP server)
 
 * clean up diagnostics
 
