@@ -40,6 +40,12 @@
 # include <crypt.h>
 #endif
 
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netdb.h>
+#include <netinet/in.h>
+#include <arpa/inet.h> /*FIXME!*/
+
 #include <mailutils/list.h>
 #include <mailutils/iterator.h>
 #include <mailutils/mailbox.h>
@@ -47,6 +53,9 @@
 #include <mailutils/mu_auth.h>
 
 #ifdef USE_VIRTUAL_DOMAINS
+
+static char *site_virtual_pwddir = SITE_VIRTUAL_PWDDIR;
+
 static struct passwd *
 getpwnam_virtual (char *u)
 {
@@ -62,12 +71,12 @@ getpwnam_virtual (char *u)
   if (delim == 0)
     return NULL;
 
-  filename = malloc (strlen (SITE_VIRTUAL_PWDDIR) +
+  filename = malloc (strlen (site_virtual_pwddir) +
 		     strlen (&u[delim + 1]) + 2 /* slash and null byte */);
   if (filename == NULL)
     return NULL;
 
-  sprintf (filename, "%s/%s", SITE_VIRTUAL_PWDDIR, &u[delim + 1]);
+  sprintf (filename, "%s/%s", site_virtual_pwddir, &u[delim + 1]);
   pfile = fopen (filename, "r");
   free (filename);
 
@@ -87,9 +96,8 @@ getpwnam_ip_virtual (const char *u)
   struct sockaddr_in addr;
   struct passwd *pw = NULL;
   int len = sizeof (addr);
-  char *user = NULL;
   
-  if (getsockname (fileno (ifile), (struct sockaddr *)&addr, &len) == 0)
+  if (getsockname (0, (struct sockaddr *)&addr, &len) == 0)
     {
       char *ip;
       char *user;
@@ -162,6 +170,35 @@ mu_auth_virt_domain_by_name (void *return_data, void *key,
   free (mailbox_name);
   return rc;
 }
+
+#define ARG_PWDDIR 1
+
+static error_t
+mu_virt_argp_parser (int key, char *arg, struct argp_state *state)
+{
+  switch (key)
+    {
+    case ARG_PWDDIR:
+      site_virtual_pwddir = arg;
+      break;
+
+    default:
+      return ARGP_ERR_UNKNOWN;
+    }
+  return 0;
+}
+
+static struct argp_option mu_virt_argp_option[] = {
+  { "virtual-passwd-dir", ARG_PWDDIR, "DIR", 0,
+    "Search for virtual passwd file in DIR", 0},
+    { NULL,      0, NULL, 0, NULL, 0 }
+};
+
+struct argp mu_virt_argp = {
+  mu_virt_argp_option,
+  mu_virt_argp_parser,
+};
+
 #else
 static int
 mu_auth_virt_domain_by_name (void *return_data, void *key,
@@ -174,7 +211,11 @@ mu_auth_virt_domain_by_name (void *return_data, void *key,
 
 struct mu_auth_module mu_auth_virtual_module = {
   "virtdomain",
+#ifdef USE_VIRTUAL_DOMAINS
+  &mu_virt_argp,
+#else
   NULL,
+#endif
   mu_auth_nosupport,
   NULL,
   mu_auth_virt_domain_by_name,
