@@ -805,7 +805,7 @@
 
 (define (sieve-code-finish)
   (if (not (null? sieve-exp))
-      (set! sieve-code-list (append sieve-code-list sieve-exp))))
+      (set! sieve-code-list (append sieve-code-list sieve-exp (list #t)))))
 
 ;;; Print the program
 
