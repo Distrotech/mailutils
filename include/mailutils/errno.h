@@ -73,6 +73,12 @@ extern "C" {
 #define MU_ERR_UNSAFE_PERMS         (MU_ERR_BASE + 30)
   /* unsafe file permissions */
 
+#define MU_ERR_BAD_AUTH_SCHEME      (MU_ERR_BASE + 31)
+  /* Unsupported authentication scheme */
+
+#define MU_ERR_AUTH_FAILURE         (MU_ERR_BASE + 32)
+  /* Authentication failed */
+  
 const char *mu_errname __P((int e));
 const char *mu_strerror __P((int e));
 

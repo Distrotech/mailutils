@@ -83,6 +83,8 @@ mu_errname (int e)
       EN(MU_ERR_NOPASSWORD);
 
       EN(MU_ERR_UNSAFE_PERMS);
+      EN(MU_ERR_BAD_AUTH_SCHEME);
+      EN(MU_ERR_AUTH_FAILURE);
     }
 
   return "SYSTEM ERROR";
@@ -136,6 +138,8 @@ mu_strerror (int e)
       ES(MU_ERR_NOPASSWORD,       _("User password is not supplied"));
 
       ES(MU_ERR_UNSAFE_PERMS,     _("Unsafe file permissions. Set 0600."));
+      ES(MU_ERR_BAD_AUTH_SCHEME,  _("Unsupported authentication scheme"));
+      ES(MU_ERR_AUTH_FAILURE,     _("Authentication failed"));
     }
 
   return strerror (e);
