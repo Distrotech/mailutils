@@ -287,7 +287,6 @@ void
 fetch_flags0 (const char *prefix, message_t msg, int isuid)
 {
   attribute_t attr = NULL;
-  int space = 0;
 
   message_get_attribute (msg, &attr);
   if (isuid)
@@ -299,38 +298,7 @@ fetch_flags0 (const char *prefix, message_t msg, int isuid)
       util_send (" ");
     }
   util_send ("%s (", prefix);
-  if (attribute_is_deleted (attr))
-    {
-      util_send ("\\Deleted");
-      space = 1;
-    }
-  if (attribute_is_answered (attr))
-    {
-      if (space)
-	util_send (" ");
-      util_send ("\\Answered");
-      space = 1;
-    }
-  if (attribute_is_flagged (attr))
-    {
-      if (space)
-	util_send (" ");
-      util_send ("\\Flagged");
-      space = 1;
-    }
-  if (attribute_is_seen (attr) && attribute_is_read (attr))
-    {
-      if (space)
-	util_send (" ");
-      util_send ("\\Seen");
-      space = 1;
-    }
-  if (attribute_is_draft (attr))
-    {
-      if (space)
-	util_send (" ");
-      util_send (" \\Draft");
-    }
+  util_print_flags(attr);
   if (isuid)
     util_send (")");
   util_send (")");
@@ -508,7 +476,11 @@ fetch_bodystructure (struct fetch_command *command, char **arg)
    of zero or more part specifiers delimited by periods.  A part specifier
    is either a part number or one of the following: HEADER, HEADER.FIELDS,
    HEADER.FIELDS.NOT, MIME, and TEXT.  An empty section specification refers
-   to the entire message, including the header. */
+   to the entire message, including the header.
+
+   Note: for body section, the \Seen flag is implicitly set;
+         if this causes the flags to change they SHOULD be
+	 included as part of the FETCH responses. */
 static int
 fetch_body (struct fetch_command *command, char **arg)
 {
@@ -517,10 +489,9 @@ fetch_body (struct fetch_command *command, char **arg)
     {
       attribute_t attr = NULL;
       message_get_attribute (command->msg, &attr);
-      if (!attribute_is_seen (attr) && !attribute_is_read (attr))
+      if (!attribute_is_read (attr))
 	{
 	  util_send ("FLAGS (\\Seen) ");
-	  attribute_set_seen (attr);
 	  attribute_set_read (attr);
 	}
     }
