@@ -142,7 +142,8 @@ _mapfile_write (stream_t stream, const char *iptr, size_t isize,
       mfs->size = offset + isize;
     }
 
-  memcpy (mfs->ptr + offset, iptr, isize);
+  if (isize)
+    memcpy (mfs->ptr + offset, iptr, isize);
   if (nbytes)
     *nbytes = isize;
   return 0;

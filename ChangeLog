@@ -1,3 +1,22 @@
+2001-07-04  Alain Magloire
+
+	* mailbox2/stream.c: stream_read() and stream_write()
+	change prototype to be "void *" instead of "char *".
+	* mailbox2/bstream.c: Adjust bstream_{read,write} to the
+	new prototypes.
+	* mailbox2/pop3/pop3_stream.c: Likewised.
+	* mailbox2/Makefile.am: New file.
+	* mailbox2/pop3/Makefile.am: New file.
+	* mailbox2/mstream.c: Mapfile stream Implementation.
+	* mailbox2/fstream.c: File stream implementation.
+	* mailbox2/include/mailutils/sys/fstream.h: New file.
+	* mailbox2/include/mailutils/sys/mstream.h: New file.
+	* mailbox2/tcp.c: rename to tcpstream.c.
+	* mailbox2/include/mailutils/sys/tcp.h: Rename to tcpstream.h
+
+	* mailbox/mapfile_stream.c (_mapfile_write):  Make sure
+	the size is not zero before making the memcpy().
+
 2001-07-03  Alain Magloire
 
 	* mail/headers.c:  Catch the overflow in the calculation by
