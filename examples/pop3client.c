@@ -38,15 +38,19 @@
 
 #include <mailutils/pop3.h>
 #include <mailutils/iterator.h>
+#include <mailutils/error.h>
+#include <mailutils/errno.h>
 
 /* A structure which contains information on the commands this program
    can understand. */
 
-typedef struct {
+typedef struct
+{
   const char *name;		/* User printable name of the function. */
-  int (*func) (char *);	/* Function to call to do the job. */
-  const char *doc;	/* Documentation for this function.  */
-} COMMAND;
+  int (*func) (char *);		/* Function to call to do the job. */
+  const char *doc;		/* Documentation for this function.  */
+}
+COMMAND;
 
 /* The names of functions that actually do the manipulation. */
 int com_apop (char *);
@@ -63,7 +67,7 @@ int com_quit (char *);
 int com_retr (char *);
 int com_rset (char *);
 int com_stat (char *);
-int com_top  (char *);
+int com_top (char *);
 int com_uidl (char *);
 int com_user (char *);
 int com_verbose (char *);
@@ -78,26 +82,26 @@ int valid_argument (const char *, char *);
 void sig_int (int);
 
 COMMAND commands[] = {
-  { "apop", com_apop, "Authenticate with APOP: APOP user secret" },
-  { "capa", com_capa, "List capabilities: capa" },
-  { "disconnect", com_disconnect, "Close connection: disconnect" },
-  { "dele", com_dele, "Mark message: DELE msgno" },
-  { "exit", com_exit, "exit program" },
-  { "help", com_help, "Display this text" },
-  { "?",    com_help, "Synonym for `help'" },
-  { "list", com_list, "List messages: LIST [msgno]" },
-  { "noop", com_noop, "Send no operation: NOOP" },
-  { "pass", com_pass, "Send passwd: PASS [passwd]" },
-  { "connect", com_connect, "Open connection: connect hostname [port]" },
-  { "quit", com_quit, "Go to Update state : QUIT" },
-  { "retr", com_retr, "Dowload message: RETR msgno" },
-  { "rset", com_rset, "Unmark all messages: RSET" },
-  { "stat", com_stat, "Get the size and count of mailbox : STAT [msgno]" },
-  { "top",  com_top,  "Get the header of message: TOP msgno [lines]" },
-  { "uidl", com_uidl, "Get the uniq id of message: UIDL [msgno]" },
-  { "user", com_user, "send login: USER user" },
-  { "verbose", com_verbose, "Enable Protocol tracing: verbose [on|off]" },
-  { NULL, NULL, NULL }
+  {"apop", com_apop, "Authenticate with APOP: APOP user secret"},
+  {"capa", com_capa, "List capabilities: capa"},
+  {"disconnect", com_disconnect, "Close connection: disconnect"},
+  {"dele", com_dele, "Mark message: DELE msgno"},
+  {"exit", com_exit, "exit program"},
+  {"help", com_help, "Display this text"},
+  {"?", com_help, "Synonym for `help'"},
+  {"list", com_list, "List messages: LIST [msgno]"},
+  {"noop", com_noop, "Send no operation: NOOP"},
+  {"pass", com_pass, "Send passwd: PASS [passwd]"},
+  {"connect", com_connect, "Open connection: connect hostname [port]"},
+  {"quit", com_quit, "Go to Update state : QUIT"},
+  {"retr", com_retr, "Dowload message: RETR msgno"},
+  {"rset", com_rset, "Unmark all messages: RSET"},
+  {"stat", com_stat, "Get the size and count of mailbox : STAT [msgno]"},
+  {"top", com_top, "Get the header of message: TOP msgno [lines]"},
+  {"uidl", com_uidl, "Get the unique id of message: UIDL [msgno]"},
+  {"user", com_user, "send login: USER user"},
+  {"verbose", com_verbose, "Enable Protocol tracing: verbose [on|off]"},
+  {NULL, NULL, NULL}
 };
 
 /* The name of this program, as taken from argv[0]. */
@@ -126,8 +130,8 @@ dupstr (const char *s)
   strcpy (r, s);
   return r;
 }
-
 
+
 #ifdef WITH_READLINE
 /* Interface to Readline Completion */
 
@@ -141,10 +145,10 @@ void
 initialize_readline ()
 {
   /* Allow conditional parsing of the ~/.inputrc file. */
-  rl_readline_name = (char *)"pop3";
+  rl_readline_name = (char *) "pop3";
 
   /* Tell the completer that we want a crack first. */
-  rl_attempted_completion_function = (CPPFunction *)pop_completion;
+  rl_attempted_completion_function = (CPPFunction *) pop_completion;
 }
 
 /* Attempt to complete on the contents of TEXT.  START and END bound the
@@ -157,8 +161,8 @@ pop_completion (char *text, int start, int end)
 {
   char **matches;
 
-  (void)end;
-  matches = (char **)NULL;
+  (void) end;
+  matches = (char **) NULL;
 
   /* If this word is at the start of the line, then it is a command
      to complete.  Otherwise it is the name of a file in the current
@@ -193,11 +197,11 @@ command_generator (const char *text, int state)
       list_index++;
 
       if (strncmp (name, text, len) == 0)
-        return (dupstr(name));
+	return (dupstr (name));
     }
 
   /* If no names matched, then return NULL. */
-  return ((char *)NULL);
+  return ((char *) NULL);
 }
 
 #else
@@ -223,18 +227,17 @@ readline (char *prompt)
 }
 
 void
-add_history (const char *s)
+add_history (const char *s ARG_UNUSED)
 {
 }
 #endif
-
 
+
 int
-main (int argc, char **argv)
+main (int argc ARG_UNUSED, char **argv)
 {
   char *line, *s;
 
-  (void)argc;
   progname = strrchr (argv[0], '/');
   if (progname)
     progname++;
@@ -244,13 +247,13 @@ main (int argc, char **argv)
   initialize_readline ();	/* Bind our completer. */
 
   /* Loop reading and executing lines until the user quits. */
-  for ( ; done == 0; )
+  while (!done)
     {
 
-      line = readline ((char *)"pop3> ");
+      line = readline ((char *) "pop3> ");
 
       if (!line)
-        break;
+	break;
 
       /* Remove leading and trailing whitespace from the line.
          Then, if there is anything left, add it to the history list
@@ -258,13 +261,13 @@ main (int argc, char **argv)
       s = stripwhite (line);
 
       if (*s)
-        {
-          int status;
-          add_history (s);
-          status = execute_line (s);
-          if (status != 0)
-            fprintf (stderr, "Error: %s\n", strerror(status));
-        }
+	{
+	  int status;
+	  add_history (s);
+	  status = execute_line (s);
+	  if (status != 0)
+	    fprintf (stderr, "Error: %s\n", mu_strerror (status));
+	}
 
       free (line);
     }
@@ -321,7 +324,7 @@ find_command (name)
     if (strcmp (name, commands[i].name) == 0)
       return (&commands[i]);
 
-  return ((COMMAND *)NULL);
+  return ((COMMAND *) NULL);
 }
 
 /* Strip whitespace from the start and end of STRING.  Return a pointer
@@ -356,16 +359,16 @@ com_verbose (char *arg)
   if (pop3 != NULL)
     {
       if (verbose == 1)
-        {
-          mu_debug_t debug;
-          mu_debug_create (&debug, NULL);
-          mu_debug_set_level (debug, MU_DEBUG_PROT);
-          status = mu_pop3_set_debug (pop3, debug);
-        }
+	{
+	  mu_debug_t debug;
+	  mu_debug_create (&debug, NULL);
+	  mu_debug_set_level (debug, MU_DEBUG_PROT);
+	  status = mu_pop3_set_debug (pop3, debug);
+	}
       else
-       {
-          status = mu_pop3_set_debug (pop3, NULL);
-       }
+	{
+	  status = mu_pop3_set_debug (pop3, NULL);
+	}
     }
   return status;
 }
@@ -393,18 +396,17 @@ com_apop (char *arg)
 }
 
 int
-com_capa (char *arg)
+com_capa (char *arg ARG_UNUSED)
 {
   list_t list = NULL;
   int status = mu_pop3_capa (pop3, &list);
-  (void)arg;
+
   if (status == 0)
     {
       iterator_t iterator = NULL;
       iterator_create (&iterator, list);
       for (iterator_first (iterator);
-	   !iterator_is_done (iterator);
-	   iterator_next (iterator))
+	   !iterator_is_done (iterator); iterator_next (iterator))
 	{
 	  char *capa = NULL;
 	  iterator_current (iterator, (void **) &capa);
@@ -426,18 +428,18 @@ com_uidl (char *arg)
       status = mu_pop3_uidl_all (pop3, &list);
       if (status == 0)
 	{
-          iterator_t uidl_iterator = NULL;
-          iterator_create (&uidl_iterator, list);
+	  iterator_t uidl_iterator = NULL;
+	  iterator_create (&uidl_iterator, list);
 	  for (iterator_first (uidl_iterator);
 	       !iterator_is_done (uidl_iterator);
 	       iterator_next (uidl_iterator))
 	    {
 	      char *uidl = NULL;
 	      iterator_current (uidl_iterator, (void **) &uidl);
-	      printf ("UIDL: %s\n", (uidl) ? uidl : "") ;
+	      printf ("UIDL: %s\n", (uidl) ? uidl : "");
 	    }
 	  iterator_destroy (&uidl_iterator);
-          list_destroy(&list);
+	  list_destroy (&list);
 	}
     }
   else
@@ -462,18 +464,18 @@ com_list (char *arg)
       status = mu_pop3_list_all (pop3, &list);
       if (status == 0)
 	{
-          iterator_t list_iterator;
-          iterator_create (&list_iterator, list);
+	  iterator_t list_iterator;
+	  iterator_create (&list_iterator, list);
 	  for (iterator_first (list_iterator);
 	       !iterator_is_done (list_iterator);
 	       iterator_next (list_iterator))
 	    {
 	      char *list = NULL;
- 	      iterator_current (list_iterator, (void **) &list);
+	      iterator_current (list_iterator, (void **) &list);
 	      printf ("LIST: %s\n", (list) ? list : "");
 	    }
 	  iterator_destroy (&list_iterator);
-          list_destroy (&list);
+	  list_destroy (&list);
 	}
     }
   else
@@ -488,14 +490,13 @@ com_list (char *arg)
 }
 
 int
-com_noop (char *arg)
+com_noop (char *arg ARG_UNUSED)
 {
-  (void)arg;
   return mu_pop3_noop (pop3);
 }
 
 static void
-echo_off(struct termios *stored_settings)
+echo_off (struct termios *stored_settings)
 {
   struct termios new_settings;
   tcgetattr (0, stored_settings);
@@ -505,7 +506,7 @@ echo_off(struct termios *stored_settings)
 }
 
 static void
-echo_on(struct termios *stored_settings)
+echo_on (struct termios *stored_settings)
 {
   tcsetattr (0, TCSANOW, stored_settings);
 }
@@ -525,19 +526,18 @@ com_pass (char *arg)
       echo_on (&stored_settings);
       putchar ('\n');
       fflush (stdout);
-      pass [strlen (pass) - 1] = '\0'; /* nuke the trailing line.  */
+      pass[strlen (pass) - 1] = '\0';	/* nuke the trailing line.  */
       arg = pass;
     }
   return mu_pop3_pass (pop3, arg);
 }
 
 int
-com_stat (char *arg)
+com_stat (char *arg ARG_UNUSED)
 {
   unsigned count, size;
   int status = 0;
 
-  (void)arg;
   count = size = 0;
   status = mu_pop3_stat (pop3, &count, &size);
   fprintf (stdout, "Mesgs: %d Size %d\n", count, size);
@@ -549,7 +549,7 @@ com_dele (char *arg)
 {
   unsigned msgno;
   if (!valid_argument ("dele", arg))
-      return EINVAL;
+    return EINVAL;
   msgno = strtoul (arg, NULL, 10);
   return mu_pop3_dele (pop3, msgno);
 }
@@ -565,10 +565,10 @@ com_help (char *arg)
   for (i = 0; commands[i].name; i++)
     {
       if (!*arg || (strcmp (arg, commands[i].name) == 0))
-        {
-          printf ("%s\t\t%s.\n", commands[i].name, commands[i].doc);
-          printed++;
-        }
+	{
+	  printf ("%s\t\t%s.\n", commands[i].name, commands[i].doc);
+	  printed++;
+	}
     }
 
   if (!printed)
@@ -576,28 +576,27 @@ com_help (char *arg)
       printf ("No commands match `%s'.  Possibilties are:\n", arg);
 
       for (i = 0; commands[i].name; i++)
-        {
-          /* Print in six columns. */
-          if (printed == 6)
-            {
-              printed = 0;
-              printf ("\n");
-            }
+	{
+	  /* Print in six columns. */
+	  if (printed == 6)
+	    {
+	      printed = 0;
+	      printf ("\n");
+	    }
 
-          printf ("%s\t", commands[i].name);
-          printed++;
-        }
+	  printf ("%s\t", commands[i].name);
+	  printed++;
+	}
 
       if (printed)
-        printf ("\n");
+	printf ("\n");
     }
   return 0;
 }
 
 int
-com_rset (char *arg)
+com_rset (char *arg ARG_UNUSED)
 {
-  (void)arg;
   return mu_pop3_rset (pop3);
 }
 
@@ -629,7 +628,7 @@ com_top (char *arg)
     {
       size_t n = 0;
       char buf[128];
-      while ((stream_readline (stream, buf, sizeof buf, 0, &n) == 0)  && n)
+      while ((stream_readline (stream, buf, sizeof buf, 0, &n) == 0) && n)
 	printf ("%s", buf);
       stream_destroy (&stream, NULL);
     }
@@ -653,7 +652,7 @@ com_retr (char *arg)
     {
       size_t n = 0;
       char buf[128];
-      while ((stream_readline (stream, buf, sizeof buf, 0, &n) == 0)  && n)
+      while ((stream_readline (stream, buf, sizeof buf, 0, &n) == 0) && n)
 	printf ("%s", buf);
       stream_destroy (&stream, NULL);
     }
@@ -664,7 +663,7 @@ int
 com_connect (char *arg)
 {
   char host[256];
-  int port = 0;
+  int port = 110;
   int status;
   if (!valid_argument ("connect", arg))
     return 1;
@@ -680,22 +679,24 @@ com_connect (char *arg)
       stream_t tcp;
 
       if (verbose)
-        com_verbose ("verbose on");
-      status = tcp_stream_create (&tcp, host, port, MU_STREAM_READ | MU_STREAM_NO_CHECK);
+	com_verbose ("verbose on");
+      status =
+	tcp_stream_create (&tcp, host, port,
+			   MU_STREAM_READ | MU_STREAM_NO_CHECK);
       if (status == 0)
-        {
-          mu_pop3_set_carrier (pop3, tcp);
-          status = mu_pop3_connect (pop3);
-        }
+	{
+	  mu_pop3_set_carrier (pop3, tcp);
+	  status = mu_pop3_connect (pop3);
+	}
       else
-       {
-         mu_pop3_destroy (&pop3);
-         pop3 = NULL;
-       }
+	{
+	  mu_pop3_destroy (&pop3);
+	  pop3 = NULL;
+	}
     }
 
   if (status != 0)
-    fprintf (stderr, "Failed to create pop3: %s\n", strerror (status));
+    fprintf (stderr, "Failed to create pop3: %s\n", mu_strerror (status));
   return status;
 }
 
@@ -713,9 +714,8 @@ com_disconnect (char *arg)
 }
 
 int
-com_quit (char *arg)
+com_quit (char *arg ARG_UNUSED)
 {
-  (void)arg;
   if (pop3)
     {
       if (mu_pop3_quit (pop3) == 0)
@@ -733,9 +733,8 @@ com_quit (char *arg)
 }
 
 int
-com_exit (char *arg)
+com_exit (char *arg ARG_UNUSED)
 {
-  (void)arg;
   if (pop3)
     {
       mu_pop3_disconnect (pop3);
@@ -758,4 +757,3 @@ valid_argument (const char *caller, char *arg)
 
   return 1;
 }
-
