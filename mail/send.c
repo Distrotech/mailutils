@@ -21,7 +21,6 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <stdio.h>
-#include <paths.h>
 
 #include "mail.h"
 
