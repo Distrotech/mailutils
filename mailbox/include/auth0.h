@@ -23,6 +23,7 @@
 #endif
 
 #include <mailutils/auth.h>
+#include <mailutils/list.h>
 #include <sys/types.h>
 
 #ifdef __cplusplus
@@ -42,7 +43,7 @@ struct _authority
 {
   void *owner;
   ticket_t ticket;
-  int (*_authenticate) __P ((authority_t));
+  list_t auth_methods; /* list of int (*_authenticate) __P ((authority_t))s; */
 };
 
 struct _wicket
