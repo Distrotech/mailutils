@@ -123,9 +123,11 @@ _auth_lb_writelines (struct _line_buffer *s, const char *iptr, size_t isize,
     {
       char *start, *end;
       
-      for (start = s->buffer, end = strchr (start, '\n');
+      for (start = s->buffer,
+		   end = memchr (start, '\n', s->buffer + s->level - start);
 	   end && end < s->buffer + s->level;
-	   start = end + 1, end = strchr (start, '\n'))
+	   start = end + 1,
+		   end = memchr (start, '\n', s->buffer + s->level - start))
 	if (end[-1] == '\r')
 	  {
 	    int rc = wr (data, start, end);
@@ -137,7 +139,7 @@ _auth_lb_writelines (struct _line_buffer *s, const char *iptr, size_t isize,
 	{
 	  if (start < s->buffer + s->level)
 	    {
-	      int rest = s->buffer + s->level - start + 1;
+	      int rest = s->buffer + s->level - start;
 	      memmove (s->buffer, start, rest);
 	      s->level = rest;
 	    }
