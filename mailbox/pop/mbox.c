@@ -54,6 +54,7 @@
 #include <mailutils/property.h>
 #include <mailutils/stream.h>
 #include <mailutils/url.h>
+#include <mailutils/tls.h>
 
 #include <folder0.h>
 #include <mailbox0.h>
@@ -127,13 +128,13 @@ int _pop_apop            __P ((authority_t));
 static int pop_get_size        __P ((mailbox_t, off_t *));
 /* We use pop_top for retreiving headers.  */
 /* static int pop_header_read (header_t, char *, size_t, off_t, size_t *); */
-static int pop_body_fd         __P ((stream_t, int *));
+static int pop_body_fd         __P ((stream_t, int *, int *));
 static int pop_body_size       __P ((body_t, size_t *));
 static int pop_body_lines      __P ((body_t, size_t *));
 static int pop_body_read       __P ((stream_t, char *, size_t, off_t, size_t *));
 static int pop_message_read    __P ((stream_t, char *, size_t, off_t, size_t *));
 static int pop_message_size    __P ((message_t, size_t *));
-static int pop_message_fd      __P ((stream_t, int *));
+static int pop_message_fd      __P ((stream_t, int *, int *));
 static int pop_top             __P ((header_t, char *, size_t, off_t, size_t *));
 static int pop_retr            __P ((pop_message_t, char *, size_t, off_t, size_t *));
 static int pop_get_fd          __P ((pop_message_t, int *));
@@ -554,6 +555,40 @@ _pop_apop (authority_t auth)
   return 0;
 }
 
+static
+int
+tls (mailbox_t mbox)
+{
+#ifdef WITH_TLS
+  pop_data_t mpd = mbox->data;
+  int status;
+  stream_t str;
+  
+  if (!mu_tls_enable || !(mpd->capa & CAPA_STLS))
+    return -1;
+  
+  status = pop_writeline (mpd, "STLS\r\n");
+  CHECK_ERROR (mpd, status);
+  status = pop_write (mpd);
+  CHECK_EAGAIN (mpd, status);
+  status = pop_read_ack (mpd);
+  CHECK_ERROR (mpd, status);
+  MAILBOX_DEBUG0 (mbox, MU_DEBUG_PROT, mpd->buffer);
+  if (strncasecmp (mpd->buffer, "+OK", 3) != 0)
+    return -1;
+
+  status = tls_stream_create_client_from_tcp (&str, mbox->stream, 0);
+  CHECK_ERROR (mpd, status);
+  status = stream_open (str);
+  if (status == 0)
+    mbox->stream = str;
+  MAILBOX_DEBUG1 (mbox, MU_DEBUG_PROT, "TLS negotiation %s\n",
+		  status == 0 ? "succeeded" : "failed");
+  return status;
+#else
+  return -1;
+#endif  
+}
 
 /* Open the connection to the sever, and send the authentication. */
 static int
@@ -697,7 +732,7 @@ pop_open (mailbox_t mbox, int flags)
 
     case POP_STLS:
     case POP_STLS_ACK:
-
+      tls (mbox);
       mpd->state = POP_AUTH;
 
     case POP_AUTH:
@@ -1344,21 +1379,31 @@ pop_unset_attribute (attribute_t attr, int flags)
 
 /* Stub to call the fd from body object.  */
 static int
-pop_body_fd (stream_t stream, int *pfd)
+pop_body_fd (stream_t stream, int *pfd, int *pfd1)
 {
-  body_t body = stream_get_owner (stream);
-  message_t msg = body_get_owner (body);
-  pop_message_t mpm = message_get_owner (msg);
-  return pop_get_fd (mpm, pfd);
+  if (pfd1)
+    return ENOSYS;
+  else
+    {
+      body_t body = stream_get_owner (stream);
+      message_t msg = body_get_owner (body);
+      pop_message_t mpm = message_get_owner (msg);
+      return pop_get_fd (mpm, pfd);
+    }
 }
 
 /* Stub to call the fd from message object.  */
 static int
-pop_message_fd (stream_t stream, int *pfd)
+pop_message_fd (stream_t stream, int *pfd, int *pfd2)
 {
-  message_t msg = stream_get_owner (stream);
-  pop_message_t mpm = message_get_owner (msg);
-  return pop_get_fd (mpm, pfd);
+  if (pfd2)
+    return ENOSYS;
+  else
+    {
+      message_t msg = stream_get_owner (stream);
+      pop_message_t mpm = message_get_owner (msg);
+      return pop_get_fd (mpm, pfd);
+    }
 }
 
 /* Finally return the fd.  */
