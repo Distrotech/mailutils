@@ -70,6 +70,7 @@ stream_open (stream_t stream, const char *name, int port, int flags)
 {
   if (stream == NULL)
     return EINVAL;
+  stream->state = MU_STREAM_STATE_OPEN;
   if (stream->_open)
     return stream->_open (stream, name, port, flags);
   return  0;
@@ -94,6 +95,7 @@ stream_close (stream_t stream)
 {
   if (stream == NULL)
     return EINVAL;
+  stream->state = MU_STREAM_STATE_CLOSE;
   if (stream->_close)
     return stream->_close (stream);
   return  0;
@@ -176,6 +178,7 @@ stream_read (stream_t is, char *buf, size_t count,
 {
   if (is == NULL || is->_read == NULL)
     return EINVAL;
+  is->state = MU_STREAM_STATE_READ;
   return is->_read (is, buf, count, offset, pnread);
 }
 
@@ -188,6 +191,9 @@ stream_readline (stream_t is, char *buf, size_t count,
   int status;
   if (is == NULL)
     return EINVAL;
+
+  is->state = MU_STREAM_STATE_READ;
+
   if (is->_readline != NULL)
     return is->_readline (is, buf, count, offset, pnread);
 
@@ -225,6 +231,7 @@ stream_write (stream_t os, const char *buf, size_t count,
 {
   if (os == NULL || os->_write == NULL)
       return EINVAL;
+  os->state = MU_STREAM_STATE_WRITE;
   return os->_write (os, buf, count, offset, pnwrite);
 }
 
@@ -313,5 +320,14 @@ stream_set_flush (stream_t stream, int (*_flush) (stream_t), void *owner)
   if (stream->owner != owner)
     return EACCES;
   stream->_flush = _flush;
+  return 0;
+}
+
+int
+stream_get_state (stream_t stream, int *pstate)
+{
+  if (stream == NULL || pstate == NULL)
+    return EINVAL;
+  *pstate = stream->state;
   return 0;
 }

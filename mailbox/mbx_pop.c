@@ -22,6 +22,7 @@
 #include <registrar0.h>
 #include <auth0.h>
 #include <attribute.h>
+#include <mailutils_errno.h>
 
 #include <termios.h>
 #include <errno.h>
@@ -151,7 +152,7 @@ mailbox_pop_create (mailbox_t *pmbox, const char *name)
 
   /* sanity check */
   if (pmbox == NULL || name == NULL || *name == '\0')
-    return EINVAL;
+    return MU_ERROR_INVALID_ARG;
 
   name_len = strlen (name);
 
@@ -173,14 +174,14 @@ mailbox_pop_create (mailbox_t *pmbox, const char *name)
   /* allocate memory for mbox */
   mbox = calloc (1, sizeof (*mbox));
   if (mbox == NULL)
-    return ENOMEM;
+    return MU_ERROR_OUT_OF_MEMORY;
 
   /* allocate specific pop box data */
   mpd = mbox->data = calloc (1, sizeof (*mpd));
   if (mbox->data == NULL)
     {
       mailbox_pop_destroy (&mbox);
-      return ENOMEM;
+      return MU_ERROR_OUT_OF_MEMORY;
     }
 
   /* allocate the struct for buffered I/O */
@@ -196,7 +197,7 @@ mailbox_pop_create (mailbox_t *pmbox, const char *name)
   if (mbox->name == NULL)
     {
       mailbox_pop_destroy (&mbox);
-      return ENOMEM;
+      return MU_ERROR_OUT_OF_MEMORY;
     }
   memcpy (mbox->name, name, name_len);
 
@@ -412,6 +413,7 @@ mailbox_pop_open (mailbox_t mbox, int flags)
       //mpd->len = sprintf (pop->buffer, POP_BUFSIZ, "USER %s\r\n", user);
       bio->len = sprintf (bio->buffer, "USER %s\r\n", mpd->user);
       bio->ptr = bio->buffer;
+      mailbox_debug (mbox, MU_MAILBOX_DEBUG_PROT, bio->buffer);
       free (mpd->user); mpd->user = NULL;
       mpd->state = 2;
       /* send username */
@@ -439,6 +441,7 @@ mailbox_pop_open (mailbox_t mbox, int flags)
 	    }
 	  return status;
 	}
+      mailbox_debug (mbox, MU_MAILBOX_DEBUG_PROT, bio->buffer);
       if (strncasecmp (bio->buffer, "+OK", 3) != 0)
 	return EACCES;
 
@@ -446,6 +449,7 @@ mailbox_pop_open (mailbox_t mbox, int flags)
       //mpd->len = snprintf (mpd->buffer, POP_BUFSIZ, "PASS %s\r\n", passwd);
       bio->len = sprintf (bio->buffer, "PASS %s\r\n", mpd->passwd);
       bio->ptr = bio->buffer;
+      mailbox_debug (mbox, MU_MAILBOX_DEBUG_PROT, bio->buffer);
       free (mpd->passwd); mpd->passwd = NULL;
       mpd->state = 4;
       /* send Passwd */
@@ -473,6 +477,7 @@ mailbox_pop_open (mailbox_t mbox, int flags)
 	    }
 	  return status;
 	}
+      mailbox_debug (mbox, MU_MAILBOX_DEBUG_PROT, bio->buffer);
       if (strncasecmp (bio->buffer, "+OK", 3) != 0)
 	return EACCES;
     }/* swith state */
@@ -513,6 +518,7 @@ mailbox_pop_close (mailbox_t mbox)
 	  bio->len = sprintf (bio->buffer, "QUIT\r\n");
 	  bio->ptr = bio->buffer;
 	  mpd->state = 1;
+	  mailbox_debug (mbox, MU_MAILBOX_DEBUG_PROT, bio->buffer);
 	case 1:
 	  status = bio_write (mpd->bio);
 	  if (status != 0)
@@ -524,6 +530,21 @@ mailbox_pop_close (mailbox_t mbox)
 		 }
 	       return status;
 	    }
+	case 2:
+	  status = bio_readline (bio);
+	  if (status  != 0)
+	    {
+	      if (status != EAGAIN && status != EINTR)
+		{
+		  mpd->func = mpd->id = NULL;
+		  mpd->state = 0;
+		}
+	      return status;
+	    }
+	  mailbox_debug (mbox, MU_MAILBOX_DEBUG_PROT, bio->buffer);
+	  if (strncasecmp (bio->buffer, "+OK", 3) != 0)
+	    return EINVAL;
+	case 3:
 	  close (mpd->fd);
 	  mpd->fd = -1;
 	}
@@ -622,6 +643,7 @@ mailbox_pop_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
 	/*bio->len = snprintf (bio->buffer, POP_BUFSIZ, "TOP %d 0\r\n", msgno);*/
 	bio->len = sprintf (bio->buffer, "TOP %d 0\r\n", msgno);
 	bio->ptr = bio->buffer;
+	mailbox_debug (mbox, MU_MAILBOX_DEBUG_PROT, bio->buffer);
 	mpd->state = 1;
       }
       /* send the TOP */
@@ -660,6 +682,7 @@ mailbox_pop_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
 	      }
 	    return status;
 	  }
+	mailbox_debug (mbox, MU_MAILBOX_DEBUG_PROT, bio->buffer);
 	if (strncasecmp (bio->buffer, "+OK", 3) != 0)
 	  {
 	    mpd->func = mpd->id = NULL;
@@ -850,6 +873,7 @@ mailbox_pop_messages_count (mailbox_t mbox, size_t *pcount)
     case 0:
       bio->len = sprintf (bio->buffer, "STAT\r\n");
       bio->ptr = bio->buffer;
+      mailbox_debug (mbox, MU_MAILBOX_DEBUG_PROT, bio->buffer);
       mpd->state = 1;
       /* Send the STAT */
     case 1:
@@ -862,6 +886,7 @@ mailbox_pop_messages_count (mailbox_t mbox, size_t *pcount)
       status = bio_readline (bio);
       if (status != 0)
 	return status;
+      mailbox_debug (mbox, MU_MAILBOX_DEBUG_PROT, bio->buffer);
       break;
     default:
       fprintf (stderr, "unknow state(messages_count)\n");
@@ -963,6 +988,7 @@ mailbox_pop_expunge (mailbox_t mbox)
 		  bio->len = sprintf (bio->buffer, "DELE %d\r\n",
 				      mpd->pmessages[i]->num);
 		  bio->ptr = bio->buffer;
+		  mailbox_debug (mbox, MU_MAILBOX_DEBUG_PROT, bio->buffer);
 		  mpd->state = 1;
 		case 1:
 		  status = bio_write (bio);
@@ -989,6 +1015,7 @@ mailbox_pop_expunge (mailbox_t mbox)
 			}
 		      return status;
 		    }
+		  mailbox_debug (mbox, MU_MAILBOX_DEBUG_PROT, bio->buffer);
 		  if (strncasecmp (bio->buffer, "+OK", 3) != 0)
 		    {
 		      mpd->func = mpd->id = NULL;

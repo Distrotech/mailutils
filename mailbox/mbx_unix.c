@@ -37,7 +37,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <signal.h>
-#include <errno.h>
+#include <mailutils_errno.h>
 #include <time.h>
 #ifdef HAVE_PTHREAD_H
 # include <pthread.h>
@@ -164,7 +164,7 @@ mailbox_unix_create (mailbox_t *pmbox, const char *name)
 
   /* sanity check */
   if (name == NULL || *name == '\0')
-    return EINVAL;
+    return MU_ERROR_INVALID_ARG;
 
   name_len = strlen (name);
 
@@ -187,14 +187,14 @@ mailbox_unix_create (mailbox_t *pmbox, const char *name)
   /* allocate memory for mbox */
   mbox = calloc (1, sizeof (*mbox));
   if (mbox == NULL)
-    return ENOMEM;
+    return MU_ERROR_OUT_OF_MEMORY;
 
   /* allocate specific unix mbox data */
   mud = mbox->data = calloc (1, sizeof (*mud));
   if (mbox->data == NULL)
     {
       mailbox_unix_destroy (&mbox);
-      return ENOMEM;
+      return MU_ERROR_OUT_OF_MEMORY;
     }
 
   /* copy the name */
@@ -202,7 +202,7 @@ mailbox_unix_create (mailbox_t *pmbox, const char *name)
   if (mbox->name == NULL)
     {
       mailbox_unix_destroy (&mbox);
-      return ENOMEM;
+      return MU_ERROR_OUT_OF_MEMORY;
     }
   memcpy (mbox->name, name, name_len);
 
@@ -228,7 +228,7 @@ mailbox_unix_create (mailbox_t *pmbox, const char *name)
       if (mud->dirname == NULL)
 	{
 	  mailbox_unix_destroy (&mbox);
-	  return ENOMEM;
+	  return MU_ERROR_OUT_OF_MEMORY;
 	}
       memcpy (mud->dirname, name, sep - name);
 
@@ -237,7 +237,7 @@ mailbox_unix_create (mailbox_t *pmbox, const char *name)
       if (mud->basename == NULL)
 	{
 	  mailbox_unix_destroy (&mbox);
-	  return ENOMEM;
+	  return MU_ERROR_OUT_OF_MEMORY;
 	}
       memcpy (mud->basename, sep, name_len - (sep - name));
     }
@@ -249,7 +249,7 @@ mailbox_unix_create (mailbox_t *pmbox, const char *name)
       if (mud->dirname == NULL)
 	{
 	  mailbox_unix_destroy (&mbox);
-	  return ENOMEM;
+	  return MU_ERROR_OUT_OF_MEMORY;
 	}
       mud->dirname[0] = '.';
 
@@ -257,7 +257,7 @@ mailbox_unix_create (mailbox_t *pmbox, const char *name)
       if (mud->basename == NULL)
 	{
 	  mailbox_unix_destroy (&mbox);
-	  return ENOMEM;
+	  return MU_ERROR_OUT_OF_MEMORY;
 	}
       memcpy (mud->basename, name, name_len);
     }
@@ -286,6 +286,8 @@ mailbox_unix_create (mailbox_t *pmbox, const char *name)
 
   mbox->_size = mailbox_unix_size;
 
+  mailbox_debug (mbox, MU_MAILBOX_DEBUG_TRACE, "mailbox_unix_create (%s/%s)\n",
+		 mud->dirname, mud->basename);
   (*pmbox) = mbox;
 
   return 0; /* okdoke */
@@ -302,6 +304,9 @@ mailbox_unix_destroy (mailbox_t *pmbox)
 	{
 	  size_t i;
 	  mailbox_unix_data_t mud = mbox->data;
+	  mailbox_debug (mbox, MU_MAILBOX_DEBUG_TRACE,
+			 "mailbox_unix_destroy (%s/%s)\n",
+			 mud->dirname, mud->basename);
 	  free (mud->dirname);
 	  free (mud->basename);
 	  for (i = 0; i < mud->umessages_count; i++)
@@ -403,6 +408,8 @@ mailbox_unix_open (mailbox_t mbox, int flags)
   if (mbox->auth)
     auth_epilogue (mbox->auth);
 
+  mailbox_debug (mbox, MU_MAILBOX_DEBUG_TRACE, "mailbox_unix_open(%s, %d)\n",
+		 mbox->name, flags);
   /* give an appopriate way to lock */
   if (mbox->locker == NULL)
     locker_create (&(mbox->locker), mbox->name,
@@ -414,15 +421,38 @@ static int
 mailbox_unix_close (mailbox_t mbox)
 {
   mailbox_unix_data_t mud;
+  size_t i;
 
   if (mbox == NULL ||
       (mud = (mailbox_unix_data_t)mbox->data) == NULL)
     return EINVAL;
 
-  stream_close (mbox->stream);
   /* make sure we do not hold any lock for that file */
   mailbox_unix_unlock (mbox);
-  return 0;
+  mailbox_debug (mbox, MU_MAILBOX_DEBUG_TRACE,  "mailbox_unix_close(%s)\n",
+		 mbox->name);
+
+  /* before closing we need to remove all the messages
+   * - to reclaim the memory
+   * - to prepare for another scan.
+   */
+  for (i = 0; i < mud->umessages_count; i++)
+    {
+      mailbox_unix_message_t mum = mud->umessages[i];
+      if (mum == NULL)
+	continue;
+      /* Destroy the attach messages */
+      attribute_destroy (&(mum->old_attr));
+      message_destroy (&(mum->message), mum);
+      /* new_attr free by message_destroy() */
+      /* attribute_destroy (&(mum->new_attr)); */
+      free (mum);
+    }
+  free (mud->umessages);
+  mud->umessages = NULL;
+  mud->messages_count = mud->umessages_count = 0;
+  mud->size = 0;
+  return stream_close (mbox->stream);
 }
 
 /* Mailbox Parsing */
@@ -431,6 +461,8 @@ mailbox_unix_close (mailbox_t mbox)
 static int
 mailbox_unix_scan (mailbox_t mbox, size_t msgno, size_t *pcount)
 {
+  mailbox_debug (mbox, MU_MAILBOX_DEBUG_TRACE, "mailbox_unix_scan(%s)\n",
+		 mbox->name);
   return mailbox_unix_scan0 (mbox, msgno, pcount, 1);
 }
 
@@ -567,6 +599,9 @@ mailbox_unix_expunge (mailbox_t mbox)
   /* did something change ? */
   if (dirty == mud->messages_count)
     return 0; /* nothing change, bail out */
+
+  mailbox_debug (mbox, MU_MAILBOX_DEBUG_TRACE, "mailbox_unix_expunge (%s)\n",
+		 mbox->name);
 
   /* Send notification to all the listeners
    * this is redundant, we go to the loop again
@@ -828,6 +863,9 @@ mailbox_unix_expunge (mailbox_t mbox)
 	  mum->body = mum->body_end = 0;
 	  mum->header_lines = mum->body_lines = 0;
 	}
+      /* this is should reset the messages_count, the last
+       * argument 0 means not to send event notification
+       */
       mailbox_unix_scan0 (mbox, dirty, NULL, 0);
     }
   return status;
@@ -1048,6 +1086,8 @@ mailbox_unix_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
       return 0;
     }
 
+  mailbox_debug (mbox, MU_MAILBOX_DEBUG_TRACE,
+		 "mailbox_unix_get_message(%s, %d)\n", mbox->name, msgno);
   /* get the headers */
   do
     {
@@ -1144,6 +1184,9 @@ mailbox_unix_append_message (mailbox_t mbox, message_t msg)
   if (mbox == NULL || msg == NULL ||
       (mud = (mailbox_unix_data_t)mbox->data) == NULL)
     return EINVAL;
+
+  mailbox_debug (mbox, MU_MAILBOX_DEBUG_TRACE,
+		 "mailbox_unix_append_message (%s)\n", mbox->name);
 
   mailbox_unix_lock (mbox, MU_LOCKER_WRLOCK);
   {

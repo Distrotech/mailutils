@@ -210,7 +210,7 @@ message_size (message_t msg, size_t *psize)
 
 int
 message_set_from (message_t msg,
-		  int (*_from)(message_t, char *, size_t, size_t*),
+		  int (*_from) __P ((message_t, char *, size_t, size_t*)),
 		  void *owner)
 {
   if (msg == NULL)
@@ -273,8 +273,8 @@ message_from (message_t msg, char *buf, size_t len, size_t *pnwrite)
 }
 
 int
-message_set_received (message_t msg,
-		      int (*_received) (message_t, char *, size_t , size_t *),
+message_set_received (message_t msg, int (*_received)
+		      __P ((message_t, char *, size_t , size_t *)),
 		      void *owner)
 {
   if (msg == NULL)
@@ -541,7 +541,9 @@ message_write (stream_t os, const char *buf, size_t buflen,
 	  msg->hdr_buflen = msg->hdr_done = 0;
 	  return status;
 	}
-      if (off > (off_t)msg->hdr_buflen)
+      if (off < (off_t)msg->hdr_buflen)
+	off = 0;
+      else
 	off -= msg->hdr_buflen;
       return stream_write (bs, buf, buflen, off, pnwrite);
     }
@@ -573,6 +575,32 @@ message_get_fd (stream_t stream, int *pfd)
   return stream_get_fd (is, pfd);
 }
 
+int
+message_get_uidl (message_t msg, char *buffer, size_t buflen, size_t *pwritten)
+{
+  header_t header = NULL;
+  if (msg == NULL || buffer == NULL || buflen == 0)
+    return EINVAL;
+
+  buffer[0] = '0';
+  if (msg->_get_uidl)
+    return msg->_get_uidl (msg, buffer, buflen, pwritten);
+
+  message_get_header (msg, &header);
+  return header_get_value (header, "X-UIDL", buffer, buflen, pwritten);
+}
+
+int
+message_set_uidl (message_t msg, int (* _get_uidl)
+		  __P ((message_t msg, char *buffer, size_t buflen, size_t *pwritten)), void *owner)
+{
+  if (msg == NULL)
+    return EINVAL;
+  if (msg->owner != owner)
+    return EACCES;
+  msg->_get_uidl = _get_uidl;
+  return 0;
+}
 static int
 extract_addr (const char *s, size_t n, char **presult, size_t *pnwrite)
 {

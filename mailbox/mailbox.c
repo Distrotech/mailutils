@@ -23,9 +23,12 @@
 #include <message0.h>
 #include <registrar.h>
 #include <locker.h>
+#include <mailutils_errno.h>
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdarg.h>
 #include <errno.h>
 
 /*
@@ -37,7 +40,7 @@
 int
 mailbox_create (mailbox_t *pmbox, const char *name, int id)
 {
-  int status = EINVAL;
+  int status = MU_ERROR_INVALID_ARG;
   struct mailbox_registrar *mreg;
   url_t url = NULL;
 
@@ -80,7 +83,7 @@ int
 mailbox_open (mailbox_t mbox, int flag)
 {
   if (mbox == NULL || mbox->_open == NULL)
-    return ENOSYS;
+    return MU_ERROR_NOT_IMPLEMENTED;
   return mbox->_open (mbox, flag);
 }
 
@@ -88,7 +91,7 @@ int
 mailbox_close (mailbox_t mbox)
 {
   if (mbox == NULL || mbox->_close == NULL)
-    return ENOSYS;
+    return MU_ERROR_NOT_IMPLEMENTED;
   return mbox->_close (mbox);
 }
 
@@ -97,7 +100,7 @@ int
 mailbox_append_message (mailbox_t mbox, message_t msg)
 {
   if (mbox == NULL || mbox->_append_message == NULL)
-    return ENOSYS;
+    return MU_ERROR_NOT_IMPLEMENTED;
   return mbox->_append_message (mbox, msg);
 }
 
@@ -105,7 +108,7 @@ int
 mailbox_get_message (mailbox_t mbox, size_t msgno,  message_t *pmsg)
 {
   if (mbox == NULL || mbox->_get_message == NULL)
-    return EINVAL;
+    return MU_ERROR_INVALID_ARG;
   return mbox->_get_message (mbox, msgno, pmsg);
 }
 
@@ -113,7 +116,7 @@ int
 mailbox_messages_count (mailbox_t mbox, size_t *num)
 {
   if (mbox == NULL || mbox->_messages_count == NULL)
-    return ENOSYS;
+    return MU_ERROR_NOT_IMPLEMENTED;
   return mbox->_messages_count (mbox, num);
 }
 
@@ -121,7 +124,7 @@ int
 mailbox_expunge (mailbox_t mbox)
 {
   if (mbox == NULL || mbox->_expunge == NULL)
-    return ENOSYS;
+    return MU_ERROR_NOT_IMPLEMENTED;
   return mbox->_expunge (mbox);
 }
 
@@ -129,7 +132,7 @@ int
 mailbox_num_deleted (mailbox_t mbox, size_t *num)
 {
   if (mbox == NULL || mbox->_num_deleted == NULL)
-    return EINVAL;
+    return MU_ERROR_INVALID_ARG;
   return mbox->_num_deleted (mbox, num);
 }
 
@@ -154,7 +157,7 @@ int
 mailbox_set_locker (mailbox_t mbox, locker_t locker)
 {
   if (mbox == NULL)
-    return EINVAL;
+    return MU_ERROR_INVALID_ARG;
   if (mbox->locker != NULL)
     locker_destroy (&mbox->locker);
   mbox->locker = locker;
@@ -165,7 +168,7 @@ int
 mailbox_get_locker (mailbox_t mbox, locker_t *plocker)
 {
   if (mbox == NULL || plocker == NULL)
-    return EINVAL;
+    return MU_ERROR_INVALID_ARG;
   if (plocker)
     *plocker = mbox->locker;
   return 0;
@@ -175,7 +178,7 @@ int
 mailbox_set_auth (mailbox_t mbox, auth_t auth)
 {
   if (mbox == NULL)
-    return EINVAL;
+    return MU_ERROR_INVALID_ARG;
   mbox->auth = auth;
   return 0;
 }
@@ -184,7 +187,7 @@ int
 mailbox_get_auth (mailbox_t mbox, auth_t *pauth)
 {
   if (mbox == NULL || pauth == NULL)
-    return EINVAL;
+    return MU_ERROR_INVALID_ARG;
   if (pauth)
     *pauth = mbox->auth;
   return 0;
@@ -194,7 +197,7 @@ int
 mailbox_set_stream (mailbox_t mbox, stream_t stream)
 {
   if (mbox == NULL)
-    return EINVAL;
+    return MU_ERROR_INVALID_ARG;
   mbox->stream = stream;
   return 0;
 }
@@ -203,7 +206,7 @@ int
 mailbox_get_stream (mailbox_t mbox, stream_t *pstream)
 {
   if (mbox == NULL || pstream == NULL)
-    return EINVAL;
+    return MU_ERROR_INVALID_ARG;
   if (pstream)
     *pstream = mbox->stream;
   return 0;
@@ -219,7 +222,7 @@ mailbox_register (mailbox_t mbox, size_t type,
 
   /* FIXME: I should check for invalid types */
   if (mbox == NULL || action == NULL)
-    return EINVAL;
+    return MU_ERROR_INVALID_ARG;
 
   /* find a free spot */
   for (i = 0; i < mbox->event_num; i++)
@@ -237,7 +240,7 @@ mailbox_register (mailbox_t mbox, size_t type,
   /* a new one */
   event = realloc (mbox->event, (mbox->event_num + 1) * sizeof (*event));
   if (event == NULL)
-    return ENOMEM;
+    return MU_ERROR_OUT_OF_MEMORY;
 
   mbox->event = event;
   event[mbox->event_num]._action = action;
@@ -264,7 +267,7 @@ mailbox_deregister (mailbox_t mbox, void *action)
 	  return 0;
 	}
     }
-  return ENOENT;
+  return MU_ERROR_NO_ENTRY;
 }
 
 int
@@ -286,7 +289,7 @@ int
 mailbox_set_debug_level (mailbox_t mbox, size_t level)
 {
   if (mbox == NULL)
-    return EINVAL;
+    return MU_ERROR_INVALID_ARG;
   mbox->debug_level = level;
   return 0;
 }
@@ -295,18 +298,47 @@ int
 mailbox_get_debug_level (mailbox_t mbox, size_t *plevel)
 {
   if (mbox == NULL || plevel == NULL)
-    return EINVAL;
+    return MU_ERROR_INVALID_ARG;
   *plevel = mbox->debug_level;
   return 0;
 }
 
 int
 mailbox_set_debug_print (mailbox_t mbox, int (*debug_print)
-			 (const char *, void *arg), void *arg)
+			 (void *arg, const char *, size_t), void *arg)
 {
   if (mbox == NULL)
-    return EINVAL;
+    return MU_ERROR_INVALID_ARG;
   mbox->debug_print = debug_print;
   mbox->debug_arg = arg;
+  return 0;
+}
+
+int
+mailbox_debug (mailbox_t mbox, int level, const char *fmt, ...)
+{
+  va_list ap;
+  if (mbox == NULL)
+    return MU_ERROR_INVALID_ARG;
+
+  if (!(mbox->debug_level & level))
+    return 0;
+
+  va_start (ap, fmt);
+  if (mbox->debug_print)
+    {
+      int writen;
+      if (mbox->debug_buffer == NULL)
+	{
+	  mbox->debug_bufsize = 255;
+	  mbox->debug_buffer = malloc (mbox->debug_bufsize);
+	  if (mbox->debug_buffer)
+	    return MU_ERROR_OUT_OF_MEMORY; }
+      writen = vsnprintf (mbox->debug_buffer, mbox->debug_bufsize, fmt, ap);
+      mbox->debug_print (mbox->debug_arg, mbox->debug_buffer, writen);
+    }
+  else
+    vfprintf (stderr, fmt, ap);
+  va_end (ap);
   return 0;
 }

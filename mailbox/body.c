@@ -308,6 +308,7 @@ lazy_create ()
   (void)remove(tmpbuf);
 #else
   file = tmpfile ();
+  //file = fopen ("/tmp/mystuff", "w+");
   /* make sure the mode is right */
   if (file)
     fchmod (fileno (file), 0600);

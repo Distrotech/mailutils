@@ -60,6 +60,8 @@ _mapfile_read (stream_t stream, char *optr, size_t osize,
   struct _mapfile_stream *mfs = stream->owner;
   size_t n;
 
+  if (mfs->ptr == NULL)
+    return EINVAL;
   if (offset >= (off_t)mfs->size)
     {
       if (nbytes)
@@ -83,6 +85,8 @@ _mapfile_readline (stream_t stream, char *optr, size_t osize,
   char *nl;
   size_t n = 0;
 
+  if (mfs->ptr == NULL)
+    return EINVAL;
   /* save space for the null byte */
   osize--;
   if (offset >= (off_t)mfs->size)
@@ -108,6 +112,8 @@ _mapfile_write (stream_t stream, const char *iptr, size_t isize,
 {
   struct _mapfile_stream *mfs = stream->owner;
 
+  if (mfs->ptr == NULL)
+    return EINVAL;
   if (! (mfs->flags & PROT_WRITE))
     return EACCES;
 
@@ -144,6 +150,8 @@ static int
 _mapfile_truncate (stream_t stream, off_t len)
 {
   struct _mapfile_stream *mfs = stream->owner;
+  if (mfs->ptr == NULL)
+    return EINVAL;
   /* remap */
   if (munmap (mfs->ptr, mfs->size) != 0)
     {
@@ -170,6 +178,8 @@ _mapfile_size (stream_t stream, off_t *psize)
 {
   struct _mapfile_stream *mfs = stream->owner;
   struct stat stbuf;
+  if (mfs->ptr == NULL)
+    return EINVAL;
   msync (mfs->ptr, mfs->size, MS_SYNC);
   if (fstat(mfs->fd, &stbuf) != 0)
     return errno;

@@ -35,13 +35,13 @@ extern "C" { /*}*/
 struct _stream;
 typedef struct _stream *stream_t;
 
-/*  stream will be destroy on stream_destroy */
 #define MU_STREAM_READ	   0x00000001
 #define MU_STREAM_WRITE	   0x00000002
 #define MU_STREAM_RDWR     0x00000004
 #define MU_STREAM_APPEND   0x00000008
 #define MU_STREAM_CREAT	   0x00000010
 #define MU_STREAM_NONBLOCK 0x00000020
+/*  stream will be destroy on stream_destroy */
 #define MU_STREAM_NO_CHECK 0x00000040
 
 extern int stream_create       __P ((stream_t *, int flags, void *owner));
@@ -98,6 +98,12 @@ extern int stream_set_flush    __P ((stream_t, int (*_flush)
 
 extern int stream_get_flags    __P ((stream_t, int *pflags));
 extern int stream_set_flags    __P ((stream_t, int flags, void *owner));
+
+#define MU_STREAM_STATE_OPEN  1
+#define MU_STREAM_STATE_READ  2
+#define MU_STREAM_STATE_WRITE 4
+#define MU_STREAM_STATE_CLOSE 8
+extern int stream_get_state    __P ((stream_t, int *pstate));
 
 /* misc */
 extern int file_stream_create     __P ((stream_t *stream));

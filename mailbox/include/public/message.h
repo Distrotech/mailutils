@@ -83,6 +83,11 @@ extern int message_set_get_part __P ((message_t, size_t part, message_t *msg));
 extern int message_add_part  __P ((message_t, message_t msg));
 extern int message_set_add_part  __P ((message_t, message_t msg));
 
+extern int message_get_uidl  __P ((message_t, char *buffer, size_t, size_t *));
+extern int message_set_uidl  __P ((message_t, int (*_get_uidl)
+				  __P ((message_t, char *, size_t, size_t *)),
+				  void *owner));
+
 /* events */
 #define MU_EVT_MSG_DESTROY 32
 extern int message_register __P ((message_t msg, size_t type, int (*action)

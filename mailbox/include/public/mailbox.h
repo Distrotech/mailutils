@@ -99,10 +99,13 @@ extern int mailbox_register __P ((mailbox_t mbox, size_t type,
 extern int mailbox_deregister __P ((mailbox_t mbox, void *action));
 
 /* trace */
+#define MU_MAILBOX_DEBUG_TRACE 1
+#define MU_MAILBOX_DEBUG_PROT  2
 extern int mailbox_set_debug_level __P ((mailbox_t mbox, size_t level));
 extern int mailbox_get_debug_level __P ((mailbox_t mbox, size_t *plevel));
 extern int mailbox_set_debug_print __P ((mailbox_t mbox, int (*debug_print)
-					 __P ((const char *, void *arg)),
+					 __P ((void *arg, const char *,
+					       size_t)),
 					 void *arg));
 
 

@@ -73,6 +73,11 @@ extern void header_destroy     __P ((header_t *, void *owner));
 
 extern int header_set_value    __P ((header_t, const char *fn,
 				     const char *fv, int replace));
+
+extern int header_set_get_value __P ((header_t, int (*_get_value)
+				     __P ((header_t, const char *fn, char *buf,
+					   size_t buflen, size_t *nwritten)),
+				     void *owner));
 extern int header_get_value    __P ((header_t, const char *fn, char *buf,
 				     size_t buflen, size_t *nwritten));
 extern int header_entry_count  __P ((header_t, size_t *num));

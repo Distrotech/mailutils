@@ -52,7 +52,9 @@ struct _mailbox
   /* debug information */
   int debug_level;
   void *debug_arg;
-  int (*debug_print)       __P ((const char *, void *arg));
+  char *debug_buffer;
+  size_t debug_bufsize;
+  int (*debug_print)       __P ((void *arg, const char *, size_t));
 
   /* Back pointer to the specific mailbox */
   void *data;
@@ -85,6 +87,7 @@ extern int mailbox_num_deleted    __P ((mailbox_t, size_t *));
 
 extern int mailbox_notification   __P ((mailbox_t mbox, size_t type));
 
+extern int mailbox_debug __P ((mailbox_t, int level, const char *fmt, ...));
 
 #ifdef __cplusplus
 }

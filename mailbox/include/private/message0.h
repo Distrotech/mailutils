@@ -60,6 +60,7 @@ struct _message
 
   int (*_from)       __P ((message_t msg, char *, size_t, size_t *));
   int (*_received)   __P ((message_t msg, char *, size_t, size_t *));
+  int (*_get_uidl)       __P ((message_t msg, char *, size_t, size_t *));
 
 };
 

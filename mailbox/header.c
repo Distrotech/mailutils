@@ -51,6 +51,7 @@ struct _header
 
   /* streams */
   stream_t stream;
+  int (*_get_value) __P ((header_t, const char *, char *, size_t , size_t *));
 
   /* owner ? */
   void *owner;
@@ -202,7 +203,7 @@ header_parse (header_t header, char *blurb, int len)
  return 0;
 }
 
-/* FIXME: grossly inneficient, to many copies and reallocating
+/* FIXME: grossly inneficient, to many copies and reallocating.
  * This all header business need a good rewrite.
  */
 int
@@ -264,6 +265,20 @@ header_set_value (header_t header, const char *fn, const char *fv, int replace)
 }
 
 int
+header_set_get_value (header_t header, int (*_get_value)
+		     (header_t, const char *, char *, size_t, size_t *),
+		     void *owner)
+{
+  if (header == NULL)
+    return EINVAL;
+  if (header->owner != owner)
+    return EACCES;
+
+  header->_get_value = _get_value;
+  return 0;
+}
+
+int
 header_get_value (header_t header, const char *name, char *buffer,
 		  size_t buflen, size_t *pn)
 {
@@ -319,7 +334,16 @@ header_get_value (header_t header, const char *name, char *buffer,
   if (pn)
     *pn = total;
   if (total == 0)
-    return ENOENT;
+    {
+      int err = ENOENT;
+      /* check if they provided a hook */
+      if (header->_get_value != NULL)
+	err = header->_get_value (header, name, buffer, buflen, pn);
+      /* cache it locally */
+      if (err == 0)
+	header_set_value (header, name, buffer, 0);
+      return err;
+    }
   return 0;
 }
 

@@ -36,6 +36,7 @@ struct _stream
 {
   void *owner;
   int flags;
+  int state;
   void (*_destroy) __P ((stream_t));
   int (*_open) __P ((stream_t, const char *, int port, int flags));
   int (*_close) __P ((stream_t));
