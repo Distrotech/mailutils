@@ -474,7 +474,10 @@ _pop_user (authority_t auth)
       status = pop_get_user (auth);
       if (status != 0 || mpd->user == NULL || mpd->user[0] == '\0')
 	{
-	  CHECK_ERROR_CLOSE (mbox, mpd, EINVAL);
+	  pop_writeline (mpd, "QUIT\r\n");
+	  MAILBOX_DEBUG0 (mbox, MU_DEBUG_PROT, mpd->buffer);
+	  pop_write (mpd);
+	  CHECK_ERROR_CLOSE (mbox, mpd, MU_ERR_NOUSERNAME);
 	}
       status = pop_writeline (mpd, "USER %s\r\n", mpd->user);
       CHECK_ERROR_CLOSE(mbox, mpd, status);
@@ -505,7 +508,10 @@ _pop_user (authority_t auth)
       status = pop_get_passwd (auth);
       if (status != 0 || mpd->passwd == NULL || mpd->passwd[0] == '\0')
 	{
-	  CHECK_ERROR_CLOSE (mbox, mpd, EINVAL);
+	  pop_writeline (mpd, "QUIT\r\n");
+	  MAILBOX_DEBUG0 (mbox, MU_DEBUG_PROT, mpd->buffer);
+	  pop_write (mpd);
+	  CHECK_ERROR_CLOSE (mbox, mpd, MU_ERR_NOPASSWORD);
 	}
       status = pop_writeline (mpd, "PASS %s\r\n", mpd->passwd);
       MAILBOX_DEBUG0 (mbox, MU_DEBUG_PROT, mpd->buffer);
