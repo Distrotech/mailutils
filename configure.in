@@ -78,13 +78,13 @@ AC_ARG_WITH(mail-rc,
  [SITE_MAIL_RC="\$(sysconfdir)/mail.rc"])
 
 MU_CONF_MAILDIR=
-AC_ARG_WITH(maildir,
- [  --with-maildir=PATH     use PATH instead of /var/spool/mail],
+AC_ARG_WITH(mail-spool,
+ [  --with-mail-spool=PATH  use PATH instead of /var/spool/mail],
  [case "$withval" in
   /*/) MU_CONF_MAILDIR="\"${withval}\"";;
   /*)  MU_CONF_MAILDIR="\"${withval}/\"";;
   *:*[[/=]]) MU_CONF_MAILDIR="\"${withval}\"";;
-  *)  AC_MSG_ERROR(--with-maildir must be an absolute path or a valid URL);;
+  *)  AC_MSG_ERROR(--with-mail-spool must be an absolute path or a valid URL);;
   esac])
 
 if test "x$MU_CONF_MAILDIR" != x; then
