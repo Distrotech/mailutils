@@ -47,6 +47,7 @@ memory_stream.c \
 mime.c \
 monitor.c \
 mu_argp.c \
+mu_auth.c \
 mutil.c \
 muerror.c \
 muerrno.c \
