@@ -48,6 +48,7 @@ pop3d_quit (const char *arg)
     syslog (LOG_INFO, _("Session ended for no user"));
 
   state = UPDATE;
+  update_login_delay (username);
   free (username);
   free (md5shared);
 
