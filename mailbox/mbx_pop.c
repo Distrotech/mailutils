@@ -38,7 +38,7 @@
 # include <strings.h>
 #endif
 
-#include <md5-rsa.h>
+#include <md5.h>
 
 #include <mailutils/attribute.h>
 #include <mailutils/auth.h>
@@ -756,7 +756,7 @@ pop_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
   size_t i;
 
   /* Sanity.  */
-  if (pmsg == NULL || mpd == NULL)
+  if (pmsg == NULL || mpd == NULL || msgno > mpd->messages_count)
     return EINVAL;
 
   monitor_rdlock (mbox->monitor);

@@ -11,7 +11,7 @@ SUBDIRS = include testsuite
 
 lib_LTLIBRARIES = libmailbox.la
 
-EXTRA_DIST = mbx_mboxscan.c md5-rsa.h
+EXTRA_DIST = mbx_mboxscan.c md5.h
 
 libmailbox_la_SOURCES = \
 address.c \
@@ -43,7 +43,7 @@ mbx_imap.c \
 mbx_mbox.c \
 mbx_mh.c \
 mbx_pop.c \
-md5-rsa.c \
+md5.c \
 message.c \
 memory_stream.c \
 mime.c \

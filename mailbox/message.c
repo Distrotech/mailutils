@@ -30,7 +30,7 @@
 #include <ctype.h>
 #include <pwd.h>
 
-#include "md5-rsa.h"
+#include "md5.h"
 
 #include <message0.h>
 
