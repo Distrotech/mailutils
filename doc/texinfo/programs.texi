@@ -2092,6 +2092,11 @@ mailer. Additionally, @samp{fn} flags may be specified to allow
 @command{mail.local} to generate usual @samp{From } envelope
 instead of the one supplied by sendmail.
 
+If you wish to use mail.local with SQL authentication, you may
+wish to remove the @samp{w} flag, since in that case the user is
+not required to have a valid account on the machine that runs
+@command{sendmail}.
+
 Here is an example of mailer definition in @file{sendmail.cf}
 
 @example 
