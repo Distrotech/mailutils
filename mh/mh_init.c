@@ -418,48 +418,21 @@ mh_iterate (mailbox_t mbox, mh_msgset_t *msgset,
 	    mh_iterator_fp itr, void *data)
 {
   int rc;
-  int last = 0;
-  size_t i, total = 0;
+  size_t i;
 
-  if (rc = mailbox_messages_count (mbox, &total))
-    {
-      mh_error ("can't count messages in %s: %s",
-		current_folder, mu_errstring (rc));
-      exit (1);
-    }
-	
-  for (i = 1; i <= total; i++)
+  for (i = 0; i < msgset->count; i++)
     {
       message_t msg;
       size_t num;
-      int rc;
-      
-      if ((rc = mailbox_get_message (mbox, i, &msg)) != 0)
+
+      num = msgset->list[i];
+      if ((rc = mailbox_get_message (mbox, num, &msg)) != 0)
 	{
-	  mh_error ("can't get message %d: %s", i, mu_errstring (rc));
+	  mh_error ("can't get message %d: %s", num, mu_errstring (rc));
 	  return 1;
 	}
 
-      if ((rc = mh_message_number (msg, &num)) != 0)
-	{
-	  mh_error ("can't get sequence number for message %d: %s",
-		    i, mu_errstring (rc));
-	  return 1;
-	}
-
-      rc = mh_msgset_member (msgset, num);
-      if (rc == last + 1)
-	{
-	  itr (mbox, msg, num, data);
-	  last = rc;
-	}
-      else if (rc && last && last < msgset->count)
-	break;
-    }
-  if (last < msgset->count)
-    {
-      mh_error ("message %d does not exist", msgset->list[last]);
-      exit (1);
+      itr (mbox, msg, num, data);
     }
 
   return 0;
