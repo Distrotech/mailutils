@@ -15,6 +15,10 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
+/** @file smtp.c
+@brief an SMTP mailer
+*/
+
 #ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
@@ -88,14 +92,14 @@ struct _smtp
   int extended;
 
   char* mail_from;
-  address_t rcpt_to; /* Destroy this if not the same as TO below. */
+  address_t rcpt_to; /* Destroy this if not the same as argto below. */
   address_t rcpt_bcc;
   size_t rcpt_to_count;
   size_t rcpt_bcc_count;
   size_t rcpt_index;
   size_t rcpt_count;
   int bccing;
-  message_t msg;
+  message_t msg; /* Destroy this if not same argmsg. */
 
   off_t offset;
 
@@ -107,6 +111,18 @@ struct _smtp
 
 typedef struct _smtp * smtp_t;
 
+static void smtp_destroy (mailer_t);
+static int smtp_open (mailer_t, int);
+static int smtp_close (mailer_t);
+static int smtp_send_message (mailer_t, message_t, address_t, address_t);
+static int smtp_writeline (smtp_t smtp, const char *format, ...);
+static int smtp_readline (smtp_t);
+static int smtp_read_ack (smtp_t);
+static int smtp_write (smtp_t);
+
+static int _smtp_set_from (smtp_t, message_t , address_t);
+static int _smtp_set_rcpt (smtp_t, message_t , address_t);
+
 /* Useful little macros, since these are very repetitive. */
 
 static void
@@ -115,35 +131,40 @@ CLEAR_STATE (smtp_t smtp)
   smtp->ptr = NULL;
   smtp->nl = NULL;
   smtp->s_offset = 0;
+
+  smtp->state = SMTP_NO_STATE;
+
   smtp->extended = 0;
 
-  smtp->msg = NULL;
-
   if (smtp->mail_from)
-  {
-    free (smtp->mail_from);
-  smtp->mail_from = NULL;
-  }
-
-  smtp->argfrom = NULL;
+    {
+      free (smtp->mail_from);
+      smtp->mail_from = NULL;
+    }
 
   if (smtp->rcpt_to != smtp->argto)
     address_destroy (&smtp->rcpt_to);
 
+  smtp->rcpt_to = NULL;
+
   address_destroy (&smtp->rcpt_bcc);
+
+  smtp->rcpt_to_count = 0;
+  smtp->rcpt_bcc_count = 0;
+  smtp->rcpt_index = 0;
+  smtp->rcpt_count = 0;
+  smtp->bccing = 0;
 
   if (smtp->msg != smtp->argmsg)
     message_destroy (&smtp->msg, NULL);
 
-  smtp->argmsg = smtp->msg = NULL;
-
-  smtp->rcpt_to = smtp->argto = NULL;
-
-  smtp->rcpt_index = 0;
+  smtp->msg = NULL;
 
   smtp->offset = 0;
 
-  smtp->state = SMTP_NO_STATE;
+  smtp->argmsg = NULL;
+  smtp->argfrom = NULL;
+  smtp->argto = NULL;
 }
 
 /* If we are resuming, we should be resuming the SAME operation
@@ -215,18 +236,6 @@ do \
    }  \
 while (0)
 
-static void smtp_destroy (mailer_t);
-static int smtp_open (mailer_t, int);
-static int smtp_close (mailer_t);
-static int smtp_send_message (mailer_t, message_t, address_t, address_t);
-static int smtp_writeline (smtp_t smtp, const char *format, ...);
-static int smtp_readline (smtp_t);
-static int smtp_read_ack (smtp_t);
-static int smtp_write (smtp_t);
-
-static int _smtp_set_from (smtp_t, message_t , address_t);
-static int _smtp_set_rcpt (smtp_t, message_t , address_t);
-
 int
 _mailer_smtp_init (mailer_t mailer)
 {
@@ -276,6 +285,11 @@ smtp_destroy(mailer_t mailer)
   mailer->data = NULL;
 }
 
+/** Open an SMTP mailer.
+An SMTP mailer must be opened before any messages can be sent.
+@param mailer the mailer created by smtp_create()
+@param flags the mailer flags
+*/
 static int
 smtp_open (mailer_t mailer, int flags)
 {
@@ -420,7 +434,9 @@ smtp_open (mailer_t mailer, int flags)
     default:
       break;
     }
-  smtp->state = SMTP_NO_STATE;
+
+  CLEAR_STATE(smtp);
+
   return 0;
 }
 
@@ -465,6 +481,22 @@ message_set_header_value (message_t msg, const char *field, const char *value)
     return status;
 
   return status;
+}
+
+static int
+message_has_bcc(message_t msg)
+{
+  int status;
+  header_t header = NULL;
+  size_t bccsz = 0;
+
+  if ((status = message_get_header (msg, &header)))
+    return status;
+
+  status = header_get_value (header, MU_HEADER_BCC, NULL, NULL, &bccsz);
+
+  /* ENOENT, or there was a Bcc: field. */
+  return status == ENOENT ? 0 : 1;
 }
 
 /*
@@ -538,7 +570,7 @@ smtp_send_message (mailer_t mailer, message_t argmsg, address_t argfrom,
       CHECK_ERROR (smtp, status);
 
       /* Clear the Bcc: field if we found one. */
-      if (smtp->rcpt_bcc)
+      if (message_has_bcc(smtp->argmsg))
 	{
 	  smtp->msg = NULL;
 	  status = message_create_copy (&smtp->msg, smtp->argmsg);
@@ -591,7 +623,6 @@ smtp_send_message (mailer_t mailer, message_t argmsg, address_t argfrom,
 
 	if (smtp->bccing)
 	  addr = smtp->rcpt_bcc;
-
 	status = address_aget_email (addr, smtp->rcpt_index, &to);
 
 	CHECK_ERROR (smtp, status);
@@ -652,6 +683,9 @@ smtp_send_message (mailer_t mailer, message_t argmsg, address_t argfrom,
 	}
       smtp->offset = 0;
       smtp->state = SMTP_SEND;
+
+      if((smtp->mailer->flags & MAILER_FLAG_DEBUG_DATA) == 0)
+        MAILER_DEBUG0 (smtp->mailer, MU_DEBUG_PROT, "> (data...)\n");
 
     case SMTP_SEND:
       {
@@ -838,6 +872,9 @@ _smtp_set_rcpt (smtp_t smtp, message_t msg, address_t to)
 
   /* Get RCPT_TO from TO, or the message. */
 
+/* FIXME: even if there are TO addresses on the command-line, I have
+   to blank out the Bcc: header in the message!
+   */
   if (to)
     {
       /* Use the specified address_t. */
@@ -848,6 +885,7 @@ _smtp_set_rcpt (smtp_t smtp, message_t msg, address_t to)
 	  return status;
 	}
       smtp->rcpt_to = to;
+      address_get_count (smtp->rcpt_to, &smtp->rcpt_to_count);
 
       return status;
     }
@@ -983,10 +1021,18 @@ smtp_writeline (smtp_t smtp, const char *format, ...)
 
   smtp->ptr = smtp->buffer + len;
 
-  while (len > 0 && isspace (smtp->buffer[len-1]))
+  while (len > 0 && isspace (smtp->buffer[len - 1]))
     len--;
 
-  MAILER_DEBUG2 (smtp->mailer, MU_DEBUG_PROT, "> %.*s\n", len, smtp->buffer);
+  if (
+      (smtp->state != SMTP_SEND && smtp->state != SMTP_SEND_DOT)
+      ||
+      smtp->mailer->flags & MAILER_FLAG_DEBUG_DATA
+      )
+    {
+      MAILER_DEBUG2 (smtp->mailer, MU_DEBUG_PROT, "> %.*s\n", len,
+		     smtp->buffer);
+    }
 
   return 0;
 }
