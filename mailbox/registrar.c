@@ -47,7 +47,7 @@ free_ureg (struct url_registrar *ureg)
 {
   if (ureg)
     {
-      free (ureg->scheme);
+      free ((char *)ureg->scheme);
       free (ureg);
     }
 }
@@ -57,7 +57,7 @@ free_mreg (struct mailbox_registrar *mreg)
 {
   if (mreg)
     {
-      free (mreg->name);
+      free ((char *)mreg->name);
       free (mreg);
     }
 }

@@ -27,9 +27,9 @@
 #include <errno.h>
 
 static int header_parse (header_t h, char *blurb, int len);
-static int header_read (istream_t is, char *buf, size_t buflen,
+static int header_read (stream_t is, char *buf, size_t buflen,
 			off_t off, size_t *pnread);
-static int header_write (ostream_t os, const char *buf, size_t buflen,
+static int header_write (stream_t os, const char *buf, size_t buflen,
 			 off_t off, size_t *pnwrite);
 
 struct _hdr
@@ -49,8 +49,7 @@ struct _header
   struct _hdr *hdr;
 
   /* streams */
-  istream_t is;
-  ostream_t os;
+  stream_t stream;
 
   /* owner ? */
   void *owner;
@@ -74,13 +73,12 @@ header_init (header_t *ph, const char *blurb, size_t len, void *owner)
       return status;
     }
 
-  status = istream_init (&(h->is), header_read, h);
+  status = stream_init (&(h->stream), h);
   if (status != 0)
     return status;
 
-  status = ostream_init (&(h->os), header_write, h);
-  if (status != 0)
-    return status;
+  stream_set_read  (h->stream, header_read, h);
+  stream_set_write (h->stream, header_write, h);
 
   *ph = h;
   return status;
@@ -101,8 +99,7 @@ header_destroy (header_t *ph, void *owner)
 	  (h->owner == NULL && h->ref_count <= 0))
 	{
 	  /* io */
-	  istream_destroy (&(h->is), h);
-	  ostream_destroy (&(h->os), h);
+	  stream_destroy (&(h->stream), h);
 
 	  free (h->hdr);
 	  free (h->blurb);
@@ -308,7 +305,7 @@ header_entry_count (header_t header, size_t *pnum)
 }
 
 int
-header_size (header_t header, size_t *pnum)
+header_get_size (header_t header, size_t *pnum)
 {
   if (header == NULL)
       return EINVAL;
@@ -364,7 +361,7 @@ header_entry_value (header_t header, size_t num, char *buf,
 }
 
 static int
-header_write (ostream_t os, const char *buf, size_t buflen,
+header_write (stream_t os, const char *buf, size_t buflen,
 	      off_t off, size_t *pnwrite)
 {
   header_t header;
@@ -382,7 +379,7 @@ header_write (ostream_t os, const char *buf, size_t buflen,
 }
 
 static int
-header_read (istream_t is, char *buf, size_t buflen,
+header_read (stream_t is, char *buf, size_t buflen,
 	     off_t off, size_t *pnread)
 {
   header_t header;
@@ -409,19 +406,10 @@ header_read (istream_t is, char *buf, size_t buflen,
 }
 
 int
-header_get_istream (header_t header, istream_t *pis)
+header_get_stream (header_t header, stream_t *pstream)
 {
-  if (header == NULL || pis == NULL)
+  if (header == NULL || pstream == NULL)
     return EINVAL;
-  *pis = header->is;
+  *pstream = header->stream;
   return 0;
-}
-
-int
-rfc822_get_ostream (header_t header, ostream_t *pos)
-{
-  if (header == NULL || pos == NULL)
-    return EINVAL;
-  *pos = header->os;
-  return ENOSYS;
 }

@@ -27,7 +27,7 @@
 #include <sys/types.h>
 #include <stdio.h>
 
-#ifdef _cpluscplus
+#ifdef _cplusplus
 extern "C" {
 #endif
 
@@ -57,8 +57,7 @@ typedef struct _body * body_t;
 struct _message
 {
   header_t header;
-  istream_t is;
-  ostream_t os;
+  stream_t stream;
   body_t body;
   attribute_t attribute;
   size_t num;
@@ -77,17 +76,15 @@ struct _message
   int (*_get_attribute)  __P ((message_t msg, attribute_t *attr));
   int (*_set_attribute)  __P ((message_t msg, attribute_t attr, void *owner));
 
-  int (*_get_istream) __P ((message_t msg, istream_t *));
-  int (*_set_istream) __P ((message_t msg, istream_t, void *owner));
-  int (*_get_ostream) __P ((message_t msg, ostream_t *));
-  int (*_set_ostream) __P ((message_t msg, ostream_t, void *owner));
+  int (*_get_stream) __P ((message_t msg, stream_t *));
+  int (*_set_stream) __P ((message_t msg, stream_t, void *owner));
 
   int (*_size)        __P ((message_t msg, size_t *size));
 
   int (*_clone)       __P ((message_t msg, message_t *cmsg));
 };
 
-#ifdef _cpluscplus
+#ifdef _cplusplus
 }
 #endif
 

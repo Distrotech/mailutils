@@ -95,7 +95,7 @@ locker_lock (locker_t lock, int flags)
   int   fd = -1;
   char  buf[16];
   pid_t pid;
-  int   remove = 0;
+  int   removed = 0;
 
   (void)flags;
   if (lock == NULL)
@@ -115,22 +115,22 @@ locker_lock (locker_t lock, int flags)
                 {
                   /* process is gone so we try to remove the lock */
                   if (kill(pid, 0) == -1)
-                    remove = 1;
+                    removed = 1;
                 }
             }
         }
       if (lock->flags & MU_LOCKER_TIME)
         {
-          struct stat buf;
+          struct stat stbuf;
 
-          fstat(fd, &buf);
+          fstat(fd, &stbuf);
           /* the lock has expired */
-          if ((time(NULL) - buf.st_mtime) > LOCK_EXPIRE_TIME)
-            remove = 1;
+          if ((time(NULL) - stbuf.st_mtime) > LOCK_EXPIRE_TIME)
+            removed = 1;
         }
 
       close(fd);
-      if (remove)
+      if (removed)
         unlink(lock->fname);
     }
 

@@ -21,7 +21,7 @@
 #include <sys/types.h>
 
 #ifdef __cplusplus
-extern "C" {
+extern "C" { /*}*/
 #endif
 
 #ifndef __P
@@ -32,15 +32,29 @@ extern "C" {
 # endif
 #endif /*__P */
 
-struct _istream;
-typedef struct _istream *istream_t;
-struct _ostream;
-typedef struct _ostream *ostream_t;
+struct _stream;
+typedef struct _stream *stream_t;
 
-extern int istream_read __P ((istream_t, char *, size_t, off_t, size_t *));
+extern int stream_init __P ((stream_t *, void *owner));
+extern void stream_destroy __P ((stream_t *, void *owner));
 
-extern int ostream_write __P ((ostream_t, const char *, size_t,
+extern int stream_set_fd __P ((stream_t,
+			       int (*_get_fd)(stream_t, int *),
+			       void *owner));
+extern int stream_set_read __P ((stream_t,
+				 int (*_read) __P ((stream_t, char *,
+						    size_t, off_t, size_t *)),
+				 void *owner));
+extern int stream_set_write __P ((stream_t,
+				  int (*_write) __P ((stream_t, const char *,
+						      size_t, off_t,
+						      size_t *)),
+				  void *owner));
+extern int stream_get_fd __P ((stream_t , int *));
+extern int stream_read __P ((stream_t, char *, size_t, off_t, size_t *));
+extern int stream_write __P ((stream_t, const char *, size_t,
 			       off_t, size_t *));
+
 
 #ifdef __cplusplus
 }

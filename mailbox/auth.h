@@ -28,7 +28,7 @@
 #endif
 #endif /*__P */
 
-#ifdef _cpluscplus
+#ifdef _cplusplus
 extern "C" {
 #endif
 
@@ -54,7 +54,7 @@ extern int auth_set_epilogue __P ((auth_t auth,
 				   int (*_epilogue) __P ((auth_t)),
 				   void *owner));
 
-#ifdef _cpluscplus
+#ifdef _cplusplus
 }
 #endif
 

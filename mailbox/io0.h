@@ -32,32 +32,13 @@ extern "C" {
 # endif
 #endif /*__P */
 
-struct _istream
+struct _stream
 {
-  /* owner of the stream can not be a specific type */
   void *owner;
-  int ref_count;
-  int (*_read) __P ((istream_t, char *, size_t, off_t, size_t *));
+  int (*_get_fd) __P ((stream_t, int *));
+  int (*_read) __P ((stream_t, char *, size_t, off_t, size_t *));
+  int (*_write) __P ((stream_t, const char *, size_t, off_t, size_t *));
 };
-
-struct _ostream
-{
-  /* owner of the stream can not be a specific type */
-  void *owner;
-  int ref_count;
-  int (*_write) __P ((ostream_t, const char *, size_t, off_t, size_t *));
-};
-
-extern int istream_init __P ((istream_t *,
-			      int (*_read) __P ((istream_t, char *,
-						 size_t, off_t, size_t *)),
-			      void *owner));
-extern void istream_destroy __P ((istream_t *, void *owner));
-extern int ostream_init __P ((ostream_t *,
-			      int (*_write) __P ((ostream_t, const char *,
-						  size_t, off_t, size_t *)),
-			      void *owner));
-extern void ostream_destroy __P ((ostream_t *, void *owner));
 
 #ifdef __cplusplus
 }

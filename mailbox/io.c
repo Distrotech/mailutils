@@ -22,70 +22,77 @@
 #include <stdio.h>
 
 int
-istream_init (istream_t *pis, int (*_read)
-	      __P ((istream_t, char *, size_t, off_t, size_t *)),
-	      void *owner)
+stream_init (stream_t *pstream, void *owner)
 {
-  istream_t is;
-  if (pis == NULL)
+  stream_t stream;
+  if (pstream == NULL || owner == NULL)
     return EINVAL;
-  is = calloc (1, sizeof (*is));
-  if (is == NULL)
+  stream = calloc (1, sizeof (*stream));
+  if (stream == NULL)
     return ENOMEM;
-  is->owner = owner;
-  is->_read = _read;
-  *pis = is;
-  return 0;
-}
-
-int
-ostream_init (ostream_t *pos, int (*_write)
-		   __P ((ostream_t, const char *, size_t, off_t, size_t *)),
-	      void *owner)
-{
-  ostream_t os;
-  if (pos == NULL)
-    return EINVAL;
-  os = calloc (1, sizeof (*os));
-  if (os == NULL)
-    return ENOMEM;
-  os->owner = owner;
-  os->_write = _write;
-  *pos = os;
+  stream->owner = owner;
+  *pstream = stream;
   return 0;
 }
 
 void
-istream_destroy (istream_t *pis, void *owner)
+stream_destroy (stream_t *pstream, void *owner)
 {
-  if (pis && *pis)
+  if (pstream && *pstream)
     {
-      istream_t is = *pis;
-      is->ref_count--;
-      if ((is->owner && is->owner == owner) ||
-	  (is->owner == NULL && is->ref_count <= 0))
-	free (is);
-      *pis = NULL;
-    }
-}
-
-void
-ostream_destroy (ostream_t *pos, void *owner)
-{
-  if (pos && (*pos))
-    {
-      ostream_t os = *pos;
-      os->ref_count--;
-      if ((os->owner && os->owner == owner) ||
-	  (os->owner == NULL && os->ref_count <= 0))
-	free (os);
-      *pos = NULL;
+      stream_t stream = *pstream;
+      if (stream->owner == owner)
+	free (stream);
+      *pstream = NULL;
     }
 }
 
 int
-istream_read (istream_t is, char *buf, size_t count,
-	      off_t offset, size_t *pnread)
+stream_set_fd (stream_t stream, int (*_get_fd) (stream_t, int *), void *owner)
+{
+  if (stream == NULL)
+    return EINVAL;
+  if (owner == stream->owner)
+    {
+      stream->_get_fd = _get_fd;
+      return 0;
+    }
+  return EACCES;
+}
+
+int
+stream_set_read (stream_t stream, int (*_read)
+		 (stream_t, char *, size_t, off_t, size_t *),
+		 void *owner)
+{
+  if (stream == NULL)
+    return EINVAL;
+  if (owner == stream->owner)
+    {
+      stream->_read = _read;
+      return 0;
+    }
+  return EACCES;
+}
+
+int
+stream_set_write (stream_t stream, int (*_write)
+		  __P ((stream_t, const char *, size_t, off_t, size_t *)),
+		  void *owner)
+{
+  if (stream == NULL)
+    return EINVAL;
+  if (stream->owner == owner)
+    {
+      stream->_write = _write;
+      return 0;
+    }
+  return EACCES;
+}
+
+int
+stream_read (stream_t is, char *buf, size_t count,
+	     off_t offset, size_t *pnread)
 {
   if (is == NULL || is->_read == NULL)
     return EINVAL;
@@ -93,10 +100,18 @@ istream_read (istream_t is, char *buf, size_t count,
 }
 
 int
-ostream_write (ostream_t os, const char *buf, size_t count,
-	       off_t offset, size_t *pnwrite)
+stream_write (stream_t os, const char *buf, size_t count,
+	      off_t offset, size_t *pnwrite)
 {
   if (os == NULL || os->_write == NULL)
       return EINVAL;
   return os->_write (os, buf, count, offset, pnwrite);
+}
+
+int
+stream_get_fd (stream_t stream, int *pfd)
+{
+  if (stream == NULL || stream->_get_fd == NULL)
+    return EINVAL;
+  return stream->_get_fd (stream, pfd);
 }

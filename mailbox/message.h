@@ -32,7 +32,7 @@
 # endif
 #endif /* __P */
 
-#ifdef _cpluscplus
+#ifdef _cplusplus
 extern "C" {
 #endif
 
@@ -54,10 +54,8 @@ extern void message_destroy    __P ((message_t *, void *owner));
 extern int message_get_header  __P ((message_t, header_t *));
 extern int message_set_header  __P ((message_t, header_t, void *owner));
 
-extern int message_get_istream __P ((message_t, istream_t *));
-extern int message_set_istream __P ((message_t, istream_t, void *owner));
-extern int message_get_ostream __P ((message_t, ostream_t *));
-extern int message_set_ostream __P ((message_t, ostream_t, void *owner));
+extern int message_get_stream __P ((message_t, stream_t *));
+extern int message_set_stream __P ((message_t, stream_t, void *owner));
 
 extern int message_is_multipart __P ((message_t));
 
@@ -75,7 +73,7 @@ extern int message_register __P ((message_t msg, size_t type,
 				  int (*action) (size_t typ, void *arg),
 				  void *arg));
 extern int message_deregister __P ((message_t msg, void *action));
-#ifdef _cpluscplus
+#ifdef _cplusplus
 }
 #endif
 

@@ -82,7 +82,7 @@ url_pop_destroy (url_t *purl)
 static int
 url_pop_init (url_t *purl, const char *name)
 {
-  const char *host_port, *index;
+  const char *host_port, *indexe;
   struct url_registrar *ureg = &_url_pop_registrar;
   size_t len, scheme_len = strlen (ureg->scheme);
   url_t url;
@@ -115,34 +115,34 @@ url_pop_init (url_t *purl, const char *name)
   name += scheme_len; /* pass the scheme */
 
   /* looking for "user;auth=auth-enc" */
-  for (index = name; index != host_port; index++)
+  for (indexe = name; indexe != host_port; indexe++)
     {
       /* Auth ? */
-      if (*index == ';')
+      if (*indexe == ';')
 	{
 	  /* make sure it the token */
-	  if (strncasecmp(index + 1, "auth=", 5) == 0)
+	  if (strncasecmp(indexe + 1, "auth=", 5) == 0)
 	    break;
 	}
     }
 
-  if (index == name)
+  if (indexe == name)
     {
       url_pop_destroy (&url);
       return -1;
     }
 
   /* USER */
-  url->user = malloc(index - name + 1);
+  url->user = malloc(indexe - name + 1);
   if (url->user == NULL)
     {
       url_pop_destroy (&url);
       return -1;
     }
-  ((char *)memcpy(url->user, name, index - name))[index - name] = '\0';
+  ((char *)memcpy(url->user, name, indexe - name))[indexe - name] = '\0';
 
   /* AUTH */
-  if ((host_port - index) <= 6 /*strlen(";AUTH=")*/)
+  if ((host_port - indexe) <= 6 /*strlen(";AUTH=")*/)
     {
       /* Use default AUTH '*' */
       up->auth = malloc (1 + 1);
@@ -155,12 +155,12 @@ url_pop_init (url_t *purl, const char *name)
   else
     {
       /* move pass AUTH= */
-      index += 6;
-      up->auth = malloc (host_port - index + 1);
+      indexe += 6;
+      up->auth = malloc (host_port - indexe + 1);
       if (up->auth)
 	{
-	  ((char *)memcpy (up->auth, index, host_port - index))
-	    [host_port - index] = '\0';
+	  ((char *)memcpy (up->auth, indexe, host_port - indexe))
+	    [host_port - indexe] = '\0';
 	}
     }
 
@@ -171,20 +171,20 @@ url_pop_init (url_t *purl, const char *name)
     }
 
   /* HOST:PORT */
-  index = strchr (++host_port, ':');
-  if (index == NULL)
+  indexe = strchr (++host_port, ':');
+  if (indexe == NULL)
     {
       url->host = strdup (host_port);
       url->port = MU_POP_PORT;
     }
   else
     {
-      long p = strtol(index + 1, NULL, 10);
-      url->host = malloc (index - host_port + 1);
+      long p = strtol(indexe + 1, NULL, 10);
+      url->host = malloc (indexe - host_port + 1);
       if (url->host)
 	{
-	  ((char *)memcpy (url->host, host_port, index - host_port))
-	    [index - host_port]='\0';
+	  ((char *)memcpy (url->host, host_port, indexe - host_port))
+	    [indexe - host_port]='\0';
 	  url->port = (p == 0) ? MU_POP_PORT : p;
 	}
     }

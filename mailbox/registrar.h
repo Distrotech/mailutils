@@ -31,20 +31,20 @@
 # endif
 #endif /*__P */
 
-#ifdef _cpluscplus
+#ifdef _cplusplus
 extern "C" {
 #endif
 
 struct url_registrar
 {
-  char *scheme;
+  const char *scheme;
   int  (*_init)     __P ((url_t *, const char * name));
   void (*_destroy)  __P ((url_t *));
 };
 
 struct mailbox_registrar
 {
-  char *name;
+  const char *name;
   int  (*_init)    __P ((mailbox_t *, const char *name));
   void (*_destroy) __P ((mailbox_t *));
 };
@@ -66,7 +66,7 @@ extern int registrar_get_entry __P ((size_t num, struct url_registrar **ureg,
 extern int registrar_list __P ((struct url_registrar **ureg,
 			   struct mailbox_registrar **mreg,
 			   int *id, registrar_t *reg));
-#ifdef _cpluscplus
+#ifdef _cplusplus
 }
 #endif
 
