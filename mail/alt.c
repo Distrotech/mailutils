@@ -16,8 +16,11 @@
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #include "mail.h"
+#include <pwd.h>
 
 static list_t alternate_names = NULL;
+static char *my_email;
+static char *my_name;
 
 /*
  * alt[ernates] name...
@@ -43,8 +46,49 @@ mail_alt (int argc, char **argv)
   return 0;
 }
 
-int
-mail_is_alt_name (char *name)
+char *
+mail_whoami ()
 {
+  return my_name;
+}
+
+/* FIXME: this lacks domain name part! */
+void
+mail_set_my_name (char *name)
+{
+  char hostname[256];
+
+  if (!name)
+    {
+      struct passwd *pw = getpwuid(getuid());
+      if (!pw)
+	{
+	  util_error("can't determine my username");
+	  exit (1);
+	}
+      name = pw->pw_name;
+    }
+
+  my_name = strdup (name);
+  gethostname(hostname, sizeof(hostname));
+  hostname[sizeof(hostname)-1] = 0;
+  my_email = malloc (strlen (name) + strlen (hostname) + 2);
+  if (!my_email)
+    {
+      util_error("not enough memory");
+      abort ();
+    }
+  sprintf (my_email, "%s@%s", name, hostname);
+}
+   
+int
+mail_is_my_name (char *name)
+{
+  if (util_find_env("metoo")->set)
+    return 0;
+  if (strchr(name, '@') == NULL && strcasecmp (name, my_name) == 0)
+    return 1;
+  if (strcasecmp (name, my_email) == 0)
+    return 1;
   return util_slist_lookup (alternate_names, name);
 }
