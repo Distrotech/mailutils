@@ -21,6 +21,11 @@
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
+
+#ifdef DMALLOC
+#  include <dmalloc.h>
+#endif
+
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -105,6 +110,8 @@ struct send_environ
   char *filename;
   FILE *file;
   FILE *ofile;
+  char **outfiles;
+  int nfiles;
 };
 
 /* Global variables and constants*/

@@ -24,8 +24,16 @@
 
 #include "mail.h"
 
+static int isfilename __P ((const char *));
 /*
  * m[ail] address...
+ if address is starting with
+ '/' it is consider a file and the message is save to a file.
+ '.' by extension dot is consider relative path.
+ '|' a pipe the message is writent to the pipe.
+ example:
+ mail joe '| cat >/tmp/save'
+ mail will be send to joe and the message save in /tmp/save.
  */
 
 int
@@ -35,7 +43,8 @@ mail_send (int argc, char **argv)
   int status;
 
   env.to = env.cc = env.bcc = env.subj = NULL;
-  
+  env.outfiles = NULL; env.nfiles = 0;
+
   if (argc < 2)
     env.to = readline ("To: ");
   else
@@ -43,10 +52,23 @@ mail_send (int argc, char **argv)
       while (--argc)
 	{
 	  char *p = alias_expand (*++argv);
-	  if (env.to)
-	    util_strcat(&env.to, ",");
-	  util_strcat(&env.to, p);
-	  free (p);
+	  if (isfilename(p))
+	    {
+	      env.outfiles = realloc (env.outfiles,
+				      (env.nfiles+1)*sizeof (*(env.outfiles)));
+	      if (env.outfiles)
+		{
+		  env.outfiles[env.nfiles] = p;
+		  env.nfiles++;
+		}
+	    }
+	  else
+	    {
+	      if (env.to)
+		util_strcat(&env.to, ",");
+	      util_strcat(&env.to, p);
+	      free (p);
+	    }
 	}
     }
 
@@ -77,6 +99,13 @@ free_env_headers (struct send_environ *env)
     free (env->bcc);
   if (env->subj)
     free (env->subj);
+  if (env->outfiles)
+    {
+      int i;
+      for (i = 0; i < env->nfiles; i++)
+	free (env->outfiles[i]);
+      free (env->outfiles);
+    }
 }
 
 /* mail_send0(): shared between mail_send() and mail_reply();
@@ -89,7 +118,6 @@ free_env_headers (struct send_environ *env)
 int
 mail_send0 (struct send_environ *env, int save_to)
 {
-  char *buf = NULL;
   size_t n = 0;
   int done = 0;
   int fd;
@@ -98,11 +126,11 @@ mail_send0 (struct send_environ *env, int save_to)
   char *savefile = NULL;
   int int_cnt;
 
-  fd = util_tempfile(&filename);
+  fd = util_tempfile (&filename);
 
   if (fd == -1)
     {
-      util_error("Can not open temporary file");
+      util_error ("Can not open temporary file");
       return 1;
     }
 
@@ -111,16 +139,17 @@ mail_send0 (struct send_environ *env, int save_to)
   env->filename = filename;
   env->file = fdopen (fd, "w+");
   env->ofile = ofile;
-  
-  ml_clear_interrupt();
+
+  ml_clear_interrupt ();
   int_cnt = 0;
   while (!done)
     {
-      buf = readline(NULL);
-      
-      if (ml_got_interrupt())
+      char *buf;
+      buf = readline (NULL);
+
+      if (ml_got_interrupt ())
 	{
-	  if (util_find_env("ignore")->set)
+	  if (util_find_env ("ignore")->set)
 	    {
 	      fprintf (stdout, "@\n");
 	    }
@@ -130,7 +159,7 @@ mail_send0 (struct send_environ *env, int save_to)
 		free (buf);
 	      if (++int_cnt == 2)
 		break;
-	      util_error("(Interrupt -- one more to kill letter)");
+	      util_error ("(Interrupt -- one more to kill letter)");
 	    }
 	  continue;
 	}
@@ -147,12 +176,12 @@ mail_send0 (struct send_environ *env, int save_to)
 	  else
 	    break;
 	}
-      
+
       int_cnt = 0;
 
-      if (buf[0] == '.' && util_find_env("dot")->set)
+      if (buf[0] == '.' && util_find_env ("dot")->set)
 	done = 1;
-      else if (buf[0] == (util_find_env("escape"))->value[0])
+      else if (buf[0] == (util_find_env ("escape"))->value[0])
 	{
 	  if (buf[1] == buf[0])
 	    fprintf (env->file, "%s\n", buf+1);
@@ -165,44 +194,44 @@ mail_send0 (struct send_environ *env, int save_to)
 	      int status;
 
 	      ofile = env->file;
-	      
+
 	      if (argcv_get (buf+1, "", &argc, &argv) == 0)
 		{
 		  struct mail_command_entry entry;
 		  entry = util_find_entry (mail_escape_table, argv[0]);
-		  
+
 		  if (entry.func)
 		    status = (*entry.func)(argc, argv, env);
 		  else
-		    util_error("Unknown escape %s", argv[0]);
+		    util_error ("Unknown escape %s", argv[0]);
 		}
 	      else
 		{
-		  util_error("can't parse escape sequence");
+		  util_error ("can't parse escape sequence");
 		}
 	      argcv_free (argc, argv);
-	      
+
 	      ofile =  env->ofile;
 	    }
 	}
       else
 	fprintf (env->file, "%s\n", buf);
       fflush (env->file);
-      free (buf); 
+      free (buf);
     }
 
   if (int_cnt)
     {
       if (util_find_env ("save")->set)
 	{
-	  FILE *fp = fopen (getenv("DEAD"),
+	  FILE *fp = fopen (getenv ("DEAD"),
 			    util_find_env ("appenddeadletter")->set ?
-                       	    "a" : "w");
+			    "a" : "w");
 
 	  if (!fp)
 	    {
-	      util_error("can't open file %s: %s", getenv("DEAD"),
-			 strerror(errno));
+	      util_error ("can't open file %s: %s", getenv ("DEAD"),
+			 strerror (errno));
 	    }
 	  else
 	    {
@@ -210,11 +239,12 @@ mail_send0 (struct send_environ *env, int save_to)
 	      int n;
 	      rewind (env->file);
 	      while (getline (&buf, &n, env->file) > 0)
-		fputs(buf, fp);
-	      fclose(fp);
+		fputs (buf, fp);
+	      fclose (fp);
+	      free (buf);
 	    }
 	}
-	      
+
       fclose (env->file);
       remove (filename);
       free (filename);
@@ -222,7 +252,7 @@ mail_send0 (struct send_environ *env, int save_to)
     }
 
   fclose (env->file); /*FIXME: freopen would be better*/
-  
+
   file = fopen (filename, "r");
   if (file != NULL)
     {
@@ -235,7 +265,7 @@ mail_send0 (struct send_environ *env, int save_to)
       if ((status = mailer_create (&mailer, mailer_name)) != 0
           || (status = mailer_open (mailer, MU_STREAM_RDWR)) != 0)
         {
-          util_error("%s: %s", mailer_name, strerror (status));
+          util_error ("%s: %s", mailer_name, strerror (status));
 	  remove (filename);
 	  free (filename);
           return 1;
@@ -262,6 +292,7 @@ mail_send0 (struct send_environ *env, int save_to)
 	body_t body = NULL;
 	stream_t stream = NULL;
 	off_t offset = 0;
+	char *buf = NULL;
 	message_get_body (msg, &body);
 	body_get_stream (body, &stream);
 	while (getline (&buf, &n, file) >= 0)
@@ -285,7 +316,7 @@ mail_send0 (struct send_environ *env, int save_to)
 	  savefile = strdup (env->to);
 	  if (savefile)
 	    {
-	      char *p = strchr(savefile, '@');
+	      char *p = strchr (savefile, '@');
 	      if (p)
 		*p = 0;
 	    }
@@ -293,9 +324,61 @@ mail_send0 (struct send_environ *env, int save_to)
       util_save_outgoing (msg, savefile);
       if (savefile)
 	free (savefile);
-      
+
       /* Send the message.  */
       mailer_send_message (mailer, msg);
+
+      /* Save the message to files or pipes  */
+      if (env->outfiles)
+	{
+	  int i;
+	  for (i = 0; i < env->nfiles; i++)
+	    {
+	      /* Pipe to a cmd.  */
+	      if (env->outfiles[i][0] == '|')
+		{
+		  FILE *fp = popen (&(env->outfiles[i][1]), "w");
+		  if (fp)
+		    {
+		      stream_t stream = NULL;
+		      char buffer[512];
+		      off_t off = 0;
+		      message_get_stream (msg, &stream);
+		      while (stream_read (stream, buffer,
+					  sizeof (buffer) - 1, off, &n) == 0
+			     && n != 0)
+			{
+			  buffer[n] = '\0';
+			  fprintf (fp, "%s", buffer);
+			  off += n;
+			}
+		      fclose (fp);
+		    }
+		  else
+		    util_error ("Piping %s failed", env->outfiles[i]);
+		}
+	      /* Save to a file.  */
+	      else
+		{
+		  int status;
+		  mailbox_t mbx = NULL;
+		  status = mailbox_create_default (&mbx, env->outfiles[i]);
+		  if (status == 0)
+		    {
+		      status = mailbox_open (mbx, MU_STREAM_WRITE
+					     | MU_STREAM_CREAT);
+		      if (status == 0)
+			{
+			  mailbox_append_message (mbx, msg);
+			  mailbox_close (mbx);
+			}
+		      mailbox_destroy (&mbx);
+		    }
+		  if (status)
+		    util_error("can't create mailbox %s", env->outfiles[i]);
+		}
+	    }
+	}
       message_destroy (&msg, NULL);
       mailer_destroy (&mailer);
       remove (filename);
@@ -306,4 +389,15 @@ mail_send0 (struct send_environ *env, int save_to)
   remove (filename);
   free (filename);
   return 1;
+}
+
+/* Starting with '|' '/' or not consider addresses and we cheat
+   by adding '.' in the mix for none absolute path.  */
+static int
+isfilename (const char *p)
+{
+  if (p)
+    if (*p == '/' || *p == '.' || *p == '|')
+      return 1;
+  return 0;
 }

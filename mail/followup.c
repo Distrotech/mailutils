@@ -31,10 +31,11 @@ mail_followup (int argc, char **argv)
   int i, num, *msglist;
   struct send_environ env;
   int status;
-  
+
   env.to = env.cc = env.bcc = env.subj = NULL;
+  env.outfiles = NULL; env.nfiles = 0;
   num = util_expand_msglist (argc, argv, &msglist);
-  
+
   if (mailbox_get_message(mbox, cursor, &msg))
     {
       util_error("%d: can't get message", cursor);
@@ -59,12 +60,12 @@ mail_followup (int argc, char **argv)
       util_strcat(&env.to, ",");
       util_strcat(&env.to, util_get_sender(msglist[i], 0));
     }
-  
+
   free(msglist);
 
   fprintf(ofile, "To: %s\n", env.to);
   fprintf(ofile, "Subject: %s\n\n", env.subj);
-      
+
   status = mail_send0(&env, isupper(argv[0][0]));
   free_env_headers (&env);
   return status;

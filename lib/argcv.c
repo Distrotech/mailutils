@@ -1,5 +1,5 @@
 /* argcv.c - simple functions for parsing input based on whitespace
-   Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -27,7 +27,7 @@
 
 #define isws(c) ((c)==' '||(c)=='\t')
 #define isdelim(c,delim) ((c)=='"'||strchr(delim,(c))!=NULL)
-		    
+
 static int
 argcv_scan (int len, const char *command, const char *delim,
 	    int *start, int *end, int *save)
@@ -42,6 +42,7 @@ argcv_scan (int len, const char *command, const char *delim,
   switch (command[i])
     {
     case '"':
+    case '\'':
       while (++i < len && command[i] != command[*start])
 	;
       if (i < len)  /* found matching quote */
@@ -62,7 +63,7 @@ argcv_scan (int len, const char *command, const char *delim,
   *save = i+1;
   return *save;
 }
-  
+
 int
 argcv_get (const char *command, const char *delim, int *argc, char ***argv)
 {
@@ -91,6 +92,11 @@ argcv_get (const char *command, const char *delim, int *argc, char ***argv)
       argcv_scan (len, command, delim, &start, &end, &save);
 
       if (command[start] == '"' && command[end] == '"')
+	{
+	  start++;
+	  end--;
+	}
+      else if (command[start] == '\'' && command[end] == '\'')
 	{
 	  start++;
 	  end--;
@@ -171,7 +177,7 @@ main()
 {
   int i, argc;
   char **argv;
-  
+
   argcv_get (command, "=", &argc, &argv);
   printf ("%d args:\n", argc);
   for (i = 0; i < argc; i++)

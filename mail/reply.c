@@ -38,7 +38,8 @@ mail_reply(int argc, char **argv)
       char *str;
 
       env.to = env.cc = env.bcc = env.subj = NULL;
-      
+      env.outfiles = NULL; env.nfiles = 0;
+
       if (mailbox_get_message(mbox, cursor, &msg))
 	{
 	  util_error("%d: can't get message", cursor);
@@ -55,7 +56,7 @@ mail_reply(int argc, char **argv)
 	  address_t addr = NULL;
 	  size_t i, count = 0;
 	  char buf[512];
-	  
+
 	  header_aget_value(hdr, MU_HEADER_TO, &str);
 
 	  address_create(&addr, str);
@@ -86,7 +87,7 @@ mail_reply(int argc, char **argv)
       if (env.cc)
 	fprintf(ofile, "Cc: %s\n", env.cc);
       fprintf(ofile, "Subject: %s\n\n", env.subj);
-      
+
       status = mail_send0(&env, 0);
       free_env_headers (&env);
       return status;

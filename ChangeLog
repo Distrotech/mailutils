@@ -1,3 +1,26 @@
+2001-07-05  Alain Magloire
+
+	We can send a message and if the address starts with '|'
+	the message is pipe to the cmd and if starts with '/' it is
+	save to a file.
+	     mailx ghislaine '|cat >save'
+	mails a message to ghislaine and also copies the message into a file
+	called save.
+
+	* mail/mail.h: Change struct send_environ to contain
+	two new fields char **outfiles and int nfiles.
+	* mail/send.c: Look for '/' and '|' when parsing the addresses
+	and add them to struct send_environ outfiles.
+	(mail_send0):  Memory overflow, we were free(buf) twice.
+	made char *buf local where it is needed.  Save the message
+	to outfiles when set.
+	(isfilename): New function.
+	* mail/followup.c: Initialise the struct send_environ new fields.
+	* mail/reply.c: Initialise the struct send_environ new fields.
+
+	* lib/argcv.c: Add support to consider string between
+	single quote like one word(same as double quotes).
+
 2001-07-04  Alain Magloire
 
 	* mailbox2/stream.c: stream_read() and stream_write()
