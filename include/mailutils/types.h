@@ -97,7 +97,8 @@ typedef struct _stream *stream_t;
 typedef struct _ticket *ticket_t;
 typedef struct _url *url_t;
 typedef struct _wicket *wicket_t;
-
+typedef void *mu_transport_t;
+  
 #ifdef __cplusplus
 }
 #endif
