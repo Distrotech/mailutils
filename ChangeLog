@@ -1,3 +1,13 @@
+2003-08-19  Sergey Poznyakoff 
+
+	* mh/replgroupcomps: New file.
+	* mh/Makefile.am (mhlib_DATA): Added components and
+	replgroupcomps.
+	* mh/repl.c: Implemented -group.
+	* mh/mh_format.c (builtin_in_reply_to): Bugfix.
+	* mh/mh_msgset.c (_mh_msgset_parse): Fixed the semantics
+	of last:N and prev:N.
+
 2003-08-18  Sergey Poznyakoff 
 
 	* mail/mail.h (ml_readline_with_intr): New function.
