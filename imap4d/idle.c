@@ -55,6 +55,6 @@ imap4d_idle (struct imap4d_command *command, char *arg)
       util_flush_output ();
     }
 
-  return util_finish (command, RESP_OK, "IDLE terminated");
+  return util_finish (command, RESP_OK, "terminated");
 }
 
