@@ -17,8 +17,10 @@
 
 #include "mail.h"
 
+#ifdef WITH_READLINE
 static char **ml_command_completion __P((char *cmd, int start, int end));
 static char *ml_command_generator __P((const char *text, int state));
+#endif
 
 static volatile int _interrupted;
 
@@ -254,8 +256,10 @@ ml_command_generator (const char *text, int state)
 #include <sys/ioctl.h>
 
 #define STDOUT 1
+#ifndef TIOCSTI
 static int ch_erase;
 static int ch_kill;
+#endif
 
 #if defined(TIOCSTI)
 #elif defined(HAVE_TERMIOS_H)
