@@ -1,3 +1,12 @@
+2004-06-06  Sergey Poznyakoff 
+
+	* include/mailutils/filter.h (filter_iconv_create): New prototype.
+	* mailbox/filter_iconv.c: Fixed several bugs. Use an extra
+	argument to filter_iconv_create to decide what to do
+	if conversion fails (mu_iconv_fallback_mode).
+	* examples/iconv.c: Updated call to filter_iconv_create()
+	* mailbox/rfc2047.c: Likewise.
+
 2004-06-05  Sergey Poznyakoff 
 
 	* NEWS: Updated
