@@ -1,3 +1,15 @@
+2003-12-29  Sergey Poznyakoff  
+
+	* comsat/comsat.c (main): Minor fix (do not use hardcoded
+	log facility)
+	* mail.local/main.c: New option --message-id-header
+	
+	* imap4d/imap4d.c: Fixed first argument to socket (Thanks
+	Daniel Dehennin <nebuchadnezzar@nerim.net> for reporting)
+	* mailbox/tcp.c: Likewise
+	* pop3d/pop3d.c: Likewise
+	* mailbox/mu_argp.c: Minor style fix
+
 2003-12-28  Jeff Bailey  <jbailey@nisa.net>
 
 	* doc/texinfo/Makefile.am: Use ../$(srcdir) instead of .. to
