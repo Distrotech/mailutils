@@ -1,6 +1,6 @@
 ## Process this file with GNU Automake to create Makefile.in
 
-##   Copyright (C) 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
+##   Copyright (C) 2000,2001,2002,2003,2004 Free Software Foundation, Inc.
 ##
 ##   GNU Mailutils is free software; you can redistribute it and/or
 ##   modify it under the terms of the GNU General Public License as
@@ -17,7 +17,7 @@
 ##   Foundation, Inc.
 ##   59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-AUTOMAKE_OPTIONS = gnits 1.7.1 dist-bzip2 std-options
+AUTOMAKE_OPTIONS = gnits 1.8 dist-bzip2 std-options
 ACLOCAL_AMFLAGS = -I m4
 
 SUBDIRS = headers include m4 intl po lib testsuite mailbox libsieve doc \
