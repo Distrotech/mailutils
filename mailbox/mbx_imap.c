@@ -1727,6 +1727,9 @@ message_operation (f_imap_t f_imap, msg_imap_t msg_imap, char *buffer,
     }
   if (plen)
     *plen = f_imap->callback.total;
+
+  if (status == 0 && f_imap->isopen == 0 && f_imap->callback.total == 0)
+    status = EBADF;
   /* Clear the callback.  */
   f_imap->callback.buffer = NULL;
   f_imap->callback.buflen = 0;

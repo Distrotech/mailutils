@@ -1,3 +1,8 @@
+2001-09-04  Alain Magloire
+
+	* mailbox/mbx_imap.c (message_operation):  Check if the
+	imap server went away(f_imap->isopen) and flag an error.
+
 2001-09-03  Alain Magloire
 
 	* mailbox/folder_imap.c (imap_use): Check return value.
