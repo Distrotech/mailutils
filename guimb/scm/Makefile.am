@@ -5,7 +5,7 @@
 bin_SCRIPTS = sieve.scm
 
 sieve.scm: sieve.scm.in
-	sed "s,%BINDIR%,$(bindir),g;s,%LIBDIR%,$(pkgdatadir),g;s,%PACKAGE%,$(PACKAGE),g;s,%VERSION%,$(VERSION),g" $< > $@
+	sed "s,%GUILE_BINDIR%,@GUILE_BINDIR@,g;s,%BINDIR%,$(bindir),g;s,%LIBDIR%,$(pkgdatadir),g;s,%PACKAGE%,$(PACKAGE),g;s,%VERSION%,$(VERSION),g" $< > $@
 
 CLEANFILES = sieve.scm
 
