@@ -138,7 +138,7 @@ static const char *guimb_argp_capa[] = {"mailutils", NULL};
 int
 main (int argc, char *argv[])
 {
-  int c;
+  int c = argc;
   guimb_param_t param;
   struct guimb_data gd;
   
