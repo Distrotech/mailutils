@@ -19,6 +19,10 @@
 	
 	* comsat/action.c: (expand_line): Removed unused variable.
 	* libmu_scm/mu_mailbox.c: Fixed indentation.
+	* libmu_scm/mu_address.c: (_get_address_part) Removed unused
+          variable.
+	* libmu_scm/mu_mime.c: (mu_scm_mime_print) Added missing return
+          value.
 	* pop3d/apop.c: Fixed typecasts.
 	
 2002-01-14 Sergey Poznyakoff  
