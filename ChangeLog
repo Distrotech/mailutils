@@ -1,3 +1,27 @@
+2002-03-01 Sam Roberts
+
+	* Makefile.am, configure.in: Added dotlock.
+	* mailbox/: mbx_mbox.c, mbx_mboxscan.c, mbx_mh.c: locker API
+	  modified.  using mu_errstring() instead of strerror().
+	* mailbox/mbx_pop.c: Using mu_errstring() instead of strerror().
+	* pop3d/lock.c: locker_lock() api changed. pop3d uses MU_LOCKER_PID.
+	* mail.local/main.c: Retrying the dot lock is now handled by the
+	  locker_t.
+	* dotlock/: .cvsignore, Makefile.am, dotlock.c: dotlock - setgid
+	  program to dot lock a file, modelled on mutt_dotlock.
+	* mailbox/locker.c, include/mailutils/locker.h: New modes,
+	  including a retry mode (the default), removed fcntl and stub
+	  read/write lock mode.  New function, to remove a lock even if not
+	  owned (useful for the external dotlock utility).  New functions,
+	  to set the expire time for MU_LOCKER_TIME, the flags, and the
+	  retries and retry sleep for MU_LOCKER_RETRY.
+
+2002-02-27 Sam Roberts
+
+	* examples/: Addrs.good, addr.c: New addr return codes.
+	* mail.local/mail.local.h: Including <mailutils/errno.h>.
+	* mail/mail.h: Added <strings.h> for systems that have it.
+
 2002-02-27  Sergey Poznyakoff  
 
 	* imap4d/status.c: Provide better diagnostics.
