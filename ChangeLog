@@ -1,3 +1,8 @@
+2003-06-22  Alain Magloire
+
+	* doc/texinfo/pop3.texi: First draft documenting the new low level
+	API for POP3.
+
 2003-06-21  Wojciech Polak
 
 	* mailutils.spec.in: Major changes. Added new packages,
@@ -22,7 +27,7 @@
 	* m4/Makefile.am: Added nls.m4 and po.m4.
 	* po/Makevars: Added MSGID_BUGS_ADDRESS.
 
-2003-06-07  Sergey Poznyakoff  
+2003-06-07  Sergey Poznyakoff
 
 	* NEWS: Updated
 
@@ -31,7 +36,7 @@
 	* imap4d/fetch.c (fetch_internaldate): Bugfix. Coredumped
 	on invalid dates.
 
-2003-05-28  Sergey Poznyakoff  
+2003-05-28  Sergey Poznyakoff
 
 	* mh/mhn.c (store_handler): Honor the `name' attribute of
 	the Content-Type header.
@@ -98,7 +103,7 @@
 	* include/mailutils/mu_auth.h: Include <mailutils/types.h>,
 	  protect the file contents by #ifndef .. #endif
 	* mailbox/mu_argp.c (mu_conf_option): Reflect HAVE_PGSQL
-	
+
 2003-04-22  Sergey Poznyakoff
 
 	* mailbox/imap/folder.c (imap_literal_string): Bugfix. Literal
@@ -110,7 +115,7 @@
 	* mh/mhn.c (mhn_store_command): Bugfix. Properly use message
 	  part numbers.
 
-2003-04-11  Sergey Poznyakoff 
+2003-04-11  Sergey Poznyakoff
 
 	* mailbox/filter_trans.c (qp_decode): Bugfix.
 
@@ -125,15 +130,15 @@
 
 	* mh/mhn.c (normalize_path): Bugfix.
 
-2003-03-29  Sergey Poznyakoff  
+2003-03-29  Sergey Poznyakoff
 
 	Minor changes to avoid duplicating some symbols (namely
 	argp_program_version and argp_program_bug_address). This
 	allows the package to build on MacOS.
-	
+
 	* include/mailutils/argp.h (mu_argp_init): New function.
 	* mailbox/mu_argp.c: Likewise.
-	
+
 	* comsat/comsat.c (main): Use mu_argp_init.
 	* frm/frm.c: Likewise.
 	* from/from.c: Likewise.
@@ -170,17 +175,17 @@
 	* readmsg/readmsg.c: Likewise.
 	* sieve/sieve.c: Likewise.
 	* dotlock/dotlock.c: Likewise.
-	
+
 	* mail.local/mail.local.h: include <sys/types.h> (necessary for
 	  Darwin).
 	* mail/mail.h (struct message_set): Changed type fo msg_part to
 	  size_t.
 	* libsieve/comparator.c (i_ascii_casemap_contains): Fixed
 	  obsolete label usage.
-	  
+
 	* THANKS: Added Timothy Carpenter
 
-2003-03-27  Sergey Poznyakoff 
+2003-03-27  Sergey Poznyakoff
 
 	* mailbox/filter_trans.c (_hexdigits): Must be zero-terminated,
 	  otherwise the native Darwin loader refuses to load it.
@@ -194,14 +199,14 @@
 	* mh/mhn.c (mhn_store_command): If no message part is available
 	  ignore %p and %P metacharacters.
 	  (store_handler): Unlink the file if it exists.
-	  
+
 2003-03-26  Sergey Poznyakoff
 
         * mailbox/mu_auth.c (mu_auth_data_alloc): Fixed COPY macro.
 	* mh/mhn.c (main): Ignore sighups.
 	* mh/mh_format.c (builtin_formataddr): Bugfix.
-		
-2003-03-26  Sergey Poznyakoff 
+
+2003-03-26  Sergey Poznyakoff
 
 	* include/mailutils/errno.h (MU_ERR_FAILURE): New macro
 	* mailbox/muerrno.c: Likewise
@@ -214,8 +219,8 @@
 	  on folders with only one message.
 	* mh/mhn.c: Print information about the external body parts.
 	* mh/whom.c (mh_option): Bugfix
-	
-2003-03-24  Sergey Poznyakoff 
+
+2003-03-24  Sergey Poznyakoff
 
 	* mh/mhn.c (stream_getline,parse_content_type): A couple of
 	  bugfixes.
@@ -268,12 +273,12 @@
 	* imap4d/fetch.c: Likewise.
 	* pop3d/auth.c: Likewise.
 	* pop3d/signal.c: Likewise.
-	
+
 2003-03-22  Jordi Mallach
 
 	* mailbox/Makefile.am (EXTRA_DIST): Added parsedate.y.
 
-2003-03-22  Sergey Poznyakoff 
+2003-03-22  Sergey Poznyakoff
 
 	* configure.ac: Raised version number to 0.3.1
 	  Define macro ATTRIBUTE_UNUSED.
@@ -288,19 +293,19 @@
 	* mh/pick.y: Likewise.
 	* mail/from.c (mail_from0): Bugfix.
 	* include/mailutils/mutil.h (mu_parse_date): New function.
-	
+
 2003-03-20  Sergey Poznyakoff
 
 	* mh/README: Updated.
 	* mh/mhn.c: Recognize mhn-compose-* profile components.
 
-2003-03-20  Sergey Poznyakoff 
+2003-03-20  Sergey Poznyakoff
 
 	* mh/mhn.c: Implemented #forw directive.
 	* mh/forw.c: Fixed --mime mode.
 	* mh/TODO: Updated
 
-2003-03-19  Sergey Poznyakoff 
+2003-03-19  Sergey Poznyakoff
 
 	* mh/anno.c: Minor changes for consistency with the overall
 	  GNU mh options layout.
@@ -325,7 +330,7 @@
 	* mh/sortm.c: Likewise.
 	* mh/whatnow.c: Likewise.
 	* mh/whom.c: Likewise.
-	
+
 2003-03-19  Sergey Poznyakoff
 
 	* doc/rfc/Makefile.am: Added rfc1521.txt
@@ -335,8 +340,8 @@
 	* mh/mh_init.c (mh_create_message_id): Minor change.
 	* mh/README: Updated
 	* mh/TODO: Updated
-	
-2003-03-19  Sergey Poznyakoff 
+
+2003-03-19  Sergey Poznyakoff
 
 	* mh/mhn.c: Added framework for compose mode.
 	* mh/mh.h (mh_create_message_id): New function.
@@ -360,7 +365,7 @@
 	* mailbox/mailcap.c: Updated copyright.
 	* include/mailutils/mailcap.h: Likewise.
 
-2003-03-15  Sergey Poznyakoff 
+2003-03-15  Sergey Poznyakoff
 
 	* mh/mhn.c: New file. Implementation of mhn utility (partial).
 	* mh/.cvsignore: Added mhn
@@ -376,8 +381,8 @@
 	* mh/mhl.c: Updated invocations of mhl_format_run().
 	* mh/repl.c: Likewise.
 	* po/POTFILES.in: Added new files.
-	
-2003-03-14  Sergey Poznyakoff  
+
+2003-03-14  Sergey Poznyakoff
 
 	* TODO: Reformatted in Emacs outline mode
 	* mh/compcommon.c: New file.
@@ -391,42 +396,42 @@
 	* mh/mh_stream.c (_body_readline,_body_stream_size): Bugfix.
 	* mh/mh_whom.c (scan_addrs): Bugfix.
 	* po/POTFILES.in: Added new files.
-	
-2003-03-13  Sergey Poznyakoff 
+
+2003-03-13  Sergey Poznyakoff
 
 	Reorganized directory layout under mailbox/.
-	
+
 	* configure.ac: Added mailbox/ subdirectories
 	* mailbox/Makefile.am: Likewise.
 	* po/POTFILES.in: Added missing files.
 	* mh/README: Updated
-	
+
 	* mailbox/mbox/Makefile.am: New file
-	* mailbox/mbox/.cvsignore: New file	
+	* mailbox/mbox/.cvsignore: New file
 	* mailbox/mbox/folder.c: Moved from ../
 	* mailbox/mbox/mbox.c: Moved from ../
 	* mailbox/mbox/url.c: Moved from ../
 	* mailbox/mbox/mboxscan.c: Moved from ../
 	* mailbox/mbox/mbox0.h: New file
-	
+
 	* mailbox/mh/Makefile.am: New file
-	* mailbox/mh/.cvsignore: New file	
+	* mailbox/mh/.cvsignore: New file
 	* mailbox/mh/folder.c: Moved from ../
 	* mailbox/mh/mbox.c: Moved from ../
 	* mailbox/mh/url.c: Moved from ../
-	
+
 	* mailbox/maildir/Makefile.am: New file
-	* mailbox/maildir/.cvsignore: New file	
+	* mailbox/maildir/.cvsignore: New file
 	* mailbox/maildir/mbox.c: New file
 
 	* mailbox/imap/Makefile.am: New file
-	* mailbox/imap/.cvsignore: New file	
+	* mailbox/imap/.cvsignore: New file
 	* mailbox/imap/folder.c: Moved from ../
 	* mailbox/imap/mbox.c: Moved from ../
 	* mailbox/imap/url.c: Moved from ../
 
 	* mailbox/pop/Makefile.am: New file
-	* mailbox/pop/.cvsignore: New file	
+	* mailbox/pop/.cvsignore: New file
 	* mailbox/pop/folder.c: Moved from ../
 	* mailbox/pop/mbox.c: Moved from ../
 	* mailbox/pop/url.c: Moved from ../
@@ -435,11 +440,11 @@
 	* mailbox/mbx_mbox.c: Moved to mbox/mbox.c
 	* mailbox/url_mbox.c: Moved to mbox/url.c
 	* mailbox/mbx_mboxscan.c: Moved to mbox/mboxscan.c
-	
+
 	* mailbox/folder_mh.c: Moved to mh/folder.c
 	* mailbox/mbx_mh.c: Moved to mh/mh.c
 	* mailbox/url_mh.c: Moved to mh/url.c
-	
+
 	* mailbox/mbx_maildir.c: Moved to maildir/mbox.c
 
 	* mailbox/folder_imap.c: Moved to imap/folder.c
@@ -450,7 +455,7 @@
 	* mailbox/mbx_pop.c: Moved to pop/mbox.c
 	* mailbox/url_pop.c: Moved to pop/url.c
 
-2003-03-11  Sergey Poznyakoff  
+2003-03-11  Sergey Poznyakoff
 
 	* auth/sql.c (mu_sql_authenticate): Bugfix.
 	* mh/.cvsignore: Added 'whom'.
@@ -464,8 +469,8 @@
 	* mh/mh_whatnow.c (whom): Use mh_whom.
 	* mh/send.c (draft_name): Removed.
 	* mh/whatnow.c (main): Use 'draft' by default.
-	
-2003-03-10  Sergey Poznyakoff 
+
+2003-03-10  Sergey Poznyakoff
 
 	* comsat/comsat.c: Use ngettext.
 	* mh/sortm.c: New file. Source for the sortm utility.
@@ -474,7 +479,7 @@
 	* mh/README: Updated
 	* mh/TODO: Updated
 	* mh/mh_getopt.h: Updated
-	
+
 2003-03-03  Sergey Poznyakoff
 
 	* configure.ac: New option --with-included-argp
@@ -489,8 +494,8 @@
 
 	* doc/texinfo/mom.texi: Draft explanation of the
 	Mailutils Object Model (MOM).
-  
-2003-02-24  Sergey Poznyakoff  
+
+2003-02-24  Sergey Poznyakoff
 
 	* include/mailutils/mailcap.h: Added missing prototypes, protected
 	  argument decls with __P and the whole stuff with extern "C".
@@ -504,7 +509,7 @@
 	* mailbox/testsuite/Makefile.am: Added Mailcap
 	* mailbox/testsuite/mailbox/mailcap.exp: New file.
 	* mailbox/testsuite/mailbox/DISTFILES: Added mailcap.exp
-	
+
 2003-02-23  Alain Magloire
 
 	* mailbox/refcount.c: Added a simple thread-safe implementation.
