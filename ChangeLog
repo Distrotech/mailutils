@@ -1,3 +1,19 @@
+2002-12-13  Sergey Poznyakoff 
+
+	* mail.local/mail.local.h: Create temporary mailbox instead of
+	  the temporary message, to avoid problems when running sieve
+	  fileinto.
+	* mail.local/main.c: Likewise.
+	* mail.local/script.c: Likewise.
+	* doc/texinfo/Makefile.am: Added rules for generating
+	  web documentation.
+	* doc/texinfo/index.html.in: New file. Template for generating
+	  web documentation index page.
+	* doc/texinfo/framework.texi: Updated.
+	* doc/texinfo/libsieve.texi: Likewise.
+	* doc/texinfo/mailutils.texi: Likewise.
+	* doc/texinfo/programs.texi: Likewise.
+
 2002-12-12  Sergey Poznyakoff
 
 	* mail.local/main.c (_sieve_action_log): Use vasprintf.
