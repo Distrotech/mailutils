@@ -34,6 +34,7 @@
 
 #include <message0.h>
 #include <mailutils/address.h>
+#include <mailutils/mutil.h>
 
 #define MESSAGE_MODIFIED 0x10000;
 

@@ -28,8 +28,10 @@
 #include <string.h>
 #include <netdb.h>
 
-#include <mailutils/stream.h>
 #include <mailutils/address.h>
+#include <mailutils/stream.h>
+#include <mailutils/mutil.h>
+
 #include <mailer0.h>
 #include <registrar0.h>
 
