@@ -37,8 +37,8 @@ mbx_mbox.c \
 mbx_pop.c \
 message.c \
 mime.c \
-misc.c
-monitor.c
+misc.c \
+monitor.c \
 observer.c \
 registrar.c \
 sendmail.c \
