@@ -37,7 +37,12 @@ struct sieve_machine {
   char *filename;         /* Name of the source script */
   list_t memory_pool;     /* Pool of allocated memory objects */
   list_t destr_list;      /* List of destructor functions */
-  
+
+  /* Symbol space: */
+  list_t test_list;       /* Tests */
+  list_t action_list;     /* Actions */
+  list_t comp_list;       /* Comparators */
+
   size_t progsize;        /* Number of allocated program cells */
   sieve_op_t *prog;       /* Compiled program */
 
@@ -103,9 +108,9 @@ int _sieve_default_parse_error __P((void *unused,
 int sieve_lex_begin __P((const char *name));
 void sieve_lex_finish __P((void));
 
-void sieve_register_standard_actions __P((void));
-void sieve_register_standard_tests __P((void));
-void sieve_register_standard_comparators __P((void));
+void sieve_register_standard_actions __P((sieve_machine_t mach));
+void sieve_register_standard_tests __P((sieve_machine_t mach));
+void sieve_register_standard_comparators __P((sieve_machine_t mach));
 
 int sieve_code __P((sieve_op_t *op));
 int sieve_code_instr __P((sieve_instr_t instr));
@@ -126,6 +131,5 @@ void instr_branch __P((sieve_machine_t mach));
 void instr_brz __P((sieve_machine_t mach));
 
 int sieve_mark_deleted __P((message_t msg, int deleted));
-int sieve_require_comparator __P((const char *name));
 
 int sieve_match_part_checker __P((const char *name, list_t tags, list_t args));
