@@ -769,20 +769,42 @@ static char *action_to_string(action_t action)
     return "Error!";
 }
 
-static char *sieve_errstr(int code)
+const char *sieve_errstr(int code)
 {
     switch (code)
 	{
-	case SIEVE_FAIL: return "Generic Error";
-	case SIEVE_NOT_FINALIZED: return "Sieve not finalized";
-	case SIEVE_PARSE_ERROR: return "Parse error";
-	case SIEVE_RUN_ERROR: return "Run error";
-	case SIEVE_INTERNAL_ERROR: return "Internal Error";
-	case SIEVE_NOMEM: return "No memory";
-	default: return "Unknown error";
+	case SIEVE_FAIL: return "generic error";
+	case SIEVE_NOT_FINALIZED: return "sieve not finalized";
+	case SIEVE_PARSE_ERROR: return "parse error";
+	case SIEVE_RUN_ERROR: return "run error";
+	case SIEVE_INTERNAL_ERROR: return "internal error";
+	case SIEVE_NOMEM: return "no memory error";
+	default: return "unknown error";
 	}
 
     return "Error!";
+}
+
+const char * sieve_errname (int e)
+{
+  switch (e)
+    {
+    case SIEVE_FAIL:
+      return "FAIL";
+    case SIEVE_NOT_FINALIZED:
+      return "NOT_FINALIZED";
+    case SIEVE_PARSE_ERROR:
+      return "PARSE_ERROR";
+    case SIEVE_RUN_ERROR:
+      return "RUN_ERROR";
+    case SIEVE_INTERNAL_ERROR:
+      return "INTERNAL_ERROR";
+    case SIEVE_NOMEM:
+      return "NOMEM";
+    case SIEVE_DONE:
+      return "DONE";
+    }
+  return "UNKNOWN";
 }
 
 #define HASHSIZE 16
