@@ -25,6 +25,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <fnmatch.h>
 
 char mh_list_format[] = 
 "%4(msg)%<(cur)+%| %>%<{replied}-%?{encrypted}E%| %>"
@@ -142,11 +143,49 @@ mh_get_my_name (char *name)
 }
 
 int
+emailcmp (char *pattern, char *name)
+{
+  char *p;
+
+  p = strchr (pattern, '@');
+  if (p)
+    for (p++; *p; p++)
+      *p = toupper (*p);
+
+  return fnmatch (pattern, name, 0);
+}
+
+int
 mh_is_my_name (char *name)
 {
+  char *pname, *p;
+  int rc = 0;
+  
+  pname = strdup (name);
+  p = strchr (pname, '@');
+  if (p)
+    for (p++; *p; p++)
+      *p = toupper (*p);
+  
   if (!my_email)
     mh_get_my_name (NULL);
-  return strcasecmp (name, my_email) == 0;
+  if (emailcmp (my_email, pname) == 0)
+    rc = 1;
+  else
+    {
+      char *nlist = mh_global_profile_get ("Alternate-Mailboxes", NULL);
+      if (nlist)
+	{
+	  char *p, *sp;
+      
+	  p = strtok_r (nlist, ",", &sp);
+	  do
+	    rc = emailcmp (p, pname) == 0;
+	  while (rc == 0 && (p = strtok_r (NULL, ",", &sp)));
+	}
+    }
+  free (pname);
+  return rc;
 }
 
 char *
