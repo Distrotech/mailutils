@@ -21,7 +21,7 @@ INCLUDES =-I. -I$(top_builddir) -I$(srcdir) -I$(top_srcdir)/lib -I$(top_srcdir)/
 
 lib_LTLIBRARIES=@MU_SCM@
 EXTRA_LTLIBRARIES=libmu_scm.la
-libmu_scm_la_SOURCES=\
+C_SRCS=\
  mu_address.c\
  mu_body.c\
  mu_guimb.c\
@@ -31,7 +31,10 @@ libmu_scm_la_SOURCES=\
  mu_logger.c\
  mu_port.c\
  mu_scm.c\
- mu_util.c\
+ mu_util.c
+
+libmu_scm_la_SOURCES=\
+ $(C_SRCS) \
  mu_scm.h
 
 libmu_scm_la_LDFLAGS = -rpath $(libdir) -version-info 0:0:0
@@ -72,7 +75,7 @@ SUFFIXES=.x .doc .inc .in
 guile-procedures.txt: $(DOT_DOC_FILES)
 	cat $(DOT_DOC_FILES) > $@
 
-mailutils.scm: mailutils.scm.in $(libmu_scm_la_SOURCES:.c=.inc)
+mailutils.scm: mailutils.scm.in $(C_SRCS:.c=.inc)
 	m4 -DVERSION=$(VERSION) -DLIBDIR=$(libdir) \
            -DBUILDDIR=$(top_builddir)/libmu_scm $? > $@
 
