@@ -145,7 +145,7 @@ myticket_create (ticket_t *pticket, const char *user, const char *pass, const ch
     }
 
   ticket_set_destroy (*pticket, myticket_destroy, NULL);
-  status = ticket_set_pop (*pticket, myticket_pop, NULL);
+  ticket_set_pop (*pticket, myticket_pop, NULL);
   ticket_set_data (*pticket, mdata, NULL);
 
   if (filename)
