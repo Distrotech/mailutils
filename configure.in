@@ -60,8 +60,8 @@ AC_TYPE_SIZE_T
 
 dnl Check for working functions
 
-AC_REQUIRE([jm_FUNC_MALLOC])
-AC_REQUIRE([jm_FUNC_REALLOC])
+jm_FUNC_MALLOC
+jm_FUNC_REALLOC
 AC_FUNC_ALLOCA
 # Not use.
 #AC_FUNC_MEMCMP

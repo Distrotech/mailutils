@@ -2,8 +2,9 @@ GNU mailutils THANKS file
 
 GNU mailutils has originally been written by Jakob Kaivo, Jeff Bailey and
 Sean 'Shaleh' Perry. Many people further contributed to GNU mailutils by
-reporting problems, suggesting various improvements or submitting actual 
-code. Here is a list of these people. Help us keep it complete and exempt 
+reporting problems, suggesting various improvements or submitting actual
+code. Here is a list of these people. Help us keep it complete and exempt
 of errors.
 
-Frank Belew <frb@wiw.org>
+Frank Belew       <frb@wiw.org>
+Vesselin Atanasov <vesselin@bgnet.bg>
