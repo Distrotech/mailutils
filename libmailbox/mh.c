@@ -28,16 +28,11 @@ int
 mh_open (mailbox * mbox)
 {
   int i;
-  char old_dir[PATH_MAX];
   struct dirent *entry;
   mh_data *data;
 
   if(mbox == NULL)
     return EINVAL;
-
-  if(getcwd (old_dir, PATH_MAX) == NULL)
-    old_dir[0] = '\0';
-  chdir (mbox->name);
 
   data = malloc (sizeof (mh_data));
   data->dir = opendir (mbox->name);
@@ -49,6 +44,7 @@ mh_open (mailbox * mbox)
     {
       unsigned long seq_num;
       char *foo = NULL;
+      char fname[PATH_MAX];
       if (entry->d_name[0] == '.')
 	{
 	  if (strcmp(entry->d_name, ".mh_sequences") == 0)
@@ -80,7 +76,7 @@ mh_open (mailbox * mbox)
 #endif
   chdir(old_dir);
 
-  fprintf(stderr, "\n%d messages read\n", mbox->messages);
+  fprintf(stderr, "\r\n%d messages read\n", mbox->messages);
 
   return 0;
 }
