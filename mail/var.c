@@ -26,7 +26,7 @@ dump_headers (FILE *fp, compose_env_t *env)
   char buffer[512];
   stream_t stream = NULL;
   size_t off = 0, n;
-
+  
   header_get_stream (env->header, &stream);
   while (stream_read (stream, buffer, sizeof buffer - 1, off, &n) == 0
 	 && n != 0)
@@ -35,7 +35,6 @@ dump_headers (FILE *fp, compose_env_t *env)
       fprintf (fp, "%s", buffer);
       off += n;
     }
-  fprintf (fp, "\n");
 }
 
 #define STATE_INIT 0
