@@ -120,4 +120,5 @@ fi
 dnl Output Makefiles
 AC_OUTPUT(Makefile mailutils.spec include/Makefile include/mailutils/Makefile
  m4/Makefile doc/Makefile lib/Makefile mailbox/Makefile imap4d/Makefile
- mailbox/include/Makefile from/Makefile mail/Makefile pop3d/Makefile)
+ mailbox/include/Makefile from/Makefile mail/Makefile pop3d/Makefile
+ frm/Makefile)

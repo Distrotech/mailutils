@@ -1,18 +1,15 @@
 # -*- Shell-script -*-
-%define ver	@VERSION@
-%define RELEASE	1
-%define prefix	/usr
+%define rel    1
+%define prefix /usr
 
 Summary: GNU mail utilities
 Name: mailutils
-Version: %ver
+Version: @VERSION@
 Release: %rel
 Copyright: GPL
-Source: ftp://ftp.gnu.org/pub/mailutils/mailutils-%{ver}.tar.gz
-BuildRoot: /var/tmp/mailutils-%{PACKAGE_VERSION}-root
-Packager: Jakob 'sparky' Kaivo <jkaivo@gnu.org>
-URL: http://www.gnu.org/software/mailutils/mailutils.html
-Group: Console/Mail
+Source: ftp://ftp.gnu.org/pub/%{name}/%{name}-%{version}.tar.gz
+BuildRoot: /var/tmp/%{name}-%{version}-root
+URL: http://www.gnu.org/software/%{name}/%{name}.html
 
 %description
 GNU mail utilities
@@ -35,7 +32,7 @@ Group: Development/Libraries
 
 %description -n libmailbox-dev
 The static library and header files for libmailbox. API documentation
-is in mailutils-doc.
+is in %{name}-doc.
 
 %package doc
 Summary: GNU mail utitlies documentation
