@@ -1,3 +1,13 @@
+2002-12-16  Sergey Poznyakoff
+
+	* doc/texinfo/Makefile.am: Added trailing slash to the default
+	  BASE_URL
+	* doc/texinfo/libmu_scm.texi: Fixed use of @deffn
+	* doc/texinfo/libmuauth.texi: Likewise.
+	* doc/texinfo/libsieve.texi: Likewise.
+
+	The sources are tagged "rel_0_2".
+	
 2002-12-15  Sergey Poznyakoff
 
 	* configure.ac: Raised version number to 0.2
