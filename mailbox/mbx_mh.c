@@ -21,17 +21,25 @@
 # include <config.h>
 #endif
 
+#ifdef WITH_PTHREAD
+# ifdef HAVE_PTHREAD_H
+#  define _XOPEN_SOURCE  500
+#  include <pthread.h>
+# endif
+#endif
+
+#include <sys/types.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
 #include <sys/stat.h>
-#include <sys/types.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <errno.h>
 
 #include <dirent.h>
 
+#include <string.h>
 #ifdef HAVE_STRINGS_H
 # include <strings.h>
 #endif
@@ -54,15 +62,15 @@ struct _mh_message
   struct _mh_message *prev;
 
   stream_t stream;          /* Associated file stream */
-  off_t body_start;         /* Offset of body start in the message file */ 
+  off_t body_start;         /* Offset of body start in the message file */
   off_t body_end;           /* Offset of body end (size of file, effectively */
-  
-  int seq_number;           /* message sequence number */
+
+  size_t seq_number;           /* message sequence number */
   size_t uid;               /* IMAP uid. */
 
   int attr_flags;           /* Attribute flags */
   int deleted;              /* Was the message originally deleted */
-  
+
   size_t header_lines;
   size_t body_lines;
 
@@ -79,16 +87,16 @@ struct _mh_data
 
   unsigned long uidvalidity;
   size_t uidnext;                /* Next available UID */
-  
+
   char *name;                    /* Directory name */
 
   /* Pool of open message streams */
   struct _mh_message *msg_pool[MAX_OPEN_STREAMS];
-  int pool_first;    /* Index to the first used entry in msg_pool */      
+  int pool_first;    /* Index to the first used entry in msg_pool */
   int pool_last;     /* Index to the first free entry in msg_pool */
 
   time_t mtime;      /* Time of last modification */
-  
+
   mailbox_t mailbox; /* Back pointer. */
 };
 
@@ -146,11 +154,13 @@ static int mh_envelope_sender __P((envelope_t envelope, char *buf, size_t len,
 static char *
 _mh_message_name (struct _mh_message *mhm, int deleted)
 {
-  char *filename = NULL;
+  char *filename;
+  size_t len = strlen (mhm->mhd->name) + 32;
+  filename = malloc (len);
   if (deleted)
-    asprintf (&filename, "%s/,%d", mhm->mhd->name, mhm->seq_number);
+    snprintf (filename, len, "%s/,%d", mhm->mhd->name, mhm->seq_number);
   else
-    asprintf (&filename, "%s/%d", mhm->mhd->name, mhm->seq_number);
+    snprintf (filename, len, "%s/%d", mhm->mhd->name, mhm->seq_number);
   return filename;
 }
 
@@ -219,7 +229,7 @@ mh_destroy (mailbox_t mailbox)
 {
   struct _mh_data *mhd = mailbox->data;
   struct _mh_message *msg, *next;
-  
+
   if (!mhd)
     return;
 
@@ -244,12 +254,12 @@ mh_destroy (mailbox_t mailbox)
 static int
 mh_open (mailbox_t mailbox, int flags)
 {
-  unsigned long seq_num = 0;
-  struct dirent *entry;
+  /* unsigned long seq_num = 0; */
+  /* struct dirent *entry; */
   struct _mh_data *mhd = mailbox->data;
   int status = 0;
   struct stat st;
-  
+
   mailbox->flags = flags;
   if (stat (mhd->name, &st) < 0)
     return errno;
@@ -258,7 +268,7 @@ mh_open (mailbox_t mailbox, int flags)
     return EINVAL;
 
   mhd->mtime = st.st_mtime;
-  
+
   /* FIXME: something else? */
   if (mailbox->locker == NULL)
     status = locker_create (&mailbox->locker, mhd->name, strlen (mhd->name),
@@ -271,7 +281,7 @@ mh_close (mailbox_t mailbox)
 {
   if (!mailbox)
     return EINVAL;
-  locker_unlock (mailbox->locker);
+  return locker_unlock (mailbox->locker);
 }
 
 static struct _mh_message *
@@ -294,7 +304,7 @@ _mh_get_message_seq (struct _mh_data *mhd, size_t seq)
 
   for (msg = mhd->msg_head; msg && msg->seq_number < seq; msg = msg->next)
     ;
-  
+
   if (msg)
     return msg->seq_number == seq ? msg : NULL;
   return NULL;
@@ -417,7 +427,7 @@ mh_get_message (mailbox_t mailbox, size_t msgno, message_t *pmsg)
   message_set_mailbox (msg, mailbox, mhm);
 
   *pmsg = msg;
-  
+
   return 0;
 }
 
@@ -425,6 +435,8 @@ static int
 mh_append_message (mailbox_t mailbox, message_t msg)
 {
   /*FIXME*/
+  (void)mailbox;
+  (void)msg;
   return ENOSYS;
 }
 
@@ -450,7 +462,7 @@ mh_messages_recent (mailbox_t mailbox, size_t *pcount)
 {
   struct _mh_data *mhd = mailbox->data;
   struct _mh_message *mhm;
-  size_t i, count;
+  size_t count;
 
   /* If we did not start a scanning yet do it now.  */
   if (mhd->msg_count == 0)
@@ -503,7 +515,6 @@ static FILE *
 _mh_tempfile(struct _mh_data *mhd, char **namep)
 {
   char *filename;
-  char *tmpdir;
   int fd;
 
   filename = malloc (strlen (mhd->name) + /*'/'*/1 + /* "muXXXXXX" */8 + 1);
@@ -542,13 +553,13 @@ _mh_message_save (struct _mh_message *mhm, char *msg_name)
   FILE *fp;
   char buffer[512];
   off_t off = 0;
-  size_t n; 
+  size_t n;
   char *filename;
-  
-  fp = _mh_tempfile (mhm->mhd, &filename);  
+
+  fp = _mh_tempfile (mhm->mhd, &filename);
   if (!fp)
     return errno;
-  
+
   if (!mhm->message)
     {
       mh_pool_open (mhm);
@@ -604,12 +615,12 @@ mh_expunge (mailbox_t mailbox)
     {
       struct _mh_message *next = mhm->next;
       char *msg_name;
-      
+
       msg_name = _mh_message_name (mhm,
 				   mhm->attr_flags & MU_ATTRIBUTE_DELETED);
       _mh_message_save (mhm, msg_name);
       free (msg_name);
-      
+
       if (mhm->attr_flags & MU_ATTRIBUTE_DELETED)
 	{
 	  if (!mhm->deleted)
@@ -630,7 +641,7 @@ mh_expunge (mailbox_t mailbox)
 	}
       mhm = next;
     }
-  
+
   return 0;
 }
 
@@ -638,6 +649,7 @@ static int
 mh_save_attributes (mailbox_t mailbox)
 {
   /*FIXME*/
+  (void)mailbox;
   return ENOSYS;
 }
 
@@ -678,7 +690,7 @@ mh_uidnext (mailbox_t mailbox, size_t *puidnext)
      *puidnext = mhd->uidnext;
   return 0;
 }
-  
+
 /* FIXME: effectively the same as mbox_cleanup */
 static void
 mh_cleanup (void *arg)
@@ -722,8 +734,8 @@ _mh_message_insert (struct _mh_data *mhd, struct _mh_message *msg)
 {
   struct _mh_message *p;
   struct _mh_message *prev;
-  int n = msg->seq_number;
-  
+  size_t n = msg->seq_number;
+
   for (p = mhd->msg_head; p && p->seq_number < n; p = p->next)
     ;
 
@@ -782,10 +794,10 @@ mh_scan_message (struct _mh_message *mhm)
   size_t n;
   int status;
   int in_header = 1;
-  size_t header_lines = 0;
-  size_t body_lines = 0;
+  size_t hlines = 0;
+  size_t blines = 0;
   size_t body_start = 0;
-  
+
   while ((status = stream_readline (stream, buf, sizeof (buf), off, &n) == 0)
 	 && n != 0)
     {
@@ -797,7 +809,7 @@ mh_scan_message (struct _mh_message *mhm)
 	      body_start = off+1;
 	    }
 	  if (buf[n - 1] == '\n')
-	    header_lines++;
+	    hlines++;
 
 	  /* Process particular attributes */
 	  if (strncasecmp (buf, "status:", 7) == 0)
@@ -820,13 +832,13 @@ mh_scan_message (struct _mh_message *mhm)
       else
 	{
 	  if (buf[n - 1] == '\n')
-	    body_lines++;
+	    blines++;
 	}
       off += n;
     }
 
-  mhm->header_lines = header_lines;
-  mhm->body_lines = body_lines;
+  mhm->header_lines = hlines;
+  mhm->body_lines = blines;
   mhm->body_start = body_start;
   mhm->body_end = off;
   return 0;
@@ -841,14 +853,15 @@ mh_scan0 (mailbox_t mailbox, size_t msgno, size_t *pcount)
   struct dirent *entry;
   int status = 0;
   struct stat st;
-  
+  (void)msgno;
+
   if (mhd == NULL)
     return EINVAL;
 
   dir = opendir (mhd->name);
   if (!dir)
     return errno;
-  
+
   monitor_wrlock (mailbox->monitor);
 
 #ifdef WITH_PTHREAD
@@ -858,11 +871,10 @@ mh_scan0 (mailbox_t mailbox, size_t msgno, size_t *pcount)
   locker_lock (mailbox->locker, MU_LOCKER_RDLOCK);
 
   /* Do actual work */
-  while (entry = readdir (dir))
+  while ((entry = readdir (dir)))
     {
       char *namep;
-      int attr_flags; 
-      int deleted;
+      int attr_flags;
       size_t num;
       struct _mh_message *msg;
 
@@ -884,8 +896,8 @@ mh_scan0 (mailbox_t mailbox, size_t msgno, size_t *pcount)
 	  /*FIXME: Invalid entry. Report? */
 	  continue;
 	}
-	  
-      num = strtoul (namep, &namep, 10); 
+
+      num = strtoul (namep, &namep, 10);
       if (namep[0])
 	continue;
 
@@ -911,10 +923,10 @@ mh_scan0 (mailbox_t mailbox, size_t msgno, size_t *pcount)
     }
 
   closedir (dir);
-  
+
   if (stat (mhd->name, &st) == 0)
     mhd->mtime = st.st_mtime;
-  
+
   if (pcount)
     *pcount = mhd->msg_count;
 
@@ -932,9 +944,9 @@ mh_scan0 (mailbox_t mailbox, size_t msgno, size_t *pcount)
     }
 
   mh_reset_imap_uids (mhd);
-  
+
   /* Clean up the things */
-  
+
   mh_cleanup (mailbox);
 #ifdef WITH_PTHREAD
   pthread_cleanup_pop (0);
@@ -950,7 +962,7 @@ mh_scan (mailbox_t mailbox, size_t msgno, size_t *pcount)
 
   if (! mh_is_updated (mailbox))
     return mh_scan0 (mailbox, msgno, pcount);
-  
+
   if (pcount)
     *pcount = mhd->msg_count;
 
@@ -967,7 +979,7 @@ mh_is_updated (mailbox_t mailbox)
 
   if (!mhd->msg_head)
     return 0;
-  
+
   if (stat (mhd->name, &st) < 0)
     return 1;
 
@@ -978,6 +990,8 @@ static int
 mh_get_size (mailbox_t mailbox, off_t *psize)
 {
   /*FIXME*/
+  (void)mailbox;
+  (void)psize;
   return ENOSYS;
 }
 
@@ -998,7 +1012,7 @@ mh_pool_lookup (struct _mh_message *mhm)
 {
   struct _mh_data *mhd = mhm->mhd;
   int i;
-  
+
   for (i = mhd->pool_first; i != mhd->pool_last; )
     {
       if (mhd->msg_pool[i] == mhm)
@@ -1025,6 +1039,7 @@ mh_pool_open (struct _mh_message *mhm)
   mh_message_stream_open (mhm);
   mhd->msg_pool[mhd->pool_last++] = mhm;
   mhd->pool_last %= MAX_OPEN_STREAMS;
+  return 0;
 }
 
 /* Attach a stream to a given message structure. The latter is supposed
@@ -1035,7 +1050,7 @@ mh_message_stream_open (struct _mh_message *mhm)
   struct _mh_data *mhd = mhm->mhd;
   char *filename = NULL;
   int status;
-  
+
   if (file_stream_create (&mhm->stream))
     return errno;
 
@@ -1043,15 +1058,15 @@ mh_message_stream_open (struct _mh_message *mhm)
 
   if (!filename)
     return ENOMEM;
-  
+
   status = stream_open (mhm->stream, filename, 0, mhd->mailbox->flags);
 
   free (filename);
 
   if (status == 0)
     status = mh_scan_message (mhm);
-  
-  return status;    
+
+  return status;
 }
 
 /* Close the stream associated with the given message. */
@@ -1111,9 +1126,9 @@ mh_readstream (struct _mh_message *mhm, char *buffer, size_t buflen,
   if (pnread)
     *pnread = nread;
   return status;
-}  
-  
-static int 
+}
+
+static int
 mh_body_read (stream_t is, char *buffer, size_t buflen, off_t off,
 	      size_t *pnread)
 {
@@ -1271,7 +1286,7 @@ mh_envelope_date (envelope_t envelope, char *buf, size_t len,
     return EINVAL;
 
   mh_pool_open (mhm);
-  
+
   status = stream_readline (mhm->stream, buffer, sizeof(buffer),
 			    0, &n);
   if (status != 0)

@@ -1,3 +1,57 @@
+2001-09-09  Alain Magloire
+
+	This was done when cranking the number of warning generated
+	by gcc (-Wall, etc ...)
+
+	* mailbox/mbx_mh.c:  Add include for pthread.
+	seq_number is size_t.
+	(_mh_message_name):  The problem here is that asprintf()
+	is a GNU extension.  We want libmailbox to be as independent
+	as possible, so it will not be required for program to be
+	link with libmailutils(it is not even install).  Default to
+	snprintf ().
+	(mh_close): return an int.
+	(_mh_message_insert): n should be size_t.
+
+2001-09-09  Alain Magloire
+
+	* doc/pop3.texi: Update the doc.
+	* doc/sfrom.c.texi: Line too long.
+	* doc/stream.texi: Line too long.
+
+	For the new mailbox, one of the short coming with the old stream_t
+	object was that select() was not cover, meaning it was not possible
+	to check if a stream was {read,write} ready.  The old was to get
+	the fd (stream_get_fd()) and do the select.  Providing,
+	stream_is_readready (stream_t, int timeout);
+	stream_is_writeready (stream_t, int timeout);
+	stream_is_exceptionpending (stream_t, int timeout);
+	stream_is_open (stream_t);
+	Takes care of it.  It will work specially for tcp stream.
+
+	* mailbox2/stream.c: New functions for the select calls:
+	(stream_is_readready): New function.
+	(stream_is_writeready): New function.(stream_t, int timeout);
+	(stream_is_exceptionpending): New function.
+	(stream_is_open): New function.
+	* mailbox2/bstream.c (_bs_readline): Bug was truncating the string
+	to early.
+	(_bs_is_readready): New file.
+	(_bs_is_writeready): New file.
+	(_bs_is_exceptionpending): New file.
+	(_bs_is_open): New file.
+	* mailbox2/fstream.c: stubs for the select functions.
+	* mailbox2/memstream.c: stubs for the select functions.
+	* mailbox2/mapstream.c: stubs for the select functions.
+	* mailbox2/tcpstream.c: stubs for the select functions.
+	* mailbox2/include/mailutils/stream.h: Adjust the prototypes
+	* mailbox2/include/mailutils/sys/stream.h: Adjust the prototypes
+
+	It is better not to put threading (Pthread) code in the low level
+	API.  But instead in mailbox_t framework, where it can be control.
+	* mailbox2/include/mailutils/pop3.h: Adjust the prototypes.
+	* mailbox2/pop3/*.c: Remove threading code.
+
 2001-09-09 Sergey Poznyakoff
 
 	* mailbox/mbx_mh.c: Bug fix: both pool_first and pool_last must
@@ -12,7 +66,7 @@
 	prepending ',' to a filename, after MH fashion.
 
 	* mailbox/mbox_mh.c: (new)
-	* mailbox/url_mh.c: (new) 
+	* mailbox/url_mh.c: (new)
 	* mailbox/folder_mh.c: (new)
 	* mailbox/Makefile.am: Added mh-related sources.
 	* mail/mail.c: Register mh_record.
