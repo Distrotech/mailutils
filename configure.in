@@ -178,21 +178,16 @@ AC_FUNC_FNMATCH
 if test "$ac_cv_func_fnmatch_works" = "no"; then
 : LIBOBJS="$LIBOBJS fnmatch.o"
 fi
-AC_REPLACE_FUNCS(fgetpwent getpass setenv snprintf strtok_r strncasecmp strcasecmp \
- strsignal vasprintf)
-AC_CHECK_FUNCS(mkstemp sigaction sysconf getdelim vsyslog setreuid setresuid seteuid)
+AC_REPLACE_FUNCS(fgetpwent getpass setenv snprintf strtok_r strncasecmp \
+ strcasecmp strsignal vasprintf strndup strnlen strchrnul)
+AC_CHECK_FUNCS(mkstemp sigaction sysconf getdelim vsyslog setreuid \
+ setresuid seteuid)
 
 dnl Check for libraries
-AC_CHECK_FUNCS(argp_parse)
-if test x"$ac_cv_func_argp_parse" != xyes; then
-	AC_REPLACE_FUNCS(strndup strnlen strchrnul)
-	ARGPLIBS="../argp/libargp.la"
-	ARGPLIB="libargp.la"
-	ARGPINCS='-I$(top_srcdir)/argp'
-	AC_SUBST(ARGPLIBS)
-	AC_SUBST(ARGPLIB)
-	AC_SUBST(ARGPINCS)
-fi
+AC_CHECK_FUNCS(argp_parse, :,
+               [LIBOBJS="$LIBOBJS argp-ba.o argp-eexst.o argp-fmtstream.o \
+                         argp-fs-xinl.o argp-help.o argp-parse.o argp-pv.o \
+                         argp-pvh.o argp-xinl.o pin.o"])
 
 AC_CHECK_FUNCS(_obstack_begin,
                [AC_DEFINE(HAVE_OBSTACK)],
@@ -374,7 +369,7 @@ AC_OUTPUT(Makefile mailutils.spec
  include/Makefile include/mailutils/Makefile
  m4/Makefile
  doc/Makefile doc/man/Makefile doc/rfc/Makefile doc/texinfo/Makefile
- argp/Makefile lib/Makefile lib/posix/Makefile
+ lib/Makefile lib/posix/Makefile
  mailbox/Makefile
  imap4d/Makefile
  mailbox/include/Makefile
