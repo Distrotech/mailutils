@@ -452,7 +452,7 @@ var_quote (int argc, char **argv, compose_env_t *env)
       size_t n = 0;
       char *prefix = "\t";
 
-      if (util_get_message (mbox, cursor, &mesg, 1))
+      if (util_get_message (mbox, cursor, &mesg, MSG_NODELETED))
 	return 1;
 
       fprintf (stdout, "Interpolating: %d\n", cursor);
@@ -472,12 +472,26 @@ var_quote (int argc, char **argv, compose_env_t *env)
 	      header_get_field_name (hdr, i, buf, sizeof buf, NULL);
 	      if (mail_header_is_visible (buf))
 		{
+		  char *value;
+
 		  fprintf (ofile, "%s%s: ", prefix, buf);
-		  header_get_field_value (hdr, i, buf, sizeof buf, NULL);
-		  fprintf (ofile, "%s\n", buf);
+		  if (header_aget_value (hdr, buf, &value) == 0)
+		    {
+		      int i;
+		      char *p, *s;
+
+		      for (i = 0, p = strtok_r (value, "\n", &s); p;
+			   p = strtok_r (NULL, "\n", &s), i++)
+			{
+			  if (i)
+			    fprintf (ofile, "%s", prefix);
+			  fprintf (ofile, "%s\n", p);
+			}
+		      free (value);
+		    }
 		}
 	    }
-	  fprintf (ofile, "\n");
+	  fprintf (ofile, "%s\n", prefix);
 	  message_get_body (mesg, &body);
 	  body_get_stream (body, &stream);
 	}
