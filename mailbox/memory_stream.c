@@ -129,9 +129,9 @@ _memory_truncate (stream_t stream, off_t len)
 	free (mfs->ptr);
       mfs->ptr = NULL;
     }
-  else
+  else if (len != mfs->size)
     {
-      char *tmp = realloc (mfs, len);
+      char *tmp = realloc (mfs->ptr, len);
       if (tmp == NULL)
 	return ENOMEM;
       mfs->ptr = tmp;
