@@ -553,6 +553,11 @@ util_setenv (const char *variable, void *value, mail_env_data_t type,
 		  fprintf (stderr, "\n");
 		}
 	    }
+	  else if (strcmp (variable, "decode-fallback") == 0)
+	    {
+	      if (mu_set_default_fallback (value))
+		mu_error (_("Incorrect value for decode-fallback"));
+	    }
 	  break;
 	  
 	case Mail_env_boolean:
