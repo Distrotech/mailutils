@@ -53,13 +53,14 @@
 
 #define BIFF_RC ".biffrc"
 
-unsigned maxrequests;
-time_t request_control_interval;
-time_t overflow_control_interval;
-time_t overflow_delay_time;
-int maxlines;
-char *username;
-char hostname[];
+extern int allow_biffrc;
+extern unsigned maxrequests;
+extern time_t request_control_interval;
+extern time_t overflow_control_interval;
+extern time_t overflow_delay_time;
+extern int maxlines;
+extern char *username;
+extern char hostname[];
 
 extern void read_config (char *config_file);
 int acl_match (struct sockaddr_in *sa_in);
