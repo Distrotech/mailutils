@@ -39,122 +39,35 @@ url_pop_destroy (url_t url)
 }
 
 /*
-  POP URL
-  pop://[<user>;AUTH=<auth>@]<host>[:<port>]
+  POP URL:
+    pop://[<user>[;AUTH=<auth>]@]<host>[:<port>]
+  or:
+    pop://[<user>[:pass]@]<host>[:<port>]
 */
+
 int
 _url_pop_init (url_t url)
 {
-  const char *host_port, *indexe;
-  char *name = url->name;
+  int status = 0;
 
-  /* reject the obvious */
-  if (name == NULL || strncmp (MU_POP_SCHEME, name, MU_POP_SCHEME_LEN) != 0)
-    return EINVAL;
-
-  /* do I need to decode url encoding '% hex hex' ? */
-
-  /* TYPE */
   url->_destroy = url_pop_destroy;
 
-  /* SCHEME */
-  url->scheme = strdup (MU_POP_SCHEME);
-  if (url->scheme == NULL)
-    {
-      url_pop_destroy (url);
-      return ENOMEM;
-    }
+  status = url_parse(url);
 
-  name += MU_POP_SCHEME_LEN; /* pass the scheme */
+  if(status)
+    return status;
 
-  host_port = strchr (name, '@');
-  if (host_port == NULL)
-    host_port= name;
+  /* is it pop? */
+  if (strcmp ("pop", url->scheme) != 0)
+    return EINVAL;
 
-  /* looking for "user;auth=auth-enc" */
-  for (indexe = name; indexe != host_port; indexe++)
-    {
-      /* Auth ? */
-      if (*indexe == ';')
-	{
-	  /* make sure it's the token */
-	  if (strncasecmp(indexe + 1, "auth=", 5) == 0)
-	    break;
-	}
-    }
+  /* not valid in a pop url */
+  if (url->path || url->query)
+    return EINVAL;
 
-  /* USER */
-  url->user = malloc(indexe - name + 1);
-  if (url->user == NULL)
-    {
-      url_pop_destroy (url);
-      return -1;
-    }
-  ((char *)memcpy(url->user, name, indexe - name))[indexe - name] = '\0';
-
-  /* AUTH */
-  if (indexe == host_port)
-    {
-      /* Use default AUTH '*' */
-      url->auth = malloc (1 + 1);
-      if (url->auth)
-	{
-	  url->auth[0] = '*';
-	  url->auth[1] = '\0';
-	}
-    }
-  else
-    {
-      /* move pass AUTH= */
-      indexe += 6;
-      url->auth = malloc (host_port - indexe + 1);
-      if (url->auth)
-	{
-	  ((char *)memcpy (url->auth, indexe, host_port - indexe))
-	    [host_port - indexe] = '\0';
-	}
-    }
-
-  if (url->auth == NULL)
-    {
-      url_pop_destroy (url);
-      return -1;
-    }
-
-  /* HOST:PORT */
-  if (*host_port == '@')
-    host_port++;
-
-  indexe = strchr (host_port, ':');
-  if (indexe == NULL)
-    {
-      url->host = strdup (host_port);
-      url->port = MU_POP_PORT;
-    }
-  else
-    {
-      long p = strtol(indexe + 1, NULL, 10);
-      url->host = malloc (indexe - host_port + 1);
-      if (url->host)
-	{
-	  ((char *)memcpy (url->host, host_port, indexe - host_port))
-	    [indexe - host_port]='\0';
-	  url->port = (p == 0) ? MU_POP_PORT : p;
-	}
-    }
-
-  if (url->host == NULL)
-    {
-      url_pop_destroy (url);
-      return ENOMEM;
-    }
-  else
-    {
-      /* playing smart and nuking any trailing slashes on the host */
-      size_t len = strlen (url->host);
-      if (url->host[len - 1] == '/')
-	url->host[len - 1] = '\0'; /* leak a bit */
-    }
-
-  return 0;
+  if (url->port == 0)
+    url->port = MU_POP_PORT;
+ 
+  return status;
 }
+

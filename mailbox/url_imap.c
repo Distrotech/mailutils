@@ -39,148 +39,43 @@ url_imap_destroy (url_t url)
 }
 
 /*
-  IMAP URL
-  imap://[<user>;AUTH=<auth>@]<host>/
+  IMAP URL:
+    imap://[<user>[;AUTH=<auth>]@]<host>[/<mailbox>]
+  else
+    imap://[<user>[:<pass>]@]<host>[/<mailbox>]
 */
+
 int
 _url_imap_init (url_t url)
 {
-  const char *host_port;
-  const char *indexe;
-  char *name = url->name;
+  int status = 0;
 
-  /* reject the obvious */
-  if (name == NULL || strncmp (MU_IMAP_SCHEME, name, MU_IMAP_SCHEME_LEN) != 0)
-    return EINVAL;
-
-  /* do I need to decode url encoding '% hex hex' ? */
-
-  /* TYPE */
   url->_destroy = url_imap_destroy;
 
-  /* SCHEME */
-  url->scheme = strdup (MU_IMAP_SCHEME);
-  if (url->scheme == NULL)
-    {
-      url_imap_destroy (url);
-      return ENOMEM;
-    }
+  status = url_parse (url);
 
-  name += MU_IMAP_SCHEME_LEN; /* pass the scheme */
+  if (status)
+    return status;
 
-  host_port = strchr (name, '@');
-  if (host_port == NULL)
-    host_port = name;
+  /* is it pop? */
+  if (strcmp ("imap", url->scheme) != 0)
+    return EINVAL;
 
-  /* looking for ";auth=auth-enc" */
-  for (indexe = name; indexe != host_port; indexe++)
-    {
-      /* Auth ? */
-      if (*indexe == ';')
-	{
-	  /* make sure it's the token */
-	  if (strncasecmp(indexe + 1, "auth=", 5) == 0)
-	    break;
-	}
-    }
-
-  /* USER */
-  url->user = malloc(indexe - name + 1);
-  if (url->user == NULL)
-    {
-      url_imap_destroy (url);
-      return -1;
-    }
-  ((char *)memcpy(url->user, name, indexe - name))[indexe - name] = '\0';
-
-  /* AUTH */
-  if (indexe == host_port)
-    {
-      /* Use default AUTH '*' */
-      url->auth = malloc (1 + 1);
-      if (url->auth)
-	{
-	  url->auth[0] = '*';
-	  url->auth[1] = '\0';
-	}
-    }
-  else
-    {
-      /* move pass AUTH= */
-      indexe += 6;
-      url->auth = malloc (host_port - indexe + 1);
-      if (url->auth)
-	{
-	  ((char *)memcpy (url->auth, indexe, host_port - indexe))
-	    [host_port - indexe] = '\0';
-	}
-    }
-
-  if (url->auth == NULL)
-    {
-      url_imap_destroy (url);
-      return -1;
-    }
-
-  /* HOST:PORT*/
-  if (*host_port == '@')
-    host_port++;
-
-  indexe = strchr (host_port, ':');
-  if (indexe)
-    {
-      char *s = NULL;
-      long int p = strtol (indexe + 1, &s, 10);
-      url->host = malloc (indexe - host_port + 1);
-      if (url->host)
-        {
-          ((char *)memcpy (url->host, host_port, indexe - host_port))
-            [indexe - host_port] = '\0';
-        }
-      url->port = (p == 0) ? MU_IMAP_PORT : p;
-      host_port = s;
-    }
-  else
+  /* fill in default port, if necesary */
+  if (url->port == 0)
     url->port = MU_IMAP_PORT;
 
-
-  indexe = strchr (host_port, '/');
-
-  if (indexe == NULL)
+  /* fill in default auth, if necessary */
+  if (!url->auth)
     {
-      if (url->host == NULL)
-	url->host = strdup (host_port);
-    }
-  else
-    {
-      char *question;
-      if (url->host == NULL)
-	{
-	  url->host = malloc (indexe - host_port + 1);
-	  if (url->host)
-	    ((char *)memcpy (url->host, host_port, indexe - host_port))
-	      [indexe - host_port] = '\0';
-	}
-      indexe++;
-      /* The query starts after a '?'.  */
-      question = strchr (indexe, '?');
-      if (question == NULL)
-	url->path = strdup (indexe);
-      else
-	{
-	  url->path = malloc (question - indexe + 1);
-	  if (url->path)
-	    ((char *)memcpy (url->path, indexe,
-			     question - indexe))[question - indexe] = '\0';
-	  url->query = strdup (question);
-	}
+      url->auth = malloc (1 + 1);
+      if (!url->auth)
+	return ENOMEM;
+
+      url->auth[0] = '*';
+      url->auth[1] = '\0';
     }
 
-  if (url->host == NULL)
-    {
-      url_imap_destroy (url);
-      return ENOMEM;
-    }
-
-  return 0;
+  return status;
 }
+
