@@ -335,8 +335,4 @@ _body_get_lines0 (stream_t stream, size_t *plines)
   return status;
 }
 
-static int
-lazy_create (body_t body)
-{
-  return mu_tempfile (NULL, &body->filename);
-}
+
