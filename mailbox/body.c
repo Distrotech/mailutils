@@ -158,7 +158,7 @@ body_lines (body_t body, size_t *plines)
 int
 body_size (body_t body, size_t *psize)
 {
-  int status;
+  int status = 0;
   if (body == NULL)
     return EINVAL;
 
