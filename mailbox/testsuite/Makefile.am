@@ -1,6 +1,6 @@
 ## Process this file with GNU Automake to create Makefile.in
 
-##   Copyright (C) 2002 Free Software Foundation, Inc.
+##   Copyright (C) 2002, 2003 Free Software Foundation, Inc.
 ##
 ##   GNU Mailtuils is free software; you can redistribute it and/or
 ##   modify it under the terms of the GNU General Public License as
@@ -22,7 +22,7 @@ DEJATOOL = mailbox
 RUNTESTFLAGS = 
 CLEANFILES = *.log
 test_dirs = lib mailbox
-EXTRA_DIST = Addrs Mime Urls Encode Decode
+EXTRA_DIST = Addrs Mime Urls Encode Decode RFC2047
 
 dist-hook:
 	here=`cd $(top_builddir)/$(subdir) && pwd`; \
