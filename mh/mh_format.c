@@ -526,7 +526,8 @@ mh_format_dump (mh_format_t *fmt)
 
 	case mhop_body:
 	  printf ("body");
-
+	  break;
+	  
 	case mhop_num_to_arg:
 	  printf ("num_to_arg");
 	  break;
