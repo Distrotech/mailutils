@@ -65,6 +65,7 @@ strobj_free (strobj_t *obj)
 
 #define strobj_ptr(p) ((p)->ptr ? (p)->ptr : "")
 #define strobj_len(p) strlen((p)->ptr)
+#define strobj_is_null(p) ((p)->ptr == NULL)
 #define strobj_is_static(p) ((p)->size == 0)
 
 static void
@@ -102,13 +103,34 @@ strobj_assign (strobj_t *lvalue, strobj_t *rvalue)
 static void
 strobj_copy (strobj_t *lvalue, strobj_t *rvalue)
 {
-  if (lvalue->size >= strobj_len (rvalue) + 1)
+  if (strobj_is_null (rvalue))
+    strobj_free (lvalue);
+  else if (lvalue->size >= strobj_len (rvalue) + 1)
     memcpy (lvalue->ptr, strobj_ptr (rvalue), strobj_len (rvalue) + 1);
   else
     {
       if (lvalue->size)
 	strobj_free (lvalue);
       strobj_create (lvalue, strobj_ptr (rvalue));
+    }
+}
+
+static void
+strobj_realloc (strobj_t *obj, size_t length)
+{
+  if (strobj_is_static (obj))
+    {
+      char *value = strobj_ptr (obj);
+      obj->ptr = xmalloc (length);
+      strncpy (obj->ptr, value, length-1);
+      obj->ptr[length-1] = 0;
+      obj->size = length;
+    }
+  else
+    {
+      obj->ptr = xrealloc (obj->ptr, length);
+      obj->ptr[length-1] = 0;
+      obj->size = length;
     }
 }
 
@@ -141,17 +163,26 @@ compress_ws (char *str, size_t *size)
 
 /* Print len bytes from str into mach->outbuf */
 static void
-print_string (struct mh_machine *mach, char *str, size_t len)
+print_string (struct mh_machine *mach, size_t width, char *str, size_t len)
 {
   size_t rest = strlen (str);
 
   if (len > rest)
     len = rest;
+  if (!width)
+    width = mach->width;
   rest = mach->width - mach->ind;
   if (len > rest)
     len = rest;
   memcpy (mach->outbuf + mach->ind, str, len);
   mach->ind += len;
+}
+
+static void
+print_obj (struct mh_machine *mach, size_t width, strobj_t *obj)
+{
+  if (!strobj_is_null (obj))
+    print_string (mach, 0, strobj_ptr (obj), strobj_len (obj));
 }
 
 static void
@@ -335,7 +366,7 @@ mh_format (mh_format_t *fmt, message_t msg, size_t msgno,
 	    else
 	      ptr = buf;
 
-	    print_string (&mach, ptr, strlen (ptr));
+	    print_string (&mach, 0, ptr, strlen (ptr));
 	    reset_fmt_defaults (&mach);
 	  }
 	  break;
@@ -357,21 +388,17 @@ mh_format (mh_format_t *fmt, message_t msg, size_t msgno,
 		    mach.outbuf[mach.ind] = padchar;
 		}
 		
-	      print_string (&mach, strobj_ptr (&mach.reg_str), fmtwidth);
+	      print_string (&mach, 0, strobj_ptr (&mach.reg_str), fmtwidth);
 	      reset_fmt_defaults (&mach);
 	    }
-	  else if (mach.reg_str.ptr)
-	    {
-	      print_string (&mach,
-			   strobj_ptr (&mach.reg_str),
-			   strobj_len (&mach.reg_str));
-	    }
+	  else
+	    print_obj (&mach, 0, &mach.reg_str);
 	  break;
 
 	case mhop_fmtspec:
 	  mach.fmtflags = MHI_NUM(mach.prog[mach.pc++]);
 	  break;
-	  
+
 	default:
 	  mh_error ("Unknown opcode: %x", opcode);
 	  abort ();
@@ -537,7 +564,7 @@ builtin_num (struct mh_machine *mach)
 static void
 builtin_lit (struct mh_machine *mach)
 {
-  strobj_assign (&mach->reg_str, &mach->arg_str);
+  /* do nothing */
 }
 
 static void
@@ -648,7 +675,7 @@ _parse_date (struct mh_machine *mach, struct tm *tm, mu_timezone *tz)
   char *date = strobj_ptr (&mach->arg_str);
   const char *p = date;
   
-  if (parse822_date_time(&p, date+strlen(date), tm, tz))
+  if (parse822_date_time (&p, date+strlen(date), tm, tz))
     {
       mh_error ("can't parse date: [%s]", date);
       return -1;
@@ -1201,7 +1228,7 @@ static void
 builtin_formataddr (struct mh_machine *mach)
 {
   address_t addr;
-  size_t num = 0, n, i;
+  size_t num = 0, n, i, length = 0, reglen;
   char buf[80], *p;
   
   if (address_create (&addr, strobj_ptr (&mach->arg_str)))
@@ -1209,37 +1236,53 @@ builtin_formataddr (struct mh_machine *mach)
   address_get_count (addr, &num);
   for (i = 1; i <= num; i++)
     {
+      if (address_get_personal (addr, i, buf, sizeof buf, &n) == 0
+	  && n != 0)
+	length += n+1; /* + space */
       address_get_email (addr, i, buf, sizeof buf, &n);
-      num += n+1;
+      length += n+3; /* two brackets + (eventual) comma */
     }
 
-  num += strobj_len (&mach->reg_str) + 1;
-  mach->reg_str.ptr = xrealloc (mach->reg_str.ptr, num);
-  mach->reg_str.size = num + 1;
-  p = strobj_ptr (&mach->reg_str) + strobj_len (&mach->reg_str) ;
+  if (strobj_is_null (&mach->reg_str))
+    reglen = 0;
+  else
+    reglen = strobj_len (&mach->reg_str);
+  length += reglen + 1;
+  strobj_realloc (&mach->reg_str, length);
+  p = strobj_ptr (&mach->reg_str) + reglen;
   for (i = 1; i <= num; i++)
     {
+      if (reglen > 0)
+	*p++ = ',';
+      if (address_get_personal (addr, i, buf, sizeof buf, &n) == 0 && n > 0)
+	{
+	  memcpy (p, buf, n);
+	  p += n;
+	  *p++ = ' ';
+	}
       address_get_email (addr, i, buf, sizeof buf, &n);
+      *p++ = '<';
       memcpy (p, buf, n);
       p += n;
+      *p++ = '>';
     }
   *p = 0;
 }
 
-/*      putaddr    literal           print str address list with
+/*      putaddr    literal        print str address list with
                                   arg as optional label;
                                   get line width from num */
 static void
 builtin_putaddr (struct mh_machine *mach)
 {
-  /*FIXME:*/
-  builtin_not_implemented ("putaddr");
+  print_obj (mach, mach->reg_num, &mach->arg_str);
+  print_obj (mach, mach->reg_num, &mach->reg_str);
 }
 
 /* Builtin function table */
 
 mh_builtin_t builtin_tab[] = {
-  /* Name       Handling function Return type  Arg type */ 
+  /* Name       Handling function Return type  Arg type      Opt. arg */ 
   { "msg",      builtin_msg,      mhtype_num,  mhtype_none },
   { "cur",      builtin_cur,      mhtype_num,  mhtype_none },
   { "size",     builtin_size,     mhtype_num,  mhtype_none },
@@ -1258,7 +1301,7 @@ mh_builtin_t builtin_tab[] = {
   { "divide",   builtin_divide,   mhtype_num,  mhtype_num },
   { "modulo",   builtin_modulo,   mhtype_num,  mhtype_num },
   { "num",      builtin_num,      mhtype_num,  mhtype_num },
-  { "lit",      builtin_lit,      mhtype_str,  mhtype_str },
+  { "lit",      builtin_lit,      mhtype_str,  mhtype_str, 1 },
   { "getenv",   builtin_getenv,   mhtype_str,  mhtype_str },
   { "profile",  builtin_profile,  mhtype_str,  mhtype_str },
   { "nonzero",  builtin_nonzero,  mhtype_num,  mhtype_num, 1 },
