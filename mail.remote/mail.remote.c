@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2002, 2004 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -38,6 +38,7 @@
 #include <mailutils/message.h>
 #include <mailutils/registrar.h>
 #include <mailutils/stream.h>
+#include <mailutils/property.h>
 #include <mailutils/error.h>
 #include <mailutils/nls.h>
 
@@ -47,42 +48,38 @@ static char doc[] =
    in this message */
 N_("GNU mail.remote -- pseudo-sendmail interface for mail delivery\n\
 \v\
+This is a simple drop-in replacement for sendmail to forward mail directly\n\
+to an SMTP gateway.\n\
+You should always specify your SMTP gateway using --mailer option\n\
+(the best place to do so is in your configuration file).\n\
 \n\
-An RFC2822 formatted message is read from stdin and delivered using\n\
-the mailer. This utility can be used as a drop-in replacement\n\
-for /bin/sendmail to forward mail directly to an SMTP gateway.\n\
+Examples:\n\
 \n\
-The default mailer is \"sendmail:\", which is not supported by this\n\
-utility (it is intended to be used when you don't have a working\n\
-sendmail). You should specify your SMTP gateway by specifying\n\
-a --mailer as something like \"smtp://mail.example.com\". This would\n\
-normally be added to your user-specific configuration file,\n\
-  ~/.mailutils/mailutils,\n\
-or the global configuration file,\n\
-  /etc/mailutils.rc,\n\
-with a line such as:\n\
-  :mailer --mailer=smtp://mail.example.com\n\
+Deliver mail via SMTP gateway at \"mail.example.com\", reading its\n\
+contents for recipients of the message.\n\
 \n\
-If not explicitly specified, the default from address is derived from the\n\
-\"From:\" field in the message, if present, or the default user's email\n\
-address if not present.\n\
+   mail.remote --mailer smtp://mail.example.com\n\
 \n\
-If not explicitly specified, the default to addresses are derived from the\n\
-\"To:\", \"Cc:\", and \"Bcc:\" fields in the message.\n\
+Deliver mail only to \"devnull@foo.bar\"\n\
 \n\
-If --debug is specified, the envelope commands in the SMTP protocol\n\
-transaction will be printed to stdout. If specified more than once,\n\
-the data part of the protocol transaction will also be printed to stdout.\n");
+   mail.remote --mailer smtp://mail.example.com devnull@foo.bar\n\
+\n\
+Deliver mail to \"devnull@foo.bar\" as well as to the recipients\n\
+specified in the message itself:\n\
+\n\
+   mail.remote --mailer smtp://mail.example.com -t devnull@foo.bar\n");
 
 static struct argp_option options[] = {
   {"from",  'f', N_("ADDR"), 0, N_("Override the default from address")},
-  {"debug", 'd', NULL,   0, N_("Enable debugging output")},
-  {      0, 'o', "OPT",  OPTION_HIDDEN, N_("Ignored for sendmail compatibility")},
-  {0}
+  {"read-recipients", 't', NULL, 0, N_("Read message for recipients.") },
+  {"debug", 'd', NULL,   0, N_("Print envelope commands in the SMTP protocol transaction. If specified more than once, the data part of the protocol transaction will also be printed.")},
+  { NULL,   'o', N_("OPT"), 0, N_("Ignored for sendmail compatibility")},
+  { NULL }
 };
 
 static int optdebug;
-static const char* optfrom;
+static const char *optfrom;
+static int read_recipients;  /* Read recipients from the message */
 
 static error_t
 parse_opt (int key, char *arg, struct argp_state *state)
@@ -100,6 +97,10 @@ parse_opt (int key, char *arg, struct argp_state *state)
     case 'o':
       break;
 
+    case 't':
+      read_recipients = 1;
+      break;
+      
     default: 
       return ARGP_ERR_UNKNOWN;
     }
@@ -121,17 +122,29 @@ static const char *capa[] = {
   NULL
 };
 
+mailer_t mailer;     /* Mailer object */ 
+address_t from;      /* Sender address */ 
+address_t to;        /* Recipient addresses */
+stream_t in;         /* Input stream */
+
+void
+mr_exit (int status)
+{
+  address_destroy (&from);
+  address_destroy (&to);
+  stream_destroy (&in, NULL);
+  mailer_destroy (&mailer);
+
+  exit (status ? 1 : 0);
+}
+
 int
 main (int argc, char **argv)
 {
   int status = 0;
   int optind = 0;
 
-  stream_t in = 0;
   message_t msg = 0;
-  mailer_t mailer = 0;
-  address_t from = 0;
-  address_t to = 0;
 
   int mailer_flags = 0;
 
@@ -154,44 +167,42 @@ main (int argc, char **argv)
 	{
 	  mu_error (_("Parsing from addresses failed: %s"),
 		    mu_strerror (status));
-	  goto end;
+	  mr_exit (status);
 	}
     }
 
   if (argv[optind])
     {
-      char **av = argv + optind;
-
-      if ((status = address_createv (&to, (const char **) av, -1)))
+      if ((status = address_createv (&to, (const char **) (argv + optind), -1)))
 	{
-	  mu_error (_("Parsing to addresses failed: %s"),
+	  mu_error (_("Parsing recipient addresses failed: %s"),
 		    mu_strerror (status));
-	  goto end;
+	  mr_exit (status);
 	}
     }
-
+     
   if ((status = stdio_stream_create (&in, stdin, MU_STREAM_SEEKABLE)))
     {
       mu_error (_("Failed: %s"), mu_strerror (status));
-      goto end;
+      mr_exit (status);
     }
 
   if ((status = stream_open (in)))
     {
       mu_error (_("Opening stdin failed: %s"), mu_strerror (status));
-      goto end;
+      mr_exit (status);
     }
 
   if ((status = message_create (&msg, NULL)))
     {
       mu_error (_("Failed: %s"), mu_strerror (status));
-      goto end;
+      mr_exit (status);
     }
 
   if ((status = message_set_stream (msg, in, NULL)))
     {
       mu_error (_("Failed: %s"), mu_strerror (status));
-      goto end;
+      mr_exit (status);
     }
 
   if ((status = mailer_create (&mailer, NULL)))
@@ -200,7 +211,7 @@ main (int argc, char **argv)
       mailer_get_url_default (&url);
       mu_error (_("Creating mailer '%s' failed: %s"),
 		url, mu_strerror (status));
-      goto end;
+      mr_exit (status);
     }
 
   if (optdebug)
@@ -213,33 +224,35 @@ main (int argc, char **argv)
 	mailer_flags = MAILER_FLAG_DEBUG_DATA;
     }
 
+  if (read_recipients)
+    {
+      property_t property = NULL;
+
+      mailer_get_property (mailer, &property);
+      property_set_value (property, "READ_RECIPIENTS", "true", 1);
+    }
+  
   if ((status = mailer_open (mailer, mailer_flags)))
     {
       const char *url = NULL;
       mailer_get_url_default (&url);
       mu_error (_("Opening mailer '%s' failed: %s"),
 		url, mu_strerror (status));
-      goto end;
+      mr_exit (status);
     }
 
   if ((status = mailer_send_message (mailer, msg, from, to)))
     {
       mu_error (_("Sending message failed: %s"), mu_strerror (status));
-      goto end;
+      mr_exit (status);
     }
 
   if ((status = mailer_close (mailer)))
     {
       mu_error (_("Closing mailer failed: %s"), mu_strerror (status));
-      goto end;
+      mr_exit (status);
     }
 
-end:
-
-  address_destroy (&from);
-  address_destroy (&to);
-  stream_destroy (&in, NULL);
-  mailer_destroy (&mailer);
-
-  return status ? 1 : 0;
+  mr_exit (status);
 }
+
