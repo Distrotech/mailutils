@@ -28,10 +28,14 @@ for {gets $chan line} {![eof $chan]} {gets $chan line} {
 	    verbose "MAIL FROM $from" 1
 	    verbose "MAIL TO $to" 1
 	    verbose "INPUT $input" 1
+	    verbose "OPTIONS $options" 1
 	    verbose "PATTERN $pattern" 1
 	    set args ""
 	    if {$from != ""} {
 		append args " --from $from"
+	    }
+	    if {$options != ""} {
+		append args " $options"
 	    }
 	    if {$to != ""} {
 		append args " $to"
@@ -44,6 +48,7 @@ for {gets $chan line} {![eof $chan]} {gets $chan line} {
 	    regexp "^MESSAGE (.*)" $line dummy message 
 	    set from ""
 	    set to ""
+	    set options ""
 	    set input [list]
 	    set pattern [list]
 	    set state 1
@@ -53,6 +58,9 @@ for {gets $chan line} {![eof $chan]} {gets $chan line} {
 	}
 	"^TO" {
 	    regexp "^TO (.*)" $line dummy to
+	}
+	"^OPTIONS" {
+	    regexp "^OPTIONS (.*)" $line dummy options
 	}
 	"^BODY BEGIN" {
 	    set state 2
