@@ -53,7 +53,8 @@ the options specified in the command line override those from
 
 The very long lines may be split across several lines of text by
 escaping final newline with a backslash (@samp{\}) character.
-The @samp{#} character introduces comment.
+The @samp{#} character introduces a comment (it must be
+preceeded by whitespace).
 
 Here is an example of a simple @file{mailutils.rc} file. It tells
 all mailutils programs to use @file{/var/spool/mail} as a mailspool
