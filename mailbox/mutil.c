@@ -1019,3 +1019,81 @@ mu_rfc2822_in_reply_to (message_t msg, char **pstr)
     }
   return MU_ERR_FAILURE;
 }
+
+/* Based on strstr from GNU libc (Stephen R. van den Berg,
+   berg@pool.informatik.rwth-aachen.de) */
+
+char *
+mu_strcasestr (const char *a_haystack, const char *a_needle)
+{
+  register const unsigned char *haystack = (unsigned char*) a_haystack,
+    *needle = (unsigned char*) a_needle;
+  register unsigned int b, c;
+
+#define U(c) toupper (c)
+  if ((b = U (*needle)))
+    {
+      haystack--;		
+      do
+	{
+	  if (!(c = *++haystack))
+	    goto ret0;
+	}
+      while (U (c) != b);
+
+      if (!(c = *++needle))
+	goto foundneedle;
+
+      c = U (c);
+      ++needle;
+      goto jin;
+
+      for (;;)
+        { 
+          register unsigned int a;
+	  register const unsigned char *rhaystack, *rneedle;
+
+	  do
+	    {
+	      if (!(a = *++haystack))
+		goto ret0;
+	      if (U (a) == b)
+		break;
+	      if (!(a = *++haystack))
+		goto ret0;
+shloop:       ;
+            }
+          while (U (a) != b);
+	  
+jin:     if (!(a = *++haystack))
+	    goto ret0;
+
+	  if (U (a) != c)
+	    goto shloop;
+
+	  if (U (*(rhaystack = haystack-- + 1)) ==
+	      (a = U (*(rneedle = needle))))
+	    do
+	      {
+		if (!a)
+		  goto foundneedle;
+		if (U (*++rhaystack) != (a = U (*++needle)))
+		  break;
+		if (!a)
+		  goto foundneedle;
+	      }
+	    while (U (*++rhaystack) == (a = U (*++needle)));
+
+	  needle = rneedle;
+
+	  if (!a)
+	    break;
+        }
+    }
+foundneedle:
+  return (char*)haystack;
+ret0:
+  return NULL;
+
+#undef U
+}  

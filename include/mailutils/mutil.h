@@ -115,6 +115,10 @@ extern char * mu_expand_path_pattern __P((const char *pattern,
 
 extern int mu_rfc2822_references __P((message_t msg, char **pstr));
 extern int mu_rfc2822_in_reply_to __P((message_t msg, char **pstr));
+
+/* Find NEEDLE in the HAYSTACK. Case insensitive comparison */
+extern char *mu_strcasestr __P((const char *haystack, const char *needle));
+
   
 #ifdef __cplusplus
 }
