@@ -38,7 +38,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
     case ARGP_KEY_ARG:
       if (arg[0] == '+')
 	{
-	  data->handler (ARG_FOLDER, arg, data->closure);
+	  data->handler (ARG_FOLDER, arg + 1, data->closure);
 	  break;
 	}
       return ARGP_ERR_UNKNOWN;
