@@ -199,7 +199,7 @@ static char *
 expand_line (const char *str, message_t msg)
 {
   const char *p;
-  int c = 0, len;
+  int c = 0;
   struct obstack stk;
 
   if (!*str)
