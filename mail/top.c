@@ -52,6 +52,7 @@ mail_top (int argc, char **argv)
 	    break;
 	  printf ("%s", buf);
 	}
+      return 0;
     }
   return 1;
 }
