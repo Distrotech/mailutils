@@ -1,5 +1,39 @@
 2002-12-10  Sergey Poznyakoff
 
+	* configure.ac: Define and export SIEVE_MODDIR.
+	* examples/Makefile.am: Use SIEVE_MODDIR.
+	* libsieve/Makefile.am: Likewise.
+
+	* libsieve/actions.c (sieve_register_standard_actions):
+	  Register "fileinto" in non-required state to comply to the
+	  RFC.
+	* libsieve/argp.c (sieve_argp_parser): Always add SIEVE_MODDIR
+	  to sieve_library_path.
+	  
+	* doc/texinfo/libsieve.texi: Documented some aspects of the`
+	  input language.
+	* doc/texinfo/programs.texi: Documented :sieve option group
+
+	* examples/addr.c: Include mutil.h
+	* guimb/guimb.h: Include mu_asprintf.h
+	* mail/mail.h: Likewise.
+	* imap4d/append.c: Removed debugging hook
+	* imap4d/auth_gss.c: Added typecasts to shut the compiler
+	  warnings.
+	* libmu_scm/mu_body.c: Likewise.
+	* libmu_scm/mu_message.c: Likewise.
+	* mailbox/locker.c: Likewise.
+	* imap4d/util.c: Initialize automatic variable.
+	* libsieve/tests.c: Likewise.
+	* mail/util.c: Likewise.
+	* mailbox/address.c: Likewise.
+	* mailbox/file_stream.c: Likewise.
+	
+	* mailbox/date.c: Added missing includes
+	* mailbox/tcp.c: Removed unused variables.
+	
+2002-12-10  Sergey Poznyakoff
+
 	* include/mailutils/libsieve.h
 	  (sieve_include_path,sieve_library_path): New globals
 	* libmu_scm/Makefile.am: Fixed install-data-hook. Thanks to
