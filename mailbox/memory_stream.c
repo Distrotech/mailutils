@@ -105,10 +105,10 @@ _memory_write (stream_t stream, const char *iptr, size_t isize,
       if (tmp == NULL)
 	return ENOMEM;
       mfs->ptr = tmp;
-      mfs->size = offset + isize;
       mfs->capacity = newsize;
     }
 
+  mfs->size = offset + isize;
   memcpy (mfs->ptr + offset, iptr, isize);
   if (nbytes)
     *nbytes = isize;

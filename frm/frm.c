@@ -33,6 +33,7 @@
 #include <mailutils/address.h>
 
 static int action (observer_t, size_t);
+static void usage (const char *argv);
 
 static struct option long_options[] =
 {
@@ -71,7 +72,7 @@ static int selected;
 
 /* Retrieve the Personal Name from the header To: or From:  */
 static int
-get_personal (header_t hdr, char *field, char *personal, size_t buflen)
+get_personal (header_t hdr, const char *field, char *personal, size_t buflen)
 {
   char hfield[512];
   int status;
@@ -193,7 +194,7 @@ action (observer_t o, size_t type)
   return 0;
 }
 
-void
+static void
 usage (const char *argv)
 {
   printf ("GNU Mailutils.\n");
@@ -323,7 +324,6 @@ main(int argc, char **argv)
     mailbox_t mbox;
     observer_t observer;
     observable_t observable;
-    int status;
 
     if ((status = mailbox_create_default (&mbox, mailbox_name) != 0)
 	|| (status = mailbox_open (mbox, MU_STREAM_READ) != 0))

@@ -359,7 +359,7 @@ main (int argc, char **argv)
 	  exit (EXIT_FAILURE);
 	}
 
-      if (mailbox_messages_count (mbox, &total) != 0)
+      if (mailbox_scan (mbox, 1, &total) != 0)
 	{
 	  util_error ("Can not read mailbox");
 	  exit (EXIT_FAILURE);

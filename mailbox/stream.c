@@ -262,8 +262,14 @@ stream_readline (stream_t is, char *buf, size_t count,
 
   is->state = MU_STREAM_STATE_READ;
 
-  if (count == 0)
+  switch (count)
     {
+    case 1:
+      /* why would they do a thing like that?
+	 stream_readline() is __always null terminated.  */
+      if (buf)
+	*buf = '\0';
+    case 0: /* Buffer is empty noop.  */
       if (pnread)
 	*pnread = 0;
       return 0;

@@ -62,6 +62,8 @@ static int  imap_message_size     __P ((message_t, size_t *));
 static int  imap_message_lines    __P ((message_t, size_t *));
 static int  imap_message_fd       __P ((stream_t, int *));
 static int  imap_message_read     __P ((stream_t , char *, size_t, off_t, size_t *));
+static int  imap_message_readline __P ((stream_t, char *, size_t, off_t,
+					size_t *));
 static int  imap_message_uid      __P ((message_t, size_t *));
 
 /* mime_t API.  */
@@ -84,7 +86,10 @@ static int  imap_header_get_value __P ((header_t, const char*, char *, size_t, s
 static int  imap_header_get_fvalue __P ((header_t, const char*, char *, size_t, size_t *));
 
 /* body_t API.  */
-static int  imap_body_read        __P ((stream_t, char *, size_t, off_t, size_t *));
+static int  imap_body_read        __P ((stream_t, char *, size_t, off_t,
+					size_t *));
+static int  imap_body_readline    __P ((stream_t, char *, size_t, off_t,
+					size_t *));
 static int  imap_body_size        __P ((body_t, size_t *));
 static int  imap_body_lines       __P ((body_t, size_t *));
 static int  imap_body_fd          __P ((stream_t, int *));
@@ -372,9 +377,8 @@ imap_get_message0 (msg_imap_t msg_imap, message_t *pmsg)
         message_destroy (&msg, msg_imap);
         return status;
       }
-    /* We want the buffering.  */
-    stream_setbufsiz (stream, 128);
     stream_set_read (stream, imap_message_read, msg);
+    stream_set_readline (stream, imap_message_readline, msg);
     stream_set_fd (stream, imap_message_fd, msg);
     message_set_stream (msg, stream, msg_imap);
     message_set_size (msg, imap_message_size, msg_imap);
@@ -422,9 +426,8 @@ imap_get_message0 (msg_imap_t msg_imap, message_t *pmsg)
         message_destroy (&msg, msg_imap);
         return status;
       }
-    /* We want the buffering.  */
-    stream_setbufsiz (stream, 128);
     stream_set_read (stream, imap_body_read, body);
+    stream_set_readline (stream, imap_body_readline, body);
     stream_set_fd (stream, imap_body_fd, body);
     body_set_size (body, imap_body_size, msg);
     body_set_lines (body, imap_body_lines, msg);
@@ -947,6 +950,41 @@ imap_copy_message (mailbox_t mailbox, message_t msg)
 
 /* Message read overload  */
 static int
+imap_message_readline (stream_t stream, char *buffer, size_t buflen,
+		       off_t offset, size_t *plen)
+{
+  message_t msg = stream_get_owner (stream);
+  msg_imap_t msg_imap = message_get_owner (msg);
+  m_imap_t m_imap = msg_imap->m_imap;
+  size_t lines = msg_imap->message_lines;
+  int status;
+  size_t len = 0;
+  char *nl = buffer;
+
+  /* Start over.  */
+  if (offset == 0)
+    lines = 0;
+
+  buflen--; /* for the NULL. */
+  status = imap_message_read (stream, buffer, buflen, offset, &len);
+  if (len)
+    {
+      nl = memchr (buffer, '\n', len);
+      if (nl)
+	{
+	  nl++;
+	  *nl = '\0';
+	  msg_imap->message_lines = lines + 1;
+	}
+      else
+	nl = buffer + len;
+    }
+  if (plen)
+    *plen = nl - buffer;
+  return status;
+}
+
+static int
 imap_message_read (stream_t stream, char *buffer, size_t buflen,
 		   off_t offset, size_t *plen)
 {
@@ -954,6 +992,22 @@ imap_message_read (stream_t stream, char *buffer, size_t buflen,
   msg_imap_t msg_imap = message_get_owner (msg);
   m_imap_t m_imap = msg_imap->m_imap;
   f_imap_t f_imap = m_imap->f_imap;
+  char *oldbuf = NULL;
+  char newbuf[2];
+  int status;
+
+  /* This is so annoying, a buffer len of 1 is a killer. If you have for
+     example "\n" to retrieve from the server, IMAP will transform this to
+     "\r\n" and since you ask for only 1, the server will send '\r' only.
+     And ... '\r' will be stripped by (imap_readline()) the number of char
+     read will be 0 which means we're done .... sigh ...  So we guard by at
+     least ask for 2 chars.  */
+  if (buflen == 1)
+    {
+      oldbuf = buffer;
+      buffer = newbuf;
+      buflen = 2;
+    }
 
   /* Start over.  */
   if (offset == 0)
@@ -963,7 +1017,7 @@ imap_message_read (stream_t stream, char *buffer, size_t buflen,
   if (f_imap->state == IMAP_NO_STATE)
     {
       char *section = NULL;
-      int status = imap_messages_count (m_imap->mailbox, NULL);
+      status = imap_messages_count (m_imap->mailbox, NULL);
       if (status != 0)
 	return status;
 
@@ -983,7 +1037,11 @@ imap_message_read (stream_t stream, char *buffer, size_t buflen,
       MAILBOX_DEBUG0 (m_imap->mailbox, MU_DEBUG_PROT, f_imap->buffer);
       f_imap->state = IMAP_FETCH;
     }
-  return fetch_operation (f_imap, msg_imap, buffer, buflen, plen);
+  status = fetch_operation (f_imap, msg_imap, buffer, buflen, plen);
+
+  if (oldbuf)
+    oldbuf[0] = buffer[0];
+  return status;
 }
 
 static int
@@ -1585,6 +1643,22 @@ imap_header_read (header_t header, char *buffer, size_t buflen, off_t offset,
   msg_imap_t msg_imap = message_get_owner (msg);
   m_imap_t m_imap = msg_imap->m_imap;
   f_imap_t f_imap = m_imap->f_imap;
+  char *oldbuf = NULL;
+  char newbuf[2];
+  int status;
+
+  /* This is so annoying, a buffer len of 1 is a killer. If you have for
+     example "\n" to retrieve from the server, IMAP will transform this to
+     "\r\n" and since you ask for only 1, the server will send '\r' only.
+     And ... '\r' will be stripped by (imap_readline()) the number of char
+     read will be 0 which means we're done .... sigh ...  So we guard by at
+     least ask for 2 chars.  */
+  if (buflen == 1)
+    {
+      oldbuf = buffer;
+      buffer = newbuf;
+      buflen = 2;
+    }
 
   /* Start over.  */
   if (offset == 0)
@@ -1593,7 +1667,7 @@ imap_header_read (header_t header, char *buffer, size_t buflen, off_t offset,
   /* Select first.  */
   if (f_imap->state == IMAP_NO_STATE)
     {
-      int status = imap_messages_count (m_imap->mailbox, NULL);
+      status = imap_messages_count (m_imap->mailbox, NULL);
       if (status != 0)
         return status;
       /* We strip the \r, but the offset/size on the imap server is with that
@@ -1619,7 +1693,10 @@ imap_header_read (header_t header, char *buffer, size_t buflen, off_t offset,
       f_imap->state = IMAP_FETCH;
 
     }
-  return fetch_operation (f_imap, msg_imap, buffer, buflen, plen);
+  status = fetch_operation (f_imap, msg_imap, buffer, buflen, plen);
+  if (oldbuf)
+    oldbuf[0] = buffer[0];
+  return status;
 }
 
 /* Body.  */
@@ -1661,6 +1738,41 @@ imap_body_lines (body_t body, size_t *plines)
   return 0;
 }
 
+static int
+imap_body_readline (stream_t stream, char *buffer, size_t buflen, off_t offset,
+		    size_t *plen)
+{
+  message_t msg = stream_get_owner (stream);
+  msg_imap_t msg_imap = message_get_owner (msg);
+  m_imap_t m_imap = msg_imap->m_imap;
+  size_t lines = msg_imap->body_lines;
+  int status;
+  size_t len = 0;
+  char *nl = buffer;
+
+  /* Start over.  */
+  if (offset == 0)
+    lines = 0;
+
+  buflen--; /* for the NULL. */
+  status = imap_body_read (stream, buffer, buflen, offset, &len);
+  if (len)
+    {
+      nl = memchr (buffer, '\n', len);
+      if (nl)
+        {
+          nl++;
+          *nl = '\0';
+          msg_imap->body_lines = lines + 1;
+        }
+      else
+        nl = buffer + len;
+    }
+  if (plen)
+    *plen = nl - buffer;
+  return status;
+}
+
 /* FIXME: Send EISPIPE if trying to seek back.  */
 static int
 imap_body_read (stream_t stream, char *buffer, size_t buflen, off_t offset,
@@ -1673,7 +1785,7 @@ imap_body_read (stream_t stream, char *buffer, size_t buflen, off_t offset,
   f_imap_t f_imap = m_imap->f_imap;
   char *oldbuf = NULL;
   char newbuf[2];
-  int status = 0;
+  int status;
 
   /* This is so annoying, a buffer len of 1 is a killer. If you have for
      example "\n" to retrieve from the server, IMAP will transform this to
