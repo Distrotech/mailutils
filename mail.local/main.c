@@ -236,7 +236,7 @@ main (int argc, char *argv[])
   
   unlink (tempfile);
   for (; *argv; argv++)
-    mda (fp, *argv, NULL);
+    mda (fp, *argv);
   return exit_code;
 }
 
@@ -315,19 +315,8 @@ make_progfile_name (char *pattern, char *username)
 }
 
 int
-mda (FILE *fp, char *username, mailbox_t mbox)
+mda (FILE *fp, char *username)
 {
-  if (mbox)
-    {
-      message_t mesg = NULL;
-      attribute_t attr = NULL;
-      
-      mailbox_get_message (mbox, 1, &mesg);
-      message_get_attribute (mesg, &attr);
-      if (attribute_is_deleted (attr))
-	return EX_OK;
-    }
-
   deliver (fp, username);
 
   if (multiple_delivery)

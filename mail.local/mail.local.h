@@ -102,7 +102,7 @@ extern int exit_code;
 extern void setgroupquota (char *str);
 extern int check_quota (char *name, size_t size, size_t *rest);
 
-int mda (FILE *fp, char *username, mailbox_t mbox);
+int mda (FILE *fp, char *username);
 char *make_progfile_name (char *pattern, char *username);
 
 #ifdef WITH_GUILE
