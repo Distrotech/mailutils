@@ -26,7 +26,7 @@ static char *prev_name;
  * Note 1) The followig notations are left intact, since they are
  * handled by mailbox_create_default:
  * %	    system mailbox
- * %user    system mailbox of the user (bo
+ * %user    system mailbox of the user 
  * Note 2) Allocates memory
  */
 char *
