@@ -1,5 +1,5 @@
 /* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -53,12 +53,12 @@ mu_fcheck_perm (int fd, int mode)
 }
 
 int
-mu_check_perm (char *name, int mode)
+mu_check_perm (const char *name, int mode)
 {
   struct stat st;
 
   if (mode == 0)
-    return 0;	  
+    return 0;
   if (stat (name, &st) == -1)
     {
       if (errno == ENOENT)
@@ -68,7 +68,7 @@ mu_check_perm (char *name, int mode)
     }
   if ((st.st_mode & 0777) != mode)
     {
-      errno = EPERM; 
+      errno = EPERM;
     return 1;
     }
   return 0;

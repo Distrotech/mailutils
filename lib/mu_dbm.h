@@ -1,5 +1,5 @@
 /* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -75,4 +75,4 @@ DBM_DATUM mu_dbm_nextkey __P((DBM_FILE db, DBM_DATUM key));
 #endif
 
 int mu_fcheck_perm __P((int fd, int mode));
-int mu_check_perm __P((char *name, int mode));
+int mu_check_perm __P((const char *name, int mode));

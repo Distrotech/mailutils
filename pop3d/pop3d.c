@@ -1,5 +1,5 @@
 /* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -42,7 +42,7 @@ static int pop3d_mainloop       __P ((int, int));
 static void pop3d_daemon_init   __P ((void));
 static void pop3d_daemon        __P ((unsigned int, unsigned int));
 static error_t pop3d_parse_opt  __P((int key, char *arg,
-				     struct argp_state *state));
+				     struct argp_state *astate));
 const char *argp_program_version = "pop3d (" PACKAGE ") " VERSION;
 const char *argp_program_bug_address = "<bug-mailutils@gnu.org>";
 static char doc[] = "GNU pop3d -- the POP3 daemon";
@@ -50,7 +50,7 @@ static char doc[] = "GNU pop3d -- the POP3 daemon";
 static struct argp argp = {
   NULL,
   pop3d_parse_opt,
-  NULL, 
+  NULL,
   doc,
   NULL,
   NULL, NULL
@@ -65,14 +65,14 @@ static const char *pop3d_argp_capa[] = {
 };
 
 static error_t
-pop3d_parse_opt (int key, char *arg, struct argp_state *state)
+pop3d_parse_opt (int key, char *arg, struct argp_state *astate)
 {
     switch (key)
       {
       case ARGP_KEY_INIT:
-       	state->child_inputs[1] = state->input;
+       	astate->child_inputs[1] = astate->input;
 	break;
-	
+
     default:
       return ARGP_ERR_UNKNOWN;
     }
@@ -85,14 +85,14 @@ main (int argc, char **argv)
 {
   struct group *gr;
   int status = OK;
-  
+
   mu_argp_parse (&argp, &argc, &argv, 0, pop3d_argp_capa, NULL, &daemon_param);
 
 #ifdef USE_LIBPAM
   if (!pam_service)
-    pam_service = "gnu-pop3d";
+    pam_service = (char *)"gnu-pop3d";
 #endif
-  
+
   /* First we want our group to be mail so we can access the spool.  */
   gr = getgrnam ("mail");
   if (gr == NULL)
@@ -111,7 +111,7 @@ main (int argc, char **argv)
   {
     list_t bookie;
     registrar_get_list (&bookie);
-    list_append (bookie, mbox_record); 
+    list_append (bookie, mbox_record);
     list_append (bookie, path_record);
   }
 
