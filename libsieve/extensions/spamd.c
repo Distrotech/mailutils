@@ -173,17 +173,24 @@ spamd_read_line (sieve_machine_t mach, stream_t stream,
 #define char_to_num(c) (c-'0')
 
 static void
-decode_float (size_t *vn, char *str, int digits)
+decode_float (long *vn, char *str, int digits)
 {
-  size_t v;
+  long v;
   size_t frac = 0;
   size_t base = 1;
   int i;
+  int negative = 0;
   
   for (i = 0; i < digits; i++)
     base *= 10;
   
-  v = strtoul (str, &str, 10);
+  v = strtol (str, &str, 10);
+  if (v < 0)
+    {
+      negative = 1;
+      v = - v;
+    }
+  
   v *= base;
   if (*str == '.')
     {
@@ -199,6 +206,8 @@ decode_float (size_t *vn, char *str, int digits)
 	  frac *= 10;
     }
   *vn = v + frac;
+  if (negative)
+    *vn = - *vn;
 }
 
 static int
@@ -281,9 +290,9 @@ spamd_test (sieve_machine_t mach, list_t args, list_t tags)
   char version_str[19];
   char spam_str[6], score_str[21], threshold_str[21];
   int response, rc;
-  size_t version;
+  long version;
   int result;
-  size_t score, threshold, limit;
+  long score, threshold, limit;
   stream_t stream = NULL;
   sieve_value_t *arg;
   message_t msg;
