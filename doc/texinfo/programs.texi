@@ -478,7 +478,8 @@ The following command line options alter the behavior of the program:
 @table @option
 @item -f @var{string}
 @itemx --field @var{string}
-Display the header named by @var{string} instead of @code{From} @code{Subject} pair.
+Display the header named by @var{string} instead of @code{From}
+@code{Subject} pair.
 @item -l
 @itemx --to
 Include the contents of @code{To} header to the output. The output field
@@ -2188,7 +2189,7 @@ Set output file name
 Set sieve library directory name
 
 @item -d @var{level}
-@item --debug @var{level}
+@itemx --debug @var{level}
 Set debugging level
 @end table            
 
@@ -2306,7 +2307,7 @@ guimb --guile-arg -opt --guile-arg 24 --file @var{progfile}
 In this example, the scheme procedure will see the following command line:
 
 @smallexample
-progfile -opt 24
+@var{progfile} -opt 24
 @end smallexample
 
 Finally, if there are many arguments to be passed to Scheme, it is more
