@@ -83,6 +83,8 @@
 #include <mailutils/mu_auth.h>
 
 #include <mu_dbm.h>
+#include <mu_asprintf.h>
+#include <getline.h>
 
 /* Debug */
 extern int debug_level;

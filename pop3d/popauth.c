@@ -16,6 +16,8 @@
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #include "pop3d.h"
+#include <mailutils/argcv.h>
+#include <xalloc.h>
 
 int db_list (char *input_name, char *output_name);
 int db_make (char *input_name, char *output_name);
