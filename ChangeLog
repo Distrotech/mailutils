@@ -1,3 +1,27 @@
+2001-09-08 Sergey Poznyakoff
+
+	Initial implementation of MH mailbox format. It is functional
+	in read-only mode. In read-write, it is able to delete and
+	undelete messages but lacks `append message' functionality.
+	Expunge does not unlink message files but rather renames them
+	prepending ',' to a filename, after MH fashion.
+
+	* mailbox/mbox_mh.c: (new)
+	* mailbox/url_mh.c: (new) 
+	* mailbox/folder_mh.c: (new)
+	* mailbox/Makefile.am: Added mh-related sources.
+	* mail/mail.c: Register mh_record.
+ 	* mailbox/include/registrar0.h: Added mh-related declarations.
+	* include/mailutils/registrar.h: Declare mh_record.
+
+	* mailbox/mbx_mbox.c: Check for MU_ATTRIBUTE_DELETED in
+	mbox_expunge.
+
+	* libmu_scm/mu_mailbox.c: mu_scm_mailbox_print(): handle
+	mailbox == #f case.
+	* libmu_scm/mu_message.c: mu_scm_message_print(): handle
+	message == #f case.
+
 2001-09-06  Alain Magloire
 
 	* mailbox/folder_mbox.c (folder_mbox_open): Implemeted.
@@ -143,7 +167,6 @@
 	* mailbox/mutil.c: Use const appropriately in the definition
 	of mu_register_getpwnam() and mu_getpwnam(). Typo "struct password"
 	instead of "struct passwd".
-======= end
 
 2001-08-30 Sergey Poznyakoff
 
