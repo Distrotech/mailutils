@@ -37,18 +37,20 @@ mail_summary (int argc, char **argv)
       if ((mailbox_get_message (mbox, msgno, &msg) == 0)
 	  && (message_get_attribute (msg, &attr) == 0))
 	    {
-	      if (attribute_is_deleted (attr))
+	      int deleted = attribute_is_deleted (attr);
+	      
+	      if (deleted)
 		mdelete++;
 	      if (attribute_is_seen (attr) && ! attribute_is_read (attr))
 		{
 		  mseen++;
-		  if (!first_unread)
+		  if (!deleted && !first_unread)
 		    first_unread = msgno;
 		}
 	      if (attribute_is_recent (attr))
 		{
 		  mnew++;
-		  if (!first_new)
+		  if (!deleted && !first_new)
 		    first_new = msgno;
 		}
 	}
