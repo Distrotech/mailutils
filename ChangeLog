@@ -1,3 +1,11 @@
+2002-07-15  Sergey Poznyakoff  
+
+	* mail/folders.c (mail_folders): If the value of "folder" variable
+	  does not start with '/' or '~', assume it is relative to the
+	  user's homedir.
+	* mail/file.c (mail_file): Likewise. Thanks to Matthew Whitworth
+	  <matthew@okcomputer.org> for reporting.
+	  
 2002-07-13  Sergey Poznyakoff  
 
 	* mailbox/mbx_default.c (mailbox_create_default): If the
