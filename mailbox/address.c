@@ -171,8 +171,16 @@ address_concatenate (address_t to, address_t * from)
   to->next = *from;
   *from = NULL;
 
+  /* discard the current string cache as it is now inaccurate */
+  if (to->addr)
+    {
+      free (to->addr);
+      to->addr = NULL;
+    }
+
   to = to->next;
 
+  /* only the first address must have a cache */
   if (to->addr)
     {
       free (to->addr);

@@ -1,3 +1,8 @@
+2002-11-25  Frederic Gobry  <frederic.gobry@smartdata.ch>
+
+	* mailbox/address.c (address_concatenate): cleanup the address
+	cache during concatenation.
+
 2002-11-25  Sergey Poznyakoff 
 
 	* mail.local/main.c (deliver): Bugfix: n and isize were not
