@@ -92,12 +92,15 @@ static const char *capa[] = {
   NULL
 };
 
-static void
-from_rfc2047_decode (char *buf, size_t buflen)
+static char *
+rfc2047_decode_wrapper (char *buf, size_t buflen)
 {
+  char locale[32];
   char *charset = NULL;
   char *tmp;
   int rc;
+
+  memset (locale, 0, sizeof (locale));
 
   /* Try to deduce the charset from LC_ALL or LANG variables */
 
@@ -107,11 +110,13 @@ from_rfc2047_decode (char *buf, size_t buflen)
 
   if (tmp)
     {
-      char *sp;
+      char *sp = NULL;
       char *lang;
       char *terr;
 
-      lang = strtok_r (tmp, "_", &sp);
+      strncpy (locale, tmp, sizeof (locale) - 1);
+
+      lang = strtok_r (locale, "_", &sp);
       terr = strtok_r (NULL, ".", &sp);
       charset = strtok_r (NULL, "@", &sp);
 
@@ -120,7 +125,7 @@ from_rfc2047_decode (char *buf, size_t buflen)
     }
 
   if (!charset)
-    return;
+    return strdup (buf);
 
   rc = rfc2047_decode (charset, buf, &tmp);
   if (rc)
@@ -128,12 +133,10 @@ from_rfc2047_decode (char *buf, size_t buflen)
       if (debug)
 	mu_error (_("Can't decode line `%s': %s"),
 		  buf, mu_strerror (rc));
+      return strdup (buf);
     }
-  else
-    {
-      strncpy (buf, tmp, buflen - 1);
-      free (tmp);
-    }
+
+  return tmp;
 }
 
 int
@@ -143,9 +146,7 @@ main (int argc, char **argv)
   size_t i;
   size_t count = 0;
   char *mailbox_name = NULL;
-  /* Arbitrary limits.  A better approach would be to allocate
-     as we go along but it is not worth the trouble.  */
-  char buf[128];
+  char *buf;
   char personal[128];
   int status;
 
@@ -204,36 +205,39 @@ main (int argc, char **argv)
 	  exit (2);
 	}
 
-      header_get_value (hdr, MU_HEADER_FROM, buf, sizeof (buf), &len);
-      if (len != 0)
+      status = header_aget_value (hdr, MU_HEADER_FROM, &buf);
+      if (status == 0)
 	{
 	  address_t address = NULL;
-	  len = 0;
 
-	  from_rfc2047_decode (buf, sizeof (buf));
-	  address_create (&address, buf);
-	  address_get_personal (address, 1, personal,
-				sizeof (personal), &len);
+	  char *s = rfc2047_decode_wrapper (buf, strlen (buf));
+	  address_create (&address, s);
+	  free (s);
+
+	  len = 0;
+	  address_get_personal (address, 1, personal, sizeof (personal), &len);
 	  printf ("%s\t", (len != 0) ? personal : buf);
 	  address_destroy (&address);
 	}
       else
 	{
-	  status = header_get_value (hdr, MU_HEADER_TO, buf,
-				     sizeof (buf), &len);
+	  status = header_aget_value (hdr, MU_HEADER_TO, &buf);
 	  if (status == 0)
 	    {
-	      from_rfc2047_decode (buf, sizeof (buf));
-	      printf ("%s\t", buf);
+	      char *s = rfc2047_decode_wrapper (buf, strlen (buf));
+	      printf ("%s\t", s);
+	      free (s);
 	    }
 	}
+      free (buf);
 
-      status = header_get_value_unfold (hdr, MU_HEADER_SUBJECT,
-					buf, sizeof (buf), NULL);
+      status = header_aget_value_unfold (hdr, MU_HEADER_SUBJECT, &buf);
       if (status == 0)
 	{
-	  from_rfc2047_decode (buf, sizeof (buf));
-	  printf ("%s\n", buf);
+	  char *s = rfc2047_decode_wrapper (buf, strlen (buf));
+	  printf ("%s\n", s);
+	  free (s);
+	  free (buf);
 	}
     }
 
