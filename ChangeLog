@@ -1,4 +1,7 @@
 2001-05-27  Sergey Poznyakoff
+	* imap4d/search.c: Added missing <message set> condition.
+
+2001-05-27  Sergey Poznyakoff
 
 	* imap4d/imap4d.c, imap4d/capability.c, imap4d/copy.c,
 	  imap4d/create.c, imap4d/delete.c, imap4d/imap4d.h,
