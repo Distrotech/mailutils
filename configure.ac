@@ -301,15 +301,11 @@ if test x"$testpam" = x"yes"; then
 		AC_CHECK_LIB(pam, pam_start,
 			AUTHLIBS="$AUTHLIBS -lpam $LDL" ac_cv_have_libpam="yes",, $LDL)
 		AC_DEFINE(USE_LIBPAM,1,[Enable use of PAM])
-		AM_CONDITIONAL(USE_LIBPAM, test x"$ac_cv_have_libpam" != xno)
 	fi
 fi
 
 AC_CHECK_HEADERS(crypt.h)
-AC_CHECK_FUNCS(crypt)
-if test x"$ac_cv_func_crypt" = x"no"; then
-	AC_CHECK_LIB(crypt, crypt, AUTHLIBS="$AUTHLIBS -lcrypt",, -lcrypt)
-fi
+AC_CHECK_LIB(crypt, crypt)
 
 AC_SUBST(AUTHLIBS)
 AC_SUBST(AUTHINCS)
