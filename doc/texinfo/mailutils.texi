@@ -117,7 +117,7 @@ This document was produced for version @value{VERSION} of @sc{gnu}
 @end ifinfo
 @menu
 * Introduction::                GNU @sc{mailutils}
-* Concrete API::                Concrete API.
+@comment * Concrete API::                Concrete API.
 * Framework::                   Framework.
 * Programs::                    Programs.
 * Reporting Bugs::              Reporting Bugs.
@@ -130,7 +130,7 @@ Indices
 
 @end menu
 
-@node Introduction, Concrete API, Top, Top
+@node Introduction, Framework, Top, Top
 @comment  node-name,  next,  previous,  up
 @chapter Introduction
 @cindex Introduction
@@ -253,14 +253,14 @@ Notifications}
 
 @end itemize
 
-@node Concrete API, Framework, Introduction, Top
-@comment  node-name,  next,  previous,  up
-@chapter Concrete API
-@cindex Concrete API
+@comment @node Concrete API, Framework, Introduction, Top
+@comment @comment  node-name,  next,  previous,  up
+@comment @chapter Concrete API
+@comment @cindex Concrete API
 
 @include c-api.texi
 
-@node Framework, Programs, Concrete API, Top
+@node Framework, Programs, Introduction, Top
 @comment  node-name,  next,  previous,  up
 @chapter Framework
 @cindex Framework
