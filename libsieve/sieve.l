@@ -348,7 +348,7 @@ text:          { BEGIN(ML); multiline_begin (); }
                  multiline_add ();
                  multiline_finish ();
                  return MULTILINE; }
-<ML>.*\n { sieve_line_num++; } 
+<ML>.*\n { sieve_line_num++; multiline_add (); } 
 {WS}     ;
 \n { sieve_line_num++; } 
 . return yytext[0];
