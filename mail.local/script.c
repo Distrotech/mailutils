@@ -80,13 +80,13 @@ mda_switch_to_user (struct mda_data *md)
 
   if (auth)
     {
-      switch_user_id (auth->uid);
+      switch_user_id (auth, 1);
       chdir (auth->dir);
       mu_auth_data_free (auth);
     }
   else
     {
-      switch_user_id (0);
+      switch_user_id (auth, 0);
       chdir ("/");
     }
 }

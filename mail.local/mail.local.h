@@ -102,7 +102,7 @@ extern void setgroupquota __P((char *str));
 extern int check_quota __P((char *name, size_t size, size_t *rest));
 
 int mda __P((FILE *fp, char *username));
-int switch_user_id __P((uid_t uid));
+int switch_user_id __P((struct mu_auth_data *auth, int user));
 void mailer_err __P((char *fmt, ...));
 
 #ifdef WITH_GUILE

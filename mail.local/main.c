@@ -29,7 +29,6 @@ int lock_timeout = 300;
 #define EX_QUOTA() (ex_quota_tempfail ? EX_TEMPFAIL : EX_UNAVAILABLE)
 
 void close_fds ();
-int switch_user_id (uid_t uid);
 FILE *make_tmp (const char *from, char **tempfile);
 void deliver (FILE *fp, char *name);
 void guess_retval (int ec);
@@ -257,9 +256,19 @@ close_fds ()
 }
 
 int
-switch_user_id (uid_t uid)
+switch_user_id (struct mu_auth_data *auth, int user)
 {
   int rc;
+  uid_t uid;
+  
+  if (auth->change_uid == 0)
+    return 0;
+  
+  if (user)
+    uid = auth->uid;
+  else
+    uid = 0;
+  
 #if defined(HAVE_SETREUID)
   rc = setreuid (0, uid);
 #elif defined(HAVE_SETRESUID)
@@ -279,13 +288,14 @@ FILE *
 make_tmp (const char *from, char **tempfile)
 {
   time_t t;
-  int fd = mu_tempfile (NULL, tempfile);
   FILE *fp;
   char *buf = NULL;
   size_t n = 0;
   int line;
   
-  if (fd == -1 || (fp = fdopen (fd, "w+")) == NULL)
+  *tempfile = mu_tempname (NULL);
+  fp = fopen (*tempfile, "w+");
+  if (fp == NULL)
     {
       mailer_err ("unable to open temporary file");
       exit (exit_code);
@@ -370,7 +380,6 @@ deliver (FILE *fp, char *name)
       mailer_err ("Out of memory");
       return;
     }
-  sprintf (path, "%s%s", mu_path_maildir, name);
 
   if ((status = mailbox_create (&mbox, path)) != 0)
     {
@@ -387,10 +396,10 @@ deliver (FILE *fp, char *name)
   /* Actually open the mailbox. Switch to the user's euid to make
      sure the maildrop file will have right privileges, in case it
      will be created */
-  if (switch_user_id (auth->uid))
+  if (switch_user_id (auth, 1))
     return;
   status = mailbox_open (mbox, MU_STREAM_RDWR|MU_STREAM_CREAT);
-  if (switch_user_id (0))
+  if (switch_user_id (auth, 0))
     return;
   if (status != 0)
     {
@@ -457,7 +466,7 @@ deliver (FILE *fp, char *name)
     }
 #endif
   
-  if (!failed && switch_user_id (auth->uid) == 0)
+  if (!failed && switch_user_id (auth, 1) == 0)
     {
       off_t off = size;
       size_t nwr;
@@ -478,7 +487,7 @@ deliver (FILE *fp, char *name)
 	  off += nwr;
 	}
       free (buf);
-      switch_user_id (0);
+      switch_user_id (auth, 0);
     }
 
   if (!failed)
