@@ -2,6 +2,8 @@ AUTOMAKE_OPTIONS = ../lib/ansi2knr
 INCLUDES =-I$(srcdir) -I$(top_srcdir)/lib -I$(top_srcdir)/include \
  -I$(top_srcdir)/libmu_scm
 
+SUBDIRS=scm
+
 bin_PROGRAMS=@GUIMB@
 EXTRA_PROGRAMS=guimb
 guimb_SOURCES=main.c collect.c util.c run_scm.c guimb.h 
