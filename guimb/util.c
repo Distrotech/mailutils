@@ -29,53 +29,6 @@ util_error (char *fmt, ...)
   va_end (ap);
 }
 
-int
-util_tempfile (char **namep)
-{
-  char *filename;
-  char *tmpdir;
-  int fd;
-
-  /* We have to be extra careful about opening temporary files, since we
-     may be running with extra privilege i.e setgid().  */
-  tmpdir = (getenv ("TMPDIR")) ? getenv ("TMPDIR") : "/tmp";
-
-  filename = malloc (strlen (tmpdir) + /*'/' */ 1 + /* "muXXXXXX" */ 8 + 1);
-  if (!filename)
-    return -1;
-  sprintf (filename, "%s/muXXXXXX", tmpdir);
-
-#ifdef HAVE_MKSTEMP
-  {
-    int save_mask = umask (077);
-    fd = mkstemp (filename);
-    umask (save_mask);
-  }
-#else
-  if (mktemp (filename))
-    fd = open (filename, O_CREAT | O_EXCL | O_RDWR, 0600);
-  else
-    fd = -1;
-#endif
-
-  if (fd == -1)
-    {
-      util_error ("Can not open temporary file: %s", strerror (errno));
-      free (filename);
-      return -1;
-    }
-
-  if (namep)
-    *namep = filename;
-  else
-    {
-      unlink (filename);
-      free (filename);
-    }
-
-  return fd;
-}
-
 char *
 util_get_sender (int msgno)
 {
