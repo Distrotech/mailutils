@@ -1,3 +1,11 @@
+2001-11-02  Sergey Poznyakoff
+
+	* comsat/comsat.c: Restart on sighup when in daemon mode.
+	Fight floods by increasing delays exponentially.
+	Fill in `hostname' on startup.
+	* comsat/comsat.h: include <ctype.h>.
+	* comsat/cfg.c: Removed include <ctype.h>.
+
 2001-11-01  Alain Magloire
 
 	There were confusion, about the authority_t and the ticket_t.
@@ -59,6 +67,7 @@
 	* messages/messages.c (messages_count): Argument should
 	be const.
 
+>>>>>>> 1.322
 2001-11-01  Sergey Poznyakoff
 
 	* configure.in: Added check for utmp.h & utmpx.h
