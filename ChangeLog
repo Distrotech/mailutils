@@ -1,3 +1,11 @@
+2002-10-15  Sergey Poznyakoff  
+
+	* guimb/scm/README: Updated.
+	* mailbox/parse822.c (parse822_phrase): Allow for dots
+	  in non-quoted personal phrase.
+	* mailbox/testsuite/Addrs: New test: parse non-quoted
+	  phrase containing dots.
+
 2002-10-14  Alain Magloire
 
 	* mailbox/getline.c: New LGPL implementation,
