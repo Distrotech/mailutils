@@ -1,3 +1,31 @@
+2001-04-23  Alain Magloire
+
+	Sergey Poznyakoff pointed out that errno change depending
+	if _REENTRANT is set or not.  So for enable thread we take
+	the approach of always defining _REENTRANT.
+	He also noted that when in standalone the child was not exiting.
+
+	* acconfig.h: Define _REENTRANT.
+	* configure.in: Check for sigaction().
+	* configuire.in: AC_DEFINE(_REENTRANT).
+
+	* doc/Makefile.am: add rfc2060-errata.
+	* doc/rfc2060-errata: New File.
+
+	* imap4d/copy.c: First Implementation.
+	* imap4d/status.c: First implementation.
+
+	* mailbox/file_stream.c (_file_open): For CREAT, close
+	the fd if we failed.
+	* mailbox/folder_imap.c: Remove the _REENTRANT.
+	* mailbox/mbx_mbox.c: Remove the _REENTRANT.
+	* mailbox/monitor.c: Remove the _REENTRANT.
+
+	* pop3d/pop3d.c (main): maxchildren boosted to 20.
+	(pop3_daemon_init): Use sigaction() for SIGCHLD,
+	the sematics of signal() is unreliable on some platforms.
+	* pop3d/signal.c: Save errno.
+
 2001-04-22  Alain Magloire
 
 	* imap4d/create.c: First implementation.

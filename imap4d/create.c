@@ -19,9 +19,13 @@
 #include <unistd.h>
 
 /*
- * must create a new mailbox
+ * Must create a new mailbox
  */
 
+/* FIXME: How do we do this ??????:
+   IF a new mailbox is created with the same name as a mailbox which was
+   deleted, its unique identifiers MUST be greater than any unique identifiers
+   used in the previous incarnation of the mailbox.  */
 int
 imap4d_create (struct imap4d_command *command, char *arg)
 {
@@ -50,11 +54,15 @@ imap4d_create (struct imap4d_command *command, char *arg)
   /* Allocates memory.  */
   name = util_getfullpath (name, delim);
 
-  /* It will fail if the mailbx already exists.  */
+  /* It will fail if the mailbox already exists.  */
   if (access (name, F_OK) != 0)
     {
       char *dir;
       char *d = name + strlen (delim); /* Pass the root delimeter.  */
+
+      /*If the server's hierarchy separtor character appears elsewhere in
+	name, the server SHOULD create any superior hierarchcal names
+	that are needed for the CREATE command to complete successfully.  */
       if (chdir (delim) == 0) /* start on the root.  */
 	for (; (dir = strchr (d, delim[0])); d = dir)
 	  {
@@ -76,7 +84,11 @@ imap4d_create (struct imap4d_command *command, char *arg)
 		  }
 	      }
 	  }
-      /* If it ended with the delim they wanted to create a new folder.  */
+      /* If the mailbox name is suffixed with the server's hierarchy
+	 separator character, this is a declaration that the client intends
+	 to create mailbox names under this name in the hierarchy.
+
+	 In other words is d == '\0' it is not an error.   */
       if (rc == RESP_OK && d && *d != '\0')
 	{
 	  int fd = creat (d, 0600);

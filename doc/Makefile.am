@@ -6,6 +6,7 @@ EXTRA_DIST = \
  rfc1939.txt \
  rfc1957.txt \
  rfc2060.txt \
+ rfc2060-errata \
  rfc2449.txt \
  address.texi \
  attribute.texi \

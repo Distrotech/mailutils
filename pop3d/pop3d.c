@@ -31,7 +31,7 @@ int ifile;
 FILE *ofile;
 time_t curr_time;
 char *md5shared;
-unsigned int children;
+volatile unsigned int children;
 
 /* Number of child processes.  */
 unsigned int children = 0;
@@ -54,8 +54,9 @@ main (int argc, char **argv)
 {
   struct group *gr;
   static int mode = INTERACTIVE;
-  size_t maxchildren = 10;
+  size_t maxchildren = 20;
   int c = 0;
+  int status = OK;
 
   port = 110;			/* Default POP3 port.  */
   timeout = 0;			/* Default timeout of 0.  */
@@ -148,14 +149,14 @@ main (int argc, char **argv)
 
   /* Actually run the daemon.  */
   if (mode == DAEMON)
-      pop3_daemon (maxchildren);
+    pop3_daemon (maxchildren);
   /* exit() -- no way out of daemon except a signal.  */
   else
-    pop3_mainloop (fileno (stdin), fileno (stdout));
+    status = pop3_mainloop (fileno (stdin), fileno (stdout));
 
   /* Close the syslog connection and exit.  */
   closelog ();
-  return OK;
+  return (OK != status);
 }
 
 /* Sets things up for daemon mode.  */
@@ -183,7 +184,7 @@ pop3_daemon_init (void)
   if (pid == -1)
     {
       perror("fork failed:");
-      exit (-1);
+      exit (1);
     }
   else if (pid > 0)
     exit (0);			/* Parent exits.  */
@@ -192,7 +193,17 @@ pop3_daemon_init (void)
   for (i = 0; i < MAXFD; ++i)
     close(i);
 
+#ifdef HAVE_SIGACTION
+  {
+    struct sigaction act;
+    act.sa_handler = pop3_sigchld;
+    sigemptyset (&act.sa_mask);
+    act.sa_flags = 0;
+    sigaction (SIGCHLD, &act, NULL);
+  }
+#else
   signal (SIGCHLD, pop3_sigchld);
+#endif
 }
 
 /* The main part of the daemon. This function reads input from the client and
@@ -237,7 +248,6 @@ pop3_mainloop (int infile, int outfile)
 	    (int)time (NULL), local_hostname);
   free (local_hostname);
 
-  fflush (ofile);
   fprintf (ofile, "+OK POP3 " WELCOME " %s\r\n", md5shared);
 
   while (state != UPDATE)
@@ -312,7 +322,7 @@ pop3_mainloop (int infile, int outfile)
     }
 
   fflush (ofile);
-  return OK;
+  return (status != OK);
 }
 
 /* Runs GNU POP3 in standalone daemon mode. This opens and binds to a port
@@ -372,12 +382,15 @@ pop3_daemon (unsigned int maxchildren)
 
       pid = fork ();
       if (pid == -1)
-	syslog(LOG_ERR, "fork: %s", strerror(errno));
+	syslog(LOG_ERR, "fork: %s", strerror (errno));
       else if (pid == 0) /* Child.  */
         {
+	  int status;
           close (listenfd);
-	  /* syslog(); FIXME log the info on the connectiing client.  */
-          pop3_mainloop (connfd, connfd);
+	  /* syslog(); FIXME log the info on the connecting client.  */
+          status = pop3_mainloop (connfd, connfd);
+	  closelog ();
+	  exit (status);
         }
       else
         {

@@ -42,6 +42,10 @@ imap4d_select0 (struct imap4d_command *command, char *arg, int flags)
   if (util_getword (NULL, &sp))
     return util_finish (command, RESP_BAD, "Too many arguments");
 
+  /* Even if a mailbox is slected, a SLECT EXAMINE or LOGOUT
+     command MAY be issued without previously issuing a CLOSE command.
+     The SELECT, EXAMINE, and LOGUT commands implictly close the
+     currently selected mailbox withut doing an expunge.  */
   if (mbox)
     {
       mailbox_close (mbox);

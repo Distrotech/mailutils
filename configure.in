@@ -71,7 +71,7 @@ if test "$ac_cv_func_fnmatch_works" = "no"; then
 : LIBOBJS="$LIBOBJS fnmatch.o"
 fi
 AC_REPLACE_FUNCS(setenv snprintf strtok_r strncasecmp strcasecmp vasprintf)
-AC_CHECK_FUNCS(mkstemp)
+AC_CHECK_FUNCS(mkstemp sigaction)
 
 dnl Check for libraries
 AC_CHECK_FUNCS(argp_parse)
@@ -104,15 +104,19 @@ if test x"$ac_cv_have_libpam" != x"yes"; then
 fi
 AC_SUBST(AUTHLIBS)
 
+#When using thread support some platforms need -D_REENTRANT to get the
+#right prototypes including errno.
 dnl Check threading support
 if test x"$usepthread" = x"yes"; then
 	AC_CHECK_LIB(pthread, pthread_cancel, [AC_CHECK_HEADERS(pthread.h,
 		AC_DEFINE(WITH_PTHREAD))
 		LIBS="$LIBS -lpthread"
+		AC_DEFINE(_REENTRANT)
 		AC_CHECK_FUNCS(pthread_rwlock_init)],
 		AC_SEARCH_LIBS(pthread_cancel, pthread,
 			[AC_CHECK_FUNCS(pthread_rwlock_init)
-			AC_CHECK_HEADERS(pthread.h, AC_DEFINE(WITH_PTHREAD))]))
+			AC_CHECK_HEADERS(pthread.h, AC_DEFINE(WITH_PTHREAD))
+			ACDEFINE(_REENTRANT)]))
 fi
 
 dnl Do we need extra libs for networking?

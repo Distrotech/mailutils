@@ -34,17 +34,14 @@ imap4d_delete (struct imap4d_command *command, char *arg)
     return util_finish (command, RESP_BAD, "Wrong state");
 
   name = util_getword (arg, &sp);
-  if (!name)
-    return util_finish (command, RESP_BAD, "Too few arguments");
-
   util_unquote (&name);
-
-  if (*name == '\0')
+  if (!name || *name == '\0')
     return util_finish (command, RESP_BAD, "Too few arguments");
 
-  /* Deleting, "Inbox" should always fail.  */
+  /* It is an error to attempt to delele "INBOX or a mailbox
+     name that dos not exists.  */
   if (strcasecmp (name, "INBOX") == 0)
-    return util_finish (command, RESP_BAD, "Already exist");
+    return util_finish (command, RESP_NO, "Already exist");
 
  /* Allocates memory.  */
   name = util_getfullpath (name, delim);

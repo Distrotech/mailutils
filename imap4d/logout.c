@@ -31,8 +31,15 @@ imap4d_logout (struct imap4d_command *command, char *arg)
     return util_finish (command, RESP_BAD, "Too many args");
   util_out (RESP_BYE, "Logging out");
   util_finish (command, RESP_OK, "Completed");
-  mailbox_close (mbox);
-  mailbox_destroy (&mbox);
+ /* Even if a mailbox is slected, a SLECT EXAMINE or LOGOUT
+    command MAY be issued without previously issuing a CLOSE command.
+    The SELECT, EXAMINE, and LOGUT commands implictly close the
+    currently selected mailbox withut doing an expunge.  */
+  if (mbox)
+    {
+      mailbox_close (mbox);
+      mailbox_destroy (&mbox);
+    }
   util_quit (0);
   return 0;
 }

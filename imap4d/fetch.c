@@ -110,10 +110,7 @@ imap4d_fetch (struct imap4d_command *command, char *arg)
     return util_finish (command, RESP_BAD, "Wrong state");
 
   msgset = util_getword (arg, &sp);
-  if (!msgset)
-    return util_finish (command, RESP_BAD, "Too few args");
-
-  if (sp == NULL || *sp == '\0')
+  if (!msgset || !sp || *sp == '\0')
     return util_finish (command, RESP_BAD, "Too few args");
 
   /* Get the message numbers in set[].  */

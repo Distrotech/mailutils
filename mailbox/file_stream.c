@@ -260,14 +260,16 @@ _file_open (stream_t stream, const char *filename, int port, int flags)
 
       /* Now check that: file and fd reference the same file,
 	 file only has one link, file is plain file.  */
-      if (fdbuf.st_dev != filebuf.st_dev ||
-	  fdbuf.st_ino != filebuf.st_ino ||
-	  fdbuf.st_nlink != 1 ||
-	  filebuf.st_nlink != 1 ||
-	  (fdbuf.st_mode & S_IFMT) != S_IFREG) {
-	fprintf(stderr,"%s must be a plain file with one link\n", filename);
-	return EINVAL;
-      }
+      if (fdbuf.st_dev != filebuf.st_dev
+	  || fdbuf.st_ino != filebuf.st_ino
+	  || fdbuf.st_nlink != 1
+	  || filebuf.st_nlink != 1
+	  || (fdbuf.st_mode & S_IFMT) != S_IFREG)
+	{
+	  fprintf(stderr,"%s must be a plain file with one link\n", filename);
+	  close (fd);
+	  return EINVAL;
+	}
     }
   /* We use FILE * object.  */
   if (flags & MU_STREAM_APPEND)

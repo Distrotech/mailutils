@@ -25,7 +25,6 @@
 #endif
 
 #ifdef WITH_PTHREAD
-#  define _REENTRANT
 #  ifdef HAVE_PTHREAD_H
 #    include <pthread.h>
 #  endif

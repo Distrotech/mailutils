@@ -19,10 +19,6 @@
 # include <config.h>
 #endif
 
-#ifdef WITH_PTHREAD
-# define _REENTRANT
-#endif
-
 #include <stdlib.h>
 #include <ctype.h>
 #include <stdarg.h>

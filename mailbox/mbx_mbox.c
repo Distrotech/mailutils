@@ -22,7 +22,6 @@
 #endif
 
 #ifdef WITH_PTHREAD
-# define _REENTRANT
 # ifdef HAVE_PTHREAD_H
 #  define _XOPEN_SOURCE  500
 #  include <pthread.h>

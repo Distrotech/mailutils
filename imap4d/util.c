@@ -87,7 +87,7 @@ void
 util_unquote (char **ptr)
 {
   char *s = *ptr;
-  if (*s == '"')
+  if (s && *s == '"')
     {
       char *p = ++s;
       while (*p && *p != '"')
@@ -426,6 +426,8 @@ util_start (char *tag)
 void
 util_quit (int err)
 {
+  if (err)
+    util_out (RESP_BYE, "Server terminating");
   exit (err);
 }
 

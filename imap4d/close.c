@@ -23,12 +23,16 @@
 int
 imap4d_close (struct imap4d_command *command, char *arg)
 {
-  /* FIXME: Check args.  */
-  /* FIXME: Check state and if they selected.  */
+  (void)arg;
   if (! (command->states & state))
     return util_finish (command, RESP_BAD, "Wrong state");
   /* FIXME: Check and report errors.  */
+  /* The CLOSE command permanently removes form the currentyl selected
+     mailbox all messages that have the \\Deleted falg set, and returns
+     to authenticated state from selected state.  */
   mailbox_expunge (mbox);
+  /* No messages are removed, and no error is give, if the mailbox is
+     selected by an EXAMINE command or is otherwise selected read-only.  */
   mailbox_close (mbox);
   mailbox_destroy (&mbox);
   return util_finish (command, RESP_OK, "Completed");

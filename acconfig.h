@@ -29,3 +29,6 @@
 
 /* Define if using libreadline */
 #undef WITH_READLINE
+
+/* Define _REENTRANT when using threads.  */
+#undef _REENTRANT
