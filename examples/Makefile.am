@@ -87,5 +87,3 @@ nntpclient_LDADD = \
  ../lib/libmailutils.la\
  @AUTHLIBS@ @READLINE_LIBS@
 
-EXTRA_DIST = comsat.conf dot.biffrc gnu-imap4d.pam gnu-pop3d.pam\
- mailutils.rc reply.scm
