@@ -1,3 +1,23 @@
+2002-04-10  Sergey Poznyakoff
+
+	* imap4d/list.c: Removed imap_match().
+	* imap4d/util.c (util_wcard_match): from list.c
+	* imap4d/imap4d.h: Proto for util_wcard_match() and defines
+	  for its return values.
+	* imap4d/lsub.c: Output only those list items that match
+	  given wildcard expression.
+
+	* mailbox/mutil.c (mu_register_retriever): Register a retrieving
+	  function.
+	  (mu_retrieve): Retrieve information using stack of retriever
+	  functions.
+	  (mu_getpwnam,mu_register_getpwnam): Rewritten using retriever
+	  functions.
+	  (mu_getpwuid,mu_register_getpwuid): Likewise.
+	  
+	* include/mailutils/mutil.h: Prototypes for general-purpose
+	  retrieval functions.
+
 2002-04-08  Sergey Poznyakoff 
 
 	* include/mailutils/locker.h (MU_LOCKER_KERNEL): New locker
