@@ -34,12 +34,12 @@ set_namespace(int i, char *str)
 {
   char *p, *save;
   struct namespace_t ns;
-  
+
   /* first, estimate the number of items in subdir_v array: */
-  ns.subdir_c = 1; 
+  ns.subdir_c = 1;
   for (p = strchr(str, ':'); p && *p; p = strchr(p+1, ':'))
     ns.subdir_c++;
-  
+
   /* Now allocate the memory */
   ns.subdir_v = calloc(ns.subdir_c, sizeof(ns.subdir_v[0]));
 
@@ -56,9 +56,9 @@ set_namespace(int i, char *str)
 	  ns.subdir_v[ns.subdir_c++] = util_normalize_path(strdup(p), "/");
 	}
     }
-  
+
   namespace[i] = ns;
-  
+
   return 0;
 }
 
@@ -78,13 +78,13 @@ static void
 print_namespace(int n)
 {
   int i;
-  
+
   if (namespace[n].subdir_c == 0)
     {
       util_send("NIL");
       return;
     }
-  
+
   util_send("(");
   for (i = 0; i < namespace[n].subdir_c; i++)
     {
@@ -93,7 +93,7 @@ print_namespace(int n)
   util_send(")");
 }
 
-int
+static int
 namespace_enumerate(int ns, nsfp_t f, void *closure)
 {
   int i, rc;
@@ -104,14 +104,14 @@ namespace_enumerate(int ns, nsfp_t f, void *closure)
   return 0;
 }
 
-int
+static int
 namespace_enumerate_all(nsfp_t f, void *closure)
 {
   return namespace_enumerate(NS_PRIVATE, f, closure)
     || namespace_enumerate(NS_OTHER, f, closure)
     || namespace_enumerate(NS_SHARED, f, closure);
 }
-    
+
 int
 imap4d_namespace(struct imap4d_command *command, char *arg)
 {
@@ -128,7 +128,7 @@ imap4d_namespace(struct imap4d_command *command, char *arg)
   util_send(" ");
   print_namespace(NS_SHARED);
   util_send("\r\n");
-  
+
   return util_finish (command, RESP_OK, "Completed");
 }
 
@@ -177,7 +177,7 @@ namespace_checkfullpath (char *name, const char *pattern, const char *delim)
     return path;
 
   util_normalize_path(path, "/");
-  
+
   info.name = path;
   info.namelen = strlen(path);
   if (!namespace_enumerate_all(check_namespace, &info))
@@ -192,7 +192,7 @@ namespace_checkfullpath (char *name, const char *pattern, const char *delim)
       free(path);
       return NULL;
     }
-  
+
   return path;
 }
 
