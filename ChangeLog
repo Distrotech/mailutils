@@ -1,3 +1,15 @@
+2005-03-04  Sergey Poznyakoff  
+
+	* mail/mail.h (MAIL_ATTRIBUTE_SHOWN): New attribute. Shows
+	that the message has been displayed during the current session.
+	* mail/next.c (mail_next): Rewritten in accordance with posix:
+	if the current message has not been shown yet, then show
+	it. Otherwise advance to the nearest next non-deleted message.
+	* mail/print.c (mail_print_msg): Set MAIL_ATTRIBUTE_SHOWN after
+	displaying the message
+	* mail/top.c (top0): set read attribute and MAIL_ATTRIBUTE_SHOWN
+	after displaying the message
+
 2005-03-02  Sergey Poznyakoff
 
 	* frm/Makefile.am: Build `from'
