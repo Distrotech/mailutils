@@ -405,8 +405,34 @@ mbx_close (mailbox_t mbox)
 static int
 mbx_get_name (mailbox_t mbox, int *id, char *name, size_t len, size_t *n)
 {
-  return ENOSYS;
+  char *s;
+  size_t i;
+
+  if (mbox == NULL || mbox->mtype == NULL)
+    {
+      return EINVAL;
+    }
+
+  s = mbox->mtype->name;
+  i = strlen (s);
+
+  if (id)
+    {
+      *id = mbox->mtype->id;
+    }
+  if (name && len > 0)
+    {
+      i = (len < i) ? len : i;
+      strncpy (name, s, i - 1);
+      name [i - 1] = 0;
+    }
+  if (n)
+    {
+      *n = i;
+    }
+  return 0;
 }
+
 static int
 mbx_get_mname (mailbox_t mbox, int *id, char **name, size_t *n)
 {
