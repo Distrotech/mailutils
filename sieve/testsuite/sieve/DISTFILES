@@ -6,6 +6,9 @@ envelope.exp
 exists.exp
 false.exp
 header.exp
+i-casemap.exp
+i-numeric.exp
+i-octet.exp
 not.exp
 redirect.exp
 reject.exp
