@@ -15,6 +15,7 @@ pkginclude_HEADERS = \
  locker.h \
  mailbox.h \
  mailer.h \
+ mailutils.h \
  message.h \
  mime.h \
  monitor.h \
@@ -24,4 +25,4 @@ pkginclude_HEADERS = \
  property.h \
  registrar.h \
  stream.h \
- url.h
+ url.h 
