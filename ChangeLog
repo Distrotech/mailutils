@@ -1,3 +1,27 @@
+2003-09-25  Sergey Poznyakoff  
+
+	* mailbox/munre.c (munre_set_regex): Bugfix again.
+	* mailbox/filter_trans.c (qp_decode): Bugfix. According
+	to RFC, underscore represents space.
+	* mailbox/rfc2047.c (rfc2047_decode): Ignore whitespace between
+	the encoded segments.
+	* mailbox/testsuite/RFC2047: Reflect the recent changes.
+	* NEWS: Updated
+
+	* mail/mail.h (mail_nounfold,mail_unfold)
+	(mail_header_is_unfoldable): New functions.
+	* mail/print.c (mail_print_msg): Unfold the header value, if
+	required.
+	* mail/retain.c: Rewritten.
+	(mail_nounfold,mail_unfold)
+        (mail_header_is_unfoldable): New functions.
+	* mail/table.c: Added new command words.
+	* mail/mail.c: Default to "unfold subject"
+	* mail/util.c (util_slist_remove): New function.
+	
+	* auth/lbuf.c: Added missing includes.
+	* auth/lbuf.h: Likewise.
+
 2003-09-22  Sergey Poznyakoff
 
 	* mailbox/munre.c (munre_set_regex): Bugfix.

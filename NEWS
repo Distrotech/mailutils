@@ -1,4 +1,4 @@
-GNU mailutils NEWS -- history of user-visible changes.  2003-28-07
+GNU mailutils NEWS -- history of user-visible changes.  2003-25-08
 Copyright (C) 2002, 2003 Free Software Foundation, Inc.
 See the end of file for copying conditions.
 
@@ -60,13 +60,41 @@ The option allows to convert a plaintext file into DBM database.
 
 ** mail
 
-New configuration file variable `mailx' enables the mailx
-compatibility mode .This is mainly visible when composing a message.
+*** New configuration file variable `mailx' enables the mailx
+compatibility mode. This is mainly visible when composing a message.
 In mailx compatibility mode, mail asks for Cc and Bcc addresses after
 composing the body.
 The default behavior is to ask for these values before composing
 the body.
 
+*** New variable `charset' controls the decoding of MIME-encoded headers
+(rfc2047).
+
+*** New commands `unfold' and `nounfold' allow to specify the headers
+whose values should be unfolded before display.
+
+* mh
+
+Lots of bugfixes regarding compatibility issues and interoperation
+with MH-E. This version of MH has been tested with MH-E 7.4.2+cvs.
+
+** New program: ali
+
+** New profile variables:
+*** Charset
+Controls the character set in which the components decoded via
+the `decode' format function should be output.
+
+*** Reply-Regex
+Sets the regular expression used to recognize reply messages.
+
+** New format functions
+*** reply_regex
+Sets the regular expression used to recognize reply messages.
+
+*** isreply
+Returns true if its argument is the reply message subject string,
+i.e. if it matches the "reply subject" regular expression.
 
 
 Version 0.3.1:
