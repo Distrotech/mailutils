@@ -2,13 +2,17 @@
 
 CFLAGS  = -g -I../include -Wall
 LDFLAGS = -g -static
-LDLIBS 	= ../mailbox/.libs/libmailbox.a ../lib/libmailutils.a -lsocket
+LDLIBS 	= -lsocket
 
-EXES    = addr mbox-explode mbox-dates mbox-auth url-parse
+MULIBS	= ../mailbox/.libs/libmailbox.a ../lib/libmailutils.a
 
-$(EXES): $(LDLIBS)
+EXES    = addr mbox-explode mbox-dates mbox-auth url-parse mbox-check
+
+$(EXES): $(MULIBS)
 
 default: $(EXES)
+
+$(EXES): $(MBOXLIB)
 
 # example of parsing the date fields, prints all the incorrectly
 # formatted dates in a mailbox.
