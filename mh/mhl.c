@@ -148,9 +148,12 @@ open_output ()
 {
   int rc;
   stream_t output;
-  
-  if (interactive && !moreproc && !nomoreproc)
-    moreproc = mh_global_profile_get ("moreproc", getenv ("PAGER"));
+
+  if (interactive && !nomoreproc)
+    {
+      if (!moreproc)
+	moreproc = mh_global_profile_get ("moreproc", getenv ("PAGER"));
+    }
   else
     moreproc = NULL;
 
