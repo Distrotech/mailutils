@@ -27,7 +27,12 @@ mail_file (int argc, char **argv)
 {
   if (argc == 1)
     {
-      /* display current folder info */
+      url_t url;
+
+      mailbox_get_url (mbox, &url);
+      fprintf (ofile, "%s\n", url_to_string (url));
+      
+      /*FIXME: display current folder info */
     }
   else if (argc == 2)
     {
@@ -41,18 +46,63 @@ mail_file (int argc, char **argv)
        * +file	the file named in the folder directory (set folder=foo)
        */
       mailbox_t newbox;
-      if (mailbox_create (&newbox, argv[1]) != 0)
+      struct mail_env_entry *env;
+      char *name;
+      
+      switch (argv[1][0])
+	{
+	case '%':
+	  if (argv[1][1] == 0)
+	    name = NULL; /* our system mailbox */
+	  else
+	    {
+	      fprintf (ofile, "%%user not supported\n");
+	      return 1;
+	    }
+	  break;
+	  
+	case '#':
+	  fprintf (ofile, "# notation not supported\n");
+	  return 1;
+	  
+	case '&':
+	  name = getenv ("MBOX");
+	  break;
+	  
+	case '+':
+	  env = util_find_env ("folder");
+	  if (env->set)
+	    name = env->value;
+	  else
+	    name = argv[1];
+	  break;
+	  
+	default:
+	  name = argv[1];
+	}
+      
+      if (mailbox_create_default (&newbox, name) != 0)
 	return 1;
       if (mailbox_open (newbox, MU_STREAM_READ) != 0)
 	return 1;
-      mailbox_messages_count (newbox, &total);
-      mailbox_expunge (mbox);
-      mailbox_close (mbox);
+
+      if (mail_mbox_close ())
+	{
+	  mailbox_close (newbox);
+	  mailbox_destroy (&newbox); 
+	  return 1;
+	}
+      
       mbox = newbox;
-      /* mailbox_destroy (&newbox); */
+      mailbox_messages_count (mbox, &total);
+      cursor = realcursor = 1;
       if ((util_find_env("header"))->set)
-	util_do_command ("from *");
+	util_do_command ("z.");
       return 0;
+    }
+  else
+    {
+      fprintf (ofile, "%s takes only one arg\n", argv[0]);
     }
   return 1;
 }
