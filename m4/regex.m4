@@ -67,13 +67,14 @@ AC_DEFUN([jm_INCLUDED_REGEX],
     ifelse(m4_sysval, 0,
       [
 	AC_ARG_WITH(included-regex,
-	[  --without-included-regex don't compile regex; this is the default on
-                          systems with version 2 of the GNU C library
-                          (use with caution on other system)],
+         AC_HELP_STRING([--without-included-regex],
+                        [don't compile regex; this is the default on systems with version 2 of the GNU C library (use with caution on other system)]),
 		    jm_with_regex=$withval,
 		    jm_with_regex=$ac_use_included_regex)
 	if test "$jm_with_regex" = yes; then
-	  AC_LIBOBJ(regex)
+	  MU_LIBOBJ(regex)
+          MU_HEADER(regex.h)
+          MU_HEADER(posix/regex.h)
 	fi
       ],
     )

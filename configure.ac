@@ -248,7 +248,7 @@ AC_MSG_RESULT($log_facility)
 dnl Check for headers
 AC_HEADER_STDC
 AC_HEADER_DIRENT
-AC_CHECK_HEADERS(argp.h errno.h fcntl.h getopt.h inttypes.h libgen.h limits.h\
+AC_CHECK_HEADERS(errno.h fcntl.h getopt.h inttypes.h libgen.h limits.h\
  malloc.h obstack.h paths.h shadow.h socket.h sys/socket.h stdarg.h stdio.h\
  stdlib.h string.h strings.h sys/file.h sysexits.h syslog.h termcap.h\
  termios.h termio.h sgtty.h utmp.h utmpx.h unistd.h)
@@ -293,7 +293,7 @@ AC_FUNC_MALLOC
 AC_FUNC_REALLOC
 AC_FUNC_ALLOCA
 
-jm_INCLUDED_REGEX(lib/regex.c)
+jm_INCLUDED_REGEX(mailbox/regex.c)
 
 # Not use.
 #AC_FUNC_MEMCMP
@@ -346,7 +346,10 @@ AC_ARG_WITH([included-argp],
             AC_HELP_STRING([--with-included-argp],
                            [Use included argp library]),
             [USE_INCLUDED_ARGP=${withval}],
-            [AC_CHECK_FUNCS(argp_parse, :, [USE_INCLUDED_ARGP=yes])])
+            [AC_CHECK_HEADER(argp.h,
+                             [AC_CHECK_FUNCS(argp_parse, :,
+                                             [USE_INCLUDED_ARGP=yes])],
+                             [USE_INCLUDED_ARGP=yes])])
 
 if test "$USE_INCLUDED_ARGP" = yes; then
        MU_LIBOBJ(argp-ba)
@@ -359,6 +362,7 @@ if test "$USE_INCLUDED_ARGP" = yes; then
        MU_LIBOBJ(argp-pvh)
        MU_LIBOBJ(argp-xinl)
        MU_LIBOBJ(pin)
+       MU_HEADER(argp.h)
 fi
 
 AC_MSG_CHECKING(whether extern program_invocation_name is present)
@@ -709,6 +713,8 @@ AC_SUBST(MU_LTLIBOBJS)
 AC_SUBST(SIEVE_MODDIR)
 SIEVE_MODDIR='$(libdir)/$(PACKAGE)'
 
+MU_FINISH_LINKS
+
 dnl Output Makefiles
 AC_CONFIG_FILES([Makefile
  auth/Makefile
@@ -727,12 +733,13 @@ AC_CONFIG_FILES([Makefile
  guimb/scm/Makefile
  imap4d/Makefile
  imap4d/testsuite/Makefile
+ headers/Makefile
+ headers/posix/Makefile
  include/Makefile
  include/mailutils/Makefile
  include/mailutils/gnu/Makefile
  intl/Makefile
  lib/Makefile
- lib/posix/Makefile
  libmu_scm/Makefile
  libsieve/Makefile
  m4/Makefile
