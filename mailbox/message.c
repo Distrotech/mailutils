@@ -249,7 +249,7 @@ message_from (message_t msg, char *buf, size_t len, size_t *pnwrite)
 	  if (buf && len > 0)
 	    {
 	      memcpy (buf, addr, n);
-	      buf[n - 1] = '\0';
+	      buf[n] = '\0';
 	    }
 	  free (addr);
 	  free (from);
@@ -264,7 +264,7 @@ message_from (message_t msg, char *buf, size_t len, size_t *pnwrite)
   if (buf && len > 0)
     {
       memcpy (buf, "unknown", n);
-      buf [n - 1] = '\0';
+      buf [n] = '\0';
     }
 
   if (pnwrite)
@@ -311,7 +311,7 @@ message_received (message_t msg, char *buf, size_t len, size_t *pnwrite)
     }
   n = (n > len) ? len : n;
   strncpy (buf, ctime (&t), n);
-  buf [n - 1] = '\0';
+  buf [n] = '\0';
   if (pnwrite)
     *pnwrite = n;
   return 0;
