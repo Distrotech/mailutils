@@ -334,7 +334,7 @@ main(int argc, char **argv)
 	fprintf (stderr, "could not create mailbox <%s>: %s\n",
 	    mailbox_name ? mailbox_name : "default",
 	    mu_errstring(status));
-	goto cleanup;
+	exit (3);
       }
 
     if (dbug)
