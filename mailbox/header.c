@@ -30,6 +30,8 @@
 #endif
 
 #include <mailutils/stream.h>
+#include <mailutils/address.h>
+
 #include <header0.h>
 
 #define HEADER_MODIFIED 1
@@ -147,6 +149,7 @@ header_parse (header_t header, const char *blurb, int len)
     return 0;
 
   header->blurb_len = len;
+  /* Why "+ 1", if for a terminating NULL, where is written? */
   header->blurb = calloc (1, header->blurb_len + 1);
   if (header->blurb == NULL)
     return ENOMEM;
@@ -157,12 +160,13 @@ header_parse (header_t header, const char *blurb, int len)
   header->hdr = NULL;
   header->hdr_count = 0;
 
-  /* Get a header, a header is :
-     field-name ':'  ' ' field-value '\r' '\n'
-     [ (' ' | '\t') field-value '\r' '\n' ]
+  /* Get a header, a header is:
+     field-name LWSP ':'
+       LWSP field-value '\r' '\n'
+       *[ (' ' | '\t') field-value '\r' '\n' ]
   */
-  /* First loop goes throught the blurb */
-  for (header_start = header->blurb;; header_start = ++header_end)
+  /* First loop goes through the blurb */
+  for (header_start = header->blurb;  ; header_start = ++header_end)
     {
       char *fn, *fn_end, *fv, *fv_end;
 
@@ -171,8 +175,8 @@ header_parse (header_t header, const char *blurb, int len)
 	  || header_start[0] == '\n')
 	break;
 
-      /* Second loop extract one header field.  */
-      for (header_start2 = header_start;;header_start2 = ++header_end)
+      /* Second loop extract one header field. */
+      for (header_start2 = header_start;  ;header_start2 = ++header_end)
 	{
 	  header_end = memchr (header_start2, '\n', len);
 	  if (header_end == NULL)
@@ -210,18 +214,27 @@ header_parse (header_t header, const char *blurb, int len)
 	{
 	  char *colon = memchr (header_start, ':', header_end - header_start);
 
+#define ISLWSP(c) (((c) == ' ' || (c) == '\t'))
 	  /* Houston we have a problem.  */
 	  if (colon == NULL)
 	    break; /* Disregard the rest and bailout.  */
 
 	  fn = header_start;
 	  fn_end = colon;
-	  /* Skip leading spaces. */
-	  while (*(++colon) == ' ');
-	  fv = colon;
-	  fv_end = header_end;
-	}
+	  /* Shrink any LWSP after the field name -- CRITICAL for 
+	   later name comparisons to work correctly! */
+	  while(ISLWSP(fn_end[-1]))
+	    fn_end--;
 
+	  fv = colon + 1;
+	  fv_end = header_end;
+
+	  /* Skip any LWSP before the field value -- unnecessary, but
+	   might make some field values look a little tidier. */
+	  while(ISLWSP(fv[0]))
+	    fv++;
+	}
+#undef ISLWSP
       /* Allocate a new slot for the field:value.  */
       hdr = realloc (header->hdr, (header->hdr_count + 1) * sizeof (*hdr));
       if (hdr == NULL)
@@ -246,12 +259,18 @@ header_parse (header_t header, const char *blurb, int len)
 /* FIXME: grossly inneficient, to many copies and reallocating.
    This all header business need a good rewrite.  */
 int
-header_set_value (header_t header, const char *fn, const char *fv, int replace)
+header_set_value (header_t header, const char *fn, const char *fv,
+		  int replace)
 {
   char *blurb;
   size_t len;
 
-  if (header == NULL || fn == NULL || fv == NULL)
+  if (header == NULL || fn == NULL)
+    return EINVAL;
+
+  /* An fv of NULL means delete the field, but only do it if replace
+     was also set to true! */
+  if (fv == NULL && !replace)
     return EINVAL;
 
   /* Overload.  */
@@ -270,13 +289,26 @@ header_set_value (header_t header, const char *fn, const char *fv, int replace)
      the pointers by calling header_parse () this is wastefull, we're just
      fragmenting the memory it can be done better.  But that may imply a
      rewite of the headers ... for another day.  */
+
+  /* If replace, remove all fields in the header blurb that have the
+     same name as the field we are writing.
+
+     Algorithm:
+
+     for i = 0, ... i < max_hdrs
+     - if ith field has name 'fn' memmove() all following fields up over
+     this field
+     - reparse the headers
+     - restart the for loop at the ith field
+   */
   if (replace)
     {
       size_t name_len;
       size_t i;
-      size_t fn_len; /* Field Name len.  */
-      size_t fv_len; /* Field Value len.  */
+      size_t fn_len;		/* Field Name len.  */
+      size_t fv_len;		/* Field Value len.  */
       len = header->blurb_len;
+      /* Find FN in the header fields... */
       for (name_len = strlen (fn), i = 0; i < header->hdr_count; i++)
 	{
 	  fn_len = header->hdr[i].fn_end - header->hdr[i].fn;
@@ -285,28 +317,41 @@ header_set_value (header_t header, const char *fn, const char *fv, int replace)
 	      strncasecmp (header->hdr[i].fn, fn, fn_len) == 0)
 	    {
 	      blurb = header->blurb;
+	      /* ... and if its NOT the last field, move the next field
+	         through to last field into its place, */
 	      if ((i + 1) < header->hdr_count)
 		{
 		  memmove (header->hdr[i].fn, header->hdr[i + 1].fn,
 			   header->hdr[header->hdr_count - 1].fv_end
 			   - header->hdr[i + 1].fn + 3);
 		}
+	      /* or if it is the last, just truncate the fields. */
 	      else
 		{
 		  header->hdr[i].fn[0] = '\n';
 		  header->hdr[i].fn[1] = '\0';
 		}
-	      /* readjust the pointers if move */
-	      len -= fn_len + fv_len + 3; /* :<sp>\n */
+	      /* Readjust the pointers. */
+	      /* FIXME: I'm not sure this 3 will work when the
+	         original data looked like:
+	         Field  :   Value
+	         Test this... and why not just do a strlen(blurb)?
+	       */
+	      len -= fn_len + fv_len + 3;	/* :<sp>\n */
 	      i--;
 	      blurb = header->blurb;
 	      header_parse (header, blurb, len);
 	      free (blurb);
+	      header->flags |= HEADER_MODIFIED;
 	    }
 	}
     }
 
-  /* Replacing was taking care of above now just add to the end the new
+  /* If FV is NULL, then we are done. */
+  if (!fv)
+    return 0;
+
+  /* Replacing was taken care of above, now write the new header.
      header.  Really not cute.
      COLON SPACE NL =  3 ;  */
   len = strlen (fn) + strlen (fv) + 3;
@@ -319,8 +364,10 @@ header_set_value (header_t header, const char *fn, const char *fv, int replace)
 
   sprintf (blurb, "%s: %s", fn, fv);
 
-  /* Strip off trailing newlines.  */
-  while (blurb[strlen (blurb) - 1] == '\n')
+  /* Strip off trailing newlines and LWSP. */
+  while (blurb[strlen (blurb) - 1] == '\n' ||
+	 blurb[strlen (blurb) - 1] == ' ' ||
+	 blurb[strlen (blurb) - 1] == '\t')
     {
       blurb[strlen (blurb) - 1] = '\0';
     }
@@ -336,7 +383,7 @@ header_set_value (header_t header, const char *fn, const char *fv, int replace)
       header->blurb = NULL;
     }
   else
-    blurb [len] = '\n';
+    blurb[len] = '\n';
 
   /* before parsing the new blurb make sure it is properly terminated
      by \n\n. The trailing NL separator.  */
@@ -515,7 +562,8 @@ header_get_value (header_t header, const char *name, char *buffer,
      parsing (_parse()) is done it's not take to account.  So we just stuff
      in the buffer all the field-values to a corresponding field-name.
      FIXME: Should we kosher the output ? meaning replace occurences of
-     " \t\r\n" for spaces ? for now we don't.  */
+     " \t\r\n" for spaces ? for now we don't.
+   */
   for (name_len = strlen (name), i = 0; i < header->hdr_count; i++)
     {
       fn_len = header->hdr[i].fn_end - header->hdr[i].fn;
@@ -524,6 +572,7 @@ header_get_value (header_t header, const char *name, char *buffer,
 	{
 	  fv_len = (header->hdr[i].fv_end - header->hdr[i].fv);
 	  /* FIXME:FIXME:PLEASE: hack, add a space/nl separator  */
+	  /*
 	  if (total && (threshold - 2) > 0)
 	    {
 	      if (buffer)
@@ -534,6 +583,7 @@ header_get_value (header_t header, const char *name, char *buffer,
 	      threshold -= 2;
 	      total += 2;
 	    }
+          */
 	  total += fv_len;
 	  /* Can everything fit in the buffer.  */
 	  if (buffer && threshold > 0)
@@ -543,6 +593,9 @@ header_get_value (header_t header, const char *name, char *buffer,
 	      buffer += buflen;
 	      threshold -= buflen;
 	    }
+
+	  /* Jump out after the first header we found. -sr */
+	  break;
 	}
     }
   if (buffer)
@@ -567,8 +620,23 @@ header_aget_value (header_t header, const char *name, char **pvalue)
       header_get_value (header, name, value, n + 1, NULL);
       *pvalue = value;
     }
-  else
-    *pvalue = strdup ("");
+
+  return status;
+}
+
+int
+header_get_address (header_t header, const char *name, address_t *addr)
+{
+  char* value = NULL;
+  int status = header_aget_value(header, name, &value);
+
+  if(status)
+    return status;
+
+  status = address_create(addr, value);
+
+  free(value);
+
   return status;
 }
 
@@ -654,7 +722,8 @@ header_get_field_value (header_t header, size_t num, char *buf,
 			size_t buflen, size_t *nwritten)
 {
   size_t len;
-  if (header == NULL)
+
+  if (header == NULL || num < 1)
     return EINVAL;
 
   /* Try to fill out the buffer, if we know how.  */
