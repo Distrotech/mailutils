@@ -31,11 +31,9 @@ mail_mbox (int argc, char **argv)
     return util_msglist_command (mail_mbox, argc, argv, 1);
   else
     {
-      if (mailbox_get_message (mbox, cursor, &msg))
-	{
-	  util_error("%d: can't get message", cursor);
-	  return 1;
-	}
+      if (util_get_message (mbox, cursor, &msg, 1))
+	return 1;
+
       /* Mark the message */
       message_get_attribute (msg, &attr);
       attribute_set_userflag (attr, MAIL_ATTRIBUTE_MBOXED);

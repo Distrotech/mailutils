@@ -86,11 +86,9 @@ mail_mbox_commit ()
 
   for (i = 1; i <= total; i++)
     {
-      if (mailbox_get_message (mbox, i, &msg))
-	{
-	  util_error("%d: can't get message", i);
-	  return 1;
-	}
+      if (util_get_message (mbox, i, &msg, 0))
+	return 1;
+
       message_get_attribute (msg, &attr);
 
       if (!is_user_mbox

@@ -59,7 +59,7 @@ display_message (message_t mesg, msgset_t *msgset, void *arg)
   struct decode_closure *closure = arg;
   int pagelines = util_get_crt ();
 
-  if (util_isdeleted (msgset->msg_part[0]))
+  if (util_isdeleted (mesg))
     return 1;
 
   message_lines (mesg, &lines);

@@ -42,10 +42,7 @@ mail_from (int argc, char **argv)
       struct tm tm;
       mu_timezone tz;
 
-      if (mailbox_get_message (mbox, cursor, &msg) != 0)
-	return 1;
-
-      if (util_isdeleted (cursor))
+      if (util_get_message (mbox, cursor, &msg, 1))
 	return 1;
 
       message_get_header (msg, &hdr);

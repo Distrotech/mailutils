@@ -30,11 +30,9 @@ mail_undelete (int argc, char **argv)
     {
       message_t msg;
       attribute_t attr;
-      if (mailbox_get_message (mbox, cursor, &msg) != 0)
-        {
-	  util_error("Message %d does not exist", cursor);
-          return 1;
-        }
+      if (util_get_message (mbox, cursor, &msg, 0))
+        return 1;
+
       message_get_attribute (msg, &attr);
       if (attribute_is_deleted (attr))
 	attribute_unset_deleted (attr);

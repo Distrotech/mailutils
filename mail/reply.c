@@ -39,11 +39,8 @@ mail_reply (int argc, char **argv)
 
       compose_init (&env);
 
-      if (mailbox_get_message (mbox, cursor, &msg))
-	{
-	  util_error ("%d: can't get message", cursor);
-	  return 1;
-	}
+      if (util_get_message (mbox, cursor, &msg, 1))
+	return 1;
 
       message_get_header (msg, &hdr);
 

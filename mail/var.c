@@ -101,7 +101,7 @@ parse_headers (FILE *fp, compose_env_t *env)
 	      
 	      if (name)
 		{
-		  header_set_value (header, name, value, 0);
+		  header_set_value (header, name, value[0] ? value : NULL, 0);
 		  free (name);
 		  free (value);
 		  name = value = NULL;
@@ -452,7 +452,7 @@ var_quote (int argc, char **argv, compose_env_t *env)
       size_t n = 0;
       char *prefix = "\t";
 
-      if (mailbox_get_message (mbox, cursor, &mesg) != 0)
+      if (util_get_message (mbox, cursor, &mesg, 1))
 	return 1;
 
       fprintf (stdout, "Interpolating: %d\n", cursor);

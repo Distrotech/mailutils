@@ -36,9 +36,8 @@ mail_followup (int argc, char **argv)
   if (msgset_parse (argc, argv, &msglist))
     return 1;
 
-  if (mailbox_get_message (mbox, cursor, &msg))
+  if (util_get_message (mbox, cursor, &msg, 1))
     {
-      util_error ("%d: can't get message", cursor);
       msgset_free (msglist);
       return 1;
     }

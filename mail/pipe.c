@@ -46,7 +46,7 @@ mail_pipe (int argc, char **argv)
 
   for (mp = list; mp; mp = mp->next)
     {
-      if (mailbox_get_message (mbox, mp->msg_part[0], &msg) == 0)
+      if (util_get_message (mbox, mp->msg_part[0], &msg, 1) == 0)
 	{
 	  message_get_stream (msg, &stream);
 	  off = 0;

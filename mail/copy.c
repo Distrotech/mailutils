@@ -74,14 +74,10 @@ mail_copy0 (int argc, char **argv, int mark)
     {
       int status;
       
-      status = mailbox_get_message (mbox, mp->msg_part[0], &msg);
+      status = util_get_message (mbox, mp->msg_part[0], &msg, 1);
       if (status)
-	{
-	  util_error ("can't get message %d: %s",
-		      mp->msg_part[0],
-		      mu_errstring (status));
-	  break;
-	}
+        break;
+
       mailbox_append_message (mbx, msg);
 
       message_size (msg, &size);

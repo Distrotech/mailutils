@@ -30,11 +30,9 @@ mail_size (int argc, char **argv)
     {
       size_t size = 0, lines = 0;
       message_t msg;
-      if (mailbox_get_message (mbox, cursor, &msg) != 0)
-	{
-	  util_error("Could not read message %d", cursor);
-	  return 1;
-	}
+      if (util_get_message (mbox, cursor, &msg, 0))
+	return 1;
+
       message_size (msg, &size);
       message_lines (msg, &lines);
 
