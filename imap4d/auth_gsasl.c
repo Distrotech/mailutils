@@ -18,6 +18,9 @@
 #include "imap4d.h"
 #include <gsasl.h>
 #include <mailutils/gsasl.h>
+#ifdef USE_SQL
+# include <mailutils/sql.h>
+#endif
 
 static Gsasl_ctx *ctx;   
 static Gsasl_session_ctx *sess_ctx; 
@@ -262,11 +265,35 @@ cb_retrieve (Gsasl_session_ctx *ctx,
 {
   char **username = gsasl_server_application_data_get (ctx);
 
-  if (username && authentication_id)
+  if (username && *username == 0 && authentication_id)
     *username = strdup (authentication_id);
+
+  if (gsasl_cram_md5_pwd && access (gsasl_cram_md5_pwd, R_OK) == 0)
+    {
+      int rc = gsasl_md5pwd_get_password (gsasl_cram_md5_pwd,
+					  authentication_id,
+					  key, keylen);
+      if (rc == GSASL_OK)
+	return rc;
+    }
   
-  return gsasl_md5pwd_get_password (gsasl_cram_md5_pwd, authentication_id,
-				    key, keylen);
+#ifdef USE_SQL
+  if (mu_sql_password_type == password_plaintext)
+    {
+      char *passwd;
+      int status = mu_sql_getpass (username, &passwd);
+      if (status == 0)
+	{
+	  *keylen = strlen (passwd);
+	  if (key)
+	    memcpy (key, passwd, *keylen);
+	  free (passwd);
+	  return GSASL_OK;
+	}
+    }
+#endif
+  
+  return GSASL_AUTHENTICATION_ERROR; 
 }
 
 void
@@ -286,10 +313,7 @@ auth_gsasl_init ()
   gsasl_server_callback_validate_set (ctx, cb_validate);
   gsasl_server_callback_service_set (ctx, cb_service);
 
-  if (gsasl_cram_md5_pwd && access (gsasl_cram_md5_pwd, R_OK) == 0)
-    {
-      gsasl_server_callback_retrieve_set (ctx, cb_retrieve);
-    }
+  gsasl_server_callback_retrieve_set (ctx, cb_retrieve);
   
   auth_gsasl_capa_init (0);
 }
