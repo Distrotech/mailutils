@@ -10,7 +10,7 @@ libexec_PROGRAMS = mail.local
 mail_local_SOURCES = main.c mailquota.c script.c mail.local.h
 
 mail_local_LDADD = @LIBMU_SCM@ @GUILE_LIBS@ ../mailbox/libmailbox.la \
- @AUTHLIBS@ ../lib/libmailutils.la 
+ @AUTHLIBS@ ../libsieve/libsieve.la ../lib/libmailutils.la 
  
 
 install-exec-hook:
