@@ -1,3 +1,20 @@
+2003-01-13  Sergey Poznyakoff
+
+	* m4/gssapi.m4: Fixed typo.
+	* mh/mh.h (RCPT_NONE,RCPT_TO,RCPT_ME,RCPT_ALL): New defines.
+	  (rcpt_mask): New global declaration.
+	  (mh_get_message): Added missing __P().
+	  (mh_decode_rcpt_flag): New function.
+	* mh/mh_format.c (mh_decode_rcpt_flag,builtin_rcpt): New
+	  functions.
+	* mh/mh_global.c (rcpt_mask): New global. Keeps cumulative
+	  value of all --cc/--nocc command line options.
+	* mh/repl.c: Changed default format to use (rcpt) to decide
+	  whether or not to include an address to the cc: header.
+	  Implemented --cc/--nocc.
+	* mh/README: New file. A list of differences from standard
+	  MH implementation.
+	
 2003-01-12  Wojciech Polak
 
 	* auth/sql.c: Added missing NLS markers.
