@@ -10,6 +10,7 @@ Copyright: GPL
 Source: ftp://ftp.gnu.org/pub/%{name}/%{name}-%{version}.tar.gz
 BuildRoot: /var/tmp/%{name}-%{version}-root
 URL: http://www.gnu.org/software/%{name}/%{name}.html
+Group: Development/Libraries
 
 %description
 GNU mail utilities
@@ -66,7 +67,7 @@ mailboxes.
 %setup
 
 %build
-./configure --prefix=%prefix
+CFLAGS="$RPM_OPT_FLAGS" ./configure --prefix=%prefix
 make
 
 %install
@@ -99,7 +100,7 @@ rm -rf $RPM_BUILD_ROOT
 
 %files doc
 %defattr(-, root, root)
-%doc AUTHORS COPYING ChangeLog NEWS README THANKS TODO
+%doc AUTHORS COPYING COPYING.LIB COPYING.FDL ChangeLog NEWS README THANKS TODO
 %{prefix}/info/*
 
 %files -n gnu-mail
@@ -109,3 +110,4 @@ rm -rf $RPM_BUILD_ROOT
 %files -n gnu-pop3d
 %defattr(-, root, root)
 %{prefix}/sbin/pop3d
+
