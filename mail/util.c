@@ -194,8 +194,8 @@ util_msglist_command (function_t *func, int argc, char **argv, int set_cursor)
    cmd table, so will have a different argument signature.  */
 int
 util_msglist_esccmd (int (*escfunc)
-		     __P ((int, char **, struct send_environ *)),
-		     int argc, char **argv, struct send_environ *env,
+		     __P ((int, char **, compose_env_t *)),
+		     int argc, char **argv, compose_env_t *env,
 		     int set_cursor)
 {
   msgset_t *list = NULL, *mp;
