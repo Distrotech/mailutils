@@ -85,13 +85,13 @@ mail_from (int argc, char **argv)
       else if (attribute_is_userflag(attr, MAIL_ATTRIBUTE_SAVED))
 	cflag = '*';
       else if (flags & MU_ATTRIBUTE_READ)
-	cflag = 'O';
-      else if (flags & MU_ATTRIBUTE_SEEN)
 	cflag = 'R';
+      else if (flags & MU_ATTRIBUTE_SEEN)
+	cflag = 'U';
       else if (attribute_is_recent(attr))
 	cflag = 'N';
       else
-	cflag = 'U';
+	cflag = ' ';
 
       message_get_envelope (msg, &env);
       envelope_date (env, date, sizeof (date), NULL);
