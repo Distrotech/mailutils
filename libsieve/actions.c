@@ -158,6 +158,7 @@ build_mime (mime_t *pmime, message_t msg, const char *text)
     stream_printf (stream, &off, "%s", text);
     stream_close (stream);
     mime_add_part (mime, newmsg);
+    message_unref (newmsg);
   }
   
   /*  message/delivery-status */
@@ -186,6 +187,7 @@ build_mime (mime_t *pmime, message_t msg, const char *text)
     stream_printf (stream, &off, "Last-Attempt-Date: %s\n", datestr);
     stream_close (stream);
     mime_add_part(mime, newmsg);
+    message_unref (newmsg);
   }
   
   /* Quote original message */
@@ -216,6 +218,7 @@ build_mime (mime_t *pmime, message_t msg, const char *text)
       }
     stream_close (ostream);
     mime_add_part (mime, newmsg);
+    message_unref (newmsg);
   }
 
   *pmime = mime;
