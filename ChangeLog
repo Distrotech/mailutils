@@ -1,3 +1,25 @@
+2003-02-20  Sergey Poznyakoff 
+
+	* mh/README: Updated
+	* mh/TODO: Updated
+	* mh/refile.c: New option --copy.
+	  Properly handle trailing folder names. As a side-effect
+	  it accepts messages and folders given in any order. Good!
+	* mh/mh_argp.c (parse_opt): Call the handler with ARG_FOLDER
+	  key if argument starts with +.
+	* mh/anno.c (opt_handler): Removed superfluous case '+'.
+	* mh/comp.c: Likewise.
+	* mh/folder.c: Likewise.
+	* mh/inc.c: Likewise.
+	* mh/mark.c: Likewise.
+	* mh/mhl.c: Likewise.
+	* mh/mhpath.c: Likewise.
+	* mh/pick.c: Likewise.
+	* mh/repl.c: Likewise.
+	* mh/rmf.c: Likewise.
+	* mh/rmm.c: Likewise.
+	* mh/scan.c: Likewise.
+
 2003-02-18  Sergey Poznyakoff 
 
 	* configure.ac: Provide a replacement for vsyslog

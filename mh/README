@@ -146,6 +146,15 @@ Sample usage:
 ** The date comparisons (the options --before and --after) are not yet
 supported.
 
+* refile
+
+** Linking messages between folders goes against the logic of Mailutils,
+so refile never makes links even if called with --link option. The
+latter is actually a synonym for --copy, which preserves the original
+message.
+
+** Message specs and folder names may be interspersed.
+
 
 Local variables:
 mode: outline
