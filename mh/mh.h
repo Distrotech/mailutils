@@ -198,6 +198,7 @@ int mh_check_folder __P((char *pathname, int confirm));
 
 int mh_format __P((mh_format_t *fmt, message_t msg, size_t msgno,
 		   char *buffer, size_t bufsize));
+void mh_format_dump __P((mh_format_t *fmt));
 int mh_format_parse __P((char *format_str, mh_format_t *fmt));
 void mh_format_free __P((mh_format_t *fmt));
 mh_builtin_t *mh_lookup_builtin __P((char *name, int *rest));
@@ -227,6 +228,8 @@ char *mh_get_dir __P((void));
 char *mh_expand_name __P((const char *name, int is_folder));
 
 int mh_is_my_name __P((char *name));
+char * mh_my_email __P((void));
+
 int mh_iterate __P((mailbox_t mbox, mh_msgset_t *msgset,
 		    mh_iterator_fp itr, void *data));
 
