@@ -1,5 +1,5 @@
 dnl This file is part of GNU mailutils.
-dnl Copyright (C) 2001 Free Software Foundation, Inc.
+dnl Copyright (C) 2002 Free Software Foundation, Inc.
 dnl
 dnl This program is free software; you can redistribute it and/or modify
 dnl it under the terms of the GNU General Public License as published by
@@ -20,10 +20,8 @@ dnl MU_ENABLE_SUPPORT(feature, [action-if-true], [action-if-false])
 
 AC_DEFUN([MU_ENABLE_SUPPORT], [
 	pushdef([mu_upcase],translit($1,[a-z],[A-Z]))
-	pushdef([mu_build_files],mu_upcase[_BUILD_FILES])
 	pushdef([mu_cache_var],[mu_cv_enable_]$1)
-	AC_SUBST(mu_build_files)
-	ifelse([$2],,,AC_SUBST(mu_build_dirs))
+
 	AC_ARG_ENABLE($1, 
 	 [  --disable-]$1[          disable ]$1[ support],
 	 [case "${enableval}" in
@@ -35,14 +33,12 @@ AC_DEFUN([MU_ENABLE_SUPPORT], [
 
 	if test x"[$]mu_cache_var" = x"yes"; then
 		AC_DEFINE([ENABLE_]mu_upcase,1,[Define this if you enable $1 support])
-		mu_build_files='[$(]mu_upcase[_FILES)]'
 		ifelse([$2],,,$2)
 	ifelse([$3],,,else
-                $2)
+                $3)
 	fi
 
 	popdef([mu_upcase])
-	popdef([mu_build_files])
 	popdef([mu_cache_var])
 ])
 
