@@ -318,7 +318,7 @@ _mh_msgset_parse (mailbox_t mbox, mh_msgset_t *msgset, int argc, char **argv)
   msglist = calloc (msgcnt, sizeof(*msglist));
   for (i = 0, msgno = 0; i < argc; i++)
     {
-      char *p = NULL;
+      char *p = NULL, *q;
       size_t start, end;
       size_t msg_first, n;
       long num;
@@ -380,9 +380,15 @@ _mh_msgset_parse (mailbox_t mbox, mh_msgset_t *msgset, int argc, char **argv)
 	      break;
 	      
 	    case ':':
-	      num = strtoul (p+1, &p, 0);
-	      if (*p)
+	      num = strtoul (p+1, &q, 0);
+	      if (*q)
 		msgset_abort (argv[i]);
+	      if (p[1] != '+' && p[1] != '-')
+		{
+		  if (strncmp (argv[i], "last:", 5) == 0
+		      || strncmp (argv[i], "prev:", 5) == 0)
+		    num = -num;
+		}
 	      end = start + num;
 	      if (end < start)
 		{
