@@ -29,6 +29,10 @@
 
 #include "svfield.h"
 
+#ifndef EOK
+# define EOK 0
+#endif
+
 /** utility wrappers around mailutils functionality **/
 
 int
