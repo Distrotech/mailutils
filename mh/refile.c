@@ -210,7 +210,7 @@ main (int argc, char **argv)
   open_folders ();
 
   mbox = mh_open_folder (current_folder, 0);
-  mh_msgset_parse (mbox, &msgset, argc - index, argv + index);
+  mh_msgset_parse (mbox, &msgset, argc - index, argv + index, "cur");
   status = mh_iterate (mbox, &msgset, refile, NULL);
  
   enumerate_folders (_close_folder, NULL);
