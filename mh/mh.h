@@ -52,6 +52,8 @@
 #define MH_GLOBAL_PROFILE "mh-profile"
 #define MH_CONTEXT_FILE "context"
 
+#define is_true(arg) ((arg)==NULL||(arg)[0] == 'y')
+
 enum mh_opcode
 {
   /* 0. Stop. Format: mhop_stop */
@@ -179,13 +181,19 @@ extern char mh_list_format[];
 void mh_init __P((void));
 void mh_init2 __P((void));
 void mh_read_profile __P((void));
-void mh_save_context __P((void));
 int mh_read_formfile __P((char *name, char **pformat));
 
-char * mh_profile_value __P((char *name, char *defval));
+char *mh_global_profile_get __P((char *name, char *defval));
+int mh_global_profile_set __P((const char *name, const char *value));
+char *mh_global_context_get __P((const char *name, const char *defval));
+int mh_global_context_set __P((const char *name, const char *value));
+char *mh_current_folder __P((void));
+char *mh_global_sequences_get __P((const char *name, const char *defval));
+int mh_global_sequences_set __P((const char *name, const char *value));
+void mh_global_save_state __P((void));
 
 int mh_getyn __P((const char *fmt, ...));
-int mh_check_folder __P((char *pathname));
+int mh_check_folder __P((char *pathname, int confirm));
 
 int mh_format __P((mh_format_t *fmt, message_t msg, size_t msgno,
 		   char *buffer, size_t bufsize));
