@@ -16,13 +16,17 @@
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #include "guimb.h"
+#ifdef HAVE_PATHS_H
+# include <paths.h>
+#endif
+
+#ifndef _PATH_MAILDIR
+# define _PATH_MAILDIR "/var/spool/mail"
+#endif
 
 char *temp_filename;
 FILE *temp_file;
 mailbox_t mbox;
-size_t nmesg;
-size_t current_mesg_no;
-message_t current_message;
 
 /* Open temporary file for collecting incoming message */
 void
@@ -78,6 +82,7 @@ void
 collect_create_mailbox ()
 {
   size_t count;
+  size_t nmesg;
 
   fclose (temp_file);
 
@@ -100,6 +105,66 @@ collect_create_mailbox ()
     }
 }
 
+int
+collect_output ()
+{
+  size_t i, count = 0;
+  mailbox_t outbox = NULL;
+  int saved_umask;
+  
+  if (!output_mailbox)
+    {
+      if (!user_name)
+	return 0;
+      asprintf (&output_mailbox, "%s/%s", _PATH_MAILDIR, user_name);
+      if (!output_mailbox)
+	{
+	  fprintf (stderr, "guimb: not enough memory\n");
+	  return 1;
+	}
+    }
+
+  if (store_mailbox)
+    unlink (output_mailbox);
+  
+  if (user_name)
+    {
+      saved_umask = umask (077);
+    }
+  
+  if (mailbox_create_default (&outbox, output_mailbox) != 0
+      || mailbox_open (outbox, MU_STREAM_RDWR|MU_STREAM_CREAT) != 0)
+    {
+      mailbox_destroy (&outbox);
+      fprintf (stderr, "guimb: can't open output mailbox %s: %s\n",
+	       output_mailbox, strerror (errno));
+      return 1;
+    }
+
+  mailbox_messages_count (mbox, &count);
+  for (i = 1; i <= count; i++)
+    {
+      message_t msg = NULL;
+      attribute_t attr = NULL;
+
+      mailbox_get_message (mbox, i, &msg);
+      message_get_attribute (msg, &attr);
+      if (!attribute_is_deleted (attr))
+	{
+	  attribute_set_recent (attr);
+	  mailbox_append_message (outbox, msg);
+	}
+    }
+
+  mailbox_close (outbox);
+  mailbox_destroy (&outbox);
+
+  if (user_name)
+    umask (saved_umask);
+  return 0;
+}
+
+  
 /* Close the temporary mailbox and unlink the file associated with it */
 void
 collect_drop_mailbox ()
