@@ -67,7 +67,6 @@ static const char *MONTHS[] =
   "Jan", "Feb", "Mar", "Apr", "May", "Jun",
   "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
 };
-static const char * get_timezone   __P ((const struct tm *));
 
 static struct fetch_command* fetch_getcommand __P ((char *, struct fetch_command[]));
 
@@ -367,58 +366,18 @@ fetch_internaldate (struct fetch_command *command, char **arg)
 {
   char date[128];
   envelope_t env = NULL;
-  struct tm tm;
   struct tm *tptr;
+  time_t env_time;
+  
   (void)arg; /* No arguments.  */
   message_get_envelope (command->msg, &env);
   date[0] = '\0';
   envelope_date (env, date, sizeof (date), NULL);
-  {
-    int year, mon, day, hour, min, sec;
-    int offt;
-    int i;
-    time_t now;
-    char month[5];
-    char wday[5];
-
-    month[0] = '\0';
-    wday[0] = '\0';
-    day = mon = year = hour = min = sec = offt = 0;
-
-    /* RFC822 Date: format.  */
-    sscanf (date, "%3s %3s %2d %2d:%2d:%2d %d\n", wday, month, &day,
-	    &hour, &min, &sec, &year);
-    tm.tm_sec = sec;
-    tm.tm_min = min;
-    tm.tm_hour = hour;
-    for (i = 0; i < 12; i++)
-      {
-	if (strncasecmp(month, MONTHS[i], 3) == 0)
-	  {
-	    mon = i;
-	    break;
-	  }
-      }
-    tm.tm_mday = day;
-    tm.tm_mon = mon;
-    tm.tm_year = (year > 1900) ? year - 1900 : year;
-    tm.tm_yday = 0; /* unknown. */
-    tm.tm_wday = 0; /* unknown. */
-    tm.tm_isdst = -1; /* unknown. */
-    /* What to do the timezone?  */
-    now = mktime (&tm);
-    if (now == (time_t)-1)
-      {
-	/* Fall back to localtime.  */
-	now = time (NULL);
-	tptr = localtime (&now);
-      }
-    else
-      tptr = &tm;
-  }
-  strftime (date, sizeof (date), "%d-%b-%Y %X", &tm);
+  util_parse_ctime_date (date, &env_time);
+  tptr = gmtime(&env_time);
+  strftime (date, sizeof (date), "%d-%b-%Y %X", tptr);
   util_send ("%s", command->name);
-  util_send (" \"%s %s\"", date, get_timezone (&tm));
+  util_send (" \"%s +0000\"", date);
   return RESP_OK;
 }
 
@@ -1550,32 +1509,4 @@ send_parameter_list (char *buffer)
   return 0;
 }
 
-/* BODY[<section>]<offset.len> */
-static const char *
-get_timezone (const struct tm *tptr)
-{
-  char tz[5];
-  tz[0] = '\0';
-  strftime (tz, sizeof (tz), "%Z", tptr);
-  if (strcasecmp (tz, "UT") == 0)
-    return "+0000";
-  else if (strcasecmp (tz, "GMT") == 0)
-    return "+0000";
-  else if (strcasecmp (tz, "EDT") == 0)
-    return "-0400";
-  else if (strcasecmp (tz, "EST") == 0)
-    return "-0500";
-  else if (strcasecmp (tz, "CDT") == 0)
-    return "-0500";
-  else if (strcasecmp (tz, "CST") == 0)
-    return "-0600";
-  else if (strcasecmp (tz, "MDT") == 0)
-    return "-0600";
-  else if (strcasecmp (tz, "MST") == 0)
-    return "-0700";
-  else if (strcasecmp (tz, "PDT") == 0)
-    return "-0700";
-  else if (strcasecmp (tz, "PST") == 0)
-    return "-0800";
-  return "-0000"; /* Oops.  */
-}
+
