@@ -31,4 +31,5 @@ pkginclude_HEADERS = \
  refcount.h   \
  stream.h     \
  ticket.h     \
+ types.h \
  url.h
