@@ -36,7 +36,7 @@ mu_nntp_body (mu_nntp_t nntp, unsigned long number, unsigned long *pnum, char **
 	{
 	  return ENOMEM;
 	}
-      snprintf (message_id, 127, "%d", number);
+      snprintf (message_id, 127, "%lu", number);
     }
   status = mu_nntp_body_id (nntp, message_id, pnum, mid, pstream);
   if (message_id)
