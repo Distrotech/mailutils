@@ -108,7 +108,8 @@ attribute_set_recent (attribute_t attr)
     return EINVAL;
   if (attr == NULL)
     {
-      attr->flag = 0;
+      attr->flag &= ~MU_ATTRIBUTE_READ;
+      attr->flag &= ~MU_ATTRIBUTE_SEEN;
       return 0;
     }
   return EACCES;
@@ -167,7 +168,10 @@ attribute_is_recent (attribute_t attr)
 {
   if (attr == NULL)
     return 0;
-  return attr->flag == 0;
+  /* something is recent when it is not read and not seen.  */
+  return (attr->flag == 0
+	  || ! ((attr->flag & MU_ATTRIBUTE_SEEN)
+		&& (attr->flag & MU_ATTRIBUTE_READ));
 }
 
 int
@@ -229,7 +233,7 @@ attribute_unset_recent (attribute_t attr)
 {
   if (attr == NULL)
     return 0;
-  attr->flag |= MU_ATTRIBUTE_SEEN;
+  attr-> |= MU_ATTRIBUTE_SEEN;
   return 0;
 }
 

@@ -559,7 +559,8 @@ message_write (stream_t os, const char *buf, size_t buflen,
 	       off_t off, size_t *pnwrite)
 {
   message_t msg;
-  int status;
+  int status = 0;
+  size_t bufsize = 0;
 
   if (os == NULL || (msg = os->owner) == NULL)
     return EINVAL;
@@ -629,11 +630,13 @@ message_write (stream_t os, const char *buf, size_t buflen,
 	msg->hdr_buf = thdr;
       memcpy (msg->hdr_buf + msg->hdr_buflen, buf, buflen);
       msg->hdr_buflen += buflen;
+      buflen = 0;
     }
   else if (buflen > 0) /* in the body */
     {
       stream_t bs;
       body_t body;
+      size_t written = 0;
       if ((status = message_get_body (msg, &body)) != 0 ||
 	  (status = body_get_stream (msg->body, &bs)) != 0)
 	{
@@ -646,9 +649,12 @@ message_write (stream_t os, const char *buf, size_t buflen,
 	off = 0;
       else
 	off -= msg->hdr_buflen;
-      return stream_write (bs, buf, buflen, off, pnwrite);
+      status = stream_write (bs, buf, buflen, off, &written);
+      buflen -= written;
     }
-  return 0;
+  if (pnwrite)
+    *pnwrite = busize - buflen;
+  return status;
 }
 
 static int
