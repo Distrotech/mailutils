@@ -56,9 +56,6 @@ extern int _folder_mbox_init      __P ((folder_t));
 
 #define MU_FILE_SCHEME "file:"
 #define MU_FILE_SCHEME_LEN (sizeof (MU_FILE_SCHEME) - 1)
-extern int _url_file_init         __P ((url_t));
-extern int _mailbox_file_init     __P ((mailbox_t));
-extern int _folder_file_init      __P ((folder_t));
 
 #define MU_PATH_SCHEME "/"
 #define MU_PATH_SCHEME_LEN (sizeof (MU_PATH_SCHEME) - 1)

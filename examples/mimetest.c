@@ -83,7 +83,6 @@ main (int argc, char **argv)
   {
     list_t bookie;
     registrar_get_list (&bookie);
-    list_append (bookie, file_record);
     list_append (bookie, imap_record);
     list_append (bookie, mbox_record);
     list_append (bookie, path_record);

@@ -57,32 +57,20 @@ static struct _record _mbox_record =
 };
 record_t mbox_record = &_mbox_record;
 
-static struct _record _file_record =
-{
-  MU_FILE_SCHEME,
-  _url_file_init,     /* Mailbox init.  */
-  _mailbox_file_init, /* Mailbox init.  */
-  NULL,               /* Mailer init.  */
-  _folder_mbox_init,  /* Folder init.  */
-  NULL, /* No need for an owner.  */
-  NULL, /* _is_scheme method.  */
-  NULL, /* _get_url method.  */
-  NULL, /* _get_mailbox method.  */
-  NULL, /* _get_mailer method.  */
-  NULL  /* _get_folder method.  */
-};
-record_t file_record = &_file_record;
-
 static int
 _path_is_scheme (record_t record, const char *url)
 {
-  if (url
-      && record->scheme
-      && strncasecmp (record->scheme, url, strlen (record->scheme)) == 0)
+  const char *path;
+  
+  if (!url || !record->scheme)
+    return 0;
+
+  if (mu_scheme_autodetect_p (url, &path))
+ /* implies if (strncmp (record->scheme, url, strlen(record->scheme)) == 0)*/
     {
       struct stat st;
       
-      if (stat (url, &st) < 0)
+      if (stat (path, &st) < 0)
 	return 1; /* mailbox_open will complain */
 
       return S_ISREG (st.st_mode) || S_ISCHR (st.st_mode); 
@@ -94,7 +82,7 @@ static struct _record _path_record =
 {
   MU_PATH_SCHEME,
   _url_path_init,     /* Mailbox init.  */
-  _mailbox_file_init, /* Mailbox init.  */
+  _mailbox_mbox_init, /* Mailbox init.  */
   NULL,               /* Mailer init.  */
   _folder_mbox_init,  /* Folder init.  */
   NULL, /* No need for an owner.  */

@@ -91,8 +91,6 @@ extern record_t pop_record;
 
 /* Local Mailbox Unix Mailbox, "mbox:"  */
 extern record_t mbox_record;
-/* Local Folder/Mailbox, "file:"  */
-extern record_t file_record;
 /* Local Folder/Mailbox, /  */
 extern record_t path_record;
 /* Local MH, "mh:" */  
@@ -109,7 +107,6 @@ extern record_t sendmail_record;
   list_t bookie = 0;\
   registrar_get_list (&bookie);\
   list_append (bookie, path_record);\
-  list_append (bookie, file_record);\
   list_append (bookie, mbox_record);\
   list_append (bookie, pop_record);\
   list_append (bookie, imap_record);\
