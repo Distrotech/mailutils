@@ -458,6 +458,7 @@ AC_CONFIG_FILES([Makefile mailutils.spec
  m4/Makefile
  doc/Makefile doc/man/Makefile doc/rfc/Makefile doc/texinfo/Makefile
  lib/Makefile lib/posix/Makefile
+ testsuite/Makefile
  mailbox/Makefile
  auth/Makefile
  imap4d/Makefile
