@@ -1,7 +1,15 @@
+2003-10-06  Alain Magloire
+
+	* mailbox/pop/pop3_stls.c: New file.
+	* mailbox/pop/pop3_pass.c: Obscure the buffer with the passwd for security reasons.
+	* mailbox/pop/pop3_apop.c: Obscure the buffer with the digest for security reasons.
+	* include/mailutils/pop3.h: Declaration mu_pop3_stls().
+	* include/mailutils/sys/pop3.h: New states added to accomodate STLS command.
+
 2003-10-06  Sergey Poznyakoff 
 
 	* configure.ac: Raised version number to 0.4
-	
+
 	* lib/getopt.c: Moved to ...
 	* mailbox/getopt.c: ... here
 	* lib/getopt1.c: Moved to ...
