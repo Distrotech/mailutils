@@ -8,7 +8,7 @@ dnl Defines GSSAPI_IMPL to "Heimdal", "MIT", or "OldMIT", or "none" if not found
 AC_DEFUN(MU_CHECK_GSSAPI,
 [
  if test "x$mu_cv_lib_gssapi_libs" = x; then
-  cache=""
+  cached=""
   GSSAPI_PREFIX=[$1]
   GSSAPI_IMPL="none"
   # First try krb5-config
