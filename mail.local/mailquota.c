@@ -64,6 +64,7 @@ check_quota (char *name, size_t size, size_t *rest)
     return DEFRETVAL;
 
   memset (&named, 0, sizeof named);
+  memset (&contentd, 0, sizeof contentd);
   MU_DATUM_PTR (named) = name;
   MU_DATUM_SIZE (named) = strlen (name);
   rc = mu_dbm_fetch (db, named, &contentd);
