@@ -33,6 +33,9 @@
 #include <ctype.h>
 #include <limits.h>
 #include <errno.h>
+#ifdef HAVE_PTHREAD_H
+#  include <pthread.h>
+#endif
 
 #include <mailutils/message.h>
 #include <mailutils/stream.h>
@@ -48,7 +51,7 @@
 
 static int mbox_init (mailbox_t mailbox);
 
-/* Register variables.  */
+/* Registrar variables.  */
 static struct mailbox_entry _mbox_entry =
 {
   url_mbox_init, mbox_init
@@ -161,9 +164,7 @@ static int mbox_body_size (body_t, size_t *);
 static int mbox_body_lines (body_t, size_t *);
 static int mbox_msg_from (message_t, char *, size_t, size_t *);
 static int mbox_msg_received (message_t, char *, size_t, size_t *);
-static int mbox_lock (mailbox_t, int);
-static int mbox_touchlock (mailbox_t);
-static int mbox_unlock (mailbox_t);
+static void mbox_cleanup (void *);
 
 /* We allocate the mbox_data_t struct, but don't do any parsing on the name or
    even test for existence.  However we do strip any leading "mbox:" part of
@@ -230,14 +231,13 @@ mbox_init (mailbox_t mailbox)
 static void
 mbox_destroy (mailbox_t mailbox)
 {
-  mbox_close (mailbox);
   if (mailbox->data)
     {
       size_t i;
       mbox_data_t mud = mailbox->data;
       MAILBOX_DEBUG1 (mailbox, MU_DEBUG_TRACE,
 		      "mbox_destroy (%s)\n", mud->name);
-      mailbox_wrlock (mailbox);
+      monitor_wrlock (mailbox->monitor);
       for (i = 0; i < mud->umessages_count; i++)
 	{
 	  mbox_message_t mum = mud->umessages[i];
@@ -253,7 +253,7 @@ mbox_destroy (mailbox_t mailbox)
 	free (mud->name);
       free (mud);
       mailbox->data = NULL;
-      mailbox_unlock (mailbox);
+      monitor_unlock (mailbox->monitor);
     }
 }
 
@@ -268,7 +268,6 @@ mbox_open (mailbox_t mailbox, int flags)
     return EINVAL;
 
   mailbox->flags = flags | MU_STREAM_FILE;
-  mailbox_rdlock (mailbox);
 
   /* Get a stream.  */
   if (mailbox->stream == NULL)
@@ -282,36 +281,33 @@ mbox_open (mailbox_t mailbox, int flags)
 	{
 	  status = file_stream_create (&(mailbox->stream));
 	  if (status != 0)
-	    {
-	      mailbox_unlock (mailbox);
-	      return status;
-	    }
+	    return status;
 	}
       status = stream_open (mailbox->stream, mud->name, 0, mailbox->flags);
       if (status != 0)
-	{
-	  mailbox_unlock (mailbox);
-	  return status;
-	}
+	return status;
     }
   else
     {
       status = stream_open (mailbox->stream, mud->name, 0, mailbox->flags);
       if (status != 0)
-	{
-	  mailbox_unlock (mailbox);
-	  return status;
-	}
+	return status;
     }
 
   MAILBOX_DEBUG2 (mailbox, MU_DEBUG_TRACE, "mbox_open(%s, %d)\n",
 		  mud->name, mailbox->flags);
 
-  /* Give an appopriate way to lock.  */
+  if (mailbox->authority)
+    {
+      status = authority_authenticate (mailbox->authority);
+      if (status != 0)
+	return status;
+    }
+
+  /* Give an appropriate way to file lock.  */
   if (mailbox->locker == NULL)
     locker_create (&(mailbox->locker), mud->name, strlen (mud->name),
 		   MU_LOCKER_PID | MU_LOCKER_FCNTL);
-  mailbox_unlock (mailbox);
   return 0;
 }
 
@@ -324,11 +320,12 @@ mbox_close (mailbox_t mailbox)
   if (mud == NULL)
     return EINVAL;
 
-  /* Make sure we do not hold any lock for that file.  */
-  mbox_unlock (mailbox);
   MAILBOX_DEBUG1 (mailbox, MU_DEBUG_TRACE,  "mbox_close(%s)\n", mud->name);
 
-  mailbox_wrlock (mailbox);
+  /* Make sure that we do hold any file locking.  */
+  locker_unlock (mailbox->locker);
+
+  monitor_wrlock (mailbox->monitor);
   /* Before closing we need to remove all the messages
      - to reclaim the memory
      - to prepare for another scan.  */
@@ -347,7 +344,7 @@ mbox_close (mailbox_t mailbox)
   mud->umessages = NULL;
   mud->messages_count = mud->umessages_count = 0;
   mud->size = 0;
-  mailbox_unlock (mailbox);
+  monitor_unlock (mailbox->monitor);
   return stream_close (mailbox->stream);
 }
 
@@ -364,27 +361,23 @@ mbox_scan (mailbox_t mailbox, size_t msgno, size_t *pcount)
 
 
 /* FIXME:  How to handle a shrink ? meaning, the &^$^@%#@^& user start two
-   browsers and delete files in one.  My views is that we should scream
+   browsers and deleted emails in one.  My views is that we should scream
    bloody murder and hunt them with a machette. But for now just play dumb,
    but maybe the best approach is to pack our things and leave .i.e exit().  */
 static int
 mbox_is_updated (mailbox_t mailbox)
 {
-  off_t size;
+  off_t size = 0;
   mbox_data_t mud = mailbox->data;
-  int status;
-
-  if (mud == NULL)
-    return EINVAL;
-  mailbox_rdlock (mailbox);
   if (stream_size (mailbox->stream, &size) != 0)
+    return 0;
+  if (size < mud->size)
     {
-      mailbox_unlock (mailbox);
-      return 0;
+      observable_notify (mailbox->observable, MU_EVT_MAILBOX_CORRUPT);
+      /* And be verbose.  */
+      fprintf (stderr, "Mailbox corrupted, shrink size\n");
     }
-  status = (mud->size == size);
-  mailbox_unlock (mailbox);
-  return status;
+  return (mud->size == size);
 }
 
 /* FIXME: the use of tmpfile() on some system can lead to race condition, We
@@ -464,6 +457,9 @@ mbox_expunge (mailbox_t mailbox)
   off_t total = 0;
   char buffer [BUFSIZ];
   char *tmpmbox = NULL;
+#ifdef WITH_PTHREAD
+  int state;
+#endif
 
   if (mud == NULL)
     return EINVAL;
@@ -481,7 +477,7 @@ mbox_expunge (mailbox_t mailbox)
       return  EAGAIN;
     }
 
-  mailbox_wrlock (mailbox);
+  monitor_wrlock (mailbox->monitor);
 
   /* Mark dirty the first mail with an attribute change.  */
   for (dirty = 0; dirty < mud->messages_count; dirty++)
@@ -495,10 +491,9 @@ mbox_expunge (mailbox_t mailbox)
   /* Did something change ?  */
   if (dirty == mud->messages_count)
     {
-      mailbox_unlock (mailbox);
+      monitor_unlock (mailbox->monitor);
       return 0; /* Nothing change, bail out.  */
     }
-
 
   /* This is redundant, we go to the loop again.  But it's more secure here
      since we don't want to be disturb when expunging.  */
@@ -513,24 +508,27 @@ mbox_expunge (mailbox_t mailbox)
   tempfile = mbox_tmpfile (mailbox, &tmpmbox);
   if (tempfile == NULL)
     {
-      fprintf (stderr, "Failed to create temporary file when expunging.\n");
       free (tmpmbox);
-      mailbox_unlock (mailbox);
+      monitor_unlock (mailbox->monitor);
+      fprintf (stderr, "Failed to create temporary file when expunging.\n");
       return errno;
     }
 
-  /* Get the lock.  */
-  if (mbox_lock (mailbox, MU_LOCKER_WRLOCK) < 0)
+  /* Get the File lock.  */
+  if (locker_lock (mailbox->locker, MU_LOCKER_WRLOCK) < 0)
     {
       fclose (tempfile);
       remove (tmpmbox);
       free (tmpmbox);
+      monitor_unlock (mailbox->monitor);
       fprintf (stderr, "Failed to grab the lock\n");
-      mailbox_unlock (mailbox);
       return ENOLCK;
     }
 
   /* Critical section, we can not allowed signal here.  */
+#ifdef WITH_PTHREAD
+  pthread_setcancelstate (PTHREAD_CANCEL_DISABLE, &state);
+#endif
   sigemptyset (&signalset);
   sigaddset (&signalset, SIGTERM);
   sigaddset (&signalset, SIGHUP);
@@ -732,9 +730,12 @@ mbox_expunge (mailbox_t mailbox)
  bailout:
 
   free (tmpmbox);
-  /* Release the locks.  */
-  mbox_unlock (mailbox);
+  /* Release the File lock.  */
+  locker_unlock (mailbox->locker);
   fclose (tempfile);
+#ifdef WITH_PTHREAD
+  pthread_setcancelstate (state, &state);
+#endif
   sigprocmask (SIG_UNBLOCK, &signalset, 0);
 
   /* We need to readjust the pointers.  */
@@ -775,11 +776,11 @@ mbox_expunge (mailbox_t mailbox)
 	}
       /* This is should reset the messages_count, the last argument 0 means
 	 not to send event notification.  */
-      mailbox_unlock (mailbox);
+      monitor_unlock (mailbox->monitor);
       mbox_scan0 (mailbox, dirty, NULL, 0);
     }
   else
-    mailbox_unlock (mailbox);
+    monitor_unlock (mailbox->monitor);
   return status;
 }
 
@@ -807,9 +808,7 @@ mbox_get_fd (mbox_message_t mum, int *pfd)
   int status;
   if (mum == NULL)
     return EINVAL;
-  mailbox_rdlock (mum->mud->mailbox);
   status = stream_get_fd (mum->stream, pfd);
-  mailbox_unlock (mum->mud->mailbox);
   return status;
 }
 
@@ -821,11 +820,8 @@ mbox_get_attr_flags (attribute_t attr, int *pflags)
 
   if (mum == NULL)
     return EINVAL;
-
-  mailbox_rdlock (mum->mud->mailbox);
   if (pflags)
     *pflags = mum->new_flags;
-  mailbox_unlock (mum->mud->mailbox);
   return 0;
 }
 
@@ -837,10 +833,7 @@ mbox_set_attr_flags (attribute_t attr, int flags)
 
   if (mum == NULL)
     return EINVAL;
-
-  mailbox_rdlock (mum->mud->mailbox);
   mum->new_flags |= flags;
-  mailbox_unlock (mum->mud->mailbox);
   return 0;
 }
 
@@ -852,10 +845,7 @@ mbox_unset_attr_flags (attribute_t attr, int flags)
 
   if (mum == NULL)
     return EINVAL;
-
-  mailbox_rdlock (mum->mud->mailbox);
   mum->new_flags &= ~flags;
-  mailbox_unlock (mum->mud->mailbox);
   return 0;
 }
 
@@ -867,6 +857,7 @@ mbox_readstream (stream_t is, char *buffer, size_t buflen,
   message_t msg = body_get_owner (body);
   mbox_message_t mum = message_get_owner (msg);
   size_t nread = 0;
+  int status = 0;
 
   if (mum == NULL)
     return EINVAL;
@@ -878,28 +869,30 @@ mbox_readstream (stream_t is, char *buffer, size_t buflen,
       return 0;
     }
 
-  mailbox_rdlock (mum->mud->mailbox);
+  monitor_rdlock (mum->mud->mailbox->monitor);
+#ifdef WITH_PTHREAD
+  /* read() is cancellation point since we're doing a potentially
+     long operation.  Lets make sure we clean the state.  */
+  pthread_cleanup_push (mbox_cleanup, (void *)mum->mud->mailbox);
+#endif
   {
     off_t ln = mum->body_end - (mum->body + off);
     size_t n = 0;
-    int status;
     if (ln > 0)
       {
 	nread = ((size_t)ln < buflen) ? ln : buflen;
 	/* Position the file pointer and the buffer.  */
 	status = stream_read (mum->stream, buffer, nread, mum->body + off, &n);
-	if (status != 0)
-	  {
-	    mailbox_unlock (mum->mud->mailbox);
-	    return status;
-	  }
       }
   }
-  mailbox_unlock (mum->mud->mailbox);
+  monitor_unlock (mum->mud->mailbox->monitor);
+#ifdef WITH_PTHREAD
+  pthread_cleanup_pop (0);
+#endif
 
   if (pnread)
     *pnread = nread;
-  return 0;
+  return status;
 }
 
 static int
@@ -916,7 +909,12 @@ mbox_get_header_read (stream_t is, char *buffer, size_t len,
   if (mum == NULL)
     return EINVAL;
 
-  mailbox_rdlock (mum->mud->mailbox);
+  monitor_rdlock (mum->mud->mailbox->monitor);
+#ifdef WITH_PTHREAD
+  /* read() is cancellation point since we're doing a potentially
+     long operation.  Lets make sure we clean the state.  */
+  pthread_cleanup_push (mbox_cleanup, (void *)mum->mud->mailbox);
+#endif
   ln = mum->body - (mum->header_from_end + off);
   if (ln > 0)
     {
@@ -925,9 +923,12 @@ mbox_get_header_read (stream_t is, char *buffer, size_t len,
       status = stream_read (mum->stream, buffer, nread,
 			    mum->header_from_end + off, &nread);
     }
+  monitor_unlock (mum->mud->mailbox->monitor);
+#ifdef WITH_PTHREAD
+  pthread_cleanup_pop (0);
+#endif
   if (pnread)
     *pnread = nread;
-  mailbox_unlock (mum->mud->mailbox);
   return status;
 }
 
@@ -938,10 +939,8 @@ mbox_header_size (header_t header, size_t *psize)
   mbox_message_t mum = message_get_owner (msg);
   if (mum == NULL)
     return EINVAL;
-  mailbox_rdlock (mum->mud->mailbox);
   if (psize)
     *psize = mum->body - mum->header_from_end;
-  mailbox_unlock (mum->mud->mailbox);
   return 0;
 }
 
@@ -952,10 +951,8 @@ mbox_header_lines (header_t header, size_t *plines)
   mbox_message_t mum = message_get_owner (msg);
   if (mum == NULL)
     return EINVAL;
-  mailbox_rdlock (mum->mud->mailbox);
   if (plines)
     *plines = mum->header_lines;
-  mailbox_unlock (mum->mud->mailbox);
   return 0;
 }
 
@@ -978,10 +975,8 @@ mbox_body_lines (body_t body, size_t *plines)
   mbox_message_t mum = message_get_owner (msg);
   if (mum == NULL)
     return EINVAL;
-  mailbox_rdlock (mum->mud->mailbox);
   if (plines)
     *plines = mum->body_lines;
-  mailbox_unlock (mum->mud->mailbox);
   return 0;
 }
 
@@ -997,10 +992,8 @@ mbox_msg_received (message_t msg, char *buf, size_t len,
   if (mum == NULL)
     return EINVAL;
 
-  mailbox_rdlock (mum->mud->mailbox);
   status = stream_readline (mum->stream, buffer, sizeof(buffer),
 			    mum->header_from, &n);
-  mailbox_unlock (mum->mud->mailbox);
   if (status != 0)
     {
       if (pnwrite)
@@ -1043,10 +1036,8 @@ mbox_msg_from (message_t msg, char *buf, size_t len, size_t *pnwrite)
   if (mum == NULL)
     return EINVAL;
 
-  mailbox_rdlock (mum->mud->mailbox);
   status = stream_readline (mum->stream, buffer, sizeof(buffer),
 			    mum->header_from, &n);
-  mailbox_unlock (mum->mud->mailbox);
   if (status != 0)
     {
       if (pnwrite)
@@ -1188,8 +1179,13 @@ mbox_append_message (mailbox_t mailbox, message_t msg)
   MAILBOX_DEBUG1 (mailbox, MU_DEBUG_TRACE, "mbox_append_message (%s)\n",
 		  mud->name);
 
-  mailbox_wrlock (mailbox);
-  mbox_lock (mailbox, MU_LOCKER_WRLOCK);
+  monitor_wrlock (mailbox->monitor);
+#ifdef WITH_PTHREAD
+  /* write()/read() are cancellation points.  Since we're doing a potentially
+     long operation.  Lets make sure we clean the state.  */
+  pthread_cleanup_push (mbox_cleanup, (void *)mailbox);
+#endif
+  locker_lock (mailbox->locker, MU_LOCKER_WRLOCK);
   {
     off_t size;
     int status;
@@ -1200,8 +1196,8 @@ mbox_append_message (mailbox_t mailbox, message_t msg)
     status = stream_size (mailbox->stream, &size);
     if (status != 0)
       {
-	mailbox_unlock (mailbox);
-	mbox_unlock (mailbox);
+	locker_unlock (mailbox->locker);
+	monitor_unlock (mailbox->monitor);
 	return status;
       }
 
@@ -1211,8 +1207,8 @@ mbox_append_message (mailbox_t mailbox, message_t msg)
 	mud->from = calloc (128, sizeof (char));
 	if (mud->from == NULL)
 	  {
-	    mbox_unlock (mailbox);
-	    mailbox_unlock (mailbox);
+	    locker_unlock (mailbox->locker);
+	    monitor_unlock (mailbox->monitor);
 	    return ENOMEM;
 	  }
 	mud->date = calloc (128, sizeof (char));
@@ -1221,8 +1217,8 @@ mbox_append_message (mailbox_t mailbox, message_t msg)
 	    free (mud->from);
 	    mud->from = NULL;
 	    mud->state = MBOX_NO_STATE;
-	    mbox_unlock (mailbox);
-	    mailbox_unlock (mailbox);
+	    locker_unlock (mailbox->locker);
+	    monitor_unlock (mailbox->monitor);
 	    return ENOMEM;
 	  }
 	mud->off = 0;
@@ -1242,9 +1238,9 @@ mbox_append_message (mailbox_t mailbox, message_t msg)
 		  free (mud->date);
 		  mud->date = mud->from = NULL;
 		  mud->state = MBOX_NO_STATE;
-		  mbox_unlock (mailbox);
+		  locker_unlock (mailbox->locker);
 		}
-	      mailbox_unlock (mailbox);
+	      monitor_unlock (mailbox->monitor);
 	      return status;
 	    }
 	  /* Nuke trailing newline.  */
@@ -1268,9 +1264,9 @@ mbox_append_message (mailbox_t mailbox, message_t msg)
 		  free (mud->date);
 		  mud->date = mud->from = NULL;
 		  mud->state = MBOX_NO_STATE;
-		  mbox_unlock (mailbox);
+		  locker_unlock (mailbox->locker);
 		}
-	      mailbox_unlock (mailbox);
+	      monitor_unlock (mailbox->monitor);
 	      return status;
 	    }
 	  /* Nuke trailing newline.  */
@@ -1313,10 +1309,10 @@ mbox_append_message (mailbox_t mailbox, message_t msg)
 		      free (mud->date);
 		      mud->date = mud->from = NULL;
 		      mud->state = MBOX_NO_STATE;
-		      mbox_unlock (mailbox);
+		      locker_unlock (mailbox->locker);
 		    }
 		  stream_flush (mailbox->stream);
-		  mailbox_unlock (mailbox);
+		  monitor_unlock (mailbox->monitor);
 		  return status;
 		}
 	      stream_write (mailbox->stream, buffer, nread, size, &n);
@@ -1333,8 +1329,11 @@ mbox_append_message (mailbox_t mailbox, message_t msg)
   }
   stream_flush (mailbox->stream);
   mud->state = MBOX_NO_STATE;
-  mbox_unlock (mailbox);
-  mailbox_unlock (mailbox);
+  locker_unlock (mailbox->locker);
+  monitor_unlock (mailbox->monitor);
+#ifdef WITH_PTHREAD
+  pthread_cleanup_pop (0);
+#endif
   return 0;
 }
 
@@ -1345,9 +1344,7 @@ mbox_size (mailbox_t mailbox, off_t *psize)
   int status;
 
   /* Maybe was not open yet ??  */
-  mailbox_rdlock (mailbox);
   status  = stream_size (mailbox->stream, &size);
-  mailbox_unlock (mailbox);
   if (status != 0)
     return status;
   if (psize)
@@ -1371,36 +1368,10 @@ mbox_messages_count (mailbox_t mailbox, size_t *pcount)
   return 0;
 }
 
-/* Locking.  */
-static int
-mbox_lock (mailbox_t mailbox, int flag)
+static void
+mbox_cleanup (void *arg)
 {
-  if (mailbox && mailbox->locker != NULL)
-    {
-      locker_t locker = mailbox->locker;
-      locker_lock (locker, flag);
-    }
-  return 0;
-}
-
-static int
-mbox_touchlock (mailbox_t mailbox)
-{
-  if (mailbox && mailbox->locker != NULL)
-    {
-      locker_t locker = mailbox->locker;
-      locker_touchlock (locker);
-    }
-  return 0;
-}
-
-static int
-mbox_unlock (mailbox_t mailbox)
-{
-  if (mailbox && mailbox->locker != NULL)
-    {
-      locker_t locker = mailbox->locker;
-      locker_unlock (locker);
-    }
-  return 0;
+  mailbox_t mailbox = arg;
+  monitor_unlock (mailbox->monitor);
+  locker_unlock (mailbox->locker);
 }

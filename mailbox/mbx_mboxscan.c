@@ -191,17 +191,17 @@ do \
 do \
 { \
   int bailing = 0; \
-  mailbox_unlock (mbox); \
+  monitor_unlock (mbox->monitor); \
   if (mbox->observable) \
      bailing = observable_notify (mbox->observable, MU_EVT_MESSAGE_ADD); \
   if (bailing != 0) \
     { \
       if (pcount) \
         *pcount = (mud)->messages_count; \
-      mbox_unlock (mbox); \
+      locker_unlock (mbox->locker); \
       return EINTR; \
     } \
-  mailbox_wrlock (mbox); \
+  monitor_wrlock (mbox->monitor); \
 } while (0);
 
 /* Notification MBX_PROGRESS
@@ -215,7 +215,7 @@ do \
 { \
     { \
       int bailing = 0; \
-      mailbox_unlock (mbox); \
+      monitor_unlock (mbox->monitor); \
       mud->messages_count--; \
       if (mbox->observable) \
         bailing = observable_notify (mbox->observable, MU_EVT_MAILBOX_PROGRESS); \
@@ -223,11 +223,11 @@ do \
 	{ \
 	  if (pcount) \
 	    *pcount = (mud)->messages_count; \
-          mbox_unlock (mbox); \
+          locker_unlock (mbox->locker); \
 	  return EINTR; \
 	} \
       mud->messages_count++; \
-      mailbox_wrlock (mbox); \
+      monitor_wrlock (mbox->monitor); \
     } \
 } while (0)
 
@@ -243,16 +243,16 @@ do \
     m = realloc ((mud)->umessages, num * sizeof (*m)); \
     if (m == NULL) \
       { \
-        mbox_unlock (mbox); \
-        mailbox_unlock (mbox); \
+        locker_unlock (mbox->locker); \
+        monitor_unlock (mbox->monitor); \
         return ENOMEM; \
       } \
     (mud)->umessages = m; \
     (mud)->umessages[num - 1] = calloc (1, sizeof (*(mum))); \
     if ((mud)->umessages[num - 1] == NULL) \
       { \
-        mbox_unlock (mbox); \
-        mailbox_unlock (mbox); \
+        locker_unlock (mbox->locker); \
+        monitor_unlock (mbox->monitor); \
         return ENOMEM; \
       } \
     (mud)->umessages_count = num; \
@@ -282,17 +282,23 @@ mbox_scan0 (mailbox_t mailbox, size_t msgno, size_t *pcount, int do_notif)
     return EINVAL;
 
   /* Grab the lock.  */
-  mailbox_wrlock (mailbox);
+  monitor_wrlock (mailbox->monitor);
+
+#ifdef WITH_PTHREAD
+  /* read() is cancellation point since we're doing a potentially
+     long operation.  Lets make sure we clean the state.  */
+  pthread_cleanup_push (mbox_cleanup, (void *)mailbox);
+#endif
 
   /* Save the timestamp and size.  */
   status = stream_size (mailbox->stream, &(mud->size));
   if (status != 0)
     {
-      mailbox_unlock (mailbox);
+      monitor_unlock (mailbox->monitor);
       return status;
     }
 
-  mbox_lock (mailbox, MU_LOCKER_RDLOCK);
+  locker_lock (mailbox->locker, MU_LOCKER_RDLOCK);
 
   /* Seek to the starting point.  */
   if (mud->umessages && msgno > 0 && mud->messages_count > 0
@@ -376,7 +382,7 @@ mbox_scan0 (mailbox_t mailbox, size_t msgno, size_t *pcount, int do_notif)
 
       /* Every 50 mesgs update the lock, it should be every minute.  */
       if ((mud->messages_count % 50) == 0)
-	mbox_touchlock (mailbox);
+	locker_touchlock (mailbox->locker);
 
       /* Ping them every 1000 lines.  */
       if (do_notif)
@@ -392,9 +398,13 @@ mbox_scan0 (mailbox_t mailbox, size_t msgno, size_t *pcount, int do_notif)
       if (do_notif)
 	DISPATCH_ADD_MSG(mailbox, mud);
     }
-  mbox_unlock (mailbox);
   if (pcount)
     *pcount = mud->messages_count;
-  mailbox_unlock (mailbox);
+  locker_unlock (mailbox->locker);
+  monitor_unlock (mailbox->monitor);
+
+#ifdef WITH_PTHREAD
+  pthread_cleanup_pop (0);
+#endif
   return status;
 }

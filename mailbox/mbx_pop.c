@@ -189,7 +189,7 @@ struct _pop_data
 #define CHECK_BUSY(mbox, mpd, function, identity) \
 do \
   { \
-    int err = mailbox_wrlock (mbox); \
+    int err = monitor_wrlock (mbox->monitor); \
     if (err != 0) \
       return err; \
     if ((mpd->func && mpd->func != function) \
@@ -198,7 +198,7 @@ do \
         mpd->id = 0; \
         mpd->func = pop_open; \
         mpd->state = POP_NO_STATE; \
-        mailbox_unlock (mbox); \
+        monitor_unlock (mbox->monitor); \
         err = pop_open (mbox, mbox->flags); \
         if (err != 0) \
           { \
@@ -209,7 +209,7 @@ do \
       { \
         mpd->id = (size_t)identity; \
         mpd->func = func; \
-        mailbox_unlock (mbox); \
+        monitor_unlock (mbox->monitor); \
       } \
   } \
 while (0)
@@ -301,7 +301,7 @@ pop_destroy (mailbox_t mbox)
     {
       pop_data_t mpd = mbox->data;
       size_t i;
-      mailbox_wrlock (mbox);
+      monitor_wrlock (mbox->monitor);
       /* Destroy the pop messages and ressources associated to them.  */
       for (i = 0; i < mpd->pmessages_count; i++)
 	{
@@ -320,7 +320,7 @@ pop_destroy (mailbox_t mbox)
 	free (mpd->pmessages);
       free (mpd);
       mbox->data = NULL;
-      mailbox_unlock (mbox);
+      monitor_unlock (mbox->monitor);
     }
 }
 
@@ -545,12 +545,12 @@ pop_close (mailbox_t mbox)
     return EINVAL;
 
   /* CHECK_BUSY (mbox, mpd, func, 0); */
-  mailbox_wrlock (mbox);
+  monitor_wrlock (mbox->monitor);
   if (mpd->func && mpd->func != func)
     mpd->state = POP_NO_STATE;
   mpd->id = 0;
   mpd->func = func;
-  mailbox_unlock (mbox);
+  monitor_unlock (mbox->monitor);
 
   /*  Ok boys, it's a wrap: UPDATE State.  */
   switch (mpd->state)
@@ -625,7 +625,7 @@ pop_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
   if (pmsg == NULL || mpd == NULL)
     return EINVAL;
 
-  mailbox_rdlock (mbox);
+  monitor_rdlock (mbox->monitor);
   /* See if we have already this message.  */
   for (i = 0; i < mpd->pmessages_count; i++)
     {
@@ -634,12 +634,12 @@ pop_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
 	  if (mpd->pmessages[i]->num == msgno)
 	    {
 	      *pmsg = mpd->pmessages[i]->message;
-	      mailbox_unlock (mbox);
+	      monitor_unlock (mbox->monitor);
 	      return 0;
 	    }
 	}
     }
-  mailbox_unlock (mbox);
+  monitor_unlock (mbox->monitor);
 
   mpm = calloc (1, sizeof (*mpm));
   if (mpm == NULL)
@@ -724,7 +724,7 @@ pop_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
   message_set_uidl (msg, pop_uidl, mpm);
 
   /* Add it to the list.  */
-  mailbox_wrlock (mbox);
+  monitor_wrlock (mbox->monitor);
   {
     pop_message_t *m ;
     m = realloc (mpd->pmessages, (mpd->pmessages_count + 1)*sizeof (*m));
@@ -732,14 +732,14 @@ pop_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
       {
 	message_destroy (&msg, mpm);
 	free (mpm);
-	mailbox_unlock (mbox);
+	monitor_unlock (mbox->monitor);
 	return ENOMEM;
       }
     mpd->pmessages = m;
     mpd->pmessages[mpd->pmessages_count] = mpm;
     mpd->pmessages_count++;
   }
-  mailbox_unlock (mbox);
+  monitor_unlock (mbox->monitor);
 
   /* Save The message.  */
   *pmsg = mpm->message = msg;

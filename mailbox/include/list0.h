@@ -22,13 +22,10 @@
 #  include <dmalloc.h>
 #endif
 
-#ifdef HAVE_PTHREAD_H
-#  define __USE_UNIX98 /* ?? */
-#  include <pthread.h>
-#endif
+#include <sys/types.h>
 
 #include <mailutils/list.h>
-#include <sys/types.h>
+#include <mailutils/monitor.h>
 
 
 #ifndef __P
@@ -54,9 +51,7 @@ struct _list
 {
   struct list_data head;
   size_t count;
-#ifdef WITH_PTHREAD
-  pthread_rwlock_t rwlock;
-#endif
+  monitor_t monitor;
 };
 
 

@@ -22,7 +22,6 @@
 #include <errno.h>
 #include <stdlib.h>
 
-#include <misc.h>
 #include <list0.h>
 
 int
@@ -35,7 +34,7 @@ list_create (list_t *plist)
   list = calloc (sizeof (*list), 1);
   if (list == NULL)
     return ENOMEM;
-  status = RWLOCK_INIT (&(list->rwlock), NULL);
+  status = monitor_create (&(list->monitor), list);
   if (status != 0)
     {
       free (list);
@@ -55,15 +54,15 @@ list_destroy (list_t *plist)
       list_t list = *plist;
       struct list_data *current;
       struct list_data *previous;
-      RWLOCK_WRLOCK (&(list->rwlock));
+      monitor_wrlock (list->monitor);
       for (current = list->head.next; current != &(list->head);)
 	{
 	  previous = current;
 	  current = current->next;
 	  free (previous);
 	}
-      RWLOCK_UNLOCK (&(list->rwlock));
-      RWLOCK_DESTROY (&(list->rwlock));
+      monitor_unlock (list->monitor);
+      monitor_destroy (&(list->monitor), list);
       free (list);
       *plist = NULL;
     }
@@ -78,13 +77,13 @@ list_append (list_t list, void *item)
   if (ldata == NULL)
     return ENOMEM;
   ldata->item = item;
-  RWLOCK_WRLOCK (&(list->rwlock));
+  monitor_wrlock (list->monitor);
   ldata->next = &(list->head);
   ldata->prev = list->head.prev;
   last->next = ldata;
   list->head.prev = ldata;
   list->count++;
-  RWLOCK_UNLOCK (&(list->rwlock));
+  monitor_unlock (list->monitor);
   return 0;
 }
 
@@ -97,13 +96,13 @@ list_prepend (list_t list, void *item)
   if (ldata == NULL)
     return ENOMEM;
   ldata->item = item;
-  RWLOCK_WRLOCK (&(list->rwlock));
+  monitor_wrlock (list->monitor);
   ldata->prev = &(list->head);
   ldata->next = list->head.next;
   first->prev = ldata;
   list->head.next = ldata;
   list->count++;
-  RWLOCK_UNLOCK (&(list->rwlock));
+  monitor_unlock (list->monitor);
   return 0;
 }
 
@@ -130,7 +129,7 @@ list_remove (list_t list, void *item)
   struct list_data *current, *previous;
   if (list == NULL)
     return EINVAL;
-  RWLOCK_WRLOCK (&(list->rwlock));
+  monitor_wrlock (list->monitor);
   for (previous = &(list->head), current = list->head.next;
        current != &(list->head); previous = current, current = current->next)
     {
@@ -140,11 +139,11 @@ list_remove (list_t list, void *item)
 	  current->next->prev = previous;
 	  free (current);
 	  list->count--;
-	  RWLOCK_UNLOCK (&(list->rwlock));
+	  monitor_unlock (list->monitor);
 	  return 0;
 	}
     }
-  RWLOCK_UNLOCK (&(list->rwlock));
+  monitor_unlock (list->monitor);
   return ENOENT;
 }
 
@@ -155,17 +154,17 @@ list_get (list_t list, size_t index, void **pitem)
   size_t count;
   if (list == NULL || pitem == NULL)
     return EINVAL;
-  RWLOCK_RDLOCK (&(list->rwlock));
+  monitor_rdlock (list->monitor);
   for (current = list->head.next, count = 0; current != &(list->head);
        current = current->next, count++)
     {
       if (count == index)
         {
           *pitem = current->item;
-	  RWLOCK_UNLOCK (&(list->rwlock));
+	  monitor_unlock (list->monitor);
           return 0;
         }
     }
-  RWLOCK_UNLOCK (&(list->rwlock));
+  monitor_unlock (list->monitor);
   return ENOENT;
 }

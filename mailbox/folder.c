@@ -21,13 +21,39 @@
 
 #include <errno.h>
 #include <stdlib.h>
+#include <string.h>
+#ifdef HAVE_PTHREAD_H
+#  include <pthread.h>
+#endif
 
 #include <mailutils/registrar.h>
 #include <mailutils/iterator.h>
+#include <mailutils/list.h>
 
 #include <misc.h>
 #include <folder0.h>
 
+#ifdef WITH_PTHREAD
+static pthread_mutex_t slock = PTHREAD_MUTEX_INITIALIZER;
+#endif
+
+/* Internal folder list.  */
+static list_t known_folder_list;
+static int is_known_folder (url_t, folder_t *);
+static int is_same_scheme (url_t, url_t);
+static int is_same_user (url_t, url_t);
+static int is_same_path (url_t, url_t);
+static int is_same_host (url_t, url_t);
+static int is_same_port (url_t, url_t);
+
+/*  A folder could be a remote one, IMAP, or local, a spool directory
+    like $HOME/Mail etc ..  We maintain a known list of folder to
+    not generate multiple folder of the same URL.  Meaning when
+    folder_create () is call we'll check if we already have a
+    folder for that URL and return the same, if not we create a new one.
+    The downside, the algo to detect the same URL is very weak, and
+    they maybe cases where you want a different folder for the same
+    URL, there is not easy way to do this.  */
 int
 folder_create (folder_t *pfolder, const char *name)
 {
@@ -41,7 +67,7 @@ folder_create (folder_t *pfolder, const char *name)
   if (pfolder == NULL)
     return EINVAL;
 
-  /* Look in the registrar, for a match  */
+  /* Look in the registrar list(iterator), for a match  */
   registrar_get_list (&list);
   status = iterator_create (&iterator, list);
   if (status != 0)
@@ -67,38 +93,63 @@ folder_create (folder_t *pfolder, const char *name)
       url_t url = NULL;
       folder_t folder = NULL;
 
-      /* Allocate memory for mbox.  */
-      folder = calloc (1, sizeof (*folder));
-      if (folder == NULL)
-        return ENOMEM;
-
-      /* Initialize the internal lock, now so the concrete mailbox
-         could use it. */
-      status = RWLOCK_INIT (&(folder->rwlock), NULL);
-      if (status != 0)
-        {
-          folder_destroy (&folder);
-          return status;
-        }
-
       /* Parse the url, it may be a bad one and we should bailout if this
-         failed.  */
-      if ((status = url_create (&url, name)) != 0
+	 failed.  */
+      if ((status = url_create (&url, name) != 0)
           || (status = entry->_url_init (url)) != 0)
-        {
-          folder_destroy (&folder);
-          return status;
-        }
-      folder->url = url;
+	return status;
 
-      /* Create the concrete folder type.  */
-      status = entry->_folder_init (folder);
-      if (status != 0)
-        {
-          folder_destroy (&folder);
-        }
+#ifdef WITH_PTHREAD
+      pthread_mutex_lock (&slock);
+#endif
+      /* Check if we already have the same URL folder.  */
+      if (is_known_folder (url, &folder))
+	{
+	  folder->ref++;
+	  *pfolder = folder;
+	  url_destroy (&url);
+#ifdef WITH_PTHREAD
+	  pthread_mutex_unlock (&slock);
+#endif
+	  return  0;
+	}
+#ifdef WITH_PTHREAD
       else
-        *pfolder = folder;
+	pthread_mutex_unlock (&slock);
+#endif
+
+      /* Create a new folder.  */
+
+      /* Allocate memory for folder.  */
+      folder = calloc (1, sizeof (*folder));
+      if (folder != NULL)
+	{
+	  folder->url = url;
+	  /* Initialize the internal lock, now so the concrete
+	     folder could use it.  */
+	  status = monitor_create (&(folder->monitor), folder);
+	  if (status == 0)
+	    {
+	      /* Create the concrete folder type.  */
+	      status = entry->_folder_init (folder);
+	      if (status == 0)
+		{
+		  *pfolder = folder;
+		  folder->ref++;
+		  /* Put on the internal list of known folders.  */
+		  list_append (known_folder_list, folder);
+		}
+	    }
+	  /* Something went wrong, destroy the object. */
+	  if (status != 0)
+	    {
+	      if (folder->monitor)
+		monitor_destroy (&(folder->monitor), folder);
+	      if (folder->url)
+		url_destroy (&(folder->url));
+	      free (folder);
+	    }
+	}
     }
   else
     status = ENOENT;
@@ -113,13 +164,26 @@ folder_destroy (folder_t *pfolder)
     {
       folder_t folder = *pfolder;
       int destroy_lock = 0;
+      monitor_t monitor = folder->monitor;
+      size_t reference;
+
+      monitor_wrlock (monitor);
 #ifdef WITH_PTHREAD
-      pthread_rwlock_t rwlock = folder->rwlock;
+      pthread_mutex_lock (&slock);
 #endif
-      RWLOCK_WRLOCK (&(rwlock));
-      if (folder_decremente (folder) == 0)
+      {
+	folder->ref--;
+	reference = folder->ref;
+	/* Remove the folder from the list of known folder.  */
+	if (reference == 0)
+	  list_remove (known_folder_list, folder);
+      }
+#ifdef WITH_PHTREAD
+      pthread_mutex_unlock (&slock);
+#endif
+      if (reference == 0)
 	{
-	  RWLOCK_UNLOCK (&(rwlock));
+	  monitor_unlock (monitor);
 	  destroy_lock = 1;
 	  /* Notify the observers.  */
 	  if (folder->observable)
@@ -129,7 +193,7 @@ folder_destroy (folder_t *pfolder)
 	    }
 	  if (folder->_destroy)
 	    folder->_destroy (folder);
-	  RWLOCK_WRLOCK (&(rwlock));
+	  monitor_wrlock (monitor);
 	  if (folder->ticket)
 	    ticket_destroy (&(folder->ticket), folder);
 	  if (folder->authority)
@@ -140,9 +204,9 @@ folder_destroy (folder_t *pfolder)
 	    url_destroy (&(folder->url));
 	  free (folder);
 	}
-      RWLOCK_UNLOCK (&(rwlock));
+      monitor_unlock (monitor);
       if (destroy_lock)
-	RWLOCK_DESTROY (&(rwlock));
+	monitor_destroy (&monitor, folder);
       *pfolder = NULL;
     }
 }
@@ -281,10 +345,144 @@ folder_delete_mailbox (folder_t folder, const char *name)
   return folder->_delete_mailbox (folder, name);
 }
 
-int
-folder_decremente (folder_t folder)
+static int is_known_folder (url_t url, folder_t *pfolder)
 {
-  if (folder && folder->_decremente)
-    return folder->_decremente (folder);
-  return (folder->ref--);
+  int ret = 0;
+  folder_t folder = NULL;
+  iterator_t iterator;
+
+  if (url == NULL || pfolder == NULL)
+    return ret;
+
+  if (iterator_create (&iterator, known_folder_list) != 0)
+    return ret;
+
+  for (iterator_first (iterator); !iterator_is_done (iterator);
+       iterator_next (iterator))
+    {
+      iterator_current (iterator, (void **)&folder);
+      /* Check if the same URL type.  */
+      if (folder && folder->url
+	  && is_same_scheme (url, folder->url)
+	  && is_same_user (url, folder->url)
+	  && is_same_path (url, folder->url)
+	  && is_same_host (url, folder->url)
+	  && is_same_port (url, folder->url))
+	{
+	  ret = 1;
+	  break;
+	}
+    }
+  iterator_destroy (&iterator);
+  return ret;
+}
+
+static int
+is_same_scheme (url_t url1, url_t url2)
+{
+  int i = 0, j = 0;
+  char *s1, *s2;
+  int ret = 1;
+
+  url_get_scheme (url1, NULL, 0, &i);
+  url_get_scheme (url2, NULL, 0, &j);
+  s1 = calloc (i + 1, sizeof (char));
+  if (s1)
+    {
+      url_get_scheme (url1, s1, i + 1, NULL);
+      s2 = calloc (j + 1, sizeof (char));
+      if (s2)
+	{
+	  url_get_scheme (url2, s2, j + 1, NULL);
+	  ret = !strcasecmp (s1, s2);
+	  free (s2);
+	}
+      free (s1);
+    }
+  return ret;
+}
+
+static int
+is_same_user (url_t url1, url_t url2)
+{
+  int i = 0, j = 0;
+  char *s1, *s2;
+  int ret = 0;
+
+  url_get_user (url1, NULL, 0, &i);
+  url_get_user (url2, NULL, 0, &j);
+  s1 = calloc (i + 1, sizeof (char));
+  if (s1)
+    {
+      url_get_user (url1, s1, i + 1, NULL);
+      s2 = calloc (j + 1, sizeof (char));
+      if (s2)
+	{
+	  url_get_user (url2, s2, j + 1, NULL);
+	  ret = !strcasecmp (s1, s2);
+	  free (s2);
+	}
+      free (s1);
+    }
+  return ret;
+}
+
+static int
+is_same_path (url_t url1, url_t url2)
+{
+  int i = 0, j = 0;
+  char *s1, *s2;
+  int ret = 0;
+
+  url_get_path (url1, NULL, 0, &i);
+  url_get_path (url2, NULL, 0, &j);
+  s1 = calloc (i + 1, sizeof (char));
+  if (s1)
+    {
+      url_get_path (url1, s1, i + 1, NULL);
+      s2 = calloc (j + 1, sizeof (char));
+      if (s2)
+	{
+	  url_get_path (url2, s2, j + 1, NULL);
+	  ret = !strcasecmp (s1, s2);
+	  free (s2);
+	}
+      free (s1);
+    }
+  return ret;
+}
+
+static int
+is_same_host (url_t url1, url_t url2)
+{
+  int i = 0, j = 0;
+  char *s1, *s2;
+  int ret = 0;
+
+  url_get_host (url1, NULL, 0, &i);
+  url_get_host (url2, NULL, 0, &j);
+  s1 = calloc (i + 1, sizeof (char));
+  if (s1)
+    {
+      url_get_host (url1, s1, i + 1, NULL);
+      s2 = calloc (j + 1, sizeof (char));
+      if (s2)
+	{
+	  url_get_host (url2, s2, j + 1, NULL);
+	  ret = !strcasecmp (s1, s2);
+	  free (s2);
+	}
+      free (s1);
+    }
+  return ret;
+}
+
+static int
+is_same_port (url_t url1, url_t url2)
+{
+  long p1 = 0, p2 = 0;
+
+  url_get_port (url1, &p1);
+  url_get_port (url2, &p2);
+  return (p1 == p2);
 }

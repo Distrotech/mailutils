@@ -30,6 +30,7 @@
 #include <sys/types.h>
 #include <stdio.h>
 
+#include <mailutils/monitor.h>
 #include <mailutils/mailbox.h>
 #include <mailutils/folder.h>
 
@@ -57,10 +58,7 @@ struct _mailbox
   url_t url;
   folder_t folder;
   int flags;
-
-#ifdef WITH_PTHREAD
-  pthread_rwlock_t rwlock;
-#endif
+  monitor_t monitor;
 
   /* Back pointer to the specific mailbox */
   void *data;
@@ -85,11 +83,6 @@ struct _mailbox
   int  (*_size)            __P ((mailbox_t, off_t *size));
 
 };
-
-/* To manipulate mailbox rwlock.  */
-extern int mailbox_rdlock         __P ((mailbox_t));
-extern int mailbox_wrlock         __P ((mailbox_t));
-extern int mailbox_unlock         __P ((mailbox_t));
 
 #define MAILBOX_NOTIFY(mbox, type) \
 if (mbox->observer) observer_notify (mbox->observer, type)

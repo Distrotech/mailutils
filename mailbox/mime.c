@@ -21,6 +21,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <unistd.h>
+#include <time.h>
 
 #include <mailutils/message.h>
 #include <mailutils/stream.h>
@@ -371,7 +373,7 @@ static int _mime_set_content_type(mime_t mime)
 	char boundary[128];
 	header_t	hdr = NULL;
 	size_t		size;
-	
+
 	if ( mime->nmtp_parts > 1 ) {
 		if ( mime->flags & MIME_ADDED_MULTIPART_CT )
 			return 0;
@@ -453,7 +455,7 @@ static int _mime_body_read(stream_t stream, char *buf, size_t buflen, off_t off,
 					}
 					while(mime->postamble) {
 						mime->postamble--;
-						ADD_CHAR(buf, '-', mime->cur_offset, buflen, *nbytes);						
+						ADD_CHAR(buf, '-', mime->cur_offset, buflen, *nbytes);
 					}
 					mime->flags &= ~(MIME_INSERT_BOUNDARY|MIME_ADDING_BOUNDARY);
 					mime->part_offset = 0;
@@ -463,9 +465,9 @@ static int _mime_body_read(stream_t stream, char *buf, size_t buflen, off_t off,
 				   return 0;
 				message_get_stream(mime->mtp_parts[mime->cur_part]->msg, &msg_stream);
 			} else {
-				body_t body;
-				message_get_body(mime->mtp_parts[mime->cur_part]->msg, &body);
-				body_get_stream(body, &msg_stream);
+				body_t b;
+				message_get_body(mime->mtp_parts[mime->cur_part]->msg, &b);
+				body_get_stream(b, &msg_stream);
 			}
 			ret = stream_read(msg_stream, buf, buflen, mime->part_offset, &part_nbytes );
     		len += part_nbytes;
@@ -673,7 +675,7 @@ int mime_get_num_parts(mime_t mime, int *nmtp_parts)
 int mime_add_part(mime_t mime, message_t msg)
 {
 	int ret;
-	
+
 	if ( mime == NULL || msg == NULL || ( mime->flags & MIME_NEW_MESSAGE ) == 0 )
 		return EINVAL;
 	if ( ( ret = _mime_append_part(mime, msg, 0, 0, 0) ) == 0 )

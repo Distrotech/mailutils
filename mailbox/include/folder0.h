@@ -22,14 +22,10 @@
 #  include <dmalloc.h>
 #endif
 
-#ifdef HAVE_PTHREAD_H
-#  define __USE_UNIX98 /* ?? */
-#  include <pthread.h>
-#endif
-
 #include <sys/types.h>
 #include <stdio.h>
 
+#include <mailutils/monitor.h>
 #include <mailutils/folder.h>
 
 #ifdef __cplusplus
@@ -52,14 +48,11 @@ struct _folder
   observable_t observable;
   debug_t debug;
   stream_t stream;
+  monitor_t monitor;
   url_t url;
   int flags;
   size_t ref;
   size_t uid;
-
-#ifdef WITH_PTHREAD
-  pthread_rwlock_t rwlock;
-#endif
 
   /* Back pointer to the specific mailbox */
   void *data;
@@ -73,13 +66,8 @@ struct _folder
   int  (*_close)           __P ((folder_t));
   int  (*_list)            __P ((folder_t, list_t *));
   int  (*_delete_mailbox)  __P ((folder_t, const char *));
-  int  (*_decremente)      __P ((folder_t));
 };
 
-/* To manipulate mailbox rwlock.  */
-extern int folder_rdlock         __P ((folder_t));
-extern int folder_wrlock         __P ((folder_t));
-extern int folder_unlock         __P ((folder_t));
 
 #ifdef __cplusplus
 }

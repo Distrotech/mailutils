@@ -22,10 +22,8 @@
 #include <stdlib.h>
 #include <errno.h>
 
-#include <mailutils/locker.h>
 #include <mailutils/iterator.h>
 #include <mailutils/registrar.h>
-#include <misc.h>
 #include <mailbox0.h>
 
 /* The Mailbox Factory.
@@ -77,9 +75,9 @@ mailbox_create (mailbox_t *pmbox, const char *name)
       if (mbox == NULL)
 	return ENOMEM;
 
-      /* Initialize the internal lock, now so the concrete mailbox
+      /* Initialize the internal lock now, so the concrete mailbox
 	 could use it. */
-      status = RWLOCK_INIT (&(mbox->rwlock), NULL);
+      status = monitor_create (&(mbox->monitor), mbox);
       if (status != 0)
 	{
 	  mailbox_destroy (&mbox);
@@ -117,9 +115,7 @@ mailbox_destroy (mailbox_t *pmbox)
   if (pmbox && *pmbox)
     {
       mailbox_t mbox = *pmbox;
-#ifdef WITH_PTHREAD
-      pthread_rwlock_t rwlock = mbox->rwlock;
-#endif
+      monitor_t monitor = mbox->monitor;
 
       /* Notify the observers.  */
       if (mbox->observable)
@@ -132,7 +128,7 @@ mailbox_destroy (mailbox_t *pmbox)
       if (mbox->_destroy)
 	mbox->_destroy (mbox);
 
-      RWLOCK_WRLOCK (&(rwlock));
+      monitor_wrlock (monitor);
 
       /* Nuke the stream and close it */
       if (mbox->stream)
@@ -161,8 +157,8 @@ mailbox_destroy (mailbox_t *pmbox)
 
       free (mbox);
       *pmbox = NULL;
-      RWLOCK_UNLOCK (&(rwlock));
-      RWLOCK_DESTROY (&(rwlock));
+      monitor_unlock (monitor);
+      monitor_destroy (&monitor, mbox);
     }
 }
 
@@ -317,7 +313,7 @@ mailbox_set_stream (mailbox_t mbox, stream_t stream)
 int
 mailbox_get_stream (mailbox_t mbox, stream_t *pstream)
 {
-  if (mbox == NULL || pstream == NULL)
+  if (mbox == NULL || pstream)
     return EINVAL;
   *pstream = mbox->stream;
   return 0;
@@ -363,43 +359,4 @@ mailbox_get_debug (mailbox_t mbox, debug_t *pdebug)
     }
   *pdebug = mbox->debug;
   return 0;
-}
-
-/* Mailbox Internal Locks. Put the name of the functions in parenteses To make
-   sure it will not be redefine by a macro.  If the flags was non-blocking we
-   should not block on the lock, so we try with pthread_rwlock_try*lock().  */
-int
-(mailbox_rdlock) (mailbox_t mbox)
-{
-#ifdef WITH_PTHREAD
-  int err = (mbox->flags & MU_STREAM_NONBLOCK) ?
-    RWLOCK_TRYRDLOCK (&(mbox->rwlock)) :
-    RWLOCK_RDLOCK (&(mbox->rwlock)) ;
-  if (err != 0 && err != EDEADLK)
-    return err;
-#endif
-  return 0;
-}
-
-int
-(mailbox_wrlock) (mailbox_t mbox)
-{
-#ifdef WITH_PTHREAD
-  int err = (mbox->flags & MU_STREAM_NONBLOCK) ?
-    RWLOCK_TRYWRLOCK (&(mbox->rwlock)) :
-    RWLOCK_WRLOCK (&(mbox->rwlock)) ;
-  if (err != 0 && err != EDEADLK)
-    return err;
-#endif
-  return 0;
-}
-
-int
-(mailbox_unlock) (mailbox_t mbox)
-{
-#ifdef WITH_PTHREAD
-  return RWLOCK_UNLOCK (&(mbox->rwlock));
-#else
-  return 0;
-#endif
 }
