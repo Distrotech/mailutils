@@ -29,11 +29,10 @@ mail_followup (int argc, char **argv)
   header_t hdr;
   char *str;
   msgset_t *msglist, *mp;
-  struct send_environ env;
+  compose_env_t env;
   int status;
 
-  env.to = env.cc = env.bcc = env.subj = NULL;
-  env.outfiles = NULL; env.nfiles = 0;
+  compose_init (&env);
   if (msgset_parse (argc, argv, &msglist))
       return 1;
 
@@ -48,28 +47,35 @@ mail_followup (int argc, char **argv)
   message_get_header(msg, &hdr);
   if (header_aget_value(hdr, MU_HEADER_SUBJECT, &str) == 0)
     {
-      util_strcat(&env.subj, "Re: ");
-      util_strcat(&env.subj, str);
-      free(str);
+      char *p = NULL;
+      
+      if (strncasecmp (str, "Re:", 3))
+	util_strcat (&p, "Re: ");
+      util_strcat (&p, str);
+      free (str);
+      compose_header_set (&env, MU_HEADER_SUBJECT, p, COMPOSE_REPLACE);
+      free (p);
     }
 
   /* Generate "to" list */
-  env.to = util_get_sender(cursor, 0);
+  compose_header_set (&env, MU_HEADER_TO, util_get_sender (cursor, 0),
+		      COMPOSE_SINGLE_LINE);
 
   /* Add authors of the subsequent messages to the to list
      (or should it be cc?)*/
   for (mp = msglist; mp; mp = mp->next)
-    {
-      util_strcat(&env.to, ",");
-      util_strcat(&env.to, util_get_sender(mp->msg_part[0], 0));
-    }
+    compose_header_set (&env, MU_HEADER_TO,
+			util_get_sender(mp->msg_part[0], 0), 
+			COMPOSE_SINGLE_LINE);
 
   msgset_free(msglist);
 
-  fprintf(ofile, "To: %s\n", env.to);
-  fprintf(ofile, "Subject: %s\n\n", env.subj);
-
+  fprintf (ofile, "To: %s\n",
+	   compose_header_get (&env, MU_HEADER_TO, ""));
+  fprintf (ofile, "Subject: %s\n\n",
+	   compose_header_get (&env, MU_HEADER_SUBJECT, ""));
+  
   status = mail_send0(&env, isupper(argv[0][0]));
-  free_env_headers (&env);
+  compose_destroy (&env);
   return status;
 }

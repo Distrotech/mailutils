@@ -41,14 +41,14 @@ static void msg_to_pipe __P ((const char *cmd, message_t msg));
 int
 mail_send (int argc, char **argv)
 {
-  struct send_environ env;
+  compose_env_t env;
   int status;
 
-  env.to = env.cc = env.bcc = env.subj = NULL;
-  env.outfiles = NULL; env.nfiles = 0;
+  compose_init (&env);
 
   if (argc < 2)
-    env.to = ml_readline ((char *)"To: ");
+    compose_header_set (&env, MU_HEADER_TO, ml_readline ((char *)"To: "),
+			COMPOSE_REPLACE);
   else
     {
       while (--argc)
@@ -66,44 +66,98 @@ mail_send (int argc, char **argv)
 	    }
 	  else
 	    {
-	      if (env.to)
-		util_strcat(&env.to, ",");
-	      util_strcat(&env.to, p);
+	      compose_header_set (&env, MU_HEADER_TO, p,
+				  COMPOSE_SINGLE_LINE);
 	      free (p);
 	    }
 	}
     }
 
   if (util_getenv (NULL, "askcc", Mail_env_boolean, 0) == 0)
-    env.cc = ml_readline ((char *)"Cc: ");
+    compose_header_set (&env, MU_HEADER_CC,
+			ml_readline ((char *)"Cc: "),
+			COMPOSE_REPLACE);
   if (util_getenv (NULL, "askbcc", Mail_env_boolean, 0) == 0)
-    env.bcc = ml_readline ((char *)"Bcc: ");
+    compose_header_set (&env, MU_HEADER_BCC,
+			ml_readline ((char *)"Bcc: "),
+			COMPOSE_REPLACE);
 
   if (util_getenv (NULL, "asksub", Mail_env_boolean, 0) == 0)
-    env.subj = ml_readline ((char *)"Subject: ");
+    compose_header_set (&env, MU_HEADER_SUBJECT,
+			ml_readline ((char *)"Subject: "),
+			COMPOSE_REPLACE);
   else
     {
-      env.subj = NULL;
-      util_getenv (&env.subj, "subject", Mail_env_string, 0);
+      char *p;
+      if (util_getenv (&p, "subject", Mail_env_string, 0) == 0)
+	compose_header_set (&env, MU_HEADER_SUBJECT,
+			    p,
+			    COMPOSE_REPLACE);
     }
 
   status = mail_send0 (&env, isupper(argv[0][0]));
-  free_env_headers (&env);
+  compose_destroy (&env);
   return status;
 }
 
+void
+compose_init (compose_env_t *env)
+{
+  memset (env, 0, sizeof (*env));
+}
+
+int
+compose_header_set (compose_env_t *env, char *name, char *value,
+		    int mode)
+{
+  int status;
+  char *old_value;
+  
+  if (!env->header
+      && (status = header_create (&env->header, NULL, 0, NULL)) != 0)
+    {
+      util_error ("can't create header: %s", mu_errstring (status));
+      return status;
+    }
+
+  switch (mode)
+    {
+    case COMPOSE_REPLACE:     
+    case COMPOSE_APPEND:
+      status = header_set_value (env->header, name, value, mode);
+      break;
+      
+    case COMPOSE_SINGLE_LINE:
+      if (header_aget_value (env->header, name, &old_value) == 0
+	  && old_value[0])
+	{
+	  char *new_value = NULL;
+
+	  asprintf (&new_value, "%s,%s", old_value, value);
+	  status = header_set_value (env->header, name, new_value, 1);
+	  free (new_value);
+	}
+      else
+	status = header_set_value (env->header, name, value, 1);
+    }
+
+  return status;
+}
+
+char *
+compose_header_get (compose_env_t *env, char *name, char *defval)
+{
+  char *p;
+  
+  if (header_aget_value (env->header, name, &p))
+    p = defval;
+  return p;
+}      
 
 void
-free_env_headers (struct send_environ *env)
+compose_destroy (compose_env_t *env)
 {
-  if (env->to)
-    free (env->to);
-  if (env->cc)
-    free (env->cc);
-  if (env->bcc)
-    free (env->bcc);
-  if (env->subj)
-    free (env->subj);
+  header_destroy (&env->header, NULL);
   if (env->outfiles)
     {
       int i;
@@ -130,7 +184,7 @@ free_env_headers (struct send_environ *env)
 */
 
 int
-mail_send0 (struct send_environ *env, int save_to)
+mail_send0 (compose_env_t *env, int save_to)
 {
   int done = 0;
   int fd;
@@ -222,9 +276,7 @@ mail_send0 (struct send_environ *env, int save_to)
 		  entry = util_find_entry (mail_escape_table, argv[0]);
 
 		  if (entry.escfunc)
-		    {
-		      status = (*entry.escfunc)(argc, argv, env);
-		    }
+		    status = (*entry.escfunc)(argc, argv, env);
 		  else
 		    util_error ("Unknown escape %s", argv[0]);
 		}
@@ -243,7 +295,7 @@ mail_send0 (struct send_environ *env, int save_to)
       free (buf);
     }
 
-  /* If interrupted dumpt the file to dead.letter.  */
+  /* If interrupted dump the file to dead.letter.  */
   if (int_cnt)
     {
       if (util_getenv (NULL, "save", Mail_env_boolean, 0) == 0)
@@ -276,29 +328,19 @@ mail_send0 (struct send_environ *env, int save_to)
       return 1;
     }
 
-  fclose (env->file); /*FIXME: freopen would be better*/
+  fclose (env->file); /* FIXME: freopen would be better */
 
   file = fopen (filename, "r");
   if (file != NULL)
     {
       mailer_t mailer;
       message_t msg = NULL;
+
       message_create (&msg, NULL);
 
-      /* Fill the header.  */
-      {
-	header_t header = NULL;
-	message_get_header (msg, &header);
-	if (env->to && *env->to != '\0')
-	  header_set_value (header, MU_HEADER_TO, strdup (env->to), 0);
-	if (env->cc && *env->cc != '\0')
-	  header_set_value (header, MU_HEADER_CC, strdup (env->cc), 0);
-	if (env->bcc && *env->bcc != '\0')
-	  header_set_value (header, MU_HEADER_BCC , strdup (env->bcc), 0);
-	if (env->subj && *env->subj != '\0')
-	  header_set_value (header, MU_HEADER_SUBJECT, strdup (env->subj), 1);
-	header_set_value (header, "X-Mailer", strdup(argp_program_version), 1);
-      }
+      /* Fill the header */
+      header_set_value (env->header, "X-Mailer", argp_program_version, 1);
+      message_set_header (msg, env->header, NULL);
 
       /* Fill the body.  */
       {
@@ -327,7 +369,7 @@ mail_send0 (struct send_environ *env, int save_to)
       /* Save outgoing message */
       if (save_to)
 	{
-	  savefile = strdup (env->to);
+	  savefile = compose_header_get (env, MU_HEADER_TO, NULL);
 	  if (savefile)
 	    {
 	      char *p = strchr (savefile, '@');
@@ -372,9 +414,9 @@ mail_send0 (struct send_environ *env, int save_to)
 	}
 
       /* Do we need to Send the message on the wire?  */
-      if ((env->to && *env->to != '\0')
-	  || (env->cc && *env->cc != '\0')
-	  || (env->bcc && *env->bcc != '\0'))
+      if (compose_header_get (env, "to", NULL)
+	  || compose_header_get (env, "cc", NULL)
+	  || compose_header_get (env, "bcc", NULL))
 	{
 	  char *sendmail;
 	  if (util_getenv (&sendmail, "sendmail", Mail_env_string, 0) == 0)
