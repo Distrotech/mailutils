@@ -109,6 +109,72 @@ ml_readline_init ()
 #endif
 }
 
+char *
+ml_readline_internal ()
+{
+  char *line;
+  char *p;
+  size_t alloclen, linelen;
+
+  p = line = xcalloc (1, 255);
+  alloclen = 255;
+  linelen = 0;
+  for (;;)
+    {
+      size_t n;
+
+      p = fgets (p, alloclen - linelen, stdin);
+
+      if (p)
+	n = strlen(p);
+      else if (_interrupted)
+	{
+	  free (line);
+	  return NULL;
+	}
+      else
+	n = 0;
+
+      linelen += n;
+
+      /* Error.  */
+      if (linelen == 0)
+	{
+	  free (line);
+	  return NULL;
+	}
+
+      /* Ok.  */
+      if (line[linelen - 1] == '\n')
+	{
+	  line[linelen - 1] = '\0';
+	  return line;
+	}
+      else
+        {
+	  char *tmp;
+	  alloclen *= 2;
+	  tmp = realloc (line, alloclen);
+	  if (tmp == NULL)
+	    {
+	      free (line);
+	      return NULL;
+	    }
+	  line = tmp;
+	  p = line + linelen;
+	}
+    }
+}
+
+char *
+ml_readline (const char *prompt)
+{
+  if (interactive)
+    return readline (prompt);
+  return ml_readline_internal ();
+}
+
+
 #ifdef WITH_READLINE
 
 static char *insert_text;
@@ -462,64 +528,13 @@ ml_reread (const char *prompt, char **text)
 char *
 readline (const char *prompt)
 {
-  char *line;
-  char *p;
-  size_t alloclen, linelen;
-
   if (prompt)
     {
       fprintf (ofile, "%s", prompt);
       fflush (ofile);
     }
 
-  p = line = xcalloc (1, 255);
-  alloclen = 255;
-  linelen = 0;
-  for (;;)
-    {
-      size_t n;
-
-      p = fgets (p, alloclen - linelen, stdin);
-
-      if (p)
-	n = strlen(p);
-      else if (_interrupted)
-	{
-	  free (line);
-	  return NULL;
-	}
-      else
-	n = 0;
-
-      linelen += n;
-
-      /* Error.  */
-      if (linelen == 0)
-	{
-	  free (line);
-	  return NULL;
-	}
-
-      /* Ok.  */
-      if (line[linelen - 1] == '\n')
-	{
-	  line[linelen - 1] = '\0';
-	  return line;
-	}
-      else
-        {
-	  char *tmp;
-	  alloclen *= 2;
-	  tmp = realloc (line, alloclen);
-	  if (tmp == NULL)
-	    {
-	      free (line);
-	      return NULL;
-	    }
-	  line = tmp;
-	  p = line + linelen;
-	}
-    }
+  return ml_readline_internal ();
 }
 #endif
 
