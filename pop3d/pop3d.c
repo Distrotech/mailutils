@@ -388,12 +388,7 @@ pop3d_mainloop (int fd, FILE *infile, FILE *outfile)
       free (arg);
     }
 
-#ifdef WITH_TLS
-  if (tls_done)
-    pop3d_deinit_tls_server ();
-  if (tls_available)
-    mu_deinit_tls_libs ();
-#endif /* WITH_TLS */
+  pop3d_bye ();
 
   return (status != OK);
 }
