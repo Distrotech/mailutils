@@ -140,7 +140,12 @@ comp_int (const void *a, const void *b)
   return *(int *) a - *(int *) b;
 }
 
-/* Return in set an allocated array contain (n) numbers, for imap messsage set
+/* Parse the message set specification from S. Store message numbers
+   in SET, store number of element in the SET into the memory pointed to
+   by N.
+
+   A message set is defined as:
+
    set ::= sequence_num / (sequence_num ":" sequence_num) / (set "," set)
    sequence_num    ::= nz_number / "*"
    ;; * is the largest number in use.  For message
@@ -150,8 +155,8 @@ comp_int (const void *a, const void *b)
    ;; the mailbox.
    nz_number       ::= digit_nz *digit
 
-   FIXME: The algo below is to relaxe, things like <,,,> or <:12> or <20:10>
-   will not generate an error.  */
+   FIXME: The message sets like <,,,> or <:12> or <20:10> are not considered
+   an error */
 int
 util_msgset (char *s, size_t ** set, int *n, int isuid)
 {
@@ -567,8 +572,6 @@ util_do_command (char *prompt)
       return util_finish (&nullcommand, RESP_BAD, "Missing arguments");
     }
 
-  util_start (tag);
-
   command = util_getcommand (cmd, imap4d_command_table);
   if (command == NULL)
     {
@@ -596,21 +599,6 @@ util_upper (char *s)
   for (; *s; s++)
     *s = toupper ((unsigned) *s);
   return 0;
-}
-
-/* FIXME:  What is this for?  */
-int
-util_start (char *tag)
-{
-  (void) tag;
-  return 0;
-}
-
-/* FIXME:  What is this for?  */
-int
-util_getstate (void)
-{
-  return STATE_NONAUTH;
 }
 
 struct imap4d_command *
