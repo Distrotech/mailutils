@@ -1,3 +1,47 @@
+2003-03-29  Sergey Poznyakoff  
+
+	Minor changes to avoid duplicating some symbols (namely
+	argp_program_version and argp_program_bug_address). This
+	allows the package to build on MacOS.
+	
+	* include/mailutils/argp.h (mu_argp_init): New function.
+	* mailbox/mu_argp.c: Likewise.
+	
+	* comsat/comsat.c (main): Use mu_argp_init.
+	* frm/frm.c: Likewise.
+	* from/from.c: Likewise.
+	* guimb/main.c: Likewise.
+	* imap4d/imap4d.c: Likewise.
+	* mail/mail.c: Likewise.
+	* mail.local/main.c: Likewise.
+	* mail.remote/mail.remote.c: Likewise.
+	* mailbox/mailutils-config.c: Likewise.
+	* messages/messages.c: Likewise.
+	* mh/anno.c: Likewise.
+	* mh/comp.c: Likewise.
+	* mh/fmtcheck.c: Likewise.
+	* mh/folder.c: Likewise.
+	* mh/forw.c: Likewise.
+	* mh/inc.c: Likewise.
+	* mh/install-mh.c: Likewise.
+	* mh/mark.c: Likewise.
+	* mh/mhl.c: Likewise.
+	* mh/mhn.c: Likewise.
+	* pop3d/pop3d.c: Likewise.
+	* pop3d/popauth.c: Likewise.
+	* readmsg/readmsg.c: Likewise.
+	* sieve/sieve.c: Likewise.
+	* dotlock/dotlock.c: Likewise.
+	
+	* mail.local/mail.local.h: include <sys/types.h> (necessary for
+	  Darwin).
+	* mail/mail.h (struct message_set): Changed type fo msg_part to
+	  size_t.
+	* libsieve/comparator.c (i_ascii_casemap_contains): Fixed
+	  obsolete label usage.
+	  
+	* THANKS: Added Timothy Carpenter
+
 2003-03-27  Sergey Poznyakoff 
 
 	* mailbox/filter_trans.c (_hexdigits): Must be zero-terminated,
