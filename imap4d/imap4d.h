@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2001, 2002, 2003 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001, 2002, 2003, 2004 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -73,24 +73,25 @@
 #include <mailutils/argp.h>
 #include <mailutils/attribute.h>
 #include <mailutils/body.h>
+#include <mailutils/daemon.h>
 #include <mailutils/envelope.h>
 #include <mailutils/errno.h>
 #include <mailutils/error.h>
 #include <mailutils/filter.h>
 #include <mailutils/folder.h>
 #include <mailutils/header.h>
+#include <mailutils/iterator.h>
 #include <mailutils/list.h>
 #include <mailutils/mailbox.h>
 #include <mailutils/message.h>
 #include <mailutils/mutil.h>
+#include <mailutils/mu_auth.h>
+#include <mailutils/nls.h>
 #include <mailutils/parse822.h>
 #include <mailutils/registrar.h>
 #include <mailutils/stream.h>
-#include <mailutils/mu_auth.h>
-#include <mailutils/iterator.h>
-#include <mailutils/url.h>
 #include <mailutils/tls.h>
-#include <mailutils/nls.h>
+#include <mailutils/url.h>
 
 #ifdef __cplusplus
 extern "C" {

@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -136,6 +136,7 @@ extern int expire;
 #include <mailutils/argp.h>
 #include <mailutils/attribute.h>
 #include <mailutils/body.h>
+#include <mailutils/daemon.h>
 #include <mailutils/errno.h>
 #include <mailutils/error.h>
 #include <mailutils/header.h>
@@ -144,11 +145,11 @@ extern int expire;
 #include <mailutils/mailbox.h>
 #include <mailutils/message.h>
 #include <mailutils/mutil.h>
-#include <mailutils/registrar.h>
-#include <mailutils/url.h>
 #include <mailutils/mu_auth.h>
-#include <mailutils/tls.h>
 #include <mailutils/nls.h>
+#include <mailutils/registrar.h>
+#include <mailutils/tls.h>
+#include <mailutils/url.h>
 
 /* For Berkley DB2 APOP password file */
 #ifdef HAVE_DB_H
