@@ -434,7 +434,8 @@ notify_user (const char *user, const char *device, const char *path, off_t offse
   message_t msg;
   stream_t stream = NULL;
   int status;
-  size_t size, count, n;
+  off_t size;
+  size_t count, n;
 
   change_user (user);
   if ((fp = fopen (device, "w")) == NULL)
@@ -467,7 +468,7 @@ notify_user (const char *user, const char *device, const char *path, off_t offse
       return;
     }
 
-  if ((status = stream_size (stream, (off_t *) &size)))
+  if ((status = stream_size (stream, size)))
     {
       syslog (LOG_ERR, _("can't get stream size (mailbox %s): %s"),
 	      path, mu_strerror (status));
