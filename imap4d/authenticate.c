@@ -54,20 +54,20 @@ imap4d_authenticate (struct imap4d_command *command, char *arg)
 
   if (username)
     {
-        struct passwd *pw = mu_getpwnam (username);
-	if (pw == NULL)
-	  return util_finish (command, RESP_NO,
-			      "User name or passwd rejected");
+      struct passwd *pw = mu_getpwnam (username);
+      if (pw == NULL)
+	return util_finish (command, RESP_NO,
+			    "User name or passwd rejected");
 
-	if (pw->pw_uid > 0 && !mu_virtual_domain)
-	  setuid (pw->pw_uid);
+      if (pw->pw_uid > 0 && !mu_virtual_domain)
+	setuid (pw->pw_uid);
 
-	homedir = mu_normalize_path (strdup (pw->pw_dir), "/");
-	/* FIXME: Check for errors.  */
-	chdir (homedir);
-	namespace_init(pw->pw_dir);
-	syslog (LOG_INFO, "User '%s' logged in", username);
-	return 0;
+      homedir = mu_normalize_path (strdup (pw->pw_dir), "/");
+      /* FIXME: Check for errors.  */
+      chdir (homedir);
+      namespace_init(pw->pw_dir);
+      syslog (LOG_INFO, "User '%s' logged in", username);
+      return 0;
     }
       
   return util_finish (command, RESP_NO,
