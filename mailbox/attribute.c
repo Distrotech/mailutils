@@ -1,0 +1,237 @@
+/* GNU mailutils - a suite of utilities for electronic mail
+   Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Library Public License as published by
+   the Free Software Foundation; either version 2, or (at your option)
+   any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU Library General Public License for more details.
+
+   You should have received a copy of the GNU Library General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
+
+#include <attribute0.h>
+
+#include <sys/types.h>
+#include <stdlib.h>
+#include <errno.h>
+
+int
+attribute_init (attribute_t *pattr)
+{
+  attribute_t attr;
+  if (pattr == NULL)
+    return EINVAL;
+  attr = calloc (1, sizeof(*attr));
+  if (attr == NULL)
+    return ENOMEM;
+  *pattr = attr;
+  return 0;
+}
+
+void
+attribute_destroy (attribute_t *pattr)
+{
+  if (pattr && *pattr)
+    {
+      attribute_t attr = *pattr;
+      /* no owner we can free */
+      if (! attr->message)
+	free (*pattr);
+    }
+  return;
+}
+
+int
+attribute_set_seen (attribute_t attr)
+{
+  if (attr == NULL)
+    return EINVAL;
+  attr->flag |= MU_ATTRIBUTE_SEEN;
+  return 0;
+}
+
+int
+attribute_set_answered (attribute_t attr)
+{
+  if (attr == NULL)
+    return EINVAL;
+  attr->flag|= MU_ATTRIBUTE_ANSWERED;
+  attr->flag |= MU_ATTRIBUTE_SEEN;
+  return 0;
+}
+
+int
+attribute_set_flagged (attribute_t attr)
+{
+  if (attr == NULL)
+    return EINVAL;
+  attr->flag |= MU_ATTRIBUTE_FLAGGED;
+  attr->flag |= MU_ATTRIBUTE_SEEN;
+  return 0;
+}
+
+int
+attribute_set_read (attribute_t attr)
+{
+  if (attr == NULL)
+    return EINVAL;
+  attr->flag |= MU_ATTRIBUTE_READ;
+  attr->flag |= MU_ATTRIBUTE_SEEN;
+  return 0;
+}
+
+int
+attribute_set_deleted (attribute_t attr)
+{
+  if (attr == NULL)
+    return EINVAL;
+  attr->flag |= MU_ATTRIBUTE_DELETED;
+  return 0;
+}
+
+int
+attribute_set_draft (attribute_t attr)
+{
+  if (attr == NULL)
+    return EINVAL;
+  attr->flag |= MU_ATTRIBUTE_DRAFT;
+  return 0;
+}
+
+int
+attribute_set_recent (attribute_t attr)
+{
+  if (attr == NULL)
+    return EINVAL;
+  attr->flag |= MU_ATTRIBUTE_RECENT;
+  return 0;
+}
+
+int
+attribute_is_seen (attribute_t attr)
+{
+  if (attr == NULL)
+    return 0;
+  return attr->flag & MU_ATTRIBUTE_SEEN;
+}
+
+int
+attribute_is_answered (attribute_t attr)
+{
+  if (attr == NULL)
+    return 0;
+  return attr->flag & MU_ATTRIBUTE_ANSWERED;
+}
+
+int
+attribute_is_flagged (attribute_t attr)
+{
+  if (attr == NULL)
+    return 0;
+  return attr->flag & MU_ATTRIBUTE_FLAGGED;
+}
+
+int
+attribute_is_read (attribute_t attr)
+{
+  if (attr == NULL)
+    return 0;
+  return attr->flag & MU_ATTRIBUTE_READ;
+}
+
+int
+attribute_is_deleted (attribute_t attr)
+{
+  if (attr == NULL)
+    return 0;
+  return attr->flag & MU_ATTRIBUTE_DELETED;
+}
+
+int
+attribute_is_draft (attribute_t attr)
+{
+  if (attr == NULL)
+    return 0;
+  return attr->flag & MU_ATTRIBUTE_DRAFT;
+}
+
+int
+attribute_is_recent (attribute_t attr)
+{
+  if (attr == NULL)
+    return 0;
+  return attr->flag & MU_ATTRIBUTE_RECENT;
+}
+
+int
+attribute_unset_seen (attribute_t attr)
+{
+  if (attr == NULL)
+    return 0;
+  attr->flag ^= MU_ATTRIBUTE_SEEN;
+  attr->flag ^= MU_ATTRIBUTE_ANSWERED;
+  attr->flag ^= MU_ATTRIBUTE_FLAGGED;
+  attr->flag ^= MU_ATTRIBUTE_READ;
+  return 0;
+}
+
+int
+attribute_unset_answered (attribute_t attr)
+{
+  if (attr == NULL)
+    return 0;
+  attr->flag ^= MU_ATTRIBUTE_ANSWERED;
+  return 0;
+}
+
+int
+attribute_unset_flagged (attribute_t attr)
+{
+  if (attr == NULL)
+    return 0;
+  attr->flag ^= MU_ATTRIBUTE_FLAGGED;
+  return 0;
+}
+
+int
+attribute_unset_read (attribute_t attr)
+{
+  if (attr == NULL)
+    return 0;
+  attr->flag ^= MU_ATTRIBUTE_READ;
+  return 0;
+}
+
+int
+attribute_unset_deleted (attribute_t attr)
+{
+  if (attr == NULL)
+    return 0;
+  attr->flag ^= MU_ATTRIBUTE_DELETED;
+  return 0;
+}
+
+int
+attribute_unset_draft (attribute_t attr)
+{
+  if (attr == NULL)
+    return 0;
+  attr->flag ^= MU_ATTRIBUTE_DRAFT;
+  return 0;
+}
+
+int
+attribute_unset_recent (attribute_t attr)
+{
+  if (attr == NULL)
+    return 0;
+  attr->flag ^= MU_ATTRIBUTE_RECENT;
+  return 0;
+}
+
