@@ -37,32 +37,35 @@ static char doc[] = N_("GNU MH folder\v"
 "Use -help to obtain the list of traditional MH options.");
 static char args_doc[] = N_("[action] [msg]");
 
-#define ARG_PUSH 1
-#define ARG_POP 2
-
 static struct argp_option options[] = {
   {N_("Actions are:"), 0, 0, OPTION_DOC, NULL, 0 },
-  {"print", 'p', NULL, 0, N_("List the folders (default)"), 1 },
-  {"list", 'l', NULL, 0, N_("List the contents of the folder stack"), 1},
-  {"push", ARG_PUSH, N_("FOLDER"), OPTION_ARG_OPTIONAL,
+  {"print", ARG_PRINT, NULL, 0,
+   N_("List the folders (default)"), 1 },
+  {"list",  ARG_LIST,  NULL, 0,
+   N_("List the contents of the folder stack"), 1},
+  {"push",  ARG_PUSH,  N_("FOLDER"), OPTION_ARG_OPTIONAL,
     N_("Push the folder on the folder stack. If FOLDER is specified, it is pushed. "
        "Otherwise, if a folder is given in the command line (via + or --folder), "
        "it is pushed on stack. Otherwise, the current folder and the top of the folder "
        "stack are exchanged"), 1},
-  {"pop", ARG_POP, NULL, 0, N_("Pop the folder off the folder stack"), 1},
+  {"pop",   ARG_POP,    NULL, 0,
+   N_("Pop the folder off the folder stack"), 1},
   
   {N_("Options are:"), 0, 0, OPTION_DOC, NULL, 2 },
-  {"folder",  'f', N_("FOLDER"), 0, N_("Specify folder to operate upon"), 3},
-  {"all", 'a', NULL, 0, N_("List all folders"), 3},
-  {"create", 'c', N_("BOOL"), OPTION_ARG_OPTIONAL, 
+  
+  {"folder", ARG_FOLDER, N_("FOLDER"), 0,
+   N_("Specify folder to operate upon"), 3},
+  {"all",    ARG_ALL,    NULL, 0,
+   N_("List all folders"), 3},
+  {"create", ARG_CREATE, N_("BOOL"), OPTION_ARG_OPTIONAL, 
     N_("Create non-existing folders"), 3},
-  {"fast", 'F', N_("BOOL"), OPTION_ARG_OPTIONAL, 
+  {"fast",   ARG_FAST, N_("BOOL"), OPTION_ARG_OPTIONAL, 
     N_("List only the folder names"), 3},
-  {"header", 'h', N_("BOOL"), OPTION_ARG_OPTIONAL, 
+  {"header", ARG_HEADER, N_("BOOL"), OPTION_ARG_OPTIONAL, 
     N_("Print the header line"), 3},
-  {"recurse", 'r', N_("BOOL"), OPTION_ARG_OPTIONAL,
+  {"recurse",ARG_RECURSIVE, N_("BOOL"), OPTION_ARG_OPTIONAL,
     N_("Scan folders recursively"), 3},
-  {"total", 't', N_("BOOL"), OPTION_ARG_OPTIONAL, 
+  {"total",  ARG_TOTAL, N_("BOOL"), OPTION_ARG_OPTIONAL, 
     N_("Output the total statistics"), 3},
   
   {NULL},
@@ -109,11 +112,11 @@ opt_handler (int key, char *arg, void *unused)
 {
   switch (key)
     {
-    case 'p':
+    case ARG_PRINT:
       action = action_print;
       break;
       
-    case 'l':
+    case ARG_LIST:
       action = action_list;
       break;
       
@@ -130,32 +133,32 @@ opt_handler (int key, char *arg, void *unused)
       action = action_pop;
       break;
       
-    case 'a':
+    case ARG_ALL:
       show_all++;
       break;
 
-    case 'c':
+    case ARG_CREATE:
       create_flag = is_true (arg);
       break;
 
-    case 'F':
+    case ARG_FAST:
       fast_mode = is_true (arg);
       break;
 
-    case 'h':
+    case ARG_HEADER:
       print_header = is_true (arg);
       break;
 
-    case 'r':
+    case ARG_RECURSIVE:
       recurse = is_true (arg);
       break;
 
-    case 't':
+    case ARG_TOTAL:
       print_total = is_true (arg);
       break;
       
     case '+':
-    case 'f':
+    case ARG_FOLDER:
       push_folder = mh_current_folder ();
       current_folder = arg;
       break;
