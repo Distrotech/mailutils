@@ -339,7 +339,7 @@ main(int argc, char **argv)
 	observable_attach (observable, MU_EVT_MESSAGE_ADD, observer);
       }
 
-    mailbox_messages_count (mbox, &total);
+    mailbox_scan (mbox, 1, &total);
 
     if (! be_quiet)
       {

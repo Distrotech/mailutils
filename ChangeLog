@@ -1,3 +1,12 @@
+2001-07-18 Alain Magloire
+
+	* mailbox/mbx_mbox.c (mbox_messages_count): This function does
+	not call the observers, the callback function, on the mbox_scan()
+	does.
+
+	* frm/frm.c (main): call mailbox_scan () instead of
+	mailbox_messages_count () since we want to be notified.
+
 2001-07-12 Sam Roberts
 
 	* examples/mbox-dates.c: Added pop and imap records.
@@ -24,7 +33,7 @@
 
 	* mailbox/attribute.c: Fixed flags_to_string(): MU_ATTRIBUTE_SEEN
 	and MU_ATTRIBUTE_READ were swapped: the former produced 'R',
-	and the latter 'O'. 
+	and the latter 'O'.
 
 	* mail/file.c: run "summary" after opening new mailbox.
 	Issue diagnostics if mailbox cannot be opened.

@@ -2038,7 +2038,7 @@ mbox_messages_count (mailbox_t mailbox, size_t *pcount)
     return EINVAL;
 
   if (! mbox_is_updated (mailbox))
-    return mbox_scan0 (mailbox,  mud->messages_count, pcount, 1);
+    return mbox_scan0 (mailbox,  mud->messages_count, pcount, 0);
 
   if (pcount)
     *pcount = mud->messages_count;
