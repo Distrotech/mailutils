@@ -1,5 +1,8 @@
 /*
  * sieve interpreter
+ *
+ * The summary is a hack, I should collect the actions list myself in
+ * my action callbacks, and log them better.
  */
 
 #ifdef HAVE_CONFIG_H
@@ -192,15 +195,17 @@ enum /* print level masks */
     SV_PRN_MU  = 0x1,
     SV_PRN_ACT = 0x2,
     SV_PRN_QRY = 0x4,
-    SV_PRN_PRS = 0x6,
+    SV_PRN_PRS = 0x8,
     SV_PRN_NOOP
 };
 
 void
 sv_printv (sv_interp_ctx_t* ic, int level, const char *fmt, va_list ap)
 {
+  assert(ic);
+
   if(level & ic->print_mask)
-    vfprintf(ic->print_stream, fmt, ap);
+    vfprintf(ic->print_stream ? ic->print_stream : stdout, fmt, ap);
 }
 void sv_print (sv_interp_ctx_t* ic, int level, const char* fmt, ...)
 {
@@ -442,11 +447,6 @@ sv_fileinto (void *ac, void *ic, void *sc, void *mc, const char **errmsg)
   if (!i->opt_no_actions)
     {
       res = mu_save_to (a->mailbox, m->msg, errmsg);
-
-      if (!res)
-	{
-	  res = mu_mark_deleted (m->msg);
-	}
     }
   if (res && !errmsg)
     *errmsg = strerror (res);
@@ -652,15 +652,16 @@ sieve_register_mailutils (sieve_interp_t * i)
   return res;
 }
 
-const char USAGE[] = "usage: sieve [-hnvcd] [-f mbox] script\n";
+const char USAGE[] = "usage: sieve [-hnvcd] [-D mask] [-f mbox] script\n";
 
 const char HELP[] =
   "	-h   print this helpful message and exit.\n"
   "	-n   no actions taken, implies -v.\n"
-  "	-v   verbose, print actions to be taken.\n"
+  "	-v   verbose, print actions taken, more v's, more verbose.\n"
   "	-c   compile script but don't run it against an mbox.\n"
   "	-d   daemon mode, sieve mbox, then go into background and sieve.\n"
   "	     new message as they are delivered to mbox.\n"
+  "	-D   debug mask, see source for meaning (sorry).\n"
   "	-f   the mbox to sieve, defaults to the users spool file.\n";
 
 int
@@ -683,7 +684,7 @@ main (int argc, char *argv[])
 
   int opt;
 
-  while ((opt = getopt (argc, argv, "hnvcdf:")) != -1)
+  while ((opt = getopt (argc, argv, "hnvcdf:D:")) != -1)
     {
       switch (opt)
 	{
@@ -692,6 +693,7 @@ main (int argc, char *argv[])
 	  return 0;
 	case 'n':
 	  ic.opt_no_actions = 1;
+          /* and increase verbosity... */
 	case 'v':
 	  ic.opt_verbose++;
 	  break;
@@ -704,6 +706,9 @@ main (int argc, char *argv[])
 	case 'd':
 	  ic.opt_watch = 1;
 	  break;
+	case 'D':
+          ic.print_mask |= strtoul(optarg, 0, 0);
+          break;
 	default:
 	  fprintf (stderr, "%s", USAGE);
 	  return 1;
@@ -716,6 +721,14 @@ main (int argc, char *argv[])
     }
   ic.opt_script = argv[optind];
 
+  switch(ic.opt_verbose)
+    {
+      case 0: break;
+      case 1: break;
+      case 2: ic.print_mask |= SV_PRN_ACT; break;
+      default: ic.print_mask = ~0; break;
+    }
+    
   registrar_get_list (&bookie);
   list_append (bookie, path_record);
   list_append (bookie, file_record);
@@ -729,7 +742,7 @@ main (int argc, char *argv[])
 	       ic.opt_mbox ? ic.opt_mbox : "default", strerror (res));
       return 1;
     }
-  if (ic.opt_verbose > 2)
+  if (ic.print_mask & SV_PRN_MU)
     {
       if ((res = mu_debug_create(&ic.debug, &ic)))
 	{
@@ -772,7 +785,7 @@ main (int argc, char *argv[])
 
   if (!f)
     {
-      printf ("fopen %s failed: %s\n", argv[2], strerror (errno));
+      printf ("fopen %s failed: %s\n", ic.opt_script, strerror (errno));
       return 1;
     }
   res = sieve_script_parse (interp, f, &sc, &script);
@@ -803,10 +816,9 @@ main (int argc, char *argv[])
 		   strerror (res));
 	  exit (1);
 	}
-      res = sieve_execute_script (script, &mc);
+      sv_print (&ic, SV_PRN_ACT, "For message %d:\n", i);
 
-      if (ic.opt_verbose)
-	fprintf (stderr, "%s\n", mc.summary);
+      res = sieve_execute_script (script, &mc);
 
       if (res != SIEVE_OK)
 	{

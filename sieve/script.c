@@ -827,8 +827,6 @@ int sieve_execute_script(sieve_script_t *s, void *message_context)
 	     notify_action, &errmsg) < 0)
 	return SIEVE_RUN_ERROR;
   
-    strcpy(actions_string,"Action(s) taken:\n");
-  
     /* now perform actions attached to m */
     a = actions;
     implicit_keep = 1;
