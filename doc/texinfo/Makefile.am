@@ -46,3 +46,4 @@ mailutils_TEXINFOS = \
 
 #mailutils.info: mailutils.texi version.texi ex-address.texi
 #mailutils.dvi: mailutils.texi version.texi ex-address.texi
+DISTCLEANFILES=*.pgs
