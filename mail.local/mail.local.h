@@ -103,7 +103,6 @@ extern void setgroupquota (char *str);
 extern int check_quota (char *name, size_t size, size_t *rest);
 
 int mda (FILE *fp, char *username);
-char *make_progfile_name (char *pattern, char *username);
 int switch_user_id (uid_t uid);
 
 #ifdef WITH_GUILE
