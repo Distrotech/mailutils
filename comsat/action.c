@@ -315,6 +315,7 @@ action_exec (FILE *tty, int line, int argc, char **argv)
       fclose (tty);
       execv (argv[0], argv);
       syslog (LOG_ERR, "can't execute %s: %s", argv[0], strerror (errno));
+      exit (0);
     }
 }
 
