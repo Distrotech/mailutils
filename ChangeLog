@@ -1,3 +1,10 @@
+2003-01-28  Sergey Poznyakoff 
+
+	* comsat/comsat.c: Removed unneded colon in the argument to perror.
+	* imap4d/imap4d.c: Likewise.
+	* guimb/main.c: Fixed help output.
+	* mailbox/mailutils-config.c: Likewise.
+
 2003-01-26  Sergey Poznyakoff
 
 	* imap4d/auth_gss.c: Removed newline from the syslog diagnostic
