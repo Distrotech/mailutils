@@ -1,25 +1,12 @@
 So far we plan support for RFC822 and plan for RFC1522. with RFC1522 non ASCII
 characters will be encoded.
 
-@section Init/Destroy
-The header should be initiliaze before any use.
-
-@deftypefun int header_init (header_t *@var{hdr}, const char *@var{blurb}, size_t @var{len}, int @var{flag})
+@deftypefun int header_create (header_t *@var{hdr}, const char *@var{blurb}, size_t @var{len}, void *@var{owner})
 Initialize a @var{hdr} to a supported type.  If @var{blurb} is not NULL, it is
-parsed. @var{Flag} can be set to RFC8222 or RFC1522 so far onlyr rfc822  is
-supported.
-
-@defmac MU_HDR_RFC822
-Supports rfc 822, header style.
-@end defmac
-
-@defmac MU_HDR_RFC1522
-Supports rfc 1522, encoding policy.
-@end defmac
-
+parsed.
 @end deftypefun
 
-@deftypefun void header_destroy (header_t *@var{hdr})
+@deftypefun void header_destroy (header_t *@var{hdr}, void *@var{owner})
 The ressources allocate for @var{hdr} are freed.
 @end deftypefun
 
@@ -30,84 +17,58 @@ it is append.
 
 Some basic macros is already provided for rfc822.
 
-@defmac MU_HDR_UNIX_FROM
-            "From "
-@end defmac
-@defmac MU_HDR_RETURN_PATH
-          "Return-Path"
-@end defmac
-@defmac MU_HDR_RECEIVED
-             "Received"
-@end defmac
-@defmac MU_HDR_DATE
-                  "Date"
-@end defmac
-@defmac MU_HDR_FROM
-                  "From"
-@end defmac
-@defmac MU_HDR_RESENT_FROM
-           "Resent-From"
-@end defmac
-@defmac MU_HDR_SUBJECT
-               "Subject"
-@end defmac
-@defmac MU_HDR_SENDER
-                "Sender"
-@end defmac
-@defmac MU_HDR_RESENT_SENDER
-         "Resent-SENDER"
-@end defmac
-@defmac MU_HDR_TO
-                    "To"
-@end defmac
-@defmac MU_HDR_RESENT_TO
-            "Resent-To"
-@end defmac
-@defmac MU_HDR_CC
-                    "Cc"
-@end defmac
-@defmac MU_HDR_RESENT_CC
-            "Resent-Cc"
-@end defmac
-@defmac MU_HDR_BCC
-                   "Bcc"
-@end defmac
-@defmac MU_HDR_RESENT_BCC
-            "Resent-Bcc"
-@end defmac
-@defmac MU_HDR_REPLY_TO
-              "Reply-To"
-@end defmac
-@defmac MU_HDR_RESENT_REPLY_TO
-       "Resent-Reply-To"
-@end defmac
-@defmac MU_HDR_MESSAGE_ID
-            "Message-ID"
-@end defmac
-@defmac MU_HDR_RESENT_MESSAGE_ID
-     "Resent-Message-ID"
-@end defmac
-@defmac MU_HDR_IN_REPLY_TO
-           "In-Reply-To"
-@end defmac
-@defmac MU_HDR_ENCRYPTED
-             "Encrypted"
-@end defmac
-@defmac MU_HDR_PRECEDENCE
-            "Precedence"
-@end defmac
-@defmac MU_HDR_STATUS
-                "Status"
-@end defmac
-@defmac MU_HDR_CONTENT_LENGTH
-        "Content-Length"
-@end defmac
-@defmac MU_HDR_CONTENT_TYPE
-          "Content-Type"
-@end defmac
-@defmac MU_HDR_MIME_VERSION
-          "MIME-Version"
-@end defmac
+@table @code
+@item MU_HDR_RETURN_PATH
+Return-Path
+@item MU_HDR_RECEIVED
+Received
+@item MU_HDR_DATE
+Date
+@item MU_HDR_FROM
+From
+@item MU_HDR_RESENT_FROM
+Resent-From
+@item MU_HDR_SUBJECT
+Subject
+@item MU_HDR_SENDER
+Sender
+@item MU_HDR_RESENT_SENDER
+Resent-SENDER
+@item MU_HDR_TO
+To
+@item MU_HDR_RESENT_TO
+Resent-To
+@item MU_HDR_CC
+Cc
+@item MU_HDR_RESENT_CC
+Resent-Cc
+@item MU_HDR_BCC
+Bcc
+@item MU_HDR_RESENT_BCC
+Resent-Bcc
+@item MU_HDR_REPLY_TO
+Reply-To
+@item MU_HDR_RESENT_REPLY_TO
+Resent-Reply-To
+@item MU_HDR_MESSAGE_ID
+Message-ID
+@item MU_HDR_RESENT_MESSAGE_ID
+Resent-Message-ID
+@item MU_HDR_IN_REPLY_TO
+In-Reply-To
+@item MU_HDR_ENCRYPTED
+Encrypted
+@item MU_HDR_PRECEDENCE
+Precedence
+@item MU_HDR_STATUS
+Status
+@item MU_HDR_CONTENT_LENGTH
+Content-Length
+@item MU_HDR_CONTENT_TYPE
+Content-Type
+@item MU_HDR_MIME_VERSION
+MIME-Version
+@end table
 
 @end deftypefun
 
@@ -116,24 +77,14 @@ Value of field-name @var{fn} is return in buffer @var{fv} of size @var{len}.
 The number of bytes written is put in @var{n}.
 @end deftypefun
 
-@deftypefun int header_get_mvalue (header_t @var{hdr}, const char *fn, char **fv, size_t *n)
-Value of field-name @var{fn} is return in allocated buffer @var{fn} from
-@code{malloc(3)}. The number of bytes written is put in @var{n}.
+@deftypefun int header_set_get_value (header_t @var{hdr}, int (*@var{_get_value}) (header_t, const char *, char *, size_t, size_t *), void *@var{owner})
 @end deftypefun
 
-@deftypefun int header_gvalue (const char *@var{blurb}, size_t @var{bl}, const char *@var{fn}, char *@var{fv}, size_t @var{len}, size_t *@var{n})
-Field-name @var{fn} is extract form @var{blurb} of size @var{bl} and put in
-buffer @var{fv} of size @var{len}.
-The number of bytes written is put in @var{n}.
+@deftypefun int header_get_stream (header_t @var{hdr}, stream_t *@var{pstream})
 @end deftypefun
 
-@deftypefun int header_gmvalue (const char *@var{blurb}, size_t @var{bl}, const char *@var{fn}, char **@var{fv}, size_t *@var{nv})
-Field-name @var{fn} is extract form @var{blurb} of size @var{bl} and put in
-@code{malloc(3)}ted buffer @var{fv}.  The number of bytes written is put in
-@var{n}.
+@deftypefun int header_size (header_t @var{hdr}, size_t *@var{size})
 @end deftypefun
 
-@section Headers Regex
-@cindex Headers Regex
-
-Using regular expression ?
+@deftypefun int header_lines (header_t @var{hdr}, size_t *@var{lpines})
+@end deftypefun

@@ -96,9 +96,6 @@ Initialize and parse the @var{url}
 @deftypefun int url_list_type (struct url_type @var{list}[], size_t @var{len}, size_t *@var{n})
 @end deftypefun
 
-@deftypefun int url_list_mtype (struct url_type **@var{mlist}, size_t *@var{n})
-@end deftypefun
-
 @deftypefun int url_add_type (struct url_type *@var{utype})
 @end deftypefun
 
@@ -162,25 +159,13 @@ int main ()
 @deftypefun int url_get_scheme (const url_t @var{url}, char *@var{schem}, size_t @var{len}, size_t *@var{n})
 @end deftypefun
 
-@deftypefun int url_get_mscheme (const url_t @var{url}, char **@var{scheme}, size_t *@var{n})
-@end deftypefun
-
 @deftypefun int url_get_user (const url_t @var{url}, char *@var{usr}, size_t @var{len}, size_t *@var{n})
-@end deftypefun
-
-@deftypefun int url_get_muser (const url_t @var{url}, char **@var{buf}, size_t *@var{n})
 @end deftypefun
 
 @deftypefun int url_get_passwd (const url_t @var{url}, char *@var{passwd}, size_t @var{len}, size_t *@var{n})
 @end deftypefun
 
-@deftypefun int url_get_mpasswd (const url_t @var{url}, char **@var{buf}, size_t *@var{n})
-@end deftypefun
-
 @deftypefun int url_get_host (const url_t @var{url}, char *@var{host}, size_t @var{len}, size_t *@var{n})
-@end deftypefun
-
-@deftypefun int url_get_mhost (const url_t @var{url}, char **@var{buf}, size_t *@var{n})
 @end deftypefun
 
 @deftypefun int url_get_port (const url_t @var{url}, long *@var{port})
@@ -189,11 +174,5 @@ int main ()
 @deftypefun int url_get_path (const url_t @var{url}, char *@var{path}, size_t @var{len}, size_t *@var{n})
 @end deftypefun
 
-@deftypefun int url_get_mpath (const url_t @var{url}, char **@var{buffer}, size_t *@var{len})
-@end deftypefun
-
 @deftypefun int url_get_query (const url_t @var{url}, char *@var{query}, size_t{len}, size_t *@var{n})
-@end deftypefun
-
-@deftypefun int url_get_mquery (const url_t @var{url}, char **@var{buf}, size_t *@var{len})
 @end deftypefun

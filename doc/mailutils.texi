@@ -107,9 +107,9 @@ This document was produced for version @value{VERSION} of @sc{gnu}
 * Message::                     Message API.
 * Headers::                     Headers API.
 * Body::                        Body API.
+* Steam::                       Stream API.
 * URL::                         Unified Ressource Locator.
 * Authenticator::               Authenticator.
-* Mime::                        Mime API.
 * Encoding::                    Encoding API.
 * Reporting Bugs::              Reporting Bugs.
 * Acknowledgement::             Thanks and Credits.
@@ -123,7 +123,7 @@ This document was produced for version @value{VERSION} of @sc{gnu}
 @chapter Introduction
 @cindex Introduction
 
-@sc{gnu} @sc{Mailutils} offers a general purpose library aimed to provide
+@sc{gnu} @sc{Mailutils} offers a general purpose library aim to provide
 a rich set of functions for accessing different mailbox formats and mailers.
 
 @example
@@ -152,33 +152,6 @@ a rich set of functions for accessing different mailbox formats and mailers.
                        +-------------+
 @end group
 @end example
-@comment @example
-@comment @group
-@comment                              USER Client
-@comment                          -------------------
-@comment                             |           |
-@comment               +-------------+           +-------------+
-@comment               |                                       |
-@comment          /-----------\                          /-----------\
-@comment          | mailbox_t |                          | mailer_t  |
-@comment          \-----------/                          \-----------/
-@comment               |                                       |
-@comment               +--------------------+------------------+
-@comment                                    |
-@comment                           /------------------\
-@comment                           |     message_t    |
-@comment                           \------------------/
-@comment                           | body_t | header_t|
-@comment                           +------------------+
-@comment                                    |
-@comment               +--------------------+----------------+
-@comment               |                                      |
-@comment            -------                            ////////////////
-@comment           (_______)                           //    LAN     //
-@comment           (_______)                           ////////////////
-@comment           (_______)
-@comment @end group
-@comment @end example
 
 For example writing a simple @command{from} command that will list @emph{From}
 and @emph{Subject} of a folder.
@@ -215,38 +188,52 @@ and @emph{Subject} of a folder.
 
 @include headers.texi
 
-@node Body, URL, Headers , Top
+@node Body, Attribute, Headers, Top
 @comment  node-name,  next,  previous,  up
 @chapter Body
 @cindex Body
 
 @include body.texi
 
-@node URL, Authenticator, Body, Top
+@node Attribute, Stream, Body, Top
 @comment  node-name,  next,  previous,  up
-@chapter URL
-@cindex URL
+@chapter Attribute
+@cindex Attribute
 
-@include url.texi
+@include attribute.texi
 
-@node Authenticator, Mime , URL, Top
+@node Stream, Authenticator, Attribute, Top
+@comment  node-name,  next,  previous,  up
+@chapter Stream
+@cindex Stream
+
+@include stream.texi
+
+@node Authenticator, Locker, Stream, Top
 @comment  node-name,  next,  previous,  up
 @chapter Authenticator
 @cindex Authenticator
 
 @include auth.texi
 
-@node Mime , Encoding, Authenticator, Top
+@node Locker , Encoding, Authenticator, Top
 @comment  node-name,  next,  previous,  up
-@chapter Mime
-@cindex Mime
+@chapter Locker
+@cindex Locker
 
-@include mime.texi
+@include locker.texi
 
-@node Encoding, Reporting Bugs, Mime , Top
+@node Encoding, Reporting Bugs, Locker , Top
 @comment  node-name,  next,  previous,  up
 @chapter Encoding
 @cindex Encoding
+
+@node URL, Authenticator, Stream, Top
+@comment  node-name,  next,  previous,  up
+@chapter URL
+@cindex URL
+
+@include url.texi
 
 @include encoding.texi
 

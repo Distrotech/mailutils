@@ -1,478 +1,298 @@
-Mail boxes come in different formats and may be on a remote hosts,
-only accessible through Mail Delivery Agent(MDA).  Regardless
-of the format and the protocol use, some common actions are needed like
-reading, saving, deleting, scanning ... Those actions are provided via a
-unify API mailbox_t.
-
-All functions of the mailbox_t API return 0 if successful or non-zero
-for failure, unless specify otherwise.
-
-@section Init/Destroy
-Initializing and destroying a mailbox_t object.
-
-@deftypefun int mailbox_init (mailbox_t *@var{mbx}, const char * @var{url}, int @var{id})
-Based on the type of the @var{url}, @var{mbx} is initialize to a known type,
-if @var{id} is not zero, it represents the id of the mailbox, it will be use
-instead of doing heuristic search on the @var{url}.
-@example
-#include <mailutils.h>
-@dots{}
-mailbox_t foo, popmbx, bar;
-/* same as @url{file:///var/mail/foo} */
-mailbox_init (&mbox, "/var/mail/foo", 0);
-mailbox_init (&mbox, "pop://popserver.bar.com/foo", 0);
-mailbox_init (&mbox, "file:///home/bar/.hiddenmail/bar", 0);
-@end example
-@end deftypefun
-
-@deftypefun int mailbox_init_default (mailbox_t *@var{mbx}, const char * @var{user})
-Initialize the default mailbox of the system as set by the mail administrator.
-It could be hardcoded or override by a configuration
-@file{$@{sysconfig@}/mailutils.conf}.
-@example
-#include <mailutils.h>
-@dots{}
-/* If the default mailbox on this system is @file{/var/mail} */
-
-mailbox_t mbx;
-
-/* sets the mailbox name to @url{file:///var/mail/foo} */
-mailbox_init_default (&mbx, "foo");
-
-/*
- If the user is log as @emph{bar}, sets the mailbox name
- to @url{file:///var/mail/bar}
-*/
-mailbox_init_default (&mbx, NULL);
-@end example
-@end deftypefun
-
-@deftypefun int mailbox_destroy (mailbox_t *@var{mbx})
-All resources allocated are release.  If the stream is not open,
-@code{mailbox_close} is call.
-@end deftypefun
-
-@section Open/Close
-Opening and closing mailbox can be done any number of times. But be warned
-on some cases like POP3, when opening, the lock can be persistent until
-the stream is closed as required by the RFC.
-
-@deftypefun int mailbox_open (mailbox_t @var{mbx}, int @var{flag})
-Open the mailbox box stream. This function will call @code{mailbox_scan}.
-
-@defmac MU_MB_RDONLY
-Stream is open read-only.
-@end defmac
-@defmac MU_MB_WRONLY
-Stream is open write-only.
-@end defmac
-@defmac MU_MB_RDWR
-Stream is open read-write.
-@end defmac
-@defmac MU_MB_CREAT
-If Folder does not exist it is created. May be a noop on remote hosts mailbox.
-@end defmac
-@defmac MU_MB_APPEND
-The stream is opened in append mode.
-@end defmac
-@defmac MU_MB_ONONBLOCK
-For sockets, open() nonblocking.  Not supported.
-@end defmac
-@end deftypefun
-
-@deftypefun int mailbox_close (mailbox_t @var{mbx})
-Close the streams and release the locks.
-@end deftypefun
-
-@deftypefun int mailbox_is_open (mailbox_t @var{mbx})
-Return a non-zero value if  the stream is open, zero otherwise.
-@end deftypefun
-
-This is a very simple implementation of Unix @command{biff}.
-
-@example
-#include <mailutils.h>
-#include <unistd.h>
-#include <stdio.h>
-#include <stdlib.h>
-
-#define NAP 120
-
-int
-main ()
-@{
-    mailbox_t mbx;
-    size_t size = 0, size2 = 0;
-
-    if (mailbox_init_default (&mbx, NULL) != 0)
-      @{
-          fprintf ("Can't initialize system mailbox\n");
-          exit (EXIT_FAILURE);
-      @}
-    /* the open may fail if no mailbox was created,
-       will check this later */
-    mailbox_open (mbx, MU_MB_RDONLY);
-    mailbox_size (mbx, &size);
-    for (;;)
-      @{
-         if (! mailbox_is_open (mbx))
-           @{
-              if (mailbox_open (mbx, MU_MB_RDONLY) != 0);
-                @{
-                   //fprintf (stderr, "Not exist ?\n");
-                @}
-           @}
-         else
-           @{
-              if (mailbox_size (mbx, &size2) == 0)
-                @{
-                   if (size2 > size)
-                     @{
-                        printf ("You got mail\a\n");
-                     @}
-                   size = size2;
-                @}
-           @}
-
-          /* rest a while */
-          sleep (NAP);
-
-          /* It is a good habit to close the resources.
-             A mailbox could be on a remote host and the locking
-             may interfere with normal delivery, for example with
-             POP, the lock is hold during the entire session.
-           */
-          mailbox_close (mbx);
-       @}
-
-     return 0;
-@}
-@end example
-
-@section Deletion
-Messages can be marked for deletion but destructive  action is only taken
-when @code{mailbox_expunge} is called.
-
-@deftypefun int mailbox_delete (mailbox_t @var{mbx}, size_t @var{msgno})
-Mark message @var{msgno} for deletion.
-@end deftypefun
-
-@deftypefun int mailbox_undelete (mailbox_t @var{mbx}, size_t @var{msgno})
-Unmark message @var{msgno} for deletion.
-@end deftypefun
-
-@deftypefun int mailbox_is_deleted (mailbox_t @var{mbx}, size_t @var{msgno})
-Return non-zero if message @var{msgno} is mark deleted.
-@end deftypefun
-
-@deftypefun int mailbox_num_deleted (mailbox_t @var{mbx})
-Return the number of Mailbox marked to be delete.
-@end deftypefun
-
-@deftypefun int mailbox_expunge (mailbox_t @var{mbx})
-All messages marked for deletion will be removed and the mailbox updated,
-and notification functions of all messages for @var{mbx} executed.
-@end deftypefun
-
-@section Message
-@code{message_t} are objects that hold the offsets of the message in the
-mailbox. Certain mailboxes allow new messages to be appended to the existing
-folder, in this case the stream must be @code{mailbox_open} with the proper
-permission.
-
-@deftypefun int mailbox_new_message (mailbox_t @var{mbx}, message_t *@var{msg})
-Create a new message.
-@end deftypefun
-
-@deftypefun int mailbox_append_message (mailbox_t @var{mbx}, message_t @var{msg}, int @var{destroy})
-@var{msg} will be append to the mailbox. When appending the header may be
-modified.  In the case of Unix Mbox, the header "From " is prepend.
-If @var{destroy} is set non-zero @code{message_destroy} will be call after delivery.
-@end deftypefun
-
-@deftypefun int mailbox_get_message (mailbox_t @var{mbx}, size_t @var{msgno}, message_t *@var{msg})
-@var{msg} is initialize, be warn when doing @code{mailbox_expunge} the
-offsets to the mailbox are lost and accessing the @var{msg} is undefined.
-To prevent this, it is possible to @code{message_clone} or set a notification
-to take appropriate action.
-@end deftypefun
-
-@deftypefun int mailbox_destroy_message (mailbox_t @var{mbx}, message_t @var{msg})
-Resources allocated to @var{msg} will be release. Notification functions for
-this @var{msg} are executed.
-@end deftypefun
-
-@section Reading Contents/Headers
-Low level Reading functions for contents and headers.
-
-@comment @deftypefun int mailbox_set_header (mailbox_t @var{mbx}, size_t @var{msgno}, const char *@var{header}, size_t @var{len}, int @var{replace})
-@comment Fill the header of new message @var{msgno}.  If @var{replace} is zero the
-@comment buffer @var{header} will be append, otherwise it will overwrite any
-@comment existing one.
-@comment @end deftypefun
-
-@comment @deftypefun int mailbox_set_body (mailbox_t @var{mbx}, message_t @var{msg}, const char *@var{body}, size_t @var{len}, int @var{replace})
-@comment Fill the body of new @var{msg}.  If @var{replace} is zero the buffer
-@comment @var{body} will be append, otherwise it will overwrite any existing one.
-@comment @end deftypefun
-
-@deftypefun int mailbox_get_content (mailbox_t @var{mbx}, size_t @var{msgno}, off_t @var{off}, char *@var{buffer}, size_t @var{len}, size_t *@var{nread})
-Read the body of message @var{msgno} starting at offset @var{off} in
-@var{buffer} of size @var{len}. The number of bytes read is returned in
-@var{nread}.
-@end deftypefun
-
-@deftypefun int mailbox_get_mcontent (mailbox_t @var{mbx}, size_t @var{msgno}, off_t @var{off}, char **@var{buffer}, size_t *@var{nread})
-A buffer is allocated with @code{malloc(3)} return memory containing the body
-of message @var{msgno} starting at offset @var{off} in @var{buffer}.
-The number of bytes read is returned in @var{nread}.
-@end deftypefun
-
-@deftypefun int mailbox_get_header (mailbox_t @var{mbx}, size_t @var{msgno}, off_t @var{off}, char *@var{buffer}, size_t @var{len}, size_t *@var{nread})
-Read the header of message @var{msgno} starting at offset @var{off} in
-@var{buffer} of size @var{len}. The number of bytes read is returned
-in @var{nread}.
-@end deftypefun
-
-@deftypefun int mailbox_get_mheader (mailbox_t @var{mbx}, size_t @var{msgno}, off_t @var{off}, char **@var{buffer}, size_t *@var{nread})
-A buffer allocate with @code{malloc(3)} is return containing the header of
-message @var{msgno} starting at offset @var{off} in @var{buffer}.
-The number of bytes read is returned in @var{nread}.
-@end deftypefun
-
-@section Locking
-Most mailboxes will lock before changing their contents.  External usage of
-those functions are discourage, since they may interfere with normal
-operation and cause deadlocks.  If however there is need to access the
-mailbox outside the functions provided by the library, locking and unlocking
-can be done explicitly.  There is another level of internal
-locking to provide synchronization to the mailbox_t object.
-
-@deftypefun int mailbox_lock (mailbox_t @var{mbx}, int @var{flag})
-Grab the lock.  In some cases, i.e Unix mbox this may involve creating
-a .lock file in the spool directory.
-@comment Say something about permission the program be gid on some OS.
-@defmac MU_MB_RDLOCK
-Read lock.
-@end defmac
-@defmac MU_MB_WRLOCK
-Write lock.
-@end defmac
-@defmac MU_MB_RWLOCK
-Read/Write lock.
-@end defmac
-@end deftypefun
-
-Note on many mailboxes, RDLOCK is a noop.
-
-@deftypefun int mailbox_unlock (mailbox_t @var{mbx})
-Release the lock.
-@end deftypefun
-
-@section Mailbox Attributes
-When creating certain mailboxes, you can set the owner, group and mode
-
-@deftypefun int mailbox_set_owner (mailbox_t @var{mbx}, uid_t @var{uid})
-Set the owner to @var{uid}.  If the Mailbox was not @code{mailbox_open}
-the action is delayed until the stream is opened.
-@end deftypefun
-@deftypefun int mailbox_set_group (mailbox_t @var{mbx}, gid_t @var{gid})
-Set the group to @var{gid}.  If the Mailbox was not @code{mailbox_open}
-the action is delayed until the stream is opened.
-@end deftypefun
-@deftypefun int mailbox_set_mode (mailbox_t @var{mbx}, mode_t @var{mode})
-Set the file permission to @var{mode}.  If the Mailbox was not
-@code{mailbox_open} the action is delayed until the stream is opened.
-@end deftypefun
-
-@section Scanning
-
-Scan is done implicitly on @code{mailbox_open}.
-
-@deftypefun int mailbox_scan (mailbox_t @var{mbx}, size_t *@var{msgs})
-The mailbox is parse and @var{msgs} if not NULL contain the message count.
-A notification function can be set to monitor progress.
-@end deftypefun
-
-@comment @deftypefun int mailbox_scan_progress (mailbox_t @var{mbx}, int (*@var{progress}) (mailbox_t @var{mbx}, int @var{count}, void *@var{arg}), void *@var{arg})
-@comment When doing @var{mailbox_scan}, function @var{progress}(@var{mbx}, @var{count},
-@comment @var{arg}) is called for each new message.
-@comment @end deftypefun
-
-@deftypefun int mailbox_is_updated  (mailbox_t @var{mbx})
-Return 1 if @var{mbx} is up to date 0 otherwise.
-@end deftypefun
-
-@deftypefun int mailbox_size (mailbox_t @var{mbx}, off_t *@var{size})
-@var{size} is assign the mailbox total size.
-@end deftypefun
-
-@deftypefun int mailbox_get_size (mailbox_t @var{mbx}, size_t @var{msgno}, size_t *@var{header}, size_t *@var{body})
-For message @var{msgno} set @var{header} size and @var{body} size.
-@end deftypefun
-
-@deftypefun int mailbox_count (mailbox_t @var{mbx})
-Return the number of messages in @var{mbx}.
-@end deftypefun
-
-@section Timeout
-On remote mailboxes it is sometimes possible to reset the timeout.  On most
-local mailbox it is a noop.
-
-@deftypefun int mailbox_set_timeout (mailbox_t @var{mbx}, size_t @var{millis})
-Not Implemented.
-@end deftypefun
-@deftypefun int mailbox_get_timeout (mailbox_t @var{mbx}, size_t @var{millis})
-Not Implemented.
-@end deftypefun
-
-@section Notifications
-A number of callbacks are provided on the mailbox to monitor the changes.
-Setting timeout and notifications.
-
-@deftypefun int mailbox_set_refresh (mailbox_t @var{mbx}, size_t @var{millis})
-Sets the refresh time on how often @code{mailbox_scan} should be called.
-By default it is disabled.  Not Implemented.
-@end deftypefun
-@deftypefun int mailbox_get_refresh (mailbox_t @var{mbx}, size_t @var{millis})
-Return the refresh time.  Not Implemented.
-@end deftypefun
-@deftypefun int mailbox_set_update_cb (mailbox_t @var{mbx}, int (*@var{notification}) (mailbox_t @var{mbx}, void *@var{arg}), void *@var{arg})
-@code{mailbox_scan} can be called periodically to see if new messages have
-arrived, if the number of total messages has changed the notification
-function is called, @code{notification (mbx, arg)}. Not Implemented.
-@end deftypefun
-@deftypefun int mailbox_set_scan_cb (mailbox_t @var{mbx}, int (*@var{notification}) (int @var{msgcount}, void *@var{arg}))
-When parsing the mailbox every count call @code{notification (msgcount, arg)}.
-Note that all locks are held, and @var{notification} should be very small and
-simple, it should not access or do any action on the mailbox doing this may
-cause undefined behavior.
-@end deftypefun
-@deftypefun int mailbox_set_msg_destroy_cb (mailbox_t @var{mbx}, int (*@var{notification}) (mailbox_t @var{mbx}, message_t @var{msg}, void *@var{arg}))
-@end deftypefun
-
-@section Registration and Type
-
-Mailbox_t comes with a certain number of builtin types, you can query them
-or add you own to the list.
-
-@deftp {Data type} struct mailbox_type
-@example
-@{
-  char *name;
-  int  id;
-  struct url_type *utype;
-  int  (*_init) __P ((mailbox_t *, const char *name));
-  void (*_destroy) __P ((mailbox_t *));
-@};
-@end example
+@code{#include <mailutils/mailbox.h>}
+@deftp {Data Type} mailbox_t
+The @code{mailbox_t} object is use to hold information and it is an opaque
+data structure to the user. Functions are provided to retrieve the information.
 @end deftp
-
-@deftypefun int mailbox_list_type (struct mailbox_type *@var{mtype}, size_t @var{len}, size_t *@var{n})
-The @var{mtype} array will be initialize with the list of builtins up to
-@var{len}.  The number of struct mailbox_type is put in @var{n}.
-@end deftypefun
-
-@deftypefun int mailbox_list_mtype  (struct mailbox_type **@var{mtype}, size_t *@var{n})
-An array of size @var{n} is @code{malloc(3)} to hold the builtin list.
-@end deftypefun
-
-@deftypefun int mailbox_add_type (struct mailbox_type *@var{mtype})
-Add a mailbox @var{mtype} to the list of builtin.
-@end deftypefun
-
-@deftypefun int mailbox_remove_type (struct mailbox_type *@var{mtype})
-Remove a mailbox @var{mtype} to the list of builtin.
-@end deftypefun
-
-@deftypefun int mailbox_get_type (struct mailbox_type **@var{mtype}, int @var{urlid})
-Base on the @var{urlid} return the mailbox_type.
-@end deftypefun
-
-@deftypefun int mailbox_get_name_type (mailbox_t @var{mbx}, int *@var{mbxid}, char *@var{name}, size_t @var{len}, size_t *@var{n})
-Return the name type of the mailbox identify by @var{mbxid},
-in buffer @var{name} of size @var{len}.  The number of byte is put in @var{n}.
-@end deftypefun
-
-@deftypefun int mailbox_get_mname_type(mailbox_t @var{mbx}, int *@var{mbxid}, char **@var{name}, size_t *@var{n})
-Return the name type of the mailbox identify by @var{mbxid}, in
-a @code{malloc(3)} buffer @var{name} of size @var{n}.
-@end deftypefun
-
-All mailbox implementations provide this minimum set of the API.  By using
-the registration new mailbox type can be added.
-
 @example
-#include <mailutils.h>
-#include <ftp0.h>
-#include <stdlib.h>
-
-/* extern url_ftp_init (url_t *url, const char *name);  in <ftp0.h> */
-/* extern url_ftp_destroy (url_t *url, const char *name); in <ftp0.h> */
-struct url_type url_ftp =
-@{
-  "ftp://", 6, /* protocol and len */
-  "ftp://<user>:<passwd>@@<hostname>:<port>", /* help string */
-  (int)&url_ftp, /* need a uniq id */
-  url_ftp_init, url_ftp_destroy  /* constructor and destructor */
-@};
-
-/* extern mailbox_unix_init (); in <ftp0.h> */
-/* extern mailbox_unix_destroy (); in <ftp0.h> */
-struct mailbox_type mbx_ftp =
-@{
-  "FTP MBOX", /* name type */
-  (int)&mbx_ftp, /* need a uniq id */
-  &url_ftp, /* url id */
-  mailbox_unix_init,    /* constructor */
-  mailbox_unix_destroy  /* destructor */
-@};
-
-int main ()
-@{
-   struct mailbox_type *mtype;
-   size_t size=0, i;
-
-   mailbox_add_type (&mbx_ftp);
-
-   /* check if it is added */
-   mailbox_list_mtype (&mtype, &size)
-   for (i = 0; i < size; i++)
-     @{
-        puts (mtype[i].name)
-        puts (mtype[i].description)
-     @}
-   free(*mtype);
-
-   @dots{}
-
-  return 0;
-@}
+@group
+                             mailbox_t                  url_t
+  -/var/mail-    +---//---->/-----------------\    +-->/-----------\
+ (  alain   )    |          |  url_t        *-|----+   |  port     |
+  -----------    |          |-----------------+        |  hostname |
+ (  jakob *-)----+          |  auth_t       *-|----+   |  file     |
+  -----------               |-----------------+    |   |  ...      |
+ (  jeff    )               |  stream_t       |    |   \-----------/
+  -----------               |-----------------|    |
+ (  sean    )               |  locker_t       |    |    auth_t
+  ----------                |-----------------|    +-->/----------\
+                            |  url_t          |        |  user    |
+                            |-----------------|        |  passwd  |
+                            |  message[0]     |        \----------/
+                            |  ......         |
+                            |  message[n]     |
+                            \-----------------/
+@end group
 @end example
 
-@section Unix Mbox
-@cindex Unix Mbox
+@deftypefun int mailbox_create (mailbox_t *@var{pmbox}, const char *@var{name}, int @var{id})
+The funcion @code{mailbox_create} allocates and initializes @var{pmbox}.
+The validation is base on the scheme of the url @var{name} or @var{id}.
 
-TODO: describe particularities :
-locking policy, appending envelope, describe the flags use in _open(..), etc...
+The return value is @code{0} on success and a code number on error conditions:
+@table @code
+@item MU_ERROR_INVALID_NAME
+The url @var{name} supply is invalid or not supported.
+@item MU_ERROR_INVALID_ID
+The @var{id} is not pointing to a valid reference.
+@item MU_ERROR_INVALID_ARG
+@var{pmbox} is NULL.
+@item MU_ERROR_OUT_OF_MEMORY
+Not enough memory to allocate resources.
+@end table
+@end deftypefun
 
-@section POP3 Mbox
-@cindex POP3 Mbox
+@deftypefun int mailbox_create_default (mailbox_t *@var{pmbox}, const char *@var{user})
+The environment variable @emph{$MAIL} or the string form by
+@emph{$MAILDIR}/@var{user}" or @emph{$LOGNAME} if @var{user} is null,
+for a default mailbox and calls @code{mailbox_create}.
+@end deftypefun
 
-TODO: describe timeout policies, describe the flags use in _open(..),
-describe different authorization supported.
+@deftypefun  int mailbox_get_stream (mailbox_t @var{mbox}, stream_t *@var{pstream})
+The mailbox stream is put in @var{pstream}.
 
-@section IMAP Mbox
-@cindex IMAP Mbox
+The return value is @code{0} on success and a code number on error conditions:
+@table @code
+@item MU_ERROR_INVALID_ARG
+@var{mbox} is invalid or @var{pstream} is NULL.
+@end table
+@end deftypefun
 
-Not implemented.
+@deftypefun int mailbox_set_stream (mailbox_t @var{mbox}, stream_t @var{stream})
+Set the @var{stream} connection to use for the mailbox.
 
-@section QMail Mbox
-@cindex QMail Mbox
+The return value is @code{0} on success and a code number on error conditions:
+@table @code
+@item MU_ERROR_INVALID_ARG
+@var{mbox} or @var{stream} are NULL.
+@end table
+@end deftypefun
 
-Not implemented.
+@deftypefun int mailbox_open (mailbox_t @var{mbox}, int @var{flag})
+A connection is open, if no stream was provided, a stream
+is create base on the @var{mbox} type.  The @var{flag} can be OR'ed.
+See @code{stream_create} for @var{flag} description.
 
-@section MMDF Mbox
-@cindex MMDF Mbox
+The return value is @code{0} on success and a code number on error conditions:
+@table @code
+@item MU_ERROR_EAGAIN
+@itemx MU_ERROR_EINPROGRESS
+Operation in progress.
+@item MU_ERROR_BUSY
+Resource busy.
+@item MU_ERROR_INVALID_ARG
+@var{mbox} is null or flag is invalid.
+@item MU_ERROR_OUT_OF_MEMORY
+Not enough memory.
+@end table
+@end deftypefun
 
-Not implemented.
+@deftypefun  int mailbox_close (mailbox_t @var{mbox})
+The stream attach to @var{mbox} is close.
+
+The return value is @code{0} on success and a code number on error conditions:
+@table @code
+@item MU_ERROR_INVALID_ARG
+@var{mbox} is null.
+@end table
+@end deftypefun
+
+@deftypefun  void mailbox_destroy (mailbox_t *@var{pmbox})
+Destroy and releases resources hold by @var{pmbox}.
+@end deftypefun
+
+@deftypefun  int mailbox_get_message (mailbox_t @var{mbox}, size_t @var{msgno}, message_t *@var{pmessage})
+Retreive message number @var{msgno}, @var{pmessage} is allocate and
+initialize.
+
+The return value is @code{0} on success and a code number on error conditions:
+@table @code
+@item MU_ERROR_INVALID_ARG
+@var{mbox} is null or @var{msgno} is invalid.
+@item MU_ERROR_OUT_OF_MEMORY
+Not enough memory.
+@end table
+@end deftypefun
+
+@deftypefun  int mailbox_append_message (mailbox_t @var{mbox}, message_t @var{message})
+The @var{message} is append to the mailbox @var{mbox}.
+
+The return value is @code{0} on success and a code number on error conditions:
+@table @code
+@item MU_ERROR_INVALID_ARG
+@var{mbox} is null or @var{message} is invalid.
+@end table
+@end deftypefun
+
+@deftypefun  int mailbox_messages_count (mailbox_t @var{mbox}, size_t *@var{pnumber});
+Give the number of message is @var{mbox}.
+
+The return value is @code{0} on success and a code number on error conditions:
+@table @code
+@item MU_ERROR_INVALID_ARG
+@var{mbox} is null.
+@end table
+@end deftypefun
+
+@deftypefun  int mailbox_expunge (mailbox_t @var{mbox})
+All the messages set deleted are removed.
+
+The return value is @code{0} on success and a code number on error conditions:
+@table @code
+@item MU_ERROR_INVALID_ARG
+@var{mbox} is null.
+@end table
+@end deftypefun
+
+@deftypefun  int mailbox_get_locker (mailbox_t @var{mbox}, locker_t *@var{plocker})
+Return the @var{locker} object.
+
+The return value is @code{0} on success and a code number on error conditions:
+@table @code
+@item MU_ERROR_INVALID_ARG
+@var{mbox} is null.
+@end table
+@end deftypefun
+
+@deftypefun  int mailbox_set_locker (mailbox_t @var{mbox}, locker_t @var{locker})
+Set the type of locking done by the @var{mbox}.
+
+The return value is @code{0} on success and a code number on error conditions:
+@table @code
+@item MU_ERROR_INVALID_ARG
+@var{mbox} is null.
+@end table
+@end deftypefun
+
+@deftypefun  int mailbox_get_auth (mailbox_t @var{mbox}, auth_t *@var{pauth})
+Retriever the @var{*pauth} of the @var{mbox}.
+
+The return value is @code{0} on success and a code number on error conditions:
+@table @code
+@item MU_ERROR_INVALID_ARG
+@var{mbox} is null.
+@end table
+@end deftypefun
+
+@deftypefun  int mailbox_set_auth (mailbox_t @var{mbox}, auth_t @var{auth})
+Set the type of authaurity for the mailbox.
+
+The return value is @code{0} on success and a code number on error conditions:
+@table @code
+@item MU_ERROR_INVALID_ARG
+@var{mbox} is null.
+@end table
+@end deftypefun
+
+@deftypefun  int mailbox_is_updated (mailbox_t @var{mbox})
+Check if the mailbox is uptodate.
+
+The return value is @code{0} on success and a code number on error conditions:
+@table @code
+@item MU_ERROR_INVALID_ARG
+@var{mbox} is null.
+@end table
+@end deftypefun
+
+@deftypefun  int mailbox_scan (mailbox_t @var{mbox}, size_t @var{msgno}, size_t *@var{pcount});
+Scan the mailbox for new messages starting at message @var{msgno}.
+
+The return value is @code{0} on success and a code number on error conditions:
+@table @code
+@item MU_ERROR_INVALID_ARG
+@var{mbox} is null.
+@item MU_ERROR_OUT_OF_MEMORY
+Not enough memory.
+@end table
+@end deftypefun
+
+@deftypefun  int mailbox_size (mailbox_t @var{mbox}, off_t *@var{psize})
+Gives the @var{mbox} size.
+
+The return value is @code{0} on success and a code number on error conditions:
+@table @code
+@item MU_ERROR_INVALID_ARG
+@var{mbox} is null.
+@end table
+@end deftypefun
+
+@deftypefun  int mailbox_get_url (mailbox_t @var{mbox}, url_t *@var{purl})
+Gives the constructed @var{url}.
+
+The return value is @code{0} on success and a code number on error conditions:
+@table @code
+@item MU_ERROR_INVALID_ARG
+@var{mbox} is null.
+@end table
+@end deftypefun
+
+
+@deftypefun  int mailbox_register (mailbox_t mbox @var{mbox}, size_t @var{type}, int (*@var{action}) (size_t @var{type}, void *@var{arg}), void *@var{arg})
+
+Register a notification for a event @var{type}:
+@table @code
+@item MU_EVT_MBX_DESTROY
+Mailbox destruction.
+@item MU_EVT_MBX_CORRUPTED
+When doing expunge an error condition occured.
+@item MU_EVT_MBX_MSG_ADD
+On every new message when scanning.
+@item MU_EVT_MBX_PROGRESS
+When scanning notification is send.
+@end table
+@var{action} will be call when the event occured.
+
+The return value is @code{0} on success and a code number on error conditions:
+@table @code
+@item MU_ERROR_INVALID_ARG
+@var{mbox} is null.
+@item MU_ERROR_OUT_OF_MEMORY
+Not enough memory.
+@end table
+@end deftypefun
+
+@deftypefun  int mailbox_deregister (mailbox_t @var{mbox}, void *@var{action})
+Delete a register @var{action} for an event.
+
+The return value is @code{0} on success and a code number on error conditions:
+@table @code
+@item MU_ERROR_INVALID_ARG
+@var{mbox} is null.
+@end table
+@end deftypefun
+
+@deftypefun  int mailbox_set_debug_level (mailbox_t @var{mbox}, size_t @var{level})
+Set a trace @var{level}:
+@table @code
+@item MU_MAILBOX_DEBUG_TRACE
+Trace the functions.
+@item MU_MAILBOX_DEBUG_PROT
+Trace the protocol.
+@end table
+
+The return value is @code{0} on success and a code number on error conditions:
+@table @code
+@table @code
+@item MU_ERROR_INVALID_ARG
+@var{mbox} is null.
+@end table
+@end table
+@end deftypefun
+
+@deftypefun  int mailbox_get_debug_level (mailbox_t @var{mbox}, size_t *@var{plevel})
+
+The return value is @code{0} on success and a code number on error conditions:
+@table @code
+@item MU_ERROR_INVALID_ARG
+@var{mbox} is null.
+@end table
+@end deftypefun
+
+@deftypefun  int mailbox_set_debug_print (mailbox_t @var{mbox}, int (*@var{debug_print}) (void *@var{arg}, const char *@var{buffer}, size_t @var{buffler_length}), void *@var{arg})
+Set the function @var{debug_print} being call for the trace.
+
+The return value is @code{0} on success and a code number on error conditions:
+@table @code
+@item MU_ERROR_INVALID_ARG
+@var{mbox} is null.
+@end table
+@end deftypefun

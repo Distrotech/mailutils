@@ -5,51 +5,76 @@
 #include <string.h>
 #include <mailutils.h>
 
-int main (int argc, char **argv)
+#define BUFFER_SIZE 64
+int
+main (int argc, const char **argv)
 @{
-   char buffer[1024];
-   char from[64];
-   char subject[64];
+   char from[BUFFER_SIZE];
+   char subject[BUFFER_SIZE];
    char *mail;
    mailbox_t mbox;
    int status
-   size_t msgno, msg_total, size;
+   size_t msgno, total = 0;
 
    mail = (argc == 2) ? argv[1] : getenv ("MAIL");
 
-   status = mailbox_init_default (&mbox, mail);
+   status = mailbox_create (&mbox, mail, 0);
    if (status != 0)
      @{
-        fprintf (stderr, "mailbox_init(%s) failed\n",
-                 mail ? mail : "Default");
+        fprintf (stderr, "mailbox_create: failed\n")
         exit (EXIT_FAILURE);
      @}
 
-   status = mailbox_open (mbox, MU_MB_ORDONLY);
+   status = mailbox_open (mbox, MU_STREAM_READ);
    if (status != 0)
      @{
-        fprintf (stderr, "mailbox_open(%s), %s\n", mail);
+        fprintf (stderr, "mailbox_open: failed\n");
         exit (EXIT_FAILURE);
      @}
 
-   mailbox_scan (mbox, &msg_total);
+   status = mailbox_scan (mbox, &total);
+   if (status != 0)
+     @{
+        fprintf (stderr, "mailbox_scan: failed\n");
+        exit (EXIT_FAILURE);
+     @}
 
-   for (msgno = 0; msgno < msg_total; msgno++)
+   for (msgno = 1; msgno <= total; msgno++)
       @{
-         if (mailbox_get_header (mbox, msgno, 0, buffer,
-                                 sizeof (buffer), &size) != 0)
+         message_t msg;
+         header_t hdr;
+
+         if ((status = mailbox_get_message (mbox, msgno, &msg)) != 0
+             || (status = message_get_header (msg, &hdr)) != 0)
            @{
-               fprintf (stderr, "header corrupted\n");
+               fprintf (stderr, "Error retrieving headers\n");
                exit (EXIT_FAILURE);
            @}
-         header_gvalue (buffer, size, MU_HDR_FROM, from,
-                        sizeof (from), NULL);
-         header_gvalue (buffer, size, MU_HDR_SUBJECT, subject,
-                        sizeof (subject), NULL);
-         printf ("%s %s\n", from, subject);
+
+         status = header_get_value (hdr, MU_HEADER_FROM, from,
+                                    sizeof (from), NULL);
+         if (status != 0)
+            strcpy (from, "(NO FROM)");
+
+         status = header_get_value (hdr, MU_HEADER_SUBJECT, subject,
+                                    sizeof (subject), NULL);
+         if (status != 0)
+            strcpy (subject, "(NO SUBJECT)");
+
+         printf ("%s\t%s\n", from, subject);
       @}
 
     mailbox_close (mbox);
     mailbox_destroy (&mbox);
     return 0;
 @}
+
+@example
+@cartouche
+% MAIL=pop://alain@@localhost ./sfrom
+Passwd: xxxx
+Jim Meyering <meyering@@foo.org>      fetish(shellutils) beta
+Fran@,{c}ois Pinard <pinard@@bar.org> recode new alpha
+@dots{}
+@end cartouche
+@end example
