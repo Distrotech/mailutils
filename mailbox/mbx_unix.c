@@ -608,14 +608,14 @@ mailbox_unix_readhdr (mailbox_t mbox, char *buf, size_t len,
 	  mum->hdr_status = mum->hdr_status_end - strlen (buf);
           sep = strchr(buf, ':'); /* pass the ':' */
           if (strchr (sep, 'R') != NULL || strchr (sep, 'r') != NULL)
-	    attribute_set_read (mum->old_attr, mbox);
+	    attribute_set_read (mum->old_attr);
           if (strchr (sep, 'O') != NULL || strchr (sep, 'o') != NULL)
-	    attribute_set_seen (mum->old_attr, mbox);
+	    attribute_set_seen (mum->old_attr);
           if (strchr (sep, 'A') != NULL || strchr (sep, 'a') != NULL)
-	    attribute_set_answered (mum->old_attr, mbox);
+	    attribute_set_answered (mum->old_attr);
           if (strchr (sep, 'F') != NULL || strchr (sep, 'f') != NULL)
-	    attribute_set_flagged (mum->old_attr, mbox);
-	  attribute_copy (mum->new_attr, mum->old_attr, mbox);
+	    attribute_set_flagged (mum->old_attr);
+	  attribute_copy (mum->new_attr, mum->old_attr);
         }
     }
   /* check for any dubious conditions */
@@ -774,7 +774,7 @@ mailbox_unix_scan (mailbox_t mbox, size_t msgno, size_t *pcount)
 	  status = attribute_init (&(mum->new_attr), mbox);
 	  if (status != 0)
 	    {
-	      attribute_init (&(mum->old_attr), mbox);
+	      attribute_destroy (&(mum->old_attr), mbox);
 	      funlockfile (mud->file);
 	      mailbox_unix_iunlock (mbox);
 	      mailbox_unix_unlock (mbox);
@@ -1443,8 +1443,7 @@ mailbox_unix_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
   header_t header = NULL;
 
   if (mbox == NULL || pmsg == NULL ||
-      (mud = (mailbox_unix_data_t)mbox->data) == NULL ||
-      mailbox_unix_is_deleted (mbox, msgno))
+      (mud = (mailbox_unix_data_t)mbox->data) == NULL)
     return EINVAL;
 
   mum = mud->umessages[msgno - 1];

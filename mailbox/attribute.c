@@ -56,7 +56,6 @@ attribute_destroy (attribute_t *pattr, void *owner)
   if (pattr && *pattr)
     {
       attribute_t attr = *pattr;
-
       if (attr->owner == owner)
 	free (attr);
       /* loose the link */
@@ -66,85 +65,61 @@ attribute_destroy (attribute_t *pattr, void *owner)
 }
 
 int
-attribute_set_seen (attribute_t attr, void *owner)
+attribute_set_seen (attribute_t attr)
 {
   if (attr == NULL)
     return EINVAL;
-  if (owner == attr->owner)
-    {
-      attr->flag |= MU_ATTRIBUTE_SEEN;
-      return 0;
-    }
-  return EACCES;
+  attr->flag |= MU_ATTRIBUTE_SEEN;
+  return 0;
 }
 
 int
-attribute_set_answered (attribute_t attr, void *owner)
+attribute_set_answered (attribute_t attr)
 {
   if (attr == NULL)
     return EINVAL;
-  if (owner == attr->owner)
-    {
-      attr->flag |= MU_ATTRIBUTE_ANSWERED;
-      return 0;
-    }
-  return EACCES;
+  attr->flag |= MU_ATTRIBUTE_ANSWERED;
+  return 0;
 }
 
 int
-attribute_set_flagged (attribute_t attr, void *owner)
+attribute_set_flagged (attribute_t attr)
 {
   if (attr == NULL)
     return EINVAL;
-  if (owner == attr->owner)
-    {
-      attr->flag |= MU_ATTRIBUTE_FLAGGED;
-      return 0;
-    }
-  return EACCES;
+  attr->flag |= MU_ATTRIBUTE_FLAGGED;
+  return 0;
 }
 
 int
-attribute_set_read (attribute_t attr, void *owner)
+attribute_set_read (attribute_t attr)
 {
   if (attr == NULL)
     return EINVAL;
-  if (owner == attr->owner)
-    {
-      attr->flag |= MU_ATTRIBUTE_READ;
-      return 0;
-    }
-  return EACCES;
+  attr->flag |= MU_ATTRIBUTE_READ;
+  return 0;
 }
 
 int
-attribute_set_deleted (attribute_t attr, void *owner)
+attribute_set_deleted (attribute_t attr)
 {
   if (attr == NULL)
     return EINVAL;
-  if (owner == attr->owner)
-    {
-      attr->flag |= MU_ATTRIBUTE_DELETED;
-      return 0;
-    }
-  return EACCES;
+  attr->flag |= MU_ATTRIBUTE_DELETED;
+  return 0;
 }
 
 int
-attribute_set_draft (attribute_t attr, void *owner)
+attribute_set_draft (attribute_t attr)
 {
   if (attr == NULL)
     return EINVAL;
-  if (owner == attr->owner)
-    {
-      attr->flag |= MU_ATTRIBUTE_DRAFT;
-      return 0;
-    }
-  return EACCES;
+  attr->flag |= MU_ATTRIBUTE_DRAFT;
+  return 0;
 }
 
 int
-attribute_set_recent (attribute_t attr, void *owner)
+attribute_set_recent (attribute_t attr)
 {
   if (attr == NULL)
     return EINVAL;
@@ -213,94 +188,66 @@ attribute_is_recent (attribute_t attr)
 }
 
 int
-attribute_unset_seen (attribute_t attr, void *owner)
+attribute_unset_seen (attribute_t attr)
 {
   if (attr == NULL)
     return 0;
-  if (owner == attr->owner)
-    {
-      attr->flag &= ~MU_ATTRIBUTE_SEEN;
-      return 0;
-    }
-  return EACCES;
+  attr->flag &= ~MU_ATTRIBUTE_SEEN;
+  return 0;
 }
 
 int
-attribute_unset_answered (attribute_t attr, void *owner)
+attribute_unset_answered (attribute_t attr)
 {
   if (attr == NULL)
     return 0;
-  if (owner == attr->owner)
-    {
-      attr->flag &= ~MU_ATTRIBUTE_ANSWERED;
-      return 0;
-    }
-  return EACCES;
+  attr->flag &= ~MU_ATTRIBUTE_ANSWERED;
+  return 0;
 }
 
 int
-attribute_unset_flagged (attribute_t attr, void *owner)
+attribute_unset_flagged (attribute_t attr)
 {
   if (attr == NULL)
     return 0;
-  if (owner == attr->owner)
-    {
-      attr->flag &= ~MU_ATTRIBUTE_FLAGGED;
-      return 0;
-    }
-  return EACCES;
+  attr->flag &= ~MU_ATTRIBUTE_FLAGGED;
+  return 0;
 }
 
 int
-attribute_unset_read (attribute_t attr, void *owner)
+attribute_unset_read (attribute_t attr)
 {
   if (attr == NULL)
     return 0;
-  if (owner == attr->owner)
-    {
-      attr->flag &= ~MU_ATTRIBUTE_READ;
-      return 0;
-    }
-  return EACCES;
+  attr->flag &= ~MU_ATTRIBUTE_READ;
+  return 0;
 }
 
 int
-attribute_unset_deleted (attribute_t attr, void *owner)
+attribute_unset_deleted (attribute_t attr)
 {
   if (attr == NULL)
     return 0;
-  if (owner == attr->owner)
-    {
-      attr->flag &= ~MU_ATTRIBUTE_DELETED;
-      return 0;
-    }
-  return EACCES;
+  attr->flag &= ~MU_ATTRIBUTE_DELETED;
+  return 0;
 }
 
 int
-attribute_unset_draft (attribute_t attr, void *owner)
+attribute_unset_draft (attribute_t attr)
 {
   if (attr == NULL)
     return 0;
-  if (owner == attr->owner)
-    {
-      attr->flag &= ~MU_ATTRIBUTE_DRAFT;
-      return 0;
-    }
-  return EACCES;
+  attr->flag &= ~MU_ATTRIBUTE_DRAFT;
+  return 0;
 }
 
 int
-attribute_unset_recent (attribute_t attr, void *owner)
+attribute_unset_recent (attribute_t attr)
 {
   if (attr == NULL)
     return 0;
-  if (owner == attr->owner)
-    {
-      attr->flag &= ~MU_ATTRIBUTE_RECENT;
-      return 0;
-    }
-  return EACCES;
+  attr->flag &= ~MU_ATTRIBUTE_RECENT;
+  return 0;
 }
 
 int
@@ -312,16 +259,12 @@ attribute_is_equal (attribute_t attr, attribute_t attr2)
 }
 
 int
-attribute_copy (attribute_t dest, attribute_t src, void *dest_owner)
+attribute_copy (attribute_t dest, attribute_t src)
 {
   if (dest == NULL || src == NULL)
     return EINVAL;
-  if (dest->owner == dest_owner)
-    {
-      memcpy (dest, src, sizeof (*dest));
-      return 0;
-    }
-  return EACCES;
+  memcpy (dest, src, sizeof (*dest));
+  return 0;
 }
 
 int
@@ -340,13 +283,13 @@ string_to_attribute (const char *buffer, size_t len,
     {
       sep = strchr(buffer, ':'); /* pass the ':' */
       if (strchr (sep, 'R') != NULL || strchr (sep, 'r') != NULL)
-	attribute_set_read (*pattr, owner);
+	attribute_set_read (*pattr);
       if (strchr (sep, 'O') != NULL || strchr (sep, 'o') != NULL)
-	attribute_set_seen (*pattr, owner);
+	attribute_set_seen (*pattr);
       if (strchr (sep, 'A') != NULL || strchr (sep, 'a') != NULL)
-	attribute_set_answered (*pattr, owner);
+	attribute_set_answered (*pattr);
       if (strchr (sep, 'F') != NULL || strchr (sep, 'f') != NULL)
-	attribute_set_flagged (*pattr, owner);
+	attribute_set_flagged (*pattr);
     }
   return 0;
 }

@@ -150,7 +150,7 @@ message_clone (message_t msg)
       body_destroy (&body, msg);
       stream_destroy (&stream, msg);
     }
-  attribute_copy (attribute, msg->attribute, msg);
+  attribute_copy (attribute, msg->attribute);
 
   /* every thing went ok */
   msg->header = header;
