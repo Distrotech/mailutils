@@ -54,5 +54,8 @@ extern error_t mu_argp_parse __P ((const struct argp * argp,
 				   int *arg_index, void *input));
 extern int mu_register_capa __P((const char *name, struct argp_child *child));
 
+extern void mu_print_options __P((void));
+extern const char *mu_check_option __P((char *name));
+
 #endif
 

@@ -307,14 +307,37 @@ static char *mu_conf_option[] = {
   NULL
 };
 
-static void
-show_options()
+void
+mu_print_options ()
 {
   int i;
   
   for (i = 0; mu_conf_option[i]; i++)
     printf ("%s\n", mu_conf_option[i]);
 }
+
+const char *
+mu_check_option (char *name)
+{
+  int i;
+  
+  for (i = 0; mu_conf_option[i]; i++)
+    {
+      int len;
+      char *q, *p = strchr (mu_conf_option[i], '=');
+      if (p)
+	len = p - mu_conf_option[i];
+      else
+	len = strlen (mu_conf_option[i]);
+
+      if (strncasecmp (mu_conf_option[i], name, len) == 0) 
+	return mu_conf_option[i];
+      else if ((q = strchr (mu_conf_option[i], '_')) != NULL
+	       && strncasecmp (q + 1, name, len - (q - mu_conf_option[i]) - 1) == 0)
+	return mu_conf_option[i];
+    }
+  return NULL;
+}  
 
 static error_t
 mu_common_argp_parser (int key, char *arg, struct argp_state *state)
@@ -331,7 +354,7 @@ mu_common_argp_parser (int key, char *arg, struct argp_state *state)
       exit (0);
 
     case ARG_SHOW_OPTIONS:
-      show_options ();
+      mu_print_options ();
       exit (0);
       
       /* mailbox */
@@ -349,15 +372,19 @@ mu_common_argp_parser (int key, char *arg, struct argp_state *state)
 	      case 'E':
 		flags |= MU_LOCKER_EXTERNAL;
 		break;
+		
 	      case 'R':
 		flags |= MU_LOCKER_RETRY;
 		break;
+		
 	      case 'T':
 		flags |= MU_LOCKER_TIME;
 		break;
+		
 	      case 'P':
 		flags |= MU_LOCKER_PID;
 		break;
+		
 	      default:
 		argp_error (state, "invalid lock flag '%c'", *arg);
 	      }
@@ -391,7 +418,6 @@ mu_common_argp_parser (int key, char *arg, struct argp_state *state)
 			arg, mu_errstring(err));
 	  }
       break;
-
 
       /* log */
     case ARG_LOG_FACILITY:
