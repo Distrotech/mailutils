@@ -22,3 +22,4 @@ mhl
 pick
 *.output
 .gdbinit
+mailutils-mh.el

@@ -1,3 +1,8 @@
+2003-02-14  Wojciech Polak
+
+	* po/POTFILES.in: Added auth/tls.c.
+	* doc/texinfo/mailutils.texi: Updated copyright year.
+
 2003-02-14  Sergey Poznyakoff  
 
 	* mail/msgset.y: Bugfix. '*' should not select deleted
