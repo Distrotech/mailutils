@@ -1,11 +1,16 @@
 This is the GNU mailutils package
 =================================
 
-This package contains a POP3 server and a simple replacement for `/bin/mail'.
-An IMAP4 server is being worked on.  These applications are tied around a
-central library that handles all mailbox activity called libmailbox, which is
-LGPLd (See COPYING).  If you want to use this in your own programs, see the
-examples subdirectory.
+This package contains a POP3 server and a simple replacement for
+`/bin/mail'.  An IMAP4 server is being worked on.  These applications
+are tied around a central library that handles all mailbox activity
+called libmailbox.  If you want to use this in your own programs, see
+the examples subdirectory.
+
+The library is licensed under the GNU LGPL.  The documentation is
+licensed under the GNU Free Documentation License.  All other code is
+licensed under the GNU GPL.  See the files COPYING, COPYING.LIB, and
+COPYING.FDL for details.
 
 This software is part of the GNU project and belongs to the Free Software 
 Foundation.
