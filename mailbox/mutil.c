@@ -395,6 +395,7 @@ mu_get_user_email (const char *name)
   char *localpart = NULL;
   const char *domainpart = NULL;
   char *email = NULL;
+  char *tmpname = NULL;
 
   if (!name && mu_user_email)
     {
@@ -406,25 +407,29 @@ mu_get_user_email (const char *name)
 
   if (!name)
     {
-      struct passwd *pw = getpwuid (getuid ());
-      if (!pw)
+      struct mu_auth_data *auth = mu_get_auth_by_uid (getuid ());
+      if (!auth)
 	{
 	  errno = EINVAL;
 	  return NULL;
 	}
-      name = pw->pw_name;
+      name = tmpname = strdup(auth->name);
+      if (auth)
+	mu_auth_data_free (auth);
     }
 
   status = mu_get_user_email_domain (&domainpart);
 
   if (status)
     {
+      free(tmpname);
       errno = status;
       return NULL;
     }
 
   if ((status = parse822_quote_local_part (&localpart, name)))
     {
+      free(tmpname);
       errno = status;
       return NULL;
     }
@@ -437,6 +442,7 @@ mu_get_user_email (const char *name)
   else
     sprintf (email, "%s@%s", localpart, domainpart);
 
+  free(tmpname);
   free (localpart);
 
   return email;
