@@ -46,7 +46,8 @@ static int select_body __P ((message_t msg, void *closure));
 static int select_type __P ((message_t msg, void *closure));
 static int select_sender __P ((message_t msg, void *closure));
 static int select_deleted __P ((message_t msg, void *closure));
-
+static int check_set __P ((msgset_t **pset));
+ 
 int yyerror __P ((const char *));
 int yylex  __P ((void));
 
