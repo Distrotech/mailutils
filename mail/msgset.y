@@ -243,17 +243,17 @@ yyerror (const char *s)
   fprintf (stderr, "%s: ", xargv[0]);
   fprintf (stderr, "%s", s);
   if (!cur_p)
-    fprintf (stderr, " near end");
+    fprintf (stderr, _(" near end"));
   else if (*cur_p == 0)
     {
       int i =  (*cur_p == 0) ? cur_ind + 1 : cur_ind;
       if (i == xargc)
-	fprintf (stderr, " near end");
+	fprintf (stderr, _(" near end"));
       else
-	fprintf (stderr, " near %s", xargv[i]);
+	fprintf (stderr, _(" near %s"), xargv[i]);
     }
   else
-    fprintf (stderr, " near %s", cur_p);
+    fprintf (stderr, _(" near %s"), cur_p);
   fprintf (stderr, "\n");
   return 0;
 }
