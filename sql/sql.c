@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2004 Free Software Foundation, Inc.
+   Copyright (C) 2004, 2005 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -360,7 +360,7 @@ mu_sql_get_column (mu_sql_connection_t conn, size_t nrow, size_t ncol,
 }
 
 
-char *
+const char *
 mu_sql_strerror (mu_sql_connection_t conn)
 {
   if (!conn)
