@@ -1,3 +1,80 @@
+2003-01-18  Sergey Poznyakoff 
+
+	* include/mailutils/stream.h (stream_set_strerror)
+	  (stream_sequential_read,stream_sequential_readline)
+	  (stream_sequential_write,stream_strerror): New functions.
+	  
+	* include/mailutils/tls.h: Removed inclusion of gnutls.h
+	  (tls_stream_create): New declaration.
+	  (mu_check_tls_environment, mu_init_tls_libs)
+	  (mu_deinit_tls_libs): Added prototypes.
+
+	* mailbox/file_stream.c (_file_strerror): New function.
+	  (file_stream_create): Register strerror function.
+	  (stdio_stream_create): Enable caching only if the
+	  file is not seekable and MU_STREAM_SEEKABLE bit is
+	  set in flags. Register different sets of
+	  (read,readline,write) handlers depending on the
+	  setting of MU_STREAM_SEEKABLE bit.
+
+	* mailbox/include/stream0.h (struct _stream): Removed
+	  unused member `roff'. Added new member `offset' for
+	  support of sequential access functions.
+	  (_strerror): New method. Return stream-specific
+	  error description (if any).
+	* mailbox/stream.c (stream_set_strerror): New function.
+	  (stream_sequential_read,stream_sequential_readline)
+	  (stream_sequential_write): New functions for sequential
+	  access to stream.
+	  (stream_strerror): New function. Return stream-specific
+	  error description (if any).
+	  
+	* auth/tls.c: Implemented TLS streams. All tls-specific details
+	  are now hidden within this module.
+	  
+	* examples/base64.c: Use sequential access for the output stream
+	* examples/msg-send.c: Open stdio stream with MU_STREAM_SEEKABLE
+	  bit set.
+	* mail.remote/mail.remote.c: Likewise.
+	  
+	* imap4d/bye.c (imap4d_bye0): Use util_is_master() and util_bye()
+	* imap4d/imap4d.c (imap4d_mainloop): Changed proto following
+	  that of pop3.
+	* imap4d/imap4d.h (util_setio): Changed declaration.
+	  (util_is_ofile): Removed.
+	  (util_is_master): New.
+	  (imap4d_deinit_tls_server): Removed.
+	* imap4d/signal.c (imap4d_signal): Use util_is_master().
+	* imap4d/starttls.c (imap4d_starttls): Flush output
+	  before initializing tls.
+	* imap4d/util.c (ifile, ofile, sfile): Removed.
+	  (istream, ostream): New statics.
+	  (util_send_lowlevel): Removed
+	  (util_send, util_out, util_finish, imap4d_readline)
+	  (util_flush_output): Rewritten using streams.
+	  (util_setio): Changed argument types
+	  (util_is_ofile): Removed.
+	  (util_is_master): New function.
+	  (imap4d_init_tls_server): Rewritten using TLS streams.
+	  (imap4d_deinit_tls_server): Removed.
+	  (util_bye): New function.
+
+	* pop3d/extra.c (ifile, ofile): Removed.
+	  (istream, ostream): New streams.
+	  (pop3d_setio,pop3d_init_tls_server): Rewritten using streams.
+	  (pop3d_flush_output,pop3d_is_master): Likewise.
+	  (pop3d_outf,pop3d_readline): Likewise.
+	  (pop3d_deinit_tls_server): Removed.
+	  (pop3d_bye): New function.
+	* pop3d/pop3d.c (pop3d_mainloop): use pop3d_bye().
+	  
+	* mh/mh_format.c (builtin_references): Fixed typo.
+	  (builtin_package, builtin_package_string)
+	  (builtin_version): New functions.
+	* mh/replcomps: Emit X-Mailer header.
+	* mh/repl.c (format_str): Likewise.
+	* mh/README: Updated
+	
 2003-01-17  Wojciech Polak
 
 	* imap4d/capability.c: Small fix.

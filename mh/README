@@ -8,6 +8,24 @@ options is provided for backward compatibility.
 
 ** New functions
 
+*** package
+Argument: none
+Return: string
+
+Returns package name (string "mailutils").
+
+*** package_string
+Argument: none
+Return: string
+
+Returns full package string (e.g. "GNU Mailutils 2.1")
+
+*** version
+Argument: none
+Return: string
+
+Returns mailutils version.
+
 *** unre
 Argument: string
 Return: string
