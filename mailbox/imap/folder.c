@@ -223,18 +223,33 @@ parse_capa (f_imap_t f_imap, char *str)
 }
 
 static int
-check_capa (f_imap_t f_imap, char *capa)
+read_capa (f_imap_t f_imap, int force)
 {
-  int i;
+  int status = 0;
+  
+  if (force)
+    {
+      argcv_free (f_imap->capac, f_imap->capav);
+      f_imap->capac = 0;
+      f_imap->capav = NULL;
+    }
   
   if (!f_imap->capav)
     {
-      int status;
       status = imap_writeline (f_imap, "g%u CAPABILITY\r\n",
 			       f_imap->seq++);
       status = imap_send (f_imap);
       status = imap_parse (f_imap);
     }
+  return status;
+}
+
+static int
+check_capa (f_imap_t f_imap, char *capa)
+{
+  int i;
+
+  read_capa (f_imap, 0);
   for (i = 0; i < f_imap->capac; i++)
     if (strcasecmp (f_imap->capav[i], capa) == 0)
       return 0;
@@ -268,6 +283,7 @@ tls (folder_t folder)
 	folder->stream = str;
       FOLDER_DEBUG1 (folder, MU_DEBUG_PROT, "TLS negotiation %s\n",
 		     status == 0 ? "succeeded" : "failed");
+      read_capa (f_imap, 1);
     }
   return status;
 #else
@@ -284,6 +300,12 @@ authenticate_imap_login (authority_t auth)
   ticket_t ticket;
   int status = 0;
 
+  if (check_capa (f_imap, "LOGINDISABLED") == 0)
+    {
+      FOLDER_DEBUG0 (folder, MU_DEBUG_PROT, "LOGIN command disabled\n");
+      return ENOSYS;
+    }
+  
   switch (f_imap->state)
     {
     case IMAP_AUTH:
