@@ -19,6 +19,7 @@ alloca
 fnmatch
 getpass-gnu
 malloc
+mbswidth
 obstack
 realloc
 setenv
