@@ -325,7 +325,7 @@ mu_mailcap_entry_coupiousoutput (mu_mailcap_entry_t entry, int *on)
       int i;
       for (i = 0; i < entry->fields_count; i++)
 	{
-	  int n = strcasecmp (entry->fields[i], "coupiousoutput");
+	  int n = strcasecmp (entry->fields[i], "copiousoutput");
 	  if (n == 0)
 	    {
 	      found = 1;
