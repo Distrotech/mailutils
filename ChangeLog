@@ -1,3 +1,29 @@
+2002-02-22  Sergey Poznyakoff 
+
+	* lib/argcv.c (argcv_get): Bugfix, *argc must be initialized to 1.
+	* lib/mu_argp.c (mu_common_argp_parser): Handle ARGP_KEY_FINI
+	  case.
+	  (mu_argp_error_code): new global. Specifies exit code for
+	  exits on error.
+	* lib/mu_argp.h: extern declaration for mu_argp_error_code.
+	* comsat/comsat.c: Removed call to mu_normalize_maildir.
+	* imap4d/imap4d.c: Likewise.
+	* mail.local/main.c: Likewise.
+	* pop3d/pop3d.c: Likewise.
+	
+	* imap4d/status.c: Syntax cleanup.
+
+	* mail/mail.h: include mu_argp.h
+	* mail/mail.c (main): Handle mailutils-common arguments.
+	* frm/frm.c: Likewise.
+	* guimb/main.c: Likewise.
+	* messages/messages.c: Likewise.
+	
+	* frm/Makefile.am: Added ARGP stuff.
+	* guimb/Makefile.am: LIkewise.
+	* imap4d/Makefile.am: Restored imap4d_DEPENDENCIES. Without it
+	  @AUTHOBJS@ do not get into dependencies.
+	
 2002-02-21  Jeff Bailey  <jbailey@outpost.dnsalias.org>
 
 	* sieve/Makefile.am: Link @ARGPLIBS@ before libmailutils.la to 
