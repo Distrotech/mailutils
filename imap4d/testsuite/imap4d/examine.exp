@@ -18,28 +18,20 @@
 
 imap4d_start 
 imap4d_auth "user!passwd" "guessme"
-
-proc get_uidvalidity {} {
-	regsub "(\[0-9\]*)\[0-9\]" "[clock seconds]" "\\1\[0-9\]" val
-	return $val
-}
-
 imap4d_test "EXAMINE INBOX"\
 "95 EXISTS"\
 "95 RECENT"\
--re "OK \\\[UIDVALIDITY [get_uidvalidity]\\\] UID valididy status"\
+-re "OK \\\[UIDVALIDITY [imap4d_uidvalidity]\\\] UID valididy status"\
 "OK \[UIDNEXT 96\] Predicted next uid"\
 "OK \[UNSEEN 1\] first unseen messsage"\
 "FLAGS (\\Answered \\Flagged \\Deleted \\Seen \\Draft)"\
 "OK \[PERMANENTFLAGS ()\] No Permanent flags"\
 "OK \[READ-ONLY\] EXAMINE Completed"
 
-set UIDVALIDITY [clock seconds]
-
 imap4d_test "SELECT INBOX"\
 "95 EXISTS"\
 "95 RECENT"\
--re "OK \\\[UIDVALIDITY [get_uidvalidity]\\\] UID valididy status"\
+-re "OK \\\[UIDVALIDITY [imap4d_uidvalidity]\\\] UID valididy status"\
 "OK \[UIDNEXT 96\] Predicted next uid"\
 "OK \[UNSEEN 1\] first unseen messsage "\
 "FLAGS (\\Answered \\Flagged \\Deleted \\Seen \\Draft)"\
@@ -47,18 +39,17 @@ imap4d_test "SELECT INBOX"\
 "OK \[READ-WRITE\] SELECT Completed"
 
 imap4d_test "STATUS INBOX (MESSAGES RECENT UNSEEN UIDVALIDITY UIDNEXT)" \
--re "STATUS INBOX \\(MESSAGES 95 RECENT 95 UNSEEN 95 UIDVALIDITY [get_uidvalidity] UIDNEXT 96 \\)" \
+-re "STATUS INBOX \\(MESSAGES 95 RECENT 95 UNSEEN 95 UIDVALIDITY [imap4d_uidvalidity] UIDNEXT 96 \\)" \
 "OK"
 
 imap4d_test "STATUS mbox1 (MESSAGES RECENT UNSEEN UIDNEXT)" \
 "STATUS mbox1 (MESSAGES 4 RECENT 4 UNSEEN 4 UIDNEXT 5 )" \
 "OK"
 
-set U [clock seconds]
 imap4d_test "EXAMINE mbox1" \
 "4 EXISTS"\
 "4 RECENT"\
--re "OK \\\[UIDVALIDITY [get_uidvalidity]\\\] UID valididy status"\
+-re "OK \\\[UIDVALIDITY [imap4d_uidvalidity]\\\] UID valididy status"\
 "OK \[UIDNEXT 5\] Predicted next uid"\
 "OK \[UNSEEN 1\] first unseen messsage"\
 "FLAGS (\\Answered \\Flagged \\Deleted \\Seen \\Draft)"\
