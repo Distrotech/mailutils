@@ -133,7 +133,6 @@ build_mime (mime_t *pmime, message_t msg, const char *text)
     struct tm *tm;
     char *sender;
     size_t off = 0;
-    header_t hdr;
     body_t body;
       
     message_create (&newmsg, NULL);
@@ -341,7 +340,6 @@ sieve_action_redirect (sieve_machine_t mach, list_t args, list_t tags)
   address_t addr = NULL, from = NULL;
   header_t hdr = NULL;
   int rc;
-  size_t size;
   char *fromaddr;
   mailer_t mailer = sieve_get_mailer (mach);
   
@@ -439,16 +437,16 @@ sieve_data_type fileinto_args[] = {
 };
 
 void
-sieve_register_standard_actions ()
+sieve_register_standard_actions (sieve_machine_t mach)
 {
-  sieve_register_action ("stop", sieve_action_stop, NULL, NULL, 1);
-  sieve_register_action ("keep", sieve_action_keep, NULL, NULL, 1);
-  sieve_register_action ("discard", sieve_action_discard, NULL, NULL, 1);
-  sieve_register_action ("fileinto", sieve_action_fileinto, fileinto_args,
-			 NULL, 1);
-  sieve_register_action ("reject", sieve_action_reject, fileinto_args,
+  sieve_register_action (mach, "stop", sieve_action_stop, NULL, NULL, 1);
+  sieve_register_action (mach, "keep", sieve_action_keep, NULL, NULL, 1);
+  sieve_register_action (mach, "discard", sieve_action_discard, NULL, NULL, 1);
+  sieve_register_action (mach, "fileinto", sieve_action_fileinto,
+			 fileinto_args, NULL, 1);
+  sieve_register_action (mach, "reject", sieve_action_reject, fileinto_args,
 			 NULL, 0);
-  sieve_register_action ("redirect", sieve_action_redirect, fileinto_args,
-			 NULL, 0);
+  sieve_register_action (mach, "redirect", sieve_action_redirect, 
+			 fileinto_args, NULL, 0);
 }
 
