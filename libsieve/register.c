@@ -25,9 +25,6 @@
 #include <string.h>  
 #include <sieve.h>
 
-static list_t test_list;
-static list_t action_list;
-
 static sieve_register_t *
 sieve_lookup (list_t list, const char *name)
 {
@@ -50,24 +47,25 @@ sieve_lookup (list_t list, const char *name)
 }
 
 sieve_register_t *
-sieve_test_lookup (const char *name)
+sieve_test_lookup (sieve_machine_t mach, const char *name)
 {
-  return sieve_lookup (test_list, name);
+  return sieve_lookup (mach->test_list, name);
 }
 
 sieve_register_t *
-sieve_action_lookup (const char *name)
+sieve_action_lookup (sieve_machine_t mach, const char *name)
 {
-  return sieve_lookup (action_list, name);
+  return sieve_lookup (mach->action_list, name);
 }
      
 static int
-sieve_register (list_t *list,
+sieve_register (list_t *pool,
+		list_t *list,
 		const char *name, sieve_handler_t handler,
 		sieve_data_type *arg_types,
 		sieve_tag_group_t *tags, int required)
 {
-  sieve_register_t *reg = malloc (sizeof (*reg));
+  sieve_register_t *reg = sieve_palloc (pool, sizeof (*reg));
 
   if (!reg)
     return ENOMEM;
@@ -93,17 +91,23 @@ sieve_register (list_t *list,
 
 
 int
-sieve_register_test (const char *name, sieve_handler_t handler,
+sieve_register_test (sieve_machine_t mach,
+		     const char *name, sieve_handler_t handler,
 		     sieve_data_type *arg_types,
 		     sieve_tag_group_t *tags, int required)
 {
-  return sieve_register (&test_list, name, handler, arg_types, tags, required);
+  return sieve_register (&mach->memory_pool,
+			 &mach->test_list, name, handler,
+			 arg_types, tags, required);
 }
 
 int
-sieve_register_action (const char *name, sieve_handler_t handler,
+sieve_register_action (sieve_machine_t mach,
+		       const char *name, sieve_handler_t handler,
 		       sieve_data_type *arg_types,
 		       sieve_tag_group_t *tags, int required)
 {
-  return sieve_register (&action_list, name, handler, arg_types, tags, required);
+  return sieve_register (&mach->memory_pool,
+			 &mach->action_list, name, handler,
+			 arg_types, tags, required);
 }
