@@ -160,7 +160,7 @@ main(int argc, char **argv)
     }
 
   /* Set up error messaging  */
-  openlog ("gnu-comsat", LOG_PID, LOG_LOCAL1);
+  openlog ("gnu-comsat", LOG_PID, log_facility);
   mu_error_set_print (mu_syslog_error_printer);
 
   if (config_file)
@@ -242,7 +242,7 @@ comsat_daemon (int port)
 				  the current interval */
   time_t now;
 
-  fd = socket (AF_INET, SOCK_DGRAM, 0);
+  fd = socket (PF_INET, SOCK_DGRAM, 0);
   if (fd == -1)
     {
       syslog (LOG_CRIT, "socket: %m");
