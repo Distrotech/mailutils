@@ -38,6 +38,25 @@ AC_ARG_WITH(readline,
   *)   AC_MSG_ERROR(bad value ${withval} for --without-readline) ;;
   esac],[usereadline=yes])
 
+AC_ARG_WITH(gssapi,
+ [  --with-gssapi           use GSSAPI authentication ],
+ [WITH_GSSAPI=$withval],
+ [WITH_GSSAPI=no])
+
+if test "x$WITH_GSSAPI" != "xno"; then
+  MU_CHECK_GSSAPI($WITH_GSSAPI)
+  if test "$GSSAPI_IMPL" = "none"; then
+    AC_CACHE_SAVE
+    AC_MSG_RESULT([GSSAPI libraries not found])
+  else
+    AUTHLIBS="$AUTHLIBS $GSSAPI_LIBS"
+    AUTHINCS="$AUTHINCS $GSSAPI_CFLAGS"
+    AUTHOBJS="$AUTHOBJS auth_gss.o"
+    AC_DEFINE(WITH_GSSAPI)
+  fi
+fi
+AC_SUBST(AUTHOBJS)
+
 AC_ARG_WITH(guile,
  [  --without-guile         do not build guile interface],
  [case "${withval}" in
@@ -218,6 +237,7 @@ if test x"$ac_cv_have_libpam" != x"yes"; then
 	fi
 fi
 AC_SUBST(AUTHLIBS)
+AC_SUBST(AUTHINCS)
 
 #When using thread support some platforms need -D_REENTRANT to get the
 #right prototypes including errno.
