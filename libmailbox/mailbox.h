@@ -38,9 +38,13 @@
 #define mbox_lock(m,n)		m->_lock(m,n)
 
 /* Lock settings */
-#define MO_ULOCK	0
-#define MO_RLOCK	1
-#define MO_WLOCK	2
+/*
+ * define this way so that it is opaque and can later become a struct w/o
+ * people noticing (-:
+ *
+ */
+enum _mailbox_lock_t {MO_ULOCK, MO_RLOCK, MO_WLOCK}; /* new type */
+typedef enum _mailbox_lock_t mailbox_lock_t;
 
 typedef struct _mailbox
   {
@@ -58,7 +62,7 @@ typedef struct _mailbox
     int (*_expunge) __P ((struct _mailbox *));
     int (*_add_message) __P ((struct _mailbox *, char *));
     int (*_is_deleted) __P ((struct _mailbox *, unsigned int));
-    int (*_lock) __P((struct _mailbox *, unsigned int));
+    int (*_lock) __P((struct _mailbox *, mailbox_lock_t));
     char *(*_get_body) __P ((struct _mailbox *, unsigned int));
     char *(*_get_header) __P ((struct _mailbox *, unsigned int));
   }
@@ -70,5 +74,3 @@ char *mbox_header_line __P ((mailbox *mbox, unsigned int num, const char *header
 char *mbox_body_lines __P ((mailbox *mbox, unsigned int num, unsigned int lines));
 
 #endif
-
-

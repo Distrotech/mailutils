@@ -361,7 +361,7 @@ unixmbox_get_header (mailbox * mbox, unsigned int num)
  * Get locking code from Procmail and/or Exim
  */
 int
-unixmbox_lock (mailbox *mbox, unsigned int mode)
+unixmbox_lock (mailbox *mbox, mailbox_lock_t mode)
 {
   unixmbox_data *data = mbox->_data;
   data->lockmode = mode;

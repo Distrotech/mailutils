@@ -1,3 +1,10 @@
+Sean 'Shaleh' Perry <shaleh@debian.org>  Mon,  4 Oct 1999 14:28:35 -0700
+
+	* changed lock(int mode) to lock(mailbox_lock_t mode), this will allow
+	   the type to be chnaged later without affecting code compatibility
+	* added name to AUTHORS
+	* noticed mention of IMAP4 server and went back to coding it (-:
+
 1999-10-03  Jeff Bailey  <jbailey@cr499794-a.crdva1.bc.wave.home.com>
 
 	* mail/mail.c: Support --help, --version.
