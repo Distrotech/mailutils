@@ -1668,8 +1668,16 @@ builtin_formataddr (struct mh_machine *mach)
   p = strobj_ptr (&mach->reg_str) + reglen;
   for (i = 1; i <= num; i++)
     {
+      if (!(rcpt_mask & RCPT_ME))
+	{
+	  address_get_email (addr, i, buf, sizeof buf, &n);
+	  if (mh_is_my_name (buf))
+	    continue;
+	}
+
       if (reglen > 0)
 	*p++ = ',';
+
       if (address_get_personal (addr, i, buf, sizeof buf, &n) == 0 && n > 0)
 	{
 	  memcpy (p, buf, n);
