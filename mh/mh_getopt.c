@@ -95,6 +95,8 @@ mh_getopt (int argc, char **argv, struct mh_option *mh_opt, const char *doc)
       mh_help (mh_opt, doc);
       exit (1);
     }
+  else
+    mh_optind++;
   return '?';
 }
 
