@@ -637,7 +637,7 @@ mu_create_argcv (const char *capa[],
     if(rcdir)
       asprintf(&progrc, "%s/%src", MU_USER_CONFIG_FILE, progname);
     else
-      asprintf(&progrc, "~/.%src", progname);
+      asprintf(&progrc, "~/.mu.%src", progname);
 
     if (!progrc)
       {
