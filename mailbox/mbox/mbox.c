@@ -337,7 +337,7 @@ mbox_scan (mailbox_t mailbox, size_t msgno, size_t *pcount)
     return mbox_scan0 (mailbox, msgno, pcount, 1);
   /* Since the mailbox is already updated fake the scan. */
   if (msgno > 0)
-    msgno--; /* The fist message is number "1", decremente for the C array.  */
+    msgno--; /* The fist message is number "1", decrement for the C array.  */
   for (i = msgno; i < mud->messages_count; i++)
     {
       if (observable_notify (mailbox->observable, MU_EVT_MESSAGE_ADD) != 0)
@@ -347,6 +347,7 @@ mbox_scan (mailbox_t mailbox, size_t msgno, size_t *pcount)
 	  observable_notify (mailbox->observable, MU_EVT_MAILBOX_PROGRESS);
 	}
     }
+  *pcount = mud->messages_count;
   return 0;
 }
 
