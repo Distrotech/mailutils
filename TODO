@@ -17,16 +17,13 @@ IMPORTANT:
 
 - generalized search interface
 
+[mail.local]
+
+- integrate sieve
+
+- can it append to an imap mailbox?
+
 [pop3]
-+ find out why the pop3 server quits on a signal when the 'quit' command is
-  given
-
-+ test daemon code
-
-+ test network code
-
-+ crypt is linked even if pam was detected, it should be one or the other (JB Oct 08/99)
-
 - SSL support
 
 - pop3d_readline - should this use select(), avoid the race condition,
@@ -73,10 +70,6 @@ IMPORTANT:
   - why does mimetest fail on a symlink, but suceed on a dotlocked file?
 
   - implement unrolling of symlinks
-
-  - implement NFS-safe locking
-
-  - implement a locker that uses an external dotlock utility
 
   - implement a force unlock mode... so that when a mailbox
     is closed or destroyed it can make sure that the lock
