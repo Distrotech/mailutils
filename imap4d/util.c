@@ -1,5 +1,5 @@
 /* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -48,8 +48,9 @@ int
 util_finish (int argc, char **argv, int resp, char *rc, char *f, ...)
 {
   char *buf = NULL, *buf2 = NULL, *code = NULL;
+  /* FIXME: No argc maybe 1, then it will sigsegv.  */
+  /* struct imap4d_command *cmd = util_getcommand (argv[1]); */
   int len = 0;
-  struct imap4d_command *cmd = util_getcommand (argv[1]);
   va_list ap;
   va_start (ap, f);
 
@@ -59,22 +60,27 @@ util_finish (int argc, char **argv, int resp, char *rc, char *f, ...)
       code = strdup ("OK");
       /* set state (cmd->success); */
       break;
+
     case RESP_BAD:
       code = strdup ("BAD");
       break;
+
     case RESP_NO:
       code = strdup ("NO");
       /* set state (cmd->failure); */
       break;
+
     default:
       code = strdup ("X-BUG");
     }
-  
+
   vasprintf (&buf, f, ap);
   if (rc != NULL)
-    len = asprintf (&buf, "%s %s %s %s %s\r\n", argv[0],code,rc,argv[1],buf);
+    len = asprintf (&buf, "%s %s %s %s %s\r\n",
+		    argv[0], code, rc, (argc > 1) ? argv[1] : "", buf);
   else
-    len = asprintf (&buf2, "%s %s %s %s\r\n", argv[0], code, argv[1], buf);
+    len = asprintf (&buf2, "%s %s %s %s\r\n",
+		    argv[0], code, (argc > 1) ? argv[1] : "", buf);
 
   write (ofile, buf2, len);
 
@@ -148,12 +154,12 @@ util_do_command (char *cmd)
 
   if (argc < 2)
     return util_finish (argc, argv, RESP_BAD, NULL, "No space after tag");
-  
+
   command = util_getcommand (argv[1]);
-  
+
   for (i=0; i < strlen (argv[1]); i++)
     argv[1][i] = toupper (argv[1][i]);
-  
+
   if (command == NULL)
     return util_finish (argc, argv, RESP_BAD, NULL, "Invalid command");
   else if (! (command->states & util_getstate ()))
