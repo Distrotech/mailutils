@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2003 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2003, 2004 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -95,6 +95,8 @@ extern "C" {
   /* Parse error */
 #define MU_ERR_NOENT                (MU_ERR_BASE + 39)  
   /* Requested item not found */
+#define MU_ERR_BUFSPACE             (MU_ERR_BASE + 40)
+  /* Not enough buffer space */
   
 const char *mu_errname __P((int e));
 const char *mu_strerror __P((int e));

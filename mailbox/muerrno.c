@@ -97,6 +97,7 @@ mu_errname (int e)
       EN(MU_ERR_CONN_CLOSED);
       EN(MU_ERR_PARSE);
       EN(MU_ERR_NOENT);
+      EN(MU_ERR_BUFSPACE);
     }
 
   snprintf (buf, sizeof buf, _("Error %d"), e);
@@ -107,7 +108,6 @@ const char *
 mu_strerror (int e)
 {
   const char *msg = NULL;
-  char *p;
   
   switch (e)
     {
@@ -165,6 +165,7 @@ mu_strerror (int e)
       ES(MU_ERR_CONN_CLOSED,      _("Connection closed by remote host"));
       ES(MU_ERR_PARSE,            _("Parse error"));
       ES(MU_ERR_NOENT,            _("Requested item not found"));
+      ES(MU_ERR_BUFSPACE,         _("Not enough buffer space"));
     }
 
   return msg ? msg : strerror (e);
