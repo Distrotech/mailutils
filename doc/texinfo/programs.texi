@@ -2021,16 +2021,25 @@ if the message was sent successfully.
 @end itemize
 
 @item metamail
-@*Type: String.
-@*Default: Unset.
+@*Type: Boolean or String.
+@*Default: True.
 @vrindex metamail, mail variable
 
-This variable controls operation of @code{decode} command. When
-it is set, @code{decode} it contains the command line of
-@command{metamail} command that is to be used to display parts of
-a multipart message. For example:
+This variable controls operation of @code{decode} command. If
+it is unset, @code{decode} will not attempt any interpretation
+of the content of message parts. Otherwise, if @code{metamail}
+is set to @code{true}, @code{decode} will use internal metamail
+support to interpret message parts. Finally, if @code{metamail}
+is assigned a string, this string is treated as command line of
+the external @command{metamail} command which will be used to
+display parts of a multipart message. For example:
 
 @smallexample
+# Disable MIME interpretation:
+set nometamail
+# Enable built-in MIME support:
+set metamail
+# Use external program to display MIME parts:
 set metamail="metamail -m mail -p"
 @end smallexample
 
