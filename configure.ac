@@ -17,7 +17,7 @@
 # Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #
 
-AC_INIT([GNU Mailutils],[0.1.3],[bug-mailutils@gnu.org])
+AC_INIT([GNU Mailutils],[0.2],[bug-mailutils@gnu.org])
 AC_CONFIG_SRCDIR([mailbox/mailbox.c])
 AC_CANONICAL_TARGET([])
 AM_INIT_AUTOMAKE
