@@ -206,7 +206,6 @@ pop3d_user (const char *arg)
 	  mailbox_close(mbox);
 	  mailbox_destroy(&mbox);
 	  state = AUTHORIZATION;
-	  free (cmd);
 	  return ERR_MBOX_LOCK;
 	}
 
