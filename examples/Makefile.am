@@ -26,7 +26,8 @@ noinst_PROGRAMS = \
  muemail\
  msg-send\
  http\
- mta
+ mta\
+ decode2047
 
 moddir=@SIEVE_MODDIR@
 mod_LTLIBRARIES = numaddr.la
