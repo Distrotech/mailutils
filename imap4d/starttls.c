@@ -19,6 +19,9 @@
 
 #ifdef WITH_TLS
 
+static int tls_available;
+static int tls_done;
+
 int
 imap4d_starttls (struct imap4d_command *command, char *arg)
 {
@@ -40,8 +43,19 @@ imap4d_starttls (struct imap4d_command *command, char *arg)
       imap4d_capability_remove ("STARTTLS");
       login_disabled = 0;
       imap4d_capability_remove ("LOGINDISABLED");
+      util_atexit (mu_deinit_tls_libs);
     }
   return status;
+}
+
+void
+starttls_init ()
+{
+  tls_available = mu_check_tls_environment ();
+  if (tls_available)
+    tls_available = mu_init_tls_libs ();
+  if (tls_available)
+    imap4d_capability_add ("STARTTLS");
 }
 
 #endif /* WITH_TLS */
