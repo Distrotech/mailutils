@@ -63,6 +63,28 @@ struct address_closure
   address_t addr;          /* Obtained address */
 };  
 
+static int
+do_count (list_t args, list_t tags, size_t count, int retval)
+{
+  sieve_value_t *arg;
+  
+  if (sieve_tag_lookup (tags, "count", &arg))
+    {
+      size_t limit;
+      char *str;
+      sieve_value_t *val;
+      sieve_relcmpn_t stest;
+      
+      val = sieve_value_get (args, 1);
+      list_get (val->v.list, 0, (void **) &str);
+      limit = strtoul (str, &str, 10);
+
+      sieve_str_to_relcmp (arg->v.string, NULL, &stest);
+      return stest (count, limit);
+    }
+  return retval;
+}
+
 int
 retrieve_address (void *item, void *data, int idx, char **pval)
 {
@@ -120,29 +142,35 @@ sieve_test_address (sieve_machine_t mach, list_t args, list_t tags)
   rc = sieve_vlist_compare (h, v, comp, test, retrieve_address, &clos, &count);
   address_destroy (&clos.addr);
   
-  if (sieve_tag_lookup (tags, "count", &arg))
-    {
-      size_t limit;
-      char *str;
-      sieve_value_t *val;
-      sieve_relcmpn_t stest;
-      
-      val = sieve_value_get (args, 1);
-      list_get (val->v.list, 0, (void **) &str);
-      limit = strtoul (str, &str, 10);
-
-      sieve_str_to_relcmp (arg->v.string, NULL, &stest);
-      return stest (count, limit);
-    }
-
-  return rc;
+  return do_count (args, tags, count, rc);
 }
+
+struct header_closure {
+  header_t header;
+  int index;
+};
 
 int
 retrieve_header (void *item, void *data, int idx, char **pval)
 {
+  struct header_closure *hc = data;
+  char buf[512];
+  size_t n;
+  
   if (idx == 0)
-    return header_aget_value ((header_t) data, (char*)item, pval);
+    hc->index = 1;
+
+  while (!header_get_field_name (hc->header, hc->index, buf, sizeof(buf), &n))
+    {
+      int i = hc->index++;
+      if (strcasecmp (buf, (char*)item) == 0)
+	{
+	  if (header_aget_field_value (hc->header, i, pval))
+	    return 1;
+	  return 0;
+	}
+    }
+
   return 1;
 }
 
@@ -150,10 +178,10 @@ int
 sieve_test_header (sieve_machine_t mach, list_t args, list_t tags)
 {
   sieve_value_t *h, *v, *arg;
-  header_t header = NULL;
   sieve_comparator_t comp = sieve_get_comparator (mach, tags);
   sieve_relcmp_t test = sieve_get_relcmp (mach, tags);
   size_t count, mcount = 0;
+  struct header_closure clos;
   
   if (mach->debug_level & MU_SIEVE_DEBUG_TRACE)
     sieve_debug (mach, "HEADER\n");
@@ -187,34 +215,19 @@ sieve_test_header (sieve_machine_t mach, list_t args, list_t tags)
 
 	      if (message_get_part (mach->msg, i, &message) == 0)
 		{
-		  message_get_header (message, &header);
+		  message_get_header (message, &clos.header);
 		  if (sieve_vlist_compare (h, v, comp, test,
-					   retrieve_header, header, &mcount))
+					   retrieve_header, &clos, &mcount))
 		    return 1;
 		}
 	    }
 	}
     }
-  message_get_header (mach->msg, &header);
-  if (sieve_vlist_compare (h, v, comp, test, retrieve_header, header, &count))
+  message_get_header (mach->msg, &clos.header);
+  if (sieve_vlist_compare (h, v, comp, test, retrieve_header, &clos, &count))
     return 1;
 
-  if (sieve_tag_lookup (tags, "count", &arg))
-    {
-      size_t limit;
-      char *str;
-      sieve_value_t *val;
-      sieve_relcmpn_t stest;
-      
-      val = sieve_value_get (args, 1);
-      list_get (val->v.list, 0, (void **) &str);
-      limit = strtoul (str, &str, 10);
-
-      sieve_str_to_relcmp (arg->v.string, NULL, &stest);
-      return stest (count + mcount, limit);
-    }
-
-  return 0;
+  return do_count (args, tags, count + mcount, 0);
 }
 
 int
@@ -253,6 +266,7 @@ sieve_test_envelope (sieve_machine_t mach, list_t args, list_t tags)
   sieve_relcmp_t test = sieve_get_relcmp (mach, tags);
   struct address_closure clos;
   int rc;
+  size_t count;
   
   if (mach->debug_level & MU_SIEVE_DEBUG_TRACE)
     sieve_debug (mach, "HEADER\n");
@@ -273,9 +287,10 @@ sieve_test_envelope (sieve_machine_t mach, list_t args, list_t tags)
   message_get_envelope (sieve_get_message (mach), (envelope_t*)&clos.data);
   clos.aget = sieve_get_address_part (tags);
   clos.addr = NULL;
-  rc = sieve_vlist_compare (h, v, comp, test, retrieve_envelope, &clos, NULL);
+  rc = sieve_vlist_compare (h, v, comp, test, retrieve_envelope, &clos,
+			    &count);
   address_destroy (&clos.addr);
-  return rc;
+  return do_count (args, tags, count, rc);
 }
 
 int
