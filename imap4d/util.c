@@ -293,6 +293,18 @@ util_send (const char *format, ...)
   int status;
   va_list ap;
   va_start (ap, format);
+
+  if (daemon_param.transcript)
+    {
+      char *buf;
+      vasprintf (&buf, format, ap);
+      if (buf)
+	{
+	  syslog (LOG_DEBUG, "sent: %s", buf);
+	  free (buf);
+	}
+    }
+
   status = vfprintf (ofile, format, ap);
   va_end (ap);
   return status;
@@ -335,6 +347,8 @@ util_out (int rc, const char *format, ...)
   int status;
   va_list ap;
   asprintf (&buf, "* %s%s\r\n", sc2string (rc), format);
+  if (daemon_param.transcript)
+    syslog (LOG_DEBUG, "sent: %s", buf);
   va_start (ap, format);
   status = vfprintf (ofile, buf, ap);
   va_end (ap);
@@ -354,6 +368,9 @@ util_finish (struct imap4d_command *command, int rc, const char *format, ...)
   asprintf (&buf, "%s %s%s %s\r\n", command->tag, sc2string (rc),
 	    command->name, format);
 
+  if (daemon_param.transcript)
+    syslog (LOG_DEBUG, "send: %s", buf);
+  
   va_start (ap, format);
   status = vfprintf (ofile, buf, ap);
   va_end (ap);
@@ -389,7 +406,13 @@ imap4d_readline (FILE *fp)
       alarm (daemon_param.timeout);
       if (fgets (buffer, sizeof (buffer), fp) == NULL)
 	{
-	  imap4d_bye (ERR_NO_OFILE); /* Logout.  */
+	  if (feof (fp)) 
+	    syslog (LOG_INFO, "unexpected eof on input");
+	  else if (errno)
+	    syslog (LOG_INFO, "error reading from input file: %m");
+	  else
+	    continue;
+	  imap4d_bye (ERR_NO_OFILE);
 	}
       alarm (0);
 
@@ -448,7 +471,8 @@ imap4d_readline (FILE *fp)
         }
     }
   while (number > 0 || (total && line[total - 1] != '\n'));
-  /* syslog (LOG_INFO, "readline: %s", line); */
+  if (daemon_param.transcript)
+    syslog (LOG_DEBUG, "recv: %s", line);
   return line;
 }
 
