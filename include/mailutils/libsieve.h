@@ -118,25 +118,36 @@ sieve_value_t *sieve_value_create __P((sieve_data_type type, void *data));
 void sieve_slist_destroy __P((list_t *plist));
 
 /* Symbol space functions */
-sieve_register_t *sieve_test_lookup __P((const char *name));
-sieve_register_t *sieve_action_lookup __P((const char *name));
-int sieve_register_test __P((const char *name, sieve_handler_t handler,
+sieve_register_t *sieve_test_lookup __P((sieve_machine_t mach,
+					 const char *name));
+sieve_register_t *sieve_action_lookup __P((sieve_machine_t mach,
+					   const char *name));
+int sieve_register_test __P((sieve_machine_t mach,
+			     const char *name, sieve_handler_t handler,
 			     sieve_data_type *arg_types,
 			     sieve_tag_group_t *tags, int required));
-int sieve_register_action __P((const char *name, sieve_handler_t handler,
+int sieve_register_action __P((sieve_machine_t mach,
+			       const char *name, sieve_handler_t handler,
 			       sieve_data_type *arg_types,
 			       sieve_tag_group_t *tags, int required));
-int sieve_register_comparator __P((const char *name,
+int sieve_register_comparator __P((sieve_machine_t mach,
+				   const char *name,
 				   int required,
 				   sieve_comparator_t is,
 				   sieve_comparator_t contains,
 				   sieve_comparator_t matches,
 				   sieve_comparator_t regex));
-sieve_comparator_t sieve_comparator_lookup __P((const char *name,
+int sieve_require_comparator __P((sieve_machine_t mach, const char *name));
+  
+sieve_comparator_t sieve_comparator_lookup __P((sieve_machine_t mach,
+						const char *name,
 						int matchtype));
 
-sieve_comparator_t sieve_get_comparator __P((list_t tags));
+sieve_comparator_t sieve_get_comparator __P((sieve_machine_t mach,
+					     list_t tags));
+  
 void sieve_require __P((list_t slist));
+int sieve_tag_lookup __P((list_t taglist, char *name, sieve_value_t **arg));
 
 /* Operations in value lists */
 sieve_value_t *sieve_value_get __P((list_t vlist, size_t index));
