@@ -16,15 +16,16 @@ libmbox_la_SOURCES = \
  mbox_bstream.c      \
  mbox_carrier.c      \
  mbox_cb.c           \
- mbox_newmail.c      \
  mbox_close.c        \
  mbox_create.c       \
+ mbox_debug.c        \
  mbox_destroy.c      \
  mbox_expunge.c      \
  mbox_hcache.c       \
  mbox_hlines.c       \
  mbox_hsize.c        \
  mbox_hstream.c      \
+ mbox_newmail.c      \
  mbox_open.c         \
  mbox_scan.c         \
  mbox_separator.c    \

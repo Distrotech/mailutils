@@ -18,6 +18,10 @@
 #ifndef MAILUTILS_SYS_TCP_H
 #define MAILUTILS_SYS_TCP_H
 
+#ifdef DMALLOC
+# include <dmalloc.h>
+#endif
+
 #include <mailutils/refcount.h>
 #include <mailutils/sys/fdstream.h>
 

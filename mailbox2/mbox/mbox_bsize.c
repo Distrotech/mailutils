@@ -27,6 +27,7 @@ int
 mbox_get_bsize (mbox_t mbox, unsigned int msgno, unsigned int *psize)
 {
   unsigned int size = 0;
+  mbox_debug_print (mbox, "get_bsize(%u)", msgno);
   if (mbox && msgno)
     {
       msgno--;

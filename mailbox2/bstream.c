@@ -44,19 +44,20 @@ _stream_buffer_cleanup (void *arg)
 }
 
 static int
-refill (struct _stream_buffer *bs)
+refill (struct _stream_buffer *bs, off_t offset)
 {
   int status;
   if (bs->rbuffer.base == NULL)
     {
       bs->rbuffer.base = calloc (1, bs->rbuffer.bufsize);
       if (bs->rbuffer.base == NULL)
-	return ENOMEM;
+	return MU_ERROR_NO_MEMORY;
     }
   bs->rbuffer.ptr = bs->rbuffer.base;
   bs->rbuffer.count = 0;
+  bs->rbuffer.offset = offset;
   status = stream_read (bs->stream, bs->rbuffer.ptr, bs->rbuffer.bufsize,
-			(size_t *)&(bs->rbuffer.count));
+			offset, (size_t *)&(bs->rbuffer.count));
   return status;
 }
 
@@ -107,7 +108,8 @@ _stream_buffer_close (stream_t stream)
    networking. Lots of code between POP and IMAP can be share this way.
    The buffering is on the read only, the writes fall through.  */
 int
-_stream_buffer_read (stream_t stream, void *buf, size_t count, size_t *pnread)
+_stream_buffer_read (stream_t stream, void *buf, size_t count, off_t offset,
+		     size_t *pnread)
 {
   int status = 0;
   struct _stream_buffer *bs = (struct _stream_buffer *)stream;
@@ -121,8 +123,8 @@ _stream_buffer_read (stream_t stream, void *buf, size_t count, size_t *pnread)
   else if (bs->rbuffer.bufsize == 0)
     {
       /* If rbuffer.bufsize == 0.  It means they did not want the buffer
-	 mechanism, then what are we doing here?  */
-      status = stream_read (bs->stream, buf, count, pnread);
+	 mechanism, ... what are we doing here?  */
+      status = stream_read (bs->stream, buf, count, offset, pnread);
     }
   else
     {
@@ -139,14 +141,17 @@ _stream_buffer_read (stream_t stream, void *buf, size_t count, size_t *pnread)
 	{
 	  r = 0;
 	  /* Drain our buffer first.  */
-	  if (bs->rbuffer.count > 0)
+	  if (bs->rbuffer.count > 0 && offset == bs->rbuffer.offset)
 	    {
 	      memcpy(p, bs->rbuffer.ptr, bs->rbuffer.count);
+	      bs->rbuffer.offset += bs->rbuffer.count;
 	      residue -= bs->rbuffer.count;
 	      p += bs->rbuffer.count;
+	      offset += bs->rbuffer.count;
 	    }
 	  bs->rbuffer.count = 0; /* Signal we will need to refill.  */
-	  status = stream_read (bs->stream, p, residue, &r);
+	  status = stream_read (bs->stream, p, residue, offset, &r);
+	  bs->rbuffer.offset += r;
 	  residue -= r;
 	  if (pnread)
 	    *pnread = count - residue;
@@ -164,20 +169,22 @@ _stream_buffer_read (stream_t stream, void *buf, size_t count, size_t *pnread)
 	    {
 	      (void)memcpy (p, bs->rbuffer.ptr, (size_t)r);
 	      bs->rbuffer.ptr += r;
+	      bs->rbuffer.offset += r;
 	      /* bs->rbuffer.count = 0 ... done in refill */
 	      p += r;
 	      residue -= r;
-	      status = refill (bs);
+	      status = refill (bs, bs->rbuffer.offset);
 	      /* Did we reach the end.  */
 	      if (status != 0 || bs->rbuffer.count == 0)
 		{
 		  /* We have something in the buffer return the error on the
-		     next call .  */
+		     next call.  */
 		  if (count != residue)
 		    status = 0;
 		  if (pnread)
 		    *pnread = count - residue;
 		  done = 1;
+		  break;
 		}
 	    }
 	  if (!done)
@@ -185,6 +192,7 @@ _stream_buffer_read (stream_t stream, void *buf, size_t count, size_t *pnread)
 	      memcpy(p, bs->rbuffer.ptr, residue);
 	      bs->rbuffer.count -= residue;
 	      bs->rbuffer.ptr += residue;
+	      bs->rbuffer.offset += residue;
 	      if (pnread)
 		*pnread = count;
 	    }
@@ -200,7 +208,8 @@ _stream_buffer_read (stream_t stream, void *buf, size_t count, size_t *pnread)
  * Stop when a newline has been read, or the count runs out.
  */
 int
-_stream_buffer_readline (stream_t stream, char *buf, size_t count, size_t *pnread)
+_stream_buffer_readline (stream_t stream, char *buf, size_t count,
+			 off_t offset, size_t *pnread)
 {
   int status = 0;
   struct _stream_buffer *bs = (struct _stream_buffer *)stream;
@@ -214,7 +223,7 @@ _stream_buffer_readline (stream_t stream, char *buf, size_t count, size_t *pnrea
   else if (bs->rbuffer.bufsize == 0)
     {
       /* Use the provided readline.  */
-      status = stream_readline (bs->stream, buf, count, pnread);
+      status = stream_readline (bs->stream, buf, count, offset, pnread);
     }
   else /* Buffered.  */
     {
@@ -234,7 +243,7 @@ _stream_buffer_readline (stream_t stream, char *buf, size_t count, size_t *pnrea
 	  len = bs->rbuffer.count;
 	  if (len <= 0)
 	    {
-	      status = refill (bs);
+	      status = refill (bs, offset);
 	      if (status != 0 || bs->rbuffer.count == 0)
 		{
 		  break;
@@ -255,6 +264,7 @@ _stream_buffer_readline (stream_t stream, char *buf, size_t count, size_t *pnrea
 	      len = ++nl - p;
 	      bs->rbuffer.count -= len;
 	      bs->rbuffer.ptr = nl;
+	      bs->rbuffer.offset += len;
 	      memcpy (s, p, len);
 	      total += len;
 	      s += len;
@@ -262,6 +272,7 @@ _stream_buffer_readline (stream_t stream, char *buf, size_t count, size_t *pnrea
 	    }
 	  bs->rbuffer.count -= len;
 	  bs->rbuffer.ptr += len;
+	  bs->rbuffer.offset += len;
 	  memcpy(s, p, len);
 	  total += len;
 	  s += len;
@@ -279,10 +290,10 @@ _stream_buffer_readline (stream_t stream, char *buf, size_t count, size_t *pnrea
 
 int
 _stream_buffer_write (stream_t stream, const void *buf, size_t count,
-		      size_t *pnwrite)
+		      off_t offset, size_t *pnwrite)
 {
   struct _stream_buffer *bs = (struct _stream_buffer *)stream;
-  return stream_write (bs->stream, buf, count, pnwrite);
+  return stream_write (bs->stream, buf, count, offset, pnwrite);
 }
 
 int
@@ -328,10 +339,10 @@ _stream_buffer_get_state (stream_t stream, enum stream_state *pstate)
 }
 
 int
-_stream_buffer_seek (stream_t stream, off_t off, enum stream_whence whence)
+_stream_buffer_is_seekable (stream_t stream)
 {
   struct _stream_buffer *bs = (struct _stream_buffer *)stream;
-  return stream_seek (bs->stream, off, whence);
+  return stream_is_seekable (bs->stream);
 }
 
 int
@@ -390,7 +401,6 @@ static struct _stream_vtable _stream_buffer_vtable =
   _stream_buffer_readline,
   _stream_buffer_write,
 
-  _stream_buffer_seek,
   _stream_buffer_tell,
 
   _stream_buffer_get_size,
@@ -401,6 +411,7 @@ static struct _stream_vtable _stream_buffer_vtable =
   _stream_buffer_get_flags,
   _stream_buffer_get_state,
 
+  _stream_buffer_is_seekable,
   _stream_buffer_is_readready,
   _stream_buffer_is_writeready,
   _stream_buffer_is_exceptionpending,
@@ -423,10 +434,14 @@ _stream_buffer_ctor (struct _stream_buffer *bs, stream_t stream,
 }
 
 void
-_stream_buffer_dtor (struct _stream_buffer *bs)
+_stream_buffer_dtor (stream_t stream)
 {
-  stream_destroy (&bs->stream);
-  mu_refcount_destroy (&bs->refcount);
+  struct _stream_buffer *bs = (struct _stream_buffer *)stream;
+  if (bs)
+    {
+      stream_destroy (&bs->stream);
+      mu_refcount_destroy (&bs->refcount);
+    }
 }
 
 int

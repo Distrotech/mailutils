@@ -171,7 +171,7 @@ mu_list_remove (mu_list_t list, void *item)
 }
 
 int
-mu_list_get (mu_list_t list, size_t index, void **pitem)
+mu_list_get (mu_list_t list, size_t indx, void **pitem)
 {
   struct mu_list_data *current;
   size_t count;
@@ -182,7 +182,7 @@ mu_list_get (mu_list_t list, size_t index, void **pitem)
   for (current = list->head.next, count = 0; current != &(list->head);
        current = current->next, count++)
     {
-      if (count == index)
+      if (count == indx)
         {
           *pitem = current->item;
 	  status = 0;

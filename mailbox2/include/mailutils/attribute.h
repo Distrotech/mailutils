@@ -33,14 +33,14 @@ extern "C" {
 struct _attribute;
 typedef struct _attribute * attribute_t;
 
-#define MU_ATTRIBUTE_ANSWERED 0x00001
-#define MU_ATTRIBUTE_FLAGGED  0x00002
-#define MU_ATTRIBUTE_DELETED  0x00004
-#define MU_ATTRIBUTE_DRAFT    0x00008
-#define MU_ATTRIBUTE_SEEN     0x00010
-#define MU_ATTRIBUTE_READ     0x00020
-#define MU_ATTRIBUTE_MODIFIED 0x10000
-#define MU_ATTRIBUTE_RECENT   0x00000
+#define MU_ATTRIBUTE_ANSWERED 0x000001
+#define MU_ATTRIBUTE_FLAGGED  0x000002
+#define MU_ATTRIBUTE_DELETED  0x000004
+#define MU_ATTRIBUTE_DRAFT    0x000008
+#define MU_ATTRIBUTE_SEEN     0x000010
+#define MU_ATTRIBUTE_READ     0x000020
+#define MU_ATTRIBUTE_MODIFIED 0x100000
+#define MU_ATTRIBUTE_RECENT   0x000000
 
 extern int  attribute_ref             __P ((attribute_t));
 extern void attribute_destroy         __P ((attribute_t *));
@@ -71,6 +71,12 @@ extern int  attribute_unset_draft     __P ((attribute_t));
 extern int  attribute_unset_recent    __P ((attribute_t));
 extern int  attribute_unset_read      __P ((attribute_t));
 extern int  attribute_unset_modified  __P ((attribute_t));
+
+extern int  attribute_is_userflags    __P ((attribute_t, int));
+extern int  attribute_set_userflags   __P ((attribute_t, int));
+extern int  attribute_unset_userflags __P ((attribute_t, int));
+extern int  attribute_get_userflags   __P ((attribute_t, int *));
+extern int  attribute_clear_userflags __P ((attribute_t));
 
 
 extern int  attribute_get_flags       __P ((attribute_t, int *));

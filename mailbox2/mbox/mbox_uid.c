@@ -26,6 +26,8 @@ int
 mbox_get_uid (mbox_t mbox, unsigned int msgno, unsigned long *puid)
 {
 
+  mbox_debug_print (mbox, "get_uid(%u)", msgno);
+
   if (mbox == NULL || msgno == 0 || puid == NULL)
     return MU_ERROR_INVALID_PARAMETER;
 

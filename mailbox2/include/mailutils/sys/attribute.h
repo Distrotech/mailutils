@@ -19,7 +19,7 @@
 # define _MAILUTILS_SYS_ATTRIBUTE_H
 
 #ifdef DMALLOC
-#  include <dmalloc.h>
+# include <dmalloc.h>
 #endif
 
 #include <mailutils/attribute.h>
@@ -45,6 +45,11 @@ struct _attribute_vtable
   int  (*set_flags)   __P ((attribute_t, int));
   int  (*unset_flags) __P ((attribute_t, int));
   int  (*clear_flags) __P ((attribute_t));
+
+  int  (*get_userflags)   __P ((attribute_t, int *));
+  int  (*set_userflags)   __P ((attribute_t, int));
+  int  (*unset_userflags) __P ((attribute_t, int));
+  int  (*clear_userflags) __P ((attribute_t));
 };
 
 struct _attribute

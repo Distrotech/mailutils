@@ -55,7 +55,7 @@ _stream_tcp_destroy (stream_t *pstream)
   struct _stream_tcp *tcp = (struct _stream_tcp *)*pstream;
   if (mu_refcount_dec (tcp->base.refcount) == 0)
     {
-      _stream_fd_dtor (&tcp->base);
+      _stream_fd_dtor (*pstream);
       if (tcp->host)
 	free (tcp->host);
       free (tcp);

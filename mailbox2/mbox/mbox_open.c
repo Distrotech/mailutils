@@ -31,6 +31,8 @@ mbox_open (mbox_t mbox, const char *filename, int flags)
   char from[12];
   size_t n = 0;
 
+  mbox_debug_print (mbox, "open(%s,%d)", (filename) ? filename : "", flags);
+
   if (mbox == NULL)
     return MU_ERROR_INVALID_PARAMETER;
 
@@ -49,12 +51,11 @@ mbox_open (mbox_t mbox, const char *filename, int flags)
     return status;
 
   /* We need to be able to seek on the stream.  */
-  status = stream_seek (mbox->carrier, 0, MU_STREAM_WHENCE_SET);
-  if (status != 0)
-    return status;
+  if (!stream_is_seekable (mbox->carrier))
+    return MU_ERROR_NOT_SUPPORTED;
 
   /* Check if it is indeed a mbox format.  */
-  stream_readline (mbox->carrier, from, sizeof from, &n);
+  stream_readline (mbox->carrier, from, sizeof from, 0, &n);
   if (status != 0)
     return status;
 

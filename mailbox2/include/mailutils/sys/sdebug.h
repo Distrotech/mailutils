@@ -34,12 +34,13 @@ struct _mu_debug_stream
   struct _mu_debug base;
   mu_refcount_t refcount;
   int level;
+  off_t offset;
   stream_t stream;
   int close_on_destroy;
 };
 
 int  _mu_debug_stream_ctor __P ((struct _mu_debug_stream *));
-int  _mu_debug_stream_dtor __P ((struct _mu_debug_stream *));
+int  _mu_debug_stream_dtor __P ((mu_debug_t));
 int  _mu_debug_stream_ref  __P ((mu_debug_t));
 void _mu_debug_stream_destroy __P ((mu_debug_t *));
 int  _mu_debug_stream_set_level __P ((mu_debug_t, size_t));

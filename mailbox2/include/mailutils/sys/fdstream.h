@@ -18,6 +18,10 @@
 #ifndef MAILUTILS_SYS_FDSTREAM_H
 #define MAILUTILS_SYS_FDSTREAM_H
 
+#ifdef DMALLOC
+#  include <dmalloc.h>
+#endif
+
 #include <mailutils/refcount.h>
 #include <mailutils/sys/stream.h>
 
@@ -32,27 +36,28 @@ struct _stream_fd
   int  fd;
   int  state;
   int flags;
+  off_t offset;
 };
 
 int  _stream_fd_ctor __P ((struct _stream_fd *, int));
-void _stream_fd_dtor __P ((struct _stream_fd *));
+void _stream_fd_dtor __P ((stream_t));
 
 int  _stream_fd_ref  __P ((stream_t));
 void _stream_fd_destroy __P ((stream_t *));
 int  _stream_fd_open    __P ((stream_t, const char *, int, int));
 int  _stream_fd_close   __P ((stream_t));
-int  _stream_fd_read    __P ((stream_t, void *, size_t, size_t *));
-int  _stream_fd_readline __P ((stream_t, char *, size_t, size_t *));
-int  _stream_fd_write    __P ((stream_t, const void *, size_t, size_t *));
+int  _stream_fd_read    __P ((stream_t, void *, size_t, off_t, size_t *));
+int  _stream_fd_readline __P ((stream_t, char *, size_t, off_t, size_t *));
+int  _stream_fd_write __P ((stream_t, const void *, size_t, off_t, size_t *));
 int  _stream_fd_get_fd   __P ((stream_t, int *));
 int  _stream_fd_get_flags __P ((stream_t, int *));
 int  _stream_fd_get_size  __P ((stream_t, off_t *));
 int  _stream_fd_truncate  __P ((stream_t, off_t));
 int  _stream_fd_flush     __P ((stream_t));
 int  _stream_fd_get_state __P ((stream_t, enum stream_state *));
-int  _stream_fd_seek      __P ((stream_t, off_t, enum stream_whence));
 int  _stream_fd_tell      __P ((stream_t, off_t *));
-int  _stream_fd_is_readready __P ((stream_t, int ));
+int  _stream_fd_is_seekable __P ((stream_t));
+int  _stream_fd_is_readready __P ((stream_t, int));
 int  _stream_fd_is_writeready __P ((stream_t, int));
 int  _stream_fd_is_exceptionpending __P ((stream_t, int));
 int  _stream_fd_is_open __P ((stream_t));

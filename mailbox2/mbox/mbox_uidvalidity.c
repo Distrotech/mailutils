@@ -25,6 +25,9 @@
 int
 mbox_get_uidvalidity (mbox_t mbox, unsigned long *puidvalidity)
 {
+
+  mbox_debug_print (mbox, "get_uidvalidity");
+
   if (mbox == NULL || puidvalidity == NULL)
     return MU_ERROR_INVALID_PARAMETER;
 

@@ -90,6 +90,7 @@ pop3_t pop3;
 /* When non-zero, this global means the user is done using this program. */
 int done;
 
+#if 0
 void *
 xmalloc (size_t size)
 {
@@ -101,6 +102,7 @@ xmalloc (size_t size)
     }
   return m;
 }
+#endif
 
 char *
 dupstr (const char *s)
@@ -371,6 +373,7 @@ com_uidl (char *arg)
       unsigned int msgno = strtoul (arg, NULL, 10);
       if (pop3_uidl (pop3, msgno, &uidl) == 0)
 	printf ("Msg: %d UIDL: %s\n", msgno, (uidl) ? uidl : "");
+      free (uidl);
     }
   return 0;
 }
@@ -549,7 +552,7 @@ com_top (char *arg)
     {
       size_t n = 0;
       char buf[128];
-      while ((stream_readline (stream, buf, sizeof buf, &n) == 0)  && n)
+      while ((stream_readline (stream, buf, sizeof buf, 0, &n) == 0)  && n)
 	printf ("%s", buf);
       stream_destroy (&stream);
     }
@@ -573,7 +576,7 @@ com_retr (char *arg)
     {
       size_t n = 0;
       char buf[128];
-      while ((stream_readline (stream, buf, sizeof buf, &n) == 0)  && n)
+      while ((stream_readline (stream, buf, sizeof buf, 0, &n) == 0)  && n)
 	printf ("%s", buf);
       stream_destroy (&stream);
     }
@@ -600,6 +603,7 @@ com_connect (char *arg)
       mu_debug_t debug;
       pop3_get_debug (pop3, &debug);
       mu_debug_set_level (debug, MU_DEBUG_PROT);
+      mu_debug_destroy (&debug);
       pop3_connect (pop3, host, port);
     }
   else

@@ -94,7 +94,10 @@
    - Refuse to append if the mailbox is change on disk.
 */
 
-/* Assuming that the file is lock.  */
+/* Assuming that the file is lock:
+   Add the unix separtor the form is:
+   From user cdate_format\n
+*/
 static int
 mbox_append_separator (mbox_t mbox, const char *sep)
 {
@@ -123,93 +126,102 @@ mbox_append_separator (mbox_t mbox, const char *sep)
     len = strlen (sep);
 
   /* Write the separator.  */
-  status = stream_write (mbox->carrier, sep, len, NULL);
+  status = stream_write (mbox->carrier, sep, len, mbox->woffset, &len);
   if (status != 0)
     return status;
+  mbox->woffset += len;
 
   /* Add the trailing newline.  */
   if (len && sep[len - 1] != '\n')
-    status = stream_write (mbox->carrier, &nl, 1, NULL);
+    {
+      status = stream_write (mbox->carrier, &nl, 1, mbox->woffset, &len);
+      if (status != 0)
+	return status;
+      mbox->woffset += len;
+    }
   return status;
 }
 
-/* Assuming that the file is lock.  */
+/* Assuming that the file is lock.
+   Strip away Content-Length in the header add add the separating
+   newline between the header and the body.
+ */
 static int
-mbox_append_header (mbox_t mbox, attribute_t attribute, int save_uidvalidity,
-		    stream_t hstream)
+mbox_append_header (mbox_t mbox, attribute_t attribute, stream_t hstream,
+		    int save_uidvalidity, unsigned long uid)
 {
-  char buffer[1024];
+  char buf[1024];
+  size_t n = 0;
   size_t nread = 0;
   int status = 0;
   const char nl = '\n';
 
   do
     {
-      status = stream_readline (hstream, buffer, sizeof buffer, &nread);
+      status = stream_readline (hstream, buf, sizeof buf, mbox->roffset, &nread);
       if (status != 0)
 	return status;
+
+      mbox->roffset += nread;
 
       /* A newline means the start of the body.  */
-      if (*buffer == '\n')
+      if (*buf == '\n')
 	break;
 
-      if (IS_X_IMAPBASE (buffer))
-	{
-	  /* Skip the X-IMAPBase it has special meaning for us.  */
-	  continue;
-	}
-      else if (IS_X_UID (buffer))
-	{
-	  /* Skip the X-UID. A new one will be provided.  */
-	  continue;
-	}
-      else if (IS_STATUS (buffer))
-	{
-	  /* Skip, use the attribute.  */
-	  continue;
-	}
-      else if (IS_CONTENT_LENGTH (buffer))
-	{
-	  /* Ignore this, too often bad.  */
-	  continue;
-	}
+      /* Skip X-IMAPBase it has special meaning for us.  */
+      /* Skip X-UID. A new one will be provided.  */
+      /* Skip Status, use the attribute.  */
+      /* Skip Content-Length, too often bad.  */
+      if (IS_X_IMAPBASE (buf) || IS_X_UID (buf)
+	  || IS_STATUS (buf) || IS_CONTENT_LENGTH (buf))
+	continue;
 
-      status = stream_write (mbox->carrier, buffer, nread, NULL);
+      status = stream_write (mbox->carrier, buf, nread, mbox->woffset, &n);
       if (status != 0)
 	return status;
+      mbox->woffset += n;
     }
   while (nread > 0);
 
-  /* Rewrite the X-IMAPbase marker If necesary. */
+  /* Rewrite the X-IMAPbase, if necesary, and only for the first msg.  */
   if (mbox->uidnext < 2 && save_uidvalidity)
     {
-      nread = snprintf (buffer, sizeof buffer, "X-IMAPbase: %lu %lu\n",
-			mbox->uidvalidity, mbox->uidnext);
-      status = stream_write (mbox->carrier, buffer, nread, NULL);
+      n = snprintf (buf, sizeof buf, "X-IMAPbase: %lu %lu\n",
+		    mbox->uidvalidity, mbox->uidnext);
+      status = stream_write (mbox->carrier, buf, n, mbox->woffset, &n);
       if (status != 0)
 	return status;
+      mbox->woffset += n;
     }
 
   /* Rewrite the  Status for the attribute.  */
   if (attribute)
     {
-      mbox_attribute_to_status (attribute, buffer, sizeof buffer, &nread);
-      status = stream_write (mbox->carrier, buffer, nread, NULL);
+      mbox_attribute_to_status (attribute, buf, sizeof buf, &n);
+      status = stream_write (mbox->carrier, buf, n, mbox->woffset, &n);
       if (status != 0)
 	return status;
+      mbox->woffset += n;
     }
 
   /* Rewrite the X-UID marker . */
-  nread = snprintf (buffer, sizeof buffer, "X-UID: %lu\n", mbox->uidnext);
-  status = stream_write (mbox->carrier, buffer, nread, NULL);
+  n = snprintf (buf, sizeof buf, "X-UID: %lu\n", (uid) ? uid : mbox->uidnext);
+  status = stream_write (mbox->carrier, buf, n, mbox->woffset, &n);
   if (status != 0)
     return status;
+  mbox->woffset += n;
 
   /* New line separator of the Header.  */
-  return stream_write (mbox->carrier, &nl , 1, NULL);
+  status = stream_write (mbox->carrier, &nl , 1, mbox->woffset, &n);
+  if (status != 0)
+    return status;
+  mbox->woffset += n;
+  return status;
 }
 
-/* Assuming that the file is lock.  */
+/* Assuming that the file is lock.
+   Do the mangling, line startin with "From " is mangle to ">From "
+ */
 static int
 mbox_append_body (mbox_t mbox, stream_t bstream)
 {
@@ -219,6 +231,7 @@ mbox_append_body (mbox_t mbox, stream_t bstream)
   size_t nread = 0;
   const char nl = '\n';
   int status;
+  size_t n = 0;
 
   /* For "From " mangling.  */
   *buffer = '>';
@@ -226,9 +239,11 @@ mbox_append_body (mbox_t mbox, stream_t bstream)
   do
     {
       buf = buffer + 1;
-      status = stream_readline (bstream, buf, sizeof (buffer) - 1, &nread);
+      status = stream_readline (bstream, buf, sizeof (buffer) - 1,
+				mbox->roffset, &nread);
       if (status != 0)
 	return status;
+      mbox->roffset += nread;
 
       /* Unix Mbox:
 	 Since it's possibpe for a message to contain lines that looks
@@ -252,9 +267,10 @@ mbox_append_body (mbox_t mbox, stream_t bstream)
 	      nread++;
 	    }
 	}
-      status = stream_write (mbox->carrier, buf, nread, NULL);
+      status = stream_write (mbox->carrier, buf, nread, mbox->woffset, &n);
       if (status != 0)
 	return status ;
+      mbox->woffset += n;
 
       /* Register if we read a complete line.  */
       was_complete_line =  (nread && buf[nread - 1] == '\n') ? 1 : 0;
@@ -262,14 +278,21 @@ mbox_append_body (mbox_t mbox, stream_t bstream)
   while (nread > 0);
 
   /* New line separator for the next message.  */
-  return stream_write (mbox->carrier, &nl, 1, NULL);
+  status = stream_write (mbox->carrier, &nl, 1, mbox->woffset, &n);
+  if (status != 0)
+    return status;
+  mbox->woffset += n;
+  return status;
 }
 
 int
 mbox_append_hb0 (mbox_t mbox, const char *sep, attribute_t attribute,
-		 int save_uidvalidity, stream_t hstream, stream_t bstream)
+		 stream_t hstream, stream_t bstream,
+		 int save_uidvalidity, unsigned long uid)
 {
   int status = 0;
+
+  mbox_debug_print (mbox, "append_hb0(uid=%lu)", uid);
 
   if (mbox == NULL || hstream == NULL || bstream == NULL)
     return MU_ERROR_INVALID_PARAMETER;
@@ -278,7 +301,6 @@ mbox_append_hb0 (mbox_t mbox, const char *sep, attribute_t attribute,
     {
     case MU_MBOX_NO_STATE:
       {
-	off_t size = 0;
 	unsigned long uidvalidity;
 	unsigned long uidnext;
 
@@ -291,11 +313,11 @@ mbox_append_hb0 (mbox_t mbox, const char *sep, attribute_t attribute,
 	if (status != 0)
 	  break;
 
+	mbox->woffset = mbox->roffset = 0;
 	/* Move to the end of the stream.  */
-	if ((status = stream_get_size (mbox->carrier, &size)) != 0
-	    || (status = stream_seek (mbox->carrier, size,
-				      MU_STREAM_WHENCE_SET) != 0))
-	  break;
+	status = stream_get_size (mbox->carrier, &mbox->woffset);
+	if (status != 0)
+	    break;
 	mbox->state = MU_MBOX_STATE_APPEND_SEPARATOR;
       }
 
@@ -309,7 +331,8 @@ mbox_append_hb0 (mbox_t mbox, const char *sep, attribute_t attribute,
 
     case MU_MBOX_STATE_APPEND_HEADER:
       {
-	status = mbox_append_header (mbox, attribute, save_uidvalidity, hstream);
+	status = mbox_append_header (mbox, attribute, hstream,
+				     save_uidvalidity, uid);
 	if (status != 0)
 	  break;
         mbox->state = MU_MBOX_STATE_APPEND_BODY;
@@ -317,6 +340,9 @@ mbox_append_hb0 (mbox_t mbox, const char *sep, attribute_t attribute,
 
     case MU_MBOX_STATE_APPEND_BODY:
       {
+	/* Hack it the same stream. do not reset the mbox->roffset.  */
+	if (hstream != bstream)
+	  mbox->roffset = 0;
 	status = mbox_append_body (mbox, bstream);
 	if (status != 0)
 	  break;
@@ -324,6 +350,7 @@ mbox_append_hb0 (mbox_t mbox, const char *sep, attribute_t attribute,
       }
 
     default:
+      mbox->woffset = mbox->roffset = 0;
       break;
     }
 
@@ -333,6 +360,7 @@ mbox_append_hb0 (mbox_t mbox, const char *sep, attribute_t attribute,
       if (status != MU_ERROR_TRY_AGAIN)
 	{
 	  mbox->state = MU_MBOX_NO_STATE;
+	  mbox->woffset = mbox->roffset = 0;
 	  lockfile_unlock (mbox->lockfile);
 	}
     }
@@ -347,15 +375,15 @@ mbox_append_hb0 (mbox_t mbox, const char *sep, attribute_t attribute,
 }
 
 int
+mbox_append_hb (mbox_t mbox, const char *sep, attribute_t attribute,
+		stream_t hstream, stream_t bstream)
+{
+  return mbox_append_hb0 (mbox, sep, attribute, hstream, bstream, 1, 0);
+}
+
+int
 mbox_append (mbox_t mbox, const char *sep, attribute_t attribute,
 	     stream_t stream)
 {
   return mbox_append_hb (mbox, sep, attribute, stream, stream);
-}
-
-int
-mbox_append_hb (mbox_t mbox, const char *sep, attribute_t attribute,
-		stream_t hstream, stream_t bstream)
-{
-  return mbox_append_hb0 (mbox, sep, attribute, 1, hstream, bstream);
 }

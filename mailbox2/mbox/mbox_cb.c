@@ -43,6 +43,16 @@ mbox_set_newmsg_cb (mbox_t mbox, int (*cb) __P ((int, void *)), void *arg)
 }
 
 int
+mbox_set_error_cb (mbox_t mbox, int (*cb) __P ((int, void *)), void *arg)
+{
+  if (mbox)
+    return MU_ERROR_INVALID_PARAMETER;
+  mbox->error.cb = cb;
+  mbox->error.arg = arg;
+  return 0;
+}
+
+int
 mbox_newmsg_cb (mbox_t mbox, int info)
 {
   if (mbox)
@@ -59,5 +69,15 @@ mbox_progress_cb (mbox_t mbox, int info)
     return MU_ERROR_INVALID_PARAMETER;
   if (mbox->progress.cb)
     return mbox->progress.cb (info, mbox->progress.arg);
+  return  0;
+}
+
+int
+mbox_error_cb (mbox_t mbox, int info)
+{
+  if (mbox)
+    return MU_ERROR_INVALID_PARAMETER;
+  if (mbox->error.cb)
+    return mbox->error.cb (info, mbox->error.arg);
   return  0;
 }

@@ -102,6 +102,7 @@ struct _pop3
 
   enum pop3_state state;
   stream_t carrier; /* TCP Connection.  */
+  off_t offset;  /* To synchronise with the buffering.  */
   mu_debug_t debug; /* Send the debug info.  */
 };
 

@@ -18,8 +18,11 @@
 #ifndef _MAILUTILS_SYS_FOLDER_H
 #define _MAILUTILS_SYS_FOLDER_H
 
-#include <mailutils/folder.h>
+#ifdef DMALLOC
+# include <dmalloc.h>
+#endif
 
+#include <mailutils/folder.h>
 
 #ifdef __cplusplus
 extern "C" {

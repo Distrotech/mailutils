@@ -27,6 +27,7 @@ int
 mbox_get_blines (mbox_t mbox, unsigned int msgno, unsigned int *plines)
 {
   unsigned int lines = 0;
+  mbox_debug_print (mbox, "get_blines(%u)", msgno);
   if (mbox && msgno)
     {
       msgno--;

@@ -63,6 +63,8 @@ pop3_get_carrier (pop3_t pop3, stream_t *pcarrier)
 	  return status;
 	}
     }
+  /* Since we expose the stream incremente the reference count.  */
+  stream_ref (pop3->carrier);
   *pcarrier = pop3->carrier;
   return 0;
 }

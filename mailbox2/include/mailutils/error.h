@@ -142,6 +142,11 @@ extern "C" {
 # define MU_ERROR_NO_DIRECTORY (MU_ERROR_RANGE + 17)
 #endif
 
+#if defined (EBADFD)
+# define MU_ERROR_BAD_FILE_DESCRIPTOR EBADFD
+#else
+# define MU_ERROR_BAD_FILE_DESCRIPTOR (MU_ERROR_RANGE + 18)
+#endif
 
 #ifdef __cplusplus
 }

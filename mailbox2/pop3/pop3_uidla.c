@@ -83,17 +83,16 @@ pop3_uidl_current (iterator_t iterator, unsigned int *pno, char **puidl)
     {
       char *space;
       unsigned int msgno = 0;
+
       /* The format is: msgno uidlstring  */
-      space = strchr (buf, ' ');
-      if (space)
-	{
-	  *space++ = '\0';
-	  msgno = strtoul (buf, NULL, 10);
-	}
+      msgno = strtoul (buf, &space, 10);
       if (space && space[strlen (space) - 1] == '\n')
 	space[strlen (space) - 1] = '\0';
+
+      /* Oops.  */
       if (space == NULL)
 	space = (char *)"";
+
       if (pno)
 	*pno = msgno;
       if (puidl)

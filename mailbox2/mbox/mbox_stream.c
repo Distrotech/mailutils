@@ -36,7 +36,6 @@ struct _stream_mbox
   mbox_t mbox;
   unsigned int msgno;
   int is_header;
-  off_t offset;
 };
 
 static int
@@ -52,21 +51,23 @@ _stream_mbox_destroy (stream_t *pstream)
   struct _stream_mbox *ms = (struct _stream_mbox *)*pstream;
   if (mu_refcount_dec (ms->refcount) == 0)
     {
-      if (ms->msgno <= ms->mbox->messages_count)
+      mu_refcount_destroy (&ms->refcount);
+      if (ms->mbox && ms->msgno && ms->msgno <= ms->mbox->messages_count)
 	{
-	  mu_refcount_destroy (&ms->refcount);
-	  if (ms->is_header)
+	  /* Loose the reference only if it is the same that we saved
+	     on the mailbox.  */
+	  if (ms->is_header && ms == (struct _stream_mbox *)
+	      (ms->mbox->umessages[ms->msgno - 1]->header.stream))
 	    {
-	      if (ms == (struct _stream_mbox *)ms->mbox->umessages[ms->msgno - 1]->header.stream)
-		ms->mbox->umessages[ms->msgno - 1]->header.stream = NULL;
+	      ms->mbox->umessages[ms->msgno - 1]->header.stream = NULL;
 	    }
-	  else
+	  else if (ms == (struct _stream_mbox *)
+		   (ms->mbox->umessages[ms->msgno - 1]->body.stream))
 	    {
-	      if (ms == (struct _stream_mbox *)ms->mbox->umessages[ms->msgno - 1]->body.stream)
-		ms->mbox->umessages[ms->msgno - 1]->body.stream = NULL;
+	      ms->mbox->umessages[ms->msgno - 1]->body.stream = NULL;
 	    }
-	  free (ms);
 	}
+      free (ms);
     }
 }
 
@@ -85,44 +86,59 @@ _stream_mbox_close (stream_t stream)
 }
 
 static int
-_stream_mbox_read (stream_t stream, void *buf, size_t buflen, size_t *pnread)
+_stream_mbox_read0 (stream_t carrier, void *buf, size_t buflen, off_t off,
+		    size_t *pn, off_t start, off_t end)
+{
+  off_t ln = end - (start + off);
+  int status = 0;
+  if (ln > 0)
+    {
+      size_t n = min ((size_t)ln, buflen);
+      status = stream_read (carrier, buf, n, start + off, pn);
+    }
+  return status;
+}
+
+static int
+_stream_mbox_read (stream_t stream, void *buf, size_t buflen, off_t off,
+		   size_t *pnread)
 {
   int status = 0;
   struct _stream_mbox *ms = (struct _stream_mbox *)stream;
-  size_t nread = 0;
+  size_t n = 0;
 
   if (buf && buflen)
     {
-      if (ms->msgno <= ms->mbox->messages_count)
+      if (ms->mbox && ms->msgno && ms->msgno <= ms->mbox->messages_count)
 	{
-	  off_t ln;
-	  mbox_message_t umessage = ms->mbox->umessages[ms->msgno - 1];
+	  mbox_message_t mum = ms->mbox->umessages[ms->msgno - 1];
 	  if (ms->is_header)
-	    ln = umessage->header.end - (umessage->header.start + ms->offset);
+	    status = _stream_mbox_read0 (ms->mbox->carrier, buf, buflen, off,
+					 &n, mum->header.start,
+					 mum->header.end);
 	  else
-	    ln = umessage->body.end - (umessage->body.start + ms->offset);
-
-	  if (ln > 0)
-	    {
-	      size_t n = min ((size_t)ln, buflen);
-	      /* Position the file pointer.  */
-	      if (ms->is_header)
-		status = stream_seek (ms->mbox->carrier, umessage->header.start
-				      + ms->offset, MU_STREAM_WHENCE_SET);
-	      else
-		status = stream_seek (ms->mbox->carrier, umessage->body.start
-				      + ms->offset, MU_STREAM_WHENCE_SET);
-	      if (status == 0)
-		{
-		  status = stream_read (ms->mbox->carrier, buf, n, &nread);
-		  ms->offset += nread;
-		}
-	    }
+	    status = _stream_mbox_read0 (ms->mbox->carrier, buf, buflen, off,
+					 &n, mum->header.start,
+					 mum->header.end);
 	}
     }
 
   if (pnread)
-    *pnread = nread;
+    *pnread = n;
+  return status;
+}
+
+static int
+_stream_mbox_readline0 (stream_t carrier, char *buf, size_t buflen, off_t off,
+			size_t *pn, off_t start, off_t end)
+{
+  off_t ln = end - (start + off);
+  int status = 0;
+  if (ln > 0)
+    {
+      size_t n = min ((size_t)ln, buflen);
+      status = stream_readline (carrier, buf, n, start + off, pn);
+    }
   return status;
 }
 
@@ -131,7 +147,7 @@ _stream_mbox_read (stream_t stream, void *buf, size_t buflen, size_t *pnread)
  * Stop when a newline has been read, or the count runs out.
  */
 static int
-_stream_mbox_readline (stream_t stream, char *buf, size_t buflen,
+_stream_mbox_readline (stream_t stream, char *buf, size_t buflen, off_t off,
 		       size_t *pnread)
 {
   int status = 0;
@@ -140,31 +156,17 @@ _stream_mbox_readline (stream_t stream, char *buf, size_t buflen,
 
   if (buf && buflen)
     {
-      if (ms->msgno <= ms->mbox->messages_count)
+      if (ms->mbox && ms->msgno && ms->msgno <= ms->mbox->messages_count)
 	{
-	  off_t ln;
-	  mbox_message_t umessage = ms->mbox->umessages[ms->msgno - 1];
+	  mbox_message_t mum = ms->mbox->umessages[ms->msgno - 1];
 	  if (ms->is_header)
-	    ln = umessage->header.end - (umessage->header.start + ms->offset);
+	    status = _stream_mbox_readline0 (ms->mbox->carrier, buf, buflen,
+					     off, &nread, mum->header.start,
+					     mum->header.end);
 	  else
-	    ln = umessage->body.end - (umessage->body.start + ms->offset);
-
-	  if (ln > 0)
-	    {
-	      size_t n = min ((size_t)ln, buflen);
-	      /* Position the stream.  */
-	      if (ms->is_header)
-		status = stream_seek (ms->mbox->carrier, umessage->header.start
-				      + ms->offset, MU_STREAM_WHENCE_SET);
-	      else
-		status = stream_seek (ms->mbox->carrier, umessage->body.start
-				      + ms->offset, MU_STREAM_WHENCE_SET);
-	      if (status == 0)
-		{
-		  status = stream_readline (ms->mbox->carrier, buf, n, &nread);
-		  ms->offset += nread;
-		}
-	    }
+	    status = _stream_mbox_readline0 (ms->mbox->carrier, buf, buflen,
+					     off, &nread, mum->body.start,
+					     mum->body.end);
 	}
     }
 
@@ -174,10 +176,10 @@ _stream_mbox_readline (stream_t stream, char *buf, size_t buflen,
 }
 
 static int
-_stream_mbox_write (stream_t stream, const void *buf, size_t count,
-		      size_t *pnwrite)
+_stream_mbox_write (stream_t stream, const void *buf, size_t buflen, off_t off,
+		    size_t *pnwrite)
 {
-  (void)stream; (void)buf; (void)count; (void)pnwrite;
+  (void)stream; (void)buf; (void)buflen; (void)off, (void)pnwrite;
   return MU_ERROR_IO;
 }
 
@@ -185,14 +187,18 @@ static int
 _stream_mbox_get_fd (stream_t stream, int *pfd)
 {
   struct _stream_mbox *ms = (struct _stream_mbox *)stream;
-  return stream_get_fd (ms->mbox->carrier, pfd);
+  if (ms->mbox)
+    return stream_get_fd (ms->mbox->carrier, pfd);
+  return MU_ERROR_IO;
 }
 
 static int
 _stream_mbox_get_flags (stream_t stream, int *pfl)
 {
   struct _stream_mbox *ms = (struct _stream_mbox *)stream;
-  return stream_get_flags (ms->mbox->carrier, pfl);
+  if (ms->mbox)
+    return stream_get_flags (ms->mbox->carrier, pfl);
+  return MU_ERROR_IO;
 }
 
 static int
@@ -202,7 +208,7 @@ _stream_mbox_get_size (stream_t stream, off_t *psize)
 
   if (psize)
     {
-      if (ms->msgno <= ms->mbox->messages_count)
+      if (ms->mbox && ms->msgno && ms->msgno <= ms->mbox->messages_count)
 	{
 	  if (ms->is_header)
 	    *psize = ms->mbox->umessages[ms->msgno - 1]->header.end
@@ -211,6 +217,8 @@ _stream_mbox_get_size (stream_t stream, off_t *psize)
 	    *psize = ms->mbox->umessages[ms->msgno - 1]->body.end
 	      - ms->mbox->umessages[ms->msgno - 1]->body.start;
 	}
+      else
+	*psize = 0;
     }
   return 0;
 }
@@ -233,49 +241,36 @@ static int
 _stream_mbox_get_state (stream_t stream, enum stream_state *pstate)
 {
   struct _stream_mbox *ms = (struct _stream_mbox *)stream;
-  return stream_get_state (ms->mbox->carrier, pstate);
+  if (ms->mbox)
+    return stream_get_state (ms->mbox->carrier, pstate);
+  return MU_ERROR_IO;
 }
 
 static int
-_stream_mbox_seek (stream_t stream, off_t off, enum stream_whence whence)
+_stream_mbox_is_seekable (stream_t stream)
 {
   struct _stream_mbox *ms = (struct _stream_mbox *)stream;
-  off_t noff = ms->offset;
-  int err = 0;
-  if (whence == MU_STREAM_WHENCE_SET)
-      noff = off;
-  else if (whence == MU_STREAM_WHENCE_CUR)
-    noff += off;
-  else if (whence == MU_STREAM_WHENCE_END)
-    {
-      off_t size = 0;
-      _stream_mbox_get_size (stream, &size);
-      noff = size + off;
-    }
-  else
-    noff = -1; /* error.  */
-  if (noff >= 0)
-    ms->offset = noff;
-  else
-    err = MU_ERROR_INVALID_PARAMETER;
-  return err;
+  if (ms->mbox)
+    return stream_is_seekable (ms->mbox->carrier);
+  return MU_ERROR_IO;
 }
 
 static int
 _stream_mbox_tell (stream_t stream, off_t *off)
 {
   struct _stream_mbox *ms = (struct _stream_mbox *)stream;
-  if (off == NULL)
-    return MU_ERROR_INVALID_PARAMETER;
-  *off = ms->offset;
-  return 0;
+  if (ms->mbox)
+    return stream_tell (ms->mbox->carrier, off);
+  return MU_ERROR_IO;
 }
 
 static int
 _stream_mbox_is_readready (stream_t stream, int timeout)
 {
-  (void)timeout;
-  return stream_is_open (stream);
+  struct _stream_mbox *ms = (struct _stream_mbox *)stream;
+  if (ms->mbox)
+    return stream_is_readready (ms->mbox->carrier, timeout);
+  return MU_ERROR_IO;
 }
 
 static int
@@ -296,7 +291,9 @@ static int
 _stream_mbox_is_open (stream_t stream)
 {
   struct _stream_mbox *ms = (struct _stream_mbox *)stream;
-  return stream_is_open (ms->mbox->carrier);
+  if (ms->mbox)
+    return stream_is_open (ms->mbox->carrier);
+  return MU_ERROR_IO;
 }
 
 
@@ -312,7 +309,6 @@ static struct _stream_vtable _stream_mbox_vtable =
   _stream_mbox_readline,
   _stream_mbox_write,
 
-  _stream_mbox_seek,
   _stream_mbox_tell,
 
   _stream_mbox_get_size,
@@ -323,6 +319,7 @@ static struct _stream_vtable _stream_mbox_vtable =
   _stream_mbox_get_flags,
   _stream_mbox_get_state,
 
+  _stream_mbox_is_seekable,
   _stream_mbox_is_readready,
   _stream_mbox_is_writeready,
   _stream_mbox_is_exceptionpending,
@@ -334,24 +331,50 @@ static int
 _stream_mbox_ctor (struct _stream_mbox *ms, mbox_t mbox, unsigned int msgno,
 		   int is_header)
 {
-  mu_refcount_create (&(ms->refcount));
+  mu_refcount_create (&ms->refcount);
   if (ms->refcount == NULL)
     return MU_ERROR_NO_MEMORY;
 
   ms->mbox = mbox;
   ms->msgno = msgno;
-  ms->offset = 0;
   ms->is_header = is_header;
   ms->base.vtable = &_stream_mbox_vtable;
   return 0;
 }
 
-/*
-static void
-_stream_mbox_dtor (struct _stream_mbox *ms)
+void
+_stream_mbox_dtor (stream_t stream)
 {
+  struct _stream_mbox *ms = (struct _stream_mbox *)stream;
+  mu_refcount_destroy (&ms->refcount);
+  if (ms->mbox && ms->msgno && ms->msgno <= ms->mbox->messages_count)
+    {
+      /* Loose the reference only if it is the same that we saved
+	 on the mailbox.  */
+      if (ms->is_header && ms == (struct _stream_mbox *)
+	  (ms->mbox->umessages[ms->msgno - 1]->header.stream))
+	{
+	  ms->mbox->umessages[ms->msgno - 1]->header.stream = NULL;
+	}
+      else if (ms == (struct _stream_mbox *)
+	       (ms->mbox->umessages[ms->msgno - 1]->body.stream))
+	{
+	  ms->mbox->umessages[ms->msgno - 1]->body.stream = NULL;
+	}
+    }
+  ms->mbox = NULL;
+  ms->msgno = 0;
+  ms->is_header = 0;
 }
-*/
+
+int
+stream_mbox_msgno (stream_t stream, unsigned int msgno)
+{
+  struct _stream_mbox *ms = (struct _stream_mbox *)stream;
+  if (ms)
+    ms->msgno = msgno;
+  return 0;
+}
 
 int
 stream_mbox_create (stream_t *pstream, mbox_t mbox, unsigned int msgno,

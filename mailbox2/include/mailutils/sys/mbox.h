@@ -19,8 +19,17 @@
 #define _MAILUTILS_SYS_MBOX_H
 
 #include <time.h>
+#include <stdarg.h>
+
+#ifdef DMALLOC
+# include <dmalloc.h>
+#endif
+
 #include <mailutils/lockfile.h>
 #include <mailutils/mbox.h>
+
+#define MU_MBOX_HSTREAM_SET 0x010000
+#define MU_MBOX_BSTREAM_SET 0x001000
 
 #ifdef __cplusplus
 extern "C" {
@@ -49,6 +58,7 @@ struct _mbox
   stream_t carrier; /* File stream.  */
 
   off_t size; /* Size of the mailbox.  */
+  mu_debug_t debug;
   unsigned long uidvalidity;
   unsigned long uidnext;
   char *filename;
@@ -69,7 +79,10 @@ struct _mbox
   {
     int (*cb) __P ((int, void *));
     void *arg;
-  } newmsg, progress, corrupt;
+  } newmsg, progress, error;
+
+  /* Hold the offset of the stream when appending.  */
+  off_t roffset, woffset;
 };
 
 /* Keep the file positions of where the headers and bodies start and end.
@@ -96,8 +109,39 @@ struct _mbox_message
   /* UID i.e. see IMAP  */
   unsigned long uid;
   unsigned int attr_flags;
+  unsigned int attr_userflags;
   attribute_t attribute; /* The attr_flags contains the "Status:" attribute  */
 };
+
+extern int  mbox_newmsg_cb       __P ((mbox_t, int));
+extern int  mbox_progress_cb     __P ((mbox_t, int));
+extern int  mbox_error_cb        __P ((mbox_t, int));
+
+extern int  mbox_append_hb0     __P ((mbox_t, const char *, attribute_t,
+				      stream_t, stream_t, int, unsigned long));
+
+extern void mbox_release_hcache  __P ((mbox_t, unsigned int));
+extern int  mbox_append_hcache   __P ((mbox_t, unsigned int, const char *,
+                                       const char *));
+extern int  mbox_set_default_hcache __P ((mbox_t));
+
+extern int  mbox_debug_print      __P ((mbox_t, const char *, ...));
+
+extern int  stream_mbox_create   __P ((stream_t *, mbox_t, unsigned int, int));
+extern int  stream_mbox_msgno    __P ((stream_t, unsigned int));
+extern void _stream_mbox_dtor    __P ((stream_t));
+
+extern int  attribute_mbox_create __P ((attribute_t *, mbox_t, unsigned int));
+extern int  attribute_mbox_msgno  __P ((attribute_t, unsigned int));
+extern int  mbox_attribute_to_status __P ((attribute_t, char *, size_t,
+                                           size_t *));
+extern void _attribute_mbox_dtor     __P ((attribute_t));
+
+extern void mbox_release_separator   __P ((mbox_t, unsigned int));
+extern void mbox_release_attribute   __P ((mbox_t, unsigned int));
+extern void mbox_release_hstream     __P ((mbox_t, unsigned int));
+extern void mbox_release_bstream     __P ((mbox_t, unsigned int));
+extern void mbox_release_msg         __P ((mbox_t, unsigned int));
 
 #ifdef __cplusplus
 }

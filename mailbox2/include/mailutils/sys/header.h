@@ -18,6 +18,10 @@
 #ifndef _MAILUTILS_SYS_HEADER_H
 #define _MAILUTILS_SYS_HEADER_H
 
+#ifdef DMALLOC
+# include <dmalloc.h>
+#endif
+
 #include <mailutils/header.h>
 
 #ifndef __P

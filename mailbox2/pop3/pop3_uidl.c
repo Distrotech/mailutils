@@ -60,15 +60,22 @@ pop3_uidl (pop3_t pop3, unsigned msgno, char **uidl)
       *uidl = NULL;
       {
 	char *space;
+	/* Format:  +OK msgno uidlstring  */
+
 	/* Pass the "+OK".  */
 	space = strchr (pop3->ack.buf, ' ');
 	if (space)
 	  {
+	    /* Skip spaces.  */
+	    while (*space == ' ') space++;
 	    /* Pass the number.  */
 	    space = strchr (space, ' ');
 	    if (space)
 	      {
-		size_t len = strlen (space);
+		size_t len;
+		/* Skip spaces between msgno and uidlstring  */
+		while (*space == ' ') space++;
+		len = strlen (space);
 		if (space[len - 1] == '\n')
 		  {
 		    space[len - 1] = '\0';

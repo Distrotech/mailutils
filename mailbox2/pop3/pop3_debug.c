@@ -44,6 +44,7 @@ pop3_get_debug (pop3_t pop3, mu_debug_t *pdebug)
       if (status != 0)
 	return status;
     }
+  mu_debug_ref (pop3->debug);
   *pdebug = pop3->debug;
   return 0;
 }

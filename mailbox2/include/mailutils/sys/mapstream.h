@@ -20,6 +20,10 @@
 
 #include <unistd.h>
 
+#ifdef DMALLOC
+# include <dmalloc.h>
+#endif
+
 #include <mailutils/sys/stream.h>
 #include <mailutils/refcount.h>
 
@@ -38,27 +42,26 @@ struct _stream_mmap
   int mflags;
   char *ptr;
   size_t size;
-  off_t offset;
 };
 
 extern int  _stream_mmap_ctor __P ((struct _stream_mmap *));
-extern void _stream_mmap_dtor __P ((struct _stream_mmap *));
+extern void _stream_mmap_dtor __P ((stream_t));
 extern int  _stream_mmap_ref  __P ((stream_t));
 extern void _stream_mmap_destroy __P ((stream_t *));
 extern int  _stream_mmap_open    __P ((stream_t, const char *, int, int));
 extern int  _stream_mmap_close   __P ((stream_t));
-extern int  _stream_mmap_read    __P ((stream_t, void *, size_t, size_t *));
-extern int  _stream_mmap_readline __P ((stream_t, char *, size_t, size_t *));
-extern int  _stream_mmap_write __P ((stream_t, const void *, size_t, size_t *));
+extern int  _stream_mmap_read __P ((stream_t, void *, size_t, off_t, size_t *));
+extern int  _stream_mmap_readline __P ((stream_t, char *, size_t, off_t, size_t *));
+extern int  _stream_mmap_write __P ((stream_t, const void *, size_t, off_t, size_t *));
 extern int  _stream_mmap_get_fd __P ((stream_t, int *));
 extern int  _stream_mmap_get_flags __P ((stream_t, int *));
 extern int  _stream_mmap_get_size  __P ((stream_t, off_t *));
 extern int  _stream_mmap_truncate  __P ((stream_t, off_t));
 extern int  _stream_mmap_flush     __P ((stream_t));
 extern int  _stream_mmap_get_state __P ((stream_t, enum stream_state *));
-extern int  _stream_mmap_seek      __P ((stream_t, off_t, enum stream_whence));
 extern int  _stream_mmap_tell      __P ((stream_t, off_t *));
-extern int  _stream_mmap_is_readready __P ((stream_t, int ));
+extern int  _stream_mmap_is_seekable __P ((stream_t));
+extern int  _stream_mmap_is_readready __P ((stream_t, int));
 extern int  _stream_mmap_is_writeready __P ((stream_t, int));
 extern int  _stream_mmap_is_exceptionpending __P ((stream_t, int));
 extern int  _stream_mmap_is_open __P ((stream_t));

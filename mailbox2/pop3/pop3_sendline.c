@@ -54,7 +54,7 @@ pop3_send (pop3_t pop3)
 	    return MU_ERROR_TIMEOUT;
 	}
 
-      status = stream_write (pop3->carrier, pop3->io.buf, len, &n);
+      status = stream_write (pop3->carrier, pop3->io.buf, len, 0, &n);
       if (n)
 	{
 	  /* Consume what we sent.  */

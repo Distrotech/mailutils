@@ -28,6 +28,8 @@ int
 mbox_get_bstream (mbox_t mbox, unsigned int msgno, stream_t *pstream)
 {
   int status = 0;
+
+  mbox_debug_print (mbox, "get_bstream(%u)", msgno);
   if (mbox == NULL || msgno == 0 || pstream == NULL)
     return MU_ERROR_INVALID_PARAMETER;
 
@@ -58,10 +60,11 @@ mbox_set_bstream (mbox_t mbox, unsigned int msgno, stream_t stream)
   if (msgno > mbox->umessages_count)
     return MU_ERROR_INVALID_PARAMETER;
 
-  msgno--;
-  if (mbox->umessages[msgno]->body.stream)
-    stream_destroy (&mbox->umessages[msgno]->body.stream);
+  if (mbox->umessages[msgno - 1]->body.stream)
+    mbox_release_bstream (mbox, msgno);
 
-  mbox->umessages[msgno]->body.stream = stream;
+  mbox->umessages[msgno - 1]->attr_flags |= MU_MBOX_BSTREAM_SET;
+  mbox->umessages[msgno - 1]->attr_flags |= MU_ATTRIBUTE_MODIFIED;
+  mbox->umessages[msgno - 1]->body.stream = stream;
   return 0;
 }

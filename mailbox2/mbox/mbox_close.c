@@ -29,6 +29,8 @@ mbox_close (mbox_t mbox)
 {
   size_t i;
 
+  mbox_debug_print (mbox, "close");
+
   if (mbox == NULL)
     return MU_ERROR_INVALID_PARAMETER;
 
@@ -44,31 +46,21 @@ mbox_close (mbox_t mbox)
      - to prepare for another scan.  */
   for (i = 0; i < mbox->umessages_count; i++)
     {
-      mbox_message_t mum = mbox->umessages[i];
-      /* Destroy the attach messages.  */
-      if (mum)
-	{
-	  mbox_hcache_free (mbox, i + 1);
-	  if (mum->header.stream)
-	    stream_destroy (&(mum->header.stream));
-	  if (mum->body.stream)
-	    stream_destroy (&(mum->body.stream));
-	  if (mum->separator)
-	    free (mum->separator);
-	  if (mum->attribute)
-	    attribute_destroy (&mum->attribute);
-	  free (mum);
-	}
+      /* Destroy the attach streams and attribute.  */
+      if (mbox->umessages[i])
+	mbox_release_msg (mbox, i + 1);
     }
   if (mbox->umessages)
     free (mbox->umessages);
   mbox->umessages = NULL;
   mbox->umessages_count = 0;
+  mbox->messages_count = 0;
   mbox->size = 0;
   mbox->uidvalidity = 0;
   mbox->uidnext = 0;
   if (mbox->filename)
     free (mbox->filename);
   mbox->filename = NULL;
+
   return stream_close (mbox->carrier);
 }

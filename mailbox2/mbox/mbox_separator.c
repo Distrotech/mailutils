@@ -32,6 +32,8 @@ int
 mbox_get_separator (mbox_t mbox, unsigned int msgno, char **psep)
 {
 
+  mbox_debug_print (mbox, "get_separator(%u)", msgno);
+
   if (mbox == NULL || msgno  == 0 || psep == NULL)
       return MU_ERROR_INVALID_PARAMETER;
 
@@ -48,6 +50,7 @@ mbox_get_separator (mbox_t mbox, unsigned int msgno, char **psep)
       char *p = NULL;
       int len = 0 ;
       size_t n = 0;
+      off_t offset = mbox->umessages[msgno]->from_;
 
       len = 2;
       p = malloc (len);
@@ -57,8 +60,6 @@ mbox_get_separator (mbox_t mbox, unsigned int msgno, char **psep)
       do
 	{
 	  char *s;
-	  stream_seek (mbox->carrier, mbox->umessages[msgno]->from_,
-		       MU_STREAM_WHENCE_SET);
 	  len += 128;
 	  s = realloc (p, len);
 	  if (s == NULL)
@@ -67,7 +68,8 @@ mbox_get_separator (mbox_t mbox, unsigned int msgno, char **psep)
 	      return MU_ERROR_NO_MEMORY;
 	    }
 	  p = s ;
-	  stream_readline (mbox->carrier, p + strlen (p), len, &n);
+	  stream_readline (mbox->carrier, p + strlen (p), len, offset, &n);
+	  offset += n;
 	  n = strlen (p);
 	} while (n && p[n - 1] != '\n');
 
@@ -95,5 +97,6 @@ mbox_set_separator (mbox_t mbox, unsigned int msgno, const char *sep)
   if (mbox->umessages[msgno]->separator)
     free (mbox->umessages[msgno]->separator);
   mbox->umessages[msgno]->separator = (sep) ? strdup (sep) : NULL;
+  mbox->umessage[msgno]->attr_flags |= MU_ATTRIBUTE_MODIFIED;
   return 0;
 }

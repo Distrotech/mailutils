@@ -92,6 +92,50 @@ _attribute_default_clear_flags (attribute_t attribute)
   return 0;
 }
 
+int
+_attribute_default_get_userflags (attribute_t attribute, int *puserflags)
+{
+  struct _attribute_default *da = (struct _attribute_default *)attribute;
+  mu_refcount_lock (da->refcount);
+  if (puserflags)
+    *puserflags = da->userflags;
+  mu_refcount_unlock (da->refcount);
+  return 0;
+}
+
+int
+_attribute_default_set_userflags (attribute_t attribute, int userflags)
+{
+  struct _attribute_default *da = (struct _attribute_default *)attribute;
+  mu_refcount_lock (da->refcount);
+  da->userflags |= (userflags | MU_ATTRIBUTE_MODIFIED);
+  mu_refcount_unlock (da->refcount);
+  return 0;
+}
+
+int
+_attribute_default_unset_userflags (attribute_t attribute, int userflags)
+{
+  struct _attribute_default *da = (struct _attribute_default *)attribute;
+  mu_refcount_lock (da->refcount);
+  da->userflags &= ~userflags;
+  /* If Modified was being unset do not reset it.  */
+  if (!(userflags & MU_ATTRIBUTE_MODIFIED))
+    da->userflags |= MU_ATTRIBUTE_MODIFIED;
+  mu_refcount_unlock (da->refcount);
+  return 0;
+}
+
+int
+_attribute_default_clear_userflags (attribute_t attribute)
+{
+  struct _attribute_default *da = (struct _attribute_default *)attribute;
+  mu_refcount_lock (da->refcount);
+  da->userflags = 0;
+  mu_refcount_unlock (da->refcount);
+  return 0;
+}
+
 static struct _attribute_vtable _attribute_default_vtable =
 {
   _attribute_default_ref,
@@ -100,7 +144,12 @@ static struct _attribute_vtable _attribute_default_vtable =
   _attribute_default_get_flags,
   _attribute_default_set_flags,
   _attribute_default_unset_flags,
-  _attribute_default_clear_flags
+  _attribute_default_clear_flags,
+
+  _attribute_default_get_userflags,
+  _attribute_default_set_userflags,
+  _attribute_default_unset_userflags,
+  _attribute_default_clear_userflags
 };
 
 int
@@ -115,9 +164,11 @@ _attribute_default_ctor (struct _attribute_default *da)
 }
 
 void
-_attribute_default_dtor (struct _attribute_default *da)
+_attribute_default_dtor (attribute_t attribute)
 {
-  mu_refcount_destroy (&da->refcount);
+  struct _attribute_default *da = (struct _attribute_default *)attribute;
+  if (da)
+    mu_refcount_destroy (&da->refcount);
 }
 
 int
@@ -173,22 +224,36 @@ attribute_status_create (attribute_t *pattribute, const char *field)
     {
       switch (*field)
 	{
-	case 'r':
-	case 'R':
-	  attribute_set_read (*pattribute);
-	  break;
 	case 'O':
 	case 'o':
 	  attribute_set_seen (*pattribute);
 	  break;
+
+	case 'r':
+	case 'R':
+	  attribute_set_read (*pattribute);
+	  break;
+
 	case 'a':
 	case 'A':
 	  attribute_set_answered (*pattribute);
 	  break;
+
 	case 'd':
 	case 'D':
 	  attribute_set_deleted (*pattribute);
 	  break;
+
+	case 't':
+	case 'T':
+	  attribute_set_draft (*pattribute);
+	  break;
+
+	case 'f':
+	case 'F':
+	  attribute_set_flagged (*pattribute);
+	  break;
+
 	}
     }
   attribute_unset_modified (*pattribute);

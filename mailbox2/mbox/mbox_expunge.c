@@ -128,6 +128,7 @@ mbox_expunge (mbox_t mbox, int remove_deleted)
   off_t tmp_size = 0;
   size_t save_uidvalidity = 0; /* uidvalidity is save in the first message.  */
 
+  mbox_debug_print (mbox, "expunge, r=%d", remove_deleted);
   if (mbox == NULL)
     return MU_ERROR_INVALID_PARAMETER;
 
@@ -154,7 +155,7 @@ mbox_expunge (mbox_t mbox, int remove_deleted)
     {
       if (tmp_name)
 	free (tmp_name);
-      /* mu_error ("Failed to create temporary file when expunging.\n"); */
+      mbox_error_cb (mbox, errno);
       return errno;
     }
 
@@ -193,7 +194,7 @@ mbox_expunge (mbox_t mbox, int remove_deleted)
       mbox_destroy (&tmp_mbox);
       remove (tmp_name);
       free (tmp_name);
-      /* mu_error ("Failed to grab the lock\n"); */
+      mbox_error_cb (mbox, status);
       return status;
     }
 
@@ -232,32 +233,29 @@ mbox_expunge (mbox_t mbox, int remove_deleted)
 	  stream_t hstream = NULL, bstream = NULL;
 	  attribute_t attribute = NULL;
 	  char *sep = NULL;
-	  /* The message was not instanciated, probably the dirty flag was
-	     set by mbox_scan(), create one here.  */
-	  if (mum->separator == NULL || mum->header.stream == NULL
-	      || mum->body.stream == NULL || mum->attribute == NULL)
+	  /* The message was not instanciated, create one here.  */
+	  if (mum->separator == NULL || mum->attribute
+	      || mum->header.stream == NULL || mum->body.stream == NULL)
 	    {
-	      if (mbox_get_hstream (mbox, i + 1, &hstream) != 0
-		  || mbox_get_bstream (mbox, i + 1, &bstream) != 0
-		  || mbox_get_separator (mbox, i + 1, &sep) != 0
-		  || mbox_get_attribute (mbox, i + 1, &attribute) != 0)
+	      if ((status = mbox_get_separator (mbox, i + 1, &sep) != 0)
+		  || (status = mbox_get_attribute (mbox, i + 1, &attribute) != 0)
+		  || (status = mbox_get_hstream (mbox, i + 1, &hstream) != 0)
+		  || (status = mbox_get_bstream (mbox, i + 1, &bstream) != 0))
 		{
-		  /* mu_error ("Error expunge:%d", __LINE__); */
+		  mbox_error_cb (mbox, status);
 		  goto bailout0;
 		}
 	    }
 	  status = mbox_append_hb0 (tmp_mbox, mum->separator, mum->attribute,
-				    save_uidvalidity, mum->header.stream,
-				    mum->body.stream);
-	  if (sep)
-	    free (sep);
+				    mum->header.stream, mum->body.stream,
+				    save_uidvalidity, mum->uid);
+	  free (sep);
+	  attribute_destroy (&attribute);
 	  stream_destroy (&hstream);
 	  stream_destroy (&bstream);
-	  attribute_destroy (&attribute);
 	  if (status != 0)
 	    {
-	      /* mu_error ("Error expunge:%d: %s", __LINE__,
-		 strerror (status)); */
+	      mbox_error_cb (mbox, status);
 	      goto bailout0;
 	    }
 	  /* Clear the dirty bits.  */
@@ -266,10 +264,9 @@ mbox_expunge (mbox_t mbox, int remove_deleted)
     } /* for (;;) */
 
   /* Get the real size of the mailbox.  The size maintain in
-     the struct _mailbox { off_t size; } the one return in
-     mailbox_get_size() only return the size that mbox_scan()
-     is aware of not necessary the size of the file after
-     an append.  */
+     the struct _mailbox { off_t size; }(the one return in
+     mailbox_get_size()) only returns the size that mbox_scan()
+     is aware of, not necessary the size of the file after an append.  */
   stream_get_size (tmp_mbox->carrier, &tmp_size);
 
   /* Caution: before ftruncate()ing the file see
@@ -281,29 +278,28 @@ mbox_expunge (mbox_t mbox, int remove_deleted)
     if (stream_get_size (mbox->carrier, &size) == 0)
       {
 	off_t len = size - mbox->size;
-	char buffer [1024];
+	off_t offset = mbox->size;
+	char buf [1024];
 	size_t n = 0;
 	if (len > 0)
 	  {
-	    stream_seek (mbox->carrier, mbox->size, MU_STREAM_WHENCE_SET);
-	    stream_seek (tmp_mbox->carrier, tmp_size, MU_STREAM_WHENCE_SET);
-	    while ((status = stream_read (mbox->carrier, buffer,
-					  sizeof buffer, &n)) == 0 && n > 0)
+	    while ((status = stream_read (mbox->carrier, buf, sizeof buf,
+					  offset, &n)) == 0 && n > 0)
 	      {
-		status = stream_write (tmp_mbox->carrier, buffer, n, NULL);
+		status = stream_write(tmp_mbox->carrier, buf, n, tmp_size, &n);
 		if (status != 0)
 		  {
-		    /* mu_error ("Error expunge:%d: %s", __LINE__,
-		       strerror (status)); */
+		    mbox_error_cb (mbox, status);
 		    goto bailout0;
 		  }
+		offset += n;
+		tmp_size += n;
 	      }
 	  }
 	else if (len < 0)
 	  {
 	    /* Corrupted mailbox.  */
-	    /* mu_error ("Error expunge:%d: %s", __LINE__,
-	       strerror (status)); */
+	    mbox_error_cb (mbox, status);
 	    goto bailout0;
 	  }
       }
@@ -312,32 +308,31 @@ mbox_expunge (mbox_t mbox, int remove_deleted)
   /* Seek and rewrite it.  */
   if (tmp_size > 0)
     {
-      char buffer [1024];
+      char buf [1024];
       size_t n = 0;
+      off_t tmp_off = 0;
+      off_t offset = marker;
 
-      stream_seek (mbox->carrier, marker, MU_STREAM_WHENCE_SET);
-      stream_seek (tmp_mbox->carrier, 0, MU_STREAM_WHENCE_SET);
-      while ((status = stream_read (tmp_mbox->carrier, buffer,
-				    sizeof buffer, &n)) == 0 && n > 0)
+      while ((status = stream_read (tmp_mbox->carrier, buf, sizeof buf,
+				    tmp_off, &n)) == 0 && n > 0)
 	{
-	  status = stream_write (mbox->carrier, buffer, n, &n);
+	  status = stream_write (mbox->carrier, buf, n, offset,  &n);
 	  if (status != 0)
 	    {
-	      /* mu_error ("Error expunge:%d: %s\n", __LINE__,
-		 strerror (status)); */
+	      mbox_error_cb (mbox, status);
 	      goto bailout;
 	    }
+	  tmp_off += n;
+	  offset += n;
 	}
     }
 
   /* Flush/truncation. Need to flush before truncate.  */
-  stream_get_size (tmp_mbox->carrier, &tmp_size);
   stream_flush (mbox->carrier);
   status = stream_truncate (mbox->carrier, tmp_size + marker);
   if (status != 0)
     {
-      /* mu_error ("Error expunging:%d: %s\n", __LINE__,
-	 strerror (status)); */
+      mbox_error_cb (mbox, status);
       goto bailout;
     }
 
@@ -346,7 +341,6 @@ mbox_expunge (mbox_t mbox, int remove_deleted)
   remove (tmp_name);
 
  bailout:
-
   free (tmp_name);
   /* Release the File lock.  */
   lockfile_unlock (mbox->lockfile);
@@ -366,47 +360,41 @@ mbox_expunge (mbox_t mbox, int remove_deleted)
       size_t dlast;
       for (j = dirty, dlast = mbox->messages_count - 1; j <= dlast; j++)
 	{
-	  /* Clear all the references to streams.  */
 	  mum = mbox->umessages[j];
+	  /* Clear all the references to streams.  */
 	  if (remove_deleted && ATTRIBUTE_IS_DELETED (mum->attr_flags))
 	    {
-	      if (mum->separator)
-		free (mum->separator);
-	      mum->separator = NULL;
-	      if (mum->attribute)
-		attribute_destroy (&mum->attribute);
-	      if (mum->header.stream)
-		stream_destroy (&mum->header.stream);
-	      if (mum->body.stream)
-		stream_destroy (&mum->body.stream);
-	      mbox_hcache_free (mbox, i + 1);
-	      /* memset (mum, 0, sizeof (*mum)); */
-
+	      mbox_release_msg (mbox, j + 1);
 	      if ((j + 1) <= dlast)
 		{
-		  /* Move all the pointers up.  So the message pointer
-		     part of mum will be at the right position.  */
+		  /* Move all the pointers up.  So the message pointers
+		     will be at the right position.  */
 		  memmove (mbox->umessages + j, mbox->umessages + j + 1,
-			   (dlast - j) * sizeof (mum));
-#if 1
-		  mum->from_ = mum->header.start = 0;
-		  mum->body.start = mum->body.end = 0;
-		  mum->header.lines = mum->body.lines = 0;
-#endif
-		  /* We are not free()ing the useless mum, but instead
-		     we put it back in the pool, to be reuse.  */
-		  mbox->umessages[dlast] = mum;
+			   (dlast - j) * sizeof mum);
 		  dlast--;
-		  /* Set mum to the new value after the memmove so it
-		     gets cleared to.  */
-		  mum = mbox->umessages[j];
 		}
+	      mbox->umessages_count--;
+	      mbox->messages_count--;
 	    }
-	  mum->from_ = mum->header.start = 0;
-	  mum->body.start = mum->body.end = 0;
-	  mum->header.lines = mum->body.lines = 0;
+	  else
+	    {
+	      /* Readjust the offsets and attach objects.  */
+	      mum->from_ = mum->header.start = 0;
+	      mum->body.start = mum->body.end = 0;
+	      mum->header.lines = mum->body.lines = 0;
+	      stream_mbox_msgno (mum->header.stream, j + 1);
+	      stream_mbox_msgno (mum->body.stream, j + 1);
+	      attribute_mbox_msgno (mum->attribute, j + 1);
+	    }
 	}
-      /* This is should reset the messages_count, the last argument 0 means
+
+      /* Must Realloc the right size before the scan. some slots
+	 in the umessages may be NULL after remove_deleted.  */
+      mbox->umessages  = realloc (mbox->umessages,
+				  mbox->umessages_count
+				  * sizeof (*(mbox->umessages)));
+
+      /* This should reset the messages_count, the last argument 0 means
 	 not to send event notification.  */
       mbox_scan (mbox, dirty, NULL, 0);
     }

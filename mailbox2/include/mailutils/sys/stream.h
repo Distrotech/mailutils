@@ -18,6 +18,10 @@
 #ifndef _MAILUTILS_SYS_STREAM_H
 #define _MAILUTILS_SYS_STREAM_H
 
+#ifdef DMALLOC
+# include <dmalloc.h>
+#endif
+
 #include <mailutils/stream.h>
 
 #ifdef __cplusplus
@@ -32,11 +36,10 @@ struct _stream_vtable
   int  (*open)      __P ((stream_t, const char *, int, int));
   int  (*close)     __P ((stream_t));
 
-  int  (*read)      __P ((stream_t, void *, size_t, size_t *));
-  int  (*readline)  __P ((stream_t, char *, size_t, size_t *));
-  int  (*write)     __P ((stream_t, const void *, size_t, size_t *));
+  int  (*read)      __P ((stream_t, void *, size_t, off_t, size_t *));
+  int  (*readline)  __P ((stream_t, char *, size_t, off_t, size_t *));
+  int  (*write)     __P ((stream_t, const void *, size_t, off_t, size_t *));
 
-  int  (*seek)      __P ((stream_t, off_t, enum stream_whence));
   int  (*tell)      __P ((stream_t, off_t *));
 
   int  (*get_size)  __P ((stream_t, off_t *));
@@ -47,6 +50,7 @@ struct _stream_vtable
   int  (*get_flags) __P ((stream_t, int *));
   int  (*get_state) __P ((stream_t, enum stream_state *));
 
+  int  (*is_seekable) __P ((stream_t));
   int  (*is_readready) __P ((stream_t, int));
   int  (*is_writeready) __P ((stream_t, int));
   int  (*is_exceptionpending) __P ((stream_t, int));

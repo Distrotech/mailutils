@@ -75,18 +75,32 @@ mbox_parse_status (mbox_message_t mum, char *buf, size_t n)
 	    case 'R':
 	      mum->attr_flags |= MU_ATTRIBUTE_READ;
 	      break;
+
 	    case 'O':
 	    case 'o':
 	      mum->attr_flags |= MU_ATTRIBUTE_SEEN;
 	      break;
+
 	    case 'a':
 	    case 'A':
 	      mum->attr_flags |= MU_ATTRIBUTE_ANSWERED;
 	      break;
+
 	    case 'd':
 	    case 'D':
 	      mum->attr_flags |= MU_ATTRIBUTE_DELETED;
 	      break;
+
+	    case 't':
+	    case 'T':
+	      mum->attr_flags |= MU_ATTRIBUTE_DRAFT;
+	      break;
+
+	    case 'f':
+	    case 'F':
+	      mum->attr_flags |= MU_ATTRIBUTE_FLAGGED;
+	      break;
+
 	    }
 	}
     }
@@ -96,8 +110,6 @@ mbox_parse_status (mbox_message_t mum, char *buf, size_t n)
 static int
 mbox_alloc_umessages (mbox_t mbox)
 {
-  mbox_message_t mum;
-  unsigned int msgno = 0;
   if (mbox->messages_count >= mbox->umessages_count)
     {
       mbox_message_t *m;
@@ -115,11 +127,6 @@ mbox_alloc_umessages (mbox_t mbox)
 	    return MU_ERROR_NO_MEMORY;
 	}
     }
-  if (mum->separator)
-    free (mum->separator);
-  mum->separator = 0;
-
-  mbox_hcache_free (mbox, msgno + 1);
   return 0;
 }
 
@@ -148,6 +155,8 @@ mbox_scan (mbox_t mbox, unsigned int msgno, unsigned int *pcount, int do_notif)
   int zn, isfrom = 0;
   char *temp;
 
+  mbox_debug_print (mbox, "scan(%u,%d)", msgno, do_notif);
+
   if (mbox == NULL)
     return MU_ERROR_INVALID_PARAMETER;
 
@@ -170,14 +179,18 @@ mbox_scan (mbox_t mbox, unsigned int msgno, unsigned int *pcount, int do_notif)
 
   /* Move along, move along nothing to see.  */
   if (!mbox_has_newmail (mbox) && mbox->size == file_size)
-    return 0;
+    {
+      if (pcount)
+	*pcount = mbox->messages_count;
+      return 0;
+    }
 
   /* Bailout early on error.  */
   if (status != 0)
     return status;
 
   if (mbox->hcache.size == 0)
-    mbox_set_hcache_default (mbox);
+    mbox_set_default_hcache (mbox);
 
   /* Lock the mbox before starting.  */
   /* FIXME: Check error..  */
@@ -199,15 +212,8 @@ mbox_scan (mbox_t mbox, unsigned int msgno, unsigned int *pcount, int do_notif)
   errno = lines = inheader = inbody = 0;
   mum = NULL;
 
-  status = stream_seek (mbox->carrier, total, MU_STREAM_WHENCE_SET);
-  if (status != 0)
-    {
-      lockfile_unlock (mbox->lockfile);
-      return status;
-    }
-
-  while ((status = stream_readline (mbox->carrier, buf, sizeof buf, &n)) == 0
-	 && n > 0)
+  while ((status = stream_readline (mbox->carrier, buf, sizeof buf,
+				    total, &n)) == 0 && n > 0)
     {
       int nl;
       total += n;
@@ -242,7 +248,6 @@ mbox_scan (mbox_t mbox, unsigned int msgno, unsigned int *pcount, int do_notif)
 			  lockfile_unlock (mbox->lockfile);
 			  return status;
 			}
-		      stream_seek (mbox->carrier, total, MU_STREAM_WHENCE_SET);
 		    }
                 }
               /* Allocate_msgs will initialize mum.  */
@@ -287,7 +292,7 @@ mbox_scan (mbox_t mbox, unsigned int msgno, unsigned int *pcount, int do_notif)
             {
 	      if (buf[n - 1] == '\n')
 		buf[n - 1] = 0;
-              mbox_hcache_append (mbox, mbox->messages_count, sfield, buf);
+              mbox_append_hcache (mbox, mbox->messages_count, sfield, buf);
             }
           else
             {
@@ -299,9 +304,10 @@ mbox_scan (mbox_t mbox, unsigned int msgno, unsigned int *pcount, int do_notif)
                 {
 		  *s = '\0';
                   s++;
+		  while (*s == ' ') s++;
 		  if (buf[n - 1] == '\n')
 		    buf[n - 1] = 0;
-		  mbox_hcache_append (mbox, mbox->messages_count, buf, s);
+		  mbox_append_hcache (mbox, mbox->messages_count, buf, s);
 		  sfield = strdup (buf);
 		}
             }
@@ -341,7 +347,7 @@ mbox_scan (mbox_t mbox, unsigned int msgno, unsigned int *pcount, int do_notif)
 
   if (mum)
     {
-      mum->body.end = total - newline;
+      mum->body.end = total;
       mum->body.lines = lines - newline;
       if (do_notif)
         mbox_newmsg_cb (mbox, mbox->messages_count);
@@ -358,10 +364,12 @@ mbox_scan (mbox_t mbox, unsigned int msgno, unsigned int *pcount, int do_notif)
         {
           mbox->uidvalidity = (unsigned long)time (NULL);
           mbox->uidnext = mbox->messages_count + 1;
-          /* Tell that we have been modified for expunging.  */
+          /* The uidvalidity was not save, flag it to be save
+	     when expunging.  */
           mum->attr_flags |= MU_ATTRIBUTE_MODIFIED;
         }
     }
+
   /* Reset the IMAP uids, if necessary. UID according to IMAP RFC is a 32 bit
      ascending number for each messages  */
   {
@@ -376,7 +384,8 @@ mbox_scan (mbox_t mbox, unsigned int msgno, unsigned int *pcount, int do_notif)
           {
             uid = ouid + 1;
             mum->uid = ouid = uid;
-            /* Note that modification for when expunging.  */
+            /* UID was not ascentind, clear this when expunging by
+	       setting modification flag.  */
             mum->attr_flags |= MU_ATTRIBUTE_MODIFIED;
           }
         else
@@ -386,8 +395,26 @@ mbox_scan (mbox_t mbox, unsigned int msgno, unsigned int *pcount, int do_notif)
       {
         mum = mbox->umessages[0];
         mbox->uidnext = uid + 1;
+	/* The uidnext was wrong rewrite it when expunging.  */
         mum->attr_flags |= MU_ATTRIBUTE_MODIFIED;
       }
   }
+
+  /* If reserved more memory then scan messages, realloc not
+     to waste memory.  */
+  if (mbox->messages_count && mbox->messages_count < mbox->umessages_count)
+    {
+      size_t i;
+      for (i = mbox->messages_count; i < mbox->umessages_count; i++)
+	{
+	  if (mbox->umessages[i])
+	    mbox_release_msg (mbox, i + 1);
+	}
+      mbox->umessages = realloc (mbox->umessages,
+				 mbox->messages_count
+				 * sizeof (*(mbox->umessages)));
+      mbox->umessages_count = mbox->messages_count;
+    }
+  lockfile_unlock (mbox->lockfile);
   return status;
 }

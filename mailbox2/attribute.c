@@ -81,6 +81,42 @@ attribute_clear_flags (attribute_t attribute)
   return attribute->vtable->clear_flags (attribute);
 }
 
+int
+attribute_get_userflags (attribute_t attribute, int *puserflags)
+{
+  if (attribute == NULL || attribute->vtable == NULL
+      || attribute->vtable->get_userflags == NULL)
+    return MU_ERROR_NOT_SUPPORTED;
+  return attribute->vtable->get_userflags (attribute, puserflags);
+}
+
+int
+attribute_set_userflags (attribute_t attribute, int userflags)
+{
+  if (attribute == NULL || attribute->vtable == NULL
+      || attribute->vtable->set_userflags == NULL)
+    return MU_ERROR_NOT_SUPPORTED;
+  return attribute->vtable->set_userflags (attribute, userflags);
+}
+
+int
+attribute_unset_userflags (attribute_t attribute, int userflags)
+{
+  if (attribute == NULL || attribute->vtable == NULL
+      || attribute->vtable->unset_userflags == NULL)
+    return MU_ERROR_NOT_SUPPORTED;
+  return attribute->vtable->unset_userflags (attribute, userflags);
+}
+
+int
+attribute_clear_userflags (attribute_t attribute)
+{
+  if (attribute == NULL || attribute->vtable == NULL
+      || attribute->vtable->clear_userflags == NULL)
+    return MU_ERROR_NOT_SUPPORTED;
+  return attribute->vtable->clear_userflags (attribute);
+}
+
 
 /* Stub helpers for the wellknown flags.  */
 int
@@ -146,6 +182,16 @@ attribute_set_modified (attribute_t attribute)
   if (attribute == NULL)
     return MU_ERROR_INVALID_PARAMETER;
   return attribute_set_flags (attribute, MU_ATTRIBUTE_MODIFIED);
+}
+
+int
+attribute_is_userflags (attribute_t attribute, int userflag)
+{
+  int flags = 0;
+  if (attribute == NULL)
+    return 0;
+  attribute_get_userflags (attribute, &flags);
+  return flags & userflag;
 }
 
 int

@@ -48,14 +48,15 @@ _attribute_mbox_destroy (attribute_t *pattribute)
   struct _attribute_mbox *ma = (struct _attribute_mbox *)*pattribute;
   if (mu_refcount_dec (ma->refcount) == 0)
     {
+      mu_refcount_destroy (&ma->refcount);
       if (ma->msgno <= ma->mbox->messages_count)
 	{
 	  /* If it is the attribute save in the mailbox structure.  */
-	  if (ma == (struct _attribute_mbox *)(ma->mbox->umessages[ma->msgno - 1]->attribute))
+	  if (ma == (struct _attribute_mbox *)
+	      (ma->mbox->umessages[ma->msgno - 1]->attribute))
 	    ma->mbox->umessages[ma->msgno - 1]->attribute = NULL;
-	  mu_refcount_destroy (&ma->refcount);
-	  free (ma);
 	}
+      free (ma);
     }
 }
 
@@ -66,9 +67,7 @@ _attribute_mbox_get_flags (attribute_t attribute, int *pflags)
   if (pflags)
     {
       if (ma->msgno <= ma->mbox->messages_count)
-	{
-	  *pflags = ma->mbox->umessages[ma->msgno - 1]->attr_flags;
-	}
+	*pflags = ma->mbox->umessages[ma->msgno - 1]->attr_flags;
     }
   return 0;
 }
@@ -78,9 +77,8 @@ _attribute_mbox_set_flags (attribute_t attribute, int flags)
 {
   struct _attribute_mbox *ma = (struct _attribute_mbox *)attribute;
   if (ma->msgno <= ma->mbox->messages_count)
-    {
-      ma->mbox->umessages[ma->msgno - 1]->attr_flags |= (flags | MU_ATTRIBUTE_MODIFIED);
-    }
+    ma->mbox->umessages[ma->msgno - 1]->attr_flags |=
+      (flags | MU_ATTRIBUTE_MODIFIED);
   return 0;
 }
 
@@ -93,7 +91,8 @@ _attribute_mbox_unset_flags (attribute_t attribute, int flags)
       ma->mbox->umessages[ma->msgno - 1]->attr_flags &= ~flags;
       /* If Modified was being unset do not reset it.  */
       if (!(flags & MU_ATTRIBUTE_MODIFIED))
-	ma->mbox->umessages[ma->msgno - 1]->attr_flags |= MU_ATTRIBUTE_MODIFIED;
+	ma->mbox->umessages[ma->msgno - 1]->attr_flags |=
+	  MU_ATTRIBUTE_MODIFIED;
     }
   return 0;
 }
@@ -103,9 +102,53 @@ _attribute_mbox_clear_flags (attribute_t attribute)
 {
   struct _attribute_mbox *ma = (struct _attribute_mbox *)attribute;
   if (ma->msgno <= ma->mbox->messages_count)
+    ma->mbox->umessages[ma->msgno - 1]->attr_flags = 0;
+  return 0;
+}
+
+static int
+_attribute_mbox_get_userflags (attribute_t attribute, int *puserflags)
+{
+  struct _attribute_mbox *ma = (struct _attribute_mbox *)attribute;
+  if (puserflags)
     {
-      ma->mbox->umessages[ma->msgno - 1]->attr_flags = 0;
+      if (ma->msgno <= ma->mbox->messages_count)
+	*puserflags = ma->mbox->umessages[ma->msgno - 1]->attr_userflags;
     }
+  return 0;
+}
+
+static int
+_attribute_mbox_set_userflags (attribute_t attribute, int userflags)
+{
+  struct _attribute_mbox *ma = (struct _attribute_mbox *)attribute;
+  if (ma->msgno <= ma->mbox->messages_count)
+    ma->mbox->umessages[ma->msgno - 1]->attr_userflags |=
+      (userflags | MU_ATTRIBUTE_MODIFIED);
+  return 0;
+}
+
+static int
+_attribute_mbox_unset_userflags (attribute_t attribute, int userflags)
+{
+  struct _attribute_mbox *ma = (struct _attribute_mbox *)attribute;
+  if (ma->msgno <= ma->mbox->messages_count)
+    {
+      ma->mbox->umessages[ma->msgno - 1]->attr_userflags &= ~userflags;
+      /* If Modified was being unset do not reset it.  */
+      if (!(userflags & MU_ATTRIBUTE_MODIFIED))
+	ma->mbox->umessages[ma->msgno - 1]->attr_userflags |=
+	  MU_ATTRIBUTE_MODIFIED;
+    }
+  return 0;
+}
+
+static int
+_attribute_mbox_clear_userflags (attribute_t attribute)
+{
+  struct _attribute_mbox *ma = (struct _attribute_mbox *)attribute;
+  if (ma->msgno <= ma->mbox->messages_count)
+    ma->mbox->umessages[ma->msgno - 1]->attr_userflags = 0;
   return 0;
 }
 
@@ -117,7 +160,12 @@ static struct _attribute_vtable _attribute_mbox_vtable =
   _attribute_mbox_get_flags,
   _attribute_mbox_set_flags,
   _attribute_mbox_unset_flags,
-  _attribute_mbox_clear_flags
+  _attribute_mbox_clear_flags,
+
+  _attribute_mbox_get_userflags,
+  _attribute_mbox_set_userflags,
+  _attribute_mbox_unset_userflags,
+  _attribute_mbox_clear_userflags
 };
 
 static int
@@ -133,12 +181,19 @@ _attribute_mbox_ctor (struct _attribute_mbox *ma, mbox_t mbox,
   return 0;
 }
 
-/*
-static int
-_attribute_mbox_dtor (struct _attribute_mbox *ma)
+void
+_attribute_mbox_dtor (attribute_t attribute)
 {
+  struct _attribute_mbox *ma = (struct _attribute_mbox *)attribute;
+  mu_refcount_destroy (&ma->refcount);
+  if (ma->msgno <= ma->mbox->messages_count)
+    {
+      /* If it is the attribute save in the mailbox structure.  */
+      if (ma == (struct _attribute_mbox *)
+	  (ma->mbox->umessages[ma->msgno - 1]->attribute))
+	ma->mbox->umessages[ma->msgno - 1]->attribute = NULL;
+    }
 }
-*/
 
 int
 attribute_mbox_create (attribute_t *pattribute, mbox_t mbox,
@@ -162,9 +217,21 @@ attribute_mbox_create (attribute_t *pattribute, mbox_t mbox,
 }
 
 int
+attribute_mbox_msgno (attribute_t attribute, unsigned int msgno)
+{
+  struct _attribute_mbox *ma = (struct _attribute_mbox *)attribute;
+  if (ma)
+    ma->msgno = msgno;
+  return 0;
+}
+
+int
 mbox_get_attribute (mbox_t mbox, unsigned int msgno, attribute_t *pattribute)
 {
   int status = 0;
+
+  mbox_debug_print (mbox, "attribute(%d)", msgno);
+
   if (mbox == NULL || msgno == 0 || pattribute == NULL)
     return MU_ERROR_INVALID_PARAMETER;
 
@@ -198,16 +265,18 @@ mbox_attribute_to_status (attribute_t attribute, char *buf, size_t buflen,
 
   if (attribute)
     {
-      if (attribute_is_read (attribute))
-	strcat (a, "R");
       if (attribute_is_seen (attribute))
 	strcat (a, "O");
+      if (attribute_is_read (attribute))
+	strcat (a, "R");
       if (attribute_is_answered (attribute))
 	strcat (a, "A");
       if (attribute_is_deleted (attribute))
 	strcat (a, "d");
       if (attribute_is_flagged (attribute))
 	strcat (a, "F");
+      if (attribute_is_draft (attribute))
+	strcat (a, "T");
     }
 
   if (*a != '\0')

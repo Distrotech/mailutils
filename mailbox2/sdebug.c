@@ -76,6 +76,8 @@ int
 _mu_debug_stream_print (mu_debug_t debug, size_t level, const char *mesg)
 {
   struct _mu_debug_stream *sdebug = (struct _mu_debug_stream *)debug;
+  size_t n = 0;
+  int status;
 
   if (mesg == NULL)
     return MU_ERROR_INVALID_PARAMETER;
@@ -83,7 +85,10 @@ _mu_debug_stream_print (mu_debug_t debug, size_t level, const char *mesg)
   if (!(sdebug->level & level))
     return 0;
 
-  return stream_write (sdebug->stream, mesg, strlen (mesg), NULL);
+  status =  stream_write (sdebug->stream, mesg, strlen (mesg), sdebug->offset,
+			  &n);
+  sdebug->offset += n;
+  return status;
 }
 
 static struct _mu_debug_vtable _mu_debug_stream_vtable =
@@ -117,6 +122,7 @@ mu_debug_stream_create (mu_debug_t *pdebug, stream_t stream,
     }
 
   sdebug->level = 0;
+  sdebug->offset = 0;
   sdebug->stream = stream;
   sdebug->close_on_destroy = close_on_destroy;
   sdebug->base.vtable = &_mu_debug_stream_vtable;

@@ -242,11 +242,15 @@ _lockfile_dotlock_ctor (struct _lockfile_dotlock *dotlock,
 }
 
 void
-_lockfile_dotlock_dtor (struct _lockfile_dotlock *dotlock)
+_lockfile_dotlock_dtor (lockfile_t lockfile)
 {
-  mu_refcount_destroy (&dotlock->refcount);
-  if (dotlock->fname)
-    free (dotlock->fname);
+  struct _lockfile_dotlock *dotlock = (struct _lockfile_dotlock *)lockfile;
+  if (dotlock)
+    {
+      mu_refcount_destroy (&dotlock->refcount);
+      if (dotlock->fname)
+	free (dotlock->fname);
+    }
 }
 
 int

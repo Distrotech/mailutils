@@ -50,9 +50,10 @@ pop3_getline (pop3_t pop3)
 	}
 
       status = stream_readline (pop3->carrier, pop3->io.buf + total,
-				pop3->io.len - total, &n);
+				pop3->io.len - total, pop3->offset, &n);
       if (status != 0)
 	return status;
+      pop3->offset += n;
 
       /* The server went away:  It maybe a timeout and some pop server
 	 does not send the -ERR.  Consider this like an error.  */
@@ -118,7 +119,7 @@ pop3_readline (pop3_t pop3, char *buffer, size_t buflen, size_t *pnread)
 {
   size_t nread = 0;
   size_t n = 0;
-  int status;
+  int status = 0;
 
   /* Do we need to fill up? Yes if no NL or the buffer is empty.  */
   if (pop3->carrier && (pop3->io.nl == NULL || pop3->io.ptr == pop3->io.buf))

@@ -25,6 +25,7 @@
 int
 mbox_get_size (mbox_t mbox, off_t *size)
 {
+  mbox_debug_print (mbox, "get_size");
   if (mbox && size)
     *size = mbox->size;
   return 0;

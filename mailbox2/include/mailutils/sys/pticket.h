@@ -18,6 +18,10 @@
 #ifndef _MAILUTILS_SYS_PTICKET_H
 #define _MAILUTILS_SYS_PTICKET_H
 
+#ifdef DMALLOC
+# include <dmalloc.h>
+#endif
+
 #include <mailutils/sys/ticket.h>
 
 #ifdef __cplusplus
@@ -31,7 +35,7 @@ struct _ticket_prompt
 };
 
 extern int  _ticket_prompt_ctor __P ((struct _ticket_prompt *));
-extern void _ticket_prompt_dtor __P ((struct _ticket_prompt *));
+extern void _ticket_prompt_dtor __P ((ticket_t));
 extern int  _ticket_prompt_ref  __P ((ticket_t));
 extern void _ticket_prompt_destroy __P ((ticket_t *));
 extern int  _ticket_prompt_pop     __P ((ticket_t, const char *, char **));

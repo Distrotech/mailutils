@@ -63,39 +63,30 @@ stream_close (stream_t stream)
 }
 
 int
-stream_read (stream_t stream, void *buf, size_t buflen, size_t *n)
+stream_read (stream_t stream, void *buf, size_t buflen, off_t o, size_t *n)
 {
   if (stream == NULL || stream->vtable == NULL
       || stream->vtable->read == NULL)
     return MU_ERROR_NOT_SUPPORTED;
-  return stream->vtable->read (stream, buf, buflen, n);
+  return stream->vtable->read (stream, buf, buflen, o, n);
 }
 
 int
-stream_readline (stream_t stream, char *buf, size_t buflen, size_t *n)
+stream_readline (stream_t stream, char *buf, size_t buflen, off_t o, size_t *n)
 {
   if (stream == NULL || stream->vtable == NULL
       || stream->vtable->readline == NULL)
     return MU_ERROR_NOT_SUPPORTED;
-  return stream->vtable->readline (stream, buf, buflen, n);
+  return stream->vtable->readline (stream, buf, buflen, o, n);
 }
 
 int
-stream_write (stream_t stream, const void *buf, size_t buflen, size_t *n)
+stream_write (stream_t stream, const void *buf, size_t buflen, off_t o, size_t *n)
 {
   if (stream == NULL || stream->vtable == NULL
       || stream->vtable->write == NULL)
     return MU_ERROR_NOT_SUPPORTED;
-  return stream->vtable->write (stream, buf, buflen, n);
-}
-
-int
-stream_seek (stream_t stream, off_t off, enum stream_whence whence)
-{
-  if (stream == NULL || stream->vtable == NULL
-      || stream->vtable->seek == NULL)
-    return MU_ERROR_NOT_SUPPORTED;
-  return stream->vtable->seek (stream, off, whence);
+  return stream->vtable->write (stream, buf, buflen, o, n);
 }
 
 int
@@ -159,6 +150,15 @@ stream_get_state (stream_t stream, enum stream_state *state)
       || stream->vtable->get_state == NULL)
     return MU_ERROR_NOT_SUPPORTED;
   return stream->vtable->get_state (stream, state);
+}
+
+int
+stream_is_seekable (stream_t stream)
+{
+  if (stream == NULL || stream->vtable == NULL
+      || stream->vtable->is_seekable == NULL)
+    return MU_ERROR_NOT_SUPPORTED;
+  return stream->vtable->is_seekable (stream);
 }
 
 int

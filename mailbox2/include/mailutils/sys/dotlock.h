@@ -49,7 +49,7 @@ struct _lockfile_dotlock
 };
 
 extern int  _lockfile_dotlock_ctor __P ((struct _lockfile_dotlock *, const char *));
-extern void _lockfile_dotlock_dtor __P ((struct _lockfile_dotlock *));
+extern void _lockfile_dotlock_dtor __P ((lockfile_t));
 extern int  _lockfile_dotlock_ref  __P ((lockfile_t));
 extern void _lockfile_dotlock_destroy __P ((lockfile_t *));
 

@@ -35,10 +35,11 @@ struct _attribute_default
   struct _attribute base;
   mu_refcount_t refcount;
   int flags;
+  int userflags;
 };
 
 extern int  _attribute_default_ctor        __P ((struct _attribute_default *));
-extern void _attribute_default_dtor        __P ((struct _attribute_default *));
+extern void _attribute_default_dtor        __P ((attribute_t));
 extern int  _attribute_default_ref         __P ((attribute_t));
 extern void _attribute_default_destroy     __P ((attribute_t *));
 
@@ -46,6 +47,11 @@ extern int  _attribute_default_get_flags   __P ((attribute_t, int *));
 extern int  _attribute_default_set_flags   __P ((attribute_t, int));
 extern int  _attribute_default_unset_flags __P ((attribute_t, int));
 extern int  _attribute_default_clear_flags __P ((attribute_t));
+
+extern int  _attribute_default_get_userflags   __P ((attribute_t, int *));
+extern int  _attribute_default_set_userflags   __P ((attribute_t, int));
+extern int  _attribute_default_unset_userflags __P ((attribute_t, int));
+extern int  _attribute_default_clear_userflags __P ((attribute_t));
 
 #ifdef __cplusplus
 }

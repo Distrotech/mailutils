@@ -26,6 +26,8 @@ int
 mbox_get_uidnext (mbox_t mbox, unsigned long *puidnext)
 {
 
+  mbox_debug_print (mbox, "get_uidnext");
+
   if (mbox == NULL || puidnext == NULL)
     return MU_ERROR_INVALID_PARAMETER;
 

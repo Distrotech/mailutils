@@ -34,11 +34,10 @@ static void p_destroy       __P ((stream_t *));
 static int  p_open          __P ((stream_t, const char *, int, int));
 static int  p_close         __P ((stream_t));
 
-static int  p_read          __P ((stream_t, void *, size_t, size_t *));
-static int  p_readline      __P ((stream_t, char *, size_t, size_t *));
-static int  p_write         __P ((stream_t, const void *, size_t, size_t *));
+static int  p_read          __P ((stream_t, void *, size_t, off_t, size_t *));
+static int  p_readline      __P ((stream_t, char *, size_t, off_t, size_t *));
+static int  p_write    __P ((stream_t, const void *, size_t, off_t, size_t *));
 
-static int  p_seek          __P ((stream_t, off_t, enum stream_whence));
 static int  p_tell          __P ((stream_t, off_t *));
 
 static int  p_get_size      __P ((stream_t, off_t *));
@@ -49,6 +48,7 @@ static int  p_get_fd        __P ((stream_t, int *));
 static int  p_get_flags     __P ((stream_t, int *));
 static int  p_get_state     __P ((stream_t, enum stream_state *));
 
+static int  p_is_seekable   __P ((stream_t));
 static int  p_is_readready  __P ((stream_t, int timeout));
 static int  p_is_writeready __P ((stream_t, int timeout));
 static int  p_is_exceptionpending  __P ((stream_t, int timeout));
@@ -67,7 +67,6 @@ static struct _stream_vtable p_s_vtable =
   p_readline,
   p_write,
 
-  p_seek,
   p_tell,
 
   p_get_size,
@@ -78,6 +77,7 @@ static struct _stream_vtable p_s_vtable =
   p_get_flags,
   p_get_state,
 
+  p_is_seekable,
   p_is_readready,
   p_is_writeready,
   p_is_exceptionpending,
@@ -151,12 +151,14 @@ p_close (stream_t stream)
 }
 
 static int
-p_read (stream_t stream, void *buf, size_t buflen, size_t *pn)
+p_read (stream_t stream, void *buf, size_t buflen, off_t offset, size_t *pn)
 {
   struct p_stream *p_stream = (struct p_stream *)stream;
   size_t n = 0;
   int status = 0;
   char *p = buf;
+
+  (void)offset;
   if (p_stream)
     {
       mu_refcount_lock (p_stream->refcount);
@@ -202,11 +204,14 @@ p_read (stream_t stream, void *buf, size_t buflen, size_t *pn)
 }
 
 static int
-p_readline (stream_t stream, char *buf, size_t buflen, size_t *pn)
+p_readline (stream_t stream, char *buf, size_t buflen, off_t offset,
+	    size_t *pn)
 {
   struct p_stream *p_stream = (struct p_stream *)stream;
   size_t n = 0;
   int status = 0;
+
+  (void)offset;
   if (p_stream)
     {
       mu_refcount_lock (p_stream->refcount);
@@ -227,17 +232,18 @@ p_readline (stream_t stream, char *buf, size_t buflen, size_t *pn)
 }
 
 static int
-p_write (stream_t stream, const void *buf, size_t buflen, size_t *pn)
+p_write (stream_t stream, const void *buf, size_t buflen, off_t offset,
+	 size_t *pn)
 {
   struct p_stream *p_stream = (struct p_stream *)stream;
-  return stream_write (p_stream->pop3->carrier, buf, buflen, pn);
+  return stream_write (p_stream->pop3->carrier, buf, buflen, offset, pn);
 }
 
 static int
-p_seek (stream_t stream, off_t offset, enum stream_whence whence)
+p_is_seekable (stream_t stream)
 {
   struct p_stream *p_stream = (struct p_stream *)stream;
-  return stream_seek (p_stream->pop3->carrier, offset, whence);
+  return stream_is_seekable (p_stream->pop3->carrier);
 }
 
 static int

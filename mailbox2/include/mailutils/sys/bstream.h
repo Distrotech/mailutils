@@ -18,6 +18,10 @@
 #ifndef MAILUTILS_SYS_BSTREAM_H
 #define MAILUTILS_SYS_BSTREAM_H
 
+#ifdef DMALLOC
+#  include <dmalloc.h>
+#endif
+
 #include <mailutils/sys/stream.h>
 #include <mailutils/refcount.h>
 
@@ -31,6 +35,7 @@ struct _rbuffer
   char *base;
   char *ptr;
   int  count;
+  off_t offset;
   size_t bufsize;
 };
 
@@ -43,22 +48,22 @@ struct _stream_buffer
 };
 
 extern int  _stream_buffer_ctor __P ((struct _stream_buffer *, stream_t, size_t));
-extern void _stream_buffer_dtor __P ((struct _stream_buffer *));
+extern void _stream_buffer_dtor __P ((stream_t));
 extern int  _stream_buffer_ref  __P ((stream_t));
 extern void _stream_buffer_destroy __P ((stream_t *));
 extern int  _stream_buffer_open    __P ((stream_t, const char *, int, int));
 extern int  _stream_buffer_close   __P ((stream_t));
-extern int  _stream_buffer_read    __P ((stream_t, void *, size_t, size_t *));
-extern int  _stream_buffer_readline __P ((stream_t, char *, size_t, size_t *));
-extern int  _stream_buffer_write __P ((stream_t, const void *, size_t, size_t *));
+extern int  _stream_buffer_read    __P ((stream_t, void *, size_t, off_t, size_t *));
+extern int  _stream_buffer_readline __P ((stream_t, char *, size_t, off_t, size_t *));
+extern int  _stream_buffer_write __P ((stream_t, const void *, size_t, off_t, size_t *));
 extern int  _stream_buffer_get_fd __P ((stream_t, int *));
 extern int  _stream_buffer_get_flags __P ((stream_t, int *));
 extern int  _stream_buffer_get_size  __P ((stream_t, off_t *));
 extern int  _stream_buffer_truncate  __P ((stream_t, off_t));
 extern int  _stream_buffer_flush     __P ((stream_t));
 extern int  _stream_buffer_get_state __P ((stream_t, enum stream_state *));
-extern int  _stream_buffer_seek __P ((stream_t, off_t, enum stream_whence));
 extern int  _stream_buffer_tell __P ((stream_t, off_t *));
+extern int  _stream_buffer_is_seekable __P ((stream_t));
 extern int  _stream_buffer_is_readready __P ((stream_t, int ));
 extern int  _stream_buffer_is_writeready __P ((stream_t, int));
 extern int  _stream_buffer_is_exceptionpending __P ((stream_t, int));

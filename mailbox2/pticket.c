@@ -110,9 +110,11 @@ _ticket_prompt_ctor (struct _ticket_prompt *prompt)
 }
 
 void
-_ticket_prompt_dtor (struct _ticket_prompt *prompt)
+_ticket_prompt_dtor (ticket_t ticket)
 {
-  mu_refcount_destroy (&prompt->refcount);
+  struct _ticket_prompt *prompt = (struct _ticket_prompt *)ticket;
+  if (prompt)
+    mu_refcount_destroy (&prompt->refcount);
 }
 
 int

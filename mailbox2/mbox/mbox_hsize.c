@@ -27,6 +27,8 @@ int
 mbox_get_hsize (mbox_t mbox, unsigned int msgno, unsigned int *psize)
 {
   unsigned int size = 0;
+
+  mbox_debug_print (mbox, "get_hsize(%d)", msgno);
   if (mbox && msgno)
     {
       msgno--;

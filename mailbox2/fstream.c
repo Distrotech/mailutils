@@ -53,45 +53,74 @@ _stream_stdio_destroy (stream_t *pstream)
 }
 
 int
-_stream_stdio_read (stream_t stream, void *optr, size_t osize, size_t *nbytes)
+_stream_stdio_read (stream_t stream, void *optr, size_t osize,
+		    off_t offset,size_t *nbytes)
 {
   struct _stream_stdio *fs = (struct _stream_stdio *)stream;
   size_t n = 0;
   int err = 0;
 
-  if (fs->file)
+  if (!fs->file)
     {
-      n = fread (optr, 1, osize, fs->file);
+      if (nbytes)
+	*nbytes = 0;
+      return MU_ERROR_BAD_FILE_DESCRIPTOR;
+    }
+
+  if (fs->offset != offset)
+    {
+      if (fseek (fs->file, offset, SEEK_SET) != 0)
+        return errno;
+      fs->offset = offset;
+    }
+
+  n = fread (optr, 1, osize, fs->file);
+  if (n == 0)
+    {
+      if (ferror(fs->file))
+	err = MU_ERROR_IO;
+    }
+
+  if (nbytes)
+    *nbytes = n;
+  return err;
+}
+
+int
+_stream_stdio_readline (stream_t stream, char *optr, size_t osize,
+			off_t offset, size_t *nbytes)
+{
+  struct _stream_stdio *fs = (struct _stream_stdio *)stream;
+  size_t n = 0;
+  int err = 0;
+
+  if (!fs->file)
+    {
+      if (nbytes)
+        *nbytes = 0;
+      return MU_ERROR_BAD_FILE_DESCRIPTOR;
+    }
+
+  if (fs->offset != offset)
+    {
+      if (fseek (fs->file, offset, SEEK_SET) != 0)
+        return errno;
+      fs->offset = offset;
+    }
+
+  if (fgets (optr, osize, fs->file) != NULL)
+    {
+      n = strlen (optr);
+      /* Oh My!! */
       if (n == 0)
-	{
-	  if (ferror(fs->file))
-	    err = MU_ERROR_IO;
-	}
-    }
-
-  if (nbytes)
-    *nbytes = n;
-  return err;
-}
-
-int
-_stream_stdio_readline (stream_t stream, char *optr, size_t osize, size_t *nbytes)
-{
-  struct _stream_stdio *fs = (struct _stream_stdio *)stream;
-  size_t n = 0;
-  int err = 0;
-
-  if (fs->file)
-    {
-      if (fgets (optr, osize, fs->file) != NULL)
-	{
-	  n = strlen (optr);
-	}
+	n++;
       else
-	{
-	  if (ferror (fs->file))
-	    err = MU_ERROR_IO;
-	}
+	fs->offset += n;
+    }
+  else
+    {
+      if (ferror (fs->file))
+	err = MU_ERROR_IO;
     }
 
   if (nbytes)
@@ -100,23 +129,37 @@ _stream_stdio_readline (stream_t stream, char *optr, size_t osize, size_t *nbyte
 }
 
 int
-_stream_stdio_write (stream_t stream, const void *iptr, size_t isize, size_t *nbytes)
+_stream_stdio_write (stream_t stream, const void *iptr, size_t isize,
+		     off_t offset, size_t *nbytes)
 {
   struct _stream_stdio *fs = (struct _stream_stdio *)stream;
   size_t n = 0;
   int err = 0;
 
-  if (fs->file)
+  if (!fs->file)
     {
-      n = fwrite (iptr, 1, isize, fs->file);
-      if (n != isize)
-	{
-	  if (feof (fs->file) == 0)
-	    err = MU_ERROR_IO;
-	  clearerr(fs->file);
-	  n = 0;
-	}
+      if (nbytes)
+        *nbytes = 0;
+      return MU_ERROR_BAD_FILE_DESCRIPTOR;
     }
+
+  if (fs->offset != offset)
+    {
+      if (fseek (fs->file, offset, SEEK_SET) != 0)
+        return errno;
+      fs->offset = offset;
+    }
+
+  n = fwrite (iptr, 1, isize, fs->file);
+  if (n != isize)
+    {
+      if (feof (fs->file) == 0)
+	err = MU_ERROR_IO;
+      clearerr(fs->file);
+      n = 0;
+    }
+  else
+    fs->offset += n;
 
   if (nbytes)
     *nbytes = n;
@@ -168,40 +211,37 @@ _stream_stdio_get_fd (stream_t stream, int *pfd)
       if (fs->file)
 	*pfd = fileno (fs->file);
       else
-	status = MU_ERROR_INVALID_PARAMETER;
+	status = MU_ERROR_BAD_FILE_DESCRIPTOR;
     }
   return status;
 }
 
 int
-_stream_stdio_seek (stream_t stream, off_t off, enum stream_whence whence)
+_stream_stdio_is_seekable (stream_t stream)
 {
-  struct _stream_stdio *fs = (struct _stream_stdio *)stream;
-  int err = 0;
-  if (fs->file)
-    {
-      if (whence == MU_STREAM_WHENCE_SET)
-	err = fseek (fs->file, off, SEEK_SET);
-      else if (whence == MU_STREAM_WHENCE_CUR)
-	err = fseek (fs->file, off, SEEK_CUR);
-      else if (whence == MU_STREAM_WHENCE_END)
-	err = fseek (fs->file, off, SEEK_END);
-      else
-	err = MU_ERROR_INVALID_PARAMETER;
-      if (err == -1)
-	err = errno;
-    }
-  return err;
+  off_t off;
+  return _stream_stdio_tell (stream, &off) == 0;
 }
 
 int
 _stream_stdio_tell (stream_t stream, off_t *off)
 {
   struct _stream_stdio *fs = (struct _stream_stdio *)stream;
+  int status = 0;
   if (off == NULL)
     return MU_ERROR_INVALID_PARAMETER;
-  *off = (fs->file) ? ftell (fs->file) : 0;
-  return 0;
+  if (fs->file)
+    {
+      *off = ftell (fs->file);
+      if (*off == -1)
+	{
+	  *off = 0;
+	  status = errno;
+	}
+    }
+  else
+    status = MU_ERROR_BAD_FILE_DESCRIPTOR;
+  return status;
 }
 
 int
@@ -380,7 +420,6 @@ static struct _stream_vtable _stream_stdio_vtable =
   _stream_stdio_readline,
   _stream_stdio_write,
 
-  _stream_stdio_seek,
   _stream_stdio_tell,
 
   _stream_stdio_get_size,
@@ -391,6 +430,7 @@ static struct _stream_vtable _stream_stdio_vtable =
   _stream_stdio_get_flags,
   _stream_stdio_get_state,
 
+  _stream_stdio_is_seekable,
   _stream_stdio_is_readready,
   _stream_stdio_is_writeready,
   _stream_stdio_is_exceptionpending,
@@ -411,11 +451,15 @@ _stream_stdio_ctor (struct _stream_stdio *fs, FILE *fp)
 }
 
 void
-_stream_stdio_dtor (struct _stream_stdio *fs)
+_stream_stdio_dtor (stream_t stream)
 {
-  mu_refcount_destroy (&fs->refcount);
-  /* We may leak if they did not close the FILE * */
-  fs->file = NULL;
+  struct _stream_stdio *fs = (struct _stream_stdio *)stream;
+  if (fs)
+    {
+      mu_refcount_destroy (&fs->refcount);
+      /* We may leak if they did not close the FILE * */
+      fs->file = NULL;
+    }
 }
 
 int

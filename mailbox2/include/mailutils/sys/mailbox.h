@@ -18,6 +18,10 @@
 #ifndef _MAILUTILS_SYS_MAILBOX_H
 #define _MAILUTILS_SYS_MAILBOX_H
 
+#ifdef DMALLOC
+# include <dmalloc.h>
+#endif
+
 #include <mailutils/mailbox.h>
 
 #ifdef __cplusplus

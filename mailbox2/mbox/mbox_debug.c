@@ -19,52 +19,64 @@
 # include <config.h>
 #endif
 
-#include <stdlib.h>
+#include <string.h>
 
+#include <stdio.h>
+#include <stdarg.h>
 #include <mailutils/error.h>
 #include <mailutils/sys/mbox.h>
 
 int
-mbox_get_hstream (mbox_t mbox, unsigned int msgno, stream_t *pstream)
+mbox_get_debug (mbox_t mbox, mu_debug_t *pdebug)
 {
-  int status = 0;
-
-  mbox_debug_print (mbox, "get_hstream(%u)", msgno);
-  if (mbox == NULL || msgno == 0 || pstream == NULL)
+  if (mbox == NULL || pdebug == NULL)
     return MU_ERROR_INVALID_PARAMETER;
 
-  if (msgno > mbox->messages_count)
-    return MU_ERROR_INVALID_PARAMETER;
 
-  msgno--;
-  if (mbox->umessages[msgno]->header.stream)
+  if (mbox->debug == NULL)
     {
-      stream_ref (mbox->umessages[msgno]->header.stream);
-      *pstream = mbox->umessages[msgno]->header.stream;
-    }
-  else
-    {
-      status = stream_mbox_create (pstream, mbox, msgno + 1, 1);
+      stream_t stream;
+      int status = stream_stdio_create (&stream, stderr);
       if (status == 0)
-	mbox->umessages[msgno]->header.stream = *pstream;
+	status = mu_debug_stream_create (&mbox->debug, stream, 0);
+      if (status != 0)
+	return status;
     }
-  return status;
+  mu_debug_ref (mbox->debug);
+  *pdebug = mbox->debug;
+  return 0;
 }
 
 int
-mbox_set_hstream (mbox_t mbox, unsigned int msgno, stream_t stream)
+mbox_set_debug (mbox_t mbox, mu_debug_t debug)
 {
-  if (mbox == NULL || msgno == 0)
+  if (mbox == NULL)
     return MU_ERROR_INVALID_PARAMETER;
 
-  if (msgno > mbox->umessages_count)
-    return MU_ERROR_INVALID_PARAMETER;
+  if (mbox->debug)
+    mu_debug_destroy (&mbox->debug);
+  mbox->debug = debug;
+  return 0;
+}
 
-  if (mbox->umessages[msgno - 1]->header.stream)
-    mbox_release_hstream (mbox, msgno);
-
-  mbox->umessages[msgno - 1]->attr_flags |= MU_MBOX_HSTREAM_SET;
-  mbox->umessages[msgno - 1]->attr_flags |= MU_ATTRIBUTE_MODIFIED;
-  mbox->umessages[msgno - 1]->header.stream = stream;
+int
+mbox_debug_print (mbox_t mbox, const char *fmt, ...)
+{
+  if (mbox && mbox->debug)
+    {
+      char buf[128];
+      va_list ap;
+      snprintf (buf, sizeof buf, "mbox(%s)_",
+		(mbox->filename) ? mbox->filename : "");
+      mu_debug_print (mbox->debug, MU_DEBUG_TRACE, buf);
+      if (fmt)
+	{
+	  va_start (ap, fmt);
+	  vsnprintf (buf, sizeof buf, fmt, ap);
+	  va_end (ap);
+	}
+      mu_debug_print (mbox->debug, MU_DEBUG_TRACE, buf);
+      mu_debug_print (mbox->debug, MU_DEBUG_TRACE, "\n");
+    }
   return 0;
 }

@@ -93,7 +93,7 @@ _stream_fd_get_fd (stream_t stream, int *fd)
 {
   struct _stream_fd *fds = (struct _stream_fd *)stream;
 
-  if (fd == NULL || fds->fd == -1)
+  if (fd == NULL)
     return MU_ERROR_INVALID_PARAMETER;
 
   *fd = fds->fd;
@@ -101,26 +101,44 @@ _stream_fd_get_fd (stream_t stream, int *fd)
 }
 
 int
-_stream_fd_read (stream_t stream, void *buf, size_t buf_size, size_t *br)
+_stream_fd_read (stream_t stream, void *buf, size_t buf_size, off_t offset,
+		 size_t *br)
 {
   struct _stream_fd *fds = (struct _stream_fd *)stream;
   int bytes = 0;
   int status = 0;
 
+  if (fds->fd < 0)
+    {
+      if (br)
+	*br = 0;
+      return MU_ERROR_BAD_FILE_DESCRIPTOR;
+    }
+
   fds->state = MU_STREAM_STATE_READ;
+  if (fds->offset != offset)
+    {
+      lseek (fds->fd, offset, SEEK_SET);
+      fds->offset = offset;
+    }
+
   bytes = read (fds->fd, buf, buf_size);
   if (bytes == -1)
     {
       bytes = 0;
       status = errno;
     }
+  else
+    fds->offset += bytes;
+
   if (br)
     *br = bytes;
   return status;
 }
 
 int
-_stream_fd_readline (stream_t stream, char *buf, size_t buf_size, size_t *br)
+_stream_fd_readline (stream_t stream, char *buf, size_t buflen,
+		     off_t offset, size_t *br)
 {
   struct _stream_fd *fds = (struct _stream_fd *)stream;
   int status = 0;
@@ -128,9 +146,22 @@ _stream_fd_readline (stream_t stream, char *buf, size_t buf_size, size_t *br)
   int nr = 0;
   char c;
 
+  if (fds->fd < 0)
+    {
+      if (br)
+	*br = 0;
+      return MU_ERROR_BAD_FILE_DESCRIPTOR;
+    }
+
   fds->state = MU_STREAM_STATE_READ;
+  if (fds->offset != offset)
+    {
+      lseek (fds->fd, offset, SEEK_SET);
+      fds->offset = offset;
+    }
+
   /* Grossly inefficient hopefully they override this */
-  for (n = 1; n < buf_size; n++)
+  for (n = 1; n < buflen; n++)
     {
       nr = read (fds->fd, &c, 1);
       if (nr == -1) /* Error.  */
@@ -151,20 +182,38 @@ _stream_fd_readline (stream_t stream, char *buf, size_t buf_size, size_t *br)
 	  break; /* EOF, some data was read.  */
 	}
     }
-  *buf = '\0';
+
+  if (buf)
+    *buf = '\0';
+  fds->offset = (n == buflen) ? n - 1: n;
+
   if (br)
-    *br = (n == buf_size) ? n - 1: n;
+    *br = (n == buflen) ? n - 1: n;
   return status;
 }
 
 int
-_stream_fd_write (stream_t stream, const void *buf, size_t buf_size, size_t *bw)
+_stream_fd_write (stream_t stream, const void *buf, size_t buf_size,
+		  off_t offset, size_t *bw)
 {
   struct _stream_fd *fds = (struct _stream_fd *)stream;
   int bytes = 0;
   int status = 0;
 
+  if (fds->fd < 0)
+    {
+      if (bw)
+	*bw = 0;
+      return MU_ERROR_BAD_FILE_DESCRIPTOR;
+    }
+
   fds->state = MU_STREAM_STATE_WRITE;
+  if (fds->offset != offset)
+    {
+      lseek (fds->fd, offset, SEEK_SET);
+      fds->offset = offset;
+    }
+
   bytes = write (fds->fd, buf, buf_size);
   if (bytes == -1)
     {
@@ -177,38 +226,24 @@ _stream_fd_write (stream_t stream, const void *buf, size_t buf_size, size_t *bw)
 }
 
 int
-_stream_fd_seek (stream_t stream, off_t off, enum stream_whence whence)
+_stream_fd_is_seekable (stream_t stream)
 {
-  struct _stream_fd *fds = (struct _stream_fd *)stream;
-  int err = 0;
-  if (fds->fd)
-    {
-      if (whence == MU_STREAM_WHENCE_SET)
-        off = lseek (fds->fd, off, SEEK_SET);
-      else if (whence == MU_STREAM_WHENCE_CUR)
-        off = lseek (fds->fd, off, SEEK_CUR);
-      else if (whence == MU_STREAM_WHENCE_END)
-        off = lseek (fds->fd, off, SEEK_END);
-      else
-        err = MU_ERROR_INVALID_PARAMETER;
-      if (err == -1)
-        err = errno;
-    }
-  return err;
+  off_t off;
+  return _stream_fd_tell (stream, &off) == 0;
 }
 
 int
-_stream_fd_tell (stream_t stream, off_t *off)
+_stream_fd_tell (stream_t stream, off_t *poff)
 {
   struct _stream_fd *fds = (struct _stream_fd *)stream;
   int err = 0;
-  if (off)
+  if (poff)
     {
-      *off = lseek (fds->fd, 0, SEEK_CUR);
-      if (*off == -1)
+      *poff = lseek (fds->fd, 0, SEEK_CUR);
+      if (*poff == -1)
 	{
 	  err = errno;
-	  *off = 0;
+	  *poff = 0;
 	}
     }
   return err;
@@ -356,7 +391,6 @@ static struct _stream_vtable _stream_fd_vtable =
   _stream_fd_readline,
   _stream_fd_write,
 
-  _stream_fd_seek,
   _stream_fd_tell,
 
   _stream_fd_get_size,
@@ -367,6 +401,7 @@ static struct _stream_vtable _stream_fd_vtable =
   _stream_fd_get_flags,
   _stream_fd_get_state,
 
+  _stream_fd_is_seekable,
   _stream_fd_is_readready,
   _stream_fd_is_writeready,
   _stream_fd_is_exceptionpending,
@@ -387,9 +422,11 @@ _stream_fd_ctor (struct _stream_fd *fds, int fd)
 }
 
 void
-_stream_fd_dtor (struct _stream_fd *fds)
+_stream_fd_dtor (stream_t stream)
 {
-  mu_refcount_destroy (&fds->refcount);
+  struct _stream_fd *fds = (struct _stream_fd *)stream;
+  if (fds)
+    mu_refcount_destroy (&fds->refcount);
 }
 
 int

@@ -27,6 +27,7 @@
 int
 mbox_set_carrier (mbox_t mbox, stream_t carrier)
 {
+  mbox_debug_print (mbox, "set_carrier");
   if (mbox == NULL)
     return MU_ERROR_INVALID_PARAMETER;
 
@@ -42,6 +43,7 @@ mbox_set_carrier (mbox_t mbox, stream_t carrier)
 int
 mbox_get_carrier (mbox_t mbox, stream_t *pcarrier)
 {
+  mbox_debug_print (mbox, "get_carrier");
   if (mbox == NULL || pcarrier == NULL)
     return MU_ERROR_INVALID_PARAMETER;
 

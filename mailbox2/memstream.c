@@ -29,6 +29,9 @@
 #include <mailutils/error.h>
 #include <mailutils/sys/memstream.h>
 
+#undef min
+#define min(a,b) ((a) < (b) ? (a) : (b))
+
 int
 _stream_memory_ref (stream_t stream)
 {
@@ -48,18 +51,18 @@ _stream_memory_destroy (stream_t *pstream)
 }
 
 int
-_stream_memory_read (stream_t stream, void *optr, size_t osize, size_t *nbytes)
+_stream_memory_read (stream_t stream, void *optr, size_t osize,
+		     off_t offset, size_t *nbytes)
 {
   struct _stream_memory *mem = (struct _stream_memory *)stream;
   size_t n = 0;
 
   mu_refcount_lock (mem->refcount);
-  if (mem->ptr != NULL && (mem->offset < (off_t)mem->size))
+  if (mem->ptr != NULL && (offset < (off_t)mem->size))
     {
-      n = ((mem->offset + osize) > mem->size) ?
-	mem->size - mem->offset :  osize;
-      memcpy (optr, mem->ptr + mem->offset, n);
-      mem->offset += n;
+      n = ((offset + osize) > mem->size) ?
+	mem->size - offset :  osize;
+      memcpy (optr, mem->ptr + offset, n);
     }
   mu_refcount_unlock (mem->refcount);
   if (nbytes)
@@ -68,22 +71,22 @@ _stream_memory_read (stream_t stream, void *optr, size_t osize, size_t *nbytes)
 }
 
 int
-_stream_memory_readline (stream_t stream, char *optr, size_t osize, size_t *nbytes)
+_stream_memory_readline (stream_t stream, char *optr, size_t osize,
+			 off_t offset, size_t *nbytes)
 {
   struct _stream_memory *mem = (struct _stream_memory *)stream;
   char *nl;
   size_t n = 0;
   mu_refcount_lock (mem->refcount);
-  if (mem->ptr && (mem->offset < (off_t)mem->size))
+  if (mem->ptr && (offset < (off_t)mem->size))
     {
       /* Save space for the null byte.  */
       osize--;
-      nl = memchr (mem->ptr + mem->offset, '\n', mem->size - mem->offset);
-      n = (nl) ? nl - (mem->ptr + mem->offset) + 1 : mem->size - mem->offset;
-      n = (n > osize)  ? osize : n;
-      memcpy (optr, mem->ptr + mem->offset, n);
+      nl = memchr (mem->ptr + offset, '\n', mem->size - offset);
+      n = (nl) ? (size_t)(nl - (mem->ptr + offset) + 1) : mem->size - offset;
+      n = min (n, osize);
+      memcpy (optr, mem->ptr + offset, n);
       optr[n] = '\0';
-      mem->offset += n;
     }
   mu_refcount_unlock (mem->refcount);
   if (nbytes)
@@ -93,27 +96,26 @@ _stream_memory_readline (stream_t stream, char *optr, size_t osize, size_t *nbyt
 
 int
 _stream_memory_write (stream_t stream, const void *iptr, size_t isize,
-		      size_t *nbytes)
+		      off_t offset, size_t *nbytes)
 {
   struct _stream_memory *mem = (struct _stream_memory *)stream;
 
   mu_refcount_lock (mem->refcount);
   /* Bigger we have to realloc.  */
-  if (mem->capacity < (mem->offset + isize))
+  if (mem->capacity < (offset + isize))
     {
       /* Realloc by blocks of 512.  */
       int newsize = MU_STREAM_MEMORY_BLOCKSIZE *
-	(((mem->offset + isize)/MU_STREAM_MEMORY_BLOCKSIZE) + 1);
+	(((offset + isize)/MU_STREAM_MEMORY_BLOCKSIZE) + 1);
       char *tmp =  realloc (mem->ptr, newsize);
       if (tmp == NULL)
 	return ENOMEM;
       mem->ptr = tmp;
-      mem->size = mem->offset + isize;
+      mem->size = offset + isize;
       mem->capacity = newsize;
     }
 
-  memcpy (mem->ptr + mem->offset, iptr, isize);
-  mem->offset += isize;
+  memcpy (mem->ptr + offset, iptr, isize);
   mu_refcount_unlock (mem->refcount);
   if (nbytes)
     *nbytes = isize;
@@ -140,7 +142,6 @@ _stream_memory_truncate (stream_t stream, off_t len)
     }
   mem->capacity = len;
   mem->size = len;
-  mem->offset = len;
   mu_refcount_unlock (mem->refcount);
   return 0;
 }
@@ -166,7 +167,6 @@ _stream_memory_close (stream_t stream)
   mem->ptr = NULL;
   mem->capacity = 0;
   mem->size = 0;
-  mem->offset = 0;
   mu_refcount_unlock (mem->refcount);
   return 0;
 }
@@ -206,37 +206,19 @@ _stream_memory_get_state (stream_t stream, enum stream_state *state)
 }
 
 int
-_stream_memory_seek (stream_t stream, off_t off, enum stream_whence whence)
+_stream_memory_is_seekable (stream_t stream)
 {
-  struct _stream_memory *mem = (struct _stream_memory *)stream;
-  off_t noff = mem->offset;
-  int err = 0;
-  if (whence == MU_STREAM_WHENCE_SET)
-      noff = off;
-  else if (whence == MU_STREAM_WHENCE_CUR)
-    noff += off;
-  else if (whence == MU_STREAM_WHENCE_END)
-    noff = mem->size + off;
-  else
-    noff = -1; /* error.  */
-  if (noff >= 0)
-    {
-      if (noff > mem->offset)
-        _stream_memory_truncate (stream, noff);
-      mem->offset = noff;
-    }
-  else
-    err = MU_ERROR_INVALID_PARAMETER;
-  return err;
+  (void)stream;
+  return 1;
 }
 
 int
 _stream_memory_tell (stream_t stream, off_t *off)
 {
-  struct _stream_memory *mem = (struct _stream_memory *)stream;
+  (void)stream;
   if (off == NULL)
     return MU_ERROR_INVALID_PARAMETER;
-  *off = mem->offset;
+  *off = 0;
   return 0;
 }
 
@@ -288,7 +270,6 @@ _stream_memory_open (stream_t stream, const char *filename, int port,
   mem->ptr = NULL;
   mem->capacity = 0;
   mem->size = 0;
-  mem->offset = 0;
   mem->flags = flags;
   if (filename)
     {
@@ -341,7 +322,6 @@ static struct _stream_vtable _stream_memory_vtable =
   _stream_memory_readline,
   _stream_memory_write,
 
-  _stream_memory_seek,
   _stream_memory_tell,
 
   _stream_memory_get_size,
@@ -352,6 +332,7 @@ static struct _stream_vtable _stream_memory_vtable =
   _stream_memory_get_flags,
   _stream_memory_get_state,
 
+  _stream_memory_is_seekable,
   _stream_memory_is_readready,
   _stream_memory_is_writeready,
   _stream_memory_is_exceptionpending,
@@ -378,21 +359,23 @@ _stream_memory_ctor (struct _stream_memory *mem, size_t capacity)
   else
     mem->capacity = 0;
   mem->size = 0;
-  mem->offset = 0;
   mem->flags = 0;
   mem->base.vtable = &_stream_memory_vtable;
   return 0;
 }
 
 void
-_stream_memory_dtor (struct _stream_memory *mem)
+_stream_memory_dtor (stream_t stream)
 {
-  mu_refcount_destroy (&mem->refcount);
-  mem->ptr = NULL;
-  mem->capacity = 0;
-  mem->size = 0;
-  mem->offset = 0;
-  mem->flags = 0;
+  struct _stream_memory *mem = (struct _stream_memory *)stream;
+  if (mem)
+    {
+      mu_refcount_destroy (&mem->refcount);
+      mem->ptr = NULL;
+      mem->capacity = 0;
+      mem->size = 0;
+      mem->flags = 0;
+    }
 }
 
 int

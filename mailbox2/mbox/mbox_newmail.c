@@ -25,14 +25,16 @@
 #include <mailutils/sys/mbox.h>
 
 int
-mbox_changed_on_disk (mbox_t mbox)
+mbox_has_newmail (mbox_t mbox)
 {
-  int changed = 0;
+  int newmail = 0;
+
+  mbox_debug_print (mbox, "has_newmail");
 
   /* If the modification time is greater then the access time, the file has
      been modified since the last time it was accessed.  This typically means
      new mail or someone tempered with the mailbox.  */
-  if (mbox->carrier)
+  if (mbox && mbox->carrier)
     {
       int fd = -1;
       if (stream_get_fd (mbox->carrier, &fd) == 0)
@@ -41,9 +43,9 @@ mbox_changed_on_disk (mbox_t mbox)
 	  if (fstat (fd, &statbuf) == 0)
 	    {
 	      if (difftime (statbuf.st_mtime, statbuf.st_atime) > 0)
-		changed = 1;
+		newmail = 1;
 	    }
 	}
     }
-  return changed;
+  return newmail;
 }

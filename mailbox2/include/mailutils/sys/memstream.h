@@ -20,6 +20,10 @@
 
 #include <sys/types.h>
 
+#ifdef DMALLOC
+# include <dmalloc.h>
+#endif
+
 #include <mailutils/refcount.h>
 #include <mailutils/sys/stream.h>
 
@@ -38,27 +42,26 @@ struct _stream_memory
   char *ptr;
   size_t capacity;
   size_t size;
-  off_t offset;
   int flags;
 };
 
 extern int  _stream_memory_ctor __P ((struct _stream_memory *, size_t));
-extern void _stream_memory_dtor __P ((struct _stream_memory *));
+extern void _stream_memory_dtor __P ((stream_t));
 extern int  _stream_memory_ref  __P ((stream_t));
 extern void _stream_memory_destroy __P ((stream_t *));
 extern int  _stream_memory_open    __P ((stream_t, const char *, int, int));
 extern int  _stream_memory_close   __P ((stream_t));
-extern int  _stream_memory_read    __P ((stream_t, void *, size_t, size_t *));
-extern int  _stream_memory_readline __P ((stream_t, char *, size_t, size_t *));
-extern int  _stream_memory_write __P ((stream_t, const void *, size_t, size_t *));
+extern int  _stream_memory_read __P ((stream_t, void *, size_t, off_t, size_t *));
+extern int  _stream_memory_readline __P ((stream_t, char *, size_t, off_t, size_t *));
+extern int  _stream_memory_write __P ((stream_t, const void *, size_t, off_t, size_t *));
 extern int  _stream_memory_get_fd __P ((stream_t, int *));
 extern int  _stream_memory_get_flags __P ((stream_t, int *));
 extern int  _stream_memory_get_size  __P ((stream_t, off_t *));
 extern int  _stream_memory_truncate  __P ((stream_t, off_t));
 extern int  _stream_memory_flush     __P ((stream_t));
 extern int  _stream_memory_get_state __P ((stream_t, enum stream_state *));
-extern int  _stream_memory_seek __P ((stream_t, off_t, enum stream_whence));
 extern int  _stream_memory_tell __P ((stream_t, off_t *));
+extern int  _stream_memory_is_seekable __P ((stream_t));
 extern int  _stream_memory_is_readready __P ((stream_t, int ));
 extern int  _stream_memory_is_writeready __P ((stream_t, int));
 extern int  _stream_memory_is_exceptionpending __P ((stream_t, int));

@@ -18,6 +18,10 @@
 #ifndef _MAILUTILS_SYS_MESSAGE_H
 #define _MAILUTILS_SYS_MESSAGE_H
 
+#ifdef DMALLOC
+# include <dmalloc.h>
+#endif
+
 #include <mailutils/message.h>
 
 #ifndef __P

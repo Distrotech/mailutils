@@ -27,6 +27,8 @@ int
 mbox_get_hlines (mbox_t mbox, unsigned int msgno, unsigned int *plines)
 {
   unsigned int lines = 0;
+
+  mbox_debug_print (mbox, "get_lines(%u)", msgno);
   if (mbox && msgno)
     {
       msgno--;

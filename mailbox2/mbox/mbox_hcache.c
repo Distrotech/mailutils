@@ -21,9 +21,14 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 
 #include <mailutils/error.h>
 #include <mailutils/sys/mbox.h>
+
+#undef min
+#define min(a,b) ((a) < (b) ? (a) : (b))
+
 
 static const char *hcache_default[] =
 {
@@ -35,9 +40,10 @@ static const char *hcache_default[] =
   "Date",
   "From",
   "In-Reply-To",
+  "Mail-Followup-To",
   "Message-ID",
   "Reply-To",
-  "Reply-To",
+  "Return-Path",
   "Sender",
   "Subject",
   "To",
@@ -45,7 +51,7 @@ static const char *hcache_default[] =
 };
 
 void
-mbox_hcache_free (mbox_t mbox, unsigned int msgno)
+mbox_release_hcache (mbox_t mbox, unsigned int msgno)
 {
   struct _hcache *hc;
 
@@ -76,36 +82,51 @@ mbox_hcache_free (mbox_t mbox, unsigned int msgno)
 int
 mbox_set_hcache (mbox_t mbox, const char **array, size_t len)
 {
+  int status = 0;
+
   if (mbox == NULL)
     return MU_ERROR_INVALID_PARAMETER;
 
-  mbox_hcache_free (mbox, 0);
+  mbox_release_hcache (mbox, 0);
 
   if (array && len)
-    {
-      unsigned int i;
+    status = mbox_add_hcache (mbox, array, len);
 
-      mbox->hcache.values = calloc (len, sizeof (*(mbox->hcache.values)));
-
-      if (mbox->hcache.values == NULL)
-	return MU_ERROR_NO_MEMORY;
-
-      for (i = 0; i < len; i++)
-	{
-	  mbox->hcache.values[i] = strdup (array[i]);
-	  if (mbox->hcache.values[i] == NULL)
-	    {
-	      mbox_set_hcache (mbox, NULL, 0);
-	      return MU_ERROR_NO_MEMORY;
-	    }
-	  mbox->hcache.size++;
-	}
-    }
-  return 0;
+  return status;
 }
 
 int
-mbox_hcache_append (mbox_t mbox, unsigned int msgno, const char *name,
+mbox_add_hcache (mbox_t mbox, const char **array, size_t len)
+{
+  size_t i;
+  int status = 0;
+
+  if (mbox == NULL || array == NULL || len == 0)
+    return MU_ERROR_INVALID_PARAMETER;
+
+  for (i = 0; i < len; i++)
+    {
+      char **values;
+      if (array[i] == NULL || array[i][0] == '\0')
+	continue;
+      values = realloc (mbox->hcache.values,
+			(mbox->hcache.size + 1) * sizeof (*values));
+      if (values == NULL)
+	{
+	  status = MU_ERROR_NO_MEMORY;
+	  break;
+	}
+      mbox->hcache.values = values;
+      mbox->hcache.values[mbox->hcache.size] = strdup (array[i]);
+      mbox->hcache.values[mbox->hcache.size][0] =
+	toupper (mbox->hcache.values[mbox->hcache.size][0]);
+      mbox->hcache.size++;
+    }
+  return status;
+}
+
+int
+mbox_append_hcache (mbox_t mbox, unsigned int msgno, const char *name,
 		    const char *value)
 {
   struct _hcache *hc;
@@ -133,7 +154,9 @@ mbox_hcache_append (mbox_t mbox, unsigned int msgno, const char *name,
 
   for (i = 0; i < mbox->hcache.size; i++)
     {
-      if (strcasecmp (mbox->hcache.values[i], name) == 0)
+      if (mbox->hcache.values[i]
+	  && toupper (*name) == mbox->hcache.values[i][0]
+	  && strcasecmp (mbox->hcache.values[i], name) == 0)
 	{
 	  if (value == NULL)
 	    {
@@ -164,8 +187,52 @@ mbox_hcache_append (mbox_t mbox, unsigned int msgno, const char *name,
 }
 
 int
-mbox_set_hcache_default (mbox_t mbox)
+mbox_set_default_hcache (mbox_t mbox)
 {
   return mbox_set_hcache (mbox, hcache_default,
-			  sizeof (hcache_default) / sizeof (*hcache_default));
+			  (sizeof hcache_default) / sizeof (*hcache_default));
+}
+
+int
+mbox_value_hcache (mbox_t mbox, unsigned int msgno, const char *name,
+		   char *buf, size_t buflen, size_t *pn)
+{
+  mbox_message_t mum;
+  size_t i;
+  size_t n = 0;
+  int status = MU_ERROR_ENTRY_NOT_EXIST;
+
+  mbox_debug_print (mbox, "value_hcache(%d)", msgno);
+
+  if (mbox == NULL || msgno == 0 || name == NULL || *name == '\0')
+    return MU_ERROR_INVALID_PARAMETER;
+
+  if (msgno > mbox->umessages_count)
+    return MU_ERROR_INVALID_PARAMETER;
+
+  mum = mbox->umessages[msgno - 1];
+  for (i = 0; i < mbox->hcache.size; i++)
+    {
+      if (mbox->hcache.values[i]
+	  && toupper (*name) == mbox->hcache.values[i][0]
+	  && strcasecmp (mbox->hcache.values[i], name) == 0)
+	{
+	  if (mum->hcache.size == mbox->hcache.size)
+	    {
+	      n = strlen (mum->hcache.values[i]);
+	      if (buf && buflen)
+		{
+		  buflen--;
+		  n = min (buflen, n);
+		  memcpy (buf, mum->hcache.values[i], n);
+		  buf[n] = '\0';
+		}
+	      status = 0;
+	    }
+	}
+    }
+
+  if (pn)
+    *pn = n;
+  return status;
 }

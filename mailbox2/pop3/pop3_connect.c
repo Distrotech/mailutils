@@ -60,6 +60,8 @@ pop3_connect (pop3_t pop3, const char *host, unsigned int port)
 	  stream_t carrier;
 	  status = pop3_get_carrier (pop3, &carrier);
 	  POP3_CHECK_ERROR (pop3, status);
+	  /* An stream_ref was done in po3_get_carrier ().  */
+	  stream_destroy (&carrier);
 	}
       else
 	{

@@ -20,6 +20,7 @@
 
 #include <mailutils/stream.h>
 #include <mailutils/attribute.h>
+#include <mailutils/debug.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -46,12 +47,6 @@ extern int  mbox_get_uidnext     __P ((mbox_t, unsigned long *));
 extern int  mbox_open            __P ((mbox_t, const char *, int));
 extern int  mbox_close           __P ((mbox_t));
 
-extern int  mbox_get_attribute   __P ((mbox_t, unsigned int, attribute_t *));
-extern int  mbox_get_uid         __P ((mbox_t, unsigned int, unsigned long *));
-
-extern int  mbox_get_separator   __P ((mbox_t, unsigned int, char **));
-extern int  mbox_set_separator   __P ((mbox_t, unsigned int, const char *));
-
 extern int  mbox_get_hstream     __P ((mbox_t, unsigned int, stream_t *));
 extern int  mbox_set_hstream     __P ((mbox_t, unsigned int, stream_t));
 extern int  mbox_get_hsize       __P ((mbox_t, unsigned int, unsigned int *));
@@ -62,44 +57,42 @@ extern int  mbox_set_bstream     __P ((mbox_t, unsigned int, stream_t));
 extern int  mbox_get_bsize       __P ((mbox_t, unsigned int, unsigned int *));
 extern int  mbox_get_blines      __P ((mbox_t, unsigned int, unsigned int *));
 
+extern int  mbox_get_attribute   __P ((mbox_t, unsigned int, attribute_t *));
+extern int  mbox_get_uid         __P ((mbox_t, unsigned int, unsigned long *));
 extern int  mbox_get_size        __P ((mbox_t, off_t *));
+extern int  mbox_get_separator   __P ((mbox_t, unsigned int, char **));
+extern int  mbox_set_separator   __P ((mbox_t, unsigned int, const char *));
 
-extern int  mbox_save_attributes __P ((mbox_t));
 extern int  mbox_expunge         __P ((mbox_t, int));
 extern int  mbox_has_newmail     __P ((mbox_t));
 
-extern int  mbox_set_progress_cb
-__P ((mbox_t, int (*) __P ((int, void *)), void *));
-extern int  mbox_set_newmsg_cb
-__P ((mbox_t, int (*) __P ((int, void *)), void *));
-extern int  mbox_newmsg_cb     __P ((mbox_t, int));
-extern int  mbox_progress_cb   __P ((mbox_t, int));
+extern int  mbox_set_progress_cb __P ((mbox_t,
+				       int (*) __P ((int, void *)), void *));
+extern int  mbox_set_newmsg_cb   __P ((mbox_t,
+				       int (*) __P ((int, void *)), void *));
+extern int  mbox_set_error_cb    __P ((mbox_t,
+				       int (*) __P ((int, void *)), void *));
 
-extern int  mbox_scan __P ((mbox_t, unsigned int, unsigned int *, int));
-extern int  mbox_messages_count __P ((mbox_t, unsigned int *));
+extern int  mbox_scan            __P ((mbox_t, unsigned int,
+				       unsigned int *, int));
 
-extern int  mbox_append __P ((mbox_t, const char *, attribute_t, stream_t));
-extern int  mbox_append_hb
-__P ((mbox_t, const char *, attribute_t, stream_t, stream_t));
-extern int  mbox_append_hb0
-__P ((mbox_t, const char *, attribute_t, int, stream_t, stream_t));
+extern int  mbox_append          __P ((mbox_t, const char *, attribute_t,
+				       stream_t));
+extern int  mbox_append_hb       __P ((mbox_t, const char *, attribute_t,
+				       stream_t, stream_t));
 
-extern int  mbox_get_carrier __P ((mbox_t, stream_t *));
-extern int  mbox_set_carrier __P ((mbox_t, stream_t));
+extern int  mbox_get_carrier     __P ((mbox_t, stream_t *));
+extern int  mbox_set_carrier     __P ((mbox_t, stream_t));
 
-extern int  mbox_set_hcache  __P ((mbox_t, const char **, size_t));
-extern int  mbox_set_hcache_default  __P ((mbox_t));
-extern void mbox_hcache_free __P ((mbox_t, unsigned int));
-extern int  mbox_hcache_append __P ((mbox_t, unsigned int, const char *,
-				     const char *));
+extern int  mbox_set_hcache      __P ((mbox_t, const char **, size_t));
+extern int  mbox_add_hcache      __P ((mbox_t, const char **, size_t));
 
-extern int  mbox_header_get_value __P ((mbox_t, unsigned int, const char *,
-					char *, size_t, size_t *));
+extern int  mbox_value_hcache    __P ((mbox_t, unsigned int, const char *,
+				       char *, size_t, size_t *));
 
-extern int  stream_mbox_create __P ((stream_t *, mbox_t, unsigned int, int));
-extern int  attribute_mbox_create __P ((attribute_t *, mbox_t, unsigned int));
-extern int  mbox_attribute_to_status
-__P ((attribute_t, char *, size_t, size_t *));
+extern int  mbox_get_debug        __P ((mbox_t, mu_debug_t *));
+extern int  mbox_set_debug        __P ((mbox_t, mu_debug_t));
+
 
 #ifdef __cplusplus
 }
