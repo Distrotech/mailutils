@@ -42,13 +42,14 @@ static struct option long_options[] =
   {"number", no_argument, 0, 'n'},
   {"Quiet", no_argument, 0, 'Q'},
   {"query", no_argument, 0, 'q'},
+  {"summary", no_argument, 0, 'S'},
   {"status", required_argument, 0, 's'},
   {"align", no_argument, 0, 't'},
   {"version", no_argument, 0, 'v'},
   {0, 0, 0, 0}
 };
 
-const char *short_options ="hlnQqs:tv";
+const char *short_options ="hlnQqSs:tv";
 
 static int show_to;
 static int show_from = 1;
@@ -65,8 +66,7 @@ static int have_new_mail;
 #define IS_OLD  0x010
 #define IS_NEW  0x100
 static int select_attribute;
-
-static int counter;
+static int selected;
 
 
 /* Retrieve the Personal Name from the header To: or From:  */
@@ -98,6 +98,8 @@ get_personal (header_t hdr, char *field, char *personal, size_t buflen)
 static int
 action (observer_t o, size_t type)
 {
+  static int counter;
+
   switch (type)
     {
     case MU_EVT_MESSAGE_ADD:
@@ -137,9 +139,8 @@ action (observer_t o, size_t type)
 	if (attribute_is_recent (attr))
 	  have_new_mail = 1;
 
-	if (be_quiet)
-	  break;
-
+	if (select_attribute)
+	  selected = 1;
 
 	if (show_number)
 	  printf ("%d: ", counter);
@@ -192,13 +193,14 @@ usage (const char *argv)
   printf ("  -n, --number             display the message numberd\n");
   printf ("  -Q, --Quiet              very quiet\n");
   printf ("  -q, --query              print a message if unread mail\n");
+  printf ("  -S, --summary            print a summary of messages\n");
   printf ("  -s, --status=[nor]       select message with the specific \
  attribute\n");
   printf ("                           [n]ew, [r]ead, [u]nread.\n");
   printf ("  -t, --align              Try to align\n");
   printf ("  -v, --version            display version information and exit\n");
   printf ("\nReport bugs to bug-mailutils@gnu.org\n");
-  exit (0);
+  exit (3);
 }
 
 /* This is a clone of the elm program call "frm".  It is a good example on
@@ -212,7 +214,9 @@ int
 main(int argc, char **argv)
 {
   char *mailbox_name = NULL;
+  size_t total = 0;
   int c;
+  int status = 0;
 
   while ((c = getopt_long (argc, argv, short_options, long_options, NULL))
 	 != -1)
@@ -234,6 +238,11 @@ main(int argc, char **argv)
 	case 'Q':
 	  /* Very silent.  */
 	  be_quiet += 2;
+	  if (freopen("/dev/null", "w", stdout) == NULL)
+	    {
+	      perror ("Can not be very quiet");
+	      exit (3);
+	    }
 	  break;
 
 	case 'q':
@@ -269,7 +278,7 @@ main(int argc, char **argv)
 
 	case 'v':
 	  printf ("Mailutils 0.0.0: frm\n");
-	  exit (0);
+	  exit (3);
 	  break;
 
 	default:
@@ -302,26 +311,43 @@ main(int argc, char **argv)
 	|| (status = mailbox_open (mbox, MU_STREAM_READ) != 0))
       {
 	fprintf (stderr, "could not open mailbox\n");
-	exit (1);
+	exit (3);
       }
 
-    observer_create (&observer, mbox);
-    observer_set_action (observer, action, mbox);
-    mailbox_get_observable (mbox, &observable);
-    observable_attach (observable, MU_EVT_MESSAGE_ADD, observer);
+    if (! be_quiet)
+      {
+	observer_create (&observer, mbox);
+	observer_set_action (observer, action, mbox);
+	mailbox_get_observable (mbox, &observable);
+	observable_attach (observable, MU_EVT_MESSAGE_ADD, observer);
+      }
 
-    mailbox_scan (mbox, 1, NULL);
+    mailbox_messages_count (mbox, &total);
 
-    observable_detach (observable, observer);
-    observer_destroy (&observer, mbox);
+    if (! be_quiet)
+      {
+	observable_detach (observable, observer);
+	observer_destroy (&observer, mbox);
+      }
 
     mailbox_close(mbox);
     mailbox_destroy(&mbox);
   }
 
-  if (show_summary && be_quiet < 1)
-    printf ("You have %d messages\n", counter);
+  if (show_summary)
+    printf ("You have %d messages\n", total);
   if (show_query && have_new_mail)
     printf ("You have new mail\n");
-  return 0;
+
+  /* 0 - selected messages discover.
+     1 - have messages.
+     2 - no message.
+  */
+  if (selected)
+    status = 0;
+  else if (total > 0)
+    status = 1;
+  else
+    status = 2;
+  return status;
 }
