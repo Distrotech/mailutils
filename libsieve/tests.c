@@ -87,7 +87,7 @@ sieve_test_address (sieve_machine_t mach, list_t args, list_t tags)
 {
   sieve_value_t *h, *v;
   header_t header = NULL;
-  sieve_comparator_t comp = sieve_get_comparator (tags);
+  sieve_comparator_t comp = sieve_get_comparator (mach, tags);
   struct address_closure clos;
   int rc;
   
@@ -129,7 +129,7 @@ sieve_test_header (sieve_machine_t mach, list_t args, list_t tags)
 {
   sieve_value_t *h, *v;
   header_t header = NULL;
-  sieve_comparator_t comp = sieve_get_comparator (tags);
+  sieve_comparator_t comp = sieve_get_comparator (mach, tags);
   
   if (mach->debug_level & MU_SIEVE_DEBUG_TRACE)
     sieve_debug (mach, "HEADER\n");
@@ -147,8 +147,31 @@ sieve_test_header (sieve_machine_t mach, list_t args, list_t tags)
       sieve_abort (mach);
     }
 
-  message_get_header (sieve_get_message (mach), &header);
+  if (sieve_tag_lookup (tags, "mime", NULL))
+    {
+      int ismime = 0;
 
+      message_is_multipart (mach->msg, &ismime);
+      if (ismime)
+	{
+	  size_t i, nparts = 0;
+	  
+	  message_get_num_parts (mach->msg, &nparts);
+	  for (i = 1; i <= nparts; i++)
+	    {
+	      message_t message = NULL;
+
+	      if (message_get_part (mach->msg, i, &message) == 0)
+		{
+		  message_get_header (message, &header);
+		  if (sieve_vlist_compare (h, v, comp,
+					   retrieve_header, header))
+		    return 1;
+		}
+	    }
+	}
+    }
+  message_get_header (mach->msg, &header);
   return sieve_vlist_compare (h, v, comp, retrieve_header, header);
 }
 
@@ -184,7 +207,7 @@ int
 sieve_test_envelope (sieve_machine_t mach, list_t args, list_t tags)
 {
   sieve_value_t *h, *v;
-  sieve_comparator_t comp = sieve_get_comparator (tags);
+  sieve_comparator_t comp = sieve_get_comparator (mach, tags);
   struct address_closure clos;
   int rc;
   
@@ -305,6 +328,11 @@ static sieve_tag_def_t size_tags[] = {
   { NULL }
 };
 
+static sieve_tag_def_t mime_tags[] = {
+  { "mime", SVT_VOID },
+  { NULL }
+};
+
 #define ADDRESS_PART_GROUP \
   { address_part_tags, NULL }
 
@@ -312,7 +340,10 @@ static sieve_tag_def_t size_tags[] = {
   { match_part_tags, sieve_match_part_checker }
 
 #define SIZE_GROUP { size_tags, NULL }
-    
+
+#define MIME_GROUP \
+  { mime_tags, NULL }
+
 sieve_tag_group_t address_tag_groups[] = {
   ADDRESS_PART_GROUP,
   MATCH_PART_GROUP,
@@ -348,22 +379,23 @@ sieve_data_type exists_req_args[] = {
 
 sieve_tag_group_t header_tag_groups[] = {
   MATCH_PART_GROUP,
+  MIME_GROUP,
   { NULL }
 };
 
 void
-sieve_register_standard_tests ()
+sieve_register_standard_tests (sieve_machine_t mach)
 {
-  sieve_register_test ("false", sieve_test_false, NULL, NULL, 1);
-  sieve_register_test ("true", sieve_test_true, NULL, NULL, 1);
-  sieve_register_test ("address", sieve_test_address,
+  sieve_register_test (mach, "false", sieve_test_false, NULL, NULL, 1);
+  sieve_register_test (mach, "true", sieve_test_true, NULL, NULL, 1);
+  sieve_register_test (mach, "address", sieve_test_address,
 		       address_req_args, address_tag_groups, 1);
-  sieve_register_test ("size", sieve_test_size,
+  sieve_register_test (mach, "size", sieve_test_size,
 		       size_req_args, size_tag_groups, 1);
-  sieve_register_test ("envelope", sieve_test_envelope,
+  sieve_register_test (mach, "envelope", sieve_test_envelope,
 		       address_req_args, envelope_tag_groups, 1);
-  sieve_register_test ("exists", sieve_test_exists,
+  sieve_register_test (mach, "exists", sieve_test_exists,
 		       exists_req_args, NULL, 1);
-  sieve_register_test ("header", sieve_test_header,
+  sieve_register_test (mach, "header", sieve_test_header,
 		       address_req_args, header_tag_groups, 1);
 }
