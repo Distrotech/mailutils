@@ -50,7 +50,9 @@
 #endif
 #include <stdlib.h>
 #include <unistd.h>
-#include <getopt.h>
+#ifdef HAVE_GETOPT_H
+# include <getopt.h>
+#endif
 #include <string.h>
 #include <pwd.h>
 #include <sys/stat.h>
@@ -336,6 +338,8 @@ mta_send (message_t msg)
   return 0;
 }
 
+#define SENDER_WARNING "set sender using -f flag"
+
 int
 message_finalize (message_t msg, int warn)
 {
@@ -347,9 +351,15 @@ message_finalize (message_t msg, int warn)
 
   if (warn && from_person)
     {
-      char *warn = NULL;
       struct passwd *pwd = getpwuid (getuid ());
-      asprintf (&warn, "%s set sender using -f flag", pwd->pw_name);
+      char *warn = malloc (strlen (pwd->pw_name) + 1 +
+			   sizeof (SENDER_WARNING));
+      if (warn == NULL)
+	{
+	  mu_error ("%s: not enough memory", progname);
+	  return 1;
+	}
+      sprintf (warn, "%s %s", pwd->pw_name, SENDER_WARNING);
       header_set_value (header, "X-Authentication-Warning", warn, 0);
       free (warn);
     }
