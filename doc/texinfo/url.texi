@@ -149,7 +149,7 @@ for any particular scheme.
 @deftypefun int url_get_query (const url_t @var{url}, char *@var{query}, size_t{len}, size_t *@var{n})
 @end deftypefun
 
-@deftypefun char* url_decode (const char* s)
+@deftypefun char* url_decode (const char* @var{string})
 Decodes an RFC 1738 % encoded string, returning the decoded string in
 allocated memory. If the string is not encoded, this degenerates to
 a strdup().
