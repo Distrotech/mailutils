@@ -533,8 +533,8 @@ message_read (stream_t is, char *buf, size_t buflen,
   body_size (msg->body, &bsize);
 
   /* On some remote sever (POP) the size of the header and body is not known
-     until you start reading them.  So by checking hsize == bsize == 0, we
-     This kludge of a way of detecting the anomalie and start by the
+     until you start reading them.  So by checking hsize == bsize == 0,
+     this kludge is a way of detecting the anomalie and start by the
      header.  */
   if ((size_t)off <= hsize || (hsize == 0 && bsize == 0))
     {

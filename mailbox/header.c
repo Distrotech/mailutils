@@ -32,21 +32,23 @@ static int header_read (stream_t is, char *buf, size_t buflen,
 			off_t off, size_t *pnread);
 static int header_write (stream_t os, const char *buf, size_t buflen,
 			 off_t off, size_t *pnwrite);
+static int fill_blurb (header_t header);
 
 int
 header_create (header_t *ph, const char *blurb, size_t len, void *owner)
 {
   header_t h;
+  int status = 0;
   h = calloc (1, sizeof (*h));
   if (h == NULL)
     return ENOMEM;
   h->owner = owner;
 
   /* Ignore the return value.  */
-  header_parse (h, blurb, len);
+  status = header_parse (h, blurb, len);
 
   *ph = h;
-  return 0;
+  return status;
 }
 
 void
@@ -196,9 +198,16 @@ header_set_value (header_t header, const char *fn, const char *fv, int replace)
   if (header == NULL || fn == NULL || fv == NULL)
     return EINVAL;
 
-  /* Try to fill out the buffer, if we know how.  */
   if (header->_set_value != NULL)
     return header->_set_value (header, fn, fv, replace);
+
+  /* Try to fill out the buffer, if we know how.  */
+  if (header->blurb == NULL)
+    {
+      int err = fill_blurb (header);
+      if (err != 0)
+	return err;
+    }
 
   /* Easy approach: if replace, overwrite the field-{name,value} and readjust
      the pointers by calling header_parse () this is wastefull, we're just
@@ -265,39 +274,9 @@ header_get_value (header_t header, const char *name, char *buffer,
   /* Try to fill out the buffer, if we know how.  */
   if (header->blurb == NULL)
     {
-      stream_t is;
-      err = header_get_stream (header, &is);
+      err = fill_blurb (header);
       if (err != 0)
 	return err;
-      else
-	{
-	  char buf[1024];
-	  char *tbuf;
-	  size_t nread = 0;
-	  do
-	    {
-	      err = stream_read (is, buf, sizeof (buf), header->temp_blurb_len,
-				 &nread);
-	      if (err != 0
-		  || (tbuf = realloc (header->temp_blurb,
-				      header->temp_blurb_len + nread)) == NULL)
-		{
-		  free (header->temp_blurb);
-		  header->temp_blurb = NULL;
-		  header->temp_blurb_len = 0;
-		  return err;
-		}
-	      else
-		header->temp_blurb = tbuf;
-	      memcpy (header->temp_blurb + header->temp_blurb_len, buf, nread);
-	      header->temp_blurb_len += nread;
-	    } while (nread != 0);
-	  /* parse it. */
-	  header_parse (header, header->temp_blurb, header->temp_blurb_len);
-	  free (header->temp_blurb);
-	  header->temp_blurb = NULL;
-	  header->temp_blurb_len = 0;
-	}
     }
 
   /* We set the threshold to be 1 less for the null.  */
@@ -362,6 +341,14 @@ header_lines (header_t header, size_t *plines)
   if (header == NULL)
     return EINVAL;
 
+  /* Try to fill out the buffer, if we know how.  */
+  if (header->blurb == NULL)
+    {
+      int err = fill_blurb (header);
+      if (err != 0)
+	return err;
+    }
+
   for (n = header->blurb_len - 1; n >= 0; n--)
     {
       if (header->blurb[n] == '\n')
@@ -377,6 +364,14 @@ header_size (header_t header, size_t *pnum)
 {
   if (header == NULL)
       return EINVAL;
+
+  /* Try to fill out the buffer, if we know how.  */
+  if (header->blurb == NULL)
+    {
+      int err = fill_blurb (header);
+      if (err != 0)
+	return err;
+    }
 
   if (pnum)
     *pnum = header->blurb_len;
@@ -420,6 +415,54 @@ header_set_stream (header_t header, stream_t stream, void *owner)
   return 0;
 }
 
+static int
+fill_blurb (header_t header)
+{
+  stream_t is;
+  int status;
+  char buf[1024];
+  char *tbuf;
+  size_t nread = 0;
+
+  status = header_get_stream (header, &is);
+  if (status != 0)
+    return status;
+
+  do
+    {
+      status = stream_read (is, buf, sizeof (buf), header->temp_blurb_len,
+			    &nread);
+      if (status != 0)
+	{
+	  if (status != EAGAIN || status != EINTR)
+	    {
+	      free (header->temp_blurb);
+	      header->temp_blurb = NULL;
+	      header->temp_blurb_len = 0;
+	    }
+	  return status;
+	}
+      tbuf = realloc (header->temp_blurb, header->temp_blurb_len + nread);
+      if (tbuf == NULL)
+	{
+	  free (header->temp_blurb);
+	  header->temp_blurb = NULL;
+	  header->temp_blurb_len = 0;
+	  return ENOMEM;
+	}
+      header->temp_blurb = tbuf;
+      memcpy (header->temp_blurb + header->temp_blurb_len, buf, nread);
+      header->temp_blurb_len += nread;
+    }
+  while (nread != 0);
+
+  /* parse it. */
+  status = header_parse (header, header->temp_blurb, header->temp_blurb_len);
+  free (header->temp_blurb);
+  header->temp_blurb = NULL;
+  header->temp_blurb_len = 0;
+  return status;
+}
 
 static int
 header_write (stream_t os, const char *buf, size_t buflen,

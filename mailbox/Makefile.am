@@ -2,8 +2,7 @@
 
 AUTOMAKE_OPTIONS = ../lib/ansi2knr
 
-INCLUDES = -I${srcdir}/include/public \
-         -I${srcdir}/include/private
+INCLUDES = -I${srcdir}/include -I${srcdir}/include -I${srcdir}/lib
 CFLAGS = -Wall -pedantic -g -DTESTING
 
 SUBDIRS = include

@@ -347,8 +347,8 @@ unix_open (mailbox_t mbox, int flags)
     {
       /* FIXME: for small mbox we shout try to mmap ().  */
 
-      int trymap = (flags & MU_STREAM_CREAT) || (flags & MU_STREAM_APPEND);
-      if (trymap == 0)
+      status = (flags & MU_STREAM_CREAT) || (flags & MU_STREAM_APPEND);
+      if (status == 0)
 	status = mapfile_stream_create (&(mbox->stream));
       if (status != 0)
 	{
@@ -1154,11 +1154,6 @@ unix_append_message (mailbox_t mbox, message_t msg)
   unix_lock (mbox, MU_LOCKER_WRLOCK);
   {
     off_t size;
-    char buffer[BUFSIZ];
-    size_t nread = 0;
-    off_t off = 0;
-    stream_t is;
-    header_t hdr;
     int status;
     size_t n = 0;
     char nl = '\n';
@@ -1170,8 +1165,7 @@ unix_append_message (mailbox_t mbox, message_t msg)
 	unix_unlock (mbox);
 	return status;
       }
-    /* Header.  */
-    message_get_header (msg, &hdr);
+
     /* Generate a "From " separator.  */
     {
       char from[128];
@@ -1180,14 +1174,14 @@ unix_append_message (mailbox_t mbox, message_t msg)
       size_t f = 0, d = 0;
       *date = *from = '\0';
       message_from (msg, from, sizeof (from), &f);
-      s = memchr (from, '\n', f);
+      s = memchr (from, nl, f);
       if (s)
 	{
 	  *s = '\0';
 	  f--;
 	}
       message_received (msg, date, sizeof (date), &d);
-      s = memchr (date, '\n', d);
+      s = memchr (date, nl, d);
       if (s)
 	{
 	  *s = '\0';
@@ -1200,31 +1194,23 @@ unix_append_message (mailbox_t mbox, message_t msg)
       stream_write (mbox->stream, &nl , 1, size, &n); size += n;
     }
 
-    header_get_stream (hdr, &is);
-    do {
-      status = stream_read (is, buffer, sizeof (buffer), off, &nread);
-      if (status != 0)
-	return status;
-      if (nread == 0)
-	break;
-      stream_write (mbox->stream, buffer, nread, size, &n);
-      off += nread;
-      size += n;
-    } while (nread > 0);
-
-    *buffer = '\0';
-    /* Separator.  */
-    /*fputc ('\n', mud->file);*/
-
-    /* Body.  */
-    message_get_stream (msg, &is);
-    do {
-      stream_read (is, buffer, sizeof (buffer), off, &nread);
-      stream_write (mbox->stream, buffer, nread, size, &n);
-      off += nread;
-      size += n;
-    } while (nread > 0);
-    stream_write (mbox->stream, &nl, 1, size, &n);
+    /* Append the Message.  */
+    {
+      char buffer[BUFSIZ];
+      size_t nread = 0;
+      off_t off = 0;
+      stream_t is;
+      message_get_stream (msg, &is);
+      do
+	{
+	  stream_read (is, buffer, sizeof (buffer), off, &nread);
+	  stream_write (mbox->stream, buffer, nread, size, &n);
+	  off += nread;
+	  size += n;
+	}
+      while (nread > 0);
+      stream_write (mbox->stream, &nl, 1, size, &n);
+    }
   }
   stream_flush (mbox->stream);
   unix_unlock (mbox);

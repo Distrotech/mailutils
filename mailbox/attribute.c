@@ -111,8 +111,8 @@ attribute_set_seen (attribute_t attr)
   int status = 0;
   if (attr == NULL)
     return EINVAL;
-  if (attr->_get_flags)
-    status = attr->_get_flags (attr, &(attr->flags));
+  if (attr->_set_flags)
+    status = attr->_set_flags (attr, MU_ATTRIBUTE_SEEN);
   attr->flags |= MU_ATTRIBUTE_SEEN;
   return 0;
 }
@@ -123,8 +123,8 @@ attribute_set_answered (attribute_t attr)
   int status = 0;
   if (attr == NULL)
     return EINVAL;
-  if (attr->_get_flags)
-    status = attr->_get_flags (attr, &(attr->flags));
+  if (attr->_set_flags)
+    status = attr->_set_flags (attr, MU_ATTRIBUTE_ANSWERED);
   attr->flags |= MU_ATTRIBUTE_ANSWERED;
   return 0;
 }
@@ -135,8 +135,8 @@ attribute_set_flagged (attribute_t attr)
   int status = 0;
   if (attr == NULL)
     return EINVAL;
-  if (attr->_get_flags)
-    status = attr->_get_flags (attr, &(attr->flags));
+  if (attr->_set_flags)
+    status = attr->_set_flags (attr, MU_ATTRIBUTE_FLAGGED);
   attr->flags |= MU_ATTRIBUTE_FLAGGED;
   return 0;
 }
@@ -147,8 +147,8 @@ attribute_set_read (attribute_t attr)
   int status = 0;
   if (attr == NULL)
     return EINVAL;
-  if (attr->_get_flags)
-    status = attr->_get_flags (attr, &(attr->flags));
+  if (attr->_set_flags)
+    status = attr->_set_flags (attr, MU_ATTRIBUTE_READ);
   attr->flags |= MU_ATTRIBUTE_READ;
   return 0;
 }
@@ -159,8 +159,8 @@ attribute_set_deleted (attribute_t attr)
   int status = 0;
   if (attr == NULL)
     return EINVAL;
-  if (attr->_get_flags)
-    status = attr->_get_flags (attr, &(attr->flags));
+  if (attr->_set_flags)
+    status = attr->_set_flags (attr, MU_ATTRIBUTE_DELETED);
   attr->flags |= MU_ATTRIBUTE_DELETED;
   return 0;
 }
@@ -171,8 +171,8 @@ attribute_set_draft (attribute_t attr)
   int status = 0;
   if (attr == NULL)
     return EINVAL;
-  if (attr->_get_flags)
-    status = attr->_get_flags (attr, &(attr->flags));
+  if (attr->_set_flags)
+    status = attr->_set_flags (attr, MU_ATTRIBUTE_DRAFT);
   attr->flags |= MU_ATTRIBUTE_DRAFT;
   return 0;
 }
@@ -183,15 +183,17 @@ attribute_set_recent (attribute_t attr)
   int status = 0;
   if (attr == NULL)
     return EINVAL;
-  if (attr->_get_flags)
-    status = attr->_get_flags (attr, &(attr->flags));
+  if (attr->_unset_flags)
+    {
+      status = attr->_unset_flags (attr, MU_ATTRIBUTE_READ);
+      status = attr->_unset_flags (attr, MU_ATTRIBUTE_SEEN);
+    }
   if (attr == NULL)
     {
       attr->flags &= ~MU_ATTRIBUTE_READ;
       attr->flags &= ~MU_ATTRIBUTE_SEEN;
-      return 0;
     }
-  return EACCES;
+  return 0;
 }
 
 int
