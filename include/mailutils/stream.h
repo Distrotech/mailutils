@@ -41,7 +41,7 @@ typedef struct _stream *stream_t;
 #define MU_STREAM_APPEND   0x00000008
 #define MU_STREAM_CREAT	   0x00000010
 #define MU_STREAM_NONBLOCK 0x00000020
-/*  stream will be destroy on stream_destroy */
+/* Stream will be destroy on stream_destroy.  */
 #define MU_STREAM_NO_CHECK 0x00000040
 
 /* Identity of the stream.  */
@@ -115,7 +115,7 @@ extern int stream_set_flags    __P ((stream_t, int flags));
 #define MU_STREAM_STATE_CLOSE 8
 extern int stream_get_state    __P ((stream_t, int *pstate));
 
-/* misc */
+/* Misc.  */
 extern int file_stream_create     __P ((stream_t *stream));
 extern int mapfile_stream_create  __P ((stream_t *stream));
 extern int encoder_stream_create  __P ((stream_t *stream, stream_t iostream,

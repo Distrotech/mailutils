@@ -1,5 +1,5 @@
 /* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Library Public License as published by
@@ -44,16 +44,16 @@ extern "C" {
 struct _mime;
 typedef struct _mime *mime_t;
 
-int mime_create						__P ((mime_t *pmime, message_t msg, int flags));
-void mime_destroy					__P ((mime_t *pmime));
-int mime_is_multipart				__P ((mime_t mime));
-int mime_get_num_parts				__P ((mime_t mime, size_t *nparts));
+int mime_create		__P ((mime_t *pmime, message_t msg, int flags));
+void mime_destroy	__P ((mime_t *pmime));
+int mime_is_multipart	__P ((mime_t mime));
+int mime_get_num_parts	__P ((mime_t mime, size_t *nparts));
 
-int mime_get_part					__P ((mime_t mime, int part, message_t *msg));
+int mime_get_part	__P ((mime_t mime, size_t part, message_t *msg));
 
-int mime_add_part					__P ((mime_t mime, message_t msg));
+int mime_add_part	__P ((mime_t mime, message_t msg));
 
-int mime_get_message				__P ((mime_t mime, message_t *msg));
+int mime_get_message	__P ((mime_t mime, message_t *msg));
 
 #ifdef _cplusplus
 }

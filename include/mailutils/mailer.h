@@ -1,5 +1,5 @@
 /* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU Library General Public License as published by
@@ -41,7 +41,7 @@ extern "C" {
 struct _mailer;
 typedef struct _mailer *mailer_t;
 
-extern int mailer_create        __P ((mailer_t *, const char *, int));
+extern int mailer_create        __P ((mailer_t *, const char *));
 extern void mailer_destroy      __P ((mailer_t *));
 
 extern int mailer_open          __P ((mailer_t, int flags));

@@ -1,5 +1,5 @@
 /* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU Library General Public License as published by
@@ -72,6 +72,8 @@ extern int header_create        __P ((header_t *, const char *,
 extern void header_destroy      __P ((header_t *, void *));
 extern void * header_get_owner  __P ((header_t));
 
+extern int header_is_modified   __P ((header_t));
+
 extern int header_set_value     __P ((header_t, const char *,
 				      const char *, int));
 extern int header_set_set_value __P ((header_t, int (*_set_value)
@@ -92,9 +94,16 @@ extern int header_set_size      __P ((header_t, int (*_size)
 				      __P ((header_t, size_t *)), void *));
 
 extern int header_lines         __P ((header_t, size_t *));
-extern int header_set_lines     __P ((header_t, int (*_lines)
-				      __P ((header_t, size_t *)), void *));
+extern int header_set_lines     __P ((header_t,
+				      int (*_lines) __P ((header_t,
+							  size_t *)),
+				      void *));
 
+extern int header_set_fill      __P ((header_t,
+				      int (*_fill) __P ((header_t, char *,
+							 size_t, off_t,
+							 size_t *)),
+				      void *owner));
 #ifdef _cplusplus
 }
 #endif

@@ -1,5 +1,5 @@
 /* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Library Public License as published by
@@ -43,54 +43,54 @@ typedef struct _attribute * attribute_t;
 #define MU_ATTRIBUTE_READ     0x20
 #define MU_ATTRIBUTE_RECENT   0x00
 
-extern int attribute_create         __P ((attribute_t *, void *));
-extern void attribute_destroy       __P ((attribute_t *, void *));
-extern void * attribute_get_owner   __P ((attribute_t));
+extern int attribute_create          __P ((attribute_t *, void *));
+extern void attribute_destroy        __P ((attribute_t *, void *));
+extern void * attribute_get_owner    __P ((attribute_t));
+extern int attribute_is_modified     __P ((attribute_t));
 
-extern int attribute_is_userflag    __P ((attribute_t, int));
-extern int attribute_is_seen        __P ((attribute_t));
-extern int attribute_is_answered    __P ((attribute_t));
-extern int attribute_is_flagged     __P ((attribute_t));
-extern int attribute_is_deleted     __P ((attribute_t));
-extern int attribute_is_draft       __P ((attribute_t));
-extern int attribute_is_recent      __P ((attribute_t));
-extern int attribute_is_read        __P ((attribute_t));
+extern int attribute_is_userflag     __P ((attribute_t, int));
+extern int attribute_is_seen         __P ((attribute_t));
+extern int attribute_is_answered     __P ((attribute_t));
+extern int attribute_is_flagged      __P ((attribute_t));
+extern int attribute_is_deleted      __P ((attribute_t));
+extern int attribute_is_draft        __P ((attribute_t));
+extern int attribute_is_recent       __P ((attribute_t));
+extern int attribute_is_read         __P ((attribute_t));
 
-extern int attribute_set_userflag   __P ((attribute_t, int));
-extern int attribute_set_seen       __P ((attribute_t));
-extern int attribute_set_answered   __P ((attribute_t));
-extern int attribute_set_flagged    __P ((attribute_t));
-extern int attribute_set_deleted    __P ((attribute_t));
-extern int attribute_set_draft      __P ((attribute_t));
-extern int attribute_set_recent     __P ((attribute_t));
-extern int attribute_set_read       __P ((attribute_t));
+extern int attribute_set_userflag    __P ((attribute_t, int));
+extern int attribute_set_seen        __P ((attribute_t));
+extern int attribute_set_answered    __P ((attribute_t));
+extern int attribute_set_flagged     __P ((attribute_t));
+extern int attribute_set_deleted     __P ((attribute_t));
+extern int attribute_set_draft       __P ((attribute_t));
+extern int attribute_set_recent      __P ((attribute_t));
+extern int attribute_set_read        __P ((attribute_t));
 
-extern int attribute_unset_userflag __P ((attribute_t, int));
-extern int attribute_unset_seen     __P ((attribute_t));
-extern int attribute_unset_answered __P ((attribute_t));
-extern int attribute_unset_flagged  __P ((attribute_t));
-extern int attribute_unset_deleted  __P ((attribute_t));
-extern int attribute_unset_draft    __P ((attribute_t));
-extern int attribute_unset_recent   __P ((attribute_t));
-extern int attribute_unset_read     __P ((attribute_t));
+extern int attribute_unset_userflag  __P ((attribute_t, int));
+extern int attribute_unset_seen      __P ((attribute_t));
+extern int attribute_unset_answered  __P ((attribute_t));
+extern int attribute_unset_flagged   __P ((attribute_t));
+extern int attribute_unset_deleted   __P ((attribute_t));
+extern int attribute_unset_draft     __P ((attribute_t));
+extern int attribute_unset_recent    __P ((attribute_t));
+extern int attribute_unset_read      __P ((attribute_t));
 
-extern int attribute_get_flags      __P ((attribute_t, int *));
-extern int attribute_set_flags      __P ((attribute_t, int));
+extern int attribute_get_flags       __P ((attribute_t, int *));
+extern int attribute_set_flags       __P ((attribute_t, int));
 
-extern int attribute_set_set_flags  __P ((attribute_t, int (*_set_flags)
-					  __P ((attribute_t, int)), void *));
-extern int attribute_set_unset_flags  __P ((attribute_t, int (*_unset_flags)
-					    __P ((attribute_t, int)), void *));
-extern int attribute_set_get_flags  __P ((attribute_t, int (*_get_flags)
-					  __P ((attribute_t, int *)), void *));
-extern int attribute_is_equal       __P ((attribute_t att1, attribute_t att2));
+extern int attribute_set_set_flags   __P ((attribute_t, int (*_set_flags)
+					   __P ((attribute_t, int)), void *));
+extern int attribute_set_unset_flags __P ((attribute_t, int (*_unset_flags)
+					   __P ((attribute_t, int)), void *));
+extern int attribute_set_get_flags   __P ((attribute_t, int (*_get_flags)
+					   __P ((attribute_t, int *)), void *));
+extern int attribute_is_equal        __P ((attribute_t, attribute_t att2));
 
-extern int attribute_copy           __P ((attribute_t dst,
-					  attribute_t src));
+extern int attribute_copy            __P ((attribute_t, attribute_t));
 
-extern int string_to_flags          __P ((const char *buf, int *pattr));
-extern int flags_to_string          __P ((int flags, char *buf,
-					  size_t len, size_t *));
+extern int attribute_to_string       __P ((attribute_t, char *, size_t,
+					   size_t *));
+extern int string_to_flags           __P ((const char *, int *));
 
 #ifdef __cplusplus
 }
