@@ -211,6 +211,8 @@ mailbox_flush (mailbox_t mbox, int expunge)
   size_t i, total = 0;
   int status = 0;
 
+  if (!mbox)
+    return EINVAL;
   if (!(mbox->flags & (MU_STREAM_RDWR|MU_STREAM_WRITE|MU_STREAM_APPEND)))
     return EACCES;
   mailbox_messages_count (mbox, &total);
