@@ -19,6 +19,8 @@ encapsulates the @code{envelope_t}, the @code{header_t} and the @code{body_t}.
                                |-----------------------|
                                |  size                 |
                                |-----------------------|
+                               |  uid                  |
+                               +-----------------------+
                                |  uidl                 |
                                +-----------------------+
 @end group
@@ -82,6 +84,9 @@ Return non-zero value if message is multi-part.
 @end deftypefun
 
 @deftypefun int message_set_envelope (message_t @var{msg}, envelope_t envelope, void *@var{owner})
+@end deftypefun
+
+@deftypefun int message_get_uid (message_t @var{msg}, size_t *@var{uid})
 @end deftypefun
 
 @deftypefun int message_get_uidl (message_t @var{msg}, char *@var{buffer}, size_t @var{buflen}, size_t *@var{pwriten})

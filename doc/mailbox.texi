@@ -15,18 +15,18 @@ data structure to the user. Functions are provided to retrieve the information.
   -----------               |-----------------|    |
  (  sean    )               |  locker_t       |    |    auth_t
   ----------                |-----------------|    +-->/----------\
-                            |  url_t          |        |  user    |
+                            |  ...            |        |  user    |
                             |-----------------|        |  passwd  |
-                            |  message[0]     |        \----------/
+                            |  message[1]     |        \----------/
                             |  ......         |
                             |  message[n]     |
                             \-----------------/
 @end group
 @end example
 
-@deftypefun int mailbox_create (mailbox_t *@var{pmbox}, const char *@var{name}, int @var{id})
+@deftypefun int mailbox_create (mailbox_t *@var{pmbox}, const char *@var{name})
 The function @code{mailbox_create} allocates and initializes @var{pmbox}.
-The validation is based on the scheme of the url @var{name} or @var{id}.
+The concrete mailbox type instanciate is based on the scheme of the url @var{name}.
 
 The return value is @code{0} on success and a code number on error conditions:
 @table @code
@@ -40,7 +40,7 @@ Not enough memory to allocate resources.
 
 @deftypefun int mailbox_create_default (mailbox_t *@var{pmbox}, const char *@var{user})
 The environment variable @emph{$MAIL} or the string formed by
-@emph{$MAILDIR}/@var{user}" or @emph{$LOGNAME} if @var{user} is null,
+@emph{_PATH_MAILDIR}/@var{user}" or @emph{$LOGNAME} if @var{user} is null,
 for a default mailbox and calls @code{mailbox_create}.
 @end deftypefun
 
@@ -121,7 +121,47 @@ The return value is @code{0} on success and a code number on error conditions:
 @end deftypefun
 
 @deftypefun  int mailbox_messages_count (mailbox_t @var{mbox}, size_t *@var{pnumber});
-Give the number of messaged in @var{mbox}.
+Give the number of messages in @var{mbox}.
+
+The return value is @code{0} on success and a code number on error conditions:
+@table @code
+@item EINVAL
+@var{mbox} is null.
+@end table
+@end deftypefun
+
+@deftypefun  int mailbox_messages_recent (mailbox_t @var{mbox}, size_t *@var{pnumber});
+Give the number of recent messages in @var{mbox}.
+
+The return value is @code{0} on success and a code number on error conditions:
+@table @code
+@item EINVAL
+@var{mbox} is null.
+@end table
+@end deftypefun
+
+@deftypefun  int mailbox_message_unseen (mailbox_t @var{mbox}, size_t *@var{pnumber});
+Give the number of first unseen message in @var{mbox}.
+
+The return value is @code{0} on success and a code number on error conditions:
+@table @code
+@item EINVAL
+@var{mbox} is null.
+@end table
+@end deftypefun
+
+@deftypefun  int mailbox_uidvalidity (mailbox_t @var{mbox}, size_t *@var{pnumber});
+Give the uid validity of @var{mbox}.
+
+The return value is @code{0} on success and a code number on error conditions:
+@table @code
+@item EINVAL
+@var{mbox} is null.
+@end table
+@end deftypefun
+
+@deftypefun  int mailbox_uidnext (mailbox_t @var{mbox}, size_t *@var{pnumber});
+Give the next predicted uid for @var{mbox}.
 
 The return value is @code{0} on success and a code number on error conditions:
 @table @code

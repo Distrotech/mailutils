@@ -68,7 +68,7 @@ by the Foundation.
 
 @page
 @vskip 0pt plus 1filll
-Copyright @copyright{} 1999, 2000 Free Software Foundation, Inc.
+Copyright @copyright{} 1999, 2000, 2001 Free Software Foundation, Inc.
 
 @sp 2
 Published by the Free Software Foundation, @*
@@ -145,18 +145,16 @@ mailers.
                         |                              |  user    |
    message_t            |                              |  passwd  |
  +--------------+<------+                    header_t  +----------+
- |  header_t  *-|-----------------------+-->+---------------+
- +--------------+       body_t          |   |  name/val[0]  |
- |  body_t[0] *-|----->+-------------+  |   |  ...          |
- |  body_t[1]   |      |  header_t *-|--+   +---------------+
- |  ...         |      +-------------+
- +--------------+      |  content    |
-                       |  next_body  |
-                       +-------------+
+ |  header_t  *-|------------>+---------------+
+ +--------------+             | (name:val)[0] |
+ |  body_t      |             |  ...          |
+ +--------------+             +---------------+
+
+
 @end group
 @end example
 
-For example writing a simple @command{from} command that will list the 
+For example writing a simple @command{from} command that will list the
 @emph{From} and @emph{Subject} headers of every mail in a folder.
 
 @example
