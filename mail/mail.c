@@ -91,7 +91,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
       break;
       
     case 'q':
-      util_do_command ("set quiet");
+      util_do_command ("set quit");
       break;
       
     case 't':
@@ -139,7 +139,6 @@ parse_opt (int key, char *arg, struct argp_state *state)
 	              "it must follow the option\n"
 	              "without any intervening whitespace."));
 	  util_error (_("Run mail --help for more info."));
-	  util_do_command ("set quiet");
 	  args->file = arg;
 	}
       else
@@ -296,7 +295,6 @@ main (int argc, char **argv)
   util_do_command ("set nooutfolder");
   util_do_command ("set nopage");
   util_do_command ("set prompt=\"? \"");
-  util_do_command ("set noquiet");
   util_do_command ("set norecord");
   util_do_command ("set save");
   util_do_command ("set screen=%d", util_getlines ());
@@ -342,7 +340,6 @@ main (int argc, char **argv)
       util_do_command ("set noasksub");
       util_do_command ("set noaskcc");
       util_do_command ("set noaskbcc");
-      util_do_command ("set quiet");
     }
 
   /* how should we be running? */
@@ -351,16 +348,6 @@ main (int argc, char **argv)
   modelen = strlen (mode);
 
   /* Interactive mode */
-  if (util_getenv (NULL, "quiet", Mail_env_boolean, 0))
-    {
-      fprintf (ofile,
-	       _("%s, Copyright (C) 2001 Free Software Foundation, Inc.\n"
-	       "mail is free software with ABSOLUTELY NO WARRANTY.\n"
-	       "For details type `warranty'.\n"
-	       "Send bug reports to %s.\n"),
-	       argp_program_version,
-	       argp_program_bug_address);
-    }
 
   ml_readline_init ();
   mail_set_my_name(args.user);
