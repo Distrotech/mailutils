@@ -72,8 +72,8 @@ typedef struct _mailbox_unix_data
 static int mailbox_unix_open (mailbox_t mbox, int flag);
 static int mailbox_unix_close (mailbox_t mbox);
 
-static int mailbox_unix_get_name (mailbox_t, int *id, char *name,
-				  size_t len, size_t *n);
+//static int mailbox_unix_get_name (mailbox_t, int *id, char *name,
+//			  size_t len, size_t *n);
 
 /* passwd */
 
@@ -128,8 +128,8 @@ static int mailbox_unix_size (mailbox_t, off_t *size);
 static int mailbox_unix_is_from (const char *);
 static int mailbox_unix_readhdr (mailbox_t mbox, char *buf, size_t len,
 				 off_t *content_length);
-static int mailbox_unix_sigblock ();
-static int mailbox_unix_sigunblock ();
+//static int mailbox_unix_sigblock ();
+//static int mailbox_unix_sigunblock ();
 
 /* Having a structure initialize at compiletime instead of runtime
    may speed thing a bit, but it is a real pain to maintain with
@@ -161,7 +161,7 @@ static struct _mailbox unixmbox =
   mailbox_unix_close, /* (*_close) */
 
   /* type */
-  mailbox_unix_get_name, /* (*_get_name) */
+  NULL, /* (*_get_name) */
   NULL, /* (*_get_mname) */
 
   /* passwd if needed */
@@ -311,7 +311,7 @@ mailbox_unix_init (mailbox_t *pmbox, const char *name)
   /* mutex when accessing the structure fields */
   /* FIXME: should we use rdwr locks instead ?? */
 #ifdef HAVE_PHTREAD_H
-  pthread_mutex_init (mud->mutex, NULL);
+  pthread_mutex_init (&(mud->mutex), NULL);
 #endif
 
 
@@ -502,6 +502,7 @@ mailbox_unix_close (mailbox_t mbox)
   return 0;
 }
 
+/*
 static int
 mailbox_unix_get_name (mailbox_t mbox, int *id, char *name,
 		       size_t len, size_t *n)
@@ -524,6 +525,7 @@ mailbox_unix_get_name (mailbox_t mbox, int *id, char *name,
     }
   return 0;
 }
+*/
 
 /* passwd */
 /* We don't care */
@@ -989,28 +991,33 @@ mailbox_unix_expunge (mailbox_t mbox)
 static int
 mailbox_unix_new_msg (mailbox_t mbox, size_t *msgno)
 {
+  (void)mbox; (void)msgno;
   return ENOSYS;
 }
 static int
 mailbox_unix_set_header (mailbox_t mbox, size_t msgno, const char *h,
 			 size_t len, int replace)
 {
+  (void)mbox; (void)msgno; (void)h; (void)len; (void)replace;
   return ENOSYS;
 }
 static int
 mailbox_unix_set_body (mailbox_t mbox, size_t msgno, const char *b,
 		       size_t len, int replace)
 {
+  (void)mbox; (void)msgno; (void)b; (void)len; (void)replace;
   return ENOSYS;
 }
 static int
 mailbox_unix_append (mailbox_t mbox, size_t msgno)
 {
+  (void)mbox; (void)msgno;
   return ENOSYS;
 }
 static int
 mailbox_unix_destroy_msg (mailbox_t mbox, size_t msgno)
 {
+  (void)mbox; (void)msgno;
   return ENOSYS;
 }
 
@@ -1039,7 +1046,7 @@ mailbox_unix_get_body (mailbox_t mbox, size_t msgno, off_t off,
 	mailbox_unix_iunlock (mbox);
 	return EIO;
       }
-    nread = (ln < len) ? ln : len;
+    nread = ((size_t)ln < len) ? ln : len;
     /* position the file pointer and the buffer */
     if (fseek (mud->file, mum->body + off, SEEK_SET) < 0)
       {
@@ -1086,7 +1093,7 @@ mailbox_unix_get_header (mailbox_t mbox, size_t msgno, off_t off,
 	mailbox_unix_iunlock (mbox);
 	return EIO;
       }
-    nread = (ln < len) ? ln : len;
+    nread = ((size_t)ln < len) ? ln : len;
     /* position the file pointer and the buffer */
     if (fseek (mud->file, mum->header + off, SEEK_SET) < 0)
       {
@@ -1161,7 +1168,11 @@ static int
 mailbox_unix_ilock (mailbox_t mbox, int flag)
 {
 #ifdef HAVE_PTHREAD_H
-  pthread_mutex_lock (&mutex)
+  mailbox_unix_data_t mud = (mailbox_unix_data_t) mbox->data;
+  (void)flag; /* we should use rwlocks for more concurency */
+  pthread_mutex_lock (&(mud->mutex));
+#else
+  (void)mbox; (void)flag;
 #endif
   return 0;
 }
@@ -1170,7 +1181,10 @@ static int
 mailbox_unix_iunlock (mailbox_t mbox)
 {
 #ifdef HAVE_PTHREAD_H
-  pthread_mutex_unlock (&mutex)
+  mailbox_unix_data_t mud = (mailbox_unix_data_t) mbox->data;
+  pthread_mutex_unlock (&(mud->mutex));
+#else
+  (void)mbox;
 #endif
   return 0;
 }
@@ -1179,6 +1193,8 @@ static int
 mailbox_unix_lock (mailbox_t mbox, int flag)
 {
 #ifdef HAVE_MAILOCK_H
+#else
+  (void)mbox; (void)flag;
 #endif
   return 0;
 }
@@ -1186,6 +1202,8 @@ static int
 mailbox_unix_unlock (mailbox_t mbox)
 {
 #ifdef HAVE_MAILOCK_H
+#else
+  (void)mbox;
 #endif
   return 0;
 }

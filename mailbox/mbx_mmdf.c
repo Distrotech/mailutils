@@ -29,11 +29,13 @@ struct mailbox_type _mailbox_mmdf_type =
 int
 mailbox_mmdf_init (mailbox_t *mbox, const char *name)
 {
+  (void)mbox; (void)name;
   return ENOSYS;
 }
 
 void
 mailbox_mmdf_destroy (mailbox_t *mbox)
 {
+  (void)mbox;
   return;
 }

@@ -16,7 +16,7 @@
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 
-#include <header.h>
+#include <header0.h>
 
 int
 header_set_value (header_t h, const char *fn, const char *fb, size_t n,

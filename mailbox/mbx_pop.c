@@ -29,11 +29,13 @@ struct mailbox_type _mailbox_pop_type =
 void
 mailbox_pop_destroy (mailbox_t *mbox)
 {
+  (void)mbox;
   return;
 }
 
 int
 mailbox_pop_init (mailbox_t *mbox, const char *name)
 {
+  (void)mbox; (void)name;
   return ENOSYS;
 }

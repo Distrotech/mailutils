@@ -27,6 +27,7 @@
 #include <mbx_imap.h>
 
 #include <stdlib.h>
+#include <string.h>
 #include <errno.h>
 
 /* forward prototypes */
@@ -392,12 +393,14 @@ mbx_check_struct (mailbox_t mbox)
 static int
 mbx_open (mailbox_t mbox, int flag)
 {
+  (void)mbox; (void)flag;
   return ENOSYS;
 }
 
 static int
 mbx_close (mailbox_t mbox)
 {
+  (void)mbox;
   return ENOSYS;
 }
 
@@ -452,6 +455,7 @@ mbx_get_mname (mailbox_t mbox, int *id, char **name, size_t *n)
 static int
 mbx_get_passwd (mailbox_t mbox, char *passwd, size_t len, size_t *n)
 {
+  (void)mbox; (void)passwd; (void)len; (void)n;
   return ENOSYS;
 }
 
@@ -473,6 +477,7 @@ mbx_get_mpasswd (mailbox_t mbox, char **passwd, size_t *n)
 static int
 mbx_set_passwd (mailbox_t mbox, const char *passwd, size_t len)
 {
+  (void)mbox; (void)passwd; (void)len;
   return ENOSYS;
 }
 
@@ -480,24 +485,28 @@ mbx_set_passwd (mailbox_t mbox, const char *passwd, size_t len)
 static int
 mbx_delete (mailbox_t mbox, size_t msgno)
 {
+  (void)mbox; (void)msgno;
   return ENOSYS;
 }
 
 static int
 mbx_undelete (mailbox_t mbox, size_t msgno)
 {
+  (void)mbox; (void)msgno;
   return ENOSYS;
 }
 
 static int
 mbx_expunge (mailbox_t mbox)
 {
+  (void)mbox;
   return ENOSYS;
 }
 
 static int
 mbx_is_deleted (mailbox_t mbox, size_t msgno)
 {
+  (void)mbox; (void)msgno;
   return ENOSYS;
 }
 
@@ -506,6 +515,7 @@ mbx_is_deleted (mailbox_t mbox, size_t msgno)
 static int
 mbx_new_msg (mailbox_t mbox, size_t *msgno)
 {
+  (void)mbox; (void)msgno;
   return ENOSYS;
 }
 
@@ -513,6 +523,7 @@ static int
 mbx_set_header (mailbox_t mbox, size_t msgno, const char *h,
 		size_t len, int replace)
 {
+  (void)mbox; (void)msgno; (void)h; (void)len; (void)replace;
   return ENOSYS;
 }
 
@@ -520,18 +531,21 @@ static int
 mbx_set_body (mailbox_t mbox, size_t msgno, const char *b,
 	      size_t len, int replace)
 {
+  (void)mbox; (void)msgno; (void)b; (void)len; (void)replace;
   return ENOSYS;
 }
 
 static int
 mbx_append (mailbox_t mbox, size_t msgno)
 {
+  (void)mbox; (void)msgno;
   return ENOSYS;
 }
 
 static int
 mbx_destroy_msg (mailbox_t mbox, size_t msgno)
 {
+  (void)mbox; (void)msgno;
   return ENOSYS;
 }
 
@@ -540,6 +554,7 @@ static int
 mbx_get_body (mailbox_t mbox, size_t msgno, off_t off,
 	      char *b, size_t len, size_t *n)
 {
+  (void)mbox; (void)msgno; (void)off; (void)b; (void)len; (void)n;
   return ENOSYS;
 }
 
@@ -563,6 +578,7 @@ static int
 mbx_get_header (mailbox_t mbox, size_t msgno, off_t off,
 		char *h, size_t len, size_t *n)
 {
+  (void)mbox; (void)msgno; (void)off; (void)h; (void)len; (void)n;
   return ENOSYS;
 }
 
@@ -586,12 +602,14 @@ mbx_get_mheader (mailbox_t mbox, size_t msgno, off_t off,
 static int
 mbx_lock  (mailbox_t mbox, int flag)
 {
+  (void)mbox; (void)flag;
   return ENOSYS;
 }
 
 static int
 mbx_unlock (mailbox_t mbox)
 {
+  (void)mbox;
   return ENOSYS;
 }
 
@@ -626,12 +644,14 @@ mbx_get_group (mailbox_t mbox, uid_t *gid)
 static int
 mbx_scan (mailbox_t mbox, size_t *msgs)
 {
+  (void)mbox; (void)msgs;
   return ENOSYS;
 }
 
 static int
 mbx_is_updated (mailbox_t mbox)
 {
+  (void)mbox;
   return ENOSYS;
 }
 
@@ -666,11 +686,13 @@ mbx_set_refresh (mailbox_t mbox, size_t refresh)
 static int
 mbx_get_size (mailbox_t mbox, size_t msgno, size_t *sh, size_t *sb)
 {
+  (void)mbox; (void)msgno; (void)sh; (void)sb;
   return ENOSYS;
 }
 
 static int
 mbx_set_notification (mailbox_t mbox, int (*func) (mailbox_t, void *arg))
 {
+  mbox->notification = func;
   return ENOSYS;
 }

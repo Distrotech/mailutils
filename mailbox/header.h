@@ -67,20 +67,6 @@ extern "C" {
 struct _header;
 typedef struct _header * header_t;
 
-struct _header
-{
-  /* Data */
-  void *data;
-
-  /* Functions */
-  int (*_set_value)  __P ((header_t, const char *fn, const char *fv,
-			   size_t n, int replace));
-  int (*_get_value)  __P ((header_t, const char *fn, char *fv,
-			   size_t len, size_t *n));
-  int (*_get_mvalue) __P ((header_t, const char *fn, char **fv, size_t *n));
-  int (*_parse)      __P ((header_t, const char *blurb, size_t len));
-} ;
-
 extern int header_init    __P ((header_t *, const char *blurb,
 				size_t ln, int flag));
 extern void header_destroy __P ((header_t *));
@@ -104,12 +90,6 @@ extern INLINE int header_get_value __P ((header_t, const char *fn, char *fv,
 					size_t len, size_t *n));
 extern INLINE int header_get_mvalue __P ((header_t, const char *fn,
 					 char **fv, size_t *n));
-
-#ifdef USE_MACROS
-#define header_set_value(h, fn, fv, n, r)  h->_set_value (h, fn, fv, n, r)
-#define header_get_value(h, fn, fv, v, ln, n)  h->_get_value (h, fn, fv, ln, n)
-#define header_get_mvalue(h, fn, fv, v, n) h->_get_mvalue (h, fn, fv, n)
-#endif
 
 #ifdef _cpluscplus
 }

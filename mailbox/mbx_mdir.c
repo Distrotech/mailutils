@@ -29,11 +29,13 @@ struct mailbox_type _mailbox_maildir_type =
 int
 mailbox_maildir_init (mailbox_t *mbox, const char *name)
 {
+  (void)mbox; (void)name;
   return ENOSYS;
 }
 
 void
 mailbox_maildir_destroy (mailbox_t *mbox)
 {
+  (void)mbox;
   return;
 }

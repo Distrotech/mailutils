@@ -30,11 +30,13 @@ struct mailbox_type _mailbox_imap_type =
 void
 mailbox_imap_destroy (mailbox_t *mbox)
 {
+  (void)mbox;
   return;
 }
 
 int
 mailbox_imap_init (mailbox_t *mbox, const char *name)
 {
+  (void)mbox; (void)name;
   return ENOSYS;
 }

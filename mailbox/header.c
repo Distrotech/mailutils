@@ -20,7 +20,7 @@
 # include "config.h"
 #endif
 
-#include <header.h>
+#include <header0.h>
 #include <string.h>
 #include <stdlib.h>
 #include <errno.h>
@@ -274,6 +274,7 @@ static int
 rfc822_set_value (header_t h, const char *fn, const char *fb,
 		  size_t n, int replace)
 {
+  (void)h; (void)fn; (void)fb; (void)n; (void)replace;
   return ENOSYS;
 }
 

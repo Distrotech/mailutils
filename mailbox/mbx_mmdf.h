@@ -1,5 +1,5 @@
 /* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU Library General Public License as published by
@@ -18,7 +18,7 @@
 #ifndef _MBX_MMDF_H
 #define _MBX_MMDF_H	1
 
-#include <mailbox.h>
+#include <mailbox0.h>
 
 extern int  mailbox_mmdf_init    __P ((mailbox_t *mbox, const char *name));
 extern void mailbox_mmdf_destroy __P ((mailbox_t *mbox));
