@@ -175,7 +175,8 @@ var_shell (int argc, char **argv, compose_env_t *env)
 {
   int status;
   ofile = env->ofile;
-  status = mail_shell (argc, argv);
+  ++*argv;
+  status = mail_execute (1, argc, argv);
   ofile = env->file;
   return status;
 }
@@ -298,6 +299,17 @@ var_deadletter (int argc ARG_UNUSED, char **argv ARG_UNUSED,
   return 0;
 }
 
+static void
+run_editor (char *ed, char *arg)
+{
+  char *argv[3];
+
+  argv[0] = ed;
+  argv[1] = arg;
+  argv[2] = NULL;
+  return mail_execute (1, 2, argv);
+}
+
 static int
 var_run_editor (char *ed, int argc, char **argv, compose_env_t *env)
 {
@@ -320,7 +332,7 @@ var_run_editor (char *ed, int argc, char **argv, compose_env_t *env)
       do
 	{
 	  fclose (fp);
-	  util_do_command ("!%s %s", ed, filename);
+	  run_editor (ed, filename);
 	  fp = fopen (filename, "r");
 	}
       while ((rc = parse_headers (fp, env)) < 0);
@@ -341,7 +353,7 @@ var_run_editor (char *ed, int argc, char **argv, compose_env_t *env)
     {
       fclose (env->file);
       ofile = env->ofile;
-      util_do_command ("!%s %s", ed, env->filename);
+      run_editor (ed, env->filename);
     }
 
   env->file = fopen (env->filename, "a+");
