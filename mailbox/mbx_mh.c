@@ -44,15 +44,21 @@
 # include <strings.h>
 #endif
 
-#include <mailutils/message.h>
-#include <mailutils/stream.h>
-#include <mailutils/body.h>
-#include <mailutils/header.h>
 #include <mailutils/attribute.h>
+#include <mailutils/body.h>
+#include <mailutils/debug.h>
+#include <mailutils/envelope.h>
 #include <mailutils/error.h>
+#include <mailutils/header.h>
+#include <mailutils/locker.h>
+#include <mailutils/message.h>
 #include <mailutils/mutil.h>
-#include <registrar0.h>
+#include <mailutils/property.h>
+#include <mailutils/stream.h>
+#include <mailutils/url.h>
+
 #include <mailbox0.h>
+#include <registrar0.h>
 
 #define MAX_OPEN_STREAMS 16
 

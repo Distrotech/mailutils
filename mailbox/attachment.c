@@ -38,8 +38,10 @@
 # include <strings.h>
 #endif
 
-#include <mailutils/message.h>
+#include <mailutils/body.h>
 #include <mailutils/filter.h>
+#include <mailutils/header.h>
+#include <mailutils/message.h>
 #include <mailutils/stream.h>
 
 #define MAX_HDR_LEN 256

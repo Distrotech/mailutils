@@ -18,9 +18,7 @@
 #ifndef _MAILUTILS_ERRNO_H
 #define _MAILUTILS_ERRNO_H	1
 
-#include <sys/types.h>
-#include <errno.h>
-#include <mailutils/mu_features.h>
+#include <mailutils/types.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -44,6 +42,12 @@ extern "C" {
 #define MU_ERR_LOCK_BAD_LOCK   (MU_ERR_BASE | 0x00a)
 #define MU_ERR_LOCK_BAD_FILE   (MU_ERR_BASE | 0x00b)
 #define MU_ERR_LOCK_NOT_HELD   (MU_ERR_BASE | 0x00c)
+#define MU_ERR_LOCK_EXT_FAIL   (MU_ERR_BASE | 0x00d)
+  /* external program not found, or lack of system resources */
+#define MU_ERR_LOCK_EXT_ERR    (MU_ERR_BASE | 0x00e)
+  /* external program failed, specific reason unknown */
+#define MU_ERR_LOCK_EXT_KILLED (MU_ERR_BASE | 0x00f)
+  /* external program was interrupted */
 
 const char* mu_errname __P((int e));
 const char* mu_errstring __P((int e));

@@ -27,7 +27,9 @@
 #endif
 
 #include <mailutils/iterator.h>
+#include <mailutils/list.h>
 #include <mailutils/monitor.h>
+
 #include <registrar0.h>
 
 /* NOTE: We will leak here since the monitor and the registrar will never

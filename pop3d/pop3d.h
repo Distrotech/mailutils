@@ -109,14 +109,18 @@
 # include <strings.h>
 #endif
 
+#include <mailutils/attribute.h>
+#include <mailutils/body.h>
 #include <mailutils/errno.h>
+#include <mailutils/error.h>
+#include <mailutils/header.h>
+#include <mailutils/list.h>
+#include <mailutils/locker.h>
 #include <mailutils/mailbox.h>
 #include <mailutils/message.h>
-#include <mailutils/header.h>
-#include <mailutils/body.h>
-#include <mailutils/registrar.h>
-#include <mailutils/error.h>
 #include <mailutils/mutil.h>
+#include <mailutils/registrar.h>
+#include <mailutils/url.h>
 
 #include <mu_argp.h>
 

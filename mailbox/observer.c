@@ -21,7 +21,10 @@
 
 #include <errno.h>
 #include <stdlib.h>
+
+#include <mailutils/list.h>
 #include <mailutils/iterator.h>
+
 #include <observer0.h>
 
 int

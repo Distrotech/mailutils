@@ -18,9 +18,7 @@
 #ifndef _MAILUTILS_HEADER_H
 #define _MAILUTILS_HEADER_H
 
-#include <sys/types.h>
-#include <mailutils/mu_features.h>
-#include <mailutils/stream.h>
+#include <mailutils/types.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -65,10 +63,6 @@ extern "C" {
 #define MU_HEADER_X_IMAPBASE                "X-IMAPbase"
 
 /* Mime support header attribute */
-
-/* forward declaration */
-struct _header;
-typedef struct _header * header_t;
 
 extern int header_create           __P ((header_t *, const char *,
 					 size_t, void *));

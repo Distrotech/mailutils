@@ -176,7 +176,7 @@ plus_expand (const char *file, char **buf)
   return 0;
 }
 
-/* Do ~ , if necessary.  We do not use $HOME. */
+/* Do ~ , if necessary. */
 static int
 tilde_expand (const char *file, char **buf)
 {

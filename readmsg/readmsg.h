@@ -28,12 +28,19 @@
 #include <errno.h>
 #include <getopt.h>
 
+#include <mailutils/body.h>
+#include <mailutils/debug.h>
 #include <mailutils/errno.h>
 #include <mailutils/mailbox.h>
 #include <mailutils/header.h>
+#include <mailutils/list.h>
+#include <mailutils/message.h>
 #include <mailutils/mime.h>
 #include <mailutils/filter.h>
 #include <mailutils/registrar.h>
+#include <mailutils/stream.h>
 
 int msglist __P ((mailbox_t mbox, int show_all, int argc, char **argv, int **set, int *n));
+
 #endif
+

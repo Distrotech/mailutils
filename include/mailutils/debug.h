@@ -18,16 +18,13 @@
 #ifndef _MAILUTILS_DEBUG_H
 #define _MAILUTILS_DEBUG_H
 
-#include <sys/types.h>
 #include <stdarg.h>
-#include <mailutils/mu_features.h>
+
+#include <mailutils/types.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-struct _debug;
-typedef struct _debug* mu_debug_t;
 
 #define MU_DEBUG_ERROR 0x0001
 #define MU_DEBUG_TRACE 0x0002

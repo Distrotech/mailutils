@@ -18,15 +18,11 @@
 #ifndef _MAILUTILS_ATTRIBUTE_H
 #define _MAILUTILS_ATTRIBUTE_H
 
-#include <sys/types.h>
-#include <mailutils/mu_features.h>
+#include <mailutils/types.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-struct _attribute;
-typedef struct _attribute * attribute_t;
 
 #define MU_ATTRIBUTE_ANSWERED 0x01
 #define MU_ATTRIBUTE_FLAGGED  0x02

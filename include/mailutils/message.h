@@ -18,17 +18,7 @@
 #ifndef _MAILUTILS_MESSAGE_H
 #define _MAILUTILS_MESSAGE_H
 
-#include <sys/types.h>
-
-#include <mailutils/attribute.h>
-#include <mailutils/auth.h>
-#include <mailutils/body.h>
-#include <mailutils/envelope.h>
-#include <mailutils/header.h>
-#include <mailutils/mailbox.h>
-#include <mailutils/mu_features.h>
-#include <mailutils/observer.h>
-#include <mailutils/stream.h>
+#include <mailutils/types.h>
 
 #ifdef __cplusplus
 extern "C" {

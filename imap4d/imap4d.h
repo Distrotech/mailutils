@@ -70,18 +70,21 @@
 #endif
 
 #include <mailutils/address.h>
+#include <mailutils/attribute.h>
 #include <mailutils/body.h>
+#include <mailutils/envelope.h>
 #include <mailutils/errno.h>
 #include <mailutils/error.h>
 #include <mailutils/filter.h>
 #include <mailutils/folder.h>
 #include <mailutils/header.h>
+#include <mailutils/list.h>
 #include <mailutils/mailbox.h>
 #include <mailutils/message.h>
+#include <mailutils/mutil.h>
 #include <mailutils/parse822.h>
 #include <mailutils/registrar.h>
 #include <mailutils/stream.h>
-#include <mailutils/mutil.h>
 
 #include <mu_argp.h>
 

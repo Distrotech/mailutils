@@ -19,17 +19,12 @@
 # define _MAILUTILS_STREAM_H
 
 #include <stdio.h>
-#include <sys/types.h>
 
-#include <mailutils/mu_features.h>
-#include <mailutils/property.h>
+#include <mailutils/types.h>
 
 #ifdef __cplusplus
 extern "C" { /*}*/
 #endif
-
-struct _stream;
-typedef struct _stream *stream_t;
 
 #define MU_STREAM_READ	   0x00000001
 #define MU_STREAM_WRITE	   0x00000002

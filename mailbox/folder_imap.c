@@ -37,7 +37,14 @@
 
 #include <imap0.h>
 #include <url0.h>
+
+#include <mailutils/auth.h>
+#include <mailutils/attribute.h>
+#include <mailutils/debug.h>
 #include <mailutils/error.h>
+#include <mailutils/header.h>
+#include <mailutils/observer.h>
+#include <mailutils/stream.h>
 
 /* For dbg purposes set to one to see different level of traffic.  */
 /* Print to stderr the command sent to the IMAP server.  */

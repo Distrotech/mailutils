@@ -22,6 +22,8 @@
 #include <errno.h>
 #include <stdlib.h>
 
+#include <mailutils/list.h>
+
 #include <iterator0.h>
 
 int

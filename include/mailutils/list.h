@@ -18,15 +18,11 @@
 #ifndef _MAILUTILS_LIST_H
 #define _MAILUTILS_LIST_H
 
-#include <mailutils/mu_features.h>
-#include <sys/types.h>
+#include <mailutils/types.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-struct _list;
-typedef struct _list *list_t;
 
 extern int list_create   __P ((list_t *));
 extern void list_destroy __P ((list_t *));

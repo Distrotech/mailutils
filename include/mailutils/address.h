@@ -18,9 +18,6 @@
 #ifndef _MAILUTILS_ADDRESS_H
 #define _MAILUTILS_ADDRESS_H
 
-#include <sys/types.h>
-
-#include <mailutils/mu_features.h>
 #include <mailutils/types.h>
 
 #ifdef __cplusplus

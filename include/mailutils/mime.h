@@ -18,10 +18,7 @@
 #ifndef _MAILUTILS_MIME_H
 #define _MAILUTILS_MIME_H
 
-#include <sys/types.h>
-#include <mailutils/mu_features.h>
-#include <mailutils/header.h>
-#include <mailutils/stream.h>
+#include <mailutils/types.h>
 
 /* mime flags */
 #define MIME_INCREAMENTAL_PARSER	0x1
@@ -32,10 +29,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-/* forward declaration */
-struct _mime;
-typedef struct _mime *mime_t;
 
 int mime_create		__P ((mime_t *pmime, message_t msg, int flags));
 void mime_destroy	__P ((mime_t *pmime));

@@ -59,17 +59,23 @@
 #include <readline/history.h>
 #endif
 
-#include <mailutils/errno.h>
-#include <mailutils/mailbox.h>
-#include <mailutils/message.h>
-#include <mailutils/header.h>
-#include <mailutils/body.h>
-#include <mailutils/registrar.h>
-#include <mailutils/list.h>
-#include <mailutils/iterator.h>
 #include <mailutils/address.h>
-#include <mailutils/mutil.h>
+#include <mailutils/attribute.h>
+#include <mailutils/body.h>
+#include <mailutils/debug.h>
+#include <mailutils/errno.h>
+#include <mailutils/envelope.h>
 #include <mailutils/filter.h>
+#include <mailutils/header.h>
+#include <mailutils/iterator.h>
+#include <mailutils/list.h>
+#include <mailutils/mailbox.h>
+#include <mailutils/mailer.h>
+#include <mailutils/message.h>
+#include <mailutils/mutil.h>
+#include <mailutils/registrar.h>
+#include <mailutils/stream.h>
+#include <mailutils/url.h>
 
 #include <argcv.h>
 #include <getline.h>

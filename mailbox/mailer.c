@@ -25,12 +25,17 @@
 #include <stdarg.h>
 #include <errno.h>
 
-#include <mailutils/registrar.h>
+#include <mailutils/address.h>
+#include <mailutils/debug.h>
 #include <mailutils/iterator.h>
+#include <mailutils/observer.h>
+#include <mailutils/property.h>
+#include <mailutils/registrar.h>
+#include <mailutils/stream.h>
+#include <mailutils/url.h>
+
 #include <mailer0.h>
 
-/*
- */
 int
 mailer_create (mailer_t *pmailer, const char *name)
 {

@@ -18,21 +18,65 @@
 #ifndef _MAILUTILS_TYPES_H
 #define _MAILUTILS_TYPES_H
 
+#include <sys/types.h>
+
 #include <mailutils/mu_features.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+struct _address;
+struct _attribute;
+struct _authority;
+struct _body;
+struct _debug;
+struct _envelope;
+struct _filter;
+struct _filter_record;
+struct _folder;
+struct _header;
+struct _iterator;
+struct _list;
 struct _locker;
 struct _mailbox;
+struct _mailer;
 struct _message;
-struct _address;
+struct _mime;
+struct _observable;
+struct _observer;
+struct _property;
+struct _record;
+struct _stream;
+struct _ticket;
+struct _url;
+struct _wicket;
 
-typedef struct _locker  *locker_t;
-typedef struct _mailbox *mailbox_t;
-typedef struct _message *message_t;
 typedef struct _address *address_t;
+typedef struct _attribute *attribute_t;
+typedef struct _authority *authority_t;
+typedef struct _body *body_t;
+typedef struct _debug *mu_debug_t;
+typedef struct _envelope *envelope_t;
+typedef struct _filter *filter_t;
+typedef struct _filter_record *filter_record_t;
+typedef struct _folder *folder_t;
+typedef struct _header * header_t;
+typedef struct _iterator *iterator_t;
+typedef struct _list *list_t;
+typedef struct _locker *locker_t;
+typedef struct _mailbox *mailbox_t;
+typedef struct _mailer *mailer_t;
+typedef struct _message *message_t;
+typedef struct _mime *mime_t;
+typedef struct _observable *observable_t;
+typedef struct _observer *observer_t;
+typedef struct _property *property_t;
+typedef struct _record* record_t;
+typedef struct _stream *stream_t;
+typedef struct _ticket *ticket_t;
+typedef struct _url *url_t;
+typedef struct _wicket *wicket_t;
 
 #ifdef __cplusplus
 }

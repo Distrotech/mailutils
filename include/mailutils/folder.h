@@ -18,24 +18,11 @@
 #ifndef _MAILUTILS_FOLDER_H
 # define _MAILUTILS_FOLDER_H
 
-#include <sys/types.h>
-
-#include <mailutils/mu_features.h>
-#include <mailutils/url.h>
-#include <mailutils/observer.h>
-#include <mailutils/debug.h>
-#include <mailutils/stream.h>
-#include <mailutils/auth.h>
-#include <mailutils/stream.h>
-
+#include <mailutils/types.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-/* Forward declaration.  */
-struct _folder;
-typedef struct _folder *folder_t;
 
 #define MU_FOLDER_ATTRIBUTE_DIRECTORY 0x001
 #define MU_FOLDER_ATTRIBUTE_FILE      0x002

@@ -18,20 +18,23 @@
 #if defined(HAVE_CONFIG_H)
 # include <config.h>
 #endif
+
 #include <errno.h>
+#include <grp.h>
+#include <netdb.h>
+#include <pwd.h>
+#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <string.h>
 #include <syslog.h>
-#include <pwd.h>
-#include <grp.h>
-#include <stdarg.h>
-#include <sys/stat.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
+#include <unistd.h>
+
 #include <arpa/inet.h>
-#include <netdb.h>
+#include <netinet/in.h>
+#include <sys/socket.h>
+#include <sys/stat.h>
+
 #include "getopt.h"
 
 #ifdef HAVE_STRINGS_H
@@ -65,14 +68,18 @@
 # define INADDR_LOOPBAK 0x7f000001
 #endif
 
+#include <mailutils/attribute.h>
 #include <mailutils/errno.h>
 #include <mailutils/error.h>
+#include <mailutils/list.h>
 #include <mailutils/locker.h>
 #include <mailutils/mailbox.h>
 #include <mailutils/message.h>
 #include <mailutils/mutil.h>
 #include <mailutils/registrar.h>
 #include <mailutils/stream.h>
+#include <mailutils/url.h>
+
 #include <mu_dbm.h>
 #include <mu_argp.h>
 

@@ -21,6 +21,7 @@
 #include <mailutils/body.h>
 #include <mailutils/debug.h>
 #include <mailutils/envelope.h>
+#include <mailutils/errno.h>
 #include <mailutils/error.h>
 #include <mailutils/filter.h>
 #include <mailutils/folder.h>
@@ -40,3 +41,4 @@
 #include <mailutils/registrar.h>
 #include <mailutils/stream.h>
 #include <mailutils/url.h>
+

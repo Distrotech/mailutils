@@ -18,17 +18,11 @@
 #ifndef _MAILUTILS_AUTHORITY_H
 #define _MAILUTILS_AUTHORITY_H
 
-#include <sys/types.h>
-#include <mailutils/mu_features.h>
-#include <mailutils/ticket.h>
+#include <mailutils/types.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-/* forward declaration */
-struct _authority;
-typedef struct _authority *authority_t;
 
 extern int  authority_ref          __P ((authority_t));
 extern void authority_destroy      __P ((authority_t *));

@@ -20,16 +20,7 @@
 
 #include <sys/types.h>
 
-#include <mailutils/debug.h>
-#include <mailutils/folder.h>
-#include <mailutils/locker.h>
-#include <mailutils/message.h>
-#include <mailutils/mu_features.h>
-#include <mailutils/observer.h>
-#include <mailutils/property.h>
-#include <mailutils/stream.h>
 #include <mailutils/types.h>
-#include <mailutils/url.h>
 
 #ifdef __cplusplus
 extern "C" {

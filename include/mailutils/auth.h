@@ -18,17 +18,11 @@
 #ifndef _MAILUTILS_AUTH_H
 #define _MAILUTILS_AUTH_H
 
-#include <sys/types.h>
-#include <mailutils/mu_features.h>
-#include <mailutils/url.h>
+#include <mailutils/types.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-/* forward declaration */
-struct _ticket;
-typedef struct _ticket *ticket_t;
 
 extern int  ticket_create          __P ((ticket_t *, void *owner));
 extern void ticket_destroy         __P ((ticket_t *, void *owner));
@@ -42,9 +36,6 @@ extern int ticket_pop              __P ((ticket_t, url_t, const char *, char **)
 extern int ticket_set_data         __P ((ticket_t, void *, void *owner));
 extern int ticket_get_data         __P ((ticket_t, void **));
 
-struct _authority;
-typedef struct _authority *authority_t;
-
 extern int authority_create           __P ((authority_t *, ticket_t, void *));
 extern void authority_destroy         __P ((authority_t *, void *));
 extern void *authority_get_owner      __P ((authority_t));
@@ -54,9 +45,6 @@ extern int authority_authenticate     __P ((authority_t));
 extern int authority_set_authenticate __P ((authority_t, int (*_authenticate) __P ((authority_t)), void *));
 
 extern int authority_create_null      __P ((authority_t *pauthority, void *owner));
-
-struct _wicket;
-typedef struct _wicket *wicket_t;
 
 extern int  wicket_create       __P ((wicket_t *, const char *));
 extern void wicket_destroy      __P ((wicket_t *));

@@ -35,8 +35,18 @@
 #include <message0.h>
 
 #include <mailutils/address.h>
+#include <mailutils/attribute.h>
+#include <mailutils/auth.h>
+#include <mailutils/body.h>
+#include <mailutils/debug.h>
+#include <mailutils/envelope.h>
 #include <mailutils/errno.h>
+#include <mailutils/folder.h>
+#include <mailutils/header.h>
+#include <mailutils/mailbox.h>
 #include <mailutils/mutil.h>
+#include <mailutils/observer.h>
+#include <mailutils/stream.h>
 
 #define MESSAGE_MODIFIED 0x10000;
 

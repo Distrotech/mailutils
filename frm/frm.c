@@ -27,11 +27,17 @@
 #include "getopt.h"
 
 #include <mu_argp.h>
-#include <mailutils/mailbox.h>
-#include <mailutils/header.h>
-#include <mailutils/registrar.h>
-#include <mailutils/observer.h>
+
 #include <mailutils/address.h>
+#include <mailutils/attribute.h>
+#include <mailutils/debug.h>
+#include <mailutils/header.h>
+#include <mailutils/list.h>
+#include <mailutils/mailbox.h>
+#include <mailutils/message.h>
+#include <mailutils/observer.h>
+#include <mailutils/registrar.h>
+#include <mailutils/stream.h>
 
 static char* show_field;
 static int show_to;

@@ -18,17 +18,11 @@
 #ifndef _MAILUTILS_OBSERVER_H
 #define _MAILUTILS_OBSERVER_H
 
-#include <sys/types.h>
-#include <mailutils/mu_features.h>
+#include <mailutils/types.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-struct _observer;
-struct _observable;
-typedef struct _observer* observer_t;
-typedef struct _observable* observable_t;
 
 #define MU_EVT_MAILBOX_DESTROY     0x001
 #define MU_EVT_FOLDER_DESTROY      0x002

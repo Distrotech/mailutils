@@ -46,15 +46,16 @@
 # include <strings.h>
 #endif
 
+#include <mailutils/body.h>
+#include <mailutils/errno.h>
+#include <mailutils/error.h>
+#include <mailutils/header.h>
+#include <mailutils/list.h>
 #include <mailutils/mailbox.h>
 #include <mailutils/message.h>
-#include <mailutils/header.h>
-#include <mailutils/body.h>
+#include <mailutils/mutil.h>
 #include <mailutils/registrar.h>
 #include <mailutils/stream.h>
-#include <mailutils/mutil.h>
-#include <mailutils/error.h>
-#include <mailutils/errno.h>
 
 #include <argcv.h>
 #include <mu_argp.h>

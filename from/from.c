@@ -35,8 +35,12 @@
 
 #include <mailutils/address.h>
 #include <mailutils/errno.h>
+#include <mailutils/header.h>
+#include <mailutils/list.h>
 #include <mailutils/mailbox.h>
+#include <mailutils/message.h>
 #include <mailutils/registrar.h>
+#include <mailutils/stream.h>
 
 int
 main(int argc, char **argv)

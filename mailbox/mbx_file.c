@@ -24,6 +24,8 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 
+#include <mailutils/url.h>
+
 #include <mailbox0.h>
 #include <registrar0.h>
 

@@ -29,11 +29,21 @@
 #include <time.h>
 
 #include <mailutils/address.h>
+#include <mailutils/attribute.h>
+#include <mailutils/body.h>
+#include <mailutils/debug.h>
+#include <mailutils/envelope.h>
 #include <mailutils/error.h>
+#include <mailutils/header.h>
+#include <mailutils/message.h>
 #include <mailutils/mutil.h>
+#include <mailutils/observer.h>
+#include <mailutils/property.h>
+#include <mailutils/stream.h>
+
+#include <imap0.h>
 #include <mailbox0.h>
 #include <registrar0.h>
-#include <imap0.h>
 #include <url0.h>
 
 #undef min

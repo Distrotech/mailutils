@@ -25,6 +25,8 @@
 #include <errno.h>
 
 #include <mailutils/property.h>
+#include <mailutils/stream.h>
+
 #include <filter0.h>
 
 static int rfc822_init __P ((filter_t));

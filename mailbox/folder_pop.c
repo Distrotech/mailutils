@@ -27,9 +27,12 @@
 # include <strings.h>
 #endif
 
+#include <mailutils/auth.h>
+#include <mailutils/mailbox.h>
+
 #include <folder0.h>
-#include <url0.h>
 #include <registrar0.h>
+#include <url0.h>
 
 /* We export url parsing and the initialisation of
    the mailbox, via the register entry/record.  */

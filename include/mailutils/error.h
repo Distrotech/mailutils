@@ -19,7 +19,8 @@
 #define _MAILUTILS_ERROR_H
 
 #include <stdarg.h>
-#include <mailutils/mu_features.h>
+
+#include <mailutils/types.h>
 
 #ifdef __cplusplus
 extern "C" {

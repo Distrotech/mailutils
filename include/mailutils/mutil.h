@@ -24,6 +24,7 @@
 */
 
 #include <time.h>
+
 #include <mailutils/mu_features.h>
 
 #ifdef __cplusplus
@@ -76,9 +77,11 @@ extern int mu_tempfile __P((const char *tmpdir, char **namep));
 extern char * mu_get_full_path __P((const char *file));
 extern char * mu_getcwd __P((void));
   
+extern int mu_spawnvp(const char* prog, const char* const av[], int* stat);
+
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* _MAILUTILS_MUTIL_H */
+#endif
 

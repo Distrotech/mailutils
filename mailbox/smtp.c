@@ -19,18 +19,24 @@
 # include <config.h>
 #endif
 
-#include <sys/types.h>
-#include <stdio.h>
-#include <pwd.h>
-#include <unistd.h>
 #include <errno.h>
+#include <netdb.h>
+#include <pwd.h>
+#include <stdarg.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <netdb.h>
+#include <unistd.h>
 
 #include <mailutils/address.h>
-#include <mailutils/stream.h>
+#include <mailutils/debug.h>
+#include <mailutils/header.h>
+#include <mailutils/message.h>
 #include <mailutils/mutil.h>
+#include <mailutils/observer.h>
+#include <mailutils/property.h>
+#include <mailutils/stream.h>
+#include <mailutils/url.h>
 
 #include <mailer0.h>
 #include <registrar0.h>

@@ -33,7 +33,9 @@ First draft: Alain Magloire.
 #endif
 
 #include <filter0.h>
+
 #include <mailutils/iterator.h>
+#include <mailutils/stream.h>
 
 static void
 filter_destroy (stream_t stream)

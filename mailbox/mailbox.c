@@ -22,11 +22,18 @@
 #include <stdlib.h>
 #include <errno.h>
 
+#include <mailutils/debug.h>
 #include <mailutils/errno.h>
 #include <mailutils/error.h>
+#include <mailutils/folder.h>
 #include <mailutils/iterator.h>
 #include <mailutils/locker.h>
+#include <mailutils/observer.h>
+#include <mailutils/property.h>
 #include <mailutils/registrar.h>
+#include <mailutils/stream.h>
+#include <mailutils/url.h>
+
 #include <mailbox0.h>
 
 /* The Mailbox Factory.

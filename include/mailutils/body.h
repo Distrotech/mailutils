@@ -18,17 +18,11 @@
 #ifndef _MAILUTILS_BODY_H
 #define _MAILUTILS_BODY_H
 
-#include <sys/types.h>
-#include <mailutils/mu_features.h>
-#include <mailutils/stream.h>
+#include <mailutils/types.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-/* forward declaration */
-struct _body;
-typedef struct _body *body_t;
 
 extern int body_create         __P ((body_t *, void *owner));
 extern void body_destroy       __P ((body_t *, void *owner));

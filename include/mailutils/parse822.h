@@ -22,8 +22,7 @@
 #ifndef _MAILUTILS_PARSE822_H
 #define _MAILUTILS_PARSE822_H
 
-#include <mailutils/mu_features.h>
-#include <mailutils/address.h>
+#include <mailutils/types.h>
 #include <mailutils/mutil.h>
 
 #ifdef __cplusplus

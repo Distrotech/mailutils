@@ -61,6 +61,9 @@ mu_errname (int e)
     EN(MU_ERR_LOCK_BAD_LOCK)
     EN(MU_ERR_LOCK_BAD_FILE)
     EN(MU_ERR_LOCK_NOT_HELD)
+    EN(MU_ERR_LOCK_EXT_FAIL)
+    EN(MU_ERR_LOCK_EXT_ERR)
+    EN(MU_ERR_LOCK_EXT_KILLED)
   }
 
   return "SYSTEM ERROR";
@@ -89,6 +92,9 @@ const char* mu_errstring (int e)
     ES(MU_ERR_LOCK_BAD_LOCK,    "Lock file check failed")
     ES(MU_ERR_LOCK_BAD_FILE,    "File check failed")
     ES(MU_ERR_LOCK_NOT_HELD,    "Lock not held on file")
+    ES(MU_ERR_LOCK_EXT_FAIL,    "Failed to exec external locker")
+    ES(MU_ERR_LOCK_EXT_ERR,     "External locker failed")
+    ES(MU_ERR_LOCK_EXT_KILLED,  "External locker killed")
   }
 
   return strerror(e);

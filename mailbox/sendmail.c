@@ -30,7 +30,13 @@
 #include <sys/wait.h>
 
 #include <mailutils/address.h>
+#include <mailutils/debug.h>
+#include <mailutils/message.h>
+#include <mailutils/observer.h>
+#include <mailutils/property.h>
 #include <mailutils/stream.h>
+#include <mailutils/url.h>
+
 #include <mailer0.h>
 #include <registrar0.h>
 

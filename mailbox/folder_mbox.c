@@ -34,6 +34,10 @@
 #include <folder0.h>
 #include <registrar0.h>
 
+#include <mailutils/auth.h>
+#include <mailutils/url.h>
+#include <mailutils/stream.h>
+
 /* We export url parsing and the initialisation of
    the mailbox, via the register entry/record.  */
 

@@ -23,10 +23,15 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <mailutils/registrar.h>
+#include <mailutils/auth.h>
+#include <mailutils/debug.h>
 #include <mailutils/iterator.h>
 #include <mailutils/list.h>
 #include <mailutils/monitor.h>
+#include <mailutils/observer.h>
+#include <mailutils/registrar.h>
+#include <mailutils/stream.h>
+#include <mailutils/url.h>
 
 #include <folder0.h>
 

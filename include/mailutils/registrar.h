@@ -18,22 +18,11 @@
 #ifndef _MAILUTILS_REGISTRAR_H
 #define _MAILUTILS_REGISTRAR_H
 
-#include <sys/types.h>
-
-#include <mailutils/mu_features.h>
-#include <mailutils/url.h>
-#include <mailutils/mailbox.h>
-#include <mailutils/mailer.h>
-#include <mailutils/folder.h>
-#include <mailutils/list.h>
+#include <mailutils/types.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-/* Record.  */
-struct _record;
-typedef struct _record* record_t;
 
 /* Public Interface, to allow static initialization.  */
 struct _record

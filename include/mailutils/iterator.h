@@ -18,16 +18,11 @@
 #ifndef _MAILUTILS_ITERATOR_H
 #define _MAILUTILS_ITERATOR_H
 
-#include <mailutils/mu_features.h>
-#include <mailutils/list.h>
-#include <sys/types.h>
+#include <mailutils/types.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-struct _iterator;
-typedef struct _iterator *iterator_t;
 
 extern int iterator_create   __P ((iterator_t *, list_t));
 extern void iterator_destroy __P ((iterator_t *));

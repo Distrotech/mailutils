@@ -40,17 +40,21 @@
 
 #include <md5-rsa.h>
 
-#include <mailutils/errno.h>
-#include <mailutils/stream.h>
-#include <mailutils/body.h>
-#include <mailutils/message.h>
-#include <mailutils/header.h>
 #include <mailutils/attribute.h>
-#include <mailutils/url.h>
 #include <mailutils/auth.h>
+#include <mailutils/body.h>
+#include <mailutils/debug.h>
+#include <mailutils/errno.h>
 #include <mailutils/error.h>
-#include <mailbox0.h>
+#include <mailutils/header.h>
+#include <mailutils/message.h>
+#include <mailutils/observer.h>
+#include <mailutils/property.h>
+#include <mailutils/stream.h>
+#include <mailutils/url.h>
+
 #include <folder0.h>
+#include <mailbox0.h>
 #include <registrar0.h>
 #include <url0.h>
 

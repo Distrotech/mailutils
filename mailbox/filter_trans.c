@@ -28,6 +28,8 @@ First Draft: Dave Inglis.
 #include <stdlib.h>
 #include <string.h>
 
+#include <mailutils/stream.h>
+
 #include <filter0.h>
 
 #define MU_TRANS_DECODE		1

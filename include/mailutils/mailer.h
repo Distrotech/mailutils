@@ -18,24 +18,11 @@
 #ifndef _MAILUTILS_MAILER_H
 #define _MAILUTILS_MAILER_H
 
-#include <sys/types.h>
-
-#include <mailutils/mu_features.h>
-#include <mailutils/address.h>
-#include <mailutils/debug.h>
-#include <mailutils/message.h>
-#include <mailutils/observer.h>
-#include <mailutils/property.h>
-#include <mailutils/stream.h>
-#include <mailutils/url.h>
+#include <mailutils/types.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-/* forward declaration */
-struct _mailer;
-typedef struct _mailer *mailer_t;
 
 extern int mailer_create        __P ((mailer_t *, const char *));
 extern void mailer_destroy      __P ((mailer_t *));

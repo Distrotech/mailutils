@@ -34,6 +34,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <mailutils/property.h>
+
 #include <stream0.h>
 
 static int refill (stream_t, off_t);

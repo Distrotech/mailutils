@@ -15,18 +15,10 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-/* Notes:
-
- */
-
 #ifndef _MAILUTILS_FILTER_H
 #define _MAILUTILS_FILTER_H
 
-#include <stdlib.h>
-#include <mailutils/mu_features.h>
-#include <mailutils/list.h>
-#include <mailutils/property.h>
-#include <mailutils/stream.h>
+#include <mailutils/types.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -40,12 +32,6 @@ extern "C" {
 #define MU_FILTER_READ  MU_STREAM_READ
 #define MU_FILTER_WRITE MU_STREAM_WRITE
 #define MU_FILTER_RDWR  MU_STREAM_RDWR
-
-struct _filter;
-typedef struct _filter * filter_t;
-
-struct _filter_record;
-typedef struct _filter_record * filter_record_t;
 
 struct _filter_record
 {
