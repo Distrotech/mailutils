@@ -11,10 +11,14 @@ SUBDIRS = include testsuite
 
 lib_LTLIBRARIES = libmailbox.la
 
-EXTRA_DIST = mbx_mboxscan.c md5.h
+EXTRA_DIST = mbx_mboxscan.c md5.h strtok_r.c \
+ strndup.c strnlen.c strchrnul.c argp-ba.c argp-eexst.c \
+ argp-fmtstream.c argp-fs-xinl.c argp-help.c argp-parse.c argp-pv.c \
+ argp-pvh.c argp-xinl.c getline.c
 
 libmailbox_la_SOURCES = \
 address.c \
+argcv.c \
 attachment.c \
 attribute.c \
 auth.c \
@@ -74,4 +78,6 @@ url_sendmail.c \
 url_smtp.c \
 wicket.c
 
+libmailbox_la_DEPENDENCIES = @MU_LTLIBOBJS@
+libmailbox_la_LIBADD = @MU_LTLIBOBJS@
 libmailbox_la_LDFLAGS = -version-info 0:0:0
