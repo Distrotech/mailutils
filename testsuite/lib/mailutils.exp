@@ -116,7 +116,7 @@ proc mu_start {args} {
 }
 
 # mu_exec [-retcode N][-message S][-default (FAIL | XFAIL)][-arg S...]
-#         [PATTERN...]
+#         [-pattern PATTERN-LIST][PATTERN...]
 #
 # Executes $MU_TOOL and checks whether it returns with the given exit status
 # and its output matches supplied PATTERN.
@@ -158,13 +158,26 @@ proc mu_exec {args} {
 	} elseif {"$opt" == "-arg"} {
 	    append sw " [lindex $args [expr $i + 1]]"
 	    incr i
+	} elseif {"$opt" == "-arg-list"} {
+	    incr i
+	    set s [lindex $args $i]
+	    for {set j 0} {$j < [llength $s]} {incr j} {
+		append sw " [lindex $s $j]"
+	    }
+	} elseif {"$opt" == "-pattern"} {
+	    set pattern [lindex $args [expr $i + 1]]
+	    incr i
 	} else {
 	    break
 	}
     }	
 
-    set args [lrange $args $i end]
-    
+    if [info exists pattern] {
+	set args [concat $pattern [lrange $args $i end]]
+    } else {
+	set args [lrange $args $i end]
+    }
+
     if [info exists host_board] {
 	if [board_info $host_board exists top_srcdir] {
 	    append sw " --mail-spool [board_info $host_board top_srcdir]/mail/testsuite/spool"
@@ -528,7 +541,7 @@ proc mu_test { args } {
     }
 
     set result 0
-    for {set i 0} {$i < [llength $pattern]} {incr i} {
+    for {set i 0} {$result == 0 && $i < [llength $pattern]} {incr i} {
 	set regexp 0
 	switch -regexp -- "[lindex ${pattern} $i]" {
 	    ^-re.*$	{ set regexp 1; incr i }
@@ -578,6 +591,7 @@ proc mu_test { args } {
 		   break
 	       }
 	   }
+	   verbose "RES: $result"
 	   if {$result == 0} {
 	       mu_expect $tmt {
 		   -re "\[ \t]*\r\n" { }
