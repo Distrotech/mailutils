@@ -167,11 +167,11 @@ main (int argc, char **argv)
       char *p = util_get_homedir();
       setenv ("HOME", p, 0);
     }
-  setenv ("DEAD", util_fullpath("~/dead.letter"), 0); 
+  setenv ("DEAD", util_fullpath("~/dead.letter"), 0);
   setenv ("EDITOR", "ed", 0);
   setenv ("LISTER", "ls", 0);
   setenv ("MAILRC", util_fullpath("~/.mailrc"), 0);
-  setenv ("MBOX", util_fullpath("~/mbox"), 0);	
+  setenv ("MBOX", util_fullpath("~/mbox"), 0);
   setenv ("PAGER", "more", 0);
   setenv ("SHELL", "sh", 0);
   setenv ("VISUAL", "vi", 0);
@@ -296,7 +296,7 @@ main (int argc, char **argv)
 
       /* initial commands */
       if ((util_find_env("header"))->set)
-	  util_do_command ("z");
+	  util_do_command ("z.");
 
       prompt = util_find_env ("prompt");
       mail_set_is_terminal(isatty(0));
@@ -345,8 +345,8 @@ mail_mainloop(char *(*input) __P((void *, int)), void *closure, int do_history)
       if (command)
 	free (command);
     }
-}  
-  
+}
 
 
-	
+
+

@@ -6,7 +6,6 @@
 	* include/mailutils/Makefile.am: add mutil.h to the list.
 	* lib/strisignal.c: Define __P if not set.
 	* m4/Makefile.am: Added tm_gmtoff.m4 tm_isdst.m4 tm_zone.m4
-	* mail/mail.c (main): typo "z." --> "z"
 
 2001-06-25 Sergey Poznyakoff
 	* mail/if.c: Removed confusing comment.
