@@ -77,6 +77,8 @@ pop3d_retr (const char *arg)
   if (!attribute_is_read (attr))
     attribute_set_read (attr);
 
+  pop3d_mark_retr (attr);
+
   free (buf);
   pop3d_outf (".\r\n");
 

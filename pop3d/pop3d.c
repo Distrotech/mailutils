@@ -47,6 +47,9 @@ time_t login_delay = 0;
 char *login_stat_file = LOGIN_STAT_FILE;
 #endif
 
+/* Minimum advertise retention times of messages.  */
+int expire = -1;
+
 static int pop3d_mainloop       __P ((int fd, FILE *, FILE *));
 static void pop3d_daemon_init   __P ((void));
 static void pop3d_daemon        __P ((unsigned int, unsigned int));
@@ -59,6 +62,7 @@ static char doc[] = N_("GNU pop3d -- the POP3 daemon");
 
 #define OPT_LOGIN_DELAY 257
 #define OPT_STAT_FILE   258
+#define OPT_EXPIRE      259
 
 static struct argp_option options[] = {
   {"undelete", 'u', NULL, 0,
@@ -69,6 +73,8 @@ static struct argp_option options[] = {
   {"stat-file", OPT_STAT_FILE, N_("FILENAME"), 0,
    N_("Name of login statistics file"), 0},
 #endif
+  {"expire", OPT_EXPIRE, N_("DAYS"), 0,
+   N_("Minimum advertise retention days of messages, default -1 means NEVER"), 0},
   {NULL, 0, NULL, 0, NULL, 0}
 };
 
@@ -122,8 +128,12 @@ pop3d_parse_opt (int key, char *arg, struct argp_state *astate)
     case OPT_STAT_FILE:
       login_stat_file = arg;
       break;
-      
 #endif  
+ 
+    case OPT_STAT_FILE:
+      expire = strtoul (arg, &p, 10);
+      break;
+      
     default:
       return ARGP_ERR_UNKNOWN;
     }

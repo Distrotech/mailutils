@@ -47,9 +47,12 @@ pop3d_capa (const char *arg)
     pop3d_outf ("STLS\r\n");
 #endif /* WITH_TLS */
 
-  /* FIXME: This can be Implemented by setting an header field on the
-     message.  */
-  /*pop3d_outf ("EXPIRE NEVER\r\n"); */
+  /* This can be Implemented by setting an header field on the message.  */
+  if (expire < 0)
+    pop3d_outf ("EXPIRE NEVER\r\n");
+  else 
+    pop3d_outf ("EXPIRE %d\r\n", expire);
+
   if (state == TRANSACTION)	/* let's not advertise to just anyone */
     pop3d_outf ("IMPLEMENTATION %s\r\n", PACKAGE_STRING);
   pop3d_outf (".\r\n");

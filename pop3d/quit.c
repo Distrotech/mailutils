@@ -62,16 +62,29 @@ pop3d_fix_mark ()
 {
   size_t i;
   size_t total = 0;
+  char *value = NULL;
+  int len;
 
   mailbox_messages_count (mbox, &total);
-
+  len = asprintf (&value, "%ul", (unsigned long) time (NULL));
   for (i = 1; i <= total; i++)
     {
        message_t msg = NULL;
        attribute_t attr = NULL;
        mailbox_get_message (mbox, i, &msg);
        message_get_attribute (msg, &attr);
+
        if (pop3d_is_deleted (attr))
           attribute_set_deleted (attr);
+
+       // Mark the message with a timestamp.
+       if (expire >= 0 && pop3d_is_retr (attr))
+         {
+           header_t header = NULL;
+           message_get_header (msg, &header);
+           header_set_value (header, "X-Expire-Timestamp", value, len);
+         }
     }
+
+    free (value);
 }

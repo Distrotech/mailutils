@@ -88,6 +88,9 @@ extern void update_login_delay __P((char *username));
 # define update_login_delay(u)
 #endif
 
+/* Minimum advertise retention time for messages.  */
+extern int expire;
+
 /* Size of the MD5 digest for APOP */
 #define APOP_DIGEST	70
 
@@ -165,6 +168,7 @@ extern void update_login_delay __P((char *username));
 #endif
 
 #define POP3_ATTRIBUTE_DELE 0x0001
+#define POP3_ATTRIBUTE_RETR 0x0010
 
 #define AUTHORIZATION	0
 #define TRANSACTION	1
