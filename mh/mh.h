@@ -41,6 +41,8 @@
 #include <mailutils/error.h>
 #include <mailutils/errno.h>
 
+#include <mu_asprintf.h>
+
 #define MH_FMT_RALIGN 0x1000
 #define MH_FMT_ZEROPAD 0x2000
 #define MH_WIDTH_MASK  0x0fff
@@ -175,6 +177,7 @@ extern size_t current_message;
 extern char mh_list_format[];
 
 void mh_init __P((void));
+void mh_init2 __P((void));
 void mh_read_profile __P((void));
 void mh_save_context __P((void));
 int mh_read_formfile __P((char *name, char **pformat));
@@ -205,14 +208,18 @@ int mh_context_set_value __P((mh_context_t *ctx, const char *name,
 
 int mh_message_number __P((message_t msg, size_t *pnum));
 
-mailbox_t mh_open_folder __P((const char *folder));
+mailbox_t mh_open_folder __P((const char *folder, int create));
 
 int mh_msgset_parse __P((mailbox_t mbox, mh_msgset_t *msgset,
 			 int argc, char **argv));
 int mh_msgset_member __P((mh_msgset_t *msgset, size_t num));
 
 char *mh_get_dir __P((void));
-const char *mh_expand_name __P((const char *name, int is_folder));
+char *mh_expand_name __P((const char *name, int is_folder));
+
+int mh_is_my_name __P((char *name));
+int mh_iterate __P((mailbox_t mbox, mh_msgset_t *msgset,
+		    mh_iterator_fp itr, void *data));
 
 void *xmalloc __P((size_t));
 void *xrealloc __P((void *, size_t));
