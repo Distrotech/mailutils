@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: mailutils 0.4\n"
 "POT-Creation-Date: 2003-10-06 16:19+0300\n"
-"PO-Revision-Date: 2003-12-10 08:55+0200\n"
+"PO-Revision-Date: 2003-12-13 20:41+0200\n"
 "Last-Translator: Eugen Hoanca <eugenh@urban-grafx.ro>\n"
 "Language-Team: Romanian <translation-team-ro@lists.sourceforge.net>\n"
 "MIME-Version: 1.0\n"
@@ -364,7 +364,7 @@ msgstr "user inexistent: %s"
 
 #: dotlock/dotlock.c:35
 msgid "GNU dotlock -- lock mail spool filesReturns 0 on success, 3 if the locking the file fails because it's already locked, and 1 if some other kind of error occurred."
-msgstr "GNU dotlock -- blocheazã(lock) fiºierele spool de mail. Returneazã 0 în caz de succes, 3 dacã blocarea fiºierului eºueazã din cauza faptului cã este deja blocat, ºi 1 dacã s-a produs un alt fel de eroare."
+msgstr "GNU dotlock -- blocheazã(lock) fiºierele spool de mail.Returneazã 0 în caz de succes, 3 dacã blocarea fiºierului eºueazã din cauza faptului cã este deja blocat, ºi 1 dacã s-a produs un alt fel de eroare."
 
 #: dotlock/dotlock.c:44
 msgid "Unlock"
@@ -1647,7 +1647,7 @@ msgid ""
 "  l - sieve action logs\n"
 "  0-9 - Set mail.local debugging level\n"
 msgstr ""
-"GNU mail.local -- opþiunille(flags) MDA Debug sunt:\n"
+"GNU mail.local -- opþiunille(flags)MDA Debug sunt:\n"
 "  g - analize(traces) stivã guimb\n"
 "  T - analize(traces) mailutil (MU_DEBUG_TRACE)\n"
 "  P - protocoale reþea (MU_DEBUG_PROT)\n"
@@ -1856,7 +1856,7 @@ msgid ""
 "the data part of the protocol transaction will also be printed to stdout.\n"
 msgstr ""
 "GNU mail.remote -- interfaþã pseudo-sendmailpentur livrare de email\n"
-" \n"
+" \n"
 "Un mesaj formatat RFC2822 este citit de la stdin ºi livrat folosind mailerul.\n"
 " Acest utilitar poate fi folosit ca o înlocuire mai slabã pentru /bin/sendmail\n"
 "folositã pentru a înainta(forward) emailul direct într-un gateway SMTP.\n"
@@ -2432,7 +2432,7 @@ msgid ""
 "GNU MH annoOptions marked with `*' are not yet implemented.\n"
 "Use -help to obtain the list of traditional MH options."
 msgstr ""
-"GNU MH anno- Opþiunile marcate cu `*' nu sunt încã implementate\n"
+"GNU MH annoOpþiunile marcate cu `*' nu sunt încã implementate\n"
 "Folosiþi --help pentru a obþine lista cu opþiunile MH tradiþionale."
 
 #: mh/anno.c:26
@@ -2486,7 +2486,7 @@ msgstr "Nume componentã: "
 
 #: mh/fmtcheck.c:23
 msgid "GNU MH fmtcheckUse -help to obtain the list of traditional MH options."
-msgstr "GNU MH fmtcheck- Folosiþi -helppentru a obþine o listã cu opþiunile MH tradiþionale."
+msgstr "GNU MH fmtcheckFolosiþi -helppentru a obþine o listã cu opþiunile MH tradiþionale."
 
 #: mh/fmtcheck.c:30 mh/forw.c:51 mh/inc.c:41 mh/mhl.c:40 mh/repl.c:55
 #: mh/scan.c:42
@@ -2519,7 +2519,7 @@ msgstr "ªirul de format este greºit"
 
 #: mh/folder.c:36
 msgid "GNU MH folderUse -help to obtain the list of traditional MH options."
-msgstr "Dosarul(folder) GNU MH Folosiþi -help pentru a obþine o listã cu opþiunile tradiþionale MH."
+msgstr "Dosarul(folder) GNU MHFolosiþi -help pentru a obþine o listã cu opþiunile tradiþionale MH."
 
 #: mh/folder.c:38
 msgid "[action] [msg]"
@@ -2624,7 +2624,7 @@ msgid ""
 "GNU MH forwOptions marked with `*' are not yet implemented.\n"
 "Use -help to obtain the list of traditional MH options."
 msgstr ""
-"GNU MH forw Opþiunile marcate cu `*' nu sunt implementate încã\n"
+"GNU MH forwOpþiunile marcate cu `*' nu sunt implementate încã\n"
 "Folosiþi -help pentru a obþine o listã de opþiuni MH tradiþionale."
 
 #: mh/forw.c:31 mh/repl.c:34
@@ -2731,7 +2731,7 @@ msgstr "Sfârºit de mesaje înaintate(forwarded)"
 
 #: mh/inc.c:23
 msgid "GNU MH incUse -help to obtain the list of traditional MH options."
-msgstr "GNU MH inc Folosiþi -help pentru a obþine o listã de opþiuni MH tradiþionale."
+msgstr "GNU MH incFolosiþi -help pentru a obþine o listã de opþiuni MH tradiþionale."
 
 #: mh/inc.c:25 mh/rmf.c:34
 msgid "[+folder]"
@@ -2791,7 +2791,7 @@ msgstr "%d: eroare în adãugarea mesajului: %s"
 
 #: mh/install-mh.c:21
 msgid "GNU MH install-mhUse -help to obtain the list of traditional MH options."
-msgstr "GNU MH install-mh Folosiþi -help pentru a obþine o listã de opþiuni MH tradiþionale."
+msgstr "GNU MH install-mhFolosiþi -help pentru a obþine o listã de opþiuni MH tradiþionale."
 
 #: mh/install-mh.c:27
 msgid "Do not ask for anything"
@@ -2799,7 +2799,7 @@ msgstr "Nu întreba de nimic"
 
 #: mh/mark.c:21
 msgid "GNU MH markUse -help to obtain the list of traditional MH options."
-msgstr "GNU MH mark Folosiþi -help pentru a obþine o listã de opþiuni MH tradiþionale."
+msgstr "GNU MH markFolosiþi -help pentru a obþine o listã de opþiuni MH tradiþionale."
 
 #: mh/mark.c:30
 msgid "Specify sequence name to operate upon"
@@ -3259,7 +3259,7 @@ msgstr "Nu existã recipiente"
 
 #: mh/mhl.c:25
 msgid "GNU MH mhlUse -help to obtain the list of traditional MH options."
-msgstr "GNU MH mhl.Folosiþi -help pentru a obþine o listã cu opþiunile tradiþionale MH."
+msgstr "GNU MH mhlFolosiþi -help pentru a obþine o listã cu opþiunile tradiþionale MH."
 
 #: mh/mhl.c:27
 msgid "[files]"
@@ -3319,7 +3319,7 @@ msgid ""
 "GNU MH mhnOptions marked with `*' are not yet implemented.\n"
 "Use -help to obtain the list of traditional MH options."
 msgstr ""
-"GNU MH mhn.Opþiunile marcate cu `*' nu sunt încã implementate\n"
+"GNU MH mhnOpþiunile marcate cu `*' nu sunt încã implementate\n"
 "Folosiþi -help pentru a obþine o listã cu opþiuni tradiþionale MH."
 
 #: mh/mhn.c:37
@@ -3545,7 +3545,7 @@ msgstr "%s:%lu: #end fãrã corespondent"
 
 #: mh/mhpath.c:23
 msgid "GNU MH mhpathUse -help to obtain the list of traditional MH options."
-msgstr "GNU MH mhpath.Folosiþi -help pentru a obþine o listã de opþiuni tradiþionale MH."
+msgstr "GNU MH mhpathFolosiþi -help pentru a obþine o listã de opþiuni tradiþionale MH."
 
 #: mh/mhpath.c:25 mh/rmm.c:25 mh/scan.c:32
 msgid "[+folder] [msgs]"
@@ -3556,7 +3556,7 @@ msgid ""
 "GNU MH pickOptions marked with `*' are not yet implemented.\n"
 "Use -help to obtain the list of traditional MH options."
 msgstr ""
-"GNU MH pick.Opþiunile marcate cu `*' nu sunt încã implementate\n"
+"GNU MH pickOpþiunile marcate cu `*' nu sunt încã implementate\n"
 "Folosiþi -help pentru a obþine o listã de opþiuni tradiþionale MH."
 
 #: mh/pick.c:32
@@ -3665,7 +3665,7 @@ msgid ""
 "GNU MH refileOptions marked with `*' are not yet implemented.\n"
 "Use -help to obtain the list of traditional MH options."
 msgstr ""
-"GNU MH refile.Opþiunile marcate u `*' nu sunt încã implementate\n"
+"GNU MH refileOpþiunile marcate u `*' nu sunt încã implementate\n"
 "Folosiþi -help pentru a obþine o listã de opþiuni tradiþionale MH"
 
 #: mh/refile.c:31
@@ -3718,7 +3718,7 @@ msgid ""
 "GNU MH replOptions marked with `*' are not yet implemented.\n"
 "Use -help to obtain the list of traditional MH options."
 msgstr ""
-"GNU MH repl.Opþiunile marcate u `*' nu sunt încã implementate\n"
+"GNU MH replOpþiunile marcate u `*' nu sunt încã implementate\n"
 "Folosiþi -help pentru a obþine o listã de opþiuni tradiþionale MH."
 
 #: mh/repl.c:28
@@ -3790,7 +3790,7 @@ msgstr "doar un singur mesaj odatã!"
 
 #: mh/rmf.c:32
 msgid "GNU MH rmfUse -help to obtain the list of traditional MH options."
-msgstr "GNU MH rmf.Folosiþi -help pentru a obþine o listã de opþiuni MH tradiþionale."
+msgstr "GNU MH rmfFolosiþi -help pentru a obþine o listã de opþiuni MH tradiþionale."
 
 #: mh/rmf.c:39
 msgid "Specify the folder to delete"
@@ -3816,11 +3816,11 @@ msgstr "nu se poate elimina legãtura cãtre(unlink) %s: %s"
 
 #: mh/rmm.c:23
 msgid "GNU MH rmmUse -help to obtain the list of traditional MH options."
-msgstr "GNU MH rmm.Folosiþi -help pentru a obtine o listã de opþiuni MH tradiþionale."
+msgstr "GNU MH rmmFolosiþi -help pentru a obtine o listã de opþiuni MH tradiþionale."
 
 #: mh/scan.c:30
 msgid "GNU MH scanUse -help to obtain the list of traditional MH options."
-msgstr "GNU MH scan.Folosiþi -help pentru a obtine o listã de opþiuni MH tradiþionale."
+msgstr "GNU MH scanFolosiþi -help pentru a obtine o listã de opþiuni MH tradiþionale."
 
 #: mh/scan.c:37
 msgid "Specify folder to scan"
@@ -3857,7 +3857,7 @@ msgid ""
 "GNU MH sendOptions marked with `*' are not yet implemented.\n"
 "Use -help to obtain the list of traditional MH options."
 msgstr ""
-"GNU MH send.Opþiunile marcate cu `*' nu sunt încã implementate\n"
+"GNU MH sendOpþiunile marcate cu `*' nu sunt încã implementate\n"
 "Folosiþi -help pentru a obþine o listã a opþiunilor MH tradiþionale."
 
 #: mh/send.c:30
@@ -3962,7 +3962,7 @@ msgstr "Seteazã promptul"
 
 #: mh/whom.c:21
 msgid "GNU MH whomUse -help to obtain the list of traditional MH options."
-msgstr "GNU MH whom.Folosiþi -help pentru a obþine o listã de opþiuni tradiþionale MH."
+msgstr "GNU MH whomFolosiþi -help pentru a obþine o listã de opþiuni tradiþionale MH."
 
 #: mh/whom.c:38
 msgid "Check if addresses are deliverable"
@@ -4267,7 +4267,7 @@ msgid ""
 "  i - sieve instructions trace (MU_SIEVE_DEBUG_INSTR)\n"
 msgstr ""
 "GNU sieve -- un utilitar de filtrare a mail-ului\n"
-" Flag-uri de debug\n"
+"Flag-uri de debug\n"
 "  g - trace-uri ale analizorului(parser) principal\n"
 "  T - trace-uri mailutil (MU_DEBUG_TRACE)\n"
 "  P - protocoale de reþea (MU_DEBUG_PROT)\n"
