@@ -23,6 +23,9 @@ imap4d_login (struct imap4d_command *command, char *arg)
   char *sp = NULL, *username, *pass;
   int rc;
 
+  if (login_disabled)
+    return util_finish (command, RESP_NO, "Command disabled");
+  
   username = util_getword (arg, &sp);
   pass = util_getword (NULL, &sp);
 
