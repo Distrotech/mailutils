@@ -113,16 +113,18 @@ int sieve_code_list __P((list_t list));
 int sieve_code_number __P((long num));
 int sieve_code_test __P((sieve_register_t *reg, list_t arglist));
 int sieve_code_action __P((sieve_register_t *reg, list_t arglist));
+void sieve_code_anyof (size_t start);
+void sieve_code_allof (size_t start);
      
 void instr_action __P((sieve_machine_t mach));
 void instr_test __P((sieve_machine_t mach));
 void instr_push __P((sieve_machine_t mach));
 void instr_pop __P((sieve_machine_t mach));
-void instr_allof __P((sieve_machine_t mach));
-void instr_anyof __P((sieve_machine_t mach));
 void instr_not __P((sieve_machine_t mach));
 void instr_branch __P((sieve_machine_t mach));
 void instr_brz __P((sieve_machine_t mach));
+void instr_brnz __P((sieve_machine_t mach));
+void instr_nop __P((sieve_machine_t mach));
 
 int sieve_mark_deleted __P((message_t msg, int deleted));
 
