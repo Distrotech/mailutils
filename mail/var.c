@@ -299,7 +299,7 @@ var_deadletter (int argc ARG_UNUSED, char **argv ARG_UNUSED,
   return 0;
 }
 
-static void
+static int
 run_editor (char *ed, char *arg)
 {
   char *argv[3];
