@@ -140,7 +140,7 @@ opt_handler (int key, char *arg, void *unused)
       break;
 
     case 'd':
-      source_file = mh_expand_name ("draft", 0);
+      source_file = mh_expand_name (NULL, "draft", 0);
       break;
 
     case 'l':

@@ -72,7 +72,7 @@ _mh_init_global_context ()
   p = getenv ("CONTEXT");
   if (!p)
     p = "context";
-  ctx_name = mh_expand_name (p, 0);
+  ctx_name = mh_expand_name (NULL, p, 0);
   context = mh_context_create (ctx_name, 1);
   mh_context_read (context);
   
@@ -115,7 +115,7 @@ _mh_init_global_sequences ()
   
   _mh_init_global_context ();
   name = mh_global_profile_get ("mh-sequences", MH_SEQUENCES_FILE);
-  p = mh_expand_name (current_folder, 0);
+  p = mh_expand_name (NULL, current_folder, 0);
   asprintf (&seq_name, "%s/%s", p, name);
   free (p);
   sequences = mh_context_create (seq_name, 1);

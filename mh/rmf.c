@@ -137,7 +137,7 @@ main (int argc, char **argv)
   if (!explicit_folder)
     interactive = 1;
 
-  name = mh_expand_name (current_folder, 0);
+  name = mh_expand_name (NULL, current_folder, 0);
   rmf (name);
   return 0;
 }
