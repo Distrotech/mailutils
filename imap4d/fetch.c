@@ -73,11 +73,11 @@ struct imap4d_command fetch_command_table [] =
   {"RFC822", fetch_rfc822},
 #define F_BODYSTRUCTURE 10
   {"BODYSTRUCTURE", fetch_bodystructure},
-#define F_BODY_PEEK 12
+#define F_BODY_PEEK 11
   {"BODY.PEEK", fetch_body_peek},
-#define F_BODY 13
+#define F_BODY 12
   {"BODY", fetch_body},
-#define F_UID 14
+#define F_UID 13
   {"UID", fetch_uid},
   { 0, 0},
 };
@@ -133,6 +133,7 @@ fetch_all (struct imap4d_command *command, char *arg)
 {
   struct imap4d_command c_env = fetch_command_table[F_ENVELOPE];
   fetch_fast (command, arg);
+  util_send (" ");
   c_env.states = command->states;
   fetch_envelope (&c_env, arg);
   return 0;
@@ -144,6 +145,7 @@ fetch_full (struct imap4d_command *command, char *arg)
 {
   struct imap4d_command c_body = fetch_command_table[F_BODY];
   fetch_all (command, arg);
+  util_send (" ");
   c_body.states = command->states;
   fetch_body (&c_body, arg);
   return 0;
@@ -158,8 +160,10 @@ fetch_fast (struct imap4d_command *command, char *arg)
   struct imap4d_command c_flags = fetch_command_table[F_FLAGS];
   c_flags.states = command->states;
   fetch_flags (&c_flags, arg);
+  util_send (" ");
   c_idate.states = command->states;
   fetch_internaldate (&c_idate, arg);
+  util_send (" ");
   c_rfc.states = command->states;
   fetch_rfc822_size (&c_rfc, arg);
   return 0;
@@ -236,7 +240,7 @@ fetch_envelope (struct imap4d_command *command, char *arg)
      not permitted.  Even AIX xlc use to choke.  */
   mailbox_get_message (mbox, command->states, &msg);
   message_get_header (msg, &header);
-  util_send (" %s(", command->name);
+  util_send ("%s(", command->name);
 
   /* FIXME: Incorrect Date.  */
   *buffer = '\0';
@@ -314,8 +318,7 @@ fetch_flags (struct imap4d_command *command, char *arg)
   message_t msg = NULL;
   mailbox_get_message (mbox, command->states, &msg);
   message_get_attribute (msg, &attr);
-  util_send (" %s", command->name);
-  util_send (" (");
+  util_send ("%s (", command->name);
   if (attribute_is_deleted (attr))
     util_send (" \\Deleted");
   if (attribute_is_read (attr))
@@ -340,7 +343,7 @@ fetch_internaldate (struct imap4d_command *command, char *arg)
   message_get_envelope (msg, &env);
   date[0] = '\0';
   envelope_date (env, date, sizeof (date), NULL);
-  util_send (" %s", command->name);
+  util_send ("%s", command->name);
   if (date[strlen (date) - 1] == '\n')
     date[strlen (date) - 1] = '\0';
   util_send (" \"%s\"", date);
@@ -352,7 +355,7 @@ static int
 fetch_rfc822_header (struct imap4d_command *command, char *arg)
 {
   char buffer[16];
-  util_send (" %s", command->name);
+  util_send ("%s ", command->name);
   strcpy (buffer, "[HEADER]");
   fetch_operation (command->states, buffer);
   return 0;
@@ -369,7 +372,7 @@ fetch_rfc822_text (struct imap4d_command *command, char *arg)
   mailbox_get_message (mbox, command->states, &msg);
   message_get_attribute (msg, &attr);
   attribute_set_read (attr);
-  util_send (" %s", command->name);
+  util_send ("%s ", command->name);
   strcpy (buffer, "[TEXT]");
   fetch_operation (command->states, buffer);
   return 0;
@@ -385,7 +388,7 @@ fetch_rfc822_size (struct imap4d_command *command, char *arg)
   mailbox_get_message (mbox, command->states, &msg);
   message_size (msg, &size);
   message_lines (msg, &lines);
-  util_send (" %s %u", command->name, size + lines);
+  util_send ("%s %u", command->name, size + lines);
   return 0;
 }
 
@@ -423,7 +426,7 @@ fetch_rfc822 (struct imap4d_command *command, char *arg)
       mailbox_get_message (mbox, command->states, &msg);
       message_get_attribute (msg, &attr);
       attribute_set_read (attr);
-      util_send (" %s", command->name);
+      util_send ("%s ", command->name);
       strcpy (buffer, "[]");
       fetch_operation (command->states, buffer);
     }
@@ -438,7 +441,7 @@ fetch_uid (struct imap4d_command *command, char *arg)
   message_t msg = NULL;
   mailbox_get_message (mbox, command->states, &msg);
   message_get_uid (msg, &uid);
-  util_send (" %s %d", command->name, uid);
+  util_send ("%s %d", command->name, uid);
   return 0;
 }
 
@@ -446,7 +449,7 @@ fetch_uid (struct imap4d_command *command, char *arg)
 static int
 fetch_bodystructure (struct imap4d_command *command, char *arg)
 {
-  util_send (" %s ()", command->name);
+  util_send ("%s ()", command->name);
   return 0;
 }
 
@@ -467,8 +470,8 @@ static int
 fetch_body (struct imap4d_command *command, char *arg)
 {
   struct imap4d_command c_body_p = fetch_command_table[F_BODY_PEEK];
-  util_send (" %s", command->name);
-  if (strcasecmp (arg, ".PEEK") == 0)
+  util_send ("%s ", command->name);
+  if (strncasecmp (arg, ".PEEK", 5) == 0)
     {
       arg += strlen (".PEEK");
     }
@@ -484,7 +487,10 @@ fetch_body (struct imap4d_command *command, char *arg)
     {
       struct imap4d_command c_bs = fetch_command_table[F_BODYSTRUCTURE];
       c_bs.states = command->states;
-      return fetch_bodystructure (&c_bs, arg);
+      /* FIXME: Call body structure without the extension.  */
+      /* return fetch_bodystructure (&c_bs, arg); */
+      util_send (" ()");
+      return 0;
     }
 
   fetch_operation (command->states, arg);
