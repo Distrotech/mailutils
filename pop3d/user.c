@@ -83,6 +83,7 @@ pop3d_user (const char *arg)
   struct passwd *pw;
   int status;
   int lockit = 1;
+  char *mailbox_name;
 
   if (state != AUTHORIZATION)
     return ERR_WRONG_STATE;
@@ -179,7 +180,11 @@ pop3d_user (const char *arg)
       if (pw != NULL && pw->pw_uid > 1)
 	setuid (pw->pw_uid);
 
-      if ((status = mailbox_create_default (&mbox, arg)) != 0
+      mailbox_name  = calloc (strlen (_PATH_MAILDIR) + 1
+			      + strlen (pw->pw_name) + 1, 1);
+      sprintf (mailbox_name, "%s/%s", _PATH_MAILDIR, pw->pw_name);
+
+      if ((status = mailbox_create (&mbox, mailbox_name)) != 0
 	  || (status = mailbox_open (mbox, MU_STREAM_RDWR)) != 0)
 	{
 	  mailbox_destroy (&mbox);
@@ -190,16 +195,19 @@ pop3d_user (const char *arg)
 		  || mailbox_open (mbox, MU_STREAM_READ) != 0)
 		{
 		  state = AUTHORIZATION;
+		  free (mailbox_name);
 		  return ERR_UNKNOWN;
 		}
 	    }
 	  else
 	    {
 	      state = AUTHORIZATION;
+	      free (mailbox_name);
 	      return ERR_MBOX_LOCK;
 	    }
 	  lockit = 0; /* Do not attempt to lock /dev/null ! */
 	}
+      free (mailbox_name);
 
       if (lockit && pop3d_lock())
 	{
@@ -209,7 +217,7 @@ pop3d_user (const char *arg)
 	  return ERR_MBOX_LOCK;
 	}
 
-      username = strdup (arg);
+      username = strdup (pw->pw_name);
       if (username == NULL)
 	pop3d_abquit (ERR_NO_MEM);
       state = TRANSACTION;

@@ -148,13 +148,14 @@ pop3d_apopuser (const char *user)
 int
 pop3d_apop (const char *arg)
 {
-  char *tmp, *user_digest, *password;
+  char *tmp, *user_digest, *user, *password;
   struct passwd *pw;
   char buf[POP_MAXCMDLEN];
   struct md5_ctx md5context;
   unsigned char md5digest[16];
   int status;
   int lockit = 1;
+  char *mailbox_name = NULL;
 
   if (state != AUTHORIZATION)
     return ERR_WRONG_STATE;
@@ -162,20 +163,18 @@ pop3d_apop (const char *arg)
   if (strlen (arg) == 0)
     return ERR_BAD_ARGS;
 
-  username = pop3d_cmd (arg);
-  if (strlen (username) > (POP_MAXCMDLEN - APOP_DIGEST))
+  user = pop3d_cmd (arg);
+  if (strlen (user) > (POP_MAXCMDLEN - APOP_DIGEST))
     {
-      free (username);
-      username = NULL;
+      free (user);
       return ERR_BAD_ARGS;
     }
   user_digest = pop3d_args (arg);
 
-  password = pop3d_apopuser (username);
+  password = pop3d_apopuser (user);
   if (password == NULL)
     {
-      free (username);
-      username = NULL;
+      free (user);
       free (user_digest);
       return ERR_BAD_LOGIN;
     }
@@ -197,30 +196,26 @@ pop3d_apop (const char *arg)
 
   if (strcmp (user_digest, buf))
     {
-      free (username);
-      username = NULL;
+      free (user);
       free (user_digest);
       return ERR_BAD_LOGIN;
     }
 
   free (user_digest);
-  pw = getpwnam (username);
+  pw = getpwnam (user);
+  free (user);
   if (pw == NULL)
-    {
-      free (username);
-      username = NULL;
-      return ERR_BAD_LOGIN;
-    }
+    return ERR_BAD_LOGIN;
 
   /* Reset the uid.  */
   if (setuid (pw->pw_uid) == -1)
-    {
-      free (username);
-      username = NULL;
-      return ERR_BAD_LOGIN;
-    }
+    return ERR_BAD_LOGIN;
 
-  if ((status = mailbox_create_default (&mbox, username)) != 0
+  mailbox_name  = calloc (strlen (_PATH_MAILDIR) + 1
+			  + strlen (pw->pw_name) + 1, 1);
+  sprintf (mailbox_name, "%s/%s", _PATH_MAILDIR, pw->pw_name);
+
+  if ((status = mailbox_create (&mbox, mailbox_name)) != 0
       || (status = mailbox_open (mbox, MU_STREAM_RDWR)) != 0)
     {
       mailbox_destroy (&mbox);
@@ -230,33 +225,33 @@ pop3d_apop (const char *arg)
 	  if (mailbox_create (&mbox, "/dev/null") != 0
 	      || mailbox_open (mbox, MU_STREAM_READ) != 0)
 	    {
-	      free (username);
-	      username = NULL;
+	      free (mailbox_name);
 	      state = AUTHORIZATION;
 	      return ERR_UNKNOWN;
 	    }
 	}
       else
 	{
-	  free (username);
-	  username = NULL;
+	  free (mailbox_name);
 	  state = AUTHORIZATION;
 	  return ERR_MBOX_LOCK;
 	}
       lockit = 0; /* Do not attempt to lock /dev/null ! */
     }
+  free (mailbox_name);
 
   if (lockit && pop3d_lock())
     {
       mailbox_close(mbox);
       mailbox_destroy(&mbox);
       state = AUTHORIZATION;
-      free (username);
-      username = NULL;
       return ERR_MBOX_LOCK;
     }
 
   state = TRANSACTION;
+  username = strdup (pw->pw_name);
+  if (username == NULL)
+    pop3d_abquit (ERR_NO_MEM);
   fprintf (ofile, "+OK opened mailbox for %s\r\n", username);
   /* mailbox name */
   {
