@@ -30,7 +30,8 @@ extern int iterator_first    __P ((iterator_t));
 extern int iterator_next     __P ((iterator_t));
 extern int iterator_current  __P ((iterator_t, void **pitem));
 extern int iterator_is_done  __P ((iterator_t));
-
+extern int iterator_get_list __P ((iterator_t iterator, list_t *plist));
+  
 #ifdef __cplusplus
 }
 #endif
