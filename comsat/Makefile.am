@@ -3,6 +3,6 @@ INCLUDES =-I$(srcdir) -I$(top_srcdir)/lib -I$(top_srcdir)/include
 
 sbin_PROGRAMS = comsatd
 
-comsatd_SOURCES = cfg.c comsat.c
+comsatd_SOURCES = cfg.c comsat.c comsat.h
 
 comsatd_LDADD = ../mailbox/libmailbox.la ../lib/libmailutils.a
