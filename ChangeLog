@@ -22,6 +22,7 @@
 	* comsat/.cvsignore: (new)
 	* comsat/comsat.c: (new) Main module
 	* comsat/cfg.c: (new) Configuration and ACL routines.
+	* comsat/comsat.h: (new) Declarations for comsat.
 
 2001-11-01 00:15  sroberts
 
