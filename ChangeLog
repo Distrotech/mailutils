@@ -1,3 +1,30 @@
+2002-03-11 Sam Roberts
+
+	* include/mailutils/: address.h, locker.h, mailbox.h, message.h,
+	  types.h: Got tired of recompiling EVERYTHING when I touched
+	  locker.h, so started splitting common types into
+	  <mailutils/types.h>.
+	* include/mailutils/error.h: mu_verror() wasn't prototyped.
+	* mailbox/: filter_trans.c, folder_imap.c, mailbox.c,
+	  mbx_default.c, mbx_mbox.c, sendmail.c, stream.c, include/imap0.h:
+	  Corrected type mismatches visible on 64-bit systems, and including
+	  locker.h, some misc compiler warnings.
+	* mail.local/mail.local.h: Need to include locker.h.
+	* lib/strchrnul.c, mail/mail.c, mail/mail.h, mail/send.c,
+	  mail/size.c, mail/util.c: Corrected type mismatches visible on
+	  64-bit systems.
+	* argp/argp-parse.c: alloca wasn't included.
+	* messages/messages.c: Corrected type mismatches visible on 64-bit
+	  systems.
+	* imap4d/: copy.c, store.c, util.c: Corrected type mismatches
+	  visible on 64-bit systems.
+	* imap4d/: imap4d.h, select.c: Select now fails if the locking
+	  fails.
+	* TODO: more things todo
+	
+	(Steven Michael ROBBINS <stever@po-box-cgrl-lab.cs.mcgill.ca>
+	 contributed a patch to fix 64-bit type mismatches.)
+
 2002-03-09  Sergey Poznyakoff  
 
 	* lib/mu_argp.c: Process user's private initialization file
