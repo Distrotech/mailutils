@@ -797,6 +797,13 @@ deliver (mailbox_t imbx, char *name)
 
       if (status)
 	{
+	  /* Undo the delivery by truncating the mailbox back to its
+	     original size */
+	  int rc = stream_truncate (ostream, size);
+	  if (rc)
+	    mailer_err (_("error writing to mailbox: %s. Mailbox NOT truncated: %s"),
+			mu_strerror (status), mu_strerror (rc));
+	    
 	  mailer_err (_("error writing to mailbox: %s"),
 		      mu_strerror (status));
 	}
