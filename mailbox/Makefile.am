@@ -26,6 +26,7 @@ filter_trans.c \
 folder.c \
 folder_imap.c \
 folder_mbox.c \
+folder_mh.c \
 folder_pop.c \
 header.c \
 iterator.c \
@@ -38,6 +39,7 @@ mbx_default.c \
 mbx_file.c \
 mbx_imap.c \
 mbx_mbox.c \
+mbx_mh.c \
 mbx_pop.c \
 md5-rsa.c \
 message.c \
@@ -58,6 +60,7 @@ url.c \
 url_file.c \
 url_imap.c \
 url_mbox.c \
+url_mh.c \
 url_path.c \
 url_pop.c \
 url_sendmail.c \
