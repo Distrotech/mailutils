@@ -34,7 +34,7 @@ static size_t mh_code_op (mh_opcode_t op);
 static size_t mh_code_string (char *string);
 static size_t mh_code_number (int num);
 static size_t mh_code_builtin (mh_builtin_t *bp, int argtype);
-static void branch_fixup (size_t pc); /* Fix-up conditional branches */
+static void branch_fixup (size_t pc, size_t tgt); 
  
   /* Lexical tie-ins */
 static int in_escape;       /* Set when inside an escape sequence */
@@ -60,8 +60,8 @@ static int want_function;   /* Set when expecting function name */
 %token <num> FMTSPEC
 %token BOGUS
 %type <type> cond_expr component funcall item argument escape literal
-%type <elif_list> elif_part elif_list else_part 
-%type <pc> cond end else elif
+%type <elif_list> elif_part elif_list fi
+%type <pc> cond end else elif else_part 
 %type <builtin> function
 
 %%
@@ -81,10 +81,12 @@ pitem     : item
 		  break;
 		  
 		case mhtype_num:
+		  mh_code_op (mhop_num_asgn);
 		  mh_code_op (mhop_num_print);
 		  break;
 		  
 		case mhtype_str:
+		  mh_code_op (mhop_str_asgn);
 		  mh_code_op (mhop_str_print);
 		  break;
 		  
@@ -105,13 +107,11 @@ item      : literal
 literal   : STRING
             {
 	      mh_code_string ($1);
-	      mh_code_op (mhop_str_asgn);
 	      $$ = mhtype_str;
 	    }
           | NUMBER
             {
 	      mh_code_number ($1);
-	      mh_code_op (mhop_num_asgn);
 	      $$ = mhtype_num;
 	    }	      
           ;
@@ -153,17 +153,29 @@ cbrace    : CBRACE
 
 funcall   : fmtspec obrace { want_function = 1;} function { want_function = 0; } argument cbrace
             {
-	      switch ($6)
+	      if ($4)
 		{
-		case mhtype_num:
-		  mh_code_op (mhop_num_to_arg);
-		  break;
-		case mhtype_str:
-		  mh_code_op (mhop_str_to_arg);
+		  if (!mh_code_builtin ($4, $6))
+		    YYERROR;
+		  $$ = $4->type;
 		}
-	      if (!mh_code_builtin ($4, $6))
-		YYERROR;
-	      $$ = $4->type;
+	      else
+		{
+		  switch ($6)
+		    {
+		    default:
+		      break;
+		  
+		    case mhtype_num:
+		      mh_code_op (mhop_num_asgn);
+		      break;
+		  
+		    case mhtype_str:
+		      mh_code_op (mhop_str_asgn);
+		      break;
+		    }
+		  $$ = mhtype_none;
+		}
 	    }
           ;
 
@@ -178,9 +190,16 @@ fmtspec   : /* empty */
 function  : FUNCTION
           | STRING
             {
-	      yyerror ("undefined function");
-	      mh_error ($1);
-	      YYERROR;
+	      if (strcmp ($1, "void") == 0)
+		{
+		  $$ = NULL;
+		}
+	      else
+		{
+		  yyerror ("undefined function");
+		  mh_error ($1);
+		  YYERROR;
+		}
 	    }
           ;
 
@@ -193,29 +212,22 @@ argument  : /* empty */
           ;
 
 /*           1   2    3   4      5         6     7 */
-cntl      : if cond list end elif_part else_part FI
+cntl      : if cond list end elif_part else_part fi
             {
 	      size_t start_pc = 0, end_pc = 0;
 
 	      /* Fixup first condition */
 	      if ($5.cond)
 		format.prog[$2] = $5.cond - $2;
-	      else if ($6.cond)
-		format.prog[$2] = $6.cond - $2;
+	      else if ($6)
+		format.prog[$2] = $6 - $2;
 	      else
-		format.prog[$2] = $4 - $2 - 1;
+		format.prog[$2] = $7.cond - $2;
 
 	      /* Link all "false" lists */
-	      if ($6.cond)
-		{
-		  start_pc = end_pc = $6.end;
-		}
 	      if ($5.cond)
 		{
-		  if (start_pc)
-		    format.prog[end_pc] = $5.end;
-		  else
-		    start_pc = $5.end;
+		  start_pc = $5.end;
 		  end_pc = $5.end;
 		  for (; format.prog[end_pc]; end_pc = format.prog[end_pc])
 		    ;
@@ -227,14 +239,28 @@ cntl      : if cond list end elif_part else_part FI
 		start_pc = $4;
 
 	      /* Now, fixup the end branches */
-	      branch_fixup (start_pc);
-	      format.prog[start_pc] = pc - start_pc;
+	      branch_fixup (start_pc, $7.end);
+	      format.prog[start_pc] = $7.end - start_pc;
 	    }
           ;
 
 if        : IF
             {
 	      in_escape++;
+	    }
+          ;
+
+fi        : FI
+            {
+	      /* False branch of an if-block */
+	      $$.cond = mh_code_number (0);
+	      mh_code_op (mhop_num_asgn);
+	      /* Jump over the true branch */
+	      mh_code_op (mhop_branch);
+	      mh_code_op (3);
+	      /* True branch */
+	      $$.end = mh_code_number (1);
+	      mh_code_op (mhop_num_asgn);
 	    }
           ;
 
@@ -296,14 +322,9 @@ elif_list : elif cond list
 
 else_part : /* empty */
             {
-	      $$.cond = 0;
-	      $$.end = 0;
+	      $$ = 0;
 	    }
-          | else list end
-            {
-	      $$.cond = $1;
-	      $$.end = $3;
-	    }
+          | else list 
 	  ;
 
 else      : ELSE
@@ -383,20 +404,24 @@ yylex ()
     }
 
   if (in_escape)
-    switch (*curp)
-      {
-      case '(':
+    {
+      while (*curp && (*curp == ' ' || *curp == '\n'))
 	curp++;
-	return OBRACE;
-      case '{':
-	curp++;
-	return OCURLY;
-      case '0':case '1':case '2':case '3':case '4':
-      case '5':case '6':case '7':case '8':case '9':
-	yylval.num = strtol (curp, &curp, 0);
-	return NUMBER;
-      }
-
+      switch (*curp)
+	{
+	case '(':
+	  curp++;
+	  return OBRACE;
+	case '{':
+	  curp++;
+	  return OCURLY;
+	case '0':case '1':case '2':case '3':case '4':
+	case '5':case '6':case '7':case '8':case '9':
+	  yylval.num = strtol (curp, &curp, 0);
+	  return NUMBER;
+	}
+    }
+  
   switch (*curp)
     {
     case ')':
@@ -481,13 +506,13 @@ backslash(int c)
 }
 
 void
-branch_fixup (size_t epc)
+branch_fixup (size_t epc, size_t tgt)
 {
   size_t prev = format.prog[epc];
   if (!prev)
     return;
-  branch_fixup (prev);
-  format.prog[prev] = epc - prev - 1;
+  branch_fixup (prev, tgt);
+  format.prog[prev] = tgt - prev - 1;
 }
 
 
@@ -531,7 +556,9 @@ mh_code_op (mh_opcode_t op)
 size_t
 mh_code_number (int num)
 {
-  return mh_code_op ((mh_opcode_t) num);
+  size_t ret = mh_code_op (mhop_num_arg);
+  mh_code_op ((mh_opcode_t) num);
+  return ret;
 }
 
 size_t
