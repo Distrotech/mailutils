@@ -2,6 +2,8 @@
 
 	* mailbox/body.c: Call lazy_create() _before__ file_stream_create()
 	to create the temporary file.
+	* examples/mimetest.c:  An example on how to play with attachments.
+	The code was written by Dave Inglis.
 
 2001-12-16 Sam Roberts
 
