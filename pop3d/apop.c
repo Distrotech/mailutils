@@ -17,10 +17,6 @@
 
 #include "pop3d.h"
 
-#ifdef HAVE_MYSQL
-#include "../MySql/MySql.h"
-#endif
-
 /*
   APOP name digest
 
@@ -149,7 +145,7 @@ int
 pop3d_apop (const char *arg)
 {
   char *tmp, *user_digest, *user, *password;
-  struct passwd *pw;
+  struct mu_auth_data *auth;
   char buf[POP_MAXCMDLEN];
   struct md5_ctx md5context;
   unsigned char md5digest[16];
@@ -202,24 +198,19 @@ pop3d_apop (const char *arg)
     }
 
   free (user_digest);
-  pw = getpwnam (user);
-#ifdef HAVE_MYSQL
-  if (!pw)
-    pw = getMpwnam (user);
-#endif /* HAVE_MYSQL */
+  auth = mu_get_auth_by_name (user);
   free (user);
-  if (pw == NULL)
+  if (auth == NULL)
     return ERR_BAD_LOGIN;
 
   /* Reset the uid.  */
-  if (setuid (pw->pw_uid) == -1)
-    return ERR_BAD_LOGIN;
+  if (auth->change_uid && setuid (auth->uid) == -1)
+    {
+       mu_auth_data_free (auth);
+       return ERR_BAD_LOGIN;
+    }
 
-  mailbox_name  = calloc (strlen (mu_path_maildir) + 1
-			  + strlen (pw->pw_name) + 1, 1);
-  sprintf (mailbox_name, "%s%s", mu_path_maildir, pw->pw_name);
-
-  if ((status = mailbox_create (&mbox, mailbox_name)) != 0
+  if ((status = mailbox_create (&mbox, auth->mailbox)) != 0
       || (status = mailbox_open (mbox, MU_STREAM_RDWR)) != 0)
     {
       mailbox_destroy (&mbox);
@@ -229,6 +220,7 @@ pop3d_apop (const char *arg)
 	  if (mailbox_create (&mbox, "/dev/null") != 0
 	      || mailbox_open (mbox, MU_STREAM_READ) != 0)
 	    {
+	      mu_auth_data_free (auth);
 	      free (mailbox_name);
 	      state = AUTHORIZATION;
 	      return ERR_UNKNOWN;
@@ -236,16 +228,16 @@ pop3d_apop (const char *arg)
 	}
       else
 	{
-	  free (mailbox_name);
 	  state = AUTHORIZATION;
+	  mu_auth_data_free (auth);
 	  return ERR_MBOX_LOCK;
 	}
       lockit = 0; /* Do not attempt to lock /dev/null ! */
     }
-  free (mailbox_name);
 
   if (lockit && pop3d_lock())
     {
+      mu_auth_data_free (auth);
       mailbox_close(mbox);
       mailbox_destroy(&mbox);
       state = AUTHORIZATION;
@@ -253,10 +245,12 @@ pop3d_apop (const char *arg)
     }
 
   state = TRANSACTION;
-  username = strdup (pw->pw_name);
+  username = strdup (auth->name);
   if (username == NULL)
     pop3d_abquit (ERR_NO_MEM);
   pop3d_outf ("+OK opened mailbox for %s\r\n", username);
+  mu_auth_data_free (auth);
+
   /* mailbox name */
   {
     url_t url = NULL;
