@@ -65,9 +65,8 @@ static int
 sieve_register (list_t *list,
 		const char *name, sieve_handler_t handler,
 		sieve_data_type *arg_types,
-		sieve_tag_def_t *tags, int required)
+		sieve_tag_group_t *tags, int required)
 {
-  int n;
   sieve_register_t *reg = malloc (sizeof (*reg));
 
   if (!reg)
@@ -75,24 +74,7 @@ sieve_register (list_t *list,
   reg->name = name;
   reg->handler = handler;
 
-  if (arg_types)
-    {
-      for (n = 0; arg_types[n] != SVT_VOID; n++)
-	;
-    }
-  else
-    n = 0;
-  reg->num_req_args = n;
   reg->req_args = arg_types;
-
-  if (tags)
-    {
-      for (n = 0; tags[n].name != NULL; n++)
-	;
-    }
-  else
-    n = 0;
-  reg->num_tags = n;
   reg->tags = tags;
   reg->required = required;
   
@@ -113,7 +95,7 @@ sieve_register (list_t *list,
 int
 sieve_register_test (const char *name, sieve_handler_t handler,
 		     sieve_data_type *arg_types,
-		     sieve_tag_def_t *tags, int required)
+		     sieve_tag_group_t *tags, int required)
 {
   return sieve_register (&test_list, name, handler, arg_types, tags, required);
 }
@@ -121,7 +103,7 @@ sieve_register_test (const char *name, sieve_handler_t handler,
 int
 sieve_register_action (const char *name, sieve_handler_t handler,
 		       sieve_data_type *arg_types,
-		       sieve_tag_def_t *tags, int required)
+		       sieve_tag_group_t *tags, int required)
 {
   return sieve_register (&action_list, name, handler, arg_types, tags, required);
 }
