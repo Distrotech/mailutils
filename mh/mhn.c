@@ -18,6 +18,9 @@
 /* MH mhn command */
 
 #include <mh.h>
+#define obstack_chunk_alloc xmalloc
+#define obstack_chunk_free free
+#include <obstack.h>
 
 const char *argp_program_version = "mhn (" PACKAGE_STRING ")";
 static char doc[] = N_("GNU MH mhn\v"
@@ -57,15 +60,15 @@ static struct argp_option options[] = {
   {"form",         ARG_FORM,         N_("FILE"), 0,
    N_("Read mhl format from FILE"), 22},
   {"pause",        ARG_PAUSE,        N_("BOOL"), OPTION_ARG_OPTIONAL,
-   N_("* Pause prior to displaying content"), 22},
+   N_("Pause prior to displaying content"), 22},
   {"nopause",      ARG_NOPAUSE,      NULL, OPTION_HIDDEN, "", 22 },
    
   {N_("Saving options"),   0,  NULL, OPTION_DOC,  NULL, 30},
   {"store",        ARG_STORE,        N_("BOOL"), OPTION_ARG_OPTIONAL,
-   N_("* Store the contents of the messages on disk"), 31},
+   N_("Store the contents of the messages on disk"), 31},
   {"nostore",      ARG_NOSTORE,      NULL, OPTION_HIDDEN, "", 31 },
   {"auto",         ARG_AUTO,         N_("BOOL"), OPTION_ARG_OPTIONAL,
-   N_("* Use filenames from the content headers"), 31},
+   N_("Use filenames from the content headers"), 31},
   {"noauto",       ARG_NOAUTO,       NULL, OPTION_HIDDEN, "", 31 },
 
   {N_("Other options"),    0,  NULL, OPTION_DOC,  NULL, 40},
@@ -76,6 +79,8 @@ static struct argp_option options[] = {
   {"verbose",       ARG_VERBOSE,     N_("BOOL"), OPTION_ARG_OPTIONAL,
    N_("Print additional information"), 41 },
   {"noverbose",     ARG_NOVERBOSE,   NULL, OPTION_HIDDEN, "", 41 },
+  {"quiet",         ARG_QUIET, 0, 0,
+   N_("Be quiet")},
   {NULL}
 };
 
@@ -125,6 +130,7 @@ static enum mhn_mode mode = mode_compose;
 #define OPT_AUTO       010
 #define OPT_SERIALONLY 020
 #define OPT_VERBOSE    040
+#define OPT_QUIET      100
 
 static int mode_options = OPT_HEADERS;
 static char *formfile;
@@ -137,6 +143,12 @@ static mh_msgset_t msgset;
 static mailbox_t mbox;
 static message_t message;
 static msg_part_t req_part;
+
+/* Show flags */
+#define MHN_EXCLUSIVE_EXEC  001
+#define MHN_STDIN           002
+#define MHN_LISTING         004
+#define MHN_CONFIRM         010
 
 void
 sfree (char **ptr)
@@ -168,6 +180,60 @@ split_content (const char *content, char **type, char **subtype)
       strcpy (*type, content);
       *subtype = NULL;
     }
+}
+
+int
+_get_hdr_value (header_t hdr, const char *name, char **value)
+{
+  int status = header_aget_value (hdr, name, value);
+  if (status == 0)
+    {
+      /* Remove the newlines.  */
+      char *nl;
+      while ((nl = strchr (*value, '\n')) != NULL)
+	*nl = ' ';
+    }
+  return status;
+}
+
+int
+_get_content_type (header_t hdr, char **value, char **rest)
+{
+  char *type = NULL;
+  _get_hdr_value (hdr, MU_HEADER_CONTENT_TYPE, &type);
+  if (type == NULL || *type == '\0')
+    {
+      if (type)
+	free (type);
+      type = strdup ("text/plain"); /* Default.  */
+      if (rest)
+	*rest = NULL;
+    }
+  else
+    {
+      char *p = strchr (type, ';');
+      if (p)
+	*p++ = 0;
+      if (rest)
+	*rest = p;
+    }
+  *value = type;
+  return 0;
+}
+
+static int
+_get_content_encoding (header_t hdr, char **value)
+{
+  char *encoding = NULL;
+  _get_hdr_value (hdr, MU_HEADER_CONTENT_TRANSFER_ENCODING, &encoding);
+  if (encoding == NULL || *encoding == '\0')
+    {
+      if (encoding)
+	free (encoding);
+      encoding = strdup ("7bit"); /* Default.  */
+    }
+  *value = encoding;
+  return 0;
 }
 
 static int
@@ -316,7 +382,11 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
     case ARG_PART:
       req_part = msg_part_parse (arg);
       break;
-      
+
+    case ARG_QUIET:
+      mode_options |= OPT_QUIET;
+      break;
+	
     default:
       return 1;
     }
@@ -405,6 +475,50 @@ msg_part_print (msg_part_t p, int max_width)
     putchar (' ');
 }
 
+char *
+msg_part_format (msg_part_t p)
+{
+  int i;
+  int width = 0;
+  char *str, *s;
+  char buf[64];
+  
+  for (i = 1; i <= p->level; i++)
+    {
+      if (i > 1)
+	width++;
+      width += snprintf (buf, sizeof buf, "%lu", (unsigned long) p->part[i]);
+    }
+
+  str = s = xmalloc (width + 1);
+  for (i = 1; i <= p->level; i++)
+    {
+      if (i > 1)
+	*s++ = '.';
+      s += sprintf (s, "%lu", (unsigned long) p->part[i]);
+    }
+  *s = 0;
+  return str;
+}
+
+void
+msg_part_format_stk (struct obstack *stk, msg_part_t p)
+{
+  int i;
+  char buf[64];
+  
+  for (i = 1; i <= p->level; i++)
+    {
+      int len;
+  
+      if (i > 1)
+	obstack_1grow (stk, '.');
+
+      len = snprintf (buf, sizeof buf, "%lu", (unsigned long) p->part[i]);
+      obstack_grow (stk, buf, len);
+    }
+}
+
 msg_part_t
 msg_part_parse (char *str)
 {
@@ -449,57 +563,238 @@ msg_part_subpart (msg_part_t p, int level)
 }
 
 
-/* ************************** Message iterators *************************** */
+/* *********************** Context file accessors ************************* */
 
-int
-_get_hdr_value (header_t hdr, const char *name, char **value)
+char *
+_mhn_profile_get (char *prefix, char *type, char *subtype, char *defval)
 {
-  int status = header_aget_value (hdr, name, value);
-  if (status == 0)
+  char *str, *name;
+  
+  if (subtype)
     {
-      /* Remove the newlines.  */
-      char *nl;
-      while ((nl = strchr (*value, '\n')) != NULL)
-	*nl = ' ';
-    }
-  return status;
-}
-
-int
-_get_content_type (header_t hdr, char **value)
-{
-  char *type = NULL;
-  _get_hdr_value (hdr, MU_HEADER_CONTENT_TYPE, &type);
-  if (type == NULL || *type == '\0')
-    {
-      if (type)
-	free (type);
-      type = strdup ("text/plain"); /* Default.  */
+      asprintf (&name, "mhn-%s-%s/%s", prefix, type, subtype);
+      str = mh_global_profile_get (name, NULL);
+      free (name);
+      if (!str)
+	return _mhn_profile_get (prefix, type, NULL, defval);
     }
   else
     {
-      char *p = strchr (type, ';');
-      if (p)
-	*p = 0;
+      asprintf (&name, "mhn-%s-%s", prefix, type);
+      str = mh_global_profile_get (name, defval);
+      free (name);
     }
-  *value = type;
-  return 0;
+  return str;
 }
 
-static int
-_get_content_encoding (header_t hdr, char **value)
+char *
+mhn_show_command (message_t msg, msg_part_t part, int *flags, char **tempfile)
 {
-  char *encoding = NULL;
-  _get_hdr_value (hdr, MU_HEADER_CONTENT_TRANSFER_ENCODING, &encoding);
-  if (encoding == NULL || *encoding == '\0')
+  char *p, *str, *tmp;
+  char *typestr, *type, *subtype, *typeargs;
+  struct obstack stk;
+  header_t hdr;
+
+  message_get_header (msg, &hdr);
+  _get_content_type (hdr, &typestr, &typeargs);
+  split_content (typestr, &type, &subtype);
+  str = _mhn_profile_get ("show", type, subtype, NULL);
+  if (!str) /* FIXME */
+    return NULL;
+  
+  /* Expand macro-notations:
+    %a  additional arguments
+    %e  exclusive execution
+    %f  filename containing content
+    %F  %e, %f, and stdin is terminal not content
+    %l  display listing prior to displaying content
+    %p  %l, and ask for confirmation
+    %s  subtype
+    %d  content description */
+
+  obstack_init (&stk);
+  for (p = str; *p && isspace (*p); p++)
+    ;
+  
+  if (*p == '|')
+    p++;
+
+  for ( ; *p; p++)
     {
-      if (encoding)
-	free (encoding);
-      encoding = strdup ("7bit"); /* Default.  */
+      if (*p == '%')
+	{
+	  switch (*++p)
+	    {
+	    case 'a':
+	      /* additional arguments */
+	      obstack_grow (&stk, typeargs, strlen (typeargs));
+	      break;
+	      
+	    case 'e':
+	      /* exclusive execution */
+	      *flags |= MHN_EXCLUSIVE_EXEC;
+	      break;
+	      
+	    case 'f':
+	      /* filename containing content */
+	      if (!*tempfile)
+		*tempfile = mu_tempname (NULL);
+	      obstack_grow (&stk, *tempfile, strlen (*tempfile));
+	      break;
+				     
+	    case 'F':
+	      /* %e, %f, and stdin is terminal not content */
+	      *flags |= MHN_STDIN|MHN_EXCLUSIVE_EXEC;
+	      if (!*tempfile)
+		*tempfile = mu_tempname (NULL);
+	      obstack_grow (&stk, *tempfile, strlen (*tempfile));
+	      break;
+	      
+	    case 'l':
+	      /* display listing prior to displaying content */
+	      *flags |= MHN_LISTING;
+	      break;
+	      
+	    case 'p':
+	      /* %l, and ask for confirmation */
+	      *flags |= MHN_LISTING|MHN_CONFIRM;
+	      break;
+	      
+	    case 's':
+	      /* subtype */
+	      obstack_grow (&stk, subtype, strlen (subtype));
+	      break;
+	      
+	    case 'd':
+	      /* content description */
+	      if (header_aget_value (hdr, MU_HEADER_CONTENT_DESCRIPTION,
+				     &tmp) == 0)
+		{
+		  obstack_grow (&stk, tmp, strlen (tmp));
+		  free (tmp);
+		}
+	      break;
+	      
+	    default:
+	      obstack_1grow (&stk, *p);
+	      p++;
+	    }
+	}
+      else
+	obstack_1grow (&stk, *p);
     }
-  *value = encoding;
-  return 0;
+  obstack_1grow (&stk, 0);
+
+  free (typestr);
+  free (type);
+  free (subtype);
+
+  str = obstack_finish (&stk);
+  for (p = str; *p && isspace (*p); p++)
+    ;
+  if (!*p)
+    str = NULL;
+  else
+    str = strdup (str);
+
+  obstack_free (&stk, NULL);
+  return str;
 }
+
+char *
+mhn_store_command (message_t msg, msg_part_t part, char *name)
+{
+  char *p, *str, *tmp;
+  char *typestr, *type, *subtype, *typeargs;
+  struct obstack stk;
+  header_t hdr;
+  char buf[64];
+  
+  message_get_header (msg, &hdr);
+  _get_content_type (hdr, &typestr, &typeargs);
+  split_content (typestr, &type, &subtype);
+  str = _mhn_profile_get ("show", type, subtype, "%m%P.%s");
+  
+  /* Expand macro-notations:
+     %m  message number
+     %P  .part
+     %p  part
+     %s  subtype */
+
+  obstack_init (&stk);
+  for (p = str; *p; p++)
+    {
+      if (*p == '%')
+	{
+	  switch (*++p)
+	    {
+	    case 'a':
+	      /* additional arguments */
+	      obstack_grow (&stk, typeargs, strlen (typeargs));
+	      break;
+
+	    case 'm':
+	      if (name)
+		obstack_grow (&stk, name, strlen (name));
+	      else
+		{
+		  snprintf (buf, sizeof buf, "%lu",
+			    (unsigned long) msg_part_subpart (part, 0));
+		  obstack_grow (&stk, buf, strlen (buf));
+		}
+	      break;
+
+	    case 'P':
+	      obstack_1grow (&stk, '.');
+	      /*FALLTHRU*/
+	    case 'p':
+	      msg_part_format_stk (&stk, part);
+	      break;
+	      
+	    case 's':
+	      /* subtype */
+	      obstack_grow (&stk, subtype, strlen (subtype));
+	      break;
+	      
+	    case 'd':
+	      /* content description */
+	      if (header_aget_value (hdr, MU_HEADER_CONTENT_DESCRIPTION,
+				     &tmp) == 0)
+		{
+		  obstack_grow (&stk, tmp, strlen (tmp));
+		  free (tmp);
+		}
+	      break;
+	      
+	    default:
+	      obstack_1grow (&stk, *p);
+	      p++;
+	    }
+	}
+      else
+	obstack_1grow (&stk, *p);
+    }
+  obstack_1grow (&stk, *p);
+
+  free (typestr);
+  free (type);
+  free (subtype);
+  
+  str = obstack_finish (&stk);
+  for (p = str; *p && isspace (*p); p++)
+    ;
+  if (!*p)
+    str = NULL;
+  else
+    str = strdup (str);
+  
+  obstack_free (&stk, NULL);
+  return str;
+}
+
+
+/* ************************** Message iterators *************************** */
+
 
 typedef int (*msg_handler_t) __PMT((message_t msg, msg_part_t part,
 				    char *type, char *encoding,
@@ -518,8 +813,11 @@ match_content (char *content)
 
   split_content (content, &type, &subtype);
 
-  if (strcasecmp (content_type, type) == 0)
-    rc = strcasecmp (content_subtype, subtype);
+  if ((rc = strcasecmp (content_type, type)) == 0)
+    {
+      if (content_subtype)
+	rc = strcasecmp (content_subtype, subtype);
+    }
   else 
     rc = strcasecmp (content_type, subtype);
 
@@ -548,7 +846,7 @@ handle_message (message_t msg, msg_part_t part, msg_handler_t fun, void *data)
   int ismime = 0;
   
   message_get_header (msg, &hdr);
-  _get_content_type (hdr, &type);
+  _get_content_type (hdr, &type, NULL);
   _get_content_encoding (hdr, &encoding);
 
   fun (msg, part, type, encoding, data);
@@ -570,12 +868,12 @@ handle_message (message_t msg, msg_part_t part, msg_handler_t fun, void *data)
 	  if (message_get_part (msg, i, &message) == 0)
 	    {
 	      message_get_header (message, &hdr);
-	      _get_content_type (hdr, &type);
+	      _get_content_type (hdr, &type, NULL);
 	      _get_content_encoding (hdr, &encoding);
 
 	      msg_part_set_subpart (part, i);
 
-	      if (strcasecmp (type, "multipart/mixed") == 0)
+	      if (message_is_multipart (message, &ismime) == 0 && ismime)
 		handle_message (message, part, fun, data);
 	      else
 		call_handler (message, part, type, encoding, fun, data);
@@ -641,18 +939,23 @@ list_handler (message_t msg, msg_part_t part, char *type, char *encoding,
   header_t hdr;
   
   if (msg_part_level (part) == 0)
-    printf ("%3lu       ", (unsigned long) msg_part_subpart (part, 0));
+    printf ("%4lu      ", (unsigned long) msg_part_subpart (part, 0));
   else
     {
-      printf ("    ");
-      msg_part_print (part, 5);
+      printf ("     ");
+      msg_part_print (part, 4);
       putchar (' ');
     }
-  printf ("%-26s", type);
+  printf ("%-25s", type);
   
   mhn_message_size (msg, &size);
-  printf ("%4lu", (unsigned long) size);
-
+  if (size < 1024)
+    printf (" %4lu", (unsigned long) size);
+  else if (size < 1024*1024)
+    printf ("%4luK", (unsigned long) size / 1024);
+  else
+    printf ("%4luM", (unsigned long) size / 1024 / 1024);
+  
   if (message_get_header (msg, &hdr) == 0)
     {
       char *descr;
@@ -670,7 +973,11 @@ list_handler (message_t msg, msg_part_t part, char *type, char *encoding,
 int
 list_message (message_t msg, size_t num)
 {
-  msg_part_t part = msg_part_create (num);
+  size_t uid;
+  msg_part_t part;
+
+  mh_message_number (msg, &uid);
+  part = msg_part_create (uid);
   handle_message (msg, part, list_handler, NULL);
   msg_part_destroy (part);
   return 0;
@@ -688,7 +995,7 @@ mhn_list ()
   int rc; 
 
   if (mode_options & OPT_HEADERS)
-    printf (_("msg part  type/subtype              size description\n"));
+    printf (_(" msg part type/subtype              size  description\n"));
 
   if (message)
     rc = list_message (message, 0);
@@ -717,43 +1024,189 @@ cat_message (stream_t out, stream_t in)
 }
 
 int
+show_internal (message_t msg, msg_part_t part, char *encoding, stream_t out)
+{
+  int rc;
+  body_t body = NULL;
+  stream_t dstr, bstr;
+  
+  if ((rc = message_get_body (msg, &body)))
+    {
+      mh_error (_("%lu: can't get message body: %s"),
+		(unsigned long) msg_part_subpart (part, 0),
+		mu_strerror (rc));
+      return 0;
+    }
+  body_get_stream (body, &bstr);
+  rc = filter_create(&dstr, bstr, encoding,
+		     MU_FILTER_DECODE, MU_STREAM_READ);
+  if (rc == 0)
+    bstr = dstr;
+  cat_message (out, bstr);
+  if (dstr)
+    stream_destroy (&dstr, stream_get_owner (dstr));
+  return 0;
+}
+
+int
+exec_internal (message_t msg, msg_part_t part, char *encoding, char *cmd)
+{
+  int rc;
+  stream_t tmp;
+
+  rc = prog_stream_create (&tmp, cmd, MU_STREAM_WRITE);
+  if (rc)
+    {
+      mh_error (_("can't create proc stream (command %s): %s"),
+		cmd, mu_strerror (rc));
+      return rc;
+    }
+  rc = stream_open (tmp);
+  if (rc)
+    {
+      mh_error (_("can't open proc stream (command %s): %s"),
+		cmd, mu_strerror (rc));
+      return rc;
+    }
+  show_internal (msg, part, encoding, tmp);      
+  stream_destroy (&tmp, stream_get_owner (tmp));
+  return rc;
+}
+
+/* FIXME: stdin is always opened when invoking subprocess, no matter
+   what the MHN_STDIN bit is */
+   
+int 
+mhn_run_command (message_t msg, msg_part_t part,
+		 char *encoding,
+		 char *cmd, int flags,
+		 char *tempfile)
+{
+  int rc = 0;
+  
+  if (tempfile)
+    {
+      /* pass content via a tempfile */
+      int status;
+      int argc;
+      char **argv;
+      stream_t tmp;
+      
+      if (argcv_get (cmd, "", "#", &argc, &argv))
+	{
+	  mh_error (_("can't parse command line `%s'"), cmd);
+	  return ENOSYS;
+	}
+
+      rc = file_stream_create (&tmp, tempfile, MU_STREAM_RDWR);
+      if (rc)
+	{
+	  mh_error (_("can't create temporary stream (file %s): %s"),
+		    tempfile, mu_strerror (rc));
+	  argcv_free (argc, argv);
+	  return rc;
+	}
+      rc = stream_open (tmp);
+      if (rc)
+	{
+	  mh_error (_("can't open temporary stream (file %s): %s"),
+		    tempfile, mu_strerror (rc));
+	  stream_destroy (&tmp, stream_get_owner (tmp));
+	  argcv_free (argc, argv);
+	  return rc;
+	}
+      show_internal (msg, part, encoding, tmp);      
+      stream_destroy (&tmp, stream_get_owner (tmp));
+      rc = mu_spawnvp (argv[0], argv, &status);
+      if (status)
+	rc = status;
+      argcv_free (argc, argv);
+    }
+  else
+    rc = exec_internal (msg, part, encoding, cmd);
+
+  return rc;
+}
+
+int
 show_handler (message_t msg, msg_part_t part, char *type, char *encoding,
 	      void *data)
 {
   stream_t out = data;
-
-  if (strncasecmp (type, "multipart", 9) == 0)
+  char *cmd;
+  int flags = 0;
+  char buf[64];
+  int fd = 1;
+  char *tempfile = NULL;
+  int ismime;
+  
+  if (message_is_multipart (msg, &ismime) == 0 && ismime)
     return 0;
-  if (mhl_format)
-    mhl_format_run (mhl_format, width, 0, MHL_DECODE, msg, out);
+
+  stream_get_fd (out, &fd);
+
+  if (mode_options & OPT_PAUSE)
+    flags |= MHN_CONFIRM;
+  cmd = mhn_show_command (msg, part, &flags, &tempfile);
+  if (!cmd)
+    flags |= MHN_LISTING;
+  if (flags & MHN_LISTING)
+    {
+      char *str;
+      size_t size = 0;
+
+      str = _("part ");
+      stream_sequential_write (out, str, strlen (str));
+      str = msg_part_format (part);
+      stream_sequential_write (out, str, strlen (str));
+      free (str);
+      stream_sequential_write (out, " ", 1);
+      stream_sequential_write (out, type, strlen (type));
+      mhn_message_size (msg, &size);
+      snprintf (buf, sizeof buf, " %lu", (unsigned long) size);
+      stream_sequential_write (out, buf, strlen (buf));
+      stream_sequential_write (out, "\n", 1);
+      stream_flush (out);
+    }
+
+  if (flags & MHN_CONFIRM)
+    {
+      if (isatty (fd) && isatty (0))
+	{
+	  printf (_("Press <return> to show content..."));
+	  if (!fgets (buf, sizeof buf, stdin) || buf[0] != '\n')
+	    return 0;
+	}
+    } 
+      
+  if (!cmd)
+    {
+      char *pager = mh_global_profile_get ("moreproc", getenv ("PAGER"));
+      if (pager)
+	exec_internal (msg, part, encoding, pager);
+      else
+	show_internal (msg, part, encoding, out);
+    }
   else
     {
-      int rc;
-      body_t body = NULL;
-      stream_t dstr, bstr;
-  
-      if ((rc = message_get_body (msg, &body)))
-	{
-	  mh_error (_("%lu: can't get message body: %s"),
-		    (unsigned long) msg_part_subpart (part, 0),
-		    mu_strerror (rc));
-	  return 0;
-	}
-      body_get_stream (body, &bstr);
-      rc = filter_create(&dstr, bstr, encoding,
-			 MU_FILTER_DECODE, MU_STREAM_READ);
-      if (rc == 0)
-	bstr = dstr;
-      cat_message (out, bstr);
-      if (dstr)
-	stream_destroy (&dstr, stream_get_owner (dstr));
+      mhn_run_command (msg, part, encoding, cmd, flags, tempfile);
+      free (cmd);
+      unlink (tempfile);
+      free (tempfile);
     }
+
+  return 0;
 }
 
 int
 show_message (message_t msg, size_t num, void *data)
 {
   msg_part_t part = msg_part_create (num);
+
+  if (mhl_format)
+    mhl_format_run (mhl_format, width, 0, MHL_DISABLE_BODY, msg,
+		    (stream_t) data);
+
   handle_message (msg, part, show_handler, data);
   msg_part_destroy (part);
   return 0;
@@ -762,7 +1215,12 @@ show_message (message_t msg, size_t num, void *data)
 void
 show_iterator (mailbox_t mbox, message_t msg, size_t num, void *data)
 {
+  msg_part_t part;
+  
+  mh_message_number (msg, &num);
+  part = msg_part_create (num);
   show_message (msg, num, data);
+  msg_part_destroy (part);
 }
 
 int
@@ -805,6 +1263,222 @@ mhn_show ()
     rc = show_message (message, 0, ostr);
   else
     rc = mh_iterate (mbox, &msgset, show_iterator, ostr);
+  return rc;
+}
+
+/* ***************************** Store Mode ****************************** */
+
+char *
+normalize_path (char *cwd, char *path)
+{
+  int len;
+  char *p;
+  char *pcwd = NULL;
+  
+  if (!path)
+    return path;
+
+  if (path[0] == '/')
+    return NULL;
+
+  if (!cwd)
+    cwd = pcwd = mu_getcwd ();
+
+  len = strlen (cwd) + strlen (path) + 2;
+  p = xmalloc (len);
+  sprintf (p, "%s/%s", cwd, path);
+  path = p;
+
+  /* delete trailing delimiter if any */
+  if (len && path[len-1] == '/')
+    path[len-1] = 0;
+
+  /* Eliminate any /../ */
+  for (p = strchr (path, '.'); p; p = strchr (p, '.'))
+    {
+      if (p > path && p[-1] == '/')
+	{
+	  if (p[1] == '.' && (p[2] == 0 || p[2] == '/'))
+	    /* found */
+	    {
+	      char *q, *s;
+
+	      /* Find previous delimiter */
+	      for (q = p-2; *q != '/' && q >= path; q--)
+		;
+
+	      if (q < path)
+		break;
+	      /* Copy stuff */
+	      s = p + 2;
+	      p = q;
+	      while (*q++ = *s++)
+		;
+	      continue;
+	    }
+	}
+
+      p++;
+    }
+
+  if (path[0] == 0)
+    {
+      path[0] = '/';
+      path[1] = 0;
+    }
+
+  len = strlen (cwd);
+  if (strlen (path) < len || memcmp (path, cwd, len))
+    sfree (&path);
+  else
+    memmove (path, path + len + 1, strlen (path) - len);
+  free (pcwd);
+  return path;
+}
+
+int
+store_handler (message_t msg, msg_part_t part, char *type, char *encoding,
+	       void *data)
+{
+  char *prefix = data;
+  char *name = NULL;
+  char *tmp;
+  int ismime;
+  int rc;
+  stream_t out;
+  char *dir = mh_global_profile_get ("mhn-storage", NULL);
+  
+  if (message_is_multipart (msg, &ismime) == 0 && ismime)
+    return 0;
+  
+  if (mode_options & OPT_AUTO)
+    {
+      header_t hdr;
+      char *val;
+
+      if (message_get_header (msg, &hdr) == 0
+	  && header_aget_value (hdr, MU_HEADER_CONTENT_DISPOSITION, &val) == 0)
+	{
+	  int argc;
+	  char **argv;
+
+	  if (argcv_get (val, "=", NULL, &argc, &argv) == 0)
+	    {
+	      int i;
+
+	      for (i = 0; i < argc; i++)
+		{
+		  if (strcmp (argv[i], "filename") == 0
+		      && ++i < argc
+		      && argv[i][0] == '='
+		      && ++i < argc)
+		    {
+		      name = normalize_path (dir, argv[i]);
+		      break;
+		    }
+		}
+	      argcv_free (argc, argv);
+	    }
+	  free (val);
+	}
+    }
+
+  if (!name)
+    {
+      char *fname = mhn_store_command (msg, part, prefix);
+      if (dir)
+	asprintf (&name, "%s/%s", dir, fname);
+      else
+	name = fname;
+    }
+  
+  tmp = msg_part_format (part);
+  if (prefix)
+    printf (_("storing message %s part %s as file %s\n"),
+	    prefix,
+	    tmp,
+	    name);
+  else
+    printf (_("storing message %lu part %s as file %s\n"),
+	    (unsigned long) msg_part_subpart (part, 0),
+	    tmp,
+	    name);
+  free (tmp);
+
+  if (!(mode_options & OPT_QUIET) && access (name, R_OK) == 0)
+    {
+      char *p;
+      int rc;
+	
+      asprintf (&p, _("File %s already exists. Rewrite"), name);
+      rc = mh_getyn (p);
+      free (p);
+      if (!rc)
+	{
+	  free (name);
+	  return 0;
+	}
+    }
+  
+  rc = file_stream_create (&out, name, MU_STREAM_WRITE|MU_STREAM_CREAT);
+  if (rc)
+    {
+      mh_error (_("can't create output stream (file %s): %s"),
+		name, mu_strerror (rc));
+      free (name);
+      return rc;
+    }
+  rc = stream_open (out);
+  if (rc)
+    {
+      mh_error (_("can't open output stream (file %s): %s"),
+		name, mu_strerror (rc));
+      free (name);
+      stream_destroy (&out, stream_get_owner (out));
+      return rc;
+    }
+  show_internal (msg, part, encoding, out);      
+
+  stream_destroy (&out, stream_get_owner (out));
+  free (name);
+  
+  return 0;
+}
+
+void
+store_message (message_t msg, void *data)
+{
+  size_t uid;
+  msg_part_t part;
+
+  mh_message_number (msg, &uid);
+  part = msg_part_create (uid);
+  handle_message (msg, part, store_handler, data);
+  msg_part_destroy (part);
+}
+
+void
+store_iterator (mailbox_t mbox, message_t msg, size_t num, void *data)
+{
+  store_message (msg, data);
+}
+
+int
+mhn_store ()
+{
+  int rc = 0;
+  
+  if (message)
+    {
+      char *p = strrchr (input_file, '/');
+      if (p)
+	p++;
+      else
+	p = input_file;
+      store_message (message, p);
+    }
+  else
+    rc = mh_iterate (mbox, &msgset, store_iterator, NULL);
   return rc;
 }
 
@@ -859,8 +1533,7 @@ main (int argc, char **argv)
       break;
       
     case mode_store:
-      mh_error ("mode is not yet implemented");
-      rc = 1;
+      rc = mhn_store ();
       break;
       
     default:
