@@ -574,7 +574,11 @@ mbox_scan0 (mailbox_t mailbox, size_t msgno, size_t *pcount, int do_notif)
       return status;
     }
 
-  locker_lock (mailbox->locker);
+  if((status = locker_lock (mailbox->locker)))
+    {
+      monitor_unlock (mailbox->monitor);
+      return status;
+    }
 
   /* Seek to the starting point.  */
   if (mud->umessages && msgno > 0 && mud->messages_count > 0
