@@ -1252,3 +1252,34 @@ util_noapp ()
 {
   util_error (_("No applicable messages"));
 }
+
+void
+util_cache_command (list_t *list, const char *fmt, ...)
+{
+  char *cmd;
+  va_list ap;
+
+  va_start (ap, fmt);
+  vasprintf (&cmd, fmt, ap);
+  va_end (ap);
+
+  if (!*list)
+    list_create (list);
+
+  list_append (*list, cmd);
+}
+
+static int
+_run_and_free (void *item, void *data)
+{
+  util_do_command ((char *) item);
+  free (item);
+  return 0;
+}
+
+void
+util_run_cached_commands (list_t *list)
+{
+  list_do (*list, _run_and_free, NULL);
+  list_destroy (list);
+}

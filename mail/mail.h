@@ -311,6 +311,8 @@ extern int util_merge_addresses __P((char **addr_str, const char *value));
 extern int util_header_expand __P((header_t *hdr));
 extern int util_get_message __P((mailbox_t mbox, size_t msgno,
 				 message_t *msg));
+void util_cache_command __P((list_t *list, const char *fmt, ...));
+void util_run_cached_commands __P((list_t *list));
 
 extern int ml_got_interrupt __P ((void));
 extern void ml_clear_interrupt __P ((void));
