@@ -1,3 +1,9 @@
+2008-09-02  Wojciech Polak
+
+	* mail/next.c (mail_next): Check return code from msgset_parse
+	to prevent segmentation fault.
+	* mail/previous.c (mail_previous): Likewise.
+
 2008-09-01  Wojciech Polak
 
 	* pop3d/pop3d.c (pop3d_daemon): Added startup notification.
