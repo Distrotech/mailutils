@@ -60,6 +60,11 @@ repl_LDADD = $(mh_LIBS)
 
 AM_YFLAGS=-vt
 
-install-exec-hook:
-	-rm -f $(DESTDIR)$(bindir)/folders
-	$(LN_S) $(DESTDIR)$(bindir)/folder $(DESTDIR)$(bindir)/folders
+install-exec-hook: @BUILD_MH_EXEC_HOOK@
+	
+mh_finish_install:
+	@here=`pwd`; \
+	cd $(DESTDIR); \
+	-rm -f $(bindir)/folders; \
+	$(LN_S) $(bindir)/folder $(bindir)/folders; \
+	cd $$here
