@@ -1,6 +1,6 @@
 ## Process this file with GNU Automake to create Makefile.in
 
-##   Copyright (C) 2000, 2001, 2002, 2004 Free Software Foundation, Inc.
+##   Copyright (C) 2000, 2001, 2002, 2004, 2005 Free Software Foundation, Inc.
 ##
 ##   GNU Mailutils is free software; you can redistribute it and/or
 ##   modify it under the terms of the GNU General Public License as
@@ -32,7 +32,7 @@ bin_PROGRAMS = mailutils-config
 localedir = $(datadir)/locale
 DEFS = @DEFS@ -DLOCALEDIR=\"$(localedir)\"
 
-EXTRA_DIST = strtok_r.c \
+EXTRA_DIST = errors muerrno.cin strtok_r.c \
  strndup.c strnlen.c strchrnul.c argp-ba.c argp-eexst.c \
  argp-fmtstream.c argp-fs-xinl.c argp-help.c argp-parse.c argp-pv.c \
  argp-pvh.c argp-xinl.c getline.c getline.h parsedate.y pin.c regex.c \
@@ -97,12 +97,15 @@ url_sendmail.c \
 url_smtp.c \
 wicket.c
 
-BUILT_SOURCES = parsedate.c
+BUILT_SOURCES = parsedate.c muerrno.c
 
 parsedate.c: $(srcdir)/parsedate.y
 	$(YLWRAP) "$(YACC) $(AM_YFLAGS)" $< \
 	          y.tab.c parsedate.c y.output parsedate.y.output \
                   -- -yy pd_yy
+
+muerrno.c: errors muerrno.cin
+	$(AWK) -f $(top_srcdir)/scripts/generr.awk $^ > $@
 
 libmailbox_la_DEPENDENCIES = @MU_LTLIBOBJS@
 libmailbox_la_LIBADD = @MU_LTLIBOBJS@ @MU_COMMON_LIBRARIES@
