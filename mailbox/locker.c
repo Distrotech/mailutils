@@ -31,8 +31,9 @@
 #include <unistd.h>
 #include <utime.h>
 
-#include <sys/types.h>
+#include <sys/param.h>
 #include <sys/stat.h>
+#include <sys/types.h>
 
 #include <mailutils/locker.h>
 #include <mailutils/errno.h>
@@ -50,6 +51,7 @@ struct _locker
   char *file;
 
   char *dotlock;
+  char *nfslock;
 
   int flags;
 
@@ -113,7 +115,7 @@ locker_create (locker_t *plocker, const char *filename, int flags)
   l->retries = MU_LOCKER_RETRIES;
   l->retry_sleep = MU_LOCKER_RETRY_SLEEP;
 
-  INVARIANT(l)
+  INVARIANT(l);
 
   *plocker = l;
 
@@ -128,6 +130,7 @@ locker_destroy (locker_t *plocker)
       close((*plocker)->fd);
       free ((*plocker)->file);
       free ((*plocker)->dotlock);
+      free ((*plocker)->nfslock);
       free (*plocker);
       *plocker = NULL;
     }
@@ -286,11 +289,21 @@ expire_stale_lock (locker_t lock)
 }
 
 static int
-stat_check (const char *file, int fd)
+stat_check (const char *file, int fd, int links)
 {
   struct stat fn_stat;
   struct stat fd_stat;
   int err = 0;
+  int localfd = -1;
+
+  if(fd == -1)
+  {
+    localfd = open(file, O_RDONLY);
+
+    if(localfd == -1)
+      return errno;
+    fd = localfd;
+  }
 
   /* We should always be able to stat a valid fd, so this
      is an error condition. */
@@ -300,11 +313,11 @@ stat_check (const char *file, int fd)
     {
       /* If the link and stat don't report the same info, or the
          file is a symlink, fail the locking. */
-#define CHK(X) if(X) return EINVAL
+#define CHK(X) if(X) err = EINVAL
 
       CHK (!S_ISREG (fn_stat.st_mode));
       CHK (!S_ISREG (fd_stat.st_mode));
-      CHK (fn_stat.st_nlink != 1);
+      CHK (fn_stat.st_nlink != links);
       CHK (fn_stat.st_dev != fd_stat.st_dev);
       CHK (fn_stat.st_ino != fd_stat.st_ino);
       CHK (fn_stat.st_mode != fd_stat.st_mode);
@@ -315,6 +328,9 @@ stat_check (const char *file, int fd)
 
 #undef CHK
     }
+  if(localfd != -1)
+    close(localfd);
+
   return err;
 }
 
@@ -328,9 +344,10 @@ locker_lock (locker_t lock)
   if (lock == NULL)
     return EINVAL;
 
-  INVARIANT (lock)
-    /* Is the lock already applied? */
-    if (lock->refcnt > 0)
+  INVARIANT (lock);
+
+  /* Is the lock already applied? */
+  if (lock->refcnt > 0)
     {
       assert (lock->fd != -1);
       lock->refcnt++;
@@ -347,7 +364,7 @@ locker_lock (locker_t lock)
     }
   else
     {
-      err = stat_check (lock->file, fd);
+      err = stat_check (lock->file, fd, 1);
       close (fd);
       fd = -1;
       if (err)
@@ -368,25 +385,76 @@ locker_lock (locker_t lock)
       /* cleanup after last loop */
       close (fd);
       fd = -1;
+      if (lock->nfslock)
+	{
+	  unlink (lock->nfslock);
+	  free (lock->nfslock);
+	  lock->nfslock = 0;
+	}
 
       expire_stale_lock (lock);
 
-      /* Try to create the lockfile. */
-      fd = open (lock->dotlock, O_WRONLY | O_CREAT | O_EXCL, LOCKFILE_ATTR);
+      /* build the NFS hitching-post to the lock file */
+      {
+	char host[MAXHOSTNAMELEN + 1] = "localhost";
+	char pid[11];		/* 10 is strlen(2^32 = 4294967296) */
+	char now[11];
+	size_t sz = 0;
+
+	gethostname (host, sizeof (host));
+	host[MAXHOSTNAMELEN] = 0;
+
+	snprintf (pid, sizeof (pid), "%d", getpid ());
+	pid[sizeof (pid) - 1] = 0;
+
+	snprintf (now, sizeof (now), "%d", time (0));
+	now[sizeof (now) - 1] = 0;
+
+	sz = strlen (lock->file) + 1 /* "." */  +
+	  strlen (pid) + 1 /* "." */  +
+	  strlen (now) + 1 /* "." */  +
+	  strlen (host) + 1;
+
+	lock->nfslock = malloc (sz);
+
+	if (!lock->nfslock)
+	  return ENOMEM;
+
+	snprintf (lock->nfslock, sz, "%s.%s.%s.%s", lock->file, pid, now,
+		  host);
+	lock->nfslock[sz - 1] = 0;
+      }
+
+      fd = open (lock->nfslock, O_WRONLY | O_CREAT | O_EXCL, LOCKFILE_ATTR);
+
       if (fd == -1)
+	{
+	  if (errno == EEXIST)
+	    continue;		/* Try with another lockfile name. */
+	  else
+	    return errno;
+	}
+      close (fd);
+
+      fd = -1;
+
+
+      /* Try to link to the lockfile. */
+      if (link (lock->nfslock, lock->dotlock) == -1)
 	{
 	  err = errno;
 
-	  /* EEXIST means somebody else has the lock, anything else is an
-	     error. */
-	  if (err == EEXIST)
-	    err = MU_ERR_LOCK_CONFLICT;
-	  else
-	    return err;
+	  if (err != EEXIST)
+	    break;		/* fatal */
 	}
       else
 	{
-	  err = stat_check (lock->dotlock, fd);
+	  if ((fd = open (lock->dotlock, O_RDONLY)) == -1)
+	    {
+	      err = errno;
+	      break;		/* fatal, we just made it, we should be able to open! */
+	    }
+	  err = stat_check (lock->nfslock, fd, 2);
 	  if (err == 0)
 	    {
 	      /* We got the lock! */
@@ -394,25 +462,32 @@ locker_lock (locker_t lock)
 	    }
 	  else
 	    {
-	      close (fd);
 	      unlink (lock->dotlock);
+	      unlink (lock->nfslock);
 
 	      /* If there was something invalid about the file/fd, return
 	         a more descriptive code. */
 	      if (err == EINVAL)
 		err = MU_ERR_LOCK_BAD_LOCK;
 
-	      return err;
+	      break;
 	    }
 	}
-      if(retries)
-	sleep(lock->retry_sleep);
+      if (retries)
+	sleep (lock->retry_sleep);
     }
+
+  unlink (lock->nfslock);
+
+  /* EEXIST means somebody else has the lock, anything else is an
+     error. */
+  if (err == EEXIST)
+    err = MU_ERR_LOCK_CONFLICT;
 
   if (err)
     return err;
 
-  /* We have the lock. */
+  /* If no errors, we have the lock. */
   assert (lock->refcnt == 0);
 
   if (lock->flags & MU_LOCKER_PID)
@@ -451,7 +526,6 @@ locker_unlock (locker_t lock)
 {
   assert(lock->refcnt >= 0);
 
-  /* FIXME: distinguish between bad args and lock not held */
   if (!lock)
     return MU_ERR_LOCKER_NULL;
 
