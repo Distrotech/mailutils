@@ -65,9 +65,6 @@ imap4d_list (struct imap4d_command *command, char *arg)
   char *wcard;
   const char *delim = "/";
 
-  if (! (command->states & state))
-    return util_finish (command, RESP_BAD, "Wrong state");
-
   ref = util_getword (arg, &sp);
   wcard = util_getword (NULL, &sp);
   if (!ref || !wcard)
@@ -143,6 +140,7 @@ imap4d_list (struct imap4d_command *command, char *arg)
 	      dir++;
 	    }
 	  else
+	    dir = wcard;	  
 	    break;
 	}
 
@@ -169,7 +167,7 @@ imap4d_list (struct imap4d_command *command, char *arg)
 	  inode_rec.next = NULL;
 	  inode_rec.inode = st.st_ino;
 	  inode_rec.dev   = st.st_dev;
-	  list_file (cwd, ref, (dir) ? dir : "", delim, &inode_rec);
+	  list_file (cwd, ref, (dir) ? dir : wcard, delim, &inode_rec);
 	  chdir (homedir);
 	}
       free (cwd);
