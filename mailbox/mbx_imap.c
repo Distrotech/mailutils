@@ -1403,6 +1403,12 @@ imap_attr_set_flags (attribute_t attribute, int flag)
   int status = 0;
 
   /* The delete FLAG is not pass yet but only on the expunge.  */
+  if (flag & MU_ATTRIBUTE_DELETED)
+    {
+      msg_imap->flags |= MU_ATTRIBUTE_DELETED;
+      flag &= ~MU_ATTRIBUTE_DELETED;
+    }
+
   if (f_imap->state == IMAP_NO_STATE)
     {
       char *abuf = malloc (1);
@@ -1414,9 +1420,13 @@ imap_attr_set_flags (attribute_t attribute, int flag)
 	return status;
       /* No flags to send??  */
       if (*abuf == '\0')
-	return 0;
+	{
+	  free (abuf);
+	  return 0;
+	}
       status = imap_writeline (f_imap, "g%d STORE %d +FLAGS.SILENT (%s)\r\n",
 			       f_imap->seq++, msg_imap->num, abuf);
+      free (abuf);
       CHECK_ERROR (f_imap, status);
       MAILBOX_DEBUG0 (m_imap->mailbox, MU_DEBUG_PROT, f_imap->buffer);
       msg_imap->flags |= flag;
@@ -1426,7 +1436,7 @@ imap_attr_set_flags (attribute_t attribute, int flag)
 }
 
 static int
-imap_attr_unset_flags (attribute_t attribute, int flags)
+imap_attr_unset_flags (attribute_t attribute, int flag)
 {
   message_t msg = attribute_get_owner (attribute);
   msg_imap_t msg_imap = message_get_owner (msg);
@@ -1434,17 +1444,34 @@ imap_attr_unset_flags (attribute_t attribute, int flags)
   f_imap_t f_imap = m_imap->f_imap;
   int status = 0;
 
+  /* The delete FLAG is not pass yet but only on the expunge.  */
+  if (flag & MU_ATTRIBUTE_DELETED)
+    {
+      msg_imap->flags &= ~MU_ATTRIBUTE_DELETED;
+      flag &= ~MU_ATTRIBUTE_DELETED;
+    }
+
   if (f_imap->state == IMAP_NO_STATE)
     {
-      status = imap_writeline (f_imap, "g%d STORE %d -FLAGS.SILENT (%s %s %s %s)\r\n",
-			       f_imap->seq++, msg_imap->num,
-			       (flags & MU_ATTRIBUTE_SEEN) ? "\\Seen" : "",
-			       (flags & MU_ATTRIBUTE_ANSWERED) ? "\\Answered" : "",
-			       (flags & MU_ATTRIBUTE_DRAFT) ? "\\Draft" : "",
-			       (flags & MU_ATTRIBUTE_FLAGGED) ? "\\Flagged" : "");
+      char *abuf = malloc (1);
+      if (abuf == NULL)
+	return ENOMEM;
+      *abuf = '\0';
+      status = flags_string (flag, &abuf);
+      if (status != 0)
+	return status;
+      /* No flags to send??  */
+      if (*abuf == '\0')
+	{
+	  free (abuf);
+	  return 0;
+	}
+      status = imap_writeline (f_imap, "g%d STORE %d -FLAGS.SILENT (%s)\r\n",
+			       f_imap->seq++, msg_imap->num, abuf);
+      free (abuf);
       CHECK_ERROR (f_imap, status);
       MAILBOX_DEBUG0 (m_imap->mailbox, MU_DEBUG_PROT, f_imap->buffer);
-      msg_imap->flags &= ~flags;
+      msg_imap->flags &= ~flag;
       f_imap->state = IMAP_FETCH;
     }
   return message_operation (f_imap, msg_imap, NULL, 0, NULL);
