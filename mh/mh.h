@@ -39,6 +39,8 @@
 #define MH_FMT_ZEROPAD 0x2000
 #define MH_WIDTH_MASK  0x0fff
 
+#define MH_SEQUENCES_FILE ".mh_sequences"
+
 enum mh_opcode
 {
   /* 0. Stop. Format: mhop_stop */
@@ -127,7 +129,14 @@ struct mh_builtin
   int optarg;
 };
 
+extern char *current_folder;
+extern size_t current_message;
+extern char mh_list_format[];
+
 void mh_init (void);
+int  mh_read_context_file (char *path, header_t *header);
+char *mh_read_formfile (char *name);
+
 int mh_format (mh_format_t *fmt, message_t msg, size_t msgno,
 	       char *buffer, size_t bufsize);
 int mh_format_parse (char *format_str, mh_format_t *fmt);
