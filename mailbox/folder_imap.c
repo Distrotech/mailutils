@@ -1103,6 +1103,7 @@ imap_string (f_imap_t f_imap, char **ptr)
       break;
     default:
       /* Problem.  */
+      status = 1;
       break;
     }
   return status;
@@ -1168,7 +1169,7 @@ imap_list (f_imap_t f_imap)
     }
   /* Hiearchy delimeter.  */
   tok = strtok_r (NULL, " ", &sp);
-  if (tok && strlen (tok) > 2)
+  if (tok && strlen (tok) > 2 && strcasecmp (tok, "NIL"))
     lr->separator = tok[1];
   /* The path.  */
   tok = strtok_r (NULL, " ", &sp);
@@ -1201,7 +1202,12 @@ imap_list (f_imap_t f_imap)
 	  stream_truncate (f_imap->string.stream, 0);
 	  f_imap->string.offset = 0;
 	  f_imap->string.nleft = 0;
-
+	}
+      else
+	{
+	  lr->name = strdup (tok);
+	  if (!lr->name)
+	    status = ENOMEM;
 	}
     }
   return status;
