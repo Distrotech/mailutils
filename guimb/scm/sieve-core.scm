@@ -110,7 +110,7 @@
 ;;; keep -- does nothing worth mentioning :^)
 
 (define (action-keep)
-  #f)
+  (mu-message-delete sieve-current-message #f))
 
 ;;; discard
 
@@ -412,6 +412,7 @@
   (if (not sieve-my-email)
       (set! sieve-my-email (mu-username->email)))
 ;  (DEBUG 1 "Mailbox: " sieve-mailbox)
+  
   (let ((count (mu-mailbox-messages-count sieve-mailbox)))
     (do ((n 1 (1+ n)))
 	((> n count) #f)
