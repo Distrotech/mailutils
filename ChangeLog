@@ -1,5 +1,10 @@
 2001-04-13  Sam Roberts
 
+	* mailbox/parse822.c, include/mailutils/parse822.h: now can
+	  quote the local-part of and addr-spec, and a string.
+
+2001-04-13  Sam Roberts
+
 	* doc/address.texi: updated docs, now they match the parse822.
 	* mailbox/parse822.c: small tweaks to the new parser, the changes
 	  made during the tidying over the last month were:
