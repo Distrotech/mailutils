@@ -22,38 +22,38 @@
 mail_start "--file=%mbox1"
 mail_command "set readonly"
 
-mail_command "set folder=$srcdir/folder"
+mail_command "set folder=\"$MAIL_FOLDER_DIR\""
 # FIXME: Need -re here
 #mail_test "folders" "one  two"
 
 mail_test "file +one" \
- "Held 4 messages in $srcdir/spool/mbox1" 
+ "Held 4 messages in $MAIL_SPOOL_DIR/mbox1" 
 mail_test "sum" \
- "\"$srcdir/folder/one\": 1 messages 1 new"
+ "\"$MAIL_FOLDER_DIR/one\": 1 messages 1 new"
 mail_test "headers" \
  ">N   1 Foo Bar            Fri Dec 28 22:18  10/350   Mailbox 1"	
 
 mail_test "file +two" \
- "Held 1 messages in $srcdir/folder/one"
+ "Held 1 messages in $MAIL_FOLDER_DIR/one"
 mail_test "sum" \
- "\"$srcdir/folder/two\": 1 messages 1 new"
+ "\"$MAIL_FOLDER_DIR/two\": 1 messages 1 new"
 mail_test "headers" \
  ">N   1 Foo Bar            Fri Dec 28 22:18  10/350   Mailbox 2"
 
 mail_test "file #" \
- "Held 1 messages in $srcdir/folder/two"
+ "Held 1 messages in $MAIL_FOLDER_DIR/two"
 mail_test "sum" \
- "\"$srcdir/folder/one\": 1 messages 1 new"
+ "\"$MAIL_FOLDER_DIR/one\": 1 messages 1 new"
 
 mail_test "file #" \
- "Held 1 messages in $srcdir/folder/one"
+ "Held 1 messages in $MAIL_FOLDER_DIR/one"
 mail_test "sum" \
- "\"$srcdir/folder/two\": 1 messages 1 new"
+ "\"$MAIL_FOLDER_DIR/two\": 1 messages 1 new"
 
 mail_test "file &" \
- "Held 1 messages in $srcdir/folder/two"
+ "Held 1 messages in $MAIL_FOLDER_DIR/two"
 mail_test "sum" \
- "\"$srcdir/spool/mbox\": 1 messages 1 new"
+ "\"$MAIL_SPOOL_DIR/mbox\": 1 messages 1 new"
 mail_test "headers" \
  ">N   1 Sergey Poznyakoff  Sun Jul 16 12:11  12/429   MBOX"	
 
