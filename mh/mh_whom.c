@@ -53,23 +53,84 @@ ismydomain (char *p)
 static void
 scan_addrs (char *str, int isbcc)
 {
-  address_t addr;
+  address_t addr = NULL, exaddr = NULL;
   size_t i, count;
-	      
-  if (address_create (&addr, str))
+  size_t argc;
+  char **argv;
+  char *buf;
+  int rc;
+
+  if (!str)
     return;
-  address_get_count (addr, &count);
+  argcv_get (str, ",", NULL, &argc, &argv);
+  for (i = 0; i < argc;)
+    {
+      if (i + 1 == argc)
+	{
+	  if (mh_alias_get_address (argv[i], &exaddr) == 0)
+	    {
+	      free (argv[i]);
+	      memcpy (&argv[i], &argv[i+1],
+		      (argc - i + 1) * sizeof (argv[0]));
+	      argc--;
+	    }
+	  else
+	    i++;
+	}
+      else if (argv[i + 1][0] == ',')
+	{
+	  if (mh_alias_get_address (argv[i], &exaddr) == 0)
+	    {
+	      free (argv[i]);
+	      free (argv[i+1]);
+	      memcpy (&argv[i], &argv[i+2],
+		      (argc - i) * sizeof (argv[0]));
+	      argc -= 2;
+	    }
+	  else
+	    i += 2;
+	}
+      else
+	{
+	  for (; i < argc; i++)
+	    if (argv[i][0] == ',')
+	      {
+		i++;
+		break;
+	      }
+	}
+    }
+
+  if (argc)
+    {
+      int status;
+      argcv_string (argc, argv, &buf);
+      if (status = address_create (&addr, buf))
+	mh_error (_("Bad address `%s': %s"), buf, mu_strerror (status));
+      free (buf);
+    }
+
+  argcv_free (argc, argv);
+  
+  address_union (&addr, exaddr);
+  address_destroy (&exaddr);
+  
+  if (addr == NULL || address_get_count (addr, &count))
+    return;
+    
   for (i = 1; i <= count; i++)
     {
-      char *buf, *p;
-      int rc;
+      char *p;
+
       rc = address_aget_email (addr, i, &buf);
       if (rc)
 	{
 	  mh_error ("address_aget_email: %s", mu_strerror (rc));
 	  continue;
 	}
+
       p = strchr (buf, '@');
+	    
       if (ismydomain (p))
 	addrcp (&local_rcp, buf, isbcc);
       else
@@ -146,6 +207,7 @@ mh_whom (char *filename, int check)
   int rc = 0;
   mh_context_t *ctx;
 
+  mh_read_aliases ();
   ctx = mh_context_create (filename, 1);
   if (mh_context_read (ctx))
     {
