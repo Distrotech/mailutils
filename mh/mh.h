@@ -159,6 +159,10 @@ struct mh_format
   mh_instr_t *prog;         /* Program itself */
 };
 
+#define MHA_REQUIRED       0
+#define MHA_OPTARG         1
+#define MHA_OPT_CLEAR      2
+
 typedef struct mh_builtin mh_builtin_t;
 
 struct mh_builtin
