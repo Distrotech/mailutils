@@ -403,9 +403,11 @@ cleanup:
 
  cleanup1:
   if (show_summary)
-    printf (_("You have %d messages\n"), total);
+    printf (total == 1 ? _("You have %d message.\n")
+                       : _("You have %d messages.\n"),
+            total);
   if (show_query && have_new_mail)
-    printf (_("You have new mail\n"));
+    printf (_("You have new mail.\n"));
 
   /* 0 - selected messages discover.
      1 - have messages.

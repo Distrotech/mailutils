@@ -63,7 +63,7 @@ mail_summary (int argc, char **argv)
     mailbox_get_url (mbox, &url);
     printf("\"%s\": ", url_to_string (url));
   }
-  printf (_("%d messages"), count);
+  printf ("%d %s", count, count == 1 ? _("message") : _("messages"));
   if (mnew > 0)
     printf (_(" %d new"), mnew);
   if (mseen > 0)
