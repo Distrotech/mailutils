@@ -90,10 +90,10 @@ struct mh_option mh_option[] = {
 static char *format_str =
 "%(lit)%(formataddr %<{reply-to}%?{from}%?{sender}%?{return-path}%>)"
 "%<(nonnull)%(void(width))%(putaddr To: )\\n%>"
-"%(lit)%(formataddr{to})%(formataddr{cc})%(formataddr(me))"
+"%(lit)%<(rcpt to)%(formataddr{to})%>%<(rcpt cc)%(formataddr{cc})%>%<(rcpt me)%(formataddr(me))%>"
 "%<(nonnull)%(void(width))%(putaddr cc: )\\n%>"
 "%<{fcc}Fcc: %{fcc}\\n%>"
-"%<{subject}Subject: Re: %{subject}\\n%>"
+"%<{subject}Subject: Re: %(unre{subject})\\n%>"
 "%<{date}In-reply-to: Your message of \""
 "%<(nodate{date})%{date}%|%(pretty{date})%>.\"%<{message-id}\n"
 "             %{message-id}%>\\n%>"
@@ -109,6 +109,17 @@ static int build_only = 0; /* --build flag */
 static int query_mode = 0; /* --query flag */
 
 static int
+decode_cc_flag (const char *opt, const char *arg)
+{
+  int rc = mh_decode_rcpt_flag (arg);
+  if (rc == RCPT_NONE)
+    {
+      mh_error (_("%s %s is unknown"), opt, arg);
+      exit (1);
+    }
+}
+
+static int
 opt_handler (int key, char *arg, void *unused)
 {
   switch (key)
@@ -117,6 +128,14 @@ opt_handler (int key, char *arg, void *unused)
       build_only = 1;
       break;
       
+    case 'c':
+      rcpt_mask |= decode_cc_flag ("-cc", arg);
+      break;
+
+    case 'n':
+      rcpt_mask ^= decode_cc_flag ("-nocc", arg);
+      break;
+	
     case 'd':
       draft_folder = arg;
       break;
@@ -149,8 +168,6 @@ opt_handler (int key, char *arg, void *unused)
       
     case 'a':
     case 'm':
-    case 'c':
-    case 'n':
     case 'e':
     case ARG_NOEDIT:
     case ARG_FCC:
@@ -224,7 +241,7 @@ main (int argc, char **argv)
       mh_error (_("only one message at a time!"));
       return 1;
     }
-
+  
   draft_file = mh_expand_name (draft_folder, "reply", 0);
   
   make_draft ();
