@@ -48,7 +48,7 @@ mail_shell (int argc, char **argv)
 	  char *buf = NULL;
 
 	  /* 1(shell) + 1 (-c) + 1(arg) + 1 (null) = 4  */
-	  argvec = util_malloc (4 * (sizeof (char *)));
+	  argvec = xmalloc (4 * (sizeof (char *)));
 
 	  argcv_string (argc-1, &argv[1], &buf);
 

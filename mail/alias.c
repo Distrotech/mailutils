@@ -99,7 +99,7 @@ alias_rehash()
       return 1;
     }
 
-  aliases = util_calloc(hash_size[hash_num], sizeof (aliases[0]));
+  aliases = xcalloc(hash_size[hash_num], sizeof (aliases[0]));
   if (old_aliases)
     {
       for (i = 0; i < hash_size[hash_num-1]; i++)

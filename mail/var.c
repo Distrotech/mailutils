@@ -430,7 +430,7 @@ var_pipe(int argc, char **argv, struct send_environ *env)
       close(fd);
       
       /* Execute the process */
-      xargv = util_calloc(argc, sizeof(xargv[0]));
+      xargv = xcalloc(argc, sizeof(xargv[0]));
       for (i = 0; i < argc-1; i++)
 	xargv[i] = argv[i+1];
       xargv[i] = NULL;

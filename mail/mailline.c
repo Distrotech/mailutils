@@ -470,7 +470,7 @@ readline (const char *prompt)
       fflush (ofile);
     }
 
-  p = line = util_calloc (1, 255);
+  p = line = xcalloc (1, 255);
   alloclen = 255;
   linelen = 0;
   for (;;)

@@ -72,7 +72,7 @@ mail_set_my_name (char *name)
   my_name = strdup (name);
   gethostname(hostname, sizeof(hostname));
   hostname[sizeof(hostname)-1] = 0;
-  my_email = util_malloc (strlen (name) + strlen (hostname) + 2);
+  my_email = xmalloc (strlen (name) + strlen (hostname) + 2);
   sprintf (my_email, "%s@%s", name, hostname);
 }
    

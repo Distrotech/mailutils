@@ -73,7 +73,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
 	  int len;
 	  char *home = getenv("HOME");
 	  len = strlen (home) + strlen ("/mbox") + 1;
-	  args->file = util_malloc(len * sizeof (char));
+	  args->file = xmalloc(len * sizeof (char));
 	  strcpy (args->file, home);
 	  strcat (args->file, "/mbox");
 	}
@@ -401,7 +401,7 @@ mail_mainloop(char *(*input) __P((void *, int)), void *closure, int do_history)
 	      break;
 	    }
 	  command[len-1] = '\0';
-	  buf = util_malloc ((len + strlen (command2)) * sizeof (char));
+	  buf = xmalloc ((len + strlen (command2)) * sizeof (char));
 	  strcpy (buf, command);
 	  strcat (buf, command2);
 	  free (command);
