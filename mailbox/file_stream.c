@@ -47,8 +47,6 @@ _file_destroy (stream_t stream)
 {
   struct _file_stream *fs = stream_get_owner (stream);
 
-  stream_close (stream);
-
   if (fs->filename)
     free (fs->filename);
 
