@@ -54,9 +54,9 @@ main (int argc, char **argv)
       mu_mailcap_entries_count (mailcap, &count);
       for (i = 1; i <= count; i++)
 	{
-	  int j;
+	  size_t j;
 	  mu_mailcap_entry_t entry = NULL;
-	  int fields_count = 0;
+	  size_t fields_count = 0;
 
 	  printf ("entry[%d]\n", i);
 
@@ -76,8 +76,15 @@ main (int argc, char **argv)
 	  mu_mailcap_entry_fields_count (entry, &fields_count);
 	  for (j = 1; j <= fields_count; j++)
 	    {
-	      mu_mailcap_entry_get_field (entry, j, buffer, 
-					  sizeof (buffer), NULL);
+	      int status = mu_mailcap_entry_get_field (entry, j, buffer, 
+						       sizeof (buffer), NULL);
+	      if (status)
+		{
+		  mu_error ("cannot retrieve field %lu: %s",
+			    (unsigned long) j,
+			    mu_strerror (status));
+		  break;
+		}
 	      printf ("\tfields[%d]: %s\n", j, buffer);
 	    }
 	  printf ("\n");
