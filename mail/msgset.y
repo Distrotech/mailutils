@@ -266,7 +266,7 @@ yylex()
       char *p = cur_p;
       int len;
 
-      while (*cur_p && *cur_p != ',' && *cur_p != '-' && *cur_p != ':')
+      while (*cur_p && *cur_p != ',' && *cur_p != ':') 
 	cur_p++;
       len = cur_p - p + 1;
       yylval.string = xmalloc (len);
