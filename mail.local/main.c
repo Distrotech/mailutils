@@ -17,13 +17,19 @@
 
 #include <mail.local.h>
 
-int debug_level;
 int multiple_delivery;
 int ex_quota_tempfail;
 int exit_code = EX_OK;
 uid_t uid;
 char *quotadbname = NULL;
 int lock_timeout = 300;
+
+/* Debuggig options */
+int debug_level;
+int debug_flags;
+int sieve_debug_flags;
+int sieve_enable_log;
+mu_debug_t mudebug;
 
 #define MAXFD 64
 #define EX_QUOTA() (ex_quota_tempfail ? EX_TEMPFAIL : EX_UNAVAILABLE)
@@ -36,7 +42,17 @@ void mailer_err (char *fmt, ...);
 void notify_biff (mailbox_t mbox, char *name, size_t size);
 
 const char *argp_program_version = "mail.local (" PACKAGE_STRING ")";
-static char doc[] = "GNU mail.local -- the local MDA";
+static char doc[] =
+"GNU mail.local -- the local MDA"
+"\v"
+"Debug flags are:\n"
+"  g - guimb stack traces\n"
+"  T - mailutil traces (MU_DEBUG_TRACE)\n"
+"  P - network protocols (MU_DEBUG_PROT)\n"
+"  t - sieve trace (MU_SIEVE_DEBUG_TRACE)\n"
+"  l - sieve action logs\n"
+"  0-9 - Set mail.local debugging level\n";
+
 static char args_doc[] = "recipient [recipient ...]";
 
 #define ARG_MULTIPLE_DELIVERY 1
@@ -55,17 +71,13 @@ static struct argp_option options[] =
   { "quota-db", 'q', "FILE", 0,
     "Specify path to quota database", 0 },
 #endif
+  { "sieve", 'S', "PATTERN", 0,
+    "Set name pattern for user-defined sieve mail filters", 0 },
 #ifdef WITH_GUILE
   { "source", 's', "PATTERN", 0,
     "Set name pattern for user-defined mail filters", 0 },
 #endif
-  { "debug", 'x',
-#ifdef WITH_GUILE
-    "{NUMBER|guile}",
-#else
-    "NUMBER",
-#endif
-    0,
+  { "debug", 'x', "FLAGS", 0,
     "Enable debugging", 0 },
   { "timeout", 't', "NUMBER", 0,
     "Set timeout for acquiring the lockfile" },
@@ -94,6 +106,10 @@ static const char *argp_capa[] = {
 
 char *from = NULL;
 char *progfile_pattern = NULL;
+char *sieve_pattern = NULL;
+message_t sieve_msg = NULL;
+
+#define D_DEFAULT "9s"
 
 static error_t
 parse_opt (int key, char *arg, struct argp_state *state)
@@ -117,7 +133,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
 	}
       from = arg;
       break;
-
+      
 #ifdef USE_DBM
     case 'q':
       quotadbname = arg;
@@ -125,40 +141,123 @@ parse_opt (int key, char *arg, struct argp_state *state)
 #endif
 
 #ifdef WITH_GUILE	
-      case 's':
-	progfile_pattern = optarg;
-	break;
+    case 's':
+      progfile_pattern = optarg;
+      break;
 #endif
-	
-      case 't':
-	lock_timeout = strtoul (optarg, NULL, 0);
-	break;
-	
-      case 'x':
-	if (optarg)
-	  {
-#ifdef WITH_GUILE
-	    if (strcmp (optarg, "guile") == 0)
-	      debug_guile = 1;
-	    else
-#endif
-	      debug_level = strtoul (optarg, NULL, 0);
-	  }
-	else
-	  {
-	    debug_level = 9;
-#ifdef WITH_GUILE	    
-	    debug_guile = 1;
-#endif
-	  }
-	break;
 
+    case 'S':
+      sieve_pattern = optarg;
+      break;
+      
+    case 't':
+      lock_timeout = strtoul (optarg, NULL, 0);
+      break;
+	
+    case 'x':
+      do
+	{
+	  if (!optarg)
+	    optarg = D_DEFAULT;
+	  switch (*optarg)
+	    {
+	    case 'g':
+#ifdef WITH_GUILE
+	      debug_guile = 1;
+#endif
+	      break;
+
+	    case 't':
+	      sieve_debug_flags |= MU_SIEVE_DEBUG_TRACE;
+	      break;
+
+	    case 'l':
+	      sieve_enable_log = 1;
+	      break;
+	      
+	    case 'T':
+	      debug_flags |= MU_DEBUG_TRACE;
+	      break;
+
+	    case 'P':
+	      debug_flags |= MU_DEBUG_PROT;
+	      break;
+
+	    default:
+	      if (isdigit (*optarg))
+		debug_level = *optarg - '0';
+	      else
+		argp_error (state, "%c is not a valid debug flag", *arg);
+	      break;
+	    }
+	}
+      while (*++optarg);
+      break;
+      
     default:
       return ARGP_ERR_UNKNOWN;
 
     case ARGP_KEY_ERROR:
       exit (EX_USAGE);
     }
+  return 0;
+}
+
+
+static int
+_mu_debug_printer (mu_debug_t unused, size_t level, const char *fmt,
+		   va_list ap)
+{
+  vsyslog ((level == MU_DEBUG_ERROR) ? LOG_ERR : LOG_DEBUG, fmt, ap);
+  return 0;
+}
+
+static int
+_sieve_debug_printer (void *unused, const char *fmt, va_list ap)
+{
+  vsyslog (LOG_DEBUG, fmt, ap);
+  return 0;
+}
+
+static void
+_sieve_action_log (void *user_name,
+		   const char *script, size_t msgno, message_t msg,
+		   const char *action, const char *fmt, va_list ap)
+{
+  size_t uid = 0;
+  char *text = NULL;
+  
+  message_get_uid (msg, &uid);
+
+  asprintf (&text, "%s on msg uid %d", action, uid);
+  if (fmt && strlen (fmt))
+    {
+      char *diag = NULL;
+      asprintf (&diag, fmt, ap);
+      syslog (LOG_NOTICE, "(user %s) %s: %s", (char*) user_name, text, diag);
+      free (diag);
+    }
+  else
+    syslog (LOG_NOTICE, "(user %s) %s", (char*) user_name, text);
+  free (text);
+}
+
+static int
+_sieve_parse_error (void *user_name, const char *filename, int lineno,
+		    const char *fmt, va_list ap)
+{
+  char *text;
+  vasprintf (&text, fmt, ap);
+  if (filename)
+    {
+      char *loc;
+      asprintf (&loc, "%s:%d: ", filename, lineno);
+      syslog (LOG_ERR, "%s: %s", loc, text);
+      free (loc);
+    }
+  else
+    syslog (LOG_ERR, "(user %s) %s", user_name, text);
+  free (text);
   return 0;
 }
 
@@ -180,6 +279,28 @@ main (int argc, char *argv[])
   
   openlog ("mail.local", LOG_PID, log_facility);
   mu_error_set_print (mu_syslog_error_printer);
+  if (debug_flags)
+    {
+      int rc;
+      
+      if ((rc = mu_debug_create (&mudebug, NULL)))
+	{
+	  mu_error ("mu_debug_create failed: %s\n", mu_errstring (rc));
+	  exit (EX_TEMPFAIL);
+	}
+      if ((rc = mu_debug_set_level (mudebug, debug_flags)))
+	{
+	  mu_error ("mu_debug_set_level failed: %s\n",
+		    mu_errstring (rc));
+	  exit (EX_TEMPFAIL);
+	}
+      if ((rc = mu_debug_set_print (mudebug, _mu_debug_printer, NULL)))
+	{
+	  mu_error ("mu_debug_set_print failed: %s\n",
+		    mu_errstring (rc));
+	  exit (EX_TEMPFAIL);
+	}
+    }
   
   uid = getuid ();
 
@@ -204,6 +325,34 @@ main (int argc, char *argv[])
   }
 
   fp = make_tmp (from, &tempfile);
+  if (sieve_pattern)
+    {
+      stream_t stream;
+      int status;
+      
+      fflush (fp);
+      file_stream_create (&stream, tempfile, MU_STREAM_RDWR);
+      if ((status = stream_open (stream)))
+	{
+	  mu_error ("Opening temporary file failed: %s\n",
+		    mu_errstring (status));
+	  return EX_TEMPFAIL;
+	}
+
+      if ((status = message_create (&sieve_msg, NULL)))
+	{
+	  mu_error ("Can't create temporary message: %s\n",
+		    mu_errstring (status));
+	  return EX_TEMPFAIL;
+	}
+
+      if ((status = message_set_stream (sieve_msg, stream, NULL)))
+	{
+	  mu_error ("Can't assign stream to temporary message: %s\n",
+		    mu_errstring (status));
+	  return EX_TEMPFAIL;
+	}
+    }
   
   if (multiple_delivery)
     multiple_delivery = argc > 1;
@@ -226,6 +375,64 @@ main (int argc, char *argv[])
   for (; *argv; argv++)
     mda (fp, *argv);
   return exit_code;
+}
+
+int
+sieve_test (struct mu_auth_data *auth)
+{
+  int rc = 1;
+  char *progfile;
+  
+  if (!sieve_pattern)
+    return 1;
+  
+  progfile = mu_expand_path_pattern (sieve_pattern, auth->name);
+  if (access (progfile, R_OK))
+    {
+      if (debug_level > 2)
+	syslog (LOG_DEBUG, "access to %s failed: %m", progfile);
+    }
+  else
+    {
+      sieve_machine_t mach;
+      rc = sieve_machine_init (&mach, auth->name);
+      if (rc)
+	{
+	  mu_error ("can't initialize sieve machine: %s",
+		    mu_errstring (rc));
+	}
+      else
+	{
+	  sieve_set_debug (mach, _sieve_debug_printer);
+	  sieve_set_debug_level (mach, mudebug, sieve_debug_flags);
+	  sieve_set_parse_error (mach, _sieve_parse_error);
+	  if (sieve_enable_log)
+	    sieve_set_logger (mach, _sieve_action_log);
+	  
+	  rc = sieve_compile (mach, progfile);
+	  if (rc == 0)
+	    {
+	      attribute_t attr;
+	      
+	      message_get_attribute (sieve_msg, &attr);
+	      attribute_unset_deleted (attr);
+	      if (switch_user_id (auth, 1) == 0)
+		{
+		  chdir (auth->dir);
+		
+		  rc = sieve_message (mach, sieve_msg);
+		  if (rc == 0)
+		    rc = attribute_is_deleted (attr) == 0;
+
+		  switch_user_id (auth, 0);
+		  chdir ("/");
+		}
+	    }
+	  sieve_machine_destroy (&mach);
+	}
+    }
+  free (progfile);
+  return rc;
 }
 
 int
@@ -374,11 +581,19 @@ deliver (FILE *fp, char *name)
       exit_code = EX_UNAVAILABLE;
       return;
     }
+
+  if (!sieve_test (auth))
+    {
+      exit_code = EX_OK;
+      mu_auth_data_free (auth);
+      return;
+    }
   
   if ((status = mailbox_create (&mbox, auth->mailbox)) != 0)
     {
       mailer_err ("can't open mailbox %s: %s",
 		  auth->mailbox, mu_errstring (status));
+      mu_auth_data_free (auth);
       return;
     }
 
