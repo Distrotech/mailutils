@@ -32,6 +32,8 @@
 #include <mailutils/nls.h>
 #include <mailutils/stream.h>
 
+#include <lbuf.h>
+
 #ifdef WITH_TLS
 
 #include <gnutls/gnutls.h>
@@ -44,9 +46,10 @@ static char *ssl_cert = NULL;
 static char *ssl_key = NULL;
 static char *ssl_cafile = NULL;
 
-#define ARG_SSL_CERT   1
-#define ARG_SSL_KEY    2
-#define ARG_SSL_CAFILE 3
+#define ARG_TLS        1 
+#define ARG_SSL_CERT   2
+#define ARG_SSL_KEY    3
+#define ARG_SSL_CAFILE 4
 
 static struct argp_option _tls_argp_options[] = {
   {NULL, 0, NULL, 0, N_("Encryption options"), 0},
@@ -62,8 +65,17 @@ static struct argp_option _tls_argp_options[] = {
 static error_t
 _tls_argp_parser (int key, char *arg, struct argp_state *state)
 {
+  static int tls_enable = 1;
+  
   switch (key)
     {
+    case ARG_TLS:
+      if (!arg || strcasecmp (arg, "yes") == 0)
+	tls_enable = 1;
+      else if (strcasecmp (arg, "no") == 0)
+	tls_enable = 0;
+      break;
+      
     case ARG_SSL_CERT:
       ssl_cert = arg;
       break;
@@ -76,6 +88,11 @@ _tls_argp_parser (int key, char *arg, struct argp_state *state)
       ssl_cafile = arg;
       break;
 
+    case ARGP_KEY_FINI:
+      if (tls_enable)
+	mu_init_tls_libs ();
+      break;
+      
     default:
       return ARGP_ERR_UNKNOWN;
     }
@@ -98,6 +115,34 @@ void
 mu_tls_init_argp ()
 {
   if (mu_register_capa ("tls", &_tls_argp_child))
+    {
+      mu_error (_("INTERNAL ERROR: cannot register argp capability tls"));
+      abort ();
+    }
+}
+
+static struct argp_option _tls_argp_client_options[] = {
+  {"tls", ARG_TLS, N_("BOOL"), OPTION_ARG_OPTIONAL,
+   N_("Enable TLS support") },
+  {NULL, 0, NULL, 0, NULL, 0}
+};
+  
+static struct argp _tls_client_argp = {
+  _tls_argp_client_options,
+  _tls_argp_parser
+};
+
+static struct argp_child _tls_argp_client_child = {
+  &_tls_client_argp,
+  0,
+  NULL,
+  0
+};
+
+void
+mu_tls_init_client_argp ()
+{
+  if (mu_register_capa ("tls", &_tls_argp_client_child))
     {
       mu_error (_("INTERNAL ERROR: cannot register argp capability tls"));
       abort ();
@@ -142,16 +187,22 @@ mu_check_tls_environment (void)
   return 1;
 }
 
+int mu_tls_enable = 0;
+
 int
 mu_init_tls_libs (void)
 {
-  return !gnutls_global_init (); /* Returns 1 on success */
+  if (!mu_tls_enable)
+    mu_tls_enable = !gnutls_global_init (); /* Returns 1 on success */
+  return mu_tls_enable;
 }
 
 void
 mu_deinit_tls_libs (void)
 {
-  gnutls_global_deinit ();
+  if (mu_tls_enable)
+    gnutls_global_deinit ();
+  mu_tls_enable = 0;
 }
 
 static void
@@ -194,8 +245,10 @@ struct _tls_stream {
   int ifd;
   int ofd;
   int last_err;
+  struct _line_buffer *lb;
   enum tls_stream_state state;
-  gnutls_session session;  
+  gnutls_session session;
+  stream_t tcp_str;
 };
 
 
@@ -203,11 +256,16 @@ static void
 _tls_destroy (stream_t stream)
 {
   struct _tls_stream *s = stream_get_owner (stream);
+  if (x509_cred)
+    gnutls_certificate_free_credentials (x509_cred);
   if (s->session && s->state == state_closed)
     {
       gnutls_deinit (s->session);
       s->state = state_destroyed;
     }
+  if (s->tcp_str)
+    stream_destroy (&s->tcp_str, stream_get_owner (s->tcp_str));
+  _auth_lb_destroy (&s->lb);
   free (s);
 }
     
@@ -242,26 +300,30 @@ _tls_readline (stream_t stream, char *optr, size_t osize,
   if (!stream || s->state != state_open || osize < 2)
     return EINVAL;
 
-  osize--; /* Allow for terminating zero */
-  ptr = optr;
-  rdsize = 0;
-  do
+  if (_auth_lb_level (s->lb) == 0)
     {
-      rc = gnutls_record_recv (s->session, ptr + rdsize, osize - rdsize);
-      if (rc < 0)
+      ptr = optr;
+      rdsize = 0;
+      do
 	{
-	  s->last_err = rc;
-	  return EIO;
+	  rc = gnutls_record_recv (s->session, ptr + rdsize, osize - rdsize);
+	  if (rc < 0)
+	    {
+	      s->last_err = rc;
+	      return EIO;
+	    }
+	  rdsize += rc;
 	}
-      rdsize += rc;
+      while (osize > rdsize && rc > 0 && ptr[rdsize-1] != '\n');
+      
+      _auth_lb_grow (s->lb, ptr, rdsize);
     }
-  while (osize > rdsize && rc > 0 && ptr[rdsize-1] != '\n');
-
-  ptr[rdsize] = 0;
   
+  osize--; /* Allow for terminating zero */
+  rdsize = _auth_lb_readline (s->lb, optr, osize);
+  optr[rdsize] = 0;
   if (nbytes)
     *nbytes = rdsize;
-  
   return 0;
 }
 
@@ -359,6 +421,81 @@ _tls_open (stream_t stream)
   return 0;
 }
 
+static int
+prepare_client_session (struct _tls_stream *s)
+{
+  int rc;
+  static int protocol_priority[] = {GNUTLS_TLS1, GNUTLS_SSL3, 0};
+  static int kx_priority[] = {GNUTLS_KX_RSA, 0};
+  static int cipher_priority[] = {GNUTLS_CIPHER_3DES_CBC,
+				  GNUTLS_CIPHER_ARCFOUR_128,
+				  0};
+  static int comp_priority[] = {GNUTLS_COMP_NULL, 0};
+  static int mac_priority[] = {GNUTLS_MAC_SHA, GNUTLS_MAC_MD5, 0};
+
+  gnutls_init (&s->session, GNUTLS_CLIENT);
+  gnutls_protocol_set_priority (s->session, protocol_priority);
+  gnutls_cipher_set_priority (s->session, cipher_priority);
+  gnutls_compression_set_priority (s->session, comp_priority);
+  gnutls_kx_set_priority (s->session, kx_priority);
+  gnutls_mac_set_priority (s->session, mac_priority);
+
+  gnutls_certificate_allocate_credentials (&x509_cred);
+  if (ssl_cafile)
+    {
+      rc = gnutls_certificate_set_x509_trust_file (x509_cred,
+						   ssl_cafile,
+						   GNUTLS_X509_FMT_PEM);
+      if (rc < 0)
+	{
+	  s->last_err = rc;
+	  return -1;
+	}
+    }
+
+  gnutls_credentials_set (s->session, GNUTLS_CRD_CERTIFICATE, x509_cred);
+
+  gnutls_transport_set_ptr2 (s->session, (gnutls_transport_ptr) s->ifd,
+			     (gnutls_transport_ptr) s->ofd);
+      
+  return 0;
+}
+  
+static int
+_tls_open_client (stream_t stream)
+{
+  struct _tls_stream *s = stream_get_owner (stream);
+  int rc = 0;
+  
+  switch (s->state)
+    {
+    case state_closed:
+      gnutls_certificate_free_credentials (x509_cred);
+      if (s->session)
+	gnutls_deinit (s->session);
+      /* FALLTHROUGH */
+      
+    case state_init:
+      prepare_client_session (s);
+      rc = gnutls_handshake (s->session);
+      if (rc < 0)
+	{
+	  s->last_err = rc;
+	  gnutls_deinit (s->session);
+	  s->state = state_init;
+	  return -1;
+	}
+      break;
+
+    default:
+      return -1;
+    }
+
+  /* FIXME: if (ssl_cafile) verify_certificate (s->session); */
+  s->state = state_open;
+  return 0;
+}
+
 int
 _tls_strerror (stream_t stream, char **pstr)
 {
@@ -367,12 +504,12 @@ _tls_strerror (stream_t stream, char **pstr)
   return 0;
 }
 
-/* FIXME: It returns only input fd */
 int
-_tls_get_fd (stream_t stream, int *pfd)
+_tls_get_fd (stream_t stream, int *pfd1, int *pfd2)
 {
   struct _tls_stream *s = stream_get_owner (stream);
-  *pfd = s->ifd;
+  *pfd1 = s->ifd;
+  *pfd2 = s->ofd;
   return 0;
 }
 
@@ -408,10 +545,66 @@ tls_stream_create (stream_t *stream, int in_fd, int out_fd, int flags)
   stream_set_destroy (*stream, _tls_destroy, s);
   stream_set_strerror (*stream, _tls_strerror, s);
   stream_set_fd (*stream, _tls_get_fd, s);
+  _auth_lb_create (&s->lb);
   
   s->state = state_init;
   return 0;
 }
+
+int
+tls_stream_create_client (stream_t *stream, int in_fd, int out_fd, int flags)
+{
+  struct _tls_stream *s;
+  int rc;
+
+  if (stream == NULL)
+    return EINVAL;
+
+  s = calloc (1, sizeof (*s));
+  if (s == NULL)
+    return ENOMEM;
+
+  s->ifd = in_fd;
+  s->ofd = out_fd;
+
+  rc = stream_create (stream, flags|MU_STREAM_NO_CHECK, s);
+  if (rc)
+    {
+      free (s);
+      return rc;
+    }
+
+  stream_set_open (*stream, _tls_open_client, s);
+  stream_set_close (*stream, _tls_close, s);
+  stream_set_read (*stream, _tls_read, s);
+  stream_set_readline (*stream, _tls_readline, s);
+  stream_set_write (*stream, _tls_write, s);
+  stream_set_flush (*stream, _tls_flush, s);
+  stream_set_destroy (*stream, _tls_destroy, s);
+  stream_set_strerror (*stream, _tls_strerror, s);
+  stream_set_fd (*stream, _tls_get_fd, s);
+  _auth_lb_create (&s->lb);
+  
+  s->state = state_init;
+  return 0;
+}
+
+int
+tls_stream_create_client_from_tcp (stream_t *stream, stream_t tcp_str,
+				   int flags)
+{
+  int rc, fd;
+  
+  stream_get_fd (tcp_str, &fd);
+  rc = tls_stream_create_client (stream, fd, fd, flags);
+  if (rc == 0)
+    {
+      struct _tls_stream *s = stream_get_owner (*stream);
+      s->tcp_str = tcp_str;
+    }
+  return rc;
+}
+
 
 #endif /* WITH_TLS */
 
