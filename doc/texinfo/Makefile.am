@@ -1,6 +1,6 @@
 ## Process this file with GNU Automake to create Makefile.in
 
-##   Copyright (C) 2001, 2002 Free Software Foundation, Inc.
+##   Copyright (C) 2001, 2002, 2003, 2004 Free Software Foundation, Inc.
 ##
 ##   GNU Mailutils is free software; you can redistribute it and/or
 ##   modify it under the terms of the GNU General Public License as
@@ -14,12 +14,12 @@
 ##
 ##   You should have received a copy of the GNU General Public License
 ##   along with this program; if not, write to the Free Software
-##   Foundation, Inc.
-##   59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+##   Foundation, Inc. 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 info_TEXINFOS = mailutils.texi muint.texi
 
-INCFILES=addr.inc http.inc numaddr.inc sfrom.inc url-parse.inc mailcap.inc
+INCFILES = addr.inc http.inc numaddr.inc sfrom.inc\
+ url-parse.inc mailcap.inc
 
 mailutils_TEXINFOS = \
  address.texi \
@@ -51,6 +51,7 @@ mailutils_TEXINFOS = \
  pop3.texi \
  programs.texi \
  sendmail.texi \
+ sieve.texi \
  smtp.texi \
  stream.texi \
  url.texi \
