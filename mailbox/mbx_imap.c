@@ -970,7 +970,12 @@ imap_message_lines (message_t msg, size_t *plines)
 {
   msg_imap_t msg_imap = message_get_owner (msg);
   if (plines && msg_imap)
-    *plines = msg_imap->message_lines;
+    {
+      if (msg_imap->message_lines == 0)
+	*plines = msg_imap->body_lines + msg_imap->header_lines;
+      else
+	*plines = msg_imap->message_lines;
+    }
   return 0;
 }
 

@@ -10,6 +10,13 @@
 	* mailbox/mbx_mh.c: Provide a prototype for mh_message_number()
 	there is no provision for it in the current Mailbox API.
 
+	* mailbox/mbx_imap.c (imap_message_lines): If the message_size
+	is not set fallback on body_lines and header_lines.
+
+	* mail/print.c:  Lines number are not always known for
+	example for POP or IMAP, it is not known until the mail
+	is dowloaded so take a guess base on the size.
+
 2001-10-08 Sergey Poznyakoff
 
 	* mail/z.c: Bugfix: Did not display the last message when the
