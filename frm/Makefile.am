@@ -36,4 +36,4 @@ frm_LDADD = \
 
 install-exec-hook:
 	cd $(DESTDIR)$(bindir) && \
-	$(LN_S) frm$(EXEEXT) from$(EXEEXT)
+	$(LN_S) -f frm$(EXEEXT) from$(EXEEXT)
