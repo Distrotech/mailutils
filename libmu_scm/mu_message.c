@@ -149,6 +149,52 @@ SCM_DEFINE (mu_message_create, "mu-message-create", 0, 0, 0,
 }
 #undef FUNC_NAME
 
+/* FIXME: This changes envelope date */
+SCM_DEFINE (mu_message_copy, "mu-message-copy", 1, 0, 0,
+	    (SCM MESG),
+	    "Creates the copy of the given message.\n")
+#define FUNC_NAME s_mu_message_copy
+{
+  message_t msg, newmsg;
+  stream_t in = NULL, out = NULL;
+  char buffer[512];
+  size_t off, n;
+  
+  SCM_ASSERT (mu_scm_is_message (MESG), MESG, SCM_ARG1, FUNC_NAME);
+  msg = mu_scm_message_get (MESG);
+
+  if (message_get_stream (msg, &in))
+    return SCM_BOOL_F;
+  
+  if (message_create (&newmsg, NULL))
+    return SCM_BOOL_F;
+  
+  if (message_get_stream (newmsg, &out))
+    {
+      message_destroy (&newmsg, NULL);
+      return SCM_BOOL_F;
+    }
+
+  off = 0;
+  while (stream_read (in, buffer, sizeof (buffer) - 1, off, &n) == 0
+	 && n != 0)
+    {
+      int wr;
+      
+      stream_write (out, buffer, n, off, &wr);
+      off += n;
+      if (wr != n)
+	{
+	  message_destroy (&newmsg, NULL);
+	  return SCM_BOOL_F;
+	}
+    }
+  
+  return mu_scm_message_create (SCM_BOOL_F, newmsg);
+}
+#undef FUNC_NAME
+
+
 SCM_DEFINE (mu_message_set_header, "mu-message-set-header", 3, 1, 0,
 	    (SCM MESG, SCM HEADER, SCM VALUE, SCM REPLACE),
 	    "Sets new VALUE to the header HEADER of the message MESG.\n"
@@ -184,7 +230,7 @@ SCM_DEFINE (mu_message_set_header, "mu-message-set-header", 3, 1, 0,
 
 SCM_DEFINE (mu_message_get_sender, "mu-message-get-sender", 1, 0, 0,
 	    (SCM MESG),
-	    "Returns the sender email address for the message MESG")
+	    "Returns the sender email address for the message MESG.")
 #define FUNC_NAME s_mu_message_get_sender
 {
   message_t msg;
@@ -320,9 +366,215 @@ SCM_DEFINE (mu_message_set_header_fields, "mu-message-set-header-fields", 2, 1, 
 }
 #undef FUNC_NAME
 
+SCM_DEFINE (mu_message_delete, "mu-message-delete", 1, 1, 0,
+	    (SCM MESG, SCM FLAG),
+	    "Mark given message as deleted. Optional FLAG allows to toggle deleted mark\n"
+	    "The message is deleted if it is #t and undeleted if it is #f")
+#define FUNC_NAME s_mu_message_delete
+{
+  message_t msg;
+  attribute_t attr;
+  int delete = 1;
+  
+  SCM_ASSERT (mu_scm_is_message (MESG), MESG, SCM_ARG1, FUNC_NAME);
+  msg = mu_scm_message_get (MESG);
+  if (!SCM_UNBNDP (FLAG))
+    {
+      SCM_ASSERT (SCM_IMP (FLAG) && SCM_BOOLP (FLAG),
+		  FLAG, SCM_ARG2, FUNC_NAME);
+      delete = FLAG == SCM_BOOL_T;
+    }
+  message_get_attribute (msg, &attr);
+  if (delete)
+    attribute_set_deleted (attr);
+  else
+    attribute_unset_deleted (attr);
+  return SCM_UNDEFINED;
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (mu_message_get_flag, "mu-message-get-flag", 2, 0, 0,
+	    (SCM MESG, SCM FLAG),
+	    "Return value of the attribute FLAG.")
+#define FUNC_NAME s_mu_message_get_flag
+{
+  message_t msg;
+  attribute_t attr;
+  int ret = 0;
+
+  SCM_ASSERT (mu_scm_is_message (MESG), MESG, SCM_ARG1, FUNC_NAME);
+  msg = mu_scm_message_get (MESG);
+  SCM_ASSERT (SCM_IMP (FLAG) && SCM_INUMP (FLAG), FLAG, SCM_ARG2, FUNC_NAME);
+
+  message_get_attribute (msg, &attr);
+  switch (SCM_INUM (FLAG))
+    {
+    case MU_ATTRIBUTE_ANSWERED:
+      ret = attribute_is_answered (attr);
+      break;
+    case MU_ATTRIBUTE_FLAGGED:
+      ret = attribute_is_flagged (attr);
+      break;
+    case MU_ATTRIBUTE_DELETED:
+      ret = attribute_is_deleted (attr);
+      break;
+    case MU_ATTRIBUTE_DRAFT:
+      ret = attribute_is_draft (attr);
+      break;
+    case MU_ATTRIBUTE_SEEN:
+      ret = attribute_is_seen (attr);
+      break;
+    case MU_ATTRIBUTE_READ:
+      ret = attribute_is_read (attr);
+      break;
+    case MU_ATTRIBUTE_MODIFIED:
+      ret = attribute_is_modified (attr);
+      break;
+    case MU_ATTRIBUTE_RECENT:
+      ret = attribute_is_recent (attr);
+      break;
+    default:
+      attribute_get_flags (attr, &ret);
+      ret &= SCM_INUM (FLAG);
+    }
+  return ret ? SCM_BOOL_T : SCM_BOOL_F;
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (mu_message_set_flag, "mu-message-set-flag", 2, 1, 0,
+	    (SCM MESG, SCM FLAG, SCM VALUE),
+	    "Set the given attribute of the message. If optional VALUE is #f, the\n"
+	    "attribute is unset.")
+#define FUNC_NAME s_mu_message_set_flag
+{
+  message_t msg;
+  attribute_t attr;
+  int value = 1;
+
+  SCM_ASSERT (mu_scm_is_message (MESG), MESG, SCM_ARG1, FUNC_NAME);
+  msg = mu_scm_message_get (MESG);
+  SCM_ASSERT (SCM_IMP (FLAG) && SCM_INUMP (FLAG), FLAG, SCM_ARG2, FUNC_NAME);
+
+  if (!SCM_UNBNDP (VALUE))
+    {
+      SCM_ASSERT (SCM_IMP (VALUE) && SCM_BOOLP (VALUE),
+		  VALUE, SCM_ARG3, FUNC_NAME);
+      value = VALUE == SCM_BOOL_T;
+    }
+  
+  message_get_attribute (msg, &attr);
+  switch (SCM_INUM (FLAG))
+    {
+    case MU_ATTRIBUTE_ANSWERED:
+      if (value)
+	attribute_set_answered (attr);
+      else
+	attribute_unset_answered (attr);
+      break;
+    case MU_ATTRIBUTE_FLAGGED:
+      if (value)
+	attribute_set_flagged (attr);
+      else
+	attribute_unset_flagged (attr);
+      break;
+    case MU_ATTRIBUTE_DELETED:
+      if (value)
+	attribute_set_deleted (attr);
+      else
+	attribute_unset_deleted (attr);
+      break;
+    case MU_ATTRIBUTE_DRAFT:
+      if (value)
+	attribute_set_draft (attr);
+      else
+	attribute_unset_draft (attr);
+      break;
+    case MU_ATTRIBUTE_SEEN:
+      if (value)
+	attribute_set_seen (attr);
+      else
+	attribute_unset_seen (attr);
+      break;
+    case MU_ATTRIBUTE_READ:
+      if (value)
+	attribute_set_read (attr);
+      else
+	attribute_unset_read (attr);
+      break;
+    case MU_ATTRIBUTE_MODIFIED:
+      if (value)
+	attribute_set_modified (attr);
+      else
+	attribute_clear_modified (attr);
+      break;
+    case MU_ATTRIBUTE_RECENT:
+      if (value)
+	attribute_set_recent (attr);
+      else
+	attribute_unset_recent (attr);
+      break;
+    default:
+      if (value)
+	attribute_set_flags (attr, SCM_INUM (FLAG));
+    }
+  return SCM_UNDEFINED;
+}
+#undef FUNC_NAME
+
+SCM_DEFINE (mu_message_get_user_flag, "mu-message-get-user-flag", 2, 0, 0,
+	    (SCM MESG, SCM FLAG),
+	    "Returns value of the user attribute FLAG.")
+#define FUNC_NAME s_mu_message_get_user_flag
+{
+  message_t msg;
+  attribute_t attr;
+  int ret = 0;
+
+  SCM_ASSERT (mu_scm_is_message (MESG), MESG, SCM_ARG1, FUNC_NAME);
+  msg = mu_scm_message_get (MESG);
+  SCM_ASSERT (SCM_IMP (FLAG) && SCM_INUMP (FLAG), FLAG, SCM_ARG2, FUNC_NAME);
+  message_get_attribute (msg, &attr);
+  return attribute_is_userflag (attr, SCM_INUM (FLAG)) ?
+                                SCM_BOOL_T : SCM_BOOL_F;
+}
+#undef FUNC_NAME
+  
+
+SCM_DEFINE (mu_message_set_user_flag, "mu-message-set-user-flag", 2, 1, 0,
+	    (SCM MESG, SCM FLAG, SCM VALUE),
+	    "Set the given user attribute of the message. If optional VALUE is\n"
+	    "#f, the attribute is unset.")
+#define FUNC_NAME s_mu_message_set_user_flag
+{
+  message_t msg;
+  attribute_t attr;
+  int set = 1;
+
+  SCM_ASSERT (mu_scm_is_message (MESG), MESG, SCM_ARG1, FUNC_NAME);
+  msg = mu_scm_message_get (MESG);
+  SCM_ASSERT (SCM_IMP (FLAG) && SCM_INUMP (FLAG), FLAG, SCM_ARG2, FUNC_NAME);
+
+  if (!SCM_UNBNDP (VALUE))
+    {
+      SCM_ASSERT (SCM_IMP (VALUE) && SCM_BOOLP (VALUE),
+		  VALUE, SCM_ARG3, FUNC_NAME);
+      set = VALUE == SCM_BOOL_T;
+    }
+  
+  message_get_attribute (msg, &attr);
+  if (set)
+    attribute_set_userflag (attr, SCM_INUM (FLAG));
+  else
+    attribute_unset_userflag (attr, SCM_INUM (FLAG));
+  return SCM_UNDEFINED;
+}
+#undef FUNC_NAME
+
+  
+
 SCM_DEFINE (mu_message_get_body, "mu-message-get-body", 1, 0, 0,
 	    (SCM MESG),
-	    "Returns the message body for the message MESG")
+	    "Returns the message body for the message MESG.")
 #define FUNC_NAME s_mu_message_get_body
 {
   message_t msg;
