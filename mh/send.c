@@ -302,7 +302,7 @@ open_mailer ()
   status = mailer_create (&mailer, url);
   if (status)
     {
-      mh_error(_("Cannot create mailer \"%s\""), url);
+      mh_error(_("Cannot create mailer `%s'"), url);
       return NULL;
     }
 
@@ -317,7 +317,7 @@ open_mailer ()
   status = mailer_open (mailer, MU_STREAM_RDWR);
   if (status)
     {
-      mh_error(_("Cannot open mailer \"%s\""), url);
+      mh_error(_("Cannot open mailer `%s'"), url);
       return NULL;
     }
   return mailer;

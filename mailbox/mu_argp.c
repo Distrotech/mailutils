@@ -417,7 +417,7 @@ mu_common_argp_parser (int key, char *arg, struct argp_state *state)
 		break;
 		
 	      default:
-		argp_error (state, _("Invalid lock flag '%c'"), *arg);
+		argp_error (state, _("Invalid lock flag `%c'"), *arg);
 	      }
 	  }
 	locker_set_default_flags (flags, mu_locker_set_flags);
@@ -457,7 +457,7 @@ mu_common_argp_parser (int key, char *arg, struct argp_state *state)
     case 'E':
       if ((err = mu_set_user_email(arg)) != 0)
 	  {
-	    argp_error (state, _("Invalid email address '%s': %s"),
+	    argp_error (state, _("Invalid email address `%s': %s"),
 		arg, mu_strerror(err));
 	  }
       break;
@@ -465,7 +465,7 @@ mu_common_argp_parser (int key, char *arg, struct argp_state *state)
     case 'D':
       if ((err = mu_set_user_email_domain(arg)) != 0)
 	  {
-	    argp_error (state, _("Invalid email domain '%s': %s"),
+	    argp_error (state, _("Invalid email domain `%s': %s"),
 		arg, mu_strerror(err));
 	  }
       break;
@@ -474,7 +474,7 @@ mu_common_argp_parser (int key, char *arg, struct argp_state *state)
     case 'M':
       if ((err = mailer_set_url_default (arg)) != 0)
 	  {
-	    argp_error (state, _("Invalid mailer URL '%s': %s"),
+	    argp_error (state, _("Invalid mailer URL `%s': %s"),
 			arg, mu_strerror(err));
 	  }
       break;

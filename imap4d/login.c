@@ -42,7 +42,7 @@ imap4d_login (struct imap4d_command *command, char *arg)
 
   if (auth_data == NULL)
     {
-      syslog (LOG_INFO, _("User '%s': nonexistent"), username);
+      syslog (LOG_INFO, _("User `%s': nonexistent"), username);
       return util_finish (command, RESP_NO, "User name or passwd rejected");
     }
 
@@ -60,7 +60,7 @@ imap4d_login (struct imap4d_command *command, char *arg)
   homedir = mu_normalize_path (strdup (auth_data->dir), "/");
   chdir (homedir);
   namespace_init (homedir);
-  syslog (LOG_INFO, _("User '%s' logged in"), username);
+  syslog (LOG_INFO, _("User `%s' logged in"), username);
   return util_finish (command, RESP_OK, "Completed");
 }
 

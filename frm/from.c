@@ -25,7 +25,7 @@ const char *program_version = "from (" PACKAGE_STRING ")";
 static char doc[] = N_("GNU from -- display from and subject");
 
 static struct argp_option options[] = {
-  {"count",  'c', NULL,   0, N_("Just print a count of messages and exit.")},
+  {"count",  'c', NULL,   0, N_("Just print a count of messages and exit")},
   {"sender", 's', N_("ADDRESS"), 0,
    N_("Print only mail from addresses containing the supplied string") },
   {"file",   'f', N_("FILE"), 0,

@@ -88,7 +88,7 @@ mh_context_write (mh_context_t *ctx)
   fp = fopen (ctx->name, "w");
   if (!fp)
     {
-      mh_error (_("Cannot write context file %s: %s"),
+      mh_error (_("Cannot open context file %s: %s"),
 		ctx->name, strerror (errno));
       return MU_ERR_FAILURE;
     }

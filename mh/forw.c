@@ -281,7 +281,7 @@ finish_draft ()
 				MU_STREAM_WRITE|MU_STREAM_CREAT)) != 0
       || (rc = stream_open (stream)))
     {
-      mh_error (_("Cannot open output file \"%s\": %s"),
+      mh_error (_("Cannot open output file `%s': %s"),
 		wh_env.file, mu_strerror (rc));
       exit (1);
     }

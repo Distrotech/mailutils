@@ -245,9 +245,13 @@ main (int argc, char **argv)
   status = mailbox_create_default (&mbox, mailbox_name);
   if (status != 0)
     {
-      fprintf (stderr, _("Could not create mailbox <%s>: %s.\n"),
-	       mailbox_name ? mailbox_name : _("default"),
-	       mu_strerror(status));
+      if (mailbox_name)
+	fprintf (stderr, _("Could not create mailbox `%s': %s\n"),
+		 mailbox_name,
+		 mu_strerror(status));
+      else
+	fprintf (stderr, _("Could not create default mailbox: %s\n"),
+		 mu_strerror(status));
       exit (2);
     }
 
@@ -265,7 +269,7 @@ main (int argc, char **argv)
       url_t url = NULL;
 
       mailbox_get_url (mbox, &url);
-      fprintf (stderr, _("Could not open mailbox <%s>: %s.\n"),
+      fprintf (stderr, _("Could not open mailbox `%s': %s\n"),
 	       url_to_string (url), mu_strerror(status));
       exit (2);
     }

@@ -526,7 +526,7 @@ mh_file_copy (const char *from, const char *to)
   if ((rc = file_stream_create (&in, from, MU_STREAM_READ)) != 0
       || (rc = stream_open (in)))
     {
-      mh_error (_("Cannot open input file \"%s\": %s"),
+      mh_error (_("Cannot open input file `%s': %s"),
 		from, mu_strerror (rc));
       free (buffer);
       return 1;
@@ -535,7 +535,7 @@ mh_file_copy (const char *from, const char *to)
   if ((rc = file_stream_create (&out, to, MU_STREAM_RDWR|MU_STREAM_CREAT)) != 0
       || (rc = stream_open (out)))
     {
-      mh_error (_("Cannot open output file \"%s\": %s"),
+      mh_error (_("Cannot open output file `%s': %s"),
 		to, mu_strerror (rc));
       free (buffer);
       stream_close (in);
@@ -549,7 +549,7 @@ mh_file_copy (const char *from, const char *to)
     {
       if ((rc = stream_sequential_write (out, buffer, rdsize)) != 0)
 	{
-	  mh_error (_("Write error on \"%s\": %s"),
+	  mh_error (_("Write error on `%s': %s"),
 		    to, mu_strerror (rc));
 	  break;
 	}

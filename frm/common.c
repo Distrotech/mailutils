@@ -513,7 +513,7 @@ frm_abort (mailbox_t *mbox)
     {
       url_t url;
       
-      mu_error (_("Could not close <%s>: %s."),
+      mu_error (_("Could not close mailbox `%s': %s"),
 		url_to_string (url), mu_strerror (status));
       exit (3);
     }
@@ -540,9 +540,12 @@ frm_scan (char *mailbox_name, frm_select_t fun, size_t *total)
   status = mailbox_create_default (&mbox, mailbox_name);
   if (status != 0)
     {
-      mu_error (_("Could not create mailbox <%s>: %s."),
-		mailbox_name ? mailbox_name : _("default"),
-		mu_strerror (status));
+      if (mailbox_name)
+	mu_error (_("Could not create mailbox `%s': %s"),
+		  mailbox_name,  mu_strerror (status));
+      else
+	mu_error (_("Could not create default mailbox: %s"),
+		  mu_strerror (status));
       exit (3);
     }
 
@@ -560,7 +563,7 @@ frm_scan (char *mailbox_name, frm_select_t fun, size_t *total)
     *total = 0;
   else if (status != 0)
     {
-      mu_error (_("Could not open mailbox <%s>: %s."),
+      mu_error (_("Could not open mailbox `%s': %s"),
 		url_to_string (url), mu_strerror (status));
       frm_abort (&mbox);
     }
@@ -580,7 +583,7 @@ frm_scan (char *mailbox_name, frm_select_t fun, size_t *total)
       status = mailbox_scan (mbox, 1, total);
       if (status != 0)
 	{
-	  mu_error (_("Could not scan mailbox <%s>: %s."),
+	  mu_error (_("Could not scan mailbox `%s': %s."),
 		    url_to_string (url), mu_strerror (status));
 	  frm_abort (&mbox);
 	}
@@ -590,7 +593,7 @@ frm_scan (char *mailbox_name, frm_select_t fun, size_t *total)
       
       if ((status = mailbox_close (mbox)) != 0)
 	{
-	  mu_error (_("Could not close <%s>: %s."),
+	  mu_error (_("Could not close mailbox `%s': %s"),
 		    url_to_string (url), mu_strerror (status));
 	  exit (3);
 	}

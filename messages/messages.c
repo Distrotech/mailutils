@@ -137,8 +137,12 @@ messages_count (const char *box)
   status =  mailbox_create_default (&mbox, box);
   if (status != 0)
     {
-      mu_error (_("Could not create mailbox <%s>: %s."),
-		box ? box : _("default"), mu_strerror (status));
+      if (box)
+	mu_error (_("Could not create mailbox `%s': %s"),
+		  box, mu_strerror (status));
+      else
+	mu_error (_("Could not create default mailbox: %s"),
+		  mu_strerror (status));
       return -1;
     }
 
@@ -148,7 +152,7 @@ messages_count (const char *box)
   status =  mailbox_open (mbox, MU_STREAM_READ);
   if (status != 0)
     {
-      mu_error (_("Could not open mailbox <%s>: %s."),
+      mu_error (_("Could not open mailbox `%s': %s"),
 		box, mu_strerror (status));
       return -1;
     }
@@ -156,7 +160,7 @@ messages_count (const char *box)
   status = mailbox_messages_count (mbox, &count);
   if (status != 0)
     {
-      mu_error (_("Could not count messages in <%s>: %s."),
+      mu_error (_("Could not count messages in mailbox `%s': %s"),
 		box, mu_strerror (status));
       return -1;
     }
@@ -169,7 +173,7 @@ messages_count (const char *box)
   status = mailbox_close (mbox);
   if (status != 0)
     {
-      mu_error (_("Could not close <%s>: %s."),
+      mu_error (_("Could not close `%s': %s"),
 		box, mu_strerror (status));
       return -1;
     }

@@ -547,7 +547,7 @@ var_read (int argc, char **argv, compose_env_t *env ARG_UNUSED)
   inf = fopen (filename, "r");
   if (!inf)
     {
-      util_error (_("Cannot open %s: %s\n"), filename, strerror (errno));
+      util_error (_("Cannot open %s: %s"), filename, strerror (errno));
       free (filename);
       return 1;
     }
@@ -602,7 +602,7 @@ var_write (int argc, char **argv, compose_env_t *env)
 
   if (!fp)
     {
-      util_error (_("Cannot open %s: %s\n"), filename, strerror (errno));
+      util_error (_("Cannot open %s: %s"), filename, strerror (errno));
       free (filename);
       return 1;
     }

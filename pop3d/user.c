@@ -74,7 +74,7 @@ pop3d_user (const char *arg)
 
       if (auth_data == NULL)
 	{
-	  syslog (LOG_INFO, _("User '%s': nonexistent"), arg);
+	  syslog (LOG_INFO, _("User `%s': nonexistent"), arg);
 	  return ERR_BAD_LOGIN;
 	}
 
@@ -83,14 +83,14 @@ pop3d_user (const char *arg)
 
       if (rc)
 	{
-	  syslog (LOG_INFO, _("User '%s': authentication failed"), arg);
+	  syslog (LOG_INFO, _("User `%s': authentication failed"), arg);
 	  mu_auth_data_free (auth_data);
 	  return ERR_BAD_LOGIN;
 	}
     }
   else if (strcasecmp (cmd, "QUIT") == 0)
     {
-      syslog (LOG_INFO, _("Possible probe of account '%s'"), arg);
+      syslog (LOG_INFO, _("Possible probe of account `%s'"), arg);
       free (cmd);
       return pop3d_quit (pass);
     }
@@ -103,7 +103,7 @@ pop3d_user (const char *arg)
   if (check_login_delay (auth_data->name))
     {
       syslog (LOG_INFO,
-	      _("User '%s' tried to log in within the minimum allowed delay"),
+	      _("User `%s' tried to log in within the minimum allowed delay"),
 	      auth_data->name);
       state = AUTHORIZATION;
       mu_auth_data_free (auth_data);
@@ -165,8 +165,8 @@ pop3d_user (const char *arg)
     mailbox_get_url (mbox, &url);
     mailbox_messages_count (mbox, &total);
     syslog (LOG_INFO,
-	    ngettext ("User '%s' logged in with mailbox '%s' (%d message)",
-		      "User '%s' logged in with mailbox '%s' (%d messages)",
+	    ngettext ("User `%s' logged in with mailbox `%s' (%d message)",
+		      "User `%s' logged in with mailbox `%s' (%d messages)",
 		      total),
 	    username, url_to_string (url), total);
   }

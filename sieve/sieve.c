@@ -417,7 +417,7 @@ main (int argc, char *argv[])
         }
       else if (!(opts.tickets_default && errno == ENOENT))
         {
-          mu_error (_("wicket_create <%s> failed: %s"),
+          mu_error (_("wicket_create `%s' failed: %s"),
                     opts.tickets, mu_strerror (rc));
           goto cleanup;
         }
@@ -452,8 +452,12 @@ main (int argc, char *argv[])
   /* Create, give a ticket to, and open the mailbox. */
   if ((rc = mailbox_create_default (&mbox, opts.mbox)) != 0)
     {
-      mu_error (_("mailbox_create <%s> failed: %s"),
-	       opts.mbox ? opts.mbox : _("default"), mu_strerror (rc));
+      if (opts.mbox)
+	mu_error (_("Could not create mailbox `%s': %s"),
+		  opts.mbox, mu_strerror (rc));
+      else
+	mu_error (_("Could not create default mailbox: %s"),
+		  mu_strerror (rc));
       goto cleanup;
     }
 
@@ -499,8 +503,12 @@ main (int argc, char *argv[])
 
   if (rc != 0)
     {
-      mu_error (_("Opening mailbox `%s' failed: %s"),
-		opts.mbox ? opts.mbox : _("default"), mu_strerror (rc));
+      if (opts.mbox)
+	mu_error (_("Opening mailbox `%s' failed: %s"),
+		  opts.mbox, mu_strerror (rc));
+      else
+	mu_error (_("Opening default mailbox failed: %s"),
+		  mu_strerror (rc));
       mailbox_destroy (&mbox);
       goto cleanup;
     }
@@ -518,9 +526,15 @@ cleanup:
          any messages that were marked DELETED even if execution failed
          on a later message. */
       if ((e = mailbox_expunge (mbox)) != 0)
-	mu_error (_("Expunge on mailbox `%s' failed: %s"),
-		  opts.mbox ? opts.mbox : _("default"), mu_strerror (e));
-
+	{
+	  if (opts.mbox)
+	    mu_error (_("Expunge on mailbox `%s' failed: %s"),
+		      opts.mbox, mu_strerror (e));
+	  else
+	    mu_error (_("Expunge on default mailbox failed: %s"),
+		      mu_strerror (e));
+	}
+      
       if (e && !rc)
 	rc = e;
     }

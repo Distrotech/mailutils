@@ -103,13 +103,13 @@ die (mailbox_t mbox, char *msg, int status)
   
   mailbox_get_url (mbox, &url);
   if (emacs_mode)
-    mu_error (_("%s:mailbox '%s': %s: %s"),
+    mu_error (_("%s:mailbox `%s': %s: %s"),
 	      mu_errname (status),
 	      url_to_string (url),
 	      msg,
 	      mu_strerror (status));
   else
-    mu_error (_("mailbox '%s': %s: %s"),
+    mu_error (_("mailbox `%s': %s: %s"),
 	      url_to_string (url), msg, mu_strerror (status));
   exit (1);
 }
@@ -184,9 +184,13 @@ open_mailbox (mailbox_t *mbx, char *name, int flags, char *passwd)
 
   if (status)
     {
-      mu_error (_("Could not create mailbox <%s>: %s\n"),
-		name ? name : _("default"),
-		mu_strerror (status));
+      if (name)
+	mu_error (_("Could not create mailbox `%s': %s"),
+		  name,
+		  mu_strerror (status));
+      else
+	mu_error (_("Could not create default mailbox: %s"),
+		  mu_strerror (status));
       exit (1);
     }
 

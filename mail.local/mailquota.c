@@ -217,7 +217,7 @@ sql_retrieve_quota (char *name, size_t *quota)
       status = mu_sql_get_column (conn, 0, 0, &tmp);
       if (status)
 	{
-	  mu_error (_("Cannot retrieve SQL quota: %s"),
+	  mu_error (_("Cannot retrieve mailbox quota from SQL: %s"),
 		    (status == MU_ERR_SQL) ?  mu_sql_strerror (conn) :
 		    mu_strerror (status));
 	  rc = RETR_FAILURE;

@@ -255,7 +255,7 @@ sieve_action_reject (sieve_machine_t mach, list_t args, list_t tags)
   if (rc)
     {
       sieve_error (mach,
-		   _("%d: cannot create recipient address <%s>: %s\n"),
+		   _("%d: cannot create recipient address <%s>: %s"),
 		   sieve_get_message_num (mach),
 		   addrtext, mu_strerror (rc));
       free (addrtext);
@@ -267,7 +267,7 @@ sieve_action_reject (sieve_machine_t mach, list_t args, list_t tags)
   if (rc)
     {
       sieve_error (mach,
-		   _("%d: cannot create sender address <%s>: %s\n"),
+		   _("%d: cannot create sender address <%s>: %s"),
 		   sieve_get_message_num (mach),
 		   sieve_get_daemon_email (mach),
 		   mu_strerror (rc));
@@ -281,7 +281,7 @@ sieve_action_reject (sieve_machine_t mach, list_t args, list_t tags)
       mailer_get_url (mailer, &url);
 	
       sieve_error (mach,
-		   _("%d: cannot open mailer %s: %s\n"),
+		   _("%d: cannot open mailer %s: %s"),
 		   sieve_get_message_num (mach),
 		   url_to_string (url),
 		   mu_strerror (rc));
@@ -364,7 +364,7 @@ sieve_action_redirect (sieve_machine_t mach, list_t args, list_t tags)
   if (rc)
     {
       sieve_error (mach,
-		   _("%d: parsing recipient address `%s' failed: %s\n"),
+		   _("%d: parsing recipient address `%s' failed: %s"),
 		   sieve_get_message_num (mach),
 		   val->v.string, mu_strerror (rc));
       return 1;
@@ -386,7 +386,7 @@ sieve_action_redirect (sieve_machine_t mach, list_t args, list_t tags)
   if (rc)
     {
       sieve_error (mach,
-		   _("%d: cannot get envelope sender: %s\n"),
+		   _("%d: cannot get envelope sender: %s"),
 		   sieve_get_message_num (mach), mu_strerror (rc));
       goto end;
     }
@@ -396,7 +396,7 @@ sieve_action_redirect (sieve_machine_t mach, list_t args, list_t tags)
     {
       sieve_error (mach,
 		   "redirect",
-		   _("%d: cannot create sender address <%s>: %s\n"),
+		   _("%d: cannot create sender address <%s>: %s"),
 		   sieve_get_message_num (mach),
 		   fromaddr, mu_strerror (rc));
       free (fromaddr);
@@ -436,7 +436,7 @@ sieve_action_redirect (sieve_machine_t mach, list_t args, list_t tags)
       mailer_get_url (mailer, &url);
 	
       sieve_error (mach,
-		   _("%d: cannot open mailer %s: %s\n"),
+		   _("%d: cannot open mailer %s: %s"),
 		   sieve_get_message_num (mach),
 		   url_to_string (url),
 		   mu_strerror (rc));

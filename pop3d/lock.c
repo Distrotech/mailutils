@@ -31,7 +31,7 @@ pop3d_lock ()
   locker_set_flags (lock, MU_LOCKER_PID);
   if ((status = locker_lock (lock)))
     {
-      syslog (LOG_NOTICE, _("Mailbox '%s' lock failed: %s"),
+      syslog (LOG_NOTICE, _("Locking mailbox `%s' failed: %s"),
 	      name ? name : "?", mu_strerror(status));
       return ERR_MBOX_LOCK;
     }

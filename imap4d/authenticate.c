@@ -130,7 +130,7 @@ imap4d_authenticate (struct imap4d_command *command, char *arg)
       /* FIXME: Check for errors.  */
       chdir (homedir);
       namespace_init (homedir);
-      syslog (LOG_INFO, _("User '%s' logged in"), adata.username);
+      syslog (LOG_INFO, _("User `%s' logged in"), adata.username);
       
       return util_finish (command, RESP_OK,
 			  "%s authentication successful", auth_type);

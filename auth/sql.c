@@ -211,7 +211,7 @@ mu_sql_argp_parser (int key, char *arg, struct argp_state *state)
     case ARG_SQL_INTERFACE:
       sql_interface = mu_sql_interface_index (arg);
       if (sql_interface == 0)
-	argp_error (state, _("Unknown SQL interface '%s'"), arg);
+	argp_error (state, _("Unknown SQL interface `%s'"), arg);
       break;
       
     case ARG_SQL_GETPWNAM:
@@ -254,7 +254,7 @@ mu_sql_argp_parser (int key, char *arg, struct argp_state *state)
       else if (strcmp (arg, "scrambled") == 0)
 	mu_sql_password_type  = password_scrambled;
       else
-	argp_error (state, _("Unknown password type '%s'"), arg);
+	argp_error (state, _("Unknown password type `%s'"), arg);
       break;
       
     default:

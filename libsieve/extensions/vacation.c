@@ -253,7 +253,7 @@ check_db (sieve_machine_t mach, list_t tags, char *from)
 
   if (asprintf (&file, "%s/.vacation", (home ? home : ".")) == -1)
     {
-      sieve_error (mach, _("%d: cannot build db file name\n"),
+      sieve_error (mach, _("%d: cannot build db file name"),
 		   sieve_get_message_num (mach));
       free (home);
       sieve_abort (mach);
@@ -264,7 +264,7 @@ check_db (sieve_machine_t mach, list_t tags, char *from)
   if (rc)
     {
       sieve_error (mach,
-		   _("%d: cannot open \"%s\": %s"),
+		   _("%d: cannot open `%s': %s"),
 		   sieve_get_message_num (mach), file,
 		   mu_strerror (rc));
       free (file);
@@ -441,7 +441,7 @@ vacation_reply (sieve_machine_t mach, list_t tags, message_t msg,
   if (rc)
     {
       sieve_error (mach,
-		   _("%d: cannot create recipient address <%s>: %s\n"),
+		   _("%d: cannot create recipient address <%s>: %s"),
 		   sieve_get_message_num (mach), from, mu_strerror (rc));
       return -1;
     }
@@ -476,7 +476,7 @@ vacation_reply (sieve_machine_t mach, list_t tags, message_t msg,
       mailer_get_url (mailer, &url);
       
       sieve_error (mach,
-		   _("%d: cannot open mailer %s: %s\n"),
+		   _("%d: cannot open mailer %s: %s"),
 		   sieve_get_message_num (mach),
 		   url_to_string (url), mu_strerror (rc));
       return -1;
@@ -520,7 +520,7 @@ sieve_action_vacation (sieve_machine_t mach, list_t args, list_t tags)
   else if (sieve_get_message_sender (msg, &from))
     {
       sieve_error (mach,
-		   _("%d: cannot get sender address\n"),
+		   _("%d: cannot get sender address"),
 		   sieve_get_message_num (mach));
       sieve_abort (mach);
     }

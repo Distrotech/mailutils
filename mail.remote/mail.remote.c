@@ -216,7 +216,7 @@ main (int argc, char **argv)
     {
       const char *url = NULL;
       mailer_get_url_default (&url);
-      mu_error (_("Creating mailer '%s' failed: %s"),
+      mu_error (_("Creating mailer `%s' failed: %s"),
 		url, mu_strerror (status));
       mr_exit (status);
     }
@@ -243,7 +243,7 @@ main (int argc, char **argv)
     {
       const char *url = NULL;
       mailer_get_url_default (&url);
-      mu_error (_("Opening mailer '%s' failed: %s"),
+      mu_error (_("Opening mailer `%s' failed: %s"),
 		url, mu_strerror (status));
       mr_exit (status);
     }
