@@ -42,17 +42,61 @@ parse_opt (int key, char *arg, struct argp_state *state)
 	  break;
 	}
       return ARGP_ERR_UNKNOWN;
-	
+
     default:
-      if (data->handler (key, arg, data->closure) == 0)
-	break;
+      if (data->handler (key, arg, data->closure, state) == 0)
+	{
+	  if (key == ARGP_KEY_ERROR)
+	    data->errind = state->next;
+	  break;
+	}
       return ARGP_ERR_UNKNOWN;
     }
   return 0;
 }
 
+static int
+my_argp_parse (struct argp *argp, int argc, char **argv, int flags,
+	       int *end_index, struct mh_argp_data *data)
+{
+  int rc;
+  int f = 0;
+  int index = 0;
+  
+  if (flags & ARGP_NO_ERRS)
+    {
+      while (argc > 0
+	     && (rc = argp_parse (argp, argc, argv, flags|f, end_index, data))
+	     == EINVAL)
+	{
+	  if (data->errind == -1)
+	    break;
+	  data->errind--;
+	  if (f)
+	    data->errind--;
+	  argc -= data->errind;
+	  argv += data->errind;
+	  index += data->errind;
+	  if (argc < 2 || memcmp (argv[1], "--", 2))
+	    {
+	      if (end_index)
+		*end_index = index + 1;
+	      break;
+	    }
+	  f = ARGP_PARSE_ARGV0;
+	}
+      if (rc == 0 && end_index)
+	*end_index += index;
+      rc = 0;
+    }
+  else
+    rc = argp_parse (argp, argc, argv, flags, end_index, data);
+  return rc;
+}
+
 int
 mh_argp_parse (int argc, char **argv,
+	       int flags,
 	       struct argp_option *option,
 	       struct mh_option *mh_option,
 	       char *argp_doc, char *doc,
@@ -82,6 +126,7 @@ mh_argp_parse (int argc, char **argv,
   data.closure = closure;
   data.handler = handler;
   data.doc = argp_doc;
+  data.errind = -1;
   
   p = mh_global_profile_get (program_invocation_short_name, NULL);
   if (p)
@@ -107,7 +152,9 @@ mh_argp_parse (int argc, char **argv,
 	_argv[i] = argv[j];
       _argv[i] = NULL;
       mh_argv_preproc (_argc, _argv, &data);
-      argp_parse (&argp, _argc, _argv, 0, &index, &data);
+
+      my_argp_parse (&argp, _argc, _argv, flags, &index, &data);
+
       free (_argv);
       extra = index < _argc;
       index -= xargc;
@@ -117,7 +164,7 @@ mh_argp_parse (int argc, char **argv,
   else
     {
       mh_argv_preproc (argc, argv, &data);
-      argp_parse (&argp, argc, argv, 0, &index, &data);
+      my_argp_parse (&argp, argc, argv, flags, &index, &data);
       extra = index < argc;
     }
   if (pindex)
