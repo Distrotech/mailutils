@@ -1,0 +1,7 @@
+dotlock
+Makefile
+Makefile.in
+.gdbinit
+.deps
+.libs
+_*
