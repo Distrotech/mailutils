@@ -23,6 +23,7 @@ EXTRA_PROGRAMS = scan inc rmm refile mhpath folder rmf fmtcheck repl whatnow
 LIBRARIES_MH = libmh.a
 EXTRA_LIBRARIES = libmh.a
 
+mhlibdir = $(pkgdatadir)/mh
 bin_PROGRAMS = @BUILD_MH_PROGRAMS@
 noinst_LIBRARIES = @BUILD_MH_LIBRARIES@
 
@@ -39,7 +40,11 @@ libmh_a_SOURCES= \
  mh_whatnow.c
 noinst_HEADERS = mh.h mh_getopt.h
 
+mhlib_DATA = replcomps
+EXTRA_DIST = replcomps
+
 INCLUDES = -I${top_srcdir}/include -I${top_srcdir}/lib -I${top_srcdir}/mailbox @INTLINCS@
+AM_CPPFLAGS = -DMHLIBDIR=\"$(mhlibdir)\"
 mh_LIBS = ./libmh.a ../mailbox/libmailbox.la ../lib/libmailutils.la @LTLIBINTL@
 scan_LDADD = $(mh_LIBS) @CURSES_LIBS@
 inc_LDADD = $(mh_LIBS)
