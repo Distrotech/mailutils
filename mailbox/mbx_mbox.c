@@ -1574,6 +1574,8 @@ mbox_append_message0 (mailbox_t mailbox, message_t msg, off_t *psize,
 	       - Should  we skip the IMAP "X-Status"? */
 	    if ((strncasecmp (buffer, "Status", 6) == 0)
 		|| (strncasecmp (buffer, "X-IMAPbase", 10) == 0)
+		/* FIXME: isn't the length of "X-UID" 5, not 4? And
+		 this will match X-UID and X-UIDL, is this intended? */
 		|| (strncasecmp (buffer, "X-UID", 4) == 0
 		    && (buffer[5] == ':' || buffer[5] == ' '
 			|| buffer[5] == '\t')))
