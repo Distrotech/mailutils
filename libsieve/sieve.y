@@ -361,39 +361,39 @@ sieve_machine_init (sieve_machine_t *pmach, void *data)
 }
 
 void
-sieve_machine_set_error (sieve_machine_t mach, sieve_printf_t error_printer)
+sieve_set_error (sieve_machine_t mach, sieve_printf_t error_printer)
 {
   mach->error_printer = error_printer ?
                            error_printer : _sieve_default_error_printer;
 }
 
 void
-sieve_machine_set_parse_error (sieve_machine_t mach, sieve_parse_error_t p)
+sieve_set_parse_error (sieve_machine_t mach, sieve_parse_error_t p)
 {
   mach->parse_error_printer = p ? p : _sieve_default_parse_error;
 }
 
 void
-sieve_machine_set_debug (sieve_machine_t mach, sieve_printf_t debug)
+sieve_set_debug (sieve_machine_t mach, sieve_printf_t debug)
 {
   mach->debug_printer = debug;
 }
 
 void
-sieve_machine_set_debug_level (sieve_machine_t mach, mu_debug_t dbg, int level)
+sieve_set_debug_level (sieve_machine_t mach, mu_debug_t dbg, int level)
 {
   mach->mu_debug = dbg;
   mach->debug_level = level;
 }
 
 void
-sieve_machine_set_logger (sieve_machine_t mach, sieve_action_log_t logger)
+sieve_set_logger (sieve_machine_t mach, sieve_action_log_t logger)
 {
   mach->logger = logger;
 }
 
 void
-sieve_machine_set_ticket (sieve_machine_t mach, ticket_t ticket)
+sieve_set_ticket (sieve_machine_t mach, ticket_t ticket)
 {
   mach->ticket = ticket;
 }
@@ -402,6 +402,46 @@ ticket_t
 sieve_get_ticket (sieve_machine_t mach)
 {
   return mach->ticket;
+}
+
+mailer_t
+sieve_get_mailer (sieve_machine_t mach)
+{
+  if (!mach->mailer)
+    mailer_create (&mach->mailer, NULL);
+  return mach->mailer;
+}
+
+void
+sieve_set_mailer (sieve_machine_t mach, mailer_t mailer)
+{
+  mailer_destroy (&mach->mailer);
+  mach->mailer = mailer;
+}
+
+#define MAILER_DAEMON_PFX "MAILER-DAEMON@"
+
+char *
+sieve_get_daemon_email (sieve_machine_t mach)
+{
+  if (!mach->daemon_email)
+    {
+      const char *domain = NULL;
+      
+      mu_get_user_email_domain (&domain);
+      mach->daemon_email = sieve_palloc (&mach->memory_pool,
+					 sizeof(MAILER_DAEMON_PFX) +
+					 strlen (domain));
+      sprintf (mach->daemon_email, "%s%s", MAILER_DAEMON_PFX, domain);
+    }
+  return mach->daemon_email;
+}
+
+void
+sieve_set_daemon_email (sieve_machine_t mach, const char *email)
+{
+  sieve_pfree (&mach->memory_pool, (void *)mach->daemon_email);
+  mach->daemon_email = sieve_pstrdup (&mach->memory_pool, email);
 }
 
 struct sieve_destr_record
@@ -441,6 +481,7 @@ sieve_machine_destroy (sieve_machine_t *pmach)
   list_do (mach->destr_list, _run_destructor, NULL);
   list_destroy (&mach->destr_list);
   sieve_slist_destroy (&mach->memory_pool);
+  mailer_destroy (&mach->mailer);
   free (mach);
   *pmach = NULL;
 }
