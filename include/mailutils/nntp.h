@@ -47,9 +47,9 @@ extern int  mu_nntp_stls            (mu_nntp_t nntp);
 
 extern int  mu_nntp_mode_reader     (mu_nntp_t nntp);
 
-/* A list is return with the multi-line answer.  It is the responsability of
-   the caller to call list_destroy() to dispose of the list.  */
-extern int  mu_nntp_list_extensions (mu_nntp_t nntp, list_t *plist);
+/* An iterator is return with the multi-line answer.  It is the responsability of
+   the caller to call iterator_destroy() to dispose of the iterator.  */
+extern int  mu_nntp_list_extensions (mu_nntp_t nntp, iterator_t *iterator);
 
 extern int  mu_nntp_quit            (mu_nntp_t nntp);
 
@@ -81,26 +81,26 @@ extern int  mu_nntp_date            (mu_nntp_t nntp, unsigned int *year, unsigne
 extern int  mu_nntp_help            (mu_nntp_t nntp, stream_t *stream);
 
 
-/* A list is return with the multi-line answer.  It is the responsability of
-   the caller to call list_destroy() to dispose of the list.  */
+/* An iterator is return with the multi-line answer.  It is the responsability of
+   the caller to call iterator_destroy() to dispose of the iterator.  */
 extern int  mu_nntp_newgroups       (mu_nntp_t nntp, unsigned int year, unsigned int month, unsigned int day,
-				     unsigned int hour, unsigned int minute, unsigned int second, int is_gmt, list_t *plist);
-/* A list is return with the multi-line answer.  It is the responsability of
-   the caller to call list_destroy() to dispose of the list.  */
+				     unsigned int hour, unsigned int minute, unsigned int second, int is_gmt, iterator_t *iterator);
+/* A iterator is return with the multi-line answer.  It is the responsability of
+   the caller to call iterator_destroy() to dispose of the iterator.  */
 extern int  mu_nntp_newnews       (mu_nntp_t nntp, const char *wildmat, unsigned int year, unsigned int month, unsigned int day,
-				     unsigned int hour, unsigned int minute, unsigned int second, int is_gmt, list_t *plist);
+				   unsigned int hour, unsigned int minute, unsigned int second, int is_gmt, iterator_t *iterator);
 
 extern int  mu_nntp_post            (mu_nntp_t nntp, stream_t stream);
 extern int  mu_nntp_ihave           (mu_nntp_t nntp, const char *mid, stream_t stream);
 
 
-/* A list is return with the multi-line answer.  It is the responsability of
-   the caller to call list_destroy() to dispose of the list.  */
-extern int  mu_nntp_list_active     (mu_nntp_t nntp, const char *wildmat, list_t *plist);
-extern int  mu_nntp_list_active_times      (mu_nntp_t nntp, const char *wildmat, list_t *plist);
-extern int  mu_nntp_list_distributions (mu_nntp_t nntp, const char *wildmat, list_t *plist);
-extern int  mu_nntp_list_distrib_pats  (mu_nntp_t nntp, list_t *plist);
-extern int  mu_nntp_list_newsgroups    (mu_nntp_t nntp, const char *wildmat, list_t *plist);
+/* A iterator is return with the multi-line answer.  It is the responsability of
+   the caller to call iterator_destroy() to dispose of the iterator.  */
+extern int  mu_nntp_list_active     (mu_nntp_t nntp, const char *wildmat, iterator_t *iterator);
+extern int  mu_nntp_list_active_times      (mu_nntp_t nntp, const char *wildmat, iterator_t *iterator);
+extern int  mu_nntp_list_distributions (mu_nntp_t nntp, const char *wildmat, iterator_t *iterator);
+extern int  mu_nntp_list_distrib_pats  (mu_nntp_t nntp, iterator_t *iterator);
+extern int  mu_nntp_list_newsgroups    (mu_nntp_t nntp, const char *wildmat, iterator_t *iterator);
 
 
 /* Parse the list active response.

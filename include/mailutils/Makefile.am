@@ -48,6 +48,7 @@ pkginclude_HEADERS = \
  mu_auth.h \
  mutil.h \
  nls.h \
+ nntp.h \
  observer.h \
  parse822.h \
  pop3.h \

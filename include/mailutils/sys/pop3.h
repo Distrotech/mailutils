@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2003 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2003, 2004 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -90,6 +90,7 @@ struct _mu_pop3
 
 extern int  mu_pop3_debug_cmd       (mu_pop3_t);
 extern int  mu_pop3_debug_ack       (mu_pop3_t);
+extern int  mu_pop3_iterator_create (mu_pop3_t pop3, iterator_t *piterator);
 extern int  mu_pop3_stream_create (mu_pop3_t pop3, stream_t *pstream);
 extern int  mu_pop3_carrier_is_ready (stream_t carrier, int flag, int timeout);
 

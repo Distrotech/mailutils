@@ -150,6 +150,7 @@ struct _mu_nntp
 
 extern int  mu_nntp_debug_cmd        (mu_nntp_t);
 extern int  mu_nntp_debug_ack        (mu_nntp_t);
+extern int  mu_nntp_iterator_create  (mu_nntp_t, iterator_t *iterator);
 extern int  mu_nntp_stream_create    (mu_nntp_t nntp, stream_t *pstream);
 extern int  mu_nntp_carrier_is_ready (stream_t carrier, int flag, int timeout);
 extern int  mu_nntp_parse_article    (mu_nntp_t nntp, int code, unsigned long *pnum, char **mid);
