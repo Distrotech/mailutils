@@ -53,6 +53,10 @@ char *alloca ();
 #include <malloc.h>
 #include <ctype.h>
 
+#ifdef HAVE_STRINGS_H
+# include <strings.h>
+#endif
+
 #ifndef _
 /* This is for other GNU distributions with internationalized messages.  */
 # if defined HAVE_LIBINTL_H || defined _LIBC
