@@ -1,3 +1,10 @@
+2001-08-14 Sergey Poznyakoff
+
+	* mail/msgset.y: Extended regexp syntax: IDENT:/EXPR/ fetches
+	all messages whose header IDENT matches given EXPR. The match
+	is case-sensitive if IDENT starts with a capital letter and
+	is case-insensitive otherwise.
+
 2001-08-12 Alain Magloire
 
 	* mailbox2/*: Move more code from the original mailbox

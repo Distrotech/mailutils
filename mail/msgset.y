@@ -23,9 +23,15 @@
 #include <xalloc.h>
 #include <mail.h>
 
+struct header_data
+{
+  char *header;
+  char *expr;
+};
+    
 static msgset_t *msgset_select (int (*sel)(), void *closure, int rev,
 				int max_matches);
-static int select_subject (message_t msg, void *closure);
+static int select_header (message_t msg, void *closure);
 static int select_type (message_t msg, void *closure);
 static int select_sender (message_t msg, void *closure);
 static int select_deleted (message_t msg, void *closure);
@@ -41,9 +47,11 @@ static msgset_t *result;
 }
 
 %token <type> TYPE
-%token <string> IDENT REGEXP
+%token <string> IDENT REGEXP HEADER
 %token <number> NUMBER
 %type <mset> msgset msgspec msg rangeset range partno number
+%type <string> header
+
 %%
 
 input    : /* empty */
@@ -101,10 +109,15 @@ msgspec  : msg
          | range
          ;
 
-msg      : REGEXP /* /.../ */
+msg      : header REGEXP /* /.../ */
            {
-	     $$ = msgset_select (select_subject, (void *)$1, 0, 0);
-	     free ($1);
+	     struct header_data hd;
+	     hd.header = $1;
+	     hd.expr   = $2; 
+	     $$ = msgset_select (select_header, &hd, 0, 0);
+	     if ($1)
+	       free ($1);
+	     free ($2);
 	   }
          | TYPE  /* :n, :d, etc */
            {
@@ -119,6 +132,16 @@ msg      : REGEXP /* /.../ */
            {
 	     $$ = msgset_select (select_sender, (void *)$1, 0, 0);
 	     free ($1);
+	   }
+         ;
+
+header   : /* empty */
+           {
+	     $$ = NULL;
+	   }
+         | HEADER
+           {
+	     $$ = $1;
 	   }
          ;
 
@@ -225,12 +248,17 @@ yylex()
       char *p = cur_p;
       int len;
 
-      while (*cur_p && *cur_p != ',' && *cur_p != '-')
+      while (*cur_p && *cur_p != ',' && *cur_p != '-' && *cur_p != ':')
 	cur_p++;
       len = cur_p - p + 1;
       yylval.string = xmalloc (len);
       memcpy (yylval.string, p, len-1);
       yylval.string[len-1] = 0;
+      if (*cur_p == ':')
+	{
+	  ++cur_p;
+	  return HEADER;
+	}
       return IDENT;
     }
 
@@ -434,13 +462,15 @@ msgset_select (int (*sel)(), void *closure, int rev, int max_matches)
 }
 
 int
-select_subject (message_t msg, void *closure)
+select_header (message_t msg, void *closure)
 {
-  char *expr = (char*) closure;
+  struct header_data *hd = (struct header_data *)closure;
   header_t hdr;
-  char *subject;
+  char *contents;
+  char *header = hd->header ? hd->header : MU_HEADER_SUBJECT;
+  
   message_get_header (msg, &hdr);
-  if (header_aget_value (hdr, MU_HEADER_SUBJECT, &subject) == 0)
+  if (header_aget_value (hdr, header, &contents) == 0)
     {
       if (!(util_find_env ("noregex"))->set)
 	{
@@ -448,21 +478,27 @@ select_subject (message_t msg, void *closure)
 	     case) in pattern, treating errors as no match.
 	     Return 1 for match, 0 for no match.
 	  */
-	  regex_t re;
-	  int status;
-	  if (regcomp (&re, expr, REG_EXTENDED | REG_ICASE) != 0)
-	    return 0;
-	  status = regexec (&re, subject, 0, NULL, 0);
-	  if (status != 0)
-	    return 0;
-	  return status == 0;
+          regex_t re;
+          int status;
+	  int flags = REG_EXTENDED;
+
+	  if (islower (header[0]))
+	    flags |= REG_ICASE;
+          if (regcomp (&re, hd->expr, flags) != 0)
+	    {
+	      free (contents);
+	      return 0;
+	    }
+          status = regexec (&re, contents, 0, NULL, 0);
+          free (contents);
+          return status == 0;
 	}
       else
 	{
 	  int rc;
-	  util_strupper (subject);
-	  rc = strstr (subject, expr) != NULL;
-	  free (subject);
+	  util_strupper (contents);
+	  rc = strstr (contents, hd->expr) != NULL;
+	  free (contents);
 	  return rc;
 	}
     }
