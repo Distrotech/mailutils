@@ -2,7 +2,7 @@
 
 	* mailbox/maildir/mbox.c (maildir_message_cmp): Compare the
 	rest of filenames if the timestamps are equal
-	* mail/if.c (mail_if): 'if t'  is true is stdout is connected
+	* mail/if.c (mail_if): 'if t'  is true if stdout is connected
 	to a terminal.
 	* mailbox/mbox/url.c (_url_path_init): Missed typecast.
 
