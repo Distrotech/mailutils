@@ -18,7 +18,7 @@
 #include "imap4d.h"
 
 /*FIXME: should be global? */
-typedef int (*nsfp_t) __P((void *closure, int ns, char *path, int delim));
+typedef int (*nsfp_t) __P ((void *closure, int ns, char *path, int delim));
 
 struct namespace_t
 {
@@ -30,30 +30,30 @@ struct namespace_t namespace[NS_MAX];
 
 /* Note: str is not supposed to be NULL */
 int
-set_namespace(int i, char *str)
+set_namespace (int i, char *str)
 {
   char *p, *save;
   struct namespace_t ns;
 
   /* first, estimate the number of items in subdir_v array: */
   ns.subdir_c = 1;
-  for (p = strchr(str, ':'); p && *p; p = strchr(p+1, ':'))
+  for (p = strchr (str, ':'); p && *p; p = strchr (p + 1, ':'))
     ns.subdir_c++;
 
   /* Now allocate the memory */
-  ns.subdir_v = calloc(ns.subdir_c, sizeof(ns.subdir_v[0]));
+  ns.subdir_v = calloc (ns.subdir_c, sizeof (ns.subdir_v[0]));
 
   /* Fill in the array */
   if (ns.subdir_c == 1)
     {
-      ns.subdir_v[0] = mu_normalize_path(strdup(str), "/");
+      ns.subdir_v[0] = mu_normalize_path (strdup (str), "/");
     }
   else
     {
       ns.subdir_c = 0;
-      for (p = strtok_r(str, ":", &save); p; p = strtok_r(NULL, ":", &save))
+      for (p = strtok_r (str, ":", &save); p; p = strtok_r (NULL, ":", &save))
 	{
-	  ns.subdir_v[ns.subdir_c++] = mu_normalize_path(strdup(p), "/");
+	  ns.subdir_v[ns.subdir_c++] = mu_normalize_path (strdup (p), "/");
 	}
     }
 
@@ -63,11 +63,11 @@ set_namespace(int i, char *str)
 }
 
 static char *
-printable_pathname(char *str)
+printable_pathname (char *str)
 {
-  if (strncmp(str, homedir, strlen(homedir)) == 0)
+  if (strncmp (str, homedir, strlen (homedir)) == 0)
     {
-      str += strlen(homedir);
+      str += strlen (homedir);
       if (str[0] == '/')
 	str++;
     }
@@ -75,57 +75,58 @@ printable_pathname(char *str)
 }
 
 static void
-print_namespace(int n)
+print_namespace (int n)
 {
   int i;
 
   if (namespace[n].subdir_c == 0)
     {
-      util_send("NIL");
+      util_send ("NIL");
       return;
     }
 
-  util_send("(");
+  util_send ("(");
   for (i = 0; i < namespace[n].subdir_c; i++)
     {
-      util_send("(\"%s\" \"/\")", printable_pathname(namespace[n].subdir_v[i]));
+      util_send ("(\"%s\" \"/\")",
+		 printable_pathname (namespace[n].subdir_v[i]));
     }
-  util_send(")");
+  util_send (")");
 }
 
 static int
-namespace_enumerate(int ns, nsfp_t f, void *closure)
+namespace_enumerate (int ns, nsfp_t f, void *closure)
 {
   int i, rc;
 
   for (i = 0; i < namespace[ns].subdir_c; i++)
-    if ((rc = (*f)(closure, ns, namespace[ns].subdir_v[i], '/')))
+    if ((rc = (*f) (closure, ns, namespace[ns].subdir_v[i], '/')))
       return rc;
   return 0;
 }
 
 static int
-namespace_enumerate_all(nsfp_t f, void *closure)
+namespace_enumerate_all (nsfp_t f, void *closure)
 {
-  return namespace_enumerate(NS_PRIVATE, f, closure)
-    || namespace_enumerate(NS_OTHER, f, closure)
-    || namespace_enumerate(NS_SHARED, f, closure);
+  return namespace_enumerate (NS_PRIVATE, f, closure)
+    || namespace_enumerate (NS_OTHER, f, closure)
+    || namespace_enumerate (NS_SHARED, f, closure);
 }
 
 int
-imap4d_namespace(struct imap4d_command *command, char *arg)
+imap4d_namespace (struct imap4d_command *command, char *arg)
 {
   if (*arg)
     return util_finish (command, RESP_BAD, "Too many arguments");
 
-  util_send("* NAMESPACE ");
+  util_send ("* NAMESPACE ");
 
-  print_namespace(NS_PRIVATE);
-  util_send(" ");
-  print_namespace(NS_OTHER);
-  util_send(" ");
-  print_namespace(NS_SHARED);
-  util_send("\r\n");
+  print_namespace (NS_PRIVATE);
+  util_send (" ");
+  print_namespace (NS_OTHER);
+  util_send (" ");
+  print_namespace (NS_SHARED);
+  util_send ("\r\n");
 
   return util_finish (command, RESP_OK, "Completed");
 }
@@ -134,7 +135,7 @@ imap4d_namespace(struct imap4d_command *command, char *arg)
 struct namespace_info
 {
   char *name;
-  int  namelen;
+  int namelen;
   int ns;
   int exact;
 };
@@ -142,10 +143,10 @@ struct namespace_info
 static int
 check_namespace (void *closure, int ns, char *path, int delim)
 {
-  struct namespace_info *p = (struct namespace_info *)closure;
-  int len = strlen(path);
+  struct namespace_info *p = (struct namespace_info *) closure;
+  int len = strlen (path);
   if ((len == 0 && p->namelen == len)
-      || (len > 0 && strncmp(path, p->name, strlen(path)) == 0))
+      || (len > 0 && strncmp (path, p->name, strlen (path)) == 0))
     {
       p->ns = ns;
       p->exact = len == p->namelen;
@@ -155,7 +156,7 @@ check_namespace (void *closure, int ns, char *path, int delim)
 }
 
 static int
-risky_pattern(const char *pattern, int delim)
+risky_pattern (const char *pattern, int delim)
 {
   for (; *pattern && *pattern != delim; pattern++)
     {
@@ -169,28 +170,57 @@ char *
 namespace_checkfullpath (char *name, const char *pattern, const char *delim)
 {
   struct namespace_info info;
-  char *path = util_getfullpath (name, delim);
+  url_t url = NULL;
+  char *p, *path = NULL;
+  char *scheme = NULL;
 
-  if (!path)
-    return path;
-
-  mu_normalize_path(path, "/");
-  
-  info.name = path;
-  info.namelen = strlen(path);
-  if (!namespace_enumerate_all(check_namespace, &info))
+  p = strchr (name, ':');
+  if (p)
     {
-      free(path);
+      size_t size = p - name + 1;
+      scheme = malloc (size + 1);
+      if (!scheme)
+	return NULL;
+      memcpy (scheme, name, size);
+      scheme[size] = 0;
+      name = p + 1;
+    }
+
+  path = util_getfullpath (name, delim);
+  if (!path)
+    {
+      free (scheme);
+      return path;
+    }
+  info.name = path;
+  info.namelen = strlen (path);
+  if (!namespace_enumerate_all (check_namespace, &info))
+    {
+      free (scheme);
+      free (path);
       return NULL;
     }
 
   if (pattern &&
-      info.ns == NS_OTHER && info.exact && risky_pattern(pattern, '/'))
+      info.ns == NS_OTHER && info.exact && risky_pattern (pattern, '/'))
     {
-      free(path);
+      free (scheme);
+      free (path);
       return NULL;
     }
 
+  if (scheme)
+    {
+      char *pathstr = malloc (strlen (scheme) + strlen (path) + 2);
+      if (pathstr)
+	{
+	  strcpy (pathstr, scheme);
+	  strcat (pathstr, path);
+	}
+      free (scheme);
+      free (path);
+      path = pathstr;
+    }
   return path;
 }
 
@@ -205,8 +235,8 @@ namespace_getfullpath (char *name, const char *delim)
 }
 
 int
-namespace_init(char *path)
+namespace_init (char *path)
 {
-  set_namespace(NS_PRIVATE, path);
+  set_namespace (NS_PRIVATE, path);
   return 0;
 }
