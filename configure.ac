@@ -744,7 +744,6 @@ AC_CONFIG_FILES([Makefile
  libmu_scm/Makefile
  libsieve/Makefile
  libsieve/extensions/Makefile
- m4/Makefile
  mail/Makefile
  mail/testsuite/Makefile
  mail.local/Makefile
