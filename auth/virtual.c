@@ -55,7 +55,6 @@ getpwnam_virtual (char *u)
   size_t i = 0, len = strlen (u), delim = 0;
   char *filename;
 
-  mu_virtual_domain = 0;
   for (i = 0; i < len && delim == 0; i++)
     if (u[i] == '!' || u[i] == ':' || u[i] == '@')
       delim = i;
@@ -76,10 +75,7 @@ getpwnam_virtual (char *u)
     while ((pw = fgetpwent (pfile)) != NULL)
       {
 	if (strlen (pw->pw_name) == delim && !strncmp (u, pw->pw_name, delim))
-	  {
-	    mu_virtual_domain = 1;
-	    break;
-	  }
+	  break;
       }
 
   return pw;
