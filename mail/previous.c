@@ -25,20 +25,35 @@
 int
 mail_previous (int argc, char **argv)
 {
+  size_t n;
+  message_t msg;
+
   if (argc < 2)
     {
-      cursor--;
-      realcursor--;
+      int rc = 1;
+      for (n = cursor - 1; n > 0; n--)
+	{
+	  rc = util_get_message (mbox, n, &msg, MSG_NODELETED|MSG_SILENT);
+	  if (rc == 0)
+	    break;
+	}
+
+      if (rc)
+	{
+	  util_error ("No applicable message");
+	  return 1;
+	}
     }
   else
     {
       msgset_t *list = NULL;
-      if (msgset_parse (argc, argv, &list))
-          return 1;
-      cursor = list->msg_part[0];
-      realcursor = cursor;
+      msgset_parse (argc, argv, &list);
+      n = list->msg_part[0];
       msgset_free (list);
+      if (util_get_message (mbox, n, &msg, MSG_NODELETED|MSG_SILENT))
+	return 1;
     }
+  cursor = realcursor = n;
   util_do_command ("print");
   return 0;
 }
