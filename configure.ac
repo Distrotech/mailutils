@@ -375,14 +375,28 @@ AC_ARG_WITH([virtual-pwddir],
 MU_ENABLE_SUPPORT(imap)
 MU_ENABLE_SUPPORT(pop)
 
-AC_SUBST(BUILD_MH_PROGRAMS)
-AC_SUBST(BUILD_MH_LIBRARIES)
-MU_ENABLE_SUPPORT(mh, [BUILD_MH_PROGRAMS='$(PROGRAMS_MH)'; BUILD_MH_LIBRARIES='$(LIBRARIES_MH)'])
 AC_SUBST(BUILD_SMTP_PROGRAMS)
 AC_SUBST(RUN_SMTP_DEJATOOL)
 MU_ENABLE_SUPPORT(smtp, [BUILD_SMTP_PROGRAMS='$(PROGRAMS_SMTP)'
 RUN_SMTP_DEJATOOL='$(SMTP_DEJATOOL)'])
 MU_ENABLE_SUPPORT(sendmail)
+
+AC_SUBST(BUILD_MH_PROGRAMS)
+AC_SUBST(BUILD_MH_LIBRARIES)
+MU_ENABLE_SUPPORT(mh,
+                  [BUILD_MH_PROGRAMS='$(PROGRAMS_MH)';
+                   BUILD_MH_LIBRARIES='$(LIBRARIES_MH)'])
+
+AC_ARG_ENABLE([experimental],
+              AC_HELP_STRING([--enable-experimental],
+                             [build experimental and/or unfinished utilities]),
+              [MU_BUILD_EXPERIMENTAL="${enableval}"],
+              [MU_BUILD_EXPERIMENTAL=no])
+
+if test ".$MU_BUILD_EXPERIMENTAL" = ".no"; then
+	BUILD_MH_PROGRAMS=
+	BUILD_MH_LIBRARIES=
+fi
 
 if test x"$testpam" = x"yes"; then
 	AC_CHECK_HEADERS(security/pam_appl.h)
