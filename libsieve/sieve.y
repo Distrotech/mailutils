@@ -24,7 +24,7 @@
 #include <assert.h>
 #include <sieve.h>
 
-sieve_machine_t *sieve_machine;
+sieve_machine_t sieve_machine;
 int sieve_error_count;
 
 static void branch_fixup __P((size_t start, size_t end));
@@ -336,42 +336,80 @@ yyerror (char *s)
   return 0;
 }
 
-void
-sieve_machine_init (sieve_machine_t *mach, void *data)
+int
+sieve_machine_init (sieve_machine_t *pmach, void *data)
 {
+  int rc;
+  sieve_machine_t mach;
+  
+  mach = malloc (sizeof (*mach));
+  if (!mach)
+    return ENOMEM;
   memset (mach, 0, sizeof (*mach));
+  rc = list_create (&mach->memory_pool);
+  if (rc)
+    {
+      free (mach);
+      return NULL;
+    }
+  list_append (mach->memory_pool, mach);
+  
   mach->data = data;
   mach->error_printer = _sieve_default_error_printer;
   mach->parse_error_printer = _sieve_default_parse_error;
+  *pmach = mach;
+  return 0;
 }
 
 void
-sieve_machine_set_error (sieve_machine_t *mach, sieve_printf_t error_printer)
+sieve_machine_set_error (sieve_machine_t mach, sieve_printf_t error_printer)
 {
   mach->error_printer = error_printer ?
                            error_printer : _sieve_default_error_printer;
 }
 
 void
-sieve_machine_set_parse_error (sieve_machine_t *mach, sieve_parse_error_t p)
+sieve_machine_set_parse_error (sieve_machine_t mach, sieve_parse_error_t p)
 {
   mach->parse_error_printer = p ? p : _sieve_default_parse_error;
 }
 
 void
-sieve_machine_set_debug (sieve_machine_t *mach,
-			 sieve_printf_t debug, int level)
+sieve_machine_set_debug (sieve_machine_t mach, sieve_printf_t debug)
 {
-  if (debug)
-    mach->debug_printer = debug;
+  mach->debug_printer = debug;
+}
+
+void
+sieve_machine_set_debug_level (sieve_machine_t mach, mu_debug_t dbg, int level)
+{
+  mach->mu_debug = dbg;
   mach->debug_level = level;
+}
+
+void
+sieve_machine_set_logger (sieve_machine_t mach, sieve_action_log_t logger)
+{
+  mach->logger = logger;
+}
+
+void
+sieve_machine_set_ticket (sieve_machine_t mach, ticket_t ticket)
+{
+  mach->ticket = ticket;
+}
+
+ticket_t
+sieve_get_ticket (sieve_machine_t mach)
+{
+  return mach->ticket;
 }
 
 /* FIXME: When posix thread support is added, sieve_machine_begin() should
    acquire the global mutex, locking the current compilation session, and
    sieve_machine_finish() should release it */
 void
-sieve_machine_begin (sieve_machine_t *mach)
+sieve_machine_begin (sieve_machine_t mach)
 {
   sieve_machine = mach;
   sieve_error_count = 0;
@@ -379,22 +417,28 @@ sieve_machine_begin (sieve_machine_t *mach)
 }
 
 void
-sieve_machine_finish (sieve_machine_t *mach)
+sieve_machine_finish (sieve_machine_t mach)
 {
   sieve_code_instr (NULL);
 }
 
 int
-sieve_compile (sieve_machine_t *mach, const char *name)
+sieve_compile (sieve_machine_t mach, const char *name)
 {
   int rc;
   
   sieve_machine_begin (mach);
   sieve_register_standard_actions ();
   sieve_register_standard_tests ();
-  sieve_lex_begin (name);
+  if (sieve_lex_begin (name) == 0)
+    {
+      sieve_machine->filename = sieve_pstrdup (&sieve_machine->memory_pool,
+					       name);
   rc = yyparse ();
   sieve_lex_finish ();
+    }
+  else
+    rc = 1;
   sieve_machine_finish (mach);
   if (sieve_error_count)
     rc = 1;
