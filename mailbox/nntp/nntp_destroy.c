@@ -42,6 +42,9 @@ mu_nntp_destroy (mu_nntp_t *pnntp)
       if (nntp->carrier)
 	stream_destroy (&nntp->carrier, nntp);
 
+      /* Any posting residue.  */
+      if (nntp->post.buf)
+	free (nntp->post.buf);
       free (nntp);
 
       *pnntp = NULL;

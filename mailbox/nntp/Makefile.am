@@ -35,10 +35,20 @@ libmu_nntp_la_SOURCES = \
  nntp_disconnect.c \
  nntp_group.c \
  nntp_head.c \
+ nntp_help.c \
+ nntp_ihave.c \
  nntp_last.c \
+ nntp_list_active.c \
+ nntp_list_distribpats.c \
+ nntp_list_distributions.c \
  nntp_list_extensions.c \
+ nntp_list_newsgroups.c \
+ nntp_list_times.c \
  nntp_mode_reader.c \
+ nntp_newgroups.c \
+ nntp_newnews.c \
  nntp_next.c \
+ nntp_post.c \
  nntp_quit.c \
  nntp_readline.c \
  nntp_response.c \

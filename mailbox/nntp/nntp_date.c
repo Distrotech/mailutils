@@ -23,6 +23,10 @@
 #include <errno.h>
 #include <mailutils/sys/nntp.h>
 
+static int
+mu_nntp_parse_date (mu_nntp_t nntp, int code, unsigned int *year, unsigned int *month, unsigned int *day,
+		    unsigned int *hour, unsigned int *min, unsigned int *sec);
+
 int
 mu_nntp_date (mu_nntp_t nntp, unsigned int *year, unsigned int *month, unsigned int *day,
 	      unsigned int *hour, unsigned int *min, unsigned int *sec)
@@ -56,7 +60,7 @@ mu_nntp_date (mu_nntp_t nntp, unsigned int *year, unsigned int *month, unsigned 
       nntp->state = MU_NNTP_NO_STATE;
 
       /* parse the answer now. */
-      status = mu_parse_date(nntp, MU_NNTP_RESP_CODE_SERVER_DATE, year, month, day, hour, min, sec);
+      status = mu_nntp_parse_date(nntp, MU_NNTP_RESP_CODE_SERVER_DATE, year, month, day, hour, min, sec);
       MU_NNTP_CHECK_ERROR (nntp, status);
       break;
 

@@ -28,11 +28,11 @@
 #include <mailutils/sys/nntp.h>
 
 /*
-  LIST EXTENSIONS command, return a list that contains the result.
+  LIST xxxx command, return a list that contains the result.
   It is the responsability of the caller to destroy the list(list_destroy).
  */
 int
-mu_nntp_list_extensions (mu_nntp_t nntp, list_t *plist)
+mu_nntp_list_distrib_pats (mu_nntp_t nntp, list_t *plist)
 {
   int status;
 
@@ -44,36 +44,35 @@ mu_nntp_list_extensions (mu_nntp_t nntp, list_t *plist)
   switch (nntp->state)
     {
     case MU_NNTP_NO_STATE:
-      status = mu_nntp_writeline (nntp, "LIST EXTENSIONS\r\n");
+      status = mu_nntp_writeline (nntp, "LIST DISTRIB.PATS\r\n");
       MU_NNTP_CHECK_ERROR (nntp, status);
       mu_nntp_debug_cmd (nntp);
-      nntp->state = MU_NNTP_LIST_EXTENSIONS;
+      nntp->state = MU_NNTP_LIST_DISTRIB_PATS;
 
-    case MU_NNTP_LIST_EXTENSIONS:
+    case MU_NNTP_LIST_DISTRIB_PATS:
       status = mu_nntp_send (nntp);
       MU_NNTP_CHECK_EAGAIN (nntp, status);
       nntp->acknowledge = 0;
-      nntp->state = MU_NNTP_LIST_EXTENSIONS_ACK;
+      nntp->state = MU_NNTP_LIST_DISTRIB_PATS_ACK;
 
-    case MU_NNTP_LIST_EXTENSIONS_ACK:
+    case MU_NNTP_LIST_DISTRIB_PATS_ACK:
       status = mu_nntp_response (nntp, NULL, 0, NULL);
       MU_NNTP_CHECK_EAGAIN (nntp, status);
       mu_nntp_debug_ack (nntp);
-      MU_NNTP_CHECK_CODE (nntp, MU_NNTP_RESP_CODE_EXTENSIONS_FOLLOW);
+      MU_NNTP_CHECK_CODE (nntp, MU_NNTP_RESP_CODE_LIST_FOLLOW);
       status = list_create (plist);
       MU_NNTP_CHECK_ERROR(nntp, status);
       list_set_destroy_item(*plist, free);
-      nntp->state = MU_NNTP_LIST_EXTENSIONS_RX;
+      nntp->state = MU_NNTP_LIST_DISTRIB_PATS_RX;
 
-    case MU_NNTP_LIST_EXTENSIONS_RX:
+    case MU_NNTP_LIST_DISTRIB_PATS_RX:
       {
-        /* CAPA line are 512 octets maximum according to RFC 2449.
-           But do not use the stack and malloc.  */
-        char *capability;
+        /* line are 512 octets maximum according to RFC.  */
+        char *distributions;
         size_t n = 0;
 
-        capability = malloc (512);
-        if (capability == NULL)
+        distributions = malloc (512);
+        if (distributions == NULL)
           {
             /* MU_NNTP_CHECK_ERROR(nntp, ENOMEM);
 	       We need to destroy the list if error.  */
@@ -82,16 +81,16 @@ mu_nntp_list_extensions (mu_nntp_t nntp, list_t *plist)
 	    list_destroy (*plist);
 	    return ENOMEM;
           }
-        while ((status = mu_nntp_readline (nntp, capability, 512, &n)) == 0 && n > 0)
+        while ((status = mu_nntp_readline (nntp, distributions, 512, &n)) == 0 && n > 0)
           {
             /* Nuke the trailing newline  */
-            if (capability[n - 1] == '\n')
-              capability[n - 1] = '\0';
+            if (distributions[n - 1] == '\n')
+              distributions[n - 1] = '\0';
             /* add to the list.  */
-            list_append (*plist, strdup (capability));
+            list_append (*plist, strdup (distributions));
             n = 0;
           }
-        free (capability);
+        free (distributions);
         MU_NNTP_CHECK_EAGAIN (nntp, status);
         nntp->state = MU_NNTP_NO_STATE;
         break;
@@ -107,4 +106,42 @@ mu_nntp_list_extensions (mu_nntp_t nntp, list_t *plist)
     }
 
   return status;
+}
+
+int
+mu_nntp_parse_list_distrib_pats (const char *buffer, unsigned long *weight, char **wildmat, char **distrib)
+{
+  char *w;
+  char *d;
+  unsigned long dummy;
+
+  if (buffer == NULL || *buffer == '\0')
+    return EINVAL;
+
+  w = calloc(512, 1);
+  if (w == NULL)
+    return ENOMEM;
+
+  d = calloc(512, 1);
+  if (d == NULL)
+    {
+      free (w);
+      return ENOMEM;
+    }
+
+  if (weight == NULL)
+    weight = &dummy;
+
+  sscanf (buffer, "%ld:%511s:%511s", weight, w, d);
+
+  if (wildmat == NULL)
+    free (w);
+  else
+    *wildmat = w;
+
+  if (distrib == NULL)
+    free (d);
+  else
+    *distrib = d;
+  return 0;
 }

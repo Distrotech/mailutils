@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2004 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2004 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -20,78 +20,90 @@
 #endif
 
 #include <string.h>
-
-#include <stddef.h>
 #include <stdlib.h>
 #include <errno.h>
-#include <mailutils/error.h>
 #include <mailutils/sys/nntp.h>
 
-/*
-  LIST EXTENSIONS command, return a list that contains the result.
-  It is the responsability of the caller to destroy the list(list_destroy).
- */
 int
-mu_nntp_list_extensions (mu_nntp_t nntp, list_t *plist)
+mu_nntp_newnews (mu_nntp_t nntp, const char *wildmat, unsigned int year, unsigned int month, unsigned int day,
+		 unsigned int hour, unsigned int minute, unsigned int second, int is_gmt, list_t *plist)
 {
   int status;
 
   if (nntp == NULL)
     return EINVAL;
-  if (plist == NULL)
-    return MU_ERR_OUT_PTR_NULL;
 
   switch (nntp->state)
     {
     case MU_NNTP_NO_STATE:
-      status = mu_nntp_writeline (nntp, "LIST EXTENSIONS\r\n");
+      if (wildmat == NULL || *wildmat == '\0')
+	{
+	  if (is_gmt > 0)
+	    status = mu_nntp_writeline (nntp, "NEWNEWS %.4d%.2d%.2d %.2d%.2d%.2d GMT\r\n", year, month, day, hour, minute, second);
+	  else
+	    status = mu_nntp_writeline (nntp, "NEWNEWS %.4d%.2d%.2d %.2d%.2d%.2d\r\n", year, month, day, hour, minute, second);
+	}
+      else
+	{
+	  if (is_gmt > 0)
+	    {
+	      status = mu_nntp_writeline (nntp, "NEWNEWS %s %.4d%.2d%.2d %.2d%.2d%.2d GMT\r\n", wildmat, year, month, day,
+					  hour, minute, second);
+	    }
+	  else
+	    {
+	      status = mu_nntp_writeline (nntp, "NEWNEWS %s %.4d%.2d%.2d %.2d%.2d%.2d\r\n", wildmat, year, month, day,
+					  hour, minute, second);
+	    }
+	}
       MU_NNTP_CHECK_ERROR (nntp, status);
       mu_nntp_debug_cmd (nntp);
-      nntp->state = MU_NNTP_LIST_EXTENSIONS;
+      nntp->state = MU_NNTP_NEWNEWS;
 
-    case MU_NNTP_LIST_EXTENSIONS:
+    case MU_NNTP_NEWNEWS:
       status = mu_nntp_send (nntp);
       MU_NNTP_CHECK_EAGAIN (nntp, status);
       nntp->acknowledge = 0;
-      nntp->state = MU_NNTP_LIST_EXTENSIONS_ACK;
+      nntp->state = MU_NNTP_NEWNEWS_ACK;
 
-    case MU_NNTP_LIST_EXTENSIONS_ACK:
+    case MU_NNTP_NEWNEWS_ACK:
       status = mu_nntp_response (nntp, NULL, 0, NULL);
       MU_NNTP_CHECK_EAGAIN (nntp, status);
       mu_nntp_debug_ack (nntp);
-      MU_NNTP_CHECK_CODE (nntp, MU_NNTP_RESP_CODE_EXTENSIONS_FOLLOW);
+      MU_NNTP_CHECK_CODE (nntp, MU_NNTP_RESP_CODE_NEWNEWS_FOLLOW);
+
       status = list_create (plist);
       MU_NNTP_CHECK_ERROR(nntp, status);
       list_set_destroy_item(*plist, free);
-      nntp->state = MU_NNTP_LIST_EXTENSIONS_RX;
+      nntp->state = MU_NNTP_NEWNEWS_RX;
 
-    case MU_NNTP_LIST_EXTENSIONS_RX:
+    case MU_NNTP_NEWNEWS_RX:
       {
-        /* CAPA line are 512 octets maximum according to RFC 2449.
-           But do not use the stack and malloc.  */
-        char *capability;
+	/* line should not be over 512 octets maximum.  */
+	char *lista;
         size_t n = 0;
 
-        capability = malloc (512);
-        if (capability == NULL)
+        lista = malloc (512);
+        if (lista == NULL)
           {
             /* MU_NNTP_CHECK_ERROR(nntp, ENOMEM);
-	       We need to destroy the list if error.  */
-	    nntp->io.ptr = nntp->io.buf;
-	    nntp->state = MU_NNTP_ERROR;
-	    list_destroy (*plist);
-	    return ENOMEM;
+               Do not use the macro we need to clear the list if errors. */
+            nntp->io.ptr = nntp->io.buf;
+            nntp->state = MU_NNTP_ERROR;
+            list_destroy (plist);
+            return ENOMEM;
           }
-        while ((status = mu_nntp_readline (nntp, capability, 512, &n)) == 0 && n > 0)
+
+        while ((status = mu_nntp_readline (nntp, lista, 512, &n)) == 0 && n > 0)
           {
             /* Nuke the trailing newline  */
-            if (capability[n - 1] == '\n')
-              capability[n - 1] = '\0';
+            if (lista[n - 1] == '\n')
+              lista[n - 1] = '\0';
             /* add to the list.  */
-            list_append (*plist, strdup (capability));
+            list_append (*plist, strdup (lista));
             n = 0;
           }
-        free (capability);
+        free (lista);
         MU_NNTP_CHECK_EAGAIN (nntp, status);
         nntp->state = MU_NNTP_NO_STATE;
         break;

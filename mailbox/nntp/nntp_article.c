@@ -20,6 +20,7 @@
 #endif
 
 #include <string.h>
+#include <stdlib.h>
 #include <errno.h>
 #include <mailutils/sys/nntp.h>
 

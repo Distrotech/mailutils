@@ -24,7 +24,7 @@
 #include <stdlib.h>
 #include <mailutils/sys/nntp.h>
 
-/* Implementation of the stream for TOP and RETR.  */
+/* Implementation of the stream for HELP, ARTICLE, etc ...  */
 struct mu_nntp_stream
 {
   mu_nntp_t nntp;
