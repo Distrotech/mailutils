@@ -28,6 +28,7 @@ pkginclude_HEADERS = \
  monitor.h \
  mu_auth.h \
  mutil.h \
+ nls.h \
  observer.h \
  parse822.h \
  property.h \
