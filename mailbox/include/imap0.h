@@ -200,6 +200,9 @@ struct _m_imap
   unsigned long uidvalidity;
   size_t uidnext;
   char *name;
+  enum imap_state state;
+    /* mailbox operations can be sequences of folder operations, and
+       thus need to keep meta-state, mailbox_imap_open(), for example. */
 };
 
 struct _msg_imap
