@@ -36,6 +36,8 @@ struct daemon_param daemon_param = {
   0,                    /* No transcript by default */
 };
 
+int debug_mode;
+
 /* Number of child processes.  */
 volatile size_t children;
 
@@ -44,8 +46,8 @@ static void pop3d_daemon_init   __P ((void));
 static void pop3d_daemon        __P ((unsigned int, unsigned int));
 static error_t pop3d_parse_opt  __P((int key, char *arg,
 				     struct argp_state *astate));
-const char *argp_program_version = "pop3d (" PACKAGE ") " VERSION;
-const char *argp_program_bug_address = "<bug-mailutils@gnu.org>";
+
+const char *argp_program_version = "pop3d (" PACKAGE_STRING ")";
 static char doc[] = "GNU pop3d -- the POP3 daemon";
 
 static struct argp argp = {
@@ -70,12 +72,12 @@ static const char *pop3d_argp_capa[] = {
 static error_t
 pop3d_parse_opt (int key, char *arg, struct argp_state *astate)
 {
-    switch (key)
-      {
-      case ARGP_KEY_INIT:
-       	astate->child_inputs[0] = astate->input;
-	break;
-
+  switch (key)
+    {
+    case ARGP_KEY_INIT:
+      astate->child_inputs[0] = astate->input;
+      break;
+      
     default:
       return ARGP_ERR_UNKNOWN;
     }
@@ -96,21 +98,28 @@ main (int argc, char **argv)
     pam_service = (char *)"gnu-pop3d";
 #endif
 
-  /* First we want our group to be mail so we can access the spool.  */
-  gr = getgrnam ("mail");
-  if (gr == NULL)
+  if (isatty (0))
     {
-      perror ("Error getting mail group");
-      exit (EXIT_FAILURE);
+      /* If input is a tty, switch to debug mode */
+      debug_mode = 1;
     }
-
-  if (setgid (gr->gr_gid) == -1)
+  else
     {
-      perror ("Error setting mail group");
-      exit (EXIT_FAILURE);
-    }
+      gr = getgrnam ("mail");
+      if (gr == NULL)
+	{
+	  perror ("Error getting mail group");
+	  exit (EXIT_FAILURE);
+	}
 
-  /* Register the desire formats. We only need Mbox mail format.  */
+      if (setgid (gr->gr_gid) == -1)
+	{
+	  perror ("Error setting mail group");
+	  exit (EXIT_FAILURE);
+	}
+    }
+  
+  /* Register the desired formats.  */
   {
     list_t bookie;
     registrar_get_list (&bookie);
@@ -153,7 +162,7 @@ main (int argc, char **argv)
   /* Redirect any stdout error from the library to syslog, they
      should not go to the client.  */
   mu_error_set_print (mu_syslog_error_printer);
-
+  
   umask (S_IROTH | S_IWOTH | S_IXOTH);	/* 007 */
 
   /* Actually run the daemon.  */
@@ -218,15 +227,20 @@ pop3d_mainloop (int infile, int outfile)
   syslog (LOG_INFO, "Incoming connection opened");
 
   /* log information on the connecting client */
-  {
-    struct sockaddr_in cs;
-    int len = sizeof cs;
-    if (getpeername (infile, (struct sockaddr*)&cs, &len) < 0)
-      syslog (LOG_ERR, "can't obtain IP address of client: %s",
-	      strerror (errno));
-    else
-      syslog (LOG_INFO, "connect from %s", inet_ntoa(cs.sin_addr));
-  }
+  if (debug_mode)
+    {
+      syslog (LOG_INFO, "Started in debugging mode");
+    }
+  else
+    {
+      struct sockaddr_in cs;
+      int len = sizeof cs;
+      if (getpeername (infile, (struct sockaddr*)&cs, &len) < 0)
+	syslog (LOG_ERR, "can't obtain IP address of client: %s",
+		strerror (errno));
+      else
+	syslog (LOG_INFO, "connect from %s", inet_ntoa(cs.sin_addr));
+    }
 
   /* Prepare the shared secret for APOP.  */
   {
