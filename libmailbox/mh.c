@@ -27,7 +27,6 @@
 int
 mh_open (mailbox * mbox)
 {
-  int i;
   unsigned long seq_num = 0;
   struct dirent *entry;
   mh_data *data;
@@ -41,25 +40,37 @@ mh_open (mailbox * mbox)
     return errno; /* set by opendir() */
 
   /* process directory */
-  while (entry = readdir (data->dir))
+  while ((entry = readdir (data->dir)))
     {
       char *foo = NULL;
       char fname[PATH_MAX];
       char line[80];
       FILE *fp;
+      mh_message message;
+
       if (entry->d_name[0] == '.')
 	{
 	  if (strcmp(entry->d_name, ".mh_sequences") == 0)
 	    /* TODO: deal with mh sequence files */;
 	  continue;
 	}
-      if (entry->d_name[0] == ',')
-	/* file marked for deletion */;
 
-      /* TODO: handle ERANGE */
-      seq_num = strtoul (entry->d_name, &foo, 10);
+      if (entry->d_name[0] == ',')
+	{
+	  message.deleted = 1;
+	  seq_num = strtoul ((entry->d_name) + 1, &foo, 10);
+	}
+      else
+	{
+	  /* TODO: handle ERANGE */
+	  seq_num = strtoul (entry->d_name, &foo, 10);
+	}
       if (*foo != '\0') /* invalid sequence number */
-	continue; /* TODO: handle this better? */
+	{
+	  printf("skipping invalid message: %s\n", entry->d_name);
+	  continue; /* TODO: handle this better? */
+	}
+
       sprintf(fname, "%s/%ld", mbox->name, seq_num);
       if ((fp = fopen(fname, "r")) == NULL)
 	continue; /* TODO: handle the error */
@@ -68,12 +79,11 @@ mh_open (mailbox * mbox)
 	{
 	  if ((line[0] == '\r' && line[1] == '\n') || line[0] == '\n')
 	    {
-	      /* TODO: handle marking the message body */;
+	      fgetpos(fp, &message.body);
 	      break;
 	    }
 	}
       fclose (fp);
-      /* TODO: create message structure */
       mbox->messages++;
     }
   
