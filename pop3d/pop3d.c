@@ -41,6 +41,11 @@ int tls_done;
 volatile size_t children;
 /* Should all the messages be undeleted on startup */
 int undelete_on_startup;
+#ifdef ENABLE_LOGIN_DELAY
+/* Minimum allowed delay between two successive logins */
+time_t login_delay = 0;
+char *login_stat_file = LOGIN_STAT_FILE;
+#endif
 
 static int pop3d_mainloop       __P ((int fd, FILE *, FILE *));
 static void pop3d_daemon_init   __P ((void));
@@ -52,9 +57,18 @@ static void pop3d_log_connection __P((int fd));
 const char *program_version = "pop3d (" PACKAGE_STRING ")";
 static char doc[] = N_("GNU pop3d -- the POP3 daemon");
 
+#define OPT_LOGIN_DELAY 257
+#define OPT_STAT_FILE   258
+
 static struct argp_option options[] = {
   {"undelete", 'u', NULL, 0,
-   N_("undelete all messages on startup"), 0},
+   N_("Undelete all messages on startup"), 0},
+#ifdef ENABLE_LOGIN_DELAY
+  {"login-delay", OPT_LOGIN_DELAY, N_("SECONDS"), 0,
+   N_("Allowed delay between the two successive logins"), 0},
+  {"stat-file", OPT_STAT_FILE, N_("FILENAME"), 0,
+   N_("Name of login statistics file"), 0},
+#endif
   {NULL, 0, NULL, 0, NULL, 0}
 };
 
@@ -83,6 +97,8 @@ static const char *pop3d_argp_capa[] = {
 static error_t
 pop3d_parse_opt (int key, char *arg, struct argp_state *astate)
 {
+  char *p;
+  
   switch (key)
     {
     case ARGP_KEY_INIT:
@@ -92,7 +108,22 @@ pop3d_parse_opt (int key, char *arg, struct argp_state *astate)
     case 'u':
       undelete_on_startup = 1;
       break;
+
+#ifdef ENABLE_LOGIN_DELAY
+    case OPT_LOGIN_DELAY:
+      login_delay = strtoul (arg, &p, 10);
+      if (*p)
+	{
+	  argp_error (state, _("Invalid number"));
+	  exit (1);
+	}
+      break;
+
+    case OPT_STAT_FILE:
+      login_stat_file = arg;
+      break;
       
+#endif  
     default:
       return ARGP_ERR_UNKNOWN;
     }
@@ -394,6 +425,8 @@ pop3d_mainloop (int fd, FILE *infile, FILE *outfile)
       else if (status == ERR_TLS_ACTIVE)
 	pop3d_outf ("-ERR " TLS_ACTIVE "\r\n");
 #endif /* WITH_TLS */
+      else if (status == ERR_LOGIN_DELAY)
+	pop3d_outf ("-ERR [LOGIN-DELAY] " LOGIN_DELAY "\r\n");
       else
 	pop3d_outf ("-ERR unknown error\r\n");
 
