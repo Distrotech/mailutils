@@ -38,7 +38,7 @@ main (int argc, char *argv[])
   else
     {
       for (; argv[arg]; arg++)
-	printf ("%s -> %s\n", argv[arg], mu_get_user_email (argv[arg]));
+        printf ("%s -> %s\n", argv[arg], mu_get_user_email (argv[arg]));
     }
 
   return 0;

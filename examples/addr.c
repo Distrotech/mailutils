@@ -58,46 +58,46 @@ parse (const char *str)
       printf ("%d ", no);
 
       if (isgroup)
-	{
-	  address_get_personal (address, no, buf, sizeof (buf), &got);
+        {
+          address_get_personal (address, no, buf, sizeof (buf), &got);
 
-	  printf ("group <%s>\n", buf);
-	}
+          printf ("group <%s>\n", buf);
+        }
       else
-	{
-	  address_get_email (address, no, buf, sizeof (buf), 0);
+        {
+          address_get_email (address, no, buf, sizeof (buf), 0);
 
-	  printf ("email <%s>\n", buf);
-	}
+          printf ("email <%s>\n", buf);
+        }
 
       address_get_personal (address, no, buf, sizeof (buf), &got);
 
       if (got && !isgroup)
-	printf ("   personal <%s>\n", buf);
+        printf ("   personal <%s>\n", buf);
 
       address_get_comments (address, no, buf, sizeof (buf), &got);
 
       if (got)
-	printf ("   comments <%s>\n", buf);
+        printf ("   comments <%s>\n", buf);
 
       address_get_local_part (address, no, buf, sizeof (buf), &got);
 
       if (got)
-	{
-	  printf ("   local-part <%s>", buf);
+        {
+          printf ("   local-part <%s>", buf);
 
-	  address_get_domain (address, no, buf, sizeof (buf), &got);
+          address_get_domain (address, no, buf, sizeof (buf), &got);
 
-	  if (got)
-	    printf (" domain <%s>", buf);
+          if (got)
+            printf (" domain <%s>", buf);
 
-	  printf ("\n");
-	}
+          printf ("\n");
+        }
 
       address_get_route (address, no, buf, sizeof (buf), &got);
 
       if (got)
-	printf ("   route <%s>\n", buf);
+        printf ("   route <%s>\n", buf);
     }
   address_destroy (&address);
 
@@ -132,13 +132,13 @@ main (int argc, const char *argv[])
   for (; argv[argc]; argc++)
     {
       if (strcmp (argv[argc], "-") == 0)
-	{
-	  parseinput ();
-	}
+        {
+          parseinput ();
+        }
       else
-	{
-	  parse (argv[argc]);
-	}
+        {
+          parse (argv[argc]);
+        }
     }
 
   return 0;

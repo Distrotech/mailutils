@@ -71,27 +71,27 @@ main (int argc, char *argv[])
   while ((opt = getopt (argc, argv, "hdm:f:")) != -1)
     {
       switch (opt)
-	{
-	case 'h':
-	  printf ("%s\n%s", USAGE, HELP);
-	  return 0;
-	  
-	case 'd':
-	  optdebug++;
-	  break;
-	  
-	case 'm':
-	  optmailer = optarg;
-	  break;
-	  
-	case 'f':
-	  optfrom = optarg;
-	  break;
+        {
+        case 'h':
+          printf ("%s\n%s", USAGE, HELP);
+          return 0;
+          
+        case 'd':
+          optdebug++;
+          break;
+          
+        case 'm':
+          optmailer = optarg;
+          break;
+          
+        case 'f':
+          optfrom = optarg;
+          break;
 
-	default:
-	  fprintf (stderr, "%s\n", USAGE);
-	  exit (1);
-	}
+        default:
+          fprintf (stderr, "%s\n", USAGE);
+          exit (1);
+        }
     }
 
   /* Register mailers. */

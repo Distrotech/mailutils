@@ -64,18 +64,18 @@ main (int argc, const char **argv)
       header_t hdr;
 
       if ((status = mailbox_get_message (mbox, msgno, &msg)) != 0
-	  || (status = message_get_header (msg, &hdr)) != 0)
-	{
-	  fprintf (stderr, "Error message: %s\n",
-		   mu_errstring (status));
-	  exit (EXIT_FAILURE);
-	}
+          || (status = message_get_header (msg, &hdr)) != 0)
+        {
+          fprintf (stderr, "Error message: %s\n",
+                   mu_errstring (status));
+          exit (EXIT_FAILURE);
+        }
 
       if (header_aget_value (hdr, MU_HEADER_FROM, &from))
-	from = strdup ("(NO FROM)");
+        from = strdup ("(NO FROM)");
 
       if (header_aget_value (hdr, MU_HEADER_SUBJECT, &subject))
-	subject = strdup("(NO SUBJECT)");
+        subject = strdup("(NO SUBJECT)");
 
       printf ("%s\t%s\n", from, subject);
       free (from);
