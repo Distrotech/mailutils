@@ -41,7 +41,7 @@ pthread_mutex_t monitor_lock = PTHREAD_MUTEX_INITIALIZER;
 #  define STATIC_UNLOCK(m) pthread_mutex_unlock(m)
 #else
 #  define STATIC_LOCK(m) 0
-#  define STATIC_UNLOCK(m) 0
+#  define STATIC_UNLOCK(m) 
 int monitor_lock;
 #endif
 
