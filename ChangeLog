@@ -1,3 +1,15 @@
+1999-10-08  Jeff Bailey  <jbailey@cr499794-a.crdva1.bc.wave.home.com>
+
+	* doc/: New directory
+	
+	* pop3d/Makefile.am: Remove pam detection, now handled by configure
+	in the @AUTHLIBS@ spot.
+
+	* configure.in: Detect pam correctly/handle crypt case correctly
+	Add option: --disable-pam
+
+	* acconfig.h: New File
+
 Sean 'Shaleh' Perry <shaleh@debian.org>  Fri,  8 Oct 1999 18:13:45 -0700
 
   * added showmail.c to examples
