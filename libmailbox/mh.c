@@ -45,19 +45,29 @@ mh_open (mailbox * mbox)
     return errno; /* set by opendir() */
 
   /* process directory */
-  while ((entry = readdir (data->dir)) && (entry != NULL))
+  while (entry = readdir (data->dir))
     {
-      /* TODO: deal with mh dot files */
+      unsigned long seq_num;
+      char *foo = NULL;
       if (entry->d_name[0] == '.')
-	continue;
+	{
+	  if (strcmp(entry->d_name, ".mh_sequences" == 0))
+	    /* TODO: deal with mh sequence files */;
+	  continue;
+	}
       if (entry->d_name[0] == ',')
 	/* file marked for deletion */;
 
+      /* TODO: handle ERANGE */
+      seq_num = strtoul (entry->d_name, &foo, 10);
+      if (*foo != '\0') /* invalid sequence number */
+	continue; /* TODO: handle this better? */
+      printf ("message: %ld\r", seq_num);
       mbox->messages++;
     }
   
-#if 0
   mbox->_data = data;
+#if 0
   mbox->_close = mh_close;
   mbox->_delete = mh_delete;
   mbox->_undelete = mh_undelete;

@@ -1,3 +1,7 @@
+2000-05-18  Sean 'Shaleh' Perry <shaleh@debian.org>
+
+	* libmailbox/mh.c: fleshed out mh_open() some more
+	
 2000-05-15  Sean 'Shaleh' Perry <shaleh@debian.org>
 
 	* libmailbox/*: ran some files thru emacs indent, I think I introduced
