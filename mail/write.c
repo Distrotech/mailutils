@@ -31,9 +31,6 @@ mail_write (int argc, char **argv)
   stream_t stream;
   FILE *output;
   char *filename = NULL;
-  char buffer[512];
-  off_t off = 0;
-  size_t n = 0;
   msgset_t *msglist = NULL, *mp;
   int sender = 0;
   size_t total_size = 0, total_lines = 0, size;
@@ -41,12 +38,15 @@ mail_write (int argc, char **argv)
   if (isupper (argv[0][0]))
     sender = 1;
   else if (argc >= 2)
-    filename = util_fullpath (argv[--argc]);
-    /* FIXME: Should we use util_outfolder_name() and honour
-       outfolder variable? */
+    filename = util_outfolder_name (argv[--argc]);
   else
-    filename = strdup ("mbox");
-
+    {
+      char *p = NULL;
+      asprintf (&p, "%d", cursor);
+      filename = util_outfolder_name (p);
+      free (p);
+    }
+		
   if (msgset_parse (argc, argv, &msglist))
     {
       if (filename)
@@ -56,7 +56,7 @@ mail_write (int argc, char **argv)
 
   if (sender)
     {
-      filename = util_get_sender(msglist->msg_part[0], 1);
+      filename = util_outfolder_name (util_get_sender(msglist->msg_part[0], 1));
       if (!filename)
 	{
 	  msgset_free (msglist);
@@ -77,6 +77,9 @@ mail_write (int argc, char **argv)
   for (mp = msglist; mp; mp = mp->next)
     {
       attribute_t attr;
+      char buffer[512];
+      off_t off = 0;
+      size_t n = 0;
 
       mailbox_get_message (mbox, mp->msg_part[0], &msg);
       message_get_body (msg, &bod);
