@@ -133,7 +133,6 @@ proc default_mail_start {args} {
     global expect_out
     
     default_mail_version
-    mail_prepare_spools
     
     set sw $args
     append sw " "
@@ -174,7 +173,21 @@ proc default_mail_stop {} {
 
 proc mail_start {args} {
     verbose "Starting mail"
-    return [default_mail_start [lrange $args 0 end]]
+
+    set reuse_spool 0
+    for {set i 0} {$i < [llength $args]} {incr i} {
+	set a [lindex $args $i]
+	if {"$a" == "-reuse-spool"} {
+	    set reuse_spool 1
+	} else {
+	    break;
+	}
+    }
+
+    if {$reuse_spool == 0} {
+	mail_prepare_spools
+    }
+    return [default_mail_start [lrange $args $i end]]
 }
     
 proc mail_stop {} {
@@ -316,11 +329,13 @@ proc default_mail_test { args } {
     }
     
     set result -1
-    if { [mail_command "${command}"] != "" } {
-	if { ! $do_suppress } {
-	    perror "Couldn't send \"$command\".";
-	}
-	return $result;
+    if { "${command}" != "" } {
+	if { [mail_command "${command}"] != "" } {
+	    if { ! $do_suppress } {
+		perror "Couldn't send \"$command\".";
+	    }
+	    return $result;
+        }
     }
 
     if [info exists timeout] {
@@ -362,17 +377,10 @@ proc default_mail_test { args } {
 	}
     }
 
-    mail_expect 30 {
-	-re "\[\r\n\]?${mail_prompt}$" {}
-	default {
-	    perror "mail not initialized"
-            return 1
-	}
-    }
     return $result
 }
 
-# mail_test [-message MESSAGE][-default (FAIL|XFAIL)]
+# mail_test [-message MESSAGE][-default (FAIL|XFAIL)][-noprompt]
 #            COMMAND PATTERN [PATTERN...]
 # COMMAND   - Command to send to mail.
 # PATTERN   - Sequence to expect in return. 
@@ -385,6 +393,7 @@ proc mail_test { args } {
 
     set default ""
     set message ""
+    set wait_for_prompt 1
     for {set i 0} {$i < [llength $args]} {incr i} {
 	set a [lindex $args $i]
 	if {"$a" == "-default"} {
@@ -393,6 +402,8 @@ proc mail_test { args } {
 	} elseif {"$a" == "-message"} {
 	    set message [lindex $args [expr $i + 1]]
 	    incr i
+	} elseif {"$a" == "-noprompt"} {
+	    set wait_for_prompt 0
 	} else {
 	    set args [lrange $args $i end]
 	    break
@@ -409,6 +420,15 @@ proc mail_test { args } {
     set command [lindex $args 0]
     set pattern [lrange $args 1 end]
     set result [default_mail_test $command $pattern]
+    if {$wait_for_prompt} {
+	mail_expect 30 {
+		-re "\[\r\n\]?${mail_prompt}$" {}
+		default {
+			perror "mail not initialized"
+			return 1
+		}
+	}
+    }
 
     if {$result == 0} {
 	pass "$message"
@@ -428,4 +448,61 @@ proc mail_test { args } {
     }
     return $result
 }
+
+proc mail_test_file {args} {
+    global verbose
+    
+    set default ""
+    set message ""
+
+    for {set i 0} {$i < [llength $args]} {incr i} {
+	set a [lindex $args $i]
+	if {"$a" == "-default"} {
+	    set default [lindex $args [expr $i + 1]]
+	    incr i
+	} elseif {"$a" == "-message"} {
+	    set message [lindex $args [expr $i + 1]]
+	    incr i
+	} else {
+	    set args [lrange $args $i end]
+	    break
+	}
+    }
+    
+    if {"$message" == ""}  {
+	set message "Contents of [lindex $args 0]"
+    }
+
+    if $verbose>2 then {
+	send_user "Message is \"$message\"\n"
+    }
+
+    set filename [lindex $args 0]
+    set pattern [lrange $args 1 end]
+
+    set res [remote_spawn host "/bin/cat $filename"]
+    if { $res < 0 || $res == "" } {
+	perror "Reading $filename failed."
+	return 1;
+    }
+    set result [default_mail_test "" $pattern]
+    if {$result == 0} {
+	pass "$message"
+    } elseif {$result == 1} {
+	if { "$default" == "" || "$default" != "FAIL" } {
+	    fail "$message"
+	} else {
+	    xfail "$message"
+	    set result 0
+	}
+    } elseif {$result == -2} {
+	fail "$message (timeout)"
+    } elseif {$result == -3} {
+	fail "$message (eof)"
+    } else {
+	fail "$message"
+    }
+    return $result
+}
+    
 
