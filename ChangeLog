@@ -1,3 +1,11 @@
+2003-08-18  Sergey Poznyakoff 
+
+	* mail/send.c (mail_send, mail_send0): Use `mailx'
+	to control mailx compatibility mode. Thanks Peter S Galbraith
+	<p.galbraith@globetrotter.net> for the idea.
+	* doc/texinfo/programs.texi: Document  `mailx' variable
+	* NEWS: Added entry about `mailx' variable
+
 2003-08-17  Sergey Poznyakoff
 
 	* mail/send.c (mail_send0): Fixed typo in variable name.
