@@ -400,7 +400,7 @@ mu_common_argp_parser (int key, char *arg, struct argp_state *state)
 		argp_error (state, _("invalid lock flag '%c'"), *arg);
 	      }
 	  }
-	locker_set_default_flags(flags);
+	locker_set_default_flags (flags);
       }
       break;
 
