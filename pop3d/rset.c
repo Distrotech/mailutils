@@ -35,8 +35,8 @@ pop3d_rset (const char *arg)
 
   for (i = 1; i <= total; i++)
     {
-      message_t msg;
-      attribute_t attr;
+      message_t msg = NULL;
+      attribute_t attr = NULL;
       mailbox_get_message (mbox, i, &msg);
       message_get_attribute (msg, &attr);
       if (attribute_is_deleted (attr))

@@ -17,6 +17,15 @@
 
 #include "pop3d.h"
 
+/*
+  The CAPA Command
+
+  The POP3 CAPA command returns a list of capabilities supported by the
+  POP3 server.  It is available in both the AUTHORIZATION and
+  TRANSACTION states.
+
+  Capabilities available in the AUTHORIZATION state MUST be announced
+  in both states.  */
 int
 pop3d_capa (const char *arg)
 {
@@ -31,6 +40,10 @@ pop3d_capa (const char *arg)
   fprintf (ofile, "USER\r\n");
   fprintf (ofile, "UIDL\r\n");
   fprintf (ofile, "RESP-CODES\r\n");
+  fprintf (ofile, "PIPELINING\r\n");
+  /* FIXME: This can be Implemented by setting an header field on the
+     message.  */
+  /*fprintf (ofile, "EXPIRE NEVER\r\n"); */
   if (state == TRANSACTION)	/* let's not advertise to just anyone */
     fprintf (ofile, "IMPLEMENTATION %s %s\r\n", IMPL, VERSION);
   fprintf (ofile, ".\r\n");

@@ -22,9 +22,9 @@
 int
 pop3d_dele (const char *arg)
 {
-  size_t num = 0;
+  size_t num;
   message_t msg;
-  attribute_t attr;
+  attribute_t attr = NULL;
 
   if ((arg == NULL) || (strchr (arg, ' ') != NULL))
     return ERR_BAD_ARGS;

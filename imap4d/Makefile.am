@@ -1,6 +1,5 @@
 AUTOMAKE_OPTIONS = ../lib/ansi2knr
 INCLUDES = -I$(top_srcdir)/lib -I$(top_srcdir)/include
-CFLAGS = -Wall -ansi
 
 sbin_PROGRAMS =	imap4d
 

@@ -23,10 +23,10 @@ int
 pop3d_list (const char *arg)
 {
   size_t mesgno;
+  message_t msg = NULL;
+  attribute_t attr = NULL;
   size_t size = 0;
   size_t lines = 0;
-  message_t msg;
-  attribute_t attr;
 
   if (state != TRANSACTION)
     return ERR_WRONG_STATE;

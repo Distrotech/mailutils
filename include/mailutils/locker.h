@@ -1,5 +1,5 @@
 /* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Library Public License as published by
@@ -35,7 +35,7 @@ extern "C" {
 struct _locker;
 typedef struct _locker *locker_t;
 
-extern int locker_create   __P ((locker_t *, char *filename,
+extern int locker_create   __P ((locker_t *, const char *filename,
 				 size_t len, int flags));
 extern void locker_destroy __P ((locker_t *));
 
@@ -47,9 +47,11 @@ extern void locker_destroy __P ((locker_t *));
 #define MU_LOCKER_FCNTL  2
 #define MU_LOCKER_TIME   4
 
-extern int locker_lock      __P ((locker_t, int flag));
-extern int locker_touchlock __P ((locker_t));
-extern int locker_unlock    __P ((locker_t));
+#define MU_LOCKER_EXPIRE_TIME        (5 * 60)
+
+extern int locker_lock          __P ((locker_t, int flag));
+extern int locker_touchlock     __P ((locker_t));
+extern int locker_unlock        __P ((locker_t));
 
 #ifdef __cplusplus
 }

@@ -4,7 +4,6 @@ AUTOMAKE_OPTIONS = ../lib/ansi2knr
 
 INCLUDES = -I${top_srcdir}/include -I${top_srcdir}/mailbox/include \
 	-I${top_srcdir}/lib
-CFLAGS = -Wall -g
 
 SUBDIRS = include
 

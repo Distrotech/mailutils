@@ -395,6 +395,10 @@ _mime_set_content_type(mime_t mime)
 	header_t	hdr = NULL;
 	size_t		size;
 
+	/* Delayed the creation of the header 'til they create the final message via
+	   mime_get_message()  */
+	if (mime->hdrs == NULL)
+		return 0;
 	if ( mime->nmtp_parts > 1 ) {
 		if ( mime->flags & MIME_ADDED_MULTIPART_CT )
 			return 0;

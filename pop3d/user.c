@@ -82,10 +82,7 @@ pop3d_user (const char *arg)
   char *buf, pass[POP_MAXCMDLEN], *tmp, *cmd;
   struct passwd *pw;
   int status;
-#ifdef USE_LIBPAM
-  pam_handle_t *pamh;
-  int pamerror;
-#endif /* !USE_LIBPAM */
+  int lockit = 1;
 
   if (state != AUTHORIZATION)
     return ERR_WRONG_STATE;
@@ -110,6 +107,8 @@ pop3d_user (const char *arg)
   else
     {
       strncpy (pass, tmp, POP_MAXCMDLEN);
+      /* strncpy () is lame, make sure the string is null terminated.  */
+      pass[POP_MAXCMDLEN - 1] = '\0';
       free (tmp);
     }
 
@@ -151,35 +150,34 @@ pop3d_user (const char *arg)
 	    }
 	}
 #else /* !USE_LIBPAM */
-      _user = (char *) arg;
-      _pwd = pass;
-      /* libpam doesn't log to LOG_MAIL */
-      closelog ();
-      pamerror = pam_start ("gnu-pop3d", arg, &PAM_conversation, &pamh);
-      PAM_ERROR;
-      pamerror = pam_authenticate (pamh, 0);
-      PAM_ERROR;
-      pamerror = pam_acct_mgmt (pamh, 0);
-      PAM_ERROR;
-      pamerror = pam_setcred (pamh, PAM_ESTABLISH_CRED);
-      PAM_ERROR;
-pam_errlab:
-      pam_end (pamh, PAM_SUCCESS);
-      openlog ("gnu-pop3d", LOG_PID, LOG_FACILITY);
-      if (pamerror != PAM_SUCCESS)
-	{
-	  syslog (LOG_INFO, "User '%s': authentication failed", _user);
-	  return ERR_BAD_LOGIN;
-	}
+      {
+	pam_handle_t *pamh;
+	int pamerror;
+	_user = (char *) arg;
+	_pwd = pass;
+	pamerror = pam_start ("gnu-pop3d", arg, &PAM_conversation, &pamh);
+	PAM_ERROR;
+	pamerror = pam_authenticate (pamh, 0);
+	PAM_ERROR;
+	pamerror = pam_acct_mgmt (pamh, 0);
+	PAM_ERROR;
+	pamerror = pam_setcred (pamh, PAM_ESTABLISH_CRED);
+	PAM_ERROR;
+      pam_errlab:
+	pam_end (pamh, PAM_SUCCESS);
+	if (pamerror != PAM_SUCCESS)
+	  {
+	    syslog (LOG_INFO, "User '%s': authentication failed", _user);
+	    return ERR_BAD_LOGIN;
+	  }
+      }
 #endif /* USE_LIBPAM */
 
+      if (pw != NULL && pw->pw_uid > 1)
+	setuid (pw->pw_uid);
 
-      if (mailbox_create_default (&mbox, arg) != 0)
-	{
-	  state = AUTHORIZATION;
-	  return ERR_UNKNOWN;
-	}
-      else if ((status = mailbox_open (mbox, MU_STREAM_RDWR)) != 0)
+      if ((status = mailbox_create_default (&mbox, arg) != 0)
+	  || (status = mailbox_open (mbox, MU_STREAM_RDWR) != 0))
 	{
 	  mailbox_destroy (&mbox);
 	  /* For non existent mailbox, we fake.  */
@@ -197,6 +195,16 @@ pam_errlab:
 	      state = AUTHORIZATION;
 	      return ERR_MBOX_LOCK;
 	    }
+	  lockit = 0; /* Do not attempt to lock /dev/null ! */
+	}
+
+      if (lockit && pop3d_lock())
+	{
+	  mailbox_close(mbox);
+	  mailbox_destroy(&mbox);
+	  state = AUTHORIZATION;
+	  free (cmd);
+	  return ERR_MBOX_LOCK;
 	}
 
       username = strdup (arg);
@@ -204,16 +212,16 @@ pam_errlab:
 	pop3d_abquit (ERR_NO_MEM);
       state = TRANSACTION;
 
-      if (pw != NULL && pw->pw_uid > 1)
-	setuid (pw->pw_uid);
-
       fprintf (ofile, "+OK opened mailbox for %s\r\n", username);
-	/* mailbox name */
+
+      /* mailbox name */
       {
 	url_t url = NULL;
+	size_t total = 0;
 	mailbox_get_url (mbox, &url);
-	syslog (LOG_INFO, "User '%s' logged in with mailbox '%s'",
-		username, url_to_string (url));
+	mailbox_messages_count (mbox, &total);
+	syslog (LOG_INFO, "User '%s' logged in with mailbox '%s' (%d msgs)",
+		username, url_to_string (url), total);
       }
       return OK;
     }

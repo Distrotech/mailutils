@@ -1,7 +1,5 @@
 AUTOMAKE_OPTIONS = ../lib/ansi2knr no-dependencies
 
-CFLAGS = -Wall -g
-
 INCLUDES = -I${top_srcdir}/include -I${top_srcdir}/lib @ARGPINCS@
 
 bin_PROGRAMS = mail

@@ -17,6 +17,24 @@
 
 #include "pop3d.h"
 
+/*
+  APOP name digest
+
+  Arguments:
+  a string identifying a mailbox and a MD5 digest string
+  (both required)
+
+  Restrictions:
+  may only be given in the AUTHORIZATION state after the POP3
+  greeting or after an unsuccessful USER or PASS command
+
+  When the POP3 server receives the APOP command, it verifies
+  the digest provided.  If the digest is correct, the POP3
+  server issues a positive response, and the POP3 session
+  enters the TRANSACTION state.  Otherwise, a negative
+  response is issued and the POP3 session remains in the
+  AUTHORIZATION state.  */
+
 /* Check if a username exists in APOP password file
    returns pointer to password if found, otherwise NULL */
 char *
@@ -25,16 +43,11 @@ pop3d_apopuser (const char *user)
   char *password;
   char buf[POP_MAXCMDLEN];
   struct stat st;
-#ifdef WITH_BDB2
-  int errno;
-  DB *dbp;
-  DBT key, data;
 
+  /* Check the mode, for security reasons.  */
+#ifdef WITH_BDB2
   if (stat (APOP_PASSFILE ".db", &st) != -1)
 #else
-  char *tmp;
-  FILE *apop_file;
-
   if (stat (APOP_PASSFILE ".passwd", &st) != -1)
 #endif
     if ((st.st_mode & 0777) != 0600)
@@ -44,80 +57,91 @@ pop3d_apopuser (const char *user)
       }
 
 #ifdef WITH_BDB2
-  errno = db_open (APOP_PASSFILE ".db", DB_HASH, DB_RDONLY, 0600, NULL,
-		   NULL, &dbp);
-  if (errno != 0)
-    {
-      syslog (LOG_ERR, "Unable to open APOP database: %s", strerror (errno));
-      return NULL;
-    }
+  {
+    int status;
+    DB *dbp;
+    DBT key, data;
+    status = db_open (APOP_PASSFILE ".db", DB_HASH, DB_RDONLY, 0600, NULL,
+		      NULL, &dbp);
+    if (status != 0)
+      {
+	syslog (LOG_ERR, "Unable to open APOP db: %s", strerror (status));
+	return NULL;
+      }
 
-  memset (&key, 0, sizeof (DBT));
-  memset (&data, 0, sizeof (DBT));
+    memset (&key, 0, sizeof (DBT));
+    memset (&data, 0, sizeof (DBT));
 
-  strncpy (buf, user, sizeof (buf));
-  key.data = buf;
-  key.size = strlen (user);
-  errno = dbp->get (dbp, NULL, &key, &data, 0);
-  if (errno != 0)
-    {
-      syslog (LOG_ERR, "db_get error: %s", strerror (errno));
-      dbp->close (dbp, 0);
-      return NULL;
-    }
+    strncpy (buf, user, sizeof buf);
+    /* strncpy () is lame and does not NULL terminate.  */
+    buf[sizeof (buf) - 1] = '\0';
+    key.data = buf;
+    key.size = strlen (buf);
+    status = dbp->get (dbp, NULL, &key, &data, 0);
+    if (status != 0)
+      {
+	syslog (LOG_ERR, "db_get error: %s", strerror (status));
+	dbp->close (dbp, 0);
+	return NULL;
+      }
 
-  password = malloc (sizeof (char) * data.size);
-  if (password == NULL)
-    {
-      dbp->close (dbp, 0);
-      return NULL;
-    }
+    password = calloc (data.size + 1, sizeof (*password));
+    if (password == NULL)
+      {
+	dbp->close (dbp, 0);
+	return NULL;
+      }
 
-  sprintf (password, "%.*s", (int) data.size, (char *) data.data);
-  dbp->close (dbp, 0);
-  return password;
+    sprintf (password, "%.*s", (int) data.size, (char *) data.data);
+    dbp->close (dbp, 0);
+    return password;
+  }
 #else /* !WITH_BDBD2 */
-  apop_file = fopen (APOP_PASSFILE ".passwd", "r");
-  if (apop_file == NULL)
-    {
-      syslog (LOG_INFO, "Unable to open APOP password file");
-      return NULL;
-    }
+  {
+    char *tmp;
+    FILE *apop_file;
+    apop_file = fopen (APOP_PASSFILE ".passwd", "r");
+    if (apop_file == NULL)
+      {
+	syslog (LOG_INFO, "Unable to open APOP password file");
+	return NULL;
+      }
 
-  password = malloc (sizeof (char) * APOP_DIGEST);
-  if (password == NULL)
-    {
-      fclose (apop_file);
-      pop3d_abquit (ERR_NO_MEM);
-    }
-  password[0] = '\0';
+    password = calloc (APOP_DIGEST, sizeof (*password));
+    if (password == NULL)
+      {
+	fclose (apop_file);
+	pop3d_abquit (ERR_NO_MEM);
+      }
 
-  while (fgets (buf, sizeof (buf) - 1, apop_file) != NULL)
-    {
-      tmp = strchr (buf, ':');
-      if (tmp == NULL)
-	continue;
-      *tmp = '\0';
-      tmp++;
+    while (fgets (buf, sizeof (buf) - 1, apop_file) != NULL)
+      {
+	tmp = strchr (buf, ':');
+	if (tmp == NULL)
+	  continue;
+	*tmp++ = '\0';
 
-      if (strncmp (user, buf, strlen (user)))
-	continue;
+	if (strncmp (user, buf, strlen (user)))
+	  continue;
 
-      strncpy (password, tmp, strlen (tmp));
-      tmp = strchr (password, '\n');
-      if (tmp)
-	*tmp = '\0';
-      break;
-    }
+	strncpy (password, tmp, APOP_DIGEST);
+	/* strncpy () is lame and does not NULL terminate.  */
+	password[APOP_DIGEST - 1] = '\0';
+	tmp = strchr (password, '\n');
+	if (tmp)
+	  *tmp = '\0';
+	break;
+      }
 
-  fclose (apop_file);
-  if (strlen (password) == 0)
-    {
-      free (password);
-      return NULL;
-    }
+    fclose (apop_file);
+    if (*password == '\0')
+      {
+	free (password);
+	return NULL;
+      }
 
-  return password;
+    return password;
+  }
 #endif /* WITH_BDB2 */
 }
 
@@ -129,8 +153,8 @@ pop3d_apop (const char *arg)
   char buf[POP_MAXCMDLEN];
   struct md5_ctx md5context;
   unsigned char md5digest[16];
-  int i;
   int status;
+  int lockit = 1;
 
   if (state != AUTHORIZATION)
     return ERR_WRONG_STATE;
@@ -142,6 +166,7 @@ pop3d_apop (const char *arg)
   if (strlen (username) > (POP_MAXCMDLEN - APOP_DIGEST))
     {
       free (username);
+      username = NULL;
       return ERR_BAD_ARGS;
     }
   user_digest = pop3d_args (arg);
@@ -150,6 +175,7 @@ pop3d_apop (const char *arg)
   if (password == NULL)
     {
       free (username);
+      username = NULL;
       free (user_digest);
       return ERR_BAD_LOGIN;
     }
@@ -160,15 +186,19 @@ pop3d_apop (const char *arg)
   free (password);
   md5_finish_ctx (&md5context, md5digest);
 
-  tmp = buf;
-  for (i = 0; i < 16; i++, tmp += 2)
-    sprintf (tmp, "%02x", md5digest[i]);
+  {
+    int i;
+    tmp = buf;
+    for (i = 0; i < 16; i++, tmp += 2)
+      sprintf (tmp, "%02x", md5digest[i]);
+  }
 
   *tmp++ = '\0';
 
   if (strcmp (user_digest, buf))
     {
       free (username);
+      username = NULL;
       free (user_digest);
       return ERR_BAD_LOGIN;
     }
@@ -178,24 +208,20 @@ pop3d_apop (const char *arg)
   if (pw == NULL)
     {
       free (username);
+      username = NULL;
       return ERR_BAD_LOGIN;
     }
 
   /* Reset the uid.  */
-  /* FIXME: How about the gid.  */
   if (setuid (pw->pw_uid) == -1)
     {
       free (username);
+      username = NULL;
       return ERR_BAD_LOGIN;
     }
 
-  if (mailbox_create_default (&mbox, username) != 0)
-    {
-      free (username);
-      state = AUTHORIZATION;
-      return ERR_UNKNOWN;
-    }
-  else if ((status = mailbox_open (mbox, MU_STREAM_RDWR)) != 0)
+  if ((status = mailbox_create_default (&mbox, username)) != 0
+      || (status = mailbox_open (mbox, MU_STREAM_RDWR)) != 0)
     {
       mailbox_destroy (&mbox);
       /* For non existent mailbox, we fake.  */
@@ -205,6 +231,7 @@ pop3d_apop (const char *arg)
 	      || mailbox_open (mbox, MU_STREAM_READ) != 0)
 	    {
 	      free (username);
+	      username = NULL;
 	      state = AUTHORIZATION;
 	      return ERR_UNKNOWN;
 	    }
@@ -212,9 +239,21 @@ pop3d_apop (const char *arg)
       else
 	{
 	  free (username);
+	  username = NULL;
 	  state = AUTHORIZATION;
 	  return ERR_MBOX_LOCK;
 	}
+      lockit = 0; /* Do not attempt to lock /dev/null ! */
+    }
+
+  if (lockit && pop3d_lock())
+    {
+      mailbox_close(mbox);
+      mailbox_destroy(&mbox);
+      state = AUTHORIZATION;
+      free (username);
+      username = NULL;
+      return ERR_MBOX_LOCK;
     }
 
   state = TRANSACTION;

@@ -12,4 +12,3 @@ noinst_HEADERS = argcv.h error.h fnmatch.h getline.h getopt.h md5.h \
 
 libmailutils_a_LIBADD = @LIBOBJS@ @ALLOCA@
 
-CFLAGS = -Wall -pedantic -g

@@ -18,11 +18,11 @@
 #include "imap4d.h"
 #include <ctype.h>
 
-static int add2set (int **set, int *n, unsigned long val, size_t max);
-static const char * sc2string (int rc);
+static int add2set __P ((int **, int *, unsigned long, size_t));
+static const char *sc2string __P ((int));
 
-/* FIXME:  Some words are:
-   between double quotes, between parenthesis.  */
+/* Get the next space/CR/NL separated word, some words are between double
+   quotes, strtok() can not handle it.  */
 char *
 util_getword (char *s, char **save)
 {
@@ -50,6 +50,7 @@ util_getword (char *s, char **save)
   return strtok_r (s, " \r\n", save);
 }
 
+/* Stop a the first char that IMAP4 represent as a special characters.  */
 int
 util_token (char *buf, size_t len, char **ptr)
 {
@@ -142,7 +143,8 @@ util_tilde_expansion (const char *ref, const char *delim)
   return p;
 }
 
-/* Absolute path.  */
+/* Get the absolute path.  */
+/* NOTE: Path is allocated and must be free()d by the caller.  */
 char *
 util_getfullpath (char *name, const char *delim)
 {
@@ -158,7 +160,6 @@ util_getfullpath (char *name, const char *delim)
 }
 
 /* Return in set an allocated array contain (n) numbers, for imap messsage set
-
    set ::= sequence_num / (sequence_num ":" sequence_num) / (set "," set)
    sequence_num    ::= nz_number / "*"
    ;; * is the largest number in use.  For message
@@ -182,6 +183,7 @@ util_msgset (char *s, int **set, int *n, int isuid)
   status = mailbox_messages_count (mbox, &max);
   if (status != 0)
     return status;
+  /* If it is a uid sequence, override max with the UID.  */
   if (isuid)
     {
       message_t msg = NULL;
@@ -227,11 +229,20 @@ util_msgset (char *s, int **set, int *n, int isuid)
 	    break;
 	  }
 
+	  /* A pair of numbers separated by a ':' character indicates a
+	     contiguous set of mesages ranging from the first number to the
+	     second:
+	     3:5  --> 3 4 5
+	  */
 	case ':':
 	  low = val + 1;
 	  s++;
 	  break;
 
+	  /* As a convenience. '*' is provided to refer to the highest message
+	     number int the mailbox:
+	     5:*  --> 5 6 7 8
+	  */
 	case '*':
 	  {
 	    if (status != 0)
@@ -246,6 +257,10 @@ util_msgset (char *s, int **set, int *n, int isuid)
 	    break;
 	  }
 
+	  /* IMAP also allows a set of noncontiguous numbers to be specified
+	     with the ',' character:
+	     1,3,5,7  --> 1 3 5 7
+	  */
 	case ',':
 	  s++;
 	  break;
@@ -275,6 +290,7 @@ util_msgset (char *s, int **set, int *n, int isuid)
   return 0;
 }
 
+/* Use vfprintf for the dirty work.  */
 int
 util_send (const char *format, ...)
 {
@@ -286,40 +302,42 @@ util_send (const char *format, ...)
   return status;
 }
 
+/* Send an unsolicited response.  */
 int
 util_out (int rc, const char *format, ...)
 {
   char *buf = NULL;
+  int status;
   va_list ap;
-
+  asprintf (&buf, "* %s%s\r\n", sc2string (rc), format);
   va_start (ap, format);
-  vasprintf (&buf, format, ap);
+  status = vfprintf (ofile, buf, ap);
   va_end (ap);
-
-  fprintf (ofile, "* %s%s\r\n", sc2string (rc), buf);
   free (buf);
-  return 0;
+  return status;
 }
 
+/* Send the tag response and reset the state.  */
 int
 util_finish (struct imap4d_command *command, int rc, const char *format, ...)
 {
   char *buf = NULL;
-  const char *resp;
   int new_state;
+  int status;
   va_list ap;
 
-  va_start (ap, format);
-  vasprintf (&buf, format, ap);
-  va_end(ap);
+  asprintf (&buf, "%s %s%s %s\r\n", command->tag, sc2string (rc),
+	    command->name, format);
 
-  resp = sc2string (rc);
-  fprintf (ofile, "%s %s%s %s\r\n", command->tag, resp, command->name, buf);
+  va_start (ap, format);
+  status = vfprintf (ofile, buf, ap);
+  va_end(ap);
   free (buf);
+  /* Reset the state.  */
   new_state = (rc == RESP_OK) ? command->success : command->failure;
   if (new_state != STATE_NONE)
     state = new_state;
-  return 0;
+  return status;
 }
 
 char *
@@ -339,29 +357,27 @@ imap4d_readline (int fd)
 
   do
     {
-      if (timeout > 0)
+      if (timeout)
 	{
 	  available = select (fd + 1, &rfds, NULL, NULL, &tv);
 	  if (!available)
-	    util_quit (1); /* FIXME: Timeout, send a "* BYE".  */
+	    util_quit (1);
 	}
       nread = read (fd, buf, sizeof (buf) - 1);
       if (nread < 1)
-	util_quit (1);	/* FIXME: dead socket, need to do something?  */
+	util_quit (1);
 
       buf[nread] = '\0';
 
       ret = realloc (ret, (total + nread + 1) * sizeof (char));
       if (ret == NULL)
-	util_quit (1); /* FIXME: ENOMEM, send a "* BYE" to the client.  */
+	util_quit (1);
       memcpy (ret + total, buf, nread + 1);
       total += nread;
-
-      /* FIXME: handle literal strings here.  */
-
     }
   while (memchr (buf, '\n', nread) == NULL);
 
+  /* Nuke CR'\r'  */
   for (nread = total; nread > 0; nread--)
     if (ret[nread] == '\r' || ret[nread] == '\n')
       ret[nread] = '\0';

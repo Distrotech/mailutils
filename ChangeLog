@@ -1,23 +1,78 @@
+2001-05-02 Alain Magloire
+
+	Some of the Makefile.am contain gcc specific options
+	like -Wall, -pedantic or -ansi remove them.
+
+	* configure.in: Check for stdarg and sysconf.
+	* mailbox/mime.c (_mime_set_content_type): Delayed the
+	creation of the header-field content-type until the message
+	is requested via mime_get_message().
+	* pop3d/lock.: new File to implement the locking.
+	* pop3d/apop.c: Rearrange the code around the #ifdefs
+	to be clearrer.
+	Make sure that when we use strncpy() that the buffer is
+	null terminated.  Added the locking propose by Sergey to apop.
+	* pop3d/capa.c: Announce we support PIPELINING.
+	* pop3d/extra.c (pop3d_abquit): Remove ERR_DEAD_SOCK.
+	Remove the extra fflush(), the call to exit()  always
+	flush the buffers.
+	(pop3d_readline):  Implement PIPELINING.
+	* pop3d/pop3d.c:  Remove the typedef struct sockaddr SA
+	for more clarity since it is not use that often.
+	port is not longer a global variable.
+	children should have the volatile qualification.
+
+2001-04-29 Alain Magloire
+
+	* pop3d/extra.c (pop3d_readline): Modify the loop to be able
+	to support PIPELINING.
+	* pop3d/capa.c: Advertise that we support PIPELINING.
+
+2001-04-29 Sergey Poznyakoff
+
+	Return values of all signal handlers are changed to RETSIGTYPE
+	and configure.in is modified accordingly. This is more portable.
+
+	* configure.in: New Macro AC_TYPE_SIGNAL.
+
+	* mailbox/locker.c (locker_lock): while trying to read pid value
+	from the pidfile passed wrong buffer length to read() call, namely:
+	read(fd, buf, sizeof (pid_t)).
+
+2001-04-29 Sergey Poznyakoff
+
+	I have modified locker.c to implement reference count. The
+	struct _locker is now:
+	struct _locker { int fd; int refcnt; char *fname; int flags; };
+	The refcnt member gets incremented each time locker_lock is called and
+	decremented each time locker_unlock is called. Actual locking is
+	performed only if refcnt == 0 on entry to locker_lock. Similarly,
+	unlocking is performed only when refcnt gets decremented to 0 by
+	locker_unlock. Also I have added basic support for NFS-secure
+	locking.
+
+	* mailbox/locker.c: Reference count implementation.
+
 2001-04-25 Alain Magloire
 
 	* imap4d/store.c: First implementation.
-	* mailbox/attribute.c (attribute_unsee_flags): New function.
+	* mailbox/attribute.c (attribute_unset_flags): New function.
 
 2001-04-23 Sergey Poznyakoff
 
 	* mailbox/mbx_mbox.c (mbx_expunge): It assumes that mbox_get_message()
 	will place the pointer to message into mum->message member. But
 	mbox_get_message() relies on 1-based message numbers, whereas `mum'
-	pointer is obtained using 0-based indexing:
+	pointer is obtained using 0-based indexing.
 
 2001-04-23 Alain Magloire
 
-	Sergey Poznyakoff noted: When the user's mailbox ha zeor size mmap
-	fails on Solaris. On GNU/Linux it reuturn NULL buf subsequet munmap
+	Sergey Poznyakoff noted: When the user's mailbox has zero size, mmap
+	fails on Solaris. On GNU/Linux it reuturn NULL buf subsequent munmap
 	fails.
 
-	* mailbox/mapfile_stream.c:  To take care of this will set
-	the mfs->ptr to NULL for len == 0;
+	* mailbox/mapfile_stream.c:  To take care of this, mfs->ptr is set
+	to NULL for len == 0;
 	*mailbox/mbx_mbox.c (mbox_is_updated): Should I have return 0 (FALSE)
 	when size change.
 
@@ -48,7 +103,7 @@
 
 2001-04-23 Sergey Poznyakoff
 
-	It is often convenient to separte log outputs from POP and SMTP
+	It is often convenient to separate log outputs from POP and SMTP
 	servers. --with-log-facility flag which allows to specify to which
 	log facility the loggin output should be directed.
 	System administrators often prefere to have more information about

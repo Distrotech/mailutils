@@ -1,5 +1,5 @@
 /* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Library Public License as published by
@@ -35,33 +35,30 @@
 #include <mailutils/locker.h>
 
 #define LOCKFILE_ATTR           0444
-#define LOCK_EXPIRE_TIME        (5 * 60)
 
 /* First draft by Brian Edmond. */
 
 struct _locker
 {
   int fd;
+  int refcnt;
   char *fname;
   int flags;
 };
 
 int
-locker_create (locker_t *plocker, char *filename, size_t len, int flags)
+locker_create (locker_t *plocker, const char *filename, size_t len, int flags)
 {
   locker_t l;
 
-  if (plocker == NULL)
+  if (plocker == NULL || filename == NULL || len == 0)
     return EINVAL;
 
-  if (filename == NULL || len == 0)
-    return EINVAL;
-
-  l = malloc (sizeof(*l));
+  l = malloc (sizeof (*l));
   if (l == NULL)
     return ENOMEM;
 
-  l->fname = calloc (len + 5 /*strlen(".lock")*/ + 1, sizeof(char));
+  l->fname = calloc (len + 5 /*strlen(".lock")*/ + 1, sizeof (*(l->fname)));
   if (l->fname == NULL)
     {
       free (l);
@@ -75,6 +72,7 @@ locker_create (locker_t *plocker, char *filename, size_t len, int flags)
   else
     l->flags = MU_LOCKER_TIME; /* Default is time lock implementation.  */
   l->fd = -1;
+  l->refcnt = 0;
   *plocker = l;
   return 0;
 }
@@ -98,27 +96,41 @@ locker_lock (locker_t lock, int flags)
   pid_t pid;
   int   removed = 0;
 
-  (void)flags;
+  (void)flags; /* Ignore for now.  */
   if (lock == NULL)
     return EINVAL;
+
+  /* Is the lock already applied?
+     FIXME: should we check flags != lock->flags ?? */
+  if (lock->fd != -1)
+    {
+      lock->refcnt++;
+      return 0;
+    }
 
   /*
     Check for lock existance:
     if it exists but the process is gone the lock can be removed,
-    if if the lock is expired and remove it.  */
-  if ((fd = open(lock->fname, O_RDONLY)) != -1)
+    if the lock is expired, remove it.  */
+  fd = open (lock->fname, O_RDONLY);
+  if (fd != -1)
     {
       /* Check to see if this process is still running.  */
       if (lock->flags & MU_LOCKER_PID)
         {
-          if (read(fd, buf, sizeof (pid_t)) > 0)
+	  int nread = read (fd, buf, sizeof (buf) - 1);
+          if (nread > 0)
             {
-              if ((pid = atoi(buf)) > 0)
+	      buf[nread] = '\0';
+              pid = strtol (buf, NULL, 10);
+              if (pid > 0)
                 {
                   /* Process is gone so we try to remove the lock.  */
-                  if (kill(pid, 0) == -1)
+                  if (kill (pid, 0) == -1)
                     removed = 1;
                 }
+	      else
+		removed = 1; /* Corrupted file, remove the lock.  */
             }
         }
       /* Check to see if the lock expired.  */
@@ -126,72 +138,95 @@ locker_lock (locker_t lock, int flags)
         {
           struct stat stbuf;
 
-          fstat(fd, &stbuf);
+          fstat (fd, &stbuf);
           /* The lock has expired.  */
-          if ((time(NULL) - stbuf.st_mtime) > LOCK_EXPIRE_TIME)
+          if ((time (NULL) - stbuf.st_mtime) > MU_LOCKER_EXPIRE_TIME)
             removed = 1;
         }
 
-      close(fd);
+      close (fd);
       if (removed)
-        unlink(lock->fname);
+        unlink (lock->fname);
     }
 
   /* Try to create the lockfile.  */
-  if ((fd = open(lock->fname,
-		 O_WRONLY | O_CREAT | O_EXCL, LOCKFILE_ATTR)) == -1)
+  fd = open (lock->fname, O_WRONLY | O_CREAT | O_EXCL, LOCKFILE_ATTR);
+  if (fd == -1)
     return errno;
+  else
+    {
+      struct stat fn_stat;
+      struct stat fd_stat;
+
+      if (lstat (lock->fname, &fn_stat)
+	  || fstat(fd, &fd_stat)
+	  || fn_stat.st_nlink != 1
+	  || fn_stat.st_dev != fd_stat.st_dev
+	  || fn_stat.st_ino != fd_stat.st_ino
+	  || fn_stat.st_uid != fd_stat.st_uid
+	  || fn_stat.st_gid != fd_stat.st_gid)
+	{
+	  close (fd);
+	  unlink (lock->fname);
+	  return EPERM;
+	}
+    }
+
   /* Success.  */
-  sprintf(buf, "%ld", (long)getpid());
-  write(fd, buf, strlen(buf));
+  sprintf (buf, "%ld", (long)getpid ());
+  write (fd, buf, strlen (buf));
 
   /* Try to get a file lock.  */
   if (lock->flags & MU_LOCKER_FCNTL)
     {
       struct flock fl;
 
-      memset(&fl, 0, sizeof(struct flock));
+      memset (&fl, 0, sizeof (struct flock));
       fl.l_type = F_WRLCK;
-      if (fcntl(fd, F_SETLK, &fl) == -1)
+      if (fcntl (fd, F_SETLK, &fl) == -1)
         {
 	  int err = errno;
           /* Could not get the file lock.  */
           close (fd);
-          unlink(lock->fname); /* Remove the file I created.  */
+          unlink (lock->fname); /* Remove the file I created.  */
           return err;
         }
     }
 
   lock->fd = fd;
+  lock->refcnt++;
   return 0;
 }
 
 int
 locker_touchlock (locker_t lock)
 {
- if (!lock || ! lock->fname || (lock->fd == -1))
+ if (!lock || !lock->fname || lock->fd == -1)
     return EINVAL;
-  return (utime(lock->fname, NULL));
+  return utime (lock->fname, NULL);
 }
 
 int
 locker_unlock (locker_t lock)
 {
-  if (!lock || ! lock->fname || (lock->fd == -1))
+  if (!lock || !lock->fname || lock->fd == -1 || lock->refcnt <= 0)
     return EINVAL;
+
+  if (--lock->refcnt > 0)
+    return 0;
 
   if (lock->flags & MU_LOCKER_FCNTL)
     {
       struct flock fl;
 
-      memset(&fl, 0, sizeof(struct flock));
+      memset (&fl, 0, sizeof (struct flock));
       fl.l_type = F_UNLCK;
-      /* Unlock failed ?  */
-      if (fcntl(lock->fd, F_SETLK, &fl) == -1)
+      /* Unlock failed?  */
+      if (fcntl (lock->fd, F_SETLK, &fl) == -1)
           return errno;
     }
-  close(lock->fd);
+  close (lock->fd);
   lock->fd = -1;
-  unlink(lock->fname);
+  unlink (lock->fname);
   return 0;
 }

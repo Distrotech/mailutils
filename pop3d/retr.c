@@ -25,9 +25,9 @@ pop3d_retr (const char *arg)
   size_t mesgno, n;
   char *buf;
   size_t buflen = BUFFERSIZE;
-  message_t msg;
-  attribute_t attr;
-  stream_t stream;
+  message_t msg = NULL;
+  attribute_t attr = NULL;
+  stream_t stream = NULL;
   off_t off;
 
   if ((strlen (arg) == 0) || (strchr (arg, ' ') != NULL))

@@ -32,6 +32,7 @@ pop3d_quit (const char *arg)
 
   if (state == TRANSACTION)
     {
+      pop3d_unlock ();
       if (mailbox_expunge (mbox) != 0)
 	err = ERR_FILE;
       if (mailbox_close (mbox) != 0)

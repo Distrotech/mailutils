@@ -82,10 +82,11 @@ pop3d_cmd (const char *cmd)
 /* This is called if GNU POP3 needs to quit without going to the UPDATE stage.
    This is used for conditions such as out of memory, a broken socket, or
    being killed on a signal */
-
 int
 pop3d_abquit (int reason)
 {
+  /* Unlock spool */
+  pop3d_unlock();
   mailbox_close (mbox);
   mailbox_destroy (&mbox);
 
@@ -94,11 +95,6 @@ pop3d_abquit (int reason)
     case ERR_NO_MEM:
       fprintf (ofile, "-ERR Out of memory, quitting\r\n");
       syslog (LOG_ERR, "Out of memory");
-      break;
-
-    case ERR_DEAD_SOCK:
-      fprintf (ofile, "-ERR Socket closed, quitting\r\n");
-      syslog (LOG_ERR, "Socket closed");
       break;
 
     case ERR_SIGNAL:
@@ -120,7 +116,7 @@ pop3d_abquit (int reason)
 
     case ERR_MBOX_SYNC:
       syslog (LOG_ERR, "Mailbox was updated by other party: %s", username);
-      fprintf (ofile, "-ERR Mailbox updated by other party or corrupt\r\n");
+      fprintf (ofile, "-ERR [OUT-SYNC] Mailbox updated by other party or corrupt\r\n");
       break;
 
     default:
@@ -129,8 +125,6 @@ pop3d_abquit (int reason)
       break;
     }
 
-  if (ofile)
-    fflush (ofile);
   closelog();
   exit (1);
 }
@@ -149,8 +143,7 @@ pop3d_usage (char *argv0)
   printf ("  -p, --port=PORT          specifies port to listen on, implies -d\n");
   printf ("                           defaults to 110, which need not be specified\n");
   printf ("  -t, --timeout=TIMEOUT    sets idle timeout to TIMEOUT seconds\n");
-  printf ("                           TIMEOUT must be at least 600 (10 minutes) or\n");
-  printf ("                           it will be disabled\n");
+  printf ("                           TIMEOUT default is 600 (10 minutes)\n");
   printf ("  -v, --version            display version information and exit\n");
   printf ("\nReport bugs to bug-mailutils@gnu.org\n");
   exit (0);
@@ -158,7 +151,7 @@ pop3d_usage (char *argv0)
 
 /* Default signal handler to call the pop3d_abquit() function */
 
-void
+RETSIGTYPE
 pop3d_signal (int signo)
 {
   (void)signo;
@@ -167,43 +160,75 @@ pop3d_signal (int signo)
 }
 
 /* Gets a line of input from the client */
-
+/* We can also implement PIPELINING by keeping a static buffer.
+   Implementing this cost an extra allocation with more uglier code.
+   Is it worth it?  How many clients actually use PIPELINING?
+ */
 char *
 pop3d_readline (int fd)
 {
-  fd_set rfds;
-  struct timeval tv;
-  char buf[512], *ret = NULL;
-  int nread;
-  int total = 0;
-  int available;
+  static char *buffer = NULL; /* Note: This buffer is never free()d.  */
+  static size_t total = 0;
+  char *nl;
+  char *line;
+  size_t len;
 
-  FD_ZERO (&rfds);
-  FD_SET (fd, &rfds);
-  tv.tv_sec = timeout;
-  tv.tv_usec = 0;
-
-  do
+  nl = memchr (buffer, '\n', total);
+  if (!nl)
     {
-      if (timeout > 0)
+      /* Need to refill the buffer.  */
+      do
 	{
-	  available = select (fd + 1, &rfds, NULL, NULL, &tv);
-	  if (!available)
-	    pop3d_abquit (ERR_TIMEOUT);
+	  char buf[512];
+	  int nread;
+
+	  if (timeout)
+	    {
+	      int available;
+	      fd_set rfds;
+	      struct timeval tv;
+
+	      FD_ZERO (&rfds);
+	      FD_SET (fd, &rfds);
+	      tv.tv_sec = timeout;
+	      tv.tv_usec = 0;
+
+	      available = select (fd + 1, &rfds, NULL, NULL, &tv);
+	      if (!available)
+		pop3d_abquit (ERR_TIMEOUT);
+	      else if (available == -1)
+		{
+		  if (errno == EINTR)
+		    continue;
+		  pop3d_abquit (ERR_NO_OFILE);
+		}
+	    }
+
+	  errno = 0;
+	  nread = read (fd, buf, sizeof (buf) - 1);
+	  if (nread < 1)
+	    {
+	      if (errno == EINTR)
+		continue;
+	      pop3d_abquit (ERR_NO_OFILE);
+	    }
+	  buf[nread] = '\0';
+
+	  buffer = realloc (buffer, (total + nread + 1) * sizeof (*buffer));
+	  if (buffer == NULL)
+	    pop3d_abquit (ERR_NO_MEM);
+	  memcpy (buffer + total, buf, nread + 1); /* copy the null too.  */
+	  total += nread;
 	}
-
-      nread = read (fd, buf, sizeof (buf) - 1);
-      if (nread < 1)
-	pop3d_abquit (ERR_DEAD_SOCK);
-
-      buf[nread] = '\0';
-      ret = realloc (ret, (total + nread + 1) * sizeof (char));
-      if (ret == NULL)
-	pop3d_abquit (ERR_NO_MEM);
-      memcpy (ret + total, buf, nread + 1);
-      total += nread;
+      while ((nl = memchr (buffer, '\n', total)) == NULL);
     }
-  while (memchr (buf, '\n', nread) == NULL);
 
-  return ret;
+  nl++;
+  len = nl - buffer;
+  line = calloc (len + 1, sizeof (*line));
+  memcpy (line, buffer, len); /* copy the newline too.  */
+  line[len] = '\0';
+  total -= len;
+  memmove (buffer, nl, total);
+  return line;
 }

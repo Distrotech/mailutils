@@ -28,8 +28,8 @@ pop3d_stat (const char *arg)
   size_t total = 0;
   size_t num = 0;
   size_t tsize = 0;
-  message_t msg;
-  attribute_t attr;
+  message_t msg = NULL;
+  attribute_t attr = NULL;
 
   if (strlen (arg) != 0)
     return ERR_BAD_ARGS;
@@ -45,6 +45,8 @@ pop3d_stat (const char *arg)
     {
       mailbox_get_message (mbox, mesgno, &msg);
       message_get_attribute (msg, &attr);
+      /* rfc1939: Note that messages marked as deleted are not counted in
+	 either total.  */
       if (!attribute_is_deleted (attr))
 	{
 	  message_size (msg, &size);
@@ -53,8 +55,6 @@ pop3d_stat (const char *arg)
 	  num++;
 	}
     }
-  /* rfc1939: Note that messages marked as deleted are not counted in either
-     total.  */
   fprintf (ofile, "+OK %d %d\r\n", num, tsize);
 
   return OK;

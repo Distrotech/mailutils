@@ -17,24 +17,15 @@
 
 #include "pop3d.h"
 
-/* Save some line space.  */
-typedef struct sockaddr_in SA;
-
-/* Declared in <pop3d.h>.  */
 mailbox_t mbox;
-
-unsigned int port;
-unsigned int timeout;
+size_t timeout;
 int state;
 char *username;
 int ifile;
 FILE *ofile;
-time_t curr_time;
 char *md5shared;
-volatile unsigned int children;
-
 /* Number of child processes.  */
-unsigned int children = 0;
+volatile size_t children;
 
 static struct option long_options[] =
 {
@@ -51,17 +42,22 @@ const char *short_options ="d::hip:t:v";
 
 static int syslog_error_printer __P ((const char *fmt, va_list ap));
 
+#ifndef DEFMAXCHILDREN
+# define DEFMAXCHILDREN 10   /* Default maximum number of children */
+#endif
+
 int
 main (int argc, char **argv)
 {
   struct group *gr;
   static int mode = INTERACTIVE;
-  size_t maxchildren = 20;
+  size_t maxchildren = DEFMAXCHILDREN;
   int c = 0;
   int status = OK;
+  unsigned int port;
 
   port = 110;			/* Default POP3 port.  */
-  timeout = 0;			/* Default timeout of 0.  */
+  timeout = 600;		/* Default timeout of 600.  */
 
   while ((c = getopt_long (argc, argv, short_options, long_options, NULL))
 	 != -1)
@@ -70,9 +66,10 @@ main (int argc, char **argv)
 	{
 	case 'd':
 	  mode = DAEMON;
-	  maxchildren = optarg ? strtoul (optarg, NULL, 10) : 10;
-	  if (maxchildren <= 0)
-	    maxchildren = 10;
+	  if (optarg)
+	    maxchildren = strtoul (optarg, NULL, 10);
+	  if (maxchildren == 0)
+	    maxchildren = DEFMAXCHILDREN;
 	  break;
 
 	case 'h':
@@ -106,13 +103,13 @@ main (int argc, char **argv)
   gr = getgrnam ("mail");
   if (gr == NULL)
     {
-      perror ("Error getting group");
+      perror ("Error getting mail group");
       exit (1);
     }
 
   if (setgid (gr->gr_gid) == -1)
     {
-      perror ("Error setting group");
+      perror ("Error setting mail group");
       exit (1);
     }
 
@@ -134,25 +131,25 @@ main (int argc, char **argv)
   signal (SIGTERM, pop3d_signal);
   signal (SIGSTOP, pop3d_signal);
   signal (SIGPIPE, pop3d_signal);
-
-  if (timeout < 600)		/* RFC 1939 says no less than 10 minutes.  */
-    timeout = 0;		/* So we'll turn it off.  */
+  signal (SIGABRT, pop3d_signal);
 
   if (mode == DAEMON)
     pop3d_daemon_init ();
 
-  /* Change directory.  */
+  /* Make sure that to be in the root directory.  */
   chdir ("/");
 
   /* Set up for syslog.  */
   openlog ("gnu-pop3d", LOG_PID, LOG_FACILITY);
-  mu_error_set_print(syslog_error_printer);
+  /* Redirect any stdout error from the library to syslog, they
+     should not go to the client.  */
+  mu_error_set_print (syslog_error_printer);
 
   umask (S_IROTH | S_IWOTH | S_IXOTH);	/* 007 */
 
   /* Actually run the daemon.  */
   if (mode == DAEMON)
-    pop3d_daemon (maxchildren);
+    pop3d_daemon (maxchildren, port);
   /* exit (0) -- no way out of daemon except a signal.  */
   else
     status = pop3d_mainloop (fileno (stdin), fileno (stdout));
@@ -167,8 +164,6 @@ void
 pop3d_daemon_init (void)
 {
   pid_t pid;
-  unsigned int i;
-#define MAXFD 64
 
   pid = fork ();
   if (pid == -1)
@@ -183,6 +178,8 @@ pop3d_daemon_init (void)
 
   signal (SIGHUP, SIG_IGN);	/* Ignore SIGHUP.  */
 
+  /* The second fork is to guarantee that the daemon cannot acquire a
+     controlling terminal.  */
   pid = fork ();
   if (pid == -1)
     {
@@ -193,9 +190,18 @@ pop3d_daemon_init (void)
     exit (0);			/* Parent exits.  */
 
   /* Close inherited file descriptors.  */
-  for (i = 0; i < MAXFD; ++i)
-    close (i);
+  {
+    size_t i;
+#if defined(HAVE_SYSCONF) && defined(_SC_OPEN_MAX)
+    size_t fdlimit = sysconf(_SC_OPEN_MAX);
+#else
+    size_t fdlimit = 64;
+#endif
+    for (i = 0; i < fdlimit; ++i)
+      close (i);
+  }
 
+  /* SIGCHLD is not ignore but rather use to do some simple load balancing.  */
 #ifdef HAVE_SIGACTION
   {
     struct sigaction act;
@@ -211,23 +217,21 @@ pop3d_daemon_init (void)
 
 /* The main part of the daemon. This function reads input from the client and
    executes the proper functions. Also handles the bulk of error reporting.  */
-
 int
 pop3d_mainloop (int infile, int outfile)
 {
   int status = OK;
-  char *buf, *arg, *cmd;
-  struct hostent *htbuf;
-  char *local_hostname;
+
+  /* Reset hup to exit.  */
+  signal (SIGHUP, pop3d_signal);
 
   ifile = infile;
   ofile = fdopen (outfile, "w");
   if (ofile == NULL)
     pop3d_abquit (ERR_NO_OFILE);
-  state = AUTHORIZATION;
-  curr_time = time (NULL);
 
-  /* FIXME:  Retreive hostname with getpeername() and log.  */
+  state = AUTHORIZATION;
+
   syslog (LOG_INFO, "Incoming connection opened");
 
   /* log information on the connecting client */
@@ -242,46 +246,61 @@ pop3d_mainloop (int infile, int outfile)
   }
 
   /* Prepare the shared secret for APOP.  */
-  local_hostname = malloc (MAXHOSTNAMELEN + 1);
-  if (local_hostname == NULL)
-    pop3d_abquit (ERR_NO_MEM);
+  {
+    char *local_hostname;
+    local_hostname = malloc (MAXHOSTNAMELEN + 1);
+    if (local_hostname == NULL)
+      pop3d_abquit (ERR_NO_MEM);
 
-  gethostname (local_hostname, MAXHOSTNAMELEN);
-  htbuf = gethostbyname (local_hostname);
-  if (htbuf)
+    /* Get our canonical hostname. */
     {
-      free (local_hostname);
-      local_hostname = strdup (htbuf->h_name);
+      struct hostent *htbuf;
+      gethostname (local_hostname, MAXHOSTNAMELEN);
+      htbuf = gethostbyname (local_hostname);
+      if (htbuf)
+	{
+	  free (local_hostname);
+	  local_hostname = strdup (htbuf->h_name);
+	}
     }
 
-  md5shared = malloc (strlen (local_hostname) + 51);
-  if (md5shared == NULL)
-    pop3d_abquit (ERR_NO_MEM);
+    md5shared = malloc (strlen (local_hostname) + 51);
+    if (md5shared == NULL)
+      pop3d_abquit (ERR_NO_MEM);
 
-  snprintf (md5shared, strlen (local_hostname) + 50, "<%u.%u@%s>", getpid (),
-	    (int)time (NULL), local_hostname);
-  free (local_hostname);
+    snprintf (md5shared, strlen (local_hostname) + 50, "<%u.%u@%s>", getpid (),
+	      (unsigned)time (NULL), local_hostname);
+    free (local_hostname);
+  }
 
+  /* Lets boogie.  */
   fprintf (ofile, "+OK POP3 Ready %s\r\n", md5shared);
 
   while (state != UPDATE)
     {
+      char *buf, *arg, *cmd;
+
       fflush (ofile);
       status = OK;
       buf = pop3d_readline (ifile);
       cmd = pop3d_cmd (buf);
       arg = pop3d_args (buf);
 
+      /* The mailbox size needs to be check to make sure that we are in
+	 sync.  Some other applications may not respect the *.lock or
+	 the lock may be stale because downloading on slow modem.
+	 We rely on the size of the mailbox for the check and bail if out
+	 of sync.  */
       if (state == TRANSACTION && !mailbox_is_updated (mbox))
 	{
 	  static off_t mailbox_size;
 	  off_t newsize = 0;
 	  mailbox_get_size (mbox, &newsize);
-	  /* Did we shrink?  */
+	  /* Did we shrink?  First time save the size.  */
 	  if (!mailbox_size)
 	    mailbox_size = newsize;
-	  else if (newsize < mailbox_size)
-	    pop3d_abquit (ERR_MBOX_SYNC);
+	  else if (newsize < mailbox_size) /* FIXME: Should it be a != ? */
+	    pop3d_abquit (ERR_MBOX_SYNC); /* Out of sync, Bail out.  */
 	}
 
       if (strlen (arg) > POP_MAXCMDLEN || strlen (cmd) > POP_MAXCMDLEN)
@@ -318,7 +337,7 @@ pop3d_mainloop (int infile, int outfile)
 	status = ERR_BAD_CMD;
 
       if (status == OK)
-	fflush (ofile);
+	; /* Everything is good.  */
       else if (status == ERR_WRONG_STATE)
 	fprintf (ofile, "-ERR " BAD_STATE "\r\n");
       else if (status == ERR_BAD_ARGS)
@@ -347,7 +366,6 @@ pop3d_mainloop (int infile, int outfile)
       free (arg);
     }
 
-  fflush (ofile);
   return (status != OK);
 }
 
@@ -355,11 +373,10 @@ pop3d_mainloop (int infile, int outfile)
    (default 110) then executes a pop3d_mainloop() upon accepting a connection.
    It starts maxchildren child processes to listen to and accept socket
    connections.  */
-
 void
-pop3d_daemon (unsigned int maxchildren)
+pop3d_daemon (unsigned int maxchildren, unsigned int port)
 {
-  SA server, client;
+  struct sockaddr_in server, client;
   pid_t pid;
   int listenfd, connfd;
   size_t size;
@@ -394,7 +411,7 @@ pop3d_daemon (unsigned int maxchildren)
     {
       if (children > maxchildren)
         {
-	  syslog (LOG_ERR, "too many children");
+	  syslog (LOG_ERR, "too many children (%d)", children);
           pause ();
           continue;
         }

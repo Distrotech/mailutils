@@ -15,4 +15,3 @@ noinst_HEADERS = argp-fmtstream.h argp-namefrob.h argp.h
 
 libargp_a_LIBADD = ../lib/libmailutils.a
 
-CFLAGS = -Wall -g

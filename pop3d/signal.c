@@ -18,21 +18,17 @@
 
 #include "pop3d.h"
 
-void
+RETSIGTYPE
 pop3d_sigchld (int signo)
 {
   pid_t pid;
   int status;
-  int old_errno = errno ;
 
-  (void)signo;
-  errno = 0;
   while ( (pid = waitpid(-1, &status, WNOHANG)) > 0)
       --children;
 #ifndef HAVE_SIGACTION
-  /* On some system, signal implements the unreliabe sematic and
+  /* On some system, signal implements the unreliable semantic and
      has to be rearm.  */
-  signal (SIGCHLD, pop3d_sigchld);
+  signal (signo, pop3d_sigchld);
 #endif
-  errno = old_errno;
 }

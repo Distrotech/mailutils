@@ -127,7 +127,7 @@ static int pop_write           __P ((pop_data_t));
    If the  POP server supports TOP, we can cleanly fetch the header.
    But otherwise we use the clumsy approach. .i.e for the header we read 'til
    ^\n then discard the rest, for the body we read after ^\n and discard the
-   beginning.  This a waste, Pop was not conceive for this obviously.  */
+   beginning.  This is a waste, Pop was not conceive for this obviously.  */
 struct _pop_message
 {
   int inbody;
@@ -175,8 +175,8 @@ struct _pop_data
 /* Usefull little Macros, since these are very repetitive.  */
 
 /* Check if we're busy ?  */
-/* POP is a one channel dowload protocol, so if someone
-   is trying to do another command while another is running
+/* POP is a one channel download protocol, so if someone
+   is trying to execute a command while another is running
    something is seriously incorrect,  So the best course
    of action is to close down the connection and start a new one.
    For example mime_t only reads part of the message.  If a client
@@ -193,7 +193,7 @@ struct _pop_data
    }
    if in the while of the readline, one try to get another email.  The pop
    server will get seriously confused, and the second message will still
-   be the first one,  There is no way to tell POP servers ye! stop/abort.
+   be the first one,  There is no way to tell POP servers yo! stop/abort.
    The approach is to close the stream and reopen again. So  every time
    we go in to a function our state is preserve by the triplets
    mpd->{func,state,id}.  The macro CHECK_BUSY checks if we are not
