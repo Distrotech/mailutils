@@ -1,3 +1,22 @@
+2002-09-25  Sergey Poznyakoff
+
+	* mailbox/mutil.c: Fixed typo in #if directive.
+	* mailbox/parse822.c (const char *days): Bugfix. "Sun" must
+	  be the first entry in the array.
+	* mh/fmtcheck.c: New file. Source for fmtcheck command. It is
+	  planned as a replacement for fmtdump, providing a broader
+	  set of options for debugging user formats. Currently only
+	  dump (listing) mode is implemented.
+	* mh/mh_format.c (mh_format_dump): New function. Produces the
+	  listing of compiled format code.
+	  (builtin_me, builtin_profile, builtin_putstr, print_string,
+	   builtin_putnum, builtin_putnumf, builtin_tws,
+	   builtin_pretty): Implemented.
+	  (builtin_pers): Enclose the return in a pair of double-quotes.
+	* mh/mh_init.c (mh_my_email): New function.  
+	* mh/mh.h (mh_format_dump, mh_my_email): New function.
+	* mh/Makefile.am: Added fmtcheck
+
 2002-09-24  Sergey Poznyakoff
 
 	* mail/mail.c (mail_cmdline): removed unnecesary conditional.
