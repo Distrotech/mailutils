@@ -46,6 +46,7 @@ message.c \
 memory_stream.c \
 mime.c \
 monitor.c \
+mu_argp.c \
 mutil.c \
 muerror.c \
 muerrno.c \
