@@ -64,6 +64,12 @@ extern char * mu_tilde_expansion __P ((const char *ref, const char *delim, const
 
 extern size_t util_cpystr __P ((char *dst, const char *src, size_t size));
 
+struct passwd;
+
+void mu_register_getpwnam __P((struct passwd *(*fun) __P((char *))));
+struct password * mu_getpwnam __P((const char *name));
+  
+  
 #ifdef __cplusplus
 }
 #endif
