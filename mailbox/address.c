@@ -68,45 +68,46 @@ address_createv (address_t *a, const char *sv[], size_t len)
   int status = 0;
   size_t buflen = 0;
   char* buf = 0;
-  int i;
+  size_t i;
 
-  if(!sv)
+  if (!sv)
     return EINVAL;
 
-  if(len == -1)
-  {
-    const char** vp = sv;
+  if (len == (size_t)-1)
+    {
+      const char** vp = sv;
 
-    len = 0;
+      len = 0;
 
-    for(len = 0; *vp; vp++, len++)
-      ;
-  }
-  if(len == 0)
+      for (len = 0; *vp; vp++, len++)
+	;
+    }
+
+  if (len == 0)
     return EINVAL;
 
-  for(i = 0; i < len; i++)
+  for (i = 0; i < len; i++)
     buflen += strlen(sv[i]);
 
-  buflen += (len - 1) * strlen(", ");
-  buflen += 1; /* termination null */
+  buflen += (len - 1) * strlen (", ");
+  buflen += 1; /* Termination null.  */
 
-  buf = malloc(buflen);
+  buf = malloc (buflen);
 
-  if(!buf)
+  if (!buf)
     return ENOMEM;
 
-  for(i = 0, buf[0] = '\0'; i < len; i++)
-  {
-    if(i != 0)
-      strcat(buf, ", ");
+  for (i = 0, buf[0] = '\0'; i < len; i++)
+    {
+      if(i != 0)
+	strcat (buf, ", ");
 
-    strcat(buf, sv[i]);
-  }
+      strcat (buf, sv[i]);
+    }
 
-  status = address_create(a, buf);
+  status = address_create (a, buf);
 
-  free(buf);
+  free (buf);
 
   return status;
 }

@@ -1,3 +1,7 @@
+2001-12-16 Alain Magloire
+
+	* mailbox/address.c:  Problem between signed and unsigned comparison.
+
 2001-12-16 Sam Roberts
 
 	* TODO: updated with some notes about the doc examples
