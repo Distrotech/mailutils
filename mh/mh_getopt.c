@@ -53,51 +53,56 @@ mh_getopt (int argc, char **argv, struct mh_option *mh_opt, const char *doc)
       return 0;
     }
 
-  optlen = strlen (mh_optptr+1);
-  for (p = mh_opt; p->opt; p++)
-    {
-      if ((p->match_len <= optlen
-	   && memcmp (mh_optptr+1, p->opt, optlen) == 0)
-	  || (p->flags == MH_OPT_BOOL
-	      && optlen > 2
-	      && memcmp (mh_optptr+1, "no", 2) == 0
-	      && strlen (p->opt) >= optlen-2
-	      && memcmp (mh_optptr+3, p->opt, optlen-2) == 0))
-	break;
-    }
-  
-  if (p->opt)
-    {
-      char *longopt = p->opt;
-      switch (p->flags)
-	{
-	case MH_OPT_BOOL:
-	  if (memcmp (mh_optptr+1, "no", 2) == 0)
-	    mh_optarg = "no";
-	  else
-	    mh_optarg = "yes";
-	  asprintf (&argv[mh_optind], "--%s=%s", longopt, mh_optarg);
-	  break;
-	  
-	case MH_OPT_ARG:
-	  asprintf (&argv[mh_optind], "--%s", longopt);
-	  mh_optarg = argv[++mh_optind];
-	  break;
-
-	default:
-	  asprintf (&argv[mh_optind], "--%s", longopt);
-	  mh_optarg = NULL;
-	}
-      mh_optind++;
-      return 1;
-    }
-  else if (!strcmp (mh_optptr+1, "help"))
-    {
-      mh_help (mh_opt, doc);
-      exit (1);
-    }
+  if (strcmp (mh_optptr, "-version") == 0)
+    asprintf (&argv[mh_optind], "--version");
   else
-    mh_optind++;
+    {
+      optlen = strlen (mh_optptr+1);
+      for (p = mh_opt; p->opt; p++)
+	{
+	  if ((p->match_len <= optlen
+	       && memcmp (mh_optptr+1, p->opt, optlen) == 0)
+	      || (p->flags == MH_OPT_BOOL
+		  && optlen > 2
+		  && memcmp (mh_optptr+1, "no", 2) == 0
+		  && strlen (p->opt) >= optlen-2
+		  && memcmp (mh_optptr+3, p->opt, optlen-2) == 0))
+	    break;
+	}
+      
+      if (p->opt)
+	{
+	  char *longopt = p->opt;
+	  switch (p->flags)
+	    {
+	    case MH_OPT_BOOL:
+	      if (memcmp (mh_optptr+1, "no", 2) == 0)
+		mh_optarg = "no";
+	      else
+		mh_optarg = "yes";
+	      asprintf (&argv[mh_optind], "--%s=%s", longopt, mh_optarg);
+	      break;
+	      
+	    case MH_OPT_ARG:
+	      asprintf (&argv[mh_optind], "--%s", longopt);
+	      mh_optarg = argv[++mh_optind];
+	      break;
+	      
+	    default:
+	      asprintf (&argv[mh_optind], "--%s", longopt);
+	      mh_optarg = NULL;
+	    }
+	  mh_optind++;
+	  return 1;
+	}
+      else if (!strcmp (mh_optptr+1, "help"))
+	{
+	  mh_help (mh_opt, doc);
+	  exit (1);
+	}
+      else
+	mh_optind++;
+    }
   return '?';
 }
 
@@ -137,6 +142,7 @@ mh_help (struct mh_option *mh_opt, const char *doc)
       printf ("\n");
     }
   printf ("  -help\n");
+  printf ("  -version\n");
   printf (_("\nPlease use GNU long options instead.\n"
             "Run %s --help for more info on these.\n"),
             program_invocation_short_name);
