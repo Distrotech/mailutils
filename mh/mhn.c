@@ -37,7 +37,7 @@ static struct argp_option options[] = {
   
   {N_("MIME editing options"),   0,  NULL, OPTION_DOC,  NULL, 5},
   {"compose",      ARG_COMPOSE,      N_("BOOL"), OPTION_ARG_OPTIONAL,
-   N_("* Compose the MIME message (default)"), 6},
+   N_("Compose the MIME message (default)"), 6},
   {"nocompose",    ARG_NOCOMPOSE,    NULL, OPTION_HIDDEN, "", 6},
   
   {N_("Listing options"),   0,  NULL, OPTION_DOC,  NULL, 0},
@@ -1523,6 +1523,7 @@ struct compose_env {
   stream_t input;
   mime_t mime;
   size_t line;
+  int subpart;
 };
 
 size_t
@@ -1545,7 +1546,7 @@ parse_brace (char **pval, char **cmd, int c, struct compose_env *env)
   
   if (!sp)
     {
-      mh_error ("%s:%lu: missing %c",
+      mh_error (_("%s:%lu: missing %c"),
 		input_file,
 		(unsigned long) mhn_error_loc (env),
 		c);
@@ -1560,6 +1561,9 @@ parse_brace (char **pval, char **cmd, int c, struct compose_env *env)
   return 0;
 }
 
+#define isdelim(c) (isspace (c) || strchr (";<[(", c))
+#define skipws(ptr) do { while (*ptr && isspace (*ptr)) ptr++; } while (0)
+
 /* cmd is:  type "/" subtype
             0*(";" attribute "=" value)
             [ "(" comment ")" ]
@@ -1567,42 +1571,31 @@ parse_brace (char **pval, char **cmd, int c, struct compose_env *env)
             [ "[" description "]" ]
 */
 int
-parse_type_command (char *cmd, char **prest, struct compose_env *env,
-		    header_t hdr)
+parse_type_command (char **pcmd, struct compose_env *env, header_t hdr)
 {
   int status = 0, stop = 0;
-  char *sp;
+  char *sp, c;
   char *type = NULL;
   char *subtype = NULL;
   char *comment = NULL, *descr = NULL, *id = NULL;
   struct obstack stk;
-  char *rest = *prest;
+  char *rest = *pcmd;
   
-  while (*rest && isspace (*rest))
-    rest++;
-  split_content (cmd, &type, &subtype);
+  skipws (rest);
+  for (sp = rest; *sp && !isdelim (*sp); sp++)
+    ;
+  c = *sp;
+  *sp = 0;
+  split_content (rest, &type, &subtype);
+  *sp = c;
+  rest = sp;
+  
   if (!subtype)
     {
-      if (*rest != '/')
-	{
-	  mh_error ("%s:%lu: expected / but found %s",
-		    input_file,
-		    (unsigned long) mhn_error_loc (env),
-		    rest);
-	  return 1;
-	}
-      for (rest++; *rest && isspace (*rest); rest++)
-	;
-      if (!*rest)
-	{
-	  mh_error ("%s:%lu: missing subtype",
-		    input_file,
-		    (unsigned long) mhn_error_loc (env));
-	  return 1;
-	}
-      subtype = strtok_r (rest, ";\n", &sp);
-      subtype = strdup (subtype);
-      rest = sp;
+      mh_error (_("%s:%lu: missing subtype"),
+		input_file,
+		(unsigned long) mhn_error_loc (env));
+      return 1;
     }
 
   obstack_init (&stk);
@@ -1617,7 +1610,7 @@ parse_type_command (char *cmd, char **prest, struct compose_env *env,
 	case '(':
 	  if (comment)
 	    {
-	      mh_error ("%s:%lu: comment redefined",
+	      mh_error (_("%s:%lu: comment redefined"),
 			input_file,
 			(unsigned long) mhn_error_loc (env));
 	      status = 1;
@@ -1629,7 +1622,7 @@ parse_type_command (char *cmd, char **prest, struct compose_env *env,
 	case '[':
 	  if (descr)
 	    {
-	      mh_error ("%s:%lu: description redefined",
+	      mh_error (_("%s:%lu: description redefined"),
 			input_file,
 			(unsigned long) mhn_error_loc (env));
 	      status = 1;
@@ -1641,7 +1634,7 @@ parse_type_command (char *cmd, char **prest, struct compose_env *env,
 	case '<':
 	  if (id)
 	    {
-	      mh_error ("%s:%lu: content id redefined",
+	      mh_error (_("%s:%lu: content id redefined"),
 			input_file,
 			(unsigned long) mhn_error_loc (env));
 	      status = 1;
@@ -1652,79 +1645,197 @@ parse_type_command (char *cmd, char **prest, struct compose_env *env,
 
 	case ';':
 	  obstack_1grow (&stk, ';');
-	  while (*rest && isspace (*rest))
-	    rest++;
+	  obstack_1grow (&stk, ' ');
+	  skipws (rest);
 	  sp = rest;
-	  for (; *rest && !isspace (*rest); rest++)
+	  for (; *rest && !isspace (*rest) && *rest != '='; rest++)
 	    obstack_1grow (&stk, *rest);
-	  while (*rest && isspace (*rest))
-	    rest++;
+	  skipws (rest);
 	  if (*rest != '=')
 	    {
-	      mh_error ("%s:%lu: syntax error",
+	      mh_error (_("%s:%lu: syntax error"),
 			input_file,
 			(unsigned long) mhn_error_loc (env));
 	      status = 1;
 	      break;
 	    }
+	  rest++;
 	  obstack_1grow (&stk, '=');
-	  while (*rest && isspace (*rest))
-	    rest++;
+	  skipws (rest);
 	  for (; *rest; rest++)
 	    {
-	      if (strchr (";<[(", *rest))
+	      if (isdelim (*rest))
 		break;
 	      obstack_1grow (&stk, *rest);
 	    }
 	  break;
 	    
 	default:
+	  rest--;
 	  stop = 1;
 	  break;
 	}
+      skipws (rest);
     }
 
+  if (comment)
+    {
+      obstack_grow (&stk, " (", 2);
+      obstack_grow (&stk, comment, strlen (comment));
+      obstack_1grow (&stk, ')');
+      free (comment);
+    }
+    
   obstack_1grow (&stk, 0);
   header_set_value (hdr, MU_HEADER_CONTENT_TYPE, obstack_finish (&stk), 1);
   obstack_free (&stk, NULL);
 
   if (!id)
-    id = mh_create_message_id (1);
+    id = mh_create_message_id (env->subpart);
 
   header_set_value (hdr, MU_HEADER_CONTENT_ID, id, 1);
-
-  free (comment); /* FIXME: comment was not used */
-  free (descr);
   free (id);
-  *prest = rest;
+
+  if (descr)
+    {
+      header_set_value (hdr, MU_HEADER_CONTENT_DESCRIPTION, descr, 1);
+      free (descr);
+    }
+      
+  *pcmd = rest;
   return status;
 }
 
+void
+finish_msg (struct compose_env *env, message_t *msg)
+{
+  header_t hdr;
+
+  if (!msg || !*msg)
+    return;
+  message_get_header (*msg, &hdr);
+  if (header_get_value (hdr, MU_HEADER_CONTENT_TYPE, NULL, 0, NULL))
+    header_set_value (hdr, MU_HEADER_CONTENT_TYPE, "text/plain", 1);
+  if (header_get_value (hdr, MU_HEADER_CONTENT_ID, NULL, 0, NULL))
+    {
+      char *p = mh_create_message_id (env->subpart);
+      header_set_value (hdr, MU_HEADER_CONTENT_ID, p, 1);
+      free (p);
+    }
+  mime_add_part (env->mime, *msg);
+  message_unref (*msg);
+  *msg = NULL;
+}
+
 int
-edit_extern (char *cmd, char *rest, struct compose_env *env, int level)
+edit_extern (char *cmd, struct compose_env *env, message_t *msg, int level)
 {
   return 0;
 }
 
 int
-edit_forw (char *cmd, struct compose_env *env, int level)
+edit_forw (char *cmd, struct compose_env *env, message_t *msg, int level)
 {
   return 0;
 }
 
 int
-edit_mime (char *cmd, char *rest, struct compose_env *env, int level)
+edit_modify (char *cmd, struct compose_env *env, message_t *msg)
+{
+  header_t hdr;
+  if (!*msg)
+    message_create (msg, NULL);
+  message_get_header (*msg, &hdr);
+  return parse_type_command (&cmd, env, hdr);
+}
+
+int
+edit_mime (char *cmd, struct compose_env *env, message_t *msg, int level)
 {
   int rc;
-  message_t msg;
   header_t hdr;
+  body_t body;
+  stream_t in, out = NULL, fstr;
+  char *encoding;
+  char *p;
   
-  message_create (&msg, NULL);
-  message_get_header (msg, &hdr);
-  rc = parse_type_command (cmd, &rest, env, hdr);
-  if (rc == 0)
-    mime_add_part (env->mime, msg);
-  message_unref (msg);
+  if (!*msg)
+    message_create (msg, NULL);
+  message_get_header (*msg, &hdr);
+  rc = parse_type_command (&cmd, env, hdr);
+  for (p = cmd + strlen (cmd) - 1; p > cmd && isspace (*p); p--)
+    ;
+  if (p == cmd)
+    {
+      mh_error (_("%s:%lu: missing filename"),
+		input_file,
+		(unsigned long) mhn_error_loc (env));
+      finish_msg (env, msg);
+      return 1;
+    }
+  p[1] = 0;
+
+  /* Open input stream */
+  rc = file_stream_create (&in, cmd, MU_STREAM_READ);
+  if (rc)
+    {
+      mh_error (_("can't create input stream (file %s): %s"),
+		cmd, mu_strerror (rc));
+      return rc;
+    }
+  rc = stream_open (in);
+  if (rc)
+    {
+      mh_error (_("can't open input stream (file %s): %s"),
+		cmd, mu_strerror (rc));
+      stream_destroy (&in, stream_get_owner (in));
+      return rc;
+    }
+
+  /* Create filter */
+
+  if (_get_hdr_value (hdr, MU_HEADER_CONTENT_TRANSFER_ENCODING, &encoding))
+    {
+      char *typestr, *type, *subtype;
+      
+      _get_content_type (hdr, &typestr, NULL);
+      split_content (typestr, &type, &subtype);
+      if (strcasecmp (type, "message") == 0)
+	encoding = strdup ("7bit");
+      else if (strcasecmp (type, "text") == 0)
+	encoding = strdup ("quoted-printable");
+      else
+	encoding = strdup ("base64");
+      header_set_value (hdr, MU_HEADER_CONTENT_TRANSFER_ENCODING, encoding, 1);
+      free (typestr);
+      free (type);
+      free (subtype);
+    }
+
+  rc = filter_create (&fstr, in, encoding, MU_FILTER_ENCODE, MU_STREAM_READ);
+  if (rc)
+    {
+      fstr = in;
+      in = NULL;
+    }
+  free (encoding);
+
+  rc = stream_open (fstr);
+  if (rc)
+    {
+      mh_error (_("can't open filter stream: %s"),
+		mu_strerror (rc));
+      return rc;
+    }
+  
+  message_get_body (*msg, &body);
+  body_get_stream (body, &out);
+  cat_message (out, fstr);
+
+  stream_close (out);
+  
+  stream_destroy (&fstr, stream_get_owner (fstr));
+  finish_msg (env, msg);
   return rc;
 }
 
@@ -1737,6 +1848,7 @@ mhn_edit (struct compose_env *env, int level)
   body_t body;
   stream_t output;
   message_t msg = NULL;
+  size_t line_count = 0;
   
   while (status == 0
 	 && stream_getline (env->input, &buf, &bufsize, &n) == 0 && n > 0)
@@ -1744,12 +1856,15 @@ mhn_edit (struct compose_env *env, int level)
       env->line++;
       if (!msg)
 	{
+	  header_t hdr;
 	  /* Create new message */
 	  message_create (&msg, NULL);
-	  /*FIXME: Headers*/
+	  message_get_header (msg, &hdr);
 	  message_get_body (msg, &body);
 	  body_get_stream (body, &output);
 	  stream_seek (output, 0, SEEK_SET);
+	  line_count = 0;
+	  env->subpart++;
 	}
       
       if (buf[0] == '#')
@@ -1760,7 +1875,7 @@ mhn_edit (struct compose_env *env, int level)
 	    {
 	      char *b2 = NULL;
 	      size_t bs = 0, n2;
-	      char *tok, *sp;
+	      char *tok, *sp, c;
 
 	      /* Collect the whole line */
 	      while (n > 2 && buf[n-2] == '\\')
@@ -1780,18 +1895,32 @@ mhn_edit (struct compose_env *env, int level)
 		}
 	      free (b2);
 
-	      /* Close and append the previous part */
 	      stream_close (output);
-	      mime_add_part (env->mime, msg);
-	      message_unref (msg);
-	      msg = NULL;
-
+	      if (line_count)
+		/* Close and append the previous part */
+		finish_msg (env, &msg);
+	      
 	      /* Execute the directive */
-	      tok = strtok_r (buf, " \n", &sp);
-	      if (tok[1] == '@')
-		status = edit_extern (tok + 2, sp, env, level);
+	      tok = sp = buf;
+	      while (*sp && !isspace (*sp))
+		sp++;
+	      c = *sp;
+	      *sp = 0;
+
+	      if (tok[1] == 0)
+		/* starts a new message */;
+	      else if (tok[1] == '<')
+		status = edit_modify (tok+2, env, &msg);
+	      else if (tok[1] == '@')
+		{
+		  *sp = c;
+		  status = edit_extern (tok + 2, env, &msg, level);
+		}
 	      else if (strcmp (tok, "#forw") == 0)
-		status = edit_forw (sp, env, level);
+		{
+		  *sp = c;
+		  status = edit_forw (sp, env, &msg, level);
+		}
 	      else if (strcmp (tok, "#begin") == 0)
 		{
 		  struct compose_env new_env;
@@ -1799,9 +1928,11 @@ mhn_edit (struct compose_env *env, int level)
 		  
 		  new_env.input = env->input;
 		  new_env.line = env->line;
+		  new_env.subpart = env->subpart;
 		  mime_create (&new_env.mime, NULL, 0);
 		  status = mhn_edit (&new_env, level + 1);
 		  env->line = new_env.line;
+		  env->subpart = new_env.subpart;
 		  if (status == 0)
 		    {
 		      mime_get_message (new_env.mime, &new_msg);
@@ -1813,27 +1944,35 @@ mhn_edit (struct compose_env *env, int level)
 		{
 		  if (level == 0)
 		    {
-		      mh_error ("%s:%lu: unmatched #end",
+		      mh_error (_("%s:%lu: unmatched #end"),
 				input_file,
 				(unsigned long) mhn_error_loc (env));
 		      status = 1;
 		    }
 		  break;
 		}
-	      else 
-		status = edit_mime (tok + 1, sp, env, level);
+	      else
+		{
+		  *sp = c;
+		  status = edit_mime (tok + 1, env, &msg, level);
+		}
 	    }
 	}
-      else
-	stream_sequential_write (output, buf, n);
+      else if (line_count > 0 || buf[0] != '\n')
+	{
+	  stream_sequential_write (output, buf, n);
+	  line_count++;
+	}
     }
   free (buf);
 
   if (msg)
     {
       stream_close (output);
-      mime_add_part (env->mime, msg);
-      message_unref (msg);
+      if (line_count)
+	finish_msg (env, &msg);
+      else
+	message_unref (msg);
     }
   
   return status;
@@ -1878,6 +2017,7 @@ mhn_compose ()
 
   env.mime = mime;
   env.input = stream;
+  env.subpart = 0;
   rc = mhn_edit (&env, 0);
   if (rc)
     return rc;
