@@ -28,6 +28,8 @@ extern int address_create   __P ((address_t *, const char *));
 extern int address_createv  __P ((address_t *, const char *v[], size_t));
 extern void address_destroy __P ((address_t *));
 
+extern address_t address_dup __P ((address_t src));
+
 /* Set FROM to null, after adding its addresses to TO. */
 extern int address_concatenate __P ((address_t to, address_t* from));
 

@@ -1,3 +1,8 @@
+2002-11-14  Frederic Gobry  <frederic.gobry@smartdata.ch>
+
+	* include/mailutils/address.h: added declaration of address_dup.
+	
+
 2002-11-14  Sergey Poznyakoff
 
 	* sieve/lex-sieve.lex: Removed
