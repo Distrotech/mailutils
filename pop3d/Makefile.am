@@ -6,4 +6,10 @@ pop3d_DEPENDENDENCIES = ../libmailbox/libmailbox.la ../libsrc/libgetopt.la\
 	../libsrc/libmd5.la
 pop3d_SOURCES = apop.c auth.c capa.c dele.c extra.c pop3d.c pop3d.h\
 	list.c noop.c quit.c retr.c rset.c stat.c top.c uidl.c user.c
-pop3d_LDADD = ../libmailbox/libmailbox.la
+
+#if USE_LIBPAM
+#pop3d_LDADD = ../libmailbox/libmailbox.la -lpam -ldl
+#else
+#pop3d_LDADD = ../libmailbox/libmailbox.la
+#endif
+pop3d_LADADD = ../libmailbox/libmailbox.la $(AUTHLIBS)

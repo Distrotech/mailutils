@@ -1,5 +1,5 @@
-/* GNU POP3 - a small, fast, and efficient POP3 daemon
-   Copyright (C) 1999 Jakob 'sparky' Kaivo <jkaivo@nodomainname.net>
+/* GNU mailutils - a suite of utilities for electronic mail
+   Copyright (C) 1999 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -79,11 +79,11 @@ int
 pop3_user (const char *arg)
 {
   char *buf, pass[POP_MAXCMDLEN], *tmp, *cmd;
+  struct passwd *pw;
 #ifdef USE_LIBPAM
   pam_handle_t *pamh;
   int pamerror;
 #endif /* !USE_LIBPAM */
-  struct passwd *pw;
 
   if (state != AUTHORIZATION)
     return ERR_WRONG_STATE;
@@ -101,6 +101,7 @@ pop3_user (const char *arg)
 
   if (strlen (tmp) > POP_MAXCMDLEN)
     {
+      free (cmd);
       free (tmp);
       return ERR_TOO_LONG;
     }
@@ -148,7 +149,7 @@ pop3_user (const char *arg)
 #endif /* HAVE_SHADOW_H */
 	    return ERR_BAD_LOGIN;
 	}
-#else /* USE_LIBPAM */
+#else /* !USE_LIBPAM */
       _user = (char *) arg;
       _pwd = pass;
       /* libpam doesn't log to LOG_MAIL */
@@ -166,18 +167,21 @@ pop3_user (const char *arg)
 #endif /* USE_LIBPAM */
 
 #ifdef MAILSPOOLHOME
-      chdir (pw->pw_dir);
-      mbox = mbox_open (MAILSPOOLHOME);
-      if (mbox == NULL)
+      if (pw != NULL)
 	{
-	  /* See comments below... */
+	  chdir (pw->pw_dir);
+	  mbox = mbox_open (MAILSPOOLHOME);
+	}
+      else
+	mbox = NULL;
+
+      if (mbox == NULL)		/* We should check errno here... */
+	{
 	  chdir (_PATH_MAILDIR);
 #endif /* MAILSPOOLHOME */
 	  mbox = mbox_open (arg);
-	  if (mbox == NULL)
+	  if (mbox == NULL)	/* And here */
 	    {
-		/* Check the error type... */
-		/* Until then, though */
 		state = AUTHORIZATION;
 		return ERR_MBOX_LOCK;
 	    }
@@ -192,6 +196,8 @@ pop3_user (const char *arg)
       if (pw != NULL && pw->pw_uid > 1)
 	setuid (pw->pw_uid);
 
+      mbox_lock (mbox, MO_RLOCK | MO_WLOCK);
+      
       fprintf (ofile, "+OK opened mailbox for %s\r\n", username);
       syslog (LOG_INFO, "User '%s' logged in with mailbox '%s'", username,
 	      mbox->name);

@@ -1,5 +1,5 @@
-/* GNU POP3 - a small, fast, and efficient POP3 daemon
-   Copyright (C) 1999 Jakob 'sparky' Kaivo <jkaivo@nodomainname.net>
+/* GNU mailutils - a suite of utilities for electronic mail
+   Copyright (C) 1999 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -22,11 +22,9 @@
 int
 pop3_top (const char *arg)
 {
-#ifdef _HAVE_BLACK_MAGIC
-  int i = 0, header = 1, done = 0;
   int mesg, lines;
   char *mesgc, *linesc;
-  char *buf, buf2[80];
+  char *buf;
 
   if (strlen (arg) == 0)
     return ERR_BAD_ARGS;
@@ -44,66 +42,15 @@ pop3_top (const char *arg)
   if (lines < 0)
     return ERR_BAD_ARGS;
 
-  if (pop3_mesg_exist (mesg) != OK)
+  if (mesg > mbox->messages || mbox_is_deleted(mbox, mesg))
     return ERR_NO_MESG;
 
-  mbox = freopen (mailbox, "r", mbox);
-  if (mbox == NULL)
-    return ERR_FILE;
-  fsetpos (mbox, &(messages[mesg].header));
-
-  fprintf (ofile, "+OK\r\n");
-  buf = malloc (sizeof (char) * 80);
-  if (buf == NULL)
-    pop3_abquit (ERR_NO_MEM);
-
-  while (fgets (buf, 80, mbox) && !done)
-    {
-      while (strchr (buf, '\n') == NULL)
-	{
-	  buf = realloc (buf, sizeof (char) * (strlen (buf) + 81));
-	  if (buf == NULL)
-	    pop3_abquit (ERR_NO_MEM);
-	  fgets (buf2, 80, mbox);
-	  strncat (buf, buf2, 80);
-	}
-      if (!strncmp (buf, "From ", 5))
-	done = 1;
-      else
-	{
-	  buf[strlen (buf) - 1] = '\0';
-	  if (header == 1)
-	    {
-	      if (buf[0] == '.')
-		fprintf (ofile, ".%s\r\n", buf);
-	      else
-		fprintf (ofile, "%s\r\n", buf);
-	      if ((buf[0] == '\r') || (buf[0] == '\n') || (buf[0]) == '\0')
-		header = 0;
-	    }
-	  else
-	    {
-	      if (++i <= lines)
-		{
-		  if (buf[0] == '.')
-		    fprintf (ofile, ".%s\r\n", buf);
-		  else
-		    fprintf (ofile, "%s\r\n", buf);
-		}
-	      else
-		done = 1;
-	    }
-	}
-      buf = realloc (buf, sizeof (char) * 80);
-      if (buf == NULL)
-	pop3_abquit (ERR_NO_MEM);
-    }
-
+  buf = mbox_get_header (mbox, mesg);
+  fprintf (ofile, "+OK\r\n%s\r\n", buf);
   free (buf);
-  fprintf (ofile, ".\r\n");
+  buf = mbox_body_lines (mbox, mesg, lines);
+  fprintf (ofile, "%s.\r\n", buf);
+  free (buf);
   return OK;
-#else
-  return ERR_NOT_IMPL;
-#endif
 }
 

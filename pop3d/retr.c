@@ -1,5 +1,5 @@
-/* GNU POP3 - a small, fast, and efficient POP3 daemon
-   Copyright (C) 1999 Jakob 'sparky' Kaivo <jkaivo@nodomainname.net>
+/* GNU mailutils - a suite of utilities for electronic mail
+   Copyright (C) 1999 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -33,16 +33,15 @@ pop3_retr (const char *arg)
 
   mesg = atoi (arg) - 1;
 
-  if (mesg > mbox->messages || mbox_is_deleted(mbox, mesg))
+  if (mesg >= mbox->messages || mbox_is_deleted(mbox, mesg))
     return ERR_NO_MESG;
 
-  fprintf (ofile, "+OK\r\n");
   buf = mbox_get_header (mbox, mesg);
-  fprintf (ofile, "%s", buf);
+  fprintf (ofile, "+OK\r\n%s\r\n", buf);
   free (buf);
   buf = mbox_get_body (mbox, mesg);
-  fprintf (ofile, "%s", buf);
+  fprintf (ofile, "%s.\r\n", buf);
   free (buf);
-  fprintf (ofile, ".\r\n");
   return OK;
 }
+

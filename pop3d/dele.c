@@ -1,5 +1,5 @@
-/* GNU POP3 - a small, fast, and efficient POP3 daemon
-   Copyright (C) 1999 Jakob 'sparky' Kaivo <jkaivo@nodomainname.net>
+/* GNU mailutils - a suite of utilities for electronic mail
+   Copyright (C) 1999 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
