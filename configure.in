@@ -78,7 +78,7 @@ AC_HEADER_DIRENT
 AM_C_PROTOTYPES
 AC_CHECK_HEADERS(argp.h errno.h fcntl.h inttypes.h libgen.h limits.h malloc.h \
  paths.h shadow.h stdarg.h stdio.h stdlib.h string.h strings.h sys/file.h \
- syslog.h termios.h termio.h sgtty.h unistd.h )
+ syslog.h termios.h termio.h sgtty.h unistd.h obstack.h termcap.h)
 
 dnl Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
@@ -128,6 +128,10 @@ if test x"$ac_cv_func_argp_parse" != xyes; then
 	AC_SUBST(ARGPLIB)
 	AC_SUBST(ARGPINCS)
 fi
+
+AC_CHECK_FUNCS(_obstack_begin,
+               [AC_DEFINE(HAVE_OBSTACK)],
+               [LIBOBJS="$LIBOBJS obstack.o"])
 
 dnl check if mysql support was added
 AC_SUBST(BUILD_LIBMYSQL)
@@ -246,4 +250,5 @@ AC_OUTPUT(Makefile mailutils.spec include/Makefile include/mailutils/Makefile
  m4/Makefile doc/Makefile argp/Makefile lib/Makefile lib/posix/Makefile
  mailbox/Makefile imap4d/Makefile mailbox/include/Makefile from/Makefile
  mail/Makefile pop3d/Makefile frm/Makefile sieve/Makefile messages/Makefile
- scripts/Makefile libmu_scm/Makefile guimb/Makefile guimb/scm/Makefile MySql/Makefile)
+ scripts/Makefile libmu_scm/Makefile guimb/Makefile guimb/scm/Makefile
+ MySql/Makefile)
