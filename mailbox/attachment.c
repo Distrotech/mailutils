@@ -48,112 +48,139 @@
 /* FIXME: this should be in a public header.  */
 extern int message_attachment_filename __P ((message_t, const char **filename));
 
-struct _msg_info {
-	char	*buf;
-	size_t	nbytes;
-	char	*header_buf;
-	int		header_len;
-	int		header_size;
-	header_t hdr;
-	message_t msg;
-	int		ioffset;
-	int 	ooffset;
-	stream_t stream; /* output file/decoding stream for saving attachment */
-	stream_t fstream; /* output file stream for saving attachment */
+struct _msg_info
+{
+  char *buf;
+  size_t nbytes;
+  char *header_buf;
+  int header_len;
+  int header_size;
+  header_t hdr;
+  message_t msg;
+  int ioffset;
+  int ooffset;
+  stream_t stream;		/* output file/decoding stream for saving attachment */
+  stream_t fstream;		/* output file stream for saving attachment */
 };
 
 #define MSG_HDR "Content-Type: %s; name=%s\nContent-Transfer-Encoding: %s\nContent-Disposition: attachment; filename=%s\n\n"
 
-int message_create_attachment(const char *content_type, const char *encoding, const char *filename, message_t *newmsg)
+int
+message_create_attachment (const char *content_type, const char *encoding,
+			   const char *filename, message_t * newmsg)
 {
-	header_t  hdr;
-	body_t    body;
-	stream_t  fstream = NULL, tstream = NULL;
-	char *header, *name = NULL, *fname = NULL;
-	int ret;
+  header_t hdr;
+  body_t body;
+  stream_t fstream = NULL, tstream = NULL;
+  char *header, *name = NULL, *fname = NULL;
+  int ret;
 
-	if ( filename == NULL || newmsg == NULL )
-		return EINVAL;
+  if (filename == NULL || newmsg == NULL)
+    return EINVAL;
 
-	if ( ( ret = message_create(newmsg, NULL) ) == 0 ) {
-		if ( content_type == NULL )
-			content_type = "text/plain";
-		if ( encoding == NULL )
-			encoding = "7bit";
-		if ( ( fname = strdup(filename) ) != NULL ) {
-			name = strrchr (fname, '/');
-			if (name)
-			  name++;
-			else
-			  name = fname;
-			if ( ( header = alloca(strlen(MSG_HDR) + strlen(content_type) + strlen(name) * 2 + strlen(encoding) + 1) ) == NULL )
-				ret = ENOMEM;
-			else {
-				sprintf(header, MSG_HDR, content_type, name, encoding, name);
-				if ( ( ret = header_create( &hdr, header, strlen(header), *newmsg ) ) == 0 ) {
-					message_get_body(*newmsg, &body);
-					if ( ( ret = file_stream_create(&fstream, filename, MU_STREAM_READ) ) == 0 ) {
-						if ( ( ret = stream_open(fstream) ) == 0 ) {
-							if ( ( ret = filter_create(&tstream, fstream, encoding, MU_FILTER_ENCODE, MU_STREAM_READ) ) == 0 ) {
-								body_set_stream(body, tstream, *newmsg);
-								message_set_header(*newmsg, hdr, NULL);
-							}
-					  	}
-					}
-				}
+  if ((ret = message_create (newmsg, NULL)) == 0)
+    {
+      if (content_type == NULL)
+	content_type = "text/plain";
+      if (encoding == NULL)
+	encoding = "7bit";
+      if ((fname = strdup (filename)) != NULL)
+	{
+	  name = strrchr (fname, '/');
+	  if (name)
+	    name++;
+	  else
+	    name = fname;
+	  if ((header =
+	       alloca (strlen (MSG_HDR) + strlen (content_type) +
+		       strlen (name) * 2 + strlen (encoding) + 1)) == NULL)
+	    ret = ENOMEM;
+	  else
+	    {
+	      sprintf (header, MSG_HDR, content_type, name, encoding, name);
+	      if ((ret =
+		   header_create (&hdr, header, strlen (header),
+				  *newmsg)) == 0)
+		{
+		  message_get_body (*newmsg, &body);
+		  if ((ret =
+		       file_stream_create (&fstream, filename,
+					   MU_STREAM_READ)) == 0)
+		    {
+		      if ((ret = stream_open (fstream)) == 0)
+			{
+			  if ((ret =
+			       filter_create (&tstream, fstream, encoding,
+					      MU_FILTER_ENCODE,
+					      MU_STREAM_READ)) == 0)
+			    {
+			      body_set_stream (body, tstream, *newmsg);
+			      message_set_header (*newmsg, hdr, NULL);
+			    }
 			}
+		    }
 		}
+	    }
 	}
-	if ( ret ) {
-		if ( *newmsg )
-			message_destroy(newmsg, NULL);
-		if ( hdr )
-			header_destroy(&hdr, NULL);
-		if ( fstream )
-			stream_destroy(&fstream, NULL);
-		if ( fname )
-		  free(fname);
-	}
-	return ret;
+    }
+  if (ret)
+    {
+      if (*newmsg)
+	message_destroy (newmsg, NULL);
+      if (hdr)
+	header_destroy (&hdr, NULL);
+      if (fstream)
+	stream_destroy (&fstream, NULL);
+      if (fname)
+	free (fname);
+    }
+  return ret;
 }
 
 
-static int _attachment_setup(struct _msg_info **info, message_t msg, stream_t *stream, void **data)
+static int
+_attachment_setup (struct _msg_info **info, message_t msg, stream_t * stream,
+		   void **data)
 {
-	int 				sfl, ret;
-	body_t				body;
+  int sfl, ret;
+  body_t body;
 
-	if ( ( ret = message_get_body(msg, &body) ) != 0 ||
-		 ( ret = body_get_stream(body, stream) ) != 0 )
-		return ret;
-	stream_get_flags(*stream, &sfl);
-	if ( data == NULL && (sfl & MU_STREAM_NONBLOCK) )
-		return EINVAL;
-	if ( data )
-		*info = *data;
-	if ( *info == NULL ) {
-		if ( ( *info = calloc(1, sizeof(struct _msg_info)) ) == NULL )
-			return ENOMEM;
-	}
-	if ( ( (*info)->buf = malloc(BUF_SIZE) ) == NULL ) {
-		free(*info);
-		return ENOMEM;
-	}
-	return 0;
+  if ((ret = message_get_body (msg, &body)) != 0 ||
+      (ret = body_get_stream (body, stream)) != 0)
+    return ret;
+  stream_get_flags (*stream, &sfl);
+  if (data == NULL && (sfl & MU_STREAM_NONBLOCK))
+    return EINVAL;
+  if (data)
+    *info = *data;
+  if (*info == NULL)
+    {
+      if ((*info = calloc (1, sizeof (struct _msg_info))) == NULL)
+	return ENOMEM;
+    }
+  if (((*info)->buf = malloc (BUF_SIZE)) == NULL)
+    {
+      free (*info);
+      return ENOMEM;
+    }
+  return 0;
 }
 
-static void _attachment_free(struct _msg_info *info, int free_message) {
-	if ( info->buf )
-		free(info->buf);
-	if ( info->header_buf )
-		free(info->header_buf);
-	if ( free_message ) {
-		if ( info->msg )
-			message_destroy(&(info->msg), NULL);
-		else if ( info->hdr )
-			header_destroy(&(info->hdr), NULL);
-	}
-	free(info);
+static void
+_attachment_free (struct _msg_info *info, int free_message)
+{
+  if (info->buf)
+    free (info->buf);
+  if (info->header_buf)
+    free (info->header_buf);
+  if (free_message)
+    {
+      if (info->msg)
+	message_destroy (&(info->msg), NULL);
+      else if (info->hdr)
+	header_destroy (&(info->hdr), NULL);
+    }
+  free (info);
 }
 
 #define _ISSPECIAL(c) ( \
@@ -162,221 +189,289 @@ static void _attachment_free(struct _msg_info *info, int free_message) {
     || ((c) == '\\') || ((c) == '.') || ((c) == '[') \
     || ((c) == ']') )
 
-static char *_header_get_param(char *field_body, const char *param, size_t *len)
+static char *
+_header_get_param (char *field_body, const char *param, size_t * len)
 {
-	char *str, *p, *v, *e;
-	int quoted = 0, was_quoted = 0;
+  char *str, *p, *v, *e;
+  int quoted = 0, was_quoted = 0;
 
-	if ( len == NULL || ( str = field_body ) == NULL )
-		return NULL;
+  if (len == NULL || (str = field_body) == NULL)
+    return NULL;
 
-	p = strchr(str, ';' );
-	while ( p ) {
-		p++;
-		while( isspace((unsigned)*p) )  /* walk upto start of param */
-			p++;
-		if ( ( v = strchr(p, '=' ) ) == NULL )
-			break;
-		*len = 0;
-		v = e = v + 1;
-		while ( *e && (quoted || ( !_ISSPECIAL(*e) && !isspace((unsigned)*e) ) ) ) { 	/* skip pass value and calc len */
-			if ( *e == '\"' )
-				quoted = ~quoted, was_quoted = 1;
-			else
-				(*len)++;
-			e++;
-		}
-		if ( strncasecmp(p, param, strlen(param)) ) {	/* no match jump to next */
-			p = strchr(e, ';' );
-			continue;
-		}
-		else
-			return was_quoted ? v + 1 : v;			/* return unquoted value */
+  p = strchr (str, ';');
+  while (p)
+    {
+      p++;
+      while (isspace ((unsigned) *p))	/* walk upto start of param */
+	p++;
+      if ((v = strchr (p, '=')) == NULL)
+	break;
+      *len = 0;
+      v = e = v + 1;
+      while (*e && (quoted || (!_ISSPECIAL (*e) && !isspace ((unsigned) *e))))
+	{			/* skip pass value and calc len */
+	  if (*e == '\"')
+	    quoted = ~quoted, was_quoted = 1;
+	  else
+	    (*len)++;
+	  e++;
 	}
-	return NULL;
+      if (strncasecmp (p, param, strlen (param)))
+	{			/* no match jump to next */
+	  p = strchr (e, ';');
+	  continue;
+	}
+      else
+	return was_quoted ? v + 1 : v;	/* return unquoted value */
+    }
+  return NULL;
 }
 
-int message_attachment_filename(message_t msg, const char **filename)
+int
+message_attachment_filename (message_t msg, const char **filename)
 {
-	char 		*pTmp, *fname = NULL;
-	header_t	hdr;
-	int 		ret = EINVAL;
-	size_t		size = 0;
+  char *pTmp, *fname = NULL;
+  header_t hdr;
+  int ret = EINVAL;
+  size_t size = 0;
 
-	if ( filename != NULL && ( ret = message_get_header(msg, &hdr) ) == 0 ) {
-		*filename = NULL;
-		header_get_value(hdr, "Content-Disposition", NULL, 0, &size);
-		if ( size ) {
-			if ( ( pTmp = alloca(size+1) ) == NULL )
-				ret = ENOMEM;
-			header_get_value(hdr, "Content-Disposition", pTmp, size+1, 0);
-			if ( strstr( pTmp, "attachment" ) != NULL )
-				fname = _header_get_param(pTmp, "filename", &size);
-		}
-		if ( fname == NULL ) {
-			size = 0;
-			header_get_value(hdr, "Content-Type", NULL, 0, &size);
-			if ( size ) {
-				if ( ( pTmp = alloca(size+1) ) == NULL )
-					ret = ENOMEM;
-				header_get_value(hdr, "Content-Type", pTmp, size+1, 0);
-				fname = _header_get_param(pTmp, "name", &size);
-			}
-		}
-		if ( fname ) {
-			fname[size] = '\0';
-			if ( ( *filename = strdup(fname) ) == NULL )
-				ret = ENOMEM;
-		} else
-			ret = ENOENT;
+  if (filename != NULL && (ret = message_get_header (msg, &hdr)) == 0)
+    {
+      *filename = NULL;
+      header_get_value (hdr, "Content-Disposition", NULL, 0, &size);
+      if (size)
+	{
+	  if ((pTmp = alloca (size + 1)) == NULL)
+	    ret = ENOMEM;
+	  header_get_value (hdr, "Content-Disposition", pTmp, size + 1, 0);
+	  if (strstr (pTmp, "attachment") != NULL)
+	    fname = _header_get_param (pTmp, "filename", &size);
 	}
-	return ret;
+      if (fname == NULL)
+	{
+	  size = 0;
+	  header_get_value (hdr, "Content-Type", NULL, 0, &size);
+	  if (size)
+	    {
+	      if ((pTmp = alloca (size + 1)) == NULL)
+		ret = ENOMEM;
+	      header_get_value (hdr, "Content-Type", pTmp, size + 1, 0);
+	      fname = _header_get_param (pTmp, "name", &size);
+	    }
+	}
+      if (fname)
+	{
+	  fname[size] = '\0';
+	  if ((*filename = strdup (fname)) == NULL)
+	    ret = ENOMEM;
+	}
+      else
+	ret = ENOENT;
+    }
+  return ret;
 }
 
-int message_save_attachment(message_t msg, const char *filename, void **data)
+int
+message_save_attachment (message_t msg, const char *filename, void **data)
 {
-	stream_t			istream;
-	struct _msg_info	*info = NULL;
-	int 				ret;
-	size_t				size;
-	size_t				nbytes;
-	header_t			hdr;
-	char 				*content_encoding;
-	const char 			*fname = NULL;
+  stream_t istream;
+  struct _msg_info *info = NULL;
+  int ret;
+  size_t size;
+  size_t nbytes;
+  header_t hdr;
+  char *content_encoding;
+  const char *fname = NULL;
 
-	if ( msg == NULL || filename == NULL)
-		return EINVAL;
+  if (msg == NULL || filename == NULL)
+    return EINVAL;
 
-	if ( ( ret = _attachment_setup( &info, msg, &istream, data) ) != 0 )
-		return ret;
+  if ((ret = _attachment_setup (&info, msg, &istream, data)) != 0)
+    return ret;
 
-	if ( ret == 0 && ( ret = message_get_header(msg, &hdr) ) == 0 ) {
-		if ( filename == NULL )
-			ret = message_attachment_filename(msg, &fname);
-		else
-			fname = filename;
-		if ( fname && ( ret = file_stream_create(&info->fstream, fname, MU_STREAM_WRITE|MU_STREAM_CREAT) ) == 0 ) {
-			if ( ( ret = stream_open(info->fstream) ) == 0 ) {
-				header_get_value(hdr, "Content-Transfer-Encoding", NULL, 0, &size);
-				if ( size ) {
-					if ( ( content_encoding = alloca(size+1) ) == NULL )
-						ret = ENOMEM;
-					header_get_value(hdr, "Content-Transfer-Encoding", content_encoding, size+1, 0);
-				} else
-					content_encoding = (char *)"7bit";
-				ret = filter_create(&info->stream, istream, content_encoding, MU_FILTER_DECODE, MU_STREAM_READ);
-			}
+  if (ret == 0 && (ret = message_get_header (msg, &hdr)) == 0)
+    {
+      if (filename == NULL)
+	ret = message_attachment_filename (msg, &fname);
+      else
+	fname = filename;
+      if (fname
+	  && (ret =
+	      file_stream_create (&info->fstream, fname,
+				  MU_STREAM_WRITE | MU_STREAM_CREAT)) == 0)
+	{
+	  if ((ret = stream_open (info->fstream)) == 0)
+	    {
+	      header_get_value (hdr, "Content-Transfer-Encoding", NULL, 0,
+				&size);
+	      if (size)
+		{
+		  if ((content_encoding = alloca (size + 1)) == NULL)
+		    ret = ENOMEM;
+		  header_get_value (hdr, "Content-Transfer-Encoding",
+				    content_encoding, size + 1, 0);
 		}
+	      else
+		content_encoding = (char *) "7bit";
+	      ret =
+		filter_create (&info->stream, istream, content_encoding,
+			       MU_FILTER_DECODE, MU_STREAM_READ);
+	    }
 	}
-	if ( info->stream && istream ) {
-		if ( info->nbytes )
-			memmove( info->buf, info->buf + (BUF_SIZE - info->nbytes), info->nbytes);
-		while ( (ret == 0 && info->nbytes) || ( ( ret = stream_read(info->stream, info->buf, BUF_SIZE, info->ioffset, &info->nbytes) ) == 0 && info->nbytes ) ) {
-			info->ioffset += info->nbytes;
-			while( info->nbytes ) {
-				if ( ( ret = stream_write(info->fstream, info->buf, info->nbytes, info->ooffset, &nbytes ) ) != 0 )
-					break;
-				info->nbytes -= nbytes;
-				info->ooffset += nbytes;
-			}
-		}
+    }
+  if (info->stream && istream)
+    {
+      if (info->nbytes)
+	memmove (info->buf, info->buf + (BUF_SIZE - info->nbytes),
+		 info->nbytes);
+      while ((ret == 0 && info->nbytes)
+	     ||
+	     ((ret =
+	       stream_read (info->stream, info->buf, BUF_SIZE, info->ioffset,
+			    &info->nbytes)) == 0 && info->nbytes))
+	{
+	  info->ioffset += info->nbytes;
+	  while (info->nbytes)
+	    {
+	      if ((ret =
+		   stream_write (info->fstream, info->buf, info->nbytes,
+				 info->ooffset, &nbytes)) != 0)
+		break;
+	      info->nbytes -= nbytes;
+	      info->ooffset += nbytes;
+	    }
 	}
-	if ( ret != EAGAIN && info ) {
-		stream_close(info->fstream);
-		stream_destroy(&info->stream, NULL);
-		stream_destroy(&info->fstream, NULL);
-		_attachment_free(info, ret);
-	}
-	return ret;
+    }
+  if (ret != EAGAIN && info)
+    {
+      stream_close (info->fstream);
+      stream_destroy (&info->stream, NULL);
+      stream_destroy (&info->fstream, NULL);
+      _attachment_free (info, ret);
+    }
+  return ret;
 }
 
-int message_encapsulate(message_t msg, message_t *newmsg, void **data)
+int
+message_encapsulate (message_t msg, message_t * newmsg, void **data)
 {
-	stream_t			istream, ostream;
-	const char			*header;
-	struct _msg_info	*info = NULL;
-	int 				ret = 0;
-	size_t				nbytes;
-	body_t				body;
+  stream_t istream, ostream;
+  const char *header;
+  struct _msg_info *info = NULL;
+  int ret = 0;
+  size_t nbytes;
+  body_t body;
 
-	if ( msg == NULL || newmsg == NULL)
-		return EINVAL;
+  if (msg == NULL || newmsg == NULL)
+    return EINVAL;
 
-	if ( ( ret = _attachment_setup( &info, msg, &ostream, data) ) != 0 )
-		return ret;
+  if ((ret = _attachment_setup (&info, msg, &ostream, data)) != 0)
+    return ret;
 
-	if ( info->msg == NULL && ( ret = message_create(&(info->msg), NULL) ) == 0 ) {
-		header = "Content-Type: message/rfc822\nContent-Transfer-Encoding: 7bit\n\n";
-		if ( ( ret = header_create( &(info->hdr), header, strlen(header), msg ) ) == 0 )
-			ret = message_set_header(info->msg, info->hdr, NULL);
-	}
-	if ( ret == 0 && ( ret = message_get_stream(msg, &istream ) ) == 0 ) {
-		if ( ( ret = message_get_body(info->msg, &body) ) == 0 &&
-			 ( ret = body_get_stream(body, &ostream) ) == 0 ) {
-			if ( info->nbytes )
-				memmove( info->buf, info->buf + (BUF_SIZE - info->nbytes), info->nbytes);
-			while ( (ret == 0 && info->nbytes) || ( ( ret = stream_read(istream, info->buf, BUF_SIZE, info->ioffset, &info->nbytes) ) == 0 && info->nbytes ) ) {
-				info->ioffset += info->nbytes;
-				while( info->nbytes ) {
-					if ( ( ret = stream_write(ostream, info->buf, info->nbytes, info->ooffset, &nbytes ) ) != 0 )
-						break;
-					info->nbytes -= nbytes;
-					info->ooffset += nbytes;
-				}
-			}
+  if (info->msg == NULL && (ret = message_create (&(info->msg), NULL)) == 0)
+    {
+      header =
+	"Content-Type: message/rfc822\nContent-Transfer-Encoding: 7bit\n\n";
+      if ((ret =
+	   header_create (&(info->hdr), header, strlen (header), msg)) == 0)
+	ret = message_set_header (info->msg, info->hdr, NULL);
+    }
+  if (ret == 0 && (ret = message_get_stream (msg, &istream)) == 0)
+    {
+      if ((ret = message_get_body (info->msg, &body)) == 0 &&
+	  (ret = body_get_stream (body, &ostream)) == 0)
+	{
+	  if (info->nbytes)
+	    memmove (info->buf, info->buf + (BUF_SIZE - info->nbytes),
+		     info->nbytes);
+	  while ((ret == 0 && info->nbytes)
+		 ||
+		 ((ret =
+		   stream_read (istream, info->buf, BUF_SIZE, info->ioffset,
+				&info->nbytes)) == 0 && info->nbytes))
+	    {
+	      info->ioffset += info->nbytes;
+	      while (info->nbytes)
+		{
+		  if ((ret =
+		       stream_write (ostream, info->buf, info->nbytes,
+				     info->ooffset, &nbytes)) != 0)
+		    break;
+		  info->nbytes -= nbytes;
+		  info->ooffset += nbytes;
 		}
+	    }
 	}
-	if ( ret == 0 )
-		*newmsg = info->msg;
-	if ( ret != EAGAIN && info )
-		_attachment_free(info, ret);
-	return ret;
+    }
+  if (ret == 0)
+    *newmsg = info->msg;
+  if (ret != EAGAIN && info)
+    _attachment_free (info, ret);
+  return ret;
 }
 
-int message_unencapsulate(message_t msg, message_t *newmsg, void **data)
+int
+message_unencapsulate (message_t msg, message_t * newmsg, void **data)
 {
-	size_t 				size, nbytes;
-	int					ret = 0;
-	char 				*content_type;
-	header_t			hdr;
-	stream_t			istream, ostream;
-	struct _msg_info	*info = NULL;
+  size_t size, nbytes;
+  int ret = 0;
+  char *content_type;
+  header_t hdr;
+  stream_t istream, ostream;
+  struct _msg_info *info = NULL;
 
-	if ( msg == NULL || newmsg == NULL)
-		return EINVAL;
+  if (msg == NULL || newmsg == NULL)
+    return EINVAL;
 
-	if ( (data == NULL || *data == NULL ) && ( ret = message_get_header(msg, &hdr) ) == 0 ) {
-		header_get_value(hdr, "Content-Type", NULL, 0, &size);
-		if ( size ) {
-			if ( ( content_type = alloca(size+1) ) == NULL )
-				return ENOMEM;
-			header_get_value(hdr, "Content-Type", content_type, size+1, 0);
-			if ( strncasecmp(content_type, "message/rfc822", strlen("message/rfc822")) != 0 )
-				return EINVAL;
-		} else
-			return EINVAL;
+  if ((data == NULL || *data == NULL)
+      && (ret = message_get_header (msg, &hdr)) == 0)
+    {
+      header_get_value (hdr, "Content-Type", NULL, 0, &size);
+      if (size)
+	{
+	  if ((content_type = alloca (size + 1)) == NULL)
+	    return ENOMEM;
+	  header_get_value (hdr, "Content-Type", content_type, size + 1, 0);
+	  if (strncasecmp
+	      (content_type, "message/rfc822",
+	       strlen ("message/rfc822")) != 0)
+	    return EINVAL;
 	}
-	if ( ( ret = _attachment_setup( &info, msg, &istream, data) ) != 0 )
-		return ret;
-	if ( info->msg == NULL )
-		ret = message_create(&(info->msg), NULL);
-	if ( ret == 0 ) {
-		message_get_stream(info->msg, &ostream);
-		if ( info->nbytes )
-			memmove( info->buf, info->buf + (BUF_SIZE - info->nbytes), info->nbytes);
-		while ( (ret == 0 && info->nbytes) || ( ( ret = stream_read(istream, info->buf, BUF_SIZE, info->ioffset, &info->nbytes) ) == 0 && info->nbytes ) ) {
-			info->ioffset += info->nbytes;
-			while( info->nbytes ) {
-				if ( ( ret = stream_write(ostream, info->buf, info->nbytes, info->ooffset, &nbytes ) ) != 0 )
-					break;
-				info->nbytes -= nbytes;
-				info->ooffset += nbytes;
-			}
-		}
+      else
+	return EINVAL;
+    }
+  if ((ret = _attachment_setup (&info, msg, &istream, data)) != 0)
+    return ret;
+  if (info->msg == NULL)
+    ret = message_create (&(info->msg), NULL);
+  if (ret == 0)
+    {
+      message_get_stream (info->msg, &ostream);
+      if (info->nbytes)
+	memmove (info->buf, info->buf + (BUF_SIZE - info->nbytes),
+		 info->nbytes);
+      while ((ret == 0 && info->nbytes)
+	     ||
+	     ((ret =
+	       stream_read (istream, info->buf, BUF_SIZE, info->ioffset,
+			    &info->nbytes)) == 0 && info->nbytes))
+	{
+	  info->ioffset += info->nbytes;
+	  while (info->nbytes)
+	    {
+	      if ((ret =
+		   stream_write (ostream, info->buf, info->nbytes,
+				 info->ooffset, &nbytes)) != 0)
+		break;
+	      info->nbytes -= nbytes;
+	      info->ooffset += nbytes;
+	    }
 	}
-	if ( ret == 0 )
-		*newmsg = info->msg;
-	if ( ret != EAGAIN && info )
-		_attachment_free(info, ret);
-	return ret;
+    }
+  if (ret == 0)
+    *newmsg = info->msg;
+  if (ret != EAGAIN && info)
+    _attachment_free (info, ret);
+  return ret;
 }
+
