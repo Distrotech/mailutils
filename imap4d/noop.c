@@ -17,7 +17,6 @@
 
 #include "imap4d.h"
 
-/* FIXME: Notify of new messages.  */
 int
 imap4d_noop (struct imap4d_command *command, char *arg)
 {
