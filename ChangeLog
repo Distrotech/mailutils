@@ -1,5 +1,19 @@
 2002-09-03  Sergey Poznyakoff 
 
+	* mailbox/md5-rsa.c: Removed.
+	* mailbox/md5-rsa.h: Removed.
+	* mailbox/md5.c: Introduced instead.
+	* mailbox/md5.h: Likewise.
+	* mailbox/Makefile.am: Use md5.[ch]
+	* mailbox/message.c: Likewise.
+	* mailbox/mbx_pop.c: Likewise.
+	  (pop_get_message): Bugfix: check that the message number be not
+	  out of range.
+
+	* doc/texinfo/framework.texi: Included parse822 as extra node.  
+	  
+2002-09-03  Sergey Poznyakoff 
+
 	* configure.ac: Bumped version number to 0.1
 	* Makefile.am: Added copyleft header. Removed README-alpha from
 	  EXTRA_DIST and added it to AUTOMAKE_OPTIONS. Removed incomplete
