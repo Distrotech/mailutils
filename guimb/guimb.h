@@ -18,6 +18,8 @@
 #if defined(HAVE_CONFIG_H)
 # include <config.h>
 #endif
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -48,3 +50,7 @@ void collect_open_mailbox_file __P ((void));
 int collect_append_file __P ((char *name));
 void collect_create_mailbox __P ((void));
 void collect_drop_mailbox __P ((void));
+int collect_output (void);
+
+void util_error (char *fmt, ...);
+int util_tempfile (char **namep);

@@ -22,8 +22,9 @@
 # include <config.h>
 #endif
 
-#include <mh_getopt.h>
+#include <mh.h>
 #include <string.h>
+#include <argcv.h>
 
 struct mh_argp_data
 {

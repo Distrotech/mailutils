@@ -63,10 +63,13 @@ typedef datum DBM_DATUM;
 #endif
 
 #ifdef USE_DBM
+struct stat;
+int mu_dbm_stat (char *name, struct stat *sb);
 int mu_dbm_open __P((char *name, DBM_FILE *db, int flags, int mode));
 int mu_dbm_close __P((DBM_FILE db));
 int mu_dbm_fetch __P((DBM_FILE db, DBM_DATUM key, DBM_DATUM *ret));
 int mu_dbm_insert __P((DBM_FILE db, DBM_DATUM key, DBM_DATUM contents, int replace));
+int mu_dbm_delete (DBM_FILE db, DBM_DATUM key);
 DBM_DATUM mu_dbm_firstkey __P((DBM_FILE db));
 DBM_DATUM mu_dbm_nextkey __P((DBM_FILE db, DBM_DATUM key));
 #endif
