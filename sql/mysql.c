@@ -194,6 +194,61 @@ errstr (mu_sql_connection_t conn)
   return mysql_error (mp->mysql);
 }
 
+
+/* MySQL scrambled password support */
+
+/* Convert a single hex digit to corresponding number */
+static unsigned 
+digit_to_number (char c)
+{
+  return (unsigned) (c >= '0' && c <= '9' ? c-'0' :
+                     c >= 'A' && c <= 'Z' ? c-'A'+10 :
+                     c-'a'+10);
+}
+
+/* Extract salt value from MySQL scrambled password.
+   
+   WARNING: The code assumes that
+       1. strlen (password) % 8 == 0
+       2. number_of_entries (RES) = strlen (password) / 8
+
+   For MySQL >= 3.21, strlen(password) == 16 */
+static void
+get_salt_from_scrambled (unsigned long *res, const char *password)
+{
+  res[0] = res[1] = 0;
+  while (*password)
+    {
+      unsigned long val = 0;
+      unsigned i;
+
+      for (i = 0; i < 8 ; i++)
+        val = (val << 4) + digit_to_number (*password++);
+      *res++ = val;
+    }
+}
+
+/* Scramble a plaintext password */
+static void
+scramble_password (unsigned long *result, const char *password)
+{
+  unsigned long nr = 1345345333L, add = 7, nr2 = 0x12345671L;
+  unsigned long tmp;
+
+  for (; *password ; password++)
+    {
+      if (*password == ' ' || *password == '\t')
+        continue;                   
+      tmp = (unsigned long) (unsigned char) *password;
+      nr ^= (((nr & 63) + add) * tmp)+ (nr << 8);
+      nr2 += (nr2 << 8) ^ nr;
+      add += tmp;
+    }
+
+  result[0] = nr & (((unsigned long) 1L << 31) -1L);
+  result[1] = nr2 & (((unsigned long) 1L << 31) -1L);
+}
+
 /* Check whether a plaintext password MESSAGE matches MySQL scrambled password
    PASSWORD */
 int
@@ -219,11 +274,13 @@ mu_check_mysql_scrambled_password (const char *scrambled, const char *message)
     }
   
   get_salt_from_password (hash_pass, scrambled);
-  hash_password (hash_message, message);
+  scramble_password (hash_message, message);
   return !(hash_message[0] == hash_pass[0]
 	   && hash_message[1] == hash_pass[1]);
 }
 
+
+/* Register module */
 MU_DECL_SQL_DISPATCH_T(mysql) = {
   "mysql",
   3306,
