@@ -1,3 +1,9 @@
+2004-08-24  Sergey Poznyakoff
+
+	* mail/util.c (util_do_command): Fixed coredump on unparseable
+	input strings.
+	* THANKS: Added Dan Jacobson
+
 2004-08-20  Sergey Poznyakoff 
 
 	* include/mailutils/guile.h (MU_SCM_SYMBOL_VALUE): New define
