@@ -304,7 +304,10 @@ static char *mu_conf_option[] = {
 #endif
 #ifdef ENABLE_SENDMAIL
   "ENABLE_SENDMAIL",
-#endif  
+#endif
+#ifdef WITH_INCLUDED_LIBINTL
+  "WITH_INCLUDED_LIBINTL",
+#endif
   NULL
 };
 
