@@ -136,10 +136,10 @@ static struct msgset_keyword {
 };
 
 static char *
-msgset_preproc (mailbox_t mbox, char *arg)
+msgset_preproc_part (mailbox_t mbox, char *arg, char **rest)
 {
   struct msgset_keyword *p;
-  
+
   for (p = keywords; p->name; p++)
     if (strncmp (arg, p->name, strlen (p->name)) == 0)
       {
@@ -157,10 +157,44 @@ msgset_preproc (mailbox_t mbox, char *arg)
 	    exit (1);
 	  }
 	message_get_uid (msg, &uid);
-	asprintf (&ret, "%lu%s", (unsigned long) uid, arg + strlen (p->name));
+	asprintf (&ret, "%lu", (unsigned long) uid);
+	*rest = arg + strlen (p->name);
 	return ret;
       }
+  *rest = arg + strlen (arg);
   return strdup (arg);
+}
+
+static char *
+msgset_preproc (mailbox_t mbox, char *arg)
+{
+  char *buf, *tail;
+  
+  if (strcmp (arg, "all") == 0)
+    {
+      /* Special case */
+      arg = "first-last";
+    }
+
+  buf = msgset_preproc_part (mbox, arg, &tail);
+  if (tail[0] == '-')
+    {
+      char *rest = msgset_preproc_part (mbox, tail+1, &tail);
+      char *p = NULL;
+      asprintf (&p, "%s-%s", buf, rest);
+      free (rest);
+      free (buf);
+      buf = p;
+    }
+  
+  if (tail[0])
+    {
+      char *p = NULL;
+      asprintf (&p, "%s%s", buf, tail);
+      free (buf);
+      buf = p;
+    }
+  return buf;
 }
 
 static int
@@ -195,13 +229,20 @@ mh_msgset_parse (mailbox_t mbox, mh_msgset_t *msgset, int argc, char **argv)
     {
       char *p = NULL;
       size_t start, end;
+      size_t msg_first, n;
       long num;
       char *arg = msgset_preproc (mbox, argv[i]);
       start = strtoul (arg, &p, 0);
       switch (*p)
 	{
 	case 0:
-	  msglist[msgno++] = start;
+	  n = mh_get_message (mbox, start, NULL);
+	  if (!n)
+	    {
+	      mh_error ("message %d does not exist", start);
+	      exit (1);
+	    }
+	  msglist[msgno++] = n;
 	  break;
 	  
 	case '-':
@@ -215,8 +256,18 @@ mh_msgset_parse (mailbox_t mbox, mh_msgset_t *msgset, int argc, char **argv)
 	      end = t;
 	    }
 	  _expand (&msgcnt, &msglist, end - start);
+	  msg_first  = msgno;
 	  for (; start <= end; start++)
-	    msglist[msgno++] = start;
+	    {
+	      n = mh_get_message (mbox, start, NULL);
+	      if (n)
+		msglist[msgno++] = n;
+	    }
+	  if (msgno == msg_first)
+	    {
+	      mh_error ("no messages in range %s", argv[i]);
+	      exit (1);
+	    }
 	  break;
 	  
 	case ':':
@@ -227,12 +278,24 @@ mh_msgset_parse (mailbox_t mbox, mh_msgset_t *msgset, int argc, char **argv)
 	  if (end < start)
 	    {
 	      size_t t = start;
-	      start = end;
+	      start = end + 1;
 	      end = t;
 	    }
+	  else
+	    end--;
 	  _expand (&msgcnt, &msglist, end - start);
+	  msg_first  = msgno;
 	  for (; start <= end; start++)
-	    msglist[msgno++] = start;
+	    {
+	      n = mh_get_message (mbox, start, NULL);
+	      if (n)
+		msglist[msgno++] = n;
+	    }
+	  if (msgno == msg_first)
+	    {
+	      mh_error ("no messages in range %s", argv[i]);
+	      exit (1);
+	    }
 	  break;
 	  
 	default:
@@ -241,6 +304,8 @@ mh_msgset_parse (mailbox_t mbox, mh_msgset_t *msgset, int argc, char **argv)
       free (arg);
     }
 
+  msgcnt = msgno;
+  
   /* Sort the resulting message set */
   qsort (msglist, msgcnt, sizeof (*msglist), comp_mesg);
 
@@ -265,3 +330,73 @@ mh_msgset_member (mh_msgset_t *msgset, size_t num)
       return i + 1;
   return 0;
 }
+
+/* Auxiliary function. Performs binary search for a message with the
+   given sequence number */
+static size_t
+mh_search_message (mailbox_t mbox, size_t start, size_t stop,
+		   size_t seqno, message_t *mesg)
+{
+  message_t mid_msg = NULL;
+  size_t num = 0, middle;
+
+  middle = (start + stop) / 2;
+  if (mailbox_get_message (mbox, middle, &mid_msg)
+      || mh_message_number (mid_msg, &num))
+    return 0;
+
+  if (num == seqno)
+    {
+      if (mesg)
+	*mesg = mid_msg;
+      return middle;
+    }
+      
+  if (start >= stop)
+    return 0;
+
+  if (num > seqno)
+    return mh_search_message (mbox, start, middle-1, seqno, mesg);
+  else /*if (num < seqno)*/
+    return mh_search_message (mbox, middle+1, stop, seqno, mesg);
+}
+
+/* Retrieve the message with the given sequence number.
+   Returns ordinal number of the message in the mailbox if found,
+   zero otherwise. The retrieved message is stored in the location
+   pointed to by mesg, unless it is NULL. */
+   
+size_t
+mh_get_message (mailbox_t mbox, size_t seqno, message_t *mesg)
+{
+  size_t num, count;
+  message_t msg;
+
+  if (mailbox_get_message (mbox, 1, &msg)
+      || mh_message_number (msg, &num))
+    return 0;
+  if (seqno < num)
+    return 0;
+  else if (seqno == num)
+    {
+      if (mesg)
+	*mesg = msg;
+      return 1;
+    }
+
+  if (mailbox_messages_count (mbox, &count)
+      || mailbox_get_message (mbox, count, &msg)
+      || mh_message_number (msg, &num))
+    return 0;
+  if (seqno > num)
+    return 0;
+  else if (seqno == num)
+    {
+      if (mesg)
+	*mesg = msg;
+      return count;
+    }
+
+  return mh_search_message (mbox, 1, count, seqno, mesg);
+}
+
