@@ -209,7 +209,7 @@ print_hdr_segment (struct mh_machine *mach, char *str, size_t len)
 	    {
 	      put_string (mach, str, p - str);
 	      put_string (mach, "\n\t", 0);
-	      mach->ind = 1;
+	      mach->ind = 8;
 	      str = p;
 	    }
 	  else
@@ -1768,6 +1768,8 @@ builtin_rcpt (struct mh_machine *mach)
 static void
 builtin_concat (struct mh_machine *mach)
 {
+  size_t size = strobj_len (&mach->arg_str);
+  compress_ws (strobj_ptr (&mach->arg_str), &size);
   if (strobj_len (&mach->reg_str) == 0)
     strobj_copy (&mach->reg_str, &mach->arg_str);
   else
