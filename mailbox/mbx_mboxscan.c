@@ -711,8 +711,6 @@ mbox_scan0 (mailbox_t mailbox, size_t msgno, size_t *pcount, int do_notif)
 	    }
 	  else if (ISSUBJECT(buf))
 	    {
-	      char *ss = NULL;
-	      if (mum->fhdr[H_SUBJECT]) *ss = 1;
 	      FAST_H_SUBJECT (mum, sfield, buf, n);
 	    }
 	  else if (ISTO(buf))

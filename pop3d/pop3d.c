@@ -233,7 +233,7 @@ pop3d_mainloop (int infile, int outfile)
 
   ifile = fdopen (infile, "r");
   ofile = fdopen (outfile, "w");
-  if (!ofile || !ofile)
+  if (!ifile || !ofile)
     pop3d_abquit (ERR_NO_OFILE);
 
   state = AUTHORIZATION;

@@ -1,3 +1,14 @@
+2001-05-19  Alain Magloire
+
+	* AUTHORS: Update to reflect Sergey and Sam contributions.
+
+2001-05-20  Sergey Poznyakoff
+
+	* mailbox/mbx_mboxscan.c:* Bug in mailbox/mbx_mboxscan.c made the
+	stuff coredump upon encountering more than one subject in the header.
+
+	* pop3d/pop3d.c: Typo.
+
 2001-05-19  Sam Roberts
 
 	* mailbox/parse822.c: parse822 is a little smarter in the way
