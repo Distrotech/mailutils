@@ -55,8 +55,11 @@ mail_followup (int argc, char **argv)
   /* Add authors of the subsequent messages to the to list
      (or should it be cc?)*/
   for (i = 1; i < num; i++)
-    util_strcat(&env.to, util_get_sender(msglist[i], 0));
-
+    {
+      util_strcat(&env.to, ",");
+      util_strcat(&env.to, util_get_sender(msglist[i], 0));
+    }
+  
   free(msglist);
 
   fprintf(ofile, "To: %s\n", env.to);
