@@ -1,3 +1,7 @@
+2001-11-01 00:15  sroberts
+
+	* TODO: Added suggestion for a mailcap based file viewer.
+
 2001-10-31  Alain Magloire
 
 	* messages/message.c (messages_count): getenv ("MAIL") may return NULL.
