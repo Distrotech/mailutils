@@ -47,6 +47,7 @@
 #define ARG_LOG_FACILITY 1
 #define ARG_LOCK_FLAGS 2
 #define ARG_SHOW_OPTIONS 3
+#define ARG_LICENSE 4
 
 const char *argp_program_bug_address = "<" PACKAGE_BUGREPORT ">";
 
@@ -60,7 +61,7 @@ static struct argp_option mu_common_argp_options[] =
 
 /* Option to print the license. */
 static struct argp_option mu_license_argp_option[] = {
-  { "license", 'L', NULL, 0, "Print license and exit", -2 },
+  { "license", ARG_LICENSE, NULL, 0, "Print license and exit", -2 },
   { NULL,      0, NULL, 0, NULL, 0 }
 };
 
@@ -348,7 +349,7 @@ mu_common_argp_parser (int key, char *arg, struct argp_state *state)
   switch (key)
     {
       /* common */
-    case 'L':
+    case ARG_LICENSE:
       printf ("License for %s:\n\n", argp_program_version);
       printf ("%s", mu_license_text);
       exit (0);
