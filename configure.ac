@@ -393,6 +393,8 @@ MU_ENABLE_SUPPORT(sendmail)
 
 AC_SUBST(BUILD_MH_PROGRAMS)
 AC_SUBST(BUILD_MH_LIBRARIES)
+AC_SUBST(BUILD_MH_EXEC_HOOK)
+
 MU_ENABLE_SUPPORT(mh,
                   [BUILD_MH_PROGRAMS='$(PROGRAMS_MH)';
                    BUILD_MH_LIBRARIES='$(LIBRARIES_MH)'])
@@ -406,6 +408,8 @@ AC_ARG_ENABLE([experimental],
 if test ".$MU_BUILD_EXPERIMENTAL" = ".no"; then
 	BUILD_MH_PROGRAMS=
 	BUILD_MH_LIBRARIES=
+else
+        BUILD_MH_EXEC_HOOK=mh_finish_install
 fi
 
 if test x"$testpam" = x"yes"; then
