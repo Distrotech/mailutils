@@ -29,3 +29,13 @@ AC_DEFUN(MU_CHECK_FUNCS,[
  do
    MU_CHECK_FUNC($mu_func)
  done])
+
+AC_SUBST(GNU_INCLS)
+AC_DEFUN(MU_HEADER,[
+ mu_header_list="$mu_header_list include/mailutils/gnu/$1:headers/$1"
+ GNU_INCLS="$GNU_INCLS $1"
+])
+
+AC_DEFUN(MU_FINISH_LINKS,[
+ AC_CONFIG_LINKS([$mu_header_list])
+])
