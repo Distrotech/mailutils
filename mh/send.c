@@ -317,17 +317,7 @@ open_mailer ()
 static void
 create_message_id (header_t hdr)
 {
-  char date[4+2+2+2+2+2+1];
-  time_t t = time (NULL);
-  struct tm *tm = localtime (&t);
-  char *host;
-  char *p;
-	  
-  strftime (date, sizeof date, "%Y%m%d%H%M%S", tm);
-  mu_get_host_name (&host);
-	    
-  asprintf (&p, "<%s.%lu@%s>", date, (unsigned long) getpid (), host);
-  free (host);
+  char *p = mh_create_message_id (0);
   header_set_value (hdr, MU_HEADER_MESSAGE_ID, p, 1);
   free (p);
 }
