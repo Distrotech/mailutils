@@ -35,7 +35,9 @@ int sieve_line_num;
 ino_t sieve_source_inode;
 
 static list_t string_list;
- 
+static char *multiline_delimiter;
+static int strip_tabs; 
+
 static int number __P ((void));
 static int string __P ((void));
 static void multiline_begin __P ((void));
@@ -45,6 +47,7 @@ static void ident __P((const char *text));
 static void sieve_include __P((void));
 static void sieve_searchpath __P((void));
 static char *str_escape __P((void));
+ static int isemptystr __P((char *text));
  
 #ifdef FLEX_SCANNER
 #define xinput() (yyin ? getc(yyin) : EOF)
@@ -353,14 +356,28 @@ not     return NOT;
                    multiline_add (NULL); 
                    multiline_finish ();
 		   return STRING; }
-text:[ \t]*#.*\n { BEGIN(ML); multiline_begin (); }
-text:[ \t]*\n    { BEGIN(ML); multiline_begin (); }
-<ML>.[ \t]*\n  { BEGIN(INITIAL);
-                 sieve_line_num++;
-                 multiline_finish ();
-                 return MULTILINE; }
-<ML>#[ \t]*include.*\n      { sieve_include (); }
-<ML>.*\n { sieve_line_num++; multiline_add (NULL); } 
+text:-?[ \t]*#.*\n        { BEGIN(ML); multiline_begin (); }
+text:-?[ \t]*\n           { BEGIN(ML); multiline_begin (); }
+text:-?\\?{IDENT}[ \t]*#.*\n { BEGIN(ML); multiline_begin (); }
+text:-?\\?{IDENT}[ \t]*\n    { BEGIN(ML); multiline_begin (); }
+<ML>#[ \t]*include.*\n    { if (multiline_delimiter[0] == '\\')
+                              multiline_add (NULL);
+                            else
+                              sieve_include (); }
+<ML>.*\n { char *p = multiline_strip_tabs (yytext);
+           sieve_line_num++;
+	   
+           if (strncmp (p, multiline_delimiter, strlen (multiline_delimiter))
+	        == 0
+	       && isemptystr (p + strlen (multiline_delimiter)))
+	     {
+	       free (multiline_delimiter);
+	       multiline_delimiter = NULL;
+	       BEGIN(INITIAL);
+	       multiline_finish ();
+	       return MULTILINE;
+	     }
+	    multiline_add (NULL); } 
 {WS}     ;
 \n { sieve_line_num++; } 
 . return yytext[0];
@@ -531,12 +548,29 @@ string ()
   return STRING; 
 }
 
+int
+isemptystr (char *text)
+{
+  for (; *text && isspace (*text); text++)
+    ;
+  return *text == 0;
+}
+
+char *
+multiline_strip_tabs (char *text)
+{
+  if (strip_tabs)
+    for (; *text == '\t'; text++)
+      ;
+  return text;
+}
+
 void
 multiline_add (char *s)
 {
   if (!s)
     {
-      s = strdup (yytext);
+      s = strdup (multiline_strip_tabs (yytext));
       if (!s)
 	{
 	  yyerror ("not enough memory");
@@ -550,6 +584,39 @@ void
 multiline_begin ()
 {
   int status;
+  char *p = yytext + 5; /* past the text: keyword */
+
+  if (*p == '-')
+    {
+      strip_tabs = 1;
+      p++;
+    }
+  else
+    strip_tabs = 0;
+
+  if (!isspace (*p))
+    {
+      char *endp;
+      int len;
+      
+      for (endp = p; *endp; endp++)
+	if (isspace (*endp))
+	  break;
+
+      len = endp - p;
+      multiline_delimiter = sieve_alloc (len + 1);
+      memcpy (multiline_delimiter, p, len);
+      multiline_delimiter[len] = 0;
+    }
+  else
+    {
+      multiline_delimiter = strdup (".");
+      if (!multiline_delimiter)
+	{
+	  yyerror ("not enough memory");
+	  exit (1);
+	}
+    }
   
   if (string_list)
     sieve_slist_destroy (&string_list);
@@ -560,6 +627,7 @@ multiline_begin ()
                            "list_create: %s", mu_errstring (status));
       exit (1);
     }
+
 }
 
 void
