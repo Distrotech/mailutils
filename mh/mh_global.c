@@ -66,9 +66,11 @@ mh_read_profile ()
 
   if (mh_auto_install && access (p, R_OK))
     mh_install (p, 1);
-  
+
   profile = mh_context_create (p, 1);
   mh_context_read (profile);
+
+  mh_set_reply_regex (mh_global_profile_get ("Reply-Regex", NULL));
 }
 
 /* Global context */
