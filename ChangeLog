@@ -1,3 +1,21 @@
+2003-01-06  Sergey Poznyakoff 
+
+	* doc/texinfo/libsieve.texi: Reflect recent changes to
+	  libsieve.
+	* pop3d/extra.c (pop3d_setio, pop3d_flush_output)
+	  (pop3d_is_master): New functions.
+	  (pop3d_readline): Fixed prototype: second arg should be size_t.
+	* pop3d/pop3d.c (ifile,ofile): Removed globals.
+	  (pop3d_mainloop): Changed declaration.
+	* pop3d/pop3d.h (ifile,ofile): Removed declarations.
+	  (getpwnam_ip_virtual,getpwnam_host_virtual): Removed
+	  prototypes.
+	  (pop3d_setio, pop3d_flush_output, pop3d_is_master): New
+	  functions.
+          (pop3d_readline): Fixed prototype.
+	* pop3d/signal.c (pop3d_signal): Use pop3d_is_master().
+	* pop3d/user.c (pop3d_user): Use pop3d_flush_output().
+	    
 2003-01-06  Sergey Poznyakoff
 
 	* libsieve/tests.c
