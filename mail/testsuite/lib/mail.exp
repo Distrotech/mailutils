@@ -51,6 +51,7 @@ proc default_mail_start {args} {
     global MU_TOOL_FLAGS
     global mail_prompt
     global expect_out
+    global mail_spawn_id
     
     mu_version
     
@@ -69,8 +70,8 @@ proc default_mail_start {args} {
     set mail_cmd "$MU_TOOL $sw"
     verbose "Spawning $mail_cmd"
 
-    set res [remote_spawn host $mail_cmd]
-    if { $res < 0 || $res == "" } {
+    set mail_spawn_id [remote_spawn host $mail_cmd]
+    if { $mail_spawn_id < 0 || $mail_spawn_id == "" } {
 	perror "Spawning $mail_cmd failed."
 	return 1;
     }
@@ -88,9 +89,9 @@ proc default_mail_start {args} {
 }
 
 proc default_mail_stop {} {
-
     verbose "Stopping mail"
-
+    mail_command "exit"
+    remote_close host
 }
 
 proc mail_start {args} {
@@ -113,7 +114,11 @@ proc mail_start {args} {
 }
     
 proc mail_stop {} {
-    return [default_mail_stop];
+    global mail_spawn_id
+    if {[info exists mail_spawn_id] && $mail_spawn_id > 0} {
+	default_mail_stop
+	unset mail_spawn_id
+    }
 }
 
 ##
@@ -127,9 +132,7 @@ proc mail_command { cmd } {
 }
 
 proc mail_exit {} {
-    set res [mail_send "exit\n"]
-    sleep 5
-    return res
+    mail_stop
 }
 
 # mail_test [-message MESSAGE][-default (FAIL|XFAIL)][-noprompt]
