@@ -1,6 +1,6 @@
 Fri Oct  1 01:00:00 1999  Sean 'Shaleh' Perry  <shaleh@debian.org>
 
-	* added and examples directory and the first example, from.c
+	* added an examples directory and the first example, from.c
 
 Fri Oct  1 03:17:28 1999  Jakob 'sparky' Kaivo  <jkaivo@gnu.org>
 
