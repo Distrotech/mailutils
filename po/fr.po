@@ -7,7 +7,7 @@ msgstr ""
 "Project-Id-Version: GNU mailutils 0.4\n"
 "Report-Msgid-Bugs-To: bug-mailutils@gnu.org\n"
 "POT-Creation-Date: 2003-10-06 16:19+0300\n"
-"PO-Revision-Date: 2004-03-15 08:00-0500\n"
+"PO-Revision-Date: 2004-03-16 08:00-0500\n"
 "Last-Translator: Michel Robitaille <robitail@IRO.UMontreal.CA>\n"
 "Language-Team: French <traduc@traduc.org>\n"
 "MIME-Version: 1.0\n"
@@ -364,7 +364,7 @@ msgstr "usager inexistant: %s"
 
 #: dotlock/dotlock.c:35
 msgid "GNU dotlock -- lock mail spool filesReturns 0 on success, 3 if the locking the file fails because it's already locked, and 1 if some other kind of error occurred."
-msgstr ""
+msgstr "GNU dotlock -- verrouille le fichier de transmission de courrierRetourne 0 lors du succès de l'opération,3 si le verrouillage du fichier a échouée parce qu'il est déjà verrouillé et 1 lorsqu'une erreurd'un autre type survient."
 
 #: dotlock/dotlock.c:44
 msgid "Unlock"
@@ -400,7 +400,7 @@ msgstr "Tester le verrouilleur dot externe"
 
 #: dotlock/dotlock.c:103
 msgid "RETRIES must be greater than 0"
-msgstr ""
+msgstr "ESSAIS doit être plus grand que 0"
 
 #: dotlock/dotlock.c:113
 msgid "MINUTES must be greater than 0"
@@ -466,7 +466,7 @@ msgstr "Afficher un sommaire des messages"
 
 #: frm/frm.c:76
 msgid "Select message with the specific attribute: [n]ew, [r]ead, [u]nread."
-msgstr "Sélectionner un message avec des attributs spécifique: [n]nouveau, [r]lu, [u]non lue"
+msgstr "Sélectionner un message avec des attributs spécifiques: [n]nouveau, [r]lu, [u]non lue"
 
 #: frm/frm.c:77
 msgid "Try to align"
@@ -539,46 +539,48 @@ msgstr "ne peut ouvrir le fichier d'entrée %s: %s"
 #: guimb/collect.c:113
 #, c-format
 msgid "can't create temp mailbox %s: %s"
-msgstr ""
+msgstr "ne peut créer une boîte aux lettres temporaires %s: %s"
 
 #: guimb/collect.c:124
 msgid "input format not recognized"
-msgstr ""
+msgstr "format d'entrée non reconnu"
 
 #: guimb/collect.c:149
 #, c-format
 msgid "guimb: can't open output mailbox %s: %s\n"
-msgstr ""
+msgstr "guimb: ne peut ouvrir le fichier de boîte aux lettres %s: %s\n"
 
 #: guimb/main.c:52
 msgid ""
 "The following switches stop argument processing, and pass all\n"
 "remaining arguments as the value of (command-line):"
 msgstr ""
+"Les options suivantes stoppe le traitement des arguments et passe\n"
+"tous les arguments restants comme valeur (de la ligne de commange):"
 
 #: guimb/main.c:54 guimb/main.c:59
 msgid "EXPR"
-msgstr ""
+msgstr "EXPR"
 
 #: guimb/main.c:54 guimb/main.c:59
 msgid "Execute given scheme expression."
-msgstr ""
+msgstr "Exécuter l'expression Scheme fournie."
 
 #: guimb/main.c:55 guimb/main.c:60
 msgid "PROGFILE"
-msgstr ""
+msgstr "PROGFILE"
 
 #: guimb/main.c:56 guimb/main.c:61
 msgid "Load Scheme source code from PROGFILE, and exit"
-msgstr ""
+msgstr "Charger le code source Scheme à partir de PROGFILE et quitter"
 
 #: guimb/main.c:58
 msgid "The following options do not change the order of options parsing:"
-msgstr ""
+msgstr "Les options suivantes ne change pas l'option de l'analyse des options:"
 
 #: guimb/main.c:62
 msgid "Other options:"
-msgstr ""
+msgstr "Autres options:"
 
 #: guimb/main.c:63
 msgid "Start with debugging evaluator and backtraces."
@@ -586,69 +588,69 @@ msgstr ""
 
 #: guimb/main.c:64
 msgid "ARG"
-msgstr ""
+msgstr "ARG"
 
 #: guimb/main.c:65
 msgid "Append ARG to the command line passed to Guile"
-msgstr ""
+msgstr "Ajouter ARG en suffixe à la ligne de commande fournie à Guile"
 
 #: guimb/main.c:66
 msgid "Set default mailbox name"
-msgstr ""
+msgstr "Initialiser le nom de la boîte aux lettres par défaut"
 
 #: guimb/main.c:68
 msgid "Act as local MDA for user NAME"
-msgstr ""
+msgstr "Agir comme un MDA local pour l'usager ayant le NOM"
 
 #: guimb/main.c:121
 msgid "GNU guimb -- Process the contents of the specified mailboxes using a Scheme program or expression."
-msgstr ""
+msgstr "GNU guimb -- traiter le contenue des boîtes aux lettres spécifiées en utilisant un programme ou une expression Scheme"
 
 #: guimb/main.c:123 messages/messages.c:35
 msgid "[mailbox...]"
-msgstr ""
+msgstr "[boite aux lettres...]"
 
 #: guimb/main.c:165
 msgid "At least one of -fecs must be used. Try guimb --help for more info."
-msgstr ""
+msgstr "Au moins une des option de -fecs doit être fournie. Essayez guimb --help pour plus de détails."
 
 #: guimb/util.c:50 guimb/util.c:57 mail/util.c:664 mail/util.c:671
 #, c-format
 msgid "can't determine sender name (msg %d)"
-msgstr ""
+msgstr "ne peut déterminer le nom de l'expéditeur (msg %d)"
 
 #: imap4d/auth_gss.c:51
 #, c-format
 msgid "GSS-API error %s: %s"
-msgstr ""
+msgstr "erreur du GSS-API %s: %s"
 
 #: imap4d/auth_gss.c:226
 #, c-format
 msgid "client requested unsupported protection mechanism (%d)"
-msgstr ""
+msgstr "le client demande un mécanisme de protection non supporté (%d)"
 
 #: imap4d/auth_gss.c:262
 #, c-format
 msgid "GSSAPI user %s is NOT authorized as %s"
-msgstr ""
+msgstr "usager GSSAPI %s n'est PAS autorisé en tant que %s"
 
 #: imap4d/auth_gss.c:272
 #, c-format
 msgid "GSSAPI user %s is authorized as %s"
-msgstr ""
+msgstr "usager GSSAPI %s est autorisé en tant que %s"
 
 #: imap4d/authenticate.c:130 imap4d/login.c:63
 #, c-format
 msgid "User '%s' logged in"
-msgstr ""
+msgstr "Usager '%s' est loggé"
 
 #: imap4d/imap4d.c:40
 msgid "GNU imap4d -- the IMAP4D daemon"
-msgstr ""
+msgstr "GNU imp4d -- le daemon IMAP4D"
 
 #: imap4d/imap4d.c:44 imap4d/imap4d.c:46
 msgid "PATHLIST"
-msgstr ""
+msgstr "PATHLIST"
 
 #: imap4d/imap4d.c:45
 msgid "set the `other' namespace"
@@ -660,7 +662,7 @@ msgstr ""
 
 #: imap4d/imap4d.c:49
 msgid "Disable LOGIN command"
-msgstr ""
+msgstr "Désactiver la commande LOGIN"
 
 #: imap4d/imap4d.c:156 pop3d/pop3d.c:122
 msgid "Error getting mail group"
@@ -703,7 +705,7 @@ msgstr ""
 
 #: imap4d/bye.c:42 pop3d/extra.c:103
 msgid "Out of memory"
-msgstr ""
+msgstr "Mémoire épuisée"
 
 #: imap4d/bye.c:46 pop3d/extra.c:107
 msgid "Quitting on signal"
@@ -720,47 +722,47 @@ msgstr ""
 
 #: imap4d/bye.c:58 pop3d/extra.c:119
 msgid "No socket to send to"
-msgstr ""
+msgstr "Pas de socket à expédier à"
 
 #: imap4d/bye.c:64
 msgid "Session terminating"
-msgstr ""
+msgstr "Fin de session en cours"
 
 #: imap4d/bye.c:66
 #, c-format
 msgid "Session terminating for user: %s"
-msgstr ""
+msgstr "Fin de session pour l'usager: %s"
 
 #: imap4d/bye.c:72 pop3d/extra.c:130
 #, c-format
 msgid "Quitting (numeric reason %d)"
-msgstr ""
+msgstr "Fin d'exécution (raison numérotée %d)"
 
 #: imap4d/list.c:246 mh/folder.c:323 mh/mh_init.c:234 mh/rmf.c:144
 #: pop3d/popauth.c:220
 #, c-format
 msgid "can't stat %s: %s"
-msgstr ""
+msgstr "ne peut évaluer par stat() %s: %s"
 
 #: imap4d/login.c:45 pop3d/user.c:77
 #, c-format
 msgid "User '%s': nonexistent"
-msgstr ""
+msgstr "Usager '%s' inexistant"
 
 #: imap4d/login.c:53
 #, c-format
 msgid "Login failed: %s"
-msgstr ""
+msgstr "Échec d'établissement de session: %s"
 
 #: imap4d/search.c:484 imap4d/search.c:572 imap4d/search.c:640
 #, c-format
 msgid "%s:%d: INTERNAL ERROR (please report)"
-msgstr ""
+msgstr "%s:%d: ERREUR INTERNE (svp transmettre un rapport d'anomalie)"
 
 #: imap4d/signal.c:41 pop3d/signal.c:52
 #, c-format
 msgid "got signal %s"
-msgstr ""
+msgstr "signal obtenu %s"
 
 #: imap4d/signal.c:45 pop3d/signal.c:57
 msgid "MASTER: exiting on signal"
@@ -768,16 +770,16 @@ msgstr ""
 
 #: imap4d/util.c:469 pop3d/extra.c:262
 msgid "unexpected eof on input"
-msgstr ""
+msgstr "fin de fichier inattendue sur l'entrée"
 
 #: imap4d/util.c:478
 #, c-format
 msgid "error reading from input file: %s"
-msgstr ""
+msgstr "erreur de lecture à partir du ficheir d'entrée: %s"
 
 #: imap4d/util.c:965
 msgid "Can't find out my own hostname"
-msgstr ""
+msgstr "Ne peut repérer mon propre hôte"
 
 #: imap4d/util.c:1165 pop3d/extra.c:171
 #, c-format
@@ -786,7 +788,7 @@ msgstr ""
 
 #: lib/xmalloc.c:68
 msgid "Memory exhausted"
-msgstr ""
+msgstr "Mémoire épuisée"
 
 #: libsieve/actions.c:49
 msgid "marking as deleted"
@@ -799,7 +801,7 @@ msgstr ""
 #: libsieve/actions.c:66
 #, c-format
 msgid "delivering into %s"
-msgstr ""
+msgstr "livraison en cours dans %s"
 
 #: libsieve/actions.c:73
 #, c-format
@@ -808,75 +810,75 @@ msgstr ""
 
 #: libsieve/actions.c:242
 msgid "reject: can't get text!"
-msgstr ""
+msgstr "rejet: ne peut obtenir le textuel!"
 
 #: libsieve/actions.c:258
 #, c-format
 msgid "%d: reject - can't create to address <%s>: %s\n"
-msgstr ""
+msgstr "%d: rejet - ne peut créer l'adresse de destination <%s>: %s\n"
 
 #: libsieve/actions.c:270
 #, c-format
 msgid "%d: reject - can't create from address <%s>: %s\n"
-msgstr ""
+msgstr "%d: rejet - ne peut créer l'adresse d'expédition <%s>: %s\n"
 
 #: libsieve/actions.c:284
 #, c-format
 msgid "%d: reject - can't open mailer %s: %s\n"
-msgstr ""
+msgstr "%d: rejet - ne peut ouvrir l'agent de courrier (mailer) %s: %s\n"
 
 #: libsieve/actions.c:359
 msgid "redirect: can't get address!"
-msgstr ""
+msgstr "redirection: ne peut obtenir l'adresse!"
 
 #: libsieve/actions.c:367
 #, c-format
 msgid "%d: redirect - parsing to `%s' failed: %s\n"
-msgstr ""
+msgstr "%d: redirection - analyse de `%s' a échoué: %s\n"
 
 #: libsieve/actions.c:373
 #, c-format
 msgid "to %s"
-msgstr ""
+msgstr "vers %s"
 
 #: libsieve/actions.c:380
 #, c-format
 msgid "%d: Redirection loop detected"
-msgstr ""
+msgstr "%d: boucle de redirection détectée"
 
 #: libsieve/actions.c:389
 #, c-format
 msgid "%d: redirect - can't get envelope sender: %s\n"
-msgstr ""
+msgstr "%d: redirection - ne peut obtenir l'enveloppe de l'expéditeur: %s\n"
 
 #: libsieve/actions.c:398
 #, c-format
 msgid "%d: redirect - can't create from address <%s>: %s\n"
-msgstr ""
+msgstr "%d: redirection - ne peut créer l'adresse d'expédition <%s>: %s\n"
 
 #: libsieve/actions.c:410
 #, c-format
 msgid "%d: can't copy message: %s"
-msgstr ""
+msgstr "%d: ne peut copier le message: %s"
 
 #: libsieve/actions.c:425
 #, c-format
 msgid "%d: can't get my email address"
-msgstr ""
+msgstr "%d: ne peut obtenir mon adresse de courrier"
 
 #: libsieve/actions.c:437
 #, c-format
 msgid "%d: redirect - can't open mailer %s: %s\n"
-msgstr ""
+msgstr "%d: redirection - ne peut ouvrir l<agent de courrier (mailer) %s: %s\n"
 
 #: libsieve/comparator.c:170
 #, c-format
 msgid "regex error: %s"
-msgstr ""
+msgstr "erreur regex: %s"
 
 #: libsieve/comparator.c:175
 msgid "regex error"
-msgstr ""
+msgstr "erreur regex"
 
 #: libsieve/comparator.c:237
 #, c-format
