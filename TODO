@@ -5,25 +5,20 @@
 
 [docs]
 
-- review examples in docs. many don't build. I think there needs to be a way
-  of building the examples, and then converting them to texinfo, its the
-  only way we'll always know they aren't garbage. Broken examples: stream.texi
-
 [mailbox or mailbox2]
 
 IMPORTANT:
-  There is currently a rewrite of the mailbox call mailbox2 to address
+  There is currently a rewrite of the mailbox called mailbox2 to address
   some of the flaws of the old version.
 
 - generalized search interface
 
 [mail.local]
 
-- integrate sieve
-
 - can it append to an imap mailbox?
 
 [pop3]
+
 - SSL support
 
 - pop3d_readline - should this use select(), avoid the race condition,
@@ -35,21 +30,8 @@ IMPORTANT:
 - support of mailspools in user home directory, particularly when
   they are in maildir format (I think qmail does this).
 
-- why do we do the uw-imapd thing of showing all files in the users
-  home as if they were a mailbox? I figure there should be an option to say
-  where your mail folder is, so that if you say
-
-    --mail-folder=~
-
-  it will be uw-imapd compatible, but if you say
-
-    --mail-folder=~/Mail
-
-  all your IMAP folders will be under ~/Mail.
-
-  Except mbox.
-
-- Check interaction with imap clients.
+- Check interaction with various imap clients. Currently tested with:
+  mail (from mailutils itself), mutt, pine, netscape, mozilla.
 
 - Better support of multi-access mailbox
 
@@ -59,7 +41,7 @@ IMPORTANT:
 
 [mail]
 
-- Add MIME support.
+- Add support for /etc/mailcap.
 
 [mailbox]
 
