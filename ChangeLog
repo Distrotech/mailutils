@@ -1,3 +1,25 @@
+2002-09-27  Sergey Poznyakoff 
+
+	* mail/file.c: Fixed typo.
+	* mh/folder.c (main): Correctly set current message number.
+	* mh/inc.c: Do not use current_folder global.
+	* mh/mh.h (mh_msgset_reverse,mh_msgset_negate,mh_msgset_current,
+	  mh_msgset_free): new functions.
+	  (mh_context_get_value,mh_msgset_parse): Changed.
+
+	* mh/mh_ctx.c: Descriptive comment regarding the allocation
+	  of the return values.
+	* mh/mh_msgset.c (mh_msgset_reverse,mh_msgset_negate,
+	  mh_msgset_current, mh_msgset_free): new functions.
+	  Added comments.
+	* mh/mhpath.c: Minor fixes.
+	* mh/refile.c: Use new mh_msgset_parse() syntax.
+	* mh/rmm.c: Fixed args_doc string. Use new mh_msgset_parse()
+	  syntax.
+	* mh/scan.c: Use mh_iterate(). Accept message specifications
+	  from the command line.
+	* mh/mh_format.c (mh_format_dump): Bugfix: missed break;
+
 2002-09-26  Sergey Poznyakoff
 
 	* mail/mail.h (struct compose_env): Changed structure. Renamed
