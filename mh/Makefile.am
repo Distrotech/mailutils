@@ -1,3 +1,7 @@
+# This file is part of GNU Mailutils
+# Copyright (C) 2000,2001,2002 Free Software Foundation
+# See file COPYING in the distribution root directory for copying conditions.
+
 bin_PROGRAMS = scan inc
 noinst_LIBRARIES = libmh.a
 libmh_a_SOURCES= \
