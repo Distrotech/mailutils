@@ -39,7 +39,7 @@ mail_top (int argc, char **argv)
           || lines < 0)
 	return 1;
 
-      if (util_get_message (mbox, cursor, &msg, 1))
+      if (util_get_message (mbox, cursor, &msg, MSG_NODELETED))
 	return 1;
 
       message_get_stream (msg, &stream);

@@ -36,7 +36,7 @@ mail_followup (int argc, char **argv)
   if (msgset_parse (argc, argv, &msglist))
     return 1;
 
-  if (util_get_message (mbox, cursor, &msg, 1))
+  if (util_get_message (mbox, cursor, &msg, MSG_NODELETED))
     {
       msgset_free (msglist);
       return 1;

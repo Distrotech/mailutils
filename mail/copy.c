@@ -74,7 +74,7 @@ mail_copy0 (int argc, char **argv, int mark)
     {
       int status;
       
-      status = util_get_message (mbox, mp->msg_part[0], &msg, 1);
+      status = util_get_message (mbox, mp->msg_part[0], &msg, MSG_NODELETED);
       if (status)
         break;
 

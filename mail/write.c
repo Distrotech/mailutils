@@ -81,7 +81,7 @@ mail_write (int argc, char **argv)
       off_t off = 0;
       size_t n = 0;
 
-      if (util_get_message (mbox, mp->msg_part[0], &msg, 1))
+      if (util_get_message (mbox, mp->msg_part[0], &msg, MSG_NODELETED))
         continue;
 
       message_get_body (msg, &bod);

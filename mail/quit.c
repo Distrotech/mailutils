@@ -86,7 +86,7 @@ mail_mbox_commit ()
 
   for (i = 1; i <= total; i++)
     {
-      if (util_get_message (mbox, i, &msg, 0))
+      if (util_get_message (mbox, i, &msg, MSG_ALL))
 	return 1;
 
       message_get_attribute (msg, &attr);

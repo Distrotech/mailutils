@@ -42,7 +42,7 @@ mail_print (int argc, char **argv)
       attribute_t attr;
       int pagelines = util_get_crt ();
       
-      if (util_get_message (mbox, cursor, &mesg, 1))
+      if (util_get_message (mbox, cursor, &mesg, MSG_NODELETED))
         return 1;
 
       message_lines (mesg, &lines);

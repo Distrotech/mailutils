@@ -27,7 +27,7 @@ mail_delete0 (void)
   message_t msg;
   attribute_t attr;
 
-  if (util_get_message (mbox, cursor, &msg, 0))
+  if (util_get_message (mbox, cursor, &msg, MSG_ALL))
     return 1;
   message_get_attribute (msg, &attr);
   attribute_set_deleted (attr);

@@ -31,7 +31,7 @@ mail_mbox (int argc, char **argv)
     return util_msglist_command (mail_mbox, argc, argv, 1);
   else
     {
-      if (util_get_message (mbox, cursor, &msg, 1))
+      if (util_get_message (mbox, cursor, &msg, MSG_NODELETED))
 	return 1;
 
       /* Mark the message */

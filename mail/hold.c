@@ -32,7 +32,7 @@ mail_hold (int argc, char **argv)
     return util_msglist_command (mail_hold, argc, argv, 1);
   else
     {
-      if (util_get_message (mbox, cursor, &msg, 0))
+      if (util_get_message (mbox, cursor, &msg, MSG_ALL))
         return 1;
 
       message_get_attribute (msg, &attr);

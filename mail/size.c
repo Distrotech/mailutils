@@ -30,7 +30,8 @@ mail_size (int argc, char **argv)
     {
       size_t size = 0, lines = 0;
       message_t msg;
-      if (util_get_message (mbox, cursor, &msg, 0))
+
+      if (util_get_message (mbox, cursor, &msg, MSG_ALL))
 	return 1;
 
       message_size (msg, &size);
