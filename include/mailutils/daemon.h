@@ -18,6 +18,8 @@
 #ifndef _MAILUTILS_DAEMON_H
 #define _MAILUTILS_DAEMON_H
 
+#include <mailutils/types.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
