@@ -99,10 +99,10 @@ argcv_get (const char *command, const char *delim, const char* cmnt,
   int i = 0;
   int start, end, save;
 
-  *argc = 0;
   *argv = NULL;
 
   /* Count number of arguments */
+  *argc = 1;
   save = 0;
 
   while (argcv_scan (len, command, delim, cmnt, &start, &end, &save) < len)
