@@ -864,6 +864,14 @@ AH_BOTTOM([
 #endif
 ])
 
+AC_ARG_VAR([DEFAULT_CUPS_CONFDIR],
+           [Set the location of CUPS configuration directory. Default is \$sysconfdir/cups])
+
+AC_SUBST(DEFAULT_CUPS_CONFDIR)
+if test -z "$DEFAULT_CUPS_CONFDIR"; then
+  DEFAULT_CUPS_CONFDIR='$(sysconfdir)/cups'
+fi
+
 dnl Make sysconfdir available to the application
 dnl This must be done LAST, since CPPFLAGS is passed by configure
 dnl to build tests, but this relies on being run in make to
