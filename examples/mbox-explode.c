@@ -23,7 +23,15 @@ main (int argc, char **argv)
   char *mbox_name = 0;
   char *dir_name = 0;
   int status;
+  int debug = 0;
 
+  if (strcmp("-d", argv[1]) == 0 && argc == 4)
+  {
+    debug = 1;
+    argc--;
+    argv[1] = argv[2];
+    argv[2] = argv[3];
+  }
   if (argc != 3)
     {
       printf ("usage: mbox-explode <mbox> <directory>\n");
@@ -46,6 +54,7 @@ main (int argc, char **argv)
 	       mbox_name, strerror (status));
       exit (1);
     }
+  if(debug)
   {
     mu_debug_t debug;
     mailbox_get_debug (mbox, &debug);
@@ -119,3 +128,4 @@ main (int argc, char **argv)
 
   return status;
 }
+

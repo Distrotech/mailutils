@@ -30,6 +30,8 @@ UserAgent (header_t hdr)
       && sz != 0)
     return agent;
 
+  /* Some MUAs, like Pine, put their name in the Message-Id, so print it as
+     a last ditch attempt at getting an idea who produced the date. */
   if (header_get_value (hdr, "Message-Id", agent, sizeof (agent), &sz) == 0
       && sz != 0)
     return agent;
@@ -45,6 +47,19 @@ main (int argc, char **argv)
   size_t count = 0;
   char *mboxname = argv[1];
   int status;
+  int debug = 0;
+
+  if (strcmp ("-d", mboxname) == 0)
+    {
+      mboxname = argv[2];
+      debug = 1;
+    }
+
+  if (mboxname == NULL)
+    {
+      printf ("Usage: mbox-dates [-d] <mbox>\n");
+      exit (1);
+    }
 
   /* Register desired mailbox formats. */
   {
@@ -62,11 +77,12 @@ main (int argc, char **argv)
       exit (1);
     }
 
-  {
-    mu_debug_t debug;
-    mailbox_get_debug (mbox, &debug);
-//  mu_debug_set_level (debug, MU_DEBUG_TRACE|MU_DEBUG_PROT);
-  }
+  if (debug)
+    {
+      mu_debug_t debug;
+      mailbox_get_debug (mbox, &debug);
+      mu_debug_set_level (debug, MU_DEBUG_TRACE | MU_DEBUG_PROT);
+    }
 
   if ((status = mailbox_open (mbox, MU_STREAM_READ)) != 0)
     {
