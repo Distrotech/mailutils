@@ -43,7 +43,7 @@ sieve_action_keep (sieve_machine_t mach, list_t args, list_t tags)
 int
 sieve_action_discard (sieve_machine_t mach, list_t args, list_t tags)
 {
-  sieve_log_action (mach, "DISCARD", NULL);
+  sieve_log_action (mach, "DISCARD", "marking as deleted");
   if (sieve_is_dry_run (mach))
     return 0;
   sieve_mark_deleted (mach->msg, 1);
