@@ -17,4 +17,5 @@ Sergey Poznyakoff <gray@Mirddin.farlep.net>
 Sam Roberts <sroberts@uniserve.com>
 	The parsing code for email addresses.
 Wojciech Polak <polak@gnu.org>
-	TLS support, documentation
+	TLS, NLS, documentation, misc hacking.
+
