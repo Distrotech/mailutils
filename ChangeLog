@@ -1,3 +1,39 @@
+2002-08-23  Sergey Poznyakoff 
+
+	* configure.ac: Added check for socklen_t.
+	
+	* imap4d/commands.c: Fixed allowed states for X-VERSION command.
+	* imap4d/fetch.c (fetch_operation) Fix section specification
+	  output.
+        * mail/testsuite/mail/folder.exp: Enabled "folders" test.
+	* imap4d/testsuite/imap4d/examine.exp:	Moved get_uidvalidity
+	  to imap4d.exp and renamed it to imap4d_uidvalidity.
+	* imap4d/testsuite/lib/imap4d.exp: Likewise
+	  (imap4d_test): Added new switches: -literal and -noliteral
+	  
+	* imap4d/testsuite/imap4d/fetch.exp: New file
+	* imap4d/testsuite/imap4d/x.exp: New file
+	* imap4d/testsuite/imap4d/DISTFILES: Added fetch.exp, x.exp
+	* imap4d/testsuite/imap4d/search.exp: Added comments
+
+	* testsuite/spool/mbox: Changed `organisation' header
+	* testsuite/spool/mbox1: Likewise.
+	* mail/testsuite/mail/write.exp: Adjusted tests to the changes in
+	  mbox and mbox1.
+	
+	* libmu_scm/mu_address.c (mu_address_get_count): Fixed
+	  type of `count' variable
+	* mailbox/list.c (list_remove): Removed cast from void* to int,
+	  it does not work on 64-bit machines. Besides, pointer comparison
+	  is strictly defined by C.
+	* mailbox/observer.c (observable_detach): Likewise.
+	* mailbox/tcp.c (_tcp_open): Changed type of `namelen' to
+	  socklen_t.
+	* mh/mh_format.c: Changed type of `len' to size_t.
+
+	* mail/folders.c (mail_folders): Protect directory name with
+	  quotes.
+	
 2002-08-23  Sergey Poznyakoff
 
 	* testsuite/lib/mailutils.exp: Introduced -re flag
