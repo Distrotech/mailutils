@@ -119,6 +119,8 @@ This document was produced for version @value{VERSION} of @sc{gnu}
 * Introduction::                GNU @sc{mailutils}
 @comment * Concrete API::                Concrete API.
 * Framework::                   Framework.
+* Authentication Library::
+* Sieve Library::
 * Programs::                    Programs.
 * Reporting Bugs::              Reporting Bugs.
 * Acknowledgement::             Thanks and Credits.
@@ -260,14 +262,27 @@ Notifications}
 
 @comment @include c-api.texi
 
-@node Framework, Programs, Introduction, Top
+@node Framework, Authentication Library, Introduction, Top
 @comment  node-name,  next,  previous,  up
 @chapter Framework
 @cindex Framework
 
 @include framework.texi
 
-@node Programs, Reporting Bugs, Framework, Top
+@node Authentication Library, Sieve Library, Framework, Top
+@chapter Authentication Library
+@cindex Authentication Library
+@cindex libmuauth
+
+@include libmuauth.texi
+
+@node Sieve Library, Programs, Authentication Library, Top
+@chapter Sieve Library
+@cindex Sieve Library
+@cindex libsieve
+@include libsieve.texi
+
+@node Programs, Reporting Bugs, Sieve Library, Top
 @comment  node-name,  next,  previous,  up
 @chapter Programs
 @cindex Programs
