@@ -683,7 +683,8 @@ proc mu_test_file {args} {
 #             [-file FILENAME]
 #             [-input INPUT-LIST]
 #             [-args ARGS]
-#             [-pattern PATTERN-LIST][PATTERN...]
+#             [-pattern PATTERN-LIST]
+#             [ARGS...]
 # INPUT-LIST - List of input strings
 # PATTERN   - Sequence to expect in return. 
 # MESSAGE   - [optional] message to output
@@ -733,13 +734,10 @@ proc mailer_test { args } {
 	}
     }
 
-    if {$i < [llength $args]} {
-	lappend pattern [lrange $args $i end]
-    }
-
     verbose "Spawning $MU_TOOL $MU_TOOL_FLAGS $invocation" 1
 
     set res [remote_spawn host "$MU_TOOL $MU_TOOL_FLAGS $invocation"]
+
     if { $res < 0 || $res == "" } {
 	perror "Spawning $MU_TOOL $MU_TOOL_FLAGS $invocation failed."
 	return 1;
@@ -749,9 +747,8 @@ proc mailer_test { args } {
 	set message [lindex $args 0]
     }
 
-    if $verbose>2 then {
-	send_user "Message is \"$message\"\n"
-    }
+    verbose "Message is \"$message\"" 2
+    verbose "Pattern is $pattern" 2
 
     set result ""
     verbose "INPUT: $input" 1
