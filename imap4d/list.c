@@ -204,7 +204,7 @@ list_file (const char *cwd, const char *ref, const char *pattern,
 	 implementation: Solaris 2.4 readdir on NFS filesystems.  */
       char const *entry = dp->d_name;
       if (entry[entry[0] != '.' ? 0 : entry[1] != '.' ? 1 : 2] != '\0' &&
-	  !(is_virtual && !strcmp (entry, "INBOX") && !strcmp(cwd, homedir)))
+	  !(!strcmp (entry, "INBOX") && !strcmp(cwd, homedir)))
 	{
 	  int status = match (entry, pattern, delim);
 	  if (status)
