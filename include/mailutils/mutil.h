@@ -74,6 +74,7 @@ extern int mu_virtual_domain;
 extern struct passwd * getpwnam_virtual __P((const char *u));
 
 extern char * mu_get_user_email __P((char *name));
+extern char * mu_normalize_path __P((char *path, const char *delim));
   
 #ifdef __cplusplus
 }
