@@ -1606,16 +1606,16 @@ parse822_time (const char **p, const char *e,
 	  break;
 	}
 
-      if (strspn (zp, "0123456789") != 4)
+      if (strspn (zp, "0123456789") == 4)
 	{
-	  *p = save;
-	  str_free (&zone);
-	  return EPARSE;
-	}
       /* convert to seconds from UTC */
       hh = (zone[1] - '0') * 10 + (zone[2] - '0');
       mm = (zone[3] - '0') * 10 + (zone[4] - '0');
-
+	}
+      else
+	{
+	  hh = mm = 0; /* Consider equivalent to -0000 */
+	}
       if (tz)
 	*tz = sign * (hh * 60 * 60 + mm * 60);
     }
