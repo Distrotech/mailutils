@@ -31,6 +31,8 @@ imap4d_append (struct imap4d_command *command, char *arg)
   if (!mboxname)
     return util_finish (command, RESP_BAD, "Too few arguments");
 
+  util_unquote (&mboxname);
+  
   if (*sp == '(' && util_parse_attributes (sp+1, &sp, &flags))
     return util_finish (command, RESP_BAD, "Missing closing parenthesis");
   
