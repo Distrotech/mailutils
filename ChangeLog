@@ -27,6 +27,17 @@
 	* mh/mark.c: Likewise.
 	* mh/mhl.c: Likewise.
 	* mh/mhn.c: Likewise.
+	* mh/mhpath.c: Likewise.
+	* mh/pick.c: Likewise.
+	* mh/refile.c: Likewise.
+	* mh/repl.c: Likewise.
+	* mh/rmf.c: Likewise.
+	* mh/rmm.c: Likewise.
+	* mh/scan.c: Likewise.
+	* mh/send.c: Likewise.
+	* mh/sortm.c: Likewise.
+	* mh/whatnow.c: Likewise.
+	* mh/whom.c: Likewise.
 	* pop3d/pop3d.c: Likewise.
 	* pop3d/popauth.c: Likewise.
 	* readmsg/readmsg.c: Likewise.
