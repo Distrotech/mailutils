@@ -1,3 +1,9 @@
+2001-06-11  Alain Magloire
+
+	* imap4d/util.c (util_msgset): When '*' was define in the
+	set it was not added to the count.
+	Bug reported by Jakob Kaivo.
+
 2001-06-09  Alain Magloire
 
 	* mailbox2/pop3/pop3_open.c: Remove for pop3_connect.c

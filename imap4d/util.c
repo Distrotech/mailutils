@@ -158,7 +158,7 @@ util_tilde_expansion (const char *ref, const char *delim)
 
          /home/user/../smith   -->   /home/smith
 	 /home/user/../..      -->   /
-   
+
    FIXME: delim is superfluous. The function deals with unix filesystem
    paths, so delim should be always "/" */
 char *
@@ -166,7 +166,7 @@ util_normalize_path (char *path, const char *delim)
 {
   int len;
   char *p;
-  
+
   if (!path)
     return path;
 
@@ -175,7 +175,7 @@ util_normalize_path (char *path, const char *delim)
   /* Empty string is returned as is */
   if (len == 0)
     return path;
-  
+
   /* delete trailing delimiter if any */
   if (len && path[len-1] == delim[0])
     path[len-1] = 0;
@@ -213,7 +213,7 @@ util_normalize_path (char *path, const char *delim)
       path[0] = delim[0];
       path[1] = 0;
     }
-  
+
   return path;
 }
 
@@ -333,17 +333,13 @@ util_msgset (char *s, size_t **set, int *n, int isuid)
 	  */
 	case '*':
 	  {
-	    if (status != 0)
-	      {
-		if (*set)
-		  free (*set);
-		*n = 0;
-		return status;
-	      }
 	    val = max;
 	    s++;
-	    break;
+	    status = add2set (set, n, val);
+	    if (status != 0)
+	      return status;
 	  }
+	  break;
 
 	  /* IMAP also allows a set of noncontiguous numbers to be specified
 	     with the ',' character:
@@ -696,7 +692,7 @@ util_parse_internal_date0 (char *date, time_t *timep, char **endp)
   char tzs[6];
   time_t time;
   int off;
-  
+
   memset (&tm, 0, sizeof (tm));
   n = sscanf (date, "%2d-%3s-%4d %2d:%2d:%2d %5s%n\n",
 	      &day, mon, &year,
@@ -714,7 +710,7 @@ util_parse_internal_date0 (char *date, time_t *timep, char **endp)
     default:
       return 1;
     }
-  
+
   tm.tm_mday = day;
   for (i = 0; i < 11; i++)
     if (strncmp (months[i], mon, 3) == 0)
@@ -730,7 +726,7 @@ util_parse_internal_date0 (char *date, time_t *timep, char **endp)
       tm.tm_min = min;
       tm.tm_sec = sec;
     }
-  
+
   tm.tm_isdst = -1; /* unknown. */
 
   time = mktime (&tm);
@@ -744,11 +740,11 @@ util_parse_internal_date0 (char *date, time_t *timep, char **endp)
 
       if (strlen (tzs) != 5)
 	return 3;
-      
+
       for (i = 1; i <= 4; i++)
 	if (!isdigit (tzs[i]))
 	  return 3;
-      
+
       tz = (c2d (tzs[1])*10 + c2d (tzs[2]))*60 +
 	    c2d (tzs[3])*10 + c2d (tzs[4]);
       if (tzs[0] == '-')
@@ -786,11 +782,11 @@ util_parse_header_date (char *date, time_t *timep)
   memset (&tm, 0, sizeof (tm));
   n = sscanf (date, "%3s, %2d %3s %4d %2d:%2d:%2d %5s",
 	      wday, &day, mon, &year,
-	      &hour, &min, &sec, &tzs); 
+	      &hour, &min, &sec, &tzs);
 
   if (n < 7)
     return 1;
-  
+
   tm.tm_mday = day;
   for (i = 0; i < 11; i++)
     if (strncmp (months[i], mon, 3) == 0)
@@ -806,7 +802,7 @@ util_parse_header_date (char *date, time_t *timep)
       tm.tm_min = min;
       tm.tm_sec = sec;
     }
-  
+
   tm.tm_isdst = -1; /* unknown. */
 
   time = mktime (&tm);
@@ -815,7 +811,7 @@ util_parse_header_date (char *date, time_t *timep)
 
   /*FIXME: mktime corrects for the timezone. We should fix up the
     correction here */
-  
+
   if (n == 8)
     {
       int sign;
@@ -823,11 +819,11 @@ util_parse_header_date (char *date, time_t *timep)
 
       if (strlen (tzs) != 5)
 	return 3;
-      
+
       for (i = 1; i <= 4; i++)
 	if (!isdigit (tzs[i]))
 	  return 3;
-      
+
       tz = (c2d (tzs[1])*10 + c2d (tzs[2]))*60 +
 	    c2d (tzs[3])*10 + c2d (tzs[4]);
       if (tzs[0] == '-')
@@ -849,7 +845,7 @@ util_parse_rfc822_date (char *date, time_t *timep)
   struct tm tm;
   char month[5];
   char wday[5];
-    
+
   month[0] = '\0';
   wday[0] = '\0';
   day = mon = year = hour = min = sec = offt = 0;
@@ -921,10 +917,10 @@ struct
   int flag;
 } _imap4d_attrlist[] = {
   "\\Answered", MU_ATTRIBUTE_ANSWERED,
-  "\\Flagged",  MU_ATTRIBUTE_FLAGGED,  
-  "\\Deleted", MU_ATTRIBUTE_DELETED,  
-  "\\Draft", MU_ATTRIBUTE_DRAFT,    
-  "\\Seen", MU_ATTRIBUTE_SEEN,     
+  "\\Flagged",  MU_ATTRIBUTE_FLAGGED,
+  "\\Deleted", MU_ATTRIBUTE_DELETED,
+  "\\Draft", MU_ATTRIBUTE_DRAFT,
+  "\\Seen", MU_ATTRIBUTE_SEEN,
   "\\Recent", MU_ATTRIBUTE_RECENT,
 };
 
@@ -977,17 +973,17 @@ util_type_to_attribute (int type, char **attr_str)
 	    }
 	}
     }
-  
+
   if (!*attr_str)
     imap4d_bye (ERR_NO_MEM);
   return 0;
 }
-  
+
 int
 util_parse_attributes(char *items, char **save, int *flags)
 {
   int rc;
-  
+
   *flags = 0;
   while (*items)
     {
@@ -1006,7 +1002,7 @@ util_parse_attributes(char *items, char **save, int *flags)
 	  break;
 	}
     }
-  
+
   *save = items;
   return rc;
 }
