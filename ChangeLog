@@ -1,5 +1,17 @@
 2001-10-15  Alain Magloire
 
+	* mailbox/sendmail.c: Use vfork() instead of fork().  In a
+	multithreaded environment, fork () may not be supported.
+	Since we do fork()/exec(), vfork() will do fine.
+	This was trigger by QNX/Neutrino, where fork()ing is not
+	supported after threads have been created.
+
+2001-10-15  Sam Roberts
+
+	* doc/texinfo/programs.texi: Typo and semantics corrections.
+
+2001-10-15  Alain Magloire
+
 	* mailbox/mbx_imap.c (imap_message_readline imap_body_readline):
 	Bad analysis on my part. Functions removed.
 

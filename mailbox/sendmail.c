@@ -172,7 +172,7 @@ sendmail_send_message (mailer_t mailer, message_t msg)
 	if (pipe (tunnel) == 0)
 	  {
 	    sendmail->fd = tunnel [1];
-	    sendmail->pid = fork ();
+	    sendmail->pid = vfork ();
 	    if (sendmail->pid == 0) /* Child.  */
 	      {
 		close (STDIN_FILENO);

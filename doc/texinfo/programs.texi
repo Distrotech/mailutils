@@ -185,8 +185,8 @@ If the command line contained no email addresses, @code{mail} switches
 to reading mode. In this mode it allows to read and manipulate the
 contents of a mailbox. The URL of the mailbox to operate upon is
 taken from the argument of @samp{--file} command line option. If it
-is not specified, the user's system mailbox is assumed. @xref{Reading
-Mail} for more detail.
+is not specified, the user's system mailbox is assumed. For more
+detail, see @xref{Reading Mail}.
 
 @menu
 * Invoking Mail::            Command line options.
@@ -603,8 +603,7 @@ permissions the target mailbox has.
 Unless you have started mail with @samp{--norc} command line option,
 it will read the contents of the system-wide configuration file.
 Then it reads the contents of user configuration file, if any.
-@xref{Mail Configuration Files} for detailed description of these
-files.
+For detailed description of these files, see @xref{Mail Configuration Files}.
 After this initial setup, @file{mail} displays the first page of header
 lines and enters interactive mode. In interactive mode, @file{mail}
 displays its prompt (@samp{?}, if not set otherwise) and executes the
@@ -799,8 +798,7 @@ controlled by @code{screen} variable.
 @itemx Type [@var{msglist}]
 @itemx T [@var{msglist}]
 Like print but also prints out ignored header fields.
-@xref{Controlling Header Display} for detailed description of ignored
-header lists.
+For detailed description of ignored header lists, see @xref{Controlling Header Display}.
 @item decode [@var{msglist}]
 @itemx dec [@var{msglist}]
 Print a multipart message. The @code{decode} command decodes and prints
