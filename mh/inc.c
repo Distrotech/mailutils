@@ -76,7 +76,7 @@ static int quiet = 0;
 static char *append_folder;
 
 static int
-opt_handler (int key, char *arg, void *unused)
+opt_handler (int key, char *arg, void *unused, struct argp_state *state)
 {
   switch (key)
     {
@@ -118,7 +118,7 @@ opt_handler (int key, char *arg, void *unused)
       width = strtoul (arg, NULL, 0);
       if (!width)
 	{
-	  mh_error (_("Invalid width"));
+	  argp_error (state, _("Invalid width"));
 	  exit (1);
 	}
       break;
@@ -166,7 +166,7 @@ main (int argc, char **argv)
   /* Native Language Support */
   mu_init_nls ();
 
-  mh_argp_parse (argc, argv, options, mh_option, args_doc, doc,
+  mh_argp_parse (argc, argv, 0, options, mh_option, args_doc, doc,
 		 opt_handler, NULL, NULL);
 
   if (!quiet && mh_format_parse (format_str, &format))

@@ -73,7 +73,7 @@ static int nomoreproc;
 static list_t format;
 
 static int
-opt_handler (int key, char *arg, void *unused)
+opt_handler (int key, char *arg, void *unused, struct argp_state *state)
 {
   switch (key)
     {
@@ -106,7 +106,7 @@ opt_handler (int key, char *arg, void *unused)
       width = strtoul (arg, NULL, 0);
       if (!width)
 	{
-	  mh_error (_("Invalid width"));
+	  argp_error (state, _("Invalid width"));
 	  exit (1);
 	}
       break;
@@ -115,7 +115,7 @@ opt_handler (int key, char *arg, void *unused)
       length = strtoul (arg, NULL, 0);
       if (!length)
 	{
-	  mh_error (_("Invalid length"));
+	  argp_error (state, _("Invalid length"));
 	  exit (1);
 	}
       break;
@@ -212,7 +212,7 @@ main (int argc, char **argv)
   interactive = isatty (1) && isatty (0);
   
   mu_init_nls ();
-  mh_argp_parse (argc, argv, options, mh_option, args_doc, doc,
+  mh_argp_parse (argc, argv, 0, options, mh_option, args_doc, doc,
 		 opt_handler, NULL, &index);
 
   format = mhl_format_compile (formfile);

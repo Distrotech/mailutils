@@ -123,7 +123,7 @@ decode_cc_flag (const char *opt, const char *arg)
 }
 
 static int
-opt_handler (int key, char *arg, void *unused)
+opt_handler (int key, char *arg, void *unused, struct argp_state *state)
 {
   char *s;
   
@@ -172,7 +172,7 @@ opt_handler (int key, char *arg, void *unused)
       width = strtoul (arg, NULL, 0);
       if (!width)
 	{
-	  mh_error (_("Invalid width"));
+	  argp_error (state, _("Invalid width"));
 	  exit (1);
 	}
       break;
@@ -198,7 +198,7 @@ opt_handler (int key, char *arg, void *unused)
     case ARG_INPLACE:
     case ARG_WHATNOWPROC:
     case ARG_NOWHATNOWPROC:
-      mh_error (_("option is not yet implemented"));
+      argp_error (state, _("option is not yet implemented"));
       exit (1);
       
     default:
@@ -318,7 +318,7 @@ main (int argc, char **argv)
   /* Native Language Support */
   mu_init_nls ();
 
-  mh_argp_parse (argc, argv, options, mh_option, args_doc, doc,
+  mh_argp_parse (argc, argv, 0, options, mh_option, args_doc, doc,
 		 opt_handler, NULL, &index);
   if (mh_format_parse (format_str, &format))
     {

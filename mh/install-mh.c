@@ -38,7 +38,7 @@ struct mh_option mh_option[] = {
 int automode;
 
 static int
-opt_handler (int key, char *arg, void *unused)
+opt_handler (int key, char *arg, void *unused, struct argp_state *state)
 {
   switch (key)
     {
@@ -64,7 +64,7 @@ main (int argc, char **argv)
   mu_init_nls ();
 
   mh_auto_install = 0;
-  mh_argp_parse (argc, argv, options, mh_option, args_doc, doc,
+  mh_argp_parse (argc, argv, 0, options, mh_option, args_doc, doc,
 		 opt_handler, NULL, NULL);
 
   home = mu_get_homedir ();

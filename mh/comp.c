@@ -85,7 +85,7 @@ static int query_mode = 0; /* --query flag */
 static int use_draft = 0;  /* --use flag */
 
 static int
-opt_handler (int key, char *arg, void *unused)
+opt_handler (int key, char *arg, void *unused, struct argp_state *state)
 {
   switch (key)
     {
@@ -132,7 +132,7 @@ opt_handler (int key, char *arg, void *unused)
       
     case ARG_WHATNOWPROC:
     case ARG_NOWHATNOWPROC:
-      mh_error (_("option is not yet implemented"));
+      argp_error (state, _("option is not yet implemented"));
       exit (1);
       
     default:
@@ -223,7 +223,7 @@ main (int argc, char **argv)
   /* Native Language Support */
   mu_init_nls ();
 
-  mh_argp_parse (argc, argv, options, mh_option, args_doc, doc,
+  mh_argp_parse (argc, argv, 0, options, mh_option, args_doc, doc,
 		 opt_handler, NULL, &index);
 
   if (!wh_env.draftfolder)

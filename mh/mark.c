@@ -54,8 +54,8 @@ struct mh_option mh_option[] = {
 };
 
 static int action;  /* Action to perform */
-static int mode_public = 1; /* Create public sequences */
-static int mode_zero = 1;   /* Zero the sequence before addition */
+static int seq_flags = 0; /* Create public sequences;
+			     Do not zero the sequence before addition */
 static list_t seq_list;  /* List of sequence names to operate upon */
 
 static char *mbox_dir;
@@ -72,7 +72,7 @@ add_sequence (char *name)
 }
 
 static int
-opt_handler (int key, char *arg, void *unused)
+opt_handler (int key, char *arg, void *unused, struct argp_state *state)
 {
   switch (key)
     {
@@ -92,19 +92,25 @@ opt_handler (int key, char *arg, void *unused)
       break;
       
     case ARG_PUBLIC:
-      mode_public = is_true (arg);
+      if (is_true (arg))
+	seq_flags &= ~SEQ_PRIVATE;
+      else
+	seq_flags |= SEQ_PRIVATE;
       break;
       
     case ARG_NOPUBLIC:
-      mode_public = 0;
+      seq_flags |= SEQ_PRIVATE;
       break;
       
     case ARG_ZERO:
-      mode_zero = is_true (arg);
+      if (is_true (arg))
+	seq_flags |= SEQ_ZERO;
+      else
+	seq_flags &= ~SEQ_ZERO;
       break;
 
     case ARG_NOZERO:
-      mode_zero = 0;
+      seq_flags &= ~SEQ_ZERO;
       break;
       
     default:
@@ -113,152 +119,17 @@ opt_handler (int key, char *arg, void *unused)
   return 0;
 }
 
-static char *
-private_sequence_name (char *name)
-{
-  char *p;
-  
-  asprintf (&p, "atr-%s-%s", name, mbox_dir);
-  return p;
-}
-
-static char *
-read_sequence (char *name, int public)
-{
-  char *value;
-
-  if (public)
-    value = mh_global_sequences_get (name, NULL);
-  else
-    {
-      char *p = private_sequence_name (name);
-      value = mh_global_context_get (p, NULL);
-      free (p);
-    }
-  return value;
-}
-
-static void
-write_sequence (char *name, char *value, int public)
-{
-  if (public)
-    mh_global_sequences_set (name, value);
-  else
-    {
-      char *p = private_sequence_name (name);
-      mh_global_context_set (p, value);
-      free (p);
-    }
-}
-
-static void
-delete_sequence (char *name, int public)
-{
-  write_sequence (name, NULL, public);
-}
-
 static int
 action_add (void *item, void *data)
 {
-  char *name = item;
-  mh_msgset_t *mset = data;
-  char *value = read_sequence (name, mode_public);
-  char *new_value, *p;
-  char buf[64];
-  size_t i, len;
-  
-  delete_sequence (name, !mode_public);
-
-  if (mode_zero)
-    value = NULL;
-  
-  if (value)
-    len = strlen (value);
-  else
-    len = 0;
-  len++;
-  for (i = 0; i < mset->count; i++)
-    {
-      snprintf (buf, sizeof buf, "%lu", (unsigned long) mset->list[i]);
-      len += strlen (buf) + 1;
-    }
-
-  new_value = xmalloc (len + 1);
-  if (value)
-    strcpy (new_value, value);
-  else
-    new_value[0] = 0;
-  p = new_value + strlen (new_value);
-  *p++ = ' ';
-  for (i = 0; i < mset->count; i++)
-    {
-      p += sprintf (p, "%lu", (unsigned long) mset->list[i]);
-      *p++ = ' ';
-    }
-  *p = 0;
-  write_sequence (name, new_value, mode_public);
-  return 0;
-}
-
-static int
-cmp_msgnum (const void *a, const void *b)
-{
-  const size_t *as = a;
-  const size_t *bs = b;
-
-  if (*as < *bs)
-    return -1;
-  if (*as > *bs)
-    return 1;
+  mh_seq_add ((char *)item, (mh_msgset_t *)data, seq_flags);
   return 0;
 }
 
 static int
 action_delete (void *item, void *data)
 {
-  char *name = item;
-  mh_msgset_t *mset = data;
-  char *value = read_sequence (name, mode_public);
-  char *p;
-  int argc, i;
-  char **argv;
-  
-  if (!value)
-    return 0;
-
-  if (argcv_get (value, "", NULL, &argc, &argv))
-    return 0;
-
-  for (i = 0; i < argc; i++)
-    {
-      char *p;
-      size_t num = strtoul (argv[i], &p, 10);
-
-      if (*p)
-	continue;
-
-      if (bsearch (&num, mset->list, mset->count, sizeof (mset->list[0]),
-		   cmp_msgnum))
-	{
-	  free (argv[i]);
-	  argv[i] = NULL;
-	}
-    }
-
-  p = value;
-  for (i = 0; i < argc; i++)
-    {
-      if (argv[i])
-	{
-	  strcpy (p, argv[i]);
-	  p += strlen (p);
-	  *p++ = ' ';
-	}
-    }
-  *p = 0;
-  write_sequence (name, value, mode_public);
-  argcv_free (argc, argv);
-  
+  mh_seq_delete ((char *)item, (mh_msgset_t *)data, seq_flags);
   return 0;
 }
 
@@ -268,10 +139,10 @@ action_list (void *item, void *data)
   char *name = item;
   char *val;
   
-  val = read_sequence (name, 1);
+  val = mh_seq_read (name, 0);
   if (val)
     printf ("%s: %s\n", name, val);
-  else if ((val = read_sequence (name, 0)))
+  else if ((val = mh_seq_read (name, SEQ_PRIVATE)))
     printf ("%s (%s): %s\n", name, _("private"), val);
   return 0;
 }
@@ -317,7 +188,7 @@ main (int argc, char **argv)
   url_t url;
   
   mu_init_nls ();
-  mh_argp_parse (argc, argv, options, mh_option, args_doc, doc,
+  mh_argp_parse (argc, argv, 0, options, mh_option, args_doc, doc,
 		 opt_handler, NULL, &index);
 
   mbox = mh_open_folder (current_folder, 0);

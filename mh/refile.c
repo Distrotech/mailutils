@@ -145,7 +145,7 @@ close_folders ()
 }
 
 static int
-opt_handler (int key, char *arg, void *unused)
+opt_handler (int key, char *arg, void *unused, struct argp_state *state)
 {
   switch (key)
     {
@@ -223,7 +223,7 @@ main (int argc, char **argv)
   /* Native Language Support */
   mu_init_nls ();
 
-  mh_argp_parse (argc, argv, options, mh_option, args_doc, doc,
+  mh_argp_parse (argc, argv, 0, options, mh_option, args_doc, doc,
 		 opt_handler, NULL, &index);
 
   open_folders ();

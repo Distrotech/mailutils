@@ -118,7 +118,7 @@ static unsigned width = 76;      /* Maximum width of header fields */
 } while (0)
 
 static int
-opt_handler (int key, char *arg, void *unused)
+opt_handler (int key, char *arg, void *unused, struct argp_state *state)
 {
   char *p;
   
@@ -194,7 +194,7 @@ opt_handler (int key, char *arg, void *unused)
       split_interval = strtoul(arg, &p, 10);
       if (*p)
 	{
-	  mh_error (_("Invalid number"));
+	  argp_error (state, _("Invalid number"));
 	  exit (1);
 	}
       break;
@@ -219,7 +219,7 @@ opt_handler (int key, char *arg, void *unused)
       width = strtoul(arg, &p, 10);
       if (*p)
 	{
-	  mh_error (_("Invalid number"));
+	  argp_error (state, _("Invalid number"));
 	  exit (1);
 	}
       break;
@@ -447,7 +447,7 @@ main (int argc, char **argv)
   
   mu_init_nls ();
   
-  mh_argp_parse (argc, argv, options, mh_option, args_doc, doc,
+  mh_argp_parse (argc, argv, 0, options, mh_option, args_doc, doc,
 		 opt_handler, NULL, &index);
 
   argc -= index;
