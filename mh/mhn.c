@@ -827,10 +827,12 @@ mhn_store_command (message_t msg, msg_part_t part, char *name)
 	      break;
 
 	    case 'P':
-	      obstack_1grow (&stk, '.');
+	      if (msg_part_level (part) > 1)
+		obstack_1grow (&stk, '.');
 	      /*FALLTHRU*/
 	    case 'p':
-	      msg_part_format_stk (&stk, part);
+	      if (msg_part_level (part) > 1)
+		msg_part_format_stk (&stk, part);
 	      break;
 	      
 	    case 's':
@@ -1641,6 +1643,7 @@ store_handler (message_t msg, msg_part_t part, char *type, char *encoding,
 	  free (name);
 	  return 0;
 	}
+      unlink (name);
     }
   
   rc = file_stream_create (&out, name, MU_STREAM_WRITE|MU_STREAM_CREAT);
