@@ -10,8 +10,8 @@ mailutils_TEXINFOS = \
  c-api.texi \
  encoding.texi \
  envelope.texi \
- ex-address.texi \
- ex-url.texi \
+ address.c.texi \
+ url-parse.c.texi \
  framework.texi \
  folder.texi \
  headers.texi \
@@ -33,6 +33,15 @@ mailutils_TEXINFOS = \
  smtp.texi \
  stream.texi \
  url.texi
+
+address.c.texi: ${top_srcdir}/examples/addr.c
+	sed '1,/.*\*\//d;s/\([{}]\)/@\1/g' $< > $@
+
+url-parse.c.texi: ${top_srcdir}/examples/url-parse.c
+	sed '1,/.*\*\//d;s/\([{}]\)/@\1/g' $< > $@
+
+sfrom.c.texi: ${top_srcdir}/examples/sfrom.c
+	sed '1,/.*\*\//d;s/\([{}]\)/@\1/g' $< > $@
 
 ## Sam, the examples dir is not part of the distribution so this will not work
 ## but we should probably have a "addrmsg" program and reenable this.
