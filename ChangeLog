@@ -23,7 +23,7 @@
 
 	* mailbox/attachement.c (message_create_attachment): Use base_name().
 	* mailbox/mbx_mbox.c (mbox_tmpfile): Use base_name().
-	* configure.in: AC_REP_FUNC(vasprintf).
+	* configure.in: AC_REP_FUNC(vasprintf strcasecmp strncasecmp).
 	* include/mailutils/Makefile.am: Add property.h, parse822.h.
 	* lib/vasprintf.c: Taken from libit.
 	* lib/basename.c: Taken from libit/fileutils.

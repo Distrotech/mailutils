@@ -68,7 +68,7 @@ AC_FUNC_ALLOCA
 AC_FUNC_MMAP
 # FIXME: Provide the GNU one for loosing platforms
 AC_FUNC_FNMATCH
-AC_REPLACE_FUNCS(snprintf strtok_r vasprintf)
+AC_REPLACE_FUNCS(snprintf strtok_r vasprintf strncasecmp strcasecmp)
 AC_CHECK_FUNCS(mkstemp)
 
 dnl Check for libraries
