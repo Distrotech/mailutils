@@ -410,7 +410,7 @@ mbox_tmpfile (mailbox_t mailbox, char **pbox)
   else
     basename = mud->name;
   *pbox = calloc (strlen (tmpdir) + strlen ("MBOX_") +
-		  strlen (basename) + 1, sizeof (char));
+		  strlen (basename) + 2/* separator + null */, sizeof (char));
   if (*pbox == NULL)
     return NULL;
   sprintf (*pbox, "%s/%s%s", tmpdir, "MBOX_", basename);
