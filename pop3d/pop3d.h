@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -13,7 +13,7 @@
 
    You should have received a copy of the GNU General Public License
    along with GNU Mailutils; if not, write to the Free Software
-   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
+   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA  */
 
 #ifndef _POP3D_H
 #define _POP3D_H	1
@@ -189,7 +189,7 @@ extern int pop3d_list           __P ((const char *));
 extern int pop3d_lock           __P ((void));
 extern int pop3d_noop           __P ((const char *));
 extern int pop3d_quit           __P ((const char *));
-extern char *pop3d_readline     __P ((FILE *));
+extern char *pop3d_readline     __P ((char *, int));
 extern int pop3d_retr           __P ((const char *));
 extern int pop3d_rset           __P ((const char *));
 extern RETSIGTYPE pop3d_sigchld __P ((int));

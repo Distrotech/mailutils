@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2001, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001, 2002, 2003 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -13,7 +13,7 @@
 
    You should have received a copy of the GNU General Public License
    along with GNU Mailutils; if not, write to the Free Software
-   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
+   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA  */
 
 #include "pop3d.h"
 
@@ -21,6 +21,7 @@ int
 pop3d_user (const char *arg)
 {
   char *buf, pass[POP_MAXCMDLEN], *tmp, *cmd;
+  char buffer[512];
   int status;
   int lockit = 1;
   struct mu_auth_data *auth_data;
@@ -34,7 +35,7 @@ pop3d_user (const char *arg)
   pop3d_outf ("+OK\r\n");
   fflush (ofile);
 
-  buf = pop3d_readline (ifile);
+  buf = pop3d_readline (buffer, sizeof (buffer));
   cmd = pop3d_cmd (buf);
   tmp = pop3d_args (buf);
 

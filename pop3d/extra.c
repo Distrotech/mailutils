@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2001, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001, 2002, 2003 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -13,7 +13,7 @@
 
    You should have received a copy of the GNU General Public License
    along with GNU Mailutils; if not, write to the Free Software
-   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
+   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA  */
 
 #include "pop3d.h"
 
@@ -151,17 +151,16 @@ pop3d_outf (const char *fmt, ...)
 
 /* Gets a line of input from the client, caller should free() */
 char *
-pop3d_readline (FILE *fp)
+pop3d_readline (char *buffer, int size)
 {
-  static char buffer[512];
   char *ptr;
 
   alarm (daemon_param.timeout);
-  ptr = fgets (buffer, sizeof (buffer), fp);
+  ptr = fgets (buffer, size, ifile);
   alarm (0);
 
   /* We should probably check ferror() too, but if ptr is null we
-     are done anyway;  if (!ptr && ferror(fp)) */
+     are done anyway;  if (!ptr && ferror(ifile)) */
   if (!ptr)
     pop3d_abquit (ERR_NO_OFILE);
 
