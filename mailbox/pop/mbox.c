@@ -107,7 +107,6 @@ enum pop_state
 #define CAPA_SASL            0x00000080
 #define CAPA_STLS            0x00000100
 #define CAPA_IMPLEMENTATION  0x00000200
-static unsigned long capa;
 
 static void pop_destroy        __P ((mailbox_t));
 
@@ -185,6 +184,7 @@ struct _pop_data
   void *func;  /*  Indicate a command is in operation, busy.  */
   size_t id;   /* A second level of distincion, we maybe in the same function
 		  but working on a different message.  */
+  unsigned long capa; /* Server capabilities */
   enum pop_state state;
   pop_message_t *pmessages;
   size_t pmessages_count;
@@ -664,7 +664,7 @@ pop_open (mailbox_t mbox, int flags)
 
       if (!strncasecmp (mpd->buffer, "+OK", 3))
 	{
-	  capa = 0;
+	  mpd->capa = 0;
           do
             {
 	      status = pop_read_ack (mpd);
@@ -682,13 +682,13 @@ pop_open (mailbox_t mbox, int flags)
 		 is an optional command in POP3. -- W.P. */
 
 	      if (!strncasecmp (mpd->buffer, "TOP", 3))
-		capa |= CAPA_TOP;
+		mpd->capa |= CAPA_TOP;
 	      else if (!strncasecmp (mpd->buffer, "USER", 4))
-		capa |= CAPA_USER;
+		mpd->capa |= CAPA_USER;
 	      else if (!strncasecmp (mpd->buffer, "UIDL", 4))
-		capa |= CAPA_UIDL;
+		mpd->capa |= CAPA_UIDL;
 	      else if (!strncasecmp (mpd->buffer, "STLS", 4))
-		capa |= CAPA_STLS;
+		mpd->capa |= CAPA_STLS;
 	    }
 	  while (mpd->nl);
 	}
@@ -1381,8 +1381,8 @@ pop_uid (message_t msg,  size_t *puid)
 
 /* Get the UIDL.  Client should be prepare since it may fail.  UIDL is
    optional on many POP servers.
-   FIXME:  We should check the "capa & CAPA_UIDL" and fall back to a md5 scheme ?
-   Or maybe check for "X-UIDL" a la Qpopper ?  */
+   FIXME:  We should check the "mpd->capa & CAPA_UIDL" and fall back to
+   a md5 scheme ? Or maybe check for "X-UIDL" a la Qpopper ?  */
 static int
 pop_uidl (message_t msg, char *buffer, size_t buflen, size_t *pnwriten)
 {
@@ -1518,7 +1518,7 @@ pop_top (header_t header, char *buffer, size_t buflen,
   switch (mpd->state)
     {
     case POP_NO_STATE:
-      if (capa & CAPA_TOP)
+      if (mpd->capa & CAPA_TOP)
         {
 	  status = pop_writeline (mpd, "TOP %d 0\r\n", mpm->num);
 	  CHECK_ERROR (mpd, status);
