@@ -2,11 +2,17 @@
 
 	GNU md5 is GPL, but we agreed that the libraries should
 	fall under LGPL.
+	Same goes for basename() and pretty much everything under
+	lib/*.[ch]
 
 	* mailbox/message.c (message_get_uidl): Remove the dependency
 	from GNU md5.
 	* mailbox/md5-rsa.c: New File.
 	* mailbox/md5-rsa.h: New File.
+	* mailbox/attachment.c (message_create_attachment): Remove
+	the dependency from lib/basename.c
+	* mailbox/mbx_mbox.c (mbox_tempfile): Remove
+	the dependency from lib/basename.c
 
 	* lib/signame.c: Replace in favor of the wellknown strsignal().
 	* lib/strsignal.c: New file, use the mu_signame() written by

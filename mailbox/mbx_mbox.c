@@ -161,8 +161,6 @@ struct _mbox_data
   mailbox_t mailbox; /* Back pointer. */
 };
 
-extern char *base_name __P ((char const *));
-
 /* Mailbox concrete implementation.  */
 static int mbox_open                  __P ((mailbox_t, int));
 static int mbox_close                 __P ((mailbox_t));
@@ -504,7 +502,11 @@ mbox_tmpfile (mailbox_t mailbox, char **pbox)
 #  define P_tmpdir "/tmp"
 #endif
 
-  basename = base_name (mud->name);
+  basename = strrchr (mud->name, '/');
+  if (basename)
+    basename++;
+  else
+    basename = mud->name;
 
   tmpdir =  getenv ("TMPDIR") ? getenv ("TMPDIR") : P_tmpdir;
   /* (separator + null) == 2 + XXXXXX == 6 + ... */
