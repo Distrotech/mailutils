@@ -7,7 +7,7 @@ INCLUDES = -I${top_srcdir}/mailbox2/include
 
 lib_LTLIBRARIES = libpop3.la
 
-libmailbox_la_SOURCES = \
+libpop3_la_SOURCES = \
  pop3_apop.c       \
  pop3_capa.c       \
  pop3_carrier.c    \
