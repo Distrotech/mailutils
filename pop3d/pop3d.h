@@ -186,6 +186,7 @@ extern int tls_available;
 extern int tls_done;
 #endif /* WITH_TLS */
 
+extern void pop3d_bye           __P ((void));
 extern int pop3d_abquit         __P ((int));
 extern int pop3d_apop           __P ((const char *));
 extern char *pop3d_apopuser     __P ((const char *));
