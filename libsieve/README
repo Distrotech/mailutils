@@ -38,12 +38,12 @@ Pops the top of stack value into the numeric register.
 2.3. Unconditional branch
 
 Name: instr_branch
-Arguments: [pc  ]  (number) New value for pc.
+Arguments: [pc  ]  (number) Offset of the new cell.
 
-2.4. Branch if not zero
+2.4. Branch if zero
 
-Name: instr_brnz
-Arguments: [pc  ]  (number) New value for pc.
+Name: instr_brz
+Arguments: [pc  ]  (number) Offset of the new cell.
 
 2.5. Logical NOT
 
@@ -89,7 +89,7 @@ is translated into the following program
 	.	
 	.
 	.
-	brnz	L_ELSE
+	brz	L_ELSE
 # Evaluate list1
 	.
 	.
@@ -112,7 +112,7 @@ is translated into the following program
 	.	
 	.
 	.
-	brnz	L_ELSIF
+	brz	L_ELSIF
 # Evaluate list1
 	.
 	.
@@ -123,7 +123,7 @@ L_ELSIF:
 	.
 	.
 	.	
-	brnz	L_ELSE
+	brz	L_ELSE
 # Evaluate list 2
 	.
 	.
