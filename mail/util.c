@@ -83,7 +83,7 @@ util_do_command (const char *c, ...)
   int argc = 0;
   char **argv = NULL;
   int status = 0;
-  function_t *command;
+  function_t *command = NULL;
   int exec = 1;
   char *cmd = NULL;
   va_list ap;

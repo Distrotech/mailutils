@@ -242,7 +242,7 @@ sieve_test_envelope (sieve_machine_t mach, list_t args, list_t tags)
 int
 sieve_test_size (sieve_machine_t mach, list_t args, list_t tags)
 {
-  int rc;
+  int rc = 1;
   sieve_runtime_tag_t *tag = NULL;
   size_t size;
   

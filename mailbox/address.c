@@ -330,7 +330,7 @@ address_format_string (address_t addr, char *buf, size_t buflen)
 int
 address_aget_personal (address_t addr, size_t no, char **buf)
 {
-  int status;
+  int status = 0;
   address_t subaddr;
   
   if (addr == NULL)
@@ -354,7 +354,7 @@ address_aget_personal (address_t addr, size_t no, char **buf)
 int
 address_aget_comments (address_t addr, size_t no, char **buf)
 {
-  int status;
+  int status = 0;
   address_t subaddr;
   
   if (addr == NULL)

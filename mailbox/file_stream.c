@@ -186,7 +186,7 @@ _stdin_file_read (stream_t stream, char *optr, size_t osize,
     return stream_read (fs->cache, optr, osize, offset, pnbytes);
   else if (offset > fs_offset)
     {
-      int status;
+      int status = 0;
       size_t n, left = offset - fs_offset + 1;
       char *buf = malloc (left);
       if (!buf)

@@ -966,7 +966,7 @@ util_localname ()
     {
       char *name;
       int name_len = 256;
-      int status;
+      int status = 1;
       struct hostent *hp;
       
       name = malloc (name_len);
