@@ -1,5 +1,6 @@
 2004-01-03  Sergey Poznyakoff
 
+	* configure.ac: Fixed INTLINCS
 	* examples/Makefile.am: Reverted to mod_LTLIBRARY for
 	numaddr.la
 	* libmu_scm/Makefile.am: Removed a too general implicit rule.
