@@ -23,6 +23,7 @@ anno
 mhl
 pick
 sortm
+whom
 *.output
 .gdbinit
 mailutils-mh.el
