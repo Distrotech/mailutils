@@ -418,7 +418,18 @@ if test "$ac_use_included_regex" = yes; then
        MU_HEADER(regex.h)
 fi
 
+
+## FriBidi support
 
+AC_SUBST(FRIBIDI_LIBS)
+AH_TEMPLATE(HAVE_LIBFRIBIDI,
+            [Define to 1 if you have the `fribidi' library (-lfribidi).])
+AC_CHECK_HEADERS(fribidi/fribidi.h)
+if test $ac_cv_header_fribidi_fribidi_h = yes; then
+	AC_CHECK_LIB(fribidi, fribidi_log2vis,
+                     [AC_DEFINE(HAVE_LIBFRIBIDI,1)
+                      FRIBIDI_LIBS=-lfribidi])
+fi
 
 
 
