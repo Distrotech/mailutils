@@ -9,7 +9,7 @@ SUBDIRS = include
 
 lib_LTLIBRARIES = libmailbox.la
 
-EXTRA_DIST = mbx_mboxscan.c
+EXTRA_DIST = mbx_mboxscan.c md5-rsa.h
 
 libmailbox_la_SOURCES = \
 address.c \
@@ -39,6 +39,7 @@ mbx_file.c \
 mbx_imap.c \
 mbx_mbox.c \
 mbx_pop.c \
+md5-rsa.c \
 message.c \
 memory_stream.c \
 mime.c \

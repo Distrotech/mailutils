@@ -28,7 +28,7 @@
 #include <string.h>
 #include <ctype.h>
 
-#include "md5.h"
+#include "md5-rsa.h"
 
 #include <message0.h>
 #include <mailutils/address.h>
@@ -527,7 +527,7 @@ message_get_uidl (message_t msg, char *buffer, size_t buflen, size_t *pwriten)
   else
     {
       size_t uid = 0;
-      struct md5_ctx md5context;
+      MD5_CTX md5context;
       stream_t stream = NULL;
       char buf[1024];
       off_t offset = 0;
@@ -536,14 +536,14 @@ message_get_uidl (message_t msg, char *buffer, size_t buflen, size_t *pwriten)
       n = 0;
       message_get_uid (msg, &uid);
       message_get_stream (msg, &stream);
-      md5_init_ctx (&md5context);
+      MD5Init (&md5context);
       while (stream_read (stream, buf, sizeof (buf), offset, &n) == 0
 	     && n > 0)
 	{
-	  md5_process_bytes (buf, n, &md5context);
+	  MD5Update (&md5context, buf, n);
 	  offset += n;
 	}
-      md5_finish_ctx (&md5context, md5digest);
+      MD5Final (md5digest, &md5context);
       tmp = buf;
       for (n = 0; n < 16; n++, tmp += 2)
 	sprintf (tmp, "%02x", md5digest[n]);

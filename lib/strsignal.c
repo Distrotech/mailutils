@@ -15,21 +15,39 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-
 #if HAVE_CONFIG_H
 # include <config.h>
 #endif
-#include <signal.h>
 #include <unistd.h>
+#include <signal.h>
+#ifndef SYS_SIGLIST_DECLARED
+/* For snprintf ().  */
+#include <stdio.h>
+#endif
+
+/* Some systems do not define NSIG in <signal.h>.  */
+#ifndef NSIG
+# ifdef  _NSIG
+#  define NSIG    _NSIG
+# else
+#  define NSIG    32
+# endif
+#endif
+
+/* FIXME: Should probably go in a .h somewhere.  */
+char *strsignal __P ((int));
 
 char *
-mu_signame (int signo)
+strsignal (int signo)
 {
 #ifdef SYS_SIGLIST_DECLARED
-  return sys_siglist[signo];
+  /* Let's try to protect ourself a little.  */
+  if (signo > 0 || signo < NSIG)
+    return (char *)sys_siglist[signo];
+  return (char *)"";
 #else
   static char buf[64];
-  snprintf (buf, sizeof buf, "%d", signo);
+  snprintf (buf, sizeof buf, "Signal %d", signo);
   return buf;
 #endif
 }

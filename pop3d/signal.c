@@ -38,9 +38,9 @@ pop3d_sigchld (int signo)
 RETSIGTYPE
 pop3d_signal (int signo)
 {
-  extern char *mu_signame __P((int signo));
-  
-  syslog (LOG_CRIT, "got signal %s", mu_signame(signo));
+  /* extern char *mu_signame __P((int)); */
+
+  syslog (LOG_CRIT, "got signal %s", strsignal(signo));
   /* Master process.  */
   if (!ofile)
     {
