@@ -114,7 +114,7 @@ main (int argc, char *argv[])
       C (address_createv (&to, (const char **) av, -1));
     }
 
-  C (stdio_stream_create (&in, stdin, 0));
+  C (stdio_stream_create (&in, stdin, MU_STREAM_SEEKABLE));
   C (stream_open (in));
   C (message_create (&msg, NULL));
   C (message_set_stream (msg, in, NULL));

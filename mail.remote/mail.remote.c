@@ -166,7 +166,7 @@ main (int argc, char **argv)
 	}
     }
 
-  if ((status = stdio_stream_create (&in, stdin, 0)))
+  if ((status = stdio_stream_create (&in, stdin, MU_STREAM_SEEKABLE)))
     {
       fprintf (stderr, _("Failed: %s\n"), mu_errstring (status));
       goto end;
