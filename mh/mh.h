@@ -40,6 +40,8 @@
 #define MH_WIDTH_MASK  0x0fff
 
 #define MH_SEQUENCES_FILE ".mh_sequences"
+#define MH_USER_PROFILE ".mh_profile"
+#define MH_GLOBAL_PROFILE "mh-profile"
 
 enum mh_opcode
 {
@@ -132,12 +134,17 @@ struct mh_builtin
 extern char *current_folder;
 extern size_t current_message;
 extern char mh_list_format[];
+extern header_t ctx_header;
+extern header_t profile_header;
 
 void mh_init (void);
+void mh_read_profile (void);
 void mh_save_context (void);
 int mh_read_context_file (char *path, header_t *header);
 int mh_write_context_file (char *path, header_t header);
 int mh_read_formfile (char *name, char **pformat);
+
+char * mh_profile_value (char *name, char *defval);
 
 int mh_getyn (const char *fmt, ...);
 int mh_check_folder (char *pathname);
