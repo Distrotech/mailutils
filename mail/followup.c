@@ -28,7 +28,6 @@ mail_followup (int argc, char **argv)
   message_t msg;
   header_t hdr;
   char *str;
-  int i;
   msgset_t *msglist, *mp;
   struct send_environ env;
   int status;

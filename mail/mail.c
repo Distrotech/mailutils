@@ -31,21 +31,21 @@ static char doc[] = "GNU mail -- the standard /bin/mail interface";
 static char args_doc[] = "[address...]";
 
 static struct argp_option options[] = {
-  {"exist",   'e', 0,      0, "Return true if mail exists"},
+  {"exist",   'e', 0,      0, "Return true if mail exists", 0},
   {"file",    'f', "FILE", OPTION_ARG_OPTIONAL,
-			      "Operate on mailbox FILE (default ~/mbox)"},
-  {"byname",  'F', 0,      0, "Save messages according to sender"},
-  {"headers", 'H', 0,      0, "Write a header summary and exit"},
-  {"ignore",  'i', 0,      0, "Ignore interrupts"},
-  {"norc",    'n', 0,      0, "Do not read the system mailrc file"},
-  {"nosum",   'N', 0,      0, "Do not display initial header summary"},
-  {"print",   'p', 0,      0, "Print all mail to standard output"},
-  {"quit",    'q', 0,      0, "Cause interrupts to terminate program"},
-  {"read",    'r', 0,      0, "Same as -p"},
-  {"subject", 's', "SUBJ", 0, "Send a message with a Subject of SUBJ"},
-  {"to",      't', 0,      0, "Precede message by a list of addresses"},
-  {"user",    'u', "USER", 0, "Operate on USER's mailbox"},
-  { 0 }
+			      "Operate on mailbox FILE (default ~/mbox)", 0},
+  {"byname",  'F', 0,      0, "Save messages according to sender", 0},
+  {"headers", 'H', 0,      0, "Write a header summary and exit", 0},
+  {"ignore",  'i', 0,      0, "Ignore interrupts", 0},
+  {"norc",    'n', 0,      0, "Do not read the system mailrc file", 0},
+  {"nosum",   'N', 0,      0, "Do not display initial header summary", 0},
+  {"print",   'p', 0,      0, "Print all mail to standard output", 0},
+  {"quit",    'q', 0,      0, "Cause interrupts to terminate program", 0},
+  {"read",    'r', 0,      0, "Same as -p", 0},
+  {"subject", 's', "SUBJ", 0, "Send a message with a Subject of SUBJ", 0},
+  {"to",      't', 0,      0, "Precede message by a list of addresses", 0},
+  {"user",    'u', "USER", 0, "Operate on USER's mailbox", 0},
+  { NULL,      0, NULL, 0, NULL, 0 }
 };
 
 struct arguments
@@ -124,7 +124,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
   return 0;
 }
 
-static struct argp argp = { options, parse_opt, args_doc, doc };
+static struct argp argp = { options, parse_opt, args_doc, doc, NULL, NULL, NULL };
 
 static char *
 mail_cmdline(void *closure, int cont)
@@ -132,6 +132,8 @@ mail_cmdline(void *closure, int cont)
   struct mail_env_entry *pev = closure;
   char *prompt = NULL;
   char *rc;
+
+  (void)cont;
 
   while (1)
     {
@@ -142,7 +144,7 @@ mail_cmdline(void *closure, int cont)
 	}
 
       if (interactive)
-	prompt = pev->set && pev->value != NULL ? pev->value : "? ";
+	prompt = pev->set && pev->value != NULL ? pev->value : (char *)"? ";
 
       rc = readline (prompt);
 
@@ -167,7 +169,7 @@ int
 main (int argc, char **argv)
 {
   struct mail_env_entry *mode = NULL, *prompt = NULL;
-  int modelen = 0;
+  size_t modelen = 0;
   struct arguments args;
 
   ofile = stdout;
@@ -445,8 +447,7 @@ Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.\n\
 int
 mail_warranty(int argc, char **argv)
 {
+  (void)argc; (void)argv;
   fprintf (ofile, "%s", warranty_stmt);
   return 0;
 }
-
-

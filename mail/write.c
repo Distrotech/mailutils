@@ -102,7 +102,7 @@ mail_write (int argc, char **argv)
       attribute_set_userflag (attr, MAIL_ATTRIBUTE_SAVED);
     }
 
-  fprintf (ofile, "\"%s\" %3ld/%-5ld\n", filename, total_lines, total_size);
+  fprintf (ofile, "\"%s\" %3d/%-5d\n", filename, total_lines, total_size);
 
   free (filename);
   fclose (output);

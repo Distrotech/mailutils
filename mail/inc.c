@@ -24,6 +24,7 @@
 int
 mail_inc (int argc, char **argv)
 {
+  (void)argc; (void)argv;
   if (!mailbox_is_updated (mbox))
     {
       mailbox_messages_count (mbox, &total);
@@ -31,6 +32,6 @@ mail_inc (int argc, char **argv)
     }
   else
     fprintf (ofile, "No new mail for %s\n", mail_whoami());
-      
+
   return 0;
 }

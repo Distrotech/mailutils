@@ -26,11 +26,12 @@ mail_summary (int argc, char **argv)
 {
   message_t msg;
   attribute_t attr;
-  int msgno;
+  size_t msgno;
   size_t count = 0;
   int mseen = 0, mnew = 0, mdelete = 0;
   int first_new = 0, first_unread = 0;
 
+  (void)argc; (void)argv;
   mailbox_messages_count (mbox, &count);
   for (msgno = 1; msgno <= count; msgno++)
     {
@@ -38,7 +39,7 @@ mail_summary (int argc, char **argv)
 	  && (message_get_attribute (msg, &attr) == 0))
 	    {
 	      int deleted = attribute_is_deleted (attr);
-	      
+
 	      if (deleted)
 		mdelete++;
 	      if (attribute_is_seen (attr) && ! attribute_is_read (attr))
@@ -74,4 +75,5 @@ mail_summary (int argc, char **argv)
   /* Set the cursor.  */
   cursor = realcursor =  (first_new == 0) ? ((first_unread == 0) ?
 					     1 : first_unread) : first_new ;
+  return 0;
 }

@@ -29,8 +29,7 @@ struct decode_closure
 };
 
 static int print_stream __P ((stream_t, FILE *));
-static int display_message __P ((message_t, msgset_t *msgset,
-				 struct decode_closure *closure));
+static int display_message __P ((message_t, msgset_t *msgset, void *closure));
 static int display_message0 __P ((FILE *, message_t, const msgset_t *, int));
 static int mailcap_lookup __P ((const char *));
 static int get_content_encoding __P ((header_t hdr, char **value));
@@ -46,24 +45,24 @@ mail_decode (int argc, char **argv)
 
   decode_closure.select_hdr = islower (argv[0][0]);
 
-  util_msgset_iterate (msgset, display_message, &decode_closure);
+  util_msgset_iterate (msgset, display_message, (void *)&decode_closure);
 
   msgset_free (msgset);
   return 0;
 }
 
 int
-display_message (message_t mesg, msgset_t *msgset,
-		 struct decode_closure *closure)
+display_message (message_t mesg, msgset_t *msgset, void *arg)
 {
   FILE *out;
   size_t lines = 0;
+  struct decode_closure *closure = arg;
 
   if (util_isdeleted (msgset->msg_part[0]))
     return 1;
 
   message_lines (mesg, &lines);
-  if ((util_find_env("crt"))->set && lines > util_getlines ())
+  if ((util_find_env("crt"))->set && (int)lines > util_getlines ())
     out = popen (getenv("PAGER"), "w");
   else
     out = ofile;
@@ -88,6 +87,8 @@ display_headers (FILE *out, message_t mesg, const msgset_t *msgset,
 		 int select_hdr)
 {
   header_t hdr = NULL;
+
+  (void)msgset;
   /* Print the selected headers only.  */
   if (select_hdr)
     {
@@ -119,15 +120,15 @@ display_headers (FILE *out, message_t mesg, const msgset_t *msgset,
     }
 }
 
-void
+static void
 display_part_header (FILE *out, const msgset_t *msgset,
 		     char *type, char *encoding)
 {
   int size = util_screen_columns () - 3;
-  int i;
+  unsigned int i;
 
   fputc ('+', out);
-  for (i = 0; i <= size; i++)
+  for (i = 0; (int)i <= size; i++)
     fputc ('-', out);
   fputc ('+', out);
   fputc ('\n', out);
@@ -141,7 +142,7 @@ display_part_header (FILE *out, const msgset_t *msgset,
   fprintf (out, "| Type=%s\n", type);
   fprintf (out, "| encoding=%s\n", encoding);
   fputc ('+', out);
-  for (i = 0; i <= size; i++)
+  for (i = 0; (int)i <= size; i++)
     fputc ('-', out);
   fputc ('+', out);
   fputc ('\n', out);
@@ -164,7 +165,7 @@ display_message0 (FILE *out, message_t mesg, const msgset_t *msgset,
   message_is_multipart (mesg, &ismime);
   if (ismime)
     {
-      int j;
+      unsigned int j;
 
       message_get_num_parts (mesg, &nparts);
 

@@ -21,8 +21,8 @@
  * d[elete] [msglist]
  */
 
-int
-mail_delete0 ()
+static int
+mail_delete0 (void)
 {
   message_t msg;
   attribute_t attr;
@@ -39,13 +39,14 @@ mail_delete (int argc, char **argv)
   int rc = 0;
 
   if (argc > 1)
-    rc = util_msglist_command (mail_delete0, argc, argv, 0);
+    rc = util_msglist_command (mail_delete, argc, argv, 0);
   else
     rc = mail_delete0 ();
 
+  /* Reajust the realcursor to no point to the deleted messages.  */
   if (cursor == realcursor)
     {
-      int here = realcursor;
+      unsigned int here = realcursor;
       do
 	{
 	  message_t msg;

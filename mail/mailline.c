@@ -58,7 +58,7 @@ ml_got_interrupt ()
   return rc;
 }
 
-int
+static int
 ml_getc (FILE *stream)
 {
     unsigned char c;
@@ -86,7 +86,7 @@ ml_readline_init ()
     return;
 
 #ifdef WITH_READLINE
-  rl_readline_name = "mail";
+  rl_readline_name = (char *)"mail";
   rl_attempted_completion_function = (CPPFunction*)ml_command_completion;
   rl_getc_function = ml_getc;
 #endif
@@ -114,7 +114,7 @@ ml_readline_init ()
 static char *insert_text;
 
 static int
-ml_insert_hook ()
+ml_insert_hook (void)
 {
   if (insert_text)
     rl_insert_text (insert_text);
@@ -122,14 +122,14 @@ ml_insert_hook ()
 }
 
 int
-ml_reread (char *prompt, char **text)
+ml_reread (const char *prompt, char **text)
 {
   char *s;
 
   ml_clear_interrupt ();
   insert_text = *text;
   rl_startup_hook = ml_insert_hook;
-  s = readline (prompt);
+  s = readline ((char *)prompt);
   if (!ml_got_interrupt ())
     {
       if (*text)
@@ -150,6 +150,7 @@ ml_reread (char *prompt, char **text)
 char **
 ml_command_completion (char *cmd, int start, int end)
 {
+  (void)end;
   if (start == 0)
     return completion_matches (cmd, ml_command_generator);
   return NULL;
@@ -162,7 +163,7 @@ char *
 ml_command_generator (char *text, int state)
 {
   static int i, len;
-  char *name;
+  const char *name;
 
   if (!state)
     {

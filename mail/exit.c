@@ -20,6 +20,7 @@
 int
 mail_exit (int argc, char **argv)
 {
+  (void)argc; (void)argv;
   mailbox_close (mbox);
   exit (0);
 }

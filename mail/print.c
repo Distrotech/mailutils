@@ -49,26 +49,25 @@ mail_print (int argc, char **argv)
 
       message_lines (mesg, &lines);
 
-      if ((util_find_env("crt"))->set && lines > util_getlines ())
+      if ((util_find_env("crt"))->set && lines > (size_t)util_getlines ())
 	    out = popen (getenv("PAGER"), "w");
 
       if (islower (argv[0][0]))
 	{
 	  size_t i, num = 0;
-	  char buffer[512];
+	  char buf[512];
 
 	  message_get_header (mesg, &hdr);
 	  header_get_field_count (hdr, &num);
 
 	  for (i = 1; i <= num; i++)
 	    {
-	      header_get_field_name (hdr, i, buffer, sizeof(buffer), NULL);
-	      if (mail_header_is_visible (buffer))
+	      header_get_field_name (hdr, i, buf, sizeof buf, NULL);
+	      if (mail_header_is_visible (buf))
 		{
-		  fprintf (out, "%s: ", buffer);
-		  header_get_field_value (hdr, i, buffer, sizeof(buffer),
-					  NULL);
-		  fprintf (out, "%s\n", buffer);
+		  fprintf (out, "%s: ", buf);
+		  header_get_field_value (hdr, i, buf, sizeof buf, NULL);
+		  fprintf (out, "%s\n", buf);
 		}
 	    }
 	  fprintf (out, "\n");
@@ -78,7 +77,7 @@ mail_print (int argc, char **argv)
       else
 	message_get_stream (mesg, &stream);
 
-      while (stream_read (stream, buffer, sizeof (buffer) - 1, off, &n) == 0
+      while (stream_read (stream, buffer, sizeof buffer - 1, off, &n) == 0
              && n != 0)
         {
 	  if (ml_got_interrupt())

@@ -28,7 +28,7 @@ mail_pipe (int argc, char **argv)
   message_t msg;
   stream_t stream;
   char *cmd;
-  FILE *pipe;
+  FILE *tube;
   msgset_t *list, *mp;
   char buffer[512];
   off_t off = 0;
@@ -44,7 +44,7 @@ mail_pipe (int argc, char **argv)
   if (msgset_parse (argc, argv, &list))
       return 1;
 
-  pipe = popen (cmd, "w");
+  tube = popen (cmd, "w");
 
   for (mp = list; mp; mp = mp->next)
     {
@@ -56,15 +56,15 @@ mail_pipe (int argc, char **argv)
 			      &n) == 0 && n != 0)
 	    {
 	      buffer[n] = '\0';
-	      fprintf (pipe, "%s", buffer);
+	      fprintf (tube, "%s", buffer);
 	      off += n;
 	    }
 	  if ((util_find_env("page"))->set && mp->next)
-	    fprintf (pipe, "\f\n");
+	    fprintf (tube, "\f\n");
 	}
     }
 
   msgset_free (list);
-  pclose (pipe);
+  pclose (tube);
   return 0;
 }

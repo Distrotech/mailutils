@@ -27,6 +27,8 @@ mail_folders (int argc, char **argv)
   char *path;
   struct mail_env_entry *env = util_find_env ("folder");
 
+  (void)argc; (void)argv;
+
   if (!env->set)
     {
       util_error("No value set for \"folder\"");
@@ -36,6 +38,6 @@ mail_folders (int argc, char **argv)
   path = util_fullpath(env->value);
   util_do_command("! %s %s", getenv("LISTER"), path);
   free(path);
-  
+
   return 0;
 }

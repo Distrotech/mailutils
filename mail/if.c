@@ -49,7 +49,7 @@ _cond_push(int val)
       _cond_stack = realloc(_cond_stack,
 			    sizeof(_cond_stack[0])*_cond_stack_size);
     }
-  
+
   if (!_cond_stack)
     {
       util_error("not enough memory");
@@ -68,7 +68,7 @@ _cond_pop()
     }
   return _cond_stack[--_cond_level];
 }
-	       
+
 /*
  * i[f] s|r|t
  * mail-commands
@@ -131,6 +131,7 @@ int
 mail_else (int argc, char **argv)
 {
   int cond;
+  (void)argc; (void)argv;
   if (_cond_level == 0)
     {
       util_error("else without matching if");
@@ -146,6 +147,7 @@ mail_else (int argc, char **argv)
 int
 mail_endif (int argc, char **argv)
 {
+  (void)argc; (void)argv;
   if (_cond_level == 0)
     {
       util_error("endif without matching if");

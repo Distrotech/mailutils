@@ -45,13 +45,13 @@ mail_headers (int argc, char **argv)
   if (lines < 0)
     lines = util_screen_lines ();
 
-  if (lines < total)
+  if ((unsigned int)lines < total)
     {
       low = list->msg_part[0] - (lines / 2);
       if (low < 1)
 	low = 1;
       high = low + lines;
-      if (high > total)
+      if ((unsigned int)high > total)
 	{
 	  high = total;
 	  low = high - lines;

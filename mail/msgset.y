@@ -29,13 +29,17 @@ struct header_data
   char *expr;
 };
 
-static msgset_t *msgset_select (int (*sel)(), void *closure, int rev,
-				int max_matches);
-static int select_header (message_t msg, void *closure);
-static int select_body (message_t msg, void *closure);
-static int select_type (message_t msg, void *closure);
-static int select_sender (message_t msg, void *closure);
-static int select_deleted (message_t msg, void *closure);
+static msgset_t *msgset_select __P ((int (*sel) __P ((message_t, void *)),
+				     void *closure, int rev,
+				     unsigned int max_matches));
+static int select_header __P ((message_t msg, void *closure));
+static int select_body __P ((message_t msg, void *closure));
+static int select_type __P ((message_t msg, void *closure));
+static int select_sender __P ((message_t msg, void *closure));
+static int select_deleted __P ((message_t msg, void *closure));
+
+int yyerror __P ((const char *));
+int yylex  __P ((void));
 
 static msgset_t *result;
 %}
@@ -170,7 +174,6 @@ range    : number
 	       }
 	     else
 	       {
-		 msgset_t *mp;
 		 $$ = msgset_range ($1, $3->msg_part[0]-1);
 		 if (!$$)
 		   YYERROR;
@@ -209,7 +212,7 @@ static int cur_ind;
 static char *cur_p;
 
 int
-yyerror (char *s)
+yyerror (const char *s)
 {
   fprintf (stderr, "%s: ", xargv[0]);
   fprintf (stderr, "%s", s);
@@ -226,6 +229,7 @@ yyerror (char *s)
   else
     fprintf (stderr, " near %s", cur_p);
   fprintf (stderr, "\n");
+  return 0;
 }
 
 int
@@ -324,7 +328,6 @@ msgset_parse (const int argc, char **argv, msgset_t **mset)
 void
 msgset_free (msgset_t *msg_set)
 {
-  int i;
   msgset_t *next;
 
   if (!msg_set)
@@ -382,7 +385,7 @@ msgset_t *
 msgset_range (int low, int high)
 {
   int i;
-  msgset_t *mp, *first = NULL, *last;
+  msgset_t *mp, *first = NULL, *last = NULL;
 
   if (low == high)
     return msgset_make_1 (low);
@@ -409,7 +412,7 @@ msgset_t *
 msgset_expand (msgset_t *set, msgset_t *expand_by)
 {
   msgset_t *i, *j;
-  msgset_t *first = NULL, *last, *mp;
+  msgset_t *first = NULL, *last = NULL, *mp;
 
   for (i = set; i; i = i->next)
     for (j = expand_by; j; j = j->next)
@@ -432,10 +435,11 @@ msgset_expand (msgset_t *set, msgset_t *expand_by)
 }
 
 msgset_t *
-msgset_select (int (*sel)(), void *closure, int rev, int max_matches)
+msgset_select (int (*sel) __P ((message_t, void *)), void *closure, int rev,
+	       unsigned int max_matches)
 {
   size_t i, match_count = 0;
-  msgset_t *first = NULL, *last, *mp;
+  msgset_t *first = NULL, *last = NULL, *mp;
   message_t msg = NULL;
 
   if (max_matches == 0)
@@ -486,7 +490,7 @@ select_header (message_t msg, void *closure)
   struct header_data *hd = (struct header_data *)closure;
   header_t hdr;
   char *contents;
-  char *header = hd->header ? hd->header : MU_HEADER_SUBJECT;
+  const char *header = hd->header ? hd->header : MU_HEADER_SUBJECT;
 
   message_get_header (msg, &hdr);
   if (header_aget_value (hdr, header, &contents) == 0)
@@ -572,10 +576,11 @@ select_body (message_t msg, void *closure)
 int
 select_sender (message_t msg, void *closure)
 {
-  char *sender = (char*) closure;
-	  /* FIXME: all messages from sender argv[i] */
-	  /* Annoying we can use address_create() for that
-	     but to compare against what? The email ?  */
+  /* char *sender = (char*) closure; */
+  /* FIXME: all messages from sender argv[i] */
+  /* Annoying we can use address_create() for that
+     but to compare against what? The email ?  */
+  (void)msg; (void)closure;
   return 0;
 }
 
@@ -613,6 +618,7 @@ select_deleted (message_t msg, void *closure)
   attribute_t attr= NULL;
   int rc;
 
+  (void)closure;
   message_get_attribute (msg, &attr);
   rc = attribute_is_deleted (attr);
   return strcmp (xargv[0], "undelete") == 0 ? rc : !rc;
@@ -636,7 +642,7 @@ int
 main(int argc, char **argv)
 {
   msgset_t *mset = NULL;
-  int rc = parse_msgset (argc, argv, &mset);
+  int rc = msgset_parse (argc, argv, &mset);
 
   for (; mset; mset = mset->next)
     msgset_print (mset);

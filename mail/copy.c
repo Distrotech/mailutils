@@ -89,7 +89,7 @@ mail_copy0 (int argc, char **argv, int mark)
 	}
     }
 
-  fprintf (ofile, "\"%s\" %3ld/%-5ld\n", filename, total_lines, total_size);
+  fprintf (ofile, "\"%s\" %3d/%-5d\n", filename, total_lines, total_size);
 
   mailbox_close (mbx);
   mailbox_destroy (&mbx);

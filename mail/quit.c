@@ -25,6 +25,7 @@
 int
 mail_quit (int argc, char **argv)
 {
+  (void)argc; (void)argv;
   if (mail_mbox_close ())
     return 1;
   exit (0);
@@ -54,7 +55,7 @@ mail_mbox_close ()
 int
 mail_mbox_commit ()
 {
-  int i;
+  unsigned int i;
   mailbox_t dest_mbox = NULL;
   int saved_count = 0;
   message_t msg;
@@ -119,11 +120,11 @@ mail_mbox_commit ()
 
   if (saved_count)
     {
-      url_t url = NULL;
+      url_t u = NULL;
 
-      mailbox_get_url (dest_mbox, &url);
+      mailbox_get_url (dest_mbox, &u);
       fprintf(ofile, "Saved %d messages in %s\n", saved_count,
-	      url_to_string (url));
+	      url_to_string (u));
       mailbox_close (dest_mbox);
       mailbox_destroy (&dest_mbox);
     }

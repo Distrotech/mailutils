@@ -24,6 +24,7 @@
 int
 mail_eq (int argc, char **argv)
 {
+  (void)argc; (void)argv;
   fprintf (ofile, "%d\n", realcursor);
   return 0;
 }

@@ -31,7 +31,7 @@
  */
 
 static int
-z_parse_args(int argc, char **argv, int *return_count, int *return_dir)
+z_parse_args(int argc, char **argv, unsigned int *return_count, int *return_dir)
 {
   int count = 1;
   int mul = 1;
@@ -87,7 +87,7 @@ z_parse_args(int argc, char **argv, int *return_count, int *return_dir)
 	      return 1;
 	    }
 
-	  if ((mul = atoi(argp)) == 0)
+	  if ((mul = strtoul (argp, NULL, 10)) == 0)
 	    {
 	      util_error("Bad number of pages");
 	      return 1;
@@ -107,7 +107,7 @@ mail_z (int argc, char **argv)
 {
   unsigned int i, nlines;
   unsigned int pagelines = util_screen_lines();
-  int count;
+  unsigned int count;
   int dir;
 
   if (z_parse_args(argc, argv, &count, &dir))
@@ -148,7 +148,7 @@ mail_z (int argc, char **argv)
 	  return 0;
 	}
       break;
-      
+
     case D_NONE:
       {
 	/* z. is a GNU extension, so it will be more useful
@@ -161,7 +161,7 @@ mail_z (int argc, char **argv)
 	int lastpage =  total - pagelines + 1;
 	if (lastpage <= 0)
 	  lastpage = 1;
-	if (cursor > lastpage)
+	if (cursor > (unsigned int)lastpage)
 	  {
 	    realcursor = cursor;
 	    cursor = lastpage;
@@ -185,7 +185,7 @@ mail_z (int argc, char **argv)
 	i++;
       cursor++;
     }
-  
+
   cursor = realcursor;
 
   return 1;

@@ -54,13 +54,13 @@ mail_from (int argc, char **argv)
 	  address_t address = NULL;
 	  if (address_create (&address, from) == 0)
 	    {
-	      char p[128];
+	      char name[128];
 	      size_t len = strlen (from);
-	      *p = '\0';
-	      address_get_personal (address, 1, p, sizeof p, NULL);
-	      if (*p && len)
+	      *name = '\0';
+	      address_get_personal (address, 1, name, sizeof name, NULL);
+	      if (*name && len)
 		{
-		  strncpy (from, p, len - 1);
+		  strncpy (from, name, len - 1);
 		  from[len - 1] = '\0';
 		}
 	      else
@@ -103,7 +103,7 @@ mail_from (int argc, char **argv)
       message_size (msg, &m_size);
       message_lines (msg, &m_lines);
 
-      snprintf (st, sizeof(st), "%3ld/%-5ld", m_lines, m_size);
+      snprintf (st, sizeof(st), "%3d/%-5d", m_lines, m_size);
 
       /* The "From" field will take a third of the screen.
 	 Subject will take the rest.

@@ -53,7 +53,7 @@ mail_shell (int argc, char **argv)
 	  argcv_string (argc-1, &argv[1], &buf);
 
 	  argvec[0] = getenv("SHELL");
-	  argvec[1] = "-c";
+	  argvec[1] = (char *)"-c";
 	  argvec[2] = buf;
 	  argvec[3] = NULL;
 

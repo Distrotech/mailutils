@@ -21,10 +21,12 @@
 /* unt[ag] [msglist] */
 
 static int
-tag_message (message_t mesg, msgset_t *msgset, int *action)
+tag_message (message_t mesg, msgset_t *msgset, void *arg)
 {
   attribute_t attr;
+  int *action = arg;
 
+  (void)msgset;
   message_get_attribute (mesg, &attr);
   if (*action)
     attribute_set_userflag (attr, MAIL_ATTRIBUTE_TAGGED);
@@ -42,7 +44,7 @@ mail_tag (int argc, char **argv)
   if (msgset_parse (argc, argv, &msgset))
     return 1;
 
-  util_msgset_iterate (msgset, tag_message, &action);
+  util_msgset_iterate (msgset, tag_message, (void *)&action);
 
   msgset_free (msgset);
   return 0;

@@ -17,9 +17,10 @@
 
 #include "mail.h"
 
-static void alias_print __P((char *name));
-static void alias_print_group __P((char *name, list_t list));
-static int alias_create __P((char *name, list_t *plist));
+static void alias_print __P ((char *name));
+static void alias_print_group __P ((char *name, list_t list));
+static int  alias_create __P ((char *name, list_t *plist));
+static int  alias_lookup __P ((char *name, list_t *plist));
 
 /*
  * a[lias] [alias [address...]]
@@ -36,7 +37,7 @@ mail_alias (int argc, char **argv)
   else
     {
       list_t list;
-      
+
       if (alias_create(argv[1], &list))
 	return 1;
 
@@ -60,16 +61,16 @@ struct _alias
    pair of them grows exponentially, starting from 64.
    Hopefully no one will need more than 32797 aliases, and even if
    someone will, it is easy enough to add more numbers to the sequence. */
-size_t hash_size[] =
+static unsigned int hash_size[] =
 {
   37,   101,  229,  487, 1009, 2039, 4091, 8191, 16411, 32797,
 };
 /* Maximum number of re-hashes: */
-int max_rehash = sizeof (hash_size) / sizeof (hash_size[0]);
-alias_t *aliases; /* Table of aliases */
-size_t hash_num;  /* Index to hash_size table */
+static unsigned int max_rehash = sizeof (hash_size) / sizeof (hash_size[0]);
+static alias_t *aliases; /* Table of aliases */
+static unsigned int hash_num;  /* Index to hash_size table */
 
-static unsigned hash __P((char *name));
+static unsigned int hash __P((char *name));
 static int alias_rehash __P((void));
 static alias_t *alias_lookup_or_install __P((char *name, int install));
 static void alias_print_group __P((char *name, list_t list));
@@ -91,8 +92,8 @@ alias_rehash()
 {
   alias_t *old_aliases = aliases;
   alias_t *ap;
-  int i;
-  
+  unsigned int i;
+
   if (++hash_num >= max_rehash)
     {
       util_error("alias hash table full");
@@ -120,8 +121,7 @@ alias_t *
 alias_lookup_or_install(char *name, int install)
 {
   unsigned i, pos;
-  alias_t *slot = NULL; 
-  
+
   if (!aliases)
     {
       if (install)
@@ -144,20 +144,20 @@ alias_lookup_or_install(char *name, int install)
       if (i == pos)
 	break;
     }
-  
+
   if (!install)
     return NULL;
 
   if (aliases[i].name == NULL)
     return &aliases[i];
-  
+
   if (alias_rehash())
     return NULL;
-  
+
   return alias_lookup_or_install(name, install);
 }
 
-int
+static int
 alias_lookup(char *name, list_t *plist)
 {
   alias_t *ap = alias_lookup_or_install(name, 0);
@@ -174,11 +174,11 @@ alias_print(char *name)
 {
   if (!name)
     {
-      int i;
+      unsigned int i;
 
       if (!aliases)
 	return;
-      
+
       for (i = 0; i < hash_size[hash_num]; i++)
 	{
 	  if (aliases[i].name)
@@ -214,12 +214,12 @@ alias_create(char *name, list_t *plist)
       if (!ap->name)
 	return 1;
     }
-  
+
   *plist = ap->list;
-  
+
   return 0;
 }
-      
+
 void
 alias_print_group(char *name, list_t list)
 {
@@ -231,7 +231,7 @@ alias_print_group(char *name, list_t list)
 void
 alias_destroy(char *name)
 {
-  int i, j, r;
+  unsigned int i, j, r;
   alias_t *alias = alias_lookup_or_install(name, 0);
   if (!alias)
     return;
@@ -260,9 +260,8 @@ char *
 alias_expand(char *name)
 {
   list_t list;
-  
+
   if (!alias_lookup(name, &list))
     return strdup (name);
   return util_slist_to_string(list, ",");
 }
-  

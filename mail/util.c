@@ -22,6 +22,7 @@
 # include <termios.h>
 #endif
 #include <sys/ioctl.h>
+#include <sys/stat.h>
 
 #ifdef HAVE_FCNTL_H
 # include <fcntl.h>
@@ -104,7 +105,7 @@ util_do_command (const char *c, ...)
 
       entry = util_find_entry (mail_command_table, argv[0]);
 
-      if (if_cond() == 0 && (entry.flags & EF_FLOW) == 0)
+      if (if_cond () == 0 && (entry.flags & EF_FLOW) == 0)
 	{
 	  argcv_free (argc, argv);
 	  return 0;
@@ -166,11 +167,46 @@ util_msglist_command (function_t *func, int argc, char **argv, int set_cursor)
   return status;
 }
 
+/* Same as util_msglis_command but the function comes from the escape
+   cmd table, so will have a different argument signature.  */
+int
+util_msglist_esccmd (int (*escfunc)
+		     __P ((int, char **, struct send_environ *)),
+		     int argc, char **argv, struct send_environ *env,
+		     int set_cursor)
+{
+  msgset_t *list = NULL, *mp;
+  int status = 0;
+
+  if (msgset_parse (argc, argv, &list))
+      return 1;
+
+  realcursor = cursor;
+
+  for (mp = list; mp; mp = mp->next)
+    {
+      cursor = mp->msg_part[0];
+      /* NOTE: Should we bail on error also?  */
+      if (escfunc (1, argv, env) != 0)
+	status = 1;
+      /* Bail out if we receive an interrupt.  */
+      if (ml_got_interrupt () != 0)
+	break;
+    }
+  msgset_free (list);
+
+  if (set_cursor)
+    realcursor = cursor;
+  else
+    cursor = realcursor;
+  return status;
+}
+
 /*
  * returns the function to run for command
  */
 function_t *
-util_command_get (char *cmd)
+util_command_get (const char *cmd)
 {
   struct mail_command_entry entry = util_find_entry (mail_command_table, cmd);
   return entry.func;
@@ -180,7 +216,7 @@ util_command_get (char *cmd)
  * returns the mail_command_entry structure for the command matching cmd
  */
 struct mail_command_entry
-util_find_entry (const struct mail_command_entry *table, char *cmd)
+util_find_entry (const struct mail_command_entry *table, const char *cmd)
 {
   int i = 0, ll = 0, sl = 0;
   int len = strlen (cmd);
@@ -228,9 +264,12 @@ util_getcols (void)
   struct winsize ws;
 
   ws.ws_col = ws.ws_row = 0;
-  if ((ioctl(1, TIOCGWINSZ, (char *) &ws) < 0)
-      || ws.ws_row == 0)
-    ws.ws_col = strtol (getenv("COLUMNS"), NULL, 10);
+  if ((ioctl(1, TIOCGWINSZ, (char *) &ws) < 0) || ws.ws_row == 0)
+    {
+      const char *columns = getenv ("COLUMNS");
+      if (columns)
+	ws.ws_col = strtol (columns, NULL, 10);
+    }
 
   /* FIXME: Should we exit()/abort() if col <= 0 ?  */
   return ws.ws_col;
@@ -246,9 +285,12 @@ util_getlines (void)
   struct winsize ws;
 
   ws.ws_col = ws.ws_row = 0;
-  if ((ioctl(1, TIOCGWINSZ, (char *) &ws) < 0)
-      || ws.ws_row == 0)
-    ws.ws_row = strtol (getenv("LINES"), NULL, 10);
+  if ((ioctl(1, TIOCGWINSZ, (char *) &ws) < 0) || ws.ws_row == 0)
+    {
+      const char *lines = getenv ("LINES");
+      if (lines)
+	ws.ws_row = strtol (lines, NULL, 10);
+    }
 
   /* FIXME: Should we exit()/abort() if row <= 0 ?  */
 
@@ -257,12 +299,12 @@ util_getlines (void)
 }
 
 int
-util_screen_lines()
+util_screen_lines ()
 {
-  struct mail_env_entry *ep = util_find_env("screen");
+  struct mail_env_entry *ep = util_find_env ("screen");
   size_t n;
 
-  if (ep && ep->set && (n = atoi(ep->value)) != 0)
+  if (ep && ep->set && (n = strtoul (ep->value, NULL, 10)) != 0)
     return n;
   n = util_getlines();
   util_do_command ("set screen=%d", n);
@@ -270,12 +312,12 @@ util_screen_lines()
 }
 
 int
-util_screen_columns()
+util_screen_columns ()
 {
   struct mail_env_entry *ep = util_find_env("columns");
   size_t n;
 
-  if (ep && ep->set && (n = atoi(ep->value)) != 0)
+  if (ep && ep->set && (n = strtoul (ep->value, NULL, 10)) != 0)
     return n;
   n = util_getcols();
   util_do_command ("set columns=%d", n);
@@ -295,7 +337,7 @@ util_find_env (const char *variable)
   /* Annoying, variable "ask" is equivalent to "asksub".  */
   static const char *asksub = "asksub";
   const char *var = variable;
-  int len = strlen (var);
+  size_t len = strlen (var);
   node *t;
 
   if (len < 1)
@@ -425,7 +467,7 @@ util_get_homedir()
 }
 
 char *
-util_fullpath(char *inpath)
+util_fullpath(const char *inpath)
 {
   return mu_tilde_expansion(inpath, "/", NULL);
 }
@@ -548,7 +590,7 @@ util_slist_destroy (list_t *list)
 }
 
 char *
-util_slist_to_string (list_t list, char *delim)
+util_slist_to_string (list_t list, const char *delim)
 {
   iterator_t itr;
   char *name;
@@ -569,7 +611,7 @@ util_slist_to_string (list_t list, char *delim)
 }
 
 void
-util_strcat(char **dest, char *str)
+util_strcat(char **dest, const char *str)
 {
   if (!*dest)
     *dest = strdup (str);
@@ -593,10 +635,10 @@ util_strupper (char *s)
 {
   if (s)
     {
-      int i;
-      int len = strlen (s);
+      size_t i;
+      size_t len = strlen (s);
       for (i = 0; i < len; i++)
-	s[i] = toupper ((int)s[i]);
+	s[i] = toupper ((unsigned int)(s[i]));
     }
 }
 
@@ -623,7 +665,7 @@ util_escape_percent (char **str)
   /* and escape percent signs */
   p = newstr;
   q = *str;
-  while (*p = *q++)
+  while ((*p = *q++))
     {
       if (*p == '%')
 	*++p = '%';
@@ -679,7 +721,7 @@ util_save_outgoing (message_t msg, char *savefile)
 	}
       else
 	{
-	  char *buf;
+	  char *buf = NULL;
 	  size_t bsize = 0;
 
 	  message_size (msg, &bsize);
@@ -786,7 +828,7 @@ int
 util_tempfile(char **namep)
 {
   char *filename;
-  char *tmpdir;
+  const char *tmpdir;
   int fd;
 
   /* We have to be extra careful about opening temporary files, since we
@@ -829,15 +871,15 @@ util_tempfile(char **namep)
   return fd;
 }
 
-int
+static int
 util_descend_subparts (message_t mesg, msgset_t *msgset, message_t *part)
 {
-  int i;
+  unsigned int i;
 
   for (i = 1; i < msgset->npart; i++)
     {
       message_t submsg = NULL;
-      int nparts = 0;
+      unsigned int nparts = 0;
       char *type = NULL;
       header_t hdr = NULL;
 
@@ -876,7 +918,9 @@ util_descend_subparts (message_t mesg, msgset_t *msgset, message_t *part)
 }
 
 void
-util_msgset_iterate (msgset_t *msgset, int (*fun)(), void *closure)
+util_msgset_iterate (msgset_t *msgset,
+		     int (*fun) __P ((message_t, msgset_t *, void *)),
+		     void *closure)
 {
   for (; msgset; msgset = msgset->next)
     {

@@ -48,7 +48,7 @@ mail_send (int argc, char **argv)
   env.outfiles = NULL; env.nfiles = 0;
 
   if (argc < 2)
-    env.to = readline ("To: ");
+    env.to = readline ((char *)"To: ");
   else
     {
       while (--argc)
@@ -75,12 +75,12 @@ mail_send (int argc, char **argv)
     }
 
   if ((util_find_env ("askcc"))->set)
-    env.cc = readline ("Cc: ");
+    env.cc = readline ((char *)"Cc: ");
   if ((util_find_env ("askbcc"))->set)
-    env.bcc = readline ("Bcc: ");
+    env.bcc = readline ((char *)"Bcc: ");
 
   if ((util_find_env ("asksub"))->set)
-    env.subj = readline ("Subject: ");
+    env.subj = readline ((char *)"Subject: ");
   else
     env.subj = (util_find_env ("subject"))->value;
 
@@ -155,7 +155,7 @@ mail_send0 (struct send_environ *env, int save_to)
   while (!done)
     {
       char *buf;
-      buf = readline (" \b");
+      buf = readline ((char *)" \b");
 
       if (ml_got_interrupt ())
 	{
@@ -210,8 +210,10 @@ mail_send0 (struct send_environ *env, int save_to)
 		  struct mail_command_entry entry;
 		  entry = util_find_entry (mail_escape_table, argv[0]);
 
-		  if (entry.func)
-		    status = (*entry.func)(argc, argv, env);
+		  if (entry.escfunc)
+		    {
+		      status = (*entry.escfunc)(argc, argv, env);
+		    }
 		  else
 		    util_error ("Unknown escape %s", argv[0]);
 		}
@@ -247,7 +249,7 @@ mail_send0 (struct send_environ *env, int save_to)
 	  else
 	    {
 	      char *buf = NULL;
-	      int n;
+	      unsigned int n;
 	      rewind (env->file);
 	      while (getline (&buf, &n, env->file) > 0)
 		fputs (buf, fp);
@@ -269,7 +271,6 @@ mail_send0 (struct send_environ *env, int save_to)
     {
       mailer_t mailer;
       message_t msg = NULL;
-      int status;
       message_create (&msg, NULL);
 
       /* Fill the header.  */
@@ -366,7 +367,7 @@ mail_send0 (struct send_environ *env, int save_to)
 	  if (util_find_env ("sendmail")->set)
 	    {
 	      char *sendmail = util_find_env ("sendmail")->value;
-	      status = mailer_create (&mailer, sendmail);
+	      int status = mailer_create (&mailer, sendmail);
 	      if (status == 0)
 		{
 		  if (util_find_env ("verbose")->set)
@@ -422,9 +423,9 @@ msg_to_pipe (const char *cmd, message_t msg)
       stream_t stream = NULL;
       char buffer[512];
       off_t off = 0;
-      int n = 0;
+      unsigned int n = 0;
       message_get_stream (msg, &stream);
-      while (stream_read (stream, buffer, sizeof (buffer) - 1, off, &n) == 0
+      while (stream_read (stream, buffer, sizeof buffer - 1, off, &n) == 0
 	     && n != 0)
 	{
 	  buffer[n] = '\0';
