@@ -348,34 +348,52 @@ sendmail_send_message (mailer_t mailer, message_t msg, address_t from,
 	int rc;
 	size_t offset = 0;
 	header_t hdr;
+	body_t body;
+	int found_nl = 0;
 	
-	message_get_stream (msg, &stream);
+	message_get_header (msg, &hdr);
+	header_get_stream (hdr, &stream);
 
-	if (message_get_header (msg, &hdr)
-	    && header_get_value (hdr, MU_HEADER_FCC, NULL, 0, NULL) == 0)
+	MAILER_DEBUG0 (mailer, MU_DEBUG_TRACE, "Sending headers...\n");
+	while ((status = stream_readline (stream, buffer, sizeof (buffer),
+					  offset, &len)) == 0
+	       && len != 0)
 	  {
-	    while ((status = stream_readline (stream, buffer, sizeof (buffer),
-					      offset, &len)) == 0
-		   && len != 0)
+	    if (strncasecmp (buffer, MU_HEADER_FCC,
+			     sizeof (MU_HEADER_FCC) - 1))
 	      {
-		if (strncasecmp (buffer, MU_HEADER_FCC,
-				 sizeof (MU_HEADER_FCC) - 1) == 0)
-		  continue;
-
 		if (write (sendmail->fd, buffer, len) == -1)
 		  {
 		    status = errno;
-
+		    
 		    MAILER_DEBUG1 (mailer, MU_DEBUG_TRACE,
 				   "write() failed: %s\n", strerror (status));
 		    
 		    break;
 		  }
-		offset += len;
-		sendmail->offset += len;
+	      }
+	    found_nl = (len == 1 && buffer[0] == '\n');
+	      
+	    offset += len;
+	    sendmail->offset += len;
+	  }
+
+	if (!found_nl)
+	  {
+	    if (write (sendmail->fd, "\n", 1) == -1)
+	      {
+		status = errno;
+		
+		MAILER_DEBUG1 (mailer, MU_DEBUG_TRACE,
+			       "write() failed: %s\n", strerror (status));
 	      }
 	  }
 	
+	message_get_body (msg, &body);
+	body_get_stream (body, &stream);
+
+	MAILER_DEBUG0 (mailer, MU_DEBUG_TRACE, "Sending body...\n");
+	offset = 0;
 	while ((status = stream_read (stream, buffer, sizeof (buffer),
 				      offset, &len)) == 0
 	       && len != 0)
@@ -386,7 +404,7 @@ sendmail_send_message (mailer_t mailer, message_t msg, address_t from,
 
 		MAILER_DEBUG1 (mailer, MU_DEBUG_TRACE,
 			       "write() failed: %s\n", strerror (status));
-
+		
 		break;
 	      }
 	    offset += len;
