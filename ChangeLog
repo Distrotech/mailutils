@@ -1,3 +1,19 @@
+2003-02-21  Sergey Poznyakoff 
+
+	* configure.ac: New option --with-mh-bindir sets installation
+	  directory for MH binaries
+	* mh/Makefile.am: Install binaries into a separate directory to
+	  prevent namespace pollution.
+	* README: Updated
+	* mailbox/date.c (wdays): Two typos! Ouch...
+	* mh/README: Updated.
+	* mh/folder.c: Do not mark current folder when in fast mode
+	* mh/mh_whatnow.c: Execute default programs using full path
+	  specification.
+	* mh/mh_stream.c: New file.
+	* mh/mh.h (mhdraft_stream_create): New function.
+	* mh/mh_init.c (mh_stream_to_message): Use MH draft streams.
+
 2003-02-20  Sergey Poznyakoff 
 
 	* mh/README: Updated

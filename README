@@ -70,6 +70,13 @@ specific configuration options:
         Emacs using mh-e module. For more information, refer to files
         README and TODO in the mh subdirectory.
 
+    --with-mh-bindir=DIR
+
+        By default the MH binaries are installed in ${exec_prefix}/bin/mu-mh.
+        To change this, use --with-mh-bindir option. If DIR starts with '/'
+	it is taken as an absolute path specification, otherwise ${prefix} is
+	prepended to it. 
+
     --with-virtual-pwddir=DIR
 
 	Use DIR instead of $sysconfdir/domain as the location of
