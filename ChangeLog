@@ -1,3 +1,7 @@
+2003-11-04  Sergey Poznyakoff  
+
+	* mh/anno.c (main): Remove trailing colon from the component name.
+
 2003-11-04  Sergey Poznyakoff 
 
 	* mailbox/rfc2047.c (rfc2047_decode): Bugfix.
