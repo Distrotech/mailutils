@@ -1,6 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
    Copyright (C) 1999, 2000, 2001, 2002, 2003,
-   2004 Free Software Foundation, Inc.
+   2004, 2005 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -602,6 +602,16 @@ util_isdeleted (size_t n)
   mailbox_get_message (mbox, n, &msg);
   message_get_attribute (msg, &attr);
   return attribute_is_deleted (attr);
+}
+
+void
+util_mark_read (message_t msg)
+{
+  attribute_t attr;
+
+  message_get_attribute (msg, &attr);
+  attribute_set_read (attr);
+  attribute_set_userflag (attr, MAIL_ATTRIBUTE_SHOWN);
 }
 
 char *
@@ -1392,3 +1402,4 @@ util_rfc2047_decode (char **value)
       *value = tmp;
     }
 }
+
