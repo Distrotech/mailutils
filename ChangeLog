@@ -1,3 +1,22 @@
+2001-04-13  Sam Roberts
+
+	* doc/address.texi: updated docs, now they match the parse822.
+	* mailbox/parse822.c: small tweaks to the new parser, the changes
+	  made during the tidying over the last month were:
+	  - use C comments only.
+	  - don't use C++ reserved words.
+	  - fix is_digit() to be like the other is functions
+	  - Changed return codes to:
+	   . no mem (ENOMEM)
+	   . function wasn't called correctly, usually a missing
+	     argument (EINVAL)
+	   . invalid syntax found during parsing (ENOENT)
+	   . success == 0
+	  - const-corrected the APIs
+	  - removed unnecessary (in C) casts.
+	  - mailbox_t* removed in favor of address_t.
+	  - fix handful of memory leaks detected by Alain.
+
 2001-04-10  Alain Magloire
 
 	* pop3d/retr.c (pop3_retr): Typo.
