@@ -1,3 +1,13 @@
+2004-12-17  Sergey Poznyakoff
+
+	* configure.ac: Do not allow to specify modules more than once
+	* auth/sql.c (sql_escape_string): Escape ocurrences of ' and "
+	in string.
+	(mu_sql_expand_query): prevent possible sql injection
+	* mail.local/mailquota.c (sql_retrieve_quota): Allow for NULL
+	columns
+	* sql/postgres.c (destroy): Bugfix: do not free pgconn
+
 2004-12-05  Sergey Poznyakoff  
 
 	* Makefile.am: Added sql/
