@@ -1,3 +1,20 @@
+2003-02-22  Sergey Poznyakoff 
+
+	* include/mailutils/header.h (MU_HEADER_FCC): New macro
+	* mailbox/mailer.c: Handle Fcc headers.
+	* mailbox/sendmail.c: Ignore Fcc.
+	* mailbox/smtp.c: Likewise.
+	* mailbox/mbx_default.c (plus_expand): Bugfix
+	* mailbox/mbx_mh.c (_mh_message_save): Bugfix
+	* mh/folder.c (action_print): Minor change
+	* mh/mh_argp.c (parse_opt): Pass the argument to ARG_FOLDER
+	  without the leading '+'. This should be fixed later.
+	* mh/refile.c: Fixed expanding of the draftfile name.
+	* mh/send.c (send): Fix up the folder dir by appending a
+	  format specifier (mh:/) to it.
+	* mh/mh_init.c: Moved .*_to_message stuff to mh_stream.c
+	* mh/mh_stream.c: Improved .*_to_message functions.
+	
 2003-02-21  Sergey Poznyakoff
 
 	* mail/testsuite/mail/folder.exp: Reflect changes to mailbox/date.c
