@@ -536,13 +536,15 @@ mu_create_argcv (const char *capa[],
 
   /* Add per-program (and per-user) config file. */
   {
-    char* progrc = malloc (strlen (progname) + 3 /* ~/ */  + 3 /* rc */  + 1);
+    char* progrc = malloc (strlen (progname)
+			   + 6 /* ~/.mu. */
+			   + 3 /* rc */  + 1);
     if (!progrc)
       {
 	fprintf (stderr, "%s: not enough memory\n", progname);
 	exit (1);
       }
-    sprintf (progrc, "~/.%src", progname);
+    sprintf (progrc, "~/.mu.%src", progname);
     read_rc (NULL, progrc, capa, &x_argc, &x_argv);
     free (progrc);
   }
@@ -589,7 +591,7 @@ mu_build_argp (const struct argp *template, const char *capa[])
   /* Count the capabilities */
   for (n = 0; capa && capa[n]; n++)
     ;
-  if (template && template->children)
+  if (template->children)
     for (; template->children[n].argp; n++)
       ;
       
@@ -601,7 +603,7 @@ mu_build_argp (const struct argp *template, const char *capa[])
     }
 
   n = 0;
-  if (template && template->children)
+  if (template->children)
     for (; template->children[n].argp; n++)
       ap[n] = template->children[n];
   
