@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2001, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001, 2002, 2003 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -13,7 +13,7 @@
 
    You should have received a copy of the GNU General Public License
    along with GNU Mailutils; if not, write to the Free Software
-   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
+   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA  */
 
 #ifndef _IMAP4D_H
 #define _IMAP4D_H 1
@@ -87,6 +87,7 @@
 #include <mailutils/stream.h>
 #include <mailutils/mu_auth.h>
 #include <mailutils/url.h>
+#include <mailutils/tls.h>
 #include <mailutils/nls.h>
 
 #ifdef __cplusplus
@@ -126,7 +127,8 @@ struct imap4d_command
 #define ERR_NO_OFILE 2
 #define ERR_TIMEOUT 3
 #define ERR_SIGNAL 4
-  
+#define ERR_TLS 5
+
 /* Namespace numbers */
 #define NS_PRIVATE 0
 #define NS_OTHER   1
@@ -139,8 +141,6 @@ struct imap4d_command
 #define WCARD_RECURSE_MATCH  2
        
 extern struct imap4d_command imap4d_command_table[];
-extern FILE *ifile;
-extern FILE *ofile;
 extern mailbox_t mbox;
 extern char *homedir;
 extern char *rootdir;
@@ -149,7 +149,12 @@ extern volatile size_t children;
 extern int is_virtual;
 extern struct daemon_param daemon_param;
 extern struct mu_auth_data *auth_data; 
-	
+
+#ifdef WITH_TLS
+extern int tls_available;
+extern int tls_done;
+#endif /* WITH_TLS */
+
 #ifndef HAVE_STRTOK_R
 extern char *strtok_r __P((char *s, const char *delim, char **save_ptr));
 #endif
@@ -181,6 +186,9 @@ extern int  imap4d_search0 __P((char *arg, int isuid, char *replybuf, size_t rep
 extern int  imap4d_select __P ((struct imap4d_command *, char *));
 extern int  imap4d_select0 __P ((struct imap4d_command *, char *, int));
 extern int  imap4d_select_status __P((void));
+#ifdef WITH_TLS
+extern int  imap4d_starttls __P ((struct imap4d_command *, char *));
+#endif /* WITH_TLS */
 extern int  imap4d_status __P ((struct imap4d_command *, char *));
 extern int  imap4d_store __P ((struct imap4d_command *, char *));
 extern int  imap4d_store0 __P ((char *, int, char *, size_t));
@@ -220,8 +228,8 @@ extern int  util_start __P ((char *));
 extern int  util_finish __P ((struct imap4d_command *, int, const char *, ...));
 extern int  util_getstate __P ((void));
 extern int  util_do_command __P ((char *));
-extern char *imap4d_readline __P ((FILE*));
-extern char *imap4d_readline_ex __P ((FILE*));
+extern char *imap4d_readline __P ((void));
+extern char *imap4d_readline_ex __P ((void));
 extern char *util_getword __P ((char *, char **));
 extern char *util_getitem __P ((char *, const char *, char **));
 extern int  util_token __P ((char *, size_t, char **));
@@ -256,7 +264,15 @@ int util_attribute_to_type __P((const char *item, int *type));
 int util_type_to_attribute __P((int type, char **attr_str));
 int util_attribute_matches_flag __P((attribute_t attr, const char *item));
 int util_uidvalidity __P((mailbox_t smbox, unsigned long *uidvp));
-  
+
+void util_setio __P((int, int));
+void util_flush_output __P((void));
+FILE *util_is_ofile __P((void));
+#ifdef WITH_TLS
+int imap4d_init_tls_server __P((void));
+void imap4d_deinit_tls_server __P((void));
+#endif /* WITH_TLS */
+
 #ifdef __cplusplus
 }
 #endif

@@ -41,7 +41,7 @@ imap4d_signal (int signo)
 {
   syslog (LOG_CRIT, _("got signal %s"), strsignal (signo));
   /* Master process.  */
-  if (!ofile)
+  if (!(util_is_ofile()))
     {
       syslog (LOG_CRIT, _("MASTER: exiting on signal"));
       exit (1);			/* abort(); */

@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2001, 2003 Free Software Foundation, Inc.
+   Copyright (C) 2003 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -17,31 +17,26 @@
 
 #include "imap4d.h"
 
-char *capa[] = {
-  "IMAP4rev1",
-  "NAMESPACE",
-  "X-VERSION",
-  NULL
-};
+#ifdef WITH_TLS
 
 int
-imap4d_capability (struct imap4d_command *command, char *arg)
+imap4d_starttls (struct imap4d_command *command, char *arg)
 {
-  int i;
+  int status;
+  char *sp = NULL;
 
-  (void) arg;
-  util_send ("* CAPABILITY");
+  if (!tls_available || tls_done)
+    return util_finish (command, RESP_BAD, "Invalid command");
 
-  for (i = 0; capa[i]; i++)
-    util_send (" %s", capa[i]);
+  if (util_getword (arg, &sp))
+    return util_finish (command, RESP_BAD, "Too many args");
 
-#ifdef WITH_TLS
-  if (tls_available)
-    util_send (" STARTTLS");
+  status = util_finish (command, RESP_OK, "Begin TLS negotiation");
+  tls_done = imap4d_init_tls_server ();
+
+  return status;
+}
+
 #endif /* WITH_TLS */
 
-  imap4d_auth_capability ();
-  util_send ("\r\n");
-
-  return util_finish (command, RESP_OK, "Completed");
-}
+/* EOF */

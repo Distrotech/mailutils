@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2001 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001, 2003 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -13,7 +13,7 @@
 
    You should have received a copy of the GNU General Public License
    along with GNU Mailutils; if not, write to the Free Software
-   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
+   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA  */
 
 #include "imap4d.h"
 
@@ -45,5 +45,8 @@ struct imap4d_command imap4d_command_table [] =
   { "UID", imap4d_uid, STATE_SEL, STATE_NONE, STATE_NONE, NULL },
   { "NAMESPACE", imap4d_namespace, STATE_AUTH | STATE_SEL, STATE_NONE, STATE_NONE, NULL },
   { "X-VERSION", imap4d_version, STATE_AUTH | STATE_SEL, STATE_NONE, STATE_NONE, NULL },
+#ifdef WITH_TLS
+  { "STARTTLS", imap4d_starttls, STATE_NONAUTH, STATE_NONE, STATE_NONE, NULL },
+#endif /* WITH_TLS */
   { NULL, 0, 0, 0, 0, NULL }
 };

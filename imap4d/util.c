@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2001, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001, 2002, 2003 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -13,9 +13,15 @@
 
    You should have received a copy of the GNU General Public License
    along with GNU Mailutils; if not, write to the Free Software
-   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
+   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA  */
 
 #include "imap4d.h"
+
+static FILE *ifile;
+static FILE *ofile;
+#ifdef WITH_TLS
+static gnutls_session sfile;
+#endif /* WITH_TLS */
 
 static int add2set __P ((size_t **, int *, unsigned long));
 static const char *sc2string __P ((int));
@@ -36,7 +42,7 @@ util_getitem (char *s, const char *delim, char **save)
     char *p;
     if ((p = s) || (p = *save))
       {
-	while (isspace ((unsigned)*p))
+	while (isspace ((unsigned) *p))
 	  p++;
 	if (*p == '"')
 	  {
@@ -45,7 +51,7 @@ util_getitem (char *s, const char *delim, char **save)
 	    while (*p && *p != '"')
 	      p++;
 	    if (*p == '"')
-		p++;
+	      p++;
 	    *save = (*p) ? p + 1 : p;
 	    *p = '\0';
 	    return s;
@@ -70,23 +76,22 @@ util_token (char *buf, size_t len, char **ptr)
   for (i = 1; **ptr && i < len; (*ptr)++, buf++, i++)
     {
       if (**ptr == ' ' || **ptr == '.'
-          || **ptr == '(' || **ptr == ')'
-          || **ptr == '[' || **ptr == ']'
-          || **ptr == '<' || **ptr  == '>'
-	  || **ptr == '\r' || **ptr == '\n')
-        {
-          /* Advance.  */
-          if (start == (*ptr))
-            (*ptr)++;
-          break;
-        }
+	  || **ptr == '(' || **ptr == ')'
+	  || **ptr == '[' || **ptr == ']'
+	  || **ptr == '<' || **ptr == '>' || **ptr == '\r' || **ptr == '\n')
+	{
+	  /* Advance.  */
+	  if (start == (*ptr))
+	    (*ptr)++;
+	  break;
+	}
       *buf = **ptr;
-  }
+    }
   *buf = '\0';
   /* Skip trailing space.  */
   while (**ptr && **ptr == ' ')
     (*ptr)++;
-  return  *ptr - start;
+  return *ptr - start;
 }
 
 /* Remove the surrounding double quotes.  */
@@ -100,9 +105,9 @@ util_unquote (char **ptr)
     {
       char *p = ++s;
       while (*p && *p != '"')
-        p++;
+	p++;
       if (*p == '"')
-        *p = '\0';
+	*p = '\0';
     }
   *ptr = s;
 }
@@ -123,7 +128,8 @@ util_getfullpath (char *name, const char *delim)
   char *p = util_tilde_expansion (name, delim);
   if (*p != delim[0])
     {
-      char *s = calloc (strlen (homedir) + strlen (delim) + strlen (p) + 1, 1);
+      char *s =
+	calloc (strlen (homedir) + strlen (delim) + strlen (p) + 1, 1);
       sprintf (s, "%s%s%s", homedir, delim, p);
       free (p);
       p = s;
@@ -134,7 +140,7 @@ util_getfullpath (char *name, const char *delim)
 static int
 comp_int (const void *a, const void *b)
 {
-  return *(int*)a - *(int*)b;
+  return *(int *) a - *(int *) b;
 }
 
 /* Return in set an allocated array contain (n) numbers, for imap messsage set
@@ -150,7 +156,7 @@ comp_int (const void *a, const void *b)
    FIXME: The algo below is to relaxe, things like <,,,> or <:12> or <20:10>
    will not generate an error.  */
 int
-util_msgset (char *s, size_t **set, int *n, int isuid)
+util_msgset (char *s, size_t ** set, int *n, int isuid)
 {
   unsigned long val = 0;
   unsigned long low = 0;
@@ -158,7 +164,7 @@ util_msgset (char *s, size_t **set, int *n, int isuid)
   int status = 0;
   size_t max = 0;
   size_t *tmp;
-  int i,j;
+  int i, j;
 
   status = mailbox_messages_count (mbox, &max);
   if (status != 0)
@@ -178,8 +184,16 @@ util_msgset (char *s, size_t **set, int *n, int isuid)
       switch (*s)
 	{
 	  /* isdigit */
-	case '0': case '1': case '2': case '3': case '4':
-	case '5': case '6': case '7': case '8': case '9':
+	case '0':
+	case '1':
+	case '2':
+	case '3':
+	case '4':
+	case '5':
+	case '6':
+	case '7':
+	case '8':
+	case '9':
 	  {
 	    errno = 0;
 	    val = strtoul (s, &s, 10);
@@ -206,7 +220,7 @@ util_msgset (char *s, size_t **set, int *n, int isuid)
 		    low = val;
 		    val = tmp;
 		  }
-		for (;low && low <= val; low++)
+		for (; low && low <= val; low++)
 		  {
 		    status = add2set (set, n, low);
 		    if (status != 0)
@@ -227,7 +241,7 @@ util_msgset (char *s, size_t **set, int *n, int isuid)
 	     contiguous set of mesages ranging from the first number to the
 	     second:
 	     3:5  --> 3 4 5
-	  */
+	   */
 	case ':':
 	  low = val + 1;
 	  s++;
@@ -236,7 +250,7 @@ util_msgset (char *s, size_t **set, int *n, int isuid)
 	  /* As a convenience. '*' is provided to refer to the highest message
 	     number int the mailbox:
 	     5:*  --> 5 6 7 8
-	  */
+	   */
 	case '*':
 	  {
 	    val = max;
@@ -250,7 +264,7 @@ util_msgset (char *s, size_t **set, int *n, int isuid)
 	  /* IMAP also allows a set of noncontiguous numbers to be specified
 	     with the ',' character:
 	     1,3,5,7  --> 1 3 5 7
-	  */
+	   */
 	case ',':
 	  s++;
 	  break;
@@ -262,11 +276,11 @@ util_msgset (char *s, size_t **set, int *n, int isuid)
 	  *n = 0;
 	  return EINVAL;
 
-	} /* switch */
+	}			/* switch */
 
       if (done)
 	break;
-    } /* while */
+    }				/* while */
 
   if (low)
     {
@@ -284,7 +298,7 @@ util_msgset (char *s, size_t **set, int *n, int isuid)
 	  low = val;
 	  val = tmp;
 	}
-      for (;low && low <= val; low++)
+      for (; low && low <= val; low++)
 	{
 	  status = add2set (set, n, low);
 	  if (status != 0)
@@ -298,32 +312,49 @@ util_msgset (char *s, size_t **set, int *n, int isuid)
   /* Remove duplicates. tmp serves to avoid extra dereferences */
   tmp = *set;
   for (i = 0, j = 1; i < *n; i++)
-    if (tmp[j-1] != tmp[i])
+    if (tmp[j - 1] != tmp[i])
       tmp[j++] = tmp[i];
   *n = j;
   return 0;
 }
 
-/* Use vfprintf for the dirty work.  */
+static int
+util_send_lowlevel (char *buf)
+{
+  int status;
+
+  if (buf)
+    {
+#ifdef WITH_TLS
+      if (tls_done)
+	status = gnutls_record_send (sfile, buf, strlen (buf));
+      else
+#endif /* WITH_TLS */
+	status = fprintf (ofile, buf);
+    }
+
+  return status;
+}
+
 int
 util_send (const char *format, ...)
 {
-  int status;
+  char *buf = NULL;
+  int status = 0;
   va_list ap;
-  va_start (ap, format);
 
-  if (daemon_param.transcript)
+  va_start (ap, format);
+  vasprintf (&buf, format, ap);
+
+  if (buf)
     {
-      char *buf;
-      vasprintf (&buf, format, ap);
-      if (buf)
-	{
-	  syslog (LOG_DEBUG, "sent: %s", buf);
-	  free (buf);
-	}
+      if (daemon_param.transcript)
+	syslog (LOG_DEBUG, "sent: %s", buf);
+
+      status = util_send_lowlevel (buf);
+      free (buf);
     }
 
-  status = vfprintf (ofile, format, ap);
   va_end (ap);
   return status;
 }
@@ -361,24 +392,26 @@ util_send_literal (const char *buffer)
 int
 util_out (int rc, const char *format, ...)
 {
+  char *tempbuf = NULL;
   char *buf = NULL;
-  int status;
+  int status = 0;
   va_list ap;
-  asprintf (&buf, "* %s%s\r\n", sc2string (rc), format);
+
+  asprintf (&tempbuf, "* %s%s\r\n", sc2string (rc), format);
   va_start (ap, format);
-  if (daemon_param.transcript)
+  vasprintf (&buf, tempbuf, ap);
+
+  if (buf)
     {
-      char *buf1 = NULL;
-      vasprintf (&buf1, buf, ap);
-      if (buf1)
-        {
-          syslog (LOG_DEBUG, "sent: %s", buf1);
-          free (buf1);
-        }
+      if (daemon_param.transcript)
+	syslog (LOG_DEBUG, "sent: %s", buf);
+
+      status = util_send_lowlevel (buf);
+      free (buf);
     }
-  status = vfprintf (ofile, buf, ap);
+
   va_end (ap);
-  free (buf);
+  free (tempbuf);
   return status;
 }
 
@@ -386,29 +419,29 @@ util_out (int rc, const char *format, ...)
 int
 util_finish (struct imap4d_command *command, int rc, const char *format, ...)
 {
+  char *tempbuf = NULL;
   char *buf = NULL;
   int new_state;
-  int status;
+  int status = 0;
   va_list ap;
 
-  asprintf (&buf, "%s %s%s %s\r\n", command->tag, sc2string (rc),
+  asprintf (&tempbuf, "%s %s%s %s\r\n", command->tag, sc2string (rc),
 	    command->name, format);
-
   va_start (ap, format);
-  if (daemon_param.transcript)
+  vasprintf (&buf, tempbuf, ap);
+
+  if (buf)
     {
-      char *buf1 = NULL;
-      vasprintf (&buf1, buf, ap);
-      if (buf1)
-        {
-          syslog (LOG_DEBUG, "sent: %s", buf1);
-          free (buf1);
-        }
+      if (daemon_param.transcript)
+	syslog (LOG_DEBUG, "sent: %s", buf);
+
+      status = util_send_lowlevel (buf);
+      free (buf);
     }
-  
-  status = vfprintf (ofile, buf, ap);
+
   va_end (ap);
-  free (buf);
+  free (tempbuf);
+
   /* Reset the state.  */
   if (rc == RESP_OK)
     new_state = command->success;
@@ -416,9 +449,10 @@ util_finish (struct imap4d_command *command, int rc, const char *format, ...)
     new_state = command->failure;
   else
     new_state = STATE_NONE;
-  
+
   if (new_state != STATE_NONE)
     state = new_state;
+
   return status;
 }
 
@@ -429,7 +463,7 @@ util_finish (struct imap4d_command *command, int rc, const char *format, ...)
    the number of octets, close brace ("}"), and CRLF.
  */
 char *
-imap4d_readline (FILE *fp)
+imap4d_readline (void)
 {
   char buffer[512];
   size_t len;
@@ -440,13 +474,28 @@ imap4d_readline (FILE *fp)
   if (!line)
     imap4d_bye (ERR_NO_MEM);
 
-  line[0] = '\0'; /* start with a empty string.  */
+  line[0] = '\0';		/* start with a empty string.  */
   do
     {
       alarm (daemon_param.timeout);
-      if (fgets (buffer, sizeof (buffer), fp) == NULL)
+#ifdef WITH_TLS
+      if (tls_done)
 	{
-	  if (feof (fp)) 
+	  len = gnutls_record_recv (sfile, buffer, sizeof (buffer) - 1);
+	  if (len < 0)
+	    {
+	      syslog (LOG_INFO, _("TLS error on read: %s"),
+		      gnutls_strerror (len));
+	      imap4d_bye (ERR_TLS);
+	    }
+	  else
+	    buffer[len] = 0;
+	}
+      else
+#endif /* WITH_TLS */
+      if (fgets (buffer, sizeof (buffer), ifile) == NULL)
+	{
+	  if (feof (ifile))
 	    syslog (LOG_INFO, _("unexpected eof on input"));
 	  else if (errno)
 	    syslog (LOG_INFO, _("error reading from input file: %m"));
@@ -458,9 +507,9 @@ imap4d_readline (FILE *fp)
 
       len = strlen (buffer);
       /* If we were in a litteral substract. We have to do it here since the CR
-	 is part of the count in a literal.  */
+         is part of the count in a literal.  */
       if (number)
-        number -= len;
+	number -= len;
 
       /* Remove CR.  */
       if (len > 1 && buffer[len - 1] == '\n')
@@ -479,36 +528,37 @@ imap4d_readline (FILE *fp)
       total = strlen (line);
 
       /* I observe some client requesting long FETCH operations since, I did
-	 not see any limit in the command length in the RFC, catch things
-	 here.  */
+         not see any limit in the command length in the RFC, catch things
+         here.  */
       /* Check that we do have a terminated NL line and we are not retrieving
-	 a literal. If we don't continue the read.  */
+         a literal. If we don't continue the read.  */
       if (number <= 0 && total && line[total - 1] != '\n')
 	continue;
 
       /* Check if the client try to send a literal and make sure we are not
-	 already retrieving a literal.  */
+         already retrieving a literal.  */
       if (number <= 0 && len > 2)
-        {
-          size_t n = total - 1; /* C arrays are 0-based.  */
+	{
+	  size_t n = total - 1;	/* C arrays are 0-based.  */
 	  /* A literal is this "{number}\n".  The CR is already strip.  */
-          if (line[n] == '\n' && line[n - 1] == '}')
-            {
+	  if (line[n] == '\n' && line[n - 1] == '}')
+	    {
 	      /* Search for the matching bracket.  */
-              while (n && line[n] != '{') n--;
-              if (line [n] == '{')
-                {
-                  char *sp = NULL;
+	      while (n && line[n] != '{')
+		n--;
+	      if (line[n] == '{')
+		{
+		  char *sp = NULL;
 		  /* Truncate where the literal number was.  */
-                  line[n] = '\0';
-                  number = strtoul (line + n + 1, &sp, 10);
+		  line[n] = '\0';
+		  number = strtoul (line + n + 1, &sp, 10);
 		  /* Client can ask for non synchronise literal,
-		   if a '+' is append to the octet count. */
-                  if (*sp != '+') 
-                    util_send ("+ GO AHEAD\r\n");
-                }
-            }
-        }
+		     if a '+' is append to the octet count. */
+		  if (*sp != '+')
+		    util_send ("+ GO AHEAD\r\n");
+		}
+	    }
+	}
     }
   while (number > 0 || (total && line[total - 1] != '\n'));
   if (daemon_param.transcript)
@@ -517,16 +567,16 @@ imap4d_readline (FILE *fp)
 }
 
 char *
-imap4d_readline_ex (FILE *fp)
+imap4d_readline_ex (void)
 {
   int len;
-  char *s = imap4d_readline (fp);
+  char *s = imap4d_readline ();
 
-  if (s && (len = strlen (s)) > 0 && s[len-1] == '\n')
-      s[len-1] = 0;
+  if (s && (len = strlen (s)) > 0 && s[len - 1] == '\n')
+    s[len - 1] = 0;
   return s;
-} 
-      
+}
+
 int
 util_do_command (char *prompt)
 {
@@ -540,7 +590,7 @@ util_do_command (char *prompt)
   if (!tag)
     {
       nullcommand.name = "";
-      nullcommand.tag = (char *)"*";
+      nullcommand.tag = (char *) "*";
       return util_finish (&nullcommand, RESP_BAD, "Null command");
     }
   else if (!cmd)
@@ -557,16 +607,16 @@ util_do_command (char *prompt)
     {
       nullcommand.name = "";
       nullcommand.tag = tag;
-      return util_finish (&nullcommand, RESP_BAD,  "Invalid command");
+      return util_finish (&nullcommand, RESP_BAD, "Invalid command");
     }
-	   
+
   command->tag = tag;
 
   if (command->states && (command->states & state) == 0)
     return util_finish (command, RESP_BAD, "Wrong state");
-  
+
   len = strlen (sp);
-  if (len  && sp[len - 1] == '\n')
+  if (len && sp[len - 1] == '\n')
     sp[len - 1] = '\0';
   return command->func (command, sp);
 }
@@ -577,7 +627,7 @@ util_upper (char *s)
   if (!s)
     return 0;
   for (; *s; s++)
-    *s = toupper ((unsigned)*s);
+    *s = toupper ((unsigned) *s);
   return 0;
 }
 
@@ -585,7 +635,7 @@ util_upper (char *s)
 int
 util_start (char *tag)
 {
-  (void)tag;
+  (void) tag;
   return 0;
 }
 
@@ -632,7 +682,7 @@ sc2string (int rc)
 }
 
 static int
-add2set (size_t **set, int *n, unsigned long val)
+add2set (size_t ** set, int *n, unsigned long val)
 {
   size_t *tmp;
   tmp = realloc (*set, (*n + 1) * sizeof (**set));
@@ -650,18 +700,18 @@ add2set (size_t **set, int *n, unsigned long val)
 }
 
 int
-util_parse_internal_date0 (char *date, time_t *timep, char **endp)
+util_parse_internal_date0 (char *date, time_t * timep, char **endp)
 {
   struct tm tm;
   mu_timezone tz;
   time_t time;
   char **datep = &date;
 
-  if (mu_parse_imap_date_time((const char **)datep, &tm, &tz))
+  if (mu_parse_imap_date_time ((const char **) datep, &tm, &tz))
     return 1;
 
   time = mu_tm2time (&tm, &tz);
-  if (time == (time_t) -1)
+  if (time == (time_t) - 1)
     return 2;
 
   *timep = time;
@@ -671,20 +721,20 @@ util_parse_internal_date0 (char *date, time_t *timep, char **endp)
 }
 
 int
-util_parse_internal_date (char *date, time_t *timep)
+util_parse_internal_date (char *date, time_t * timep)
 {
   return util_parse_internal_date0 (date, timep, NULL);
 }
 
 
 int
-util_parse_822_date (char *date, time_t *timep)
+util_parse_822_date (char *date, time_t * timep)
 {
   struct tm tm;
   mu_timezone tz;
-  const char* p = date;
+  const char *p = date;
 
-  if (parse822_date_time(&p, date+strlen(date), &tm, &tz) == 0)
+  if (parse822_date_time (&p, date + strlen (date), &tm, &tz) == 0)
     {
       *timep = mu_tm2time (&tm, &tz);
       return 0;
@@ -693,12 +743,12 @@ util_parse_822_date (char *date, time_t *timep)
 }
 
 int
-util_parse_ctime_date (const char *date, time_t *timep)
+util_parse_ctime_date (const char *date, time_t * timep)
 {
   struct tm tm;
   mu_timezone tz;
 
-  if (mu_parse_ctime_date_time(&date, &tm, &tz) == 0)
+  if (mu_parse_ctime_date_time (&date, &tm, &tz) == 0)
     {
       *timep = mu_tm2time (&tm, &tz);
       return 0;
@@ -711,8 +761,8 @@ util_parse_ctime_date (const char *date, time_t *timep)
 char *
 util_strcasestr (const char *haystack, const char *needle)
 {
-  register char *needle_end = strchr(needle, '\0');
-  register char *haystack_end = strchr(haystack, '\0');
+  register char *needle_end = strchr (needle, '\0');
+  register char *haystack_end = strchr (haystack, '\0');
   register size_t needle_len = needle_end - needle;
   register size_t needle_last = needle_len - 1;
   register const char *begin;
@@ -729,7 +779,7 @@ util_strcasestr (const char *haystack, const char *needle)
       register const char *h = begin;
 
       do
-	if (tolower(*h) != tolower(*n))
+	if (tolower (*h) != tolower (*n))
 	  goto loop;		/* continue for loop */
       while (--n >= needle && --h >= haystack);
 
@@ -746,14 +796,27 @@ struct
 {
   char *name;
   int flag;
-} _imap4d_attrlist[] = {
-  { "\\Answered", MU_ATTRIBUTE_ANSWERED },
-  { "\\Flagged",  MU_ATTRIBUTE_FLAGGED },
-  { "\\Deleted", MU_ATTRIBUTE_DELETED },
-  { "\\Draft", MU_ATTRIBUTE_DRAFT },
-  { "\\Seen", MU_ATTRIBUTE_READ },
-  { "\\Recent", MU_ATTRIBUTE_RECENT },
-};
+}
+_imap4d_attrlist[] =
+{
+  {
+  "\\Answered", MU_ATTRIBUTE_ANSWERED}
+  ,
+  {
+  "\\Flagged", MU_ATTRIBUTE_FLAGGED}
+  ,
+  {
+  "\\Deleted", MU_ATTRIBUTE_DELETED}
+  ,
+  {
+  "\\Draft", MU_ATTRIBUTE_DRAFT}
+  ,
+  {
+  "\\Seen", MU_ATTRIBUTE_READ}
+  ,
+  {
+  "\\Recent", MU_ATTRIBUTE_RECENT}
+,};
 
 #define NATTR sizeof(_imap4d_attrlist)/sizeof(_imap4d_attrlist[0])
 
@@ -781,8 +844,8 @@ util_type_to_attribute (int type, char **attr_str)
   int i;
   size_t len = 0;
 
-  if (MU_ATTRIBUTE_IS_UNSEEN(type))
-    *attr_str = strdup("\\Recent");
+  if (MU_ATTRIBUTE_IS_UNSEEN (type))
+    *attr_str = strdup ("\\Recent");
   else
     *attr_str = NULL;
 
@@ -790,33 +853,33 @@ util_type_to_attribute (int type, char **attr_str)
     if (type & _imap4d_attrlist[i].flag)
       {
 	attr_list[nattr++] = _imap4d_attrlist[i].name;
-	len += 1 + strlen(_imap4d_attrlist[i].name);
+	len += 1 + strlen (_imap4d_attrlist[i].name);
       }
-  
-  *attr_str = malloc(len+1);
+
+  *attr_str = malloc (len + 1);
   (*attr_str)[0] = 0;
   if (*attr_str)
     {
       for (i = 0; i < nattr; i++)
 	{
-	  strcat(*attr_str, attr_list[i]);
-	  if (i != nattr-1)
-	    strcat(*attr_str, " ");
+	  strcat (*attr_str, attr_list[i]);
+	  if (i != nattr - 1)
+	    strcat (*attr_str, " ");
 	}
     }
-  
+
   if (!*attr_str)
     imap4d_bye (ERR_NO_MEM);
   return 0;
 }
 
 void
-util_print_flags(attribute_t attr)
+util_print_flags (attribute_t attr)
 {
   int i;
   int flags = 0;
   int space = 0;
-  
+
   attribute_get_flags (attr, &flags);
   for (i = 0; i < _imap4d_nattr; i++)
     if (flags & _imap4d_attrlist[i].flag)
@@ -827,11 +890,11 @@ util_print_flags(attribute_t attr)
 	  space = 1;
 	util_send (_imap4d_attrlist[i].name);
       }
-  
-  if (MU_ATTRIBUTE_IS_UNSEEN(flags))
+
+  if (MU_ATTRIBUTE_IS_UNSEEN (flags))
     {
       if (space)
-	  util_send (" ");
+	util_send (" ");
       util_send ("\\Recent");
     }
 }
@@ -840,7 +903,7 @@ int
 util_attribute_matches_flag (attribute_t attr, const char *item)
 {
   int flags = 0, mask = 0;
-  
+
   attribute_get_flags (attr, &flags);
   util_attribute_to_type (item, &mask);
   if (mask == MU_ATTRIBUTE_RECENT)
@@ -851,7 +914,7 @@ util_attribute_matches_flag (attribute_t attr, const char *item)
 
 
 int
-util_parse_attributes(char *items, char **save, int *flags)
+util_parse_attributes (char *items, char **save, int *flags)
 {
   int rc = 0;
 
@@ -880,13 +943,13 @@ util_parse_attributes(char *items, char **save, int *flags)
 
 int
 util_base64_encode (const unsigned char *input, size_t input_len,
-		    unsigned char **output, size_t *output_len)
+		    unsigned char **output, size_t * output_len)
 {
   static char b64tab[] =
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
   size_t olen = 4 * (input_len + 2) / 3;
   unsigned char *out = malloc (olen);
-  
+
   if (!out)
     return 1;
   *output = out;
@@ -896,7 +959,7 @@ util_base64_encode (const unsigned char *input, size_t input_len,
       *out++ = b64tab[((input[0] << 4) & 0x30) | (input[1] >> 4)];
       *out++ = b64tab[((input[1] << 2) & 0x3c) | (input[2] >> 6)];
       *out++ = b64tab[input[2] & 0x3f];
-      olen  -= 4;
+      olen -= 4;
       input_len -= 3;
       input += 3;
     }
@@ -917,17 +980,17 @@ util_base64_encode (const unsigned char *input, size_t input_len,
 
 int
 util_base64_decode (const unsigned char *input, size_t input_len,
-		    unsigned char **output, size_t *output_len)
+		    unsigned char **output, size_t * output_len)
 {
   static int b64val[128] = {
-    -1, -1, -1, -1, -1, -1, -1, -1,  -1, -1, -1, -1, -1, -1, -1, -1, 
-    -1, -1, -1, -1, -1, -1, -1, -1,  -1, -1, -1, -1, -1, -1, -1, -1, 
-    -1, -1, -1, -1, -1, -1, -1, -1,  -1, -1, -1, 62, -1, -1, -1, 63, 
-    52, 53, 54, 55, 56, 57, 58, 59,  60, 61, -1, -1, -1, -1, -1, -1, 
-    -1,  0,  1,  2,  3,  4,  5,  6,   7,  8,  9, 10, 11, 12, 13, 14, 
-    15, 16, 17, 18, 19, 20, 21, 22,  23, 24, 25, -1, -1, -1, -1, -1, 
-    -1, 26, 27, 28, 29, 30, 31, 32,  33, 34, 35, 36, 37, 38, 39, 40, 
-    41, 42, 43, 44, 45, 46, 47, 48,  49, 50, 51, -1, -1, -1, -1, -1
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 62, -1, -1, -1, 63,
+    52, 53, 54, 55, 56, 57, 58, 59, 60, 61, -1, -1, -1, -1, -1, -1,
+    -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14,
+    15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, -1, -1, -1, -1, -1,
+    -1, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40,
+    41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, -1, -1, -1, -1, -1
   };
   int olen = input_len;
   unsigned char *out = malloc (olen);
@@ -940,7 +1003,8 @@ util_base64_decode (const unsigned char *input, size_t input_len,
       if (input[0] > 127 || b64val[input[0]] == -1
 	  || input[1] > 127 || b64val[input[1]] == -1
 	  || input[2] > 127 || ((input[2] != '=') && (b64val[input[2]] == -1))
-	  || input[3] > 127 || ((input[3] != '=') && (b64val[input[3]] == -1)))
+	  || input[3] > 127 || ((input[3] != '=')
+				&& (b64val[input[3]] == -1)))
 	return -1;
       *out++ = (b64val[input[0]] << 2) | (b64val[input[1]] >> 4);
       if (input[2] != '=')
@@ -968,7 +1032,7 @@ util_localname ()
       int name_len = 256;
       int status = 1;
       struct hostent *hp;
-      
+
       name = malloc (name_len);
       while (name
 	     && (status = gethostname (name, name_len)) == 0
@@ -981,19 +1045,19 @@ util_localname ()
 	{
 	  syslog (LOG_CRIT, _("Can't find out my own hostname"));
 	  exit (1);
-        }
+	}
 
       hp = gethostbyname (name);
       if (hp)
 	{
 	  struct in_addr inaddr;
-	  inaddr.s_addr = *(unsigned int*)hp->h_addr;
-	  hp = gethostbyaddr ((const char *)&inaddr,
+	  inaddr.s_addr = *(unsigned int *) hp->h_addr;
+	  hp = gethostbyaddr ((const char *) &inaddr,
 			      sizeof (struct in_addr), AF_INET);
 	  if (hp)
 	    {
 	      free (name);
-	      name = strdup ((char *)hp->h_name);
+	      name = strdup ((char *) hp->h_name);
 	    }
 	}
       localname = name;
@@ -1009,7 +1073,7 @@ util_wcard_match (const char *string, const char *pattern, const char *delim)
   const char *p = pattern, *n = string;
   char c;
 
-  for (;(c = *p++) != '\0' && *n; n++)
+  for (; (c = *p++) != '\0' && *n; n++)
     {
       switch (c)
 	{
@@ -1071,3 +1135,48 @@ util_uidvalidity (mailbox_t smbox, unsigned long *uidvp)
     smbox = mbox;
   return mailbox_uidvalidity (smbox, uidvp);
 }
+
+
+void
+util_setio (int infile, int outfile)
+{
+  ifile = fdopen (infile, "r");
+  ofile = fdopen (outfile, "w");
+  if (!ofile || !ifile)
+    imap4d_bye (ERR_NO_OFILE);
+
+  setvbuf (ofile, NULL, _IOLBF, 0);
+}
+
+void
+util_flush_output ()
+{
+  if (!tls_done)
+    fflush (ofile);
+}
+
+FILE *
+util_is_ofile ()
+{
+  return ofile;
+}
+
+#ifdef WITH_TLS
+
+int
+imap4d_init_tls_server ()
+{
+  sfile =
+    (gnutls_session) mu_init_tls_server (fileno (ifile), fileno (ofile));
+  if (!sfile)
+    return 0;
+  return 1;
+}
+
+void
+imap4d_deinit_tls_server ()
+{
+  mu_deinit_tls_server (sfile);
+}
+
+#endif /* WITH_TLS */
