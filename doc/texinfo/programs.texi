@@ -3337,6 +3337,31 @@ $HOME/.mailcap:/usr/local/etc/mailcap:\
   The following table summarizes options specific for @command{mimeview}:
 
 @table @option
+@item -a[@var{type-list}]
+@itemx --no-ask[=@var{type-list}]
+By default @command{mimeview} asks for comnfirmation before running
+interpreter to view a message. If this option is used without
+argument, it disables the default behavior for all message
+types. Otherwise, if argument @var{type-list} is given, it specifies
+a comma-separated list of MIME types for which no questions should be
+asked. Elements of this list may include shell-style globbing
+patterns, e.g. setting
+
+@smallexample
+--no-ask='text/*,image/jpeg'
+@end smallexample
+
+@noindent
+will disable prompting before displaying any textual files, no
+matter what their subtype is, and before displaying files with
+type @samp{image/jpeg}.
+
+  Notice, that when the long form is used, its argument
+must be separated from the option by a single equal sign, as shown
+in the example above. When the short form (@option{-a}) is used, its argument
+must follow the option immediately, without any intervening whitespace,
+e.g. @option{-a'text/*'}). 
+
 @item -d[@var{flags}]
 @itemx --debug[=@var{flags}]
 Enables debugging output. @var{Flags} is a sequence of characters
@@ -3372,6 +3397,28 @@ If @var{flags} are not given, the default @samp{9} is assumed.
 Run @command{metamail} to display files, instead of using the internal
 mechanisms. If @var{file} is specified, it is taken as
 @command{metamail} command line.
+
+@item -h
+@itemx --no-interactive
+@itemx --print
+This options tells @command{mimeview} that it should run in
+non-interactive mode. In this mode prompting is disabled, and
+the normal mailcap @code{command} field is not executed. Instead
+@command{mimeview} will execute the command specified in
+the @code{print} field. If there is nothing in the print field,
+the mailcap entry is ignored and the search continues for a matching
+mailcap entry that does have a @code{print} field.
+
+Notice, that unlike in @command{metamail -h}, this option does
+not force @command{mimeview} to send the output to the printer
+daemon.
+
+When used with @option{--metamail} option, this option passes
+@option{-h} flag to the invocation of @command{metamail}.
+
+By default @command{mimeview} behaves as if given
+@option{--no-interactive} option whenever its standard input is not
+a @asis{tty} device.
 
 @item -n
 @itemx --dry-run
