@@ -1,3 +1,19 @@
+2002-09-26  Sergey Poznyakoff
+
+	* mail/mail.h (struct compose_env): Changed structure. Renamed
+	  to compose_env_t.
+	  (compose_init, compose_header_set, compose_header_get,
+	   compose_destroy): New functions.
+	   
+	* mail/send.c: Likewise. Use new compose functions.   
+	* mail/followup.c: Use new compose functions.
+	* mail/reply.c: Likewise.
+	* mail/util.c (util_msglist_esccmd): Declaration updated.
+
+	* mail/var.c: Implemented "editheader" variable.
+	* mh/Makefile.am (install-exec-hook): Remove "folders" before
+	  linking "folder" to it.
+	
 2002-09-25  Sergey Poznyakoff
 
 	* mailbox/mutil.c: Fixed typo in #if directive.
