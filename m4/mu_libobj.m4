@@ -32,8 +32,17 @@ AC_DEFUN(MU_CHECK_FUNCS,[
 
 AC_SUBST(GNU_INCLS)
 AC_DEFUN(MU_HEADER,[
- mu_header_list="$mu_header_list include/mailutils/gnu/$1:headers/$1"
- GNU_INCLS="$GNU_INCLS $1"
+ pushdef([mu_upcase],translit($1,[a-z-],[A-Z_]))
+ pushdef([mu_cache_var],[mu_cv_header_]translit($1,[-./],[___]))
+
+ if test x"[$]mu_cache_var" != xyes; then
+   mu_header_list="$mu_header_list include/mailutils/gnu/$1:headers/$1"
+   GNU_INCLS="$GNU_INCLS $1"
+   mu_cache_var=yes
+ fi
+
+ popdef([mu_upcase])
+ popdef([mu_cache_var])
 ])
 
 AC_DEFUN(MU_FINISH_LINKS,[
