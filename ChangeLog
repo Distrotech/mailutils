@@ -1,5 +1,6 @@
 2002-03-01 Sam Roberts
 
+	* mailbox/mbx_mboxscan.c: Check return value of locker_lock().
 	* Makefile.am, configure.in: Added dotlock.
 	* mailbox/: mbx_mbox.c, mbx_mboxscan.c, mbx_mh.c: locker API
 	  modified.  using mu_errstring() instead of strerror().
