@@ -33,17 +33,17 @@ extern "C" {
 struct _attribute;
 typedef struct _attribute * attribute_t;
 
-#define MU_ATTRIBUTE_ANSWERED 0x0001
-#define MU_ATTRIBUTE_FLAGGED  0x0002
-#define MU_ATTRIBUTE_DELETED  0x0004
-#define MU_ATTRIBUTE_DRAFT    0x0008
-#define MU_ATTRIBUTE_SEEN     0x0010
-#define MU_ATTRIBUTE_READ     0x0020
-#define MU_ATTRIBUTE_MODIFIED 0x1000
-#define MU_ATTRIBUTE_RECENT   0x0000
+#define MU_ATTRIBUTE_ANSWERED 0x00001
+#define MU_ATTRIBUTE_FLAGGED  0x00002
+#define MU_ATTRIBUTE_DELETED  0x00004
+#define MU_ATTRIBUTE_DRAFT    0x00008
+#define MU_ATTRIBUTE_SEEN     0x00010
+#define MU_ATTRIBUTE_READ     0x00020
+#define MU_ATTRIBUTE_MODIFIED 0x10000
+#define MU_ATTRIBUTE_RECENT   0x00000
 
 extern int  attribute_ref             __P ((attribute_t));
-extern void attribute_destroy        __P ((attribute_t *));
+extern void attribute_destroy         __P ((attribute_t *));
 
 extern int  attribute_is_seen         __P ((attribute_t));
 extern int  attribute_is_answered     __P ((attribute_t));

@@ -15,45 +15,29 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-#ifndef _MAILUTILS_SYS_ATTRIBUTE_H
-# define _MAILUTILS_SYS_ATTRIBUTE_H
-
-#ifdef DMALLOC
-#  include <dmalloc.h>
+#ifdef HAVE_CONFIG_H
+# include <config.h>
 #endif
 
-#include <mailutils/attribute.h>
+#include <mailutils/error.h>
+#include <mailutils/sys/mbox.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#ifndef __P
-# ifdef __STDC__
-#  define __P(args) args
-# else
-#  define __P(args) ()
-# endif
-#endif /*__P */
-
-struct _attribute_vtable
+int
+mbox_get_uidnext (mbox_t mbox, unsigned long *puidnext)
 {
-  int  (*ref)       __P ((attribute_t));
-  void (*destroy)   __P ((attribute_t *));
 
-  int  (*get_flags)   __P ((attribute_t, int *));
-  int  (*set_flags)   __P ((attribute_t, int));
-  int  (*unset_flags) __P ((attribute_t, int));
-  int  (*clear_flags) __P ((attribute_t));
-};
+  if (mbox == NULL || puidnext == NULL)
+    return MU_ERROR_INVALID_PARAMETER;
 
-struct _attribute
-{
-  struct _attribute_vtable *vtable;
-};
+  /* If we did not start a scanning yet do it now or
+     the mailbox as change on disk.  */
+  if (mbox->messages_count == 0)
+    {
+      int status = mbox_scan (mbox, 0, NULL, 0);
+      if (status != 0)
+        return status;
+    }
 
-#ifdef __cplusplus
+  *puidnext = mbox->uidnext;
+  return 0;
 }
-#endif
-
-#endif /* _MAILUTILS_SYS_ATTRIBUTE_H */

@@ -15,45 +15,33 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-#ifndef _MAILUTILS_SYS_ATTRIBUTE_H
-# define _MAILUTILS_SYS_ATTRIBUTE_H
-
-#ifdef DMALLOC
-#  include <dmalloc.h>
+#ifdef HAVE_CONFIG_H
+# include <config.h>
 #endif
 
-#include <mailutils/attribute.h>
+#include <sys/stat.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include <mailutils/error.h>
+#include <mailutils/sys/mbox.h>
 
-#ifndef __P
-# ifdef __STDC__
-#  define __P(args) args
-# else
-#  define __P(args) ()
-# endif
-#endif /*__P */
-
-struct _attribute_vtable
+int
+mbox_changed_on_disk (mbox_t mbox)
 {
-  int  (*ref)       __P ((attribute_t));
-  void (*destroy)   __P ((attribute_t *));
-
-  int  (*get_flags)   __P ((attribute_t, int *));
-  int  (*set_flags)   __P ((attribute_t, int));
-  int  (*unset_flags) __P ((attribute_t, int));
-  int  (*clear_flags) __P ((attribute_t));
-};
-
-struct _attribute
-{
-  struct _attribute_vtable *vtable;
-};
-
-#ifdef __cplusplus
+  int changed = 0;
+  /* Check if the mtime stamp changed, random modifications can give
+     us back the same size.  */
+  if (mbox->carrier)
+    {
+      int fd = -1;
+      if (stream_get_fd (mbox->carrier, &fd) == 0)
+	{
+	  struct stat statbuf;
+	  if (fstat (fd, &statbuf) == 0)
+	    {
+	      if (difftime (mbox->mtime, statbuf.st_mtime) != 0)
+		changed = 1;
+	    }
+	}
+    }
+  return changed;
 }
-#endif
-
-#endif /* _MAILUTILS_SYS_ATTRIBUTE_H */

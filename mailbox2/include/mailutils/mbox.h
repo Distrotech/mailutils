@@ -37,8 +37,8 @@ struct _mbox;
 typedef struct _mbox *mbox_t;
 
 
-extern int  mbox_create          __P ((mbox_t *));
-extern void mbox_destroy         __P ((mbox_t *));
+extern int  mbox_create __P ((mbox_t *));
+extern void mbox_destroy __P ((mbox_t *));
 
 extern int  mbox_get_uidvalidity __P ((mbox_t, unsigned long *));
 extern int  mbox_get_uidnext     __P ((mbox_t, unsigned long *));
@@ -62,31 +62,39 @@ extern int  mbox_set_bstream     __P ((mbox_t, unsigned int, stream_t));
 extern int  mbox_get_bsize       __P ((mbox_t, unsigned int, unsigned int *));
 extern int  mbox_get_blines      __P ((mbox_t, unsigned int, unsigned int *));
 
-extern int  mbox_get_size        __P ((mbox_t, unsigned long *));
+extern int  mbox_get_size        __P ((mbox_t, off_t *));
 
 extern int  mbox_save_attributes __P ((mbox_t));
 extern int  mbox_mark_deleted    __P ((mbox_t, unsigned int));
 extern int  mbox_unmark_deleted  __P ((mbox_t, unsigned int));
-extern int  mbox_expunge         __P ((mbox_t));
+extern int  mbox_expunge         __P ((mbox_t, int));
 extern int  mbox_changed_on_disk __P ((mbox_t));
 
 extern int  mbox_set_progress_cb __P ((mbox_t, int (*) __P ((int, void *)), void *));
-extern int  mbox_set_newmsg_cb   __P ((mbox_t, int (*) __P ((int, void *)), void *));
-extern int  mbox_newmsg_cb       __P ((mbox_t, int));
-extern int  mbox_progress_cb     __P ((mbox_t, int));
+extern int  mbox_set_newmsg_cb __P ((mbox_t, int (*) __P ((int, void *)), void *));
+extern int  mbox_newmsg_cb     __P ((mbox_t, int));
+extern int  mbox_progress_cb   __P ((mbox_t, int));
 
-extern int  mbox_scan            __P ((mbox_t, unsigned int, unsigned int *, int));
-extern int  mbox_messages_count  __P ((mbox_t, unsigned int *));
+extern int  mbox_scan __P ((mbox_t, unsigned int, unsigned int *, int));
+extern int  mbox_messages_count __P ((mbox_t, unsigned int *));
 
-extern int  mbox_append          __P ((mbox_t, const char *, stream_t));
-extern int  mbox_append_hb       __P ((mbox_t, const char *, stream_t, stream_t));
+extern int  mbox_append         __P ((mbox_t, const char *, stream_t));
+extern int  mbox_append_hb __P ((mbox_t, const char *, stream_t, stream_t));
 
-extern int  mbox_get_carrier     __P ((mbox_t, stream_t *));
-extern int  mbox_set_carrier     __P ((mbox_t, stream_t));
+extern int  mbox_get_carrier __P ((mbox_t, stream_t *));
+extern int  mbox_set_carrier __P ((mbox_t, stream_t));
 
-extern int  mbox_set_hcache       __P ((mbox_t, char **, unsigned int));
-extern int  mbox_hcache_get_value __P ((mbox_t, const char *, char *, size_t,
-					size_t *));
+extern int  mbox_set_hcache  __P ((mbox_t, const char **, size_t));
+extern int  mbox_set_hcache_default  __P ((mbox_t));
+extern void mbox_hcache_free __P ((mbox_t, unsigned int));
+extern int  mbox_hcache_append __P ((mbox_t, unsigned int, const char *,
+				     const char *));
+
+extern int  mbox_header_get_value __P ((mbox_t, unsigned int, const char *,
+					char *, size_t, size_t *));
+
+extern int  stream_mbox_create __P ((stream_t *, mbox_t, unsigned int, int));
+extern int  attribute_mbox_create __P ((attribute_t *, mbox_t, unsigned int));
 
 #ifdef __cplusplus
 }

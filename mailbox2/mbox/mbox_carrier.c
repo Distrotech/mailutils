@@ -15,45 +15,42 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-#ifndef _MAILUTILS_SYS_ATTRIBUTE_H
-# define _MAILUTILS_SYS_ATTRIBUTE_H
-
-#ifdef DMALLOC
-#  include <dmalloc.h>
+#ifdef HAVE_CONFIG_H
+# include <config.h>
 #endif
 
-#include <mailutils/attribute.h>
+#include <stdlib.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include <mailutils/error.h>
+#include <mailutils/sys/mbox.h>
 
-#ifndef __P
-# ifdef __STDC__
-#  define __P(args) args
-# else
-#  define __P(args) ()
-# endif
-#endif /*__P */
-
-struct _attribute_vtable
+int
+mbox_set_carrier (mbox_t mbox, stream_t carrier)
 {
-  int  (*ref)       __P ((attribute_t));
-  void (*destroy)   __P ((attribute_t *));
+  if (mbox == NULL)
+    return MU_ERROR_INVALID_PARAMETER;
 
-  int  (*get_flags)   __P ((attribute_t, int *));
-  int  (*set_flags)   __P ((attribute_t, int));
-  int  (*unset_flags) __P ((attribute_t, int));
-  int  (*clear_flags) __P ((attribute_t));
-};
-
-struct _attribute
-{
-  struct _attribute_vtable *vtable;
-};
-
-#ifdef __cplusplus
+  if (mbox->carrier)
+    {
+      stream_close (mbox->carrier);
+      stream_destroy (&mbox->carrier);
+    }
+  mbox->carrier = carrier;
+  return 0;
 }
-#endif
 
-#endif /* _MAILUTILS_SYS_ATTRIBUTE_H */
+int
+mbox_get_carrier (mbox_t mbox, stream_t *pcarrier)
+{
+  if (mbox == NULL || pcarrier == NULL)
+    return MU_ERROR_INVALID_PARAMETER;
+
+  if (mbox->carrier == NULL)
+    {
+      int status = stream_file_create (&mbox->carrier);
+      if (status != 0)
+	return status;
+    }
+  *pcarrier = mbox->carrier;
+  return 0;
+}

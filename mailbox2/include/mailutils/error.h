@@ -19,7 +19,6 @@
 #define _MAILUTILS_ERROR_H
 
 #include <errno.h>
-#include <stdarg.h>
 
 #ifndef __P
 #ifdef __STDC__
@@ -33,7 +32,7 @@
 extern "C" {
 #endif
 
-  /* When Possible use the platform error for our needs.  */
+/* When Possible use the platform error for our needs.  */
 #ifndef MU_ERROR_RANGE
 # define MU_ERROR_RANGE 600
 #endif
@@ -119,10 +118,30 @@ extern "C" {
 # define MU_ERROR_OPERATION_CANCELED (MU_ERROR_RANGE + 13)
 #endif
 
-typedef int (*error_pfn_t) __P ((const char *fmt, va_list ap));
+#if defined (EBADF)
+# define MU_ERROR_FD_INVALID EBADF
+#else
+# define MU_ERROR_FD_INVALID (MU_ERROR_RANGE + 14)
+#endif
 
-extern int mu_error __P ((const char *fmt, ...));
-extern void mu_error_set_print __P ((error_pfn_t));
+#if defined (ENOENT)
+# define MU_ERROR_ENTRY_NOT_EXIST ENOENT
+#else
+# define MU_ERROR_ENTRY_NOT_EXIST (MU_ERROR_RANGE + 15)
+#endif
+
+#if defined (EEXIST)
+# define MU_ERROR_ENTRY_EXIST EEXIST
+#else
+# define MU_ERROR_ENTRY_EXIST (MU_ERROR_RANGE + 16)
+#endif
+
+#if defined (ENOTDIR)
+# define MU_ERROR_NO_DIRECTORY ENOTDIR
+#else
+# define MU_ERROR_NO_DIRECTORY (MU_ERROR_RANGE + 17)
+#endif
+
 
 #ifdef __cplusplus
 }

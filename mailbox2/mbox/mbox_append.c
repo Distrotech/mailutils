@@ -15,45 +15,41 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-#ifndef _MAILUTILS_SYS_ATTRIBUTE_H
-# define _MAILUTILS_SYS_ATTRIBUTE_H
-
-#ifdef DMALLOC
-#  include <dmalloc.h>
+#ifdef HAVE_CONFIG_H
+# include <config.h>
 #endif
 
-#include <mailutils/attribute.h>
+#include <stdlib.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include <mailutils/error.h>
+#include <mailutils/sys/mbox.h>
 
-#ifndef __P
-# ifdef __STDC__
-#  define __P(args) args
-# else
-#  define __P(args) ()
-# endif
-#endif /*__P */
+/* Save the uidvalidity
+   - if it is an empty mbox in the first message append
+   - if for the first message the uidvalidity is not the same
+   from the mbox->uidvalidity.
 
-struct _attribute_vtable
+   - strip X-IMAPBASE, X-UID
+   - add X-UID base on mbox->uidnext.
+
+   - mangle any leading "From " in the body to ">From "
+*/
+
+int
+mbox_append (mbox_t mbox, const char *sep, stream_t stream)
 {
-  int  (*ref)       __P ((attribute_t));
-  void (*destroy)   __P ((attribute_t *));
-
-  int  (*get_flags)   __P ((attribute_t, int *));
-  int  (*set_flags)   __P ((attribute_t, int));
-  int  (*unset_flags) __P ((attribute_t, int));
-  int  (*clear_flags) __P ((attribute_t));
-};
-
-struct _attribute
-{
-  struct _attribute_vtable *vtable;
-};
-
-#ifdef __cplusplus
+  if (mbox == NULL || stream == NULL)
+    return MU_ERROR_INVALID_PARAMETER;
+  (void)sep;
+  return 0;
 }
-#endif
 
-#endif /* _MAILUTILS_SYS_ATTRIBUTE_H */
+int
+mbox_append_hb (mbox_t mbox, const char *sep, stream_t hstream,
+		stream_t bstream)
+{
+  if (mbox == NULL || hstream == NULL || bstream == NULL)
+    return MU_ERROR_INVALID_PARAMETER;
+  (void)sep;
+  return 0;
+}

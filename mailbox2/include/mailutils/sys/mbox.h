@@ -28,6 +28,12 @@ extern "C" {
 
 typedef struct _mbox_message* mbox_message_t;
 
+struct _hcache
+{
+  char **values;
+  size_t size;
+};
+
 /* The umessages is an array of pointers that contains umessages_count of
    mbox_message_t*; umessages[umessages_count].  We do it this way because
    realloc() can move everything to a new memory region and invalidate all
@@ -47,6 +53,8 @@ struct _mbox
   unsigned long uidvalidity;
   size_t uidnext;
   char *filename;
+
+  struct _hcache hcache;
 
   /* The variables below are use to hold the state when appending messages.  */
   enum mbox_state
@@ -70,11 +78,12 @@ struct _mbox_message
 {
   /* Offset of the messages in the mailbox.  */
   off_t from_;
+  char *separator;
 
   /* Fast header retrieve, we save here the most common headers. This will
      speed the header search.  The entire headers are copied, when modified,
      by the header_t object, we do not have to worry about updating them.  */
-  char **fhdr;
+  struct _hcache hcache;
 
   struct
   {
@@ -89,8 +98,6 @@ struct _mbox_message
   unsigned long uid;
   unsigned int attr_flags;
   attribute_t attribute; /* The attr_flags contains the "Status:" attribute  */
-
-  mbox_t mbox; /* Back pointer.  */
 };
 
 #ifdef __cplusplus

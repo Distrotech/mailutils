@@ -1,3 +1,11 @@
+2001-09-23 Alain Magloire
+
+	First draft of the mailbox/mbox2.  Not functional.
+	Changes are too numerous to enumarate.
+
+	* mailbox2/mbox/*.[ch]: First mbox implementation.
+	* mailbox2/mbox/Makefile.am: New file.
+
 2001-09-22 Alain Magloire
 
 	In order to provide inheritance, it is necessary to make
