@@ -66,7 +66,7 @@ and use them in mail.remote.
 ** support AUTH=anonymous (imap://cyrus.andrew.cmu.edu/archive.info-cyrus)
 
 ** the POP mailer must use the CAPA command to determine any protocol
-   extension; support for the STLS would be great.
+   extension (mostly done); support for the STLS would be great.
 
 ** the IMAP mailer must use the CAPABILITY command... likewise;
    support the STARTTLS.
