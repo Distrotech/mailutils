@@ -18,6 +18,8 @@
 /* MH reply command */
 
 #include <mh.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
 const char *argp_program_version = "reply (" PACKAGE_STRING ")";
 static char doc[] = "GNU MH reply";
@@ -62,6 +64,7 @@ static struct argp_option options[] = {
   {"width", 'w', N_("NUMBER"), 0, N_("Set output width")},
   {"whatnowproc", ARG_WHATNOWPROC, N_("PROG"), 0,
    N_("Set the replacement for whatnow program")},
+  {"use", 'u', NULL, 0, N_("Use draft file preserved after the last session") },
   { N_("\nUse -help switch to obtain the list of traditional MH options. "), 0, 0, OPTION_DOC, "" },
   { 0 }
 };
@@ -108,6 +111,7 @@ static mh_msgset_t msgset;
 static mailbox_t mbox;
 static int build_only = 0; /* --build flag */
 static int query_mode = 0; /* --query flag */
+static int use_draft = 0;  /* --use flag */
 
 static int
 decode_cc_flag (const char *opt, const char *arg)
@@ -163,6 +167,10 @@ opt_handler (int key, char *arg, void *unused)
     case 'm':
       wh_env.draftmessage = arg;
       break;
+
+    case 'u':
+      use_draft++;
+      break;
       
     case 'w':
       width = strtoul (arg, NULL, 0);
@@ -204,18 +212,37 @@ make_draft ()
 {
   int rc;
   message_t msg;
-  FILE *fp;
-  char buffer[1024];
-#define bufsize sizeof(buffer)
-
-  /* FIXME: first check if the draft exists */
-  fp = fopen (wh_env.file, "w+");
-  if (!fp)
+  int disp = DISP_REPLACE;
+  struct stat st;
+  
+  /* First check if the draft exists */
+  if (stat (wh_env.draftfile, &st) == 0)
     {
-      mh_error (_("cannot open draft file %s: %s"),
-		wh_env.file, strerror (errno));
-      exit (1);
+      if (use_draft)
+	disp = DISP_USE;
+      else
+	{
+	  printf (_("Draft \"%s\" exists (%lu bytes).\n"),
+		  wh_env.draftfile, (unsigned long) st.st_size);
+	  disp = mh_disposition (wh_env.draftfile);
+	}
     }
+
+  switch (disp)
+    {
+    case DISP_QUIT:
+      exit (0);
+
+    case DISP_USE:
+      unlink (wh_env.file);
+      rename (wh_env.draftfile, wh_env.file);
+      break;
+	  
+    case DISP_REPLACE:
+      unlink (wh_env.draftfile);
+      break;  
+    }
+
   
   rc = mailbox_get_message (mbox, msgset.list[0], &msg);
   if (rc)
@@ -225,10 +252,23 @@ make_draft ()
 		mu_errstring (rc));
       exit (1);
     }
-  
-  mh_format (&format, msg, msgset.list[0], buffer, bufsize);
-  fprintf (fp, "%s", buffer);
-  fclose (fp);
+
+  if (disp == DISP_REPLACE)
+    {
+      FILE *fp = fopen (wh_env.file, "w+");
+      char buffer[1024];
+#define bufsize sizeof(buffer)
+
+      if (!fp)
+	{
+	  mh_error (_("cannot open draft file %s: %s"),
+		    wh_env.file, strerror (errno));
+	  exit (1);
+	}
+      mh_format (&format, msg, msgset.list[0], buffer, bufsize);
+      fprintf (fp, "%s", buffer);
+      fclose (fp);
+    }
 
   {
     url_t url;
@@ -278,7 +318,8 @@ main (int argc, char **argv)
     }
   
   wh_env.file = mh_expand_name (wh_env.draftfolder, "reply", 0);
-  
+  wh_env.draftfile = mh_expand_name (wh_env.draftfolder, "draft", 0);
+
   make_draft ();
 
   /* Exit immediately if --build is given */
