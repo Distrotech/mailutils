@@ -35,61 +35,33 @@ extern "C" {
 struct _url
 {
   /* Data */
+  char *name;
   char  *scheme;
   char  *user;
   char  *passwd; /* encoded ?? */
+  char  *auth;
   char  *host;
   long  port;
   char  *path;
   char  *query;
-  int   id;
 
 
   void  *data;
 
-  int   (*_create)        __P ((url_t *url, const char *name));
-  void  (*_destroy)     __P ((url_t *url));
+  int   (*_init)       __P ((url_t url));
+  void  (*_destroy)    __P ((url_t url));
 
   /* Methods */
-  int   (*_get_id)      __P ((const url_t, int *id));
-
-  int   (*_get_scheme)  __P ((const url_t, char *scheme,
-			      size_t len, size_t *n));
-
-  int   (*_get_user)    __P ((const url_t, char *user,
-			      size_t len, size_t *n));
-
-  int   (*_get_passwd)  __P ((const url_t, char *passwd,
-			      size_t len, size_t *n));
-
-  int   (*_get_host)    __P ((const url_t, char *host,
-			      size_t len, size_t *n));
-
-  int   (*_get_port)    __P ((const url_t, long *port));
-
-  int   (*_get_path)    __P ((const url_t, char *path,
-			      size_t len, size_t *n));
-
-  int   (*_get_query)   __P ((const url_t, char *query,
-			      size_t len, size_t *n));
+  int   (*_get_scheme) __P ((const url_t, char *, size_t, size_t *));
+  int   (*_get_user)   __P ((const url_t, char *, size_t, size_t *));
+  int   (*_get_passwd) __P ((const url_t, char *, size_t, size_t *));
+  int   (*_get_auth)   __P ((const url_t, char *, size_t, size_t *));
+  int   (*_get_host)   __P ((const url_t, char *, size_t, size_t *));
+  int   (*_get_port)   __P ((const url_t, long *));
+  int   (*_get_path)   __P ((const url_t, char *, size_t, size_t *));
+  int   (*_get_query)  __P ((const url_t, char *, size_t, size_t *));
 };
 
-
-/* IMAP */
-
-/* Mailto */
-
-/* UNIX MBOX */
-
-/* Maildir */
-
-/* MMDF */
-
-/* POP3 */
-
-#define MU_POP_PORT 110
-
-/* UNIX MBOX */
 
 #ifdef __cplusplus
 }

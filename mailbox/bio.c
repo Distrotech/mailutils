@@ -14,6 +14,9 @@
    You should have received a copy of the GNU Library General Public License
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
+#ifdef HAVE_CONFIG_H
+# include <config.h>
+#endif
 
 #include <sys/types.h>
 #include <stdlib.h>
@@ -187,7 +190,7 @@ bio_write (bio_t bio, const char *ptr, size_t n, size_t *pnwriten)
 int
 bio_readline (bio_t bio, char *ptr, size_t maxlen, size_t *pwriten)
 {
-  int rc = 0;
+  size_t rc = 0;
   size_t n = 0;
   int err;
   char c;

@@ -15,9 +15,9 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-
-#include <stream0.h>
-#include <message0.h>
+#ifdef HAVE_CONFIG_H
+# include <config.h>
+#endif
 
 #include <errno.h>
 #include <stdio.h>
@@ -28,9 +28,10 @@
 #include <string.h>
 #include <ctype.h>
 
-/* FIXME: This should be part of the address_t object when implemented.  */
-static int extract_addr(const char *s, size_t n, char **presult,
-		       size_t *pnwrite);
+#include <mailutils/stream.h>
+#include <misc.h>
+#include <message0.h>
+
 static int message_read (stream_t is, char *buf, size_t buflen,
 			 off_t off, size_t *pnread );
 static int message_write (stream_t os, const char *buf, size_t buflen,
@@ -64,33 +65,25 @@ message_destroy (message_t *pmsg, void *owner)
 	{
 	  /* Notify the listeners.  */
 	  /* FIXME: to be removed since we do not supoort this event.  */
-	  if (msg->event_num)
+	  if (msg->observable)
 	    {
-	      message_notification (msg, MU_EVT_MSG_DESTROY);
-	      free (msg->event);
+	      observable_notify (msg->observable, MU_EVT_MESSAGE_DESTROY);
+	      observable_destroy (&(msg->observable), msg);
 	    }
 
 	  /* Header.  */
-	  if (msg->header)
-	    header_destroy (&(msg->header), owner);
 	  if (msg->header)
 	    header_destroy (&(msg->header), msg);
 
 	  /* Attribute.  */
 	  if (msg->attribute)
-	    attribute_destroy (&(msg->attribute), owner);
-	  if (msg->attribute)
 	    attribute_destroy (&(msg->attribute), msg);
 
 	  /* Stream.  */
 	  if (msg->stream)
-	    stream_destroy (&(msg->stream), owner);
-	  if (msg->stream)
 	    stream_destroy (&(msg->stream), msg);
 
 	  /* Body.  */
-	  if (msg->body)
-	    body_destroy (&(msg->body), owner);
 	  if (msg->body)
 	    body_destroy (&(msg->body), msg);
 
@@ -103,6 +96,12 @@ message_destroy (message_t *pmsg, void *owner)
       /* Loose the link */
       *pmsg = NULL;
     }
+}
+
+void *
+message_get_owner (message_t msg)
+{
+  return (msg == NULL) ? NULL : msg->owner;
 }
 
 int
@@ -198,7 +197,7 @@ message_get_stream (message_t msg, stream_t *pstream)
       stream_set_read (stream, message_read, msg);
       stream_set_write (stream, message_write, msg);
       stream_set_fd (stream, message_get_fd, msg);
-      stream_set_flags (stream, MU_STREAM_RDWR, msg);
+      stream_set_flags (stream, MU_STREAM_RDWR);
       msg->stream = stream;
     }
 
@@ -222,6 +221,8 @@ int
 message_lines (message_t msg, size_t *plines)
 {
   size_t hlines, blines;
+  int ret = 0;
+
   if (msg == NULL)
     return EINVAL;
   /* Overload.  */
@@ -230,11 +231,11 @@ message_lines (message_t msg, size_t *plines)
   if (plines)
     {
       hlines = blines = 0;
-      header_lines (msg->header, &hlines);
-      body_lines (msg->body, &blines);
+      if ( ( ret = header_lines (msg->header, &hlines) ) == 0 )
+	      ret = body_lines (msg->body, &blines);
       *plines = hlines + blines;
     }
-  return 0;
+  return ret;
 }
 
 int
@@ -253,6 +254,8 @@ int
 message_size (message_t msg, size_t *psize)
 {
   size_t hsize, bsize;
+	int ret = 0;
+
   if (msg == NULL)
     return EINVAL;
   /* Overload ? */
@@ -261,11 +264,11 @@ message_size (message_t msg, size_t *psize)
   if (psize)
     {
       hsize = bsize = 0;
-      header_size (msg->header, &hsize);
-      body_size (msg->body, &bsize);
+      if ( ( ret = header_size (msg->header, &hsize) ) == 0 )
+		ret = body_size (msg->body, &bsize);
       *psize = hsize + bsize;
     }
-  return 0;
+  return ret;
 }
 
 int
@@ -300,12 +303,22 @@ message_from (message_t msg, char *buf, size_t len, size_t *pnwrite)
   status = header_get_value (header, MU_HEADER_FROM, NULL, 0, &n);
   if (status == 0 && n != 0)
     {
-      char *from = calloc (1, n + 1);
+      char *from;
       char *addr;
-      header_get_value (header, MU_HEADER_FROM, from, n + 1, NULL);
-      if (extract_addr (from, n, &addr, &n) == 0)
+      from = calloc (1, n + 1);
+      if (from == NULL)
+	return ENOMEM;
+      addr = calloc (1, n + 1);
+      if (addr == NULL)
 	{
-	  n = (n > len) ? len : n;
+	  free (from);
+	  return ENOMEM;
+	}
+      header_get_value (header, MU_HEADER_FROM, from, n + 1, NULL);
+      if (parseaddr (from, addr, n + 1) == 0)
+	{
+	  size_t i = strlen (addr);
+	  n = (i > len) ? len : i;
 	  if (buf && len > 0)
 	    {
 	      memcpy (buf, addr, n);
@@ -563,77 +576,26 @@ message_set_get_part (message_t msg, int (*_get_part)
 }
 
 int
-message_register (message_t msg, size_t type,
-		  int (*action) (size_t typ, void *arg), void *arg)
+message_get_observable (message_t msg, observable_t *pobservable)
 {
-  event_t event;
-  size_t i;
-  if (msg == NULL || action == NULL || type == 0)
+  if (msg == NULL || pobservable == NULL)
     return EINVAL;
 
-  /* Find a free spot.  */
-  for (i = 0; i < msg->event_num; i++)
+  if (msg->observable == NULL)
     {
-      event = &(msg->event[i]);
-      if (event->_action == NULL)
-	{
-	  event->type = type;
-	  event->_action = action;
-	  event->arg = arg;
-	  return 0;
-	}
+      int status = observable_create (&(msg->observable), msg);
+      if (status != 0)
+	return status;
     }
-  event = realloc (msg->event, (msg->event_num + 1)*sizeof (*event));
-  if (event == NULL)
-      return ENOMEM;
-  msg->event = event;
-  event[msg->event_num]._action = action;
-  event[msg->event_num].type = type;
-  event[msg->event_num].arg = arg;
-  msg->event_num++;
+  *pobservable = msg->observable;
   return 0;
-}
-
-int
-message_deregister (message_t msg, void *action)
-{
-  size_t i;
-  event_t event;
-  if (msg == NULL || action == NULL)
-    return EINVAL;
-
-  for (i = 0; i < msg->event_num; i++)
-    {
-      event = &(msg->event[i]);
-      if ((int)event->_action == (int)action)
-	{
-	  event->type = 0;
-	  event->_action = NULL;
-	  event->arg = NULL;
-	  return 0;
-	}
-    }
-  return ENOENT;
-}
-
-void
-message_notification (message_t msg, size_t type)
-{
-  size_t i;
-  event_t event;
-  for (i = 0; i < msg->event_num; i++)
-    {
-      event = &(msg->event[i]);
-      if ((event->_action) &&  (event->type & type))
-        event->_action (type, event->arg);
-    }
 }
 
 static int
 message_read (stream_t is, char *buf, size_t buflen,
 	      off_t off, size_t *pnread )
 {
-  message_t msg =  is->owner;
+  message_t msg =  stream_get_owner (is);
   stream_t his, bis;
   size_t hread, hsize, bread, bsize;
 
@@ -670,11 +632,11 @@ static int
 message_write (stream_t os, const char *buf, size_t buflen,
 	       off_t off, size_t *pnwrite)
 {
-  message_t msg;
+  message_t msg = stream_get_owner (os);
   int status = 0;
   size_t bufsize = buflen;
 
-  if (os == NULL || (msg = os->owner) == NULL)
+  if (msg == NULL)
     return EINVAL;
 
   /* Skip the obvious.  */
@@ -772,11 +734,11 @@ message_write (stream_t os, const char *buf, size_t buflen,
 static int
 message_get_fd (stream_t stream, int *pfd)
 {
-  message_t msg;
+  message_t msg = stream_get_owner (stream);
   body_t body;
   stream_t is;
 
-  if (stream == NULL || (msg = stream->owner) == NULL)
+  if (msg == NULL)
     return EINVAL;
 
   /* Probably being lazy, then create a body for the stream.  */
@@ -793,73 +755,4 @@ message_get_fd (stream_t stream, int *pfd)
 
   body_get_stream (body, &is);
   return stream_get_fd (is, pfd);
-}
-
-static int
-extract_addr (const char *s, size_t n, char **presult, size_t *pnwrite)
-{
-  char *p, *p1, *p2;
-
-  if (s == NULL || n == 0 || presult == NULL)
-    return EINVAL;
-
-  /* Skip the double quotes.  */
-  p = memchr (s, '\"', n);
-  if (p != NULL)
-    {
-      p1 = memchr (s, '<', p - s);
-      p2 = memchr (s, '@', p - s);
-      if (p1 == NULL && p2 == NULL)
-        {
-          p1 = memchr (p + 1, '\"', n - ((p + 1) - s));
-          if (p1 != NULL)
-            {
-              n -= (p1 + 1) - s;
-              s = p1 + 1;
-            }
-        }
-    }
-
-  /* <name@hostname> ??  */
-  p = memchr (s, '<', n);
-  if (p != NULL)
-    {
-      p1 = memchr (p, '>', n - (p - s));
-      if (p1 != NULL && (p1 - p) > 1)
-        {
-          p2 = memchr (p, ' ', p1 - p);
-          if (p2 == NULL)
-            {
-              /* The NULL is already accounted for.  */
-              *presult = calloc (1, p1 - p);
-              if (*presult == NULL)
-                return ENOMEM;
-              memcpy (*presult, p + 1, (p1 - p) - 1);
-	      if (pnwrite)
-		*pnwrite = (p1 - p) - 1;
-              return 0;
-            }
-        }
-    }
-  /* name@domain  */
-  p = memchr (s, '@', n);
-  if (p != NULL)
-    {
-      p1 = p;
-      while (*p != ' ' && p != s)
-        p--;
-      while (*p1 != ' ' && p1 < (s + n))
-        p1++;
-      *presult = calloc (1, (p1 - p) + 1);
-      if (*presult == NULL)
-        return ENOMEM;
-      memcpy (*presult, p, p1 - p);
-      if (pnwrite)
-	*pnwrite = p1 - p;
-      return 0;
-    }
-
-  *presult = NULL;
-  return EINVAL;
-
 }

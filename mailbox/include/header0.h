@@ -19,7 +19,6 @@
 #define _HEADER0_H
 
 #include <mailutils/header.h>
-#include <stream0.h>
 #include <sys/types.h>
 
 #ifdef _cplusplus

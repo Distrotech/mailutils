@@ -15,73 +15,55 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-#include <url0.h>
-#include <mailutils/registrar.h>
+#ifdef HAVE_CONFIG_H
+# include <config.h>
+#endif
 
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
 
-static void url_pop_destroy (url_t *purl);
-static int url_pop_create (url_t *purl, const char *name);
+#include <mailutils/registrar.h>
+#include <url0.h>
 
-struct url_registrar _url_pop_registrar =
-{
-  "pop://",
-  url_pop_create, url_pop_destroy
-};
+static void url_pop_destroy (url_t url);
 
 static void
-url_pop_destroy (url_t *purl)
+url_pop_destroy (url_t url)
 {
-  if (purl && *purl)
-    {
-      url_t url = *purl;
-      free (url->scheme);
-      free (url->user);
-      free (url->passwd);
-      free (url->host);
-      free (url);
-      *purl = NULL;
-    }
+  (void)url;
 }
 
 /*
   POP URL
   pop://[<user>;AUTH=<auth>@]<host>[:<port>]
 */
-static int
-url_pop_create (url_t *purl, const char *name)
+int
+url_pop_init (url_t url)
 {
   const char *host_port, *indexe;
-  struct url_registrar *ureg = &_url_pop_registrar;
-  size_t scheme_len = strlen (ureg->scheme);
-  url_t url;
+  char *name = url->name;
 
   /* reject the obvious */
-  if (name == NULL || strncmp (ureg->scheme, name, scheme_len) != 0)
+  if (name == NULL || strncmp (MU_POP_SCHEME, name, MU_POP_SCHEME_LEN) != 0)
     return EINVAL;
 
   /* do I need to decode url encoding '% hex hex' ? */
 
-  url = calloc(1, sizeof (*url));
-  if (url == NULL)
-    return ENOMEM;
-
   /* TYPE */
-  url->_create = _url_pop_registrar._create;
-  url->_destroy = _url_pop_registrar._destroy;
+  url->_init = url_pop_init;
+  url->_destroy = url_pop_destroy;
 
   /* SCHEME */
-  url->scheme = strdup ("pop://");
+  url->scheme = strdup (MU_POP_SCHEME);
   if (url->scheme == NULL)
     {
-      url_pop_destroy (&url);
+      url_pop_destroy (url);
       return ENOMEM;
     }
 
-  name += scheme_len; /* pass the scheme */
+  name += MU_POP_SCHEME_LEN; /* pass the scheme */
 
   host_port = strchr (name, '@');
   if (host_port == NULL)
@@ -103,7 +85,7 @@ url_pop_create (url_t *purl, const char *name)
   url->user = malloc(indexe - name + 1);
   if (url->user == NULL)
     {
-      url_pop_destroy (&url);
+      url_pop_destroy (url);
       return -1;
     }
   ((char *)memcpy(url->user, name, indexe - name))[indexe - name] = '\0';
@@ -112,28 +94,28 @@ url_pop_create (url_t *purl, const char *name)
   if (indexe == host_port)
     {
       /* Use default AUTH '*' */
-      url->passwd = malloc (1 + 1);
-      if (url->passwd)
+      url->auth = malloc (1 + 1);
+      if (url->auth)
 	{
-	  url->passwd[0] = '*';
-	  url->passwd[1] = '\0';
+	  url->auth[0] = '*';
+	  url->auth[1] = '\0';
 	}
     }
   else
     {
       /* move pass AUTH= */
       indexe += 6;
-      url->passwd = malloc (host_port - indexe + 1);
-      if (url->passwd)
+      url->auth = malloc (host_port - indexe + 1);
+      if (url->auth)
 	{
-	  ((char *)memcpy (url->passwd, indexe, host_port - indexe))
+	  ((char *)memcpy (url->auth, indexe, host_port - indexe))
 	    [host_port - indexe] = '\0';
 	}
     }
 
-  if (url->passwd == NULL)
+  if (url->auth == NULL)
     {
-      url_pop_destroy (&url);
+      url_pop_destroy (url);
       return -1;
     }
 
@@ -161,7 +143,7 @@ url_pop_create (url_t *purl, const char *name)
 
   if (url->host == NULL)
     {
-      url_pop_destroy (&url);
+      url_pop_destroy (url);
       return ENOMEM;
     }
   else
@@ -172,6 +154,5 @@ url_pop_create (url_t *purl, const char *name)
 	url->host[len - 1] = '\0'; /* leak a bit */
     }
 
-  *purl = url;
   return 0;
 }

@@ -20,7 +20,10 @@
 
 #include <sys/types.h>
 #include <mailutils/mailer.h>
-
+#ifdef HAVE_PTHREAD_H
+#  define __USE_UNIX98 /* ?? */
+#  include <pthread.h>
+#endif
 #ifdef _cplusplus
 extern "C" {
 #endif
@@ -50,15 +53,31 @@ extern "C" {
 
 struct _mailer
 {
-	int			socket;
-	char 		*hostname;
-	char 		line_buf[MAILER_LINE_BUF_SIZE];
-	int			offset;
-	int			state;
-	int			add_dot;
-	stream_t	stream;
-	char		last_char;
+  stream_t stream;
+  observable_t observable;
+  debug_t debug;
+  url_t url;
+  int flags;
+#ifdef WITH_PTHREAD
+  pthread_rwlock_t rwlock;
+#endif
+
+  /* Pointer to the specific mailer data.  */
+  void *data;
+
+  /* Public methods.  */
+  int (*_init)         __P ((mailer_t));
+  void (*_destroy)     __P ((mailer_t));
+  int (*_open)         __P ((mailer_t, int flags));
+  int (*_close)        __P ((mailer_t));
+  int (*_send_message) __P ((mailer_t, const char *from, const char *rcpt,
+			     int dsn, message_t));
 };
+
+/* Mail locks.  */
+extern int mailer_rdlock __P ((mailer_t));
+extern int mailer_wrlock __P ((mailer_t));
+extern int mailer_unlock __P ((mailer_t));
 
 #ifdef _cplusplus
 }

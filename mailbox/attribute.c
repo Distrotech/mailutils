@@ -14,6 +14,9 @@
    You should have received a copy of the GNU Library General Public License
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
+#ifdef HAVE_CONFIG_H
+# include <config.h>
+#endif
 
 #include <sys/types.h>
 #include <stdlib.h>
@@ -48,6 +51,12 @@ attribute_destroy (attribute_t *pattr, void *owner)
       *pattr = NULL;
     }
   return;
+}
+
+void *
+attribute_get_owner (attribute_t attr)
+{
+  return (attr) ? attr->owner : NULL;
 }
 
 int

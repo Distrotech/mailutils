@@ -15,6 +15,10 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
+#ifdef HAVE_CONFIG_H
+# include <config.h>
+#endif
+
 #include <errno.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -64,6 +68,13 @@ stream_set_destroy (stream_t stream, void (*_destroy) (stream_t),  void *owner)
   stream->_destroy = _destroy;
   return 0;
 }
+
+void *
+stream_get_owner (stream_t stream)
+{
+  return (stream) ? stream->owner : NULL;
+}
+
 
 int
 stream_open (stream_t stream, const char *name, int port, int flags)
@@ -253,13 +264,11 @@ stream_get_flags (stream_t stream, int *pfl)
 }
 
 int
-stream_set_flags (stream_t stream, int fl, void *owner)
+stream_set_flags (stream_t stream, int fl)
 {
   if (stream == NULL)
     return EINVAL;
-  if (stream->owner != owner)
-    return EACCES;
-  stream->flags = fl;
+  stream->flags |= fl;
   return 0;
 }
 

@@ -19,56 +19,92 @@
 #include <config.h>
 #endif
 
-#include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-#include <stdarg.h>
 #include <errno.h>
 
-#include <mailbox0.h>
-#include <message0.h>
-#include <mailutils/registrar.h>
 #include <mailutils/locker.h>
+#include <mailutils/iterator.h>
+#include <mailutils/registrar.h>
+#include <misc.h>
+#include <mailbox0.h>
 
-/*
- * Point of entry.
- * Simple, first check if they ask for something specific; with the ID.
- * Then try to discover the type of mailbox with the url(name).
- * Then we call the appropriate mailbox_*type*_create() function.
- */
+/* The Mailbox Factory.
+   We create an iterator for the mailbox_register and see if any scheme
+   match, if not we check in the mailbox_manager register for a match.
+   Then we call the mailbox's >url_create() to parse the URL. Last
+   initiliaze the concrete mailbox.  */
 int
 mailbox_create (mailbox_t *pmbox, const char *name, int id)
 {
   int status = EINVAL;
-  struct mailbox_registrar *mreg;
-  url_t url = NULL;
+  record_t record = NULL;
+  mailbox_entry_t entry = NULL;
+  iterator_t iterator;
+  list_t list;
+  int found = 0;
 
+  (void)id;
   if (pmbox == NULL)
     return EINVAL;
 
-  url_create (&url, name);
-
-  /* 1st guest: if an ID is specify, shortcut */
-  if (id)
+  /* Look in the mailbox_register, for a match  */
+  registrar_get_list (&list);
+  status = iterator_create (&iterator, list);
+  if (status != 0)
+    return status;
+  for (iterator_first (iterator); !iterator_is_done (iterator);
+       iterator_next (iterator))
     {
-      status = registrar_get (id, NULL, &mreg);
-      if (status == 0)
-	status = mreg->_create (pmbox, name);
+      iterator_current (iterator, (void **)&record);
+      if (record_is_scheme (record, name))
+	{
+	  status = record_get_mailbox (record, &entry);
+	  if (status == 0)
+	    found = 1;
+	  break;
+	}
     }
-  /* 2nd fallback: Use the URL */
-  else if (url != NULL)
+  iterator_destroy (&iterator);
+
+  if (found)
     {
-      url_get_id (url, &id);
-      status = registrar_get (id, NULL, &mreg);
-      if (status == 0)
-	status = mreg->_create (pmbox, name);
+      url_t url = NULL;
+      mailbox_t mbox = NULL;
+
+      /* Allocate memory for mbox.  */
+      mbox = calloc (1, sizeof (*mbox));
+      if (mbox == NULL)
+	return ENOMEM;
+
+      /* Initialize the internal lock, now so the concrete mailbox
+	 could use it. */
+      status = RWLOCK_INIT (&(mbox->rwlock), NULL);
+      if (status != 0)
+	{
+	  mailbox_destroy (&mbox);
+	  return status;
+	}
+
+      /* Parse the url, it may be a bad one and we should bailout if this
+	 failed.  */
+      if ((status = url_create (&url, name)) != 0
+	  || (status = entry->_url_init (url)) != 0)
+	{
+	  mailbox_destroy (&mbox);
+	  return status;
+	}
+      mbox->url = url;
+
+      /* Create the concrete mailbox type.  */
+      status = entry->_mailbox_init (mbox);
+      if (status != 0)
+	{
+	  mailbox_destroy (&mbox);
+	}
+      else
+	*pmbox = mbox;
     }
 
-  /* set the URL */
-  if (status == 0)
-    (*pmbox)->url = url;
-  else
-    url_destroy (&url);
   return status;
 }
 
@@ -76,8 +112,51 @@ void
 mailbox_destroy (mailbox_t *pmbox)
 {
   if (pmbox && *pmbox)
-    (*pmbox)->_destroy (pmbox);
+    {
+      mailbox_t mbox = *pmbox;
+#ifdef WITH_PTHREAD
+      pthread_rwlock_t rwlock = mbox->rwlock;
+#endif
+
+      /* Notify the observers.  */
+      if (mbox->observable)
+	{
+	  observable_notify (mbox->observable, MU_EVT_MAILBOX_DESTROY);
+	  observable_destroy (&(mbox->observable), mbox);
+	}
+
+      /* Call the concrete mailbox.  */
+      if (mbox->_destroy)
+	mbox->_destroy (mbox);
+
+      RWLOCK_WRLOCK (&(rwlock));
+
+      /* Nuke the stream and close it */
+      if (mbox->stream)
+	{
+	  stream_close (mbox->stream);
+	  stream_destroy (&(mbox->stream), mbox);
+	}
+
+      if (mbox->authority)
+	authority_destroy (&(mbox->authority), mbox);
+
+      if (mbox->url)
+        url_destroy (&(mbox->url));
+
+      if (mbox->locker)
+	locker_destroy (&(mbox->locker));
+
+      if (mbox->debug)
+	debug_destroy (&(mbox->debug), mbox);
+
+      free (mbox);
+      *pmbox = NULL;
+      RWLOCK_UNLOCK (&(rwlock));
+      RWLOCK_DESTROY (&(rwlock));
+    }
 }
+
 
 /* -------------- stub functions ------------------- */
 
@@ -131,14 +210,6 @@ mailbox_expunge (mailbox_t mbox)
 }
 
 int
-mailbox_num_deleted (mailbox_t mbox, size_t *num)
-{
-  if (mbox == NULL || mbox->_num_deleted == NULL)
-    return ENOSYS;
-  return mbox->_num_deleted (mbox, num);
-}
-
-int
 mailbox_is_updated (mailbox_t mbox)
 {
   if (mbox == NULL || mbox->_is_updated == NULL)
@@ -185,21 +256,21 @@ mailbox_get_locker (mailbox_t mbox, locker_t *plocker)
 }
 
 int
-mailbox_set_auth (mailbox_t mbox, auth_t auth)
+mailbox_set_ticket (mailbox_t mbox, ticket_t ticket)
 {
   if (mbox == NULL)
     return EINVAL;
-  mbox->auth = auth;
+  mbox->ticket = ticket;
   return 0;
 }
 
 int
-mailbox_get_auth (mailbox_t mbox, auth_t *pauth)
+mailbox_get_ticket (mailbox_t mbox, ticket_t *pticket)
 {
-  if (mbox == NULL || pauth == NULL)
+  if (mbox == NULL || pticket == NULL)
     return EINVAL;
-  if (pauth)
-    *pauth = mbox->auth;
+  if (pticket)
+    *pticket = mbox->ticket;
   return 0;
 }
 
@@ -223,132 +294,81 @@ mailbox_get_stream (mailbox_t mbox, stream_t *pstream)
 }
 
 int
-mailbox_register (mailbox_t mbox, size_t type,
-		  int (*action) (size_t type, void *arg),
-		  void *arg)
+mailbox_get_observable (mailbox_t mbox, observable_t *pobservable)
 {
-  size_t i;
-  event_t event;
-
-  /* FIXME: I should check for invalid types */
-  if (mbox == NULL || action == NULL)
+  if (mbox == NULL  || pobservable == NULL)
     return EINVAL;
 
-  /* find a free spot */
-  for (i = 0; i < mbox->event_num; i++)
+  if (mbox->observable == NULL)
     {
-      event = &(mbox->event[i]);
-      if (event->_action == NULL)
-	{
-	  event->_action = action;
-	  event->type = type;
-	  event->arg = arg;
-	  return 0;
-	}
+      int status = observable_create (&(mbox->observable), mbox);
+      if (status != 0)
+	return status;
     }
-
-  /* a new one */
-  event = realloc (mbox->event, (mbox->event_num + 1) * sizeof (*event));
-  if (event == NULL)
-    return ENOMEM;
-
-  mbox->event = event;
-  event[mbox->event_num]._action = action;
-  event[mbox->event_num].type = type;
-  event[mbox->event_num].arg = arg;
-  mbox->event_num++;
+  *pobservable = mbox->observable;
   return 0;
 }
 
 int
-mailbox_deregister (mailbox_t mbox, void *action)
-{
-  size_t i;
-  event_t event;
-
-  for (i = 0; i < mbox->event_num; i++)
-    {
-      event = &(mbox->event[i]);
-      if ((int)event->_action == (int)action)
-	{
-	  event->type = 0;
-	  event->_action = NULL;
-	  event->arg = NULL;
-	  return 0;
-	}
-    }
-  return ENOENT;
-}
-
-int
-mailbox_notification (mailbox_t mbox, size_t type)
-{
-  size_t i;
-  event_t event;
-  int status = 0;
-  for (i = 0; i < mbox->event_num; i++)
-    {
-      event = &(mbox->event[i]);
-      if ((event->_action) &&  (event->type & type))
-	status |= event->_action (type, event->arg);
-    }
-  return status;
-}
-
-int
-mailbox_set_debug_level (mailbox_t mbox, size_t level)
+mailbox_set_debug (mailbox_t mbox, debug_t debug)
 {
   if (mbox == NULL)
     return EINVAL;
-  mbox->debug_level = level;
+  debug_destroy (&(mbox->debug), mbox);
+  mbox->debug = debug;
   return 0;
 }
 
 int
-mailbox_get_debug_level (mailbox_t mbox, size_t *plevel)
+mailbox_get_debug (mailbox_t mbox, debug_t *pdebug)
 {
-  if (mbox == NULL || plevel == NULL)
+  if (mbox == NULL || pdebug == NULL)
     return EINVAL;
-  *plevel = mbox->debug_level;
-  return 0;
-}
-
-int
-mailbox_set_debug_print (mailbox_t mbox, int (*debug_print)
-			 (void *arg, const char *, size_t), void *arg)
-{
-  if (mbox == NULL)
-    return EINVAL;
-  mbox->debug_print = debug_print;
-  mbox->debug_arg = arg;
-  return 0;
-}
-
-int
-mailbox_debug (mailbox_t mbox, int level, const char *fmt, ...)
-{
-  va_list ap;
-  if (mbox == NULL)
-    return EINVAL;
-
-  if (!(mbox->debug_level & level))
-    return 0;
-
-  va_start (ap, fmt);
-  if (mbox->debug_print)
+  if (mbox->debug == NULL)
     {
-      int writen;
-      if (mbox->debug_buffer == NULL)
-	{
-	  mbox->debug_bufsize = 255;
-	  mbox->debug_buffer = malloc (mbox->debug_bufsize);
-	  if (mbox->debug_buffer)
-	    return ENOMEM; }
-      writen = vsnprintf (mbox->debug_buffer, mbox->debug_bufsize, fmt, ap);
-      mbox->debug_print (mbox->debug_arg, mbox->debug_buffer, writen);
+      int status = debug_create (&(mbox->debug), mbox);
+      if (status != 0)
+	return status;
     }
-  else
-    vfprintf (stderr, fmt, ap);
-  va_end (ap);
+  *pdebug = mbox->debug;
   return 0;
+}
+
+/* Mailbox Internal Locks. Put the name of the functions in parenteses To make
+   sure it will not be redefine by a macro.  If the flags was non-blocking we
+   should not block on the lock, so we try with pthread_rwlock_try*lock().  */
+int
+(mailbox_rdlock) (mailbox_t mbox)
+{
+#ifdef WITH_PTHREAD
+  int err = (mbox->flags & MU_STREAM_NONBLOCK) ?
+    RWLOCK_TRYRDLOCK (&(mbox->rwlock)) :
+    RWLOCK_RDLOCK (&(mbox->rwlock)) ;
+  if (err != 0 && err != EDEADLK)
+    return err;
+#endif
+  return 0;
+}
+
+int
+(mailbox_wrlock) (mailbox_t mbox)
+{
+#ifdef WITH_PTHREAD
+  int err = (mbox->flags & MU_STREAM_NONBLOCK) ?
+    RWLOCK_TRYWRLOCK (&(mbox->rwlock)) :
+    RWLOCK_WRLOCK (&(mbox->rwlock)) ;
+  if (err != 0 && err != EDEADLK)
+    return err;
+#endif
+  return 0;
+}
+
+int
+(mailbox_unlock) (mailbox_t mbox)
+{
+#ifdef WITH_PTHREAD
+  return RWLOCK_UNLOCK (&(mbox->rwlock));
+#else
+  return 0;
+#endif
 }

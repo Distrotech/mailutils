@@ -18,12 +18,8 @@
 #ifndef _MESSAGE0_H
 #define _MESSAGE0_H
 
-#include <mailutils/attribute.h>
-#include <mailutils/header.h>
 #include <mailutils/message.h>
 #include <mailutils/mime.h>
-#include <mailutils/mailbox.h>
-#include <mailutils/event.h>
 
 #include <sys/types.h>
 #include <stdio.h>
@@ -50,9 +46,7 @@ struct _message
   body_t body;
   attribute_t attribute;
   mime_t mime;
-
-  event_t event;
-  size_t event_num;
+  observable_t observable;
 
   /* Holder for message_write. */
   char *hdr_buf;
@@ -73,5 +67,4 @@ struct _message
 }
 #endif
 
-extern void message_notification (message_t msg, size_t type);
-#endif /* _MESSAGE_H */
+#endif /* _MESSAGE0_H */

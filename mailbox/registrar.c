@@ -19,225 +19,73 @@
 #include <config.h>
 #endif
 
-#include <registrar0.h>
-
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
 
-/* Builtin mailbox types. A circular list is use for the builtin.
-  Proper locking is not done when accessing the list.
-  FIXME: not thread-safe. */
+#include <mailutils/iterator.h>
+#include <registrar0.h>
 
-static struct _registrar registrar [] =
-{
-  { NULL, NULL, 0, &registrar[1] }, /* sentinel, head list */
-  { &_url_file_registrar, &_mailbox_mbox_registrar, 0, &registrar[2] },
-  { &_url_mbox_registrar, &_mailbox_mbox_registrar, 0, &registrar[3] },
-  { &_url_unix_registrar, &_mailbox_unix_registrar, 0, &registrar[4] },
-  { &_url_maildir_registrar, &_mailbox_maildir_registrar, 0, &registrar[5] },
-  { &_url_mmdf_registrar, &_mailbox_mmdf_registrar, 0, &registrar[6] },
-  { &_url_pop_registrar, &_mailbox_pop_registrar, 0, &registrar[7] },
-  { &_url_imap_registrar, &_mailbox_imap_registrar, 0, &registrar[0] },
-};
-
-static void
-free_ureg (struct url_registrar *ureg)
-{
-  if (ureg)
-    {
-      free ((char *)ureg->scheme);
-      free (ureg);
-    }
-}
-
-static void
-free_mreg (struct mailbox_registrar *mreg)
-{
-  if (mreg)
-    {
-      free ((char *)mreg->name);
-      free (mreg);
-    }
-}
+static list_t reg_list;
 
 int
-registrar_add (struct url_registrar *new_ureg,
-	       struct mailbox_registrar *new_mreg, int *id)
+registrar_get_list (list_t *plist)
 {
-  struct _registrar *entry;
-  struct url_registrar *ureg = NULL;
-  struct mailbox_registrar *mreg;
-
-  /* Must registrar a mailbox */
-  if (new_mreg == NULL)
+  if (plist == NULL)
     return EINVAL;
-
-  /* Mailbox */
-  mreg = calloc (1, sizeof (*mreg));
-  if (mreg == NULL)
-    return ENOMEM;
-
-  if (new_mreg->name)
+  if (reg_list == NULL)
     {
-      mreg->name = strdup (new_mreg->name);
-      if (mreg->name == NULL)
-	{
-	  free (mreg);
-	  return ENOMEM;
-	}
+      int status = list_create (&reg_list);
+      if (status != 0)
+	return status;
     }
-  mreg->_create = new_mreg->_create;
-  mreg->_destroy = new_mreg->_destroy;
-
-  /* URL */
-  if (new_ureg)
-    {
-      ureg = calloc (1, sizeof (*ureg));
-      if (ureg == NULL)
-	{
-	  free_mreg (mreg);
-	  return ENOMEM;
-	}
-      if (new_ureg->scheme)
-	{
-	  ureg->scheme = strdup (new_ureg->scheme);
-	  if (ureg->scheme == NULL)
-	    {
-	      free_mreg (mreg);
-	      free_ureg (ureg);
-	      return ENOMEM;
-	    }
-	}
-      ureg->_create = new_ureg->_create;
-      ureg->_destroy = new_ureg->_destroy;
-    }
-
-  /* Register them to the list */
-  entry = calloc (1, sizeof (*entry));
-  if (entry == NULL)
-    {
-      free_mreg (mreg);
-      free_ureg (ureg);
-      return ENOMEM;
-    }
-  entry->ureg = ureg;
-  entry->mreg = mreg;
-  entry->is_allocated = 1;
-  entry->next = registrar->next;
-  registrar->next = entry;
-  if (id)
-    *id = (int)entry;
+  *plist = reg_list;
   return 0;
 }
 
 int
-registrar_remove (int id)
+record_is_scheme (record_t record, const char *scheme)
 {
-  struct _registrar *current, *previous;
-  for (previous = registrar, current = registrar->next;
-       current != registrar;
-       previous = current, current = current->next)
-    {
-      if ((int)current == id)
-        {
-          previous->next = current->next;
-          if (current->is_allocated)
-	    {
-	      free_ureg (current->ureg);
-	      free_mreg (current->mreg);
-	    }
-	  free (current);
-          return 0;;
-        }
-    }
-  return EINVAL;
-}
+  if (record == NULL)
+    return 0;
 
-int
-registrar_get (int id,
-	      struct url_registrar **ureg, struct mailbox_registrar **mreg)
-{
-  struct _registrar *current;
-  for (current = registrar->next; current != registrar;
-       current = current->next)
-    {
-      if ((int)current == id)
-        {
-	  if (mreg)
-	    *mreg = current->mreg;
-	  if (ureg)
-	    *ureg = current->ureg;
-          return 0;
-        }
-    }
-  return EINVAL;
-}
+  /* Overload.  */
+  if (record->_is_scheme)
+    return record->_is_scheme (record, scheme);
 
-int
-registrar_entry_count (size_t *num)
-{
-  struct _registrar *current;
-  size_t count;
-  for (count = 0, current = registrar->next; current != registrar;
-       current = current->next, count++)
-    ;
-  if (num)
-    *num = count;
+  if (record->scheme && strncasecmp (record->scheme, scheme,
+				    strlen (record->scheme)) == 0)
+    return 1;
+
   return 0;
 }
 
 int
-registrar_entry (size_t num, struct url_registrar **ureg,
-		 struct mailbox_registrar **mreg, int *id)
+record_get_mailbox (record_t record, mailbox_entry_t *pmbox)
 {
-  struct _registrar *current;
-  size_t count, status;
-  for (status = ENOENT, count = 0, current = registrar->next;
-       current != registrar; current = current->next, count++)
-    {
-      if (num == count)
-	{
-	  if (ureg)
-	    *ureg = current->ureg;
-	  if (mreg)
-	    *mreg = current->mreg;
-	  if (id)
-	    *id = (int)current;
-	  status = 0;
-	  break;
-	}
-    }
- return status;
+  if (record == NULL)
+    return EINVAL;
+
+  /* Overload.  */
+  if (record->_get_mailbox)
+    return record->_get_mailbox (record, pmbox);
+
+  if (pmbox)
+    *pmbox = record->mailbox;
+  return 0;
 }
 
 int
-registrar_list (struct url_registrar **ureg, struct mailbox_registrar **mreg,
-		int *id, registrar_t *reg)
+record_get_mailer (record_t record, mailer_entry_t *pml)
 {
-  struct _registrar *current;
-
-  if (reg == NULL)
+  if (record == NULL)
     return EINVAL;
 
-  current = *reg;
+  /* Overload.  */
+  if (record->_get_mailer)
+    return record->_get_mailer (record, pml);
 
-  if (current == NULL)
-    current = registrar;
-
-  if (current->next == registrar)
-    return -1;
-
-  if (ureg)
-    *ureg = current->ureg;
-
-  if (mreg)
-    *mreg = current->mreg;
-
-  if (id)
-    *id = (int)current;
-
-  *reg = current->next;
-
+  if (pml)
+    *pml = record->mailer;
   return 0;
 }

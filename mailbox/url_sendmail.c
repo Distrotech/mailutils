@@ -26,50 +26,50 @@
 #include <mailutils/registrar.h>
 #include <url0.h>
 
-int url_file_init (url_t purl);
-static void url_file_destroy (url_t purl);
+int url_sendmail_init (url_t purl);
+static void url_sendmail_destroy (url_t purl);
 
 static void
-url_file_destroy (url_t url)
+url_sendmail_destroy (url_t url)
 {
   (void) url;
 }
 
 /*
-  UNIX File
-  file:path
+  UNIX Sendmail
+  sendmail:path
 */
 int
-url_file_init (url_t url)
+url_sendmail_init (url_t url)
 {
   const char *name = url_to_string (url);
   size_t len = strlen (name);
 
   /* reject the obvious */
-  if (name == NULL || strncmp (MU_FILE_SCHEME, name, MU_FILE_SCHEME_LEN) != 0
-      || len < (MU_FILE_SCHEME_LEN + 1) /* (scheme)+1(path)*/)
+  if (name == NULL || strncmp (MU_SENDMAIL_SCHEME, name, MU_SENDMAIL_SCHEME_LEN) != 0
+      || len < (MU_SENDMAIL_SCHEME_LEN + 1) /* (scheme)+1(path)*/)
     return EINVAL;
 
   /* do I need to decode url encoding '% hex hex' ? */
 
   /* TYPE */
-  url->_init = url_file_init;
-  url->_destroy = url_file_destroy;
+  url->_init = url_sendmail_init;
+  url->_destroy = url_sendmail_destroy;
 
   /* SCHEME */
-  url->scheme = strdup (MU_FILE_SCHEME);
+  url->scheme = strdup (MU_SENDMAIL_SCHEME);
   if (url->scheme == NULL)
     {
-      url_file_destroy (url);
+      url_sendmail_destroy (url);
       return ENOMEM;
     }
 
   /* PATH */
-  name += MU_FILE_SCHEME_LEN; /* pass the scheme */
+  name += MU_SENDMAIL_SCHEME_LEN; /* pass the scheme */
   url->path = strdup (name);
   if (url->path == NULL)
     {
-      url_file_destroy (url);
+      url_sendmail_destroy (url);
       return ENOMEM;
     }
 

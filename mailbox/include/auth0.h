@@ -33,13 +33,19 @@
 extern "C" {
 #endif
 
-struct _auth
+struct _ticket
 {
   void *owner;
+  char *challenge;
+  char *type;
+  int (*_pop)      __P ((ticket_t, const char *challenge, char **));
+};
 
-  int (*_prologue) (auth_t);
-  int (*_authenticate) (auth_t, char **user, char **passwd);
-  int (*_epilogue) (auth_t);
+struct _authority
+{
+  void *owner;
+  ticket_t ticket;
+  int (*_authenticate) __P ((authority_t));
 };
 
 

@@ -15,6 +15,9 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
+#ifdef HAVE_CONFIG_H
+# include <config.h>
+#endif
 
 #include <errno.h>
 #include <stdio.h>
@@ -26,7 +29,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-#include <stream0.h>
+#include <mailutils/stream.h>
 
 struct _file_stream
 {
@@ -37,7 +40,7 @@ struct _file_stream
 static void
 _file_destroy (stream_t stream)
 {
-  struct _file_stream *fs = stream->owner;
+  struct _file_stream *fs = stream_get_owner (stream);
 
   if (fs && fs->file)
     fclose (fs->file);
@@ -48,7 +51,7 @@ static int
 _file_read (stream_t stream, char *optr, size_t osize,
 	    off_t offset, size_t *nbytes)
 {
-  struct _file_stream *fs = stream->owner;
+  struct _file_stream *fs = stream_get_owner (stream);
   size_t n;
   int err = 0;
 
@@ -80,7 +83,7 @@ static int
 _file_readline (stream_t stream, char *optr, size_t osize,
 		off_t offset, size_t *nbytes)
 {
-  struct _file_stream *fs = stream->owner;
+  struct _file_stream *fs = stream_get_owner (stream);
   size_t n = 0;
   int err = 0;
 
@@ -116,7 +119,7 @@ static int
 _file_write (stream_t stream, const char *iptr, size_t isize,
 	    off_t offset, size_t *nbytes)
 {
-  struct _file_stream *fs = stream->owner;
+  struct _file_stream *fs = stream_get_owner (stream);
   size_t n;
   int err;
 
@@ -147,7 +150,7 @@ _file_write (stream_t stream, const char *iptr, size_t isize,
 static int
 _file_truncate (stream_t stream, off_t len)
 {
-  struct _file_stream *fs = stream->owner;
+  struct _file_stream *fs = stream_get_owner (stream);
 
   if (fs == NULL)
     return EINVAL;
@@ -159,7 +162,7 @@ _file_truncate (stream_t stream, off_t len)
 static int
 _file_size (stream_t stream, off_t *psize)
 {
-  struct _file_stream *fs = stream->owner;
+  struct _file_stream *fs = stream_get_owner (stream);
   struct stat stbuf;
 
   if (fs == NULL)
@@ -175,7 +178,7 @@ _file_size (stream_t stream, off_t *psize)
 static int
 _file_flush (stream_t stream)
 {
-  struct _file_stream *fs = stream->owner;
+  struct _file_stream *fs = stream_get_owner (stream);
 
   if (fs == NULL)
     return EINVAL;
@@ -185,7 +188,7 @@ _file_flush (stream_t stream)
 static int
 _file_get_fd (stream_t stream, int *pfd)
 {
-  struct _file_stream *fs = stream->owner;
+  struct _file_stream *fs = stream_get_owner (stream);
 
   if (fs == NULL)
     return EINVAL;
@@ -197,7 +200,7 @@ _file_get_fd (stream_t stream, int *pfd)
 static int
 _file_close (stream_t stream)
 {
-  struct _file_stream *fs = stream->owner;
+  struct _file_stream *fs = stream_get_owner (stream);
   int err = 0;
 
   if (fs == NULL)
@@ -214,7 +217,7 @@ _file_close (stream_t stream)
 static int
 _file_open (stream_t stream, const char *filename, int port, int flags)
 {
-  struct _file_stream *fs = stream->owner;
+  struct _file_stream *fs = stream_get_owner (stream);
   int flg;
   int fd;
   const char *mode;
@@ -313,7 +316,7 @@ _file_open (stream_t stream, const char *filename, int port, int flags)
 	free (iobuffer);
   }
 #endif
-  stream_set_flags (stream, flags |MU_STREAM_NO_CHECK, fs);
+  stream_set_flags (stream, flags |MU_STREAM_NO_CHECK);
   return 0;
 }
 

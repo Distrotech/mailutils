@@ -15,74 +15,63 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-#include <url0.h>
-#include <mailutils/registrar.h>
+#ifdef HAVE_CONFIG_H
+# include <config.h>
+#endif
 
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
 
-static void url_mbox_destroy (url_t *purl);
-static int url_mbox_create (url_t *purl, const char *name);
+#include <mailutils/registrar.h>
+#include <url0.h>
 
-struct url_registrar  _url_mbox_registrar =
-{
-  "/",
-  url_mbox_create, url_mbox_destroy
-};
+int url_mbox_init (url_t purl);
+static void url_mbox_destroy (url_t purl);
 
 static void
-url_mbox_destroy (url_t *purl)
+url_mbox_destroy (url_t url)
 {
-  if (purl && *purl)
-    {
-      url_t url = *purl;
-      free (url->scheme);
-      free (url->path);
-      free (url);
-      *purl = NULL;
-    }
+  (void) url;
 }
 
 /*
-  UNIX box
+  UNIX Mbox
+  mbox:path
 */
-static int
-url_mbox_create (url_t *purl, const char *name)
+int
+url_mbox_init (url_t url)
 {
-  url_t url;
-  struct url_registrar *ureg = &_url_mbox_registrar;
+  const char *name = url_to_string (url);
+  size_t len = strlen (name);
 
   /* reject the obvious */
-  if (name == NULL || *name == '\0')
+  if (name == NULL || strncmp (MU_MBOX_SCHEME, name, MU_MBOX_SCHEME_LEN) != 0
+      || len < (MU_MBOX_SCHEME_LEN + 1) /* (scheme)+1(path)*/)
     return EINVAL;
 
-  /* FIXME: do I need to decode url encoding '% hex hex' ? */
-
-  url = calloc(1, sizeof (*url));
-  if (url == NULL)
-    return ENOMEM;
+  /* do I need to decode url encoding '% hex hex' ? */
 
   /* TYPE */
-  url->_create = ureg->_create;
-  url->_destroy = ureg->_destroy;
+  url->_init = url_mbox_init;
+  url->_destroy = url_mbox_destroy;
 
   /* SCHEME */
-  url->scheme = strdup (ureg->scheme);
+  url->scheme = strdup (MU_MBOX_SCHEME);
   if (url->scheme == NULL)
     {
-      ureg->_destroy (&url);
+      url_mbox_destroy (url);
       return ENOMEM;
     }
 
   /* PATH */
+  name += MU_MBOX_SCHEME_LEN; /* pass the scheme */
   url->path = strdup (name);
   if (url->path == NULL)
     {
-      ureg->_destroy (&url);
+      url_mbox_destroy (url);
       return ENOMEM;
     }
 
-  *purl = url;
   return 0;
 }

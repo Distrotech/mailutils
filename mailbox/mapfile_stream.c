@@ -15,6 +15,9 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
+#ifdef HAVE_CONFIG_H
+# include <config.h>
+#endif
 
 #include <errno.h>
 #include <stdio.h>
@@ -26,11 +29,11 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-#include <stream0.h>
+#include <mailutils/stream.h>
 
 #ifdef _POSIX_MAPPED_FILES
-
 #include <sys/mman.h>
+
 
 struct _mapfile_stream
 {
@@ -43,7 +46,7 @@ struct _mapfile_stream
 static void
 _mapfile_destroy (stream_t stream)
 {
-  struct _mapfile_stream *mfs = stream->owner;
+  struct _mapfile_stream *mfs = stream_get_owner (stream);
 
   if (mfs && mfs->ptr)
     {
@@ -57,7 +60,7 @@ static int
 _mapfile_read (stream_t stream, char *optr, size_t osize,
 	    off_t offset, size_t *nbytes)
 {
-  struct _mapfile_stream *mfs = stream->owner;
+  struct _mapfile_stream *mfs = stream_get_owner (stream);
   size_t n;
 
   if (mfs == NULL || mfs->ptr == NULL)
@@ -82,7 +85,7 @@ static int
 _mapfile_readline (stream_t stream, char *optr, size_t osize,
 		off_t offset, size_t *nbytes)
 {
-  struct _mapfile_stream *mfs = stream->owner;
+  struct _mapfile_stream *mfs = stream_get_owner (stream);
   char *nl;
   size_t n = 0;
 
@@ -111,7 +114,7 @@ static int
 _mapfile_write (stream_t stream, const char *iptr, size_t isize,
 	    off_t offset, size_t *nbytes)
 {
-  struct _mapfile_stream *mfs = stream->owner;
+  struct _mapfile_stream *mfs = stream_get_owner (stream);
 
   if (mfs == NULL || mfs->ptr == NULL)
     return EINVAL;
@@ -151,7 +154,7 @@ _mapfile_write (stream_t stream, const char *iptr, size_t isize,
 static int
 _mapfile_truncate (stream_t stream, off_t len)
 {
-  struct _mapfile_stream *mfs = stream->owner;
+  struct _mapfile_stream *mfs = stream_get_owner (stream);
   if (mfs == NULL || mfs->ptr == NULL)
     return EINVAL;
   /* Remap.  */
@@ -178,7 +181,7 @@ _mapfile_truncate (stream_t stream, off_t len)
 static int
 _mapfile_size (stream_t stream, off_t *psize)
 {
-  struct _mapfile_stream *mfs = stream->owner;
+  struct _mapfile_stream *mfs = stream_get_owner (stream);
   struct stat stbuf;
 
   if (mfs == NULL || mfs->ptr == NULL)
@@ -194,7 +197,7 @@ _mapfile_size (stream_t stream, off_t *psize)
 static int
 _mapfile_flush (stream_t stream)
 {
-  struct _mapfile_stream *mfs = stream->owner;
+  struct _mapfile_stream *mfs = stream_get_owner (stream);
   if (mfs == NULL)
     return EINVAL;
   return msync (mfs->ptr, mfs->size, MS_SYNC);
@@ -203,7 +206,7 @@ _mapfile_flush (stream_t stream)
 static int
 _mapfile_get_fd (stream_t stream, int *pfd)
 {
-  struct _mapfile_stream *mfs = stream->owner;
+  struct _mapfile_stream *mfs = stream_get_owner (stream);
   if (mfs == NULL)
     return EINVAL;
   if (pfd)
@@ -214,7 +217,7 @@ _mapfile_get_fd (stream_t stream, int *pfd)
 static int
 _mapfile_close (stream_t stream)
 {
-  struct _mapfile_stream *mfs = stream->owner;
+  struct _mapfile_stream *mfs = stream_get_owner (stream);
   int err = 0;
   if (mfs && mfs->ptr)
     {
@@ -231,7 +234,7 @@ _mapfile_close (stream_t stream)
 static int
 _mapfile_open (stream_t stream, const char *filename, int port, int flags)
 {
-  struct _mapfile_stream *mfs = stream->owner;
+  struct _mapfile_stream *mfs = stream_get_owner (stream);
   int mflag, flg;
   struct stat st;
 
@@ -277,7 +280,7 @@ _mapfile_open (stream_t stream, const char *filename, int port, int flags)
       return err;
     }
   mfs->flags = mflag;
-  stream_set_flags (stream, flags |MU_STREAM_NO_CHECK, mfs);
+  stream_set_flags (stream, flags |MU_STREAM_NO_CHECK);
   return 0;
 }
 

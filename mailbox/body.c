@@ -14,6 +14,9 @@
    You should have received a copy of the GNU Library General Public License
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
+#ifdef HAVE_CONFIG_H
+# include <config.h>
+#endif
 
 #include <errno.h>
 #include <stdio.h>
@@ -21,8 +24,8 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
+#include <mailutils/stream.h>
 #include <body0.h>
-#include <stream0.h>
 
 
 static int body_read (stream_t is, char *buf, size_t buflen,
@@ -64,6 +67,12 @@ body_destroy (body_t *pbody, void *owner)
 	}
       *pbody = NULL;
     }
+}
+
+void *
+body_get_owner (body_t body)
+{
+  return (body) ? body->owner : NULL;
 }
 
 int
@@ -182,10 +191,10 @@ static int
 body_read (stream_t is, char *buf, size_t buflen,
 	      off_t off, size_t *pnread )
 {
-  body_t body;
+  body_t body = stream_get_owner (is);
   size_t nread = 0;
 
-  if (is == NULL || (body = is->owner) == NULL)
+  if (body == NULL)
     return EINVAL;
 
   /* check if they want to read from a file */
@@ -232,10 +241,10 @@ static int
 body_write (stream_t os, const char *buf, size_t buflen,
 	       off_t off, size_t *pnwrite)
 {
-  body_t body;
+  body_t body = stream_get_owner (os);
   size_t nwrite = 0;
 
-  if (os == NULL || (body = os->owner) == NULL)
+  if (body == NULL)
     return EINVAL;
 
   /* FIXME: security issues, Refuse to write to an unknow file */
@@ -275,9 +284,9 @@ body_write (stream_t os, const char *buf, size_t buflen,
 static int
 body_get_fd (stream_t stream, int *pfd)
 {
-  body_t body;
+  body_t body = stream_get_owner (stream);
 
-  if (stream == NULL || (body = stream->owner) == NULL)
+  if (body == NULL)
     return EINVAL;
 
   /* Probably being lazy, then create a body for the stream */

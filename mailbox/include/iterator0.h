@@ -2,7 +2,7 @@
    Copyright (C) 1999, 2000 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
-   it under the terms of the GNU Library General Public License as published by
+   it under the terms of the GNU General Library Public License as published by
    the Free Software Foundation; either version 2, or (at your option)
    any later version.
 
@@ -15,14 +15,33 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-#ifndef _MBX_POP_H
-#define _MBX_POP_H	1
+#ifndef _ITERATOR0_H
+#define _ITERATOR0_H
 
-#include <mailbox0.h>
+#include <mailutils/iterator.h>
 
-extern int mailbox_pop_create    __P ((mailbox_t *mbox, const char *name));
-extern void mailbox_pop_destroy __P ((mailbox_t *mbox));
+#ifndef __P
+#ifdef __STDC__
+#define __P(args) args
+#else
+#define __P(args) ()
+#endif
+#endif /*__P */
 
-extern struct mailbox_type _mailbox_pop_type;
+#ifdef _cplusplus
+extern "C" {
+#endif
 
-#endif /* _MBX_POP_H */
+struct _iterator
+{
+  list_t list;
+  size_t index;
+
+};
+
+
+#ifdef _cplusplus
+}
+#endif
+
+#endif /* _ITERATOR0_H */

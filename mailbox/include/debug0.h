@@ -2,7 +2,7 @@
    Copyright (C) 1999, 2000 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
-   it under the terms of the GNU Library General Public License as published by
+   it under the terms of the GNU General Library Public License as published by
    the Free Software Foundation; either version 2, or (at your option)
    any later version.
 
@@ -15,22 +15,34 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-#ifndef _MBX_UNIX_H
-#define _MBX_UNIX_H	1
+#ifndef _MAILUTILS_DEBUG0_H
+#define _MAILUTILS_DEBUG0_H
 
-#include <mailbox0.h>
+#ifndef __P
+#ifdef __STDC__
+#define __P(args) args
+#else
+#define __P(args) ()
+#endif
+#endif /*__P */
 
-#ifdef __cplucplus
+#include <mailutils/debug.h>
+
+#ifdef _cplusplus
 extern "C" {
 #endif
 
-extern int  mailbox_unix_create    __P ((mailbox_t *mbox, const char *name));
-extern void mailbox_unix_destroy __P ((mailbox_t *mbox));
+struct _debug
+{
+  size_t level;
+  char *buffer;
+  size_t buflen;
+  void *owner;
+  int (*_print) __P ((debug_t, const char *, va_list));
+};
 
-extern struct mailbox_type _mailbox_unix_type;
-
-#ifdef __cplucplus
+#ifdef _cplusplus
 }
 #endif
 
-#endif /* _MBX_UNIX_H */
+#endif /* _MAILUTILS_DEBUG0_H */

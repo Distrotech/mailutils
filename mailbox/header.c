@@ -19,13 +19,14 @@
 #ifdef HAVE_CONFIG_H
 # include "config.h"
 #endif
+
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <errno.h>
 
+#include <mailutils/stream.h>
 #include <header0.h>
-#include <stream0.h>
 
 static int header_parse (header_t h, const char *blurb, int len);
 static int header_read (stream_t is, char *buf, size_t buflen,
@@ -70,6 +71,12 @@ header_destroy (header_t *ph, void *owner)
 	}
       *ph = NULL;
     }
+}
+
+void *
+header_get_owner (header_t header)
+{
+  return (header) ? header->owner : NULL;
 }
 
 /* Parsing is done in a rather simple fashion.
@@ -243,14 +250,29 @@ header_set_value (header_t header, const char *fn, const char *fv, int replace)
     }
 
   /* Replacing was taking care of above now just add to the end the new
-     header.  Really not cute.  */
-  len = strlen (fn) + strlen (fv) + 1 + 1 + 1 + 1;
-  blurb = calloc (header->blurb_len + len, 1);
+     header.  Really not cute.
+     COLON SPACE NL =  3 ;  */
+  len = strlen (fn) + strlen (fv) + 3;
+  /* Add one for the NULL and leak a bit by adding one more
+     it will be the separtor \n from the body if the first
+     blurb did not have it.  */
+  blurb = calloc (header->blurb_len + len + 2, 1);
   if (blurb == NULL)
     return ENOMEM;
   sprintf (blurb, "%s: %s\n", fn, fv);
-  memcpy (blurb + len - 1, header->blurb, header->blurb_len);
-  free (header->blurb);
+  if (header->blurb)
+    {
+      memcpy (blurb + len, header->blurb, header->blurb_len);
+      free (header->blurb);
+    }
+  /* before parsing the new blurb make sure it is properly terminated
+     by \n\n. The trailing NL separtor.  */
+  if (blurb[header->blurb_len + len - 1] != '\n'
+      || blurb[header->blurb_len + len - 2] != '\n')
+    {
+      blurb[header->blurb_len + len] = '\n';
+      len++;
+    }
   header_parse (header, blurb, len + header->blurb_len);
   free (blurb);
   return 0;
@@ -469,17 +491,20 @@ fill_blurb (header_t header)
 	    }
 	  return status;
 	}
-      tbuf = realloc (header->temp_blurb, header->temp_blurb_len + nread);
-      if (tbuf == NULL)
+      if (nread > 0)
 	{
-	  free (header->temp_blurb);
-	  header->temp_blurb = NULL;
-	  header->temp_blurb_len = 0;
-	  return ENOMEM;
+	  tbuf = realloc (header->temp_blurb, header->temp_blurb_len + nread);
+	  if (tbuf == NULL)
+	    {
+	      free (header->temp_blurb);
+	      header->temp_blurb = NULL;
+	      header->temp_blurb_len = 0;
+	      return ENOMEM;
+	    }
+	  header->temp_blurb = tbuf;
+	  memcpy (header->temp_blurb + header->temp_blurb_len, buf, nread);
+	  header->temp_blurb_len += nread;
 	}
-      header->temp_blurb = tbuf;
-      memcpy (header->temp_blurb + header->temp_blurb_len, buf, nread);
-      header->temp_blurb_len += nread;
     }
   while (nread > 0);
 
@@ -495,8 +520,8 @@ static int
 header_write (stream_t os, const char *buf, size_t buflen,
 	      off_t off, size_t *pnwrite)
 {
-  header_t header;
-  if (os == NULL || (header = (header_t)os->owner) == NULL)
+  header_t header = stream_get_owner (os);
+  if (os == NULL || header == NULL)
     return EINVAL;
 
   (void)buf; (void)off;
@@ -513,10 +538,10 @@ static int
 header_read (stream_t is, char *buf, size_t buflen,
 	     off_t off, size_t *pnread)
 {
-  header_t header;
+  header_t header = stream_get_owner (is);
   int len;
 
-  if (is == NULL || (header = (header_t)is->owner) == NULL)
+  if (is == NULL || header == NULL)
     return EINVAL;
 
   len = header->blurb_len - off;

@@ -15,402 +15,260 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-#include <stdio.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <netdb.h>
-#include <string.h>
-#include <unistd.h>
-#include <sys/select.h>
-#include <errno.h>
-#include <stdlib.h>
-#include <stdarg.h>
-#include <fcntl.h>
-#include <ctype.h>
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdarg.h>
+#include <errno.h>
+
+#include <mailutils/registrar.h>
+#include <mailutils/iterator.h>
+#include <misc.h>
 #include <mailer0.h>
 
-int 	_mailer_sock_connect(char *host, int port);
-char	*_mailer_find_mailbox(char *addr);
-int 	_mailer_send_command(mailer_t ml, message_t msg, int cmd);
-char 	*nb_fgets(char *buf, int size, int s);
-const char 	*nb_fprintf(int s, const char *format, ...);
-static int _mailer_rctp(mailer_t ml, char *str);
-
-#define nb_read		read
-#define nb_write 	write
-#define BUFFSIZE 	4096
-
+/*
+ */
 int
-mailer_create(mailer_t *pml, message_t msg)
+mailer_create (mailer_t *pmailer, const char *name, int id)
 {
-	mailer_t ml;
+  int status = EINVAL;
+  record_t record = NULL;
+  mailer_entry_t entry = NULL;
+  list_t list = NULL;
+  iterator_t iterator;
+  int found;
 
-	(void)msg;
-	if (!pml)
-	  return EINVAL;
+  (void)id;
+  if (pmailer == NULL)
+    return EINVAL;
 
-	ml = calloc (1, sizeof (*ml));
-	if (ml == NULL)
-		return (ENOMEM);
-
-	*pml = ml;
-
-	return (0);
-}
-
-int
-mailer_destroy(mailer_t *pml)
-{
-	mailer_t ml;
-
-	if (!pml)
-		return (EINVAL);
-	ml = *pml;
-	if (ml->hostname)
-		free(ml->hostname);
-	mailer_disconnect(ml);
-	free(ml);
-	*pml = NULL;
-
-	return (0);
-}
-
-int
-mailer_connect(mailer_t ml, char *host)
-{
-	if (!ml || !host)
-		return (EINVAL);
-
-	if ((ml->socket = _mailer_sock_connect(host, 25)) < 0)
-		return (-1);
-	do
-	{
-		nb_fgets(ml->line_buf, MAILER_LINE_BUF_SIZE, ml->socket); /* read header line */
-	} while ( strlen(ml->line_buf) > 4 && *(ml->line_buf+3) == '-');
-
-	return (0);
-}
-
-int
-mailer_disconnect(mailer_t ml)
-{
-	if (!ml || (ml->socket != -1))
-		return (EINVAL);
-
-	close(ml->socket);
-	return (0);
-}
-
-int
-mailer_send_header(mailer_t ml, message_t msg)
-{
-	header_t 	hdr;
-	char		buf[64];
-
-	if (!ml || !msg || (ml->socket == -1))
-		return (EINVAL);
-
-	if (!ml->hostname)
-	{
-	    if (gethostname(buf, 64) < 0)
-	    	return (-1);
-	    ml->hostname = strdup(buf);
-	}
-
-	if (_mailer_send_command(ml, msg, MAILER_HELO) != 0)
-		return (-1);
-	if (_mailer_send_command(ml, msg, MAILER_MAIL) != 0)
-		return (-1);
-	if (_mailer_send_command(ml, msg, MAILER_RCPT) != 0)
-		return (-1);
-	if (_mailer_send_command(ml, msg, MAILER_DATA) != 0)
-		return (-1);
-
-	message_get_header(msg, &hdr);
-	header_get_stream(hdr, &(ml->stream));
-
-	ml->state = MAILER_STATE_HDR;
-
-	return (0);
-}
-
-int
-mailer_send_message(mailer_t ml, message_t msg)
-{
-	int 	status, data_len = 0;
-	size_t consumed = 0, len = 0;
-	char 	*data, *p, *q;
-
-	if (!ml || !msg || (ml->socket == -1))
-		return (EINVAL);
-
-	// alloca
-	if (!(data = alloca(MAILER_LINE_BUF_SIZE)))
-		return (ENOMEM);
-
-	memset(data, 0, 1000);
-	if ((status = stream_read(ml->stream, data, MAILER_LINE_BUF_SIZE, ml->offset, &len)) != 0)
-		return (-1);
-
-	if ((len == 0) && (ml->state == MAILER_STATE_HDR))
-	{
-		ml->state = MAILER_STATE_MSG;
-		ml->offset = 0;
-		message_get_stream(msg, &(ml->stream));
-		return (1);
-	}
-	else if (len == 0)
-	{
-		strcpy(ml->line_buf, "\r\n.\r\n");
-		consumed = strlen(data);
-	}
-	else
-	{
-		p = data;
-		q = ml->line_buf;
-		memset(ml->line_buf, 0, MAILER_LINE_BUF_SIZE);
-		while (consumed < len)
-		{
-			// RFC821: if the first character on a line is a '.' you must add an
-			//         extra '.' to the line which will get stipped off at the other end
-			if ((*p == '.') && (ml->last_char == '\n'))
-				ml->add_dot = 1;
-			ml->last_char = *p;
-			*q++ = *p++; 	// store the character
-			data_len++;		// increase the length by 1
-			consumed++;
-			if (((MAILER_LINE_BUF_SIZE - data_len) > 1) && (ml->add_dot == 1))
-			{
-				*q++ = '.';
-				data_len++;
-				ml->add_dot = 0;
-			}
-		}
-	}
-
-	ml->offset += consumed;
-	nb_fprintf(ml->socket, "%s\r\n", ml->line_buf);
-
-	if (len == 0)
-	{
-		ml->state = MAILER_STATE_COMPLETE;
-		return (0);
-	}
-
-	return (consumed);
-}
-
-int
-_mailer_sock_connect(char *host, int port)
-{
-	struct sockaddr_in saddr;
-	struct hostent *hp;
-	int s;
-
-	memset(&saddr, 0, sizeof(struct sockaddr_in));
-	saddr.sin_family = AF_INET;
-	saddr.sin_port = htons(port);
-	if ((s = socket(AF_INET, SOCK_STREAM, 0)) == -1)
-			return (-1);
-	if ((hp = gethostbyname(host)) == 0)
-			return (-1);
-	memcpy(&saddr.sin_addr, hp->h_addr, hp->h_length);
-	if (connect(s, (struct sockaddr *)&saddr, sizeof(saddr)) == 0)
-			return (s);
-	close(s);
-
-	return (-1);
-}
-
-char *
-_mailer_find_mailbox(char *addr)
-{
-    char *p, *c;
-    p = addr;
-    if ( (c = strchr( p, '<')) != 0)
+  registrar_get_list (&list);
+  status = iterator_create (&iterator, list);
+  if (status != 0)
+    return status;
+  for (iterator_first (iterator); !iterator_is_done (iterator);
+       iterator_next (iterator))
     {
-        p = c+1;
-        if ( (c = strchr( p, '>')) )
-            *c = '\0';
-    }
-    else if ( (c = strchr( p, '(' )) != 0 )
-    {
-        --c;
-        while ( c > p && *c && isspace( *c ) ) {
-            *c = '\0';
-            --c;
+      iterator_current (iterator, (void **)&record);
+      if (record_is_scheme (record, name))
+        {
+          status = record_get_mailer (record, &entry);
+          if (status == 0)
+            found = 1;
+          break;
         }
     }
-    return p;
+  iterator_destroy (&iterator);
+
+  if (found)
+    {
+      url_t url = NULL;
+      mailer_t mailer = NULL;
+
+      /* Allocate memory for mailer.  */
+      mailer = calloc (1, sizeof (*mailer));
+      if (mailer == NULL)
+	return ENOMEM;
+
+      RWLOCK_INIT (&(mailer->rwlock), NULL);
+
+      /* Parse the url, it may be a bad one and we should bailout if this
+         failed.  */
+      if ((status = url_create (&url, name)) != 0
+          || (status = entry->_url_init (url)) != 0)
+        {
+          mailer_destroy (&mailer);
+          return status;
+        }
+      mailer->url = url;
+
+      status = entry->_mailer_init (mailer);
+      if (status != 0)
+	{
+	  mailer_destroy (&mailer);
+	}
+      else
+	*pmailer = mailer;
+    }
+
+  return status;
 }
 
-static int
-_mailer_rctp(mailer_t ml, char *str)
+void
+mailer_destroy (mailer_t *pmailer)
 {
-	char 		*p, *c = NULL, *q = NULL;
-
-	for (q = p = str; q && *p; p = q+1)
+  if (pmailer && *pmailer)
+    {
+      mailer_t mailer = *pmailer;
+#ifdef WITH_PTHREAD
+      pthread_rwlock_t rwlock = mailer->rwlock;
+#endif
+      if (mailer->observable)
 	{
-		if ( (q = strchr( p, ',')) )
-			*q = '\0';
-		while ( p && *p && isspace( *p ) )
-			p++;
-		c = strdup(p);
-		p = _mailer_find_mailbox(c);
-		nb_fprintf(ml->socket, "RCPT TO:<%s>\r\n", p);
-		free(c);
-		nb_fgets(ml->line_buf, sizeof(ml->line_buf), ml->socket);
-		if (strncmp(ml->line_buf, "250", 3))
-			return (-strtol(ml->line_buf, 0, 10));
+	  observable_notify (mailer->observable, MU_EVT_MAILER_DESTROY);
+	  observable_destroy (&(mailer->observable), mailer);
 	}
-	return (0);
+     /* Call the object.  */
+      if (mailer->_destroy)
+	mailer->_destroy (mailer);
+
+      RWLOCK_WRLOCK (&rwlock);
+
+      if (mailer->stream)
+	{
+	  stream_close (mailer->stream);
+	  stream_destroy (&(mailer->stream), mailer);
+	}
+      if (mailer->url)
+        url_destroy (&(mailer->url));
+      if (mailer->debug)
+	debug_destroy (&(mailer->debug), mailer);
+
+      free (mailer);
+      *pmailer = NULL;
+      RWLOCK_UNLOCK (&rwlock);
+      RWLOCK_DESTROY (&rwlock);
+    }
+}
+
+
+/* -------------- stub functions ------------------- */
+
+int
+mailer_open (mailer_t mailer, int flag)
+{
+  if (mailer == NULL || mailer->_open == NULL)
+    return ENOSYS;
+  return mailer->_open (mailer, flag);
 }
 
 int
-_mailer_send_command(mailer_t ml, message_t msg, int cmd)
+mailer_close (mailer_t mailer)
 {
-	header_t	hdr;
-	char 		*p;
-	char		str[128];
-	size_t		str_len;
-	const char		*success = "250";
-
-	switch (cmd)
-	{
-		case MAILER_HELO:
-			nb_fprintf(ml->socket, "HELO %s\r\n", ml->hostname);
-			break;
-		case MAILER_MAIL:
-			message_get_header(msg, &hdr);
-			header_get_value(hdr, MU_HEADER_FROM, str, 128, &str_len);
-			str[str_len] = '\0';
-			p = _mailer_find_mailbox(str);
-			nb_fprintf(ml->socket, "MAIL From: %s\r\n", p);
-			break;
-		case MAILER_RCPT:
-			message_get_header(msg, &hdr);
-			header_get_value(hdr, MU_HEADER_TO, str, 128, &str_len);
-			str[str_len] = '\0';
-			if (_mailer_rctp(ml, str) == -1)
-				return (-1);
-			header_get_value(hdr, MU_HEADER_CC, str, 128, &str_len);
-			str[str_len] = '\0';
-			if (_mailer_rctp(ml, str) == -1)
-				return (-1);
-			return (0);
-			break;
-		case MAILER_DATA:
-			nb_fprintf(ml->socket, "DATA\r\n");
-			success = "354";
-			break;
-		case MAILER_RSET:
-			nb_fprintf(ml->socket, "RSET\r\n");
-			break;
-		case MAILER_QUIT:
-			nb_fprintf(ml->socket, "QUIT\r\n");
-			success = "221";
-			break;
-	}
-
-	nb_fgets(ml->line_buf, sizeof(ml->line_buf), ml->socket);
-	if (strncmp(ml->line_buf, success, 3) == 0)
-		return (0);
-	else
-		return (-strtol(ml->line_buf, 0, 10));
+  if (mailer == NULL || mailer->_close == NULL)
+    return ENOSYS;
+  return mailer->_close (mailer);
 }
 
-char *
-nb_fgets( char *buf, int size, int s )
+/* messages */
+int
+mailer_send_message (mailer_t mailer, const char *from, const char *rcpt,
+		     int dsn, message_t msg)
 {
-	static char *buffer[25];
-	char *p, *b, *d;
-	int bytes, i;
-	int flags;
-
-	if ( !buffer[s] && !( buffer[s] = calloc( BUFFSIZE+1, 1 ) ) )
-		return 0;
-	bytes = i = strlen( p = b = buffer[s] );
-	*( d = buf ) = '\0';
-	for ( ; i-- > 0; p++ )
-		{
-		if ( *p == '\n' )
-			{
-			char c = *( p+1 );
-
-			*( p+1 ) = '\0';
-			strcat( d, b );
-			*( p+1 ) = c;
-			memmove( b, p+1, i+1 );
-			return buf;
-			}
-		}
-	flags = fcntl( s, F_GETFL );
-	fcntl( s, F_SETFL, O_NONBLOCK );
-	while ( bytes <= size )
-		{
-		fd_set fds;
-
-		FD_ZERO( &fds );
-		FD_SET( s, &fds );
-		select( s+1, &fds, 0, 0, 0 ); /* we really don't care what it returns */
-		if ( ( i = nb_read( s, p, BUFFSIZE - bytes ) ) == -1 )
-			{
-			*b = '\0';
-			return 0;
-			}
-		else if ( i == 0 )
-			{
-			*( p+1 ) = '\0';
-			strcat( d, b );
-			*b = '\0';
-			fcntl( s, F_SETFL, flags );
-			return strlen( buf ) ? buf : 0;
-			}
-		*( p+i ) = '\0';
-		bytes += i;
-		for ( ; i-- > 0; p++ )
-			{
-			if ( *p == '\n' )
-				{
-				char c = *( p+1 );
-
-				*( p+1 ) = '\0';
-				strcat( d, b );
-				*( p+1 ) = c;
-				memmove( b, p+1, i+1 );
-				fcntl( s, F_SETFL, flags );
-				return buf;
-				}
-			}
-		if ( bytes == BUFFSIZE )
-			{
-			memcpy( d, b, BUFFSIZE );
-			d += BUFFSIZE;
-			size -= BUFFSIZE;
-			bytes = 0;
-			*( p = b ) = '\0';
-			}
-		}
-	memcpy( d, b, size );
-	memmove( b, b+size, strlen( b+size )+1 );
-	fcntl( s, F_SETFL, flags );
-	return buf;
+  if (mailer == NULL || mailer->_send_message == NULL)
+    return ENOSYS;
+  return mailer->_send_message (mailer, from, rcpt, dsn, msg);
 }
 
-const char *
-nb_fprintf( int s, const char *format, ... )
+int
+mailer_set_stream (mailer_t mailer, stream_t stream)
 {
-	char buf[MAILER_LINE_BUF_SIZE];
-	va_list vl;
-	int i;
+  if (mailer == NULL)
+    return EINVAL;
+  mailer->stream = stream;
+  return 0;
+}
 
-	va_start( vl, format );
-	vsprintf( buf, format, vl );
-	va_end( vl );
-	i = strlen( buf );
-	if ( nb_write( s, buf, i ) != i )
-		return 0;
-	return format;
+int
+mailer_get_stream (mailer_t mailer, stream_t *pstream)
+{
+  if (mailer == NULL || pstream == NULL)
+    return EINVAL;
+  if (pstream)
+    *pstream = mailer->stream;
+  return 0;
+}
+
+int
+mailer_attach (mailer_t mailer, observer_t observer)
+{
+  /* FIXME: I should check for invalid types */
+  if (mailer == NULL || observer == NULL)
+    return EINVAL;
+
+  if (mailer->observable == NULL)
+    {
+      int status = observable_create (&(mailer->observable), mailer);
+      if (status != 0)
+	return status;
+    }
+  return observable_attach (mailer->observable, observer);
+}
+
+int
+mailer_detach (mailer_t mailer, observer_t observer)
+{
+  /* FIXME: I should check for invalid types */
+  if (mailer == NULL || observer == NULL)
+    return EINVAL;
+  if (mailer->observable == NULL)
+    return 0;
+  return observable_detach (mailer->observable, observer);
+}
+
+int
+mailer_set_debug (mailer_t mailer, debug_t debug)
+{
+  if (mailer == NULL)
+    return EINVAL;
+  debug_destroy (&(mailer->debug), mailer);
+  mailer->debug = debug;
+  return 0;
+}
+
+int
+mailer_get_debug (mailer_t mailer, debug_t *pdebug)
+{
+  if (mailer == NULL || pdebug == NULL)
+    return EINVAL;
+  if (mailer->debug == NULL)
+    {
+      int status = debug_create (&(mailer->debug), mailer);
+      if (status != 0)
+	return status;
+    }
+  *pdebug = mailer->debug;
+  return 0;
+}
+
+/* Mailer Internal Locks. Put the name of the functions in parenteses To make
+   they will not be redefine by the macro.  If the flags was non-blocking we
+   should not block on the lock, so we try with pthread_rwlock_try*lock().  */
+int
+(mailer_wrlock) (mailer_t mailer)
+{
+#ifdef WITH_PTHREAD
+  int err = (mailer->flags & MU_STREAM_NONBLOCK) ?
+    RWLOCK_TRYWRLOCK (&(mailer->rwlock)) :
+    RWLOCK_WRLOCK (&(mailer->rwlock)) ;
+  if (err != 0 && err != EDEADLK)
+    return err;
+#endif
+  return 0;
+}
+int
+(mailer_rdlock) (mailer_t mailer)
+{
+#ifdef WITH_PTHREAD
+  int err = (mailer->flags & MU_STREAM_NONBLOCK) ?
+    RWLOCK_TRYRDLOCK (&(mailer->rwlock)) :
+    RWLOCK_RDLOCK (&(mailer->rwlock)) ;
+  if (err != 0 && err != EDEADLK)
+    return err;
+#endif
+  return 0;
+}
+
+int
+(mailer_unlock) (mailer_t mailer)
+{
+#ifdef WITH_PTHREAD
+  return RWLOCK_UNLOCK (&(mailer->rwlock));
+#else
+  return 0;
+#endif
 }

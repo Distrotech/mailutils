@@ -15,26 +15,49 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-#ifndef _CPYSTR_H
-#define _CPYSTR_H
+#ifndef _LIST0_H
+#define _LIST0_H
 
+#ifdef HAVE_PTHREAD_H
+#  define __USE_UNIX98 /* ?? */
+#  include <pthread.h>
+#endif
+
+#include <mailutils/list.h>
 #include <sys/types.h>
 
-#ifdef __cplusplus
+
+#ifndef __P
+#ifdef __STDC__
+#define __P(args) args
+#else
+#define __P(args) ()
+#endif
+#endif /*__P */
+
+#ifdef _cplusplus
 extern "C" {
 #endif
 
-#ifndef __P
-# if __STDC__
-#  define __P(x)  x
-# else
-#  define __P(x)
-# endif
-#endif
-extern size_t _cpystr __P ((char *dst, const char *src, size_t size));
+struct list_data
+{
+  void *item;
+  struct list_data *next;
+  struct list_data *prev;
+};
 
-#ifdef __cplusplus
+struct _list
+{
+  struct list_data head;
+  size_t count;
+#ifdef WITH_PTHREAD
+  pthread_rwlock_t rwlock;
+#endif
+};
+
+
+#ifdef _cplusplus
 }
 #endif
 
-#endif
+#endif /* _LIST0_H */

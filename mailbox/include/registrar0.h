@@ -20,7 +20,6 @@
 
 #include <mailutils/registrar.h>
 
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -33,57 +32,17 @@ extern "C" {
 # endif
 #endif /*__P */
 
-/*
-  Builtin mailbox types.
-  A circular list is use for the builtin.
-  Proper locking is not done when accessing the list.
-  FIXME: not thread-safe. */
-struct _registrar
+struct _record
 {
-  struct url_registrar *ureg;
-  struct mailbox_registrar *mreg;
+  const char *scheme;
+  mailbox_entry_t mailbox;
+  mailer_entry_t mailer;
   int is_allocated;
-  struct _registrar *next;
+  void *onwer;
+  int (*_is_scheme)   __P ((record_t, const char *));
+  int (*_get_mailbox) __P ((record_t, mailbox_entry_t *_mailbox));
+  int (*_get_mailer)  __P ((record_t, mailer_entry_t *_mailer));
 };
-
-
-/* This is function is obsolete use the registrar_entry_*() ones */
-extern int registrar_list __P ((struct url_registrar **ureg,
-				struct mailbox_registrar **mreg,
-				int *id, registrar_t *reg));
-extern int registrar_entry_count __P ((size_t *num));
-extern int registrar_entry __P ((size_t num, struct url_registrar **ureg,
-				struct mailbox_registrar **mreg,
-				int *id));
-/* IMAP */
-extern struct mailbox_registrar _mailbox_imap_registrar;
-extern struct url_registrar _url_imap_registrar;
-
-/* FILE */
-extern struct url_registrar  _url_file_registrar;
-/* MBOX */
-extern struct mailbox_registrar _mailbox_mbox_registrar;
-extern struct url_registrar  _url_mbox_registrar;
-
-/* MAILTO */
-extern struct mailbox_registrar _mailbox_mailto_registrar;
-extern struct url_registrar _url_mailto_registrar;
-
-/* MDIR */
-extern struct mailbox_registrar _mailbox_maildir_registrar;
-extern struct url_registrar  _url_maildir_registrar;
-
-/* MMDF */
-extern struct mailbox_registrar _mailbox_mmdf_registrar;
-extern struct url_registrar  _url_mmdf_registrar;
-
-/* UNIX */
-extern struct mailbox_registrar _mailbox_unix_registrar;
-extern struct url_registrar  _url_unix_registrar;
-
-/* POP */
-extern struct mailbox_registrar _mailbox_pop_registrar;
-extern struct url_registrar _url_pop_registrar;
 
 #ifdef __cplusplus
 }

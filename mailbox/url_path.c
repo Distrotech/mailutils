@@ -26,50 +26,42 @@
 #include <mailutils/registrar.h>
 #include <url0.h>
 
-int url_file_init (url_t purl);
-static void url_file_destroy (url_t purl);
+static void url_path_destroy (url_t);
+int url_path_init (url_t);
 
 static void
-url_file_destroy (url_t url)
+url_path_destroy (url_t url)
 {
-  (void) url;
+  (void)url;
 }
 
-/*
-  UNIX File
-  file:path
-*/
 int
-url_file_init (url_t url)
+url_path_init (url_t url)
 {
   const char *name = url_to_string (url);
-  size_t len = strlen (name);
-
   /* reject the obvious */
-  if (name == NULL || strncmp (MU_FILE_SCHEME, name, MU_FILE_SCHEME_LEN) != 0
-      || len < (MU_FILE_SCHEME_LEN + 1) /* (scheme)+1(path)*/)
+  if (name == NULL || *name == '\0')
     return EINVAL;
 
-  /* do I need to decode url encoding '% hex hex' ? */
+  /* FIXME: do I need to decode url encoding '% hex hex' ? */
 
   /* TYPE */
-  url->_init = url_file_init;
-  url->_destroy = url_file_destroy;
+  url->_init = url_path_init;
+  url->_destroy = url_path_destroy;
 
   /* SCHEME */
-  url->scheme = strdup (MU_FILE_SCHEME);
+  url->scheme = strdup (MU_PATH_SCHEME);
   if (url->scheme == NULL)
     {
-      url_file_destroy (url);
+      url_path_destroy (url);
       return ENOMEM;
     }
 
   /* PATH */
-  name += MU_FILE_SCHEME_LEN; /* pass the scheme */
   url->path = strdup (name);
   if (url->path == NULL)
     {
-      url_file_destroy (url);
+      url_path_destroy (url);
       return ENOMEM;
     }
 

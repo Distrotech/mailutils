@@ -145,41 +145,61 @@ int message_save_attachment(message_t msg, const char *filename, void **data)
 	if ( ret == 0 && ( ret = _attachment_setup( &info, msg, &stream, data) ) != 0 )
 		return ret;
 
+
 	if ( ret != EAGAIN && info )
 		_attachment_free(info, ret);
 	return ret;
 }
 
-#if 0
 int message_encapsulate(message_t msg, message_t *newmsg, void **data)
 {
-	stream_t			stream;
-	char 				*header;
+	stream_t			istream, ostream;
+	const char			*header;
 	struct _msg_info	*info = NULL;
-	int ret;
+	int 				ret = 0;
+	size_t				nbytes;
+	body_t				body;
 
 	if ( msg == NULL || newmsg == NULL)
 		return EINVAL;
 
-	if ( ( ret = message_create(&(info->msg), NULL) ) == 0 ) {
+	if ( ( ret = _attachment_setup( &info, msg, &ostream, data) ) != 0 )
+		return ret;
+
+	if ( info->msg == NULL && ( ret = message_create(&(info->msg), NULL) ) == 0 ) {
 		header = "Content-Type: message/rfc822\nContent-Transfer-Encoding: 7bit\n\n";
-		if ( ( ret = header_create( &(info->hdr), header, strlen(header), msg ) ) == 0 ) {
-			message_set_header(info->msg, info->hdr, NULL);
+		if ( ( ret = header_create( &(info->hdr), header, strlen(header), msg ) ) == 0 )
+			ret = message_set_header(info->msg, info->hdr, NULL);
+	}
+	if ( ret == 0 && ( ret = message_get_stream(msg, &istream ) ) == 0 ) {
+		if ( ( ret = message_get_body(info->msg, &body) ) == 0 &&
+			 ( ret = body_get_stream(body, &ostream) ) == 0 ) {
+			if ( info->nbytes )
+				memmove( info->buf, info->buf + (BUF_SIZE - info->nbytes), info->nbytes);
+			while ( (ret == 0 && info->nbytes) || ( ( ret = stream_read(istream, info->buf, BUF_SIZE, info->ioffset, &info->nbytes) ) == 0 && info->nbytes ) ) {
+				info->ioffset += info->nbytes;
+				while( info->nbytes ) {
+					if ( ( ret = stream_write(ostream, info->buf, info->nbytes, info->ooffset, &nbytes ) ) != 0 )
+						break;
+					info->nbytes -= nbytes;
+					info->ooffset += nbytes;
+				}
+			}
 		}
 	}
+	if ( ret == 0 )
+		*newmsg = info->msg;
+	if ( ret != EAGAIN && info )
+		_attachment_free(info, ret);
 	return ret;
 }
-#endif
-
-/* If the message interface parsed headers on write this would be easy */
 
 int message_unencapsulate(message_t msg, message_t *newmsg, void **data)
 {
 	size_t 				size, nbytes;
-	int					ret = 0, header_done = 0;
-	char 				*content_type, *cp;
+	int					ret = 0;
+	char 				*content_type;
 	header_t			hdr;
-	body_t				body;
 	stream_t			istream, ostream;
 	struct _msg_info	*info = NULL;
 
@@ -190,60 +210,22 @@ int message_unencapsulate(message_t msg, message_t *newmsg, void **data)
 		header_get_value(hdr, "Content-Type", NULL, 0, &size);
 		if ( size ) {
 			if ( ( content_type = alloca(size+1) ) == NULL )
-				ret = ENOMEM;
+				return ENOMEM;
 			header_get_value(hdr, "Content-Type", content_type, size+1, 0);
 			if ( strncasecmp(content_type, "message/rfc822", strlen(content_type)) != 0 )
-				ret = EINVAL;
+				return EINVAL;
 		} else
 			return EINVAL;
 	}
-	if ( ret == 0 && ( ret = _attachment_setup( &info, msg, &istream, data) ) != 0 )
+	if ( ( ret = _attachment_setup( &info, msg, &istream, data) ) != 0 )
 		return ret;
-
-	if ( ret == 0  && info->hdr == NULL ) {
-		while ( !header_done && ( ret = stream_read(istream, info->buf, BUF_SIZE, info->ioffset, &info->nbytes) ) == 0 && info->nbytes ) {
-			cp = info->buf;
-			while ( info->nbytes && !header_done ) {
-				info->line[info->line_ndx] = *cp;
-				info->line_ndx++;
-				if ( *cp == '\n' ) {
-					if ( info->header_len + info->line_ndx > info->header_size) {
-						char *nhb;
-						if ( ( nhb = realloc( info->header_buf, info->header_len + info->line_ndx + 128 ) ) == NULL ) {
-							header_done = 1;
-							ret = ENOMEM;
-							break;
-						}
-						info->header_buf = nhb;
-						info->header_size = info->header_len + info->line_ndx + 128;
-					}
-					info->header_len += info->line_ndx;
-					memcpy(info->header_buf, info->line, info->line_ndx);
-					if ( info->line_ndx == 1 ) {
-						header_done = 1;
-						break;
-					}
-					info->line_ndx = 0;
-				}
-				if ( info->line_ndx == MAX_HDR_LEN ) /* prevent overflow */
-					info->line_ndx--;
-				info->ioffset++;
-				info->nbytes--;
-				cp++;
-			}
-		}
-	}
-	if ( ret == 0 && info->msg == NULL ) {
-		if ( ( ret = message_create(&(info->msg), NULL) ) == 0)
-			if ( ( ret = header_create(&(info->hdr), info->header_buf, info->header_len, info->msg) ) == 0 )
-				ret = message_set_header(info->msg, hdr, NULL);
-	}
+	if ( info->msg == NULL )
+		ret = message_create(&(info->msg), NULL);
 	if ( ret == 0 ) {
-		message_get_body(info->msg, &body);
-		body_get_stream( body, &ostream);
+		message_get_stream(info->msg, &ostream);
 		if ( info->nbytes )
 			memmove( info->buf, info->buf + (BUF_SIZE - info->nbytes), info->nbytes);
-		while ( info->nbytes || ( ( ret = stream_read(istream, info->buf, BUF_SIZE, info->ioffset, &info->nbytes) ) == 0 && info->nbytes ) ) {
+		while ( (ret == 0 && info->nbytes) || ( ( ret = stream_read(istream, info->buf, BUF_SIZE, info->ioffset, &info->nbytes) ) == 0 && info->nbytes ) ) {
 			info->ioffset += info->nbytes;
 			while( info->nbytes ) {
 				if ( ( ret = stream_write(ostream, info->buf, info->nbytes, info->ooffset, &nbytes ) ) != 0 )
@@ -253,6 +235,8 @@ int message_unencapsulate(message_t msg, message_t *newmsg, void **data)
 			}
 		}
 	}
+	if ( ret == 0 )
+		*newmsg = info->msg;
 	if ( ret != EAGAIN && info )
 		_attachment_free(info, ret);
 	return ret;

@@ -15,13 +15,16 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
+#ifdef HAVE_CONFIG_H
+# include <config.h>
+#endif
 
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include <steam0.h>
+#include <mailutils/sys/steam0.h>
 #include <mailutils/transcode.h>
 
 int _base64_decode(stream_t stream, char *optr, size_t osize, off_t offset, size_t *nbytes);

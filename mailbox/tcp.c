@@ -15,6 +15,10 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
+#ifdef HAVE_CONFIG_H
+# include <config.h>
+#endif
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <errno.h>
@@ -27,12 +31,12 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 
-#include <stream0.h>
+#include <mailutils/stream.h>
 #include <tcp0.h>
 
 static int _tcp_close(stream_t stream)
 {
-	struct _tcp_instance *tcp = stream->owner;
+	struct _tcp_instance *tcp = stream_get_owner(stream);
 
 	if ( tcp->fd != -1 )
 		close(tcp->fd);
@@ -43,7 +47,7 @@ static int _tcp_close(stream_t stream)
 
 static int _tcp_open(stream_t stream, const char *host, int port, int flags)
 {
-	struct _tcp_instance 	*tcp = stream->owner;
+	struct _tcp_instance 	*tcp = stream_get_owner(stream);
 	int 					flgs, ret;
 	size_t					namelen;
 	struct sockaddr_in 		peer_addr;
@@ -66,7 +70,7 @@ static int _tcp_open(stream_t stream, const char *host, int port, int flags)
 				flgs = fcntl(tcp->fd, F_GETFL);
 				flgs |= O_NONBLOCK;
 				fcntl(tcp->fd, F_SETFL, flgs);
-				stream->flags |= MU_STREAM_NONBLOCK;
+				stream_set_flags (stream, MU_STREAM_NONBLOCK);
 			}
 			tcp->state = TCP_STATE_RESOLVING;
 		case TCP_STATE_RESOLVING:
@@ -115,7 +119,7 @@ static int _tcp_open(stream_t stream, const char *host, int port, int flags)
 
 static int _tcp_get_fd(stream_t stream, int *fd)
 {
-	struct _tcp_instance *tcp = stream->owner;
+	struct _tcp_instance *tcp = stream_get_owner(stream);
 
 	if ( fd == NULL || tcp->fd == EINVAL )
 		return EINVAL;
@@ -126,7 +130,7 @@ static int _tcp_get_fd(stream_t stream, int *fd)
 
 static int _tcp_read(stream_t stream, char *buf, size_t buf_size, off_t offset, size_t *br)
 {
-	struct _tcp_instance *tcp = stream->owner;
+	struct _tcp_instance *tcp = stream_get_owner(stream);
 	int 	bytes;
 
 	offset = offset;
@@ -143,7 +147,7 @@ static int _tcp_read(stream_t stream, char *buf, size_t buf_size, off_t offset, 
 
 static int _tcp_write(stream_t stream, const char *buf, size_t buf_size, off_t offset, size_t *bw)
 {
-	struct _tcp_instance *tcp = stream->owner;
+	struct _tcp_instance *tcp = stream_get_owner(stream);
 	int 	bytes;
 
 	offset = offset;
@@ -160,7 +164,7 @@ static int _tcp_write(stream_t stream, const char *buf, size_t buf_size, off_t o
 
 static void _tcp_destroy(stream_t stream)
 {
-	struct _tcp_instance *tcp = stream->owner;
+	struct _tcp_instance *tcp = stream_get_owner(stream);
 
 	if ( tcp->host )
 		free(tcp->host);

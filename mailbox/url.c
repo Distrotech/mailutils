@@ -19,98 +19,23 @@
 # include <config.h>
 #endif
 
-#include <url0.h>
-#include <registrar0.h>
-#include <cpystr.h>
-
 #include <string.h>
 #include <stdlib.h>
 #include <errno.h>
 
-
-/* Forward prototypes */
-static int get_scheme  (const url_t, char *, size_t, size_t *);
-static int get_user    (const url_t, char *, size_t, size_t *);
-static int get_passwd  (const url_t, char *, size_t, size_t *);
-static int get_host    (const url_t, char *, size_t, size_t *);
-static int get_port    (const url_t, long *);
-static int get_path    (const url_t, char *, size_t, size_t *);
-static int get_query   (const url_t, char *, size_t, size_t *);
-static int get_id      (const url_t, int *);
+#include <mailutils/registrar.h>
+#include <misc.h>
+#include <url0.h>
 
 int
-url_create (url_t * purl, const char *name)
+url_create (url_t *purl, const char *name)
 {
-  int status = EINVAL;
-  struct url_registrar *ureg;
-  struct mailbox_registrar *mreg;
-  size_t name_len;
-  int id;
-  size_t i, entry_count = 0;
-
-  /* Sanity checks */
-  if (name == NULL || *name == '\0')
-    return status;
-
-  name_len = strlen (name);
-
-  /* Search for a known scheme */
-  registrar_entry_count (&entry_count);
-  for (i = 0; i < entry_count; i++)
-    {
-      if (registrar_entry (i, &ureg, &mreg, &id) == 0)
-	{
-	  size_t scheme_len;
-	  if (ureg && ureg->scheme &&
-	      name_len > (scheme_len = strlen (ureg->scheme)) &&
-	      memcmp (name, ureg->scheme, scheme_len) == 0)
-	    {
-	      status = 0;
-	      break;
-	    }
-	}
-    }
-  /*
-  while (registrar_list (&ureg, &mreg, &id, &reg) == 0)
-    {
-      size_t scheme_len;
-      if (ureg && ureg->scheme &&
-	  name_len > (scheme_len = strlen (ureg->scheme)) &&
-	  memcmp (name, ureg->scheme, scheme_len) == 0)
-	{
-	  status = 0;
-	  break;
-	}
-    }
-  */
-
-  /* Found one initialize it */
-  if (status == 0)
-    {
-      status = ureg->_create (purl, name);
-      if (status == 0)
-	{
-	  url_t url = *purl;
-	  url->id = id;
-	  if (url->_get_id == NULL)
-	    url->_get_id = get_id;
-	  if (url->_get_scheme == NULL)
-	    url->_get_scheme = get_scheme;
-	  if (url->_get_user == NULL)
-	    url->_get_user = get_user;
-	  if (url->_get_passwd == NULL)
-	    url->_get_passwd = get_passwd;
-	  if (url->_get_host == NULL)
-	    url->_get_host = get_host;
-	  if (url->_get_port == NULL)
-	    url->_get_port = get_port;
-	  if (url->_get_path == NULL)
-	    url->_get_path = get_path;
-	  if (url->_get_query == NULL)
-	    url->_get_query = get_query;
-	}
-    }
-  return status;
+  url_t url = calloc(1, sizeof (*url));
+  if (url == NULL)
+    return ENOMEM;
+  url->name = strdup (name);
+  *purl = url;
+  return 0;
 }
 
 void
@@ -118,76 +43,52 @@ url_destroy (url_t *purl)
 {
   if (purl && *purl)
     {
-      struct url_registrar *ureg;
-      int id;
-      url_get_id (*purl, &id);
-      registrar_get (id, &ureg, NULL);
-      ureg->_destroy(purl);
-      (*purl) = NULL;
+      url_t url = (*purl);
+      if (url->_destroy)
+	url->_destroy (url);
+
+      if (url->name)
+	free (url->name);
+
+      if (url->scheme)
+	free (url->scheme);
+
+      if (url->user)
+	free (url->user);
+
+      if (url->passwd)
+	free (url->passwd);
+
+      if (url->host)
+	free (url->host);
+
+      *purl = NULL;
     }
 }
 
-int (url_get_scheme) (const url_t url, char *scheme, size_t len, size_t *n)
-{
-  return (url) ? url->_get_scheme(url, scheme, len, n) : EINVAL;
-}
-
-int (url_get_user) (const url_t url, char *user, size_t len, size_t *n)
-{
-  return (url) ? url->_get_user(url, user, len, n) : EINVAL;
-}
-
-int (url_get_passwd) (const url_t url, char *passwd, size_t len, size_t *n)
-{
-  return (url) ? url->_get_passwd(url, passwd, len, n) : EINVAL;
-}
-
-int (url_get_host) (const url_t url, char *host, size_t len, size_t *n)
-{
-  return (url) ? url->_get_host(url, host, len, n) : EINVAL;
-}
-
-int (url_get_port) (const url_t url, long *port)
-{
-  return (url) ? url->_get_port(url, port) : EINVAL;
-}
-
-int (url_get_path) (const url_t url, char *path, size_t len, size_t *n)
-{
-  return (url) ? url->_get_path(url, path, len, n) : EINVAL;
-}
-
-int (url_get_query) (const url_t url, char *query, size_t len, size_t *n)
-{
-  return (url) ? url->_get_query(url, query, len, n) : EINVAL;
-}
-
-int (url_get_id) (const url_t url, int *id)
-{
-  return (url) ? url->_get_id (url, id) : EINVAL;
-}
-
-/* Simple stub functions they all call _cpystr */
-
-static int
-get_scheme (const url_t u, char *s, size_t len, size_t *n)
+int
+url_get_scheme (const url_t url, char *scheme, size_t len, size_t *n)
 {
   size_t i;
-  if (u == NULL)
+  if (url == NULL)
     return EINVAL;
-  i = _cpystr (s, u->scheme, len);
+  if (url->_get_scheme)
+    return url->_get_scheme (url, scheme, len, n);
+  i = _cpystr (scheme, url->scheme, len);
   if (n)
     *n = i;
   return 0;
 }
 
-static int
-get_user (const url_t u, char *s, size_t len, size_t *n)
+int
+url_get_user (const url_t url, char *user, size_t len, size_t *n)
 {
   size_t i;
-  if (u == NULL)
+  if (url == NULL)
     return EINVAL;
-  i = _cpystr (s, u->user, len);
+  if (url->_get_user)
+    return url->_get_user (url, user, len, n);
+  i = _cpystr (user, url->user, len);
   if (n)
     *n = i;
   return 0;
@@ -195,65 +96,91 @@ get_user (const url_t u, char *s, size_t len, size_t *n)
 
 /* FIXME: We should not store passwd in clear, but rather
    have a simple encoding, and decoding mechanism */
-static int
-get_passwd (const url_t u, char *s, size_t len, size_t *n)
+int
+url_get_passwd (const url_t url, char *passwd, size_t len, size_t *n)
 {
   size_t i;
-  if (u == NULL)
+  if (url == NULL)
     return EINVAL;
-  i = _cpystr (s, u->passwd, len);
+  if (url->_get_passwd)
+    return url->_get_passwd (url, passwd, len, n);
+  i = _cpystr (passwd, url->passwd, len);
   if (n)
     *n = i;
   return 0;
 }
 
-static int
-get_host (const url_t u, char *s, size_t len, size_t *n)
+int
+url_get_auth (const url_t url, char *auth, size_t len, size_t *n)
 {
   size_t i;
-  if (u == NULL)
+  if (url == NULL)
     return EINVAL;
-  i = _cpystr (s, u->host, len);
+  if (url->_get_auth)
+    return url->_get_auth (url, auth, len, n);
+  i = _cpystr (auth, url->auth, len);
   if (n)
     *n = i;
   return 0;
 }
 
-static int
-get_port (const url_t u, long * p)
-{
-  *p = u->port;
-  return 0;
-}
-
-static int
-get_path (const url_t u, char *s, size_t len, size_t *n)
+int
+url_get_host (const url_t url, char *host, size_t len, size_t *n)
 {
   size_t i;
-  if (u == NULL)
+  if (url == NULL)
     return EINVAL;
-  i = _cpystr(s, u->path, len);
+  if (url->_get_host)
+    return url->_get_host (url, host, len, n);
+  i = _cpystr (host, url->host, len);
   if (n)
     *n = i;
   return 0;
 }
 
-static int
-get_query (const url_t u, char *s, size_t len, size_t *n)
+int
+url_get_port (const url_t url, long *pport)
+{
+  if (url == NULL)
+    return EINVAL;
+  if (url->_get_port)
+    return url->_get_port (url, pport);
+  *pport = url->port;
+  return 0;
+}
+
+int
+url_get_path (const url_t url, char *path, size_t len, size_t *n)
 {
   size_t i;
-  if (u == NULL)
+  if (url == NULL)
     return EINVAL;
-  i = _cpystr(s, u->query, len);
+  if (url->_get_path)
+    return url->_get_path (url, path, len, n);
+  i = _cpystr(path, url->path, len);
   if (n)
     *n = i;
   return 0;
 }
 
-static int
-get_id (const url_t u, int *id)
+int
+url_get_query (const url_t url, char *query, size_t len, size_t *n)
 {
-  if (id)
-    *id = u->id;
+  size_t i;
+  if (url == NULL)
+    return EINVAL;
+  if (url->_get_query)
+    return url->_get_query (url, query, len, n);
+  i = _cpystr(query, url->query, len);
+  if (n)
+    *n = i;
   return 0;
+}
+
+const char *
+url_to_string (const url_t url)
+{
+  if (url == NULL || url->name == NULL)
+    return "";
+  return url->name;
 }

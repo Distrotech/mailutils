@@ -18,11 +18,15 @@
 #ifndef _MAILBOX0_H
 #define _MAILBOX0_H
 
-#include <mailutils/mailbox.h>
-#include <mailutils/event.h>
+#ifdef HAVE_PTHREAD_H
+#  define __USE_UNIX98 /* ?? */
+#  include <pthread.h>
+#endif
 
 #include <sys/types.h>
 #include <stdio.h>
+
+#include <mailutils/mailbox.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -39,30 +43,26 @@ extern "C" {
 struct _mailbox
 {
   /* Data */
-  char *name;
-  auth_t auth;
+  observable_t observable;
+  debug_t debug;
+  ticket_t ticket;
+  authority_t authority;
   locker_t locker;
   stream_t stream;
   url_t url;
+  int flags;
 
-  /* register events */
-  event_t event;
-  size_t event_num;
-
-  /* debug information */
-  int debug_level;
-  void *debug_arg;
-  char *debug_buffer;
-  size_t debug_bufsize;
-  int (*debug_print)       __P ((void *arg, const char *, size_t));
+#ifdef WITH_PTHREAD
+  pthread_rwlock_t rwlock;
+#endif
 
   /* Back pointer to the specific mailbox */
   void *data;
 
   /* Public methods */
 
-  int  (*_create)          __P ((mailbox_t *, const char *));
-  void (*_destroy)         __P ((mailbox_t *));
+  int  (*_init)            __P ((mailbox_t));
+  void (*_destroy)         __P ((mailbox_t));
 
   int  (*_open)            __P ((mailbox_t, int flag));
   int  (*_close)           __P ((mailbox_t));
@@ -78,16 +78,27 @@ struct _mailbox
 
   int  (*_size)            __P ((mailbox_t, off_t *size));
 
-  /* private */
-  int  (*_num_deleted)     __P ((mailbox_t, size_t *));
 };
 
-/* private */
-extern int mailbox_num_deleted    __P ((mailbox_t, size_t *));
+/* To manipulate mailbox rwlock.  */
+extern int mailbox_rdlock         __P ((mailbox_t));
+extern int mailbox_wrlock         __P ((mailbox_t));
+extern int mailbox_unlock         __P ((mailbox_t));
 
-extern int mailbox_notification   __P ((mailbox_t mbox, size_t type));
+#define MAILBOX_NOTIFY(mbox, type) \
+if (mbox->observer) observer_notify (mbox->observer, type)
 
-extern int mailbox_debug __P ((mailbox_t, int level, const char *fmt, ...));
+/* Moro(?)ic kluge.  */
+#define MAILBOX_DEBUG0(mbox, type, format) \
+if (mbox->debug) debug_print (mbox->debug, type, format)
+#define MAILBOX_DEBUG1(mbox, type, format, arg1) \
+if (mbox->debug) debug_print (mbox->debug, type, format, arg1)
+#define MAILBOX_DEBUG2(mbox, type, format, arg1, arg2) \
+if (mbox->debug) debug_print (mbox->debug, type, format, arg1, arg2)
+#define MAILBOX_DEBUG3(mbox, type, format, arg1, arg2, arg3) \
+if (mbox->debug) debug_print (mbox->debug, type, format, arg1, arg2, arg3)
+#define MAILBOX_DEBUG4(mbox, type, format, arg1, arg2, arg3, arg4) \
+if (mbox->debug) debug_print (mbox->debug, type, format, arg1, arg2, arg3, arg4)
 
 #ifdef __cplusplus
 }

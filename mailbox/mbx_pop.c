@@ -15,6 +15,10 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
+#ifdef HAVE_CONFIG_H
+# include <config.h>
+#endif
+
 #include <termios.h>
 #include <errno.h>
 #include <stdlib.h>
@@ -24,15 +28,39 @@
 #include <fcntl.h>
 #include <stdarg.h>
 
+#include <mailutils/stream.h>
+#include <mailutils/body.h>
+#include <mailutils/message.h>
+#include <mailutils/header.h>
+#include <mailutils/attribute.h>
+#include <mailutils/url.h>
+#include <mailutils/auth.h>
 #include <mailbox0.h>
-#include <stream0.h>
-#include <body0.h>
-#include <message0.h>
 #include <registrar0.h>
-#include <auth0.h>
-#include <header0.h>
-#include <attribute0.h>
 #include <bio.h>
+
+static int pop_init (mailbox_t);
+
+static struct mailbox_entry _pop_entry =
+{
+  url_pop_init, pop_init
+};
+static struct _record _pop_record =
+{
+  MU_POP_SCHEME,
+  &_pop_entry, /* Mailbox entry.  */
+  NULL, /* Mailer entry.  */
+  0, /* Not malloc()ed.  */
+  NULL, /* No need for an owner.  */
+  NULL, /* is_scheme method.  */
+  NULL, /* get_mailbox method.  */
+  NULL /* get_mailer method.  */
+};
+
+/* We export two functions: url parsing and the initialisation of
+   the mailbox, via the register entry/record.  */
+record_t pop_record = &_pop_record;
+mailbox_entry_t pop_entry = &_pop_entry;
 
 /* Advance declarations.  */
 struct _pop_data;
@@ -45,34 +73,25 @@ typedef struct _pop_message * pop_message_t;
    reentrant. It is only one channel.  */
 enum pop_state
 {
-  POP_NO_STATE = 0, POP_STATE_DONE,
+  POP_NO_STATE, POP_STATE_DONE,
   POP_OPEN_CONNECTION,
   POP_GREETINGS,
-  POP_APOP_TX, POP_APOP_ACK,
-  POP_DELE_TX, POP_DELE_ACK,
-  POP_LIST_TX, POP_LIST_ACK, POP_LIST_RX,
-  POP_PASS_TX, POP_PASS_ACK,
-  POP_QUIT_TX, POP_QUIT_ACK,
-  POP_NOOP_TX, POP_NOOP_ACK,
-  POP_RETR_TX, POP_RETR_ACK, POP_RETR_RX_HDR, POP_RETR_RX_BODY,
-  POP_RSET_TX, POP_RSET_ACK,
-  POP_STAT_TX, POP_STAT_ACK,
-  POP_TOP_TX,  POP_TOP_ACK,  POP_TOP_RX,
-  POP_UIDL_TX, POP_UIDL_ACK,
-  POP_USER_TX, POP_USER_ACK,
+  POP_APOP, POP_APOP_ACK,
+  POP_DELE, POP_DELE_ACK,
+  POP_LIST, POP_LIST_ACK, POP_LIST_RX,
+  POP_QUIT, POP_QUIT_ACK,
+  POP_NOOP, POP_NOOP_ACK,
+  POP_RETR, POP_RETR_ACK, POP_RETR_RX_HDR, POP_RETR_RX_BODY,
+  POP_RSET, POP_RSET_ACK,
+  POP_STAT, POP_STAT_ACK,
+  POP_TOP,  POP_TOP_ACK,  POP_TOP_RX,
+  POP_UIDL, POP_UIDL_ACK,
+  POP_AUTH, POP_AUTH_DONE,
+  POP_AUTH_USER, POP_AUTH_USER_ACK,
+  POP_AUTH_PASS, POP_AUTH_PASS_ACK
 };
 
-/*  Those two are exportable funtions i.e. they are visible/call when you
-    call a URL "pop://..." to mailbox_create.  */
-
-static int pop_create (mailbox_t *, const char *);
-static void pop_destroy (mailbox_t *);
-
-struct mailbox_registrar _mailbox_pop_registrar =
-{
-  "POP3",
-  pop_create, pop_destroy
-};
+static void pop_destroy (mailbox_t);
 
 /*  Functions/Methods that implements the mailbox_t API.  */
 static int pop_open (mailbox_t, int);
@@ -80,27 +99,31 @@ static int pop_close (mailbox_t);
 static int pop_get_message (mailbox_t, size_t, message_t *);
 static int pop_messages_count (mailbox_t, size_t *);
 static int pop_expunge (mailbox_t);
-static int pop_num_deleted (mailbox_t, size_t *);
 static int pop_scan (mailbox_t, size_t, size_t *);
 static int pop_is_updated (mailbox_t);
 
 /* The implementation of message_t */
+static int pop_user (authority_t);
 static int pop_size (mailbox_t, off_t *);
-static int pop_top (stream_t, char *, size_t, off_t, size_t *);
-static int pop_read_header (stream_t, char *, size_t, off_t, size_t *);
-static int pop_read_body (stream_t, char *, size_t, off_t, size_t *);
-static int pop_read_message (stream_t, char *, size_t, off_t, size_t *);
-static int pop_retr (pop_message_t, char *, size_t, off_t, size_t *);
-static int pop_get_fd (stream_t, int *);
-static int pop_get_flags (attribute_t, int *);
+static int pop_header_read (stream_t, char *, size_t, off_t, size_t *);
+static int pop_header_fd (stream_t, int *);
+static int pop_body_fd (stream_t, int *);
 static int pop_body_size (body_t, size_t *);
-static int pop_body_lines (body_t body, size_t *plines);
+static int pop_body_lines (body_t, size_t *);
+static int pop_body_read (stream_t, char *, size_t, off_t, size_t *);
+static int pop_message_read (stream_t, char *, size_t, off_t, size_t *);
+static int pop_message_size (message_t, size_t *);
+static int pop_message_fd (stream_t, int *);
+static int pop_top (stream_t, char *, size_t, off_t, size_t *);
+static int pop_retr (pop_message_t, char *, size_t, off_t, size_t *);
+static int pop_get_fd (pop_message_t, int *);
+static int pop_attr_flags (attribute_t, int *);
 static int pop_uidl (message_t, char *, size_t, size_t *);
-static int fill_buffer (pop_data_t mpd, char *buffer, size_t buflen);
-static int pop_readline (pop_data_t mpd);
-static int pop_read_ack (pop_data_t mpd);
-static int pop_writeline (pop_data_t mpd, const char *format, ...);
-static int pop_write (pop_data_t mpd);
+static int fill_buffer (pop_data_t, char *, size_t);
+static int pop_readline (pop_data_t);
+static int pop_read_ack (pop_data_t);
+static int pop_writeline (pop_data_t, const char *, ...);
+static int pop_write (pop_data_t);
 
 /* This structure holds the info for a pop_get_message(). The pop_message_t
    type, will serve as the owner of the message_t and contains the command to
@@ -116,7 +139,10 @@ struct _pop_message
   int skip_header;
   int skip_body;
   size_t body_size;
+  size_t header_size;
   size_t body_lines;
+  size_t header_lines;
+  size_t message_size;
   size_t num;
   message_t message;
   pop_data_t mpd; /* Back pointer.  */
@@ -126,19 +152,13 @@ struct _pop_message
    many messages we have so far etc ...  */
 struct _pop_data
 {
-  /*  Pop is a serial protocol, we need only one global mutex.  */
-#ifdef HAVE_PTHREAD_H
-  pthread_mutex_t mutex;
-#else
   void *func;  /*  Indicate a command is in operation, busy.  */
-#endif
   size_t id; /* Use in pop_expunge to hold the message num, if EAGAIN.  */
   enum pop_state state;
   pop_message_t *pmessages;
   size_t pmessages_count;
   size_t messages_count;
   size_t size;
-  int flags;  /* Flags of for the stream_t object.  */
 
   /* Working I/O buffers.  */
   bio_t bio;
@@ -154,9 +174,46 @@ struct _pop_data
 } ;
 
 /* Usefull little Macros, since these are very repetitive.  */
+
+/* Check if we're busy ?  */
+/* POP is a one channel dowload protocol, so if someone
+   is trying to do another command while another is running
+   something is seriously incorrect,  So the best course
+   of action is to close down the connection and start a new one.
+   For example mime_t only reads part of the message.  If a client
+   wants to read different part of the message via mime it should
+   download it first.  POP does not have the features of IMAP for
+   multipart messages.  */
+#define CHECK_BUSY(mbox, mpd, function, identity) \
+do \
+  { \
+    int err = mailbox_wrlock (mbox); \
+    if (err != 0) \
+      return err; \
+    if ((mpd->func && mpd->func != function) \
+        || (mpd->id && mpd->id != (size_t)identity)) \
+      { \
+        mpd->id = 0; \
+        mpd->func = pop_open; \
+        mpd->state = POP_NO_STATE; \
+        mailbox_unlock (mbox); \
+        err = pop_open (mbox, mbox->flags); \
+        if (err != 0) \
+          { \
+            return err; \
+          } \
+      } \
+    else \
+      { \
+        mpd->id = (size_t)identity; \
+        mpd->func = func; \
+        mailbox_unlock (mbox); \
+      } \
+  } \
+while (0)
+
 #define CLEAR_STATE(mpd) \
- mpd->id = 0, mpd->func = NULL, \
- mpd->state = POP_NO_STATE
+ mpd->id = 0, mpd->func = NULL, mpd->state = POP_NO_STATE
 
 /* Clear the state and close the stream.  */
 #define CHECK_ERROR_CLOSE(mbox, mpd, status) \
@@ -201,67 +258,21 @@ while (0)
 
 /* Parse the url, allocate mailbox_t, allocate pop internal structures.  */
 static int
-pop_create (mailbox_t *pmbox, const char *name)
+pop_init (mailbox_t mbox)
 {
-  mailbox_t mbox;
   pop_data_t mpd;
-  size_t name_len;
-
-  /* Sanity check.  */
-  if (name == NULL || *name == '\0')
-    return EINVAL;
-
-  name_len = strlen (name);
-
-#define POP_SCHEME "pop://"
-#define POP_SCHEME_LEN 6
-#define SEPARATOR '/'
-
-  /* Skip the url scheme.  */
-  if (name_len > POP_SCHEME_LEN
-      && (name[0] == 'p' || name[0] == 'P')
-      && (name[1] == 'o' || name[1] == 'O')
-      && (name[2] == 'p' || name[2] == 'P')
-      && (name[3] == ':' && name[4] == '/' && name[5] == '/'))
-    {
-      name += POP_SCHEME_LEN;
-      name_len -= POP_SCHEME_LEN;
-    }
-
-  /* Allocate memory for mbox.  */
-  mbox = calloc (1, sizeof (*mbox));
-  if (mbox == NULL)
-    return ENOMEM;
 
   /* Allocate specifics for pop data.  */
   mpd = mbox->data = calloc (1, sizeof (*mpd));
   if (mbox->data == NULL)
-    {
-      pop_destroy (&mbox);
-      return ENOMEM;
-    }
-  mpd->state = POP_NO_STATE;
-  mpd->mbox = mbox;
+    return ENOMEM;
 
-  /* Copy the name.  */
-  mbox->name = calloc (name_len + 1, sizeof (char));
-  if (mbox->name == NULL)
-    {
-      pop_destroy (&mbox);
-      return ENOMEM;
-    }
-  memcpy (mbox->name, name, name_len);
+  mpd->mbox = mbox; /* Back pointer.  */
 
-#ifdef HAVE_PHTREAD_H
-  /* Mutex when accessing the structure fields.  */
-  /* FIXME: should we use rdwr locks instead ??  */
-  /* XXXX:  This is not use yet and the library is still not thread safe. This
-     is more a gentle remider that I got more work to do.  */
-  pthread_mutex_init (&(mpd->mutex), NULL);
-#endif
+  mpd->state = POP_NO_STATE; /* Init with no state.  */
 
   /* Initialize the structure.  */
-  mbox->_create = pop_create;
+  mbox->_init = pop_init;
   mbox->_destroy = pop_destroy;
 
   mbox->_open = pop_open;
@@ -271,128 +282,123 @@ pop_create (mailbox_t *pmbox, const char *name)
   mbox->_get_message = pop_get_message;
   mbox->_messages_count = pop_messages_count;
   mbox->_expunge = pop_expunge;
-  mbox->_num_deleted = pop_num_deleted;
 
   mbox->_scan = pop_scan;
   mbox->_is_updated = pop_is_updated;
 
   mbox->_size = pop_size;
 
-  (*pmbox) = mbox;
-
   return 0; /* Okdoke.  */
 }
 
 /*  Cleaning up all the ressources associate with a pop mailbox.  */
 static void
-pop_destroy (mailbox_t *pmbox)
+pop_destroy (mailbox_t mbox)
 {
-  if (pmbox && *pmbox)
+  if (mbox->data)
     {
-      mailbox_t mbox = *pmbox;
-      if (mbox->data)
+      pop_data_t mpd = mbox->data;
+      size_t i;
+      mailbox_wrlock (mbox);
+      /* Destroy the pop messages and ressources associated to them.  */
+      for (i = 0; i < mpd->pmessages_count; i++)
 	{
-	  pop_data_t mpd = mbox->data;
-	  size_t i;
-	  /* Destroy the pop messages and ressources associated to them.  */
-	  for (i = 0; i < mpd->pmessages_count; i++)
+	  if (mpd->pmessages[i])
 	    {
-	      if (mpd->pmessages[i])
-		{
-		  message_destroy (&(mpd->pmessages[i]->message),
-				   mpd->pmessages[i]);
-		  free (mpd->pmessages[i]);
-		  mpd->pmessages[i] = NULL;
-		}
+	      message_destroy (&(mpd->pmessages[i]->message),
+			       mpd->pmessages[i]);
+	      free (mpd->pmessages[i]);
+	      mpd->pmessages[i] = NULL;
 	    }
-	  bio_destroy (&(mpd->bio));
-	  free (mpd->buffer);
-	  mpd->buffer = NULL;
-	  free (mpd->pmessages);
-	  mpd->pmessages = NULL;
-#ifdef HAVE_PHTREAD_H
-	  pthread_mutex_destroy (&(mpd->mutex));
-#endif
-	  free (mpd);
-	  mbox->data = NULL;
 	}
-      /* Since the mailbox is destroy, close the stream but not via
-	 pop_close () which can return EAGAIN, or other unpleasant side
-	 effects, but rather the hard way.  */
-      stream_close (mbox->stream);
-      stream_destroy (&(mbox->stream), mbox);
-      auth_destroy (&(mbox->auth), mbox);
-      if (mbox->name)
-	{
-	  free (mbox->name);
-	  mbox->name = NULL;
-	}
-      if (mbox->event)
-	{
-	  free (mbox->event);
-	  mbox->event = NULL;
-	}
-      if (mbox->url)
-	url_destroy (&(mbox->url));
-      free (mbox);
-      *pmbox = NULL;
+      bio_destroy (&(mpd->bio));
+      free (mpd->buffer);
+      mpd->buffer = NULL;
+      free (mpd->pmessages);
+      mpd->pmessages = NULL;
+      free (mpd);
+      mbox->data = NULL;
+      mailbox_unlock (mbox);
     }
-}
-
-static void
-echo_off(struct termios *stored_settings)
-{
-  struct termios new_settings;
-  tcgetattr (0, stored_settings);
-  new_settings = *stored_settings;
-  new_settings.c_lflag &= (~ECHO);
-  tcsetattr (0, TCSANOW, &new_settings);
-}
-
-static void
-echo_on(struct termios *stored_settings)
-{
-  tcsetattr (0, TCSANOW, stored_settings);
 }
 
 /* User/pass authentication for pop.  */
-static int
-pop_authenticate (auth_t auth, char **user, char **passwd)
+int
+pop_user (authority_t auth)
 {
-  /* FIXME: This incorrect and goes against GNU style: having a limitation on
-     the user/passwd length, it should be fix.  */
-  char u[128];
-  char p[128];
-  mailbox_t mbox = auth->owner;
+  mailbox_t mbox = authority_get_owner (auth);
+  pop_data_t mpd = mbox->data;
+  ticket_t ticket;
   int status;
-  /*  We should probably use getpass () or something similar.  */
-  struct termios stored_settings;
 
-  *u = '\0';
-  *p = '\0';
-  memset (&stored_settings, 0, sizeof (stored_settings));
+  switch (mpd->state)
+    {
+    case POP_AUTH:
+      authority_get_ticket (auth, &ticket);
+      /*  Fetch the user/passwd from them.  */
+      ticket_pop (ticket, "Pop User: ",  &mpd->user);
+      ticket_pop (ticket, "Pop Passwd: ",  &mpd->passwd);
+      status = pop_writeline (mpd, "USER %s\r\n", mpd->user);
+      CHECK_ERROR_CLOSE(mbox, mpd, status);
+      MAILBOX_DEBUG0 (mbox, MU_DEBUG_PROT, mpd->buffer);
+      free (mpd->user);
+      mpd->user = NULL;
+      mpd->state = POP_AUTH_USER;
 
-  /* Prompt for the user/login name.  */
-  status = url_get_user (mbox->url, u, sizeof (u), NULL);
-  if (status != 0 || *u == '\0')
-    {
-      printf ("Pop User: "); fflush (stdout);
-      fgets (u, sizeof (u), stdin);
-      u [strlen (u) - 1] = '\0'; /* nuke the trailing NL */
+    case POP_AUTH_USER:
+      /* Send username.  */
+      status = pop_write (mpd);
+      CHECK_EAGAIN (mpd, status);
+      mpd->state = POP_AUTH_USER_ACK;
+
+    case POP_AUTH_USER_ACK:
+      /* Get the user ack.  */
+      status = pop_read_ack (mpd);
+      CHECK_EAGAIN (mpd, status);
+      MAILBOX_DEBUG0 (mbox, MU_DEBUG_PROT, mpd->buffer);
+      if (strncasecmp (mpd->buffer, "+OK", 3) != 0)
+	{
+	  observable_t observable = NULL;
+	  mailbox_get_observable (mbox, &observable);
+	  observable_notify (observable, MU_EVT_AUTHORITY_FAILED);
+	  CHECK_ERROR_CLOSE (mbox, mpd, EACCES);
+	}
+      status = pop_writeline (mpd, "PASS %s\r\n", mpd->passwd);
+      CHECK_ERROR_CLOSE (mbox, mpd, status);
+      /* We have to nuke the passwd.  */
+      memset (mpd->passwd, 0, strlen (mpd->passwd));
+      free (mpd->passwd);
+      mpd->passwd = NULL;
+      MAILBOX_DEBUG0 (mbox, MU_DEBUG_PROT, "PASS *\n");
+      mpd->state = POP_AUTH_PASS;
+
+    case POP_AUTH_PASS:
+      /* Send passwd.  */
+      status = pop_write (mpd);
+      CHECK_EAGAIN (mpd, status);
+      /* We have to nuke the passwd.  */
+      memset (mpd->buffer, 0, mpd->buflen);
+      mpd->state = POP_AUTH_PASS_ACK;
+
+    case POP_AUTH_PASS_ACK:
+      /* Get the ack from passwd.  */
+      status = pop_read_ack (mpd);
+      CHECK_EAGAIN (mpd, status);
+      MAILBOX_DEBUG0 (mbox, MU_DEBUG_PROT, mpd->buffer);
+      if (strncasecmp (mpd->buffer, "+OK", 3) != 0)
+	{
+	  observable_t observable = NULL;
+	  mailbox_get_observable (mbox, &observable);
+	  observable_notify (observable, MU_EVT_AUTHORITY_FAILED);
+	  CHECK_ERROR_CLOSE (mbox, mpd, EACCES);
+	}
+      mpd->state = POP_AUTH_DONE;
+      break;  /* We're outta here.  */
+
+    default:
+      break;
     }
-  /* Prompt for the passwd. */
-  status = url_get_passwd (mbox->url, p, sizeof (p), NULL);
-  if (status != 0 || *p == '\0' || *p == '*')
-    {
-      printf ("Pop Passwd: ");
-      fflush (stdout);
-      echo_off (&stored_settings);
-      fgets (p, sizeof(p), stdin);
-      echo_on (&stored_settings);
-      p [strlen (p) - 1] = '\0';
-    }
-  *user = strdup (u);
-  *passwd = strdup (p);
+  CLEAR_STATE (mpd);
   return 0;
 }
 
@@ -412,24 +418,14 @@ pop_open (mailbox_t mbox, int flags)
   if (mbox->url == NULL || mpd == NULL)
     return EINVAL;
 
+  mbox->flags = flags | MU_STREAM_POP;
+
   /* Fetch the pop server name and the port in the url_t.  */
   if ((status = url_get_host (mbox->url, host, sizeof(host), NULL)) != 0
       || (status = url_get_port (mbox->url, &port)) != 0)
     return status;
 
-  /* Dealing whith Authentication.  So far only normal user/pass supported.  */
-  if (mbox->auth == NULL)
-    {
-      status = auth_create (&(mbox->auth), mbox);
-      if (status != 0)
-	return status;
-      auth_set_authenticate (mbox->auth, pop_authenticate, mbox);
-    }
-
-  /* Flag busy.  */
-  if (mpd->func && mpd->func != func)
-    return EBUSY;
-  mpd->func = func;
+  CHECK_BUSY (mbox, mpd, func, 0);
 
   /* Enter the pop state machine, and boogy: AUTHORISATION State.  */
   switch (mpd->state)
@@ -447,31 +443,21 @@ pop_open (mailbox_t mbox, int flags)
 	  mpd->ptr = mpd->buffer;
 	}
 
-      /* Spawn auth prologue.  */
-      auth_prologue (mbox->auth);
-
       /* Create the networking stack.  */
       if (mbox->stream == NULL)
 	{
 	  status = tcp_stream_create (&(mbox->stream));
 	  CHECK_ERROR(mpd, status);
 	}
+      else
+	stream_close (mbox->stream);
       mpd->state = POP_OPEN_CONNECTION;
 
     case POP_OPEN_CONNECTION:
       /* Establish the connection.  */
-      mailbox_debug (mbox, MU_MAILBOX_DEBUG_PROT, "open (%s:%d)\n",
-		     host, port);
-      status = stream_open (mbox->stream, host, port, flags);
-      if (status != 0)
-	{
-	  /* Clear the state for non recoverable error.  */
-	  if (status != EAGAIN && status != EINPROGRESS && status != EINTR)
-	    {
-	      CLEAR_STATE (mpd);
-	    }
-	  return status;
-	}
+      MAILBOX_DEBUG2 (mbox, MU_DEBUG_PROT, "open (%s:%d)\n", host, port);
+      status = stream_open (mbox->stream, host, port, mbox->flags);
+      CHECK_EAGAIN (mpd, status);
       /* Need to destroy the old bio maybe a different stream.  */
       bio_destroy (&(mpd->bio));
       /* Allocate the struct for buffered I/O.  */
@@ -481,67 +467,42 @@ pop_open (mailbox_t mbox, int flags)
       mpd->state = POP_GREETINGS;
 
     case POP_GREETINGS:
-      /* Swallow the greetings.  */
-      status = pop_read_ack (mpd);
-      CHECK_EAGAIN (mpd, status);
-      mailbox_debug (mbox, MU_MAILBOX_DEBUG_PROT, mpd->buffer);
-      if (strncasecmp (mpd->buffer, "+OK", 3) != 0)
-	{
-	  CHECK_ERROR_CLOSE (mbox, mpd, EACCES);
-	}
+      {
+	char auth[64] = "";
+	size_t n = 0;
+	/* Swallow the greetings.  */
+	status = pop_read_ack (mpd);
+	CHECK_EAGAIN (mpd, status);
+	MAILBOX_DEBUG0 (mbox, MU_DEBUG_PROT, mpd->buffer);
+	if (strncasecmp (mpd->buffer, "+OK", 3) != 0)
+	  {
+	    CHECK_ERROR_CLOSE (mbox, mpd, EACCES);
+	  }
 
-      /*  Fetch the user/passwd from them.  */
-      auth_authenticate (mbox->auth, &mpd->user, &mpd->passwd);
+	url_get_auth (mbox->url, auth, 64, &n);
+	if (n == 0 || strcasecmp (auth, "*") == 0)
+	  {
+	    authority_create (&(mbox->authority), mbox->ticket, mbox);
+	    authority_set_authenticate (mbox->authority, pop_user, mbox);
+	  }
+	else if (strcasecmp (auth, "+apop") == 0)
+	  {
+	    /* Not supported.  */
+	  }
+	else
+	  {
+	    /* What can do flag an error ?  */
+	  }
+	mpd->state = POP_AUTH;
+      }
 
-      status = pop_writeline (mpd, "USER %s\r\n", mpd->user);
-      CHECK_ERROR_CLOSE(mbox, mpd, status);
-      mailbox_debug (mbox, MU_MAILBOX_DEBUG_PROT, mpd->buffer);
-      free (mpd->user);
-      mpd->user = NULL;
-      mpd->state = POP_USER_TX;
+    case POP_AUTH:
+      status = authority_authenticate (mbox->authority);
+      if (status != 0)
+	return status;
 
-    case POP_USER_TX:
-      /* Send username.  */
-      status = pop_write (mpd);
-      CHECK_EAGAIN (mpd, status);
-      mpd->state = POP_USER_ACK;
-
-    case POP_USER_ACK:
-      /* Get the user ack.  */
-      status = pop_read_ack (mpd);
-      CHECK_EAGAIN (mpd, status);
-      mailbox_debug (mbox, MU_MAILBOX_DEBUG_PROT, mpd->buffer);
-      if (strncasecmp (mpd->buffer, "+OK", 3) != 0)
-	{
-	  CHECK_ERROR_CLOSE (mbox, mpd, EACCES);
-	}
-      status = pop_writeline (mpd, "PASS %s\r\n", mpd->passwd);
-      CHECK_ERROR_CLOSE (mbox, mpd, status);
-      /* We have to nuke the passwd.  */
-      memset (mpd->passwd, 0, strlen (mpd->passwd));
-      free (mpd->passwd);
-      mpd->passwd = NULL;
-      mailbox_debug (mbox, MU_MAILBOX_DEBUG_PROT, "PASS *\n");
-      mpd->state = POP_PASS_TX;
-
-    case POP_PASS_TX:
-      /* Send passwd.  */
-      status = pop_write (mpd);
-      CHECK_EAGAIN (mpd, status);
-      /* We have to nuke the passwd.  */
-      memset (mpd->buffer, 0, mpd->buflen);
-      mpd->state = POP_PASS_ACK;
-
-    case POP_PASS_ACK:
-      /* Get the ack from passwd.  */
-      status = pop_read_ack (mpd);
-      CHECK_EAGAIN (mpd, status);
-      mailbox_debug (mbox, MU_MAILBOX_DEBUG_PROT, mpd->buffer);
-      if (strncasecmp (mpd->buffer, "+OK", 3) != 0)
-	{
-	  CHECK_ERROR_CLOSE (mbox, mpd, EACCES);
-	}
-      break;  /* We're outta here.  */
+    case POP_AUTH_DONE:
+      break;
 
     default:
       /*
@@ -549,9 +510,6 @@ pop_open (mailbox_t mbox, int flags)
       */
       break;
     }/* End AUTHORISATION state. */
-
-  /* Spawn cleanup functions.  */
-  auth_epilogue (mbox->auth);
 
   /* Clear any state.  */
   CLEAR_STATE (mpd);
@@ -570,11 +528,13 @@ pop_close (mailbox_t mbox)
   if (mpd == NULL)
     return EINVAL;
 
-  /* Flag busy ?  */
+  /* CHECK_BUSY (mbox, mpd, func, 0); */
+  mailbox_wrlock (mbox);
   if (mpd->func && mpd->func != func)
-    return EBUSY;
-
+    mpd->state = POP_NO_STATE;
+  mpd->id = 0;
   mpd->func = func;
+  mailbox_unlock (mbox);
 
   /*  Ok boys, it's a wrap: UPDATE State.  */
   switch (mpd->state)
@@ -582,10 +542,10 @@ pop_close (mailbox_t mbox)
     case POP_NO_STATE:
       /* Initiate the close.  */
       status = pop_writeline (mpd, "QUIT\r\n");
-      mailbox_debug (mbox, MU_MAILBOX_DEBUG_PROT, mpd->buffer);
-      mpd->state = POP_QUIT_TX;
+      MAILBOX_DEBUG0 (mbox, MU_DEBUG_PROT, mpd->buffer);
+      mpd->state = POP_QUIT;
 
-    case POP_QUIT_TX:
+    case POP_QUIT:
       /* Send the quit.  */
       status = pop_write (mpd);
       CHECK_EAGAIN (mpd, status);
@@ -595,7 +555,7 @@ pop_close (mailbox_t mbox)
       /* Glob the acknowledge.  */
       status = pop_read_ack (mpd);
       CHECK_EAGAIN (mpd, status);
-      mailbox_debug (mbox, MU_MAILBOX_DEBUG_PROT, mpd->buffer);
+      MAILBOX_DEBUG0 (mbox, MU_DEBUG_PROT, mpd->buffer);
       /*  Now what ! and how can we tell them about errors ?  So far now
 	  lets just be verbose about the error but close the connection
 	  anyway.  */
@@ -649,6 +609,7 @@ pop_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
   if (pmsg == NULL || mpd == NULL)
     return EINVAL;
 
+  mailbox_rdlock (mbox);
   /* See if we have already this message.  */
   for (i = 0; i < mpd->pmessages_count; i++)
     {
@@ -657,10 +618,12 @@ pop_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
 	  if (mpd->pmessages[i]->num == msgno)
 	    {
 	      *pmsg = mpd->pmessages[i]->message;
+	      mailbox_unlock (mbox);
 	      return 0;
 	    }
 	}
     }
+  mailbox_unlock (mbox);
 
   mpm = calloc (1, sizeof (*mpm));
   if (mpm == NULL)
@@ -674,51 +637,49 @@ pop_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
   {
     stream_t stream = NULL;
     if ((status = message_create (&msg, mpm)) != 0
-	|| (status = stream_create (&stream, MU_STREAM_READ, mpm)) != 0)
+	|| (status = stream_create (&stream, mbox->flags, msg)) != 0)
       {
+	stream_destroy (&stream, msg);
 	message_destroy (&msg, mpm);
-	stream_destroy (&stream, mpm);
 	free (mpm);
 	return status;
       }
-    stream_set_read (stream, pop_read_message, mpm);
-    stream_set_fd (stream, pop_get_fd, mpm);
-    stream_set_flags (stream, MU_STREAM_READ, mpm);
+    stream_set_read (stream, pop_message_read, msg);
+    stream_set_fd (stream, pop_message_fd, msg);
     message_set_stream (msg, stream, mpm);
+    message_set_size (msg, pop_message_size, mpm);
   }
 
   /* Create the header.  */
   {
     header_t header = NULL;
     stream_t stream = NULL;
-    if ((status = header_create (&header, NULL, 0,  mpm)) != 0
-	|| (status = stream_create (&stream, MU_STREAM_READ, mpm)) != 0)
+    if ((status = header_create (&header, NULL, 0,  msg)) != 0
+	|| (status = stream_create (&stream, mbox->flags, header)) != 0)
       {
-	header_destroy (&header, mpm);
-	stream_destroy (&stream, mpm);
+	stream_destroy (&stream, header);
+	header_destroy (&header, msg);
 	message_destroy (&msg, mpm);
 	free (mpm);
 	return status;
       }
-    stream_set_read (stream, pop_top, mpm);
-    //stream_set_read (stream, pop_read_header, mpm);
-    stream_set_fd (stream, pop_get_fd, mpm);
-    stream_set_flags (stream, MU_STREAM_READ, mpm);
-    header_set_stream (header, stream, mpm);
+    stream_set_read (stream, pop_top, header);
+    stream_set_fd (stream, pop_header_fd, header);
+    header_set_stream (header, stream, msg);
     message_set_header (msg, header, mpm);
   }
 
   /* Create the attribute.  */
   {
     attribute_t attribute;
-    status = attribute_create (&attribute, mpm);
+    status = attribute_create (&attribute, msg);
     if (status != 0)
       {
 	message_destroy (&msg, mpm);
 	free (mpm);
 	return status;
       }
-    attribute_set_get_flags (attribute, pop_get_flags, mpm);
+    attribute_set_get_flags (attribute, pop_attr_flags, msg);
     message_set_attribute (msg, attribute, mpm);
   }
 
@@ -726,21 +687,20 @@ pop_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
   {
     body_t body = NULL;
     stream_t stream = NULL;
-    if ((status = body_create (&body, mpm)) != 0
-	|| (status = stream_create (&stream, MU_STREAM_READ, mpm)) != 0)
+    if ((status = body_create (&body, msg)) != 0
+	|| (status = stream_create (&stream, mbox->flags, body)) != 0)
       {
-	body_destroy (&body, mpm);
-	stream_destroy (&stream, mpm);
+	body_destroy (&body, msg);
+	stream_destroy (&stream, body);
 	message_destroy (&msg, mpm);
 	free (mpm);
 	return status;
       }
-    stream_set_read (stream, pop_read_body, mpm);
-    stream_set_fd (stream, pop_get_fd, mpm);
-    stream_set_flags (stream, mpd->flags, mpm);
-    body_set_size (body, pop_body_size, mpm);
-    body_set_lines (body, pop_body_lines, mpm);
-    body_set_stream (body, stream, mpm);
+    stream_set_read (stream, pop_body_read, body);
+    stream_set_fd (stream, pop_body_fd, body);
+    body_set_size (body, pop_body_size, msg);
+    body_set_lines (body, pop_body_lines, msg);
+    body_set_stream (body, stream, msg);
     message_set_body (msg, body, mpm);
   }
 
@@ -748,6 +708,7 @@ pop_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
   message_set_uidl (msg, pop_uidl, mpm);
 
   /* Add it to the list.  */
+  mailbox_wrlock (mbox);
   {
     pop_message_t *m ;
     m = realloc (mpd->pmessages, (mpd->pmessages_count + 1)*sizeof (*m));
@@ -755,12 +716,14 @@ pop_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
       {
 	message_destroy (&msg, mpm);
 	free (mpm);
+	mailbox_unlock (mbox);
 	return ENOMEM;
       }
     mpd->pmessages = m;
     mpd->pmessages[mpd->pmessages_count] = mpm;
     mpd->pmessages_count++;
   }
+  mailbox_unlock (mbox);
 
   /* Save The message.  */
   *pmsg = mpm->message = msg;
@@ -788,10 +751,7 @@ pop_messages_count (mailbox_t mbox, size_t *pcount)
     }
 
   /* Flag busy.  */
-  if (mpd->func && mpd->func != func)
-    return EBUSY;
-
-  mpd->func = func;
+  CHECK_BUSY (mbox, mpd, func, 0);
 
   /* TRANSACTION state.  */
   switch (mpd->state)
@@ -799,10 +759,10 @@ pop_messages_count (mailbox_t mbox, size_t *pcount)
     case POP_NO_STATE:
       status = pop_writeline (mpd, "STAT\r\n");
       CHECK_ERROR (mpd, status);
-      mailbox_debug (mbox, MU_MAILBOX_DEBUG_PROT, mpd->buffer);
-      mpd->state = POP_STAT_TX;
+      MAILBOX_DEBUG0 (mbox, MU_DEBUG_PROT, mpd->buffer);
+      mpd->state = POP_STAT;
 
-    case POP_STAT_TX:
+    case POP_STAT:
       /* Send the STAT.  */
       status = pop_write (mpd);
       CHECK_EAGAIN (mpd, status);
@@ -812,7 +772,7 @@ pop_messages_count (mailbox_t mbox, size_t *pcount)
       /* Get the ACK.  */
       status = pop_read_ack (mpd);
       CHECK_EAGAIN (mpd, status);
-      mailbox_debug (mbox, MU_MAILBOX_DEBUG_PROT, mpd->buffer);
+      MAILBOX_DEBUG0 (mbox, MU_DEBUG_PROT, mpd->buffer);
       break;
 
     default:
@@ -850,33 +810,6 @@ pop_is_updated (mailbox_t mbox)
   return mpd->is_updated;
 }
 
-/* We do not send anything to the server since, no DELE command is sent but
-   the only the attribute flag is modified.
-   DELE is sent only when expunging.  */
-static int
-pop_num_deleted (mailbox_t mbox, size_t *pnum)
-{
-  pop_data_t mpd = mbox->data;
-  size_t i, total;
-  attribute_t attr;
-
-  if (mpd == NULL)
-    return EINVAL;
-
-  for (i = total = 0; i < mpd->messages_count; i++)
-    {
-      if (message_get_attribute (mpd->pmessages[i]->message, &attr) != 0)
-	{
-	  if (attribute_is_deleted (attr))
-	    total++;
-	}
-    }
-
-  if (pnum)
-    *pnum = total;
-  return 0;
-}
-
 /* We just simulated. By sending a notification for the total msgno.  */
 /* FIXME is message is set deleted should we sent a notif ?  */
 static int
@@ -888,8 +821,10 @@ pop_scan (mailbox_t mbox, size_t msgno, size_t *pcount)
   status = pop_messages_count (mbox, pcount);
   if (status != 0)
     return status;
+  if (mbox->observable == NULL)
+    return 0;
   for (i = msgno; i <= *pcount; i++)
-    if (mailbox_notification (mbox, MU_EVT_MBX_MSG_ADD) != 0)
+    if (observable_notify (mbox->observable, MU_EVT_MESSAGE_ADD) != 0)
       break;
   return 0;
 }
@@ -908,10 +843,7 @@ pop_expunge (mailbox_t mbox)
     return EINVAL;
 
   /* Busy ?  */
-  if (mpd->func && mpd->func != func)
-    return EBUSY;
-
-  mpd->func = func;
+  CHECK_BUSY (mbox, mpd, func, 0);
 
   for (i = (int)mpd->id; i < mpd->pmessages_count; mpd->id = ++i)
     {
@@ -925,10 +857,10 @@ pop_expunge (mailbox_t mbox)
 		  status = pop_writeline (mpd, "DELE %d\r\n",
 					  mpd->pmessages[i]->num);
 		  CHECK_ERROR (mpd, status);
-		  mailbox_debug (mbox, MU_MAILBOX_DEBUG_PROT, mpd->buffer);
-		  mpd->state = POP_DELE_TX;
+		  MAILBOX_DEBUG0 (mbox, MU_DEBUG_PROT, mpd->buffer);
+		  mpd->state = POP_DELE;
 
-		case POP_DELE_TX:
+		case POP_DELE:
 		  /* Send DELETE.  */
 		  status = pop_write (mpd);
 		  CHECK_EAGAIN (mpd, status);
@@ -937,7 +869,7 @@ pop_expunge (mailbox_t mbox)
 		case POP_DELE_ACK:
 		  status = pop_read_ack (mpd);
 		  CHECK_EAGAIN (mpd, status);
-		  mailbox_debug (mbox, MU_MAILBOX_DEBUG_PROT, mpd->buffer);
+		  MAILBOX_DEBUG0 (mbox, MU_DEBUG_PROT, mpd->buffer);
 		  if (strncasecmp (mpd->buffer, "+OK", 3) != 0)
 		    {
 		      CHECK_ERROR (mpd, ERANGE);
@@ -952,9 +884,7 @@ pop_expunge (mailbox_t mbox)
 	    } /* if attribute_is_deleted() */
 	} /* message_get_attribute() */
     } /* for */
-  mpd->id = 0;
-  mpd->func = NULL;
-  mpd->state = POP_NO_STATE;
+  CLEAR_STATE (mpd);
   /* Invalidate.  But Really they should shutdown the channel POP protocol
      is not meant for this like IMAP.  */
   mpd->is_updated = 0;
@@ -978,21 +908,111 @@ pop_size (mailbox_t mbox, off_t *psize)
   return status;
 }
 
+/* Form the RFC:
+   "It is important to note that the octet count for a message on the
+   server host may differ from the octet count assigned to that message
+   due to local conventions for designating end-of-line.  Usually,
+   during the AUTHORIZATION state of the POP3 session, the POP3 server
+   can calculate the size of each message in octets when it opens the
+   maildrop.  For example, if the POP3 server host internally represents
+   end-of-line as a single character, then the POP3 server simply counts
+   each occurrence of this character in a message as two octets."
+
+   This is not perfect if we do not know the number of lines in the message
+   then the octets returned will not be correct so we do our best.
+ */
+static int
+pop_message_size (message_t msg, size_t *psize)
+{
+  pop_message_t mpm = message_get_owner (msg);
+  pop_data_t mpd;
+  int status = 0;
+  void *func = (void *)pop_message_size;
+  size_t num;
+
+  if (mpm == NULL)
+    return EINVAL;
+
+  /* Did we have it already ?  */
+  if (mpm->message_size != 0)
+    {
+      *psize = mpm->message_size;
+      return 0;
+    }
+
+  mpd = mpm->mpd;
+  /* Busy ? */
+  CHECK_BUSY (mpd->mbox, mpd, func, msg);
+
+  /* Get the size.  */
+  switch (mpd->state)
+    {
+    case POP_NO_STATE:
+      status = pop_writeline (mpd, "LIST %d\r\n", mpm->num);
+      CHECK_ERROR (mpd, status);
+      MAILBOX_DEBUG0 (mpd->mbox, MU_DEBUG_PROT, mpd->buffer);
+      mpd->state = POP_LIST;
+
+    case POP_LIST:
+      /* Send the LIST.  */
+      status = pop_write (mpd);
+      CHECK_EAGAIN (mpd, status);
+      mpd->state = POP_LIST_ACK;
+
+    case POP_LIST_ACK:
+      /* Resp from LIST. */
+      status = pop_read_ack (mpd);
+      CHECK_EAGAIN (mpd, status);
+      MAILBOX_DEBUG0 (mpd->mbox, MU_DEBUG_PROT, mpd->buffer);
+      break;
+
+    default:
+      /*
+	fprintf (stderr, "pop_uidl state\n");
+      */
+      break;
+    }
+
+  status = sscanf (mpd->buffer, "+OK %d %d\n", &num, &mpm->message_size);
+  CLEAR_STATE (mpd);
+
+  if (status != 2)
+    status = EINVAL;
+
+  if (psize)
+    *psize = mpm->message_size;
+  return 0;
+}
+
 static int
 pop_body_size (body_t body, size_t *psize)
 {
-  pop_message_t mpm = body->owner;
+  message_t msg = body_get_owner (body);
+  pop_message_t mpm = message_get_owner (msg);
+
   if (mpm == NULL)
     return EINVAL;
-  if (psize)
-    *psize = mpm->body_size;
+
+  /* Did we have it already ?  */
+  if (mpm->body_size != 0)
+    {
+      *psize = mpm->body_size;
+    }
+  else if (mpm->message_size != 0)
+    {
+      *psize = mpm->message_size - mpm->header_size - mpm->body_lines;
+    }
+  else
+    *psize = 0;
+
   return 0;
 }
 
 static int
 pop_body_lines (body_t body, size_t *plines)
 {
-  pop_message_t mpm = body->owner;
+  message_t msg = body_get_owner (body);
+  pop_message_t mpm = message_get_owner (msg);
   if (mpm == NULL)
     return EINVAL;
   if (plines)
@@ -1005,9 +1025,10 @@ pop_body_lines (body_t body, size_t *plines)
    because we call header_get_value the function may return EAGAIN...
    uncool.  */
 static int
-pop_get_flags (attribute_t attr, int *pflags)
+pop_attr_flags (attribute_t attr, int *pflags)
 {
-  pop_message_t mpm = attr->owner;
+  message_t msg = attribute_get_owner (attr);
+  pop_message_t mpm = message_get_owner (msg);
   char hdr_status[64];
   header_t header = NULL;
   int err;
@@ -1023,10 +1044,38 @@ pop_get_flags (attribute_t attr, int *pflags)
   return err;
 }
 
+/* stub to call from body object.  */
 static int
-pop_get_fd (stream_t stream, int *pfd)
+pop_body_fd (stream_t stream, int *pfd)
 {
-  pop_message_t mpm = stream->owner;
+  body_t body = stream_get_owner (stream);
+  message_t msg = body_get_owner (body);
+  pop_message_t mpm = message_get_owner (msg);
+  return pop_get_fd (mpm, pfd);
+}
+
+/* stub to call from header object.  */
+static int
+pop_header_fd (stream_t stream, int *pfd)
+{
+  header_t header = stream_get_owner (stream);
+  message_t msg = header_get_owner (header);
+  pop_message_t mpm = message_get_owner (msg);
+  return pop_get_fd (mpm, pfd);
+}
+
+/* stub to call from message object.  */
+static int
+pop_message_fd (stream_t stream, int *pfd)
+{
+  message_t msg = stream_get_owner (stream);
+  pop_message_t mpm = message_get_owner (msg);
+  return pop_get_fd (mpm, pfd);
+}
+
+static int
+pop_get_fd (pop_message_t mpm, int *pfd)
+{
   if (mpm && mpm->mpd && mpm->mpd->mbox)
 	return stream_get_fd (mpm->mpd->mbox->stream, pfd);
   return EINVAL;
@@ -1039,7 +1088,7 @@ pop_get_fd (stream_t stream, int *pfd)
 static int
 pop_uidl (message_t msg, char *buffer, size_t buflen, size_t *pnwriten)
 {
-  pop_message_t mpm = msg->owner;
+  pop_message_t mpm = message_get_owner (msg);
   pop_data_t mpd;
   int status = 0;
   void *func = (void *)pop_uidl;
@@ -1053,10 +1102,7 @@ pop_uidl (message_t msg, char *buffer, size_t buflen, size_t *pnwriten)
   mpd = mpm->mpd;
 
   /* Busy ? */
-  if (mpd->func && mpd->func != func)
-    return EBUSY;
-
-  mpd->func = func;
+  CHECK_BUSY (mpd->mbox, mpd, func, 0);
 
   /* Get the UIDL.  */
   switch (mpd->state)
@@ -1064,10 +1110,10 @@ pop_uidl (message_t msg, char *buffer, size_t buflen, size_t *pnwriten)
     case POP_NO_STATE:
       status = pop_writeline (mpd, "UIDL %d\r\n", mpm->num);
       CHECK_ERROR (mpd, status);
-      mailbox_debug (mpd->mbox, MU_MAILBOX_DEBUG_PROT, mpd->buffer);
-      mpd->state = POP_UIDL_TX;
+      MAILBOX_DEBUG0 (mpd->mbox, MU_DEBUG_PROT, mpd->buffer);
+      mpd->state = POP_UIDL;
 
-    case POP_UIDL_TX:
+    case POP_UIDL:
       /* Send the UIDL.  */
       status = pop_write (mpd);
       CHECK_EAGAIN (mpd, status);
@@ -1077,7 +1123,7 @@ pop_uidl (message_t msg, char *buffer, size_t buflen, size_t *pnwriten)
       /* Resp from UIDL. */
       status = pop_read_ack (mpd);
       CHECK_EAGAIN (mpd, status);
-      mailbox_debug (mpd->mbox, MU_MAILBOX_DEBUG_PROT, mpd->buffer);
+      MAILBOX_DEBUG0 (mpd->mbox, MU_DEBUG_PROT, mpd->buffer);
       break;
 
     default:
@@ -1089,6 +1135,7 @@ pop_uidl (message_t msg, char *buffer, size_t buflen, size_t *pnwriten)
 
   CLEAR_STATE (mpd);
 
+  /* FIXME:  I should cache the result.  */
   *uniq = '\0';
   status = sscanf (mpd->buffer, "+OK %d %127s\n", &num, uniq);
   if (status != 2)
@@ -1115,9 +1162,11 @@ pop_uidl (message_t msg, char *buffer, size_t buflen, size_t *pnwriten)
    NOTE:  offset is meaningless.  */
 static int
 pop_top (stream_t is, char *buffer, size_t buflen,
-		 off_t offset, size_t *pnread)
+	 off_t offset, size_t *pnread)
 {
-  pop_message_t mpm = is->owner;
+  header_t header = stream_get_owner (is);
+  message_t msg = header_get_owner (header);
+  pop_message_t mpm = message_get_owner (msg);
   pop_data_t mpd;
   size_t nread = 0;
   int status = 0;
@@ -1126,15 +1175,14 @@ pop_top (stream_t is, char *buffer, size_t buflen,
   if (mpm == NULL)
     return EINVAL;
 
-  /* We do not carry the offset(for pop), should be doc somewhere.  */
-  (void)offset;
   mpd = mpm->mpd;
 
-  /* Busy ? */
-  if (mpd->func && mpd->func != func)
-    return EBUSY;
+  /* We do not carry the offset backward(for pop), should be doc somewhere.  */
+  if ((size_t)offset < mpm->header_size)
+    return ESPIPE;
 
-  mpd->func = func;
+  /* Busy ? */
+  CHECK_BUSY (mpd->mbox, mpd, func, msg);
 
   /* Get the header.  */
   switch (mpd->state)
@@ -1145,10 +1193,10 @@ pop_top (stream_t is, char *buffer, size_t buflen,
 	 fall to a second scheme.  */
       status = pop_writeline (mpd, "TOP %d 0\r\n", mpm->num);
       CHECK_ERROR (mpd, status);
-      mailbox_debug (mpd->mbox, MU_MAILBOX_DEBUG_PROT, mpd->buffer);
-      mpd->state = POP_TOP_TX;
+      MAILBOX_DEBUG0 (mpd->mbox, MU_DEBUG_PROT, mpd->buffer);
+      mpd->state = POP_TOP;
 
-    case POP_TOP_TX:
+    case POP_TOP:
       /* Send the TOP.  */
       status = pop_write (mpd);
       CHECK_EAGAIN (mpd, status);
@@ -1158,7 +1206,7 @@ pop_top (stream_t is, char *buffer, size_t buflen,
       /* Ack from TOP. */
       status = pop_read_ack (mpd);
       CHECK_EAGAIN (mpd, status);
-      mailbox_debug (mpd->mbox, MU_MAILBOX_DEBUG_PROT, mpd->buffer);
+      MAILBOX_DEBUG0 (mpd->mbox, MU_DEBUG_PROT, mpd->buffer);
       if (strncasecmp (mpd->buffer, "+OK", 3) != 0)
 	{
 	  /* fprintf (stderr, "TOP not implemented\n"); */
@@ -1172,13 +1220,25 @@ pop_top (stream_t is, char *buffer, size_t buflen,
 
     case POP_TOP_RX:
       /* Get the header.  */
-      /* Do we need to fill up.  */
-      if (mpd->nl == NULL || mpd->ptr == mpd->buffer)
+      do
 	{
-	  status = pop_readline (mpd);
-	  CHECK_EAGAIN (mpd, status);
+	  /* Seek in position.  */
+	  ssize_t pos = offset - mpm->header_size;
+	  /* Do we need to fill up.  */
+	  if (mpd->nl == NULL || mpd->ptr == mpd->buffer)
+	    {
+	      status = pop_readline (mpd);
+	      CHECK_EAGAIN (mpd, status);
+	      mpm->header_lines++;
+	    }
+	  /* If we have to skip some data to get to the offet.  */
+	  if (pos > 0)
+	    nread = fill_buffer (mpd, NULL, pos);
+	  else
+	    nread = fill_buffer (mpd, buffer, buflen);
+	  mpm->header_size += nread;
 	}
-      nread = fill_buffer (mpd, buffer, buflen);
+      while (nread > 0 && (size_t)offset > mpm->header_size);
       break;
 
     default:
@@ -1199,67 +1259,65 @@ pop_top (stream_t is, char *buffer, size_t buflen,
 
 /* Stub to call pop_retr ().  */
 static int
-pop_read_header (stream_t is, char *buffer, size_t buflen, off_t offset,
+pop_header_read (stream_t is, char *buffer, size_t buflen, off_t offset,
 		 size_t *pnread)
 {
-  pop_message_t mpm = is->owner;
+  message_t msg = stream_get_owner (is);
+  pop_message_t mpm = message_get_owner (msg);
   pop_data_t mpd;
-  void *func = (void *)pop_read_header;
+  void *func = (void *)pop_header_read;
 
   if (mpm == NULL)
     return EINVAL;
   mpd = mpm->mpd;
 
   /* Busy ? */
-  if (mpd->func && mpd->func != func)
-    return EBUSY;
-  mpd->func = func;
+  CHECK_BUSY (mpd->mbox, mpd, func, msg);
 
   mpm->skip_header = 0;
   mpm->skip_body = 1;
   return pop_retr (mpm, buffer, buflen, offset, pnread);
 }
 
-/* Stub to call pop_retr ().  */
+/* Stub to call pop_retr (). Call from the stream object of the body.  */
 static int
-pop_read_body (stream_t is, char *buffer, size_t buflen, off_t offset,
+pop_body_read (stream_t is, char *buffer, size_t buflen, off_t offset,
 	       size_t *pnread)
 {
-  pop_message_t mpm = is->owner;
+  body_t body = stream_get_owner (is);
+  message_t msg = body_get_owner (body);
+  pop_message_t mpm = message_get_owner (msg);
   pop_data_t mpd;
-  void *func = (void *)pop_read_body;
+  void *func = (void *)pop_body_read;
 
   if (mpm == NULL)
     return EINVAL;
   mpd = mpm->mpd;
 
   /* Busy ? */
-  if (mpd->func && mpd->func != func)
-    return EBUSY;
-  mpd->func = func;
+  CHECK_BUSY (mpd->mbox, mpd, func, msg);
 
   mpm->skip_header = 1;
   mpm->skip_body = 0;
   return pop_retr (mpm, buffer, buflen, offset, pnread);
 }
 
-/* Stub to call pop_retr ().  */
+/* Stub to call pop_retr (), calling from the stream object of a message.  */
 static int
-pop_read_message (stream_t is, char *buffer, size_t buflen, off_t offset,
-	       size_t *pnread)
+pop_message_read (stream_t is, char *buffer, size_t buflen, off_t offset,
+		  size_t *pnread)
 {
-  pop_message_t mpm = is->owner;
+  message_t msg = stream_get_owner (is);
+  pop_message_t mpm = message_get_owner (msg);
   pop_data_t mpd;
-  void *func = (void *)pop_read_message;
+  void *func = (void *)pop_message_read;
 
   if (mpm == NULL)
     return EINVAL;
   mpd = mpm->mpd;
 
   /* Busy ? */
-  if (mpd->func && mpd->func != func)
-    return EBUSY;
-  mpd->func = func;
+  CHECK_BUSY (mpd->mbox, mpd, func, msg);
 
   mpm->skip_header = mpm->skip_body = 0;
   return pop_retr (mpm, buffer, buflen, offset, pnread);
@@ -1281,7 +1339,8 @@ fill_buffer (pop_data_t mpd, char *buffer, size_t buflen)
       size_t sentinel;
       nread = buflen;
       sentinel = mpd->ptr - (mpd->buffer + nread);
-      memcpy (buffer, mpd->buffer, nread);
+      if (buffer)
+	memcpy (buffer, mpd->buffer, nread);
       memmove (mpd->buffer, mpd->buffer + nread, sentinel);
       mpd->ptr = mpd->buffer + sentinel;
     }
@@ -1289,7 +1348,8 @@ fill_buffer (pop_data_t mpd, char *buffer, size_t buflen)
     {
       /* Drain our buffer.  */;
       nread = n;
-      memcpy (buffer, mpd->buffer, nread);
+      if (buffer)
+	memcpy (buffer, mpd->buffer, nread);
       mpd->ptr = mpd->buffer;
     }
 
@@ -1308,24 +1368,35 @@ pop_retr (pop_message_t mpm, char *buffer, size_t buflen, off_t offset,
 
   (void)offset;
 
+  mpd = mpm->mpd;
+
   if (pnread)
     *pnread = nread;
+
   /*  Take care of the obvious.  */
   if (buffer == NULL || buflen == 0)
-    return 0;
+    {
+      CLEAR_STATE (mpd);
+      return 0;
+    }
 
-  mpd = mpm->mpd;
+  /* We do not carry the offset backward(for pop), should be doc somewhere.  */
+  /*if (offset < mpm->header_size)
+    return ESPIPE;
+  */
+
+  /* pop_retr() is not call directly so we assume that the locks were set.  */
 
   switch (mpd->state)
     {
     case POP_NO_STATE:
       mpm->body_lines = mpm->body_size = 0;
       status = pop_writeline (mpd, "RETR %d\r\n", mpm->num);
-      mailbox_debug (mpd->mbox, MU_MAILBOX_DEBUG_PROT, mpd->buffer);
+      MAILBOX_DEBUG0 (mpd->mbox, MU_DEBUG_PROT, mpd->buffer);
       CHECK_ERROR (mpd, status);
-      mpd->state = POP_RETR_TX;
+      mpd->state = POP_RETR;
 
-    case POP_RETR_TX:
+    case POP_RETR:
       /* Send the RETR command.  */
       status = pop_write (mpd);
       CHECK_EAGAIN (mpd, status);
@@ -1347,6 +1418,7 @@ pop_retr (pop_message_t mpm, char *buffer, size_t buflen, off_t offset,
         {
 	  /* Do we need to fill up.  */
 	  if (mpd->nl == NULL || mpd->ptr == mpd->buffer)
+
 	    {
 	      status = pop_readline (mpd);
 	      if (status != 0)
@@ -1356,12 +1428,18 @@ pop_retr (pop_message_t mpm, char *buffer, size_t buflen, off_t offset,
 		    return 0;
 		  CHECK_EAGAIN (mpd, status);
 		}
+	      mpm->header_lines++;
 	    }
 	  /* Oops !! Hello houston we have a major problem here.  */
 	  if (mpd->buffer[0] == '\0')
 	    {
 	      /* Still Do the right thing.  */
-	      mpd->state = POP_STATE_DONE;
+	      if (buflen != oldbuflen)
+		{
+		  CLEAR_STATE (mpd);
+		}
+	      else
+		mpd->state = POP_STATE_DONE;
 	      return 0;
 	    }
 	  /* The problem is that we are using RETR instead of TOP to retreive
@@ -1372,16 +1450,26 @@ pop_retr (pop_message_t mpm, char *buffer, size_t buflen, off_t offset,
 	     hack below will suffice.  */
 	  if (mpd->buffer[0] == '\n' && mpd->buffer[1] == '\0')
 	    mpm->inbody = 1; /* break out of the while.  */
-	  if (mpm->skip_header == 0)
+	  if (!mpm->skip_header)
 	    {
-	      nread = fill_buffer (mpd, buffer, buflen);
-	      if (pnread)
-		*pnread += nread;
-	      buflen -= nread ;
-              if (buflen > 0)
-                buffer += nread;
-              else
-                return 0;
+	      ssize_t pos = offset  - mpm->header_size;
+	      if (pos)
+		{
+		  nread = fill_buffer (mpd, NULL, pos);
+		  mpm->header_size += nread;
+		}
+	      else
+		{
+		  nread = fill_buffer (mpd, buffer, buflen);
+		  mpm->header_size += nread;
+		  if (pnread)
+		    *pnread += nread;
+		  buflen -= nread ;
+		  if (buflen > 0)
+		    buffer += nread;
+		  else
+		    return 0;
+		}
 	    }
 	  else
 	    mpd->ptr = mpd->buffer;
@@ -1409,17 +1497,26 @@ pop_retr (pop_message_t mpm, char *buffer, size_t buflen, off_t offset,
 	    if (mpd->buffer[0] == '\0')
 	      mpm->inbody = 0; /* Breakout of the while.  */
 
-	    if (mpm->skip_body == 0)
+	    if (!mpm->skip_body)
 	      {
-		nread = fill_buffer (mpd, buffer, buflen);
-		mpm->body_size += nread;
-		if (pnread)
-		  *pnread += nread;
-		buflen -= nread ;
-		if (buflen > 0)
-		  buffer += nread;
+		ssize_t pos = offset - mpm->body_size;
+		if (pos > 0)
+		  {
+		    nread = fill_buffer (mpd, NULL, pos);
+		    mpm->body_size += nread;
+		  }
 		else
-		  return 0;
+		  {
+		    nread = fill_buffer (mpd, buffer, buflen);
+		    mpm->body_size += nread;
+		    if (pnread)
+		      *pnread += nread;
+		    buflen -= nread ;
+		    if (buflen > 0)
+		      buffer += nread;
+		    else
+		      return 0;
+		  }
 	      }
 	    else
 	      {
@@ -1427,6 +1524,7 @@ pop_retr (pop_message_t mpm, char *buffer, size_t buflen, off_t offset,
 		mpd->ptr = mpd->buffer;
 	      }
 	  }
+      mpm->message_size = mpm->body_size + mpm->header_size;
       mpd->state = POP_STATE_DONE;
       /* Return here earlier, because we want to return nread = 0 to notify
 	 the callee that we've finish, since there is already data in the
