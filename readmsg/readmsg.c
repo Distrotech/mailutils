@@ -240,6 +240,7 @@ main (int argc, char **argv)
 
   /* register the formats.  */
   mu_register_all_mbox_formats ();
+  mu_register_extra_formats ();
 
   status = mailbox_create_default (&mbox, mailbox_name);
   if (status != 0)
