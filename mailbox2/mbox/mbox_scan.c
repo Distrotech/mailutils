@@ -176,6 +176,8 @@ mbox_scan0 (mbox_t mbox, unsigned int msgno, unsigned int *pcount,
       else
 	status = MU_ERROR_IO;
     }
+  else
+    status = MU_ERROR_IO;
 
   /* Move along, move along nothing to see.  */
   if (!mbox_has_newmail (mbox) && mbox->size == file_size)
