@@ -36,7 +36,7 @@ rmf_LDADD = $(mh_LIBS)
 fmtcheck_LDADD = $(mh_LIBS)
 repl_LDADD = $(mh_LIBS)
 
-YFLAGS=-vt
+AM_YFLAGS=-vt
 
 install-exec-hook:
 	-rm -f $(DESTDIR)$(bindir)/folders

@@ -34,7 +34,7 @@ BUILT_SOURCES=@GUILE_BUILT_SOURCES@
 DISTCLEANFILES=$(DOT_X_FILES) $(DOT_DOC_FILES) @GUILE_PKGDATA@
 CLEANFILES=*.inc
 
-CPPFLAGS=-DDATADIR=\"$(pkgdatadir)\"
+AM_CPPFLAGS=-DDATADIR=\"$(pkgdatadir)\"
 ETAGS_ARGS = --regex='/SCM_\(GLOBAL_\)?\(G?PROC\|G?PROC1\|SYMBOL\|VCELL\|CONST_LONG\).*\"\([^\"]\)*\"/\3/' \
    --regex='/[ \t]*SCM_[G]?DEFINE1?[ \t]*(\([^,]*\),[^,]*/\1/'
 

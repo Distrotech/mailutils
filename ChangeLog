@@ -1,3 +1,12 @@
+2002-10-30  Jeff Bailey  <jbailey@gnu.org>
+
+	* mh/Makefile.am: Use AM_YFLAGS instead of YFLAGS
+
+	* libmu_scm/Makefile.am: Use AM_CPPFLAGS instead of CPPFLAGS
+
+	* autogen.sh: Redo using 'autoreconf'.  This is now the right
+	tool to use for generating the build environment.
+
 2002-10-29  Sergey Poznyakoff 
 
 	Following the proposition of Olivier Bornet
