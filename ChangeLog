@@ -1,3 +1,16 @@
+2001-07-21  Jakob 'sparky' Kaivo  <jkaivo@elijah.nodomainname.net>
+
+	* mail/Makefile.am (mail_SOURCES): add decode.c
+
+	* mail/mail.h: add mail_decode protoype
+
+	* mail/decode.c (mail_decode): new file, new function
+
+	* mail/table.c: add decode command
+
+	* mail/util.c (util_expand_msglist): insert placeholder for
+	attachment operations
+	
 2001-07-20  Jakob 'sparky' Kaivo  <jkaivo@elijah.nodomainname.net>
 
 	* messages/messages.c: new file, implement of elm messages command
