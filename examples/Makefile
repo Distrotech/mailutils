@@ -1,39 +1,34 @@
 # Makefile
 
-CFLAGS  = -g -I../include
+CFLAGS  = -g -I../include -Wall
 LDFLAGS = -g -static
-LIBS 	= ../mailbox/.libs/libmailbox.a ../lib/libmailutils.a
+LDLIBS 	= ../mailbox/.libs/libmailbox.a ../lib/libmailutils.a -lsocket
 
-default: addr mbox-explode mbox-dates
+EXES    = addr mbox-explode mbox-dates mbox-auth url-parse
 
-# showmail
+$(EXES): $(LDLIBS)
 
-showmail: showmail.c $(LIBS)
-	$(CC) $(CFLAGS) -o $@ $< $(LIBS)
-
-# example of saving MIME parts to a file
-
-mbox-explode: mbox-explode.c $(LIBS)
-	$(CC) $(CFLAGS) -o $@ $< $(LIBS)
+default: $(EXES)
 
 # example of parsing the date fields, prints all the incorrectly
 # formatted dates in a mailbox.
-
-mbox-dates: mbox-dates.c $(LIBS)
-	$(CC) $(CFLAGS) -o $@ $< $(LIBS)
 
 bad-dates: mbox-dates
 	for m in ~/Mail/*; do ./mbox-dates $$m; done | tee bad-dates.out
 
 # addr example and test
 
-test: addr
+addr.test: addr
 	./addr < Addrs > Addrs.test
-	diff -u Addrs.good Addrs.test
 	@echo "---- There should be no differences! ----"
+	diff -u Addrs.good Addrs.test
 
-addr: addr.c $(LIBS)
-	$(CC) $(CFLAGS) -o $@ $< $(LIBS)
+# url example and test
+
+url.test: url-parse
+	./url-parse < Urls > Urls.test
+	@echo "---- There should be no differences! ----"
+	diff -u Urls.good Urls.test
 
 # clean and empty
 
@@ -41,5 +36,5 @@ clean:
 	rm -f *.o
 
 empty: clean
-	rm -f addr showmail mbox-explode mbox-dates
+	rm -f $(EXES)
 

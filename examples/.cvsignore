@@ -1,7 +1,10 @@
+.gdbinit
 bad-dates.out
 addr
 Addrs.test
+Urls.test
 mbox-dates
 mbox-dates.out
 mbox-explode
+url-parse
 _*
