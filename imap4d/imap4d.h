@@ -93,6 +93,9 @@
 #include <mailutils/tls.h>
 #include <mailutils/url.h>
 
+#include <mu_asprintf.h>
+#include <getline.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
