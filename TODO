@@ -75,8 +75,6 @@ IMPORTANT:
 
   - why does mimetest fail on a symlink, but suceed on a dotlocked file?
 
-  - implement unrolling of symlinks
-
   - implement a force unlock mode... so that when a mailbox
     is closed or destroyed it can make sure that the lock
     is definitely gone.
@@ -103,8 +101,14 @@ IMPORTANT:
 - need code to find a "real" envelope from... an actual email address
   that DSNs can be sent to.
 
+- need to be able to map some addresses (like mail to "root") to a
+  user for the box, a la nullmailer, perhaps
+
 - mailer_t: the SMTP mailer isn't as fully implemented as the sendmail
   mailer.
+
+- make the smtp mailer calls useable standalone, as well as url based,
+  and use them in mail.remote.
 
 - header_get_value() returns the newline?
 
@@ -112,7 +116,7 @@ IMPORTANT:
 
 - pipe_open_stream() - implemented with popen()
 
-- Configuration API
++ Configuration API
 
 - Mailcap API
 
