@@ -24,13 +24,14 @@
 struct _message;
 typedef struct _message *message_t;
 
+#include <mailutils/attribute.h>
+#include <mailutils/auth.h>
+#include <mailutils/body.h>
 #include <mailutils/envelope.h>
 #include <mailutils/header.h>
-#include <mailutils/body.h>
-#include <mailutils/stream.h>
-#include <mailutils/observer.h>
-#include <mailutils/attribute.h>
 #include <mailutils/mailbox.h>
+#include <mailutils/observer.h>
+#include <mailutils/stream.h>
 
 #ifndef __P
 # ifdef __STDC__
@@ -123,6 +124,10 @@ extern int message_unencapsulate __P ((message_t msg, message_t *newmsg,
 
 extern int message_get_attachment_name __P ((message_t, char *name, size_t bufsz, size_t* sz));
 extern int message_aget_attachment_name __P ((message_t, char **name));
+
+extern int message_save_to_mailbox __P ((message_t msg, ticket_t ticket,
+      mu_debug_t debug, const char *toname));
+
 
 #ifdef __cplusplus
 }

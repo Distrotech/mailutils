@@ -1004,3 +1004,79 @@ message_body_read (stream_t stream,  char *buffer, size_t n, off_t off,
     *pn = nread;
   return status;
 }
+
+int
+message_save_to_mailbox (message_t msg, ticket_t ticket, mu_debug_t debug,
+			 const char *toname)
+{
+  int rc = 0;
+  mailbox_t to = 0;
+
+  if ((rc = mailbox_create_default (&to, toname)))
+    {
+      mu_debug_print (debug, MU_DEBUG_TRACE,
+		      "mailbox_create_default (%s) failed: %s\n", toname,
+		      strerror (rc));
+      goto end;
+    }
+
+  if (debug && (rc = mailbox_set_debug (to, debug)))
+	goto end;
+
+  if (ticket)
+    {
+      folder_t folder = NULL;
+
+      if ((rc = mailbox_get_folder (to, &folder)))
+	goto end;
+
+      /* FIXME: not all mailboxes have folders, thus this hack. */
+      if (folder)
+	{
+	  authority_t auth = NULL;
+	  if ((rc = folder_get_authority (folder, &auth)))
+	    goto end;
+
+	  /* FIXME: not all folders have authentication, thus this hack. */
+	  if (auth && (rc = authority_set_ticket (auth, ticket)))
+	    goto end;
+	}
+    }
+
+  if ((rc = mailbox_open (to, MU_STREAM_WRITE | MU_STREAM_CREAT)))
+    {
+      mu_debug_print (debug, MU_DEBUG_TRACE,
+		      "mailbox_open (%s) failed: %s\n", toname,
+		      strerror (rc));
+      goto end;
+    }
+
+  if ((rc = mailbox_append_message (to, msg)))
+    {
+      mu_debug_print (debug, MU_DEBUG_TRACE,
+		      "mailbox_append_message (%s) failed: %s\n", toname,
+		      strerror (rc));
+      goto end;
+    }
+
+end:
+
+  if (!rc)
+    {
+      if ((rc = mailbox_close (to)))
+	{
+	  mu_debug_print (debug, MU_DEBUG_TRACE,
+			  "mailbox_close (%s) failed: %s\n", toname,
+			  strerror (rc));
+	}
+    }
+  else
+    {
+      mailbox_close (to);
+    }
+
+  mailbox_destroy (&to);
+
+  return rc;
+}
+
