@@ -1,3 +1,10 @@
+2001-10-21  Sergey Poznyakoff
+
+	Changes for compatibility with automake 1.5:
+
+	* guimb/Makefile.am: Restored -I.
+	* mh/Makefile.am: Renamed ALL_LDADD to mh_LIBS.
+
 2001-10-20  Alain Magloire
 
 	* configure.in: Set to 0.0.9c.

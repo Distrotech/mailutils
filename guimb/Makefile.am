@@ -1,5 +1,5 @@
 AUTOMAKE_OPTIONS = ../lib/ansi2knr
-INCLUDES =-I$(top_builddir) -I$(srcdir) -I$(top_srcdir)/lib -I$(top_srcdir)/include \
+INCLUDES = -I. -I$(top_builddir) -I$(srcdir) -I$(top_srcdir)/lib -I$(top_srcdir)/include \
  -I$(top_srcdir)/libmu_scm
 
 SUBDIRS=scm
