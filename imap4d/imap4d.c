@@ -75,10 +75,9 @@ static const char *imap4d_capa[] = {
   NULL
 };
 
-static int imap4d_mainloop __P ((int, int));
 static void imap4d_daemon_init __P ((void));
 static void imap4d_daemon __P ((unsigned int, unsigned int));
-static int imap4d_mainloop __P ((int, int));
+static int imap4d_mainloop __P ((int, FILE *, FILE *));
 
 static error_t
 imap4d_parse_opt (int key, char *arg, struct argp_state *state)
@@ -198,7 +197,7 @@ main (int argc, char **argv)
     imap4d_daemon (daemon_param.maxchildren, daemon_param.port);
   /* exit (0) -- no way out of daemon except a signal.  */
   else
-    status = imap4d_mainloop (fileno (stdin), fileno (stdout));
+    status = imap4d_mainloop (fileno (stdin), stdin, stdout);
 
   /* Close the syslog connection and exit.  */
   closelog ();
@@ -207,7 +206,7 @@ main (int argc, char **argv)
 }
 
 static int
-imap4d_mainloop (int infile, int outfile)
+imap4d_mainloop (int fd, FILE *infile, FILE *outfile)
 {
   char *text;
 
@@ -225,7 +224,7 @@ imap4d_mainloop (int infile, int outfile)
       int len = sizeof cs;
 
       syslog (LOG_INFO, _("Incoming connection opened"));
-      if (getpeername (infile, (struct sockaddr *) &cs, &len) < 0)
+      if (getpeername (fd, (struct sockaddr *) &cs, &len) < 0)
 	syslog (LOG_ERR, _("can't obtain IP address of client: %s"),
 		strerror (errno));
       else
@@ -348,7 +347,9 @@ imap4d_daemon (unsigned int maxchildren, unsigned int port)
 	{
 	  int status;
 	  close (listenfd);
-	  status = imap4d_mainloop (connfd, connfd);
+	  status = imap4d_mainloop (connfd,
+				    fdopen (connfd, "r"),
+				    fdopen (connfd, "w"));
 	  closelog ();
 	  exit (status);
 	}
