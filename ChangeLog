@@ -1,3 +1,11 @@
+2003-01-03  Wojciech Polak
+
+	* pop3d/extra.c (pop3d_readline): Don't use `static char buffer[512]'.
+	  Use also ifile directly instead of FILE *fp.
+	* pop3d/pop3d.h (pop3d_readline): Changed prototype.
+	* pop3d/pop3d.c: Use pop3d_readline(buffer, sizeof (buffer)).
+	* pop3d/user.c: Likewise.
+
 2003-01-02  Sergey Poznyakoff
 
 	* configure.ac: New ac_subst variable BUILD_MH_EXEC_HOOK
