@@ -1,3 +1,8 @@
+2002-07-17  Sergey Poznyakoff
+
+	* mail/quit.c (mail_mbox_commit): Do not store deleted messages
+	  into mbox (Thanks Matthew Whitworth). 
+
 2002-07-16  Sergey Poznyakoff
 
 	Based on ideas of Matthew Whitworth, moved mailbox file
