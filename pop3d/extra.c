@@ -251,7 +251,12 @@ pop3d_readline (char *buffer, size_t size)
 
       if (stream_strerror (ostream, &p))
 	p = strerror (errno);
-      syslog (LOG_ERR, _("write failed: %s"), p);
+      syslog (LOG_ERR, _("read failed: %s"), p);
+      pop3d_abquit (ERR_NO_OFILE);
+    }
+  else if (nbytes == 0)
+    {
+      syslog (LOG_ERR, _("unexpected eof on input"));
       pop3d_abquit (ERR_NO_OFILE);
     }
 
