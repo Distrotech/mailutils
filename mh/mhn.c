@@ -18,6 +18,7 @@
 /* MH mhn command */
 
 #include <mh.h>
+#include <signal.h>
 #include <mailutils/mime.h>
 #define obstack_chunk_alloc xmalloc
 #define obstack_chunk_free free
@@ -2509,6 +2510,8 @@ main (int argc, char **argv)
   argc -= index;
   argv += index;
 
+  signal (SIGPIPE, SIG_IGN);
+  
   if (input_file)
     {
       if (argc)
