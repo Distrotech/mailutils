@@ -1,3 +1,9 @@
+2004-05-07  Sergey Poznyakoff
+
+	* mail/util.c (util_get_sender): Updated to match recent
+	changes (see the previous entry).
+	* mailbox/argcv.c (argcv_scan): Honor escaped whitespace.
+
 2004-04-27  Sergey Poznyakoff
 
 	* NEWS: Updated
