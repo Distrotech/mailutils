@@ -14,8 +14,7 @@
 ##
 ##   You should have received a copy of the GNU General Public License
 ##   along with this program; if not, write to the Free Software
-##   Foundation, Inc.
-##   59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+##   Foundation, Inc. 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 noinst_PROGRAMS = \
  addr\
@@ -67,6 +66,8 @@ sfrom_LDADD =\
  ../mailbox/mbox/libmu_mbox.la\
  ../mailbox/imap/libmu_imap.la\
  ../mailbox/pop/libmu_pop.la\
+ ../mailbox/mh/libmu_mh.la\
+ ../mailbox/maildir/libmu_maildir.la\
  ../mailbox/libmailbox.la\
  ../lib/libmailutils.la\
  @AUTHLIBS@ 

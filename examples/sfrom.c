@@ -1,5 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2002, 2003,
+   2004 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -15,11 +16,10 @@
    along with GNU Mailutils; if not, write to the Free Software
    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA  */
 
-/* sfrom, Simple From */
 #include <stdio.h>
-#include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 #include <mailutils/mailutils.h>
 
@@ -29,30 +29,23 @@ main (int argc, const char **argv)
   char *from;
   char *subject;
   mailbox_t mbox;
-  int status;
   size_t msgno, total = 0;
+  int status;
 
-  /* Register the type of mailbox. IMAP4, POP3 and local format  */
-  {
-    list_t registrar;
-    registrar_get_list (&registrar);
-    list_append (registrar, imap_record);
-    list_append (registrar, path_record);
-    list_append (registrar, pop_record);
-  }
+  /* Register the formats. */
+  mu_register_all_mbox_formats ();
 
   status = mailbox_create_default (&mbox, argv[1]);
-
   if (status != 0)
     {
-      fprintf (stderr, "mailbox_create: %s\n", mu_strerror (status));
+      mu_error ("mailbox_create: %s", mu_strerror (status));
       exit (EXIT_FAILURE);
     }
 
   status = mailbox_open (mbox, MU_STREAM_READ);
   if (status != 0)
     {
-      fprintf (stderr, "mailbox_open: %s\n", mu_strerror (status));
+      mu_error ("mailbox_open: %s", mu_strerror (status));
       exit (EXIT_FAILURE);
     }
 
@@ -66,8 +59,7 @@ main (int argc, const char **argv)
       if ((status = mailbox_get_message (mbox, msgno, &msg)) != 0
           || (status = message_get_header (msg, &hdr)) != 0)
         {
-          fprintf (stderr, "Error message: %s\n",
-                   mu_strerror (status));
+          mu_error ("Error message: %s", mu_strerror (status));
           exit (EXIT_FAILURE);
         }
 
@@ -75,14 +67,20 @@ main (int argc, const char **argv)
         from = strdup ("(NO FROM)");
 
       if (header_aget_value (hdr, MU_HEADER_SUBJECT, &subject))
-        subject = strdup("(NO SUBJECT)");
+        subject = strdup ("(NO SUBJECT)");
 
       printf ("%s\t%s\n", from, subject);
       free (from);
       free (subject);
     }
 
-  mailbox_close (mbox);
+  status = mailbox_close (mbox);
+  if (status != 0)
+    {
+      mu_error ("mailbox_close: %s", mu_strerror (status));
+      exit (EXIT_FAILURE);
+    }
+
   mailbox_destroy (&mbox);
   return 0;
 }
