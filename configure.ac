@@ -17,7 +17,7 @@
 # Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #
 
-AC_INIT([GNU Mailutils],[0.1.2],[bug-mailutils@gnu.org])
+AC_INIT([GNU Mailutils],[0.1.3],[bug-mailutils@gnu.org])
 AC_CONFIG_SRCDIR([mailbox/mailbox.c])
 AC_CANONICAL_TARGET([])
 AM_INIT_AUTOMAKE
@@ -29,13 +29,21 @@ dnl Check for programs
 AC_PROG_CC
 AC_PROG_INSTALL
 AC_PROG_LN_S
+AC_LIBTOOL_DLOPEN
 AM_PROG_LIBTOOL
 AC_PROG_YACC
 AM_PROG_LEX
 
 dnl Check for libraries
 AC_CHECK_LIB(resolv, res_query)
-
+LTDL_LIB=
+AC_SUBST(LTDL_LIB)
+AC_CHECK_LIB(ltdl, lt_dlinit,[
+	AC_DEFINE(HAVE_LIBLTDL,
+                  1,
+                  [Define to 1 if you have the `ltdl' library (-lltdl).])
+	LTDL_LIB=-lltdl],
+        [LTDL_LIB=""])
 MU_DEBUG_MODE
 
 # Initialize authlibs
