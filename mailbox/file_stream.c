@@ -102,6 +102,7 @@ _file_readline (stream_t stream, char *optr, size_t osize,
 
   if (!fs->file)
     {
+      optr[0] = 0;
       if (nbytes)
 	*nbytes = 0;
       return 0;
@@ -131,6 +132,7 @@ _file_readline (stream_t stream, char *optr, size_t osize,
 	err = errno;
     }
 
+  optr[n] = 0;
   if (nbytes)
     *nbytes = n;
   return err;
