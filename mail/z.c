@@ -17,14 +17,162 @@
 
 #include "mail.h"
 
+static unsigned int
+z_lines()
+{
+  struct mail_env_entry *ep = util_find_env("screen");
+  size_t n;
+  
+  if (ep && ep->value && (n = atoi(ep->value)) != 0)
+    return n;
+  return util_getlines();
+}
+
+/* Scroll directions */
+#define D_BWD  -1 /* z- */
+#define D_NONE 0  /* z. */
+#define D_FWD  1  /* z+ */
+
 /*
- * z [+|-]
+ * z [+|-|. [count]]
+ * Optional [count] specifies number of pages to skip before
+ * displaying from lines. Default is 1.
+ * . modifier causes command to redisplay the current page, i.e.
+ * starting from the current message.
  */
+
+static int
+z_parse_args(int argc, char **argv, int *return_count, int *return_dir)
+{
+  int count = 1;
+  int mul = 1;
+  int dir = D_FWD;
+  int an = 0;
+  char *argp = NULL;
+
+  argp = &argv[an][1];
+  if (*argp == 0)
+    {
+      an++;
+      if (an < argc)
+	argp = argv[an];
+    }
+
+  if (*argp)
+    {
+      switch (*argp++)
+       {
+       case '+':
+	 break;
+       case '-':
+	 dir = D_BWD;
+	 break;
+       case '.':
+	 dir = D_NONE;
+	 break;
+       default:
+	 fprintf(ofile, "Bad arguments for the scrolling command\n");
+	 return 1;
+       }
+
+      if (*argp == 0)
+	{
+	  an++;
+	  if (an < argc)
+	    argp = argv[an];
+	}
+
+      argc -= an;
+ 
+      if (argc > 1)
+	{
+	  fprintf(ofile, "Too many arguments for the scrolling command\n");
+	  return 1;
+	}
+      
+      if (argp && *argp)
+	{
+	  if (dir == D_NONE)
+	    {
+	      fprintf(ofile, "argument no applicable for z.\n");
+	      return 1;
+	    }
+
+	  if ((mul = atoi(argp)) == 0)
+	    {
+	      fprintf(ofile, "Bad number of pages\n");
+	      return 1;
+	    }
+	}
+
+   }
+ 
+ *return_count = mul * count;
+ *return_dir = dir;
+ 
+ return 0;
+}
 
 int
 mail_z (int argc, char **argv)
 {
-  fprintf (ofile, "Function not implemented in %s line %d\n",
-	   __FILE__, __LINE__);
+  unsigned int i, nlines;
+  unsigned int pagelines = z_lines();
+  int count;
+  int dir;
+  
+  if (z_parse_args(argc, argv, &count, &dir))
+    return 1;
+
+  nlines = pagelines;
+  
+  count *= pagelines;
+  switch (dir)
+    {
+    case D_BWD:
+      if (cursor < nlines)
+	{
+	  fprintf(stdout, "On first screenful of messages\n");
+	  return 0;
+	}
+      if (cursor < count)
+	cursor = 1;
+      else
+	cursor -= count;
+      break;
+
+    case D_FWD:
+      if (cursor + pagelines > total)
+	{
+	  fprintf(stdout, "On last screenful of messages\n");
+	  return 0;
+	}
+
+      cursor += count;
+      
+      if (cursor + nlines > total)
+	nlines = total - cursor;
+  
+      if (nlines <= 0)
+	{
+	  fprintf(stdout, "On last screenful of messages\n");
+	  return 0;
+	}
+
+    case D_NONE:
+      break;
+    }
+  
+  realcursor = cursor;
+  
+  for (i = 0; i < nlines; i++)
+    {
+      if (mail_from(0, NULL))
+	break;
+      cursor++;
+    }
+
+  cursor = realcursor;
+  
   return 1;
 }

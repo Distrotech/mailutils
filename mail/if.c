@@ -17,8 +17,62 @@
 
 #include "mail.h"
 
+static int is_terminal;
+
+#define COND_STK_SIZE 64
+#define COND_STK_INCR 16
+static int *_cond_stack;     /* Stack of conditions */
+static int _cond_stack_size; /* Number of elements allocated this far */
+static int _cond_level;      /* Number of nested `if' blocks */
+
+static void _cond_push(int val);
+static int _cond_pop(void);
+
+int
+if_cond()
+{
+  if (_cond_level == 0)
+    return 1;
+  return _cond_stack[_cond_level-1];
+}
+
+void
+_cond_push(int val)
+{
+  if (!_cond_stack)
+    {
+      _cond_stack = calloc(COND_STK_SIZE, sizeof(_cond_stack[0]));
+      _cond_stack_size = COND_STK_SIZE;
+      _cond_level = 0;
+    }
+  else if (_cond_level >= _cond_stack_size)
+    {
+      _cond_stack_size += COND_STK_INCR;
+      _cond_stack = realloc(_cond_stack,
+			    sizeof(_cond_stack[0])*_cond_stack_size);
+    }
+  
+  if (!_cond_stack)
+    {
+      fprintf(ofile, "not enough memeory");
+      exit (EXIT_FAILURE);
+    }
+  _cond_stack[_cond_level++] = val;
+}
+
+int
+_cond_pop()
+{
+  if (_cond_level == 0)
+    {
+      fprintf(ofile, "internal error: condition stack underflow\n");
+      abort();
+    }
+  return _cond_stack[--_cond_level];
+}
+	       
 /*
- * i[f] s|r
+ * i[f] s|r|t
  * mail-commands
  * el[se]
  * mail-commands
@@ -30,7 +84,89 @@
 int
 mail_if (int argc, char **argv)
 {
-  fprintf (ofile, "Function not implemented in %s line %d\n",
-	   __FILE__, __LINE__);
+  struct mail_env_entry *mode;
+  int cond;
+
+  if (argc != 2)
+    {
+      fprintf(ofile, "if requires an argument: s | r | t\n");
+      return 1;
+    }
+
+  if (argv[1][1] != 0)
+    {
+      fprintf(ofile, "valid if arguments are: s | r | t\n");
+      return 1;
+    }
+
+  mode = util_find_env("mode");
+  if (!mode)
+    {
+      exit (EXIT_FAILURE);
+    }
+
+  if (if_cond() == 0)
+    /* Propagate negative condition */
+    cond = 0;
+  else
+    {
+      switch (argv[1][0])
+	{
+	case 's': /* Send mode */
+	  cond = strcmp(mode->value, "send") == 0;
+	  break;
+	case 'r': /* Read mode */
+	  cond = strcmp(mode->value, "send") != 0;
+	  break;
+	case 't': /* Reading from a terminal */
+	  cond = is_terminal;
+	  break;
+	default:
+	  fprintf(ofile, "valid if arguments are: s | r | t\n");
+	  return 1;
+	}
+    }
+  _cond_push(cond);
+  return 0;
+}
+
+
+int
+mail_else (int argc, char **argv)
+{
+  int cond;
+  if (_cond_level == 0)
+    {
+      fprintf(ofile, "else without matching if\n");
+      return 1;
+    }
+  cond = _cond_pop();
+  if (_cond_level == 0)
+    cond = !cond;
+  _cond_push(cond);
+  return 0;
+}
+
+int
+mail_endif (int argc, char **argv)
+{
+  if (_cond_level == 0)
+    {
+      fprintf(ofile, "endif without matching if\n");
+      return 1;
+    }
+  _cond_pop();
   return 1;
+}
+
+void
+mail_set_is_terminal(int val)
+{
+  is_terminal = val;
+}
+
+int
+mail_is_terminal(void)
+{
+  return is_terminal;
 }
