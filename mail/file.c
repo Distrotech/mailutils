@@ -79,15 +79,16 @@ mail_file (int argc, char **argv)
       url_t url;
       mailbox_t newbox = NULL;
       char *name = mail_expand_name (argv[1]);
+      int status;
 
       if (!name)
 	return 1;
       
-      if (mailbox_create_default (&newbox, name) != 0 
-	  || mailbox_open (newbox, MU_STREAM_RDWR) != 0)
+      if ((status = mailbox_create_default (&newbox, name)) != 0 
+	  || (status = mailbox_open (newbox, MU_STREAM_RDWR)) != 0)
 	{
 	  mailbox_destroy (&newbox);
-	  util_error(_("can't open mailbox %s: %s"), name, mu_strerror (errno));
+	  util_error(_("can't open mailbox %s: %s"), name, mu_strerror (status));
 	  free (name);
 	  return 1;
 	}
