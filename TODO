@@ -89,6 +89,9 @@ The 5 actions:
 - utility to move all mail from one mailbox to another, like mbox to
   IMAP, preserving all flags that are possible. can sieve do this?
 
+- file viewer, based on the mimetypes api. I want to do a "v foo.blah",
+  have it look up .blah in mime.types, and do the action speced in mailcap.
+
 [all]
 
 - add nightly build
