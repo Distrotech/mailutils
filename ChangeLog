@@ -1,3 +1,7 @@
+2003-01-12  Jordi Mallach  <jordi@gnu.org>
+
+	* mail/mail.c: Update year in copyright notice.
+
 2003-01-12  Sergey Poznyakoff 
 
 	* imap4d/fetch.c: Properly quote return strings.
