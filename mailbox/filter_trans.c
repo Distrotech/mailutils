@@ -335,9 +335,9 @@ base64_encode (const char *iptr, size_t isize, char *optr, size_t osize,
 	}
       *optr++ = b64[ptr[0] >> 2];
       *optr++ = b64[((ptr[0] << 4) + (--isize ? (ptr[1] >> 4): 0)) & 0x3f];
-      *optr++ = isize ? b64[((iptr[1] << 2) + (--isize ? (ptr[2] >> 6) : 0 )) & 0x3f] : '=';
+      *optr++ = isize ? b64[((ptr[1] << 2) + (--isize ? (ptr[2] >> 6) : 0 )) & 0x3f] : '=';
       *optr++ = isize ? b64[ptr[2] & 0x3f] : '=';
-      iptr += 3;
+      ptr += 3;
       consumed += 3;
       (*nbytes) += 4;
       (*line_len) +=4;
