@@ -3,12 +3,12 @@
 #include "pop3d.h"
 
 void
-pop3_sigchld (int signal)
+pop3_sigchld (int signo)
 {
   pid_t pid;
-  int stat;
+  int status;
 
-  while ( (pid = waitpid(-1, &stat, WNOHANG)) > 0)
+  (void)signo;
+  while ( (pid = waitpid(-1, &status, WNOHANG)) > 0)
       --children;
-  return;
 }

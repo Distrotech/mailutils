@@ -1,5 +1,5 @@
 /* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@
 int
 pop3_stat (const char *arg)
 {
-  unsigned int mesgs = 0;
+  unsigned int count = 0;
   off_t size = 0;
 
   if (strlen (arg) != 0)
@@ -32,8 +32,8 @@ pop3_stat (const char *arg)
     return ERR_WRONG_STATE;
 
   mailbox_size (mbox, &size);
-  mailbox_messages_count (mbox, &mesgs);
+  mailbox_messages_count (mbox, &count);
 
-  fprintf (ofile, "+OK %d %d\r\n", mesgs, (int)size);
+  fprintf (ofile, "+OK %d %d\r\n", count, (int)size);
   return OK;
 }

@@ -1,5 +1,5 @@
 /* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -88,7 +88,7 @@ pop3_abquit (int reason)
 {
   mailbox_close (mbox);
   mailbox_destroy (&mbox);
-  
+
   switch (reason)
     {
     case ERR_NO_MEM:
@@ -144,8 +144,9 @@ pop3_usage (char *argv0)
 /* Default signal handler to call the pop3_abquit() function */
 
 void
-pop3_signal (int signal)
+pop3_signal (int signo)
 {
+  (void)signo;
   pop3_abquit (ERR_SIGNAL);
 }
 

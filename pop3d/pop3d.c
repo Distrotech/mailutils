@@ -1,5 +1,5 @@
 /* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -25,60 +25,67 @@ unsigned int children = 0;
 
 static struct option long_options[] =
 {
-  {"daemon", 2, 0, 'd'},
-  {"help", 0, 0, 'h'},
-  {"inetd", 0, 0, 'i'},
-  {"port", 1, 0, 'p'},
-  {"timeout", 1, 0, 't'},
-  {"version", 0, 0, 'v'},
+  {"daemon", optional_argument, 0, 'd'},
+  {"help", no_argument, 0, 'h'},
+  {"inetd", no_argument, 0, 'i'},
+  {"port", required_argument, 0, 'p'},
+  {"timeout", required_argument, 0, 't'},
+  {"version", no_argument, 0, 'v'},
   {0, 0, 0, 0}
 };
+
+const char *short_options ="d::hip:t:v";
 
 int
 main (int argc, char **argv)
 {
   struct group *gr;
   static int mode = INTERACTIVE;
-  int maxchildren = 10;
-  int option_index = 0;
+  size_t maxchildren = 10;
   int c = 0;
 
-  port = 110;			/* Default POP3 port */
-  timeout = 0;			/* Default timeout of 0 */
+  port = 110;			/* Default POP3 port.  */
+  timeout = 0;			/* Default timeout of 0.  */
 
-  while ((c = getopt_long (argc, argv, "d::hip:t:v", long_options, &option_index)) && c != -1)
+  while ((c = getopt_long (argc, argv, short_options, long_options, NULL)) && c != -1)
     {
       switch (c)
 	{
 	case 'd':
 	  mode = DAEMON;
-	  maxchildren = optarg ? atoi (optarg) : 10;
+	  maxchildren = optarg ? strtoul (optarg, NULL, 10) : 10;
 	  if (maxchildren <= 0)
-          maxchildren = 10;
+	    maxchildren = 10;
 	  break;
+
 	case 'h':
 	  pop3_usage (argv[0]);
 	  break;
+
 	case 'i':
 	  mode = INTERACTIVE;
 	  break;
+
 	case 'p':
 	  mode = DAEMON;
-	  port = atoi (optarg);
+	  port = strtoul (optarg, NULL, 10);
 	  break;
+
 	case 't':
-	  timeout = atoi (optarg);
+	  timeout = strtoul (optarg, NULL, 10);
 	  break;
+
 	case 'v':
 	  printf (IMPL " ("PACKAGE " " VERSION ")\n");
 	  exit (0);
 	  break;
+
 	default:
 	  break;
 	}
     }
 
-  /* First we want our group to be mail so we can access the spool */
+  /* First we want our group to be mail so we can access the spool.  */
   gr = getgrnam ("mail");
   if (gr == NULL)
     {
@@ -92,7 +99,7 @@ main (int argc, char **argv)
       exit (1);
     }
 
-  /* Register the desire formats.  */
+  /* Register the desire formats. We only need Mbox mail format.  */
   {
     list_t bookie;
     registrar_get_list (&bookie);
@@ -100,7 +107,7 @@ main (int argc, char **argv)
     list_append (bookie, path_record);
   }
 
-  /* Set the signal handlers */
+  /* Set the signal handlers.  */
   signal (SIGINT, pop3_signal);
   signal (SIGQUIT, pop3_signal);
   signal (SIGILL, pop3_signal);
@@ -111,34 +118,33 @@ main (int argc, char **argv)
   signal (SIGSTOP, pop3_signal);
   signal (SIGPIPE, pop3_signal);
 
-  if (timeout < 600)		/* RFC 1939 says no less than 10 minutes */
-    timeout = 0;		/* So we'll turn it off */
+  if (timeout < 600)		/* RFC 1939 says no less than 10 minutes.  */
+    timeout = 0;		/* So we'll turn it off.  */
 
   if (mode == DAEMON)
     pop3_daemon_init ();
 
-  /* change directories */
+  /* Change directory.  */
   chdir ("/");
 
-  /* Set up for syslog */
+  /* Set up for syslog.  */
   openlog ("gnu-pop3d", LOG_PID, LOG_MAIL);
 
   umask (S_IROTH | S_IWOTH | S_IXOTH);	/* 007 */
 
-  /* Actually run the daemon */
+  /* Actually run the daemon.  */
   if (mode == DAEMON)
       pop3_daemon (maxchildren);
-      /* exit() -- no way out of daemon except a signal */
+  /* exit() -- no way out of daemon except a signal.  */
   else
-      pop3_mainloop (fileno (stdin), fileno (stdout));
+    pop3_mainloop (fileno (stdin), fileno (stdout));
 
-  /* Close the syslog connection and exit */
+  /* Close the syslog connection and exit.  */
   closelog ();
   return OK;
 }
 
-/* Sets things up for daemon mode */
-
+/* Sets things up for daemon mode.  */
 void
 pop3_daemon_init (void)
 {
@@ -146,37 +152,37 @@ pop3_daemon_init (void)
   unsigned int i;
 #define MAXFD 64
 
-  pid = fork();
+  pid = fork ();
+  if (pid == -1)
+    {
+      perror ("fork failed:");
+      exit (-1);
+    }
+  else if (pid > 0)
+    exit (0);			/* Parent exits.  */
+
+  setsid ();			/* Become session leader.  */
+
+  signal (SIGHUP, SIG_IGN);	/* Ignore SIGHUP.  */
+
+  pid = fork ();
   if (pid == -1)
     {
       perror("fork failed:");
       exit (-1);
     }
   else if (pid > 0)
-      exit (0);			/* parent exits */
+    exit (0);			/* Parent exits.  */
 
-  setsid ();			/* become session leader */
-
-  signal (SIGHUP, SIG_IGN);	/* ignore SIGHUP */
-
-  pid = fork();
-  if (pid == -1)
-    {
-      perror("fork failed:");
-      exit (-1);
-    }
-  else if (pid > 0)
-      exit (0);			/* parent exits */
-
-  /* close inherited file descriptors */
+  /* Close inherited file descriptors.  */
   for (i = 0; i < MAXFD; ++i)
-      close(i);
+    close(i);
 
   signal (SIGCHLD, pop3_sigchld);
 }
 
 /* The main part of the daemon. This function reads input from the client and
-   executes the proper functions. Also handles the bulk of error reporting. */
+   executes the proper functions. Also handles the bulk of error reporting.  */
 
 int
 pop3_mainloop (int infile, int outfile)
@@ -195,7 +201,7 @@ pop3_mainloop (int infile, int outfile)
 
   syslog (LOG_INFO, "Incoming connection opened");
 
-  /* Prepare the shared secret for APOP */
+  /* Prepare the shared secret for APOP.  */
   local_hostname = malloc (MAXHOSTNAMELEN + 1);
   if (local_hostname == NULL)
     pop3_abquit (ERR_NO_MEM);
@@ -280,7 +286,7 @@ pop3_mainloop (int infile, int outfile)
 	fprintf (ofile, "-ERR [IN-USE] " MBOX_LOCK "\r\n");
       else if (status == ERR_TOO_LONG)
 	fprintf (ofile, "-ERR " TOO_LONG "\r\n");
-	  else
+      else
 	fprintf (ofile, "-ERR unknown error\r\n");
 
       free (buf);
@@ -295,7 +301,7 @@ pop3_mainloop (int infile, int outfile)
 /* Runs GNU POP3 in standalone daemon mode. This opens and binds to a port
    (default 110) then executes a pop3_mainloop() upon accepting a connection.
    It starts maxchildren child processes to listen to and accept socket
-   connections */
+   connections.  */
 
 void
 pop3_daemon (unsigned int maxchildren)
@@ -305,60 +311,61 @@ pop3_daemon (unsigned int maxchildren)
   int listenfd, connfd;
   size_t size;
 
-  if ( (listenfd = socket (AF_INET, SOCK_STREAM, 0)) == -1 )
+  listenfd = socket (AF_INET, SOCK_STREAM, 0);
+  if (listenfd == -1)
     {
       syslog (LOG_ERR, "socket: %s", strerror(errno));
-	  exit (-1);
+      exit (-1);
     }
-  size = 1; /* use size here to avoid making a new variable */
-  setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, &size, sizeof(size));
-  size = sizeof(server);
+  size = 1; /* Use size here to avoid making a new variable.  */
+  setsockopt (listenfd, SOL_SOCKET, SO_REUSEADDR, &size, sizeof(size));
+  size = sizeof (server);
   memset (&server, 0, size);
   server.sin_family = AF_INET;
   server.sin_addr.s_addr = htonl (INADDR_ANY);
   server.sin_port = htons (port);
 
-  if (bind(listenfd, (SA *) &server, size) == -1 )
+  if (bind (listenfd, (SA *) &server, size) == -1)
     {
-      syslog(LOG_ERR, "bind: %s", strerror(errno));
-      exit(-1);
+      syslog (LOG_ERR, "bind: %s", strerror (errno));
+      exit (-1);
     }
 
-  if (listen(listenfd, 128) == -1)
+  if (listen (listenfd, 128) == -1)
     {
-      syslog(LOG_ERR, "listen: %s", strerror(errno));
-	  exit(-1);
+      syslog (LOG_ERR, "listen: %s", strerror (errno));
+      exit (-1);
     }
 
-  for ( ; ; )
+  for (;;)
     {
       if (children > maxchildren)
         {
-          pause();
+          pause ();
           continue;
         }
-      if ( (connfd = accept(listenfd, (SA *) &client, &size)) == -1)
+      connfd = accept (listenfd, (SA *) &client, &size);
+      if (connfd == -1)
         {
           if (errno == EINTR)
-              continue;
-          syslog(LOG_ERR, "accept: %s", strerror(errno));
-          exit(-1);
+	    continue;
+          syslog (LOG_ERR, "accept: %s", strerror (errno));
+          exit (-1);
         }
 
-      pid = fork();
+      pid = fork ();
       if (pid == -1)
-          syslog(LOG_ERR, "fork: %s", strerror(errno));
-      else if(pid == 0) /* child */
+	syslog(LOG_ERR, "fork: %s", strerror(errno));
+      else if (pid == 0) /* Child.  */
         {
-          close(listenfd);
-		  /* syslog(); FIXME log the info on the connectiing client */
-          pop3_mainloop(connfd, connfd);
+          close (listenfd);
+	  /* syslog(); FIXME log the info on the connectiing client.  */
+          pop3_mainloop (connfd, connfd);
         }
       else
         {
           ++children;
         }
-
-	  close(connfd);
+      close (connfd);
     }
 }

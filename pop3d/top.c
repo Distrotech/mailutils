@@ -1,5 +1,5 @@
 /* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -22,7 +22,8 @@
 int
 pop3_top (const char *arg)
 {
-  int mesg, lines;
+  size_t mesgno;
+  int lines;
   message_t msg;
   attribute_t attr;
   header_t hdr;
@@ -41,15 +42,15 @@ pop3_top (const char *arg)
 
   mesgc = pop3_cmd (arg);
   linesc = pop3_args (arg);
-  mesg = atoi (mesgc);
-  lines = strlen (linesc) > 0 ? atoi (linesc) : -1;
+  mesgno = strtoul (mesgc, NULL, 10);
+  lines = strlen (linesc) > 0 ? strtoul (linesc, NULL, 10) : -1;
   free (mesgc);
   free (linesc);
 
   if (lines < 0)
     return ERR_BAD_ARGS;
 
-  if (mailbox_get_message (mbox, mesg, &msg) != 0)
+  if (mailbox_get_message (mbox, mesgno, &msg) != 0)
     return ERR_NO_MESG;
 
   message_get_attribute (msg, &attr);

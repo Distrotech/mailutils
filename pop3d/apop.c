@@ -1,5 +1,5 @@
 /* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -164,6 +164,14 @@ pop3_apop (const char *arg)
   free (user_digest);
   pw = getpwnam (username);
   if (pw == NULL)
+    {
+      free (username);
+      return ERR_BAD_LOGIN;
+    }
+
+  /* Reset the uid.  */
+  /* FIXME: How about the gid.  */
+  if (setuid (pw->pw_uid) == -1)
     {
       free (username);
       return ERR_BAD_LOGIN;

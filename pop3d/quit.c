@@ -1,5 +1,5 @@
 /* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -27,8 +27,8 @@ pop3_quit (const char *arg)
 
   if (state == TRANSACTION)
     {
-      mailbox_expunge (mbox);
-      mailbox_close (mbox);
+      if (mailbox_expunge (mbox) != 0 || mailbox_close (mbox) != 0 )
+	return ERR_FILE;
       mailbox_destroy (&mbox);
       syslog (LOG_INFO, "Session ended for user: %s", username);
     }

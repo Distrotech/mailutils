@@ -1,5 +1,5 @@
 /* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -17,7 +17,9 @@
 
 #ifndef _POP3D_H
 #define _POP3D_H	1
-#include "config.h"
+#ifdef HAVE_CONFIG_H
+# include "config.h"
+#endif
 
 /* The implementation */
 #define	IMPL		"GNU POP3 Daemon"
@@ -181,12 +183,10 @@ int pop3_getsizes (void);
 int pop3_mainloop (int infile, int outfile);
 void pop3_daemon (unsigned int maxchildren);
 void pop3_usage (char *argv0);
-void pop3_signal (int signal);
-void pop3_sigchld (int signal);
+void pop3_signal (int);
+void pop3_sigchld (int);
 void pop3_daemon_init (void);
-#ifdef _USE_APOP
 char *pop3_apopuser (const char *user);
-#endif
 char *pop3_readline (int fd);
 
 #endif /* _POP3D_H */

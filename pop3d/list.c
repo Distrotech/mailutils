@@ -1,5 +1,5 @@
 /* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -34,8 +34,6 @@ pop3_list (const char *arg)
   if (strchr (arg, ' ') != NULL)
     return ERR_BAD_ARGS;
 
-  /* FIXME: how to find if mailbox is deleted, how to get size */
-
   if (strlen (arg) == 0)
     {
       size_t total = 0;
@@ -56,7 +54,7 @@ pop3_list (const char *arg)
     }
   else
     {
-      mesgno = atoi (arg);
+      mesgno = strtoul (arg, NULL, 10);
       if (mailbox_get_message (mbox, mesgno, &msg) != 0)
 	return ERR_NO_MESG;
       message_get_attribute (msg, &attr);

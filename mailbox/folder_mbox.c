@@ -276,8 +276,7 @@ folder_mbox_list (folder_t folder, const char *dirname, const char *pattern,
     }
   else
     {
-      status = (status == GLOB_NOSPACE) ? ENOMEM :
-	((status == GLOB_NOMATCH) ? ENOENT : EINVAL);
+      status = (status == GLOB_NOSPACE) ? ENOMEM : EINVAL;
     }
   return status;
 }

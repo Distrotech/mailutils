@@ -366,19 +366,20 @@ header_get_value (header_t header, const char *name, char *buffer,
   if (pn)
     *pn = total;
 
-#if 0
   if (total == 0)
     {
       err = ENOENT;
-      /* Overload.  */
+#if 0
+      /* No don't do this, the problem is we do not know if we have the
+	 entire header value of part of it.  */
       if (header->_get_value)
 	{
 	  err = header->_get_value (header, name, buffer, buflen + 1, pn);
 	  if (err == 0)
 	    header_set_value (header, name, buffer, 0);
 	}
-    }
 #endif
+    }
 
   return err;
 }
