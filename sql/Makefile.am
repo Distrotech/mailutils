@@ -1,6 +1,6 @@
 ## This file is part of GNU Mailutils
 
-##   Copyright (C) 2004 Free Software Foundation, Inc.
+##   Copyright (C) 2004, 2005 Free Software Foundation, Inc.
 ##
 ##   GNU Mailutils is free software; you can redistribute it and/or
 ##   modify it under the terms of the GNU General Public License as
@@ -18,9 +18,10 @@
 ##   59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 noinst_LTLIBRARIES=@BUILD_SQL@
-EXTRA_LTLIBRARIES=libsql.la mysql.la postgres.la
+EXTRA_LTLIBRARIES=libsql.la mysql.la postgres.la odbc.la
 EXTRA_DIST=\
  mysql.c\
+ odbc.c\
  postgres.c
 DISTCLEANFILES = modlist.h
 
@@ -42,3 +43,7 @@ mysql_la_LDFLAGS = $(MODFLAGS)
 postgres_la_SOURCES = postgres.c
 postgres_la_LIBADD = @POSTGRESLIBS@
 postgres_la_LDFLAGS = $(MODFLAGS)
+
+odbc_la_SOURCES = odbc.c
+odbc_la_LIBADD = @ODBCLIBS@
+odbc_la_LDFLAGS = $(MODFLAGS)
