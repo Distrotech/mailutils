@@ -72,6 +72,7 @@ _mhdraft_readline (stream_t stream, char *optr, size_t osize,
 	  int rc;
 	  size_t n;
 	  size_t rdsize = s->mark_offset - offset + 1;
+
 	  rc = stream_readline (s->stream, optr, rdsize, offset, &n);
 	  if (rc == 0)
 	    {
@@ -169,6 +170,7 @@ mhdraft_stream_create (stream_t *stream, stream_t src, int flags)
   stream_set_readline (*stream, _mhdraft_readline, s);
   stream_set_read (*stream, _mhdraft_read, s);
   stream_set_size (*stream, _mhdraft_size, s);
+
   return 0;  
 }
 
@@ -192,8 +194,8 @@ struct _mhdraft_message
 {
   char *from;
   char *date;
-  size_t body_start;
-  size_t body_end;
+  off_t body_start;
+  off_t body_end;
 };
 
 static int
@@ -206,7 +208,7 @@ restore_envelope (stream_t str, struct _mhdraft_message **pmenv)
   int rc;
   char buffer[80];
   size_t len;
-  size_t body_start, body_end;
+  off_t body_start, body_end;
   
   while ((rc = stream_readline (str, buffer, sizeof buffer, offset, &len)) == 0
 	 && len > 0)
@@ -371,8 +373,8 @@ mh_stream_to_message (stream_t instream)
 
   if ((rc = stream_open (draftstream)))
     {
-      mh_error(_("cannot open draft message stream: %s"),
-	       mu_strerror (rc));
+      mh_error (_("cannot open draft message stream: %s"),
+		mu_strerror (rc));
       stream_destroy (&draftstream, stream_get_owner (draftstream));
       return NULL;
     }
