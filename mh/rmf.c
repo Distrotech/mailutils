@@ -58,6 +58,10 @@ int explicit_folder; /* Was the folder explicitly given */
 int interactive; /* Ask for confirmation before deleting */
 int recurse;     /* Recursively process all the sub-directories */
 
+static char *cur_folder_path; /* Full pathname of the current folder */
+static char *folder_name;     /* Name of the (topmost) folder to be
+				 deleted */
+
 static int
 opt_handler (int key, char *arg, void *unused, struct argp_state *state)
 {
@@ -65,7 +69,7 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
     {
     case ARG_FOLDER:
       explicit_folder = 1;
-      current_folder = arg;
+      folder_name = arg;
       break;
 
     case ARG_INTERACTIVE:
@@ -94,12 +98,27 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
   return 0;
 }
 
-static void
+static char *
+current_folder_path ()
+{
+  mailbox_t mbox = mh_open_folder (mh_current_folder (), 0);
+  url_t url;
+  char *p;
+  mailbox_get_url (mbox, &url);
+  p = (char*) url_to_string (url);
+  if (strncmp (p, "mh:", 3) == 0)
+    p += 3;
+  return p;
+}
+
+static int
 rmf (const char *name)
 {
   DIR *dir;
   struct dirent *entry;
-    
+  char *cur_path;
+  int failures = 0;
+  
   dir = opendir (name);
 
   if (!dir)
@@ -110,7 +129,7 @@ rmf (const char *name)
 
   if (interactive && !mh_getyn (_("Remove folder %s"), name))
     exit (0);
-  
+
   while ((entry = readdir (dir)))
     {
       char *p;
@@ -128,17 +147,43 @@ rmf (const char *name)
       else if (S_ISDIR (st.st_mode))
 	{
 	  if (recurse)
-	    rmf (p);
+	    failures += rmf (p);
+	  else
+	    {
+	      printf ("%s: file `%s' not deleted, continuing...\n",
+		      program_invocation_short_name, p);
+	      failures++;
+	    }
 	}
       else
 	{
 	  if (unlink (p))
-	    mh_error (_("can't unlink %s: %s"), p, strerror (errno));
+	    {
+	      mh_error (_("can't unlink %s: %s"), p, strerror (errno));
+	      failures++;
+	    }
 	}
       free (p);
     }
   closedir (dir);
-  rmdir (name);
+
+  if (failures == 0)
+    failures += rmdir (name);
+  else
+    printf ("%s: folder `%s' not removed\n",
+	    program_invocation_short_name, name);
+
+  if (failures == 0)
+    {
+      if (cur_folder_path && strcmp (name, cur_folder_path) == 0)
+	{
+	  current_folder = "inbox";
+	  mh_global_sequences_drop ();
+	  mh_global_save_state ();
+	  printf ("[+inbox now current]\n");
+	}
+    }
+  return failures;
 }
 
 int
@@ -155,7 +200,9 @@ main (int argc, char **argv)
   if (!explicit_folder)
     interactive = 1;
 
-  name = mh_expand_name (NULL, current_folder, 0);
+  cur_folder_path = current_folder_path ();
+
+  name = mh_expand_name (NULL, folder_name, 0);
   rmf (name);
   return 0;
 }
