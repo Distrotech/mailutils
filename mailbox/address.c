@@ -27,8 +27,9 @@
 #include <stdlib.h>
 #include <errno.h>
 
-#include <mailutils/parse822.h>
+#include <mailutils/errno.h>
 #include <mailutils/mutil.h>
+#include <mailutils/parse822.h>
 #include <address0.h>
 
 /* Get email addresses from rfc822 address.  */
@@ -40,6 +41,9 @@ address_create (address_t *a, const char *s)
   int status;
 
   if (!a)
+    return MU_ERR_OUT_PTR_NULL;
+
+  if(!s)
     return EINVAL;
 
   *a = NULL;
@@ -49,7 +53,7 @@ address_create (address_t *a, const char *s)
       /* And address-list may contain 0 addresses but parse correctly.
        */
       if (!*a)
-	return ENOENT;
+	return MU_ERR_EMPTY_ADDRESS;
 
       (*a)->addr = strdup (s);
       if (!(*a)->addr)
@@ -69,6 +73,9 @@ address_createv (address_t *a, const char *sv[], size_t len)
   size_t buflen = 0;
   char* buf = 0;
   size_t i;
+
+  if(!a)
+    return MU_ERR_OUT_PTR_NULL;
 
   if (!sv)
     return EINVAL;

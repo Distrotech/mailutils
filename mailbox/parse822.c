@@ -83,6 +83,7 @@ actually help.
 
 #include "address0.h"
 
+#include <mailutils/errno.h>
 #include <mailutils/parse822.h>
 
 #ifdef EOK
@@ -90,7 +91,7 @@ actually help.
 #endif
 
 #define EOK	0
-#define EPARSE	ENOENT
+#define EPARSE	MU_ERR_BAD_822_FORMAT
 
 /*
  * Some convenience functions for dealing with dynamically re-sized

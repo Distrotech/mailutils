@@ -22,6 +22,8 @@
 #include <stdlib.h>
 #include <errno.h>
 
+#include <mailutils/errno.h>
+#include <mailutils/error.h>
 #include <mailutils/iterator.h>
 #include <mailutils/registrar.h>
 #include <mailbox0.h>
@@ -42,7 +44,7 @@ mailbox_create (mailbox_t *pmbox, const char *name)
   int found = 0;
 
   if (pmbox == NULL)
-    return EINVAL;
+    return MU_ERR_OUT_PTR_NULL;
 
   /* Look in the registrar, for a match  */
   registrar_get_list (&list);
@@ -116,7 +118,7 @@ mailbox_create (mailbox_t *pmbox, const char *name)
 
     }
   else
-    status = ENOENT;
+    status = MU_ERR_NO_HANDLER;
 
   return status;
 }
@@ -180,7 +182,7 @@ int
 mailbox_open (mailbox_t mbox, int flag)
 {
   if (mbox == NULL || mbox->_open == NULL)
-    return ENOSYS;
+    return MU_ERR_EMPTY_VFN;
   return mbox->_open (mbox, flag);
 }
 
@@ -188,7 +190,7 @@ int
 mailbox_close (mailbox_t mbox)
 {
   if (mbox == NULL || mbox->_close == NULL)
-    return ENOSYS;
+    return MU_ERR_EMPTY_VFN;
   return mbox->_close (mbox);
 }
 
@@ -197,7 +199,7 @@ int
 mailbox_append_message (mailbox_t mbox, message_t msg)
 {
   if (mbox == NULL || mbox->_append_message == NULL)
-    return ENOSYS;
+    return MU_ERR_EMPTY_VFN;
   return mbox->_append_message (mbox, msg);
 }
 
@@ -205,7 +207,7 @@ int
 mailbox_get_message (mailbox_t mbox, size_t msgno,  message_t *pmsg)
 {
   if (mbox == NULL || mbox->_get_message == NULL)
-    return ENOSYS;
+    return MU_ERR_EMPTY_VFN;
   return mbox->_get_message (mbox, msgno, pmsg);
 }
 
@@ -213,7 +215,7 @@ int
 mailbox_messages_count (mailbox_t mbox, size_t *num)
 {
   if (mbox == NULL || mbox->_messages_count == NULL)
-    return ENOSYS;
+    return MU_ERR_EMPTY_VFN;
   return mbox->_messages_count (mbox, num);
 }
 
@@ -221,14 +223,14 @@ int
 mailbox_messages_recent (mailbox_t mbox, size_t *num)
 {
   if (mbox == NULL || mbox->_messages_recent == NULL)
-    return ENOSYS;
+    return MU_ERR_EMPTY_VFN;
   return mbox->_messages_recent (mbox, num);
 }
 int
 mailbox_message_unseen (mailbox_t mbox, size_t *num)
 {
   if (mbox == NULL || mbox->_message_unseen == NULL)
-    return ENOSYS;
+    return MU_ERR_EMPTY_VFN;
   return mbox->_message_unseen (mbox, num);
 }
 
@@ -236,7 +238,7 @@ int
 mailbox_save_attributes (mailbox_t mbox)
 {
   if (mbox == NULL || mbox->_save_attributes == NULL)
-    return ENOSYS;
+    return MU_ERR_EMPTY_VFN;
   return mbox->_save_attributes (mbox);
 }
 
@@ -244,7 +246,7 @@ int
 mailbox_expunge (mailbox_t mbox)
 {
   if (mbox == NULL || mbox->_expunge == NULL)
-    return ENOSYS;
+    return MU_ERR_EMPTY_VFN;
   return mbox->_expunge (mbox);
 }
 
@@ -260,7 +262,7 @@ int
 mailbox_scan (mailbox_t mbox, size_t msgno, size_t *pcount)
 {
   if (mbox == NULL || mbox->_scan == NULL)
-    return ENOSYS;
+    return MU_ERR_EMPTY_VFN;
   return mbox->_scan (mbox, msgno, pcount);
 }
 
@@ -268,7 +270,7 @@ int
 mailbox_get_size (mailbox_t mbox, off_t *psize)
 {
   if (mbox == NULL || mbox->_get_size == NULL)
-    return ENOSYS;
+    return MU_ERR_EMPTY_VFN;
   return mbox->_get_size (mbox, psize);
 }
 
@@ -276,7 +278,7 @@ int
 mailbox_uidvalidity (mailbox_t mbox, unsigned long *pvalid)
 {
   if (mbox == NULL || mbox->_uidvalidity == NULL)
-    return ENOSYS;
+    return MU_ERR_EMPTY_VFN;
   return mbox->_uidvalidity (mbox, pvalid);
 }
 
@@ -284,7 +286,7 @@ int
 mailbox_uidnext (mailbox_t mbox, size_t *puidnext)
 {
   if (mbox == NULL || mbox->_uidnext == NULL)
-    return ENOSYS;
+    return MU_ERR_EMPTY_VFN;
   return mbox->_uidnext (mbox, puidnext);
 }
 
@@ -293,7 +295,7 @@ int
 mailbox_set_locker (mailbox_t mbox, locker_t locker)
 {
   if (mbox == NULL)
-    return EINVAL;
+    return MU_ERR_MBX_NULL;
   if (mbox->locker)
     locker_destroy (&mbox->locker);
   mbox->locker = locker;
@@ -303,8 +305,10 @@ mailbox_set_locker (mailbox_t mbox, locker_t locker)
 int
 mailbox_get_locker (mailbox_t mbox, locker_t *plocker)
 {
-  if (mbox == NULL || plocker == NULL)
-    return EINVAL;
+  if (mbox == NULL)
+    return MU_ERR_MBX_NULL;
+  if (plocker == NULL)
+    return MU_ERR_OUT_PTR_NULL;
   *plocker = mbox->locker;
   return 0;
 }
@@ -313,7 +317,7 @@ int
 mailbox_set_stream (mailbox_t mbox, stream_t stream)
 {
   if (mbox == NULL)
-    return EINVAL;
+    return MU_ERR_MBX_NULL;
   if (mbox->stream)
     stream_destroy (&(mbox->stream), mbox);
   mbox->stream = stream;
@@ -331,8 +335,10 @@ mailbox_set_stream (mailbox_t mbox, stream_t stream)
 int
 mailbox_get_stream (mailbox_t mbox, stream_t *pstream)
 {
-  if (mbox == NULL || pstream == NULL)
-    return EINVAL;
+  if (mbox == NULL)
+    return MU_ERR_MBX_NULL;
+  if (pstream == NULL)
+    return MU_ERR_OUT_PTR_NULL;
 
   /* If null two cases:
      - it is no open yet.
@@ -349,8 +355,10 @@ mailbox_get_stream (mailbox_t mbox, stream_t *pstream)
 int
 mailbox_get_observable (mailbox_t mbox, observable_t *pobservable)
 {
-  if (mbox == NULL  || pobservable == NULL)
-    return EINVAL;
+  if (mbox == NULL)
+    return MU_ERR_MBX_NULL;
+  if (pobservable == NULL)
+    return MU_ERR_OUT_PTR_NULL;
 
   if (mbox->observable == NULL)
     {
@@ -365,8 +373,11 @@ mailbox_get_observable (mailbox_t mbox, observable_t *pobservable)
 int
 mailbox_get_property (mailbox_t mbox, property_t *pproperty)
 {
-  if (mbox == NULL || pproperty == NULL)
-    return EINVAL;
+  if (mbox == NULL)
+    return MU_ERR_MBX_NULL;
+  if (pproperty == NULL)
+    return MU_ERR_OUT_PTR_NULL;
+  
   if (mbox->property == NULL)
     {
       int status = property_create (&(mbox->property), mbox);
@@ -390,7 +401,7 @@ int
 mailbox_set_debug (mailbox_t mbox, mu_debug_t debug)
 {
   if (mbox == NULL)
-    return EINVAL;
+    return MU_ERR_MBX_NULL;
   if (mbox->debug)
     mu_debug_destroy (&mbox->debug, mbox);
   mbox->debug = debug;
@@ -402,8 +413,10 @@ mailbox_set_debug (mailbox_t mbox, mu_debug_t debug)
 int
 mailbox_get_debug (mailbox_t mbox, mu_debug_t *pdebug)
 {
-  if (mbox == NULL || pdebug == NULL)
-    return EINVAL;
+  if (mbox == NULL)
+    return MU_ERR_MBX_NULL;
+  if (pdebug == NULL)
+    return MU_ERR_OUT_PTR_NULL;
   if (mbox->debug == NULL)
     {
       int status = mu_debug_create (&(mbox->debug), mbox);
@@ -417,8 +430,10 @@ mailbox_get_debug (mailbox_t mbox, mu_debug_t *pdebug)
 int
 mailbox_get_url (mailbox_t mbox, url_t *purl)
 {
-  if (mbox == NULL || purl == NULL)
-    return EINVAL;
+  if (mbox == NULL)
+    return MU_ERR_MBX_NULL;
+  if (purl == NULL)
+    return MU_ERR_OUT_PTR_NULL;
   *purl = mbox->url;
   return 0;
 }
@@ -426,8 +441,10 @@ mailbox_get_url (mailbox_t mbox, url_t *purl)
 int
 mailbox_get_folder (mailbox_t mbox, folder_t *pfolder)
 {
-  if (mbox == NULL || pfolder == NULL)
-    return EINVAL;
+  if (mbox == NULL)
+    return MU_ERR_MBX_NULL;
+  if (pfolder == NULL)
+    return MU_ERR_OUT_PTR_NULL;
   *pfolder = mbox->folder;
   return 0;
 }
@@ -436,7 +453,7 @@ int
 mailbox_set_folder (mailbox_t mbox, folder_t folder)
 {
   if (mbox == NULL)
-    return EINVAL;
+    return MU_ERR_MBX_NULL;
    mbox->folder = folder;
   return 0;
 }
