@@ -74,8 +74,16 @@ libmh_a_SOURCES= \
  mh_whatnow.c
 noinst_HEADERS = mh.h mh_getopt.h
 
-mhlib_DATA = replcomps mhl.format 
-EXTRA_DIST = replcomps mhl.format 
+LISPSRC = mailutils-mh.el
+lisp_LISP=@lisp_LISP@
+EXTRA_LISP = mailutils-mh.el
+
+mhlib_DATA = replcomps mhl.format $(LISPSRC)
+EXTRA_DIST = replcomps mhl.format mailutils-mh.eli
+DISTCLEANFILES = mailutils-mh.el
+
+mailutils-mh.el: mailutils-mh.eli
+	sed "s,BINDIR,$(bindir),g;s,MHLIBDIR,$(mhlibdir),g" $< > $@
 
 INCLUDES = -I${top_srcdir}/include -I${top_srcdir}/lib -I${top_srcdir}/mailbox @INTLINCS@
 AM_CPPFLAGS = -DMHLIBDIR=\"$(mhlibdir)\"
