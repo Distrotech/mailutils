@@ -457,6 +457,7 @@ main (int argc, char *argv[])
     {
       mu_error (_("open on %s failed: %s"),
 		opts.mbox ? opts.mbox : _("default"), mu_strerror (rc));
+      mailbox_destroy (&mbox);
       goto cleanup;
     }
 
