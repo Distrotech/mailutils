@@ -1067,7 +1067,7 @@ builtin_mbox (struct mh_machine *mach)
     {
       char *p = strchr (buf, '@');
       if (p)
-	*p = NULL;
+	*p = 0;
       strobj_create (&mach->arg_str, p);
     }
   address_destroy (&addr);
