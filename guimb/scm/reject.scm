@@ -79,8 +79,7 @@
       (close-output-port port)
       (mu-mime-add-part mime mesg))
 
-    (let ((mesg (mu-mime-get-message mime)))
-      (sieve-message-bounce mesg (list sender)))
+    (mu-message-send (mu-mime-get-message mime) #f sieve-daemon-email sender)
     (mu-message-delete sieve-current-message)))
 
 ;;; Register action

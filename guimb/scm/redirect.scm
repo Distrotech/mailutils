@@ -44,7 +44,7 @@
        (else
 	(let ((out-msg (mu-message-copy sieve-current-message)))
 	  (mu-message-set-header out-msg "X-Sender" sieve-my-email)
-	  (sieve-message-bounce out-msg (list address))
+	  (mu-message-send out-msg #f sender address)
 	  (mu-message-destroy out-msg))
 	(mu-message-delete sieve-current-message)))))
 
