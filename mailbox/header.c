@@ -100,6 +100,9 @@ header_destroy (header_t *ph, void *owner)
 
 	  header_free_cache (header);
 
+	  if (header->mstream)
+	    stream_destroy (&(header->mstream), NULL);
+
 	  free (header);
 	}
       *ph = NULL;
@@ -144,7 +147,7 @@ header_parse (header_t header, const char *blurb, int len)
     return 0;
 
   header->blurb_len = len;
-  header->blurb = calloc (header->blurb_len + 1, sizeof(char));
+  header->blurb = calloc (1, header->blurb_len + 1);
   if (header->blurb == NULL)
     return ENOMEM;
   memcpy (header->blurb, blurb, header->blurb_len);
@@ -845,26 +848,10 @@ fill_blurb (header_t header)
 {
   int status;
   char buf[1024];
-  char *tbuf;
-  size_t nread = 0;
-  size_t i;
+  size_t nread;
 
   if (header->_fill == NULL)
     return 0;
-
-  /* Free any fast header, since we will load the entire headers.  */
-  for (i = 0; i < header->fhdr_count; i++)
-    {
-      if (header->fhdr[i].fn)
-	free (header->fhdr[i].fn);
-      if (header->fhdr[i].fv)
-	free (header->fhdr[i].fv);
-    }
-  if (header->fhdr)
-    {
-      free (header->fhdr);
-      header->fhdr = NULL;
-    }
 
   /* The entire header is now ours(part of header_t), clear all the
      overloading.  */
@@ -875,45 +862,58 @@ fill_blurb (header_t header)
   header->_size = NULL;
   header->_lines = NULL;
 
+  if (header->mstream == NULL)
+    {
+      status = memory_stream_create (&(header->mstream));
+      if (status != 0)
+	return status;
+      stream_open (header->mstream, NULL, 0, MU_STREAM_RDWR);
+      header->stream_len = 0;
+    }
+
+  /* Bring in the entire header.  */
   do
     {
-      status = header->_fill (header, buf, sizeof (buf),
-			      header->temp_blurb_len, &nread) ;
+      nread = 0;
+      status = header->_fill (header, buf, sizeof buf,
+			      header->stream_len, &nread) ;
       if (status != 0)
 	{
 	  if (status != EAGAIN && status != EINTR)
 	    {
-	      free (header->temp_blurb);
-	      header->temp_blurb = NULL;
-	      header->temp_blurb_len = 0;
+	      stream_destroy (&(header->mstream), NULL);
+	      header->stream_len = 0;
 	    }
 	  return status;
 	}
       if (nread > 0)
 	{
-	  tbuf = realloc (header->temp_blurb, header->temp_blurb_len + nread);
-	  if (tbuf == NULL)
+	  status = stream_write (header->mstream, buf, nread, header->stream_len, NULL);
+	  if (status != 0)
 	    {
-	      free (header->temp_blurb);
-	      header->temp_blurb = NULL;
-	      header->temp_blurb_len = 0;
-	      return ENOMEM;
+	      stream_destroy (&(header->mstream), NULL);
+	      header->stream_len = 0;
+	      return status;
 	    }
-	  header->temp_blurb = tbuf;
-	  memcpy (header->temp_blurb + header->temp_blurb_len, buf, nread);
-	  header->temp_blurb_len += nread;
+	  header->stream_len += nread;
 	}
     }
   while (nread > 0);
 
   /* parse it. */
-  status = header_parse (header, header->temp_blurb, header->temp_blurb_len);
-  if (header->temp_blurb)
-    {
-      free (header->temp_blurb);
-      header->temp_blurb = NULL;
-    }
-  header->temp_blurb_len = 0;
+  {
+    char *blurb;
+    size_t len = header->stream_len;
+    blurb = calloc (1, len + 1);
+    if (blurb)
+      {
+	stream_read (header->mstream, blurb, len, 0, &len);
+	status = header_parse (header, blurb, len);
+      }
+    free (blurb);
+  }
+  stream_destroy (&header->mstream, NULL);
+  header->stream_len = 0;
   return status;
 }
 
@@ -922,17 +922,80 @@ header_write (stream_t os, const char *buf, size_t buflen,
 	      off_t off, size_t *pnwrite)
 {
   header_t header = stream_get_owner (os);
-  if (os == NULL || header == NULL)
+  int status;
+
+  if (header == NULL)
     return EINVAL;
 
-  (void)buf; (void)off;
-  if (buflen == 0)
-    return 0;
+  if ((size_t)off != header->stream_len)
+    return ESPIPE;
+
+  /* Skip the obvious.  */
+  if (buf == NULL || *buf == '\0' || buflen == 0)
+    {
+      if (pnwrite)
+        *pnwrite = 0;
+      return 0;
+    }
+
+  if (header->mstream == NULL)
+    {
+      status = memory_stream_create (&(header->mstream));
+      if (status != 0)
+	return status;
+      stream_open (header->mstream, NULL, 0, MU_STREAM_RDWR);
+      header->stream_len = 0;
+    }
+
+  status = stream_write (header->mstream, buf, buflen, header->stream_len, &buflen);
+  if (status != 0)
+    {
+      stream_destroy (&header->mstream, NULL);
+      header->stream_len = 0;
+      return status;
+    }
+  header->stream_len += buflen;
+
+  /* We detect an empty line .i.e "^\n$" this signal the end of the
+     header.  */
+  if (header->stream_len)
+    {
+      int finish = 0;
+      char nlnl[2];
+      nlnl[1] = nlnl[0] = '\0';
+      stream_read (header->mstream, nlnl, 1, 0, NULL);
+      if (nlnl[0] == '\n')
+	{
+	  finish = 1;
+	}
+      else
+	{
+	  stream_read (header->mstream, nlnl, 2, header->stream_len - 2, NULL);
+	  if (nlnl[0] == '\n' && nlnl[1] == '\n')
+	    {
+	      finish = 1;
+	    }
+	}
+      if (finish)
+	{
+	  char *blurb;
+	  size_t len = header->stream_len;
+	  blurb = calloc (1, len + 1);
+	  if (blurb)
+	    {
+	      stream_read (header->mstream, blurb, len, 0, &len);
+	      status = header_parse (header, blurb, len);
+	    }
+	  free (blurb);
+	  stream_destroy (&header->mstream, NULL);
+	  header->stream_len = 0;
+	}
+  }
 
   if (pnwrite)
-    *pnwrite = 0;
+    *pnwrite = buflen;
+  return 0;
 
-  return ENOSYS;
 }
 
 static int

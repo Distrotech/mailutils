@@ -61,14 +61,14 @@ extern int authority_set_authenticate __P ((authority_t, int (*_authenticate) __
 struct _wicket;
 typedef struct _wicket *wicket_t;
 
-extern int wicket_create       __P ((wicket_t *, const char *));
-extern int wicket_destroy      __P ((wicket_t *));
-extern int wicket_set_filename __P ((wicket_t, const char *));
-extern int wicket_get_filename __P ((wicket_t, char *, size_t, size_t *));
-extern int wicket_set_ticket   __P ((wicket_t, int (*)
-				     __P ((wicket_t, const char *,
+extern int  wicket_create       __P ((wicket_t *, const char *));
+extern void wicket_destroy      __P ((wicket_t *));
+extern int  wicket_set_filename __P ((wicket_t, const char *));
+extern int  wicket_get_filename __P ((wicket_t, char *, size_t, size_t *));
+extern int  wicket_set_ticket   __P ((wicket_t, int (*)
+				      __P ((wicket_t, const char *,
 					   const char *, ticket_t *))));
-extern int wicket_get_ticket   __P ((wicket_t, ticket_t *, const char *, const char *));
+extern int  wicket_get_ticket   __P ((wicket_t, ticket_t *, const char *, const char *));
 
 #ifdef __cplusplus
 }

@@ -57,7 +57,7 @@ _memory_read (stream_t stream, char *optr, size_t osize,
 {
   struct _memory_stream *mfs = stream_get_owner (stream);
   size_t n = 0;
-  if (mfs->ptr != NULL && (offset <= (off_t)mfs->size))
+  if (mfs->ptr != NULL && ((size_t)offset <= mfs->size))
     {
       n = ((offset + osize) > mfs->size) ? mfs->size - offset :  osize;
       memcpy (optr, mfs->ptr + offset, n);
@@ -74,7 +74,7 @@ _memory_readline (stream_t stream, char *optr, size_t osize,
   struct _memory_stream *mfs = stream_get_owner (stream);
   char *nl;
   size_t n = 0;
-  if (mfs->ptr && (offset < (off_t)mfs->size))
+  if (mfs->ptr && ((size_t)offset < mfs->size))
     {
       /* Save space for the null byte.  */
       osize--;
@@ -96,7 +96,7 @@ _memory_write (stream_t stream, const char *iptr, size_t isize,
   struct _memory_stream *mfs = stream_get_owner (stream);
 
   /* Bigger we have to realloc.  */
-  if (mfs->capacity < (offset + isize))
+  if (mfs->capacity < ((size_t)offset + isize))
     {
       /* Realloc by fixed blocks of 128.  */
       int newsize = MU_STREAM_MEMORY_BLOCKSIZE *

@@ -27,6 +27,7 @@
 #include <unistd.h>
 #include <ctype.h>
 
+#include <mailutils/mutil.h>
 #include <auth0.h>
 
 struct myticket_data
@@ -56,7 +57,7 @@ wicket_create (wicket_t *pwicket, const char *filename)
   return 0;
 }
 
-int
+void
 wicket_destroy (wicket_t *pwicket)
 {
   if (pwicket && *pwicket)
@@ -96,13 +97,13 @@ wicket_set_filename (wicket_t wicket, const char *filename)
 }
 
 int
-wicket_set_ticket (wicket_t wicket, int _get_ticket
+wicket_set_ticket (wicket_t wicket, int get_ticket
 		   __P ((wicket_t, const char *, const char *, ticket_t *)))
 {
   if (wicket == NULL)
     return EINVAL;
 
-  wicket->_get_ticket = _get_ticket;
+  wicket->_get_ticket = get_ticket;
   return 0;
 }
 

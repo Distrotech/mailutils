@@ -35,6 +35,8 @@
 #include <message0.h>
 #include <mailutils/address.h>
 
+#define MESSAGE_MODIFIED 0x10000;
+
 static int message_read   __P ((stream_t is, char *buf, size_t buflen,
 				off_t off, size_t *pnread ));
 static int message_write  __P ((stream_t os, const char *buf, size_t buflen,
@@ -45,6 +47,11 @@ static int message_sender __P ((envelope_t envelope, char *buf, size_t len,
 static int message_date   __P ((envelope_t envelope, char *buf, size_t len,
 				size_t *pnwrite));
 static int message_stream_size __P((stream_t stream, off_t *psize));
+static int message_header_fill __P ((header_t header, char *buffer,
+				     size_t buflen, off_t off,
+				     size_t * pnread));
+static int message_body_read __P ((stream_t stream,  char *buffer,
+				   size_t n, off_t off, size_t *pn));
 
 /*  Allocate ressources for the message_t.  */
 int
@@ -168,6 +175,7 @@ message_is_modified (message_t msg)
       mod |= header_is_modified (msg->header);
       mod |= attribute_is_modified (msg->attribute);
       mod |= body_is_modified (msg->body);
+      mod |= msg->flags;
     }
   return mod;
 }
@@ -183,6 +191,7 @@ message_clear_modified (message_t msg)
 	attribute_clear_modified (msg->attribute);
       if (msg->body)
 	body_clear_modified (msg->body);
+      msg->flags &= ~MESSAGE_MODIFIED;
     }
   return 0;
 }
@@ -220,6 +229,13 @@ message_get_header (message_t msg, header_t *phdr)
       int status = header_create (&header, NULL, 0, msg);
       if (status != 0)
 	return status;
+      if (msg->stream)
+	{
+	  /* Was it created by us?  */
+	  message_t mesg = stream_get_owner (msg->stream);
+	  if (mesg != msg)
+	    header_set_fill (header, message_header_fill, msg);
+	}
       msg->header = header;
     }
   *phdr = msg->header;
@@ -238,6 +254,7 @@ message_set_header (message_t msg, header_t hdr, void *owner)
   if (msg->header)
     header_destroy (&(msg->header), msg);
   msg->header = hdr;
+  msg->flags |= MESSAGE_MODIFIED;
   return 0;
 }
 
@@ -254,6 +271,26 @@ message_get_body (message_t msg, body_t *pbody)
       int status = body_create (&body, msg);
       if (status != 0)
 	return status;
+      /* If a stream is already set use it to create the body stream.  */
+      if (msg->stream)
+	{
+	  /* Was it created by us?  */
+	  message_t mesg = stream_get_owner (msg->stream);
+	  if (mesg != msg)
+	    {
+	      stream_t stream;
+	      int flags = 0;
+	      stream_get_flags (msg->stream, &flags);
+	      if ((status = stream_create (&stream, flags, body)) != 0)
+		{
+		  body_destroy (&body, msg);
+		  return status;
+		}
+	      stream_set_read (stream, message_body_read, body);
+	      stream_setbufsiz (stream, 128);
+	      body_set_stream (body, stream, msg);
+	    }
+	}
       msg->body = body;
     }
   *pbody = msg->body;
@@ -272,6 +309,7 @@ message_set_body (message_t msg, body_t body, void *owner)
   if (msg->body)
     body_destroy (&(msg->body), msg);
   msg->body = body;
+  msg->flags |= MESSAGE_MODIFIED;
   return 0;
 }
 
@@ -287,6 +325,7 @@ message_set_stream (message_t msg, stream_t stream, void *owner)
   if (msg->stream)
     stream_destroy (&(msg->stream), msg);
   msg->stream = stream;
+  msg->flags |= MESSAGE_MODIFIED;
   return 0;
 }
 
@@ -411,6 +450,7 @@ message_set_envelope (message_t msg, envelope_t envelope, void *owner)
   if (msg->envelope)
     envelope_destroy (&(msg->envelope), msg);
   msg->envelope = envelope;
+  msg->flags |= MESSAGE_MODIFIED;
   return 0;
 }
 
@@ -442,6 +482,7 @@ message_set_attribute (message_t msg, attribute_t attribute, void *owner)
   if (msg->attribute)
     attribute_destroy (&(msg->attribute), owner);
   msg->attribute = attribute;
+  msg->flags |= MESSAGE_MODIFIED;
   return 0;
 }
 
@@ -666,6 +707,7 @@ message_get_observable (message_t msg, observable_t *pobservable)
   return 0;
 }
 
+/* Implements the stream_read () on the message stream.  */
 static int
 message_read (stream_t is, char *buf, size_t buflen,
 	      off_t off, size_t *pnread )
@@ -703,6 +745,7 @@ message_read (stream_t is, char *buf, size_t buflen,
   return 0;
 }
 
+/* Implements the stream_write () on the message stream.  */
 static int
 message_write (stream_t os, const char *buf, size_t buflen,
 	       off_t off, size_t *pnwrite)
@@ -715,7 +758,7 @@ message_write (stream_t os, const char *buf, size_t buflen,
     return EINVAL;
 
   /* Skip the obvious.  */
-  if (buf == NULL || *buf == '\0' || buflen == 0)
+  if (buf == NULL || buflen == 0)
     {
       if (pnwrite)
 	*pnwrite = 0;
@@ -726,39 +769,21 @@ message_write (stream_t os, const char *buf, size_t buflen,
     {
       size_t len;
       char *nl;
-      char *thdr;
+      header_t header = NULL;
+      stream_t hstream = NULL;
+      message_get_header (msg, &header);
+      header_get_stream (header, &hstream);
       while (!msg->hdr_done && (nl = memchr (buf, '\n', buflen)) != NULL)
 	{
 	  len = nl - buf + 1;
-	  /* Allocate more buffer to hold the header.  */
-	  thdr = realloc (msg->hdr_buf, msg->hdr_buflen + len);
-	  if (thdr == NULL)
-	    {
-	      free (msg->hdr_buf);
-	      msg->hdr_buf = NULL;
-	      msg->hdr_buflen = 0;
-	      return ENOMEM;
-	    }
-	  else
-	    msg->hdr_buf = thdr;
-	  memcpy (msg->hdr_buf + msg->hdr_buflen, buf, len);
+	  status = stream_write (hstream, buf, len, msg->hdr_buflen, NULL);
+	  if (status != 0)
+	    return status;
 	  msg->hdr_buflen += len;
 	  /* We detect an empty line .i.e "^\n$" this signal the end of the
 	     header.  */
 	  if (buf == nl)
-	    {
-	      header_destroy (&(msg->header), msg);
-	      status = header_create (&(msg->header), msg->hdr_buf,
-				      msg->hdr_buflen, msg);
-	      free (msg->hdr_buf);
-	      msg->hdr_buf = NULL;
-	      if (status != 0)
-		{
-		  msg->hdr_buflen = 0;
-		  return status;
-		}
-	      msg->hdr_done = 1;
-	    }
+	    msg->hdr_done = 1;
 	  buf = nl + 1;
 	  buflen -= len;
 	}
@@ -767,17 +792,13 @@ message_write (stream_t os, const char *buf, size_t buflen,
   /* Message header is not complete but was not a full line.  */
   if (!msg->hdr_done && buflen > 0)
     {
-      char *thdr = realloc (msg->hdr_buf, msg->hdr_buflen + buflen);
-      if (thdr == NULL)
-	{
-	  free (msg->hdr_buf);
-	  msg->hdr_buf = NULL;
-	  msg->hdr_buflen = 0;
-	  return ENOMEM;
-	}
-      else
-	msg->hdr_buf = thdr;
-      memcpy (msg->hdr_buf + msg->hdr_buflen, buf, buflen);
+      header_t header = NULL;
+      stream_t hstream = NULL;
+      message_get_header (msg, &header);
+      header_get_stream (header, &hstream);
+      status = stream_write (hstream, buf, buflen, msg->hdr_buflen, NULL);
+      if (status != 0)
+	return status;
       msg->hdr_buflen += buflen;
       buflen = 0;
     }
@@ -806,6 +827,7 @@ message_write (stream_t os, const char *buf, size_t buflen,
   return status;
 }
 
+/* Implements the stream_get_fd () on the message stream.  */
 static int
 message_get_fd (stream_t stream, int *pfd)
 {
@@ -831,7 +853,8 @@ message_get_fd (stream_t stream, int *pfd)
   return stream_get_fd (is, pfd);
 }
 
-int
+/* Implements the stream_stream_size () on the message stream.  */
+static int
 message_stream_size (stream_t stream, off_t *psize)
 {
   message_t msg = stream_get_owner (stream);
@@ -919,4 +942,67 @@ message_sender (envelope_t envelope, char *buf, size_t len, size_t *pnwrite)
   if (pnwrite)
     *pnwrite = n;
   return 0;
+}
+
+static int
+message_header_fill (header_t header, char *buffer, size_t buflen,
+		     off_t off, size_t * pnread)
+{
+  int status = 0;
+  message_t msg = header_get_owner (header);
+  stream_t stream = NULL;
+  size_t nread = 0;
+
+  /* Noop.  */
+  if (buffer == NULL || buflen == 0)
+    {
+      if (pnread)
+        *pnread = nread;
+      return 0;
+    }
+
+  if (!msg->hdr_done)
+    {
+      status = message_get_stream (msg, &stream);
+      if (status == 0)
+	{
+	  /* Position the file pointer and the buffer.  */
+	  status = stream_readline (stream, buffer, buflen, off, &nread);
+	  /* Detect the end of the headers. */
+	  if (nread  && buffer[0] == '\n' && buffer[1] == '\0')
+	    {
+	      msg->hdr_done = 1;
+	    }
+	  msg->hdr_buflen += nread;
+	}
+    }
+
+  if (pnread)
+    *pnread = nread;
+
+  return status;
+}
+
+static int
+message_body_read (stream_t stream,  char *buffer, size_t n, off_t off,
+		   size_t *pn)
+{
+  body_t body = stream_get_owner (stream);
+  message_t msg = body_get_owner (body);
+  size_t nread = 0;
+  header_t header = NULL;
+  stream_t bstream = NULL;
+  size_t size = 0;
+  int status;
+
+  message_get_header (msg, &header);
+  status = header_size (msg->header, &size);
+  if (status == 0)
+    {
+      message_get_stream (msg, &bstream);
+      status = stream_read (bstream, buffer, n, size + off, &nread);
+    }
+  if (pn)
+    *pn = nread;
+  return status;
 }

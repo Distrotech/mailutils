@@ -434,7 +434,9 @@ folder_imap_open (folder_t folder, int flags)
             {
               CHECK_ERROR (f_imap, ENOMEM);
             }
-	  memory_stream_create (&f_imap->string.stream);
+	  status = memory_stream_create (&f_imap->string.stream);
+          CHECK_ERROR (f_imap, status);
+	  stream_open (f_imap->string.stream, NULL, 0, MU_STREAM_RDWR);
         }
       else
         {

@@ -31,6 +31,8 @@
 #include <mailutils/stream.h>
 #include <body0.h>
 
+#define BODY_MODIFIED 0x10000
+
 static int lazy_create    __P ((body_t));
 static int _body_flush    __P ((stream_t));
 static int _body_get_fd   __P ((stream_t, int *));
@@ -39,8 +41,12 @@ static int _body_readline __P ((stream_t, char *, size_t, off_t, size_t *));
 static int _body_truncate __P ((stream_t, off_t));
 static int _body_size     __P ((stream_t, off_t *));
 static int _body_write    __P ((stream_t, const char *, size_t, off_t, size_t *));
-static int _body_get_size  __P ((body_t, size_t *));
-static int _body_get_lines __P ((body_t, size_t *));
+
+/* Our own defaults for the body.  */
+static int _body_get_size   __P ((body_t, size_t *));
+static int _body_get_lines  __P ((body_t, size_t *));
+static int _body_get_size0  __P ((stream_t, size_t *));
+static int _body_get_lines0 __P ((stream_t, size_t *));
 
 int
 body_create (body_t *pbody, void *owner)
@@ -100,14 +106,15 @@ int
 body_is_modified (body_t body)
 {
   (void)body;
-  return 0;
+  return (body) ? (body->flags & BODY_MODIFIED) : 0;
 }
 
 /* FIXME: not implemented.  */
 int
 body_clear_modified (body_t body)
 {
-  (void)body;
+  if (body)
+    body->flags &= ~BODY_MODIFIED;
   return 0;
 }
 
@@ -178,11 +185,12 @@ body_set_stream (body_t body, stream_t stream, void *owner)
   /* make sure we destroy the old one if it is own by the body */
   stream_destroy (&(body->stream), body);
   body->stream = stream;
+  body->flags |= BODY_MODIFIED;
   return 0;
 }
 
 int
-body_set_lines (body_t body, int (*_lines)(body_t, size_t *), void *owner)
+body_set_lines (body_t body, int (*_lines)__P ((body_t, size_t *)), void *owner)
 {
   if (body == NULL)
     return EINVAL;
@@ -199,6 +207,9 @@ body_lines (body_t body, size_t *plines)
     return EINVAL;
   if (body->_lines)
     return body->_lines (body, plines);
+  /* Fall on the stream.  */
+  if (body->stream)
+    return _body_get_lines0 (body->stream, plines);
   if (plines)
     *plines = 0;
   return 0;
@@ -211,6 +222,9 @@ body_size (body_t body, size_t *psize)
     return EINVAL;
   if (body->_size)
     return body->_size (body, psize);
+  /* Fall on the stream.  */
+  if (body->stream)
+    return _body_get_size0 (body->stream, psize);
   if (psize)
     *psize = 0;
   return 0;
@@ -226,6 +240,8 @@ body_set_size (body_t body, int (*_size)(body_t, size_t*) , void *owner)
   body->_size = _size;
   return 0;
 }
+
+/* Stub function for the body stream.  */
 
 static int
 _body_get_fd (stream_t stream, int *fd)
@@ -276,27 +292,40 @@ _body_flush (stream_t stream)
   return stream_flush (body->fstream);
 }
 
+/* Default function for the body.  */
 static int
-_body_get_size (body_t body, size_t *plines)
+_body_get_lines (body_t body, size_t *plines)
+{
+  return _body_get_lines0 (body->fstream, plines);
+}
+
+static int
+_body_get_size (body_t body, size_t *psize)
+{
+  return _body_get_size0 (body->fstream, psize);
+}
+
+static int
+_body_get_size0 (stream_t stream, size_t *psize)
 {
   off_t off = 0;
-  int status = _body_size (body->stream, &off);
-  if (plines)
-    *plines = off;
+  int status = stream_size (stream, &off);
+  if (psize)
+    *psize = off;
   return status;
 }
 
 static int
-_body_get_lines (body_t body, size_t *plines)
+_body_get_lines0 (stream_t stream, size_t *plines)
 {
-  int status =  stream_flush (body->fstream);
+  int status =  stream_flush (stream);
   size_t lines = 0;
   if (status == 0)
     {
       char buf[128];
       size_t n = 0;
       off_t off = 0;
-      while ((status = stream_readline (body->fstream, buf, sizeof buf,
+      while ((status = stream_readline (stream, buf, sizeof buf,
 					off, &n)) == 0 && n > 0)
 	{
 	  if (buf[n - 1] == '\n')

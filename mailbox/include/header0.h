@@ -55,8 +55,8 @@ struct _header
   void *owner;
 
   /* Data.  */
-  char *temp_blurb;
-  size_t temp_blurb_len;
+  stream_t mstream;
+  size_t stream_len;
   char *blurb;
   size_t blurb_len;
   size_t hdr_count;
@@ -65,7 +65,7 @@ struct _header
   struct _hdr *fhdr;
   int flags;
 
-  /* Streams.  */
+  /* Stream.  */
   stream_t stream;
   int (*_get_value) __P ((header_t, const char *, char *, size_t , size_t *));
   int (*_get_fvalue) __P ((header_t, const char *, char *, size_t , size_t *));
