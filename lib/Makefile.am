@@ -1,5 +1,6 @@
-noinst_LTLIBRARIES = libgetopt.la libmd5.la
+noinst_LIBRARIES = libmailutils.a
 
-libgetopt_la_SOURCES = getopt.c getopt.h getopt1.c
+libmailutils_a_SOURCES = getopt.c getopt1.c md5.c
 
-libmd5_la_SOURCES = md5.c md5.h
+noinst_HEADERS = getopt.h md5.h
+

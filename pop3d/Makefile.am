@@ -12,4 +12,4 @@ pop3d_SOURCES = apop.c auth.c capa.c dele.c extra.c pop3d.c pop3d.h\
 #else
 #pop3d_LDADD = ../libmailbox/libmailbox.la
 #endif
-pop3d_LADADD = ../libmailbox/libmailbox.la $(AUTHLIBS)
+pop3d_LDADD = ../libmailbox/libmailbox.la ../libsrc/libmailutils.a @AUTHLIBS@

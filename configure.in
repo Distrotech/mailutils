@@ -2,7 +2,6 @@ dnl Process this file with autoconf to procude a configure script. -*-m4-*-
 AC_INIT(libmailbox/mailbox.c)
 AM_INIT_AUTOMAKE(mailutils, 0.9.7.1999.09.12)
 AM_CONFIG_HEADER(config.h)
-AM_MAINTAINER_MODE
 
 dnl Check for programs
 AC_PROG_CC
@@ -28,12 +27,14 @@ if test x"$ac_cv_header_security_pam_appl_h" = x"yes"; then
 	AM_CONDITIONAL(USE_LIBPAM, test x"$ac_cv_have_libpam" != xno)
 ##fi
 ##if test x"$ac_cv_have_libpam" != x"yes"; then
-else
-	AC_CHECK_FUNCS(crypt)
-	if test x"$ac_cv_func_crypt" = x"no"; then
-		AC_CHECK_LIB(crypt, crypt, AUTHLIBS="-lcrypt",, -lcrypt)
-	fi
 fi
+
+AC_CHECK_FUNCS(crypt)
+if test x"$ac_cv_func_crypt" = x"no"; then
+	AC_CHECK_LIB(crypt, crypt, AUTHLIBS="-lcrypt",, -lcrypt)
+fi
+
+AC_SUBST(AUTHLIBS)
 
 dnl Output Makefiles
 AC_OUTPUT(Makefile libmailbox/Makefile mail/Makefile pop3d/Makefile

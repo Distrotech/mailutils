@@ -1,3 +1,16 @@
+1999-10-07  Jeff Bailey  <jbailey@cr499794-a.crdva1.bc.wave.home.com>
+
+	* Makefile.am: Compile libsrc/ first.
+
+	* pop3d/Makefile.am: Link properly with crypt and libmailutils.a
+	from libsrc/
+
+	* libsrc/Makefile.am: Produce one library for all functions.
+	Do not use libtool for this library, it will never be shared.
+
+	* configure.in: Remove AM_MAINTAINER_MODE.  Export crypt detection
+	to Makefiles
+
 Sean 'Shaleh' Perry <shaleh@debian.org>  Thu,  7 Oct 1999 18:31:57 -0700
 
   * included my read_a_line() in examples/
