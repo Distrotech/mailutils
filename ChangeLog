@@ -1,3 +1,15 @@
+2003-10-18  Sergey Poznyakoff 
+
+	* pop3d/quit.c (pop3d_fix_mark): Use only valid C comments.
+	Fixed erroneous format specification.
+	Format X-Expire-Timestamp value only if necessary.
+	* pop3d/pop3d.c (options): Minor fix in help line wording.
+	(pop3d_parse_opt): Fixed duplicate case.
+
+	* pop3d/capa.c: Indicate login-delay capability.
+	* pop3d/logindelay.c (login_delay_capa): New function.
+	* pop3d/pop3d.h: Likewise.
+
 2003-10-17  Alain Magloire
 
 	First try of implementing CAPA EXPIRE in pop3d.
