@@ -38,6 +38,7 @@ extern char *pam_service;
 #endif
 extern int log_facility;
 extern int mu_argp_error_code;
+extern char *mu_license_text;
 
 extern void mu_create_argcv __P ((const char *capa[],
 				  int argc, char **argv,
