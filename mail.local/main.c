@@ -90,6 +90,7 @@ static struct argp argp = {
 
 static const char *argp_capa[] = {
   "mailutils",
+  "auth",
   "logging",
   NULL
 };
