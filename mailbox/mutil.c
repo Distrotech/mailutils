@@ -41,6 +41,7 @@
 
 #include <mailutils/address.h>
 #include <mailutils/error.h>
+#include <mailutils/errno.h>
 #include <mailutils/iterator.h>
 #include <mailutils/mutil.h>
 #include <mailutils/parse822.h>
@@ -946,8 +947,9 @@ mu_rfc2822_references (message_t msg, char **pstr)
       *pstr = concat (ref, msgid);
       free (ref);
       free (msgid);
+      return 0;
     }
-  return 0;
+  return MU_ERR_FAILURE;
 }
 
 #define DATEBUFSIZE 128
@@ -1013,6 +1015,7 @@ mu_rfc2822_in_reply_to (message_t msg, char **pstr)
       *pstr = concat (s1, s2);
       free (s1);
       free (s2);
+      return 0;
     }
-  return 0;
+  return MU_ERR_FAILURE;
 }
