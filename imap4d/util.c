@@ -131,6 +131,12 @@ util_getfullpath (char *name, const char *delim)
   return mu_normalize_path (p, delim);
 }
 
+static int
+comp_int (const void *a, const void *b)
+{
+  return *(int*)a - *(int*)b;
+}
+
 /* Return in set an allocated array contain (n) numbers, for imap messsage set
    set ::= sequence_num / (sequence_num ":" sequence_num) / (set "," set)
    sequence_num    ::= nz_number / "*"
@@ -151,6 +157,8 @@ util_msgset (char *s, size_t **set, int *n, int isuid)
   int done = 0;
   int status = 0;
   size_t max = 0;
+  size_t *tmp;
+  int i,j;
 
   status = mailbox_messages_count (mbox, &max);
   if (status != 0)
@@ -283,6 +291,14 @@ util_msgset (char *s, size_t **set, int *n, int isuid)
 	    return status;
 	}
     }
+
+  qsort (*set, *n, sizeof (**set), comp_int);
+
+  tmp = *set;
+  for (i = 0, j = 1; i < *n; i++)
+    if (tmp[j-1] != (*set)[i])
+      tmp[j++] = tmp[i];
+  *n = j;
   return 0;
 }
 
@@ -347,9 +363,17 @@ util_out (int rc, const char *format, ...)
   int status;
   va_list ap;
   asprintf (&buf, "* %s%s\r\n", sc2string (rc), format);
-  if (daemon_param.transcript)
-    syslog (LOG_DEBUG, "sent: %s", buf);
   va_start (ap, format);
+  if (daemon_param.transcript)
+    {
+      char *buf1 = NULL;
+      vasprintf (&buf1, buf, ap);
+      if (buf1)
+        {
+          syslog (LOG_DEBUG, "sent: %s", buf1);
+          free (buf1);
+        }
+    }
   status = vfprintf (ofile, buf, ap);
   va_end (ap);
   free (buf);
@@ -368,10 +392,18 @@ util_finish (struct imap4d_command *command, int rc, const char *format, ...)
   asprintf (&buf, "%s %s%s %s\r\n", command->tag, sc2string (rc),
 	    command->name, format);
 
-  if (daemon_param.transcript)
-    syslog (LOG_DEBUG, "send: %s", buf);
-  
   va_start (ap, format);
+  if (daemon_param.transcript)
+    {
+      char *buf1 = NULL;
+      vasprintf (&buf1, buf, ap);
+      if (buf1)
+        {
+          syslog (LOG_DEBUG, "sent: %s", buf1);
+          free (buf1);
+        }
+    }
+  
   status = vfprintf (ofile, buf, ap);
   va_end (ap);
   free (buf);
