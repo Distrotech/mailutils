@@ -422,13 +422,10 @@ curitem_p (void *owner, void *item)
 static int
 list_data_dup (void **ptr, void *owner)
 {
-  struct list_iterator *itr = owner;
-  struct list_iterator *clone;
-  clone = malloc (sizeof *itr);
-  if (clone == NULL)
+  *ptr = malloc (sizeof (struct list_iterator));
+  if (*ptr == NULL)
     return ENOMEM;
-  /* let the assignement operator copy the elements.  */
-  *clone = *itr;
+  memcpy (*ptr, owner, sizeof (struct list_iterator));
   return 0;
 }
 
