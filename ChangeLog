@@ -1,5 +1,13 @@
 2004-02-03  Sergey Poznyakoff
 
+	* mailbox/maildir/mbox.c (maildir_message_cmp): Compare the
+	rest of filenames if the timestamps are equal
+	* mail/if.c (mail_if): 'if t'  is true is stdout is connected
+	to a terminal.
+	* mailbox/mbox/url.c (_url_path_init): Missed typecast.
+
+2004-02-03  Sergey Poznyakoff
+
        * scripts/texify.sed: New file
        * scripts/Makefile.am: Added texify.sed
        * doc/texinfo/Makefile.am (.c.inc rule): Use texify.sed
