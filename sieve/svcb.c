@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <mailutils/envelope.h>
+
 #include "sv.h"
 
 /** mailutils errno to sieve error code translation. */
@@ -229,13 +231,67 @@ int
 sv_redirect (void *ac, void *ic, void *sc, void *mc, const char **errmsg)
 {
   sv_msg_ctx_t *m = (sv_msg_ctx_t *) mc;
+  sieve_redirect_context_t *a = (sieve_redirect_context_t *) ac;
+  char* fromaddr = 0;
+  address_t to = 0;
+  address_t from = 0;
 
-  *errmsg = "redirect not supported";
-  m->rc = ENOTSUP;
+  action_log (mc, "REDIRECT", "to %s", a->addr);
 
-  action_log (mc, "REDIRECT", "");
+  if (!m->mailer)
+    {
+      *errmsg = "redirect not supported";
+      m->rc = ENOTSUP;
+      return SIEVE_FAIL;
+    }
 
-  return SIEVE_FAIL;
+  *errmsg = "redirect, parsing address";
+
+  if((m->rc = address_create(&to, a->addr)))
+    goto end;
+
+  *errmsg = "redirect, getting envelope sender";
+
+  {
+    envelope_t envelope = 0;
+    size_t sz = 0;
+  if((m->rc = message_get_envelope(m->msg, &envelope)))
+    goto end;
+
+    if((m->rc = envelope_sender(envelope, NULL, 0, &sz)))
+      goto end;
+
+    if(!(fromaddr = malloc(sz + 1)))
+    {
+      m->rc = ENOMEM;
+      goto end;
+    }
+    if((m->rc = envelope_sender(envelope, fromaddr, sz + 1, NULL)))
+      goto end;
+  }
+
+  if((m->rc = address_create(&from, fromaddr)))
+    goto end;
+
+  *errmsg = "redirect, opening mailer";
+
+  if((m->rc = mailer_open(m->mailer, 0)))
+    goto end;
+
+  *errmsg = "redirect, sending message";
+
+  if((m->rc = mailer_send_message(m->mailer, m->msg, from, to)))
+    goto end;
+
+end:
+
+  if(fromaddr)
+    free(fromaddr);
+  mailer_close(m->mailer);
+  address_destroy(&to);
+  address_destroy(&from);
+
+  return sieve_err(m->rc);
 }
 
 int

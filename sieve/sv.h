@@ -75,7 +75,11 @@ typedef struct sv_msg_ctx_t
   /* Ticket for use by mailbox URLs for implicit authentication. */
   ticket_t ticket;
 
+  /* Debug used for debug output. */
   mu_debug_t debug;
+
+  /* Mailer for redirecting messages. */
+  mailer_t mailer;
 
   /* Flags controlling execution of script. */
   int svflags;
@@ -114,8 +118,6 @@ extern int sv_mu_debug_print (mu_debug_t d, const char *fmt, va_list ap);
 extern int sv_mu_mark_deleted (message_t msg, int deleted);
 
 extern int sv_mu_copy_debug_level (const mailbox_t from, mailbox_t to);
-
-extern int sv_mu_save_to (const char *toname, message_t msg, ticket_t ticket, mu_debug_t debug);
 
 #endif
 

@@ -40,6 +40,7 @@ const char HELP[] =
   "         t - sieve trace\n"
   "         h - sieve header parseing\n"
   "         q - sieve message queries\n"
+  "  -m   a mailer URL (default is \"sendmail:\")\n"
   ;
 
 static void
@@ -94,6 +95,7 @@ main (int argc, char *argv[])
   wicket_t wicket = 0;
   ticket_t ticket = 0;
   mu_debug_t debug = 0;
+  mailer_t mailer = 0;
   mailbox_t mbox = 0;
 
   size_t count = 0;
@@ -107,6 +109,7 @@ main (int argc, char *argv[])
   char *opt_mbox = 0;
   char *opt_tickets = 0;
   int opt_debug_level = 0;
+  char *opt_mailer = "sendmail:";
   char *opt_script = 0;
 
   int opt;
@@ -238,6 +241,19 @@ main (int argc, char *argv[])
 	}
     }
 
+  /* Create a mailer. */
+  if ((rc = mailer_create(&mailer, opt_mailer)))
+  {
+      fprintf (stderr, "mailer create <%s> failed: %s\n",
+	       opt_mailer, strerror (rc));
+      goto cleanup;
+  }
+  if (debug && (rc = mailer_set_debug (mailer, debug)))
+    {
+      fprintf (stderr, "mailer_set_debug failed: %s\n", strerror (rc));
+      goto cleanup;
+    }
+
   /* Create, give a ticket to, and open the mailbox. */
   if ((rc = mailbox_create_default (&mbox, opt_mbox)) != 0)
     {
@@ -319,7 +335,7 @@ main (int argc, char *argv[])
 	  goto cleanup;
 	}
 
-      rc = sv_script_execute (script, msg, ticket, debug, opt_no_actions);
+      rc = sv_script_execute (script, msg, ticket, debug, mailer, opt_no_actions);
 
       if (rc)
 	{
@@ -369,4 +385,8 @@ mutil_register_all_mbox_formats (void)
   list_append (bookie, mbox_record);
   list_append (bookie, pop_record);
   list_append (bookie, imap_record);
+  list_append (bookie, mh_record);
+  list_append (bookie, sendmail_record);
+  list_append (bookie, smtp_record);
 }
+

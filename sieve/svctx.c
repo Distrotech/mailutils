@@ -140,30 +140,32 @@ sv_script_free (sv_script_t * sp)
   *sp = 0;
 }
 
-int sv_script_execute (sv_script_t s, message_t m, ticket_t t, mu_debug_t d,
-		       int svflags)
+int
+sv_script_execute (sv_script_t script, message_t msg, ticket_t ticket,
+		   mu_debug_t debug, mailer_t mailer, int svflags)
 {
   sv_msg_ctx_t mc = { 0, };
   int rc;
   int isdeleted;
   attribute_t attr = 0;
 
-  rc = message_get_attribute (m, &attr);
+  rc = message_get_attribute (msg, &attr);
 
   if(rc)
     return rc;
 
   isdeleted = attribute_is_deleted(attr);
 
-  mc.sc = s;
-  mc.msg = m;
-  mc.ticket = t;
-  mc.debug = d;
+  mc.sc = script;
+  mc.msg = msg;
+  mc.ticket = ticket;
+  mc.debug = debug;
+  mc.mailer = mailer;
   mc.svflags = svflags;
 
-  message_get_uid (m, &mc.uid);
+  message_get_uid (msg, &mc.uid);
 
-  rc = sieve_execute_script (s->script, &mc);
+  rc = sieve_execute_script (script->script, &mc);
 
   sv_field_cache_release (&mc.cache);
 
@@ -172,7 +174,7 @@ int sv_script_execute (sv_script_t s, message_t m, ticket_t t, mu_debug_t d,
 
   /* Reset the deleted flag if the script failed. */
   if(rc)
-    sv_mu_mark_deleted (m, isdeleted);
+    sv_mu_mark_deleted (msg, isdeleted);
 
   return rc;
 }
