@@ -71,7 +71,6 @@ char *from_person = NULL; /* Set the name of the `from' person */
 int read_recipients = 0; /* Read the message for recipients */
 int dot = 1;             /* Message is terminated by a lone dot on a line */
 
-header_t header;
 address_t recipients = NULL;
 char *progname;
 
@@ -157,13 +156,6 @@ main (int argc, char **argv)
   domain = getenv ("MTA_DOMAIN");
   mu_set_user_email_domain (domain ? domain : "localhost");
   
-  if ((status = header_create (&header, NULL, 0, NULL)) != 0)
-    {
-      mu_error ("%s: can't create header: %s",
-		progname, mu_strerror (status));
-      return 1;
-    }
-
   argc -= optind;
   argv += optind;
   if (smtp_mode)
