@@ -30,6 +30,7 @@ struct daemon_param {
   size_t maxchildren;
   unsigned int port;
   unsigned int timeout;
+  int transcript;
 };
 
 #ifdef USE_LIBPAM
