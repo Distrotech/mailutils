@@ -83,8 +83,11 @@ extern int stream_setbufsiz   __P ((stream_t stream, size_t size));
 extern int stream_flush       __P ((stream_t));
 
 #define MU_STREAM_READY_RD 0x1
-#define MU_STREAM_READY_WR 0x2  
-extern int stream_wait        __P((stream_t stream, int *pflags, struct timeval *));
+#define MU_STREAM_READY_WR 0x2
+struct timeval;  /* Needed for the following declaration */ 
+
+extern int stream_wait        __P((stream_t stream, int *pflags,
+				   struct timeval *));
 
 /* Functions useful to implementors of new stream types. */
 
