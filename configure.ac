@@ -453,6 +453,13 @@ AC_DEFUN([MU_SQL_LDADD],[
   fi 			
 ])
 
+add_sql_module() {
+	case $SQL_MODULES in
+	*$1*) AC_MSG_FAILURE([$1 specified twice]);;
+	*)    SQL_MODULES="$SQL_MODULES $1";;
+	esac
+}
+
 ## *********
 ## MySQL
 ## *********
@@ -473,7 +480,7 @@ AC_ARG_WITH(mysql,
 	AC_HELP_STRING([--with-mysql],
 	[Configure to work with MySQL]),
 	[case $withval in
-	 yes)   SQL_MODULES="$SQL_MODULES mysql"
+	 yes)   add_sql_module "mysql"
 		;;
 	 no)    ;;
         esac])
@@ -496,7 +503,7 @@ AC_ARG_WITH(postgres,
 	AC_HELP_STRING([--with-postgres],
 	[Configure to work with Postgres]),
 	[case $withval in
-	 yes)	SQL_MODULES="$SQL_MODULES postgres"
+	 yes)	add_sql_module "postgres"
 		;;
 	 no)    ;;
         esac])
@@ -508,7 +515,7 @@ AC_ARG_WITH(sql,
 	[for mod in `echo $withval | tr ':,' '  '`
          do
 		if test -r $srcdir/sql/${mod}.c; then
-			SQL_MODULES="$SQL_MODULES ${mod}"
+			add_sql_module "${mod}"
 		else
 			AC_MSG_ERROR(No such SQL module: $mod)
 		fi
