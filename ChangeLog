@@ -1,3 +1,9 @@
+2004-07-07  Sergey Poznyakoff
+
+	* libsieve/extensions/spamd.c (decode_float): Return
+	signed long value, as SpamAssassin scores can be negative.
+	(spamd_test): Updated accordingly
+
 2004-07-05  Sergey Poznyakoff
 
 	* include/mailutils/registrar.h (mu_register_extra_formats): New
