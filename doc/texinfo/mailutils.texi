@@ -2,7 +2,7 @@
 @c %**start of header
 @setfilename mailutils.info
 @settitle GNU Mailutils Manual
-@setchapternewpage off
+@setchapternewpage odd
 @finalout
 @c %**end of header
 
@@ -47,7 +47,8 @@ Published by the Free Software Foundation,
 59 Temple Place - Suite 330
 Boston, MA 02111-1307, USA
 
-Copyright @copyright{} 1999, 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
+Copyright @copyright{} 1999, 2000, 2001, 2002, 2003, 2004
+Free Software Foundation, Inc.
 
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.2 or
@@ -84,20 +85,20 @@ documents GNU Mailutils Version @value{VERSION}.
 @end ifinfo
 
 @menu
-* Introduction::            GNU Mailutils.
-* libmailbox::              Main library.
-* libmuauth::               Auxiliary library for authenticating users.
-* libmu_scm::               Interface with Guile.
-* libsieve::                GNU implementation of Sieve mail filtering.
-* Programs::                Programs.
-* Reporting Bugs::          How to report a bug.
-* News::                    Where to get information about @sc{gnu} Mailutils.
+* Introduction::            Preliminary Information.
+* Programs::                Mailutils Programs.
+* Libraries::               Mailutils Libraries.
+* Sieve Language::          The Sieve Language.
+* Reporting Bugs::          How to Report a Bug.
+* News::                    Getting News About @sc{gnu} Mailutils.
 * Acknowledgement::         Thanks and Credits.
 
 Appendices
 
+* References::              References.
 * GNU FDL::                 This manual is under the GNU Free
                             Documentation License.
+
 Indices
 
 * Function Index::          All Mailutils Functions.
@@ -106,174 +107,90 @@ Indices
 
 @end menu
 
-@node Introduction, libmailbox, Top, Top
+@node Introduction, Programs, Top, Top
 @comment  node-name,  next,  previous,  up
 @chapter Introduction
-@cindex Introduction
 
-@sc{gnu} Mailutils offers a general purpose library whose aim is to
-provide a rich set of functions for accessing different mailbox formats and
-mailers.
+@sc{gnu} Mailutils contains a series of useful mail clients, servers,
+and libraries.  These are the primary mail utilities of the GNU system.
+Specifically, this package contains a POP3 server, an IMAP4 server,
+and a Sieve mail filter.  It also provides a POSIX `mailx' client,
+and a collection of other tools.  The central library is capable of
+accessing different mailbox formats and mailers as well as off of
+local or remote POP3 and IMAP4 servers.
 
-@section References
+This software is part of the GNU Project and belongs to the Free
+Software Foundation.  All libraries are licensed using the GNU LGPL.
+The documentation is licensed under the GNU FDL, and everything
+else is licensed using the GNU GPL.
 
-For more information on,
+@subheading Why use this package?
 
-@itemize @bullet
-@item
-SMTP
+This package started off to try and handle large mailbox files more
+gracefully then current POP3 servers did.  While it handles this task,
+it also allows you to support a variety of different mailbox formats
+without any real effort on your part.  Also, if a new format is added
+at a later date, your program will support that new format
+automatically as soon as it is compiled against the new library.
 
-@itemize @minus
-@item
-@cite{RFC 2821: Simple Mail Transfer Protocol}
-
-@item
-@cite{RFC 2368: The mailto URL scheme}
-@end itemize
-
-@item
-POP3
-
-@itemize @minus
-@item
-@cite{RFC 1939: Post Office Protocol - Version 3}
-
-@item
-@cite{RFC 1734: POP3 AUTHentication command}
-
-@item
-@cite{RFC 1957: Some Observations on Implementations of the Post Office
-Protocol (POP3)}
-
-@item
-@cite{RFC 2449: POP3 Extension Mechanism}
-
-@item
-@cite{RFC 2384: POP URL Scheme}
-@end itemize
-
-@item
-IMAP4
-
-@itemize @minus
-@item
-@cite{RFC 2060: INTERNET MESSAGE ACCESS PROTOCOL - VERSION 4rev1}
-
-@item
-@cite{RFC 2088: IMAP4 non-synchronizing literals}
-
-@item
-@cite{RFC 2193: IMAP4 Mailbox Referrals}
-
-@item
-@cite{RFC 2221: IMAP4 Login Referrals}
-
-@item
-@cite{RFC 2342: IMAP4 Namespace}
-
-@item
-@cite{RFC 2192: IMAP URL Scheme}
-
-@item
-@cite{RFC 1731: IMAP4 Authentication Mechanisms}
-
-@item
-@cite{RFC 2245: Anonymous SASL Mechanism}
-
-@end itemize
-
-@item
-message formats
-
-@itemize @minus
-@item
-@cite{RFC 2822: Internet Message Format}
-
-@item
-@cite{RFC 2045: Multipurpose Internet Mail Extensions (MIME) Part One:
-Format of Internet Message Bodies}
-
-@item
-@cite{RFC 2046: Multipurpose Internet Mail Extensions (MIME) Part Two:
-Media Types}
-
-@item
-@cite{RFC 2047: Multipurpose Internet Mail Extensions (MIME) Part Three:
-Message Header Extensions for Non-ASCII Text}
-
-@item
-@cite{RFC 2049: Multipurpose Internet Mail Extensions (MIME) Part Five:
-Conformance Criteria and Examples}
-
-@item
-@cite{RFC 2111: Content-ID and Message-ID Uniform Resource Locators}
-@end itemize
-
-@item
-miscellaneous related topics
-
-@itemize @minus
-@item
-@cite{RFC 1738: Uniform Resource Locators (URL)}
-
-@item
-@cite{RFC 2298: An Extensible Message Format for Message Disposition
-Notifications}
-
-@item
-@cite{RFC 3028: Sieve: A Mail Filtering Language}
-
-@item
-@cite{RFC 3431: Sieve Extension: Relational Tests}
-
-@item
-@cite{Internet Email Protocols: A Developer's Guide, by Kevin Johnson}
-@end itemize
-@end itemize
-
-@node libmailbox, libmuauth, Introduction, Top
+@node Programs, Libraries, Introduction, Top
 @comment  node-name,  next,  previous,  up
-@chapter Framework
-@cindex Framework
+@chapter Mailutils Programs
+@cindex Programs
+@include programs.texi
 
+@node Libraries, Sieve Language, Programs, Top
+@comment  node-name,  next,  previous,  up
+@chapter Mailutils Libraries
+@cindex Libraries
+
+@menu
+* libmailbox::      The Core Library.
+* libmuauth::       Auxiliary Library for Authenticating Users.
+* libmu_scm::       Mailutils to Scheme Interface.
+* libsieve::        GNU Implementation of Sieve Mail Filtering.
+@end menu
+
+@node libmailbox, libmuauth, Libraries, Libraries
+@comment  node-name,  next,  previous,  up
+@section Framework
+@cindex Framework
 @include framework.texi
 
-@node libmuauth, libmu_scm, libmailbox, Top
-@chapter Authentication Library
+@node libmuauth, libmu_scm, libmailbox, Libraries
+@comment node-name,  next,  previous,  up
+@section Authentication Library
 @cindex Authentication Library
 @cindex libmuauth
-
 @include libmuauth.texi
 
-@node libmu_scm, libsieve, libmuauth, Top
-@chapter Mailutils to Scheme interface
+@node libmu_scm, libsieve, libmuauth, Libraries
+@comment node-name,  next,  previous,  up
+@section Mailutils to Scheme Interface
 @cindex Scheme
 @cindex libmu_scm
-
 @include libmu_scm.texi
 
-@node libsieve, Programs, libmu_scm, Top
-@chapter Sieve Library
+@node libsieve,  , libmu_scm, Libraries
+@comment node-name,  next,  previous,  up
+@section Sieve Library
 @cindex Sieve Library
 @cindex libsieve
 @include libsieve.texi
 
-@node Programs, Reporting Bugs, libsieve, Top
-@comment  node-name,  next,  previous,  up
-@chapter Programs
-@cindex Programs
+@node Sieve Language, Reporting Bugs, Libraries, Top
+@comment node-name,  next,  previous,  up
+@chapter Sieve Language
+@cindex Sieve Language
+@include sieve.texi
 
-@include programs.texi
-
-@page
-@node Reporting Bugs, News, Programs, Top
-@comment  node-name,  next,  previous,  up
+@node Reporting Bugs, News, Sieve Language, Top
+@comment node-name,  next,  previous,  up
 @chapter Reporting Bugs
-@cindex Reporting Bugs
 
 Email bug reports to @email{bug-mailutils@@gnu.org}.
-Be sure to include the word ``mailutils'' somewhere in the ``Subject:''
-field.
+Be sure to include the word ``mailutils'' somewhere
+in the ``Subject:'' field.
 
 As the purpose of bug reporting is to improve software, please be sure
 to include maximum information when reporting a bug. The information
@@ -286,22 +203,22 @@ needed is:
 @end itemize
 
 The archives of bug-mailutils mailing list are available from
-@url{http://mail.gnu.org/mailman/listinfo/bug-mailutils}.
+@url{http://mail.gnu.org/@/mailman/@/listinfo/@/bug-mailutils}.
 
 @node News, Acknowledgement, Reporting Bugs, Top
+@comment node-name,  next,  previous,  up
 @chapter Getting News About @sc{gnu} Mailutils
 
 The two places to look for any news regarding @sc{gnu} Mailutils are the
-Mailutils homepage at @url{http://www.gnu.org/software/mailutils}, and the
-project page at @url{http://savannah.gnu.org/projects/mailutils}.
+Mailutils homepage at @url{http://www.gnu.org/@/software/@/mailutils}, and the
+project page at @url{http://savannah.gnu.org/@/projects/@/mailutils}.
 
 The updated versions of this manual are available online from
-@url{http://www.gnu.org/software/mailutils/manual}.
+@url{http://www.gnu.org/@/software/@/mailutils/@/manual}.
 
-@node Acknowledgement, GNU FDL, News, Top
-@comment  node-name,  next,  previous,  up
+@node Acknowledgement, References, News, Top
+@comment node-name,  next,  previous,  up
 @chapter Acknowledgement
-@cindex Acknowledgement
 
 In no particular order,
 
@@ -329,13 +246,120 @@ Jordi Mallach @email{jordi@@sindominio.net}
 @item
 Wojciech Polak @email{polak@@gnu.org}
 @end itemize
-@page
 
+@node References, GNU FDL, Acknowledgement, Top
+@comment node-name,  next,  previous,  up
+@appendix References
 
-@node GNU FDL, Function Index, Acknowledgement, Top
+@itemize @bullet
+@item SMTP
+
+@itemize @minus
+@item
+@cite{RFC 2821: Simple Mail Transfer Protocol}
+
+@item
+@cite{RFC 2368: The mailto URL scheme}
+@end itemize
+
+@item POP3
+
+@itemize @minus
+@item
+@cite{RFC 1939: Post Office Protocol - Version 3}
+
+@item
+@cite{RFC 1734: POP3 AUTHentication command}
+
+@item
+@cite{RFC 1957: Some Observations on Implementations of the Post Office
+Protocol (POP3)}
+
+@item
+@cite{RFC 2449: POP3 Extension Mechanism}
+
+@item
+@cite{RFC 2384: POP URL Scheme}
+@end itemize
+
+@item IMAP4
+
+@itemize @minus
+@item
+@cite{RFC 2060: INTERNET MESSAGE ACCESS PROTOCOL - VERSION 4rev1}
+
+@item
+@cite{RFC 2088: IMAP4 non-synchronizing literals}
+
+@item
+@cite{RFC 2193: IMAP4 Mailbox Referrals}
+
+@item
+@cite{RFC 2221: IMAP4 Login Referrals}
+
+@item
+@cite{RFC 2342: IMAP4 Namespace}
+
+@item
+@cite{RFC 2192: IMAP URL Scheme}
+
+@item
+@cite{RFC 1731: IMAP4 Authentication Mechanisms}
+
+@item
+@cite{RFC 2245: Anonymous SASL Mechanism}
+@end itemize
+
+@item message formats
+
+@itemize @minus
+@item
+@cite{RFC 2822: Internet Message Format}
+
+@item
+@cite{RFC 2045: Multipurpose Internet Mail Extensions (MIME) Part One:
+Format of Internet Message Bodies}
+
+@item
+@cite{RFC 2046: Multipurpose Internet Mail Extensions (MIME) Part Two:
+Media Types}
+
+@item
+@cite{RFC 2047: Multipurpose Internet Mail Extensions (MIME) Part Three:
+Message Header Extensions for Non-ASCII Text}
+
+@item
+@cite{RFC 2049: Multipurpose Internet Mail Extensions (MIME) Part Five:
+Conformance Criteria and Examples}
+
+@item
+@cite{RFC 2111: Content-ID and Message-ID Uniform Resource Locators}
+@end itemize
+
+@item miscellaneous related topics
+
+@itemize @minus
+@item
+@cite{RFC 1738: Uniform Resource Locators (URL)}
+
+@item
+@cite{RFC 2298: An Extensible Message Format for Message Disposition
+Notifications}
+
+@item
+@cite{RFC 3028: Sieve: A Mail Filtering Language}
+
+@item
+@cite{RFC 3431: Sieve Extension: Relational Tests}
+
+@item
+@cite{Internet Email Protocols: A Developer's Guide, by Kevin Johnson}
+@end itemize
+@end itemize
+
+@node GNU FDL, Function Index, References, Top
 @comment node-name,  next,  previous,  up
 @include fdl.texi
-
 
 @node Function Index, Program Index, GNU FDL, Top
 @comment node-name,  next,  previous,  up
@@ -353,15 +377,12 @@ This is an alphabetical list of all Mailutils functions.
 @printindex pg
 @page
 
-@node Concept Index, , Program Index, Top
+@node Concept Index,  , Program Index, Top
 @comment node-name,  next,  previous,  up
 @unnumbered Concept Index
 
 This is a general index of all issues discussed in this manual
 
 @printindex cp
-@page
-
 @contents
-
 @bye

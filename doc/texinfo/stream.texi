@@ -1,8 +1,11 @@
 @c This is part of the GNU Mailutils manual.
-@c Copyright (C) 1999,2000,2001,2002 Free Software Foundation, Inc.
+@c Copyright (C) 1999,2000,2001,2002,2003,2004 Free Software Foundation, Inc.
 @c See file mailutils.texi for copying conditions.
 @comment *******************************************************************
+
+@smallexample
 @code{#include <mailutils/stream.h>}
+@end smallexample
 
 These generic flags are interpreted as appropriate to the specific
 streams.
@@ -54,7 +57,7 @@ Stream doesn't close it's underlying resource when it is closed or destroyed.
 @end deftypefun
 
 @deftypefun int stdio_stream_create (stream_t *@var{pstream}, FILE* @var{stdio}, int @var{flags})
-If MU_STREAM_NO_CLOSE is specified, fclose() will not be called on
+If @code{MU_STREAM_NO_CLOSE} is specified, @code{fclose()} will not be called on
 @var{stdio} when the stream is closed.
 @end deftypefun
 
@@ -118,6 +121,6 @@ Last action was @code{stream_close}.
 
 An example using @code{tcp_stream_create} to make a simple web client:
 
-@example
+@smallexample
 @include http.inc
-@end example
+@end smallexample

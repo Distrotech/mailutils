@@ -1,25 +1,22 @@
 @c This is part of the GNU Mailutils manual.
-@c Copyright (C) 1999,2000,2001,2002 Free Software Foundation, Inc.
+@c Copyright (C) 1999,2000,2001,2002,2003,2004 Free Software Foundation, Inc.
 @c See file mailutils.texi for copying conditions.
 @comment *******************************************************************
-@example
+
+@smallexample
 @code{/* Prefix @emph{envelope_} is reserved */}
 @code{#include <mailutils/envelope.h>}
-@end example
+@end smallexample
 
 @deftypefun int envelope_date (envelope_t, char *, size_t, size_t *);
-
 Get the date that the message was delivered to the mailbox, in
-something close to ANSI ctime() format: Mon Jul 05 13:08:27 1999.
-
+something close to ANSI @code{ctime()} format: Mon Jul 05 13:08:27 1999.
 @end deftypefun
 
 @deftypefun int envelope_sender (envelope_t, char *, size_t, size_t *);
-
 Get the address that this message was reportedly received from. This
 would be the "mail from" argument if the message was delivered
 or received via SMTP, for example.
-
 @end deftypefun
 
 @deftypefun int envelope_get_message (envelope_t, message_t *);
@@ -34,17 +31,13 @@ Primarily for internal use.
 @end deftypefun
 
 @deftypefun int envelope_set_sender (envelope_t, int (*_sender) __P ((envelope_t, char *, size_t, size_t*)), void *);
-
 Primarily for internal use. The implementation of envelope_t depends
 on the mailbox type, this allows the function which actually gets
-the sender to be set by the creator of an envelope_t.
-
+the sender to be set by the creator of an @code{envelope_t}.
 @end deftypefun
 
 @deftypefun int envelope_set_date (envelope_t, int (*_date) __P ((envelope_t, char *, size_t, size_t *)), void *);
-
 Primarily for internal use. The implementation of envelope_t depends
 on the mailbox type, this allows the function which actually gets
-the date to be set by the creator of an envelope_t.
-
+the date to be set by the creator of an @code{envelope_t}.
 @end deftypefun

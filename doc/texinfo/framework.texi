@@ -1,38 +1,38 @@
 @c This is part of the GNU Mailutils manual.
-@c Copyright (C) 1999,2000,2001,2002 Free Software Foundation, Inc.
+@c Copyright (C) 1999,2000,2001,2002,2003,2004 Free Software Foundation, Inc.
 @c See file mailutils.texi for copying conditions.
 @comment *******************************************************************
+
 @menu
-* Folder::                      Folder.
-* Mailbox::                     Mailbox.
-* Mailer::                      Protocol Used to Send Mail.
-* Message::                     Message.
-* Envelope::                    Envelope.
-* Headers::                     Headers.
-* Body::                        Body.
-* Attribute::                   Attribute.
-* Stream::                      Stream.
-* Iterator::                    Iterator.
-* Authenticator::               Authenticator.
-* Address::                     Address.
-* Locker::                      Locker.
-* URL::                         Uniform Resource Locators.
-* Parse822::                    Parsing RFC 822 headers.
-* Mailcap::                     Parsing RFC 1524 file.
+* Folder::             Folder.
+* Mailbox::            Mailbox.
+* Mailer::             Protocol Used to Send Mail.
+* Message::            Message.
+* Envelope::           Envelope.
+* Headers::            Headers.
+* Body::               Body.
+* Attribute::          Attribute.
+* Stream::             Stream.
+* Iterator::           Iterator.
+* Authenticator::      Authenticator.
+* Address::            Address.
+* Locker::             Locker.
+* URL::                Uniform Resource Locators.
+* Parse822::           Parsing RFC 822 headers.
+* Mailcap::            Parsing RFC 1524 file.
 @end menu
 
 Wherever the mail is and whatever format it is stored in, it is operated
 upon using the same set of functions. To unified the C API,
 @sc{gnu} Mailutils offers a heteroclite set of objects that work in
-aggregation to do operations on
-emails.  Each object does a specific task and delegates non-related tasks to
-others.  The object comes alive by specifying a @emph{URL} parameter when
-created, it will indicate the storage format or protocol
-(POP3, IMAP4, MH, MAILDIR, etc ..).
+aggregation to do operations on emails.
+Each object does a specific task and delegates non-related tasks to others.
+The object comes alive by specifying a @emph{URL} parameter when created,
+it will indicate the storage format or protocol (POP3, IMAP4, MH, MAILDIR,
+etc ..).
 
-@example
+@smallexample
 @group
-
                           folder_t                  url_t
   -/var/mail-    +- .. ->+-----------------+   +-->+------------+
  (  alain *-)-+  |       |   url_t       *-|---+   |   port     |
@@ -67,130 +67,102 @@ created, it will indicate the storage format or protocol
                            |   stream_t   |
                            +--------------+
 @end group
-@end example
+@end smallexample
 
 As an example, here is a simplified version of @code{from} command. It
 lists the @samp{From} and @samp{Subject} headers of every mail in a mailbox.
 
-@example
+@smallexample
 @include sfrom.inc
-@end example
+@end smallexample
 
 Here is a sample output produced by this program:
 
-@example
+@smallexample
 @cartouche
-% MAIL=pop://alain@@localhost ./sfrom
+% ./sfrom pop://alain@@localhost
 Passwd: xxxx
 Jim Meyering <meyering@@foo.org>      fetish(shellutils) beta
 Fran@,{c}ois Pinard <pinard@@bar.org> recode new alpha
 @dots{}
 @end cartouche
-@end example
+@end smallexample
 
 @node Folder
-@comment  node-name,  next,  previous,  up
-@section Folder
+@subsection Folder
 @cindex Folder
-
 @include folder.texi
 
 @node Mailbox
-@comment  node-name,  next,  previous,  up
-@section Mailbox
+@subsection Mailbox
 @cindex Mailbox
-
 @include mailbox.texi
 
 @node Mailer
-@comment  node-name,  next,  previous,  up
-@section Mailer
+@subsection Mailer
 @cindex Mailer
-
 @include mailer.texi
 
 @node Message
-@comment  node-name,  next,  previous,  up
-@section Message
+@subsection Message
 @cindex Message
-
 @include message.texi
 
 @node Envelope
-@comment  node-name,  next,  previous,  up
-@section Envelope
+@subsection Envelope
 @cindex Envelope
-
 @include envelope.texi
 
 @node Headers
-@comment  node-name,  next,  previous,  up
-@section Headers
+@subsection Headers
 @cindex Headers
-
 @include headers.texi
 
 @node Body
-@comment  node-name,  next,  previous,  up
-@section Body
+@subsection Body
 @cindex Body
-
 @include body.texi
 
 @node Attribute
-@comment  node-name,  next,  previous,  up
-@section Attribute
+@subsection Attribute
 @cindex Attribute
-
 @include attribute.texi
 
 @node Stream
-@comment  node-name,  next,  previous,  up
-@section Stream
+@subsection Stream
 @cindex Stream
-
 @include stream.texi
 
 @node Iterator
-@comment  node-name,  next,  previous,  up
-@section Iterator
+@subsection Iterator
 @cindex Iterator
-
 @include iterator.texi
 
 @node Authenticator
-@comment  node-name,  next,  previous,  up
-@section Authenticator
+@subsection Authenticator
 @cindex Authenticator
-
 @include auth.texi
 
 @node Address
-@comment  node-name,  next,  previous,  up
-@section Address
+@subsection Address
 @cindex Address
-
 @include address.texi
 
 @node Locker
-@comment  node-name,  next,  previous,  up
-@section Locker
+@subsection Locker
 @cindex Locker
-
 @include locker.texi
 
 @node URL
-@comment  node-name,  next,  previous,  up
-@section URL
+@subsection URL
 @cindex URL
-
 @include url.texi
 
 @node Parse822
-@section Parse822 --- Functions for Parsing RFC 822 Headers
+@subsection Parse822
 @include parse822.texi
 
 @node Mailcap
-@section Mailcap --- Functions for Parsing RFC 1524 Files
+@subsection Mailcap
 @include mailcap.texi
 

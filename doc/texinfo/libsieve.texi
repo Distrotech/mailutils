@@ -1,26 +1,12 @@
 @c This is part of the GNU Mailutils manual.
-@c Copyright (C) 1999,2000,2001,2002 Free Software Foundation, Inc.
+@c Copyright (C) 1999,2000,2001,2002,2003,2004 Free Software Foundation, Inc.
 @c See file mailutils.texi for copying conditions.
 @comment *******************************************************************
 
-This chapter describes @sc{gnu} Sieve library.
-
-@menu
-* Library Description::
-* Input Language::
-* Extensions::
-* Writing Loadable Commands::
-@end menu
-
-@node Library Description
-@section Library Description
-
 @code{Libsieve} is @sc{gnu} implementation of the mail filtering
-language Sieve.
-
-The library is built around a @dfn{Sieve Machine} --- an abstract
-computer constructed specially to handle mail filtering tasks. This
-computer has two registers: program counter and numeric accumulator;
+language Sieve. The library is built around a @dfn{Sieve Machine} --- an
+abstract computer constructed specially to handle mail filtering tasks.
+This computer has two registers: program counter and numeric accumulator;
 a runtime stack of unlimited depth and the code segment. A set of
 functions is provided for creating and destroying instances of Sieve
 Machine, manipulating its internal data, compiling and executing a
@@ -60,6 +46,7 @@ Sieve Library.
 * Symbol Space Functions::
 * Memory Allocation::
 * Compiling and Executing the Script::
+* Writing Loadable Commands::
 @end menu
 
 @node Sieve Data Types
@@ -67,7 +54,7 @@ Sieve Library.
 
 @deftp {Data Type} sieve_machine_t
 This is an opaque data type representing a pointer to an instance of
-sieve machine. The sieve_machine_t keeps all information necessary
+sieve machine. The @code{sieve_machine_t} keeps all information necessary
 for compiling and executing the script.
 
 It is created by @code{sieve_machine_create()} and destroyed by
@@ -109,20 +96,20 @@ An opaque pointer.
 The @code{sieve_value_t} keeps an instance of sieve data. It is defined
 as follows:
 
-@example
+@smallexample
 @group
 typedef struct @{
   sieve_data_type type;        /* Type of the data */
   union @{
     char *string;              /* String value or identifier */
-    size_t number;               /* Numeric value */
+    size_t number;             /* Numeric value */
     list_t list;               /* List value */
     sieve_runtime_tag_t *tag;  /* Tag value */
     void *ptr;                 /* Pointer value */ 
   @} v;
 @} sieve_value_t;
 @end group
-@end example
+@end smallexample
 
 Depending on the value of @code{type} member, following members of the
 union @code{v} keep the actual value:
@@ -157,14 +144,14 @@ The data are pointed to by @code{ptr} member.
 This structure represents a definition of a tagged (optional) argument
 to a sieve action or test. It is defined as follows:
 
-@example
+@smallexample
 @group
 typedef struct @{
   char *name;              /* Tag name */
   sieve_data_type argtype; /* Type of tag argument. */
 @} sieve_tag_def_t;
 @end group
-@end example
+@end smallexample
 
 The @code{name} member points to the tag's name @emph{without leading
 colon}. The @code{argtype} is set to @code{SVT_VOID} if the tag does
@@ -175,14 +162,14 @@ not take argument, or to the type of the argument otherwise.
 This structure represents the tagged (optional) argument at a runtime.
 It is defined as:
 
-@example
+@smallexample
 @group
 struct sieve_runtime_tag @{
   char *tag;                /* Tag name */
   sieve_value_t *arg;       /* Tag argument (if any) */
 @};
 @end group
-@end example
+@end smallexample
 
 The @code{arg} member is @code{NULL} if the tag does not take an argument.
 @end deftp
@@ -191,10 +178,10 @@ The @code{arg} member is @code{NULL} if the tag does not take an argument.
 
 This is a pointer to function handler for a sieve action or test.
 It is defined as follows:
-@example
+@smallexample
 typedef int (*sieve_handler_t) (sieve_machine_t @var{mach},
                                 list_t @var{args}, list_t @var{tags});
-@end example
+@end smallexample
 
 The arguments to the handler have the following meaning:
 
@@ -210,9 +197,9 @@ A list of optional arguments (tags).
 
 @deftp {Data Type} sieve_printf_t
 A pointer to a diagnostic output function. It is defined as follows:
-@example
+@smallexample
 typedef int (*sieve_printf_t) (void *@var{data}, const char *@var{fmt}, va_list @var{ap});
-@end example
+@end smallexample
 
 @table @var
 @item data
@@ -227,11 +214,11 @@ Other arguments.
 
 @deftp {Data Type} sieve_parse_error_t
 This data type is declared as follows:
-@example
+@smallexample
 typedef int (*sieve_parse_error_t) (void *@var{data},
                                     const char *@var{filename}, int @var{lineno},
                                     const char *@var{fmt}, va_list @var{ap});
-@end example
+@end smallexample
 
 It is used to declare error handlers for parsing errors. The
 application-specific data are passed in the @var{data}
@@ -243,13 +230,13 @@ verbose description of the error.
 @deftp {Data Type} sieve_action_log_t
 A pointer to the application-specific logging function:
 
-@example
+@smallexample
 typedef void (*sieve_action_log_t) (void *@var{data},
                                     const char *@var{script},
                                     size_t @var{msgno}, message_t @var{msg},
                                     const char *@var{action},
                                     const char *@var{fmt}, va_list @var{ap});
-@end example
+@end smallexample
 
 @table @var
 @item data
@@ -276,16 +263,16 @@ These two arguments give the detailed description of the action.
 
 @deftp {Data Type} sieve_relcmp_t
 @deftpx {Data Type} sieve_relcmpn_t
-@example
+@smallexample
 typedef int (*sieve_relcmp_t) (int, int);  
 typedef int (*sieve_relcmpn_t) (size_t, size_t);  
-@end example
+@end smallexample
 @end deftp
 
 @deftp {Data Type} sieve_comparator_t
-@example
+@smallexample
 typedef int (*sieve_comparator_t) (const char *, const char *);
-@end example
+@end smallexample
 
 A pointer to the comparator handler function. The function compares
 its two operands and returns 1 if they are equal, and 0 otherwise.
@@ -295,19 +282,19 @@ in comparison with most standard libc functions like @code{stcmp()}, etc.
 @end deftp
 
 @deftp {Data Type} sieve_retrieve_t
-@example
+@smallexample
 typedef int (*sieve_retrieve_t) (void *item, void *data, int idx,
                                  char **pval);
-@end example
+@end smallexample
 
 A pointer to generic retriever function. See description of
 @code{sieve_vlist_compare()} for details of its usage.
 @end deftp
 
 @deftp {Data Type} sieve_destructor_t
-@example
+@smallexample
 typedef void (*sieve_destructor_t) (void *data);
-@end example
+@end smallexample
 
 A pointer to destructor function. The function frees any resources
 associated with @code{data}. See the description of
@@ -315,11 +302,11 @@ associated with @code{data}. See the description of
 @end deftp
 
 @deftp {Data Type} sieve_tag_checker_t
-@example
+@smallexample
 typedef int (*sieve_tag_checker_t) (const char *@var{name}, 
                                     list_t @var{tags}, 
                                     list_t @var{args})
-@end example
+@end smallexample
 
 A pointer to tag checker function. The purpose of the function is to
 perform compilation-time consistency test on tags. Its arguments are:
@@ -377,7 +364,7 @@ called in reverse order upon execution of
 @code{sieve_machine_destroy()}. Here's a short example of the use
 of this function:
 
-@example
+@smallexample
 @group
 static void
 free_regex (void *data)
@@ -399,7 +386,7 @@ match_part_checker (const char *name, list_t tags, list_t args)
   .
 @}
 @end group
-@end example
+@end smallexample
 @end deftypefun
 
 @deftypefun void *sieve_get_data (sieve_machine_t @var{mach})
@@ -442,14 +429,14 @@ This function sets the error printer function for the machine. If it is
 not set, the default error printer will be used. It is defined as
 follows:
 
-@example
+@smallexample
 int
 _sieve_default_error_printer (void *unused, const char *fmt, 
                               va_list ap)
 @{
   return mu_verror (fmt, ap);
 @}
-@end example
+@end smallexample
 @end deftypefun
 
 @deftypefun void sieve_set_parse_error (sieve_machine_t @var{mach}, sieve_parse_error_t @var{p})
@@ -457,7 +444,7 @@ This function sets the parse error printer function for the machine. If it is
 not set, the default parse error printer will be used. It is defined as
 follows:
 
-@example
+@smallexample
 @group
 int
 _sieve_default_parse_error (void *unused,
@@ -471,7 +458,7 @@ _sieve_default_parse_error (void *unused,
   return 0;
 @}
 @end group
-@end example
+@end smallexample
 @end deftypefun
 
 @deftypefun void sieve_set_debug (sieve_machine_t @var{mach}, sieve_printf_t @var{debug});
@@ -638,1121 +625,12 @@ over the @var{message}.
 Dump the disassembled code of the sieve machine @var{mach}.
 @end deftypefun
 
-@node Input Language
-@section Input Language
-
-The input language understood by the @sc{gnu} Sieve Library is a superset of
-the Sieve language as described in RFC 3028.
-
-@menu
-* Lexical Structure::
-* Syntax::
-* Preprocessor::
-* Require Statement::
-* Comparators::
-* Tests::
-* Actions::
-@end menu
-
-@node Lexical Structure
-@subsection Lexical Structure
-
-@subheading Whitespace and Comments
-
-Comments are semantically equivalent to whitespace and can be used
-anyplace that whitespace is (with one exception in multi-line strings,
-as described below).
-
-There are two kinds of comments: hash comments, that begin with a
-@samp{#} character that is not contained within a string and continue
-until the next newline, and C-style or bracketed comments, that are
-delimited by @samp{/*} and @samp{*/} tokens. The bracketed comments
-may span multiple lines. E.g.:
-
-@example
-if size :over 100K
-  @{ # this is a comment
-    discard;
-  @}
-  
-if size :over 100K
-  @{ /* this is a comment
-       this is still a comment */ discard /* this is a comment again
-     */ ;
-  @}
-@end example
-
-Like in C, bracketed comments do not nest.
-
-@subheading Lexical Tokens
-
-The basic lexical entities are @dfn{identifiers} and @dfn{literals}.
-
-An @dfn{identifier} is a sequence of letters, digits and underscores, started
-with a letter or underscore. For example, @code{header} and
-@code{check_822_again} are valid identifiers, whereas @code{1st} is not.
-A special form of identifier is @dfn{tag}: it is an identifier prefixed
-with a colon (@samp{:}), e.g.: @code{:comparator}. 
-
-A @dfn{literal} is a data that is not executed, merely evaluated ``as
-is'', to be used as arguments to commands. There are four kinds of
-literals:
-
-@itemize
-@item Number
-
-@dfn{Numbers} are given as ordinary unsigned decimal numbers. An
-optional suffix may be used to indicate a multiple of a power of two.
-The suffixes are: @samp{K} specifying ``kibi-'', or 1,024 (2^10) times
-the value of the number; @samp{M} specifying ``mebi-'', or 1,048,576
-(2^20) times the value of the number; and @samp{G} specifying ``tebi-'',
-or 1,073,741,824 (2^30) times the value of the number.
-
-The numbers have 32 bits of magnitude.
-
-@item String
-
-A @dfn{string} is any sequence of characters enclosed in double quotes
-(@samp{"}). A string cannot contain newlines and double quote
-characters. This limitation will disappear in future releases.
-
-@item Multiline Strings
-
-A @dfn{multiline string} is used to represent large blocks of text
-with embedded newlines and special characters. It starts with the
-keyword @code{text:} followed by a newline and ends with a dot
-(@samp{.}) on a newline by itself. Any characters between these two
-markers are taken verbatim. For example:
-
-@example
-text:
-** This is an authomatic response from my message **
-** filtering program.                             **
-
-I can not attend your message right now. However it
-will be saved, and I will read it as soon as I am back.
-
-Regards,
-Fred
-.
-@end example
-
-Notice that a hashed comment or whitespace may occur between
-@code{text:} and the newline. However, when used inside the multiline
-string a hash sign looses its special meaning (except in one case, see
-below) and is taken as is, as well as bracketed comment delimiters.
-In other words, no comments are allowed within a multiline string. E.g.:
-    
-@example
-text: # This is a comment
-
-Sample text
-# This line is taken verbatim
-/* And this line too */
-.
-@end example
-
-The only exception to this rule is that preprocessor @code{include}
-statement is expanded as usual when found within a multiline string
-(@pxref{#include}), e.g.:
-
-@example
-text:
-#include <myresponse.txt>
-.
-@end example
-
-This results in the contents of file @file{myresponse.txt} being read
-and interpreted as the contents of the multiline string.
-
-GNU libsieve extends the described syntax as follows. If the keyword
-@code{text:} is immediately followed by a dash (@samp{-}), then all
-leading tab characters are stripped from input lines and the line
-containing delimiter (@samp{.}). This allows multiline strings within
-scripts to be indented in a natural fashion.
-
-Furthermore, if the @code{text:} (optionally followed by @samp{-}) is
-immediately followed by a word, this word will be used as ending
-delimiter of multiline string instead of the default dot. For
-example:        
-
-@example
-@group
-if header "from" "me@@example.com"
-  @{
-    reject text:-EOT
-        I do not accept messages from
-        this address.
-        .
-        .
-        EOT
-     # Notice that this the multiline string ends here.
-     # The single dots above will be part of it.
-    ;
-  @}
-@end group  
-@end example
-@noindent
-
-@item String Lists
-
-A @dfn{string list} is a comma-delimited list of quoted strings, enclosed
-in a pair of square brackets, e.g.:
-
-@example
-["me@@example.com", "me00@@landru.example.edu"]
-@end example
-
-For convenience, in any context where a list of strings is appropriate,
-a single string is allowed without being a member of a list: it is
-equivalent to a list with a single member.  For example, the following
-two statements are equivalent:
-
-@example
-exists "To";
-exists ["To"];
-@end example
-
-@end itemize
-
-@node Syntax
-@subsection Syntax
-
-Being designed for the sole purpose of filtering mail, Sieve has a very
-simple syntax. 
-
-@menu
-* Commands::
-* Actions Described::
-* Control Flow::
-* Tests and Conditions::
-@end menu
-
-@node Commands
-@subsubsection Commands
-
-The basic syntax element is a @dfn{command}. It is defined as follows:
-
-@example
-@var{command-name} [@var{tags}] @var{args}
-@end example
-@noindent
-where @var{command-name} is an identifier representing the name of the
-command, @var{tags} is an optional list of @dfn{optional} or
-@dfn{tagged arguments} and @var{args} is a list of @dfn{required} or
-@dfn{positional arguments}.
-
-Positional arguments are literals delimited with whitespace. They
-provide the command with the information necessary to its proper
-functioning. Each command has a fixed number of positional arguments. It
-is an error to supply more arguments to the command or to give it fewer
-arguments than it accepts.
-
-Optional arguments allow to modify the behaviour of the command, like
-command line options in UNIX do. They are a list of @dfn{tags}
-(@pxref{Lexical Structure}) separated by whitespace. An optional
-argument may have at most one parameter.
-
-Each command understands a set of optional arguments. Supplying it tags
-that it does not understand results in an error.
-
-For example, consider the following command
-
-@example
-header :mime :comparator "i;octet" ["to", "from"] "bug-mailutils@@gnu.org"
-@end example
-@noindent
-Here, given that @code{header} takes two positional arguments:
-@code{header} is command name, the list @code{["to", "from"]} is first
-positional argument and the string @code{"bug-mailutils@@gnu.org"} is second
-positional argument. There are two optional arguments: @code{:mime} and
-@code{:comparator}. The latter has a string @code{"i;octet"} as its
-parameter.
-
-@node Actions Described
-@subsubsection Actions Described
-
-An @dfn{action} is a Sieve command that performs some operation over
-the message. Actions do the main job in any Sieve
-program. Syntactically, an action is a command terminated with
-semicolon, e.g.:
-
-@example
-keep;
-
-fileinto "mbox";
-@end example
-
-@sc{gnu} Sieve provides the full set of actions described in RFC 3028.
-It also allows to extend this set using loadable
-actions. @xref{Actions}, for detailed discussion of actions.
-
-@node Control Flow
-@subsubsection Control Flow
-
-The only control flow statement Sieve has is ``if'' statement. In its
-simplest form it is:
-
-@example
-if @code{condition} @{ @dots{} @}
-@end example
-
-The effect of this statement is that the sequence of actions between the
-curly braces is executed only if the @code{condition} evaluates to
-@code{true}.
-
-A more elaborate form of this statement allows to execute two
-different sets of actions depending on whether the condition is
-true or not:
-
-@example
-if @code{condition} @{ @dots{} @} else @{ @dots{} @}
-@end example
-
-The most advanced form of the ``if'' statement allows to select an
-action depending on what condition from the set of conditions is met.
-
-@example
-if @code{cond1} @{ @dots{} @} elsif @code{cond2} @{ @dots{} @} else @{ @dots{} @}
-@end example
-
-There may be any number of ``elsif'' branches in an ``if''
-statement. However it may have at most one ``else'' branch.
-Notes for C programmers:
-
-@enumerate
-@item The braces surrounding each branch of an ``if'' statement are
-required.
-@item The ``else if'' construct is disallowed. Use ``elsif'' keyword
-instead.
-@end enumerate
-
-Here's an example of ``if'' statement:
-
-@example
-if header :contains "from" "coyote"
-  @{
-    discard;
-  @}
-elsif header :contains ["subject"] ["$$$"]
-  @{
-    discard;
-  @}
-else
-  @{
-    fileinto "INBOX";
-  @}
-@end example
-
-The following section describes in detail conditions used in ``if''
-statements.
-
-@node Tests and Conditions
-@subsubsection Tests and Conditions
-
-@dfn{Tests} are Sieve commands that return boolean value. E.g. the
-test
-
-@example
-header :contains "from" "coyote"
-@end example
-@noindent
-returns true only if the header ``From'' of the current message contains
-substring ``coyote''.
-
-The tests shipped with the @sc{gnu} Sieve are described in @ref{Tests}.
-
-@dfn{Condition} is a Sieve expression that evaluates to @code{true} or
-@code{false}. In its simplest form, condition is just a Sieve test.
-
-To reverse the sense of a condition use keyword @code{not}, e.g.: 
-
-@example
-not header :contains "from" "coyote"
-@end example
-
-The results of several conditions may be joined together by logical
-@code{and} and @code{or} operations. The special form @code{allof}
-takes several tests as its arguments and computes the logical @code{and}
-of their results. Similarly, the form @code{anyof} performs logical
-@code{or} over the results of its arguments. E.g.:
-
-@example
-if anyof (not exists ["From", "Date"],
-          header :contains "from" "fool@@example.edu")
-  @{
-    discard;
-  @}
-@end example
-                   
-@node Preprocessor
-@subsection Preprocessor
-@cindex Sieve preprocessor statements, a @sc{gnu} extension
-
-The preprocessor statements are a @sc{gnu} extension to the Sieve language.
-The syntax for a preprocessor statement is similar to that used in
-@code{C} programming language, i.e.: a pound character (@samp{#})
-followed by a preprocessor directive and its arguments. Any amount of
-whitespace can be inserted between the @samp{#} and the directive.
-Currently implemented directives are @code{include} and @code{searchpath}.
-
-@menu
-* #include::        Include the contents of a file.
-* #searchpath::     Modify the current search path.
-@end menu
-
-@node #include
-@subsubsection Sieve #include directive
-@cindex #include, sieve
-
-The @code{#include} directive reads in the contents of the given file.
-The contents is ``inserted'' into the text being parsed starting at the
-line where the directive appears. The directive takes two forms:
-
-@table @code
-@item #include "@var{filename}"
-The @var{filename} is taken relative to the current directory.
-
-@item #include <@var{filename}>"
-The @var{filename} is searched in the list of include directories
-as specified by the @option{-I} command line options.
-@end table
-
-If @var{filename} starts with a directory separator character
-(@samp{/}) both forms have the same effect.
-
-@node #searchpath
-@subsubsection Sieve #searchpath directive
-@cindex #searchpath, sieve
-
-The @code{#searchpath} directive adds its argument to the list of
-directories searched for loadable modules. It has the same effect
-as @option{-L} command line switch used by @sc{gnu} sieve utility
-(@pxref{sieve group}). 
-
-@node Require Statement
-@subsection Require Statement
-
-@example
-Syntax:   require @var{string};
-          require @var{string-list};
-@end example
-
-The require statement informs the parser that a script makes use of a certain
-extension. Multiple capabilities can be declared using the second form
-of the statement. The actual handling of a capability name depends on
-its suffix.
-
-If the name starts with @samp{comparator-}, it is understood
-as a request to use the specified comparator. The comparator name
-consists of the characters following the suffix.
-
-If the name starts with @samp{test-}, it means a request to use
-the given test. The test name consists of the characters following
-the suffix.
-
-Otherwise, the capability is understood as a name of an action to be
-used.
-
-The @code{require} statement, if present, must be used before any other
-statement that is using the required capability. As an extension, the @sc{gnu}
-sieve allows the @code{require} and any other statements to be
-interspersed.
-
-By default the following actions and comparators are always required:
-
-@itemize
-@item stop
-@item keep
-@item discard
-@item i;octet
-@item i;ascii-casemap
-@end itemize
-
-Example:
-
-@example
-require ["fileinto", "reject"];
-
-require "fileinto";
-
-require "comparator-i;ascii-numeric";
-@end example
-
-When processing arguments for @code{require} statement, @sc{gnu} libsieve
-uses the following algorithm:
-
-@enumerate 1
-@item Look up the name in a symbol table. If the name begins with
-@samp{comparator-} it is looked up in the comparator table. If it
-begins with @samp{test-}, the test table is used instead. Otherwise
-the name is looked up in the action table.
-
-@item If the name is found, the search is terminated.
-
-@item Otherwise, transform the name. First, any @samp{comparator-} or
-@samp{test-} prefix is stripped. Then, any character other than
-alphanumeric characters, @samp{.} and @samp{,} is replaced with
-dash (@samp{-}). The name thus obtained is used as a file name
-of an external loadable module. 
-
-@item Try to load the module. The module is searched in the
-following search paths (in the order given):
-
-@enumerate 1
-@item Mailutils module directory. By default it is
-@file{$prefix/lib/mailutils}.
-
-@item Sieve library path as given with the @option{-L} options in
-the command line
-
-@item Additional search directories specified with the
-@code{#searchpath} directive.
-
-@item The value of the environment variable LTDL_LIBRARY_PATH.
-
-@item System library search path: The system dependent library
-search path (e.g. on Linux it is set by the contents of the file
-@file{/etc/ld.so.conf} and the value of the environment variable
-LD_LIBRARY_PATH).
-@end enumerate
-
-The value of LTDL_LIBRARY_PATH and LD_LIBRARY_PATH must be a
-colon-separated list of absolute directories, for example,
-@samp{"/usr/lib/mypkg:/lib/foo"}.
-
-In any of these directories, @command{libsieve} first attempts to find
-and load the given filename. If this fails, it tries to append the
-following suffixes to the file name:
-
-@enumerate 1
-@item the libtool archive extension @samp{.la}
-
-@item the extension used for native dynamic libraries on the host
-platform, e.g., @samp{.so}, @samp{.sl}, etc.
-@end enumerate
-
-@item If the module is found, @command{libsieve} executes its
-initialization function (see below) and again looks up the name
-in the symbol table. If found, search terminates successfully.
-
-@item If either the module is not found, or the symbol wasn't
-found after execution of the module initialization function,
-search is terminated with an error status. @command{libsieve} then
-issues the following diagnostic message:
-
-@example
-source for the required action NAME is not available
-@end example
-@end enumerate
-
-@node Comparators
-@subsection Comparators
-
-@sc{gnu} libsieve supports the following built-in comparators:
-
-@table @code
-@item i;octet
-This comparator simply compares the two arguments octet by octet
-
-@item i;ascii-casemap
-It treats uppercase and lowercase characters in the @sc{ascii} subset of
-@sc{utf-8} as the same. This is the default comparator.
-
-@item i;ascii-numeric
-Treats the two arguments as @sc{ascii} representation of decimal
-numbers and compares their numeric values. This comparator must
-be explicitly required prior to use.
-@end table 
-
-@node Tests
-@subsection Tests
-
-This section describes the built-in tests supported by @sc{gnu} libsieve.
-In the discussion below the following macro-notations are used:
-
-@table @var
-@item match-type
-This tag specifies the matching type to be used with the test. It can
-be one of the following:
-
-@table @code
-@item :is
-The @code{:is} match type describes an absolute match; if the contents of
-the first string are absolutely the same as the contents of the
-second string, they match.  Only the string ``frobnitzm'' is the string
-``frobnitzm''.  The null key ``:is'' and only ``:is'' the null value.
-This is the default match-type.
-
-@item :contains
-The @code{:contains} match type describes a substring match.  If the value
-argument contains the key argument as a substring, the match is true.
-For instance, the string ``frobnitzm'' contains ``frob'' and ``nit'', but
-not ``fbm''.  The null key ``'' is contained in all values.
-
-@item :matches
-The @code{:matches} version specifies a wildcard match using the
-characters @samp{*} and @samp{?}. @samp{*} matches zero or more
-characters, and @samp{?} matches a single character. @samp{?} and
-@samp{*} may be escaped as @samp{\\?} and @samp{\\*} in strings to match
-against themselves.  The first backslash escapes the second backslash;
-together, they escape the @samp{*}.
-
-@item :regex
-The @code{:regex} version specifies a match using POSIX Extended Regular
-Expressions.
-
-@item :value @var{relation}
-The @code{:value} match type does a relational comparison between
-strings. Valid values for @var{relation} are:
-
-@table @asis
-@item "eq"
-Equal
-
-@item "ne"
-Not Equal
-
-@item "gt"
-Greater Than
-
-@item "ge"
-Greater than or Equal
-
-@item "lt"
-Less Than
-
-@item "le"
-Less than or Equal
-@end table
-
-@item :count @var{relation}
-This match type first determines the number of the specified entities
-(headers, addresses, etc.) in the message and does a relational
-comparison of the number of entities to the values specified in the
-test expression. The test expression must be a list of one element.
-@end table
-
-@item comparator
-A @var{comparator} syntax item is defined as follows:
-
-@example
-:comparator "@var{comparator-name}"
-@end example
-@noindent
-It instructs sieve to use the given comparator with the test.
-If @var{comparator-name} is not one of @samp{i;octet},
-@samp{i;ascii-casemap} it must be required prior to using it.
-For example:
-
-@example
-require "comparator-i;ascii-numeric";
-
-if header :comparator "i;ascii-numeric" :is "X-Num" "10"
-  @{
-    ...
-@end example
-
-@item address-part
-This syntax item is used when testing structured Internet addresses. It
-specifies which part of an address must be used in comparisons.
-Exactly one of the following tags may be used:
-
-@table @code
-@item :all
-Use the whole address. This is the default.
-
-@item :localpart
-Use local part of the address.
-
-@item :domain
-Use domain part of the address.
-@end table
-
-@end table
-
-@emph{Notice}, that @var{match-type} modifiers interact with
-comparators. Some comparators are not suitable for matching with
-@code{:contains} or @code{:matches}. If this occurs, sieve issues
-an appropriate error message. For example, the statement:
-
-@example
-if header :matches :comparator "i;ascii-numeric"
-@end example
-@noindent
-would result in the following error message:
-
-@example
-comparator `i;ascii-numeric' is incompatible with match type `:matches'
-in call to `header'
-@end example
-
-@deffn Test false
-
-This test always evaluates to ``false''.
-@end deffn
-
-@deffn Test true
-
-This test always evaluates to ``true''.
-@end deffn
-
-@deffn Test address [@var{address-part}][@var{comparator}][@var{match-type}] @var{header-names} @var{key-list}
-
-@noindent
-Tagged arguments:
-
-@table @var
-@item address-part
-Selects the address part to compare. Default is the whole email address
-(@code{:all}).
-
-@item comparator
-Specifies the comparator to be used instead of the default @code{i;ascii-casemap}.
-
-@item match-type
-Specifies the match type to be used instead of the default @code{:is}.
-@end table
-@noindent
-Required arguments:
-
-@table @var
-@item header-names
-A list of header names.
-
-@item key-list
-A list of address values.
-@end table
-@noindent
-
-The @code{address} test matches Internet addresses in structured headers
-that contain addresses.  It returns @code{true} if any header contains any
-key in the specified part of the address, as modified by 
-@var{comparator} and @var{match-type} optional arguments.
-
-This test returns @code{true} if any combination of the
-@var{header-names} and @var{key-list} arguments match.
-
-The @code{address} primitive never acts on the phrase part of an email
-address, nor on comments within that address. Use the @code{header} test
-instead. It also never acts on group names, although it does act on the
-addresses within the group construct.
-
-Example:
-
-@example
-if address :is :all "from" "tim@@example.com"
-  @{
-     discard;
-  @} 
-@end example
-@end deffn
-
-@deffn Test size [:over|:under] @var{number}
-@noindent
-
-The @code{size} test deals with the size of a message. The required
-argument @var{number} represents the size of the message in bytes. It
-may be suffixed with the following quantifiers:
-
-@table @samp
-@item k
-@itemx K
-The number is expressed in kilobytes.
-@item m
-@itemx M
-The number is expressed in megabytes.
-@item g
-@item G
-The number is expressed in gigabytes.
-@end table
-
-If the tagged argument is @samp{:over}, and the size of the message is greater
-than @var{number}, the test is true; otherwise, it is false.
-
-If the argument is @samp{:under}, and the size of the message is less than
-the @var{number}, the test is true; otherwise, it is false.
-
-Otherwise, the test is true only if the size of the message equals
-exactly @var{number}. This is a @sc{gnu} extension.
-
-The size of a message is defined to be the number of octets from the
-initial header until the last character in the message body.
-@end deffn
-
-@deffn Test envelope [@var{address-part}][@var{comparator}][@var{match-type}] @var{envelope-part} @var{key-list}
-@noindent
-
-Tagged arguments:
-
-@table @var
-@item address-part
-Selects the address part to compare. Default is the whole email address
-(@code{:all}).
-
-@item comparator
-Specifies the comparator to be used instead of the default @code{i;ascii-casemap}.
-
-@item match-type
-Specifies the match type to be used instead of the default @code{:is}.
-@end table
-@noindent
-Required arguments:
-
-@table @var
-@item envelope-parts
-A list of envelope parts to operate upon.
-
-@item key-list
-A list of address values.
-@end table
-@noindent
-
-The @code{envelope} test is true if the specified part of the @sc{smtp}
-envelope matches the specified key.
-
-If the envelope-part strings is (case insensitive) @samp{from},
-then matching occurs against the FROM address used in the
-@command{SMTP MAIL} command.  
-
-@emph{Notice}, that due to the limitations imposed by @sc{smtp} envelope
-structure the use of any other values in @var{envelope-parts} header is
-meaningless.
-@end deffn
-
-@deffn Test exists @var{header-names}
-@noindent
-
-Required arguments:
-
-@table @var
-@item header-names
-List of message header names.
-@end table
-@sp 1
-@noindent
-
-The @code{exists} test is @code{true} if the headers listed in
-@var{header-names} argument exist within the message. All of the headers
-must exist or the test is false.
-
-The following example throws out mail that doesn't have a From header
-and a Date header:
-
-@example
-if not exists ["From","Date"]
-  @{
-     discard;
-  @}
-@end example
-@end deffn
-
-@deffn Test header [@var{comparator}] [@var{match-type}] [:mime] @var{header-names} @var{key-list}
-@sp 1
-@noindent
-Tagged arguments:
-
-@table @asis
-@item @var{comparator}
-Specifies the comparator to be used instead of the default @code{i;ascii-casemap}.
-
-@item @var{match-type}
-Specifies the match type to be used instead of the default @code{:is}.
-
-@item :mime
-This tag instructs @code{header} to search through the mime headers in
-multipart messages as well.
-
-@end table
-@sp 1
-@noindent
-Required arguments:
-
-@table @var
-@item header-names
-A list of header names.
-
-@item key-list
-A list of header values.
-@end table
-@sp 1
-@noindent
-The @code{header} test evaluates to true if any header name matches any
-key.  The type of match is specified by the optional match argument,
-which defaults to ":is" if not explicitly given.
-
-The test returns @code{true} if any combination of the @var{header-names}
-and @var{key-list} arguments match.
-
-If a header listed in @var{header-names} exists, it contains the null
-key (@samp{""}).  However, if the named header is not present, it
-does not contain the null key.  So if a message contained the header
-
-@example
-X-Caffeine: C8H10N4O2
-@end example
-@sp 1
-@noindent
-these tests on that header evaluate as follows:
-
-@example 
-header :is ["X-Caffeine"] [""] @result{} false
-header :contains ["X-Caffeine"] [""] @result{} true
-@end example
-@end deffn
-
-@deffn Test numaddr [:over|:under] @var{header-names} @var{number}
-@noindent
-This test is provided as an example of loadable extension tests. You
-must use @samp{require "test-numaddr"} statement before actually using
-it.
-
-The @code{numaddr} test counts Internet addresses in structured headers
-that contain addresses.  It returns true if the total number of
-addresses satisfies the requested relation.
-
-If the tagged argument is @samp{:over} and the number of addresses is
-greater than @var{number}, the test is true; otherwise, it is false.
-
-If the tagged argument is @samp{:under} and the number of addresses is
-less than @var{number}, the test is true; otherwise, it is false.
-
-If the tagged argument is not given, @samp{:over} is assumed. 
-@end deffn
-        
-@node Actions
-@subsection Actions
-
-The @sc{gnu} libsieve supports the following default actions:
-
-@itemize
-@item stop
-@item keep
-@item discard
-@item fileinto
-@item reject
-@item redirect
-@end itemize
-
-Among them the first three actions do not need to be explicitly required
-by a @code{require} statement, while the others do.
-
-These actions are described in detail below.
-
-@deffn Action stop
-
-The @code{stop} action ends all processing. If no actions have been
-executed, then the @code{keep} action is taken.
-@end deffn
-
-@deffn Action keep
-
-The effect of this action is to preserve the current message in the
-mailbox. This action is executed if no other action has been executed.
-@end deffn
-
-@deffn Action discard
-
-@code{Discard} silently throws away the current message. No notification
-is returned to the sender, the message is deleted from the mailbox.
-
-Example:
-@example
-if header :contains ["from"] ["idiot@@example.edu"]
-  @{
-    discard;
-  @}
-@end example
-@end deffn
-
-@deffn Action fileinto @var{folder}
-@noindent
-
-Required arguments:
-
-@table @var
-@item folder
-A string representing the folder name
-@end table
-
-The @code{fileinto} action delivers the message into the specified folder.
-@end deffn
-
-@deffn Action reject @var{reason}
-
-The optional @code{reject} action refuses delivery of a message by sending
-back a message delivery notification to the sender. It resends the
-message to the sender, wrapping it in a ``reject'' form, noting that it
-was rejected by the recipient. The required argument @var{reason} is
-a string specifying the reason for rejecting the message.
-
-Example:
-
-If the message contained
-@example
-Date: Tue, 1 Apr 1997 09:06:31 -0800 (PST)
-From: coyote@@desert.example.org
-To: roadrunner@@acme.example.com
-Subject: I have a present for you
-
-I've got some great birdseed over here at my place.
-Want to buy it?
-@end example
-@noindent
-@sp 1
-and the user's script contained:
-
-@example
-if header :contains "from" "coyote@@desert.example.org"
-  @{
-    reject "I am not taking mail from you, and I don't want
-            your birdseed, either!";
-  @}
-@end example
-@noindent
-then the original sender <coyote@@desert.example.org> would receive the
-following notification:
-
-@example
-To: <coyote@@desert.example.org>
-X-Authentication-Warning: roadrunner set sender using -f flag
-Content-Type: multipart/mixed; boundary=----- =_aaaaaaaaaa0
-MIME-Version: 1.0
------ =_aaaaaaaaaa0
-The original message was received at
-Tue, 1 Apr 1997 09:07:15 -0800 from
-coyote@@desert.example.org.
-Message was refused by recipient's mail filtering program.
-Reason given was as follows:
-
-I am not taking mail from you, and I don't want your birdseed, either!
-
------ =_aaaaaaaaaa0
-Content-Type: message/delivery-status
-
-Reporting-UA: sieve; GNU Mailutils 0.1.3
-Arrival-Date: Tue, 1 Apr 1997 09:07:15 -0800
-Final-Recipient: RFC822; roadrunner@@acme.example.com
-Action: deleted
-Disposition: automatic-action/MDN-sent-automatically;deleted
-Last-Attempt-Date: Tue, 1 Apr 1997 09:07:15 -0800
-
------ =_aaaaaaaaaa0
-Content-Type: message/rfc822
-
-From: coyote@@desert.example.org
-To: roadrunner@@acme.example.com
-Subject: I have a present for you
-
-I've got some great birdseed over here at my place.
-Want to buy it?
------ =_aaaaaaaaaa0
-@end example
-
-If the @var{reason} argument is rather long, the common approach is
-to use the combination of the @code{text:} and @code{#include} keywords,
-e.g.:
-
-@example
-if header :mime :matches "Content-Type"
-          [ "*application/msword;*", "*audio/x-midi*" ]
-  @{
-    reject text:
-#include "nomsword.txt"
-    .
-    ;
-  @}
-@end example      
-
-@end deffn
-
-@deffn Action redirect @var{address}
-@noindent
-
-The @code{redirect} action is used to send the message to another user at
-a supplied @var{address}, as a mail forwarding feature does.  This action
-makes no changes to the message body or existing headers, but it may add
-new headers. It also modifies the envelope recipient.
-
-The @code{redirect} command performs an MTA-style ``forward'' --- that
-is, what you get from a @file{.forward} file using @code{sendmail} under
-@sc{unix}.  The address on the SMTP envelope is replaced with the one on
-the @code{redirect} command and the message is sent back
-out. @emph{Notice}, that it differs from the MUA-style forward, which
-creates a new message with a different sender and message ID, wrapping
-the old message in a new one.
-@end deffn
-
-@node Extensions
-@section Extensions
-
-This section summarizes the @sc{gnu} extensions to the sieve language
-
-@enumerate 1
-
-@item Multiline strings syntax
-
-GNU libsieve understands the following multiline string syntax:
-
-@example
-@group
-text:[-][@var{delimiter}]
-....
-@var{delimiter}
-@end group
-@end example
-
-The meaning of optional flags is the same as in shell ``here document''
-construct: the dash strips all leading tab characters from the string body,
-thus allowing it to be indented in a natural fashion; @var{delimiter}
-introduces the new end-of-text delimiter instead of the default
-dot. If @var{delimiter} starts with a backslash, no preprocessing will
-be performed within a string.
-
-@item Handling of the @code{require} statement.
-
-@itemize
-@item According to the RFC an error must occur if a @code{require} appears
-after a command other than @code{require}. The @sc{gnu} sieve library allows
-interspersing the @code{require} and other statements. The only
-requirement is that @code{require} must occur before a statement that is
-using the required capability (@pxref{Require Statement}).
-
-@item Prefixing the required capability with ``test'' requires the use
-of an extension test.
-@end itemize
-
-@item @code{header} test
-
-The @code{header} takes an optional argument @code{:mime}, meaning to
-scan the headers from each part of a multipart message.
-
-@item @code{size} test
-
-The @code{size} test allows to omit the optional argument
-(:over|:under). In this case exact equality is assumed.
-
-@item @code{envelope} test
-
-The only value that can be meaningfully used as the first required
-argument of an @code{envelope} test is @samp{from}. This limitation
-may disappear from the subsequent releases.
-
-@item Match type optional argument.
-
-Along with the usual @code{:is}, @code{:matches} and @code{contains}
-matching type, @sc{gnu} sieve library understands @code{:regex} type. This
-matching type toggles POSIX Extended Regular Expression matching.
-
-@end enumerate
-
 @node Writing Loadable Commands
-@section Writing Loadable Commands
+@subsection Writing Loadable Commands
 
 This section contains an example of how to write external loadable
 commands for @sc{gnu} libsieve.
 
-@example
+@smallexample
 @include numaddr.inc
-@end example
-
+@end smallexample

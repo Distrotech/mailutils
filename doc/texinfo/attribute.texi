@@ -1,12 +1,12 @@
 @c This is part of the GNU Mailutils manual.
-@c Copyright (C) 1999,2000,2001,2002 Free Software Foundation, Inc.
+@c Copyright (C) 1999,2000,2001,2002,2003,2004 Free Software Foundation, Inc.
 @c See file mailutils.texi for copying conditions.
 @comment *******************************************************************
-@example
+
+@smallexample
 @code{/* Prefix @emph{attribute_} is reserved */}
 @code{#include <mailutils/attribute.h>}
-
-@end example
+@end smallexample
 
 @deftypefun int attribute_create (attribute_t *@var{pattribute})
 @end deftypefun
@@ -56,7 +56,6 @@
 @deftypefun int attribute_set_read (attribute_t @var{attribute})
 @end deftypefun
 
-
 @deftypefun int attribute_unset_seen (attribute_t @var{attribute})
 @end deftypefun
 
@@ -89,4 +88,3 @@
 
 @deftypefun int attribute_to_string (attribute_t @var{attr}, char *@var{buf}, size_t @var{len}, size_t *@var{pwriten})
 @end deftypefun
-

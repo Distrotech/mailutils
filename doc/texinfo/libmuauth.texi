@@ -1,5 +1,5 @@
 @c This is part of the GNU Mailutils manual.
-@c Copyright (C) 1999,2000,2001,2002 Free Software Foundation, Inc.
+@c Copyright (C) 1999,2000,2001,2002,2003,2004 Free Software Foundation, Inc.
 @c See file mailutils.texi for copying conditions.
 @comment *******************************************************************
 
@@ -13,15 +13,15 @@ library mechanism.
 
 @menu
 * Data Types::
-* Initializing the libmuauth::
+* Initializing libmuauth::
 * Module Creation and Destruction::
 * Obtaining Authorization Information::
 * Existing Modules::
-* Using Libmuauth in Your Programs::
+* Using libmuauth in Your Programs::
 @end menu
 
 @node Data Types
-@section Data Types
+@subsection Data Types
 @cindex libmuauth, data types
 
 @deftp {Data Type} mu_auth_fp
@@ -29,12 +29,12 @@ library mechanism.
 This is a pointer to authentication or authorization data. It
 is defined as follows:
 
-@example
+@smallexample
 typedef int (*mu_auth_fp) (void *@var{return_data},
                            void *@var{key},
                            void *@var{func_data},
                            void *@var{call_data});
-@end example
+@end smallexample
 @noindent
 Its arguments are:
 
@@ -74,7 +74,7 @@ The @code{mu_auth_data} is used to return the information about the
 user. It is similar to system @code{struct passwd}, except that it
 is more mailutils-specific. Its definition is:
 
-@example
+@smallexample
 @group
 struct mu_auth_data @{
   /* These are from struct passwd */
@@ -90,7 +90,7 @@ struct mu_auth_data @{
   int     change_uid;  /* Should the uid be changed? */
 @};
 @end group
-@end example
+@end smallexample
 @end deftp
 
 @deftp {Data Type} mu_auth_module
@@ -98,7 +98,7 @@ struct mu_auth_data @{
 The @code{mu_auth_module} structure contains full information about a
 libmuauth module. It is declared as follows:
 
-@example
+@smallexample
 @group
 struct mu_auth_module @{
   char           *name;              /* Module name */
@@ -111,11 +111,11 @@ struct mu_auth_module @{
   void           *auth_by_uid_data;  /* ... and its specific data */
 @};
 @end group
-@end example
+@end smallexample
 @end deftp
 
-@node Initializing the libmuauth
-@section Initializing the libmuauth
+@node Initializing libmuauth
+@subsection Initializing @file{libmuauth}
 
 @deftypefun void mu_auth_init (void)
 
@@ -131,7 +131,7 @@ This macro registers all default modules and calls @code{mu_auth_init()}.
 @end deftypefun
 
 @node Module Creation and Destruction
-@section Module Creation and Destruction
+@subsection Module Creation and Destruction
 
 @deftypefun int mu_auth_data_alloc (struct mu_auth_data **ptr, const char *name, const char *passwd, uid_t uid, gid_t gid, const char *gecos, const char *dir, const char *shell, const char *mailbox, int change_uid)
 
@@ -151,7 +151,7 @@ Register the module defined by the @var{mod} argument.
 @end deftypefun
 
 @node Obtaining Authorization Information
-@section Obtaining Authorization Information
+@subsection Obtaining Authorization Information
 @cindex libmuauth, obtaining authorization information
 
 @deftypefun int mu_auth_runlist (list_t @var{flist}, void *@var{return_data}, void *@var{key}, void *@var{call_data});
@@ -188,7 +188,7 @@ Authenticate the user whose data are in @var{auth_data} using password
 @end deftypefun
 
 @node Existing Modules
-@section Existing Modules
+@subsection Existing Modules
 @cindex libmuauth modules
 
 @deftypefun int mu_auth_nosupport (void *return_data, void *key, void *func_data, void *call_data);
@@ -240,31 +240,31 @@ module.
 @end defvar
 
 
-@node Using Libmuauth in Your Programs
-@section Using Libmuauth in Your Programs
-@cindex using libmuauth
-@cindex linking with libmuauth
+@node Using libmuauth in Your Programs
+@subsection Using @file{libmuauth} in Your Programs
+@cindex Using @file{libmuauth}
+@cindex Linking with @file{libmuauth}
 @cindex libmuauth, linking with
 
 To link your program against @file{libmuauth}, obtain loader arguments
 by running @command{mailutils-config} as follows:
 
-@example
+@smallexample
 mailutils-config --link auth
-@end example
+@end smallexample
 @noindent
 
 @xref{mailutils-config}, for more information about this utility.
 
 Here is a sample Makefile fragment:
 
-@example
+@smallexample
 MU_LDFLAGS=`mailutils-config --link auth`
 MU_INCLUDES=`mailutils-config --include`
 
 myprog: myprog.c
         $(CC) -omyprog $(CFLAGS) $(MU_INCLUDES) myprog.c $(MU_LDFLAGS)
-@end example        
+@end smallexample        
 
 If your program will be using only default modules provided by the
 library, then it will suffice to call
@@ -272,7 +272,7 @@ library, then it will suffice to call
 your program. As an example, consider the following code fragment
 (it is taken from the @command{imap4d} daemon):
 
-@example
+@smallexample
 @group
 int
 main (int argc, char **argv)
@@ -287,13 +287,13 @@ main (int argc, char **argv)
                  NULL, &daemon_param);
   @dots{}       
 @end group
-@end example
+@end smallexample
 
 Otherwise, if your program will use it's own modules, first register
 them with @code{mu_auth_register_module} and then call
 @code{mu_auth_init()}, e.g.:
 
-@example
+@smallexample
 @group
 struct mu_auth_module radius_module = @{
   @dots{}
@@ -312,12 +312,12 @@ main (int argc, char **argv)
 
   @dots{}
 @end group
-@end example      
+@end smallexample      
 
 These two approaches may be combined, allowing you to use both your
 modules and the ones provided by Mailutils. Consider the example below:
 
-@example
+@smallexample
 @group
 int
 main (int argc, char **argv)
@@ -329,7 +329,4 @@ main (int argc, char **argv)
   @dots{}
 @}
 @end group
-@end example
-
-
-
+@end smallexample

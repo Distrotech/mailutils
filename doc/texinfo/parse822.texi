@@ -1,12 +1,13 @@
 @c This is part of the GNU Mailutils manual.
-@c Copyright (C) 1999,2000,2001,2002 Free Software Foundation, Inc.
+@c Copyright (C) 1999,2000,2001,2002,2003,2004 Free Software Foundation, Inc.
 @c See file mailutils.texi for copying conditions.
 @comment *******************************************************************
-@example
+
+@smallexample
 @code{/* Prefix @emph{parse822_} is reserved */}
 @code{#include <mailutils/parse822.h>}
 
-@end example
+@end smallexample
 
 Internet Message Format, see Address node for the discussion.
 
@@ -54,7 +55,6 @@ Internet Message Format, see Address node for the discussion.
 
 @deftypefun int parse822_quote_local_part (char** quoted, const char* raw)
 @end deftypefun
-
 
 @deftypefun int parse822_field_body (const char** p, const char *e, char** fieldbody)
 @end deftypefun

@@ -1,5 +1,5 @@
 @c This is part of the GNU Mailutils manual.
-@c Copyright (C) 1999,2000,2001,2002 Free Software Foundation, Inc.
+@c Copyright (C) 1999,2000,2001,2002,2003,2004 Free Software Foundation, Inc.
 @c See file mailutils.texi for copying conditions.
 @comment *******************************************************************
 
@@ -8,94 +8,94 @@ A mailbox or a mailer can be described in a URL, the string will contain the
 necessary information to initialize @code{mailbox_t}, or @code{mailer_t}
 properly.
 
-@subsection POP3
+@subheading POP3
 The POP URL scheme contains a POP server, optional port number
 and the authentication mechanism.  The general form is
 
-@example
+@smallexample
 @url{pop://[<user>[;AUTH=<auth>]@@]<host>[:<port>]}
  or
 @url{pop://[<user>[:<passwd>]@@]<host>[:<port>]}
-@end example
+@end smallexample
 
 If @emph{:port} is omitted the default value is 110. Different forms of
 authentication can be specified with @emph{;AUTH=type}.
 The special string @emph{;AUTH=*} indicates that the client will use
 a default scheme base on the capability of the server.
 
-@example
+@smallexample
 @url{pop://obelix@@gaulois.org}
 @url{pop://asterix;AUTH=*@@france.com}
 @url{pop://falbala;AUTH=+APOP@@france.com}
 @url{pop://obelix;AUTH=+APOP@@village.gaulois.org:2000}
 @url{pop://obelix:menhir@@village.gaulois.org:2000}
-@end example
+@end smallexample
 
-For more complete information see @cite{rfc2368}.
+For more complete information see @cite{RFC 2368}.
 
-@subsection IMAP
+@subheading IMAP
 The IMAP URL scheme contains an IMAP server, optional port number
 and the authentication mechanism.  The general form is
 
-@example
+@smallexample
 @url{imap://[<user>[;AUTH=<type>]]@@<host>[:port][/<mailbox>]}
  or
 @url{imap://[<user>[:<passwd>]]@@<host>[:port][/<mailbox>]}
-@end example
+@end smallexample
 
 If @emph{:port} is omitted the default value is 220. Different forms of
 authentication can be specified with @emph{;AUTH=type}.
 The special string @emph{;AUTH=*} indicates that the client will use
 a default scheme base on the capability of the server.
 
-@example
+@smallexample
 @url{imap://obelix@@imap.gaulois.org}
 @url{imap://asterix;AUTH=*@@imap.france.com}
 @url{imap://asterix:potion@@imap.france.com}
-@end example
+@end smallexample
 
-For more complete information see @cite{rfc2192}.
+For more complete information see @cite{RFC 2192}.
 
-@subsection File
+@subheading File
 
 Local folder should be handle by this URL.  It is preferable to let
 the mailbox recognize the type of mailbox and take the appropriate
 action.
 
-@example
+@smallexample
 @url{file://path}
 @url{file://var/mail/user}
 @url{file://home/obelix/Mail}
-@end example
+@end smallexample
 
 For MMDF, MH local mailboxes URLs are provided,  but it is preferable to
 use @url{file://path} and let the library figure out which one.
 
-@example
+@smallexample
 @url{mmdf://path}
 @url{mh://path}
-@end example
+@end smallexample
 
-@subsection Mailto
+@subheading Mailto
 
 After setting a mailer, @url{mailto:} is used to tell the mailer where
 and to whom the message is for.
 
-@example
+@smallexample
 @url{mailto://hostname}
-@end example
+@end smallexample
 
 Mailto can be used to generate short messages, for example to subscribe
 to mailing lists.
 
-@example
+@smallexample
 @url{mailto://bug-mailutils@@gnu.org?body=subscribe}
 @url{mailto://bug-mailutils@@gnu.org?Subject=hello&body=subscribe}
-@end example
+@end smallexample
 
-For more complete information see @cite{rfc2368}.
+For more complete information see @cite{RFC 2368}.
 
-@subsection URL functions
+@subheading URL functions
 
 Helper functions are provided to retrieve and set the @emph{URL} fields.
 
@@ -110,10 +110,10 @@ Destroy the url and free it's resources.
 @deftypefun int  url_parse (url_t @var{url})
 Parses the url, after calling this the get functions can be called.
 
-The syntax, condensed from RFC 1738, and extended with the ;auth=
-of RFC 2384 (for POP) and RFC 2192 (for IMAP) is:
+The syntax, condensed from @cite{RFC 1738}, and extended with the ;auth=
+of @cite{RFC 2384} (for POP) and @cite{RFC 2192} (for IMAP) is:
 
-@example
+@smallexample
 url =
     scheme ":" [ "//"
 
@@ -122,7 +122,7 @@ url =
     host [ ":" port ]
 
     [ ( "/" urlpath ) | ( "?" query ) ] ]
-@end example
+@end smallexample
 
 This is a generalized URL syntax, and may not be exactly appropriate
 for any particular scheme.
@@ -154,13 +154,12 @@ for any particular scheme.
 @end deftypefun
 
 @deftypefun char* url_decode (const char* @var{string})
-Decodes an RFC 1738 % encoded string, returning the decoded string in
-allocated memory. If the string is not encoded, this degenerates to
-a strdup().
+Decodes an @cite{RFC 1738} % encoded string, returning the decoded string
+in allocated memory. If the string is not encoded, this degenerates to
+a @code{strdup()}.
 @end deftypefun
 
-@section Example
-@example
+@subheading Example
+@smallexample
 @include url-parse.inc
-@end example
-
+@end smallexample

@@ -1,19 +1,20 @@
 @c This is part of the GNU Mailutils manual.
-@c Copyright (C) 1999,2000,2001,2002 Free Software Foundation, Inc.
+@c Copyright (C) 1999,2000,2001,2002,2003,2004 Free Software Foundation, Inc.
 @c See file mailutils.texi for copying conditions.
 @comment *******************************************************************
-@example
+
+@smallexample
 @code{/* Prefix @emph{mailbox_} is reserved */}
 @code{#include <mailutils/mailbox.h>}
-
-@end example
+@end smallexample
 
 @deftp {Data Type} mailbox_t
 The @code{mailbox_t} object is used to hold information and it is an opaque
 data structure to the user. Functions are provided to retrieve information
 from the data structure.
 @end deftp
-@example
+
+@smallexample
 @group
                              mailbox_t                  url_t
   -/var/mail-    +---//---->/-----------------\    +-->/-----------\
@@ -32,9 +33,9 @@ from the data structure.
                             |  message_t(n)   |
                             \-----------------/
 @end group
-@end example
+@end smallexample
 
-@deftypefun  int mailbox_append_message (mailbox_t @var{mbox}, message_t @var{message})
+@deftypefun int mailbox_append_message (mailbox_t @var{mbox}, message_t @var{message})
 The @var{message} is appended to the mailbox @var{mbox}.
 
 The return value is @code{0} on success and a code number on error conditions:

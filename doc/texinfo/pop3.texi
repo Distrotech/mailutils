@@ -4,20 +4,24 @@
 @finalout
 
 @comment This is part of the GNU Mailutils manual.
-@comment Copyright (C) 1999, 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
+@comment Copyright (C) 1999,2000,2001,2002,2003,2004 Free Software Foundation, Inc.
 @comment See file mailutils.texi for copying conditions.
 @comment *******************************************************************
-@example
+
+@smallexample
 @code{/* Prefix  "mu_pop3_" is reserved */}
 @code{#include <mailutils/pop3.h>}
 
-@end example
+@end smallexample
 
-The purpose of the Post Office Protocol Version 3 (POP3) is to permit a client to download a maildrop from a remote
-server,  the protocol does not provide complex or extensive operation on the maildrop.  When the client successfully
-authenticates, the server acquires an exclusive access lock on the mailbox and holds it the entire duration of the
-session.  After the authentication, the session enters transaction state and the client may issues commands to
-access messages in the  mailbox.
+The purpose of the Post Office Protocol Version 3 (POP3) is to permit a client
+to download a maildrop from a remote server,  the protocol does not provide
+complex or extensive operation on the maildrop.  When the client successfully
+authenticates, the server acquires an exclusive access lock on the mailbox
+and holds it the entire duration of the session.  After the authentication,
+the session enters transaction state and the client may issues commands to
+access messages in the mailbox.
+
 @itemize @bullet
 @item
 Authorization state
@@ -94,7 +98,7 @@ To reset the state or break the downloading, the user should disconnect @code{mu
 location after a sudden disconnect, it may be necessary to wait before working on the same mailbox, if not the user may
 receive a ``Mailbox busy'' error code}.
 
-@example
+@smallexample
 @group
 /* Example on how to implement a callback mechanism on top of the library. */
 int pop3_list_cb (mu_pop3_t pop3, int msgno, int (*callback_list)(int msgno, size_t octet))
@@ -108,7 +112,7 @@ int pop3_list_cb (mu_pop3_t pop3, int msgno, int (*callback_list)(int msgno, siz
    return status;
 @}
 @end group
-@end example
+@end smallexample
 
 @subsubsection Initialization
 @cindex POP3 Initialization
@@ -296,7 +300,7 @@ Errors:
 @end table
 @end deftypefun
 
-@example
+@smallexample
 #include <stdio.h>
 #include <mailutils/pop3.h>
 
@@ -316,7 +320,7 @@ print_message (mu_pop3_t pop3, unsigned int msgno)
     @}
    return status;
 @}
-@end example
+@end smallexample
 
 @cindex POP3 TOP
 
@@ -333,7 +337,7 @@ Errors:
 @end table
 @end deftypefun
 
-@example
+@smallexample
 #include <stdio.h>
 #include <mailutils/pop3.h>
 
@@ -351,7 +355,7 @@ print_top (mu_pop3_t pop3, unsigned int msgno, unsigned int lines)
      @}
   return status;
 @}
-@end example
+@end smallexample
 
 
 @cindex POP3 RSET
@@ -410,7 +414,7 @@ Errors:
 @end table
 @end deftypefun
 
-@example
+@smallexample
 #include <stdio.h>
 #include <stdlib.h>
 #include <mailutils/pop3.h>
@@ -442,7 +446,7 @@ void print_uidl (mu_pop3_t pop3)
     @}
     
 @}
-@end example
+@end smallexample
 
 
 @subsubsection Update State
@@ -529,4 +533,3 @@ Errors:
 @end table
 
 @end deftypefun
-

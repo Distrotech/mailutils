@@ -1,18 +1,20 @@
 @c This is part of the GNU Mailutils manual.
-@c Copyright (C) 1999,2000,2001,2002 Free Software Foundation, Inc.
+@c Copyright (C) 1999,2000,2001,2002,2003,2004 Free Software Foundation, Inc.
 @c See file mailutils.texi for copying conditions.
 @comment *******************************************************************
-@example
+
+@smallexample
 @code{/* Prefix @emph{mbox_} is reserved */}
 @code{#include <mailutils/mbox.h>}
 
-@end example
+@end smallexample
 
 The most common mailbox format on UNIX platform is @emph{mbox}.  Mbox is a
 text file that contains messages separated by a special format string.
-@example
-   From SP envelope-sender SP date [SP moreinfo]
-@end example
+
+@smallexample
+From SP envelope-sender SP date [SP moreinfo]
+@end smallexample
 
 @table @code
 @item "From "

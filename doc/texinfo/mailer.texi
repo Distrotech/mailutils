@@ -1,12 +1,13 @@
 @c This is part of the GNU Mailutils manual.
-@c Copyright (C) 1999,2000,2001,2002 Free Software Foundation, Inc.
+@c Copyright (C) 1999,2000,2001,2002,2003,2004 Free Software Foundation, Inc.
 @c See file mailutils.texi for copying conditions.
 @comment *******************************************************************
-@example
+
+@smallexample
 @code{/* Prefix @emph{mailer_} is reserved */}
 @code{#include <mailutils/mailer.h>}
 
-@end example
+@end smallexample
 
 The API is still changing.
 
@@ -40,7 +41,6 @@ and "Bcc:" fields, this is equivalent to sendmail's @var{-t} flag.
 
 Note: the previous implementation of mailer_send_message() was equivalent
 to having both @var{from} and @var{to} be @var{NULL}.
-
 @end deftypefun
 
 @deftypefun int mailer_get_property (mailer_t, property_t *)
@@ -64,7 +64,8 @@ to having both @var{from} and @var{to} be @var{NULL}.
 @deftypefun int mailer_get_url (mailer_t, url_t *)
 @end deftypefun
 
-@subheading Some usage notes.
+@sp 1
+@subheading Some Usage Notes
 
 Some possible use cases the API must support are:
 
@@ -104,23 +105,24 @@ Some possible use cases the API must support are:
    Don't want mail loops, so the null but valid SMTP address of <> is
    the envelope from.
 
-@subheading The sendmail mailer.
+@subheading The Sendmail Mailer
 
-/sbin/sendmail isn't always sendmail... sometimes its a sendmail-compatible
-wrapper, so assume /sbin/sendmail understands only a recipient
-list, -f and -oi, these seem to be pretty basic. Cross fingers.
+@file{/sbin/sendmail} isn't always sendmail... sometimes its a
+sendmail-compatible wrapper, so assume @file{/sbin/sendmail} understands
+only a recipient list, @option{-f} and @option{-oi}, these seem
+to be pretty basic. Cross fingers.
 
-Pipe to "/sbin/sendmail -oi [-f from] [to...]", supplying -f if there
-was a from, and supplying the recipient list from the to (if there
-is no recipient list, assume it will read the message contents for
-the recipients).
+Pipe to "/sbin/sendmail -oi [-f from] [to...]", supplying @option{-f}
+if there was a from, and supplying the recipient list from the to
+(if there is no recipient list, assume it will read the message
+contents for the recipients).
 
 Note: since the stdout and stderr of sendmail is closed, we have no
 way of ever giving feedback on failure. Also, what should the return
 code be from mailer_send_message() when sendmail returns 1? 1 maps to EPERM,
 which is less than descriptive!
 
-@subheading The SMTP mailer.
+@subheading The SMTP Mailer
 
 This mailer does NOT canonicalize the message. This must be done before
 sending the message, or it may be assumed that the MTA will do so.
@@ -130,13 +132,12 @@ It does blind out the Bcc: header before sending, though.
 Note: mutt always puts the recipient addresses on the command line, even
 bcc ones, do we strip the bcc before forwarding with SMTP?
 
-@subheading Non-RFC822 addresses.
+@subheading Non-RFC822 Addresses
 
 An address that has no domain is not and RFC822 email address. What
 do I do with them? Should the user of the API be responsible for
 determining what is mean by email to "john" means? Or should the
-be able to configure sendmail to decide globally what this means. If so, we
-can pass the address to sendmail, but we have to decide for SMTP! So,
-right now these addresses are rejected. This could be changed.
-
-
+be able to configure sendmail to decide globally what this means.
+If so, we can pass the address to sendmail, but we have to decide
+for SMTP! So, right now these addresses are rejected.
+This could be changed.

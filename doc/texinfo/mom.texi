@@ -1,5 +1,5 @@
 @c This is part of the GNU Mailutils manual.
-@c Copyright (C) 1999,2000,2001,2002 Free Software Foundation, Inc.
+@c Copyright (C) 1999,2000,2001,2002,2003,2004 Free Software Foundation, Inc.
 @c See file mailutils.texi for copying conditions.
 @comment *******************************************************************
 
@@ -16,7 +16,7 @@ Every Mailutils object has a corresponding C structure holding its interface
 and specific data.  For example mu_object_t, is the root object and all mailutils objects
 extends it:
 
-@example
+@smallexample
 struct _mu_object;
 typedef struct _mu_object* mu_object_t;
 
@@ -33,13 +33,13 @@ struct _mu_object
   struct _mu_object_vtable *vtable;
   int type;
 @}
-@end example
+@end smallexample
 
 The @var{vtable} is an array of pointers to function, it provides the interface
 or the list of function for this object.  The library provides wrapper to
 access the functions instead using the @var{vtable} directly.
 
-@example
+@smallexample
 int mu_object_notify(mu_object object, int event, void *data)
 @{
   if (object == NULL || object->vtable == NULL
@@ -47,14 +47,14 @@ int mu_object_notify(mu_object object, int event, void *data)
     return MU_ERR_NOT_SUPPORTED;
   return object->vtable->notify (object, event, data);
 @}
-@end example
+@end smallexample
 
 Instead of using macros or the vtable directly.
-@example
+@smallexample
 #define mu_object_notify(o, evt, d)  ((o)->vtable->notify(o, evt, d))
-@end example
+@end smallexample
 
-@section Implementing an interface
+@section Implementing an Interface
 
 @comment ***********************************************************
 @comment This is not a very good/usefull example, we should do one using
@@ -69,7 +69,7 @@ For a more concrete implementation, lets say we are implementing some caching ma
 but we need to keep a better track of the objects in our implementation.
 We take the approach of simple reference counting and extend the mu_object_t.
 
-@example
+@smallexample
 #include <mailutils/sys/object.h>
 
 struct my_object;
@@ -129,13 +129,13 @@ my_mu_object_create (mu_object_t *pobject)
    *pobject = &ref->base.vtable
    return 0;
 @}
-@end example
+@end smallexample
 
 The interface adds a @code{decrement} and @code{increment} to the @code{mu_object_t}
 interface. Creating a @code{refcount_t} can be savely typecast to @code{mu_object_t},
 for example:
 
-@example
+@smallexample
 refcount_t ref;
 mu_object_t obj;
 refcount_create (&ref);
@@ -143,4 +143,4 @@ refcount_create (&ref);
 /* send a notification to the listeners of an event.  */
 mu_object_notify ((mu_object_t)ref, 5, NULL)
 
-@end example
+@end smallexample

@@ -1,13 +1,13 @@
 @c This is part of the GNU Mailutils manual.
-@c Copyright (C) 1999,2000,2001,2002 Free Software Foundation, Inc.
+@c Copyright (C) 1999,2000,2001,2002,2003,2004 Free Software Foundation, Inc.
 @c See file mailutils.texi for copying conditions.
 @comment *******************************************************************
 
-@example
+@smallexample
 @code{/* Prefix @emph{address_} is reserved */}
 @code{#include <mailutils/address.h>}
+@end smallexample
 
-@end example
 The Internet address format is defined in RFC 822. RFC 822 has been
 updated, and is now superceeded by RFC 2822, which
 makes some corrections and clarifications. References to RFC 822
@@ -15,10 +15,10 @@ here apply equally to RFC 2822.
 
 The RFC 822 format is more flexible than many people realize, here
 is a quick summary of the syntax this parser implements, see
-RFC 822 for the details. "[]" pairs mean "optional", "/" means "one or
-the other", and double-quoted characters are literals.
+RFC 822 for the details. @samp{[]} pairs mean "optional", @samp{/} means
+"one or the other", and double-quoted characters are literals.
 
-@example
+@smallexample
 addr-spec    = local-part "@" domain
 mailbox      = addr-spec ["(" display-name ")"] /
                [display-name] "<" [route] addr-spec ">"
@@ -26,7 +26,7 @@ mailbox-list = mailbox ["," mailbox-list]
 group        = display-name ":" [mailbox-list] ";"
 address      = mailbox / group / unix-mbox
 address-list = address ["," address-list]
-@end example
+@end smallexample
 
 unix-mbox is a non-standard extension meant to deal with the common
 practice of using user names as addresses in mail utilities. It allows
@@ -75,7 +75,6 @@ The @code{address_t} object is used to hold information about a parsed
 RFC822 address list, and is an opaque
 data structure to the user. Functions are provided to retrieve information
 about an address in the address list.
-
 @end deftp
 
 @deftypefun int address_create (address_t *@var{addr}, const char *@var{string})
@@ -103,9 +102,6 @@ The return value is @code{0} on success and a code number on error conditions:
 @ADDRESSEPARSE
 @end table
 @end deftypefun
-
-
-
 
 @deftypefun  void address_destroy (address_t *@var{addr})
 The @var{addr} is destroyed.
@@ -154,7 +150,7 @@ A group is a kind of a special case. It has a display-name, followed
 by an optional mailbox-list. The display-name will be allocated an address
 all it's own, but all the other elements (local-part, domain, etc.) will
 be zero-length. So "a group: ;" is valid, will have a count of 1, but
-address_get_email(), and all the rest, will return zero-length output.
+@code{address_get_email()}, and all the rest, will return zero-length output.
 
 The return value is @code{0} on success and a code number on error conditions:
 @table @code
@@ -162,7 +158,6 @@ The return value is @code{0} on success and a code number on error conditions:
 @ADDRESSENOENT
 @end table
 @end deftypefun
-
 
 @deftypefun  int address_get_comments (address_t *@var{addr}, size_t @var{no}, char* @var{buf}, size_t @var{len}, size_t* @var{n})
 
@@ -175,7 +170,6 @@ The return value is @code{0} on success and a code number on error conditions:
 @ADDRESSENOENT
 @end table
 @end deftypefun
-
 
 @deftypefun  int address_get_email (address_t *@var{addr}, size_t @var{no}, char* @var{buf}, size_t @var{len}, size_t* @var{n})
 
@@ -220,7 +214,7 @@ The return value is @code{0} on success and a code number on error conditions:
 Accesses the route of an email addr-spec extracted while
 parsing the @var{no}th email address. This is a rarely used RFC822 address
 syntax, but is legal in SMTP as well. The entire route is returned as
-a string, those wishing to parse it should look at <mailutils/parse822.h>.
+a string, those wishing to parse it should look at @file{mailutils/parse822.h}.
 
 The return value is @code{0} on success and a code number on error conditions:
 @table @code
@@ -259,7 +253,6 @@ The return value is @code{0} on success and a code number on error conditions:
 @end table
 @end deftypefun
 
-
 @deftypefun  int address_get_count (address_t @var{addr}, size_t* @var{count})
 
 Returns a count of the addresses in the address list.
@@ -270,8 +263,7 @@ not @code{null}, the count will be written to *@var{count}.
 The return value is @code{0}.
 @end deftypefun
 
-@section Example
-@example
+@subheading Example
+@smallexample
 @include addr.inc
-@end example
-
+@end smallexample

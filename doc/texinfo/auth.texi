@@ -1,12 +1,13 @@
 @c This is part of the GNU Mailutils manual.
-@c Copyright (C) 1999,2000,2001,2002 Free Software Foundation, Inc.
+@c Copyright (C) 1999,2000,2001,2002,2003,2004 Free Software Foundation, Inc.
 @c See file mailutils.texi for copying conditions.
 @comment *******************************************************************
-@example
+
+@smallexample
 @code{/* Prefix @emph{auth_} is reserved */}
 @code{#include <mailutils/auth.h>}
 
-@end example
+@end smallexample
 
 There are many ways to authenticate to a server.  To be flexible the
 authentication process is provided by two objects @code{auth_t} and
@@ -34,11 +35,13 @@ if not set, this function can be overridden by a custom method.
 @deftypefun int auth_epilogue (auth_t @var{auth})
 @end deftypefun
 
+@sp 1
 A simple example of an authenticate function:
-@example
-#include <mailutils/auth.h>
+
+@smallexample
 #include <stdio.h>
 #include <string.h>
+#include <mailutils/auth.h>
 
 int
 my_authenticate (auth_t auth, char **user, char **passwd)
@@ -64,4 +67,4 @@ my_authenticate (auth_t auth, char **user, char **passwd)
   *passwd = strdup (p);
   return 0;
 @}
-@end example
+@end smallexample

@@ -1,17 +1,18 @@
 @c This is part of the GNU Mailutils manual.
-@c Copyright (C) 1999,2000,2001,2002 Free Software Foundation, Inc.
+@c Copyright (C) 1999,2000,2001,2002,2003,2004 Free Software Foundation, Inc.
 @c See file mailutils.texi for copying conditions.
 @comment *******************************************************************
-@example
-@code{#include <mailutils/message.h>}
-@code{/* Prefix @emph{message_} is reserve */}
 
-@end example
+@smallexample
+@code{/* Prefix @emph{message_} is reserve */}
+@code{#include <mailutils/message.h>}
+
+@end smallexample
 
 The @code{message_t} object is a convenient way to manipulate messages.  It
 encapsulates the @code{envelope_t}, the @code{header_t} and the @code{body_t}.
 
-@example
+@smallexample
 @group
     mailbox_t
     __________                   message_t
@@ -27,7 +28,7 @@ encapsulates the @code{envelope_t}, the @code{header_t} and the @code{body_t}.
                                |  stream_t             |
                                +-----------------------+
 @end group
-@end example
+@end smallexample
 
 @deftypefun void message_create (message_t *@var{msg}, void *@var{owner})
 @end deftypefun

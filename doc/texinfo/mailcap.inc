@@ -1,5 +1,5 @@
 @comment   GNU Mailutils -- a suite of utilities for electronic mail
-@comment   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+@comment   Copyright (C) 1999, 2000, 2001, 2004 Free Software Foundation, Inc.
 @comment
 @comment   GNU Mailutils is free software; you can redistribute it and/or modify
 @comment   it under the terms of the GNU General Public License as published by
@@ -21,13 +21,13 @@
 #include <mailutils/error.h>
 
 int
-main(int argc, char **argv)
+main (int argc, char **argv)
 @{
   stream_t stream = NULL;
   int status = 0;
   char *file = argc == 1 ? "/etc/mailcap" : argv[1];
   mu_mailcap_t mailcap = NULL;
-    
+
   status = file_stream_create (&stream, file, MU_STREAM_READ);
   if (status)
     @{

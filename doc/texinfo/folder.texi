@@ -1,14 +1,15 @@
 @c This is part of the GNU Mailutils manual.
-@c Copyright (C) 1999,2000,2001,2002 Free Software Foundation, Inc.
+@c Copyright (C) 1999,2000,2001,2002,2003,2004 Free Software Foundation, Inc.
 @c See file mailutils.texi for copying conditions.
 @comment *******************************************************************
-@example
+
+@smallexample
 @code{/* Prefix @emph{folder_} is reserve */}
 @code{#include <mailutils/folder.h>}
 
-@end example
+@end smallexample
 
-@example
+@smallexample
 @group
                              folder_t                  url_t
   -/var/mail-    +---//---->/-----------------\    +-->/-----------\
@@ -27,7 +28,7 @@
                             |  mailbox_t(n)   |
                             \-----------------/
 @end group
-@end example
+@end smallexample
 
 @deftypefun int  folder_create (folder_t *, const char *@var{url})
 @end deftypefun

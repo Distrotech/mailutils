@@ -1,5 +1,5 @@
 @c This is part of the GNU Mailutils manual.
-@c Copyright (C) 1999,2000,2001,2002 Free Software Foundation, Inc.
+@c Copyright (C) 1999,2000,2001,2002,2003,2004 Free Software Foundation, Inc.
 @c See file mailutils.texi for copying conditions.
 @comment *******************************************************************
 
@@ -11,24 +11,22 @@ about Scheme programming language, @xref{Top,,,r4rs,Revised(4) Report on
 the Algorithmic Language Scheme}.
 
 @menu
-Functions Provided by libmu_scm
+Functions Provided by @file{libmu_scm}
 
 * Address Functions::
 * Mailbox Functions::
 * Message Functions::
 * MIME Functions::
-* Log Functions::
+* Logging Functions::
 
-Using libmu_scm
+Using @file{libmu_scm}
 
 * Direct Linking::
 * Dynamic Linking::
-
 @end menu
 
-
 @node Address Functions
-@section Address Functions
+@subsection Address Functions
 
 @deffn {Scheme Function} mu-address-get-personal ADDRESS NUM
 Return personal part of an email address.
@@ -54,14 +52,14 @@ Return number of parts in email address.
 @end deffn
 
 @node Mailbox Functions
-@section Mailbox Functions
+@subsection Mailbox Functions
 
 @deffn {Scheme Function} mu-mailbox-open URL MODE
-Opens a mailbox specified by URL.
+Opens a mailbox specified by @var{URL}.
 @end deffn
 
 @deffn {Scheme Function} mu-mailbox-close MBOX
-Closes mailbox MBOX
+Closes mailbox @var{MBOX}.
 @end deffn
 
 @deffn {Scheme Function} mu-mailbox-get-url MBOX
@@ -69,14 +67,14 @@ Returns the URL of the mailbox.
 @end deffn
 
 @deffn {Scheme Function} mu-mailbox-get-port MBOX MODE
-Returns a port associated with the contents of the MBOX.
-MODE is a string defining operation mode of the stream. It may
+Returns a port associated with the contents of the @var{MBOX}.
+@var{MODE} is a string defining operation mode of the stream. It may
 contain any of the two characters: @samp{r} for reading, @samp{w} for
 writing.
 @end deffn
 
 @deffn {Scheme Function} mu-mailbox-get-message MBOX MSGNO
-Retrieve from MBOX message # MSGNO.
+Retrieve from @var{MBOX} message # @var{MSGNO}.
 @end deffn
 
 @deffn {Scheme Function} mu-mailbox-messages-count MBOX
@@ -96,17 +94,17 @@ Appends the message to the mailbox
 @end deffn
 
 @node Message Functions
-@section Message Functions
+@subsection Message Functions
 
 @deffn {Scheme Function} mu-message-copy MESG
 Creates the copy of the given message.
 @end deffn
 
 @deffn {Scheme Function} mu-message-set-header MESG HEADER VALUE REPLACE
-Sets new VALUE to the header HEADER of the message MESG.
-If the HEADER is already present in the message its value
-is replaced with the supplied one if the optional REPLACE is
-#t. Otherwise new header is created and appended.
+Sets new @var{VALUE} to the header @var{HEADER} of the message @var{MESG}.
+If the @var{HEADER} is already present in the message its value
+is replaced with the supplied one if the optional @var{REPLACE}
+is @code{#t}. Otherwise new header is created and appended.
 @end deffn
 
 @deffn {Scheme Function} mu-message-get-size MESG
@@ -118,146 +116,146 @@ Returns number of lines in the given message.
 @end deffn
 
 @deffn {Scheme Function} mu-message-get-sender MESG
-Returns the sender email address for the message MESG.
+Returns the sender email address for the message @var{MESG}.
 @end deffn
 
 @deffn {Scheme Function} mu-message-get-header MESG HEADER
-Returns the header value of the HEADER in the MESG.
+Returns the header value of the @var{HEADER} in the @var{MESG}.
 @end deffn
 
 @deffn {Scheme Function} mu-message-get-header-fields MESG HEADERS
-Returns the list of headers in the MESG. If optional HEADERS is
-specified it should be a list of header names to restrict return
+Returns the list of headers in the @var{MESG}. If optional @var{HEADERS}
+is specified it should be a list of header names to restrict return
 value to.
 @end deffn
 
 @deffn {Scheme Function} mu-message-set-header-fields MESG LIST REPLACE
-Set the headers in the message MESG from LIST
-LIST is a list of (cons HEADER VALUE)
-Optional parameter REPLACE specifies whether the new header
-values should replace the headers already present in the
-message.
+Set the headers in the message @var{MESG} from @var{LIST}.
+@var{LIST} is a list of @code{(cons @var{HEADER} @var{VALUE})}.
+Optional parameter @var{REPLACE} specifies whether the new header
+values should replace the headers already present in the message.
 @end deffn
 
 @deffn {Scheme Function} mu-message-delete MESG FLAG
-Mark given message as deleted. Optional FLAG allows to toggle deleted mark
-The message is deleted if it is #t and undeleted if it is #f
+Mark given message as deleted. Optional @var{FLAG} allows to toggle
+deleted mark. The message is deleted if it is @code{#t} and undeleted
+if it is @code{#f}.
 @end deffn
 
 @deffn {Scheme Function} mu-message-get-flag MESG FLAG
-Return value of the attribute FLAG.
+Return value of the attribute @var{FLAG}.
 @end deffn
 
 @deffn {Scheme Function} mu-message-set-flag MESG FLAG VALUE
-Set the given attribute of the message. If optional VALUE is #f, the
-attribute is unset.
+Set the given attribute of the message. If optional @var{VALUE}
+is @code{#f}, the attribute is unset.
 @end deffn
 
 @deffn {Scheme Function} mu-message-get-user-flag MESG FLAG
-Returns value of the user attribute FLAG.
+Returns value of the user attribute @var{FLAG}.
 @end deffn
 
 @deffn {Scheme Function} mu-message-set-user-flag MESG FLAG VALUE
-Set the given user attribute of the message. If optional VALUE is
-#f, the attribute is unset.
+Set the given user attribute of the message. If optional @var{VALUE}
+is @code{#f}, the attribute is unset.
 @end deffn
 
 @deffn {Scheme Function} mu-message-get-port MESG MODE FULL
-Returns a port associated with the given MESG. MODE is a string
+Returns a port associated with the given @var{MESG}. @var{MODE} is a string
 defining operation mode of the stream. It may contain any of the
 two characters: @samp{r} for reading, @samp{w} for writing.
-If optional FULL argument specified, it should be a boolean value.
-If it is #t then the returned port will allow access to any
-part of the message (including headers). If it is #f then the port
+If optional @var{FULL} argument specified, it should be a boolean value.
+If it is @code{#t} then the returned port will allow access to any
+part of the message (including headers). If it is @code{#f} then the port
 accesses only the message body (the default).
 @end deffn
 
 @deffn {Scheme Function} mu-message-get-body MESG
-Returns the message body for the message MESG.
+Returns the message body for the message @var{MESG}.
 @end deffn
 
 @deffn {Scheme Function} mu-message-send MESG MAILER
-Sends the message MESG. Optional MAILER overrides default
-mailer settings in mu-mailer.
+Sends the message @var{MESG}. Optional @var{MAILER}
+overrides default mailer settings in @code{mu-mailer}.
 @end deffn
 
 @node MIME Functions
-@section MIME Functions
+@subsection MIME Functions
 
 @deffn {Scheme Function} mu-mime-create FLAGS MESG
 Creates a new MIME object.
 @end deffn
 
 @deffn {Scheme Function} mu-mime-multipart? MIME
-Returns #t if MIME is a multipart object.
+Returns @code{#t} if @var{MIME} is a multipart object.
 @end deffn
 
 @deffn {Scheme Function} mu-mime-get-num-parts MIME
-Returns number of parts in a MIME object.
+Returns number of parts in a @var{MIME} object.
 @end deffn
 
 @deffn {Scheme Function} mu-mime-get-part MIME PART
-Returns part number PART from a MIME object.
+Returns part number @var{PART} from a @var{MIME} object.
 @end deffn
 
 @deffn {Scheme Function} mu-mime-add-part MIME MESG
-Adds MESG to the MIME object.
+Adds @var{MESG} to the @var{MIME} object.
 @end deffn
 
 @deffn {Scheme Function} mu-mime-get-message MIME
-Converts MIME object to a message.
+Converts @var{MIME} object to a message.
 @end deffn
 
-@node Log Functions
-@section Log Functions
+@node Logging Functions
+@subsection Logging Functions
 
 @deffn {Scheme Function} mu-openlog IDENT OPTION FACILITY
 Opens a connection to the system logger for Guile program.
 @end deffn
 
 @deffn {Scheme Function} mu-logger PRIO TEXT
-Generates a log message to be distributed via syslogd.
+Generates a log message to be distributed via @code{syslogd}.
 @end deffn
 
 @deffn {Scheme Function} mu-closelog
-Closes the channel to the system logger open by mu-openlog.
+Closes the channel to the system logger open by @code{mu-openlog}.
 @end deffn
 
 @node Direct Linking
-@section Direct Linking
+@subsection Direct Linking
 
 If you plan to link your program directly to @file{libguile}, it will
 probably make sense to link @file{libmu_scm} directly as well. The
 arguments to the program loader may be obtained by running
 
-@example
+@smallexample
 mailutils-config --link guile
-@end example
+@end smallexample
 @noindent
 
 @xref{mailutils-config}, for more information about this utility.
 
 Here is a sample Makefile fragment:
 
-@example
+@smallexample
 MU_LDFLAGS=`mailutils-config --link guile`
 MU_INCLUDES=`mailutils-config --include`
 
 myprog: myprog.c
         $(CC) -omyprog $(CFLAGS) $(MU_INCLUDES) myprog.c $(MU_LDFLAGS)
-@end example        
+@end smallexample        
 
 @node Dynamic Linking
-@section Dynamic Linking
+@subsection Dynamic Linking
 
 Dynamic linking is the preferred method of using @file{libmu_scm}. It
 uses Guile ``use-modules'' mechanism. An interface module
 @file{mailutils.scm} is provided in order to facilitate using this
 method. This module is installed in the package data directory (by
-default it is @var{prefix}/share/mailutils). A sample use of
+default it is @file{@var{prefix}/share/mailutils}). A sample use of
 this module is:
 
-@example
+@smallexample
 (set! %load-path (list "/usr/local/share/mailutils"))
 (use-modules (mailutils))
 
@@ -265,11 +263,8 @@ this module is:
 
 (let ((mb (mu-mailbox-open "/var/spool/mail/gray" "r")))
 ...
-@end example
+@end smallexample
 
 @emph{Note}, that you should explicitly modify the @code{%load-path}
 before calling @code{use-modules}, otherwise Guile will not be able to
 find @file{mailutils.scm}.
-
-
-

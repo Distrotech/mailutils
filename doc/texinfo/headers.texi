@@ -1,12 +1,13 @@
 @c This is part of the GNU Mailutils manual.
-@c Copyright (C) 1999,2000,2001,2002 Free Software Foundation, Inc.
+@c Copyright (C) 1999,2000,2001,2002,2003,2004 Free Software Foundation, Inc.
 @c See file mailutils.texi for copying conditions.
 @comment *******************************************************************
-@example
+
+@smallexample
 @code{/* Prefix @emph{header_} is reserved */}
 @code{#include <mailutils/header.h>}
 
-@end example
+@end smallexample
 
 So far we plan support for RFC822 and plan for RFC1522. with RFC1522 non ASCII
 characters will be encoded.
@@ -79,7 +80,6 @@ Content-Type
 @item MU_HEADER_MIME_VERSION
 MIME-Version
 @end table
-
 @end deftypefun
 
 @deftypefun int header_get_value (header_t @var{hdr}, const char *@var{fn}, char *@var{fv}, size_t @var{len}, size_t *@var{n})
