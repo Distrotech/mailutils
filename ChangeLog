@@ -1,3 +1,14 @@
+2001-06-15 Sergey Poznyakoff
+	Bunch of patches provided by Sam Roberts:
+	* imap4d/util.c: Fixed format bugs in util_parse.*_date functions.
+          Use parse822_date_time() in util_parse_header_date().
+	  Some changes to pacify gcc -Wall.
+	* imap4d/util.c,imap4d/search.c,imap4d/imap4d.h:
+	  Rename the confusing functions:
+		 util_parse_header_date -> util_parse_822_date
+		 util_parse_rfc822_date -> util_parse_ctime_date
+	  include <ctype.h>
+
 2001-06-14 23:01  sroberts
 
 	* mailbox/parse822.c: I think timezone info is now placed in struct
