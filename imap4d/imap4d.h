@@ -185,6 +185,7 @@ extern int  imap4d_subscribe __P ((struct imap4d_command *, char *));
 extern int  imap4d_uid __P ((struct imap4d_command *, char *));
 extern int  imap4d_unsubscribe __P ((struct imap4d_command *, char *));
 extern int  imap4d_namespace __P ((struct imap4d_command *, char *));
+extern int  imap4d_version __P ((struct imap4d_command *, char *));
 
 /* Shared between fetch and store */  
 extern void fetch_flags0 (const char *prefix, message_t msg, int isuid);
