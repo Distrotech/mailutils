@@ -1,3 +1,16 @@
+2001-07-25 Alain Magloire
+
+	Base on Jakob idea propose an implementation for decode.
+	But it is clearly not flexible enough:
+
+	  decode [msgno] [part]
+	  ? decode 28 2
+
+	Suppose message 28 is a mime with two part, the second part
+	will be decoded and sent to stdout.
+
+	* mail/decode.c: First implementation behind Jakobs idea.
+
 2001-07-23 Sergey Poznyakoff
 	* configure.in,libmu_scm/Makefile.am,guimb/Makefile.am : Fixed to
 	compile properly on systems with missing/incomplete guile.
