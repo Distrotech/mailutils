@@ -1,6 +1,7 @@
 ## Process this file with GNU Automake to create Makefile.in
 
-##   Copyright (C) 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
+##   Copyright (C) 2000, 2001, 2002, 2003,
+##   2004 Free Software Foundation, Inc.
 ##
 ##   GNU Mailutils is free software; you can redistribute it and/or
 ##   modify it under the terms of the GNU General Public License as
@@ -14,8 +15,7 @@
 ##
 ##   You should have received a copy of the GNU General Public License
 ##   along with GNU Mailutils; if not, write to the Free Software
-##   Foundation, Inc.
-##   59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+##   Foundation, Inc. 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 pkginclude_HEADERS = \
  address.h \
@@ -51,6 +51,7 @@ pkginclude_HEADERS = \
  parse822.h \
  pop3.h \
  property.h \
+ refcount.h \
  registrar.h \
  stream.h \
  tls.h \
