@@ -20,11 +20,23 @@
 
 #ifdef WITH_TLS
 
-#ifdef WITH_GNUTLS
-# include <gnutls/gnutls.h>
-#endif /* WITH_GNUTLS */
+#include <mailutils/types.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+extern int tls_stream_create __P((stream_t *stream, 
+                                  int in_fd, int out_fd, int flags));
+
+extern int mu_check_tls_environment __P((void));
+extern int mu_init_tls_libs __P((void));
+extern int mu_deinit_tls_libs __P((void));
+  
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* WITH_TLS */
-
 #endif /* _MAILUTILS_TLS_H */
 
