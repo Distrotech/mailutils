@@ -20,11 +20,11 @@ AC_DEFUN(MU_DEBUG_MODE,
        if test x"$GCC" = xyes; then
 	 AC_MSG_CHECKING(whether gcc accepts -ggdb)
          save_CFLAGS=$CFLAGS
-         CFLAGS="-ggdb"
+         CFLAGS="-ggdb -Wall"
          AC_TRY_COMPILE([],void f(){},
            AC_MSG_RESULT(yes),
            [if test x"$ac_cv_prog_cc_g" = xyes; then
-              CFLAGS=-g
+              CFLAGS="-g -Wall"
             else
               CFLAGS=
             fi
