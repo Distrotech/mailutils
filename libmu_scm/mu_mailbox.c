@@ -159,7 +159,7 @@ SCM_DEFINE (mu_mailbox_close, "mu-mailbox-close", 1, 0, 0,
   mum = (struct mu_mailbox *) SCM_CDR (MBOX);
   mailbox_close (mum->mbox);
   mailbox_destroy (&mum->mbox);
-  return SCM_UNDEFINED;
+  return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
 

@@ -464,7 +464,7 @@ SCM_DEFINE (mu_message_set_header_fields, "mu-message-set-header-fields", 2, 1, 
 		  cdr, SCM_ARGn, FUNC_NAME);
       header_set_value (hdr, SCM_STRING_CHARS (car), SCM_STRING_CHARS (cdr), replace);
     }
-  return SCM_UNDEFINED;
+  return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
 
@@ -491,7 +491,7 @@ SCM_DEFINE (mu_message_delete, "mu-message-delete", 1, 1, 0,
     attribute_set_deleted (attr);
   else
     attribute_unset_deleted (attr);
-  return SCM_UNDEFINED;
+  return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
 
@@ -619,7 +619,7 @@ SCM_DEFINE (mu_message_set_flag, "mu-message-set-flag", 2, 1, 0,
       if (value)
 	attribute_set_flags (attr, SCM_INUM (FLAG));
     }
-  return SCM_UNDEFINED;
+  return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
 
@@ -667,7 +667,7 @@ SCM_DEFINE (mu_message_set_user_flag, "mu-message-set-user-flag", 2, 1, 0,
     attribute_set_userflag (attr, SCM_INUM (FLAG));
   else
     attribute_unset_userflag (attr, SCM_INUM (FLAG));
-  return SCM_UNDEFINED;
+  return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
 
