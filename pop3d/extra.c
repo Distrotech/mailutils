@@ -17,6 +17,9 @@
 
 #include "pop3d.h"
 
+static FILE *ifile;
+static FILE *ofile;
+
 /* Takes a string as input and returns either the remainder of the string
    after the first space, or a zero length string if no space */
 
@@ -130,6 +133,28 @@ pop3d_abquit (int reason)
 }
 
 void
+pop3d_setio (FILE *in, FILE *out)
+{
+  if (!in || !out)
+    pop3d_abquit (ERR_NO_OFILE);
+
+  ifile = in;
+  ofile = out;
+}     
+
+void
+pop3d_flush_output ()
+{
+  fflush (ofile);
+}
+
+int
+pop3d_is_master ()
+{
+  return ofile == NULL;
+}
+
+void
 pop3d_outf (const char *fmt, ...)
 {
   va_list ap;
@@ -151,7 +176,7 @@ pop3d_outf (const char *fmt, ...)
 
 /* Gets a line of input from the client, caller should free() */
 char *
-pop3d_readline (char *buffer, int size)
+pop3d_readline (char *buffer, size_t size)
 {
   char *ptr;
 
