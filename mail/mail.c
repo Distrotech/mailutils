@@ -127,6 +127,8 @@ main (int argc, char **argv)
   cursor = 1;
   realcursor = cursor;
 
+  signal (SIGPIPE, SIG_IGN);
+
   /* set defaults for execution */
   util_do_command ("set noallnet");
   util_do_command ("set noappend");
@@ -154,7 +156,7 @@ main (int argc, char **argv)
   util_do_command ("set noonehop");
   util_do_command ("set nooutfolder");
   util_do_command ("set nopage");
-  util_do_command ("set prompt=? "); /* FIXME: "set prompt=\"? \"" */
+  util_do_command ("set prompt=?"); /* FIXME: "set prompt=\"? \"" */
   util_do_command ("set noquiet");
   util_do_command ("set norecord");
   util_do_command ("set save");
@@ -216,7 +218,8 @@ main (int argc, char **argv)
     }
 
   /* initial commands */
-  util_do_command ("from *");
+  if ((util_find_env("header"))->set)
+    util_do_command ("from *");
 
   prompt = util_find_env ("prompt");
 

@@ -20,6 +20,8 @@
 /*
  * r[eply] [message]
  * r[espond] [message]
+ * R[eply] [msglist]
+ * R[espond] [msglist]
  */
 
 int

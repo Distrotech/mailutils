@@ -25,6 +25,58 @@
 int
 mail_pipe (int argc, char **argv)
 {
-  printf ("Function not implemented in %s line %d\n", __FILE__, __LINE__);
-  return 1;
+  message_t msg;
+  stream_t stream;
+  char *cmd;
+  FILE *pipe;
+  int *list, num = 0;
+  char buffer[BUFSIZ];
+  off_t off = 0;
+  size_t n = 0;
+
+  if (argc > 1)
+    cmd = argv[--argc];
+  else if ((util_find_env ("cmd"))->set)
+    cmd = (util_find_env ("cmd"))->value;
+  else
+    return 1;
+
+  pipe = popen (cmd, "w");
+  if ((num = util_expand_msglist (argc, argv, &list)) > 0)
+    {
+      int i = 0;
+      for (i = 0; i < num; i++)
+	{
+	  if (mailbox_get_message (mbox, list[i], &msg) == 0)
+	    {
+	      printf ("message %d\n", list[i]);
+	      message_get_stream (msg, &stream);
+	      off = 0;
+	      while (stream_read (stream, buffer, sizeof (buffer) - 1, off,
+				  &n) == 0 && n != 0)
+		{
+		  buffer[n] = '\0';
+		  fprintf (pipe, "%s", buffer);
+		  off =+ n;
+		}
+	      if ((util_find_env("page"))->set)
+		fprintf (pipe, "\f");
+	    }
+	}
+    }
+  else if (mailbox_get_message (mbox, cursor, &msg) == 0)
+    {
+      message_get_stream (msg, &stream);
+      while (stream_read (stream, buffer, sizeof (buffer) - 1, off, &n) == 0
+	     && n != 0)
+	{
+	  buffer[n] = '\0';
+	  fprintf (pipe, "%s", buffer);
+	  off += n;
+	}
+    }
+    
+  free (list);
+  pclose (pipe);
+  return 0;
 }
