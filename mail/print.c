@@ -67,7 +67,7 @@ mail_print (int argc, char **argv)
 	      fprintf (out, "Subject: %s\n", buffer);
 	      /* free (buf); */
 	    }
-	  
+	  fprintf (out, "\n");
 	  message_get_body (mesg, &body);
 	  body_get_stream (body, &stream);
 	}

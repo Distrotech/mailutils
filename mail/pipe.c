@@ -49,7 +49,6 @@ mail_pipe (int argc, char **argv)
 	{
 	  if (mailbox_get_message (mbox, list[i], &msg) == 0)
 	    {
-	      fprintf (stderr, "message %d\n", list[i]);
 	      message_get_stream (msg, &stream);
 	      off = 0;
 	      while (stream_read (stream, buffer, sizeof (buffer) - 1, off,
@@ -57,10 +56,10 @@ mail_pipe (int argc, char **argv)
 		{
 		  buffer[n] = '\0';
 		  fprintf (pipe, "%s", buffer);
-		  off =+ n;
+		  off += n;
 		}
-	      if ((util_find_env("page"))->set)
-		fprintf (pipe, "\f");	/* FIXME: is this formfeed ? */
+	      if ((util_find_env("page"))->set && i < num - 1)
+		fprintf (pipe, "\f\n");
 	    }
 	}
     }

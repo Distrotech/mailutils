@@ -24,6 +24,27 @@
 int
 mail_source (int argc, char **argv)
 {
-  printf ("Function not implemented in %s line %d\n", __FILE__, __LINE__);
+#if 0
+
+  /* On sparky's machine, there is an odd SEGV coming from a free() deep
+     withing fopen(). I don't get it */
+
+  if (argc == 2)
+    {
+      FILE *rc = fopen (argv[1], "r");
+      char *buf = NULL;
+      size_t s = 0;
+      while (getline (&buf, &s, rc) >= 0)
+	{
+	  buf[strlen(buf) - 1] = '\0';
+	  util_do_command("%s", buf);
+	  free (buf);
+	  buf = NULL;
+	  s = 0;
+	}
+      fclose (rc);
+      return 0;
+    }
+#endif
   return 1;
 }

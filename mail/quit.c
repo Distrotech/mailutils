@@ -25,6 +25,8 @@
 int
 mail_quit (int argc, char **argv)
 {
-  printf ("Function not implemented in %s line %d\n", __FILE__, __LINE__);
-  return 1;
+  mailbox_expunge (mbox);
+  mailbox_close (mbox);
+  mailbox_destroy (&mbox);
+  exit (0);
 }

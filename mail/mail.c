@@ -199,6 +199,10 @@ main (int argc, char **argv)
   /* argument parsing */
   argp_parse (&argp, argc, argv, 0, 0, &args);
 
+  /* read .mailrc */
+  if ((util_find_env ("rc"))->set)
+    util_do_command ("source %s", getenv ("MAILRC"));
+
   /* Initialize readline */
   rl_readline_name = "mail";
   rl_attempted_completion_function = (CPPFunction *)util_command_completion;
@@ -231,7 +235,7 @@ main (int argc, char **argv)
     return util_do_command ("from *");
   else if (strlen ("send") == modelen && !strcmp ("send", mode->value))
     {
-      /* set cmd to "mail [add1...]" */
+      /* FIXME: set cmd to "mail [add1...]" */
       cmd = strdup ("mail");
       return util_do_command (cmd);
     }
