@@ -471,7 +471,7 @@ imap4d_readline (void)
 	}
       else if (rc)
 	{
-	  const char *p;
+	  char *p;
 	  if (stream_strerror (istream, &p))
 	    p = strerror (errno);
 
@@ -1113,7 +1113,7 @@ void
 util_set_input (stream_t str)
 {
   if (istream)
-    stream_destroy (istream, stream_get_owner (istream));
+    stream_destroy (&istream, stream_get_owner (istream));
   istream = str;
 }
 
@@ -1121,7 +1121,7 @@ void
 util_set_output (stream_t str)
 {
   if (ostream)
-    stream_destroy (ostream, stream_get_owner (ostream));
+    stream_destroy (&ostream, stream_get_owner (ostream));
   ostream = str;
 }
 
@@ -1188,7 +1188,7 @@ imap4d_init_tls_server ()
 
   if (stream_open (stream))
     {
-      const char *p;
+      char *p;
       stream_strerror (stream, &p);
       syslog (LOG_ERR, _("cannot open TLS stream: %s"), p);
       return 0;
