@@ -1,5 +1,5 @@
 
-1. Overview
+* Overview
 
 A compiled sieve program consists of a sequence of cells. Each cell
 is a pointer to sieve_op_t data, i.e. it points to an instruction handler
@@ -13,55 +13,67 @@ the cell contents, interprets it as address of an instruction handler,
 increments the program counter and executes the handler. The evaluator
 stops executing the program when it encounters a NULL pointer.
 
-When invoked, an instruction handler receives a single argument: a pointer
+When invoked, the instruction handler receives a single argument: a pointer
 to the sieve_machine_t structure, describing current runtime environment.
 If the handler needs any surplus arguments, it is its responsibility
 to retrieve them from the program cells immediately following the
 handler address and increment the pc value accordingly.
 
-2. Existing handlers
+* Existing handlers
 
-2.1. Push
+** Nop
+
+Name: instr_nop
+Arguments: None
+
+Does nothing
+
+** Push
 
 Name: instr_push
 Arguments: None
 
 Pushes current numeric register on stack.
 
-2.2. Pop
+** Pop
 
 Name: instr_pop
 Arguments: None
 
 Pops the top of stack value into the numeric register.
 
-2.3. Unconditional branch
+** Unconditional branch
 
 Name: instr_branch
 Arguments: [pc  ]  (number) Offset of the new cell.
 
-2.4. Branch if zero
+** Branch if zero
 
 Name: instr_brz
 Arguments: [pc  ]  (number) Offset of the new cell.
 
-2.5. Logical NOT
+** Branch if not zero
+
+Name: instr_brnz
+Arguments: [pc  ]  (number) Offset of the new cell.
+
+** Logical NOT
 
 Name: instr_not
 Arguments: none
 
-2.6.  Logical AND
+** Logical AND
 
 Name: instr_allof
 Arguments: [pc  ]  (number) Number of items to be popped from stack
 
 
-2.7.  Logical OR
+** Logical OR
 
 Name: instr_anyof
 Arguments: [pc  ]  (number) Number of items to be popped from stack
 
-2.8. Action handler
+** Action handler
 
 Name: instr_action
 Arguments: [pc  ]  (sieve_handler_t*) Pointer to the action handling function.
@@ -69,7 +81,7 @@ Arguments: [pc  ]  (sieve_handler_t*) Pointer to the action handling function.
            [pc+2]  (list_t of sieve_runtime_tag_t) A list of tags.
 	   [pc+3]  (string) Name of the action (for debugging purposes).
 
-2.9. Test handler
+** Test handler
 
 Name: instr_test
 Arguments: [pc  ]  (sieve_handler_t*) Pointer to the test handling function.
@@ -77,7 +89,7 @@ Arguments: [pc  ]  (sieve_handler_t*) Pointer to the test handling function.
            [pc+2]  (list_t of sieve_runtime_tag_t) A list of tags.
 	   [pc+3]  (string) Name of the test (for debugging purposes).
 
-3. Conditional statement branching
+* Conditional statement branching
 
 A simple statement
 
@@ -138,3 +150,64 @@ L_END:
 
 Generally speaking, each ELSIF branch generates a code, similar to usual
 IF ... ELSE sequence.
+
+* Boolean shortcuts
+
+Boolean shortcuts are implemented for coding ALLOF and ANYOF conditions.
+The code these produce is shown in the next two subsections. Notice the
+insertion of the two Nop statement after the last condition. These replace
+the two slots used by the Brz or Brnz instruction, which would be useless,
+since the next statement after ALLOF or ANYOF is guaranteed to be a branch
+statement. This replacement speeds up the execution a little.
+
+** ALLOF
+
+ALLOF(cond1,cond2,cond3)
+
+# Evaluate cond1
+	.
+	.
+	.
+	brz	L_end
+# Evaluate cond2
+	.
+	.
+	.
+	brz	L_end
+# Evaluate cond3
+	.
+	.
+	.
+	nop
+	nop
+L_end:
+	.
+
+** ANYOF
+
+ALLOF(cond1,cond2,cond3)
+
+# Evaluate cond1
+	.
+	.
+	.
+	brnz	L_end
+# Evaluate cond2
+	.
+	.
+	.
+	brnz	L_end
+# Evaluate cond3
+	.
+	.
+	.
+	nop
+	nop
+L_end:
+	.
+
+
+Local variables:
+mode: outline
+paragraph-separate: "[ 	]*$"
+end:
