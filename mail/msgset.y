@@ -91,7 +91,7 @@ input    : /* empty */
 	   }
          | '*'
            {
-	     result = msgset_range (1, total);
+	     result = msgset_select (select_deleted, NULL, 0, total);
 	   }
          | '-'
            {
