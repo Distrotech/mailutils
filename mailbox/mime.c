@@ -476,6 +476,8 @@ _mime_body_read(stream_t stream, char *buf, size_t buflen, off_t off, size_t *nb
 	if ( off == 0 ) { 			/* reset message */
 		mime->cur_offset = 0;
 		mime->cur_part = 0;
+		mime->part_offset = 0;
+
 		if ( mime->nmtp_parts > 1 )
 			mime->flags |= MIME_INSERT_BOUNDARY;
 	}

@@ -1,3 +1,8 @@
+2002-12-02  Frederic Gobry  <frederic.gobry@smartdata.ch>
+
+	* mailbox/mime.c (_mime_body_read): reset the part offset when
+	resetting the message.
+
 2002-11-29  Sergey Poznyakoff 
 
 	* mailbox/date.c: New version of mu_tm2time function.
