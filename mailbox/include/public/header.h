@@ -58,6 +58,7 @@ extern "C" {
 #define MU_HEADER_STATUS                "Status"
 #define MU_HEADER_CONTENT_LENGTH        "Content-Length"
 #define MU_HEADER_CONTENT_TYPE          "Content-Type"
+#define MU_HEADER_CONTENT_ENCODING      "Content-transfer-encoding"
 #define MU_HEADER_MIME_VERSION          "MIME-Version"
 
 /* Mime support header attribute */
