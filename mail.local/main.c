@@ -46,6 +46,8 @@ static char args_doc[] = "recipient [recipient ...]";
 
 static struct argp_option options[] = 
 {
+  {NULL, 0, NULL, 0,
+   "mail.local specific switches", 0},
   { "ex-multiple-delivery-success", ARG_MULTIPLE_DELIVERY, NULL, 0,
     "Don't return errors when delivering to multiple recipients", 0 },
   { "ex-quota-tempfail", ARG_QUOTA_TEMPFAIL, NULL, 0,
@@ -82,8 +84,14 @@ static struct argp argp = {
   parse_opt,
   args_doc, 
   doc,
-  mu_common_argp_child,
+  NULL,
   NULL, NULL
+};
+
+static const char *argp_capa[] = {
+  "mailutils",
+  "logging",
+  NULL
 };
 
 char *from = NULL;
@@ -168,9 +176,9 @@ main (int argc, char *argv[])
   close_fds ();
   umask (0077);
 
-  mu_argp_error_code = EX_CONFIG; 
-  mu_create_argcv (argc, argv, &argc, &argv);
-  argp_parse (&argp, argc, argv, 0, &arg_index, NULL);
+  mu_argp_error_code = EX_CONFIG;
+  
+  mu_argp_parse (&argp, &argc, &argv, 0, argp_capa, &arg_index, NULL);
   
   openlog ("mail.local", LOG_PID, log_facility);
   mu_error_set_print (mu_syslog_error_printer);
@@ -436,6 +444,9 @@ deliver (FILE *fp, char *name)
   stream_t stream;
   size_t size;
   int failed = 0;
+#if defined(USE_DBM)
+  struct stat sb;
+#endif  
   
   pw = mu_getpwnam (name);
   if (!pw)
