@@ -512,7 +512,7 @@ fetch_operation (size_t msgno, char *arg, int silent)
   /* Check for section specific offset.  */
   if (partial)
     {
-      /* FIXME: This shoud be move in imap4d_fetch() and have more
+      /* FIXME: This should be move in imap4d_fetch() and have a more
 	 draconian check.  */
       *partial = '\0';
       partial++;
@@ -538,7 +538,7 @@ fetch_operation (size_t msgno, char *arg, int silent)
       off_t off = 0;
       message_get_stream (msg, &stream);
       message_size (msg, &size);
-      message_size (msg, &lines);
+      message_lines (msg, &lines);
       if (!silent)
 	util_send ("%s", arg);
       util_send ("%s {%u}\r\n", partial, size + lines);
