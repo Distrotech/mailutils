@@ -40,7 +40,6 @@
 
 #include <mailutils/error.h>
 #include <mailutils/iterator.h>
-#include <mailutils/list.h>
 #include <mailutils/mutil.h>
 
 /* convert a sequence of hex characters into an integer */
@@ -405,72 +404,72 @@ mu_cpystr (char *dst, const char *src, size_t size)
   return len;
 }
 
-static list_t _app_getpwnam = NULL;
+/* General retrieve stack support: */
 
 void
-mu_register_getpwnam (struct passwd *(*fun) __P((const char *)))
+mu_register_retriever (list_t *pflist, mu_retrieve_fp fun)
 {
-  if (!_app_getpwnam && list_create (&_app_getpwnam))
+  if (!*pflist && list_create (pflist))
     return;
-  list_append (_app_getpwnam, fun);
+  list_append (*pflist, fun);
 }
 
-struct passwd *
-mu_getpwnam (const char *name)
+void *
+mu_retrieve (list_t flist, void *data)
 {
-  struct passwd *p;
+  void *p = NULL;
   iterator_t itr;
 
-  p = getpwnam (name);
-
-  if (!p && iterator_create (&itr, _app_getpwnam) == 0)
+  if (iterator_create (&itr, flist) == 0)
     {
-      struct passwd *(*fun) __P((const char *));
+      mu_retrieve_fp fun;
       for (iterator_first (itr); !p && !iterator_is_done (itr);
 	   iterator_next (itr))
 	{
 	  iterator_current (itr, (void **)&fun);
-	  p = (*fun) (name);
+	  p = (*fun) (data);
 	}
 
       iterator_destroy (&itr);
     }
   return p;
 }
+
+/* getpwd support: */
+
+static list_t _app_getpwnam = NULL;
+
+void
+mu_register_getpwnam (struct passwd *(*fun) __P((const char *)))
+{
+  mu_register_retriever (&_app_getpwnam, (mu_retrieve_fp)fun);
+}
+
+struct passwd *
+mu_getpwnam (const char *name)
+{
+  struct passwd *p = getpwnam (name);
+  return p ? p : mu_retrieve (_app_getpwnam, (void*) name);
+}
+
+/* getpwuid support: */
 
 static list_t _app_getpwuid = NULL;
 
 void
 mu_register_getpwuid (struct passwd *(*fun) __P((uid_t)))
 {
-  if (!_app_getpwuid && list_create (&_app_getpwuid))
-    return;
-  list_append (_app_getpwuid, fun);
+  mu_register_retriever (&_app_getpwuid, (mu_retrieve_fp)fun);
 }
 
 struct passwd *
 mu_getpwuid (uid_t uid)
 {
-  struct passwd *p;
-  iterator_t itr;
-
-  p = getpwuid (uid);
-
-  if (!p && iterator_create (&itr, _app_getpwuid) == 0)
-    {
-      struct passwd *(*fun) __P((uid_t));
-      for (iterator_first (itr); !p && !iterator_is_done (itr);
-	   iterator_next (itr))
-	{
-	  iterator_current (itr, (void **)&fun);
-	  p = (*fun) (uid);
-	}
-
-      iterator_destroy (&itr);
-    }
-  return p;
+  struct passwd *p = getpwuid (uid);
+  return p ? p : mu_retrieve (_app_getpwuid, &uid);
 }
 
+/* Virtual domains */
 
 int mu_virtual_domain;
 
@@ -699,7 +698,7 @@ mu_tempfile (const char *tmpdir, char **namep)
  * had to look it up, so if somebody else is curious, thats where
  * to find it.
  */
-int mu_spawnvp(const char* prog, const char* const av_[], int* stat)
+int mu_spawnvp (const char* prog, const char* const av_[], int* stat)
 {
   pid_t pid;
   int err = 0;
