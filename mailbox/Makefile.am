@@ -2,8 +2,6 @@
 # Copyright (C) 2000,2001,2002 Free Software Foundation
 # See file COPYING in the distribution root directory for copying conditions.
 
-AUTOMAKE_OPTIONS = ../lib/ansi2knr
-
 INCLUDES = -I${top_srcdir}/include -I${top_srcdir}/mailbox -I${top_srcdir}/mailbox/include -I${top_srcdir}/include/mailutils/gnu
 AM_CFLAGS = -DSITE_VIRTUAL_PWDDIR=\"@SITE_VIRTUAL_PWDDIR@\"
 
@@ -25,6 +23,7 @@ attachment.c \
 attribute.c \
 auth.c \
 body.c \
+date.c \
 debug.c \
 envelope.c \
 file_stream.c \
