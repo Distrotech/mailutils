@@ -827,11 +827,11 @@ mhn_store_command (message_t msg, msg_part_t part, char *name)
 	      break;
 
 	    case 'P':
-	      if (msg_part_level (part) > 1)
+	      if (msg_part_level (part) >= 1)
 		obstack_1grow (&stk, '.');
 	      /*FALLTHRU*/
 	    case 'p':
-	      if (msg_part_level (part) > 1)
+	      if (msg_part_level (part) >= 1)
 		msg_part_format_stk (&stk, part);
 	      break;
 	      
