@@ -49,7 +49,7 @@ sieve script interpreter.
 #include <mailutils/registrar.h>
 #include <mailutils/stream.h>
 
-void mutil_register_all_mbox_formats(void);
+void mutil_register_all_mbox_formats (void);
 
 const char *argp_program_version = "sieve (" PACKAGE_STRING ")";
 
@@ -63,8 +63,7 @@ static char doc[] =
   "  P - network protocols (MU_DEBUG_PROT)\n"
   "  t - sieve trace (SV_DEBUG_TRACE)\n"
   "  h - sieve header filling (SV_DEBUG_HDR_FILL)\n"
-  "  q - sieve message queries (SV_DEBUG_MSG_QUERY)\n"
-  ;
+  "  q - sieve message queries (SV_DEBUG_MSG_QUERY)\n";
 
 #define D_DEFAULT "TPt"
 
@@ -85,7 +84,7 @@ static struct argp_option options[] = {
    "Ticket file for mailbox authentication", 0},
 
   {"mailer-url", 'M', "MAILER", 0,
-   "Mailer URL (defaults to \"sendmail:\")", 0},
+   "Mailer URL (defaults to \"sendmail:\"). Use `--mailer-url none' to disable creating the mailer (it will disable reject and redirect actions as well)", 0},
 
   {"debug", 'd', "FLAGS", OPTION_ARG_OPTIONAL,
    "Debug flags (defaults to \"" D_DEFAULT "\")", 0},
@@ -152,31 +151,31 @@ parser (int key, char *arg, struct argp_state *state)
 	    case 'T':
 	      opts->debug_level |= MU_DEBUG_TRACE;
 	      break;
-	      
+
 	    case 'P':
 	      opts->debug_level |= MU_DEBUG_PROT;
 	      break;
-	      
+
 	    case 't':
 	      opts->debug_level |= SV_DEBUG_TRACE;
 	      break;
-	      
+
 	    case 'h':
 	      opts->debug_level |= SV_DEBUG_HDR_FILL;
 	      break;
-	      
+
 	    case 'q':
 	      opts->debug_level |= SV_DEBUG_MSG_QUERY;
 	      break;
-	      
+
 	    case 'g':
 	      yydebug = 1;
 	      break;
-	      
+
 	    case 'a':
 	      addrdebug = 1;
 	      break;
-	      
+
 	    default:
 	      argp_error (state, "%c is not a valid debug flag", *arg);
 	      break;
@@ -215,17 +214,17 @@ static const char *sieve_argp_capa[] = {
 };
 
 char *sieve_license_text =
-"   Copyright 1999 by Carnegie Mellon University\n"
-"   Copyright 1999,2001,2002 by Free Software Foundation\n"
-"\n"
-"   Permission to use, copy, modify, and distribute this software and its\n"
-"   documentation for any purpose and without fee is hereby granted,\n"
-"   provided that the above copyright notice appear in all copies and that\n"
-"   both that copyright notice and this permission notice appear in\n"
-"   supporting documentation, and that the name of Carnegie Mellon\n"
-"   University not be used in advertising or publicity pertaining to\n"
-"   distribution of the software without specific, written prior\n"
-"   permission.\n";
+  "   Copyright 1999 by Carnegie Mellon University\n"
+  "   Copyright 1999,2001,2002 by Free Software Foundation\n"
+  "\n"
+  "   Permission to use, copy, modify, and distribute this software and its\n"
+  "   documentation for any purpose and without fee is hereby granted,\n"
+  "   provided that the above copyright notice appear in all copies and that\n"
+  "   both that copyright notice and this permission notice appear in\n"
+  "   supporting documentation, and that the name of Carnegie Mellon\n"
+  "   University not be used in advertising or publicity pertaining to\n"
+  "   distribution of the software without specific, written prior\n"
+  "   permission.\n";
 
 
 static void
@@ -292,13 +291,14 @@ main (int argc, char *argv[])
 
   /* Override license text: */
   mu_license_text = sieve_license_text;
-  rc = mu_argp_parse(&argp, &argc, &argv, ARGP_IN_ORDER, sieve_argp_capa,
-		     0, &opts);
+  rc = mu_argp_parse (&argp, &argc, &argv, ARGP_IN_ORDER, sieve_argp_capa,
+		      0, &opts);
 
-  if (rc) {
+  if (rc)
+    {
       fprintf (stderr, "arg parsing failed: %s\n", sv_strerror (rc));
       return 1;
-  }
+    }
 
   mutil_register_all_mbox_formats ();
 
@@ -353,29 +353,34 @@ main (int argc, char *argv[])
 	}
       if ((rc = mu_debug_set_level (debug, opts.debug_level)))
 	{
-	  fprintf (stderr, "mu_debug_set_level failed: %s\n", mu_errstring (rc));
+	  fprintf (stderr, "mu_debug_set_level failed: %s\n",
+		   mu_errstring (rc));
 	  goto cleanup;
 	}
       if ((rc = mu_debug_set_print (debug, debug_print, interp)))
 	{
-	  fprintf (stderr, "mu_debug_set_print failed: %s\n", mu_errstring (rc));
+	  fprintf (stderr, "mu_debug_set_print failed: %s\n",
+		   mu_errstring (rc));
 	  goto cleanup;
 	}
     }
 
   /* Create a mailer. */
-  if ((rc = mailer_create(&mailer, opts.mailer)))
-  {
-      fprintf (stderr, "mailer create <%s> failed: %s\n",
-	       opts.mailer, mu_errstring (rc));
-      goto cleanup;
-  }
-  if (debug && (rc = mailer_set_debug (mailer, debug)))
+  if (strcmp (opts.mailer, "none"))
     {
-      fprintf (stderr, "mailer_set_debug failed: %s\n", mu_errstring (rc));
-      goto cleanup;
+      if ((rc = mailer_create (&mailer, opts.mailer)))
+	{
+	  fprintf (stderr, "mailer create <%s> failed: %s\n",
+		   opts.mailer, mu_errstring (rc));
+	  goto cleanup;
+	}
+      if (debug && (rc = mailer_set_debug (mailer, debug)))
+	{
+	  fprintf (stderr, "mailer_set_debug failed: %s\n",
+		   mu_errstring (rc));
+	  goto cleanup;
+	}
     }
-
   /* Create, give a ticket to, and open the mailbox. */
   if ((rc = mailbox_create_default (&mbox, opts.mbox)) != 0)
     {
@@ -383,7 +388,7 @@ main (int argc, char *argv[])
 	       opts.mbox ? opts.mbox : "default", mu_errstring (rc));
       goto cleanup;
     }
-  
+
   if (debug && (rc = mailbox_set_debug (mbox, debug)))
     {
       fprintf (stderr, "mailbox_set_debug failed: %s\n", mu_errstring (rc));
@@ -397,20 +402,23 @@ main (int argc, char *argv[])
 
       if ((rc = mailbox_get_folder (mbox, &folder)))
 	{
-	  fprintf (stderr, "mailbox_get_folder failed: %s", mu_errstring (rc));
+	  fprintf (stderr, "mailbox_get_folder failed: %s",
+		   mu_errstring (rc));
 	  goto cleanup;
 	}
 
       if ((rc = folder_get_authority (folder, &auth)))
 	{
-	  fprintf (stderr, "folder_get_authority failed: %s", mu_errstring (rc));
+	  fprintf (stderr, "folder_get_authority failed: %s",
+		   mu_errstring (rc));
 	  goto cleanup;
 	}
 
       /* Authentication-less folders don't have authorities. */
       if (auth && (rc = authority_set_ticket (auth, ticket)))
 	{
-	  fprintf (stderr, "authority_set_ticket failed: %s", mu_errstring (rc));
+	  fprintf (stderr, "authority_set_ticket failed: %s",
+		   mu_errstring (rc));
 	  goto cleanup;
 	}
     }
@@ -445,11 +453,14 @@ main (int argc, char *argv[])
       if ((rc = mailbox_get_message (mbox, msgno, &msg)) != 0)
 	{
 	  fprintf (stderr, "get message on %s (msg %d) failed: %s\n",
-	      opts.mbox ? opts.mbox : "default", msgno, mu_errstring (rc));
+		   opts.mbox ? opts.mbox : "default", msgno,
+		   mu_errstring (rc));
 	  goto cleanup;
 	}
 
-      rc = sv_script_execute (script, msg, ticket, debug, mailer, opts.no_actions);
+      rc =
+	sv_script_execute (script, msg, ticket, debug, mailer,
+			   opts.no_actions);
 
       if (rc)
 	{
@@ -469,20 +480,20 @@ cleanup:
       int e;
 
       /* A message won't be marked deleted unless the script executed
-	 succesfully on it, so we always do an expunge, it will delete
-	 any messages that were marked DELETED even if execution failed
-	 on a later message. */
+         succesfully on it, so we always do an expunge, it will delete
+         any messages that were marked DELETED even if execution failed
+         on a later message. */
       if ((e = mailbox_expunge (mbox)) != 0)
 	fprintf (stderr, "expunge on %s failed: %s\n",
-	    opts.mbox ? opts.mbox : "default", mu_errstring (e));
+		 opts.mbox ? opts.mbox : "default", mu_errstring (e));
 
-      if(e && !rc)
+      if (e && !rc)
 	rc = e;
     }
 
   mailbox_close (mbox);
   mailbox_destroy (&mbox);
-  mu_debug_destroy(&debug, interp);
+  mu_debug_destroy (&debug, interp);
   sv_script_free (&script);
   sv_interp_free (&interp);
 
@@ -503,4 +514,3 @@ mutil_register_all_mbox_formats (void)
   list_append (bookie, sendmail_record);
   list_append (bookie, smtp_record);
 }
-
