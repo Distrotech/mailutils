@@ -36,6 +36,7 @@
 #endif
 
 #include <imap0.h>
+#include <url0.h>
 #include <mailutils/error.h>
 
 /* For dbg purposes set to one to see different level of traffic.  */
@@ -173,33 +174,28 @@ folder_imap_get_authority (folder_t folder, authority_t *pauth)
   int status = 0;
   if (folder->authority == NULL)
     {
-      char *auth;
-      size_t n = 0;
-      url_get_auth (folder->url, NULL, 0, &n);
-      auth = calloc (n + 1, 1);
-      if (auth == NULL)
-	return ENOMEM;
-      url_get_auth (folder->url, auth, n + 1, NULL);
-      if (strcasecmp (auth, "*") == 0)
+      /* assert (folder->url); */
+      if (folder->url == NULL)
+	return EINVAL;
+
+      if (folder->url->auth == NULL
+	  || strcasecmp (folder->url->auth, "*") == 0)
 	{
 	  status = authority_create (&folder->authority, NULL, folder);
-	  if (status == 0)
-	    authority_set_authenticate (folder->authority,
-					authenticate_imap_login, folder);
+	  authority_set_authenticate (folder->authority,
+				      authenticate_imap_login, folder);
 	}
-      else if (strcasecmp (auth, "anon") == 0)
+      else if (strcasecmp (folder->url->auth, "anon") == 0)
 	{
 	  status = authority_create (&folder->authority, NULL, folder);
-	  if (status == 0)
-	    authority_set_authenticate (folder->authority,
-					authenticate_imap_sasl_anon, folder);
+	  authority_set_authenticate (folder->authority,
+				      authenticate_imap_sasl_anon, folder);
 	}
       else
 	{
 	  /* Not a supported authentication mechanism. */
 	  status = ENOSYS;
 	}
-      free (auth);
     }
   if (pauth)
     *pauth = folder->authority;

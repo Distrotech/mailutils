@@ -1,3 +1,11 @@
+2001-11-02  Alain Magloire
+
+	* mailbox/folder_imap.c: If authority is null default to
+	user/passwd.
+	* mailbox/folder_pop.c: If authority is null default to
+	user/passwd.
+	* mailbox/mbx_pop.c(pop_open): Do not try to reconnect.
+
 2001-11-02  Sergey Poznyakoff
 
 	* comsat/comsat.c: Restart on sighup when in daemon mode.

@@ -511,7 +511,8 @@ pop_open (mailbox_t mbox, int flags)
 
   mbox->flags = flags;
 
-  CHECK_BUSY (mbox, mpd, func, 0);
+  /* Do not check for reconnect here.  */
+  /* CHECK_BUSY (mbox, mpd, func, 0); */
 
   /* Enter the pop state machine, and boogy: AUTHORISATION State.  */
   switch (mpd->state)

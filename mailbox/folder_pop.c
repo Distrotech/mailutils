@@ -24,6 +24,7 @@
 #include <errno.h>
 
 #include <folder0.h>
+#include <url0.h>
 #include <registrar0.h>
 
 /* We export url parsing and the initialisation of
@@ -90,14 +91,12 @@ folder_pop_get_authority (folder_t folder, authority_t *pauth)
   int status = 0;
   if (folder->authority == NULL)
     {
-      char *auth;
-      size_t n = 0;
+      /* assert (folder->url); */
+      if (folder->url == NULL)
+	return EINVAL;
 
-      url_get_auth (folder->url, NULL, 0, &n);
-      auth = calloc (n + 1, 1);
-      if (auth == NULL)
-	return ENOMEM;
-      if (strcasecmp (auth, "*") == 0)
+      if (folder->url->auth == NULL
+	  || strcasecmp (folder->url->auth, "*") == 0)
 	{
 	  status = authority_create (&folder->authority, NULL, folder);
 	  authority_set_authenticate (folder->authority, _pop_user, folder);
