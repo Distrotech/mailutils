@@ -757,6 +757,35 @@ text:
 This results in the contents of file @file{myresponse.txt} being read
 and interpreted as the contents of the multiline string.
 
+GNU libsieve extends the described syntax as follows. If the keyword
+@code{text:} is immediately followed by a dash (@samp{-}), then all
+leading tab characters are stripped from input lines and the line
+containing delimiter (@samp{.}). This allows multiline strings within
+scripts to be indented in a natural fashion.
+
+Furthermore, if the @code{text:} (optionally followed by @samp{-}) is
+immediately followed by a word, this word will be used as ending
+delimiter of multiline string instead of the default dot. For
+example:        
+
+@example
+@group
+if header "from" "me@@example.com"
+  @{
+    reject text:-EOT
+        I do not accept messages from
+        this address.
+        .
+        .
+        EOT
+     # Notice that this the multiline string ends here.
+     # The single dots above will be part of it.
+    ;
+  @}
+@end group  
+@end example
+@noindent
+
 @item String Lists
 
 A @dfn{string list} is a comma-delimited list of quoted strings, enclosed
@@ -1622,6 +1651,25 @@ the old message in a new one.
 This section summarizes the @sc{gnu} extensions to the sieve language
 
 @enumerate 1
+
+@item Multiline strings syntax
+
+GNU libsieve understands the following multiline string syntax:
+
+@example
+@group
+text:[-][@var{delimiter}]
+....
+@var{delimiter}
+@end group
+@end example
+
+The meaning of optional flags is the same as in shell ``here document''
+construct: the dash strips all leading tab characters from the string body,
+thus allowing it to be indented in a natural fashion; @var{delimiter}
+introduces the new end-of-text delimiter instead of the default
+dot. If @var{delimiter} starts with a backslash, no preprocessing will
+be performed within a string.
 
 @item Handling of the @code{require} statement.
 
