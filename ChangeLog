@@ -1,3 +1,25 @@
+2003-12-26  Sergey Poznyakoff
+
+	* COPYING: New file
+	* COPYING.LIB: Renamed to 
+	* COPYING.LESSER: this
+	* Makefile.am: Updated
+	* README: Updated
+	* autogen.sh: Updated
+	* configure.ac: Fixes to work with automake 1.8/autoconf 2.59
+	* m4/db2.m4: Likewise
+	* m4/debug.m4: Likewise
+	* m4/getopt.m4: Likewise
+	* m4/gsasl.m4: Likewise
+	* m4/gssapi.m4: Likewise
+	* m4/guile.m4: Likewise
+	* m4/lib.m4: Likewise
+	* m4/mu_libobj.m4: Likewise
+	* m4/tls.m4: Likewise
+	
+	* doc/texinfo/body.texi: Minor fixes.
+	* doc/texinfo/libsieve.texi: Likewise
+
 2003-12-26  Sergey Poznyakoff 
 
 	* examples/list.c: New sieve extension test.

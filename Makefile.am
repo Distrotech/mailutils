@@ -25,7 +25,7 @@ SUBDIRS = headers include m4 intl po lib testsuite mailbox libsieve doc \
           mail sieve scripts libmu_scm guimb messages comsat readmsg \
           mail.local mail.remote dotlock mh 
 
-EXTRA_DIST = COPYING.LIB
+EXTRA_DIST = COPYING.LESSER
 
 release:
 	$(MAKE) dist distdir=$(PACKAGE)-`date +"%Y%m%d"`
