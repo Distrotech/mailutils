@@ -1,3 +1,7 @@
+2003-05-19  Wojciech Polak
+
+	* mailbox/pop/mbox.c: Moved variable `capa' to struct _pop_data.
+
 2003-05-14  Wojciech Polak
 
 	* mailbox/pop/mbox.c: Added the CAPA support (to determine
