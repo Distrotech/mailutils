@@ -45,9 +45,9 @@ struct _iterator
 #define iterator_release(i)    ((i)->vtable->release)(i)
 #define iterator_destroy(i)    ((i)->vtable->destroy)(i)
 
-#define iterator_firs(i)       ((i)->vtable->first)(i)
+#define iterator_first(i)      ((i)->vtable->first)(i)
 #define iterator_next(i)       ((i)->vtable->next)(i)
-#define iterator_current(i, a) ((i)->vtable->current)(i, a)
+#define iterator_current(i,a)  ((i)->vtable->current)(i,a)
 #define iterator_is_done(i)    ((i)->vtable->is_done)(i)
 
 __MAILUTILS_END_DECLS

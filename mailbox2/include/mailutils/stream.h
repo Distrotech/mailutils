@@ -73,6 +73,7 @@ extern int stream_file_create    __P ((stream_t *));
 extern int stream_mapfile_create __P ((stream_t *));
 extern int stream_memory_create  __P ((stream_t *));
 extern int stream_tcp_create     __P ((stream_t *));
+extern int stream_buffer_create  __P ((stream_t *, stream_t, size_t));
 
 __MAILUTILS_END_DECLS
 

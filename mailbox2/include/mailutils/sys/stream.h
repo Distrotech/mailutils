@@ -53,26 +53,27 @@ struct _stream
   struct _stream_vtable *vtable;
 };
 
-#define stream_destroy(s)           ((s)->vtable->destroy)(s)
+#define stream_add_ref(s)           ((s)->vtable->add_ref)(s)
 #define stream_release(s)           ((s)->vtable->release)(s)
+#define stream_destroy(s)           ((s)->vtable->destroy)(s)
 
 #define stream_open(s,h,p,f)        ((s)->vtable->open)(s,h,p,f)
 #define stream_close(s)             ((s)->vtable->close)(s)
 
-#define stream_read(s, b, l, n)     ((s)->vtable->read)(s, b, l, n)
-#define stream_readline(s, b, l, n) ((s)->vtable->readline)(s, b, l, n)
-#define stream_write(s, b, l, n)    ((s)->vtable->write)(s, b, l, n)
+#define stream_read(s,b,l,n)     ((s)->vtable->read)(s,b,l,n)
+#define stream_readline(s,b,l,n) ((s)->vtable->readline)(s,b,l,n)
+#define stream_write(s,b,l,n)    ((s)->vtable->write)(s,b,l,n)
 
-#define stream_seek(s, o, w)        ((s)->vtable->seek)(s, o, w)
-#define stream_tell(s, o)           ((s)->vtable->tell)(s, o)
+#define stream_seek(s,o,w)        ((s)->vtable->seek)(s,o,w)
+#define stream_tell(s,o)           ((s)->vtable->tell)(s,o)
 
-#define stream_get_size(s, o)       ((s)->vtable->get_size)(s, o)
+#define stream_get_size(s,o)       ((s)->vtable->get_size)(s,o)
 #define stream_flush(s)             ((s)->vtable->flush)(s)
-#define stream_truncate(s, o)       ((s)->vtable->truncate)(s, o)
+#define stream_truncate(s,o)       ((s)->vtable->truncate)(s,o)
 
-#define stream_get_fd(s, f)         ((s)->vtable->get_fd)(s, f)
-#define stream_get_flags(s, f)      ((s)->vtable->get_flags)(s, f)
-#define stream_get_state(s, f)      ((s)->vtable->get_state)(s, f)
+#define stream_get_fd(s,f)         ((s)->vtable->get_fd)(s,f)
+#define stream_get_flags(s,f)      ((s)->vtable->get_flags)(s,f)
+#define stream_get_state(s,f)      ((s)->vtable->get_state)(s,f)
 
 __MAILUTILS_END_DECLS
 

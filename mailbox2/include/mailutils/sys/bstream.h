@@ -18,28 +18,24 @@
 #ifndef MAILUTILS_SYS_TCP_H
 #define MAILUTILS_SYS_TCP_H
 
-#include <mailutils/monitor.h>
 #include <mailutils/sys/stream.h>
+#include <mailutils/monitor.h>
 
-enum _tcp_state
+/* Read buffer */
+struct _rbuffer
 {
-  TCP_STATE_INIT,
-  TCP_STATE_RESOLVE,
-  TCP_STATE_RESOLVING,
-  TCP_STATE_CONNECTING,
-  TCP_STATE_CONNECTED
+  char *base;
+  char *ptr;
+  int  count;
+  size_t bufsize;
 };
 
-struct _tcp_instance
+struct _bs
 {
   struct _stream base;
   int ref;
-  int  fd;
-  char *host;
-  int  port;
-  int  state;
-  int flags;
-  unsigned long address;
+  stream_t stream;
+  struct _rbuffer rbuffer;
   monitor_t lock;
 };
 

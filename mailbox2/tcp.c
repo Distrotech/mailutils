@@ -41,23 +41,33 @@
 # define INADDR_NONE (unsigned long)-1
 #endif
 
+static void
+_tcp_cleanup (void *arg)
+{
+  struct _tcp_instance *tcp = arg;
+  monitor_unlock (tcp->lock);
+}
+
 static int
 _tcp_add_ref (stream_t stream)
 {
   struct _tcp_instance *tcp = (struct _tcp_instance *)stream;
-  return ++tcp->ref;
+  int status;
+  monitor_lock (tcp->lock);
+  status = ++tcp->ref;
+  monitor_unlock (tcp->lock);
+  return status;
 }
 
 static int
 _tcp_destroy (stream_t stream)
 {
   struct _tcp_instance *tcp = (struct _tcp_instance *)stream;
-
   if (tcp->host)
     free (tcp->host);
   if (tcp->fd != -1)
     close (tcp->fd);
-
+  monitor_destroy (tcp->lock);
   free (tcp);
   return 0;
 }
@@ -65,20 +75,24 @@ _tcp_destroy (stream_t stream)
 static int
 _tcp_release (stream_t stream)
 {
+  int status;
   struct _tcp_instance *tcp = (struct _tcp_instance *)stream;
-  if (--tcp->ref == 0)
+  monitor_lock (tcp->lock);
+  status = --tcp->ref;
+  if (status <= 0)
     {
+      monitor_unlock (tcp->lock);
       _tcp_destroy (stream);
       return 0;
     }
-  return tcp->ref;
+  monitor_unlock (tcp->lock);
+  return status;
 }
 
 static int
-_tcp_close (stream_t stream)
+_tcp_close0 (stream_t stream)
 {
   struct _tcp_instance *tcp = (struct _tcp_instance *)stream;
-
   if (tcp->fd != -1)
     close (tcp->fd);
   tcp->fd = -1;
@@ -87,7 +101,20 @@ _tcp_close (stream_t stream)
 }
 
 static int
-_tcp_open (stream_t stream, const char *host, int port, int flags)
+_tcp_close (stream_t stream)
+{
+  struct _tcp_instance *tcp = (struct _tcp_instance *)stream;
+
+  monitor_lock (tcp->lock);
+  monitor_cleanup_push (_tcp_cleanup, tcp);
+  _tcp_close0 (stream);
+  monitor_unlock (tcp->lock);
+  monitor_cleanup_pop (0);
+  return 0;
+}
+
+static int
+_tcp_open0 (stream_t stream, const char *host, int port, int flags)
 {
   struct _tcp_instance 	*tcp = (struct _tcp_instance *)stream;
   int flgs, ret;
@@ -131,7 +158,7 @@ _tcp_open (stream_t stream, const char *host, int port, int flags)
 	  phe = gethostbyname (tcp->host);
 	  if (!phe)
 	    {
-	      _tcp_close (stream);
+	      _tcp_close0 (stream);
 	      return MU_ERROR_INVALID_PARAMETER;
 	    }
 	  tcp->address = *(((unsigned long **)phe->h_addr_list)[0]);
@@ -153,7 +180,7 @@ _tcp_open (stream_t stream, const char *host, int port, int flags)
 	      ret = MU_ERROR_TRY_AGAIN;
 	    }
 	  else
-	    _tcp_close (stream);
+	    _tcp_close0 (stream);
 	  return ret;
 	}
       tcp->state = TCP_STATE_CONNECTING;
@@ -165,12 +192,25 @@ _tcp_open (stream_t stream, const char *host, int port, int flags)
       else
 	{
 	  ret = errno;
-	  _tcp_close (stream);
+	  _tcp_close0 (stream);
 	  return ret;
 	}
       break;
     }
   return 0;
+}
+
+static int
+_tcp_open (stream_t stream, const char *host, int port, int flags)
+{
+  int status;
+  struct _tcp_instance *tcp = (struct _tcp_instance *)stream;
+  monitor_lock (tcp->lock);
+  monitor_cleanup_push (_tcp_cleanup, tcp);
+  status = _tcp_open0 (stream, host, port, flags);
+  monitor_unlock (tcp->lock);
+  monitor_cleanup_pop (0);
+  return status;
 }
 
 static int
@@ -292,7 +332,7 @@ static int
 _tcp_flush (stream_t stream)
 {
   (void)stream;
-  return MU_ERROR_NOT_SUPPORTED;
+  return 0;
 }
 
 static int
