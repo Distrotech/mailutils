@@ -101,6 +101,8 @@ mailer_create (mailer_t *pmailer, const char *name)
       else
 	*pmailer = mailer;
     }
+  else
+    status = ENOENT;
 
   return status;
 }
