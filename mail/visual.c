@@ -30,9 +30,9 @@ mail_visual (int argc, char **argv)
     {
       message_t msg = NULL;
       attribute_t attr = NULL;
-      char *file = tempnam(getenv("TMPDIR"), "mu");
+      char *file = mu_tempname (NULL);
 
-      util_do_command ("copy %s", file); /* NOTE: copy does not set flags */
+      util_do_command ("copy %s", file); 
       util_do_command ("shell %s %s", getenv("VISUAL"), file);
 
       remove (file);

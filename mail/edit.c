@@ -28,9 +28,9 @@ mail_edit (int argc, char **argv)
     return util_msglist_command (mail_edit, argc, argv, 1);
   else
     {
-      char *file = tempnam(getenv("TMPDIR"), "mu");
+      char *file = mu_tempname (NULL);
       util_do_command ("copy %s", file);
-      util_do_command ("shell %s %s", getenv("EDITOR"), file);
+      util_do_command ("shell %s %s", getenv ("EDITOR"), file);
       remove (file);
       free (file);
       return 0;

@@ -222,7 +222,8 @@ message_display_parts (message_t msg, int indent)
 	    }
 	  if ((ret = message_get_header (part, &hdr)) != 0)
 	    {
-	      fprintf (stderr, "message_get_header - %s\n", mu_errstring (ret));
+	      fprintf (stderr, "message_get_header - %s\n",
+		       mu_errstring (ret));
 	      exit (2);
 	    }
 	  header_get_value (hdr, MU_HEADER_FROM, from, sizeof (from), NULL);
@@ -233,7 +234,8 @@ message_display_parts (message_t msg, int indent)
 	  printf ("%*.*sBegin\n", indent, indent, "");
 	  if ((ret = message_get_num_parts (part, &nsubparts)) != 0)
 	    {
-	      fprintf (stderr, "mime_get_num_parts - %s\n", mu_errstring (ret));
+	      fprintf (stderr, "mime_get_num_parts - %s\n",
+		       mu_errstring (ret));
 	      exit (2);
 	    }
 	  message_display_parts (part, indent+indent_level);
@@ -265,11 +267,10 @@ message_display_parts (message_t msg, int indent)
 	  char *fname = NULL;
 	  message_aget_attachment_name (part, &fname);
 	  if (fname == NULL)
-	    {
-	      char buffer[PATH_MAX + 1];
-	      fname = tempnam (getcwd (buffer, PATH_MAX), "msg-");
-	    }
-	  printf ("%*.*sAttachment - saving [%s]\n", indent, indent, "", fname);
+	    fname = mu_tempname (NULL);
+
+	  printf ("%*.*sAttachment - saving [%s]\n", indent, indent, "",
+		  fname);
 	  printf ("%*.*sBegin\n", indent, indent, "");
 	  /*FIXME: What is the 'data' argument for? */
 	  message_save_attachment (part, NULL, NULL);
