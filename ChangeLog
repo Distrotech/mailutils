@@ -7,6 +7,14 @@
 	  imap4d.
 	* comsat/comsat.c (comsatd_parse_opt): Likewise.
 
+	header_aget_value was modified on May 9 but its invocations
+	throughout the code were not examined. Here goes the fix:
+	
+	* imap4d/fetch.c: Properly check the return from
+	  headers_aget_value.
+	* mail/followup.c: Likewise.
+	* mail/reply.c: Likewise.
+	
 2002-07-22  Sergey Poznyakoff
 
 	* mail/delete.c (mail_delete): Initialize auto variables.
