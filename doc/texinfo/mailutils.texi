@@ -24,8 +24,22 @@
 @syncodeindex tp fn
 
 @ifinfo
+@dircategory GNU libraries
 @direntry
-* mailutils: (libmailutils).         The GNU mailutils library API.
+* mailutils: (mailutils).            API for mailboxes and mail protocols
+@end direntry
+@dircategory GNU utilities
+@direntry
+* comsatd: (mailutils)comsatd.       Comsat daemon
+* frm: (mailutils)frm.               List headers from a mailbox
+* guimb: (mailutils)guimb.           Mailbox scanning and processing language
+* imap4d: (mailutils)imap4d.         IMAP4 daemon
+* mail.local: (mailutils)mail.local. Deliver mail to the local mailbox
+* mail: (mailutils)mail.             Send and receive mail
+* messages: (mailutils)messages.     Count the number of messages in a mailbox
+* pop3d: (mailutils)pop3d.           POP3 daemon
+* readmsg: (mailutils)readmsg.       Extract messages from a folder
+* sieve: (mailutils)sieve.           Mail filtering utility
 @end direntry
 This file documents @sc{mailutils},  library API.
 

@@ -14,7 +14,7 @@ GNU Mailutils provides a set of programs for handling the email.
 * mail.local::    Deliver mail to the local mailbox.
 * messages::      Count the number of messages in a mailbox.
 * readmsg::       Extract messages from a folder.
-* sieve::         Filter a mailbox.
+* sieve::         Mail filtering utility.
 * guimb::         Mailbox scanning and processing language.
 * comsatd::       Comsat daemon.
 @end menu
