@@ -195,14 +195,15 @@ whitespace, it should be enclosed in a pair of quotes (either double
 or single quotes).
 
 @menu
-* default::        Options understood by most GNU utilities.
-* mailbox::        Specifies the mail spool location, and locking strategy.
-* mailer::         Sets the mailer URL.
-* address::        Specifies the default email address and domain.
-* daemon::         Options common for daemon programs.
-* auth::           Authentication-specific options.
-* logging::        Logging control options.
-* config sample::  A sample configuration file.
+* default::            Options understood by most GNU utilities.
+* mailbox::            Specifies the mail spool location, and locking strategy.
+* mailer::             Sets the mailer URL.
+* address::            Specifies the default email address and domain.
+* daemon::             Options common for daemon programs.
+* auth::               Authentication-specific options.
+* logging::            Logging control options.
+* sieve:sieve group.   Sieve specific options
+* config sample::      A sample configuration file.
 @end menu
 
 @node default
@@ -388,11 +389,29 @@ Port to use
 @cindex :logging
 
 @table @option
-@item log-facility @var{facility}
+@item --log-facility @var{facility}
 Output logs to the specified @command{syslog} facility. The following
 facility names are recognized: @samp{user}, @samp{daemon}, @samp{mail},
 @samp{auth} and @samp{local0} through @samp{local7}. These names are
 case-insensitive.
+@end table
+
+@node sieve group
+@subsection Sieve specific options
+@cindex :sieve
+
+The following options comprise this group:
+
+@table @option
+@item -I @var{dir}
+@itemx --includedir=@var{dir}
+Append directory @var{dir} to the list of directories searched for
+include files.
+
+@item -L @var{dir}
+@itemx --libdir=@var{dir}
+Append directory @var{dir} to the list of directories searched for
+library files.
 @end table
 
 @node config sample
@@ -1934,7 +1953,7 @@ and appends the received data to the local mailboxes.
 @subsection Invoking mail.local
 
 The program uses following option groups: @xref{mailbox}, @xref{auth},
-@xref{logging}.
+@xref{logging}, @xref{sieve}.
 
 @table @option
 @item -f @var{addr}
@@ -2198,7 +2217,6 @@ of actions and tests described in RFC 3028.
 @menu
 * Invoking Sieve::
 * Logging and Debugging::
-* Input Language::
 * Extending Sieve::
 @end menu
 
@@ -2268,7 +2286,8 @@ Log all actions executed.
 @end table
 
 Apart from these, @command{sieve} understands the options from the
-following groups: @code{mailbox}, @code{mailer}, @code{logging}.
+following groups: @code{sieve}, @code{mailbox}, @code{mailer},
+@code{logging}.
 
 @node Logging and Debugging
 @subsubsection Logging and debugging
@@ -2322,9 +2341,6 @@ logs on standard output. This behaviour is changed when
 @option{--log-facility} is given in the command line (@pxref{logging}).
 This option causes @command{sieve} to output its diagnostics to
 the given syslog facility.
-
-@node Input Language
-@subsubsection Input Language
 
 @node Extending Sieve
 @subsubsection Extending Sieve
