@@ -98,7 +98,7 @@ opt_handler (int key, char *arg, void *unused)
       break;
 
     case 'T':
-      truncate = 1;
+      truncate = arg[0] == 'y';
       break;
       
     case 'w':
@@ -138,6 +138,7 @@ main (int argc, char **argv)
   mailbox_t input = NULL;
   mailbox_t output = NULL;
   size_t total, n;
+  size_t lastmsg;
   int f_truncate = 0;
   int f_changecur = 0;
   char *buffer;
@@ -181,11 +182,14 @@ main (int argc, char **argv)
 
   if (mailbox_messages_count (input, &total) != 0)
     {
-      mh_error ("Can not read mailbox");
+      mh_error ("Can not read input mailbox");
       exit (1);
     }
-
+  
   /* Select and open output mailbox */
+  if (mh_check_folder (current_folder))
+    exit (0);
+  
   if (mailbox_create_default (&output, current_folder))
     {
       mh_error ("Can't create output mailbox %s: %s",
@@ -197,6 +201,12 @@ main (int argc, char **argv)
     {
       mh_error ("Can't open mailbox %s: %s", current_folder,
 		strerror (errno));
+      exit (1);
+    }
+
+  if (mailbox_messages_count (output, &lastmsg) != 0)
+    {
+      mh_error ("Can not read output mailbox");
       exit (1);
     }
 
@@ -224,9 +234,17 @@ main (int argc, char **argv)
 		    n, strerror (errno));
 	  continue;
 	}
+
+      if (n == 1 && changecur)
+	{
+	  message_t msg;
       
+	  mailbox_get_message (output, lastmsg+1, &msg);
+	  mh_message_number (msg, &current_message);
+	}
+	  
       if (!quiet)
-	list_message (&format, output, n, buffer, width);
+	list_message (&format, output, lastmsg + n, buffer, width);
       
       if (truncate)
 	{
@@ -236,10 +254,8 @@ main (int argc, char **argv)
 	}
     }
 
-#if 0 
   if (changecur)
     mh_save_context ();
-#endif
   
   mailbox_close (output);
   mailbox_destroy (&output);
