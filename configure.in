@@ -181,7 +181,7 @@ fi
 AC_REPLACE_FUNCS(fgetpwent getpass setenv snprintf strtok_r strncasecmp \
  strcasecmp strsignal vasprintf strndup strnlen strchrnul)
 AC_CHECK_FUNCS(mkstemp sigaction sysconf getdelim vsyslog setreuid \
- setresuid seteuid)
+ setresuid seteuid vfork)
 
 dnl Check for libraries
 AC_CHECK_FUNCS(argp_parse, :,
