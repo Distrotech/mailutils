@@ -37,25 +37,23 @@
 
 #include <mailer0.h>
 
-static
-char*
-mailer_url_default;
+static char *mailer_url_default;
 
 /* FIXME: I'd like to check that the URL is valid, but that requires that the
    mailers already be registered! */
 int
-mailer_set_url_default(const char* url)
+mailer_set_url_default (const char *url)
 {
-  char* n = NULL;
+  char *n = NULL;
 
-  if(!url)
+  if (!url)
     return EINVAL;
 
-  if((n = strdup(url)) == NULL)
+  if ((n = strdup (url)) == NULL)
     return ENOMEM;
 
-  if(mailer_url_default)
-    free(mailer_url_default);
+  if (mailer_url_default)
+    free (mailer_url_default);
 
   mailer_url_default = n;
 
@@ -63,12 +61,12 @@ mailer_set_url_default(const char* url)
 }
 
 int
-mailer_get_url_default(const char** url)
+mailer_get_url_default (const char **url)
 {
-  if(!url)
+  if (!url)
     return EINVAL;
 
-  if(mailer_url_default)
+  if (mailer_url_default)
     *url = mailer_url_default;
   else
     *url = MAILER_URL_DEFAULT;
@@ -153,7 +151,7 @@ mailer_create (mailer_t * pmailer, const char *name)
 }
 
 void
-mailer_destroy (mailer_t *pmailer)
+mailer_destroy (mailer_t * pmailer)
 {
   if (pmailer && *pmailer)
     {
@@ -166,7 +164,7 @@ mailer_destroy (mailer_t *pmailer)
 	  observable_destroy (&(mailer->observable), mailer);
 	}
 
-     /* Call the object destructor.  */
+      /* Call the object destructor.  */
       if (mailer->_destroy)
 	mailer->_destroy (mailer);
 
@@ -180,13 +178,13 @@ mailer_destroy (mailer_t *pmailer)
 	}
 
       if (mailer->url)
-        url_destroy (&(mailer->url));
+	url_destroy (&(mailer->url));
 
       if (mailer->debug)
 	mu_debug_destroy (&(mailer->debug), mailer);
 
       if (mailer->property)
-        property_destroy (&(mailer->property), mailer);
+	property_destroy (&(mailer->property), mailer);
 
       free (mailer);
       *pmailer = NULL;
@@ -216,45 +214,45 @@ mailer_close (mailer_t mailer)
 
 
 int
-mailer_check_from(address_t from)
+mailer_check_from (address_t from)
 {
   size_t n = 0;
 
-  if(!from)
+  if (!from)
     return EINVAL;
 
-  if(address_get_count(from, &n) || n != 1)
+  if (address_get_count (from, &n) || n != 1)
     return MU_ERR_MAILER_BAD_FROM;
 
-  if(address_get_email_count(from, &n) || n == 0)
+  if (address_get_email_count (from, &n) || n == 0)
     return MU_ERR_MAILER_BAD_FROM;
 
   return 0;
 }
 
 int
-mailer_check_to(address_t to)
+mailer_check_to (address_t to)
 {
   size_t count = 0;
   size_t emails = 0;
   size_t groups = 0;
 
-  if(!to)
+  if (!to)
     return EINVAL;
 
-  if(address_get_count(to, &count))
+  if (address_get_count (to, &count))
     return MU_ERR_MAILER_BAD_TO;
 
-  if(address_get_email_count(to, &emails))
+  if (address_get_email_count (to, &emails))
     return MU_ERR_MAILER_BAD_TO;
 
-  if(emails == 0)
+  if (emails == 0)
     return MU_ERR_MAILER_NO_RCPT_TO;
 
-  if(address_get_group_count(to, &groups))
+  if (address_get_group_count (to, &groups))
     return MU_ERR_MAILER_BAD_TO;
 
-  if(count - emails - groups != 0)
+  if (count - emails - groups != 0)
     /* then not everything is a group or an email address */
     return MU_ERR_MAILER_BAD_TO;
 
@@ -272,7 +270,7 @@ mailer_send_message (mailer_t mailer, message_t msg, address_t from, address_t t
   /* Common API checking. */
 
   /* FIXME: this should be done in the concrete APIs, sendmail doesn't
-   yet, though, so do it here. */
+     yet, though, so do it here. */
   if (from)
     {
       if ((status = mailer_check_from (from)) != 0)
@@ -298,7 +296,7 @@ mailer_set_stream (mailer_t mailer, stream_t stream)
 }
 
 int
-mailer_get_stream (mailer_t mailer, stream_t *pstream)
+mailer_get_stream (mailer_t mailer, stream_t * pstream)
 {
   if (mailer == NULL || pstream == NULL)
     return EINVAL;
@@ -308,7 +306,7 @@ mailer_get_stream (mailer_t mailer, stream_t *pstream)
 }
 
 int
-mailer_get_observable (mailer_t mailer, observable_t *pobservable)
+mailer_get_observable (mailer_t mailer, observable_t * pobservable)
 {
   /* FIXME: I should check for invalid types */
   if (mailer == NULL || pobservable == NULL)
@@ -325,7 +323,7 @@ mailer_get_observable (mailer_t mailer, observable_t *pobservable)
 }
 
 int
-mailer_get_property (mailer_t mailer, property_t *pproperty)
+mailer_get_property (mailer_t mailer, property_t * pproperty)
 {
   if (mailer == NULL || pproperty == NULL)
     return EINVAL;
@@ -333,7 +331,7 @@ mailer_get_property (mailer_t mailer, property_t *pproperty)
     {
       int status = property_create (&(mailer->property), mailer);
       if (status != 0)
-        return status;
+	return status;
     }
   *pproperty = mailer->property;
   return 0;
@@ -350,7 +348,7 @@ mailer_set_debug (mailer_t mailer, mu_debug_t debug)
 }
 
 int
-mailer_get_debug (mailer_t mailer, mu_debug_t *pdebug)
+mailer_get_debug (mailer_t mailer, mu_debug_t * pdebug)
 {
   if (mailer == NULL || pdebug == NULL)
     return EINVAL;
@@ -365,7 +363,7 @@ mailer_get_debug (mailer_t mailer, mu_debug_t *pdebug)
 }
 
 int
-mailer_get_url (mailer_t mailer, url_t *purl)
+mailer_get_url (mailer_t mailer, url_t * purl)
 {
   if (!mailer || !purl)
     return EINVAL;
