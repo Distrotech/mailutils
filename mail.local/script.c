@@ -18,7 +18,7 @@
 #include <mail.local.h>
 
 #ifdef WITH_GUILE
-#include <mu_scm.h>
+#include <mailutils/guile.h>
 
 int debug_guile;
 
