@@ -477,3 +477,9 @@ mailbox_get_url (mailbox_t mbox, url_t *purl)
   *purl = mbox->url;
   return 0;
 }
+
+void
+mailbox_destroy_folder (mailbox_t mbox)
+{
+  folder_destroy (&mbox->folder);
+}
