@@ -25,6 +25,11 @@
 #include <string.h>
 #include <unistd.h>
 #include <sys/types.h>
+#ifdef HAVE_TERMIOS_H
+# include <termios.h>
+#endif
+#include <sys/ioctl.h>
+#include <sys/stat.h>
 
 #include <mailutils/address.h>
 #include <mailutils/argp.h>
@@ -254,12 +259,20 @@ static const char *frm_argp_capa[] = {
   NULL
 };
 
-static void
-frm_rfc2047_decode (char *personal, size_t buflen)
+/*
+  FIXME: Generalize this function and move it
+  to `mailbox/locale.c'. Do the same with the one
+  from `from/from.c' and `mail/util.c'...
+*/
+static char *
+rfc2047_decode_wrapper (char *buf, size_t buflen)
 {
+  char locale[32];
   char *charset = NULL;
   char *tmp;
   int rc;
+
+  memset (locale, 0, sizeof (locale));
 
   /* Try to deduce the charset from LC_ALL or LANG variables */
 
@@ -269,11 +282,13 @@ frm_rfc2047_decode (char *personal, size_t buflen)
 
   if (tmp)
     {
-      char *sp;
+      char *sp = NULL;
       char *lang;
       char *terr;
 
-      lang = strtok_r (tmp, "_", &sp);
+      strncpy (locale, tmp, sizeof (locale) - 1);
+
+      lang = strtok_r (locale, "_", &sp);
       terr = strtok_r (NULL, ".", &sp);
       charset = strtok_r (NULL, "@", &sp);
 
@@ -282,20 +297,18 @@ frm_rfc2047_decode (char *personal, size_t buflen)
     }
 
   if (!charset)
-    return;
+    return strdup (buf);
 
-  rc = rfc2047_decode (charset, personal, &tmp);
+  rc = rfc2047_decode (charset, buf, &tmp);
   if (rc)
     {
       if (dbug)
 	mu_error (_("Can't decode line `%s': %s"),
-		  personal, mu_strerror (rc));
+		  buf, mu_strerror (rc));
+      return strdup (buf);
     }
-  else
-    {
-      strncpy (personal, tmp, buflen - 1);
-      free (tmp);
-    }
+
+  return tmp;
 }
 
 /* Retrieve the Personal Name from the header To: or From:  */
@@ -314,9 +327,10 @@ get_personal (header_t hdr, const char *field, char *personal, size_t buflen)
       address_t address = NULL;
       size_t len = 0;
 
-      frm_rfc2047_decode (hfield, sizeof (hfield));
-
-      address_create (&address, hfield);
+      char *s = rfc2047_decode_wrapper (hfield, strlen (hfield));
+      address_create (&address, s);
+      free (s);
+      
       address_get_personal (address, 1, personal, buflen, &len);
       address_destroy (&address);
 
@@ -333,12 +347,35 @@ static struct {
   size_t unread;
 } counter;
 
+/*
+ * Get the number of columns on the screen
+ * First try an ioctl() call not all shells set the COLUMNS environ.
+ * This function was taken from mail/util.c.
+ */
+int
+util_getcols (void)
+{
+  struct winsize ws;
+
+  ws.ws_col = ws.ws_row = 0;
+  if ((ioctl(1, TIOCGWINSZ, (char *) &ws) < 0) || ws.ws_row == 0)
+    {
+      const char *columns = getenv ("COLUMNS");
+      if (columns)
+	ws.ws_col = strtol (columns, NULL, 10);
+    }
+
+  /* FIXME: Should we exit()/abort() if col <= 0 ?  */
+  return ws.ws_col;
+}
+
 /* Observable action is being called on discovery of each message. */
 /* FIXME: The format of the display is poorly done, please correct.  */
 static int
 action (observer_t o, size_t type)
 {
   int status;
+  int col_cnt = 0;
 
   switch (type)
     {
@@ -375,9 +412,12 @@ action (observer_t o, size_t type)
 	  break;
 	
 	if (show_number)
-	  printf ("%4lu: ", (u_long) counter.index);
+	  {
+	    printf ("%4lu: ", (u_long) counter.index);
+	    col_cnt += 6;
+	  }
 
-	if (show_field)
+	if (show_field) /* FIXME: This should be also rfc2047_decode. */
 	  {
 	    char hfield[256];
 	    status = header_get_value_unfold (hdr, show_field, hfield,
@@ -392,35 +432,59 @@ action (observer_t o, size_t type)
 	    status = get_personal (hdr, MU_HEADER_TO, hto, sizeof (hto));
 
 	    if (status == 0)
-	      printf ("(%s) ", hto);
+	      {
+		printf ("(%s) ", hto);
+		col_cnt += strlen (hto) + 3;
+	      }
 	    else
-	      printf ("(------)");
+	      {
+		printf ("(-----) ");
+		col_cnt += 8;
+	      }
 	  }
 
 	if (show_from)
 	  {
 	    char hfrom[32];
-	    status = get_personal (hdr, MU_HEADER_FROM, hfrom,
-				   sizeof (hfrom));
+	    status = get_personal (hdr, MU_HEADER_FROM, hfrom, sizeof (hfrom));
 	    if (status == 0)
-	      printf ("%s\t", hfrom);
+	      {
+		printf ("%s\t", hfrom);
+		col_cnt += strlen (hfrom) + 4; // tab=4, sigh.
+	      }
 	    else
-	      printf ("-----\t");
+	      {
+		printf ("-----\t");
+		col_cnt += 9;
+	      }
 	  }
+
+	/*
+	  A temporary fix for (correct) displaying:
+	  util_getcols() - col_cnt - ~1. It's ugly, I know.
+	*/
 
 	if (show_subject)
 	  {
-	    char hsubject[64];
-	    status = header_get_value_unfold (hdr, MU_HEADER_SUBJECT,
-					      hsubject,
-					      sizeof (hsubject), NULL);
+	    char *hsubject;
+	    status = header_aget_value_unfold (hdr, MU_HEADER_SUBJECT,
+					       &hsubject);
 	    if (status == 0)
 	      {
-		frm_rfc2047_decode (hsubject, sizeof (hsubject));
-		printf ("%s", hsubject);
+		char *s = rfc2047_decode_wrapper (hsubject, strlen (hsubject));
+		char out[80];
+		int fspace = util_getcols () - col_cnt - 1;
+
+		fspace = (fspace > (sizeof (out) - 1))
+		       ? (sizeof (out) - 1) : fspace;
+
+		memset  (out, 0, sizeof (out));
+		strncpy (out, s, fspace);
+		printf ("%s", out);
+		free (s);
 	      }
 	  }
-	printf ("\n");
+	putchar ('\n');
 	break;
       }
 
