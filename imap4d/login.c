@@ -140,13 +140,13 @@ imap4d_login (struct imap4d_command *command, char *arg)
       pamerror = pam_setcred (pamh, PAM_ESTABLISH_CRED);
       PAM_ERROR;
       pam_end (pamh, PAM_SUCCESS);
-      openlog ("gnu-imap4d", LOG_PID, LOG_MAIL);
+      openlog ("gnu-imap4d", LOG_PID, LOG_FACILITY);
 #endif /* USE_LIBPAM */
 
   if (pw->pw_uid > 0 && !mu_virtual_domain)
     setuid (pw->pw_uid);
 
-  homedir = util_normalize_path (strdup (pw->pw_dir), "/");
+  homedir = mu_normalize_path (strdup (pw->pw_dir), "/");
   /* FIXME: Check for errors.  */
   chdir (homedir);
   namespace_init(pw->pw_dir);
