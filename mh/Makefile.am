@@ -68,13 +68,14 @@ libmh_a_SOURCES= \
  mh_error.c\
  mh_format.c\
  mh_init.c\
+ mh_list.c\
  mh_fmtgram.y\
  mh_msgset.c\
  mh_whatnow.c
 noinst_HEADERS = mh.h mh_getopt.h
 
-mhlib_DATA = replcomps
-EXTRA_DIST = replcomps
+mhlib_DATA = replcomps mhl.format 
+EXTRA_DIST = replcomps mhl.format 
 
 INCLUDES = -I${top_srcdir}/include -I${top_srcdir}/lib -I${top_srcdir}/mailbox @INTLINCS@
 AM_CPPFLAGS = -DMHLIBDIR=\"$(mhlibdir)\"
