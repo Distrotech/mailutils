@@ -21,17 +21,21 @@
 
 typedef struct sieve_machine *sieve_machine_t;
 
-typedef int (*sieve_handler_t) __P((sieve_machine_t mach,
-				    list_t args, list_t tags));
-typedef int (*sieve_printf_t) __P((void *data, const char *fmt, va_list ap));
-typedef int (*sieve_parse_error_t) __P((void *data,
-					const char *filename, int lineno,
-					const char *fmt, va_list ap));
-typedef void (*sieve_action_log_t) __P((void *data,
-					const char *script,
-					size_t msgno, message_t msg,
-					const char *action,
-					const char *fmt, va_list ap));
+typedef int (*sieve_handler_t) __PMT((sieve_machine_t mach,
+				      list_t args, list_t tags));
+typedef int (*sieve_printf_t) __PMT((void *data, const char *fmt, va_list ap));
+typedef int (*sieve_parse_error_t) __PMT((void *data,
+					  const char *filename, int lineno,
+					  const char *fmt, va_list ap));
+typedef void (*sieve_action_log_t) __PMT((void *data,
+					  const char *script,
+					  size_t msgno, message_t msg,
+					  const char *action,
+					  const char *fmt, va_list ap));
+
+typedef int (*sieve_comparator_t) __PMT((const char *, const char *));
+typedef int (*sieve_retrieve_t) __PMT((void *item, void *data, char **pval));
+
 
 typedef enum {
   SVT_VOID,
@@ -75,6 +79,12 @@ typedef struct {
   int num_tags;
   sieve_tag_def_t *tags;
 } sieve_register_t;
+
+#define MU_SIEVE_MATCH_IS        1
+#define MU_SIEVE_MATCH_CONTAINS  2
+#define MU_SIEVE_MATCH_MATCHES   3
+#define MU_SIEVE_MATCH_REGEX     4
+#define MU_SIEVE_MATCH_LAST      5
 
 /* Debugging levels */
 #define MU_SIEVE_DEBUG_TRACE  0x0001 
@@ -139,3 +149,20 @@ void sieve_machine_set_ticket __P((sieve_machine_t mach,
 sieve_value_t *sieve_value_get __P((list_t vlist, size_t index));
 
 int sieve_is_dry_run __P((sieve_machine_t mach));
+
+int sieve_vlist_do __P((sieve_value_t *val, list_action_t *ac, void *data));
+int sieve_vlist_compare __P((sieve_value_t *a, sieve_value_t *b,
+			     sieve_comparator_t comp, sieve_retrieve_t ac,
+			     void *data));
+
+
+int sieve_register_comparator __P((const char *name,
+				   int required,
+				   sieve_comparator_t is,
+				   sieve_comparator_t contains,
+				   sieve_comparator_t matches,
+				   sieve_comparator_t regex));
+sieve_comparator_t sieve_comparator_lookup __P((const char *name,
+						int matchtype));
+
+sieve_comparator_t sieve_get_comparator __P((list_t tags));
