@@ -29,9 +29,11 @@
 #define __need_error_t
 #include <errno.h>
 
+#ifndef error_t
 #ifndef __error_t_defined
 typedef int error_t;
 # define __error_t_defined
+#endif
 #endif
 
 /* My libc doesn't have these.  -mccallum@jprc.com */
