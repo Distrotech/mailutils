@@ -447,10 +447,6 @@ main (int argc, char *argv[])
 
   /* Process the mailbox */
   rc = sieve_mailbox (mach, mbox);
-  if (rc)
-    {
-      goto cleanup;
-    }
 
 cleanup:
   if (mbox && !(opts.sieve_debug & MU_SIEVE_DRY_RUN))
@@ -469,6 +465,7 @@ cleanup:
 	rc = e;
     }
 
+  sieve_machine_destroy (&mach);
   mailbox_close (mbox);
   mailbox_destroy (&mbox);
   mu_debug_destroy (&debug, mach);
