@@ -456,7 +456,8 @@ i_ascii_casemap_contains (const char *pattern, const char *text)
 		break;
 	      if (!(a = *++haystack))
 		goto ret0;
-shloop:     }
+shloop:       ;
+            }
           while (U (a) != b);
 	  
 jin:     if (!(a = *++haystack))
