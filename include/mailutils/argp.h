@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2004 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -19,7 +19,6 @@
 #define _MAILUTILS_ARGP_H
 
 #include <mailutils/types.h>
-
 #include <argp.h>
 
 #define MODE_INTERACTIVE 0
@@ -31,6 +30,7 @@ struct daemon_param {
   unsigned int port;
   unsigned int timeout;
   int transcript;
+  char *pidfile;
 };
 
 #ifdef USE_LIBPAM
