@@ -99,3 +99,8 @@
 #else
 # define MU_PATH_MAILDIR _PATH_MAILDIR "/"
 #endif
+
+/* Newer versions of readline have rl_completion_matches */
+#ifndef HAVE_RL_COMPLETION_MATCHES
+# define rl_completion_matches completion_matches
+#endif
