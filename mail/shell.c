@@ -17,6 +17,58 @@
 
 #include "mail.h"
 
+int
+mail_execute (int shell, int argc, char **argv)
+{
+  pid_t pid = fork ();
+
+  if (pid == 0)
+    {
+      if (shell)
+	{
+	  if (argc == 0)
+	    {
+	      argv = xmalloc (sizeof (argv[0]) * 2);
+	      argv[0] = getenv ("SHELL");
+	      argv[1] = NULL;
+	      argc = 1;
+	    }
+	  else
+	    {
+	      char *buf = NULL;
+
+	      while (isspace (**argv))
+		(*argv)++;
+	      argcv_string (argc, &argv[0], &buf);
+
+	      /* 1(shell) + 1 (-c) + 1(arg) + 1 (null) = 4  */
+	      argv = xmalloc (4 * (sizeof (argv[0])));
+	  
+	      argv[0] = getenv ("SHELL");
+	      argv[1] = "-c";
+	      argv[2] = buf;
+	      argv[3] = NULL;
+
+	      argc = 3;
+	    }
+	}
+      
+      execvp (argv[0], argv);
+      exit (1);
+    }
+  else if (pid > 0)
+    {
+      while (waitpid (pid, NULL, 0) == -1)
+	/* do nothing */;
+      return 0;
+    }
+  else if (pid < 0)
+    {
+      mu_error ("fork failed: %s", mu_strerror (errno));
+      return 1;
+    }
+}
+
 /*
  * sh[ell] [command] -- GNU extension
  * ![command] -- GNU extension
@@ -27,52 +79,16 @@ mail_shell (int argc, char **argv)
 {
   if (argv[0][0] == '!' && strlen (argv[0]) > 1)
     {
-      char *buf = NULL;
       argv[0][0] = ' ';
-      argcv_string (argc, argv, &buf);
-      if (buf)
-	{
-	  int ret = util_do_command ("shell %s", &buf[1]);
-	  free (buf);
-	  return ret;
-	}
-      else
-	return util_do_command ("shell");
+      return mail_execute (1, argc, argv);
     }
   else if (argc > 1)
     {
-      int pid = fork ();
-      if (pid == 0)
-	{
-	  char **argvec;
-	  char *buf = NULL;
-
-	  /* 1(shell) + 1 (-c) + 1(arg) + 1 (null) = 4  */
-	  argvec = xmalloc (4 * (sizeof (char *)));
-
-	  argcv_string (argc-1, &argv[1], &buf);
-
-	  argvec[0] = getenv ("SHELL");
-	  argvec[1] = "-c";
-	  argvec[2] = buf;
-	  argvec[3] = NULL;
-
-	  execvp (argvec[0], argvec);
-	  free (buf); /* Being cute, nuke it when finish testing.  */
-	  free (argvec);
-	  return 1;
-	}
-        if (pid > 0)
-	{
-	  while (waitpid(pid, NULL, 0) == -1)
-	    /* do nothing */;
-	  return 0;
-	}
-      return 1;
+      return mail_execute (0, argc-1, argv+1);
     }
   else
     {
-      return util_do_command ("shell %s", getenv("SHELL"));
+      return mail_execute (1, 0, NULL);
     }
   return 1;
 }

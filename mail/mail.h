@@ -192,6 +192,7 @@ extern int mail_retain __P ((int argc, char **argv));
 extern int mail_save __P ((int argc, char **argv));
 extern int mail_set __P ((int argc, char **argv));
 extern int mail_shell __P ((int argc, char **argv));
+extern int mail_execute __P((int shell, int argc, char **argv));
 extern int mail_size __P ((int argc, char **argv));
 extern int mail_source __P ((int argc, char **argv));
 extern int mail_summary __P ((int argc, char **argv));
