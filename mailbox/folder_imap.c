@@ -61,6 +61,7 @@ record_t imap_record = &_imap_record;
 #ifndef HAVE_STRTOK_R
 char *strtok_r                     __P ((char *, const char *, char **));
 #endif
+
 /* Concrete IMAP implementation.  */
 static int folder_imap_open        __P ((folder_t, int));
 static int folder_imap_create      __P ((folder_t));
@@ -122,7 +123,7 @@ _folder_imap_init (folder_t folder)
   return 0;
 }
 
-/* Destroy the resources.  */
+/* Destroy the folder resources.  */
 static void
 folder_imap_destroy (folder_t folder)
 {
@@ -1374,9 +1375,12 @@ imap_body (f_imap_t f_imap, char **ptr)
 	}
     }
   status = imap_string (f_imap, ptr);
-  if (f_imap->callback.msg_imap->fheader == NULL
-      && f_imap->state == IMAP_SCAN_ACK && f_imap->callback.total)
+
+  /* If the state scan.  Catch it here.  */
+  if (f_imap->state == IMAP_SCAN_ACK)
     {
+      if (f_imap->callback.msg_imap->fheader)
+	header_destroy (&f_imap->callback.msg_imap->fheader, NULL);
       status = header_create (&f_imap->callback.msg_imap->fheader,
 			      f_imap->callback.buffer, f_imap->callback.total,
 			      NULL);

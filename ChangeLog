@@ -1,5 +1,21 @@
 2001-10-11 Alain Magloire
 
+	A small cleanup of the IMAP code.
+
+	* mailbox/folder_imap.c (imap_body):  Destry the cache header
+	if it was previously set on a SCAN.
+	* mailbox/mbx_imap.c (delete_to_string): New function, to generate
+	a string of IMAP message numbers.
+	(imap_expunge): use delete_to_string;
+	(attribute_string): Removed.
+	(flags_string): Removed.
+	(flags_to_string): Replace attribute_string() and flags_string().
+	(message_operation): Rename to fetch_operation.
+	* mailbox/include/imap0.h(struct _f_imap): field func and id
+	removed, never used.
+
+2001-10-11 Alain Magloire
+
 	* mailbox/folder_imap.c (imap_quoted_string): Free the buffer.
 	(imap_string): Free the buffer.
 	(imap_body): Check if we already have the fheader header.
@@ -7,14 +23,15 @@
 
 2001-10-11 Alain Magloire
 
-	In order to boost performance, when doing the scan we use
-	the approach of downloading part of the header of the total
-	set of messages.  The it was done before is that the headers
-	were ask one by one per message.  This was causing performance
-	delay because we were doing a lot of small transaction on
+	In order to boost performance, when doing the scan, we use
+	the approach of downloading a subset of the header from all
+	of messages.  The way it was done before was that the headers
+	were requested one by one per message.  This was causing performance
+	issues because we were doing a lot of small transactions on
 	the TCP/IP stack.  By bundling the entire thing in one request
-	there was much less transcation and the speed was increase
-	by a factor of 10++.
+	"a0000 FETCH 1:* (FLAGS RFC822.SIZE BODY.PEEK[HEADER.FIELDS(..)])\r\n"
+	there were less transcations and the speed was increase
+	by a factor of 100+.
 	The Imap code folder_imap.c and mbx_imap.c is now messy.
 	The rewrite in mailbox2 should clean this up though.
 

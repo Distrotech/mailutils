@@ -39,61 +39,63 @@
 
 #define MU_IMAP_CACHE_HEADERS "Bcc Cc Content-Language Content-Transfer-Encoding Content-Type Date From In-Reply-To Message-ID Reference Reply-To Sender Subject To X-UIDL"
 
-/* Functions to overload the mailbox_t API.  */
-static void mailbox_imap_destroy __P ((mailbox_t));
-static int mailbox_imap_open     __P ((mailbox_t, int));
-static int mailbox_imap_close    __P ((mailbox_t));
-static int imap_uidvalidity      __P ((mailbox_t, unsigned long *));
-static int imap_uidnext          __P ((mailbox_t, size_t *));
-static int imap_expunge          __P ((mailbox_t));
-static int imap_get_message      __P ((mailbox_t, size_t, message_t *));
-static int imap_messages_count   __P ((mailbox_t, size_t *));
-static int imap_messages_recent  __P ((mailbox_t, size_t *));
-static int imap_message_unseen   __P ((mailbox_t, size_t *));
-static int imap_scan             __P ((mailbox_t, size_t, size_t *));
-static int imap_is_updated       __P ((mailbox_t));
-static int imap_append_message   __P ((mailbox_t, message_t));
-static int imap_copy_message     __P ((mailbox_t, message_t));
+/* mailbox_t API.  */
+static void mailbox_imap_destroy  __P ((mailbox_t));
+static int  mailbox_imap_open     __P ((mailbox_t, int));
+static int  mailbox_imap_close    __P ((mailbox_t));
+static int  imap_uidvalidity      __P ((mailbox_t, unsigned long *));
+static int  imap_uidnext          __P ((mailbox_t, size_t *));
+static int  imap_expunge          __P ((mailbox_t));
+static int  imap_get_message      __P ((mailbox_t, size_t, message_t *));
+static int  imap_messages_count   __P ((mailbox_t, size_t *));
+static int  imap_messages_recent  __P ((mailbox_t, size_t *));
+static int  imap_message_unseen   __P ((mailbox_t, size_t *));
+static int  imap_scan             __P ((mailbox_t, size_t, size_t *));
+static int  imap_is_updated       __P ((mailbox_t));
+static int  imap_append_message   __P ((mailbox_t, message_t));
+static int  imap_copy_message     __P ((mailbox_t, message_t));
 
-/* Message API.  */
+/* message_t API.  */
+static int  imap_submessage_size  __P ((msg_imap_t, size_t *));
+static int  imap_message_size     __P ((message_t, size_t *));
+static int  imap_message_lines    __P ((message_t, size_t *));
+static int  imap_message_fd       __P ((stream_t, int *));
+static int  imap_message_read     __P ((stream_t , char *, size_t, off_t, size_t *));
+static int  imap_message_uid      __P ((message_t, size_t *));
 
-static int imap_submessage_size  __P ((msg_imap_t, size_t *));
-static int imap_message_size     __P ((message_t, size_t *));
-static int imap_message_lines    __P ((message_t, size_t *));
-static int imap_message_fd       __P ((stream_t, int *));
-static int imap_message_read     __P ((stream_t , char *, size_t, off_t, size_t *));
-static int imap_message_uid      __P ((message_t, size_t *));
+/* mime_t API.  */
+static int  imap_is_multipart     __P ((message_t, int *));
+static int  imap_get_num_parts    __P ((message_t, size_t *));
+static int  imap_get_part         __P ((message_t, size_t, message_t *));
 
-/* Mime handling.  */
-static int imap_is_multipart     __P ((message_t, int *));
-static int imap_get_num_parts    __P ((message_t, size_t *));
-static int imap_get_part         __P ((message_t, size_t, message_t *));
+/* envelope_t API  */
+static int  imap_envelope_sender  __P ((envelope_t, char *, size_t, size_t *));
+static int  imap_envelope_date    __P ((envelope_t, char *, size_t, size_t *));
 
-/* Envelope.  */
-static int imap_envelope_sender  __P ((envelope_t, char *, size_t, size_t *));
-static int imap_envelope_date    __P ((envelope_t, char *, size_t, size_t *));
+/* attribute_t API  */
+static int  imap_attr_get_flags   __P ((attribute_t, int *));
+static int  imap_attr_set_flags   __P ((attribute_t, int));
+static int  imap_attr_unset_flags __P ((attribute_t, int));
 
-/* Attributes.  */
-static int imap_attr_get_flags   __P ((attribute_t, int *));
-static int imap_attr_set_flags   __P ((attribute_t, int));
-static int imap_attr_unset_flags __P ((attribute_t, int));
+/* header_t API.  */
+static int  imap_header_read      __P ((header_t, char*, size_t, off_t, size_t *));
+static int  imap_header_get_value __P ((header_t, const char*, char *, size_t, size_t *));
+static int  imap_header_get_fvalue __P ((header_t, const char*, char *, size_t, size_t *));
 
-/* Header.  */
-static int imap_header_read      __P ((header_t, char*, size_t, off_t, size_t *));
-static int imap_header_get_value __P ((header_t, const char*, char *, size_t, size_t *));
-static int imap_header_get_fvalue __P ((header_t, const char*, char *, size_t, size_t *));
+/* body_t API.  */
+static int  imap_body_read        __P ((stream_t, char *, size_t, off_t, size_t *));
+static int  imap_body_size        __P ((body_t, size_t *));
+static int  imap_body_lines       __P ((body_t, size_t *));
+static int  imap_body_fd          __P ((stream_t, int *));
 
-/* Body.  */
-static int imap_body_read        __P ((stream_t, char *, size_t, off_t, size_t *));
-static int imap_body_size        __P ((body_t, size_t *));
-static int imap_body_lines       __P ((body_t, size_t *));
-static int imap_body_fd          __P ((stream_t, int *));
-
-/* Private. */
-static int imap_get_fd           __P ((msg_imap_t, int *));
-static int imap_get_message0     __P ((msg_imap_t, message_t *));
-static int message_operation     __P ((f_imap_t, msg_imap_t, char *, size_t, size_t *));
-static void free_subparts        __P ((msg_imap_t));
+/* Helpers.  */
+static int  imap_get_fd           __P ((msg_imap_t, int *));
+static int  imap_get_message0     __P ((msg_imap_t, message_t *));
+static int  fetch_operation       __P ((f_imap_t, msg_imap_t, char *, size_t, size_t *));
+static void free_subparts         __P ((msg_imap_t));
+static int  flags_to_string       __P ((char **, int));
+static int  delete_to_string      __P ((m_imap_t, char **));
+static int  is_same_folder        __P ((mailbox_t, message_t));
 
 /* Initialize the concrete object mailbox_t by overloading the function of the
    structure.  */
@@ -102,7 +104,7 @@ _mailbox_imap_init (mailbox_t mailbox)
 {
   m_imap_t m_imap;
   size_t name_len = 0;
-  m_imap = mailbox->data = calloc (1, sizeof (*m_imap));
+  m_imap = mailbox->data = calloc (1, sizeof *m_imap);
   if (m_imap == NULL)
     return ENOMEM;
 
@@ -161,8 +163,10 @@ free_subparts (msg_imap_t msg_imap)
 {
   size_t i;
   for (i = 0; i < msg_imap->num_parts; i++)
-    if (msg_imap->parts[i])
-      free_subparts (msg_imap->parts[i]);
+    {
+      if (msg_imap->parts[i])
+	free_subparts (msg_imap->parts[i]);
+    }
 
   if (msg_imap->message)
     message_destroy (&(msg_imap->message), msg_imap);
@@ -173,7 +177,7 @@ free_subparts (msg_imap_t msg_imap)
   free(msg_imap);
 }
 
-/* Give back all the resources. But is does not mean to shutdown the channel
+/* Give back all the resources. But it does not mean to shutdown the channel
    this is done on the folder.  */
 static void
 mailbox_imap_destroy (mailbox_t mailbox)
@@ -191,8 +195,10 @@ mailbox_imap_destroy (mailbox_t mailbox)
       monitor_wrlock (mailbox->monitor);
       /* Destroy the imap messages and ressources associated to them.  */
       for (i = 0; i < m_imap->imessages_count; i++)
-	if (m_imap->imessages[i])
-	  free_subparts (m_imap->imessages[i]);
+	{
+	  if (m_imap->imessages[i])
+	    free_subparts (m_imap->imessages[i]);
+	}
       if (m_imap->imessages)
 	free (m_imap->imessages);
       if (m_imap->name)
@@ -203,9 +209,10 @@ mailbox_imap_destroy (mailbox_t mailbox)
     }
 }
 
-/* If the connection was not up it is open by the folder.  It is not necessary
-   to set this mailbox selected on the folder, there maybe on going operation.
-   But on any operation, if is not selected will send the SELECT.  */
+/* If the connection was not up it is open by the folder since the stream
+   socket is actually created by the folder.  It is not necessary
+   to set select the mailbox right away, there are maybe on going operations.
+   But on any operation by a particular mailbox, it will be selected first.  */
 static int
 mailbox_imap_open (mailbox_t mailbox, int flags)
 {
@@ -249,8 +256,10 @@ mailbox_imap_close (mailbox_t mailbox)
 	monitor_wrlock (mailbox->monitor);
 	/* Destroy the imap messages and ressources associated to them.  */
 	for (i = 0; i < m_imap->imessages_count; i++)
-	  if (m_imap->imessages[i])
-	    free_subparts (m_imap->imessages[i]);
+	  {
+	    if (m_imap->imessages[i])
+	      free_subparts (m_imap->imessages[i]);
+	  }
 	if (m_imap->imessages)
 	  free (m_imap->imessages);
 	m_imap->imessages = NULL;
@@ -260,8 +269,10 @@ mailbox_imap_close (mailbox_t mailbox)
 	m_imap->unseen = 0;
 	monitor_unlock (mailbox->monitor);
       }
+      break;
 
     default:
+      /* mu_error ("imap_close unknown state: reconnect\n");*/
       break;
     }
 
@@ -281,25 +292,27 @@ imap_get_message (mailbox_t mailbox, size_t msgno, message_t *pmsg)
   m_imap_t m_imap = mailbox->data;
   msg_imap_t msg_imap;
   int status = 0;
-  size_t i;
 
   if (pmsg == NULL || msgno == 0 || msgno > m_imap->messages_count)
     return EINVAL;
 
+  /* Check to see if we have already this message.  */
   monitor_rdlock (mailbox->monitor);
-  /* See if we have already this message.  */
-  for (i = 0; i < m_imap->imessages_count; i++)
-    {
-      if (m_imap->imessages[i])
-        {
-          if (m_imap->imessages[i]->num == msgno)
-            {
-              *pmsg = m_imap->imessages[i]->message;
-              monitor_unlock (mailbox->monitor);
-              return 0;
-            }
-        }
-    }
+  {
+    size_t i;
+    for (i = 0; i < m_imap->imessages_count; i++)
+      {
+	if (m_imap->imessages[i])
+	  {
+	    if (m_imap->imessages[i]->num == msgno)
+	      {
+		*pmsg = m_imap->imessages[i]->message;
+		monitor_unlock (mailbox->monitor);
+		return 0;
+	      }
+	  }
+      }
+  }
   monitor_unlock (mailbox->monitor);
 
   /* Allocate a concrete imap message.  */
@@ -317,7 +330,7 @@ imap_get_message (mailbox_t mailbox, size_t msgno, message_t *pmsg)
       {
 	msg_imap_t *m ;
 	m = realloc (m_imap->imessages,
-		     (m_imap->imessages_count + 1) * sizeof (*m));
+		     (m_imap->imessages_count + 1) * sizeof *m);
 	if (m == NULL)
 	  {
 	    message_destroy (pmsg, msg_imap);
@@ -331,7 +344,6 @@ imap_get_message (mailbox_t mailbox, size_t msgno, message_t *pmsg)
       monitor_unlock (mailbox->monitor);
 
       msg_imap->message = *pmsg;
-      msg_imap->m_imap = m_imap;
     }
   else
     free (msg_imap);
@@ -346,7 +358,7 @@ imap_get_message0 (msg_imap_t msg_imap, message_t *pmsg)
   message_t msg = NULL;
   mailbox_t mailbox = msg_imap->m_imap->mailbox;
 
-  /* Create the message.  */
+  /* Create the message and its stream.  */
   {
     stream_t stream = NULL;
     if ((status = message_create (&msg, msg_imap)) != 0
@@ -379,9 +391,6 @@ imap_get_message0 (msg_imap_t msg_imap, message_t *pmsg)
     message_set_header (msg, header, msg_imap);
   }
 
-  /* We do not create any special attribute, since nothing is send to the
-     server.  When the attributes change they are cache, they are only
-     sent to the server on mailbox_close or mailbox_expunge.  */
   /* Create the attribute.  */
   {
     attribute_t attribute;
@@ -442,6 +451,7 @@ imap_get_message0 (msg_imap_t msg_imap, message_t *pmsg)
   message_set_uid (msg, imap_message_uid, msg_imap);
   message_set_mailbox (msg, mailbox, msg_imap);
 
+  /* We are done here.  */
   *pmsg = msg;
   return 0;
 }
@@ -480,8 +490,8 @@ imap_uidnext (mailbox_t mailbox, size_t *puidnext)
 
 /* There is no explicit call to get the message count.  The count is send on
    a SELECT/EXAMINE command it is also sent async, meaning it will be piggy
-   back on other server response as an untag "EXIST" response.  But we still
-   send a SELECT.  */
+   back on other server response as an untag "EXIST" response.  The
+   function is also use as a way to select mailbox by other functions.  */
 static int
 imap_messages_count (mailbox_t mailbox, size_t *pnum)
 {
@@ -496,9 +506,6 @@ imap_messages_count (mailbox_t mailbox, size_t *pnum)
 	*pnum = m_imap->messages_count;
       return 0;
     }
-
-  /*  Put the mailbox as selected.  */
-  f_imap->selected = m_imap;
 
   switch (f_imap->state)
     {
@@ -521,9 +528,12 @@ imap_messages_count (mailbox_t mailbox, size_t *pnum)
       break;
 
     default:
-      CHECK_EAGAIN (f_imap, status);
-      return status;
+      /*mu_error ("imap_message_count unknown state: reconnect\n");*/
+      break;
     }
+
+  /*  Put the mailbox as selected.  */
+  f_imap->selected = m_imap;
 
   if (pnum)
     *pnum = m_imap->messages_count;
@@ -532,7 +542,14 @@ imap_messages_count (mailbox_t mailbox, size_t *pnum)
   return status;
 }
 
-/* We simulate by sending a notification for the total of msgno.  */
+/* Usually when this function is call it is because there is an oberver
+   attach an the client is try to build some sort of list/tree header
+   as the scanning progress.  But doing this for each message can be
+   time consuming and inefficient.  So we bundle all the request
+   into one and ask the server for everything "FETCH 1:*".  The good
+   side is that everything will be faster and we do not do lot of small
+   transcation but rather a big one.  The bad thing is that every thing
+   will be cache in the structure using a lot of memory.  */
 static int
 imap_scan (mailbox_t mailbox, size_t msgno, size_t *pcount)
 {
@@ -571,8 +588,8 @@ imap_scan (mailbox_t mailbox, size_t msgno, size_t *pcount)
       break;
 
     default:
-      CHECK_EAGAIN (f_imap, status);
-      return status;
+      /*mu_error ("imap_scan unknown state: reconnect\n");*/
+      return EINVAL;
     }
 
   f_imap->state = IMAP_NO_STATE;
@@ -585,7 +602,7 @@ imap_scan (mailbox_t mailbox, size_t msgno, size_t *pcount)
     {
       if (observable_notify (mailbox->observable, MU_EVT_MESSAGE_ADD) != 0)
 	break;
-      if (((i + 1) % 10) == 0)
+      if (((i + 1) % 100) == 0)
 	{
 	  observable_notify (mailbox->observable, MU_EVT_MAILBOX_PROGRESS);
 	}
@@ -593,7 +610,7 @@ imap_scan (mailbox_t mailbox, size_t msgno, size_t *pcount)
   return 0;
 }
 
-/* Send a NOOP and see if the count has change.  */
+/* Send a NOOP and see if the count has changed.  */
 static int
 imap_is_updated (mailbox_t mailbox)
 {
@@ -602,14 +619,15 @@ imap_is_updated (mailbox_t mailbox)
   f_imap_t f_imap = m_imap->f_imap;
   int status = 0;
 
+  /* Selected.  */
+  status = imap_messages_count (mailbox, &oldcount);
+  if (status != 0)
+    return status;
+
   /* Send a noop, and let imap piggy pack the information.  */
   switch (f_imap->state)
     {
     case IMAP_NO_STATE:
-      /* Selected.  */
-      status = imap_messages_count (mailbox, &oldcount);
-      if (status != 0)
-	return status;
       status = imap_writeline (f_imap, "g%d NOOP\r\n", f_imap->seq++);
       CHECK_ERROR (f_imap, status);
       MAILBOX_DEBUG0 (mailbox, MU_DEBUG_PROT, f_imap->buffer);
@@ -624,8 +642,10 @@ imap_is_updated (mailbox_t mailbox)
       status = imap_parse (f_imap);
       CHECK_EAGAIN (f_imap, status);
       MAILBOX_DEBUG0 (mailbox, MU_DEBUG_PROT, f_imap->buffer);
+      break;
 
     default:
+      /*mu_error ("imap_noop unknown state: reconnect\n"); */
       break;
     }
   f_imap->state = IMAP_NO_STATE;
@@ -633,53 +653,53 @@ imap_is_updated (mailbox_t mailbox)
 }
 
 
-/* FIXME: Not asyn, please fix to make usable when non blocking.  */
+/* It is only here that the Deleted flags are sent.  Expunge is not
+   call rather the mailbox is close explicitely, letting the server
+   do the expunge without sending the notifications.  It's faster.  */
 static int
 imap_expunge (mailbox_t mailbox)
 {
-  size_t i;
   int status;
   m_imap_t m_imap = mailbox->data;
   f_imap_t f_imap = m_imap->f_imap;
 
   /* Select first.  */
-  status = imap_messages_count (mailbox, &i);
+  status = imap_messages_count (mailbox, NULL);
   if (status != 0)
     return status;
 
-  for (i = 0; i < m_imap->imessages_count; ++i)
+  switch (f_imap->state)
     {
-      if (m_imap->imessages[i]->flags & MU_ATTRIBUTE_DELETED)
-	{
-	  switch (f_imap->state)
-	    {
-	    case IMAP_NO_STATE:
-	      status = imap_writeline (f_imap,
-				       "g%d STORE %d +FLAGS.SILENT (\\Deleted)\r\n",
-				       f_imap->seq++,
-				       m_imap->imessages[i]->num);
-	      CHECK_ERROR (f_imap, status);
-	      MAILBOX_DEBUG0 (m_imap->mailbox, MU_DEBUG_PROT, f_imap->buffer);
-	      f_imap->state = IMAP_STORE;
+    case IMAP_NO_STATE:
+      {
+	char *set;
+	status = delete_to_string (m_imap, &set);
+	CHECK_ERROR (f_imap, status);
+	status = imap_writeline (f_imap,
+				 "g%d STORE %s +FLAGS.SILENT (\\Deleted)\r\n",
+				 f_imap->seq++, set);
+	free (set);
+	CHECK_ERROR (f_imap, status);
+	MAILBOX_DEBUG0 (m_imap->mailbox, MU_DEBUG_PROT, f_imap->buffer);
+	f_imap->state = IMAP_STORE;
+      }
 
-	    case IMAP_STORE:
-	      /* Send DELETE.  */
-	      status = imap_send (f_imap);
-	      CHECK_EAGAIN (f_imap, status);
-	      f_imap->state = IMAP_STORE_ACK;
+      /* Send DELETE.  */
+    case IMAP_STORE:
+      status = imap_send (f_imap);
+      CHECK_EAGAIN (f_imap, status);
+      f_imap->state = IMAP_STORE_ACK;
 
-	    case IMAP_STORE_ACK:
-	      status = imap_parse (f_imap);
-	      CHECK_EAGAIN (f_imap, status);
-	      MAILBOX_DEBUG0 (m_imap->mailbox, MU_DEBUG_PROT, f_imap->buffer);
-	      f_imap->state = IMAP_NO_STATE;
+    case IMAP_STORE_ACK:
+      status = imap_parse (f_imap);
+      CHECK_EAGAIN (f_imap, status);
+      MAILBOX_DEBUG0 (m_imap->mailbox, MU_DEBUG_PROT, f_imap->buffer);
+      f_imap->state = IMAP_NO_STATE;
 
-	    default:
-	      /* mu_error ("imap_expunge: unknow state\n"); */
-	      break;
-	    } /* switch (state) */
-        } /* message_get_attribute() */
-    } /* for */
+    default:
+      /* mu_error ("imap_expunge: unknow state\n"); */
+      break;
+    }
 
   /* Tell the server to delete the messages but without sending the
      EXPUNGE response.  We can do the calculations.  */
@@ -687,95 +707,11 @@ imap_expunge (mailbox_t mailbox)
   return status;
 }
 
-static int
-attribute_string (attribute_t attribute, char **pbuf)
-{
-  char *abuf = *pbuf;
-  if (attribute_is_deleted (attribute))
-    {
-      char *tmp = realloc (abuf, strlen (abuf) + strlen ("\\Deleted") + 2);
-      if (tmp == NULL)
-	{
-	  free (abuf);
-	  return ENOMEM;
-	}
-      abuf = tmp;
-      if (*abuf)
-	strcat (abuf, " ");
-      strcat (abuf, "\\Deleted");
-    }
-  if (attribute_is_seen (attribute) || attribute_is_read (attribute))
-    {
-      char *tmp = realloc (abuf, strlen (abuf) + strlen ("\\Seen") + 2);
-      if (tmp == NULL)
-	{
-	  free (abuf);
-	  return ENOMEM;
-	}
-      abuf = tmp;
-      if (*abuf)
-	strcat (abuf, " ");
-      strcat (abuf, "\\Seen");
-    }
-  if (attribute_is_answered (attribute))
-    {
-      char *tmp = realloc (abuf, strlen (abuf) + strlen ("\\Answered") + 2);
-      if (tmp == NULL)
-	{
-	  free (abuf);
-	  return ENOMEM;
-	}
-      abuf = tmp;
-      if (*abuf)
-	strcat (abuf, " ");
-      strcat (abuf, "\\Answered");
-    }
-  if (attribute_is_draft (attribute))
-    {
-      char *tmp = realloc (abuf, strlen (abuf) + strlen ("\\Draft") + 2);
-      if (tmp == NULL)
-	{
-	  free (abuf);
-	  return ENOMEM;
-	}
-      abuf = tmp;
-      if (*abuf)
-	strcat (abuf, " ");
-      strcat (abuf, "\\Draft");
-    }
-  if (attribute_is_flagged (attribute))
-    {
-      char *tmp = realloc (abuf, strlen (abuf) + strlen ("\\Flagged") + 2);
-      if (tmp == NULL)
-	{
-	  free (abuf);
-	  return ENOMEM;
-	}
-      abuf = tmp;
-      if (*abuf)
-	strcat (abuf, " ");
-      strcat (abuf, "\\Flagged");
-    }
-  *pbuf = abuf;
-  return 0;
-}
-
-static int
-is_same_folder (mailbox_t mailbox, message_t msg)
-{
-  mailbox_t mbox = NULL;
-  message_get_mailbox (msg, &mbox);
-  return (mbox != NULL && mbox->url != NULL
-	  && url_is_same_scheme (mbox->url, mailbox->url)
-	  && url_is_same_host (mbox->url, mailbox->url)
-	  && url_is_same_port (mbox->url, mailbox->url));
-}
-
 /* Not Nonblocking safe.  */
-/* DANGER:  The message_t object makes no guarenty the size and the lines
-   that it returns are exact if its pointing to non-local file messages.
+/* DANGER:  The message_t object makes no guaranty about the size and the lines
+   that it returns, if its pointing to non-local file messages.
    FIXME: So we should download the message to a floating message so to
-   make sure that we know the exacte size then transmit it back the IMAP
+   make sure that we know the exact size then transmit it back the IMAP
    server.  */
 static int
 imap_append_message (mailbox_t mailbox, message_t msg)
@@ -788,12 +724,10 @@ imap_append_message (mailbox_t mailbox, message_t msg)
   /* FIXME: Can we append to self.  */
 
   /* Check to see if we are selected. If the message was not modified
-     and came from the imap folder. use COPY.*/
+     and came from the same imap folder. use COPY.*/
   if (f_imap->selected != m_imap && !message_is_modified (msg)
       && is_same_folder (mailbox, msg))
     return imap_copy_message (mailbox, msg);
-
-  /* FIXME: Do we need to get the envelope_date?  */
 
   switch (f_imap->state)
     {
@@ -808,8 +742,10 @@ imap_append_message (mailbox_t mailbox, message_t msg)
 	*abuf = '\0';
 	{
 	  attribute_t attribute = NULL;
+	  int flags = 0;
 	  message_get_attribute (msg, &attribute);
-	  status = attribute_string (attribute, &abuf);
+	  attribute_get_flags (attribute, &flags);
+	  status = flags_to_string (&abuf, flags);
 	  if (status != 0)
 	    return status;
 	  if (*abuf != '\0')
@@ -825,16 +761,29 @@ imap_append_message (mailbox_t mailbox, message_t msg)
 	      abuf = tmp;
 	    }
 	}
+
+	/* Get the mailbox filepath.  */
 	{
 	  size_t n = 0;
 	  url_get_path (mailbox->url, NULL, 0, &n);
 	  if (n == 0)
-	    return EINVAL;
+	    {
+	      free (abuf);
+	      return EINVAL;
+	    }
 	  path = calloc (n + 1, sizeof (*path));
 	  if (path == NULL)
-	    return ENOMEM;
+	    {
+	      free (abuf);
+	      return ENOMEM;
+	    }
 	  url_get_path (mailbox->url, path, n + 1, NULL);
 	}
+
+	/* FIXME: we need to get the envelope_date and use it.
+	   currently it is ignored.  */
+
+	/* Get the total size, assuming that it is in UNIX format.  */
 	lines = size = 0;
 	message_size (msg, &size);
 	message_lines (msg, &lines);
@@ -900,14 +849,15 @@ imap_append_message (mailbox_t mailbox, message_t msg)
       MAILBOX_DEBUG0 (m_imap->mailbox, MU_DEBUG_PROT, f_imap->buffer);
 
     default:
-      /* mu_error ("imap_expunge: unknow state\n"); */
+      /* mu_error ("imap_append: unknow state\n"); */
       break;
     }
   f_imap->state = IMAP_NO_STATE;
   return status;
 }
 
-/* Not Nonblocking safe.  */
+/* If the message is on the same server.  Use the COPY command much more
+   efficient.  */
 static int
 imap_copy_message (mailbox_t mailbox, message_t msg)
 {
@@ -921,17 +871,15 @@ imap_copy_message (mailbox_t mailbox, message_t msg)
     case IMAP_NO_STATE:
       {
 	char *path;
+	size_t n = 0;
 	/* Check for a valid mailbox name.  */
-	{
-	  size_t n = 0;
-	  url_get_path (mailbox->url, NULL, 0, &n);
-	  if (n == 0)
-	    return EINVAL;
-	  path = calloc (n + 1, sizeof (*path));
-	  if (path == NULL)
-	    return ENOMEM;
-	  url_get_path (mailbox->url, path, n + 1, NULL);
-	}
+	url_get_path (mailbox->url, NULL, 0, &n);
+	if (n == 0)
+	  return EINVAL;
+	path = calloc (n + 1, sizeof (*path));
+	if (path == NULL)
+	  return ENOMEM;
+	url_get_path (mailbox->url, path, n + 1, NULL);
 	status = imap_writeline (f_imap, "g%d COPY %d %s\r\n", f_imap->seq++,
 				 msg_imap->num, path);
 	free (path);
@@ -957,7 +905,7 @@ imap_copy_message (mailbox_t mailbox, message_t msg)
   return status;
 }
 
-/* Message.  */
+/* Message read overload  */
 static int
 imap_message_read (stream_t stream, char *buffer, size_t buflen,
 		   off_t offset, size_t *plen)
@@ -974,32 +922,28 @@ imap_message_read (stream_t stream, char *buffer, size_t buflen,
   /* Select first.  */
   if (f_imap->state == IMAP_NO_STATE)
     {
+      char *section = NULL;
       int status = imap_messages_count (m_imap->mailbox, NULL);
       if (status != 0)
 	return status;
-      /* We strip the \r, but the offset/size on the imap server is with that
-	 octet so add it in the offset, since it's the number of lines.  */
+
       if (msg_imap->part)
-	{
-	  char *section = section_name (msg_imap);
-	  status = imap_writeline (f_imap,
-				   "g%d FETCH %d BODY.PEEK[%s]<%d.%d>\r\n",
-				   f_imap->seq++, msg_imap->num,
-				   (section) ? section : "",
-				   offset + msg_imap->message_lines, buflen);
-	  if (section)
-	    free (section);
-	}
-      else
-	status = imap_writeline (f_imap,
-				 "g%d FETCH %d BODY.PEEK[]<%d.%d>\r\n",
-				 f_imap->seq++, msg_imap->num,
-				 offset + msg_imap->message_lines, buflen);
+	section = section_name (msg_imap);
+
+      /* We have strip the \r, but the offset on the imap server is with that
+	 octet(CFLF) so add it in the offset, it's the number of lines.  */
+      status = imap_writeline (f_imap,
+			       "g%d FETCH %d BODY.PEEK[%s]<%d.%d>\r\n",
+			       f_imap->seq++, msg_imap->num,
+			       (section) ? section : "",
+			       offset + msg_imap->message_lines, buflen);
+      if (section)
+	free (section);
       CHECK_ERROR (f_imap, status);
       MAILBOX_DEBUG0 (m_imap->mailbox, MU_DEBUG_PROT, f_imap->buffer);
       f_imap->state = IMAP_FETCH;
     }
-  return message_operation (f_imap, msg_imap, buffer, buflen, plen);
+  return fetch_operation (f_imap, msg_imap, buffer, buflen, plen);
 }
 
 static int
@@ -1056,9 +1000,7 @@ imap_message_size (message_t msg, size_t *psize)
      the full size of mime messages, so the message_size retrieved from
      doing a bodystructure represents rather the body_size.  */
   if (msg_imap->parent)
-    {
-      return imap_submessage_size (msg_imap, psize);
-    }
+    return imap_submessage_size (msg_imap, psize);
 
   if (msg_imap->message_size == 0)
     {
@@ -1078,7 +1020,7 @@ imap_message_size (message_t msg, size_t *psize)
 	  MAILBOX_DEBUG0 (m_imap->mailbox, MU_DEBUG_PROT, f_imap->buffer);
 	  f_imap->state = IMAP_FETCH;
 	}
-      status = message_operation (f_imap, msg_imap, 0, 0, 0);
+      status = fetch_operation (f_imap, msg_imap, 0, 0, 0);
     }
 
   if (status == 0)
@@ -1116,7 +1058,7 @@ imap_message_uid (message_t msg, size_t *puid)
       MAILBOX_DEBUG0 (m_imap->mailbox, MU_DEBUG_PROT, f_imap->buffer);
       f_imap->state = IMAP_FETCH;
     }
-  status = message_operation (f_imap, msg_imap, 0, 0, 0);
+  status = fetch_operation (f_imap, msg_imap, 0, 0, 0);
   if (status != 0)
     return status;
   *puid = msg_imap->uid;
@@ -1159,7 +1101,7 @@ imap_is_multipart (message_t msg, int *ismulti)
       MAILBOX_DEBUG0 (m_imap->mailbox, MU_DEBUG_PROT, f_imap->buffer);
       f_imap->state = IMAP_FETCH;
     }
-  status = message_operation (f_imap, msg_imap, 0, 0, 0);
+  status = fetch_operation (f_imap, msg_imap, 0, 0, 0);
   if (status != 0)
     return status;
   if (ismulti)
@@ -1295,7 +1237,7 @@ imap_envelope_date (envelope_t envelope, char *buffer, size_t buflen,
       MAILBOX_DEBUG0 (m_imap->mailbox, MU_DEBUG_PROT, f_imap->buffer);
       f_imap->state = IMAP_FETCH;
     }
-  status = message_operation (f_imap, msg_imap, datebuf, sizeof datebuf, NULL);
+  status = fetch_operation (f_imap, msg_imap, datebuf, sizeof datebuf, NULL);
   if (status != 0)
     return status;
 
@@ -1363,86 +1305,13 @@ imap_attr_get_flags (attribute_t attribute, int *pflags)
       MAILBOX_DEBUG0 (m_imap->mailbox, MU_DEBUG_PROT, f_imap->buffer);
       f_imap->state = IMAP_FETCH;
     }
-  status = message_operation (f_imap, msg_imap, NULL, 0, NULL);
+  status = fetch_operation (f_imap, msg_imap, NULL, 0, NULL);
   if (status == 0)
     {
       if (pflags)
 	*pflags = msg_imap->flags;
     }
   return status;
-}
-
-static int
-flags_string (int flag, char **pbuf)
-{
-  char *abuf = *pbuf;
-  if (flag & MU_ATTRIBUTE_DELETED)
-    {
-      char *tmp = realloc (abuf, strlen (abuf) + strlen ("\\Deleted") + 2);
-      if (tmp == NULL)
-        {
-          free (abuf);
-          return ENOMEM;
-        }
-      abuf = tmp;
-      if (*abuf)
-        strcat (abuf, " ");
-      strcat (abuf, "\\Deleted");
-    }
-  if ((flag & MU_ATTRIBUTE_SEEN) || (flag & MU_ATTRIBUTE_READ))
-    {
-      char *tmp = realloc (abuf, strlen (abuf) + strlen ("\\Seen") + 2);
-      if (tmp == NULL)
-        {
-          free (abuf);
-          return ENOMEM;
-        }
-      abuf = tmp;
-      if (*abuf)
-        strcat (abuf, " ");
-      strcat (abuf, "\\Seen");
-    }
-  if (flag & MU_ATTRIBUTE_ANSWERED)
-    {
-      char *tmp = realloc (abuf, strlen (abuf) + strlen ("\\Answered") + 2);
-      if (tmp == NULL)
-        {
-          free (abuf);
-          return ENOMEM;
-        }
-      abuf = tmp;
-      if (*abuf)
-        strcat (abuf, " ");
-      strcat (abuf, "\\Answered");
-    }
-  if (flag & MU_ATTRIBUTE_DRAFT)
-    {
-      char *tmp = realloc (abuf, strlen (abuf) + strlen ("\\Draft") + 2);
-      if (tmp == NULL)
-        {
-          free (abuf);
-          return ENOMEM;
-        }
-      abuf = tmp;
-      if (*abuf)
-        strcat (abuf, " ");
-      strcat (abuf, "\\Draft");
-    }
-  if (flag & MU_ATTRIBUTE_FLAGGED)
-    {
-      char *tmp = realloc (abuf, strlen (abuf) + strlen ("\\Flagged") + 2);
-      if (tmp == NULL)
-        {
-          free (abuf);
-          return ENOMEM;
-        }
-      abuf = tmp;
-      if (*abuf)
-        strcat (abuf, " ");
-      strcat (abuf, "\\Flagged");
-    }
-  *pbuf = abuf;
-  return 0;
 }
 
 static int
@@ -1467,7 +1336,7 @@ imap_attr_set_flags (attribute_t attribute, int flag)
       if (abuf == NULL)
 	return ENOMEM;
       *abuf = '\0';
-      status = flags_string (flag, &abuf);
+      status = flags_to_string (&abuf, flag);
       if (status != 0)
 	return status;
       /* No flags to send??  */
@@ -1484,7 +1353,7 @@ imap_attr_set_flags (attribute_t attribute, int flag)
       msg_imap->flags |= flag;
       f_imap->state = IMAP_FETCH;
     }
-  return message_operation (f_imap, msg_imap, NULL, 0, NULL);
+  return fetch_operation (f_imap, msg_imap, NULL, 0, NULL);
 }
 
 static int
@@ -1509,7 +1378,7 @@ imap_attr_unset_flags (attribute_t attribute, int flag)
       if (abuf == NULL)
 	return ENOMEM;
       *abuf = '\0';
-      status = flags_string (flag, &abuf);
+      status = flags_to_string (&abuf, flag);
       if (status != 0)
 	return status;
       /* No flags to send??  */
@@ -1526,7 +1395,7 @@ imap_attr_unset_flags (attribute_t attribute, int flag)
       msg_imap->flags &= ~flag;
       f_imap->state = IMAP_FETCH;
     }
-  return message_operation (f_imap, msg_imap, NULL, 0, NULL);
+  return fetch_operation (f_imap, msg_imap, NULL, 0, NULL);
 }
 
 /* Header.  */
@@ -1566,7 +1435,7 @@ imap_header_get_value (header_t header, const char *field, char * buffer,
     }
 
   value = calloc (len, sizeof (*value));
-  status = message_operation (f_imap, msg_imap, value, len, &len);
+  status = fetch_operation (f_imap, msg_imap, value, len, &len);
   if (status == 0)
     {
       char *colon;
@@ -1641,7 +1510,7 @@ imap_header_get_fvalue (header_t header, const char *field, char * buffer,
   /* Should be enough for our needs.  */
   len = 2048;
   value = calloc (len, sizeof *value);
-  status = message_operation (f_imap, msg_imap, value, len, &len);
+  status = fetch_operation (f_imap, msg_imap, value, len, &len);
   if (status == 0)
     {
       status = header_create (&msg_imap->fheader, value, len, NULL);
@@ -1669,33 +1538,29 @@ imap_header_read (header_t header, char *buffer, size_t buflen, off_t offset,
   /* Select first.  */
   if (f_imap->state == IMAP_NO_STATE)
     {
+      char *section = NULL;
       int status = imap_messages_count (m_imap->mailbox, NULL);
       if (status != 0)
 	return status;
+
+      if (msg_imap->part)
+	section = section_name (msg_imap);
+
       /* We strip the \r, but the offset/size on the imap server is with that
 	 octet so add it in the offset, since it's the number of lines.  */
-      if (msg_imap->part)
-	{
-	  char *section = section_name (msg_imap);
-	  status = imap_writeline (f_imap,
-				   "g%d FETCH %d BODY.PEEK[%s.MIME]<%d.%d>\r\n",
-				   f_imap->seq++, msg_imap->num,
-				   (section) ? section : "",
-				   offset + msg_imap->header_lines, buflen);
-	  if (section)
-	    free (section);
-	}
-      else
-	status = imap_writeline (f_imap,
-				 "g%d FETCH %d BODY.PEEK[HEADER]<%d.%d>\r\n",
-				 f_imap->seq++, msg_imap->num,
-				 offset + msg_imap->header_lines, buflen);
+      status = imap_writeline (f_imap,
+			       "g%d FETCH %d BODY.PEEK[%s.MIME]<%d.%d>\r\n",
+			       f_imap->seq++, msg_imap->num,
+			       (section) ? section : "",
+			       offset + msg_imap->header_lines, buflen);
+      if (section)
+	free (section);
       CHECK_ERROR (f_imap, status);
       MAILBOX_DEBUG0 (m_imap->mailbox, MU_DEBUG_PROT, f_imap->buffer);
       f_imap->state = IMAP_FETCH;
 
     }
-  return message_operation (f_imap, msg_imap, buffer, buflen, plen);
+  return fetch_operation (f_imap, msg_imap, buffer, buflen, plen);
 }
 
 /* Body.  */
@@ -1771,33 +1636,29 @@ imap_body_read (stream_t stream, char *buffer, size_t buflen, off_t offset,
   /* Select first.  */
   if (f_imap->state == IMAP_NO_STATE)
     {
+      char *section = NULL;
       status = imap_messages_count (m_imap->mailbox, NULL);
       if (status != 0)
 	return status;
+
+      if (msg_imap->part)
+	section = section_name (msg_imap);
+
       /* We strip the \r, but the offset/size on the imap server is with the
 	 octet, so add it since it's the number of lines.  */
-      if (msg_imap->part)
-	{
-	  char *section = section_name (msg_imap);
-	  status = imap_writeline (f_imap,
-				   "g%d FETCH %d BODY.PEEK[%s]<%d.%d>\r\n",
-				   f_imap->seq++, msg_imap->num,
-				   (section) ? section: "",
-				   offset + msg_imap->body_lines, buflen);
-	  if (section)
-	    free (section);
-	}
-      else
-	status = imap_writeline (f_imap,
-				 "g%d FETCH %d BODY.PEEK[TEXT]<%d.%d>\r\n",
-				 f_imap->seq++, msg_imap->num,
-				 offset + msg_imap->body_lines, buflen);
+      status = imap_writeline (f_imap,
+			       "g%d FETCH %d BODY.PEEK[%s]<%d.%d>\r\n",
+			       f_imap->seq++, msg_imap->num,
+			       (section) ? section: "",
+			       offset + msg_imap->body_lines, buflen);
+      if (section)
+	free (section);
       CHECK_ERROR (f_imap, status);
       MAILBOX_DEBUG0 (m_imap->mailbox, MU_DEBUG_PROT, f_imap->buffer);
       f_imap->state = IMAP_FETCH;
 
     }
-  status = message_operation (f_imap, msg_imap, buffer, buflen, plen);
+  status = fetch_operation (f_imap, msg_imap, buffer, buflen, plen);
   if (oldbuf)
     oldbuf[0] = buffer[0];
   return status;
@@ -1824,8 +1685,9 @@ imap_get_fd (msg_imap_t msg_imap, int *pfd)
   return EINVAL;
 }
 
+/* Since so many operations are fetch, we regoup this into one function.  */
 static int
-message_operation (f_imap_t f_imap, msg_imap_t msg_imap, char *buffer,
+fetch_operation (f_imap_t f_imap, msg_imap_t msg_imap, char *buffer,
 		   size_t buflen, size_t *plen)
 {
   int status = 0;
@@ -1835,7 +1697,6 @@ message_operation (f_imap_t f_imap, msg_imap_t msg_imap, char *buffer,
     case IMAP_FETCH:
       status = imap_send (f_imap);
       CHECK_EAGAIN (f_imap, status);
-      /* Set the callback,  we want the results.  */
       if (f_imap->callback.buffer)
 	free (f_imap->callback.buffer);
       f_imap->callback.buffer = NULL;
@@ -1859,14 +1720,15 @@ message_operation (f_imap_t f_imap, msg_imap_t msg_imap, char *buffer,
   if (status == 0 && f_imap->isopen == 0 && f_imap->callback.total == 0)
     status = EBADF;
 
-  /* Clear the callback.  */
   buflen = min (buflen, f_imap->callback.total);
-  if (buffer && f_imap->callback.buffer)
-    memcpy (buffer, f_imap->callback.buffer, buflen);
+  if (f_imap->callback.buffer)
+    {
+      if (buffer)
+	memcpy (buffer, f_imap->callback.buffer, buflen);
+      free (f_imap->callback.buffer);
+    }
   if (plen)
     *plen = buflen;
-  if (f_imap->callback.buffer)
-    free (f_imap->callback.buffer);
   f_imap->callback.buffer = NULL;
   f_imap->callback.buflen = 0;
   f_imap->callback.total = 0;
@@ -1875,4 +1737,145 @@ message_operation (f_imap_t f_imap, msg_imap_t msg_imap, char *buffer,
   f_imap->callback.msg_imap = NULL;
   f_imap->state = IMAP_NO_STATE;
   return status;
+}
+
+/* Decide whether the message came from the same folder as the mailbox.  */
+static int
+is_same_folder (mailbox_t mailbox, message_t msg)
+{
+  mailbox_t mbox = NULL;
+  message_get_mailbox (msg, &mbox);
+  return (mbox != NULL && mbox->url != NULL
+          && url_is_same_scheme (mbox->url, mailbox->url)
+          && url_is_same_host (mbox->url, mailbox->url)
+          && url_is_same_port (mbox->url, mailbox->url));
+}
+
+/* Convert flag attribute to IMAP String attributes.  */
+static int
+flags_to_string (char **pbuf, int flag)
+{
+  char *abuf = *pbuf;
+  if (flag & MU_ATTRIBUTE_DELETED)
+    {
+      char *tmp = realloc (abuf, strlen (abuf) + strlen ("\\Deleted") + 2);
+      if (tmp == NULL)
+        {
+          free (abuf);
+          return ENOMEM;
+        }
+      abuf = tmp;
+      if (*abuf)
+        strcat (abuf, " ");
+      strcat (abuf, "\\Deleted");
+    }
+  if ((flag & MU_ATTRIBUTE_SEEN) || (flag & MU_ATTRIBUTE_READ))
+    {
+      char *tmp = realloc (abuf, strlen (abuf) + strlen ("\\Seen") + 2);
+      if (tmp == NULL)
+        {
+          free (abuf);
+          return ENOMEM;
+        }
+      abuf = tmp;
+      if (*abuf)
+        strcat (abuf, " ");
+      strcat (abuf, "\\Seen");
+    }
+  if (flag & MU_ATTRIBUTE_ANSWERED)
+    {
+      char *tmp = realloc (abuf, strlen (abuf) + strlen ("\\Answered") + 2);
+      if (tmp == NULL)
+        {
+          free (abuf);
+          return ENOMEM;
+        }
+      abuf = tmp;
+      if (*abuf)
+        strcat (abuf, " ");
+      strcat (abuf, "\\Answered");
+    }
+  if (flag & MU_ATTRIBUTE_DRAFT)
+    {
+      char *tmp = realloc (abuf, strlen (abuf) + strlen ("\\Draft") + 2);
+      if (tmp == NULL)
+        {
+          free (abuf);
+          return ENOMEM;
+        }
+      abuf = tmp;
+      if (*abuf)
+        strcat (abuf, " ");
+      strcat (abuf, "\\Draft");
+    }
+  if (flag & MU_ATTRIBUTE_FLAGGED)
+    {
+      char *tmp = realloc (abuf, strlen (abuf) + strlen ("\\Flagged") + 2);
+      if (tmp == NULL)
+        {
+          free (abuf);
+          return ENOMEM;
+        }
+      abuf = tmp;
+      if (*abuf)
+        strcat (abuf, " ");
+      strcat (abuf, "\\Flagged");
+    }
+  *pbuf = abuf;
+  return 0;
+}
+
+/* Convert a suite of number to IMAP message number.  */
+static int
+delete_to_string (m_imap_t m_imap, char **pset)
+{
+  size_t i, prev = 0, is_range = 0;
+  char *set = calloc (1, 1);
+
+  if (set == NULL)
+    return ENOMEM;
+
+  /* Reformat the number for IMAP.  */
+  for (i = 0; i < m_imap->imessages_count; ++i)
+    {
+      if (m_imap->imessages[i]->flags & MU_ATTRIBUTE_DELETED)
+	{
+	  char *tmp;
+	  char buf[128];
+	  size_t cur = m_imap->imessages[i]->num;
+	  *buf = '\0';
+	  /* The first number.  */
+	  if (prev == 0)
+	    {
+	      snprintf (buf, sizeof buf, "%d", cur);
+	    }
+	  /* Is it still a sequence?  */
+	  else if ((prev + 1) == cur)
+	    {
+	      is_range = 1;
+	      continue;
+	    }
+	  /* We had a previous seqence.  */
+	  else if (is_range)
+	    {
+	      snprintf (buf, sizeof buf, ":%d,%d", prev, cur);
+	      is_range = 0;
+	    }
+	  else
+	    {
+	      snprintf (buf, sizeof buf, ",%d", cur);
+	    }
+	  prev = cur;
+	  tmp = realloc (set, strlen (set) + strlen (buf) + 1);
+	  if (tmp == NULL)
+	    {
+	      free (set);
+	      return ENOMEM;
+	    }
+	  set = tmp;
+	  strcat (set, buf);
+	}
+    } /* for () */
+  *pset = set;
+  return 0;
 }

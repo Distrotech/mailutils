@@ -39,7 +39,7 @@ extern "C" {
 #endif /*__P */
 
 #define CLEAR_STATE(f_imap) \
- f_imap->selected = NULL, f_imap->id = 0, f_imap->func = NULL, f_imap->state = IMAP_NO_STATE
+ f_imap->selected = NULL, f_imap->state = IMAP_NO_STATE
 
 /* Clear the state and close the stream.  */
 #define CHECK_ERROR_CLOSE(folder, f_imap, status) \
@@ -136,8 +136,6 @@ struct _f_imap
   m_imap_t selected;
 
   enum imap_state state;
-  void *func;
-  size_t id;
 
   size_t seq; /* Sequence number to build a tag.  */
   char *capa; /* Cabilities of the server.  */
