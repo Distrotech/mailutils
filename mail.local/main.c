@@ -86,7 +86,7 @@ main (int argc, char *argv[])
 	if (from != NULL)
 	  {
 	    mu_error ("multiple --from options");
-	    return 1;
+	    return EX_USAGE;
 	  }
 	from = optarg;
 	break;
@@ -143,7 +143,7 @@ main (int argc, char *argv[])
 	break;
 	
       default:
-	return 1;
+	return EX_USAGE;
       }
 
   argc -= optind;
@@ -156,7 +156,7 @@ main (int argc, char *argv[])
   if (!maildir)
     {
       mu_error ("Badly formed maildir: %s", maildir);
-      return 1;
+      return EX_CONFIG;
     }
 	
 #ifdef HAVE_MYSQL
@@ -462,6 +462,7 @@ deliver (FILE *fp, char *name)
     {
       mailer_err ("cannot lock mailbox '%s': %s", path, strerror (status));
       mailbox_destroy (&mbox);
+      exit_code = EX_TEMPFAIL;
       return;
     }
 
