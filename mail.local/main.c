@@ -55,9 +55,10 @@ N_("GNU mail.local -- the local MDA\
 \v\
 Debug flags are:\n\
   g - guimb stack traces\n\
-  T - mailutil traces (MU_DEBUG_TRACE)\n\
+  T - mailutils traces (MU_DEBUG_TRACE)\n\
   P - network protocols (MU_DEBUG_PROT)\n\
   t - sieve trace (MU_SIEVE_DEBUG_TRACE)\n\
+  i - sieve instructions trace (MU_SIEVE_DEBUG_INSTR)\n\
   l - sieve action logs\n\
   0-9 - Set mail.local debugging level\n");
 
@@ -86,12 +87,12 @@ static struct argp_option options[] =
     N_("SQL query to retrieve mailbox quota"), 0 },
 #endif
   { "sieve", 'S', N_("PATTERN"), 0,
-    N_("Set name pattern for user-defined sieve mail filters"), 0 },
+    N_("Set name pattern for user-defined Sieve mail filters"), 0 },
   { "message-id-header", ARG_MESSAGE_ID_HEADER, N_("STRING"), 0,
     N_("Identify messages by the value of this header when logging Sieve actions"), 0 },
 #ifdef WITH_GUILE
   { "source", 's', N_("PATTERN"), 0,
-    N_("Set name pattern for user-defined mail filters"), 0 },
+    N_("Set name pattern for user-defined Scheme mail filters"), 0 },
 #endif
   { "debug", 'x', N_("FLAGS"), 0,
     N_("Enable debugging"), 0 },
@@ -190,6 +191,10 @@ parse_opt (int key, char *arg, struct argp_state *state)
 	      sieve_debug_flags |= MU_SIEVE_DEBUG_TRACE;
 	      break;
 
+	    case 'i':
+	      sieve_debug_flags |= MU_SIEVE_DEBUG_INSTR;
+	      break;
+	      
 	    case 'l':
 	      sieve_enable_log = 1;
 	      break;
