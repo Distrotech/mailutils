@@ -126,7 +126,6 @@ sendmail_open (mailer_t mailer, int flags)
 
   mailer->flags = flags;
 
-  /* Fetch the mailer server name and the port in the url_t.  */
   if ((status = url_get_path (mailer->url, NULL, 0, &pathlen)) != 0
       || pathlen == 0)
     return status;
@@ -255,11 +254,15 @@ sendmail_send_message (mailer_t mailer, message_t msg, address_t from,
 	  }
 	if (!to)
 	  {
+            /* The -t seems to be implicit when there are no addresses,
+	       so it shouldn't be necessary to specify it. */
+	    /*
 	    if ((argvec[argc++] = strdup ("-t")) == 0)
 	      {
 		status = ENOMEM;
 		goto OPEN_STATE_CLEANUP;
 	      }
+	    */
 	  }
 	else
 	  {
