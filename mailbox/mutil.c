@@ -31,6 +31,7 @@
 #include <time.h>
 #include <unistd.h>
 
+#include <sys/param.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/wait.h>
@@ -43,6 +44,7 @@
 #include <mailutils/error.h>
 #include <mailutils/iterator.h>
 #include <mailutils/mutil.h>
+#include <mailutils/parse822.h>
 
 #include "mu_asprintf.h"
 
@@ -519,6 +521,31 @@ getpwnam_virtual (const char *u)
 
 #endif
 
+int
+mu_get_host_name (char **host)
+{
+  char hostname[MAXHOSTNAMELEN + 1];
+  struct hostent *hp = NULL;
+  char *domain = NULL;
+
+  gethostname (hostname, sizeof hostname);
+  hostname[sizeof (hostname) - 1] = 0;
+
+  if ((hp = gethostbyname (hostname)))
+    domain = hp->h_name;
+  else
+    domain = hostname;
+
+  domain = strdup (domain);
+
+  if (!domain)
+    return ENOMEM;
+
+  *host = domain;
+
+  return 0;
+}
+
 /*
  * Functions used to convert unix mailbox/user names into RFC822 addr-specs.
  */
@@ -583,19 +610,29 @@ mu_set_user_email_domain (const char *domain)
   return 0;
 }
 
-const char *
-mu_get_user_email_domain (void)
+int
+mu_get_user_email_domain (const char** domain)
 {
-  return mu_user_email_domain;
+  int err = 0;
+
+  if (!mu_user_email_domain)
+    {
+      if((err = mu_get_host_name(&mu_user_email_domain)))
+	return err;
+    }
+
+  *domain = mu_user_email_domain;
+
+  return 0;
 }
 
 char *
 mu_get_user_email (const char *name)
 {
-  char hostname[256];
-  struct hostent *hp;
-  char *domainpart;
-  char *email;
+  int status = 0;
+  char *localpart = NULL;
+  const char *domainpart = NULL;
+  char *email = NULL;
 
   if (!name && mu_user_email)
     {
@@ -616,22 +653,23 @@ mu_get_user_email (const char *name)
       name = pw->pw_name;
     }
 
-  if (mu_user_email_domain)
-    {
-      domainpart = mu_user_email_domain;
-    }
-  else
-    {
-      gethostname (hostname, sizeof hostname);
-      hostname[sizeof (hostname) - 1] = 0;
+  status = mu_get_user_email_domain (&domainpart);
 
-      if ((hp = gethostbyname (hostname)))
-	domainpart = hp->h_name;
-      else
-	domainpart = hostname;
+  if (status)
+  {
+    errno = status;
+    return NULL;
+  }
+
+  if ((status = parse822_quote_local_part (&localpart, name)))
+    {
+      errno = status;
+      return NULL;
     }
 
-  mu_asprintf (&email, "%s@%s", name, domainpart);
+  mu_asprintf (&email, "%s@%s", localpart, domainpart);
+
+  free (localpart);
 
   if (!email)
     errno = ENOMEM;

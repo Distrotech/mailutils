@@ -70,6 +70,12 @@ extern int mu_virtual_domain;
 
 extern struct passwd * getpwnam_virtual __P((const char *u));
 
+/* Get the host name, doing a gethostbyname() if possible.
+ *
+ * It is the caller's responsibility to free host.
+ */
+extern int mu_get_host_name __P((char **host));
+
 /* Set the default user email address.
  *
  * Subsequent calls to mu_get_user_email() with a NULL name will return this
@@ -88,7 +94,7 @@ extern int mu_set_user_email __P ((const char *email));
 extern int mu_set_user_email_domain __P ((const char *domain));
 
 /* Return the currently set user email domain, or NULL if not set. */
-extern const char *mu_get_user_email_domain __P ((void));
+extern int mu_get_user_email_domain __P ((const char** domain));
 
 /*
  * Get the default email address for user name. A NULL name is taken
