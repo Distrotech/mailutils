@@ -1,5 +1,9 @@
 2004-07-05  Sergey Poznyakoff 
 
+	* include/mailutils/registrar.h (mu_register_all_mbox_formats):
+	Removed nntp_record. It is not a *mailbox* format.
+	* mailbox/mailutils-config.c: Added mu_nntp
+	
 	* mailbox/include/iterator0.h (_iterator.getitem): Changed
 	declaration. There's no use passing a pointer to the const
 	location, since the function *must* assign to it anyway.
@@ -29,12 +33,15 @@
 	* mail/Makefile.am: Enable NNTP.
 	* sieve/Makefile.am: Enable NNTP.
 
-	* imap4d/Makefile.am: Put @AUTHLIBS@ before libmailbox.a (failed on cygwin if not).
-	* pop3d/Makefile.am: Put @AUTHLIBS@ before libmailbox.a (failed on cygwin if not).
-	* mail.local/Makefile.am: Put @AUTHLIBS@ before libmailbox.a (failed on cygwin if not).
+	* imap4d/Makefile.am: Put @AUTHLIBS@ before libmailbox.a (failed
+	on cygwin if not).
+	* pop3d/Makefile.am: Put @AUTHLIBS@ before libmailbox.a (failed on
+	cygwin if not).
+	* mail.local/Makefile.am: Put @AUTHLIBS@ before libmailbox.a
+	(failed on cygwin if not).
 
-	* mailbox/stream.c (stream_wait): Bugfix.  If we buffer return true if the cache still
-	have data.
+	* mailbox/stream.c (stream_wait): Bugfix.  If we buffer return
+	true if the cache still	have data.
 
 	* include/mailutils/nntp.h: Define the default NNTP port number.
 	* include/mailutils/pop3.h: Define the default POP3 port number.
