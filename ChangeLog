@@ -1,5 +1,17 @@
 2003-10-09  Alain Magloire
 
+	Possible use:
+		list_count (list, &total);
+		array = malloc (total *(sizeof *array));
+		if (users != NULL)
+		  list_to_array (list, users, total, &total);
+        copy in the array the number of items.
+
+	* mailbox/list.c (list_to_array): New function.
+	* include/mailutils/list.h (list_to_array): Declaration.
+
+2003-10-09  Alain Magloire
+
 	Scenario: the attribute_set_delete() use the header field
 	"Status: d" to store the information.  During a POP session,
 	if messages had the "Status: D", the messages would be
