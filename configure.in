@@ -22,7 +22,8 @@ dnl Check for headers
 AC_HEADER_STDC
 AM_C_PROTOTYPES
 AC_CHECK_HEADERS(malloc.h stdlib.h stdio.h errno.h unistd.h\
-		 paths.h sys/file.h syslog.h shadow.h)
+		 paths.h sys/file.h syslog.h shadow.h limits.h\
+                 inttypes.h)
 AC_CHECK_HEADERS(string.h strings.h, break)
 
 dnl Check for libraries
