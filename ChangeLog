@@ -1,4 +1,9 @@
-2001-08-27  Jakob 'sparky' Kaivo  <jkaivo@elijah.nodomainname.net>
+2001-08-27  Alain Magloire
+
+	* mailbox/folder_imap.c (imap_list): When \NoSelect, it is
+	also mean that the file is a directory.
+
+2001-08-27  Jakob 'sparky' Kaivo
 
 	* mail/send.c (mail_send0): change readline (NULL) to readline
 	(" \b") so there is really no prompt

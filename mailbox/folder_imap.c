@@ -999,6 +999,7 @@ imap_list (f_imap_t f_imap)
 	{
 	  if (strcasecmp (tok, "\\Noselect") == 0)
 	    {
+	      lr->type |= MU_FOLDER_ATTRIBUTE_DIRECTORY;
 	    }
 	  else if (strcasecmp (tok, "\\Marked") == 0)
 	    {
