@@ -39,6 +39,14 @@ mh_getopt (int argc, char **argv, struct mh_option *mh_opt)
   if (mh_optind >= argc || argv[mh_optind] == NULL)
     return EOF;
   mh_optptr = argv[mh_optind];
+
+  if (mh_optptr[0] == '+')
+    {
+      mh_optarg = mh_optptr + 1;
+      mh_optind++;
+      return '+';
+    }
+  
   if (mh_optptr[0] != '-')
     return EOF;
 
