@@ -9,7 +9,7 @@
 	* readmsg/msglist.c: New file.
 	This is base on a old testing program Dave inglis wrote
 	to test the mime parsing code.  It is still work in progress
-	but a good base for the readmsg(1) utility close.
+	but a good base for the readmsg(1) elm utility clone.
 	Not enable yet in the TOP Makefile.
 
 2001-06-26  Alain Magloire
