@@ -70,6 +70,26 @@ mda_init (void *data)
   return 0;
 }
 
+static void
+mda_switch_to_user (struct mda_data *md)
+{
+  struct passwd *pw = NULL;
+  
+  if (md && *md->argv != NULL)
+    pw = mu_getpwnam (*md->argv);
+
+  if (pw)
+    {
+      switch_user_id (pw->pw_uid);
+      chdir (pw->pw_dir);
+    }
+  else
+    {
+      switch_user_id (0);
+      chdir ("/");
+    }
+}
+
 SCM
 mda_catch_body (void *data, mailbox_t mbox)
 {
@@ -84,8 +104,11 @@ mda_catch_body (void *data, mailbox_t mbox)
 	syslog (LOG_DEBUG, "access to %s failed: %m", md->progfile);
     }
   else
-    scm_primitive_load (scm_makfrom0str (md->progfile));
-
+    {
+      mda_switch_to_user (md);
+      scm_primitive_load (scm_makfrom0str (md->progfile));
+    }
+  
   mailbox_get_message (mbox, 1, &mesg);
   message_get_attribute (mesg, &attr);
   if (attribute_is_deleted (attr))
@@ -109,7 +132,8 @@ mda_catch_body (void *data, mailbox_t mbox)
 	}
       unlink (tname);
     }
-      
+
+  mda_switch_to_user (NULL);
   mda (fp, md->argv[0]);
   if (fp != md->fp)
     fclose (fp);
