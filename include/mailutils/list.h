@@ -35,10 +35,13 @@ extern int list_replace  __P ((list_t list, void *old_item, void *new_item));
 extern int list_get      __P ((list_t, size_t _index, void **pitem));
 
 typedef int list_action_t __PMT ((void* item, void* cbdata));
-
+  
 extern int list_do       __P ((list_t list, list_action_t * action, void *cbdata));
 
+typedef int (*list_comparator_t) __PMT((const void*, const void*));
 
+extern list_comparator_t list_set_comparator __P((list_t, list_comparator_t));
+  
 #ifdef __cplusplus
 }
 #endif
