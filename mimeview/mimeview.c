@@ -35,6 +35,11 @@ N_("\n\nDebug flags are:\n\
 #define OPT_METAMAIL 256
 
 static struct argp_option options[] = {
+  {"no-ask", 'a', N_("TYPE-LIST"), OPTION_ARG_OPTIONAL,
+   N_("Do not ask any questions before running an interpreter to view messages of given types. TYPE-LIST is a comma-separated list of MIME types. If TYPE-LIST is not given, do not ask any questions at all"), 0},
+  {"no-interactive", 'h', NULL, 0,
+   N_("Disable interactive mode"), 0 },
+  {"print", 0, NULL, OPTION_ALIAS, NULL, 0 },
   {"debug",  'd', N_("FLAGS"),  OPTION_ARG_OPTIONAL,
    N_("Enable debugging output"), 0},
   {"mimetypes", 't', N_("FILE"), 0,
@@ -50,7 +55,9 @@ int debug_level;       /* Debugging level set by --debug option */
 static int dry_run;    /* Dry run mode */
 static char *metamail; /* Name of metamail program, if requested */
 static char *mimetypes_config = DEFAULT_CUPS_CONFDIR;
-
+static list_t no_ask_list;  /* List of MIME types for which no questions
+			       should be asked */
+static int interactive = -1; 
 char *mimeview_file;   /* Name of the file to view */
 FILE *mimeview_fp;     /* Its descriptor */ 
 
@@ -62,6 +69,37 @@ FILE *mimeview_fp;     /* Its descriptor */
  "/etc/mail/mailcap:"\
  "/usr/public/lib/mailcap"
 
+static void
+parse_typelist (const char *str)
+{
+  char *tmp = xstrdup (str);
+  char *p, *sp;
+
+  for (p = strtok_r (tmp, ",", &sp); p; p = strtok_r (NULL, ",", &sp))
+    list_append (no_ask_list, xstrdup (p));
+  free (tmp);
+}
+
+static int
+match_typelist (const char *type)
+{
+  int rc = 0;
+  
+  if (no_ask_list)
+    {
+      iterator_t itr;
+      list_get_iterator (no_ask_list, &itr);
+      for (iterator_first (itr); !rc && !iterator_is_done (itr);
+	   iterator_next (itr))
+	{
+	  char *p;
+	  iterator_current (itr, (void**)&p);
+	  rc = fnmatch (p, type, FNM_CASEFOLD) == 0;
+	}
+      iterator_destroy (&itr);
+    }
+  return rc;
+}
 
 static error_t
 parse_opt (int key, char *arg, struct argp_state *state)
@@ -71,11 +109,19 @@ parse_opt (int key, char *arg, struct argp_state *state)
     case ARGP_KEY_INIT:
       mimetypes_lex_debug (0);
       mimetypes_gram_debug (0);
+      if (interactive == -1)
+	interactive = isatty (fileno (stdin));
       break;
 
     case ARGP_KEY_FINI:
       if (dry_run && !debug_level)
 	debug_level = 1;
+      break;
+
+    case 'a':
+      list_create (&no_ask_list);
+      parse_typelist (arg ? arg : "*");
+      setenv ("MM_NOASK", arg, 1); /* In case we are given --metamail option */
       break;
       
     case 'd':
@@ -99,6 +145,10 @@ parse_opt (int key, char *arg, struct argp_state *state)
 	}
       break;
 
+    case 'h':
+      interactive = 0;
+      break;
+      
     case 'n':
       dry_run = 1;
       break;
@@ -244,68 +294,25 @@ expand_string (char **pstr, const char *filename, const char *type)
 }
 
 static int
-find_entry (const char *file, const char *type,
-	    mu_mailcap_entry_t *pentry,
-	    mu_mailcap_t *pmc)
+confirm_action (const char *type, const char *str)
 {
-  mu_mailcap_t mailcap;
-  int status;
-  stream_t stream;
+  char repl[128], *p;
+  int len;
 
-  DEBUG (2, (_("Trying %s...\n"), file));
-  status = file_stream_create (&stream, file, MU_STREAM_READ);
-  if (status)
-    {
-      mu_error ("cannot create file stream %s: %s",
-		file, mu_strerror (status));
-      return 0;
-    }
+  if (!interactive || match_typelist (type))
+    return 1;
+  
+  printf (_("Run `%s'?"), str);
+  fflush (stdout);
 
-  status = stream_open (stream);
-  if (status)
-    {
-      stream_destroy (&stream, stream_get_owner (stream));
-      if (status != ENOENT)
-	mu_error ("cannot open file stream %s: %s",
-		  file, mu_strerror (status));
-      return 0;
-    }
-
-  status = mu_mailcap_create (&mailcap, stream);
-  if (status == 0)
-    {
-      size_t i, count = 0;
-      
-      mu_mailcap_entries_count (mailcap, &count);
-      for (i = 1; i <= count; i++)
-	{
-	  mu_mailcap_entry_t entry;
-	  char buffer[256];
-	  
-	  if (mu_mailcap_get_entry (mailcap, i, &entry))
-	    continue;
-	  
-	  /* typefield.  */
-	  mu_mailcap_entry_get_typefield (entry,
-					  buffer, sizeof (buffer), NULL);
-	  
-	  if (fnmatch (buffer, type, FNM_CASEFOLD) == 0)
-	    {
-	      DEBUG (2, (_("Found in %s\n"), file));
-	      /* FIXME: Run test entry, if any */
-	      *pmc = mailcap;
-	      *pentry = entry;
-	      return 1; /* We leave stream open! */
-	    }
-	}
-      mu_mailcap_destroy (&mailcap);
-    }
-  else
-    {
-      mu_error ("cannot create mailcap for %s: %s",
-		file, mu_strerror (status));
-    }
-  return 0;
+  p = fgets (repl, sizeof repl, stdin);
+  if (!p)
+    return 0;
+  len = strlen (p);
+  if (len > 0 && p[len-1] == '\n')
+    p[len--] = 0;
+  
+  return mu_true_answer_p (p);
 }
 
 static void
@@ -421,6 +428,30 @@ get_pager ()
   return pager;
 }
 
+static int
+run_test (mu_mailcap_entry_t entry, const char *type)
+{
+  size_t size;
+  int status = 0;
+  
+  if (mu_mailcap_entry_get_test (entry, NULL, 0, &size) == 0)
+    {
+      int argc;
+      char **argv;
+      char *str = xmalloc (size + 1);
+      mu_mailcap_entry_get_test (entry, str, size + 1, NULL);
+
+      expand_string (&str, mimeview_file, type);
+      argcv_get (str, "", NULL, &argc, &argv);
+      free (str);
+      
+      if (mu_spawnvp (argv[0], argv, &status))
+	status = 1;
+      argcv_free (argc, argv);
+    }
+  return status;
+}
+
 int
 run_mailcap (mu_mailcap_entry_t entry, const char *type)
 {
@@ -436,10 +467,24 @@ run_mailcap (mu_mailcap_entry_t entry, const char *type)
   if (debug_level > 1)
     dump_mailcap_entry (entry);
 
-  mu_mailcap_entry_get_viewcommand (entry, NULL, 0, &size);
-  size++;
-  view_command = xmalloc (size);
-  mu_mailcap_entry_get_viewcommand (entry, view_command, size, NULL); 
+  if (run_test (entry, type))
+    return -1;
+
+  if (interactive)
+    {
+      mu_mailcap_entry_get_viewcommand (entry, NULL, 0, &size);
+      size++;
+      view_command = xmalloc (size);
+      mu_mailcap_entry_get_viewcommand (entry, view_command, size, NULL);
+    }
+  else
+    {
+      if (mu_mailcap_entry_get_value (entry, "print", NULL, 0, &size))
+	return 1;
+      size++;
+      view_command = xmalloc (size);
+      mu_mailcap_entry_get_value (entry, "print", view_command, size, NULL);
+    }
 
   /* NOTE: We don't create temporary file for %s, we just use
      mimeview_file instead */
@@ -449,11 +494,15 @@ run_mailcap (mu_mailcap_entry_t entry, const char *type)
     pfd = &fd;
   DEBUG (0, (_("Executing %s...\n"), view_command));
 
-  if (dry_run)
-    return 0;
+  if (dry_run || !confirm_action (type, view_command))
+    {
+      free (view_command);
+      return 1;
+    }
 
   flag = 0;
-  if (mu_mailcap_entry_copiousoutput (entry, &flag) == 0 && flag)
+  if (interactive
+      && mu_mailcap_entry_copiousoutput (entry, &flag) == 0 && flag)
     pager_pid = create_filter (get_pager (), -1, &outfd);
   
   pid = create_filter (view_command, outfd, pfd);
@@ -483,6 +532,72 @@ run_mailcap (mu_mailcap_entry_t entry, const char *type)
 	print_exit_status (status);
     }
   free (view_command);
+  return 0;
+}
+
+static int
+find_entry (const char *file, const char *type)
+{
+  mu_mailcap_t mailcap;
+  int status;
+  stream_t stream;
+  int rc = 1;
+  
+  DEBUG (2, (_("Trying %s...\n"), file));
+  status = file_stream_create (&stream, file, MU_STREAM_READ);
+  if (status)
+    {
+      mu_error ("cannot create file stream %s: %s",
+		file, mu_strerror (status));
+      return -1;
+    }
+
+  status = stream_open (stream);
+  if (status)
+    {
+      stream_destroy (&stream, stream_get_owner (stream));
+      if (status != ENOENT)
+	mu_error ("cannot open file stream %s: %s",
+		  file, mu_strerror (status));
+      return -1;
+    }
+
+  status = mu_mailcap_create (&mailcap, stream);
+  if (status == 0)
+    {
+      size_t i, count = 0;
+      
+      mu_mailcap_entries_count (mailcap, &count);
+      for (i = 1; i <= count; i++)
+	{
+	  mu_mailcap_entry_t entry;
+	  char buffer[256];
+	  
+	  if (mu_mailcap_get_entry (mailcap, i, &entry))
+	    continue;
+	  
+	  /* typefield.  */
+	  mu_mailcap_entry_get_typefield (entry,
+					  buffer, sizeof (buffer), NULL);
+	  
+	  if (fnmatch (buffer, type, FNM_CASEFOLD) == 0)
+	    {
+	      DEBUG (2, (_("Found in %s\n"), file));
+	      if (run_mailcap (entry, type) == 0)
+                {
+		  rc = 0;
+		  break;
+		}
+	    }
+	}
+      mu_mailcap_destroy (&mailcap);
+    }
+  else
+    {
+      mu_error ("cannot create mailcap for %s: %s",
+		file, mu_strerror (status));
+    }
+  return rc;
 }
 
 void
@@ -490,8 +605,6 @@ display_file_mailcap (const char *type)
 {
   char *p, *sp;
   char *mailcap_path;
-  mu_mailcap_t mailcap = NULL;
-  mu_mailcap_entry_t entry = NULL;
   
   mailcap_path = getenv ("MAILCAP");
   if (!mailcap_path)
@@ -506,12 +619,8 @@ display_file_mailcap (const char *type)
 
   for (p = strtok_r (mailcap_path, ":", &sp); p; p = strtok_r (NULL, ":", &sp))
     {
-      if (find_entry (p, type, &entry, &mailcap))
-	{
-	  run_mailcap (entry, type);
-	  mu_mailcap_destroy (&mailcap);
-	  break;
-	}
+      if (find_entry (p, type) == 0)
+	break;
     }
 }
 
@@ -521,25 +630,28 @@ display_file (const char *type)
   if (metamail)
     {
       int status;
-      const char *argv[6];
-
+      const char *argv[7];
+      
       argv[0] = "metamail";
       argv[1] = "-b";
-      argv[2] = "-c";
-      argv[3] = type;
-      argv[4] = mimeview_file;
-      argv[5] = NULL;
+
+      argv[2] = interactive ? "-p" : "-h";
+      
+      argv[3] = "-c";
+      argv[4] = type;
+      argv[5] = mimeview_file;
+      argv[6] = NULL;
       
       if (debug_level)
 	{
 	  char *string;
-	  argcv_string (5, argv, &string);
+	  argcv_string (6, argv, &string);
 	  printf (_("Executing %s...\n"), string);
 	  free (string);
 	}
       
       if (!dry_run)
-	  mu_spawnvp (metamail, argv, &status);
+	mu_spawnvp (metamail, argv, &status);
     }
   else
     display_file_mailcap (type);
