@@ -1,8 +1,21 @@
+2001-06-27  Alain Magloire
+
+	* configure.in:  We were not checking for thread support
+	at all because the test was faulty.
+
+	* readmsg: New directory.
+	* readmsg/readmsg.c: New file.
+	* readmsg/readmsg.h: New file.
+	* readmsg/msglist.c: New file.
+	This is base on a old testing program Dave inglis wrote
+	to test the mime parsing code.  It is still work in progress
+	but a good base for the readmsg(1) utility close.
+	Not enable yet in the TOP Makefile.
+
 2001-06-26  Alain Magloire
 
 	* mail/from.c:  Use address_get_personal() for a more
 	pretty print when showing the headers.
-
 
 2001-06-26 Sergey Poznyakoff
 	* mail/util.c:

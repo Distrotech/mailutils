@@ -127,7 +127,7 @@ AC_SUBST(AUTHLIBS)
 dnl Check threading support
 # We have to rearrange things a little, it appears that the new autoconf
 # does not like long cascading AC_CHECK_LIB.
-if test x"$enable_threads" = x"yes" -a x"$usepthread" = x"yes"; then
+if test x"$usepthread" = x"yes"; then
 	AC_CHECK_LIB(pthread, pthread_cancel, have_libpthread=yes
 		 have_libpthread=no)
         if test x"$have_libpthread" = x"yes"; then
