@@ -29,6 +29,7 @@
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
+#include <fcntl.h>
 #include <utime.h>
 
 #include <sys/param.h>
@@ -50,16 +51,25 @@ struct _locker
   int refcnt;
 
   char *file;
-
-  char *dotlock;
-  char *nfslock;
-
   int flags;
-
   int expire_time;
   int retries;
   int retry_sleep;
-  char *external;
+
+  union lock_data {
+    struct {
+      char *dotlock;
+      char *nfslock;
+    } dot;
+    
+    struct {
+      char *name;
+    } external;
+    
+    struct {
+      int fd;
+    } kernel;
+  } data;
 };
 
 /* Assert that we're managing the refcnt and fd correctly, either
@@ -68,10 +78,14 @@ struct _locker
  */
 #define INVARIANT(l) assert((l)->refcnt >= 0);
 
-static void expire_stale_lock (locker_t lock);
-static int  stat_check (const char *file, int fd, int links);
-static int  check_file_permissions (const char *file);
-static int  lock_external(locker_t l, int lock);
+static void expire_stale_lock __P((locker_t lock));
+static int stat_check __P((const char *file, int fd, int links));
+static int check_file_permissions __P((const char *file));
+static int lock_external __P((locker_t l, int lock)); 
+static int _locker_lock_dotlock __P((locker_t lock));
+static int _locker_unlock_dotlock __P((locker_t lock));
+static int _locker_lock_kernel __P((locker_t lock)); 
+static int _locker_unlock_kernel __P((locker_t lock));
 
 int
 locker_create (locker_t *plocker, const char *filename, int flags)
@@ -81,7 +95,7 @@ locker_create (locker_t *plocker, const char *filename, int flags)
   if (plocker == NULL)
     return MU_ERR_OUT_PTR_NULL;
 
-  if(filename == NULL)
+  if (filename == NULL)
     return EINVAL;
 
   l = calloc (1, sizeof (*l));
@@ -89,23 +103,12 @@ locker_create (locker_t *plocker, const char *filename, int flags)
     return ENOMEM;
 
   /* Should make l->file be the resulting of following the symlinks. */
-  l->file = strdup(filename);
+  l->file = strdup (filename);
   if (l->file == NULL)
     {
       free (l);
       return ENOMEM;
     }
-
-  l->dotlock = malloc(strlen(l->file) + 5 /*strlen(".lock")*/ + 1);
-
-  if(!l->dotlock)
-    {
-      free (l->file);
-      free (l);
-      return ENOMEM;
-    }
-
-  sprintf(l->dotlock, "%s.lock", l->file);
 
   if (strcmp (filename, "/dev/null") == 0)
     l->flags = MU_LOCKER_NULL;
@@ -118,14 +121,29 @@ locker_create (locker_t *plocker, const char *filename, int flags)
   l->retries = MU_LOCKER_RETRIES;
   l->retry_sleep = MU_LOCKER_RETRY_SLEEP;
 
-  if(flags & MU_LOCKER_EXTERNAL)
-  {
-    if(!(l->external = strdup(MU_LOCKER_EXTERNAL_PROGRAM)))
+  /* Initialize locker-type-specific data */
+  if (flags & MU_LOCKER_EXTERNAL)
     {
-      locker_destroy(&l);
-      return ENOMEM;
+      if (!(l->data.external.name = strdup (MU_LOCKER_EXTERNAL_PROGRAM)))
+	{
+	  locker_destroy (&l);
+	  return ENOMEM;
+	}
     }
-  }
+  else if (!(flags & MU_LOCKER_KERNEL))
+    {
+      l->data.dot.dotlock = malloc (strlen (l->file)
+				    + 5 /*strlen(".lock")*/ + 1);
+
+      if (!l->data.dot.dotlock)
+	{
+	  free (l->file);
+	  free (l);
+	  return ENOMEM;
+	}
+
+      sprintf (l->data.dot.dotlock, "%s.lock", l->file);
+    }
 
   INVARIANT(l);
 
@@ -135,14 +153,29 @@ locker_create (locker_t *plocker, const char *filename, int flags)
 }
 
 void
+_locker_destroy_private (locker_t locker)
+{
+  if (locker)
+    {
+      if (locker->flags & MU_LOCKER_EXTERNAL)
+	free (locker->data.external.name);
+      else if (locker->flags & MU_LOCKER_KERNEL)
+	/* nothing */;
+      else
+	{
+	  free (locker->data.dot.dotlock);
+	  free (locker->data.dot.nfslock);
+	}
+    }
+}
+
+void
 locker_destroy (locker_t *plocker)
 {
   if (plocker && *plocker)
     {
+      _locker_destroy_private (*plocker);
       free ((*plocker)->file);
-      free ((*plocker)->dotlock);
-      free ((*plocker)->nfslock);
-      free ((*plocker)->external);
       free (*plocker);
       *plocker = NULL;
     }
@@ -164,7 +197,7 @@ locker_set_expire_time (locker_t locker, int etime)
   if (!locker)
     return MU_ERR_LOCKER_NULL;
 
-  if(etime <= 0)
+  if (etime <= 0)
     return EINVAL;
 
   locker->expire_time = etime;
@@ -178,7 +211,7 @@ locker_set_retries (locker_t locker, int retries)
   if (!locker)
     return MU_ERR_LOCKER_NULL;
 
-  if(retries <= 0)
+  if (retries <= 0)
     return EINVAL;
 
   locker->retries = retries;
@@ -192,7 +225,7 @@ locker_set_retry_sleep (locker_t locker, int retry_sleep)
   if (!locker)
     return MU_ERR_LOCKER_NULL;
 
-  if(retry_sleep <= 0)
+  if (retry_sleep <= 0)
     return EINVAL;
 
   locker->retry_sleep = retry_sleep;
@@ -207,22 +240,25 @@ locker_set_external (locker_t locker, const char* program)
 
   if (!locker)
     return MU_ERR_LOCKER_NULL;
-
+  if (!(locker->flags & MU_LOCKER_EXTERNAL))
+    return EINVAL;
+    
   /* program can be NULL */
-  if(program != 0)
-  {
-    p = strdup(program);
-    if(!p)
-      return ENOMEM;
+  if (program != 0)
+    {
+      p = strdup (program);
+      if (!p)
+	return ENOMEM;
   }
 
-  free(locker->external);
-  locker->external = p;
+  free (locker->data.external.name);
+  locker->data.external.name = p;
 
   return 0;
 }
 
-int locker_get_flags (locker_t locker, int *flags)
+int
+locker_get_flags (locker_t locker, int *flags)
 {
   if (!locker)
     return MU_ERR_LOCKER_NULL;
@@ -241,7 +277,7 @@ locker_get_expire_time (locker_t locker, int *ptime)
   if (!locker)
     return MU_ERR_LOCKER_NULL;
 
-  if(!ptime)
+  if (!ptime)
     return EINVAL;
 
   *ptime = locker->expire_time;
@@ -255,7 +291,7 @@ locker_get_retries (locker_t locker, int *retries)
   if (!locker)
     return MU_ERR_LOCKER_NULL;
 
-  if(!retries)
+  if (!retries)
     return EINVAL;
 
   *retries = locker->retries;
@@ -269,7 +305,7 @@ locker_get_retry_sleep (locker_t locker, int *retry_sleep)
   if (!locker)
     return MU_ERR_LOCKER_NULL;
 
-  if(!retry_sleep)
+  if (!retry_sleep)
     return EINVAL;
 
   *retry_sleep = locker->retry_sleep;
@@ -280,8 +316,7 @@ locker_get_retry_sleep (locker_t locker, int *retry_sleep)
 int
 locker_lock (locker_t lock)
 {
-  int err = 0;
-  int fd = -1;
+  int rc;
   int retries = 1;
 
   if (lock == NULL)
@@ -298,16 +333,45 @@ locker_lock (locker_t lock)
       return 0;
     }
 
-  /* Do the lock with an external program, if requested. */
-  if (lock->flags & MU_LOCKER_EXTERNAL)
-  {
-    return lock_external(lock, 1);
-  }
-
+  if (access (lock->file, W_OK))
+    {
+      /* There is no use trying to lock the file if we are not
+	 allowed to write to it */
+      _locker_destroy_private (lock);
+      lock->flags |= MU_LOCKER_NULL;
+      return 0;
+    }
+  
   /* Check we are trying to lock a regular file, with a link count
      of 1, that we have permission to read, etc., or don't lock it. */
-  if((err = check_file_permissions(lock->file)))
-      return err;
+  if ((rc = check_file_permissions(lock->file)))
+      return rc;
+
+  /* Do the lock with an external program, if requested. */
+  if (lock->flags & MU_LOCKER_EXTERNAL)
+    return lock_external (lock, 1);
+  else if (!(lock->flags & MU_LOCKER_KERNEL))
+    {
+      char *tmp, *p;
+
+      tmp = strdup (lock->file);
+      if (!tmp)
+	return ENOMEM;
+
+      strcpy (tmp, lock->file);
+      p = strrchr (tmp, '/');
+      /* A '/' must be present, if not we'll coredump, and that's
+	 correct! */
+      *p = 0; 
+
+      if (access (tmp, W_OK))
+	{
+	  /* Fallback to kernel locking */
+	  _locker_destroy_private (lock);
+	  lock->flags |= MU_LOCKER_KERNEL;
+	}
+      free (tmp);
+    }
 
   if (lock->flags & MU_LOCKER_RETRY)
     {
@@ -316,122 +380,17 @@ locker_lock (locker_t lock)
 
   while (retries--)
     {
-      /* cleanup after last loop */
-      close (fd);
-      fd = -1;
-      if (lock->nfslock)
-	{
-	  unlink (lock->nfslock);
-	  free (lock->nfslock);
-	  lock->nfslock = 0;
-	}
-
-      expire_stale_lock (lock);
-
-      /* build the NFS hitching-post to the lock file */
-      {
-	char host[MAXHOSTNAMELEN + 1] = "localhost";
-	char pid[11];		/* 10 is strlen(2^32 = 4294967296) */
-	char now[11];
-	size_t sz = 0;
-
-	gethostname (host, sizeof (host));
-	host[MAXHOSTNAMELEN] = 0;
-
-	snprintf (pid, sizeof (pid), "%d", getpid ());
-	pid[sizeof (pid) - 1] = 0;
-
-	snprintf (now, sizeof (now), "%d", time (0));
-	now[sizeof (now) - 1] = 0;
-
-	sz = strlen (lock->file) + 1 /* "." */  +
-	  strlen (pid) + 1 /* "." */  +
-	  strlen (now) + 1 /* "." */  +
-	  strlen (host) + 1;
-
-	lock->nfslock = malloc (sz);
-
-	if (!lock->nfslock)
-	  return ENOMEM;
-
-	snprintf (lock->nfslock, sz, "%s.%s.%s.%s", lock->file, pid, now,
-		  host);
-	lock->nfslock[sz - 1] = 0;
-      }
-
-      fd = open (lock->nfslock, O_WRONLY | O_CREAT | O_EXCL, LOCKFILE_ATTR);
-
-      if (fd == -1)
-	{
-	  if (errno == EEXIST)
-	    continue;		/* Try with another lockfile name. */
-	  else
-	    return errno;
-	}
-      close (fd);
-
-      fd = -1;
-
-
-      /* Try to link to the lockfile. */
-      if (link (lock->nfslock, lock->dotlock) == -1)
-	{
-	  err = errno;
-
-	  if (err != EEXIST)
-	    break;		/* fatal */
-	}
+      if (lock->flags & MU_LOCKER_KERNEL)
+	rc = _locker_lock_kernel (lock);
       else
-	{
-	  if ((fd = open (lock->dotlock, O_RDONLY)) == -1)
-	    {
-	      err = errno;
-	      break;		/* fatal, we just made it, we should be able to open! */
-	    }
-	  err = stat_check (lock->nfslock, fd, 2);
-	  if (err == 0)
-	    {
-	      /* We got the lock! */
-	      break;
-	    }
-	  else
-	    {
-	      unlink (lock->dotlock);
-	      unlink (lock->nfslock);
-
-	      /* If there was something invalid about the file/fd, return
-	         a more descriptive code. */
-	      if (err == EINVAL)
-		err = MU_ERR_LOCK_BAD_LOCK;
-
-	      break;
-	    }
-	}
-      if (retries)
+	rc = _locker_lock_dotlock (lock);
+      if (rc == EAGAIN && retries)
 	sleep (lock->retry_sleep);
+      else if (rc)
+	return rc;
+      else /* rc == 0 */
+	break;
     }
-
-  unlink (lock->nfslock);
-
-  /* EEXIST means somebody else has the lock, anything else is an
-     error. */
-  if (err == EEXIST)
-    err = MU_ERR_LOCK_CONFLICT;
-
-  if (err)
-    return err;
-
-  /* If no errors, we have the lock. */
-  assert (lock->refcnt == 0);
-
-  if (lock->flags & MU_LOCKER_PID)
-    {
-      char buf[16];
-      sprintf (buf, "%ld", (long) getpid ());
-      write (fd, buf, strlen (buf));
-    }
-
-  close(fd);
 
   lock->refcnt = 1;
 
@@ -447,8 +406,8 @@ locker_touchlock (locker_t lock)
   if (lock->flags == MU_LOCKER_NULL)
     return 0;
   
-  if(lock->refcnt > 0)
-    return utime (lock->dotlock, NULL);
+  if (lock->refcnt > 0)
+    return utime (lock->data.dot.dotlock, NULL);
 
   return MU_ERR_LOCK_NOT_HELD;
 }
@@ -456,7 +415,7 @@ locker_touchlock (locker_t lock)
 int
 locker_unlock (locker_t lock)
 {
-  int err = 0;
+  int rc = 0;
 
   if (!lock)
     return MU_ERR_LOCKER_NULL;
@@ -469,35 +428,26 @@ locker_unlock (locker_t lock)
 
   /* Do the lock with an external program, if requested. */
   if (lock->flags & MU_LOCKER_EXTERNAL)
-    {
-      return lock_external (lock, 0);
-    }
-
+    return lock_external (lock, 0);
+  
   if (lock->refcnt > 1)
     {
       lock->refcnt--;
       return 0;
     }
 
-  if ((err = check_file_permissions (lock->file)))
-    return err;
+  if ((rc = check_file_permissions (lock->file)))
+    return rc;
 
-  if (unlink (lock->dotlock) == -1)
-    {
-      err = errno;
-      if (err == ENOENT)
-	{
-	  lock->refcnt = 0;
-	  err = MU_ERR_LOCK_NOT_HELD;
-	  return err;
-	}
+  if (lock->flags & MU_LOCKER_KERNEL)
+    rc = _locker_unlock_kernel (lock);
+  else
+    rc = _locker_unlock_dotlock (lock);
 
-      return err;
-    }
+  if (rc == 0)
+    lock->refcnt = 0;
 
-  lock->refcnt = 0;
-
-  return 0;
+  return rc;
 }
 
 int
@@ -513,7 +463,7 @@ locker_remove_lock (locker_t lock)
 
   /* Force the reference count to 1 to unlock the file. */
   lock->refcnt = 1;
-  err = locker_unlock(lock);
+  err = locker_unlock (lock);
 
   return err;
 }
@@ -523,7 +473,7 @@ static void
 expire_stale_lock (locker_t lock)
 {
   int stale = 0;
-  int fd = open (lock->dotlock, O_RDONLY);
+  int fd = open (lock->data.dot.dotlock, O_RDONLY);
   if (fd == -1)
     return;
 
@@ -547,6 +497,7 @@ expire_stale_lock (locker_t lock)
 	    stale = 1;		/* Corrupted file, remove the lock. */
 	}
     }
+  
   /* Check to see if the lock expired.  */
   if (lock->flags & MU_LOCKER_TIME)
     {
@@ -560,7 +511,7 @@ expire_stale_lock (locker_t lock)
 
   close (fd);
   if (stale)
-    unlink (lock->dotlock);
+    unlink (lock->data.dot.dotlock);
 }
 
 static int
@@ -571,14 +522,14 @@ stat_check (const char *file, int fd, int links)
   int err = 0;
   int localfd = -1;
 
-  if(fd == -1)
-  {
-    localfd = open(file, O_RDONLY);
-
-    if(localfd == -1)
-      return errno;
-    fd = localfd;
-  }
+  if (fd == -1)
+    {
+      localfd = open(file, O_RDONLY);
+      
+      if (localfd == -1)
+	return errno;
+      fd = localfd;
+    }
 
   /* We should always be able to stat a valid fd, so this
      is an error condition. */
@@ -603,8 +554,8 @@ stat_check (const char *file, int fd, int links)
 
 #undef CHK
     }
-  if(localfd != -1)
-    close(localfd);
+  if (localfd != -1)
+    close (localfd);
 
   return err;
 }
@@ -616,7 +567,7 @@ check_file_permissions (const char *file)
   int err = 0;
 
   if ((fd = open (file, O_RDONLY)) == -1)
-    return errno;
+    return errno == ENOENT ? 0 : errno;
 
   err = stat_check (file, fd, 1);
   close (fd);
@@ -628,6 +579,161 @@ check_file_permissions (const char *file)
       return err;
     }
 
+  return 0;
+}
+
+/* Locker-specific lock/unlock functions */
+int
+_locker_lock_dotlock (locker_t lock)
+{
+  char host[MAXHOSTNAMELEN + 1] = "localhost";
+  char pid[11];		/* 10 is strlen(2^32 = 4294967296) */
+  char now[11];
+  size_t sz = 0;
+  int err = 0;
+  int fd;
+    
+  if (lock->data.dot.nfslock)
+    {
+      unlink (lock->data.dot.nfslock);
+      free (lock->data.dot.nfslock);
+      lock->data.dot.nfslock = 0;
+    }
+
+  expire_stale_lock (lock);
+
+  /* build the NFS hitching-post to the lock file */
+
+  gethostname (host, sizeof (host));
+  host[MAXHOSTNAMELEN] = 0;
+
+  snprintf (now, sizeof (now), "%d", time (0));
+  now[sizeof (now) - 1] = 0;
+
+  snprintf (pid, sizeof (pid), "%d", getpid ());
+  pid[sizeof (pid) - 1] = 0;
+		  
+  sz = strlen (lock->file) + 1 /* "." */
+    + strlen (pid) + 1 /* "." */
+    + strlen (now) + 1 /* "." */
+    + strlen (host) + 1;
+  
+  lock->data.dot.nfslock = malloc (sz);
+  
+  if (!lock->data.dot.nfslock)
+    return ENOMEM;
+  
+  snprintf (lock->data.dot.nfslock, sz, "%s.%s.%s.%s", lock->file, pid, now,
+	    host);
+  
+  fd = open (lock->data.dot.nfslock,
+	     O_WRONLY | O_CREAT | O_EXCL, LOCKFILE_ATTR);
+  if (fd == -1)
+    {
+      if (errno == EEXIST)
+	return EAGAIN;
+      else
+	return errno;
+    }
+  close (fd);
+  
+  /* Try to link to the lockfile. */
+  if (link (lock->data.dot.nfslock, lock->data.dot.dotlock) == -1)
+    {
+      if (errno == EEXIST)
+	return MU_ERR_LOCK_CONFLICT;
+      return errno;
+    }
+
+  if ((fd = open (lock->data.dot.dotlock, O_RDONLY)) == -1)
+    return errno;
+  err = stat_check (lock->data.dot.nfslock, fd, 2);
+  if (err)
+    {
+      if (err == EINVAL)
+	return MU_ERR_LOCK_BAD_LOCK;
+      return errno;
+    }
+
+  unlink (lock->data.dot.nfslock);
+
+  /* If no errors, we have the lock. */
+  assert (lock->refcnt == 0);
+
+  if (lock->flags & MU_LOCKER_PID)
+    {
+      char buf[16];
+      sprintf (buf, "%ld", (long) getpid ());
+      write (fd, buf, strlen (buf));
+    }
+  close(fd);
+  return 0;
+}  
+
+int
+_locker_unlock_dotlock (locker_t lock)
+{
+  if (unlink (lock->data.dot.dotlock) == -1)
+    {
+      int err = errno;
+      if (err == ENOENT)
+	{
+	  lock->refcnt = 0;
+	  err = MU_ERR_LOCK_NOT_HELD;
+	  return err;
+	}
+      return err;
+    }
+  return 0;
+}
+
+int
+_locker_lock_kernel (locker_t lock)
+{
+  int fd;
+  struct flock fl;
+
+  fd = open (lock->file, O_RDWR);
+  if (fd == -1)
+    return errno;
+  lock->data.kernel.fd = fd;
+  fl.l_type = F_WRLCK;
+  fl.l_whence = SEEK_SET;
+  fl.l_start = 0;
+  fl.l_len = 0; /* Lock entire file */
+  if (fcntl (fd, F_SETLK, &fl))
+    {
+#ifdef EACCESS      
+      if (errno == EACCESS)
+	return EAGAIN;
+#endif
+      if (errno == EAGAIN)
+	return EAGAIN;
+      return errno;
+    }
+  return 0;
+}
+
+int
+_locker_unlock_kernel (locker_t lock)
+{
+  struct flock fl;
+
+  fl.l_type = F_UNLCK;
+  fl.l_whence = SEEK_SET;
+  fl.l_start = 0;
+  fl.l_len = 0; /* Unlock entire file */
+  if (fcntl (lock->data.kernel.fd, F_SETLK, &fl))
+    {
+#ifdef EACCESS
+      if (errno == EACCESS)
+	return EAGAIN;
+#endif
+      if (errno == EAGAIN)
+	return EAGAIN;
+      return errno;
+    }
+  close (lock->data.kernel.fd);
   return 0;
 }
 
@@ -651,7 +757,8 @@ lock_external (locker_t l, int lock)
   assert (lock == !l->refcnt);
   /* lock is true, refcnt is 0 or lock is false and refcnt is 1 */
 
-  av[ac++] = l->external ? l->external : MU_LOCKER_EXTERNAL_PROGRAM;
+  av[ac++] = l->data.external.name ?
+                   l->data.external.name : MU_LOCKER_EXTERNAL_PROGRAM;
 
   if (l->flags & MU_LOCKER_TIME)
     {
@@ -659,12 +766,14 @@ lock_external (locker_t l, int lock)
       aforce[sizeof (aforce) - 1] = 0;
       av[ac++] = aforce;
     }
+  
   if (l->flags & MU_LOCKER_RETRY)
     {
       snprintf (aretry, sizeof (aretry), "-r%d", l->retries);
       aretry[sizeof (aretry) - 1] = 0;
       av[ac++] = aretry;
     }
+
   if (lock == 0)
     {
       av[ac++] = "-u";
