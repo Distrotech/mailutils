@@ -216,8 +216,21 @@ proc imap4d_test { args } {
     set len [expr [llength $args] - 1]
 
     if {$len >= 2} {
+	set regexp 0
 	for {set i 1} {$i <= [expr $len - 1]} {incr i} {
-	    set pattern [concat $pattern [list "* [lindex $args $i]"]]
+	    switch -regexp -- "[lindex $args $i]" {
+		-re.*$	-
+		--      { set item "[lindex $args $i]"; set regexp 1 }
+		default { if {$regexp} {
+		              set item "\\* [lindex $args $i]"
+		          } else {
+			      set item "* [lindex $args $i]"
+			  }
+			  set regexp 0
+		      }
+	    }
+	    
+	    set pattern [concat $pattern [list $item]]
 	}
 	set tagged [lindex $args end]
     } elseif {$len == 1} {
