@@ -222,20 +222,23 @@ _scan (const char *name, int depth)
   struct stat st;
   size_t uid;
 
-  if (fast_mode && !recurse && depth > 0)
+  if (!recurse)
     {
-      memset (&info, 0, sizeof (info));
-      info.name = strdup (name);
-      install_folder_info (name, &info);
-      return;
+      if (fast_mode && depth > 0)
+	{
+	  memset (&info, 0, sizeof (info));
+	  info.name = strdup (name);
+	  install_folder_info (name, &info);
+	  return;
+	}
+      
+      if (depth > 1)
+	return;
     }
-
-  if (depth > 1 && !recurse)
-    return;
   
   dir = opendir (name);
 
-  if (!dir && errno == ENOENT)
+  if (!dir && errno == ENOENT && create_flag)
     {
       mh_check_folder (name, 0);
       dir = opendir (name);
@@ -271,7 +274,7 @@ _scan (const char *name, int depth)
 	      info.message_count++;
 	      if (info.min == 0 || uid < info.min)
 		info.min = uid;
-	      else if (uid > info.max)
+	      if (uid > info.max)
 		info.max = uid;
 	    }
 	  break;
@@ -305,8 +308,17 @@ print_all ()
 
   for (info = folder_info; info < end; info++)
     {
-      printf ("%19.19s%c", info->name,
-	      (strcmp (info->name, current_folder) == 0) ? '+' : ' ');
+      int len = strlen (info->name);
+      printf ("%s", info->name);
+      if (strcmp (info->name, current_folder) == 0)
+	{
+	  printf ("+");
+	  len++;
+	}
+
+      for (; len < 20; len++)
+	putchar (' ');
+
       if (info->message_count)
 	{
 	  printf (" has %4lu messages (%4lu-%4lu)",
@@ -319,7 +331,7 @@ print_all ()
 	  if (info->others)
 	    {
 	      if (!info->cur)
-		printf (";         ");
+		printf (";           ");
 	      else
 		printf ("; ");
 	      printf ("(others)");
@@ -379,14 +391,18 @@ action_print ()
   if (fast_mode)
     print_fast ();
   else
-    print_all ();
+    {
+      if (print_header)
+	printf ("Folder               # of messages     (  range  )  cur msg   (other files)\n");
+		
+      print_all ();
 
-  if (print_total)
-    printf ("%24.24s=%4lu messages in %4lu folders\n",
-	    "TOTAL",
-	    (unsigned long) message_count,
-	    (unsigned long) folder_info_count);
-
+      if (print_total)
+	printf ("%24.24s=%4lu messages in %4lu folders\n",
+		"TOTAL",
+		(unsigned long) message_count,
+		(unsigned long) folder_info_count);
+    }
   if (push_folder)
     mh_global_save_state ();
 
@@ -400,7 +416,8 @@ action_list ()
 
   printf ("%s", current_folder);
   if (stack)
-    printf (" %s\n", stack);
+    printf (" %s", stack);
+  printf ("\n");
   return 0;
 }
 
@@ -440,7 +457,19 @@ static int
 action_pop ()
 {
   char *stack = mh_global_context_get ("Folder-Stack", NULL);
-  char *s, *p = strtok_r (stack, " ", &s);
+  char *s, *p;
+
+  if (stack)
+    {
+      p = strtok_r (stack, " ", &s);
+      if (s[0] == 0)
+	s = NULL;
+    }
+  else
+    {
+      p = current_folder;
+      s = NULL;
+    }
   mh_global_context_set ("Folder-Stack", s);
   current_folder = p;
   action_list ();
@@ -452,6 +481,8 @@ int
 main (int argc, char **argv)
 {
   int index = 0;
+  mh_msgset_t msgset;
+  
   mh_argp_parse (argc, argv, options, mh_option, args_doc, doc,
 		 opt_handler, NULL, &index);
 
@@ -460,6 +491,21 @@ main (int argc, char **argv)
   if (program_invocation_short_name[strlen (program_invocation_short_name) - 1] == 's')
     show_all++;
 
+  if (argc - index == 1)
+    {
+      mailbox_t mbox = mh_open_folder (current_folder, 0);
+      mh_msgset_parse (mbox, &msgset, argc - index, argv + index);
+      current_message = msgset.list[0];
+      mh_global_save_state ();
+      mailbox_close (mbox);
+      mailbox_destroy (&mbox);
+    }
+  else if (argc - index > 1)
+    {
+      mh_error ("too many arguments");
+      exit (1);
+    }
+  
   if (show_all)
     print_header = print_total = 1;
   
