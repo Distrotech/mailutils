@@ -254,7 +254,7 @@ void util_print_flags __P((attribute_t attr));
 int util_attribute_to_type __P((const char *item, int *type));
 int util_type_to_attribute __P((int type, char **attr_str));
 int util_attribute_matches_flag __P((attribute_t attr, const char *item));
-
+int util_uidvalidity __P((mailbox_t smbox, unsigned long *uidvp));
   
 #ifdef __cplusplus
 }
