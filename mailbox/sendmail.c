@@ -166,6 +166,9 @@ sendmail_close (mailer_t mailer)
   return 0;
 }
 
+/* Close FD unless it is part of pipe P */
+#define SCLOSE(fd,p) if (p[0]!=fd&&p[1]!=fd) close(fd)
+
 static int
 sendmail_send_message (mailer_t mailer, message_t msg, address_t from,
 		       address_t to)
@@ -299,9 +302,9 @@ sendmail_send_message (mailer_t mailer, message_t msg, address_t from,
 	    sendmail->pid = vfork ();
 	    if (sendmail->pid == 0)	/* Child.  */
 	      {
-		close (STDIN_FILENO);
-		close (STDOUT_FILENO);
-		close (STDERR_FILENO);
+		SCLOSE (STDIN_FILENO, tunnel);
+		SCLOSE (STDOUT_FILENO, tunnel);
+		SCLOSE (STDERR_FILENO, tunnel);
 		close (tunnel[1]);
 		dup2 (tunnel[0], STDIN_FILENO);
 		execv (sendmail->path, argvec);
