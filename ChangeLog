@@ -1,3 +1,14 @@
+2002-07-22  Sergey Poznyakoff
+
+	* mail/delete.c (mail_delete): Initialize auto variables.
+	* mail/testsuite/mail/tag.exp: Test "tag" command and message
+	  selection.
+	* mail/testsuite/mail/z.exp: Test "z" command.
+	* mail/testsuite/mail/DISTFILES: Added tag.exp, z.exp
+	* mail/testsuite/spool/teaparty.mbox: A mailbox for tag.exp and z.exp.
+	* mail/testsuite/spool/DISTFILES: Added teaparty.mbox
+	* mail/testsuite/etc/mail.rc: Set screen and columns.
+	
 2002-07-17  Sergey Poznyakoff
 
 	* mail/quit.c (mail_mbox_commit): Do not store deleted messages
