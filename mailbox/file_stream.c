@@ -218,17 +218,17 @@ _stdin_file_read (stream_t stream, char *optr, size_t osize,
     nbytes = 0;
   else
     {
-  status = _file_read (stream, optr, osize, fs_offset, &nbytes);
-  if (status == 0 && nbytes)
-    {
-      size_t k;
+      status = _file_read (stream, optr, osize, fs_offset, &nbytes);
+      if (status == 0 && nbytes)
+	{
+	  size_t k;
 
-      status = stream_write (fs->cache, optr, nbytes, fs_offset, &k);
-      if (status)
-	return status;
-      if (k != nbytes)
-	return EIO;
-      }
+	  status = stream_write (fs->cache, optr, nbytes, fs_offset, &k);
+	  if (status)
+	    return status;
+	  if (k != nbytes)
+	    return EIO;
+	}
     }
   if (pnbytes)
     *pnbytes = nbytes;
@@ -464,6 +464,13 @@ _file_open (stream_t stream)
 }
 
 int
+_file_strerror (stream_t unused, const char **pstr)
+{
+  *pstr = strerror (errno);
+  return 0;
+}
+
+int
 file_stream_create (stream_t *stream, const char* filename, int flags)
 {
   struct _file_stream *fs;
@@ -500,12 +507,13 @@ file_stream_create (stream_t *stream, const char* filename, int flags)
   stream_set_size (*stream, _file_size, fs);
   stream_set_flush (*stream, _file_flush, fs);
   stream_set_destroy (*stream, _file_destroy, fs);
-
+  stream_set_strerror (*stream, _file_strerror, fs);
+  
   return 0;
 }
 
 int
-stdio_stream_create (stream_t *stream, FILE* file, int flags)
+stdio_stream_create (stream_t *stream, FILE *file, int flags)
 {
   struct _file_stream *fs;
   int ret;
@@ -529,22 +537,33 @@ stdio_stream_create (stream_t *stream, FILE* file, int flags)
       return ret;
     }
 
-  if ((ret = memory_stream_create (&fs->cache, 0, MU_STREAM_RDWR))
-      || (ret = stream_open (fs->cache)))
-    {
-      stream_destroy (stream, fs);
-      free (fs);
-      return ret;
-    }
+  /* Check if we need to enable caching */
 
+  if ((flags & MU_STREAM_SEEKABLE) && lseek (fileno (file), 0, 0))
+    {
+      if ((ret = memory_stream_create (&fs->cache, 0, MU_STREAM_RDWR))
+	  || (ret = stream_open (fs->cache)))
+	{
+	  stream_destroy (stream, fs);
+	  free (fs);
+	  return ret;
+	}
+      stream_set_read (*stream, _stdin_file_read, fs);
+      stream_set_readline (*stream, _stdin_file_readline, fs);
+      stream_set_write (*stream, _stdout_file_write, fs);
+    }
+  else
+    {
+      stream_set_read (*stream, _file_read, fs);
+      stream_set_readline (*stream, _file_readline, fs);
+      stream_set_write (*stream, _file_write, fs);
+    }
+  
   /* We don't need to open the FILE, just return success. */
 
   stream_set_open (*stream, NULL, fs);
   stream_set_close (*stream, _file_close, fs);
   stream_set_fd (*stream, _file_get_fd, fs);
-  stream_set_read (*stream, _stdin_file_read, fs);
-  stream_set_readline (*stream, _stdin_file_readline, fs);
-  stream_set_write (*stream, _stdout_file_write, fs);
   stream_set_flush (*stream, _file_flush, fs);
   stream_set_destroy (*stream, _file_destroy, fs);
 
