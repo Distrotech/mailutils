@@ -15,9 +15,16 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
+#ifndef _MAILUTILS_LIBSIEVE_H
+#define _MAILUTILS_LIBSIEVE_H
+
 #include <sys/types.h>
 #include <stdarg.h>
 #include <mailutils/mailutils.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 typedef struct sieve_machine *sieve_machine_t;
 
@@ -100,16 +107,17 @@ typedef struct {
 
 extern int sieve_yydebug;
 
+/* Memory allocation functions */
 void *sieve_alloc __P((size_t size));
 void *sieve_palloc __P((list_t *pool, size_t size));
 void *sieve_prealloc __P((list_t *pool, void *ptr, size_t size));
 void sieve_pfree __P((list_t *pool, void *ptr));
 char *sieve_pstrdup __P((list_t *pool, const char *str));
 
-int sieve_compile __P((sieve_machine_t mach, const char *name));
+sieve_value_t *sieve_value_create __P((sieve_data_type type, void *data));
+void sieve_slist_destroy __P((list_t *plist));
 
-sieve_value_t * sieve_value_create __P((sieve_data_type type, void *data));
-
+/* Symbol space functions */
 sieve_register_t *sieve_test_lookup __P((const char *name));
 sieve_register_t *sieve_action_lookup __P((const char *name));
 int sieve_register_test __P((const char *name, sieve_handler_t handler,
@@ -118,55 +126,6 @@ int sieve_register_test __P((const char *name, sieve_handler_t handler,
 int sieve_register_action __P((const char *name, sieve_handler_t handler,
 			       sieve_data_type *arg_types,
 			       sieve_tag_group_t *tags, int required));
-
-void sieve_slist_destroy __P((list_t *plist));
-void sieve_require __P((list_t slist));
-
-void sieve_abort __P((sieve_machine_t mach));
-
-void *sieve_get_data __P((sieve_machine_t mach));
-message_t sieve_get_message __P((sieve_machine_t mach));
-size_t sieve_get_message_num __P((sieve_machine_t mach));
-int sieve_get_debug_level __P((sieve_machine_t mach));
-ticket_t sieve_get_ticket __P((sieve_machine_t mach));
-
-void sieve_error __P((sieve_machine_t mach, const char *fmt, ...));
-void sieve_debug __P((sieve_machine_t mach, const char *fmt, ...));
-void sieve_log_action __P((sieve_machine_t mach, const char *action,
-			   const char *fmt, ...));
-
-int sieve_mailbox __P((sieve_machine_t mach, mailbox_t mbox));
-int sieve_disass __P((sieve_machine_t mach));
-
-int sieve_machine_init __P((sieve_machine_t *mach, void *data));
-void sieve_machine_destroy __P((sieve_machine_t *pmach));
-int sieve_machine_add_destructor __P((sieve_machine_t mach,
-				       sieve_destructor_t destr,
-				      void *ptr));
-
-void sieve_machine_set_error __P((sieve_machine_t mach,
-				  sieve_printf_t error_printer));
-void sieve_machine_set_parse_error __P((sieve_machine_t mach,
-					sieve_parse_error_t p));
-void sieve_machine_set_debug __P((sieve_machine_t mach,
-				  sieve_printf_t debug));
-void sieve_machine_set_debug_level __P((sieve_machine_t mach,
-					mu_debug_t dbg,
-					int level));
-void sieve_machine_set_logger __P((sieve_machine_t mach,
-				   sieve_action_log_t logger));
-void sieve_machine_set_ticket __P((sieve_machine_t mach,
-				   ticket_t ticket));
-sieve_value_t *sieve_value_get __P((list_t vlist, size_t index));
-
-int sieve_is_dry_run __P((sieve_machine_t mach));
-
-int sieve_vlist_do __P((sieve_value_t *val, list_action_t *ac, void *data));
-int sieve_vlist_compare __P((sieve_value_t *a, sieve_value_t *b,
-			     sieve_comparator_t comp, sieve_retrieve_t ac,
-			     void *data));
-
-
 int sieve_register_comparator __P((const char *name,
 				   int required,
 				   sieve_comparator_t is,
@@ -177,5 +136,62 @@ sieve_comparator_t sieve_comparator_lookup __P((const char *name,
 						int matchtype));
 
 sieve_comparator_t sieve_get_comparator __P((list_t tags));
+void sieve_require __P((list_t slist));
 
+/* Operations in value lists */
+sieve_value_t *sieve_value_get __P((list_t vlist, size_t index));
+int sieve_vlist_do __P((sieve_value_t *val, list_action_t *ac, void *data));
+int sieve_vlist_compare __P((sieve_value_t *a, sieve_value_t *b,
+			     sieve_comparator_t comp, sieve_retrieve_t ac,
+			     void *data));
+
+/* Functions to create and destroy sieve machine */
+int sieve_machine_init __P((sieve_machine_t *mach, void *data));
+void sieve_machine_destroy __P((sieve_machine_t *pmach));
+int sieve_machine_add_destructor __P((sieve_machine_t mach,
+				      sieve_destructor_t destr,
+				      void *ptr));
+
+/* Functions for accessing sieve machine internals */
+void *sieve_get_data __P((sieve_machine_t mach));
+message_t sieve_get_message __P((sieve_machine_t mach));
+size_t sieve_get_message_num __P((sieve_machine_t mach));
+int sieve_get_debug_level __P((sieve_machine_t mach));
+ticket_t sieve_get_ticket __P((sieve_machine_t mach));
+mailer_t sieve_get_mailer __P((sieve_machine_t mach));
+char *sieve_get_daemon_email __P((sieve_machine_t mach));
+
+void sieve_set_error __P((sieve_machine_t mach, sieve_printf_t error_printer));
+void sieve_set_parse_error __P((sieve_machine_t mach, sieve_parse_error_t p));
+void sieve_set_debug __P((sieve_machine_t mach, sieve_printf_t debug));
+void sieve_set_debug_level __P((sieve_machine_t mach, mu_debug_t dbg,
+				int level));
+void sieve_set_logger __P((sieve_machine_t mach, sieve_action_log_t logger));
+void sieve_set_ticket __P((sieve_machine_t mach, ticket_t ticket));
+void sieve_set_mailer __P((sieve_machine_t mach, mailer_t mailer));
+void sieve_set_daemon_email __P((sieve_machine_t mach, const char *email));
+
+/* Logging and diagnostic functions */
+
+void sieve_error __P((sieve_machine_t mach, const char *fmt, ...));
+void sieve_debug __P((sieve_machine_t mach, const char *fmt, ...));
+void sieve_log_action __P((sieve_machine_t mach, const char *action,
+			   const char *fmt, ...));
+void sieve_abort __P((sieve_machine_t mach));
+
+
+int sieve_is_dry_run __P((sieve_machine_t mach));
 const char *sieve_type_str __P((sieve_data_type type));
+
+/* Principal entry points */
+
+int sieve_compile __P((sieve_machine_t mach, const char *name));
+int sieve_mailbox __P((sieve_machine_t mach, mailbox_t mbox));
+int sieve_message __P((sieve_machine_t mach, message_t message));
+int sieve_disass __P((sieve_machine_t mach));
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif
