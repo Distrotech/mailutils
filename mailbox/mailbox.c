@@ -164,7 +164,7 @@ mailbox_destroy (mailbox_t *pmbox)
 	locker_destroy (&(mbox->locker));
 
       if (mbox->debug)
-	debug_destroy (&(mbox->debug), mbox);
+	mu_debug_destroy (&(mbox->debug), mbox);
 
       if (mbox->folder)
 	folder_destroy (&(mbox->folder));
@@ -452,24 +452,24 @@ mailbox_get_property (mailbox_t mbox, property_t *pproperty)
 }
 
 int
-mailbox_set_debug (mailbox_t mbox, debug_t debug)
+mailbox_set_debug (mailbox_t mbox, mu_debug_t debug)
 {
   if (mbox == NULL)
     return EINVAL;
   if (mbox->debug)
-    debug_destroy (&(mbox->debug), mbox);
+    mu_debug_destroy (&(mbox->debug), mbox);
   mbox->debug = debug;
   return 0;
 }
 
 int
-mailbox_get_debug (mailbox_t mbox, debug_t *pdebug)
+mailbox_get_debug (mailbox_t mbox, mu_debug_t *pdebug)
 {
   if (mbox == NULL || pdebug == NULL)
     return EINVAL;
   if (mbox->debug == NULL)
     {
-      int status = debug_create (&(mbox->debug), mbox);
+      int status = mu_debug_create (&(mbox->debug), mbox);
       if (status != 0)
 	return status;
     }

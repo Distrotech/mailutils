@@ -34,20 +34,20 @@ extern "C" {
 #endif
 
 struct _debug;
-typedef struct _debug* debug_t;
+typedef struct _debug* mu_debug_t;
 
 #define MU_DEBUG_TRACE 1
 #define MU_DEBUG_PROT  2
-extern int debug_create    __P ((debug_t *, void *owner));
-extern void debug_destroy  __P ((debug_t *, void *owner));
-extern void * debug_get_owner __P ((debug_t));
-extern int debug_set_level __P ((debug_t, size_t level));
-extern int debug_get_level __P ((debug_t, size_t *plevel));
-extern int debug_print     __P ((debug_t debug, size_t level,
+extern int mu_debug_create    __P ((mu_debug_t *, void *owner));
+extern void mu_debug_destroy  __P ((mu_debug_t *, void *owner));
+extern void * mu_debug_get_owner __P ((mu_debug_t));
+extern int mu_debug_set_level __P ((mu_debug_t, size_t level));
+extern int mu_debug_get_level __P ((mu_debug_t, size_t *plevel));
+extern int mu_debug_print     __P ((mu_debug_t debug, size_t level,
 				 const char *format, ...));
-extern int debug_printv    __P ((debug_t debug, size_t level,
+extern int mu_debug_printv    __P ((mu_debug_t debug, size_t level,
 				 const char *format, va_list argp));
-extern int debug_set_print __P ((debug_t, int (*_print) __P ((debug_t, const char *, va_list)), void *owner));
+extern int mu_debug_set_print __P ((mu_debug_t, int (*_print) __P ((mu_debug_t, const char *, va_list)), void *owner));
 
 #ifdef __cplusplus
 }

@@ -366,9 +366,9 @@ SCM_DEFINE (mu_message_send, "mu-message-send", 1, 1, 0,
 
   if (SCM_INUM(_mu_scm_debug))
     {
-      debug_t debug = NULL;
+      mu_debug_t debug = NULL;
       mailer_get_debug (mailer, &debug);
-      debug_set_level (debug, MU_DEBUG_TRACE|MU_DEBUG_PROT);
+      mu_debug_set_level (debug, MU_DEBUG_TRACE|MU_DEBUG_PROT);
     }
 
   status = mailer_open (mailer, MU_STREAM_RDWR);

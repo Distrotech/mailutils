@@ -85,7 +85,7 @@ struct _address;
 typedef struct _address *address_t;
 
 struct _debug;
-typedef struct _debug *debug_t;
+typedef struct _debug *mu_debug_t;
 
 struct _stream;
 typedef struct _stream *stream_t;

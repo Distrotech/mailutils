@@ -136,7 +136,7 @@ mailer_destroy (mailer_t *pmailer)
         url_destroy (&(mailer->url));
 
       if (mailer->debug)
-	debug_destroy (&(mailer->debug), mailer);
+	mu_debug_destroy (&(mailer->debug), mailer);
 
       if (mailer->properties)
         {
@@ -257,23 +257,23 @@ mailer_get_property (mailer_t mailer, property_t *pproperty)
 }
 
 int
-mailer_set_debug (mailer_t mailer, debug_t debug)
+mailer_set_debug (mailer_t mailer, mu_debug_t debug)
 {
   if (mailer == NULL)
     return EINVAL;
-  debug_destroy (&(mailer->debug), mailer);
+  mu_debug_destroy (&(mailer->debug), mailer);
   mailer->debug = debug;
   return 0;
 }
 
 int
-mailer_get_debug (mailer_t mailer, debug_t *pdebug)
+mailer_get_debug (mailer_t mailer, mu_debug_t *pdebug)
 {
   if (mailer == NULL || pdebug == NULL)
     return EINVAL;
   if (mailer->debug == NULL)
     {
-      int status = debug_create (&(mailer->debug), mailer);
+      int status = mu_debug_create (&(mailer->debug), mailer);
       if (status != 0)
 	return status;
     }

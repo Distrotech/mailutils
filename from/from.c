@@ -72,9 +72,9 @@ main(int argc, char **argv)
 
   /* Debuging Trace.  */
   {
-    //debug_t debug;
+    //mu_debug_t debug;
     //mailbox_get_debug (mbox, &debug);
-    //debug_set_level (debug, MU_DEBUG_TRACE|MU_DEBUG_PROT);
+    //mu_debug_set_level (debug, MU_DEBUG_TRACE|MU_DEBUG_PROT);
   }
 
   if ((status = mailbox_open (mbox, MU_STREAM_READ)) != 0)

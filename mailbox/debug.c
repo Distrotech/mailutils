@@ -27,9 +27,9 @@
 #include <debug0.h>
 
 int
-debug_create (debug_t *pdebug, void *owner)
+mu_debug_create (mu_debug_t *pdebug, void *owner)
 {
-  debug_t debug;
+  mu_debug_t debug;
   if (pdebug == NULL)
     return EINVAL;
   debug = calloc (sizeof (*debug), 1);
@@ -41,11 +41,11 @@ debug_create (debug_t *pdebug, void *owner)
 }
 
 void
-debug_destroy (debug_t *pdebug, void *owner)
+mu_debug_destroy (mu_debug_t *pdebug, void *owner)
 {
   if (pdebug && *pdebug)
     {
-      debug_t debug = *pdebug;
+      mu_debug_t debug = *pdebug;
       if (debug->owner == owner)
 	{
 	  free (*pdebug);
@@ -55,13 +55,13 @@ debug_destroy (debug_t *pdebug, void *owner)
 }
 
 void *
-debug_get_owner (debug_t debug)
+mu_debug_get_owner (mu_debug_t debug)
 {
   return (debug) ? debug->owner : NULL;
 }
 
 int
-debug_set_level (debug_t debug, size_t level)
+mu_debug_set_level (mu_debug_t debug, size_t level)
 {
   if (debug == NULL)
     return EINVAL;
@@ -70,7 +70,7 @@ debug_set_level (debug_t debug, size_t level)
 }
 
 int
-debug_get_level (debug_t debug, size_t *plevel)
+mu_debug_get_level (mu_debug_t debug, size_t *plevel)
 {
   if (debug == NULL)
     return EINVAL;
@@ -80,8 +80,8 @@ debug_get_level (debug_t debug, size_t *plevel)
 }
 
 int
-debug_set_print (debug_t debug, int (*_print)
-		 __P ((debug_t, const char *, va_list)), void *owner)
+mu_debug_set_print (mu_debug_t debug, int (*_print)
+		 __P ((mu_debug_t, const char *, va_list)), void *owner)
 {
   if (debug == NULL)
     return EINVAL;
@@ -94,13 +94,13 @@ debug_set_print (debug_t debug, int (*_print)
 /* FIXME:  We use a fix size, we should use vasprinf or something
    similar to get rid of this arbitrary limitation.  */
 int
-debug_print (debug_t debug, size_t level, const char *format, ...)
+mu_debug_print (mu_debug_t debug, size_t level, const char *format, ...)
 {
   va_list ap;
 
   va_start (ap, format);
 
-  debug_printv (debug, level, format, ap);
+  mu_debug_printv (debug, level, format, ap);
   
   va_end (ap);
 
@@ -108,7 +108,7 @@ debug_print (debug_t debug, size_t level, const char *format, ...)
 }
 
 int
-debug_printv (debug_t debug, size_t level, const char *format, va_list ap)
+mu_debug_printv (mu_debug_t debug, size_t level, const char *format, va_list ap)
 {
   if (debug == NULL || format == NULL)
     return EINVAL;

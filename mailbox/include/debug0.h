@@ -42,7 +42,7 @@ struct _debug
   char *buffer;
   size_t buflen;
   void *owner;
-  int (*_print) __P ((debug_t, const char *, va_list));
+  int (*_print) __P ((mu_debug_t, const char *, va_list));
 };
 
 #ifdef __cplusplus

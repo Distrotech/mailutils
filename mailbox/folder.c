@@ -298,24 +298,24 @@ folder_get_observable (folder_t folder, observable_t *pobservable)
 }
 
 int
-folder_set_debug (folder_t folder, debug_t debug)
+folder_set_debug (folder_t folder, mu_debug_t debug)
 {
   if (folder == NULL)
     return EINVAL;
   if (folder->debug)
-    debug_destroy (&(folder->debug), folder);
+    mu_debug_destroy (&(folder->debug), folder);
   folder->debug = debug;
   return 0;
 }
 
 int
-folder_get_debug (folder_t folder, debug_t *pdebug)
+folder_get_debug (folder_t folder, mu_debug_t *pdebug)
 {
   if (folder == NULL || pdebug == NULL)
     return EINVAL;
   if (folder->debug == NULL)
     {
-      int status = debug_create (&(folder->debug), folder);
+      int status = mu_debug_create (&(folder->debug), folder);
       if (status != 0)
         return status;
     }

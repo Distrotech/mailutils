@@ -52,7 +52,7 @@ struct _mailbox
 {
   /* Data */
   observable_t observable;
-  debug_t debug;
+  mu_debug_t debug;
   ticket_t ticket;
   authority_t authority;
   property_t property;
@@ -99,15 +99,15 @@ if (mbox->observer) observer_notify (mbox->observer, type)
 
 /* Moro(?)ic kluge.  */
 #define MAILBOX_DEBUG0(mbox, type, format) \
-if (mbox->debug) debug_print (mbox->debug, type, format)
+if (mbox->debug) mu_debug_print (mbox->debug, type, format)
 #define MAILBOX_DEBUG1(mbox, type, format, arg1) \
-if (mbox->debug) debug_print (mbox->debug, type, format, arg1)
+if (mbox->debug) mu_debug_print (mbox->debug, type, format, arg1)
 #define MAILBOX_DEBUG2(mbox, type, format, arg1, arg2) \
-if (mbox->debug) debug_print (mbox->debug, type, format, arg1, arg2)
+if (mbox->debug) mu_debug_print (mbox->debug, type, format, arg1, arg2)
 #define MAILBOX_DEBUG3(mbox, type, format, arg1, arg2, arg3) \
-if (mbox->debug) debug_print (mbox->debug, type, format, arg1, arg2, arg3)
+if (mbox->debug) mu_debug_print (mbox->debug, type, format, arg1, arg2, arg3)
 #define MAILBOX_DEBUG4(mbox, type, format, arg1, arg2, arg3, arg4) \
-if (mbox->debug) debug_print (mbox->debug, type, format, arg1, arg2, arg3, arg4)
+if (mbox->debug) mu_debug_print (mbox->debug, type, format, arg1, arg2, arg3, arg4)
 
 #ifdef __cplusplus
 }

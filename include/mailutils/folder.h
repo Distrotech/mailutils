@@ -82,8 +82,8 @@ extern int folder_set_stream     __P ((folder_t, stream_t));
 
   /* Notifications.  */
 extern int folder_get_observable  __P ((folder_t, observable_t *));
-extern int folder_get_debug       __P ((folder_t, debug_t *));
-extern int folder_set_debug       __P ((folder_t, debug_t));
+extern int folder_get_debug       __P ((folder_t, mu_debug_t *));
+extern int folder_set_debug       __P ((folder_t, mu_debug_t));
 
 /* Authentication.  */
 extern int folder_get_authority  __P ((folder_t, authority_t *));

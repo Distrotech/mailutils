@@ -46,7 +46,7 @@ struct _folder
   ticket_t ticket;
   authority_t authority;
   observable_t observable;
-  debug_t debug;
+  mu_debug_t debug;
   stream_t stream;
   monitor_t monitor;
   url_t url;
@@ -75,15 +75,15 @@ struct _folder
 
 /* Moro(?)ic kluge.  */
 #define FOLDER_DEBUG0(folder, type, format) \
-if (folder->debug) debug_print (folder->debug, type, format)
+if (folder->debug) mu_debug_print (folder->debug, type, format)
 #define FOLDER_DEBUG1(folder, type, format, arg1) \
-if (folder->debug) debug_print (folder->debug, type, format, arg1)
+if (folder->debug) mu_debug_print (folder->debug, type, format, arg1)
 #define FOLDER_DEBUG2(folder, type, format, arg1, arg2) \
-if (folder->debug) debug_print (folder->debug, type, format, arg1, arg2)
+if (folder->debug) mu_debug_print (folder->debug, type, format, arg1, arg2)
 #define FOLDER_DEBUG3(folder, type, format, arg1, arg2, arg3) \
-if (folder->debug) debug_print (folder->debug, type, format, arg1, arg2, arg3)
+if (folder->debug) mu_debug_print (folder->debug, type, format, arg1, arg2, arg3)
 #define FOLDER_DEBUG4(folder, type, format, arg1, arg2, arg3, arg4) \
-if (folder->debug) debug_print (folder->debug, type, format, arg1, arg2, arg3, arg4)
+if (folder->debug) mu_debug_print (folder->debug, type, format, arg1, arg2, arg3, arg4)
 
 #ifdef __cplusplus
 }

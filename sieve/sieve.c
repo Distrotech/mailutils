@@ -38,7 +38,7 @@
 int
 mu_copy_debug_level (const mailbox_t from, mailbox_t to)
 {
-  debug_t d = 0;
+  mu_debug_t d = 0;
   size_t level;
   int rc;
 
@@ -48,13 +48,13 @@ mu_copy_debug_level (const mailbox_t from, mailbox_t to)
   rc = mailbox_get_debug (from, &d);
 
   if (!rc)
-    debug_get_level (d, &level);
+    mu_debug_get_level (d, &level);
 
   if (!rc)
     rc = mailbox_get_debug (to, &d);
 
   if (!rc)
-    debug_set_level (d, level);
+    mu_debug_set_level (d, level);
 
   return 0;
 }
@@ -167,7 +167,7 @@ typedef struct sv_interp_ctx_t
   FILE*print_stream;
 
   /* mailutils debug handle, we need to destroy it */
-  debug_t debug;
+  mu_debug_t debug;
 } sv_interp_ctx_t;
 
 typedef struct sv_script_ctx_t
@@ -212,9 +212,9 @@ void sv_print (sv_interp_ctx_t* ic, int level, const char* fmt, ...)
 
 /* we hook mailutils debug output into our diagnostics using this */
 int
-sv_mu_debug_print (debug_t d, const char *fmt, va_list ap)
+sv_mu_debug_print (mu_debug_t d, const char *fmt, va_list ap)
 {
-  sv_printv(debug_get_owner(d), SV_PRN_MU, fmt, ap);
+  sv_printv(mu_debug_get_owner(d), SV_PRN_MU, fmt, ap);
 
   return 0;
 }
@@ -731,19 +731,19 @@ main (int argc, char *argv[])
     }
   if (ic.opt_verbose > 2)
     {
-      if ((res = debug_create(&ic.debug, &ic)))
+      if ((res = mu_debug_create(&ic.debug, &ic)))
 	{
-	  fprintf (stderr, "debug_create failed: %s\n", strerror(res));
+	  fprintf (stderr, "mu_debug_create failed: %s\n", strerror(res));
 	  return 1;
 	}
-      if ((res = debug_set_level (ic.debug, MU_DEBUG_TRACE | MU_DEBUG_PROT)))
+      if ((res = mu_debug_set_level (ic.debug, MU_DEBUG_TRACE | MU_DEBUG_PROT)))
 	{
-	  fprintf (stderr, "debug_set_level failed: %s\n", strerror(res));
+	  fprintf (stderr, "mu_debug_set_level failed: %s\n", strerror(res));
 	  return 1;
 	}
-      if ((res = debug_set_print (ic.debug, sv_mu_debug_print, &ic)))
+      if ((res = mu_debug_set_print (ic.debug, sv_mu_debug_print, &ic)))
 	{
-	  fprintf (stderr, "debug_set_print failed: %s\n", strerror(res));
+	  fprintf (stderr, "mu_debug_set_print failed: %s\n", strerror(res));
 	  return 1;
 	}
       mailbox_set_debug (mbox, ic.debug);
