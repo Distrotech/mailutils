@@ -1,8 +1,19 @@
+2005-03-07  Sergey Poznyakoff
+
+	* TODO: Updated
+	* NEWS: Updated
+	* mail/decode.c (mail_decode): Implemented new variable
+	`metamail' that turns on use of metamail program for
+	displaying MIME messages.
+	(run_metamail): New function
+	* mailbox/mutil.c (mu_spawnvp): Minor fixes
+
 2005-03-06  Sergey Poznyakoff 
 
 	* NEWS: Updated
 	
-	* auth/sql.c: Use a uniform way of filename quoting in diagnostic messages.
+	* auth/sql.c: Use a uniform way of filename quoting in diagnostic
+	messages.
 	* frm/common.c: Likewise
 	* frm/from.c: Likewise
 	* imap4d/authenticate.c: Likewise

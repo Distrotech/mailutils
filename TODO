@@ -1,5 +1,5 @@
-GNU mailutils TODO list.  2004-01-27
-Copyright (C) 2001, 2002, 2003, 2004 Free Software Foundation, Inc.
+GNU mailutils TODO list.  2005-03-06
+Copyright (C) 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 * Documentation
 
@@ -86,7 +86,7 @@ mail (from mailutils itself), mutt, pine, netscape, mozilla.
 
 ** implement charsets in search: 1 SEARCH CHARSET ISO-8859-2 TEXT ...
 
-** implement AUTHENTICATE KERBEROS_V4 and SKEY and CRAM-MD5 and SRP?
+** implement AUTHENTICATE KERBEROS_V4 and SKEY and SRP?
 
 * mail
 
