@@ -96,7 +96,6 @@ _gsasl_destroy (stream_t stream)
 {
   struct _gsasl_stream *s = stream_get_owner (stream);
   _auth_lb_destroy (&s->lb);
-  s->buffer = NULL;
 }
 
 static int
@@ -108,7 +107,7 @@ _gsasl_readline (stream_t stream, char *optr, size_t osize,
   size_t len, sz;
   char *bufp;
   
-  if (_auth_lb_level (&s->lb))
+  if (_auth_lb_level (s->lb))
     {
       len = _auth_lb_readline (s->lb, optr, osize-1);
       optr[len] = 0;
@@ -130,12 +129,15 @@ _gsasl_readline (stream_t stream, char *optr, size_t osize,
 	  return errno;
 	}
 
-      rc = _auth_lb_grow (s, buf, sz);
+      rc = _auth_lb_grow (s->lb, buf, sz);
       if (rc)
 	return rc;
 
       len = UINT_MAX; /* override the bug in libgsasl */
-      rc = gsasl_decode (s->sess_ctx, s->buffer, s->level, NULL, &len);
+      rc = gsasl_decode (s->sess_ctx,
+			 _auth_lb_data (s->lb),
+			 _auth_lb_level (s->lb),
+			 NULL, &len);
     }
   while (rc == GSASL_NEEDS_MORE);
 
@@ -162,13 +164,13 @@ _gsasl_readline (stream_t stream, char *optr, size_t osize,
   if (len > osize)
     {
       memcpy (optr, bufp, osize);
-      _auth_lb_drop (s);
-      _auth_lb_grow (s, bufp + osize, len - osize);
+      _auth_lb_drop (s->lb);
+      _auth_lb_grow (s->lb, bufp + osize, len - osize);
       len = osize;
     }
   else
     {
-      _auth_lb_drop (s);
+      _auth_lb_drop (s->lb);
       memcpy (optr, bufp, len);
     }
   
@@ -181,8 +183,9 @@ _gsasl_readline (stream_t stream, char *optr, size_t osize,
 }
 
 int
-write_chunk (struct _gsasl_stream *s, char *start, char *end)
+write_chunk (void *data, char *start, char *end)
 {
+  struct _gsasl_stream *s = data;
   size_t chunk_size = end - start + 1;
   size_t len;
   size_t wrsize;
@@ -224,41 +227,12 @@ _gsasl_write (stream_t stream, const char *iptr, size_t isize,
   int rc;
   struct _gsasl_stream *s = stream_get_owner (stream);
   
-  rc = _auth_lb_grow (s, iptr, isize);
+  rc = _auth_lb_grow (s->lb, iptr, isize);
   if (rc)
     return rc;
 
-  if (s->level > 2)
-    {
-      char *start, *end;
-      
-      for (start = s->buffer, end = strchr (start, '\n');
-	   end && end < s->buffer + s->level;
-	   start = end + 1, end = strchr (start, '\n'))
-	if (end[-1] == '\r')
-	  {
-	    int rc = write_chunk (s, start, end);
-	    if (rc)
-	      return rc;
-	  }
-
-      if (start > s->buffer)
-	{
-	  if (start < s->buffer + s->level)
-	    {
-	      int rest = s->buffer + s->level - start + 1;
-	      memmove (s->buffer, start, rest);
-	      s->level = rest;
-	    }
-	  else 
-	    s->level = 0;
-	}
-    }
-  
-  if (nbytes)
-    *nbytes = isize;
-      
-  return 0;
+  return _auth_lb_writelines (s->lb, iptr, isize, offset,
+			      write_chunk, s, nbytes);      
 }
 
 static int
@@ -297,9 +271,11 @@ _gsasl_strerror (stream_t stream, char **pstr)
 }
 
 int
-_gsasl_get_fd (stream_t stream, int *pfd)
+_gsasl_get_fd (stream_t stream, int *pfd, int *pfd2)
 {
   struct _gsasl_stream *s = stream_get_owner (stream);
+  if (pfd2)
+    return ENOSYS;
   *pfd = s->fd;
   return 0;
 }
