@@ -106,7 +106,7 @@ _strltrim(char *str)
 {
 	char    *p;
 
-	for (p = str; isspace(*p) && *p != '\0'; ++p)
+	for (p = str; isspace((unsigned char)*p) && *p != '\0'; ++p)
 		;
 	return((p != str) ? memmove(str, p, strlen(p)+1) : str);
 }
@@ -116,7 +116,7 @@ _strttrim(char *str)
 {
 	char    *p;
 
-	for (p = str + strlen(str) - 1; isspace(*p) && p >= str; --p)
+	for (p = str + strlen(str) - 1; isspace((unsigned char)*p) && p >= str; --p)
 		;
 	*++p = '\0';
 	return(str);
@@ -144,7 +144,7 @@ _mime_munge_content_header(char *field_body )
 	while( *e == ';' ) {
 		p = e;
 		e++;
-		while ( *e && isspace(*e) )  /* remove space upto param */
+		while ( *e && isspace((unsigned char)*e) )  /* remove space upto param */
 			e++;
 		memmove(p+1, e, strlen(e)+1);
 		e = p+1;
@@ -152,7 +152,7 @@ _mime_munge_content_header(char *field_body )
 		while ( *e && *e != '=' )   /* find end of value */
 			e++;
 		e = p = e+1;
-		while ( *e && (quoted || ( !_ISSPECIAL(*e) && !isspace(*e) ) ) ) {
+		while ( *e && (quoted || ( !_ISSPECIAL(*e) && !isspace((unsigned char)*e) ) ) ) {
 			if ( *e == '\\' ) {                /* escaped */
 				memmove(e, e+1, strlen(e)+2);
 			} else if ( *e == '\"' )
@@ -178,7 +178,7 @@ _mime_get_param(char *field_body, const char *param, int *len)
 			break;
 		*len = 0;
 		v = e = v + 1;
-		while ( *e && (quoted || ( !_ISSPECIAL(*e) && !isspace(*e) ) ) ) { 	/* skip pass value and calc len */
+		while ( *e && (quoted || ( !_ISSPECIAL(*e) && !isspace((unsigned char)*e) ) ) ) { 	/* skip pass value and calc len */
 			if ( *e == '\"' )
 				quoted = ~quoted, was_quoted = 1;
 			else

@@ -34,6 +34,11 @@
 #include <mailutils/stream.h>
 #include <tcp0.h>
 
+/* On solaris inet_addr() return -1.  */
+#ifndef INADDR_NONE
+# define INADDR_NONE (unsigned long)-1
+#endif
+
 static int _tcp_close(stream_t stream)
 {
 	struct _tcp_instance *tcp = stream_get_owner(stream);

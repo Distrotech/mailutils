@@ -142,7 +142,7 @@ locker_lock (locker_t lock, int flags)
 		 O_WRONLY | O_CREAT | O_EXCL, LOCKFILE_ATTR)) == -1)
     return errno;
   /* Success.  */
-  sprintf(buf, "%d", getpid());
+  sprintf(buf, "%ld", (long)getpid());
   write(fd, buf, strlen(buf));
 
   /* Try to get a file lock.  */

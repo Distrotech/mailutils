@@ -437,14 +437,18 @@ message_get_uid (message_t msg, char *buffer, size_t buflen, size_t *pwriten)
   status = header_get_value (header, "X-UIDL", buffer, buflen, &n);
   if (status == 0 && n > 0)
     {
-      /* FIXME: Is header_get_value suppose to do this ?  */
+      /* FIXME: Is this necessary ? I did not see so far a x-uidl message
+	 that broken i.e.
+	 X-UIDL:  <abaceekeke\n
+	       jakdkjaja>
+      */
       /* We need to collapse the header if it was mutiline.  e points to the
 	 last char meaning in a C string that's '\0', s to the start. We also
 	 remove the spesky '<' '>' if they are around.  */
       char *s, *e;
       for (s = buffer, e = buffer + n; s <= e; s++)
 	{
-	  if (isspace (*s) || *s == '<' || *s == '>')
+	  if (isspace ((unsigned char)*s) || *s == '<' || *s == '>')
 	    {
 	      memmove (s, s + 1, e - (s + 1));
 	      e -= 1;
@@ -454,6 +458,7 @@ message_get_uid (message_t msg, char *buffer, size_t buflen, size_t *pwriten)
     }
   else
     {
+      static unsigned long seq;
       struct md5_ctx md5context;
       stream_t stream = NULL;
       char buf[1024];
@@ -474,6 +479,11 @@ message_get_uid (message_t msg, char *buffer, size_t buflen, size_t *pwriten)
       for (n = 0; n < 16; n++, tmp += 2)
 	sprintf (tmp, "%02x", md5digest[n]);
       *tmp = '\0';
+      /* Access to sequence is not thread-safe, but that is not a problem.  */
+      seq++;
+      /* POP3 rfc says that an UID should not be longer than 70.  */
+      snprintf (buf + 32, 70, ".%lu.%lu", (unsigned long)time (NULL), seq);
+
       header_set_value (header, "X-UIDL", buf, 1);
       buflen--; /* leave space for the NULL.  */
       strncpy (buffer, buf, buflen)[buflen] = '\0';

@@ -523,18 +523,13 @@ header_set_fill (header_t header, int
 static int
 fill_blurb (header_t header)
 {
-  stream_t is = NULL;
   int status;
   char buf[1024];
   char *tbuf;
   size_t nread = 0;
 
-  if (header->_fill == NULL)
-    {
-      status = header_get_stream (header, &is);
-      if (status != 0)
-	return status;
-    }
+  if (header->_fill == NULL && header->stream == NULL)
+    return 0;
 
   do
     {
@@ -542,7 +537,7 @@ fill_blurb (header_t header)
 	status = header->_fill (header, buf, sizeof (buf),
 				header->temp_blurb_len, &nread) ;
       else
-	status = stream_read (is, buf, sizeof (buf),
+	status = stream_read (header->stream, buf, sizeof (buf),
 			      header->temp_blurb_len, &nread);
       if (status != 0)
 	{
@@ -610,7 +605,7 @@ header_read (stream_t is, char *buf, size_t buflen, off_t off, size_t *pnread)
     return EINVAL;
 
   /* Try to fill out the buffer, if we know how.  */
-  if (header->blurb == NULL)
+  if (header->blurb == NULL && header->_fill)
     {
       int err = fill_blurb (header);
       if (err != 0)
@@ -651,7 +646,7 @@ header_readline (stream_t is, char *buf, size_t buflen, off_t off, size_t *pn)
     }
 
   /* Try to fill out the buffer, if we know how.  */
-  if (header->blurb == NULL)
+  if (header->blurb == NULL && header->_fill)
     {
       int err = fill_blurb (header);
       if (err != 0)

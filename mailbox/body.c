@@ -112,6 +112,7 @@ body_get_stream (body_t body, stream_t *pstream)
       if (fd == -1)
 	return errno;
       status = stream_open (stream, body->filename, 0, MU_STREAM_RDWR);
+      close (fd);
       if (status != 0)
 	return status;
       body->stream = stream;

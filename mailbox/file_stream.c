@@ -140,7 +140,7 @@ _file_write (stream_t stream, const char *iptr, size_t isize,
 	err = errno;
     }
   else
-    fs->offset += *nbytes;
+    fs->offset += n;
 
   if (nbytes)
     *nbytes = n;

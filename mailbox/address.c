@@ -44,7 +44,7 @@ struct token
   char word[1];
 };
 
-#define SKIPSPACE(p) do { while(*p && isspace(*p)) p++; } while(0)
+#define SKIPSPACE(p) do { while(*p && isspace((unsigned char)*p)) p++; } while(0)
 
 /* Skip everything between quotes.  */
 static void
