@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2002, 2005 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -201,7 +201,7 @@ ticket_t sieve_get_ticket __P((sieve_machine_t mach));
 mailer_t sieve_get_mailer __P((sieve_machine_t mach));
 int sieve_get_locus __P((sieve_machine_t mach, sieve_locus_t *));
 char *sieve_get_daemon_email __P((sieve_machine_t mach));
-
+       
 void sieve_set_error __P((sieve_machine_t mach, sieve_printf_t error_printer));
 void sieve_set_parse_error __P((sieve_machine_t mach, sieve_parse_error_t p));
 void sieve_set_debug __P((sieve_machine_t mach, sieve_printf_t debug));
@@ -212,6 +212,8 @@ void sieve_set_ticket __P((sieve_machine_t mach, ticket_t ticket));
 void sieve_set_mailer __P((sieve_machine_t mach, mailer_t mailer));
 void sieve_set_daemon_email __P((sieve_machine_t mach, const char *email));
 
+int sieve_get_message_sender __P((message_t msg, char **ptext));
+
 /* Logging and diagnostic functions */
 
 void sieve_error __P((sieve_machine_t mach, const char *fmt, ...));
@@ -219,7 +221,7 @@ void sieve_debug __P((sieve_machine_t mach, const char *fmt, ...));
 void sieve_log_action __P((sieve_machine_t mach, const char *action,
 			   const char *fmt, ...));
 void sieve_abort __P((sieve_machine_t mach));
-
+int stream_printf __P((stream_t stream, size_t *off, const char *fmt, ...));
 
 int sieve_is_dry_run __P((sieve_machine_t mach));
 const char *sieve_type_str __P((sieve_data_type type));
