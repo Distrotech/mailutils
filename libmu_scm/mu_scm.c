@@ -34,8 +34,10 @@ scm_makenum (unsigned long val)
 #endif /* SCM_BIGDIG */
 }
 
-SCM _mu_scm_mailer; /* STRING: Default mailer path. */
-SCM _mu_scm_debug;  /* NUM: Default debug level. */
+SCM _mu_scm_package; /* STRING: PACKAGE */
+SCM _mu_scm_version; /* STRING: VERSION */
+SCM _mu_scm_mailer;  /* STRING: Default mailer path. */
+SCM _mu_scm_debug;   /* NUM: Default debug level. */
 
 static struct
 {
@@ -71,6 +73,14 @@ mu_scm_init ()
   scm_loc = SCM_CDRLOC (scm_sysintern ("mu-debug", SCM_EOL));
   *scm_loc = _mu_scm_debug;
 
+  _mu_scm_package = scm_makfrom0str (PACKAGE);
+  scm_loc = SCM_CDRLOC (scm_sysintern ("mu-package", SCM_EOL));
+  *scm_loc = _mu_scm_package;
+
+  _mu_scm_version = scm_makfrom0str (VERSION);
+  scm_loc = SCM_CDRLOC (scm_sysintern ("mu-version", SCM_EOL));
+  *scm_loc = _mu_scm_version;
+
   /* Create MU- attribute names */
   for (i = 0; attr_kw[i].name; i++)
     scm_sysintern(attr_kw[i].name, SCM_MAKINUM(attr_kw[i].value));
@@ -78,5 +88,7 @@ mu_scm_init ()
   
   mu_scm_mailbox_init ();
   mu_scm_message_init ();
+  mu_scm_address_init ();
   mu_scm_body_init ();
+  mu_scm_logger_init ();
 }
