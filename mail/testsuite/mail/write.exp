@@ -100,5 +100,6 @@ mu_test_file "$MU_FOLDER_DIR/hare" \
 	"I don't see any wine" \
 	"There isn't any"
 
-
+mail_stop
+# End of write.exp
 

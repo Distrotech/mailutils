@@ -56,4 +56,6 @@ mail_test "sum" \
 mail_test "headers" \
  ">N   1 Sergey Poznyakoff  Sun Jul 16 12:11  12/425   MBOX"	
 
+mail_stop
+
 #End of folder.exp

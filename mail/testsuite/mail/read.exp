@@ -473,5 +473,5 @@ mail_test -message "working retain" "print 2"\
 "exactly know what they are!  However, SOMEBODY killed SOMETHING:"\
 "that's clear, at any rate..."
 
-#mail_exit
+mail_stop
 return 0

@@ -32,6 +32,8 @@ mail_test -noprompt "~m"\
 
 mail_test "." 
 
+mail_stop
+
 mu_test_file "$MU_FOLDER_DIR/mta.diag" \
 -re "ENVELOPE FROM: \[^\r\n\]*"\
 "ENVELOPE TO: <foobar@nonexistent.net>,<bar@dontmailme.org>"\
@@ -88,5 +90,6 @@ mu_test_file "$MU_FOLDER_DIR/mta.diag" \
 "  50: > "\
 "  51: "\
 "END OF MESSAGE"
+
 
 # End of send.exp

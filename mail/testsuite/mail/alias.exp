@@ -50,6 +50,6 @@ mail_test -message "alias pretenders" "alias"\
 "staff    alice tweedledum tweedledee"\
 "messengers    haigha hatta"
 
-mail_exit
+mail_stop
 
 return 0

@@ -99,4 +99,5 @@ mail_test "print 2" \
 mail_test "from :r" \
 ">R   2 Alice              Mon Jul 29 22:00  10/311   Re: Invitation"	
 
+mail_stop
 # End of tag.exp
