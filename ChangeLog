@@ -1,3 +1,9 @@
+2004-02-08  Wojciech Polak
+
+	* doc/texinfo/*: Updated to the current API.
+	* doc/man/*: Too many outdated stuff... Replaced it
+	with the "always fresh" man pages ;).
+
 2004-02-05  Sergey Poznyakoff
 
 	* include/mailutils/header.h (MU_HEADER_DELIVERY_DATE)
