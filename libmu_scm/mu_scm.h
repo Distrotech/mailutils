@@ -37,6 +37,19 @@
 
 #include <libguile.h>
 
+typedef struct
+{
+  int debug_guile;
+  mailbox_t mbox;
+  char *user_name;
+  int (*init) __P((void *data));
+  SCM (*catch_body) __P((void *data, mailbox_t mbox));
+  SCM (*catch_handler) __P((void *data, SCM tag, SCM throw_args));
+  int (*next) __P((void *data, mailbox_t mbox));
+  int (*exit) __P((void *data, mailbox_t mbox));
+  void *data;
+} guimb_param_t;
+
 extern SCM _mu_scm_mailer;
 extern SCM _mu_scm_debug;
 
@@ -64,3 +77,5 @@ extern SCM mu_port_make_from_stream __P((SCM msg, stream_t stream, long mode));
 
 extern void mu_scm_mime_init __P((void));
 extern void mu_scm_message_add_owner __P((SCM MESG, SCM owner));
+
+extern void mu_process_mailbox __P((int argc, char *argv[], guimb_param_t *param));
