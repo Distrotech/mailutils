@@ -44,7 +44,7 @@ int main(int argc, char *argv[]) {
             perror("mbox_header_line");
             exit(-1);
           }
-		date = mbox_header_line(mail, i, "Date");
+		date = mbox_header_line(mail, i, "Received");
 		if (date == NULL)
           {
             perror("mbox_header_line");

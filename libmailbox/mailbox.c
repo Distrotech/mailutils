@@ -26,6 +26,7 @@
 #include <errno.h>
 #endif
 
+#include <ctype.h>
 #include <sys/stat.h>
 #include <unistd.h>
 
@@ -83,19 +84,7 @@ mbox_open (const char *name)
   mbox->_get_body = _mbox_dummy4;
   mbox->_get_header = _mbox_dummy4;
 
-  if (S_ISDIR (st.st_mode))
-    {
-      /* for example...
-         if (maildir_open (mbox, name) == 1)
-           return mbox;
-         else if (errno != 0)
-           return NULL;
-         else
-           errno = 0;
-       */
-      errno = ENOSYS;
-    }
-  else if (S_ISREG (st.st_mode))
+  if (S_ISREG (st.st_mode))
     {
       if (unixmbox_open (mbox) == 0)
         return mbox;
@@ -109,6 +98,14 @@ mbox_open (const char *name)
           if (errno == EBADMSG)
             errno = ENOSYS; /* no other mailboxes supported right now */
         }
+    }
+  else if (S_ISDIR (st.st_mode))
+    {
+      /* for example...
+         if (maildir_open (mbox, name) == 1)
+           return mbox;
+       */
+      errno = ENOSYS;
     }
   else
     errno = EINVAL; /* neither directory nor file, so bomb */
@@ -125,8 +122,9 @@ char *
 mbox_header_line (mailbox *mbox, unsigned int num, const char *header)
 {
   char *full, *tmp, *line;
-  int i = 0, j = 0, try = 1;
-  unsigned int len, lh;
+  int try = 1;
+  size_t i = 0, j = 0;
+  size_t len, lh;
   
   if ( mbox == NULL || header == NULL )
     {
@@ -143,21 +141,19 @@ mbox_header_line (mailbox *mbox, unsigned int num, const char *header)
   tmp = NULL;
 
   /* First get the appropriate line at the beginning */
-  /* FIXME: hmm len - (lh + 2) *COULD* be negative, but should never be */
   for (i=0; i < len-(lh+2); i++)
     {
       if (try == 1)
 	{
 	  if (!strncasecmp(&full[i], header, lh) && full[i+lh] == ':')
 	    {
-	      full[len-i] = '\0';
 	      tmp = strdup (&full[i+lh+2]);
 		  if (tmp == NULL)
             {
               free(full);
-			  return NULL;
+              return NULL;
             }
-	      i = len;
+          break;
 	    }
 	  else
 	    try = 0;
@@ -178,7 +174,7 @@ mbox_header_line (mailbox *mbox, unsigned int num, const char *header)
   len = strlen (tmp);
   for (i = 0; i < len; i++)
     {
-      if (tmp[i] == '\n' && i < (len - 1) && (tmp[i+1] == ' ' || tmp[i+1] == '\t'))
+      if (tmp[i] == '\n' && i < (len - 1) && isspace (tmp[i+1]))
 	{
 	  if (tmp[i+1] == '\t')
 	    tmp[i + 1] = ' ';
@@ -188,7 +184,7 @@ mbox_header_line (mailbox *mbox, unsigned int num, const char *header)
       else if (tmp[i] == '\n')
 	{
 	  tmp[i] = '\0';
-	  i = len;
+      break;
 	}
     }
   line = strdup (tmp);
@@ -225,7 +221,7 @@ mbox_body_lines (mailbox *mbox, unsigned int num, unsigned int lines)
 	    {
 	      full[i+1] = '\0';
 	      buf = strdup (full);
-	      i = len;
+          break;
 	    }
 	}
     }

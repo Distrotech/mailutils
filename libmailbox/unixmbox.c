@@ -330,8 +330,16 @@ unixmbox_get_body (mailbox * mbox, unsigned int num)
     }
 
   memset (buf, 0, size + 1);
-  fsetpos (data->file, &(data->messages[num].body));
-  fread (buf, size, sizeof (char), data->file);
+  if (fsetpos (data->file, &(data->messages[num].body)) == -1)
+    {
+      free (buf);
+      return NULL;
+    }
+  if (fread (buf, sizeof (char), size, data->file) < size)
+    {
+      free (buf);
+      return NULL;
+    }
   return buf;
 }
 
@@ -368,8 +376,16 @@ unixmbox_get_header (mailbox * mbox, unsigned int num)
 
   memset (buf, 0, size + 1);
 
-  fsetpos (data->file, &(data->messages[num].header));
-  fread (buf, size, sizeof (char), data->file);
+  if (fsetpos (data->file, &(data->messages[num].header)) == -1)
+    {
+      free (buf);
+      return NULL;
+    }
+  if (fread (buf, sizeof (char), size, data->file) < size)
+    {
+      free (buf);
+      return NULL;
+    }
   return buf;
 }
 
