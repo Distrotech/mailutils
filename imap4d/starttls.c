@@ -35,6 +35,12 @@ imap4d_starttls (struct imap4d_command *command, char *arg)
   util_flush_output ();
   tls_done = imap4d_init_tls_server ();
 
+  if (tls_done)
+    {
+      imap4d_capability_remove ("STARTTLS");
+      login_disabled = 0;
+      imap4d_capability_remove ("LOGINDISABLED");
+    }
   return status;
 }
 
