@@ -1,12 +1,12 @@
 AUTOMAKE_OPTIONS = ../lib/ansi2knr
 INCLUDES = -I. -I$(top_builddir) -I$(srcdir) -I$(top_srcdir)/lib -I$(top_srcdir)/include \
- -I$(top_srcdir)/libmu_scm
+ -I$(top_srcdir)/libmu_scm @ARGPINCS@
 
 SUBDIRS=scm
 
 bin_PROGRAMS=@GUIMB@
 EXTRA_PROGRAMS=guimb
 guimb_SOURCES=main.c collect.c util.c guimb.h 
-guimb_LDADD = ../libmu_scm/libmu_scm.a ../mailbox/libmailbox.la \
+guimb_LDADD = @ARGPLIBS@ ../libmu_scm/libmu_scm.a ../mailbox/libmailbox.la \
  ../lib/libmailutils.la @GUILE_LIBS@ 
 
