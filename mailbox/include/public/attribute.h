@@ -35,8 +35,8 @@ extern "C" {
 struct _attribute;
 typedef struct _attribute * attribute_t;
 
-extern int attribute_create __P ((attribute_t *, void *owner));
-extern void attribute_destroy __P ((attribute_t *, void *owner));
+extern int attribute_create __P ((attribute_t *));
+extern void attribute_destroy __P ((attribute_t *));
 
 extern int attribute_is_seen __P ((attribute_t));
 extern int attribute_is_answered __P ((attribute_t));
@@ -68,10 +68,10 @@ extern int attribute_copy       __P ((attribute_t dst,
 				      attribute_t src));
 
 extern int string_to_attribute __P ((const char *buf,
-				     attribute_t *pattr, void *owner));
+				     attribute_t *pattr));
 extern int attribute_to_string __P ((attribute_t attr, char *buf,
 				     size_t len, size_t *));
-extern int attribute_get_owner  __P ((attribute_t attr, void **owner));
+
 #ifdef __cplusplus
 }
 #endif

@@ -35,7 +35,6 @@ extern "C" {
 struct _attribute
 {
   size_t flag;
-  void *owner;
 };
 
 #define MU_ATTRIBUTE_SEEN ((int)1)

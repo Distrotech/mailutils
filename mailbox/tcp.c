@@ -26,19 +26,34 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
-#include <net0.h>
 #include <io0.h>
 #include <tcp.h>
 
-static int _tcp_close(void *data);
-
-static int _tcp_doconnect(struct _tcp_instance *tcp)
+static int _tcp_close(stream_t stream)
 {
+	struct _tcp_instance *tcp = stream->owner;
+
+	if ( tcp->fd != -1 )
+		close(tcp->fd);
+	tcp->fd = -1;
+	tcp->state = TCP_STATE_INIT;
+	return 0;
+}
+
+static int _tcp_open(stream_t stream, const char *host, int port, int flags)
+{
+	struct _tcp_instance 	*tcp = stream->owner;
 	int 					flgs, ret;
 	size_t					namelen;
 	struct sockaddr_in 		peer_addr;
 	struct hostent 			*phe;
 	struct sockaddr_in      soc_addr;
+
+	if ( tcp->state == TCP_STATE_INIT ) {
+		tcp->port = port;
+		if ( ( tcp->host = strdup(host) ) == NULL )
+			return ENOMEM;
+	}
 
 	switch( tcp->state ) {
 		case TCP_STATE_INIT:
@@ -46,10 +61,11 @@ static int _tcp_doconnect(struct _tcp_instance *tcp)
 				if ( ( tcp->fd = socket(AF_INET, SOCK_STREAM, 0)) == -1 )
 					return errno;
 			}
-			if ( tcp->options->non_block ) {
+			if ( flags & MU_STREAM_NONBLOCK ) {
 				flgs = fcntl(tcp->fd, F_GETFL);
 				flgs |= O_NONBLOCK;
 				fcntl(tcp->fd, F_SETFL, flgs);
+				stream->flags |= MU_STREAM_NONBLOCK;
 			}
 			tcp->state = TCP_STATE_RESOLVING;
 		case TCP_STATE_RESOLVING:
@@ -59,7 +75,7 @@ static int _tcp_doconnect(struct _tcp_instance *tcp)
 			if (tcp->address == INADDR_NONE) {
 				phe = gethostbyname(tcp->host);
 				if ( !phe ) {
-					_tcp_close(tcp);
+					_tcp_close(stream);
 					return EINVAL;
 				}
 				tcp->address = *(((unsigned long **)phe->h_addr_list)[0]);
@@ -77,7 +93,7 @@ static int _tcp_doconnect(struct _tcp_instance *tcp)
 					tcp->state = TCP_STATE_CONNECTING;
 					ret = EAGAIN;
 				} else
-					_tcp_close(tcp);
+					_tcp_close(stream);
 				return ret;
 			}
 			tcp->state = TCP_STATE_CONNECTING;
@@ -87,7 +103,7 @@ static int _tcp_doconnect(struct _tcp_instance *tcp)
 				tcp->state = TCP_STATE_CONNECTED;
 			else {
 				ret = errno;
-				_tcp_close(tcp);
+				_tcp_close(stream);
 				return ret;
 			}
 			break;
@@ -95,17 +111,14 @@ static int _tcp_doconnect(struct _tcp_instance *tcp)
 	return 0;
 }
 
+
 static int _tcp_get_fd(stream_t stream, int *fd)
 {
 	struct _tcp_instance *tcp = stream->owner;
 
-	if ( fd == NULL )
+	if ( fd == NULL || tcp->fd == EINVAL )
 		return EINVAL;
 
-	if ( tcp->fd == -1 ) {
-		if ( ( tcp->fd = socket(AF_INET, SOCK_STREAM, 0)) == -1 )
-			return errno;
-	}
 	*fd = tcp->fd;
 	return 0;
 }
@@ -113,152 +126,67 @@ static int _tcp_get_fd(stream_t stream, int *fd)
 static int _tcp_read(stream_t stream, char *buf, size_t buf_size, off_t offset, size_t *br)
 {
 	struct _tcp_instance *tcp = stream->owner;
-
-	offset;
-	if ( br == NULL )
+	int 	bytes;	
+	
+	offset = offset;
+	if ( br == NULL )	
 		return EINVAL;
 	*br = 0;
-	if ( ( *br = recv(tcp->fd, buf, buf_size, 0) ) == -1 ) {
+	if ( ( bytes = recv(tcp->fd, buf, buf_size, 0) ) == -1 ) {
 		*br = 0;
 		return errno;
 	}
+	*br = bytes;
 	return 0;
 }
 
 static int _tcp_write(stream_t stream, const char *buf, size_t buf_size, off_t offset, size_t *bw)
 {
 	struct _tcp_instance *tcp = stream->owner;
-
-	offset;
-	if ( bw == NULL )
+	int 	bytes;	
+	
+	offset = offset;
+	if ( bw == NULL )	
 		return EINVAL;
 	*bw = 0;
-	if ( ( *bw = send(tcp->fd, buf, buf_size, 0) ) == -1 ) {
+	if ( ( bytes = send(tcp->fd, buf, buf_size, 0) ) == -1 ) {
 		*bw = 0;
 		return errno;
 	}
+	*bw = bytes;
 	return 0;
 }
 
-static int _tcp_new(void *netdata, net_t parent, void **data)
+static void _tcp_destroy(stream_t stream)
 {
-	struct _tcp_instance *tcp;
-
-	if ( parent )		/* tcp must be top level api */
-		return EINVAL;
-
-	if ( ( tcp = malloc(sizeof(*tcp)) ) == NULL )
-		return ENOMEM;
-	tcp->options = (struct _tcp_options *)netdata;
-	tcp->fd = -1;
-	tcp->host = NULL;
-	tcp->port = -1;
-	tcp->state = TCP_STATE_INIT;
-	stream_create(&tcp->stream, 0, tcp);
-	stream_set_read(tcp->stream, _tcp_read, tcp);
-	stream_set_write(tcp->stream, _tcp_write, tcp);
-	stream_set_fd(tcp->stream, _tcp_get_fd, tcp);
-	*data = tcp;
-	return 0;
-}
-
-static int _tcp_connect(void *data, const char *host, int port)
-{
-	struct _tcp_instance *tcp = data;
-
-	if ( tcp->state == TCP_STATE_INIT ) {
-		tcp->port = port;
-		if ( ( tcp->host = strdup(host) ) == NULL )
-			return ENOMEM;
-	}
-	if ( tcp->state < TCP_STATE_CONNECTED )
-		return _tcp_doconnect(tcp);
-	return 0;
-}
-
-static int _tcp_get_stream(void *data, stream_t *stream)
-{
-	struct _tcp_instance *tcp = data;
-
-	*stream = tcp->stream;
-	return 0;
-}
-
-static int _tcp_close(void *data)
-{
-	struct _tcp_instance *tcp = data;
-
-	if ( tcp->fd != -1 )
-		close(tcp->fd);
-	tcp->fd = -1;
-	tcp->state = TCP_STATE_INIT;
-	return 0;
-}
-
-static int _tcp_free(void **data)
-{
-	struct _tcp_instance *tcp;
-
-	if ( data == NULL || *data == NULL )
-		return EINVAL;
-	tcp = *data;
+	struct _tcp_instance *tcp = stream->owner;
 
 	if ( tcp->host )
 		free(tcp->host);
 	if ( tcp->fd != -1 )
 		close(tcp->fd);
 
-	free(*data);
-	*data = NULL;
-	return 0;
+	free(tcp);
 }
 
-static struct _net_api _tcp_net_api = {
-	_tcp_new,
-	_tcp_connect,
-	_tcp_get_stream,
-	_tcp_close,
-	_tcp_free
-};
-
-int _tcp_create(void **netdata, struct _net_api **netapi)
+int tcp_stream_create(stream_t *stream)
 {
-	struct _tcp_options *options;
+	struct _tcp_instance *tcp;
+	int ret;
 
-	if ( ( options = malloc(sizeof(*options)) ) == NULL )
+	if ( ( tcp = malloc(sizeof(*tcp)) ) == NULL )
 		return ENOMEM;
-
-	options->non_block = 0;
-	options->net_timeout = -1; 		/* system default */
-
-	*netdata = options;
-	*netapi = &_tcp_net_api;
+	tcp->fd = -1;
+	tcp->host = NULL;
+	tcp->port = -1;
+	tcp->state = TCP_STATE_INIT;
+	if ( ( ret = stream_create(stream, MU_STREAM_NO_CHECK|MU_STREAM_RDWR, tcp) ) != 0 )
+		return ret;
+	stream_set_open(*stream, _tcp_open, tcp);
+	stream_set_close(*stream, _tcp_close, tcp);
+	stream_set_read(*stream, _tcp_read, tcp);
+	stream_set_write(*stream, _tcp_write, tcp);
+	stream_set_fd(*stream, _tcp_get_fd, tcp);
+	stream_set_destroy(*stream, _tcp_destroy, tcp);
 	return 0;
 }
-
-int _tcp_set_option(void *netdata, const char *name, const char *value)
-{
-	struct _tcp_options *options = netdata;
-
-	if ( strcasecmp(name, "tcp_non_block") == 0 ) {
-		if ( value[0] == 't' || value[0] == 'T' || value[0] == '1' || value[0] == 'y' || value[0] == 'Y')
-			options->non_block = 1;
-		else
-			options->non_block = 0;
-	}
-	else if ( strcasecmp(name, "tcp_timeout") == 0 )
-		options->net_timeout = atoi(value);
-	else
-		return EINVAL;
-	return 0;
-}
-
-int _tcp_destroy(void **netdata)
-{
-	struct _tcp_options *options = *netdata;
-
-	free(options);
-	*netdata = NULL;
-	return 0;
-}
-

@@ -313,8 +313,8 @@ mailbox_unix_destroy (mailbox_t *pmbox)
 		continue;
 	      /* Destroy the attach messages */
 	      message_destroy (&(mum->message), mum);
-	      attribute_destroy (&(mum->old_attr), mbox);
-	      attribute_destroy (&(mum->new_attr), mbox);
+	      attribute_destroy (&(mum->old_attr));
+	      attribute_destroy (&(mum->new_attr));
 	      free (mum);
 	    }
 	  free (mud->umessages);
@@ -399,7 +399,11 @@ mailbox_unix_open (mailbox_t mbox, int flags)
   /* Authentication */
   if (mbox->auth)
     {
-      int status = auth_authenticate (mbox->auth);
+      char *user = NULL;
+      char *passwd = NULL;
+      int status = auth_authenticate (mbox->auth, &user, &passwd);
+      free (user);
+      free (passwd);
       if (status != 0)
 	return status;
     }
@@ -516,7 +520,7 @@ mailbox_unix_is_updated (mailbox_t mbox)
 }
 
 static int
-mailbox_unix_num_deleted (mailbox_t mbox, size_t *num)
+mailbox_unix_num_deleted (mailbox_t mbox, size_t *pnum)
 {
   mailbox_unix_data_t mud;
   mailbox_unix_message_t mum;
@@ -531,8 +535,8 @@ mailbox_unix_num_deleted (mailbox_t mbox, size_t *num)
 	total++;
     }
 
-  if (num)
-    *num = total;
+  if (pnum)
+    *pnum = total;
   return 0;
 }
 
@@ -894,7 +898,7 @@ mailbox_unix_getfd (stream_t is, int *pfd)
 {
   mailbox_unix_message_t mum;
 
-  if (is == NULL || (mum = (mailbox_unix_message_t)is->owner) == NULL)
+  if (is == NULL || (mum = is->owner) == NULL)
     return EINVAL;
   if (pfd)
     *pfd = fileno (mum->file);
@@ -908,7 +912,7 @@ mailbox_unix_readstream (stream_t is, char *buffer, size_t buflen,
   mailbox_unix_message_t mum;
   size_t nread = 0;
 
-  if (is == NULL || (mum = is->owner) == NULL)
+  if (is == NULL || (mum = (mailbox_unix_message_t)is->owner) == NULL)
     return EINVAL;
 
   if (buffer == NULL || buflen == 0)
@@ -1169,7 +1173,7 @@ mailbox_unix_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
     }
   message_set_body (msg, body, mum);
 
-  status = stream_create (&stream, 0, mum);
+  status = stream_create (&stream, MU_STREAM_READ, mum);
   if (status != 0)
     {
       message_destroy (&msg, mum);

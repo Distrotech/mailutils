@@ -36,32 +36,58 @@ struct _stream;
 typedef struct _stream *stream_t;
 
 /*  stream will be destroy on stream_destroy */
-#define MU_STREAM_NO_CHECK 1
+#define MU_STREAM_READ	   0x00000001
+#define MU_STREAM_WRITE	   0x00000002
+#define MU_STREAM_RDWR     0x00000004
+#define MU_STREAM_APPEND   0x00000008
+#define MU_STREAM_CREAT	   0x00000010
+#define MU_STREAM_NONBLOCK 0x00000020
+#define MU_STREAM_NO_CHECK 0x00000040
 
 extern int stream_create __P ((stream_t *, int flags, void *owner));
-extern void stream_destroy __P ((stream_t *, void *owner));
 
-extern int stream_set_destroy __P ((stream_t,
-				    void (*_destroy) __P ((void *)),
+extern void stream_destroy __P ((stream_t *, void *owner));
+extern int stream_set_destroy __P ((stream_t, void (*_destroy) __P ((stream_t)),
 				    void *owner));
 
+extern int stream_open __P ((stream_t, const char *, int, int));
+extern int stream_set_open __P ((stream_t,
+                                 int (*_open) __P ((stream_t, const char *,
+                                              int, int)),
+                                 void *owner));
+
+extern int stream_close __P ((stream_t));
+extern int stream_set_close __P ((stream_t, int (*_close) __P ((stream_t)),
+                                 void *owner));
+
+extern int stream_get_fd __P ((stream_t , int *));
 extern int stream_set_fd __P ((stream_t,
 			       int (*_get_fd)(stream_t, int *),
 			       void *owner));
+
+extern int stream_read __P ((stream_t, char *, size_t, off_t, size_t *));
 extern int stream_set_read __P ((stream_t,
 				 int (*_read) __P ((stream_t, char *,
 						    size_t, off_t, size_t *)),
 				 void *owner));
+
+extern int stream_write __P ((stream_t, const char *, size_t, off_t, size_t *));
 extern int stream_set_write __P ((stream_t,
 				  int (*_write) __P ((stream_t, const char *,
-						      size_t, off_t,
-						      size_t *)),
+						size_t, off_t,
+						size_t *)),
 				  void *owner));
-extern int stream_get_fd __P ((stream_t , int *));
-extern int stream_read __P ((stream_t, char *, size_t, off_t, size_t *));
-extern int stream_write __P ((stream_t, const char *, size_t,
-			       off_t, size_t *));
 
+extern int stream_get_flags __P ((stream_t , int *flags));
+
+/* misc */
+extern int file_stream_create	__P ((stream_t *stream, const char *filename,
+				      int flags));
+extern int encoder_stream_create	__P ((stream_t *stream, stream_t iostream,
+				      const char *encoding));
+extern int decoder_stream_create	__P ((stream_t *stream, stream_t iostream,
+				      const char *encoding));
+extern int tcp_stream_create	__P ((stream_t *stream));
 
 #ifdef __cplusplus
 }

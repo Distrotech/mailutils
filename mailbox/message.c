@@ -47,7 +47,7 @@ message_create (message_t *pmsg, void *owner)
   msg = calloc (1, sizeof (*msg));
   if (msg == NULL)
     return ENOMEM;
-  status = stream_create (&stream, 0, msg);
+  status = stream_create (&stream, MU_STREAM_RDWR, msg);
   if (status != 0)
     {
       free (msg);
@@ -92,7 +92,7 @@ message_destroy (message_t *pmsg, void *owner)
 	  /* header */
 	  header_destroy (&header, owner);
 	  /* attribute */
-	  attribute_destroy (&attribute, owner);
+	  attribute_destroy (&attribute);
 	  /* stream */
 	  stream_destroy (&stream, owner);
 
@@ -188,7 +188,7 @@ message_get_stream (message_t msg, stream_t *pstream)
     {
       stream_t stream;
       int status;
-      status = stream_create (&stream, 0, msg);
+      status = stream_create (&stream, MU_STREAM_RDWR, msg);
       if (status != 0)
 	return status;
       stream_set_read (stream, message_read, msg);
@@ -350,7 +350,7 @@ message_get_attribute (message_t msg, attribute_t *pattribute)
   if (msg->attribute == NULL && msg->owner == NULL)
     {
       attribute_t attribute;
-      int status = attribute_create (&attribute, msg);
+      int status = attribute_create (&attribute);
       if (status != 0)
 	return status;
       msg->attribute = attribute;
@@ -366,7 +366,7 @@ message_set_attribute (message_t msg, attribute_t attribute, void *owner)
    return EINVAL;
   if (msg->owner != owner)
     return EACCES;
-  attribute_destroy (&(msg->attribute), msg);
+  attribute_destroy (&(msg->attribute));
   msg->attribute = attribute;
   return 0;
 }

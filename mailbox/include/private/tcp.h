@@ -15,25 +15,16 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-#include <net0.h>
-
 #define TCP_STATE_INIT 			1
 #define TCP_STATE_RESOLVE		2
 #define TCP_STATE_RESOLVING		3
 #define TCP_STATE_CONNECTING 	4
 #define TCP_STATE_CONNECTED		5
 
-struct _tcp_options {
-	int 		non_block;
-	int 		net_timeout;
-};
-
 struct _tcp_instance {
-	struct _tcp_options	*options;
-	int 		fd;
-	char 		*host;
-	int 		port;
-	int			state;
-	stream_t	stream;
+	int 			fd;
+	char 			*host;
+	int 			port;
+	int				state;
 	unsigned long	address;
 };

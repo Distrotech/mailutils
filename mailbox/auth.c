@@ -15,21 +15,13 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-#include <auth.h>
+#include <auth0.h>
 #include <cpystr.h>
 
 #include <errno.h>
 #include <sys/types.h>
 #include <string.h>
 #include <stdlib.h>
-
-struct _auth
-{
-  void *owner;
-  int (*_prologue) (auth_t);
-  int (*_authenticate) (auth_t);
-  int (*_epilogue) (auth_t);
-};
 
 int
 auth_create (auth_t *pauth, void *owner)
@@ -58,7 +50,8 @@ auth_destroy (auth_t *pauth, void *owner)
 }
 
 int
-auth_set_authenticate (auth_t auth, int (*_authenticate)(auth_t),
+auth_set_authenticate (auth_t auth,
+		       int (*_authenticate)(auth_t, char **, char **),
 		       void *owner)
 {
   if (auth == NULL)
@@ -70,11 +63,11 @@ auth_set_authenticate (auth_t auth, int (*_authenticate)(auth_t),
 }
 
 int
-auth_authenticate (auth_t auth)
+auth_authenticate (auth_t auth, char **user, char **passwd)
 {
   if (auth == NULL || auth->_authenticate == NULL)
     return EINVAL;
-  return auth->_authenticate (auth);
+  return auth->_authenticate (auth, user, passwd);
 }
 
 int
@@ -91,7 +84,7 @@ auth_set_epilogue (auth_t auth, int (*_epilogue)(auth_t), void *owner)
 int
 auth_epilogue (auth_t auth)
 {
-  if (auth == NULL && auth->_epilogue == NULL)
+  if (auth == NULL || auth->_epilogue == NULL)
     return EINVAL;
   return auth->_epilogue (auth);
 }
@@ -110,7 +103,7 @@ auth_set_prologue (auth_t auth, int (*_prologue)(auth_t), void *owner)
 int
 auth_prologue (auth_t auth)
 {
-  if (auth == NULL && auth->_prologue == NULL)
+  if (auth == NULL || auth->_prologue == NULL)
     return EINVAL;
   return auth->_prologue (auth);
 }

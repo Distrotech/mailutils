@@ -83,17 +83,6 @@ static int _mime_append_part(mime_t mime, message_t msg, int body_offset, int bo
 	return 0;
 }
 
-static struct _mime_part *_mime_get_owner(mime_t mime, message_t msg)
-{
-	int i;
-
-	for ( i = 0; i < mime->nmtp_parts; i++ ) {
-		if ( mime->mtp_parts[i] == msg->owner )
-			return mime->mtp_parts[i];
-	}
-	return NULL;
-}
-
 static char *_strltrim(char *str)
 {
 	char    *p;
@@ -119,7 +108,7 @@ char *_strtrim(char *str);
 #define _ISSPECIAL(c) ( \
     ((c) == '(') || ((c) == ')') || ((c) == '<') || ((c) == '>') \
     || ((c) == '@') || ((c) == ',') || ((c) == ';') || ((c) == ':') \
-    || ((c) == '\\') || ((c) == '"') || ((c) == '.') || ((c) == '[') \
+    || ((c) == '\\') || ((c) == '.') || ((c) == '[') \
     || ((c) == ']') )
 
 static void _mime_munge_content_header(char *field_body )
@@ -129,23 +118,26 @@ static void _mime_munge_content_header(char *field_body )
 
 	_strtrim(field_body);
 
-	if ( ( e = p = strchr(str, ';') ) == NULL )
-		return;
-	e++;
-	while ( *e && isspace(*e) )  /* remove space upto param */
-		e++;
-	memmove(p+1, e, strlen(e)+1);
-	e = p+1;
-
-	while ( *e && *e != '=' )   /* find end of value */
-		e++;
-	e = p = e+1;
-	while ( *e && (quoted || !_ISSPECIAL(*e) || !isspace(*e) ) ) {
-		if ( *e == '\\' ) {                /* escaped */
-			memmove(e, e+1, strlen(e)+2);
-		} else if ( *e == '\"' )
-			quoted = ~quoted;
-		e++;
+	if ( ( e = strchr(str, ';') ) == NULL )
+		return; 
+	while( *e == ';' ) {
+		p = e;
+		e++;	
+		while ( *e && isspace(*e) )  /* remove space upto param */
+			e++;
+		memmove(p+1, e, strlen(e)+1);
+		e = p+1;
+	
+		while ( *e && *e != '=' )   /* find end of value */
+			e++;
+		e = p = e+1;
+		while ( *e && (quoted || ( !_ISSPECIAL(*e) && !isspace(*e) ) ) ) {
+			if ( *e == '\\' ) {                /* escaped */
+				memmove(e, e+1, strlen(e)+2); 
+			} else if ( *e == '\"' )
+				quoted = ~quoted;
+			e++;
+		}
 	}
 }
 
@@ -164,7 +156,7 @@ static char *_mime_get_param(char *field_body, const char *param, int *len)
 			break;
 		*len = 0;
 		v = e = v + 1;
-		while ( *e && (quoted || !_ISSPECIAL(*e) || !isspace(*e) ) ) { 	/* skip pass value and calc len */
+		while ( *e && (quoted || ( !_ISSPECIAL(*e) && !isspace(*e) ) ) ) { 	/* skip pass value and calc len */
 			if ( *e == '\"' )
 				quoted = ~quoted, was_quoted = 1;
 			else
@@ -256,6 +248,8 @@ static int _mime_parse_mpart_message(mime_t mime)
 									_mime_append_part(mime, NULL, body_offset, body_length, FALSE );
 								if ( ( cp2 + blength + 2 < cp && !strncasecmp(cp2+2+blength, "--",2) ) ||
 									!strncasecmp(cp2+blength, "--",2) ) { /* very last boundary */
+									mime->parser_state = MIME_STATE_BEGIN_LINE;
+									mime->header_length = 0;
 									break;
 								}
 								mime->line_ndx = -1; /* headers parsing requires empty line */
@@ -293,6 +287,8 @@ static int _mime_parse_mpart_message(mime_t mime)
 	mime->body_length = body_length;
 	mime->body_offset = body_offset;
 	if ( ret != EAGAIN ) { /* finished cleanup */
+		if ( mime->header_length ) /* this skips the preamble */
+			_mime_append_part(mime, NULL, body_offset, body_length, FALSE );
 		mime->flags &= ~MIME_PARSER_ACTIVE;
 		mime->body_offset = mime->body_length = mime->header_length = 0;
 	}
@@ -365,7 +361,7 @@ int mime_create(mime_t *pmime, message_t msg, int flags)
 		}
 	}
 	else {
-		if ( ( ret = message_create( &msg, mime ) ) == 0 ) {
+		if ( ( ret = message_create( &(mime->msg), mime ) ) == 0 ) {
 			mime->flags |= MIME_NEW_MESSAGE;
 		}
 	}
@@ -449,7 +445,7 @@ int mime_get_part(mime_t mime, int part, message_t *msg)
 				message_set_header(mime_part->msg, mime_part->hdr, mime_part);
 				header_size(mime_part->hdr, &hsize);
 				if ( ( ret = body_create(&body, mime_part) ) == 0 ) {
-					if ( ( ret = stream_create(&stream, 0, mime_part) ) == 0 ) {
+					if ( ( ret = stream_create(&stream, MU_STREAM_READ, mime_part) ) == 0 ) {
 						body_set_size (body, _mime_body_size, mime_part);
 						stream_set_read(stream, _mime_message_read, mime_part);
 						body_set_stream(body, stream, mime_part);
@@ -458,82 +454,6 @@ int mime_get_part(mime_t mime, int part, message_t *msg)
 					}
 				}
 				message_destroy(&mime_part->msg, mime_part);
-			}
-		}
-	}
-	return ret;
-}
-
-int mime_unencapsulate(mime_t mime, message_t msg, message_t *newmsg)
-{
-	size_t 				size, nbytes;
-	int					ret, body_offset = 0, body_length = 0, done = 0;
-	char 				*content_type, *cp;
-	header_t			hdr;
-	stream_t			stream;
-	body_t			body;
-	struct _mime_part	*mime_part;
-
-	if ( mime == NULL || msg == NULL || newmsg == NULL || mime->flags & MIME_NEW_MESSAGE )
-		return EINVAL;
-
-	if ( mime->msg != msg && ( mime_part = _mime_get_owner( mime, msg ) ) == NULL ) /* I don't know about or own this message */
-		return EPERM;
-
-	if ( ( ret = message_get_header(msg, &hdr) ) == 0 ) {
-		if ( ( ret = header_get_value(hdr, "Content-Type", NULL, 0, &size) ) == 0 && size ) {
-			if ( ( content_type = malloc(size+1) ) == NULL )
-				ret = ENOMEM;
-			else if ( ( ret = header_get_value(hdr, "Content-Type", content_type, size+1, 0) ) == 0 ) {
-				_mime_munge_content_header(content_type);
-				if ( strncasecmp(content_type, "message/rfc822", strlen(content_type)) != 0 )
-					ret = EINVAL;
-				else {
-					if ( mime_part ) {
-						body_offset = mime_part->body_offset;
-						body_length = mime_part->body_len;
-					}
-					if ( ( ret = _mime_setup_buffers(mime) ) == 0 ) {
-						mime->line_ndx = 0;
-						mime->cur_offset = body_offset;
-						while ( !done && ( ret = stream_read(mime->stream, mime->cur_buf, mime->buf_size, mime->cur_offset, &nbytes) ) == 0 && nbytes ) {
-							cp = mime->cur_buf;
-							while ( nbytes ) {
-								mime->cur_line[mime->line_ndx] = *cp;
-								mime->line_ndx++;
-								if ( *cp == '\n' ) {
-									_mime_append_header_line(mime);
-									if ( mime->line_ndx == 1 ) {
-										done = 1;
-										break;
-									}
-									mime->line_ndx = 0;
-								}
-								mime->cur_offset++;
-								nbytes--;
-								cp++;
-							}
-						}
-						body_length -= mime->cur_offset - body_offset;
-						body_offset = mime->cur_offset + 1;
-						if ( ( ret = _mime_append_part( mime, NULL, body_offset, body_length, TRUE ) ) == 0 ) {
-							mime_part = mime->cap_msgs[mime->ncap_msgs - 1];
-							if ( ( ret = message_create(&(mime_part->msg), mime_part) ) == 0) {
-								message_set_header(mime_part->msg, mime_part->hdr, mime_part);
-								if ( ( ret = body_create(&body, mime_part) ) == 0 ) {
-									if ( ( ret = stream_create(&stream, 0, mime_part) ) == 0 ) {
-										stream_set_read(stream, _mime_message_read, mime_part);
-										body_set_size (body, _mime_body_size, mime_part);
-										body_set_stream( body, stream, mime_part);
-										*newmsg = mime_part->msg;
-										return 0;
-									}
-									message_destroy(&mime_part->msg, mime_part);
-								}
-							}
-						}
-					}
-				}
 			}
 		}
 	}

@@ -39,21 +39,20 @@ stream_create (stream_t *pstream, int flags, void *owner)
 void
 stream_destroy (stream_t *pstream, void *owner)
 {
-  if (pstream && *pstream)
+   if (pstream && *pstream)
     {
       stream_t stream = *pstream;
-
+      if (!(stream->flags & MU_STREAM_NO_CHECK) && stream->owner != owner)
+	return;
       if (stream->_destroy)
-	stream->_destroy (owner);
-      if ((stream->flags & MU_STREAM_NO_CHECK) || stream->owner == owner)
+	stream->_destroy (stream);
 	free (stream);
       *pstream = NULL;
     }
 }
 
 int
-stream_set_destroy (stream_t stream, void (*_destroy) (void *),
-		    void *owner)
+stream_set_destroy (stream_t stream, void (*_destroy) (stream_t),  void *owner)
 {
   if (stream == NULL)
     return EINVAL;
@@ -63,6 +62,53 @@ stream_set_destroy (stream_t stream, void (*_destroy) (void *),
 
   stream->_destroy = _destroy;
   return 0;
+}
+
+int
+stream_open (stream_t stream, const char *name, int port, int flags)
+{
+  if (stream == NULL)
+    return EINVAL;
+  if (stream->_open)
+    return stream->_open (stream, name, port, flags);
+  return  0;
+}
+
+int
+stream_set_open (stream_t stream,
+	         int (*_open) (stream_t, const char *, int, int), void *owner)
+{
+  if (stream == NULL)
+    return EINVAL;
+  if (owner == stream->owner)
+    {
+      stream->_open = _open;
+      return 0;
+    }
+  return EACCES;
+}
+
+int
+stream_close (stream_t stream)
+{
+  if (stream == NULL)
+    return EINVAL;
+  if (stream->_close)
+    return stream->_close (stream);
+  return  0;
+}
+
+int
+stream_set_close (stream_t stream, int (*_close) (stream_t), void *owner)
+{
+  if (stream == NULL)
+    return EINVAL;
+  if (owner == stream->owner)
+    {
+      stream->_close = _close;
+      return 0;
+    }
+  return EACCES;
 }
 
 int
@@ -85,7 +131,9 @@ stream_set_read (stream_t stream, int (*_read)
 {
   if (stream == NULL)
     return EINVAL;
-  if (owner == stream->owner)
+  if (owner == stream->owner &&
+      ((stream->flags & MU_STREAM_READ) ||
+       (stream->flags & MU_STREAM_RDWR)))
     {
       stream->_read = _read;
       return 0;
@@ -100,7 +148,10 @@ stream_set_write (stream_t stream, int (*_write)
 {
   if (stream == NULL)
     return EINVAL;
-  if (stream->owner == owner)
+  if (stream->owner == owner &&
+      ((stream->flags & MU_STREAM_WRITE) ||
+       (stream->flags & MU_STREAM_RDWR) ||
+       (stream->flags & MU_STREAM_APPEND)))
     {
       stream->_write = _write;
       return 0;
@@ -132,4 +183,13 @@ stream_get_fd (stream_t stream, int *pfd)
   if (stream == NULL || stream->_get_fd == NULL)
     return EINVAL;
   return stream->_get_fd (stream, pfd);
+}
+
+int
+stream_get_flags (stream_t stream, int *pfl)
+{
+  if (stream == NULL && pfl == NULL )
+    return EINVAL;
+  *pfl = stream->flags;
+  return 0;
 }

@@ -68,7 +68,7 @@ header_create (header_t *ph, const char *blurb, size_t len, void *owner)
 
   header_parse (h, (char *)blurb, len);
 
-  status = stream_create (&(h->stream), 0, h);
+  status = stream_create (&(h->stream), MU_STREAM_READ|MU_STREAM_WRITE, h);
   if (status != 0)
     return status;
 

@@ -23,7 +23,7 @@
 #include <attribute.h>
 #include <auth.h>
 #include <locker.h>
-#include <net.h>
+#include <io.h>
 
 #include <sys/types.h>
 
@@ -48,12 +48,12 @@ extern int  mailbox_create __P ((mailbox_t *, const char *, int id));
 extern void mailbox_destroy __P ((mailbox_t *));
 
 /* flags for mailbox_open () */
-#define MU_MAILBOX_RDONLY ((int)1)
-#define MU_MAILBOX_WRONLY (MU_MAILBOX_RDONLY << 1)
-#define MU_MAILBOX_RDWR   (MU_MAILBOX_WRONLY << 1)
-#define MU_MAILBOX_APPEND (MU_MAILBOX_RDWR << 1)
-#define MU_MAILBOX_CREAT  (MU_MAILBOX_APPEND << 1)
-#define MU_MAILBOX_NONBLOCK  (MU_MAILBOX_CREAT << 1)
+#define MU_MAILBOX_RDONLY    MU_STREAM_READ
+#define MU_MAILBOX_WRONLY    MU_STREAM_WRITE
+#define MU_MAILBOX_RDWR      MU_STREAM_RDWR
+#define MU_MAILBOX_APPEND    MU_STREAM_APPEND
+#define MU_MAILBOX_CREAT     MU_STREAM_CREAT
+#define MU_MAILBOX_NONBLOCK  MU_STREAM_NONBLOCK
 
 extern int mailbox_open     __P ((mailbox_t, int flag));
 extern int mailbox_close    __P ((mailbox_t));
@@ -64,9 +64,9 @@ extern int mailbox_append_message __P ((mailbox_t, message_t msg));
 extern int mailbox_messages_count __P ((mailbox_t, size_t *num));
 extern int mailbox_expunge  __P ((mailbox_t));
 
-/* netinstance settings */
-extern int mailbox_get_netinstance __P ((mailbox_t, netinstance_t *net));
-extern int mailbox_set_netinstance __P ((mailbox_t, netinstance_t net));
+/* stream settings */
+extern int mailbox_get_stream __P ((mailbox_t, stream_t *pstream));
+extern int mailbox_set_stream __P ((mailbox_t, stream_t stream));
 
 /* Lock settings */
 extern int mailbox_get_locker      __P ((mailbox_t, locker_t *locker));

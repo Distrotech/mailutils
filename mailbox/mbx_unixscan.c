@@ -254,7 +254,7 @@ do \
 } while (0)
 
 /* skip a function call, ?? do we gain that much */
-#define ATTRIBUTE_CREATE(attr,own) \
+#define ATTRIBUTE_CREATE(attr,mbox) \
 do \
 { \
   attr = calloc (1, sizeof(*(attr))); \
@@ -265,7 +265,6 @@ do \
       mailbox_unix_unlock (mbox); \
       return ENOMEM; \
     } \
-  (attr)->owner = own; \
 } while (0)
 
 /* allocate slots for the new messages */

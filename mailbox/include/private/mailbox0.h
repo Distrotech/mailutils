@@ -42,7 +42,7 @@ struct _mailbox
   char *name;
   auth_t auth;
   locker_t locker;
-  netinstance_t netinstance;
+  stream_t stream;
   url_t url;
 
   /* register events */

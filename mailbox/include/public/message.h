@@ -80,14 +80,25 @@ extern int message_set_received  __P ((message_t,
 extern int message_get_attribute __P ((message_t, attribute_t *));
 extern int message_set_attribute __P ((message_t, attribute_t, void *owner));
 
-  //extern int message_clone __P ((message_t));
-
 /* events */
 #define MU_EVT_MSG_DESTROY 32
 extern int message_register __P ((message_t msg, size_t type,
 				  int (*action) (size_t typ, void *arg),
 				  void *arg));
 extern int message_deregister __P ((message_t msg, void *action));
+
+/* misc functions */
+extern int message_create_attachment __P ((const char *content_type,
+					   const char *encoding,
+					   const char *filename,
+					   message_t *newmsg));
+extern int message_save_attachment __P ((message_t msg,
+					 const char *filename, void **data));
+extern int message_encapsulate __P ((message_t msg, message_t *newmsg,
+				     void **data));
+extern int message_unencapsulate __P ((message_t msg, message_t *newmsg,
+				       void **data));
+
 #ifdef _cplusplus
 }
 #endif

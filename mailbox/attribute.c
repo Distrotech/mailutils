@@ -23,27 +23,25 @@
 #include <errno.h>
 
 int
-attribute_create (attribute_t *pattr, void *owner)
+attribute_create (attribute_t *pattr)
 {
   attribute_t attr;
-  if (pattr == NULL || owner == NULL)
+  if (pattr == NULL)
     return EINVAL;
   attr = calloc (1, sizeof(*attr));
   if (attr == NULL)
     return ENOMEM;
-  attr->owner = owner;
   *pattr = attr;
   return 0;
 }
 
 void
-attribute_destroy (attribute_t *pattr, void *owner)
+attribute_destroy (attribute_t *pattr)
 {
   if (pattr && *pattr)
     {
       attribute_t attr = *pattr;
-      if (attr->owner == owner)
-	free (attr);
+      free (attr);
       /* loose the link */
       *pattr = NULL;
     }
@@ -254,12 +252,12 @@ attribute_copy (attribute_t dest, attribute_t src)
 }
 
 int
-string_to_attribute (const char *buffer, attribute_t *pattr, void *owner)
+string_to_attribute (const char *buffer, attribute_t *pattr)
 {
-  char *sep;
+  const char *sep;
   int status;
 
-  status = attribute_create (pattr, owner);
+  status = attribute_create (pattr);
   if (status != 0)
     return status;
 
@@ -268,16 +266,19 @@ string_to_attribute (const char *buffer, attribute_t *pattr, void *owner)
     {
       sep = strchr(buffer, ':'); /* pass the ':' */
       sep++;
-      while (*sep == ' ') sep++; /* glob spaces */
-      if (strchr (sep, 'R') != NULL || strchr (sep, 'r') != NULL)
-	attribute_set_read (*pattr);
-      if (strchr (sep, 'O') != NULL || strchr (sep, 'o') != NULL)
-	attribute_set_seen (*pattr);
-      if (strchr (sep, 'A') != NULL || strchr (sep, 'a') != NULL)
-	attribute_set_answered (*pattr);
-      if (strchr (sep, 'F') != NULL || strchr (sep, 'f') != NULL)
-	attribute_set_flagged (*pattr);
     }
+  else
+    sep = buffer;
+
+  while (*sep == ' ') sep++; /* glob spaces */
+  if (strchr (sep, 'R') != NULL || strchr (sep, 'r') != NULL)
+    attribute_set_read (*pattr);
+  if (strchr (sep, 'O') != NULL || strchr (sep, 'o') != NULL)
+    attribute_set_seen (*pattr);
+  if (strchr (sep, 'A') != NULL || strchr (sep, 'a') != NULL)
+    attribute_set_answered (*pattr);
+  if (strchr (sep, 'F') != NULL || strchr (sep, 'f') != NULL)
+    attribute_set_flagged (*pattr);
   return 0;
 }
 

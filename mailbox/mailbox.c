@@ -23,7 +23,6 @@
 #include <message0.h>
 #include <registrar.h>
 #include <locker.h>
-#include <net.h>
 
 #include <stdlib.h>
 #include <string.h>
@@ -163,11 +162,12 @@ mailbox_set_locker (mailbox_t mbox, locker_t locker)
 }
 
 int
-mailbox_get_locker (mailbox_t mbox, locker_t *locker)
+mailbox_get_locker (mailbox_t mbox, locker_t *plocker)
 {
-  if (mbox == NULL || locker == NULL)
+  if (mbox == NULL || plocker == NULL)
     return EINVAL;
-  *locker = mbox->locker;
+  if (plocker)
+    *plocker = mbox->locker;
   return 0;
 }
 
@@ -185,25 +185,27 @@ mailbox_get_auth (mailbox_t mbox, auth_t *pauth)
 {
   if (mbox == NULL || pauth == NULL)
     return EINVAL;
-  *pauth = mbox->auth;
+  if (pauth)
+    *pauth = mbox->auth;
   return 0;
 }
 
 int
-mailbox_set_netinstance (mailbox_t mbox, netinstance_t netinstance)
+mailbox_set_stream (mailbox_t mbox, stream_t stream)
 {
   if (mbox == NULL)
     return EINVAL;
-  mbox->netinstance = netinstance;
+  mbox->stream = stream;
   return 0;
 }
 
 int
-mailbox_get_netinstance (mailbox_t mbox, netinstance_t *pnetinstance)
+mailbox_get_stream (mailbox_t mbox, stream_t *pstream)
 {
-  if (mbox == NULL || pnetinstance == NULL)
+  if (mbox == NULL || pstream == NULL)
     return EINVAL;
-  *pnetinstance = mbox->netinstance;
+  if (pstream)
+    *pstream = mbox->stream;
   return 0;
 }
 
