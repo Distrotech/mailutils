@@ -182,7 +182,9 @@ _locker_destroy_private (locker_t locker)
       else
 	{
 	  free (locker->data.dot.dotlock);
+	  locker->data.dot.dotlock = NULL;
 	  free (locker->data.dot.nfslock);
+	  locker->data.dot.nfslock = NULL;
 	}
     }
 }
