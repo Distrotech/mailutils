@@ -87,7 +87,12 @@ sieve_require_comparator (sieve_machine_t mach, const char *name)
 {
   sieve_comparator_record_t *reg = _lookup (mach->comp_list, name);
   if (!reg)
-    return 1;
+    {
+      if (!(sieve_load_ext (mach, name) == 0
+	    && (reg = _lookup (mach->comp_list, name)) != NULL))
+	return 1;
+    }
+
   reg->required = 1;
   return 0;
 }
