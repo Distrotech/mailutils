@@ -1,3 +1,13 @@
+2001-03-20  Alain Magloire
+
+	* mailbox/folder_imap.c (imap_readline) :  If the server goes away
+	suddenly return an error.
+	* mailbox/smtp.c (smtp_readline) :  If the server goes away
+	suddenly return an error.
+	* mailbox/mbx_pop.c (pop_readline) :  If the server goes away suddenly
+	return an error.
+	* mailbox/mbx_pop.c (pop_open) : The ticket comes from the folder.
+
 2001-03-17  Vesselin Atanasov
 
 	* configure.in: AC_REQUIRE is not .. required.  Just call
