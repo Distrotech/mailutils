@@ -49,8 +49,6 @@
 #define ARG_SHOW_OPTIONS 3
 #define ARG_LICENSE 4
 
-const char *argp_program_bug_address = "<" PACKAGE_BUGREPORT ">";
-
 static struct argp_option mu_common_argp_options[] = 
 {
   { NULL, 0, NULL, 0, N_("Common options"), 0},
@@ -863,6 +861,13 @@ mu_build_argp (const struct argp *template, const char *capa[])
   return argp;
 }
 
+void
+mu_argp_init (const char *vers, const char *bugaddr)
+{
+  argp_program_version = vers ? vers : PACKAGE_STRING;
+  argp_program_bug_address = bugaddr ? bugaddr : "<" PACKAGE_BUGREPORT ">";
+}
+
 error_t
 mu_argp_parse(const struct argp *argp, 
 	      int *pargc, char **pargv[],  
@@ -873,6 +878,9 @@ mu_argp_parse(const struct argp *argp,
 {
   error_t ret;
   const struct argp argpnull = { 0 };
+
+  /* Make sure we have program version and bug address initialized */
+  mu_argp_init (argp_program_version, argp_program_bug_address);
 
   if(!argp)
     argp = &argpnull;

@@ -48,6 +48,8 @@ extern char *mu_license_text;
 extern "C" {
 #endif
 
+extern void mu_argp_init __P ((const char *vers, const char *bugaddr));
+  
 extern void mu_create_argcv __P ((const char *capa[],
 				  int argc, char **argv,
 				  int *p_argc, char ***p_argv));
