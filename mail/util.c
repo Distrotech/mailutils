@@ -1225,7 +1225,7 @@ util_header_expand (header_t *phdr)
 }
 
 int
-util_get_message (mailbox_t mbox, size_t msgno, message_t *msg, int delflag)
+util_get_message (mailbox_t mbox, size_t msgno, message_t *msg, int flag)
 {
   int status;
 
@@ -1243,9 +1243,11 @@ util_get_message (mailbox_t mbox, size_t msgno, message_t *msg, int delflag)
       return status;
     }
 
-  if (delflag && util_isdeleted (*msg))
+  if ((flag & MSG_NODELETED) && util_isdeleted (*msg))
     {
-      util_error ("%d: Inappropriate message (has been deleted)");
+      if (!(flag & MSG_SILENT))
+	util_error ("%lu: Inappropriate message (has been deleted)",
+		    (unsigned long) msgno);
       return ENOENT;
     }
   return 0;
