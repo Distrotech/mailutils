@@ -104,6 +104,7 @@ mh/mh_init.c
 mh/mh_list.c
 mh/mh_msgset.c
 mh/mh_whatnow.c
+mh/mh_whom.c
 mh/mhl.c
 mh/mhpath.c
 mh/pick.c
@@ -114,6 +115,7 @@ mh/rmm.c
 mh/scan.c
 mh/send.c
 mh/whatnow.c
+mh/whom.c
 
 pop3d/apop.c
 pop3d/extra.c
