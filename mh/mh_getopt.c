@@ -24,6 +24,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <mh_getopt.h>
+#include <mu_asprintf.h>
 
 static int mh_optind = 1;
 static char *mh_optarg;
