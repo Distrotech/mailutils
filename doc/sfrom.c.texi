@@ -3,7 +3,9 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
-#include <mailutils.h>
+#include <mailutils/registrar.h>
+#include <mailutils/list.h>
+#include <mailutils/mailbox.h>
 
 #define BUFFER_SIZE 64
 int
@@ -26,17 +28,18 @@ main (int argc, const char **argv)
        list_append (registrar, path_record);
        list_append (registrar, pop_record);
    @}
-   status = mailbox_create (&mbox, mail, 0);
+
+   status = mailbox_create (&mbox, mail);
    if (status != 0)
      @{
-        fprintf (stderr, "mailbox_create: failed\n")
+        fprintf (stderr, "mailbox_create: %s\n", strerror (status));
         exit (EXIT_FAILURE);
      @}
 
    status = mailbox_open (mbox, MU_STREAM_READ);
    if (status != 0)
      @{
-        fprintf (stderr, "mailbox_open: failed\n");
+        fprintf (stderr, "mailbox_open: %s\n", strerror (status));
         exit (EXIT_FAILURE);
      @}
 
@@ -50,7 +53,7 @@ main (int argc, const char **argv)
          if ((status = mailbox_get_message (mbox, msgno, &msg)) != 0
              || (status = message_get_header (msg, &hdr)) != 0)
            @{
-               fprintf (stderr, "Error retrieving headers\n");
+               fprintf (stderr, "Error message:%s\n", strerror (status));
                exit (EXIT_FAILURE);
            @}
 

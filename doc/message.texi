@@ -5,6 +5,7 @@ encapsulates the @code{envelope_t}, the @code{header_t} and the @code{body_t}.
 
 @example
 @group
+    mailbox_t
     __________                   message_t
    (message[1])        +------>+-----------------------+
     ----------         |       |  envelope_t           |
@@ -16,12 +17,6 @@ encapsulates the @code{envelope_t}, the @code{header_t} and the @code{body_t}.
     ----------                 |  attribute_t          |
                                |-----------------------|
                                |  stream_t             |
-                               |-----------------------|
-                               |  size                 |
-                               |-----------------------|
-                               |  uid                  |
-                               +-----------------------+
-                               |  uidl                 |
                                +-----------------------+
 @end group
 @end example

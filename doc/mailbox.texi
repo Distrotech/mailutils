@@ -15,11 +15,11 @@ data structure to the user. Functions are provided to retrieve the information.
   -----------               |-----------------|    |
  (  sean    )               |  locker_t       |    |    auth_t
   ----------                |-----------------|    +-->/----------\
-                            |  ...            |        |  user    |
+                            |  message_t(1)   |        |  user    |
                             |-----------------|        |  passwd  |
-                            |  message[1]     |        \----------/
+                            |  message_t(2)   |        \----------/
                             |  ......         |
-                            |  message[n]     |
+                            |  message_t(n)   |
                             \-----------------/
 @end group
 @end example
@@ -220,6 +220,26 @@ The return value is @code{0} on success and a code number on error conditions:
 @end table
 @end deftypefun
 
+@deftypefun  int mailbox_set_ticket (mailbox_t @var{mbox}, ticket_t @var{ticket})
+The @var{ticket} will be set on the @code{auth_t} object on creation.
+
+The return value is @code{0} on success and a code number on error conditions:
+@table @code
+@item EINVAL
+@var{mbox} is null.
+@end table
+@end deftypefun
+
+@deftypefun  int mailbox_get_ticket (mailbox_t @var{mbox}, ticket_t @var{ticket})
+
+The return value is @code{0} on success and a code number on error conditions:
+@table @code
+@item EINVAL
+@var{mbox} is null.
+@end table
+@end deftypefun
+
+
 @deftypefun  int mailbox_is_updated (mailbox_t @var{mbox})
 Check if the mailbox is up-to-date.
 
@@ -242,7 +262,7 @@ Not enough memory.
 @end table
 @end deftypefun
 
-@deftypefun  int mailbox_size (mailbox_t @var{mbox}, off_t *@var{psize})
+@deftypefun  int mailbox_get_size (mailbox_t @var{mbox}, off_t *@var{psize})
 Gives the @var{mbox} size.
 
 The return value is @code{0} on success and a code number on error conditions:
@@ -273,6 +293,16 @@ The return value is @code{0} on success and a code number on error conditions:
 @var{mbox} is null.
 @item ENOMEM
 Not enough memory.
+@end table
+@end deftypefun
+
+@deftypefun  int mailbox_get_property (mailbox_t @var{mbox}, property_t *@var{property})
+Get the property object.
+The return value is @code{0} on success and a code number on error conditions:
+@table @code
+@item EINVAL
+@var{mbox} is null.
+@item ENOMEM
 @end table
 @end deftypefun
 
