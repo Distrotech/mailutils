@@ -100,6 +100,7 @@ static char *format_str =
 "%<{subject}Subject: Re: %(unre{subject})\\n%>"
 "%(lit)%(concat(in_reply_to))%<(nonnull)%(void(width))%(printstr In-reply-to: )\\n%>"
 "%(lit)%(concat(references))%<(nonnull)%(void(width))%(printstr References: )\\n%>"
+"X-Mailer: MH \\(%(package_string)\\)\\n" 
 "--------\n";
 
 static mh_format_t format;
