@@ -138,6 +138,7 @@ extern size_t current_message;
 extern char mh_list_format[];
 extern header_t ctx_header;
 extern header_t profile_header;
+extern char *program_invocation_short_name;
 
 void mh_init (void);
 void mh_read_profile (void);
