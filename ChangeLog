@@ -1,3 +1,33 @@
+2002-09-18  Sergey Poznyakoff 
+
+	* mailbox/mailbox.c: Include message.h
+	* mailbox/mbx_default.c (mu_path_folder_dir): New global. Holds
+	  the name of the user's folder directory. 
+	* include/mailutils/mailbox.h: Likewise
+	* mailbox/mbx_mh.c: Preserve the envelope information in the
+	  message header. 
+	* libmu_scm/mu_guimb.c (_scheme_main): Removed unused variable.
+
+	* mh/mh_ctx.c: New file. Context-related functions.
+	* mh/mh_msgset.c: New file. Mh-specific message sets.
+	* mh/refile.c: New file. The framework for the refile command.
+	* mh/Makefile.am: Added new programs.
+	* mh/mh.h (mh_builtin_fp, mh_msgset_t): New types.
+	  Added new prototypes.
+	* mh/mh_argp.c (struct mh_argp_data): New member `doc'. Keeps the
+	  documentation string.
+	  (parse_opt): Pass the data->doc member to mh_getopt.
+	  (mh_argp_parse): Initialize data.doc.
+	* mh/mh_getopt.c (mh_getopt, mh_help): Accept new argument:
+	  a pointer to the doc string.
+	* mh/mh_getopt.h: Likewise.
+	* mh/mh_init.c: Changed handling of MH profiles.
+	  (mh_open_folder, mh_get_dir, mh_expand_name, mh_iterate): New
+	  functions
+
+	* mh/rmm.c: Use new mh functions.
+	* mh/scan.c: Likewise.
+	
 2002-09-17  Sergey Poznyakoff 
 
 	* m4/gssapi.m4: Removed unused variable
