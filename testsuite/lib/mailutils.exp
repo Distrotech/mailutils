@@ -185,7 +185,7 @@ proc mu_exec {args} {
     }
 
     # Pity, dejagnu provides no way to retrieve exit status of the process.
-    # This ugli construction is used to work around this. Hopefully, it
+    # This ugly construction is used to work around this. Hopefully, it
     # should execute on any decent platform...
     set cmd "sh -c \"$MU_TOOL $sw\; echo \$?\""
     verbose "Executing $cmd"
@@ -301,10 +301,6 @@ proc mu_version {} {
 	return
     }
 
-    if {![info exists MU_CAPABILITY]} {
-	return
-    }
-    
     set output [remote_exec host "$MU_TOOL --show-config-options"]
     set flg [split [lindex $output 1]]   	
     for {set i 0} {$i < [llength $flg]} {incr i} {
@@ -314,14 +310,18 @@ proc mu_version {} {
 	    set MU_CAPABILITY([lindex $flg $i]) 1
 	}
     }
-    set MU_TOOL_VERSION $MU_CAPABILITY(VERSION)
+    if [info exists MU_CAPABILITY(VERSION)] {
+	set MU_TOOL_VERSION $MU_CAPABILITY(VERSION)
+    } else {
+	set MU_TOOL_VERSION "UNKNOWN"
+    }
 }
 
 proc mu_check_capability {args} {
     global MU_CAPABILITY
     
     set name [lindex $args 0]
-    if ![info exists MU_CAPABILITY($name)] {
+    if {![info exists MU_CAPABILITY] || ![info exists MU_CAPABILITY($name)]} {
 	return 0
     } else {
 	return $MU_CAPABILITY($name)
