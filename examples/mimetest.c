@@ -28,22 +28,32 @@
 
 #include <sys/types.h>
 
-#include <mailutils/body.h>
-#include <mailutils/debug.h>
-#include <mailutils/errno.h>
-#include <mailutils/filter.h>
-#include <mailutils/header.h>
-#include <mailutils/header.h>
-#include <mailutils/list.h>
-#include <mailutils/mailbox.h>
-#include <mailutils/message.h>
-#include <mailutils/registrar.h>
-#include <mailutils/stream.h>
+#include <mailutils/mailutils.h>
 
-void message_display_parts(message_t msg, const char *indent);
+void message_display_parts(message_t msg, int indent);
 
 char from[256];
 char subject[256];
+int print_attachments;
+int indent_level = 4;
+
+void
+print_file (const char *fname, int indent)
+{
+  char buf[128];
+  FILE *fp = fopen (fname, "r");
+
+  if (!fp)
+    {
+      fprintf (stderr, "can't open file %s: %s", fname, strerror (errno));
+      return;
+    }
+
+  while (fgets (buf, sizeof buf, fp))
+    printf ("%*.*s%s", indent, indent, "", buf);
+  fclose (fp);
+  unlink (fname);
+}
 
 int
 main (int argc, char **argv)
@@ -52,14 +62,22 @@ main (int argc, char **argv)
   int ret;
   size_t i;
   size_t count = 0;
-  char *mailbox_name = argv[1];
+  char *mailbox_name;
   int debug = 0;
 
-  if (strcmp("-d", mailbox_name) == 0)
+  for (i = 1; i < argc; i++)
     {
-      debug = 1;
-      mailbox_name = argv[2];
+      if (strcmp (argv[i], "-d") == 0)
+	debug = 1;
+      else if (strcmp (argv[i], "-p") == 0)
+	print_attachments = 1;
+      else if (strcmp (argv[i], "-i") == 0)
+	indent_level = strtoul (argv[++i], NULL, 0);
+      else
+	break;
     }
+
+  mailbox_name = argv[i];
 
   /* Registration.  */
   {
@@ -121,18 +139,18 @@ main (int argc, char **argv)
       header_get_value (hdr, MU_HEADER_FROM, from, sizeof (from), NULL);
       header_get_value (hdr, MU_HEADER_SUBJECT, subject, sizeof (subject),
 			NULL);
-      printf ("-- Message: %d\n", i);
-      printf ("-- From: %s\n", from);
-      printf ("-- Subject: %s\n", subject);
+      printf ("Message: %d\n", i);
+      printf ("From: %s\n", from);
+      printf ("Subject: %s\n", subject);
 
       if ((ret = message_get_num_parts (msg, &nparts)) != 0)
 	{
 	  fprintf (stderr, "message_get_num_parts - %s\n", mu_errstring (ret));
 	  exit (2);
 	}
-      printf ("-- Number of parts in message - %d\n", nparts);
-      printf ("-- Total message size - %d\n", msize);
-      message_display_parts (msg, "  ");
+      printf ("Number of parts in message - %d\n", nparts);
+      printf ("Total message size - %d\n", msize);
+      message_display_parts (msg, 0);
     }
   mailbox_close (mbox);
   mailbox_destroy (&mbox);
@@ -142,7 +160,7 @@ main (int argc, char **argv)
 char buf[2048];
 
 void
-message_display_parts (message_t msg, const char *indent)
+message_display_parts (message_t msg, int indent)
 {
   int ret, j;
   size_t msize, nparts, nsubparts;
@@ -184,8 +202,8 @@ message_display_parts (message_t msg, const char *indent)
 	}
       header_get_value (hdr, MU_HEADER_CONTENT_TYPE, type, sizeof (type),
 			NULL);
-      printf ("%sType of part %d = %s\n", indent, j, type);
-      printf ("%sMessage part size - %d\n", indent, msize);
+      printf ("%*.*sType of part %d = %s\n", indent, indent, "", j, type);
+      printf ("%*.*sMessage part size - %d\n", indent, indent, "", msize);
       encoding[0] = '\0';
       header_get_value (hdr, MU_HEADER_CONTENT_TRANSFER_ENCODING, encoding,
 			sizeof (encoding), NULL);
@@ -194,8 +212,6 @@ message_display_parts (message_t msg, const char *indent)
 	   && strncasecmp (type, "message/rfc822", strlen (type)) == 0)
 	  || (message_is_multipart (part, &ismulti) == 0 && ismulti))
 	{
-	  char tmp[10];
-
 	  if (!ismulti)
 	    {
 	      ret = message_unencapsulate (part, &part, NULL);
@@ -212,18 +228,15 @@ message_display_parts (message_t msg, const char *indent)
 	  header_get_value (hdr, MU_HEADER_FROM, from, sizeof (from), NULL);
 	  header_get_value (hdr, MU_HEADER_SUBJECT, subject, sizeof (subject),
 			    NULL);
-	  printf ("%sEncapsulated message : %s\t%s\n", indent, from, subject);
-	  printf
-	    ("%s-------------------------------------------------------------------\n",
-	     indent);
+	  printf ("%*.*sEncapsulated message : %s\t%s\n",
+		  indent, indent, "", from, subject);
+	  printf ("%*.*sBegin\n", indent, indent, "");
 	  if ((ret = message_get_num_parts (part, &nsubparts)) != 0)
 	    {
 	      fprintf (stderr, "mime_get_num_parts - %s\n", mu_errstring (ret));
 	      exit (2);
 	    }
-	  strcpy (tmp, indent);
-	  strcat (tmp, "\t");
-	  message_display_parts (part, tmp);
+	  message_display_parts (part, indent+indent_level);
 	  message_destroy (&part, NULL);
 	}
       else if (type[0] == '\0'
@@ -232,10 +245,8 @@ message_display_parts (message_t msg, const char *indent)
 	       || (strncasecmp (type, "text/html", strlen ("text/html")) ==
 		   0))
 	{
-	  printf ("%sText Message\n", indent);
-	  printf
-	    ("%s-------------------------------------------------------------------\n",
-	     indent);
+	  printf ("%*.*sText Message\n", indent, indent, "");
+	  printf ("%*.*sBegin\n", indent, indent, "");
 	  message_get_body (part, &body);
 	  body_get_stream (body, &str);
 	  filter_create (&str, str, encoding, 0, 0);
@@ -243,7 +254,7 @@ message_display_parts (message_t msg, const char *indent)
 	  while (stream_readline (str, buf, sizeof (buf), offset, &nbytes) ==
 		 0 && nbytes)
 	    {
-	      printf ("%s%s", indent, buf);
+	      printf ("%*.*s%s", indent, indent, "", buf);
 	      offset += nbytes;
 	    }
 	  stream_destroy (&str, NULL);
@@ -258,17 +269,15 @@ message_display_parts (message_t msg, const char *indent)
 	      char buffer[PATH_MAX + 1];
 	      fname = tempnam (getcwd (buffer, PATH_MAX), "msg-");
 	    }
-	  printf ("%sAttachment - saving [%s]\n", indent, fname);
-	  printf
-	    ("%s-------------------------------------------------------------------\n",
-	     indent);
+	  printf ("%*.*sAttachment - saving [%s]\n", indent, indent, "", fname);
+	  printf ("%*.*sBegin\n", indent, indent, "");
 	  /*FIXME: What is the 'data' argument for? */
 	  message_save_attachment (part, NULL, NULL);
+	  if (print_attachments)
+	    print_file (fname, indent);
 	  free (fname);
 	}
-      printf
-	("\n%s End -------------------------------------------------------------------\n",
-	 indent);
+      printf ("\n%*.*sEnd\n", indent, indent, "");
     }
 }
 
