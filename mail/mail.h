@@ -31,6 +31,9 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
+#ifdef HAVE_STRINGS_H
+# include <strings.h>
+#endif
 #include <sys/wait.h>
 #include <sys/types.h>
 #ifdef HAVE_STDARG_H
