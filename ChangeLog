@@ -1,3 +1,32 @@
+2001-06-14 23:01  sroberts
+
+	* mailbox/parse822.c: I think timezone info is now placed in struct
+	tm correctly.
+	* include/mailutils/parse822.h: Prototypes for functions to parse
+	rfc822 date-time.
+	* sieve/: Makefile.am, test.c: Patches from Sergey to make the
+	auto* stuff work, now uses lex/yacc portably, and puts all the
+	necessary files into the distribution.
+	* sieve/ylwrap: Portable wrapper for lex/yacc invocations, by Tom
+	Tromey <tromey@cygnus.com>, modified by Sergey Poznyakoff
+	<gray@farlep.net> to replace yy prefixes, so multiple grammers can
+	co-exist.
+	* sieve/sieve.c: Define EOK ifndefed.
+	* examples/showmail.c: No longer relevant to the current APIs.
+	* examples/mbox-dates.c: GNU indented.
+	* examples/addr.c: GNU indented
+	* examples/.cvsignore: Added example executables.
+	* examples/mbox-explode.c: Made so it now saves all the attachments
+	from all the messages in a folder. Also GNU indented.
+	* doc/envelope.texi: Added some text to the envelope docs, still
+	incomplete.
+	* doc/url.texi: Noted the IMAP url syntax.
+	* doc/mailutils.texi: Some of the RFCs were missing, or
+	miscategorized in the references sect.
+	* doc/.cvsignore: Ignoreing files.
+	* doc/rfc1939.txt: Was checked in with DOS line terminators,
+	converted to Unix.
+
 2001-06-11  Alain Magloire
 
 	* imap4d/util.c (util_msgset): When '*' was define in the
