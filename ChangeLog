@@ -1,3 +1,8 @@
+2003-02-24  Alain Magloire
+
+	* doc/texinfo/mom.texi: Draft explanation of the
+	Mailutils Object Model (MOM).
+  
 2003-02-24  Sergey Poznyakoff  
 
 	* include/mailutils/mailcap.h: Added missing prototypes, protected
