@@ -93,7 +93,6 @@ static void comsat_daemon (int _port);
 static int comsat_main (int fd);
 static void notify_user (const char *user, const char *device, const char *path, off_t offset);
 static int find_user (const char *name, char *tty);
-static void help (void);
 static char *mailbox_path (const char *user);
 static void change_user (const char *user);
 
@@ -576,22 +575,6 @@ change_user (const char *user)
   setuid (pw->pw_uid);
   chdir (pw->pw_dir);
   username = user;
-}
-
-void
-help ()
-{
-  printf ("Usage: comsatd [OPTIONS]\n");
-  printf ("Options are:\n");
-  printf ("  -c, --config=PATH      read configuration from the file\n");
-  printf ("  -d, --daemon           run in daemon mode\n");
-  printf ("  -h, --help             display this help and exit\n");
-  printf ("  -i, --inetd            run in inetd mode (default)\n");
-  printf ("  -p, --port=PORT        specify port to listen on, implies -d\n");
-  printf ("  -t, --timeout=VALUE    set idle timeout (implies -i)\n");
-  printf ("  -v, --version          display version information and exit\n");
-  printf ("\nReport bugs to bug-mailutils@gnu.org\n");
-  exit (EXIT_SUCCESS);
 }
 
 char *
