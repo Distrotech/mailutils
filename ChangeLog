@@ -1,3 +1,24 @@
+2002-10-02  Sergey Poznyakoff 
+
+	* configure.ac: Check if environ is declared.
+	* mail/setenv.c: Protect the declaration of environ by #if.
+	* mail/send.c (mail_send): Set save_to right after entering
+	  the function.
+	  (mail_send0): deduce savefile basing on the localpart of
+	  the first address (when save_to is set).
+	  Expand aliases in every address-related header.
+	* mail/alias.c (alias_expand): Return NULL if no suitable
+	  expansion was found.
+	* mail/followup.c: Removed unneded typecasts.
+	* mail/mailline.c: Likewise.
+	* mail/shell.c: Likewise.
+	* mail/util.c (util_header_expand): New function. Expand
+	  the address-related fields of a header.
+	* mail/mail.h: Likewise.
+
+	* mail.local/mail.local.h: Added missing includes.
+	* pop3d/popauth.c: Likewise.
+	
 2002-10-02  Sergey Poznyakoff
 
 	* mailbox/address.c (_address_get_nth): Get nth sub-address
