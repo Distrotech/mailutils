@@ -1,3 +1,26 @@
+2001-02-02  Alain Magloire
+
+	* mailbox/header.c : ENOENT was not return if the header was
+	not found.
+	* mailbox/mbx_mbox.c: When expunging check to see if the registar
+	the path_record too.
+
+2001-02-02  Alain Magloire
+
+	* pop3d/extra.c (pop3_readline) : Since the length of the string
+	is known, we can use memcpy() and friends for string manipulations.
+	memXXX() functions are builtin in GNU C (gcc) and are much faster
+	then the strXXX() counterparts. Small change in the loop to take
+	advantage of this.
+
+	* pop3d/quit.c : The rfc1939 insist that after a QUIT, we must
+	release any resources and close the connection:
+	"Whether the removal was successful or not, the server
+        then releases any exclusive-access lock on the maildrop
+        and closes the TCP connection."  This was not done if error
+	occured while expunging, no we will close the connection and
+	notify the client of the error(ERR_FILE).
+
 2001-02-01  Alain Magloire
 
 	"Premature Optimization Is The Root Of All Evil", Knuth.
