@@ -24,8 +24,6 @@ int
 imap4d_close (struct imap4d_command *command, char *arg)
 {
   (void)arg;
-  if (! (command->states & state))
-    return util_finish (command, RESP_BAD, "Wrong state");
   /* FIXME: Check and report errors.  */
   /* The CLOSE command permanently removes from the currently selected
      mailbox all messages that have the \\Deleted flag set, and returns

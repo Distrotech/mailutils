@@ -30,9 +30,6 @@ imap4d_uid (struct imap4d_command *command, char *arg)
   int rc = RESP_NO;
   char buffer[64];
 
-  if (! (command->states & state))
-    return util_finish (command, RESP_BAD, "Wrong state");
-
   cmd = util_getword (arg, &sp);
   if (!cmd)
     util_finish (command, RESP_BAD, "Too few args");

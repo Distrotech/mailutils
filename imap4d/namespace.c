@@ -115,8 +115,6 @@ namespace_enumerate_all(nsfp_t f, void *closure)
 int
 imap4d_namespace(struct imap4d_command *command, char *arg)
 {
-  if (! (command->states & state))
-    return util_finish (command, RESP_BAD, "Wrong state");
   if (*arg)
     return util_finish (command, RESP_BAD, "Too many arguments");
 
@@ -171,7 +169,7 @@ char *
 namespace_checkfullpath (char *name, const char *pattern, const char *delim)
 {
   struct namespace_info info;
-  char *path = util_getfullpath(name, delim);
+  char *path = util_getfullpath (name, delim);
 
   if (!path)
     return path;

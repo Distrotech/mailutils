@@ -32,9 +32,6 @@ imap4d_rename (struct imap4d_command *command, char *arg)
   struct stat newst;
   const char *delim = "/";
 
-  if (! (command->states & state))
-    return util_finish (command, RESP_BAD, "Wrong state");
-
   oldname = util_getword (arg, &sp);
   newname = util_getword (NULL, &sp);
   if (!newname || !oldname)

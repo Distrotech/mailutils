@@ -35,9 +35,6 @@ imap4d_create (struct imap4d_command *command, char *arg)
   int rc = RESP_OK;
   const char *msg = "Completed";
 
-  if (! (command->states & state))
-    return util_finish (command, RESP_BAD, "Wrong state");
-
   name = util_getword (arg, &sp);
   if (!name)
     return util_finish (command, RESP_BAD, "Too few arguments");

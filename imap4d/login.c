@@ -85,8 +85,6 @@ imap4d_login (struct imap4d_command *command, char *arg)
   int pamerror;
 #endif /* !USE_LIBPAM */
 
-  if (! (command->states & state))
-    return util_finish (command, RESP_BAD, "Wrong state");
   username = util_getword (arg, &sp);
   pass = util_getword (NULL, &sp);
 

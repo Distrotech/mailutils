@@ -64,9 +64,6 @@ imap4d_status (struct imap4d_command *command, char *arg)
   int count = 0;
   char *err_msg = NULL;
   
-  if (! (command->states & state))
-    return util_finish (command, RESP_BAD, "Wrong state");
-
   name = util_getword (arg, &sp);
   util_unquote (&name);
   if (!name || *name == '\0' || !sp || *sp == '\0')

@@ -32,9 +32,6 @@ imap4d_lsub (struct imap4d_command *command, char *arg)
   const char *delim = "/";
   FILE *fp;
   
-  if (! (command->states & state))
-    return util_finish (command, RESP_BAD, "Wrong state");
-
   ref = util_getword (arg, &sp);
   wcard = util_getword (NULL, &sp);
   if (!ref || !wcard)

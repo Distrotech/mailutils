@@ -37,9 +37,6 @@ imap4d_authenticate (struct imap4d_command *command, char *arg)
   struct imap_auth *ap;
   char *username = NULL;
   
-  if (! (command->states & state))
-    return util_finish (command, RESP_BAD, "Wrong state");
-
   auth_type = util_getword (arg, &sp);
   util_unquote (&auth_type);
   if (!auth_type)

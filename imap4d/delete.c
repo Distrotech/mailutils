@@ -30,9 +30,6 @@ imap4d_delete (struct imap4d_command *command, char *arg)
   const char *delim = "/";
   char *name;
 
-  if (! (command->states & state))
-    return util_finish (command, RESP_BAD, "Wrong state");
-
   name = util_getword (arg, &sp);
   util_unquote (&name);
   if (!name || *name == '\0')

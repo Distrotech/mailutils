@@ -194,9 +194,6 @@ imap4d_search (struct imap4d_command *command, char *arg)
   int rc;
   char buffer[64];
   
-  if (! (command->states & state))
-    return util_finish (command, RESP_BAD, "Wrong state");
-
   rc = imap4d_search0 (arg, 0, buffer, sizeof buffer);
   return util_finish (command, rc, buffer);
 }

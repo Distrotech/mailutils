@@ -27,9 +27,6 @@ imap4d_append (struct imap4d_command *command, char *arg)
   mailbox_t dest_mbox = NULL;
   int status;
   
-  if (! (command->states & state))
-    return util_finish (command, RESP_BAD, "Wrong state");
-
   mboxname = util_getword (arg, &sp);
   if (!mboxname)
     return util_finish (command, RESP_BAD, "Too few arguments");

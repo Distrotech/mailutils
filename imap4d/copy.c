@@ -27,9 +27,6 @@ imap4d_copy (struct imap4d_command *command, char *arg)
   int rc;
   char buffer[64];
 
-  if (! (command->states & state))
-    return util_finish (command, RESP_BAD, "Wrong state");
-
   rc = imap4d_copy0 (arg, 0, buffer, sizeof buffer);
   if (rc == RESP_NONE)
     {
