@@ -1,0 +1,15 @@
+#
+# Makefile variables for PO directory.
+# Copyright (C) 2002 Free Software Foundation, Inc.
+#
+
+DOMAIN = $(PACKAGE)
+
+subdir = po
+top_builddir = ..
+
+XGETTEXT_OPTIONS = --keyword=_ --keyword=N_
+COPYRIGHT_HOLDER = Free Software Foundation, Inc.
+EXTRA_LOCALE_CATEGORIES =
+
+# EOF
