@@ -1,10 +1,10 @@
-2002-01-10  Jordi Mallach  <jordi@gnu.org>
+2003-01-10  Jordi Mallach  <jordi@gnu.org>
 
 	* ChangeLog: Recode this ChangeLog as UTF-8.
 	* LINGUAS: Added "es".
 	* es.po: New Spanish translation by Cristian Othón Martínez Vera.
 
-2002-01-09  Jordi Mallach  <jordi@gnu.org>
+2003-01-09  Jordi Mallach  <jordi@gnu.org>
 
 	* ca.po: Updated Catalan translation.
 
