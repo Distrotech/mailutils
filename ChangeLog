@@ -1,4 +1,22 @@
+2003-01-14  Sergey Poznyakoff 
+
+	* m4/db2.m4: New file. Version-specific stuff for Berkeley DB.
+	* m4/tls.m4: Added copyleft header.
+	* m4/Makefile.am: Added db2.m4
+	* configure.ac: Check for newer version of Berkeley DB
+	* lib/mu_dbm.c [WITH_BDB2] (mu_dbm_firstkey): db->cursor
+	  takes three or four arguments, depending on the release
+	  of DB 2. Take care of it.
+	* auth/tls.c (mu_init_tls_server): Check return value from
+	  gnutls_certificate_set_x509_key_file(). Use gnutls_strerror(),
+	  instead of gnutls_perror(), as the latter confuses mail clients.
+	  (mu_init_tls_libs): Removed useless initialization of the auto
+	  variable.
+	  
 2003-01-14  Wojciech Polak
+
+	* doc/rfc/Makefile.am: Added rfc2595.txt
+	* TODO: Updated.
 
 	* pop3d/pop3d.h (ERR_TLS_ACTIVE, TLS_ACTIVE): New defines.
 	* pop3d/pop3d.c: Added support for ERR_TLS_ACTIVE.
