@@ -95,7 +95,7 @@ static int str_append_n(char** to, const char* from, size_t n)
 	if(!bigger) {
 	    return ENOMEM;
 	}
-	
+
 	*to = bigger;
     } else {
 	*to = malloc(n + 1);
@@ -283,7 +283,7 @@ int parse822_comment(const char** p, const char* e, char** comment)
     if((rc = parse822_special(p, e, '('))) {
 	return rc;
     }
-    
+
     while(*p != e) {
 	char c = **p;
 
@@ -307,7 +307,7 @@ int parse822_comment(const char** p, const char* e, char** comment)
 	if(rc != EOK)
 	    break;
     }
-    
+
     if(*p == e) {
 	rc = EPARSE; /* end-of-comment not found */
     }
@@ -536,6 +536,8 @@ static int fill_mb(
     return rc;
 }
 
+/* FIXME: Delete this one. adddress.c do the work now.  */
+#if 0
 int address_create0 (address_t* a, const char* s)
 {
     /* 'a' must exist, and can't already have been initialized
@@ -546,7 +548,7 @@ int address_create0 (address_t* a, const char* s)
     if(!a || *a) {
 	return EINVAL;
     }
-    
+
     status = parse822_address_list(a, (char*) s);
 
     if(status == EOK) {
@@ -566,6 +568,7 @@ int address_create0 (address_t* a, const char* s)
 
     return status;
 }
+#endif
 
 int parse822_address_list(address_t* a, const char* s)
 {
@@ -585,7 +588,7 @@ int parse822_address_list(address_t* a, const char* s)
     {
 	/* An address can contain a group, so an entire
 	 * list of addresses may have been appended, or no
-	 * addresses at all. Walk to the end. 
+	 * addresses at all. Walk to the end.
 	 */
 	while(*n) {
 	    n = &(*n)->next;
@@ -626,7 +629,7 @@ int parse822_address(const char** p, const char* e, address_t* a)
     /* address = mailbox / group */
 
     int rc;
-    
+
     if((rc = parse822_mail_box(p, e, a)) == EPARSE)
     	rc = parse822_group(p, e, a);
 
@@ -672,7 +675,7 @@ int parse822_group(const char** p, const char* e, address_t* a)
 	} else if(rc != EPARSE) {
 	    break;
 	}
-	
+
 	if((rc = parse822_special(p, e, ','))) {
 	    /* the commas aren't optional */
 	    break;
@@ -785,7 +788,7 @@ int parse822_route_addr(const char** p, const char* e, address_t* a)
 	*p = save;
 
 	address_destroy(a);
-	
+
 	return rc;
     }
 
@@ -898,7 +901,7 @@ int parse822_local_part(const char** p, const char* e, char** local_part)
 	return rc;
     }
     /* We've got a local-part, but keep looking for more. */
-    
+
     parse822_skip_comments(p, e);
 
     /* If we get a parse error, we roll back to save2, but if
@@ -992,7 +995,7 @@ int parse822_sub_domain(const char** p, const char* e, char** sub_domain)
      */
 
     int rc;
-    
+
     if((rc = parse822_domain_ref(p, e, sub_domain)) == EPARSE)
     	rc = parse822_domain_literal(p, e, sub_domain);
 
@@ -1157,6 +1160,4 @@ int parse822_field_body(const char** p, const char* e, Rope& fieldbody)
 
     return 1;
 }
-
 #endif
-

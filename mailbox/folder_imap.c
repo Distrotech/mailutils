@@ -53,6 +53,7 @@ record_t imap_record = &_imap_record;
 
 /* Concrete IMAP implementation.  */
 static int folder_imap_open        __P ((folder_t, int));
+static int folder_imap_create      __P ((folder_t));
 static int folder_imap_close       __P ((folder_t));
 static void folder_imap_destroy    __P ((folder_t));
 static int folder_imap_delete      __P ((folder_t, const char *));
@@ -211,7 +212,9 @@ folder_imap_open (folder_t folder, int flags)
   monitor_wrlock (folder->monitor);
   if (f_imap->isopen)
     {
-      monitor_wrlock (folder->monitor);
+      monitor_unlock (folder->monitor);
+      if (flags & MU_STREAM_CREAT)
+	status = folder_imap_create (folder);
       return 0;
     }
   monitor_unlock (folder->monitor);
@@ -324,6 +327,11 @@ folder_imap_open (folder_t folder, int flags)
   monitor_wrlock (folder->monitor);
   f_imap->isopen++;
   monitor_unlock (folder->monitor);
+  if (flags & MU_STREAM_CREAT)
+    {
+      status = folder_imap_create (folder);
+      CHECK_EAGAIN (f_imap, status);
+    }
   return 0;
 }
 
@@ -370,6 +378,51 @@ folder_imap_close (folder_t folder)
     }
   f_imap->state = IMAP_NO_STATE;
   return 0;
+}
+
+/* Create a folder/mailbox.  */
+static int
+folder_imap_create (folder_t folder)
+{
+  f_imap_t f_imap = folder->data;
+  int status = 0;
+
+  switch (f_imap->state)
+    {
+    case IMAP_NO_STATE:
+      {
+	char *path;
+	size_t len;
+	url_get_path (folder->url, NULL, 0, &len);
+	if (len == 0)
+	  return 0;
+	path = calloc (len + 1, sizeof (*path));
+	if (path == NULL)
+	  return ENOMEM;
+	url_get_path (folder->url, path, len + 1, NULL);
+	status = imap_writeline (f_imap, "g%d CREATE %s\r\n", f_imap->seq++,
+				 path);
+	free (path);
+	CHECK_ERROR (f_imap, status);
+	FOLDER_DEBUG0 (folder, MU_DEBUG_PROT, f_imap->buffer);
+	f_imap->state = IMAP_CREATE;
+      }
+
+    case IMAP_CREATE:
+      status = imap_send (f_imap);
+      CHECK_EAGAIN (f_imap, status);
+      f_imap->state = IMAP_DELETE_ACK;
+
+    case IMAP_CREATE_ACK:
+      status = imap_parse (f_imap);
+      CHECK_EAGAIN (f_imap, status);
+      FOLDER_DEBUG0 (folder, MU_DEBUG_PROT, f_imap->buffer);
+
+    default:
+      break;
+    }
+  f_imap->state = IMAP_NO_STATE;
+  return status;
 }
 
 /* Remove a mailbox.  */
@@ -1528,9 +1581,9 @@ int
 imap_send (f_imap_t f_imap)
 {
   int status = 0;
-  size_t len;
   if (f_imap->ptr > f_imap->buffer)
     {
+      size_t len;
       len = f_imap->ptr - f_imap->buffer;
       status = stream_write (f_imap->folder->stream, f_imap->buffer, len,
 			     0, &len);
@@ -1543,7 +1596,6 @@ imap_send (f_imap_t f_imap)
   else
     {
       f_imap->ptr = f_imap->buffer;
-      len = 0;
     }
   return status;
 }
@@ -1823,18 +1875,18 @@ imap_parse (f_imap_t f_imap)
 		{
 		  /* Not sure why we would get an untagged ok...but we do... */
 		  /* Still should we be verbose about is ? */
-		  printf("Untagged OK: %s\n", remainder);
+		  fprintf (stderr, "Untagged OK: %s\n", remainder);
 		}
 	    }
 	  else if (strcasecmp (response, "NO") == 0)
 	    {
 	      /* This does not mean failure but rather a strong warning.  */
-	      printf ("Untagged NO: %s\n", remainder);
+	      fprintf (stderr, "Untagged NO: %s\n", remainder);
 	    }
 	  else if (strcasecmp (response, "BAD") == 0)
 	    {
 	      /* We're dead, protocol/syntax error.  */
-	      printf ("Untagged BAD: %s\n", remainder);
+	      fprintf (stderr, "Untagged BAD: %s\n", remainder);
 	    }
 	  else if (strcasecmp (response, "PREAUTH") == 0)
 	    {
@@ -1893,8 +1945,8 @@ imap_parse (f_imap_t f_imap)
 	  else
 	    {
 	      /* Once again, check for something strange.  */
-	      printf("unknown untagged response: \"%s\"  %s\n",
-		     response, remainder);
+	      fprintf (stderr, "unknown untagged response: \"%s\"  %s\n",
+		       response, remainder);
 	    }
 	}
       /* Continuation token ???.  */
@@ -1917,7 +1969,7 @@ imap_parse (f_imap_t f_imap)
 		  folder_get_observable (f_imap->folder, &observable);
 		  observable_notify (observable, MU_EVT_AUTHORITY_FAILED);
 		}
-	      printf("NO/Bad Tagged: %s %s\n", response, remainder);
+	      fprintf (stderr, "NO/Bad Tagged: %s %s\n", response, remainder);
 	      status = EINVAL;
 	    }
 	}

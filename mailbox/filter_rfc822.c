@@ -28,7 +28,7 @@
 #  include <pthread.h>
 #endif
 
-#include <mailutils/filter.h>
+#include <filter0.h>
 #include <mailutils/property.h>
 
 static int rfc822_property __P ((property_t, const char *, const char *));
@@ -46,23 +46,17 @@ struct rfc822
   int residue;
 };
 
-static struct _filter _rfc822_filter =
+static struct _filter_record _rfc822_filter =
 {
   "RFC822",
   rfc822_init,
-  rfc822_read,
-  rfc822_readline,
-  NULL,
-  rfc822_destroy,
   NULL,
   NULL,
   NULL,
-  0,
-  NULL
 };
 
 /* Exported.  */
-filter_t rfc822_filter = &_rfc822_filter;
+filter_record_t rfc822_filter = &_rfc822_filter;
 
 static int
 rfc822_property (property_t property, const char *key, const char *value)
@@ -82,6 +76,11 @@ rfc822_init (filter_t filter)
   filter->data = calloc (1, sizeof (struct rfc822));
   if (filter->data == NULL)
     return ENOMEM;
+
+  filter->_read = rfc822_read;
+  filter->_readline = rfc822_readline;
+  filter->_destroy = rfc822_destroy;
+
   /* We are interested in this property.  */
   if ((status = stream_get_property (filter->filter_stream, &property) != 0)
       || (status = property_add_defaults (property, "LINES", "0",

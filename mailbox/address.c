@@ -27,297 +27,38 @@
 #include <stdlib.h>
 #include <errno.h>
 
-#include <address0.h>
+#include <mailutils/parse822.h>
 #include <misc.h>
-
-/*
- * parseaddr.c	Read a valid RFC822 address with all the comments
- *		etc in it, and return _just_ the email address.
- *
- * Version:	@(#)parseaddr.c  1.00  02-Apr-1999  miquels@cistron.nl
- *
- */
-
-struct token
-{
-  struct token *next;
-  char word[1];
-};
-
-#define SKIPSPACE(p) do { while(*p && isspace((unsigned char)*p)) p++; } while(0)
-
-/* Skip everything between quotes.  */
-static void
-quotes (const char **ptr)
-{
-  const char *p = *ptr;
-
-  p++;
-  while (*p && *p != '"')
-    {
-      if (*p == '\\' && p[1])
-	p++;
-      p++;
-    }
-  *ptr = p;
-}
-
-/* Return the next token. A token can be "<>()," or any "word". */
-static struct token *
-gettoken (const char **ptr)
-{
-  struct token	*tok;
-  const char *p = *ptr;
-  const char *begin;
-  int l, quit = 0;
-
-  SKIPSPACE(p);
-  begin = p;
-
-  while (!quit)
-    {
-      switch (*p)
-	{
-	case 0:
-	case ' ':
-	case '\t':
-	case '\n':
-	  quit = 1;
-	  break;
-	case '(':
-	case ')':
-	case '<':
-	case '>':
-	case ',':
-	  if (p == begin)
-	    p++;
-	  quit = 1;
-	  break;
-	case '\\':
-	  if (p[1])
-	    p++;
-	  break;
-	case '"':
-	  quotes (&p);
-	  break;
-	}
-      if (!quit)
-	p++;
-    }
-
-  l = p - begin;
-  if (l == 0)
-    return NULL;
-  tok = malloc (sizeof (struct token) + l);
-  if (tok == NULL)
-    return NULL;
-  tok->next = NULL;
-  strncpy (tok->word, begin, l);
-  tok->word[l] = 0;
-
-  SKIPSPACE (p);
-  *ptr = p;
-
-  return tok;
-}
+#include <address0.h>
 
 /* Get email address from rfc822 address.  */
-/* Note: This again as for header.c an awfull way of doing things.
-   Meaning I need a correct rfc822 Parser.  This one does not
-   understand group.  There is not doubt a better way to do this.  */
-
-static int
-address_parse (address_t *paddress, const char **paddr)
-{
-  const char *p;
-  struct token	*t, *tok, *last;
-  struct token	*brace = NULL;
-  struct token	*comments = NULL;
-  struct token	*start_comments = NULL;
-  address_t address;
-  int in_comment = 0;
-  int status = 0;
-
-  tok = last = NULL;
-
-  address = *paddress = calloc (1, sizeof (*address));
-  if (address == NULL)
-    return  ENOMEM;
-
-  /* Read address, remove comments right away.  */
-  p = *paddr;
-  while ((t = gettoken(&p)) != NULL && (t->word[0] != ',' || in_comment))
-    {
-      if (t->word[0] == '(' || t->word[0] == ')' || in_comment)
-	{
-	  if (t->word[0] == '(')
-	    in_comment++;
-	  if (t->word[0] == ')')
-	    in_comment--;
-	  if (!start_comments)
-	    comments = start_comments = t;
-	  else
-	    {
-	      comments->next = t;
-	      comments = t;
-	    }
-	  continue;
-	}
-
-      if (t->word[0] == '<')
-	brace = t;
-
-      if (tok)
-	last->next = t;
-      else
-	tok = t;
-      last = t;
-    }
-
-  if (t != NULL)
-    free (t);
-
-  /* Put extracted address into email  */
-  t = brace ? brace->next : tok;
-  for (; t && t->word[0] != ',' && t->word[0] != '>'; t = t->next)
-    {
-      char *tmp;
-      if (address->email
-	  && (tmp = realloc (address->email, strlen (address->email)
-			     + strlen (t->word) + 1)) != NULL)
-	{
-	  address->email = tmp;
-	  strcat (address->email, t->word);
-	}
-      else if  ((tmp = calloc (strlen (t->word) + 1, sizeof (char))) != NULL)
-	{
-	  address->email = tmp;
-	  strcat (address->email, t->word);
-	}
-      else
-	{
-	  address_destroy (&address);
-	  status = ENOMEM;
-	  goto freenodes;
-	}
-    }
-
-  /* Extract Comments.  */
-  for (t = start_comments; t ; t = t->next)
-    {
-      char *tmp;
-      if (t->word[0] == '(' || t->word[0] == ')')
-	continue;
-      if (address->comments
-	  && (tmp = realloc (address->comments, strlen (address->comments)
-			     + strlen (t->word) + 2)) != NULL)
-	{
-	  address->comments = tmp;
-	  strcat (address->comments, " ");
-	  strcat (address->comments, t->word);
-	}
-      else if  ((tmp = calloc (strlen (t->word) + 1, sizeof (char))) != NULL)
-	{
-	  address->comments = tmp;
-	  strcat (address->comments, t->word);
-	}
-      else
-	{
-	  address_destroy (&address);
-	  status = ENOMEM;
-	  goto freenodes;
-	}
-    }
-
-  /* Extract Personal.  */
-  if (brace == NULL)
-    {
-      address->personal = strdup ("");
-    }
-  else
-    {
-      int in_brace = 0;
-      for (t = tok; t ; t = t->next)
-	{
-	  char *tmp;
-	  if (t->word[0] == '<' || t->word[0] == '>' || in_brace)
-	    {
-	      if (t->word[0] == '<')
-		in_brace++;
-	      else if (t->word[0] == '>')
-		in_brace--;
-	      continue;
-	    }
-	  if (address->personal
-	      && (tmp = realloc (address->personal, strlen (address->personal)
-			     + strlen (t->word) + 2)) != NULL)
-	    {
-	      address->personal = tmp;
-	      strcat (address->personal, " ");
-	      strcat (address->personal, t->word);
-	    }
-	  else if  ((tmp = calloc (strlen (t->word) + 1, sizeof (char))) != NULL)
-	    {
-	      address->personal = tmp;
-	      strcat (address->personal, t->word);
-	    }
-	  else
-	    {
-	      address_destroy (&address);
-	      status = ENOMEM;
-	      goto freenodes;
-	    }
-	}
-    }
-
-  /* Free list of tokens.  */
-  freenodes:
-  for (t = tok; t; t = last)
-    {
-      last = t->next;
-      free (t);
-    }
-  for (t = start_comments; t; t = last)
-    {
-      last = t->next;
-      free (t);
-    }
-
-  *paddr = p;
-  return status;
-}
-
 int
-address_create (address_t *paddress, const char *addr)
+address_create (address_t *a, const char *s)
 {
-  address_t address = NULL;
-  address_t current = NULL;
-  address_t head = NULL;
-  const char *p = addr;
-  int status = 0;
+  /* 'paddress' must exist, and can't already have been initialized
+   */
+  int status;
 
-  if (paddress == NULL)
+  if (!a)
     return EINVAL;
-  if (addr)
+
+  *a = NULL;
+  status = parse822_address_list (a, (char*) s);
+  if (status == 0)
     {
-      while (*addr != 0)
+      /* There was a group that got parsed correctly, but had
+       * no addresses...
+       */
+      if (!*a)
+	return ENOENT;
+
+      (*a)->addr = strdup (s);
+      if (!(*a)->addr)
 	{
-	  status = address_parse (&address, &addr);
-	  if (status == 0)
-	    {
-	      if (head == NULL)
-		{
-		  head = address;
-		  head->addr = strdup (p);
-		}
-	      else
-		current->next = address;
-	      current = address;
-	      p = addr;
-	    }
-	}
+	  address_destroy (a);
+	  return ENOMEM;
+        }
     }
-  *paddress = head;
   return status;
 }
 
@@ -356,7 +97,7 @@ address_get_personal (address_t addr, size_t no, char *buf, size_t len,
 		      size_t *n)
 {
   size_t i, j;
-  int status = EINVAL;
+  int status = ENOENT;
   if (addr == NULL)
     return EINVAL;
   for (i = 0, j = 1; addr; addr = addr->next, j++)
@@ -368,18 +109,6 @@ address_get_personal (address_t addr, size_t no, char *buf, size_t len,
 	  break;
 	}
     }
-  /* Remove the leading doublequotes.  */
-  if (i && buf && *buf == '"')
-    {
-      memmove (buf, buf + 1, i - 1);
-      i--;
-    }
-  /* Remove the trailing doublequotes.  */
-  if (i && buf && buf[i - 1] == '"')
-    {
-      buf[i - 1] = '\0';
-      i--;
-    }
   if (n)
     *n = i;
   return status;
@@ -390,7 +119,7 @@ address_get_comments (address_t addr, size_t no, char *buf, size_t len,
 		      size_t *n)
 {
   size_t i, j;
-  int status = EINVAL;
+  int status = ENOENT;
   if (addr == NULL)
     return EINVAL;
   for (j = 1; addr; addr = addr->next, j++)
@@ -411,7 +140,7 @@ int
 address_get_email (address_t addr, size_t no, char *buf, size_t len, size_t *n)
 {
   size_t i, j;
-  int status = EINVAL;
+  int status = ENOENT;
   if (addr == NULL)
     return EINVAL;
   for (j = 1; addr; addr = addr->next, j++)
@@ -432,7 +161,7 @@ int
 address_get_local_part (address_t addr, size_t no, char *buf, size_t len, size_t *n)
 {
   size_t i, j;
-  int status = EINVAL;
+  int status = ENOENT;
   if (addr == NULL)
     return EINVAL;
   for (j = 1; addr; addr = addr->next, j++)
@@ -453,7 +182,7 @@ int
 address_get_domain (address_t addr, size_t no, char *buf, size_t len, size_t *n)
 {
   size_t i, j;
-  int status = EINVAL;
+  int status = ENOENT;
   if (addr == NULL)
     return EINVAL;
   for (j = 1; addr; addr = addr->next, j++)
@@ -474,7 +203,7 @@ int
 address_get_route (address_t addr, size_t no, char *buf, size_t len, size_t *n)
 {
   size_t i, j;
-  int status = EINVAL;
+  int status = ENOENT;
   if (addr == NULL)
     return EINVAL;
   for (j = 1; addr; addr = addr->next, j++)

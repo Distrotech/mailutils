@@ -1124,7 +1124,7 @@ mbox_body_size (body_t body, size_t *psize)
   if (mum == NULL)
     return EINVAL;
   if (psize)
-    *psize = mum->body_end - mum->body + 1;
+    *psize = mum->body_end - mum->body;
   return 0;
 }
 

@@ -30,8 +30,8 @@
 
 #include "md5.h"
 
-#include <misc.h>
 #include <message0.h>
+#include <mailutils/address.h>
 
 static int message_read   __P ((stream_t is, char *buf, size_t buflen,
 				off_t off, size_t *pnread ));
@@ -209,6 +209,15 @@ message_get_property (message_t msg, property_t *pproperty)
       body_set_property (msg->body, msg->property, msg);
     }
   *pproperty = msg->property;
+  return 0;
+}
+
+int
+message_get_mailbox (message_t msg, mailbox_t *pmailbox)
+{
+  if (msg == NULL || pmailbox == NULL)
+    return EINVAL;
+  *pmailbox = msg->mailbox;
   return 0;
 }
 
@@ -894,34 +903,16 @@ message_sender (envelope_t envelope, char *buf, size_t len, size_t *pnwrite)
   if (status == 0 && n != 0)
     {
       char *sender;
-      char *addr;
+      address_t address = NULL;
       sender = calloc (1, n + 1);
       if (sender == NULL)
 	return ENOMEM;
-      addr = calloc (1, n + 1);
-      if (addr == NULL)
-	{
-	  free (sender);
-	  return ENOMEM;
-	}
       header_get_value (header, MU_HEADER_FROM, sender, n + 1, NULL);
-      if (parseaddr (sender, addr, n + 1) == 0)
-	{
-	  size_t i = strlen (addr);
-	  n = (i > len) ? len : i;
-	  if (buf && len > 0)
-	    {
-	      memcpy (buf, addr, n);
-	      buf[n] = '\0';
-	    }
-	  free (addr);
-	  free (sender);
-	  if (pnwrite)
-	    *pnwrite = n;
-	  return 0;
-	}
-      free (addr);
+      if (address_create (&address, sender) == 0)
+	address_get_email (address, 1, buf, n + 1, pnwrite);
       free (sender);
+      address_destroy (&address);
+      return 0;
     }
   else if (status == EAGAIN)
     return status;

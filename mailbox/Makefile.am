@@ -22,6 +22,7 @@ envelope.c \
 file_stream.c \
 filter.c \
 filter_rfc822.c \
+filter_trans.c \
 folder.c \
 folder_imap.c \
 folder_mbox.c \
@@ -50,7 +51,6 @@ sendmail.c \
 smtp.c \
 stream.c \
 tcp.c \
-trans_stream.c \
 url.c \
 url_file.c \
 url_imap.c \

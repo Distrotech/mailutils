@@ -211,7 +211,7 @@ body_set_lines (body_t body, int (*_lines)(body_t, size_t *), void *owner)
 {
   if (body == NULL)
     return EINVAL;
-  if (body->owner == owner)
+  if (body->owner != owner)
     return EACCES;
   body->_lines = _lines;
   return 0;

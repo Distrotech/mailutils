@@ -5,6 +5,7 @@ auth0.h \
 body0.h \
 debug0.h \
 envelope0.h \
+filter0.h \
 folder0.h \
 header0.h \
 iterator0.h \

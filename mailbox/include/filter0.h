@@ -15,35 +15,46 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-#ifndef _MISC_H
-#define _MISC_H
+/* Notes:
 
-#ifdef DMALLOC
-#  include <dmalloc.h>
-#endif
+ */
 
-#ifdef HAVE_CONFIG_H
-# include <config.h>
-#endif
+#ifndef _FILTER0_H
+#define _FILTER0_H
 
-#include <sys/types.h>
+#include <mailutils/filter.h>
+#include <mailutils/list.h>
+#include <mailutils/monitor.h>
+#include <mailutils/property.h>
+
+#ifndef __P
+# ifdef __STDC__
+#  define __P(args) args
+# else
+#  define __P(args) ()
+# endif
+#endif /*__P */
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#ifndef __P
-# if __STDC__
-#  define __P(x)  x
-# else
-#  define __P(x)
-# endif
-#endif
-
-extern size_t _cpystr __P ((char *dst, const char *src, size_t size));
+struct _filter
+{
+  stream_t stream;
+  stream_t filter_stream;
+  property_t property;
+  int direction;
+  int type;
+  void *data;
+  int  (*_read)     __P ((filter_t, char *, size_t, off_t, size_t *));
+  int  (*_readline) __P ((filter_t, char *, size_t, off_t, size_t *));
+  int  (*_write)    __P ((filter_t, const char *, size_t, off_t, size_t *));
+  void (*_destroy)  __P ((filter_t));
+};
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* _MISC_H */
+#endif /* _FILTER0_H */

@@ -1770,9 +1770,9 @@ static int
 pop_write (pop_data_t mpd)
 {
   int status = 0;
-  size_t len;
   if (mpd->ptr > mpd->buffer)
     {
+      size_t len;
       len = mpd->ptr - mpd->buffer;
       status = stream_write (mpd->mbox->stream, mpd->buffer, len, 0, &len);
       if (status == 0)
@@ -1782,10 +1782,7 @@ pop_write (pop_data_t mpd)
 	}
     }
   else
-    {
-      mpd->ptr = mpd->buffer;
-      len = 0;
-    }
+    mpd->ptr = mpd->buffer;
   return status;
 }
 

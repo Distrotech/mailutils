@@ -69,7 +69,7 @@ mailbox_create (mailbox_t *pmbox, const char *name)
   if (found)
     {
       url_t url = NULL;
-      mailbox_t mbox = NULL;
+      mailbox_t mbox;
 
       /* Allocate memory for mbox.  */
       mbox = calloc (1, sizeof (*mbox));

@@ -23,9 +23,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 #include <ctype.h>
 
 #include <mailutils/message.h>
+#include <mailutils/filter.h>
 #include <mailutils/stream.h>
 
 #define MAX_HDR_LEN 256
@@ -75,7 +77,7 @@ int message_create_attachment(const char *content_type, const char *encoding, co
 					message_get_body(*newmsg, &body);
 					if ( ( ret = file_stream_create(&fstream) ) == 0 ) {
 						if ( ( ret = stream_open(fstream, filename, 0,  MU_STREAM_READ) ) == 0 ) {
-							if ( ( ret = encoder_stream_create(&tstream, fstream, encoding) ) == 0 ) {
+							if ( ( ret = filter_create(&tstream, fstream, encoding, MU_FILTER_ENCODE, MU_STREAM_READ) ) == 0 ) {
 								body_set_stream(body, tstream, *newmsg);
 								message_set_header(*newmsg, hdr, NULL);
 							}
@@ -245,7 +247,7 @@ int message_save_attachment(message_t msg, const char *filename, void **data)
 					header_get_value(hdr, "Content-Transfer-Encoding", content_encoding, size+1, 0);
 				} else
 					content_encoding = (char *)"7bit";
-				ret = decoder_stream_create(&info->ostream, fstream, content_encoding);
+				ret = filter_create(&info->ostream, fstream, content_encoding, MU_FILTER_DECODE, MU_STREAM_READ);
 			}
 		}
 	}

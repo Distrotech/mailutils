@@ -34,11 +34,6 @@
 /* Internal folder list.  */
 static list_t known_folder_list;
 static int is_known_folder __P ((url_t, folder_t *));
-static int is_same_scheme  __P ((url_t, url_t));
-static int is_same_user    __P ((url_t, url_t));
-static int is_same_path    __P ((url_t, url_t));
-static int is_same_host    __P ((url_t, url_t));
-static int is_same_port    __P ((url_t, url_t));
 
 /* Static folder lock.  */
 static struct _monitor folder_lock = MU_MONITOR_INITIALIZER;
@@ -200,6 +195,7 @@ folder_destroy (folder_t *pfolder)
 	  if (folder->stream)
 	    stream_destroy (&(folder->stream), folder);
 	  if (folder->url)
+
 	    url_destroy (&(folder->url));
 	  free (folder);
 	}
@@ -209,7 +205,6 @@ folder_destroy (folder_t *pfolder)
       *pfolder = NULL;
     }
 }
-
 
 /* Cover functions.  */
 int
@@ -410,8 +405,6 @@ folder_get_url (folder_t folder, url_t *purl)
   return 0;
 }
 
-/* ---------------------- Private ---------------------- */
-
 static int is_known_folder (url_t url, folder_t *pfolder)
 {
   int ret = 0;
@@ -430,126 +423,18 @@ static int is_known_folder (url_t url, folder_t *pfolder)
       iterator_current (iterator, (void **)&folder);
       /* Check if the same URL type.  */
       if (folder && folder->url
-	  && is_same_scheme (url, folder->url)
-	  && is_same_user (url, folder->url)
-	  && is_same_path (url, folder->url)
-	  && is_same_host (url, folder->url)
-	  && is_same_port (url, folder->url))
+	  && url_is_same_scheme (url, folder->url)
+	  && url_is_same_user (url, folder->url)
+	  && url_is_same_host (url, folder->url)
+	  /*&& url_is_same_path (url, folder->url) */
+	  && url_is_same_port (url, folder->url))
 	{
 	  ret = 1;
 	  break;
 	}
     }
+  if (ret)
+    *pfolder = folder;
   iterator_destroy (&iterator);
   return ret;
-}
-
-static int
-is_same_scheme (url_t url1, url_t url2)
-{
-  size_t i = 0, j = 0;
-  char *s1, *s2;
-  int ret = 1;
-
-  url_get_scheme (url1, NULL, 0, &i);
-  url_get_scheme (url2, NULL, 0, &j);
-  s1 = calloc (i + 1, sizeof (char));
-  if (s1)
-    {
-      url_get_scheme (url1, s1, i + 1, NULL);
-      s2 = calloc (j + 1, sizeof (char));
-      if (s2)
-	{
-	  url_get_scheme (url2, s2, j + 1, NULL);
-	  ret = !strcasecmp (s1, s2);
-	  free (s2);
-	}
-      free (s1);
-    }
-  return ret;
-}
-
-static int
-is_same_user (url_t url1, url_t url2)
-{
-  size_t i = 0, j = 0;
-  char *s1, *s2;
-  int ret = 0;
-
-  url_get_user (url1, NULL, 0, &i);
-  url_get_user (url2, NULL, 0, &j);
-  s1 = calloc (i + 1, sizeof (char));
-  if (s1)
-    {
-      url_get_user (url1, s1, i + 1, NULL);
-      s2 = calloc (j + 1, sizeof (char));
-      if (s2)
-	{
-	  url_get_user (url2, s2, j + 1, NULL);
-	  ret = !strcasecmp (s1, s2);
-	  free (s2);
-	}
-      free (s1);
-    }
-  return ret;
-}
-
-static int
-is_same_path (url_t url1, url_t url2)
-{
-  size_t i = 0, j = 0;
-  char *s1, *s2;
-  int ret = 0;
-
-  url_get_path (url1, NULL, 0, &i);
-  url_get_path (url2, NULL, 0, &j);
-  s1 = calloc (i + 1, sizeof (char));
-  if (s1)
-    {
-      url_get_path (url1, s1, i + 1, NULL);
-      s2 = calloc (j + 1, sizeof (char));
-      if (s2)
-	{
-	  url_get_path (url2, s2, j + 1, NULL);
-	  ret = !strcasecmp (s1, s2);
-	  free (s2);
-	}
-      free (s1);
-    }
-  return ret;
-}
-
-static int
-is_same_host (url_t url1, url_t url2)
-{
-  size_t i = 0, j = 0;
-  char *s1, *s2;
-  int ret = 0;
-
-  url_get_host (url1, NULL, 0, &i);
-  url_get_host (url2, NULL, 0, &j);
-  s1 = calloc (i + 1, sizeof (char));
-  if (s1)
-    {
-      url_get_host (url1, s1, i + 1, NULL);
-      s2 = calloc (j + 1, sizeof (char));
-      if (s2)
-	{
-	  url_get_host (url2, s2, j + 1, NULL);
-	  ret = !strcasecmp (s1, s2);
-	  free (s2);
-	}
-      free (s1);
-    }
-  return ret;
-}
-
-static int
-is_same_port (url_t url1, url_t url2)
-{
-  long p1 = 0, p2 = 0;
-
-  url_get_port (url1, &p1);
-  url_get_port (url2, &p2);
-  return (p1 == p2);
 }
