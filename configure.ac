@@ -93,6 +93,8 @@ case "${withval}" in
   *)   AC_MSG_ERROR(bad value ${withval} for --without-readline) ;;
 esac],[usereadline=yes])
 
+AC_SUBST(IMAP_AUTHOBJS)
+
 AC_ARG_WITH([gssapi],
             AC_HELP_STRING([--with-gssapi],
                            [use GSSAPI authentication]),
@@ -107,11 +109,15 @@ if test "x$WITH_GSSAPI" != "xno"; then
   else
     AUTHLIBS="$AUTHLIBS $GSSAPI_LIBS"
     AUTHINCS="$AUTHINCS $GSSAPI_CFLAGS"
-    AUTHOBJS="$AUTHOBJS auth_gss.o"
+    IMAP_AUTHOBJS="$IMAP_AUTHOBJS auth_gss.o"
     AC_DEFINE(WITH_GSSAPI,1,[Define if mailutils is using GSSAPI])
   fi
 fi
-AC_SUBST(AUTHOBJS)
+
+MU_CHECK_GSASL(0.0.2, [
+    AC_DEFINE(WITH_GSASL,1,[Define if mailutils is using GNU SASL])
+    AUTHLIBS="$AUTHLIBS $GSASL_LIBS"
+    IMAP_AUTHOBJS="$IMAP_AUTHOBJS auth_gsasl.o"])
 
 MU_CHECK_TLS
 if test "$WITH_GNUTLS" != "no"; then
