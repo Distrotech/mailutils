@@ -1,5 +1,25 @@
 2002-03-28  Sergey Poznyakoff  
 
+	Several bugfixes:
+	 1. mail -f~user/path coredumps
+	 2. mail --mail-spool [other than mbox URL]://hostname did not
+	    work (same for frm and others).
+	 3. mail --mail-spool imap://hostname did not work (at least
+	    with out imap4d).
+	
+	* imap4d/list.c (print_dir): Enclose empty filename
+	  in doublequotes.
+	* mailbox/folder_imap.c (imap_string): Return 1 if
+	  the input is not a quoted string.
+	  (imap_list): Ignore NIL delimiters, correctly handle
+	  strings, not enclosed in doublequotes.
+	* mailbox/mbx_default.c (user_mailbox_name): Operate
+	  only on mbox: and path URLs.
+	
+	* guimb/main.c (main): initialize c.
+	
+2002-03-28  Sergey Poznyakoff  
+
 	* lib/mu_argp.c: Renamed --maildir to --mail-spool.
 	* doc/texinfo/programs.texi: Documented --mail-spool option.
 	* configure.in: Renamed --with-maildir to --with-mail-spool for
