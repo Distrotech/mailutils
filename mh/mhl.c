@@ -23,7 +23,6 @@
 
 const char *argp_program_version = "mhl (" PACKAGE_STRING ")";
 static char doc[] = N_("GNU MH mhl\v"
-"Options marked with `*' are not yet implemented.\n"
 "Use -help to obtain the list of traditional MH options.");
 static char args_doc[] = N_("[files]");
 
@@ -32,17 +31,17 @@ static struct argp_option options[] = {
   {"folder",     ARG_FOLDER,     N_("FOLDER"), 0,
    N_("Specify folder to operate upon")},
   { "bell",      ARG_BELL,       N_("BOOL"), OPTION_ARG_OPTIONAL,
-    N_("* Ring the bell at the end of each output page") },
+    N_("Ring the bell at the end of each output page") },
   {"nobell",     ARG_NOBELL,     NULL, OPTION_HIDDEN, "" },
   { "clear",     ARG_CLEAR,      N_("BOOL"), OPTION_ARG_OPTIONAL,
-    N_("* Clear the screen after each page of output")},
+    N_("Clear the screen after each page of output")},
   {"noclear",    ARG_NOCLEAR,    NULL, OPTION_HIDDEN, "" },
   {"form",       ARG_FORM,       N_("FILE"), 0,
-   N_("* Read format from given file")},
+   N_("Read format from given file")},
   {"width",      ARG_WIDTH,      N_("NUMBER"), 0,
-   N_("* Set output width")},
+   N_("Set output width")},
   {"length",     ARG_LENGTH,     N_("NUMBER"), 0,
-   N_("* Set output screen length")},
+   N_("Set output screen length")},
   {"moreproc",   ARG_MOREPROC,   N_("PROG"), 0,
    N_("Use given PROG instead of the default") },
   {"nomoreproc", ARG_NOMOREPROC, NULL, 0,
@@ -67,9 +66,11 @@ static int bell = 1;     /* Ring the bell after each page of output */
 static int clear = 0;    /* Clear the screen after each page of output */
 static int length = 40;  /* Length of output page */
 static int width = 80;   /* Width of output page */
-static char *formfile = "mhl.format";
+static char *formfile = MHLIBDIR "/mhl.format";
 static char *moreproc;
 static int nomoreproc;
+
+static list_t format;
 
 static int
 opt_handler (int key, char *arg, void *unused)
@@ -139,11 +140,11 @@ open_output ()
   int rc;
   stream_t output;
   
-  if (interactive && !nomoreproc)
+  if (interactive && !moreproc && !nomoreproc)
     moreproc = mh_global_profile_get ("moreproc", getenv ("PAGER"));
   else
     moreproc = NULL;
-  
+
   if (moreproc)
     rc = prog_stream_create (&output, moreproc, MU_STREAM_WRITE);
   else
@@ -166,13 +167,12 @@ open_output ()
 static void
 list_message (char *name, stream_t output)
 {
-  stream_t input;
   int rc;
-  char buf[512];
-  size_t n;
+  stream_t input;
+  message_t msg;
 
   if (!name)
-    rc = stdio_stream_create (&input, stdin, 0);
+    rc = stdio_stream_create (&input, stdin, MU_STREAM_SEEKABLE);
   else
     rc = file_stream_create (&input, name, MU_STREAM_READ);
   if (rc)
@@ -188,12 +188,19 @@ list_message (char *name, stream_t output)
       return;
     }
 
-  while (stream_sequential_readline (input, buf, sizeof buf, &n) == 0
-	 && n > 0)
-    stream_sequential_write (output, buf, n);
-
-  stream_close (input);
-  stream_destroy (&input, stream_get_owner (input));
+  msg = mh_stream_to_message (input);
+  if (!msg)
+    {
+      mh_error (_("input stream %s is not a message (%s)"),
+		name, mu_strerror (rc));
+      stream_close (input);
+      stream_destroy (&input, stream_get_owner (input));
+    }
+  else
+    {
+      mhl_format_run (format, width, length, clear, bell, msg, output);
+      message_unref (msg);
+    }
 }
 
 int
@@ -208,11 +215,18 @@ main (int argc, char **argv)
   mh_argp_parse (argc, argv, options, mh_option, args_doc, doc,
 		 opt_handler, NULL, &index);
 
+  format = mhl_format_compile (formfile);
+  if (!format)
+    exit (1);
+  
   argc -= index;
   argv += index;
 
   if (argc == 0)
     nomoreproc = 1;
+
+  if (!interactive)
+    bell = 0;
   
   output = open_output ();
   
@@ -221,6 +235,7 @@ main (int argc, char **argv)
   else
     while (argc--)
       list_message (*argv++, output);
-  
+
+  stream_close (output);
   return 0;
 }
