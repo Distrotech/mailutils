@@ -255,3 +255,44 @@ _url_mbox_init (url_t url)
   return 0;
 }
 
+static void
+url_path_destroy (url_t url ARG_UNUSED)
+{
+}
+
+int
+_url_path_init (url_t url)
+{
+  const char *name = url_to_string (url);
+  const char *path;
+  
+  /* reject the obvious */
+  if (name == NULL || *name == '\0')
+    return EINVAL;
+
+  mu_scheme_autodetect_p (name, &path);
+  name = strdup (path);
+  free (url->name);
+  url->name = name;
+    
+  /* TYPE */
+  url->_destroy = url_path_destroy;
+
+  /* SCHEME */
+  url->scheme = strdup (MU_PATH_SCHEME);
+  if (url->scheme == NULL)
+    {
+      url_path_destroy (url);
+      return ENOMEM;
+    }
+
+  /* PATH */
+  url->path = strdup (name);
+  if (url->path == NULL)
+    {
+      url_path_destroy (url);
+      return ENOMEM;
+    }
+
+  return 0;
+}
