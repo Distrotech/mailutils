@@ -1,3 +1,7 @@
+2001-07-03  Jakob 'sparky' Kaivo  <jkaivo@elijah.nodomainname.net>
+
+	* README-alpha: note that INSTALL is generated
+
 2001-07-03 Sergey Poznyakoff
 	* configure.in: --with-mail-rc option: set path to system-wide
 	mail.rc file.
