@@ -85,6 +85,23 @@ The return value is @code{0} on success and a code number on error conditions:
 @end table
 @end deftypefun
 
+@deftypefun int address_createv (address_t *@var{addr}, const char *@var{sv}, size_t @var{len})
+This function allocates and initializes @var{addr} by parsing the
+array of pointers to RFC822 address-lists in @var{sv}. If @var{len} is
+@code{-1}, then @var{sv} must be null-terminated in the fashion of @var{argv},
+otherwise @var{len} is the length of the array.
+
+The return value is @code{0} on success and a code number on error conditions:
+@table @code
+@ADDRESSEINVAL
+@ADDRESSENOMEM
+@ADDRESSEPARSE
+@end table
+@end deftypefun
+
+
+
+
 @deftypefun  void address_destroy (address_t *@var{addr})
 The @var{addr} is destroyed.
 @end deftypefun
@@ -95,6 +112,23 @@ Accesses the @var{no}th email address component of the address list. This
 address is the plain email address, correctly quoted, suitable for
 using in an smtp dialog, for example, or as the address part of
 a contact book entry.
+
+Note that the entry may be valid, but be a group name. In this case success
+is returned, but the length of the address is @code{0}.
+
+The return value is @code{0} on success and a code number on error conditions:
+@table @code
+@ADDRESSEINVAL
+@ADDRESSENOENT
+@end table
+@end deftypefun
+
+@deftypefun  int address_aget_email (address_t *@var{addr}, size_t @var{no}, char** @var{bufp})
+
+As above, but mallocs the email address, if present,
+
+and write a pointer to it into @var{bufp}. @var{bufp} will be @code{NULL}
+if there is no email address to return.
 
 The return value is @code{0} on success and a code number on error conditions:
 @table @code

@@ -36,6 +36,7 @@ struct _address;
 typedef struct _address *address_t;
 
 extern int address_create   __P ((address_t *, const char *));
+extern int address_createv  __P ((address_t *, const char *v[], size_t));
 extern int address_create0  __P ((address_t *, const char *));
 extern void address_destroy __P ((address_t *));
 
@@ -52,11 +53,15 @@ extern int address_get_comments
 extern int address_get_route
 	__P ((address_t, size_t, char *, size_t, size_t *));
 
+extern int address_aget_email
+	__P ((address_t, size_t, char **));
+
 extern int address_is_group
 	__P ((address_t, size_t, int*));
 
 extern int address_to_string __P ((address_t, char *, size_t, size_t *));
 extern int address_get_count __P ((address_t, size_t *));
+extern int address_get_email_count __P ((address_t, size_t *));
 
 #ifdef __cplusplus
 }

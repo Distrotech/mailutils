@@ -31,7 +31,7 @@
 #include <mailutils/mutil.h>
 #include <address0.h>
 
-/* Get email address from rfc822 address.  */
+/* Get email addresses from rfc822 address.  */
 int
 address_create (address_t *a, const char *s)
 {
@@ -43,7 +43,7 @@ address_create (address_t *a, const char *s)
     return EINVAL;
 
   *a = NULL;
-  status = parse822_address_list (a, (char*) s);
+  status = parse822_address_list (a, s);
   if (status == 0)
     {
       /* And address-list may contain 0 addresses but parse correctly.
@@ -58,6 +58,56 @@ address_create (address_t *a, const char *s)
 	  return ENOMEM;
         }
     }
+  return status;
+}
+
+/* Get email addresses from array of rfc822 addresses. */
+int
+address_createv (address_t *a, const char *sv[], size_t len)
+{
+  int status = 0;
+  size_t buflen = 0;
+  char* buf = 0;
+  int i;
+
+  if(!sv)
+    return EINVAL;
+
+  if(len == -1)
+  {
+    const char** vp = sv;
+
+    len = 0;
+
+    for(len = 0; *vp; vp++, len++)
+      ;
+  }
+  if(len == 0)
+    return EINVAL;
+
+  for(i = 0; i < len; i++)
+    buflen += strlen(sv[i]);
+
+  buflen += (len - 1) * strlen(", ");
+  buflen += 1; /* termination null */
+
+  buf = malloc(buflen);
+
+  if(!buf)
+    return ENOMEM;
+
+  for(i = 0, buf[0] = '\0'; i < len; i++)
+  {
+    if(i != 0)
+      strcat(buf, ", ");
+
+    strcat(buf, sv[i]);
+  }
+
+  status = address_create(a, buf);
+
+  free(buf);
+
   return status;
 }
 
@@ -157,6 +207,31 @@ address_get_email (address_t addr, size_t no, char *buf, size_t len, size_t *n)
 }
 
 int
+address_aget_email (address_t addr, size_t no, char **buf)
+{
+  size_t j;
+  int status = ENOENT;
+  if (addr == NULL || buf == NULL)
+    return EINVAL;
+  for (j = 1; addr; addr = addr->next, j++)
+    {
+      if (j == no)
+	{
+	  status = 0;
+	  *buf = NULL;
+	  if (addr->email)
+	    {
+	      *buf = strdup (addr->email);
+	      if (!*buf)
+		status = ENOMEM;
+	    }
+	  break;
+	}
+    }
+  return status;
+}
+
+int
 address_get_local_part (address_t addr, size_t no, char *buf, size_t len, size_t *n)
 {
   size_t i, j;
@@ -219,6 +294,14 @@ address_get_route (address_t addr, size_t no, char *buf, size_t len, size_t *n)
   return status;
 }
 
+static int
+_address_is_group (address_t addr)
+{
+  if (addr->personal && !addr->local_part && !addr->domain)
+    return 1;
+  return 0;
+}
+
 int
 address_is_group (address_t addr, size_t no, int* yes)
 {
@@ -233,9 +316,7 @@ address_is_group (address_t addr, size_t no, int* yes)
 	  status = 0;
 	  if(yes)
 	    {
-	       *yes = 0;
-	       if(addr->personal && !addr->local_part && !addr->domain)
-	         *yes = 1;
+	       *yes = _address_is_group(addr);
 	    }
 	  break;
 	}
@@ -267,3 +348,18 @@ address_get_count (address_t addr, size_t *pcount)
     *pcount = j;
   return 0;
 }
+
+int
+address_get_email_count (address_t addr, size_t *pcount)
+{
+  size_t j;
+  for (j = 0; addr; addr = addr->next)
+  {
+    if(!_address_is_group(addr))
+      j++;
+  }
+  if (pcount)
+    *pcount = j;
+  return 0;
+}
+
