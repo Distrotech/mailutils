@@ -6,7 +6,7 @@ AUTOMAKE_OPTIONS = dejagnu
 DEJATOOL = imap4d
 RUNTESTFLAGS = 
 CLEANFILES = *.log
-test_dirs = lib imap4d
+test_dirs = lib imap4d config
 
 dist-hook:
 	here=`cd $(top_builddir)/$(subdir) && pwd`; \

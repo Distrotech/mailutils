@@ -6,7 +6,7 @@ AUTOMAKE_OPTIONS = dejagnu
 DEJATOOL = pop3d
 RUNTESTFLAGS = 
 CLEANFILES = *.log
-test_dirs = lib pop3d
+test_dirs = config lib pop3d
 
 dist-hook:
 	here=`cd $(top_builddir)/$(subdir) && pwd`; \
