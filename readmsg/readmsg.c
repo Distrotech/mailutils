@@ -1,5 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2002, 2003,
+   2004 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -21,9 +22,10 @@
 
 #include "readmsg.h"
 
-#define WEEDLIST_SEPARATOR  " :,"
+#define WEEDLIST_SEPARATOR " :,"
 
-static void print_header __P ((message_t, int no_header, int all_header, const char *weedlst));
+static void print_header __P ((message_t, int no_header,
+			       int all_header, const char *weedlst));
 static void print_body __P ((message_t));
 static int  string_starts_with __P ((const char * s1, const char *s2));
 
@@ -236,21 +238,15 @@ main (int argc, char **argv)
 #endif
   mu_argp_parse (&argp, &argc, &argv, 0, readmsg_argp_capa, &index, NULL);
 
-  /* Registration.  */
-  {
-    list_t bookie;
-    registrar_get_list (&bookie);
-    list_append (bookie, mbox_record);
-    list_append (bookie, path_record);
-    list_append (bookie, pop_record);
-    list_append (bookie, imap_record);
-  }
+  /* register the formats.  */
+  mu_register_all_mbox_formats ();
 
   status = mailbox_create_default (&mbox, mailbox_name);
   if (status != 0)
     {
-      mu_error (_("could not create mailbox: %s"),
-		mu_strerror(status));
+      fprintf (stderr, _("Couldn't create mailbox <%s>: %s.\n"),
+	       mailbox_name ? mailbox_name : _("default"),
+	       mu_strerror(status));
       exit (2);
     }
 
@@ -268,9 +264,8 @@ main (int argc, char **argv)
       url_t url = NULL;
 
       mailbox_get_url (mbox, &url);
-      mu_error (_("can't open mailbox %s: %s"),
-		url_to_string (url),
-		mu_strerror(status));
+      fprintf (stderr, _("Couldn't open mailbox <%s>: %s.\n"),
+	       url_to_string (url), mu_strerror(status));
       exit (2);
     }
 
@@ -301,7 +296,9 @@ main (int argc, char **argv)
       else
 	putchar ('\n');
     }
+
   putchar ('\n');
+
   mailbox_close (mbox);
   mailbox_destroy (&mbox);
   return 0;
