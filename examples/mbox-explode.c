@@ -32,16 +32,12 @@ main (int argc, char **argv)
   mbox_name = argv[1];
   dir_name = argv[2];
 
-  if (mkdir (dir_name, 0777) != 0)
-    {
-      fprintf (stderr, "mkdir(%s) failed: %s\n", dir_name, strerror (errno));
-      exit (1);
-    }
   /* Register the desire formats.  */
   {
     list_t bookie;
     registrar_get_list (&bookie);
     list_append (bookie, path_record);
+    list_append (bookie, imap_record);
   }
 
   if ((status = mailbox_create_default (&mbox, mbox_name)) != 0)
@@ -64,6 +60,13 @@ main (int argc, char **argv)
     }
   mailbox_messages_count (mbox, &count);
 
+  if (mkdir (dir_name, 0777) != 0)
+    {
+      fprintf (stderr, "mkdir(%s) failed: %s\n", dir_name, strerror (errno));
+      mailbox_close (mbox);
+      exit (1);
+    }
+
   for (msgno = 1; msgno <= count; ++msgno)
     {
       message_t msg = 0;
@@ -74,12 +77,14 @@ main (int argc, char **argv)
 	{
 	  fprintf (stderr, "msg %d: get message failed: %s\n",
 		   msgno, strerror (status));
-	  exit (2);
+	  mailbox_close (mbox);
+	  exit (1);
 	}
       if ((status = message_get_num_parts (msg, &nparts)))
 	{
 	  fprintf (stderr, "msg %d: get num parts failed: %s\n",
 		   msgno, strerror (status));
+	  mailbox_close (mbox);
 	  exit (1);
 	}
       printf ("msg %03d: %02d parts\n", msgno, nparts);
@@ -97,6 +102,7 @@ main (int argc, char **argv)
 	    {
 	      fprintf (stderr, "msg %d: get part %d failed: %s\n",
 		       msgno, partno, strerror (status));
+	      mailbox_close (mbox);
 	      exit (1);
 	    }
 	  if ((status = message_save_attachment (part, path, 0)))
