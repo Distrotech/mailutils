@@ -19,7 +19,7 @@
 #include <mh.h>
 #include <regex.h>  
 #include <pick.h>
-
+  
 static node_t *pick_node_create (node_type type, void *a, void *b);
 static void set_cflags (char *str);
  
@@ -109,13 +109,25 @@ expr     : lbrace exprlist rbrace
 	   }
          | T_BEFORE T_STRING
            {
-	     mh_error (_("--before is not yet supported"));
-	     YYERROR;
+	     time_t t;
+	     if (mu_parse_date ($2, &t, NULL))
+	       {
+		 mh_error (_("bad date format: %s"), $2);
+		 exit (1);
+	       }
+	     $$ = pick_node_create (node_before, NULL, NULL);
+	     $$->v.time = t;
 	   }
          | T_AFTER T_STRING
            {
-	     mh_error (_("--after is not yet supported"));
-	     YYERROR;
+	     time_t t;
+	     if (mu_parse_date ($2, &t, NULL))
+	       {
+		 mh_error (_("bad date format: %s"), $2);
+		 exit (1);
+	       }
+	     $$ = pick_node_create (node_after, NULL, NULL);
+	     $$->v.time = t;
 	   }
          | expr T_AND expr
            {
@@ -320,8 +332,23 @@ match_message (message_t msg, regex_t *regex)
 }
 
 static int
+get_date_field (struct eval_env *env, time_t *t)
+{
+  header_t hdr;
+  char buf[128];
+  
+  if (message_get_header (env->msg, &hdr))
+    return 1;
+  if (header_get_value (hdr, env->datefield, buf, sizeof buf, NULL))
+    return 1;
+  return mu_parse_date (buf, t, NULL);
+}
+
+static int
 pick_eval_node (node_t *node, struct eval_env *env)
 {
+  time_t t;
+  
   switch (node->type)
     {
     case node_and:
@@ -346,8 +373,18 @@ pick_eval_node (node_t *node, struct eval_env *env)
     case node_datefield:
       env->datefield = node->v.df.datefield;
       return 1;
+
+    case node_before:
+      if (get_date_field (env, &t))
+	break;
+      return t < node->v.time;
+      
+    case node_after:
+      if (get_date_field (env, &t))
+	break;
+      return t > node->v.time;
     }
-  /*NOTREACHED*/
+
   return 0;
 }
 

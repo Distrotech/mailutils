@@ -57,11 +57,11 @@ static struct argp_option options[] = {
 
   {N_("Date constraint operations:"), 0,  NULL, OPTION_DOC, NULL, 1},
   {"datefield",ARG_DATEFIELD, N_("STRING"), 0,
-   N_("* Search in the named date header field (default is `Date:')"), 2},
+   N_("Search in the named date header field (default is `Date:')"), 2},
   {"after",    ARG_AFTER,     N_("DATE"), 0,
-   N_("* Match messages after the given date"), 2},
+   N_("Match messages after the given date"), 2},
   {"before",   ARG_BEFORE,    N_("DATE"), 0,
-   N_("* Match messages before the given date"), 2},
+   N_("Match messages before the given date"), 2},
 
   {N_("Logical operations and grouping:"), 0, NULL, OPTION_DOC, NULL, 2},
   {"and",     ARG_AND,    NULL, 0,

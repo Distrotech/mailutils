@@ -21,7 +21,9 @@ typedef enum
   node_or,
   node_not,
   node_regex,
-  node_datefield
+  node_datefield,
+  node_before,
+  node_after
 } node_type;
   
 typedef struct node node_t;
@@ -50,6 +52,7 @@ struct node
       void *a;
       void *b;
     } gen;
+    time_t time;
   } v;
 };
 
