@@ -837,25 +837,10 @@ void
 cond_keyword (struct parsebuf *pb)
 {
   char *s = _search_arg (pb);
-  int rc;
   attribute_t attr = NULL;
   
   message_get_attribute (pb->msg, &attr);
-  if (!strcmp (s, "\\Seen"))
-    rc = attribute_is_seen (attr);
-  else if (!strcmp (s, "\\Answered"))
-    rc = attribute_is_answered (attr);
-  else if (!strcmp (s, "\\Flagged"))
-    rc = attribute_is_flagged (attr);
-  else if (!strcmp (s, "\\Deleted"))
-    rc = attribute_is_deleted (attr);
-  else if (!strcmp (s, "\\Draft"))
-    rc = attribute_is_draft (attr);
-  else if (!strcmp (s, "\\Recent"))
-    rc = attribute_is_recent (attr);
-  else
-    rc = 0;
-  _search_push (pb, rc);
+  _search_push (pb, util_attribute_matches_flag (attr, s));
 }                  
 
 void
