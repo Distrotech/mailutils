@@ -113,7 +113,9 @@ extern record_t mbox_record;
 extern record_t file_record;
 /* Local Folder/Mailbox, /  */
 extern record_t path_record;
-
+/* Local MH, "mh:" */  
+extern record_t mh_record;
+  
 /* SMTP mailer, "smtp://"  */
 extern record_t smtp_record;
 /* Sendmail, "sendmail:"  */
