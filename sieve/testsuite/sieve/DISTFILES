@@ -2,7 +2,6 @@ action.exp
 address.exp
 allof.exp
 anyof.exp
-compile.exp
 envelope.exp
 exists.exp
 false.exp
