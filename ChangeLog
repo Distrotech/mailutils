@@ -1,3 +1,13 @@
+2003-03-19  Sergey Poznyakoff
+
+	* doc/rfc/Makefile.am: Added rfc1521.txt
+	* doc/rfc/rfc1521.txt: Added to the repository.
+	* mailbox/filter_trans.c (base64_encode): Bugfix.
+	* mh/mhn.c: Implemented basic editing functionality.
+	* mh/mh_init.c (mh_create_message_id): Minor change.
+	* mh/README: Updated
+	* mh/TODO: Updated
+	
 2003-03-19  Sergey Poznyakoff 
 
 	* mh/mhn.c: Added framework for compose mode.

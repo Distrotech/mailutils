@@ -195,7 +195,7 @@ of the mhn-show-type[/subtype] command. This is altered to using a
 temporary file if the command contains %f or %F escapes.
 
 ** Store mode (--store)
-*** If Content-Disposition header contains "filename=", and mhn
+*** If the Content-Disposition header contains "filename=", and mhn
 is invoked with --auto switch, it transforms the filename into
 the absolute notation and uses it only if it lies below the
 current mhn-storage directory. Standard mhn only requires that the
