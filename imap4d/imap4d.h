@@ -247,6 +247,10 @@ extern char *util_localname __P((void));
 
 extern int util_wcard_match __P((const char *string, const char *pattern,
 				 const char *delim));
+void util_print_flags __P((attribute_t attr));
+int util_attribute_to_type __P((const char *item, int *type));
+int util_type_to_attribute __P((int type, char **attr_str));
+int util_attribute_matches_flag __P((attribute_t attr, const char *item));
 
   
 #ifdef __cplusplus
