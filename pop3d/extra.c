@@ -269,3 +269,44 @@ pop3d_readline (char *buffer, size_t size)
   /* Caller should not free () this ... should we strdup() then?  */
   return buffer;
 }
+
+
+/* Handling of the deletion marks */
+
+void
+pop3d_mark_deleted (attribute_t attr)
+{
+  attribute_set_userflag (attr, POP3_ATTRIBUTE_DELE);
+}
+
+int
+pop3d_is_deleted (attribute_t attr)
+{
+  return attribute_is_deleted (attr)
+         || attribute_is_userflag (attr, POP3_ATTRIBUTE_DELE);
+}
+
+void
+pop3d_unset_deleted (attribute_t attr)
+{
+  if (attribute_is_userflag (attr, POP3_ATTRIBUTE_DELE))
+    attribute_unset_userflag (attr, POP3_ATTRIBUTE_DELE);
+}
+
+void
+pop3d_undelete_all ()
+{
+  size_t i;
+  size_t total = 0;
+
+  mailbox_messages_count (mbox, &total);
+
+  for (i = 1; i <= total; i++)
+    {
+       message_t msg = NULL;
+       attribute_t attr = NULL;
+       mailbox_get_message (mbox, i, &msg);
+       message_get_attribute (msg, &attr);
+       attribute_unset_deleted (attr);
+    }
+}

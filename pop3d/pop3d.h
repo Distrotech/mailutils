@@ -144,10 +144,9 @@
 
 #ifndef MAXHOSTNAMELEN
 /* Maximum length of a hostname (is this defined somewhere else?).  */
-/* MAXHOSTNAMELEN is already define on Solaris.  */
-#define MAXHOSTNAMELEN	64
+/* MAXHOSTNAMELEN is already defined on Solaris.  */
+# define MAXHOSTNAMELEN	64
 #endif
-
 
 #define POP3_ATTRIBUTE_DELE 0x0001
 
@@ -187,6 +186,7 @@ extern int debug_mode;
 extern int tls_available;
 extern int tls_done;
 #endif /* WITH_TLS */
+extern int undelete_on_startup;
 
 extern void pop3d_bye           __P ((void));
 extern int pop3d_abquit         __P ((int));
@@ -223,6 +223,11 @@ extern char *pop3d_readline     __P ((char *, size_t));
 extern void pop3d_flush_output  __P ((void));
 
 extern int pop3d_is_master      __P ((void));
+
+extern void pop3d_mark_deleted __P((attribute_t attr));
+extern int pop3d_is_deleted __P((attribute_t attr));
+extern void pop3d_unset_deleted __P((attribute_t attr));
+void pop3d_undelete_all __P((void));
 
 #ifdef WITH_TLS
 extern int pop3d_init_tls_server    __P ((void));
