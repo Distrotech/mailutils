@@ -132,7 +132,9 @@ static int str_append_n(char** to, const char* from, size_t n)
 }
 static int str_append(char** to, const char* from)
 {
-    return str_append_n(to, from, strlen(from));
+  if (!from)
+    return 0;
+  return str_append_n(to, from, strlen(from));
 }
 static int str_append_char(char** to, char c)
 {
