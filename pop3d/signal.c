@@ -17,17 +17,27 @@
 
 #include "pop3d.h"
 
-RETSIGTYPE
-pop3d_sigchld (int signo ARG_UNUSED)
+static int need_cleanup = 0;
+
+void
+process_cleanup ()
 {
   pid_t pid;
   int status;
+  
+  if (need_cleanup)
+    {
+      need_cleanup = 0;
+      while ( (pid = waitpid (-1, &status, WNOHANG)) > 0)
+	--children;
+    }
+}
 
-  while ( (pid = waitpid(-1, &status, WNOHANG)) > 0)
-      --children;
+RETSIGTYPE
+pop3d_sigchld (int signo ARG_UNUSED)
+{
+  need_cleanup = 1;
 #ifndef HAVE_SIGACTION
-  /* On some system, signal implements the unreliable semantic and
-     has to be rearm.  */
   signal (signo, pop3d_sigchld);
 #endif
 }
