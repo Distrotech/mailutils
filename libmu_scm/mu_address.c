@@ -45,7 +45,7 @@ _get_address_part (const char *func_name, address_get_fp fun,
   str = SCM_CHARS (ADDRESS);
   length = strlen (str);
   if (length == 0)
-    return scm_make0str("");
+    return scm_makfrom0str("");
   
   if (address_create (&addr, SCM_CHARS (ADDRESS)))
     return SCM_BOOL_F;
@@ -58,7 +58,7 @@ _get_address_part (const char *func_name, address_get_fp fun,
     }
 
   if ((*fun) (addr, num, str, length, NULL) == 0)
-    ret = scm_make0str (str);
+    ret = scm_makfrom0str (str);
   else
     ret = SCM_BOOL_F;
   address_destroy (&addr);
@@ -128,10 +128,16 @@ SCM_DEFINE (mu_address_get_count, "mu-address-get-count", 1, 0, 0,
 	      ADDRESS, SCM_ARG1, FUNC_NAME);
 
   if (address_create (&addr, SCM_CHARS (ADDRESS)))
-    return SCM_BOOL_F;
+    return SCM_MAKINUM(0);
 
   address_get_count (addr, &count);
   address_destroy (&addr);
   return scm_makenum (count);
 }
 #undef FUNC_NAME
+
+void
+mu_scm_address_init ()
+{
+#include <mu_address.x>
+}
