@@ -92,7 +92,10 @@ mhlib_DATA = replcomps mhl.format $(LISPSRC)
 EXTRA_DIST = replcomps mhl.format mailutils-mh.eli mh_fmtgram.y pick.y
 DISTCLEANFILES = mailutils-mh.el
 
+SUFFIXES = .eli .el
 mailutils-mh.el: mailutils-mh.eli
+
+.eli.el:
 	sed "s,BINDIR,$(bindir),g;s,MHLIBDIR,$(mhlibdir),g" $< > $@
 
 INCLUDES = -I${top_srcdir}/include -I${top_srcdir}/lib -I${top_srcdir}/mailbox @INTLINCS@
