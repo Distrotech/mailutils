@@ -1,5 +1,10 @@
 2003-12-28  Sergey Poznyakoff 
 
+	* movemail/movemail.c: Minor changes for compatibility with
+	the Emacs implementation.
+
+2003-12-28  Sergey Poznyakoff 
+
 	* movemail: New directory
 	* movemail/movemail.c: New file
 	* movemail/Makefile.am: New file
