@@ -21,7 +21,7 @@ AUTOMAKE_OPTIONS = gnits 1.8.5 dist-bzip2 std-options
 ACLOCAL_AMFLAGS = -I m4
 
 SUBDIRS = headers include intl po lib testsuite mailbox libsieve doc \
-          auth examples frm from pop3d imap4d \
+          sql auth examples frm from pop3d imap4d \
           mail sieve scripts libmu_scm guimb messages comsat readmsg \
           mail.local mail.remote dotlock mh movemail
 
