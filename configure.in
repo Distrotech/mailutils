@@ -12,7 +12,7 @@ AC_PROG_YACC
 AM_PROG_LEX
 
 MU_MAINTAINER_MODE
- 
+
 dnl Check for arguments
 AC_ARG_ENABLE(pam,
  [  --disable-pam           disable pam],
@@ -46,7 +46,7 @@ AC_ARG_WITH(mail-rc,
   *)  SITE_MAIL_RC="\$(sysconfdir)/${withval}";;
   esac],
  [SITE_MAIL_RC="\$(sysconfdir)/mail.rc"])
-  
+
 AC_ARG_WITH(db2,
  [  --with-db2              use Berkeley DB],
  [case "${withval}" in
@@ -166,7 +166,7 @@ dnl Check for GNU Readline
 AC_SUBST(READLINE_LIBS)
 if test x"$usereadline" = x"yes"; then
 	AC_CHECK_LIB(readline, readline,
-		      [AC_CHECK_HEADERS(readline/readline.h, 
+		      [AC_CHECK_HEADERS(readline/readline.h,
 		       AC_DEFINE(WITH_READLINE))
 		       READLINE_LIBS="-lcurses -lreadline"],
 			:,
@@ -188,7 +188,7 @@ if test x$GUILE_CONFIG != xno; then
   GUILE_LIBS=`guile-config link`
 # NOTE: uncomment this when debug_print clash is resolved.
 #  GUIMB=guimb
-  AC_SUBST(GUIMB)	
+  AC_SUBST(GUIMB)
 #  MU_SCM=libmu_scm.a
   AC_SUBST(MU_SCM)
 fi
@@ -197,5 +197,5 @@ dnl Output Makefiles
 AC_OUTPUT(Makefile mailutils.spec include/Makefile include/mailutils/Makefile
  m4/Makefile doc/Makefile argp/Makefile lib/Makefile mailbox/Makefile
  imap4d/Makefile mailbox/include/Makefile from/Makefile mail/Makefile
- pop3d/Makefile frm/Makefile sieve/Makefile 
+ pop3d/Makefile frm/Makefile sieve/Makefile
  scripts/Makefile libmu_scm/Makefile guimb/Makefile)
