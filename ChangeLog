@@ -1,3 +1,7 @@
+2001-08-31  Jakob 'sparky' Kaivo  <jkaivo@elijah.nodomainname.net>
+
+	* imap4d/list.c (list_file): don't show INBOX if virtual
+
 2001-08-31 Sergey Poznyakoff
 	
 	* mailbix/mutil.c: Fixed declaration of _app_getpwnam.
@@ -58,6 +62,7 @@
 	* mailbox/mutil.c: Use const appropriately in the definition
 	of mu_register_getpwnam() and mu_getpwnam(). Typo "struct password"
 	instead of "struct passwd".
+======= end
 
 2001-08-30 Sergey Poznyakoff
 
