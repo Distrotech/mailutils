@@ -1,3 +1,8 @@
+2004-10-26  Sergey Poznyakoff
+
+	* imap4d/store.c (imap4d_store0): Send \r\n at the end of
+	the unsolicited response.
+
 2004-09-18  Sergey Poznyakoff 
 
 	* configure.ac: Bugfix
