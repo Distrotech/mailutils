@@ -435,7 +435,7 @@ sieve_get_daemon_email (sieve_machine_t mach)
       const char *domain = NULL;
       
       mu_get_user_email_domain (&domain);
-      mach->daemon_email = sieve_palloc (&mach->memory_pool,
+      mach->daemon_email = sieve_malloc (mach,
 					 sizeof(MAILER_DAEMON_PFX) +
 					 strlen (domain));
       sprintf (mach->daemon_email, "%s%s", MAILER_DAEMON_PFX, domain);
@@ -446,8 +446,8 @@ sieve_get_daemon_email (sieve_machine_t mach)
 void
 sieve_set_daemon_email (sieve_machine_t mach, const char *email)
 {
-  sieve_pfree (&mach->memory_pool, (void *)mach->daemon_email);
-  mach->daemon_email = sieve_pstrdup (&mach->memory_pool, email);
+  sieve_mfree (mach, (void *)mach->daemon_email);
+  mach->daemon_email = sieve_mstrdup (mach, email);
 }
 
 struct sieve_destr_record
@@ -464,12 +464,12 @@ sieve_machine_add_destructor (sieve_machine_t mach, sieve_destructor_t destr,
   
   if (!mach->destr_list && list_create (&mach->destr_list))
     return 1;
-  p = sieve_palloc (&mach->memory_pool, sizeof (*p));
+  p = sieve_malloc (mach, sizeof (*p));
   if (!p)
     return 1;
   p->destr = destr;
   p->ptr = ptr;
-  return list_append (mach->memory_pool, p);
+  return list_append (mach->destr_list, p);
 }
 
 static int
@@ -524,16 +524,18 @@ sieve_compile (sieve_machine_t mach, const char *name)
   
   if (sieve_lex_begin (name) == 0)
     {
-      sieve_machine->filename = sieve_pstrdup (&sieve_machine->memory_pool,
-					       name);
+      sieve_machine->filename = sieve_mstrdup (sieve_machine, name);
       rc = yyparse ();
+      if (sieve_error_count)
+	rc = 1;
       sieve_lex_finish ();
     }
   else
     rc = 1;
+  
   sieve_machine_finish (mach);
-  if (sieve_error_count)
-    rc = 1;
+  if (rc)
+    sieve_machine_destroy (&mach);
   return rc;
 }
 

@@ -50,7 +50,7 @@ sieve_register_comparator (sieve_machine_t mach,
 	return rc;
     }
 
-  rp = sieve_palloc (&mach->memory_pool, sizeof (*rp));
+  rp = sieve_malloc (mach, sizeof (*rp));
   rp->required = required;
   rp->name = name;
   rp->comp[MU_SIEVE_MATCH_IS] = is;       
@@ -154,7 +154,7 @@ _regex_compile (void *item, void *data)
 {
   struct regex_data *rd = data;
   int rc;
-  regex_t *preg = sieve_palloc (&sieve_machine->memory_pool, sizeof (*preg));
+  regex_t *preg = sieve_malloc (sieve_machine, sizeof (*preg));
   
   rc = regcomp (preg, (char*)item, rd->flags);
   if (rc)
@@ -263,12 +263,11 @@ sieve_match_part_checker (const char *name, list_t tags, list_t args)
 
   if (comp)
     {
-      sieve_pfree (&sieve_machine->memory_pool, comp->arg);
+      sieve_mfree (sieve_machine, comp->arg);
     }
   else
     {
-      comp = sieve_palloc (&sieve_machine->memory_pool,
-			   sizeof (*comp));
+      comp = sieve_malloc (sieve_machine, sizeof (*comp));
       comp->tag = "comparator";
       list_append (tags, comp);
     }

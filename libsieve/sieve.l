@@ -444,7 +444,7 @@ number ()
 int
 string ()
 {
-  yylval.string = sieve_palloc (&sieve_machine->memory_pool, yyleng - 1);
+  yylval.string = sieve_malloc (sieve_machine, yyleng - 1);
   memcpy (yylval.string, yytext + 1, yyleng - 2);
   yylval.string[yyleng - 2] = 0;
   return STRING; 
@@ -497,7 +497,7 @@ multiline_finish ()
     }
 
   /* Copy the contents */
-  yylval.string = sieve_palloc (&sieve_machine->memory_pool, length + 1);
+  yylval.string = sieve_malloc (sieve_machine, length + 1);
   p = yylval.string;
   for (iterator_first (itr); !iterator_is_done (itr); iterator_next (itr))
     {

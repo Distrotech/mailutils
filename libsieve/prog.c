@@ -29,8 +29,7 @@ sieve_code (sieve_op_t *op)
   if (sieve_machine->pc >= sieve_machine->progsize)
     {
       size_t newsize = sieve_machine->progsize + SIEVE_CODE_INCR;
-      sieve_op_t *newprog = sieve_prealloc (&sieve_machine->memory_pool,
-					    sieve_machine->prog,
+      sieve_op_t *newprog = sieve_mrealloc (sieve_machine, sieve_machine->prog,
 					    newsize *
 					    sizeof sieve_machine->prog[0]);
       if (!newprog)
@@ -198,8 +197,7 @@ sieve_code_command (sieve_register_t *reg, list_t arglist)
 	      else
 		tagrec.arg = NULL;
 	      
-	      tagptr = sieve_palloc (&sieve_machine->memory_pool,
-				     sizeof (*tagptr));
+	      tagptr = sieve_malloc (sieve_machine, sizeof (*tagptr));
 	      *tagptr = tagrec;
 	      list_append (tag_list, tagptr);
 
@@ -235,7 +233,7 @@ sieve_code_command (sieve_register_t *reg, list_t arglist)
 
 		      list_create (&list);
 		      list_append (list, val->v.string);
-		      sieve_pfree (&sieve_machine->memory_pool, val);
+		      sieve_mfree (sieve_machine, val);
 		      val = sieve_value_create (SVT_STRING_LIST, list);
 		    }
 		  else
