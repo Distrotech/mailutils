@@ -1,3 +1,10 @@
+2002-08-14  Sergey Poznyakoff 
+
+	* auth/virtual.c: Removed vestiges of mu_virtual_domain.
+	* doc/texinfo/programs.texi: Documented authentication concepts
+	  and related command line options.
+	* mail/testsuite/makespool: Added GNU copyleft header.
+
 2002-08-13  Sergey Poznyakoff  
 
 	* pop3d/apop.c: Switched to the new authentication/authorization
