@@ -8,13 +8,13 @@
     for t in ex-*.sv
     do
     	echo Test: $t
-    	../sieve -ncv -f `pwd`/INBOX $t
+    	../sieve -c $t
     done
 
     for t in exn-*.sv
     do
     	echo Test: $t might fail
-	#../sieve -ncv -f `pwd`/INBOX $t || true
+	#../sieve -ncv -f ./INBOX $t || true
     done
 
     echo == Action testing
@@ -23,6 +23,6 @@
     	cp INBOX.orig INBOX
     	echo
     	echo Test: $t
-    	../sieve -v -f `pwd`/INBOX $t
+    	../sieve -v -f ./INBOX $t
     done
 

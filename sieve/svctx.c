@@ -48,7 +48,7 @@ sv_interp_alloc (sv_interp_t * ip,
 
   *ip = i;
 
-  return EOK;
+  return 0;
 }
 
 void
@@ -103,24 +103,25 @@ sv_script_parse (sv_script_t * sp, sv_interp_t i, const char *script)
   switch (rc)
     {
     case SIEVE_NOT_FINALIZED:
-      free (s->file);
-      free (s);
-      return EINVAL;
-
+      rc = EINVAL;
+      break;
     case SIEVE_PARSE_ERROR:
-      free (s->file);
-      free (s);
-      return ENOEXEC;
-
+      rc = ENOEXEC;
+      break;
     case SIEVE_NOMEM:
-      free (s->file);
-      free (s);
-      return ENOMEM;
+      rc = ENOMEM;
+      break;
     }
 
-  *sp = s;
+  if (rc)
+    {
+      free (s->file);
+      free (s);
+    }
+  else
+    *sp = s;
 
-  return 0;
+  return rc;
 }
 
 void
@@ -144,6 +145,15 @@ int sv_script_execute (sv_script_t s, message_t m, ticket_t t, mu_debug_t d,
 {
   sv_msg_ctx_t mc = { 0, };
   int rc;
+  int isdeleted;
+  attribute_t attr = 0;
+
+  rc = message_get_attribute (m, &attr);
+
+  if(rc)
+    return rc;
+
+  isdeleted = attribute_is_deleted(attr);
 
   mc.sc = s;
   mc.msg = m;
@@ -159,6 +169,10 @@ int sv_script_execute (sv_script_t s, message_t m, ticket_t t, mu_debug_t d,
 
   if(rc && mc.rc)
     rc = mc.rc;
+
+  /* Reset the deleted flag if the script failed. */
+  if(rc)
+    sv_mu_mark_deleted (m, isdeleted);
 
   return rc;
 }

@@ -6,24 +6,6 @@
 #include "sv.h"
 
 int
-sv_mu_errno_to_rc (int eno)
-{
-  switch (eno)
-    {
-    case ENOMEM:
-      return SIEVE_NOMEM;
-    case ENOENT:
-      return SIEVE_FAIL;
-    case 0:
-      return SIEVE_OK;
-    }
-  return SIEVE_INTERNAL_ERROR;
-}
-
-/* we hook mailutils debug output into our diagnostics using this */
-
-
-int
 sv_mu_copy_debug_level (const mailbox_t from, mailbox_t to)
 {
   mu_debug_t d = 0;
@@ -42,9 +24,9 @@ sv_mu_copy_debug_level (const mailbox_t from, mailbox_t to)
     rc = mailbox_get_debug (to, &d);
 
   if (!rc)
-    mu_debug_set_level (d, level);
+    rc = mu_debug_set_level (d, level);
 
-  return 0;
+  return rc;
 }
 
 int
@@ -58,7 +40,13 @@ sv_mu_save_to (const char *toname, message_t msg,
 
   if (!rc && debug)
     {
+      folder_t folder = 0;
+
       mailbox_set_debug (to, debug);
+
+      if (mailbox_get_folder (to, &folder))
+	folder_set_debug(folder, debug);
+
     }
 
   if (!rc && ticket)
@@ -72,7 +60,8 @@ sv_mu_save_to (const char *toname, message_t msg,
       if (!rc)
 	rc = folder_get_authority (folder, &auth);
 
-      if (!rc)
+      /* Authentication-less folders don't have authorities. */
+      if (!rc && auth)
 	rc = authority_set_ticket (auth, ticket);
     }
 
@@ -95,7 +84,7 @@ sv_mu_save_to (const char *toname, message_t msg,
 }
 
 int
-sv_mu_mark_deleted (message_t msg)
+sv_mu_mark_deleted (message_t msg, int deleted)
 {
   attribute_t attr = 0;
   int rc;
@@ -103,7 +92,13 @@ sv_mu_mark_deleted (message_t msg)
   rc = message_get_attribute (msg, &attr);
 
   if (!rc)
-    attribute_set_deleted (attr);
+    {
+      if (deleted)
+	rc = attribute_set_deleted (attr);
+      else
+	rc = attribute_unset_deleted (attr);
+    }
 
   return rc;
 }
+

@@ -24,11 +24,12 @@ sieve interpreter
 void mutil_register_all_mbox_formats(void);
 
 const char USAGE[] =
-  "usage: sieve [-hnvc] [-d <TPthq>] [-f mbox] [-t tickets] script\n";
+  "usage: sieve [-hnkvc] [-d <TPthq>] [-f mbox] [-t tickets] script\n";
 
 const char HELP[] =
   "  -h   print this helpful message and exit.\n"
   "  -n   no execute, just print actions.\n"
+  "  -k   keep on going if execution fails on a message.\n"
   "  -v   print actions executed on a message.\n"
   "  -c   compile script and exit.\n"
   "  -f   the mbox to sieve, defaults to the users spool file.\n"
@@ -53,8 +54,11 @@ execute_error (const char *script, message_t msg, int rc, const char *errmsg)
   size_t uid = 0;
   message_get_uid (msg, &uid);
 
-  fprintf (stderr, "%s on msg %d failed: %s (%s)\n", script, uid, errmsg,
-	   strerror (rc));
+  if (rc)
+    fprintf (stderr, "%s on msg uid %d failed: %s\n", script, uid, errmsg);
+  else
+    fprintf (stderr, "%s on msg uid %d failed: %s (%s)\n", script, uid,
+	     errmsg, strerror (rc));
 }
 
 static void
@@ -65,7 +69,7 @@ action_log (const char *script, message_t msg, const char *action,
 
   message_get_uid (msg, &uid);
 
-  fprintf (stdout, "%s on msg %d", action, uid);
+  fprintf (stdout, "%s on msg uid %d", action, uid);
   if (strlen (fmt))
     {
       fprintf (stdout, ": ");
@@ -98,6 +102,7 @@ main (int argc, char *argv[])
   int rc = 0;
 
   int opt_no_actions = 0;
+  int opt_keep_going = 0;
   int opt_compile_only = 0;
   char *opt_mbox = 0;
   char *opt_tickets = 0;
@@ -108,7 +113,7 @@ main (int argc, char *argv[])
 
   mutil_register_all_mbox_formats ();
 
-  while ((opt = getopt (argc, argv, "hncf:t:d:")) != -1)
+  while ((opt = getopt (argc, argv, "hnkcf:t:d:")) != -1)
     {
       switch (opt)
 	{
@@ -118,6 +123,9 @@ main (int argc, char *argv[])
 	  return 0;
 	case 'n':
 	  opt_no_actions = SV_FLAG_NO_ACTIONS;
+	  break;
+	case 'k':
+	  opt_keep_going = 1;
 	  break;
 	case 'c':
 	  opt_compile_only = 1;
@@ -185,7 +193,7 @@ main (int argc, char *argv[])
       /* Don't print this if there was a parse failure, because
          parse_error() was already called to report it. */
       if (rc != SV_EPARSE)
-	fprintf (stderr, "failed to parse %s: %s\n",
+	fprintf (stderr, "parsing %s failed: %s\n",
 		 opt_script, sv_strerror (rc));
       goto cleanup;
     }
@@ -258,7 +266,8 @@ main (int argc, char *argv[])
 	  goto cleanup;
 	}
 
-      if ((rc = authority_set_ticket (auth, ticket)))
+      /* Authentication-less folders don't have authorities. */
+      if (auth && (rc = authority_set_ticket (auth, ticket)))
 	{
 	  fprintf (stderr, "authority_set_ticket failed: %s", strerror (rc));
 	  goto cleanup;
@@ -273,9 +282,9 @@ main (int argc, char *argv[])
 
   if (rc != 0)
     {
-      fprintf (stderr, "mailbox open <%s> failed: %s\n",
+      fprintf (stderr, "open on %s failed: %s\n",
 	       opt_mbox ? opt_mbox : "default", strerror (rc));
-      exit (1);
+      goto cleanup;
     }
 
   /* Iterate over all the messages in the mailbox. */
@@ -283,9 +292,9 @@ main (int argc, char *argv[])
 
   if (rc != 0)
     {
-      fprintf (stderr, "mailbox message count on <%s> failed: %s\n",
+      fprintf (stderr, "message count on %s failed: %s\n",
 	       opt_mbox ? opt_mbox : "default", strerror (rc));
-      exit (1);
+      goto cleanup;
     }
 
 /*
@@ -302,11 +311,10 @@ main (int argc, char *argv[])
 
       if ((rc = mailbox_get_message (mbox, msgno, &msg)) != 0)
 	{
-	  fprintf (stderr, "mailbox_get_message(msg %d): %s\n", msgno,
-		   strerror (rc));
-	  exit (1);
+	  fprintf (stderr, "get message on %s (msg %d) failed: %s\n",
+	      opt_mbox ? opt_mbox : "default", msgno, strerror (rc));
+	  goto cleanup;
 	}
-//    sv_print (&ic, SV_PRN_ACT, "For message %d:\n", msgno);
 
       rc = sv_script_execute (script, msg, ticket, debug, opt_no_actions);
 
@@ -315,15 +323,28 @@ main (int argc, char *argv[])
 	  fprintf (stderr, "execution of %s on %s (msg %d) failed: %s\n",
 		   opt_script, opt_mbox ? opt_mbox : "default", msgno,
 		   sv_strerror (rc));
-	  exit (1);
+	  if (opt_keep_going)
+	    rc = 0;
+	  else
+	    goto cleanup;
 	}
     }
 
 cleanup:
-  if (!opt_no_actions && !opt_compile_only)
+  if (mbox && !opt_no_actions && !opt_compile_only)
     {
-      if ((rc = mailbox_expunge (mbox)) != 0)
-	printf ("mailbox expunge failed: %s\n", strerror (rc));
+      int e;
+
+      /* A message won't be marked deleted unless the script executed
+	 succesfully on it, so we always do an expunge, it will delete
+	 any messages that were marked DELETED even if execution failed
+	 on a later message. */
+      if ((e = mailbox_expunge (mbox)) != 0)
+	fprintf (stderr, "expunge on %s failed: %s\n",
+	    opt_mbox ? opt_mbox : "default", strerror (e));
+
+      if(e && !rc)
+	rc = e;
     }
 
   mailbox_close (mbox);
@@ -332,7 +353,7 @@ cleanup:
   sv_script_free (&script);
   sv_interp_free (&interp);
 
-  return rc;
+  return rc ? 1 : 0;
 }
 
 void

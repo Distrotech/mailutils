@@ -111,7 +111,7 @@ extern int sv_mu_errno_to_rc (int eno);
 
 extern int sv_mu_debug_print (mu_debug_t d, const char *fmt, va_list ap);
 
-extern int sv_mu_mark_deleted (message_t msg);
+extern int sv_mu_mark_deleted (message_t msg, int deleted);
 
 extern int sv_mu_copy_debug_level (const mailbox_t from, mailbox_t to);
 
