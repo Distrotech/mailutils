@@ -1,3 +1,29 @@
+2003-02-08  Sergey Poznyakoff 
+
+	* examples/decode2047.c (main): Added return statement.
+	* mailbox/mbx_mh.c (_mh_message_save): Allow for mh-specific
+	  delimiter (a string of dashes) between the headers and the body.
+	* mailbox/mutil.c (mu_spawnvp): Bugfix, PROG was not used.
+	
+	* mh/send.c: New file. A framework for send utility.
+	* mh/.cvsignore: Added send.
+	* mh/Makefile.am: Likewise.
+	* mh/mh_whatnow.c: Implemented refile command.
+	
+	* mh/mh_getopt.h (struct mh_option): Removed `longopt' member.	
+	* mh/comp.c: Likewise.
+	* mh/fmtcheck.c: Likewise.
+	* mh/folder.c: Likewise.
+	* mh/inc.c: Likewise.
+	* mh/mh_getopt.c: Likewise.
+	* mh/scan.c: Likewise.
+	* mh/whatnow.c: Likewise.
+	* mh/rmf.c: Likewise.
+	* mh/refile.c: Likewise.
+	* mh/repl.c: Likewise.
+	
+	* mh/TODO: Updated
+	
 2003-02-07  Wojciech Polak
 
 	* doc/texinfo/programs.texi: Added info about WITH_GNUTLS
