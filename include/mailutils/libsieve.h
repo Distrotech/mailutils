@@ -66,7 +66,7 @@ typedef struct {
   sieve_data_type type;
   union {
     char *string;
-    long number;
+    size_t number;
     list_t list;
     sieve_runtime_tag_t *tag;
     void *ptr;

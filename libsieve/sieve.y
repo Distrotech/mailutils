@@ -33,7 +33,7 @@ static void branch_fixup __P((size_t start, size_t end));
 
 %union {
   char *string;
-  long number;
+  size_t number;
   sieve_instr_t instr;
   sieve_value_t *value;
   list_t list;
