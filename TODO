@@ -45,6 +45,11 @@ IMPORTANT:
 
 [mailbox]
 
+- iterator_t is very ineffective. Traversing the list from iterator_first()
+  till iterator_is_done() takes O(n*(n+1)/2), where n is number of elements
+  in the list. To reduce this to O(n), iterator_t must keep the address
+  of the last visited item in the list.
+
 - locking:
 
   - implement a read/write locker_lock() flag so that when MU_LOCKER_WRONLY
