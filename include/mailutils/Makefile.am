@@ -7,6 +7,7 @@ pkginclude_HEADERS = \
  envelope.h \
  errno.h \
  error.h \
+ mu_features.h \
  filter.h \
  folder.h \
  header.h \
