@@ -1,3 +1,42 @@
+2001-04-13  Alain Magloire
+
+	* mailbox/folder_imap.c: When calling imap_writeline () the
+	cookie for the tag should be unsigned %d --> %u.
+	(imap_send) : The number of bytes in memmove was wrong.
+	* mailbox/mbx_imap.c: Some duplicate degug calls MAILBOX_DEBUG0()
+	removed.
+	(attribute_string): IMAP does not have a \\Read flag it should be
+	the same as \\Seen so attribute_read() == attribute_seen().
+	(flag_string): New function.
+	(imap_attr_set_flags): Use flag_string(), instead.
+	* mailbox/include/imap0.h:  CLEAR_STATE() should also deselect
+	the current mailbox.
+	* mailbox/mbx_pop.c (pop_write): The number of bytes in the memmove
+	was wrong.
+	* lib/vasprintf.c: Taken from libit.
+	* configure.in: AC_REP_FUNC(vasprintf).
+
+2001-04-13  Sam Roberts
+
+	QNX needed to include <strings.h> for many of the useful string
+	functions also to define _QNX_SOURCE so <sys/time.h> doesn't have
+	an internal warning.
+
+	* configure.in: Check for libgen.h.
+	* imap4d/imap4d.h: Define __QNX_SOURCE.
+	* mailbox/mime.c: wasn't including config.h
+	* mailbox/attachment.c: QNX needed libgen.h for basename(),
+	include <strings.h> if define.
+	* mailbox/filter.c: Include <strings.h>.
+	* mailbox/mbx_mbox.c: Include <strings.h>.
+	* mailbox/folder_imap.c: Include <strings.h>.
+	* mailbox/header.c: Include <strings.h>.
+	* mailbox/property.c: Include <strings.h>.
+	* mailbox/registrar.c: Include <strings.h>.
+	* mailbox/url.c: Include <strings.h>.
+	* mailbox/url_pop.c: Include <strings.h>.
+	* pop3d/user.c: QNX says getspnam(char* n), I cast away the error.
+
 2001-04-13  Sam Roberts
 
 	* mailbox/parse822.c, include/mailutils/parse822.h: now can

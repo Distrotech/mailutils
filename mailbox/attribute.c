@@ -23,6 +23,10 @@
 #include <string.h>
 #include <errno.h>
 
+#ifdef HAVE_STRINGS_H
+# include <strings.h>
+#endif
+
 #include <attribute0.h>
 
 static int flags_to_string __P ((int, char *, size_t, size_t *));

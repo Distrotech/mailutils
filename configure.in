@@ -46,7 +46,7 @@ dnl Check for headers
 AC_HEADER_STDC
 AC_HEADER_DIRENT
 AM_C_PROTOTYPES
-AC_CHECK_HEADERS(errno.h fcntl.h inttypes.h limits.h malloc.h \
+AC_CHECK_HEADERS(errno.h fcntl.h inttypes.h libgen.h limits.h malloc.h \
  paths.h shadow.h stdio.h stdlib.h  string.h strings.h sys/file.h syslog.h \
  unistd.h)
 
@@ -68,7 +68,7 @@ AC_FUNC_ALLOCA
 AC_FUNC_MMAP
 # FIXME: Provide the GNU one for loosing platforms
 AC_FUNC_FNMATCH
-AC_REPLACE_FUNCS(snprintf strtok_r)
+AC_REPLACE_FUNCS(snprintf strtok_r vasprintf)
 AC_CHECK_FUNCS(mkstemp)
 
 dnl Check for libraries

@@ -27,6 +27,9 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <stdarg.h>
+#ifdef HAVE_STRINGS_H
+# include <strings.h>
+#endif
 
 #include <mailutils/stream.h>
 #include <mailutils/body.h>
@@ -1773,12 +1776,13 @@ pop_write (pop_data_t mpd)
   if (mpd->ptr > mpd->buffer)
     {
       size_t len;
+      size_t n = 0;
       len = mpd->ptr - mpd->buffer;
-      status = stream_write (mpd->mbox->stream, mpd->buffer, len, 0, &len);
+      status = stream_write (mpd->mbox->stream, mpd->buffer, len, 0, &n);
       if (status == 0)
 	{
-	  memmove (mpd->buffer, mpd->buffer + len, len);
-	  mpd->ptr -= len;
+	  memmove (mpd->buffer, mpd->buffer + n, len - n);
+	  mpd->ptr -= n;
 	}
     }
   else

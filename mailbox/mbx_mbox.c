@@ -37,6 +37,9 @@
 #  define _XOPEN_SOURCE  500
 #  include <pthread.h>
 #endif
+#ifdef HAVE_STRINGS_H
+# include <strings.h>
+#endif
 
 #include <mailutils/message.h>
 #include <mailutils/stream.h>

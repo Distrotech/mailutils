@@ -26,6 +26,14 @@
 #include <unistd.h>
 #include <ctype.h>
 
+#ifdef HAVE_LIBGEN_H
+# include <libgen.h>
+#endif
+
+#ifdef HAVE_STRINGS_H
+# include <strings.h>
+#endif
+
 #include <mailutils/message.h>
 #include <mailutils/filter.h>
 #include <mailutils/stream.h>

@@ -235,7 +235,6 @@ mailbox_imap_close (mailbox_t mailbox)
     case IMAP_CLOSE:
       status = imap_send (f_imap);
       CHECK_EAGAIN (f_imap, status);
-      MAILBOX_DEBUG0 (mailbox, MU_DEBUG_PROT, f_imap->buffer);
       f_imap->state = IMAP_CLOSE_ACK;
 
     case IMAP_CLOSE_ACK:
@@ -507,7 +506,6 @@ imap_messages_count (mailbox_t mailbox, size_t *pnum)
     case IMAP_SELECT:
       status = imap_send (f_imap);
       CHECK_EAGAIN (f_imap, status);
-      MAILBOX_DEBUG0 (mailbox, MU_DEBUG_PROT, f_imap->buffer);
       if (status != 0)
 	f_imap->selected = NULL;
       f_imap->state = IMAP_SELECT_ACK;
@@ -667,7 +665,7 @@ attribute_string (attribute_t attribute, char **pbuf)
 	strcat (abuf, " ");
       strcat (abuf, "\\Deleted");
     }
-  if (attribute_is_seen (attribute))
+  if (attribute_is_seen (attribute) || attribute_is_read (attribute))
     {
       char *tmp = realloc (abuf, strlen (abuf) + strlen ("\\Seen") + 2);
       if (tmp == NULL)
@@ -814,7 +812,6 @@ imap_append_message (mailbox_t mailbox, message_t msg)
     case IMAP_APPEND:
       status = imap_send (f_imap);
       CHECK_EAGAIN (f_imap, status);
-      MAILBOX_DEBUG0 (m_imap->mailbox, MU_DEBUG_PROT, f_imap->buffer);
       f_imap->state = IMAP_APPEND_CONT;
 
     case IMAP_APPEND_CONT:
@@ -905,7 +902,6 @@ imap_copy_message (mailbox_t mailbox, message_t msg)
     case IMAP_COPY:
       status = imap_send (f_imap);
       CHECK_EAGAIN (f_imap, status);
-      MAILBOX_DEBUG0 (mailbox, MU_DEBUG_PROT, f_imap->buffer);
       f_imap->state = IMAP_COPY_ACK;
 
     case IMAP_COPY_ACK:
@@ -1325,7 +1321,80 @@ imap_attr_get_flags (attribute_t attribute, int *pflags)
 }
 
 static int
-imap_attr_set_flags (attribute_t attribute, int flags)
+flags_string (int flag, char **pbuf)
+{
+  char *abuf = *pbuf;
+  if (flag & MU_ATTRIBUTE_DELETED)
+    {
+      char *tmp = realloc (abuf, strlen (abuf) + strlen ("\\Deleted") + 2);
+      if (tmp == NULL)
+        {
+          free (abuf);
+          return ENOMEM;
+        }
+      abuf = tmp;
+      if (*abuf)
+        strcat (abuf, " ");
+      strcat (abuf, "\\Deleted");
+    }
+  if ((flag & MU_ATTRIBUTE_SEEN) || (flag & MU_ATTRIBUTE_READ))
+    {
+      char *tmp = realloc (abuf, strlen (abuf) + strlen ("\\Seen") + 2);
+      if (tmp == NULL)
+        {
+          free (abuf);
+          return ENOMEM;
+        }
+      abuf = tmp;
+      if (*abuf)
+        strcat (abuf, " ");
+      strcat (abuf, "\\Seen");
+    }
+  if (flag & MU_ATTRIBUTE_ANSWERED)
+    {
+      char *tmp = realloc (abuf, strlen (abuf) + strlen ("\\Answered") + 2);
+      if (tmp == NULL)
+        {
+          free (abuf);
+          return ENOMEM;
+        }
+      abuf = tmp;
+      if (*abuf)
+        strcat (abuf, " ");
+      strcat (abuf, "\\Answered");
+    }
+  if (flag & MU_ATTRIBUTE_DRAFT)
+    {
+      char *tmp = realloc (abuf, strlen (abuf) + strlen ("\\Draft") + 2);
+      if (tmp == NULL)
+        {
+          free (abuf);
+          return ENOMEM;
+        }
+      abuf = tmp;
+      if (*abuf)
+        strcat (abuf, " ");
+      strcat (abuf, "\\Draft");
+    }
+  if (flag & MU_ATTRIBUTE_FLAGGED)
+    {
+      char *tmp = realloc (abuf, strlen (abuf) + strlen ("\\Flagged") + 2);
+      if (tmp == NULL)
+        {
+          free (abuf);
+          return ENOMEM;
+        }
+      abuf = tmp;
+      if (*abuf)
+        strcat (abuf, " ");
+      strcat (abuf, "\\Flagged");
+    }
+  *pbuf = abuf;
+  return 0;
+}
+
+static int
+imap_attr_set_flags (attribute_t attribute, int flag)
 {
   message_t msg = attribute_get_owner (attribute);
   msg_imap_t msg_imap = message_get_owner (msg);
@@ -1336,15 +1405,21 @@ imap_attr_set_flags (attribute_t attribute, int flags)
   /* The delete FLAG is not pass yet but only on the expunge.  */
   if (f_imap->state == IMAP_NO_STATE)
     {
-      status = imap_writeline (f_imap, "g%d STORE %d +FLAGS.SILENT (%s %s %s %s)\r\n",
-			       f_imap->seq++, msg_imap->num,
-			       (flags & MU_ATTRIBUTE_ANSWERED) ? "\\Answered" : "",
-			       (flags & MU_ATTRIBUTE_SEEN) ? "\\Seen" : "",
-			       (flags & MU_ATTRIBUTE_DRAFT) ? "\\Draft" : "",
-			       (flags & MU_ATTRIBUTE_FLAGGED) ? "\\Flagged" : "");
+      char *abuf = malloc (1);
+      if (abuf == NULL)
+	return ENOMEM;
+      *abuf = '\0';
+      status = flags_string (flag, &abuf);
+      if (status != 0)
+	return status;
+      /* No flags to send??  */
+      if (*abuf == '\0')
+	return 0;
+      status = imap_writeline (f_imap, "g%d STORE %d +FLAGS.SILENT (%s)\r\n",
+			       f_imap->seq++, msg_imap->num, abuf);
       CHECK_ERROR (f_imap, status);
       MAILBOX_DEBUG0 (m_imap->mailbox, MU_DEBUG_PROT, f_imap->buffer);
-      msg_imap->flags |= flags;
+      msg_imap->flags |= flag;
       f_imap->state = IMAP_FETCH;
     }
   return message_operation (f_imap, msg_imap, NULL, 0, NULL);

@@ -25,6 +25,10 @@
 #include <stdio.h>
 #include <errno.h>
 
+#ifdef HAVE_STRINGS_H
+# include <strings.h>
+#endif
+
 #include <mailutils/stream.h>
 #include <header0.h>
 

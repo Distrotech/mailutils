@@ -27,6 +27,10 @@
 #include <assert.h>
 #include <fnmatch.h>
 
+#ifdef HAVE_STRINGS_H
+# include <strings.h>
+#endif
+
 #include <imap0.h>
 
 /* Variable use for the registrar.  */
@@ -160,7 +164,7 @@ imap_user (authority_t auth)
 	  {
 	    CHECK_ERROR_CLOSE (folder, f_imap, EINVAL);
 	  }
-	status = imap_writeline (f_imap, "g%d LOGIN %s %s\r\n",
+	status = imap_writeline (f_imap, "g%u LOGIN %s %s\r\n",
 				 f_imap->seq++, f_imap->user, f_imap->passwd);
 	CHECK_ERROR_CLOSE(folder, f_imap, status);
 	FOLDER_DEBUG1 (folder, MU_DEBUG_PROT, "LOGIN %s *\n", f_imap->user);
@@ -352,7 +356,7 @@ folder_imap_close (folder_t folder)
   switch (f_imap->state)
     {
     case IMAP_NO_STATE:
-      status = imap_writeline (f_imap, "g%d LOGOUT\r\n", f_imap->seq++);
+      status = imap_writeline (f_imap, "g%u LOGOUT\r\n", f_imap->seq++);
       CHECK_ERROR (f_imap, status);
       FOLDER_DEBUG0 (folder, MU_DEBUG_PROT, f_imap->buffer);
       f_imap->state = IMAP_LOGOUT;
@@ -375,6 +379,7 @@ folder_imap_close (folder_t folder)
       break;
     }
   f_imap->state = IMAP_NO_STATE;
+  f_imap->selected = NULL;
   return 0;
 }
 
@@ -398,7 +403,7 @@ folder_imap_create (folder_t folder)
 	if (path == NULL)
 	  return ENOMEM;
 	url_get_path (folder->url, path, len + 1, NULL);
-	status = imap_writeline (f_imap, "g%d CREATE %s\r\n", f_imap->seq++,
+	status = imap_writeline (f_imap, "g%u CREATE %s\r\n", f_imap->seq++,
 				 path);
 	free (path);
 	CHECK_ERROR (f_imap, status);
@@ -435,7 +440,7 @@ folder_imap_delete (folder_t folder, const char *name)
   switch (f_imap->state)
     {
     case IMAP_NO_STATE:
-      status = imap_writeline (f_imap, "g%d DELETE %s\r\n", f_imap->seq++,
+      status = imap_writeline (f_imap, "g%u DELETE %s\r\n", f_imap->seq++,
 			       name);
       CHECK_ERROR (f_imap, status);
       FOLDER_DEBUG0 (folder, MU_DEBUG_PROT, f_imap->buffer);
@@ -552,7 +557,7 @@ folder_imap_list (folder_t folder, const char *ref, const char *name,
   switch (f_imap->state)
     {
     case IMAP_NO_STATE:
-      status = imap_writeline (f_imap, "g%d LIST \"%s\" \"%s\"\r\n",
+      status = imap_writeline (f_imap, "g%u LIST \"%s\" \"%s\"\r\n",
 			       f_imap->seq++, ref, path);
       free (path);
       CHECK_ERROR (f_imap, status);
@@ -626,7 +631,7 @@ folder_imap_lsub (folder_t folder, const char *ref, const char *name,
   switch (f_imap->state)
     {
     case IMAP_NO_STATE:
-      status = imap_writeline (f_imap, "g%d LSUB \"%s\" \"%s\"\r\n",
+      status = imap_writeline (f_imap, "g%u LSUB \"%s\" \"%s\"\r\n",
 			       f_imap->seq++, ref, name);
       CHECK_ERROR (f_imap, status);
       FOLDER_DEBUG0 (folder, MU_DEBUG_PROT, f_imap->buffer);
@@ -691,7 +696,7 @@ folder_imap_rename (folder_t folder, const char *oldpath, const char *newpath)
   switch (f_imap->state)
     {
     case IMAP_NO_STATE:
-      status = imap_writeline (f_imap, "g%d RENAME %s %s\r\n",
+      status = imap_writeline (f_imap, "g%u RENAME %s %s\r\n",
 			       f_imap->seq++, oldpath, newpath);
       CHECK_ERROR (f_imap, status);
       FOLDER_DEBUG0 (folder, MU_DEBUG_PROT, f_imap->buffer);
@@ -725,7 +730,7 @@ folder_imap_subscribe (folder_t folder, const char *name)
   switch (f_imap->state)
     {
     case IMAP_NO_STATE:
-      status = imap_writeline (f_imap, "g%d SUBSCRIBE %s\r\n",
+      status = imap_writeline (f_imap, "g%u SUBSCRIBE %s\r\n",
 			       f_imap->seq++, name);
       CHECK_ERROR (f_imap, status);
       FOLDER_DEBUG0 (folder, MU_DEBUG_PROT, f_imap->buffer);
@@ -759,7 +764,7 @@ folder_imap_unsubscribe (folder_t folder, const char *name)
   switch (f_imap->state)
     {
     case IMAP_NO_STATE:
-      status = imap_writeline (f_imap, "g%d UNSUBSCRIBE %s\r\n",
+      status = imap_writeline (f_imap, "g%u UNSUBSCRIBE %s\r\n",
 			       f_imap->seq++, name);
       CHECK_ERROR (f_imap, status);
       FOLDER_DEBUG0 (folder, MU_DEBUG_PROT, f_imap->buffer);
@@ -1035,7 +1040,7 @@ section_name (msg_imap_t msg_imap)
 	  char *tmp;
 	  char part[64];
 	  size_t partlen;
-	  snprintf (part, sizeof (partlen), "%d", msg_imap->part);
+	  snprintf (part, sizeof (partlen), "%u", msg_imap->part);
 	  partlen = strlen (part);
 	  tmp = realloc (section, sectionlen + partlen + 2);
 	  if (tmp == NULL)
@@ -1582,19 +1587,18 @@ imap_send (f_imap_t f_imap)
   if (f_imap->ptr > f_imap->buffer)
     {
       size_t len;
+      size_t n = 0;
       len = f_imap->ptr - f_imap->buffer;
       status = stream_write (f_imap->folder->stream, f_imap->buffer, len,
-			     0, &len);
+			     0, &n);
       if (status == 0)
         {
-          memmove (f_imap->buffer, f_imap->buffer + len, len);
-          f_imap->ptr -= len;
+          memmove (f_imap->buffer, f_imap->buffer + n, len - n);
+          f_imap->ptr -= n;
         }
     }
   else
-    {
-      f_imap->ptr = f_imap->buffer;
-    }
+    f_imap->ptr = f_imap->buffer;
   return status;
 }
 
@@ -1895,6 +1899,7 @@ imap_parse (f_imap_t f_imap)
 	      done = 1;
 	      monitor_wrlock (f_imap->folder->monitor);
 	      f_imap->isopen = 0;
+	      f_imap->selected = NULL;
 	      monitor_unlock (f_imap->folder->monitor);
 	      stream_close (f_imap->folder->stream);
 	    }

@@ -142,7 +142,7 @@ pop3_user (const char *arg)
 	{
 #ifdef HAVE_SHADOW_H
 	  struct spwd *spw;
-	  spw = getspnam (arg);
+	  spw = getspnam ((char *)arg);
 	  if (spw == NULL || strcmp (spw->sp_pwdp, crypt (pass, spw->sp_pwdp)))
 #endif /* HAVE_SHADOW_H */
 	    return ERR_BAD_LOGIN;

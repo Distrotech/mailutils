@@ -22,6 +22,7 @@
 #include <config.h>
 #endif
 
+#define _QNX_SOURCE
 #define _GNU_SOURCE
 
 #ifdef HAVE_SHADOW_H
@@ -42,6 +43,9 @@
 #include <stdarg.h>
 #include <sys/time.h>
 #include <sys/stat.h>
+#ifdef HAVE_STRINGS_H
+# include <strings.h>
+#endif
 
 #include <mailutils/mailbox.h>
 #include <mailutils/message.h>

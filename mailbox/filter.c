@@ -28,6 +28,10 @@ First draft: Alain Magloire.
 #include <string.h>
 #include <stdlib.h>
 
+#ifdef HAVE_STRINGS_H
+# include <strings.h>
+#endif
+
 #include <filter0.h>
 #include <mailutils/iterator.h>
 

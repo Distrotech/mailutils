@@ -18,6 +18,9 @@
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
+#ifdef HAVE_STRINGS_H
+# include <strings.h>
+#endif
 
 #include <property0.h>
 

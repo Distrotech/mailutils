@@ -16,6 +16,10 @@
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 
+#ifdef HAVE_CONFIG_H
+# include <config.h>
+#endif
+
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -23,6 +27,9 @@
 #include <ctype.h>
 #include <time.h>
 #include <unistd.h>
+#ifdef HAVE_STRINGS_H
+# include <strings.h>
+#endif
 
 #include <mailutils/message.h>
 #include <mailutils/stream.h>

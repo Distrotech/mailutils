@@ -73,6 +73,7 @@
 #define BUFFERSIZE	1024
 
 #define _GNU_SOURCE
+#define _QNX_SOURCE
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -96,6 +97,9 @@
 #include <ctype.h>
 #include "md5.h"
 #include "getopt.h"
+#ifdef HAVE_STRINGS_H
+# include <strings.h>
+#endif
 
 #include <mailutils/mailbox.h>
 #include <mailutils/message.h>
