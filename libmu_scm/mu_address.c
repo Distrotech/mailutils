@@ -56,7 +56,7 @@ _get_address_part (const char *func_name, address_get_fp fun,
       return SCM_BOOL_F;
     }
 
-  if ((*fun) (addr, num, str, length, NULL) == 0)
+  if ((*fun) (addr, num, str, length + 1, NULL) == 0)
     ret = scm_makfrom0str (str);
   else
     ret = SCM_BOOL_F;
