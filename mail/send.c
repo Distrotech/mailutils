@@ -32,6 +32,40 @@ int
 mail_send (int argc, char **argv)
 {
   char *to = NULL, *cc = NULL, *bcc = NULL, *subj = NULL;
+
+  if (argc < 2)
+    to = readline ("To: ");
+  else
+    {
+      while (--argc)
+	{
+	  char *p = alias_expand (*++argv);
+	  if (to)
+	    util_strcat(&to, ",");
+	  util_strcat(&to, p);
+	  free (p);
+	}
+    }
+
+  if ((util_find_env ("askcc"))->set)
+    cc = readline ("Cc: ");
+  if ((util_find_env ("askbcc"))->set)
+    bcc = readline ("Bcc: ");
+
+  if ((util_find_env ("asksub"))->set)
+    subj = readline ("Subject: ");
+  else
+    subj = (util_find_env ("subject"))->value;
+
+  return mail_send0 (to, cc, bcc, subj);
+}
+
+/* Shared between mail_send() and mail_reply();
+   NOTE: arguments should be allocated dynamically. They will be freed
+   before exit */
+int
+mail_send0 (char *to, char *cc, char *bcc, char *subj)
+{
   char *buf = NULL;
   size_t n = 0;
   int done = 0;
@@ -40,7 +74,7 @@ mail_send (int argc, char **argv)
   FILE *file;
   const char *tmpdir;
 
-  /* We have to be extra carefull about opening temporary files, since we
+  /* We have to be extra careful about opening temporary files, since we
      may be running with extra privilege i.e setgid().  */
   tmpdir = (getenv ("TMPDIR")) ? getenv ("TMPDIR") : "/tmp";
   filename = alloca (strlen (tmpdir) + /*'/'*/1 + /* "muXXXXXX" */8 + 1);
@@ -61,23 +95,6 @@ mail_send (int argc, char **argv)
     }
 
   file = fdopen (fd, "w");
-
-  if (argc < 2)
-    to = readline ("To: ");
-  else
-    {
-      /* figure it out from argv */
-    }
-
-  if ((util_find_env ("askcc"))->set)
-    cc = readline ("Cc: ");
-  if ((util_find_env ("askbcc"))->set)
-    bcc = readline ("Bcc: ");
-
-  if ((util_find_env ("asksub"))->set)
-    subj = readline ("Subject: ");
-  else
-    subj = (util_find_env ("subject"))->value;
 
   while (getline (&buf, &n, stdin) >= 0 && !done)
     {
