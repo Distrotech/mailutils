@@ -1,0 +1,375 @@
+# -*- tcl -*-
+# This file is part of Mailutils testsuite.
+# Copyright (C) 2002, Free Software Foundation
+#  
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#   
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#  
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software Foundation,
+# Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. 
+
+verbose "STARTED" 1
+if [info exists TOOL_EXECUTABLE] {
+    set MAIL $TOOL_EXECUTABLE
+}
+if ![info exists MAIL] {
+    if ![is_remote host] {
+	set MAIL [findfile $base_dir/../mail "$base_dir/../mail" [transform mail]]
+    } else {
+	if [info exists host_board] {
+	    if [board_info $host_board exists top_builddir] {
+		append MAIL "[board_info $host_board top_builddir]/mail/mail"
+	    } elseif [board_info $host_board exists top_srcdir] {
+		append MAIL "[board_info $host_board top_srcdir]/mail/mail"
+	    }
+	}
+
+	if ![info exists MAIL] {
+	    perror "The test suite is not set up for the remote testing"
+	    perror "Please, read file README in mail/testsuite subdirectory"
+	    perror "for instructions on how to set up it."
+	    exit 1
+	}
+    }
+}
+
+verbose "using MAIL = $MAIL" 2
+
+if ![info exists MAILFLAGS] {
+    set MAILFLAGS "--nosum --norc --mail-spool $srcdir/spool"
+}
+
+#FIXME:
+set env(MAILRC) $srcdir/etc/mail.rc
+
+# The variable mail_prompt is a regexp which matches the mail prompt.
+global mail_prompt
+if ![info exists mail_prompt] then {
+    set mail_prompt "\\? "
+}
+
+### Only procedures should come after this point.
+
+proc default_mail_version {} {
+    global MAIL
+    global MAILFLAGS
+    global MAILVERSION
+
+    if [info exists MAILVERSION] {
+	return
+    }
+    
+    set output [remote_exec host "$MAIL --version"]
+    regexp " \[0-9\]\[^ \t\n\r\]+" "$output" MAILVERSION
+}
+
+proc mail_version {} {
+    global MAIL
+    global MAILFLAGS
+    global MAILVERSION
+    
+    default_mail_version
+    if ![is_remote host] {
+	clone_output "[which $MAIL] version $MAILVERSION"
+    } else {
+	clone_output "$MAIL on remote host version $MAILVERSION"
+    }
+}
+
+proc default_mail_start {args} {
+    global srcdir
+    global srcdir
+    global verbose
+    global MAIL
+    global MAILFLAGS
+    global mail_prompt
+    global CAPABILITY
+    global expect_out
+    
+    default_mail_version
+
+    set sw $args
+    append sw " "
+    
+    if [info exists host_board] {
+	if [board_info $host_board exists top_srcdir] {
+	    append sw " --mail-spool [board_info $host_board top_srcdir]/mail/testsuite/spool"
+	}
+    }
+
+    set mail_cmd "$MAIL $MAILFLAGS $args"
+verbose "MAILRC is $srcdir/etc/mail.rc" 2
+    verbose "Spawning $mail_cmd"
+
+    set res [remote_spawn host $mail_cmd]
+    if { $res < 0 || $res == "" } {
+	perror "Spawning $mail_cmd failed."
+	return 1;
+    }
+
+    mail_expect 360 {
+	-re "\[\r\n\]?${mail_prompt}$" {
+	    verbose "mail initialized."
+	}
+	default {
+	    perror "mail not initialized"
+            return 1
+	}
+    }
+    return 0
+}
+
+proc default_mail_stop {} {
+
+    verbose "Stopping mail"
+    
+}
+
+proc mail_start {args} {
+    verbose "Starting mail"
+    return [default_mail_start [lrange $args 0 end]]
+}
+    
+proc mail_stop {} {
+    return [default_mail_stop];
+}
+
+##
+
+proc mail_send { string } {
+    global suppress_flag;
+    if {[info exists suppress_flag] && $suppress_flag} {
+	return "suppressed";
+    }
+    return [remote_send host "$string"]
+}
+
+proc mail_command { cmd } {
+    set res [mail_send "$cmd\n"]
+    mail_expect 30 {
+	-ex "${cmd}\r\n" { }
+	default {
+	    perror "mail_command for target failed";
+	    return -1
+	}
+    }
+    return $res
+}
+
+proc mail_exit {} {
+    set res [mail_send "exit\n"]
+    sleep 5
+    return res
+}
+
+proc mail_expect { args } {
+    global env
+    if { [lindex $args 0] == "-notransfer" } {
+	set notransfer -notransfer;
+	set args [lrange $args 1 end];
+    } else {
+	set notransfer "";
+    }
+
+    if { [llength $args] == 2  && [lindex $args 0] != "-re" } {
+	set gtimeout [lindex $args 0];
+	set expcode [list [lindex $args 1]];
+    } else {
+	upvar timeout timeout;
+
+	set expcode $args;
+	if [target_info exists mail,timeout] {
+	    if [info exists timeout] {
+		if { $timeout < [target_info mail,timeout] } {
+		    set gtimeout [target_info mail,timeout];
+		} else {
+		    set gtimeout $timeout;
+		}
+	    } else {
+		set gtimeout [target_info mail,timeout];
+	    }
+	}
+
+	if ![info exists gtimeout] {
+	    global timeout;
+	    if [info exists timeout] {
+		set gtimeout $timeout;
+	    } else {
+		# Eeeeew.
+		set gtimeout 60;
+	    }
+	}
+    }
+    global suppress_flag;
+    global remote_suppress_flag;
+    global verbose
+    if [info exists remote_suppress_flag] {
+	set old_val $remote_suppress_flag;
+    }
+    if [info exists suppress_flag] {
+	if { $suppress_flag } {
+	    set remote_suppress_flag 1;
+	}
+    }
+
+    verbose "RUNNING remote_expect host $gtimeout $notransfer" 2
+
+    set code [catch \
+	{uplevel remote_expect host "$gtimeout $notransfer" $expcode} string];
+    if [info exists old_val] {
+	set remote_suppress_flag $old_val;
+    } else {
+	if [info exists remote_suppress_flag] {
+	    unset remote_suppress_flag;
+	}
+    }
+
+    if {$code == 1} {
+        global errorInfo errorCode;
+
+	return -code error -errorinfo $errorInfo -errorcode $errorCode $string
+    } elseif {$code == 2} {
+	return -code return $string
+    } elseif {$code == 3} {
+	return
+    } elseif {$code > 4} {
+	return -code $code $string
+    }
+}
+
+# default_mail_test COMMAND PATTERN
+# COMMAND   - Command to send to mail
+# PATTERN   - A list of strings to expect in return
+# Return value:
+#        -3 - eof
+#        -2 - timeout
+#        -1 - generic failure
+#         1 - test fails
+#         0 - test succeeds
+proc default_mail_test { args } {
+    global verbose
+    global mail_prompt
+    global suppress_flag;
+    upvar timeout timeout
+    
+    set command [lindex $args 0]
+    set pattern [lindex $args 1]
+
+    if { [info exists suppress_flag] && $suppress_flag } {
+	set do_suppress 1
+    } else {
+	set do_suppress 0
+    }
+
+    if $verbose>2 then {
+	send_user "Command: \"$command\"\n"
+	send_user "Pattern: \"$pattern\"\n"
+    }
+    
+    set result -1
+    if { [mail_command "${command}"] != "" } {
+	if { ! $do_suppress } {
+	    perror "Couldn't send \"$command\".";
+	}
+	return $result;
+    }
+
+    if [info exists timeout] {
+	set tmt $timeout;
+    } else {
+	global timeout;
+	if [info exists timeout] {
+	    set tmt $timeout;
+	} else {
+	    set tmt 60;
+	}
+    }
+
+    set result 0
+    for {set i 0} {$i < [llength $pattern]} {incr i} {
+	verbose "i=$i, pat=[lindex ${pattern} $i]" 2
+	mail_expect $tmt {
+	    -ex "[lindex ${pattern} $i]" { }
+	    -ex "[lindex ${pattern} $i]\r\n" { }
+	    default {
+		set result 1
+		break
+	    }
+	    timeout {
+		set result -2
+		break
+	    }
+	    eof {
+		set result -3
+		break
+	    }
+	}
+    }
+    return $result
+}
+
+# mail_test [-message MESSAGE][-default (FAIL|XFAIL)]
+#            COMMAND PATTERN [PATTERN...]
+# COMMAND   - Command to send to mail.
+# PATTERN   - Sequence to expect in return. 
+# MESSAGE   - [optional] message to output
+proc mail_test { args } {
+    global verbose
+    global mail_prompt
+    global suppress_flag;
+    upvar timeout timeout
+
+    set default ""
+    set message ""
+    for {set i 0} {$i < [llength $args]} {incr i} {
+	set a [lindex $args $i]
+	if {"$a" == "-default"} {
+	    set default [lindex $args [expr $i + 1]]
+	    incr i
+	} elseif {"$a" == "-message"} {
+	    set message [lindex $args [expr $i + 1]]
+	    incr i
+	} else {
+	    set args [lrange $args $i end]
+	    break
+	}
+    }
+    
+    if {"$message" == ""}  {
+	set message [lindex $args 0]
+    }
+
+    if $verbose>2 then {
+	send_user "Message is \"$message\"\n"
+    }
+    set command [lindex $args 0]
+    set pattern [lrange $args 1 end]
+    set result [default_mail_test $command $pattern]
+
+    if {$result == 0} {
+	pass "$message"
+    } elseif {$result == 1} {
+	if { "$default" == "" || "$default" != "FAIL" } {
+	    fail "$message"
+	} else {
+	    xfail "$message"
+	    set result 0
+	}
+    } elseif {$result == -2} {
+	fail "$message (timeout)"
+    } elseif {$result == -3} {
+	fail "$message (eof)"
+    } else {
+	fail "$message"
+    }
+    return $result
+}
+

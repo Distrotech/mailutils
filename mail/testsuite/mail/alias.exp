@@ -1,0 +1,54 @@
+# -*- tcl -*-
+# This file is part of Mailutils testsuite.
+# Copyright (C) 2002, Free Software Foundation
+#  
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#   
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#  
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software Foundation,
+# Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. 
+
+mail_start "--file=%mbox1"
+
+mail_command "alias staff alice tweedledum tweedledee"
+mail_test -message "alias staff" "alias" "staff    alice tweedledum tweedledee "
+
+mail_command "alias teeparty alice march.hare hatter" 
+mail_test -message "alias teeparty" "alias" \
+	"teeparty    alice march.hare hatter "\
+	"staff    alice tweedledum tweedledee "
+
+mail_command "alias messengers haigha hatta" 
+mail_test -message "alias messengers" "alias" \
+	"teeparty    alice march.hare hatter "\
+	"staff    alice tweedledum tweedledee "\
+	"messengers    haigha hatta "
+
+mail_command "unalias teeparty"
+mail_test -message "unalias" "alias" \
+"staff    alice tweedledum tweedledee " \
+"messengers    haigha hatta "
+
+mail_test -message "alias messengers output"\
+	 "alias messengers" "messengers    haigha hatta "
+
+mail_test -message "alias teeparty output" \
+	"alias teeparty" "\"teeparty\": not a group"
+
+mail_command "alias pretenders lion unicorn"
+mail_test -message "alias pretenders" "alias"\
+"pretenders    lion unicorn "\
+"staff    alice tweedledum tweedledee "\
+"messengers    haigha hatta "
+
+mail_exit
+
+return 0

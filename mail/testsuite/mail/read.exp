@@ -1,0 +1,72 @@
+# -*- tcl -*-
+# This file is part of Mailutils testsuite.
+# Copyright (C) 2002, Free Software Foundation
+#  
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#   
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#  
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software Foundation,
+# Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. 
+
+mail_start "--file=%mbox1"
+mail_test "headers" \
+">N   1 Foo Bar            Fri Dec 28 22:18  44/1255  Jabberwocky\r\n" \
+" N   2 Bar                Fri Dec 28 23:28  13/535   Re: Jabberwocky\r\n"
+
+mail_test "print"\
+	"Date: Fri, 28 Dec 2001 22:18:08 +0200" \
+	"From: Foo Bar <foobar@nonexistent.net>" \
+	"To: Bar <bar@dontmailme.org>" \
+	"Subject: Jabberwocky"\
+	""\
+	"`Twas brillig, and the slithy toves"\
+	"Did gyre and gimble in the wabe;"\
+	"All mimsy were the borogoves,"\
+	"And the mome raths outgrabe."
+
+mail_test -message "headers (2)" "headers" \
+">R   1 Foo Bar            Fri Dec 28 22:18  44/1255  Jabberwocky\r\n" \
+" N   2 Bar                Fri Dec 28 23:28  13/535   Re: Jabberwocky\r\n"
+
+mail_test "next" \
+"Date: Fri, 28 Dec 2001 23:28:08 +0200"\
+"From: Bar <bar@dontmailme.org>"\
+"To: Foo Bar <foobar@nonexistent.net>"\
+"Subject: Re: Jabberwocky"\
+""\
+"It seems very pretty, but it's *rather* hard to understand!'"\
+"Somehow it seems to fill my head with ideas -- only I don't"\
+"exactly know what they are!  However, SOMEBODY killed SOMETHING:"\
+"that's clear, at any rate..."
+
+mail_test -message "headers (3)" "headers" \
+" R   1 Foo Bar            Fri Dec 28 22:18  44/1255  Jabberwocky\r\n" \
+">R   2 Bar                Fri Dec 28 23:28  13/535   Re: Jabberwocky\r\n"
+
+mail_test "prev"\
+	"Date: Fri, 28 Dec 2001 22:18:08 +0200" \
+	"From: Foo Bar <foobar@nonexistent.net>" \
+	"To: Bar <bar@dontmailme.org>" \
+	"Subject: Jabberwocky"\
+	""\
+	"`Twas brillig, and the slithy toves"\
+	"Did gyre and gimble in the wabe;"\
+	"All mimsy were the borogoves,"\
+	"And the mome raths outgrabe."
+
+mail_test -message "headers (4)" "headers" \
+">R   1 Foo Bar            Fri Dec 28 22:18  44/1255  Jabberwocky\r\n" \
+" R   2 Bar                Fri Dec 28 23:28  13/535   Re: Jabberwocky\r\n"
+
+
+
+#mail_exit
+return 0
