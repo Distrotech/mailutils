@@ -1,3 +1,25 @@
+2001-06-01  Sergey Poznyakoff
+	* imap4d/search.c: case-insensitive comparison for text fields.
+	  Error checking for stray symbols at the end of criteria.
+
+	* imap4d/util.c: util_strcasestr() function. Functions for
+	  converting between text and integer representation of
+	  attributes. Split util_parse_internal_date: the helper
+	  function util_parse_internal_date0 also returns the
+          pointer to the location in the string where parsing
+          stopped.
+
+	* imap4d/util.h: protos for util_strcasestr() and
+	  util_parse_.*_date() functions.
+
+	* imap4d/imap4d.c: force ofile to be line-buffered, so command
+	  continuation requests are immediately visible.
+
+	* imap4d/append.c: implemented. Currently this needs the
+	  helper function mailbox_destroy_folder(), so that
+	  mailbox_set_stream does its work. Also the situation
+          with message attributes needs to be cleared.
+
 2001-06-01  Alain Magloire
 
 	* mailbox/debug.c(debug_print): Noop is format is NULL;
