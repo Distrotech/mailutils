@@ -54,7 +54,6 @@ ml_got_interrupt ()
   return rc;
 }
 
-#ifdef WITH_READLINE
 int
 ml_getc (FILE *stream)
 {
@@ -75,7 +74,6 @@ ml_getc (FILE *stream)
       }
     return EOF;
 }
-#endif
 
 void
 ml_readline_init ()
@@ -111,12 +109,20 @@ ml_reread (char *prompt, char **text)
 {
   char *s;
 
+  ml_clear_interrupt ();
   insert_text = *text;
   rl_startup_hook = ml_insert_hook;
   s = readline (prompt);
-  if (*text)
-    free (*text);
-  *text = s;
+  if (!ml_got_interrupt ())
+    {
+      if (*text)
+	free (*text);
+      *text = s;
+    }
+  else
+    {
+      putc('\n', stdout);
+    }
   rl_startup_hook = NULL;
   return 0;
 }
@@ -161,15 +167,277 @@ ml_command_generator (char *text, int state)
 
 #else
 
+#include <sys/ioctl.h>
+
+#define STDOUT 1
+static int ch_erase;
+static int ch_kill;
+
+#if defined(TIOCSTI)
+#elif defined(HAVE_TERMIOS_H)
+# include <termios.h>
+
+static struct termios term_settings;
+
+int
+set_tty ()
+{
+  struct termios new_settings;
+
+  if (tcgetattr(STDOUT, &term_settings) == -1)
+    return 1;
+
+  ch_erase = term_settings.c_cc[VERASE];
+  ch_kill = term_settings.c_cc[VKILL];
+
+  new_settings = term_settings;
+  new_settings.c_lflag &= ~(ICANON|ECHO);
+#if defined(TAB3)      
+  new_settings.c_oflag &= ~(TAB3);
+#elif defined(OXTABS)
+  new_settings.c_oflag &= ~(OXTABS);
+#endif
+  new_settings.c_cc[VMIN] = 1;
+  new_settings.c_cc[VTIME] = 0;
+  tcsetattr(STDOUT, TCSADRAIN, &new_settings);
+  return 0;
+}
+
+void
+restore_tty ()
+{
+  tcsetattr (STDOUT, TCSADRAIN, &term_settings);
+}
+
+#elif defined(HAVE_TERMIO_H)
+# include <termio.h>
+
+static struct termio term_settings;
+
+int
+set_tty ()
+{
+  struct termio new_settings;
+
+  if (ioctl(STDOUT, TCGETA, &term_settings) < 0)
+    return -1;
+
+  ch_erase = term_settings.c_cc[VERASE];
+  ch_kill = term_settings.c_cc[VKILL];
+  
+  new_settings = term_settings;
+  new_settings.c_lflag &= ~(ICANON | ECHO);
+  new_settings.c_oflag &= ~(TAB3);
+  new_settings.c_cc[VMIN] = 1;
+  new_settings.c_cc[VTIME] = 0;
+  ioctl(STDOUT, TCSETA, &new_settings);
+  return 0;
+}
+
+void
+restore_tty ()
+{
+  ioctl(STDOUT, TCSETA, &term_settings);
+}
+
+#elif defined(HAVE_SGTTY_H)
+# include <sgtty.h>
+
+static struct sgttyb term_settings;
+
+int
+set_tty ()
+{
+  struct sgttyb new_settings;
+  
+  if (ioctl(STDOUT, TIOCGETP, &term_settings) < 0)
+    return 1;
+
+  ch_erase = term_settings.sg_erase;
+  ch_kill = term_settings.sg_kill;
+  
+  new_settings = term_settings;
+  new_settings.sg_flags |= CBREAK;
+  new_settings.sg_flags &= ~(ECHO | XTABS);
+  ioctl(STDOUT, TIOCSETP, &new_settings);
+  return 0;
+}
+
+void
+restore_tty ()
+{
+  ioctl(STDOUT, TIOCSETP, &term_settings);
+}
+
+#else
+# define DUMB_MODE
+#endif
+
+
+#define LINE_INC 80
+
 int
 ml_reread (char *prompt, char **text)
 {
-  char *s;
-  /*FIXME*/
-  s = readline (prompt);
+  int ch;
+  char *line;
+  int line_size;
+  int pos;
+  char *p;
+  
   if (*text)
-    free (*text);
-  *text = s;
+    {
+      line = strdup (*text);
+      if (line)
+	{
+	  pos = strlen(line);
+	  line_size = pos + 1;
+	}
+    }
+  else
+    {
+      line_size = LINE_INC;
+      line = malloc (line_size);
+      pos = 0;
+    }
+
+  if (!line)
+    {
+      util_error("not enough memory to edit the line");
+      return -1;
+    }
+
+  line[pos] = 0;
+
+  if (prompt)
+    {
+      fputs (prompt, stdout);
+      fflush (stdout);
+    }
+  
+#ifdef TIOCSTI
+    
+  for (p = line; *p; p++)
+    {
+      ioctl(0, TIOCSTI, p);
+    }
+
+  pos = 0;
+  
+  while ((ch = ml_getc (stdin)) != EOF && ch != '\n')
+    {
+      if (pos >= line_size)
+	{
+	  if ((p = realloc (line, line_size + LINE_INC)) == NULL)
+	    {
+	      fputs ("\n", stdout);
+	      util_error ("not enough memory to edit the line");
+	      break;
+	    }
+	  else
+	    {
+	      line_size += LINE_INC;
+	      line = p;
+	    }
+	}
+      line[pos++] = ch;
+    }
+
+#else
+  
+  fputs (line, stdout);
+  fflush (stdout);
+
+# ifndef DUMB_MODE  
+  set_tty ();
+  
+  while ((ch = ml_getc (stdin)) != EOF)
+    {
+      if (ch == ch_erase)
+	{
+	  /* kill last char */
+	  if (pos > 0)
+	    line[--pos] = 0;
+	  putc('\b', stdout);
+	}
+      else if (ch == ch_kill)
+	{
+	  /* kill the entire line */
+	  pos = 0;
+	  line[pos] = 0;
+	  putc ('\r', stdout);
+	  if (prompt)
+	    fputs (prompt, stdout);
+	}
+      else if (ch == '\n' || ch == EOF)
+	break;
+      else
+	{
+	  if (pos >= line_size)
+	    {
+	      if ((p = realloc (line, line_size + LINE_INC)) == NULL)
+		{
+		  fputs("\n", stdout);
+		  util_error("not enough memory to edit the line");
+		  break;
+		}
+	      else
+		{
+		  line_size += LINE_INC;
+		  line = p;
+		}
+	    }
+	  line[pos++] = ch;
+	  putc(ch, stdout);
+	}
+      fflush (stdout);
+    }
+  
+  putc ('\n', stdout);
+  restore_tty ();
+# else
+  /* Dumb mode: the last resort */
+
+  putc ('\n', stdout);
+  if (prompt)
+    {
+      fputs (prompt, stdout);
+      fflush (stdout);
+    }
+
+  pos = 0;
+  
+  while ((ch = ml_getc (stdin)) != EOF && ch != '\n')
+    {
+      if (pos >= line_size)
+	{
+	  if ((p = realloc (line, line_size + LINE_INC)) == NULL)
+	    {
+	      fputs ("\n", stdout);
+	      util_error ("not enough memory to edit the line");
+	      break;
+	    }
+	  else
+	    {
+	      line_size += LINE_INC;
+	      line = p;
+	    }
+	}
+      line[pos++] = ch;
+    }
+# endif
+#endif
+  
+  line[pos] = 0;
+  
+  if (ml_got_interrupt ())
+    free (line);
+  else
+    {
+      if (*text)
+	free (*text);
+      *text = line;
+    }
   return 0;
 }
 
@@ -186,7 +454,7 @@ readline (const char *prompt)
       fflush (ofile);
     }
 
-  p = line = calloc (1, 255);
+  p = line = util_calloc (1, 255);
   alloclen = 255;
   linelen = 0;
   for (;;)
