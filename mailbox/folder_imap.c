@@ -1451,27 +1451,33 @@ imap_flags (char **ptr, int *pflags)
         break;
 
       /* Guess the flag.  */
-      if (strncasecmp (start, "\\Seen", end - start) == 0)
-        {
-	  flags |= MU_ATTRIBUTE_SEEN;
-	  flags |= MU_ATTRIBUTE_READ;
-        }
-      else if (strncasecmp (start, "\\Answered", end - start) == 0)
-        {
-	  flags |= MU_ATTRIBUTE_ANSWERED;
-        }
-      else if (strncasecmp (start, "\\Flagged", end - start) == 0)
-        {
-	  flags |= MU_ATTRIBUTE_FLAGGED;
-        }
-      else if (strncasecmp (start, "\\Deleted", end - start) == 0)
-        {
-	  flags |= MU_ATTRIBUTE_DELETED;
-        }
-      else if (strncasecmp (start, "\\Draft", end - start) == 0)
-        {
-	  flags |= MU_ATTRIBUTE_DRAFT;
-        }
+      if (end == start)
+	flags |= MU_ATTRIBUTE_SEEN;
+      else
+	{
+	  if (strncasecmp (start, "\\Seen", end - start) == 0)
+	    {
+	      flags |= MU_ATTRIBUTE_READ;
+	    }
+	  else if (strncasecmp (start, "\\Answered", end - start) == 0)
+	    {
+	      flags |= MU_ATTRIBUTE_ANSWERED;
+	    }
+	  else if (strncasecmp (start, "\\Flagged", end - start) == 0)
+	    {
+	      flags |= MU_ATTRIBUTE_FLAGGED;
+	    }
+	  else if (strncasecmp (start, "\\Deleted", end - start) == 0)
+	    {
+	      flags |= MU_ATTRIBUTE_DELETED;
+	    }
+	  else if (strncasecmp (start, "\\Draft", end - start) == 0)
+	    {
+	      flags |= MU_ATTRIBUTE_DRAFT;
+	    }
+	  else if (strncasecmp (start, "\\Recent", end - start))
+	    flags |= MU_ATTRIBUTE_SEEN;
+	}
     }
   while (**ptr && **ptr != ')'); /* do {} */
 
