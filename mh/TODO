@@ -20,7 +20,7 @@ State	Nice	Utility		Comments
 +	-20	scan
 +	-20	inc
 *	-20	repl		See comments for whatnow
--	-20	comp
+*	-20	comp		See comments for whatnow
 -	-20	forw
 -	-20	send
 *	-20	refile		--link

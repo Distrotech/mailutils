@@ -1,3 +1,29 @@
+2003-01-18  Sergey Poznyakoff 
+
+	* imap4d/util.c (util_token): Fixed comment.
+	
+	* mailbox/mbx_mh.c (mh_check_message): New function.
+	  (mh_body_size,mh_check_message,mh_header_size)
+	  (mh_header_lines): Use mh_check_message() to make sure
+	  the message has been scanned.
+
+	* mh/comp.c: New file. Implements comp utility.
+	* mh/Makefile.am: Added comp.
+	* mh/mh.h (mh_err_memory,mh_file_copy): New functions.
+	* mh/mh_init.c: Likewise. 
+	* mh/mh_argp.c: Use mh_err_memory to report low memory
+	  diagnostics.
+	* mh/mh_ctx.c: Likewise.
+	* mh/mh_msgset.c: Likewise.
+	* mh/mh_whatnow.c: Likewise.
+
+	* mh/repl.c: Changed semantics of --use option. It takes an
+	  optional argument of yes/no.
+	  (make_draft): Changed declaration.
+	
+	* mh/TODO: Updated.
+	* mh/README: Updated.
+	
 2003-01-18  Wojciech Polak
 
 	* imap4d/util.c (util_bye): Check 'tls_available' before

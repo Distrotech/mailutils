@@ -87,6 +87,10 @@ deletes all messages preceeding the non-existent one.
 
 Understands --use option. Disposition shell provides 'use' command.
 
+* comp
+
+Understands --build option.
+
 
 Local variables:
 mode: outline
