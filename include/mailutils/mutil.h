@@ -62,7 +62,7 @@ extern size_t mu_cpystr __P ((char *dst, const char *src, size_t size));
 struct passwd;
 
 extern void mu_register_getpwnam __P((struct passwd *(*fun) __P((const char *))));
-extern void mu_register_getpwuid __P((struct passwd *(*fun) __P((uid_t))));  
+extern void mu_register_getpwuid __P((struct passwd *(*fun) __P((uid_t *))));  
 extern struct passwd * mu_getpwnam __P((const char *name));
 extern struct passwd * mu_getpwuid __P((uid_t uid));
   
