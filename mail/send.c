@@ -48,7 +48,7 @@ mail_send (int argc, char **argv)
   env.outfiles = NULL; env.nfiles = 0;
 
   if (argc < 2)
-    env.to = readline ((char *)"To: ");
+    env.to = ml_readline ((char *)"To: ");
   else
     {
       while (--argc)
@@ -75,12 +75,12 @@ mail_send (int argc, char **argv)
     }
 
   if ((util_find_env ("askcc"))->set)
-    env.cc = readline ((char *)"Cc: ");
+    env.cc = ml_readline ((char *)"Cc: ");
   if ((util_find_env ("askbcc"))->set)
-    env.bcc = readline ((char *)"Bcc: ");
+    env.bcc = ml_readline ((char *)"Bcc: ");
 
   if ((util_find_env ("asksub"))->set)
-    env.subj = readline ((char *)"Subject: ");
+    env.subj = ml_readline ((char *)"Subject: ");
   else
     env.subj = (util_find_env ("subject"))->value;
 
@@ -155,7 +155,7 @@ mail_send0 (struct send_environ *env, int save_to)
   while (!done)
     {
       char *buf;
-      buf = readline ((char *)" \b");
+      buf = ml_readline ((char *)" \b");
 
       if (ml_got_interrupt ())
 	{
