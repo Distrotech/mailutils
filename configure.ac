@@ -467,6 +467,7 @@ AC_CONFIG_FILES([Makefile mailutils.spec
  mail/Makefile
  mail/testsuite/Makefile
  pop3d/Makefile
+ pop3d/testsuite/Makefile
  frm/Makefile
  sieve/Makefile
  messages/Makefile
