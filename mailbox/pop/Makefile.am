@@ -19,9 +19,9 @@
 
 INCLUDES = -I${top_srcdir}/include -I${top_srcdir}/mailbox -I${top_srcdir}/mailbox/include -I${top_srcdir}/include/mailutils/gnu @INTLINCS@
 
-noinst_LTLIBRARIES = libpop.la
+lib_LTLIBRARIES = libmu_pop.la
 
-libpop_la_SOURCES = \
+libmu_pop_la_SOURCES = \
  folder.c\
  mbox.c\
  url.c
