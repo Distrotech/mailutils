@@ -43,10 +43,8 @@ imap4d_bye0 (int reason, struct imap4d_command *command)
       break;
 
     case ERR_SIGNAL:
-      if (!util_is_master ())
-	util_out (RESP_BYE, "Quitting on signal");
       syslog (LOG_ERR, _("Quitting on signal"));
-      break;
+      exit (status);
 
     case ERR_TIMEOUT:
       util_out (RESP_BYE, "Session timed out");
