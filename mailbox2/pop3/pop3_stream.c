@@ -48,11 +48,11 @@ pop3_get_stream (pop3_t pop3, stream_t *pstream)
 
   if (pop3->stream == NULL)
     {
-      int status = stream_tcp_create (&(pop3->stream));
+      stream_t stream = NULL;
+      int status = stream_tcp_create (&stream));
       if (status)
 	return status;
-      /* Using the awkward stream_t buffering.  */
-      /* stream_setbufsiz (pop3->stream, 1024); */
+      stream_buffer_create (&(pop3->stream), stream, 1024); */
     }
   *pstream = pop3->stream;
   return 0;
