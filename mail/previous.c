@@ -40,5 +40,5 @@ mail_previous (int argc, char **argv)
       msgset_free (list);
     }
   util_do_command ("print");
-  return 1;
+  return 0;
 }

@@ -4,6 +4,8 @@
 	by using (const char *name) in the argument.
 	* pop3d/pop3d.c: The variable state was already
 	use as a global, use "astate" in function pop3_parse_opt().
+	* mail/next.c: Wrong return value;
+	* mail/previous.c: Wrong return value;
 
 2002-03-13  Alain Magloire
 
