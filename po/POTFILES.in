@@ -71,6 +71,7 @@ mail.local/script.c
 
 mail.remote/mail.remote.c
 
+mailbox/argp-help.c
 mailbox/argp-parse.c
 mailbox/file_stream.c
 mailbox/mailutils-config.c

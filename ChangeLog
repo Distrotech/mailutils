@@ -1,3 +1,9 @@
+2002-12-27  Wojciech Polak <polak@gnu.org>
+
+	* mail/summary.c: Small NLS improvement.
+	* mail/quit.c: Likewise.
+	* frm/frm.c: Likewise.
+
 2002-12-26  Wojciech Polak <polak@gnu.org>
 
 	* po/POTFILES.in: Updated.
