@@ -6,6 +6,12 @@
 	* mh/README: Minor changes.
 	* mh/TODO: Minor changes.
 
+	* mh/mh.h (MHA_REQUIRED,MHA_OPTARG,MHA_OPT_CLEAR): New defines.
+	* mh/mh_fmtgram.y (mh_code_builtin): Minor fix.
+	* mh/mh_format.c (builtin_me): Enclose the address in <> brackets.
+	  (builtin_formataddr): Minor fix.
+	  (builtin_tab): Fixed optarg column.
+	
 2003-02-16  Sergey Poznyakoff  
 
 	The sources up to here are tagged rel_0_3.
