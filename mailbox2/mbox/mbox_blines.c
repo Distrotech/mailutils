@@ -30,7 +30,7 @@ mbox_get_blines (mbox_t mbox, unsigned int msgno, unsigned int *plines)
   if (mbox && msgno)
     {
       msgno--;
-      if (msgno >= mbox->messages_count)
+      if (msgno < mbox->messages_count)
 	lines = mbox->umessages[msgno]->body.lines;
     }
   if (plines)

@@ -61,6 +61,39 @@
 
 
 static int
+mbox_parse_status (mbox_message_t mum, char *buf, size_t n)
+{
+  char *s = memchr (buf, ':', n);
+  if (s)
+    {
+      s++;
+      for (; *s; s++)
+	{
+	  switch (*s)
+	    {
+	    case 'r':
+	    case 'R':
+	      mum->attr_flags |= MU_ATTRIBUTE_READ;
+	      break;
+	    case 'O':
+	    case 'o':
+	      mum->attr_flags |= MU_ATTRIBUTE_SEEN;
+	      break;
+	    case 'a':
+	    case 'A':
+	      mum->attr_flags |= MU_ATTRIBUTE_ANSWERED;
+	      break;
+	    case 'd':
+	    case 'D':
+	      mum->attr_flags |= MU_ATTRIBUTE_DELETED;
+	      break;
+	    }
+	}
+    }
+  return 0;
+}
+
+static int
 mbox_alloc_umessages (mbox_t mbox)
 {
   mbox_message_t mum;
@@ -82,34 +115,11 @@ mbox_alloc_umessages (mbox_t mbox)
 	    return MU_ERROR_NO_MEMORY;
 	}
     }
-  if (mbox->messages_count)
-    msgno = mbox->messages_count - 1;
-  mum = mbox->umessages[msgno];
-  mum->from_ = 0;
   if (mum->separator)
     free (mum->separator);
   mum->separator = 0;
 
   mbox_hcache_free (mbox, msgno + 1);
-
-  if (mum->header.stream)
-    stream_destroy (&mum->header.stream);
-  mum->header.lines = 0;
-  mum->header.size = 0;
-  mum->header.start = 0;
-  mum->header.end = 0;
-
-  if (mum->body.stream)
-    stream_destroy (&mum->body.stream);
-  mum->body.lines = 0;
-  mum->body.size = 0;
-  mum->body.start = 0;
-  mum->body.end = 0;
-
-  mum->uid = 0;
-  mum->attr_flags = 0;
-  if (mum->attribute)
-    attribute_destroy (&mum->attribute);
   return 0;
 }
 
@@ -138,6 +148,9 @@ mbox_scan (mbox_t mbox, unsigned int msgno, unsigned int *pcount, int do_notif)
   int zn, isfrom = 0;
   char *temp;
 
+  if (mbox == NULL)
+    return MU_ERROR_INVALID_PARAMETER;
+
   /* Save the timestamp.  */
   status = stream_get_fd (mbox->carrier, &fd);
   if (status == 0)
@@ -154,6 +167,10 @@ mbox_scan (mbox_t mbox, unsigned int msgno, unsigned int *pcount, int do_notif)
       else
 	status = MU_ERROR_IO;
     }
+
+  /* Move along, move along nothing to see.  */
+  if (!mbox_has_newmail (mbox) && mbox->size == file_size)
+    return 0;
 
   /* Bailout early on error.  */
   if (status != 0)
@@ -180,6 +197,7 @@ mbox_scan (mbox_t mbox, unsigned int msgno, unsigned int *pcount, int do_notif)
 
   newline = 1;
   errno = lines = inheader = inbody = 0;
+  mum = NULL;
 
   status = stream_seek (mbox->carrier, total, MU_STREAM_WHENCE_SET);
   if (status != 0)
@@ -189,7 +207,7 @@ mbox_scan (mbox_t mbox, unsigned int msgno, unsigned int *pcount, int do_notif)
     }
 
   while ((status = stream_readline (mbox->carrier, buf, sizeof buf, &n)) == 0
-	 && n != 0)
+	 && n > 0)
     {
       int nl;
       total += n;
@@ -213,7 +231,7 @@ mbox_scan (mbox_t mbox, unsigned int msgno, unsigned int *pcount, int do_notif)
               /* Signal the end of the previous body.  */
               if (mum && !mum->body.end)
                 {
-                  mum->body.end = total - n - newline;
+                  mum->body.end = total - n;
                   mum->body.lines = --lines - newline;
 		  /* DISPATCH_ADD_MSG(mbox); */
                   if (do_notif)
@@ -244,33 +262,7 @@ mbox_scan (mbox_t mbox, unsigned int msgno, unsigned int *pcount, int do_notif)
             }
           else if (ISSTATUS(buf))
             {
-              char *s = memchr (buf, ':', n);
-	      if (s)
-		{
-		  s++;
-		  for (; *s; s++)
-		    {
-		      switch (*s)
-			{
-			case 'r':
-			case 'R':
-			  mum->attr_flags |= MU_ATTRIBUTE_READ;
-			  break;
-			case 'O':
-			case 'o':
-			  mum->attr_flags |= MU_ATTRIBUTE_SEEN;
-			  break;
-			case 'a':
-			case 'A':
-			  mum->attr_flags |= MU_ATTRIBUTE_ANSWERED;
-			  break;
-			case 'd':
-			case 'D':
-			  mum->attr_flags |= MU_ATTRIBUTE_DELETED;
-			  break;
-			}
-		    }
-		}
+	      mbox_parse_status (mum, buf, n);
 	    }
 	  else if (ISX_IMAPBASE(buf))
 	    {
@@ -293,6 +285,8 @@ mbox_scan (mbox_t mbox, unsigned int msgno, unsigned int *pcount, int do_notif)
             }
           else if (sfield && (buf[0] == ' ' || buf[0] == '\t'))
             {
+	      if (buf[n - 1] == '\n')
+		buf[n - 1] = 0;
               mbox_hcache_append (mbox, mbox->messages_count, sfield, buf);
             }
           else
@@ -305,6 +299,8 @@ mbox_scan (mbox_t mbox, unsigned int msgno, unsigned int *pcount, int do_notif)
                 {
 		  *s = '\0';
                   s++;
+		  if (buf[n - 1] == '\n')
+		    buf[n - 1] = 0;
 		  mbox_hcache_append (mbox, mbox->messages_count, buf, s);
 		  sfield = strdup (buf);
 		}
@@ -318,6 +314,7 @@ mbox_scan (mbox_t mbox, unsigned int msgno, unsigned int *pcount, int do_notif)
           if (mum && !mum->body.start)
             {
               mum->body.start = total - n + nl;
+              mum->header.end = total - n + nl;
               mum->header.lines = lines;
               lines = 0;
             }

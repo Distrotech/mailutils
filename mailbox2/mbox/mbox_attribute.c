@@ -146,19 +146,6 @@ attribute_mbox_create (attribute_t *pattribute, mbox_t mbox,
 {
   struct _attribute_mbox *ma;
   int status;
-  attribute_t attribute;
-  char buf[128];
-
-  /* Get the attribute from the status field.  */
-  *buf = '\0';
-  status = mbox_header_get_value (mbox, msgno, "Status", buf, sizeof buf, 0);
-  if (status != 0)
-    return status;
-  status = attribute_status_create (&attribute, buf);
-  if (status != 0)
-    return status;
-  attribute_get_flags (attribute, &mbox->umessages[msgno - 1]->attr_flags);
-  attribute_destroy (&attribute);
 
   ma = calloc (1, sizeof *ma);
   if (ma == NULL)

@@ -284,9 +284,7 @@ _stream_stdio_open (stream_t stream, const char *filename, int port, int flags)
     }
 
   /* Map the flags to the system equivalent.  */
-  if (flags & MU_STREAM_WRITE && flags & MU_STREAM_READ)
-    return EINVAL;
-  else if (flags & MU_STREAM_WRITE)
+  if ((flags & MU_STREAM_WRITE) && !(flags & MU_STREAM_READ))
     flg = O_WRONLY;
   else if (flags & MU_STREAM_RDWR)
     flg = O_RDWR;

@@ -129,6 +129,7 @@ mbox_hcache_append (mbox_t mbox, unsigned int msgno, const char *name,
       if (hc->values == NULL)
 	return MU_ERROR_NO_MEMORY;
     }
+  hc->size = mbox->hcache.size;
 
   for (i = 0; i < mbox->hcache.size; i++)
     {
@@ -150,8 +151,8 @@ mbox_hcache_append (mbox_t mbox, unsigned int msgno, const char *name,
 				       strlen (hc->values[i]) + 1);
 		  if (tmp)
 		    {
-		      strcat (hc->values[i], value);
 		      hc->values[i] = tmp;
+		      strcat (hc->values[i], value);
 		    }
 		}
 	    }

@@ -57,16 +57,16 @@ int
 lockfile_touchlock (lockfile_t lockfile)
 {
   if (lockfile == NULL || lockfile->vtable == NULL
-      || lockfile->vtable->lock == NULL)
+      || lockfile->vtable->touchlock == NULL)
     return MU_ERROR_NOT_SUPPORTED;
-  return lockfile->vtable->lock (lockfile);
+  return lockfile->vtable->touchlock (lockfile);
 }
 
 int
 lockfile_unlock (lockfile_t lockfile)
 {
   if (lockfile == NULL || lockfile->vtable == NULL
-      || lockfile->vtable->lock == NULL)
+      || lockfile->vtable->unlock == NULL)
     return MU_ERROR_NOT_SUPPORTED;
-  return lockfile->vtable->lock (lockfile);
+  return lockfile->vtable->unlock (lockfile);
 }

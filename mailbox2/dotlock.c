@@ -221,7 +221,7 @@ _lockfile_dotlock_ctor (struct _lockfile_dotlock *dotlock,
 			const char *filename)
 {
   mu_refcount_create (&dotlock->refcount);
-  if (dotlock->refcount)
+  if (dotlock->refcount == NULL)
     return MU_ERROR_NO_MEMORY;
 
   dotlock->fname = calloc (strlen (filename) + 5 /*strlen(".lock")*/ + 1, 1);

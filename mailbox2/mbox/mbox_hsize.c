@@ -30,8 +30,9 @@ mbox_get_hsize (mbox_t mbox, unsigned int msgno, unsigned int *psize)
   if (mbox && msgno)
     {
       msgno--;
-      if (msgno >= mbox->messages_count)
-	size = mbox->umessages[msgno]->header.size;
+      if (msgno < mbox->messages_count)
+	size = mbox->umessages[msgno]->header.end -
+	  mbox->umessages[msgno]->header.start;
     }
   if (psize)
     *psize = size;

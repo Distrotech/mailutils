@@ -16,7 +16,7 @@ libmbox_la_SOURCES = \
  mbox_bstream.c      \
  mbox_carrier.c      \
  mbox_cb.c           \
- mbox_changed.c      \
+ mbox_newmail.c      \
  mbox_close.c        \
  mbox_create.c       \
  mbox_destroy.c      \

@@ -80,11 +80,11 @@
 (buf[4] == ' ' || buf[4] == '\t'))
 
 /* Save the uidvalidity:
-   + if it is an empty mbox in the first message append
-   + if for the first message the uidvalidity is not the same
-   from the mbox->uidvalidity.
+   + if it is the first message append
+   and save_uidvalidity is set.
 
-   - strip X-IMAPBASE, X-UID
+   - strip X-IMAPBASE, X-UID, Content-Length and Status.
+
    - add X-UID base on mbox->uidnext.
 
    - mangle any leading "From " in the body to ">From "
@@ -100,6 +100,8 @@ mbox_append_separator (mbox_t mbox, const char *sep)
 {
   char separator[256];
   size_t len;
+  const char nl = '\n';
+  int status = 0;
 
   if (sep == NULL)
     {
@@ -121,7 +123,14 @@ mbox_append_separator (mbox_t mbox, const char *sep)
     len = strlen (sep);
 
   /* Write the separator.  */
-  return stream_write (mbox->carrier, sep, len, NULL);
+  status = stream_write (mbox->carrier, sep, len, NULL);
+  if (status != 0)
+    return status;
+
+  /* Add the trailing newline.  */
+  if (len && sep[len - 1] != '\n')
+    status = stream_write (mbox->carrier, &nl, 1, NULL);
+  return status;
 }
 
 /* Assuming that the file is lock.  */
@@ -329,6 +338,7 @@ mbox_append_hb0 (mbox_t mbox, const char *sep, attribute_t attribute,
     }
   else
     {
+      stream_flush (mbox->carrier);
       lockfile_unlock (mbox->lockfile);
       mbox->uidnext++;
     }

@@ -65,10 +65,8 @@ extern int  mbox_get_blines      __P ((mbox_t, unsigned int, unsigned int *));
 extern int  mbox_get_size        __P ((mbox_t, off_t *));
 
 extern int  mbox_save_attributes __P ((mbox_t));
-extern int  mbox_mark_deleted    __P ((mbox_t, unsigned int));
-extern int  mbox_unmark_deleted  __P ((mbox_t, unsigned int));
 extern int  mbox_expunge         __P ((mbox_t, int));
-extern int  mbox_changed_on_disk __P ((mbox_t));
+extern int  mbox_has_newmail     __P ((mbox_t));
 
 extern int  mbox_set_progress_cb
 __P ((mbox_t, int (*) __P ((int, void *)), void *));

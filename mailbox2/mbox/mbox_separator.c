@@ -25,6 +25,9 @@
 #include <mailutils/error.h>
 #include <mailutils/sys/mbox.h>
 
+/* Each message starts with a line that contaings three of four fieds:
+   "From" SP evelope-sender SP date [SP moreinfo]
+*/
 int
 mbox_get_separator (mbox_t mbox, unsigned int msgno, char **psep)
 {
@@ -65,9 +68,14 @@ mbox_get_separator (mbox_t mbox, unsigned int msgno, char **psep)
 	    }
 	  p = s ;
 	  stream_readline (mbox->carrier, p + strlen (p), len, &n);
-	} while (n && p[n - 1] == '\n');
+	  n = strlen (p);
+	} while (n && p[n - 1] != '\n');
+
+      if (n && p[n - 1] == '\n')
+	p[n - 1] = '\0';
 
       *psep = strdup (p);
+      mbox->umessages[msgno]->separator = strdup (p);
       free (p);
     }
   return 0;

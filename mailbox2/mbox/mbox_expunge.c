@@ -125,6 +125,7 @@ mbox_expunge (mbox_t mbox, int remove_deleted)
   int tmp_fd;
   char *tmp_name = NULL;
   mbox_t tmp_mbox = NULL;
+  off_t tmp_size = 0;
   size_t save_uidvalidity = 0; /* uidvalidity is save in the first message.  */
 
   if (mbox == NULL)
@@ -196,18 +197,6 @@ mbox_expunge (mbox_t mbox, int remove_deleted)
       return status;
     }
 
-  /* _Must_ have and updated view of the size of the mailbox.  */
-  status = mbox_changed_on_disk (mbox);
-  if (status != 0)
-    {
-      mbox_close (tmp_mbox);
-      mbox_destroy (&tmp_mbox);
-      remove (tmp_name);
-      free (tmp_name);
-      /* mu_error ("Failed to grab the lock\n"); */
-      return status;
-    }
-
   /* Critical section, can not allowed signal here.  */
   sigemptyset (&signalset);
   sigaddset (&signalset, SIGTERM);
@@ -250,7 +239,8 @@ mbox_expunge (mbox_t mbox, int remove_deleted)
 	    {
 	      if (mbox_get_hstream (mbox, i + 1, &hstream) != 0
 		  || mbox_get_bstream (mbox, i + 1, &bstream) != 0
-		  || mbox_get_separator (mbox, i + 1, &sep) != 0)
+		  || mbox_get_separator (mbox, i + 1, &sep) != 0
+		  || mbox_get_attribute (mbox, i + 1, &attribute) != 0)
 		{
 		  /* mu_error ("Error expunge:%d", __LINE__); */
 		  goto bailout0;
@@ -275,6 +265,13 @@ mbox_expunge (mbox_t mbox, int remove_deleted)
 	}
     } /* for (;;) */
 
+  /* Get the real size of the mailbox.  The size maintain in
+     the struct _mailbox { off_t size; } the one return in
+     mailbox_get_size() only return the size that mbox_scan()
+     is aware of not necessary the size of the file after
+     an append.  */
+  stream_get_size (tmp_mbox->carrier, &tmp_size);
+
   /* Caution: before ftruncate()ing the file see
      - if we've receive new mails.  Some programs may not respect the lock,
      - or the lock was held for too long.
@@ -289,11 +286,11 @@ mbox_expunge (mbox_t mbox, int remove_deleted)
 	if (len > 0)
 	  {
 	    stream_seek (mbox->carrier, mbox->size, MU_STREAM_WHENCE_SET);
-	    stream_seek (tmp_mbox->carrier, tmp_mbox->size, MU_STREAM_WHENCE_SET);
+	    stream_seek (tmp_mbox->carrier, tmp_size, MU_STREAM_WHENCE_SET);
 	    while ((status = stream_read (mbox->carrier, buffer,
 					  sizeof buffer, &n)) == 0 && n > 0)
 	      {
-		status = stream_write (tmp_mbox->carrier, buffer, n, &n);
+		status = stream_write (tmp_mbox->carrier, buffer, n, NULL);
 		if (status != 0)
 		  {
 		    /* mu_error ("Error expunge:%d: %s", __LINE__,
@@ -313,7 +310,7 @@ mbox_expunge (mbox_t mbox, int remove_deleted)
   } /* End of precaution.  */
 
   /* Seek and rewrite it.  */
-  if (total > 0)
+  if (tmp_size > 0)
     {
       char buffer [1024];
       size_t n = 0;
@@ -334,8 +331,9 @@ mbox_expunge (mbox_t mbox, int remove_deleted)
     }
 
   /* Flush/truncation. Need to flush before truncate.  */
+  stream_get_size (tmp_mbox->carrier, &tmp_size);
   stream_flush (mbox->carrier);
-  status = stream_truncate (mbox->carrier, tmp_mbox->size + marker);
+  status = stream_truncate (mbox->carrier, tmp_size + marker);
   if (status != 0)
     {
       /* mu_error ("Error expunging:%d: %s\n", __LINE__,

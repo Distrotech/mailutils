@@ -106,8 +106,12 @@ _stream_mbox_read (stream_t stream, void *buf, size_t buflen, size_t *pnread)
 	    {
 	      size_t n = min ((size_t)ln, buflen);
 	      /* Position the file pointer.  */
-	      status = stream_seek (ms->mbox->carrier, ms->offset,
-				    MU_STREAM_WHENCE_SET);
+	      if (ms->is_header)
+		status = stream_seek (ms->mbox->carrier, umessage->header.start
+				      + ms->offset, MU_STREAM_WHENCE_SET);
+	      else
+		status = stream_seek (ms->mbox->carrier, umessage->body.start
+				      + ms->offset, MU_STREAM_WHENCE_SET);
 	      if (status == 0)
 		{
 		  status = stream_read (ms->mbox->carrier, buf, n, &nread);
@@ -149,8 +153,12 @@ _stream_mbox_readline (stream_t stream, char *buf, size_t buflen,
 	    {
 	      size_t n = min ((size_t)ln, buflen);
 	      /* Position the stream.  */
-	      status = stream_seek (ms->mbox->carrier, ms->offset,
-				    MU_STREAM_WHENCE_SET);
+	      if (ms->is_header)
+		status = stream_seek (ms->mbox->carrier, umessage->header.start
+				      + ms->offset, MU_STREAM_WHENCE_SET);
+	      else
+		status = stream_seek (ms->mbox->carrier, umessage->body.start
+				      + ms->offset, MU_STREAM_WHENCE_SET);
 	      if (status == 0)
 		{
 		  status = stream_readline (ms->mbox->carrier, buf, n, &nread);

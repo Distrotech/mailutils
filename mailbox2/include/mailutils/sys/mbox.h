@@ -89,7 +89,6 @@ struct _mbox_message
   {
     stream_t stream;
     unsigned int lines;
-    unsigned int size;
     off_t start;
     off_t end;
   } header, body;
