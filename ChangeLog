@@ -1,5 +1,32 @@
 2001-08-30 Sergey Poznyakoff
 
+	More changes to better integrate mysql support. Introduced
+	mu_getpwnam function. The function first calls system getpwnam,
+	if it fails, it calls application-defined getpwnam function.
+	mu_register_getpwnam can be used to register such a function.
+	
+	* configure.in: Add -lm to AUTHLIBS when configured with
+	--enable-mysql.
+	When checking for PAM: Append to AUTHLIBS instead of just
+	assigning to it.
+	* imap4d/Makefile.am: Moved @AUTHLIBS@ before libmailutils.
+	Needed when using mysql.
+	* pop3d/Makefile.am: Likewise.
+	* imap4d/imap4d.c: use mu_register_getpwnam.
+	* pop3d/pop3d.c: Likewise.
+
+	* pop3d/user.c: Use mu_getpwnam.
+	* imap4d/login.c: Likewise.
+
+	* mailbox/mbx_default.c: use mu_getpwnam. Removed inclusion
+	of MySql.h.
+	* mailbox/mutil.c: new functions: mu_getpwnam() and
+	mu_register_getpwnam(). 
+	Removed inclusion of MySql.h
+	* include/mailbox/mutil.h: Prototypes for the new functions.
+
+2001-08-30 Sergey Poznyakoff
+
 	* MySql/MySql.c: Use asprintf instead of sprintf, use xmalloc
 	instead of malloc.
 	Return values were allocated dynamically but never freed, this
