@@ -57,11 +57,12 @@ mail_reply(int argc, char **argv)
 	  size_t i, count = 0;
 	  char buf[512];
 
-	  header_aget_value(hdr, MU_HEADER_TO, &str);
-
-	  address_create(&addr, str);
-	  free(str);
-	  address_get_count(addr, &count);
+	  if (header_aget_value(hdr, MU_HEADER_TO, &str) == 0)
+	    {
+	      address_create(&addr, str);
+	      free(str);
+	      address_get_count(addr, &count);
+            }
 
 	  /* Make sure we do not include our alternate names */
 	  for (i = 1; i <= count; i++)

@@ -568,7 +568,7 @@ fetch_envelope0 (message_t msg)
   /* Note that the server MUST default the reply-to and sender fields from
      the From field; a client is not expected to know to do this. */
   header_aget_value (header, "Sender", &buffer);
-  fetch_send_address ((*buffer == '\0') ? from : buffer);
+  fetch_send_address (buffer ? buffer : from);
   free (buffer);
   util_send (" ");
 
@@ -576,7 +576,7 @@ fetch_envelope0 (message_t msg)
   /* Note that the server MUST default the reply-to and sender fields from
      the From field; a client is not expected to know to do this. */
   header_aget_value (header, "Reply-to", &buffer);
-  fetch_send_address ((*buffer == '\0') ? from : buffer);
+  fetch_send_address (buffer ? buffer : from);
   free (buffer);
   util_send (" ");
 
@@ -664,13 +664,15 @@ fetch_bodystructure0 (message_t message, int extension)
       message_get_header (message, &header);
 
       /* The subtype.  */
-      header_aget_value (header, MU_HEADER_CONTENT_TYPE, &buffer);
-      s = strtok_r (buffer, " \t\r\n;", &sp);
-      if (s)
-	{
-	  s = strchr (s, '/');
-	  if (s)
-	    *s++ = '\0';
+      if (header_aget_value (header, MU_HEADER_CONTENT_TYPE, &buffer) == 0)
+        {
+           s = strtok_r (buffer, " \t\r\n;", &sp);
+           if (s)
+	     {
+	       s = strchr (s, '/');
+	       if (s)
+	         *s++ = '\0';
+	     }
 	}
       util_send (" ");
       util_send_qstring (s);
@@ -787,9 +789,8 @@ bodystructure (message_t msg, int extension)
 
   /* body type:  Content-Type
      body subtype: */
-  header_aget_value (header, MU_HEADER_CONTENT_TYPE, &buffer);
-  s = strtok_r (buffer, " \t\r\n;", &sp);
-  if (s)
+  if (header_aget_value (header, MU_HEADER_CONTENT_TYPE, &buffer) == 0
+      && (s = strtok_r (buffer, " \t\r\n;", &sp)) != NULL)
     {
       char *p = strchr (s, '/');
       if (strcasecmp (s, "MESSAGE/RFC822") == 0)
@@ -865,7 +866,7 @@ bodystructure (message_t msg, int extension)
   /* body encoding: Content-Transfer-Encoding. */
   header_aget_value (header, MU_HEADER_CONTENT_TRANSFER_ENCODING, &buffer);
   util_send (" ");
-  util_send_qstring ((*buffer) ? buffer : "7BIT");
+  util_send_qstring (buffer ? buffer : "7BIT");
   free (buffer);
 
   /* body size RFC822 format.  */
@@ -1211,12 +1212,9 @@ fetch_header_fields (message_t msg, char **arg, unsigned long start,
       {
 	char *value = NULL;
 	size_t n = 0;
-	header_aget_value (header, array[j], &value);
-	if (*value == '\0')
-	  {
-	    free (value);
+	if (header_aget_value (header, array[j], &value))
 	    continue;
-	  }
+
 	n = asprintf (&buffer, "%s: %s\n", array[j], value);
 	status = stream_write (stream, buffer, n, off, &n);
 	off += n;
