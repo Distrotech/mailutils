@@ -262,6 +262,6 @@ alias_expand(char *name)
   list_t list;
 
   if (!alias_lookup(name, &list))
-    return strdup (name);
+    return NULL;
   return util_slist_to_string(list, ",");
 }
