@@ -162,6 +162,12 @@ main (int argc, char *argv[])
 #ifdef HAVE_MYSQL
   mu_register_getpwnam (getMpwnam);
 #endif
+#ifdef USE_VIRTUAL_DOMAINS
+  mu_register_getpwnam (getpwnam_virtual);
+  mu_register_getpwnam (getpwnam_ip_virtual);
+  mu_register_getpwnam (getpwnam_host_virtual);
+#endif
+
   /* Register local mbox formats. */
   {
     list_t bookie;
@@ -217,7 +223,7 @@ make_progfile_name (char *pattern, char *username)
 	  case 'h':
 	    if (!homedir)
 	      {
-		struct passwd *pwd = getpwnam (username);
+		struct passwd *pwd = mu_getpwnam (username);
 		if (!pwd)
 		  return NULL;
 		homedir = pwd->pw_dir;
@@ -451,7 +457,7 @@ deliver (FILE *fp, char *name)
   mailbox_get_locker (mbox, &lock);
 
   timeout = lock_timeout;
-  while ((status = locker_lock (lock, MU_LOCKER_WRLOCK)))
+  while ((status = locker_lock (lock, MU_LOCKER_WRLOCK|MU_LOCKER_PID)))
     {
       if (timeout-- <= 0)
 	break;
