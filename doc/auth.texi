@@ -1,0 +1,72 @@
+Mailboxes and Mailers provide a way to authenticate when the URL does not
+contain enough information.  The default action is to call function
+@code{auth_authenticate} who will get the @emph{user} and @emph{passwd}
+if not set, this function can be override by a custom method.
+
+@section Helper Funtions
+@deftypefun int auth_set_user (auth_t @var{auth}, const char *@var{user})
+Set the @var{user} to field value.
+@end deftypefun
+
+@deftypefun int auth_set_passwd (auth_t @var{auth}, const char *@var{passwd})
+Set the @var{passwd} to field value.
+@end deftypefun
+
+@deftypefun int auth_set_authenticate (auth_t @var{auth}, int *(authenticate)(auth_t, const char **user, const char **passwd)
+Set Override the authentification function.  If NULL authentication is
+disabled.  If *@var{user} and *@var{passwd} are not NULL, they should be
+@code{free(3)} before setting new values.
+@end deftypefun
+
+To copy new email from an FTP server,  lets suppose that we've register an
+ftp mailbox type.
+
+@example
+#include <mailutils.h>
+#include <stdlib.h>
+#include <stdio.h>
+
+int main ()
+@{
+  mailbox_t ftp;
+  mailbox_t local;
+  auth_t auth;
+  size_t i, count;
+
+  /* assume that  ftp:// was register see @code{mailbox_add_type} */
+  if (mailbox_init (&local, "file:///home/thomasf/Mail/remote, 0) != 0
+      || mailbox_init (&ftp, "ftp://qnx.com/var/mail/thomasf, 0) != 0)
+    @{
+        fprintf (stderr, "Fail to init remote ftp mail\n");
+        exit (EXIT_FAILURE);
+    @}
+
+  mailbox_get_auth (ftp, &auth);
+  auth_set_user (auth, "thomasf");
+  auth_set_passwd (auth, "thomasf@@qnx.com");
+
+  if (mailbox_open (ftp, MU_MB_RDONLY) != 0
+      || mailbox_open (local, MU_MB_APPEND | MU_MB_CREAT) != 0)
+    @{
+        fprintf (stderr, "Fail to open remote ftp mail\n");
+        exit (EXIT_FAILURE);
+    @}
+
+   count = mailbox_count (ftp);
+   for (i = 1; i <= count; i++)
+    @{
+       mailbox_get_message (ftp, i, &message);
+       if (message_is_new (messsage))
+         @{
+            printf ("Appending message %d\n", i)
+            mailbox_append_message (local, message, 1);
+         @}
+    @}
+
+   mailbox_close (local);
+   mailbox_close (ftp);
+
+   return 0;
+@}
+
+@end example
