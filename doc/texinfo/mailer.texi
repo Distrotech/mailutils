@@ -104,11 +104,15 @@ Some possible use cases the API must support are:
 
 /sbin/sendmail isn't always sendmail... sometimes its a sendmail-compatible
 wrapper, so assume /sbin/sendmail understands only a recipient
-list, -f, -F, -t, and -oi, these seem to be pretty basic. Cross fingers.
+list, -f and -oi, these seem to be pretty basic. Cross fingers.
 
-Pipe to "/sbin/sendmail -oi [-f from] <to|-t>", supplying -f if there
-was a from, and supplying either the recipient list from the to,
-or the -t flag.
+Pipe to "/sbin/sendmail -oi [-f from] [to...]", supplying -f if there
+was a from, and supplying the recipient list from the to (if there
+is no recipient list, assume it will read the message contents for
+the recipients).
+
+Note: do we need to supply -t to sendmail to force it to read the
+message contents to find the recipients?
 
 Note: since the stdout and stderr of sendmail is closed, we have no
 way of ever giving feedback on failure. Also, what should the return
@@ -117,14 +121,13 @@ which is less than descriptive!
 
 @subheading The SMTP mailer.
 
-This is very rundamentary right now, all of what sendmail does must be
-implemented.
+This mailer does NOT canonicalize the message. This must be done before
+sending the message, or it may be assumed that the MTA will do so.
 
-Actually, I think some things (like date and message-id being inserted)
-will be done by the receiving SMTP MTA. However, the specs say we
-are supposed to canonicalize the mail before sending it, not rely
-on the receiving SMTP agent to patch up our mail. Hmm... which is
-the right way?
+It does blind out the Bcc: header before sending, though.
+
+Note: mutt always puts the recipient addresses on the command line, even
+bcc ones, do we strip the bcc before forwarding with SMTP?
 
 @subheading Non-RFC822 addresses.
 
@@ -132,7 +135,7 @@ An address that has no domain is not and RFC822 email address. What
 do I do with them? Should the user of the API be responsible for
 determining what is mean by email to "john" means? Or should the
 be able to configure sendmail to decide globally what this means. If so, we
-can pass the address to sendmail, but we have to decide for SMTTP! So,
+can pass the address to sendmail, but we have to decide for SMTP! So,
 right now these addresses are rejected. This could be changed.
 
 
