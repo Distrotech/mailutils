@@ -152,8 +152,9 @@ proc mu_exec {args} {
     for {set i 0} {$i < [llength $args]} {incr i} {
 	set opt [lindex $args $i]
 	if {"$opt" == "-retcode"} {
-	    set retcode [lindex $args [expr $i + 1]]
 	    incr i
+	    set retcode [lindex $args $i]
+	    verbose "RETCODE $retcode" 1
 	} elseif {"$opt" == "-message"} {
 	    set message [lindex $args [expr $i + 1]]
 	    incr i
@@ -197,7 +198,7 @@ proc mu_exec {args} {
 
     set res [remote_exec host $cmd]
 
-    set args [concat $args "$retcode"]
+    lappend args "$retcode"
 	    
     set output [lindex $res 1]
 
@@ -226,7 +227,7 @@ proc mu_exec {args} {
 
 	if {$regexp} {
 	    verbose "does \"$output\" match regular expression \"$pattern\"?" 1
-	    if {![regexp -- "$pattern(.*)" "$output" dummy output]} {
+	    if {![regexp -- "${pattern}(.*)" "$output" dummy output]} {
 		set result 1
 	    }
 	} else {
@@ -237,9 +238,10 @@ proc mu_exec {args} {
 		}
 		set output [string range $output [string length $pattern] end]
 	    }
-	    if {![regexp -- "\[ \t]*\r\n(.*)" "$output" dummy output]} {
-		set result 1
-	    }
+	}
+
+	if {![regexp -- "\[ \t]*\r\n(.*)" "$output" dummy output]} {
+	    set result 1
 	}
 
 	if {$result} {
