@@ -891,3 +891,52 @@ util_localname ()
     }
   return localname;
 }
+
+/* Match STRING against the IMAP4 wildard pattern PATTERN */
+
+int
+util_wcard_match (const char *string, const char *pattern, const char *delim)
+{
+  const char *p = pattern, *n = string;
+  char c;
+
+  for (;(c = *p++) != '\0' && *n; n++)
+    {
+      switch (c)
+	{
+	case '%':
+	  if (*p == '\0')
+	    {
+	      /* Matches everything except '/' */
+	      for (; *n && *n != delim[0]; n++)
+		;
+	      return (*n == delim[0]) ? WCARD_RECURSE_MATCH : WCARD_MATCH;
+	    }
+	  else
+	    for (; *n != '\0'; ++n)
+	      if (util_wcard_match (n, p, delim) == WCARD_MATCH)
+		return WCARD_MATCH;
+	  break;
+
+	case '*':
+	  if (*p == '\0')
+	    return WCARD_RECURSE_MATCH;
+	  for (; *n != '\0'; ++n)
+	    {
+	      int status = util_wcard_match (n, p, delim);
+	      if (status == WCARD_MATCH || status == WCARD_RECURSE_MATCH)
+		return status;
+	    }
+	  break;
+
+	default:
+	  if (c != *n)
+	    return WCARD_NOMATCH;
+	}
+    }
+
+  if (!c && !*n)
+    return WCARD_MATCH;
+
+  return WCARD_NOMATCH;
+}
