@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2001 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001, 2005 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -17,12 +17,30 @@
 
 #include "mail.h"
 
-/*
- * tou[ch] [msglist]
- */
+/* tou[ch] [msglist]
+   
+   Touch the specified messages. If any message in msglist is not
+   specifically deleted nor saved in a file, it shall be placed in the
+   mbox upon normal termination. */
+
+static int
+touch0 (msgset_t *mspec, message_t msg, void *data)
+{
+  attribute_t attr = NULL;
+  
+  message_get_attribute (msg, &attr);
+  if (!attribute_is_userflag (attr, MAIL_ATTRIBUTE_SAVED))
+    {
+      attribute_set_userflag (attr, MAIL_ATTRIBUTE_MBOXED);
+      util_mark_read (msg);
+    }
+  
+  cursor = mspec->msg_part[0];
+}
 
 int
 mail_touch (int argc, char **argv)
 {
+  return util_foreach_msg (argc, argv, MSG_NODELETED, touch0, NULL);
   return mail_mbox (argc, argv);
 }
