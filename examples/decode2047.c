@@ -22,7 +22,8 @@
 
 #include <mailutils/mailutils.h>
 
-#define ISPRINT(c) ((c)=='\t'||(c)==' '||(c)=='\n'||((c)>' '&&(c)<128)) 
+#define ISPRINT(c) ((c)=='\t'||(c)==' '||(c)=='\n'||\
+                    ((unsigned char)(c)>' '&&(unsigned char)(c)<128)) 
 
 void
 print (char *p, int printable)
