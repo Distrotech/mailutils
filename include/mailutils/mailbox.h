@@ -58,7 +58,7 @@ extern int mailbox_set_folder     __P ((mailbox_t, folder_t));
 extern int mailbox_get_message    __P ((mailbox_t, size_t msgno, message_t *));
 extern int mailbox_append_message __P ((mailbox_t, message_t));
 extern int mailbox_messages_count __P ((mailbox_t, size_t *));
-extern int mailbox_recent_count   __P ((mailbox_t, size_t *));
+extern int mailbox_unseen_count   __P ((mailbox_t, size_t *));
 extern int mailbox_expunge        __P ((mailbox_t));
 
 /* Update and scanning.  */

@@ -85,6 +85,9 @@ extern int header_get_value     __P ((header_t, const char *, char *,
 extern int header_set_get_value __P ((header_t, int (*_get_value)
 				      __P ((header_t, const char *, char *,
 					    size_t, size_t *)), void *));
+extern int header_set_get_fvalue __P ((header_t, int (*_get_value)
+				       __P ((header_t, const char *, char *,
+					     size_t, size_t *)), void *));
 
 extern int header_get_stream    __P ((header_t, stream_t *));
 extern int header_set_stream    __P ((header_t, stream_t, void *));
