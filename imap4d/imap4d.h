@@ -66,6 +66,8 @@ struct imap4d_command {
   char *name;
   Function *func;
   int states;
+  int success;
+  int failure;
 };
 
 /* Global variables and constants*/
@@ -86,6 +88,10 @@ struct imap4d_command {
 #define RESP_NO		2
 
 extern const struct imap4d_command imap4d_command_table[];
+
+#define TOO_MANY (util_finish (argc, argv, RESP_BAD, NULL, "Too many args"))
+#define TOO_FEW  (util_finish (argc, argv, RESP_BAD, NULL, "Too few args"))
+#define NOT_IMPL (util_finish (argc, argv, RESP_BAD, NULL, "Not implemented"))
 
 /* Functions */
 int imap4d_capability __P ((int argc, char **argv));
@@ -115,8 +121,9 @@ int imap4d_uid __P ((int argc, char **argv));
 
 int util_out __P ((char *seq, int tag, char *f, ...));
 int util_start __P ((char *seq));
-int util_finish __P ((int argc, char **argv, int resp, char *f, ...));
-int util_getstate __P((void));
+int util_finish __P ((int argc, char **argv, int resp, char *r, char *f, ...));
+int util_getstate __P ((void));
+struct imap4d_command *util_getcommand __P ((char *cmd));
 
 #ifdef __cplusplus
 }

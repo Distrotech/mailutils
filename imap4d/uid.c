@@ -18,12 +18,12 @@
 #include "imap4d.h"
 
 /*
- *
+ * see comment in store.c, raise to the nth power
+ * this is really going to sux0r (maybe)
  */
 
 int
 imap4d_uid (int argc, char **argv)
 {
-  util_out (argv[0], TAG_NONE, "BAD %s Command not implemented", argv[1]);
-  return util_finish (argc, argv, RESP_BAD, "Command not implemented");
+  return NOT_IMPL;
 }

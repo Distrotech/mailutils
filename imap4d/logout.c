@@ -18,12 +18,15 @@
 #include "imap4d.h"
 
 /*
- *
+ * This needs to properly close the mailbox
  */
 
 int
 imap4d_logout (int argc, char **argv)
 {
-  util_out (argv[0], TAG_NONE, "BAD %s Command not implemented", argv[1]);
-  return util_finish (argc, argv, RESP_BAD, "Command not implemented");
+  if (argc > 2)
+    return TOO_MANY;
+  util_out (argv[0], TAG_NONE, "BYE Logging out");
+  util_finish (argc, argv, RESP_OK, NULL, "Completed");
+  exit (0);
 }

@@ -18,9 +18,10 @@
 #include "imap4d.h"
 
 int
-imap4d_noop (int argc, char **argv)
+imap4d_capability (int argc, char **argv)
 {
   if (argc > 2)
     return TOO_MANY;
+  util_out (argv[0], TAG_NONE, "CAPABILITY IMAP4rev1");
   return util_finish (argc, argv, RESP_OK, NULL, "Completed");
 }

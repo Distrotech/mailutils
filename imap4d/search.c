@@ -18,12 +18,13 @@
 #include "imap4d.h"
 
 /*
- *
+ * This will be a royal pain in the arse to implement
  */
 
 int
 imap4d_search (int argc, char **argv)
 {
-  util_out (argv[0], TAG_NONE, "BAD %s Command not implemented", argv[1]);
-  return util_finish (argc, argv, RESP_BAD, "Command not implemented");
+  if (argc < 3)
+    return TOO_FEW;
+  return NOT_IMPL;
 }

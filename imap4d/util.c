@@ -45,10 +45,11 @@ util_out (char *seq, int tag, char *f, ...)
 }
 
 int
-util_finish (int argc, char **argv, int resp, char *f, ...)
+util_finish (int argc, char **argv, int resp, char *rc, char *f, ...)
 {
   char *buf = NULL, *buf2 = NULL, *code = NULL;
   int len = 0;
+  struct imap4d_command *cmd = util_getcommand (argv[1]);
   va_list ap;
   va_start (ap, f);
 
@@ -56,25 +57,32 @@ util_finish (int argc, char **argv, int resp, char *f, ...)
     {
     case RESP_OK:
       code = strdup ("OK");
+      /* set state (cmd->success); */
       break;
     case RESP_BAD:
       code = strdup ("BAD");
       break;
     case RESP_NO:
       code = strdup ("NO");
+      /* set state (cmd->failure); */
       break;
     default:
       code = strdup ("X-BUG");
     }
   
   vasprintf (&buf, f, ap);
-  len = asprintf (&buf2, "%s %s %s %s\r\n", argv[0], code, argv[1], buf);
+  if (rc != NULL)
+    len = asprintf (&buf, "%s %s %s %s %s\r\n", argv[0],code,rc,argv[1],buf);
+  else
+    len = asprintf (&buf2, "%s %s %s %s\r\n", argv[0], code, argv[1], buf);
 
   write (ofile, buf2, len);
 
   free (buf);
   free (buf2);
   free (code);
+  free (rc);
+  argcv_free (argc, argv);
 
   return resp;
 }
@@ -123,65 +131,35 @@ util_getline (void)
 int
 util_do_command (char *cmd)
 {
+  int argc = 0, i = 0;
+  char **argv = NULL;
+  struct imap4d_command *command = NULL;
+
   if (cmd == NULL)
     return 0;
-  else
+
+  if (argcv_get (cmd, &argc, &argv) != 0)
     {
-      int argc = 0, status = 0, i = 0, len;
-      char **argv = NULL;
-      struct imap4d_command *command = NULL;
-
-      if (argcv_get (cmd, &argc, &argv) != 0)
-	{
-	  argcv_free (argc, argv);
-	  return 1;
-	}
-
-
-      util_start (argv[0]);
-
-      if (argc < 2)
-	{
-	  util_finish (argc, argv, RESP_BAD,
-		       "Client did not send space after tag");
-	  argcv_free (argc, argv);
-	  return 1;
-	}
-
-      len = strlen (argv[1]);
-      for (i=0; i < len; i++)
-	argv[1][i] = tolower (argv[1][i]);
-      
-      for (i=0; command == NULL && imap4d_command_table[i].name != 0; i++)
-	{
-	  if (strlen (imap4d_command_table[i].name) == len &&
-	      !strcmp (imap4d_command_table[i].name, argv[1]))
-	    command = &imap4d_command_table[i];
-	}
-
-      for (i=0; i < len; i++)
-	argv[1][i] = toupper (argv[1][i]);
-
-      if (command == NULL)
-	{
-	  util_finish (argc, argv, RESP_BAD, "Invalid command");
-	  argcv_free (argc, argv);
-	  return 1;
-	}
-      else if (! (command->states & util_getstate ()))
-	{
-	  util_finish (argc, argv, RESP_BAD, "Incorrect state");
-	  argcv_free (argc, argv);
-	  return 1;
-	}
-      else
-	{
-	  status = command->func (argc, argv);
-	  argcv_free (argc, argv);
-	  return status;
-	}
+      argcv_free (argc, argv);
+      return 1;
     }
-  return 1;
+
+  util_start (argv[0]);
+
+  if (argc < 2)
+    return util_finish (argc, argv, RESP_BAD, NULL, "No space after tag");
+  
+  command = util_getcommand (argv[1]);
+  
+  for (i=0; i < strlen (argv[1]); i++)
+    argv[1][i] = toupper (argv[1][i]);
+  
+  if (command == NULL)
+    return util_finish (argc, argv, RESP_BAD, NULL, "Invalid command");
+  else if (! (command->states & util_getstate ()))
+    return util_finish (argc, argv, RESP_BAD, NULL, "Incorrect state");
+
+  return command->func (argc, argv);
 }
 
 int
@@ -194,4 +172,18 @@ int
 util_getstate (void)
 {
   return STATE_NONAUTH;
+}
+
+struct imap4d_command *
+util_getcommand (char *cmd)
+{
+  int i = 0, len = strlen (cmd);
+
+  for (i = 0; imap4d_command_table[i].name != 0; i++)
+    {
+      if (strlen (imap4d_command_table[i].name) == len &&
+	  !strcasecmp (imap4d_command_table[i].name, cmd))
+	return &imap4d_command_table[i];
+    }
+  return NULL;
 }

@@ -18,12 +18,14 @@
 #include "imap4d.h"
 
 /*
- *
+ * This will suck, too
  */
 
 int
 imap4d_fetch (int argc, char **argv)
 {
-  util_out (argv[0], TAG_NONE, "BAD %s Command not implemented", argv[1]);
-  return util_finish (argc, argv, RESP_BAD, "Command not implemented");
+  if (argc < 4)
+    return TOO_FEW;
+  /* check for paren list */
+  return NOT_IMPL;
 }

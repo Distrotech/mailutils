@@ -18,12 +18,15 @@
 #include "imap4d.h"
 
 /*
- *
+ * must create a new mailbox
  */
 
 int
 imap4d_create (int argc, char **argv)
 {
-  util_out (argv[0], TAG_NONE, "BAD %s Command not implemented", argv[1]);
-  return util_finish (argc, argv, RESP_BAD, "Command not implemented");
+  if (argc > 3)
+    return TOO_MANY;
+  else if (argc < 3)
+    return TOO_FEW;
+  return NOT_IMPL;
 }

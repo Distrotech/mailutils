@@ -18,12 +18,11 @@
 #include "imap4d.h"
 
 /*
- *
+ * Now you're messing with a sumbitch
  */
 
 int
 imap4d_store (int argc, char **argv)
 {
-  util_out (argv[0], TAG_NONE, "BAD %s Command not implemented", argv[1]);
-  return util_finish (argc, argv, RESP_BAD, "Command not implemented");
+  return NOT_IMPL;
 }

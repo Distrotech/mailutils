@@ -18,12 +18,11 @@
 #include "imap4d.h"
 
 /*
- *
+ * copy things from select.c
  */
 
 int
 imap4d_examine (int argc, char **argv)
 {
-  util_out (argv[0], TAG_NONE, "BAD %s Command not implemented", argv[1]);
-  return util_finish (argc, argv, RESP_BAD, "Command not implemented");
+  return NOT_IMPL;
 }

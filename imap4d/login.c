@@ -18,12 +18,17 @@
 #include "imap4d.h"
 
 /*
- *
+ * argv[2] == username
+ * argv[3] == password
+ * this should support PAM, shadow, and normal password
  */
 
 int
 imap4d_login (int argc, char **argv)
 {
-  util_out (argv[0], TAG_NONE, "BAD %s Command not implemented", argv[1]);
-  return util_finish (argc, argv, RESP_BAD, "Command not implemented");
+  if (argv > 4)
+    return TOO_MANY;
+  else if (argv < 4)
+    return TOO_FEW;
+  return NOT_IMPL;
 }

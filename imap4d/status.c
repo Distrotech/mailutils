@@ -24,6 +24,9 @@
 int
 imap4d_status (int argc, char **argv)
 {
-  util_out (argv[0], TAG_NONE, "BAD %s Command not implemented", argv[1]);
-  return util_finish (argc, argv, RESP_BAD, "Command not implemented");
+  if (argc < 4)
+    return TOO_FEW;
+  if (argv[3][0] != '(' || argv[argc-1][strlen(argv[argc-1])-1] != ')')
+    return util_finish (argc, argv, RESP_BAD, NULL, "Invalid args");
+  return NOT_IMPL;
 }

@@ -18,12 +18,27 @@
 #include "imap4d.h"
 
 /*
- *
+ * argv[2] == mailbox
+ * this needs to share code with EXAMINE
  */
 
 int
 imap4d_select (int argc, char **argv)
 {
-  util_out (argv[0], TAG_NONE, "BAD %s Command not implemented", argv[1]);
-  return util_finish (argc, argv, RESP_BAD, "Command not implemented");
+  if (argc > 3)
+    return TOO_MANY;
+  else if (argc < 3)
+    return TOO_FEW;
+
+  /* close previous mailbox */
+  if ( /* open mailbox (argv[2]) == */ 0)
+    {
+      char *flags = NULL;
+      int num_messages = 0, recent = 0, uid = 0;
+      util_out (argv[0], TAG_NONE, "FLAGS %s", flags);
+      util_out (argv[0], TAG_NONE, "%d EXISTS", num_messages);
+      util_out (argv[0], TAG_NONE, "%d RECENT", recent);
+      return util_finish (argc, argv, RESP_OK, NULL, "Complete");
+    }
+  return util_finish (argc, argv, RESP_NO, NULL, "Couldn't open %s", argv[2]);
 }
