@@ -1,3 +1,10 @@
+2002-09-27  Sergey Poznyakoff  
+
+	* mh/mh_format.c (strobj_len,print_string): Extra safety not to
+	  dereference NULL pointer.
+	  (_parse_date): Use local time if the date cannot be parsed.
+	* mh/refile.c: Implemented --draft and --file switches.
+
 2002-09-27  Sergey Poznyakoff 
 
 	* mail/file.c: Fixed typo.
