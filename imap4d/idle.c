@@ -21,6 +21,7 @@ int
 imap4d_idle (struct imap4d_command *command, char *arg)
 {
   char *sp;
+  time_t start;
   
   if (util_getword (arg, &sp))
     return util_finish (command, RESP_BAD, "Too many args");
@@ -31,6 +32,7 @@ imap4d_idle (struct imap4d_command *command, char *arg)
   util_send ("+ idling\r\n");
   util_flush_output ();
 
+  start = time (NULL);
   while (1)
     {
       if (util_wait_input (5))
@@ -46,6 +48,8 @@ imap4d_idle (struct imap4d_command *command, char *arg)
 	  if (rc)
 	    break;
 	}
+      else if (time (NULL) - start > daemon_param.timeout)
+	imap4d_bye (ERR_TIMEOUT);
 
       imap4d_sync ();
       util_flush_output ();
