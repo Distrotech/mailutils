@@ -55,7 +55,8 @@ mail_source (int argc, char **argv)
   fp = fopen (argv[1], "r");
   if (!fp)
     {
-      util_error("can't open `%s': %s", argv[1], strerror(errno));
+      if (errno != ENOENT)
+	util_error("can't open `%s': %s", argv[1], strerror(errno));
       return 1;
     }
 
