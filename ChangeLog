@@ -1,3 +1,17 @@
+2004-05-27  Sergey Poznyakoff 
+
+	* NEWS: Updated
+	* include/mailutils/filter.h (rfc_2047_Q_filter): New filter
+	type.
+	* mailbox/filter.c (mailbox/filter.c): Register rfc_2047_Q_filter
+	* mailbox/filter_trans.c: New implementation of RFC 2047 "Q" filter.
+	Reorganized all functions.
+	* mailbox/rfc2047.c: Correctly decode "Q" encoding.
+	
+	* mail/send.c (mail_send0): Check ignoreeof variable for
+	interactive sessions only.
+	* mailbox/mbox/folder.c: Include mutil.h
+
 2004-05-07  Sergey Poznyakoff
 
 	* mail/from.c (mail_from0): Use Date: header if 'datefield' is
