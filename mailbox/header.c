@@ -30,6 +30,7 @@
 
 #include <mailutils/stream.h>
 #include <mailutils/address.h>
+#include <mailutils/mutil.h>
 
 #include <header0.h>
 
