@@ -26,13 +26,13 @@
 ;;; Stop statement
 
 (define (sieve-stop)
-  (exit))
+  (throw 'sieve-stop))
 
 ;;; Basic five actions:
 
 ;;; reject
 
-(define sieve-option-quote #f)
+(define sieve-option-quote #t)
 (define sieve-indent-prefix "\t")
 
 (define (action-reject reason)
@@ -40,18 +40,20 @@
 	 (outbody (mu-message-get-body out-msg))
 	 (inbody (mu-message-get-body sieve-current-message)))
     (mu-message-set-header out-msg "To"
-			   (mu-message-get-header in-msg "From"))
+			   (mu-message-get-header sieve-current-message
+						  "From"))
     (mu-message-set-header out-msg "Cc"
-			   (mu-message-get-header in-msg "Cc"))
+			   (mu-message-get-header sieve-current-message "Cc"))
     (mu-message-set-header out-msg "Subject"
 			   (string-append
 			    "Re: "
-			    (mu-message-get-header in-msg "Subject")))
+			    (mu-message-get-header sieve-current-message
+						   "Subject")))
     (mu-body-write outbody reason)
 
     (cond
      (sieve-option-quote
-      (mu-body-write outbody "\n\nOriginal message:\n")
+      (mu-body-write outbody "\n\nThe rejected message follows:\n")
       (do ((hdr (mu-message-get-header-fields sieve-current-message)
 		(cdr hdr)))
 	  ((null? hdr) #f)
@@ -59,12 +61,13 @@
 	  (mu-body-write outbody (string-append
 				  sieve-indent-prefix
 				  (car s) ": " (cdr s) "\n"))))
-      (mu-body-write outbody (string-append indent-prefix "\n"))
+      (mu-body-write outbody (string-append sieve-indent-prefix "\n"))
       (do ((line (mu-body-read-line inbody) (mu-body-read-line inbody)))
 	  ((eof-object? line) #f)
 	(mu-body-write outbody (string-append sieve-indent-prefix line)))))
 
-    (mu-message-send out-msg)))
+    (mu-message-send out-msg))
+  (mu-message-delete sieve-current-message))
 
 ;;; fileinto
 
@@ -80,6 +83,9 @@
 
 ;;; keep -- does nothing worth mentioning :^)
 
+(define (action-keep)
+  #f)
+
 ;;; discard
 
 (define (action-discard)
@@ -88,7 +94,7 @@
 ;;; Register standard actions
 (cond
  (sieve-parser
-  (sieve-register-action "keep" #f)
+  (sieve-register-action "keep" action-keep)
   (sieve-register-action "discard" action-discard)
   (sieve-register-action "reject" action-reject 'string)
   (sieve-register-action "fileinto" action-fileinto 'string)))
@@ -116,12 +122,19 @@
     #:is)))
 
 (define (sieve-str-str str key comp)
-  (let* ((char (string-ref key 0))
-	 (str-len (string-length str))
-	 (key-len (string-length key))
-	 (limit (- str-len key-len)))
-    (if (< limit 0)
-	#f
+  (if (string-null? key)
+      ;; rfc3028:
+      ;;   If a header listed in the header-names argument exists, it contains
+      ;;   the null key ("").  However, if the named header is not present, it
+      ;;   does not contain the null key.
+      ;; This function gets called only if the header was present. So:
+      #t
+    (let* ((char (string-ref key 0))
+	   (str-len (string-length str))
+	   (key-len (string-length key))
+	   (limit (- str-len key-len)))
+      (if (< limit 0)
+	  #f
 	(call-with-current-continuation
 	 (lambda (xx)
 	   (do ((index 0 (1+ index)))
@@ -136,7 +149,7 @@
 		  (xx #t))
 		 (else
 		  #f)) #f))
-	   #f)))))
+	   #f))))))
 
 ;;; Convert sieve-style regexps to POSIX:
 
@@ -177,7 +190,10 @@
      (lambda (exit)
        (for-each
 	(lambda (key)
-	  (let ((rx (if (eq? match #:matches)
+	  (let ((header-fields (mu-message-get-header-fields
+				sieve-current-message
+				header-list))
+		(rx (if (eq? match #:matches)
 			(make-regexp (sieve-regexp-to-posix key)
 				     (if (eq? comp string-ci=?)
 					 regexp/icase
@@ -185,7 +201,7 @@
 			#f)))
 	    (for-each
 	     (lambda (h)
-	       (let ((hdr (mu-message-get-header sieve-current-message h)))
+	       (let ((hdr (cdr h)))
 		 (if hdr
 		     (let ((naddr (mu-address-get-count hdr)))
 		       (do ((n 1 (1+ n)))
@@ -211,7 +227,7 @@
 			       (runtime-error LOG_NOTICE
 				"Can't get address parts for message "
 				sieve-current-message))))))))
-	     header-list)))
+	     header-fields)))
 	key-list)
        #f))))
 
@@ -227,15 +243,35 @@
      (else
       (runtime-error LOG_CRIT "test-size: unknown comparator " comp)))))
 
-(define (test-envelope part key-list . opt-list)
-  #f)
+(define (test-envelope part-list key-list . opt-args)
+  (let ((comp (find-comp opt-args))
+	(match (find-match opt-args)))
+    (call-with-current-continuation
+     (lambda (exit)
+       (for-each
+	(lambda (part)
+	  (cond
+	   ((string-ci=? part "From")
+	    (let ((sender (mu-message-get-sender sieve-current-message)))
+	      (for-each
+	       (lambda (key)
+		 (if (comp key sender)
+		     (exit #t)))
+	       key-list)))
+	   (else
+	    ;; Should we issue a warning?
+	    ;;(runtime-error LOG_ERR "Envelope part " part " not supported")
+	    #f)))
+	part-list)
+       #f))))
 
 (define (test-exists header-list)
   (call-with-current-continuation
    (lambda (exit)
      (for-each (lambda (hdr)
-		 (if (not (mu-message-get-header sieve-current-message hdr))
-		     (exit #f)))
+		 (let ((val (mu-message-get-header sieve-current-message hdr)))
+                   (if (or (not val) (= (string-length val) 0))
+		     (exit #f))))
 	       header-list)
      #t)))
 
@@ -246,7 +282,10 @@
      (lambda (exit)
        (for-each
 	(lambda (key)
-	  (let ((rx (if (eq? match #:matches)
+	  (let ((header-fields (mu-message-get-header-fields
+				sieve-current-message
+				header-list))
+		(rx (if (eq? match #:matches)
 			(make-regexp (sieve-regexp-to-posix key)
 				     (if (eq? comp string-ci=?)
 					 regexp/icase
@@ -254,7 +293,7 @@
 			#f)))
 	    (for-each
 	     (lambda (h)
-	       (let ((hdr (mu-message-get-header sieve-current-message h)))
+	       (let ((hdr (cdr h)))
 		 (if hdr
 		     (case match
 		       ((#:is)
@@ -266,7 +305,7 @@
 		       ((#:matches)
 			(if (regexp-exec rx hdr)
 			    (exit #t)))))))
-	     header-list)))
+	     header-fields)))
 	key-list)
        #f))))
 
@@ -291,10 +330,10 @@
 		       test-size
 		       size-comp
                        (list 'number))
-;  (sieve-register-test "envelope"
-;		       test-envelope
-;		       (append comparator address-part match-type)
-;                       (list 'string-list 'string-list))
+  (sieve-register-test "envelope"
+		       test-envelope
+		       (append comparator address-part match-type)
+                       (list 'string-list 'string-list))
   (sieve-register-test "exists"
 		       test-exists
 		       '()
@@ -307,6 +346,7 @@
   (sieve-register-test "true"  #t '() '())))
 
 ;;; runtime-error
+
 (define (runtime-error level . text)
   (display (string-append "RUNTIME ERROR in " sieve-source ": "))
   (for-each
@@ -323,4 +363,7 @@
 	((> n count) #f)
 	(set! sieve-current-message
 	      (mu-mailbox-get-message current-mailbox n))
-	(sieve-process-message))))
+	(catch 'sieve-stop
+	       sieve-process-message
+	       (lambda args
+		 #f)))))
