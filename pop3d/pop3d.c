@@ -39,6 +39,8 @@ int tls_done;
 
 /* Number of child processes.  */
 volatile size_t children;
+/* Should all the messages be undeleted on startup */
+int undelete_on_startup;
 
 static int pop3d_mainloop       __P ((int fd, FILE *, FILE *));
 static void pop3d_daemon_init   __P ((void));
@@ -50,8 +52,14 @@ static void pop3d_log_connection __P((int fd));
 const char *program_version = "pop3d (" PACKAGE_STRING ")";
 static char doc[] = N_("GNU pop3d -- the POP3 daemon");
 
+static struct argp_option options[] = {
+  {"undelete", 'u', NULL, 0,
+   N_("undelete all messages on startup"), 0},
+  {NULL, 0, NULL, 0, NULL, 0}
+};
+
 static struct argp argp = {
-  NULL,
+  options,
   pop3d_parse_opt,
   NULL,
   doc,
@@ -79,6 +87,10 @@ pop3d_parse_opt (int key, char *arg, struct argp_state *astate)
     {
     case ARGP_KEY_INIT:
       astate->child_inputs[0] = astate->input;
+      break;
+
+    case 'u':
+      undelete_on_startup = 1;
       break;
       
     default:
