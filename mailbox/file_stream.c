@@ -307,14 +307,8 @@ _file_open (stream_t stream, const char *filename, int port, int flags)
       return ret;
     }
 #if BUFSIZ <= 1024
-  /* Give us some roo to breathe, for OS with two small stdio buffers.  */
-  {
-    char *iobuffer;
-    iobuffer = malloc (8192);
-    if (iobuffer != NULL)
-      if (setvbuf (fs->file, iobuffer, _IOFBF, 8192) != 0)
-	free (iobuffer);
-  }
+  /* Give us some room to breath, for OS with two small stdio buffers.  */
+  setvbuf (fs->file, iobuffer, _IOFBF, 8192);
 #endif
   stream_set_flags (stream, flags |MU_STREAM_NO_CHECK);
   return 0;

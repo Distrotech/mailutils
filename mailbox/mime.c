@@ -368,7 +368,9 @@ static int _mime_set_content_type(mime_t mime)
 {
 	char content_type[256];
 	char boundary[128];
-
+	header_t	hdr = NULL;
+	size_t		size;
+	
 	if ( mime->nmtp_parts > 1 ) {
 		if ( mime->flags & MIME_ADDED_MULTIPART )
 			return 0;
@@ -389,7 +391,12 @@ static int _mime_set_content_type(mime_t mime)
 		if ( (mime->flags & (MIME_ADDED_CONTENT_TYPE|MIME_ADDED_MULTIPART)) == MIME_ADDED_CONTENT_TYPE )
 			return 0;
 		mime->flags &= ~MIME_ADDED_MULTIPART;
-		strcpy(content_type, "text/plain; charset=us-ascii");
+		if ( mime->nmtp_parts )
+			message_get_header(mime->mtp_parts[0]->msg, &hdr);
+		if ( hdr == NULL || header_get_value(hdr, "Content-Type", NULL, 0, &size) != 0 || size == 0 )
+			strcpy(content_type, "text/plain; charset=us-ascii");
+		else
+			header_get_value(hdr, "Content-Type", content_type, sizeof(content_type), &size);
 	}
 	mime->flags |= MIME_ADDED_CONTENT_TYPE;
 	return header_set_value(mime->hdrs, "Content-Type", content_type, 1);
@@ -424,40 +431,46 @@ static int _mime_body_read(stream_t stream, char *buf, size_t buflen, off_t off,
 	if ( ( ret = _mime_set_content_type(mime) ) == 0 ) {
 		do {
 			len = 0;
-			if ( mime->nmtp_parts > 1 && ( mime->flags & MIME_INSERT_BOUNDARY || mime->cur_offset == 0 ) ) {
-				mime->cur_part++;
-				len = 2;
-				buf[0] = buf[1] = '-';
-				buf+=2;
-				len += strlen(mime->boundary);
-				strcpy(buf, mime->boundary);
-				buf+= strlen(mime->boundary);
-				if ( mime->cur_part == mime->nmtp_parts ) {
-					len+=2;
+			if ( mime->nmtp_parts > 1 ) {
+				if ( ( mime->flags & MIME_INSERT_BOUNDARY || mime->cur_offset == 0 ) ) {
+					mime->cur_part++;
+					len = 2;
 					buf[0] = buf[1] = '-';
 					buf+=2;
+					len += strlen(mime->boundary);
+					strcpy(buf, mime->boundary);
+					buf+= strlen(mime->boundary);
+					if ( mime->cur_part == mime->nmtp_parts ) {
+						len+=2;
+						buf[0] = buf[1] = '-';
+						buf+=2;
+					}
+					len++;
+					buf[0] = '\n';
+					buf++;
+					mime->flags &= ~MIME_INSERT_BOUNDARY;
+					buflen =- len;
+					mime->part_offset = 0;
+					if ( mime->cur_part == mime->nmtp_parts ) {
+						if ( nbytes )
+							*nbytes += len;
+						mime->cur_offset +=len;
+						break;
+					}
 				}
-				len++;
-				buf[0] = '\n';
-				buf++;
-				mime->flags &= ~MIME_INSERT_BOUNDARY;
-				buflen =- len;
-				mime->part_offset = 0;
-				if ( mime->cur_part == mime->nmtp_parts ) {
-					if ( nbytes )
-						*nbytes += len;
-					mime->cur_offset +=len;
-					break;
-				}
+				message_get_stream(mime->mtp_parts[mime->cur_part]->msg, &msg_stream);
+			} else {
+				body_t body;
+				message_get_body(mime->mtp_parts[mime->cur_part]->msg, &body);
+				body_get_stream(body, &msg_stream);
 			}
-			message_get_stream(mime->mtp_parts[mime->cur_part]->msg, &msg_stream);
 			ret = stream_read(msg_stream, buf, buflen, mime->part_offset, &part_nbytes );
     		len += part_nbytes;
 			mime->part_offset += part_nbytes;
 			if ( nbytes )
 				*nbytes += len;
 			mime->cur_offset += len;
-			if ( ret == 0 && part_nbytes == 0 )
+			if ( ret == 0 && part_nbytes == 0 && mime->nmtp_parts > 1 )
 				mime->flags |= MIME_INSERT_BOUNDARY;
 		} while( ret == 0 && part_nbytes == 0 );
 	}
@@ -487,6 +500,7 @@ static int _mime_body_size (body_t body, size_t *psize)
 	if ( mime->nmtp_parts == 0 )
 		return EINVAL;
 
+	_mime_set_content_type(mime);
 	for ( i=0;i<mime->nmtp_parts;i++ ) {
 		message_size(mime->mtp_parts[i]->msg, &size);
 		*psize+=size;
@@ -509,6 +523,7 @@ static int _mime_body_lines (body_t body, size_t *plines)
 	if ( mime->nmtp_parts == 0 )
 		return EINVAL;
 
+	_mime_set_content_type(mime);
 	for ( i = 0; i < mime->nmtp_parts; i++ ) {
 		message_lines(mime->mtp_parts[i]->msg, &lines);
 		plines+=lines;
