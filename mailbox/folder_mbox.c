@@ -102,6 +102,9 @@ static int folder_mbox_lsub        __P ((folder_t, const char *, const char *,
 
 static char *get_pathname       __P ((const char *, const char *));
 
+static int folder_mbox_get_authority __P ((folder_t folder,
+					   authority_t * pauth));
+
 struct _fmbox
 {
   char *dirname;
@@ -116,6 +119,13 @@ _folder_mbox_init (folder_t folder)
 {
   fmbox_t dfolder;
   size_t name_len = 0;
+  int status = 0;
+
+  /* We create an authority so the API is uniform across the mailbox
+     types. */
+  status = folder_mbox_get_authority (folder, NULL);
+  if (status != 0)
+    return status;
 
   dfolder = folder->data = calloc (1, sizeof (*dfolder));
   if (dfolder == NULL)
@@ -397,3 +407,17 @@ get_pathname (const char *dirname, const char *basename)
     }
   return pathname;
 }
+
+static int
+folder_mbox_get_authority (folder_t folder, authority_t *pauth)
+{
+  int status = 0;
+  if (folder->authority == NULL)
+    {
+	status = authority_create_null (&folder->authority, folder);
+    }
+  if (!status && pauth)
+    *pauth = folder->authority;
+  return status;
+}
+
