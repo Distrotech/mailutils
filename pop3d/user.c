@@ -17,8 +17,42 @@
 
 #include "pop3d.h"
 
+static int is_virtual = 0;
+
 #ifdef HAVE_MYSQL
 #include "../MySql/MySql.h"
+#endif
+
+#ifdef USE_VIRTUAL_DOMAINS
+
+static struct passwd *
+pop3d_virtual (const char *u)
+{
+  struct passwd *pw;
+  FILE *pfile;
+  int i = 0, len = strlen (u), delim = 0;
+
+  for (i = 0; i < len && delim == 0; i++)
+    if (u[i] == '!' || u[i] == ':' || u[i] == '@')
+      delim = i;
+
+  if (delim == 0)
+    return NULL;
+
+  chdir ("/etc/domains");
+  pfile = fopen (&u[delim+1], "r");
+  while (pfile != NULL && (pw = fgetpwent (pfile)) != NULL)
+    {
+      if (strlen (pw->pw_name) == delim && !strncmp (u, pw->pw_name, delim))
+	{
+	  is_virtual = 1;
+	  return pw;
+	}
+    }
+  
+  return NULL;
+}
+
 #endif
 
 #ifdef USE_LIBPAM
@@ -32,7 +66,8 @@ static int _perr = 0;
     goto pam_errlab;
 
 static int
-PAM_gnupop3d_conv (int num_msg, const struct pam_message **msg, struct pam_response **resp, void *appdata_ptr)
+PAM_gnupop3d_conv (int num_msg, const struct pam_message **msg,
+		   struct pam_response **resp, void *appdata_ptr)
 {
   int replies = 0;
   struct pam_response *reply = NULL;
@@ -140,8 +175,14 @@ pop3d_user (const char *arg)
       pw = getpwnam (arg);
 #ifdef HAVE_MYSQL
       if (pw == NULL)
-        pw = getMpwnam (arg);
+	pw = getMpwnam (arg);
 #endif /* HAVE_MYSQL */
+
+#ifdef USE_VIRTUAL_DOMAINS
+      if (pw == NULL)
+	pw = pop3d_virtual (arg);
+#endif
+
       if (pw == NULL)
 	{
 	  syslog (LOG_INFO, "User '%s': nonexistent", arg);
@@ -151,17 +192,17 @@ pop3d_user (const char *arg)
 #ifndef USE_LIBPAM
       if (pw->pw_uid < 1)
 	return ERR_BAD_LOGIN;
-      if (strcmp (pw->pw_passwd, (char *)crypt (pass, pw->pw_passwd)))
+      if (strcmp (pw->pw_passwd, (char *) crypt (pass, pw->pw_passwd)))
 	{
 #ifdef HAVE_SHADOW_H
 	  struct spwd *spw;
-	  spw = getspnam ((char *)arg);
+	  spw = getspnam ((char *) arg);
 #ifdef HAVE_MYSQL
-          if (spw == NULL)
-            spw = getMspnam (arg);
+	  if (spw == NULL)
+	    spw = getMspnam (arg);
 #endif /* HAVE_MYSQL */
 	  if (spw == NULL || strcmp (spw->sp_pwdp,
-				     (char *)crypt (pass, spw->sp_pwdp)))
+				     (char *) crypt (pass, spw->sp_pwdp)))
 #endif /* HAVE_SHADOW_H */
 	    {
 	      syslog (LOG_INFO, "User '%s': authentication failed", arg);
@@ -195,12 +236,19 @@ pop3d_user (const char *arg)
       }
 #endif /* USE_LIBPAM */
 
-      if (pw->pw_uid > 1)
-	setuid (pw->pw_uid);
-
-      mailbox_name  = calloc (strlen (_PATH_MAILDIR) + 1
-			      + strlen (pw->pw_name) + 1, 1);
-      sprintf (mailbox_name, "%s/%s", _PATH_MAILDIR, pw->pw_name);
+      if (pw->pw_uid > 0 && !is_virtual)
+	{
+	  setuid (pw->pw_uid);
+	  
+	  mailbox_name = calloc (strlen (_PATH_MAILDIR) + 1
+				 + strlen (pw->pw_name) + 1, 1);
+	  sprintf (mailbox_name, "%s/%s", _PATH_MAILDIR, pw->pw_name);
+	}
+      else if (is_virtual)
+	{
+	  mailbox_name = calloc (strlen (pw->pw_dir) + strlen ("/INBOX"), 1);
+	  sprintf (mailbox_name, "%s/INBOX", pw->pw_dir);
+	}
 
       if ((status = mailbox_create (&mbox, mailbox_name)) != 0
 	  || (status = mailbox_open (mbox, MU_STREAM_RDWR)) != 0)
@@ -223,14 +271,14 @@ pop3d_user (const char *arg)
 	      free (mailbox_name);
 	      return ERR_MBOX_LOCK;
 	    }
-	  lockit = 0; /* Do not attempt to lock /dev/null ! */
+	  lockit = 0;		/* Do not attempt to lock /dev/null ! */
 	}
       free (mailbox_name);
 
-      if (lockit && pop3d_lock())
+      if (lockit && pop3d_lock ())
 	{
-	  mailbox_close(mbox);
-	  mailbox_destroy(&mbox);
+	  mailbox_close (mbox);
+	  mailbox_destroy (&mbox);
 	  state = AUTHORIZATION;
 	  return ERR_MBOX_LOCK;
 	}
