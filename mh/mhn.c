@@ -874,6 +874,121 @@ mhn_store_command (message_t msg, msg_part_t part, char *name)
 }
 
 
+/* ************************* Auxiliary functions ************************** */
+
+int
+_message_is_external_body (message_t msg, char ***env)
+{
+  int rc;
+  header_t hdr;
+  char *typestr, *argstr, *type, *subtype;
+
+  if (message_get_header (msg, &hdr))
+    return 0;
+  _get_content_type (hdr, &typestr, &argstr);
+  split_content (typestr, &type, &subtype);
+  rc = strcmp (subtype, "external-body") == 0;
+  if (rc && env)
+    {
+      int argc;
+      char **argv;
+      if (argcv_get (argstr, ";", NULL, &argc, &argv) == 0)
+	{
+	  int i, j;
+	  
+	  for (i = j =  0; i < argc; i++)
+	    {
+	      if (argv[i][0] != ';')
+		argv[j++] = argv[i];
+	    }
+	  argv[j] = NULL;
+	  *env = argv;
+	}
+      else
+	*env = NULL;
+    }
+
+  free (typestr);
+  free (type);
+  free (subtype);
+  return rc;
+}
+
+char *
+_get_env (char **env, char *name)
+{
+  int nlen = strlen (name);
+  for (; *env; env++)
+    {
+      int len = strlen (*env);
+      if (nlen < len
+	  && (*env)[len+1] == '='
+	  && strncasecmp (*env, name, nlen) == 0)
+	return *env + len + 1;
+    }
+  return NULL;
+}
+
+void
+_free_env (char **env)
+{
+  char **p;
+
+  for (p = env; *p; p++)
+    free (*p);
+  free (env);
+}
+
+int
+get_extbody_params (message_t msg, char **content, char **descr)
+{
+  int rc = 0;
+  body_t body = NULL;
+  stream_t stream = NULL;
+  char buf[128];
+  size_t n;
+	
+  message_get_body (msg, &body);
+  body_get_stream (body, &stream);
+  stream_seek (stream, 0, SEEK_SET);
+
+  while (rc == 0
+	 && stream_sequential_readline (stream, buf, sizeof buf, &n) == 0
+	 && n > 0)
+    {
+      char *p;
+      int len = strlen (buf);
+
+      if (len > 0 && buf[len-1] == '\n')
+	buf[len-1] = 0;
+
+      if (descr
+	  && strncasecmp (buf, MU_HEADER_CONTENT_DESCRIPTION ":",
+			  sizeof (MU_HEADER_CONTENT_DESCRIPTION)) == 0)
+	{
+	  for (p = buf + sizeof (MU_HEADER_CONTENT_DESCRIPTION);
+	       *p && isspace (*p); p++)
+	    ;
+	  *descr = strdup (p);
+	}
+      else if (content
+	       && strncasecmp (buf, MU_HEADER_CONTENT_TYPE ":",
+			       sizeof (MU_HEADER_CONTENT_TYPE)) == 0)
+	{
+	  char *q;
+	  for (p = buf + sizeof (MU_HEADER_CONTENT_TYPE);
+	       *p && isspace (*p); p++)
+	    ;
+	  q = strchr (p, ';');
+	  if (q)
+	    *q = 0;
+	  *content = strdup (p);
+	}
+    }
+  return 0;
+}
+
+
 /* ************************** Message iterators *************************** */
 
 
@@ -1048,6 +1163,24 @@ list_handler (message_t msg, msg_part_t part, char *type, char *encoding,
     }
   
   printf ("\n");
+
+  if (_message_is_external_body (msg, NULL))
+    {
+      char *content_type = NULL;
+      char *content_descr = NULL;
+
+      get_extbody_params (msg, &content_type, &content_descr);
+	
+      printf ("          ");
+      printf ("%-25s", content_type ? content_type : "");
+      if (content_descr)
+	printf ("       %s", content_descr);
+      printf ("\n");
+      
+      free (content_type);
+      free (content_descr);
+    }
+  
   return 0;
 }
 
@@ -1110,7 +1243,7 @@ show_internal (message_t msg, msg_part_t part, char *encoding, stream_t out)
   int rc;
   body_t body = NULL;
   stream_t dstr, bstr;
-  
+
   if ((rc = message_get_body (msg, &body)))
     {
       mh_error (_("%lu: can't get message body: %s"),
@@ -1128,7 +1261,7 @@ show_internal (message_t msg, msg_part_t part, char *encoding, stream_t out)
     stream_destroy (&dstr, stream_get_owner (dstr));
   return 0;
 }
-
+  
 int
 mhn_exec (stream_t *str, char *cmd, int flags)
 {
