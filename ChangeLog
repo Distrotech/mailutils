@@ -1,3 +1,16 @@
+2001-06-07 21:07  sroberts
+
+	* .cvsignore, AUTHORS, COPYING, Makefile.am, NEWS, README,
+	addr-lex.l, addr.y, comparator.c, comparator.h, exitcodes.h,
+	hmac-md5.h, imparse.c, imparse.h, interp.c, interp.h, md5.c, md5.h,
+	md5global.h, message.c, message.h, parseaddr.c, parseaddr.h,
+	script.c, script.h, sieve-gram.y, sieve-lex.l, sieve.c,
+	sieve_err.c, sieve_err.h, sieve_interface.h, svfield.c, svfield.h,
+	sysexits.h, test.c, tree.c, tree.h, util.c, util.h, xmalloc.c,
+	xmalloc.h: Initial commit of the port of CMU's sieve engine. It
+	builds, and some actions work, but has seen very little use.
+
+
 2001-06-03  Sam Roberts
 
 	* mailbox/file_stream.c,mailbox/mapfile_stream.c: Return EINVAL
