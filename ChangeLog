@@ -1,5 +1,12 @@
 2003-02-16  Sergey Poznyakoff  
 
+	* libmu_scm/Makefile.am: Use $< only in implicit rules. Non-gnu
+	  implementation of make expand it to a null string if used
+	  within an explicit rule.
+	* mh/Makefile.am: Likewise.
+
+2003-02-16  Sergey Poznyakoff  
+
 	* configure.ac: Added check for declaration of strerror.
 	  Raised version number to 0.3
 	* NEWS: Updated
