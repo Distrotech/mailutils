@@ -33,6 +33,8 @@ extern address_t address_dup __P ((address_t src));
 /* Set FROM to null, after adding its addresses to TO. */
 extern int address_concatenate __P ((address_t to, address_t* from));
 
+extern int address_get_nth
+        __P ((address_t addr, size_t no, address_t *pret));
 extern int address_get_email
 	__P ((address_t, size_t, char *, size_t, size_t *));
 extern int address_get_local_part

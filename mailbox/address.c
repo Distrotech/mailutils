@@ -202,6 +202,16 @@ _address_get_nth (address_t addr, size_t no)
 }
 
 int
+address_get_nth (address_t addr, size_t no, address_t *pret)
+{
+  address_t subaddr = _address_get_nth (addr, no);
+  if (!subaddr)
+    return ENOENT;
+  *pret = address_dup (subaddr);
+  return 0;
+}
+
+int
 address_get_personal (address_t addr, size_t no, char *buf, size_t len,
 		      size_t * n)
 {
