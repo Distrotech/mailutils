@@ -25,15 +25,14 @@
 
 struct _auth
 {
-  char *login;
-  char *passwd;
-  uid_t owner;
-  gid_t group;
-  mode_t mode;
+  void *owner;
+  int (*_prologue) (auth_t);
+  int (*_authenticate) (auth_t);
+  int (*_epilogue) (auth_t);
 };
 
 int
-auth_init (auth_t *pauth)
+auth_init (auth_t *pauth, void *owner)
 {
   auth_t auth;
   if (pauth == NULL)
@@ -41,140 +40,77 @@ auth_init (auth_t *pauth)
   auth = calloc (1, sizeof (*auth));
   if (auth == NULL)
     return ENOMEM;
-  auth->owner = auth->group = -1;
-  auth->mode = 0600;
+  auth->owner = owner;
   *pauth = auth;
   return 0;
 }
 
 void
-auth_destroy (auth_t *pauth)
+auth_destroy (auth_t *pauth, void *owner)
 {
   if (pauth && *pauth)
     {
       auth_t auth = *pauth;
-      free (auth->login);
-      free (auth->passwd);
-      free (auth);
+      if (auth->owner == owner)
+	free (auth);
       *pauth = NULL;
     }
 }
 
-/* login/passwd */
 int
-auth_get_login  (auth_t auth, char *login, size_t len, size_t *n)
+auth_set_authenticate (auth_t auth, int (*_authenticate)(auth_t),
+		       void *owner)
 {
-  size_t nwrite = 0;
   if (auth == NULL)
     return EINVAL;
-  nwrite = _cpystr (login, auth->login, len);
-  if (n)
-    *n = nwrite;
+  if (auth->owner != owner)
+    return EPERM;
+  auth->_authenticate = _authenticate;
   return 0;
 }
 
 int
-auth_set_login  (auth_t auth, const char *login, size_t len)
+auth_authenticate (auth_t auth)
 {
-  char *log = NULL;
+  if (auth == NULL || auth->_authenticate == NULL)
+    return EINVAL;
+  return auth->_authenticate (auth);
+}
+
+int
+auth_set_epilogue (auth_t auth, int (*_epilogue)(auth_t), void *owner)
+{
   if (auth == NULL)
     return EINVAL;
-  if (login != NULL)
-    {
-      log = calloc (len + 1, sizeof (char));
-      if (log == NULL)
-	return ENOMEM;
-      memcpy (log, login, len);
-    }
-  free (auth->login);
-  auth->login = log;
+  if (auth->owner != owner)
+    return EPERM;
+  auth->_epilogue = _epilogue;
   return 0;
 }
 
 int
-auth_get_passwd  (auth_t auth, char *passwd, size_t len, size_t *n)
+auth_epilogue (auth_t auth)
 {
-  size_t nwrite = 0;
+  if (auth == NULL && auth->_epilogue == NULL)
+    return EINVAL;
+  return auth->_epilogue (auth);
+}
+
+int
+auth_set_prologue (auth_t auth, int (*_prologue)(auth_t), void *owner)
+{
   if (auth == NULL)
     return EINVAL;
-  nwrite = _cpystr (passwd, auth->passwd, len);
-  if (n)
-    *n = nwrite;
+  if (auth->owner != owner)
+    return EPERM;
+  auth->_prologue = _prologue;
   return 0;
 }
 
 int
-auth_set_passwd  (auth_t auth, const char *passwd, size_t len)
+auth_prologue (auth_t auth)
 {
-  char *pass = NULL;
-  if (auth == NULL)
+  if (auth == NULL && auth->_prologue == NULL)
     return EINVAL;
-  if (passwd != NULL)
-    {
-      char *pass = calloc (len + 1, sizeof (char));
-      if (pass == NULL)
-	return ENOMEM;
-      memcpy (pass, passwd, len);
-    }
-  free (auth->passwd);
-  auth->passwd = pass;
-  return 0;
-}
-
-/* owner and group */
-int
-auth_get_owner (auth_t auth, uid_t *powner)
-{
-  if (auth == NULL)
-    return EINVAL;
-  if (powner)
-    *powner = auth->owner;
-  return 0;
-}
-
-int
-auth_set_owner (auth_t auth, uid_t owner)
-{
-  if (auth == NULL)
-    return 0;
-  auth->owner = owner;
-  return 0;
-}
-
-int
-auth_get_group (auth_t auth, gid_t *pgroup)
-{
-  if (auth == NULL)
-    return EINVAL;
-  if (pgroup)
-    *pgroup = auth->group;
-  return 0;
-}
-
-int
-auth_set_group (auth_t auth, gid_t group)
-{
-  if (auth == NULL)
-    return EINVAL;
-  auth->group = group;
-  return 0;
-}
-
-int
-auth_get_mode (auth_t auth, mode_t *pmode)
-{
-  if (auth == NULL)
-    return EINVAL;
-  if (pmode)
-    *pmode = auth->mode;
-  return 0;
-}
-
-int
-auth_set_mode (auth_t auth, mode_t mode)
-{
-  if (auth == NULL)
-    return EINVAL;
-  auth->mode = mode;
-  return 0;
+  return auth->_prologue (auth);
 }

@@ -40,6 +40,14 @@ extern "C" {
 struct _message;
 typedef struct _message *message_t;
 
+/* A message is considered to be a container for:
+ * header_t, body_t, and its attribute_t.
+ * The notion of body_t is not visible/exported, since
+ * they are alway tied to a floating message, there was no
+ * need to create yet another object, getting the {i,o}stream_t
+ * was enough.
+ */
+
 extern int message_init        __P ((message_t *, void *owner));
 extern void message_destroy    __P ((message_t *, void *owner));
 

@@ -36,25 +36,23 @@ extern "C" {
 struct _auth;
 typedef struct _auth *auth_t;
 
-extern int auth_init       __P ((auth_t *));
-extern void auth_destroy   __P ((auth_t *));
+extern int auth_init          __P ((auth_t *, void *owner));
+extern void auth_destroy      __P ((auth_t *, void *owner));
 
-/* login/passwd */
-extern int auth_get_login  __P ((auth_t, char *login,
-				  size_t len, size_t *n));
-extern int auth_set_login  __P ((auth_t, const char *login, size_t len));
+extern int auth_prologue      __P ((auth_t));
+extern int auth_set_prologue __P ((auth_t auth,
+				   int (*_prologue) __P ((auth_t)),
+				   void *owner));
 
-extern int auth_get_passwd __P ((auth_t, char *passwd,
-				  size_t len, size_t *n));
-extern int auth_set_passwd __P ((auth_t, const char *passwd, size_t len));
+extern int auth_authenticate  __P ((auth_t));
+extern int auth_set_authenticate __P ((auth_t auth,
+				       int (*_authenticate) __P ((auth_t)),
+				       void *owner));
 
-/* owner group mode*/
-extern int auth_get_owner  __P ((auth_t, uid_t *uid));
-extern int auth_set_owner  __P ((auth_t, uid_t uid));
-extern int auth_get_group  __P ((auth_t, gid_t *gid));
-extern int auth_set_group  __P ((auth_t, gid_t gid));
-extern int auth_get_mode  __P ((auth_t, mode_t *mode));
-extern int auth_set_mode  __P ((auth_t, mode_t mode));
+extern int auth_epilogue      __P ((auth_t));
+extern int auth_set_epilogue __P ((auth_t auth,
+				   int (*_epilogue) __P ((auth_t)),
+				   void *owner));
 
 #ifdef _cpluscplus
 }

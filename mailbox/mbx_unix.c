@@ -91,6 +91,14 @@ typedef struct _mailbox_unix_message
 
 } *mailbox_unix_message_t;
 
+/*
+ * umessages is an array of pointers that contains umessages_count
+ * of mailbox_unix_message_t*; umessages[umessages_count].
+ * We do it this because realloc() can move everything to
+ * a new memory region and invalidating all the pointers someone
+ * has on the message.  Thanks to <Dave Inglis> for pointing this out.
+ * messages_count is the count number of messages parsed so far.
+ */
 typedef struct _mailbox_unix_data
 {
   mailbox_unix_message_t *umessages;
@@ -167,7 +175,7 @@ mailbox_unix_init (mailbox_t *pmbox, const char *name)
 #define UNIX_SCHEME_LEN 5
 #define SEPARATOR '/'
 
-  /* sskip the url scheme */
+  /* skip the url scheme */
   if (name_len > UNIX_SCHEME_LEN &&
       (name[0] == 'u' || name[0] == 'U') &&
       (name[1] == 'n' || name[1] == 'N') &&
@@ -204,7 +212,7 @@ mailbox_unix_init (mailbox_t *pmbox, const char *name)
   /* save the basename and dirname */
   /* FIXME: We may have to support imap "SELECT"
    * So we split the name.  But this should probably be
-   * supported via "maildir:"
+   * supported via "maildir:" or the mailbox mgr.
    */
   /* equivalent to strrchr (name, '/'); */
   for (i = name_len, sep = NULL; i >= 0; i--)
@@ -352,11 +360,13 @@ mailbox_unix_open (mailbox_t mbox, int flags)
   if (flags & MU_MAILBOX_APPEND)
     flg |= O_APPEND;
 
-  /* FIXME: does not really work, but local folders
-   * should not block since it is local disk ???
-   */
+  /* but local folders should not block since it is local disk ??? */
   if (flags & MU_MAILBOX_NONBLOCK)
     flg |= O_NONBLOCK;
+
+  /* Authentication prologues */
+  if (mbox->auth)
+    auth_prologue (mbox->auth);
 
   /* handle CREAT with care, not to follow symlinks */
   if (flags & MU_MAILBOX_CREAT)
@@ -376,21 +386,6 @@ mailbox_unix_open (mailbox_t mbox, int flags)
 	    if (fd < 0)
 	      return errno;
 	  }
-	/*
-	 * Set the owner ship, but should we return the errno
-	 */
-	if (mbox->auth)
-	  {
-	    auth_t auth = mbox->auth;
-	    gid_t g ; uid_t u; mode_t m;
-	    g = u = -1; m = 0600;
-	    /* FIXME: what to do when they failed */
-	    auth_get_owner (auth, &u);
-	    auth_get_group (auth, &g);
-	    auth_get_mode (auth, &m);
-	    (void)fchown (fd, u, g);
-	    (void)fchmod (fd, m);
-	  }
       }
       mailbox_unix_unlock (mbox);
     }
@@ -400,6 +395,29 @@ mailbox_unix_open (mailbox_t mbox, int flags)
       if (fd < 0)
 	return errno;
     }
+
+  /* Authentication */
+  if (mbox->auth)
+    {
+      int status = auth_authenticate (mbox->auth);
+      if (status != 0)
+	return status;
+    }
+  else
+    {
+      /*
+       * Set the owner ship, but should we return the errno
+       */
+      gid_t g ; uid_t u; mode_t m;
+      g = u = -1; m = 0600;
+      /* FIXME: what to do when they failed */
+      (void)fchown (fd, u, g);
+      (void)fchmod (fd, m);
+    }
+
+  /* Authentication epilogues */
+  if (mbox->auth)
+    auth_epilogue (mbox->auth);
 
   /* we use FILE * object */
   if (flags & MU_MAILBOX_APPEND)
@@ -673,7 +691,7 @@ mailbox_unix_scan (mailbox_t mbox, size_t msgno, size_t *pcount)
 	    {
 	      int over = strlen (buf);
               mum->body_end = ftell (mud->file);
-              mum->body_end -= (over + 1);
+              mum->body_end -= (over);
 	      body = 0;
 	      mud->messages_count++;
 	      /* reset the progress_counter */
@@ -993,7 +1011,7 @@ mailbox_unix_tmpfile ()
 {
   /*FIXME: racing conditions, to correct, .i.e don;t use tmpfile*/
   //return tmpfile ();
-  return fopen ("/tmp/mymail", "w+");
+  return fopen ("/tmp/mumail", "w+");
 }
 
 static int

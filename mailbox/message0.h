@@ -39,11 +39,16 @@ extern "C" {
 # endif
 #endif /*__P */
 
+/* The notion of body_t is not exported outside,
+ * there was no need for yet another object.
+ * since only floating messages need them. The functions
+ * that manipulate those objects are static to message.c
+ *
+ */
 struct _body
 {
   FILE *file;
-  char *content;
-  size_t content_len;
+  void *owner;
 };
 
 typedef struct _body * body_t;
