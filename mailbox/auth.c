@@ -221,7 +221,7 @@ authority_authenticate (authority_t authority)
     {
       return authority->_authenticate (authority);
     }
-  return 0;
+  return EINVAL;
 }
 
 int
