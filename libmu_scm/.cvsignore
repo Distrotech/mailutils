@@ -5,3 +5,4 @@ libmu_scm.a
 guile-procedures.txt
 *.doc
 *.x
+.gdbinit

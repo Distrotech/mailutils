@@ -6,3 +6,4 @@ mh_fmtgram.c
 scan
 inc
 y.output
+.gdbinit

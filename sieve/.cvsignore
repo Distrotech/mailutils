@@ -13,3 +13,4 @@ sieve-gram.c
 sieve-gram.h
 sieve-lex.c
 test
+.gdbinit

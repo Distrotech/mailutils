@@ -7,3 +7,4 @@ out.sendmail
 .libs
 .*.swp
 _*
+.gdbinit

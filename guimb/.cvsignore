@@ -6,3 +6,4 @@ guile-procedures.txt
 *.doc
 *.x
 .libs
+.gdbinit

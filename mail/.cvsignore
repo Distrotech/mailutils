@@ -5,3 +5,4 @@ Makefile
 mail
 msgset.c
 y.output
+.gdbinit

@@ -1,4 +1,4 @@
-.gdbinit*
+.gdbinit
 Addrs.test
 Urls.test
 _*
@@ -9,6 +9,7 @@ mbox-check
 mbox-dates
 mbox-dates.out
 mbox-explode
-msg-send
-url-parse
 mimetest
+msg-send
+muemail
+url-parse
