@@ -369,6 +369,7 @@ extern char *readline __P ((char *prompt));
 #define MAIL_ATTRIBUTE_MBOXED   0x0001
 #define MAIL_ATTRIBUTE_SAVED    0x0002
 #define MAIL_ATTRIBUTE_TAGGED   0x0004
+#define MAIL_ATTRIBUTE_SHOWN    0x0008
 
 #ifdef __cplusplus
 }
