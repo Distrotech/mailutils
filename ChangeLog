@@ -2,7 +2,7 @@
 
 	* mh/send.c (expand_aliases): Bugfix. Do not use statically
 	allocated buffer. Use header_aget_field_name() instead.
-	The utility freezed with header names longer than 16 bytes.
+	The utility froze with header names longer than 16 bytes.
 
 2005-02-26  Wojciech Polak
 
