@@ -308,6 +308,7 @@ main (int argc, char **argv)
   /* Start in mail reading mode */
   util_do_command ("set mode=read");
   util_do_command ("set noquit");
+  util_do_command ("set rc");
   
   /* Set the default mailer to sendmail.  */
   {
