@@ -1,3 +1,9 @@
+2004-08-08  Sergey Poznyakoff
+
+	* headers/argp.h: Protect typedef int error_t by an additional
+	#ifndef. Thanks Alex S. Moore <asmoore@edge.net> for helping
+	find out the problem.
+
 2004-08-07  Sergey Poznyakoff  
 
 	* Makefile.am: Raised automake requirements to version
