@@ -26,4 +26,8 @@ libexec_PROGRAMS = @BUILD_SMTP_PROGRAMS@
 
 mail_remote_SOURCES = mail.remote.c 
 
-mail_remote_LDADD = ../mailbox/libmailbox.la ../lib/libmailutils.la @LTLIBINTL@
+mail_remote_LDADD = \
+ ../mailbox/libmailbox.la\
+ ../lib/libmailutils.la\
+ @LTLIBINTL@\
+ @AUTHLIBS@
