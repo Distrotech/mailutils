@@ -55,6 +55,8 @@
 #include <mailutils/mutil.h>
 #include <mailutils/error.h>
 
+#include <argcv.h>
+
 #ifndef INADDR_NONE
 # define INADDR_NONE -1
 #endif
