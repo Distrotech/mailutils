@@ -268,24 +268,40 @@ name of @acronym{pam} service to be used when authenticating.
 The following options exist in this group if the package was configured
 with @option{--enable-sql} option. They take effect only if the
 @samp{sql} module is used in authentication and/or authorization.
-Currently only MySQL is supported.  
 
 @table @option
-@item --sql-getpwnam @var{query}
-@acronym{sql} query to retrieve a passwd entry based on username
-@item --sql-getpwuid @var{query} 
-@item --sql-getpass @var{query}
-@acronym{sql} query to retrieve a password from the database
+@item --sql-interface @var{iface}
+Specify @sc{sql} interface to use. @var{Iface} is either @samp{mysql}
+or @samp{postgres}. This allows to select @sc{sql} subsystem on
+runtime if @code{mailutils} was compiled with support for several
+@sc{sql} drivers.
+
+If this option is omitted, @code{mailutils} will use the first
+available @sc{sql} driver. 
+
 @item --sql-host @var{name}
 Name or IP of MySQL server to connect to.
+
 @item --sql-user @var{name}
 @acronym{sql} user name
+
 @item --sql-passwd @var{string}
 @acronym{sql} connection password
+
 @item --sql-db @var{string}
 Name of the database to connect to.
+
 @item --sql-port @var{number}
 Port to use
+
+@item --sql-getpwnam @var{query}
+@acronym{sql} query to retrieve a passwd entry based on username
+
+@item --sql-getpwuid @var{query}
+@acronym{sql} query to retrieve a passwd entry based on user ID
+ 
+@item --sql-getpass @var{query}
+@acronym{sql} query to retrieve a password from the database
 @end table
 
 @node encryption
@@ -2856,18 +2872,27 @@ not specified, @command{mail.local} first looks into the first line
 from the standard input. If it starts with @samp{From }, it is assumed
 to contain a valid envelope. If it does not, @command{mail.local}
 creates the envelope by using current user name and date.
+
 @item -h
 @itemx --help
-Display this help and exit.
+Display usage summary and exit.
+
 @item -L
 @itemx --license
 Display @sc{gnu} General Public License and exit.
+
 @item -m @var{path}
 @itemx --mail-spool @var{path}
 Specify path to mailspool directory.
+
 @item -q
 @itemx --quota-db @var{file}
-Specify path to mailbox quota database (@pxref{Mailbox Quotas}). 
+Specify path to DBM mailbox quota database (@pxref{Mailbox Quotas}). 
+
+@item --quota-query
+Specify SQL query that should be used to obtain user mailbox
+quotas from the SQL database (@pxref{Mailbox Quotas}).
+
 @item -s @var{pattern}
 @itemx --source @var{pattern}
 Set name pattern for user-defined mail filters written in Scheme
@@ -2968,7 +2993,7 @@ Mlocal, P=/usr/local/libexec/mail.local,
         F=lsDFMAw5:/|@@qSPfhn9,
         S=EnvFromL/HdrFromL, R=EnvToL/HdrToL,
         T=DNS/RFC822/X-Unix,
-        A=mail -s %h/.filter.scm -q /etc/mail/userquota $u
+        A=mail $u
 @end smallexample
 
 To define local mailer in @samp{mc} source file, it will suffice to
@@ -2976,8 +3001,7 @@ set:
 
 @smallexample
 define(`LOCAL_MAILER_PATH', `/usr/local/libexec/mail.local')
-define(`LOCAL_MAILER_ARGS',
-       `mail -s %h/.filter.scm -q /etc/mail/userquota $u')
+define(`LOCAL_MAILER_ARGS', `mail $u')
 @end smallexample
 
 @node Exim
@@ -2991,8 +3015,7 @@ and director in @file{exim.conf}:
 # transport
 mail_local_pipe:
   driver = pipe
-  command = /usr/local/libexec/mail.local -s %h/.filter.scm \
-              -q /etc/mail/userquota $local_part
+  command = /usr/local/libexec/mail.local $local_part
   return_path_add
   delivery_date_add
   envelope_to_add
@@ -3005,6 +3028,169 @@ mail_local:
 
 @node Mailbox Quotas
 @subsection Setting up Mailbox Quotas
+
+Sometimes it is necessary to limit the maximum size of a user's
+mailbox. Such maximum size is called @dfn{mailbox quota} for this
+user.
+
+When delivering a message, @command{mail.local} first cheks if
+the mailbox quota is specified for the recipient. If so,
+@command{mail.local} computes the difference between the quota
+value and the actual size of the recipient's mailbox. This difference
+represents the maximum size of the message the receipient's mailbox is
+able to accomodate. Let's call it @var{msize}. Depending on its value,
+@command{mail.local} takes decision on whether to deliver the message.
+There are three possible cases:
+
+@enumerate 1
+@item @var{msize} equals zero. This means that the mailbox size has
+reached its limit). In this case the message is not delivered and
+the sender receives following notification message:
+
+@smallexample
+@var{user}: mailbox quota exceeded for this recipient
+@end smallexample
+
+@item @var{msize} is less than the size of the message
+@command{mail.local} is about to deliver. In this case the message is
+not delivered and the sender receives following notification message:
+
+@smallexample
+@var{user}: message would exceed maximum mailbox size for this recipient
+@end smallexample
+
+@item @var{msize} is greater than or equal to the size of the
+message. In this case @command{mail.local} does deliver the message.
+@end enumerate
+
+Version @value{VERSION} of @sc{gnu} mailutils is able to retrieve 
+mailbox quotas from a @sc{dbm} or @sc{sql} database.
+
+@menu
+* DBM Quotas::          Keeping Quotas in DBM Database.
+* SQL Quotas::          Keeping Quotas in SQL Database.
+@end menu
+
+@node DBM Quotas
+@subsubsection Keeping Quotas in DBM Database
+
+To use the @sc{dbm} quota database, your copy of @code{mailutils} must
+be compiled with @sc{dbm} support (one of @option{--with-gdbm},
+@option{--with-db2}, @option{--with-ndbm}, @option{--with-dbm} options
+to @code{configure}). Examine the of
+@command{mail.local --show-config-options} if not sure.
+
+The  quota database should have the following structure:
+
+@table @asis
+@item Key
+Key represents the user name. Special key @samp{DEFAULT} means default
+quota value, i.e. the one to be used if the user is not explicitely
+listed in the database.
+
+@item Value
+The mailbox quota for this user. If it is a number, it represents the
+maximum mailbox size in bytes. A number may optionally be followed by
+@samp{kb} or @samp{mb}, meaning kilobytes and megabytes, respectively.
+
+A special value @samp{NONE} means no mailbox size limitation for this user.
+@end table
+
+Here is an example of a valid quota database
+
+@smallexample
+# Default quota value:
+DEFAULT         5mb
+
+# Following users have unlimited mailbox size
+root            NONE
+smith           NONE
+
+# Rest of users
+plog            26214400
+karin           10mB
+@end smallexample
+
+To use the @sc{dbm} database, specify its full name using @option{-q}
+or @samp{--quota-db} in the invocation of @command{mail.local}. For
+example, in @command{sendmail} @code{.mc} file:
+
+@smallexample
+define(`LOCAL_MAILER_PATH', `/usr/local/libexec/mail.local')
+define(`LOCAL_MAILER_ARGS', `mail -q /etc/mail/quota.db $u')
+@end smallexample
+
+@node SQL Quotas
+@subsubsection Keeping Quotas in SQL Database
+
+Option @option{--quota-query} allows to specify a special query to
+retrieve the quota from the database. Currently (as of mailutils
+version @value{VERSION}) it is assumed that this table can be accessed
+using the same credentials as @sc{sql} authentication tables
+(@xref{daemon}, for the detailed discussion of @option{--sql-} options).
+
+For example, suppose you have the following quota table:
+
+@smallexample
+create table mailbox_quota (
+  user_name varchar(32) binary not null,
+  quota int,
+  unique (user_name)
+);
+@end smallexample
+
+@noindent
+
+To retrieve the quota for user @code{%u} you may then use the
+following query:
+
+@smallexample
+SELECT quota
+FROM mailbox_quota
+WHERE user_name='%u'
+@end smallexample
+
+There is no special provisions for specifying group quotas, similar to
+@samp{DEFAULT} in @sc{dbm} databases. This is because group quotas can
+easily be implemented using @sc{sql} language. @command{Mail.local}
+always uses the first tuple from the set returned by mailbox quota
+query. So, you may add a special entry to the @code{mailbox_quota}
+table that would keep the group quota. For the following discussion,
+it is important that the @code{user_name} column for this entry be
+lexicographically less than any other user name in the table. Let's
+suppose the group quota name is @samp{00DEFAULT}. Then the following
+query:
+
+@smallexample
+SELECT quota
+FROM mailbox_quota
+WHERE user_name IN ('%u','00DEFAULT')
+ORDER BY user_name DESC
+@end smallexample
+
+@noindent
+will return two tuples if user @code{%u} is found in
+@code{mailbox_quota}. Due to @code{ORDER} statement, the first tuple
+will contain the quota for the user, which will be used by
+@command{mail.local}. On the other hand, if user name @code{%u} is not
+present in the table, the above query will return a single tuple
+containing the group quota.
+
+To summarize this, here is a working @file{mailutils.rc} entry for
+@command{mail.local}:
+
+@smallexample
+:mail.local \
+      --sql-db MAILAUTH \
+      --sql-host some.host.net \
+      --sql-user mail.local \
+      --sql-passwd guessme \
+      --quota-query "SELECT quota \
+                     FROM mailbox_quota \
+                     WHERE user_name IN ('%u','00DEFAULT') \
+                     ORDER BY user_name DESC"
+@end smallexample
+                     
 
 @node Sieve Filters
 @subsection Implementing User-defined Sieve Mail Filters
