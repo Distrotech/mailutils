@@ -18,6 +18,7 @@
 #include <mailutils/libsieve.h>
 #include <mu_asprintf.h>
 #include <setjmp.h>
+#include <string.h>
 
 #define SIEVE_CODE_INCR 128
 
