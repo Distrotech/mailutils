@@ -1,5 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2002, 2003,
+   2004 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -337,7 +338,7 @@ main(int argc, char **argv)
 
     if (status != 0)
       {
-	fprintf (stderr, _("could not create mailbox <%s>: %s\n"),
+	fprintf (stderr, _("Couldn't create mailbox <%s>: %s.\n"),
 	    mailbox_name ? mailbox_name : _("default"),
 	    mu_strerror(status));
 	exit (3);
@@ -361,9 +362,8 @@ main(int argc, char **argv)
 	  goto cleanup1;
 	else
 	  {
-	    fprintf (stderr, _("could not open mailbox %s: %s\n"),
-		     url_to_string (url),
-		     mu_strerror(status));
+	    fprintf (stderr, _("Couldn't open mailbox <%s>: %s.\n"),
+		     url_to_string (url), mu_strerror(status));
 	    
 	    goto cleanup;
 	  }
@@ -384,9 +384,8 @@ main(int argc, char **argv)
 	url_t url = NULL;
 
 	mailbox_get_url (mbox, &url);
-	fprintf (stderr, _("could not scan mailbox <%s>: %s\n"),
-		 url_to_string (url),
-		 mu_strerror(status));
+	fprintf (stderr, _("Couldn't scan mailbox <%s>: %s.\n"),
+		 url_to_string (url), mu_strerror(status));
 	goto cleanup;
       }
 
