@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2003 Free Software Foundation, Inc.
+   Copyright (C) 2003, 2005 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -37,6 +37,7 @@
 #include <mailutils/nls.h>
 #include <mailutils/mailbox.h>
 
+extern char *sql_interface;
 extern char *mu_sql_getpwnam_query;
 extern char *mu_sql_getpass_query;
 extern char *mu_sql_getpwuid_query;
@@ -47,5 +48,4 @@ extern char *mu_sql_db;
 extern char *mu_sql_socket;
 extern int  mu_sql_port;
 
-extern char *mu_sql_expand_query __P((const char *query, const char *ustr));
 
