@@ -1,3 +1,10 @@
+2003-01-10  Sergey Poznyakoff 
+
+	* libmu_scm/Makefile.am (mailutils.scm target): Bugfix. Use $<
+	  instead of $?.
+	* libmu_scm/mailutils.scm.in: Explicitly load libmailbox before
+	  loading libmu_scm. Fixed 1.6 branch of the conditional.
+
 2003-01-10  Sergey Poznyakoff
 
 	* lib/posix/regex.h: Removed redefinition of __restrict_arr
