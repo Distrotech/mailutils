@@ -30,10 +30,10 @@ read_cc_bcc (compose_env_t *env)
 {
   if (util_getenv (NULL, "askcc", Mail_env_boolean, 0) == 0)
     compose_header_set (env, MU_HEADER_CC,
-			ml_readline ("Cc: "), COMPOSE_REPLACE);
+			ml_readline_with_intr ("Cc: "), COMPOSE_REPLACE);
   if (util_getenv (NULL, "askbcc", Mail_env_boolean, 0) == 0)
     compose_header_set (env, MU_HEADER_BCC,
-			ml_readline ("Bcc: "), COMPOSE_REPLACE);
+			ml_readline_with_intr ("Bcc: "), COMPOSE_REPLACE);
 }
 
 /*
@@ -60,7 +60,7 @@ mail_send (int argc, char **argv)
   compose_init (&env);
 
   if (argc < 2)
-    compose_header_set (&env, MU_HEADER_TO, ml_readline ("To: "),
+    compose_header_set (&env, MU_HEADER_TO, ml_readline_with_intr ("To: "),
 			COMPOSE_REPLACE);
   else
     {
@@ -91,7 +91,7 @@ mail_send (int argc, char **argv)
 
   if (util_getenv (NULL, "asksub", Mail_env_boolean, 0) == 0)
     compose_header_set (&env, MU_HEADER_SUBJECT,
-			ml_readline ("Subject: "), COMPOSE_REPLACE);
+			ml_readline_with_intr ("Subject: "), COMPOSE_REPLACE);
   else
     {
       char *p;
@@ -231,7 +231,7 @@ mail_send0 (compose_env_t * env, int save_to)
 		free (buf);
 	      if (++int_cnt == 2)
 		break;
-	      util_error (_("(Interrupt -- one more to kill letter)"));
+	      util_error (_("\n(Interrupt -- one more to kill letter)"));
 	    }
 	  continue;
 	}
