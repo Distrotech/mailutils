@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2003 Free Software Foundation, Inc.
+   Copyright (C) 2003, 2004 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -215,14 +215,8 @@ mu_deinit_tls_libs (void)
 static void
 generate_dh_params (void)
 {
-  gnutls_datum prime, generator;
-
   gnutls_dh_params_init (&dh_params);
-  gnutls_dh_params_generate (&prime, &generator, DH_BITS);
-  gnutls_dh_params_set (dh_params, prime, generator, DH_BITS);
-
-  free (prime.data);
-  free (generator.data);
+  gnutls_dh_params_generate2 (dh_params, DH_BITS);
 }
 
 static gnutls_session
@@ -612,7 +606,7 @@ tls_stream_create_client_from_tcp (stream_t *stream, stream_t tcp_str,
   return rc;
 }
 
-
 #endif /* WITH_TLS */
 
 /* EOF */
+
