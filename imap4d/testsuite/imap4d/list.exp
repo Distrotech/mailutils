@@ -1,0 +1,74 @@
+# -*- tcl -*-
+# This file is part of Mailutils testsuite.
+# Copyright (C) 2002, Free Software Foundation
+#  
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#   
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#  
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software Foundation,
+# Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. 
+
+imap4d_start 
+imap4d_auth "user!passwd" "guessme"
+
+imap4d_test "LIST \"~\" \"*\""\
+"LIST (\\NoInferiors) \"/\" ~/mbox1"\
+"LIST (\\NoInferiors) \"/\" ~/mbox"\
+"LIST (\\NoInferiors) \"/\" ~/teaparty.mbox"\
+"OK LIST Completed"
+
+imap4d_test "LIST \"~\" \"%\""\
+"LIST (\\NoInferiors) \"/\" ~/mbox1"\
+"LIST (\\NoInferiors) \"/\" ~/mbox"\
+"LIST (\\NoInferiors) \"/\" ~/teaparty.mbox"\
+"OK LIST Completed"
+
+imap4d_test "LIST \"\" \"*\""\
+"LIST (\\NoInferiors) NIL INBOX"\
+"LIST (\\NoInferiors) \"/\" mbox1"\
+"LIST (\\NoInferiors) \"/\" mbox"\
+"LIST (\\NoInferiors) \"/\" teaparty.mbox"\
+"OK LIST Completed"
+
+imap4d_test "LIST \"/\" \"*\""\
+"NO LIST The requested item could not be found."
+
+imap4d_test "LIST \"$MU_DATA_DIR\" \"*\""\
+"LIST (\\NoSelect) \"/\" $MU_DATA_DIR/etc"\
+"LIST (\\NoInferiors) \"/\" $MU_DATA_DIR/etc/mail.rc"\
+"LIST (\\NoInferiors) \"/\" $MU_DATA_DIR/etc/passwd"\
+"LIST (\\NoSelect) \"/\" $MU_DATA_DIR/spool"\
+"LIST (\\NoInferiors) \"/\" $MU_DATA_DIR/spool/mbox1"\
+"LIST (\\NoInferiors) \"/\" $MU_DATA_DIR/spool/mbox"\
+"LIST (\\NoInferiors) \"/\" $MU_DATA_DIR/spool/teaparty.mbox"\
+"LIST (\\NoSelect) \"/\" $MU_DATA_DIR/folder"\
+"LIST (\\NoInferiors) \"/\" $MU_DATA_DIR/folder/one"\
+"LIST (\\NoInferiors) \"/\" $MU_DATA_DIR/folder/two"\
+"OK"	
+
+imap4d_test "LIST \"$MU_DATA_DIR\" \"%\""\
+"LIST (\\NoSelect) \"/\" $MU_DATA_DIR/etc"\
+"LIST (\\NoSelect) \"/\" $MU_DATA_DIR/spool"\
+"LIST (\\NoSelect) \"/\" $MU_DATA_DIR/folder"\
+"OK"	
+
+imap4d_test "LIST \"$MU_DATA_DIR/folder\" \"one\""\
+"LIST (\\NoInferiors) \"/\" $MU_DATA_DIR/folder/one"\
+"OK"
+
+# Well, I doubt if this is quite OK with the RFC, but at least it does
+# not contradict it. The first INBOX refers to the reserved word meaning
+# "the primary mailbox for this user on this server", the second one is
+# the actual filename.
+imap4d_test "LIST \"\" INBOX"\
+"LIST (\\NoInferiors) NIL INBOX"\
+"LIST (\\NoInferiors) \"/\" INBOX"\
+"OK"	
