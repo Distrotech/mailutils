@@ -35,43 +35,33 @@ mail_set (int argc, char **argv)
   else
     {
       int i = 0;
-      char *value = NULL;
-      struct mail_env_entry *entry = NULL;
+
       for (i = 1; i < argc; i++)
 	{
 	  if (!strncmp ("no", argv[i], 2))
 	    {
-	      entry = util_find_env (&argv[i][2]);
-	      if (entry == NULL)
-		return 1;
-	      entry->set = 0;
-	      if (entry->value)
-		free (entry->value);
-	      entry->value = NULL;
+	      util_setenv (&argv[i][2], NULL, Mail_env_boolean, 1);
 	    }
 	  else if (i+1 < argc && argv[i+1][0] == '=')
 	    {
-	      entry = util_find_env (argv[i]);
-	      if (entry == NULL)
-		return 1;
+	      int nval;
+	      char *name = argv[i];
+	      char *p;
+	      
 	      i += 2;
 	      if (i >= argc)
 		break;
-	      value = strdup (argv[i]);
-	      entry->set = 1;
-	      if (entry->value)
-		free (entry->value);
-	      entry->value = value;
+
+	      nval = strtoul (argv[i], &p, NULL);
+	      if (*p == 0)
+		util_setenv (name, &nval, Mail_env_number, 1);
+	      else
+		util_setenv (name, argv[i], Mail_env_string, 1);
 	    }
 	  else
 	    {
-	      entry = util_find_env(argv[i]);
-	      if (entry == NULL)
-		return 1;
-	      entry->set = 1;
-	      if (entry->value)
-		free (entry->value);
-	      entry->value = NULL;
+	      int dummy;
+	      util_setenv (argv[i], &dummy, Mail_env_boolean, 1);
 	    }
 	}
       return 0;
