@@ -431,11 +431,12 @@ _file_open (stream_t stream)
 
       /* Now check that: file and fd reference the same file,
 	 file only has one link, file is plain file.  */
-      if (fdbuf.st_dev != filebuf.st_dev
-	  || fdbuf.st_ino != filebuf.st_ino
-	  || fdbuf.st_nlink != 1
-	  || filebuf.st_nlink != 1
-	  || (fdbuf.st_mode & S_IFMT) != S_IFREG)
+      if (!(flags & MU_STREAM_ALLOW_LINKS)
+	  && (fdbuf.st_dev != filebuf.st_dev
+	      || fdbuf.st_ino != filebuf.st_ino
+	      || fdbuf.st_nlink != 1
+	      || filebuf.st_nlink != 1
+	      || (fdbuf.st_mode & S_IFMT) != S_IFREG))
 	{
 	  mu_error (_("%s must be a plain file with one link\n"), filename);
 	  close (fd);
