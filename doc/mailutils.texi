@@ -104,16 +104,18 @@ This document was produced for version @value{VERSION} of @sc{gnu}
 * Introduction::                GNU @sc{mailutils}
 * Mailbox::                     Mailbox API.
 * Mailer::                      Protocol Use to Send Mail.
-* URL::                         Unified Ressource Locator.
 * Message::                     Message API.
-* Body::                        Body API.
 * Headers::                     Headers API.
+* Body::                        Body API.
+* URL::                         Unified Ressource Locator.
+* Authenticator::               Authenticator.
 * Mime::                        Mime API.
 * Encoding::                    Encoding API.
 * Reporting Bugs::              Reporting Bugs.
 * Acknowledgement::             Thanks and Credits.
 * Concept Index ::
 * Index::                       All @sc{Mailutils} Functions.
+
 @end menu
 
 @node Introduction, Mailbox, Top, Top
@@ -126,31 +128,57 @@ a rich set of functions for accessing different mailbox formats and mailers.
 
 @example
 @group
-                             USER Client
-                         -------------------
-                            |           |
-              +-------------+           +-------------+
-              |                                       |
-         /-----------\                          /-----------\
-         | mailbox_t |                          | mailer_t  |
-         \-----------/                          \-----------/
-              |                                       |
-              +--------------------+------------------+
-                                   |
-                          /------------------\
-                          |     message_t    |
-                          \------------------/
-                          | body_t | header_t|
-                          +------------------+
-                                   |
-              +--------------------+----------------+
-              |                                      |
-           -------                            ////////////////
-          (_______)                           //    LAN     //
-          (_______)                           ////////////////
-          (_______)
+
+                             mailbox_t                  url_t
+  -/var/mail-    +---//---->+-----------------+    +-->+-----------+
+ (  alain   )    |          |  url_t        *-|----+   |  port     |
+  -----------    |          +-----------------+        |  hostname |
+ (  jakob *-)----+          |  auth_t       *-|----+   |  file     |
+  -----------               +-----------------+    |   |  ...      |
+ (  jeff    )           +---|-* message_t[0]  |    |   +-----------+
+  -----------           |   |   message_t[1]  |    |
+ (  sean    )           |   |   ...           |    |    auth_t
+  ----------            |   +-----------------+    +-->+----------+
+                        |                              |  user    |
+   message_t            |                              |  passwd  |
+ +--------------+<------+                   header_t   +----------+
+ |  header_t  *-|-----------------------+->+-----------------+
+ +--------------+       body_t          |  |  name/value[0]  |
+ |  body_t[0] *-|----->+-------------+  |  |  ...            |
+ |  body_t[1]   |      |  header_t *-|--+  +-----------------+
+ |  ...         |      +-------------+
+ +--------------+      |  content    |
+                       |  next_body  |
+                       +-------------+
 @end group
 @end example
+@comment @example
+@comment @group
+@comment                              USER Client
+@comment                          -------------------
+@comment                             |           |
+@comment               +-------------+           +-------------+
+@comment               |                                       |
+@comment          /-----------\                          /-----------\
+@comment          | mailbox_t |                          | mailer_t  |
+@comment          \-----------/                          \-----------/
+@comment               |                                       |
+@comment               +--------------------+------------------+
+@comment                                    |
+@comment                           /------------------\
+@comment                           |     message_t    |
+@comment                           \------------------/
+@comment                           | body_t | header_t|
+@comment                           +------------------+
+@comment                                    |
+@comment               +--------------------+----------------+
+@comment               |                                      |
+@comment            -------                            ////////////////
+@comment           (_______)                           //    LAN     //
+@comment           (_______)                           ////////////////
+@comment           (_______)
+@comment @end group
+@comment @end example
 
 For example writing a simple @command{from} command that will list @emph{From}
 and @emph{Subject} of a folder.
@@ -166,42 +194,49 @@ and @emph{Subject} of a folder.
 
 @include mailbox.texi
 
-@node Mailer, URL, Mailbox, Top
+@node Mailer, Message, Mailbox, Top
 @comment  node-name,  next,  previous,  up
 @chapter Mailer
 @cindex Mailer
 
 @include mailer.texi
 
-@node URL, Message, Mailer, Top
-@comment  node-name,  next,  previous,  up
-@chapter URL
-@cindex URL
-
-@include url.texi
-
-@node Message, Body, URL, Top
+@node Message, Headers , Mailer, Top
 @comment  node-name,  next,  previous,  up
 @chapter Message
 @cindex Message
 
 @include message.texi
 
-@node Body, Headers, Message, Top
-@comment  node-name,  next,  previous,  up
-@chapter Body
-@cindex Body
-
-@include body.texi
-
-@node Headers, Mime , Body, Top
+@node Headers , Body, Message, Top
 @comment  node-name,  next,  previous,  up
 @chapter Headers
 @cindex Headers
 
 @include headers.texi
 
-@node Mime , Encoding, Headers, Top
+@node Body, URL, Headers , Top
+@comment  node-name,  next,  previous,  up
+@chapter Body
+@cindex Body
+
+@include body.texi
+
+@node URL, Authenticator, Body, Top
+@comment  node-name,  next,  previous,  up
+@chapter URL
+@cindex URL
+
+@include url.texi
+
+@node Authenticator, Mime , URL, Top
+@comment  node-name,  next,  previous,  up
+@chapter Authenticator
+@cindex Authenticator
+
+@include auth.texi
+
+@node Mime , Encoding, Authenticator, Top
 @comment  node-name,  next,  previous,  up
 @chapter Mime
 @cindex Mime

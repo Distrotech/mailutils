@@ -165,47 +165,55 @@ UnMark message @var{msgno} for deletion.
 Return 1 if message @var{msgno} is mark deleted.
 @end deftypefun
 
-@deftypefun int mailbox_expunge (mailbox_t @var{mbx})
-All messages marked for deletion will be removed and the mailbox updated.
-@end deftypefun
-
 @deftypefun int mailbox_num_deleted (mailbox_t @var{mbx})
 Return the number of Mailbox marked to be delete.
 @end deftypefun
 
-@section New Message
-Certain mailboxes allow new messages to be appended the existing folder.
-The stream must be @code{mailbox_open}  with the proper permission.
-
-@deftypefun int mailbox_new_message (mailbox_t @var{mbx}, size_t *@var{msgno})
-Create an envelope, @var{msgno} will contain a uniq number for this envelope.
+@deftypefun int mailbox_expunge (mailbox_t @var{mbx})
+All messages marked for deletion will be removed and the mailbox updated,
+and notification  functions executed.
 @end deftypefun
 
-@deftypefun int mailbox_set_header (mailbox_t @var{mbx}, size_t @var{msgno}, const char *@var{header}, size_t @var{len}, int @var{replace})
-Fill the header of new envelope @var{msgno}.  If @var{replace} is zero the
-buffer @var{header} will be append, otherwise it will overwrite any
-existing one.
+@section Message
+Messages are object that hold the offsets of the message in the mailbox.
+Certain mailboxes allow new messages to be appended the existing folder,
+int this case the stream must be @code{mailbox_open} with the proper
+permission.
+
+@deftypefun int mailbox_new_message (mailbox_t @var{mbx}, message_t *@var{msg})
+Create a new message.
 @end deftypefun
 
-@deftypefun int mailbox_set_body (mailbox_t @var{mbx}, size_t @var{msgno}, const char *@var{body}, size_t @var{len}, int @var{replace})
-Fill the body of new envelope @var{msgno}.  If @var{replace} is zero the buffer
-@var{body} will be append, otherwise it will overwrite any existing one.
+@deftypefun int mailbox_append_message (mailbox_t @var{mbx}, message_t @var{msg}, int @var{destroy})
+@var{msg} will be append to the mailbox. When appending the header may be
+modified.  In the case of Unix Mbox, the header "From " is prepend.
+If @var{destroy} is set non-zero @code{message_destroy} will be call after delivery.
 @end deftypefun
 
-@deftypefun int mailbox_append_message (mailbox_t @var{mbx}, size_t @var{msgno}, int @var{destroy})
-@var{msgno} given from @code{mailbox_envelope} will be append to
-the mailbox. When appending the header may be modified.  In the case of
-Unix Mbox, the header "From " is prepend.  If @var{destroy} is set non-zero
-@code{mailbox_destroy_envelope} will be call after delivery.
+@deftypefun int mailbox_get_message (mailbox_t @var{mbx}, size_t @var{msgno}, message_t *@var{msg})
+@var{msg} is initialize, be warn when doing @code{mailbox_expunge} the
+offsets to the mailbox are losts and accessing the @var{msg} is undefined.
+To prevent this, it is possible to @code{message_clone} or set a notification.
 @end deftypefun
 
-@deftypefun int mailbox_destroy_envelope (mailbox_t @var{mbx}, size_t @var{msgno})
-Ressources allocated to envelope @var{msgno} will be release.  This function
-should be call after @code{mailbox_append}.
+@deftypefun int mailbox_destroy_message (mailbox_t @var{mbx}, message_t @var{msg})
+Resources allocated to @var{msg} will be release. Notification functions for
+this @var{msg} are executed.
 @end deftypefun
 
-@section Reading
-Reading the message body and header.
+@section Reading Contents/Headers
+Low level Reading funtions for contents and headers.
+
+@comment @deftypefun int mailbox_set_header (mailbox_t @var{mbx}, size_t @var{msgno}, const char *@var{header}, size_t @var{len}, int @var{replace})
+@comment Fill the header of new message @var{msgno}.  If @var{replace} is zero the
+@comment buffer @var{header} will be append, otherwise it will overwrite any
+@comment existing one.
+@comment @end deftypefun
+
+@comment @deftypefun int mailbox_set_body (mailbox_t @var{mbx}, message_t @var{msg}, const char *@var{body}, size_t @var{len}, int @var{replace})
+@comment Fill the body of new @var{msg}.  If @var{replace} is zero the buffer
+@comment @var{body} will be append, otherwise it will overwrite any existing one.
+@comment @end deftypefun
 
 @deftypefun int mailbox_get_content (mailbox_t @var{mbx}, size_t @var{msgno}, off_t @var{off}, char *@var{buffer}, size_t @var{len}, size_t *@var{read})
 Read the body of message @var{msgno} starting at offset @var{off} in
@@ -232,10 +240,11 @@ The number of bytes read is returned in @var{nread}.
 @end deftypefun
 
 @section Locking
-Most mailboxes provide locking before changing the content.  Functions
-will grab the lock before doing any destructive action.  The Locking functions
-are provided for accesssing the folder outside the API, in that case the
-lock should be grabed and released.  There is also another level of internal
+Most mailboxes will lock before changing their contents.  External usage of
+those functions are discourage, since they may interfere with normal
+operation and cause deadlocks.  If however there is need to access the
+mailbox outside the functions provided by the library, locking and unlocking
+can be done explicitely.  There is another level of internal
 locking to provide synchronisation to the mailbox_t object.
 
 @deftypefun int mailbox_lock (mailbox_t @var{mbx}, int @var{flag})
@@ -255,15 +264,14 @@ Read/Write lock.
 
 @end deftypefun
 
-Note on many mailbox, RDLOCK is a noop.
+Note on many mailboxes, RDLOCK is a noop.
 
 @deftypefun int mailbox_unlock (mailbox_t @var{mbx})
 Release the lock.
 @end deftypefun
 
-@section Owner/Group
-Most mailboxes provide locking before changing their content, Ownership
-and group. When creating certain mailbox, you can set the owner/group.
+@section Mailbox Attributes
+When creating certain mailboxes, you can set the owner, group and mode
 
 @deftypefun int mailbox_set_owner (mailbox_t @var{mbx}, uid_t @var{uid})
 Set the owner to @var{uid}.  If the Mailbox was not @code{mailbox_open}
@@ -273,19 +281,24 @@ the action is delayed until the stream is opened.
 Set the group to @var{gid}.  If the Mailbox was not @code{mailbox_open}
 the action is delayed until the stream is opened.
 @end deftypefun
+@deftypefun int mailbox_set_mode (mailbox_t @var{mbx}, mode_t @var{mode})
+Set the file permission to @var{mode}.  If the Mailbox was not
+@code{mailbox_open} the action is delayed until the stream is opened.
+@end deftypefun
 
 @section Scanning
 
-Scan is done explicitely on @code{mailbox_open}.
+Scan is done implicitely on @code{mailbox_open}.
 
 @deftypefun int mailbox_scan (mailbox_t @var{mbx}, size_t *@var{msgs})
 The mailbox is parse and @var{msgs} if not NULL contain the message count.
+A notification function can be set to monitor progress.
 @end deftypefun
 
-@deftypefun int mailbox_scan_progress (mailbox_t @var{mbx}, int (*@var{progress}) (mailbox_t @var{mbx}, int @var{count}, void *@var{arg}), void *@var{arg})
-When doing @var{mailbox_scan}, function @var{progress}(@var{mbx}, @var{count},
-@var{arg}) is called for each new message.
-@end deftypefun
+@comment @deftypefun int mailbox_scan_progress (mailbox_t @var{mbx}, int (*@var{progress}) (mailbox_t @var{mbx}, int @var{count}, void *@var{arg}), void *@var{arg})
+@comment When doing @var{mailbox_scan}, function @var{progress}(@var{mbx}, @var{count},
+@comment @var{arg}) is called for each new message.
+@comment @end deftypefun
 
 @deftypefun int mailbox_is_updated  (mailbox_t @var{mbx})
 Return 1 if @var{mbx} is up to date 0 otherwise.
@@ -303,11 +316,9 @@ For message @var{msgno} set @var{header} size and @var{body} size.
 Return the number of messages in @var{mbx}.
 @end deftypefun
 
-@section Timeout/Notification
-Setting timeout and notifications.  @code{mailbox_scan} can be called
-periodically to see if new messages have arrived, if the number of
-total messages has changed the notification function is called.  By default
-they are disabled.
+@section Timeout
+On remote mailboxes it is sometimes possible to reset the timeout.  On most
+local mailbox it is a noop.
 
 @deftypefun int mailbox_set_timeout (mailbox_t @var{mbx}, size_t @var{millis})
 Not Implemented.
@@ -315,15 +326,30 @@ Not Implemented.
 @deftypefun int mailbox_get_timeout (mailbox_t @var{mbx}, size_t @var{millis})
 Not Implemented.
 @end deftypefun
+
+@section Notifications
+A number of callbacks are provided on the mailbox to monitor the changes.
+Setting timeout and notifications.
+
 @deftypefun int mailbox_set_refresh (mailbox_t @var{mbx}, size_t @var{millis})
-Not Implemented.
+Sets the refresh time on how often @code{mailbox_scan} should be called.
+By default it is disabled.  Not Implemented.
 @end deftypefun
 @deftypefun int mailbox_get_refresh (mailbox_t @var{mbx}, size_t @var{millis})
-Not Implemented.
+Return the refresh time.  Not Implemented.
 @end deftypefun
-@deftypefun int mailbox_set_notification (mailbox_t @var{mbx}, int (*@var{notification}) (mailbox_t @var{mbx}, void *@var{arg}), void *@var{arg})
-Not Implemented.
+@deftypefun int mailbox_set_update_cb (mailbox_t @var{mbx}, int (*@var{notification}) (mailbox_t @var{mbx}, void *@var{arg}), void *@var{arg})
+@code{mailbox_scan} can be called periodically to see if new messages have
+arrived, if the number of total messages has changed the notification
+function is called, @code{notification (mbx, arg)}. Not Implemented.
 @end deftypefun
+@deftypefun int mailbox_set_scan_cb (mailbox_t @var{mbx}, int (*@var{notification}) (int @var{msgcount}, void *@var{arg}))
+When parsing the mailbox every count call @code{notification (msgcount, arg)}.
+Note that all locks are held, and @var{notification} should be very small and
+simple, it should not access or do any action on the mailbox doing this may
+cause undefined behaviour.
+@end deftypefun
+
 
 @section Registration and Type
 
@@ -363,17 +389,66 @@ Remove a mailbox @var{mtype} to the list of builtin.
 Base on the URL @var{urlid} return the mailbox_type.
 @end deftypefun
 
-@deftypefun int mailbox_get_name (mailbox_t @var{mbx}, int *@var{mbxid}, char *@var{name}, size_t @var{len}, size_t *@var{n})
-Return the name of mailbox identify by @var{mbxid}, in buffer @var{name} of
-size @var{len}.  The number of byte is put in @var{n}.
+@deftypefun int mailbox_get_name_type (mailbox_t @var{mbx}, int *@var{mbxid}, char *@var{name}, size_t @var{len}, size_t *@var{n})
+Return the name type of the mailbox identify by @var{mbxid},
+in buffer @var{name} of size @var{len}.  The number of byte is put in @var{n}.
 @end deftypefun
 
-@deftypefun int mailbox_get_mname (mailbox_t @var{mbx}, int *@var{mbxid}, char **@var{name}, size_t *@var{n})
-Return the name of mailbox identify by @var{mbxid}, in a @code{malloc(3)}
-buffer @var{name} of size @var{n}.
+@deftypefun int mailbox_get_mname_type(mailbox_t @var{mbx}, int *@var{mbxid}, char **@var{name}, size_t *@var{n})
+Return the name type of the mailbox identify by @var{mbxid}, in
+a @code{malloc(3)} buffer @var{name} of size @var{n}.
 @end deftypefun
 
-All mailbox implementations provide this minimum set of the API.
+All mailbox implementations provide this minimum set of the API.  By using
+the registration new mailbox type can be added.
+
+@example
+#include <mailutils.h>
+#include <ftp0.h>
+#include <stdlib.h>
+
+/* extern url_ftp_init (url_t *url, const char *name);  in <ftp0.h> */
+/* extern url_ftp_destroy (url_t *url, const char *name); in <ftp0.h> */
+struct url_type url_ftp =
+@{
+  "ftp://", 6, /* protocol and len */
+  "ftp://<user>:<passwd>@@<hostname>:<port>", /* help string */
+  (int)&url_ftp, /* need a uniq id */
+  url_ftp_init, url_ftp_destroy  /* constructor and destructor */
+@};
+
+/* extern mailbox_unix_init (); in <ftp0.h> */
+/* extern mailbox_unix_destroy (); in <ftp0.h> */
+struct mailbox_type mbx_ftp =
+@{
+  "FTP MBOX", /* name type */
+  (int)&mbx_ftp, /* need a uniq id */
+  &url_unix_type, /* url id */
+  mailbox_unix_init,    /* constructor */
+  mailbox_unix_destroy  /* destructor */
+@};
+
+int main ()
+@{
+   struct mailbox_type *mtype;
+   size_t size=0, i;
+
+   mailbox_add_type (&mbx_ftp);
+
+   /* check if it is added */
+   mailbox_list_mtype (&mtype, &size)
+   for (i = 0; i < size; i++)
+     @{
+        puts (mtype[i].name)
+        puts (mtype[i].description)
+     @}
+   free(*mtype);
+
+   @dots{}
+
+  return 0;
+@}
+@end example
 
 @section Unix Mbox
 @cindex Unix Mbox
