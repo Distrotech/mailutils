@@ -19,7 +19,7 @@
 
 int debug_level;
 int multiple_delivery;
-int bounce_quota;
+int ex_quota_tempfail;
 int exit_code = EX_OK;
 uid_t uid;
 char *maildir = MU_PATH_MAILDIR;
@@ -27,6 +27,7 @@ char *quotadbname = NULL;
 int lock_timeout = 300;
 
 #define MAXFD 64
+#define EX_QUOTA() (ex_quota_tempfail ? EX_TEMPFAIL : EX_UNAVAILABLE)
 
 static void print_help (void);
 static void print_license (void);
@@ -37,15 +38,17 @@ FILE *make_tmp (const char *from, char **tempfile);
 void deliver (FILE *fp, char *name);
 void guess_retval (int ec);
 void mailer_err (char *fmt, ...);
+void notify_biff (mailbox_t mbox, char *name, size_t size);
 
-char short_opts[] = "hf:Llm:q:r:s:x::v";
+char short_opts[] = "hf:Llm:q:r:s:x::vW;";
 
 static struct option long_opts[] = {
+  { "ex-multiple-delivery-success", no_argument, &multiple_delivery, 1 },
+  { "ex-quota-tempfail", no_argument, &ex_quota_tempfail, 1 },
   { "from", required_argument, 0, 'f' },
   { "help", no_argument, 0, 'h' },
   { "license", no_argument, 0, 'L' },
   { "maildir", required_argument, 0, 'm' },
-  { "multiple-delivery", no_argument, 0, 'M' },
   { "quota-db", required_argument, 0, 'q' },
   { "source", required_argument, 0, 's' },
   { "timeout", required_argument, 0, 't' },
@@ -62,8 +65,8 @@ main (int argc, char *argv[])
   FILE *fp;
   char *from = NULL;
   char *progfile_pattern = NULL;
-  struct mda_data mda_data;
-
+  char *tempfile = NULL;
+  
   /* Preparative work: close inherited fds, force a reasonable umask
      and prepare a logging. */
   close_fds ();
@@ -76,6 +79,8 @@ main (int argc, char *argv[])
   while ((c = getopt_long (argc, argv, short_opts, long_opts, NULL)) != EOF)
     switch (c)
       {
+      case 0: /* option already handled */
+	break;
       case 'r':
       case 'f':
 	if (from != NULL)
@@ -98,10 +103,6 @@ main (int argc, char *argv[])
 	maildir = optarg;
 	break;
 		
-      case 'M':
-	multiple_delivery++;
-	break;
-	
 #ifdef USE_DBM
       case 'q':
 	quotadbname = optarg;
@@ -120,9 +121,21 @@ main (int argc, char *argv[])
 	
       case 'x':
 	if (optarg)
-	  debug_level = strtoul (optarg, NULL, 0);
+	  {
+#ifdef WITH_GUILE
+	    if (strcmp (optarg, "guile") == 0)
+	      debug_guile = 1;
+	    else
+#endif
+	    debug_level = strtoul (optarg, NULL, 0);
+	  }
 	else
-	  debug_level = 9;
+	  {
+	    debug_level = 9;
+#ifdef WITH_GUILE	    
+	    debug_guile = 1;
+#endif
+	  }
 	break;
 	
       case 'v':
@@ -146,18 +159,6 @@ main (int argc, char *argv[])
       return 1;
     }
 	
-  if (!from)
-    {
-      struct passwd *pw = getpwuid (uid);
-      if (pw)
-	from = pw->pw_name;
-      else
-	{
-	  mu_error ("From unknown");
-	  return 1;
-	}
-    }
-
 #ifdef HAVE_MYSQL
   mu_register_getpwnam (getMpwnam);
 #endif
@@ -172,22 +173,26 @@ main (int argc, char *argv[])
     list_append (bookie, smtp_record);
   }
 
-  memset (&mda_data, 0, sizeof mda_data);
-  fp = make_tmp (from, &mda_data.tempfile);
+  fp = make_tmp (from, &tempfile);
   
   if (multiple_delivery)
     multiple_delivery = argc > 1;
 
 #ifdef WITH_GUILE
-  mda_data.fp = fp;
-  mda_data.argv = argv;
-  mda_data.progfile_pattern = progfile_pattern;
-
   if (progfile_pattern)
-    return prog_mda (&mda_data);
+    {
+      struct mda_data mda_data;
+      
+      memset (&mda_data, 0, sizeof mda_data);
+      mda_data.fp = fp;
+      mda_data.argv = argv;
+      mda_data.progfile_pattern = progfile_pattern;
+      mda_data.tempfile = tempfile;
+      return prog_mda (&mda_data);
+    }
 #endif
   
-  unlink (mda_data.tempfile);
+  unlink (tempfile);
   for (; *argv; argv++)
     mda (fp, *argv, NULL);
   return exit_code;
@@ -280,7 +285,7 @@ mda (FILE *fp, char *username, mailbox_t mbox)
       if (attribute_is_deleted (attr))
 	return EX_OK;
     }
-  
+
   deliver (fp, username);
 
   if (multiple_delivery)
@@ -332,31 +337,53 @@ make_tmp (const char *from, char **tempfile)
   FILE *fp;
   char *buf = NULL;
   size_t n = 0;
+  int line;
   
-  if (fd == -1 || (fp = fdopen(fd, "w+")) == NULL)
+  if (fd == -1 || (fp = fdopen (fd, "w+")) == NULL)
     {
-      mailer_err("unable to open temporary file");
+      mailer_err ("unable to open temporary file");
       exit (exit_code);
     }
-  
-  time (&t);
-  fprintf (fp, "From %s %s", from, ctime (&t));
 
-  while (getline(&buf, &n, stdin) > 0) {
-    if (!memcmp(buf, "From ", 5))
-      fputc('>', fp);
+  line = 0;
+  while (getline (&buf, &n, stdin) > 0) {
+    line++;
+    if (line == 1)
+      {
+	if (memcmp (buf, "From ", 5))
+	  {
+	    if (!from)
+	      {
+		struct passwd *pw = getpwuid (uid);
+		if (pw)
+		  from = pw->pw_name;
+	      }
+	    if (from)
+	      {
+		time (&t);
+		fprintf (fp, "From %s %s", from, ctime (&t));
+	      }
+	    else
+	      {
+		mailer_err ("Can't determine sender address");
+		exit (EX_UNAVAILABLE);
+	      }
+	  }
+      }
+    else if (!memcmp (buf, "From ", 5))
+      fputc ('>', fp);
     if (fputs (buf, fp) == EOF)
       {
 	mailer_err ("temporary file write error");
-	fclose(fp);
+	fclose (fp);
 	return NULL;
       }
   }
 
-  if (buf && strchr(buf, '\n') == NULL)
-    putc('\n', fp);
+  if (buf && strchr (buf, '\n') == NULL)
+    putc ('\n', fp);
 
-  putc('\n', fp);
+  putc ('\n', fp);
   free (buf);
   
   return fp;
@@ -459,7 +486,7 @@ deliver (FILE *fp, char *name)
     {
     case MQUOTA_EXCEEDED:
       mailer_err ("%s: mailbox quota exceeded for this recipient", name);
-      exit_code = EX_UNAVAILABLE;
+      exit_code = EX_QUOTA();
       failed++;
       break;
     case MQUOTA_UNLIMITED:
@@ -475,7 +502,7 @@ deliver (FILE *fp, char *name)
 	{
 	  mailer_err ("%s: message would exceed maximum mailbox size for this recipient",
 		      name);
-	  exit_code = EX_UNAVAILABLE;
+	  exit_code = EX_QUOTA();
 	  failed++;
 	}
       break;
@@ -503,15 +530,51 @@ deliver (FILE *fp, char *name)
       free (buf);
       switch_user_id (0);
     }
-  
+
+  if (!failed)
+    notify_biff (mbox, name, size);
+
   locker_unlock (lock);
-  /* FIXME: Flush the data */
+
   mailbox_close (mbox);
   mailbox_destroy (&mbox);
-#if 0 /*FIXME*/
-  if (!failed)
-    notify_biff (name, size);
-#endif
+}
+
+void
+notify_biff (mailbox_t mbox, char *name, size_t size)
+{
+  static int fd = -1;
+  url_t url = NULL;
+  char *buf = NULL;
+  static struct sockaddr_in inaddr;
+    
+  if (fd == -1)
+    {
+      struct servent *sp;
+      
+      if ((sp = getservbyname ("biff", "udp")) == NULL)
+	return;
+
+      inaddr.sin_family = AF_INET;
+      inaddr.sin_addr.s_addr = htonl (INADDR_LOOPBACK);
+      inaddr.sin_port = sp->s_port;
+      
+      fd = socket (AF_INET, SOCK_DGRAM, 0);
+      if (fd < 0)
+	fd = -2; /* Mark failed initialization */
+    }
+
+  if (fd < 0)
+    return;
+  
+  mailbox_get_url (mbox, &url);
+  asprintf (&buf, "%s@%ld:%s", name, size, url_to_string (url));
+  if (buf)
+    {
+      sendto (fd, buf, strlen (buf), 0, (struct sockaddr *)&inaddr,
+	      sizeof inaddr);
+      free (buf);
+    }
 }
 
 void
@@ -530,9 +593,6 @@ mailer_err (char *fmt, ...)
 int temp_errors[] = {
 #ifdef EAGAIN
   EAGAIN, /* Try again */
-#endif
-#ifdef EDQUOT
-  EDQUOT, /* Disk quota esceeded */
 #endif
 #ifdef EBUSY
   EBUSY, /* Device or resource busy */
@@ -613,6 +673,14 @@ guess_retval (int ec)
   /* Temporary failures override hard errors. */
   if (exit_code == EX_TEMPFAIL)
     return;
+#ifdef EDQUOT
+  if (ec == EDQUOT)
+    {
+      exit_code = EX_QUOTA();
+      return;
+    }
+#endif
+
   for (i = 0; i < sizeof (temp_errors)/sizeof (temp_errors[0]); i++)
     if (temp_errors[i] == ec)
       {
@@ -632,8 +700,6 @@ static char help_message[] =
 "   -h, --help               Display this help and exit\n"
 "   -L, --license            Display GNU General Public License\n"
 "   -m, --maildir PATH       Specify path to mailspool directory\n"
-"   -M, --multiple-delivery  Don't return errors when delivering to multiple\n"
-"                            recipients\n"
 #ifdef USE_DBM
 "   -q, --quota-db FILE      Specify path to quota database.\n"
 #endif
@@ -641,8 +707,15 @@ static char help_message[] =
 "   -s, --source PATTERN     Set name pattern for user-defined mail filters.\n"
 #endif
 "   -t, --timeout NUMBER     Set timeout for acquiring the lockfile\n"
+#ifdef WITH_GUILE
+"   -x, --debug guile        Start with guile debugging evaluator and backtraces\n"
+#endif
 "   -x, --debug NUMBER       Set debugging level\n"
 "   -v, --version            Display program version and exit.\n"
+"   --ex-multiple-delivery-success Don't return errors when delivering to\n"
+"                            multiple recipients\n"
+"   --ex-quota-tempfail      Return temporary failure if disk or mailbox quota\n"
+"                            is exceeded\n"
 "\nReport bugs to bug-mailutils@gnu.org\n";
 
   printf ("%s", help_message);
