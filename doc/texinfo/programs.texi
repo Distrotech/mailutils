@@ -2171,7 +2171,7 @@ The program accepts following command line options:
 
 @table @option
 @item -q
-@itemx --quite
+@itemx --quiet
 @itemx -s
 @itemx --silent
 Be quiet. Display only number of messages per mailbox, without leading text.

@@ -1,3 +1,7 @@
+2005-01-12  Jordi Mallach
+
+	* doc/texinfo/programs.texi: Typo fix.
+
 2005-01-01  Sergey Poznyakoff
 
 	Generate automatically errno.h and muerrno.c from a single
