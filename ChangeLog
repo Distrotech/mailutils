@@ -1,3 +1,19 @@
+2001-12-16 Sam Roberts
+
+	* TODO: updated with some notes about the doc examples
+	* examples/mimetest.c, include/mailutils/message.h,
+	mailbox/attachment.c:
+	  (message_get_attachment_name, message_aget_attachment_name): new
+	    APIs, used to be private to mailbox/attachment.c.
+	  (message_save_attachment): filename can be NULL, it defaults to
+	    the attachment's name
+	* doc/texinfo/stream.texi: updated - not much text, but at least
+	the args are correct.
+	* TODO: updated
+	* mailbox/attachment.c: gnu indented
+	* examples/: mbox-dates.c, mbox-explode.c: Added -d flags.
+	* examples/mimetest.c: gnu indented
+
 2001-12-16 Alain Magloire
 
 	* mailbox/body.c: Call lazy_create() _before__ file_stream_create()
