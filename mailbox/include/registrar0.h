@@ -36,6 +36,12 @@ extern "C" {
 # endif
 #endif /*__P */
 
+/* The pop and imap defines are all wrong now, since they seem intertwined
+   with the old url parsing code. Also, "pop://" is not the POP scheme,
+   at least not as a scheme is described in the RFCs.
+
+   Perhaps they can be changed?
+*/
 #define MU_POP_PORT 110
 #define MU_POP_SCHEME "pop://"
 #define MU_POP_SCHEME_LEN 6

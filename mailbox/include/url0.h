@@ -39,10 +39,10 @@ extern "C" {
 struct _url
 {
   /* Data */
-  char *name;
+  char  *name;
   char  *scheme;
   char  *user;
-  char  *passwd; /* encoded ?? */
+  char  *passwd;
   char  *auth;
   char  *host;
   long  port;
