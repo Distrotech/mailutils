@@ -135,11 +135,5 @@ imap4d_append0 (mailbox_t mbox, int flags, char *text)
   return rc;
 }
 
-int
-wd()
-{
-  volatile int _s = 0;
-  while (!_s)
-    ;
-}
+
      
