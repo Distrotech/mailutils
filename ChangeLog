@@ -1,3 +1,11 @@
+2001-06-21 Sergey Poznyakoff
+	* mailbox/mutil.c: Fixed error introduced in the initial
+	  implementation of mu_mktime (now mu_tm2time). The comment
+	  on mu_tm2time() describes it.
+	  Revert the sign of the return value of mu_utc_offset(), so it
+	  agrees with the accepted timezone rules (+ for eastern
+	  hemisphere, - for western).
+
 2001-06-19 Sam Roberts
 
 	* include/mailutils/debug.h, mailbox/debug.c: New function:
