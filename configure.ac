@@ -194,7 +194,7 @@ AH_BOTTOM([
 use_dbm=no
 AC_ARG_WITH([gdbm],
             AC_HELP_STRING([--with-gdbm],
-                           [use GDBM]),
+                           [use GNU DBM]),
             [
 case "${withval}" in
   yes) use_dbm=GDBM ;;
