@@ -49,6 +49,7 @@
 # include <strings.h>
 #endif
 
+#include <mailutils/errno.h>
 #include <mailutils/message.h>
 #include <mailutils/stream.h>
 #include <mailutils/body.h>
@@ -380,11 +381,8 @@ mbox_open (mailbox_t mailbox, int flags)
   MAILBOX_DEBUG2 (mailbox, MU_DEBUG_TRACE, "mbox_open(%s, 0x%x)\n",
 		  mud->name, mailbox->flags);
 
-  /* Give an appropriate way to file lock.  */
-  /* FIXME: use dotlock external program: we may not be setgid.  */
   if (mailbox->locker == NULL)
-    status = locker_create (&(mailbox->locker), mud->name, strlen (mud->name),
-			    MU_LOCKER_PID | MU_LOCKER_FCNTL);
+    status = locker_create (&(mailbox->locker), mud->name, 0);
   return status;
 }
 
@@ -652,14 +650,14 @@ mbox_expunge0 (mailbox_t mailbox, int remove_deleted)
   }
 
   /* Get the File lock.  */
-  if (locker_lock (mailbox->locker, MU_LOCKER_WRLOCK) != 0)
+  if ((status = locker_lock (mailbox->locker)) != 0)
     {
       mailbox_close (tmpmailbox);
       mailbox_destroy (&tmpmailbox);
       remove (tmpmboxname);
       free (tmpmboxname);
-      mu_error ("Failed to grab the lock\n");
-      return ENOLCK;
+      mu_error ("Failed to grab the lock: %s\n", mu_errstring(status));
+      return status;
     }
 
   /* Critical section, we can not allowed signal here.  */
@@ -711,7 +709,7 @@ mbox_expunge0 (mailbox_t mailbox, int remove_deleted)
 	      if (status != 0)
 		{
 		  mu_error ("Error expunge:%d: %s", __LINE__,
-			  strerror (status));
+			  mu_errstring (status));
 		  goto bailout0;
 		}
 	    }
@@ -720,7 +718,7 @@ mbox_expunge0 (mailbox_t mailbox, int remove_deleted)
 	  if (status != 0)
 	    {
 	      mu_error ("Error expunge:%d: %s", __LINE__,
-		       strerror (status));
+		       mu_errstring (status));
 	      goto bailout0;
 	    }
 	  /* Clear the dirty bits.  */
@@ -743,7 +741,7 @@ mbox_expunge0 (mailbox_t mailbox, int remove_deleted)
 					     total, &n) != 0))
 		{
 		  mu_error ("Error expunge:%d: %s", __LINE__,
-			   strerror (status));
+			   mu_errstring (status));
 		  goto bailout0;
 		}
 	      len -= n;
@@ -755,7 +753,7 @@ mbox_expunge0 (mailbox_t mailbox, int remove_deleted)
 	  if (status != 0)
 	    {
 	      mu_error ("Error expunge:%d: %s", __LINE__,
-		       strerror (status));
+		       mu_errstring (status));
 	      goto bailout0;
 	    }
 	  total++;
@@ -785,7 +783,7 @@ mbox_expunge0 (mailbox_t mailbox, int remove_deleted)
 		if (status != 0)
 		  {
 		    mu_error ("Error expunge:%d: %s", __LINE__,
-			     strerror (status));
+			     mu_errstring (status));
 		    goto bailout0;
 		  }
 		total += n;
@@ -796,7 +794,7 @@ mbox_expunge0 (mailbox_t mailbox, int remove_deleted)
 	  {
 	    /* Corrupted mailbox.  */
 	    mu_error ("Error expunge:%d: %s", __LINE__,
-		     strerror (status));
+		     mu_errstring (status));
 	    goto bailout0;
 	  }
       }
@@ -817,7 +815,7 @@ mbox_expunge0 (mailbox_t mailbox, int remove_deleted)
 	  if (status != 0)
 	    {
 	      mu_error ("Error expunge:%d: %s\n", __LINE__,
-		       strerror (status));
+		       mu_errstring (status));
 	      goto bailout;
 	    }
 	  off += n;
@@ -831,7 +829,7 @@ mbox_expunge0 (mailbox_t mailbox, int remove_deleted)
   if (status != 0)
     {
       mu_error ("Error expunging:%d: %s\n", __LINE__,
-	       strerror (status));
+	       mu_errstring (status));
       goto bailout;
     }
 
@@ -1399,6 +1397,7 @@ mbox_get_message (mailbox_t mailbox, size_t msgno, message_t *pmsg)
 static int
 mbox_append_message (mailbox_t mailbox, message_t msg)
 {
+  int status = 0;
   mbox_data_t mud = mailbox->data;
   if (msg == NULL || mud == NULL)
     return EINVAL;
@@ -1409,11 +1408,12 @@ mbox_append_message (mailbox_t mailbox, message_t msg)
   switch (mud->state)
     {
     case MBOX_NO_STATE:
-      if (locker_lock (mailbox->locker, MU_LOCKER_WRLOCK) != 0)
+      if ((status = locker_lock (mailbox->locker)) != 0)
 	{
-	  MAILBOX_DEBUG0 (mailbox, MU_DEBUG_TRACE,
-			  "mbox_append_message:lock failed\n");
-	  return ENOLCK;
+	  MAILBOX_DEBUG1 (mailbox, MU_DEBUG_TRACE,
+			  "mbox_append_message: %s\n",
+			  mu_errstring(status));
+	  return status;
 	}
 
     default:

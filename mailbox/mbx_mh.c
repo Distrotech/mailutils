@@ -271,10 +271,9 @@ mh_open (mailbox_t mailbox, int flags)
 
   mhd->mtime = st.st_mtime;
 
-  /* FIXME: something else? */
+  /* FIXME: is this the right kind of locking for mh folders? */
   if (mailbox->locker == NULL)
-    status = locker_create (&mailbox->locker, mhd->name, strlen (mhd->name),
-			    MU_LOCKER_PID | MU_LOCKER_FCNTL);
+    status = locker_create (&mailbox->locker, mhd->name, 0);
   return 0;
 }
 
@@ -954,7 +953,7 @@ mh_scan0 (mailbox_t mailbox, size_t msgno, size_t *pcount)
   pthread_cleanup_push (mh_cleanup, (void *)mailbox);
 #endif
 
-  locker_lock (mailbox->locker, MU_LOCKER_RDLOCK);
+  locker_lock (mailbox->locker);
 
   /* Do actual work */
   while ((entry = readdir (dir)))
