@@ -165,8 +165,10 @@ rfc2047_decode (const char *tocode, const char *input, char **ptostr)
 
 #define MAX_QUOTE 75
 
-/* Be more conservative in what we quote. This is never a problem for
-   the recipient, except for the extra overhead in the message size */
+/* Be more conservative in what we quote than in RFC2045, as in some
+   circumstances, additional symbols (like parenthesis) must be quoted
+   in headers. This is never a problem for the recipient, except for
+   the extra overhead in the message size */
 static int
 must_quote (char c)
 {
@@ -177,30 +179,50 @@ must_quote (char c)
   return 1;
 }
 
+
+/* State of the encoder */
 typedef struct _encoder rfc2047_encoder;
 
 struct _encoder {
-  char   encoding;
+  /* Name of the encoding (either B or Q) */
+  char encoding;
+
+  /* Charset of the encoded data */
   const char * charset;
 
+  /* TRUE if we need to open a quoted-word at the next byte */
   int must_open;
 
+  /* Pointer on the current input byte */
   const unsigned char * src;
+
+  /* Pointer on the current output byte and on the complete output */
   char * dst, * result;
 
+  /* todo: number of bytes remaining in the input, done: number of
+     bytes written in the output, quotesize: number of bytes in the
+     current quoted-word */
   int todo, done, quotesize;
 
+  /* Virtual methods implemented for the encoders:
+      
+      count: return how many bytes would be used by inserting the
+      current input
+      next:  quote the current input byte on the output
+      flush: output any pending byte and close the quoted-word
+  */
   int  (* count) (rfc2047_encoder * enc);
   void (* next)  (rfc2047_encoder * enc);
   void (* flush) (rfc2047_encoder * enc);
 
+  /* Extra data for the Base64 encoder */
   unsigned char buffer [4];
-
   int  state;
-
 };
 
 
+/* Write the opening of a quoted-word and return the minimum number of
+   bytes it will use */
 static int
 _open_quote (const char * charset,
 	    char encoding,
@@ -220,6 +242,7 @@ _open_quote (const char * charset,
   return len + 2;
 }
 
+/* Terminate a quoted-word */
 static void
 _close_quote (char ** dst, int * done)
 {
@@ -232,13 +255,16 @@ _close_quote (char ** dst, int * done)
     }
 }
 
+
+/* Call this function before the beginning of a quoted-word */
 static void
 init_quoted (rfc2047_encoder * enc)
 {
   enc->must_open = 1;
 }
 
-
+/* Insert the current byte in the quoted-word (handling maximum
+   quoted-word sizes,...) */
 static void
 insert_quoted (rfc2047_encoder * enc)
 {
@@ -269,6 +295,7 @@ insert_quoted (rfc2047_encoder * enc)
   enc->next (enc);
 }
 
+/* Flush the current quoted-word */
 static void
 flush_quoted (rfc2047_encoder * enc)
 {
@@ -279,7 +306,7 @@ flush_quoted (rfc2047_encoder * enc)
 }
 
 
-
+/* Insert the current byte unquoted */
 static void
 insert_unquoted (rfc2047_encoder * enc)
 {
@@ -290,6 +317,7 @@ insert_unquoted (rfc2047_encoder * enc)
 }
 
 
+/* Check if the next word will need to be quoted */
 static int
 is_next_quoted (const char * src) 
 {
@@ -307,7 +335,9 @@ is_next_quoted (const char * src)
 }
 
 
-/* Quoted-printable encoder */
+/* --------------------------------------------------
+   Quoted-printable encoder 
+   -------------------------------------------------- */
 
 static void
 qp_init (rfc2047_encoder * enc)
@@ -326,7 +356,7 @@ static const char _hexdigit[16] = "0123456789ABCDEF";
 static void
 qp_next (rfc2047_encoder * enc)
 {
-  if (must_quote (* enc->src))
+  if (* enc->src == '_' || must_quote (* enc->src))
     {
       /* special encoding of space as a '_' to increase readability */
       if (* enc->src == ' ')
@@ -376,7 +406,9 @@ qp_flush (rfc2047_encoder * enc)
 }
 
 
-/* Base64 encoder */
+/* --------------------------------------------------
+   Base64 encoder 
+   -------------------------------------------------- */
 
 const char *b64 =
 "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
