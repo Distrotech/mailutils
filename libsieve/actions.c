@@ -299,8 +299,8 @@ sieve_action_reject (sieve_machine_t mach, list_t args, list_t tags)
 
 /* rfc3028 says: 
    "Implementations SHOULD take measures to implement loop control,"
-    We do this by appending an "X-Sender" header to each message
-    being redirected. If one of the "X-Sender" headers of the message
+    We do this by appending an "X-Loop-Prevention" header to each message
+    being redirected. If one of the "X-Loop-Prevention" headers of the message
     contains our email address, we assume it is a loop and bail out. */
 
 static int
@@ -317,7 +317,7 @@ check_redirect_loop (message_t msg)
   for (i = 1; !loop && i <= num; i++)
     {
       header_get_field_name (hdr, i, buf, sizeof buf, NULL);
-      if (strcasecmp (buf, "X-Sender") == 0)
+      if (strcasecmp (buf, "X-Loop-Prevention") == 0)
 	{
 	  size_t j, cnt = 0;
 	  address_t addr;
@@ -414,7 +414,7 @@ sieve_action_redirect (sieve_machine_t mach, list_t args, list_t tags)
   p = mu_get_user_email (NULL);
   if (p)
     {
-      header_set_value (hdr, "X-Sender", p, 0);
+      header_set_value (hdr, "X-Loop-Prevention", p, 0);
       free (p);
     }
   else
