@@ -22,7 +22,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>  
-#include <string.h>  
 #include <sieve.h>
 
 typedef int (*address_aget_t) __PMT ((address_t addr, size_t no, char **buf));
@@ -111,7 +110,7 @@ retrieve_address (void *item, void *data, int idx, char **pval)
 int
 sieve_test_address (sieve_machine_t mach, list_t args, list_t tags)
 {
-  sieve_value_t *h, *v, *arg;
+  sieve_value_t *h, *v;
   header_t header = NULL;
   sieve_comparator_t comp = sieve_get_comparator (mach, tags);
   sieve_relcmp_t test = sieve_get_relcmp (mach, tags);
@@ -177,7 +176,7 @@ retrieve_header (void *item, void *data, int idx, char **pval)
 int
 sieve_test_header (sieve_machine_t mach, list_t args, list_t tags)
 {
-  sieve_value_t *h, *v, *arg;
+  sieve_value_t *h, *v;
   sieve_comparator_t comp = sieve_get_comparator (mach, tags);
   sieve_relcmp_t test = sieve_get_relcmp (mach, tags);
   size_t count, mcount = 0;
