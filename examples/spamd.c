@@ -170,13 +170,35 @@ spamd_read_line (sieve_machine_t mach, stream_t stream,
   return rc;
 }
 
+#define char_to_num(c) (c-'0')
+
 static void
-decode_float (size_t *vn, char *str, int base)
+decode_float (size_t *vn, char *str, int digits)
 {
-  *vn = strtoul (str, &str, 10);
-  *vn *= base;
+  size_t v;
+  size_t frac = 0;
+  size_t base = 1;
+  int i;
+  
+  for (i = 0; i < digits; i++)
+    base *= 10;
+  
+  v = strtoul (str, &str, 10);
+  v *= base;
   if (*str == '.')
-    *vn += strtoul (str+1, NULL, 10);
+    {
+      for (str++, i = 0; *str && i < digits; i++, str++)
+	frac = frac * 10 + char_to_num (*str);
+      if (*str)
+	{
+	  if (char_to_num (*str) >= 5)
+	    frac++;
+	}
+      else
+	for (; i < digits; i++)
+	  frac *= 10;
+    }
+  *vn = v + frac;
 }
 
 static int
@@ -196,34 +218,6 @@ waitdebug()
   static volatile int _st=0;
   while (!_st)
     _st=_st;
-}
-
-struct symbol_closure {
-  char *symbol;
-  int found;
-};
-
-static int
-_symbol_compare (void *item, void *data)
-{
-  char *symbol = item;
-  struct symbol_closure *sp = data;
-  return strcmp (symbol, sp->symbol) == 0;
-}    
-
-int
-dummy_retrieve (void *item, void *data, int idx, char **pval)
-{
-  char **pbuf = data;
-  char *p = strtok (*pbuf, ",");
-  *pbuf = NULL;
-  if (p)
-    {
-      *pval = strdup (p);
-      return 0;
-    }
-  
-  return 1;
 }
 
 
@@ -269,9 +263,23 @@ sigpipe_handler (int sig ARG_UNUSED)
 /* Syntax: spamd [":host" <tcp-host: string]
                  [":port" <tcp-port: number> /
                   ":socket" <unix-socket: string>]
-		 [":over" / ":under" <limit: number>]
-		 [COMPARATOR] [MATCH-TYPE]
-		 <symbols: string-list>
+		 [":over" / ":under" <limit: string>]
+
+   The "spamd" test is an interface to "spamd" facility of
+   SpamAssassin mail filter. It evaluates to true if SpamAssassin
+   recognized the message as spam, or the message spam score
+   satisfies the given relation.
+
+   If the argument is ":over" and the spam score is greater than
+   or equal to the number provided, the test is true; otherwise,
+   it is false.
+
+   If the argument is ":under" and the spam score is less than
+   or equal to the number provided, the test is true; otherwise,
+   it is false.
+
+   Spam score is a floating point number. The comparison takes into
+   account three decimal digits.
 
 */
 
@@ -281,7 +289,7 @@ spamd_test (sieve_machine_t mach, list_t args, list_t tags)
   char buffer[512];
   char version_str[19];
   char spam_str[6], score_str[21], threshold_str[21];
-  int response;
+  int response, rc;
   size_t version;
   int result;
   size_t score, threshold, limit;
@@ -290,10 +298,10 @@ spamd_test (sieve_machine_t mach, list_t args, list_t tags)
   message_t msg;
   size_t m_size, m_lines, size;
   struct mu_auth_data *auth;
-  sieve_comparator_t comp = sieve_get_comparator (mach, tags);
   signal_handler handler;
   char *host;
-  
+  header_t hdr;
+
   if (sieve_get_debug_level (mach) & MU_SIEVE_DEBUG_TRACE)
     sieve_debug (mach, "spamd_test %lu\n",
 		 (u_long) sieve_get_message_num (mach));
@@ -344,7 +352,7 @@ spamd_test (sieve_machine_t mach, list_t args, list_t tags)
       spamd_abort (mach, &stream, handler);
     }
   
-  decode_float (&version, version_str, 10);
+  decode_float (&version, version_str, 1);
   if (version < 10)
     {
       sieve_error (mach, "unsupported SPAMD version: %s", version_str);
@@ -366,55 +374,47 @@ spamd_test (sieve_machine_t mach, list_t args, list_t tags)
 
   result = decode_boolean (spam_str);
   score = strtoul (score_str, NULL, 10);
-  decode_float (&score, score_str, 100);
-  decode_float (&threshold, threshold_str, 100);
+  decode_float (&score, score_str, 3);
+  decode_float (&threshold, threshold_str, 3);
 
   if (!result)
     {
       if (sieve_tag_lookup (tags, "over", &arg))
 	{
-	  decode_float (&limit, arg->v.string, 100);
+	  decode_float (&limit, arg->v.string, 3);
 	  result = score >= limit;
 	}
       else if (sieve_tag_lookup (tags, "over", &arg))
 	{
-	  decode_float (&limit, arg->v.string, 100);
+	  decode_float (&limit, arg->v.string, 3);
 	  result = score <= limit;	  
 	}
     }
   
-  if (!result)
+  /* Skip newline */
+  spamd_read_line (mach, stream, buffer, sizeof buffer, NULL);
+  /* Read symbol list */
+  spamd_read_line (mach, stream, buffer, sizeof buffer, &size);
+
+  rc = message_get_header (msg, &hdr);
+  if (rc)
     {
-      /* Skip newline */
-      spamd_read_line (mach, stream, buffer, sizeof buffer, NULL);
-      /* Read symbol list */
-      spamd_read_line (mach, stream, buffer, sizeof buffer, &size);
-      if (buffer[0])
-	{
-	  list_t list;
-	  sieve_value_t v;
-	  char *p;
-	  
-	  list_create (&list);
-	  list_append (list, buffer);
-	  v.type = SVT_STRING_LIST;
-	  v.v.list = list;
-	  p = &buffer;
-	  arg = sieve_value_get (args, 0);
-	  result = sieve_vlist_compare (&v, arg,
-					comp, sieve_get_relcmp (mach, tags),
-					dummy_retrieve, &p, NULL) > 0;
-	  list_destroy (&list);
-	}
+      sieve_error (mach, "cannot get message header: %s", mu_strerror (rc));
+      spamd_abort (mach, &stream, handler);
     }
-  
+
+  header_set_value (hdr, "X-Spamd-Status", spam_str, 1);
+  header_set_value (hdr, "X-Spamd-Score", score_str, 1);
+  header_set_value (hdr, "X-Spamd-Threshold", threshold_str, 1);
+  header_set_value (hdr, "X-Spamd-Keywords", buffer, 1);
+
   while (spamd_read_line (mach, stream, buffer, sizeof buffer, &size) == 0
 	 && size > 0)
     /* Drain input */;
-
+  
   spamd_destroy (&stream);
   set_signal_handler (SIGPIPE, handler);
-  
+
   return result;
 }
 
@@ -423,7 +423,6 @@ spamd_test (sieve_machine_t mach, list_t args, list_t tags)
    
 /* Required arguments: */
 static sieve_data_type spamd_req_args[] = {
-  SVT_STRING_LIST,
   SVT_VOID
 };
 
@@ -437,20 +436,8 @@ static sieve_tag_def_t spamd_tags[] = {
   { NULL }
 };
 
-static sieve_tag_def_t match_part_tags[] = {
-  { "is", SVT_VOID },
-  { "contains", SVT_VOID },
-  { "matches", SVT_VOID },
-  { "regex", SVT_VOID },
-  { "count", SVT_STRING },
-  { "value", SVT_STRING },
-  { "comparator", SVT_STRING },
-  { NULL }
-};
-
 static sieve_tag_group_t spamd_tag_groups[] = {
   { spamd_tags, NULL },
-  { match_part_tags, sieve_match_part_checker },
   { NULL }
 };
 
