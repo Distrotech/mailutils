@@ -73,6 +73,23 @@ static struct _record _file_record =
 };
 record_t file_record = &_file_record;
 
+static int
+_path_is_scheme (record_t record, const char *url)
+{
+  if (url
+      && record->scheme
+      && strncasecmp (record->scheme, url, strlen (record->scheme)) == 0)
+    {
+      struct stat st;
+      
+      if (stat (url, &st) < 0)
+	return 1; /* mailbox_open will complain */
+
+      return S_ISREG (st.st_mode) || S_ISCHR (st.st_mode); 
+    }
+  return 0;
+}
+
 static struct _record _path_record =
 {
   MU_PATH_SCHEME,
@@ -81,7 +98,7 @@ static struct _record _path_record =
   NULL,               /* Mailer init.  */
   _folder_mbox_init,  /* Folder init.  */
   NULL, /* No need for an owner.  */
-  NULL, /* is_scheme method.  */
+  _path_is_scheme, /* is_scheme method.  */
   NULL, /* get_url method.  */
   NULL, /* get_mailbox method.  */
   NULL, /* get_mailer method.  */
