@@ -1,4 +1,7 @@
-#CFLAGS = -Wall -pedantic -g -DTESTING
+# This file is part of GNU Mailutils
+# Copyright (C) 2000,2001,2002 Free Software Foundation
+# See file COPYING in the distribution root directory for copying conditions.
+
 AUTOMAKE_OPTIONS = ../lib/ansi2knr
 INCLUDES = -I${top_srcdir}/include -I${top_srcdir}/lib 
 SUBDIRS  = testsuite
@@ -16,7 +19,7 @@ DISTCLEANFILES=
 MAINTAINERCLEANFILES=$(BUILT_SOURCES)
 EXTRA_DIST = \
   $(BUILT_SOURCES) \
-  addr-lex.l addr.y gram-sieve.y sieve-gram.y sieve-lex.l md5-rsa.h
+  addr-lex.l addr.y gram-sieve.y sieve-gram.y sieve-lex.l 
 
 bin_PROGRAMS = sieve
 
@@ -27,7 +30,6 @@ SRC = \
   imparse.c \
   interp.c \
   message.c \
-  md5-rsa.c \
   parseaddr.c \
   script.c \
   sieve-lex.c \
