@@ -1,3 +1,7 @@
+2001-08-22  Jakob 'sparky' Kaivo  <jkaivo@elijah.nodomainname.net>
+
+	* imap4d/fetch.c (bodystructure): check sp != NULL before using
+
 2001-08-18 Sergey Poznyakoff
 
 	* libmu_scm/mu_mime.c: (new) Scheme primitives for handling
