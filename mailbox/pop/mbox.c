@@ -541,7 +541,7 @@ _pop_user (authority_t auth)
 	  mailbox_get_observable (mbox, &observable);
 	  CLEAR_STATE (mpd);
 	  observable_notify (observable, MU_EVT_AUTHORITY_FAILED);
-	  CHECK_ERROR_CLOSE (mbox, mpd, EACCES);
+	  return MU_ERR_AUTH_FAILURE;
 	}
       mpd->state = POP_AUTH_DONE;
       break;  /* We're outta here.  */
