@@ -1,4 +1,13 @@
-2002-01-30  Sergey Poznyakoff  <gray@Mirddin.farlep.net>
+2002-02-04  Sergey Poznyakoff  
+
+	* mail.local/Makefile.am (mail_local_LDADD): Add @AUTHLIBS@.
+	* mail.local/mail.local.h: Include "../MySql/MySql.h" when
+	  necessary.
+	* mail.local/main.c (main): Register virtual domain handlers.
+	  Use mu_getpwnam.
+	  (deliver): Set MU_LOCKER_PID bit on the locker.
+
+2002-01-30  Sergey Poznyakoff  
 
 	* mail.local/main.c (main): Return EX_USAGE on command line
   	  usage errors.
