@@ -1,3 +1,26 @@
+2001-09-19 Alain Magloire
+
+	* mailbox2/debug.c: Remove mu_debug_printv() and only keep
+	mu_debug_print().
+	* mailbox2/sdebug.c (mu_debug_stream_create): New function
+	replace mu_debug_stdio_create().
+	* mailbox2/fdstream.c (_fds_desroy): Do not close the stream
+	when distroying, it should have been done explicitely with
+	stream_close ();
+	* mailbox2/fstream.c (_fs_desroy): Do not close the stream
+	when distroying, it should have been done explicitely with
+	stream_close ();
+	* mailbox2/mapstream.c (_map_desroy): Do not close the stream
+	when distroying, it should have been done explicitely with
+	stream_close ();
+	* mailbox2/memstream.c (_memory_desroy): Do not close the stream
+	when distroying, it should have been done explicitely with
+	stream_close ();
+	* mailbox2/tcpstream.c (_tcp_desroy): Do not close the stream
+	when distroying, it should have been done explicitely with
+	stream_close ();
+
+
 2001-09-18 Sam Roberts
 
 	* mailbox/mbx_pop.c: Check url authentication type at
