@@ -1812,6 +1812,28 @@ if @code{crt} is set without a value, then the height of the terminal
 screen is used to compute the threshold.  The number of lines on
 screen is controlled by @code{screen} variable.
 
+@item decode-fallback
+@*Type: String.
+@*Default: @samp{none}.
+@vrindex decode-fallback, mail variable
+
+This variable controls the way to represent characters that cannot
+be rendered using current character set. It can have three values:
+
+@table @samp
+@item none
+Such characters are not printed at all. The conversion process stops
+at the first character that cannot be rendered.
+
+@item copy-pass
+The characters are displayed @samp{as is}. Notice, that depending on
+your setup, this may screw-up your terminal settings.
+
+@item copy-octal
+Unprintable characters are represented by their octal codes. Printable
+ones are printed @samp{as is}.
+@end table
+
 @item dot
 @*Type: Boolean.
 @*Default: False.

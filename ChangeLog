@@ -1,3 +1,23 @@
+2004-06-09  Sergey Poznyakoff
+
+	* NEWS: Updated
+	* doc/texinfo/programs.texi: Updated
+	* include/mailutils/mutil.h (mu_decode_filter): New function
+	(mu_default_fallback_mode): New variable.
+	(mu_set_default_fallback): New function.
+	* mailbox/mutil.c: Likewise
+	* libmu_scm/Makefile.am: Do not use $< in explicit rules
+	* mail/util.c (util_setenv): Special handling for decode-fallback
+	variable
+	* mail.remote/mail.remote.c: Fixed doc string
+	* mailbox/mu_auth.c: Add missing gettext markers
+	* mailbox/rfc2047.c: Use mu_decode_filter.	
+	* mh/mh_global.c (mh_read_profile): Handle new profile
+	variable "Decode-Fallback".
+	* pop3d/pop3d.c (options): Fixed typo in doc string
+	* include/mailutils/stream.h: Forward declaration of struct
+	timeval is needed for stream_wait().
+
 2004-06-06  Sergey Poznyakoff 
 
 	* include/mailutils/filter.h (filter_iconv_create): New prototype.
