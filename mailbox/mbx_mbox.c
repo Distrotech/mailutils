@@ -1774,6 +1774,9 @@ mbox_messages_count (mailbox_t mailbox, size_t *pcount)
   return 0;
 }
 
+/* A "recent" message is the one not marked with MU_ATTRIBUTE_SEEN
+   ('O' in the Status header), i.e. a message that is first seen
+   by the current session (see attributes.h) */
 static int
 mbox_messages_recent (mailbox_t mailbox, size_t *pcount)
 {
@@ -1791,15 +1794,14 @@ mbox_messages_recent (mailbox_t mailbox, size_t *pcount)
   for (recent = j = 0; j < mud->messages_count; j++)
     {
       mum = mud->umessages[j];
-      if (mum && ((mum->attr_flags == 0) ||
-		  ! ((mum->attr_flags & MU_ATTRIBUTE_SEEN)
-		     && (mum->attr_flags & MU_ATTRIBUTE_READ))))
+      if (mum && MU_ATTRIBUTE_IS_UNSEEN(mum->attr_flags))
 	recent++;
     }
   *pcount = recent;
   return 0;
 }
 
+/* An "unseen" message is the one that has not been read yet */
 static int
 mbox_message_unseen (mailbox_t mailbox, size_t *pmsgno)
 {
@@ -1817,9 +1819,7 @@ mbox_message_unseen (mailbox_t mailbox, size_t *pmsgno)
   for (unseen = j = 0; j < mud->messages_count; j++)
     {
       mum = mud->umessages[j];
-      if (mum && ((mum->attr_flags == 0) ||
-		  ! ((mum->attr_flags & MU_ATTRIBUTE_SEEN)
-		     && (mum->attr_flags & MU_ATTRIBUTE_READ))))
+      if (mum && MU_ATTRIBUTE_IS_UNREAD(mum->attr_flags))
 	{
 	  unseen = j + 1;
 	  break;
