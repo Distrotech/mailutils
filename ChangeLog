@@ -1,3 +1,59 @@
+2002-11-25  Sergey Poznyakoff 
+
+	* mail.local/main.c (deliver): Bugfix: n and isize were not
+	  declared.
+	* sieve/sieve.c (options): Fixed spelling in the help line.
+	* libsieve/load.c: Removed debugging hacks. Always call lt_dlinit
+	  and add a call to lt_dlexit to the destructor.
+	* examples/Makefile.am: Pointed moddir to more appropriate
+	  place.
+	* mail/z.c: Bugfix. Use mail_from0(), not mail_from().
+
+	* doc/texinfo/libmuauth.texi: New file. A placeholder for
+	  documentation regarding libmuauth.
+	* doc/texinfo/libsieve.texi: New file. Documentation for the
+	  sieve library.
+	* doc/texinfo/Makefile.am: Replaced explicit rules to generate
+	  *.c.texi files with an implicit rule generating *.inc files.
+	  The rule itself is modified to preserve the heading comment.
+	  Added libmuauth.texi and libsieve.texi to sources.
+
+	* doc/texinfo/.cvsignore: Added *.inc
+
+	* doc/texinfo/programs.texi: Documented new version of sieve (not
+	  fully, still...)
+	* doc/texinfo/mailutils.texi: Added references to libmuauth and
+	  libsieve.
+	
+	* doc/texinfo/framework.texi: Include *.inc files instead of
+	  *.c.texi. Added standard GNU copyright header.
+	* doc/texinfo/address.texi: Likewise.
+	* doc/texinfo/attribute.texi: Likewise.
+	* doc/texinfo/auth.texi: Likewise.
+	* doc/texinfo/body.texi: Likewise.
+	* doc/texinfo/c-api.texi: Likewise.
+	* doc/texinfo/encoding.texi: Likewise.
+	* doc/texinfo/envelope.texi: Likewise.
+	* doc/texinfo/folder.texi: Likewise.
+	* doc/texinfo/headers.texi: Likewise.
+	* doc/texinfo/imap4.texi: Likewise.
+	* doc/texinfo/iterator.texi: Likewise.
+	* doc/texinfo/locker.texi: Likewise.
+	* doc/texinfo/mailbox.texi: Likewise.
+	* doc/texinfo/maildir.texi: Likewise.
+	* doc/texinfo/mailer.texi: Likewise.
+	* doc/texinfo/mbox.texi: Likewise.
+	* doc/texinfo/message.texi: Likewise.
+	* doc/texinfo/mh.texi: Likewise.
+	* doc/texinfo/mime.texi: Likewise.
+	* doc/texinfo/nntp.texi: Likewise.
+	* doc/texinfo/parse822.texi: Likewise.
+	* doc/texinfo/pop3.texi: Likewise.
+	* doc/texinfo/sendmail.texi: Likewise.
+	* doc/texinfo/smtp.texi: Likewise.
+	* doc/texinfo/stream.texi: Likewise.
+	* doc/texinfo/url.texi: Likewise.
+	
 2002-11-22  Sergey Poznyakoff 
 
 	* configure.ac: Added check for installed libltdl. Bumped
