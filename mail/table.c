@@ -66,6 +66,7 @@ const struct mail_command_entry mail_command_table[] = {
   { "s",	"save",		"s[ave] [[msglist] file]",	0, mail_save, 0 },
   { "se",	"set", "se[t] [name[=[string]]...] [name=number...] [noname...]",
 	0, mail_set, 0 },
+  { "sete",     "setenv", "sete[nv] [name[=value]]", 0, mail_setenv, 0 },
   { "sh",	"shell",	"sh[ell] [command]",		0, mail_shell, 0 },
   { "si",	"size",		"si[ze] [msglist]",		0, mail_size, 0 },
   { "so",	"source",	"so[urce] file",		0, mail_source, 0 },
