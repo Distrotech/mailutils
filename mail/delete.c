@@ -22,47 +22,55 @@
  */
 
 static int
-mail_delete0 (void)
+mail_delete_msg (msgset_t *mspec, message_t msg, void *data)
 {
-  message_t msg;
   attribute_t attr;
 
-  if (util_get_message (mbox, cursor, &msg, MSG_NODELETED))
-    return 1;
   message_get_attribute (msg, &attr);
   attribute_set_deleted (attr);
+
+  if (cursor == mspec->msg_part[0])
+    {
+      /* deleting current message. let the caller know */
+      *(int *)data = 1;
+    }
   return 0;
 }
 
 int
 mail_delete (int argc, char **argv)
 {
-  int rc = 0;
-
-  if (argc > 1)
-    rc = util_msglist_command (mail_delete, argc, argv, 0);
-  else
-    rc = mail_delete0 ();
-
-  /* Readjust the realcursor to no point to the deleted messages.  */
-  if (cursor == realcursor)
+  int reset_cursor = 0;
+  int rc = util_foreach_msg (argc, argv, MSG_NODELETED,
+			     mail_delete_msg, &reset_cursor);
+  
+  /* Readjust the cursor not to point to the deleted messages.  */
+  if (reset_cursor)
     {
-      unsigned int here = realcursor;
-      do
+      unsigned int here;
+      for (here = cursor; here <= total; here++)
 	{
 	  message_t msg = NULL;
 	  attribute_t attr = NULL;
-
-	  mailbox_get_message (mbox, realcursor, &msg);
+	  
+	  mailbox_get_message (mbox, here, &msg);
 	  message_get_attribute (msg, &attr);
 	  if (!attribute_is_deleted (attr))
 	    break;
-	  if (++realcursor > total)
-	    realcursor = 1;
 	}
-      while (realcursor != here);
 
-      cursor = realcursor;
+      if (here > total)
+	for (here = cursor; here > 0; here--)
+	  {
+	    message_t msg = NULL;
+	    attribute_t attr = NULL;
+	  
+	    mailbox_get_message (mbox, here, &msg);
+	    message_get_attribute (msg, &attr);
+	    if (!attribute_is_deleted (attr))
+	      break;
+	  }
+      cursor = here;
     }
 
   if (util_getenv (NULL, "autoprint", Mail_env_boolean, 0) == 0)

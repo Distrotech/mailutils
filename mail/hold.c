@@ -22,21 +22,22 @@
  * pre[serve] [msglist]
  */
 
+static int
+hold0 (msgset_t *mspec, message_t msg, void *data)
+{
+  attribute_t attr;
+
+  message_get_attribute (msg, &attr);
+  attribute_unset_userflag (attr, MAIL_ATTRIBUTE_MBOXED);
+
+  cursor = mspec->msg_part[0];
+  
+  return 0;
+}
+
 int
 mail_hold (int argc, char **argv)
 {
-  message_t msg;
-  attribute_t attr;
-
-  if (argc > 1)
-    return util_msglist_command (mail_hold, argc, argv, 1);
-  else
-    {
-      if (util_get_message (mbox, cursor, &msg, MSG_ALL))
-        return 1;
-
-      message_get_attribute (msg, &attr);
-      attribute_unset_userflag (attr, MAIL_ATTRIBUTE_MBOXED);
-    }
-  return 0;
+  return util_foreach_msg (argc, argv, MSG_ALL, hold0, NULL);
 }
+

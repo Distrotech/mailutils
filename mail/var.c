@@ -436,77 +436,77 @@ var_insert (int argc, char **argv, compose_env_t *send_env)
 
 /* ~m[mesg-list] */
 /* ~M[mesg-list] */
+
+int
+quote0 (msgset_t *mspec, message_t mesg, void *data)
+{
+  header_t hdr;
+  body_t body;
+  stream_t stream;
+  char buffer[512];
+  off_t off = 0;
+  size_t n = 0;
+  char *prefix = "\t";
+  
+  fprintf (stdout, _("Interpolating: %d\n"), mspec->msg_part[0]);
+
+  util_getenv (&prefix, "indentprefix", Mail_env_string, 0);
+
+  if (*(int*)data)
+    {
+      size_t i, num = 0;
+      char buf[512];
+
+      message_get_header (mesg, &hdr);
+      header_get_field_count (hdr, &num);
+
+      for (i = 1; i <= num; i++)
+	{
+	  header_get_field_name (hdr, i, buf, sizeof buf, NULL);
+	  if (mail_header_is_visible (buf))
+	    {
+	      char *value;
+	      
+	      fprintf (ofile, "%s%s: ", prefix, buf);
+	      if (header_aget_value (hdr, buf, &value) == 0)
+		{
+		  int i;
+		  char *p, *s;
+
+		  for (i = 0, p = strtok_r (value, "\n", &s); p;
+		       p = strtok_r (NULL, "\n", &s), i++)
+		    {
+		      if (i)
+			fprintf (ofile, "%s", prefix);
+		      fprintf (ofile, "%s\n", p);
+		    }
+		  free (value);
+		}
+	    }
+	}
+      fprintf (ofile, "%s\n", prefix);
+      message_get_body (mesg, &body);
+      body_get_stream (body, &stream);
+    }
+  else
+    message_get_stream (mesg, &stream);
+
+  while (stream_readline (stream, buffer, sizeof buffer - 1, off, &n) == 0
+	 && n != 0)
+    {
+      buffer[n] = '\0';
+      fprintf (ofile, "%s%s", prefix, buffer);
+      off += n;
+    }
+  return 0;
+}
+
 int
 var_quote (int argc, char **argv, compose_env_t *env)
 {
-  if (argc > 1)
-    return util_msglist_esccmd (var_quote, argc, argv, env, 0);
-  else
-    {
-      message_t mesg;
-      header_t hdr;
-      body_t body;
-      stream_t stream;
-      char buffer[512];
-      off_t off = 0;
-      size_t n = 0;
-      char *prefix = "\t";
-
-      if (util_get_message (mbox, cursor, &mesg, MSG_NODELETED))
-	return 1;
-
-      fprintf (stdout, _("Interpolating: %d\n"), cursor);
-
-      util_getenv (&prefix, "indentprefix", Mail_env_string, 0);
-
-      if (islower (argv[0][0]))
-	{
-	  size_t i, num = 0;
-	  char buf[512];
-
-	  message_get_header (mesg, &hdr);
-	  header_get_field_count (hdr, &num);
-
-	  for (i = 1; i <= num; i++)
-	    {
-	      header_get_field_name (hdr, i, buf, sizeof buf, NULL);
-	      if (mail_header_is_visible (buf))
-		{
-		  char *value;
-
-		  fprintf (ofile, "%s%s: ", prefix, buf);
-		  if (header_aget_value (hdr, buf, &value) == 0)
-		    {
-		      int i;
-		      char *p, *s;
-
-		      for (i = 0, p = strtok_r (value, "\n", &s); p;
-			   p = strtok_r (NULL, "\n", &s), i++)
-			{
-			  if (i)
-			    fprintf (ofile, "%s", prefix);
-			  fprintf (ofile, "%s\n", p);
-			}
-		      free (value);
-		    }
-		}
-	    }
-	  fprintf (ofile, "%s\n", prefix);
-	  message_get_body (mesg, &body);
-	  body_get_stream (body, &stream);
-	}
-      else
-	message_get_stream (mesg, &stream);
-
-      while (stream_readline (stream, buffer, sizeof buffer - 1, off, &n) == 0
-	     && n != 0)
-	{
-	  buffer[n] = '\0';
-	  fprintf (ofile, "%s%s", prefix, buffer);
-	  off += n;
-	}
-      var_continue ();
-    }
+  int lower = islower (argv[0][0]);
+  util_foreach_msg (argc, argv, MSG_NODELETED|MSG_SILENT, quote0, &lower);
+  var_continue ();
   return 0;
 }
 

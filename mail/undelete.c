@@ -21,22 +21,19 @@
  * u[ndelete] [msglist]
  */
 
+static int
+undelete0 (msgset_t *mspec, message_t msg, void *data)
+{
+  attribute_t attr;
+
+  message_get_attribute (msg, &attr);
+  attribute_unset_deleted (attr);
+  return 0;
+}
+
 int
 mail_undelete (int argc, char **argv)
 {
-  if (argc > 1)
-    return util_msglist_command (mail_undelete, argc, argv, 1);
-  else
-    {
-      message_t msg;
-      attribute_t attr;
-      if (util_get_message (mbox, cursor, &msg, MSG_ALL))
-        return 1;
-
-      message_get_attribute (msg, &attr);
-      if (attribute_is_deleted (attr))
-	attribute_unset_deleted (attr);
-      return 0;
-    }
-  return 1;
+  return util_foreach_msg (argc, argv, MSG_ALL, undelete0, NULL);
 }
+

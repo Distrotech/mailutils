@@ -21,19 +21,21 @@
  * e[dit] [msglist]
  */
 
+static int
+edit0 (msgset_t *mspec, message_t msg, void *data)
+{
+  char *file = mu_tempname (NULL);
+  util_do_command ("copy %s", file);
+  util_do_command ("shell %s %s", getenv ("EDITOR"), file);
+  remove (file);
+  free (file);
+  cursor = mspec->msg_part[0];
+  return 0;
+}
+
 int
 mail_edit (int argc, char **argv)
 {
-  if (argc > 1)
-    return util_msglist_command (mail_edit, argc, argv, 1);
-  else
-    {
-      char *file = mu_tempname (NULL);
-      util_do_command ("copy %s", file);
-      util_do_command ("shell %s %s", getenv ("EDITOR"), file);
-      remove (file);
-      free (file);
-      return 0;
-    }
-  return 1;
+  return util_foreach_msg (argc, argv, MSG_NODELETED, edit0, NULL);
 }
+

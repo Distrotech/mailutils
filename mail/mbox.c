@@ -21,22 +21,21 @@
  * mb[ox] [msglist]
  */
 
+static int
+mbox0 (msgset_t *mspec, message_t msg, void *data)
+{
+  attribute_t attr;
+
+  message_get_attribute (msg, &attr);
+  attribute_set_userflag (attr, MAIL_ATTRIBUTE_MBOXED);
+  
+  cursor = mspec->msg_part[0];
+  
+  return 0;
+}
+
 int
 mail_mbox (int argc, char **argv)
 {
-  message_t msg;
-  attribute_t attr;
-
-  if (argc > 1)
-    return util_msglist_command (mail_mbox, argc, argv, 1);
-  else
-    {
-      if (util_get_message (mbox, cursor, &msg, MSG_NODELETED))
-	return 1;
-
-      /* Mark the message */
-      message_get_attribute (msg, &attr);
-      attribute_set_userflag (attr, MAIL_ATTRIBUTE_MBOXED);
-    }
-  return 0;
+  return util_foreach_msg (argc, argv, MSG_NODELETED, mbox0, NULL);
 }

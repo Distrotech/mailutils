@@ -31,7 +31,8 @@
  */
 
 static int
-z_parse_args(int argc, char **argv, unsigned int *return_count, int *return_dir)
+z_parse_args(int argc, char **argv,
+	     unsigned int *return_count, int *return_dir)
 {
   int count = 1;
   int mul = 1;
@@ -109,38 +110,40 @@ mail_z (int argc, char **argv)
   unsigned int pagelines = util_screen_lines();
   unsigned int count;
   int dir;
-
+  int crs;
+  
   if (z_parse_args(argc, argv, &count, &dir))
     return 1;
 
   nlines = pagelines;
 
   count *= pagelines;
+  crs = cursor;
   switch (dir)
     {
     case D_BWD:
-      if (cursor < nlines)
+      if (crs < nlines)
 	{
 	  fprintf (stdout, _("On first screenful of messages\n"));
 	  return 0;
 	}
-      if (cursor < count)
-	cursor = 1;
+      if (crs < count)
+	crs = 1;
       else
-	cursor -= count;
+	crs -= count;
       break;
 
     case D_FWD:
-      if (cursor + pagelines > total)
+      if (crs + pagelines > total)
 	{
 	  fprintf (stdout, _("On last screenful of messages\n"));
 	  return 0;
 	}
 
-      cursor += count;
+      crs += count;
 
-      if (cursor + nlines > total)
-	nlines = total - cursor + 1;
+      if (crs + nlines > total)
+	nlines = total - crs + 1;
 
       if (nlines <= 0)
 	{
@@ -156,43 +159,43 @@ mail_z (int argc, char **argv)
 	   of the last message.  This behaviour is used on startup
 	   when displaying the summary and the headers, new messages
 	   are last but we want to display a screenful with the
-	   real cursor set by summary() to the new message.  */
+	   real crs set by summary() to the new message.  */
 
 	/* Find the start of the last screen page.  */
 	int lastpage =  total - pagelines + 1;
 	if (lastpage <= 0)
 	  lastpage = 1;
 
-	if (cursor > (unsigned int)lastpage)
+	if (crs > (unsigned int)lastpage)
 	  {
-	    realcursor = cursor;
-	    cursor = lastpage;
+	    crs = lastpage;
 
-	    if (cursor + nlines > total)
-	      nlines = total - cursor + 1;
-	
-	    for (i = 0; i < nlines; i++)
-	      {
-		mail_from0 (cursor, 0);
-		cursor++;
-	      }
-	    cursor = realcursor;
+	    if (crs + nlines > total)
+	      nlines = total - crs;
+
+	    util_range_msg (crs, crs + nlines,
+			    MSG_NODELETED|MSG_SILENT, mail_from0, NULL);
 	    return 1;
 	  }
+	else if (crs + nlines > total)
+	  nlines = total - crs + 1;
       }
       break;
     }
 
-  realcursor = cursor;
+  cursor = crs;
 
-  for (i = 0; i < nlines && cursor <= total; )
+  i = 0;
+  do
     {
-      if (mail_from0 (cursor, 0) == 0)
-	i++;
-      cursor++;
+      int cnt = util_range_msg (crs, crs + nlines - 1,
+				MSG_NODELETED|MSG_SILENT, mail_from0, NULL);
+      if (cnt == 0)
+	break;
+      i += cnt;
+      crs += nlines;
     }
-
-  cursor = realcursor;
+  while (i < nlines && crs <= total);
 
   return 1;
 }

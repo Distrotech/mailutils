@@ -52,7 +52,7 @@ mail_headers (int argc, char **argv)
       low = list->msg_part[0] - (lines / 2);
       if (low < 1)
 	low = 1;
-      high = low + lines;
+      high = low + util_screen_lines ();
       if ((unsigned int)high > total)
 	{
 	  high = total;
@@ -60,8 +60,7 @@ mail_headers (int argc, char **argv)
 	}
     }
 
-  for (; low <= high; low++)
-    mail_from0 (low, 0);
+  util_range_msg (low, high, MSG_NODELETED|MSG_SILENT, mail_from0, NULL);
 
   msgset_free (list);
   return 0;

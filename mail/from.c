@@ -22,19 +22,8 @@
  */
 
 int
-mail_from (int argc, char **argv)
+mail_from0 (msgset_t *mspec, message_t msg, void *data)
 {
-  if (argc > 1)
-    return util_msglist_command (mail_from, argc, argv, 0);
-  else
-    return mail_from0 (cursor, 1);
-  return 1;
-}
-
-int
-mail_from0 (int msgno, int verbose)
-{
-  message_t msg;
   header_t hdr = NULL;
   envelope_t env;
   attribute_t attr;
@@ -47,10 +36,6 @@ mail_from0 (int msgno, int verbose)
   const char *p;
   struct tm tm;
   mu_timezone tz;
-
-  if (util_get_message (mbox, msgno, &msg,
-			MSG_NODELETED|(verbose ? 0 : MSG_SILENT)))
-    return 1;
 
   message_get_header (msg, &hdr);
   if (header_aget_value (hdr, MU_HEADER_FROM, &from) == 0)
@@ -113,11 +98,19 @@ mail_from0 (int msgno, int verbose)
   fromp = from ? from : "";
   subjp = subj ? subj : fromp;
   fprintf (ofile, "%c%c%4d %-18.18s %-16.16s %s %.*s\n",
-	   msgno == realcursor ? '>' : ' ', cflag, msgno,
+	   mspec->msg_part[0] == cursor ? '>' : ' ', cflag,
+	   mspec->msg_part[0],
 	   fromp, date, st, (subjl < 0) ? 0 : subjl, subjp);
   
   free (from);
   free (subj);
-  
+
   return 0;
 }
+
+int
+mail_from (int argc, char **argv)
+{
+  return util_foreach_msg (argc, argv, MSG_NODELETED, mail_from0, NULL);
+}
+

@@ -21,36 +21,34 @@
  * to[p] [msglist]
  */
 
+static int
+top0 (msgset_t *mspec, message_t msg, void *data)
+{
+  stream_t stream;
+  char buf[512];
+  size_t n;
+  off_t off;
+  int lines;
+
+  if (util_getenv (&lines, "toplines", Mail_env_number, 1)
+      || lines < 0)
+    return 1;
+
+  message_get_stream (msg, &stream);
+  for (n = 0, off = 0; lines > 0; lines--, off += n)
+    {
+      int status = stream_readline (stream, buf, sizeof (buf), off, &n);
+      if (status != 0 || n == 0)
+	break;
+      fprintf (ofile, "%s", buf);
+    }
+  cursor = mspec->msg_part[0];
+  return 0;
+}
+
 int
 mail_top (int argc, char **argv)
 {
-  if (argc > 1)
-    return util_msglist_command (mail_top, argc, argv, 1);
-  else
-    {
-      message_t msg;
-      stream_t stream;
-      char buf[512];
-      size_t n;
-      off_t off;
-      int lines;
-
-      if (util_getenv (&lines, "toplines", Mail_env_number, 1)
-          || lines < 0)
-	return 1;
-
-      if (util_get_message (mbox, cursor, &msg, MSG_NODELETED))
-	return 1;
-
-      message_get_stream (msg, &stream);
-      for (n = 0, off = 0; lines > 0; lines--, off += n)
-	{
-	  int status = stream_readline (stream, buf, sizeof (buf), off, &n);
-	  if (status != 0 || n == 0)
-	    break;
-	  fprintf (ofile, "%s", buf);
-	}
-      return 0;
-    }
-  return 1;
+  return util_foreach_msg (argc, argv, MSG_NODELETED, top0, NULL);
 }
+

@@ -21,25 +21,24 @@
  * si[ze] [msglist]
  */
 
+static int
+size0 (msgset_t *mspec, message_t msg, void *data)
+{
+  size_t size = 0, lines = 0;
+
+  message_size (msg, &size);
+  message_lines (msg, &lines);
+  
+  fprintf (ofile, "%c%2d %3d/%-5d\n",
+	   mspec->msg_part[0] == cursor ? '>' : ' ',
+	   mspec->msg_part[0], lines, size);
+  return 0;
+}
+
 int
 mail_size (int argc, char **argv)
 {
-  if (argc > 1)
-    util_msglist_command (mail_size, argc, argv, 0);
-  else
-    {
-      size_t size = 0, lines = 0;
-      message_t msg;
-
-      if (util_get_message (mbox, cursor, &msg, MSG_ALL))
-	return 1;
-
-      message_size (msg, &size);
-      message_lines (msg, &lines);
-
-      fprintf (ofile, "%c%2d %3d/%-5d\n", cursor == realcursor ? '>' : ' ',
-	       cursor, lines, size);
-      return 0;
-    }
-  return 1;
+  return util_foreach_msg (argc, argv, MSG_ALL, size0, NULL);
 }
+
+

@@ -19,7 +19,7 @@
 
 /* Simple summary dysplaying a blurb on the name of the
    mailbox and how many new:deleted:read messages.
-   The side effect is that is set the cursor/realcursor
+   The side effect is that is set the cursor/cursor
    to the newest or read message number.  */
 int
 mail_summary (int argc, char **argv)
@@ -73,7 +73,7 @@ mail_summary (int argc, char **argv)
   printf("\n");
 
   /* Set the cursor.  */
-  cursor = realcursor =  (first_new == 0) ? ((first_unread == 0) ?
-					     1 : first_unread) : first_new ;
+  cursor =  (first_new == 0) ? ((first_unread == 0) ?
+				    1 : first_unread) : first_new ;
   return 0;
 }

@@ -169,85 +169,86 @@ make_references (compose_env_t *env, message_t msg)
  */
 
 int
+reply0 (msgset_t *mspec, message_t msg, void *data)
+{
+  header_t hdr;
+  compose_env_t env;
+  int status;
+  char *str;
+
+  compose_init (&env);
+
+  message_get_header (msg, &hdr);
+
+  compose_header_set (&env, MU_HEADER_TO, util_get_sender (mspec->msg_part[0], 0),
+		      COMPOSE_SINGLE_LINE);
+
+  if (*(int*) data) /* reply starts with a lowercase */
+    {
+      /* Add all recepients of the originate letter */
+
+      address_t addr = NULL;
+      size_t i, count = 0;
+      char buf[512];
+
+      if (header_aget_value (hdr, MU_HEADER_TO, &str) == 0)
+	{
+	  address_create (&addr, str);
+	  free (str);
+	  address_get_count (addr, &count);
+	}
+
+      /* Make sure we do not include our alternate names */
+      for (i = 1; i <= count; i++)
+	{
+	  address_get_email (addr, i, buf, sizeof (buf), NULL);
+	  if (!mail_is_my_name (buf))
+	    compose_header_set (&env, MU_HEADER_TO,
+				buf,
+				COMPOSE_SINGLE_LINE);
+	}
+      
+      /* Finally, add any Ccs */
+      if (header_aget_value (hdr, MU_HEADER_CC, &str) == 0)
+	compose_header_set (&env, MU_HEADER_TO, str, COMPOSE_SINGLE_LINE);
+    }
+
+  if (header_aget_value (hdr, MU_HEADER_SUBJECT, &str) == 0)
+    {
+      char *p = NULL;
+      
+      if (strncasecmp (str, "Re:", 3))
+	util_strcat (&p, "Re: ");
+      util_strcat (&p, str);
+      free (str);
+      compose_header_set (&env, MU_HEADER_SUBJECT, p, COMPOSE_REPLACE);
+      free (p);
+    }
+  else
+    compose_header_set (&env, MU_HEADER_SUBJECT, "", COMPOSE_REPLACE);
+
+  fprintf (ofile, "To: %s\n",
+	   compose_header_get (&env, MU_HEADER_TO, ""));
+  str = compose_header_get (&env, MU_HEADER_CC, NULL);
+  if (str)
+    fprintf (ofile, "Cc: %s\n", str);
+  fprintf (ofile, "Subject: %s\n\n",
+	   compose_header_get (&env, MU_HEADER_SUBJECT, ""));
+  
+  make_in_reply_to (&env, msg);
+  make_references (&env, msg);
+  status = mail_send0 (&env, 0);
+  compose_destroy (&env);
+
+  cursor = mspec->msg_part[0];
+  
+  return status;
+}
+
+int
 mail_reply (int argc, char **argv)
 {
-  if (argc > 1)
-    return util_msglist_command (mail_reply, argc, argv, 1);
-  else
-    {
-      message_t msg;
-      header_t hdr;
-      compose_env_t env;
-      int status;
-      char *str;
-
-      compose_init (&env);
-
-      if (util_get_message (mbox, cursor, &msg, MSG_NODELETED))
-	return 1;
-
-      message_get_header (msg, &hdr);
-
-      compose_header_set (&env, MU_HEADER_TO, util_get_sender (cursor, 0),
-			  COMPOSE_SINGLE_LINE);
-
-      if (islower (argv[0][0]))
-	{
-	  /* Add all recepients of the originate letter */
-
-	  address_t addr = NULL;
-	  size_t i, count = 0;
-	  char buf[512];
-
-	  if (header_aget_value (hdr, MU_HEADER_TO, &str) == 0)
-	    {
-	      address_create (&addr, str);
-	      free (str);
-	      address_get_count (addr, &count);
-	    }
-
-	  /* Make sure we do not include our alternate names */
-	  for (i = 1; i <= count; i++)
-	    {
-	      address_get_email (addr, i, buf, sizeof (buf), NULL);
-	      if (!mail_is_my_name (buf))
-		compose_header_set (&env, MU_HEADER_TO,
-				    buf,
-				    COMPOSE_SINGLE_LINE);
-	    }
-
-	  /* Finally, add any Ccs */
-	  if (header_aget_value (hdr, MU_HEADER_CC, &str) == 0)
-	    compose_header_set (&env, MU_HEADER_TO, str, COMPOSE_SINGLE_LINE);
-	}
-
-      if (header_aget_value (hdr, MU_HEADER_SUBJECT, &str) == 0)
-	{
-	  char *p = NULL;
-
-	  if (strncasecmp (str, "Re:", 3))
-	    util_strcat (&p, "Re: ");
-	  util_strcat (&p, str);
-	  free (str);
-	  compose_header_set (&env, MU_HEADER_SUBJECT, p, COMPOSE_REPLACE);
-	  free (p);
-	}
-      else
-	compose_header_set (&env, MU_HEADER_SUBJECT, "", COMPOSE_REPLACE);
-
-      fprintf (ofile, "To: %s\n",
-	       compose_header_get (&env, MU_HEADER_TO, ""));
-      str = compose_header_get (&env, MU_HEADER_CC, NULL);
-      if (str)
-	fprintf (ofile, "Cc: %s\n", str);
-      fprintf (ofile, "Subject: %s\n\n",
-	       compose_header_get (&env, MU_HEADER_SUBJECT, ""));
-
-      make_in_reply_to (&env, msg);
-      make_references (&env, msg);
-      status = mail_send0 (&env, 0);
-      compose_destroy (&env);
-      return status;
-    }
-  return 1;
+  int lower = islower (argv[0][0]);
+  return util_foreach_msg (argc, argv, MSG_NODELETED, reply0, &lower);
 }
+

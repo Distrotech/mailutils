@@ -29,7 +29,7 @@ mail_eq (int argc, char **argv)
   switch (argc)
     {
     case 1:
-      fprintf (ofile, "%d\n", realcursor);
+      fprintf (ofile, "%d\n", cursor);
       break;
 
     case 2:
@@ -37,8 +37,8 @@ mail_eq (int argc, char **argv)
 	{
 	  if (list->msg_part[0] <= total)
 	    {
-	      realcursor = cursor = list->msg_part[0];
-	      fprintf (ofile, "%d\n", realcursor);
+	      cursor = list->msg_part[0];
+	      fprintf (ofile, "%d\n", cursor);
 	    }
 	  else
 	    util_error_range (list->msg_part[0]);

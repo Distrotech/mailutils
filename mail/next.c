@@ -53,7 +53,7 @@ mail_next (int argc, char **argv)
       if (util_get_message (mbox, n, &msg, MSG_NODELETED|MSG_SILENT))
 	return 1;
     }
-  cursor = realcursor = n;
+  cursor = n;
   util_do_command("print");
   return 0;
 }
