@@ -19,18 +19,23 @@
 # include <config.h>
 #endif
 
-#include <stdlib.h>
-#include <stdio.h>
+#include <assert.h>
 #include <errno.h>
-#include <netdb.h>
 #include <fcntl.h>
+#include <netdb.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
 #include <unistd.h>
 
+#include <sys/socket.h>
+#include <sys/types.h>
+
+#include <netinet/in.h>
+
+#include <arpa/inet.h>
+
+#include <mailutils/errno.h>
 #include <mailutils/stream.h>
 
 #define TCP_STATE_INIT 		1
@@ -82,6 +87,8 @@ _tcp_open (stream_t stream)
   if (tcp->state == TCP_STATE_INIT)
     {
       tcp->port = port;
+/* FIXME: this seems very strange, it is: tcp->host = strdup(tcp->host)
+   is this really intended? */
       if ((tcp->host = strdup (host)) == NULL)
 	return ENOMEM;
     }
@@ -103,8 +110,7 @@ _tcp_open (stream_t stream)
 	}
       tcp->state = TCP_STATE_RESOLVING;
     case TCP_STATE_RESOLVING:
-      if (tcp->host == NULL || tcp->port == -1)
-	return EINVAL;
+      assert (tcp->host != NULL && tcp->port > 0);
       tcp->address = inet_addr (tcp->host);
       if (tcp->address == INADDR_NONE)
 	{
@@ -112,7 +118,7 @@ _tcp_open (stream_t stream)
 	  if (!phe)
 	    {
 	      _tcp_close (stream);
-	      return EINVAL;
+	      return MU_ERR_GETHOSTBYNAME;
 	    }
 	  tcp->address = *(((unsigned long **) phe->h_addr_list)[0]);
 	}
@@ -225,6 +231,9 @@ tcp_stream_create (stream_t * stream, const char* host, int port, int flags)
 {
   struct _tcp_instance *tcp;
   int ret;
+
+  if (tcp->host == NULL || tcp->port < 1)
+    return EINVAL;
 
   if ((tcp = malloc (sizeof (*tcp))) == NULL)
     return ENOMEM;
