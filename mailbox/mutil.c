@@ -265,6 +265,73 @@ mu_get_homedir (void)
   return homedir;
 }
 
+char *
+mu_getcwd ()
+{
+  char *ret;
+  unsigned path_max;
+  char buf[128];
+
+  errno = 0;
+  ret = getcwd (buf, sizeof (buf));
+  if (ret != NULL)
+    return strdup (buf);
+
+  if (errno != ERANGE)
+    return NULL;
+
+  path_max = 128;
+  path_max += 2;                /* The getcwd docs say to do this. */
+
+  for (;;)
+    {
+      char *cwd = (char *) malloc (path_max);
+
+      errno = 0;
+      ret = getcwd (cwd, path_max);
+      if (ret != NULL)
+        return ret;
+      if (errno != ERANGE)
+        {
+          int save_errno = errno;
+          free (cwd);
+          errno = save_errno;
+          return NULL;
+        }
+
+      free (cwd);
+
+      path_max += path_max / 16;
+      path_max += 32;
+    }
+  /* oops?  */
+  return NULL;
+}
+
+char *
+mu_get_full_path (const char *file)
+{
+  char *p = NULL;
+
+  if (!file)
+    p = mu_getcwd ();
+  else if (*file != '/')
+    {
+      char *cwd = mu_getcwd ();
+      if (cwd)
+	{
+	  p = calloc (strlen (cwd) + 1 + strlen (file) + 1, 1);
+	  if (p)
+	    sprintf (p, "%s/%s", cwd, file);
+	  free (cwd);
+	}
+    }
+
+  if (!p)
+    p = strdup (file);
+  return p;
+}
+
 /* NOTE: Allocates Memory.  */
 /* Expand: ~ --> /home/user and to ~guest --> /home/guest.  */
 char *
