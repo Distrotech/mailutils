@@ -62,7 +62,8 @@ mail_print_msg (msgset_t *mspec, message_t mesg, void *data)
     {
       size_t i, num = 0;
       char buf[512];
-
+      char *tmp;
+      
       message_get_header (mesg, &hdr);
       header_get_field_count (hdr, &num);
 
@@ -72,8 +73,10 @@ mail_print_msg (msgset_t *mspec, message_t mesg, void *data)
 	  if (mail_header_is_visible (buf))
 	    {
 	      fprintf (out, "%s: ", buf);
-	      header_get_field_value (hdr, i, buf, sizeof buf, NULL);
-	      fprintf (out, "%s\n", buf);
+	      header_aget_field_value (hdr, i, &tmp);
+	      util_rfc2047_decode (&tmp);
+	      fprintf (out, "%s\n", tmp);
+	      free (tmp);
 	    }
 	}
       fprintf (out, "\n");
