@@ -1,4 +1,27 @@
-2000-5-19  Sean 'Shaleh' Perry <shaleh@debian.org>
+2001-01-25  Alain Magloire
+
+	* pop3d/capa.c : Add UIDL in the capability list.
+	and update Copyrigth.
+	* pop3d/pop3d.c : Remove mbox_record register, only need path_record.
+	* pop3d/retr.c : When retrieve a message should be mark as read.
+	since we do not strip out the header "Status:".
+	* pop3d/top.c : Adjust stream_readline().
+
+2001-01-25  Alain Magloire
+
+	While working on the new version of the API mailbox, Changelog was
+	discontinued, since the API could literaly change overnight a
+	maintenace of the entries were of a particular burden.
+	The API of the library, and some utilities like pop3d are
+	stable enough to restart normal entries.
+
+	* mailbox/* : New Api to access mailbox.
+	* include/mailutils : Public prototypes of the API.
+	* frm/frm.c frm/Makefile.am : A clone of elm frm utility.
+	* from/from.c from/Makefile.am : A utility to scan mailboxes.
+	* pop3d/* : GNU pop3d server.
+
+2000-05-19  Sean 'Shaleh' Perry <shaleh@debian.org>
 
 	* libmailbox/mh.c: fleshed out mh_open() some more
 
