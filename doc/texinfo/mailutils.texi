@@ -16,10 +16,8 @@
 @include version.texi
 
 @c Combine indices.
-@syncodeindex ky cp
 @defcodeindex op
 @syncodeindex op fn
-@syncodeindex vr fn
 @syncodeindex tp fn
 
 @ifinfo
@@ -102,6 +100,8 @@ Appendices
 Indices
 
 * Function Index::          All Mailutils Functions.
+* Variable Index::          All Mailutils Variables.
+* Keyword Index::           Index of Keywords.
 * Program Index::           All Mailutils Programs.
 * Concept Index::           Index of Concepts.
 
@@ -361,7 +361,7 @@ Notifications}
 @comment node-name,  next,  previous,  up
 @include fdl.texi
 
-@node Function Index, Program Index, GNU FDL, Top
+@node Function Index, Variable Index, GNU FDL, Top
 @comment node-name,  next,  previous,  up
 @unnumbered Function Index
 
@@ -370,7 +370,17 @@ This is an alphabetical list of all Mailutils functions.
 @printindex fn
 @page
 
-@node Program Index, Concept Index, Function Index, Top
+@node Variable Index, Keyword Index, Function Index, Top
+
+@printindex vr
+@page
+
+@node Keyword Index, Program Index, Variable Index, Top
+
+@printindex ky
+@page
+
+@node Program Index, Concept Index, Keyword Index, Top
 @comment node-name,  next,  previous,  up
 @unnumbered Program Index
 
