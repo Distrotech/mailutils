@@ -179,14 +179,14 @@ in reading mode. @code{Mail} enters sending mode when one or more
 email addresses were specified in this command line. In this mode the
 program waits until user finishes composing the message, then attempts
 to send it to the specified addresses and exits.
-See @xref{Composing Mail}, for a detailed description of this behavior.
+See @ref{Composing Mail}, for a detailed description of this behavior.
 
 If the command line contained no email addresses, @code{mail} switches
 to reading mode. In this mode it allows to read and manipulate the
 contents of a mailbox. The URL of the mailbox to operate upon is
 taken from the argument of @samp{--file} command line option. If it
 is not specified, the user's system mailbox is assumed. For more
-detail, see @xref{Reading Mail}.
+detail, see @ref{Reading Mail}.
 
 @menu
 * Invoking Mail::            Command line options.
@@ -270,7 +270,7 @@ Operate on USER's mailbox. This is equivalent to:
 @end example
 @noindent
 with @var{spool_path} being the full path to your mailspool directory
-(@file{/var/spool/mail} or @file{/var/mail} on most systems).
+@*(@file{/var/spool/mail} or @file{/var/mail} on most systems).
 @item -?
 @itemx --help
 Display a help message.
@@ -603,7 +603,7 @@ permissions the target mailbox has.
 Unless you have started mail with @samp{--norc} command line option,
 it will read the contents of the system-wide configuration file.
 Then it reads the contents of user configuration file, if any.
-For detailed description of these files, see @xref{Mail Configuration Files}.
+For detailed description of these files, see @ref{Mail Configuration Files}.
 After this initial setup, @file{mail} displays the first page of header
 lines and enters interactive mode. In interactive mode, @file{mail}
 displays its prompt (@samp{?}, if not set otherwise) and executes the
@@ -798,7 +798,7 @@ controlled by @code{screen} variable.
 @itemx Type [@var{msglist}]
 @itemx T [@var{msglist}]
 Like print but also prints out ignored header fields.
-For detailed description of ignored header lists, see @xref{Controlling Header Display}.
+For detailed description of ignored header lists, see @ref{Controlling Header Display}.
 @item decode [@var{msglist}]
 @itemx dec [@var{msglist}]
 Print a multipart message. The @code{decode} command decodes and prints
@@ -885,15 +885,17 @@ Like @code{save}, but the file to append messages to is named after the
 sender of the first message in @var{msglist}. For example:
 
 @example
+@group
 & from 14 15
- U  14 smith@@noldor.arda.org Fri Jun 30 18:11  14/358   The Save c
- U  15 gray@@noldor.arda.org  Fri Jun 30 18:30  8/245    Re: The Sa
+ U  14 smith@@noldor.org Fri Jun 30 18:11  14/358   The Save c
+ U  15 gray@@noldor.org  Fri Jun 30 18:30  8/245    Re: The Sa
 & Save 14 15
 "smith" 22/603
+@end group
 @end example
 @noindent
 
-i.e., 22 characters (603 lines) have been appended to the file ``smith''.
+i.e., 22 lines (603 characters) have been appended to the file ``smith''.
 If the file does not exist, it is created.
 
 @item write [[@var{msglist}] @var{file}]
