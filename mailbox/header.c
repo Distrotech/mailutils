@@ -145,7 +145,7 @@ header_parse (header_t header, const char *blurb, int len)
   struct _hdr *hdr;
 
   /* Nothing to parse.  */
-  if (blurb == NULL || len == 0)
+  if (blurb == NULL)
     return 0;
 
   header->blurb_len = len;
