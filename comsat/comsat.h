@@ -38,15 +38,29 @@
 #include <ctype.h>
 #include <getopt.h>
 
+#include <mailutils/mailbox.h>
+#include <mailutils/message.h>
+#include <mailutils/header.h>
+#include <mailutils/body.h>
+#include <mailutils/registrar.h>
+#include <mailutils/stream.h>
+#include <mailutils/mutil.h>
+#include <mailutils/error.h>
+
 #ifndef INADDR_NONE
 # define INADDR_NONE -1
 #endif
+
+#define BIFF_RC ".biffrc"
 
 unsigned maxrequests;
 time_t request_control_interval;
 time_t overflow_control_interval;
 time_t overflow_delay_time;
 int maxlines;
+char *username;
+char hostname[];
 
 extern void read_config (char *config_file);
 int acl_match (struct sockaddr_in *sa_in);
+void run_user_action (FILE *tty, char *cr, message_t msg);
