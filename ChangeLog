@@ -1,3 +1,10 @@
+2004-02-01  Sergey Poznyakoff
+
+	* mailbox/maildir/mbox.c (maildir_message_lookup): Fixed bug
+	(rc could have been used uninitialized). Thanks Wojciech
+	for noticing
+	(maildir_scan0): Fixed typo in notification loop.
+
 2004-01-27  Sergey Poznyakoff  
 
 	* mailbox/smtp.c: Control the value
