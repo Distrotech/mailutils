@@ -1,3 +1,7 @@
+2000-03-28  Jakob 'sparky' Kaivo  <jkaivo@elijah.nodomainname.net>
+
+	* pop3d/pop3d.c (main): handle SIGPIPE
+
 2000-01-19  Sean 'Shaleh' Perry
 
 	* mailbox/mbx_mh.c: some more code fleshing, still ugly

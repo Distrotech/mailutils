@@ -101,6 +101,7 @@ main (int argc, char **argv)
   signal (SIGSEGV, pop3_signal);
   signal (SIGTERM, pop3_signal);
   signal (SIGSTOP, pop3_signal);
+  signal (SIGPIPE, pop3_signal);
 
   if (timeout < 600)		/* RFC 1939 says no less than 10 minutes */
     timeout = 0;		/* So we'll turn it off */
