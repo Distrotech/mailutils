@@ -88,22 +88,26 @@ instr_run (sieve_machine_t mach)
 void
 instr_action (sieve_machine_t mach)
 {
+  mach->identifier = SIEVE_ARG (mach, 3, string);
   if (INSTR_DEBUG (mach))
     sieve_debug (mach, "%4lu: ACTION: %s\n",
 		 (unsigned long) (mach->pc - 1),
-		 SIEVE_ARG (mach, 3, string));
+		 mach->identifier);
   mach->action_count++;
   instr_run (mach);
+  mach->identifier = NULL;
 }
 
 void
 instr_test (sieve_machine_t mach)
 {
+  mach->identifier = SIEVE_ARG (mach, 3, string);
   if (INSTR_DEBUG (mach))
     sieve_debug (mach, "%4lu: TEST: %s\n",
 		 (unsigned long) (mach->pc - 1),
-		 SIEVE_ARG (mach, 3, string));
+		 mach->identifier);
   mach->reg = instr_run (mach);
+  mach->identifier = NULL;
 }
 
 void
@@ -252,6 +256,12 @@ int
 sieve_get_debug_level (sieve_machine_t mach)
 {
   return mach->debug_level;
+}
+
+const char *
+sieve_get_identifier (sieve_machine_t mach)
+{
+  return mach->identifier;
 }
 
 int
