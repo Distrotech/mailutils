@@ -442,7 +442,7 @@ mh_format (mh_format_t *fmt, message_t msg, size_t msgno,
   mach.message = msg;
   mach.msgno = msgno;
   
-  mach.width = width;
+  mach.width = width - 1; /* Do not count newlines */
   mach.pc = 1;
   obstack_init (&mach.stk);
   list_create (&mach.addrlist);
@@ -454,6 +454,9 @@ mh_format (mh_format_t *fmt, message_t msg, size_t msgno,
       mh_opcode_t opcode;
       switch (opcode = MHI_OPCODE(mach.prog[mach.pc++]))
 	{
+	case mhop_nop:
+	  break;
+	  
 	case mhop_stop:
 	  mach.stop = 1;
 	  break;
@@ -513,7 +516,10 @@ mh_format (mh_format_t *fmt, message_t msg, size_t msgno,
 		mach.arg_str.size = len + 1;
       		compress_ws (value, &len);
 		mach.arg_str.ptr = value;
+		mach.arg_num = 1;
 	      }
+	    else
+	      mach.arg_num = 0;
 	  }
 	  break;
 
@@ -636,6 +642,10 @@ mh_format_dump (mh_format_t *fmt)
       printf ("% 4.4ld: ", (long) pc);
       switch (opcode = MHI_OPCODE(prog[pc++]))
 	{
+	case mhop_nop:
+	  printf ("nop");
+	  break;
+	  
 	case mhop_stop:
 	  printf ("stop");
 	  stop = 1;
