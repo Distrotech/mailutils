@@ -187,7 +187,7 @@ _mapfile_size (stream_t stream, off_t *psize)
 
   if (mfs->ptr == MAP_FAILED)
     return EINVAL;
-  if (mfs->ptr)
+  if (mfs->ptr && (mfs->flags & PROT_WRITE))
     msync (mfs->ptr, mfs->size, MS_SYNC);
   if (fstat(mfs->fd, &stbuf) != 0)
     return errno;
@@ -229,7 +229,7 @@ static int
 _mapfile_flush (stream_t stream)
 {
   struct _mapfile_stream *mfs = stream_get_owner (stream);
-  if (mfs->ptr != MAP_FAILED && mfs->ptr != NULL)
+  if (mfs->ptr != MAP_FAILED && mfs->ptr != NULL && (mfs->flags & PROT_WRITE))
     return msync (mfs->ptr, mfs->size, MS_SYNC);
   return 0;
 }
