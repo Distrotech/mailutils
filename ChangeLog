@@ -1,5 +1,14 @@
 2002-11-19  Sergey Poznyakoff
 
+	* libsieve/comparator.c (i_ascii_casemap_contains): Fixed
+	  typecast.
+	* mailbox/mutil.c (mu_set_user_email): Set user's domain as
+	  well.
+	* sieve/testsuite/Reject: Fixed `envelope from' address.
+	
+
+2002-11-19  Sergey Poznyakoff
+
 	* sieve/sieve.c: New options: --verbose to verbosely log executed
 	  actions, --log-facility to switch all diagnostic output to
 	  syslog.
