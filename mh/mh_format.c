@@ -419,7 +419,7 @@ mh_format (mh_format_t *fmt, message_t msg, size_t msgno,
 	  break;
 
 	default:
-	  mh_error ("Unknown opcode: %x", opcode);
+	  mh_error (_("Unknown opcode: %x"), opcode);
 	  abort ();
 	}
     }
@@ -733,7 +733,7 @@ builtin_divide (struct mh_machine *mach)
 {
   if (!mach->arg_num)
     {
-      mh_error ("format: divide by zero");
+      mh_error (_("format: divide by zero"));
       mach->stop = 1;
     }
   else
@@ -745,7 +745,7 @@ builtin_modulo (struct mh_machine *mach)
 {
   if (!mach->arg_num)
     {
-      mh_error ("format: divide by zero");
+      mh_error (_("format: divide by zero"));
       mach->stop = 1;
     }
   else
@@ -1640,6 +1640,30 @@ builtin_rcpt (struct mh_machine *mach)
   mach->arg_num = rc & rcpt_mask;
 }
 
+static void
+builtin_concat (struct mh_machine *mach)
+{
+  if (strobj_len (&mach->reg_str) == 0)
+    strobj_copy (&mach->reg_str, &mach->arg_str);
+  else
+    {
+      int length = 1;
+    
+      length += 1 + strobj_len (&mach->reg_str); /* reserve en extra space */
+      length += strobj_len (&mach->arg_str);
+      strobj_realloc (&mach->reg_str, length);
+      strcat (strcat (strobj_ptr (&mach->reg_str), " "),
+	      strobj_ptr (&mach->arg_str));
+    }
+}
+
+static void
+builtin_printstr (struct mh_machine *mach)
+{
+  print_obj (mach, mach->reg_num, &mach->arg_str);
+  print_obj (mach, mach->reg_num, &mach->reg_str);
+}
+
 /* Builtin function table */
 
 mh_builtin_t builtin_tab[] = {
@@ -1717,6 +1741,8 @@ mh_builtin_t builtin_tab[] = {
   { "putaddr",  builtin_putaddr,  mhtype_none, mhtype_str },
   { "unre",     builtin_unre,     mhtype_str,  mhtype_str },
   { "rcpt",     builtin_rcpt,     mhtype_num,  mhtype_str },
+  { "concat",   builtin_concat,   mhtype_none, mhtype_str,     1 },
+  { "printstr", builtin_printstr, mhtype_none, mhtype_str },
   { 0 }
 };
 
