@@ -1,3 +1,8 @@
+2001-10-26  Alain Magloire
+
+	* acconfig.h: #define ssize_t.
+	* configure.in: Add AC_CHECK_TYPE(ssize_t, int);
+
 2001-10-26  Sergey Poznyakoff
 
 	Fixed behavior in send mode when the stdin is not a terminal

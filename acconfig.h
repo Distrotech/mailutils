@@ -53,3 +53,6 @@
 
 /* Define if libc has obstack functions */
 #undef HAVE_OBSTACK
+
+/* Define to `int' if <sys/types.h> doesn't define.  */
+#undef ssize_t
