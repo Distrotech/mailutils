@@ -72,22 +72,7 @@ imap4d_status (struct imap4d_command *command, char *arg)
   if (!name || *name == '\0' || !sp || *sp == '\0')
     return util_finish (command, RESP_BAD, "Too few args");
 
-  if (strcasecmp (name, "INBOX") == 0 && !mu_virtual_domain)
-    {
-      struct passwd *pw = mu_getpwuid (getuid());
-      if (!pw)
-	return util_finish (command, RESP_NO, "Cannot map UID to username");
-      mailbox_name = malloc (strlen (mu_path_maildir) +
-			     strlen (pw->pw_name) + 1);
-      if (!mailbox_name)
-	{
-	  syslog (LOG_ERR, "Not enough memory");
-	  return util_finish (command, RESP_NO, "Not enough memory");
-	}
-      sprintf (mailbox_name, "%s%s", mu_path_maildir, pw->pw_name);
-    }
-  else
-    mailbox_name = namespace_getfullpath (name, delim);
+  mailbox_name = namespace_getfullpath (name, delim);
 
   if (!mailbox_name)
     return util_finish (command, RESP_NO, "Error opening mailbox");
