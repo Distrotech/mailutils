@@ -33,6 +33,9 @@
 /* Define to proper type when ino_t is not declared */
 #undef ino_t
 
+/* Define to proper type when dev_t is not declared */
+#undef dev_t
+
 /* Define if enable Posix Thread */
 #undef WITH_PTHREAD
 
