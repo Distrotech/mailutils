@@ -37,6 +37,13 @@ extern "C" {
 #define MU_DL_EX_ERROR   1 /* failed due to some other error */
 #define MU_DL_EX_OK      0 /* success */
 
+enum mu_locker_set_mode
+  {
+    mu_locker_set_flags,
+    mu_locker_set_bit,
+    mu_locker_clear_bit
+  };
+    
 /* locker_create() flags */
 
 #define MU_LOCKER_SIMPLE   0x00
@@ -72,7 +79,11 @@ extern "C" {
  * to MU_LOCKER_DEFAULT). A flags of 0 resets the flags back to the
  * the default.
  */
-extern int locker_set_default_flags __P((int flags));
+extern int locker_set_default_flags __P((int flags, enum mu_locker_set_mode mode));
+extern void locker_set_default_retry_timeout __P((time_t to));
+extern void locker_set_default_retry_count __P((size_t n));
+extern void locker_set_default_expire_timeout __P((time_t t));
+extern void locker_set_default_external_program __P((char *path));
 
 /* A flags of 0 means that the default will be used. */
 extern int locker_create __P ((locker_t *, const char *filename, int flags));

@@ -87,16 +87,58 @@ static int _locker_unlock_dotlock __P((locker_t lock));
 static int _locker_lock_kernel __P((locker_t lock)); 
 static int _locker_unlock_kernel __P((locker_t lock));
 
-static int locker_default_flags = MU_LOCKER_DEFAULT;
+static int mu_locker_default_flags = MU_LOCKER_DEFAULT;
+static time_t mu_locker_retry_timeout = MU_LOCKER_RETRY_SLEEP;
+static size_t mu_locker_retry_count = MU_LOCKER_RETRIES;
+static time_t mu_locker_expire_timeout = MU_LOCKER_EXPIRE_TIME;
+static char *mu_locker_external_program = NULL;
 
-int locker_set_default_flags(int flags)
+int
+locker_set_default_flags (int flags, enum mu_locker_set_mode mode)
 {
-  if(flags == 0)
-    flags = MU_LOCKER_DEFAULT;
+  switch (mode)
+    {
+    case mu_locker_set_flags:
+      mu_locker_default_flags = flags;
+      break;
 
-  locker_default_flags = flags;
+    case mu_locker_set_bit:
+      mu_locker_default_flags |= flags;
+      break;
 
+    case mu_locker_clear_bit:
+      mu_locker_default_flags &= ~flags;
+      break;
+
+    default:
+      return EINVAL;
+    }
   return 0;
+}
+
+void
+locker_set_default_retry_timeout (time_t to)
+{
+  mu_locker_retry_timeout = to;
+}
+
+void
+locker_set_default_retry_count (size_t n)
+{
+  mu_locker_retry_count = n;
+}
+
+void
+locker_set_default_expire_timeout (time_t t)
+{
+  mu_locker_expire_timeout = t;
+}
+
+void
+locker_set_default_external_program (char *path)
+{
+  free (mu_locker_external_program);
+  mu_locker_external_program = strdup (path);
 }
 
 int
@@ -133,16 +175,18 @@ locker_create (locker_t *plocker, const char *filename_, int flags)
   else if (flags)
     l->flags = flags;
   else
-    l->flags = locker_default_flags;
+    l->flags = mu_locker_default_flags;
 
-  l->expire_time = MU_LOCKER_EXPIRE_TIME;
-  l->retries = MU_LOCKER_RETRIES;
-  l->retry_sleep = MU_LOCKER_RETRY_SLEEP;
+  l->expire_time = mu_locker_expire_timeout;
+  l->retries = mu_locker_retry_count;
+  l->retry_sleep = mu_locker_retry_timeout;
 
   /* Initialize locker-type-specific data */
   if (l->flags & MU_LOCKER_EXTERNAL)
     {
-      if (!(l->data.external.name = strdup (MU_LOCKER_EXTERNAL_PROGRAM)))
+      if (!(l->data.external.name = strdup (mu_locker_external_program ?
+					    mu_locker_external_program :
+					    MU_LOCKER_EXTERNAL_PROGRAM)))
 	{
 	  locker_destroy (&l);
 	  return ENOMEM;
