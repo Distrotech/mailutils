@@ -9,10 +9,12 @@
 
 #include "svfield.h"
 
+#include "sieve.h"
+
 /** sieve context structures
 
 The object relationship diagram is this, with the names in ""
-being the argument name when the context's are provided as
+being the argument name when the contexts are provided as
 arguments to callback functions.
 
   sieve_execute_script()  --> sv_msg_ctx_t, "mc"
@@ -34,50 +36,54 @@ arguments to callback functions.
 
 typedef struct sv_interp_ctx_t
 {
-  /* options */
-  int   opt_no_actions;
-  int   opt_verbose;
-  int   opt_no_run;
-  int   opt_watch;
-  char* opt_mbox;
-  char* opt_tickets;
-  char* opt_script;
+  /* The sieve interpreter for our context. */
+  sieve_interp_t *interp;
 
-  int   print_mask;
-  FILE* print_stream;
+  /* Callback functions. */
+  sv_parse_error_t   parse_error;
+  sv_execute_error_t execute_error;
+  sv_action_log_t    action_log;
 
-  /* Ticket for use by mailbox URLs for implicit authentication. */
-  ticket_t ticket;
-
-  /* mailutils debug handle, we need to destroy it */
-  mu_debug_t debug;
 } sv_interp_ctx_t;
 
 typedef struct sv_script_ctx_t
 {
-    sv_interp_ctx_t* ic;
+  /* The file the script was parsed from. */
+  char* file;
+
+  /* The sieve script for our context. */
+  sieve_script_t* script;
+
+  /* The sieve interpreter context for our script. */
+  sv_interp_ctx_t* ic;
+
 } sv_script_ctx_t;
 
 typedef struct sv_msg_ctx_t
 {
-  int rc;			/* the mailutils return code */
+  /* The mailutils return code - the real error. */
+  int rc;
+
+  /* The field cache. */
   int cache_filled;
   sv_field_cache_t cache;
-  message_t msg;
-  mailbox_t mbox;
-  char *summary;
 
-  sv_interp_ctx_t* ic;
+  sv_script_ctx_t* sc;
+
+  message_t msg;
+
+  /* Ticket for use by mailbox URLs for implicit authentication. */
+  ticket_t ticket;
+
+  mu_debug_t debug;
+
+  /* Flags controlling execution of script. */
+  int svflags;
+
+  /* The uid of the message, for debug output. */
+  size_t uid;
 } sv_msg_ctx_t;
 
-enum /* print level masks */
-{
-    SV_PRN_MU  = 0x01,
-    SV_PRN_ACT = 0x02,
-    SV_PRN_QRY = 0x04,
-    SV_PRN_ERR = 0x08,
-    SV_PRN_NOOP
-};
 
 /*
   svcb.c: sieve callbacks
@@ -109,7 +115,7 @@ extern int sv_mu_mark_deleted (message_t msg);
 
 extern int sv_mu_copy_debug_level (const mailbox_t from, mailbox_t to);
 
-extern int sv_mu_save_to (const char *toname, message_t mesg, ticket_t ticket, const char **errmsg);
+extern int sv_mu_save_to (const char *toname, message_t msg, ticket_t ticket, mu_debug_t debug);
 
 #endif
 
