@@ -46,11 +46,16 @@ main (int argc, char **argv)
   else
     n = 1;
 
-  rc = sieve_compile (&mach, argv[n], NULL, NULL);
+  sieve_machine_init (&mach, NULL);
+  
+  rc = sieve_compile (&mach, argv[n]);
   if (rc == 0)
     {
       if (debug)
-	sieve_set_debug (&mach, debug_printer, 100);
+	{
+	  sieve_machine_set_debug (&mach, debug_printer, 100);
+	  fprintf (stderr, "RUNNING\n");
+	}
       sieve_run (&mach);
     }
   return rc;
