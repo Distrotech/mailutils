@@ -31,6 +31,7 @@
 #include <string.h>
 #include <netdb.h>
 #include <errno.h>
+#include <sys/stat.h>
 
 #include <mailutils/error.h>
 #include <mailutils/mutil.h>
