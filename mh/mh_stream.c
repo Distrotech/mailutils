@@ -16,12 +16,25 @@
    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA  */
 
 /* This file implements an MH draftfile stream: a read-only stream used
-   to transparently pass MH draftfiles to the mailers. The only difference
+   to transparently pass MH draftfiles to mailers. The only difference
    between the usual RFC822 and MH draft is that the latter allows to use
    a string of dashes to separate the headers from the body. */
 
 #include <mh.h>
 #include <mailutils/stream.h>
+
+static int
+_mh_delim (char *str)
+{
+  if (str[0] == '-')
+    {
+      for (; *str == '-'; str++)
+	;
+      for (; *str == ' ' || *str == '\t'; str++)
+	;
+    }
+  return str[0] == '\n';
+}
 
 struct _mhdraft_stream {
   stream_t stream;     /* Actual stream */
@@ -58,7 +71,7 @@ _mhdraft_readline (stream_t stream, char *optr, size_t osize,
 	{
 	  int rc;
 	  size_t n;
-	  size_t rdsize = s->mark_offset - offset;
+	  size_t rdsize = s->mark_offset - offset + 1;
 	  rc = stream_readline (s->stream, optr, rdsize, offset, &n);
 	  if (rc == 0)
 	    {
@@ -160,3 +173,231 @@ mhdraft_stream_create (stream_t *stream, stream_t src, int flags)
 }
 
 
+
+/* *************************** MH draft message **************************** */
+
+char *
+skipws (char *p, size_t off)
+{
+  int len;
+  for (p += off; *p && isspace (*p); p++)
+    ;
+  len = strlen (p);
+  if (len > 0 && p[len-1] == '\n')
+    p[len-1] = 0;
+  return p;
+}
+
+struct _mhdraft_message
+{
+  char *from;
+  char *date;
+  size_t body_start;
+  size_t body_end;
+};
+
+static int
+restore_envelope (stream_t str, struct _mhdraft_message **pmenv)
+{
+  size_t offset = 0;
+  char *from = NULL;
+  char *env_from = NULL;
+  char *env_date = NULL;
+  int rc;
+  char buffer[80];
+  size_t len;
+  size_t body_start, body_end;
+  
+  while ((rc = stream_readline (str, buffer, sizeof buffer, offset, &len)) == 0
+	 && len > 0)
+    {
+      if (buffer[0] == '\n')
+	break;
+      buffer[len] = 0;
+      offset += len;
+      if (strncasecmp (buffer, MU_HEADER_FROM,
+		       sizeof (MU_HEADER_FROM) - 1) == 0)
+	from = strdup (skipws (buffer, sizeof (MU_HEADER_FROM)));
+      else if (strncasecmp (buffer, MU_HEADER_ENV_SENDER,
+			    sizeof (MU_HEADER_ENV_SENDER) - 1) == 0)
+	env_from = strdup (skipws (buffer, sizeof (MU_HEADER_ENV_SENDER)));
+      else if (strncasecmp (buffer, MU_HEADER_ENV_DATE,
+			    sizeof (MU_HEADER_ENV_DATE) - 1) == 0)
+	env_date = strdup (skipws (buffer, sizeof (MU_HEADER_ENV_DATE)));
+    }
+
+  body_start = offset + 1;
+  stream_size (str, &body_end);
+  
+  if (!env_from)
+    {
+      if (from)
+	{
+	  address_t addr;
+	  
+	  address_create (&addr, from);
+	  if (!addr
+	      || address_aget_email (addr, 1, &env_from))
+	    env_from = strdup ("GNU-MH");
+	  address_destroy (&addr);
+	}
+      else
+	env_from = strdup ("GNU-MH");
+    }
+	  
+  if (!env_date)
+    {
+      struct tm *tm;
+      time_t t;
+      char date[80];
+
+      time(&t);
+      tm = gmtime(&t);
+      strftime (date, sizeof (date), "%a %b %e %H:%M:%S %Y", tm);
+      env_date = strdup (date);
+    }
+
+  *pmenv = xmalloc (sizeof (**pmenv)
+		    + strlen (env_from)
+		    + strlen (env_date)
+		    + 2);
+  (*pmenv)->from = (char*) (*pmenv + 1);
+  (*pmenv)->date = (char*) ((*pmenv)->from + strlen (env_from) + 1);
+
+  strcpy ((*pmenv)->from, env_from);
+  strcpy ((*pmenv)->date, env_date);
+
+  (*pmenv)->body_start = body_start;
+  (*pmenv)->body_end = body_end;
+  
+  free (env_from);
+  free (env_date);
+  free (from);
+  return 0;
+}
+
+static int
+_env_msg_date (envelope_t envelope, char *buf, size_t len, size_t *pnwrite)
+{
+  message_t msg = envelope_get_owner (envelope);
+  struct _mhdraft_message *env = message_get_owner (msg);
+  
+  if (!env || !env->date)
+    return EINVAL;
+  strncpy (buf, env->date, len);
+  buf[len-1] = 0;
+  return 0;
+}
+
+static int
+_env_msg_sender (envelope_t envelope, char *buf, size_t len, size_t *pnwrite)
+{
+  message_t msg = envelope_get_owner (envelope);
+  struct _mhdraft_message *env = message_get_owner (msg);
+  
+  if (!env || !env->from)
+    return EINVAL;
+  strncpy (buf, env->from, len);
+  buf[len-1] = 0;
+  return 0;
+}
+
+static int
+_body_size (body_t body, size_t *size)
+{
+  message_t msg = body_get_owner (body);
+  struct _mhdraft_message *mp = message_get_owner (msg);
+
+  if (size)
+    *size = mp->body_end - mp->body_start;
+  return 0;
+}
+
+static int 
+_body_read (stream_t stream, char *optr, size_t osize,
+	    off_t offset, size_t *nbytes)
+{
+  body_t body = stream_get_owner (stream);
+  message_t msg = body_get_owner (body);
+  struct _mhdraft_message *mp = message_get_owner (msg);
+  stream_t str;
+
+  message_get_stream (msg, &str);
+  return stream_read (str, optr, osize, mp->body_start + offset, nbytes);
+}
+
+static int
+_body_readline (stream_t stream, char *optr, size_t osize,
+		off_t offset, size_t *nbytes)
+{
+  message_t msg = stream_get_owner (stream);
+  struct _mhdraft_message *mp = message_get_owner (msg);
+  stream_t str;
+
+  message_get_stream (msg, &str);
+  return stream_readline (str, optr, osize, mp->body_start + offset, nbytes);
+}
+
+static int
+_body_stream_size (stream_t stream, off_t *psize)
+{
+  message_t msg = stream_get_owner (stream);
+  struct _mhdraft_message *mp = message_get_owner (msg);
+  
+  if (psize)
+    *psize = mp->body_end - mp->body_start;
+  return 0;
+}
+
+message_t
+mh_stream_to_message (stream_t instream)
+{
+  struct _mhdraft_message *mp;
+  envelope_t env;
+  message_t msg;
+  body_t body;
+  stream_t bstream;
+  stream_t draftstream;
+  int rc;
+  
+  if ((rc = mhdraft_stream_create (&draftstream, instream, 0)))
+    {
+      mh_error(_("cannot create draft message stream: %s"),
+	       mu_strerror (rc));
+      return NULL;
+    }
+
+  if ((rc = stream_open (draftstream)))
+    {
+      mh_error(_("cannot open draft message stream: %s"),
+	       mu_strerror (rc));
+      stream_destroy (&draftstream, stream_get_owner (draftstream));
+      return NULL;
+    }
+
+  restore_envelope (draftstream, &mp);
+
+  if (message_create (&msg, mp))
+    return NULL;
+  
+  message_set_stream (msg, draftstream, mp);
+  
+  if (envelope_create (&env, msg))
+    return NULL;
+  
+  envelope_set_date (env, _env_msg_date, msg);
+  envelope_set_sender (env, _env_msg_sender, msg);
+  message_set_envelope (msg, env, mp);
+
+  body_create (&body, msg);
+  stream_create (&bstream,  MU_STREAM_RDWR | MU_STREAM_SEEKABLE, body);
+
+  stream_set_read (bstream, _body_read, body);
+  stream_set_readline (bstream, _body_readline, body);
+  stream_set_size (bstream, _body_stream_size, body);
+  body_set_stream (body, bstream, msg);
+  body_set_size (body, _body_size, msg);
+  message_set_body (msg, body, mp);
+  
+  return msg;
+}
