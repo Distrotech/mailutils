@@ -330,6 +330,13 @@ _gsasl_strerror (stream_t stream, const char **pstr)
   return 0;
 }
 
+int
+_gsasl_get_fd (stream_t stream, int *pfd)
+{
+  struct _gsasl_stream *s = stream_get_owner (stream);
+  *pfd = s->fd;
+  return 0;
+}
 
 int
 gsasl_stream_create (stream_t *stream, int fd,
@@ -365,7 +372,7 @@ gsasl_stream_create (stream_t *stream, int fd,
   stream_set_flush (*stream, _gsasl_flush, s);
   stream_set_destroy (*stream, _gsasl_destroy, s);
   stream_set_strerror (*stream, _gsasl_strerror, s);
-
+  stream_set_fd (*stream, _gsasl_get_fd, s);
   if (flags & MU_STREAM_READ)
     stream_set_readline (*stream, _gsasl_readline, s);
   else
