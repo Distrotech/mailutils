@@ -27,19 +27,6 @@
 #include <errno.h>
 
 static int header_parse (header_t *h, const char *blurb, size_t len);
-/*
-static int rfc822_set_value (header_t h, const char *fn, const char *fb,
-			     size_t n, int replace);
-static int rfc822_get_value (header_t h, const char *fn, char *fb,
-			     size_t len, size_t *n);
-static int rfc822_entry_count (header_t, size_t *num);
-static int rfc822_entry_name (header_t h, size_t num, char *buf,
-			      size_t buflen, size_t *total);
-static int rfc822_entry_value (header_t h, size_t num, char *buf,
-			       size_t buflen, size_t *total);
-static int rfc822_get_istream (header_t h, istream_t *pis);
-static int rfc822_get_ostream (header_t h, ostream_t *pos);
-*/
 static int header_read (istream_t is, char *buf, size_t buflen,
 			off_t off, ssize_t *pnread);
 
@@ -69,8 +56,6 @@ struct _header
   void *owner;
   int ref_count;
 };
-
-
 
 int
 header_init (header_t *ph, const char *blurb, size_t len, void *owner)

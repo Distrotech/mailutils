@@ -15,11 +15,26 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-#include <attribute0.h>
+#include <attribute.h>
 
 #include <sys/types.h>
 #include <stdlib.h>
 #include <errno.h>
+
+#define MU_ATTRIBUTE_SEEN ((int)1)
+#define MU_ATTRIBUTE_ANSWERED (MU_ATTRIBUTE_SEEN << 1)
+#define MU_ATTRIBUTE_FLAGGED  (MU_ATTRIBUTE_ANSWERED << 1)
+#define MU_ATTRIBUTE_DELETED  (MU_ATTRIBUTE_FLAGGED << 1)
+#define MU_ATTRIBUTE_DRAFT    (MU_ATTRIBUTE_DELETED << 1)
+#define MU_ATTRIBUTE_RECENT   (MU_ATTRIBUTE_DRAFT << 1)
+#define MU_ATTRIBUTE_READ     (MU_ATTRIBUTE_RECENT << 1)
+
+struct _attribute
+{
+  size_t flag;
+  void *owner;
+  int ref_count;
+};
 
 int
 attribute_init (attribute_t *pattr, void *owner)

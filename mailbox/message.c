@@ -16,8 +16,8 @@
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 
-#include <header0.h>
-#include <attribute0.h>
+#include <header.h>
+#include <attribute.h>
 #include <message0.h>
 #include <mailbox0.h>
 #include <io0.h>

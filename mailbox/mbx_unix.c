@@ -21,7 +21,7 @@
 #include <registrar0.h>
 #include <message0.h>
 #include <url0.h>
-#include <attribute0.h>
+#include <attribute.h>
 #include <io0.h>
 #include <header.h>
 #include <auth.h>
@@ -118,8 +118,6 @@ static int mailbox_unix_undelete (mailbox_t, size_t msgno);
 static int mailbox_unix_is_deleted (mailbox_t, size_t msgno);
 static int mailbox_unix_expunge (mailbox_t);
 static int mailbox_unix_num_deleted (mailbox_t, size_t *);
-static int mailbox_unix_get_size (mailbox_t, size_t msgno, size_t *header,
-				  size_t *body);
 
 static int mailbox_unix_parse (mailbox_t, size_t *msgs);
 static int mailbox_unix_is_updated (mailbox_t);
@@ -279,7 +277,6 @@ mailbox_unix_init (mailbox_t *pmbox, const char *name)
   mbox->_is_deleted = mailbox_unix_is_deleted;
   mbox->_expunge = mailbox_unix_expunge;
   mbox->_num_deleted = mailbox_unix_num_deleted;
-  mbox->_get_size = mailbox_unix_get_size;
 
   mbox->_is_updated = mailbox_unix_is_updated;
 
@@ -1450,25 +1447,6 @@ mailbox_unix_size (mailbox_t mbox, off_t *size)
   if (fstat (fd, &st) != 0)
     return errno;
   *size = st.st_size;
-  return 0;
-}
-
-static int
-mailbox_unix_get_size (mailbox_t mbox, size_t msgno, size_t *h, size_t *b)
-{
-  mailbox_unix_data_t mud;
-  mailbox_unix_message_t mum;
-
-  if (mbox == NULL ||
-      (mud = (mailbox_unix_data_t)mbox->data) == NULL ||
-      !mailbox_unix_is_valid (mbox, msgno))
-    return EINVAL;
-
-  mum = &(mud->umessages[msgno]);
-  if (h)
-    *h = mum->header_end - mum->header;
-  if (b)
-    *b = mum->body_end - mum->body;
   return 0;
 }
 

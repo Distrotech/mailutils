@@ -178,14 +178,6 @@ mailbox_is_updated (mailbox_t mbox)
   return mbox->_is_updated (mbox);
 }
 
-ssize_t
-mailbox_get_size (mailbox_t mbox, size_t msgno, size_t *h, size_t *b)
-{
-  if (mbox == NULL || mbox->_get_size == NULL)
-    return EINVAL;
-  return mbox->_get_size (mbox, msgno, h, b);
-}
-
 /* locking */
 int
 mailbox_set_locker (mailbox_t mbox, locker_t locker)

@@ -71,8 +71,6 @@ struct _mailbox
   int  (*_undelete)        __P ((mailbox_t, size_t msgno));
   int  (*_is_deleted)      __P ((mailbox_t, size_t msgno));
   int  (*_num_deleted)     __P ((mailbox_t, size_t *));
-  int  (*_get_size)        __P ((mailbox_t, size_t msgno,
-				 size_t *h, size_t *b));
 };
 
 /* private */
@@ -80,12 +78,6 @@ extern int mailbox_delete         __P ((mailbox_t, size_t msgno));
 extern int mailbox_undelete       __P ((mailbox_t, size_t msgno));
 extern int mailbox_is_deleted     __P ((mailbox_t, size_t msgno));
 extern int mailbox_num_deleted    __P ((mailbox_t, size_t *));
-extern int mailbox_get_size       __P ((mailbox_t, size_t msgno,
-					size_t *h, size_t *b));
-extern ssize_t mailbox_get_header __P ((mailbox_t, size_t msgno, char *h,
-					size_t len, off_t off, int *err));
-extern ssize_t mailbox_get_body   __P ((mailbox_t, size_t msgno, char *b,
-					size_t len, off_t off, int *err));
 
 extern int mailbox_get_auth       __P ((mailbox_t mbox, auth_t *auth));
 extern int mailbox_set_auth       __P ((mailbox_t mbox, auth_t auth));
