@@ -1,5 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2002, 2003,
+   2005 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -1150,23 +1151,29 @@ mu_true_answer_p (const char *p)
   if (!p)
     return -1;
 
-  /* TRANSLATORS: This is a list of characters which start
-     an affirmative answer. Whenever possible, please preserve
-     'yY' in your translation, e.g., for Euskara:
+  while (*p && isspace (*p))
+    p++;
 
-     msgstr "yYbB";
-  */
-  if (strchr (_("yY"), *p))
-    return 1;
+  if (*p)
+    {
+      /* TRANSLATORS: This is a list of characters which start
+	 an affirmative answer. Whenever possible, please preserve
+	 'yY' in your translation, e.g., for Euskara:
 
-  /* TRANSLATORS: This is a list of characters which start
-     a negative answer. Whenever possible, please preserve
-     'nN' in your translation, e.g., for Euskara:
+	 msgstr "yYbB";
+      */
+      if (strchr (_("yY"), *p))
+	return 1;
 
-     msgstr "nNeE";
-  */
-  else if (strchr (_("nN"), *p))
-    return 0;
+      /* TRANSLATORS: This is a list of characters which start
+	 a negative answer. Whenever possible, please preserve
+	 'nN' in your translation, e.g., for Euskara:
+
+	 msgstr "nNeE";
+      */
+      else if (strchr (_("nN"), *p))
+	return 0;
+    }
   return -1;
 }
 
