@@ -29,7 +29,7 @@ static struct argp_option options[] = {
   {"form",    'F', N_("FILE"),   0, N_("Read format from given file")},
   {"format",  't', N_("FORMAT"), 0, N_("Use this format string")},
   {"dump",    'd', NULL,     0, N_("Dump the listing of compiled format code")},
-  
+  { "debug",  'D', NULL,     0, N_("Enable parser debugging output"),},
   { 0 }
 };
 
@@ -74,6 +74,10 @@ opt_handler (int key, char *arg, void *unused)
 
     case 'd':
       action = action_dump;
+      break;
+
+    case 'D':
+      mh_format_debug (1);
       break;
       
     default:
