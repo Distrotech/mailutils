@@ -30,6 +30,7 @@ pkginclude_HEADERS = \
  error.h \
  filter.h \
  folder.h \
+ gsasl.h \
  guile.h \
  header.h \
  iterator.h \
