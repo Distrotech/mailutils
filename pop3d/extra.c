@@ -17,11 +17,7 @@
 
 #include "pop3d.h"
 
-static FILE *ifile;
-static FILE *ofile;
-#ifdef WITH_TLS
-static gnutls_session sfile;
-#endif /* WITH_TLS */
+static stream_t istream, ostream;
 
 /* Takes a string as input and returns either the remainder of the string
    after the first space, or a zero length string if no space */
@@ -137,79 +133,101 @@ pop3d_abquit (int reason)
 }
 
 void
-pop3d_setio (FILE * in, FILE * out)
+pop3d_setio (FILE *in, FILE *out)
 {
   if (!in || !out)
     pop3d_abquit (ERR_NO_OFILE);
 
-  ifile = in;
-  ofile = out;
+  if (stdio_stream_create (&istream, in, MU_STREAM_NO_CLOSE)
+      || stdio_stream_create (&ostream, out, MU_STREAM_NO_CLOSE))
+    pop3d_abquit (ERR_NO_OFILE);
 }
 
 #ifdef WITH_TLS
-
 int
 pop3d_init_tls_server ()
 {
-  sfile =
-    (gnutls_session) mu_init_tls_server (fileno (ifile), fileno (ofile));
-  if (!sfile)
+  stream_t stream;
+  int in_fd;
+  int out_fd;
+  int rc;
+  
+  if (stream_get_fd (istream, &in_fd)
+      || stream_get_fd (ostream, &out_fd))
     return 0;
+  rc = tls_stream_create (&stream, in_fd, out_fd, 0);
+  if (rc)
+    return 0;
+
+  if (stream_open (stream))
+    {
+      const char *p;
+      stream_strerror (stream, &p);
+      syslog (LOG_ERR, _("cannot open TLS stream: %s"), p);
+      return 0;
+    }
+  
+  stream_destroy (&istream, stream_get_owner (istream));
+  stream_destroy (&ostream, stream_get_owner (ostream));
+  istream = ostream = stream;
   return 1;
 }
+#endif
 
 void
-pop3d_deinit_tls_server ()
+pop3d_bye ()
 {
-  mu_deinit_tls_server (sfile);
-}
-
+  if (istream == ostream)
+    {
+      stream_close (istream);
+      stream_destroy (&istream, stream_get_owner (istream));
+    }
+  /* There's no reason closing in/out streams otherwise */
+#ifdef WITH_TLS
+  mu_deinit_tls_libs ();
 #endif /* WITH_TLS */
+}
 
 void
 pop3d_flush_output ()
 {
-  fflush (ofile);
+  stream_flush (ostream);
 }
 
 int
 pop3d_is_master ()
 {
-  return ofile == NULL;
+  return ostream == NULL;
 }
 
 void
 pop3d_outf (const char *fmt, ...)
 {
   va_list ap;
+  char *buf;
+  int rc;
+  
   va_start (ap, fmt);
-  if (daemon_param.transcript)
-    {
-      char *buf;
-      vasprintf (&buf, fmt, ap);
-      if (buf)
-	{
-	  syslog (LOG_DEBUG, "sent: %s", buf);
-	  free (buf);
-	}
-    }
-
-#ifdef WITH_TLS
-  if (tls_done)
-    {
-      char *buf;
-      vasprintf (&buf, fmt, ap);
-      if (buf)
-	{
-	  gnutls_record_send (sfile, buf, strlen (buf));
-	  free (buf);
-	}
-    }
-  else
-#endif /* WITH_TLS */
-    vfprintf (ofile, fmt, ap);
-
+  vasprintf (&buf, fmt, ap);
   va_end (ap);
+
+  if (!buf)
+    pop3d_abquit (ERR_NO_MEM);
+  
+  if (daemon_param.transcript)
+    syslog (LOG_DEBUG, "sent: %s", buf);
+
+  rc = stream_sequential_write (ostream, buf, strlen (buf));
+  free (buf);
+  if (rc)
+    {
+      const char *p;
+
+      if (stream_strerror (ostream, &p))
+	p = strerror (errno);
+      syslog (LOG_ERR, _("write failed: %s"), p);
+      pop3d_abquit (ERR_NO_OFILE);
+    }
 }
 
 
@@ -217,36 +235,26 @@ pop3d_outf (const char *fmt, ...)
 char *
 pop3d_readline (char *buffer, size_t size)
 {
-  char *ptr;
-
+  int rc;
+  size_t nbytes;
+  
   alarm (daemon_param.timeout);
-#ifdef WITH_TLS
-  if (tls_done)
-    {
-      int rc = gnutls_record_recv (sfile, buffer, size - 1);
-      if (rc < 0)
-	{
-	  syslog (LOG_ERR, _("TLS error on read: %s"),
-		  gnutls_strerror (rc));
-	  pop3d_abquit (ERR_TLS_IO);
-	}
-      else
-	buffer[rc] = 0;
-      ptr = buffer;
-    }
-  else
-#endif /* WITH_TLS */
-    ptr = fgets (buffer, size, ifile);
+  rc = stream_sequential_readline (istream, buffer, size, &nbytes);
   alarm (0);
 
-  /* We should probably check ferror() too, but if ptr is null we
-     are done anyway;  if (!ptr && ferror(ifile)) */
-  if (!ptr)
-    pop3d_abquit (ERR_NO_OFILE);
+  if (rc)
+    {
+      const char *p;
+
+      if (stream_strerror (ostream, &p))
+	p = strerror (errno);
+      syslog (LOG_ERR, _("write failed: %s"), p);
+      pop3d_abquit (ERR_NO_OFILE);
+    }
 
   if (daemon_param.transcript)
-    syslog (LOG_DEBUG, "recv: %s", ptr);
+    syslog (LOG_DEBUG, "recv: %s", buffer);
 
   /* Caller should not free () this ... should we strdup() then?  */
-  return ptr;
+  return buffer;
 }
