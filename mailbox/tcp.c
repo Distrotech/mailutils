@@ -78,8 +78,6 @@ _tcp_open (stream_t stream)
   struct sockaddr_in peer_addr;
   struct hostent *phe;
   struct sockaddr_in soc_addr;
-  char* host = tcp->host;
-  int port = tcp->port;
   int flags;
 
   stream_get_flags(stream, &flags);
