@@ -39,164 +39,187 @@
 # define INADDR_NONE (unsigned long)-1
 #endif
 
-static int _tcp_close(stream_t stream)
+static int
+_tcp_close (stream_t stream)
 {
-	struct _tcp_instance *tcp = stream_get_owner(stream);
+  struct _tcp_instance *tcp = stream_get_owner (stream);
 
-	if ( tcp->fd != -1 )
-		close(tcp->fd);
-	tcp->fd = -1;
-	tcp->state = TCP_STATE_INIT;
-	return 0;
+  if (tcp->fd != -1)
+    close (tcp->fd);
+  tcp->fd = -1;
+  tcp->state = TCP_STATE_INIT;
+  return 0;
 }
 
-static int _tcp_open(stream_t stream, const char *host, int port, int flags)
+static int
+_tcp_open (stream_t stream, const char *host, int port, int flags)
 {
-	struct _tcp_instance 	*tcp = stream_get_owner(stream);
-	int 					flgs, ret;
-	size_t					namelen;
-	struct sockaddr_in 		peer_addr;
-	struct hostent 			*phe;
-	struct sockaddr_in      soc_addr;
+  struct _tcp_instance *tcp = stream_get_owner (stream);
+  int flgs, ret;
+  size_t namelen;
+  struct sockaddr_in peer_addr;
+  struct hostent *phe;
+  struct sockaddr_in soc_addr;
 
-	if ( tcp->state == TCP_STATE_INIT ) {
-		tcp->port = port;
-		if ( ( tcp->host = strdup(host) ) == NULL )
-			return ENOMEM;
+  if (tcp->state == TCP_STATE_INIT)
+    {
+      tcp->port = port;
+      if ((tcp->host = strdup (host)) == NULL)
+	return ENOMEM;
+    }
+
+  switch (tcp->state)
+    {
+    case TCP_STATE_INIT:
+      if (tcp->fd == -1)
+	{
+	  if ((tcp->fd = socket (AF_INET, SOCK_STREAM, 0)) == -1)
+	    return errno;
 	}
-
-	switch( tcp->state ) {
-		case TCP_STATE_INIT:
-			if ( tcp->fd == -1 ) {
-				if ( ( tcp->fd = socket(AF_INET, SOCK_STREAM, 0)) == -1 )
-					return errno;
-			}
-			if ( flags & MU_STREAM_NONBLOCK ) {
-				flgs = fcntl(tcp->fd, F_GETFL);
-				flgs |= O_NONBLOCK;
-				fcntl(tcp->fd, F_SETFL, flgs);
-				stream_set_flags (stream, MU_STREAM_NONBLOCK);
-			}
-			tcp->state = TCP_STATE_RESOLVING;
-		case TCP_STATE_RESOLVING:
-			if ( tcp->host == NULL || tcp->port == -1 )
-				return EINVAL;
-			tcp->address = inet_addr(tcp->host);
-			if (tcp->address == INADDR_NONE) {
-				phe = gethostbyname(tcp->host);
-				if ( !phe ) {
-					_tcp_close(stream);
-					return EINVAL;
-				}
-				tcp->address = *(((unsigned long **)phe->h_addr_list)[0]);
-			}
-			tcp->state = TCP_STATE_RESOLVE;
-		case TCP_STATE_RESOLVE:
-			memset (&soc_addr, 0, sizeof (soc_addr));
-			soc_addr.sin_family = AF_INET;
-			soc_addr.sin_port = htons(tcp->port);
-			soc_addr.sin_addr.s_addr = tcp->address;
-
-			if ( ( connect(tcp->fd, (struct sockaddr *) &soc_addr, sizeof(soc_addr)) ) == -1 ) {
-				ret = errno;
-				if ( ret == EINPROGRESS || ret == EAGAIN ) {
-					tcp->state = TCP_STATE_CONNECTING;
-					ret = EAGAIN;
-				} else
-					_tcp_close(stream);
-				return ret;
-			}
-			tcp->state = TCP_STATE_CONNECTING;
-		case TCP_STATE_CONNECTING:
-			namelen = sizeof (peer_addr);
-			if ( getpeername (tcp->fd, (struct sockaddr *)&peer_addr, &namelen) == 0 )
-				tcp->state = TCP_STATE_CONNECTED;
-			else {
-				ret = errno;
-				_tcp_close(stream);
-				return ret;
-			}
-			break;
+      if (flags & MU_STREAM_NONBLOCK)
+	{
+	  flgs = fcntl (tcp->fd, F_GETFL);
+	  flgs |= O_NONBLOCK;
+	  fcntl (tcp->fd, F_SETFL, flgs);
+	  stream_set_flags (stream, MU_STREAM_NONBLOCK);
 	}
-	return 0;
-}
-
-
-static int _tcp_get_fd(stream_t stream, int *fd)
-{
-	struct _tcp_instance *tcp = stream_get_owner(stream);
-
-	if ( fd == NULL || tcp->fd == -1 )
-		return EINVAL;
-
-	*fd = tcp->fd;
-	return 0;
-}
-
-static int _tcp_read(stream_t stream, char *buf, size_t buf_size, off_t offset, size_t *br)
-{
-	struct _tcp_instance *tcp = stream_get_owner(stream);
-	int 	bytes;
-
-	offset = offset;
-	if ( br == NULL )
-		return EINVAL;
-	*br = 0;
-	if ( ( bytes = recv(tcp->fd, buf, buf_size, 0) ) == -1 ) {
-		*br = 0;
-		return errno;
+      tcp->state = TCP_STATE_RESOLVING;
+    case TCP_STATE_RESOLVING:
+      if (tcp->host == NULL || tcp->port == -1)
+	return EINVAL;
+      tcp->address = inet_addr (tcp->host);
+      if (tcp->address == INADDR_NONE)
+	{
+	  phe = gethostbyname (tcp->host);
+	  if (!phe)
+	    {
+	      _tcp_close (stream);
+	      return EINVAL;
+	    }
+	  tcp->address = *(((unsigned long **) phe->h_addr_list)[0]);
 	}
-	*br = bytes;
-	return 0;
-}
+      tcp->state = TCP_STATE_RESOLVE;
+    case TCP_STATE_RESOLVE:
+      memset (&soc_addr, 0, sizeof (soc_addr));
+      soc_addr.sin_family = AF_INET;
+      soc_addr.sin_port = htons (tcp->port);
+      soc_addr.sin_addr.s_addr = tcp->address;
 
-static int _tcp_write(stream_t stream, const char *buf, size_t buf_size, off_t offset, size_t *bw)
-{
-	struct _tcp_instance *tcp = stream_get_owner(stream);
-	int 	bytes;
-
-	offset = offset;
-	if ( bw == NULL )
-		return EINVAL;
-	*bw = 0;
-	if ( ( bytes = send(tcp->fd, buf, buf_size, 0) ) == -1 ) {
-		*bw = 0;
-		return errno;
+      if ((connect (tcp->fd,
+	      (struct sockaddr *) &soc_addr, sizeof (soc_addr))) == -1)
+	{
+	  ret = errno;
+	  if (ret == EINPROGRESS || ret == EAGAIN)
+	    {
+	      tcp->state = TCP_STATE_CONNECTING;
+	      ret = EAGAIN;
+	    }
+	  else
+	    _tcp_close (stream);
+	  return ret;
 	}
-	*bw = bytes;
-	return 0;
+      tcp->state = TCP_STATE_CONNECTING;
+    case TCP_STATE_CONNECTING:
+      namelen = sizeof (peer_addr);
+      if (getpeername (tcp->fd,
+	    (struct sockaddr *) &peer_addr, &namelen) == 0)
+	tcp->state = TCP_STATE_CONNECTED;
+      else
+	{
+	  ret = errno;
+	  _tcp_close (stream);
+	  return ret;
+	}
+      break;
+    }
+  return 0;
 }
 
-static void _tcp_destroy(stream_t stream)
+
+static int
+_tcp_get_fd (stream_t stream, int *fd)
 {
-	struct _tcp_instance *tcp = stream_get_owner(stream);
+  struct _tcp_instance *tcp = stream_get_owner (stream);
 
-	if ( tcp->host )
-		free(tcp->host);
-	if ( tcp->fd != -1 )
-		close(tcp->fd);
+  if (fd == NULL || tcp->fd == -1)
+    return EINVAL;
 
-	free(tcp);
+  *fd = tcp->fd;
+  return 0;
 }
 
-int tcp_stream_create(stream_t *stream)
+static int
+_tcp_read (stream_t stream, char *buf, size_t buf_size, off_t offset, size_t * br)
 {
-	struct _tcp_instance *tcp;
-	int ret;
+  struct _tcp_instance *tcp = stream_get_owner (stream);
+  int bytes;
 
-	if ( ( tcp = malloc(sizeof(*tcp)) ) == NULL )
-		return ENOMEM;
-	tcp->fd = -1;
-	tcp->host = NULL;
-	tcp->port = -1;
-	tcp->state = TCP_STATE_INIT;
-	if ( ( ret = stream_create(stream, MU_STREAM_NO_CHECK|MU_STREAM_RDWR, tcp) ) != 0 )
-		return ret;
-	stream_set_open(*stream, _tcp_open, tcp);
-	stream_set_close(*stream, _tcp_close, tcp);
-	stream_set_read(*stream, _tcp_read, tcp);
-	stream_set_write(*stream, _tcp_write, tcp);
-	stream_set_fd(*stream, _tcp_get_fd, tcp);
-	stream_set_destroy(*stream, _tcp_destroy, tcp);
-	return 0;
+  offset = offset;
+  if (br == NULL)
+    return EINVAL;
+  *br = 0;
+  if ((bytes = recv (tcp->fd, buf, buf_size, 0)) == -1)
+    {
+      *br = 0;
+      return errno;
+    }
+  *br = bytes;
+  return 0;
+}
+
+static int
+_tcp_write (stream_t stream, const char *buf, size_t buf_size, off_t offset,
+	    size_t * bw)
+{
+  struct _tcp_instance *tcp = stream_get_owner (stream);
+  int bytes;
+
+  offset = offset;
+  if (bw == NULL)
+    return EINVAL;
+  *bw = 0;
+  if ((bytes = send (tcp->fd, buf, buf_size, 0)) == -1)
+    {
+      *bw = 0;
+      return errno;
+    }
+  *bw = bytes;
+  return 0;
+}
+
+static void
+_tcp_destroy (stream_t stream)
+{
+  struct _tcp_instance *tcp = stream_get_owner (stream);
+
+  if (tcp->host)
+    free (tcp->host);
+  if (tcp->fd != -1)
+    close (tcp->fd);
+
+  free (tcp);
+}
+
+int
+tcp_stream_create (stream_t * stream)
+{
+  struct _tcp_instance *tcp;
+  int ret;
+
+  if ((tcp = malloc (sizeof (*tcp))) == NULL)
+    return ENOMEM;
+  tcp->fd = -1;
+  tcp->host = NULL;
+  tcp->port = -1;
+  tcp->state = TCP_STATE_INIT;
+  if ((ret =
+       stream_create (stream, MU_STREAM_NO_CHECK | MU_STREAM_RDWR, tcp)) != 0)
+    return ret;
+  stream_set_open (*stream, _tcp_open, tcp);
+  stream_set_close (*stream, _tcp_close, tcp);
+  stream_set_read (*stream, _tcp_read, tcp);
+  stream_set_write (*stream, _tcp_write, tcp);
+  stream_set_fd (*stream, _tcp_get_fd, tcp);
+  stream_set_destroy (*stream, _tcp_destroy, tcp);
+  return 0;
 }
