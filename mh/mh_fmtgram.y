@@ -1,0 +1,586 @@
+%{
+/* GNU mailutils - a suite of utilities for electronic mail
+   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 2, or (at your option)
+   any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
+
+#include <mh.h>
+#define obstack_chunk_alloc malloc
+#define obstack_chunk_free free
+#include <obstack.h>
+  
+static mh_format_t format;     /* Format structure being built */
+static size_t pc;              /* Program counter. Poins to current
+				  cell in format.prog */
+static struct obstack stack;   /* Temporary token storage */
+
+#define FORMAT_INC 64          /* Increase format.prog by that many
+				  cells each time pc reaches
+				  format.progsize */
+
+static size_t mh_code_op (mh_opcode_t op);
+static size_t mh_code_string (char *string);
+static size_t mh_code_number (int num);
+static size_t mh_code_builtin (mh_builtin_t *bp, int argtype);
+static void branch_fixup (size_t pc); /* Fix-up conditional branches */
+ 
+  /* Lexical tie-ins */
+static int in_escape;       /* Set when inside an escape sequence */
+static int want_function;   /* Set when expecting function name */ 
+%}
+
+%union {
+  char *str;
+  int num;
+  int type;
+  struct {
+    size_t cond;
+    size_t end;
+  } elif_list;
+  size_t pc;
+  mh_builtin_t *builtin;
+};
+%token <num> NUMBER
+%token <str> STRING
+%token <builtin> FUNCTION
+%token IF ELIF ELSE FI
+%token OBRACE CBRACE OCURLY CCURLY
+%token <num> FMTSPEC
+%token BOGUS
+%type <type> cond_expr component funcall item argument escape literal
+%type <elif_list> elif_part elif_list else_part 
+%type <pc> cond end else elif
+%type <builtin> function
+
+%%
+
+input     : list
+          ;
+
+list      : pitem 
+          | list pitem
+          ;
+
+pitem     : item
+            {
+	      switch ($1)
+		{
+		case mhtype_none:
+		  break;
+		  
+		case mhtype_num:
+		  mh_code_op (mhop_num_print);
+		  break;
+		  
+		case mhtype_str:
+		  mh_code_op (mhop_str_print);
+		  break;
+		  
+		default:
+		  yyerror ("UNEXPECTED item TYPE");
+		  abort ();
+		}
+	    }
+          ;
+
+item      : literal
+          | escape
+            {
+	      in_escape = 0;
+	    }
+          ;
+
+literal   : STRING
+            {
+	      mh_code_string ($1);
+	      mh_code_op (mhop_str_asgn);
+	      $$ = mhtype_str;
+	    }
+          | NUMBER
+            {
+	      mh_code_number ($1);
+	      mh_code_op (mhop_num_asgn);
+	      $$ = mhtype_num;
+	    }	      
+          ;
+
+escape    : component
+          | funcall
+          | cntl
+            {
+	      $$ = mhtype_none;
+	    }
+          ;
+
+component : fmtspec OCURLY STRING CCURLY
+            {
+	      if (strcasecmp ($3, "body") == 0)
+		{
+		  mh_code_op (mhop_body);
+		}
+	      else
+		{
+		  mh_code_string ($3);
+		  mh_code_op (mhop_header);
+		}
+	      $$ = mhtype_str;
+	    }
+          ;
+
+obrace    : OBRACE
+            {
+	      in_escape++;
+	    }
+          ;
+
+cbrace    : CBRACE
+            {
+	      in_escape--;
+	    }
+          ;
+
+funcall   : fmtspec obrace { want_function = 1;} function { want_function = 0; } argument cbrace
+            {
+	      switch ($6)
+		{
+		case mhtype_num:
+		  mh_code_op (mhop_num_to_arg);
+		  break;
+		case mhtype_str:
+		  mh_code_op (mhop_str_to_arg);
+		}
+	      if (!mh_code_builtin ($4, $6))
+		YYERROR;
+	      $$ = $4->type;
+	    }
+          ;
+
+fmtspec   : /* empty */
+          | FMTSPEC
+            {
+	      mh_code_op (mhop_fmtspec);
+	      mh_code_op ($1);
+	    }
+          ;
+
+function  : FUNCTION
+          | STRING
+            {
+	      yyerror ("undefined function");
+	      mh_error ($1);
+	      YYERROR;
+	    }
+          ;
+
+argument  : /* empty */
+            {
+	      $$ = mhtype_none;
+	    }
+          | literal
+	  | escape
+          ;
+
+/*           1   2    3   4      5         6     7 */
+cntl      : if cond list end elif_part else_part FI
+            {
+	      size_t start_pc = 0, end_pc = 0;
+
+	      /* Fixup first condition */
+	      if ($5.cond)
+		format.prog[$2] = $5.cond - $2;
+	      else if ($6.cond)
+		format.prog[$2] = $6.cond - $2;
+	      else
+		format.prog[$2] = $4 - $2 - 1;
+
+	      /* Link all "false" lists */
+	      if ($6.cond)
+		{
+		  start_pc = end_pc = $6.end;
+		}
+	      if ($5.cond)
+		{
+		  if (start_pc)
+		    format.prog[end_pc] = $5.end;
+		  else
+		    start_pc = $5.end;
+		  end_pc = $5.end;
+		  for (; format.prog[end_pc]; end_pc = format.prog[end_pc])
+		    ;
+		}
+
+	      if (start_pc)
+		format.prog[end_pc] = $4;
+	      else
+		start_pc = $4;
+
+	      /* Now, fixup the end branches */
+	      branch_fixup (start_pc);
+	      format.prog[start_pc] = pc - start_pc;
+	    }
+          ;
+
+if        : IF
+            {
+	      in_escape++;
+	    }
+          ;
+
+elif      : ELIF
+            {
+	      in_escape++;
+	      $$ = pc;
+	    }
+          ;
+
+end       : /* empty */
+            {
+	      mh_code_op (mhop_branch);
+	      $$ = mh_code_op (0);
+	    }
+          ;
+
+cond      : cond_expr
+            {
+	      in_escape--;
+	      if ($1 == mhtype_str)
+		mh_code_op (mhop_str_branch);
+	      else
+		mh_code_op (mhop_num_branch);
+	      $$ = mh_code_op (0);
+	    }
+
+cond_expr : component
+          | funcall
+          ;
+
+elif_part : /* empty */
+            {
+	      $$.cond = 0;
+	      $$.end = 0;
+	    }
+          | elif_list end
+            {
+	      $$.cond = $1.cond;
+	      format.prog[$2] = $1.end;
+	      $$.end = $2;
+	    }
+          ;
+
+elif_list : elif cond list
+            {
+	      $$.cond = $1;
+	      format.prog[$2] = pc - $2 + 2;
+	      $$.end = 0;
+	    }
+          | elif_list end elif cond list
+            {
+	      format.prog[$4] = pc - $4 + 2;
+	      $$.cond = $1.cond;
+	      format.prog[$2] = $1.end;
+	      $$.end = $2;
+	    }
+          ;
+
+else_part : /* empty */
+            {
+	      $$.cond = 0;
+	      $$.end = 0;
+	    }
+          | else list end
+            {
+	      $$.cond = $1;
+	      $$.end = $3;
+	    }
+	  ;
+
+else      : ELSE
+            {
+	      $$ = pc;
+	    }
+          ;
+
+%%
+
+static char *start;
+static char *curp;
+
+int
+yyerror (char *s)
+{
+  int len;
+  mh_error ("%s: %s", start, s);
+  len = curp - start;
+  mh_error ("%*.*s^", len, len, "");
+  return 0;
+}
+
+#define isdelim(c) (strchr("%<>?|(){} ",c) != NULL)
+
+static int percent;
+static int backslash(int c);
+
+int
+yylex ()
+{
+  if (*curp == '%')
+    {
+      curp++;
+      percent = 1;
+      if (isdigit (*curp) || *curp == '-')
+	{
+	  int num = 0;
+	  int flags = 0;
+
+	  if (*curp == '-')
+	    {
+	      curp++;
+	      flags = MH_FMT_RALIGN;
+	    }
+	  if (*curp == '0')
+	    flags |= MH_FMT_ZEROPAD;
+	  while (*curp && isdigit (*curp))
+	    num = num * 10 + *curp++ - '0';
+	  yylval.num = num | flags;
+	  return FMTSPEC;
+	}
+    }
+
+  if (percent)
+    {
+      percent = 0;
+      switch (*curp++)
+	{
+	case '<':
+	  return IF;
+	case '>':
+	  return FI;
+	case '?':
+	  return ELIF;
+	case '|':
+	  return ELSE;
+	case '%':
+	  return '%';
+	case '(':
+	  return OBRACE;
+	case '{':
+	  return OCURLY;
+	default:
+	  return BOGUS;
+      }
+    }
+
+  if (in_escape)
+    switch (*curp)
+      {
+      case '(':
+	curp++;
+	return OBRACE;
+      case '{':
+	curp++;
+	return OCURLY;
+      case '0':case '1':case '2':case '3':case '4':
+      case '5':case '6':case '7':case '8':case '9':
+	yylval.num = strtol (curp, &curp, 0);
+	return NUMBER;
+      }
+
+  switch (*curp)
+    {
+    case ')':
+      curp++;
+      return CBRACE;
+    case '}':
+      curp++;
+      return CCURLY;
+    case 0:
+      return 0;
+    }
+
+  do
+    {
+      if (*curp == '\\')
+	{
+	  int c = backslash (*++curp);
+	  obstack_1grow (&stack, c);
+	}
+      else
+	obstack_1grow (&stack, *curp);
+      curp++;
+    }
+  while (*curp && !isdelim(*curp));
+
+  obstack_1grow (&stack, 0);
+  yylval.str = obstack_finish (&stack);
+
+  if (want_function)
+    {
+      int rest;
+      mh_builtin_t *bp = mh_lookup_builtin (yylval.str, &rest);
+      if (bp)
+	{
+	  curp -= rest;
+	  yylval.builtin = bp;
+	  return FUNCTION;
+	}
+    }
+  
+  return STRING;
+}
+
+int
+mh_format_parse (char *format_str, mh_format_t *fmt)
+{
+  int rc;
+  
+  start = curp = format_str;
+  obstack_init (&stack);
+  format.progsize = 0;
+  pc = 0;
+  mh_code_op (mhop_stop);
+
+  in_escape = 0; 
+  percent = 0;
+
+  rc = yyparse ();
+  mh_code_op (mhop_stop);
+  obstack_free (&stack, NULL);
+  if (rc)
+    {
+      mh_format_free (&format);
+      return 1;
+    }
+  *fmt = format;
+  return 0;
+}
+
+int
+backslash(int c)
+{
+  static char transtab[] = "b\bf\fn\nr\rt\t";
+  char *p;
+  
+  for (p = transtab; *p; p += 2)
+    {
+      if (*p == c)
+	return p[1];
+    }
+  return c;
+}
+
+void
+branch_fixup (size_t epc)
+{
+  size_t prev = format.prog[epc];
+  if (!prev)
+    return;
+  branch_fixup (prev);
+  format.prog[prev] = epc - prev - 1;
+}
+
+
+/* Make sure there are at least `count' entries available in the prog
+   buffer */
+void
+prog_reserve (size_t count)
+{
+  if (pc + count >= format.progsize)
+    {
+      size_t inc = (count + 1) / FORMAT_INC + 1;
+      format.progsize += inc * FORMAT_INC;
+      format.prog = xrealloc (format.prog,
+			      format.progsize * sizeof format.prog[0]);
+    }
+}
+
+size_t
+mh_code_string (char *string)
+{
+  int length = strlen (string) + 1;
+  size_t count = (length + sizeof (mh_opcode_t)) / sizeof (mh_opcode_t);
+  size_t start_pc = pc;
+  
+  mh_code_op (mhop_str_arg);
+  prog_reserve (count);
+  format.prog[pc++] = (mh_opcode_t) count;
+  memcpy (&format.prog[pc], string, length);
+  pc += count;
+  return start_pc;
+}
+ 
+size_t
+mh_code_op (mh_opcode_t op)
+{
+  prog_reserve (1);
+  format.prog[pc] = op;
+  return pc++;
+}
+
+size_t
+mh_code_number (int num)
+{
+  return mh_code_op ((mh_opcode_t) num);
+}
+
+size_t
+mh_code_builtin (mh_builtin_t *bp, int argtype)
+{
+  size_t start_pc = pc;
+  if (bp->argtype != argtype)
+    {
+      if (argtype == mhtype_none)
+	{
+	  if (bp->optarg)
+	    {
+	      switch (bp->argtype)
+		{
+		case mhtype_num:
+		  mh_code_op (mhop_num_to_arg);
+		  break;
+		case mhtype_str:
+		  mh_code_op (mhop_str_to_arg);
+		  break;
+		default:
+		  yyerror ("UNKNOWN ARGTYPE");
+		  abort ();
+		}
+	    }
+	  else
+	    {
+	      mh_error ("missing argument for %s", bp->name);
+	      return 0;
+	    }
+	}
+      else
+	{
+	  switch (bp->argtype)
+	    {
+	    case mhtype_none:
+	      mh_error ("extra arguments to %s", bp->name);
+	      return 0;
+	    case mhtype_num:
+	      mh_code_op (mhop_str_to_num);
+	      break;
+	    case mhtype_str:
+	      mh_code_op (mhop_num_to_str);
+	      break;
+	    }
+	}
+    }
+  mh_code_op (mhop_call);
+  mh_code_op ((mh_opcode_t)bp->fun);
+  return start_pc;
+}
+
