@@ -427,10 +427,7 @@ maildir_flush (struct _amd_data *amd)
   int rc;
   DIR *dir;
   struct dirent *entry;
-  char *tmpname = malloc (strlen (amd->name) + sizeof TMPSUF);
-
-  strcpy (tmpname, amd->name);
-  strcat (tmpname, TMPSUF);
+  char *tmpname = maildir_mkfilename (amd->name, TMPSUF, NULL);
 
   rc = maildir_opendir (&dir, tmpname, PERMS);
   if (rc)
@@ -489,19 +486,18 @@ maildir_message_lookup (struct _amd_data *amd, char *file_name)
   struct _maildir_message *msg;
   char *p = strchr (file_name, ':');
   size_t length = p ? p - file_name : strlen (file_name);
-  int rc;
   size_t i;
   
-  /*FIXME!*/
+  /*FIXME: Replace linear search with binary one! */
   for (i = 0; i < amd->msg_count; i++)
     {
       msg = (struct _maildir_message *) amd->msg_array[i];
 
       if (strlen (msg->file_name) <= length
-	  && (rc = memcmp (msg->file_name, file_name, length)) == 0)
-	break;
+	  && memcmp (msg->file_name, file_name, length) == 0)
+	return msg;
     }
-  return rc == 0 ? msg : NULL;
+  return NULL;
 }
 
 static int
@@ -594,7 +590,7 @@ maildir_scan0 (mailbox_t mailbox, size_t msgno ARG_UNUSED, size_t *pcount,
   if (do_notify)
     {
       size_t i;
-      for (i = 0; i < amd->msg_count++; i++)
+      for (i = 0; i < amd->msg_count; i++)
 	{
 	  DISPATCH_ADD_MSG(mailbox, amd);
 	}
