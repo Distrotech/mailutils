@@ -336,6 +336,7 @@ list_set_destroy_item (list_t list, void (*destroy_item)(void *item))
   if (list == NULL)
     return EINVAL;
   list->destroy_item = destroy_item;
+  return 0;
 }
 
 int
