@@ -34,18 +34,18 @@ static int mbx_close       (mailbox_t, int flag);
 static int mbx_get_name    (mailbox_t, int *id, char *name, int offset, int n);
 
 /* passwd */
-static int mbx_get_passwd  (mailbox_t, char * passwd, int offset, int len);
-static int mbx_get_mpasswd (mailbox_t, char ** passwd, int *len);
-static int mbx_set_passwd  (mailbox_t, const char * passwd, int offset, int n);
+static int mbx_get_passwd  (mailbox_t, char *passwd, int offset, int len);
+static int mbx_get_mpasswd (mailbox_t, char **passwd, int *len);
+static int mbx_set_passwd  (mailbox_t, const char *passwd, int offset, int n);
 
 /* deleting */
-static int mbx_delete      (mailbox_t, int);
-static int mbx_undelete    (mailbox_t, int);
+static int mbx_delete      (mailbox_t, int id);
+static int mbx_undelete    (mailbox_t, int id);
 static int mbx_expunge     (mailbox_t);
-static int mbx_is_deleted  (mailbox_t, int);
+static int mbx_is_deleted  (mailbox_t, int id);
 
 /* appending */
-static int mbx_new_msg     (mailbox_t, int * id);
+static int mbx_new_msg     (mailbox_t, int *id);
 static int mbx_set_header  (mailbox_t, int id, const char *h,
 			    int offset, int n, int replace);
 static int mbx_set_body    (mailbox_t, int id, const char *b,
@@ -55,7 +55,9 @@ static int mbx_destroy_msg (mailbox_t, int id);
 
 /* reading */
 static int mbx_get_body    (mailbox_t, int id, char *b, int offset, int n);
+static int mbx_get_mbody   (mailbox_t, int id, char **b, int *n);
 static int mbx_get_header  (mailbox_t, int id, char *h, int offset, int n);
+static int mbx_get_mheader (mailbox_t, int id, char **h, int *n);
 
 /* locking */
 static int mbx_lock        (mailbox_t, int flag);
@@ -70,6 +72,7 @@ static int mbx_get_refresh (mailbox_t, int *refresh);
 static int mbx_set_refresh (mailbox_t, int refresh);
 static int mbx_set_notification (mailbox_t, int (*notif) (mailbox_t));
 
+/* init all the functions to a default value */
 static void mbx_check_struct (mailbox_t);
 
 /*
@@ -236,175 +239,317 @@ mailbox_destroy (mailbox_t * mbox)
   return mbox->_destroy (mbox);
 }
 
-/* stub functions */
+/* -------------- stub functions ------------------- */
 static void
-mbx_check_struct (mailbox_t)
+mbx_check_struct (mailbox_t mbox)
 {
+  if (mbox->_open == NULL)
+    mbox->open = mbx_open;
+
+  if (mbox->_close == NULL)
+    mbox->close = mbx_close;
+
+  if (mbox->_get_name == NULL)
+    mbox->_get_name = mbx_get_name;
+
+  if (mbox->_get_passwd == NULL)
+    mbox->_get_passw = mbx_get_passwd;
+
+  if (mbox->_get_mpasswd == NULL)
+    mbox->_get_mpasswd = mbx_getmpasswd;
+
+  if (mbox->_set_passwd  == NULL)
+    mbox->_set_passwd == mbx_set_passwd;
+
+  if (mbox->_delete == NULL)
+    mbox->_delete = mbx_delete;
+
+  if (mbox->_undelete == NULL)
+    mbox->_undelete = mbx_undelete;
+
+  if (mbox->_expunge == NULL)
+    mbox->_expunge = mbx_expunge;
+
+  if (mbox->_is_deleted == NULL)
+    mbox->_is_deleted = mbx_is_deleted;
+
+  if (mbox->_new_msg == NULL)
+    mbox->_new_msg = mbx_new_msg;
+
+  if (mbox->_set_header == NULL)
+    mbox->_set_header = mbx_set_header;
+
+  if (mbox->_set_body == NULL)
+    mbox->_set_body = mbx_set_body;
+
+  if (mbox->_append == NULL)
+    mbox->_append = mbx_append;
+
+  if (mbox->_destroy_msg == NULL)
+    mbox->_destroy_msg = mbx_destroy_msg;
+
+  if (mbox->_get_body == NULL)
+    mbox->_get_body = mbx_get_body;
+
+  if (mbox->_get_mbody == NULL)
+    mbox->_get_mbody = mbx_get_mbody;
+
+  if (mbox->_get_header == NULL)
+    mbox->_get_header = mbx_get_header;
+
+  if (mbox->_get_mheader == NULL)
+    mbox->_get_mheader = mbx_get_mheader;
+
+  if (mbox->_lock == NULL)
+    mbox->_lock = mbx_lock;
+
+  if (mbox->_unlock == NULL)
+    mbox->_unlock = mbx_unlock;
+
+  if (mbox->_scan == NULL)
+    mbox->_scan = mbx_scan;
+
+  if (mbox->_is_updated == NULL)
+    mbox->_is_updated = mbx_is_updated;
+
+  if (mbox->_get_timeout == NULL)
+    mbox->_get_timeout = mbx_get_timeout;
+
+  if (mbox->_set_timeout == NULL)
+    mbox->_set_timeout = mbx_set_timeout;
+
+  if (mbox->_get_refresh == NULL)
+    mbox->_get_refresh = mbx_get_refresh;
+
+  if (mbox->_set_refresh == NULL)
+    mbox->_set_refresh = mbx_set_refresh;
+
+  if (mbox->_set_notification == NULL)
+    mbox->_set_notification = mbx_set_notification;
+
 }
 
+
 static int
-mbx_open (mailbox_t, int flag)
+mbx_open (mailbox_t mbox, int flag)
 {
+  errno = ENOSYS;
   return -1;
 }
 
 static int
-mbx_close (mailbox_t, int flag)
+mbx_close (mailbox_t mbox, int flag)
 {
+  errno = ENOSYS;
   return -1;
 }
-
 
 /* name */
 static int
-mbx_get_name (mailbox_t, int *id, char *name, int offset, int n)
+mbx_get_name (mailbox_t mbox, int *id, char *name, int offset, int n)
 {
+  errno = ENOSYS;
   return -1;
 }
 
 /* passwd */
 static int
-mbx_get_passwd (mailbox_t, char * passwd, int offset, int len)
+mbx_get_passwd (mailbox_t mbox, char *passwd, int offset, int len)
 {
+  errno = ENOSYS;
   return -1;
 }
 
 static int
-mbx_get_mpasswd (mailbox_t, char ** passwd, int *len)
+mbx_get_mpasswd (mailbox_t mbox, char **passwd, int *len)
 {
-  return -1;
+  int i;
+  char *p;
+  if ((i = mbox->_get_passwd (NULL, 0)) <= 0 || (p = malloc (i)) == NULL)
+    {
+      return -1;
+    }
+  *passwd = p;
+  return *len = i;
 }
 
 static int
-mbx_set_passwd (mailbox_t, const char * passwd, int offset, int n)
+mbx_set_passwd (mailbox_t mbox, const char *passwd, int offset, int n)
 {
+  errno = ENOSYS;
   return -1;
 }
 
 /* deleting */
 static int
-mbx_delete (mailbox_t, int)
+mbx_delete (mailbox_t mbox, int id)
 {
+  errno = ENOSYS;
   return -1;
 }
 
 static int
-mbx_undelete (mailbox_t, int)
+mbx_undelete (mailbox_t mbox, int id)
 {
+  errno = ENOSYS;
   return -1;
 }
 
 static int
-mbx_expunge (mailbox_t)
+mbx_expunge (mailbox_t mbox)
 {
+  errno = ENOSYS;
   return -1;
 }
 
 static int
-mbx_is_deleted (mailbox_t, int)
+mbx_is_deleted (mailbox_t mbox, int id)
 {
+  errno = ENOSYS;
   return -1;
 }
 
 
 /* appending */
 static int
-mbx_new_msg (mailbox_t, int * id)
+mbx_new_msg (mailbox_t mbox, int *id)
 {
+  errno = ENOSYS;
   return -1;
 }
 
 static int
-mbx_set_header (mailbox_t, int id, const char *h,
+mbx_set_header (mailbox_t mbox, int id, const char *h,
 		int offset, int n, int replace)
 {
+  errno = ENOSYS;
   return -1;
 }
 
 static int
-mbx_set_body (mailbox_t, int id, const char *b,
+mbx_set_body (mailbox_t mbox, int id, const char *b,
 	      int offset, int n, int replace)
 {
+  errno = ENOSYS;
   return -1;
 }
 
 static int
-mbx_append (mailbox_t, int id)
+mbx_append (mailbox_t mbox, int id)
 {
+  errno = ENOSYS;
   return -1;
 }
 
 static int
-mbx_destroy_msg (mailbox_t, int id)
+mbx_destroy_msg (mailbox_t mbox, int id)
 {
+  errno = ENOSYS;
   return -1;
 }
 
 /* reading */
 static int
-mbx_get_body (mailbox_t, int id, char *b, int offset, int n)
+mbx_get_body (mailbox_t mbox, int id, char *b, int offset, int n)
 {
+  errno = ENOSYS;
   return -1;
 }
 
 static int
-mbx_get_header (mailbox_t, int id, char *h, int offset, int n)
+mbx_get_mbody (mailbox_t mbox, int id, char **body, int *len)
 {
+  int i;
+  char *b;
+  if ((i = mbox->_get_body (NULL, 0)) <= 0 || (b = malloc (i)) == NULL)
+    {
+      return -1;
+    }
+  *body = b;
+  return *len = i;
+}
+
+static int
+mbx_get_header (mailbox_t mbox, int id, char *h, int offset, int n)
+{
+  errno = ENOSYS;
   return -1;
+}
+
+static int
+mbx_get_mheader (mailbox_t mbox, int id, char **header, int *len)
+{
+  int i;
+  char *h;
+  if ((i = mbox->_get_header (NULL, 0)) <= 0 || (h = malloc (i)) == NULL)
+    {
+      return -1;
+    }
+  *header = h;
+  return *len = i;
 }
 
 /* locking */
 static int
-mbx_lock  (mailbox_t, int flag)
+mbx_lock  (mailbox_t mbox, int flag)
 {
+  errno = ENOSYS;
   return -1;
 }
 
 static int
-mbx_unlock (mailbox_t)
+mbx_unlock (mailbox_t mbox)
 {
+  errno = ENOSYS;
   return -1;
 }
 
 /* misc */
 static int
-mbx_scan (mailbox_t, int *msgs)
+mbx_scan (mailbox_t mbox, int *msgs)
 {
+  errno = ENOSYS;
   return -1;
 }
 
 static int
-mbx_is_updated (mailbox_t)
+mbx_is_updated (mailbox_t mbox)
 {
+  errno = ENOSYS;
   return -1;
 }
 
 static int
-mbx_get_timeout (mailbox_t, int *timeout)
+mbx_get_timeout (mailbox_t mbox, int *timeout)
 {
+  errno = ENOSYS;
   return -1;
 }
 
 static int
-mbx_set_timeout (mailbox_t, int timeout)
+mbx_set_timeout (mailbox_t mbox, int timeout)
 {
+  errno = ENOSYS;
   return -1;
 }
 
 static int
-mbx_get_refresh (mailbox_t, int *refresh)
+mbx_get_refresh (mailbox_t mbox, int *refresh)
 {
+  errno = ENOSYS;
   return -1;
 }
 
 static int
-mbx_set_refresh (mailbox_t, int refresh)
+mbx_set_refresh (mailbox_t mbox, int refresh)
 {
+  errno = ENOSYS;
   return -1;
 }
 
 static int
-mbx_set_notification (mailbox_t, int (*notif) (mailbox_t))
+mbx_set_notification (mailbox_t mbox, int (*func) (mailbox_t, void *arg))
 {
+  errno = ENOSYS;
   return -1;
 }

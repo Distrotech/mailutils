@@ -71,7 +71,7 @@ struct _mailbox
   int  (*_close)           __P ((mailbox_t, int flag));
 
   /* type */
-  int  (*_get_type)        __P ((mailbox_t, int *type, char *desc,
+  int  (*_get_name)        __P ((mailbox_t, int *type, char *desc,
 				 int offset, int len));
   int  (*_get_mtype)       __P ((mailbox_t, int *type, char **desc,
 				 int *len));
@@ -128,6 +128,8 @@ extern int mailbox_list_type   __P ((struct mailbox_type mtype[], int size));
 extern int mailbox_list_mtype  __P ((struct mailbox_type **mtype, int *size));
 extern int mailbox_add_type    __P ((struct mailbox_type *mlist));
 extern int mailbox_remove_type __P ((const struct mailbox_type  *mlist));
+extern int mailbox_get_type    __P ((struct mailbox_type * const *mtype,
+				      int id));
 
 #ifndef INLINE
 # ifdef __GNUC__
@@ -141,9 +143,9 @@ extern INLINE int mailbox_open        __P ((mailbox_t, int flag));
 extern INLINE int mailbox_close       __P ((mailbox_t, int flag));
 
 /* type */
-extern INLINE int mailbox_get_type    __P ((mailbox_t, int *type, char *desc,
+extern INLINE int mailbox_get_name    __P ((mailbox_t, int *type, char *desc,
 					    int offset, int len));
-extern INLINE int mailbox_get_mtype   __P ((mailbox_t, int *type, char **desc,
+extern INLINE int mailbox_get_mname   __P ((mailbox_t, int *type, char **desc,
 					    int *len));
 
 /* passwd */
@@ -172,8 +174,12 @@ extern INLINE int mailbox_destroy_msg __P ((mailbox_t, int id));
 /* reading */
 extern INLINE int mailbox_get_body    __P ((mailbox_t, int id, char *b,
 					    int offset, int n));
+extern INLINE int mailbox_get_mbody   __P ((mailbox_t, int id, char **b,
+					    int *n));
 extern INLINE int mailbox_get_header  __P ((mailbox_t, int id, char *h,
 					    int offset, int n));
+extern INLINE int mailbox_get_mheader  __P ((mailbox_t, int id, char **h,
+					     int *n));
 
 /* locking */
 extern INLINE int mailbox_lock        __P ((mailbox_t, int flag));
@@ -194,7 +200,7 @@ extern INLINE int mailbox_set_notification  __P ((mailbox_t, int
 #define mailbox_close(m, f)              m->_close (m, f)
 
 /* type */
-#define mailbox_get_type(m, t, d, o, n)  m->_get_type (m, t, d, o, n)
+#define mailbox_get_name(m, t, d, o, n)  m->_get_name (m, t, d, o, n)
 #define mailbox_get_mtype(m, t, d, n)    m->_get_mtype (m, t, d, n)
 
 /* passwd */
