@@ -162,10 +162,7 @@ regex_comparator (void *item, void *data)
 	       REG_EXTENDED | REG_NOSUB | REG_NEWLINE | REG_ICASE))
     {
       sieve_error (d->mach,
-		   /* TRANSLATORS: 'vacation' is the name of a Sieve action.
-		      Do not translate it! */
-		       _
-		   ("%d: vacation - cannot compile regular expression \"%s\"\n"),
+		   ("%d: cannot compile regular expression \"%s\"\n"),
 		   sieve_get_message_num (d->mach),
 		   item);
       return 0;
@@ -256,10 +253,7 @@ check_db (sieve_machine_t mach, list_t tags, char *from)
 
   if (asprintf (&file, "%s/.vacation", (home ? home : ".")) == -1)
     {
-      sieve_error (mach,
-		   /* TRANSLATORS: 'vacation' is the name of a Sieve action.
-		      Do not translate it! */
-		   _("%d: vacation - cannot build db filename\n"),
+      sieve_error (mach, _("%d: cannot build db file name\n"),
 		   sieve_get_message_num (mach));
       free (home);
       sieve_abort (mach);
@@ -270,9 +264,7 @@ check_db (sieve_machine_t mach, list_t tags, char *from)
   if (rc)
     {
       sieve_error (mach,
-		   /* TRANSLATORS: 'vacation' is the name of a Sieve action.
-		      Do not translate it! */
-		   _("%d: vacation - cannot open \"%s\": %s"),
+		   _("%d: cannot open \"%s\": %s"),
 		   sieve_get_message_num (mach), file,
 		   mu_strerror (rc));
       free (file);
@@ -343,7 +335,7 @@ re_subject (sieve_machine_t mach, list_t tags, char **psubject)
   if (!subject)
     {
       sieve_error (mach,
-		   ("%d: vacation - not enough memory"),
+		   ("%d: not enough memory"),
 		   sieve_get_message_num (mach));
       return;
     }
@@ -449,10 +441,7 @@ vacation_reply (sieve_machine_t mach, list_t tags, message_t msg,
   if (rc)
     {
       sieve_error (mach,
-		   /* TRANSLATORS: 'vacation' is the name of a Sieve action.
-		      Do not translate it! */
-		   _
-		   ("%d: vacation - cannot create recipient address <%s>: %s\n"),
+		   _("%d: cannot create recipient address <%s>: %s\n"),
 		   sieve_get_message_num (mach), from, mu_strerror (rc));
       return -1;
     }
@@ -487,9 +476,7 @@ vacation_reply (sieve_machine_t mach, list_t tags, message_t msg,
       mailer_get_url (mailer, &url);
       
       sieve_error (mach,
-		   /* TRANSLATORS: 'vacation' is the name of a Sieve action.
-		      Do not translate it! */
-		   _("%d: vacation - cannot open mailer %s: %s\n"),
+		   _("%d: cannot open mailer %s: %s\n"),
 		   sieve_get_message_num (mach),
 		   url_to_string (url), mu_strerror (rc));
       return -1;
@@ -516,10 +503,7 @@ sieve_action_vacation (sieve_machine_t mach, list_t args, list_t tags)
   val = sieve_value_get (args, 0);
   if (!val)
     {
-      sieve_error (mach,
-		   /* TRANSLATORS: 'vacation' is the name of a Sieve action.
-		      Do not translate it! */
-		   _("vacation: cannot get text!"));
+      sieve_error (mach, _("cannot get text!"));
       sieve_abort (mach);
     }
   else
@@ -536,9 +520,7 @@ sieve_action_vacation (sieve_machine_t mach, list_t args, list_t tags)
   else if (sieve_get_message_sender (msg, &from))
     {
       sieve_error (mach,
-		   /* TRANSLATORS: 'vacation' is the name of a Sieve action.
-		      Do not translate it! */
-		   _("%d: vacation - cannot get sender address\n"),
+		   _("%d: cannot get sender address\n"),
 		   sieve_get_message_num (mach));
       sieve_abort (mach);
     }

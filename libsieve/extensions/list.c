@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2003 Free Software Foundation, Inc.
+   Copyright (C) 2003, 2005 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as published by
@@ -151,13 +151,13 @@ list_test (sieve_machine_t mach, list_t args, list_t tags)
   h = sieve_value_get (args, 0);
   if (!h)
     {
-      sieve_error (mach, _("list: can't get argument 1"));
+      sieve_arg_error (mach, 1);
       sieve_abort (mach);
     }
   v = sieve_value_get (args, 1);
   if (!v)
     {
-      sieve_error (mach, _("list: can't get argument 2"));
+      sieve_arg_error (mach, 2);
       sieve_abort (mach);
     }
 

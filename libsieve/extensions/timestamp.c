@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2003 Free Software Foundation, Inc.
+   Copyright (C) 2003, 2005 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as published by
@@ -70,20 +70,20 @@ timestamp_test (sieve_machine_t mach, list_t args, list_t tags)
   h = sieve_value_get (args, 0);
   if (!h)
     {
-      sieve_error (mach, "timestamp: can't get argument 1");
+      sieve_arg_error (mach, 1);
       sieve_abort (mach);
     }
   /* Second argument: date displacement */
   v = sieve_value_get (args, 1);
   if (!v)
     {
-      sieve_error (mach, "timestamp: can't get argument 2");
+      sieve_arg_error (mach, 2);
       sieve_abort (mach);
     }
 
   if (mu_parse_date (v->v.string, &tlimit, &now))
     {
-      sieve_error (mach, "timestamp: can't parse date specification (%s)",
+      sieve_error (mach, _("cannot parse date specification (%s)"),
 		   v->v.string);
       sieve_abort (mach);
     }
@@ -101,7 +101,7 @@ timestamp_test (sieve_machine_t mach, list_t args, list_t tags)
   if (mu_parse_date (val, &tval, &now))
     {
       sieve_error (mach,
-		   "timestamp: can't parse header date specification (%s)",
+		   "cannot parse header date specification (%s)",
 		   val);
       free (val);
       sieve_abort (mach);
