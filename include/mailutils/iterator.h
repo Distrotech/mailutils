@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2004 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -29,9 +29,8 @@ extern int iterator_dup      __P ((iterator_t *piterator, iterator_t orig));
 extern void iterator_destroy __P ((iterator_t *));
 extern int iterator_first    __P ((iterator_t));
 extern int iterator_next     __P ((iterator_t));
-extern int iterator_current  __P ((iterator_t, void **pitem));
+extern int iterator_current  __P ((iterator_t, void * const *pitem));
 extern int iterator_is_done  __P ((iterator_t));
-extern int iterator_get_list __P ((iterator_t iterator, list_t *plist));
 
 extern int iterator_attach (iterator_t *root, iterator_t iterator);
 extern int iterator_detach (iterator_t *root, iterator_t iterator);
@@ -40,7 +39,7 @@ extern void iterator_advance (iterator_t iterator, void *e);
 extern int iterator_set_first (iterator_t, int (*first) (void *));  
 extern int iterator_set_next (iterator_t, int (*next) (void *));  
 extern int iterator_set_getitem (iterator_t,
-				 int (*getitem) (void *, void **));  
+				 int (*getitem) (void *, void * const *));  
 extern int iterator_set_finished_p (iterator_t,
 				    int (*finished_p) (void *));  
 extern int iterator_set_dup (iterator_t itr,
