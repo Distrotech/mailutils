@@ -56,6 +56,8 @@ extern int stdio_stream_create   __P ((stream_t *stream, FILE* stdio,
 				       int flags));
 extern int prog_stream_create    __P ((stream_t *stream, char *progname,
 				       int flags));
+int filter_prog_stream_create    __P ((stream_t *stream, char *progname,
+				       stream_t input));
   
 extern void stream_destroy    __P ((stream_t *, void *owner));
 
