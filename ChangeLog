@@ -1,3 +1,22 @@
+2003-10-10  Sergey Poznyakoff
+
+	* configure.ac: Raised patchlevel number
+	* mail/print.c (mail_print): Pass MSG_SILENT flag.
+	* pop3d/pop3d.c: New option --undelete tells pop3d to
+	undelete all delete messages on startup.
+	* pop3d/user.c: Handle undelete_on_startup flag.
+	* pop3d/extra.c (pop3d_mark_deleted,pop3d_is_deleted)
+	(pop3d_unset_deleted,pop3d_undelete_all): New functions
+	* pop3d/pop3d.h: Likewise.
+	* pop3d/dele.c: Use new pop3d_.*_deleted calls.
+	* pop3d/list.c: Likewise.
+	* pop3d/quit.c: Likewise.
+	* pop3d/retr.c: Likewise.
+	* pop3d/rset.c: Likewise.
+	* pop3d/stat.c: Likewise.
+	* pop3d/top.c: Likewise.
+	* pop3d/uidl.c: Likewise.
+	
 2003-10-09  Alain Magloire
 
 	Possible use:
@@ -44,10 +63,13 @@
 2003-10-06  Alain Magloire
 
 	* mailbox/pop/pop3_stls.c: New file.
-	* mailbox/pop/pop3_pass.c: Obscure the buffer with the passwd for security reasons.
-	* mailbox/pop/pop3_apop.c: Obscure the buffer with the digest for security reasons.
+	* mailbox/pop/pop3_pass.c: Obscure the buffer with the passwd for 
+        security reasons.
+	* mailbox/pop/pop3_apop.c: Obscure the buffer with the digest for 
+        security reasons.
 	* include/mailutils/pop3.h: Declaration mu_pop3_stls().
-	* include/mailutils/sys/pop3.h: New states added to accomodate STLS command.
+	* include/mailutils/sys/pop3.h: New states added to accomodate STLS 
+        command.
 	* doc/texinfo/pop3.texi: Corrected some typos.
 
 2003-10-06  Sergey Poznyakoff 
