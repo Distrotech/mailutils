@@ -29,10 +29,18 @@
 #include <stdarg.h>
 #include <sys/stat.h>
 #include <sysexits.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <netdb.h>
 #include "getopt.h"
 
 #ifdef HAVE_STRINGS_H
 # include <strings.h>
+#endif
+
+#ifndef INADDR_LOOPBACK
+# define INADDR_LOOPBAK 0x7f000001
 #endif
 
 #include <mailutils/mailbox.h>
@@ -52,15 +60,6 @@ extern int debug_level;
 #define MQUOTA_EXCEEDED   1
 #define MQUOTA_UNLIMITED  2
 
-struct mda_data
-{
-  FILE *fp;
-  char *progfile;
-  char *progfile_pattern;
-  char **argv;
-  char *tempfile;
-};
-
 extern char *quotadbname;
 extern int exit_code;
 
@@ -71,6 +70,17 @@ int mda (FILE *fp, char *username, mailbox_t mbox);
 char *make_progfile_name (char *pattern, char *username);
 
 #ifdef WITH_GUILE
+struct mda_data
+{
+  FILE *fp;
+  char *progfile;
+  char *progfile_pattern;
+  char **argv;
+  char *tempfile;
+};
+
 int prog_mda (struct mda_data *data);
+
+extern int debug_guile;
 #endif
 
