@@ -41,7 +41,6 @@ volatile size_t children;
 static int pop3d_mainloop       __P ((int, int));
 static void pop3d_daemon_init   __P ((void));
 static void pop3d_daemon        __P ((unsigned int, unsigned int));
-static void pop3d_usage         __P ((char *));
 
 const char *argp_program_version = "pop3d (" PACKAGE ") " VERSION;
 const char *argp_program_bug_address = "<bug-mailutils@gnu.org>";
