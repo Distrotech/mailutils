@@ -211,9 +211,13 @@ int parse822_is_smtp_q(char c)
 
 /***** From RFC 822, 3.3 Lexical Tokens *****/
 
-int parse822_skip_crlf(const char** p, const char* e)
+int parse822_skip_nl(const char** p, const char* e)
 {
+    /* Here we consider a new-line (NL) to be either a bare LF, or
+     * a CRLF pair as required by the RFC.
+     */
     const char* s = *p;
+
     if(
 	(&s[1] < e) &&
 	s[0] == '\r' &&
@@ -224,6 +228,17 @@ int parse822_skip_crlf(const char** p, const char* e)
 
 	return EOK;
     }
+
+    if(
+	(&s[0] < e) &&
+	s[0] == '\n'
+	)
+    {
+	*p += 1;
+
+	return EOK;
+    }
+
     return EPARSE;
 }
 int parse822_skip_lwsp_char(const char** p, const char* e)
@@ -237,7 +252,12 @@ int parse822_skip_lwsp_char(const char** p, const char* e)
 int parse822_skip_lwsp(const char** p, const char* e)
 {
     /*
-     * linear-white-space = 1*([CRLF] LWSP-char)
+     * linear-white-space = 1*([[CR]LF] LWSP-char)
+     *
+     *   We interpret a bare LF as identical to the canonical CRLF
+     *   line ending, I don't know another way since on a Unix system
+     *   all CRLF will be translated to the local convention, a bare
+     *   LF, and thus we can not deal with bare NLs in the message.
      */
     int space = 0;
 
@@ -248,7 +268,7 @@ int parse822_skip_lwsp(const char** p, const char* e)
 	    space = 1;
 	    continue;
 	}
-	if(parse822_skip_crlf(p, e) == EOK) {
+	if(parse822_skip_nl(p, e) == EOK) {
 	    if(parse822_skip_lwsp_char(p, e) == EOK) {
 		continue;
 	    }

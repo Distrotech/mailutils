@@ -38,55 +38,12 @@ address_create (address_t *a, const char *s)
   /* 'paddress' must exist, and can't already have been initialized
    */
   int status;
-  const char *e;
-  const char *save;
-  char *fb;
 
   if (!a)
     return EINVAL;
 
   *a = NULL;
-  save = s;
-  e = &s[strlen (s)];
-  fb = calloc (1, 1);
-  if (!fb)
-    return ENOMEM;
-
-  /* We need to unfold the string. Do the same thing as parse822_field_body()
-     but we have to be more flexible in allowing bare '\n' as CRLF for
-     unix-mbox.  This is may not be the right approach still.  */
-  for (;;)
-    {
-      const char *eol = s;
-      size_t len = strlen (fb);
-      while (eol != e)
-	{
-	  /* if (eol[0] == '\r' && (eol+1) != e && eol[1] == '\n') */
-	  if (*eol == '\n')
-	    break;
-	  ++eol;
-	}
-
-      fb = realloc (fb, len + (eol - s) + 1);
-      memcpy (fb + len , s, eol - s);
-      fb[len + (eol - s)] = '\0';
-
-      s = eol;
-      if (eol == e)
-	break; /* no more, so we're done */
-
-      s++;
-
-      if (s == e)
-	break; /* no more, so we're done */
-
-      /* check if next line is a continuation line */
-      if (*s != ' ' && *s != '\t')
-	break;
-    }
-
-  status = parse822_address_list (a, (char*) fb);
-  free (fb);
+  status = parse822_address_list (a, (char*) s);
   if (status == 0)
     {
       /* And address-list may contain 0 addresses but parse correctly.
@@ -94,7 +51,7 @@ address_create (address_t *a, const char *s)
       if (!*a)
 	return ENOENT;
 
-      (*a)->addr = strdup (save);
+      (*a)->addr = strdup (s);
       if (!(*a)->addr)
 	{
 	  address_destroy (a);

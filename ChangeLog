@@ -1,3 +1,8 @@
+2001-05-27  Sam Roberts
+	* mailbox/address.c: removed unfolding of lines at a NL before parsing.
+	* mailbox/parse822.c: consider LF and CRLF equivalent for purposes
+	of unfolding lines.
+
 2001-05-23  Alain Magloire
 
 	* mailbox/mbx_default.c (mailbox_create_default): Check
