@@ -1,3 +1,8 @@
+2001-11-20  Jeff Bailey  <jbailey@outpost.dnsalias.org>
+
+	* configure.in: Set CPPFLAGS last.  $(sysconfdir) requires
+	make to get it expanded, and it fubars autoconf tests.
+
 2001-11-17  Alain Magloire
 
 	* include/mailutils/mailbox.h: Remove prototype
