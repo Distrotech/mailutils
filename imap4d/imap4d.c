@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2001, 2002, 2003 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001, 2002, 2003, 2004 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -28,7 +28,8 @@ struct daemon_param daemon_param = {
   20,				/* Default maximum number of children */
   143,				/* Standard IMAP4 port */
   1800,				/* RFC2060: 30 minutes. */
-  0				/* No transcript by default */
+  0,				/* No transcript by default */
+  NULL                          /* No PID file by default */
 };
 
 int login_disabled;
@@ -196,6 +197,11 @@ main (int argc, char **argv)
   mu_error_set_print (mu_syslog_error_printer);
 
   umask (S_IROTH | S_IWOTH | S_IXOTH);	/* 007 */
+
+  if (daemon_param.pidfile)
+    {
+      daemon_create_pidfile (daemon_param.pidfile);
+    }
 
   /* Check TLS environment, i.e. cert and key files */
 #ifdef WITH_TLS
