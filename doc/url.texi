@@ -1,3 +1,57 @@
 
-See rfc2368, rfc2369, rfc2384
+@comment See rfc2368, rfc2369, rfc2384
+Instead of providing different functions to create a mailbox_t and mailer_t the
+information is encoded in the form of a URL.
+
+@itemize @bullet
+@item
+POP3 Post Office Protocol, Not Implemented.
+@item
+IMAP, not implemented
+@item
+QMAIL, not implemented
+@item
+Unix mbox
+@item
+MMDF, not implemented
+@item
+SMail, not implemented
+@end itemize
+
+The URL will contain the necessary information to initialize @code{mailbox_t}
+properly.
+@subsection POP3
+pop://<user>;AUTH=<auth>@@<hostname>:<port>
+
+Description of the fields and examples are needed.
+
+@subsection IMAP
+imap://.....
+
+Description of the fields and examples are needed.
+
+@subsection File
+file://path
+
+Description of the fields and examples are needed.
+
+@subsection MMDF
+mmdf://path
+
+Description of the fields and examples are needed.
+
+@subsection MH
+mh://path
+
+Description of the fields and examples are needed.
+
+@subsection Mailto
+mailto://
+
+Description of the fields and examples are needed.
+
+@subsection mmp
+mmp://
+
+Description of the fields and examples are needed.
 

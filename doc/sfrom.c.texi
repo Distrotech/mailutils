@@ -14,9 +14,10 @@ int main (int argc, char **argv)
    char buffer[1024];
    char from[64];
    char subject[64];
-   char *header;
-   mailbox_t  mbox;
-   int status, id, msg_no;
+   char *mail;
+   mailbox_t mbox;
+   int status
+   size_t msgno, msg_total, size;
 
    if (argc == 2)
      @{
@@ -28,7 +29,7 @@ int main (int argc, char **argv)
          if (mail == NULL)
            @{
                char * user = getlogin ();
-               int len = strlen (_PATH_MAILDIR) + strlen (user) + 1;
+               size_t len = strlen (_PATH_MAILDIR) + strlen (user) + 1;
                mail = malloc (len);
                if (mail == NULL)
                  @{
