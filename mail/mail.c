@@ -1,5 +1,5 @@
 /* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -129,6 +129,7 @@ main (int argc, char **argv)
     list_append (bookie, mbox_record);
     list_append (bookie, path_record);
     list_append (bookie, pop_record);
+    list_append (bookie, imap_record);
   }
 
   signal (SIGPIPE, SIG_IGN);
