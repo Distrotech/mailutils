@@ -23,7 +23,7 @@
 
 int
 istream_init (istream_t *pis, int (*_read)
-	      __P ((istream_t, char *, size_t, off_t, ssize_t *)),
+	      __P ((istream_t, char *, size_t, off_t, size_t *)),
 	      void *owner)
 {
   istream_t is;
@@ -40,7 +40,7 @@ istream_init (istream_t *pis, int (*_read)
 
 int
 ostream_init (ostream_t *pos, int (*_write)
-		   __P ((ostream_t, const char *, size_t, off_t, ssize_t *)),
+		   __P ((ostream_t, const char *, size_t, off_t, size_t *)),
 	      void *owner)
 {
   ostream_t os;
@@ -85,7 +85,7 @@ ostream_destroy (ostream_t *pos, void *owner)
 
 int
 istream_read (istream_t is, char *buf, size_t count,
-	      off_t offset, ssize_t *pnread)
+	      off_t offset, size_t *pnread)
 {
   if (is == NULL || is->_read == NULL)
     return EINVAL;
@@ -94,7 +94,7 @@ istream_read (istream_t is, char *buf, size_t count,
 
 int
 ostream_write (ostream_t os, const char *buf, size_t count,
-	       off_t offset, ssize_t *pnwrite)
+	       off_t offset, size_t *pnwrite)
 {
   if (os == NULL || os->_write == NULL)
       return EINVAL;

@@ -37,10 +37,10 @@ typedef struct _istream *istream_t;
 struct _ostream;
 typedef struct _ostream *ostream_t;
 
-extern int istream_read __P ((istream_t, char *, size_t, off_t, ssize_t *));
+extern int istream_read __P ((istream_t, char *, size_t, off_t, size_t *));
 
 extern int ostream_write __P ((ostream_t, const char *, size_t,
-			       off_t, ssize_t *));
+			       off_t, size_t *));
 
 #ifdef __cplusplus
 }

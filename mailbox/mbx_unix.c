@@ -27,7 +27,7 @@
 #include <auth.h>
 #include <locker.h>
 
-#define HAVE_PTHREAD_H
+//#define HAVE_PTHREAD_H
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -122,9 +122,6 @@ static int mailbox_unix_close (mailbox_t mbox);
 static int mailbox_unix_get_message (mailbox_t, size_t msgno, message_t *msg);
 static int mailbox_unix_append_message (mailbox_t, message_t msg);
 static int mailbox_unix_messages_count (mailbox_t, size_t *msgno);
-static int mailbox_unix_delete (mailbox_t, size_t msgno);
-static int mailbox_unix_undelete (mailbox_t, size_t msgno);
-static int mailbox_unix_is_deleted (mailbox_t, size_t msgno);
 static int mailbox_unix_expunge (mailbox_t);
 static int mailbox_unix_num_deleted (mailbox_t, size_t *);
 
@@ -138,9 +135,10 @@ static ssize_t mailbox_unix_get_header (mailbox_t, size_t msgno, char *h,
 
 
 /* private stuff */
+static int mailbox_unix_is_deleted (mailbox_t mbox, size_t msgno);
 static int mailbox_unix_validity (mailbox_t mbox, size_t msgno);
 static int mailbox_unix_readstream (istream_t is, char *buffer, size_t buflen,
-				    off_t off, ssize_t *pnread);
+				    off_t off, size_t *pnread);
 static int mailbox_unix_is_from (const char *);
 static int mailbox_unix_readhdr (mailbox_t mbox, char *buf, size_t len,
 				 off_t *content_length, size_t msgno);
@@ -282,9 +280,6 @@ mailbox_unix_init (mailbox_t *pmbox, const char *name)
   mbox->_get_message = mailbox_unix_get_message;
   mbox->_append_message = mailbox_unix_append_message;
   mbox->_messages_count = mailbox_unix_messages_count;
-  mbox->_delete = mailbox_unix_delete;
-  mbox->_undelete = mailbox_unix_undelete;
-  mbox->_is_deleted = mailbox_unix_is_deleted;
   mbox->_expunge = mailbox_unix_expunge;
   mbox->_num_deleted = mailbox_unix_num_deleted;
 
@@ -395,6 +390,11 @@ mailbox_unix_open (mailbox_t mbox, int flags)
       if (fd < 0)
 	return errno;
     }
+
+  /* FIXME: FIXME: FIXME: FIXME:
+   * before going any further I should check for symlinks etc
+   * and refuse to go any furter, please fix asap.
+   */
 
   /* Authentication */
   if (mbox->auth)
@@ -942,25 +942,6 @@ mailbox_unix_is_deleted (mailbox_t mbox, size_t msgno)
 }
 
 static int
-mailbox_unix_delete (mailbox_t mbox, size_t msgno)
-{
-  mailbox_unix_data_t mud;
-  int status = mailbox_unix_validity (mbox, msgno);
-  if (status != 0)
-    return status;
-
-  /* if already deleted, noop */
-  if (mailbox_unix_is_deleted (mbox, msgno))
-    return 0;
-
-  /* Mark for deletion */
-  msgno--;
-  mud = (mailbox_unix_data_t) mbox->data;
-  attribute_set_deleted (mud->umessages[msgno]->new_attr);
-  return 0;
-}
-
-static int
 mailbox_unix_num_deleted (mailbox_t mbox, size_t *num)
 {
   mailbox_unix_data_t mud;
@@ -981,25 +962,6 @@ mailbox_unix_num_deleted (mailbox_t mbox, size_t *num)
   return 0;
 }
 
-static int
-mailbox_unix_undelete (mailbox_t mbox, size_t msgno)
-{
-  mailbox_unix_data_t mud;
-  int status = mailbox_unix_validity (mbox, msgno);
-  if (status != 0)
-    return status;
-
-  /* if already undeleted, noop */
-  if (! mailbox_unix_is_deleted (mbox, msgno))
-    return 0;
-
-  /* Mark undeletion */
-  msgno--;
-  mud = (mailbox_unix_data_t) mbox->data;
-  attribute_unset_deleted (mud->umessages[msgno]->new_attr);
-  return 0;
-}
-
 /*
   FIXME: the use of tmpfile() on some system can lead to
   race condition, We should use a safer approach.
@@ -1007,11 +969,41 @@ mailbox_unix_undelete (mailbox_t mbox, size_t msgno)
   two copies.
 */
 static FILE *
-mailbox_unix_tmpfile ()
+mailbox_unix_tmpfile (mailbox_t mbox, char *tmpmbox)
 {
-  /*FIXME: racing conditions, to correct, .i.e don;t use tmpfile*/
-  //return tmpfile ();
-  return fopen ("/tmp/mumail", "w+");
+  mailbox_unix_data_t mud = (mailbox_unix_data_t)mbox->data;
+  int fd;
+  FILE *fp;
+
+#ifndef P_tmpdir
+# define P_tmpdir "/tmp"
+#endif
+
+  tmpmbox = calloc (1, strlen (P_tmpdir) + strlen ("MBOX_") +
+		   strlen (mud->basename) + 1);
+  if (tmpmbox == NULL)
+    return NULL;
+  sprintf (tmpmbox, "%s/%s%s", P_tmpdir, "MBOX_", mud->basename);
+
+  /* FIXME:  I don't think this is the righ approach
+   * Creating an anonymous file would be better ?
+   * no trace left behind.
+   */
+  /* Create the file.  It must not exist.  If it does exist, fail. */
+  fd = open(tmpmbox, O_RDWR|O_CREAT|O_EXCL, 0600);
+  if (fd < 0)
+    {
+      fprintf(stderr,"Can't create %s\n", tmpmbox);
+      fprintf(stderr,"delete file <%s>, Please\n", tmpmbox);
+      return NULL;
+    }
+  fp = fdopen(fd, "w+");
+  if (fp == 0)
+    close(fd);
+
+  /* really I should just remove the file here */
+  /* remove(tmpmbox); */
+  return fp;
 }
 
 static int
@@ -1028,6 +1020,7 @@ mailbox_unix_expunge (mailbox_t mbox)
   off_t marker = 0;
   off_t total = 0;
   char buffer [BUFSIZ];
+  char *tmpmbox = NULL;
 
   if (mbox == NULL ||
       (mud = (mailbox_unix_data_t)mbox->data) == NULL)
@@ -1037,7 +1030,7 @@ mailbox_unix_expunge (mailbox_t mbox)
   if (mud->messages_count == 0)
     return 0;
 
-  tmpfile = mailbox_unix_tmpfile ();
+  tmpfile = mailbox_unix_tmpfile (mbox, tmpmbox);
   if (tmpfile == NULL)
     return errno;
 
@@ -1045,6 +1038,7 @@ mailbox_unix_expunge (mailbox_t mbox)
   if (mailbox_unix_lock (mbox, MU_LOCKER_WRLOCK) < 0)
     {
       fclose (tmpfile);
+      remove (tmpmbox);
       return ENOLCK;
     }
 
@@ -1265,25 +1259,43 @@ mailbox_unix_expunge (mailbox_t mbox)
 	  }
       }
   }
-  /* truncate the mailbox and rewrite it */
-  if (total <= 0 || fseek (mud->file, marker, SEEK_SET) < 0 ||
-      ftruncate (fileno(mud->file), total) < 0)
+  /* Seek and rewrite it */
+  if (total <= 0 || fseek (mud->file, marker, SEEK_SET) < 0)
     {
       status = errno;
       goto bailout;
     }
   rewind (tmpfile);
 
+  errno = 0;
   while ((nread = fread (buffer, sizeof (*buffer),
 			 sizeof (buffer), tmpfile)) != 0)
-    fwrite (buffer, sizeof (*buffer), nread, mud->file);
+    {
+      if (fwrite (buffer, sizeof (*buffer), nread, mud->file) != nread)
+	{
+	  if (errno == EAGAIN || errno == EINTR)
+	    {
+	      continue;
+	      errno = 0;
+	    }
+	  status = errno;
+	  goto bailout;
+	}
+    }
 
   /* how can I handle error here ?? */
   clearerr (tmpfile);
   clearerr (mud->file);
   fflush (mud->file);
 
+  /* truncation */
+  if (ftruncate (fileno (mud->file), total) < 0)
+    goto bailout;
+
   /* FIXME: update the num of all the messages */
+
+  /* Don't remove the tmp mbox in case of errors */
+  remove (tmpmbox);
 
 bailout:
   /* Release the locks */
@@ -1299,7 +1311,7 @@ bailout:
 
 static int
 mailbox_unix_readstream (istream_t is, char *buffer, size_t buflen,
-			off_t off, ssize_t *pnread)
+			off_t off, size_t *pnread)
 {
   mailbox_unix_message_t mum;
   size_t nread = 0;

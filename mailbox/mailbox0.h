@@ -71,9 +71,6 @@ struct _mailbox
   int  (*_size)            __P ((mailbox_t, off_t *size));
 
   /* private */
-  int  (*_delete)          __P ((mailbox_t, size_t msgno));
-  int  (*_undelete)        __P ((mailbox_t, size_t msgno));
-  int  (*_is_deleted)      __P ((mailbox_t, size_t msgno));
   int  (*_num_deleted)     __P ((mailbox_t, size_t *));
 };
 

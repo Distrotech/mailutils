@@ -25,13 +25,15 @@
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 
 static int body_init (body_t *pbody, void *owner);
 static void body_destroy (body_t *pbody, void *owner);
 static int message_read (istream_t is, char *buf, size_t buflen,
-			 off_t off, ssize_t *pnread );
+			 off_t off, size_t *pnread );
 static int message_write (ostream_t os, const char *buf, size_t buflen,
-			  off_t off, ssize_t *pnwrite);
+			  off_t off, size_t *pnwrite);
 
 int
 message_clone (message_t msg)
@@ -284,36 +286,16 @@ message_get_istream (message_t msg, istream_t *pis)
   if (msg == NULL || pis == NULL)
     return EINVAL;
 
-  /* lazy floating message body creation */
   if (msg->is == NULL && msg->owner == NULL)
     {
-      body_t body;
       istream_t is;
-      ostream_t os;
       int status;
-      status = body_init (&body, msg);
-      if (status != 0 )
-	return status;
       status = istream_init (&is, message_read, msg);
       if (status != 0)
-	{
-	  body_destroy (&body, msg);
-	  return status;
-	}
-      status = ostream_init (&os, message_write, msg);
-      if (status != 0)
-	{
-	  istream_destroy (&is, msg);
-	  body_destroy (&body, msg);
-	  return status;
-	}
+	return status;
       /* make sure we've clean */
       istream_destroy (&(msg->is), msg);
-      ostream_destroy (&(msg->os), msg);
-      body_destroy (&(msg->body), msg);
       msg->is = is;
-      msg->os = os;
-      msg->body = body;
     }
 
   *pis = msg->is;
@@ -339,36 +321,19 @@ message_get_ostream (message_t msg, ostream_t *pos)
   if (msg == NULL || pos == NULL)
     return EINVAL;
 
-  /* lazy floating message body creation */
+  /* lazy floating message the body is created when
+   * doing the first message_write creation
+   */
   if (msg->os == NULL && msg->owner == NULL)
     {
-      body_t body;
-      istream_t is;
       ostream_t os;
       int status;
-      status = body_init (&body, msg->owner);
-      if (status != 0 )
-	return status;
-      status = istream_init (&is, message_read, msg);
-      if (status != 0)
-	{
-	  body_destroy (&body, msg->owner);
-	  return status;
-	}
       status = ostream_init (&os, message_write, msg);
       if (status != 0)
-	{
-	  istream_destroy (&is, msg);
-	  body_destroy (&body, msg);
-	  return status;
-	}
+	return status;
       /* make sure we've clean */
-      istream_destroy (&(msg->is), msg);
       ostream_destroy (&(msg->os), msg);
-      body_destroy (&(msg->body), msg);
-      msg->is = is;
       msg->os = os;
-      msg->body = body;
     }
 
   *pos = msg->os;
@@ -530,6 +495,8 @@ body_init (body_t *pbody, void *owner)
   file = tmpfile ();
   if (file == NULL)
     return errno;
+  /* make sure the mode is right */
+  fchmod (fileno (file), 0600);
 #endif
 
   /* set the body with the streams */
@@ -562,10 +529,10 @@ body_destroy (body_t *pbody, void *owner)
 
 static int
 message_read (istream_t is, char *buf, size_t buflen,
-	      off_t off, ssize_t *pnread )
+	      off_t off, size_t *pnread )
 {
   message_t msg;
-  ssize_t nread = 0;
+  size_t nread = 0;
 
   if (is == NULL || (msg = is->owner) == NULL)
     return EINVAL;
@@ -602,38 +569,46 @@ message_read (istream_t is, char *buf, size_t buflen,
 
 static int
 message_write (ostream_t os, const char *buf, size_t buflen,
-	       off_t off, ssize_t *pnwrite)
+	       off_t off, size_t *pnwrite)
 {
   message_t msg;
-  ssize_t nwrite = 0;
+  size_t nwrite = 0;
+  body_t body;
 
   if (os == NULL || (msg = os->owner) == NULL)
     return EINVAL;
 
-  if (msg->body)
+  /* Probably being lazy, then create a body for the stream */
+  if (msg->body == NULL)
     {
-      body_t body = msg->body;
-      if (body->file)
-	{
-	  /* we're not checking the error of fseek for some handlers
-	   * like socket in those not make sense.
-	   * FIXME: Alternative is to check fseeck and errno == EBADF
-	   * if not a seekable stream.
-	   */
-	  fseek (body->file, off, SEEK_SET);
-	  nwrite = fwrite (buf, sizeof (char), buflen, body->file);
-	  if (nwrite == 0)
-	    {
-	      if (ferror (body->file))
-		return errno;
-	      /* clear the error for feof() */
-	      clearerr (body->file);
-	    }
-	  /* errno set by fread()/fseek() ? */
-	}
-      else
-	return EINVAL;
+      int status = body_init (&body, msg->owner);
+      if (status != 0 )
+        return status;
+      msg->body = body;
     }
+  else
+      body = msg->body;
+
+  if (body->file)
+    {
+      /* we're not checking the error of fseek for some handlers
+       * like socket in those not make sense.
+       * FIXME: Alternative is to check fseeck and errno == EBADF
+       * if not a seekable stream.
+       */
+      fseek (body->file, off, SEEK_SET);
+      nwrite = fwrite (buf, sizeof (char), buflen, body->file);
+      if (nwrite == 0)
+	{
+	  if (ferror (body->file))
+	    return errno;
+	  /* clear the error for feof() */
+	  clearerr (body->file);
+	}
+      /* errno set by fread()/fseek() ? */
+    }
+  else
+    return EINVAL;
 
   if (pnwrite)
     *pnwrite = nwrite;

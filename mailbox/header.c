@@ -28,9 +28,9 @@
 
 static int header_parse (header_t h, const char *blurb, int len);
 static int header_read (istream_t is, char *buf, size_t buflen,
-			off_t off, ssize_t *pnread);
+			off_t off, size_t *pnread);
 static int header_write (ostream_t os, const char *buf, size_t buflen,
-			 off_t off, ssize_t *pnwrite);
+			 off_t off, size_t *pnwrite);
 
 struct _hdr
 {
@@ -343,7 +343,7 @@ header_entry_value (header_t header, size_t num, char *buf,
 
 static int
 header_write (ostream_t os, const char *buf, size_t buflen,
-	      off_t off, ssize_t *pnwrite)
+	      off_t off, size_t *pnwrite)
 {
   header_t header;
   if (os == NULL || (header = (header_t)os->owner) == NULL)
@@ -361,7 +361,7 @@ header_write (ostream_t os, const char *buf, size_t buflen,
 
 static int
 header_read (istream_t is, char *buf, size_t buflen,
-	     off_t off, ssize_t *pnread)
+	     off_t off, size_t *pnread)
 {
   header_t header;
   ssize_t len;

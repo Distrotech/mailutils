@@ -94,14 +94,6 @@ mailbox_close (mailbox_t mbox)
 
 /* messages */
 int
-mailbox_is_deleted (mailbox_t mbox, size_t msgno)
-{
-  if (mbox == NULL || mbox->_is_deleted == NULL)
-    return 0;
-  return mbox->_is_deleted (mbox, msgno);
-}
-
-int
 mailbox_append_message (mailbox_t mbox, message_t msg)
 {
   if (mbox == NULL || mbox->_append_message == NULL)
@@ -123,22 +115,6 @@ mailbox_messages_count (mailbox_t mbox, size_t *num)
   if (mbox == NULL || mbox->_messages_count == NULL)
     return ENOSYS;
   return mbox->_messages_count (mbox, num);
-}
-
-int
-mailbox_delete (mailbox_t mbox, size_t msgno)
-{
-  if (mbox == NULL || mbox->_delete == NULL)
-    return ENOSYS;
-  return mbox->_delete (mbox, msgno);
-}
-
-int
-mailbox_undelete (mailbox_t mbox, size_t msgno)
-{
-  if (mbox == NULL || mbox->_undelete == NULL)
-    return ENOSYS;
-  return mbox->_undelete (mbox, msgno);
 }
 
 int
