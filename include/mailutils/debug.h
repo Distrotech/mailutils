@@ -36,9 +36,9 @@ extern "C" {
 struct _debug;
 typedef struct _debug* mu_debug_t;
 
-#define MU_DEBUG_ERROR 1
-#define MU_DEBUG_TRACE 2
-#define MU_DEBUG_PROT  3
+#define MU_DEBUG_ERROR 0x0001
+#define MU_DEBUG_TRACE 0x0002
+#define MU_DEBUG_PROT  0x0004
 
 extern int mu_debug_create    __P ((mu_debug_t *, void *owner));
 extern void mu_debug_destroy  __P ((mu_debug_t *, void *owner));
