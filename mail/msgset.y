@@ -16,12 +16,21 @@
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 %{
+#include "mail.h"
+
 #include <stdio.h>
 #include <stdlib.h>
-#include <regex.h>
 
 #include <xalloc.h>
-#include "mail.h"
+
+/* Defined in <limits.h> on some systems, but redefined in <regex.h>
+   if we are using GNU's regex. So, undef it to avoid duplicate definition
+   warnings. */
+
+#ifdef RE_DUP_MAX
+# undef RE_DUP_MAX
+#endif
+#include <regex.h>
 
 struct header_data
 {
