@@ -36,6 +36,15 @@ AC_ARG_WITH(readline,
   *)   AC_MSG_ERROR(bad value ${withval} for --without-readline) ;;
   esac],[usereadline=yes])
 
+AC_SUBST(SITE_MAIL_RC)
+AC_ARG_WITH(mail-rc,
+ [  --with-mail-rc=FILE     use FILE instead of $sysconfdir/mail.rc],
+ [case "${withval}" in
+  /*) SITE_MAIL_RC="${withval}";;
+  *)  SITE_MAIL_RC="\$(sysconfdir)/${withval}";;
+  esac],
+ [SITE_MAIL_RC="\$(sysconfdir)/mail.rc"])
+  
 AC_ARG_WITH(db2,
  [  --with-db2              use Berkeley DB],
  [case "${withval}" in

@@ -135,7 +135,7 @@ mail_cmdline(void *closure, int cont)
 
   while (1)
     {
-      if (!mailbox_is_updated (mbox))
+      if (util_find_env ("autoinc")->set && !mailbox_is_updated (mbox))
 	{
 	  mailbox_messages_count (mbox, &total);
 	  fprintf (ofile, "New mail has arrived\n");
@@ -251,7 +251,8 @@ main (int argc, char **argv)
   util_do_command ("set nosign");
   util_do_command ("set noSign");
   util_do_command ("set toplines=5");
-
+  util_do_command ("set autoinc");
+  
   /* GNU extensions to the environment, for sparky's sanity */
   util_do_command ("set mode=read");
   util_do_command ("set nobyname");
@@ -267,7 +268,7 @@ main (int argc, char **argv)
 
   /* read system-wide mail.rc and user's .mailrc */
   if ((util_find_env ("rc"))->set)
-    util_do_command ("source %s", "/etc/mail.rc"); /*FIXME: configurable path*/
+    util_do_command ("source %s", SITE_MAIL_RC);
   util_do_command ("source %s", getenv ("MAILRC"));
 
   /* how should we be running? */
