@@ -62,12 +62,18 @@ static int
 _tcp_close (stream_t stream)
 {
   struct _tcp_instance *tcp = stream_get_owner (stream);
+  int err = 0;
 
   if (tcp->fd != -1)
-    close (tcp->fd);
+    {
+      if (close (tcp->fd) != 0)
+	{
+	  err = errno;
+	}
+    }
   tcp->fd = -1;
   tcp->state = TCP_STATE_INIT;
-  return 0;
+  return err;
 }
 
 static int
@@ -157,7 +163,7 @@ _tcp_get_transport2 (stream_t stream, mu_transport_t *tr, mu_transport_t *tr2)
 
   if (tcp->fd == -1)
     return EINVAL;
-  
+
   if (tr)
     *tr = (mu_transport_t) tcp->fd;
   if (tr2)
@@ -266,6 +272,6 @@ tcp_stream_create (stream_t * stream, const char* host, int port, int flags)
   stream_set_get_transport2 (*stream, _tcp_get_transport2, tcp);
   stream_set_destroy (*stream, _tcp_destroy, tcp);
   stream_set_wait (*stream, _tcp_wait, tcp);
-  
+
   return 0;
 }

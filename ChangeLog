@@ -1,3 +1,7 @@
+2004-06-15  Alain Magloire
+
+	* mailbox/tcp.c(_tcp_close): Check the return value of close(2).
+
 2004-06-15  Sergey Poznyakoff
 
 	* libmu_scm/Makefile.am (mailutils.scm): Fixed producing rule.
@@ -66,13 +70,13 @@
 	* mh/mh_init.c: Likewise
 	* mh/send.c: Likewise
 	* pop3d/extra.c: Likewise
-	
+
 	* mail/util.c: Commented out unused static functions
 	* comsat/cfg.c: Likewise
-	
+
 	* mail/from.c: Minor fix
 	* mailbox/daemon.c: Likewise
-	
+
 	* mailbox/muerrno.c: Added missing includes
 	* mailbox/rfc2047.c: Likewise
 	* mailbox/maildir/folder.c: Likewise
@@ -84,7 +88,7 @@
 	* mh/mh_fmtgram.y: Provide forward declarations for yyerror and
 	yylex.
 	* libsieve/sieve.y: Likewise
-	
+
 2004-06-09  Sergey Poznyakoff
 
 	* NEWS: Updated
@@ -98,14 +102,14 @@
 	variable
 	* mail.remote/mail.remote.c: Fixed doc string
 	* mailbox/mu_auth.c: Add missing gettext markers
-	* mailbox/rfc2047.c: Use mu_decode_filter.	
+	* mailbox/rfc2047.c: Use mu_decode_filter.
 	* mh/mh_global.c (mh_read_profile): Handle new profile
 	variable "Decode-Fallback".
 	* pop3d/pop3d.c (options): Fixed typo in doc string
 	* include/mailutils/stream.h: Forward declaration of struct
 	timeval is needed for stream_wait().
 
-2004-06-06  Sergey Poznyakoff 
+2004-06-06  Sergey Poznyakoff
 
 	* include/mailutils/filter.h (filter_iconv_create): New prototype.
 	* mailbox/filter_iconv.c: Fixed several bugs. Use an extra
@@ -114,7 +118,7 @@
 	* examples/iconv.c: Updated call to filter_iconv_create()
 	* mailbox/rfc2047.c: Likewise.
 
-2004-06-05  Sergey Poznyakoff 
+2004-06-05  Sergey Poznyakoff
 
 	* NEWS: Updated
 	* configure.ac: Check for iconv.h and iconv_t
@@ -136,14 +140,14 @@
 	* pop3d/Makefile.am: Likewise.
 	* readmsg/Makefile.am: Likewise.
 	* sieve/Makefile.am: Likewise.
-	
+
 	* mailbox/file_stream.c (_file_read, _file_readline): Check for
 	eof.
 	* mailbox/list.c (list_set_destroy_item): Minor fix
-	
+
 	* include/mailutils/errno.h (MU_ERR_BUFSPACE): New error code
 	* mailbox/muerrno.c: Likewise
-	
+
 	* include/mailutils/stream.h (MU_STREAM_STRICT): New flag
 	* libsieve/extensions/spamd.c: Minor formatting fix
 	* mailbox/mailutils-config.c (main): add LINK_POSTFLAGS
@@ -155,7 +159,7 @@
 	* examples/iconv.c: New file
 
 	* po/POTFILES.in: Updated
-	
+
 2004-06-04  Sergey Poznyakoff
 
 	* NEWS: Updated
@@ -163,13 +167,13 @@
 	* libsieve/extensions/spamd.c: Minor formatting changes
 	* mailbox/pop/pop3_sendline.c: Bugfix
 
-2004-06-04  Sergey Poznyakoff 
+2004-06-04  Sergey Poznyakoff
 
 	Use adbstract transport layer in streams, instead of
 	integer file descriptors. Among other things, this
 	fixes a long standing bug in imap4d: now it can use
 	SASL over TLS.
-	
+
 	* auth/gsasl.c: Use stream transport instead of fd.
 	* auth/tls.c: Likewise.
 	* pop3d/extra.c: Likewise.
@@ -179,7 +183,7 @@
 	prototype
 	* include/mailutils/tls.h (tls_stream_create)
 	(tls_stream_create_client): Changed prototype
-	
+
 	* include/mailutils/mutil.h (mu_fd_wait): New function
 	* include/mailutils/stream.h (stream_get_fd)
 	(stream_get_fd2,stream_set_fd): Removed
@@ -189,7 +193,7 @@
 	* mailbox/stream.c: Likewise
  	* mailbox/include/stream0.h (struct _stream._get_fd): Removed
 	(_get_transport2,_wait): New methods
-	
+
 	* examples/http.c: Use new stream functions
 	* imap4d/auth_gsasl.c: Likewise
 	* imap4d/util.c: Likewise
@@ -211,12 +215,12 @@
 	* examples/http.c: Likewise
 	* imap4d/idle.c: Likewise
 	* include/mailutils/sys/pop3.h: Likewise
-	
+
 	* mail/file.c (mail_file): minor fix
 	* mailbox/folder.c: minor fix
 	* mailbox/mailcap.c: minor fix
-	
-2004-06-02  Sergey Poznyakoff 
+
+2004-06-02  Sergey Poznyakoff
 
 	* configure.ac: Raised version number to 0.4.90
 	* NEWS: LIkewise
@@ -287,14 +291,14 @@
 	* mailbox/pop/pop3_uidl.c: Likewise.
 	* mailbox/pop/pop3_uidla.c: Likewise.
 	* mh/mh_ctx.c: Likewise.
-	
-2004-06-01  Sergey Poznyakoff 
+
+2004-06-01  Sergey Poznyakoff
 
 	* examples/mailcap.c (main): Bugfix: fields_count had wrong type.
 	* include/mailutils/mailutils.h: Remove guile.h. (reverses another
 	part of changes made 2004-01-10).
 
-2004-05-27  Sergey Poznyakoff 
+2004-05-27  Sergey Poznyakoff
 
 	* NEWS: Updated
 	* include/mailutils/filter.h (rfc_2047_Q_filter): New filter
@@ -303,7 +307,7 @@
 	* mailbox/filter_trans.c: New implementation of RFC 2047 "Q" filter.
 	Reorganized all functions.
 	* mailbox/rfc2047.c: Correctly decode "Q" encoding.
-	
+
 	* mail/send.c (mail_send0): Check ignoreeof variable for
 	interactive sessions only.
 	* mailbox/mbox/folder.c: Include mutil.h
@@ -314,11 +318,11 @@
 	set.
 	* mail/mail.c (main): Start interactive mode with an empty mailbox
 	if 'emptystart' is set.
-	
+
 	* NEWS: Updated
 	* doc/texinfo/programs.texi (Mail Variables): Documented new
 	variables.
-	
+
 2004-05-07  Sergey Poznyakoff
 
 	* mail/util.c (util_get_sender): Updated to match recent
@@ -332,7 +336,7 @@
 	index
 	* doc/texinfo/programs.texi: Documented new features
 	* doc/texinfo/Makefile.am: Updated
-	
+
 	* mail/mail.c (main): Changed initialization sequence.
 	Set xmailer and default sender fields on startup.
 	* mail/mail.h (mail_sender,mail_nosender)
@@ -342,7 +346,7 @@
 	unset.
 	* mail/table.c (sender,nosender): New commands
 	* include/mailutils/Makefile.am: Added daemon.h
-	
+
 2004-04-26  Wojciech Polak
 
 	Added -P, --pidfile=FILE options for the daemons.
@@ -363,7 +367,7 @@
 
 2004-04-14  Sergey Poznyakoff
 
-	* mail.remote/mail.remote.c: Use "auth" capability. 
+	* mail.remote/mail.remote.c: Use "auth" capability.
 	* mail.remote/Makefile.am (mail_remote_LDADD): Add @AUTHLIBS@
 	* mailbox/mu_argp.c (read_rc, mu_create_argcv): Do not bail
 	out if mu_tilde_expansion() returns NULL. There may be users
@@ -376,7 +380,7 @@
 	* examples/pop3client.c (pop_completion): Use rl_completion_matches.
 	Fixes potential crash on 64-bit architectures.
 
-2004-04-08  Sergey Poznyakoff  
+2004-04-08  Sergey Poznyakoff
 
 	* configure.ac: Add AM_ICONV
 	* mailbox/smtp.c (smtp_send_message): Correctly handle long
@@ -398,7 +402,7 @@
 	* mailbox/mutil.c: Add missing gettext marker
 
 	* examples/pop3client.c: Rewritten to drop the readline dependency.
-	
+
 2004-02-08  Wojciech Polak
 
 	* pop3d/pop3d.c (pop3d_mainloop): Terminate the session
@@ -416,7 +420,7 @@
 	* include/mailutils/header.h (MU_HEADER_DELIVERY_DATE)
 	(MU_HEADER_ENVELOPE_TO): New macros.
 	* mailbox/amd.c (amd_envelope_date): Use Delivery-Date
-	if X-Envelope-Date is not present. 
+	if X-Envelope-Date is not present.
 
 2004-02-03  Sergey Poznyakoff
 
@@ -449,7 +453,7 @@
 	for noticing
 	(maildir_scan0): Fixed typo in notification loop.
 
-2004-01-27  Sergey Poznyakoff  
+2004-01-27  Sergey Poznyakoff
 
 	* mailbox/smtp.c: Control the value
 	of READ_RECIPIENTS property to decide whether the message
@@ -470,7 +474,7 @@
 
 	* mailbox/include/mailer0.h (struct _mailer): Removed
 	unused field properties_count.
-	
+
 	* TODO: Updated
 	* NEWS: Updated
 
@@ -485,16 +489,16 @@
                     List       Array+Bsearch     %    Speedup (times)
         scan        24.795     7.526          30.3    3.294
         refile (to) 10.915     0.068           0.6    160.514
-        rmm         10.893     0.105             1    103.742	
+        rmm         10.893     0.105             1    103.742
 
 	* mailbox/include/amd.h: Likewise.
 	* mailbox/maildir/mbox.c: Likewise.
 	* mailbox/mh/mbox.c: Likewise.
-	
+
 	* imap4d/auth_gss.c: Support for GSS. Submitted by
 	Simon Josefsson.
 	* m4/gssapi.m4: Likewise.
-	
+
 2004-01-20  Wojciech Polak
 
 	* doc/texinfo/*.texi: Major reorganization in the documentation.
@@ -520,7 +524,7 @@
 	(mu_register_remote_mbox_formats): New macros.
 	* mailbox/maildir/mbox.c: Added UID support.
 	* mailbox/mh/mbox.c (mh_scan0): Removed misleading comment
-	
+
 2004-01-15  Wojciech Polak
 
 	* mailbox/mbox/mbox.c: Minor. Use only one printing style
@@ -537,7 +541,7 @@
 	* mail/quit.c: Likewise.
 	* mail/send.c: Likewise.
 
-2004-01-13  Sergey Poznyakoff 
+2004-01-13  Sergey Poznyakoff
 
 	* frm/frm.c: Lots of changes for compatibility with ELM.
 	* frm/testsuite/frm/test.exp: Updated
@@ -545,31 +549,31 @@
 2004-01-13  Sergey Poznyakoff
 
 	Implemented 'file:' URLs
-	
+
 	* include/mailutils/registrar.h: Removed file_record
 	* mailbox/include/registrar0.h: Likewise
-	* examples/mimetest.c: Likewise 
+	* examples/mimetest.c: Likewise
 	* mailbox/mbox/folder.c: Likewise
-	
+
 	* include/mailutils/mutil.h (mu_scheme_autodetect_p): New function
 	* mailbox/mutil.c: Likewise
 
 	* mailbox/amd.c (amd_url_init): Use mu_scheme_autodetect_p().
 	* mailbox/maildir/folder.c (_maildir_is_scheme): Likewise.
 	* mailbox/mh/folder.c (_mh_is_scheme): Likewise.
-	
+
 	* mailbox/url_file.c: Removed. File not needed anymore.
-	* mailbox/url_path.c: Likewise.	
+	* mailbox/url_path.c: Likewise.
 	* mailbox/Makefile.am (url_file.c,url_path.c): Removed
 
-	* mailbox/mbox/url.c (_url_path_init): Moved from ../url_path.c 
+	* mailbox/mbox/url.c (_url_path_init): Moved from ../url_path.c
 	* mailbox/mbox/file.c: Removed. File not needed anymore.
 	* mailbox/mbox/Makefile.am (file.c): Removed
-	
+
 	* frm/frm.c: Improved handling of --select option.
 	(action): Optimized select condition.
 	* from/from.c: Include missing headers
-	
+
 2004-01-13  Wojciech Polak
 
 	* from/from.c: Use mu_error() where appropriate.
@@ -590,7 +594,7 @@
 	causes compilation failure if libgsasl is not installed.
 
 	* NEWS: Updated
-	
+
 	* mailbox/maildir/maildir.h: New file.
 	* mailbox/amd.c (amd_url_init): New function
 	* mailbox/include/amd.h: Likewise.
@@ -606,12 +610,12 @@
 
 	* mailbox/mbox/folder.c (_path_is_scheme): New
 	function. Implements auto-detection for the "path" scheme.
-	
-	* mailbox/mh/url.c: Removed	
+
+	* mailbox/mh/url.c: Removed
 	* mailbox/mh/Makefile.am: Removed url.c
 	* mailbox/mh/folder.c: Auto-detection of MH format.
-	
-	* mailbox/url.c: Fixed indentation 
+
+	* mailbox/url.c: Fixed indentation
 	* frm/frm.c: Minor changes.
 
 2004-01-11  Sergey Poznyakoff
@@ -640,27 +644,27 @@
 	* frm/frm.c (main): Unified diagnostic messages.
 	* frm/Makefile.am: Updated.
 
-2004-01-09  Sergey Poznyakoff 
+2004-01-09  Sergey Poznyakoff
 
 	* NEWS: Documented new features.
 
-2004-01-08  Sergey Poznyakoff 
+2004-01-08  Sergey Poznyakoff
 
 	* configure.ac (LIBMU_SCM_DEPS): Added maildir
 
-	* mailbox/amd.c: New file. Abstract mail directory level.	
+	* mailbox/amd.c: New file. Abstract mail directory level.
 	* mailbox/Makefile.am: Added amd.c
 
 	* mailbox/include/amd.h: New file.
 	* mailbox/include/Makefile.am: Added amd.h
 
-	* mailbox/maildir/mbox.c: Implemented	
+	* mailbox/maildir/mbox.c: Implemented
 	* mailbox/maildir/folder.c: New file
 	* mailbox/maildir/url.c: New file
 	* mailbox/maildir/Makefile.am: Added folder.c and url.c
 
 	* mailbox/mh/mbox.c: Re-implemented via AMD.
-	
+
 	* mailbox/include/registrar0.h: Added maildir support
 	* libmu_scm/mu_scm.c: Likewise.
 	* mailbox/mu_argp.c: Likewise.
@@ -668,45 +672,45 @@
 	* include/mailutils/registrar.h (mu_register_all_mbox_formats)
 	(mu_register_all_mailer_formats,mu_register_all_formats): New
 	macros.
-	
+
 	* frm/frm.c (main): Use mu_register_all_mbox_formats
 	* from/from.c: Likewise.
 	* movemail/movemail.c: Likewise.
-	
+
 	* mail/mail.c (main): Use mu_register_all_formats
 	* sieve/sieve.c: Likewise
 	* mh/mh_init.c (mh_init): Likewise
-		
+
 	* lib/Makefile.am: Minor formatting change
 	* messages/messages.c: Likewise
-	
+
 	* pop3d/pop3d.h (pop3d_mark_retr,pop3d_is_retr)
 	(pop3d_unmark_retr): Added external declarations.
-	
-2004-01-06  Sergey Poznyakoff 
+
+2004-01-06  Sergey Poznyakoff
 
 	* m4/Makefile.am: Removed.
 	* m4/.cvsignore: Updated
 	* configure.ac: Removed m4/Makefile.am
-	* Makefile.am: Removed m4 
+	* Makefile.am: Removed m4
 
 2004-01-05  Sergey Poznyakoff
 
 	* include/mailutils/mutil.h (mu_true_answer_p): New function.
 	* mailbox/mutil.c: Likewise
-	
+
 	* mail/var.c: (parse_headers): Use mu_true_answer_p()
 	* mh/mh.h (is_true): Likewise.
 	* mh/mh_init.c (mh_vgetyn): Likewise.
 	* sieve/sieve.c (is_true_p): Likewise.
-	
+
 	* movemail/movemail.c (move_message): Improved diagnostics
-	
+
 	* libsieve/runtime.c (instr_run): Adjust pc before calling handler.
 	* libsieve/actions.c (sieve_action_stop); Restored zero assignment
 	to pc. This is possible due to the changes to runtime.c
 
-2004-01-05  Sergey Poznyakoff  
+2004-01-05  Sergey Poznyakoff
 
 	* include/mailutils/libsieve.h (sieve_locus_t): New datatype.
 	(sieve_action_log_t): Changed type of the second argument.
@@ -726,22 +730,22 @@
 	(sieve_machine_begin): Initialize and destroy source_list
 	* libsieve/util.c (sieve_log_action): Updated call to
 	mach->logger.
-	
+
 	* libsieve/tests.c: Improved debugging messages
 	* libsieve/extensions/list.c: Likewise.
 	* libsieve/extensions/spamd.c: Likewise.
 	* libsieve/extensions/timestamp.c: Likewise.
 	* examples/numaddr.c: Likewise.
-	
+
 	* mail.local/main.c: Brought in sync with recent changes to
 	libsieve
-	* sieve/sieve.c: Likewise.	
+	* sieve/sieve.c: Likewise.
 
 	* sieve/testsuite/lib/sieve.exp: Default to --line-info=no
-	
+
 	* include/mailutils/list.h (list_locate): New function
 	* mailbox/list.c: Likewise
-	
+
 2004-01-04  Wojciech Polak
 
 	* mail/send.c (mail_send): Bugfix. Removed free(p)
@@ -781,7 +785,7 @@
 	(AC_CONFIG_FILES): Added libsieve/extensions/Makefile.
 	* Makefile.am: Require at least version 1.8.
 
-2003-12-30  Sergey Poznyakoff 
+2003-12-30  Sergey Poznyakoff
 
 	* examples/spamd.c (spamd_test): Use EUID to determine
 	user's identity.
@@ -808,13 +812,13 @@
 
 	* mh/mhl.c: Minor fix
 	* movemail/movemail.c: --keep-messages option (an alias for -p)
-	
-2003-12-29  Sergey Poznyakoff  
+
+2003-12-29  Sergey Poznyakoff
 
 	* comsat/comsat.c (main): Minor fix (do not use hardcoded
 	log facility)
 	* mail.local/main.c: New option --message-id-header
-	
+
 	* imap4d/imap4d.c: Fixed first argument to socket (Thanks
 	Daniel Dehennin <nebuchadnezzar@nerim.net> for reporting)
 	* mailbox/tcp.c: Likewise
@@ -829,12 +833,12 @@
 	* doc/texinfo/programs.texi: Provide sample invocation of
 	mail.local.  Include note about virtual hosting.
 
-2003-12-28  Sergey Poznyakoff 
+2003-12-28  Sergey Poznyakoff
 
 	* movemail/movemail.c: Minor changes for compatibility with
 	the Emacs implementation.
 
-2003-12-28  Sergey Poznyakoff 
+2003-12-28  Sergey Poznyakoff
 
 	* movemail: New directory
 	* movemail/movemail.c: New file
@@ -845,11 +849,11 @@
 	* configure.ac: Likewise
 	* examples/spamd.c: Minor changes
 	* examples/list.c: Minor changes
-	
+
 2003-12-26  Sergey Poznyakoff
 
 	* COPYING: New file
-	* COPYING.LIB: Renamed to 
+	* COPYING.LIB: Renamed to
 	* COPYING.LESSER: this
 	* Makefile.am: Updated
 	* README: Updated
@@ -864,16 +868,16 @@
 	* m4/lib.m4: Likewise
 	* m4/mu_libobj.m4: Likewise
 	* m4/tls.m4: Likewise
-	
+
 	* doc/texinfo/body.texi: Minor fixes.
 	* doc/texinfo/libsieve.texi: Likewise
 
-2003-12-26  Sergey Poznyakoff 
+2003-12-26  Sergey Poznyakoff
 
 	* examples/list.c: New sieve extension test.
 	* examples/spamd.c: Modified.
 	* examples/Makefile.am: Added list.c
-	
+
 	* dotlock/dotlock.c: Changed multiline doc string to
 	a single-line one: gettext 0.13 is unable to handle
 	translator comments with multiline msgids.
@@ -900,17 +904,17 @@
 	* sieve/sieve.c: Likewise
 
 2003-12-25  Sergey Poznyakoff
-	
-	Added changes from the backup repository 
 
-2003-12-24  Sergey Poznyakoff 
+	Added changes from the backup repository
+
+2003-12-24  Sergey Poznyakoff
 
 	* examples/spamd.c: New file.
 	* examples/Makefile.am: Added spamd.c
 	* include/mailutils/libsieve.h (sieve_match_part_checker):
 	Prototype.
 
-2003-12-23  Sergey Poznyakoff 
+2003-12-23  Sergey Poznyakoff
 
 	* examples/pop3client.c: Added typecasts
 	* include/mailutils/errno.h: New error codes
@@ -924,13 +928,13 @@
 	function.
 	* examples/murun.c: New file
 	* examples/Makefile.am: Added murun.c
-	
+
 2003-12-17  Wojciech Polak
 
 	* configure.ac: Set AM_GNU_GETTEXT_VERSION(0.13).
 	* m4/Makefile.am: Updated (gettext 0.13).
 
-2003-12-17  Sergey Poznyakoff 
+2003-12-17  Sergey Poznyakoff
 
 	* dotlock/dotlock.c: Added translators' comment
 	* mail.local/main.c: Likewise
@@ -954,7 +958,7 @@
 	* mh/send.c: Likewise
 	* mh/whom.c: Likewise
 	* sieve/sieve.c: Likewise
-	
+
 2003-12-12  Sergey Poznyakoff
 
         Temporarily switched to the back-up repository
@@ -965,12 +969,12 @@
         1999-09-10      2003-12-01      Savannah
         2003-12-04      2003-12-25      Mirddin
 
-2003-12-05  Sergey Poznyakoff 
+2003-12-05  Sergey Poznyakoff
 
 	* mailbox/imap/mbox.c (mailbox_imap_open): Bugfix. Thanks
 	Stephen Bylo <Stephen.Bylo@radixs.com> for reporting.
 
-2003-12-04  Sergey Poznyakoff 
+2003-12-04  Sergey Poznyakoff
 
 	* mh/mhn.c (stream_getline): Bugfix
 	* mailbox/parse822.c (parse822_route_addr): Handle empty
@@ -978,8 +982,8 @@
 	* mailbox/smtp.c (smtp_send_message): Send sender and receipient
 	addresses enclosed in angle brackets.
 	* mailbox/testsuite/Addrs: Fixed null address test.
-	
-2003-12-01  Sergey Poznyakoff 
+
+2003-12-01  Sergey Poznyakoff
 
 	* mailbox/sendmail.c (sendmail_send_message): Don't
 	close the descriptor if it happens to make a part of tunnel
@@ -989,11 +993,11 @@
 
 	* mailbox/argcv.c (argcv_escape_char,escape_copy): Bugfix
 
-2003-11-04  Sergey Poznyakoff  
+2003-11-04  Sergey Poznyakoff
 
 	* mh/anno.c (main): Remove trailing colon from the component name.
 
-2003-11-04  Sergey Poznyakoff 
+2003-11-04  Sergey Poznyakoff
 
 	* mailbox/rfc2047.c (rfc2047_decode): Bugfix.
 
@@ -1039,10 +1043,10 @@
 	* mh/mh_alias.y: Fixed grammar.
 	(ali_member): Compare addresses if strcmp() fails.
 	* mh/mh.h (ali_verbatim): New function.
-	
+
 	* examples/pop3client.c: Added missing includes
 
-2003-10-28  Sergey Poznyakoff 
+2003-10-28  Sergey Poznyakoff
 
 	* mail/mail.c: Implemented -a (--append) option.
 	* mail/mail.h (mail_sendheader,send_append_header)
@@ -1067,8 +1071,8 @@
 	indicating file inclusion and the one starting a valid
 	RFC822 address.
 	* mh/mh_alias.y: Allow for full RFC822 addresses.
-	
-2003-10-18  Sergey Poznyakoff 
+
+2003-10-18  Sergey Poznyakoff
 
 	* pop3d/quit.c (pop3d_fix_mark): Use only valid C comments.
 	Fixed erroneous format specification.
@@ -1096,7 +1100,7 @@
 
 	* mailbox2: It is hopelessly obsolete. Removed. We'd better modify
 	the files "in situ".
-	
+
 2003-10-17  Sergey Poznyakoff
 
 	* doc/texinfo/programs.texi (pop3d): Documented new option.
@@ -1123,7 +1127,7 @@
 
 	* mh/mh_format.c (builtin_formataddr): Fixed checking for duplicate
 	addresses.
-	
+
 2003-10-10  Alain Magloire
 
 	GNU Mailutils 0.4 was released.  New code added.
@@ -1166,7 +1170,7 @@
 	* pop3d/stat.c: Likewise.
 	* pop3d/top.c: Likewise.
 	* pop3d/uidl.c: Likewise.
-	
+
 2003-10-09  Alain Magloire
 
 	Possible use:
@@ -1195,7 +1199,7 @@
 	* pop3d/rset.c: Use for attribute_is_userflag()
 	* pop3d/top.c: Use for attribute_is_userflag()
 	* pop3d/uidl.c: Use for attribute_is_userflag()
-	* pop3d/pop3d.h (POP3_ATTRIBUTE_DELE): New define. 
+	* pop3d/pop3d.h (POP3_ATTRIBUTE_DELE): New define.
 	* pop3d/quit.c (pop3d_fix_mark): Use for attribute_is_userflag()
 	(pop3d_quit): Call to pop3d_fix_mark.
 
@@ -1213,16 +1217,16 @@
 2003-10-06  Alain Magloire
 
 	* mailbox/pop/pop3_stls.c: New file.
-	* mailbox/pop/pop3_pass.c: Obscure the buffer with the passwd for 
+	* mailbox/pop/pop3_pass.c: Obscure the buffer with the passwd for
         security reasons.
-	* mailbox/pop/pop3_apop.c: Obscure the buffer with the digest for 
+	* mailbox/pop/pop3_apop.c: Obscure the buffer with the digest for
         security reasons.
 	* include/mailutils/pop3.h: Declaration mu_pop3_stls().
-	* include/mailutils/sys/pop3.h: New states added to accomodate STLS 
+	* include/mailutils/sys/pop3.h: New states added to accomodate STLS
         command.
 	* doc/texinfo/pop3.texi: Corrected some typos.
 
-2003-10-06  Sergey Poznyakoff 
+2003-10-06  Sergey Poznyakoff
 
 	* configure.ac: Raised version number to 0.4
 
@@ -1232,11 +1236,11 @@
 	* mailbox/getopt1.c: ... here
 	* lib/Makefile.am: Removed getopt.
 	* mailbox/Makefile.am: Added getopt.
-	
+
 	* m4/getopt.m4: New file
 	* m4/mu_libobj.m4 (MU_HEADER): Prevent multiple inclusions.
 	* m4/Makefile.am: Added getopt.m4
-	
+
 	* imap4d/imap4d.h: Added missing includes
 	* mail/mail.h: Likewise
 	* mail/util.c: Likewise
@@ -1245,13 +1249,13 @@
 	* from/from.c: Likewise
 	* readmsg/readmsg.c: Likewise
 	* readmsg/readmsg.h: Likewise
-	
+
 	* mail/decode.c (display_message): Bugfix
 	* mailbox/locale.c (mu_charset_lookup): Bugfix
 	* mailbox/mailutils-config.c: Minor fix in the help string.
 	* mh/repl.c: Likewise.
 	* mh/mh.h (mh_format_str): Added prototype.
-	
+
 	* NEWS: Updated
 
 2003-10-05  Alain Magloire
@@ -1331,7 +1335,7 @@
 
 	* configure.ac: Moved fgetpwent from AC_CHECK_FUNCS to
 	MU_CHECK_FUNCS.
-	
+
 	* lib/Makefile.am: Removed fgetpwent.c
 	* mailbox/Makefile.am: Added fgetpwent.c
 	* lib/fgetpwent.c: Moved to ...
@@ -1345,7 +1349,7 @@
 
 	* mailbox/locker.c (_locker_destroy_private): Bugfix
 
-2003-09-25  Sergey Poznyakoff  
+2003-09-25  Sergey Poznyakoff
 
 	* mailbox/munre.c (munre_set_regex): Bugfix again.
 	* mailbox/filter_trans.c (qp_decode): Bugfix. According
@@ -1365,7 +1369,7 @@
 	* mail/table.c: Added new command words.
 	* mail/mail.c: Default to "unfold subject"
 	* mail/util.c (util_slist_remove): New function.
-	
+
 	* auth/lbuf.c: Added missing includes.
 	* auth/lbuf.h: Likewise.
 
@@ -1374,11 +1378,11 @@
 	* mailbox/munre.c (munre_set_regex): Bugfix.
 	* mh/replgroupcomps: Added trailing newline
 
-2003-09-21  Sergey Poznyakoff  
+2003-09-21  Sergey Poznyakoff
 
 	Added decoding of RFC 2047 headers to MUA programs (mail and mh).
 	Fixed incorrect session termination in imap and pop clients.
-	
+
 	* mailbox/locale.c: New file. Contains locale-dependent functions.
 	* mailbox/Makefile.am: Added locale.c
 
@@ -1396,7 +1400,7 @@
 	retrieving the header value.
 	(builtin_decode): New function. Implements (decode).
 	* mh/README: Updated
-	
+
 	* mailbox/imap/folder.c (authenticate_imap_sasl_anon): Fixed typo
 	in debug output.
 	(folder_imap_open): Issue LOGOUT if all the authentication methods
@@ -1407,19 +1411,19 @@
 	authentication failures.
 
 	* imap4d/login.c: Minor fix
-	
-2003-09-20  Sergey Poznyakoff 
+
+2003-09-20  Sergey Poznyakoff
 
 	Install under mailutils/gnu only those headers which are
 	missing on the system.
 	Include regex to libmailbox if the system's libc lacks it.
 	Add new functions for handling reply subject headers.
-	
+
 	* Makefile.am: Added headers
 	* m4/mu_libobj.m4 (MU_HEADER,MU_FINISH_LINKS): New macros
 	* configure.ac: Use MU_HEADER and MU_FINISH_LINKS where needed
 	* m4/regex.m4: Likewise
-	
+
 	* dotlock/Makefile.am: Fixed INCLUDES
 	* lib/Makefile.am: Updated
 	* mailbox/Makefile.am: Likewise.
@@ -1445,27 +1449,27 @@
 	* from/Makefile.am: Likewise.
 	* comsat/Makefile.am: Likewise.
 	* auth/Makefile.am: Likewise.
-	
+
         * headers: New directory
         * headers/Makefile.am: New file
         * headers/posix/Makefile.am: New file
-	
+
 	* include/mailutils/gnu/argp.h: Moved to ...
 	* headers/argp.h: ... here
 	* include/mailutils/gnu/getopt.h: Moved to ...
 	* headers/getopt.h: ... here
 
-	* lib/regex.h: Moved to ...	
+	* lib/regex.h: Moved to ...
 	* headers/regex.h: ... here
 	* lib/posix/regex.h: Moved to ...
 	* headers/posix/regex.h: ... here
 	* lib/posix/Makefile.am: Removed
 	* lib/posix/.cvsignore: Removed
 	* lib/posix: Removed
-	
+
 	* lib/regex.c: Moved to ...
 	* mailbox/regex.c: ... here
-	
+
 	* include/mailutils/gnu/.cvsignore: Updated
 
 	* mailbox/munre.c: New file
@@ -1481,20 +1485,20 @@
 	* mail/util.c: Likewise
 	(util_setenv): A hack to properly handle "replyregex".
 	* mail/var.c (run_editor): Fixed return type.
-	
+
 	* mh/mh_format.c (builtin_unre): Use munre_subject()
 	(builtin_isreply,builtin_reply_regex): New functions
 	* mh/mh.h (mh_set_reply_regex): New function.
 	* mh/mh_init.c: Likewise.
 	* mh/mh_global.c (mh_read_profile): Read Reply-Regex
-	
+
 	* mh/README: Updated
 	* mh/replcomps: Updated
 	* mh/replgroupcomps: Updated
-	
+
 	* doc/texinfo/programs.texi: Updated
-	
-2003-09-18  Sergey Poznyakoff 
+
+2003-09-18  Sergey Poznyakoff
 
 	* mailbox/mh/mbox.c (_mh_message_delete): Zero out the
 	msg_pool slot occupied by the message being deleted.
@@ -1506,11 +1510,11 @@
 	* pop3d/pop3d.c (pop3d_daemon): Collect finished children
 	synchronously.
 
-2003-09-16  Sergey Poznyakoff 
+2003-09-16  Sergey Poznyakoff
 
 	* mh/repl.c (opt_handler): Force RCPT_ALL if --group is given.
 
-2003-09-11  Sergey Poznyakoff  
+2003-09-11  Sergey Poznyakoff
 
 	* mailbox/imap/folder.c (authenticate_imap_login): Do not
 	close the stream on authentication failures.
@@ -1519,7 +1523,7 @@
 
 	* doc/texinfo/programs.texi: Updated
 
-2003-09-10  Sergey Poznyakoff 
+2003-09-10  Sergey Poznyakoff
 
 	* include/mailutils/errno.h (MU_ERR_BAD_AUTH_SCHEME)
 	(MU_ERR_AUTH_FAILURE): New error codes.
@@ -1541,7 +1545,7 @@
 	an appropriate error code.
 
 	* mh/rmf.c (rmf): Bugfix.
-	
+
 2003-09-10  Sergey Poznyakoff
 
 	* mailbox/imap/folder.c (read_capa): New function.
@@ -1562,16 +1566,16 @@
 	* sieve/sieve.c (tickets_default): New variable.
 	(main): Check the tickets_default.
 
-2003-09-05  Sergey Poznyakoff 
+2003-09-05  Sergey Poznyakoff
 
 	* lib/mu_dbm.c (mu_fcheck_perm, mu_check_perm): Return
 	MU_ERR_UNSAFE_PERMS when appropriate.
 	* mailbox/muerrno.c: Fixed indentation.
 	* pop3d/popauth.c: Use mu_strerror.
-	
+
 	* mh/ali.c (main): Bugfix. Lists were not initialized.
 	* mh/mh_alias.l (push_source): Honor Path variable.
-	
+
 2003-09-04  Wojciech Polak
 
 	* include/mailutils/errno.h: Added MU_ERR_UNSAFE_PERMS.
@@ -1583,7 +1587,7 @@
 	* mailbox/pop/mbox.c (pop_get_message): Check UIDL capability
 	before using pop_uidl().
 
-2003-09-02  Sergey Poznyakoff  
+2003-09-02  Sergey Poznyakoff
 
 	* mail/mail.c: Fixed description of --file argument.
 	* mailbox/filter_trans.c (qp_decode): Fixed bug that
@@ -1606,7 +1610,7 @@
 	* mailbox/pop/mbox.c (POP_AUTH_USER_ACK): Protect password
 	in debug mode (PASS ***).
 
-2003-08-29  Sergey Poznyakoff 
+2003-08-29  Sergey Poznyakoff
 
 	* imap4d/bye.c: Do not attempt to write to the output
 	stream if a signal was caught.
@@ -1626,7 +1630,7 @@
 	the connection.	Provide a better diagnostics.
 	* sieve/sieve.c: Destroy the mailbox if the attempt to open it has
 	failed.
-	
+
 2003-08-29  Wojciech Polak
 
 	* mailbox/pop/mbox.c (pop_capa): New function.
@@ -1634,7 +1638,7 @@
 	reissue CAPA after successful STLS negotiation.
 	(tls): Renamed to pop_stls().
 
-2003-08-29  Sergey Poznyakoff 
+2003-08-29  Sergey Poznyakoff
 
 	* auth/gsasl.c: Lots of fixes.
 	* auth/lbuf.h (_auth_lb_writelines): New function.
@@ -1642,7 +1646,7 @@
 	* imap4d/util.c (util_run_events): Use iterator instead of
 	list_do. Iterators are safer.
 
-2003-08-28  Sergey Poznyakoff 
+2003-08-28  Sergey Poznyakoff
 
 	Implemented the TLS protocol for IMAP and POP mailboxes.
 	Split libmailbox to the core library (libmailbox) and
@@ -1661,7 +1665,7 @@
 	* mailbox/imap/Makefile.am: Likewise
 	* mailbox/pop/Makefile.am: Likewise
 	* mailbox/maildir/Makefile.am: Likewise
-	
+
 	* dotlock/Makefile.am: Adopted _LDADD for the new library layout.
 	* examples/Makefile.am: Likewise
 	* from/Makefile.am: Likewise
@@ -1677,10 +1681,10 @@
 	* comsat/Makefile.am: Likewise
 	* frm/Makefile.am: Likewise
 	* mail.local/Makefile.am: Likewise
-	
+
 	* configure.ac: Moved Kerberos libs to SERV_AUTHLIBS.
 	* Makefile.am: Changed the order of SUBDIRS
-	
+
 	* mailbox/mailutils-config.c: --link part rewritten to reflect
 	the new library layout.
 
@@ -1693,7 +1697,7 @@
 	* mailbox/pop/mbox.c: Implemented client side TLS.
 	* mailbox/include/imap0.h (struct _f_imap): New members
 	capav and capac to hold the array of capabilities.
-	
+
 	* examples/decode2047.c (ISPRINT): Fixed.
 	* from/from.c: Use "tls" command line capability.
 	* frm/frm.c: Likewise
@@ -1701,16 +1705,16 @@
 	* mail/mail.c: Likewise.
 	* readmsg/readmsg.c: Likewise.
 	* sieve/sieve.c: Likewise.
-	
+
 	* mail/mail.h: Include tls.h
 	* readmsg/readmsg.h: Likewise.
-	
+
 	* include/mailutils/stream.h (stream_get_fd2): New function.
 	(stream_set_fd): Changed type of the second arg.
 	* mailbox/stream.c: Likewise.
 	* mailbox/include/stream0.h (struct _stream): Changed
 	_get_fd member.
-	
+
 	* mailbox/body.c: Fixed _get_fd methods.
 	* mailbox/file_stream.c: Likewise.
 	* mailbox/filter.c: Likewise.
@@ -1719,7 +1723,7 @@
 	* mailbox/mbox/mbox.c: Likewise.
 	* mailbox/mapfile_stream.c: Likewise.
 	* mailbox/tcp.c: Likewise.
-	
+
 	* include/mailutils/tls.h (tls_stream_create_client)
 	(tls_stream_create_client_from_tcp): New functions.
 	(mu_tls_enable): New variable
@@ -1730,11 +1734,11 @@
 	* mailbox/sendmail.c: Added missing includes
 	* mailbox/smtp.c: Likewise.
 	* mailbox/pop/folder.c: Minor wording change.
-	
+
 	* NEWS: Updated
 	* TODO: Updated
-	
-2003-08-27  Sergey Poznyakoff 
+
+2003-08-27  Sergey Poznyakoff
 
 	* NEWS: Updated
 	* mailbox/mime.c (_mime_parse_mpart_message): Allow for
@@ -1790,7 +1794,7 @@
 	* mh/send.c: Handle aliases.
 	* mh/whom.c (main): Bugfix.
 
-2003-08-21  Sergey Poznyakoff 
+2003-08-21  Sergey Poznyakoff
 
 	* include/mailutils/iterator.h (iterator_dup): New function
 	* mailbox/iterator.c: Likewise.
@@ -1809,7 +1813,7 @@
 	* mh/mhparam.c: Fixed year in the copyleft header.
 	* mh/whom.c: Added support for aliases.
 	* mh/mh_init.c: Minor cleanup
-	
+
 2003-08-20  Sergey Poznyakoff
 
 	* comsat/action.c (expand_escape): Use argcv_unescape_char()
@@ -1820,8 +1824,8 @@
 	* mailbox/argcv.c (argcv_unescape_char,argcv_escape_char):
 	New functions.
 	* include/mailutils/argcv.h: Likewise.
-	
-2003-08-19  Sergey Poznyakoff 
+
+2003-08-19  Sergey Poznyakoff
 
 	* mh/replgroupcomps: New file.
 	* mh/Makefile.am (mhlib_DATA): Added components and
@@ -1831,23 +1835,23 @@
 	* mh/mh_msgset.c (_mh_msgset_parse): Fixed the semantics
 	of last:N and prev:N.
 	* mh/mh.h: Updated
-	
-2003-08-18  Sergey Poznyakoff 
+
+2003-08-18  Sergey Poznyakoff
 
 	* mail/mail.h (ml_readline_with_intr): New function.
 	* mail/mailline.c: Likewise.
 	* mail/send.c: Use ml_readline_with_intr() when prompting
 	for header fields.
-	
-2003-08-18  Sergey Poznyakoff 
+
+2003-08-18  Sergey Poznyakoff
 
 	* pop3d/extra.c (pop3d_abquit): Flush message headers.
 	* NEWS: Updated.
 	* mail/mail.c (main): If the send mode was interrupted by
 	the user, exit with zero status if mailx is set.
 	* doc/texinfo/programs.texi: Updated.
-	
-2003-08-18  Sergey Poznyakoff 
+
+2003-08-18  Sergey Poznyakoff
 
 	* mail/send.c (mail_send, mail_send0): Use `mailx'
 	to control mailx compatibility mode. Thanks Peter S Galbraith
@@ -1866,7 +1870,7 @@
 	* mh/mh_getopt.c (mh_getopt): Implemented -version option.
 	* mh/README: Updated
 
-2003-08-13  Sergey Poznyakoff 
+2003-08-13  Sergey Poznyakoff
 
 	* mh/mh_sequence.c (mh_seq_add): Update current_message
 	if the sequence being set is "cur". Free temporary storage.
@@ -1878,8 +1882,8 @@
 	(mh_vgetyn): New functions.
 	(mh_real_install): Use mh_getyn_interactive().
 	* mh/pick.c (main): Use mh_interactive_mode_p().
-	
-2003-08-12  Sergey Poznyakoff 
+
+2003-08-12  Sergey Poznyakoff
 
 	* mh/folder.c (_scan): Prompt for creating the folder
 	unless --create was given.
@@ -1894,7 +1898,7 @@
 	* mh/scan.c (list_message): Output an extra newline only
 	if the formatted buffer does not end with one.
 
-2003-08-12  Sergey Poznyakoff  
+2003-08-12  Sergey Poznyakoff
 
 	* mail/mail.h (mail_execute): New function.
 	* mail/shell.c (mail_execute): New function.
@@ -1903,7 +1907,7 @@
 	* mh/mh_format.c (print_simple_segment): Bugfix.
 	* mh/replcomps: Improved.
 
-2003-08-11  Sergey Poznyakoff 
+2003-08-11  Sergey Poznyakoff
 
 	* mh/mh.h (enum mh_opcode): New opcode mhop_nop.
 	* mh/mh_fmtgram.y (fi production): Preserve the
@@ -1915,14 +1919,14 @@
 	* mh/repl.c: New option --format.
 
 	* mail/mail.c (main): set rc by default
-	
-2003-08-10  Sergey Poznyakoff  
+
+2003-08-10  Sergey Poznyakoff
 
 	* mh/inc.c (opt_handler): Added missing support for
 	-format option. Thanks Peter S Galbraith
 	<p.galbraith@globetrotter.net> for reporting.
 
-2003-08-07  Sergey Poznyakoff  
+2003-08-07  Sergey Poznyakoff
 
 	* NEWS: Updated
 	* TODO: Updated
@@ -1937,10 +1941,10 @@
 	* frm/frm.c: use header_get_value_unfold
 	* mail/from.c: Likewise.
 
-2003-07-26  Sergey Poznyakoff  
+2003-07-26  Sergey Poznyakoff
 
 	Done the following from the TODO:
-	
+
 	-** First argument to mu_auth_fp (and second one to
 	mu_auth_runlist) should be struct mu_auth_data ** instead
 	of void	*.
@@ -1950,8 +1954,8 @@
 	functionality as i_ascii_casemap_contains() from
 	libsieve/comparator. Merge both versions.
 
-	Detailed list of changes: 
-	
+	Detailed list of changes:
+
 	* TODO: Updated
 	* configure.ac: Fixed --with-mysql, --with-postgres
 
@@ -1960,7 +1964,7 @@
 	* include/mailutils/libsieve.h (struct sieve_runtime_tag): Minor
 	change.
 	* include/mailutils/mutil.h (mu_strcasestr): New function.
-	
+
 	* auth/mysql.c: Reflect changes to mu_auth_fp
 	* auth/pam.c: Likewise.
 	* auth/pgsql.c: Likewise.
@@ -1968,7 +1972,7 @@
 	* auth/tls.c: Likewise.
 	* auth/virtual.c: Likewise.
 	* mailbox/system.c: Likewise.
-	
+
 	* examples/Makefile.am (INCLUDES): Add mailbox (for getline.h)
 	* examples/mta.c: include getline.h
 
@@ -1990,24 +1994,24 @@
 	(instr_allof, instr_anyof): Removed
 	* libsieve/sieve.y: Implemented boolean shortcuts for ALLOF and
 	ANYOF
-	
+
 	* mail/mail.h (ml_readline, readline): Removed const from
 	the declaration.
 	* mail/mailline.c: Likewise.
-	
+
 	* mailbox/body.c (lazy_create): Removed unused function.
 	* mailbox/iterator.c (iterator_get_list): Minor change
 	* mailbox/mailcap.c: include <mailutils/stream.h>
 	* mailbox/mbx_default.c (is_proto): Minor change
 	* mailbox/rfc2047.c (insert_quoted): Minor change
-	
+
 	* mailbox/mu_auth.c (mu_auth_runlist,mu_auth_nosupport): Changed
 	type of the first argument.
 
 	* mailbox/mutil.c (mu_strcasestr): New function.
 
 	* pop3d/pop3d.h (pop3d_bye): Added missing prototype
-	
+
 2003-07-22  Sergey Poznyakoff
 
 	* mailbox/argcv.c: Implemented escaping/unescaping
@@ -2017,7 +2021,7 @@
 	* mh/Makefile.am (mh_finish_install): Fixed. Thanks
 	Andreas Voegele <voegelas@gmx.net> for the patch.
 
-2003-07-16  Sergey Poznyakoff 
+2003-07-16  Sergey Poznyakoff
 
 	* NEWS: Updated
 	* TODO: Updated
@@ -2045,7 +2049,7 @@
 	* comsat/comsat.c: Bugfix.
 	* pop3d/apop.c: Provide more extensive diagnostics.
 
-2003-07-01  Sergey Poznyakoff 
+2003-07-01  Sergey Poznyakoff
 
 	* auth/pam.c: Minor indentation fix.
 	* comsat/comsat.c (notify_user): Bugfix: do not pass
@@ -2058,7 +2062,7 @@
 	overrun.
 	* pop3d/popauth.c: New option --create
 
-2003-06-23  Sergey Poznyakoff 
+2003-06-23  Sergey Poznyakoff
 
 	* doc/Readme.mysql: Removed. File not relevant anymore.
 	* include/mailutils/nls.h: Minor change.
