@@ -53,7 +53,7 @@ pop3_retr (const char *arg)
   if (buf == NULL)
     pop3_abquit (ERR_NO_MEM);
 
-  while (stream_readline (stream, buf, buflen - 1, off, &n) == 0
+  while (stream_readline (stream, buf, buflen, off, &n) == 0
 	 && n > 0)
     {
       /* Nuke the trainline newline.  */
@@ -73,6 +73,9 @@ pop3_retr (const char *arg)
 	fprintf (ofile, "%s\r\n", buf);
       off += n;
     }
+
+  if (!attribute_is_read (attr))
+    attribute_set_read (attr);
 
   free (buf);
   fprintf (ofile, ".\r\n");

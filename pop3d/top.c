@@ -67,7 +67,7 @@ pop3_top (const char *arg)
   if (buf == NULL)
     pop3_abquit (ERR_NO_MEM);
   off = n = 0;
-  while (stream_readline (stream, buf, buflen - 1, off, &n) == 0)
+  while (stream_readline (stream, buf, buflen, off, &n) == 0)
     {
       if (n == 0)
 	break;
@@ -92,7 +92,7 @@ pop3_top (const char *arg)
       message_get_body (msg, &body);
       body_get_stream (body, &stream);
       n = off = 0;
-      while (stream_readline (stream, buf, buflen - 1, off, &n) == 0
+      while (stream_readline (stream, buf, buflen, off, &n) == 0
 	     && n > 0 && lines > 0)
 	{
 	  /* Nuke the trainline newline.  */

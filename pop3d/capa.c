@@ -1,5 +1,5 @@
 /* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -29,6 +29,7 @@ pop3_capa (const char *arg)
   fprintf (ofile, "+OK Capability list follows\r\n");
   fprintf (ofile, "TOP\r\n");
   fprintf (ofile, "USER\r\n");
+  fprintf (ofile, "UIDL\r\n");
   fprintf (ofile, "RESP-CODES\r\n");
   if (state == TRANSACTION)	/* let's not advertise to just anyone */
     fprintf (ofile, "IMPLEMENTATION %s %s\r\n", IMPL, VERSION);
