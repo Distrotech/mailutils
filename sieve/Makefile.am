@@ -5,7 +5,7 @@
 AUTOMAKE_OPTIONS = ../lib/ansi2knr
 INCLUDES = -I${top_srcdir}/include -I${top_srcdir}/lib 
 SUBDIRS  = testsuite
-YLWRAP = $(SHELL) $(srcdir)/ylwrap
+YLWRAP = $(SHELL) $(top_srcdir)/scripts/ylwrap
 YFLAGS = -dt
 
 BUILT_SOURCES= \
