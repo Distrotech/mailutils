@@ -114,7 +114,8 @@ parse_opt (int key, char *arg, struct argp_state *state)
       break;
 
     case 'q':
-      be_quiet = show_query = 1;
+      be_quiet++;
+      show_query = 1;
       break;
 
     case 'S':
@@ -153,7 +154,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
 static struct argp argp = {
   options,
   parse_opt,
-  NULL,
+  N_("[URL]"),
   doc,
   NULL,
   NULL, NULL
