@@ -59,6 +59,7 @@
 #endif
 
 #include <mailutils/address.h>
+#include <mailutils/argp.h>
 #include <mailutils/attribute.h>
 #include <mailutils/body.h>
 #include <mailutils/debug.h>
@@ -75,7 +76,6 @@
 #include <mailutils/registrar.h>
 #include <mailutils/stream.h>
 #include <mailutils/url.h>
-#include <mailutils/mu_argp.h>
 
 #include <argcv.h>
 #include <getline.h>

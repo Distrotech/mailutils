@@ -46,6 +46,7 @@
 # include <strings.h>
 #endif
 
+#include <mailutils/argp.h>
 #include <mailutils/body.h>
 #include <mailutils/errno.h>
 #include <mailutils/error.h>
@@ -56,7 +57,6 @@
 #include <mailutils/mutil.h>
 #include <mailutils/registrar.h>
 #include <mailutils/stream.h>
-#include <mailutils/mu_argp.h>
 
 #include <argcv.h>
 

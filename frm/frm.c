@@ -26,9 +26,8 @@
 #include <unistd.h>
 #include "getopt.h"
 
-#include <mailutils/mu_argp.h>
-
 #include <mailutils/address.h>
+#include <mailutils/argp.h>
 #include <mailutils/attribute.h>
 #include <mailutils/debug.h>
 #include <mailutils/errno.h>

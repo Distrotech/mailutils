@@ -70,6 +70,7 @@
 #endif
 
 #include <mailutils/address.h>
+#include <mailutils/argp.h>
 #include <mailutils/attribute.h>
 #include <mailutils/body.h>
 #include <mailutils/envelope.h>
@@ -85,7 +86,6 @@
 #include <mailutils/parse822.h>
 #include <mailutils/registrar.h>
 #include <mailutils/stream.h>
-#include <mailutils/mu_argp.h>
 
 
 #ifdef __cplusplus

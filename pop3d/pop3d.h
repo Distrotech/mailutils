@@ -109,6 +109,7 @@
 # include <strings.h>
 #endif
 
+#include <mailutils/argp.h>
 #include <mailutils/attribute.h>
 #include <mailutils/body.h>
 #include <mailutils/errno.h>
@@ -121,7 +122,6 @@
 #include <mailutils/mutil.h>
 #include <mailutils/registrar.h>
 #include <mailutils/url.h>
-#include <mailutils/mu_argp.h>
 
 /* For Berkley DB2 APOP password file */
 #ifdef HAVE_DB_H

@@ -15,10 +15,11 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-#ifndef MU_ARGP_H
-#define MU_ARGP_H 1
+#ifndef _MAILUTILS_ARGP_H
+#define _MAILUTILS_ARGP_H
 
-#include <mailutils/mailbox.h>
+#include <mailutils/types.h>
+
 #include <argp.h>
 
 #define MODE_INTERACTIVE 0
@@ -37,15 +38,14 @@ extern char *pam_service;
 extern int log_facility;
 extern int mu_argp_error_code;
 
-extern void mu_create_argcv __P((const char *capa[],
-				 int argc, char **argv,
-				 int *p_argc, char ***p_argv));
-extern error_t mu_argp_parse __P((const struct argp *argp, 
-				  int *p_argc, char ***p_argv,  
-				  unsigned flags,
-				  const char *capa[],
-				  int *arg_index,     
-				  void *input));
+extern void mu_create_argcv __P ((const char *capa[],
+				  int argc, char **argv,
+				  int *p_argc, char ***p_argv));
+extern error_t mu_argp_parse __P ((const struct argp * argp,
+				   int *p_argc, char ***p_argv,
+				   unsigned flags,
+				   const char *capa[],
+				   int *arg_index, void *input));
 
 #endif
 

@@ -16,6 +16,7 @@
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #include <mailutils/address.h>
+#include <mailutils/argp.h>
 #include <mailutils/attribute.h>
 #include <mailutils/auth.h>
 #include <mailutils/body.h>

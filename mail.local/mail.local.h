@@ -68,6 +68,7 @@
 # define INADDR_LOOPBAK 0x7f000001
 #endif
 
+#include <mailutils/argp.h>
 #include <mailutils/attribute.h>
 #include <mailutils/errno.h>
 #include <mailutils/error.h>
@@ -79,7 +80,6 @@
 #include <mailutils/registrar.h>
 #include <mailutils/stream.h>
 #include <mailutils/url.h>
-#include <mailutils/mu_argp.h>
 
 #include <mu_dbm.h>
 

@@ -20,7 +20,6 @@
 #endif
 
 #include <mailutils/mailutils.h>
-#include <mailutils/mu_argp.h>
 
 #include <stdio.h>
 

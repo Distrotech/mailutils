@@ -1,5 +1,6 @@
 pkginclude_HEADERS = \
  address.h \
+ argp.h \
  attribute.h \
  auth.h \
  body.h \
@@ -7,7 +8,6 @@ pkginclude_HEADERS = \
  envelope.h \
  errno.h \
  error.h \
- mu_features.h \
  filter.h \
  folder.h \
  header.h \
@@ -20,7 +20,6 @@ pkginclude_HEADERS = \
  message.h \
  mime.h \
  monitor.h \
- mu_argp.h \
  mutil.h \
  observer.h \
  parse822.h \

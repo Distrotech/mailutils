@@ -39,6 +39,7 @@ sieve script interpreter.
 
 #include "sieve.h"
 
+#include <mailutils/argp.h>
 #include <mailutils/auth.h>
 #include <mailutils/errno.h>
 #include <mailutils/folder.h>
@@ -47,7 +48,6 @@ sieve script interpreter.
 #include <mailutils/mutil.h>
 #include <mailutils/registrar.h>
 #include <mailutils/stream.h>
-#include <mailutils/mu_argp.h>
 
 void mutil_register_all_mbox_formats(void);
 
