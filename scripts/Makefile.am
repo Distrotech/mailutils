@@ -18,5 +18,5 @@
 ##   59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 SUBDIRS = guile-1.4 guile-1.6
-EXTRA_DIST = ylwrap mailutils.spec mailutils.spec.in
+EXTRA_DIST = ylwrap mailutils.spec mailutils.spec.in texify.sed
 
