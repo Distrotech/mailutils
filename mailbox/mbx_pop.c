@@ -240,6 +240,8 @@ do \
        { \
           stream_close (mbox->stream); \
           CLEAR_STATE (mpd); \
+          mpd->func = (void *)-1; \
+          MAILBOX_DEBUG1(mbox, MU_DEBUG_PROT, "CHECK_ERROR_CLOSE: %s\n", strerror (status));\
           return status; \
        } \
   } \
@@ -252,6 +254,8 @@ do \
      if (status != 0) \
        { \
           CLEAR_STATE (mpd); \
+          mpd->func = (void*)-1; \
+          MAILBOX_DEBUG1(mpd->mbox, MU_DEBUG_PROT, "CHECK_ERROR: %s\n", strerror (status));\
           return status; \
        } \
   } \
@@ -266,6 +270,8 @@ do \
          if (status != EAGAIN && status != EINPROGRESS && status != EINTR) \
            { \
              CLEAR_STATE (mpd); \
+             mpd->func = (void *)-1; \
+             MAILBOX_DEBUG1(mpd->mbox, MU_DEBUG_PROT, "CHECK_EAGAIN: %s\n", strerror (status));\
            } \
          return status; \
       } \
@@ -1610,6 +1616,8 @@ pop_retr (pop_message_t mpm, char *buffer, size_t buflen, off_t offset,
       /* RETR ACK.  */
       status = pop_read_ack (mpd);
       CHECK_EAGAIN (mpd, status);
+      MAILBOX_DEBUG0 (mpd->mbox, MU_DEBUG_PROT, mpd->buffer);
+
       if (strncasecmp (mpd->buffer, "+OK", 3) != 0)
 	{
 	  CHECK_ERROR (mpd, EACCES);
@@ -1622,7 +1630,6 @@ pop_retr (pop_message_t mpm, char *buffer, size_t buflen, off_t offset,
         {
 	  /* Do we need to fill up.  */
 	  if (mpd->nl == NULL || mpd->ptr == mpd->buffer)
-
 	    {
 	      status = pop_readline (mpd);
 	      if (status != 0)
