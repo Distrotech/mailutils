@@ -62,6 +62,9 @@
 
 #define MAX_OPEN_STREAMS 16
 
+#define MH_ENV_SENDER_HEADER "X-Envelope-Sender"
+#define MH_ENV_DATE_HEADER "X-Envelope-Date"
+
 /* Note: In this particular implementation the message sequence number
    serves also as its UID. This allows to avoid many problems related
    to keeping the uids in the headers of the messages. */
@@ -475,7 +478,9 @@ _mh_message_save (struct _mh_data *mhd, struct _mh_message *mhm, int expunge)
   int status;
   attribute_t attr;
   body_t body;
-
+  char buffer[512];
+  envelope_t env = NULL;
+  
   if (expunge)
     fp = _mh_tempfile (mhm->mhd, &name);
   else
@@ -519,7 +524,9 @@ _mh_message_save (struct _mh_data *mhd, struct _mh_message *mhm, int expunge)
 
       if (!(strncasecmp (buf, "status:", 7) == 0
 	    || strncasecmp (buf, "x-imapbase:", 11) == 0
-	    || strncasecmp (buf, "x-uid:", 6) == 0))
+	    || strncasecmp (buf, "x-uid:", 6) == 0
+	    || strncasecmp (buf, MH_ENV_DATE_HEADER ":", sizeof (MH_ENV_DATE_HEADER)) == 0
+	    || strncasecmp (buf, MH_ENV_SENDER_HEADER ":", sizeof (MH_ENV_SENDER_HEADER)) == 0))
 	fprintf (fp, "%s", buf);
       off += n;
     }
@@ -531,6 +538,12 @@ _mh_message_save (struct _mh_data *mhd, struct _mh_message *mhm, int expunge)
   if (!mhd->msg_head || (mhd->msg_head == mhm)) /*FIXME*/
     fprintf (fp, "X-IMAPbase: %lu %u\n", mhd->uidvalidity, _mh_next_seq(mhd));
 
+  message_get_envelope (msg, &env);
+  if (envelope_date (env, buffer, sizeof buffer, &n) == 0 && n > 0)
+    fprintf (fp, "%s: %s\n", MH_ENV_DATE_HEADER, buffer);
+  if (envelope_sender (env, buffer, sizeof buffer, &n) == 0 && n > 0)
+    fprintf (fp, "%s: %s\n", MH_ENV_SENDER_HEADER, buffer);
+  
   /* Add status */
   message_get_attribute (msg, &attr);
   attribute_to_string (attr, buf, bsize, &n);
@@ -1341,36 +1354,25 @@ mh_envelope_date (envelope_t envelope, char *buf, size_t len,
 {
   message_t msg = envelope_get_owner (envelope);
   struct _mh_message *mhm = message_get_owner (msg);
-  size_t n = 0;
+  header_t hdr = NULL;
+  char *from;
   int status;
-  char buffer[512];
-  char *s;
-
+  
   if (mhm == NULL)
     return EINVAL;
 
-  mh_pool_open (mhm);
+  if ((status = message_get_header (msg, &hdr)) != 0)
+    return status;
+  if (header_aget_value (hdr, MH_ENV_DATE_HEADER, &from))
+    return ENOSYS;
 
-  status = stream_readline (mhm->stream, buffer, sizeof(buffer), 0, &n);
-  if (status != 0)
+  /* Format:  "sender date" */
+  if (buf && len > 0)
     {
-      if (psize)
-	*psize = 0;
-      return status;
-    }
-
-  /* Format:  "From [sender] [date]" */
-  /* strlen ("From ") == 5 */
-  if (n > 5 && (s = strchr (buffer + 5, ' ')) != NULL)
-    {
-      if (buf && len > 0)
-	{
-	  len--; /* Leave space for the null.  */
-	  strncpy (buf, s + 1, len)[len] = '\0';
-	  len = strlen (buf);
-	}
-      else
-	len = strlen (s + 1);
+      len--; /* Leave space for the null.  */
+      strncpy (buf, from, len);
+      buf[len] = '\0';
+      len = strlen (buf);
     }
   else
     len = 0;
@@ -1385,38 +1387,26 @@ mh_envelope_sender (envelope_t envelope, char *buf, size_t len, size_t *psize)
 {
   message_t msg = envelope_get_owner (envelope);
   struct _mh_message *mhm = message_get_owner (msg);
-  size_t n = 0;
+  header_t hdr = NULL;
+  char *from;
   int status;
-  char buffer[512];
-  char *s;
 
   if (mhm == NULL)
     return EINVAL;
 
-  mh_pool_open (mhm);
+  if ((status = message_get_header (msg, &hdr)) != 0)
+    return status;
+  if (header_aget_value (hdr, MH_ENV_SENDER_HEADER, &from))
+    return ENOSYS;
 
-  status = stream_readline (mhm->stream, buffer, sizeof(buffer), 0, &n);
-  if (status != 0)
+  if (buf && len > 0)
     {
-      if (psize)
-	*psize = 0;
-      return status;
-    }
+      int slen = strlen (from) + 1;
 
-  /* Format:  "From [sender] [date]" */
-  /* strlen ("From ") == 5 */
-  if (n > 5 && (s = strchr (buffer + 5, ' ')) != NULL)
-    {
-      /* Put a NULL to isolate the sender string, make a C string.  */
-      *s = '\0';
-      if (buf && len > 0)
-	{
-	  len--; /* leave space for the null */
-	  strncpy (buf, buffer + 5, len)[len] = '\0';
-	  len = strlen (buf);
-	}
-      else
-	len = strlen (buffer + 5);
+      if (len <= slen)
+	slen = len - 1;
+      memcpy (buf, from, slen - 1);
+      buf[slen] = 0;
     }
   else
     len = 0;
