@@ -423,11 +423,14 @@ static int
 send (int argc, char **argv)
 {
   int i, rc;
-  
+
+  /* Verify all arguments */
   for (i = 0; i < argc; i++)
     if (check_file (argv[i]))
       return 1;
 
+  /* Process the mtstailor file and detach from the console if
+     required */
   read_mts_profile ();
   
   if (background && daemon (0, 0) < 0)
@@ -436,6 +439,11 @@ send (int argc, char **argv)
       return 1;
     }
 
+  /* Prepend url specifier to the folder dir. We won't need this
+     when the default format becomes configurable */
+  asprintf (&mu_path_folder_dir, "mh:%s", mu_path_folder_dir);
+
+  /* Finally, do the work */
   rc = list_do (mesg_list, _action_send, NULL);
   return rc;
 }
