@@ -65,6 +65,15 @@ and use them in mail.remote.
 
 ** support AUTH=anonymous (imap://cyrus.andrew.cmu.edu/archive.info-cyrus)
 
+** the POP mailer must use the CAPA command to determine any protocol
+   extension; support for the STLS would be great.
+
+** the IMAP mailer must use the CAPABILITY command... likewise;
+   support the STARTTLS.
+
+** support POP3S and IMAPS mailers (ports 995/993).
+NOTE: Do we really need it? Pop3d and imap4d already use STLS/STARTTLS.
+
 ** filter_trans needs readline method.
 
 * pop3
