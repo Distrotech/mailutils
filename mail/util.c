@@ -463,7 +463,22 @@ util_screen_lines()
 
   if (ep && ep->set && (n = atoi(ep->value)) != 0)
     return n;
-  return util_getlines();
+  n = util_getlines();
+  util_do_command ("set screen=%d", n);
+  return n;
+}
+
+int
+util_screen_columns()
+{
+  struct mail_env_entry *ep = util_find_env("columns");
+  size_t n;
+
+  if (ep && ep->set && (n = atoi(ep->value)) != 0)
+    return n;
+  n = util_getcols();
+  util_do_command ("set columns=%d", n);
+  return n;
 }
 
 

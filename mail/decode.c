@@ -1,5 +1,5 @@
 /* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999, 2001 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -18,81 +18,244 @@
 #include "mail.h"
 
 /*
- * dec[ode] ???
- * FIXME: the sytnax of this needs to be discussed on bug-mailutils
+  FIXME:
+ decode, this is temporary, until the API on how to present
+ mime/attachements etc is less confusing.
  */
+
+static int print_stream __P ((stream_t, FILE *));
+static int display_message __P ((message_t, FILE *, int));
+static int mailcap_lookup __P ((const char *));
+static int get_hdr_value __P ((header_t hdr, const char *name, char **value));
+static int get_content_encoding __P ((header_t hdr, char **value));
+static int get_content_type __P ((header_t hdr, char **value));
 
 int
 mail_decode (int argc, char **argv)
 {
-#if 0
-  fprintf (stderr, "Sorry, the decode function hasn't been implemented yet\n");
-  return 1;
-#else
-  message_t msg = NULL;
-  int partno;
-  int *list = NULL;
-  int num = util_expand_msglist (argc, argv, &list);
-
-  partno = (num >= 2) ? list[1] : 1;
-
-  if (mailbox_get_message (mbox, list[0], &msg) == 0)
+  if (argc > 1)
+    return util_msglist_command (mail_print, argc, argv, 1);
+  else
     {
-      message_t part = NULL;
-      if (message_get_part (msg, partno, &part) == 0)
+      message_t mesg;
+      int lines = 0;
+      FILE *out = ofile;
+      attribute_t attr;
+
+      if (mailbox_get_message (mbox, cursor, &mesg) != 0)
+	return 1;
+
+      if (util_isdeleted (cursor))
+        return 1;
+
+      message_lines (mesg, &lines);
+
+      if ((util_find_env("crt"))->set && lines > util_getlines ())
+	    out = popen (getenv("PAGER"), "w");
+
+      display_message (mesg, out, islower (argv[0][0]));
+
+      message_get_attribute (mesg, &attr);
+      attribute_set_read (attr);
+
+      if (out != ofile)
+	pclose (out);
+
+      return 0;
+    }
+  return 1;
+}
+
+static int
+display_message (message_t mesg, FILE *out, int select_hdr)
+{
+  size_t nparts = 0;
+  header_t hdr = NULL;
+  size_t j;
+
+  /* Print the selected headers only.  */
+  if (select_hdr)
+    {
+      size_t num = 0;
+      size_t i = 0;
+      char buffer[512];
+
+      hdr = NULL;
+      message_get_header (mesg, &hdr);
+      header_get_field_count (hdr, &num);
+      for (i = 1; i <= num; i++)
 	{
-	  body_t body = NULL;
-	  header_t hdr = NULL;
-	  stream_t stream = NULL;
-	  stream_t b_stream = NULL;
-	  size_t len = 0;
-	  char *encoding = NULL;
-
-	  message_get_body (part, &body);
-	  body_get_stream (body, &b_stream);
-	  message_get_header (part, &hdr);
-	  if (header_aget_value (hdr, MU_HEADER_CONTENT_TRANSFER_ENCODING,
-				 &encoding) == 0)
+	  buffer[0] = '\0';
+	  header_get_field_name (hdr, i, buffer, sizeof(buffer), NULL);
+	  if (mail_header_is_visible (buffer))
 	    {
-	      size_t lines = 0;
-	      char buffer[512];
-	      off_t off = 0;
-	      size_t n = 0;
-	      FILE *out = ofile;
-	      stream_t d_stream = NULL;
-
-	      message_lines (part, &lines);
-	      if ((util_find_env("crt"))->set && lines > util_getlines ())
-		out = popen (getenv("PAGER"), "w");
-
-	      /* Do I understand this encoding?  */
-	      if (*encoding
-		  && filter_create(&d_stream, b_stream, encoding,
-				   MU_FILTER_DECODE, MU_STREAM_READ) == 0)
-		stream = d_stream;
-	      else
-		stream = b_stream;
-
-	      while (stream_read (stream, buffer, sizeof buffer,
-				  off, &n ) == 0 && n)
-		{
-		  if (ml_got_interrupt())
-		    {
-		      util_error("\nInterrupt");
-		      break;
-		    }
-		  buffer[n] = '\0';
-		  fprintf (out, "%s", buffer);
-		  off += n;
-		}
-	      if (d_stream)
-		stream_destroy (&d_stream, NULL);
-	      if (out != ofile)
-		pclose (out);
-	      free (encoding);
+	      fprintf (out, "%s: ", buffer);
+	      header_get_field_value (hdr, i, buffer, sizeof(buffer), NULL);
+	      fprintf (out, "%s\n", buffer);
 	    }
 	}
+      fprintf (out, "\n");
     }
-  free (list);
-#endif
+  else /* Print displays all headers.  */
+    {
+      stream_t stream = NULL;
+      if (message_get_header (mesg, &hdr) == 0
+	  && header_get_stream (hdr, &stream) == 0)
+	print_stream (stream, out);
+    }
+
+  message_get_num_parts (mesg, &nparts);
+  for (j = 1; j <= nparts; j++)
+    {
+      message_t message = NULL;
+      if (message_get_part (mesg, j, &message) == 0)
+	{
+	  char *type = NULL;
+	  char *encoding = NULL;
+	  int ismime = 0;
+
+	  message_is_multipart (message, &ismime);
+	  if (ismime)
+	    {
+	      display_message (message, out, 0);
+	      continue;
+	    }
+
+	  message_get_header (message, &hdr);
+
+	  get_content_type (hdr, &type);
+	  get_content_encoding (hdr, &encoding);
+
+	  if (strncasecmp (type, "message/rfc822", strlen (type)) == 0)
+	    {
+	      message_t submsg = NULL;
+	      if (message_unencapsulate (message, &submsg, NULL) == 0)
+		display_message (submsg, out, select_hdr);
+	    }
+	  else if (mailcap_lookup (type))
+	    {
+	      /* FIXME: lookup .mailcap and do the appropriate action when
+		 an match engry is find.  */
+	      /* Do something, spawn a process etc ....  */
+	    }
+	  else if (strncasecmp (type, "text/plain", strlen ("text/plain")) == 0
+		   || strncasecmp (type, "text/html", strlen ("text/html")) == 0)
+	    {
+	      body_t body = NULL;
+	      stream_t b_stream = NULL;
+
+	      if (message_get_body (message, &body) == 0 &&
+		  body_get_stream (body, &b_stream) == 0)
+		{
+		  stream_t d_stream = NULL;
+		  stream_t stream = NULL;
+
+		  /* Can we decode.  */
+		  if (filter_create(&d_stream, b_stream, encoding,
+				    MU_FILTER_DECODE, MU_STREAM_READ) == 0)
+		    stream = d_stream;
+		  else
+		    stream = b_stream;
+
+		  print_stream (stream, out);
+		  if (d_stream)
+		    stream_destroy (&d_stream, NULL);
+		}
+	    }
+	  else
+	    {
+	      int size = util_screen_columns () - 3;
+	      int i;
+	      fputc ('+', out);
+	      for (i = 0; i <= size; i++)
+		fputc ('-', out);
+	      fputc ('+', out); fputc ('\n', out);
+	      fprintf (out, "| Message=%d[%d]\n", cursor, j);
+	      fprintf (out, "| Type=%s\n", type);
+	      fprintf (out, "| encoding=%s\n", encoding);
+	      fputc ('+', out);
+	      for (i = 0; i <= size; i++)
+		fputc ('-', out);
+	      fputc ('+', out); fputc ('\n', out);
+	    }
+	  free (type);
+	  free (encoding);
+	}
+    }
+  return 0;
+}
+
+static int
+print_stream (stream_t stream, FILE *out)
+{
+  char buffer[512];
+  off_t off = 0;
+  size_t n = 0;
+
+  while (stream_read (stream, buffer, sizeof (buffer) - 1, off, &n) == 0
+	 && n != 0)
+    {
+      if (ml_got_interrupt())
+	{
+	  util_error("\nInterrupt");
+	  break;
+	}
+      buffer[n] = '\0';
+      fprintf (out, "%s", buffer);
+      off += n;
+    }
+  return 0;
+}
+
+static int
+get_content_type (header_t hdr, char **value)
+{
+  char *type = NULL;
+  get_hdr_value (hdr, MU_HEADER_CONTENT_TYPE, &type);
+  if (type == NULL || *type == '\0')
+    {
+      if (type)
+	free (type);
+      type = strdup ("text/plain"); /* Default.  */
+    }
+  *value = type;
+  return 0;
+}
+
+static int
+get_content_encoding (header_t hdr, char **value)
+{
+  char *encoding = NULL;
+  get_hdr_value (hdr, MU_HEADER_CONTENT_TRANSFER_ENCODING, &encoding);
+  if (encoding == NULL || *encoding == '\0')
+    {
+      if (encoding)
+	free (encoding);
+      encoding = strdup ("7bit"); /* Default.  */
+    }
+  *value = encoding;
+  return 0;
+}
+
+static int
+get_hdr_value (header_t hdr, const char *name, char **value)
+{
+  int status = header_aget_value (hdr, name, value);
+  if (status == 0)
+    {
+      /* Remove the newlines.  */
+      char *nl;
+      while ((nl = strchr (*value, '\n')) != NULL)
+	{
+	  *nl = ' ';
+	}
+    }
+  return status;
+}
+
+static int
+mailcap_lookup (const char *type)
+{
+  (void)type;
+  return 0;
 }

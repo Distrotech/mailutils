@@ -35,6 +35,7 @@ sig_handler (int signo)
 #if defined (SIGWINCH)
     case SIGWINCH:
       util_do_command ("set screen=%d", util_getlines());
+      util_do_command ("set columns=%d", util_getcols());
       break;
 #endif
     }

@@ -184,7 +184,7 @@ int mail_copy0 __P((int argc, char **argv, int mark));
 int mail_send0 __P((struct send_environ *env, int save_to));
 void free_env_headers __P((struct send_environ *env));
 
-void print_message __P((message_t mesg, char *prefix, int all_headers, FILE *file));
+  //void print_message __P((message_t mesg, char *prefix, int all_headers, FILE *file));
 
 int mail_mbox_commit __P((void));
 int mail_is_my_name __P((char *name));
@@ -224,6 +224,7 @@ struct mail_command_entry util_find_entry __P((const struct mail_command_entry *
 int util_getcols __P((void));
 int util_getlines __P((void));
 int util_screen_lines __P((void));
+int util_screen_columns __P((void));
 struct mail_env_entry *util_find_env __P((const char *var));
 int util_printenv __P((int set));
 int util_setenv __P((const char *name, const char *value, int overwrite));

@@ -255,7 +255,8 @@ main (int argc, char **argv)
   util_do_command ("set noquiet");
   util_do_command ("set norecord");
   util_do_command ("set save");
-  util_do_command ("set screen=%d", util_getlines());
+  util_do_command ("set screen=%d", util_getlines ());
+  util_do_command ("set columns=%d", util_getcols ());
   util_do_command ("set nosendmail");
   util_do_command ("set nosendwait");
   util_do_command ("set noshowto");
