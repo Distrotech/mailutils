@@ -13,4 +13,5 @@ mta
 http
 decode2047
 mailcap
+listop
 *.l[oa]

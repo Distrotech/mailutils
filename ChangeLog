@@ -1,3 +1,10 @@
+2003-08-29  Wojciech Polak
+
+	* mailbox/pop/mbox.c (pop_capa): New function.
+	Moved CAPA support to pop_capa. Conform to RFC 2595:
+	reissue CAPA after successful STLS negotiation.
+	(tls): Renamed to pop_stls().
+
 2003-08-29  Sergey Poznyakoff 
 
 	* auth/gsasl.c: Lots of fixes.
