@@ -344,7 +344,7 @@ AC_ARG_WITH([included-argp],
             [USE_INCLUDED_ARGP=${withval}],
             [AC_CHECK_FUNCS(argp_parse, :, [USE_INCLUDED_ARGP=yes])])
 
-if test $USE_INCLUDED_ARGP = yes; then
+if test "$USE_INCLUDED_ARGP" = yes; then
        MU_LIBOBJ(argp-ba)
        MU_LIBOBJ(argp-eexst)
        MU_LIBOBJ(argp-fmtstream)
@@ -667,6 +667,11 @@ AC_CONFIG_FILES([Makefile mailutils.spec
  lib/Makefile lib/posix/Makefile
  testsuite/Makefile
  mailbox/Makefile
+ mailbox/mbox/Makefile
+ mailbox/mh/Makefile
+ mailbox/maildir/Makefile
+ mailbox/pop/Makefile
+ mailbox/imap/Makefile
  mailbox/testsuite/Makefile
  examples/Makefile
  auth/Makefile
