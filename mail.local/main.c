@@ -273,6 +273,8 @@ main (int argc, char *argv[])
   close_fds ();
   umask (0077);
 
+  mu_init_nls ();
+  
   mu_argp_error_code = EX_CONFIG;
   MU_AUTH_REGISTER_ALL_MODULES();
   sieve_argp_init ();
