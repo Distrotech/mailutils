@@ -17,7 +17,7 @@ moddir=@SIEVE_MODDIR@
 mod_LTLIBRARIES = numaddr.la
 
 INCLUDES = -I$(top_srcdir)/include -I$(top_srcdir)/lib
-AM_LDFLAGS = ../mailbox/libmailbox.la
+AM_LDFLAGS = ../mailbox/libmailbox.la ../lib/libmailutils.la
 
 numaddr_la_SOURCES = numaddr.c
 numaddr_la_LIBADD = ../libsieve/libsieve.la 
