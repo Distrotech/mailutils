@@ -1,3 +1,15 @@
+2001-07-23 Alain Magloire
+
+	The reason the interrupt code did not work for me, is that
+	by default using signal will make function calls restartable,
+	at least on my default RH5.1, when read() was interrupted
+	it did not return EINTR inside ml_getc().
+
+	* mail.c (main): Use sigaction if available to set SIGPIPE.
+	* mailline.c (sig_handler): Reset "lines" variable.
+	Recall signal() if we did not have sigaction.
+	(ml_readline_init):  Use sigaction to set SIGWINCH and SIGINT.
+
 2001-07-22 Sergey Poznyakoff
 	Renamed debug_.* symbols to mu_debug_.* to avoid nameclashes.
 	Files affected:
@@ -14,7 +26,7 @@
 
 	* configure.in: Added --without-guile. Uncommented making
 	libmu_scm and guimb. Added check for -ldl before
-	checking for -lpam: both FreeBSD and OpenBSD lack libdl, but 
+	checking for -lpam: both FreeBSD and OpenBSD lack libdl, but
 	have working libpam.
 
 	* messages/Makefile.am: Added missing @ARGP.*@ substitutes.
@@ -31,7 +43,7 @@
 
 	* mail/util.c (util_expand_msglist): insert placeholder for
 	attachment operations
-	
+
 2001-07-20  Jakob 'sparky' Kaivo  <jkaivo@elijah.nodomainname.net>
 
 	* messages/messages.c: new file, implement of elm messages command
