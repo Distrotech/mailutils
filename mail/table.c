@@ -25,7 +25,7 @@ const struct mail_command_entry mail_command_table[] = {
   { "cd",	"cd",	       0, mail_cd,	"cd [directory]" },
   { "ch",	"chdir",       0, mail_cd,	"ch[dir] directory" },
   { "c",	"copy",	       0, mail_copy,	"c[opy] [[msglist] file]" },
-  { "dec",	"decode",      0, mail_decode,	"dec[ode] ???" },
+  { "dec",	"decode",      0, mail_decode,	"dec[ode] [msgno] [part]" },
   { "d",	"delete",      0, mail_delete,	"d[elete] [msglist]" },
   { "di",	"discard",     0, mail_discard,
 			       "di[scard] [header-field...]" },

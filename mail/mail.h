@@ -60,6 +60,7 @@
 #include <mailutils/iterator.h>
 #include <mailutils/address.h>
 #include <mailutils/mutil.h>
+#include <mailutils/filter.h>
 
 #include <argcv.h>
 #include <getline.h>
