@@ -12,8 +12,10 @@ noinst_PROGRAMS = sv
 
 libsieve_la_SOURCES = \
  actions.c\
+ prog.c\
  register.c\
  require.c\
+ runtime.c\
  sieve-gram.c\
  sieve-gram.h\
  sieve-lex.c\
