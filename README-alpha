@@ -1,0 +1,21 @@
+This is the GNU mailutils package.
+
+This is a *pre-release* version, and not ready for production use yet. If you
+are taking source from CVS, you will need to have libtool, automake, and autoconf
+installed to help contribute. See the file 'INSTALL' for (generic) installation
+instructions.
+
+Report bugs to <bug-mailutils@gnu.org>
+
+To get this information from CVS issue the following commands:
+
+cvs -d :pserver:anoncvs@anoncvs.gnu.org:/gd/gnu/anoncvsroot login
+
+Press enter when prompted for a password.
+
+cvs -d :pserver:anoncvs@anoncvs.gnu.org:/gd/gnu/anoncvsroot co mailutils
+
+This will give you read-only access.  If you think you need write access,
+contact the mailing list.
+
+
