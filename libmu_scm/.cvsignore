@@ -1,0 +1,5 @@
+Makefile.in
+Makefile
+libmu_scm.a
+*.doc
+*.x
