@@ -1,3 +1,12 @@
+2004-07-03  Sergey Poznyakoff  
+
+	* mailbox/list.c (list_data_dup): Bugfix: *ptr was not assigned.
+	* doc/texinfo/muint.texi: Automake does	not allow two independent
+	texi sources to include the same file (version.texi, in this
+	case). What a stupid lossage! However it handles all files whose
+	name matches "vers*.texi" as version.texi, which allows to
+	override the bug: include vers-muint.texi instead of version.texi. 
+
 2004-07-01  Sergey Poznyakoff
 
 	* include/mailutils/iterator.h (iterator_current)
