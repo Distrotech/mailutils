@@ -1,3 +1,56 @@
+2004-06-04  Sergey Poznyakoff 
+
+	Use adbstract transport layer in streams, instead of
+	integer file descriptors. Among other things, this
+	fixes a long standing bug in imap4d: now it can use
+	SASL over TLS.
+	
+	* auth/gsasl.c: Use stream transport instead of fd.
+	* auth/tls.c: Likewise.
+	* pop3d/extra.c: Likewise.
+
+	* include/mailutils/types.h (mu_transport_t): New data type
+	* include/mailutils/gsasl.h (gsasl_stream_create): Changed
+	prototype
+	* include/mailutils/tls.h (tls_stream_create)
+	(tls_stream_create_client): Changed prototype
+	
+	* include/mailutils/mutil.h (mu_fd_wait): New function
+	* include/mailutils/stream.h (stream_get_fd)
+	(stream_get_fd2,stream_set_fd): Removed
+	(stream_get_transport2,stream_get_transport)
+	(stream_wait,stream_set_get_transport2)
+	(stream_set_wait): New functions
+	* mailbox/stream.c: Likewise
+ 	* mailbox/include/stream0.h (struct _stream._get_fd): Removed
+	(_get_transport2,_wait): New methods
+	
+	* examples/http.c: Use new stream functions
+	* imap4d/auth_gsasl.c: Likewise
+	* imap4d/util.c: Likewise
+	* libsieve/extensions/spamd.c: Likewise
+	* mailbox/body.c: Likewise
+	* mailbox/file_stream.c: Likewise
+	* mailbox/filter.c: Likewise
+	* mailbox/mapfile_stream.c: Likewise
+	* mailbox/message.c: Likewise
+	* mailbox/mime.c: Likewise
+	* mailbox/mutil.c: Likewise
+	* mailbox/tcp.c: Likewise
+	* mailbox/imap/mbox.c: Likewise
+	* mailbox/mbox/mbox.c: Likewise
+	* mailbox/pop/mbox.c: Likewise
+	* mailbox/pop/pop3_readline.c: Likewise
+	* mailbox/pop/pop3_sendline.c: Likewise
+	* mh/mhn.c: Likewise
+	* examples/http.c: Likewise
+	* imap4d/idle.c: Likewise
+	* include/mailutils/sys/pop3.h: Likewise
+	
+	* mail/file.c (mail_file): minor fix
+	* mailbox/folder.c: minor fix
+	* mailbox/mailcap.c: minor fix
+	
 2004-06-02  Sergey Poznyakoff 
 
 	* configure.ac: Raised version number to 0.4.90
