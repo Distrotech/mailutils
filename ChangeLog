@@ -1,3 +1,13 @@
+2002-12-04  Sergey Poznyakoff
+
+	* include/mailutils/argp.h (mu_print_options, mu_check_option):
+	  New functions.
+	* mailbox/mu_argp.c: Likewise.
+	* mailbox/mailutils-config.c: Added --info option (prints and
+	  tests for the values of compilation options). Improved help
+	  output.
+	* doc/texinfo/programs.texi: Documented mailutils-config.
+	
 2002-12-04  Sergey Poznyakoff 
 
 	* TODO: Updated
