@@ -72,9 +72,8 @@ extern int mailbox_get_auth      __P ((mailbox_t, auth_t *auth));
 extern int mailbox_set_auth      __P ((mailbox_t, auth_t auth));
 
 /* update and scanning*/
-extern int mailbox_progress __P ((mailbox_t, int (*progress)
-				       __P ((int, void *)), void *arg));
 extern int mailbox_is_updated    __P ((mailbox_t));
+extern int mailbox_scan    __P ((mailbox_t, size_t msgno, size_t *count));
 
 /* mailbox size ? */
 extern int mailbox_size          __P ((mailbox_t, off_t size));

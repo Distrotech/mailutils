@@ -165,6 +165,14 @@ mailbox_is_updated (mailbox_t mbox)
   return mbox->_is_updated (mbox);
 }
 
+int
+mailbox_scan (mailbox_t mbox, size_t msgno, size_t *pcount)
+{
+  if (mbox == NULL || mbox->_scan == NULL)
+    return 0;
+  return mbox->_scan (mbox, msgno, pcount);
+}
+
 /* locking */
 int
 mailbox_set_locker (mailbox_t mbox, locker_t locker)
@@ -262,15 +270,17 @@ mailbox_deregister (mailbox_t mbox, void *action)
   return ENOENT;
 }
 
-void
+int
 mailbox_notification (mailbox_t mbox, size_t type)
 {
   size_t i;
   event_t event;
+  int status = 0;
   for (i = 0; i < mbox->event_num; i++)
     {
       event = &(mbox->event[i]);
       if ((event->_action) &&  (event->type & type))
-	event->_action (type, event->arg);
+	status |= event->_action (type, event->arg);
     }
+  return status;
 }

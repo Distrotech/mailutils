@@ -244,7 +244,8 @@ header_get_value (header_t header, const char *name, char *buffer,
   for (name_len = strlen (name), i = 0; i < header->hdr_count; i++)
     {
       fn_len = header->hdr[i].fn_end - header->hdr[i].fn;
-      if (fn_len == name_len && memcmp (header->hdr[i].fn, name, fn_len) == 0)
+      if (fn_len == name_len &&
+	  strncasecmp (header->hdr[i].fn, name, fn_len) == 0)
 	{
 	  fv_len = (header->hdr[i].fv_end - header->hdr[i].fv);
 	  total += fv_len;
@@ -252,7 +253,7 @@ header_get_value (header_t header, const char *name, char *buffer,
 	  if (buffer && threshold > 0)
 	    {
 	      threshold -= fv_len;
-	      if (threshold > 0)
+	      if (threshold >= 0)
 		{
 		  memcpy (buffer, header->hdr[i].fv, fv_len);
 		  buffer += fv_len;

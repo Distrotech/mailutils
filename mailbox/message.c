@@ -96,14 +96,15 @@ message_clone (message_t msg)
       offset += nread;
     } while (nread > 0);
 
-    status = header_init (&header, pbuf, offset, NULL);
-    if (status != 0)
-      {
-	free (pbuf);
-	return status;
-      }
-    free (pbuf);
   }
+  /* set the new header */
+  status = header_init (&header, pbuf, offset, msg);
+  if (status != 0)
+    {
+      free (pbuf);
+      return status;
+    }
+  free (pbuf);
 
   /* retrieve the body */
   {
@@ -111,7 +112,7 @@ message_clone (message_t msg)
     file = tmpfile ();
     if (file == NULL)
       {
-	header_destroy (&header, NULL);
+	header_destroy (&header, msg);
 	return errno;
       }
     offset = 0;
@@ -122,7 +123,7 @@ message_clone (message_t msg)
 	} while (status == EAGAIN);
       if (status != 0)
 	{
-	  header_destroy (&header, NULL);
+	  header_destroy (&header, msg);
 	  return status;
 	}
       fwrite (buffer, sizeof (*buffer), nread, file);
@@ -136,33 +137,33 @@ message_clone (message_t msg)
   if (body == NULL)
     {
       fclose (file);
-      header_destroy (&header, NULL);
+      header_destroy (&header, msg);
       return ENOMEM;
     }
-  status = istream_init (&is, message_read, NULL);
+  status = istream_init (&is, message_read, msg);
   if (status != 0)
     {
       fclose (file);
-      header_destroy (&header, NULL);
+      header_destroy (&header, msg);
       return status;
     }
-  status = ostream_init (&os, message_write, NULL);
+  status = ostream_init (&os, message_write, msg);
   if (status != 0)
     {
       fclose (file);
-      header_destroy (&header, NULL);
-      istream_destroy (&is, NULL);
+      header_destroy (&header, msg);
+      istream_destroy (&is, msg);
       return status;
     }
 
   /* attribute */
-  status = attribute_init (&attribute, NULL);
+  status = attribute_init (&attribute, msg);
   if (status != 0)
     {
       fclose (file);
-      header_destroy (&header, NULL);
-      istream_destroy (&is, NULL);
-      ostream_destroy (&os, NULL);
+      header_destroy (&header, msg);
+      istream_destroy (&is, msg);
+      ostream_destroy (&os, msg);
     }
   attribute_copy (attribute, msg->attribute);
 
@@ -229,6 +230,8 @@ message_destroy (message_t *pmsg, void *owner)
 	      free (body->content);
 	      free (body);
 	    }
+	  /* notifications are done */
+	  free (msg->event);
 	  /* check again for resurrection before free()ing
 	   * the memory maybe it was clone, if yes we can not
 	   * free the pointer.
@@ -415,10 +418,10 @@ static int
 message_read (istream_t is, char *buf, size_t buflen,
 	      off_t off, ssize_t *pnread )
 {
-  message_t msg = NULL;
+  message_t msg;
   ssize_t nread = 0;
 
-  if (is == NULL)
+  if (is == NULL || (msg = is->owner) == NULL)
     return EINVAL;
 
   if (msg->body)
@@ -469,10 +472,10 @@ static int
 message_write (ostream_t os, const char *buf, size_t buflen,
 	       off_t off, ssize_t *pnwrite)
 {
-  message_t msg = NULL;
+  message_t msg;
   ssize_t nwrite = 0;
 
-  if (os == NULL)
+  if (os == NULL || (msg = os->owner) == NULL)
     return EINVAL;
 
   if (msg->body)

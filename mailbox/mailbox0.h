@@ -65,6 +65,7 @@ struct _mailbox
   int  (*_messages_count)  __P ((mailbox_t, size_t *num));
   int  (*_expunge)         __P ((mailbox_t));
 
+  int  (*_scan)            __P ((mailbox_t, size_t msgno, size_t *count));
   int  (*_is_updated)      __P ((mailbox_t));
 
   int  (*_size)            __P ((mailbox_t, off_t *size));
@@ -90,7 +91,7 @@ extern int mailbox_get_attribute  __P ((mailbox_t mbox, size_t msgno,
 					attribute_t *attr));
 extern int mailbox_set_attribute  __P ((mailbox_t mbox, size_t msgno,
 					attribute_t attr));
-extern void mailbox_notification   __P ((mailbox_t mbox, size_t type));
+extern int mailbox_notification   __P ((mailbox_t mbox, size_t type));
 
 
 #ifdef __cplusplus
