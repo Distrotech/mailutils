@@ -102,7 +102,6 @@ netdef_parse (char *str)
 		return NULL;
 	      netmask = 0xfffffffful >> (32-len);
 	      netmask <<= (32-len);
-	      /*FIXME: hostorder?*/
 	    }
 	  else
 	    netmask = inet_network (ipbuf);
