@@ -1,3 +1,30 @@
+2002-08-20  Sergey Poznyakoff 
+
+	* Makefile.am: Added testsuite subdirectory
+	* configure.ac: Likewise.
+	* auth/virtual.c: A couple of bugfixes. Introduced
+	  --virtual-passwd-dir switch to override the
+	  default placement of virtual domain password files.
+
+	* testsuite: New dir. Common files for all testsuites.
+	* testsuite/lib: New dir.
+	* testsuite/lib/mailutils.exp: New file. Common test driver.
+
+	* mail/testsuite/spool: Moved to ...
+	* testsuite/spool: ... here
+
+	* mail/testsuite/folder: Moved to ...
+	* testsuite/folder: ... here
+	
+	* mail/testsuite/etc: Moved to ...
+	* testsuite/etc: ... here
+	
+	* mail/testsuite/Makefile.am: Removed etc, spool and folder test
+	  dirs.
+	* mail/testsuite/lib/mail.exp: Updated.
+	* mail/testsuite/mail/folder.exp: Updated. 
+	* mail/testsuite/mail/write.exp: Updated.
+
 2002-08-15  Sergey Poznyakoff 
 
 	* configure.ac: If -lcrypt is present, add it to LIBS
