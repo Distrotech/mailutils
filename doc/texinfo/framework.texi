@@ -1,3 +1,7 @@
+@c This is part of the GNU Mailutils manual.
+@c Copyright (C) 1999,2000,2001,2002 Free Software Foundation, Inc.
+@c See file mailutils.texi for copying conditions.
+@comment *******************************************************************
 @menu
 * Folder::                      Folder.
 * Mailbox::                     Mailbox.
@@ -67,7 +71,7 @@ For example writing a simple @code{from} command that will list the
 @emph{From} and @emph{Subject} headers of every mail in a mailbox.
 
 @example
-@include sfrom.c.texi
+@include sfrom.inc
 @end example
 
 @example

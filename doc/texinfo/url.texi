@@ -1,3 +1,7 @@
+@c This is part of the GNU Mailutils manual.
+@c Copyright (C) 1999,2000,2001,2002 Free Software Foundation, Inc.
+@c See file mailutils.texi for copying conditions.
+@comment *******************************************************************
 
 @comment See rfc2368, rfc2369, rfc2384
 A mailbox or a mailer can be described in a URL, the string will contain the
@@ -157,6 +161,6 @@ a strdup().
 
 @section Example
 @example
-@include url-parse.c.texi
+@include url-parse.inc
 @end example
 
