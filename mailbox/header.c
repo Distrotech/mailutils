@@ -521,7 +521,7 @@ header_aget_value (header_t header, const char *name, char **pvalue)
     }
   else
     *pvalue = strdup ("");
-  return 0;
+  return status;
 }
 
 int
@@ -598,7 +598,7 @@ header_aget_field_name (header_t header, size_t num, char **pvalue)
     }
   else
     *pvalue  = strdup ("");
-  return 0;
+  return status;
 }
 
 int
