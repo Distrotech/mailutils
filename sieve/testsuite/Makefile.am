@@ -7,6 +7,7 @@ DEJATOOL = sieve
 RUNTESTFLAGS = 
 CLEANFILES = *.log
 test_dirs = lib sieve scripts
+EXTRA_DIST = Reject Redirect
 
 dist-hook:
 	here=`cd $(top_builddir)/$(subdir) && pwd`; \
@@ -37,6 +38,7 @@ site.exp: Makefile remote.exp
 	@echo '# edit the last section' >> $@-t
 	@echo 'set tool $(DEJATOOL)' >> $@-t
 	@echo "set top_srcdir `cd $(top_srcdir); pwd`" >> $@-t
+	@echo "set top_builddir `cd $(top_builddir); pwd`" >> $@-t
 	@echo "set srcdir `cd $(srcdir); pwd`" >> $@-t
 	@echo 'set objdir' `pwd` >> $@-t
 	@echo 'set host_alias "$(host_alias)"' >> $@-t

@@ -1,0 +1,199 @@
+# This file is part of Mailutils testsuite.
+# Copyright (C) 2002, Free Software Foundation
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software Foundation,
+# Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+#
+
+TEST reject.sv
+PATTERN BEGIN
+REJECT on msg uid 1
+REJECT on msg uid 2
+REJECT on msg uid 3
+PATTERN END
+
+FILE BEGIN
+ENVELOPE FROM: MAILER-DAEMON@Mirddin.farlep.net
+ENVELOPE TO: <coyote@desert.example.org>
+   0: To: <coyote@desert.example.org>
+-re
+   1: X-Authentication-Warning: [^ \t]+ set sender using -f flag
+-re
+   2: Content-Type: multipart/mixed; boundary="[0-9:=-]+"
+   3: MIME-Version: 1.0
+   4:
+-re
+   5: [0-9:=-]+
+   6:
+-re
+   7: The original message was received at [A-Z][a-z][a-z], [A-Z][a-z][a-z] [ 0-3][0-9] [ 0-2][0-9]:[0-6][0-9]:[0-6][0-9] [0-9][0-9][0-9][0-9] [a-zA-Z0-9]* from coyote@desert.example.org.
+   8: Message was refused by recipient's mail filtering program.
+   9: Reason given was as follows:
+  10: 
+  11: I don't want to read these messages.
+  12: 
+  13: Regards.
+  14: .
+  15:
+-re
+  16: [0-9:=-]+
+  17: Content-Type: message/delivery-status
+  18: 
+  19: Reporting-UA: sieve; GNU Mailutils 0.1.2
+-re
+  20: Arrival-Date: [A-Z][a-z][a-z], [A-Z][a-z][a-z] [ 0-3][0-9] [ 0-2][0-9]:[0-6][0-9]:[0-6][0-9] [0-9][0-9][0-9][0-9] [a-zA-Z0-9]*
+  21: Final-Recipient: RFC822; foobar@nonexistent.net
+  22: Action: deleted
+  23: Disposition: automatic-action/MDN-sent-automatically;deleted
+-re
+  24: Last-Attempt-Date: [A-Z][a-z][a-z], [A-Z][a-z][a-z] [ 0-3][0-9] [ 0-2][0-9]:[0-6][0-9]:[0-6][0-9] [0-9][0-9][0-9][0-9] [a-zA-Z0-9]*
+  25:
+-re
+  26: [0-9:=-]+
+  27: Content-Type: message/rfc822
+  28: 
+  29: From: coyote@desert.example.org
+  30: To: roadrunner@acme.example.com
+  31: Subject: I have a present for you
+  32: X-Caffeine: C8H10N4O2
+  33: 
+  34: Look, I'm sorry about the whole anvil thing, and I really
+  35: didn't mean to try and drop it on you from the top of the
+  36: cliff.  I want to try to make it up to you.  I've got some
+  37: great birdseed over here at my place--top of the line
+  38: stuff--and if you come by, I'll have it all wrapped up
+  39: for you.  I'm really sorry for all the problems I've caused
+  40: for you over the years, but I know we can work this out.
+  41: 
+  42: -- 
+  43: Wile E. Coyote   "Super Genius"   coyote@desert.example.org
+  44:
+-re
+  45: [0-9:=-]+
+  46: 
+END OF MESSAGE
+ENVELOPE FROM: MAILER-DAEMON@Mirddin.farlep.net
+ENVELOPE TO: <b1ff@de.res.example.com>
+   0: To: <b1ff@de.res.example.com>
+-re
+   1: X-Authentication-Warning: [^ \t]+ set sender using -f flag
+-re
+   2: Content-Type: multipart/mixed; boundary="[0-9:=-]+"
+   3: MIME-Version: 1.0
+   4:
+-re
+   5: [0-9:=-]+
+   6:
+-re
+   7: The original message was received at [A-Z][a-z][a-z], [A-Z][a-z][a-z] [ 0-3][0-9] [ 0-2][0-9]:[0-6][0-9]:[0-6][0-9] [0-9][0-9][0-9][0-9] [a-zA-Z0-9]* from b1ff@de.res.example.com.
+   8: Message was refused by recipient's mail filtering program.
+   9: Reason given was as follows:
+  10: 
+  11: I don't want to read these messages.
+  12: 
+  13: Regards.
+  14: .
+  15:
+-re
+  16: [0-9:=-]+
+  17: Content-Type: message/delivery-status
+  18: 
+  19: Reporting-UA: sieve; GNU Mailutils 0.1.2
+-re
+  20: Arrival-Date: [A-Z][a-z][a-z], [A-Z][a-z][a-z] [ 0-3][0-9] [ 0-2][0-9]:[0-6][0-9]:[0-6][0-9] [0-9][0-9][0-9][0-9] [a-zA-Z0-9]*
+  21: Final-Recipient: RFC822; foobar@nonexistent.net
+  22: Action: deleted
+  23: Disposition: automatic-action/MDN-sent-automatically;deleted
+-re
+  24: Last-Attempt-Date: [A-Z][a-z][a-z], [A-Z][a-z][a-z] [ 0-3][0-9] [ 0-2][0-9]:[0-6][0-9]:[0-6][0-9] [0-9][0-9][0-9][0-9] [a-zA-Z0-9]*
+  25:
+-re
+  26: [0-9:=-]+
+  27: Content-Type: message/rfc822
+  28: 
+  29: From: youcouldberich!@reply-by-postal-mail.invalid
+  30: To: rube@landru.example.edu
+  31: Subject: $$$ YOU, TOO, CAN BE A MILLIONAIRE! $$$
+  32: Date: TBD
+  33: 
+  34: YOU MAY HAVE ALREADY WON TEN MILLION DOLLARS, BUT I DOUBT
+  35: IT!  SO JUST POST THIS TO SIX HUNDRED NEWSGROUPS!  IT WILL
+  36: GUARANTEE THAT YOU GET AT LEAST FIVE RESPONSES WITH MONEY!
+  37: MONEY! MONEY! COLD HARD CASH!  YOU WILL RECEIVE OVER
+  38: $20,000 IN LESS THAN TWO MONTHS!  AND IT'S LEGAL!!!!!!!!!
+  39: !!!!!!!!!!!!!!!!!!111111111!!!!!!!11111111111!!1  JUST
+  40: SEND $5 IN SMALL, UNMARKED BILLS TO THE ADDRESSES BELOW!
+  41:
+-re
+  42: [0-9:=-]+
+  43: 
+END OF MESSAGE
+ENVELOPE FROM: MAILER-DAEMON@Mirddin.farlep.net
+ENVELOPE TO: <bar@dontmailme.org>
+   0: To: <bar@dontmailme.org>
+-re
+   1: X-Authentication-Warning: [^ \t]+ set sender using -f flag
+-re
+   2: Content-Type: multipart/mixed; boundary="[0-9:=-]+"
+   3: MIME-Version: 1.0
+   4:
+-re
+   5: [0-9:=-]+
+   6:
+-re
+   7: The original message was received at [A-Z][a-z][a-z], [A-Z][a-z][a-z] [ 0-3][0-9] [ 0-2][0-9]:[0-6][0-9]:[0-6][0-9] [0-9][0-9][0-9][0-9] [a-zA-Z0-9]* from bar@dontmailme.org.
+   8: Message was refused by recipient's mail filtering program.
+   9: Reason given was as follows:
+  10: 
+  11: I don't want to read these messages.
+  12: 
+  13: Regards.
+  14: .
+  15:
+-re
+  16: [0-9:=-]+
+  17: Content-Type: message/delivery-status
+  18: 
+  19: Reporting-UA: sieve; GNU Mailutils 0.1.2
+-re
+  20: Arrival-Date: [A-Z][a-z][a-z], [A-Z][a-z][a-z] [ 0-3][0-9] [ 0-2][0-9]:[0-6][0-9]:[0-6][0-9] [0-9][0-9][0-9][0-9] [a-zA-Z0-9]*
+  21: Final-Recipient: RFC822; foobar@nonexistent.net
+  22: Action: deleted
+  23: Disposition: automatic-action/MDN-sent-automatically;deleted
+-re
+  24: Last-Attempt-Date: [A-Z][a-z][a-z], [A-Z][a-z][a-z] [ 0-3][0-9] [ 0-2][0-9]:[0-6][0-9]:[0-6][0-9] [0-9][0-9][0-9][0-9] [a-zA-Z0-9]*
+  25:
+-re
+  26: [0-9:=-]+
+  27: Content-Type: message/rfc822
+  28: 
+  29: Received: (from bar@dontmailme.org)
+  30: 	by dontmailme.org id fERKR9N16790
+  31: 	for foobar@nonexistent.net; Fri, 28 Dec 2001 22:18:08 +0200
+  32: Date: Fri, 28 Dec 2001 23:28:08 +0200
+  33: From: Bar <bar@dontmailme.org>
+  34: To: Foo Bar <foobar@nonexistent.net>
+  35: Message-Id: <200112232808.fERKR9N16790@dontmailme.org>
+  36: Subject: Coffee
+  37: 
+  38: How about some coffee?
+  39:
+-re
+  40: [0-9:=-]+
+  41: 
+END OF MESSAGE
+FILE END
+TEST END
+
+# End of Reject
