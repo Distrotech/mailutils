@@ -303,12 +303,14 @@ pop3_daemon (unsigned int maxchildren)
       syslog (LOG_ERR, "socket: %s", strerror(errno));
 	  exit (-1);
     }
+  size = 1; /* use size here to avoid making a new variable */
+  setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, &size, sizeof(size));  
   size = sizeof(server);
   memset (&server, 0, size);
   server.sin_family = AF_INET;
   server.sin_addr.s_addr = htonl (INADDR_ANY);
   server.sin_port = htonl (port);
-  
+
   if (bind(listenfd, (SA *) &server, size) == -1 )
     {
       syslog(LOG_ERR, "bind: %s", strerror(errno));
