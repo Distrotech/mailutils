@@ -1,3 +1,7 @@
+2001-10-24  Alain Magloire
+
+	* configure.in: Check for getdelim().
+
 2001-10-23  Alain Magloire
 
 	The message_t object makes no guaranty about the size and the lines
