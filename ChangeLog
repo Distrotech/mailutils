@@ -1,3 +1,14 @@
+2003-08-20  Sergey Poznyakoff
+
+	* comsat/action.c (expand_escape): Use argcv_unescape_char()
+	instead of backslash().
+	* libsieve/sieve.l: Fixed handling of escape sequences in
+	strings. Thanks Fabrice Bauzac <fabrice.bauzac@wanadoo.fr>
+	for reporting.
+	* mailbox/argcv.c (argcv_unescape_char,argcv_escape_char):
+	New functions.
+	* include/mailutils/argcv.h: Likewise.
+	
 2003-08-19  Sergey Poznyakoff 
 
 	* mh/replgroupcomps: New file.
