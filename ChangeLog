@@ -1,3 +1,7 @@
+2004-11-03  Sergey Poznyakoff 
+
+	* dotlock/dotlock.c: Removed -T option (CAN-2004-0984)
+
 2004-10-26  Sergey Poznyakoff
 
 	* imap4d/store.c (imap4d_store0): Send \r\n at the end of
