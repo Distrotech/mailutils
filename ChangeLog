@@ -1,3 +1,34 @@
+2002-11-01  Jeff Bailey  <jbailey@gnu.org>
+
+	* mh/Makefile.am: Use MHPROGRAMS and MHLIBRARIES instead of
+	MH_PROGRAMS and MH_LIBRARIES so that automake doesn't complain.
+
+	* mail.remote/Makefile.am: Use SMTPPROGRAMS instead of
+	SMTP_PROGRAMS so that automake doesn't complain.
+
+	* configure.ac: Adjust for above changes.
+	
+	* mh/Makefile.am: Use AM_YFLAGS instead of YFLAGS.  
+
+	* libmu_scm/Makefile.am: Use AM_CPPFLAGS instead of CPPFLAGS
+
+	* autogen.sh: Redo using 'autoreconf'.  This is now the right
+	tool to use for generating the build environment.
+
+	* Makefile.am: Require version 1.7.1, add std-options to 
+	AUTOMAKE_OPTIONS
+
+	* configure.in: Require version 2.54.  Update quoting.  Change
+	AC_ARG_WITH and AC_ARG_ENABLE to use AC_HELP_STRING
+
+	* m4/enable.m4: Change AC_ARG_ENABLE to use AC_HELP_STRING
+	
+	* lib/Makefile.am: Remove ansi2knr
+
+	* lib/ansi2knr.c: Remove
+
+	* lib/ansi2knr.1: Remove
+	
 2002-11-01  Sergey Poznyakoff
 
 	* m4/enable.m4: Fixed action-if-false.
@@ -7,15 +38,6 @@
 	* mh/Makefile.am: Build the targets conditionally.
 	* mail.remote/Makefile.am: Likewise.
 	
-2002-10-30  Jeff Bailey  <jbailey@gnu.org>
-
-	* mh/Makefile.am: Use AM_YFLAGS instead of YFLAGS
-
-	* libmu_scm/Makefile.am: Use AM_CPPFLAGS instead of CPPFLAGS
-
-	* autogen.sh: Redo using 'autoreconf'.  This is now the right
-	tool to use for generating the build environment.
-
 2002-10-29  Sergey Poznyakoff 
 
 	Following the proposition of Olivier Bornet

@@ -17,13 +17,13 @@
 # Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #
 
-AC_INIT([GNU Mailutils], [0.1.2], [bug-mailutils@gnu.org])
+AC_INIT([GNU Mailutils],[0.1.2],[bug-mailutils@gnu.org])
 AC_CONFIG_SRCDIR([mailbox/mailbox.c])
 AC_CANONICAL_TARGET([])
 AM_INIT_AUTOMAKE
-AM_CONFIG_HEADER(config.h)
+AC_CONFIG_HEADERS([config.h])
 
-AC_PREREQ(2.52)
+AC_PREREQ(2.54)
 
 dnl Check for programs
 AC_PROG_CC
@@ -42,34 +42,41 @@ MU_DEBUG_MODE
 AUTHLIBS=../auth/libmuauth.la
 
 dnl Check for arguments
-AC_ARG_ENABLE(pam,
- [  --disable-pam           disable pam],
- [case "${enableval}" in
+AC_ARG_ENABLE([pam],
+              AC_HELP_STRING([--disable-pam],
+                             [disable pam]),
+              [
+case "${enableval}" in
   yes) testpam=yes ;;
   no)  testpam=no ;;
-  *)   AC_MSG_ERROR(bad value ${enableval} for --disable-pam) ;;
- esac],[testpam=yes])
+  *)   AC_MSG_ERROR([bad value ${enableval} for --disable-pam]) ;;
+esac],[testpam=yes])
 
-AC_ARG_ENABLE(pthread,
- [  --disable-pthread       disable pthread],
- [case "${enableval}" in
+AC_ARG_ENABLE([pthread],
+              AC_HELP_STRING([--disable-pthread],
+                             [disable pthread]),
+              [
+case "${enableval}" in
   yes) usepthread=yes ;;
   no)  usepthread=no ;;
   *)   AC_MSG_ERROR(bad value ${enableval} for --disable-pthread) ;;
-  esac],[usepthread=yes])
+esac],[usepthread=yes])
 
-AC_ARG_WITH(readline,
- [  --without-readline      do not use readline],
- [case "${withval}" in
+AC_ARG_WITH([readline],
+            AC_HELP_STRING([--without-readline],
+                           [do not use readline]),
+            [
+case "${withval}" in
   yes) usereadline=yes ;;
   no)  usereadline=no ;;
   *)   AC_MSG_ERROR(bad value ${withval} for --without-readline) ;;
-  esac],[usereadline=yes])
+esac],[usereadline=yes])
 
-AC_ARG_WITH(gssapi,
- [  --with-gssapi           use GSSAPI authentication ],
- [WITH_GSSAPI=$withval],
- [WITH_GSSAPI=no])
+AC_ARG_WITH([gssapi],
+            AC_HELP_STRING([--with-gssapi],
+                           [use GSSAPI authentication]),
+            [WITH_GSSAPI=$withval],
+            [WITH_GSSAPI=no])
 
 if test "x$WITH_GSSAPI" != "xno"; then
   MU_CHECK_GSSAPI($WITH_GSSAPI)
@@ -85,32 +92,38 @@ if test "x$WITH_GSSAPI" != "xno"; then
 fi
 AC_SUBST(AUTHOBJS)
 
-AC_ARG_WITH(guile,
- [  --without-guile         do not build guile interface],
- [case "${withval}" in
+AC_ARG_WITH([guile],
+            AC_HELP_STRING([--without-guile],
+                           [do not build guile interface]),
+            [
+case "${withval}" in
   yes) useguile=yes ;;
   no)  useguile=no ;;
   *)   AC_MSG_ERROR(bad value ${withval} for --without-guile) ;;
-  esac],[useguile=yes])
+esac],[useguile=yes])
 
 AC_SUBST(SITE_MAIL_RC)
-AC_ARG_WITH(mail-rc,
- [  --with-mail-rc=FILE     use FILE instead of \$sysconfdir/mail.rc],
- [case "${withval}" in
+AC_ARG_WITH([mail-rc],
+            AC_HELP_STRING([--with-mail-rc=FILE],
+                           [use FILE instead of $sysconfdir/mail.rc]),
+            [
+case "${withval}" in
   /*) SITE_MAIL_RC="${withval}";;
   *)  SITE_MAIL_RC="\$(sysconfdir)/${withval}";;
   esac],
  [SITE_MAIL_RC="\$(sysconfdir)/mail.rc"])
 
 MU_CONF_MAILDIR=
-AC_ARG_WITH(mail-spool,
- [  --with-mail-spool=PATH  use PATH instead of /var/spool/mail],
- [case "$withval" in
+AC_ARG_WITH([mail-spool],
+            AC_HELP_STRING([--with-mail-spool=PATH],
+                           [use PATH instead of /var/spool/mail]),
+            [
+case "$withval" in
   /*/) MU_CONF_MAILDIR="\"${withval}\"";;
   /*)  MU_CONF_MAILDIR="\"${withval}/\"";;
   *:*[[/=]]) MU_CONF_MAILDIR="\"${withval}\"";;
   *)  AC_MSG_ERROR(--with-mail-spool must be an absolute path or a valid URL);;
-  esac])
+esac])
 
 if test "x$MU_CONF_MAILDIR" != x; then
   AC_DEFINE_UNQUOTED(MU_CONF_MAILDIR,$MU_CONF_MAILDIR,
@@ -134,44 +147,53 @@ AH_BOTTOM([
 #endif])
 
 use_dbm=no
-AC_ARG_WITH(gdbm,
- [  --with-gdbm             use GDBM],
- [case "${withval}" in
+AC_ARG_WITH([gdbm],
+            AC_HELP_STRING([--with-gdbm],
+                           [use GDBM]),
+            [
+case "${withval}" in
   yes) use_dbm=GDBM ;;
   no)  use_dbm=no ;;
   *)   AC_MSG_ERROR(bad value ${withval} for --with-gdbm) ;;
-  esac])
+esac])
 
-AC_ARG_WITH(db2,
- [  --with-db2              use Berkeley DB],
- [case "${withval}" in
+AC_ARG_WITH([db2],
+            AC_HELP_STRING([--with-db2],
+                           [use Berkeley DB]),
+            [
+case "${withval}" in
   yes) use_dbm=BDB2 ;;
   no)  use_dbm=no ;;
   *)   AC_MSG_ERROR(bad value ${withval} for --with-db) ;;
-  esac])
+esac])
 
-AC_ARG_WITH(ndbm,
- [  --with-ndbm             use NDBM],
- [case "${withval}" in
+AC_ARG_WITH([ndbm],
+            AC_HELP_STRING([--with-ndbm],
+                           [use NDBM]),
+            [
+case "${withval}" in
   yes) use_dbm=NDBM ;;
   no)  use_dbm=no ;;
   *)   AC_MSG_ERROR(bad value ${withval} for --with-ndbm) ;;
-  esac])
+esac])
 
-AC_ARG_WITH(dbm,
- [  --with-dbm              use old DBM],
- [case "${withval}" in
+AC_ARG_WITH([dbm],
+            AC_HELP_STRING([--with-dbm],
+                           [use old DBM]),
+            [
+case "${withval}" in
   yes) use_dbm=ODBM ;;
   no)  use_dbm=no ;;
   *)   AC_MSG_ERROR(bad value ${withval} for --with-old-dbm) ;;
-  esac])
+esac])
 
 AC_MSG_CHECKING(for log facility)
 log_facility="LOG_MAIL"
-AC_ARG_WITH(log-facility,
- [  --with-log-facility=facility   enable logging to the given facility],
- AC_TRY_COMPILE([#include <syslog.h>], int lf = $withval,
-	log_facility=$withval))
+AC_ARG_WITH([log-facility],
+            AC_HELP_STRING([--with-log-facility=facility],
+                           [enable logging to the given facility]),
+            [AC_TRY_COMPILE([#include <syslog.h>], int lf = $withval,
+	     log_facility=$withval)])
 AC_DEFINE_UNQUOTED(LOG_FACILITY, $log_facility,
                    [Default syslog facility to use])
 AC_MSG_RESULT($log_facility)
@@ -308,7 +330,10 @@ AC_CHECK_FUNCS(_obstack_begin,
 dnl check if mysql support was added
 AC_SUBST(BUILD_LIBMYSQL)
 AC_SUBST(MYSQLLIBS)
-AC_ARG_ENABLE(mysql, [  --enable-mysql  enable mysql support (default no)], [use_mysql="yes"],,)
+AC_ARG_ENABLE([mysql],
+              AC_HELP_STRING([--enable-mysql],
+                             [enable mysql support (default no)]),
+              [use_mysql="yes"],,)
 if test x"$use_mysql" = x"yes"; then
 	AC_CHECK_HEADER(mysql/mysql.h,
 	[AUTHLIBS="$AUTHLIBS -lmysqlclient -lm -L/usr/lib/mysql -L/usr/local/lib/mysql"
@@ -316,27 +341,32 @@ if test x"$use_mysql" = x"yes"; then
 fi
 
 dnl Virtual domain support, at least for pop3d
-AC_ARG_ENABLE(virtual-domains, [  --enable-virtual-domains  enable virtual domain support (default no)], [use_virtual_domains="yes"],,)
+AC_ARG_ENABLE([virtual-domains],
+              AC_HELP_STRING([--enable-virtual-domains],
+                             [enable virtual domain support (default no)]),
+              [use_virtual_domains="yes"],,)
 if test x"$use_virtual_domains" = x"yes"; then
    AC_DEFINE(USE_VIRTUAL_DOMAINS,1,[Enable use of virtual domains])
    AC_SUBST(SITE_VIRTUAL_PWDDIR)
-   AC_ARG_WITH(virtual-pwddir,
-    [  --with-virtual-pwddir=DIR   use DIR instead of \$sysconfdir/domain],
-    [case "${withval}" in
+   AC_ARG_WITH([virtual-pwddir],
+               AC_HELP_STRING([--with-virtual-pwddir=DIR],
+                              [use DIR instead of $sysconfdir/domain]),
+               [
+case "${withval}" in
      /*) SITE_VIRTUAL_PWDDIR="${withval}";;
      *)  SITE_VIRTUAL_PWDDIR="\$(sysconfdir)/${withval}";;
-    esac],
+esac],
     [SITE_VIRTUAL_PWDDIR="\$(sysconfdir)/domain"])
 fi
 
 MU_ENABLE_SUPPORT(imap)
 MU_ENABLE_SUPPORT(pop)
 
-AC_SUBST(MH_PROGRAMS)
-AC_SUBST(MH_LIBRARIES)
-MU_ENABLE_SUPPORT(mh, [MH_PROGRAMS='$(MH_PROGRAMS)'; MH_LIBRARIES='$(MH_LIBRARIES)'])
-AC_SUBST(SMTP_PROGRAMS)
-MU_ENABLE_SUPPORT(smtp, [SMTP_PROGRAMS='$(SMTP_PROGRAMS)'])
+AC_SUBST(MHPROGRAMS)
+AC_SUBST(MHLIBRARIES)
+MU_ENABLE_SUPPORT(mh, [MHPROGRAMS='$(MHPROGRAMS)'; MHLIBRARIES='$(MHLIBRARIES)'])
+AC_SUBST(SMTPPROGRAMS)
+MU_ENABLE_SUPPORT(smtp, [SMTPPROGRAMS='$(SMTPPROGRAMS)'])
 MU_ENABLE_SUPPORT(sendmail)
 
 if test x"$testpam" = x"yes"; then

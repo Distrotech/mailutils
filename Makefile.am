@@ -2,7 +2,7 @@
 # Copyright (C) 2000,2001,2002 Free Software Foundation
 # See file COPYING in the distribution root directory for copying conditions.
 
-AUTOMAKE_OPTIONS = gnu 1.6 readme-alpha
+AUTOMAKE_OPTIONS = gnu 1.7.1 readme-alpha std-options
 ACLOCAL_AMFLAGS = -I m4
 
 SUBDIRS = include m4 lib testsuite mailbox examples doc \

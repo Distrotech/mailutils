@@ -23,13 +23,15 @@ AC_DEFUN([MU_ENABLE_SUPPORT], [
 	pushdef([mu_cache_var],[mu_cv_enable_]$1)
 
 	AC_ARG_ENABLE($1, 
-	 [  --disable-]$1[          disable ]$1[ support],
-	 [case "${enableval}" in
+	              AC_HELP_STRING([--disable-]$1,
+		                     [disable ]$1[ support]),
+	              [
+	case "${enableval}" in
 		yes) mu_cache_var=yes;;
                 no)  mu_cache_var=no;;
 	        *)   AC_MSG_ERROR(bad value ${enableval} for --disable-$1) ;;
-          esac],
-         [mu_cache_var=yes])
+        esac],
+                      [mu_cache_var=yes])
 
 	if test x"[$]mu_cache_var" = x"yes"; then
 		AC_DEFINE([ENABLE_]mu_upcase,1,[Define this if you enable $1 support])
