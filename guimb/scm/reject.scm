@@ -48,7 +48,8 @@
 	   (port (mu-message-get-port mesg "w")))
       (mu-message-set-header mesg "Content-Type" "message/delivery-status")
 
-      (display "Reporting-UA: guimb; GNU Mailutils 0.0.9\n" port)
+      (display (string-append "Reporting-UA: sieve; GNU "
+			      mu-package-string "\n") port)
       (display (string-append "Arrival-Date: " datestr "\n") port)
       (newline port)
       

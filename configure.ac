@@ -465,6 +465,7 @@ esac
 dnl Check for Guile
 AC_SUBST(GUILE_INCLUDES)
 AC_SUBST(GUILE_LIBS)
+AC_SUBST(GUILE_BINDIR)
 AC_SUBST(GUILE_SNARF_VERSION)
 AC_SUBST(GUIMB)
 AC_SUBST(MU_SCM)
@@ -477,6 +478,7 @@ if test x"$useguile" = x"yes"; then
             AC_DEFINE(WITH_GUILE,1,[Enable Guile support])
             GUILE_INCLUDES=`guile-config compile`
   	    GUILE_LIBS=`guile-config link`
+	    GUILE_BINDIR=`guile-config info bindir`
 	    GUIMB=guimb
             MU_SCM=libmu_scm.la
             LIBMU_SCM=../libmu_scm/libmu_scm.la
