@@ -14,6 +14,7 @@
    You should have received a copy of the GNU Library General Public License
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
+
 #ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
@@ -155,8 +156,8 @@ _get_ticket (ticket_t *pticket, const char *filename, const char *user)
 	      ptr = buf + len;
 	      continue;
 	    }
-	  else
-	    ptr = buf;
+
+	  ptr = buf;
 
 	  /* Comments.  */
 	  if (*ptr == '#')
@@ -171,8 +172,8 @@ _get_ticket (ticket_t *pticket, const char *filename, const char *user)
 
 	  /* user:passwd.  Separator maybe ": \t" */
 	  if (len && ((sep = memchr (ptr, ':', len)) != NULL
-			 || (sep = memchr (ptr, ' ', len)) != NULL
-			 || (sep = memchr (ptr, '\t', len)) != NULL))
+		      || (sep = memchr (ptr, ' ', len)) != NULL
+		      || (sep = memchr (ptr, '\t', len)) != NULL))
 	    {
 	      *sep++ = '\0';
 	      ptr = stripwhite (ptr);
@@ -183,6 +184,7 @@ _get_ticket (ticket_t *pticket, const char *filename, const char *user)
 		  break;
 		}
 	    }
+	  ptr = buf;
 	}
     }
   else
@@ -209,7 +211,7 @@ myticket_create (ticket_t *pticket, const char *user, const char *pass)
   ticket_set_pop (*pticket, myticket_pop, NULL);
   ticket_set_data (*pticket, mdata, NULL);
   if ((mdata->user = strdup (user)) == NULL
-       || (mdata->pass = strdup (pass)) == NULL)
+      || (mdata->pass = strdup (pass)) == NULL)
     {
       status = ENOMEM;
       ticket_destroy (pticket, NULL);

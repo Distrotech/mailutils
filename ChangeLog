@@ -1,5 +1,9 @@
 2001-11-14  Alain Magloire
 
+	* mailbox/wicket.c (_get_ticket): Reset the buffer.
+
+2001-11-14  Alain Magloire
+
 	To provide an easy way to crete a ticket_t from
 	a file, one can create a wicket_t and fetch ticket_t's
 	for different users to set on the authority.
