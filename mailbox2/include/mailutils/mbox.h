@@ -54,13 +54,13 @@ extern int  mbox_set_separator   __P ((mbox_t, unsigned int, const char *));
 
 extern int  mbox_get_hstream     __P ((mbox_t, unsigned int, stream_t *));
 extern int  mbox_set_hstream     __P ((mbox_t, unsigned int, stream_t));
-extern int  mbox_get_hsize       __P ((mbox_t, unsigned int, unsigned *));
-extern int  mbox_get_hlines      __P ((mbox_t, unsigned int, unsigned *));
+extern int  mbox_get_hsize       __P ((mbox_t, unsigned int, unsigned int *));
+extern int  mbox_get_hlines      __P ((mbox_t, unsigned int, unsigned int *));
 
-extern int  mbox_get_bstream     __P ((mbox_t, unsigned int, stream_t *));
+extern int  mbox_get_bstream     __P ((mbox_t, unsigned int, stream_t int *));
 extern int  mbox_set_bstream     __P ((mbox_t, unsigned int, stream_t));
-extern int  mbox_get_bsize       __P ((mbox_t, unsigned int, unsigned *));
-extern int  mbox_get_blines      __P ((mbox_t, unsigned int, unsigned *));
+extern int  mbox_get_bsize       __P ((mbox_t, unsigned int, unsigned int *));
+extern int  mbox_get_blines      __P ((mbox_t, unsigned int, unsigned int *));
 
 extern int  mbox_get_size        __P ((mbox_t, unsigned long *));
 
@@ -68,7 +68,7 @@ extern int  mbox_save_attributes __P ((mbox_t));
 extern int  mbox_mark_deleted    __P ((mbox_t, unsigned int));
 extern int  mbox_unmark_deleted  __P ((mbox_t, unsigned int));
 extern int  mbox_expunge         __P ((mbox_t));
-extern int  mbox_is_modified     __P ((mbox_t));
+extern int  mbox_changed_on_disk __P ((mbox_t));
 
 extern int  mbox_set_progress_cb __P ((mbox_t, int (*) __P ((int, void *)), void *));
 extern int  mbox_set_newmsg_cb   __P ((mbox_t, int (*) __P ((int, void *)), void *));
