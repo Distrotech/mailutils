@@ -1,5 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2002, 2003,
+   2004 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -166,7 +167,7 @@ retrieve_header (void *item, void *data, int idx, char **pval)
       int i = hc->index++;
       if (strcasecmp (buf, (char*)item) == 0)
 	{
-	  if (header_aget_field_value (hc->header, i, pval))
+	  if (header_aget_field_value_unfold (hc->header, i, pval))
 	    return 1;
 	  return 0;
 	}
