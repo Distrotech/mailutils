@@ -1,18 +1,18 @@
-/* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+/* GNU Mailutils -- a suite of utilities for electronic mail
+   Copyright (C) 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
 
-   This program is free software; you can redistribute it and/or modify
+   GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Library Public License as published by
    the Free Software Foundation; either version 2, or (at your option)
    any later version.
 
-   This program is distributed in the hope that it will be useful,
+   GNU Mailutils is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU Library General Public License for more details.
 
    You should have received a copy of the GNU Library General Public License
-   along with this program; if not, write to the Free Software
+   along with GNU Mailutils; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #ifdef HAVE_CONFIG_H
@@ -32,6 +32,7 @@
 
 #include <mailutils/stream.h>
 #include <mailutils/error.h>
+#include <mailutils/nls.h>
 
 struct _file_stream
 {
@@ -436,7 +437,7 @@ _file_open (stream_t stream)
 	  || filebuf.st_nlink != 1
 	  || (fdbuf.st_mode & S_IFMT) != S_IFREG)
 	{
-	  mu_error ("%s must be a plain file with one link\n", filename);
+	  mu_error (_("%s must be a plain file with one link\n"), filename);
 	  close (fd);
 	  return EINVAL;
 	}
