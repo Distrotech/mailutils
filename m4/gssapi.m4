@@ -61,14 +61,16 @@ AC_DEFUN(MU_CHECK_GSSAPI,
         GSSAPI_LIBS="$GSSAPI_LDFLAGS -lgssapi_krb5 -lkrb5 -lcrypto -lcom_err"]
         ,, -lkrb5 -lcrypto -lcom_err)
     fi
+
+    CPPFLAGS="$saved_CPPFLAGS"
+    LDFLAGS="$saved_LDFLAGS"
+    LIBS="$saved_LIBS"
   fi
 
   mu_cv_lib_gssapi_cflags="$GSSAPI_CFLAGS"
   mu_cv_lib_gssapi_libs="$GSSAPI_LIBS"
   mu_cv_lib_gssapi_impl="$GSSAPI_IMPL"
 
-  LDFLAGS="$saved_LDFLAGS"
-  LIBS="$saved_LIBS"
  else
   cached=" (cached) "
   GSSAPI_CFLAGS="$mu_cv_lib_gssapi_cflags"
