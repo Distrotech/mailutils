@@ -16,10 +16,10 @@
 
 @end menu
 
-Where ever the mail is and whatever format it is store in, the same operations
+Whereever the mail is and whatever format it is stored in, the same operations
 to manipulate emails are common.  To unified the C API, GNU mailutils offers
-an heteroclite set of objects that work in aggregation to do operations on
-emails.  Each object do a specific task and delegate non related tasks to
+a heteroclite set of objects that work in aggregation to do operations on
+emails.  Each object do a specific task and delegates non related tasks to
 others.  The object comes alive by specifying a @emph{URL} parameter when
 created, it will indicate the storage format or protocol
 (POP3, IMAP4, MH, MAILDIR, etc ..).

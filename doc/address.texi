@@ -1,5 +1,5 @@
 @example
-@code{/* Prefix @emph{address_} is reserve */}
+@code{/* Prefix @emph{address_} is reserved */}
 @code{#include <mailutils/address.h>}
 
 @end example
@@ -91,7 +91,7 @@ The @var{addr} is destroyed.
 
 @deftypefun  int address_get_email (address_t *@var{addr}, size_t @var{no}, char* @var{buf}, size_t @var{len}, size_t* @var{n})
 
-Acesses the @var{no}th email address component of the address list. This
+Accesses the @var{no}th email address component of the address list. This
 address is the plain email address, correctly quoted, suitable for
 using in an smtp dialog, for example, or as the address part of
 a contact book entry.
@@ -105,7 +105,7 @@ The return value is @code{0} on success and a code number on error conditions:
 
 @deftypefun  int address_get_personal (address_t *@var{addr}, size_t @var{no}, char* @var{buf}, size_t @var{len}, size_t* @var{n})
 
-Acesses the display-name describing the @var{no}th email address. This
+Accesses the display-name describing the @var{no}th email address. This
 display-name is optional, so may not be present. If it is not present, but
 there is an RFC822 comment after the address, that comment will be
 returned as the personal phrase, as this is a common usage of the comment
@@ -127,7 +127,7 @@ The return value is @code{0} on success and a code number on error conditions:
 
 @deftypefun  int address_get_comments (address_t *@var{addr}, size_t @var{no}, char* @var{buf}, size_t @var{len}, size_t* @var{n})
 
-Acesses the comments extracted while parsing the @var{no}th email address.
+Accesses the comments extracted while parsing the @var{no}th email address.
 These comments have no defined meaning, and are not currently collected.
 
 The return value is @code{0} on success and a code number on error conditions:
@@ -140,7 +140,7 @@ The return value is @code{0} on success and a code number on error conditions:
 
 @deftypefun  int address_get_email (address_t *@var{addr}, size_t @var{no}, char* @var{buf}, size_t @var{len}, size_t* @var{n})
 
-Acesses the email addr-spec extracted while
+Accesses the email addr-spec extracted while
 parsing the @var{no}th email address. This will be @code{0}
 length for a unix-mbox.
 
@@ -153,7 +153,7 @@ The return value is @code{0} on success and a code number on error conditions:
 
 @deftypefun  int address_get_local_part (address_t *@var{addr}, size_t @var{no}, char* @var{buf}, size_t @var{len}, size_t* @var{n})
 
-Acesses the local-part of an email addr-spec extracted while
+Accesses the local-part of an email addr-spec extracted while
 parsing the @var{no}th email address.
 
 The return value is @code{0} on success and a code number on error conditions:
@@ -165,7 +165,7 @@ The return value is @code{0} on success and a code number on error conditions:
 
 @deftypefun  int address_get_domain (address_t *@var{addr}, size_t @var{no}, char* @var{buf}, size_t @var{len}, size_t* @var{n})
 
-Acesses the domain of an email addr-spec extracted while
+Accesses the domain of an email addr-spec extracted while
 parsing the @var{no}th email address. This will be @code{0}
 length for a unix-mbox.
 
@@ -178,7 +178,7 @@ The return value is @code{0} on success and a code number on error conditions:
 
 @deftypefun  int address_get_route (address_t *@var{addr}, size_t @var{no}, char* @var{buf}, size_t @var{len}, size_t* @var{n})
 
-Acesses the route of an email addr-spec extracted while
+Accesses the route of an email addr-spec extracted while
 parsing the @var{no}th email address. This is a rarely used RFC822 address
 syntax, but is legal in SMTP as well. The entire route is returned as
 a string, those wishing to parse it should look at <mailutils/parse822.h>.

@@ -1,5 +1,5 @@
 @example
-@code{/* Prefix @emph{iterator_} is reserve */}
+@code{/* Prefix @emph{iterator_} is reserved */}
 @code{#include <mailutils/iterator.h>}
 
 @end example

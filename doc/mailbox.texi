@@ -1,12 +1,13 @@
 @example
-@code{/* Prefix @emph{mailbox_} is reserve */}
+@code{/* Prefix @emph{mailbox_} is reserved */}
 @code{#include <mailutils/mailbox.h>}
 
 @end example
 
 @deftp {Data Type} mailbox_t
 The @code{mailbox_t} object is used to hold information and it is an opaque
-data structure to the user. Functions are provided to retrieve the information.
+data structure to the user. Functions are provided to retrieve information
+from the data structure.
 @end deftp
 @example
 @group
@@ -64,9 +65,9 @@ Not enough memory to allocate resources.
 @end deftypefun
 
 @deftypefun int mailbox_create_default (mailbox_t *@var{pmbox}, const char *@var{name})
-The environment variable @emph{$MAIL} or the string formed by
+Create a mailbox with @code{mailbox_create ()} based on the environment
+variable @emph{$MAIL} or the string formed by
 @emph{_PATH_MAILDIR}/@var{user}" or @emph{$LOGNAME} if @var{user} is null,
-for a default mailbox and calls @code{mailbox_create}.
 @end deftypefun
 
 @deftypefun  void mailbox_destroy (mailbox_t *@var{pmbox})

@@ -1,19 +1,19 @@
 @example
-@code{/* Prefix @emph{auth_} is reserve */}
+@code{/* Prefix @emph{auth_} is reserved */}
 @code{#include <mailutils/auth.h>}
 
 @end example
 
-There are many ways to authenticate to a server, to be flexible the
+There are many ways to authenticate to a server.  To be flexible the
 authentication process is provided by two objects @code{auth_t} and
 @code{ticket_t}.  The @code{auth_t} can implement different protocol like
 APOP, MD5-AUTH, One Time Passwd etc .. By default if a mailbox
 does not understand or know how to authenticate it falls back to
-user/passwd authentication.  The @code{ticket_t} is away to
+user/passwd authentication.  The @code{ticket_t} is a way for
 Mailboxes and Mailers provide a way to authenticate when the URL does not
-contain enough information.  The default action is to call function
-@code{auth_authenticate} who will get the @emph{user} and @emph{passwd}
-if not set, this function can be override by a custom method.
+contain enough information.  The default action is to call the function
+@code{auth_authenticate} which will get the @emph{user} and @emph{passwd}
+if not set, this function can be overriden by a custom method.
 
 @deftypefun int auth_create (auth_t *@var{pauth}, void *@var{owner})
 @end deftypefun

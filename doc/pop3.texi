@@ -1,11 +1,11 @@
 @example
-@code{/* Prefix @emph{pop3_} is reserve */}
+@code{/* Prefix @emph{pop3_} is reserved */}
 @code{#include <mailutils/pop3.h>}
 
 @end example
 
 The Post Office Protocol Version 3 (POP3) purpose is to permit a client to
-download a maildrop from a remote server.  It does not provide complexe or
+download a maildrop from a remote server.  It does not provide complex or
 extensive operation on the maildrop.
 
 @example
@@ -45,7 +45,7 @@ Capa (extension)
 Auth (extension)
 @end itemize
 
-When the client successfully authenticate the server acquires an exclusive
+When the client successfully authenticates the server acquires an exclusive
 access lock on the mailbox and holds it the entire duration of the session.
 The POP3 session enters The TRANSACTION State and the client may issues
 commands to access the mailbox:
@@ -80,36 +80,36 @@ and closes the TCP connection.
 @cindex pop3_t
 
 An opaque structure @emph{pop3_t} is use as a handle for the session, it is
-allocate and initiliaze by calling @code{pop3_create ()}.  All Functions will
+allocated and initiliazed by calling @code{pop3_create ()}.  All Functions will
 wait for a reply from the POP3 server before returning.  The duration of
-the waiting can be set by calling @code{pop3_set_timeout ()}, the default
+the wait can be set by calling @code{pop3_set_timeout ()}, the default
 is 10 minutes@footnote{@strong{Caution:} Although the @cite{RFC 1939}
 specifies that the minimum default timeout is ten minutes many servers has
 shorter idle period, care should be taken to at least send a
 @code{pop3_noop ()} between lengthy period of times.}.  Once a succesfull
-connection is establish with @code{pop3_open ()}, two builtin authentications
+connection is established with @code{pop3_open ()}, two builtin authentications
 are provided @code{pop3_apop ()} or @code{pop3_user ()}, @code{pop3_pass ()}.
 The @code{pop3_stat ()} and @code{pop3_list ()} functions can be use to get the
-messages count and sizes. Downloading of messages are done via a stream
+number and size of messages. Downloading of messages is done via a stream
 provided by @code{pop3_retr ()} or @code{pop3_top ()}@footnote{
 @strong{Caution:} Some Internet Service Providers do not permit to leave mail
 on server and the message will be deleted once downloaded.}.
-The @code{stream_t} should be
-destroy to indicate to the library that the action is finish.  POP3 only
-provide a single channel for operation, it means only one operation can be
-done at a time, all the functions will return MU_ERROR_OPERATION_IN_PROGRESS
-if call during another operation.  The functions @code{pop3_list_all ()},
-@code{pop3_uidl_all ()} and @code{pop3_capa ()} give an @code{iterator_t},
-when iterating @code{iterator_current ()} will give an object that should
-be cast appropriatly and @code{free ()} by the caller, the @code{iterator_t}
-must also be destroy, @code{iterator_destroy ()}.
+The @code{stream_t} should be destroyed to indicate to the library that the
+action is finished.  POP3 only provide a single channel for operation, it
+means only one operation can be done at a time, all the functions will return
+MU_ERROR_OPERATION_IN_PROGRESS if call during another operation.  The
+functions @code{pop3_list_all ()},
+@code{pop3_uidl_all ()} and @code{pop3_capa ()} return an @code{iterator_t},
+when iterating @code{iterator_current ()} will return an object that should
+be cast appropriatly and @code{free ()}'ed by the caller, the @code{iterator_t}
+must also be destroyed, @code{iterator_destroy ()}.
 
 @subsubsection Initialisation
 @cindex POP3 Initialisation
 
 @deftypefun int pop3_create (pop3_t *)
 
-A valid @code{pop3_t} handle must be create first.
+A valid @code{pop3_t} handle must be created first.
 
 @table @code
 @item MU_ERROR_NO_MEMORY
@@ -119,15 +119,15 @@ A valid @code{pop3_t} handle must be create first.
 
 @deftypefun void pop3_destroy (pop3_t *)
 
-When the POP3 session is finished, the structure must be free to reclaim
+When the POP3 session is finished, the structure must be @code{free ()}'ed to reclaim
 memory.
 @end deftypefun
 
 @deftypefun int pop3_open (pop3_t, const char *@var{host}, unsigned port, int @var{flags})
 
-A connection is establish by calling @code{pop3d_open()}.  If non-blocking
-the function should be recall until the return value is no MU_ERROR_TRY_AGAIN
-or MU_ERROR_IN_PROGRESS.
+A connection is established by calling @code{pop3d_open()}.  If non-blocking
+the function should be recalled until the return value is not
+MU_ERROR_TRY_AGAIN or MU_ERROR_IN_PROGRESS.
 
 @table @code
 @item MU_ERROR_NO_MEMORY
@@ -141,10 +141,10 @@ or MU_ERROR_IN_PROGRESS.
 @end table
 @end deftypefun
 
-@deftypefun int pop3_set_carrier (pop3_t, stream_t @var{carrier});
+@deftypefun int pop3_set_stream (pop3_t, stream_t @var{carrier});
 
 A connection may have been started elsewhere, in this case the @code{stream_t}
-object is set on the @code{pop3_t} handle.
+object is set in the @code{pop3_t} handle.
 
 @table @code
 @item MU_ERROR_INVALID_PARAMETER
@@ -152,6 +152,10 @@ object is set on the @code{pop3_t} handle.
 @end deftypefun
 
 @deftypefun int pop3_get_carrier (pop3_t, stream_t *@var{carrier});
+
+Fill in the @code{stream_t} object with the stream form the @code{pop3_t}
+handle.
+
 @table @code
 @item MU_ERROR_INVALID_PARAMETER
 @item MU_ERROR_NO_MEMORY
@@ -168,7 +172,7 @@ use of POP3, for example checking for new mail, it is the prefered
 authentication.  It reduces the risk of passwd capture.  The @var{user}
 and the shared @var{secret} are pass to @code{pop3_apop ()}, the MD5 digest
 is calculated by applying the timestamp given by the server in the greeting
-followed by the @var{secret} and a @emph{APOP user digest} command is send.
+followed by the @var{secret} and @emph{APOP user digest} command is send.
 
 @table @code
 @item MU_ERROR_INVALID_PARAMETER
@@ -185,8 +189,8 @@ followed by the @var{secret} and a @emph{APOP user digest} command is send.
 @deftypefun int pop3_auth (pop3_t, const char *@var{auth})
 
 To allow the use of mechanism such as @emph{SASL}, @cite{RFC 2449}, extended
-POP3 mechanism whith AUTH. It permits the client to choose an alternate
-way of authenticate.  @strong{Caution:} The @code{pop_auth()} is a simple
+POP3 mechanism with AUTH. It permits the client to choose an alternate
+way of authenticating.  @strong{Caution:} The @code{pop_auth()} is a simple
 cover function that sends @emph{AUTH auth}, functions @code{pop3_sendline},
 @code{pop3_readline}, @code{pop3_response} or the pop3 stream
 @code{pop3_get_carrier ()} should be use appropriately to deal with the
@@ -204,13 +208,13 @@ challenges.
 @subsubsection Capa
 @cindex POP3 Capa
 
-@deftypefun int pop3_capa (pop3_t, iterator_t *)
+@deftypefun int pop3_capa (pop3_t, iterator_t *@var{iterator})
 
 The CAPA command is send to the sever and the list of capabilities is
 return in an @var{iterator}. The @code{iterator_current ()} should be cast
-to a @code{char **} and the string should be free by the caller.
+to a @code{char **} and the string should be @code{free ()}'ed by the caller.
 @strong{Caution:} The iterator must be destroy after use, it will discard
-any remaining response from CAPA and clear the way for new operations.
+any remaining responses from CAPA and clear the way for new operations.
 
 @table @code
 @item MU_ERROR_INVALID_PARAMETER
@@ -247,12 +251,12 @@ void print_capabilities (pop3_t pop3)
 
 @end deftypefun
 
-@subsubsection Dele
-@cindex POP3 Dele
+@subsubsection DELE
+@cindex POP3 DELE
 
 @deftypefun int pop3_dele (pop3_t, unsigned @var{msgno})
 
-Sends A Dele to the servers who will mark the @var{msgno} for deletion.
+Sends a DELE to the servers who will mark the @var{msgno} for deletion.
 The @var{msgno} may not refer to a message already marked deleted.
 If successfull any future reference to @var{msgno} in other operations will
 be an error, unless unmarked by RSET.
@@ -267,13 +271,13 @@ be an error, unless unmarked by RSET.
 
 @end deftypefun
 
-@subsubsection List
-@cindex POP3 List
+@subsubsection LIST
+@cindex POP3 LIST
 @cindex struct pop3_list
 
 @deftypefun int pop3_list (pop3_t, unsigned @var{msgno}, size_t *@var{size})
 
-Sends a List for a specific @var{msgno} and returns the @var{size}.
+Sends a LIST for a specific @var{msgno} and returns the @var{size}.
 
 @table @code
 @item MU_ERROR_INVALID_PARAMETER
@@ -284,12 +288,12 @@ Sends a List for a specific @var{msgno} and returns the @var{size}.
 @end table
 @end deftypefun
 
-@deftypefun int pop3_list_all (pop3_t, unsigned @var{msgno}, iterator_t *)
+@deftypefun int pop3_list_all (pop3_t, unsigned @var{msgno}, iterator_t *@var{iterator})
 
 Sends A LIST with no argument to the server. The @var{iterator} must be
 destroy after use, it will discard any remaining response from LIST and
 clear the way for new operations.  The @code{iterator_current ()} returns
-a @code{struct pop3_list *} that must be @code{free ()}.
+a @code{struct pop3_list *} that must be @code{free ()}'ed.
 
 @example
 struct pop3_list
@@ -371,7 +375,7 @@ Sends the PASS, to authenticate after the USER command.
 
 @deftypefun int pop3_quit (pop3_t)
 
-Enter the UPDATE state.  The server will delet all mesages marked
+Enter the UPDATE state.  The server will delete all messages marked
 deleted before closing the connection.
 
 @table @code
@@ -388,9 +392,9 @@ deleted before closing the connection.
 
 @deftypefun int pop3_retr (pop3_t, unsigned @var{msgno}, stream_t *)
 
-If successfull a @code{stream_t} is created to allow dowloading of the message,
+If successfull a @code{stream_t} is created to allow downloading of the message,
 byte-stuff lines or handle internally, CRLFs are converted to LF.  All other
-operations will failed until the stream is destroyed by the caller.
+operations will fail until the stream is destroyed by the caller.
 
 @table @code
 @item MU_ERROR_INVALID_PARAMETER
@@ -406,7 +410,7 @@ operations will failed until the stream is destroyed by the caller.
 
 @deftypefun int pop3_rset (pop3_t)
 
-Sends a RSET to unmarked the messages maked deleted.
+Sends a RSET to unmark the messages marked as deleted.
 
 @table @code
 @item MU_ERROR_INVALID_PARAMETER
@@ -422,8 +426,8 @@ Sends a RSET to unmarked the messages maked deleted.
 
 @deftypefun int pop3_stat (pop3_t, unsigned @var{msgno}, unsigned *@var{msg_count}, size_t *@var{size})
 
-Call a drop listing for the maildrop.  The number of messages in the mailbox
-and the size of the mailbox in octets. @strong{Caution:} The size is in RFC
+The number of messages in the mailbox and the size of the mailbox in octets.
+@strong{Caution:} The size is in RFC
 822 where line termination is CRLF, messages marked as deleted are not counted
 in either total.
 
@@ -459,8 +463,8 @@ operations will failed until the stream is destroyed by the caller.
 
 @deftypefun int pop3_uidl (pop3_t, unsigned @var{msgno}, char **@var{uidl})
 
-The Uniq Identifier is return in @var{uidl}, the string must be free,
-by the caller.
+The Uniq Identifier is return in @var{uidl}, the string must be
+@code{free ()}'ed, by the caller.
 
 @table @code
 @item MU_ERROR_INVALID_PARAMETER
@@ -474,8 +478,8 @@ by the caller.
 @deftypefun int pop3_uidl_all (pop3_t, iterator_t *)
 
 An @code{iterator_t} object is return to iterate through the response and
-must be destroy by the caller.  The @code{iterator_current ()} is a
-@code{char **} that must be @code{free ()} by the caller.
+must be destroyed by the caller.  The @code{iterator_current ()} is a
+@code{char **} that must be @code{free ()}'ed by the caller.
 
 @table @code
 @item MU_ERROR_INVALID_PARAMETER
@@ -507,7 +511,7 @@ Sends the User command.
 @deftypefun int pop3_writeline (pop3_t, const char *@var{format}, ...);
 
 Copy in the internal buffer of @code{pop3_t} the string, @code{pop3_send ()}
-should be call later to flush the string to POP3 server.
+should be called later to flush the string to the POP3 server.
 
 @table @code
 @item MU_ERROR_INVALID_PARAMETER
@@ -545,7 +549,7 @@ int pop3_sendline (pop3_t pop3, const char *line)
 
 @deftypefun int pop3_send (pop3_t, const char *@var{cmd});
 
-Flushes out the strings int the @code{pop3_t} internal buffer to the channel.
+Flushes out the strings in the @code{pop3_t} internal buffer to the channel.
 
 @table @code
 @item MU_ERROR_INVALID_PARAMETER

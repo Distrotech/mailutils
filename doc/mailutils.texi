@@ -104,17 +104,17 @@ This document was produced for version @value{VERSION} of @sc{gnu}
 @end ifinfo
 @menu
 * Introduction::                GNU @sc{mailutils}
-* C API::                       C API.
+* Concrete API::                Concrete API.
 * Framework::                   Framework.
 * Programs::                    Programs.
 * Reporting Bugs::              Reporting Bugs.
 * Acknowledgement::             Thanks and Credits.
-* Concept Index::                All @sc{Mailutils} Functions.
+* Concept Index::               All @sc{Mailutils} Functions.
 * Index::
 
 @end menu
 
-@node Introduction, C API, Top, Top
+@node Introduction, Concrete API, Top, Top
 @comment  node-name,  next,  previous,  up
 @chapter Introduction
 @cindex Introduction
@@ -217,14 +217,14 @@ Misc
 @cite{Internet Email Protocols a Developer's Guide by Kevin Johnson}
 @end itemize
 
-@node C API, Framework, Introduction, Top
+@node Concrete API, Framework, Introduction, Top
 @comment  node-name,  next,  previous,  up
-@chapter C API
-@cindex C API
+@chapter Concrete API
+@cindex Concrete API
 
 @include c-api.texi
 
-@node Framework, Programs, C API, Top
+@node Framework, Programs, Concrete API, Top
 @comment  node-name,  next,  previous,  up
 @chapter Framework
 @cindex Framework

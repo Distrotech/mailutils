@@ -1,5 +1,5 @@
 @example
-@code{/* Prefix @emph{imap4_} is reserve */}
+@code{/* Prefix @emph{imap4_} is reserved */}
 @code{#include <mailutils/imap4.h>}
 
 @end example
