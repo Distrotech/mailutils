@@ -1,6 +1,6 @@
 #
 # List of source files containing translatable strings.
-# Copyright (C) 2002, 2003 Free Software Foundation, Inc.
+# Copyright (C) 2002, 2003, 2004 Free Software Foundation, Inc.
 #
 
 auth/mysql.c

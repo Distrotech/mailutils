@@ -1,3 +1,8 @@
+2004-01-03  Wojciech Polak
+
+	* auth/tls.c (generate_dh_params): Adapt to GnuTLS >= 1.0.0.
+	* po/POTFILES.in: Added movemail/movemail.c
+
 2004-01-03  Sergey Poznyakoff
 
 	* guimb/scm/sieve.scm.in (sieve-version): New function. Supports
@@ -2833,9 +2838,9 @@
 
 2003-01-14  Wojciech Polak
 
-        * auth/tls.c (mu_init_tls_libs): gnutls_global_init() returns
-          zero on success, so reverse this state for 'tls_available'
-          variable.
+	* auth/tls.c (mu_init_tls_libs): gnutls_global_init() returns
+	  zero on success, so reverse this state for 'tls_available'
+	  variable.
 
 2003-01-14  Sergey Poznyakoff
 
@@ -2884,9 +2889,6 @@
 	* mail/write.c: Likewise.
 
 2003-01-14  Wojciech Polak
-
-	* doc/rfc/Makefile.am: Added rfc2595.txt
-	* TODO: Updated.
 
 	* pop3d/pop3d.h (ERR_TLS_ACTIVE, TLS_ACTIVE): New defines.
 	* pop3d/pop3d.c: Added support for ERR_TLS_ACTIVE.
@@ -3075,7 +3077,7 @@
 	* mh/Makefile.am: Enble install-exec-hook only if
 	  BUILD_MH_EXEC_HOOK is set.
 
-2003-01-01  Wojciech Polak <polak@gnu.org>
+2003-01-01  Wojciech Polak
 
 	* COPYING: Removed.
 
@@ -3139,7 +3141,7 @@
 
 	* configure.ac: Update FSF Address
 
-2002-12-31  Wojciech Polak <polak@gnu.org>
+2002-12-31  Wojciech Polak
 
 	* COPYING: New file.
 	* mailutils.spec.in: Fixed.
@@ -3184,13 +3186,13 @@
 	* include/mailutils/argp.h: Enclosed declarations in extern "C"
 	  block.
 
-2002-12-29  Wojciech Polak <polak@gnu.org>
+2002-12-29  Wojciech Polak
 
 	* mail/mail.c: Updated FSF address.
 	* mailbox/mu_argp.c: Likewise.
 	* mh/mh_argp.c: Likewise.
 
-2002-12-29  Wojciech Polak <polak@gnu.org>
+2002-12-29  Wojciech Polak
 
 	* Makefile.am: Added "dist-bzip2" to AUTOMAKE_OPTIONS.
 
@@ -3230,7 +3232,7 @@
 	* mail/write.c: Likewise.
 	* mail/z.c: Likewise.
 
-2002-12-29  Wojciech Polak <polak@gnu.org>
+2002-12-29  Wojciech Polak
 
 	* auth/*: Fixed C source copyrights to be compatible with the
           GNU 'Maintaining' document, i.e. "This program" -> "GNU Mailutils".
@@ -3280,7 +3282,7 @@
 	* mailbox/argp-help.c: include mailutils/nls.h. Otherwise
 	  i18n is disabled.
 
-2002-12-28  Wojciech Polak <polak@gnu.org>
+2002-12-28  Wojciech Polak
 
 	* doc/texinfo/mailutils.texi: Fixed copyright (FDL).
 	* doc/texinfo/fdl.texi: New file.
@@ -3291,7 +3293,7 @@
 	* mail.local/main.c: Likewise.
 	* mail.remote/mail.remote.c: Likewise.
 
-2002-12-27  Wojciech Polak <polak@gnu.org>
+2002-12-27  Wojciech Polak
 
 	* doc/texinfo/mailutils.texi: Use @copying.
 	* doc/texinfo/programs.texi: Minor formatting.
@@ -3355,13 +3357,13 @@
 
 	* AUTHORS: Added Wojciech Polak.
 
-2002-12-27  Wojciech Polak <polak@gnu.org>
+2002-12-27  Wojciech Polak
 
 	* mail/summary.c: Small NLS improvement.
 	* mail/quit.c: Likewise.
 	* frm/frm.c: Likewise.
 
-2002-12-26  Wojciech Polak <polak@gnu.org>
+2002-12-26  Wojciech Polak
 
 	* po/POTFILES.in: Updated.
 	* dotlock/dotlock.c: Added NLS.
@@ -3383,7 +3385,7 @@
 	* mh/rmm.c: Likewise.
 	* mh/scan.c: Likewise.
 
-2002-12-26  Wojciech Polak <polak@gnu.org>
+2002-12-26  Wojciech Polak
 
 	* po/POTFILES.in: Updated.
 	* sieve/sieve.c: Enabled NLS.
@@ -3391,7 +3393,7 @@
 	* COPYING.FDL: The Free Documentation License has been
 	  upgraded from 1.1 to 1.2.
 
-2002-12-25  Wojciech Polak <polak@gnu.org>
+2002-12-25  Wojciech Polak
 
 	* po/POTFILES.in: Updated.
 	* mailbox/mu_argp.c: Added NLS.
@@ -3412,7 +3414,7 @@
 	  format: it produces locale-dependent output.
 	* mh/mh_format.c (mh_format): Fixed format spec.
 
-2002-12-24  Wojciech Polak <polak@gnu.org>
+2002-12-24  Wojciech Polak
 
 	* po/POTFILES.in: Updated.
 	* po/.cvsignore: Removed Makevars.
@@ -3465,7 +3467,7 @@
 	* readmsg/Makefile.am: Likewise.
 	* sieve/Makefile.am: Likewise.
 
-2002-12-24  Wojciech Polak <polak@gnu.org>
+2002-12-24  Wojciech Polak
 
 	* po/POTFILES.in: Updated.
 	* imap4d/*: Added NLS.
