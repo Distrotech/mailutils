@@ -1,11 +1,22 @@
+2003-10-11  Sergey Poznyakoff
+
+	* pop3d/logindelay.c: New file
+	* pop3d/Makefile.am: Added logindelay.c
+	* pop3d/pop3d.c: New options --login-delay, --stat-file
+	* pop3d/pop3d.h (check_login_delay,update_login_delay): New
+	functions.
+	* pop3d/quit.c (pop3d_quit): Call update_login_delay().
+	* pop3d/user.c (pop3d_user): Call check_login_delay().
+	
 2003-10-10  Alain Magloire
 
 	GNU Mailutils 0.4 was released.  New code added.
 
 	* configure.ac: Added include/mailutils/sys/Makefile.
-	* mailbox/pop/Makefile.am (libmu_pop_la_sources): Added all the pop3_*.c code
-	now part of libmu_pop.a
-	* include/mailutils/Makefile.am (pkginclude_HEADERS): Added file pop3d.h
+	* mailbox/pop/Makefile.am (libmu_pop_la_sources): Added all the
+	pop3_*.c code now part of libmu_pop.a
+	* include/mailutils/Makefile.am (pkginclude_HEADERS): Added file
+	pop3d.h
 	(SUBDIRS): New directory sys added.
 	* include/mailutils/sys/Makefile.am: new Makefile.am
 	* example/Makefile.am: pop3client.c Added.
@@ -14,9 +25,11 @@
 
 2003-10-10  Alain Magloire
 
-	* mailbos/pop/pop3_readline.c (pop3_getline): Use stream_sequential_readline()
-	instead of stream_readline() and do not maintain any offsets.
-	* include/mailutils/sys/pop3d.h (struct mu_pop3_work_buf): Remove of the offset field.
+	* mailbos/pop/pop3_readline.c (pop3_getline): Use
+	stream_sequential_readline() instead of stream_readline() and do
+	not maintain any offsets.
+	* include/mailutils/sys/pop3d.h (struct mu_pop3_work_buf): Remove
+	of the offset field.
 	* examples/pop3client.c: Changes to check for errors.
 
 2003-10-10  Sergey Poznyakoff
