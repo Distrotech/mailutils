@@ -1,3 +1,28 @@
+2003-04-23  Sergey Poznyakoff
+
+	* configure.ac: Renamed --enable-mysql to --with-mysql. Added
+	  --with-postgres option.
+	  Use AC_FUNC_MALLOC and AC_FUNC_REALLOC instead of old jm_*
+	  versions.
+	* README: Documented --with-mysql and --with-postgres
+
+	* auth/pgsql.c: New file.
+	* auth/mysql.c: New file.
+	* auth/sql.h: New file.
+	* auth/Makefile.am: Added new files.
+	* auth/sql.c: Moved mysql-specific code to mysql.c
+
+	* m4/lib.m4: New file.
+	* m4/malloc.m4: Removed.
+	* m4/realloc.m4: Removed.
+	* m4/Makefile.am: Added lib.m4, removed malloc.m4 and realloc.m4
+
+	* lib/xmalloc.c: Adjusted for use with new AC_CHECK_ macros.
+
+	* include/mailutils/mu_auth.h: Include <mailutils/types.h>,
+	  protect the file contents by #ifndef .. #endif
+	* mailbox/mu_argp.c (mu_conf_option): Reflect HAVE_PGSQL
+	
 2003-04-22  Sergey Poznyakoff
 
 	* mailbox/imap/folder.c (imap_literal_string): Bugfix. Literal
