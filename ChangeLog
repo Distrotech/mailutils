@@ -1,3 +1,12 @@
+2005-03-25  Sergey Poznyakoff 
+
+	* NEWS: Updated
+	* mail/decode.c (display_message0): Do not interpret MIME
+	parts if metamail is unset.
+	* mail/mail.c (default_setup): Set metamail
+	* testsuite/etc/mail.rc: Unset metamail
+	* doc/texinfo/programs.texi: Updated metamail documentation
+
 2005-03-18  Sergey Poznyakoff
 
 	* TODO: Updated

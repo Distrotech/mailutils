@@ -1,4 +1,4 @@
-GNU mailutils NEWS -- history of user-visible changes.  2005-03-12
+GNU mailutils NEWS -- history of user-visible changes.  2005-03-25
 Copyright (C) 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 See the end of file for copying conditions.
 
@@ -46,6 +46,9 @@ Before calling `metamail', the environment variable METAMAIL_PAGER
 is set to the value of the variable PAGER. If `mimenoask' mail
 variable is set, its value is passed to `metamail' via MM_NOASK
 environment variable.
+
+Unsetting `metamail' variable turns off special interpretation
+of MIME parts.
 
 * from
 The `from' utility was rewritten. It is now fully compatible with the
