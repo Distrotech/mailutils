@@ -1,5 +1,15 @@
 2005-01-04  Sergey Poznyakoff 
 
+	* libsieve/extensions/vacation.c: New action. Based on
+	guimb/scm/vacation.scm and on ideas and code fragments from
+	Felix Egli <fegli@goldnet.ch>.
+	* libsieve/extensions/Makefile.am: Add vacation
+	* include/mailutils/libsieve.h (sieve_get_message_sender)
+	(stream_printf): New prototypes.
+	* THANKS: Add Felix Egli
+
+2005-01-04  Sergey Poznyakoff 
+
 	* auth/sql.c: Revise error messages for accordance with GNU standards:
 	begin messages with a capital letter, unless they are prefixed
 	with `file:line:' or their exact look is important due to
