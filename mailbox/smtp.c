@@ -708,21 +708,30 @@ smtp_send_message (mailer_t mailer, message_t argmsg, address_t argfrom,
 
 	message_get_header (smtp->msg, &hdr);
 	header_get_stream (hdr, &stream);
-	while ((status = stream_readline (stream, data, sizeof (data) - 1,
+	while ((status = stream_readline (stream, data, sizeof (data),
 					  smtp->offset, &n)) == 0 && n > 0)
 	  {
+	    int nl;
+	    
 	    found_nl = (n == 1 && data[0] == '\n');
-	    if (data[n - 1] == '\n')
+	    if ((nl = (data[n - 1] == '\n')))
 	      data[n - 1] = '\0';
 	    if (data[0] == '.')
 	      {
-		status = smtp_writeline (smtp, ".%s\r\n", data);
+		status = smtp_writeline (smtp, ".%s", data);
 		CHECK_ERROR (smtp, status);
 	      }
 	    else if (strncasecmp (data, MU_HEADER_FCC,
 				  sizeof (MU_HEADER_FCC) - 1))
 	      {
-		status = smtp_writeline (smtp, "%s\r\n", data);
+		status = smtp_writeline (smtp, "%s", data);
+		CHECK_ERROR (smtp, status);
+		status = smtp_write (smtp);
+		CHECK_EAGAIN (smtp, status);
+	      }
+	    if (nl)
+	      {
+		status = smtp_writeline (smtp, "\r\n");
 		CHECK_ERROR (smtp, status);
 		status = smtp_write (smtp);
 		CHECK_EAGAIN (smtp, status);
