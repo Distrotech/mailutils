@@ -604,6 +604,14 @@ mh_append_message (mailbox_t mailbox, message_t msg)
   if (!mhm)
     return ENOMEM;
 
+  /* If we did not start a scanning yet do it now.  */
+  if (mhd->msg_count == 0)
+    {
+      status = mh_scan0 (mailbox, 1, NULL);
+      if (status != 0)
+	return status;
+    }
+
   mhm->mhd = mhd;
   mhm->seq_number = _mh_next_seq (mhd);
   mhm->message = msg;
@@ -1016,7 +1024,7 @@ mh_scan0 (mailbox_t mailbox, size_t msgno, size_t *pcount)
       if (mhd->uidvalidity == 0)
 	{
 	  mhd->uidvalidity = (unsigned long)time (NULL);
-	  //FIXME mhd->uidnext = mhd->msg_count + 1;
+	  /* FIXME mhd->uidnext = mhd->msg_count + 1;*/
 	  /* Tell that we have been modified for expunging.  */
 	  if (mhd->msg_head)
 	    mhd->msg_head->attr_flags |= MU_ATTRIBUTE_MODIFIED;
