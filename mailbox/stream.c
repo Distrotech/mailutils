@@ -686,6 +686,8 @@ stream_sequential_readline (stream_t stream, char *buf, size_t size,
 int
 stream_sequential_write (stream_t stream, char *buf, size_t size)
 {
+  if (stream == NULL)
+    return EINVAL;
   while (size > 0)
     {
       size_t sz;
@@ -703,6 +705,8 @@ stream_sequential_write (stream_t stream, char *buf, size_t size)
 int
 stream_strerror (stream_t stream, const char **p)
 {
+  if (stream == NULL)
+    return EINVAL;
   if (stream->_strerror)
     return stream->_strerror (stream, p);
   return ENOSYS;
