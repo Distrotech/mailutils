@@ -27,8 +27,8 @@ static list_t imap_auth_list;
 static int
 comp (const void *item, const void *data)
 {
-  struct imap_auth *p = item;
-  return strcmp (p->name, (char*) data);
+  const struct imap_auth *p = item;
+  return strcmp (p->name, (const char*) data);
 }
 
 void
