@@ -1,3 +1,17 @@
+2001-11-05  Sergey Poznyakoff
+
+	* configure.in: check for vsyslog
+
+	* mailbox/muerror.c: New function mu_syslog_error_printer().
+	Removed static qualifier from default_error_printer, added mu_
+	prefix to it.
+	* include/mailutils/error.h: Protos for mu_.*_error_printer
+	functions.
+
+	* imap4d/imap4d.c: Use mu_syslog_error_printer.
+	* pop3d/pop3d.c: Likewise.
+	* comsat/comsat.c: Likewise. Also fixed misplaced condition.
+
 2001-11-02  Alain Magloire
 
 	* mailbox/folder_imap.c: If authority is null default to
