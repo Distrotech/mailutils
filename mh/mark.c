@@ -206,7 +206,8 @@ main (int argc, char **argv)
   argc -= index;
   argv += index;
   mh_msgset_parse (mbox, &msgset, argc, argv, "cur");
-
+  mh_msgset_uids (mbox, &msgset);
+  
   switch (action)
     {
     case ARG_ADD:
