@@ -140,7 +140,7 @@ mail_z (int argc, char **argv)
       cursor += count;
 
       if (cursor + nlines > total)
-	nlines = total - cursor;
+	nlines = total - cursor + 1;
 
       if (nlines <= 0)
 	{
