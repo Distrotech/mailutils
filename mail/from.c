@@ -25,16 +25,23 @@ int
 mail_from (int argc, char **argv)
 {
   if (argc > 1)
-    return util_msglist_command (mail_from, argc, argv);
+    return util_msglist_command (mail_from, argc, argv, 0);
   else
     {
       message_t msg;
       header_t hdr;
+      envelope_t env;
+      attribute_t attr;
       char *from, *subj;
       int froml, subjl;
-      char format[64];
+      char date[80], st[10];
       int cols = util_getcols () - 6;
-
+      int flags, cflag;
+      size_t m_size = 0, m_lines = 0;
+      const char *p;
+      struct tm tm;
+      mu_timezone tz;
+      
       if (mailbox_get_message (mbox, cursor, &msg) != 0)
 	return 1;
 
@@ -60,9 +67,33 @@ mail_from (int argc, char **argv)
       header_get_value (hdr, MU_HEADER_FROM, from, froml, NULL);
       header_get_value (hdr, MU_HEADER_SUBJECT, subj, subjl, NULL);
 
-      snprintf (format, 64, "%%c%%2d %%-%ds%%-%ds\n", froml, subjl);
-      fprintf (ofile, format, cursor == realcursor ? '>' : ' ', cursor,
-	       from, subj);
+      message_get_attribute (msg, &attr);
+      attribute_get_flags (attr, &flags);
+
+      if (attribute_is_userflag(attr, MAIL_ATTRIBUTE_MBOXED))
+	cflag = 'M';
+      else if (attribute_is_userflag(attr, MAIL_ATTRIBUTE_SAVED))
+	cflag = '*';
+      else if (flags == MU_ATTRIBUTE_RECENT) /*FIXME*/
+	cflag = 'N';
+      else if (flags & MU_ATTRIBUTE_READ)
+	cflag = 'R';
+      else
+	cflag = 'U';
+
+      message_get_envelope (msg, &env);
+      envelope_date (env, date, sizeof (date), NULL);
+      p = date;
+      if (mu_parse_ctime_date_time(&p, &tm, &tz) == 0)
+	strftime (date, sizeof(date), "%a %b %e %H:%M", &tm);
+
+      message_size (msg, &m_size);
+      message_lines (msg, &m_lines);
+
+      snprintf (st, sizeof(st), "%3ld/%-5ld", m_lines, m_size);
+      fprintf (ofile, "%c%c%4d %-18.18s %-16.16s %s %12.12s\n",
+	       cursor == realcursor ? '>' : ' ', cflag, cursor,
+	       from, date, st, subj);
 
       free (from);
       free (subj);
