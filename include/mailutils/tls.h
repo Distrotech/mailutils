@@ -31,7 +31,8 @@ extern int tls_stream_create __P((stream_t *stream,
 
 extern int mu_check_tls_environment __P((void));
 extern int mu_init_tls_libs __P((void));
-extern int mu_deinit_tls_libs __P((void));
+extern void mu_deinit_tls_libs __P((void));
+extern void mu_tls_init_argp __P((void));
   
 #ifdef __cplusplus
 }
