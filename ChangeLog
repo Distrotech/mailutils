@@ -1,3 +1,12 @@
+2002-02-23  Sergey Poznyakoff  <gray@Mirddin.farlep.net>
+
+	* lib/argcv.c: Yesterday's fix makes argcv_get include trailing
+	  whitespace to the arg array. To fix:
+	  (argcv_scan): Return len+1 if called on or after
+	  the terminating null character.
+	  (argcv_get): Initialize *argc to zero and continue scanning
+	  until argcv_scan return is  > len. Thanks Sam for noticing.
+
 2002-02-22  Sergey Poznyakoff 
 
 	* lib/argcv.c (argcv_get): Bugfix, *argc must be initialized to 1.
