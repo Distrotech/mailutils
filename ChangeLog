@@ -1,3 +1,47 @@
+2001-02-04  Alain Magloire
+
+	* mailbox/message.c (message_get_uid) : Add message_get_uid() for
+	the UID of the message (IMAP definition) and message_get_uidl() for
+	the POP3 definition.
+	* mailbox/attachment.c : Indentation fixes.
+	* mailbox/file_stream.c : Make sure that the FILE* is close before		opening.
+	* mailbox/folder_imap.c : Use strcasecmp() not strcmp().
+	* mailbox/mailbox.c : Added mailbox_uidnext() and mailbox_uidvalidity.
+	* mailbox/mapfile_stream.c : When munmap() failed we should check
+	against MAP_FAILED, not NULL.
+	* mailbox/mbx_imap.c : Implement imap_uidnext(), imap_uidvalidity()
+	imap_message_uid().
+	* mailbox/mbx_mbox.c : Implement mbox_uidnext(), mbox_uidvalidity()
+	mbox_message_uid().
+	* mailbox/mbx_mboxscan.c : Implement uidvalidity, it is save int the
+	header of the first message, "X-IMAPbase: 127673838 123", a la c-client.
+	Save UID, it is save in "X-UID".
+	* mailbox/mbx_pop.c : Implement pop_messages_recent(),
+	pop_message_unseen() and pop_uid().
+	* mailbox/trans_stream.c : Indentation fixes.
+
+	* include/mailutils/message.h: New prototypes message_get_uid(),
+	message_set_get_uid().
+	* include/mailutils/mailbox.h: New prototypes mailbox_uidnext(),
+	mailbox_uidvalidity().
+
+	* lib/snprintf.c lib/snprintf.h : Put it under the LGPL term.
+
+	* mailbox/imap4d/fetch.c : First draft implementation, very yucky.
+	* mailbox/imap4d/select.c : First draft implementation.
+	* mailbox/imap4d/util.c : Add util_msgset() and util_send().
+	Reuse of util_getcommand() for subcommands.
+
+	* mailbox/pop3d/uidl.c : API change the call is message_get_uidl()
+	to have UIDL POP3.
+
+
+2001-02-03  Alain Magloire
+
+	* mailbox/mailbox.c mailbox/mbx_mbox.c mailbox/mbx_imap.c :
+	Implement mailbox_messages_recent() and mailbox_message_unseen(), this
+	time as define by the IMAP rfc.
+
 2001-02-02  Alain Magloire
 
 	* mailbox/header.c : ENOENT was not return if the header was
@@ -18,7 +62,7 @@
 	"Whether the removal was successful or not, the server
         then releases any exclusive-access lock on the maildrop
         and closes the TCP connection."  This was not done if error
-	occured while expunging, no we will close the connection and
+	occured while expunging, now we will close the connection and
 	notify the client of the error(ERR_FILE).
 
 2001-02-01  Alain Magloire
