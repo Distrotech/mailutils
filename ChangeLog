@@ -1,3 +1,8 @@
+2001-11-26  Alain Magloire
+
+	* doc/texinfo/mailer.texi: Replace @func with @code
+	missing @end deftypefun
+
 2001-11-26  Sam Roberts
 
 	* doc/texinfo/mailer.texi: Hacked up work-in-progress of the mailer

@@ -236,10 +236,11 @@ are sent, so it never matters what it is set to until it REALLY matters.
 
 If to is nul, then the contents of the standard "To:", "Cc:", and 
 "Bcc:" fields will be used as recipient addresses.
+@end deftypefun
 
 @deftypefun int mailer_send_message (mailer_t, message_t)
 
-Identical to @func{mailer_send_message()} with @var{from}
+Identical to @code{mailer_send_message()} with @var{from}
 and @var{to} both @code{NULL}.
 
 @end deftypefun
