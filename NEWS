@@ -1,10 +1,22 @@
-GNU mailutils NEWS -- history of user-visible changes.  2003-10-13
+GNU mailutils NEWS -- history of user-visible changes.  2003-10-28
 Copyright (C) 2002, 2003 Free Software Foundation, Inc.
 See the end of file for copying conditions.
 
 Please send mailutils bug reports to <bug-mailutils@gnu.org>.
 
 Version 0.4.1:
+
+* New features:
+
+** mail
+*** Support for -a option (append header)
+*** New command sendheaders allows to pre-set the headers to be added to
+the message.
+
+** pop3d
+*** New option --login-delay. Support for login-delay
+*** New option --undelete. Forces pop3d to clear deletion
+marks from all messages after opening the mailbox.
 
 * Bug fixes:
 
@@ -14,13 +26,6 @@ Version 0.4.1:
 ** pop3d:
 
 *** Do not save delete marks when exiting on timeout.
-
-* New features:
-
-** pop3d
-*** New option --login-delay. Support for login-delay
-*** New option --undelete. Forces pop3d to clear deletion
-marks from all messages after opening the mailbox.
 
 
 

@@ -1,7 +1,15 @@
+2003-10-28  Sergey Poznyakoff 
+
+	* mail/mail.c: Implemented -a (--append) option.
+	* mail/mail.h (mail_sendheader,send_append_header)
+	(send_append_header2): New functions.
+	* mail/send.c: Likewise.
+	* mail/table.c: New command "sendheader"
+
 2003-10-27  Alain Magloire
 
-	* mailbox/mapfile_stream.c(_mapfile_size): Only call msync() if the file was
-	also open with PROT_WRITE.
+	* mailbox/mapfile_stream.c(_mapfile_size): Only call msync() if
+	the file was also open with PROT_WRITE.
 	(_mapfile_flush): Ditto.
 
 2003-10-25  Sergey Poznyakoff
