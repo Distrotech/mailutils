@@ -719,36 +719,8 @@ util_parse_ctime_date (const char *date, time_t * timep)
 char *
 util_strcasestr (const char *haystack, const char *needle)
 {
-  register char *needle_end = strchr (needle, '\0');
-  register char *haystack_end = strchr (haystack, '\0');
-  register size_t needle_len = needle_end - needle;
-  register size_t needle_last = needle_len - 1;
-  register const char *begin;
-
-  if (needle_len == 0)
-    return (char *) haystack_end;
-
-  if ((size_t) (haystack_end - haystack) < needle_len)
-    return NULL;
-
-  for (begin = &haystack[needle_last]; begin < haystack_end; ++begin)
-    {
-      register const char *n = &needle[needle_last];
-      register const char *h = begin;
-
-      do
-	if (tolower (*h) != tolower (*n))
-	  goto loop;		/* continue for loop */
-      while (--n >= needle && --h >= haystack);
-
-      return (char *) h;
-
-    loop:;
-    }
-
-  return NULL;
+  return mu_strcasestr (haystack, needle);
 }
-
 
 struct
 {
