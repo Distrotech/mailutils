@@ -16,6 +16,7 @@
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #include "mail.h"
+#include <mailutils/mutil.h>
 
 typedef struct _node {
   /* for the msglist expander */
@@ -204,16 +205,35 @@ util_expand_msglist (const int argc, char **argv, int **list)
 	}
     }
 
-  for (current = first; current != NULL; current = current->next)
+  for (current = first; current->next != NULL; current = current->next)
     lc++;
 
-  ret = malloc (lc * sizeof (int));
-  lc = 0;
-  for (current = first; current != NULL; current = current->next)
-    ret [lc++] = current->data;
+  if (!lc)
+    {
+      ret = calloc (1, sizeof (int));
+      if (!ret)
+	{
+	  fprintf (ofile, "not enough memory\n");
+	  exit (1);
+	}
+      ret [0] = cursor;
+      lc = 1;
+    }
+  else
+    {
+      ret = malloc (lc * sizeof (int));
+      if (!ret)
+	{
+	  fprintf (ofile, "not enough memory\n");
+	  exit (1);
+	}
+      lc = 0;
+      for (current = first; current->next != NULL; current = current->next)
+	ret [lc++] = current->data;
+    }
   util_ll_free (first);
   *list = ret;
-  return lc-1;
+  return lc;
 }
 
 /*
@@ -230,10 +250,13 @@ util_do_command (const char *c, ...)
   function_t *command;
   char *cmd = NULL;
   va_list ap;
-  va_start (ap, c);
-  if (vasprintf (&cmd, c, ap) < 1)
-    return 0;
 
+  va_start (ap, c);
+  status = vasprintf (&cmd, c, ap);
+  va_end (ap);
+  if (status < 0)
+    return 0;
+  
   if (cmd)
     {
       struct mail_command_entry entry;
@@ -566,5 +589,204 @@ util_fullpath(char *inpath)
 {
   return mu_tilde_expansion(inpath, "/", NULL);
 }
+
+char *
+util_get_sender(int msgno, int strip)
+{
+  header_t header = NULL;
+  address_t addr = NULL;
+  message_t msg = NULL;
+  char buffer[512], *p;
+      
+  mailbox_get_message (mbox, msgno, &msg);
+  message_get_header (msg, &header);
+  if (header_get_value (header, MU_HEADER_FROM, buffer, sizeof(buffer), NULL)
+      || address_create (&addr, buffer))
+    {
+      envelope_t env = NULL;
+      message_get_envelope (msg, &env);
+      if (envelope_sender (env, buffer, sizeof (buffer), NULL)
+	  || address_create (&addr, buffer))
+	{
+	  fprintf (ofile, "can't determine sender name (msg %d)\n", msgno);
+	  return NULL;
+	}
+    }
+
+  if (address_get_email (addr, 1, buffer, sizeof(buffer), NULL))
+    {
+      fprintf (ofile, "can't determine sender name (msg %d)\n", msgno);
+      address_destroy (&addr);
+      return NULL;
+    }
+  
+  if (strip)
+    {
+      p = strchr (buffer, '@');
+      if (p)
+	*p = 0;
+    }
+  
+  p = strdup (buffer);
+  address_destroy (&addr);
+  return p;
+}
+
+void
+util_slist_print(list_t list, int nl)
+{
+  iterator_t itr;
+  char *name;
+  
+  if (!list || iterator_create (&itr, list))
+    return;
+  
+  for (iterator_first (itr); !iterator_is_done (itr); iterator_next (itr))
+    {
+      iterator_current (itr, (void **)&name);
+      fprintf (ofile, "%s%c", name, nl ? '\n' : ' ');
+      
+    }
+  iterator_destroy (&itr);
+}
+
+int
+util_slist_lookup(list_t list, char *str)
+{
+  iterator_t itr;
+  char *name;
+  int rc = 0;
+  
+  if (!list || iterator_create (&itr, list))
+    return 0;
+  
+  for (iterator_first (itr); !iterator_is_done (itr); iterator_next (itr))
+    {
+      iterator_current (itr, (void **)&name);
+      if (strcasecmp (name, str) == 0)
+	{
+	  rc = 1;
+	  break;
+	}
+    }
+  iterator_destroy (&itr);
+  return rc;
+}
+
+void
+util_slist_add (list_t *list, char *value)
+{
+  char *p;
+  
+  if (!*list && list_create (list))
+    return;
+  
+  if ((p = strdup(value)) == NULL)
+    {
+      fprintf (ofile, "not enough memory\n");
+      return;
+    }
+  list_append (*list, p);
+}
+
+void
+util_slist_destroy (list_t *list)
+{
+  iterator_t itr;
+  char *name;
+  
+  if (!*list || iterator_create (&itr, *list))
+    return;
+  
+  for (iterator_first (itr); !iterator_is_done (itr); iterator_next (itr))
+    {
+      iterator_current (itr, (void **)&name);
+      free (name);
+    }
+  iterator_destroy (&itr);
+  list_destroy (list);
+}
+
+char *
+util_slist_to_string (list_t list, char *delim)
+{
+  iterator_t itr;
+  char *name;
+  char *str = NULL;
+  
+  if (!list || iterator_create (&itr, list))
+    return NULL;
+  
+  for (iterator_first (itr); !iterator_is_done (itr); iterator_next (itr))
+    {
+      iterator_current (itr, (void **)&name);
+      if (str && delim)
+	util_strcat(&str, delim);
+      util_strcat(&str, name);
+    }
+  iterator_destroy (&itr);
+  return str;
+}
+
+void
+util_strcat(char **dest, char *str)
+{
+  if (!*dest)
+    *dest = strdup (str);
+  else
+    {
+      int dlen = strlen (*dest) + 1;
+      int slen = strlen (str) + 1;
+      char *newp = realloc (*dest, dlen + slen);
+
+      if (!newp)
+	return;
+
+      *dest = newp;
+      memcpy (newp + dlen - 1, str, slen);
+    }
+}
+      
+void
+util_escape_percent (char **str)
+{
+  int count;
+  char *p, *q;
+  char *newstr;
+  
+  /* Count ocurrences of % in the string */
+  count = 0;
+  for (p = *str; *p; p++)
+    if (*p == '%')
+      count++;
+
+  if (!count)
+    return; /* nothing to do */
+
+  /* expand the string */ 
+  newstr = malloc (strlen (*str) + 1 + count);
+  if (!newstr)
+    {
+      fprintf (ofile, "not enough memory\n");
+      exit (1); /* be on the safe side */
+    }
+
+  /* and escape percent signs */ 
+  p = newstr;
+  q = *str;
+  while (*p = *q++)
+    {
+      if (*p == '%')
+	*++p = '%';
+      p++;
+    }
+  *str = newstr;
+}
+
+
+  
+  
+
+
 
 
