@@ -209,7 +209,7 @@ static struct argp argp =
 {
   options,
   parser,
-  "SCRIPT",
+  N_("SCRIPT"),
   doc
 };
 
