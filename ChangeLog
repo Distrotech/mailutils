@@ -1,3 +1,9 @@
+2002-12-28  Sergey Poznyakoff  
+
+	* dotlock/dotlock.c: Reverted today's changes. Failed experiment.
+	* mail.remote/mail.remote.c: Likewise.
+	* mail.local/main.c: Added call to mu_init_nls.
+
 2002-12-28  Sergey Poznyakoff 
 
 	* doc/texinfo/Makefile.am: Added fdl.texi
@@ -15,7 +21,7 @@
 	* mail/from.c: Bugfix: date field has always fixed length.
 	* mailbox/argp-help.c: include mailutils/nls.h. Otherwise
 	  i18n is disabled.
-	
+
 2002-12-28  Wojciech Polak <polak@gnu.org>
 
 	* doc/texinfo/mailutils.texi: Fixed copyright (FDL).
