@@ -7,7 +7,7 @@ msgstr ""
 "Project-Id-Version: GNU mailutils 0.4\n"
 "Report-Msgid-Bugs-To: bug-mailutils@gnu.org\n"
 "POT-Creation-Date: 2003-10-06 16:19+0300\n"
-"PO-Revision-Date: 2004-04-02 08:00-0500\n"
+"PO-Revision-Date: 2004-04-04 08:00-0500\n"
 "Last-Translator: Michel Robitaille <robitail@IRO.UMontreal.CA>\n"
 "Language-Team: French <traduc@traduc.org>\n"
 "MIME-Version: 1.0\n"
@@ -292,7 +292,7 @@ msgstr[1] "trop de requêtes: pause de %u secondes"
 #: comsat/comsat.c:346
 #, c-format
 msgid "DENIED attempt to connect from %s"
-msgstr ""
+msgstr "Tentative de connexion à partir de %s a été refusée"
 
 #: comsat/comsat.c:352
 #, c-format
@@ -376,7 +376,7 @@ msgstr "MINUTES"
 
 #: dotlock/dotlock.c:47
 msgid "Forcibly break an existing lock older than a certain time"
-msgstr ""
+msgstr "L'opération forcée a brisé un verrou plus vieux d'un certain temps"
 
 #: dotlock/dotlock.c:49
 msgid "RETRIES"
@@ -584,7 +584,7 @@ msgstr "Autres options:"
 
 #: guimb/main.c:63
 msgid "Start with debugging evaluator and backtraces."
-msgstr ""
+msgstr "Démarrer avec l'évaluateur de mise au point et de traces arrières"
 
 #: guimb/main.c:64
 msgid "ARG"
@@ -1366,7 +1366,7 @@ msgstr "Aucun champ n'a été ignoré\n"
 
 #: mail/retain.c:79 mail/retain.c:91
 msgid "No fields are currently being unfolded\n"
-msgstr ""
+msgstr "Aucun champ n'a été couramment découvert\n"
 
 #: mail/send.c:122 mail/var.c:58
 #, c-format
@@ -1918,12 +1918,12 @@ msgstr "ouverture de stdin a échoué: %s"
 #: mail.remote/mail.remote.c:199
 #, c-format
 msgid "Creating mailer '%s' failed: %s"
-msgstr ""
+msgstr "Création du postier '%s' a échoué: %s"
 
 #: mail.remote/mail.remote.c:218
 #, c-format
 msgid "Opening mailer '%s' failed: %s"
-msgstr ""
+msgstr "Ouverture du postier '%s' a échoué: %s"
 
 #: mail.remote/mail.remote.c:225
 #, c-format
@@ -1933,7 +1933,7 @@ msgstr "Transmission du message a échoué: %s"
 #: mail.remote/mail.remote.c:231
 #, c-format
 msgid "Closing mailer failed: %s"
-msgstr ""
+msgstr "Fermeture du postier a échoué: %s"
 
 #: mailbox/argp-help.c:233
 #, c-format
@@ -2092,19 +2092,19 @@ msgstr "Initialiser le domaine pour les noms d'usager non qualifiés (par défaut 
 
 #: mailbox/mu_argp.c:86
 msgid "MAILER"
-msgstr ""
+msgstr "POSTIER"
 
 #: mailbox/mu_argp.c:87
 msgid "Use specified URL as the default mailer"
-msgstr ""
+msgstr "Utiliser l'URL spécifié comme postier par défaut"
 
 #: mailbox/mu_argp.c:93
 msgid "FACILITY"
-msgstr ""
+msgstr "UTILITAIRE"
 
 #: mailbox/mu_argp.c:94
 msgid "Output logs to syslog FACILITY"
-msgstr ""
+msgstr "Produire les journaux sur un UTILITAIRE de type syslog"
 
 #: mailbox/mu_argp.c:102
 msgid "Runs in daemon mode with a maximum of NUMBER children"
@@ -2137,7 +2137,7 @@ msgstr "Options de configuration daemon"
 #: mailbox/mu_argp.c:234
 #, c-format
 msgid "unknown facility `%s'\n"
-msgstr ""
+msgstr "utilitaire inconnu « %s »\n"
 
 #: mailbox/mu_argp.c:363
 #, c-format
@@ -2166,12 +2166,12 @@ msgstr "domaine de courrier invalide '%s': %s"
 #: mailbox/mu_argp.c:428
 #, c-format
 msgid "invalid mailer url '%s': %s"
-msgstr ""
+msgstr "URL invalide pour le postier '%s': %s"
 
 #: mailbox/mu_argp.c:442
 #, c-format
 msgid "badly formed mailspool path: %s"
-msgstr ""
+msgstr "chemin du dépôt de courrier mal composé: %s"
 
 #: mailbox/mu_argp.c:532 mailbox/mu_argp.c:577 mailbox/mu_argp.c:616
 #: mailbox/mu_argp.c:656 mailbox/mu_argp.c:678 mailbox/mu_argp.c:703
@@ -2191,7 +2191,7 @@ msgstr "ERREUR INTERNE: ne peut enregistrer la capacité de l'argument d'authenti
 
 #: mailbox/mu_auth.c:211 mailbox/mu_auth.c:213
 msgid "MODLIST"
-msgstr ""
+msgstr "LISTE DE MODE"
 
 #: mailbox/muerrno.c:99
 msgid "Success"
@@ -2203,7 +2203,7 @@ msgstr "L'opération a échoué"
 
 #: mailbox/muerrno.c:103
 msgid "No registered handler"
-msgstr ""
+msgstr "Handler non enregistré"
 
 #: mailbox/muerrno.c:104
 msgid "Empty virtual function"
@@ -2211,15 +2211,15 @@ msgstr "Fonction virtuelle vide"
 
 #: mailbox/muerrno.c:106
 msgid "Pointer to output null"
-msgstr ""
+msgstr "Pointeur vers une sortie nulle"
 
 #: mailbox/muerrno.c:107
 msgid "Pointer to output pointer null"
-msgstr ""
+msgstr "Pointeur vers une sortie nulle"
 
 #: mailbox/muerrno.c:109
 msgid "Mailbox null"
-msgstr ""
+msgstr "Boîte aux lettres nulle"
 
 #: mailbox/muerrno.c:111
 msgid "Format of RFC822 object is bad"
@@ -2231,11 +2231,11 @@ msgstr "Adresse ne contient aucune spécification d'adresse"
 
 #: mailbox/muerrno.c:114
 msgid "Locker null"
-msgstr ""
+msgstr "»Verrou nul"
 
 #: mailbox/muerrno.c:115
 msgid "Conflict with previous locker"
-msgstr ""
+msgstr "En conflit avec le verrou précédent"
 
 #: mailbox/muerrno.c:116
 msgid "Lock file check failed"
@@ -2251,15 +2251,15 @@ msgstr "Aucun verrou n'est pas maintenu sur le fichier"
 
 #: mailbox/muerrno.c:119
 msgid "Failed to exec external locker"
-msgstr ""
+msgstr "Échec lors de l'exécution du processus de verrou externe"
 
 #: mailbox/muerrno.c:120
 msgid "External locker failed"
-msgstr ""
+msgstr "Le processus de verrou externe a échoué"
 
 #: mailbox/muerrno.c:121
 msgid "External locker killed"
-msgstr ""
+msgstr "Le processus de verrou externe a été stoppé"
 
 #: mailbox/muerrno.c:123
 msgid "No such user name"
@@ -2275,19 +2275,19 @@ msgstr "État occupé, doit compléter l'opération"
 
 #: mailbox/muerrno.c:127
 msgid "Not a valid mailer from address"
-msgstr ""
+msgstr "N'est pas un postier valide selon l'adresse source"
 
 #: mailbox/muerrno.c:128
 msgid "Not a valid mailer to address"
-msgstr ""
+msgstr "N'est pas un postier valide selon l'adresse de destination"
 
 #: mailbox/muerrno.c:129
 msgid "No receipt addresses found"
-msgstr ""
+msgstr "Aucune adresse du récipiendaire n'a été repérée"
 
 #: mailbox/muerrno.c:130
 msgid "Malformed or unsupported mailer URL"
-msgstr ""
+msgstr "URL du postier mal composé ou non supporté"
 
 #: mailbox/muerrno.c:131
 msgid "SMTP rcpt to command failed"
@@ -2426,7 +2426,7 @@ msgid ""
 "GNU MH annoOptions marked with `*' are not yet implemented.\n"
 "Use -help to obtain the list of traditional MH options."
 msgstr ""
-"GNU MH annoLes options marquées à l'aide de `*' ne sont pas encore implantées.\n"
+"GNU MH annoLes options marquées d'une « * » ne sont pas encore implantées.\n"
 "Utiliser --help pour obtenir la liste des options traditionnelles MH."
 
 #: mh/anno.c:26
@@ -2533,11 +2533,11 @@ msgstr "Lister le contenu de la pile de répertoires"
 
 #: mh/folder.c:47
 msgid "Push the folder on the folder stack. If FOLDER is specified, it is pushed. Otherwise, if a folder is given in the command line (via + or --folder), it is pushed on stack. Otherwise, the current folder and the top of the folder stack are exchanged"
-msgstr ""
+msgstr "Empiler le répertoire dans le répertoire de pile. Si le RÉPERTOIRE est spécifié, il est empilé. Autrement, si un répertoire est fourni sur la ligne de commande (via + ou --folder), il est mis sur la pile. Autrement, le répertoire courant est le haut du répertoire de pile sont échangés"
 
 #: mh/folder.c:52
 msgid "Pop the folder off the folder stack"
-msgstr ""
+msgstr "Dépiler le répertoire du répertoire de pile"
 
 #: mh/folder.c:54 mh/mh_whatnow.c:152 pop3d/popauth.c:78
 msgid "Options are:"
@@ -2618,12 +2618,12 @@ msgid ""
 "GNU MH forwOptions marked with `*' are not yet implemented.\n"
 "Use -help to obtain the list of traditional MH options."
 msgstr ""
-"GNU MH forwLes options marquées à l'aide de `*' ne sont pas encore implantées.\n"
+"GNU MH forwLes options marquées d'une « * » ne sont pas encore implantées.\n"
 "Utiliser -help pour obtenir la liste des options traditionnelles MH."
 
 #: mh/forw.c:31 mh/repl.c:34
 msgid "* Add Replied: header to the message being replied to"
-msgstr ""
+msgstr "* Ajouter Répondu: à l'en-tête du message auquel une réponse a été expédiée"
 
 #: mh/forw.c:33 mh/repl.c:36
 msgid "Build the draft and quit immediately."
@@ -2635,7 +2635,7 @@ msgstr "Spécifier le répertoire qui contiendra les brouillons de messages"
 
 #: mh/forw.c:37 mh/repl.c:40 mh/send.c:44 mh/whatnow.c:31 mh/whom.c:36
 msgid "Undo the effect of the last --draftfolder option"
-msgstr ""
+msgstr "Annuler l'effet de la dernière option --draftfolder"
 
 #: mh/forw.c:38 mh/repl.c:41 mh/whatnow.c:32
 msgid "MSG"
@@ -2643,7 +2643,7 @@ msgstr "MSG"
 
 #: mh/forw.c:39 mh/repl.c:42 mh/whatnow.c:33
 msgid "Invoke the draftmessage facility"
-msgstr ""
+msgstr "Invoquer l'utilitaire de message brouillon"
 
 #: mh/forw.c:42 mh/forw.c:63 mh/mhl.c:45 mh/repl.c:50 mh/repl.c:63
 #: mh/whatnow.c:34
@@ -2664,15 +2664,15 @@ msgstr "Formatter les messages"
 
 #: mh/forw.c:49
 msgid "Undo the effect of the last --format option"
-msgstr ""
+msgstr "Annuler l'effet de la dernière option --format"
 
 #: mh/forw.c:53
 msgid "Use filter FILE to preprocess the body of the message"
-msgstr ""
+msgstr "Utiliser le filtre FICHIER pour pré-traiter le corps du message"
 
 #: mh/forw.c:55
 msgid "Undo the effect of the last --filter option"
-msgstr ""
+msgstr "Annuler l'effet de la dernière option --fliter"
 
 #: mh/forw.c:60
 msgid "Use MIME encapsulation"
@@ -2684,11 +2684,11 @@ msgstr "Fixer la largeur de la sortie"
 
 #: mh/forw.c:64 mh/repl.c:64
 msgid "* Set the replacement for whatnow program"
-msgstr ""
+msgstr "* Utiliser le programme remplaçant « whatnow »"
 
 #: mh/forw.c:66 mh/repl.c:66
 msgid "* Ignore whatnowproc variable. Use standard `whatnow' shell instead."
-msgstr ""
+msgstr "* Ignorer la variable « whatnowproc ». Utiliser le shell « whatnow » à la place."
 
 #: mh/forw.c:68 mh/repl.c:67
 msgid "Use draft file preserved after the last session"
@@ -2733,11 +2733,11 @@ msgstr "[+répertoire]"
 
 #: mh/inc.c:30
 msgid "Incorporate mail from named file"
-msgstr ""
+msgstr "Incorporer le courrier à partir du fichier nommé"
 
 #: mh/inc.c:32
 msgid "Specify folder to incorporate mail to"
-msgstr ""
+msgstr "Spécifier un répertoire pour y incorporer le courrier"
 
 #: mh/inc.c:34
 msgid "Enable audit"
@@ -2749,7 +2749,7 @@ msgstr "Interdire l'audit"
 
 #: mh/inc.c:38
 msgid "Mark first incorporated message as current (default)"
-msgstr ""
+msgstr "Marquer d'abord le message incorporé comme message courant (par défaut)"
 
 #: mh/inc.c:45
 msgid "Truncate source mailbox after incorporating (default)"
@@ -2781,7 +2781,7 @@ msgstr "%d: ne peut obtenir le message: %s"
 #: mh/inc.c:258
 #, c-format
 msgid "%d: error appending message: %s"
-msgstr ""
+msgstr "%d: erreur de concaténation de message: %s"
 
 #: mh/install-mh.c:21
 msgid "GNU MH install-mhUse -help to obtain the list of traditional MH options."
@@ -2891,7 +2891,7 @@ msgstr "format: division par zéro"
 
 #: mh/mh_format.c:1907
 msgid "Invalid recipient mask"
-msgstr ""
+msgstr "Masque du récipiendaire invalide"
 
 #: mh/mh_getopt.c:122
 msgid "Compatibility syntax:\n"
@@ -3004,6 +3004,11 @@ msgid ""
 "is the path to use for all MH folder operations.  The suggested MH\n"
 "path for you is %s...\n"
 msgstr ""
+"Avant d'utiliser MH, il est nécessaire d'avoir un fichier dans votre\n"
+"répertoire de login (%s) portant le nom .mh_profile lequel contient les informations\n"
+"nécessaires à certaines opérations MH. Le seul item qui est requis\n"
+"est le chemin pour utiliser toutes les opérations MH portant sur le répertoire. Le\n"
+"chemin MH suggéré pour vous est %s...\n"
 
 #: mh/mh_init.c:643
 msgid "Do you need help"
@@ -3156,7 +3161,7 @@ msgstr "Lister les messages ayant été distribués/auxquels une réponse a été donn
 
 #: mh/mh_whatnow.c:393
 msgid "Edit the message. If EDITOR is omitted use the one that was used on the preceeding round unless the profile entry \"LASTEDITOR-next\" names an alternate editor."
-msgstr ""
+msgstr "Editer le message. Si l'ÉDITEUR est omis utiliser celui qui a été utilisé lors de la précédente ronde à moins que l'entrée du profil \"LASTEDITOR-next\" ne contienne un éditeur alternatif."
 
 #: mh/mh_whatnow.c:397 mh/mh_whatnow.c:427 mh/mh_whatnow.c:517
 msgid "List the draft on the terminal."
@@ -3172,15 +3177,15 @@ msgstr "Terminer la session. Sauvegarder le brouillon, à moins que l'option -del
 
 #: mh/mh_whatnow.c:403 mh/mh_whatnow.c:428
 msgid "Refile the draft into the given FOLDER."
-msgstr ""
+msgstr "Remplir le brouillon dans le RÉPERTOIRE spécifié"
 
 #: mh/mh_whatnow.c:405
 msgid "Send the message. The -watch flag causes the delivery process to be monitored. SWITCHES are passed to send program verbatim."
-msgstr ""
+msgstr "Transmettre le message. L'option -watch permet de monitorer le traitement de livraison. Les OPTIONS sont relayées verbatim au programme de transmission."
 
 #: mh/mh_whatnow.c:408
 msgid "List the addresses and verify that they are acceptable to the transport service."
-msgstr ""
+msgstr "Lister les adresses et vérifier quelles soient acceptables au service de transport."
 
 #: mh/mh_whatnow.c:424
 msgid "Terminate the session. Preserve the draft."
@@ -3200,7 +3205,7 @@ msgstr "Qui y-a-t-il maintenant?"
 
 #: mh/mh_whatnow.c:507
 msgid "Disposition?"
-msgstr ""
+msgstr "Disposition?"
 
 #: mh/mh_whatnow.c:515
 msgid "Don't use the draft."
@@ -3236,15 +3241,15 @@ msgstr "message mal composé"
 
 #: mh/mh_whom.c:240
 msgid "-- Local Recipients --"
-msgstr ""
+msgstr "-- Récipiendaires locaux --"
 
 #: mh/mh_whom.c:246
 msgid "-- Network Recipients --"
-msgstr ""
+msgstr "-- Récipiendaires réseau --"
 
 #: mh/mh_whom.c:252
 msgid "No recipients"
-msgstr ""
+msgstr "Aucun récipiendaire"
 
 #: mh/mhl.c:25
 msgid "GNU MH mhlUse -help to obtain the list of traditional MH options."
@@ -3256,420 +3261,426 @@ msgstr "[fichiers]"
 
 #: mh/mhl.c:34
 msgid "Ring the bell at the end of each output page"
-msgstr ""
+msgstr "Sonner la cloche à la fin de chaque page produite en sortie"
 
 #: mh/mhl.c:37
 msgid "Clear the screen after each page of output"
-msgstr ""
+msgstr "Effacer l'écran après chaque produite en sortie"
 
 #: mh/mhl.c:44
 msgid "Set output screen length"
-msgstr ""
+msgstr "Fixer la longeur de l'écran de sortie"
 
 #: mh/mhl.c:46
 msgid "Use given PROG instead of the default"
-msgstr ""
+msgstr "Utiliser le PROGRAMME spécifié à la place de celui par défaut"
 
 #: mh/mhl.c:48
 msgid "Disable use of moreproc program"
-msgstr ""
+msgstr "Désactiver l'utilisation du programme moreproc"
 
 #: mh/mhl.c:121
 msgid "Invalid length"
-msgstr ""
+msgstr "Longeur invalide"
 
 #: mh/mhl.c:162
 #, c-format
 msgid "cannot create output stream: %s"
-msgstr ""
+msgstr "ne peut créer un flot de sortie: %s"
 
 #: mh/mhl.c:168
 #, c-format
 msgid "cannot open output stream: %s"
-msgstr ""
+msgstr "ne peut ouvrir un flot de sortie: %s"
 
 #: mh/mhl.c:187
 #, c-format
 msgid "cannot create input stream: %s"
-msgstr ""
+msgstr "ne peut créer un flot d'entrée: %s"
 
 #: mh/mhl.c:193
 #, c-format
 msgid "cannot open input stream: %s"
-msgstr ""
+msgstr "ne peut créer un flot d'entrée: %s"
 
 #: mh/mhl.c:201
 #, c-format
 msgid "input stream %s is not a message (%s)"
-msgstr ""
+msgstr "flot d'entrée %s n'est pas un message (%s)"
 
 #: mh/mhn.c:28
 msgid ""
 "GNU MH mhnOptions marked with `*' are not yet implemented.\n"
 "Use -help to obtain the list of traditional MH options."
 msgstr ""
+"GNU MH mhnLes options marquées d'une « * » ne sont pas encore implantées.\n"
+"Utiliser -help pour obtenir la liste des options traditionnelles MH"
 
 #: mh/mhn.c:37
 msgid "Specify file to operate upon"
-msgstr ""
+msgstr "Spécifier un fichier sur lequel opérer"
 
 #: mh/mhn.c:39
 msgid "MIME editing options"
-msgstr ""
+msgstr "Options MIME d'édition"
 
 #: mh/mhn.c:41
 msgid "Compose the MIME message (default)"
-msgstr ""
+msgstr "Composer une message MIME (par défaut)"
 
 #: mh/mhn.c:44
 msgid "Listing options"
-msgstr ""
+msgstr "Options de listage"
 
 #: mh/mhn.c:46
 msgid "List the table of contents"
-msgstr ""
+msgstr "Lister la table du contenu"
 
 #: mh/mhn.c:49
 msgid "Print the banner above the listing"
-msgstr ""
+msgstr "Afficher la bannière au-dessus du listing"
 
 #: mh/mhn.c:52
 msgid "List the decoded sizes"
-msgstr ""
+msgstr "Lister les tailles décodées"
 
 #: mh/mhn.c:55
 msgid "Display options"
-msgstr ""
+msgstr "Afficher les options"
 
 #: mh/mhn.c:57
 msgid "Display the contents of the messages"
-msgstr ""
+msgstr "Afficher le contenu des messages"
 
 #: mh/mhn.c:60
 msgid "* Display messages serially"
-msgstr ""
+msgstr "* Afficher les messages séquentiellement"
 
 #: mh/mhn.c:63
 msgid "Read mhl format from FILE"
-msgstr ""
+msgstr "Lire le format mhl à partir du FICHIER"
 
 #: mh/mhn.c:65
 msgid "Pause prior to displaying content"
-msgstr ""
+msgstr "Faire une pause avant d'afficher le contenu"
 
 #: mh/mhn.c:68
 msgid "Saving options"
-msgstr ""
+msgstr "Sauvegarde en cours des options"
 
 #: mh/mhn.c:70
 msgid "Store the contents of the messages on disk"
-msgstr ""
+msgstr "Stocker le contenu des messages sur le disque"
 
 #: mh/mhn.c:73
 msgid "Use filenames from the content headers"
-msgstr ""
+msgstr "Utiliser les noms de fichiers à partir du contenu des en-têtes"
 
 #: mh/mhn.c:76
 msgid "Other options"
-msgstr ""
+msgstr "Autres options"
 
 #: mh/mhn.c:77
 msgid "PART"
-msgstr ""
+msgstr "PARTIE"
 
 #: mh/mhn.c:78
 msgid "Limit the scope of the operation to the given part"
-msgstr ""
+msgstr "Limiter l'étendue de l'opération sur une partie donnée"
 
 #: mh/mhn.c:79
 msgid "CONTENT"
-msgstr ""
+msgstr "CONTENU"
 
 #: mh/mhn.c:80
 msgid "Operate on message part with given multipart content"
-msgstr ""
+msgstr "Opérer sur la partie message ayant un contenu avec de multiples parties"
 
 #: mh/mhn.c:82
 msgid "Print additional information"
-msgstr ""
+msgstr "Afficher l'information additionnelle"
 
 #: mh/mhn.c:549
 #, c-format
 msgid "malformed part specification (near %s)"
-msgstr ""
+msgstr "spécification de partie mal composée (près de %s)"
 
 #: mh/mhn.c:1215
 msgid " msg part type/subtype              size  description\n"
-msgstr ""
+msgstr " msg part type/sou-type             tail. description\n"
 
 #: mh/mhn.c:1252
 #, c-format
 msgid "%lu: can't get message body: %s"
-msgstr ""
+msgstr "%lu: ne peut obtenir le corps du message: %s"
 
 #: mh/mhn.c:1274
 #, c-format
 msgid "can't create proc stream (command %s): %s"
-msgstr ""
+msgstr "ne peut créer un processus de flot (commande %s): %s"
 
 #: mh/mhn.c:1281
 #, c-format
 msgid "can't open proc stream (command %s): %s"
-msgstr ""
+msgstr "ne peut ouvrir un processus de flot (commande %s): %s"
 
 #: mh/mhn.c:1322
 #, c-format
 msgid "can't parse command line `%s'"
-msgstr ""
+msgstr "ne peut analyser la ligne de commande « %s »"
 
 #: mh/mhn.c:1329
 #, c-format
 msgid "can't create temporary stream (file %s): %s"
-msgstr ""
+msgstr "ne peut créer un flot temporatire (fichier %s): %s"
 
 #: mh/mhn.c:1337
 #, c-format
 msgid "can't open temporary stream (file %s): %s"
-msgstr ""
+msgstr "ne peut ouvrir un flot temporaire (fichier %s): %s"
 
 #: mh/mhn.c:1383
 msgid "part "
-msgstr ""
+msgstr "partie "
 
 #: mh/mhn.c:1401
 msgid "Press <return> to show content..."
-msgstr ""
+msgstr "Appuyez sur la touche <RETOUR> pour afficher le contenu..."
 
 #: mh/mhn.c:1460
 #, c-format
 msgid "can't create output stream: %s"
-msgstr ""
+msgstr "ne peut créer un flot de sortie: %s"
 
 #: mh/mhn.c:1466
 #, c-format
 msgid "can't open output stream: %s"
-msgstr ""
+msgstr "ne peut créer un flot de sortie: %s"
 
 #: mh/mhn.c:1645
 #, c-format
 msgid "storing message %s part %s as file %s\n"
-msgstr ""
+msgstr "stockage en cours du message %s partie %s dans le fichier %s\n"
 
 #: mh/mhn.c:1650
 #, c-format
 msgid "storing message %lu part %s as file %s\n"
-msgstr ""
+msgstr "stockage en cours du message %lu partie %s dans le fichier %s\n"
 
 #: mh/mhn.c:1661
 #, c-format
 msgid "File %s already exists. Rewrite"
-msgstr ""
+msgstr "Fichier %s existe déjà. Réécrire"
 
 #: mh/mhn.c:1675 mh/mhn.c:2492
 #, c-format
 msgid "can't create output stream (file %s): %s"
-msgstr ""
+msgstr "ne peut créer un flot de sortie (fichier %s): %s"
 
 #: mh/mhn.c:1683 mh/mhn.c:2500
 #, c-format
 msgid "can't open output stream (file %s): %s"
-msgstr ""
+msgstr "ne peut créer un flot de sortie (fichier %s): %s"
 
 #: mh/mhn.c:1797
 #, c-format
 msgid "%s:%lu: missing %c"
-msgstr ""
+msgstr "%s:%lu: %c manquant"
 
 #: mh/mhn.c:1832
 #, c-format
 msgid "%s:%lu: comment redefined"
-msgstr ""
+msgstr "%s:%lu: commentaire redéfini"
 
 #: mh/mhn.c:1844 mh/mhn.c:1884 mh/mhn.c:2110
 #, c-format
 msgid "%s:%lu: syntax error"
-msgstr ""
+msgstr "%s:%lu: erreur de syntaxe"
 
 #: mh/mhn.c:1853 mh/mhn.c:2077
 #, c-format
 msgid "%s:%lu: description redefined"
-msgstr ""
+msgstr "%s:%lu: description redéfinie"
 
 #: mh/mhn.c:1865 mh/mhn.c:2089
 #, c-format
 msgid "%s:%lu: content id redefined"
-msgstr ""
+msgstr "%s:%lu: identificateur de contenu redéfini"
 
 #: mh/mhn.c:1947
 #, c-format
 msgid "%s:%lu: missing subtype"
-msgstr ""
+msgstr "%s:%lu: sous-type manquant"
 
 #: mh/mhn.c:2018
 #, c-format
 msgid "cannot create header: %s"
-msgstr ""
+msgstr "ne peut créer l'en-tête: %s"
 
 #: mh/mhn.c:2124
 #, c-format
 msgid "%s:%lu: no such message: %lu"
-msgstr ""
+msgstr "%s:%lu: pas de tel message: %lu"
 
 #: mh/mhn.c:2215
 #, c-format
 msgid "%s:%lu: missing filename"
-msgstr ""
+msgstr "%s:%lu: nom de fichier manquant"
 
 #: mh/mhn.c:2271
 #, c-format
 msgid "can't open filter stream: %s"
-msgstr ""
+msgstr "ne peut ouvrir un filtre de flot: %s"
 
 #: mh/mhn.c:2392
 #, c-format
 msgid "%s:%lu: unmatched #end"
-msgstr ""
+msgstr "%s:%lu: #end non pairé"
 
 #: mh/mhpath.c:23
 msgid "GNU MH mhpathUse -help to obtain the list of traditional MH options."
-msgstr ""
+msgstr "GNU MH mhpathUtiliser -help pour obtenir la liste des options traditionnelles MH"
 
 #: mh/mhpath.c:25 mh/rmm.c:25 mh/scan.c:32
 msgid "[+folder] [msgs]"
-msgstr ""
+msgstr "[+répertoire] [messages]"
 
 #: mh/pick.c:29
 msgid ""
 "GNU MH pickOptions marked with `*' are not yet implemented.\n"
 "Use -help to obtain the list of traditional MH options."
 msgstr ""
+"GNU MH pickLes options marqués d'une « * » ne sont pas encore implantées.\n"
+"Utiliser -help pour obtenir la liste des options traditionnelles MH."
 
 #: mh/pick.c:32
 msgid "[messages]"
-msgstr ""
+msgstr "[messages]"
 
 #: mh/pick.c:39
 msgid "Specifying search patterns:"
-msgstr ""
+msgstr "Spécifier le patron de recherche:"
 
 #: mh/pick.c:41
 msgid "Search the named header field"
-msgstr ""
+msgstr "Rechercher le champ nommé de l'en-tête"
 
 #: mh/pick.c:43
 msgid "A pattern to look for"
-msgstr ""
+msgstr "Un patron à repérer"
 
 #: mh/pick.c:46
 msgid "Flags controlling the type of regular expressions. STRING must consist of one or more of the following letters: B=basic, E=extended, I=ignore case, C=case sensitive. Default is \"EI\". The flags remain in effect until the next occurrence of --cflags option. The option must occur right before --pattern or --component option (or its alias)."
-msgstr ""
+msgstr "Les options contrôlant le type d,expression régulière. La CHAÎNE doit contenir une ou plusieurs des lettres suivantes: B=de base, E=Étendue, I=Ignorer la casse, C=ne pas ignorer la casse. Les options pas défaut sont \"EI\". Les options demeurent actives jusqu'à la prochaine utilisation de l'option -cflags. L'option doit être spécifié à la droite de l'option --pattern ou --component (ou sont alias)."
 
 #: mh/pick.c:48
 msgid "Same as --component cc --pattern STRING"
-msgstr ""
+msgstr "Identique à --component cc --pattern CHAÎNE"
 
 #: mh/pick.c:50
 msgid "Same as --component date --pattern STRING"
-msgstr ""
+msgstr "Identique à --component date --pattern CHAÎNE"
 
 #: mh/pick.c:52
 msgid "Same as --component from --pattern STRING"
-msgstr ""
+msgstr "Identique à  --component from --pattern CHAÎNE"
 
 #: mh/pick.c:54
 msgid "Same as --component subject --pattern STRING"
-msgstr ""
+msgstr "Identique à --component subject --pattern CHAÎNE"
 
 #: mh/pick.c:56
 msgid "Same as --component to --pattern STRING"
-msgstr ""
+msgstr "Identique à --component to --pattern CHAÎNE"
 
 #: mh/pick.c:58
 msgid "Date constraint operations:"
-msgstr ""
+msgstr "Contrainte de date d'opérations:"
 
 #: mh/pick.c:60
 msgid "Search in the named date header field (default is `Date:')"
-msgstr ""
+msgstr "Rechercher dans le champ de date nommé de l'en-tête (par défaut « Date: »)"
 
 #: mh/pick.c:61 mh/pick.c:63
 msgid "DATE"
-msgstr ""
+msgstr "DATE"
 
 #: mh/pick.c:62
 msgid "Match messages after the given date"
-msgstr ""
+msgstr "Rechercher les messages concordants après une date donnée"
 
 #: mh/pick.c:64
 msgid "Match messages before the given date"
-msgstr ""
+msgstr "Rechercher les messages concordants avant une date donnée"
 
 #: mh/pick.c:66
 msgid "Logical operations and grouping:"
-msgstr ""
+msgstr "Opérations logiques et regroupement:"
 
 #: mh/pick.c:68
 msgid "Logical AND (default)"
-msgstr ""
+msgstr "ET logique (par défaut)"
 
 #: mh/pick.c:70
 msgid "Logical OR"
-msgstr ""
+msgstr "OU logique"
 
 #: mh/pick.c:72
 msgid "Logical NOT"
-msgstr ""
+msgstr "NON logique"
 
 #: mh/pick.c:74
 msgid "Open group"
-msgstr ""
+msgstr "Ouverture de groupe"
 
 #: mh/pick.c:77
 msgid "Close group"
-msgstr ""
+msgstr "Fermeture de groupe"
 
 #: mh/pick.c:80
 msgid "Operations over the selected messages:"
-msgstr ""
+msgstr "Opérations portant sur les messages sélectionnés:"
 
 #: mh/pick.c:82
 msgid "List the numbers of the selected messages (default)"
-msgstr ""
+msgstr "Lister les numéros des messages sélectionnés (par défaut)"
 
 #: mh/pick.c:85
 msgid "Add matching messages to the given sequence"
-msgstr ""
+msgstr "Ajouter les messages concordant avec la séquence fournie"
 
 #: mh/pick.c:265 mh/pick.c:278
 #, c-format
 msgid "invalid option -- %s"
-msgstr ""
+msgstr "option invalide -- %s"
 
 #: mh/refile.c:28
 msgid ""
 "GNU MH refileOptions marked with `*' are not yet implemented.\n"
 "Use -help to obtain the list of traditional MH options."
 msgstr ""
+"GNU MH refileLes options marquées d'une « * » ne sont pas encore implantées.\n"
+"Utiliser -help pour obtenir la liste des options traditionnelles MH."
 
 #: mh/refile.c:31
 msgid "messages folder [folder...]"
-msgstr ""
+msgstr "répertoire des messages [répertoire...]"
 
 #: mh/refile.c:38
 msgid "Use <mh-dir>/draft as the source message"
-msgstr ""
+msgstr "Utiliser <mh-rép>/brouillon comme source du message"
 
 #: mh/refile.c:40
 msgid "Preserve the source folder copy."
-msgstr ""
+msgstr "Préserver le répertoire source de la copie."
 
 #: mh/refile.c:43
 msgid "* Try to preserve message sequence numbers"
-msgstr ""
+msgstr "* Essayez de préserve les numéros de séquence des messages"
 
 #: mh/refile.c:45
 msgid "Specify source folder. FOLDER will become the current folder after the program exits."
-msgstr ""
+msgstr "Spécifier le répertoire source. Le RÉPERTOIRE deviendra le répertoire courant après la fin d'exécution du programme."
 
 #: mh/refile.c:47
 msgid "Use FILE as the source message"
@@ -3677,30 +3688,32 @@ msgstr "Utiliser le FICHIER comme message source"
 
 #: mh/refile.c:74 mh/refile.c:93
 msgid "can't create folder list"
-msgstr ""
+msgstr "ne peut créer la liste de répertoires"
 
 #: mh/refile.c:87
 msgid "no folder specified"
-msgstr ""
+msgstr "aucun répertoire n'a été spécifié"
 
 #: mh/refile.c:99 mh/refile.c:124
 msgid "can't create iterator"
-msgstr ""
+msgstr "ne peut créer un itérateur"
 
 #: mh/refile.c:198
 #, c-format
 msgid "error appending message: %s"
-msgstr ""
+msgstr "erreur lors de la concaténation au message: %s"
 
 #: mh/refile.c:258
 msgid "both message set and source file given"
-msgstr ""
+msgstr "le jeu de messages et le fichier source sont fournis"
 
 #: mh/repl.c:25
 msgid ""
 "GNU MH replOptions marked with `*' are not yet implemented.\n"
 "Use -help to obtain the list of traditional MH options."
 msgstr ""
+"GNU MH replLes options marquées d'une « * » ne sont pas encore implantées.\n"
+"Utiliser -help pour obtenir la liste des options traditionnelles MH"
 
 #: mh/repl.c:28
 msgid "[+folder] [msg]"
@@ -3708,35 +3721,35 @@ msgstr "[+répertoire] [message]"
 
 #: mh/repl.c:44
 msgid "Specify whom to place on the Cc: list of the reply"
-msgstr ""
+msgstr "Spécifier les destinataires à placer de la liste à répondre du champ Cc:"
 
 #: mh/repl.c:46
 msgid "Specify whom to remove from the Cc: list of the reply"
-msgstr ""
+msgstr "Spécifier les destinataires à enlever de la liste à répondre du champ Cc:"
 
 #: mh/repl.c:49
 msgid "Construct a group or followup reply"
-msgstr ""
+msgstr "Construire un groupe ou une réponse de suivi"
 
 #: mh/repl.c:52
 msgid "* Set the folder to receive Fcc's."
-msgstr ""
+msgstr "* Sélectionner le répertoire devant recevoir les Fcc"
 
 #: mh/repl.c:53
 msgid "MHL-FILTER"
-msgstr ""
+msgstr "FILTRE-MHL"
 
 #: mh/repl.c:54
 msgid "Set the mhl filter to preprocess the body of the message being replied"
-msgstr ""
+msgstr "Sélectionner le filtre MHL pour le pré-traitement du corps du message pour lequel une réponse a été transmise"
 
 #: mh/repl.c:57
 msgid "Include a copy of the message being replied. The message will be processed using either the default filter \"mhl.reply\", or the filter specified by --filter option."
-msgstr ""
+msgstr "Inclure une copie du message duquel une réponse est transmise. Le message sera traité en utilisant soit le filtre par défaut \"mhl.reply\", ou le filtre spécifié par l'option --filter."
 
 #: mh/repl.c:61
 msgid "Query for addresses to place in To: and Cc: lists"
-msgstr ""
+msgstr "Rechercher les adresses à placer dans les listes To: et Cc:"
 
 #: mh/repl.c:128
 #, c-format
@@ -3771,7 +3784,7 @@ msgstr "un seul message à la fois!"
 
 #: mh/rmf.c:32
 msgid "GNU MH rmfUse -help to obtain the list of traditional MH options."
-msgstr ""
+msgstr "GNU MH rmfUtiliser -help pour obtenir la liste des options traditionnelles MH"
 
 #: mh/rmf.c:39
 msgid "Specify the folder to delete"
@@ -3797,11 +3810,11 @@ msgstr "ne peut détruire (unlink) %s: %s"
 
 #: mh/rmm.c:23
 msgid "GNU MH rmmUse -help to obtain the list of traditional MH options."
-msgstr ""
+msgstr "GNU MH rmmUtiliser -help pour obtenir la liste des options traditionnelles MH"
 
 #: mh/scan.c:30
 msgid "GNU MH scanUse -help to obtain the list of traditional MH options."
-msgstr ""
+msgstr "GNU MH scanUtiliser -help pour obtenir la liste des options traditionnelles MH"
 
 #: mh/scan.c:37
 msgid "Specify folder to scan"
@@ -3838,6 +3851,8 @@ msgid ""
 "GNU MH sendOptions marked with `*' are not yet implemented.\n"
 "Use -help to obtain the list of traditional MH options."
 msgstr ""
+"GNU MH sendLes options marquées d'une « * » ne sont pas encore implantées.\n"
+"Utiliser -help pour obtenir la liste des options traditionnelles MH"
 
 #: mh/send.c:30
 msgid "file [file...]"
@@ -3861,7 +3876,7 @@ msgstr "* Utiliser le FICHIER de filtres pour faire le pré-traitement de message
 
 #: mh/send.c:48
 msgid "* Undo the effect of the last --filter option"
-msgstr ""
+msgstr "* Annuler l'effet de la dernière option --filter"
 
 #: mh/send.c:50
 msgid "* Reformat To: and Cc: addresses"
@@ -3869,7 +3884,7 @@ msgstr "* Reformater les adresses To: et Cc:"
 
 #: mh/send.c:53
 msgid "* In case of failure forward the draft along with the failure notice to the sender."
-msgstr ""
+msgstr "* Dans le cas d'échec à relayer le brouillon avec un avis d'échec à l'expéditeur."
 
 #: mh/send.c:56
 msgid "* Use MIME encapsulation"
@@ -3889,7 +3904,7 @@ msgstr "SECONDES"
 
 #: mh/send.c:65
 msgid "* Split the draft into several partial messages and send them with SECONDS interval"
-msgstr ""
+msgstr "* Séparer le brouillon en de multiples messages partiels et les transmettre à un intervelle de SECONDES"
 
 #: mh/send.c:67
 msgid "Print the transcript of interactions with the transport system"
@@ -3914,12 +3929,12 @@ msgstr "ne peut créer la liste de messages"
 #: mh/send.c:303
 #, c-format
 msgid "cannot create mailer \"%s\""
-msgstr ""
+msgstr "ne peut créer un postier \"%s\""
 
 #: mh/send.c:318
 #, c-format
 msgid "cannot open mailer \"%s\""
-msgstr ""
+msgstr "ne peut ouvrir le postier \"%s\""
 
 #: mh/send.c:486
 #, c-format
@@ -3937,11 +3952,11 @@ msgstr "[FICHIER]"
 
 #: mh/whatnow.c:36
 msgid "Set the prompt"
-msgstr ""
+msgstr "Modifier l'invite"
 
 #: mh/whom.c:21
 msgid "GNU MH whomUse -help to obtain the list of traditional MH options."
-msgstr ""
+msgstr "GNU MH whomUtiliser -help pour obtenir la liste des options traditionnelles MH."
 
 #: mh/whom.c:38
 msgid "Check if addresses are deliverable"
@@ -4021,7 +4036,7 @@ msgstr "GNU pop3d -- le daemon POP3"
 
 #: pop3d/pop3d.c:198
 msgid "failed to become a daemon:"
-msgstr ""
+msgstr "a échoué dans la tentative à devenir un daemon:"
 
 #: pop3d/pop3d.c:435
 msgid "GNU pop3d started"
@@ -4185,7 +4200,7 @@ msgstr "Usager '%s': échec d'authentification"
 #: pop3d/user.c:93
 #, c-format
 msgid "Possible probe of account '%s'"
-msgstr ""
+msgstr "Scrutation possible du compte '%s'"
 
 #: pop3d/user.c:155
 #, c-format
@@ -4287,7 +4302,7 @@ msgstr "fichier ticket pour l'authentification de la boîte aux lettres"
 
 #: sieve/sieve.c:84
 msgid "Debug flags (defaults to \""
-msgstr ""
+msgstr "Fanions de mise au point (par défaut \""
 
 #: sieve/sieve.c:84
 msgid "\")"
