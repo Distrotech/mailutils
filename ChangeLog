@@ -1,3 +1,10 @@
+2002-04-26  Sam Roberts
+
+	* include/mailutils/mutil.h: Included <mailutils/types.h>, which
+	  will get <sys/types.h> & uid_t.
+	* lib/argp-help.c, messages/messages.c: Made inclusions of
+	  <malloc.h> conditional on autoconf check.
+
 2002-04-19  Sergey Poznyakoff
 
 	* guimb/scm/sieve.scm (sieve-parse-command): Bugfix: must always
