@@ -67,7 +67,7 @@ VPATH = $(s)
 
 SUFFIXES=.c .inc
 .c.inc:
-	sed '1{s/\/\*/@comment  /;b};2,/.*\*\//{s/\*\///;s/^/@comment/;b};s/\([{}]\)/@\1/g' $< > $@
+	sed -f $(top_srcdir)/scripts/texify.sed $< > $@
 
 DISTCLEANFILES=*.pgs
 MAINTAINERCLEANFILES=$(INCFILES)
