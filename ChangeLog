@@ -1,3 +1,18 @@
+2002-11-29  Sergey Poznyakoff  
+
+	* mailbox/file_stream.c (_stdin_file_read): Test for eof
+	  condition.
+
+	* examples/base64.c: New file. Sample base64 encoder-decoder.
+	* examples/Makefile.am: Added base64
+	* mailbox/testsuite/Encode: New file. Data for base64 test. 
+	* mailbox/testsuite/Decode: Likewise.
+	* mailbox/testsuite/Makefile.am: Added Encode, Decode.
+	* mailbox/testsuite/mailbox/base64.exp: New file. Testcase for
+	  base64 filters.
+	* mailbox/testsuite/mailbox/DISTFILES: Added base64.exp
+	* testsuite/lib/mailutils.exp (mu_test_file): Fixed comment.
+	
 2002-11-28  Frederic Gobry  <frederic.gobry@smartdata.ch>
 
 	* mailbox/filter_trans.c (qp_encode): fixed quoted-printable
