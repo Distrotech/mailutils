@@ -890,7 +890,7 @@ _message_is_external_body (message_t msg, char ***env)
     return 0;
   _get_content_type (hdr, &typestr, &argstr);
   split_content (typestr, &type, &subtype);
-  rc = strcmp (subtype, "external-body") == 0;
+  rc = subtype && strcmp (subtype, "external-body") == 0;
   if (rc && env)
     {
       int argc;
