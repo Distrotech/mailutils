@@ -26,8 +26,15 @@ unixmbox_open (mailbox * mbox)
   char buf[80];
   unsigned int max_count = 10;
   int mess = 0;
-  unixmbox_data *data = malloc (sizeof (unixmbox_data));
+  unixmbox_data *data;
+  
+  if (mbox == NULL)
+    {
+      errno = EINVAL;
+	  return -1;
+    }
 
+  data = malloc (sizeof (unixmbox_data));
   if (data == NULL)
     {
       errno = ENOMEM;
@@ -61,16 +68,14 @@ unixmbox_open (mailbox * mbox)
       errno = 0;
       return -1;
     }
-  else
-    rewind (data->file);
 
-  while (fgets (buf, 80, data->file))
+  do
     {
       if (!strncmp (buf, "From ", 5))
 	{
 	  /* Beginning of a header */
 	  while (strchr (buf, '\n') == NULL)
-	    fgets (buf, 80, data->file);
+	    fgets (buf, 80, data->file); /* eat the From line */
 
 	  mbox->messages++;
 
@@ -106,6 +111,7 @@ unixmbox_open (mailbox * mbox)
 	  fgetpos (data->file, &(data->messages[mbox->messages - 1].end));
 	}
     }
+  while (fgets (buf, 80, data->file));
 
   mbox->_close = unixmbox_close;
   mbox->_delete = unixmbox_delete;
@@ -126,7 +132,14 @@ unixmbox_open (mailbox * mbox)
 int
 unixmbox_close (mailbox * mbox)
 {
-  unixmbox_data *data = mbox->_data;
+  unixmbox_data *data;
+  
+  if (mbox == NULL)
+    {
+      errno = EINVAL;
+	  return -1;
+    }
+  data = mbox->_data;
   unixmbox_lock (mbox, MO_ULOCK);
   fclose (data->file);
   free (data->messages);
@@ -140,19 +153,26 @@ unixmbox_close (mailbox * mbox)
  * Marks a message for deletion
  */
 int 
-unixmbox_delete (mailbox * mbox, int num)
+unixmbox_delete (mailbox * mbox, unsigned int num)
 {
-  unixmbox_data *data = mbox->_data;
+  unixmbox_data *data;
+
+  if (mbox == NULL)
+    {
+      errno = EINVAL;
+      return -1;
+    }
+
   if (num > mbox->messages || mbox_is_deleted (mbox, num))
     {
       errno = ERANGE;
       return -1;
     }
-  else
-    {
-      data->messages[num].deleted = 1;
-      mbox->num_deleted++;
-    }
+
+  data = mbox->_data;
+  data->messages[num].deleted = 1;
+  mbox->num_deleted++;
+
   return 0;
 }
 
@@ -160,19 +180,26 @@ unixmbox_delete (mailbox * mbox, int num)
  * Unmark a message for deletion
  */
 int 
-unixmbox_undelete (mailbox * mbox, int num)
+unixmbox_undelete (mailbox * mbox, unsigned int num)
 {
-  unixmbox_data *data = mbox->_data;
+  unixmbox_data *data;
+
+  if (mbox == NULL)
+    {
+      errno = EINVAL;
+      return -1;
+    }
+
   if (num > mbox->messages || !mbox_is_deleted (mbox, num))
     {
       errno = ERANGE;
       return -1;
     }
-  else
-    {
-      data->messages[num].deleted = 0;
-      mbox->num_deleted--;
-    }
+
+  data = mbox->_data;
+  data->messages[num].deleted = 0;
+  mbox->num_deleted--;
+
   return 0;
 }
 
@@ -183,11 +210,17 @@ unixmbox_undelete (mailbox * mbox, int num)
 int 
 unixmbox_expunge (mailbox * mbox)
 {
-  unixmbox_data *data = mbox->_data;
+  unixmbox_data *data;
   int i = 0, size = 0;
-  char *buf;
+  char *buf = NULL;
   fpos_t lastpos;
 
+  if (mbox == NULL)
+    {
+      errno = EINVAL;
+	  return -1;
+    }
+  data = mbox->_data;
   data->file = freopen (mbox->name, "r+", data->file);
   if (data->file == NULL)
     {
@@ -216,9 +249,16 @@ unixmbox_expunge (mailbox * mbox)
  * Determines whether or a not a message is marked for deletion
  */
 int
-unixmbox_is_deleted (mailbox * mbox, int num)
+unixmbox_is_deleted (mailbox * mbox, unsigned int num)
 {
-  unixmbox_data *data = mbox->_data;
+  unixmbox_data *data;
+
+  if (mbox == NULL)
+    {
+      errno = EINVAL;
+      return -1;
+    }
+  data = mbox->_data;
   return (data->messages[num].deleted == 1);
 }
 
@@ -241,21 +281,29 @@ unixmbox_add_message (mailbox * mbox, char *message)
  * Returns a message body
  */
 char *
-unixmbox_get_body (mailbox * mbox, int num)
+unixmbox_get_body (mailbox * mbox, unsigned int num)
 {
-  unixmbox_data *data = mbox->_data;
-  int size = data->messages[num].end - data->messages[num].body;
-  char *buf = malloc ((1 + size) * sizeof (char));
+  unixmbox_data *data;
+  unsigned int size;
+  char *buf;
+
+  if (mbox == NULL)
+    {
+      errno = EINVAL;
+	  return NULL;
+    }
+  if (num > mbox->messages || num < 0)
+    {
+      errno = ERANGE;
+      return NULL;
+    }
+
+  data = mbox->_data;
+  size = data->messages[num].end - data->messages[num].body;
+  buf = malloc ((1 + size) * sizeof (char));
   if (buf == NULL)
     {
       errno = ENOMEM;
-      free (buf);
-      return NULL;
-    }
-  else if (num > mbox->messages || num < 0)
-    {
-      errno = ERANGE;
-      free (buf);
       return NULL;
     }
 
@@ -269,25 +317,35 @@ unixmbox_get_body (mailbox * mbox, int num)
  * Returns just the header of a message
  */
 char *
-unixmbox_get_header (mailbox * mbox, int num)
+unixmbox_get_header (mailbox * mbox, unsigned int num)
 {
-  unixmbox_data *data = mbox->_data;
-  int size = (data->messages[num].body - 1) - data->messages[num].header ;
-  char *buf = malloc ((1 + size) * sizeof (char));
+  unixmbox_data *data;
+  unsigned int size;
+  char *buf;
+
+  if ( mbox == NULL )
+    {
+      errno = EINVAL;
+	  return NULL;
+    }
+
+  if (num > mbox->messages)
+    {
+      errno = ERANGE;
+      return NULL;
+    }
+
+  data = mbox->_data;
+  size = (data->messages[num].body - 1) - data->messages[num].header;
+  buf = malloc ((1 + size) * sizeof (char));
   if (buf == NULL)
     {
       errno = ENOMEM;
-      free (buf);
-      return NULL;
-    }
-  else if (num > mbox->messages || num < 0)
-    {
-      errno = ERANGE;
-      free (buf);
       return NULL;
     }
 
   memset (buf, 0, size + 1);
+
   fsetpos (data->file, &(data->messages[num].header));
   fread (buf, size, sizeof (char), data->file);
   return buf;

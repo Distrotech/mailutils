@@ -46,28 +46,28 @@ typedef struct _mailbox
   {
     /* Data */
     char *name;
-    int messages;
-    int num_deleted;
-    int *sizes;
+    unsigned int messages;
+    unsigned int num_deleted;
+    unsigned int *sizes;
     void *_data;
 
     /* Functions */
     int (*_close) __P ((struct _mailbox *));
-    int (*_delete) __P ((struct _mailbox *, int));
-    int (*_undelete) __P ((struct _mailbox *, int));
+    int (*_delete) __P ((struct _mailbox *, unsigned int));
+    int (*_undelete) __P ((struct _mailbox *, unsigned int));
     int (*_expunge) __P ((struct _mailbox *));
     int (*_add_message) __P ((struct _mailbox *, char *));
-    int (*_is_deleted) __P ((struct _mailbox *, int));
+    int (*_is_deleted) __P ((struct _mailbox *, unsigned int));
     int (*_lock) __P((struct _mailbox *, int));
-    char *(*_get_body) __P ((struct _mailbox *, int));
-    char *(*_get_header) __P ((struct _mailbox *, int));
+    char *(*_get_body) __P ((struct _mailbox *, unsigned int));
+    char *(*_get_header) __P ((struct _mailbox *, unsigned int));
   }
 mailbox;
 
 mailbox *mbox_open __P ((const char *name));
 
-char *mbox_header_line __P ((mailbox *mbox, int num, const char *header));
-char *mbox_body_lines __P ((mailbox *mbox, int num, int lines));
+char *mbox_header_line __P ((mailbox *mbox, unsigned int num, const char *header));
+char *mbox_body_lines __P ((mailbox *mbox, unsigned int num, unsigned int lines));
 
 #endif
 

@@ -61,13 +61,13 @@ unixmbox_data;
 
 int unixmbox_open (mailbox *mbox);
 int unixmbox_close (mailbox *mbox);
-int unixmbox_delete (mailbox *mbox, int num);
-int unixmbox_undelete (mailbox *mbox, int num);
+int unixmbox_delete (mailbox *mbox, unsigned int num);
+int unixmbox_undelete (mailbox *mbox, unsigned int num);
 int unixmbox_expunge (mailbox *mbox);
-int unixmbox_is_deleted (mailbox *mbox, int num);
+int unixmbox_is_deleted (mailbox *mbox, unsigned int num);
 int unixmbox_lock (mailbox *mbox, int mode);
 int unixmbox_add_message (mailbox *mbox, char *message);
-char *unixmbox_get_body (mailbox *mbox, int num);
-char *unixmbox_get_header (mailbox *mbox, int num);
+char *unixmbox_get_body (mailbox *mbox, unsigned int num);
+char *unixmbox_get_header (mailbox *mbox, unsigned int num);
 
 #endif

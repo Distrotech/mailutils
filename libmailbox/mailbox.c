@@ -23,14 +23,22 @@
 #endif
 
 int _mbox_dummy1 (mailbox * mbox);
-int _mbox_dummy2 (mailbox * mbox, int num);
+int _mbox_dummy2 (mailbox * mbox, unsigned int num);
 int _mbox_dummy3 (mailbox * mbox, char *c);
-char *_mbox_dummy4 (mailbox * mbox, int num);
+char *_mbox_dummy4 (mailbox * mbox, unsigned int num);
 
 mailbox *
 mbox_open (const char *name)
 {
-  mailbox *mbox = malloc (sizeof (mailbox));
+  mailbox *mbox;
+
+  if ( name == NULL )
+    {
+      errno = EINVAL;
+      return NULL;
+    }
+
+  mbox = malloc (sizeof (mailbox));
   if (mbox == NULL)
     {
       errno = ENOMEM;
@@ -87,18 +95,28 @@ mbox_open (const char *name)
  * Gets the contents of a header field
  */
 char *
-mbox_header_line (mailbox *mbox, int num, const char *header)
+mbox_header_line (mailbox *mbox, unsigned int num, const char *header)
 {
   char *full, *tmp, *line;
-  int i = 0, j=0, try = 1, len;
-  int lh = strlen (header);
+  int i = 0, j = 0, try = 1;
+  unsigned int len, lh;
+  
+  if ( mbox == NULL || header == NULL )
+    {
+      errno = EINVAL;
+      return NULL;
+    }
+
   full = mbox_get_header (mbox, num);
   if (full == NULL)
     return NULL;
  
+  lh = strlen (header);
   len = strlen (full);
+  tmp = NULL;
 
   /* First get the appropriate line at the beginning */
+  /* FIXME: hmm len - (lh + 2) *COULD* be negative, but should never be */
   for (i=0; i < len-(lh+2); i++)
     {
       if (try == 1)
@@ -107,6 +125,11 @@ mbox_header_line (mailbox *mbox, int num, const char *header)
 	    {
 	      full[len-i] = '\0';
 	      tmp = strdup (&full[i+lh+2]);
+		  if (tmp == NULL)
+            {
+              free(full);
+			  return NULL;
+            }
 	      i = len;
 	    }
 	  else
@@ -118,6 +141,12 @@ mbox_header_line (mailbox *mbox, int num, const char *header)
 	try = 0;
     }
 
+  /* FIXME: hmm, no valid header found, what should errno be? */
+  if (tmp == NULL)
+    {
+      free(full);
+      return NULL;
+    }
   /* Now trim the fat */
   len = strlen (tmp);
   for (i = 0; i < len; i++)
@@ -145,11 +174,16 @@ mbox_header_line (mailbox *mbox, int num, const char *header)
  * Gets first LINES lines from message body
  */
 char *
-mbox_body_lines (mailbox *mbox, int num, int lines)
+mbox_body_lines (mailbox *mbox, unsigned int num, unsigned int lines)
 {
   char *full, *buf = NULL;
   int i=0, line = 0, len;
-  if (lines < 1)
+  if (mbox == NULL)
+    {
+      errno = EINVAL;
+	  return NULL;
+    }
+  if (lines == 0)
     return strdup ("");
   full = mbox_get_body (mbox, num);
   if (full == NULL)
@@ -185,7 +219,7 @@ _mbox_dummy1 (mailbox * mbox)
 }
 
 int 
-_mbox_dummy2 (mailbox * mbox, int num)
+_mbox_dummy2 (mailbox * mbox, unsigned int num)
 {
   return _mbox_dummy1 (mbox);
 }
@@ -199,7 +233,7 @@ _mbox_dummy3 (mailbox * mbox, char *c)
  * Bogus function for unimplemented functions that return char *
  */
 char *
-_mbox_dummy4 (mailbox * mbox, int num)
+_mbox_dummy4 (mailbox * mbox, unsigned int num)
 {
   errno = ENOSYS;
   return NULL;
