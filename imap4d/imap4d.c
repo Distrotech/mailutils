@@ -25,6 +25,7 @@ FILE *ofile;
 mailbox_t mbox;
 char *homedir;
 int state = STATE_NONAUTH;
+int debug_mode = 0;
 
 struct daemon_param daemon_param = {
   MODE_INTERACTIVE,     /* Start in interactive (inetd) mode */
@@ -114,21 +115,30 @@ main (int argc, char **argv)
     pam_service = "gnu-imap4d";
 #endif
 
-  /* First we want our group to be mail so we can access the spool.  */
-  gr = getgrnam ("mail");
-  if (gr == NULL)
+  if (isatty (0))
     {
-      perror ("Error getting mail group");
-      exit (1);
+      /* If input is a tty, switch to debug mode */
+      debug_mode = 1;
+    }
+  else
+    {
+      /* Normal operation: */
+      /* First we want our group to be mail so we can access the spool.  */
+      gr = getgrnam ("mail");
+      if (gr == NULL)
+	{
+	  perror ("Error getting mail group");
+	  exit (1);
+	}
+      
+      if (setgid (gr->gr_gid) == -1)
+	{
+	  perror ("Error setting mail group");
+	  exit (1);
+	}
     }
 
-  if (setgid (gr->gr_gid) == -1)
-    {
-      perror ("Error setting mail group");
-      exit (1);
-    }
-
-  /* Register the desire formats. We only need Mbox mail format.  */
+  /* Register the desired formats. */
   {
     list_t bookie;
     registrar_get_list (&bookie);
@@ -190,6 +200,8 @@ main (int argc, char **argv)
 static int
 imap4d_mainloop (int infile, int outfile)
 {
+  char *text;
+  
   /* Reset hup to exit.  */
   signal (SIGHUP, imap4d_signal);
   /* Timeout alarm.  */
@@ -202,21 +214,28 @@ imap4d_mainloop (int infile, int outfile)
 
   setvbuf(ofile, NULL, _IOLBF, 0);
 
-  syslog (LOG_INFO, "Incoming connection opened");
-
   /* log information on the connecting client */
-  {
-    struct sockaddr_in cs;
-    int len = sizeof cs;
-    if (getpeername (infile, (struct sockaddr*)&cs, &len) < 0)
-      syslog (LOG_ERR, "can't obtain IP address of client: %s",
-              strerror (errno));
-    else
-      syslog (LOG_INFO, "connect from %s", inet_ntoa(cs.sin_addr));
-  }
+  if (!debug_mode)
+    {
+      struct sockaddr_in cs;
+      int len = sizeof cs;
 
+      syslog (LOG_INFO, "Incoming connection opened");
+      if (getpeername (infile, (struct sockaddr*)&cs, &len) < 0)
+	syslog (LOG_ERR, "can't obtain IP address of client: %s",
+		strerror (errno));
+      else
+	syslog (LOG_INFO, "connect from %s", inet_ntoa(cs.sin_addr));
+      text = "IMAP4rev1";
+    }
+  else
+    {
+      syslog (LOG_INFO, "Started in debugging mode");
+      text = "IMAP4rev1 Debugging mode";
+    }
+  
   /* Greetings.  */
-  util_out (RESP_OK, "IMAP4rev1 GNU " PACKAGE " " VERSION);
+  util_out (RESP_OK, text);
   fflush (ofile);
 
   while (1)
