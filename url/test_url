@@ -1,0 +1,4 @@
+pop://<user>;auth=<auth>@<host>:<port>
+pop://rg@mailsrv.qualcomm.com
+pop://rg;AUTH=+APOP@mail.eudora.com:8110
+pop://baz;AUTH=SCRAM-MD5@foo.bar

@@ -1,3 +1,11 @@
+1999-12-01  Alain Magloire
+
+	* url/{_cpystr,chewurl,url,url_imap,url_mailto,url_mbox,url_pop}.c :
+	New files, first attempt to define the URL API.
+
+	* lib/Makefile.am: added xmalloc.c, xstrdup.c, xstrtol.{c,h}
+	* lib/{xmalloc,xstrdup,xstrtol}.c lib/xstrtol.h : New files
+	
 1999-11-21  Jeff Bailey  <jbailey@nisa.net>
 
 	* doc/rfc*: Add.  Standards followed should be included here.
