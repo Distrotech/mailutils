@@ -325,7 +325,6 @@ mu_sql_authenticate (void *ignored_return_data, void *key,
 		     void *ignored_func_data, void *call_data)
 {
   struct mu_auth_data *auth_data = key;
-  char *pass = call_data;
   char *query_str = NULL;
   MYSQL *m;
   MYSQL_RES *res;
