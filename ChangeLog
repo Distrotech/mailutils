@@ -1,3 +1,32 @@
+2001-06-22 Sergey Poznyakoff
+	* mailbox/mutil.c: added mu_get_homedir() and mu_tilde_expansion();
+	* include/mailutils/mutil.h: protos for new mu_ functions
+	* imap4d/util.c: use mu_tilde_expansion().
+	* mail/z.c: implemented.
+	* mail/if.c: implemented.
+	* mail/mail.c: A read-eval loop function shared between mail.c and
+		source.c. Quits gracefully upon reading EOF.
+		Expand '~' in pathnames.
+		Upon startup in read mode, display first screenfull of from
+		lines, instead of listing the whole mailbox. This is
+	        compatible with existing implementations.
+		Do not display prompt when not reading from a terminal.
+	* mail/source.c: Use common read-eval loop.
+	* mail/mail.h: Protos for new functions.
+		struct mail_command_entry: added isflow field, needed
+		for if/else/endif flow control.
+	* mail/table.c: changes due to addition of isflow field.
+	* mail/send.c: removed unconditional #include <paths.h>: it already
+		was included from "mail.h".
+	* mail/util.c: Added util_get_homedir() and util_fullpath().
+
+mail/source.c: 
+	  mail.c: 
+	* mail/mail.h: 
+	* mail/util.c: modified util_do_command to honour if/else status.
+	  Fixed possible coredump (dereferencing cmd before checking for
+	  NULL value).
+
 2001-06-21 Sergey Poznyakoff
 	* mailbox/mutil.c: Fixed error introduced in the initial
 	  implementation of mu_mktime (now mu_tm2time). The comment
