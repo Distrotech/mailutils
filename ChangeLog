@@ -1,3 +1,12 @@
+2002-11-27  Frederic Gobry  <frederic.gobry@smartdata.ch>
+
+	* mailbox/filter_trans.c (trans_read): applied patch from Sergey
+	Poznyakoff, so that filters don't forget the last bytes of a
+	file. Fixed an uninitialized variable problem.
+
+	* libsieve/load.c: fixed compilation when HAVE_LIBLTDL is not
+	defined.
+
 2002-11-25  Sergey Poznyakoff 
 
 	* doc/texinfo/Makefile.am: Fake configure into including

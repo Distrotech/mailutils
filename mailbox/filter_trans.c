@@ -135,7 +135,7 @@ trans_read (filter_t filter, char *optr, size_t osize, off_t offset,
 	     size_t *n_bytes)
 {
   struct _trans_stream *ts = filter->data;
-  size_t obytes, wbytes;
+  size_t obytes, wbytes = 0;
   int ret = 0, i;
   size_t bytes, *nbytes = &bytes;
 
@@ -163,7 +163,7 @@ trans_read (filter_t filter, char *optr, size_t osize, off_t offset,
 	  ret = stream_read (filter->stream, ts->w_buf + ts->w_whd,
 			     MU_TRANS_BSIZE - ts->w_whd, ts->offset,
 			     &wbytes );
-	  if (ret != 0 || wbytes == 0)
+	  if (ret != 0)
 	    break;
 	  ts->offset += wbytes;
 	  ts->w_whd += wbytes;
