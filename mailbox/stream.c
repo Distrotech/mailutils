@@ -38,13 +38,13 @@
 
 static int refill (stream_t, off_t);
 
-/* Stream is a way for object to do I/O, they can take over(overload) the
-   the read/write functions for there needs.  We are doing some very
-   minimal buffering on the read when the stream_bufsiz is set, this
-   unfortunately does not take to account the offset i.e if the offset ask
-   is different then the offset we maintain internally, the buffer is flushed
-   and a new buffer is use, this buffering is more
-   for networking stream (POP/IMAP).  No buffering on the write. */
+/* A stream provides a way for an object to do I/O. It overloads
+   stream read/write functions. Only a minimal buffering is done
+   and that if stream's bufsiz member is set. If the requested
+   offset does not equal the one maintained internally the buffer
+   is flushed and refilled. This buffering scheme is more convenient
+   for networking streams (POP/IMAP).
+   Writes are always unbuffered. */
 int
 stream_create (stream_t *pstream, int flags, void *owner)
 {
@@ -56,8 +56,8 @@ stream_create (stream_t *pstream, int flags, void *owner)
     return ENOMEM;
   stream->owner = owner;
   stream->flags = flags;
-  /* By default unbuffered, the buffered scheme is not for all models, it
-     really makes sense for networking streams, where there is no offset.  */
+  /* By default unbuffered, the buffering scheme is not for all models, it
+     really makes sense for network streams, where there is no offset.  */
   /* stream->rbuffer.bufsiz = BUFSIZ; */
   *pstream = stream;
   return 0;
@@ -133,13 +133,12 @@ stream_setbufsiz (stream_t stream, size_t size)
 }
 
 /* We have to be clear about the buffering scheme, it is not designed to be
-   use as a fully fledge buffer mechanism.  It is a simple mechanims for
-   networking. Lots of code between POP and IMAP can be share this way.
-   - First caveat; the offset as no meaning i.e. the code does move back or
-   up the buffer, if the offset is different then the maintain interanl offset
-   the buffer is flush out and new read from the asking offset is done.  It
-   is up to the concrete _read() to return EISPIPE when error.
-
+   used as a full-fledged buffer mechanism.  It is a simple mechanism for
+   networking. Lots of code between POP and IMAP can be shared this way.
+   - First caveat; the code maintains its own offset (rbuffer.offset member)
+   and if it does not match the requested one, the data is flushed
+   and the underlying _read is called. It is up to the latter to return
+   EISPIPE when appropriate.
    - Again, this is targeting networking stream to make readline()
    a little bit more efficient, instead of reading a char at a time.  */
 
@@ -170,7 +169,7 @@ stream_read (stream_t is, char *buf, size_t count,
       size_t residue = count;
       int r;
 
-      /* If the amount requested is bigger then the buffer cache size
+      /* If the amount requested is bigger than the buffer cache size,
 	 bypass it.  Do no waste time and let it through.  */
       if (count > is->rbuffer.bufsiz)
 	{
