@@ -212,7 +212,6 @@ make_tmp (FILE *input, const char *from, char **tempfile)
 	  buf[len - 1] = 0;
 	}
 	  
-      //fprintf (diag, "%s", buf); //FM
       line++;
       if (line == 1)
 	{
@@ -579,7 +578,6 @@ smtp (int fd)
       
       if (getline (&buf, &size, in) == -1)
 	exit (1);
-      //fprintf (diag, "%s", buf); //FM
       len = strlen (buf);
       while (len > 0 && (buf[len-1] == '\n' || buf[len-1] == '\r'))
 	len --;
