@@ -33,6 +33,7 @@
 #include <mailutils/mailbox.h>
 #include <mailutils/mutil.h>
 #include <mailutils/error.h>
+#include <mailutils/errno.h>
 
 const char *mu_path_maildir = MU_PATH_MAILDIR; 
 
@@ -58,13 +59,18 @@ split_shortcut (const char *file, const char pfx[], char **user, char **rest)
         len = p - file + 1;
       else
         len = strlen (file) + 1;
-      
-      *user = calloc (1, len);
-      if (!*user)
-        return ENOMEM;
 
-      memcpy (*user, file, len);
-      (*user)[len-1] = 0;
+      if (len == 1)
+	*user = NULL;
+      else
+	{
+	  *user = calloc (1, len);
+	  if (!*user)
+	    return ENOMEM;
+
+	  memcpy (*user, file, len);
+	  (*user)[len-1] = 0;
+	}
       file += len-1;
       if (file[0] == '/')
         file++;
@@ -189,11 +195,10 @@ tilde_expand (const char *file, char **buf)
   if ((status = split_shortcut (file, "~", &user, &path)))
     return status;
 
-  if (!user)
-    return ENOENT;
   if (!path)
     {
-      free (user);
+      if (user)
+	free (user);
       return ENOENT;
     }
   
@@ -202,7 +207,7 @@ tilde_expand (const char *file, char **buf)
     {
       free (user);
       free (path);
-      return ENOENT;
+      return MU_ERR_NO_SUCH_USER;
     }
 
   free (user); /* not needed anymore */
