@@ -15,7 +15,7 @@
 # along with this program; if not, write to the Free Software Foundation,
 # Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. 
 #
-test. abc <sascha@silbe.org>=> error MU_ERR_BAD_822_FORMAT
+test; abc <sascha@silbe.org>=> error MU_ERR_BAD_822_FORMAT
 
 Sam <@[matrix (smtp)], @[nexus: \[node 12\]]:sroberts@[10].[1]> ;=> error MU_ERR_BAD_822_FORMAT
 
@@ -627,5 +627,15 @@ whom it may concern: mutt-dev@mutt.org, mutt-users@mutt.org;=> pcount 2
    local-part <mutt-dev> domain <mutt.org>
 2 email <mutt-users@mutt.org>
    local-part <mutt-users> domain <mutt.org>
+
+Sergey V. Poznyakoff <gray@gnu.org>=> pcount 1
+1 email <gray@gnu.org>
+   personal <Sergey V. Poznyakoff>
+   local-part <gray> domain <gnu.org>
+
+P. D. Q. Bach <bach@somewhere.org>=> pcount 1
+1 email <bach@somewhere.org>
+   personal <P. D. Q. Bach>
+   local-part <bach> domain <somewhere.org>
 
 # NOTE: This file must end with an empty line
