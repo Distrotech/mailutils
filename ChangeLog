@@ -1,3 +1,12 @@
+2003-08-12  Sergey Poznyakoff  
+
+	* mail/mail.h (mail_execute): New function.
+	* mail/shell.c (mail_execute): New function.
+	* mail/var.c (run_aditor): A wrapper around mail_execute().
+	(var_shell): Use run_aditor.
+	* mh/mh_format.c (print_simple_segment): Bugfix.
+	* mh/replcomps: Improved.
+
 2003-08-11  Sergey Poznyakoff 
 
 	* mh/mh.h (enum mh_opcode): New opcode mhop_nop.
