@@ -97,7 +97,7 @@ pop3d_user (const char *arg)
   if ((strlen (arg) == 0) || (strchr (arg, ' ') != NULL))
     return ERR_BAD_ARGS;
 
-  fprintf (ofile, "+OK\r\n");
+  pop3d_outf ("+OK\r\n");
   fflush (ofile);
 
   buf = pop3d_readline (ifile);
@@ -182,7 +182,6 @@ pop3d_user (const char *arg)
 	pamerror = pam_acct_mgmt (pamh, 0);
 	PAM_ERROR;
 	pamerror = pam_setcred (pamh, PAM_ESTABLISH_CRED);
-	PAM_ERROR;
       pam_errlab:
 	pam_end (pamh, PAM_SUCCESS);
 	openlog ("gnu-pop3d", LOG_PID, log_facility);
@@ -250,7 +249,7 @@ pop3d_user (const char *arg)
 	pop3d_abquit (ERR_NO_MEM);
       state = TRANSACTION;
 
-      fprintf (ofile, "+OK opened mailbox for %s\r\n", username);
+      pop3d_outf ("+OK opened mailbox for %s\r\n", username);
 
       /* mailbox name */
       {
