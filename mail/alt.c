@@ -17,6 +17,8 @@
 
 #include "mail.h"
 
+static list_t alternate_names = NULL;
+
 /*
  * alt[ernates] name...
  */
@@ -24,7 +26,25 @@
 int
 mail_alt (int argc, char **argv)
 {
-  fprintf (ofile, "Function not implemented in %s line %d\n",
-	   __FILE__, __LINE__);
-  return 1;
+  if (argc == 1)
+    {
+      if (alternate_names)
+	{
+	  util_slist_print (alternate_names, 0);
+	  fprintf (ofile, "\n");
+	}
+    }
+  else
+    {
+      util_slist_destroy (&alternate_names);
+      while (--argc)
+	util_slist_add (&alternate_names, *++argv);
+    }
+  return 0;
+}
+
+int
+mail_is_alt_name (char *name)
+{
+  return util_slist_lookup (alternate_names, name);
 }

@@ -25,7 +25,21 @@
 int
 mail_hold (int argc, char **argv)
 {
-  fprintf (ofile, "Function not implemented in %s line %d\n",
-	   __FILE__, __LINE__);
-  return 1;
+  message_t msg;
+  attribute_t attr;
+  
+  if (argc > 1)
+    return util_msglist_command (mail_hold, argc, argv);
+  else
+    {
+      if (mailbox_get_message (mbox, cursor, &msg))
+	{
+	  fprintf (ofile, "%d: can't get message\n", cursor);
+	  return 1;
+	}
+
+      message_get_attribute (msg, &attr);
+      attribute_unset_userflag (attr, MAIL_ATTRIBUTE_MBOXED);
+    }
+  return 0;
 }

@@ -24,7 +24,12 @@
 int
 mail_unalias (int argc, char **argv)
 {
-  fprintf (ofile, "Function not implemented in %s line %d\n",
-	   __FILE__, __LINE__);
-  return 1;
+  if (argc == 1)
+    {
+      fprintf (ofile, "unalias requires at least one argument\n");
+      return 1;
+    }
+  while (--argc)
+    alias_destroy (*++argv);
+  return 0;
 }
