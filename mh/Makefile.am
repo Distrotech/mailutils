@@ -58,6 +58,7 @@ EXTRA_PROGRAMS = \
 LIBRARIES_MH = libmh.a
 EXTRA_LIBRARIES = libmh.a
 
+bindir = @MH_BIN_DIR@
 mhlibdir = $(pkgdatadir)/mh
 bin_PROGRAMS = @BUILD_MH_PROGRAMS@
 noinst_LIBRARIES = @BUILD_MH_LIBRARIES@
@@ -74,6 +75,7 @@ libmh_a_SOURCES= \
  mh_fmtgram.c\
  mh_msgset.c\
  mh_sequence.c\
+ mh_stream.c\
  mh_whatnow.c
 noinst_HEADERS = mh.h mh_getopt.h
 
@@ -99,7 +101,7 @@ mailutils-mh.el: mailutils-mh.eli
 	sed "s,BINDIR,$(bindir),g;s,MHLIBDIR,$(mhlibdir),g" $< > $@
 
 INCLUDES = -I${top_srcdir}/include -I${top_srcdir}/lib -I${top_srcdir}/mailbox @INTLINCS@
-AM_CPPFLAGS = -DMHLIBDIR=\"$(mhlibdir)\"
+AM_CPPFLAGS = -DMHLIBDIR=\"$(mhlibdir)\" -DMHBINDIR=\"$(bindir)\"
 mh_LIBS = ./libmh.a ../mailbox/libmailbox.la ../lib/libmailutils.la @LTLIBINTL@
 LDADD = $(mh_LIBS)
 scan_LDADD = $(mh_LIBS) @CURSES_LIBS@
@@ -120,7 +122,7 @@ mh_fmtgram.c: $(srcdir)/mh_fmtgram.y
 
 
 install-exec-hook: @BUILD_MH_EXEC_HOOK@
-	
+
 mh_finish_install:
 	@here=`pwd`; \
 	cd $(DESTDIR); \
