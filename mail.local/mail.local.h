@@ -81,6 +81,7 @@
 #include <mailutils/stream.h>
 #include <mailutils/url.h>
 #include <mailutils/mu_auth.h>
+#include <mailutils/libsieve.h>
 
 #include <mu_dbm.h>
 #include <mu_asprintf.h>
