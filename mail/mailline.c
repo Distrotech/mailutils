@@ -18,7 +18,7 @@
 #include "mail.h"
 
 static char **ml_command_completion __P((char *cmd, int start, int end));
-static char *ml_command_generator __P((char *text, int state));
+static char *ml_command_generator __P((const char *text, int state));
 
 static volatile int _interrupted;
 
@@ -218,7 +218,7 @@ ml_command_completion (char *cmd, int start, int end)
 {
   (void)end;
   if (start == 0)
-    return completion_matches (cmd, ml_command_generator);
+    return rl_completion_matches (cmd, ml_command_generator);
   return NULL;
 }
 
@@ -226,7 +226,7 @@ ml_command_completion (char *cmd, int start, int end)
  * more readline
  */
 char *
-ml_command_generator (char *text, int state)
+ml_command_generator (const char *text, int state)
 {
   static int i, len;
   const char *name;
