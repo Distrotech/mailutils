@@ -84,7 +84,13 @@ numaddr_test (sieve_machine_t mach, list_t args, list_t tags)
   int rc;
   
   if (sieve_get_debug_level (mach) & MU_SIEVE_DEBUG_TRACE)
-    sieve_debug (mach, "NUMADDR\n");
+    {
+      sieve_locus_t locus;
+      sieve_get_locus (mach, &locus);
+      sieve_debug (mach, "%s:%lu: NUMADDR\n",
+		   locus.source_file,
+		   (unsigned long) locus.source_line);
+    }
 
   /* Retrieve required arguments: */
   /* First argument: list of header names */

@@ -294,8 +294,14 @@ spamd_test (sieve_machine_t mach, list_t args, list_t tags)
   header_t hdr;
 
   if (sieve_get_debug_level (mach) & MU_SIEVE_DEBUG_TRACE)
-    sieve_debug (mach, "spamd_test %lu\n",
-		 (u_long) sieve_get_message_num (mach));
+    {
+      sieve_locus_t locus;
+      sieve_get_locus (mach, &locus);
+      sieve_debug (mach, "%s:%lu: spamd_test %lu\n",
+		   locus.source_file,
+		   (unsigned long) locus.source_line,
+		   (u_long) sieve_get_message_num (mach));
+    }
   
   if (sieve_tag_lookup (tags, "host", &arg))
     host = arg->v.string;

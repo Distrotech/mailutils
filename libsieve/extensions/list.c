@@ -133,6 +133,15 @@ list_test (sieve_machine_t mach, list_t args, list_t tags)
   struct header_closure clos;
   int result;
 
+  if (sieve_get_debug_level (mach) & MU_SIEVE_DEBUG_TRACE)
+    {
+      sieve_locus_t locus;
+      sieve_get_locus (mach, &locus);
+      sieve_debug (mach, "%s:%lu: LIST\n",
+		   locus.source_file,
+		   (unsigned long) locus.source_line);
+    }
+  
   memset (&clos, 0, sizeof clos);
   if (sieve_tag_lookup (tags, "delim", &arg))
     clos.delim = arg->v.string;

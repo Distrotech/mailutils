@@ -119,7 +119,9 @@ sieve_test_address (sieve_machine_t mach, list_t args, list_t tags)
   size_t count;
   
   if (mach->debug_level & MU_SIEVE_DEBUG_TRACE)
-    sieve_debug (mach, "ADDRESS\n");
+    sieve_debug (mach, "%s:%lu: ADDRESS\n",
+		 mach->locus.source_file,
+		 (unsigned long) mach->locus.source_line);
 
   h = sieve_value_get (args, 0);
   if (!h)
@@ -183,7 +185,9 @@ sieve_test_header (sieve_machine_t mach, list_t args, list_t tags)
   struct header_closure clos;
   
   if (mach->debug_level & MU_SIEVE_DEBUG_TRACE)
-    sieve_debug (mach, "HEADER\n");
+    sieve_debug (mach, "%s:%lu: HEADER\n",
+		 mach->locus.source_file,
+		 (unsigned long) mach->locus.source_line);
 
   h = sieve_value_get (args, 0);
   if (!h)
@@ -268,7 +272,9 @@ sieve_test_envelope (sieve_machine_t mach, list_t args, list_t tags)
   size_t count;
   
   if (mach->debug_level & MU_SIEVE_DEBUG_TRACE)
-    sieve_debug (mach, "HEADER\n");
+    sieve_debug (mach, "%s:%lu: ENVELOPE\n",
+		 mach->locus.source_file,
+		 (unsigned long) mach->locus.source_line);
 
   h = sieve_value_get (args, 0);
   if (!h)
@@ -322,7 +328,8 @@ int
 sieve_test_true (sieve_machine_t mach, list_t args, list_t tags)
 {
   if (mach->debug_level & MU_SIEVE_DEBUG_TRACE)
-    sieve_debug (mach, "TRUE\n");
+    sieve_debug (mach, "%s:%lu: TRUE\n", mach->locus.source_file,
+		 (unsigned long) mach->locus.source_line);
   return 1;
 }
 
@@ -330,7 +337,8 @@ int
 sieve_test_false (sieve_machine_t mach, list_t args, list_t tags)
 {
   if (mach->debug_level & MU_SIEVE_DEBUG_TRACE)
-    sieve_debug (mach, "FALSE\n");
+    sieve_debug (mach, "%s:%lu: FALSE\n", mach->locus.source_file,
+		 (unsigned long) mach->locus.source_line);
   return 0;
 }
 
@@ -350,7 +358,8 @@ sieve_test_exists (sieve_machine_t mach, list_t args, list_t tags)
   sieve_value_t *val;   
 
   if (mach->debug_level & MU_SIEVE_DEBUG_TRACE)
-    sieve_debug (mach, "EXISTS\n");
+    sieve_debug (mach, "%s:%lu: EXISTS\n", mach->locus.source_file,
+		 (unsigned long) mach->locus.source_line);
 
   message_get_header (sieve_get_message (mach), &header);
   val = sieve_value_get (args, 0);
