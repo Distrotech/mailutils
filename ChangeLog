@@ -1,3 +1,22 @@
+2003-11-04  Sergey Poznyakoff
+
+	* mailbox/parse822.c: Be more liberal in parsing
+	local parts.
+	* mh/ali.c (getcols): Return default of 80 columns if
+	both ioctl() and getenv() fail.
+	(ali_print_name_list): Bugfix.
+	(main): In -user mode, print the argument verbatim if it
+	is not a member of any alias.
+	* mh/mh_alias.l (pop_source): Always free ali_filename.
+	Grammar: Bugfixes.
+	(mh_alias_read): Provide a debugging hook
+	(ali_verbatim): New function.
+	* mh/mh_alias.y: Fixed grammar.
+	(ali_member): Compare addresses if strcmp() fails.
+	* mh/mh.h (ali_verbatim): New function.
+	
+	* examples/pop3client.c: Added missing includes
+
 2003-10-28  Sergey Poznyakoff 
 
 	* mail/mail.c: Implemented -a (--append) option.
