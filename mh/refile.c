@@ -36,8 +36,9 @@ static struct argp_option options[] = {
    N_("Specify folder to operate upon")},
   {"draft",   ARG_DRAFT, NULL, 0,
    N_("Use <mh-dir>/draft as the source message")},
-  {"link",    ARG_LINK, N_("BOOL"), OPTION_ARG_OPTIONAL,
-   N_("* Preserve the source folder copy")},
+  {"copy",    ARG_LINK, N_("BOOL"), OPTION_ARG_OPTIONAL,
+   N_("Preserve the source folder copy.")},
+  {"link",    0, NULL, OPTION_ALIAS, NULL},
   {"preserve", ARG_PRESERVE, N_("BOOL"), OPTION_ARG_OPTIONAL,
    N_("* Try to preserve message sequence numbers")},
   {"source", ARG_SOURCE, N_("FOLDER"), 0,
@@ -57,7 +58,7 @@ struct mh_option mh_option[] = {
   { 0 }
 };
 
-int link_flag = 1;
+int link_flag = 0;
 int preserve_flag = 0;
 char *source_file = NULL;
 list_t folder_name_list = NULL;
@@ -149,7 +150,6 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
 {
   switch (key)
     {
-    case '+':
     case ARG_FOLDER: 
       add_folder (arg);
       break;
@@ -218,7 +218,7 @@ main (int argc, char **argv)
   int index;
   mh_msgset_t msgset;
   mailbox_t mbox;
-  int status;
+  int status, i, j;
 
   /* Native Language Support */
   mu_init_nls ();
@@ -226,13 +226,27 @@ main (int argc, char **argv)
   mh_argp_parse (argc, argv, 0, options, mh_option, args_doc, doc,
 		 opt_handler, NULL, &index);
 
+  argc -= index;
+  argv += index;
+
+  /* Collect any surplus folders */
+  for (i = j = 0; i < argc; i++)
+    {
+      if (argv[i][0] == '+')
+	add_folder (argv[i]);
+      else
+	argv[j++] = argv[i];
+    }
+  argv[j] = NULL;
+  argc = j;
+  
   open_folders ();
 
   if (source_file)
     {
       message_t msg;
       
-      if (index < argc)
+      if (argc > 0)
 	{
 	  mh_error (_("both message set and source file given"));
 	  exit (1);
@@ -246,13 +260,13 @@ main (int argc, char **argv)
   else
     {
       mbox = mh_open_folder (current_folder, 0);
-      mh_msgset_parse (mbox, &msgset, argc - index, argv + index, "cur");
+      mh_msgset_parse (mbox, &msgset, argc, argv, "cur");
 
       status = mh_iterate (mbox, &msgset, refile_iterator, NULL);
  
-  mailbox_expunge (mbox);
-  mailbox_close (mbox);
-  mailbox_destroy (&mbox);
+      mailbox_expunge (mbox);
+      mailbox_close (mbox);
+      mailbox_destroy (&mbox);
     }
 
   close_folders ();
