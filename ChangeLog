@@ -1,3 +1,24 @@
+2003-08-29  Sergey Poznyakoff 
+
+	* imap4d/bye.c: Do not attempt to write to the output
+	stream if a signal was caught.
+	* imap4d/signal.c (imap4d_signal): Minor fix
+	* pop3d/extra.c (pop3d_abquit): Flush and close the mailbox
+	only unless we're not in the AUTHORIZATION state.
+	Do not attempt to write to the output stream if a signal was
+	caught.
+	* include/mailutils/errno.h (MU_ERR_NOUSERNAME)
+	(MU_ERR_NOPASSWORD): New error codes.
+	* mailbox/muerrno.c: Likewise.
+	* mailbox/mailbox.c (mailbox_flush): Test the first argument.
+	* mailbox/ticket.c (ticket_pop): Fallback to command line
+	prompt if _pop() failed and stdin is connected to a terminal.
+	* mailbox/imap/folder.c: Provide a better diagnostics.
+	* mailbox/pop/mbox.c (_pop_user): Send QUIT before dropping
+	the connection.	Provide a better diagnostics.
+	* sieve/sieve.c: Destroy the mailbox if the attempt to open it has
+	failed.
+	
 2003-08-29  Wojciech Polak
 
 	* mailbox/pop/mbox.c (pop_capa): New function.
