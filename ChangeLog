@@ -1,5 +1,9 @@
 2004-01-11  Wojciech Polak
 
+	* libmu_scm/mailutils.scm.in (mu-libs): Added libmu_maildir.
+
+2004-01-11  Wojciech Polak
+
 	* readmsg/readmsg.c (main): Use mu_register_all_mbox_formats().
 	* guimb/main.c (main): Use mu_register_all_formats().
 	* scripts/mailutils.spec.in: Updated.
