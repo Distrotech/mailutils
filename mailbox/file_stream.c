@@ -457,10 +457,7 @@ _file_open (stream_t stream)
 
   fs->file = fdopen (fd, mode);
   if (fs->file == NULL)
-    {
-      int ret = errno;
-      return ret;
-    }
+    return errno;
 
   return 0;
 }
@@ -572,3 +569,123 @@ stdio_stream_create (stream_t *stream, FILE *file, int flags)
   return 0;
 }
 
+static int
+_prog_close (stream_t stream)
+{
+  struct _file_stream *fs = stream_get_owner (stream);
+  int err = 0;
+
+  if (!stream)
+    return EINVAL;
+
+  if (fs->file)
+    {
+      int flags = 0;
+
+      stream_get_flags (stream, &flags);
+
+      if ((flags & MU_STREAM_NO_CLOSE) == 0)
+	{
+	  if (pclose (fs->file) != 0)
+	    err = errno;
+	}
+      
+      fs->file = NULL;
+    }
+  return err;
+}
+
+static int
+_prog_open (stream_t stream)
+{
+  struct _file_stream *fs = stream_get_owner (stream);
+  const char *mode;
+  int flags = 0;
+
+  if (!fs || !fs->filename)
+    return EINVAL;
+
+  if (fs->file)
+    {
+      pclose (fs->file);
+      fs->file = NULL;
+    }
+
+  stream_get_flags(stream, &flags);
+
+  if (flags & MU_STREAM_APPEND)
+    mode = "w";
+  else if (flags & MU_STREAM_READ)
+    mode = "r";
+  else if (flags & MU_STREAM_WRITE)
+    mode = "w";
+  else /* Default readonly.  */
+    mode = "r";
+
+  fs->file = popen (fs->filename, mode);
+  if (!fs->file)
+    return errno;
+
+  return 0;
+}
+
+int
+prog_stream_create (stream_t *stream, char *progname, int flags)
+{
+  struct _file_stream *fs;
+  int ret;
+
+  if (stream == NULL)
+    return EINVAL;
+
+  if (progname == NULL
+      || (flags & MU_STREAM_RDWR)
+      || (flags & (MU_STREAM_READ|MU_STREAM_WRITE)) ==
+      (MU_STREAM_READ|MU_STREAM_WRITE))
+    return EINVAL;
+  
+  fs = calloc (1, sizeof (struct _file_stream));
+  if (fs == NULL)
+    return ENOMEM;
+
+  fs->filename = strdup (progname);
+
+  ret = stream_create (stream, flags|MU_STREAM_NO_CHECK, fs);
+  if (ret != 0)
+    {
+      free (fs);
+      return ret;
+    }
+
+  /* Check if we need to enable caching */
+
+  if (flags & MU_STREAM_SEEKABLE)
+    {
+      if ((ret = memory_stream_create (&fs->cache, 0, MU_STREAM_RDWR))
+	  || (ret = stream_open (fs->cache)))
+	{
+	  stream_destroy (stream, fs);
+	  free (fs);
+	  return ret;
+	}
+      stream_set_read (*stream, _stdin_file_read, fs);
+      stream_set_readline (*stream, _stdin_file_readline, fs);
+      stream_set_write (*stream, _stdout_file_write, fs);
+    }
+  else
+    {
+      stream_set_read (*stream, _file_read, fs);
+      stream_set_readline (*stream, _file_readline, fs);
+      stream_set_write (*stream, _file_write, fs);
+    }
+  
+  /* We don't need to open the FILE, just return success. */
+
+  stream_set_open (*stream, _prog_open, fs);
+  stream_set_close (*stream, _prog_close, fs);
+  stream_set_fd (*stream, _file_get_fd, fs);
+  stream_set_flush (*stream, _file_flush, fs);
+  stream_set_destroy (*stream, _file_destroy, fs);
+
+  return 0;
+}
