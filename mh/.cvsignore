@@ -7,5 +7,6 @@ scan
 inc
 rmm
 refile
+mhpath
 *.output
 .gdbinit
