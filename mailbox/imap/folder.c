@@ -98,9 +98,6 @@ static int  folder_imap_subscribe   __P ((folder_t, const char *));
 static int  folder_imap_unsubscribe __P ((folder_t, const char *));
 static int  folder_imap_get_authority __P ((folder_t, authority_t *));
 
-static int  authenticate_imap_login __P ((authority_t));
-static int  authenticate_imap_sasl_anon __P ((authority_t));
-
 /* FETCH  */
 static int  imap_fetch              __P ((f_imap_t));
 static int  imap_rfc822             __P ((f_imap_t, char **));
@@ -127,169 +124,15 @@ static int  imap_mailbox_name_match __P ((const char* pattern, const char* mailb
 
 static int  imap_token              __P ((char *, size_t, char **));
 
-/* Initialize the concrete IMAP mailbox: overload the folder functions  */
-int
-_folder_imap_init (folder_t folder)
-{
-  int status;
-  f_imap_t f_imap;
+/* Capability */
+static int  parse_capa              __P ((f_imap_t f_imap, char *str));
+static int  read_capa               __P ((f_imap_t f_imap, int force));
+static int  check_capa              __P ((f_imap_t f_imap, char *capa));
 
-  /* Set the authority early:
-     (1) so we can check for errors.
-     (2) allow the client to get the authority for setting the ticket
-     before the open.  */
-  status = folder_imap_get_authority (folder, NULL);
-  if (status != 0)
-    return status;
+
+/* Authentication methods */
 
-  f_imap = folder->data = calloc (1, sizeof (*f_imap));
-  if (f_imap == NULL)
-    return ENOMEM;
-
-  f_imap->folder = folder;
-  f_imap->state = IMAP_NO_STATE;
-
-  folder->_destroy = folder_imap_destroy;
-
-  folder->_open = folder_imap_open;
-  folder->_close = folder_imap_close;
-
-  folder->_list = folder_imap_list;
-  folder->_lsub = folder_imap_lsub;
-  folder->_subscribe = folder_imap_subscribe;
-  folder->_unsubscribe = folder_imap_unsubscribe;
-  folder->_delete = folder_imap_delete;
-  folder->_rename = folder_imap_rename;
-
-  return 0;
-}
-
-/* Destroy the folder resources.  */
-static void
-folder_imap_destroy (folder_t folder)
-{
-  if (folder->data)
-    {
-      f_imap_t f_imap = folder->data;
-      if (f_imap->buffer)
-	free (f_imap->buffer);
-      if (f_imap->capav)
-	argcv_free (f_imap->capac, f_imap->capav);
-      free (f_imap);
-      folder->data = NULL;
-    }
-}
-
-static int
-folder_imap_get_authority (folder_t folder, authority_t *pauth)
-{
-  int status = 0;
-  if (folder->authority == NULL)
-    {
-      /* assert (folder->url); */
-      if (folder->url == NULL)
-	return EINVAL;
-
-      if (folder->url->auth == NULL
-	  || strcasecmp (folder->url->auth, "*") == 0)
-	{
-	  status = authority_create (&folder->authority, NULL, folder);
-	  authority_set_authenticate (folder->authority,
-				      authenticate_imap_login, folder);
-	}
-      else if (strcasecmp (folder->url->auth, "anon") == 0)
-	{
-	  status = authority_create (&folder->authority, NULL, folder);
-	  authority_set_authenticate (folder->authority,
-				      authenticate_imap_sasl_anon, folder);
-	}
-      else
-	{
-	  /* Not a supported authentication mechanism. */
-	  status = ENOSYS;
-	}
-    }
-  if (pauth)
-    *pauth = folder->authority;
-  return status;
-}
-
-static int
-parse_capa (f_imap_t f_imap, char *str)
-{
-  if (f_imap->capav)
-    argcv_free (f_imap->capac, f_imap->capav);
-  return argcv_get (str, "", NULL, &f_imap->capac, &f_imap->capav);
-}
-
-static int
-read_capa (f_imap_t f_imap, int force)
-{
-  int status = 0;
-  
-  if (force)
-    {
-      argcv_free (f_imap->capac, f_imap->capav);
-      f_imap->capac = 0;
-      f_imap->capav = NULL;
-    }
-  
-  if (!f_imap->capav)
-    {
-      status = imap_writeline (f_imap, "g%u CAPABILITY\r\n",
-			       f_imap->seq++);
-      status = imap_send (f_imap);
-      status = imap_parse (f_imap);
-    }
-  return status;
-}
-
-static int
-check_capa (f_imap_t f_imap, char *capa)
-{
-  int i;
-
-  read_capa (f_imap, 0);
-  for (i = 0; i < f_imap->capac; i++)
-    if (strcasecmp (f_imap->capav[i], capa) == 0)
-      return 0;
-  return 1;
-}
-
-static int
-tls (folder_t folder)
-{
-#ifdef WITH_TLS
-  int status;
-  f_imap_t f_imap = folder->data;
-
-  if (!mu_tls_enable || check_capa (f_imap, "STARTTLS"))
-    return -1;
-  
-  FOLDER_DEBUG1 (folder, MU_DEBUG_PROT, "g%u STARTTLS\n", f_imap->seq);
-  status = imap_writeline (f_imap, "g%u STARTTLS\r\n",
-			   f_imap->seq++, f_imap->user, f_imap->passwd);
-  CHECK_ERROR (f_imap, status);
-  status = imap_send (f_imap);
-  CHECK_ERROR (f_imap, status);
-  status = imap_parse (f_imap);
-  if (status == 0)
-    {
-      stream_t str;
-      status = tls_stream_create_client_from_tcp (&str, folder->stream, 0);
-      CHECK_ERROR (f_imap, status);
-      status = stream_open (str);
-      if (status == 0)
-	folder->stream = str;
-      FOLDER_DEBUG1 (folder, MU_DEBUG_PROT, "TLS negotiation %s\n",
-		     status == 0 ? "succeeded" : "failed");
-      read_capa (f_imap, 1);
-    }
-  return status;
-#else
-  return -1;
-#endif
-}
+typedef int (*auth_method_t) __P((authority_t));
 
 /* Simple User/pass authentication for imap.  */
 static int
@@ -344,7 +187,7 @@ authenticate_imap_login (authority_t auth)
 	  {
 	    CHECK_ERROR_CLOSE (folder, f_imap, MU_ERR_NOPASSWORD);
 	  }
-	status = imap_writeline (f_imap, "g%u LOGIN %s %s\r\n",
+	status = imap_writeline (f_imap, "g%u LOGIN %s \"%s\"\r\n",
 				 f_imap->seq, f_imap->user, f_imap->passwd);
 	CHECK_ERROR_CLOSE(folder, f_imap, status);
 	FOLDER_DEBUG2 (folder, MU_DEBUG_PROT, "g%u LOGIN %s *\n",
@@ -433,6 +276,13 @@ authenticate_imap_sasl_anon (authority_t auth)
 
   assert (f_imap->state == IMAP_AUTH);
 
+  if (check_capa (f_imap, "AUTH=ANONYMOUS"))
+    {
+      FOLDER_DEBUG0 (folder, MU_DEBUG_PROT,
+		     "ANONYMOUS capability not present disabled\n");
+      return ENOSYS;
+    }
+
   switch (f_imap->auth_state)
     {
     case IMAP_AUTH_ANON_REQ_WRITE:
@@ -487,6 +337,233 @@ authenticate_imap_sasl_anon (authority_t auth)
     }
   CLEAR_STATE (f_imap);
   return 0;
+}
+
+struct auth_tab
+{
+  char *name;
+  auth_method_t method;
+};
+
+/* NOTE: The ordering of methods in this table is from most secure
+   to less secure. */
+
+static struct auth_tab auth_tab[] = {
+  { "login", authenticate_imap_login },
+  { "anon", authenticate_imap_sasl_anon },
+  { NULL }
+};
+
+static auth_method_t
+find_auth_method (const char *name)
+{
+  struct auth_tab *p;
+
+  for (p = auth_tab; p->name; p++)
+    if (strcasecmp (p->name, name) == 0)
+      return p->method;
+
+  return NULL;
+}
+
+static int
+authenticate_imap_select (authority_t auth)
+{
+  struct auth_tab *p;
+  int status;
+  
+  for (p = auth_tab; status && p->name; p++)
+    status = p->method (auth);
+
+  return status;
+}
+
+
+
+
+/* Initialize the concrete IMAP mailbox: overload the folder functions  */
+int
+_folder_imap_init (folder_t folder)
+{
+  int status;
+  f_imap_t f_imap;
+
+  /* Set the authority early:
+     (1) so we can check for errors.
+     (2) allow the client to get the authority for setting the ticket
+     before the open.  */
+  status = folder_imap_get_authority (folder, NULL);
+  if (status != 0)
+    return status;
+
+  f_imap = folder->data = calloc (1, sizeof (*f_imap));
+  if (f_imap == NULL)
+    return ENOMEM;
+
+  f_imap->folder = folder;
+  f_imap->state = IMAP_NO_STATE;
+
+  folder->_destroy = folder_imap_destroy;
+
+  folder->_open = folder_imap_open;
+  folder->_close = folder_imap_close;
+
+  folder->_list = folder_imap_list;
+  folder->_lsub = folder_imap_lsub;
+  folder->_subscribe = folder_imap_subscribe;
+  folder->_unsubscribe = folder_imap_unsubscribe;
+  folder->_delete = folder_imap_delete;
+  folder->_rename = folder_imap_rename;
+
+  return 0;
+}
+
+/* Destroy the folder resources.  */
+static void
+folder_imap_destroy (folder_t folder)
+{
+  if (folder->data)
+    {
+      f_imap_t f_imap = folder->data;
+      if (f_imap->buffer)
+	free (f_imap->buffer);
+      if (f_imap->capav)
+	argcv_free (f_imap->capac, f_imap->capav);
+      free (f_imap);
+      folder->data = NULL;
+    }
+}
+
+static int
+folder_set_auth_method (folder_t folder, auth_method_t method)
+{
+  if (!folder->authority)
+    {
+      int status = authority_create (&folder->authority, NULL, folder);
+      if (status)
+	return status;
+    }
+  return authority_set_authenticate (folder->authority, method, folder);
+}
+
+static int
+folder_imap_get_authority (folder_t folder, authority_t *pauth)
+{
+  int status = 0;
+  if (folder->authority == NULL)
+    {
+      /* assert (folder->url); */
+      if (folder->url == NULL)
+	return EINVAL;
+
+      if (folder->url->auth == NULL
+	  || strcasecmp (folder->url->auth, "*") == 0)
+	{
+	  status = folder_set_auth_method (folder, authenticate_imap_select);
+	}
+      else 
+	{
+	  char *p, *sp;
+
+	  for (p = strtok_r (folder->url->auth, ",", &sp);
+	       status == 0 && p;
+	       p = strtok_r (NULL, ",", &sp))
+	    {
+	      auth_method_t method = find_auth_method (p);
+	      if (method)
+		status = folder_set_auth_method (folder, method);
+	      else
+		status = MU_ERR_BAD_AUTH_SCHEME;
+	    }		  
+	}
+    }
+
+  if (status)
+    return status;
+  
+  if (pauth)
+    *pauth = folder->authority;
+  return status;
+}
+
+
+/* Capability handling */
+static int
+parse_capa (f_imap_t f_imap, char *str)
+{
+  if (f_imap->capav)
+    argcv_free (f_imap->capac, f_imap->capav);
+  return argcv_get (str, "", NULL, &f_imap->capac, &f_imap->capav);
+}
+
+static int
+read_capa (f_imap_t f_imap, int force)
+{
+  int status = 0;
+  
+  if (force)
+    {
+      argcv_free (f_imap->capac, f_imap->capav);
+      f_imap->capac = 0;
+      f_imap->capav = NULL;
+    }
+  
+  if (!f_imap->capav)
+    {
+      status = imap_writeline (f_imap, "g%u CAPABILITY\r\n",
+			       f_imap->seq++);
+      status = imap_send (f_imap);
+      status = imap_parse (f_imap);
+    }
+  return status;
+}
+
+static int
+check_capa (f_imap_t f_imap, char *capa)
+{
+  int i;
+
+  read_capa (f_imap, 0);
+  for (i = 0; i < f_imap->capac; i++)
+    if (strcasecmp (f_imap->capav[i], capa) == 0)
+      return 0;
+  return 1;
+}
+
+
+static int
+tls (folder_t folder)
+{
+#ifdef WITH_TLS
+  int status;
+  f_imap_t f_imap = folder->data;
+
+  if (!mu_tls_enable || check_capa (f_imap, "STARTTLS"))
+    return -1;
+  
+  FOLDER_DEBUG1 (folder, MU_DEBUG_PROT, "g%u STARTTLS\n", f_imap->seq);
+  status = imap_writeline (f_imap, "g%u STARTTLS\r\n",
+			   f_imap->seq++, f_imap->user, f_imap->passwd);
+  CHECK_ERROR (f_imap, status);
+  status = imap_send (f_imap);
+  CHECK_ERROR (f_imap, status);
+  status = imap_parse (f_imap);
+  if (status == 0)
+    {
+      stream_t str;
+      status = tls_stream_create_client_from_tcp (&str, folder->stream, 0);
+      CHECK_ERROR (f_imap, status);
+      status = stream_open (str);
+      if (status == 0)
+	folder->stream = str;
+      FOLDER_DEBUG1 (folder, MU_DEBUG_PROT, "TLS negotiation %s\n",
+		     status == 0 ? "succeeded" : "failed");
+      read_capa (f_imap, 1);
+    }
+  return status;
+#else
+  return -1;
+#endif
 }
 
 /* Create/Open the stream for IMAP.  */
