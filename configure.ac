@@ -461,8 +461,9 @@ AC_CONFIG_FILES([Makefile mailutils.spec
  testsuite/Makefile
  mailbox/Makefile
  auth/Makefile
- imap4d/Makefile
  mailbox/include/Makefile
+ imap4d/Makefile
+ imap4d/testsuite/Makefile
  from/Makefile
  mail/Makefile
  mail/testsuite/Makefile
