@@ -1,3 +1,32 @@
+2002-07-02  Sergey Poznyakoff
+
+	* mail/mail.c (mail_capa): Added "mailbox" capability.
+	
+	Added framework for dejagnu testsuite.
+
+	* configure.in: Call AC_CANONICAL_SYSTEM.
+	  Create mail/testsuite/Makefile
+	* mail/Makefile.am: Added testsuite to SUBDIRS.
+	* mail/testsuite: New dir.
+	* mail/testsuite/Makefile.am: new file.
+	* mail/testsuite/.cvsignore: new file.
+	* mail/testsuite/config: New dir.
+	* mail/testsuite/config/DISTFILES: new file.
+	* mail/testsuite/config/unix.exp: Configuration file for Unix.
+	* mail/testsuite/etc: New dir.
+	* mail/testsuite/etc/DISTFILES: new file.
+	* mail/testsuite/etc/mail.rc: site-specific config for testing mail.
+	* mail/testsuite/lib: New dir.
+	* mail/testsuite/lib/DISTFILES: new file.
+	* mail/testsuite/lib/mail.exp: Dejagnu entry points for testing mail.
+	* mail/testsuite/mail: New dir.
+	* mail/testsuite/mail/DISTFILES: new file.
+	* mail/testsuite/mail/alias.exp: Test alias/unalias commands
+	* mail/testsuite/mail/read.exp: Test mail reading commands
+	* mail/testsuite/spool: New dir.
+	* mail/testsuite/spool/DISTFILES: new file.
+	* mail/testsuite/spool/mbox1: A mailbox for testing.
+
 2002-06-29  Sergey Poznyakoff
 
 	* mail/headers.c: Fix divide by zero (noted by Matthew Whitworth).
