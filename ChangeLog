@@ -1,3 +1,9 @@
+2002-07-03  Sergey Poznyakoff
+
+	* mail/testsuite/lib/mail.exp: Be more stringent in testing.
+	* mail/testsuite/mail/read.exp: Added tests for Print, top,
+	  ignore and retain commands.
+
 2002-07-02  Sergey Poznyakoff
 
 	* mail/mail.c (mail_capa): Added "mailbox" capability.
