@@ -1,3 +1,54 @@
+2003-01-16  Sergey Poznyakoff
+
+	* include/mailutils/mutil.h (mu_rfc2822_references)
+	  (mu_rfc2822_in_reply_to): New functions.
+	* mail/reply.c (concat,strip_message_id)
+	  (get_msgid_header): Removed
+	  (make_in_reply_to,make_references): Rewritten using new rfc2822
+	  functions.
+	* mailbox/mutil.c (mu_rfc2822_references)
+          (mu_rfc2822_in_reply_to): New functions.
+
+	* mh/replcomps: New file. Default format for repl utility.
+	* mh/Makefile.am: Added mhlibdir
+	
+	* mh/mh_getopt.h (struct mh_option): Replaced `int key'
+	  with `char *longopt'.
+	  (mh_argv_preproc): New function.
+	  (mh_optind,mh_optarg): Globals removed.
+	  
+	* mh/mh_argp.c (struct mh_argp_data): Moved to mh_getopt.h
+	  (parse_opt,mh_argp_parse): Rewritten. Argument parsing goes
+	  in two stages: first any old-style mh arguments are expanded
+	  to corresponding GNU long options, then argp_parse is run
+	  over the constructed argv array.
+	* mh/mh_getopt.c (mh_getopt): Rewritten. The main purpose is
+	  to expand old-style options to their double-dash equivalents.
+	  (mh_argv_preproc): New function. Preprocess the argv array.
+	
+	* mh/mh_fmtgram.y (want_arg): New lexical tie-in to correctly
+	  process trailing whitespace in calls like %(putaddr To: ).
+
+	* mh/mh_format.c (builtin_in_reply_to, builtin_references):
+	  New functions. Interfaces to rfc2822 functions.
+	
+	* mh/mh.h (RCPT_DEFAULT): Default value for rcpt_mask
+	* mh/mh_global.c: Initialize rcpt_mask with RCPT_DEFAULT.
+	* mh/mh_init.c (mh_expand_name): Correctly handle full and
+	  relative pathname specifications.
+
+	* mh/fmtcheck.c: Use new struct mh_option
+	* mh/folder.c: Likewise.
+	* mh/inc.c: Likewise.
+	* mh/refile.c: Likewise.
+	* mh/repl.c: Likewise.
+	* mh/rmf.c: Likewise.
+	* mh/scan.c: Likewise.
+	* mh/whatnow.c: Likewise.
+	
+	* mh/README: Updated.
+	* mh/TODO: Updated.
+
 2003-01-15  Wojciech Polak
 
 	* auth/tls.c: Fixed typo.

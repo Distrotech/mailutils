@@ -5,30 +5,54 @@ README -- Differences between Mailutils and the RAND implementation of MH:
 options is provided for backward compatibility.
 
 * Format specifications
-** Function unre
-This function is a GNU extension. It removes any leading whitespace
-and eventual "Re:" prefix from its string argument. Useful for creating
-subjects in reply messages:
+
+** New functions
+
+*** unre
+Argument: string
+Return: string
+
+The function removes any leading whitespace and eventual "Re:" prefix
+from its argument. Useful for creating subjects in reply messages:
 
 	%<{subject}Subject: Re: %(unre{subject})\\n%>
 
-** Function rcpt
-Mailutils provides new format function rcpt. The function takes a
-string argument (one of "to", "cc", "me", "all") and returns true
-if the given element is present in the recipient mask (as modified
-by any --cc and --nocc options) and false otherwise. It is used in
-default formats for repl and comp, e.g.:
+*** rcpt
+Argument: string, one of "to", "cc", "me", "all"
+Return: boolean
+
+This function returns true if the given element is present in the
+recipient mask (as modified by any --cc and --nocc options) and
+false otherwise. It is used in default formats for repl and comp, e.g.:
 
 	%(lit)%<(rcpt to)%(formataddr{to})%>
 
 Notice that this means that usual replcomps file will be ignoring
 --cc and --nocc options, unless it has been modified as shown above.
 
-** Function concat
-Appends whitespace + arg to str.
+*** concat
+Argument: string
+Return: none
 
-** Function printstr
+Appends whitespace + arg to string register.
+
+*** printstr
+Argument: string
+Return: none
+
 Prints the value of string register, prefixed by the given argument.
+
+*** in_reply_to
+Argument: none
+Return: string
+
+Generates the value for the In-reply-to: header according to RFC 2822.
+
+*** references
+Argument: none
+Return: string
+
+Generates the value for the References: header according to RFC 2822.
 
 * rmm
 

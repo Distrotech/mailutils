@@ -19,7 +19,7 @@ State	Nice	Utility		Comments
 -------------------------------------------
 +	-20	scan
 +	-20	inc
-*	-20	repl		Does not actually send the message.
+*	-20	repl		See comments for whatnow
 -	-20	comp
 -	-20	forw
 -	-20	send
@@ -36,7 +36,7 @@ State	Nice	Utility		Comments
 -	10	burst
 -	10	whom
 +	10	mhpath
-*	10	whatnow		push,refile,send. 
+*	10	whatnow		push,refile,send are not supported. 
 -	20	sortm
 
 Utilities In Alphabetical Order
