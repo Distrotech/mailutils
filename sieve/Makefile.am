@@ -1,6 +1,6 @@
 #CFLAGS = -Wall -pedantic -g -DTESTING
 AUTOMAKE_OPTIONS = ../lib/ansi2knr
-INCLUDES = -I${top_srcdir}/include -I${top_srcdir}/lib @ARGPINCS@
+INCLUDES = -I${top_srcdir}/include -I${top_srcdir}/lib 
 YLWRAP = $(SHELL) $(srcdir)/ylwrap
 YFLAGS = -d
 
@@ -54,7 +54,7 @@ HDR = \
   tree.h \
   util.h
 
-sieve_LDADD = ../mailbox/libmailbox.la @ARGPLIBS@ ../lib/libmailutils.la
+sieve_LDADD = ../mailbox/libmailbox.la ../lib/libmailutils.la 
 sieve_SOURCES = \
   sieve.c \
   ${SRC} $(HDR)

@@ -1,10 +1,10 @@
 AUTOMAKE_OPTIONS = ../lib/ansi2knr
-INCLUDES =-I$(srcdir) -I$(top_srcdir)/lib -I$(top_srcdir)/include -I$(top_srcdir)/libmu_scm @ARGPINCS@
+INCLUDES =-I$(srcdir) -I$(top_srcdir)/lib -I$(top_srcdir)/include -I$(top_srcdir)/libmu_scm 
 
 libexec_PROGRAMS = mail.local
 mail_local_SOURCES = main.c mailquota.c script.c mail.local.h
 
-mail_local_LDADD = @ARGPLIBS@ @LIBMU_SCM@ ../mailbox/libmailbox.la \
+mail_local_LDADD = @LIBMU_SCM@ ../mailbox/libmailbox.la \
  @AUTHLIBS@ ../lib/libmailutils.la @GUILE_LIBS@ 
  
 

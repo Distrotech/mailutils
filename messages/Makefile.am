@@ -1,6 +1,6 @@
 AUTOMAKE_OPTIONS = ../lib/ansi2knr
-INCLUDES = -I$(top_srcdir)/include -I$(top_srcdir)/lib @ARGPINCS@
+INCLUDES = -I$(top_srcdir)/include -I$(top_srcdir)/lib 
 
 bin_PROGRAMS = messages
 
-messages_LDADD = @ARGPLIBS@ ../mailbox/libmailbox.la ../lib/libmailutils.la
+messages_LDADD = ../mailbox/libmailbox.la ../lib/libmailutils.la 

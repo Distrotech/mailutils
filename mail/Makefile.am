@@ -1,12 +1,12 @@
-AUTOMAKE_OPTIONS = ../lib/ansi2knr no-dependencies
+AUTOMAKE_OPTIONS = ../lib/ansi2knr 
 AM_YFLAGS=-vt
-INCLUDES = -I${top_srcdir}/include -I${top_srcdir}/lib @ARGPINCS@
+INCLUDES = -I${top_srcdir}/include -I${top_srcdir}/lib 
 AM_CFLAGS = -DSITE_MAIL_RC=\"@SITE_MAIL_RC@\"
 
 bin_PROGRAMS = mail
 
-mail_LDADD = @ARGPLIBS@ ../mailbox/libmailbox.la ../lib/libmailutils.la \
-             @READLINE_LIBS@
+mail_LDADD = ../mailbox/libmailbox.la ../lib/libmailutils.la \
+             @READLINE_LIBS@ 
 
 EXTRA_DIST = msgset.c
 
