@@ -31,8 +31,6 @@
 #include <errno.h>
 #include <mailutils/sys/pop3.h>
 
-static int mu_pop3_carrier_is_write_ready (stream_t carrier, int timeout);
-
 /* A socket may write less then expected but stream.c:stream_write() will
    always try to send the entire buffer unless an error is reported.  We have
    to cope with nonblocking, it is done by keeping track with the pop3->ptr
@@ -50,7 +48,9 @@ mu_pop3_send (mu_pop3_t pop3)
 	 since on linux tv is modified when error.  */
       if (pop3->timeout)
 	{
-	  int ready = mu_pop3_carrier_is_write_ready (pop3->carrier, pop3->timeout);
+	  int ready = mu_pop3_carrier_is_ready (pop3->carrier,
+						MU_STREAM_READY_RD,
+						pop3->timeout);
 	  if (ready == 0)
 	    return ETIMEDOUT;
 	}
@@ -117,30 +117,5 @@ mu_pop3_sendline (mu_pop3_t pop3, const char *line)
 	return status;
     }
   return mu_pop3_send (pop3);
-}
-
-static int
-mu_pop3_carrier_is_write_ready (stream_t carrier, int timeout)
-{
-  int fd = -1;
-  int ready = 0;
-
-  stream_get_fd (carrier, &fd);
- 
-  if (fd >= 0)
-    {
-      struct timeval tv;
-      fd_set fset;
-                                                                                                                             
-      FD_ZERO (&fset);
-      FD_SET (fd, &fset);
-                                                                                                                             
-      tv.tv_sec  = timeout / 100;
-      tv.tv_usec = (timeout % 1000) * 1000;
-                                                                                                                             
-      ready = select (fd + 1, NULL, &fset, NULL, (timeout == -1) ? NULL: &tv);
-      ready = (ready == -1) ? 0 : 1;
-    }
-  return ready;
 }
 

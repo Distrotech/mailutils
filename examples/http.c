@@ -33,11 +33,10 @@ char rbuf[1024];
 int
 main (void)
 {
-  int ret, off = 0, fd;
+  int ret, off = 0;
   stream_t stream;
   size_t nb;
-  fd_set fds;
-
+  
   ret = tcp_stream_create (&stream, "www.gnu.org", 80, MU_STREAM_NONBLOCK);
   if (ret != 0)
     {
@@ -51,25 +50,11 @@ connect_again:
     {
       if (ret == EAGAIN)
         {
-          ret = stream_get_fd (stream, &fd);
-          if (ret != 0)
-            {
-              mu_error ("stream_get_fd: %s", mu_strerror (ret));
-              exit (EXIT_FAILURE);
-            }
-          FD_ZERO (&fds);
-          FD_SET (fd, &fds);
-          select (fd + 1, NULL, &fds, NULL, NULL);
+	  int wflags = MU_STREAM_READY_WR;
+	  stream_wait (stream, &wflags, NULL);
           goto connect_again;
         }
       mu_error ("stream_open: %s", mu_strerror (ret));
-      exit (EXIT_FAILURE);
-    }
-
-  ret = stream_get_fd (stream, &fd);
-  if (ret != 0)
-    {
-      mu_error ("stream_get_fd: %s", mu_strerror (ret));
       exit (EXIT_FAILURE);
     }
 
@@ -79,9 +64,8 @@ write_again:
     {
       if (ret == EAGAIN)
         {
-          FD_ZERO (&fds);
-          FD_SET (fd, &fds);
-          select (fd + 1, NULL, &fds, NULL, NULL);
+	  int wflags = MU_STREAM_READY_WR;
+	  stream_wait (stream, &wflags, NULL);
           off += nb;
           goto write_again;
         }
@@ -102,9 +86,8 @@ write_again:
         {
           if (ret == EAGAIN)
             {
-              FD_ZERO (&fds);
-              FD_SET (fd, &fds);
-              select (fd + 1, &fds, NULL, NULL, NULL);
+	      int wflags = MU_STREAM_READY_RD;
+	      stream_wait (stream, &wflags, NULL);
             }
           else
             {
@@ -112,7 +95,7 @@ write_again:
               exit (EXIT_FAILURE);
             }
         }
-      write (2, rbuf, nb);
+      write (1, rbuf, nb);
     }
   while (nb || ret == EAGAIN);
 

@@ -236,15 +236,15 @@ _mapfile_flush (stream_t stream)
 }
 
 static int
-_mapfile_get_fd (stream_t stream, int *pfd, int *pfd2)
+_mapfile_get_transport2 (stream_t stream, mu_transport_t *pin, mu_transport_t *pout)
 {
   struct _mapfile_stream *mfs = stream_get_owner (stream);
 
-  if (pfd2)
-    return ENOSYS;
+  if (pout)
+    *pout = NULL;
   
-  if (pfd)
-    *pfd = mfs->fd;
+  if (pin)
+    *pin = mfs->fd;
   return 0;
 }
 
@@ -377,7 +377,7 @@ mapfile_stream_create (stream_t *stream, const char* filename, int flags)
 
   stream_set_open (*stream, _mapfile_open, fs);
   stream_set_close (*stream, _mapfile_close, fs);
-  stream_set_fd (*stream, _mapfile_get_fd, fs);
+  stream_set_get_transport2 (*stream, _mapfile_get_transport2, fs);
   stream_set_read (*stream, _mapfile_read, fs);
   stream_set_readline (*stream, _mapfile_readline, fs);
   stream_set_write (*stream, _mapfile_write, fs);

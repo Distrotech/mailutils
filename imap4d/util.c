@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2001, 2002, 2003 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001, 2002, 2003, 2004 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -1084,16 +1084,12 @@ util_get_output (stream_t *pstr)
 void
 util_set_input (stream_t str)
 {
-  if (istream)
-    stream_destroy (&istream, stream_get_owner (istream));
   istream = str;
 }
 
 void
 util_set_output (stream_t str)
 {
-  if (ostream)
-    stream_destroy (&ostream, stream_get_owner (ostream));
   ostream = str;
 }
 
@@ -1104,30 +1100,20 @@ util_set_output (stream_t str)
 int
 util_wait_input (int timeout)
 {
-  int rc, fd;
-  fd_set rdset;
+  int wflags = MU_STREAM_READY_RD;
+  struct timeval tv;
+  int status;
   
-  if (stream_get_fd (istream, &fd))
+  tv.tv_sec = timeout;
+  tv.tv_usec = 0;
+  status = stream_wait (istream, &wflags, &tv);
+  if (status)
     {
-      errno = ENOSYS;
+      syslog (LOG_ERR, _("cannot poll input stream: %s"),
+	      mu_strerror(status));
       return -1;
     }
-
-  FD_ZERO (&rdset);
-  FD_SET (fd, &rdset);
-
-  do
-    {
-      struct timeval tv;
-
-      tv.tv_sec = timeout;
-      tv.tv_usec = 0;
-      
-      rc = select (fd + 1, &rdset, NULL, NULL, &tv);
-    }
-  while (rc == -1 && errno == EINTR);
-
-  return rc;
+  return wflags & MU_STREAM_READY_RD;
 }
 
 void
@@ -1147,14 +1133,9 @@ int
 imap4d_init_tls_server ()
 {
   stream_t stream;
-  int in_fd;
-  int out_fd;
   int rc;
-  
-  if (stream_get_fd (istream, &in_fd)
-      || stream_get_fd (ostream, &out_fd))
-    return 0;
-  rc = tls_stream_create (&stream, in_fd, out_fd, 0);
+ 
+  rc = tls_stream_create (&stream, istream, ostream, 0);
   if (rc)
     return 0;
 
@@ -1166,8 +1147,6 @@ imap4d_init_tls_server ()
       return 0;
     }
 
-  stream_destroy (&istream, stream_get_owner (istream));
-  stream_destroy (&ostream, stream_get_owner (ostream));
   istream = ostream = stream;
   return 1;
 }

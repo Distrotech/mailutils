@@ -25,7 +25,7 @@ imap4d_idle (struct imap4d_command *command, char *arg)
   
   if (util_getword (arg, &sp))
     return util_finish (command, RESP_BAD, "Too many args");
-  
+
   if (util_wait_input (0) == -1)
     return util_finish (command, RESP_NO, "Cannot idle");
 

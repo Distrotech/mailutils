@@ -36,7 +36,7 @@
 #define BODY_MODIFIED 0x10000
 
 static int _body_flush    __P ((stream_t));
-static int _body_get_fd   __P ((stream_t, int *, int *));
+static int _body_get_transport2 __P ((stream_t, mu_transport_t *, mu_transport_t *));
 static int _body_read     __P ((stream_t, char *, size_t, off_t, size_t *));
 static int _body_readline __P ((stream_t, char *, size_t, off_t, size_t *));
 static int _body_truncate __P ((stream_t, off_t));
@@ -162,7 +162,7 @@ body_get_stream (body_t body, stream_t *pstream)
       status = stream_open (body->fstream);
       if (status != 0)
 	return status;
-      stream_set_fd (body->stream, _body_get_fd, body);
+      stream_set_get_transport2 (body->stream, _body_get_transport2, body);
       stream_set_read (body->stream, _body_read, body);
       stream_set_readline (body->stream, _body_readline, body);
       stream_set_write (body->stream, _body_write, body);
@@ -246,15 +246,10 @@ body_set_size (body_t body, int (*_size)(body_t, size_t*) , void *owner)
 /* Stub function for the body stream.  */
 
 static int
-_body_get_fd (stream_t stream, int *fd, int *fd2)
+_body_get_transport2 (stream_t stream, mu_transport_t *pin, mu_transport_t *pout)
 {
-  if (fd2)
-    return ENOSYS;
-  else
-    {
-      body_t body = stream_get_owner (stream);
-      return stream_get_fd (body->fstream, fd);
-    }
+  body_t body = stream_get_owner (stream);
+  return stream_get_transport2 (body->fstream, pin, pout);
 }
 
 static int

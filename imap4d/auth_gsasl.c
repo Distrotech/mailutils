@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2003 Free Software Foundation, Inc.
+   Copyright (C) 2003, 2004 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -25,11 +25,11 @@ static Gsasl_session_ctx *sess_ctx;
 static void auth_gsasl_capa_init __P((int disable));
 
 static int
-create_gsasl_stream (stream_t *newstr, int fd, int flags)
+create_gsasl_stream (stream_t *newstr, stream_t transport, int flags)
 {
   int rc;
   
-  rc = gsasl_stream_create (newstr, fd, sess_ctx, flags);
+  rc = gsasl_stream_create (newstr, transport, sess_ctx, flags);
   if (rc)
     {
       syslog (LOG_ERR, _("cannot create SASL stream: %s"),
@@ -62,37 +62,18 @@ gsasl_replace_streams (void *self, void *data)
   return 0;
 }
 
-#define AUTHBUFSIZE 512
-
-static int
-auth_step_base64(Gsasl_session_ctx *sess_ctx, char *input,
-		 char **output, size_t *output_len)
+static void
+finish_session (void)
 {
-  int rc;
-
-  while (1)
-    {
-      rc = gsasl_server_step_base64 (sess_ctx, input, *output, *output_len);
-
-      if (rc == GSASL_TOO_SMALL_BUFFER)
-	{
-	  *output_len += AUTHBUFSIZE;
-	  *output = realloc(*output, *output_len);
-	  if (output)
-	    continue; 
-	}
-      break;
-    }
-  return rc;
+  gsasl_server_finish (sess_ctx);
 }
 
 static int
 auth_gsasl (struct imap4d_command *command,
-	     char *auth_type, char *arg, char **username)
+	    char *auth_type, char *arg, char **username)
 {
   char *input = NULL;
   char *output;
-  size_t output_len;
   char *s;
   int rc;
 
@@ -109,15 +90,8 @@ auth_gsasl (struct imap4d_command *command,
 
   gsasl_server_application_data_set (sess_ctx, username);
 
-  output_len = AUTHBUFSIZE;
-  output = malloc (output_len);
-  if (!output)
-    imap4d_bye (ERR_NO_MEM);
-
-  output[0] = '\0';
-
-  while ((rc = auth_step_base64 (sess_ctx, input, &output, &output_len))
-	 == GSASL_NEEDS_MORE)
+  output = NULL;
+  while ((rc = gsasl_step64 (sess_ctx, input, &output)) == GSASL_NEEDS_MORE)
     {
       util_send ("+ %s\r\n", output);
       input = imap4d_readline_ex ();
@@ -144,18 +118,14 @@ auth_gsasl (struct imap4d_command *command,
 
   if (sess_ctx)
     {
-      stream_t in, out, new_in, new_out;
+      stream_t tmp, new_in, new_out;
       stream_t *s;
-      int infd, outfd;
-      
-      util_get_input (&in);
-      stream_get_fd (in, &infd);
-      
-      util_get_output (&out);
-      stream_get_fd (out, &outfd);
-      if (create_gsasl_stream (&new_in, infd, MU_STREAM_READ))
+
+      util_get_input (&tmp);
+      if (create_gsasl_stream (&new_in, tmp, MU_STREAM_READ))
 	return RESP_NO;
-      if (create_gsasl_stream (&new_out, outfd, MU_STREAM_WRITE))
+      util_get_output (&tmp);
+      if (create_gsasl_stream (&new_out, tmp, MU_STREAM_WRITE))
 	{
 	  stream_destroy (&new_in, stream_get_owner (new_in));
 	  return RESP_NO;
@@ -166,8 +136,8 @@ auth_gsasl (struct imap4d_command *command,
       s[1] = new_out;
       util_register_event (STATE_NONAUTH, STATE_AUTH,
 			   gsasl_replace_streams, s);
+      util_atexit (finish_session);
     }
-
   
   auth_gsasl_capa_init (1);
   return RESP_OK;
@@ -180,15 +150,7 @@ auth_gsasl_capa_init (int disable)
   char *listmech, *name, *s;
   size_t size;
 
-  rc = gsasl_server_listmech (ctx, NULL, &size);
-  if (rc != GSASL_OK)
-    return;
-
-  listmech = malloc (size);
-  if (!listmech)
-    imap4d_bye (ERR_NO_MEM);
-  
-  rc = gsasl_server_listmech (ctx, listmech, &size);
+  rc =  gsasl_server_mechlist (ctx, &listmech);
   if (rc != GSASL_OK)
     return;
 
@@ -300,7 +262,7 @@ void
 auth_gsasl_init ()
 {
   int rc;
-  
+
   rc = gsasl_init (&ctx);
   if (rc != GSASL_OK)
     {
@@ -321,3 +283,9 @@ auth_gsasl_init ()
   auth_gsasl_capa_init (0);
 }
 
+wd()
+{
+  int _st=0;
+  while (_st==0)
+    _st=_st;
+}

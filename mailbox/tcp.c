@@ -37,6 +37,7 @@
 
 #include <mailutils/errno.h>
 #include <mailutils/stream.h>
+#include <mailutils/mutil.h>
 
 #define TCP_STATE_INIT 		1
 #define TCP_STATE_RESOLVE	2
@@ -150,18 +151,17 @@ _tcp_open (stream_t stream)
 
 
 static int
-_tcp_get_fd (stream_t stream, int *fd, int *fd2)
+_tcp_get_transport2 (stream_t stream, mu_transport_t *tr, mu_transport_t *tr2)
 {
   struct _tcp_instance *tcp = stream_get_owner (stream);
 
-  if (fd == NULL)
-    return MU_ERR_OUT_PTR_NULL;
   if (tcp->fd == -1)
     return EINVAL;
-  if (fd2)
-    return ENOSYS;
   
-  *fd = tcp->fd;
+  if (tr)
+    *tr = (mu_transport_t) tcp->fd;
+  if (tr2)
+    *tr2 = NULL;
   return 0;
 }
 
@@ -218,6 +218,15 @@ _tcp_destroy (stream_t stream)
 }
 
 int
+_tcp_wait (stream_t stream, int *pflags, struct timeval *tvp)
+{
+  struct _tcp_instance *tcp = stream_get_owner (stream);
+  if (tcp->fd == -1)
+    return EINVAL;
+  return mu_fd_wait (tcp->fd, pflags, tvp);
+}
+
+int
 tcp_stream_create (stream_t * stream, const char* host, int port, int flags)
 {
   struct _tcp_instance *tcp;
@@ -254,8 +263,9 @@ tcp_stream_create (stream_t * stream, const char* host, int port, int flags)
   stream_set_close (*stream, _tcp_close, tcp);
   stream_set_read (*stream, _tcp_read, tcp);
   stream_set_write (*stream, _tcp_write, tcp);
-  stream_set_fd (*stream, _tcp_get_fd, tcp);
+  stream_set_get_transport2 (*stream, _tcp_get_transport2, tcp);
   stream_set_destroy (*stream, _tcp_destroy, tcp);
-
+  stream_set_wait (*stream, _tcp_wait, tcp);
+  
   return 0;
 }

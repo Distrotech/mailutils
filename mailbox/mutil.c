@@ -50,6 +50,7 @@
 #include <mailutils/message.h>
 #include <mailutils/envelope.h>
 #include <mailutils/nls.h>
+#include <mailutils/stream.h>
 
 #include <registrar0.h>
 
@@ -1177,3 +1178,41 @@ mu_scheme_autodetect_p (const char *scheme,  const char **path)
   return 0;
 }
     
+int
+mu_fd_wait (int fd, int *pflags, struct timeval *tvp)
+{
+  fd_set rdset, wrset;
+  int rc;
+
+  FD_ZERO (&rdset);
+  FD_ZERO (&wrset);
+  if ((*pflags) & MU_STREAM_READY_RD)
+    FD_SET (fd, &rdset);
+  if ((*pflags) & MU_STREAM_READY_WR)
+    FD_SET (fd, &wrset);
+  
+  do
+    {
+      if (tvp)
+	{
+	  struct timeval tv = *tvp; 
+	  rc = select (fd + 1, &rdset, &wrset, NULL, &tv);
+	}
+      else
+	rc = select (fd + 1, &rdset, &wrset, NULL, NULL);
+    }
+  while (rc == -1 && errno == EINTR);
+
+  if (rc < 0)
+    return errno;
+  
+  *pflags = 0;
+  if (rc > 0)
+    {
+      if (FD_ISSET (fd, &rdset))
+	*pflags |= MU_STREAM_READY_RD;
+      if (FD_ISSET (fd, &wrset))
+	*pflags |= MU_STREAM_READY_WR;
+    }
+  return 0;
+}

@@ -76,7 +76,8 @@ static int  imap_copy_message     __P ((mailbox_t, message_t));
 static int  imap_submessage_size  __P ((msg_imap_t, size_t *));
 static int  imap_message_size     __P ((message_t, size_t *));
 static int  imap_message_lines    __P ((message_t, size_t *));
-static int  imap_message_fd       __P ((stream_t, int *, int *));
+static int  imap_message_get_transport2  __P ((stream_t, mu_transport_t *pin, 
+                                              mu_transport_t *pout));
 static int  imap_message_read     __P ((stream_t , char *, size_t, off_t, size_t *));
 static int  imap_message_uid      __P ((message_t, size_t *));
 
@@ -104,11 +105,12 @@ static int  imap_body_read        __P ((stream_t, char *, size_t, off_t,
 					size_t *));
 static int  imap_body_size        __P ((body_t, size_t *));
 static int  imap_body_lines       __P ((body_t, size_t *));
-static int  imap_body_fd          __P ((stream_t, int *, int *));
+static int  imap_body_get_transport2 __P ((stream_t, mu_transport_t *pin, mu_transport_t *pout));
 
 /* Helpers.  */
-static int  imap_get_fd2          __P ((msg_imap_t msg_imap, int *pfd1,
-					int *pfd2));
+static int  imap_get_transport2    __P ((msg_imap_t msg_imap, 
+                                        mu_transport_t *pin,
+                                        mu_transport_t *pout));
 static int  imap_get_message0     __P ((msg_imap_t, message_t *));
 static int  fetch_operation       __P ((f_imap_t, msg_imap_t, char *, size_t, size_t *));
 static void free_subparts         __P ((msg_imap_t));
@@ -521,7 +523,7 @@ imap_get_message0 (msg_imap_t msg_imap, message_t *pmsg)
       }
     stream_setbufsiz (stream, 128);
     stream_set_read (stream, imap_message_read, msg);
-    stream_set_fd (stream, imap_message_fd, msg);
+    stream_set_get_transport2 (stream, imap_message_get_transport2, msg);
     message_set_stream (msg, stream, msg_imap);
     message_set_size (msg, imap_message_size, msg_imap);
     message_set_lines (msg, imap_message_lines, msg_imap);
@@ -570,7 +572,7 @@ imap_get_message0 (msg_imap_t msg_imap, message_t *pmsg)
       }
     stream_setbufsiz (stream, 128);
     stream_set_read (stream, imap_body_read, body);
-    stream_set_fd (stream, imap_body_fd, body);
+    stream_set_get_transport2 (stream, imap_body_get_transport2, body);
     body_set_size (body, imap_body_size, msg);
     body_set_lines (body, imap_body_lines, msg);
     body_set_stream (body, stream, msg);
@@ -1333,11 +1335,11 @@ imap_message_uid (message_t msg, size_t *puid)
 }
 
 static int
-imap_message_fd (stream_t stream, int *pfd, int *pfd2)
+imap_message_get_transport2 (stream_t stream, mu_transport_t *pin, mu_transport_t *pout)
 {
   message_t msg = stream_get_owner (stream);
   msg_imap_t msg_imap = message_get_owner (msg);
-  return imap_get_fd2 (msg_imap, pfd, pfd2);
+  return imap_get_transport2 (msg_imap, pin, pout);
 }
 
 /* Mime.  */
@@ -2005,24 +2007,25 @@ imap_body_read (stream_t stream, char *buffer, size_t buflen, off_t offset,
 }
 
 static int
-imap_body_fd (stream_t stream, int *pfd, int *pfd2)
+imap_body_get_transport2 (stream_t stream, mu_transport_t *pin, 
+                         mu_transport_t *pout)
 {
   body_t body = stream_get_owner (stream);
   message_t msg = body_get_owner (body);
   msg_imap_t msg_imap = message_get_owner (msg);
-  return imap_get_fd2 (msg_imap, pfd, pfd2);
+  return imap_get_transport2 (msg_imap, pin, pout);
 }
 
 
 static int
-imap_get_fd2 (msg_imap_t msg_imap, int *pfd1, int *pfd2)
+imap_get_transport2 (msg_imap_t msg_imap, mu_transport_t *pin, mu_transport_t *pout)
 {
   if (   msg_imap
       && msg_imap->m_imap
       && msg_imap->m_imap->f_imap
       && msg_imap->m_imap->f_imap->folder)
-    return stream_get_fd2 (msg_imap->m_imap->f_imap->folder->stream,
-			   pfd1, pfd2);
+    return stream_get_transport2 (msg_imap->m_imap->f_imap->folder->stream,
+			         pin, pout);
   return EINVAL;
 }
 

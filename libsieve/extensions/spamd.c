@@ -106,10 +106,10 @@ spamd_destroy (stream_t *stream)
 static void
 spamd_shutdown (stream_t stream, int flag)
 {
-  int fd;
+  mu_transport_t trans;
   stream_flush (stream);
-  stream_get_fd (stream, &fd);
-  shutdown (fd, flag);
+  stream_get_transport (stream, &trans);
+  shutdown ((int)trans, flag);
 }
 
 static void

@@ -433,17 +433,12 @@ _mimepart_body_read (stream_t stream, char *buf, size_t buflen, off_t off,
 }
 
 static int
-_mimepart_body_fd (stream_t stream, int *fd, int *fd2)
+_mimepart_body_transport (stream_t stream, mu_transport_t *tr1, mu_transport_t *tr2)
 {
-  if (fd2)
-    return ENOSYS;
-  else
-    {
-      body_t body = stream_get_owner (stream);
-      message_t msg = body_get_owner (body);
-      struct _mime_part *mime_part = message_get_owner (msg);
-      return stream_get_fd (mime_part->mime->stream, fd);
-    }
+  body_t body = stream_get_owner (stream);
+  message_t msg = body_get_owner (body);
+  struct _mime_part *mime_part = message_get_owner (msg);
+  return stream_get_transport2 (mime_part->mime->stream, tr1, tr2);
 }
 
 static int
@@ -662,22 +657,17 @@ _mime_body_read (stream_t stream, char *buf, size_t buflen, off_t off,
 }
 
 static int
-_mime_body_fd (stream_t stream, int *fd, int *fd2)
+_mime_body_transport (stream_t stream, mu_transport_t *tr1, mu_transport_t *tr2)
 {
-  if (fd2)
-    return ENOSYS;
-  else
-    {
-      body_t body = stream_get_owner (stream);
-      message_t msg = body_get_owner (body);
-      mime_t mime = message_get_owner (msg);
-      stream_t msg_stream = NULL;
+  body_t body = stream_get_owner (stream);
+  message_t msg = body_get_owner (body);
+  mime_t mime = message_get_owner (msg);
+  stream_t msg_stream = NULL;
 
-      if (mime->nmtp_parts == 0 || mime->cur_offset == 0)
-	return EINVAL;
-      message_get_stream (mime->mtp_parts[mime->cur_part]->msg, &msg_stream);
-      return stream_get_fd (msg_stream, fd);
-    }
+  if (mime->nmtp_parts == 0 || mime->cur_offset == 0)
+    return EINVAL;
+  message_get_stream (mime->mtp_parts[mime->cur_part]->msg, &msg_stream);
+  return stream_get_transport2 (msg_stream, tr1, tr2);
 }
 
 static int
@@ -870,7 +860,7 @@ mime_get_part (mime_t mime, size_t part, message_t * msg)
 				  body)) == 0)
 		{
 		  stream_set_read (stream, _mimepart_body_read, body);
-		  stream_set_fd (stream, _mimepart_body_fd, body);
+		  stream_set_get_transport2 (stream, _mimepart_body_transport, body);
 		  body_set_stream (body, stream, mime_part->msg);
 		  message_set_body (mime_part->msg, body, mime_part);
 		  mime_part->body_created = 1;
@@ -945,7 +935,7 @@ mime_get_message (mime_t mime, message_t * msg)
 			  == 0)
 			{
 			  stream_set_read (body_stream, _mime_body_read, body);
-			  stream_set_fd (body_stream, _mime_body_fd, body);
+			  stream_set_get_transport2 (body_stream, _mime_body_transport, body);
 			  body_set_stream (body, body_stream, mime->msg);
 			  *msg = mime->msg;
 			  return 0;

@@ -112,15 +112,10 @@ filter_flush (stream_t stream)
 }
 
 static int
-filter_get_fd (stream_t stream, int *pfd, int *pfd2)
+filter_get_transport2 (stream_t stream, mu_transport_t *pin, mu_transport_t *pout)
 {
-  if (pfd2)
-    return ENOSYS;
-  else
-    {
-      filter_t filter = stream_get_owner (stream);
-      return stream_get_fd (filter->stream, pfd);
-    }
+  filter_t filter = stream_get_owner (stream);
+  return stream_get_transport2 (filter->stream, pin, pout);
 }
 
 static int
@@ -252,7 +247,7 @@ filter_create (stream_t *pstream, stream_t stream, const char *name,
       stream_set_read (*pstream, filter_read, filter);
       stream_set_readline (*pstream, filter_readline, filter);
       stream_set_write (*pstream, filter_write, filter);
-      stream_set_fd (*pstream, filter_get_fd, filter );
+      stream_set_get_transport2 (*pstream, filter_get_transport2, filter );
       stream_set_truncate (*pstream, filter_truncate, filter );
       stream_set_size (*pstream, filter_size, filter );
       stream_set_flush (*pstream, filter_flush, filter );

@@ -130,16 +130,16 @@ int _pop_apop            __P ((authority_t));
 static int pop_get_size        __P ((mailbox_t, off_t *));
 /* We use pop_top for retreiving headers.  */
 /* static int pop_header_read (header_t, char *, size_t, off_t, size_t *); */
-static int pop_body_fd         __P ((stream_t, int *, int *));
+static int pop_body_transport  __P ((stream_t, mu_transport_t *, mu_transport_t *));
 static int pop_body_size       __P ((body_t, size_t *));
 static int pop_body_lines      __P ((body_t, size_t *));
 static int pop_body_read       __P ((stream_t, char *, size_t, off_t, size_t *));
 static int pop_message_read    __P ((stream_t, char *, size_t, off_t, size_t *));
 static int pop_message_size    __P ((message_t, size_t *));
-static int pop_message_fd      __P ((stream_t, int *, int *));
+static int pop_message_transport __P ((stream_t, mu_transport_t *, mu_transport_t *));
 static int pop_top             __P ((header_t, char *, size_t, off_t, size_t *));
 static int pop_retr            __P ((pop_message_t, char *, size_t, off_t, size_t *));
-static int pop_get_fd          __P ((pop_message_t, int *));
+static int pop_get_transport2   __P ((pop_message_t, mu_transport_t *, mu_transport_t *));
 static int pop_get_attribute   __P ((attribute_t, int *));
 static int pop_set_attribute   __P ((attribute_t, int));
 static int pop_unset_attribute __P ((attribute_t, int));
@@ -932,7 +932,7 @@ pop_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
     /* Help for the readline()s  */
     stream_setbufsiz (stream, 128);
     stream_set_read (stream, pop_message_read, msg);
-    stream_set_fd (stream, pop_message_fd, msg);
+    stream_set_get_transport2 (stream, pop_message_transport, msg);
     message_set_stream (msg, stream, mpm);
     message_set_size (msg, pop_message_size, mpm);
   }
@@ -982,7 +982,7 @@ pop_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
     /* Helps for the readline()s  */
     stream_setbufsiz (stream, 128);
     stream_set_read (stream, pop_body_read, body);
-    stream_set_fd (stream, pop_body_fd, body);
+    stream_set_get_transport2 (stream, pop_body_transport, body);
     body_set_size (body, pop_body_size, msg);
     body_set_lines (body, pop_body_lines, msg);
     body_set_stream (body, stream, msg);
@@ -1414,39 +1414,28 @@ pop_unset_attribute (attribute_t attr, int flags)
 
 /* Stub to call the fd from body object.  */
 static int
-pop_body_fd (stream_t stream, int *pfd, int *pfd1)
+pop_body_transport (stream_t stream, mu_transport_t *ptr, mu_transport_t *ptr2)
 {
-  if (pfd1)
-    return ENOSYS;
-  else
-    {
-      body_t body = stream_get_owner (stream);
-      message_t msg = body_get_owner (body);
-      pop_message_t mpm = message_get_owner (msg);
-      return pop_get_fd (mpm, pfd);
-    }
+  body_t body = stream_get_owner (stream);
+  message_t msg = body_get_owner (body);
+  pop_message_t mpm = message_get_owner (msg);
+  return pop_get_transport2 (mpm, ptr, ptr2);
 }
 
 /* Stub to call the fd from message object.  */
 static int
-pop_message_fd (stream_t stream, int *pfd, int *pfd2)
+pop_message_transport (stream_t stream, mu_transport_t *ptr, mu_transport_t *ptr2)
 {
-  if (pfd2)
-    return ENOSYS;
-  else
-    {
-      message_t msg = stream_get_owner (stream);
-      pop_message_t mpm = message_get_owner (msg);
-      return pop_get_fd (mpm, pfd);
-    }
+  message_t msg = stream_get_owner (stream);
+  pop_message_t mpm = message_get_owner (msg);
+  return pop_get_transport2 (mpm, ptr, ptr2);
 }
 
-/* Finally return the fd.  */
 static int
-pop_get_fd (pop_message_t mpm, int *pfd)
+pop_get_transport2 (pop_message_t mpm, mu_transport_t *ptr, mu_transport_t *ptr2)
 {
   if (mpm && mpm->mpd && mpm->mpd->mbox)
-	return stream_get_fd (mpm->mpd->mbox->stream, pfd);
+	return stream_get_transport2 (mpm->mpd->mbox->stream, ptr, ptr2);
   return EINVAL;
 }
 

@@ -56,7 +56,8 @@ static int message_read   __P ((stream_t is, char *buf, size_t buflen,
 				off_t off, size_t *pnread ));
 static int message_write  __P ((stream_t os, const char *buf, size_t buflen,
 				off_t off, size_t *pnwrite));
-static int message_get_fd __P ((stream_t stream, int *pfd, int *pfd2));
+static int message_get_transport2 __P ((stream_t stream, mu_transport_t *pin, 
+                                       mu_transport_t *pout));
 static int message_sender __P ((envelope_t envelope, char *buf, size_t len,
 				size_t *pnwrite));
 static int message_date   __P ((envelope_t envelope, char *buf, size_t len,
@@ -404,7 +405,7 @@ message_get_stream (message_t msg, stream_t *pstream)
 	return status;
       stream_set_read (stream, message_read, msg);
       stream_set_write (stream, message_write, msg);
-      stream_set_fd (stream, message_get_fd, msg);
+      stream_set_get_transport2 (stream, message_get_transport2, msg);
       stream_set_size (stream, message_stream_size, msg);
       stream_set_flags (stream, MU_STREAM_RDWR);
       msg->stream = stream;
@@ -893,9 +894,8 @@ message_write (stream_t os, const char *buf, size_t buflen,
   return status;
 }
 
-/* Implements the stream_get_fd () on the message stream.  */
 static int
-message_get_fd (stream_t stream, int *pfd, int *pfd2)
+message_get_transport2 (stream_t stream, mu_transport_t *pin, mu_transport_t *pout)
 {
   message_t msg = stream_get_owner (stream);
   body_t body;
@@ -903,8 +903,8 @@ message_get_fd (stream_t stream, int *pfd, int *pfd2)
 
   if (msg == NULL)
     return EINVAL;
-  if (pfd2)
-    return ENOSYS;
+  if (pout)
+    *pout = NULL;
 
   /* Probably being lazy, then create a body for the stream.  */
   if (msg->body == NULL)
@@ -918,7 +918,7 @@ message_get_fd (stream_t stream, int *pfd, int *pfd2)
       body = msg->body;
 
   body_get_stream (body, &is);
-  return stream_get_fd (is, pfd);
+  return stream_get_transport2 (is, pin, pout);
 }
 
 /* Implements the stream_stream_size () on the message stream.  */

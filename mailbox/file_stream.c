@@ -39,6 +39,7 @@
 #include <mailutils/argcv.h>
 #include <mailutils/nls.h>
 #include <mailutils/list.h>
+#include <mailutils/mutil.h>
 
 struct _file_stream
 {
@@ -319,22 +320,32 @@ _file_flush (stream_t stream)
   return 0;
 }
 
+int
+_file_wait (stream_t stream, int *pflags, struct timeval *tvp)
+{
+  struct _file_stream *fs = stream_get_owner (stream);
+
+  if (!fs->file)
+    return EINVAL;
+  return mu_fd_wait (fileno (fs->file), pflags, tvp);
+}
+
 static int
-_file_get_fd (stream_t stream, int *pfd, int *pfd2)
+_file_get_transport2 (stream_t stream,
+		      mu_transport_t *pin, mu_transport_t *pout)
 {
   struct _file_stream *fs = stream_get_owner (stream);
   int status = 0;
 
-  if (pfd2)
-    return ENOSYS;
-  
-  if (pfd)
+  if (pin)
     {
       if (fs->file)
-	*pfd = fileno (fs->file);
+	*pin = (mu_transport_t) fs->file;
       else
 	status = EINVAL;
     }
+  if (pout)
+    *pout = NULL;
   return status;
 }
 
@@ -493,10 +504,10 @@ file_stream_create (stream_t *stream, const char* filename, int flags)
     return ENOMEM;
 
   if ((fs->filename = strdup(filename)) == NULL)
-  {
-    free (fs);
-    return ENOMEM;
-  }
+    {
+      free (fs);
+      return ENOMEM;
+    }
 
   ret = stream_create (stream, flags|MU_STREAM_NO_CHECK, fs);
   if (ret != 0)
@@ -508,7 +519,7 @@ file_stream_create (stream_t *stream, const char* filename, int flags)
 
   stream_set_open (*stream, _file_open, fs);
   stream_set_close (*stream, _file_close, fs);
-  stream_set_fd (*stream, _file_get_fd, fs);
+  stream_set_get_transport2 (*stream, _file_get_transport2, fs);
   stream_set_read (*stream, _file_read, fs);
   stream_set_readline (*stream, _file_readline, fs);
   stream_set_write (*stream, _file_write, fs);
@@ -517,6 +528,7 @@ file_stream_create (stream_t *stream, const char* filename, int flags)
   stream_set_flush (*stream, _file_flush, fs);
   stream_set_destroy (*stream, _file_destroy, fs);
   stream_set_strerror (*stream, _file_strerror, fs);
+  stream_set_wait (*stream, _file_wait, fs);
   
   return 0;
 }
@@ -572,10 +584,11 @@ stdio_stream_create (stream_t *stream, FILE *file, int flags)
 
   stream_set_open (*stream, NULL, fs);
   stream_set_close (*stream, _file_close, fs);
-  stream_set_fd (*stream, _file_get_fd, fs);
+  stream_set_get_transport2 (*stream, _file_get_transport2, fs);
   stream_set_flush (*stream, _file_flush, fs);
   stream_set_destroy (*stream, _file_destroy, fs);
-
+  stream_set_wait (*stream, _file_wait, fs);
+  
   return 0;
 }
 
@@ -936,14 +949,14 @@ _prog_flush (stream_t stream)
 }
 
 static int
-_prog_get_fd (stream_t stream, int *pfd, int *pfd2)
+_prog_get_transport2 (stream_t stream, mu_transport_t *pin, mu_transport_t *pout)
 {
   int rc;
   struct _prog_stream *fs = stream_get_owner (stream);
   
-  if ((rc = stream_get_fd (fs->in, pfd)) != 0)
+  if ((rc = stream_get_transport (fs->in, pin)) != 0)
     return rc;
-  return stream_get_fd (fs->out, pfd2);
+  return stream_get_transport (fs->out, pout);
 }
 
 int
@@ -992,7 +1005,7 @@ _prog_stream_create (struct _prog_stream **pfs,
 
   stream_set_open (*stream, _prog_open, fs);
   stream_set_close (*stream, _prog_close, fs);
-  stream_set_fd (*stream, _prog_get_fd, fs);
+  stream_set_get_transport2 (*stream, _prog_get_transport2, fs);
   stream_set_flush (*stream, _prog_flush, fs);
   stream_set_destroy (*stream, _prog_destroy, fs);
 

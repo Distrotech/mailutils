@@ -29,28 +29,23 @@
 #include <mailutils/sys/pop3.h>
 #include <mailutils/error.h>
 
-static int
-mu_pop3_carrier_is_read_ready(stream_t carrier, int timeout)
+int
+mu_pop3_carrier_is_ready (stream_t carrier, int flag, int timeout)
 {
-  int fd = -1;
-  int ready = 0;
- 
-  stream_get_fd (carrier, &fd);
-  if (fd >= 0)
+  struct timeval tv, *tvp = NULL;
+  int wflags = flag;
+  int status;
+  
+  if (timeout >= 0)
     {
-      struct timeval tv;
-      fd_set fset;
- 
-      FD_ZERO (&fset);
-      FD_SET (fd, &fset);
- 
       tv.tv_sec  = timeout / 100;
       tv.tv_usec = (timeout % 1000) * 1000;
- 
-      ready = select (fd + 1, &fset, NULL, NULL, (timeout == -1) ? NULL: &tv);
-      ready = (ready == -1) ? 0 : 1;
+      tvp = &tv;
     }
-  return ready;
+  status = stream_wait (carrier, &wflags, tvp);
+  if (status)
+    return 0; /* FIXME: provide a way to return error code! */
+  return wflags & flag;
 }
 
 /* Read a complete line from the pop server. Transform CRLF to LF, remove
@@ -70,7 +65,9 @@ mu_pop3_getline (mu_pop3_t pop3)
 	 since on linux tv is modified when error.  */
       if (pop3->timeout)
 	{
-	  int ready = mu_pop3_carrier_is_read_ready (pop3->carrier, pop3->timeout);
+	  int ready = mu_pop3_carrier_is_ready (pop3->carrier,
+						MU_STREAM_READY_RD,
+						pop3->timeout);
 	  if (ready == 0)
 	    return ETIMEDOUT;
 	}

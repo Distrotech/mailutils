@@ -1366,11 +1366,13 @@ show_handler (message_t msg, msg_part_t part, char *type, char *encoding,
   int fd = 1;
   char *tempfile = NULL;
   int ismime;
-  
+  mu_transport_t trans;
+ 
   if (message_is_multipart (msg, &ismime) == 0 && ismime)
     return 0;
 
-  stream_get_fd (out, &fd);
+  stream_get_transport (out, &trans);
+  fd = trans;
 
   if (mode_options & OPT_PAUSE)
     flags |= MHN_CONFIRM;
