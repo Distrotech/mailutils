@@ -49,11 +49,19 @@ mail_previous (int argc, char **argv)
   else
     {
       msgset_t *list = NULL;
-      msgset_parse (argc, argv, MSG_NODELETED|MSG_SILENT, &list);
-      n = list->msg_part[0];
-      msgset_free (list);
-      if (util_get_message (mbox, n, &msg))
-	return 1;
+      int rc = msgset_parse (argc, argv, MSG_NODELETED|MSG_SILENT, &list);
+      if (!rc)
+	{
+	  n = list->msg_part[0];
+	  msgset_free (list);
+	  if (util_get_message (mbox, n, &msg))
+	    return 1;
+	}
+      else
+	{
+	  util_error (_("No applicable message"));
+	  return 1;
+	}
     }
   cursor = n;
   util_do_command ("print");
