@@ -1,5 +1,11 @@
 2005-02-26  Wojciech Polak
 
+	* mh/send.c (expand_aliases): Bugfix. Do not use statically
+	allocated buffer. Use header_aget_field_name() instead.
+	The utility freezed with header names longer than 16 bytes.
+
+2005-02-26  Wojciech Polak
+
 	* mailbox/url_smtp.c (_url_smtp_init): Do not reject
 	an URL with user name, password, or auth method specified.
 	We will use it in further ESMTP authentication.
