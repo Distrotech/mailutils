@@ -62,10 +62,10 @@ enum mh_opcode
      Format: mhop_branch offset */
   mhop_branch,
   /* 2. Assign to numeric register
-     Format: mhop_num_asgn number */
+     Format: mhop_num_asgn  */
   mhop_num_asgn,
   /* 3. Assign to string register
-     Format: mhop_str_asgn length string */
+     Format: mhop_str_asgn */
   mhop_str_asgn,
   /* 4. Numeric arg follows.
      Format: mhop_num_arg number */
@@ -111,7 +111,8 @@ enum mh_opcode
 
   /* 17. Set format specification.
      Format: mhop_fmtspec number */
-  mhop_fmtspec
+  mhop_fmtspec,
+
 };    
 
 enum mh_type
@@ -121,7 +122,7 @@ enum mh_type
   mhtype_str
 };
 
-typedef int mh_opcode_t;
+typedef enum mh_opcode mh_opcode_t;
 
 struct mh_machine;
 typedef void (*mh_builtin_fp) __P((struct mh_machine *));
