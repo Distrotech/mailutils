@@ -38,9 +38,17 @@ AC_ARG_WITH(readline,
   *)   AC_MSG_ERROR(bad value ${withval} for --without-readline) ;;
   esac],[usereadline=yes])
 
+AC_ARG_WITH(guile,
+ [  --without-guile         do not build guile interface],
+ [case "${withval}" in
+  yes) useguile=yes ;;
+  no)  useguile=no ;;
+  *)   AC_MSG_ERROR(bad value ${withval} for --without-guile) ;;
+  esac],[useguile=yes])
+
 AC_SUBST(SITE_MAIL_RC)
 AC_ARG_WITH(mail-rc,
- [  --with-mail-rc=FILE     use FILE instead of $sysconfdir/mail.rc],
+ [  --with-mail-rc=FILE     use FILE instead of \$sysconfdir/mail.rc],
  [case "${withval}" in
   /*) SITE_MAIL_RC="${withval}";;
   *)  SITE_MAIL_RC="\$(sysconfdir)/${withval}";;
@@ -118,8 +126,9 @@ dnl Use either PAM or CRYPT, not both.
 if test x"$testpam" = x"yes"; then
 	AC_CHECK_HEADERS(security/pam_appl.h)
 	if test x"$ac_cv_header_security_pam_appl_h" = x"yes"; then
+		AC_CHECK_LIB(dl, dlopen, [LDL=-ldl], [LDL=])
 		AC_CHECK_LIB(pam, pam_start,
-			AUTHLIBS="-lpam -ldl" ac_cv_have_libpam="yes",, -ldl)
+			AUTHLIBS="-lpam $LDL" ac_cv_have_libpam="yes",, $LDL)
 		AC_DEFINE(USE_LIBPAM)
 		AM_CONDITIONAL(USE_LIBPAM, test x"$ac_cv_have_libpam" != xno)
 	fi
@@ -180,17 +189,19 @@ if test x"${usedb2}" = x"yes"; then
 fi
 
 dnl Check for Guile
-AC_PATH_PROG(GUILE_CONFIG, guile-config, no, $PATH)
 AC_SUBST(GUILE_INCLUDES)
 AC_SUBST(GUILE_LIBS)
-if test x$GUILE_CONFIG != xno; then
-  GUILE_INCLUDES=`guile-config compile`
-  GUILE_LIBS=`guile-config link`
-# NOTE: uncomment this when debug_print clash is resolved.
-#  GUIMB=guimb
-  AC_SUBST(GUIMB)
-#  MU_SCM=libmu_scm.a
-  AC_SUBST(MU_SCM)
+AC_SUBST(GUIMB)	
+AC_SUBST(MU_SCM)
+if test x"$useguile" = x"yes"; then
+	AC_PATH_PROG(GUILE_CONFIG, guile-config, no, $PATH)
+	AC_CHECK_HEADER(libguile.h, :, [GUILE_CONFIG=no])     
+	if test x$GUILE_CONFIG != xno; then
+  		GUILE_INCLUDES=`guile-config compile`
+  		GUILE_LIBS=`guile-config link`
+		GUIMB=guimb
+		MU_SCM=libmu_scm.a
+	fi
 fi
 
 dnl Output Makefiles
