@@ -50,7 +50,7 @@ struct val_ctr {  /* Data passed to the counter function */
 
    Input:
      ITEM is the name of the header to scan.
-     DATA is a pointer to the val_ctr structure */
+     DATA is a pointer to the val_ctr structure 
    Return value:
      non-zero if the limit on the number of addresses has been reached. */
      
