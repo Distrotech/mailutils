@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: mailutils 0.4.90\n"
 "Report-Msgid-Bugs-To: bug-mailutils@gnu.org\n"
 "POT-Creation-Date: 2004-06-12 13:51+0300\n"
-"PO-Revision-Date: 2004-06-17 00:36+0200\n"
+"PO-Revision-Date: 2004-06-20 17:36+0200\n"
 "Last-Translator: Jordi Mallach <jordi@gnu.org>\n"
 "Language-Team: Catalan <ca@dodds.net>\n"
 "MIME-Version: 1.0\n"
@@ -955,7 +955,7 @@ msgstr "%d: reject - no es pot crear l'adreça de procedència «%s»: %s\n"
 #: libsieve/actions.c:299
 #, c-format
 msgid "%d: reject - can't open mailer %s: %s\n"
-msgstr "%d: reject - no es pot obrir el servidor de correu %s: %s\n"
+msgstr "%d: reject - no es pot obrir l'enviador de correu %s: %s\n"
 
 #. TRANSLATORS: 'redirect' is the name of a Sieve action.
 #. Do not translate it!
@@ -1011,7 +1011,7 @@ msgstr "%d: no es pot determinar la nostra adreça de correu"
 #: libsieve/actions.c:462
 #, c-format
 msgid "%d: redirect - can't open mailer %s: %s\n"
-msgstr "%d: redirect: no es pot obrir el servidor de correu %s: %s\n"
+msgstr "%d: redirect: no es pot obrir l'enviador de correu %s: %s\n"
 
 #: libsieve/comparator.c:170
 #, c-format
@@ -1251,7 +1251,7 @@ msgstr "no es pot crear la bústia %s"
 #: mail/copy.c:83 mail/quit.c:118 mail/send.c:528
 #, c-format
 msgid "can't append message: %s"
-msgstr "no es pot afegir el missatge: %s"
+msgstr "no es pot agregar el missatge: %s"
 
 #: mail/decode.c:137
 #, c-format
@@ -1607,9 +1607,10 @@ msgid "Null message body; hope that's ok\n"
 msgstr "El cos del missatge és nul, s'espera que siga correcte\n"
 
 # mailer -> servidor de correu: algo millor? jm
+# enviador, proposat per Sergey. jm
 #: mail/send.c:571
 msgid "variable sendmail not set: no mailer"
-msgstr "la variable sendmail no està fixada: no hi ha servidor de correu"
+msgstr "la variable sendmail no està fixada: no hi ha enviador de correu"
 
 #: mail/send.c:619
 #, c-format
@@ -1921,7 +1922,7 @@ msgstr "%s:%lu: %s en el msg %s"
 #: mail.local/main.c:257
 #, c-format
 msgid "%s:%lu: %s on msg uid %d"
-msgstr "%s:%lu: %s en l'uid del msg %d"
+msgstr "%s:%lu: %s sobre el msg amb l'uid %d"
 
 #: mail.local/main.c:267
 #, c-format
@@ -2139,7 +2140,7 @@ msgstr "L'obertura de l'entrada estàndard ha fallat: %s"
 #: mail.remote/mail.remote.c:219
 #, c-format
 msgid "Creating mailer '%s' failed: %s"
-msgstr "La creació del servidor de correu «%s» ha fallat: %s"
+msgstr "La creació de l'enviador de correu «%s» ha fallat: %s"
 
 #: mail.remote/mail.remote.c:246
 #, c-format
@@ -2154,7 +2155,7 @@ msgstr "L'enviament del missatge ha fallat: %s"
 #: mail.remote/mail.remote.c:259
 #, c-format
 msgid "Closing mailer failed: %s"
-msgstr "El tancament del servidor de correu ha fallat: %s"
+msgstr "El tancament de l'enviador de correu ha fallat: %s"
 
 #: mailbox/getopt.c:686
 #, c-format
@@ -2416,7 +2417,7 @@ msgstr "SERVIDOR"
 
 #: mailbox/mu_argp.c:99
 msgid "Use specified URL as the default mailer"
-msgstr "Usa la URL especificada com el servidor de correu per defecte"
+msgstr "Usa la URL especificada com l'enviador de correu per defecte"
 
 #: mailbox/mu_argp.c:105
 msgid "FACILITY"
@@ -2612,11 +2613,11 @@ msgstr "Estat ocupat, s'ha de resumir l'operació"
 
 #: mailbox/muerrno.c:144
 msgid "Not a valid mailer from address"
-msgstr "No és una adreça de remitent del servidor de correu vàlida"
+msgstr "No és una adreça de remitent de l'enviador de correu vàlida"
 
 #: mailbox/muerrno.c:145
 msgid "Not a valid mailer to address"
-msgstr "No és una adreça de destinatari del servidor de correu vàlida"
+msgstr "No és una adreça de destinatari de l'enviador de correu vàlida"
 
 #: mailbox/muerrno.c:146
 msgid "No receipt addresses found"
@@ -2624,7 +2625,7 @@ msgstr "No s'han trobat adreces de rebut"
 
 #: mailbox/muerrno.c:147
 msgid "Malformed or unsupported mailer URL"
-msgstr "URL de servidor de correu malformada o no implementada"
+msgstr "URL de l'enviador de correu malformada o no implementada"
 
 #: mailbox/muerrno.c:148
 msgid "SMTP rcpt to command failed"
@@ -3119,7 +3120,7 @@ msgstr "%d: no es pot obtindre el missatge: %s"
 #: mh/inc.c:260
 #, c-format
 msgid "%d: error appending message: %s"
-msgstr "%d: s'ha produït un error en afegir el missatge: %s"
+msgstr "%d: s'ha produït un error en agregar el missatge: %s"
 
 #. TRANSLATORS: Please, preserve the vertical tabulation (^K character)
 #. in this message
@@ -4065,7 +4066,7 @@ msgstr "no es pot crear l'iterador"
 #: mh/refile.c:200
 #, c-format
 msgid "error appending message: %s"
-msgstr "error en afegir el missatge: %s"
+msgstr "s'ha produït un error en agregar el missatge: %s"
 
 #: mh/refile.c:260
 msgid "both message set and source file given"
@@ -4304,7 +4305,7 @@ msgstr "no es pot crear el servidor «%s»"
 #: mh/send.c:320
 #, c-format
 msgid "cannot open mailer \"%s\""
-msgstr "no es pot obrir el servidor de correu «%s»"
+msgstr "no es pot obrir el l'enviador de correu «%s»"
 
 #: mh/send.c:488
 #, c-format
@@ -4392,7 +4393,7 @@ msgstr "No es pot llegir el missatge %lu: %s"
 #: movemail/movemail.c:190
 #, c-format
 msgid "Cannot append message %lu: %s"
-msgstr "No es pot afegir el missatge %lu: %s"
+msgstr "No es pot agregar el missatge %lu: %s"
 
 #: movemail/movemail.c:221
 msgid "Hostname of the POP3 server is unknown"
@@ -4845,12 +4846,12 @@ msgstr "SCRIPT"
 #: sieve/sieve.c:299 sieve/sieve.c:324
 #, c-format
 msgid "%s:%lu: %s on msg uid %lu"
-msgstr "%s:%lu: %s en l'uid del msg %lu"
+msgstr "%s:%lu: %s sobre el msg amb l'uid %lu"
 
 #: sieve/sieve.c:303 sieve/sieve.c:328
 #, c-format
 msgid "%s on msg uid %lu"
-msgstr "%s: en l'uid del msg %lu"
+msgstr "%s: sobre el msg amb l'uid %lu"
 
 # obtenció de credencials. jm
 #: sieve/sieve.c:414
@@ -4968,11 +4969,11 @@ msgstr "la eliminació en %s ha fallat: %s"
 #~ "GNU mail.remote -- interfície pareguda a sendmail per a l'enviament de correu\n"
 #~ "\n"
 #~ "Un missatge formatat segons RFC2822 es llig des de la entrada estàndard i\n"
-#~ "repartit usant el servidor de correu. Aquesta utilitat es pot usar com un\n"
+#~ "repartit usant l'enviador de correu. Aquesta utilitat es pot usar com un\n"
 #~ "reemplaç de /bin/sendmail per a reenviar correu directament a una passarel·la\n"
 #~ "SMTP.\n"
 #~ "\n"
-#~ "El servidor de correu per defecte és «sendmail:», que no està suportat per\n"
+#~ "L'enviador de correu per defecte és «sendmail:», que no està suportat per\n"
 #~ "aquesta utilitat (la intenció és que s'utilitze quan no teniu un sendmail\n"
 #~ "funcional). Hauríeu d'especificar la vostra passarel·la SMTP amb --mailer i\n"
 #~ "algo similar a «smtp://mail.exemple.com». Normalment, açò s'afegiria a la\n"
