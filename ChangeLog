@@ -1,3 +1,24 @@
+2001-05-09  Alain Magloire
+
+	Take the missing pieces from the pop3d and make the
+	imap4d a standalone daemon.
+
+	* imap4d/fetch.c: Remove fetch_body_peek().
+	and use fetch_body() instead.
+	(fetch_operation): Malloc the entire message... not good.
+	* imap4d/bye.c: New file.
+	* imap4d/imap4d.c: Put the networking code taken from
+	pop3d.c.
+	* imap4d/lsub.c: Implemented.
+	* imap4d/subscribe.c: Implemented.
+	* imap4d/unsubscribe.c: Implemented.
+
+	* pop3d/pop3d.c: pop3d_usage() move from extra.c
+	* pop3d/signal.c: pop3d_signal () move from extra.c
+
+	* mailbox/url_imap.c: It was not checking for the port number.
+	* mailbox/filter_rfc822.c: Check for the lines if available.
+
 2001-05-07  Alain Magloire
 
 	Now we can have multiple access to the mailbox and the server

@@ -184,6 +184,9 @@ util_msgset (char *s, size_t **set, int *n, int isuid)
   status = mailbox_messages_count (mbox, &max);
   if (status != 0)
     return status;
+  /* The number after the "*" in an untagged FETCH response is always a
+     message sequence number, not a unique identifier, even for a UID
+     command response. But do what they meant not what they say.  */
   /* If it is a uid sequence, override max with the UID.  */
   if (isuid)
     {
@@ -357,24 +360,26 @@ imap4d_readline (FILE *fp)
   char *line = malloc (1);
 
   if (!line)
-    util_quit (ERR_NO_MEM);
+    imap4d_bye (ERR_NO_MEM);
 
   line[0] = '\0'; /* start with a empty string.  */
   do
     {
       alarm (timeout);
       if (fgets (buffer, sizeof (buffer), fp) == NULL)
-        util_quit (0); /* Logout.  */
+	{
+	  imap4d_bye (ERR_NO_OFILE); /* Logout.  */
+	}
       alarm (0);
 
       len = strlen (buffer);
-      /* If we were in a litteral substract. We have to do it since the CR
+      /* If we were in a litteral substract. We have to do here since the CR
 	 is part of the count in a literal.  */
       if (number)
         number -= len;
 
       /* Remove CR.  */
-      if (len > 2 && buffer[len - 1] == '\n')
+      if (len > 1 && buffer[len - 1] == '\n')
 	{
 	  if (buffer[len - 2] == '\r')
 	    {
@@ -382,10 +387,9 @@ imap4d_readline (FILE *fp)
 	      buffer[len - 1] = '\0';
 	    }
 	}
-
       line = realloc (line, total + len + 1);
       if (!line)
-	util_quit (ERR_NO_MEM);
+	imap4d_bye (ERR_NO_MEM);
       strcat (line, buffer);
 
       total = strlen (line);
@@ -413,6 +417,7 @@ imap4d_readline (FILE *fp)
         }
     }
   while (number > 0);
+  /* syslog (LOG_INFO, "readline: %s", line); */
   return line;
 }
 
@@ -472,24 +477,6 @@ util_start (char *tag)
 {
   (void)tag;
   return 0;
-}
-
-/* FIXME: Incomplete send errmsg to syslog, see pop3d:pop3_abquit().  */
-void
-util_quit (int err)
-{
-  switch (err)
-    {
-    case ERR_NO_OFILE:
-      /*util_out (RESP_BYE, "Server terminating dead socket."); */
-      break;
-    case ERR_NO_MEM:
-      util_out (RESP_BYE, "Server terminating no more ressources.");
-      break;
-    default:
-      util_out (RESP_BYE, "Server terminating");
-    }
-  exit (err);
 }
 
 /* FIXME:  What is this for?  */

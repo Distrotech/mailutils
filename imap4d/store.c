@@ -109,41 +109,45 @@ imap4d_store0 (char *arg, int isuid, char *resp, size_t resplen)
       char *flags = strdup ("");
       int first = 1;
       size_t msgno;
+      char *p = items;
 
       msgno = (isuid) ? uid_to_msgno (set[i]) : set[i];
-      mailbox_get_message (mbox, msgno, &msg);
-      message_get_attribute (msg, &attr);
-
-      /* Get the fetch command names.  */
-      while (*items && *items != ')')
+      if (msgno)
 	{
-	  int type = 0;
-	  char item[64] = "";
-	  util_token (item, sizeof (item), &items);
-	  if (get_attribute_type (item, &type))
+	  mailbox_get_message (mbox, msgno, &msg);
+	  message_get_attribute (msg, &attr);
+
+	  /* Get the fetch command names.  */
+	  while (*items && *items != ')')
 	    {
-	      if (how == STORE_ADD )
-		attribute_set_flags (attr, type);
-	      else if (how == STORE_UNSET )
-		attribute_unset_flags (attr, type);
-	      else if (how == STORE_SET )
+	      int type = 0;
+	      char item[64] = "";
+	      util_token (item, sizeof (item), &items);
+	      if (get_attribute_type (item, &type))
 		{
-		  if (first)
+		  if (how == STORE_ADD )
+		    attribute_set_flags (attr, type);
+		  else if (how == STORE_UNSET )
+		    attribute_unset_flags (attr, type);
+		  else if (how == STORE_SET )
 		    {
-		      attribute_set_flags (attr, 0);
-		      first = 0;
+		      if (first)
+			{
+			  attribute_set_flags (attr, 0);
+			  first = 0;
+			}
+		      attribute_set_flags (attr, type);
 		    }
-		  attribute_set_flags (attr, type);
+		  flags = realloc (flags, strlen (flags) + strlen (item) + 2);
+		  if (*flags)
+		    strcat (flags, " ");
+		  strcat (flags, item);
 		}
-	      flags = realloc (flags, strlen (flags) + strlen (item) + 2);
-	      if (*flags)
-		strcat (flags, " ");
-	      strcat (flags, item);
 	    }
 	}
       if (ack && *flags)
-	util_out (RESP_NONE, "%d FETCH FLAGS (%s)", set[i], flags);
-      free (items);
+	util_out (RESP_NONE, "%d FETCH FLAGS (%s)", msgno, flags);
+      free (p);
       free (flags);
       /* Update the flags of uid table.  */
       imap4d_sync_flags (set[i]);

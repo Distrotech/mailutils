@@ -24,7 +24,41 @@
 int
 imap4d_lsub (struct imap4d_command *command, char *arg)
 {
+  char *sp;
+  char *ref;
+  char *wcard;
+  char *file;
+  const char *delim = "/";
+  FILE *fp;
+
   if (! (command->states & state))
     return util_finish (command, RESP_BAD, "Wrong state");
-  return util_finish (command, RESP_NO, "Not supported");
+
+  ref = util_getword (arg, &sp);
+  wcard = util_getword (NULL, &sp);
+  if (!ref || !wcard)
+    return util_finish (command, RESP_BAD, "Too few arguments");
+
+  /* Remove the double quotes.  */
+  util_unquote (&ref);
+  util_unquote (&wcard);
+
+  /* FIXME: Get the matching in list.  */
+  asprintf (&file, "%s/.mailboxlist", homedir);
+  fp = fopen (file, "r");
+  free (file);
+  if (fp)
+    {
+      char buffer[124];
+      while (fgets (buffer, sizeof (buffer), fp))
+        {
+	  size_t n = strlen (buffer);
+	  if (n && buffer[n - 1] == '\n')
+	    buffer[n - 1] = '\0';
+	  util_out (RESP_NONE, "LIST () \"%s\" %s", delim, buffer);
+        }
+      fclose (fp);
+      return util_finish (command, RESP_OK, "Completed");
+    }
+  return util_finish (command, RESP_NO, "Can not list subscriber");
 }

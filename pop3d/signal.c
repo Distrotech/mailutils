@@ -32,3 +32,21 @@ pop3d_sigchld (int signo)
   signal (signo, pop3d_sigchld);
 #endif
 }
+
+/* Default signal handler to call the pop3d_abquit() function */
+
+RETSIGTYPE
+pop3d_signal (int signo)
+{
+  syslog (LOG_CRIT, "got signal %d", signo);
+  /* Master process.  */
+  if (!ofile)
+    {
+       syslog (LOG_CRIT, "MASTER: exiting on signal");
+       exit (EXIT_FAILURE); /* abort(); */
+    }
+
+  if (signo == SIGALRM)
+    pop3d_abquit (ERR_TIMEOUT);
+  pop3d_abquit (ERR_SIGNAL);
+}

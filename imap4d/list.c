@@ -47,7 +47,7 @@
 
 static int  match __P ((const char *, const char *, const char *));
 static int  imap_match __P ((const char *, const char *, const char *));
-static void list_file __P ((const char *, const char *, char *, const char *));
+static void list_file __P ((const char *, const char *, const char *, const char *));
 static void print_file __P ((const char *, const char *, const char *));
 static void print_dir __P ((const char *, const char *, const char *));
 
@@ -150,7 +150,7 @@ imap4d_list (struct imap4d_command *command, char *arg)
 
       if (chdir (cwd) == 0)
 	{
-	  list_file (cwd, ref, dir, delim);
+	  list_file (cwd, ref, (dir) ? dir : "", delim);
 	  chdir (homedir);
 	}
       free (cwd);
@@ -161,17 +161,22 @@ imap4d_list (struct imap4d_command *command, char *arg)
 
 /* Recusively calling the files.  */
 static void
-list_file (const char *cwd, const char *ref, char *pattern, const char *delim)
+list_file (const char *cwd, const char *ref, const char *pattern,
+	   const char *delim)
 {
   DIR *dirp;
   struct dirent *dp;
   char *next;
 
   /* Shortcut no wildcards.  */
-  if (!strpbrk (pattern, "%*"))
+  if (*pattern == '\0' || !strpbrk (pattern, "%*"))
     {
       /* Equivalent to stat().  */
-      int status = match (pattern, pattern, delim);
+      int status;
+      if (*pattern == '\0')
+	status = match (cwd, cwd, delim);
+      else
+	status = match (pattern, pattern, delim);
       if (status & NOSELECT)
 	print_dir (ref, pattern, delim);
       else if (status & NOINFERIORS)

@@ -18,13 +18,34 @@
 #include "imap4d.h"
 
 /*
- *
+  FIXME: We need to lock the file to prevent simultaneous access.
  */
 
 int
 imap4d_subscribe (struct imap4d_command *command, char *arg)
 {
+  char *sp = NULL;
+  char *name;
+  char *file;
+  FILE *fp;
+
   if (! (command->states & state))
     return util_finish (command, RESP_BAD, "Wrong state");
-  return util_finish (command, RESP_NO, "Not supported");
+
+  name = util_getword (arg, &sp);
+  util_unquote (&name);
+  if (!name || *name == '\0')
+    return util_finish (command, RESP_BAD, "Too few arguments");
+
+  asprintf (&file, "%s/.mailboxlist", homedir);
+  fp = fopen (file, "a");
+  free (file);
+  if (fp)
+    {
+      fputs (name, fp);
+      fputs ("\n", fp);
+      fclose (fp);
+      return util_finish (command, RESP_OK, "Completed");
+    }
+  return util_finish (command, RESP_NO, "Can not subscribe");
 }

@@ -37,10 +37,9 @@ imap4d_select0 (struct imap4d_command *command, char *arg, int flags)
   /* FIXME: Check state.  */
 
   mailbox_name = util_getword (arg, &sp);
-  if (mailbox_name == NULL)
+  util_unquote (&mailbox_name);
+  if (mailbox_name == NULL || *mailbox_name == '\0')
     return util_finish (command, RESP_BAD, "Too few arguments");
-  if (util_getword (NULL, &sp))
-    return util_finish (command, RESP_BAD, "Too many arguments");
 
   /* Even if a mailbox is slected, a SLECT EXAMINE or LOGOUT
      command MAY be issued without previously issuing a CLOSE command.
@@ -56,7 +55,7 @@ imap4d_select0 (struct imap4d_command *command, char *arg, int flags)
 
   if (strcasecmp (mailbox_name, "INBOX") == 0)
     {
-      pw = getpwuid (getuid());
+      pw = getpwuid (getuid ());
       if (pw)
 	mailbox_name = pw->pw_name;
     }

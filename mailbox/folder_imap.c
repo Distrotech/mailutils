@@ -812,6 +812,7 @@ imap_literal_string (f_imap_t f_imap, char **ptr)
   for (len0 = len = total = 0; total < f_imap->callback.nleft; total += (len + 1))
     {
       status = imap_readline (f_imap);
+      /*fprintf (stderr, "%d: %s", strlen (f_imap->buffer), f_imap->buffer);*/
       if (status != 0)
 	{
 	  /* Return what we got so far.  */

@@ -37,7 +37,7 @@ add_flag (char **pbuf, const char *f)
   char *abuf = *pbuf;
   abuf = realloc (abuf, strlen (abuf) + strlen (f) + 2);
   if (abuf == NULL)
-    util_quit (ERR_NO_MEM);
+    imap4d_bye (ERR_NO_MEM);
   if (*abuf)
     strcat (abuf, " ");
   strcat (abuf, "\\Seen");
@@ -58,7 +58,7 @@ notify_flag (size_t msgno, attribute_t oattr)
     {
       char *abuf = malloc (1);;
       if (!abuf)
-	util_quit (ERR_NO_MEM);
+	imap4d_bye (ERR_NO_MEM);
       *abuf = '\0';
       if (attribute_is_seen (nattr) && attribute_is_read (nattr))
 	if (!attribute_is_seen (oattr) && !attribute_is_read (oattr))
@@ -197,7 +197,7 @@ reset_uids (void)
       uid_table = realloc (uid_table, sizeof (*uid_table) *
 			   (uid_table_count + 1));
       if (!uid_table)
-	util_quit (ERR_NO_MEM);
+	imap4d_bye (ERR_NO_MEM);
       mailbox_get_message (mbox, i, &msg);
       message_get_attribute (msg, &attr);
       message_get_uid (msg, &uid);

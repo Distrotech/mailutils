@@ -126,11 +126,18 @@ rfc822_read0 (filter_t filter, char *buffer, size_t buflen,
   /* Catch up i.e bring us to the current offset.  */
   if (rfc822->r_offset != off)
     {
-      rfc822->r_offset = off - rfc822->lines;
       rfc822->residue = 0;
 
-      if (rfc822->r_offset < 0)
+      /* Try to find a starting point.  */
+      if (rfc822->lines)
+	{
+	  rfc822->r_offset = off - rfc822->lines;
+	  if (rfc822->r_offset < 0)
+	    rfc822->r_offset = 0;
+	}
+      else
 	rfc822->r_offset = 0;
+
       rfc822->s_offset = rfc822->r_offset;
 
       while (rfc822->r_offset < off)
@@ -141,7 +148,11 @@ rfc822_read0 (filter_t filter, char *buffer, size_t buflen,
 	  if (status != 0)
 	    return status;
 	  if (n == 0)
-	    break;
+	    {
+	      if (pnread)
+		*pnread = 0;
+	      return 0;
+	    }
 	  if (c == '\n')
 	    {
 	      rfc822->r_offset++;
@@ -191,7 +202,7 @@ rfc822_read0 (filter_t filter, char *buffer, size_t buflen,
       buffer += nread;
     } while (buflen > 0 && !isreadline);
 
-  if (isreadline)
+  if (isreadline && buffer)
     *buffer = '\0';
 
   if (pnread)

@@ -29,7 +29,6 @@ imap4d_logout (struct imap4d_command *command, char *arg)
     return util_finish (command, RESP_BAD, "Wrong state");
   if (util_getword (arg, &sp))
     return util_finish (command, RESP_BAD, "Too many args");
-  util_out (RESP_BYE, "Logging out");
   util_finish (command, RESP_OK, "Completed");
  /* Even if a mailbox is slected, a SLECT EXAMINE or LOGOUT
     command MAY be issued without previously issuing a CLOSE command.
@@ -40,6 +39,6 @@ imap4d_logout (struct imap4d_command *command, char *arg)
       mailbox_close (mbox);
       mailbox_destroy (&mbox);
     }
-  util_quit (0);
+  imap4d_bye (OK);
   return 0;
 }

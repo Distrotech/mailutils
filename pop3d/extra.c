@@ -126,45 +126,7 @@ pop3d_abquit (int reason)
     }
 
   closelog();
-  exit (1);
-}
-
-/* Prints out usage information and exits the program */
-
-void
-pop3d_usage (char *argv0)
-{
-  printf ("Usage: %s [OPTIONS]\n", argv0);
-  printf ("Runs the GNU POP3 daemon.\n\n");
-  printf ("  -d, --daemon=MAXCHILDREN runs in daemon mode with a maximum\n");
-  printf ("                           of MAXCHILDREN child processes\n");
-  printf ("  -h, --help               display this help and exit\n");
-  printf ("  -i, --inetd              runs in inetd mode (default)\n");
-  printf ("  -p, --port=PORT          specifies port to listen on, implies -d\n");
-  printf ("                           defaults to 110, which need not be specified\n");
-  printf ("  -t, --timeout=TIMEOUT    sets idle timeout to TIMEOUT seconds\n");
-  printf ("                           TIMEOUT default is 600 (10 minutes)\n");
-  printf ("  -v, --version            display version information and exit\n");
-  printf ("\nReport bugs to bug-mailutils@gnu.org\n");
-  exit (0);
-}
-
-/* Default signal handler to call the pop3d_abquit() function */
-
-RETSIGTYPE
-pop3d_signal (int signo)
-{
-  syslog (LOG_CRIT, "got signal %d", signo);
-  /* Master process.  */
-  if (!ofile)
-    {
-       syslog(LOG_CRIT, "MASTER: exiting on signal");
-       exit (1); /* abort(); */
-    }
-
-  if (signo == SIGALRM)
-    pop3d_abquit (ERR_TIMEOUT);
-  pop3d_abquit (ERR_SIGNAL);
+  exit (EXIT_FAILURE);
 }
 
 /* Gets a line of input from the client, caller should free() */

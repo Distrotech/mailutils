@@ -49,6 +49,12 @@
 #include <sys/stat.h>
 #include <dirent.h>
 #include <fcntl.h>
+#include <signal.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <netdb.h>
+#include "getopt.h"
 
 #ifdef HAVE_ALLOCA_H
 # include <alloca.h>
@@ -66,6 +72,7 @@
 #include <mailutils/registrar.h>
 #include <mailutils/filter.h>
 #include <mailutils/stream.h>
+#include <mailutils/error.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -89,6 +96,10 @@ struct imap4d_command
   char *tag;
 };
 
+/* Daemon modes.  */
+#define INTERACTIVE     0
+#define DAEMON          1
+
 /* Global variables and constants*/
 #define STATE_NONE	(0)
 #define STATE_NONAUTH	(1 << 0)
@@ -107,8 +118,11 @@ struct imap4d_command
 #define RESP_NONE	4
 
 /* Error values.  */
+#define OK 0
 #define ERR_NO_MEM 1
 #define ERR_NO_OFILE 2
+#define ERR_TIMEOUT 3
+#define ERR_SIGNAL 4
 
 extern struct imap4d_command imap4d_command_table[];
 extern FILE *ofile;
@@ -116,41 +130,47 @@ extern unsigned int timeout;
 extern mailbox_t mbox;
 extern char *homedir;
 extern int state;
+extern volatile size_t children;
 
 /* Imap4 commands */
-extern int  imap4d_capability __P ((struct imap4d_command *, char *));
-extern int  imap4d_noop __P ((struct imap4d_command *, char *));
-extern int  imap4d_logout __P ((struct imap4d_command *, char *));
-extern int  imap4d_authenticate __P ((struct imap4d_command *, char *));
-extern int  imap4d_login __P ((struct imap4d_command *, char *));
-extern int  imap4d_select __P ((struct imap4d_command *, char *));
-extern int  imap4d_select0 __P ((struct imap4d_command *, char *, int));
-extern int  imap4d_examine __P ((struct imap4d_command *, char *));
-extern int  imap4d_create __P ((struct imap4d_command *, char *));
-extern int  imap4d_delete __P ((struct imap4d_command *, char *));
-extern int  imap4d_rename __P ((struct imap4d_command *, char *));
-extern int  imap4d_subscribe __P ((struct imap4d_command *, char *));
-extern int  imap4d_unsubscribe __P ((struct imap4d_command *, char *));
-extern int  imap4d_list __P ((struct imap4d_command *, char *));
-extern int  imap4d_lsub __P ((struct imap4d_command *, char *));
-extern int  imap4d_status __P ((struct imap4d_command *, char *));
 extern int  imap4d_append __P ((struct imap4d_command *, char *));
+extern int  imap4d_authenticate __P ((struct imap4d_command *, char *));
+extern int  imap4d_capability __P ((struct imap4d_command *, char *));
 extern int  imap4d_check __P ((struct imap4d_command *, char *));
 extern int  imap4d_close __P ((struct imap4d_command *, char *));
-extern int  imap4d_expunge __P ((struct imap4d_command *, char *));
-extern int  imap4d_search __P ((struct imap4d_command *, char *));
-extern int  imap4d_fetch __P ((struct imap4d_command *, char *));
-extern int  imap4d_fetch0 __P ((char *, int, char *, size_t));
-extern int  imap4d_store __P ((struct imap4d_command *, char *));
-extern int  imap4d_store0 __P ((char *, int, char *, size_t));
 extern int  imap4d_copy __P ((struct imap4d_command *, char *));
 extern int  imap4d_copy0 __P ((char *, int, char *, size_t));
+extern int  imap4d_create __P ((struct imap4d_command *, char *));
+extern int  imap4d_delete __P ((struct imap4d_command *, char *));
+extern int  imap4d_examine __P ((struct imap4d_command *, char *));
+extern int  imap4d_expunge __P ((struct imap4d_command *, char *));
+extern int  imap4d_fetch __P ((struct imap4d_command *, char *));
+extern int  imap4d_fetch0 __P ((char *, int, char *, size_t));
+extern int  imap4d_list __P ((struct imap4d_command *, char *));
+extern int  imap4d_lsub __P ((struct imap4d_command *, char *));
+extern int  imap4d_login __P ((struct imap4d_command *, char *));
+extern int  imap4d_logout __P ((struct imap4d_command *, char *));
+extern int  imap4d_noop __P ((struct imap4d_command *, char *));
+extern int  imap4d_rename __P ((struct imap4d_command *, char *));
+extern int  imap4d_search __P ((struct imap4d_command *, char *));
+extern int  imap4d_select __P ((struct imap4d_command *, char *));
+extern int  imap4d_select0 __P ((struct imap4d_command *, char *, int));
+extern int  imap4d_status __P ((struct imap4d_command *, char *));
+extern int  imap4d_store __P ((struct imap4d_command *, char *));
+extern int  imap4d_store0 __P ((char *, int, char *, size_t));
+extern int  imap4d_subscribe __P ((struct imap4d_command *, char *));
 extern int  imap4d_uid __P ((struct imap4d_command *, char *));
+extern int  imap4d_unsubscribe __P ((struct imap4d_command *, char *));
 
 /* Synchronisation on simultenous access.  */
 extern int imap4d_sync __P ((void));
 extern int imap4d_sync_flags __P ((size_t));
 extern size_t uid_to_msgno __P ((size_t));
+
+/* Signal handling.  */
+extern RETSIGTYPE imap4d_sigchld __P ((int));
+extern RETSIGTYPE imap4d_signal __P ((int));
+extern int imap4d_bye __P ((int));
 
 /* Helper functions.  */
 extern int  util_out __P ((int, const char *, ...));
@@ -160,7 +180,6 @@ extern int  util_finish __P ((struct imap4d_command *, int, const char *, ...));
 extern int  util_getstate __P ((void));
 extern int  util_do_command __P ((char *));
 extern char *imap4d_readline __P ((FILE*));
-extern void util_quit __P ((int));
 extern char *util_getword __P ((char *, char **));
 extern int  util_token __P ((char *, size_t, char **));
 extern void util_unquote __P ((char **));

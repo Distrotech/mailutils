@@ -41,6 +41,10 @@ static struct option long_options[] =
 const char *short_options ="d::hip:t:v";
 
 static int syslog_error_printer __P ((const char *fmt, va_list ap));
+static int pop3d_mainloop       __P ((int, int));
+static void pop3d_daemon_init   __P ((void));
+static void pop3d_daemon        __P ((unsigned int, unsigned int));
+static void pop3d_usage         __P ((char *));
 
 #ifndef DEFMAXCHILDREN
 # define DEFMAXCHILDREN 10   /* Default maximum number of children */
@@ -91,7 +95,7 @@ main (int argc, char **argv)
 
 	case 'v':
 	  printf (IMPL " ("PACKAGE " " VERSION ")\n");
-	  exit (0);
+	  exit (EXIT_SUCCESS);
 	  break;
 
 	default:
@@ -104,13 +108,13 @@ main (int argc, char **argv)
   if (gr == NULL)
     {
       perror ("Error getting mail group");
-      exit (1);
+      exit (EXIT_FAILURE);
     }
 
   if (setgid (gr->gr_gid) == -1)
     {
       perror ("Error setting mail group");
-      exit (1);
+      exit (EXIT_FAILURE);
     }
 
   /* Register the desire formats. We only need Mbox mail format.  */
@@ -136,7 +140,7 @@ main (int argc, char **argv)
   if (mode == DAEMON)
     pop3d_daemon_init ();
 
-  /* Make sure that to be in the root directory.  */
+  /* Make sure we are in the root directory.  */
   chdir ("/");
 
   /* Set up for syslog.  */
@@ -150,7 +154,7 @@ main (int argc, char **argv)
   /* Actually run the daemon.  */
   if (mode == DAEMON)
     pop3d_daemon (maxchildren, port);
-  /* exit (0) -- no way out of daemon except a signal.  */
+  /* exit (EXIT_SUCCESS) -- no way out of daemon except a signal.  */
   else
     status = pop3d_mainloop (fileno (stdin), fileno (stdout));
 
@@ -160,7 +164,7 @@ main (int argc, char **argv)
 }
 
 /* Sets things up for daemon mode.  */
-void
+static void
 pop3d_daemon_init (void)
 {
   pid_t pid;
@@ -169,10 +173,10 @@ pop3d_daemon_init (void)
   if (pid == -1)
     {
       perror ("fork failed:");
-      exit (1);
+      exit (EXIT_FAILURE);
     }
   else if (pid > 0)
-    exit (0);			/* Parent exits.  */
+    exit (EXIT_SUCCESS);	/* Parent exits.  */
 
   setsid ();			/* Become session leader.  */
 
@@ -184,10 +188,10 @@ pop3d_daemon_init (void)
   if (pid == -1)
     {
       perror("fork failed:");
-      exit (1);
+      exit (EXIT_FAILURE);
     }
   else if (pid > 0)
-    exit (0);			/* Parent exits.  */
+    exit (EXIT_SUCCESS);	/* Parent exits.  */
 
   /* Close inherited file descriptors.  */
   {
@@ -217,7 +221,7 @@ pop3d_daemon_init (void)
 
 /* The main part of the daemon. This function reads input from the client and
    executes the proper functions. Also handles the bulk of error reporting.  */
-int
+static int
 pop3d_mainloop (int infile, int outfile)
 {
   int status = OK;
@@ -377,7 +381,7 @@ pop3d_mainloop (int infile, int outfile)
    (default 110) then executes a pop3d_mainloop() upon accepting a connection.
    It starts maxchildren child processes to listen to and accept socket
    connections.  */
-void
+static void
 pop3d_daemon (unsigned int maxchildren, unsigned int port)
 {
   struct sockaddr_in server, client;
@@ -389,7 +393,7 @@ pop3d_daemon (unsigned int maxchildren, unsigned int port)
   if (listenfd == -1)
     {
       syslog (LOG_ERR, "socket: %s", strerror(errno));
-      exit (1);
+      exit (EXIT_FAILURE);
     }
   size = 1; /* Use size here to avoid making a new variable.  */
   setsockopt (listenfd, SOL_SOCKET, SO_REUSEADDR, &size, sizeof(size));
@@ -402,13 +406,13 @@ pop3d_daemon (unsigned int maxchildren, unsigned int port)
   if (bind (listenfd, (struct sockaddr *)&server, size) == -1)
     {
       syslog (LOG_ERR, "bind: %s", strerror (errno));
-      exit (1);
+      exit (EXIT_FAILURE);
     }
 
   if (listen (listenfd, 128) == -1)
     {
       syslog (LOG_ERR, "listen: %s", strerror (errno));
-      exit (1);
+      exit (EXIT_FAILURE);
     }
 
   for (;;)
@@ -425,7 +429,7 @@ pop3d_daemon (unsigned int maxchildren, unsigned int port)
           if (errno == EINTR)
 	    continue;
           syslog (LOG_ERR, "accept: %s", strerror (errno));
-          exit (1);
+          exit (EXIT_FAILURE);
         }
 
       pid = fork ();
@@ -445,6 +449,28 @@ pop3d_daemon (unsigned int maxchildren, unsigned int port)
         }
       close (connfd);
     }
+}
+
+/* Prints out usage information and exits the program */
+
+static void
+pop3d_usage (char *argv0)
+{
+  printf ("Usage: %s [OPTIONS]\n", argv0);
+  printf ("Runs the GNU POP3 daemon.\n\n");
+  printf ("  -d, --daemon=MAXCHILDREN runs in daemon mode with a maximum\n");
+  printf ("                           of MAXCHILDREN child processes\n");
+  printf ("  -h, --help               display this help and exit\n");
+  printf ("  -i, --inetd              runs in inetd mode (default)\n");
+  printf ("  -p, --port=PORT          specifies port to listen on, implies -d\n"
+);
+  printf ("                           defaults to 110, which need not be specifi
+ed\n");
+  printf ("  -t, --timeout=TIMEOUT    sets idle timeout to TIMEOUT seconds\n");
+  printf ("                           TIMEOUT default is 600 (10 minutes)\n");
+  printf ("  -v, --version            display version information and exit\n");
+  printf ("\nReport bugs to bug-mailutils@gnu.org\n");
+  exit (EXIT_SUCCESS);
 }
 
 static int

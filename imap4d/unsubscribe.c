@@ -24,7 +24,68 @@
 int
 imap4d_unsubscribe (struct imap4d_command *command, char *arg)
 {
+  char *sp = NULL;
+  char *name;
+  char *file;
+  FILE *fp;
+
   if (! (command->states & state))
     return util_finish (command, RESP_BAD, "Wrong state");
-  return util_finish (command, RESP_NO, "Not supported");
+
+  name = util_getword (arg, &sp);
+  util_unquote (&name);
+  if (!name || *name == '\0')
+    return util_finish (command, RESP_BAD, "Too few arguments");
+
+  asprintf (&file, "%s/.mailboxlist", homedir);
+  fp = fopen (file, "r");
+  free (file);
+  if (fp)
+    {
+      char buffer[124];
+      int found = 0;
+      while (fgets (buffer, sizeof (buffer), fp))
+	{
+	  size_t n = strlen (buffer);
+	  if (n && buffer[n - 1] == '\n')
+	    buffer[n - 1] = '\0';
+	  if (strcmp (buffer, name) == 0)
+	    {
+	      found = 1;
+	      break;
+	    }
+	}
+      if (found)
+	{
+	  FILE *fp2;
+	  asprintf (&file, "%s/.mailboxlist.%d", homedir, getpid ());
+	  fp2 = fopen (file, "a");
+	  if (fp2)
+	    {
+	      rewind (fp);
+	      while (fgets (buffer, sizeof (buffer), fp))
+		{
+		  size_t n = strlen (buffer);
+		  if (n && buffer[n - 1] == '\n')
+		    buffer[n - 1] = '\0';
+		  if (strcmp (buffer, name) == 0)
+		    continue;
+		  fputs (buffer, fp2);
+		  fputs ("\n", fp2);
+		}
+	      fclose (fp2);
+	      remove (file);
+	    }
+	  free (file);
+	}
+      else
+	{
+	  fclose (fp);
+	  return util_finish (command, RESP_NO, "Can not unsubscribe");
+	}
+      fclose (fp);
+    }
+  else
+    return util_finish (command, RESP_NO, "Can not unsubscribe");
+  return util_finish (command, RESP_OK, "Completed");
 }

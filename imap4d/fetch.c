@@ -48,7 +48,6 @@ static int fetch_rfc822            __P ((struct fetch_command *, char*));
 static int fetch_bodystructure     __P ((struct fetch_command *, char*));
 static int fetch_bodystructure0    __P ((message_t, int));
 static int bodystructure           __P ((message_t, int));
-static int fetch_body_peek         __P ((struct fetch_command *, char*));
 static int fetch_body              __P ((struct fetch_command *, char*));
 static int fetch_uid               __P ((struct fetch_command *, char*));
 
@@ -92,11 +91,9 @@ struct fetch_command
   {"RFC822", fetch_rfc822, 0},
 #define F_BODYSTRUCTURE 10
   {"BODYSTRUCTURE", fetch_bodystructure, 0},
-#define F_BODY_PEEK 11
-  {"BODY.PEEK", fetch_body_peek, 0},
-#define F_BODY 12
+#define F_BODY 11
   {"BODY", fetch_body, 0},
-#define F_UID 13
+#define F_UID 12
   {"UID", fetch_uid, 0},
   { NULL, 0, 0}
 };
@@ -160,40 +157,51 @@ imap4d_fetch0 (char *arg, int isuid, char *resp, size_t resplen)
       char item[32];
       char *items = strdup (sp);
       char *p = items;
+      size_t msgno;
+      int space = 0;
       int uid_sent = !isuid; /* Pretend we sent the uid if via fetch.  */
-      util_send ("* %d FETCH (", set[i]);
-      item[0] = '\0';
-      /* Get the fetch command names.  */
-      while (*items && *items != ')')
+
+      msgno = (isuid) ? uid_to_msgno (set[i]) : set[i];
+      if (msgno)
 	{
-	  util_token (item, sizeof (item), &items);
-	  if (fcmd)
-	    util_send (" ");
-	  /* Search in the table.  */
-	  fcmd = fetch_getcommand (item, fetch_command_table);
-	  if (fcmd)
+	  fcmd = NULL;
+	  util_send ("* %d FETCH (", msgno);
+	  item[0] = '\0';
+	  /* Server implementations MUST implicitly
+	     include the UID message data item as part of any FETCH response
+	     caused by a UID command, regardless of whether a UID was specified
+	     as a message data item to the FETCH. */
+	  if (!uid_sent)
 	    {
-	      fcmd->msgno = (isuid) ? uid_to_msgno (set[i]) : set[i];
-	      if (fcmd->msgno != 0)
+	      fcmd = &fetch_command_table[F_UID];
+	      fcmd->msgno = msgno;
+	      rc = fetch_uid (fcmd, p);
+	      uid_sent = 1;
+	    }
+	  /* Get the fetch command names.  */
+	  while (*items && *items != ')')
+	    {
+	      util_token (item, sizeof (item), &items);
+	      if (uid_sent && strcasecmp (item, "UID") == 0)
+		  continue;
+	      if (fcmd)
+		space = 1;
+	      /* Search in the table.  */
+	      fcmd = fetch_getcommand (item, fetch_command_table);
+	      if (fcmd)
 		{
+		  if (space)
+		    {
+		      util_send (" ");
+		      space = 0;
+		    }
+		  fcmd->msgno = msgno;
 		  rc = fcmd->func (fcmd, items);
 		}
 	    }
-	  if (!uid_sent)
-	    uid_sent  = ((strstr (item, "UID") != NULL)
-			 || (strstr (item, "uid") != NULL));
-	}
-      /* Always send the UID when fetch was done via the uid command.  */
-      if (!uid_sent)
-	{
-	  struct fetch_command c_uid = fetch_command_table[F_UID];
-	  c_uid.msgno = set[i];
-	  if (fcmd)
-	    util_send (" ");
-	  rc = fetch_uid (&c_uid, items);
+	  util_send (")\r\n");
 	}
       free (p);
-      util_send (")\r\n");
     }
   free (set);
   snprintf (resp, resplen, "Completed");
@@ -733,8 +741,6 @@ bodystructure (message_t msg, int extension)
 static int
 fetch_body (struct fetch_command *command, char *arg)
 {
-  struct fetch_command c_body_p = fetch_command_table[F_BODY_PEEK];
-  c_body_p.msgno = command->msgno;
   /* It's BODY set the message as seen  */
   if (*arg == '[')
     {
@@ -766,15 +772,8 @@ fetch_body (struct fetch_command *command, char *arg)
       util_send (")");
       return RESP_OK;
     }
-  return fetch_body_peek (&c_body_p, arg);
-}
-
-static int
-fetch_body_peek (struct fetch_command *command, char *arg)
-{
-  util_send ("%s ", command->name);
-  fetch_operation (command->msgno, arg, 0);
-  return RESP_OK;
+  util_send ("%s", command->name);
+  return fetch_operation (command->msgno, arg, 0);
 }
 
 static int
@@ -903,32 +902,37 @@ static int
 fetch_io (stream_t stream, unsigned long start, unsigned long end)
 {
   stream_t rfc = NULL;
-  char buffer[1024];
+  char *buffer, *p;
   size_t n = 0;
   size_t total = 0;
+  off_t offset;
+
+  offset = (start == ULONG_MAX) ? 0 : start;
 
   filter_create (&rfc, stream, "rfc822", MU_FILTER_ENCODE, MU_STREAM_READ);
-  if (start == ULONG_MAX)
+
+  p = buffer = calloc (end + 2, 1);
+  while (end > 0 && stream_read (rfc, buffer, end + 1, offset, &n) == 0 && n > 0)
     {
-      start = 0;
-      util_send (" {%u}\r\n", end);
+      offset += n;
+      total += n;
+      end -= n;
+      buffer += n;
+    }
+  /* Make sure we null terminate.  */
+  *buffer = '\0';
+
+  if (start != ULONG_MAX)
+    util_send ("<%lu>", start);
+
+  if (total)
+    {
+      util_send (" {%u}\r\n", total);
+      util_send ("%s", p);
     }
   else
-      util_send ("<%lu> {%u}\r\n", start , end);
-
-  while (start < end &&
-	 stream_read (rfc, buffer, sizeof (buffer), start, &n) == 0
-	 && n > 0)
-    {
-      start += n;
-      total += n;
-      if (total > end)
-	{
-	  size_t diff = n - (total - end);
-	  buffer[diff] = '\0';
-	}
-      util_send ("%s", buffer);
-    }
+    util_send (" \"\"");
+  free (p);
   return RESP_OK;
 }
 
@@ -946,7 +950,7 @@ fetch_header_fields (message_t msg, char *arg, unsigned long start,
 
   status = memory_stream_create (&stream);
   if (status != 0)
-    util_quit (ERR_NO_MEM);
+    imap4d_bye (ERR_NO_MEM);
 
   /* Save the fields in an array.  */
   {
@@ -957,7 +961,7 @@ fetch_header_fields (message_t msg, char *arg, unsigned long start,
       {
 	array = realloc (array, (array_len + 1) * sizeof (*array));
 	if (!array)
-	  util_quit (ERR_NO_MEM);
+	  imap4d_bye (ERR_NO_MEM);
 	array[array_len] = field;
       }
   }
@@ -984,7 +988,7 @@ fetch_header_fields (message_t msg, char *arg, unsigned long start,
 	if (status != 0)
 	  {
 	    free (array);
-	    util_quit (ERR_NO_MEM);
+	    imap4d_bye (ERR_NO_MEM);
 	  }
       }
   }
@@ -1027,7 +1031,7 @@ fetch_header_fields_not (message_t msg, char *arg, unsigned long start,
 
   status = memory_stream_create (&stream);
   if (status)
-    util_quit (ERR_NO_MEM);
+    imap4d_bye (ERR_NO_MEM);
 
   /* Save the field we want to ignore.  */
   {
@@ -1038,7 +1042,7 @@ fetch_header_fields_not (message_t msg, char *arg, unsigned long start,
       {
 	array = realloc (array, (array_len + 1) * sizeof (*array));
 	if (!array)
-	  util_quit (ERR_NO_MEM);
+	  imap4d_bye (ERR_NO_MEM);
 	array[array_len] = field;
       }
   }
@@ -1093,7 +1097,7 @@ fetch_header_fields_not (message_t msg, char *arg, unsigned long start,
         if (status != 0)
 	  {
 	    free (array);
-	    util_quit (ERR_NO_MEM);
+	    imap4d_bye (ERR_NO_MEM);
 	  }
       }
   }

@@ -32,7 +32,7 @@ static int _perr = 0;
     return util_finish (command, RESP_NO, "User name or passwd rejected"); }
 
 static int
-PAM_gnupop3d_conv (int num_msg, const struct pam_message **msg,
+PAM_gnuimap4d_conv (int num_msg, const struct pam_message **msg,
 		   struct pam_response **resp, void *appdata_ptr)
 {
   int replies = 0;
@@ -73,7 +73,7 @@ PAM_gnupop3d_conv (int num_msg, const struct pam_message **msg,
   return PAM_SUCCESS;
 }
 
-static struct pam_conv PAM_conversation = { &PAM_gnupop3d_conv, NULL };
+static struct pam_conv PAM_conversation = { &PAM_gnuimap4d_conv, NULL };
 #endif /* USE_LIBPAM */
 
 int
@@ -91,12 +91,16 @@ imap4d_login (struct imap4d_command *command, char *arg)
   username = util_getword (arg, &sp);
   pass = util_getword (NULL, &sp);
 
-  if (username == NULL || pass == NULL)
+  /* Remove the double quotes.  */
+  util_unquote (&username);
+  util_unquote (&pass);
+
+  if (username == NULL || *username == '\0' || pass == NULL)
     return util_finish (command, RESP_NO, "Too few args");
   else if (util_getword (NULL, &sp))
     return util_finish (command, RESP_NO, "Too many args");
 
-  pw = getpwnam (arg);
+  pw = getpwnam (username);
 
 #ifndef USE_LIBPAM
   if (pw == NULL || pw->pw_uid < 1)
@@ -105,17 +109,17 @@ imap4d_login (struct imap4d_command *command, char *arg)
     {
 #ifdef HAVE_SHADOW_H
       struct spwd *spw;
-      spw = getspnam (arg);
+      spw = getspnam (username);
       if (spw == NULL || strcmp (spw->sp_pwdp, (char *)crypt (pass, spw->sp_pwdp)))
 #endif /* HAVE_SHADOW_H */
 	return util_finish (command, RESP_NO, "User name or passwd rejected");
     }
 #else /* !USE_LIBPAM */
-      _user = (char *) arg;
+      _user = (char *) username;
       _pwd = pass;
       /* libpam doesn't log to LOG_MAIL */
       closelog ();
-      pamerror = pam_start ("gnu-imap4d", arg, &PAM_conversation, &pamh);
+      pamerror = pam_start ("gnu-imap4d", username, &PAM_conversation, &pamh);
       PAM_ERROR;
       pamerror = pam_authenticate (pamh, 0);
       PAM_ERROR;

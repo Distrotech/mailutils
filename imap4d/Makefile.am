@@ -4,7 +4,7 @@ INCLUDES = -I$(top_srcdir)/lib -I$(top_srcdir)/include
 sbin_PROGRAMS =	imap4d
 
 imap4d_LDADD = ../mailbox/libmailbox.la ../lib/libmailutils.a @AUTHLIBS@
-imap4d_SOURCES = imap4d.c imap4d.h capability.c noop.c logout.c authenticate.c \
-	login.c select.c examine.c create.c delete.c rename.c subscribe.c \
-	unsubscribe.c list.c lsub.c status.c append.c check.c close.c \
-	expunge.c search.c fetch.c store.c sync.c copy.c uid.c util.c commands.c
+imap4d_SOURCES = append.c authenticate.c bye.c capability.c check.c close.c \
+ commands.c copy.c create.c delete.c examine.c expunge.c fetch.c imap4d.c \
+ imap4d.h list.c logout.c login.c lsub.c noop.c rename.c search.c select.c \
+ signal.c status.c store.c subscribe.c sync.c uid.c unsubscribe.c util.c
