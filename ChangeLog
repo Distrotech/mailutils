@@ -1,3 +1,8 @@
+2008-09-01  Wojciech Polak
+
+	* pop3d/pop3d.c (pop3d_daemon): Added startup notification.
+	* imap4d/imap4d.c (imap4d_daemon): Likewise.
+
 2003-08-30  Wojciech Polak
 
 	* auth/tls.c (mu_check_tls_environment): Improved diagnostics.
