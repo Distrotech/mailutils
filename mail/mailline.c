@@ -176,6 +176,14 @@ ml_readline (char *prompt)
   return ml_readline_internal ();
 }
 
+char *
+ml_readline_with_intr (char *prompt)
+{
+  char *str = ml_readline (prompt);
+  if (_interrupted)
+    printf ("\n");
+  return str;
+}
 
 #ifdef WITH_READLINE
 

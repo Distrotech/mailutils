@@ -320,6 +320,7 @@ extern void ml_clear_interrupt __P ((void));
 extern void ml_readline_init __P ((void));
 extern int ml_reread __P ((const char *prompt, char **text));
 extern char *ml_readline __P((char *prompt));
+extern char *ml_readline_with_intr __P((char *prompt));
 
 extern char *alias_expand __P ((char *name));
 extern void alias_destroy __P ((char *name));
