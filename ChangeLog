@@ -1,3 +1,8 @@
+2005-03-09  Sergey Poznyakoff
+
+	* mimeview/mimetypes.l: Bugfix: accept ',' as OR
+	* mimeview/mimetypes.y: Fixed precedences of ',' and '+'.
+
 2005-03-08  Sergey Poznyakoff
 
 	* TODO: Updated
@@ -15,8 +20,8 @@
 2005-03-08  Sergey Poznyakoff 
 
 	TODO:121 said: "file viewer, based on the mimetypes api. I want to do
-	a "v foo.blah", have it look up .blah in mime.types, and do the a
-	ction spec'ed in mailcap."
+	a "v foo.blah", have it look up .blah in mime.types, and do the 
+	action spec'ed in mailcap."
 	So, here it goes:
 
 	* mimeview: New directory
