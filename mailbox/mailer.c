@@ -37,10 +37,52 @@
 
 #include <mailer0.h>
 
+static
+char*
+mailer_url_default;
+
+/* FIXME: I'd like to check that the URL is valid, but that requires that the
+   mailers already be registered! */
 int
-mailer_create (mailer_t *pmailer, const char *name)
+mailer_set_url_default(const char* url)
+{
+  char* n = NULL;
+
+  if(!url)
+    return EINVAL;
+
+  if((n = strdup(url)) == NULL)
+    return ENOMEM;
+
+  if(mailer_url_default)
+    free(mailer_url_default);
+
+  mailer_url_default = n;
+
+  return 0;
+}
+
+int
+mailer_get_url_default(const char** url)
+{
+  if(!url)
+    return EINVAL;
+
+  if(mailer_url_default)
+    *url = mailer_url_default;
+  else
+    *url = MAILER_URL_DEFAULT;
+
+  return 0;
+}
+
+int
+mailer_create (mailer_t * pmailer, const char *name)
 {
   int status = EINVAL;
+  url_t url = NULL;
+  mailer_t mailer = NULL;
+
   record_t record = NULL;
   int (*m_init) __P ((mailer_t)) = NULL;
   int (*u_init) __P ((url_t)) = NULL;
@@ -51,6 +93,9 @@ mailer_create (mailer_t *pmailer, const char *name)
   if (pmailer == NULL)
     return EINVAL;
 
+  if (name == NULL)
+    mailer_get_url_default (&name);
+
   registrar_get_list (&list);
   status = iterator_create (&iterator, list);
   if (status != 0)
@@ -58,57 +103,51 @@ mailer_create (mailer_t *pmailer, const char *name)
   for (iterator_first (iterator); !iterator_is_done (iterator);
        iterator_next (iterator))
     {
-      iterator_current (iterator, (void **)&record);
+      iterator_current (iterator, (void **) &record);
       if (record_is_scheme (record, name))
-        {
-          record_get_mailer (record, &m_init);
-          record_get_url (record, &u_init);
-          if (m_init  && u_init)
+	{
+	  record_get_mailer (record, &m_init);
+	  record_get_url (record, &u_init);
+	  if (m_init && u_init)
 	    {
 	      found = 1;
 	      break;
 	    }
-        }
+	}
     }
   iterator_destroy (&iterator);
 
-  if (found)
+  if (!found)
+    return MU_ERR_MAILER_BAD_URL;
+
+  /* Allocate memory for mailer.  */
+  mailer = calloc (1, sizeof (*mailer));
+  if (mailer == NULL)
+    return ENOMEM;
+
+  status = monitor_create (&(mailer->monitor), 0, mailer);
+  if (status != 0)
     {
-      url_t url = NULL;
-      mailer_t mailer = NULL;
+      mailer_destroy (&mailer);
+      return status;
+    }
 
-      /* Allocate memory for mailer.  */
-      mailer = calloc (1, sizeof (*mailer));
-      if (mailer == NULL)
-	return ENOMEM;
+  /* Parse the url, it may be a bad one and we should bail out if this
+     failed.  */
+  if ((status = url_create (&url, name)) != 0 || (status = u_init (url)) != 0)
+    {
+      mailer_destroy (&mailer);
+      return status;
+    }
+  mailer->url = url;
 
-      status = monitor_create (&(mailer->monitor), 0, mailer);
-      if (status != 0)
-        {
-          mailer_destroy (&mailer);
-          return status;
-        }
-
-      /* Parse the url, it may be a bad one and we should bailout if this
-         failed.  */
-      if ((status = url_create (&url, name)) != 0
-          || (status = u_init (url)) != 0)
-        {
-          mailer_destroy (&mailer);
-          return status;
-        }
-      mailer->url = url;
-
-      status = m_init (mailer);
-      if (status != 0)
-	{
-	  mailer_destroy (&mailer);
-	}
-      else
-	*pmailer = mailer;
+  status = m_init (mailer);
+  if (status != 0)
+    {
+      mailer_destroy (&mailer);
     }
   else
-    status = ENOENT;
+    *pmailer = mailer;
 
   return status;
 }

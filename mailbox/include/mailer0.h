@@ -30,18 +30,9 @@
 extern "C" {
 #endif
 
-/* mailer states */
-#define MAILER_STATE_HDR	1
-#define MAILER_STATE_MSG	2
-#define MAILER_STATE_COMPLETE	3
+/* Default mailer URL. */
 
-/* mailer messages */
-#define MAILER_HELO	1
-#define MAILER_MAIL	2
-#define MAILER_RCPT	3
-#define MAILER_DATA	4
-#define MAILER_RSET	5
-#define MAILER_QUIT	6
+#define MAILER_URL_DEFAULT "sendmail:"
 
 #define MAILER_LINE_BUF_SIZE	1000
 
@@ -67,7 +58,7 @@ struct _mailer
 };
 
 #define MAILER_NOTIFY(mailer, type) \
-if (mailer->observer) observer_notify (mailer->observer, type)
+  if (mailer->observer) observer_notify (mailer->observer, type)
 
 /* Moro(?)ic kluge.  */
 #define MAILER_DEBUGV(mailer, type, format, av) \

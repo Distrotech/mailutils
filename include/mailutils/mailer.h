@@ -24,11 +24,19 @@
 extern "C" {
 #endif
 
-extern int mailer_create         __P ((mailer_t *, const char *));
+/* During protocol traces, the data as well as headers will be dumped. */
+#define MAILER_FLAG_DEBUG_DATA 0x0001
+
+/* A url of NULL will cause the default to be used. */
+extern int mailer_create         __P ((mailer_t *, const char *url));
 extern void mailer_destroy       __P ((mailer_t *));
 extern int mailer_open           __P ((mailer_t, int flags));
 extern int mailer_close          __P ((mailer_t));
 extern int mailer_send_message   __P ((mailer_t, message_t, address_t from, address_t to));
+
+/* Called to set or get the default mailer url. */
+extern int mailer_set_url_default       __P ((const char* url));
+extern int mailer_get_url_default       __P ((const char** url));
 
 /* Accessor functions. */
 extern int mailer_get_property   __P ((mailer_t, property_t *));
