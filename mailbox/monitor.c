@@ -17,6 +17,9 @@
 
 /* Tell GLIBC that we want UNIX98 pthread_rwlock_xx() functions.  */
 #define _XOPEN_SOURCE   500
+/* Tell QNX/Neutrino to define pthread_rwlock_xx() functions.  */
+#define _QNX_SOURCE
+#define _POSIX_C_SOURCE 199506
 #ifdef HAVE_CONFIG_H
 #  include <config.h>
 #endif
