@@ -1,155 +1,116 @@
-/* getline.c -- Replacement for GNU C library function getline
+/* GNU mailutils - a suite of utilities for electronic mail
+   Copyright (C) 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
 
-Copyright (C) 1993, 1996, 2001 Free Software Foundation, Inc.
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Library Public License as published by
+   the Free Software Foundation; either version 2, or (at your option)
+   any later version.
 
-This program is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License as
-published by the Free Software Foundation; either version 2 of the
-License, or (at your option) any later version.
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU Library General Public License for more details.
 
-This program is distributed in the hope that it will be useful, but
-WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-General Public License for more details.
+   You should have received a copy of the GNU Library General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. */
+/* First implementation by Alain Magloire */
 
-/* Written by Jan Brittenson, bson@gnu.ai.mit.edu.  */
-
-#if HAVE_CONFIG_H
+#ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
 
-/* The `getdelim' function is only declared if the following symbol
-   is defined.  */
-#define _GNU_SOURCE	1
 #include <stdio.h>
-#include <sys/types.h>
-
-#if defined __GNU_LIBRARY__ && HAVE_GETDELIM
+#include <stdlib.h>
+#include <string.h>
 
 ssize_t
-getline (lineptr, n, stream)
-     char **lineptr;
-     size_t *n;
-     FILE *stream;
+getline (char **lineptr, size_t *n, FILE *stream)
 {
   return getdelim (lineptr, n, '\n', stream);
 }
 
+#ifndef HAVE_GETDELIM
 
-#else /* ! have getdelim */
-
-# define NDEBUG
-# include <assert.h>
-
-# if STDC_HEADERS
-#  include <stdlib.h>
-# else
-char *malloc (), *realloc ();
-# endif
-
-/* Always add at least this many bytes when extending the buffer.  */
-# define MIN_CHUNK 64
-
-/* Read up to (and including) a TERMINATOR from STREAM into *LINEPTR
-   + OFFSET (and null-terminate it). *LINEPTR is a pointer returned from
-   malloc (or NULL), pointing to *N characters of space.  It is realloc'd
-   as necessary.  Return the number of characters read (not including the
-   null terminator), or -1 on error or EOF.  */
+/* Default value for line length.  */
+static const int line_size = 128;
 
 ssize_t
-getstr (lineptr, n, stream, terminator, offset)
-     char **lineptr;
-     size_t *n;
-     FILE *stream;
-     char terminator;
-     size_t offset;
+getdelim (char **lineptr, size_t *n, int delim, FILE *stream)
 {
-  int nchars_avail;		/* Allocated but unused chars in *LINEPTR.  */
-  char *read_pos;		/* Where we're reading into *LINEPTR. */
-  int ret;
+  int indx = 0;
+  int c;
 
-  if (!lineptr || !n || !stream)
+  /* Sanity checks.  */
+  if (lineptr == NULL || n == NULL || stream == NULL)
     return -1;
 
-  if (!*lineptr)
+  /* Allocate the line the first time.  */
+  if (*lineptr == NULL)
     {
-      *n = MIN_CHUNK;
-      *lineptr = malloc (*n);
-      if (!*lineptr)
+      *lineptr = malloc (line_size);
+      if (*lineptr == NULL)
 	return -1;
+      *n = line_size;
     }
 
-  nchars_avail = *n - offset;
-  read_pos = *lineptr + offset;
-
-  for (;;)
+  while ((c = getc (stream)) != EOF)
     {
-      register int c = getc (stream);
-
-      /* We always want at least one char left in the buffer, since we
-	 always (unless we get an error while reading the first char)
-	 NUL-terminate the line buffer.  */
-
-      assert(*n - nchars_avail == read_pos - *lineptr);
-      if (nchars_avail < 2)
+      /* Check if more memory is needed.  */
+      if (indx >= *n)
 	{
-	  if (*n > MIN_CHUNK)
-	    *n *= 2;
-	  else
-	    *n += MIN_CHUNK;
-
-	  nchars_avail = *n + *lineptr - read_pos;
-	  *lineptr = realloc (*lineptr, *n);
-	  if (!*lineptr)
+	  *lineptr = realloc (*lineptr, *n + line_size);
+	  if (*lineptr == NULL)
 	    return -1;
-	  read_pos = *n - nchars_avail + *lineptr;
-	  assert(*n - nchars_avail == read_pos - *lineptr);
+	  *n += line_size;
 	}
 
-      if (c == EOF || ferror (stream))
-	{
-	  /* Return partial line, if any.  */
-	  if (read_pos == *lineptr)
-	    return -1;
-	  else
-	    break;
-	}
+      /* Push the result in the line.  */
+      (*lineptr)[indx++] = c;
 
-      *read_pos++ = c;
-      nchars_avail--;
-
-      if (c == terminator)
-	/* Return the line.  */
+      /* Bail out.  */
+      if (c == delim)
 	break;
     }
 
-  /* Done - NUL terminate and return the number of chars read.  */
-  *read_pos = '\0';
+  /* Make room for the null character.  */
+  if (indx >= *n)
+    {
+      *lineptr = realloc (*lineptr, *n + line_size);
+      if (*lineptr == NULL)
+       return -1;
+      *n += line_size;
+    }
 
-  ret = read_pos - (*lineptr + offset);
-  return ret;
+  /* Null terminate the buffer.  */
+  (*lineptr)[indx++] = 0;
+
+  /* The last line may not have the delimiter, we have to
+   * return what we got and the error will be seen on the
+   * next iteration.  */
+  return (c == EOF && (indx - 1) == 0) ? -1 : indx - 1;
 }
 
-ssize_t
-getline (lineptr, n, stream)
-     char **lineptr;
-     size_t *n;
-     FILE *stream;
-{
-  return getstr (lineptr, n, stream, '\n', 0);
-}
+#endif /* HAVE_GETDELIM */
 
-ssize_t
-getdelim (lineptr, n, delimiter, stream)
-     char **lineptr;
-     size_t *n;
-     int delimiter;
-     FILE *stream;
+
+#ifdef STANDALONE
+int main(void)
 {
-  return getstr (lineptr, n, stream, delimiter, 0);
+  FILE * fp;
+  char * line = NULL;
+  size_t len = 0;
+  ssize_t read;
+  fp = fopen("/etc/passwd", "r");
+  if (fp == NULL)
+    exit(EXIT_FAILURE);
+  while ((read = getline(&line, &len, fp)) != -1) {
+    printf("Retrieved line of length %zu :\n", read);
+    printf("%s", line);
+  }
+  if (line)
+    free(line);
+  return EXIT_SUCCESS;
 }
 #endif
