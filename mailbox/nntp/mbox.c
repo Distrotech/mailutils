@@ -32,10 +32,6 @@
 #include <fcntl.h>
 #include <stdarg.h>
 
-#ifdef HAVE_ALLOCA_H
-# include <alloca.h>
-#endif
-
 #ifdef HAVE_STRINGS_H
 # include <strings.h>
 #endif
