@@ -1,3 +1,8 @@
+2003-03-20  Sergey Poznyakoff
+
+	* mh/README: Updated.
+	* mh/mhn.c: Recognize mhn-compose-* profile components.
+
 2003-03-20  Sergey Poznyakoff 
 
 	* mh/mhn.c: Implemented #forw directive.

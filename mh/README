@@ -180,10 +180,10 @@ specified:
 
 * mhn
 
-** New option --compose forces mhn editing mode. This differs from
-the standard mhn, which switches to the editing mode only if
-no other options were given and the input file name coincides
-with the value of "mhdraft" environment variable.
+** New option --compose forces mhn editing mode. This is also the default
+mode. This differs from the standard mhn, which switches to the
+editing mode only if no other options were given and the input file
+name coincides with the value of "mhdraft" environment variable. 
 
 ** Show mode (--show)
 *** If an appropriate mhn-show-type[/subtype] was not found, GNU mhn
