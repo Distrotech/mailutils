@@ -51,13 +51,13 @@
 #include <getopt.h>
 #include <string.h>
 #include <pwd.h>
-#include <argp.h>
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <mu_asprintf.h>
 #include <mailutils/argcv.h>
+#include <mailutils/argp.h>
 #include <mailutils/mailutils.h>
 
 FILE *diag = NULL;       /* diagnostic output */
