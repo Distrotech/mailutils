@@ -145,8 +145,15 @@ Sample usage:
 
        pick --cflag BC --subject '*a string' 
 
-** The date comparisons (the options --before and --after) are not yet
-supported.
+** The date comparison options (--before and --after) accept date
+specifications in a wide variety of formats, e.g.:
+
+       pick --after 20030301
+       pick --after 2003-03-01
+       pick --after 01-mar-2003
+       pick --after 2003-mar-01
+       pick --before '1 year ago'
+       etc...
 
 * refile
 
