@@ -275,8 +275,12 @@ AC_SUBST(READLINE_LIBS)
 if test x"$usereadline" = x"yes"; then
 	AC_CHECK_LIB(readline, readline,
 		      [AC_CHECK_HEADERS(readline/readline.h,
-		       AC_DEFINE(WITH_READLINE))
-		       READLINE_LIBS="-lcurses -lreadline"],
+                                        AC_DEFINE(WITH_READLINE))
+                       READLINE_LIBS="-lcurses -lreadline"
+                       saved_LIBS=$LIBS
+                       LIBS="$LIBS $READLINE_LIBS"
+                       AC_CHECK_FUNCS(rl_completion_matches)
+                       LIBS=$saved_LIBS],
 			:,
 		       -lcurses)
 fi
