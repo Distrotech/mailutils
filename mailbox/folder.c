@@ -277,6 +277,15 @@ folder_get_observable (folder_t folder, observable_t *pobservable)
 }
 
 int
+folder_has_debug (folder_t folder)
+{
+  if (folder == NULL)
+    return 0;
+
+  return folder->debug ? 1 : 0;
+}
+
+int
 folder_set_debug (folder_t folder, mu_debug_t debug)
 {
   if (folder == NULL)

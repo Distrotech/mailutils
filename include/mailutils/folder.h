@@ -82,6 +82,9 @@ extern int  folder_set_stream     __P ((folder_t, stream_t));
 
   /* Notifications.  */
 extern int  folder_get_observable __P ((folder_t, observable_t *));
+
+  /* Debug.  */
+extern int  folder_has_debug      __P ((folder_t folder));
 extern int  folder_get_debug      __P ((folder_t, mu_debug_t *));
 extern int  folder_set_debug      __P ((folder_t, mu_debug_t));
 
@@ -93,7 +96,8 @@ extern int  folder_set_authority  __P ((folder_t, authority_t));
 extern int  folder_get_url        __P ((folder_t, url_t *));
 extern int  folder_set_url        __P ((folder_t, url_t));
 
-extern int  folder_decremente     __P ((folder_t));
+/* FIXME: not implemented */
+extern int  folder_decrement      __P ((folder_t));
 
 
 #ifdef __cplusplus
