@@ -1,0 +1,115 @@
+/* GNU mailutils - a suite of utilities for electronic mail
+   Copyright (C) 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
+
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU Lesser General Public License as published by
+   the Free Software Foundation; either version 2, or (at your option)
+   any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU Lesser General Public License for more details.
+
+   You should have received a copy of the GNU Lesser General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
+
+#ifdef HAVE_CONFIG_H
+# include <config.h>
+#endif  
+
+#ifdef HAVE_LIBLTDL
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>  
+#include <string.h>  
+#include <sieve.h>
+#include <ltdl.h>
+
+typedef int (*sieve_module_init_t) __PMT((sieve_machine_t mach));
+
+static int inited = 0;
+
+static void
+_free_loaded_module (void *data)
+{
+  lt_dlclose ((lt_dlhandle)data);
+}
+
+int wd ()
+{
+  int volatile _s=0;
+  while (!_s);
+}
+	
+static lt_dlhandle
+load_module (sieve_machine_t mach, const char *name)
+{
+  lt_dlhandle handle;
+  if (!inited)
+    {
+      if (lt_dlinit ())
+	return NULL;
+      inited++;
+    }
+  handle = lt_dlopenext (name);
+  if (handle)
+    {
+      sieve_module_init_t init = (sieve_module_init_t)
+	                                lt_dlsym (handle, "init");
+      if (init)
+	{
+	  init (mach);
+	  sieve_machine_add_destructor (mach, _free_loaded_module, handle);
+	  return handle;
+	}
+      else
+	{
+	  lt_dlclose (handle);
+	  handle = NULL;
+	}
+    }
+
+  if (!handle)
+    {
+      sieve_error (mach, "%s", lt_dlerror ());
+    }
+  return handle;
+}
+
+static void
+fix_module_name (char *name)
+{
+  for (; *name; name++)
+    {
+      if (isalnum (*name) || *name == '.' || *name == ',')
+	continue;
+      *name = '-';
+    }
+}
+
+int
+sieve_load_ext (sieve_machine_t mach, const char *name)
+{
+  lt_dlhandle handle;
+  char *modname;
+
+  modname = strdup (name);
+  if (!modname)
+    return 1;
+  fix_module_name (modname);
+  handle = load_module (mach, modname);
+  free (modname);
+  return handle == NULL;
+}
+
+#else
+
+int
+sieve_load_ext (sieve_machine_t mach, const char *name)
+{
+  return 1;
+}
+
+#endif /* HAVE_LIBLTDL */
