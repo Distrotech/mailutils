@@ -36,7 +36,7 @@ imap4d_capability (struct imap4d_command *command, char *arg)
     util_send (" %s", capa[i]);
 
 #ifdef WITH_TLS
-  if (tls_available)
+  if (tls_available && !tls_done)
     util_send (" STARTTLS");
 #endif /* WITH_TLS */
 
