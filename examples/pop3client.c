@@ -34,6 +34,7 @@
 #include <readline/history.h>
 
 #include <mailutils/pop3.h>
+#include <mailutils/iterator.h>
 
 /* A structure which contains information on the commands this program
    can understand. */
