@@ -51,7 +51,7 @@ DISTCLEANFILES=*.pgs
 MAINTAINERCLEANFILES=$(INCFILES)
 
 ## Web documentation
-BASE_URL="http://www.gnu.org/software/mailutils/manual"
+BASE_URL="http://www.gnu.org/software/mailutils/manual/"
 TEXI2HTML=${SHELL} `cd $(top_srcdir); pwd`/missing --run texi2html
 DVIPS=${SHELL} `cd $(top_srcdir); pwd`/missing --run dvips
 INFO=${SHELL} `cd $(top_srcdir); pwd`/missing --run info
