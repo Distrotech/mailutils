@@ -94,7 +94,7 @@ const char *fhdr_table[] =
 #define H_MESSAGE_ID                8
   "Message-ID",
 #define H_REFERENCE                 9
-  "Reply-To",
+  "Reference",
 #define H_REPLY_TO                  10
   "Reply-To",
 #define H_SENDER                    11
@@ -344,7 +344,7 @@ mbox_open (mailbox_t mailbox, int flags)
 
       /* Try to mmap () the file first.  */
       if (status == 0)
-	{ 
+	{
 	  status = mapfile_stream_create (&(mailbox->stream));
 	  if (status == 0)
 	    {
@@ -1343,7 +1343,7 @@ mbox_readstream (mbox_message_t mum, char *buffer, size_t buflen,
     if (ln > 0)
       {
 	/* Position the file pointer and the buffer.  */
-	nread = ((size_t)ln < buflen) ? ln : buflen;
+	nread = ((size_t)ln < buflen) ? (size_t)ln : buflen;
 	if (isreadline)
 	  status = stream_readline (mum->mud->mailbox->stream, buffer, buflen,
 				    start + off, &nread);
@@ -1573,9 +1573,9 @@ mbox_get_message (mailbox_t mailbox, size_t msgno, message_t *pmsg)
   message_t msg = NULL;
 
   /* Sanity checks.  */
-  if (pmsg == NULL || mud == NULL) 
+  if (pmsg == NULL || mud == NULL)
     return EINVAL;
-  
+
   /* If we did not start a scanning yet do it now.  */
   if (mud->messages_count == 0)
     {
@@ -1587,7 +1587,7 @@ mbox_get_message (mailbox_t mailbox, size_t msgno, message_t *pmsg)
   /* Second sanity: check the message number.  */
   if (!(mud->messages_count > 0
 	&& msgno > 0
-	&& msgno <= mud->messages_count)) 
+	&& msgno <= mud->messages_count))
     return EINVAL;
 
   mum = mud->umessages[msgno - 1];

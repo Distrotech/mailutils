@@ -187,6 +187,8 @@ struct _msg_imap
   int flags;
   size_t uid;
 
+  header_t fheader;
+
   size_t message_size;
   size_t message_lines;
   size_t body_size;

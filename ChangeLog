@@ -1,3 +1,22 @@
+2001-10-04 Alain Magloire
+
+	* imap4d/select.c(imap4_select_status): According to RFC2060
+	There is no parenthesis when we send the UIDVALIDITY/UNSEEN.
+
+	* mailbox/header.c (header_free_cache): New function.
+	(fill_blurb): Call header_free_cache to release memory.
+	(header_destroy): Move the code to header_free_cache().
+	(header_set_fvalue): Accept a NULL value, it will permanent
+	failure i.e. the header does not exist.
+	(header_get_value): Check the cache provided by the header object
+	then the cache from _get_fvalue() and fall back to downloading
+	the entire header.
+	* mailbox/mbx_imap.c (imap_hader_get_fvalue): Implement a cache
+	in IMAP for the most use headers like "FROM, SUBJECT ....".
+	* mailbox/include/imap0.h: New field in _m_imap to hold the
+	header cache.
+	* mailbox/mapfile_stream.c: signed and unsigned cast.
+
 2001-10-03 Alain Magloire
 
 	* mailbox/mbx_imap.c (imap_attr_set_flags): Do not send

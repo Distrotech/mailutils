@@ -40,6 +40,7 @@ static int header_readline __P ((stream_t, char *, size_t, off_t, size_t *));
 static int header_write    __P ((stream_t, const char *, size_t, off_t,
 				 size_t *));
 static int fill_blurb      __P ((header_t));
+static void header_free_cache __P ((header_t));
 
 int
 header_create (header_t *ph, const char *blurb, size_t len, void *owner)
@@ -57,6 +58,26 @@ header_create (header_t *ph, const char *blurb, size_t len, void *owner)
 
   *ph = header;
   return status;
+}
+
+static void
+header_free_cache (header_t header)
+{
+  /* Clean up our fast header cache.  */
+  if (header->fhdr)
+    {
+      size_t i;
+      for (i = 0; i < header->fhdr_count; i++)
+	{
+	  if (header->fhdr[i].fn)
+	    free (header->fhdr[i].fn);
+	  if (header->fhdr[i].fv)
+	    free (header->fhdr[i].fv);
+	}
+      free (header->fhdr);
+      header->fhdr = NULL;
+      header->fhdr_count = 0;
+    }
 }
 
 void
@@ -77,19 +98,7 @@ header_destroy (header_t *ph, void *owner)
 	  if (header->blurb)
 	    free (header->blurb);
 
-	  /* Clean up the fast header cache.  */
-	  if (header->fhdr)
-	    {
-	      size_t i;
-	      for (i = 0; i < header->fhdr_count; i++)
-		{
-		  if (header->fhdr[i].fn)
-		    free (header->fhdr[i].fn);
-		  if (header->fhdr[i].fv)
-		    free (header->fhdr[i].fv);
-		}
-	      free (header->fhdr);
-	    }
+	  header_free_cache (header);
 
 	  if (header->property)
 	    property_destroy (&(header->property), header);
@@ -343,6 +352,10 @@ header_set_value (header_t header, const char *fn, const char *fv, int replace)
   return 0;
 }
 
+/* We try to cache the headers here to reduce networking access
+   especially for IMAP.  When the buffer is NULL it means that
+   the field does not exist on the server and we should not
+   attempt to contact the server again for this field.  */
 static int
 header_set_fvalue (header_t header, const char *name, char *buffer)
 {
@@ -359,14 +372,22 @@ header_set_fvalue (header_t header, const char *name, char *buffer)
       thdr[header->fhdr_count].fn = field;
       thdr[header->fhdr_count].fn_end = field + len;
 
-      len = strlen (buffer);
-      field =  malloc (len + 1);
-      if (field == NULL)
-	return ENOMEM;
-      memcpy (field, buffer, len);
-      field[len] = '\0';
-      thdr[header->fhdr_count].fv = field;
-      thdr[header->fhdr_count].fv_end = field + len;
+      if (buffer)
+	{
+          len = strlen (buffer);
+          field =  malloc (len + 1);
+          if (field == NULL)
+	    return ENOMEM;
+	  memcpy (field, buffer, len);
+	  field[len] = '\0';
+	  thdr[header->fhdr_count].fv = field;
+	  thdr[header->fhdr_count].fv_end = field + len;
+	}
+      else
+	{
+	  thdr[header->fhdr_count].fv = NULL;
+	  thdr[header->fhdr_count].fv_end = NULL;
+	}
       header->fhdr_count++;
       header->fhdr = thdr;
       return 0;
@@ -374,6 +395,9 @@ header_set_fvalue (header_t header, const char *name, char *buffer)
   return ENOMEM;
 }
 
+/* For the cache header if the field exist but with no corresponding
+   value, it is a permanent failure i.e.  the field does not exist
+   in the header return EINVAL to notify header_get_value().  */
 static int
 header_get_fvalue (header_t header, const char *name, char *buffer,
 		  size_t buflen, size_t *pn)
@@ -382,9 +406,6 @@ header_get_fvalue (header_t header, const char *name, char *buffer,
   size_t name_len;
   int err = ENOENT;
 
-  if (header->_get_fvalue)
-    return header->_get_fvalue (header, name, buffer, buflen, pn);
-
   for (i = 0, name_len = strlen (name); i < header->fhdr_count; i++)
     {
       fn_len = header->fhdr[i].fn_end - header->fhdr[i].fn;
@@ -392,6 +413,11 @@ header_get_fvalue (header_t header, const char *name, char *buffer,
 	  && strcasecmp (header->fhdr[i].fn, name) == 0)
 	{
 	  fv_len = header->fhdr[i].fv_end - header->fhdr[i].fv;
+
+	  /* Permanent failure.  */
+	  if (fv_len == 0)
+	    return EINVAL;
+
 	  if (buffer && buflen > 0)
 	    {
 	      buflen--;
@@ -422,8 +448,21 @@ header_get_value (header_t header, const char *name, char *buffer,
   if (header == NULL || name == NULL)
     return EINVAL;
 
-  /* First Try the Fast header for hits.  */
+  /* First scan our cache headers for hits.  */
   err = header_get_fvalue (header, name, buffer, buflen, pn);
+  switch (err)
+    {
+    case EINVAL: /* Permanent failure.  */
+      return ENOENT;
+    case 0:
+      return 0;
+    case ENOMEM:
+      return err;
+    }
+
+  /* Try the provided cache.  */
+  if (header->_get_fvalue)
+    err = header->_get_fvalue (header, name, buffer, buflen, pn);
   if (err == 0)
     return 0;
 
@@ -448,6 +487,11 @@ header_get_value (header_t header, const char *name, char *buffer,
 	  if (pn)
 	    *pn = buflen;
 	}
+      else
+        {
+	  /* Cache permanent failure also.  */
+	  header_set_fvalue (header, name, NULL);
+        }
       return err;
     }
 
@@ -850,6 +894,7 @@ fill_blurb (header_t header)
 
   /* The entire header is now ours(part of header_t), clear all the
      overloading.  */
+  header_free_cache (header);
   header->_get_fvalue = NULL;
   header->_get_value = NULL;
   header->_set_value = NULL;
@@ -943,7 +988,7 @@ header_read (stream_t is, char *buf, size_t buflen, off_t off, size_t *pnread)
   len = header->blurb_len - off;
   if (len > 0)
     {
-      len = (buflen < (size_t)len) ? buflen : len;
+      len = (buflen < (size_t)len) ? buflen : (size_t)len;
       memcpy (buf, header->blurb + off, len);
     }
   else
@@ -986,7 +1031,7 @@ header_readline (stream_t is, char *buf, size_t buflen, off_t off, size_t *pn)
       char *nl = memchr (header->blurb + off, '\n', len);
       if (nl)
 	len = nl - (header->blurb + off) + 1;
-      len = (buflen < (size_t)len) ? buflen : len;
+      len = (buflen < (size_t)len) ? buflen : (size_t)len;
       memcpy (buf, header->blurb + off, len);
     }
   else

@@ -70,7 +70,7 @@ _memory_readline (stream_t stream, char *optr, size_t osize,
       /* Save space for the null byte.  */
       osize--;
       nl = memchr (mfs->ptr + offset, '\n', mfs->size - offset);
-      n = (nl) ? nl - (mfs->ptr + offset) + 1 : mfs->size - offset;
+      n = (nl) ? (size_t)(nl - (mfs->ptr + offset) + 1) : mfs->size - offset;
       n = (n > osize)  ? osize : n;
       memcpy (optr, mfs->ptr + offset, n);
       optr[n] = '\0';

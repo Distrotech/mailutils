@@ -77,6 +77,7 @@ static int imap_attr_unset_flags __P ((attribute_t, int));
 /* Header.  */
 static int imap_header_read      __P ((header_t, char*, size_t, off_t, size_t *));
 static int imap_header_get_value __P ((header_t, const char*, char *, size_t, size_t *));
+static int imap_header_get_fvalue __P ((header_t, const char*, char *, size_t, size_t *));
 
 /* Body.  */
 static int imap_body_read        __P ((stream_t, char *, size_t, off_t, size_t *));
@@ -163,6 +164,8 @@ free_subparts (msg_imap_t msg_imap)
     message_destroy (&(msg_imap->message), msg_imap);
   if (msg_imap->parts)
     free (msg_imap->parts);
+  if (msg_imap->fheader)
+    header_destroy (&msg_imap->fheader, NULL);
   free(msg_imap);
 }
 
@@ -248,6 +251,9 @@ mailbox_imap_close (mailbox_t mailbox)
 	  free (m_imap->imessages);
 	m_imap->imessages = NULL;
 	m_imap->imessages_count = 0;
+	m_imap->messages_count = 0;
+	m_imap->recent = 0;
+	m_imap->unseen = 0;
 	monitor_unlock (mailbox->monitor);
       }
 
@@ -293,7 +299,7 @@ imap_get_message (mailbox_t mailbox, size_t msgno, message_t *pmsg)
   monitor_unlock (mailbox->monitor);
 
   /* Allocate a concrete imap message.  */
-  msg_imap = calloc (1, sizeof (*msg_imap));
+  msg_imap = calloc (1, sizeof *msg_imap);
   if (msg_imap == NULL)
     return ENOMEM;
   /* Back pointer.  */
@@ -365,6 +371,7 @@ imap_get_message0 (msg_imap_t msg_imap, message_t *pmsg)
       }
     header_set_fill (header, imap_header_read, msg);
     header_set_get_value (header, imap_header_get_value, msg);
+    header_set_get_fvalue (header, imap_header_get_fvalue, msg);
     message_set_header (msg, header, msg_imap);
   }
 
@@ -1548,6 +1555,54 @@ imap_header_get_value (header_t header, const char *field, char * buffer,
 	*plen = len;
       if (len == 0)
 	status = ENOENT;
+    }
+  free (value);
+  return status;
+}
+
+static int
+imap_header_get_fvalue (header_t header, const char *field, char * buffer,
+			size_t buflen, size_t *plen)
+{
+  message_t msg = header_get_owner (header);
+  msg_imap_t msg_imap = message_get_owner (msg);
+  m_imap_t m_imap = msg_imap->m_imap;
+  f_imap_t f_imap = m_imap->f_imap;
+  int status;
+  size_t len = 0;
+  char *value;
+
+  /* Do we all ready have the headers.  */
+  if (msg_imap->fheader)
+    return header_get_value (msg_imap->fheader, field, buffer, buflen, plen);
+
+  /* We are caching the must use headers.  */
+  if (f_imap->state == IMAP_NO_STATE)
+    {
+      /* Select first.  */
+      status = imap_messages_count (m_imap->mailbox, NULL);
+      if (status != 0)
+        return status;
+#define CACHE_HEADERS "Bcc Cc Content-Language Content-Transfer-Encoding Content-Type Date From In-Reply-To Message-ID Reference Reply-To Sender Subject To X-UIDL"
+      status = imap_writeline (f_imap,
+                               "g%d FETCH %d BODY.PEEK[HEADER.FIELDS (%s)]\r\n",
+                               f_imap->seq++, msg_imap->num, CACHE_HEADERS);
+      CHECK_ERROR (f_imap, status);
+      MAILBOX_DEBUG0 (m_imap->mailbox, MU_DEBUG_PROT, f_imap->buffer);
+      f_imap->state = IMAP_FETCH;
+
+    }
+
+  /* Should be enough for our needs.  */
+  len = 2048;
+  value = calloc (len, sizeof *value);
+  status = message_operation (f_imap, msg_imap, value, len, &len);
+  if (status == 0)
+    {
+      status = header_create (&msg_imap->fheader, value, len, NULL);
+      if (status == 0)
+	status =  header_get_value (msg_imap->fheader, field, buffer,
+				    buflen, plen);
     }
   free (value);
   return status;

@@ -111,11 +111,11 @@ imap4d_select_status()
   mailbox_message_unseen (mbox, &unseen);
   util_out (RESP_NONE, "%d EXISTS", count);
   util_out (RESP_NONE, "%d RECENT", recent);
-  util_out (RESP_OK, "[UIDVALIDITY (%d)] UID valididy status",
+  util_out (RESP_OK, "[UIDVALIDITY %d] UID valididy status",
 	    uidvalidity);
   util_out (RESP_OK, "[UIDNEXT %d] Predicted next uid", uidnext);
   if (unseen)
-    util_out (RESP_OK, "[UNSEEN (%d)] first unseen messsage ", unseen);
+    util_out (RESP_OK, "[UNSEEN %d] first unseen messsage ", unseen);
   util_out (RESP_NONE, "FLAGS (%s)", mflags);
   /* FIXME:
      - '\*' can be supported if we use the attribute_set userflag()
