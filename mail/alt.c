@@ -69,7 +69,7 @@ mail_set_my_name (char *name)
   my_email = mu_get_user_email (name);
   if (!my_email)
     {
-      util_error("can't determine my email address: %s", strerror (errno));
+      util_error("can't determine my email address: %s", mu_errstring (errno));
       exit (1);
     }
 }
