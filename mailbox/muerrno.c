@@ -79,6 +79,8 @@ mu_errname (int e)
     EN(MU_ERR_TCP_NO_HOST);
     EN(MU_ERR_TCP_NO_PORT);
     EN(MU_ERR_BAD_2047_INPUT);
+    EN(MU_ERR_NOUSERNAME);
+    EN(MU_ERR_NOPASSWORD);
   }
 
   return "SYSTEM ERROR";
@@ -127,6 +129,9 @@ mu_strerror (int e)
     ES(MU_ERR_TCP_NO_PORT,      _("Tcp connections need a postive port"));
 
     ES(MU_ERR_BAD_2047_INPUT,   _("Input string is not RFC 2047 encoded"));
+
+    ES(MU_ERR_NOUSERNAME,       _("User name is not supplied"));
+    ES(MU_ERR_NOPASSWORD,       _("User password is not supplied"));
   }
 
   return strerror (e);

@@ -66,6 +66,9 @@ extern "C" {
 #define MU_ERR_TCP_NO_PORT          (MU_ERR_BASE + 26)
 
 #define MU_ERR_BAD_2047_INPUT       (MU_ERR_BASE + 27)
+
+#define MU_ERR_NOUSERNAME           (MU_ERR_BASE + 28)
+#define MU_ERR_NOPASSWORD           (MU_ERR_BASE + 29)
   
 const char *mu_errname __P((int e));
 const char *mu_strerror __P((int e));
