@@ -109,6 +109,9 @@ static list_t rule_list;
 %token <string> STRING
 %token EOL BOGUS
 
+%left ','
+%left '+'
+
 %type <string> string arg type
 %type <list> arglist
 %type <node> function stmt rule
@@ -159,15 +162,15 @@ type     : IDENT '/' IDENT
          ;
 
 rule     : stmt
-         | rule stmt
+         | rule rule %prec ','
            {
 	     $$ = make_binary_node (L_OR, $1, $2);
 	   }
-         | rule ',' stmt
+         | rule ',' rule
            {
 	     $$ = make_binary_node (L_OR, $1, $3);
 	   }
-         | rule '+' stmt
+         | rule '+' rule
            {
 	     $$ = make_binary_node (L_AND, $1, $3);
 	   }
