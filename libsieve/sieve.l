@@ -39,12 +39,13 @@ static list_t string_list;
 static int number __P ((void));
 static int string __P ((void));
 static void multiline_begin __P ((void));
-static void multiline_add __P ((void));
+static void multiline_add __P ((char *));
 static void multiline_finish __P ((void));
 static void ident __P((const char *text));
 static void sieve_include __P((void));
 static void sieve_searchpath __P((void));
-
+static char *str_escape __P((void));
+ 
 #ifdef FLEX_SCANNER
 #define xinput() (yyin ? getc(yyin) : EOF)
 #undef YY_INPUT
@@ -310,7 +311,7 @@ pop_source ()
   return 0;
 }
 %}
-%x COMMENT ML
+%x COMMENT ML STR
 
 WS [ \t][ \t]*
 IDENT [a-zA-Z_][a-zA-Z_0-9]+
@@ -343,15 +344,23 @@ not     return NOT;
 0[0-7]*{SIZESUF}*                     { return number (); }
 0x[0-9a-fA-F][0-9a-fA-F]+{SIZESUF}*   { return number (); }
 [1-9][0-9]*{SIZESUF}*                 { return number (); }
-\"[^"\n]*\"                 { return string (); }
-text:          { BEGIN(ML); multiline_begin (); }
+\"[^\\"\n]*\"                 { return string (); }
+\"[^\\"\n]*\\.    { BEGIN(STR);
+                   multiline_begin ();
+		   multiline_add (str_escape ()); }
+<STR>[^\\"\n]*\\. { multiline_add (str_escape ()); }
+<STR>[^\\"\n]*\" { BEGIN(INITIAL);
+                   multiline_add (NULL); 
+                   multiline_finish ();
+		   return STRING; }
+text:[ \t]*#.*\n { BEGIN(ML); multiline_begin (); }
+text:[ \t]*\n    { BEGIN(ML); multiline_begin (); }
 <ML>.[ \t]*\n  { BEGIN(INITIAL);
                  sieve_line_num++;
-                 multiline_add ();
                  multiline_finish ();
                  return MULTILINE; }
 <ML>#[ \t]*include.*\n      { sieve_include (); }
-<ML>.*\n { sieve_line_num++; multiline_add (); } 
+<ML>.*\n { sieve_line_num++; multiline_add (NULL); } 
 {WS}     ;
 \n { sieve_line_num++; } 
 . return yytext[0];
@@ -493,7 +502,7 @@ int
 number ()
 {
   char *p;
-  yylval.number = strtol (yytext, &p, 0);
+  yylval.number = strtoul (yytext, &p, 0);
   switch (*p)
     {
     case 'k':
@@ -523,13 +532,16 @@ string ()
 }
 
 void
-multiline_add ()
+multiline_add (char *s)
 {
-  char *s = strdup (yytext);
   if (!s)
     {
-      yyerror ("not enough memory");
-      exit (1);
+      s = strdup (yytext);
+      if (!s)
+	{
+	  yyerror ("not enough memory");
+	  exit (1);
+	}
     }
   list_append (string_list, s);
 }
@@ -593,4 +605,15 @@ ident (const char *text)
       yyerror ("not enough memory");
       exit (1);
     }
+}
+
+/* Escapes the last character from yytext */
+char *
+str_escape ()
+{
+  char *str = sieve_alloc (yyleng - 1);
+  memcpy (str, yytext, yyleng - 2);
+  str[yyleng - 2] = yytext[yyleng - 1];
+  str[yyleng - 1] = 0;
+  return str;
 }
