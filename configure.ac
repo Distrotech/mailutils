@@ -904,6 +904,7 @@ AC_CONFIG_FILES([Makefile
  sql/Makefile
  auth/Makefile
  comsat/Makefile
+ config/Makefile
  doc/Makefile
  doc/man/Makefile
  doc/rfc/Makefile
