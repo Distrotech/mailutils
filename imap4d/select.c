@@ -92,7 +92,7 @@ imap4d_select_status ()
   if (state != STATE_SEL)
     return 0; /* FIXME: this should be something! */
 
-  if ((status = mailbox_uidvalidity (mbox, &uidvalidity))
+  if ((status = util_uidvalidity (mbox, &uidvalidity))
       || (status = mailbox_uidnext (mbox, &uidnext))
       || (status = mailbox_messages_count (mbox, &count))
       || (status = mailbox_messages_recent (mbox, &recent))
