@@ -56,6 +56,18 @@ extern filter_record_t binary_filter;
 extern filter_record_t bit8_filter;
 extern filter_record_t bit7_filter;
 extern filter_record_t rfc_2047_Q_filter;
+
+enum mu_iconv_fallback_mode {
+  mu_fallback_none,
+  mu_fallback_copy_pass,
+  mu_fallback_copy_octal
+};
+
+extern int filter_iconv_create (stream_t *s, stream_t transport,
+				const char *fromcode, const char *tocode,
+				int flags,
+				enum mu_iconv_fallback_mode fallback_mode);
+
   
 #ifdef __cplusplus
 }
