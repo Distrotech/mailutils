@@ -1,3 +1,21 @@
+2001-12-16 Sam Roberts
+
+	* comsat/: comsat.c
+          imap4d/: append.c, fetch.c
+	  include/mailutils/: stream.h
+          mailbox/: attachment.c, body.c, file_stream.c, filter.c,
+	    folder_imap.c, header.c, mapfile_stream.c, mbx_mbox.c,
+	    mbx_mh.c, mbx_pop.c, memory_stream.c, smtp.c, stream.c, tcp.c
+	  mailbox/include/: Makefile.am, stream0.h, tcp0.h
+
+	Modified stream creation and opening. The *_stream_create()
+	functions now take the specific arguments appropriate to them
+	and setup a stream_t so that stream_open(), which now takes
+	no arguments, can perform whatever actions are appropriate
+	when opening that particular kind of stream.  I have tested the
+	changes with the example programs and sieve, but not with the
+	imap or pop servers.
+
 2001-12-12 Sam Roberts
 
 	* lib/: argcv.c, xmalloc.c: Fixed warnings about functions called
