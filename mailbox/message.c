@@ -27,6 +27,7 @@
 #include <time.h>
 #include <string.h>
 
+/* FIXME: This should be part of the address_t object when implemented.  */
 static int extract_addr(const char *s, size_t n, char **presult,
 		       size_t *pnwrite);
 static int message_read (stream_t is, char *buf, size_t buflen,
@@ -35,6 +36,7 @@ static int message_write (stream_t os, const char *buf, size_t buflen,
 			  off_t off, size_t *pnwrite);
 static int message_get_fd (stream_t stream, int *pfd);
 
+/*  Allocate ressources for the message_t.  */
 int
 message_create (message_t *pmsg, void *owner)
 {
@@ -59,31 +61,45 @@ message_destroy (message_t *pmsg, void *owner)
 
       if (msg->owner == owner)
 	{
-	  /* notify the listeners */
+	  /* Notify the listeners.  */
+	  /* FIXME: to be removed since we do not supoort this event.  */
 	  if (msg->event_num)
 	    {
 	      message_notification (msg, MU_EVT_MSG_DESTROY);
 	      free (msg->event);
 	    }
-	  /* header */
-	  header_destroy (&(msg->header), owner);
-	  /* attribute */
-	  attribute_destroy (&(msg->attribute), owner);
-	  /* stream */
-	  stream_destroy (&(msg->stream), owner);
 
-	  /* if sometype of floating/temporary message */
-	  body_destroy (&(msg->body), owner);
-	  /* notifications are done */
+	  /* Header.  */
+	  if (msg->header)
+	    header_destroy (&(msg->header), owner);
+	  if (msg->header)
+	    header_destroy (&(msg->header), msg);
 
-	  /* check again for resurrection before free()ing
-	   * the memory maybe it was clone, if yes we can not
-	   * free the pointer.
-	   *
-	   */
+	  /* Attribute.  */
+	  if (msg->attribute)
+	    attribute_destroy (&(msg->attribute), owner);
+	  if (msg->attribute)
+	    attribute_destroy (&(msg->attribute), msg);
+
+	  /* Stream.  */
+	  if (msg->stream)
+	    stream_destroy (&(msg->stream), owner);
+	  if (msg->stream)
+	    stream_destroy (&(msg->stream), msg);
+
+	  /* Body.  */
+	  if (msg->body)
+	    body_destroy (&(msg->body), owner);
+	  if (msg->body)
+	    body_destroy (&(msg->body), msg);
+
+	  /*  Mime.  */
+	  if (msg->mime)
+	    mime_destroy (&(msg->mime));
+
 	  free (msg);
 	}
-      /* loose the link */
+      /* Loose the link */
       *pmsg = NULL;
     }
 }
@@ -94,8 +110,8 @@ message_get_header (message_t msg, header_t *phdr)
   if (msg == NULL || phdr == NULL)
     return EINVAL;
 
-  /* is it a floating mesg */
-  if (msg->header == NULL && msg->owner == NULL)
+  /* Is it a floating mesg */
+  if (msg->header == NULL)
     {
       header_t header;
       int status = header_create (&header, NULL, 0, msg);
@@ -114,8 +130,9 @@ message_set_header (message_t msg, header_t hdr, void *owner)
     return EINVAL;
   if (msg->owner != owner)
      return EACCES;
-  /* make sure we destoy the old if it was own by the mesg */
-  header_destroy (&(msg->header), msg);
+  /* Make sure we destoy the old if it was own by the mesg */
+  /* FIXME:  I do not know if somebody has already a ref on this ? */
+  /* header_destroy (&(msg->header), msg); */
   msg->header = hdr;
   return 0;
 }
@@ -126,7 +143,7 @@ message_get_body (message_t msg, body_t *pbody)
   if (msg == NULL || pbody == NULL)
     return EINVAL;
 
-  /* is it a floating mesg */
+  /* Is it a floating mesg.  */
   if (msg->body == NULL)
     {
       body_t body;
@@ -146,8 +163,9 @@ message_set_body (message_t msg, body_t body, void *owner)
     return EINVAL;
   if (msg->owner != owner)
     return EACCES;
-  /* make sure we destoy the old if it was own by the mesg */
-  body_destroy (&(msg->body), msg);
+  /* Make sure we destoy the old if it was own by the mesg.  */
+  /* FIXME:  I do not know if somebody has already a ref on this ? */
+  /* body_destroy (&(msg->body), msg); */
   msg->body = body;
   return 0;
 }
@@ -205,7 +223,7 @@ message_lines (message_t msg, size_t *plines)
   size_t hlines, blines;
   if (msg == NULL)
     return EINVAL;
-  /* Overload */
+  /* Overload.  */
   if (msg->_lines)
     return msg->_lines (msg, plines);
   if (plines)
@@ -272,11 +290,11 @@ message_from (message_t msg, char *buf, size_t len, size_t *pnwrite)
   if (msg == NULL)
     return EINVAL;
 
-  /* did they provide a way to get it */
+  /* Did they provide a way to get it ?  */
   if (msg->_from)
     return msg->_from (msg, buf, len, pnwrite);
 
-  /* can it be extracted from the From: */
+  /* Can it be extracted from the From:  */
   message_get_header (msg, &header);
   status = header_get_value (header, MU_HEADER_FROM, NULL, 0, &n);
   if (status == 0 && n != 0)
@@ -335,14 +353,14 @@ message_received (message_t msg, char *buf, size_t len, size_t *pnwrite)
   size_t n;
   if (msg == NULL)
     return EINVAL;
-  /* is it provided */
+  /* Is it provided ?  */
   if (msg->_received)
     return msg->_received (msg, buf, len, pnwrite);
 
-  /* FIXME: extract the time from "Date:" */
+  /* FIXME: extract the time from "Date:".  */
 
-  /* catch all */
-  /* FIXME: ctime() is not thread safe use strftime() */
+  /* Catch all.  */
+  /* FIXME: ctime() is not thread safe use strftime().  */
   t = time (NULL);
   n = strlen (ctime (&t));
 
@@ -406,7 +424,7 @@ message_get_uidl (message_t msg, char *buffer, size_t buflen, size_t *pwritten)
 
 int
 message_set_uidl (message_t msg, int (* _get_uidl)
-		  __P ((message_t msg, char *buffer, size_t buflen, size_t *pwritten)), void *owner)
+		  __P ((message_t, char *, size_t, size_t *)), void *owner)
 {
   if (msg == NULL)
     return EINVAL;
@@ -527,7 +545,7 @@ message_register (message_t msg, size_t type,
   if (msg == NULL || action == NULL || type == 0)
     return EINVAL;
 
-  /* find a free spot */
+  /* Find a free spot.  */
   for (i = 0; i < msg->event_num; i++)
     {
       event = &(msg->event[i]);
@@ -633,7 +651,7 @@ message_write (stream_t os, const char *buf, size_t buflen,
   if (os == NULL || (msg = os->owner) == NULL)
     return EINVAL;
 
-  /* skip the obvious */
+  /* Skip the obvious.  */
   if (buf == NULL || *buf == '\0' || buflen == 0)
     {
       if (pnwrite)
@@ -649,7 +667,7 @@ message_write (stream_t os, const char *buf, size_t buflen,
       while (!msg->hdr_done && (nl = memchr (buf, '\n', buflen)) != NULL)
 	{
 	  len = nl - buf + 1;
-	  /* allocate more buffer to hold the header */
+	  /* Allocate more buffer to hold the header.  */
 	  thdr = realloc (msg->hdr_buf, msg->hdr_buflen + len);
 	  if (thdr == NULL)
 	    {
@@ -662,8 +680,8 @@ message_write (stream_t os, const char *buf, size_t buflen,
 	    msg->hdr_buf = thdr;
 	  memcpy (msg->hdr_buf + msg->hdr_buflen, buf, len);
 	  msg->hdr_buflen += len;
-	  /* we detect an empty line .i.e "^\n$" this signal the end
-	   * of the header */
+	  /* We detect an empty line .i.e "^\n$" this signal the end of the
+	     header.  */
 	  if (buf == nl)
 	    {
 	      header_destroy (&(msg->header), msg);
@@ -683,7 +701,7 @@ message_write (stream_t os, const char *buf, size_t buflen,
 	}
     }
 
-  /* message header is not complete but was not a full line */
+  /* Message header is not complete but was not a full line.  */
   if (!msg->hdr_done && buflen > 0)
     {
       char *thdr = realloc (msg->hdr_buf, msg->hdr_buflen + buflen);
@@ -700,7 +718,7 @@ message_write (stream_t os, const char *buf, size_t buflen,
       msg->hdr_buflen += buflen;
       buflen = 0;
     }
-  else if (buflen > 0) /* in the body */
+  else if (buflen > 0) /* In the body.  */
     {
       stream_t bs;
       body_t body;
@@ -735,11 +753,12 @@ message_get_fd (stream_t stream, int *pfd)
   if (stream == NULL || (msg = stream->owner) == NULL)
     return EINVAL;
 
-  /* Probably being lazy, then create a body for the stream */
+  /* Probably being lazy, then create a body for the stream.  */
   if (msg->body == NULL)
     {
       int status = body_create (&body, msg);
       if (status != 0 )
+
         return status;
       msg->body = body;
     }
@@ -758,7 +777,7 @@ extract_addr (const char *s, size_t n, char **presult, size_t *pnwrite)
   if (s == NULL || n == 0 || presult == NULL)
     return EINVAL;
 
-  /* skip the double quotes */
+  /* Skip the double quotes.  */
   p = memchr (s, '\"', n);
   if (p != NULL)
     {
@@ -775,7 +794,7 @@ extract_addr (const char *s, size_t n, char **presult, size_t *pnwrite)
         }
     }
 
-  /*  <name@hostname> ?? */
+  /* <name@hostname> ??  */
   p = memchr (s, '<', n);
   if (p != NULL)
     {
@@ -785,7 +804,7 @@ extract_addr (const char *s, size_t n, char **presult, size_t *pnwrite)
           p2 = memchr (p, ' ', p1 - p);
           if (p2 == NULL)
             {
-              /* the NULL is already accounted for */
+              /* The NULL is already accounted for.  */
               *presult = calloc (1, p1 - p);
               if (*presult == NULL)
                 return ENOMEM;
@@ -796,7 +815,7 @@ extract_addr (const char *s, size_t n, char **presult, size_t *pnwrite)
             }
         }
     }
-  /* name@domain */
+  /* name@domain  */
   p = memchr (s, '@', n);
   if (p != NULL)
     {

@@ -22,8 +22,7 @@
 /* Parsing.
  * The approach is to detect the "From " as start of a
  * new message, give the position of the header and scan
- * until "\n" then set header_end, set body position, if we have
- * a Content-Length field jump to the point if not
+ * until "\n" then set header_end, set body position,
  * scan until we it another "From " and set body_end.
  *
  ************************************
@@ -187,7 +186,7 @@ do \
 (buf[4] == 'U' || buf[4] == 'u') && \
 (buf[5] == 'S' || buf[5] == 's') && (buf[6] == ':'))
 
-/* notification */
+/* Notification.  */
 #define MAILBOX_NOTIFICATION(mbox,which,bailing) \
 do \
 { \
@@ -201,7 +200,7 @@ do \
     } \
 } while (0)
 
-/* notifications ADD_MESG */
+/* Notifications ADD_MESG. */
 #define DISPATCH_ADD_MSG(mbox,mud) \
 do \
 { \
@@ -218,17 +217,12 @@ do \
   unix_ilock (mbox, MU_LOCKER_WRLOCK); \
 } while (0);
 
-/* notification MBX_PROGRESS
- * We do not want to fire up the progress notification
- * every line, it will be too expensive, so we do it
- * arbitrarely every 10 000 Lines.
- * FIXME: maybe this should be configurable.
- */
-/*
- * This is more tricky we can not leave the mum
- * struct incomplete.  So we only tell them about
- * the complete messages.
- */
+/* Notification MBX_PROGRESS
+   We do not want to fire up the progress notification every line, it will be
+   too expensive, so we do it arbitrarely every 10 000 Lines.
+   FIXME: maybe this should be configurable.  */
+/* This is more tricky we can not leave the mum struct incomplete.  So we
+   only tell them about the complete messages.  */
 #define DISPATCH_PROGRESS(mbox,mud) \
 do \
 { \
@@ -249,25 +243,7 @@ do \
     } \
 } while (0)
 
-#if 0
-/* skip a function call, ?? do we gain that much */
-#define ATTRIBUTE_CREATE(attr, m, mbox) \
-do \
-{ \
-  attr = calloc (1, sizeof(*(attr))); \
-  attr->owner = m; \
-  if ((attr) == NULL) \
-    { \
-      unix_iunlock (mbox); \
-      unix_unlock (mbox); \
-      return ENOMEM; \
-    } \
-} while (0)
-#else
-#  define ATTRIBUTE_CREATE
-#endif
-
-/* allocate slots for the new messages */
+/* Allocate slots for the new messages.  */
 /*    size_t num = 2 * ((mud)->messages_count) + 10; */
 #define ALLOCATE_MSGS(mbox,mud) \
 do \
@@ -303,7 +279,7 @@ unix_scan0 (mailbox_t mbox, size_t msgno, size_t *pcount, int do_notif)
   int inheader;
   int inbody;
   off_t total = 0;
-  unix_data_t mud;
+  unix_data_t mud = mbox->data;
   unix_message_t mum = NULL;
   int status = 0;
   size_t lines;
@@ -313,21 +289,20 @@ unix_scan0 (mailbox_t mbox, size_t msgno, size_t *pcount, int do_notif)
   int zn, isfrom = 0;
   char *temp;
 
-  /* sanity */
-  if (mbox == NULL ||
-      (mud = (unix_data_t)mbox->data) == NULL)
+  /* Sanity.  */
+  if (mud == NULL)
     return EINVAL;
 
-  /* save the timestamp and size */
+  /* Save the timestamp and size.  */
   status = stream_size (mbox->stream, &(mud->size));
   if (status != 0)
     return status;
 
-  /* grab the locks */
+  /* Grab the locks.  */
   unix_ilock (mbox, MU_LOCKER_WRLOCK);
   unix_lock (mbox, MU_LOCKER_RDLOCK);
 
-  /* seek to the starting point */
+  /* Seek to the starting point.  */
   if (mud->umessages && msgno > 0 && mud->messages_count > 0
       && msgno <= mud->messages_count)
     {
@@ -352,7 +327,7 @@ unix_scan0 (mailbox_t mbox, size_t msgno, size_t *pcount, int do_notif)
       VALID(buf, temp, isfrom, zn);
       isfrom = (isfrom) ? 1 : 0;
 
-      /* which part of the message are we in ? */
+      /* Which part of the message are we in ?  */
       inheader = isfrom | ((!nl) & inheader);
       inbody = (!isfrom) & (!inheader);
 
@@ -360,10 +335,10 @@ unix_scan0 (mailbox_t mbox, size_t msgno, size_t *pcount, int do_notif)
 
       if (inheader)
 	{
-	  /* new message */
+	  /* New message.  */
 	  if (isfrom)
 	    {
-	      /* signal the end of the body */
+	      /* Signal the end of the body.  */
 	      if (mum && !mum->body_end)
 		{
 		  mum->body_end = total - n - newline;
@@ -371,7 +346,7 @@ unix_scan0 (mailbox_t mbox, size_t msgno, size_t *pcount, int do_notif)
 		  if (do_notif)
 		    DISPATCH_ADD_MSG(mbox, mud);
 		}
-	      /* allocate_msgs will initialize mum */
+	      /* Allocate_msgs will initialize mum.  */
 	      ALLOCATE_MSGS(mbox, mud);
 	      mud->messages_count++;
 	      mum = mud->umessages[mud->messages_count - 1];
@@ -391,10 +366,10 @@ unix_scan0 (mailbox_t mbox, size_t msgno, size_t *pcount, int do_notif)
 	    }
 	}
 
-      /* body */
+      /* Body.  */
       if (inbody)
 	{
-	  /* set the body position */
+	  /* Set the body position.  */
 	  if (mum && !mum->body)
 	    {
 	      mum->body = total - n + nl;
@@ -405,11 +380,11 @@ unix_scan0 (mailbox_t mbox, size_t msgno, size_t *pcount, int do_notif)
 
       newline = nl;
 
-      /* every 50 mesgs update the lock, it should be every minute */
+      /* Every 50 mesgs update the lock, it should be every minute.  */
       if ((mud->messages_count % 50) == 0)
 	unix_touchlock (mbox);
 
-      /* ping them every 1000 lines */
+      /* Ping them every 1000 lines.  */
       if (do_notif)
 	if (((lines +1) % 1000) == 0)
 	  DISPATCH_PROGRESS(mbox, mud);
@@ -429,4 +404,3 @@ unix_scan0 (mailbox_t mbox, size_t msgno, size_t *pcount, int do_notif)
     *pcount = mud->messages_count;
   return status;
 }
-

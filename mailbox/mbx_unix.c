@@ -53,6 +53,12 @@
 #define ATTRIBUTE_IS_DELETED(flag)        (flag & MU_ATTRIBUTE_DELETED)
 #define ATTRIBUTE_IS_EQUAL(flag1, flag2)  (flag1 == flag2)
 
+struct _unix_message;
+struct _unix_data;
+
+typedef struct _unix_data* unix_data_t;
+typedef struct _unix_message* unix_message_t;
+
 static int unix_create (mailbox_t *pmbox, const char *name);
 static void unix_destroy (mailbox_t *pmbox);
 
@@ -64,7 +70,7 @@ struct mailbox_registrar _mailbox_unix_registrar =
 
 /* Keep the position of where the header and body starts and ends.
    old_flags is the "Status:" message.  */
-typedef struct _unix_message
+struct _unix_message
 {
   /* Offset of the parts of the messages in the mailbox.  */
   off_t header_from;
@@ -90,7 +96,7 @@ typedef struct _unix_message
   /* A message attach to it.  */
   message_t message;
 
-} *unix_message_t;
+};
 
 /* The umessages is an array of pointers that contains umessages_count of
    unix_message_t*; umessages[umessages_count].  We do it this because
@@ -98,7 +104,7 @@ typedef struct _unix_message
    the pointers someone has on the messages.  Thanks to <Dave Inglis> for
    pointing this out.  The messages_count is the count number of messages
    parsed so far.  */
-typedef struct _unix_data
+struct _unix_data
 {
   unix_message_t *umessages;
   size_t umessages_count;
@@ -118,8 +124,9 @@ typedef struct _unix_data
   char *date;
   off_t off;
 
-} *unix_data_t;
+};
 
+/* Mailbox implementation.  */
 static int unix_open (mailbox_t mbox, int flag);
 static int unix_close (mailbox_t mbox);
 static int unix_get_message (mailbox_t, size_t msgno, message_t *msg);
@@ -249,6 +256,7 @@ unix_create (mailbox_t *pmbox, const char *name)
   return 0; /* okdoke */
 }
 
+/* Free all ressources associated with Unix mailbox.  */
 static void
 unix_destroy (mailbox_t *pmbox)
 {
