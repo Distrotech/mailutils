@@ -37,21 +37,23 @@ extern "C" {
 struct _body;
 typedef struct _body *body_t;
 
-extern int body_create       __P ((body_t *, void *owner));
-extern void body_destroy     __P ((body_t *, void *owner));
-extern void * body_get_owner __P ((body_t));
+extern int body_create         __P ((body_t *, void *owner));
+extern void body_destroy       __P ((body_t *, void *owner));
+extern void * body_get_owner   __P ((body_t));
+extern int body_is_modified    __P ((body_t));
+extern int body_clear_modified __P ((body_t));
 
-extern int body_get_stream   __P ((body_t, stream_t *));
-extern int body_set_stream   __P ((body_t, stream_t, void *owner));
+extern int body_get_stream     __P ((body_t, stream_t *));
+extern int body_set_stream     __P ((body_t, stream_t, void *owner));
 
-extern int body_get_filename __P ((body_t, char *, size_t, size_t *));
+extern int body_get_filename   __P ((body_t, char *, size_t, size_t *));
 
-extern int body_size         __P ((body_t, size_t*));
-extern int body_set_size     __P ((body_t, int (*_size)
-				   __P ((body_t, size_t*)), void *owner));
-extern int body_lines        __P ((body_t, size_t *));
-extern int body_set_lines    __P ((body_t, int (*_lines)
-				   __P ((body_t, size_t*)), void *owner));
+extern int body_size           __P ((body_t, size_t*));
+extern int body_set_size       __P ((body_t, int (*_size)
+				     __P ((body_t, size_t*)), void *owner));
+extern int body_lines          __P ((body_t, size_t *));
+extern int body_set_lines      __P ((body_t, int (*_lines)
+				     __P ((body_t, size_t*)), void *owner));
 
 #ifdef _cplusplus
 }

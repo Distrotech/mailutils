@@ -52,6 +52,7 @@ extern void message_destroy         __P ((message_t *, void *owner));
 
 extern void * message_get_owner     __P ((message_t));
 extern int message_is_modified      __P ((message_t));
+extern int message_clear_modified   __P ((message_t));
 extern int message_set_mailbox      __P ((message_t, mailbox_t));
 
 extern int message_ref              __P ((message_t));

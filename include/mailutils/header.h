@@ -38,6 +38,7 @@ extern "C" {
 #define MU_HEADER_RECEIVED              "Received"
 #define MU_HEADER_DATE                  "Date"
 #define MU_HEADER_FROM                  "From"
+#define MU_HEADER_SENDER                "Sender"
 #define MU_HEADER_RESENT_FROM           "Resent-From"
 #define MU_HEADER_SUBJECT               "Subject"
 #define MU_HEADER_SENDER                "Sender"
@@ -53,13 +54,18 @@ extern "C" {
 #define MU_HEADER_MESSAGE_ID            "Message-ID"
 #define MU_HEADER_RESENT_MESSAGE_ID     "Resent-Message-ID"
 #define MU_HEADER_IN_REPLY_TO           "In-Reply-To"
+#define MU_HEADER_REFERENCE             "Reference"
 #define MU_HEADER_ENCRYPTED             "Encrypted"
 #define MU_HEADER_PRECEDENCE            "Precedence"
 #define MU_HEADER_STATUS                "Status"
 #define MU_HEADER_CONTENT_LENGTH        "Content-Length"
-#define MU_HEADER_CONTENT_TYPE          "Content-Type"
+#define MU_HEADER_CONTENT_LANGUAGE      "Content-Language"
 #define MU_HEADER_CONTENT_ENCODING      "Content-transfer-encoding"
+#define MU_HEADER_CONTENT_TYPE          "Content-Type"
 #define MU_HEADER_MIME_VERSION          "MIME-Version"
+#define MU_HEADER_X_UIDL                "X-UIDL"
+#define MU_HEADER_X_UID                 "X-UID"
+#define MU_HEADER_X_IMAPBASE             "X-IMAPbase"
 
 /* Mime support header attribute */
 
@@ -67,46 +73,47 @@ extern "C" {
 struct _header;
 typedef struct _header * header_t;
 
-extern int header_create        __P ((header_t *, const char *,
+extern int header_create         __P ((header_t *, const char *,
 				      size_t, void *));
-extern void header_destroy      __P ((header_t *, void *));
-extern void * header_get_owner  __P ((header_t));
+extern void header_destroy       __P ((header_t *, void *));
+extern void * header_get_owner   __P ((header_t));
 
-extern int header_is_modified   __P ((header_t));
+extern int header_is_modified    __P ((header_t));
+extern int header_clear_modified __P ((header_t));
 
-extern int header_set_value     __P ((header_t, const char *,
-				      const char *, int));
-extern int header_set_set_value __P ((header_t, int (*_set_value)
-				      __P ((header_t, const char *,
-					    const char *, int)), void *));
+extern int header_set_value      __P ((header_t, const char *,
+				       const char *, int));
+extern int header_set_set_value  __P ((header_t, int (*_set_value)
+				       __P ((header_t, const char *,
+					     const char *, int)), void *));
 
-extern int header_get_value     __P ((header_t, const char *, char *,
-				      size_t, size_t *));
-extern int header_set_get_value __P ((header_t, int (*_get_value)
-				      __P ((header_t, const char *, char *,
-					    size_t, size_t *)), void *));
+extern int header_get_value      __P ((header_t, const char *, char *,
+				       size_t, size_t *));
+extern int header_set_get_value  __P ((header_t, int (*_get_value)
+				       __P ((header_t, const char *, char *,
+					     size_t, size_t *)), void *));
 extern int header_set_get_fvalue __P ((header_t, int (*_get_value)
 				       __P ((header_t, const char *, char *,
 					     size_t, size_t *)), void *));
 
-extern int header_get_stream    __P ((header_t, stream_t *));
-extern int header_set_stream    __P ((header_t, stream_t, void *));
+extern int header_get_stream     __P ((header_t, stream_t *));
+extern int header_set_stream     __P ((header_t, stream_t, void *));
 
-extern int header_size          __P ((header_t, size_t *));
-extern int header_set_size      __P ((header_t, int (*_size)
-				      __P ((header_t, size_t *)), void *));
+extern int header_size           __P ((header_t, size_t *));
+extern int header_set_size       __P ((header_t, int (*_size)
+				       __P ((header_t, size_t *)), void *));
 
-extern int header_lines         __P ((header_t, size_t *));
-extern int header_set_lines     __P ((header_t,
-				      int (*_lines) __P ((header_t,
+extern int header_lines          __P ((header_t, size_t *));
+extern int header_set_lines      __P ((header_t,
+				       int (*_lines) __P ((header_t,
 							  size_t *)),
-				      void *));
+				       void *));
 
-extern int header_set_fill      __P ((header_t,
-				      int (*_fill) __P ((header_t, char *,
-							 size_t, off_t,
-							 size_t *)),
-				      void *owner));
+extern int header_set_fill       __P ((header_t,
+				       int (*_fill) __P ((header_t, char *,
+							  size_t, off_t,
+							  size_t *)),
+				       void *owner));
 #ifdef _cplusplus
 }
 #endif

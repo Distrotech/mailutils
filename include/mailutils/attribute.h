@@ -48,6 +48,7 @@ extern int attribute_create          __P ((attribute_t *, void *));
 extern void attribute_destroy        __P ((attribute_t *, void *));
 extern void * attribute_get_owner    __P ((attribute_t));
 extern int attribute_is_modified     __P ((attribute_t));
+extern int attribute_clear_modified  __P ((attribute_t));
 
 extern int attribute_is_userflag     __P ((attribute_t, int));
 extern int attribute_is_seen         __P ((attribute_t));
