@@ -1,3 +1,26 @@
+2002-11-22  Sergey Poznyakoff 
+
+	* configure.ac: Added check for installed libltdl. Bumped
+	  version number to 0.1.3.
+	* mailbox/mu_argp.c (mu_conf_option): Added HAVE_LIBLTDL
+	* examples/numaddr.c: New file. Sample loadable test for sieve.
+	* examples/Makefile.am: Added numaddr.c
+          (AM_LDFLAGS): Removed libmailutils. It's not used by examples.
+	* libsieve/load.c: New file. Support for loadable extensions for
+	  sieve.
+	* libsieve/Makefile.am: Added load.c
+	* libsieve/require.c (sieve_require): Implemented loadable tests.
+	* libsieve/comparator.c (sieve_require_comparator): Implemented
+	  loadable comparators.
+	* include/mailutils/libsieve.h (sieve_require_action)
+	  (sieve_require_test): New functions.
+	* libsieve/register.c: Likewise.
+	* sieve/Makefile.am (sieve_LDFLAGS): Added -export-dynamic
+	* sieve/sieve.c (main): Removed unneded goto. Added call
+	  to sieve_machine_destroy at the end.
+	* sieve/testsuite/Reject: Use regexp instead of hardcoded
+	  version number.
+	
 2002-11-21  Sergey Poznyakoff 
 
 	* mailbox/file_stream.c (_file_destroy): Bugfix. Do not close the
