@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2001 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001, 2003, 2005 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -64,6 +64,9 @@ imap4d_select0 (struct imap4d_command *command, char *arg, int flags)
     {
       select_flags = flags;
       state = STATE_SEL;
+
+      imap4d_set_observer (mbox);
+      
       if ((status = imap4d_select_status ()) == 0)
 	{
 	  free (mailbox_name);
