@@ -1,3 +1,15 @@
+2003-09-18  Sergey Poznyakoff 
+
+	* mailbox/mh/mbox.c (_mh_message_delete): Zero out the
+	msg_pool slot occupied by the message being deleted.
+	(mh_pool_lookup): On success return the address of the
+	msg_pool slot.
+
+	* pop3d/pop3d.h (process_cleanup): New function
+	* pop3d/signal.c: Likewise
+	* pop3d/pop3d.c (pop3d_daemon): Collect finished children
+	synchronously.
+
 2003-09-16  Sergey Poznyakoff 
 
 	* mh/repl.c (opt_handler): Force RCPT_ALL if --group is given.
