@@ -973,6 +973,7 @@
 	(saved-umask (umask #o077)))
     (sieve-save-program temp-file)
     (load temp-file)
+    (delete-file temp-file)	
     (umask saved-umask))))
 
 
