@@ -22,6 +22,7 @@
 # include <config.h>
 #endif
 #include <mu_dbm.h>
+#include <mu_asprintf.h>
 
 /* The implementation */
 #define	IMPL		"GNU POP3 Daemon"
@@ -170,8 +171,6 @@ extern mailbox_t mbox;
 extern int state;
 extern char *username;
 extern char *maildir;
-extern FILE *ifile;
-extern FILE *ofile;
 extern char *md5shared;
 extern volatile size_t children;
 extern struct daemon_param daemon_param;
@@ -189,7 +188,6 @@ extern int pop3d_list           __P ((const char *));
 extern int pop3d_lock           __P ((void));
 extern int pop3d_noop           __P ((const char *));
 extern int pop3d_quit           __P ((const char *));
-extern char *pop3d_readline     __P ((char *, int));
 extern int pop3d_retr           __P ((const char *));
 extern int pop3d_rset           __P ((const char *));
 extern RETSIGTYPE pop3d_sigchld __P ((int));
@@ -202,6 +200,10 @@ extern int pop3d_user           __P ((const char *));
 extern int pop3d_unlock         __P ((void));
 extern void pop3d_outf          __P ((const char *fmt, ...));
 
-extern struct passwd * getpwnam_ip_virtual   __P ((const char *u));
-extern struct passwd * getpwnam_host_virtual __P ((const char *u));
+extern void pop3d_setio         __P ((FILE *in, FILE *out));
+extern char *pop3d_readline     __P ((char *, size_t));
+extern void pop3d_flush_output  __P ((void));
+
+extern int pop3d_is_master      __P ((void));
+     
 #endif /* _POP3D_H */
