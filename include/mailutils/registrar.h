@@ -114,7 +114,6 @@ extern record_t sendmail_record;
   list_append (bookie, imap_record);\
   list_append (bookie, mh_record);\
   list_append (bookie, maildir_record);\
-  list_append (bookie, nntp_record);\
 } while (0)
 
 #define mu_register_local_mbox_formats() do {\
