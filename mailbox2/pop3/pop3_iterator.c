@@ -162,7 +162,7 @@ p_next (iterator_t iterator)
 	if (buf == NULL)
 	  return MU_ERROR_NO_MEMORY;
 
-	p_iterator->item = calloc (1, sizeof (struct list_item));
+	p_iterator->item = calloc (1, sizeof (struct pop3_uidl_item));
 	if (p_iterator->item == NULL)
 	  return MU_ERROR_NO_MEMORY;
 
@@ -179,8 +179,8 @@ p_next (iterator_t iterator)
 	  space[strlen (space) - 1] = '\0';
 	if (space == NULL)
 	  space = (char *)"";
-	((struct uidl_item *)(p_iterator->item))->msgno = msgno;
-	((struct uidl_item *)(p_iterator->item))->uidl = strdup (space);
+	((struct pop3_uidl_item *)(p_iterator->item))->msgno = msgno;
+	((struct pop3_uidl_item *)(p_iterator->item))->uidl = strdup (space);
 	free (buf);
       }
       break;
@@ -194,7 +194,7 @@ p_next (iterator_t iterator)
 	if (buf == NULL)
 	  return MU_ERROR_NO_MEMORY;
 
-	p_iterator->item = calloc (1, sizeof (struct list_item));
+	p_iterator->item = calloc (1, sizeof (struct pop3_list_item));
 	if (p_iterator->item == NULL)
 	  return MU_ERROR_NO_MEMORY;
 
@@ -202,8 +202,8 @@ p_next (iterator_t iterator)
 	pop3_readline (p_iterator->pop3, buf, n + 1, NULL);
 	size = msgno = 0;
 	sscanf (buf, "%d %d", &msgno, &size);
-	((struct list_item *)(p_iterator->item))->msgno = msgno;
-	((struct list_item *)(p_iterator->item))->size = size;
+	((struct pop3_list_item *)(p_iterator->item))->msgno = msgno;
+	((struct pop3_list_item *)(p_iterator->item))->size = size;
 	free (buf);
       }
       break;
@@ -235,7 +235,7 @@ p_current (iterator_t iterator, void *item)
 	  break;
 
 	case POP3_LIST_RX:
-	  *((struct list_item **)item) = p_iterator->item;
+	  *((struct pop3_list_item **)item) = p_iterator->item;
 	  break;
 
 	default:

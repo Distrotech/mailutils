@@ -1,4 +1,14 @@
-2001-06-09 18:44  sroberts
+2001-06-09  Alain Magloire
+
+	* mailbox2/pop3/pop3_open.c: Remove for pop3_connect.c
+	* mailbox2/pop3/pop3_close.c: Remove for pop3_disconnect.c
+	* mailbox2/pop3/pop3_connect.c: New.
+	* mailbox2/pop3/pop3_disconnect.c: New.
+	* mailbox2/include/mailutiils/error.h: New macro
+	MU_ERROR_OPERATION_CANCELED
+	* mailbox2/include/mailutils/pop3.h: Move the enum state in sys/pop3.h
+
+2001-06-09 Sam Roberts
 
 	* rfc1738.txt, rfc2045.txt, rfc2046.txt, rfc2047.txt, rfc2049.txt,
 	rfc2088.txt, rfc2111.txt, rfc2192.txt, rfc2193.txt, rfc2221.txt,

@@ -163,14 +163,15 @@ static int
 p_open (stream_t stream, const char *h, int p, int f)
 {
   struct p_stream *p_stream = (struct p_stream *)stream;
-  return pop3_open (p_stream->pop3, h, p, f);
+  (void)f;
+  return pop3_connect (p_stream->pop3, h, p);
 }
 
 static int
 p_close (stream_t stream)
 {
   struct p_stream *p_stream = (struct p_stream *)stream;
-  return pop3_close (p_stream->pop3);
+  return pop3_disconnect (p_stream->pop3);
 }
 
 static int

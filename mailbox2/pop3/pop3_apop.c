@@ -25,6 +25,10 @@
 #include <mailutils/sys/pop3.h>
 #include <mailutils/md5-rsa.h>
 
+/*
+  APOP name digest
+  a string identifying a mailbox and a MD5 digest string (both required)
+*/
 int
 pop3_apop (pop3_t pop3, const char *user, const char *secret)
 {
@@ -33,12 +37,13 @@ pop3_apop (pop3_t pop3, const char *user, const char *secret)
   if (pop3 == NULL)
     return MU_ERROR_INVALID_PARAMETER;
 
-  /* The server did not offer a time stamp, bail early.  */
+  /* The server did not offer a time stamp in the greeting, bailout early.  */
   if (pop3->timestamp == NULL)
     return MU_ERROR_NOT_SUPPORTED;
 
   switch (pop3->state)
     {
+      /* Generate the md5 from the secret and timestamp.  */
     case POP3_NO_STATE:
       {
 	MD5_CTX md5context;
@@ -50,7 +55,6 @@ pop3_apop (pop3_t pop3, const char *user, const char *secret)
 	if (user == NULL || secret == NULL)
 	  return MU_ERROR_INVALID_PARAMETER;
 
-	/* Generate md5 digest. */
 	MD5Init (&md5context);
 	MD5Update (&md5context, (unsigned char *)pop3->timestamp,
 		   strlen (pop3->timestamp));
@@ -76,6 +80,11 @@ pop3_apop (pop3_t pop3, const char *user, const char *secret)
       POP3_CHECK_EAGAIN (pop3, status);
       POP3_CHECK_OK (pop3);
       pop3->state = POP3_NO_STATE;
+      break;
+
+      /* They must deal with the error first by reopening.  */
+    case POP3_ERROR:
+      status = MU_ERROR_OPERATION_CANCELED;
       break;
 
     default:

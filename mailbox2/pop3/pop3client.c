@@ -31,13 +31,13 @@ typedef struct {
 
 /* The names of functions that actually do the manipulation. */
 int com_apop (char *);
-int com_close (char *);
+int com_disconnect (char *);
 int com_dele (char *);
 int com_exit (char *);
 int com_help (char *);
 int com_list (char *);
 int com_noop (char *);
-int com_open (char *);
+int com_connect (char *);
 int com_pass (char *);
 int com_quit (char *);
 int com_retr (char *);
@@ -58,7 +58,7 @@ int valid_argument (const char *, char *);
 
 COMMAND commands[] = {
   { "apop", com_apop, "Authenticate with APOP: APOP user secret" },
-  { "close", com_close, "Close connection: close" },
+  { "disconnect", com_disconnect, "Close connection: disconnect" },
   { "dele", com_dele, "Mark message: DELE msgno" },
   { "exit", com_exit, "exit program" },
   { "help", com_help, "Display this text" },
@@ -66,7 +66,7 @@ COMMAND commands[] = {
   { "list", com_list, "List messages: LIST [msgno]" },
   { "noop", com_noop, "Send no operation: NOOP" },
   { "pass", com_pass, "Send passwd: PASS [passwd]" },
-  { "open", com_open, "Open connection: open hostname [port]" },
+  { "connect", com_connect, "Open connection: connect hostname [port]" },
   { "quit", com_quit, "Go to Update state : QUIT" },
   { "retr", com_retr, "Dowload message: RETR msgno" },
   { "rset", com_rset, "Unmark all messages: RSET" },
@@ -301,7 +301,7 @@ print_response ()
       fprintf (stderr, "%s\n", response);
     }
   else
-    fprintf (stderr, "Not connected, try `open' first\n");
+    fprintf (stderr, "Not connected, try `connect' first\n");
   return 0;
 }
 
@@ -342,7 +342,7 @@ com_uidl (char *arg)
 	       !iterator_is_done (uidl_iterator);
 	       iterator_next (uidl_iterator))
 	    {
-	      struct uidl_item *pl;
+	      struct pop3_uidl_item *pl;
 	      iterator_current (uidl_iterator, (void *)&pl);
 	      printf ("Msg: %d UIDL: %s\n", pl->msgno, pl->uidl);
 	      free (pl);
@@ -375,7 +375,7 @@ com_list (char *arg)
 	       !iterator_is_done (list_iterator);
 	       iterator_next (list_iterator))
 	    {
-	      struct list_item *pl;
+	      struct pop3_list_item *pl;
 	      iterator_current (list_iterator, (void *)&pl);
 	      printf ("Msg: %d Size: %d\n", pl->msgno, pl->size);
 	      free (pl);
@@ -576,23 +576,23 @@ com_retr (char *arg)
 }
 
 int
-com_open (char *arg)
+com_connect (char *arg)
 {
   char host[256];
   int port = 0;
   int status;
-  if (!valid_argument ("open", arg))
+  if (!valid_argument ("connect", arg))
     return 1;
   *host = '\0';
   sscanf (arg, "%256s %d", host, &port);
-  if (!valid_argument ("open", host))
+  if (!valid_argument ("connect", host))
     return 1;
   if (pop3)
-    com_close (NULL);
+    com_disconnect (NULL);
   status = pop3_create (&pop3);
   if (status == 0)
     {
-      pop3_open (pop3, host, port, MU_STREAM_RDWR);
+      pop3_connect (pop3, host, port);
       print_response ();
     }
   else
@@ -601,12 +601,12 @@ com_open (char *arg)
 }
 
 int
-com_close (char *arg)
+com_disconnect (char *arg)
 {
   (void) arg;
   if (pop3)
     {
-      pop3_close (pop3);
+      pop3_disconnect (pop3);
       pop3_destroy (pop3);
       pop3 = NULL;
     }
@@ -620,6 +620,7 @@ com_quit (char *arg)
   if (pop3)
     {
       pop3_quit (pop3);
+      pop3_disconnect (pop3);
       print_response ();
     }
   return 0;
@@ -631,7 +632,7 @@ com_exit (char *arg)
   (void)arg;
   if (pop3)
     {
-      pop3_close (pop3);
+      pop3_disconnect (pop3);
       pop3_destroy (pop3);
     }
   done = 1;

@@ -25,7 +25,7 @@
 
 /* Sudden death.  */
 int
-pop3_close (pop3_t pop3)
+pop3_disconnect (pop3_t pop3)
 {
   /* Sanity checks.  */
   if (pop3 == NULL)

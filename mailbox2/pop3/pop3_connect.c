@@ -28,9 +28,10 @@
 
 static int pop3_sleep (int seconds);
 
-/* Open the connection to the server.  */
+/* Open the connection to the server. The server sends an affirmative greeting
+   that may contain a timestamp for APOP.  */
 int
-pop3_open (pop3_t pop3, const char *host, unsigned int port, int flags)
+pop3_connect (pop3_t pop3, const char *host, unsigned int port)
 {
   int status = 0;
 
@@ -47,7 +48,6 @@ pop3_open (pop3_t pop3, const char *host, unsigned int port, int flags)
     {
     default:
       /* __Fallthrough__, they want to clear an error.  */
-      /* status = MU_ERROR_OPERATION_IN_PROGRESS; */
     case POP3_NO_STATE:
       /* Create the networking stack.  */
       if (pop3->stream == NULL)
@@ -62,19 +62,21 @@ pop3_open (pop3_t pop3, const char *host, unsigned int port, int flags)
           /* This is sudden death: for many pop servers, it is important to
              let them time to remove locks or move the .user.pop files.  This
              happen when we do close() and immediately open().  For example,
-	     the user does not want to read the entire file, and wants start
+	     the user does not want to read the entire file, and wants to start
 	     to read a new message, closing the connection and immediately
 	     contacting the server again, and he'll end up having
 	     "-ERR Mail Lock busy" or something similar. To prevent this race
-	     condition we sleep 2 seconds. */
-	  stream_close (pop3->stream);
+	     condition we sleep 2 seconds.  This really obvious for in
+	     environment where QPopper is use, the user as a big mailbox. */
+	  pop3_disconnect (pop3);
           pop3_sleep (2);
 	}
-      pop3->state = POP3_OPEN;
+      pop3->state = POP3_CONNECT;
 
-    case POP3_OPEN:
+    case POP3_CONNECT:
       /* Establish the connection.  */
-      status = stream_open (pop3->stream, host, port, flags);
+      status = stream_open (pop3->stream, host, port,
+			    MU_STREAM_READ|MU_STREAM_WRITE);
       POP3_CHECK_EAGAIN (pop3, status);
       pop3->acknowledge = 0;
       pop3->state = POP3_GREETINGS;

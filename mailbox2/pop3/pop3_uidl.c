@@ -89,6 +89,11 @@ pop3_uidl (pop3_t pop3, unsigned msgno, char **uidl)
 	}
       break;
 
+      /* They must deal with the error first by reopening.  */
+    case POP3_ERROR:
+      status = MU_ERROR_OPERATION_CANCELED;
+      break;
+
     default:
       status = MU_ERROR_OPERATION_IN_PROGRESS;
     }

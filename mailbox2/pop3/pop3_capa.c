@@ -56,6 +56,11 @@ pop3_capa (pop3_t pop3, iterator_t *piterator)
       POP3_CHECK_ERROR (pop3, status);
       break;
 
+      /* They must deal with the error first by reopening.  */
+    case POP3_ERROR:
+      status = MU_ERROR_OPERATION_CANCELED;
+      break;
+
     default:
       status = MU_ERROR_OPERATION_IN_PROGRESS;
     }

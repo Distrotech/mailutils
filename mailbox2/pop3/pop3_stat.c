@@ -62,6 +62,11 @@ pop3_stat (pop3_t pop3, unsigned *msg_count, size_t *size)
       sscanf (pop3->ack.buf, "+OK %d %d", msg_count, size);
       break;
 
+      /* They must deal with the error first by reopening.  */
+    case POP3_ERROR:
+      status = MU_ERROR_OPERATION_CANCELED;
+      break;
+
     default:
       status = MU_ERROR_OPERATION_IN_PROGRESS;
     }

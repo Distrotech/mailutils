@@ -56,6 +56,11 @@ pop3_pass (pop3_t pop3, const char *passwd)
       pop3->state = POP3_NO_STATE;
       break;
 
+      /* They must deal with the error first by reopening.  */
+    case POP3_ERROR:
+      status = MU_ERROR_OPERATION_CANCELED;
+      break;
+
     default:
       status = MU_ERROR_OPERATION_IN_PROGRESS;
     }

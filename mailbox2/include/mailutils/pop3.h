@@ -26,34 +26,13 @@ __MAILUTILS_BEGIN_DECLS
 struct _pop3;
 typedef struct _pop3* pop3_t;
 
-enum pop3_state
-{
-  POP3_NO_STATE,
-  POP3_OPEN, POP3_GREETINGS,
-  POP3_APOP, POP3_APOP_ACK,
-  POP3_AUTH, POP3_AUTH_ACK,
-  POP3_CAPA, POP3_CAPA_ACK, POP3_CAPA_RX,
-  POP3_DELE, POP3_DELE_ACK,
-  POP3_LIST, POP3_LIST_ACK, POP3_LIST_RX,
-  POP3_NOOP, POP3_NOOP_ACK,
-  POP3_PASS, POP3_PASS_ACK,
-  POP3_QUIT, POP3_QUIT_ACK,
-  POP3_RETR, POP3_RETR_ACK, POP3_RETR_RX,
-  POP3_RSET, POP3_RSET_ACK,
-  POP3_STAT, POP3_STAT_ACK,
-  POP3_TOP,  POP3_TOP_ACK,  POP3_TOP_RX,
-  POP3_UIDL, POP3_UIDL_ACK, POP3_UIDL_RX,
-  POP3_USER, POP3_USER_ACK,
-  POP3_DONE, POP3_UNKNOWN,  POP3_ERROR
-};
-
-struct list_item
+struct pop3_list_item
 {
   unsigned int msgno;
   unsigned int size;
 };
 
-struct uidl_item
+struct pop3_uidl_item
 {
   unsigned int msgno;
   char *uidl;
@@ -62,16 +41,14 @@ struct uidl_item
 extern int  pop3_create      __P ((pop3_t *));
 extern void pop3_destroy     __P ((pop3_t));
 
-extern int  pop3_open        __P ((pop3_t, const char *, unsigned int, int));
-extern int  pop3_close       __P ((pop3_t));
+extern int  pop3_connect     __P ((pop3_t, const char *, unsigned int));
+extern int  pop3_disconnect  __P ((pop3_t));
 
 extern int  pop3_set_stream  __P ((pop3_t, stream_t));
 extern int  pop3_get_stream  __P ((pop3_t, stream_t *));
 
 extern int  pop3_set_timeout __P ((pop3_t, unsigned int));
 extern int  pop3_get_timeout __P ((pop3_t, unsigned int *));
-
-extern int  pop3_get_state   __P ((pop3_t, enum pop3_state *));
 
 extern int  pop3_apop        __P ((pop3_t, const char *, const char *));
 extern int  pop3_capa        __P ((pop3_t, iterator_t *));

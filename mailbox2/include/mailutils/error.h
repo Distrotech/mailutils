@@ -113,6 +113,12 @@ extern "C" {
 # define MU_ERROR_INVALID_SEEK (MU_ERROR_RANGE + 12)
 #endif
 
+#if defined (ECANCELED)
+# define MU_ERROR_OPERATION_CANCELED ECANCELED
+#else
+# define MU_ERROR_OPERATION_CANCELED (MU_ERROR_RANGE + 13)
+#endif
+
 typedef int (*error_pfn_t) __P ((const char *fmt, va_list ap));
 
 extern int mu_error __P ((const char *fmt, ...));
