@@ -273,6 +273,15 @@ AC_REPLACE_FUNCS(fgetpwent getpass setenv snprintf strncasecmp \
 AC_CHECK_FUNCS(mkstemp sigaction sysconf getdelim vsyslog setreuid \
  setresuid seteuid vfork _exit)
 
+AC_FUNC_SETVBUF_REVERSED
+AH_BOTTOM([
+#if defined (SETVBUF_REVERSED)
+# define SETVBUF(str,buf,mode,size) setvbuf(str,mode,buf,size)
+#else
+# define SETVBUF(str,buf,mode,size) setvbuf(str,buf,mode,size)
+#endif
+])
+
 MU_CHECK_FUNCS(strtok_r getline strndup strnlen strchrnul)
 
 ## Check for presence of utmp.h and utmp-related functions
@@ -362,11 +371,13 @@ fi
 MU_ENABLE_SUPPORT(imap)
 MU_ENABLE_SUPPORT(pop)
 
-AC_SUBST(MHPROGRAMS)
-AC_SUBST(MHLIBRARIES)
-MU_ENABLE_SUPPORT(mh, [MHPROGRAMS='$(MHPROGRAMS)'; MHLIBRARIES='$(MHLIBRARIES)'])
-AC_SUBST(SMTPPROGRAMS)
-MU_ENABLE_SUPPORT(smtp, [SMTPPROGRAMS='$(SMTPPROGRAMS)'])
+AC_SUBST(BUILD_MH_PROGRAMS)
+AC_SUBST(BUILD_MH_LIBRARIES)
+MU_ENABLE_SUPPORT(mh, [BUILD_MH_PROGRAMS='$(PROGRAMS_MH)'; BUILD_MH_LIBRARIES='$(LIBRARIES_MH)'])
+AC_SUBST(BUILD_SMTP_PROGRAMS)
+AC_SUBST(RUN_SMTP_DEJATOOL)
+MU_ENABLE_SUPPORT(smtp, [BUILD_SMTP_PROGRAMS='$(PROGRAMS_SMTP)'
+RUN_SMTP_DEJATOOL='$(SMTP_DEJATOOL)'])
 MU_ENABLE_SUPPORT(sendmail)
 
 if test x"$testpam" = x"yes"; then
@@ -589,6 +600,7 @@ AC_CONFIG_FILES([Makefile mailutils.spec
  comsat/Makefile
  mail.local/Makefile
  mail.remote/Makefile
+ mail.remote/testsuite/Makefile
  dotlock/Makefile
  mh/Makefile
  ])
