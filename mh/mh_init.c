@@ -24,7 +24,7 @@
 #include <stdarg.h>
 
 char *current_folder = NULL;
-size_t current_message;
+size_t current_message = 0;
 char *ctx_name;
 header_t ctx_header;
 header_t profile_header;
@@ -42,7 +42,6 @@ void
 mh_init ()
 {
   list_t bookie;
-  char *mh_sequences_name;
 
   /* Register mailbox formats */
   registrar_get_list (&bookie);
@@ -57,7 +56,13 @@ mh_init ()
 
   /* Read user's profile */
   mh_read_profile ();
-  
+}
+
+void
+mh_init2 ()
+{
+  char *mh_sequences_name;
+
   /* Set MH context */
   if (current_folder)
     current_folder = mu_tilde_expansion (current_folder, "/", NULL);
@@ -424,3 +429,25 @@ mh_message_number (message_t msg, size_t *pnum)
 {
   return message_get_uid (msg, pnum);	
 }
+
+mailbox_t
+mh_open_folder ()
+{
+  mailbox_t mbox = NULL;
+  
+  if (mailbox_create_default (&mbox, current_folder))
+    {
+      mh_error ("Can't create mailbox %s: %s",
+		current_folder, strerror (errno));
+      exit (1);
+    }
+
+  if (mailbox_open (mbox, MU_STREAM_READ))
+    {
+      mh_error ("Can't open mailbox %s: %s", current_folder, strerror (errno));
+      exit (1);
+    }
+
+  return mbox;
+}
+
