@@ -117,7 +117,7 @@ SCM_DEFINE (mu_mailbox_open, "mu-mailbox-open", 2, 0, 0,
   SCM_ASSERT (SCM_NIMP (MODE) && SCM_STRINGP (MODE),
 	      MODE, SCM_ARG2, FUNC_NAME);
 
-  for (mode_str = SCM_CHARS (MODE); *mode_str; mode_str++)
+  for (mode_str = SCM_STRING_CHARS (MODE); *mode_str; mode_str++)
     switch (*mode_str)
       {
       case 'r':
@@ -137,7 +137,7 @@ SCM_DEFINE (mu_mailbox_open, "mu-mailbox-open", 2, 0, 0,
   if (mode & MU_STREAM_READ && mode & MU_STREAM_WRITE)
     mode = (mode & ~(MU_STREAM_READ | MU_STREAM_WRITE)) | MU_STREAM_RDWR;
 
-  if (mailbox_create_default (&mbox, SCM_CHARS (URL)) != 0)
+  if (mailbox_create_default (&mbox, SCM_STRING_CHARS (URL)) != 0)
     return SCM_BOOL_F;
 
   if (mailbox_open (mbox, mode) != 0)
@@ -197,7 +197,7 @@ SCM_DEFINE (mu_mailbox_get_port, "mu-mailbox-get-port", 2, 0, 0,
   if (mailbox_get_stream (mum->mbox, &stream))
     return SCM_BOOL_F;
   return mu_port_make_from_stream (MBOX, stream,
-				   scm_mode_bits (SCM_CHARS (MODE)));    
+				   scm_mode_bits (SCM_STRING_CHARS (MODE)));    
 }
 #undef FUNC_NAME
 

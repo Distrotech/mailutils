@@ -41,12 +41,12 @@ _get_address_part (const char *func_name, address_get_fp fun,
   else
     num = 1;
 
-  str = SCM_CHARS (ADDRESS);
+  str = SCM_STRING_CHARS (ADDRESS);
   length = strlen (str);
   if (length == 0)
     return scm_makfrom0str("");
   
-  if (address_create (&addr, SCM_CHARS (ADDRESS)))
+  if (address_create (&addr, SCM_STRING_CHARS (ADDRESS)))
     return SCM_BOOL_F;
 
   str = malloc (length + 1);
@@ -126,7 +126,7 @@ SCM_DEFINE (mu_address_get_count, "mu-address-get-count", 1, 0, 0,
   SCM_ASSERT (SCM_NIMP (ADDRESS) && SCM_STRINGP (ADDRESS),
 	      ADDRESS, SCM_ARG1, FUNC_NAME);
 
-  if (address_create (&addr, SCM_CHARS (ADDRESS)))
+  if (address_create (&addr, SCM_STRING_CHARS (ADDRESS)))
     return SCM_MAKINUM(0);
 
   address_get_count (addr, &count);
@@ -150,7 +150,7 @@ SCM_DEFINE (mu_username_to_email, "mu-username->email", 0, 1, 0,
   else {
     SCM_ASSERT (SCM_NIMP (NAME) && SCM_STRINGP (NAME),
 		NAME, SCM_ARG1, FUNC_NAME);
-    name = SCM_CHARS (NAME);
+    name = SCM_STRING_CHARS (NAME);
   }
 
   email = mu_get_user_email (name);

@@ -174,7 +174,7 @@ SCM_DEFINE (mu_body_write, "mu-body-write", 2, 0, 0,
 	return SCM_BOOL_F;
     }
 
-  ptr = SCM_CHARS (TEXT);
+  ptr = SCM_STRING_CHARS (TEXT);
   len = strlen (ptr);
   if (stream_write (mbp->stream, ptr, len, mbp->offset, &n))
     {

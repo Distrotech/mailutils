@@ -21,8 +21,9 @@
 # define _PATH_SENDMAIL "/usr/lib/sendmail"
 #endif
 
-SCM 
+SCM
 scm_makenum (unsigned long val)
+#ifndef HAVE_SCM_LONG2NUM
 {
   if (SCM_FIXABLE ((long) val))
     return SCM_MAKINUM (val);
@@ -33,6 +34,22 @@ scm_makenum (unsigned long val)
   return scm_make_real ((double) val);
 #endif /* SCM_BIGDIG */
 }
+#else
+{
+  return scm_long2num (val);
+}
+#endif
+
+void
+mu_set_variable (const char *name, SCM value)
+{
+#if GUILE_VERSION == 14
+  scm_c_define (name, value); /*FIXME*/
+#else
+  scm_c_define (name, value);
+#endif
+}
+
 
 SCM _mu_scm_package; /* STRING: PACKAGE */
 SCM _mu_scm_version; /* STRING: VERSION */
@@ -60,30 +77,25 @@ static struct
 void
 mu_scm_init ()
 {
-  SCM *scm_loc;
   char *defmailer;
   int i;
   
   asprintf (&defmailer, "sendmail:%s", _PATH_SENDMAIL);
   _mu_scm_mailer = scm_makfrom0str (defmailer);
-  scm_loc = SCM_CDRLOC (scm_sysintern ("mu-mailer", SCM_EOL));
-  *scm_loc = _mu_scm_mailer;
+  mu_set_variable ("mu-mailer", _mu_scm_mailer);
 
   _mu_scm_debug = scm_makenum(0);
-  scm_loc = SCM_CDRLOC (scm_sysintern ("mu-debug", SCM_EOL));
-  *scm_loc = _mu_scm_debug;
+  mu_set_variable ("mu-debug", _mu_scm_debug);
 
   _mu_scm_package = scm_makfrom0str (PACKAGE);
-  scm_loc = SCM_CDRLOC (scm_sysintern ("mu-package", SCM_EOL));
-  *scm_loc = _mu_scm_package;
+  mu_set_variable ("mu-package", _mu_scm_package);
 
   _mu_scm_version = scm_makfrom0str (VERSION);
-  scm_loc = SCM_CDRLOC (scm_sysintern ("mu-version", SCM_EOL));
-  *scm_loc = _mu_scm_version;
+  mu_set_variable ("mu-version", _mu_scm_version);
 
   /* Create MU- attribute names */
   for (i = 0; attr_kw[i].name; i++)
-    scm_sysintern(attr_kw[i].name, SCM_MAKINUM(attr_kw[i].value));
+    scm_c_define(attr_kw[i].name, SCM_MAKINUM(attr_kw[i].value));
   
   mu_scm_mutil_init ();
   mu_scm_mailbox_init ();

@@ -56,13 +56,11 @@ _scheme_main (void *closure, int argc, char **argv)
 #include <mu_guimb.x>
 
   _current_mailbox = mu_scm_mailbox_create (param->mbox);
-  scm_loc = SCM_CDRLOC (scm_sysintern ("current-mailbox", SCM_EOL));
-  *scm_loc = _current_mailbox;
+  mu_set_variable ("current-mailbox", _current_mailbox);
 
   _user_name = param->user_name ?
                        scm_makfrom0str (param->user_name) : SCM_BOOL_F;
-  scm_loc = SCM_CDRLOC (scm_sysintern ("user-name", SCM_EOL));
-  *scm_loc = _user_name;
+  mu_set_variable ("user-name", _user_name);
 
   if (param->init) 
     param->init (param->data);

@@ -43,6 +43,23 @@
 
 #include <libguile.h>
 
+#if GUILE_VERSION == 14
+
+# define SCM_STRING_CHARS SCM_CHARS
+# define scm_list_1 SCM_LIST1
+# define scm_list_2 SCM_LIST2
+# define scm_list_3 SCM_LIST3
+# define scm_list_4 SCM_LIST4
+# define scm_list_5 SCM_LIST5
+# define scm_list_n SCM_LISTN
+# define scm_c_define scm_sysintern
+# define scm_primitive_eval_x scm_eval_x
+# define scm_i_big2dbl scm_big2dbl
+
+extern SCM scm_long2num (long val);
+
+#endif
+
 typedef struct
 {
   int debug_guile;
@@ -60,6 +77,7 @@ extern SCM _mu_scm_mailer;
 extern SCM _mu_scm_debug;
 
 extern SCM scm_makenum __P((unsigned long val));
+extern void mu_set_variable (const char *name, SCM value);
 extern void mu_scm_init __P((void));
 
 extern void mu_scm_mailbox_init __P((void));

@@ -33,20 +33,20 @@ SCM_DEFINE(mu_openlog, "mu-openlog", 3, 0, 0,
     {
       SCM_ASSERT (SCM_NIMP (IDENT) && SCM_STRINGP (IDENT),
 		 IDENT, SCM_ARG1, FUNC_NAME);
-      ident = SCM_CHARS (IDENT);
+      ident = SCM_STRING_CHARS (IDENT);
     }
 	
   if (SCM_IMP (OPTION) && SCM_INUMP (OPTION))
     option = SCM_INUM (OPTION);
   else if (SCM_BIGP (OPTION)) 
-    option = (int) scm_big2dbl (OPTION);
+    option = (int) scm_i_big2dbl (OPTION);
   else 
     SCM_ASSERT (0, OPTION, SCM_ARG2, FUNC_NAME);
 
   if (SCM_IMP (FACILITY) && SCM_INUMP (FACILITY)) 
     facility = SCM_INUM (FACILITY);
   else if (SCM_BIGP (FACILITY)) 
-    facility = (int) scm_big2dbl (FACILITY);
+    facility = (int) scm_i_big2dbl (FACILITY);
   else
     SCM_ASSERT (0, FACILITY, SCM_ARG3, FUNC_NAME);
 
@@ -67,13 +67,13 @@ SCM_DEFINE (mu_logger, "mu-logger", 2, 0, 0,
   else if (SCM_IMP (PRIO) && SCM_INUMP (PRIO)) 
     prio = SCM_INUM (PRIO);
   else if (SCM_BIGP (PRIO)) 
-    prio = (int) scm_big2dbl (PRIO);
+    prio = (int) scm_i_big2dbl (PRIO);
   else
     SCM_ASSERT (0, PRIO, SCM_ARG1, FUNC_NAME);
   
   SCM_ASSERT (SCM_NIMP (TEXT) && SCM_STRINGP (TEXT),
 	     TEXT, SCM_ARG2, FUNC_NAME);
-  syslog (prio, "%s", SCM_CHARS (TEXT));
+  syslog (prio, "%s", SCM_STRING_CHARS (TEXT));
   return SCM_UNSPECIFIED;
 }
 #undef FUNC_NAME
@@ -126,6 +126,6 @@ mu_scm_logger_init ()
   int i;
   
   for (i = 0; i < sizeof (syslog_kw)/sizeof (syslog_kw[0]); i++)
-    scm_sysintern (syslog_kw[i].name, SCM_MAKINUM (syslog_kw[i].facility));
+    scm_c_define (syslog_kw[i].name, SCM_MAKINUM (syslog_kw[i].facility));
 #include <mu_logger.x>
 }

@@ -272,7 +272,7 @@ SCM_DEFINE (mu_message_set_header, "mu-message-set-header", 3, 1, 0,
     }
   
   message_get_header (msg, &hdr);
-  header_set_value (hdr, SCM_CHARS (HEADER), strdup (SCM_CHARS (VALUE)),
+  header_set_value (hdr, SCM_STRING_CHARS (HEADER), strdup (SCM_STRING_CHARS (VALUE)),
 		    replace);
   return SCM_UNSPECIFIED;
 }
@@ -342,7 +342,7 @@ SCM_DEFINE (mu_message_get_header, "mu-message-get-header", 2, 0, 0,
   msg = mu_scm_message_get (MESG);
   SCM_ASSERT (SCM_NIMP (HEADER) && SCM_STRINGP (HEADER),
 	      HEADER, SCM_ARG2, FUNC_NAME);
-  header_string = SCM_CHARS (HEADER);
+  header_string = SCM_STRING_CHARS (HEADER);
   message_get_header (msg, &hdr);
   if (header_aget_value (hdr, header_string, &value) == 0)
     {
@@ -360,7 +360,7 @@ string_sloppy_member (SCM lst, char *name)
     {
       SCM car = SCM_CAR (lst);
       if ((SCM_NIMP (car) && SCM_STRINGP (car))
-	  && strcasecmp (SCM_CHARS (car), name) == 0)
+	  && strcasecmp (SCM_STRING_CHARS (car), name) == 0)
 	return 1;
     }
   return 0;
@@ -463,7 +463,7 @@ SCM_DEFINE (mu_message_set_header_fields, "mu-message-set-header-fields", 2, 1, 
 		  car, SCM_ARGn, FUNC_NAME);
       SCM_ASSERT (SCM_NIMP (cdr) && SCM_STRINGP (cdr),
 		  cdr, SCM_ARGn, FUNC_NAME);
-      header_set_value (hdr, SCM_CHARS (car), SCM_CHARS (cdr), replace);
+      header_set_value (hdr, SCM_STRING_CHARS (car), SCM_STRING_CHARS (cdr), replace);
     }
   return SCM_UNDEFINED;
 }
@@ -710,7 +710,7 @@ SCM_DEFINE (mu_message_get_port, "mu-message-get-port", 2, 1, 0,
     }
   
   return mu_port_make_from_stream (MESG, stream,
-				   scm_mode_bits (SCM_CHARS (MODE)));    
+				   scm_mode_bits (SCM_STRING_CHARS (MODE)));    
 }
 #undef FUNC_NAME
   
@@ -810,22 +810,22 @@ SCM_DEFINE (mu_message_send, "mu-message-send", 1, 3, 0,
     {
       SCM_ASSERT (SCM_NIMP (MAILER) && SCM_STRINGP (MAILER),
 		  MAILER, SCM_ARG2, FUNC_NAME);
-      mailer_name = SCM_CHARS (MAILER);
+      mailer_name = SCM_STRING_CHARS (MAILER);
     }
   else
-    mailer_name = SCM_CHARS(_mu_scm_mailer);
+    mailer_name = SCM_STRING_CHARS(_mu_scm_mailer);
 
   if (!SCM_UNBNDP (FROM) && FROM != SCM_BOOL_F)
     {
       SCM_ASSERT (SCM_NIMP (FROM) && SCM_STRINGP (FROM)
-		  && address_create (&from, SCM_CHARS (FROM)) == 0,
+		  && address_create (&from, SCM_STRING_CHARS (FROM)) == 0,
 		  FROM, SCM_ARG3, FUNC_NAME);
     }
   
   if (!SCM_UNBNDP (TO) && TO != SCM_BOOL_F)
     {
       SCM_ASSERT (SCM_NIMP (TO) && SCM_STRINGP (TO)
-		  && address_create (&to, SCM_CHARS (TO)) == 0,
+		  && address_create (&to, SCM_STRING_CHARS (TO)) == 0,
 		  TO, SCM_ARG4, FUNC_NAME);
     }
 
