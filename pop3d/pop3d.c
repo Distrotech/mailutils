@@ -189,12 +189,7 @@ main (int argc, char **argv)
     }
 
   /* Register the desired formats.  */
-  {
-    list_t bookie;
-    registrar_get_list (&bookie);
-    list_append (bookie, mbox_record);
-    list_append (bookie, path_record);
-  }
+  mu_register_local_mbox_formats ();
 
   /* Set the signal handlers.  */
   signal (SIGINT, pop3d_signal);
