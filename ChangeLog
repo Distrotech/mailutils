@@ -10,7 +10,7 @@
 	* readmsg/testsuite/readmsg/test.exp: Likewise.
 	* sieve/testsuite/lib/sieve.exp: Likewise.
 	
-	* guimb/scm/Makefile.am: Use $? instead of $< in implicit rules.
+	* guimb/scm/Makefile.am: Use $? instead of $< in explicit rules.
 	* libmu_scm/Makefile.am: Likewise.
 	
 	* lib/getopt.h: Moved to ...
