@@ -10,6 +10,13 @@
 	* lib/Makefile.am: Always compile pin.c
 	* lib/pin.c: include <config.h>
 
+	* mh/mh.h: Added missing includes. Removed external
+	  declaration of program_invocation_short_name.
+	* mh/mh_argp.c (mh_argp_parse): Removed local declarations
+	  of program_invocation_.* variables.
+	* mh/mh_getopt.c: Removed include <mh.h>
+	* mh/mh_init.c: Added include <stdarg.h>
+	
 	* libmu_scm/mu_scm.h: include <mailutils/url.h>
 	
 2002-04-15  Sergey Poznyakoff 
