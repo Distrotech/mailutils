@@ -60,6 +60,7 @@ instr_action (sieve_machine_t mach)
     sieve_debug (mach, "%4lu: ACTION: %s\n",
 		 (unsigned long) (mach->pc - 1),
 		 SIEVE_ARG (mach, 3, string));
+  mach->action_count++;
   instr_run (mach);
 }
 
@@ -250,10 +251,15 @@ sieve_run (sieve_machine_t mach)
 {
   if (setjmp (mach->errbuf))
     return 1;
+
+  mach->action_count = 0;
   
   for (mach->pc = 1; mach->prog[mach->pc].handler; )
     (*mach->prog[mach->pc++].instr) (mach);
 
+  if (mach->action_count == 0)
+    sieve_log_action (mach, "IMPLICIT KEEP", NULL);
+  
   if (INSTR_DEBUG (mach))
     sieve_debug (mach, "%4lu: STOP\n", mach->pc);
   
