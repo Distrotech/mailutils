@@ -1,7 +1,7 @@
 ## Process this file with GNU Automake to create Makefile.in
 
 ##   Copyright (C) 2000, 2001, 2002, 2003,
-##   2004 Free Software Foundation, Inc.
+##   2004, 2005 Free Software Foundation, Inc.
 ##
 ##   GNU Mailutils is free software; you can redistribute it and/or
 ##   modify it under the terms of the GNU General Public License as
@@ -16,6 +16,11 @@
 ##   You should have received a copy of the GNU General Public License
 ##   along with GNU Mailutils; if not, write to the Free Software
 ##   Foundation, Inc. 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+BUILT_SOURCES=errno.h
+EXTRA_DIST=errno.hin
+errno.h: $(top_srcdir)/mailbox/errors errno.hin
+	$(AWK) -f $(top_srcdir)/scripts/generr.awk $^ > $@
 
 pkginclude_HEADERS = \
  address.h \
@@ -65,3 +70,4 @@ nobase_pkginclude_HEADERS = \
   sys/nntp.h \
   sys/pop3.h
 SUBDIRS = gnu sys
+
