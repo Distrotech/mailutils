@@ -14,7 +14,6 @@ pkgdata_DATA=@GUILE_PROCEDURES_TXT@
 DOT_X_FILES=run_scm.x
 DOT_DOC_FILES=run_scm.doc
 BUILT_SOURCES=@GUILE_BUILT_SOURCES@
-EXTRA_DIST=$(DOT_X_FILES) $(DOT_DOC_FILES) guile-procedures.txt
 
 CPPFLAGS=-DDATADIR=\"$(pkgdatadir)\"
 ETAGS_ARGS = --regex='/SCM_\(GLOBAL_\)?\(G?PROC\|G?PROC1\|SYMBOL\|VCELL\|CONST_LONG\).*\"\([^\"]\)*\"/\3/' \

@@ -12,7 +12,6 @@ DOT_X_FILES=mu_address.x mu_body.x mu_mailbox.x mu_message.x \
 DOT_DOC_FILES=mu_address.doc mu_body.doc mu_mailbox.doc mu_message.doc \
  mu_logger.doc mu_port.doc mu_scm.doc  
 BUILT_SOURCES=@GUILE_BUILT_SOURCES@ 
-EXTRA_DIST=$(DOT_X_FILES) $(DOT_DOC_FILES) guile-procedures.txt
 
 CPPFLAGS=-DDATADIR=\"$(pkgdatadir)\"
 ETAGS_ARGS = --regex='/SCM_\(GLOBAL_\)?\(G?PROC\|G?PROC1\|SYMBOL\|VCELL\|CONST_LONG\).*\"\([^\"]\)*\"/\3/' \
