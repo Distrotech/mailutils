@@ -29,16 +29,19 @@ const char *program_version = "movemail (" PACKAGE_STRING ")";
 static char doc[] = N_("GNU movemail");
 static char args_doc[] = N_("inbox-url destfile [POP-password]");
 
+#define OPT_EMACS 256
+
 static struct argp_option options[] = {
   { "preserve", 'p', NULL, 0, N_("Preserve the source mailbox"), 0 },
   { "keep-messages", 0, NULL, OPTION_ALIAS, NULL },
   { "reverse",  'r', NULL, 0, N_("Reverse the sorting order"), 0 },
-  
+  { "emacs", OPT_EMACS, NULL, 0, N_("Output information used by Emacs rmail interface"), 0 },
   { NULL,      0, NULL, 0, NULL, 0 }
 };
 
 static int reverse_order;
 static int preserve_mail; 
+static int emacs_mode;
 
 static error_t
 parse_opt (int key, char *arg, struct argp_state *state)
@@ -53,6 +56,10 @@ parse_opt (int key, char *arg, struct argp_state *state)
       preserve_mail++;
       break;
 
+    case OPT_EMACS:
+      emacs_mode++;
+      break;
+      
     default:
       return ARGP_ERR_UNKNOWN;
     }
@@ -78,14 +85,32 @@ static const char *mail_capa[] = {
 	 NULL 
 };
 
+int
+movemail_error_printer (const char *fmt, va_list ap)
+{
+  int n;
+  
+  n = fprintf (stderr, "%s: ", program_invocation_short_name);
+  n += vfprintf (stderr, fmt, ap);
+  fputc ('\n', stderr);
+  return n + 1;
+}
+
 void
 die (mailbox_t mbox, char *msg, int status)
 {
   url_t url = NULL;
   
   mailbox_get_url (mbox, &url);
-  mu_error (_("mailbox '%s': %s: %s"),
-	    url_to_string (url), msg, mu_strerror (status));
+  if (emacs_mode)
+    mu_error (_("%s:mailbox '%s': %s: %s"),
+	      mu_errname (status),
+	      url_to_string (url),
+	      msg,
+	      mu_strerror (status));
+  else
+    mu_error (_("mailbox '%s': %s: %s"),
+	      url_to_string (url), msg, mu_strerror (status));
   exit (1);
 }
 
@@ -224,16 +249,6 @@ compatibility_mode (mailbox_t *mbx, char *source_name, char *password,
   asprintf (&tmp, "pop://%s@%s", user_name, host);
   open_mailbox (mbx, tmp, flags, password);
   free (tmp);
-}
-
-int
-movemail_error_printer (const char *fmt, va_list ap)
-{
-  int n;
-  n = fprintf (stderr, "%s: ", program_invocation_short_name);
-  n += vfprintf (stderr, fmt, ap);
-  fputc ('\n', stderr);
-  return n + 1;
 }
 
 int
