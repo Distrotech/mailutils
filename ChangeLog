@@ -1,6 +1,28 @@
 2002-12-26  Wojciech Polak <polak@gnu.org>
 
 	* po/POTFILES.in: Updated.
+	* dotlock/dotlock.c: Added NLS.
+	* from/from.c: Likewise.
+	* mail.remote/mail.remote.c: Likewise.
+	* mh/fmtcheck.c: Likewise.
+	* mh/folder.c: Likewise.
+	* mh/inc.c: Likewise.
+	* mh/mh_argp.c: Likewise.
+	* mh/mh_ctx.c: Likewise.
+	* mh/fmtgram.y: Likewise.
+	* mh/mh_getopt.c: Likewise.
+	* mh/mh_init.c: Likewise.
+	* mh/mh_msgset.c: Likewise.
+	* mh/mhpath.c: Likewise.
+	* mh/refile.c: Likewise.
+	* mh/repl.c: Likewise.
+	* mh/rmf.c: Likewise.
+	* mh/rmm.c: Likewise.
+	* mh/scan.c: Likewise.
+
+2002-12-26  Wojciech Polak <polak@gnu.org>
+
+	* po/POTFILES.in: Updated.
 	* sieve/sieve.c: Enabled NLS.
 	* doc/texinfo/mailutils.texi: Small improvement.
 	* COPYING.FDL: The Free Documentation License has been

@@ -7,7 +7,11 @@ comsat/action.c
 comsat/cfg.c
 comsat/comsat.c
 
+dotlock/dotlock.c
+
 frm/frm.c
+
+from/from.c
 
 guimb/collect.c
 guimb/main.c
@@ -65,6 +69,8 @@ mail.local/main.c
 mail.local/mailquota.c
 mail.local/script.c
 
+mail.remote/mail.remote.c
+
 mailbox/argp-parse.c
 mailbox/file_stream.c
 mailbox/mailutils-config.c
@@ -73,6 +79,22 @@ mailbox/mu_argp.c
 mailbox/muerrno.c
 
 messages/messages.c
+
+mh/fmtcheck.c
+mh/folder.c
+mh/inc.c
+mh/mh_argp.c
+mh/mh_ctx.c
+mh/mh_fmtgram.c
+mh/mh_getopt.c
+mh/mh_init.c
+mh/mh_msgset.c
+mh/mhpath.c
+mh/refile.c
+mh/repl.c
+mh/rmf.c
+mh/rmm.c
+mh/scan.c
 
 pop3d/apop.c
 pop3d/extra.c
