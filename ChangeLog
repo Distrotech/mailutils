@@ -1,5 +1,30 @@
 2002-11-14  Sergey Poznyakoff
 
+	* sieve/lex-sieve.lex: Removed
+	* include/mailutils/libsieve.h
+	  (sieve_comparator_t,sieve_retrieve_t): New datatypes.
+	  (sieve_vlist_do,sieve_vlist_compare,sieve_comparator_lookup)
+	  (sieve_register_comparator,sieve_get_comparator): New functions.
+	* libsieve/actions.c: (sieve_action_discard): Log output made
+	  compatible with that of CMU ported sieve.
+	* libsieve/require.c (sieve_require): Handle "comparator-" prefix
+	  in require statements.
+	* libsieve/runtime.c (instr_action): Increase action_count.
+	  (sieve_run): Log implicit keep action.
+	* libsieve/sieve.h (struct sieve_machine) New member action_count.
+	  (sieve_register_standard_comparators): New function.
+	  (sieve_require_comparator): New function.
+	* libsieve/sieve.y (action production):  Fixed number of arguments
+	  in call to sieve_compile_error().
+	* libsieve/tests.c: Implemented header test.
+	* libsieve/util.c (sieve_vlist_do, sieve_vlist_compare): New
+	  functions.
+	* libsieve/comparator.c: New file.
+	* libsieve/Makefile.am: Added comparator.c 
+	* sieve/examples/t-complex.sv: require "redirect".
+	
+2002-11-14  Sergey Poznyakoff
+
 	Started actually rewriting sieve to use libsieve library.
 	The CMU-based sources are available under the tag
 	ver-0-1-2-with-cmu-sieve.
