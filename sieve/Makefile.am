@@ -3,15 +3,18 @@ INCLUDES = -I${top_srcdir}/include -I${top_srcdir}/lib
 YLWRAP = $(SHELL) $(srcdir)/ylwrap
 YFLAGS = -d
 
-BUILT_SOURCES=sieve-gram.c sieve-gram.h \
-              sieve-lex.c addr-lex.c \
-              addr.c addr.h
+BUILT_SOURCES= \
+  sieve-gram.c sieve-gram.h \
+  sieve-lex.c addr-lex.c \
+  addr.c addr.h
 
 MOSTLYCLEANFILES=
 CLEANFILES=
 DISTCLEANFILES=
 MAINTAINERCLEANFILES=$(BUILT_SOURCES)
-EXTRA_DIST = $(BUILT_SOURCES)
+EXTRA_DIST = \
+  $(BUILT_SOURCES) \
+  addr-lex.l addr.y gram-sieve.y sieve-gram.y sieve-lex.l
 
 bin_PROGRAMS = sieve
 
