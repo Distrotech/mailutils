@@ -39,50 +39,351 @@
 #include <mailutils/mailbox.h>
 #include <mailutils/argp.h>
 #include <mailutils/mu_auth.h>
+#include <mailutils/error.h>
 
 #ifdef HAVE_MYSQL
-# include "../MySql/MySql.h"
-#endif
+#include <mysql/mysql.h>
 
-/* SQL */
-/* FIXME: Underlying library needs rewriting */
+#define MFLAGS 0                /* Special user flags. It is safe to leave
+				   this untouched */
 
-int
+char *sql_getpwnam_query;
+char *sql_getpass_query;
+char *sql_getpwuid_query;
+
+char *sql_host = NULL;          /* Hostname to connect to. NULL for UNIX
+                                   socket connection */
+char *sql_user = "accounts";    /* Username for mysql access */    
+char *sql_passwd = "yurpass";   /* Password for mysql access */
+char *sql_db = "accounts";      /* Database Name */
+char *sql_socket = NULL;        /* Socket name to use. Valid only if
+				   connecting via UNIX sockets */
+int  sql_port = 0;              /* Port number to connect to. 0 means default
+	                           MySQL port (3300) */
+
+static char *
+sql_expand_query (const char *query, const char *ustr)
+{
+  char *p, *q, *res;
+  int len;
+
+  if (!query)
+    return NULL;
+  
+  /* Compute resulting query length */
+  for (len = 0, p = (char *) query; *p; )
+    {
+      if (*p == '%')
+	{
+	  if (p[1] == 'u')
+	    {
+	      len += strlen (ustr);
+	      p += 2;
+	    }
+	  else if (p[1] == '%')
+	    {
+	      len++;
+	      p += 2;
+	    }
+	  else
+	    {
+	      len++;
+	      p++;
+	    }
+	}
+      else
+	{
+	  len++;
+	  p++;
+	}
+    }
+
+  res = malloc (len + 1);
+  if (!res)
+    return res;
+
+  for (p = (char *) query, q = res; *p; )
+    {
+      if (*p == '%')
+	{
+	  switch (*++p)
+	    {
+	    case 'u':
+	      strcpy (q, ustr);
+	      q += strlen (q);
+	      p++;
+	      break;
+	      
+	    case '%':
+	      *q++ = *p++;
+	      break;
+	      
+	    default:
+	      *q++ = *p++;
+	    }
+	}
+      else
+	*q++ = *p++;
+    }
+  *q = 0;
+  return res;
+}
+
+static int
 mu_auth_sql_by_name (void *return_data, void *key,
 		     void *unused_func_data, void *unused_call_data)
 {
+  char *query_str = NULL;
+  MYSQL *m;
+  MYSQL_RES *res;
+  MYSQL_ROW row;
+  char *mailbox_name;
+  int rc;
+  
   if (!key)
     {
       errno = EINVAL;
       return 1;
     }
-#ifdef HAVE_MYSQL
-  return mu_auth_system (return_data, getMpwnam (key));
-#else
-  errno = ENOSYS;
-  return 1;
-#endif
+
+  m = mysql_init (0);
+
+  if (!m)
+    return 1;
+
+  if (!mysql_real_connect (m, sql_host, sql_user, sql_passwd, sql_db, sql_port,
+			   sql_socket, MFLAGS))
+    {
+      mu_error ("MySQL: connect failed: %s", mysql_error (m));
+      mysql_close (m);
+      return 1;
+    }
+
+  query_str = sql_expand_query (sql_getpwnam_query, key);
+
+  if (!query_str)
+    {
+      mysql_close (m);
+      return 1;
+    }
+  
+  if (mysql_query (m, query_str) != 0)
+    {
+      mu_error ("MySQL: query failed: %s", mysql_error (m));
+      free (query_str);
+      mysql_close (m);
+      return 1;
+    }
+
+  free (query_str);
+
+  if ((res = mysql_store_result (m)) == NULL)
+    {
+      mu_error ("MySQL: can't store result: %s", mysql_error (m));
+      mysql_close (m);
+      return 1;
+    }
+  
+  if ((row = mysql_fetch_row (res)) == NULL)
+    {
+      mu_error ("MySQL: can't fetch row: %s", mysql_error (m));
+      mysql_close (m);
+      return 1;
+    }
+
+  if (mysql_num_fields (res) == 7 && row[6])
+    mailbox_name = strdup (row[6]);
+  else
+    {
+      mailbox_name = malloc (strlen (mu_path_maildir) +
+			     strlen (row[0]) + 1);
+      if (mailbox_name)
+	sprintf (mailbox_name, "%s%s", mu_path_maildir, row[0]);
+    }
+
+  if (mailbox_name)
+    rc = mu_auth_data_alloc ((struct mu_auth_data **) return_data,
+			     row[0],
+			     row[1],
+			     atoi (row[2]),
+			     atoi (row[3]),
+			     "Mysql User",
+			     row[4],
+			     row[5],
+			     mailbox_name,
+			     1);
+  else
+    rc = 1;
+  
+  free (mailbox_name);
+  mysql_free_result (res);
+  mysql_close (m);
+  
+  return rc;
 }
 
-int
+static int
 mu_auth_sql_by_uid (void *return_data, void *key,
 		    void *unused_func_data, void *unused_call_data)
 {
+  char *query_str = NULL;
+  MYSQL *m;
+  MYSQL_RES *res;
+  MYSQL_ROW row;
+  char uidstr[64];
+  char *mailbox_name;
+  int rc;
+  
   if (!key)
     {
       errno = EINVAL;
       return 1;
     }
 
-#ifdef HAVE_MYSQL
-  return mu_auth_system (return_data, getMpwuid (key));
-#else
-  errno = ENOSYS;
-  return 1;
-#endif
+  m = mysql_init (0);
+
+  if (!m)
+    return 1;
+
+  if (!mysql_real_connect (m, sql_host, sql_user, sql_passwd, sql_db, sql_port,
+			   sql_socket, MFLAGS))
+    {
+      mu_error ("MySQL: connect failed: %s", mysql_error (m));
+      mysql_close (m);
+      return 1;
+    }
+
+  snprintf (uidstr, sizeof (uidstr), "%u", *(uid_t*)key);
+  query_str = sql_expand_query (sql_getpwnam_query, uidstr);
+
+  if (!query_str)
+    {
+      mysql_close (m);
+      return 1;
+    }
+  
+  if (mysql_query (m, query_str) != 0)
+    {
+      mu_error ("MySQL: query failed: %s", mysql_error (m));
+      free (query_str);
+      mysql_close (m);
+      return 1;
+    }
+
+  free (query_str);
+  
+  if ((res = mysql_store_result (m)) == NULL)
+    {
+      mu_error ("MySQL: can't store result: %s", mysql_error (m));
+      mysql_close (m);
+      return 1;
+    }
+  
+  if ((row = mysql_fetch_row (res)) == NULL)
+    {
+      mu_error ("MySQL: can't fetch row: %s", mysql_error (m));
+      mysql_close (m);
+      return 1;
+    }
+
+  if (mysql_num_fields (res) == 7 && row[6])
+    mailbox_name = strdup (row[6]);
+  else
+    {
+      mailbox_name = malloc (strlen (mu_path_maildir) +
+			     strlen (row[0]) + 1);
+      if (mailbox_name)
+	sprintf (mailbox_name, "%s%s", mu_path_maildir, row[0]);
+    }
+
+  if (mailbox_name)
+    rc = mu_auth_data_alloc ((struct mu_auth_data **) return_data,
+			     row[0],
+			     row[1],
+			     atoi (row[2]),
+			     atoi (row[3]),
+			     "Mysql User",
+			     row[4],
+			     row[5],
+			     mailbox_name,
+			     1);
+  else
+    rc = 1;
+  
+  free (mailbox_name);
+  mysql_free_result (res);
+  mysql_close (m);
+  
+  return rc;
 }
 
-#ifdef HAVE_MYSQL
+static int
+mu_sql_authenticate (void *ignored_return_data, void *key,
+		     void *ignored_func_data, void *call_data)
+{
+  struct mu_auth_data *auth_data = key;
+  char *pass = call_data;
+  char *query_str = NULL;
+  MYSQL *m;
+  MYSQL_RES *res;
+  MYSQL_ROW row;
+  int rc;
+  
+  if (!auth_data)
+    return 1;
+
+  m = mysql_init (0);
+
+  if (!m)
+    return 1;
+  
+  if (!mysql_real_connect (m, sql_host, sql_user, sql_passwd, sql_db, sql_port,
+			   sql_socket, MFLAGS))
+    {
+      mu_error ("MySQL: connect failed: %s", mysql_error (m));
+      mysql_close (m);
+      return 1;
+    }
+  
+  query_str = sql_expand_query (sql_getpass_query, auth_data->name);
+
+  if (!query_str)
+    {
+      mysql_close (m);
+      return 1;
+    }
+
+  if (mysql_query (m, query_str) != 0)
+    {
+      mu_error ("MySQL: query failed: %s", mysql_error (m));
+      free (query_str);
+      mysql_close (m);
+      return 1;
+    }
+
+  free (query_str);
+  
+  if ((res = mysql_store_result (m)) == NULL)
+    {
+      mu_error ("MySQL: can't store result: %s", mysql_error (m));
+      mysql_close (m);
+      return 1;
+    }
+  
+  if ((row = mysql_fetch_row (res)) == NULL)
+    {
+      mu_error ("MySQL: can't fetch row: %s", mysql_error (m));
+      mysql_close (m);
+      return 1;
+    }
+
+  rc = strcmp (row[0], crypt (auth_data->passwd, row[0]));
+  mysql_free_result (res);
+  mysql_close (m);
+  return rc;
+}
+
+
 # define ARG_SQL_GETPWNAM 1
 # define ARG_SQL_GETPWUID 2
 # define ARG_SQL_GETPASS 3
@@ -111,16 +412,6 @@ static struct argp_option mu_sql_argp_option[] = {
    "Port to use", 0},
   { NULL,      0, NULL, 0, NULL, 0 }
 };
-
-char *sql_getpwnam_query;
-char *sql_getpass_query;
-char *sql_getpwuid_query;
-char *sql_host = MHOST;
-char *sql_user = MUSER;
-char *sql_passwd = MPASS;
-char *sql_db = MDB;
-char *sql_socket = MSOCKET;
-int  sql_port = MPORT;
 
 static error_t
 mu_sql_argp_parser (int key, char *arg, struct argp_state *state)
@@ -175,6 +466,12 @@ struct argp mu_sql_argp = {
   mu_sql_argp_parser,
 };
 
+#else
+
+#define mu_sql_authenticate mu_auth_nosupport
+#define mu_auth_sql_by_name mu_auth_nosupport
+#define mu_auth_sql_by_uid  mu_auth_nosupport
+
 #endif
 
 struct mu_auth_module mu_auth_sql_module = {
@@ -184,7 +481,7 @@ struct mu_auth_module mu_auth_sql_module = {
 #else
   NULL,
 #endif
-  mu_auth_nosupport,
+  mu_sql_authenticate,
   NULL,
   mu_auth_sql_by_name,
   NULL,
