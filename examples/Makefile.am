@@ -13,7 +13,7 @@ noinst_PROGRAMS = \
  http\
  mta
 
-moddir=$(libdir)/$(PACKAGE)
+moddir=@SIEVE_MODDIR@
 mod_LTLIBRARIES = numaddr.la
 
 INCLUDES = -I$(top_srcdir)/include -I$(top_srcdir)/lib
@@ -21,7 +21,7 @@ AM_LDFLAGS = ../mailbox/libmailbox.la
 
 numaddr_la_SOURCES = numaddr.c
 numaddr_la_LIBADD = ../libsieve/libsieve.la 
-numaddr_la_LDFLAGS = -module -avoid-version -no-undefined
+numaddr_la_LDFLAGS = -module -avoid-version -no-undefined 
 
 EXTRA_DIST = comsat.conf dot.biffrc gnu-imap4d.pam gnu-pop3d.pam\
  mailutils.rc reply.scm

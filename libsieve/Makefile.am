@@ -5,6 +5,7 @@
 INCLUDES = -I${top_srcdir}/include -I${top_srcdir}/lib 
 YLWRAP = $(SHELL) $(top_srcdir)/scripts/ylwrap
 AM_YFLAGS = -dtv
+AM_CPPFLAGS = -DSIEVE_MODDIR=\"@SIEVE_MODDIR@\"
 
 lib_LTLIBRARIES = libsieve.la
 
