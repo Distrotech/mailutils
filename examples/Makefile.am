@@ -27,7 +27,8 @@ noinst_PROGRAMS = \
  msg-send\
  http\
  mta\
- decode2047
+ decode2047\
+ mailcap
 
 moddir=@SIEVE_MODDIR@
 mod_LTLIBRARIES = numaddr.la

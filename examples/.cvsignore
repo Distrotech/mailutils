@@ -12,4 +12,5 @@ muemail
 mta
 http
 decode2047
+mailcap
 *.l[oa]
