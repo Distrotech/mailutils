@@ -18,29 +18,95 @@
 #ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
+#include <mailutils/argp.h>
 
 #include "readmsg.h"
+
 #define WEEDLIST_SEPARATOR  " :,"
 
-static void usage __P ((int, const char *));
 static void print_header __P ((message_t, int no_header, int all_header, const char *weedlst));
 static void print_body __P ((message_t));
 static int  string_starts_with __P ((const char * s1, const char *s2));
 
-const char *short_options = "adnhpf:w:";
-static struct option long_options[] =
+const char *argp_program_version = "readmsg (" PACKAGE_STRING ")";
+static char doc[] = "GNU readmsg -- print messages";
+static error_t readmsg_parse_opt  __P((int key, char *arg,
+				       struct argp_state *astate));
+
+static struct argp_option options[] = 
 {
-  {"debug", no_argument, 0, 'd'},
-  {"header", no_argument, 0, 'h'},
-  {"weedlist", required_argument, 0, 'w'},
-  {"folder", no_argument, 0, 'f'},
-  {"no-header", no_argument, 0, 'n'},
-  {"form-feeds", no_argument, 0, 'p'},
-  {"show-all-match", required_argument, 0, 'a'},
-  {"help", no_argument, 0, '&'},
-  {"version", no_argument, 0, 'v'},
+  { "debug", 'd', 0, 0, "Display debugging information", 1 },
+  { "header", 'h', 0, 0, "Display entire header", 1 },
+  { "weedlist", 'w', "LIST", 0, "List of header names separated by whitespace or commas", 1 },
+  { "folder", 'f', "FOLDER", 0, "Folder to use", 1 },
+  { "no-header", 'n', 0, 0, "Exclude all headers", 1 },
+  { "form-feeds", 'p', 0, 0, "Output formfeeds between messages", 1 },
+  { "show-all-match", 'a', "PATTERN", 0,
+    "Print all messages matching PATTERN", 1 },
   {0, 0, 0, 0}
 };
+
+static struct argp argp = {
+  options,
+  readmsg_parse_opt,
+  NULL,
+  doc,
+  NULL,
+  NULL, NULL
+};
+
+static const char *readmsg_argp_capa[] = {
+  "common",
+  "mailbox",
+  NULL
+};
+
+int dbug = 0;
+const char *mailbox_name = NULL;
+const char *weedlist = NULL;
+int no_header = 0;
+int all_header = 0;
+int form_feed = 0;
+int show_all = 0;
+
+static error_t
+readmsg_parse_opt (int key, char *arg, struct argp_state *astate)
+{
+  switch (key)
+    {
+    case 'd':
+      dbug++;
+      break;
+
+    case 'h':
+      all_header = 1;
+      break;
+
+    case 'f':
+      mailbox_name = optarg;
+      break;
+
+    case 'w':
+      weedlist = optarg;
+      break;
+
+    case 'n':
+      no_header = 1;
+      break;
+
+    case 'p':
+      form_feed = 1;
+      break;
+	  
+    case 'a':
+      show_all = 1;
+      break;
+
+    default:
+      return ARGP_ERR_UNKNOWN;
+    }
+  return 0;
+}
 
 static int
 string_starts_with (const char * s1, const char *s2)
@@ -62,7 +128,8 @@ string_starts_with (const char * s1, const char *s2)
 }
 
 static void
-print_header (message_t message, int no_header, int all_headers, const char *weedlist)
+print_header (message_t message, int no_header, int all_headers,
+	      const char *weedlist)
 {
   header_t header = NULL;
 
@@ -79,7 +146,8 @@ print_header (message_t message, int no_header, int all_headers, const char *wee
       char buf[128];
 
       header_get_stream (header, &stream);
-      while (stream_read (stream, buf, sizeof (buf) - 1, offset, &len) == 0 && len != 0)
+      while (stream_read (stream, buf, sizeof (buf) - 1, offset, &len) == 0
+	     && len != 0)
 	{
 	  buf[len] ='\0';
 	  printf ("%s", buf);
@@ -130,39 +198,15 @@ print_body (message_t message)
   size_t len = 0;
   message_get_body (message, &body);
   body_get_stream (body, &stream);
-  while (stream_read (stream, buf, sizeof (buf) - 1, offset, &len) == 0 && len != 0)
+
+  while (stream_read (stream, buf, sizeof (buf) - 1, offset, &len) == 0
+	 && len != 0)
     {
       buf[len] ='\0';
       printf ("%s", buf);
       offset += len;
     }
 }
-
-static void
-usage (int status, const char *prognam)
-{
-  if (status == 0)
-    {
-      printf ("GNU Mailutils.\n");
-      printf ("Usage: %s [OPTIONS]\n\n", prognam);
-      printf ("  -d, --debug              display debuging information\n");
-      printf ("  -h, --header             display the entire header\n");
-      printf ("  -f, --folder=FILE        folder to use\n");
-      printf ("  -w, --weelist=LIST       list of header names separated by whitespace or commas\n");
-      printf ("  -n, --no-header          exclude all headers\n");
-      printf ("  -p, --form-feeds         put form-feeds between messages instead of newline\n");
-      printf ("  -a, --show-all-match     print all message matching PATTERN\n");
-      printf ("      --help               display this help and exit\n");
-      printf ("  -v, --version            display version information and exit\n");
-      printf ("\nReport bugs to bug-mailutils@gnu.org\n");
-    }
-  else
-    {
-      printf ("Try: %s --help\n", prognam);
-    }
-  exit (status);
-}
-
 
 /* This is still work in progress  */
 /* FIXME: Parse options:  See readmsg(1) part of elm:
@@ -176,64 +220,10 @@ main (int argc, char **argv)
   int *set = NULL;
   int n = 0;
   int i;
-  int c;
-  int dbug = 0;
-  const char *mailbox_name = NULL;
-  const char *weedlist = NULL;
-  int no_header = 0;
-  int all_header = 0;
-  int form_feed = 0;
-  int show_all = 0;
+  int index;
   mailbox_t mbox = NULL;
 
-  while ((c = getopt_long (argc, argv, short_options, long_options, NULL))
-         != -1)
-    {
-      switch (c)
-        {
-        case 'd':
-          dbug++;
-          break;
-
-        case 'h':
-          all_header = 1;
-          break;
-
-        case 'f':
-          mailbox_name = optarg;
-          break;
-
-        case 'w':
-          weedlist = optarg;
-          break;
-
-        case 'n':
-          no_header = 1;
-          break;
-
-        case 'p':
-          form_feed = 1;
-          break;
-
-        case 'a':
-          show_all = 1;
-          break;
-
-        case '&':
-          usage (0, argv[0]);
-          break;
-
-        case 'v':
-          printf ("Mailutils 0.0.0: readmsg\n");
-          exit (0);
-          break;
-
-        default:
-          usage (1, argv[0]);
-          break;
-        }
-    }
-
+  mu_argp_parse (&argp, &argc, &argv, 0, readmsg_argp_capa, &index, NULL);
 
   /* Registration.  */
   {
@@ -273,7 +263,7 @@ main (int argc, char **argv)
   /* Build an array containing the message number.  */
   argc -= optind;
   if (argc > 0)
-    msglist (mbox, show_all, argc, &argv[optind], &set, &n);
+    msglist (mbox, show_all, argc, &argv[index], &set, &n);
 
   for (i = 0; i < n; ++i)
     {
@@ -282,7 +272,8 @@ main (int argc, char **argv)
       status = mailbox_get_message (mbox, set[i], &msg);
       if (status != 0)
 	{
-	  fprintf (stderr, "mailbox_get_message - %s\n", mu_errstring (status));
+	  fprintf (stderr, "mailbox_get_message - %s\n",
+		   mu_errstring (status));
 	  exit (2);
 	}
 

@@ -17,28 +17,8 @@
 
 #include "pop3d.h"
 
-static char short_options[] = "acdf:hlmo:p:u:v";
-
-static struct option long_options[] =
-{
-  { "add", no_argument, 0, 'a' },
-  { "create", no_argument, 0, 'c' },
-  { "modify", no_argument, 0, 'm' },
-  { "delete", no_argument, 0, 'd' },
-  { "file", required_argument, 0, 'f' },
-  { "help", no_argument, 0, 'h' },
-  { "list", no_argument, 0, 'l' },
-  { "output", required_argument, 0, 'o' },
-  { "password", required_argument, 0, 'p' },
-  { "user", required_argument, 0, 'u' },
-  { "version", no_argument, 0, 'v', },
-  { 0, 0, 0, 0 }
-};
-
 int db_list (char *input_name, char *output_name);
 int db_make (char *input_name, char *output_name);
-static void help (void);
-static void version (void);
 
 #define ACT_CREATE  0
 #define ACT_ADD     1
@@ -47,6 +27,7 @@ static void version (void);
 #define ACT_CHPASS  4
 
 struct action_data {
+  int action;
   char *input_name;
   char *output_name;
   char *username;
@@ -68,84 +49,124 @@ int (*ftab[]) __P((struct action_data *)) = {
   action_chpass
 };
 
+const char *argp_program_version = "popauth (" PACKAGE_STRING ")";
+static char doc[] = "GNU popauth -- manage pop3 authentcation database";
+static error_t popauth_parse_opt  __P((int key, char *arg,
+				       struct argp_state *astate));
+
+void popauth_version __P((FILE *stream, struct argp_state *state));
+void (*argp_program_version_hook) __P((FILE *stream,
+				       struct argp_state *state)) =
+                                   popauth_version;
+
+static struct argp_option options[] = 
+{
+  { NULL, 0, NULL, 0, "Actions are:", 1 },
+  { "add", 'a', 0, 0, "Add user", 1 },
+  { "modify", 'm', 0, 0, "Modify user's record (change password)", 1 },
+  { "delete", 'd', 0, 0, "Delete user's record", 1 },
+  { "list", 'l', 0, 0, "List the contents of DBM file", 1 },
+
+  { NULL, 0, NULL, 0,
+    "Default action is:\n"
+    "  For the file owner: --list\n"
+    "  For a user: --modify --username <username>\n", 2 },
+  
+  { NULL, 0, NULL, 0, "Options are:", 3 },
+  { "file", 'f', "FILE", 0, "Read input from FILE (default stdin)", 3 },
+  { "output", 'o', "FILE", 0, "Direct output to file", 3 },
+  { "password", 'p', "STRING", 0, "Specify user's password", 3 },
+  { "user", 'u', "USERNAME", 0, "Specify user name", 3 },
+  { NULL, }
+};
+
+static struct argp argp = {
+  options,
+  popauth_parse_opt,
+  NULL,
+  doc,
+  NULL,
+  NULL, NULL
+};
+
+static const char *popauth_argp_capa[] = {
+  "common",
+  "license",
+  NULL
+};
+
+static error_t
+popauth_parse_opt (int key, char *arg, struct argp_state *astate)
+{
+  struct action_data *ap = astate->input;
+  switch (key)
+    {
+    case ARGP_KEY_INIT:
+      memset (ap, 0, sizeof(*ap));
+      ap->action = -1;
+      break;
+      
+    case 'a':
+      check_action (ap->action);
+      ap->action = ACT_ADD;
+      break;
+	
+    case 'l':
+      check_action (ap->action);
+      ap->action = ACT_LIST;
+      break;
+	
+    case 'd':
+      check_action (ap->action);
+      ap->action = ACT_DELETE;
+      break;
+	  
+    case 'p':
+      ap->passwd = optarg;
+      break;
+      
+    case 'm':
+      check_action (ap->action);
+      ap->action = ACT_CHPASS;
+      break;
+	
+    case 'f':
+      ap->input_name = optarg;
+      break;
+	  
+    case 'o':
+      ap->output_name = optarg;
+      break;
+	
+    case 'u':
+      ap->username = optarg;
+      break;
+	
+    case ARGP_KEY_FINI:
+      if (ap->action == -1)
+	{
+	  /* Deduce the default action */
+	  if (getuid () == 0)
+	    ap->action = ACT_LIST;
+	  else
+	    ap->action = ACT_CHPASS;
+	}
+      
+    default:
+      return ARGP_ERR_UNKNOWN;
+    }
+  return 0;
+}
+
 int
 main(int argc, char **argv)
 {
-  int c;
-  int action = -1;
   struct action_data adata;
+  
+  mu_argp_parse (&argp, &argc, &argv, 0,
+		 popauth_argp_capa, NULL, &adata);
 
-  memset (&adata, 0, sizeof adata);
-
-  while ((c = getopt_long (argc, argv, short_options, long_options, NULL))
-	 != -1)
-    {
-      switch (c)
-	{
-	case 'a':
-	  check_action (action);
-	  action = ACT_ADD;
-	  break;
-
-	case 'c':
-	  check_action (action);
-	  action = ACT_CREATE;
-	  break;
-	  
-	case 'l':
-	  check_action (action);
-	  action = ACT_LIST;
-	  break;
-	  
-	case 'd':
-	  check_action (action);
-	  action = ACT_DELETE;
-	  break;
-	  
-	case 'p':
-	  adata.passwd = optarg;
-	  break;
-
-	case 'm':
-	  check_action (action);
-	  action = ACT_CHPASS;
-	  break;
-	  
-	case 'f':
-	  adata.input_name = optarg;
-	  break;
-	  
-	case 'h':
-	  help ();
-	  break;
-	  
-	case 'o':
-	  adata.output_name = optarg;
-	  break;
-
-	case 'u':
-	  adata.username = optarg;
-	  break;
-	  
-	case 'v':
-	  version ();
-	  break;
-	  
-	default:
-	  break;
-	}
-    }
-
-  if (action == -1)
-    {
-      /* Deduce the default action */
-      if (getuid () == 0)
-	action = ACT_LIST;
-      else
-	action = ACT_CHPASS;
-    }
-
-  return (*ftab[action]) (&adata);
+  return (*ftab[adata.action]) (&adata);
 }
 
 void
@@ -170,8 +191,23 @@ check_user_perm (int action, struct action_data *ap)
 
   if (mu_dbm_stat (ap->input_name, &sb))
     {
-      mu_error ("can't stat %s: %s", ap->input_name, strerror (errno));
-      exit (1);
+      if (ap->action == ACT_ADD)
+	{
+	  DBM_FILE db;
+	  if (mu_dbm_open (ap->input_name, &db, MU_STREAM_CREAT, 0600))
+	    {
+	      mu_error ("can't create %s: %s",
+			ap->input_name, strerror (errno));
+	      exit (1);
+	    }
+	  mu_dbm_close (db);
+	  mu_dbm_stat (ap->input_name, &sb);
+	}
+      else
+	{
+	  mu_error ("can't stat %s: %s", ap->input_name, strerror (errno));
+	  exit (1);
+	}
     }
 
   uid = getuid ();
@@ -499,32 +535,8 @@ action_chpass (struct action_data *ap)
   return rc;
 }
 
-static void
-help ()
-{
-  printf ("Usage: popauth [OPTIONS] [ACTION]\n");
-  printf ("Manipulates pop3d authentication database.\n\n");
-  printf ("Options are:\n");
-  printf ("  -f, --file=FILE          Read input from FILE (default stdin)\n");
-  printf ("  -o, --output=FILE        Direct output to FILE\n");
-  printf ("  -h, --help               Display this help and exit\n");
-  printf ("  -u, --user=USERNAME      Specify the user name\n");
-  printf ("  -p, --password=PASS      Specify user's password\n");
-  printf ("  -v, --version            Display program version\n");
-  printf ("Actions are:\n");
-  printf ("  -a, --add                Add user\n");
-  printf ("  -l, --list               List the contents of DBM file\n");
-  printf ("  -d, --delete             Delete the given user\n");
-  printf ("  -m, --modify             Modify user's record (change password)\n");
-  printf ("\nDefault action is:\n");
-  printf ("  For the file owner: --list\n");
-  printf ("  For a user: --modify --username <username>\n");
-  printf ("\nReport bugs to bug-mailutils@gnu.org\n");
-  exit (EXIT_SUCCESS);
-}
-
-static void
-version ()
+void
+popauth_version (FILE *stream, struct argp_state *state)
 {
 #if defined(WITH_GDBM)
 # define FORMAT "GDBM"
@@ -535,7 +547,7 @@ version ()
 #elif defined(WITH_OLD_DBM)
 # define FORMAT "Old DBM"  
 #endif
-  printf ("popauth: %s (%s)\n", PACKAGE, VERSION);
+  printf ("%s\n", argp_program_version);
   printf ("Database format: %s\n", FORMAT);
   printf ("Database location: %s\n", APOP_PASSFILE);
   exit (EXIT_SUCCESS);
