@@ -69,6 +69,41 @@ _url_path_hashed (const char *spooldir, const char *user, int param)
   return mbox;
 }
 
+static int transtab[] = {
+  'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h',
+  'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 
+  'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 
+  'y', 'z', 'a', 'b', 'c', 'd', 'e', 'f', 
+  'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 
+  'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 
+  'w', 'x', 'y', 'z', 'a', 'b', 'c', 'd', 
+  'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 
+  'm', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 
+  'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 
+  'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 
+  'x', 'y', 'z', 'b', 'c', 'd', 'e', 'f', 
+  'g', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 
+  'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 
+  'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 
+  'x', 'y', 'z', 'b', 'c', 'd', 'e', 'f', 
+  'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 
+  'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 
+  'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 
+  'z', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 
+  'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 
+  'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 
+  'x', 'y', 'z', 'a', 'b', 'c', 'd', 'e', 
+  'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 
+  'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 
+  'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 
+  'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 
+  'y', 'z', 'b', 'c', 'd', 'e', 'f', 'g', 
+  'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 
+  'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 
+  'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 
+  'y', 'z', 'b', 'c', 'd', 'e', 'f', 'g'
+};
+
 /* Forward Indexing */
 static char *
 _url_path_index (const char *spooldir, const char *user, int index_depth)
@@ -79,18 +114,18 @@ _url_path_index (const char *spooldir, const char *user, int index_depth)
   if (ulen == 0)
     return NULL;
   
-  mbox = malloc (ulen + strlen (spooldir) + 2*index_depth + 1);
+  mbox = malloc (ulen + strlen (spooldir) + 2*index_depth + 2);
   strcpy (mbox, spooldir);
   p = mbox + strlen (mbox);
   for (i = 0; i < index_depth && i < ulen; i++)
     {
       *p++ = '/';
-      *p++ = user[i];
+      *p++ = transtab[ user[i] ];
     }
   for (; i < index_depth; i++)
     {
       *p++ = '/';
-      *p++ = user[ulen-1];
+      *p++ = transtab[ user[ulen-1] ];
     }
   *p++ = '/';
   strcpy (p, user);
@@ -113,12 +148,12 @@ _url_path_rev_index (const char *spooldir, const char *user, int index_depth)
   for (i = 0; i < index_depth && i < ulen; i++)
     {
       *p++ = '/';
-      *p++ = user[ulen - i - 1];
+      *p++ = transtab[ user[ulen - i - 1] ];
     }
   for (; i < index_depth; i++)
     {
       *p++ = '/';
-      *p++ = user[0];
+      *p++ = transtab[ user[0] ];
     }
   *p++ = '/';
   strcpy (p, user);
