@@ -285,8 +285,8 @@ AC_CHECK_MEMBERS([struct tm.tm_zone, struct tm.tm_gmtoff, struct tm.tm_isdst],
 
 dnl Check for working functions
 
-jm_FUNC_MALLOC
-jm_FUNC_REALLOC
+AC_FUNC_MALLOC
+AC_FUNC_REALLOC
 AC_FUNC_ALLOCA
 
 jm_INCLUDED_REGEX(lib/regex.c)
@@ -392,17 +392,49 @@ AC_CHECK_FUNCS(_obstack_begin,
                [AC_LIBOBJ(obstack)])
 
 
-dnl check if mysql support was added
-AC_SUBST(MYSQLLIBS)
-AC_ARG_ENABLE([mysql],
-              AC_HELP_STRING([--enable-mysql],
-                             [enable mysql support (default no)]),
-              [use_mysql="yes"],,)
-if test x"$use_mysql" = x"yes"; then
-	AC_CHECK_HEADER(mysql/mysql.h,
-	[MYSQLLIBS="-lmysqlclient -lm -L/usr/lib/mysql -L/usr/local/lib/mysql"
-	 AUTHLIBS="$AUTHLIBS $MYSQLLIBS"
-	AC_DEFINE(HAVE_MYSQL,1,[Define this if you have mysql libraries])])
+dnl check if SQL support is required
+AC_SUBST(SQLLIBS)
+AC_ARG_WITH([mysql],
+            AC_HELP_STRING([--with-mysql],
+                           [enable mysql support (default no)]),
+            [use_mysql="yes"],,)
+
+AC_ARG_WITH([postgres],
+            AC_HELP_STRING([--with-postgres],
+                           [enable postgres support (default no)]),
+            [use_postgres="yes"],,)
+
+AH_TEMPLATE(USE_SQL,[Enables SQL support])
+AH_TEMPLATE(HAVE_MYSQL,[Define if you have libmysql])
+AH_TEMPLATE(HAVE_PGSQL,[Define if you have libpq]) 
+
+if test x"$use_mysql" = x"yes" -a x"$use_postgres" = x"yes"; then
+ AC_MSG_ERROR(Use either --with-mysql or --with-postgres, not both)
+else
+ if test x"$use_mysql" = x"yes"; then
+   AC_CHECK_HEADER(mysql/mysql.h,
+                        [MU_CHECK_LIB(mysqlclient, mysql_real_connect, "-lm",
+                            [ USE_SQL=1
+                              AC_DEFINE(USE_SQL)
+                              AC_DEFINE(HAVE_MYSQL)
+                              SQLLIBS="$mu_cv_lib_mysqlclient"
+                            ],
+			    [ AC_MSG_ERROR(-lmysqlclient not found) ],
+                         [/usr/local/lib/mysql /usr/lib/mysql])])
+ fi
+ if test x"$use_postgres" = x"yes"; then
+   MU_CHECK_LIB(pq, PQconnectStart, [],
+		[ USE_SQL=1
+                  AC_DEFINE(HAVE_PGSQL)
+                  SQLLIBS=$mu_cv_lib_pq],
+                [ AC_MSG_ERROR(-lpq not found) ],
+                [/usr/local/pgsql/lib /usr/pgsql/lib])
+ fi
+fi
+
+if test x"$USE_SQL" = x1; then
+  AUTHLIBS="$AUTHLIBS $SQLLIBS"
+  AC_DEFINE(USE_SQL,1,[Define this to enable SQL support])
 fi
 
 dnl Virtual domain support
