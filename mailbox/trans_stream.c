@@ -77,6 +77,9 @@ static int _trans_read(stream_t stream, char *optr, size_t osize, off_t offset, 
 
 	*nbytes = 0;
 
+	if ( ts->transcoder == NULL )
+		return stream_read(ts->stream, optr, osize, offset, nbytes);
+
 	if ( offset == 0 )
 		ts->cur_offset = 0;
 	if ( ( iptr = alloca(isize) ) == NULL )
@@ -112,6 +115,8 @@ static int _trans_write(stream_t stream, const char *iptr, size_t isize, off_t o
 		return EINVAL;
 
 	*nbytes = 0;
+	if ( ts->transcoder == NULL )
+		return stream_write(ts->stream, iptr, isize, offset, nbytes);
 
 	if ( offset && ts->cur_offset != offset )
 		return ESPIPE;
