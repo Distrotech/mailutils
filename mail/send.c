@@ -112,7 +112,7 @@ compose_header_set (compose_env_t *env, char *name, char *value,
 {
   int status;
   char *old_value;
-  
+
   if (!env->header
       && (status = header_create (&env->header, NULL, 0, NULL)) != 0)
     {
@@ -128,14 +128,16 @@ compose_header_set (compose_env_t *env, char *name, char *value,
       break;
       
     case COMPOSE_SINGLE_LINE:
+      if (!value || value[0] == 0)
+	return EINVAL;
+      
       if (header_aget_value (env->header, name, &old_value) == 0
 	  && old_value[0])
 	{
-	  char *new_value = NULL;
-
-	  asprintf (&new_value, "%s,%s", old_value, value);
-	  status = header_set_value (env->header, name, new_value, 1);
-	  free (new_value);
+	  status = util_merge_addresses (&old_value, value);
+	  if (status == 0)
+	    status = header_set_value (env->header, name, old_value, 1);
+	  free (old_value);
 	}
       else
 	status = header_set_value (env->header, name, value, 1);
