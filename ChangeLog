@@ -1,3 +1,8 @@
+2004-01-15  Wojciech Polak
+
+	* mailbox/mbox/mbox.c: Minor. Use only one printing style
+	while debugging.
+
 2004-01-14  Sergey Poznyakoff
 
 	* mailbox/mbox/mbox.c (mbox_append_message0): Truncate the
