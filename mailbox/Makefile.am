@@ -19,6 +19,7 @@ auth.c \
 bio.c  \
 body.c \
 debug.c \
+envelope.c \
 file_stream.c \
 folder.c \
 header.c \
@@ -35,6 +36,7 @@ mbx_pop.c \
 message.c \
 mime.c \
 misc.c
+monitor.c
 observer.c \
 registrar.c \
 sendmail.c \

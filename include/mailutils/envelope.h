@@ -15,21 +15,13 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-#ifndef _MESSAGE0_H
-#define _MESSAGE0_H
-
-#ifdef DMALLOC
-#  include <dmalloc.h>
-#endif
-
-#include <mailutils/message.h>
-#include <mailutils/mime.h>
+#ifndef _MAILUTILS_ENVELOPE_H
+# define _MAILUTILS_ENVELOPE_H
 
 #include <sys/types.h>
-#include <stdio.h>
 
-#ifdef _cplusplus
-extern "C" {
+#ifdef __cplusplus
+extern "C" { /*}*/
 #endif
 
 #ifndef __P
@@ -40,39 +32,15 @@ extern "C" {
 # endif
 #endif /*__P */
 
-struct _message
-{
-  /* Who is the owner.  */
-  void *owner;
+struct _envelope;
+typedef struct _envelope *envelope_t;
 
-  envelope_t envelope;
-  header_t header;
-  body_t body;
+int envelope_create (envelope_t *, void *);
+void envelope_destroy (envelope_t *, void *);
+void * envelope_get_owner (envelope_t);
+int envelope_set_from (envelope_t, int (*_from) __P ((envelope_t, char *, size_t, size_t*)), void *);
+int envelope_from (envelope_t, char *, size_t, size_t *);
+int envelope_set_date (envelope_t, int (*_date) __P ((envelope_t, char *, size_t , size_t *)), void *);
+int envelope_date (envelope_t, char *, size_t, size_t *);
 
-  stream_t stream;
-  attribute_t attribute;
-  monitor_t monitor;
-  mime_t mime;
-  observable_t observable;
-
-  /* Reference count.  */
-  int ref;
-
-  /* Holder for message_write. */
-  char *hdr_buf;
-  size_t hdr_buflen;
-  int hdr_done;
-
-  int (*_get_uidl)       __P ((message_t, char *, size_t, size_t *));
-  int (*_get_num_parts)  __P ((message_t, size_t *));
-  int (*_get_part)       __P ((message_t, size_t, message_t *));
-  int (*_is_multipart)   __P ((message_t, int *));
-  int (*_lines)          __P ((message_t, size_t *));
-  int (*_size)           __P ((message_t, size_t *));
-};
-
-#ifdef _cplusplus
-}
-#endif
-
-#endif /* _MESSAGE0_H */
+#endif /* _MAILUTILS_ENVELOPE_H */

@@ -37,18 +37,29 @@ static int message_read (stream_t is, char *buf, size_t buflen,
 static int message_write (stream_t os, const char *buf, size_t buflen,
 			  off_t off, size_t *pnwrite);
 static int message_get_fd (stream_t stream, int *pfd);
+static int message_from (envelope_t envelope, char *buf, size_t len,
+			 size_t *pnwrite);
+static int message_date (envelope_t envelope, char *buf, size_t len,
+			 size_t *pnwrite);
 
 /*  Allocate ressources for the message_t.  */
 int
 message_create (message_t *pmsg, void *owner)
 {
   message_t msg;
+  int status;
 
   if (pmsg == NULL)
     return EINVAL;
   msg = calloc (1, sizeof (*msg));
   if (msg == NULL)
     return ENOMEM;
+  status = monitor_create (&(msg->monitor), msg);
+  if (status != 0)
+    {
+      free (msg);
+      return status;
+    }
   msg->owner = owner;
   msg->ref = 1;
   *pmsg = msg;
@@ -61,11 +72,15 @@ message_destroy (message_t *pmsg, void *owner)
   if (pmsg && *pmsg)
     {
       message_t msg = *pmsg;
+      monitor_t monitor = msg->monitor;
+      int destroy_lock = 0;
 
+      monitor_wrlock (monitor);
       msg->ref--;
       if ((msg->owner && msg->owner == owner)
 	  || (msg->owner == NULL && msg->ref <= 0))
 	{
+	  destroy_lock =  1;
 	  /* Notify the listeners.  */
 	  /* FIXME: to be removed since we do not supoort this event.  */
 	  if (msg->observable)
@@ -74,9 +89,17 @@ message_destroy (message_t *pmsg, void *owner)
 	      observable_destroy (&(msg->observable), msg);
 	    }
 
+	  /* Envelope.  */
+	  if (msg->envelope)
+	    envelope_destroy (&(msg->envelope), msg);
+
 	  /* Header.  */
 	  if (msg->header)
 	    header_destroy (&(msg->header), msg);
+
+	  /* Body.  */
+	  if (msg->body)
+	    body_destroy (&(msg->body), msg);
 
 	  /* Attribute.  */
 	  if (msg->attribute)
@@ -85,10 +108,6 @@ message_destroy (message_t *pmsg, void *owner)
 	  /* Stream.  */
 	  if (msg->stream)
 	    stream_destroy (&(msg->stream), msg);
-
-	  /* Body.  */
-	  if (msg->body)
-	    body_destroy (&(msg->body), msg);
 
 	  /*  Mime.  */
 	  if (msg->mime)
@@ -100,6 +119,9 @@ message_destroy (message_t *pmsg, void *owner)
 	  if (msg->ref <= 0)
 	    free (msg);
 	}
+      monitor_unlock (monitor);
+      if (destroy_lock)
+	monitor_destroy (&monitor, msg);
       /* Loose the link */
       *pmsg = NULL;
     }
@@ -109,7 +131,11 @@ int
 message_ref (message_t msg)
 {
   if (msg)
-    msg->ref++;
+    {
+      monitor_wrlock (msg->monitor);
+      msg->ref++;
+      monitor_unlock (msg->monitor);
+    }
   return 0;
 }
 
@@ -126,14 +152,19 @@ message_get_header (message_t msg, header_t *phdr)
     return EINVAL;
 
   /* Is it a floating mesg */
+  monitor_wrlock (msg->monitor);
   if (msg->header == NULL)
     {
       header_t header;
       int status = header_create (&header, NULL, 0, msg);
       if (status != 0)
-	return status;
+	{
+	  monitor_unlock (msg->monitor);
+	  return status;
+	}
       msg->header = header;
     }
+  monitor_unlock (msg->monitor);
   *phdr = msg->header;
   return 0;
 }
@@ -147,8 +178,11 @@ message_set_header (message_t msg, header_t hdr, void *owner)
      return EACCES;
   /* Make sure we destoy the old if it was own by the mesg */
   /* FIXME:  I do not know if somebody has already a ref on this ? */
-  header_destroy (&(msg->header), msg);
+  monitor_wrlock (msg->monitor);
+  if (msg->header)
+    header_destroy (&(msg->header), msg);
   msg->header = hdr;
+  monitor_unlock (msg->monitor);
   return 0;
 }
 
@@ -158,15 +192,20 @@ message_get_body (message_t msg, body_t *pbody)
   if (msg == NULL || pbody == NULL)
     return EINVAL;
 
+  monitor_wrlock (msg->monitor);
   /* Is it a floating mesg.  */
   if (msg->body == NULL)
     {
       body_t body;
       int status = body_create (&body, msg);
       if (status != 0)
-	return status;
+	{
+	  monitor_unlock (msg->monitor);
+	  return status;
+	}
       msg->body = body;
     }
+  monitor_unlock (msg->monitor);
   *pbody = msg->body;
   return 0;
 }
@@ -180,8 +219,11 @@ message_set_body (message_t msg, body_t body, void *owner)
     return EACCES;
   /* Make sure we destoy the old if it was own by the mesg.  */
   /* FIXME:  I do not know if somebody has already a ref on this ? */
-  body_destroy (&(msg->body), msg);
+  monitor_wrlock (msg->monitor);
+  if (msg->body)
+    body_destroy (&(msg->body), msg);
   msg->body = body;
+  monitor_unlock (msg->monitor);
   return 0;
 }
 
@@ -194,8 +236,11 @@ message_set_stream (message_t msg, stream_t stream, void *owner)
     return EACCES;
   /* Make sure we destoy the old if it was own by the mesg.  */
   /* FIXME:  I do not know if somebody has already a ref on this ? */
-  stream_destroy (&(msg->stream), msg);
+  monitor_wrlock (msg->monitor);
+  if (msg->stream)
+    stream_destroy (&(msg->stream), msg);
   msg->stream = stream;
+  monitor_unlock (msg->monitor);
   return 0;
 }
 
@@ -205,19 +250,24 @@ message_get_stream (message_t msg, stream_t *pstream)
   if (msg == NULL || pstream == NULL)
     return EINVAL;
 
+  monitor_wrlock (msg->monitor);
   if (msg->stream == NULL)
     {
       stream_t stream;
       int status;
       status = stream_create (&stream, MU_STREAM_RDWR, msg);
       if (status != 0)
-	return status;
+	{
+	  monitor_unlock (msg->monitor);
+	  return status;
+	}
       stream_set_read (stream, message_read, msg);
       stream_set_write (stream, message_write, msg);
       stream_set_fd (stream, message_get_fd, msg);
       stream_set_flags (stream, MU_STREAM_RDWR);
       msg->stream = stream;
     }
+  monitor_unlock (msg->monitor);
 
   *pstream = msg->stream;
   return 0;
@@ -290,123 +340,42 @@ message_size (message_t msg, size_t *psize)
 }
 
 int
-message_set_from (message_t msg,
-		  int (*_from) __P ((message_t, char *, size_t, size_t*)),
-		  void *owner)
+message_get_envelope (message_t msg, envelope_t *penvelope)
+{
+  if (msg == NULL || penvelope == NULL)
+    return EINVAL;
+
+  monitor_wrlock (msg->monitor);
+  if (msg->envelope == NULL)
+    {
+      envelope_t envelope;
+      int status = envelope_create (&envelope, msg);
+      if (status != 0)
+	{
+	  monitor_unlock (msg->monitor);
+	  return status;
+	}
+      envelope_set_from (envelope, message_from, msg);
+      envelope_set_date (envelope, message_date, msg);
+      msg->envelope = envelope;
+    }
+  monitor_unlock (msg->monitor);
+  *penvelope = msg->envelope;
+  return 0;
+}
+
+int
+message_set_envelope (message_t msg, envelope_t envelope, void *owner)
 {
   if (msg == NULL)
     return EINVAL;
   if (msg->owner != owner)
     return EACCES;
-  msg->_from = _from;
-  return 0;
-}
-
-int
-message_from (message_t msg, char *buf, size_t len, size_t *pnwrite)
-{
-  header_t header = NULL;
-  size_t n = 0;
-  int status;
-
-  if (msg == NULL)
-    return EINVAL;
-
-  /* Did they provide a way to get it ?  */
-  if (msg->_from)
-    return msg->_from (msg, buf, len, pnwrite);
-
-  /* Can it be extracted from the From:  */
-  message_get_header (msg, &header);
-  status = header_get_value (header, MU_HEADER_FROM, NULL, 0, &n);
-  if (status == 0 && n != 0)
-    {
-      char *from;
-      char *addr;
-      from = calloc (1, n + 1);
-      if (from == NULL)
-	return ENOMEM;
-      addr = calloc (1, n + 1);
-      if (addr == NULL)
-	{
-	  free (from);
-	  return ENOMEM;
-	}
-      header_get_value (header, MU_HEADER_FROM, from, n + 1, NULL);
-      if (parseaddr (from, addr, n + 1) == 0)
-	{
-	  size_t i = strlen (addr);
-	  n = (i > len) ? len : i;
-	  if (buf && len > 0)
-	    {
-	      memcpy (buf, addr, n);
-	      buf[n] = '\0';
-	    }
-	  free (addr);
-	  free (from);
-	  if (pnwrite)
-	    *pnwrite = n;
-	  return 0;
-	}
-    }
-  else if (status == EAGAIN)
-    return status;
-
-  /* oops */
-  n = (7 > len) ? len: 7;
-  if (buf && len > 0)
-    {
-      memcpy (buf, "unknown", n);
-      buf [n] = '\0';
-    }
-
-  if (pnwrite)
-    *pnwrite = n;
-  return 0;
-}
-
-int
-message_set_received (message_t msg, int (*_received)
-		      __P ((message_t, char *, size_t , size_t *)),
-		      void *owner)
-{
-  if (msg == NULL)
-    return EINVAL;
-  if (msg->owner != owner)
-    return EACCES;
-  msg->_received = _received;
-  return 0;
-}
-
-int
-message_received (message_t msg, char *buf, size_t len, size_t *pnwrite)
-{
-  time_t t;
-  size_t n;
-  if (msg == NULL)
-    return EINVAL;
-  /* Is it provided ?  */
-  if (msg->_received)
-    return msg->_received (msg, buf, len, pnwrite);
-
-  /* FIXME: extract the time from "Date:".  */
-
-  /* Catch all.  */
-  /* FIXME: ctime() is not thread safe use strftime().  */
-  t = time (NULL);
-  n = strlen (ctime (&t));
-
-  if (buf == NULL || len == 0)
-    {
-      if (pnwrite)
-	*pnwrite = n;
-      return 0;
-    }
-  n = (n > len) ? len : n;
-  strncpy (buf, ctime (&t), n);
-  buf [n] = '\0';
-  if (pnwrite)
-    *pnwrite = n;
+  monitor_wrlock (msg->monitor);
+  if (msg->envelope)
+    envelope_destroy (&(msg->envelope), msg);
+  msg->envelope = envelope;
+  monitor_unlock (msg->monitor);
   return 0;
 }
 
@@ -415,14 +384,19 @@ message_get_attribute (message_t msg, attribute_t *pattribute)
 {
   if (msg == NULL || pattribute == NULL)
    return EINVAL;
+  monitor_wrlock (msg->monitor);
   if (msg->attribute == NULL)
     {
       attribute_t attribute;
       int status = attribute_create (&attribute, msg);
       if (status != 0)
-	return status;
+	{
+	  monitor_unlock (msg->monitor);
+	  return status;
+	}
       msg->attribute = attribute;
     }
+  monitor_unlock (msg->monitor);
   *pattribute = msg->attribute;
   return 0;
 }
@@ -434,8 +408,11 @@ message_set_attribute (message_t msg, attribute_t attribute, void *owner)
    return EINVAL;
   if (msg->owner != owner)
     return EACCES;
-  attribute_destroy (&(msg->attribute), owner);
+  monitor_wrlock (msg->monitor);
+  if (msg->attribute)
+    attribute_destroy (&(msg->attribute), owner);
   msg->attribute = attribute;
+  monitor_unlock (msg->monitor);
   return 0;
 }
 
@@ -540,12 +517,17 @@ message_get_num_parts (message_t msg, size_t *pparts)
   if (msg->_get_num_parts)
     return msg->_get_num_parts (msg, pparts);
 
+  monitor_wrlock (msg->monitor);
   if (msg->mime == NULL)
     {
       int status = mime_create (&(msg->mime), msg, 0);
       if (status != 0)
-	return status;
+	{
+	  monitor_unlock (msg->monitor);
+	  return status;
+	}
     }
+  monitor_unlock (msg->monitor);
   return mime_get_num_parts (msg->mime, pparts);
 }
 
@@ -571,12 +553,17 @@ message_get_part (message_t msg, size_t part, message_t *pmsg)
   if (msg->_get_part)
     return msg->_get_part (msg, part, pmsg);
 
+  monitor_wrlock (msg->monitor);
   if (msg->mime == NULL)
     {
       int status = mime_create (&(msg->mime), msg, 0);
       if (status != 0)
-	return status;
+	{
+	  monitor_unlock (msg->monitor);
+	  return status;
+	}
     }
+  monitor_unlock (msg->monitor);
   return mime_get_part (msg->mime, part, pmsg);
 }
 
@@ -599,12 +586,17 @@ message_get_observable (message_t msg, observable_t *pobservable)
   if (msg == NULL || pobservable == NULL)
     return EINVAL;
 
+  monitor_wrlock (msg->monitor);
   if (msg->observable == NULL)
     {
       int status = observable_create (&(msg->observable), msg);
       if (status != 0)
-	return status;
+	{
+	  monitor_unlock (msg->monitor);
+	  return status;
+	}
     }
+  monitor_unlock (msg->monitor);
   *pobservable = msg->observable;
   return 0;
 }
@@ -665,6 +657,7 @@ message_write (stream_t os, const char *buf, size_t buflen,
       return 0;
     }
 
+  monitor_wrlock (msg->monitor);
   if (!msg->hdr_done)
     {
       size_t len;
@@ -680,6 +673,7 @@ message_write (stream_t os, const char *buf, size_t buflen,
 	      free (msg->hdr_buf);
 	      msg->hdr_buf = NULL;
 	      msg->hdr_buflen = 0;
+	      monitor_unlock (msg->monitor);
 	      return ENOMEM;
 	    }
 	  else
@@ -698,6 +692,7 @@ message_write (stream_t os, const char *buf, size_t buflen,
 	      if (status != 0)
 		{
 		  msg->hdr_buflen = 0;
+		  monitor_unlock (msg->monitor);
 		  return status;
 		}
 	      msg->hdr_done = 1;
@@ -706,16 +701,19 @@ message_write (stream_t os, const char *buf, size_t buflen,
 	  buflen -= len;
 	}
     }
+  monitor_unlock (msg->monitor);
 
   /* Message header is not complete but was not a full line.  */
   if (!msg->hdr_done && buflen > 0)
     {
       char *thdr = realloc (msg->hdr_buf, msg->hdr_buflen + buflen);
+      monitor_wrlock (msg->monitor);
       if (thdr == NULL)
 	{
 	  free (msg->hdr_buf);
 	  msg->hdr_buf = NULL;
 	  msg->hdr_buflen = 0;
+	  monitor_unlock (msg->monitor);
 	  return ENOMEM;
 	}
       else
@@ -723,6 +721,7 @@ message_write (stream_t os, const char *buf, size_t buflen,
       memcpy (msg->hdr_buf + msg->hdr_buflen, buf, buflen);
       msg->hdr_buflen += buflen;
       buflen = 0;
+      monitor_unlock (msg->monitor);
     }
   else if (buflen > 0) /* In the body.  */
     {
@@ -759,18 +758,115 @@ message_get_fd (stream_t stream, int *pfd)
   if (msg == NULL)
     return EINVAL;
 
+  monitor_wrlock (msg->monitor);
   /* Probably being lazy, then create a body for the stream.  */
   if (msg->body == NULL)
     {
       int status = body_create (&body, msg);
       if (status != 0 )
-
-        return status;
+	{
+	  monitor_unlock (msg->monitor);
+	  return status;
+	}
       msg->body = body;
     }
   else
       body = msg->body;
+  monitor_unlock (msg->monitor);
 
   body_get_stream (body, &is);
   return stream_get_fd (is, pfd);
+}
+
+static int
+message_date (envelope_t envelope, char *buf, size_t len, size_t *pnwrite)
+{
+  message_t msg = envelope_get_owner (envelope);
+  time_t t;
+  size_t n;
+
+  if (msg == NULL)
+    return EINVAL;
+
+  /* FIXME: extract the time from "Date:".  */
+
+  /* Catch all.  */
+  /* FIXME: ctime() is not thread safe use strftime().  */
+  t = time (NULL);
+  n = strlen (ctime (&t));
+
+  if (buf == NULL || len == 0)
+    {
+      if (pnwrite)
+	*pnwrite = n;
+      return 0;
+    }
+  n = (n > len) ? len : n;
+  strncpy (buf, ctime (&t), n);
+  buf [n] = '\0';
+  if (pnwrite)
+    *pnwrite = n;
+  return 0;
+}
+
+static int
+message_from (envelope_t envelope, char *buf, size_t len, size_t *pnwrite)
+{
+  message_t msg = envelope_get_owner (envelope);
+  header_t header = NULL;
+  size_t n = 0;
+  int status;
+
+  if (msg == NULL)
+    return EINVAL;
+
+  /* Can it be extracted from the From:  */
+  message_get_header (msg, &header);
+  status = header_get_value (header, MU_HEADER_FROM, NULL, 0, &n);
+  if (status == 0 && n != 0)
+    {
+      char *from;
+      char *addr;
+      from = calloc (1, n + 1);
+      if (from == NULL)
+	return ENOMEM;
+      addr = calloc (1, n + 1);
+      if (addr == NULL)
+	{
+	  free (from);
+	  return ENOMEM;
+	}
+      header_get_value (header, MU_HEADER_FROM, from, n + 1, NULL);
+      if (parseaddr (from, addr, n + 1) == 0)
+	{
+	  size_t i = strlen (addr);
+	  n = (i > len) ? len : i;
+	  if (buf && len > 0)
+	    {
+	      memcpy (buf, addr, n);
+	      buf[n] = '\0';
+	    }
+	  free (addr);
+	  free (from);
+	  if (pnwrite)
+	    *pnwrite = n;
+	  return 0;
+	}
+      free (addr);
+      free (from);
+    }
+  else if (status == EAGAIN)
+    return status;
+
+  /* oops */
+  n = (7 > len) ? len: 7;
+  if (buf && len > 0)
+    {
+      memcpy (buf, "unknown", n);
+      buf [n] = '\0';
+    }
+
+  if (pnwrite)
+    *pnwrite = n;
+  return 0;
 }

@@ -5,6 +5,7 @@ pkginclude_HEADERS = \
  auth.h \
  body.h \
  debug.h \
+ envelope.h \
  folder.h \
  header.h \
  iterator.h \
@@ -14,6 +15,7 @@ pkginclude_HEADERS = \
  mailer.h \
  message.h \
  mime.h \
+ monitor.h \
  observer.h \
  registrar.h \
  stream.h \

@@ -53,7 +53,7 @@ extern int folder_close          __P ((folder_t));
 
 extern int folder_delete_mailbox __P ((folder_t, const char *));
 
-extern int folder_list           __P ((folder_t, list_t *list));
+extern int folder_list           __P ((folder_t, char *vector[][], size_t *));
 
 /* Stream settings.  */
 extern int folder_get_stream     __P ((folder_t, stream_t *));

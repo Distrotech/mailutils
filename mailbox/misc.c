@@ -140,6 +140,7 @@ parseaddr (const char *addr, char *buf, size_t bufsz)
   struct token	*t, *tok, *last;
   struct token	*brace = NULL;
   int comment = 0;
+  int status = 0;
 
   tok = last = NULL;
 
@@ -171,7 +172,10 @@ parseaddr (const char *addr, char *buf, size_t bufsz)
   for (; t && t->word[0] != ',' && t->word[0] != '>'; t = t->next)
     {
       if (strlen (t->word) >= bufsz)
-	return -1;
+	{
+	  status = -1;
+	  break;
+	}
       bufsz -= strlen (t->word);
       strcat (buf, t->word);
     }
@@ -183,5 +187,5 @@ parseaddr (const char *addr, char *buf, size_t bufsz)
       free (t);
     }
 
-  return 0;
+  return status;
 }

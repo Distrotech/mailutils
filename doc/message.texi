@@ -1,21 +1,21 @@
 @code{#include <mailutils/message.h>}
 
 The @code{message_t} object is a convenient way to manipulate messages.  It
-encapsulates the @code{header_t}, the @code{attribute_t} and the @code{body_t}.
+encapsulates the @code{envelope_t}, the @code{header_t} and the @code{body_t}.
 
 @example
 @group
     __________                   message_t
    (message[1])        +------>+-----------------------+
-    ----------         |       |  header_t             |
+    ----------         |       |  envelope_t           |
    (message[2])        |       |-----------------------|
-    ----------         |       |  attribute_t          |
+    ----------         |       |  header_t             |
    (message[3])--------+       |-----------------------|
-    ----------                 |  stream_t             |
-   (message[n])                |-----------------------|
     ----------                 |  body_t               |
+   (message[n])                |-----------------------|
+    ----------                 |  attribute_t          |
                                |-----------------------|
-                               |  from                 |
+                               |  stream_t             |
                                |-----------------------|
                                |  size                 |
                                |-----------------------|
@@ -78,10 +78,10 @@ Return non-zero value if message is multi-part.
 @deftypefun int message_set_attribute (message_t @var{msg}, attribute_t @var{attribute}, void *owner)
 @end deftypefun
 
-@deftypefun int message_get_from (message_t @var{msg}, char *buffer, size_t len, size_t *n)
+@deftypefun int message_get_envelope (message_t @var{msg}, envelope_t *penvelope)
 @end deftypefun
 
-@deftypefun int message_set_from (message_t @var{msg}, int (*@var{_from}) (message_t, char *, size_t, size_t *), void *@var{owner})
+@deftypefun int message_set_envelope (message_t @var{msg}, envelope_t envelope, void *@var{owner})
 @end deftypefun
 
 @deftypefun int message_get_uidl (message_t @var{msg}, char *@var{buffer}, size_t @var{buflen}, size_t *@var{pwriten})

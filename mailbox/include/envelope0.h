@@ -15,20 +15,16 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-#ifndef _MESSAGE0_H
-#define _MESSAGE0_H
+#ifndef _ENVELOPE0_H
+#define _ENVELOPE0_H
 
 #ifdef DMALLOC
-#  include <dmalloc.h>
+#include <dmalloc.h>
 #endif
 
-#include <mailutils/message.h>
-#include <mailutils/mime.h>
+#include <mailutils/envelope.h>
 
-#include <sys/types.h>
-#include <stdio.h>
-
-#ifdef _cplusplus
+#ifdef __cplusplus
 extern "C" {
 #endif
 
@@ -40,39 +36,12 @@ extern "C" {
 # endif
 #endif /*__P */
 
-struct _message
+struct _envelope
 {
-  /* Who is the owner.  */
   void *owner;
-
-  envelope_t envelope;
-  header_t header;
-  body_t body;
-
-  stream_t stream;
-  attribute_t attribute;
-  monitor_t monitor;
-  mime_t mime;
-  observable_t observable;
-
-  /* Reference count.  */
-  int ref;
-
-  /* Holder for message_write. */
-  char *hdr_buf;
-  size_t hdr_buflen;
-  int hdr_done;
-
-  int (*_get_uidl)       __P ((message_t, char *, size_t, size_t *));
-  int (*_get_num_parts)  __P ((message_t, size_t *));
-  int (*_get_part)       __P ((message_t, size_t, message_t *));
-  int (*_is_multipart)   __P ((message_t, int *));
-  int (*_lines)          __P ((message_t, size_t *));
-  int (*_size)           __P ((message_t, size_t *));
+  int (*_destroy) __P ((envelope_t));
+  int (*_from)    __P ((envelope_t, char *, size_t, size_t*));
+  int (*_date)    __P ((envelope_t, char *, size_t , size_t *));
 };
 
-#ifdef _cplusplus
-}
-#endif
-
-#endif /* _MESSAGE0_H */
+#endif /* _ENVELOPE0_H */

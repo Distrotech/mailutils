@@ -245,7 +245,7 @@ main (int argc, char **argv)
     {
       int len;
       free (command);
-      command = readline (prompt->set && prompt->value != NULL ? prompt->value : "");
+      command = readline (prompt->set && prompt->value != NULL ? prompt->value : " ");
       len = strlen (command);
       while (command[len-1] == '\\')
 	{

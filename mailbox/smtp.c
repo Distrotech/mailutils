@@ -33,7 +33,6 @@
 #include <mailer0.h>
 #include <registrar0.h>
 #include <bio.h>
-#include <misc.h>
 
 static int smtp_init (mailer_t);
 

@@ -19,11 +19,13 @@
 #define _MAILUTILS_MESSAGE_H
 
 #include <sys/types.h>
-#include <mailutils/stream.h>
+#include <mailutils/envelope.h>
 #include <mailutils/header.h>
 #include <mailutils/body.h>
+#include <mailutils/stream.h>
 #include <mailutils/observer.h>
 #include <mailutils/attribute.h>
+#include <mailutils/monitor.h>
 
 
 #ifndef __P
@@ -53,6 +55,9 @@ extern void * message_get_owner      __P ((message_t));
 extern int message_ref               __P ((message_t));
 #define message_unref(msg)           message_destroy (&msg, NULL)
 
+extern int message_get_envelope      __P ((message_t, envelope_t *));
+extern int message_set_envelope     __P ((message_t, envelope_t, void *owner));
+
 extern int message_get_header        __P ((message_t, header_t *));
 extern int message_set_header        __P ((message_t, header_t, void *owner));
 
@@ -80,16 +85,6 @@ extern int message_lines             __P ((message_t, size_t *));
 extern int message_set_lines         __P ((message_t, int (*_lines)
 					   __P ((message_t, size_t *)),
 					   void *owner));
-
-extern int message_from              __P ((message_t, char *, size_t, size_t *));
-extern int message_set_from          __P ((message_t, int (*_from)
-					   __P ((message_t, char *, size_t,
-						 size_t *)), void *owner));
-
-extern int message_received          __P ((message_t, char *, size_t, size_t *));
-extern int message_set_received      __P ((message_t, int (*_received)
-					   __P ((message_t, char *, size_t,
-						 size_t *)), void *owner));
 
 extern int message_get_num_parts     __P ((message_t, size_t *nparts));
 extern int message_set_get_num_parts __P ((message_t, int (*_get_num_parts)

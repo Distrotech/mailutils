@@ -21,8 +21,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-#include <unistd.h>
 #include <time.h>
+#include <unistd.h>
 
 #include <mailutils/message.h>
 #include <mailutils/stream.h>
@@ -217,7 +217,7 @@ static void _mime_append_header_line(mime_t mime)
 static int _mime_parse_mpart_message(mime_t mime)
 {
 	char 		*cp, *cp2;
-	int 		blength, body_length, body_offset, body_lines, ret;
+	int 		blength, mb_length, mb_offset, mb_lines, ret;
 	size_t		nbytes;
 
 	if ( !(mime->flags & MIME_PARSER_ACTIVE) ) {
@@ -237,9 +237,9 @@ static int _mime_parse_mpart_message(mime_t mime)
 		mime->parser_state = MIME_STATE_SCAN_BOUNDARY;
 		mime->flags |= MIME_PARSER_ACTIVE;
 	}
-	body_length = mime->body_length;
-	body_offset = mime->body_offset;
-	body_lines = mime->body_lines;
+	mb_length = mime->body_length;
+	mb_offset = mime->body_offset;
+	mb_lines = mime->body_lines;
 
 	while ( ( ret = stream_read(mime->stream, mime->cur_buf, mime->buf_size, mime->cur_offset, &nbytes) ) == 0 && nbytes ) {
 		cp = mime->cur_buf;
@@ -256,15 +256,15 @@ static int _mime_parse_mpart_message(mime_t mime)
 						cp2 = mime->cur_line[0] == '\n' ? mime->cur_line + 1 : mime->cur_line;
 						blength = strlen(mime->boundary);
 						if ( mime->header_length )
-							body_lines++;
+							mb_lines++;
 						if ( mime->line_ndx >= blength ) {
 							if ( ( !strncasecmp(cp2,"--", 2) && !strncasecmp(cp2+2, mime->boundary, blength) )
 								|| !strncasecmp(cp2, mime->boundary, blength) ) {
 								mime->parser_state = MIME_STATE_HEADERS;
 								mime->flags &= ~MIME_PARSER_HAVE_CR;
-								body_length = mime->cur_offset - body_offset - mime->line_ndx + 1;
+								mb_length = mime->cur_offset - mb_offset - mime->line_ndx + 1;
 								if ( mime->header_length ) /* this skips the preamble */
-									_mime_append_part(mime, NULL, body_offset, body_length, body_lines);
+									_mime_append_part(mime, NULL, mb_offset, mb_length, mb_lines);
 								if ( ( cp2 + blength + 2 < cp && !strncasecmp(cp2+2+blength, "--",2) ) ||
 									!strncasecmp(cp2+blength, "--",2) ) { /* very last boundary */
 									mime->parser_state = MIME_STATE_BEGIN_LINE;
@@ -283,8 +283,8 @@ static int _mime_parse_mpart_message(mime_t mime)
 						_mime_append_header_line(mime);
 						if ( mime->line_ndx == 1 || mime->cur_line[0] == '\r' ) {
 							mime->parser_state = MIME_STATE_BEGIN_LINE;
-							body_offset = mime->cur_offset + 1;
-							body_lines = 0;
+							mb_offset = mime->cur_offset + 1;
+							mb_lines = 0;
 						}
 						mime->line_ndx = -1;
 						break;
@@ -300,12 +300,12 @@ static int _mime_parse_mpart_message(mime_t mime)
 			cp++;
 		}
 	}
-	mime->body_lines = body_lines;
-	mime->body_length = body_length;
-	mime->body_offset = body_offset;
+	mime->body_lines = mb_lines;
+	mime->body_length = mb_length;
+	mime->body_offset = mb_offset;
 	if ( ret != EAGAIN ) { /* finished cleanup */
 		if ( mime->header_length ) /* this skips the preamble */
-			_mime_append_part(mime, NULL, body_offset, body_length, body_lines);
+			_mime_append_part(mime, NULL, mb_offset, mb_length, mb_lines);
 		mime->flags &= ~MIME_PARSER_ACTIVE;
 		mime->body_offset = mime->body_length = mime->header_length = mime->body_lines = 0;
 	}
@@ -373,7 +373,7 @@ static int _mime_set_content_type(mime_t mime)
 	char boundary[128];
 	header_t	hdr = NULL;
 	size_t		size;
-
+	
 	if ( mime->nmtp_parts > 1 ) {
 		if ( mime->flags & MIME_ADDED_MULTIPART_CT )
 			return 0;
@@ -382,7 +382,7 @@ static int _mime_set_content_type(mime_t mime)
 		else
 			strcpy(content_type, "multipart/alternative; boundary=");
 		if ( mime->boundary == NULL ) {
-			sprintf (boundary,"%ld-%ld=:%ld",random (),time (0), getpid ());
+			sprintf (boundary,"%ld-%ld=:%ld",(long)random (), (long)time (0), (long)getpid ());
 			if ( ( mime->boundary = strdup(boundary) ) == NULL )
 				return ENOMEM;
 		}
@@ -455,7 +455,7 @@ static int _mime_body_read(stream_t stream, char *buf, size_t buflen, off_t off,
 					}
 					while(mime->postamble) {
 						mime->postamble--;
-						ADD_CHAR(buf, '-', mime->cur_offset, buflen, *nbytes);
+						ADD_CHAR(buf, '-', mime->cur_offset, buflen, *nbytes);						
 					}
 					mime->flags &= ~(MIME_INSERT_BOUNDARY|MIME_ADDING_BOUNDARY);
 					mime->part_offset = 0;
@@ -465,9 +465,12 @@ static int _mime_body_read(stream_t stream, char *buf, size_t buflen, off_t off,
 				   return 0;
 				message_get_stream(mime->mtp_parts[mime->cur_part]->msg, &msg_stream);
 			} else {
-				body_t b;
-				message_get_body(mime->mtp_parts[mime->cur_part]->msg, &b);
-				body_get_stream(b, &msg_stream);
+				body_t part_body;
+
+				if ( mime->cur_part >= mime->nmtp_parts )
+				   return 0;
+				message_get_body(mime->mtp_parts[mime->cur_part]->msg, &part_body);
+				body_get_stream(part_body, &msg_stream);
 			}
 			ret = stream_read(msg_stream, buf, buflen, mime->part_offset, &part_nbytes );
     		len += part_nbytes;
@@ -475,11 +478,11 @@ static int _mime_body_read(stream_t stream, char *buf, size_t buflen, off_t off,
 			if ( nbytes )
 				*nbytes += len;
 			mime->cur_offset += len;
-			if ( ret == 0 && part_nbytes == 0 && mime->nmtp_parts > 1 ) {
+			if ( ret == 0 && part_nbytes == 0 ) {
 				mime->flags |= MIME_INSERT_BOUNDARY;
 				mime->cur_part++;
 			}
-		} while( ret == 0 && part_nbytes == 0 && mime->cur_part < mime->nmtp_parts );
+		} while( ret == 0 && part_nbytes == 0 && mime->cur_part <= mime->nmtp_parts );
 	}
 	return ret;
 }
@@ -675,7 +678,7 @@ int mime_get_num_parts(mime_t mime, int *nmtp_parts)
 int mime_add_part(mime_t mime, message_t msg)
 {
 	int ret;
-
+	
 	if ( mime == NULL || msg == NULL || ( mime->flags & MIME_NEW_MESSAGE ) == 0 )
 		return EINVAL;
 	if ( ( ret = _mime_append_part(mime, msg, 0, 0, 0) ) == 0 )

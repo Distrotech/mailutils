@@ -196,7 +196,7 @@ do \
         || (mpd->id && mpd->id != (size_t)identity)) \
       { \
         mpd->id = 0; \
-        mpd->func = pop_open; \
+        mpd->func = (void *)pop_open; \
         mpd->state = POP_NO_STATE; \
         monitor_unlock (mbox->monitor); \
         err = pop_open (mbox, mbox->flags); \

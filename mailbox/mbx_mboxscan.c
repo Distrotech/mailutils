@@ -352,7 +352,7 @@ mbox_scan0 (mailbox_t mailbox, size_t msgno, size_t *pcount, int do_notif)
 	      mum->mud = mud;
               mum->header_from = total - n;
               mum->header_from_end = total;
-	      mum->body_end = 0;
+	      mum->body_end = mum->body = 0;
 	      lines = 0;
 	    }
 	  else if ((n > 7) && ISSTATUS(buf))

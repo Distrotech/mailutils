@@ -51,7 +51,7 @@ struct _folder
   monitor_t monitor;
   url_t url;
   int flags;
-  size_t ref;
+  int ref;
   size_t uid;
 
   /* Back pointer to the specific mailbox */
@@ -64,7 +64,7 @@ struct _folder
 
   int  (*_open)            __P ((folder_t, int flag));
   int  (*_close)           __P ((folder_t));
-  int  (*_list)            __P ((folder_t, list_t *));
+  int  (*_list)            __P ((folder_t, char *vector[][], size_t *num));
   int  (*_delete_mailbox)  __P ((folder_t, const char *));
 };
 

@@ -162,8 +162,8 @@ static int mbox_header_size (header_t, size_t *);
 static int mbox_header_lines (header_t, size_t *);
 static int mbox_body_size (body_t, size_t *);
 static int mbox_body_lines (body_t, size_t *);
-static int mbox_msg_from (message_t, char *, size_t, size_t *);
-static int mbox_msg_received (message_t, char *, size_t, size_t *);
+static int mbox_envelope_from (envelope_t, char *, size_t, size_t *);
+static int mbox_envelope_date (envelope_t, char *, size_t, size_t *);
 static void mbox_cleanup (void *);
 
 /* We allocate the mbox_data_t struct, but don't do any parsing on the name or
@@ -981,9 +981,10 @@ mbox_body_lines (body_t body, size_t *plines)
 }
 
 static int
-mbox_msg_received (message_t msg, char *buf, size_t len,
+mbox_envelope_date (envelope_t envelope, char *buf, size_t len,
 			   size_t *pnwrite)
 {
+  message_t msg = envelope_get_owner (envelope);
   mbox_message_t mum = message_get_owner (msg);
   size_t n = 0;
   int status;
@@ -1026,8 +1027,10 @@ mbox_msg_received (message_t msg, char *buf, size_t len,
 }
 
 static int
-mbox_msg_from (message_t msg, char *buf, size_t len, size_t *pnwrite)
+mbox_envelope_from (envelope_t envelope, char *buf, size_t len,
+		    size_t *pnwrite)
 {
+  message_t msg = envelope_get_owner (envelope);
   mbox_message_t mum = message_get_owner (msg);
   size_t n = 0;
   int status;
@@ -1158,8 +1161,18 @@ mbox_get_message (mailbox_t mailbox, size_t msgno, message_t *pmsg)
   }
 
   /* Set the envelope.  */
-  message_set_from (msg, mbox_msg_from, mum);
-  message_set_received (msg, mbox_msg_received, mum);
+  {
+    envelope_t envelope= NULL;
+    status = envelope_create (&envelope, msg);
+    if (status != 0)
+      {
+	message_destroy (&msg, mum);
+	return status;
+      }
+    envelope_set_from (envelope, mbox_envelope_from, msg);
+    envelope_set_date (envelope, mbox_envelope_date, msg);
+    message_set_envelope (msg, envelope, mum);
+  }
 
   /* Attach the message to the mailbox mbox data.  */
   mum->message = msg;
@@ -1229,7 +1242,9 @@ mbox_append_message (mailbox_t mailbox, message_t msg)
 	{
 	  char *s;
 	  size_t len = 0;
-	  status = message_from (msg, mud->from, 127, &len);
+	  envelope_t envelope;
+	  message_get_envelope (msg, &envelope);
+	  status = envelope_from (envelope, mud->from, 127, &len);
 	  if (status != 0)
 	    {
 	      if (status != EAGAIN)
@@ -1255,7 +1270,9 @@ mbox_append_message (mailbox_t mailbox, message_t msg)
 	{
 	  char *s;
 	  size_t len = 0;
-	  status = message_received (msg, mud->date, 127, &len);
+	  envelope_t envelope;
+	  message_get_envelope (msg, &envelope);
+	  status = envelope_date (envelope, mud->date, 127, &len);
 	  if (status != 0)
 	    {
 	      if (status != EAGAIN)

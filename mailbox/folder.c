@@ -165,23 +165,19 @@ folder_destroy (folder_t *pfolder)
       folder_t folder = *pfolder;
       int destroy_lock = 0;
       monitor_t monitor = folder->monitor;
-      size_t reference;
 
       monitor_wrlock (monitor);
 #ifdef WITH_PTHREAD
       pthread_mutex_lock (&slock);
 #endif
-      {
-	folder->ref--;
-	reference = folder->ref;
-	/* Remove the folder from the list of known folder.  */
-	if (reference == 0)
-	  list_remove (known_folder_list, folder);
-      }
+      folder->ref--;
+      /* Remove the folder from the list of known folder.  */
+      if (folder->ref <= 0)
+	list_remove (known_folder_list, folder);
 #ifdef WITH_PHTREAD
       pthread_mutex_unlock (&slock);
 #endif
-      if (reference == 0)
+      if (folder->ref <= 0)
 	{
 	  monitor_unlock (monitor);
 	  destroy_lock = 1;
@@ -328,13 +324,12 @@ folder_get_debug (folder_t folder, debug_t *pdebug)
   return 0;
 }
 
-
 int
-folder_list (folder_t folder, list_t *plist)
+folder_list (folder_t folder, char *vector[][], size_t *pnum)
 {
   if (folder == NULL || folder->_list == NULL)
     return ENOSYS;
-  return folder->_list (folder, plist);
+  return folder->_list (folder, vector, pnum);
 }
 
 int
@@ -380,7 +375,7 @@ static int is_known_folder (url_t url, folder_t *pfolder)
 static int
 is_same_scheme (url_t url1, url_t url2)
 {
-  int i = 0, j = 0;
+  size_t i = 0, j = 0;
   char *s1, *s2;
   int ret = 1;
 
@@ -405,7 +400,7 @@ is_same_scheme (url_t url1, url_t url2)
 static int
 is_same_user (url_t url1, url_t url2)
 {
-  int i = 0, j = 0;
+  size_t i = 0, j = 0;
   char *s1, *s2;
   int ret = 0;
 
@@ -430,7 +425,7 @@ is_same_user (url_t url1, url_t url2)
 static int
 is_same_path (url_t url1, url_t url2)
 {
-  int i = 0, j = 0;
+  size_t i = 0, j = 0;
   char *s1, *s2;
   int ret = 0;
 
@@ -455,7 +450,7 @@ is_same_path (url_t url1, url_t url2)
 static int
 is_same_host (url_t url1, url_t url2)
 {
-  int i = 0, j = 0;
+  size_t i = 0, j = 0;
   char *s1, *s2;
   int ret = 0;
 
