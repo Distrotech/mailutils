@@ -92,15 +92,44 @@ sieve_code_string (char *string)
 }
 
 sieve_tag_def_t *
-find_tag (sieve_tag_def_t *taglist, char *tagname)
+find_tag (sieve_tag_group_t *taglist, char *tagname,
+	  sieve_tag_checker_t *checker)
 {
+  *checker = NULL;
+  
   if (!taglist)
     return NULL;
   
-  for (; taglist->name; taglist++)
-    if (strcmp (taglist->name, tagname) == 0)
-      return taglist;
+  for (; taglist->tags; taglist++)
+    {
+      sieve_tag_def_t *def;
+      for (def = taglist->tags; def->name; def++)
+	if (strcmp (def->name, tagname) == 0)
+	  {
+	    *checker = taglist->checker;
+	    return def;
+	  }
+    }
   return NULL;
+}
+
+static int
+_compare_ptr (void *item, void *data)
+{
+  return item == data;
+}
+
+struct check_arg {
+  char *name;
+  list_t args;
+  list_t tags;
+};
+
+static int
+_run_checker (void *item, void *data)
+{
+  struct check_arg *arg = data;
+  return (*(sieve_tag_checker_t)item) (arg->name, arg->tags, arg->args);
 }
 
 int
@@ -109,6 +138,7 @@ sieve_code_command (sieve_register_t *reg, list_t arglist)
   iterator_t itr;
   list_t arg_list = NULL;
   list_t tag_list = NULL;
+  list_t chk_list = NULL;
   sieve_data_type *exp_arg;
   int rc, err = 0;
   static sieve_data_type empty[] = { SVT_VOID };
@@ -139,12 +169,13 @@ sieve_code_command (sieve_register_t *reg, list_t arglist)
 	  
 	  if (val->type == SVT_TAG)
 	    {
-	      sieve_tag_def_t *tag = find_tag (reg->tags, val->v.string);
+	      sieve_tag_checker_t cf;
+	      sieve_tag_def_t *tag = find_tag (reg->tags, val->v.string, &cf);
 	      if (!tag)
 		{
 		  sieve_compile_error (sieve_filename, sieve_line_num,
-                               "invalid tag name `%s' for `%s'",
-			       val->v.string, reg->name);
+				       "invalid tag name `%s' for `%s'",
+				       val->v.string, reg->name);
 		  err = 1;
 		  break;
 		}
@@ -158,7 +189,7 @@ sieve_code_command (sieve_register_t *reg, list_t arglist)
 		  break;
 		}
 	      
-	      tagrec.tag = tag->num;
+	      tagrec.tag = tag->name;
 	      if (tag->argtype != SVT_VOID)
 		{
 		  iterator_next (itr);
@@ -171,6 +202,20 @@ sieve_code_command (sieve_register_t *reg, list_t arglist)
 				     sizeof (*tagptr));
 	      *tagptr = tagrec;
 	      list_append (tag_list, tagptr);
+
+	      if (cf)
+		{
+		  if (!chk_list && (rc = list_create (&chk_list)))
+		    {
+		      sieve_compile_error (sieve_filename, sieve_line_num,
+			  	         "%s:%d: can't create check list: %s",
+					   mu_errstring (rc));
+		      err = 1;
+		      break;
+		    }
+		  if (list_do (chk_list, _compare_ptr, cf) == 0)
+		    list_append (chk_list, cf);
+		}
 	    }
 	  else if (*exp_arg == SVT_VOID)
 	    {
@@ -233,6 +278,16 @@ sieve_code_command (sieve_register_t *reg, list_t arglist)
 			       reg->name);
 	  err = 1;
 	}
+
+      if (chk_list)
+	{
+	  struct check_arg chk_arg;
+      
+	  chk_arg.name = reg->name;
+	  chk_arg.tags = tag_list;
+	  chk_arg.args = arg_list;
+	  err = list_do (chk_list, _run_checker, &chk_arg);
+	}
     }
   
   if (!err)
@@ -244,6 +299,7 @@ sieve_code_command (sieve_register_t *reg, list_t arglist)
     {
       list_destroy (&arg_list);
       list_destroy (&tag_list);
+      list_destroy (&chk_list);
     }
 
   return err;
