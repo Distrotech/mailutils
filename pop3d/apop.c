@@ -162,6 +162,7 @@ pop3d_apop (const char *arg)
   user = pop3d_cmd (arg);
   if (strlen (user) > (POP_MAXCMDLEN - APOP_DIGEST))
     {
+      syslog (LOG_INFO, _("User name too long: %s"), user);
       free (user);
       return ERR_BAD_ARGS;
     }
@@ -170,6 +171,8 @@ pop3d_apop (const char *arg)
   password = pop3d_apopuser (user);
   if (password == NULL)
     {
+      syslog (LOG_INFO, _("Password for `%s' not found in the database"),
+	      user);
       free (user);
       free (user_digest);
       return ERR_BAD_LOGIN;
@@ -192,6 +195,7 @@ pop3d_apop (const char *arg)
 
   if (strcmp (user_digest, buf))
     {
+      syslog (LOG_INFO, _("APOP failed for `%s'"), user);
       free (user);
       free (user_digest);
       return ERR_BAD_LOGIN;
@@ -206,8 +210,10 @@ pop3d_apop (const char *arg)
   /* Reset the uid.  */
   if (auth->change_uid && setuid (auth->uid) == -1)
     {
-       mu_auth_data_free (auth);
-       return ERR_BAD_LOGIN;
+      syslog (LOG_INFO, _("cannot change to uid %lu: %m"),
+	      (unsigned long) auth->uid);
+      mu_auth_data_free (auth);
+      return ERR_BAD_LOGIN;
     }
 
   if ((status = mailbox_create (&mbox, auth->mailbox)) != 0
@@ -220,6 +226,8 @@ pop3d_apop (const char *arg)
 	  if (mailbox_create (&mbox, "/dev/null") != 0
 	      || mailbox_open (mbox, MU_STREAM_READ) != 0)
 	    {
+	      syslog (LOG_ERR, _("can't create temporary mailbox: %s"),
+		      mu_strerror (status));
 	      mu_auth_data_free (auth);
 	      free (mailbox_name);
 	      state = AUTHORIZATION;
@@ -228,6 +236,9 @@ pop3d_apop (const char *arg)
 	}
       else
 	{
+	  syslog (LOG_ERR, _("can't open mailbox %s: %s"),
+		  auth->mailbox,
+		  mu_strerror (status));
 	  state = AUTHORIZATION;
 	  mu_auth_data_free (auth);
 	  return ERR_MBOX_LOCK;
