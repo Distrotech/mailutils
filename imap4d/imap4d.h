@@ -86,7 +86,7 @@
 #include <mailutils/parse822.h>
 #include <mailutils/registrar.h>
 #include <mailutils/stream.h>
-
+#include <mailutils/mu_auth.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -147,6 +147,7 @@ extern int state;
 extern volatile size_t children;
 extern int is_virtual;
 extern struct daemon_param daemon_param;
+extern struct mu_auth_data *auth_data; 
 	
 #ifndef HAVE_STRTOK_R
 extern char *strtok_r __P((char *s, const char *delim, char **save_ptr));
@@ -156,7 +157,7 @@ extern char *strtok_r __P((char *s, const char *delim, char **save_ptr));
 extern int  imap4d_append __P ((struct imap4d_command *, char *));
 extern int  imap4d_append0 __P((mailbox_t mbox, int flags, char *text));
 extern int  imap4d_authenticate __P ((struct imap4d_command *, char *));
-extern int  imap4d_auth_capability __P((void));
+extern void imap4d_auth_capability __P((void));
 extern int  imap4d_capability __P ((struct imap4d_command *, char *));
 extern int  imap4d_check __P ((struct imap4d_command *, char *));
 extern int  imap4d_close __P ((struct imap4d_command *, char *));

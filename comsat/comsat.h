@@ -57,6 +57,7 @@
 #include <mailutils/mutil.h>
 #include <mailutils/registrar.h>
 #include <mailutils/stream.h>
+#include <mailutils/mu_auth.h>
 
 #include <argcv.h>
 

@@ -80,12 +80,9 @@
 #include <mailutils/registrar.h>
 #include <mailutils/stream.h>
 #include <mailutils/url.h>
+#include <mailutils/mu_auth.h>
 
 #include <mu_dbm.h>
-
-#ifdef HAVE_MYSQL
-# include "../MySql/MySql.h"
-#endif
 
 /* Debug */
 extern int debug_level;
@@ -99,11 +96,12 @@ extern int debug_level;
 extern char *quotadbname;
 extern int exit_code;
 
-extern void setgroupquota (char *str);
-extern int check_quota (char *name, size_t size, size_t *rest);
+extern void setgroupquota __P((char *str));
+extern int check_quota __P((char *name, size_t size, size_t *rest));
 
-int mda (FILE *fp, char *username);
-int switch_user_id (uid_t uid);
+int mda __P((FILE *fp, char *username));
+int switch_user_id __P((uid_t uid));
+void mailer_err __P((char *fmt, ...));
 
 #ifdef WITH_GUILE
 struct mda_data

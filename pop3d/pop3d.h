@@ -122,6 +122,7 @@
 #include <mailutils/mutil.h>
 #include <mailutils/registrar.h>
 #include <mailutils/url.h>
+#include <mailutils/mu_auth.h>
 
 /* For Berkley DB2 APOP password file */
 #ifdef HAVE_DB_H
@@ -174,6 +175,7 @@ extern FILE *ofile;
 extern char *md5shared;
 extern volatile size_t children;
 extern struct daemon_param daemon_param;
+extern int debug_mode;
 
 extern int pop3d_abquit         __P ((int));
 extern int pop3d_apop           __P ((const char *));
