@@ -35,7 +35,7 @@ mail_set (int argc, char **argv)
   else
     {
       int i = 0;
-      char *var = NULL, *value = NULL;
+      char *value = NULL;
       struct mail_env_entry *entry = NULL;
       for (i = 1; i < argc; i++)
 	{
@@ -48,21 +48,15 @@ mail_set (int argc, char **argv)
 	      if (entry->value)
 		free (entry->value);
 	    }
-	  else if (strchr (argv[i], '=') != NULL)
+	  else if (i+1 < argc && argv[i+1][0] == '=')
 	    {
-	      int j = 0;
-	      var = strdup (argv[i]);
-	      for (j = 0; j < strlen (var); j++)
-		if (var[j] == '=')
-		  {
-		    var[j] = '\0';
-		    break;
-		  }
-	      value = strdup (&var[j+1]);
-	      entry = util_find_env (var);
-	      free (var);
+	      entry = util_find_env (argv[i]);
 	      if (entry == NULL)
 		return 1;
+	      i += 2;
+	      if (i > argc)
+		break;
+	      value = strdup (argv[i]);
 	      entry->set = 1;
 	      if (entry->value)
 		free (entry->value);
