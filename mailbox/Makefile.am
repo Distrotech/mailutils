@@ -49,6 +49,7 @@ tcp.c \
 trans_stream.c \
 url.c \
 url_file.c \
+url_imap.c \
 url_mbox.c \
 url_path.c \
 url_pop.c \
