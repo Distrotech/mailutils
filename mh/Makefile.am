@@ -18,6 +18,7 @@
 ##   59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 PROGRAMS_MH = \
+ ali\
  anno\
  comp\
  fmtcheck\
@@ -42,6 +43,7 @@ PROGRAMS_MH = \
  whom
 
 EXTRA_PROGRAMS = \
+ ali\
  anno\
  comp\
  fmtcheck\
@@ -75,6 +77,8 @@ noinst_LIBRARIES = @BUILD_MH_LIBRARIES@
 
 libmh_a_SOURCES= \
  compcommon.c\
+ mh_alias_gram.c\
+ mh_alias_lex.c\
  mh_argp.c\
  mh_ctx.c\
  mh_getopt.c\
@@ -89,7 +93,7 @@ libmh_a_SOURCES= \
  mh_stream.c\
  mh_whatnow.c\
  mh_whom.c
-noinst_HEADERS = mh.h mh_getopt.h
+noinst_HEADERS = mh.h mh_getopt.h mh_alias.h
 
 LISPSRC = mailutils-mh.el
 lisp_LISP=@lisp_LISP@
@@ -98,13 +102,16 @@ EXTRA_LISP = mailutils-mh.el
 BUILT_SOURCES= \
 	mh_fmtgram.c \
         pick-gram.c \
-        pick-gram.h
+        pick-gram.h \
+        mh_alias_gram.c \
+        mh_alias_lex.c \
+        mh_alias.h
 
 MAINTAINERCLEANFILES=$(BUILT_SOURCES)
 
 mhlib_DATA = components replcomps replgroupcomps mhl.format $(LISPSRC)
 EXTRA_DIST = components replcomps replgroupcomps mhl.format\
- mailutils-mh.eli mh_fmtgram.y pick.y
+ mailutils-mh.eli mh_fmtgram.y pick.y mh_alias.y mh_alias.l
 DISTCLEANFILES = mailutils-mh.el
 
 SUFFIXES = .eli .el
@@ -134,6 +141,16 @@ mh_fmtgram.c: $(srcdir)/mh_fmtgram.y
 	          y.tab.c mh_fmtgram.c y.output fmtgram.y.output \
                   -- -yy fmt_yy
 
+mh_alias_gram.c mh_alias.h: $(srcdir)/mh_alias.y
+	$(YLWRAP) "$(YACC) $(AM_YFLAGS) -d" $< \
+	          y.tab.c mh_alias_gram.c y.tab.h mh_alias.h \
+                  y.output mh_alias.output \
+                  -- -yy ali_yy
+
+mh_alias_lex.c: $(srcdir)/mh_alias.l mh_alias.h
+	$(YLWRAP) "$(LEX) $(AM_LEXFLAGS) $(LEXFLAGS)" \
+                  $(srcdir)/mh_alias.l lex.yy.c mh_alias_lex.c \
+                  -- -yy ali_yy
 
 install-exec-hook: @BUILD_MH_EXEC_HOOK@
 
