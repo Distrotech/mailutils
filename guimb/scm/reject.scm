@@ -80,7 +80,8 @@
       (mu-mime-add-part mime mesg))
 
     (let ((mesg (mu-mime-get-message mime)))
-      (sieve-message-bounce mesg (list sender)))))
+      (sieve-message-bounce mesg (list sender)))
+    (mu-message-delete sieve-current-message)))
 
 ;;; Register action
 (if sieve-parser
