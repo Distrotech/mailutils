@@ -71,7 +71,18 @@ mu_check_perm (char *name, int mode)
 #define DB_SUFFIX ".db"
 
 int
-mu_dbm_open(char *name, DBM_FILE *db, int flags, int mode)
+mu_dbm_stat (char *name, struct stat *sb)
+{
+  int rc;
+  char *pfname = xmalloc (strlen (name) + sizeof DB_SUFFIX);
+  strcat (strcpy (pfname, name), DB_SUFFIX);
+  rc = stat (pfname, sb);
+  free (pfname);
+  return rc;
+}
+
+int
+mu_dbm_open (char *name, DBM_FILE *db, int flags, int mode)
 {
   int f;
   char *pfname;
@@ -106,21 +117,27 @@ mu_dbm_open(char *name, DBM_FILE *db, int flags, int mode)
 }
 
 int
-mu_dbm_close(DBM_FILE db)
+mu_dbm_close (DBM_FILE db)
 {
   gdbm_close(db);
   return 0;
 }
 
 int
-mu_dbm_fetch(DBM_FILE db, DBM_DATUM key, DBM_DATUM *ret)
+mu_dbm_fetch (DBM_FILE db, DBM_DATUM key, DBM_DATUM *ret)
 {
   *ret = gdbm_fetch(db, key);
   return ret->dptr == NULL;
 }
 
 int
-mu_dbm_insert(DBM_FILE db, DBM_DATUM key, DBM_DATUM contents, int replace)
+mu_dbm_delete (DBM_FILE db, DBM_DATUM key)
+{
+  return gdbm_delete (db, key);
+}
+
+int
+mu_dbm_insert (DBM_FILE db, DBM_DATUM key, DBM_DATUM contents, int replace)
 {
   return gdbm_store(db, key, contents,
 		    replace ? GDBM_REPLACE : GDBM_INSERT);
@@ -143,7 +160,18 @@ mu_dbm_nextkey (DBM_FILE db, DBM_DATUM key)
 #define DB_SUFFIX ".db"
 
 int
-mu_dbm_open(char *name, DBM_FILE *dbm, int flags, int mode)
+mu_dbm_stat (char *name, struct stat *sb)
+{
+  int rc;
+  char *pfname = xmalloc (strlen (name) + sizeof DB_SUFFIX);
+  strcat (strcpy (pfname, name), DB_SUFFIX);
+  rc = stat (pfname, sb);
+  free (pfname);
+  return rc;
+}
+
+int
+mu_dbm_open (char *name, DBM_FILE *dbm, int flags, int mode)
 {
   int f, rc;
   DB *db;
@@ -192,7 +220,7 @@ mu_dbm_open(char *name, DBM_FILE *dbm, int flags, int mode)
 }
 
 int
-mu_dbm_close(DBM_FILE db)
+mu_dbm_close (DBM_FILE db)
 {
   db->db->close (db->db, 0);
   free (db);
@@ -200,13 +228,19 @@ mu_dbm_close(DBM_FILE db)
 }
 
 int
-mu_dbm_fetch(DBM_FILE db, DBM_DATUM key, DBM_DATUM *ret)
+mu_dbm_fetch (DBM_FILE db, DBM_DATUM key, DBM_DATUM *ret)
 {
   return db->db->get (db->db, NULL, &key, ret, 0);
 }
 
 int
-mu_dbm_insert(DBM_FILE db, DBM_DATUM key, DBM_DATUM contents, int replace)
+mu_dbm_delete (DBM_FILE db, DBM_DATUM key)
+{
+  return db->db->del (db->db, NULL, &key, 0);
+}
+
+int
+mu_dbm_insert (DBM_FILE db, DBM_DATUM key, DBM_DATUM contents, int replace)
 {
   /*FIXME: replace unused*/
   return db->db->put (db->db, NULL, &key, &contents, 0);
@@ -265,10 +299,21 @@ mu_dbm_nextkey (DBM_FILE db, DBM_DATUM pkey /*unused*/)
 
 #elif defined(WITH_NDBM)
 
-#define DB_SUFFIX ".db"
+#define DB_SUFFIX ".pag"
 
 int
-mu_dbm_open(char *name, DBM_FILE *db, int flags, int mode)
+mu_dbm_stat (char *name, struct stat *sb)
+{
+  int rc;
+  char *pfname = xmalloc (strlen (name) + sizeof DB_SUFFIX);
+  strcat (strcpy (pfname, name), DB_SUFFIX);
+  rc = stat (pfname, sb);
+  free (pfname);
+  return rc;
+}
+
+int
+mu_dbm_open (char *name, DBM_FILE *db, int flags, int mode)
 {
   int f;
 
@@ -302,21 +347,27 @@ mu_dbm_open(char *name, DBM_FILE *db, int flags, int mode)
 }
 
 int
-mu_dbm_close(DBM_FILE db)
+mu_dbm_close (DBM_FILE db)
 {
   dbm_close(db);
   return 0;
 }
 
 int
-mu_dbm_fetch(DBM_FILE db, DBM_DATUM key, DBM_DATUM *ret)
+mu_dbm_fetch (DBM_FILE db, DBM_DATUM key, DBM_DATUM *ret)
 {
   *ret = dbm_fetch(db, key);
   return ret->dptr == NULL;
 }
 
 int
-mu_dbm_insert(DBM_FILE db, DBM_DATUM key, DBM_DATUM contents, int replace)
+mu_dbm_delete (DBM_FILE db, DBM_DATUM key)
+{
+  return dbm_delete (db, key);
+}
+
+int
+mu_dbm_insert (DBM_FILE db, DBM_DATUM key, DBM_DATUM contents, int replace)
 {
   return dbm_store(db, key, contents, replace ? DBM_REPLACE : DBM_INSERT);
 }
@@ -335,9 +386,22 @@ mu_dbm_nextkey (DBM_FILE db, DBM_DATUM key)
 
 #elif defined(WITH_OLD_DBM)
 
+#define DB_SUFFIX ".pag"
+
+int
+mu_dbm_stat (char *name, struct stat *sb)
+{
+  int rc;
+  char *pfname = xmalloc (strlen (name) + sizeof DB_SUFFIX);
+  strcat (strcpy (pfname, name), DB_SUFFIX);
+  rc = stat (pfname, sb);
+  free (pfname);
+  return rc;
+}
+
 /*ARGSUSED*/
 int
-mu_dbm_open(char *name, DBM_FILE *db, int flags, int mode)
+mu_dbm_open (char *name, DBM_FILE *db, int flags, int mode)
 {
   int f;
 
@@ -383,7 +447,7 @@ mu_dbm_open(char *name, DBM_FILE *db, int flags, int mode)
 
 /*ARGSUSED*/
 int
-mu_dbm_close(DBM_FILE db)
+mu_dbm_close (DBM_FILE db)
 {
   dbmclose();
   return 0;
@@ -391,14 +455,20 @@ mu_dbm_close(DBM_FILE db)
 
 /*ARGSUSED*/
 int
-mu_dbm_fetch(DBM_FILE db, DBM_DATUM key, DBM_DATUM *ret)
+mu_dbm_fetch (DBM_FILE db, DBM_DATUM key, DBM_DATUM *ret)
 {
   *ret = fetch(key);
   return ret->dptr == NULL;
 }
 
 int
-mu_dbm_insert(DBM_FILE db, DBM_DATUM key, DBM_DATUM contents, int replace)
+mu_dbm_delete (DBM_FILE db, DBM_DATUM key)
+{
+  return delete (key);
+}
+
+int
+mu_dbm_insert (DBM_FILE db, DBM_DATUM key, DBM_DATUM contents, int replace)
 {
   return store(key, contents);
 }
