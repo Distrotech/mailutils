@@ -339,10 +339,9 @@ sieve_match_part_checker (const char *name, list_t tags, list_t args)
       if (list_get (args, 1, (void**)&val))
 	return 0;
 
+      rd.flags = REG_EXTENDED;
       if (strcmp (compname, "i;ascii-casemap") == 0)
-	rd.flags = REG_ICASE;
-      else
-	rd.flags = 0;
+	rd.flags |= REG_ICASE;
 
       list_create (&rd.list);
       
