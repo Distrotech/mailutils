@@ -132,6 +132,9 @@ main (int argc, char **argv)
 #ifdef HAVE_MYSQL
   mu_register_getpwnam (getMpwnam);
 #endif
+#ifdef USE_VIRTUAL_DOMAINS
+  mu_register_getpwnam (getpwnam_virtual);
+#endif
   
   /* Set the signal handlers.  */
   signal (SIGINT, pop3d_signal);
