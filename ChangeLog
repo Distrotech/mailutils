@@ -1,3 +1,21 @@
+2001-12-28 Sergey Poznyakoff
+
+	* comsat/comsat.h: Added include <argcv.h>
+	* guimb/collect.c: (collect_create_mailbox) Removed unused auto
+	  variable.
+	* guimb/guimb.h: Added missing includes and prototypes.
+	* lib/mu_dbm.h: Likewise.
+
+	* libmu_scm/mu_message.c: (mu_message_send) Synchronized
+	  with recent changes to mailer_send_message().
+	  (mu_message_get_user_flag) Removed unused variable.
+	* libmu_scm/mu_port.c: Removed unused variables.
+	* mh/inc.c: Renamed static truncate to avoid name clash
+	  with the libc function.
+	* mh/mh.h: Added missing includes and prototypes.
+	* mh/mh_argp.c: Added missing includes.
+	* mh/mh_format.c: (strobj_create) Removed unused variable.
+
 2001-12-17 Sam Roberts
 
 	* doc/texinfo/mailer.texi, include/mailutils/mailer.h,
