@@ -345,7 +345,6 @@ AC_CHECK_FUNCS(_obstack_begin,
 
 
 dnl check if mysql support was added
-AC_SUBST(BUILD_LIBMYSQL)
 AC_SUBST(MYSQLLIBS)
 AC_ARG_ENABLE([mysql],
               AC_HELP_STRING([--enable-mysql],
@@ -353,7 +352,8 @@ AC_ARG_ENABLE([mysql],
               [use_mysql="yes"],,)
 if test x"$use_mysql" = x"yes"; then
 	AC_CHECK_HEADER(mysql/mysql.h,
-	[AUTHLIBS="$AUTHLIBS -lmysqlclient -lm -L/usr/lib/mysql -L/usr/local/lib/mysql"
+	[MYSQLLIBS="-lmysqlclient -lm -L/usr/lib/mysql -L/usr/local/lib/mysql"
+	 AUTHLIBS="$AUTHLIBS $MYSQLLIBS"
 	AC_DEFINE(HAVE_MYSQL,1,[Define this if you have mysql libraries])])
 fi
 
