@@ -56,7 +56,7 @@ static int message_read   __P ((stream_t is, char *buf, size_t buflen,
 				off_t off, size_t *pnread ));
 static int message_write  __P ((stream_t os, const char *buf, size_t buflen,
 				off_t off, size_t *pnwrite));
-static int message_get_fd __P ((stream_t stream, int *pfd));
+static int message_get_fd __P ((stream_t stream, int *pfd, int *pfd2));
 static int message_sender __P ((envelope_t envelope, char *buf, size_t len,
 				size_t *pnwrite));
 static int message_date   __P ((envelope_t envelope, char *buf, size_t len,
@@ -882,7 +882,7 @@ message_write (stream_t os, const char *buf, size_t buflen,
 
 /* Implements the stream_get_fd () on the message stream.  */
 static int
-message_get_fd (stream_t stream, int *pfd)
+message_get_fd (stream_t stream, int *pfd, int *pfd2)
 {
   message_t msg = stream_get_owner (stream);
   body_t body;
@@ -890,6 +890,8 @@ message_get_fd (stream_t stream, int *pfd)
 
   if (msg == NULL)
     return EINVAL;
+  if (pfd2)
+    return ENOSYS;
 
   /* Probably being lazy, then create a body for the stream.  */
   if (msg->body == NULL)

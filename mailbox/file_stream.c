@@ -314,10 +314,14 @@ _file_flush (stream_t stream)
 }
 
 static int
-_file_get_fd (stream_t stream, int *pfd)
+_file_get_fd (stream_t stream, int *pfd, int *pfd2)
 {
   struct _file_stream *fs = stream_get_owner (stream);
   int status = 0;
+
+  if (pfd2)
+    return ENOSYS;
+  
   if (pfd)
     {
       if (fs->file)

@@ -35,7 +35,7 @@
 #define BODY_MODIFIED 0x10000
 
 static int _body_flush    __P ((stream_t));
-static int _body_get_fd   __P ((stream_t, int *));
+static int _body_get_fd   __P ((stream_t, int *, int *));
 static int _body_read     __P ((stream_t, char *, size_t, off_t, size_t *));
 static int _body_readline __P ((stream_t, char *, size_t, off_t, size_t *));
 static int _body_truncate __P ((stream_t, off_t));
@@ -241,10 +241,15 @@ body_set_size (body_t body, int (*_size)(body_t, size_t*) , void *owner)
 /* Stub function for the body stream.  */
 
 static int
-_body_get_fd (stream_t stream, int *fd)
+_body_get_fd (stream_t stream, int *fd, int *fd2)
 {
-  body_t body = stream_get_owner (stream);
-  return stream_get_fd (body->fstream, fd);
+  if (fd2)
+    return ENOSYS;
+  else
+    {
+      body_t body = stream_get_owner (stream);
+      return stream_get_fd (body->fstream, fd);
+    }
 }
 
 static int

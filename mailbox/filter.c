@@ -111,10 +111,15 @@ filter_flush (stream_t stream)
 }
 
 static int
-filter_get_fd (stream_t stream, int *pfd)
+filter_get_fd (stream_t stream, int *pfd, int *pfd2)
 {
-  filter_t filter = stream_get_owner (stream);
-  return stream_get_fd (filter->stream, pfd);
+  if (pfd2)
+    return ENOSYS;
+  else
+    {
+      filter_t filter = stream_get_owner (stream);
+      return stream_get_fd (filter->stream, pfd);
+    }
 }
 
 static int

@@ -77,7 +77,7 @@ static int mbox_append_message0       __P ((mailbox_t, message_t, off_t *,
 static int mbox_message_uid           __P ((message_t, size_t *));
 static int mbox_header_fill           __P ((header_t, char *, size_t, off_t,
 					    size_t *));
-static int mbox_get_body_fd           __P ((stream_t, int *));
+static int mbox_get_body_fd           __P ((stream_t, int *, int *));
 static int mbox_get_fd                __P ((mbox_message_t, int *));
 static int mbox_get_attr_flags        __P ((attribute_t, int *));
 static int mbox_set_attr_flags        __P ((attribute_t, int));
@@ -828,12 +828,17 @@ mbox_message_uid (message_t msg, size_t *puid)
 }
 
 static int
-mbox_get_body_fd (stream_t is, int *pfd)
+mbox_get_body_fd (stream_t is, int *pfd, int *pfd2)
 {
-  body_t body = stream_get_owner (is);
-  message_t msg = body_get_owner (body);
-  mbox_message_t mum = message_get_owner (msg);
-  return mbox_get_fd (mum, pfd);
+  if (pfd2)
+    return ENOSYS;
+  else
+    {
+      body_t body = stream_get_owner (is);
+      message_t msg = body_get_owner (body);
+      mbox_message_t mum = message_get_owner (msg);
+      return mbox_get_fd (mum, pfd);
+    }
 }
 
 static int

@@ -432,13 +432,17 @@ _mimepart_body_read (stream_t stream, char *buf, size_t buflen, off_t off,
 }
 
 static int
-_mimepart_body_fd (stream_t stream, int *fd)
+_mimepart_body_fd (stream_t stream, int *fd, int *fd2)
 {
-  body_t body = stream_get_owner (stream);
-  message_t msg = body_get_owner (body);
-  struct _mime_part *mime_part = message_get_owner (msg);
-
-  return stream_get_fd (mime_part->mime->stream, fd);
+  if (fd2)
+    return ENOSYS;
+  else
+    {
+      body_t body = stream_get_owner (stream);
+      message_t msg = body_get_owner (body);
+      struct _mime_part *mime_part = message_get_owner (msg);
+      return stream_get_fd (mime_part->mime->stream, fd);
+    }
 }
 
 static int
@@ -657,17 +661,22 @@ _mime_body_read (stream_t stream, char *buf, size_t buflen, off_t off,
 }
 
 static int
-_mime_body_fd (stream_t stream, int *fd)
+_mime_body_fd (stream_t stream, int *fd, int *fd2)
 {
-  body_t body = stream_get_owner (stream);
-  message_t msg = body_get_owner (body);
-  mime_t mime = message_get_owner (msg);
-  stream_t msg_stream = NULL;
+  if (fd2)
+    return ENOSYS;
+  else
+    {
+      body_t body = stream_get_owner (stream);
+      message_t msg = body_get_owner (body);
+      mime_t mime = message_get_owner (msg);
+      stream_t msg_stream = NULL;
 
-  if (mime->nmtp_parts == 0 || mime->cur_offset == 0)
-    return EINVAL;
-  message_get_stream (mime->mtp_parts[mime->cur_part]->msg, &msg_stream);
-  return stream_get_fd (msg_stream, fd);
+      if (mime->nmtp_parts == 0 || mime->cur_offset == 0)
+	return EINVAL;
+      message_get_stream (mime->mtp_parts[mime->cur_part]->msg, &msg_stream);
+      return stream_get_fd (msg_stream, fd);
+    }
 }
 
 static int
