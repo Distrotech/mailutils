@@ -42,7 +42,7 @@ static struct argp_option options[] = {
   {"quit",    'q', 0,      0, "Cause interrupts to terminate program"},
   {"read",    'r', 0,      0, "Same as -p"},
   {"subject", 's', "SUBJ", 0, "Send a message with a Subject of SUBJ"},
-  {"to",      't', 0,      0, "Preced message by a list of addresses"},
+  {"to",      't', 0,      0, "Precede message by a list of addresses"},
   {"user",    'u', "USER", 0, "Operate on USER's mailbox"},
   { 0 }
 };

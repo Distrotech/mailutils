@@ -1,4 +1,8 @@
-2001-05-03 Alain Magloire
+2001-05-03  Sam Roberts
+
+	* mail/mail.c: Typo
+
+2001-05-03  Alain Magloire
 
 	* argp/argp-help.c (hol_entry_help): Some compiler like Watcomm
 	can not initialize a local structure struct ..  = { .. }.  Do it
@@ -22,7 +26,7 @@
 
 	* mailbox/folder_imap.c: Declare strtock_r ().
 
-2001-05-03 Sergey Poznyakoff
+2001-05-03  Sergey Poznyakoff
 
 	* pop3d/user.c: Misplace parentheses around the mailbox_xx() calls.
 	Do not free (buf) since it is now static storage. Unfortunately most
@@ -45,7 +49,7 @@
 	example, it does pop3d_abquit(ERR_SIGNAL) and dies doing
 	fprintf(ofile, ...)
 
-2001-05-02 Alain Magloire
+2001-05-02  Alain Magloire
 
 	Some of the Makefile.am contain gcc specific options
 	like -Wall, -pedantic or -ansi remove them.
@@ -69,13 +73,13 @@
 	port is not longer a global variable.
 	children should have the volatile qualification.
 
-2001-04-29 Alain Magloire
+2001-04-29  Alain Magloire
 
 	* pop3d/extra.c (pop3d_readline): Modify the loop to be able
 	to support PIPELINING.
 	* pop3d/capa.c: Advertise that we support PIPELINING.
 
-2001-04-29 Sergey Poznyakoff
+2001-04-29  Sergey Poznyakoff
 
 	Return values of all signal handlers are changed to RETSIGTYPE
 	and configure.in is modified accordingly. This is more portable.
@@ -86,7 +90,7 @@
 	from the pidfile passed wrong buffer length to read() call, namely:
 	read(fd, buf, sizeof (pid_t)).
 
-2001-04-29 Sergey Poznyakoff
+2001-04-29  Sergey Poznyakoff
 
 	I have modified locker.c to implement reference count. The
 	struct _locker is now:
@@ -100,19 +104,19 @@
 
 	* mailbox/locker.c: Reference count implementation.
 
-2001-04-25 Alain Magloire
+2001-04-25  Alain Magloire
 
 	* imap4d/store.c: First implementation.
 	* mailbox/attribute.c (attribute_unset_flags): New function.
 
-2001-04-23 Sergey Poznyakoff
+2001-04-23  Sergey Poznyakoff
 
 	* mailbox/mbx_mbox.c (mbx_expunge): It assumes that mbox_get_message()
 	will place the pointer to message into mum->message member. But
 	mbox_get_message() relies on 1-based message numbers, whereas `mum'
 	pointer is obtained using 0-based indexing.
 
-2001-04-23 Alain Magloire
+2001-04-23  Alain Magloire
 
 	Sergey Poznyakoff noted: When the user's mailbox has zero size, mmap
 	fails on Solaris. On GNU/Linux it reuturn NULL buf subsequent munmap
@@ -123,7 +127,7 @@
 	*mailbox/mbx_mbox.c (mbox_is_updated): Should I have return 0 (FALSE)
 	when size change.
 
-2001-04-23 Sergey Poznyakoff
+2001-04-23  Sergey Poznyakoff
 
 	Several sources from mailbox subdirectory call fprintf(stderr,...)
 	to issue error messages. As the stderr usually gets connected to
@@ -134,7 +138,7 @@
 	function that ouputs the messages can be supplied by the
 	application using error_set_print() call.
 
-2001-04-23 Alain Magloire
+2001-04-23  Alain Magloire
 
 	* pop3d/*.[ch]:  Rename all the pop function pop3d_xx()
 	instead of pop3_xx() to be consistent with imap4d/*.
@@ -148,7 +152,7 @@
 	"-ERR Mail Lock busy" or something similar. To prevent this race
 	condition we sleep 2 seconds.
 
-2001-04-23 Sergey Poznyakoff
+2001-04-23  Sergey Poznyakoff
 
 	It is often convenient to separate log outputs from POP and SMTP
 	servers. --with-log-facility flag which allows to specify to which
