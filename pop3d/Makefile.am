@@ -28,7 +28,11 @@ pop3d_SOURCES = apop.c auth.c capa.c dele.c extra.c pop3d.c pop3d.h \
  list.c lock.c noop.c quit.c retr.c rset.c stat.c stls.c signal.c top.c \
  uidl.c user.c 
 
-pop3d_LDADD = ../mailbox/libmailbox.la @AUTHLIBS@ ../lib/libmailutils.la @LTLIBINTL@
+pop3d_LDADD = \
+ ../mailbox/mbox/libmu_mbox.la\
+ ../mailbox/libmailbox.la\
+ ../lib/libmailutils.la\
+ @AUTHLIBS@ @LTLIBINTL@
 
 popauth_SOURCES = popauth.c
 popauth_LDADD = ../mailbox/libmailbox.la ../lib/libmailutils.la @LTLIBINTL@

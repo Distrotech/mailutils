@@ -61,7 +61,6 @@ mailcap.c \
 mailer.c \
 mapfile_stream.c \
 mbx_default.c \
-mbx_file.c \
 md5.c \
 message.c \
 memory_stream.c \
@@ -99,20 +98,8 @@ parsedate.c: $(srcdir)/parsedate.y
 	          y.tab.c parsedate.c y.output parsedate.y.output \
                   -- -yy pd_yy
 
-libmailbox_la_DEPENDENCIES = \
- mbox/libmbox.la\
- pop/libpop.la\
- imap/libimap.la\
- mh/libmh.la\
- maildir/libmaildir.la\
- @MU_LTLIBOBJS@
-libmailbox_la_LIBADD = \
- mbox/libmbox.la\
- pop/libpop.la\
- imap/libimap.la\
- mh/libmh.la\
- maildir/libmaildir.la\
- @MU_LTLIBOBJS@ @LTLIBINTL@
+libmailbox_la_DEPENDENCIES = @MU_LTLIBOBJS@
+libmailbox_la_LIBADD = @MU_LTLIBOBJS@ @LTLIBINTL@
 libmailbox_la_LDFLAGS = -version-info 0:0:0
 
 mailutils_config_SOURCES = mailutils-config.c

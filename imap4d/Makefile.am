@@ -17,20 +17,61 @@
 ##   Foundation, Inc.
 ##   59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-INCLUDES = -I$(top_srcdir)/lib -I$(top_srcdir)/include @AUTHINCS@ @INTLINCS@
+INCLUDES = -I$(top_srcdir)/lib -I$(top_srcdir)/include @AUTHINCS@ @SERV_AUTHINCS@ @INTLINCS@
 SUBDIRS = testsuite
 
 sbin_PROGRAMS =	imap4d
 
-imap4d_LDADD = @IMAP_AUTHOBJS@ ../mailbox/libmailbox.la  @AUTHLIBS@ ../lib/libmailutils.la @LTLIBINTL@
-imap4d_SOURCES = append.c authenticate.c bye.c capability.c check.c close.c \
- commands.c copy.c create.c delete.c examine.c expunge.c fetch.c idle.c\
- imap4d.c imap4d.h list.c logout.c login.c lsub.c namespace.c noop.c \
- rename.c search.c select.c signal.c starttls.c status.c store.c \
- subscribe.c sync.c uid.c unsubscribe.c util.c version.c
+imap4d_SOURCES = \
+ append.c\
+ authenticate.c\
+ bye.c\
+ capability.c\
+ check.c\
+ close.c\
+ commands.c\
+ copy.c\
+ create.c\
+ delete.c\
+ examine.c\
+ expunge.c\
+ fetch.c\
+ idle.c\
+ imap4d.c\
+ imap4d.h\
+ list.c\
+ logout.c\
+ login.c\
+ lsub.c\
+ namespace.c\
+ noop.c\
+ rename.c\
+ search.c\
+ select.c\
+ signal.c\
+ starttls.c\
+ status.c\
+ store.c\
+ subscribe.c\
+ sync.c\
+ uid.c\
+ unsubscribe.c\
+ util.c\
+ version.c
+
+imap4d_LDADD = \
+ @IMAP_AUTHOBJS@\
+ ../mailbox/mbox/libmu_mbox.la\
+ ../mailbox/libmailbox.la\
+ ../lib/libmailutils.la\
+ @AUTHLIBS@ @SERV_AUTHLIBS@ @LTLIBINTL@
 
 ## This kludge is necessary to correctly establish imap4d -> IMAP_AUTHOBJS
 ## dependency. Think about better approach         --gray
-imap4d_DEPENDENCIES = @IMAP_AUTHOBJS@ ../mailbox/libmailbox.la ../lib/libmailutils.la
+imap4d_DEPENDENCIES = \
+ @IMAP_AUTHOBJS@\
+ ../mailbox/mbox/libmu_mbox.la\
+ ../mailbox/libmailbox.la\
+ ../lib/libmailutils.la
 
 EXTRA_DIST=auth_gss.c auth_gsasl.c

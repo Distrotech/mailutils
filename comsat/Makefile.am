@@ -23,4 +23,8 @@ sbin_PROGRAMS = comsatd
 
 comsatd_SOURCES = action.c cfg.c comsat.c comsat.h
 
-comsatd_LDADD = ../mailbox/libmailbox.la ../lib/libmailutils.la @LTLIBINTL@
+comsatd_LDADD = \
+ ../mailbox/mbox/libmu_mbox.la\
+ ../mailbox/libmailbox.la\
+ ../lib/libmailutils.la\
+ @LTLIBINTL@

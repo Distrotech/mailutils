@@ -22,4 +22,9 @@ SUBDIRS = testsuite
 
 bin_PROGRAMS = messages
 
-messages_LDADD = ../mailbox/libmailbox.la ../lib/libmailutils.la @LTLIBINTL@
+messages_LDADD =\
+ ../mailbox/mbox/libmu_mbox.la\
+ ../mailbox/imap/libmu_imap.la\
+ ../mailbox/pop/libmu_pop.la\
+ ../mailbox/libmailbox.la\
+ ../lib/libmailutils.la @AUTHLIBS@ @LTLIBINTL@

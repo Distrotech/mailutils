@@ -122,7 +122,16 @@ mailutils-mh.el: mailutils-mh.eli
 
 INCLUDES = -I${top_srcdir}/include -I${top_srcdir}/lib -I${top_srcdir}/mailbox @INTLINCS@
 AM_CPPFLAGS = -DMHLIBDIR=\"$(mhlibdir)\" -DMHBINDIR=\"$(bindir)\"
-mh_LIBS = ./libmh.a ../mailbox/libmailbox.la ../lib/libmailutils.la @LTLIBINTL@
+mh_LIBS = \
+ ./libmh.a\
+ ../mailbox/mbox/libmu_mbox.la\
+ ../mailbox/imap/libmu_imap.la\
+ ../mailbox/pop/libmu_pop.la\
+ ../mailbox/mh/libmu_mh.la\
+ ../mailbox/maildir/libmu_maildir.la\
+ ../mailbox/libmailbox.la\
+ ../lib/libmailutils.la\
+ @AUTHLIBS@ @LTLIBINTL@
 LDADD = $(mh_LIBS)
 scan_LDADD = $(mh_LIBS) @CURSES_LIBS@
 pick_SOURCES = pick.c pick.h pick-gram.c pick-gram.h

@@ -18,13 +18,20 @@
 ##   59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 AM_YFLAGS=-vt
-INCLUDES = -I${top_srcdir}/include -I${top_srcdir}/lib -I${top_srcdir}/mailbox @INTLINCS@
+INCLUDES = -I${top_srcdir}/include -I${top_srcdir}/lib -I${top_srcdir}/mailbox @INTLINCS@ @AUTHINCS@ 
 AM_CFLAGS = -DSITE_MAIL_RC=\"@SITE_MAIL_RC@\"
 
 bin_PROGRAMS = mail
 
-mail_LDADD = ../mailbox/libmailbox.la ../lib/libmailutils.la \
-             @READLINE_LIBS@ @LTLIBINTL@
+mail_LDADD = \
+ ../mailbox/mbox/libmu_mbox.la\
+ ../mailbox/imap/libmu_imap.la\
+ ../mailbox/pop/libmu_pop.la\
+ ../mailbox/mh/libmu_mh.la\
+ ../mailbox/maildir/libmu_maildir.la\
+ ../mailbox/libmailbox.la\
+ ../lib/libmailutils.la\
+ @AUTHLIBS@ @READLINE_LIBS@ @LTLIBINTL@
 
 EXTRA_DIST = msgset.c
 

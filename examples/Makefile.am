@@ -41,6 +41,27 @@ numaddr_la_SOURCES = numaddr.c
 numaddr_la_LIBADD = ../libsieve/libsieve.la 
 numaddr_la_LDFLAGS = -module -avoid-version -no-undefined 
 
+mimetest_LDADD =\
+ ../mailbox/mbox/libmu_mbox.la\
+ ../mailbox/imap/libmu_imap.la\
+ ../mailbox/pop/libmu_pop.la\
+ ../mailbox/libmailbox.la\
+ ../lib/libmailutils.la\
+ @AUTHLIBS@ 
+
+mta_LDADD =\
+ ../mailbox/mbox/libmu_mbox.la\
+ ../mailbox/libmailbox.la\
+ ../lib/libmailutils.la
+
+sfrom_LDADD =\
+ ../mailbox/mbox/libmu_mbox.la\
+ ../mailbox/imap/libmu_imap.la\
+ ../mailbox/pop/libmu_pop.la\
+ ../mailbox/libmailbox.la\
+ ../lib/libmailutils.la\
+ @AUTHLIBS@ 
+
 EXTRA_DIST = comsat.conf dot.biffrc gnu-imap4d.pam gnu-pop3d.pam\
  mailutils.rc reply.scm
 

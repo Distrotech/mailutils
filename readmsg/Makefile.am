@@ -23,4 +23,12 @@ SUBDIRS = testsuite
 bin_PROGRAMS = readmsg
 
 readmsg_SOURCES = readmsg.c msglist.c readmsg.h
-readmsg_LDADD = ../mailbox/libmailbox.la ../lib/libmailutils.la @LTLIBINTL@
+readmsg_LDADD =\
+ ../mailbox/mbox/libmu_mbox.la\
+ ../mailbox/imap/libmu_imap.la\
+ ../mailbox/pop/libmu_pop.la\
+ ../mailbox/mh/libmu_mh.la\
+ ../mailbox/maildir/libmu_maildir.la\
+ ../mailbox/libmailbox.la\
+ ../lib/libmailutils.la\
+ @AUTHLIBS@ @LTLIBINTL@

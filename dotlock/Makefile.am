@@ -20,7 +20,6 @@
 INCLUDES =-I$(srcdir) -I$(top_srcdir)/lib -I$(top_srcdir)/include -I$(top_srcdir)/libmu_scm @INTLINCS@
 
 bin_PROGRAMS = dotlock
-#dotlock_SOURCES = dotlock.c
 
 dotlock_LDADD = ../mailbox/libmailbox.la ../lib/libmailutils.la @LTLIBINTL@
 
