@@ -76,6 +76,10 @@ stream_destroy (stream_t *pstream, void *owner)
 	  stream_close(stream);
 	  if (stream->rbuffer.base)
 	    free (stream->rbuffer.base);
+
+	  if (stream->_destroy) 
+	    stream->_destroy (stream);
+
 	  free (stream);
 	}
       *pstream = NULL;

@@ -84,15 +84,6 @@ _tcp_open (stream_t stream)
 
   stream_get_flags(stream, &flags);
 
-  if (tcp->state == TCP_STATE_INIT)
-    {
-      tcp->port = port;
-/* FIXME: this seems very strange, it is: tcp->host = strdup(tcp->host)
-   is this really intended? */
-      if ((tcp->host = strdup (host)) == NULL)
-	return ENOMEM;
-    }
-
   switch (tcp->state)
     {
     case TCP_STATE_INIT:
@@ -221,8 +212,6 @@ _tcp_destroy (stream_t stream)
   if (tcp->fd != -1)
     close (tcp->fd);
 
-  if(tcp->host)
-    free (tcp->host);
   free (tcp);
 }
 
