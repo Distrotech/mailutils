@@ -34,6 +34,7 @@ static int display_message __P ((message_t, msgset_t *msgset, void *closure));
 static int display_message0 __P ((FILE *, message_t, const msgset_t *, int));
 static int mailcap_lookup __P ((const char *));
 static int get_content_encoding __P ((header_t hdr, char **value));
+static void run_metamail __P((const char *mailcap, message_t mesg));
 
 int
 mail_decode (int argc, char **argv)
@@ -58,7 +59,8 @@ display_message (message_t mesg, msgset_t *msgset, void *arg)
   FILE *out;
   size_t lines = 0;
   struct decode_closure *closure = arg;
-  int pagelines = util_get_crt ();
+  int pagelines = util_getenv (NULL, "metamail", Mail_env_string, 0) == 0 ?
+                     0 : util_get_crt ();
   attribute_t attr = NULL;
 
   message_get_attribute (mesg, &attr);
@@ -154,9 +156,10 @@ display_message0 (FILE *out, message_t mesg, const msgset_t *msgset,
 {
   size_t nparts = 0;
   header_t hdr = NULL;
-  char *type;
+  const char *type;
   char *encoding;
   int ismime = 0;
+  char *tmp;
 
   message_get_header (mesg, &hdr);
   util_get_content_type (hdr, &type);
@@ -166,7 +169,7 @@ display_message0 (FILE *out, message_t mesg, const msgset_t *msgset,
   if (ismime)
     {
       unsigned int j;
-
+      
       message_get_num_parts (mesg, &nparts);
 
       for (j = 1; j <= nparts; j++)
@@ -189,10 +192,14 @@ display_message0 (FILE *out, message_t mesg, const msgset_t *msgset,
       if (message_unencapsulate (mesg, &submsg, NULL) == 0)
 	display_message0 (out, submsg, msgset, select_hdr);
     }
+  else if (util_getenv (&tmp, "metamail", Mail_env_string, 0) == 0)
+    {
+      run_metamail (tmp, mesg);
+    }
   else if (mailcap_lookup (type))
     {
       /* FIXME: lookup .mailcap and do the appropriate action when
-	 an match engry is find.  */
+	 an match engry is found.  */
       /* Do something, spawn a process etc ....  */
     }
   else /*if (strncasecmp (type, "text/plain", strlen ("text/plain")) == 0
@@ -266,9 +273,114 @@ get_content_encoding (header_t hdr, char **value)
   return 0;
 }
 
-
 static int
 mailcap_lookup (const char *type ARG_UNUSED)
 {
   return 0;
+}
+
+/* Run `metamail' program MAILCAP_CMD on the message MESG */
+static void
+run_metamail (const char *mailcap_cmd, message_t mesg)
+{
+  pid_t pid;
+  struct sigaction ignore;
+  struct sigaction saveintr;
+  struct sigaction savequit;
+  sigset_t chldmask;
+  sigset_t savemask;
+  
+  ignore.sa_handler = SIG_IGN;	/* ignore SIGINT and SIGQUIT */
+  ignore.sa_flags = 0;
+  sigemptyset (&ignore.sa_mask);
+  if (sigaction (SIGINT, &ignore, &saveintr) < 0)
+    {
+      util_error ("sigaction: %s", strerror (errno));
+      return;
+    }      
+  if (sigaction (SIGQUIT, &ignore, &savequit) < 0)
+    {
+      util_error ("sigaction: %s", strerror (errno));
+      sigaction (SIGINT, &saveintr, NULL);
+      return;
+    }      
+      
+  sigemptyset (&chldmask);	/* now block SIGCHLD */
+  sigaddset (&chldmask, SIGCHLD);
+
+  if (sigprocmask (SIG_BLOCK, &chldmask, &savemask) < 0)
+    {
+      sigaction (SIGINT, &saveintr, NULL);
+      sigaction (SIGQUIT, &savequit, NULL);
+      return;
+    }
+  
+  pid = fork ();
+  if (pid < 0)
+    {
+      util_error ("fork: %s", strerror (errno));
+    }
+  else if (pid == 0)
+    {
+      /* Child process */
+      int status;
+      stream_t stream;
+
+      do /* Fake loop to avoid gotos */
+	{
+	  stream_t pstr;
+	  char buffer[512];
+	  size_t n;
+
+	  setenv ("METAMAIL_PAGER", getenv ("PAGER"), 0);
+	  
+	  status = message_get_stream (mesg, &stream);
+	  if (status)
+	    {
+	      mu_error ("message_get_stream: %s", mu_strerror (status));
+	      break;
+	    }
+
+	  status = prog_stream_create (&pstr, mailcap_cmd, MU_STREAM_WRITE);
+	  if (status)
+	    {
+	      mu_error ("prog_stream_create: %s", mu_strerror (status));
+	      break;
+	    }
+
+	  status = stream_open (pstr);
+	  if (status)
+	    {
+	      mu_error ("stream_open: %s", mu_strerror (status));
+	      break;
+	    }
+	  
+	  while (stream_sequential_read (stream,
+					 buffer, sizeof buffer - 1,
+					 &n) == 0
+		 && n > 0)
+	    stream_sequential_write (pstr, buffer, n);
+
+	  stream_close (pstr);
+	  stream_destroy (&pstr, stream_get_owner (pstr));
+	  exit (0);
+	}
+      while (0);
+      
+      abort ();
+    }
+  else
+    {
+      int status;
+      /* Master process */
+      
+      while (waitpid (pid, &status, 0) < 0)
+	if (errno != EINTR)
+	  break;
+    }
+
+  /* Restore the signal handlers */
+  sigaction (SIGINT, &saveintr, NULL);
+  sigaction (SIGQUIT, &savequit, NULL);
+  sigprocmask (SIG_SETMASK, &savemask, NULL);
 }
