@@ -67,8 +67,8 @@ MKDEP = $(CC) -M -MG $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)
 
 install-data-hook:
 	@here=`pwd`
-         cd $(DESTDIR)$(libdir);\
+	 cd $(DESTDIR)$(libdir);\
 	 if test -f libmu_scm.so; then \
 		$(LN_S) -f libmu_scm.so libguile-mailutils-v-$(VERSION).so; \
 	 fi; \
-         cd $$here
+	 cd $$here
