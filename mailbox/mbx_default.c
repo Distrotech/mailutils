@@ -37,6 +37,7 @@
 #include <mailutils/mu_auth.h>
 
 const char *mu_path_maildir = MU_PATH_MAILDIR; 
+const char *mu_path_folder_dir = "Mail";
 
 /* Is this a security risk?  */
 #define USE_ENVIRON 1
@@ -166,8 +167,6 @@ user_mailbox_name (const char *user, char **mailbox_name)
   return 0;
 }
 
-#define MPREFIX "Mail"
-
 static int
 plus_expand (const char *file, char **buf)
 {
@@ -193,10 +192,20 @@ plus_expand (const char *file, char **buf)
       return ENOENT;
     }
 
-  len = strlen (home) + sizeof (MPREFIX) + strlen (path) + 3;
-  *buf = malloc (len);
-  sprintf (*buf, "%s/%s/%s", home, MPREFIX, path);
+  if (mu_path_folder_dir[0] == '/')
+    {
+      len = strlen (mu_path_folder_dir) + strlen (path) + 2;
+      *buf = malloc (len);
+      sprintf (*buf, "%s/%s", mu_path_folder_dir, path);
+    }
+  else
+    {
+      len = strlen (home) + strlen (mu_path_folder_dir) + strlen (path) + 3;
+      *buf = malloc (len);
+      sprintf (*buf, "%s/%s/%s", home, mu_path_folder_dir, path);
+    }
   (*buf)[len-1] = 0;
+  
   free (user);
   free (path);
   free (home);
