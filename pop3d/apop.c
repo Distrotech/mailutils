@@ -85,8 +85,8 @@ pop3d_apopuser (const char *user)
     if (password == NULL)
       return NULL;
 
-    sprintf (password, "%.*s", (char*) MU_DATUM_SIZE(data),
-	     (int) MU_DATUM_PTR(data));
+    sprintf (password, "%.*s", (int) MU_DATUM_SIZE(data),
+	     (char*) MU_DATUM_PTR(data));
     return password;
   }
 #else /* !USE_DBM */
