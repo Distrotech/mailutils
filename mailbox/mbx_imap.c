@@ -507,6 +507,9 @@ imap_messages_count (mailbox_t mailbox, size_t *pnum)
       return 0;
     }
 
+  /*  Put the mailbox as selected.  */
+  f_imap->selected = m_imap;
+
   switch (f_imap->state)
     {
     case IMAP_NO_STATE:
@@ -531,9 +534,6 @@ imap_messages_count (mailbox_t mailbox, size_t *pnum)
       /*mu_error ("imap_message_count unknown state: reconnect\n");*/
       break;
     }
-
-  /*  Put the mailbox as selected.  */
-  f_imap->selected = m_imap;
 
   if (pnum)
     *pnum = m_imap->messages_count;
