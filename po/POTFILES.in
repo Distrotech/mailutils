@@ -89,7 +89,7 @@ mailbox/mailutils-config.c
 mailbox/message.c
 mailbox/mu_argp.c
 mailbox/mu_auth.c
-mailbox/muerrno.c
+mailbox/errors
 mailbox/mutil.c
 
 messages/messages.c
