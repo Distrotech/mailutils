@@ -65,3 +65,25 @@
 
 /* Define to `int' if <sys/types.h> doesn't define.  */
 #undef ssize_t
+
+#undef MU_CONF_MAILDIR
+
+@BOTTOM@
+
+#ifdef HAVE_PATHS_H
+# include <paths.h>
+#endif
+
+#ifndef _PATH_MAILDIR
+# if (defined(sun) && defined(__svr4__)) || defined(__SVR4)
+#  define _PATH_MAILDIR	"/var/mail"
+# else  
+#  define _PATH_MAILDIR "/usr/spool/mail"
+# endif
+#endif
+
+#ifdef MU_CONF_MAILDIR
+# define MU_PATH_MAILDIR MU_CONF_MAILDIR
+#else
+# define MU_PATH_MAILDIR _PATH_MAILDIR "/"
+#endif
