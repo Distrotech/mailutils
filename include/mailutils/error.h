@@ -27,6 +27,7 @@ extern "C" {
 
 typedef int (*error_pfn_t) __P ((const char *fmt, va_list ap));
 
+extern int mu_verror __P ((const char *fmt, va_list ap));
 extern int mu_error __P ((const char *fmt, ...));
 extern void mu_error_set_print __P ((error_pfn_t));
 
