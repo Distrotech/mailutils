@@ -180,6 +180,7 @@ main (int argc, char **argv)
 	  char *ptr;
 	  
 	  add_entry (-1, LINK_FLAGS);
+	  add_entry (100, LINK_POSTFLAGS);
 	  add_entry (1, "-lmailbox");
 #ifdef ENABLE_NLS
 	  if (sizeof (I18NLIBS) > 1)
