@@ -176,7 +176,7 @@ imap4d_test "SEARCH ANSWERED"\
 #                header or body of the message.
 
 imap4d_test "SEARCH TEXT wine"\
-"SEARCH 1 2 3"\
+"SEARCH 1 2"\
 "OK"
 
 ## Boolean operations
