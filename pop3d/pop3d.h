@@ -162,14 +162,6 @@
 #define ERR_UNKNOWN	15
 #define ERR_MBOX_SYNC   16
 
-#ifndef __P
-# ifdef __STDC__
-#  define __P(args) args
-# else
-#  define __P(args) ()
-# endif
-#endif /* __P */
-
 extern mailbox_t mbox;
 extern int state;
 extern char *username;

@@ -19,18 +19,12 @@
 #define _MAILUTILS_ERRNO_H	1
 
 #include <sys/types.h>
+#include <errno.h>
+#include <mailutils/mu_features.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#ifndef __P
-# if __STDC__
-#  define __P(args) args
-# else
-#  define __P(args) ()
-# endif
-#endif /*!__P */
 
 #define MU_ERR_BASE            0x1000
 

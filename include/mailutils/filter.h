@@ -23,17 +23,10 @@
 #define _MAILUTILS_FILTER_H
 
 #include <stdlib.h>
+#include <mailutils/mu_features.h>
 #include <mailutils/list.h>
 #include <mailutils/property.h>
 #include <mailutils/stream.h>
-
-#ifndef __P
-# ifdef __STDC__
-#  define __P(args) args
-# else
-#  define __P(args) ()
-# endif
-#endif /*__P */
 
 #ifdef __cplusplus
 extern "C" {

@@ -19,18 +19,11 @@
 #define _MAILUTILS_URL_H	1
 
 #include <sys/types.h>
+#include <mailutils/mu_features.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#ifndef __P
-# if __STDC__
-#  define __P(args) args
-# else
-#  define __P(args) ()
-# endif
-#endif /*!__P */
 
 /* forward declaration */
 struct _url;

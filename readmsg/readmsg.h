@@ -35,13 +35,5 @@
 #include <mailutils/filter.h>
 #include <mailutils/registrar.h>
 
-#ifndef __P
-#ifdef __STDC__
-#define __P(args) args
-#else
-#define __P(args) ()
-#endif
-#endif /*__P */
-
 int msglist __P ((mailbox_t mbox, int show_all, int argc, char **argv, int **set, int *n));
 #endif

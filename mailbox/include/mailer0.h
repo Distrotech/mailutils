@@ -30,20 +30,12 @@
 extern "C" {
 #endif
 
-#ifndef __P
-# ifdef __STDC__
-#  define __P(args) args
-# else
-#  define __P(args) ()
-# endif
-#endif /*__P */
-
-// mailer states
+/* mailer states */
 #define MAILER_STATE_HDR	1
 #define MAILER_STATE_MSG	2
 #define MAILER_STATE_COMPLETE	3
 
-// mailer messages
+/* mailer messages */
 #define MAILER_HELO	1
 #define MAILER_MAIL	2
 #define MAILER_RCPT	3

@@ -20,6 +20,7 @@
 
 #include <sys/types.h>
 
+#include <mailutils/mu_features.h>
 #include <mailutils/address.h>
 #include <mailutils/debug.h>
 #include <mailutils/message.h>
@@ -27,14 +28,6 @@
 #include <mailutils/property.h>
 #include <mailutils/stream.h>
 #include <mailutils/url.h>
-
-#ifndef __P
-# ifdef __STDC__
-#  define __P(args) args
-# else
-#  define __P(args) ()
-# endif
-#endif /* __P */
 
 #ifdef __cplusplus
 extern "C" {

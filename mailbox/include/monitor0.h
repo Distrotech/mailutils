@@ -32,15 +32,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#ifndef __P
-# if __STDC__
-#  define __P(x)  x
-# else
-#  define __P(x)
-# endif
-#endif
-
+/* FIXME: any protos? */
 #ifdef __cplusplus
 }
 #endif

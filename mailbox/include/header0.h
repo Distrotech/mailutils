@@ -29,14 +29,6 @@
 extern "C" {
 #endif
 
-#ifndef __P
-# ifdef __STDC__
-#  define __P(args) args
-# else
-#  define __P(args) ()
-# endif
-#endif /*__P */
-
 /* The structure members are offset that point to the begin/end of header
    fields.  */
 struct _hdr

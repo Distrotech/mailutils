@@ -19,6 +19,7 @@
 #define _MAILUTILS_MAILBOX_H
 
 #include <sys/types.h>
+#include <mailutils/mu_features.h>
 
 /* Forward declaration.  */
 struct _mailbox;
@@ -37,13 +38,7 @@ typedef struct _mailbox *mailbox_t;
 extern "C" {
 #endif
 
-#ifndef __P
-# ifdef __STDC__
-#  define __P(args) args
-# else
-#  define __P(args) ()
-# endif
-#endif /*__P */
+extern char *mu_path_maildir;
 
 /* Constructor/destructor and possible types.  */
 extern int  mailbox_create          __P ((mailbox_t *, const char *));

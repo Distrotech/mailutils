@@ -25,14 +25,6 @@
 #include <mailutils/auth.h>
 #include <sys/types.h>
 
-#ifndef __P
-#ifdef __STDC__
-#define __P(args) args
-#else
-#define __P(args) ()
-#endif
-#endif /*__P */
-
 #ifdef __cplusplus
 extern "C" {
 #endif

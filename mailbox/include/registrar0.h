@@ -28,14 +28,6 @@
 extern "C" {
 #endif
 
-#ifndef __P
-# ifdef __STDC__
-#  define __P(args) args
-# else
-#  define __P(args) ()
-# endif
-#endif /*__P */
-
 /* The pop and imap defines are all wrong now, since they seem intertwined
    with the old url parsing code. Also, "pop://" is not the POP scheme,
    at least not as a scheme is described in the RFCs.

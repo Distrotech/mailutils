@@ -24,14 +24,7 @@
 */
 
 #include <time.h>
-
-#ifndef __P
-# ifdef __STDC__
-#  define __P(args) args
-# else
-#  define __P(args) ()
-# endif
-#endif /*__P */
+#include <mailutils/mu_features.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -80,6 +73,9 @@ extern char * mu_normalize_path __P((char *path, const char *delim));
 extern char * mu_normalize_maildir __P((const char *dir));
 extern int mu_tempfile __P((const char *tmpdir, char **namep));
 
+extern char * mu_get_full_path __P((const char *file));
+extern char * mu_getcwd __P((void));
+  
 #ifdef __cplusplus
 }
 #endif

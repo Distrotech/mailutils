@@ -71,14 +71,6 @@
 extern "C" {
 #endif
 
-#ifndef __P
-# ifdef __STDC__
-#  define __P(args) args
-# else
-#  define __P(args) ()
-# endif
-#endif /*__P */
-
 /* Type definitions */
 #ifndef function_t
 typedef int function_t __P ((int, char **));

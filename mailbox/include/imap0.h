@@ -31,14 +31,6 @@
 extern "C" {
 #endif
 
-#ifndef __P
-# ifdef __STDC__
-#  define __P(args) args
-# else
-#  define __P(args) ()
-# endif
-#endif /*__P */
-
 #define CLEAR_STATE(f_imap) \
  f_imap->selected = NULL, f_imap->state = IMAP_NO_STATE
 
