@@ -1,3 +1,11 @@
+2001-05-10  Alain Magloire
+
+	* imap4d/fetch.c: Implemented INTERNALDATE.
+	* mailbox/mbx_imap.c (imap_envelope_date): ctime() always
+	append a newline, nuke it.
+	* mailbox/stream.c (stream_read): If the amount requested is bigger
+	then the buffer cache size, bypass the buffering mechanism.
+
 2001-05-09  Alain Magloire
 
 	Take the missing pieces from the pop3d and make the

@@ -371,6 +371,48 @@ fetch_flags (struct fetch_command *command, char *arg)
 }
 
 /* The internal date of the message.  */
+static const char *MONTHS[] =
+{
+  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+};
+#if 0
+/* The week day is recompute by mktime().  */
+static const char *WEEKDAYS[] =
+{
+ "Sun", "Mon",  "Tue", "Wed", "Thu", "Fri", "Sat"
+};
+#endif
+
+static const char *
+get_timezone (const struct tm *tptr)
+{
+  char tz[5];
+  tz[0] = '\0';
+  strftime (tz, sizeof (tz), "%Z", tptr);
+  if (strcasecmp (tz, "UT") == 0)
+    return "+0000";
+  else if (strcasecmp (tz, "GMT") == 0)
+    return "+0000";
+  else if (strcasecmp (tz, "EDT") == 0)
+    return "-0400";
+  else if (strcasecmp (tz, "EST") == 0)
+    return "-0500";
+  else if (strcasecmp (tz, "CDT") == 0)
+    return "-0500";
+  else if (strcasecmp (tz, "CST") == 0)
+    return "-0600";
+  else if (strcasecmp (tz, "MDT") == 0)
+    return "-0600";
+  else if (strcasecmp (tz, "MST") == 0)
+    return "-0700";
+  else if (strcasecmp (tz, "PDT") == 0)
+    return "-0700";
+  else if (strcasecmp (tz, "PST") == 0)
+    return "-0800";
+  return "-0000"; /* Oops.  */
+}
+
 /* FIXME: Wrong format?  */
 static int
 fetch_internaldate (struct fetch_command *command, char *arg)
@@ -378,14 +420,71 @@ fetch_internaldate (struct fetch_command *command, char *arg)
   char date[512];
   envelope_t env = NULL;
   message_t msg = NULL;
+  struct tm tm;
+  struct tm *tptr;
+  (void)arg;
   mailbox_get_message (mbox, command->msgno, &msg);
   message_get_envelope (msg, &env);
   date[0] = '\0';
   envelope_date (env, date, sizeof (date), NULL);
+  {
+    int year, mon, day, hour, min, sec;
+    int offt;
+    int i;
+    time_t now;
+    char month[5];
+    char wday[5];
+
+    month[0] = '\0';
+    wday[0] = '\0';
+    day = mon = year = hour = min = sec = offt = 0;
+
+    sscanf (date, "%3s %3s %2d %2d:%2d:%2d %d\n", wday, month, &day,
+	    &hour, &min, &sec, &year);
+    tm.tm_sec = sec;
+    tm.tm_min = min;
+    tm.tm_hour = hour;
+    for (i = 0; i < 12; i++)
+      {
+	if (strncasecmp(month, MONTHS[i], 3) == 0)
+	  {
+	    mon = i;
+	    break;
+	  }
+      }
+    /* No need the week day is recompute by mktime.  */
+#if 0
+    for (i = 0; i < 7; i++)
+      {
+	if (strncasecmp(wday, WEEKDAYS[i], 3) == 0)
+	  {
+	    /* day = i; */
+	    break;
+	  }
+      }
+#endif
+    tm.tm_mday = day;
+    tm.tm_mon = mon;
+    tm.tm_year = (year > 1900) ? year - 1900 : year;
+    tm.tm_yday = 0; /* unknown. */
+    tm.tm_wday = 0; /* unknown. */
+    tm.tm_isdst = -1; /* unknown. */
+    /* What to do the timezone?  */
+    now = mktime (&tm);
+    if (now == (time_t)-1)
+      {
+	/* Fall back to localtime.  */
+	now = time (NULL);
+	tptr = localtime (&now);
+      }
+    else
+      tptr = &tm;
+  }
+  strftime (date, sizeof (date), "%d-%b-%Y %X", &tm);
   util_send ("%s", command->name);
   if (date[strlen (date) - 1] == '\n')
     date[strlen (date) - 1] = '\0';
-  util_send (" \"%s\"", date);
+  util_send (" \"%s %s\"", date, get_timezone (&tm));
   return RESP_OK;
 }
 

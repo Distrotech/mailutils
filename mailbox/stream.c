@@ -133,12 +133,16 @@ stream_setbufsiz (stream_t stream, size_t size)
 }
 
 /* We have to be clear about the buffering scheme, it is not designed to be
-   use as a fully fledge buffer mechanism.  It is rather turn for networking.
-   Lots of code between POP and IMAP can be share this way.
-   - First caveat; the offset as no meaning, it is up to the concrete
-   _read() to return EISPIPE when error.
+   use as a fully fledge buffer mechanism.  It is a simple mechanims for
+   networking. Lots of code between POP and IMAP can be share this way.
+   - First caveat; the offset as no meaning i.e. the code does move back or
+   up the buffer, if the offset is different then the maintain interanl offset
+   the buffer is flush out and new read from the asking offset is done.  It
+   is up to the concrete _read() to return EISPIPE when error.
+
    - Again, this is targeting networking stream to make readline()
    a little bit more efficient, instead of reading a char at a time.  */
+
 int
 stream_read (stream_t is, char *buf, size_t count,
 	     off_t offset, size_t *pnread)
@@ -166,9 +170,30 @@ stream_read (stream_t is, char *buf, size_t count,
       size_t residue = count;
       int r;
 
+      /* If the amount requested is bigger then the buffer cache size
+	 bypass it.  Do no waste time and let it through.  */
+      if (count > is->rbuffer.bufsiz)
+	{
+	  r = 0;
+	  /* Drain the buffer first.  */
+	  if (is->rbuffer.count > 0 && offset == is->rbuffer.offset)
+	    {
+	      (void)memcpy(buf, is->rbuffer.ptr, is->rbuffer.count);
+	      is->rbuffer.offset += is->rbuffer.count;
+	      residue -= is->rbuffer.count;
+	      buf += is->rbuffer.count;
+	      offset += is->rbuffer.count;
+	    }
+	  is->rbuffer.count = 0;
+	  status = is->_read (is, buf, residue, offset, &r);
+	  is->rbuffer.offset += r;
+	  residue -= r;
+	  if (pnread)
+	    *pnread = count - residue;
+	  return status;
+	}
+
       /* Fill the buffer, do not want to start empty hand.  */
-      /*      if (is->rbuffer.count <= 0 || offset < is->rbuffer.offset */
-      /*  || offset > (is->rbuffer.offset + is->rbuffer.count)) */
       if (is->rbuffer.count <= 0 || offset != is->rbuffer.offset)
 	{
 	  status = refill (is, offset);

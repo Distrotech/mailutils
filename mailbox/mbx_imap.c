@@ -1275,9 +1275,13 @@ imap_envelope_date (envelope_t envelope, char *buffer, size_t buflen,
   now = mktime (&tm);
   if (now == (time_t)-1)
     {
+      size_t len;
       /* Fall back to localtime.  */
       now = time (NULL);
       snprintf (buffer, buflen, "%s", ctime(&now));
+      len = strlen (buffer);
+      if (len && buffer[len - 1] == '\n')
+	buffer[len - 1] = '\0';
     }
   else
     {
