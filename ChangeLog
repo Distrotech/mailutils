@@ -28,6 +28,12 @@
 
 	* configure.in: Output guimb/scm/Makefile.
 
+	* mail/mail.c: Use mailbox_create_default for --file=MBOX.
+	Some calls to exit() were placed *before* issuing diagnostics.
+	Fixed.
+
+	* mailbox/folder_imap.c: Changed ENOTSUP to ENOSYS.
+
 2001-08-02  Sam Roberts
 
 	* folder_imap.c: don't pretend to be authorized if we are not, it
