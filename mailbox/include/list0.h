@@ -45,6 +45,7 @@ struct _list
   size_t count;
   monitor_t monitor;
   list_comparator_t comp;
+  void (*destroy_item) __P((void *item));
   struct _iterator *itr;
 };
 
