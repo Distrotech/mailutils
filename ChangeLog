@@ -1,7 +1,15 @@
+2002-03-19  Sam Roberts
+
+	* doc/texinfo/programs.texi: Document use of ~/.<program>rc.
+
 2002-03-18  Sam Roberts
 
+	* sieve/sieve.c: Now using mu_argp_parse(), but not the capa[]
+	  (yet).
+	* lib/: mu_argp.c, mu_argp.h: Added ~/.<progname>rc to be last
+	  config file.  Fixed segv for NULL capa and added header file blurb.
 	* mailbox/locker.c: Implemented NFS-safe locking, useing link()
-	from a uniquely named file.
+	  from a uniquely named file.
 
 2002-03-15  Alain Magloire
 
