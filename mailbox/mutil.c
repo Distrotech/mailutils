@@ -30,6 +30,41 @@
 #include <unistd.h>
 
 #include <mailutils/mutil.h>
+
+/* convert a sequence of hex characters into an integer */
+
+unsigned long mu_hex2ul(char hex)
+{
+  if (hex >= '0' && hex <= '9')
+    return hex - '0';
+
+  if (hex >= 'a' && hex <= 'z')
+    return hex - 'a';
+
+  if (hex >= 'A' && hex <= 'Z')
+    return hex - 'A';
+
+  return -1;
+}
+
+size_t mu_hexstr2ul(unsigned long* ul, const char* hex, size_t len)
+{
+  size_t r;
+
+  *ul = 0;
+
+  for (r = 0; r < len; r++)
+  {
+    unsigned long v = mu_hex2ul(hex[r]);
+
+    if(v == -1)
+      return r;
+
+    *ul = *ul * 16 + v;
+  }
+  return r;
+}
+
 /* Convert struct tm into time_t, taking into account timezone offset.
  
  mktime() always treats tm as if it was localtime, so convert it

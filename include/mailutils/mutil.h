@@ -37,6 +37,9 @@
 extern "C" {
 #endif
 
+extern unsigned long mu_hex2ul __P ((char hex));
+extern size_t mu_hexstr2ul __P ((unsigned long* ul, const char* hex, size_t len));
+
 struct mu_timezone
 {
   int utc_offset;
