@@ -1,3 +1,11 @@
+2003-03-16  Wojciech Polak
+
+	* mh/mh_init.c (mh_getyn, mh_real_install): Added an extra
+	  space after the question marks.
+	* configure.ac: Minor, changed GDBM to GNU DBM.
+	* mailbox/mailcap.c: Updated copyright.
+	* include/mailutils/mailcap.h: Likewise.
+
 2003-03-15  Sergey Poznyakoff 
 
 	* mh/mhn.c: New file. Implementation of mhn utility (partial).
