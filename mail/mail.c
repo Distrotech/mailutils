@@ -125,10 +125,20 @@ parse_opt (int key, char *arg, struct argp_state *state)
 
 static struct argp argp = { options, parse_opt, args_doc, doc };
 
+static char *
+mail_cmdline(void *closure, int cont)
+{
+  struct mail_env_entry *pev = closure;
+  char *prompt = NULL;
+
+  if (mail_is_terminal())
+    prompt = pev->set && pev->value != NULL ? pev->value : "? ";
+  return readline (prompt);
+}
+
 int
 main (int argc, char **argv)
 {
-  char *command = NULL, *cmd = NULL;
   struct mail_env_entry *mode = NULL, *prompt = NULL;
   int modelen = 0;
   struct arguments args;
@@ -153,12 +163,15 @@ main (int argc, char **argv)
 
   /* set up the default environment */
   if (!getenv ("HOME"))
-    exit (1);			/* FIXME: how to start with no $HOME ?  */
-  setenv ("DEAD", "~/dead.letter", 0); /* FIXME: expand ~ */
+    {
+      char *p = util_get_homedir();
+      setenv ("HOME", p, 0);
+    }
+  setenv ("DEAD", util_fullpath("~/dead.letter"), 0); 
   setenv ("EDITOR", "ed", 0);
   setenv ("LISTER", "ls", 0);
-  setenv ("MAILRC", "~/.mailrc", 0); /* FIXME: expand ~ */
-  setenv ("MBOX", "~/mbox", 0);	/* FIXME: expand ~ */
+  setenv ("MAILRC", util_fullpath("~/.mailrc"), 0);
+  setenv ("MBOX", util_fullpath("~/mbox"), 0);	
   setenv ("PAGER", "more", 0);
   setenv ("SHELL", "sh", 0);
   setenv ("VISUAL", "vi", 0);
@@ -267,7 +280,7 @@ main (int argc, char **argv)
       else if (mailbox_create (&mbox, args.file) != 0)
 	exit (EXIT_FAILURE);
 
-      if (mailbox_open (mbox, MU_STREAM_READ) != 0)
+      if (mailbox_open (mbox, MU_STREAM_RDWR) != 0)
 	exit (EXIT_FAILURE);
 
       if (mailbox_messages_count (mbox, &total) != 0)
@@ -283,38 +296,56 @@ main (int argc, char **argv)
 
       /* initial commands */
       if ((util_find_env("header"))->set)
-	util_do_command ("from *");
+	  util_do_command ("z.");
 
       prompt = util_find_env ("prompt");
-
-      while (1)
-	{
-	  int len;
-	  if (command)
-	    free (command);
-	  command = readline (prompt->set && prompt->value != NULL
-			      ? prompt->value : "? ");
-	  len = strlen (command);
-	  while (command[len-1] == '\\')
-	    {
-	      char *buf;
-	      char *command2 = readline ("> ");
-
-	      command[len-1] = '\0';
-	      buf = malloc ((len + strlen (command2)) * sizeof (char));
-	      strcpy (buf, command);
-	      strcat (buf, command2);
-	      free (command);
-	      command = buf;
-	      len = strlen (command);
-	    }
-	  cmd = util_stripwhite (command);
-	  util_do_command (cmd);
-#ifdef WITH_READLINE
-	  add_history (cmd);
-#endif
-	}
+      mail_set_is_terminal(isatty(0));
+      mail_mainloop(mail_cmdline, (void*) prompt, 1);
+      fprintf (ofile, "\n");
+      util_do_command ("quit");
+      return 0;
     }
   /* We should never reach this point */
   return 1;
 }
+
+
+void
+mail_mainloop(char *(*input) __P((void *, int)), void *closure, int do_history)
+{
+  char *command, *cmd;
+  while ((command = (*input)(closure, 0)) != NULL)
+    {
+      int len = strlen (command);
+      while (command[len-1] == '\\')
+	{
+	  char *buf;
+	  char *command2 = (*input) (closure, 1);
+
+	  if (!command2)
+	    {
+	      command[len-1] = 0;
+	      break;
+	    }
+	  command[len-1] = '\0';
+	  buf = malloc ((len + strlen (command2)) * sizeof (char));
+	  strcpy (buf, command);
+	  strcat (buf, command2);
+	  free (command);
+	  command = buf;
+	  len = strlen (command);
+	}
+      cmd = util_stripwhite (command);
+      util_do_command (cmd);
+#ifdef WITH_READLINE
+      if (do_history)
+	add_history (cmd);
+#endif
+      if (command)
+	free (command);
+    }
+}  
+  
+
+
+	
