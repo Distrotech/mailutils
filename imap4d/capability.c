@@ -23,6 +23,7 @@ char *capa[] = {
 #ifdef WITH_GSSAPI
   "AUTH=GSSAPI",
 #endif
+  "X-VERSION",
   NULL
 };
 
@@ -32,11 +33,10 @@ imap4d_capability (struct imap4d_command *command, char *arg)
   int i;
   
   (void)arg;
-  if (! (command->states & state))
-    return util_finish (command, RESP_BAD, "Wrong state");
   util_send ("* CAPABILITY");
   for (i = 0; capa[i]; i++)
     util_send(" %s", capa[i]);
   util_send("\r\n");
+
   return util_finish (command, RESP_OK, "Completed");
 }
