@@ -1,7 +1,19 @@
 2002-02-25 Sam Roberts
 
 	* sieve/examples/: .cvsignore, Makefile, Test, mbox.complex,
-	t-exists.sv, test.out: Exercise a little more of sieve.
+	  t-exists.sv, test.out: Exercise a little more of sieve.
+	* mailbox/wicket.c, mailbox/message.c,
+	  imap4d/imap4d.h, mail/mail.c, mail/mail.h, pop3d/apop.c,
+	  pop3d/pop3d.h, readmsg/readmsg.c, readmsg/readmsg.h, sieve/sieve.c,
+	  sieve/sv.h, sieve/svcb.c, sieve/svctx.c examples/Makefile,
+	  examples/addr.c, examples/mbox-check.c, examples/mbox-dates.c,
+	  examples/mbox-explode.c, examples/mimetest.c, examples/msg-send.c,
+	  examples/url-parse.c, comsat/comsat.c, comsat/comsat.h, from/from.c,
+	  guimb/collect.c, guimb/guimb.h:
+	      Replaced strerror() with mu_errstring().
+	* include/mailutils/errno.h, mailbox/Makefile.am,
+	  mailbox/muerrno.c: Added muerrno.c to the build, added locker
+	  error numbers.
 
 2002-02-23 Sam Roberts
 
@@ -64,7 +76,7 @@
 
 	* include/mailutils/Makefile.am: Add errno.h
 
-2002-02-20 20:25  Sam Roberts <sroberts@uniserve.com>
+2002-02-20 Sam Roberts
 
 	* comsat/action.c, comsat/cfg.c, lib/argcv.c, lib/argcv.h,
 	  lib/mu_argp.c, mail/send.c, mail/util.c, mh/mh_argp.c,
