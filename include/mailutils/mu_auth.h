@@ -56,9 +56,6 @@ mu_get_auth_by_uid __P((uid_t uid));
 extern int
 mu_authenticate __P((struct mu_auth_data *auth_data, char *pass));
 
-extern void mu_auth_data_free __P((struct mu_auth_data *ptr));
-
-
 extern int mu_auth_nosupport __P((void *return_data,
 				  void *key,
 				  void *func_data,
