@@ -17,7 +17,7 @@
 
  /**
   *
-  * Created as an example of using libmailbox
+  * Created as an example for using mailutils API
   * Sean 'Shaleh' Perry <shaleh@debian.org>, 1999
   * Alain Magloire alainm@gnu.org
   *
@@ -27,7 +27,6 @@
 # include <config.h>
 #endif
 
-#include <mailbox.h>
 #include <sys/types.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -38,12 +37,17 @@
 # include <paths.h>
 #endif
 
+#include <paths.h>
+
+#include <mailbox.h>
+#include <header.h>
+
 #ifndef _PATH_MAILDIR
 # define _PATH_MAILDIR "/var/spool/mail"
 #endif
 
 #ifndef VERSION
-# define VERSION "unknown"
+# define VERSION "unknow"
 #endif
 
 #include "getopt.h"
@@ -136,6 +140,8 @@ main(int argc, char *argv[])
   char *mailbox_name = NULL;
   int  opt;
   char buffer[BUFSIZ];
+  char from[BUFSIZ];
+  char subject[BUFSIZ];
 
   /* set program name */
   program = argv[0];
@@ -189,14 +195,14 @@ main(int argc, char *argv[])
 	  exit (0);
 	  break;
 	default:
-	  usage (2);
-	  exit (1);
+	  //usage (2);
+	  //exit (1);
 	  break;
 	}
     }
 
   /* have an argument */
-  if (optind > 0)
+  if (optind > argc)
    {
       mailbox_name = argv[optind];
       /* is it a URL */
@@ -242,7 +248,11 @@ main(int argc, char *argv[])
 	fprintf (stderr, "header %s\n", strerror (rvalue));
 	exit(2);
       }
-    printf("%s\n", buffer);
+    header_gvalue (buffer, size, MU_HDR_FROM, from, sizeof (from), NULL);
+    header_gvalue (buffer, size, MU_HDR_SUBJECT, subject,
+		   sizeof (subject), NULL);
+
+    printf("%s %s\n", from, subject);
   }
   mailbox_close(mbox);
   mailbox_destroy(&mbox);
