@@ -234,14 +234,24 @@ util_do_command (const char *c, ...)
   if (vasprintf (&cmd, c, ap) < 1)
     return 0;
 
-  if (cmd[0] == '#')
-    return 0;
-
   if (cmd)
     {
+      struct mail_command_entry entry;
+
+      if (cmd[0] == '#')
+	return 0;
+
       if (argcv_get (cmd, &argc, &argv) != 0)
 	return argcv_free (argc, argv);
-      command = util_command_get (argv[0]);
+      
+      entry = util_find_entry (argv[0]);
+
+      if (if_cond() == 0 && entry.isflow == 0)
+	{
+	  argcv_free (argc, argv);
+	  return 0;
+	}
+      command = entry.func;
     }
   else
     command = util_command_get ("quit");
@@ -537,3 +547,24 @@ readline (const char *prompt)
     }
 }
 #endif
+
+char *
+util_get_homedir()
+{
+  char *homedir = mu_get_homedir();
+  if (!homedir)
+    {
+      /* Shouldn't happen, but one never knows */
+      fprintf(ofile, "can't get homedir\n");
+      exit (EXIT_FAILURE);
+    }
+  return strdup(homedir);
+}
+		 
+char *
+util_fullpath(char *inpath)
+{
+  return mu_tilde_expansion(inpath, "/", NULL);
+}
+
+
