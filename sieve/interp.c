@@ -54,6 +54,7 @@ int sieve_interp_alloc(sieve_interp_t **interp, void *interp_context)
     if (i == NULL) {
 	return SIEVE_NOMEM;
     }
+    memset (i, 0, sizeof (sieve_interp_t));
 
     i->redirect = i->discard = i->reject = i->fileinto = i->keep = NULL;
     i->getsize = NULL;
