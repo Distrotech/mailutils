@@ -147,15 +147,16 @@ mail_z (int argc, char **argv)
 	  fprintf(stdout, "On last screenful of messages\n");
 	  return 0;
 	}
-
+      break;
+      
     case D_NONE:
       {
-	/* z. is a GNU extension, so it will be more usefull
+	/* z. is a GNU extension, so it will be more useful
 	   when we reach the last message to show a full screen
-	   of the last message.  This behaviour is use on startup
+	   of the last message.  This behaviour is used on startup
 	   when displaying the summary and the headers, new messages
-	   are last but we want to display a screenfull with the
-	   real cursor set by symmary() to the new message.  */
+	   are last but we want to display a screenful with the
+	   real cursor set by summary() to the new message.  */
 	/* Find the start of the last screen page.  */
 	int lastpage =  total - pagelines + 1;
 	if (lastpage <= 0)
