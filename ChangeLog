@@ -1,3 +1,25 @@
+2002-08-15  Sergey Poznyakoff 
+
+	* configure.ac: If -lcrypt is present, add it to LIBS
+	  not to AUTHLIBS.
+	* auth/system.c: Moved to ...
+	* mailbox/system.c: ... here.
+	* auth/Makefile.am: Moved system.c to
+	* mailbox/Makefile.am: ... here.
+
+	* mailbox/mu_auth.c: Provide "generic:system" as
+	  default.
+
+	* mailbox/sendmail.c (sendmail_send_message): Bugfix. In spite
+	  of what the comment said, -t option is not implicit and must
+	  be specified.
+	
+	* mail/from.c: Bugfix: display even messages without Subject: or
+	  From: headers.
+	* mail/reply.c: Fixed improper use of header_aget_value().
+	* mail/util.c (util_do_command): For compatibility with older
+	  mails	treat a number alone on the line as "print NUMBER".
+
 2002-08-14  Sergey Poznyakoff 
 
 	* auth/virtual.c: Removed vestiges of mu_virtual_domain.
