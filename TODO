@@ -65,6 +65,12 @@ IMPORTANT:
 
 - locking:
 
+  - implement a read/write locker_lock() flag so that when MU_LOCKER_WRONLY
+    is set in the locker flags, only write locks actually lock the file,
+    read locks don't do anything.
+
+  - implement mailbox_lock() and mailbox_unlock() shortcut functions.
+
   - what kind of locking should mh use? See FIXME in mbx_mh.c
 
   - why does mimetest fail on a symlink, but suceed on a dotlocked file?
