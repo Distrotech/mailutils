@@ -82,9 +82,9 @@ mu_auth_data_alloc (struct mu_auth_data **ptr,
   p = (char *)(*ptr + 1);
   
 #define COPY(f) \
-  (*ptr)->##f = p; \
-  strcpy (p, ##f); \
-  p += strlen (##f) + 1
+  (*ptr)->f = p; \
+  strcpy (p, f); \
+  p += strlen (f) + 1
   
   COPY (name);
   COPY (passwd);
