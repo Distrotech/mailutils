@@ -18,13 +18,15 @@
 #include "guimb.h"
 #include "getopt.h"
 
-static char short_options[] = "de:f:g:hv";
+static char short_options[] = "de:f:g:hm:u:v{";
 static struct option long_options[] = {
   {"debug", no_argument, 0, 'd'},
   {"expression", required_argument, 0, 'e'},
   {"file", required_argument, 0, 'f'},
   {"help", no_argument, 0, 'h'},
   {"guile-command", required_argument, 0, 'g'},
+  {"mailbox", required_argument, 0, 'm'},
+  {"user", required_argument, 0, 'u'},
   {"version", no_argument, 0, 'v'},
   {0, 0, 0, 0}
 };
@@ -32,7 +34,9 @@ static struct option long_options[] = {
 char *program_file;
 char *program_expr;
 int debug_guile;
-
+char *user_name;
+char *output_mailbox;
+int   store_mailbox;
 static void usage (void);
 
 static int g_size;
@@ -61,7 +65,7 @@ int
 main (int argc, char *argv[])
 {
   int c;
-
+  
   append_arg ("");
   while ((c = getopt_long (argc, argv, short_options, long_options, NULL))
 	 != -1)
@@ -82,18 +86,39 @@ main (int argc, char *argv[])
       case 'h':
 	usage ();
 	exit (0);
+      case 'm':
+	output_mailbox = optarg;
+	store_mailbox = 1;
+	break;
+      case 'u':
+	user_name = optarg;
+	break;
       case 'v':
 	printf ("guimb (" PACKAGE " " VERSION ")\n");
 	exit (0);
+      case '{':
+	for (;; optind++)
+	  {
+	    if (optind == argc)
+	      {
+		fprintf (stderr, "guimb: missing -}\n");
+		exit (1);
+	      }
+	    if (strcmp (argv[optind], "-}") == 0)
+	      break;
+	    append_arg (argv[optind]);
+	  }
+	optind++;
+	break;
       default:
 	fprintf (stderr,
-		 "Invalid argument. Try guimb --help for more info\n");
+		 "Invalid argument (-%c). Try guimb --help for more info\n",
+		 c);
 	exit (1);
       }
+ 
   if (program_file)
       g_argv[0] = program_file;
-  append_arg (NULL);
-  g_argc--;
 
   /* Register the desired formats. */
   {
@@ -109,31 +134,53 @@ main (int argc, char *argv[])
   }
 
   collect_open_mailbox_file ();
+  if (store_mailbox && !argv[optind])
+    {
+      append_arg (output_mailbox);
+      collect_append_file (output_mailbox);
+    }
+  
   if (argv[optind])
     {
       for (; argv[optind]; optind++)
-	collect_append_file (argv[optind]);
+	{
+	  append_arg (argv[optind]);
+	  collect_append_file (argv[optind]);
+	}
     }
-  else
+  else if (!store_mailbox)
     collect_append_file ("-");
+
+  append_arg (NULL);
+  g_argc--;
+
   run_main (g_argc, g_argv);
 }
 
 static char usage_str[] =
-  "Usage: guimb [OPTIONS] [MBOX ...]\n"
+  "Usage: guimb [OPTIONS] [-{ SCRIPT-OPTIONS -}] [MBOX ...]\n"
   "Process the contents of the specified mailboxes using a Scheme program\n"
   "or expression.\n"
   "Options are:\n"
   "  -d, --debug               Start with debugging evaluator and backtraces.\n"
   "  -e, --expression EXPR     Execute scheme expression.\n"
   "  -f, --file PROGFILE       Read program from PROGFILE.\n"
-  "  -g, --guile-command ARG   Append ARG to the command line passed to guile\n"
+  "  -g, --guile-command ARG   Append ARG to the command line passed to guile.\n"
   "                            program.\n"
+  "  -m, --mailbox MBOX        Set default mailbox name.\n"
+  "  -u, --user NAME           Act as local MDA for user NAME.\n"
   "  -h, --help                Display help message.\n"
   "  -v, --version             Display program version.\n"
   "\n"
+  "Any arguments between -{ and -} are passed to the Scheme program verbatim.\n"
   "When both --file and --expression are specified, file is evaluated first.\n"
-  "If no mailboxes are specified the standard input is read.\n";
+  "If no mailboxes are specified, the standard input is read.\n\n"
+  "The semantics of the default mailbox differs depending on whether\n"
+  "more mailbox arguments are specified in the command line. If they\n"
+  "are, any messages that are not deleted after executing the script\n"
+  "are appended to the default mailbox. Otherwise its contents is read,\n"
+  "processed and *replaced* by messages that remain undeleted after\n"
+  "executing the script.\n";
 
 void
 usage ()
