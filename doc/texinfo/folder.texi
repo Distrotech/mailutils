@@ -4,7 +4,7 @@
 @comment *******************************************************************
 
 @smallexample
-@code{/* Prefix @emph{folder_} is reserve */}
+@code{/* Prefix @emph{folder_} is reserved. */}
 @code{#include <mailutils/folder.h>}
 
 @end smallexample
@@ -12,77 +12,126 @@
 @smallexample
 @group
                              folder_t                  url_t
-  -/var/mail-    +---//---->/-----------------\    +-->/-----------\
- (  alain *-)-+  |          |  url_t        *-|----+   |  port     |
-  ----------- |  |          |-----------------+        |  hostname |
- (  jakob *-)-+--+          |  observer_t   *-|        |  file     |
-  ----------- |             |-----------------+        |  ...      |
- (  jeff  *-)-+             |  stream_t       |        \-----------/
-  ----------- |             |-----------------|
- (  sean  *-)-+             |  auth_t         |
-  ----------                |-----------------|
-                            |  mailbox_t(1)   |
-                            |-----------------|
-                            |  mailbox_t(2)   |
-                            |  ......         |
-                            |  mailbox_t(n)   |
-                            \-----------------/
+  -/var/mail-    +---//--->/-----------------\   +-->/-----------\
+ (  alain *-)-+  |         |  url_t        *-|---+   |  port     |
+  ----------  |  |         |-----------------+       |  hostname |
+ (  jakob *-)-+--+         |  observer_t   *-|       |  file     |
+  ----------  |            |-----------------+       |  ...      |
+ (  jeff  *-)-+            |  stream_t       |       \-----------/
+  ----------  |            |-----------------|
+ (  sean  *-)-+            |  auth_t         |
+  ----------               |-----------------|
+                           |  mailbox_t(1)   |
+                           |-----------------|
+                           |  mailbox_t(2)   |
+                           |  ......         |
+                           |  mailbox_t(n)   |
+                           \-----------------/
 @end group
 @end smallexample
 
-@deftypefun int  folder_create (folder_t *, const char *@var{url})
+Data structures:
+
+@smallexample
+@group
+struct list_response
+@{
+  int type;
+  int separator;
+  char *name;
+@};
+
+struct folder_list
+@{
+  struct list_response **element;
+  size_t num;
+@};
+@end group
+@end smallexample
+
+@c
+@c Constructor/Destructor and possible types.
+@c
+
+@deftypefun  int folder_create (folder_t *, const char *@var{url})
 @end deftypefun
 
 @deftypefun void folder_destroy (folder_t *)
 @end deftypefun
 
-@deftypefun int folder_open (folder_t, int @var{flag})
+@deftypefun  int folder_open (folder_t, int @var{flag})
 @end deftypefun
 
-@deftypefun int folder_close (folder_t)
+@deftypefun  int folder_close (folder_t)
 @end deftypefun
 
-@deftypefun int folder_delete (folder_t, const char *@var{mailbox})
+@deftypefun  int folder_delete (folder_t, const char *@var{mailbox})
 @end deftypefun
 
-@deftypefun int folder_rename (folder_t, const char *, const char *@var{mailbox})
+@deftypefun  int folder_rename (folder_t, const char *, const char *@var{mailbox})
 @end deftypefun
 
-@deftypefun int folder_subscribe (folder_t, const char *@var{mailbox})
+@deftypefun  int folder_subscribe (folder_t, const char *@var{mailbox})
 @end deftypefun
 
-@deftypefun int folder_unsubscribe (folder_t, const char *@var{mailbox})
+@deftypefun  int folder_unsubscribe (folder_t, const char *@var{mailbox})
 @end deftypefun
 
-@deftypefun int folder_list (folder_t, const char *@var{ref}, const char *@var{wcard}, iterator_t *)
+@deftypefun  int folder_list (folder_t, const char *@var{ref}, const char *@var{wcard}, struct folder_list *)
 @end deftypefun
 
-@deftypefun int folder_lsub (folder_t, const char *@var{ref}, const char *@var{wcar}, iterator_t *)
+@deftypefun  int folder_lsub (folder_t, const char *@var{ref}, const char *@var{wcard}, struct folder_list *)
 @end deftypefun
 
-@deftypefun int folder_get_stream (folder_t, stream_t *)
+@deftypefun  int folder_list_destroy (struct folder_list *)
 @end deftypefun
 
-@deftypefun int folder_set_stream (folder_t, stream_t)
+@c
+@c Stream Settings.
+@c
+
+@deftypefun  int folder_get_stream (folder_t, stream_t *)
 @end deftypefun
 
-@deftypefun int folder_get_observable (folder_t, observable_t *)
+@deftypefun  int folder_set_stream (folder_t, stream_t)
 @end deftypefun
 
-@deftypefun int folder_get_debug (folder_t, debug_t *)
+@c
+@c Notifications.
+@c
+
+@deftypefun  int folder_get_observable (folder_t, observable_t *)
 @end deftypefun
 
-@deftypefun int folder_set_debug (folder_t, debug_t)
+@c
+@c Debug.
+@c
+
+@deftypefun  int folder_has_debug (folder_t)
 @end deftypefun
 
-@deftypefun int folder_get_authority (folder_t, authority_t *)
+@deftypefun  int folder_get_debug (folder_t, mu_debug_t *)
 @end deftypefun
 
-@deftypefun int folder_set_authority (folder_t, authority_t)
+@deftypefun  int folder_set_debug (folder_t, mu_debug_t)
 @end deftypefun
 
-@deftypefun int folder_get_url (folder_t, url_t *)
+@c
+@c Authentication.
+@c
+
+@deftypefun  int folder_get_authority (folder_t, authority_t *)
 @end deftypefun
 
-@deftypefun int folder_set_url (folder_t, url_t)
+@deftypefun  int folder_set_authority (folder_t, authority_t)
+@end deftypefun
+
+@c
+@c URL.
+@c
+
+@deftypefun  int folder_get_url (folder_t, url_t *)
+@end deftypefun
+
+@deftypefun  int folder_set_url (folder_t, url_t)
 @end deftypefun

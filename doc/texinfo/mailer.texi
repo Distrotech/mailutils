@@ -4,64 +4,69 @@
 @comment *******************************************************************
 
 @smallexample
-@code{/* Prefix @emph{mailer_} is reserved */}
+@code{/* Prefix @emph{mailer_} is reserved. */}
 @code{#include <mailutils/mailer.h>}
 
 @end smallexample
 
-The API is still changing.
+@c
+@c Constructor/Destructor.
+@c
 
-@deftypefun int mailer_create (mailer_t *, const char *)
+@deftypefun  int mailer_create (mailer_t *, const char *@var{url})
 @end deftypefun
 
 @deftypefun void mailer_destroy (mailer_t *)
 @end deftypefun
 
-@deftypefun int mailer_open (mailer_t, int flags)
+@deftypefun  int mailer_open (mailer_t, int @var{flags})
 @end deftypefun
 
-@deftypefun int mailer_close (mailer_t)
+@deftypefun  int mailer_close (mailer_t)
 @end deftypefun
 
-@deftypefun int mailer_send_message (mailer_t @var{mailer}, message_t @var{msg}, address_t @var{from}, address_t @var{to});
+@deftypefun  int mailer_send_message (mailer_t @var{mailer}, message_t @var{msg}, address_t @var{from}, address_t @var{to});
 
-If from is not @var{NULL}, it must contain a single fully qualified
+If @var{from} is not @code{NULL}, it must contain a single fully qualified
 RFC2822 email address which will be used as the envelope from
 address. This is the address to which delivery status notifications
-are sent, so it never matters what it is set to until it REALLY matters.
-This is equivalent to sendmail's @var{-f} flag.
+are sent, so it never matters what it is set to until it @strong{really}
+matters. This is equivalent to Sendmail's @option{-f} flag.
 
 The default for @var{from} is provided by the specific mailer.
 
-If to is not @var{NULL}, then the message will be sent to the list of
+If to is not @code{NULL}, then the message will be sent to the list of
 addresses that it specifies.
 
 The default for @var{to} is to use the contents of the standard "To:", "Cc:",
-and "Bcc:" fields, this is equivalent to sendmail's @var{-t} flag.
-
-Note: the previous implementation of mailer_send_message() was equivalent
-to having both @var{from} and @var{to} be @var{NULL}.
+and "Bcc:" fields, this is equivalent to Sendmail's @option{-t} flag.
 @end deftypefun
 
-@deftypefun int mailer_get_property (mailer_t, property_t *)
+@deftypefun  int mailer_get_property (mailer_t, property_t *)
 @end deftypefun
 
-@deftypefun int mailer_get_stream (mailer_t, stream_t *)
+@deftypefun  int mailer_get_stream (mailer_t, stream_t *)
 @end deftypefun
 
-@deftypefun int mailer_set_stream (mailer_t, stream_t)
+@deftypefun  int mailer_set_stream (mailer_t, stream_t)
 @end deftypefun
 
-@deftypefun int mailer_get_debug (mailer_t, debug_t *)
+@deftypefun  int mailer_get_debug (mailer_t, mu_debug_t *)
 @end deftypefun
 
-@deftypefun int mailer_set_debug (mailer_t, debug_t)
+@deftypefun  int mailer_set_debug (mailer_t, mu_debug_t)
 @end deftypefun
 
-@deftypefun int mailer_get_observable (mailer_t, observable_t *)
+@deftypefun  int mailer_get_observable (mailer_t, observable_t *)
 @end deftypefun
 
-@deftypefun int mailer_get_url (mailer_t, url_t *)
+@deftypefun  int mailer_get_url (mailer_t, url_t *)
+@end deftypefun
+
+@deftypefun  int mailer_check_from (address_t @var{from})
+@end deftypefun
+
+@deftypefun  int mailer_check_to (address_t @var{to})
 @end deftypefun
 
 @sp 1
@@ -73,71 +78,74 @@ Some possible use cases the API must support are:
 
  1 - fill in header addresses
 
- 2 - mailer_send_message(mailer, msg, NULL, NULL);
+ 2 - @code{mailer_send_message(mailer, msg, NULL, NULL)}
 
    - from will be filled in if missing,
 
-   - bcc's will be deleted before delivery to a non-bcc address,
+   - Bcc's will be deleted before delivery to a non-bcc address,
 
    - message-id and date will be added, if missing,
 
-   - a to: or apparently-to: will be added if non is present (for RFC
+   - a To: or Apparently-To: will be added if non is present (for RFC
      compliance)
 
-- MTA-style .forward ( and sieve-style redirect )
+- MTA-style @file{.forward} (and Sieve-style redirect)
 
  1 - get the envelope from of the message to be forwarded
 
- 2 - mailer_send_message(mailer, msg, from, to)
+ 2 - @code{mailer_send_message(mailer, msg, from, to)}
 
 - MUA-style bounce
 
- 1 - add Resent-[to,from,....]
+ 1 - add Resent-[To,From,...]
 
- 2 - mailer_send_message(mailer, msg, NULL, to)
+ 2 - @code{mailer_send_message(mailer, msg, NULL, to)}
 
 - DSN "bounce"
 
  1 - compose DSN
 
- 2 - mailer_deliver(mailer, msg, address_t( "<>" ), to)
+ 2 - @code{mailer_deliver(mailer, msg, address_t("<>"), to)}
 
-   Don't want mail loops, so the null but valid SMTP address of <> is
-   the envelope from.
+   Don't want mail loops, so the null but valid SMTP address of @samp{<>}
+   is the envelope From.
 
 @subheading The Sendmail Mailer
 
-@file{/sbin/sendmail} isn't always sendmail... sometimes its a
-sendmail-compatible wrapper, so assume @file{/sbin/sendmail} understands
+@file{/sbin/sendmail} isn't always Sendmail... Sometimes it's a
+Sendmail-compatible wrapper, so assume @file{/sbin/sendmail} understands
 only a recipient list, @option{-f} and @option{-oi}, these seem
 to be pretty basic. Cross fingers.
 
-Pipe to "/sbin/sendmail -oi [-f from] [to...]", supplying @option{-f}
-if there was a from, and supplying the recipient list from the to
-(if there is no recipient list, assume it will read the message
+Pipe to "/sbin/sendmail -oi [-f @var{from}] [@var{to}...]", supplying
+@option{-f} if there was a from, and supplying the recipient list from
+the to (if there is no recipient list, assume it will read the message
 contents for the recipients).
 
-Note: since the stdout and stderr of sendmail is closed, we have no
-way of ever giving feedback on failure. Also, what should the return
-code be from mailer_send_message() when sendmail returns 1? 1 maps to EPERM,
-which is less than descriptive!
+@strong{Caution:} since the @code{stdout} and @code{stderr} of Sendmail
+is closed, we have no way of ever giving feedback on failure. Also, what
+should the return code be from @code{mailer_send_message()} when Sendmail
+returns @samp{1}? @samp{1} maps to @code{EPERM}, which is less than
+descriptive!
 
 @subheading The SMTP Mailer
 
-This mailer does NOT canonicalize the message. This must be done before
-sending the message, or it may be assumed that the MTA will do so.
+This mailer does @strong{not} canonicalize the message. This must be
+done before sending the message, or it may be assumed that the MTA
+will do so.
 
 It does blind out the Bcc: header before sending, though.
 
-Note: mutt always puts the recipient addresses on the command line, even
-bcc ones, do we strip the bcc before forwarding with SMTP?
+@strong{Caution:} Mutt always puts the recipient addresses on the
+command line, even Bcc: ones, do we strip the Bcc: before forwarding
+with SMTP?
 
 @subheading Non-RFC822 Addresses
 
 An address that has no domain is not and RFC822 email address. What
 do I do with them? Should the user of the API be responsible for
-determining what is mean by email to "john" means? Or should the
-be able to configure sendmail to decide globally what this means.
-If so, we can pass the address to sendmail, but we have to decide
+determining what is mean by email to "John" means? Or should the
+be able to configure Sendmail to decide globally what this means.
+If so, we can pass the address to Sendmail, but we have to decide
 for SMTP! So, right now these addresses are rejected.
 This could be changed.

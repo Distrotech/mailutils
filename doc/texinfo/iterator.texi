@@ -4,24 +4,30 @@
 @comment *******************************************************************
 
 @smallexample
-@code{/* Prefix @emph{iterator_} is reserved */}
+@code{/* Prefix @emph{iterator_} is reserved. */}
 @code{#include <mailutils/iterator.h>}
 @end smallexample
 
-@deftypefun int iterator_create (iterator_t *)
+@deftypefun  int iterator_create (iterator_t *@var{iterator}, list_t)
+@end deftypefun
+
+@deftypefun  int iterator_dup (iterator_t *@var{iterator}, iterator_t @var{orig})
 @end deftypefun
 
 @deftypefun void iterator_destroy (iterator_t *)
 @end deftypefun
 
-@deftypefun int iterator_first (iterator_t)
+@deftypefun  int iterator_first (iterator_t)
 @end deftypefun
 
-@deftypefun int iterator_next (iterator_t)
+@deftypefun  int iterator_next (iterator_t)
 @end deftypefun
 
-@deftypefun int iterator_current (iterator_t, void **pitem)
+@deftypefun  int iterator_current (iterator_t, void **@var{item})
 @end deftypefun
 
-@deftypefun int iterator_is_done (iterator_t)
+@deftypefun  int iterator_is_done (iterator_t)
+@end deftypefun
+
+@deftypefun  int iterator_get_list (iterator_t @var{iterator}, list_t *@var{list})
 @end deftypefun

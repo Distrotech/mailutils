@@ -4,7 +4,7 @@
 @comment *******************************************************************
 
 @smallexample
-@code{/* Prefix @emph{address_} is reserved */}
+@code{/* Prefix @emph{address_} is reserved. */}
 @code{#include <mailutils/address.h>}
 @end smallexample
 
@@ -19,19 +19,19 @@ RFC 822 for the details. @samp{[]} pairs mean "optional", @samp{/} means
 "one or the other", and double-quoted characters are literals.
 
 @smallexample
-addr-spec    = local-part "@" domain
-mailbox      = addr-spec ["(" display-name ")"] /
-               [display-name] "<" [route] addr-spec ">"
-mailbox-list = mailbox ["," mailbox-list]
-group        = display-name ":" [mailbox-list] ";"
-address      = mailbox / group / unix-mbox
-address-list = address ["," address-list]
+addr-spec    = @var{local-part} "@@" @var{domain}
+mailbox      = @var{addr-spec} ["(" @var{display-name} ")"] /
+               [@var{display-name}] "<" [@var{route}] @var{addr-spec} ">"
+mailbox-list = @var{mailbox} ["," @var{mailbox-list}]
+group        = @var{display-name} ":" [@var{mailbox-list}] ";"
+address      = @var{mailbox} / @var{group} / @var{unix-mbox}
+address-list = @var{address} ["," @var{address-list}]
 @end smallexample
 
-unix-mbox is a non-standard extension meant to deal with the common
+Unix-mbox is a non-standard extension meant to deal with the common
 practice of using user names as addresses in mail utilities. It allows
-addresses such as "root" to be parsed correctly. These are NOT valid
-internet email addresses, they must be qualified before use.
+addresses such as "root" to be parsed correctly. These are @strong{not}
+valid internet email addresses, they must be qualified before use.
 
 Several address functions have a set of common arguments with consistent
 semantics, these are described here to avoid repetition.
@@ -43,7 +43,7 @@ counts to access messages and attributes of messages.
 
 If @var{len} is greater than @code{0} it is the length of the buffer
 @var{buf}, and as much of the component as possible will be copied
-into the buffer. The buffer will be null terminated.
+into the buffer. The buffer will be @code{NULL} terminated.
 
 The size of a particular component may be queried by providing @code{0}
 for the @var{len} of the buffer, in which case the buffer is optional.
@@ -67,7 +67,7 @@ The index @var{no} is outside of the range of available addresses.
 
 @macro ADDRESSEINVAL
 @item EINVAL
-Invalid usage, usually a required argument was @code{null}.
+Invalid usage, usually a required argument was @code{NULL}.
 @end macro
 
 @deftp {Data Type} address_t
@@ -77,7 +77,11 @@ data structure to the user. Functions are provided to retrieve information
 about an address in the address list.
 @end deftp
 
-@deftypefun int address_create (address_t *@var{addr}, const char *@var{string})
+@c
+@c Functions.
+@c
+
+@deftypefun  int address_create (address_t *@var{addr}, const char *@var{string})
 This function allocates and initializes @var{addr} by parsing the
 RFC822 address-list @var{string}.
 
@@ -89,10 +93,10 @@ The return value is @code{0} on success and a code number on error conditions:
 @end table
 @end deftypefun
 
-@deftypefun int address_createv (address_t *@var{addr}, const char *@var{sv}, size_t @var{len})
+@deftypefun  int address_createv (address_t *@var{addr}, const char *@var{sv}, size_t @var{len})
 This function allocates and initializes @var{addr} by parsing the
 array of pointers to RFC822 address-lists in @var{sv}. If @var{len} is
-@code{-1}, then @var{sv} must be null-terminated in the fashion of @var{argv},
+@code{-1}, then @var{sv} must be @code{NULL} terminated in the fashion of @var{argv},
 otherwise @var{len} is the length of the array.
 
 The return value is @code{0} on success and a code number on error conditions:
@@ -103,12 +107,18 @@ The return value is @code{0} on success and a code number on error conditions:
 @end table
 @end deftypefun
 
-@deftypefun  void address_destroy (address_t *@var{addr})
+@deftypefun void address_destroy (address_t *@var{addr})
 The @var{addr} is destroyed.
 @end deftypefun
 
-@deftypefun  int address_get_email (address_t *@var{addr}, size_t @var{no}, char* @var{buf}, size_t @var{len}, size_t* @var{n})
+@c
+@c address_get_
+@c
 
+@deftypefun  int address_get_nth (address_t @var{addr}, size_t @var{no}, address_t *@var{ret})
+@end deftypefun
+
+@deftypefun  int address_get_email (address_t @var{addr}, size_t @var{no}, char* @var{buf}, size_t @var{len}, size_t *@var{n})
 Accesses the @var{no}th email address component of the address list. This
 address is the plain email address, correctly quoted, suitable for
 using in an smtp dialog, for example, or as the address part of
@@ -124,12 +134,9 @@ The return value is @code{0} on success and a code number on error conditions:
 @end table
 @end deftypefun
 
-@deftypefun  int address_aget_email (address_t *@var{addr}, size_t @var{no}, char** @var{bufp})
-
-As above, but mallocs the email address, if present,
-
-and write a pointer to it into @var{bufp}. @var{bufp} will be @code{NULL}
-if there is no email address to return.
+@deftypefun  int address_get_local_part (address_t @var{addr}, size_t @var{no}, char *@var{buf}, size_t @var{len}, size_t *@var{n})
+Accesses the local-part of an email addr-spec extracted while
+parsing the @var{no}th email address.
 
 The return value is @code{0} on success and a code number on error conditions:
 @table @code
@@ -138,8 +145,19 @@ The return value is @code{0} on success and a code number on error conditions:
 @end table
 @end deftypefun
 
-@deftypefun  int address_get_personal (address_t *@var{addr}, size_t @var{no}, char* @var{buf}, size_t @var{len}, size_t* @var{n})
+@deftypefun  int address_get_domain (address_t @var{addr}, size_t @var{no}, char *@var{buf}, size_t @var{len}, size_t *@var{n})
+Accesses the domain of an email addr-spec extracted while
+parsing the @var{no}th email address. This will be @code{0}
+length for a unix-mbox.
 
+The return value is @code{0} on success and a code number on error conditions:
+@table @code
+@ADDRESSEINVAL
+@ADDRESSENOENT
+@end table
+@end deftypefun
+
+@deftypefun  int address_get_personal (address_t @var{addr}, size_t @var{no}, char *@var{buf}, size_t @var{len}, size_t *@var{n})
 Accesses the display-name describing the @var{no}th email address. This
 display-name is optional, so may not be present. If it is not present, but
 there is an RFC822 comment after the address, that comment will be
@@ -159,8 +177,7 @@ The return value is @code{0} on success and a code number on error conditions:
 @end table
 @end deftypefun
 
-@deftypefun  int address_get_comments (address_t *@var{addr}, size_t @var{no}, char* @var{buf}, size_t @var{len}, size_t* @var{n})
-
+@deftypefun  int address_get_comments (address_t @var{addr}, size_t @var{no}, char *@var{buf}, size_t @var{len}, size_t *@var{n})
 Accesses the comments extracted while parsing the @var{no}th email address.
 These comments have no defined meaning, and are not currently collected.
 
@@ -171,46 +188,7 @@ The return value is @code{0} on success and a code number on error conditions:
 @end table
 @end deftypefun
 
-@deftypefun  int address_get_email (address_t *@var{addr}, size_t @var{no}, char* @var{buf}, size_t @var{len}, size_t* @var{n})
-
-Accesses the email addr-spec extracted while
-parsing the @var{no}th email address. This will be @code{0}
-length for a unix-mbox.
-
-The return value is @code{0} on success and a code number on error conditions:
-@table @code
-@ADDRESSEINVAL
-@ADDRESSENOENT
-@end table
-@end deftypefun
-
-@deftypefun  int address_get_local_part (address_t *@var{addr}, size_t @var{no}, char* @var{buf}, size_t @var{len}, size_t* @var{n})
-
-Accesses the local-part of an email addr-spec extracted while
-parsing the @var{no}th email address.
-
-The return value is @code{0} on success and a code number on error conditions:
-@table @code
-@ADDRESSEINVAL
-@ADDRESSENOENT
-@end table
-@end deftypefun
-
-@deftypefun  int address_get_domain (address_t *@var{addr}, size_t @var{no}, char* @var{buf}, size_t @var{len}, size_t* @var{n})
-
-Accesses the domain of an email addr-spec extracted while
-parsing the @var{no}th email address. This will be @code{0}
-length for a unix-mbox.
-
-The return value is @code{0} on success and a code number on error conditions:
-@table @code
-@ADDRESSEINVAL
-@ADDRESSENOENT
-@end table
-@end deftypefun
-
-@deftypefun  int address_get_route (address_t *@var{addr}, size_t @var{no}, char* @var{buf}, size_t @var{len}, size_t* @var{n})
-
+@deftypefun  int address_get_route (address_t @var{addr}, size_t @var{no}, char *@var{buf}, size_t @var{len}, size_t *@var{n})
 Accesses the route of an email addr-spec extracted while
 parsing the @var{no}th email address. This is a rarely used RFC822 address
 syntax, but is legal in SMTP as well. The entire route is returned as
@@ -223,13 +201,41 @@ The return value is @code{0} on success and a code number on error conditions:
 @end table
 @end deftypefun
 
-@deftypefun  int address_is_group (address_t *@var{addr}, size_t @var{no}, size_t @var{len}, int* @var{yes})
+@c
+@c address_aget_
+@c
 
+@deftypefun  int address_aget_email (address_t @var{addr}, size_t @var{no}, char **@var{bufp})
+As above, but mallocs the email address, if present,
+and write a pointer to it into @var{bufp}. @var{bufp} will be @code{NULL}
+if there is no email address to return.
+
+The return value is @code{0} on success and a code number on error conditions:
+@table @code
+@ADDRESSEINVAL
+@ADDRESSENOENT
+@end table
+@end deftypefun
+
+@deftypefun  int address_aget_local_part (address_t @var{addr}, size_t @var{no}, char **@var{buf})
+@end deftypefun
+
+@deftypefun  int address_aget_domain (address_t @var{addr}, size_t @var{no}, char **@var{buf})
+@end deftypefun
+
+@deftypefun  int address_aget_personal (address_t @var{addr}, size_t @var{no}, char **@var{buf})
+@end deftypefun
+
+@c
+@c -----------
+@c
+
+@deftypefun  int address_is_group (address_t @var{addr}, size_t @var{no}, int *@var{yes})
 Sets *@var{yes} to @code{1} if this address is just the name of a group,
 @code{0} otherwise. This is faster than checking if the address has
 a non-zero length personal, and a zero-length local_part and domain.
 
-@var{yes} can be @code{null}, though that doesn't serve much purpose other
+@var{yes} can be @code{NULL}, though that doesn't serve much purpose other
 than determining that @var{no} refers to an address.
 
 Currently, there is no way to determine the end of the group.
@@ -241,10 +247,8 @@ The return value is @code{0} on success and a code number on error conditions:
 @end table
 @end deftypefun
 
-@deftypefun  int address_to_string (address_t *@var{addr}, char* @var{buf}, size_t @var{len}, size_t* @var{n})
-
-Returns the entire address list as a single RFC822 formatted address
-list.
+@deftypefun  int address_to_string (address_t *@var{addr}, char *@var{buf}, size_t @var{len}, size_t *@var{n})
+Returns the entire address list as a single RFC822 formatted address list.
 
 The return value is @code{0} on success and a code number on error conditions:
 @table @code
@@ -253,14 +257,31 @@ The return value is @code{0} on success and a code number on error conditions:
 @end table
 @end deftypefun
 
-@deftypefun  int address_get_count (address_t @var{addr}, size_t* @var{count})
-
+@deftypefun  int address_get_count (address_t @var{addr}, size_t *@var{count})
 Returns a count of the addresses in the address list.
 
-If @var{addr} is @code{null}, the count is @code{0}. If @var{count} is
-not @code{null}, the count will be written to *@var{count}.
+If @var{addr} is @code{NULL}, the count is @code{0}. If @var{count} is
+not @code{NULL}, the count will be written to *@var{count}.
 
 The return value is @code{0}.
+@end deftypefun
+
+@deftypefun  int address_get_group_count (address_t @var{addr}, size_t *)
+@end deftypefun
+
+@deftypefun  int address_get_email_count (address_t @var{addr}, size_t *)
+@end deftypefun
+
+@deftypefun  int address_get_unix_mailbox_count (address_t @var{addr}, size_t *)
+@end deftypefun
+
+@deftypefun  int address_contains_email (address_t @var{addr}, const char *@var{email})
+@end deftypefun
+
+@deftypefun  int address_union (address_t *@var{a}, address_t @var{b})
+@end deftypefun
+
+@deftypefun size_t address_format_string (address_t @var{addr}, char *@var{buf}, size_t @var{buflen})
 @end deftypefun
 
 @subheading Example

@@ -33,80 +33,116 @@ The stream is set non blocking.
 @item MU_STREAM_NO_CHECK
 @findex MU_STREAM_NO_CHECK
 Stream is destroyed without checking for the owner.
+@item MU_STREAM_SEEKABLE
+@findex MU_STREAM_SEEKABLE
+
 @item MU_STREAM_NO_CLOSE
 @findex MU_STREAM_NO_CLOSE
 Stream doesn't close it's underlying resource when it is closed or destroyed.
+@item MU_STREAM_ALLOW_LINKS
+@findex MU_STREAM_ALLOW_LINKS
+
 @end table
 
-@deftypefun int file_stream_create (stream_t *@var{pstream}, const char *@var{filename}, int @var{flags})
+@deftypefun  int file_stream_create (stream_t *@var{stream}, const char *@var{filename}, int @var{flags})
 @end deftypefun
 
-@deftypefun int tcp_stream_create (stream_t *@var{pstream}, const char *@var{host}, int @var{port}, int @var{flags})
+@deftypefun  int tcp_stream_create (stream_t *@var{stream}, const char *@var{host}, int @var{port}, int @var{flags})
 @end deftypefun
 
-@deftypefun int mapfile_stream_create (stream_t *@var{pstream}, const char *@var{filename}, int @var{flags})
+@deftypefun  int mapfile_stream_create (stream_t *@var{stream}, const char *@var{filename}, int @var{flags})
 @end deftypefun
 
-@deftypefun int memory_stream_create (stream_t *@var{pstream}, const char *@var{filename}, int @var{flags})
+@deftypefun  int memory_stream_create (stream_t *@var{stream}, const char *@var{filename}, int @var{flags})
 @end deftypefun
 
-@deftypefun int encoder_stream_create (stream_t *@var{pstream}, stream_t @var{iostream}, const char *@var{encoding})
+@deftypefun  int encoder_stream_create (stream_t *@var{stream}, stream_t @var{iostream}, const char *@var{encoding})
 @end deftypefun
 
-@deftypefun int decoder_stream_create (stream_t *@var{pstream}, stream_t @var{iostream}, const char *@var{encoding})
+@deftypefun  int decoder_stream_create (stream_t *@var{stream}, stream_t @var{iostream}, const char *@var{encoding})
 @end deftypefun
 
-@deftypefun int stdio_stream_create (stream_t *@var{pstream}, FILE* @var{stdio}, int @var{flags})
+@deftypefun  int stdio_stream_create (stream_t *@var{stream}, FILE *@var{stdio}, int @var{flags})
 If @code{MU_STREAM_NO_CLOSE} is specified, @code{fclose()} will not be called on
 @var{stdio} when the stream is closed.
 @end deftypefun
 
-@deftypefun void stream_destroy (stream_t *@var{pstream}, void *@var{owner})
+@deftypefun  int prog_stream_create (stream_t *@var{stream}, char *@var{progname}, int @var{flags})
 @end deftypefun
 
-@deftypefun int stream_open (stream_t @var{stream})
+@deftypefun  int filter_prog_stream_create (stream_t *@var{stream}, char *@var{progname}, stream_t @var{input})
 @end deftypefun
 
-@deftypefun int stream_close (stream_t @var{stream})
+@deftypefun void stream_destroy (stream_t *@var{stream}, void *@var{owner})
 @end deftypefun
 
-@deftypefun int stream_is_seekable (stream_t @var{stream})
+@c
+@c ---------
+@c
+
+@deftypefun  int stream_open (stream_t @var{stream})
 @end deftypefun
 
-@deftypefun int stream_get_fd (stream_t @var{stream}, int *@var{pfd})
+@deftypefun  int stream_close (stream_t @var{stream})
 @end deftypefun
 
-@deftypefun int stream_read (stream_t @var{stream}, char *@var{buffer}, size_t @var{buflen}, off_t @var{offset}, size_t *@var{pwriten})
+@deftypefun  int stream_is_seekable (stream_t @var{stream})
 @end deftypefun
 
-@deftypefun int stream_readline (stream_t @var{stream}, char *@var{buffer}, size_t @var{buflen}, off_t @var{offset}, size_t *@var{pwriten})
+@deftypefun  int stream_get_fd (stream_t @var{stream}, int *@var{fd})
 @end deftypefun
 
-@deftypefun int stream_size (stream_t @var{stream}, off_t *@var{psize})
+@deftypefun  int stream_get_fd2 (stream_t @var{stream}, int *@var{fd1}, int *@var{fd2})
 @end deftypefun
 
-@deftypefun int stream_truncate (stream_t @var{stream}, off_t @var{size})
+@deftypefun  int stream_read (stream_t @var{stream}, char *@var{buffer}, size_t @var{buflen}, off_t @var{offset}, size_t *@var{writen})
 @end deftypefun
 
-@deftypefun int stream_write (stream_t @var{stream}, const char *@var{buffer}, size_t @var{buflen}, off_t @var{offset}, size_t *@var{pwriten})
+@deftypefun  int stream_readline (stream_t @var{stream}, char *@var{buffer}, size_t @var{buflen}, off_t @var{offset}, size_t *@var{writen})
 @end deftypefun
 
-@deftypefun int stream_setbufsiz (stream_t @var{stream}, size_t @var{size})
+@deftypefun  int stream_size (stream_t @var{stream}, off_t *@var{size})
 @end deftypefun
 
-@deftypefun int stream_flush (stream_t @var{stream})
+@deftypefun n int stream_truncate (stream_t @var{stream}, off_t @var{size})
 @end deftypefun
 
-These functions will typically only be useful to implementors of streams.
+@deftypefun  int stream_write (stream_t @var{stream}, const char *@var{buffer}, size_t @var{buflen}, off_t @var{offset}, size_t *@var{writen})
+@end deftypefun
 
-@deftypefun int stream_create (stream_t *@var{pstream}, int @var{flags}, void *@var{owner})
+@deftypefun  int stream_setbufsiz (stream_t @var{stream}, size_t @var{size})
+@end deftypefun
+
+@deftypefun  int stream_flush (stream_t @var{stream})
+@end deftypefun
+
+@c
+@c These functions will typically only be useful to implementors of streams.
+@c
+
+@deftypefun int stream_create (stream_t *@var{stream}, int @var{flags}, void *@var{owner})
 Used to implement a new kind of stream.
 @end deftypefun
 
-@deftypefun int stream_get_flags (stream_t @var{stream}, int *@var{pflags})
+@deftypefun void* stream_get_owner (stream_t @var{stream})
 @end deftypefun
 
-@deftypefun int stream_get_state (stream_t @var{stream}, int *@var{pstate})
+@deftypefun void stream_set_owner (stream_t @var{stream}, void *@var{owner})
+@end deftypefun
+
+@deftypefun  int stream_get_flags (stream_t @var{stream}, int *@var{flags})
+@end deftypefun
+
+@deftypefun  int stream_set_flags (stream_t @var{stream}, int @var{flags})
+@end deftypefun
+
+@deftypefun  int stream_get_property (stream_t @var{stream}, property_t *)
+@end deftypefun
+
+@deftypefun  int stream_set_property (stream_t @var{stream}, property_t, void *)
+@end deftypefun
+
+@deftypefun int stream_get_state (stream_t @var{stream}, int *@var{state})
 @table @code
 @item MU_STREAM_STATE_OPEN
 Last action was @code{stream_open}.
@@ -119,7 +155,52 @@ Last action was @code{stream_close}.
 @end table
 @end deftypefun
 
-An example using @code{tcp_stream_create} to make a simple web client:
+@deftypefun  int stream_set_destroy (stream_t @var{stream}, void (*@var{_destroy}) (stream_t), void *@var{owner})
+@end deftypefun
+
+@deftypefun  int stream_set_open (stream_t @var{stream}, int (*@var{_open}) (stream_t), void *@var{owner})
+@end deftypefun
+
+@deftypefun  int stream_set_close (stream_t @var{stream}, int (*@var{_close}) (stream_t), void *@var{owner})
+@end deftypefun
+
+@deftypefun  int stream_set_fd (stream_t @var{stream}, int (*@var{_get_fd}) (stream_t, int *, int *), void *@var{owner})
+@end deftypefun
+
+@deftypefun  int stream_set_read (stream_t @var{stream}, int (*@var{_read}) (stream_t, char *, size_t, off_t, size_t *), void *@var{owner})
+@end deftypefun
+
+@deftypefun  int stream_set_readline (stream_t @var{stream}, int (*@var{_readline}) (stream_t, char *, size_t, off_t, size_t *), void *@var{owner})
+@end deftypefun
+
+@deftypefun  int stream_set_size (stream_t @var{stream}, int (*@var{_size}) (stream_t, off_t *), void *@var{owner})
+@end deftypefun
+
+@deftypefun  int stream_set_truncate (stream_t @var{stream}, int (*@var{_truncate}) (stream_t, off_t), void *@var{owner})
+@end deftypefun
+
+@deftypefun  int stream_set_write (stream_t @var{stream}, int (*@var{_write}) (stream_t, const char *, size_t, off_t, size_t *), void *@var{owner})
+@end deftypefun
+
+@deftypefun  int stream_set_flush (stream_t @var{stream}, int (*@var{_flush}) (stream_t), void *@var{owner})
+@end deftypefun
+
+@deftypefun  int stream_set_strerror (stream_t @var{stream}, int (*@var{_fp}) (stream_t, char **), void *@var{owner})
+@end deftypefun
+
+@deftypefun  int stream_sequential_readline (stream_ts @var{stream}, char *@var{buf}, size_t @var{size}, size_t *@var{nbytes})
+@end deftypefun
+
+@deftypefun  int stream_sequential_write (stream_t @var{stream}, char *@var{buf}, size_t @var{size})
+@end deftypefun
+
+@deftypefun  int stream_seek (stream_t @var{stream}, off_t @var{off}, int @var{whence})
+@end deftypefun
+
+@deftypefun  int stream_strerror (stream_t @var{stream}, char **@var{p})
+@end deftypefun
+
+An example using @code{tcp_stream_create()} to make a simple web client:
 
 @smallexample
 @include http.inc

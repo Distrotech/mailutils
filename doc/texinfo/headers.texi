@@ -4,31 +4,43 @@
 @comment *******************************************************************
 
 @smallexample
-@code{/* Prefix @emph{header_} is reserved */}
+@code{/* Prefix @emph{header_} is reserved. */}
 @code{#include <mailutils/header.h>}
 
 @end smallexample
 
-So far we plan support for RFC822 and plan for RFC1522. with RFC1522 non ASCII
+So far we plan support for RFC822 and plan for RFC1522. With RFC1522 non-ASCII
 characters will be encoded.
 
-@deftypefun int header_create (header_t *@var{hdr}, const char *@var{blurb}, size_t @var{len}, void *@var{owner})
-Initialize a @var{hdr} to a supported type.  If @var{blurb} is not NULL, it is
-parsed.
+@deftypefun  int header_create (header_t *@var{hdr}, const char *@var{blurb}, size_t @var{len}, void *@var{owner})
+Initialize a @var{hdr} to a supported type. If @var{blurb} is not @code{NULL},
+it is parsed.
 @end deftypefun
 
 @deftypefun void header_destroy (header_t *@var{hdr}, void *@var{owner})
 The resources allocated for @var{hdr} are freed.
 @end deftypefun
 
-@deftypefun int header_set_value (header_t @var{hdr}, const char *@var{fn}, const char *@var{fv}, size_t n, int @var{replace})
-Set the field-name @var{fn} to field-value @var{fv} of size @var{n} in
-@var{hdr}.  If @var{replace} is non-zero the initial value is replaced, if zero
-it is appended.
+@deftypefun void* header_get_owner (header_t *@var{hdr})
+@end deftypefun
 
-Some basic macros are already provided for rfc822.
+@deftypefun  int header_is_modified (header_t @var{hdr})
+@end deftypefun
+
+@deftypefun  int header_clear_modified (header_t @var{hdr})
+@end deftypefun
+
+@c
+@c Set and get field values by field name.
+@c
+
+@deftypefun  int header_set_value (header_t @var{hdr}, const char *@var{fn}, const char *@var{fv}, int @var{n})
+
+Some basic macros are already provided for RFC822.
 
 @table @code
+@item MU_HEADER_UNIX_FROM
+From
 @item MU_HEADER_RETURN_PATH
 Return-Path
 @item MU_HEADER_RECEIVED
@@ -37,6 +49,8 @@ Received
 Date
 @item MU_HEADER_FROM
 From
+@item MU_HEADER_SENDER
+Sender
 @item MU_HEADER_RESENT_FROM
 Resent-From
 @item MU_HEADER_SUBJECT
@@ -67,6 +81,10 @@ Message-ID
 Resent-Message-ID
 @item MU_HEADER_IN_REPLY_TO
 In-Reply-To
+@item MU_HEADER_REFERENCE
+Reference
+@item MU_HEADER_REFERENCES
+References
 @item MU_HEADER_ENCRYPTED
 Encrypted
 @item MU_HEADER_PRECEDENCE
@@ -75,27 +93,118 @@ Precedence
 Status
 @item MU_HEADER_CONTENT_LENGTH
 Content-Length
+@item MU_HEADER_CONTENT_LANGUAGE
+Content-Language
+@item MU_HEADER_CONTENT_TRANSFER_ENCODING
+Content-transfer-encoding
+@item MU_HEADER_CONTENT_ID
+Content-ID
 @item MU_HEADER_CONTENT_TYPE
 Content-Type
+@item MU_HEADER_CONTENT_DESCRIPTION
+Content-Description
+@item MU_HEADER_CONTENT_DISPOSITION
+Content-Disposition
+@item MU_HEADER_CONTENT_MD5
+Content-MD5
 @item MU_HEADER_MIME_VERSION
 MIME-Version
+@item MU_HEADER_X_UIDL
+X-UIDL
+@item MU_HEADER_X_UID
+X-UID
+@item MU_HEADER_X_IMAPBASE
+X-IMAPbase
+@item MU_HEADER_ENV_SENDER
+X-Envelope-Sender
+@item MU_HEADER_ENV_DATE
+X-Envelope-Date
+@item MU_HEADER_FCC
+Fcc
+@item MU_HEADER_DELIVERY_DATE
+Delivery-date
+@item MU_HEADER_ENVELOPE_TO
+Envelope-to
 @end table
 @end deftypefun
 
-@deftypefun int header_get_value (header_t @var{hdr}, const char *@var{fn}, char *@var{fv}, size_t @var{len}, size_t *@var{n})
+@deftypefun  int header_get_value (header_t @var{hdr}, const char *@var{fn}, char *@var{fv}, size_t @var{len}, size_t *@var{n})
 Value of field-name @var{fn} is returned in buffer @var{fv} of size @var{len}.
 The number of bytes written is put in @var{n}.
 @end deftypefun
 
-@deftypefun int header_aget_value (header_t @var{hdr}, const char *@var{fn}, char **@var{fv})
+@deftypefun  int header_aget_value (header_t @var{hdr}, const char *@var{fn}, char **@var{fv})
 The value is allocated.
 @end deftypefun
 
-@deftypefun int header_get_stream (header_t @var{hdr}, stream_t *@var{pstream})
+@c
+@c Get field values as an address_t.
+@c 
+
+@deftypefun  int header_get_address (header_t @var{hdr}, const char *@var{buf}, address_t *@var{addr})
 @end deftypefun
 
-@deftypefun int header_set_size (header_t @var{hdr}, size_t *@var{size})
+@c
+@c Stream
+@c
+
+@deftypefun  int header_get_stream (header_t @var{hdr}, stream_t *@var{stream})
 @end deftypefun
 
-@deftypefun int header_set_lines (header_t @var{hdr}, size_t *@var{lpines})
+@deftypefun  int header_set_stream (header_t @var{hdr}, stream_t @var{stream}, void *)
+@end deftypefun
+
+@c
+@c
+@c
+
+@deftypefun  int header_get_field_count (header_t @var{hdr}, size_t *@var{count})
+@end deftypefun
+
+@deftypefun  int header_get_field_value (header_t @var{hdr}, size_t @var{index}, char *, size_t, size_t *)
+@end deftypefun
+
+@deftypefun  int header_get_field_name (header_t @var{hdr}, size_t @var{index}, char *, size_t, size_t *)
+@end deftypefun
+
+@deftypefun  int header_aget_field_value (header_t @var{hdr}, size_t @var{index}, char **)
+@end deftypefun
+
+@deftypefun  int header_aget_field_name (header_t @var{hdr}, size_t @var{index}, char **)
+@end deftypefun
+
+@deftypefun  int header_get_value_unfold (header_t @var{hdr}, const char *@var{name}, char *@var{buffer}, size_t @var{buflen}, size_t *@var{n})
+@end deftypefun
+
+@deftypefun  int header_aget_value_unfold (header_t @var{hdr}, const char *@var{name}, char **@var{value})
+@end deftypefun
+
+@deftypefun  int header_get_field_value_unfold (header_t @var{hdr}, size_t @var{num}, char *@var{buf}, size_t @var{buflen}, size_t *@var{nwritten})
+@end deftypefun
+
+@deftypefun  int header_aget_field_value_unfold (header_t @var{hdr}, size_t @var{num}, char **@var{value});
+@end deftypefun
+
+@deftypefun  int header_size (header_t @var{hdr}, size_t *);
+@end deftypefun
+
+@deftypefun  int header_lines (header_t @var{hdr}, size_t *);
+@end deftypefun
+
+@deftypefun  int header_set_set_value (header_t @var{hdr}, int (*@var{_set_value}) (header_t, const char *, const char *, int), void *);
+@end deftypefun
+
+@deftypefun  int header_set_get_value (header_t @var{hdr}, int (*@var{_get_value}) (header_t, const char *, char *, size_t, size_t *), void *);
+@end deftypefun
+
+@deftypefun  int header_set_get_fvalue (header_t @var{hdr}, int (*@var{_get_value}) (header_t, const char *, char *, size_t, size_t *), void *);
+@end deftypefun
+
+@deftypefun  int header_set_size (header_t @var{hdr}, int (*@var{_size}) (header_t, size_t *), void *);
+@end deftypefun
+
+@deftypefun  int header_set_lines (header_t @var{hdr}, int (*@var{_lines}) (header_t, size_t *), void *);
+@end deftypefun
+
+@deftypefun  int header_set_fill (header_t @var{hdr}, int (*@var{_fill}) (header_t, char *, size_t, off_t, size_t *), void *@var{owner});
 @end deftypefun

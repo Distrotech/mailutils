@@ -4,36 +4,107 @@
 @comment *******************************************************************
 
 @smallexample
-@code{/* Prefix @emph{auth_} is reserved */}
+@code{/* Prefixes @emph{authority_}, @emph{ticket_}, and @emph{wicket_t} are reserved */}
 @code{#include <mailutils/auth.h>}
 
 @end smallexample
 
 There are many ways to authenticate to a server.  To be flexible the
-authentication process is provided by two objects @code{auth_t} and
-@code{ticket_t}.  The @code{auth_t} can implement different protocol like
-APOP, MD5-AUTH, One Time Passwd etc .. By default if a mailbox
-does not understand or know how to authenticate it falls back to
-user/passwd authentication.  The @code{ticket_t} is a way for
+authentication process is provided by three objects @code{authority_t},
+@code{ticket_t}, and @code{wicket_t}.  The @code{authority_t} can implement
+different protocol like APOP, MD5-AUTH, One Time Passwd, etc. By default
+if a mailbox does not understand or know how to authenticate it falls back
+to user/passwd authentication.  The @code{ticket_t} is a way for
 Mailboxes and Mailers provide a way to authenticate when the URL does not
 contain enough information.  The default action is to call the function
-@code{auth_authenticate} which will get the @emph{user} and @emph{passwd}
+@code{authority_authenticate()} which will get the @emph{user} and @emph{passwd}
 if not set, this function can be overridden by a custom method.
 
-@deftypefun int auth_create (auth_t *@var{pauth}, void *@var{owner})
+@c
+@c Ticket
+@c
+
+@deftypefun  int ticket_create (ticket_t *, void *@var{owner})
 @end deftypefun
 
-@deftypefun void auth_destroy (auth_t *@var{pauth}, void *@var{owner})
+@deftypefun void ticket_destroy (ticket_t *, void *@var{owner})
 @end deftypefun
 
-@deftypefun int auth_prologue (auth_t @var{auth})
+@deftypefun  int ticket_set_destroy (ticket_t, void (*) (ticket_t), void *@var{owner})
 @end deftypefun
 
-@deftypefun int auth_authenticate (auth_t @var{auth}, char **@var{user}, char **@var{passwd})
+@deftypefun void* ticket_get_owner (ticket_t)
 @end deftypefun
 
-@deftypefun int auth_epilogue (auth_t @var{auth})
+@deftypefun  int ticket_set_pop (ticket_t, int (*@var{_pop}) (ticket_t, url_t, const char *, char **), void *)
 @end deftypefun
+
+@deftypefun  int ticket_pop (ticket_t, url_t, const char *, char **)
+@end deftypefun
+
+@deftypefun  int ticket_set_data (ticket_t, void *, void *@var{owner})
+@end deftypefun
+
+@deftypefun  int ticket_get_data (ticket_t, void **)
+@end deftypefun
+
+@c
+@c Authority
+@c
+
+@sp 1
+
+@deftypefun  int authority_create (authority_t *, ticket_t, void *)
+@end deftypefun
+
+@deftypefun void authority_destroy (authority_t *, void *)
+@end deftypefun
+
+@deftypefun void* authority_get_owner (authority_t)
+@end deftypefun
+
+@deftypefun  int authority_set_ticket (authority_t, ticket_t)
+@end deftypefun
+
+@deftypefun  int authority_get_ticket (authority_t, ticket_t *)
+@end deftypefun
+
+@deftypefun  int authority_authenticate (authority_t)
+@end deftypefun
+
+@deftypefun  int authority_set_authenticate (authority_t, int (*@var{_authenticate}) (authority_t), void *)
+@end deftypefun
+
+@deftypefun  int authority_create_null (authority_t *@var{authority}, void *@var{owner})
+@end deftypefun
+
+@c
+@c Wicket
+@c
+
+@sp 1
+
+@deftypefun  int wicket_create (wicket_t *, const char *)
+@end deftypefun
+
+@deftypefun void wicket_destroy (wicket_t *)
+@end deftypefun
+
+@deftypefun  int wicket_set_filename (wicket_t, const char *)
+@end deftypefun
+
+@deftypefun  int wicket_get_filename (wicket_t, char *, size_t, size_t *)
+@end deftypefun
+
+@deftypefun  int wicket_set_ticket (wicket_t, int (*) (wicket_t, const char *, const char *, ticket_t *))
+@end deftypefun
+
+@deftypefun  int wicket_get_ticket (wicket_t, ticket_t *, const char *, const char *)
+@end deftypefun
+
+@c
+@c An example.
+@c
 
 @sp 1
 A simple example of an authenticate function:

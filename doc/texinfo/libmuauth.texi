@@ -30,18 +30,19 @@ This is a pointer to authentication or authorization data. It
 is defined as follows:
 
 @smallexample
-typedef int (*mu_auth_fp) (void *@var{return_data},
+@group
+typedef int (*mu_auth_fp) (struct mu_auth_data **@var{return_data},
                            void *@var{key},
                            void *@var{func_data},
                            void *@var{call_data});
+@end group
 @end smallexample
+
 @noindent
 Its arguments are:
 
 @table @var
 @item return_data
-@footnote{Actually it shoud have been @code{struct mu_auth_data** return_data}.
-This will be fixed in the next release}.
 Upon successful return authorization handler leaves in this memory
 location a pointer to the filled @code{mu_auth_data} structure
 with the user's information.
@@ -118,7 +119,6 @@ struct mu_auth_module @{
 @subsection Initializing @file{libmuauth}
 
 @deftypefun void mu_auth_init (void)
-
 This function registers the command line capability ``auth''. It must be
 called after registering @file{libmuauth} modules and before calling
 @code{mu_agrp_parse()}. If an error occurs, this function prints
@@ -126,27 +126,24 @@ diagnostic message and aborts the program.
 @end deftypefun
 
 @deftypefun void MU_AUTH_REGISTER_ALL_MODULES (void)
-
 This macro registers all default modules and calls @code{mu_auth_init()}.
 @end deftypefun
 
 @node Module Creation and Destruction
 @subsection Module Creation and Destruction
 
-@deftypefun int mu_auth_data_alloc (struct mu_auth_data **ptr, const char *name, const char *passwd, uid_t uid, gid_t gid, const char *gecos, const char *dir, const char *shell, const char *mailbox, int change_uid)
+@deftypefun int mu_auth_data_alloc (struct mu_auth_data **@var{ptr}, const char *@var{name}, const char *@var{passwd}, uid_t @var{uid}, gid_t @var{gid}, const char *@var{gecos}, const char *@var{dir}, const char *@var{shell}, const char *@var{mailbox}, int @var{change_uid})
 
 Create a @code{mu_auth_data} structure and initialize it with the given
 values. Returns 0 on success and 1 otherwise.
 @end deftypefun
 
 @deftypefun void mu_auth_data_free (struct mu_auth_data *@var{ptr})
-
 Free the @code{mu_auth_data} structure allocated by a call to
 @code{mu_auth_data_alloc()}.
 @end deftypefun
 
 @deftypefun void mu_auth_register_module (struct mu_auth_module *@var{mod})
-
 Register the module defined by the @var{mod} argument.
 @end deftypefun
 
@@ -154,8 +151,7 @@ Register the module defined by the @var{mod} argument.
 @subsection Obtaining Authorization Information
 @cindex libmuauth, obtaining authorization information
 
-@deftypefun int mu_auth_runlist (list_t @var{flist}, void *@var{return_data}, void *@var{key}, void *@var{call_data});
-
+@deftypefun int mu_auth_runlist (list_t @var{flist}, struct mu_auth_data **@var{return_data}, void *@var{key}, void *@var{call_data});
 The list is expected to contain @code{mu_auth_fp} pointers. Each of them
 is dereferenced and executed until either the list is exhausted or any
 of the functions returns non-zero, whichever occurs first. The
@@ -170,10 +166,8 @@ return code from the succeeded function.
 @end deftypefun
 
 @deftypefun {struct mu_auth_data *} mu_get_auth_by_name (const char *@var{username})
-
 Search the information about given user by its username. Similar to
 system's @code{getpwnam} call).
-
 @end deftypefun
 
 @deftypefun {struct mu_auth_data *} mu_get_auth_by_uid (uid_t @var{uid})
@@ -181,8 +175,7 @@ Search the information about given user by its uid. Similar to
 system's @code{getpwuid} call).
 @end deftypefun
 
-@deftypefun int mu_authenticate (struct mu_auth_data *@var{auth_data}, char *@var{pass})
-
+@deftypefun  int mu_authenticate (struct mu_auth_data *@var{auth_data}, char *@var{pass})
 Authenticate the user whose data are in @var{auth_data} using password
 @var{pass}. Return 0 if the user is authenticated.
 @end deftypefun
@@ -191,20 +184,17 @@ Authenticate the user whose data are in @var{auth_data} using password
 @subsection Existing Modules
 @cindex libmuauth modules
 
-@deftypefun int mu_auth_nosupport (void *return_data, void *key, void *func_data, void *call_data);
-
+@deftypefun  int mu_auth_nosupport (struct mu_auth_data **@var{return_data}, void *@var{key}, void *@var{func_data}, void *@var{call_data});
 The ``not-supported'' module. Always returns @code{ENOSYS}.
 @end deftypefun
 
 @defvar mu_auth_system_module
-
 This module is always registered even if @file{libmuauth} is not linked.
 It performs usual authentication using system user database
 (@file{/etc/password} et al.)
 @end defvar
 
 @defvar mu_auth_generic_module
-
 This module is always registered even if @file{libmuauth} is not linked.
 Both its authorization handlers are @code{mu_auth_nosupport}. Its
 authentication handler computes the MD5 or DES hash over the supplied
@@ -214,13 +204,11 @@ member itself and returns 1 if both strings match.
 @end defvar
 
 @defvar mu_auth_pam_module
-
 Implements PAM authentication. Both authorization handlers are
 @code{mu_auth_nosupport()}.
 @end defvar
 
 @defvar mu_auth_sql_module
-
 Implements authentication and authorization via MySQL database. The
 credentials for accessing the database are taken from global variables
 @code{sql_host}, @code{sql_port}, @code{sql_user}, @code{sql_passwd}
@@ -232,7 +220,6 @@ information on command line options used to set these variables.
 @end defvar
 
 @defvar mu_auth_virtual_module
-
 Implements @code{mu_get_auth_by_name} method using virtual mail domains.
 Neither @code{mu_get_auth_by_uid} nor @code{mu_authenticate} is
 implemented. This module must be used together with @code{generic}

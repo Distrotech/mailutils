@@ -389,7 +389,7 @@ match_part_checker (const char *name, list_t tags, list_t args)
 @end smallexample
 @end deftypefun
 
-@deftypefun void *sieve_get_data (sieve_machine_t @var{mach})
+@deftypefun void* sieve_get_data (sieve_machine_t @var{mach})
 This function returns the application-specific data associated with
 the instance of sieve machine. See @code{sieve_machine_init()}.
 @end deftypefun

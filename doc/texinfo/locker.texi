@@ -4,28 +4,73 @@
 @comment *******************************************************************
 
 @smallexample
-@code{/* Prefix @emph{locker_} is reserved */}
+@code{/* Prefix @emph{locker_} is reserved. */}
 @code{#include <mailutils/locker.h>}
 @end smallexample
 
-@deftypefun int locker_create (locker_t * @var{plocker}, char *@var{filename}, size_t @var{len}, int @var{flags})
+@deftypefun  int locker_set_default_flags (int @var{flags}, enum mu_locker_set_mode @var{mode})
 @end deftypefun
 
-@deftypefun void locker_destroy (locker_t * @var{plocker})
+@deftypefun void locker_set_default_retry_timeout (time_t @var{to})
 @end deftypefun
 
-@deftypefun int locker_lock (locker_t @var{locker}, int @var{flag})
-@table @code
-@item MU_LOCKER_RDLOCK
-@item MU_LOCKER_WRLOCK
-@item MU_LOCKER_PID
-@item MU_LOCKER_FCNTL
-@item MU_LOCKER_TIME
-@end table
+@deftypefun void locker_set_default_retry_count (size_t @var{n})
 @end deftypefun
 
-@deftypefun int locker_touchlock (locker_t @var{locker})
+@deftypefun void locker_set_default_expire_timeout (time_t @var{t})
 @end deftypefun
 
-@deftypefun int locker_unlock (locker_t @var{locker})
+@deftypefun  void locker_set_default_external_program (char *@var{path})
+@end deftypefun
+
+A flags of 0 means that the default will be used.
+
+@deftypefun  int locker_create (locker_t *, const char *@var{filename}, int @var{flags})
+@end deftypefun
+
+@deftypefun void locker_destroy (locker_t *)
+@end deftypefun
+
+Time is measured in seconds.
+
+@deftypefun  int locker_set_flags (locker_t, int)
+@end deftypefun
+
+@deftypefun  int locker_set_expire_time (locker_t, int)
+@end deftypefun
+
+@deftypefun  int locker_set_retries (locker_t, int)
+@end deftypefun
+
+@deftypefun  int locker_set_retry_sleep (locker_t, int)
+@end deftypefun
+
+@deftypefun  int locker_set_external (locker_t, const char *@var{program})
+@end deftypefun
+
+@deftypefun  int locker_get_flags (locker_t, int *)
+@end deftypefun
+
+@deftypefun  int locker_get_expire_time (locker_t, int*)
+@end deftypefun
+
+@deftypefun  int locker_get_retries (locker_t, int *)
+@end deftypefun
+
+@deftypefun  int locker_get_retry_sleep (locker_t, int *)
+@end deftypefun
+
+@deftypefun  int locker_get_external (locker_t, char **)
+@end deftypefun
+
+@deftypefun  int locker_lock (locker_t)
+@end deftypefun
+
+@deftypefun  int locker_touchlock (locker_t)
+@end deftypefun
+
+@deftypefun  int locker_unlock (locker_t)
+@end deftypefun
+
+@deftypefun  int locker_remove_lock (locker_t)
 @end deftypefun
