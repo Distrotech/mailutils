@@ -1,3 +1,7 @@
+2003-03-22  Jordi Mallach
+
+	* mailbox/Makefile.am (EXTRA_DIST): Added parsedate.y.
+
 2003-03-22  Sergey Poznyakoff 
 
 	* configure.ac: Raised version number to 0.3.1
