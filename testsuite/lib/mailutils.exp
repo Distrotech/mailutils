@@ -71,9 +71,14 @@ proc mu_init {args} {
 
         set MU_SPOOL_DIR "$MU_DATA_DIR/spool"
 	set MU_FOLDER_DIR "$MU_DATA_DIR/folder"
-	set MU_TOOL_FLAGS "--mail-spool $MU_SPOOL_DIR"
-	for {set i 0} {$i < [llength $args]} {incr i} {
-	    append MU_TOOL_FLAGS " [lindex $args $i]"
+
+	if {[llength $args] == 1 && [lindex $args 0] == "-noflags"} {
+	    set MU_TOOL_FLAGS ""
+	} else {
+	    set MU_TOOL_FLAGS "--mail-spool $MU_SPOOL_DIR"
+	    for {set i 0} {$i < [llength $args]} {incr i} {
+		append MU_TOOL_FLAGS " [lindex $args $i]"
+	    }
 	}
     }
 }
@@ -672,4 +677,92 @@ proc mu_test_file {args} {
     return $result
 }
     
+# mailer_test [-message MESSAGE][-default (FAIL|XFAIL)]
+#             [-file FILENAME]
+#             [-input INPUT-LIST]
+#             [-args ARGS]
+#             [-pattern PATTERN-LIST][PATTERN...]
+# INPUT-LIST - List of input strings
+# PATTERN   - Sequence to expect in return. 
+# MESSAGE   - [optional] message to output
+#
+# FIXME: Need -retcode option.
+#
+proc mailer_test { args } {
+    global MU_TOOL
+    global MU_TOOL_FLAGS
+    global top_builddir
+    global verbose
+    global suppress_flag;
+    upvar timeout timeout
 
+    set default ""
+    set message ""
+    set invocation ""
+    set input ""
+    set pattern ""
+    set filename ""
+    for {set i 0} {$i < [llength $args]} {incr i} {
+	set a [lindex $args $i]
+	if {"$a" == "-default"} {
+	    incr i
+	    set default [lindex $args $i]
+	} elseif {"$a" == "-message"} {
+	    incr i
+	    set message [lindex $args $i]
+	} elseif {"$a" == "-file"} {
+	    incr i
+	    set filename [lindex $args $i]
+	} elseif {"$a" == "-pattern"} {
+	    incr i
+	    set pattern [lindex $args $i]
+	} elseif {"$a" == "-input"} {
+	    incr i
+	    set input [lindex $args $i]
+	} elseif {"$a" == "-args"} {
+	    incr i
+	    set a [lindex $args $i]
+	    if {[llength $a] > 0} {
+		append invocation $a
+	    }
+	} else {
+	    set args [lrange $args $i end]
+	    break
+	}
+    }
+
+    if {$i < [llength $args]} {
+	lappend pattern [lrange $args $i end]
+    }
+
+    verbose "Spawning $MU_TOOL $MU_TOOL_FLAGS $invocation" 1
+
+    set res [remote_spawn host "$MU_TOOL $MU_TOOL_FLAGS $invocation"]
+    if { $res < 0 || $res == "" } {
+	perror "Spawning $MU_TOOL $MU_TOOL_FLAGS $invocation failed."
+	return 1;
+    }
+	
+    if {"$message" == ""}  {
+	set message [lindex $args 0]
+    }
+
+    if $verbose>2 then {
+	send_user "Message is \"$message\"\n"
+    }
+
+    set result ""
+    verbose "INPUT: $input" 1
+    for {set i 0} {$result == "" && $i < [llength $input]} {incr i} {
+	set s [lindex $input $i]
+	verbose "SEND: $s" 1
+	set result [mu_send "[lindex $input $i]\n"]
+	verbose "RESULT: $result"
+    }
+
+    mu_send ""
+
+    remote_wait host 60
+    
+    return [mu_test_file -default $default -message $message -pattern $pattern $filename]
+}
