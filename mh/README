@@ -14,7 +14,7 @@ current state of Mailutils MH implementation.
 
 The list of differences between Mailutils and the RAND implementation of MH:
 
-* All programs use usual GNU long options. The support for MH single-dot
+* All programs use usual GNU long options. The support for MH single-dash
 options is provided for backward compatibility.
 
 * Format specifications
@@ -113,7 +113,7 @@ Understands --build option.
 If the argument to 'ignores' contains more than one component name
 it must be enclosed in double-quotes. Dangling equal sign is an error,
 to set a string variable to the empty value use = "", e.g.:
-overflowtext="" (see supplied mhl.format file).
+overflowtext="" (see the supplied mhl.format file).
 
 Ineractive prompting is not yet implemented.
 
@@ -124,7 +124,7 @@ any string is deprecated. It is recognized only if pick is called from
 within another program, so that existing application continue to work.
 Please use the following syntax instead: `--component FIELD --pattern STRING'
 
-** The command line options --cflags allows to control the type of 
+** New command line option --cflags allows to control the type of 
 regular expressions used. The option must occur right before --pattern
 or --component option (or one of its aliases, like --cc, --from, etc.)
 The argument to this option is a string of type specifications:
