@@ -4,6 +4,7 @@
 
 noinst_PROGRAMS = \
  addr\
+ base64\
  url-parse\
  sfrom\
  mimetest\
