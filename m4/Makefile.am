@@ -4,4 +4,3 @@ EXTRA_DIST = \
  tm_gmtoff.m4 \
  tm_isdst.m4 \
  tm_zone.m4
-
