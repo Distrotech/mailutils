@@ -25,7 +25,6 @@ struct mh_option
 {
   char *opt;
   int match_len;
-  char *longopt;
   int flags;
   char *arg;
 };

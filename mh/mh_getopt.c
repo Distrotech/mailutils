@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -68,7 +68,7 @@ mh_getopt (int argc, char **argv, struct mh_option *mh_opt, const char *doc)
   
   if (p->opt)
     {
-      char *longopt = p->longopt ? p->longopt : p->opt;
+      char *longopt = p->opt;
       switch (p->flags)
 	{
 	case MH_OPT_BOOL:

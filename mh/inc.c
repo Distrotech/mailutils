@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -44,15 +44,15 @@ static struct argp_option options[] = {
 
 /* Traditional MH options */
 struct mh_option mh_option[] = {
-  {"audit",   5,  NULL, MH_OPT_ARG, "audit-file" },
-  {"noaudit", 3,  NULL, 0, },
-  {"changecur", 1, NULL, MH_OPT_BOOL},
-  {"file",    2, NULL, MH_OPT_ARG, "input-file"},
-  {"form",    4, NULL, MH_OPT_ARG, "format-file"},
-  {"format",  5, NULL, MH_OPT_ARG, "string"},
-  {"truncate", 2, NULL, MH_OPT_BOOL, },
-  {"width",   1,  NULL, MH_OPT_ARG, "number"},
-  {"quiet",   1,  NULL, 0, },
+  {"audit",     5, MH_OPT_ARG, "audit-file" },
+  {"noaudit",   3, 0, },
+  {"changecur", 1, MH_OPT_BOOL},
+  {"file",      2, MH_OPT_ARG, "input-file"},
+  {"form",      4, MH_OPT_ARG, "format-file"},
+  {"format",    5, MH_OPT_ARG, "string"},
+  {"truncate",  2, MH_OPT_BOOL, },
+  {"width",     1, MH_OPT_ARG, "number"},
+  {"quiet",     1, 0, },
   { 0 }
 };
 
