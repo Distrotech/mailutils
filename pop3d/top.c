@@ -67,23 +67,18 @@ pop3_top (const char *arg)
   if (buf == NULL)
     pop3_abquit (ERR_NO_MEM);
   off = n = 0;
-  while (stream_readline (stream, buf, buflen, off, &n) == 0)
+  while (stream_readline (stream, buf, buflen, off, &n) == 0
+	 && n > 0)
     {
-      if (n == 0)
-	break;
       /* Nuke the trainline newline.  */
       if (buf[n - 1] == '\n')
-	buf [n - 1] = '\0';
-      else /* Make room for the line.  */
 	{
-	  buflen *= 2;
-          buf = realloc (buf, buflen * sizeof (*buf));
-          if (buf == NULL)
-            pop3_abquit (ERR_NO_MEM);
-          continue;
+	  buf[n - 1] = '\0';
+	  fprintf (ofile, "%s\r\n", buf);
 	}
+      else
+	fprintf (ofile, "%s", buf);
       off += n;
-      fprintf (ofile, "%s\r\n", buf);
     }
 
   /* Lines of body.  */
@@ -95,7 +90,7 @@ pop3_top (const char *arg)
       while (stream_readline (stream, buf, buflen, off, &n) == 0
 	     && n > 0 && lines > 0)
 	{
-	  /* Nuke the trainline newline.  */
+	  /* Nuke the trailing newline.  */
 	  if (buf[n - 1] == '\n')
 	    buf[n - 1] = '\0';
 	  else /* make room for the line.  */

@@ -56,7 +56,7 @@ pop3_retr (const char *arg)
   while (stream_readline (stream, buf, buflen, off, &n) == 0
 	 && n > 0)
     {
-      /* Nuke the trainline newline.  */
+      /* Nuke the trailing newline.  */
       if (buf[n - 1] == '\n')
 	buf[n - 1] = '\0';
       else /* Make room for the line.  */
