@@ -1,3 +1,8 @@
+2001-10-03 Sergey Poznyakoff
+
+	* mailbox/attribute.c: Fixed funny bug in
+	attribute_{set,clear}_modified.
+
 2001-10-01 Alain Magloire
 
 	* mailbox2/attribute.c: Add user flags.
