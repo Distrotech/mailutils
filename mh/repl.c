@@ -45,6 +45,8 @@ static struct argp_option options[] = {
   {"nocc", ARG_NOCC, "{all|to|cc|me}", 0,
    N_("Specify whom to remove from the Cc: list of the reply")},
   {"folder",  ARG_FOLDER, N_("FOLDER"), 0, N_("Specify folder to operate upon")},
+  {"group",  ARG_GROUP,  N_("BOOL"), OPTION_ARG_OPTIONAL,
+   N_("Construct a group or followup reply") },
   {"editor", ARG_EDITOR, N_("PROG"), 0, N_("Set the editor program to use")},
   {"noedit", ARG_NOEDIT, 0, 0, N_("Suppress the initial edit")},
   {"fcc",    ARG_FCC, N_("FOLDER"), 0, N_("* Set the folder to receive Fcc's.")},
@@ -84,6 +86,7 @@ struct mh_option mh_option[] = {
   {"fcc",         1, MH_OPT_ARG, "folder"},
   {"filter",      2, MH_OPT_ARG, "program"},
   {"format",      2, MH_OPT_BOOL },
+  {"group",       1, MH_OPT_BOOL },
   {"inplace",     1, MH_OPT_BOOL },
   {"query",       1, MH_OPT_BOOL },
   {"whatnowproc", 2, MH_OPT_ARG, "program"},
@@ -91,7 +94,7 @@ struct mh_option mh_option[] = {
   { 0 }
 };
 
-static char *format_str =
+static char default_format_str[] =
 "%(lit)%(formataddr %<{reply-to}%?{from}%?{sender}%?{return-path}%>)"
 "%<(nonnull)%(void(width))%(putaddr To: )\\n%>"
 "%(lit)%<(rcpt to)%(formataddr{to})%>%<(rcpt cc)%(formataddr{cc})%>%<(rcpt me)%(formataddr(me))%>"
@@ -103,6 +106,7 @@ static char *format_str =
 "X-Mailer: MH \\(%(package_string)\\)\\n" 
 "--------\n";
 
+static char *format_str = NULL;
 static mh_format_t format;
 static int width = 80;
 
@@ -159,11 +163,27 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
       break;
 
     case ARG_FORM:
+      free (format_str);
+      format_str = NULL;
       s = mh_expand_name (MHLIBDIR, arg, 0);
       mh_read_formfile (s, &format_str);
       free (s);
       break;
 
+    case ARG_GROUP:
+      if (is_true (arg))
+	{
+	  s = mh_expand_name (MHLIBDIR, "replgroupcomps", 0);
+	  mh_read_formfile (s, &format_str);
+	  free (s);
+	}
+      else
+	{
+	  free (format_str);
+	  format_str = NULL;
+	}
+      break;
+	    
     case ARG_DRAFTMESSAGE:
       wh_env.draftmessage = arg;
       break;
@@ -219,6 +239,11 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
       mh_license (argp_program_version);
       break;
 
+    case ARGP_KEY_FINI:
+      if (!format_str)
+	format_str = default_format_str;
+      break;
+      
     default:
       return 1;
     }
