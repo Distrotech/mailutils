@@ -307,9 +307,10 @@ int mh_whom __P((char *filename, int check));
 
 void mh_annotate __P((message_t msg, char *field, char *text, int date));
 
-#define MHL_DECODE      1
-#define MHL_CLEARSCREEN 2
-#define MHL_BELL        4
+#define MHL_DECODE       1
+#define MHL_CLEARSCREEN  2
+#define MHL_BELL         4
+#define MHL_DISABLE_BODY 8
 
 list_t mhl_format_compile __P((char *name));
 int mhl_format_run __P((list_t fmt, int width, int length, int flags,
