@@ -1,3 +1,8 @@
+Fri Oct  1 03:17:28 1999  Jakob 'sparky' Kaivo  <jkaivo@gnu.org>
+
+	* libmailbox/*.[ch]: added cleanup patches from Shaleh while he works
+	on getting CVS access
+
 1999-09-22  Jakob 'sparky' Kaivo  <jkaivo@elijah.nodomainname.net>
 
 	* mail/mail.c (main): added 'f' and 'F' to test mbox_header_line
