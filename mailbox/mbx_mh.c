@@ -72,9 +72,9 @@ struct _mh_message
   int deleted;              /* Was the message originally deleted */
 
   time_t mtime;             /* Time of last modification */
-  size_t header_lines;      /* Number of lines in the header part */ 
+  size_t header_lines;      /* Number of lines in the header part */
   size_t body_lines;        /* Number of lines in the body */
-  
+
   message_t message; /* Corresponding message_t */
   struct _mh_data *mhd; /* Back pointer.  */
 };
@@ -149,6 +149,9 @@ static int mh_envelope_date __P((envelope_t envelope, char *buf, size_t len,
 				 size_t *psize));
 static int mh_envelope_sender __P((envelope_t envelope, char *buf, size_t len,
 				   size_t *psize));
+
+/* Should be in an other header file.  */
+extern int mh_message_number __P ((message_t msg, size_t *pnum));
 
 /* Return filename for the message.
    NOTE: Allocates memory. */
@@ -490,7 +493,7 @@ _mh_message_save (struct _mh_data *mhd, struct _mh_message *mhm, int expunge)
   int status;
   attribute_t attr;
   body_t body;
-  
+
   if (expunge)
     fp = _mh_tempfile (mhm->mhd, &name);
   else
@@ -499,7 +502,7 @@ _mh_message_save (struct _mh_data *mhd, struct _mh_message *mhm, int expunge)
       fp = fopen (msg_name, "w");
       free (msg_name);
     }
-  
+
   if (!fp)
     {
       free (mhm);
@@ -531,7 +534,7 @@ _mh_message_save (struct _mh_data *mhd, struct _mh_message *mhm, int expunge)
 	break;
 
       nlines++;
-       
+
       if (!(strncasecmp (buf, "status:", 7) == 0
 	    || strncasecmp (buf, "x-imapbase:", 11) == 0
 	    || strncasecmp (buf, "x-iud:", 6) == 0))
@@ -556,7 +559,7 @@ _mh_message_save (struct _mh_data *mhd, struct _mh_message *mhm, int expunge)
   fprintf (fp, "\n");
 
   /* Copy message body */
-  
+
   message_get_body (msg, &body);
   body_get_stream (body, &stream);
   off = 0;
@@ -584,7 +587,7 @@ _mh_message_save (struct _mh_data *mhd, struct _mh_message *mhm, int expunge)
       free (name);
       free (msg_name);
     }
-  
+
   return 0;
 }
 
@@ -597,11 +600,11 @@ mh_append_message (mailbox_t mailbox, message_t msg)
 
   if (!mailbox || !msg)
     return EINVAL;
-  
+
   mhm = calloc (1, sizeof(*mhm));
   if (!mhm)
     return ENOMEM;
-  
+
   mhm->mhd = mhd;
   mhm->seq_number = _mh_next_seq (mhd);
   mhm->uid = mhd->uidnext++;
@@ -902,8 +905,8 @@ mh_scan_message (struct _mh_message *mhm)
 	  return 0;
 	}
       free (msg_name);
-    }  
-	
+    }
+
   while ((status = stream_readline (stream, buf, sizeof (buf), off, &n) == 0)
 	 && n != 0)
     {
@@ -1220,7 +1223,7 @@ mh_readstream (struct _mh_message *mhm, char *buffer, size_t buflen,
   if (ln > 0)
     {
       /* Position the file pointer and the buffer.  */
-      nread = ((size_t)ln < buflen) ? ln : buflen;
+      nread = ((size_t)ln < buflen) ? (size_t)ln : buflen;
       if (isreadline)
 	status = stream_readline (mhm->stream, buffer, buflen,
 				  start + off, &nread);
@@ -1482,5 +1485,3 @@ mh_message_number (message_t msg, size_t *pnum)
     *pnum = mhm->seq_number;
   return 0;
 }
-
-

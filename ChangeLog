@@ -1,10 +1,22 @@
+2001-10-08 Alain Magloire
+
+	* mailbox/mbx_mbox.c (mbox_expunge0): New function.
+	Move all the previous mbox_expunge() to mbox_expunge0()
+	with a new argument deciding whether or not to remove
+	messages set deleted.
+	(mbox_save_attributes): Stub calling mbox_expunge0().
+	(mbox_expunge): Stub calling mbox_expunge0()
+
+	* mailbox/mbx_mh.c: Provide a prototype for mh_message_number()
+	there is no provision for it in the current Mailbox API.
+
 2001-10-08 Sergey Poznyakoff
 
 	* mail/z.c: Bugfix: Did not display the last message when the
 	number of lines in last page was less than pagelines.
 	* mailbox/mbx_pop.c: Use ENOSYS instead of ENOTSUP.
 	* mh/mh_format.c: Fixed memory leak in strobj_free().
- 
+
 2001-10-05 Alain Magloire
 
 	* mailbox/folder_imap.c (imap_flags): Bailout at the matching
