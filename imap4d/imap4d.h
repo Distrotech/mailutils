@@ -149,6 +149,7 @@ extern char *homedir;
 extern char *rootdir;
 extern int state;
 extern volatile size_t children;
+extern int is_virtual;
 
 /* Imap4 commands */
 extern int  imap4d_append __P ((struct imap4d_command *, char *));

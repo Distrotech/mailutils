@@ -21,6 +21,40 @@
 #include "../MySql/MySql.h"
 #endif
 
+int is_virtual = 0;
+
+#ifdef USE_VIRTUAL_DOMAINS
+
+static struct passwd *
+imap4d_virtual (const char *u)
+{
+  struct passwd *pw;
+  FILE *pfile;
+  int i = 0, len = strlen (u), delim = 0;
+
+  for (i = 0; i < len && delim == 0; i++)
+    if (u[i] == '!' || u[i] == ':' || u[i] == '@')
+      delim = i;
+
+  if (delim == 0)
+    return NULL;
+
+  chdir ("/etc/domains");
+  pfile = fopen (&u[delim+1], "r");
+  while (pfile != NULL && (pw = fgetpwent (pfile)) != NULL)
+    {
+      if (strlen (pw->pw_name) == delim && !strncmp (u, pw->pw_name, delim))
+	{
+	  is_virtual = 1;
+	  return pw;
+	}
+    }
+  
+  return NULL;
+}
+
+#endif
+
 /*
  * FIXME: this should support PAM, shadow, and normal password
  */
@@ -107,14 +141,16 @@ imap4d_login (struct imap4d_command *command, char *arg)
   pw = getpwnam (username);
   if (pw == NULL)
 #ifdef HAVE_MYSQL
-  {
     pw = getMpwnam (username);
-    if (pw == NULL)
-      return util_finish (command, RESP_NO, "User name or passwd rejected");
-   }
-#else /* HAVE_MYSQL */
-    return util_finish (command, RESP_NO, "User name or passwd rejected");
+
+  if (pw == NULL)
 #endif /* HAVE_MYSQL */
+#ifdef USE_VIRTUAL_DOMAINS
+    pw = imap4d_virtual (username);
+
+  if (pw == NULL)
+#endif /* USE_VIRTUAL_DOMAINS */
+    return util_finish (command, RESP_NO, "User name or passwd rejected");
 
 #ifndef USE_LIBPAM
   if (pw->pw_uid < 1)
@@ -154,7 +190,7 @@ imap4d_login (struct imap4d_command *command, char *arg)
       openlog ("gnu-imap4d", LOG_PID, LOG_MAIL);
 #endif /* USE_LIBPAM */
 
-  if (pw->pw_uid > 1)
+  if (pw->pw_uid > 0 && !is_virtual)
     setuid (pw->pw_uid);
 
   homedir = util_normalize_path (strdup (pw->pw_dir), "/");

@@ -73,7 +73,7 @@ imap4d_copy0 (char *arg, int isuid, char *resp, size_t resplen)
       return RESP_BAD;
     }
 
-  if (strcasecmp (name, "INBOX") == 0)
+  if (strcasecmp (name, "INBOX") == 0 && !is_virtual)
     {
       struct passwd *pw = getpwuid (getuid());
       mailbox_name = strdup ((pw) ? pw->pw_name : "");
