@@ -19,24 +19,27 @@
 # include <config.h>
 #endif
 
-#include <string.h>
-#include <stdio.h>
-#include <sys/types.h>
-#include <string.h>
+#include <assert.h>
 #include <ctype.h>
-#include <stdlib.h>
 #include <errno.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <string.h>
+
+#include <sys/types.h>
 
 #include <mailutils/errno.h>
 #include <mailutils/mutil.h>
 #include <mailutils/parse822.h>
+
 #include <address0.h>
 
 /* Get email addresses from rfc822 address.  */
 int
 address_create (address_t *a, const char *s)
 {
-  /* 'paddress' must exist, and can't already have been initialized
+  /* 'a' must exist, and can't already have been initialized
    */
   int status;
 
@@ -94,7 +97,11 @@ address_createv (address_t *a, const char *sv[], size_t len)
     return EINVAL;
 
   for (i = 0; i < len; i++)
-    buflen += strlen(sv[i]);
+  {
+    /* NULL strings are allowed */
+    if(sv[i])
+      buflen += strlen(sv[i]);
+  }
 
   buflen += (len - 1) * strlen (", ");
   buflen += 1; /* Termination null.  */
@@ -109,7 +116,8 @@ address_createv (address_t *a, const char *sv[], size_t len)
       if(i != 0)
 	strcat (buf, ", ");
 
-      strcat (buf, sv[i]);
+      if(sv[i])
+        strcat (buf, sv[i]);
     }
 
   status = address_create (a, buf);
@@ -147,6 +155,30 @@ address_destroy (address_t *paddress)
 	}
       *paddress = NULL;
     }
+}
+
+int address_concatenate (address_t to, address_t* from)
+{
+  if(!to || !from || !*from)
+    return EINVAL;
+
+  while(to->next)
+    to = to->next;
+
+  assert(to && !to->next);
+
+  to->next = *from;
+  *from = NULL;
+
+  to = to->next;
+
+  if(to->addr)
+  {
+    free(to->addr);
+    to->addr = NULL;
+  }
+
+  return 0;
 }
 
 int
@@ -310,6 +342,22 @@ _address_is_group (address_t addr)
   return 0;
 }
 
+static int
+_address_is_email (address_t addr)
+{
+  if (addr->email)
+    return 1;
+  return 0;
+}
+
+static int
+_address_is_unix_mailbox (address_t addr)
+{
+  if (addr->local_part && !addr->email)
+    return 1;
+  return 0;
+}
+
 int
 address_is_group (address_t addr, size_t no, int* yes)
 {
@@ -356,6 +404,19 @@ address_get_count (address_t addr, size_t *pcount)
     *pcount = j;
   return 0;
 }
+int
+address_get_group_count (address_t addr, size_t *pcount)
+{
+  size_t j;
+  for (j = 0; addr; addr = addr->next)
+  {
+    if(_address_is_group(addr))
+      j++;
+  }
+  if (pcount)
+    *pcount = j;
+  return 0;
+}
 
 int
 address_get_email_count (address_t addr, size_t *pcount)
@@ -363,7 +424,21 @@ address_get_email_count (address_t addr, size_t *pcount)
   size_t j;
   for (j = 0; addr; addr = addr->next)
   {
-    if(!_address_is_group(addr))
+    if(_address_is_email(addr))
+      j++;
+  }
+  if (pcount)
+    *pcount = j;
+  return 0;
+}
+
+int
+address_get_unix_mailbox_count (address_t addr, size_t *pcount)
+{
+  size_t j;
+  for (j = 0; addr; addr = addr->next)
+  {
+    if(_address_is_unix_mailbox(addr))
       j++;
   }
   if (pcount)

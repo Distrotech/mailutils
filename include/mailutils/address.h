@@ -28,6 +28,9 @@ extern int address_create   __P ((address_t *, const char *));
 extern int address_createv  __P ((address_t *, const char *v[], size_t));
 extern void address_destroy __P ((address_t *));
 
+/* Set FROM to null, after adding its addresses to TO. */
+extern int address_concatenate __P ((address_t to, address_t* from));
+
 extern int address_get_email
 	__P ((address_t, size_t, char *, size_t, size_t *));
 extern int address_get_local_part
@@ -49,7 +52,9 @@ extern int address_is_group
 
 extern int address_to_string __P ((address_t, char *, size_t, size_t *));
 extern int address_get_count __P ((address_t, size_t *));
+extern int address_get_group_count __P ((address_t, size_t *));
 extern int address_get_email_count __P ((address_t, size_t *));
+extern int address_get_unix_mailbox_count __P ((address_t, size_t *));
 
 #ifdef __cplusplus
 }
