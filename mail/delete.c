@@ -49,8 +49,8 @@ mail_delete (int argc, char **argv)
       unsigned int here = realcursor;
       do
 	{
-	  message_t msg;
-	  attribute_t attr;
+	  message_t msg = NULL;
+	  attribute_t attr = NULL;
 
 	  mailbox_get_message (mbox, realcursor, &msg);
 	  message_get_attribute (msg, &attr);
