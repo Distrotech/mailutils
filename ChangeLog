@@ -1,5 +1,22 @@
 2002-09-19  Sergey Poznyakoff 
 
+	* mh/mhpath.c: New file. Source for mhpath command.
+	* mh/Makefile.am: Added mhpath.
+	* mh/.cvsignore: Likewise.
+	* mh/mh_msgset.c (msgset_preproc): Expand the second part
+	  of the message spec as well (the one after dash).
+	  (mh_msgset_parse): Fill message set with message ordinal
+	  numbers.
+	  (mh_search_message): Binary search for a message with the
+	  given sequence number.
+	  (mh_get_message): Retrieve the message with the given sequence
+	  number.
+	* mh/mh.h (mh_get_message): New prototype.
+	* mh/mh_init.c (mh_iterate): Rewritten to expect msgset to
+	  contain message ordinal numbers.
+	  
+2002-09-19  Sergey Poznyakoff 
+
 	* mailbox/mbx_mh.c (_mh_message_save): Take into account
 	  trailing newline returned by envelope_date (should it
 	  be returned, by the by?)
