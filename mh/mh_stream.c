@@ -206,7 +206,7 @@ restore_envelope (stream_t str, struct _mhdraft_message **pmenv)
   char *env_from = NULL;
   char *env_date = NULL;
   int rc;
-  char buffer[80];
+  char buffer[128];
   size_t len;
   off_t body_start, body_end;
   

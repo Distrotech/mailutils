@@ -596,7 +596,7 @@ smtp_send_message (mailer_t mailer, message_t argmsg, address_t argfrom,
     case SMTP_ENV_FROM:
     ENV_FROM:
       {
-	status = smtp_writeline (smtp, "MAIL FROM: %s\r\n", smtp->mail_from);
+	status = smtp_writeline (smtp, "MAIL FROM: <%s>\r\n", smtp->mail_from);
 	CHECK_ERROR (smtp, status);
 	smtp->state = SMTP_MAIL_FROM;
       }
@@ -639,7 +639,7 @@ smtp_send_message (mailer_t mailer, message_t argmsg, address_t argfrom,
 	    CHECK_ERROR (smtp, status);
 	  }
 
-	status = smtp_writeline (smtp, "RCPT TO: %s\r\n", to);
+	status = smtp_writeline (smtp, "RCPT TO: <%s>\r\n", to);
 
 	free (to);
 

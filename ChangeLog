@@ -1,3 +1,7 @@
+2003-12-25  Sergey Poznyakoff
+	
+	Added changes from the backup repository 
+
 2003-12-24  Sergey Poznyakoff 
 
 	* examples/spamd.c: New file.
@@ -58,7 +62,7 @@
         Date from       Date to         Repository
         ========        =======         ==========
         1999-09-10      2003-12-01      Savannah
-        2003-12-04      ***             Mirddin
+        2003-12-04      2003-12-25      Mirddin
 
 2003-12-05  Sergey Poznyakoff 
 

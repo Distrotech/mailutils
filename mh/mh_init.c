@@ -806,3 +806,36 @@ mh_set_reply_regex (const char *str)
 	      err ? ": " : "",
 	      err ? err : "");
 }
+
+int
+mh_decode_2047 (char *text, char **decoded_text)
+{
+  char *charset = mh_global_profile_get ("Charset", NULL);
+
+  if (!charset)
+    return 1;
+  if (strcasecmp (charset, "auto") == 0)
+    {
+      /* Try to deduce the charset from LC_ALL variable */
+
+      char *tmp = getenv ("LC_ALL");
+      if (tmp)
+	{
+	  char *sp;
+	  char *lang;
+	  char *terr;
+
+	  lang = strtok_r (tmp, "_", &sp);
+	  terr = strtok_r (NULL, ".", &sp);
+	  charset = strtok_r (NULL, "@", &sp);
+
+	  if (!charset)
+	    charset = mu_charset_lookup (lang, terr);
+	}
+    }
+
+  if (!charset)
+    return 1;
+  
+  return rfc2047_decode (charset, text, decoded_text);
+}

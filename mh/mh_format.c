@@ -1822,40 +1822,12 @@ builtin_isreply (struct mh_machine *mach)
 static void
 decode_string (strobj_t *obj)
 {
-  char *charset = NULL;
   char *tmp;
-  int rc;
-
+  
   if (strobj_is_null (obj))
     return;
-  charset = mh_global_profile_get ("Charset", NULL);
-  if (!charset)
-    return;
-  if (strcasecmp (charset, "auto") == 0)
-    {
-      /* Try to deduce the charset from LC_ALL variable */
 
-      tmp = getenv ("LC_ALL");
-      if (tmp)
-	{
-	  char *sp;
-	  char *lang;
-	  char *terr;
-
-	  lang = strtok_r (tmp, "_", &sp);
-	  terr = strtok_r (NULL, ".", &sp);
-	  charset = strtok_r (NULL, "@", &sp);
-
-	  if (!charset)
-	    charset = mu_charset_lookup (lang, terr);
-	}
-    }
-
-  if (!charset)
-    return;
-  
-  rc = rfc2047_decode (charset, strobj_ptr (obj), &tmp);
-  if (!rc)
+  if (mh_decode_2047 (strobj_ptr (obj), &tmp) == 0)
     {
       strobj_free (obj);
       strobj_create (obj, tmp);

@@ -1,3 +1,7 @@
+2003-12-25  Sergey Poznyakoff  <gray@Mirddin.farlep.net>
+
+	* ro.po: Added missing ^K in msgstrs
+
 2003-12-10  Jordi Mallach  <jordi@gnu.org>
 
 	* LINGUAS: Added ro.

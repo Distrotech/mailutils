@@ -339,6 +339,7 @@ mailbox_imap_open (mailbox_t mailbox, int flags)
 	      return status;
 	    }
 	  f_imap->state = IMAP_NO_STATE;
+	  break;
 
 	default:
 	  status = EINVAL;

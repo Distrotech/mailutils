@@ -34,8 +34,6 @@ Things to consider:
 
     --> Groups no longer show up in the address_t list.
 
-  - Need a way to parse "<>", it's a valid SMTP address...
-
   - Need a way to parse ",,,", it's a valid address-list, it just doesn't
     have any addresses.
 
@@ -1020,6 +1018,13 @@ parse822_route_addr (const char **p, const char *e, address_t * a)
     {
       *p = save;
 
+      return rc;
+    }
+  if (!(rc = parse822_special (p, e, '>')))
+    {
+      (void) (((rc = fill_mb (a, 0, 0, 0, 0)) == EOK)
+          && ((rc = str_append (&(*a)->email, "")) == EOK));
+       
       return rc;
     }
 

@@ -386,7 +386,8 @@ list-ietf-wg-apps-drums@faerber.muc.de (=?ISO-8859-1?Q?Claus_F=E4rber?=)=> pcoun
 1 email <0xdeadbeef-request@petting-zoo.net>
    local-part <0xdeadbeef-request> domain <petting-zoo.net>
 
-<>=> error MU_ERR_BAD_822_FORMAT
+<>=> pcount 1
+1 email <>
 
 <Christia.Roberts@nrc.ca>=> pcount 1
 1 email <Christia.Roberts@nrc.ca>

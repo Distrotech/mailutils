@@ -408,7 +408,8 @@ static mhl_variable_t vartab[] = {
   { B_NEWLINE,        "newline",        dt_flag },
   { B_ADDRFIELD,      "addrfield",      dt_flag },
   { B_DATEFIELD,      "datefield",      dt_flag },
-
+  { B_DECODE,         "decode",         dt_flag },
+  
   /* String variables */
   { S_OVERFLOWTEXT,   "overflowtext",   dt_string },
   { S_COMPONENT,      "component",      dt_string },
@@ -620,6 +621,12 @@ print_header_value (struct eval_env *env, char *val)
 	val = p;
     }
     
+  if (env->bvar[B_DECODE])
+    {
+      if (mh_decode_2047 (val, &p) == 0)
+	val = p;
+    }
+  
   if (env->bvar[B_UPPERCASE])
     {
       for (p = val; *p; p++)
