@@ -92,21 +92,8 @@ struct _url
 /* MMDF */
 
 /* POP3 */
-struct _url_pop;
-typedef struct _url_pop * url_pop_t;
-
-struct _url_pop
-{
-  /* we use the fields from url_t */
-  /* user, passwd, host, port */
-  char * auth;
-  int (*_get_auth) __P ((const url_pop_t, char *, size_t, size_t *));
-};
 
 #define MU_POP_PORT 110
-
-/* pop*/
-extern int url_pop_get_auth (const url_t, char *, size_t, size_t *);
 
 /* UNIX MBOX */
 

@@ -67,8 +67,10 @@ extern int attribute_is_equal __P ((attribute_t att1, attribute_t att2));
 extern int attribute_copy       __P ((attribute_t dst,
 				      attribute_t src));
 
-extern int string_to_attribute __P ((const char *buf, size_t len,
+extern int string_to_attribute __P ((const char *buf,
 				     attribute_t *pattr, void *owner));
+extern int attribute_to_string __P ((attribute_t attr, char *buf,
+				     size_t len, size_t *));
 extern int attribute_get_owner  __P ((attribute_t attr, void **owner));
 #ifdef __cplusplus
 }

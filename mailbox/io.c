@@ -22,7 +22,7 @@
 #include <stdio.h>
 
 int
-stream_create (stream_t *pstream, void *owner)
+stream_create (stream_t *pstream, int flags, void *owner)
 {
   stream_t stream;
   if (pstream == NULL || owner == NULL)
@@ -31,6 +31,7 @@ stream_create (stream_t *pstream, void *owner)
   if (stream == NULL)
     return ENOMEM;
   stream->owner = owner;
+  stream->flags = flags;
   *pstream = stream;
   return 0;
 }
@@ -41,10 +42,27 @@ stream_destroy (stream_t *pstream, void *owner)
   if (pstream && *pstream)
     {
       stream_t stream = *pstream;
-      if (stream->owner == owner)
+
+      if (stream->_destroy)
+	stream->_destroy (owner);
+      if ((stream->flags & MU_STREAM_NO_CHECK) || stream->owner == owner)
 	free (stream);
       *pstream = NULL;
     }
+}
+
+int
+stream_set_destroy (stream_t stream, void (*_destroy) (void *),
+		    void *owner)
+{
+  if (stream == NULL)
+    return EINVAL;
+
+  if (stream->owner != owner)
+    return EACCES;
+
+  stream->_destroy = _destroy;
+  return 0;
 }
 
 int

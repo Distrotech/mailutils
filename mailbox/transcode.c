@@ -40,7 +40,7 @@ struct _tc_desc {
 };
 
 #define NUM_TRANSCODERS 5
-struct _tc_desc tclist[NUM_TRANSCODERS] =     { { "base64", 			_base64_decode, 	_base64_encode, 	_base64_destroy }, 
+struct _tc_desc tclist[NUM_TRANSCODERS] =     { { "base64", 			_base64_decode, 	_base64_encode, 	_base64_destroy },
 						 						{ "quoted-printable", 	_qp_decode, 		_qp_encode, 		NULL },
 												{ "7bit", 				_identity_decode, 	_identity_encode, 	NULL },
 												{ "8bit", 				_identity_decode, 	_identity_encode, 	NULL },
@@ -51,7 +51,7 @@ int transcode_create(transcoder_t *ptc, char *encoding)
 {
 	transcoder_t tc;
 	int i;
-		
+
 	if ( ( tc = calloc(sizeof(struct _transcoder), 1) ) == NULL )
 		return ENOMEM;
 	for( i = 0; i < NUM_TRANSCODERS; i++ ) {
@@ -61,7 +61,7 @@ int transcode_create(transcoder_t *ptc, char *encoding)
 	if ( i == NUM_TRANSCODERS )
 		return ENOTSUP;
 
-	stream_create(&tc->ustream, tc );
+	stream_create(&tc->ustream, 0, tc );
 	stream_set_read(tc->ustream, tclist[i].decode_read, tc );
 	stream_set_write(tc->ustream, tclist[i].encode_write, tc );
 	tc->destroy = tclist[i].destroy;
@@ -73,8 +73,8 @@ void transcode_destroy(transcoder_t *ptc)
 {
 	transcoder_t tc = *ptc;
 
-	if ( tc->destroy) 
-		tc->destroy(tc);	
+	if ( tc->destroy)
+		tc->destroy(tc);
 	stream_destroy(&tc->ustream, tc);
 	free(tc);
 	*ptc = NULL;
@@ -85,7 +85,7 @@ int transcode_get_stream(transcoder_t tc, stream_t *pstream)
 	if (tc == NULL || pstream == NULL)
 		return EINVAL;
 	*pstream = tc->ustream;
-	return 0;		
+	return 0;
 }
 
 int transcode_set_stream(transcoder_t tc, stream_t stream)
@@ -93,7 +93,7 @@ int transcode_set_stream(transcoder_t tc, stream_t stream)
 	if (tc == NULL || stream == NULL)
 		return EINVAL;
 	tc->stream = stream;
-	return 0;		
+	return 0;
 }
 
 /*------------------------------------------------------
@@ -142,9 +142,9 @@ int _base64_decode(stream_t ustream, char *optr, size_t osize, off_t offset, siz
 	int i, tmp = 0, ret;
 	size_t isize, consumed = 0;
 	char *iptr;
-	transcoder_t tc = (transcoder_t)ustream->owner;	
+	transcoder_t tc = (transcoder_t)ustream->owner;
 	struct _b64_decode *decode;
-	
+
 	if ( nbytes == NULL || optr == NULL || osize == 0 )
 		return EINVAL;
 
@@ -152,19 +152,19 @@ int _base64_decode(stream_t ustream, char *optr, size_t osize, off_t offset, siz
 	if ( ( decode = tc->tcdata ) == NULL ) {
 		if ( ( decode = calloc(1, sizeof(struct _b64_decode)) ) == NULL )
 			return ENOMEM;
-		tc->tcdata = decode;		
+		tc->tcdata = decode;
 	}
 	if ( decode->offset != offset )
 		return ESPIPE;
-		
+
 	if ( ( iptr = alloca(osize) ) == NULL )
 		return ENOMEM;
 	isize = osize;
 
-	if ( ( ret = stream_read(tc->stream, iptr, isize, decode->cur_offset, &isize) ) != 0 ) 
+	if ( ( ret = stream_read(tc->stream, iptr, isize, decode->cur_offset, &isize) ) != 0 )
 		return ret;
-		
-	decode->cur_offset += isize;	
+
+	decode->cur_offset += isize;
 	i = decode->data_len;
 	while ( consumed < isize ) {
 		while ( ( i < 4 ) && ( consumed < isize ) ) {
@@ -234,7 +234,7 @@ int _qp_decode(stream_t ustream, char *optr, size_t osize, off_t offset, size_t 
 	size_t isize, consumed = 0;
 	struct _qp_decode *decode;
 	char *iptr;
-	
+
 	if ( nbytes == NULL || optr == NULL )
 		return EINVAL;
 
@@ -242,11 +242,11 @@ int _qp_decode(stream_t ustream, char *optr, size_t osize, off_t offset, size_t 
 	if ( ( decode = tc->tcdata ) == NULL ) {
 		if ( ( decode = calloc(1, sizeof(struct _qp_decode)) ) == NULL )
 			return ENOMEM;
-		tc->tcdata = decode;		
+		tc->tcdata = decode;
 	}
 	if ( decode->offset != offset )
 		return ESPIPE;
-		
+
 	if ( ( iptr = alloca(osize) ) == NULL )
 		return ENOMEM;
 	isize = osize;
@@ -254,11 +254,11 @@ int _qp_decode(stream_t ustream, char *optr, size_t osize, off_t offset, size_t 
 	if ( decode->data_len )
 		memcpy( iptr, decode->data, decode->data_len);
 
-	if ( ( ret = stream_read(tc->stream, iptr + decode->data_len, isize - decode->data_len, decode->cur_offset, &isize) ) != 0 ) 
+	if ( ( ret = stream_read(tc->stream, iptr + decode->data_len, isize - decode->data_len, decode->cur_offset, &isize) ) != 0 )
 		return ret;
 
 	decode->data_len = 0;
-	decode->cur_offset += isize;	
+	decode->cur_offset += isize;
 	while (consumed < isize) {
 			c = *iptr++;
 		if ( ((c >= 33) && (c <= 60)) || ((c >= 62) && (c <= 126)) || ((c == '=') && !_ishex(*iptr)) ) {
@@ -271,7 +271,7 @@ int _qp_decode(stream_t ustream, char *optr, size_t osize, off_t offset, size_t 
 			if ((isize - consumed) < 3) {
 				memcpy( decode->data, iptr-1, decode->data_len = isize - consumed + 1);
 				return 0;
-			} 
+			}
 			else {
 				// you get =XX where XX are hex characters
 				char 	chr[2];
@@ -334,7 +334,7 @@ int _qp_encode(stream_t ustream, const char *iptr, size_t isize, off_t offset, s
 	int consumed = 0, c, osize;
 	char *obuf;
 	struct _qp_encode *encode;
-	
+
 
 	if ( nbytes == NULL || iptr == NULL )
 		return EINVAL;
@@ -342,9 +342,9 @@ int _qp_encode(stream_t ustream, const char *iptr, size_t isize, off_t offset, s
 	if ( isize == 0 )
 		return 0;
 
-	*nbytes = 0;		
+	*nbytes = 0;
 	if ( ( encode = tc->tcdata ) == NULL ) {
-		
+
 	}
 	if ( ( encode->obuf = malloc(isize) ) == NULL )
 		return ENOMEM;

@@ -908,7 +908,7 @@ mailbox_unix_readstream (stream_t is, char *buffer, size_t buflen,
   mailbox_unix_message_t mum;
   size_t nread = 0;
 
-  if (is == NULL || (mum = (mailbox_unix_message_t)is->owner) == NULL)
+  if (is == NULL || (mum = is->owner) == NULL)
     return EINVAL;
 
   if (buffer == NULL || buflen == 0)
@@ -1167,7 +1167,9 @@ mailbox_unix_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
       message_destroy (&msg, mum);
       return status;
     }
-  status = stream_create (&stream, mum);
+  message_set_body (msg, body, mum);
+
+  status = stream_create (&stream, 0, mum);
   if (status != 0)
     {
       message_destroy (&msg, mum);
@@ -1177,9 +1179,7 @@ mailbox_unix_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
   stream_set_fd (stream, mailbox_unix_getfd, mum);
   body_set_stream (body, stream, mum);
   body_set_size (body, mailbox_unix_body_size, mum);
-  /* set the line */
   body_set_lines (body, mailbox_unix_body_lines, mum);
-  message_set_body (msg, body, mum);
 
   /* set the attribute */
   status = message_set_attribute (msg, mum->new_attr, mum);
@@ -1293,7 +1293,7 @@ mailbox_unix_append_message (mailbox_t mbox, message_t msg)
 }
 
 static int
-mailbox_unix_size (mailbox_t mbox, off_t *size)
+mailbox_unix_size (mailbox_t mbox, off_t *psize)
 {
   mailbox_unix_data_t mud;
   struct stat st;
@@ -1310,7 +1310,8 @@ mailbox_unix_size (mailbox_t mbox, off_t *size)
   /* oops !! */
   if (fstat (fd, &st) != 0)
     return errno;
-  *size = st.st_size;
+  if (psize)
+    *psize = st.st_size;
   return 0;
 }
 

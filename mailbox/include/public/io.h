@@ -35,8 +35,15 @@ extern "C" { /*}*/
 struct _stream;
 typedef struct _stream *stream_t;
 
-extern int stream_create __P ((stream_t *, void *owner));
+/*  stream will be destroy on stream_destroy */
+#define MU_STREAM_NO_CHECK 1
+
+extern int stream_create __P ((stream_t *, int flags, void *owner));
 extern void stream_destroy __P ((stream_t *, void *owner));
+
+extern int stream_set_destroy __P ((stream_t,
+				    void (*_destroy) __P ((void *)),
+				    void *owner));
 
 extern int stream_set_fd __P ((stream_t,
 			       int (*_get_fd)(stream_t, int *),

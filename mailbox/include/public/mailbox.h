@@ -81,7 +81,7 @@ extern int mailbox_is_updated    __P ((mailbox_t));
 extern int mailbox_scan    __P ((mailbox_t, size_t msgno, size_t *count));
 
 /* mailbox size ? */
-extern int mailbox_size          __P ((mailbox_t, off_t size));
+extern int mailbox_size          __P ((mailbox_t, off_t *size));
 
 extern int mailbox_get_url       __P ((mailbox_t, url_t *));
 

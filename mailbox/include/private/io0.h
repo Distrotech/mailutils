@@ -35,6 +35,8 @@ extern "C" {
 struct _stream
 {
   void *owner;
+  int flags;
+  void (*_destroy) __P ((void *));
   int (*_get_fd) __P ((stream_t, int *));
   int (*_read) __P ((stream_t, char *, size_t, off_t, size_t *));
   int (*_write) __P ((stream_t, const char *, size_t, off_t, size_t *));

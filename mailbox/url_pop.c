@@ -19,7 +19,6 @@
 #include <registrar.h>
 
 #include <errno.h>
-#include <cpystr.h>
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
@@ -33,27 +32,6 @@ struct url_registrar _url_pop_registrar =
   url_pop_create, url_pop_destroy
 };
 
-static int get_auth (const url_pop_t up, char *s, size_t len, size_t *);
-
-static int
-get_auth (const url_pop_t up, char *s, size_t len,  size_t *n)
-{
-  size_t i;
-  if (up)
-    return EINVAL;
-  i = _cpystr (s, up->auth, len);
-  if (n)
-    *n = i;
-  return 0;
-}
-
-int
-(url_pop_get_auth) (const url_t url, char *auth, size_t len, size_t *n)
-{
-  return (url) ?
-    ((url_pop_t)(url->data))->_get_auth(url->data, auth, len, n) : EINVAL;
-}
-
 static void
 url_pop_destroy (url_t *purl)
 {
@@ -64,12 +42,6 @@ url_pop_destroy (url_t *purl)
       free (url->user);
       free (url->passwd);
       free (url->host);
-      if (url->data)
-	{
-	  url_pop_t up = url->data;
-	  free (up->auth);
-	}
-      free (url->data);
       free (url);
       *purl = NULL;
     }
@@ -77,28 +49,25 @@ url_pop_destroy (url_t *purl)
 
 /*
   POP URL
-  pop://<user>;AUTH=<auth>@<host>:<port>
+  pop://[<user>;AUTH=<auth>@]<host>[:<port>]
 */
 static int
 url_pop_create (url_t *purl, const char *name)
 {
   const char *host_port, *indexe;
   struct url_registrar *ureg = &_url_pop_registrar;
-  size_t len, scheme_len = strlen (ureg->scheme);
+  size_t scheme_len = strlen (ureg->scheme);
   url_t url;
-  url_pop_t up;
 
   /* reject the obvious */
-  if (name == NULL || strncmp (ureg->scheme, name, scheme_len) != 0
-      || (host_port = strchr (name, '@')) == NULL
-      || (len = strlen (name)) < 9 /* 6(scheme)+1(user)+1(@)+1(host)*/)
-    return ENOMEM;
+  if (name == NULL || strncmp (ureg->scheme, name, scheme_len) != 0)
+    return EINVAL;
 
   /* do I need to decode url encoding '% hex hex' ? */
 
   url = calloc(1, sizeof (*url));
-  url->data = up = calloc(1, sizeof(*up));
-  up->_get_auth = get_auth;
+  if (url == NULL)
+    return ENOMEM;
 
   /* TYPE */
   url->_create = _url_pop_registrar._create;
@@ -114,22 +83,20 @@ url_pop_create (url_t *purl, const char *name)
 
   name += scheme_len; /* pass the scheme */
 
+  host_port = strchr (name, '@');
+  if (host_port == NULL)
+    host_port= name;
+
   /* looking for "user;auth=auth-enc" */
   for (indexe = name; indexe != host_port; indexe++)
     {
       /* Auth ? */
       if (*indexe == ';')
 	{
-	  /* make sure it the token */
+	  /* make sure it's the token */
 	  if (strncasecmp(indexe + 1, "auth=", 5) == 0)
 	    break;
 	}
-    }
-
-  if (indexe == name)
-    {
-      url_pop_destroy (&url);
-      return -1;
     }
 
   /* USER */
@@ -142,29 +109,29 @@ url_pop_create (url_t *purl, const char *name)
   ((char *)memcpy(url->user, name, indexe - name))[indexe - name] = '\0';
 
   /* AUTH */
-  if ((host_port - indexe) <= 6 /*strlen(";AUTH=")*/)
+  if (indexe == host_port)
     {
       /* Use default AUTH '*' */
-      up->auth = malloc (1 + 1);
-      if (up->auth)
+      url->passwd = malloc (1 + 1);
+      if (url->passwd)
 	{
-	  up->auth[0] = '*';
-	  up->auth[1] = '\0';
+	  url->passwd[0] = '*';
+	  url->passwd[1] = '\0';
 	}
     }
   else
     {
       /* move pass AUTH= */
       indexe += 6;
-      up->auth = malloc (host_port - indexe + 1);
-      if (up->auth)
+      url->passwd = malloc (host_port - indexe + 1);
+      if (url->passwd)
 	{
-	  ((char *)memcpy (up->auth, indexe, host_port - indexe))
+	  ((char *)memcpy (url->passwd, indexe, host_port - indexe))
 	    [host_port - indexe] = '\0';
 	}
     }
 
-  if (up->auth == NULL)
+  if (url->passwd == NULL)
     {
       url_pop_destroy (&url);
       return -1;

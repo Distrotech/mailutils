@@ -47,7 +47,7 @@ message_create (message_t *pmsg, void *owner)
   msg = calloc (1, sizeof (*msg));
   if (msg == NULL)
     return ENOMEM;
-  status = stream_create (&stream, msg);
+  status = stream_create (&stream, 0, msg);
   if (status != 0)
     {
       free (msg);
@@ -188,7 +188,7 @@ message_get_stream (message_t msg, stream_t *pstream)
     {
       stream_t stream;
       int status;
-      status = stream_create (&stream, msg);
+      status = stream_create (&stream, 0, msg);
       if (status != 0)
 	return status;
       stream_set_read (stream, message_read, msg);

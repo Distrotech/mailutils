@@ -82,7 +82,7 @@ body_get_stream (body_t body, stream_t *pstream)
       /* lazy floating body it is created when
        * doing the first body_write call
        */
-      status = stream_create (&stream, body);
+      status = stream_create (&stream, 0, body);
       if (status != 0)
 	return status;
       stream_set_read (stream, body_read, body);

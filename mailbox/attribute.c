@@ -254,8 +254,7 @@ attribute_copy (attribute_t dest, attribute_t src)
 }
 
 int
-string_to_attribute (const char *buffer, size_t len,
-		     attribute_t *pattr, void *owner)
+string_to_attribute (const char *buffer, attribute_t *pattr, void *owner)
 {
   char *sep;
   int status;
@@ -265,9 +264,11 @@ string_to_attribute (const char *buffer, size_t len,
     return status;
 
   /* Set the attribute */
-  if (len > 7 && strncasecmp (buffer, "Status:", 7) == 0)
+  if (strncasecmp (buffer, "Status:", 7) == 0)
     {
       sep = strchr(buffer, ':'); /* pass the ':' */
+      sep++;
+      while (*sep == ' ') sep++; /* glob spaces */
       if (strchr (sep, 'R') != NULL || strchr (sep, 'r') != NULL)
 	attribute_set_read (*pattr);
       if (strchr (sep, 'O') != NULL || strchr (sep, 'o') != NULL)
@@ -280,3 +281,40 @@ string_to_attribute (const char *buffer, size_t len,
   return 0;
 }
 
+int
+attribute_to_string (attribute_t attr, char *buffer, size_t len, size_t *pn)
+{
+  char status[32];
+  char a[8];
+  size_t i;
+
+  *status = *a = '\0';
+
+  if (attribute_is_seen (attr))
+    strcat (a, "R");
+  if (attribute_is_answered (attr))
+    strcat (a, "A");
+  if (attribute_is_flagged (attr))
+    strcat (a, "F");
+  if (attribute_is_read (attr))
+    strcat (a, "O");
+
+  if (*a != '\0')
+    {
+      strcpy (status, "Status: ");
+      strcat (status, a);
+      strcat (status, "\n");
+    }
+
+  i = strlen (status);
+
+  if (buffer && len != 0)
+    {
+      strncpy (buffer, status, len - 1);
+      buffer[len - 1] = '\0';
+      i = strlen (buffer);
+    }
+  if (pn)
+    *pn = i;
+  return 0;
+}
