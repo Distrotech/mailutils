@@ -129,6 +129,7 @@ list_remove (list_t list, void *item)
       if ((int)current->item == (int)item)
 	{
 	  previous->next = current->next;
+	  current->next->prev = previous;
 	  free (current);
 	  list->count--;
 	  RWLOCK_UNLOCK (&(list->rwlock));
