@@ -37,6 +37,7 @@ extern "C" { /*}*/
 #define MU_STREAM_SEEKABLE    0x00000080
 #define MU_STREAM_NO_CLOSE    0x00000100
 #define MU_STREAM_ALLOW_LINKS 0x00000200
+#define MU_STREAM_STRICT      0x00000400
   
 /* Functions useful to users of the pre-defined stream types. */
 
