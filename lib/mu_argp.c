@@ -222,10 +222,10 @@ mu_common_argp_parser (int key, char *arg, struct argp_state *state)
     case ARG_SQL_PORT:
       sql_port = strtoul (arg, NULL, 0);
       if (sql_port == 0)
-	{
-	  sql_host = NULL;
-	  sql_socket = arg;
-	}
+        {
+          sql_host = NULL;
+          sql_socket = arg;
+        }
       break;
       
 #endif
@@ -246,11 +246,11 @@ mu_daemon_argp_parser (int key, char *arg, struct argp_state *state)
     case 'd':
       p->mode = MODE_DAEMON;
       if (arg)
-	{
-	  size_t n = strtoul (arg, NULL, 10);
-	  if (n > 0)
-	    p->maxchildren = n;
-	}
+        {
+          size_t n = strtoul (arg, NULL, 10);
+          if (n > 0)
+            p->maxchildren = n;
+        }
       break;
 
     case 'i':
@@ -291,7 +291,7 @@ mu_create_argcv (int argc, char **argv, int *p_argc, char ***p_argv)
   else
     progname = argv[0];
 
-  x_argv = malloc ((argc + 1) * sizeof (x_argv[0]));
+  x_argv = malloc (sizeof (x_argv[0]));
   if (!x_argv)
     {
       fprintf (stderr, "%s: not enough memory\n", progname);
@@ -312,88 +312,89 @@ mu_create_argcv (int argc, char **argv, int *p_argc, char ***p_argv)
       size_t n = 0;
       
       while (getline (&buf, &n, fp) > 0)
-	{
-	  char *kwp, *p;
-	  int len;
-	  
-	  for (kwp = buf; *kwp && isspace (*kwp); kwp++)
-	    ;
+        {
+          char *kwp, *p;
+          int len;
+          
+          for (kwp = buf; *kwp && isspace (*kwp); kwp++)
+            ;
 
-	  if (*kwp == '#' || *kwp == 0)
-	    continue;
+          if (*kwp == '#' || *kwp == 0)
+            continue;
 
-	  len = strlen (kwp);
-	  if (kwp[len-1] == '\n')
-	    kwp[--len] = 0;
+          len = strlen (kwp);
+          if (kwp[len-1] == '\n')
+            kwp[--len] = 0;
 
-	  if (kwp[len-1] == '\\' || linebuf)
-	    {
-	      int cont;
-	      
-	      if (kwp[len-1] == '\\')
-		{
-		  kwp[--len] = 0;
-		  cont = 1;
-		}
-	      else
-		cont = 0;
-	      
-	      if (!linebuf)
-		linebuf = calloc (len + 1, 1);
-	      else
-		linebuf = realloc (linebuf, strlen (linebuf) + len + 1);
+          if (kwp[len-1] == '\\' || linebuf)
+            {
+              int cont;
+              
+              if (kwp[len-1] == '\\')
+                {
+                  kwp[--len] = 0;
+                  cont = 1;
+                }
+              else
+                cont = 0;
+              
+              if (!linebuf)
+                linebuf = calloc (len + 1, 1);
+              else
+                linebuf = realloc (linebuf, strlen (linebuf) + len + 1);
 
-	      if (!linebuf)
-		{
-		  fprintf (stderr, "%s: not enough memory\n", progname);
-		  exit (1);
-		}
+              if (!linebuf)
+                {
+                  fprintf (stderr, "%s: not enough memory\n", progname);
+                  exit (1);
+                }
 
-	      strcpy (linebuf + strlen (linebuf), kwp);
-	      if (cont)
-		continue;
-	      kwp = linebuf;
-	    }
+              strcpy (linebuf + strlen (linebuf), kwp);
+              if (cont)
+                continue;
+              kwp = linebuf;
+            }
 
-	  len = 0;
-	  for (p = kwp; *p && !isspace (*p); p++)
-	    len++;
+          len = 0;
+          for (p = kwp; *p && !isspace (*p); p++)
+            len++;
 
-	  if (strncmp ("mailutils", kwp, len) == 0
-	      || strncmp (progname, kwp, len) == 0)
-	    {
-	      int n_argc = 0;
-	      char **n_argv;
-	      
-	      if (argcv_get (p, "", &n_argc, &n_argv))
-		{
-		  argcv_free (n_argc, n_argv);
-		  if (linebuf)
-		    free (linebuf);
-		  linebuf = NULL;
-		  continue;
-		}
-	      x_argv = realloc (x_argv,
-				(x_argc + n_argc + 1) * sizeof (x_argv[0]));
-	      if (!x_argv)
-		{
-		  fprintf (stderr, "%s: not enough memory\n", progname);
-		  exit (1);
-		}
+          if (strncmp ("mailutils", kwp, len) == 0
+              || strncmp (progname, kwp, len) == 0)
+            {
+              int n_argc = 0;
+              char **n_argv;
+              
+              if (argcv_get (p, "", &n_argc, &n_argv))
+                {
+                  argcv_free (n_argc, n_argv);
+                  if (linebuf)
+                    free (linebuf);
+                  linebuf = NULL;
+                  continue;
+                }
+              x_argv = realloc (x_argv,
+                                (x_argc + n_argc + 1) * sizeof (x_argv[0]));
+              if (!x_argv)
+                {
+                  fprintf (stderr, "%s: not enough memory\n", progname);
+                  exit (1);
+                }
 
-	      for (i = 0; i < n_argc; i++)
-		x_argv[x_argc++] = n_argv[i];
+              for (i = 0; i < n_argc; i++)
+                x_argv[x_argc++] = n_argv[i];
 
-	      free (n_argv);
-	      if (linebuf)
-		free (linebuf);
-	      linebuf = NULL;
-	    }
-	}
+              free (n_argv);
+              if (linebuf)
+                free (linebuf);
+              linebuf = NULL;
+            }
+        }
       fclose (fp);
     }
 
   /* Finally, add the command line options */
+  x_argv = realloc (x_argv, (x_argc + argc + 1) * sizeof (x_argv[0]));
   for (i = 1; i < argc; i++)
     x_argv[x_argc++] = argv[i];
   
