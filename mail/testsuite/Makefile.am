@@ -37,6 +37,7 @@ site.exp: Makefile remote.exp
 	@echo '# edit the last section' >> $@-t
 	@echo 'set tool $(DEJATOOL)' >> $@-t
 	@echo "set top_srcdir `cd $(top_srcdir); pwd`" >> $@-t
+	@echo "set top_builddir `cd $(top_builddir); pwd`" >> $@-t
 	@echo "set srcdir `cd $(srcdir); pwd`" >> $@-t
 	@echo 'set objdir' `pwd` >> $@-t
 	@echo 'set host_alias "$(host_alias)"' >> $@-t
