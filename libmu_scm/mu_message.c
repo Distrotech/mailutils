@@ -270,7 +270,7 @@ SCM_DEFINE (mu_message_set_header, "mu-message-set-header", 3, 1, 0,
     }
   
   message_get_header (msg, &hdr);
-  header_set_value (hdr, SCM_STRING_CHARS (HEADER), strdup (SCM_STRING_CHARS (VALUE)),
+  header_set_value (hdr, SCM_STRING_CHARS (HEADER), SCM_STRING_CHARS (VALUE),
 		    replace);
   return SCM_UNSPECIFIED;
 }
