@@ -6,6 +6,10 @@
 
 [mailbox or mailbox2]
 
+IMPORTANT:
+  There is currently a rewrite of the mailbox call mailbox2 to address
+  some of the flaws of the old version.
+
 - generalized search interface
 - support AUTH=anonymous imap, imap://cyrus.andrew.cmu.edu/archive.info-cyrus
 

@@ -62,8 +62,6 @@ static int  imap_message_size     __P ((message_t, size_t *));
 static int  imap_message_lines    __P ((message_t, size_t *));
 static int  imap_message_fd       __P ((stream_t, int *));
 static int  imap_message_read     __P ((stream_t , char *, size_t, off_t, size_t *));
-static int  imap_message_readline __P ((stream_t, char *, size_t, off_t,
-					size_t *));
 static int  imap_message_uid      __P ((message_t, size_t *));
 
 /* mime_t API.  */
@@ -87,8 +85,6 @@ static int  imap_header_get_fvalue __P ((header_t, const char*, char *, size_t, 
 
 /* body_t API.  */
 static int  imap_body_read        __P ((stream_t, char *, size_t, off_t,
-					size_t *));
-static int  imap_body_readline    __P ((stream_t, char *, size_t, off_t,
 					size_t *));
 static int  imap_body_size        __P ((body_t, size_t *));
 static int  imap_body_lines       __P ((body_t, size_t *));
@@ -377,8 +373,8 @@ imap_get_message0 (msg_imap_t msg_imap, message_t *pmsg)
         message_destroy (&msg, msg_imap);
         return status;
       }
+    stream_setbufsiz (stream, 128);
     stream_set_read (stream, imap_message_read, msg);
-    stream_set_readline (stream, imap_message_readline, msg);
     stream_set_fd (stream, imap_message_fd, msg);
     message_set_stream (msg, stream, msg_imap);
     message_set_size (msg, imap_message_size, msg_imap);
@@ -426,8 +422,8 @@ imap_get_message0 (msg_imap_t msg_imap, message_t *pmsg)
         message_destroy (&msg, msg_imap);
         return status;
       }
+    stream_setbufsiz (stream, 128);
     stream_set_read (stream, imap_body_read, body);
-    stream_set_readline (stream, imap_body_readline, body);
     stream_set_fd (stream, imap_body_fd, body);
     body_set_size (body, imap_body_size, msg);
     body_set_lines (body, imap_body_lines, msg);
@@ -949,41 +945,6 @@ imap_copy_message (mailbox_t mailbox, message_t msg)
 }
 
 /* Message read overload  */
-static int
-imap_message_readline (stream_t stream, char *buffer, size_t buflen,
-		       off_t offset, size_t *plen)
-{
-  message_t msg = stream_get_owner (stream);
-  msg_imap_t msg_imap = message_get_owner (msg);
-  size_t lines = msg_imap->message_lines;
-  int status;
-  size_t len = 0;
-  char *nl = buffer;
-
-  /* Start over.  */
-  if (offset == 0)
-    lines = 0;
-
-  buflen--; /* for the NULL. */
-  status = imap_message_read (stream, buffer, buflen, offset, &len);
-  if (len)
-    {
-      nl = memchr (buffer, '\n', len);
-      if (nl)
-	{
-	  nl++;
-	  msg_imap->message_lines = lines + 1;
-	}
-      else
-	nl = buffer + len;
-      len = nl - buffer;
-      *nl = '\0';
-    }
-  if (plen)
-    *plen = len;
-  return status;
-}
-
 static int
 imap_message_read (stream_t stream, char *buffer, size_t buflen,
 		   off_t offset, size_t *plen)
@@ -1736,46 +1697,6 @@ imap_body_lines (body_t body, size_t *plines)
   if (plines && msg_imap)
     *plines = msg_imap->body_lines;
   return 0;
-}
-
-static int
-imap_body_readline (stream_t stream, char *buffer, size_t buflen, off_t offset,
-		    size_t *plen)
-{
-  message_t msg = stream_get_owner (stream);
-  msg_imap_t msg_imap = message_get_owner (msg);
-  size_t blines = msg_imap->body_lines;
-  size_t bsize = msg_imap->body_size;
-  int status;
-  size_t len = 0;
-  char *nl = buffer;
-
-  /* Start over.  */
-  if (offset == 0)
-    {
-      blines = 0;
-      bsize = 0;
-    }
-
-  buflen--; /* for the NULL. */
-  status = imap_body_read (stream, buffer, buflen, offset, &len);
-  if (len)
-    {
-      nl = memchr (buffer, '\n', len);
-      if (nl)
-        {
-          nl++;
-          msg_imap->body_lines = blines + 1;
-        }
-      else
-        nl = buffer + len;
-      len = nl - buffer;
-      msg_imap->body_size = bsize + len;
-      *nl = '\0';
-    }
-  if (plen)
-    *plen = len;
-  return status;
 }
 
 /* FIXME: Send EISPIPE if trying to seek back.  */
