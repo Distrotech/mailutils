@@ -326,7 +326,7 @@ util_cpystr (char *dst, const char *src, size_t size)
   return len;
 }
 
-static list_t *_app_getpwnam = NULL;
+static list_t _app_getpwnam = NULL;
 
 void
 mu_register_getpwnam (struct passwd *(*fun) __P((const char *)))
@@ -346,7 +346,7 @@ mu_getpwnam (const char *name)
 
   if (!p && iterator_create (&itr, _app_getpwnam) == 0)
     {
-      struct passwd *(*fun) __P((char *));
+      struct passwd *(*fun) __P((const char *));
       for (iterator_first (itr); !p && !iterator_is_done (itr);
 	   iterator_next (itr))
 	{
@@ -359,9 +359,9 @@ mu_getpwnam (const char *name)
   return p;
 }
 
-#ifdef USE_VIRTUAL_DOMAINS
-
 int mu_virtual_domain;
+
+#ifdef USE_VIRTUAL_DOMAINS
 
 struct passwd *
 getpwnam_virtual (const char *u)
