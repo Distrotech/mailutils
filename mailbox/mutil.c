@@ -45,6 +45,7 @@
 #include <mailutils/iterator.h>
 #include <mailutils/mutil.h>
 #include <mailutils/parse822.h>
+#include <mailutils/mu_auth.h>
 
 #include "mu_asprintf.h"
 
@@ -264,14 +265,15 @@ char *
 mu_get_homedir (void)
 {
   char *homedir = getenv ("HOME");
-  if (!homedir)
+  if (homedir)
+    homedir = strdup (homedir);
+  else
     {
-      struct passwd *pwd;
-
-      pwd = mu_getpwuid (getuid ());
-      if (!pwd)
+      struct mu_auth_data *auth = mu_get_auth_by_uid (getuid ());
+      if (!auth)
 	return NULL;
-      homedir = pwd->pw_dir;
+      homedir = strdup (auth->dir);
+      mu_auth_data_free (auth);
     }
   return homedir;
 }
@@ -367,10 +369,11 @@ mu_tilde_expansion (const char *ref, const char *delim, const char *homedir)
           strcat (s, p);
           free (--p);
           p = s;
+	  free (homedir);
         }
       else
         {
-          struct passwd *pw;
+          struct mu_auth_data *auth;
           char *s = p;
           char *name;
           while (*s && *s != delim[0])
@@ -378,15 +381,17 @@ mu_tilde_expansion (const char *ref, const char *delim, const char *homedir)
           name = calloc (s - p + 1, 1);
           memcpy (name, p, s - p);
           name [s - p] = '\0';
-          pw = mu_getpwnam (name);
+	  
+          auth = mu_get_auth_by_name (name);
           free (name);
-          if (pw)
+          if (auth)
             {
-              char *buf = calloc (strlen (pw->pw_dir) + strlen (s) + 1, 1);
-              strcpy (buf, pw->pw_dir);
+              char *buf = calloc (strlen (auth->dir) + strlen (s) + 1, 1);
+	      strcpy (buf, auth->dir);
               strcat (buf, s);
               free (--p);
               p = buf;
+	      mu_auth_data_free (auth);
             }
           else
             p--;
@@ -440,86 +445,6 @@ mu_retrieve (list_t flist, void *data)
     }
   return p;
 }
-
-/* getpwd support: */
-
-static list_t _app_getpwnam = NULL;
-
-void
-mu_register_getpwnam (struct passwd *(*fun) __P((const char *)))
-{
-  mu_register_retriever (&_app_getpwnam, (mu_retrieve_fp)fun);
-}
-
-struct passwd *
-mu_getpwnam (const char *name)
-{
-  struct passwd *p = getpwnam (name);
-  return p ? p : mu_retrieve (_app_getpwnam, (void*) name);
-}
-
-/* getpwuid support: */
-
-static list_t _app_getpwuid = NULL;
-
-void
-mu_register_getpwuid (struct passwd *(*fun) __P((uid_t *)))
-{
-  mu_register_retriever (&_app_getpwuid, (mu_retrieve_fp)fun);
-}
-
-struct passwd *
-mu_getpwuid (uid_t uid)
-{
-  struct passwd *p = getpwuid (uid);
-  return p ? p : mu_retrieve (_app_getpwuid, &uid);
-}
-
-/* Virtual domains */
-
-int mu_virtual_domain;
-
-#ifdef USE_VIRTUAL_DOMAINS
-
-struct passwd *
-getpwnam_virtual (const char *u)
-{
-  struct passwd *pw = NULL;
-  FILE *pfile;
-  size_t i = 0, len = strlen (u), delim = 0;
-  char *filename;
-
-  mu_virtual_domain = 0;
-  for (i = 0; i < len && delim == 0; i++)
-    if (u[i] == '!' || u[i] == ':' || u[i] == '@')
-      delim = i;
-
-  if (delim == 0)
-    return NULL;
-
-  filename = malloc (strlen (SITE_VIRTUAL_PWDDIR) +
-		     strlen (&u[delim + 1]) + 2 /* slash and null byte */);
-  if (filename == NULL)
-    return NULL;
-
-  sprintf (filename, "%s/%s", SITE_VIRTUAL_PWDDIR, &u[delim + 1]);
-  pfile = fopen (filename, "r");
-  free (filename);
-
-  if (pfile)
-    while ((pw = fgetpwent (pfile)) != NULL)
-      {
-	if (strlen (pw->pw_name) == delim && !strncmp (u, pw->pw_name, delim))
-	  {
-	    mu_virtual_domain = 1;
-	    break;
-	  }
-      }
-
-  return pw;
-}
-
-#endif
 
 int
 mu_get_host_name (char **host)
@@ -988,11 +913,11 @@ mu_unroll_symlink (char *out, size_t outsz, const char *in)
 char *
 mu_expand_path_pattern (const char *pattern, const char *username)
 {
-  char *homedir = NULL;
   const char *p, *startp;
   char *q;
   char *path;
   int len = 0;
+  struct mu_auth_data *auth = NULL;
   
   for (p = pattern; *p; p++)
     {
@@ -1004,14 +929,13 @@ mu_expand_path_pattern (const char *pattern, const char *username)
 	    break;
 	    
 	  case 'h':
-	    if (!homedir)
+	    if (!auth)
 	      {
-		struct passwd *pwd = mu_getpwnam (username);
-		if (!pwd)
+		auth = mu_get_auth_by_name (username);
+		if (!auth)
 		  return NULL;
-		homedir = pwd->pw_dir;
 	      }
-	    len += strlen (homedir);
+	    len += strlen (auth->dir);
 	    break;
 	    
 	  case '%':
@@ -1043,8 +967,8 @@ mu_expand_path_pattern (const char *pattern, const char *username)
 	  break;
 	  
 	case 'h':
-	  strcpy (q, homedir);
-	  q += strlen (homedir);
+	  strcpy (q, auth->dir);
+	  q += strlen (auth->dir);
 	  break;
 	  
 	case '%':
@@ -1063,5 +987,7 @@ mu_expand_path_pattern (const char *pattern, const char *username)
       q += strlen (startp);
     }
   *q = 0;
+  if (auth)
+    mu_auth_data_free (auth);
   return path;
 }
