@@ -56,6 +56,9 @@
 	* mailbox/mbx_pop.c (_mailbox_pop_init): Remove the creation
 	of authority here, moved to _folder_imap_init().
 
+	* messages/messages.c (messages_count): Argument should
+	be const.
+
 2001-11-01  Sergey Poznyakoff
 
 	* configure.in: Added check for utmp.h & utmpx.h

@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <argp.h>
 
-static int messages_count (char *);
+static int messages_count (const char *);
 
 const char *argp_program_version = "messages (" PACKAGE ") " VERSION;
 const char *argp_program_bug_address = "<bug-mailutils@gnu.org>";
@@ -78,18 +78,15 @@ main (int argc, char **argv)
 }
 
 static int
-messages_count (char *box)
+messages_count (const char *box)
 {
   mailbox_t mbox;
   url_t url = NULL;
   int count;
 
-  if (box == NULL)
-    box = (char *)"";
-
   if (mailbox_create_default (&mbox, box) != 0)
     {
-      fprintf (stderr, "Couldn't create mailbox %s.\n", box);
+      fprintf (stderr, "Couldn't create mailbox %s.\n", (box) ? box : "");
       return -1;
     }
 
