@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -23,6 +23,10 @@
 # include <strings.h>
 #endif
 
+#define obstack_chunk_alloc malloc
+#define obstack_chunk_free free
+#include <obstack.h>
+
 typedef struct       /* A string object type */
 {
   int size;          /* Allocated size or 0 for static storage */
@@ -42,8 +46,8 @@ struct mh_machine
   mh_instr_t *prog;         /* Program itself */
   int stop;                 /* Stop execution immediately */
 
-  char *outbuf;             /* Output buffer */
-  size_t width;             /* Output buffer size */
+  struct obstack stk;       /* Output buffer */
+  size_t width;             /* Output buffer width */
   size_t ind;               /* Output buffer index */
 
   int fmtflags;             /* Current formatting flags */
@@ -163,45 +167,153 @@ compress_ws (char *str, size_t *size)
   *size = p - (unsigned char*) str;
 }
 
+static void
+put_string (struct mh_machine *mach, char *str, int len)
+{
+  if (len == 0)
+    len = strlen (str);
+  obstack_grow (&mach->stk, str, len);
+  mach->ind += len;
+}
+
+static void
+print_hdr_segment (struct mh_machine *mach, char *str, size_t len)
+{
+  if (!len)
+    len = strlen (str);
+
+  if (len < mach->width)
+    put_string (mach, str, len);
+  else
+    {
+      char *endp = str + len;
+      
+      while (str < endp)
+	{
+	  size_t rest;
+	  char *p;
+	  size_t size;
+	  
+	  size = endp - str;
+	  rest = mach->width - mach->ind;
+	  if (size < rest)
+	    {
+	      put_string (mach, str, size);
+	      break;
+	    }
+	  
+	  for (p = str + rest - 1; p > str && !isspace (*p); p--)
+	    ;
+
+	  if (p > str)
+	    {
+	      put_string (mach, str, p - str);
+	      put_string (mach, "\n\t", 0);
+	      mach->ind = 1;
+	      str = p;
+	    }
+	  else
+	    {
+	      put_string (mach, str, size);
+	      str += len;
+	    }
+	}
+    }
+}
+
 /* Print len bytes from str into mach->outbuf */
 static void
-print_string (struct mh_machine *mach, size_t width, char *str, size_t fmtlen)
+print_hdr_string (struct mh_machine *mach, char *str)
 {
-  size_t rest, len;
+  char *p;
+  
+  if (!str)
+    str = "";
+
+  p = strchr (str, '\n');
+  while (p)
+    {
+      print_hdr_segment (mach, str, p - str + 1);
+      mach->ind = 0;
+      str = p + 1;
+      p = strchr (str, '\n');
+    }
+    
+  if (str[0])
+    print_hdr_segment (mach, str, 0);
+}
+
+static void
+print_simple_segment (struct mh_machine *mach, size_t width,
+		      char *str, size_t len)
+{
+  size_t rest;
+
+  if (!str)
+    str = "";
+
+  if (!len)
+    len = strlen (str);
+
+  if (!width)
+    width = mach->width;
+
+  rest = width - mach->ind;
+  if (rest == 0)
+    return;
+  if (len > rest)
+    len = rest;
+
+  put_string (mach, str, len);
+}
+
+static void
+print_string (struct mh_machine *mach, size_t width, char *str)
+{
+  char *p;
   
   if (!str)
     str = "";
 
   if (!width)
     width = mach->width;
-  len = strlen (str);
-  rest = width - mach->ind;
-  if (len > rest)
-    {
-      if (fmtlen >= len)
-	fmtlen = rest;
-      len = rest;
-    }
-  
-  if (fmtlen < len)
-    len = fmtlen;
-  
-  memcpy (mach->outbuf + mach->ind, str, len);
-  mach->ind += len;
 
-  if (fmtlen > len)
+  p = strchr (str, '\n');
+  while (p)
     {
-      fmtlen -= len;
-      memset (mach->outbuf + mach->ind, ' ', fmtlen);
-      mach->ind += fmtlen;
+      print_simple_segment (mach, width, str, p - str + 1);
+      mach->ind = 0;
+      str = p + 1;
+      p = strchr (str, '\n');
+    }
+    
+  if (str[0])
+    print_simple_segment (mach, width, str, 0);
+}
+  
+static void
+print_fmt_string (struct mh_machine *mach, size_t fmtwidth, char *str)
+{
+  size_t len = strlen (str);
+  if (len > fmtwidth)
+    len = fmtwidth;
+  put_string (mach, str, len);
+
+  if (fmtwidth > len)
+    {
+      fmtwidth -= len;
+      mach->ind += fmtwidth;
+      while (fmtwidth--)
+	obstack_1grow (&mach->stk, ' ');
     }
 }
 
+/* FIXME: width? */
 static void
 print_obj (struct mh_machine *mach, size_t width, strobj_t *obj)
 {
   if (!strobj_is_null (obj))
-    print_string (mach, 0, strobj_ptr (obj), strobj_len (obj));
+    print_string (mach, 0, strobj_ptr (obj));
 }
 
 static void
@@ -210,11 +322,73 @@ reset_fmt_defaults (struct mh_machine *mach)
   mach->fmtflags = 0;
 }
 
+static void
+format_num (struct mh_machine *mach, long num)
+{
+  int n;
+  char buf[64];
+  char *ptr;
+  int fmtwidth = mach->fmtflags & MH_WIDTH_MASK;
+  int padchar = mach->fmtflags & MH_FMT_ZEROPAD ? '0' : ' ';
+	    
+  n = snprintf (buf, sizeof buf, "%ld", num);
+
+  if (fmtwidth)
+    {
+      if (n > fmtwidth)
+	{
+	  ptr = buf + n - fmtwidth;
+	  *ptr = '?';
+	}
+      else
+	{
+	  int i;
+	  ptr = buf;
+	  for (i = n; i < fmtwidth && mach->ind < mach->width;
+	       i++, mach->ind++)
+	    obstack_1grow (&mach->stk, padchar);
+	}
+    }
+  else
+    ptr = buf;
+
+  print_string (mach, 0, ptr);
+  reset_fmt_defaults (mach);
+}
+
+static void
+format_str (struct mh_machine *mach, char *str)
+{
+  if (!str)
+    str = "";
+  if (mach->fmtflags)
+    {
+      int len = strlen (str);
+      int fmtwidth = mach->fmtflags & MH_WIDTH_MASK;
+      int padchar = ' ';
+				
+      if (mach->fmtflags & MH_FMT_RALIGN)
+	{
+	  int i, n;
+	  
+	  n = fmtwidth - len;
+	  for (i = 0; i < n && mach->ind < mach->width;
+	       i++, mach->ind++, fmtwidth--)
+	    obstack_1grow (&mach->stk, padchar);
+	}
+	      
+      print_fmt_string (mach, fmtwidth, str);
+      reset_fmt_defaults (mach);
+    }
+  else
+    print_string (mach, 0, str);
+}
+
 /* Execute pre-compiled format on message msg with number msgno.
    buffer and bufsize specify output storage */
 int
 mh_format (mh_format_t *fmt, message_t msg, size_t msgno,
-	   char *buffer, size_t bufsize)
+	   size_t width, char **pret)
 {
   struct mh_machine mach;
   char buf[64];
@@ -226,9 +400,9 @@ mh_format (mh_format_t *fmt, message_t msg, size_t msgno,
   mach.message = msg;
   mach.msgno = msgno;
   
-  mach.width = bufsize - 1;  /* Allow for terminating NULL */
-  mach.outbuf = buffer;
+  mach.width = width;
   mach.pc = 1;
+  obstack_init (&mach.stk);
   reset_fmt_defaults (&mach);
   
   while (!mach.stop)
@@ -357,61 +531,11 @@ mh_format (mh_format_t *fmt, message_t msg, size_t msgno,
 	  break;
 
 	case mhop_num_print:
-	  {
-	    int n;
-	    char buf[64];
-	    char *ptr;
-	    int fmtwidth = mach.fmtflags & MH_WIDTH_MASK;
-	    int padchar = mach.fmtflags & MH_FMT_ZEROPAD ? '0' : ' ';
-	    
-	    n = snprintf (buf, sizeof buf, "%d", mach.reg_num);
-
-	    if (fmtwidth)
-	      {
-		if (n > fmtwidth)
-		  {
-		    ptr = buf + n - fmtwidth;
-		    *ptr = '?';
-		  }
-		else
-		  {
-		    int i;
-		    ptr = buf;
-		    for (i = n; i < fmtwidth && mach.ind < mach.width;
-			 i++, mach.ind++)
-		      mach.outbuf[mach.ind] = padchar;
-		  }
-	      }
-	    else
-	      ptr = buf;
-
-	    print_string (&mach, 0, ptr, strlen (ptr));
-	    reset_fmt_defaults (&mach);
-	  }
+	  format_num (&mach, mach.reg_num);
 	  break;
 	  
 	case mhop_str_print:
-	  if (mach.fmtflags)
-	    {
-	      int len = strobj_len (&mach.reg_str);
-	      int fmtwidth = mach.fmtflags & MH_WIDTH_MASK;
-	      int padchar = ' ';
-				
-	      if (mach.fmtflags & MH_FMT_RALIGN)
-		{
-		  int i, n;
-
-		  n = fmtwidth - len;
-		  for (i = 0; i < n && mach.ind < mach.width;
-		       i++, mach.ind++, fmtwidth--)
-		    mach.outbuf[mach.ind] = padchar;
-		}
-		
-	      print_string (&mach, 0, strobj_ptr (&mach.reg_str), fmtwidth);
-	      reset_fmt_defaults (&mach);
-	    }
-	  else
-	    print_obj (&mach, 0, &mach.reg_str);
+	  format_str (&mach, strobj_ptr (&mach.reg_str));
 	  break;
 
 	case mhop_fmtspec:
@@ -425,7 +549,13 @@ mh_format (mh_format_t *fmt, message_t msg, size_t msgno,
     }
   strobj_free (&mach.reg_str);
   strobj_free (&mach.arg_str);
-  mach.outbuf[mach.ind] = 0;
+
+  if (pret)
+    {
+      obstack_1grow (&mach.stk, 0);
+      *pret = strdup (obstack_finish (&mach.stk));
+    }
+  obstack_free (&mach.stk, NULL);
   return mach.ind;
 }
 
@@ -843,16 +973,14 @@ builtin_trim (struct mh_machine *mach)
 static void
 builtin_putstr (struct mh_machine *mach)
 {
-  print_string (mach, 0,
-		strobj_ptr (&mach->arg_str), strobj_len (&mach->arg_str));
+  print_string (mach, 0, strobj_ptr (&mach->arg_str));
 }
 
 /*     putstrf    expr              print str in a fixed width*/
 static void
 builtin_putstrf (struct mh_machine *mach)
 {
-  print_string (mach, mach->reg_num,
-		strobj_ptr (&mach->arg_str), strobj_len (&mach->arg_str));
+  format_str (mach, strobj_ptr (&mach->arg_str));
 }
 
 /*     putnum     expr              print num*/
@@ -861,7 +989,7 @@ builtin_putnum (struct mh_machine *mach)
 {
   char *p;
   asprintf (&p, "%d", mach->arg_num);
-  print_string (mach, 0, p, strlen (p));
+  print_string (mach, 0, p);
   free (p);
 }
 
@@ -869,10 +997,7 @@ builtin_putnum (struct mh_machine *mach)
 static void
 builtin_putnumf (struct mh_machine *mach)
 {
-  char *p;
-  asprintf (&p, "%d", mach->arg_num);
-  print_string (mach, mach->reg_num, p, strlen (p));
-  free (p);
+  format_num (mach, mach->arg_num);
 }
 
 static int
@@ -1658,10 +1783,12 @@ builtin_concat (struct mh_machine *mach)
 }
 
 static void
-builtin_printstr (struct mh_machine *mach)
+builtin_printhdr (struct mh_machine *mach)
 {
-  print_obj (mach, mach->reg_num, &mach->arg_str);
-  print_obj (mach, mach->reg_num, &mach->reg_str);
+  if (!strobj_is_null (&mach->arg_str))
+    print_hdr_string (mach, strobj_ptr (&mach->arg_str));
+  if (!strobj_is_null (&mach->reg_str))
+    print_hdr_string (mach, strobj_ptr (&mach->reg_str));
 }
 
 static void
@@ -1739,10 +1866,10 @@ mh_builtin_t builtin_tab[] = {
   { "comp",     builtin_comp,     mhtype_num,  mhtype_str },
   { "compval",  builtin_compval,  mhtype_num,  mhtype_str },
   { "trim",     builtin_trim,     mhtype_str,  mhtype_str, 1 },
-  { "putstr",   builtin_putstr,   mhtype_str,  mhtype_str, 1 },
-  { "putstrf",  builtin_putstrf,  mhtype_str,  mhtype_str, 1 },
-  { "putnum",   builtin_putnum,   mhtype_str,  mhtype_num, 1 },
-  { "putnumf",  builtin_putnumf,  mhtype_str,  mhtype_num, 1 },
+  { "putstr",   builtin_putstr,   mhtype_none,  mhtype_str, 1 },
+  { "putstrf",  builtin_putstrf,  mhtype_none,  mhtype_str, 1 },
+  { "putnum",   builtin_putnum,   mhtype_none,  mhtype_num, 1 },
+  { "putnumf",  builtin_putnumf,  mhtype_none,  mhtype_num, 1 },
   { "sec",      builtin_sec,      mhtype_num,  mhtype_str },
   { "min",      builtin_min,      mhtype_num,  mhtype_str },
   { "hour",     builtin_hour,     mhtype_num,  mhtype_str },
@@ -1785,7 +1912,7 @@ mh_builtin_t builtin_tab[] = {
   { "unre",     builtin_unre,     mhtype_str,  mhtype_str },
   { "rcpt",     builtin_rcpt,     mhtype_num,  mhtype_str },
   { "concat",   builtin_concat,   mhtype_none, mhtype_str,     1 },
-  { "printstr", builtin_printstr, mhtype_none, mhtype_str },
+  { "printhdr", builtin_printhdr, mhtype_none, mhtype_str },
   { "in_reply_to", builtin_in_reply_to, mhtype_str,  mhtype_none },
   { "references", builtin_references, mhtype_str,  mhtype_none },
   { "package",  builtin_package,  mhtype_str, mhtype_none },
