@@ -70,7 +70,7 @@ mh_argp_parse (int argc, char **argv,
 	       struct argp_option *option,
 	       struct mh_option *mh_option,
 	       char *argp_doc, char *doc,
-	       int (*handler)(), void *closure)
+	       int (*handler)(), void *closure, int *index)
 {
   struct argp argp;
   struct mh_argp_data data;
@@ -117,11 +117,12 @@ mh_argp_parse (int argc, char **argv,
       for (; i < _argc; i++)
 	_argv[i] = xargv[i-argc];
       _argv[i] = NULL;
-      argp_parse (&argp, _argc, _argv, 0, 0, &data);
+      argp_parse (&argp, _argc, _argv, 0, index, &data);
       free (_argv);
     }
   else
-    argp_parse (&argp, argc, argv, 0, 0, &data);
+    argp_parse (&argp, argc, argv, 0, index, &data);
+  mh_init2 ();
   return 0;
 }
 
