@@ -1,3 +1,19 @@
+2001-09-20 Sergey Poznyakoff
+
+	* frm/frm.c: Print newline not depending on the presence
+	of Subject header.
+
+	* mh/mh_fmtgram.y: Builtin functions return their values
+	in arg_num,arg_str. reg_num,reg_str gets set only when reducing
+	to pitems.
+	Fixed if-blocks to save the result of the last evaluated conditional
+	to reg_num.
+	* mh/mh_format.c: Builtin functions return their values
+	in arg_num,arg_str.
+	Compress whitespace only in component escapes.
+	* mh/mh_init.c: mh_read_formfile(): Handle end-of-line comments
+	and '\' line continuation.
+
 2001-09-19 Alain Magloire
 
 	* mailbox2/debug.c: Remove mu_debug_printv() and only keep
