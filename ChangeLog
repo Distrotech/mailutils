@@ -1,3 +1,18 @@
+2005-03-10  Sergey Poznyakoff
+
+	* TODO: Updated
+	* imap4d/imap4d.h (define _GNU_SOURCE): Removed. Defined
+	in config.h
+	* mailbox/mailcap.c (mu_mailcap_entry_get_value): Bugfix: return
+	ENOENT if no matching entry is found.
+	* mailbox/mutil.c (mu_true_answer_p): Ignore leading whitespace.
+	* mh/mh_init.c (mh_vgetyn): Synchronize with the changes to
+	mu_true_answer_p().
+	* mimeview/mimeview.c: Handle --no-ask and --no-interactive (-h)
+	options. Continue search for a matching entry when necessary.
+	Implement 'test' and 'print' commands.
+	* doc/texinfo/programs.texi (mimeview): Documented new options
+	
 2005-03-09  Sergey Poznyakoff
 
 	* mimeview/mimetypes.l: Bugfix: accept ',' as OR

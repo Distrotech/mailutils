@@ -1,4 +1,4 @@
-GNU mailutils TODO list.  2005-03-06
+GNU mailutils TODO list.  2005-03-10
 Copyright (C) 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 * Documentation
@@ -118,9 +118,7 @@ file?)
 
 ** forward only MTA, nullmailer like, but accepting SMTP on 25 from localhost
 
-** mimeview:
-*** Support test, print and copiousoutput.
-*** Support nametemplate
+** mimeview: support nametemplate
 
 ** all
 
