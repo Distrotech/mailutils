@@ -107,7 +107,6 @@ imap4d_store0 (char *arg, int isuid, char *resp, size_t resplen)
       message_t msg = NULL;
       attribute_t attr = NULL;
       char *items = strdup (sp); /* Don't use the orignal list.  */
-      char *flags = strdup ("");
       int first = 1;
       size_t msgno;
       char *p = items;
@@ -140,17 +139,16 @@ imap4d_store0 (char *arg, int isuid, char *resp, size_t resplen)
 		      attribute_set_flags (attr, type);
 		    }
 		  attribute_set_flags (attr, MU_ATTRIBUTE_MODIFIED);
-		  flags = realloc (flags, strlen (flags) + strlen (item) + 2);
-		  if (*flags)
-		    strcat (flags, " ");
-		  strcat (flags, item);
 		}
 	    }
 	}
-      if (ack && *flags)
-	util_out (RESP_NONE, "%d FETCH FLAGS (%s)", msgno, flags);
+      if (ack)
+	{
+	  util_send ("* %d FETCH ", msgno);
+	  fetch_flags0 ("FLAGS", msg, isuid);
+	  util_send ("\n");
+	}
       free (p);
-      free (flags);
       /* Update the flags of uid table.  */
       imap4d_sync_flags (set[i]);
     }
