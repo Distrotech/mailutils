@@ -1,3 +1,43 @@
+2001-07-19 Sergey Poznyakoff
+	Added guile interface library.
+
+	* Makefile.am: Added scripts libmu_scm guimb.
+	* configure.in: Checks for presence of Guile components.
+	Making libmu_scm and guimb commented out until we solve
+	debug_print name clash
+	(libguile/debug.h vs. mailutils/debug.h).
+
+	* scripts: (new) Contains scripts for preparing guile
+          documentation strings from C sources. The reason for
+	  their presence is that guile-doc-snarf scripts distributed
+	  with guile up to version 1.4 do not work. The comment at
+          the beginnig of scripts/guile-doc-snarf describes why. We'll
+	  have to use these until next version of guile fixes the bug.
+	* scripts/{Makefile.am,guile-doc-snarf,guile-func-name-check,
+          guile-snarf.awk: (new)
+	* scripts/.cvsignore: (new)
+
+	* libmu_scm: (new) Guile interface library:
+	* libmu_scm/Makefile.am: (new).
+	* libmu_scm/mu_scm.c: (new) Main module.
+	* libmu_scm/mu_mailbox.c: (new) Mailbox primitives.
+        * libmu_scm/mu_message.c: (new) Message primitives.
+        * libmu_scm/mu_body.c: (new) Message body primitives.
+	* libmu_scm/mu_scm.h: (new) Library prototypes.
+	* libmu_scm/.cvsignore: (new)
+
+	* guimb: (new) Process mailbox(es) using Guile program or
+	  expression.
+	* guimb/Makefile.am: (new)
+	* guimb/main.c: (new) Main functions.
+	* guimb/collect.c: (new) Collect input.
+	* guimb/util.c: (new) Some utilities.
+	* guimb/run_scm.c: (new) Initialization of libguile and libmu_scm
+	* guimb/guimb.h: Prototypes.
+	* guimb/.cvsignore: (new)
+
+	* examples/reply.scm: Automatic mail responder for use with guimb.
+
 2001-07-18 Sam Roberts
 
 	* include/mailutils/url.h: New api functions for parsing.
