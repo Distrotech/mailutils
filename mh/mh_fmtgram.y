@@ -620,6 +620,8 @@ mh_code_builtin (mh_builtin_t *bp, int argtype)
 		  break;
 		  
 		case mhtype_str:
+		  if (bp->optarg == MHA_OPT_CLEAR)
+		    mh_code_string ("");
 		  /* mhtype_none means that the argument was an escape,
 		     which has left its string value (if any) in the
 		     arg_str register. Therefore, there's no need to
