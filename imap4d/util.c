@@ -858,7 +858,8 @@ util_localname ()
       char *name;
       int name_len = 256;
       int status;
-        
+      struct hostent *hp;
+      
       name = malloc (name_len);
       while (name
 	     && (status = gethostname (name, name_len)) == 0
@@ -872,7 +873,20 @@ util_localname ()
 	  syslog (LOG_CRIT, "Can't find out my own hostname");
 	  exit (1);
         }
-                
+
+      hp = gethostbyname (name);
+      if (hp)
+	{
+	  struct in_addr inaddr;
+	  inaddr.s_addr = *(unsigned int*)hp->h_addr;
+	  hp = gethostbyaddr ((const char *)&inaddr,
+			      sizeof (struct in_addr), AF_INET);
+	  if (hp)
+	    {
+	      free (name);
+	      name = strdup ((char *)hp->h_name);
+	    }
+	}
       localname = name;
     }
   return localname;
