@@ -1,3 +1,12 @@
+2001-11-11  Sergey Poznyakoff
+
+	* comsat/action.c: (new) User-defined actions for comsat.
+	* comsat/Makefile.am: Added action.c to sources
+	* comsat/cfg.c: Removed confusing comment
+	* comsat/comsat.c: Call run_user_action instead of
+	dumping message contents to user's tty.
+	* comsat/comsat.h: Include mailutils headers.
+
 2001-11-11  Alain Magloire
 
 	* lib/mu_dbm.c: Add <errno.h>.
