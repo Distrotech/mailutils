@@ -144,20 +144,31 @@ sieve_value_create (sieve_data_type type, void *data)
       break;
 
     default:
-      sieve_error ("Invalid data type");
+      sieve_compile_error (sieve_filename, sieve_line_num, "Invalid data type");
       abort ();
     }
   return val;
 }
     
 void
-sieve_error (const char *fmt, ...)
+sieve_compile_error (const char *filename, int linenum, const char *fmt, ...)
 {
   va_list ap;
 
   va_start (ap, fmt);
   sieve_error_count++;
-  sieve_machine->error_printer (sieve_machine->data, fmt, ap);
+  sieve_machine->parse_error_printer (sieve_machine->data, filename, linenum,
+                                      fmt, ap);
+  va_end (ap);
+}
+
+void
+sieve_error (sieve_machine_t *mach, const char *fmt, ...)
+{
+  va_list ap;
+
+  va_start (ap, fmt);
+  mach->error_printer (mach->data, fmt, ap);
   va_end (ap);
 }
 
@@ -185,6 +196,15 @@ int
 _sieve_default_error_printer (void *unused, const char *fmt, va_list ap)
 {
   return mu_verror (fmt, ap);
+}
+
+int
+_sieve_default_parse_error (void *unused, const char *filename, int lineno,
+			    const char *fmt, va_list ap)
+{
+  fprintf (stderr, "%s:%d: ", filename, lineno);
+  vfprintf (stderr, fmt, ap);
+  return 0;
 }
 
 char *
@@ -304,10 +324,4 @@ sieve_print_tag_list (list_t list, sieve_printf_t printer, void *data)
   list_do (list, (list_action_t*) tag_printer, &dbg);
 }
 
-void
-sieve_set_debug (sieve_machine_t *mach, sieve_printf_t debug, int level)
-{
-  mach->debug_printer = debug;
-  mach->debug_level = level;
-}
   

@@ -117,7 +117,7 @@ lex_set_buffer (FILE *fp)
   
   if (!buf)
     {
-      sieve_error ("not enough memory");
+      sieve_compile_error (sieve_filename, sieve_line_num, "not enough memory");
       abort ();
     }
 
@@ -218,8 +218,8 @@ push_source (const char *name)
         
   if (stat (name, &st))
     {
-      sieve_error ("can't stat `%s': %s", name, strerror (errno));
-      yyerror ("can't include file");
+      sieve_compile_error (sieve_filename, sieve_line_num,
+                           "can't stat `%s': %s", name, strerror (errno));
       return 1;
     }
 
@@ -232,19 +232,21 @@ push_source (const char *name)
     {
       yyerror ("recursive inclusion");
       if (ctx->prev)
-	sieve_error ("%s:%d: `%s' already included here",
-		     ctx->prev->filename, ctx->prev->line, name);
+	sieve_compile_error (ctx->prev->filename, ctx->prev->line,
+                             "`%s' already included here",
+                             name);
       else
-	sieve_error ("`%s' already included at top level",
-		     name);
+	sieve_compile_error (sieve_filename, sieve_line_num, 
+                             "`%s' already included at top level",
+		             name);
       return 1;
     }
                 
   fp = fopen (name, "r");
   if (!fp)
     {
-      sieve_error ("can't open `%s': %s", name, strerror (errno));
-      yyerror ("can't include file");
+      sieve_compile_error (sieve_filename, sieve_line_num, 
+                           "can't open `%s': %s", name, strerror (errno));
       return 1;
     }
 
@@ -470,7 +472,8 @@ multiline_begin ()
   status = list_create (&string_list);
   if (status)
     {
-      sieve_error ("list_create: %s", mu_errstring (status));
+      sieve_compile_error (sieve_filename, sieve_line_num,
+                           "list_create: %s", mu_errstring (status));
       exit (1);
     }
 }

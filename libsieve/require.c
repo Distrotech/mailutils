@@ -34,8 +34,8 @@ sieve_require (list_t slist)
   status = iterator_create (&itr, slist);
   if (status)
     {
-      sieve_error ("%s:%d: cannot create iterator: %s",
-		   sieve_filename, sieve_line_num,
+      sieve_compile_error (sieve_filename, sieve_line_num,
+                   "cannot create iterator: %s",
 		   mu_errstring (status));
       return;
     }
@@ -51,8 +51,9 @@ sieve_require (list_t slist)
       reg = sieve_action_lookup (s);
       if (!reg)
 	{
-	  sieve_error ("%s:%d: source for the required action %s is not available",
-		       sieve_filename, sieve_line_num, s);
+	  sieve_compile_error (sieve_filename, sieve_line_num,
+                       "source for the required action %s is not available",
+		       s);
 	  break;
 	}
       reg->required = 1;
