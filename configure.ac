@@ -17,7 +17,7 @@
 # Foundation, Inc.
 # 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-AC_INIT([GNU Mailutils], [0.3.2], [bug-mailutils@gnu.org], [mailutils])
+AC_INIT([GNU Mailutils], [0.4], [bug-mailutils@gnu.org], [mailutils])
 AC_CONFIG_SRCDIR([mailbox/mailbox.c])
 AC_CONFIG_AUX_DIR([scripts])
 AC_CANONICAL_TARGET([])
@@ -248,7 +248,7 @@ AC_MSG_RESULT($log_facility)
 dnl Check for headers
 AC_HEADER_STDC
 AC_HEADER_DIRENT
-AC_CHECK_HEADERS(errno.h fcntl.h getopt.h inttypes.h libgen.h limits.h\
+AC_CHECK_HEADERS(errno.h fcntl.h inttypes.h libgen.h limits.h\
  malloc.h obstack.h paths.h shadow.h socket.h sys/socket.h stdarg.h stdio.h\
  stdlib.h string.h strings.h sys/file.h sysexits.h syslog.h termcap.h\
  termios.h termio.h sgtty.h utmp.h utmpx.h unistd.h)
@@ -339,6 +339,11 @@ MU_CHECK_FUNCS(fgetpwent strtok_r getline strndup strnlen strchrnul)
 
 ## Check for presence of utmp.h and utmp-related functions
 MU_CHECK_UTMP
+
+AC_CHECK_HEADER([getopt.h],
+                AC_DEFINE(HAVE_GETOPT_H,1,[Define if the system has getopt.h]),
+                MU_HEADER(getopt.h))
+MU_REPLACE_GNU_GETOPT
 
 dnl Check for libraries
 USE_INCLUDED_ARGP=
