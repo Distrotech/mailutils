@@ -1,3 +1,7 @@
+2004-01-05  Sergey Poznyakoff  <gray@Mirddin.farlep.net>
+
+	* po/POTFILES.in: (Re-)Added mailbox/getopt.c
+
 2003-12-25  Sergey Poznyakoff  <gray@Mirddin.farlep.net>
 
 	* ro.po: Added missing ^K in msgstrs

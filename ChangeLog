@@ -1,3 +1,19 @@
+2004-01-05  Sergey Poznyakoff
+
+	* include/mailutils/mutil.h (mu_true_answer_p): New function.
+	* mailbox/mutil.c: Likewise
+	
+	* mail/var.c: (parse_headers): Use mu_true_answer_p()
+	* mh/mh.h (is_true): Likewise.
+	* mh/mh_init.c (mh_vgetyn): Likewise.
+	* sieve/sieve.c (is_true_p): Likewise.
+	
+	* movemail/movemail.c (move_message): Improved diagnostics
+	
+	* libsieve/runtime.c (instr_run): Adjust pc before calling handler.
+	* libsieve/actions.c (sieve_action_stop); Restored zero assignment
+	to pc. This is possible due to the changes to runtime.c
+
 2004-01-05  Sergey Poznyakoff  
 
 	* include/mailutils/libsieve.h (sieve_locus_t): New datatype.
