@@ -17,7 +17,7 @@
 ##   Foundation, Inc.
 ##   59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-info_TEXINFOS = mailutils.texi
+info_TEXINFOS = mailutils.texi muint.texi
 
 INCFILES=addr.inc http.inc numaddr.inc sfrom.inc url-parse.inc mailcap.inc
 
@@ -55,6 +55,10 @@ mailutils_TEXINFOS = \
  stream.texi \
  url.texi \
  $(INCFILES)
+
+muint_TEXINFOS = \
+ muint.texi\
+ mom.texi
 
 ## Fake configure into including srcdir to VPATH:
 s=${srcdir}:${top_srcdir}/examples/
