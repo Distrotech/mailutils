@@ -97,15 +97,17 @@ locker_create (locker_t *plocker, const char *filename, int flags)
   l->dotlock = malloc(strlen(l->file) + 5 /*strlen(".lock")*/ + 1);
 
   if(!l->dotlock)
-  {
-    free(l->file);
-    free(l);
-    return ENOMEM;
-  }
+    {
+      free (l->file);
+      free (l);
+      return ENOMEM;
+    }
 
   sprintf(l->dotlock, "%s.lock", l->file);
 
-  if (flags)
+  if (strcmp (filename, "/dev/null") == 0)
+    l->flags = MU_LOCKER_NULL;
+  else if (flags)
     l->flags = flags;
   else
     l->flags = MU_LOCKER_DEFAULT;
@@ -344,9 +346,11 @@ locker_lock (locker_t lock)
   if (lock == NULL)
     return EINVAL;
 
-  INVARIANT (lock);
-
-  /* Is the lock already applied? */
+  if (lock->flags == MU_LOCKER_NULL)
+    return 0;
+  
+  INVARIANT (lock)
+    /* Is the lock already applied? */
   if (lock->refcnt > 0)
     {
       assert (lock->fd != -1);
@@ -511,6 +515,9 @@ locker_touchlock (locker_t lock)
   if (!lock)
     return MU_ERR_LOCKER_NULL;
 
+  if (lock->flags == MU_LOCKER_NULL)
+    return 0;
+  
   assert(lock->dotlock);
 
   INVARIANT(lock);
@@ -524,6 +531,12 @@ locker_touchlock (locker_t lock)
 int
 locker_unlock (locker_t lock)
 {
+  if (!lock)
+    return MU_ERR_LOCKER_NULL;
+
+  if (lock->flags == MU_LOCKER_NULL)
+    return 0;
+  
   assert(lock->refcnt >= 0);
 
   if (!lock)
@@ -549,6 +562,7 @@ locker_unlock (locker_t lock)
 
   return 0;
 }
+
 int
 locker_remove_lock (locker_t lock)
 {
@@ -557,26 +571,29 @@ locker_remove_lock (locker_t lock)
   if (!lock)
     return MU_ERR_LOCKER_NULL;
 
+  if (lock->flags == MU_LOCKER_NULL)
+    return 0;
+  
   INVARIANT(lock);
 
   /* If we hold the lock, do an unlock... */
   if(lock->refcnt > 0)
-  {
-    /* Force the reference count to 1 to unlock the file. */
-    lock->refcnt = 1;
-    return locker_unlock(lock);
-  }
+    {
+      /* Force the reference count to 1 to unlock the file. */
+      lock->refcnt = 1;
+      return locker_unlock(lock);
+    }
 
   /* ... if we don't, unlink the lockfile. */
   err = unlink (lock->dotlock);
 
   if(err == -1)
-  {
-    err = errno;
+    {
+      err = errno;
     
-    if(err == ENOENT)
-      err = MU_ERR_LOCK_NOT_HELD;
-  }
+      if(err == ENOENT)
+	err = MU_ERR_LOCK_NOT_HELD;
+    }
 
   INVARIANT(lock);
 
