@@ -235,9 +235,13 @@ _mapfile_flush (stream_t stream)
 }
 
 static int
-_mapfile_get_fd (stream_t stream, int *pfd)
+_mapfile_get_fd (stream_t stream, int *pfd, int *pfd2)
 {
   struct _mapfile_stream *mfs = stream_get_owner (stream);
+
+  if (pfd2)
+    return ENOSYS;
+  
   if (pfd)
     *pfd = mfs->fd;
   return 0;
