@@ -39,6 +39,7 @@
 #include <mailutils/stream.h>
 #include <mailutils/url.h>
 #include <mailutils/header.h>
+#include <mailutils/body.h>
 
 #include <mailer0.h>
 #include <registrar0.h>

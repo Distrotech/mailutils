@@ -40,6 +40,7 @@
 #include <mailutils/debug.h>
 #include <mailutils/errno.h>
 #include <mailutils/header.h>
+#include <mailutils/body.h>
 #include <mailutils/message.h>
 #include <mailutils/mutil.h>
 #include <mailutils/observer.h>
