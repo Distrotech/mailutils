@@ -605,7 +605,7 @@ deliver (mailbox_t imbx, char *name)
   struct mu_auth_data *auth;
   int status;
   stream_t istream, ostream;
-  size_t size;
+  off_t size;
   int failed = 0;
   
   auth = mu_get_auth_by_name (name);
@@ -678,7 +678,7 @@ deliver (mailbox_t imbx, char *name)
       return;
     }
 
-  if ((status = stream_size (ostream, (off_t *) &size)))
+  if ((status = stream_size (ostream, &size)))
     {
       mailer_err (_("can't get stream size (mailbox %s): %s"),
 		  path, mu_strerror (status));
@@ -688,7 +688,8 @@ deliver (mailbox_t imbx, char *name)
 
 #if defined(USE_DBM)
   {
-    size_t n, isize;
+    size_t n;
+    off_t isize;
 
     switch (check_quota (name, size, &n))
       {
@@ -702,7 +703,7 @@ deliver (mailbox_t imbx, char *name)
 	break;
 	
       default:
-	if ((status = stream_size (istream, (off_t *) &isize)))
+	if ((status = stream_size (istream, &isize)))
 	  {
 	    mailer_err (_("can't get stream size (input message): %s"),
 			path, mu_strerror (status));
@@ -727,9 +728,9 @@ deliver (mailbox_t imbx, char *name)
       off_t off = size;
       size_t nwr, nrd;
       char *buf = NULL;
-      size_t bufsize = 1024;
+      off_t bufsize = 1024;
 
-      stream_size (istream, (off_t *) &bufsize);
+      stream_size (istream, &bufsize);
       for (; (buf = malloc (bufsize)) == NULL && bufsize > 1; bufsize /= 2)
 	;
       
