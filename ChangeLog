@@ -11,6 +11,8 @@
 	* mail/msgset.y: Remove HAVE_REGEX macro and check variable
 	"noregex" before using regex.
 
+	* configure.in: Check for GNU regex.
+
 2001-08-07 Alain Magloire
 
 	* mail/msgset.y:  Draft implementation of a proposition
