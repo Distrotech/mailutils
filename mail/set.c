@@ -52,7 +52,7 @@ mail_set (int argc, char **argv)
 	      if (i >= argc)
 		break;
 
-	      nval = strtoul (argv[i], &p, NULL);
+	      nval = strtoul (argv[i], &p, 0);
 	      if (*p == 0)
 		util_setenv (name, &nval, Mail_env_number, 1);
 	      else
