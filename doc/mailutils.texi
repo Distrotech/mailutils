@@ -62,7 +62,7 @@ by the Foundation.
 @setchapternewpage off
 
 @titlepage
-@title mailutils, librairy API.
+@title mailutils, library API.
 @subtitle version @value{VERSION}, @value{UPDATED}
 @author Alain Magloire et al.
 

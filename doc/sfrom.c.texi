@@ -29,7 +29,8 @@ int main (int argc, char **argv)
          if (mail == NULL)
            @{
                char * user = getlogin ();
-               size_t len = strlen (_PATH_MAILDIR) + strlen (user) + 1;
+               size_t len = strlen (_PATH_MAILDIR)
+                           + 1 /* for slash */ + strlen (user) + 1 /* null */;
                mail = malloc (len);
                if (mail == NULL)
                  @{
