@@ -1,3 +1,52 @@
+2003-03-24  Sergey Poznyakoff
+
+	* mh/mhn.c: Implemented external-body.
+	* mh/TODO: Updated
+
+	* configure.ac (ATTRIBUTE_UNUSED): Renamed to ARG_UNUSED
+	  to avoid confusion.
+	* auth/pam.c: Use ARG_UNUSED where necessary
+	* lib/daemon.c: Likewise.
+	* mail/decode.c: Likewise.
+	* mail/exit.c: Likewise.
+	* mail/folders.c: Likewise.
+	* mail/if.c: Likewise.
+	* mail/inc.c: Likewise.
+	* mail/list.c: Likewise.
+	* mail/mail.c: Likewise.
+	* mail/tag.c: Likewise.
+	* mail/var.c: Likewise.
+	* mail/version.c: Likewise.
+ 	* mail/mailline.c: Likewise.
+	* mail/msgset.y: Likewise.
+	* mail/quit.c: Likewise.
+	* mail/source.c: Likewise.
+	* mail/summary.c: Likewise.
+	* mailbox/auth.c: Likewise.
+	* mailbox/body.c: Likewise.
+	* mailbox/filter_trans.c: Likewise.
+	* mailbox/monitor.c: Likewise.
+	* mailbox/parsedate.y: Likewise.
+	* mailbox/stream.c: Likewise.
+	* mailbox/url_file.c: Likewise.
+	* mailbox/url_path.c: Likewise.
+	* mailbox/url_sendmail.c: Likewise.
+	* mailbox/mh/folder.c: Likewise.
+	* mailbox/mh/mbox.c: Likewise.
+	* mailbox/mh/url.c: Likewise.
+	* mailbox/pop/mbox.c: Likewise.
+	* mailbox/pop/url.c: Likewise.
+	* mailbox/imap/folder.c: Likewise.
+	* mailbox/imap/url.c: Likewise.
+	* mailbox/mbox/folder.c: Likewise.
+	* mailbox/mbox/url.c: Likewise.
+	* imap4d/capability.c: Likewise.
+	* imap4d/check.c: Likewise.
+	* imap4d/close.c: Likewise.
+	* imap4d/fetch.c: Likewise.
+	* pop3d/auth.c: Likewise.
+	* pop3d/signal.c: Likewise.
+	
 2003-03-22  Jordi Mallach
 
 	* mailbox/Makefile.am (EXTRA_DIST): Added parsedate.y.
