@@ -1,3 +1,21 @@
+2001-12-17 Sam Roberts
+
+	* doc/texinfo/mailer.texi, include/mailutils/mailer.h,
+	  mailbox/mailer.c, mailbox/sendmail.c, mailbox/smtp.c,
+	  mailbox/include/mailer0.h: mailer_send_message() now takes
+	  optional from and to addresses, so they can be specified rather
+	  than deduced from the env or message body.
+	* mail/send.c: modified to compile against the changed
+	  mailer_send_message()
+	* examples/: Makefile, msg-send.c: Added msg-send example of using
+	  the mailer_t API.
+	* mailbox/url_sendmail.c: Now takes advantage of url_parse().
+	* TODO: Idea for a popen() stream_t wrapper.
+	* doc/texinfo/stream.texi, include/mailutils/stream.h: Forgot to
+	  add stdio_stream_create() to the header, it opens a stream_t on an
+	  existing FILE, and you can choose whether it fcloses() it or not.
+	* examples/.cvsignore: updated
+
 2001-12-16 Alain Magloire
 
 	* mailbox/address.c:  Problem between signed and unsigned comparison.

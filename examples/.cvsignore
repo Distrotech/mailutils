@@ -9,5 +9,6 @@ mbox-check
 mbox-dates
 mbox-dates.out
 mbox-explode
+msg-send
 url-parse
 mimetest
