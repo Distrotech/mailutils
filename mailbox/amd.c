@@ -105,6 +105,7 @@ static void _amd_message_delete __P((struct _amd_data *amd,
 				    struct _amd_message *msg));
 static int amd_pool_open __P((struct _amd_message *mhm));
 static int amd_pool_open_count __P((struct _amd_data *amd));
+static void amd_pool_flush (struct _amd_data *amd);
 static struct _amd_message **amd_pool_lookup __P((struct _amd_message *mhm));
 
 static int amd_envelope_date __P((envelope_t envelope, char *buf, size_t len,
@@ -303,6 +304,7 @@ amd_destroy (mailbox_t mailbox)
   if (!amd)
     return;
 
+  amd_pool_flush (amd);
   monitor_wrlock (mailbox->monitor);
   for (i = 0; i < amd->msg_count; i++)
     {
@@ -340,8 +342,30 @@ amd_open (mailbox_t mailbox, int flags)
 static int
 amd_close (mailbox_t mailbox)
 {
+  struct _amd_data *amd;
+  int i;
+    
   if (!mailbox)
     return MU_ERR_MBX_NULL;
+
+  amd = mailbox->data;
+  
+  /* Destroy all cached data */
+  amd_pool_flush (amd);
+  monitor_wrlock (mailbox->monitor);
+  for (i = 0; i < amd->msg_count; i++)
+    {
+      message_destroy (&amd->msg_array[i]->message, amd->msg_array[i]);
+      free (amd->msg_array[i]);
+    }
+  free (amd->msg_array);
+  amd->msg_array = NULL;
+
+  amd->msg_count = 0; /* number of messages in the list */
+  amd->msg_max = 0;   /* maximum message buffer capacity */
+
+  amd->uidvalidity = 0;
+
   return 0;
 }
 
@@ -1122,6 +1146,21 @@ amd_pool_open (struct _amd_message *mhm)
   amd->msg_pool[amd->pool_last++] = mhm;
   amd->pool_last %= MAX_OPEN_STREAMS;
   return 0;
+}
+
+static void
+amd_pool_flush (struct _amd_data *amd)
+{
+  int i;
+  
+  for (i = amd->pool_first; i != amd->pool_last; )
+    {
+      if (amd->msg_pool[i])
+	amd_message_stream_close (amd->msg_pool[i]);
+      if (++i == MAX_OPEN_STREAMS)
+	i = 0;
+    }
+  amd->pool_first = amd->pool_last = 0;
 }
 
 /* Attach a stream to a given message structure. The latter is supposed
