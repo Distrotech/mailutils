@@ -60,6 +60,7 @@ proc default_imap4d_start {args} {
     global MU_TOOL
     global MU_TOOL_FLAGS
     global expect_out
+    global imap4d_spawn_id
     
     mu_version
 
@@ -83,8 +84,8 @@ proc default_imap4d_start {args} {
     set imap4d_cmd "$MU_TOOL $sw"
     verbose "Spawning $imap4d_cmd"
 
-    set res [remote_spawn host $imap4d_cmd]
-    if { $res < 0 || $res == "" } {
+    set imap4d_spawn_id [remote_spawn host $imap4d_cmd]
+    if { $imap4d_spawn_id < 0 || $imap4d_spawn_id == "" } {
 	perror "Spawning $imap4d_cmd failed."
 	return 1;
     }
@@ -102,9 +103,14 @@ proc default_imap4d_start {args} {
 }
 
 proc default_imap4d_stop {} {
-
     verbose "Stopping imap4d"
-
+    if [imap4d_test "LOGOUT"\
+	    "BYE Session terminating." \
+	    "OK LOGOUT Completed"] {
+	perror "LOGOUT failed"
+	exit 1
+    }
+    return 0
 }
 
 proc imap4d_start {args} {
@@ -135,7 +141,11 @@ proc imap4d_start {args} {
 }
     
 proc imap4d_stop {} {
-    return [default_imap4d_stop];
+    global imap4d_spawn_id
+    if {[info exists imap4d_spawn_id] && $imap4d_spawn_id > 0} {
+	default_imap4d_stop
+	unset imap4d_spawn_id
+    }
 }
 
 ##
@@ -156,18 +166,12 @@ proc imap4d_command { cmd } {
 }
 
 proc imap4d_uidvalidity {} {
-	regsub "(\[0-9\]*)\[0-9\]" "[clock seconds]" "\\1\[0-9\]" val
-	return $val
+    regsub "(\[0-9\]*)\[0-9\]" "[clock seconds]" "\\1\[0-9\]" val
+    return $val
 }
 
 proc imap4d_exit {} {
-    if [imap4d_test "LOGOUT"\
-	    "BYE Session terminating." \
-	    "OK LOGOUT Completed"] {
-	perror "LOGOUT failed"
-	exit 1
-    }
-    return 0
+    imap4d_stop
 }
 
 proc imap4d_auth {args} {
