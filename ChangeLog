@@ -1,3 +1,25 @@
+2002-12-23  Wojciech Polak <polak@gnu.org>
+
+	* po/: New directory.
+	* po/Makevars: New file.
+	* po/POTFILES.in: Likewise.
+	* po/LINGUAS: Likewise.
+	* po/ChangeLog: Likewise.
+	* mailbox/nls.c: New file. NLS main code.
+	* mailbox/Makefile.am: Updated.
+	* include/mailutils/nls.h: New file. NLS main header file.
+	* include/mailutils/Makefile.am: Updated.
+	* configure.ac: Added NLS support, added AC_CONFIG_AUX_DIR([scripts]).
+	* Makefile.am: Added 'intl po' to SUBDIRS.
+	* mail/*: Added NLS support.
+	* messages/*: Likewise.
+	* readmsg/*: Likewise.
+	* comsat/*: Likewise.
+	* pop3d/*: Likewise.
+	* frm/*: Likewise.
+
+	* mail/delete.c: Fixed. MSG_NODELETED.
+
 2002-12-22  Jeff Bailey <jbailey@nisa.net>
 
 	* mailbox/mbx_maildir.c: Initial checkin of template
