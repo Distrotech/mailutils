@@ -38,7 +38,9 @@ mailutils_TEXINFOS = \
  url.texi \
  $(INCFILES)
 
-VPATH = ${top_srcdir}/examples/
+## Fake configure into including srcdir to VPATH:
+s=${srcdir}:${top_srcdir}/examples/
+VPATH = $(s)
 
 SUFFIXES=.c .inc
 .c.inc:
