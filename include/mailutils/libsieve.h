@@ -169,7 +169,8 @@ sieve_relcmp_t sieve_get_relcmp __P((sieve_machine_t mach, list_t tags));
 void sieve_require __P((list_t slist));
 int sieve_tag_lookup __P((list_t taglist, char *name, sieve_value_t **arg));
 int sieve_load_ext __P((sieve_machine_t mach, const char *name));
-
+int sieve_match_part_checker __P((const char *name, list_t tags, list_t args));
+  
 /* Operations in value lists */
 sieve_value_t *sieve_value_get __P((list_t vlist, size_t index));
 int sieve_vlist_do __P((sieve_value_t *val, list_action_t *ac, void *data));
