@@ -1,3 +1,17 @@
+2005-02-21  Sergey Poznyakoff
+
+	* libsieve/actions.c: Further unification of diagnostic style.
+	* libsieve/argp.c: Likewise.
+	* mail/mail.c: Likewise.
+	* mail.local/mailquota.c: Likewise.
+	* mailbox/mu_argp.c: Likewise.
+	* mh/forw.c: Likewise.
+	* mh/refile.c: Likewise.
+	* mh/repl.c: Likewise.
+	* mh/send.c: Likewise.
+	* sieve/sieve.c: Likewise.
+	* mail.local/main.c: Add debug flag 'i' for symmetry with sieve
+
 2005-02-16  Sergey Poznyakoff
 
 	Fix a long-standing issue in mailbox and imap4d:
