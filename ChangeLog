@@ -1,10 +1,24 @@
+2001-07-01 Sergey Poznyakoff
+        * mailbox/attribute.c: set MU_ATTRIBUTE_MODIFIED bit in the underlying
+        structure when setting the flags.
+        * mail/mail.c: Initialize readline and set user name before
+        determining working mode.
+        For an empty mailbox output diagnostics and quit.
+        Read system-wide mail.rc file.
+        Implemented "set ignoreeof".
+        * mail/send.c: Implemented "set ignore", "set ignoreeof", "set nosave".
+        Use doubled escape character to insert a single escape to the
+        message body.
+        * mail/delete.c: Implemented "set autoprint"
+        * mail/dp.c: removed util_do_command("next"): delete does this anyway.
+
 2001-06-30 Sergey Poznyakoff
 	* configure.in:
 		define READLINE_LIBS instead of linking libreadline
 		to every binary. 
 		AC_CHECK_LIB(pthread) was missing comma before
 		ACTION_IF_NOT_FOUND, thus have_libpthread was always no.
-	* mail/Makefile.am: User READLINE_LIBS
+	* mail/Makefile.am: Use READLINE_LIBS
 	* lib/argcv.[ch]: Treat a sequence of whitespace characters as
 	a single whitespace. Break string on given delimiters. Do not
 	split quoted arguments.
