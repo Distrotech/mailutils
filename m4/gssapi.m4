@@ -44,8 +44,8 @@ AC_DEFUN(MU_CHECK_GSSAPI,
     if test "$GSSAPI_IMPL" = "none"; then
       AC_CHECK_LIB(gssapi, gss_init_sec_context,
         [GSSAPI_IMPL="Heimdal"
-         GSSAPI_LIBS="$GSSAPI_LDFLAGS -lgssapi -lkrb5 -ldes -lasn1 -lroken"
-         GSSAPI_LIBS="$GSSAPI_LIBS -lcrypt -lcom_err"]
+         GSSAPI_LDFLAGS="$GSSAPI_LDFLAGS -lgssapi -lkrb5 -ldes -lasn1 -lroken"
+         GSSAPI_LIBS="$GSSAPI_LDFLAGS -lcrypt -lcom_err"]
          ,, -lkrb5 -ldes -lasn1 -lroken -lcrypt -lcom_err)
     fi
 
