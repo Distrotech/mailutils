@@ -373,6 +373,7 @@
 
 ;;;; Comparators
 
+;;; Each entry is (list COMP-NAME COMP-FUNCTION)
 (define sieve-comparator-table '())
 
 (define (sieve-find-comparator name)
@@ -391,7 +392,13 @@
 
 ;;;; Command parsers
 
-
+;;; Each entry is: (list NAME FUNCTION OPT-ARG-LIST REQ-ARG-LIST)
+;;; OPT-ARG-LIST is a list of optional arguments (aka keywords, tags).
+;;; It consists of conses: (cons TAG-NAME FLAG) where FLAG is #t
+;;; if the tag requires an argument (e.g. :comparator <comp-name>),
+;;; and is #f otherwise.
+;;; REQ-ARG-LIST is a list of required (positional) arguments. It
+;;; is a list of argument types.
 (define sieve-test-table '())
 
 (define (sieve-find-test name)
@@ -650,6 +657,9 @@
   (require-semicolon))
 
 ;;; Actions
+
+;;; Each entry is: (list ACTION-NAME FUNCTION ARG-LIST)
+;;; ARG-LIST is a list of argument types
 (define sieve-action-table '())
 
 (define (sieve-find-action name)
