@@ -1,3 +1,33 @@
+2005-02-27  Sergey Poznyakoff 
+
+	* gnulib.modules: Add mbswidth
+	* frm/frm.c: Implemented -t. Changed implementation of -Q.
+	Rewritten action() to correctly handle multibyte characters
+	and to provide for eventual using the BIDI algorithm.
+	(print_line,format_field,format_field_simple)
+	(format_field_align): New functions
+	(util_getcols): Measure /dev/tty if unable to open stdout.
+	(to work correctly with piped output).
+	(rfc2047_decode_wrapper): Cache the determined locale.
+	(get_personal): Do not limit the returned string length.
+	Do not attempt to decode the raw header text, since
+	parse822 will skip non-ascii characters, decode the already
+	obtained personal part instead.
+
+	* mailbox/address.c (address_aget_personal)
+	(address_aget_comments): Bugfix
+	* sql/mysql.c: Provide place handlers for handling MySQL 4.1.x
+	scrambled passwords.
+	
+	Update by gnulib-sync:
+	
+	* m4/mbrtowc.m4: New file
+	* m4/mbswidth.m4: New file
+	* lib/mbswidth.c: New file
+	* lib/mbswidth.h: New file
+	* lib/Makefile.am: Updated
+	* m4/gnulib.m4: Updated
+
 2005-02-26  Wojciech Polak
 
 	* mh/send.c (expand_aliases): Bugfix. Do not use statically

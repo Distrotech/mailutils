@@ -27,6 +27,9 @@ gl_FUNC_GETPASS_GNU
 # malloc
 AC_FUNC_MALLOC
 
+# mbswidth
+gl_MBSWIDTH
+
 # obstack
 gl_OBSTACK
 
@@ -100,9 +103,6 @@ gl_FUNC_STRNLEN
 
 # sysexits
 gl_SYSEXITS
-
-# unlocked-io
-gl_FUNC_GLIBC_UNLOCKED_IO
 
 # vasnprintf
 gl_FUNC_VASNPRINTF

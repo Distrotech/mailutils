@@ -73,6 +73,8 @@ MOSTLYCLEANFILES += fnmatch.h fnmatch.h-t
 libmailutils_la_SOURCES += getpass.h
 
 
+libmailutils_la_SOURCES += mbswidth.h mbswidth.c
+
 
 
 libmailutils_la_SOURCES += setenv.h
