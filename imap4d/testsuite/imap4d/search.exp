@@ -34,12 +34,10 @@
 imap4d_start 
 imap4d_auth "user!passwd" "guessme"
 
-set UIDVALIDITY [clock seconds]
-
 imap4d_test "SELECT INBOX"\
 "95 EXISTS"\
 "95 RECENT"\
-"OK \[UIDVALIDITY $UIDVALIDITY\] UID valididy status"\
+-re {OK \[UIDVALIDITY [0-9]+\] UID valididy status}\
 "OK \[UIDNEXT 96\] Predicted next uid"\
 "OK \[UNSEEN 1\] first unseen messsage "\
 "FLAGS (\\Answered \\Flagged \\Deleted \\Seen \\Draft)"\
