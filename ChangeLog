@@ -1,5 +1,15 @@
 2003-02-08  Sergey Poznyakoff 
 
+	* mh/mh.h: Added new includes.
+	  (mh_open_msg_file,mh_usedraft): New functions.
+	* mh/mh_init.c (mh_open_msg_file): New function. Based on
+	  refile.c:open_source().
+	* mh/mh_whatnow.c (mh_usedraft): New function.
+	* mh/refile.c (open_source): Removed in favor of mh_open_msg_file().
+	* mh/send.c: Implemented basic functionality.
+
+2003-02-08  Sergey Poznyakoff 
+
 	* examples/decode2047.c (main): Added return statement.
 	* mailbox/mbx_mh.c (_mh_message_save): Allow for mh-specific
 	  delimiter (a string of dashes) between the headers and the body.
