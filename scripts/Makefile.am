@@ -3,3 +3,4 @@
 # See file COPYING in the distribution root directory for copying conditions.
 
 SUBDIRS = guile-1.4 guile-1.6
+EXTRA_DIST = ylwrap
