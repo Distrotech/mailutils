@@ -201,13 +201,12 @@ usage (const char *argv)
   exit (0);
 }
 
-/* This a close of the elm program call "frm".  It is a good example on
+/* This is a clone of the elm program call "frm".  It is a good example on
    how to use the observable(callback) of libmailutils.  "frm" has to
-   be very interactive so it is not possible to call mailbox_messages_count()
+   be very interactive, it is not possible to call mailbox_messages_count()
    and wait for the scanning to finish before displaying.  As soon as the scan
    find a new message we want to know about it, this is done by registering
-   an observable type MU_MAILBOX_NEW_MSG.  The rest is simple displaying
-   formating code.  */
+   an observable type MU_MAILBOX_MSG_ADD.  The rest is formating code.  */
 
 int
 main(int argc, char **argv)

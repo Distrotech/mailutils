@@ -23,7 +23,8 @@ int
 pop3_retr (const char *arg)
 {
   size_t mesgno, n;
-  char buf[BUFFERSIZE];
+  char *buf;
+  size_t buflen = BUFFERSIZE;
   message_t msg;
   attribute_t attr;
   stream_t stream;
@@ -46,13 +47,26 @@ pop3_retr (const char *arg)
 
   message_get_stream (msg, &stream);
   fprintf (ofile, "+OK\r\n");
+
   off = n = 0;
-  while (stream_readline (stream, buf, sizeof (buf) - 1, off, &n) == 0
+  buf = malloc (buflen * sizeof (*buf));
+  if (buf == NULL)
+    pop3_abquit (ERR_NO_MEM);
+
+  while (stream_readline (stream, buf, buflen - 1, off, &n) == 0
 	 && n > 0)
     {
       /* Nuke the trainline newline.  */
       if (buf[n - 1] == '\n')
 	buf[n - 1] = '\0';
+      else /* Make room for the line.  */
+	{
+	  buflen *= 2;
+	  buf = realloc (buf, buflen * sizeof (*buf));
+	  if (buf == NULL)
+	    pop3_abquit (ERR_NO_MEM);
+	  continue;
+	}
       if (buf[0] == '.')
 	fprintf (ofile, ".%s\r\n", buf);
       else
@@ -60,6 +74,7 @@ pop3_retr (const char *arg)
       off += n;
     }
 
+  free (buf);
   fprintf (ofile, ".\r\n");
 
   return OK;

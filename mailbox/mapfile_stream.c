@@ -102,7 +102,7 @@ _mapfile_readline (stream_t stream, char *optr, size_t osize,
 
   nl = memchr (mfs->ptr + offset, '\n', mfs->size - offset);
   n = nl - (mfs->ptr + offset) + 1;
-  n = (n) > osize  ? osize : n;
+  n = (n > osize)  ? osize : n;
   memcpy (optr, mfs->ptr + offset, n);
   if (nbytes)
     *nbytes = n;

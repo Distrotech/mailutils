@@ -1,5 +1,5 @@
 /* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU Library General Public License as published by
@@ -68,19 +68,19 @@ _mailbox_file_init (mailbox_t mbox)
     {
       status = _mailbox_mbox_init (mbox);
     }
-  else if (S_ISREG (st.st_mode))
+  else if (S_ISDIR (st.st_mode))
+    {
+      /* Is that true ?  Are all directories Maildir ?? */
+      /* NOT SUPPORTED: status = _mailbox_maildir_init (mbox);*/
+      status = ENOSYS;
+    }
+  else
     {
       /*
 	FIXME: We should do an open() and try
 	to do a better reconnaissance of the type,
 	maybe MMDF.  For now assume Unix MBox */
       status = _mailbox_mbox_init (mbox);
-    }
-  /* Is that true ?  Are all directories Maildir ?? */
-  else if (S_ISDIR (st.st_mode))
-    {
-      /*status = _mailbox_maildir_init (mbox);*/
-      status = EINVAL;
     }
 
   free (path);

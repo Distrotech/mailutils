@@ -30,7 +30,8 @@ pop3_top (const char *arg)
   body_t body;
   stream_t stream;
   char *mesgc, *linesc;
-  char buf[BUFFERSIZE];
+  char *buf;
+  size_t buflen = BUFFERSIZE;
   size_t n;
   off_t off;
 
@@ -43,7 +44,7 @@ pop3_top (const char *arg)
   mesgc = pop3_cmd (arg);
   linesc = pop3_args (arg);
   mesgno = strtoul (mesgc, NULL, 10);
-  lines = strlen (linesc) > 0 ? strtoul (linesc, NULL, 10) : -1;
+  lines = strlen (linesc) > 0 ? strtol (linesc, NULL, 10) : -1;
   free (mesgc);
   free (linesc);
 
@@ -62,14 +63,25 @@ pop3_top (const char *arg)
   /* Header.  */
   message_get_header (msg, &hdr);
   header_get_stream (hdr, &stream);
+  buf = malloc (buflen * sizeof (*buf));
+  if (buf == NULL)
+    pop3_abquit (ERR_NO_MEM);
   off = n = 0;
-  while (stream_readline (stream, buf, sizeof (buf) - 1, off, &n) == 0)
+  while (stream_readline (stream, buf, buflen - 1, off, &n) == 0)
     {
       if (n == 0)
 	break;
       /* Nuke the trainline newline.  */
       if (buf[n - 1] == '\n')
 	buf [n - 1] = '\0';
+      else /* Make room for the line.  */
+	{
+	  buflen *= 2;
+          buf = realloc (buf, buflen * sizeof (*buf));
+          if (buf == NULL)
+            pop3_abquit (ERR_NO_MEM);
+          continue;
+	}
       off += n;
       fprintf (ofile, "%s\r\n", buf);
     }
@@ -79,20 +91,31 @@ pop3_top (const char *arg)
     {
       message_get_body (msg, &body);
       body_get_stream (body, &stream);
-      for (n = off = 0; lines > 0; lines--, off += n)
+      n = off = 0;
+      while (stream_readline (stream, buf, buflen - 1, off, &n) == 0
+	     && n > 0 && lines > 0)
 	{
-	  int status = stream_readline (stream, buf, sizeof (buf), off, &n);
-	  if (status != 0 || n == 0)
-	    break;
 	  /* Nuke the trainline newline.  */
 	  if (buf[n - 1] == '\n')
 	    buf[n - 1] = '\0';
+	  else /* make room for the line.  */
+	    {
+	      buflen *= 2;
+	      buf = realloc (buf, buflen * sizeof (*buf));
+	      if (buf == NULL)
+		pop3_abquit (ERR_NO_MEM);
+	      continue;
+	    }
 	  if (buf[0] == '.')
 	    fprintf (ofile, ".%s\r\n", buf);
 	  else
 	    fprintf (ofile, "%s\r\n", buf);
+	  lines--;
+	  off += n;
 	}
     }
+
+  free (buf);
   fprintf (ofile, ".\r\n");
 
   return OK;

@@ -80,6 +80,7 @@ pop3_user (const char *arg)
 {
   char *buf, pass[POP_MAXCMDLEN], *tmp, *cmd;
   struct passwd *pw;
+  int status;
 #ifdef USE_LIBPAM
   pam_handle_t *pamh;
   int pamerror;
@@ -171,10 +172,24 @@ pop3_user (const char *arg)
 	  state = AUTHORIZATION;
 	  return ERR_UNKNOWN;
 	}
-      else if (mailbox_open (mbox, MU_STREAM_RDWR) != 0)
+      else if ((status = mailbox_open (mbox, MU_STREAM_RDWR)) != 0)
 	{
-	  state = AUTHORIZATION;
-	  return ERR_MBOX_LOCK;
+	  mailbox_destroy (&mbox);
+	  /* For non existent mailbox, we fake.  */
+	  if (status == ENOENT)
+	    {
+	      if (mailbox_create (&mbox, "/dev/null") != 0
+		  || mailbox_open (mbox, MU_STREAM_READ) != 0)
+		{
+		  state = AUTHORIZATION;
+		  return ERR_UNKNOWN;
+		}
+	    }
+	  else
+	    {
+	      state = AUTHORIZATION;
+	      return ERR_MBOX_LOCK;
+	    }
 	}
 
       username = strdup (arg);

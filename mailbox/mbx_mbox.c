@@ -270,15 +270,29 @@ mbox_open (mailbox_t mailbox, int flags)
       /* We do not try to mmap for CREAT or APPEND, it is not supported.  */
       status = (flags & MU_STREAM_CREAT)
 	|| (mailbox->flags & MU_STREAM_APPEND);
+
+      /* Try to mmap() the file first.  */
       if (status == 0)
-	status = mapfile_stream_create (&(mailbox->stream));
+	{
+	  status = mapfile_stream_create (&(mailbox->stream));
+	  if (status == 0)
+	    {
+	      status = stream_open (mailbox->stream, mud->name, 0,
+				    mailbox->flags);
+	      if (status != 0)
+		stream_destroy (&mailbox->stream, NULL);
+	    }
+	}
+
+      /* Fall back to normal file if mmap() failed.  */
       if (status != 0)
 	{
 	  status = file_stream_create (&(mailbox->stream));
 	  if (status != 0)
 	    return status;
+	  status = stream_open (mailbox->stream, mud->name, 0, mailbox->flags);
 	}
-      status = stream_open (mailbox->stream, mud->name, 0, mailbox->flags);
+      /* All failed, bail out.  */
       if (status != 0)
 	return status;
     }
@@ -845,14 +859,26 @@ mbox_body_readstream (stream_t is, char *buffer, size_t buflen,
     off_t ln = mum->body_end - (mum->body + off);
     if (ln > 0)
       {
-	nread = ((size_t)ln < buflen) ? ln : buflen;
 	/* Position the file pointer and the buffer.  */
 	if (isreadline)
-	  status = stream_readline (mum->stream, buffer, nread,
-				    mum->body + off, &nread);
+	  {
+	    status = stream_readline (mum->stream, buffer, buflen,
+				      mum->body + off, &nread);
+	    /* This mean we went pass the message boundary, thechnically it
+	       should not be sine we are reading by line, but just in case
+	       truncate the string.  */
+	    if (nread > (size_t)ln)
+	      {
+		buffer[ln] = '\0';
+		nread = ln;
+	      }
+	  }
 	else
-	  status = stream_read (mum->stream, buffer, nread,
-				mum->body + off, &nread);
+	  {
+	    nread = ((size_t)ln < buflen) ? ln : buflen;
+	    status = stream_read (mum->stream, buffer, nread,
+				  mum->body + off, &nread);
+	  }
       }
   }
   monitor_unlock (mum->mud->mailbox->monitor);

@@ -1,5 +1,5 @@
 /* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -18,10 +18,14 @@
 /* Define if using libpam */
 #undef USE_LIBPAM
 
+/* Define if have snprintf() */
 #undef HAVE_SNPRINTF
 
+/* Define if enable Posix Thread */
 #undef WITH_PTHREAD
+
+/* Define if using Berkeley DB2 */
+#undef WITH_BDB2
 
 /* Define if using libreadline */
 #undef WITH_READLINE
-

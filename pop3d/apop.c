@@ -18,14 +18,14 @@
 #include "pop3d.h"
 
 /* Check if a username exists in APOP password file
-   returns pinter to password if found, otherwise NULL */
+   returns pointer to password if found, otherwise NULL */
 char *
 pop3_apopuser (const char *user)
 {
   char *password;
   char buf[POP_MAXCMDLEN];
   struct stat st;
-#ifdef BDB2
+#ifdef WITH_BDB2
   int errno;
   DB *dbp;
   DBT key, data;
@@ -43,7 +43,7 @@ pop3_apopuser (const char *user)
 	return NULL;
       }
 
-#ifdef BDB2
+#ifdef WITH_BDB2
   errno = db_open (APOP_PASSFILE ".db", DB_HASH, DB_RDONLY, 0600, NULL,
 		   NULL, &dbp);
   if (errno != 0)
@@ -76,7 +76,7 @@ pop3_apopuser (const char *user)
   sprintf (password, "%.*s", (int) data.size, (char *) data.data);
   dbp->close (dbp, 0);
   return password;
-#else /* !BDBD2 */
+#else /* !WITH_BDBD2 */
   apop_file = fopen (APOP_PASSFILE ".passwd", "r");
   if (apop_file == NULL)
     {
@@ -118,7 +118,7 @@ pop3_apopuser (const char *user)
     }
 
   return password;
-#endif /* BDB2 */
+#endif /* WITH_BDB2 */
 }
 
 int
@@ -130,6 +130,7 @@ pop3_apop (const char *arg)
   struct md5_ctx md5context;
   unsigned char md5digest[16];
   int i;
+  int status;
 
   if (state != AUTHORIZATION)
     return ERR_WRONG_STATE;
@@ -194,11 +195,26 @@ pop3_apop (const char *arg)
       state = AUTHORIZATION;
       return ERR_UNKNOWN;
     }
-  else if (mailbox_open (mbox, MU_STREAM_RDWR) != 0)
+  else if ((status = mailbox_open (mbox, MU_STREAM_RDWR)) != 0)
     {
-      free (username);
-      state = AUTHORIZATION;
-      return ERR_MBOX_LOCK;
+      mailbox_destroy (&mbox);
+      /* For non existent mailbox, we fake.  */
+      if (status == ENOENT)
+	{
+	  if (mailbox_create (&mbox, "/dev/null") != 0
+	      || mailbox_open (mbox, MU_STREAM_READ) != 0)
+	    {
+	      free (username);
+	      state = AUTHORIZATION;
+	      return ERR_UNKNOWN;
+	    }
+	}
+      else
+	{
+	  free (username);
+	  state = AUTHORIZATION;
+	  return ERR_MBOX_LOCK;
+	}
     }
 
   state = TRANSACTION;

@@ -30,13 +30,16 @@ pop3_stat (const char *arg)
   size_t tsize = 0;
   message_t msg;
   attribute_t attr;
-  
+
   if (strlen (arg) != 0)
     return ERR_BAD_ARGS;
-  
+
   if (state != TRANSACTION)
     return ERR_WRONG_STATE;
-  
+
+  /* rfc1939: if the POP3 server host internally represents end-of-line as a
+     single character, then the POP3 server simply counts each occurrence of
+     this character in a message as two octets. */
   mailbox_messages_count (mbox, &total);
   for (mesgno = 1; mesgno <= total; mesgno++)
     {
@@ -50,25 +53,9 @@ pop3_stat (const char *arg)
 	  num++;
 	}
     }
+  /* rfc1939: Note that messages marked as deleted are not counted in either
+     total.  */
   fprintf (ofile, "+OK %d %d\r\n", num, tsize);
-  
+
   return OK;
 }
-
-
-#if 0
-
-int
-pop3_stat (const char *arg)
-{
-  unsigned int count = 0;
-  off_t size = 0;
-
-  mailbox_size (mbox, &size);
-  mailbox_messages_count (mbox, &count);
-
-  fprintf (ofile, "+OK %d %d\r\n", count, (int)size);
-  return OK;
-}
-
-#endif 

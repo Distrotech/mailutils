@@ -101,8 +101,8 @@
 #include <mailutils/registrar.h>
 
 /* For Berkley DB2 APOP password file */
-#ifdef BDB2
-#include <db2/db.h>
+#ifdef HAVE_DB_H
+#include <db.h>
 #endif
 
 /* The path to the mail spool files */
