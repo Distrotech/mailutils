@@ -186,9 +186,13 @@ pop3_user (const char *arg)
 	setuid (pw->pw_uid);
 
       fprintf (ofile, "+OK opened mailbox for %s\r\n", username);
-      /* FIXME: mailbox name */
-      syslog (LOG_INFO, "User '%s' logged in with mailbox '%s'", username,
-	      NULL);
+	/* mailbox name */
+      {
+	url_t url = NULL;
+	mailbox_get_url (mbox, &url);
+	syslog (LOG_INFO, "User '%s' logged in with mailbox '%s'",
+		username, url_to_string (url));
+      }
       return OK;
     }
   else if (strcasecmp (cmd, "QUIT") == 0)

@@ -63,9 +63,6 @@
 /* Size of the MD5 digest for APOP */
 #define APOP_DIGEST	70
 
-/* Maximum length of a hostname (is this defined somewhere else?) */
-#define MAXHOSTNAMELEN	64
-
 /* Longest legal POP command */
 #define POP_MAXCMDLEN	255
 
@@ -123,6 +120,13 @@
 #include <shadow.h>
 #endif
 
+#ifndef MAXHOSTNAMELEN
+/* Maximum length of a hostname (is this defined somewhere else?).  */
+/* MAXHOSTNAMELEN is already define on Solaris.  */
+#define MAXHOSTNAMELEN	64
+#endif
+
+
 #define AUTHORIZATION	0
 #define TRANSACTION	1
 #define UPDATE		2
@@ -148,45 +152,52 @@
 #define ERR_TIMEOUT	15
 #define ERR_UNKNOWN	16
 
-mailbox_t mbox;
+#ifndef __P
+# ifdef __STDC__
+#  define __P(args) args
+# else
+#  define __P(args) ()
+# endif
+#endif /* __P */
 
-unsigned int port;
-unsigned int timeout;
-int state;
-char *username;
-int ifile;
-FILE *ofile;
-time_t curr_time;
-char *md5shared;
-unsigned int children;
+extern mailbox_t mbox;
 
-int pop3_dele (const char *arg);
-int pop3_list (const char *arg);
-int pop3_noop (const char *arg);
-int pop3_quit (const char *arg);
-int pop3_retr (const char *arg);
-int pop3_rset (const char *arg);
-int pop3_stat (const char *arg);
-int pop3_top (const char *arg);
-int pop3_uidl (const char *arg);
-int pop3_user (const char *arg);
-int pop3_apop (const char *arg);
-int pop3_auth (const char *arg);
-int pop3_capa (const char *arg);
-char *pop3_args (const char *cmd);
-char *pop3_cmd (const char *cmd);
-int pop3_mesg_exist (int mesg);
-int pop3_abquit (int reason);
-int pop3_lock (void);
-int pop3_unlock (void);
-int pop3_getsizes (void);
-int pop3_mainloop (int infile, int outfile);
-void pop3_daemon (unsigned int maxchildren);
-void pop3_usage (char *argv0);
-void pop3_signal (int);
-void pop3_sigchld (int);
-void pop3_daemon_init (void);
-char *pop3_apopuser (const char *user);
-char *pop3_readline (int fd);
+extern unsigned int port;
+extern unsigned int timeout;
+extern int state;
+extern char *username;
+extern int ifile;
+extern FILE *ofile;
+extern time_t curr_time;
+extern char *md5shared;
+extern unsigned int children;
 
+extern int pop3_dele         __P ((const char *arg));
+extern int pop3_list         __P ((const char *arg));
+extern int pop3_noop         __P ((const char *arg));
+extern int pop3_quit         __P ((const char *arg));
+extern int pop3_retr         __P ((const char *arg));
+extern int pop3_rset         __P ((const char *arg));
+extern int pop3_stat         __P ((const char *arg));
+extern int pop3_top          __P ((const char *arg));
+extern int pop3_uidl         __P ((const char *arg));
+extern int pop3_user         __P ((const char *arg));
+extern int pop3_apop         __P ((const char *arg));
+extern int pop3_auth         __P ((const char *arg));
+extern int pop3_capa         __P ((const char *arg));
+extern char *pop3_args       __P ((const char *cmd));
+extern char *pop3_cmd        __P ((const char *cmd));
+extern int pop3_mesg_exist   __P ((int mesg));
+extern int pop3_abquit       __P ((int reason));
+extern int pop3_lock         __P ((void));
+extern int pop3_unlock       __P ((void));
+extern int pop3_getsizes     __P ((void));
+extern int pop3_mainloop     __P ((int infile, int outfile));
+extern void pop3_daemon      __P ((unsigned int maxchildren));
+extern void pop3_usage       __P ((char *argv0));
+extern void pop3_signal      __P ((int));
+extern void pop3_sigchld     __P ((int));
+extern void pop3_daemon_init __P ((void));
+extern char *pop3_apopuser   __P ((const char *user));
+extern char *pop3_readline   __P ((int fd));
 #endif /* _POP3D_H */

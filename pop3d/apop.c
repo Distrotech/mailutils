@@ -203,7 +203,12 @@ pop3_apop (const char *arg)
 
   state = TRANSACTION;
   fprintf (ofile, "+OK opened mailbox for %s\r\n", username);
-  /* FIXME: how to get mailbox name? */
-  syslog (LOG_INFO, "User %s logged in with mailbox %s", username, NULL);
+  /* mailbox name */
+  {
+    url_t url = NULL;
+    mailbox_get_url (mbox, &url);
+    syslog (LOG_INFO, "User '%s' logged in with mailbox '%s'",
+            username, url_to_string (url));
+  }
   return OK;
 }

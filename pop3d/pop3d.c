@@ -17,10 +17,23 @@
 
 #include "pop3d.h"
 
-/* save some line space */
+/* Save some line space.  */
 typedef struct sockaddr_in SA;
 
-/* number of child processes */
+/* Declared in <pop3d.h>.  */
+mailbox_t mbox;
+
+unsigned int port;
+unsigned int timeout;
+int state;
+char *username;
+int ifile;
+FILE *ofile;
+time_t curr_time;
+char *md5shared;
+unsigned int children;
+
+/* Number of child processes.  */
 unsigned int children = 0;
 
 static struct option long_options[] =
