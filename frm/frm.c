@@ -354,13 +354,14 @@ main(int argc, char **argv)
 	mailbox_get_url (mbox, &url);
 	if (status == ENOENT)
 	  goto cleanup1;
-	else {
-	  fprintf (stderr, "could not open mailbox %s: %s\n",
-		   url_to_string (url),
-		   mu_errstring(status));
-	
-	goto cleanup;
-      }
+	else
+	  {
+	    fprintf (stderr, "could not open mailbox %s: %s\n",
+		     url_to_string (url),
+		     mu_errstring(status));
+	    
+	    goto cleanup;
+	  }
       }
 
     if (! be_quiet)
