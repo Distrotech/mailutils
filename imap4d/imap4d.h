@@ -153,6 +153,7 @@ extern struct mu_auth_data *auth_data;
 #ifdef WITH_TLS
 extern int tls_available;
 extern int tls_done;
+extern int login_disabled;
 #endif /* WITH_TLS */
 
 #ifndef HAVE_STRTOK_R
@@ -218,6 +219,10 @@ extern int namespace_init __P((char *path));
 extern char * namespace_getfullpath __P((char *name, const char *delim));
 extern char * namespace_checkfullpath __P((char *name, const char *pattern,
 					   const char *delim));
+/* Capability functions */
+extern void imap4d_capability_add __P((const char *str));
+extern void imap4d_capability_remove __P((const char *str));
+extern void imap4d_capability_init __P((void));
   
 /* Helper functions.  */
 extern int  util_out __P ((int, const char *, ...));

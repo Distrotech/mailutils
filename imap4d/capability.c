@@ -17,12 +17,43 @@
 
 #include "imap4d.h"
 
-char *capa[] = {
-  "IMAP4rev1",
-  "NAMESPACE",
-  "X-VERSION",
-  NULL
-};
+static list_t capa_list;
+
+void
+imap4d_capability_add (const char *str)
+{
+  if (!capa_list)
+    list_create (&capa_list);
+  list_append (capa_list, (void*)str);
+}
+
+void
+imap4d_capability_remove (const char *str)
+{
+  list_remove (capa_list, (void*)str);
+}
+
+void
+imap4d_capability_init ()
+{
+  static char *capa[] = {
+    "IMAP4rev1",
+    "NAMESPACE",
+    "X-VERSION",
+    NULL
+  };
+  int i;
+
+  for (i = 0; capa[i]; i++)
+    imap4d_capability_add (capa[i]);
+}
+
+static int
+print_capa (void *item, void *data)
+{
+  util_send (" %s", (char *)item);
+  return 0;
+}
 
 int
 imap4d_capability (struct imap4d_command *command, char *arg)
@@ -32,14 +63,8 @@ imap4d_capability (struct imap4d_command *command, char *arg)
   (void) arg;
   util_send ("* CAPABILITY");
 
-  for (i = 0; capa[i]; i++)
-    util_send (" %s", capa[i]);
-
-#ifdef WITH_TLS
-  if (tls_available && !tls_done)
-    util_send (" STARTTLS");
-#endif /* WITH_TLS */
-
+  list_do (capa_list, print_capa, NULL);
+  
   imap4d_auth_capability ();
   util_send ("\r\n");
 
