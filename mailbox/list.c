@@ -154,6 +154,50 @@ def_comp (const void *item, const void *value)
 }
 
 int
+list_insert (list_t list, void *item, void *new_item)
+{
+  struct list_data *current;
+  list_comparator_t comp;
+  int status = ENOENT;
+  
+  if (list == NULL)
+    return EINVAL;
+  comp = list->comp ? list->comp : def_comp;
+
+  monitor_wrlock (list->monitor);
+  for (current = list->head.next;
+       current != &(list->head);
+       current = current->next)
+    {
+      if (comp (current->item, item) == 0)
+	{
+	  struct list_data *ldata = calloc (sizeof (*ldata), 1);
+	  if (ldata == NULL)
+	    return ENOMEM;
+	  
+	  ldata->item = new_item;
+	  ldata->next = current->next;
+	  ldata->prev = current;
+	  if (current->next)
+	    current->next->prev = ldata;
+	  else
+	    list->head.prev = ldata;
+
+	  if (current == list->head.next)
+	    current = list->head.next = ldata;
+	  else
+	    current->next = ldata;
+	  
+	  list->count++;
+	  status = 0;
+	  break;
+	}
+    }
+  monitor_unlock (list->monitor);
+  return status;
+}
+
+int
 list_remove (list_t list, void *item)
 {
   struct list_data *current, *previous;
