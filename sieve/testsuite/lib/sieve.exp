@@ -29,7 +29,7 @@ proc sieve_test {args} {
     global sieve_source_dir
     
     set default ""
-    set sw [list]
+    set sw [list "-M none"]
     set reuse_spool 0
     for {set i 0} {$i < [llength $args]} {incr i} {
 	set a [lindex $args $i]
