@@ -30,14 +30,17 @@ extern "C" {
 
 struct _iterator
 {
-  list_t list;
-  size_t index;
-
+  struct _iterator *next;   /* Next iterator in the chain */
+  list_t list;              /* Owner list */
+  struct list_data *cur;    /* Current list item */
+  int is_advanced;          /* Is the item already advanced */   
 };
 
 
 #ifdef __cplusplus
 }
 #endif
+
+extern void iterator_advance(iterator_t iterator, struct list_data *e);
 
 #endif /* _ITERATOR0_H */
