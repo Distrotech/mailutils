@@ -17,6 +17,37 @@
 
 ;;;; This module provides core functionality for the sieve scripts.
 
+;;; List of open mailboxes.
+;;; Each entry is: (list MAILBOX-NAME OPEN-FLAGS MBOX)
+(define sieve-mailbox-list '())
+
+;;; Cached mailbox open: Lookup in the list first, if not found,
+;;; call mu-mailbox-open and append to the list.
+;;; NOTE: second element of each slot (OPEN-FLAGS) is not currently
+;;; used, sinse all the mailboxes are open with "cw".
+(define (sieve-mailbox-open name flags)
+  (let ((slot (assoc name sieve-mailbox-list)))
+    (if slot
+	(list-ref slot 2)
+      (let ((mbox (mu-mailbox-open name flags)))
+	(if mbox
+	    (set! sieve-mailbox-list (append
+				      sieve-mailbox-list
+				      (list
+				       (list name flags mbox)))))
+	mbox))))
+
+;;; Close all open mailboxes.
+(define (sieve-close-mailboxes)
+  (for-each
+   (lambda (slot)
+     (cond
+      ((list-ref slot 2)
+       => (lambda (mbox)
+	    (mu-mailbox-close mbox)))))
+   sieve-mailbox-list)
+  (set! sieve-mailbox-list '()))
+
 ;;; Comparators
 (cond
  (sieve-parser
@@ -37,8 +68,8 @@
 
 (define (action-reject reason)
   (let* ((out-msg (mu-message-create))
-	 (outbody (mu-message-get-body out-msg))
-	 (inbody (mu-message-get-body sieve-current-message)))
+	 (out-port (mu-message-get-port out-msg "w"))
+	 (in-port (mu-message-get-port sieve-current-message "r")))
     (mu-message-set-header out-msg "To"
 			   (mu-message-get-header sieve-current-message
 						  "From"))
@@ -49,34 +80,36 @@
 			    "Re: "
 			    (mu-message-get-header sieve-current-message
 						   "Subject")))
-    (mu-body-write outbody reason)
+    (display reason out-port)
 
     (cond
      (sieve-option-quote
-      (mu-body-write outbody "\n\nThe rejected message follows:\n")
+      (display "\n\nThe rejected message follows:\n" out-port)
       (do ((hdr (mu-message-get-header-fields sieve-current-message)
 		(cdr hdr)))
 	  ((null? hdr) #f)
 	(let ((s (car hdr)))
-	  (mu-body-write outbody (string-append
-				  sieve-indent-prefix
-				  (car s) ": " (cdr s) "\n"))))
-      (mu-body-write outbody (string-append sieve-indent-prefix "\n"))
-      (do ((line (mu-body-read-line inbody) (mu-body-read-line inbody)))
+	  (display (string-append
+		    sieve-indent-prefix
+		    (car s) ": " (cdr s) "\n") out-port)))
+      (display sieve-indent-prefix out-port)
+      (newline out-port)
+      (do ((line (read-line in-port) (read-line in-port)))
 	  ((eof-object? line) #f)
-	(mu-body-write outbody (string-append sieve-indent-prefix line)))))
-
+	(display (string-append sieve-indent-prefix line "\n") out-port))))
+    (close-input-port in-port)
+    (close-output-port out-port)
+	
     (mu-message-send out-msg))
   (mu-message-delete sieve-current-message))
 
 ;;; fileinto
 
 (define (action-fileinto filename)
-  (let ((outbox (mu-mailbox-open filename "cw")))
+  (let ((outbox (sieve-mailbox-open filename "cw")))
     (cond
      (outbox
       (mu-mailbox-append-message outbox sieve-current-message)
-      (mu-mailbox-close outbox)
       (mu-message-delete sieve-current-message)))))
 
 ;;; redirect is defined in redirect.scm
@@ -170,6 +203,8 @@
 	  (set! cl (append (list #\.) cl)))
 	 ((char=? ch #\*)
 	  (set! cl (append (list #\* #\.) cl)))
+	 ((member ch (list #\. #\$ #\^ #\[ #\]))
+	  (set! cl (append (list ch #\\) cl)))
 	 (else
 	  (set! cl (append (list ch) cl))))))))
 		  
@@ -366,4 +401,5 @@
 	(catch 'sieve-stop
 	       sieve-process-message
 	       (lambda args
-		 #f)))))
+		 #f)))
+    (sieve-close-mailboxes)))
