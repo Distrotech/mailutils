@@ -1,53 +1,42 @@
-## $Id$
+# getopt.m4 serial 7
+dnl Copyright (C) 2002, 2003, 2004 Free Software Foundation, Inc.
+dnl This file is free software; the Free Software Foundation
+dnl gives unlimited permission to copy and/or distribute it,
+dnl with or without modifications, as long as this notice is preserved.
 
-## Check for getopt_long. This can't be done in AC_CHECK_FUNCS since
-## the function can be present in different libraries (namely, libmysqlclient)
-## but the necessary header files may be absent, thus AC_CHECK_FUNCS will
-## mark function as existent, whereas the compilation will bail out.
+# The getopt module assume you want GNU getopt, with getopt_long etc,
+# rather than vanilla POSIX getopt.  This means your your code should
+# always include <getopt.h> for the getopt prototypes.
 
-AH_TEMPLATE(HAVE_GNU_GETOPT, [Define if your system has GNU getopt functions])
-
-AC_DEFUN([MU_REPLACE_GNU_GETOPT],
+AC_DEFUN([gl_GETOPT_SUBSTITUTE],
 [
- AC_CHECK_HEADER([getopt.h],
-		 mu_cv_have_getopt_h=yes
-                 AC_DEFINE(HAVE_GETOPT_H,1,[Define if the system has getopt.h]),
-                 mu_cv_have_getopt_h=no)
- AC_CACHE_CHECK([for GNU getopt], mu_cv_have_gnu_getopt,
-  [
-AC_TRY_RUN([
-#include <unistd.h>
-#ifdef HAVE_GETOPT_H
-# include <getopt.h>
-#endif
-
-struct option longopt[] = {
-	"help",    no_argument,       0, 'h',
-        (char*)0
-};
-
-main(argc, argv)
-int argc; char **argv;
-{
-	getopt_long_only(argc, argv, "h", longopt, (int*)0);
-	return 0;
-}             ],
-              mu_cv_have_gnu_getopt=yes,
-              mu_cv_have_gnu_getopt=no,
-              mu_cv_have_gnu_getopt=no)])
-
- if test x"$mu_cv_have_gnu_getopt" != xyes ; then
-   mu_cv_have_getopt_h=no
-   MU_LIBOBJ(getopt)
-   MU_LIBOBJ(getopt1)
- else
-   AC_DEFINE(HAVE_GNU_GETOPT)
- fi
- if test "$mu_cv_have_getopt_h" = no; then
-   MU_HEADER(getopt.h)
- fi
+  GETOPT_H=getopt.h
+  MU_LIBOBJ([getopt])
+  MU_LIBOBJ([getopt1])
+  AC_DEFINE([__GETOPT_PREFIX], [[rpl_]],
+    [Define to rpl_ if the getopt replacement functions and variables
+     should be used.])
+  AC_SUBST([GETOPT_H])
 ])
 
+AC_DEFUN([gl_GETOPT],
+[
+  gl_PREREQ_GETOPT
 
+  if test -z "$GETOPT_H"; then
+    GETOPT_H=
+    AC_CHECK_HEADERS([getopt.h], [], [GETOPT_H=getopt.h])
+    AC_CHECK_FUNCS([getopt_long_only], [], [GETOPT_H=getopt.h])
 
+    dnl BSD getopt_long uses an incompatible method to reset option processing,
+    dnl and (as of 2004-10-15) mishandles optional option-arguments.
+    AC_CHECK_DECL([optreset], [GETOPT_H=getopt.h], [], [#include <getopt.h>])
 
+    if test -n "$GETOPT_H"; then
+      gl_GETOPT_SUBSTITUTE
+    fi
+  fi
+])
+
+# Prerequisites of lib/getopt*.
+AC_DEFUN([gl_PREREQ_GETOPT], [:])

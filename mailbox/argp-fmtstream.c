@@ -1,22 +1,21 @@
 /* Word-wrapping and line-truncating streams
-   Copyright (C) 1997, 1998, 1999, 2001 Free Software Foundation, Inc.
+   Copyright (C) 1997,1998,1999,2001,2002,2003 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
    Written by Miles Bader <miles@gnu.ai.mit.edu>.
 
-   The GNU C Library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Library General Public License as
-   published by the Free Software Foundation; either version 2 of the
-   License, or (at your option) any later version.
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 2, or (at your option)
+   any later version.
 
-   The GNU C Library is distributed in the hope that it will be useful,
+   This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   Library General Public License for more details.
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
 
-   You should have received a copy of the GNU Library General Public
-   License along with the GNU C Library; see the file COPYING.LIB.  If not,
-   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-   Boston, MA 02111-1307, USA.  */
+   You should have received a copy of the GNU General Public License along
+   with this program; if not, write to the Free Software Foundation,
+   Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.  */
 
 /* This package emulates glibc `line_wrap_stream' semantics for systems that
    don't have that.  */
@@ -40,6 +39,12 @@
 #define isblank(ch) ((ch)==' ' || (ch)=='\t')
 #endif
 
+#if defined _LIBC && defined USE_IN_LIBIO
+# include <wchar.h>
+# include <libio/libioP.h>
+# define __vsnprintf(s, l, f, a) _IO_vsnprintf (s, l, f, a)
+#endif
+
 #define INIT_BUF_SIZE 200
 #define PRINTF_SIZE_GUESS 150
 
@@ -53,8 +58,10 @@ argp_fmtstream_t
 __argp_make_fmtstream (FILE *stream,
 		       size_t lmargin, size_t rmargin, ssize_t wmargin)
 {
-  argp_fmtstream_t fs = malloc (sizeof (struct argp_fmtstream));
-  if (fs)
+  argp_fmtstream_t fs;
+
+  fs = (struct argp_fmtstream *) malloc (sizeof (struct argp_fmtstream));
+  if (fs != NULL)
     {
       fs->stream = stream;
 
@@ -64,7 +71,7 @@ __argp_make_fmtstream (FILE *stream,
       fs->point_col = 0;
       fs->point_offs = 0;
 
-      fs->buf = malloc (INIT_BUF_SIZE);
+      fs->buf = (char *) malloc (INIT_BUF_SIZE);
       if (! fs->buf)
 	{
 	  free (fs);
@@ -79,8 +86,11 @@ __argp_make_fmtstream (FILE *stream,
 
   return fs;
 }
+#if 0
+/* Not exported.  */
 #ifdef weak_alias
 weak_alias (__argp_make_fmtstream, argp_make_fmtstream)
+#endif
 #endif
 
 /* Flush FS to its stream, and free it (but don't close the stream).  */
@@ -89,12 +99,22 @@ __argp_fmtstream_free (argp_fmtstream_t fs)
 {
   __argp_fmtstream_update (fs);
   if (fs->p > fs->buf)
-    fwrite (fs->buf, 1, fs->p - fs->buf, fs->stream);
+    {
+#ifdef USE_IN_LIBIO
+      if (_IO_fwide (fs->stream, 0) > 0)
+	__fwprintf (fs->stream, L"%.*s", (int) (fs->p - fs->buf), fs->buf);
+      else
+#endif
+	fwrite_unlocked (fs->buf, 1, fs->p - fs->buf, fs->stream);
+    }
   free (fs->buf);
   free (fs);
 }
+#if 0
+/* Not exported.  */
 #ifdef weak_alias
 weak_alias (__argp_fmtstream_free, argp_fmtstream_free)
+#endif
 #endif
 
 /* Process FS's buffer so that line wrapping is done from POINT_OFFS to the
@@ -129,7 +149,14 @@ __argp_fmtstream_update (argp_fmtstream_t fs)
 	      /* No buffer space for spaces.  Must flush.  */
 	      size_t i;
 	      for (i = 0; i < pad; i++)
-		putc (' ', fs->stream);
+		{
+#ifdef USE_IN_LIBIO
+		  if (_IO_fwide (fs->stream, 0) > 0)
+		    putwc_unlocked (L' ', fs->stream);
+		  else
+#endif
+		    putc_unlocked (' ', fs->stream);
+		}
 	    }
 	  fs->point_col = pad;
 	}
@@ -245,9 +272,10 @@ __argp_fmtstream_update (argp_fmtstream_t fs)
 	     at the end of the buffer, and NEXTLINE is in fact empty (and so
 	     we need not be careful to maintain its contents).  */
 
-	  if (nextline == buf + len + 1
-	      ? fs->end - nl < fs->wmargin + 1
-	      : nextline - (nl + 1) < fs->wmargin)
+	  if ((nextline == buf + len + 1
+	       ? fs->end - nl < fs->wmargin + 1
+	       : nextline - (nl + 1) < fs->wmargin)
+	      && fs->p > nextline)
 	    {
 	      /* The margin needs more blanks than we removed.  */
 	      if (fs->end - fs->p > fs->wmargin + 1)
@@ -262,9 +290,17 @@ __argp_fmtstream_update (argp_fmtstream_t fs)
 	      else
 		/* Output the first line so we can use the space.  */
 		{
-		  if (nl > fs->buf)
-		    fwrite (fs->buf, 1, nl - fs->buf, fs->stream);
-		  putc ('\n', fs->stream);
+#ifdef USE_IN_LIBIO
+		  if (_IO_fwide (fs->stream, 0) > 0)
+		    __fwprintf (fs->stream, L"%.*s\n",
+				(int) (nl - fs->buf), fs->buf);
+		  else
+#endif
+		    {
+		      if (nl > fs->buf)
+			fwrite_unlocked (fs->buf, 1, nl - fs->buf, fs->stream);
+		      putc_unlocked ('\n', fs->stream);
+		    }
 		  len += buf - fs->buf;
 		  nl = buf = fs->buf;
 		}
@@ -281,7 +317,12 @@ __argp_fmtstream_update (argp_fmtstream_t fs)
 	      *nl++ = ' ';
 	  else
 	    for (i = 0; i < fs->wmargin; ++i)
-	      putc (' ', fs->stream);
+#ifdef USE_IN_LIBIO
+	      if (_IO_fwide (fs->stream, 0) > 0)
+		putwc_unlocked (L' ', fs->stream);
+	      else
+#endif
+		putc_unlocked (' ', fs->stream);
 
 	  /* Copy the tail of the original buffer into the current buffer
 	     position.  */
@@ -318,7 +359,15 @@ __argp_fmtstream_ensure (struct argp_fmtstream *fs, size_t amount)
       /* Flush FS's buffer.  */
       __argp_fmtstream_update (fs);
 
-      wrote = fwrite (fs->buf, 1, fs->p - fs->buf, fs->stream);
+#ifdef USE_IN_LIBIO
+      if (_IO_fwide (fs->stream, 0) > 0)
+	{
+	  __fwprintf (fs->stream, L"%.*s", (int) (fs->p - fs->buf), fs->buf);
+	  wrote = fs->p - fs->buf;
+	}
+      else
+#endif
+	wrote = fwrite_unlocked (fs->buf, 1, fs->p - fs->buf, fs->stream);
       if (wrote == fs->p - fs->buf)
 	{
 	  fs->p = fs->buf;
@@ -335,12 +384,13 @@ __argp_fmtstream_ensure (struct argp_fmtstream *fs, size_t amount)
       if ((size_t) (fs->end - fs->buf) < amount)
 	/* Gotta grow the buffer.  */
 	{
-	  size_t new_size = fs->end - fs->buf + amount;
-	  char *new_buf = realloc (fs->buf, new_size);
+	  size_t old_size = fs->end - fs->buf;
+	  size_t new_size = old_size + amount;
+	  char *new_buf;
 
-	  if (! new_buf)
+	  if (new_size < old_size || ! (new_buf = realloc (fs->buf, new_size)))
 	    {
-	      errno = ENOMEM;
+	      __set_errno (ENOMEM);
 	      return 0;
 	    }
 
@@ -369,19 +419,22 @@ __argp_fmtstream_printf (struct argp_fmtstream *fs, const char *fmt, ...)
 
       va_start (args, fmt);
       avail = fs->end - fs->p;
-      out = vsnprintf (fs->p, avail, fmt, args);
+      out = __vsnprintf (fs->p, avail, fmt, args);
       va_end (args);
-      if (out >= avail)
+      if ((size_t) out >= avail)
 	size_guess = out + 1;
     }
-  while (out >= avail);
+  while ((size_t) out >= avail);
 
   fs->p += out;
 
   return out;
 }
+#if 0
+/* Not exported.  */
 #ifdef weak_alias
 weak_alias (__argp_fmtstream_printf, argp_fmtstream_printf)
+#endif
 #endif
 
 #endif /* !ARGP_FMTSTREAM_USE_LINEWRAP */

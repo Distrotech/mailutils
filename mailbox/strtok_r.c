@@ -1,23 +1,36 @@
 /* Reentrant string tokenizer.  Generic version.
-   Copyright (C) 1991, 1996, 1997, 1998, 1999, 2001 Free Software Foundation, Inc.
+   Copyright (C) 1991,1996-1999,2001,2004 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
-   The GNU C Library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Library General Public License as
-   published by the Free Software Foundation; either version 2 of the
-   License, or (at your option) any later version.
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 2, or (at your option)
+   any later version.
 
-   The GNU C Library is distributed in the hope that it will be useful,
+   This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   Library General Public License for more details.
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
 
-   You should have received a copy of the GNU Library General Public
-   License along with the GNU C Library; see the file COPYING.LIB.  If not,
-   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-   Boston, MA 02111-1307, USA.  */
+   You should have received a copy of the GNU General Public License along
+   with this program; if not, write to the Free Software Foundation,
+   Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.  */
+
+#ifdef HAVE_CONFIG_H
+# include <config.h>
+#endif
 
 #include <string.h>
+
+#undef strtok_r
+#undef __strtok_r
+
+#ifndef _LIBC
+/* Get specification.  */
+# include "strtok_r.h"
+# define __strtok_r strtok_r
+# define __rawmemchr strchr
+#endif
 
 /* Parse S into tokens separated by characters in DELIM.
    If S is NULL, the saved pointer in SAVE_PTR is used as
@@ -30,10 +43,7 @@
 		// s = "abc\0-def\0"
 */
 char *
-strtok_r (s, delim, save_ptr)
-     char *s;
-     const char *delim;
-     char **save_ptr;
+__strtok_r (char *s, const char *delim, char **save_ptr)
 {
   char *token;
 
@@ -53,8 +63,7 @@ strtok_r (s, delim, save_ptr)
   s = strpbrk (token, delim);
   if (s == NULL)
     /* This token finishes the string.  */
-    /* *save_ptr = __rawmemchr (token, '\0'); */
-    *save_ptr = token + strlen (token);
+    *save_ptr = __rawmemchr (token, '\0');
   else
     {
       /* Terminate the token and make *SAVE_PTR point past it.  */
@@ -63,4 +72,7 @@ strtok_r (s, delim, save_ptr)
     }
   return token;
 }
-/* weak_alias (__strtok_r, strtok_r) */
+#ifdef weak_alias
+libc_hidden_def (__strtok_r)
+weak_alias (__strtok_r, strtok_r)
+#endif

@@ -1,22 +1,21 @@
 /* Word-wrapping and line-truncating streams.
-   Copyright (C) 1997, 2001 Free Software Foundation, Inc.
+   Copyright (C) 1997 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
    Written by Miles Bader <miles@gnu.ai.mit.edu>.
 
-   The GNU C Library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Library General Public License as
-   published by the Free Software Foundation; either version 2 of the
-   License, or (at your option) any later version.
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 2, or (at your option)
+   any later version.
 
-   The GNU C Library is distributed in the hope that it will be useful,
+   This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   Library General Public License for more details.
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
 
-   You should have received a copy of the GNU Library General Public
-   License along with the GNU C Library; see the file COPYING.LIB.  If not,
-   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-   Boston, MA 02111-1307, USA.  */
+   You should have received a copy of the GNU General Public License along
+   with this program; if not, write to the Free Software Foundation,
+   Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.  */
 
 /* This package emulates glibc `line_wrap_stream' semantics for systems that
    don't have that.  If the system does have it, it is just a wrapper for
@@ -33,6 +32,19 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
+
+#ifndef __attribute__
+/* This feature is available in gcc versions 2.5 and later.  */
+# if __GNUC__ < 2 || (__GNUC__ == 2 && __GNUC_MINOR__ < 5) || __STRICT_ANSI__
+#  define __attribute__(Spec) /* empty */
+# endif
+/* The __-protected variants of `format' and `printf' attributes
+   are accepted by gcc versions 2.6.4 (effectively 2.7) and later.  */
+# if __GNUC__ < 2 || (__GNUC__ == 2 && __GNUC_MINOR__ < 7) || __STRICT_ANSI__
+#  define __format__ format
+#  define __printf__ printf
+# endif
+#endif
 
 #if    (_LIBC - 0 && !defined (USE_IN_LIBIO)) \
     || (defined (__GNU_LIBRARY__) && defined (HAVE_LINEWRAP_H))
@@ -82,6 +94,9 @@ typedef FILE *argp_fmtstream_t;
 #else /* !ARGP_FMTSTREAM_USE_LINEWRAP */
 /* Guess we have to define our own version.  */
 
+#ifndef __const
+#define __const const
+#endif
 
 struct argp_fmtstream
 {
@@ -122,20 +137,22 @@ extern void __argp_fmtstream_free (argp_fmtstream_t __fs);
 extern void argp_fmtstream_free (argp_fmtstream_t __fs);
 
 extern ssize_t __argp_fmtstream_printf (argp_fmtstream_t __fs,
-					const char *__fmt, ...);
+				       __const char *__fmt, ...)
+     __attribute__ ((__format__ (printf, 2, 3)));
 extern ssize_t argp_fmtstream_printf (argp_fmtstream_t __fs,
-				      const char *__fmt, ...);
+				      __const char *__fmt, ...)
+     __attribute__ ((__format__ (printf, 2, 3)));
 
 extern int __argp_fmtstream_putc (argp_fmtstream_t __fs, int __ch);
 extern int argp_fmtstream_putc (argp_fmtstream_t __fs, int __ch);
 
-extern int __argp_fmtstream_puts (argp_fmtstream_t __fs, const char *__str);
-extern int argp_fmtstream_puts (argp_fmtstream_t __fs, const char *__str);
+extern int __argp_fmtstream_puts (argp_fmtstream_t __fs, __const char *__str);
+extern int argp_fmtstream_puts (argp_fmtstream_t __fs, __const char *__str);
 
 extern size_t __argp_fmtstream_write (argp_fmtstream_t __fs,
-				      const char *__str, size_t __len);
+				      __const char *__str, size_t __len);
 extern size_t argp_fmtstream_write (argp_fmtstream_t __fs,
-				    const char *__str, size_t __len);
+				    __const char *__str, size_t __len);
 
 /* Access macros for various bits of state.  */
 #define argp_fmtstream_lmargin(__fs) ((__fs)->lmargin)
@@ -194,7 +211,7 @@ extern int __argp_fmtstream_ensure (argp_fmtstream_t __fs, size_t __amount);
 
 ARGP_FS_EI size_t
 __argp_fmtstream_write (argp_fmtstream_t __fs,
-			const char *__str, size_t __len)
+			__const char *__str, size_t __len)
 {
   if (__fs->p + __len <= __fs->end || __argp_fmtstream_ensure (__fs, __len))
     {
@@ -207,7 +224,7 @@ __argp_fmtstream_write (argp_fmtstream_t __fs,
 }
 
 ARGP_FS_EI int
-__argp_fmtstream_puts (argp_fmtstream_t __fs, const char *__str)
+__argp_fmtstream_puts (argp_fmtstream_t __fs, __const char *__str)
 {
   size_t __len = strlen (__str);
   if (__len)

@@ -1,71 +1,50 @@
 /* Hierarchial argument parsing, layered over getopt
-   Copyright (C) 1995, 96, 97, 98, 99, 2000, 2001 Free Software Foundation, Inc.
+   Copyright (C) 1995-2000, 2002, 2003, 2004 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
    Written by Miles Bader <miles@gnu.ai.mit.edu>.
 
-   The GNU C Library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Library General Public License as
-   published by the Free Software Foundation; either version 2 of the
-   License, or (at your option) any later version.
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 2, or (at your option)
+   any later version.
 
-   The GNU C Library is distributed in the hope that it will be useful,
+   This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   Library General Public License for more details.
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
 
-   You should have received a copy of the GNU Library General Public
-   License along with the GNU C Library; see the file COPYING.LIB.  If not,
-   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-   Boston, MA 02111-1307, USA.  */
+   You should have received a copy of the GNU General Public License along
+   with this program; if not, write to the Free Software Foundation,
+   Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.  */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
 
+#include <alloca.h>
+#include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 #include <limits.h>
 #include <getopt.h>
+#include <getopt_int.h>
 
-#ifdef HAVE_STRINGS_H
-# include <strings.h>
-#endif
-
-#ifdef HAVE_ALLOCA_H
-# include <alloca.h>
-#endif
-
-#include <mailutils/nls.h>
-
-#ifndef _
-/* This is for other GNU distributions with internationalized messages.
-   When compiling libc, the _ macro is predefined.  */
-# if defined HAVE_LIBINTL_H || defined _LIBC
-#  include <libintl.h>
-#  ifdef _LIBC
-#   undef dgettext
-#   define dgettext(domain, msgid) __dcgettext (domain, msgid, LC_MESSAGES)
-#  endif
-# else
-#  define dgettext(domain, msgid) (msgid)
-#  define gettext(msgid) (msgid)
-# endif
-#endif
-#ifndef N_
-# define N_(msgid) msgid
-#endif
-
-#if _LIBC - 0
-#include <bits/libc-lock.h>
+#ifdef _LIBC
+# include <libintl.h>
+# undef dgettext
+# define dgettext(domain, msgid) \
+   INTUSE(__dcgettext) (domain, msgid, LC_MESSAGES)
 #else
-#ifdef HAVE_CTHREADS_H
-#include <cthreads.h>
+# include "gettext.h"
 #endif
-#endif /* _LIBC */
+#define N_(msgid) msgid
 
 #include "argp.h"
 #include "argp-namefrob.h"
+
+#define alignof(type) offsetof (struct { char c; type x; }, x)
+#define alignto(n, d) ((((n) + (d) - 1) / (d)) * (d))
 
 /* Getopt return values.  */
 #define KEY_END (-1)		/* The end of the options.  */
@@ -92,7 +71,7 @@
    for one second intervals, decrementing _ARGP_HANG until it's zero.  Thus
    you can force the program to continue by attaching a debugger and setting
    it to 0 yourself.  */
-volatile int _argp_hang;
+static volatile int _argp_hang;
 
 #define OPT_PROGNAME	-2
 #define OPT_USAGE	-3
@@ -101,11 +80,11 @@ volatile int _argp_hang;
 static const struct argp_option argp_default_options[] =
 {
   {"help",	  '?',    	0, 0,  N_("Give this help list"), -1},
-  {"usage",	  OPT_USAGE,	0, 0,  N_("Give a short usage message")},
-  {"program-name",OPT_PROGNAME,"NAME", OPTION_HIDDEN, N_("Set the program name")},
+  {"usage",	  OPT_USAGE,	0, 0,  N_("Give a short usage message"), 0},
+  {"program-name",OPT_PROGNAME,"NAME", OPTION_HIDDEN, N_("Set the program name"), 0},
   {"HANG",	  OPT_HANG,    "SECS", OPTION_ARG_OPTIONAL | OPTION_HIDDEN,
-     N_("Hang for SECS seconds (default 3600)")},
-  {0, 0}
+     N_("Hang for SECS seconds (default 3600)"), 0},
+  {NULL, 0, 0, 0, NULL, 0}
 };
 
 static error_t
@@ -122,31 +101,35 @@ argp_default_parser (int key, char *arg, struct argp_state *state)
       break;
 
     case OPT_PROGNAME:		/* Set the program name.  */
+#if defined _LIBC || HAVE_DECL_PROGRAM_INVOCATION_NAME
       program_invocation_name = arg;
-
+#endif
       /* [Note that some systems only have PROGRAM_INVOCATION_SHORT_NAME (aka
 	 __PROGNAME), in which case, PROGRAM_INVOCATION_NAME is just defined
 	 to be that, so we have to be a bit careful here.]  */
-      arg = strrchr (arg, '/');
-      if (arg)
-	program_invocation_short_name = arg + 1;
-      else
-	program_invocation_short_name = program_invocation_name;
 
       /* Update what we use for messages.  */
-      state->name = program_invocation_short_name;
+      state->name = strrchr (arg, '/');
+      if (state->name)
+	state->name++;
+      else
+	state->name = arg;
+
+#if defined _LIBC || HAVE_DECL_PROGRAM_INVOCATION_SHORT_NAME
+      program_invocation_short_name = state->name;
+#endif
 
       if ((state->flags & (ARGP_PARSE_ARGV0 | ARGP_NO_ERRS))
 	  == ARGP_PARSE_ARGV0)
 	/* Update what getopt uses too.  */
-	state->argv[0] = program_invocation_name;
+	state->argv[0] = arg;
 
       break;
 
     case OPT_HANG:
       _argp_hang = atoi (arg ? arg : "3600");
       while (_argp_hang-- > 0)
-	sleep (1);
+	__sleep (1);
       break;
 
     default:
@@ -162,7 +145,7 @@ static const struct argp argp_default_argp =
 static const struct argp_option argp_version_options[] =
 {
   {"version",	  'V',    	0, 0,  N_("Print program version"), -1},
-  {0, 0}
+  {NULL, 0, 0, 0, NULL, 0}
 };
 
 static error_t
@@ -207,42 +190,7 @@ find_long_option (struct option *long_options, const char *name)
   else
     return -1;
 }
-
-/* If we can, we regulate access to getopt, which is non-reentrant, with a
-   mutex.  Since the case we're trying to guard against is two different
-   threads interfering, and it's possible that someone might want to call
-   argp_parse recursively (they're careful), we use a recursive lock if
-   possible.  */
 
-#if _LIBC - 0
-
-__libc_lock_define_initialized_recursive (static, getopt_lock)
-#define LOCK_GETOPT   __libc_lock_lock_recursive (getopt_lock)
-#define UNLOCK_GETOPT __libc_lock_unlock_recursive (getopt_lock)
-
-#else /* !_LIBC */
-#if defined(HAVE_CTHREADS_H)
-
-static struct mutex getopt_lock = MUTEX_INITIALIZER;
-#define LOCK_GETOPT   mutex_lock (&getopt_lock)
-#define UNLOCK_GETOPT mutex_unlock (&getopt_lock)
-
-#else /* !HAVE_CTHREADS_H */
-
-#define LOCK_GETOPT    (void)0
-#define UNLOCK_GETOPT  (void)0
-
-#endif /* HAVE_CTHREADS_H */
-#endif /* _LIBC */
-
-/* This hack to allow programs that know what's going on to call argp
-   recursively.  If someday argp is changed not to use the non-reentrant
-   getopt interface, we can get rid of this shit.  XXX */
-void
-_argp_unlock_xxx (void)
-{
-  UNLOCK_GETOPT;
-}
 
 /* The state of a `group' during parsing.  Each group corresponds to a
    particular argp structure from the tree of such descending from the top
@@ -304,6 +252,8 @@ struct parser
   /* LONG_OPTS is the array of getop long option structures for the union of
      all the groups of options.  */
   struct option *long_opts;
+  /* OPT_DATA is the getopt data used for the re-entrant getopt.  */
+  struct _getopt_data opt_data;
 
   /* States of the various parsing groups.  */
   struct group *groups;
@@ -515,6 +465,12 @@ parser_init (struct parser *parser, const struct argp *argp,
   error_t err = 0;
   struct group *group;
   struct parser_sizes szs;
+  struct _getopt_data opt_data = _GETOPT_DATA_INITIALIZER;
+  char *storage;
+  size_t glen, gsum;
+  size_t clen, csum;
+  size_t llen, lsum;
+  size_t slen, ssum;
 
   szs.short_len = (flags & ARGP_NO_ARGS) ? 0 : 1;
   szs.long_len = 0;
@@ -525,26 +481,33 @@ parser_init (struct parser *parser, const struct argp *argp,
     calc_sizes (argp, &szs);
 
   /* Lengths of the various bits of storage used by PARSER.  */
-#define GLEN (szs.num_groups + 1) * sizeof (struct group)
-#define CLEN (szs.num_child_inputs * sizeof (void *))
-#define LLEN ((szs.long_len + 1) * sizeof (struct option))
-#define SLEN (szs.short_len + 1)
+  glen = (szs.num_groups + 1) * sizeof (struct group);
+  clen = szs.num_child_inputs * sizeof (void *);
+  llen = (szs.long_len + 1) * sizeof (struct option);
+  slen = szs.short_len + 1;
 
-  parser->storage = malloc (GLEN + CLEN + LLEN + SLEN);
+  /* Sums of previous lengths, properly aligned.  There's no need to
+     align gsum, since struct group is aligned at least as strictly as
+     void * (since it contains a void * member).  And there's no need
+     to align lsum, since struct option is aligned at least as
+     strictly as char.  */
+  gsum = glen;
+  csum = alignto (gsum + clen, alignof (struct option));
+  lsum = csum + llen;
+  ssum = lsum + slen;
+
+  parser->storage = malloc (ssum);
   if (! parser->storage)
     return ENOMEM;
 
-  parser->groups = (struct group *) parser->storage;
-  /*  To please Watcom CC
-  parser->child_inputs = parser->storage + GLEN;
-  parser->long_opts = parser->storage + GLEN + CLEN;
-  parser->short_opts = parser->storage + GLEN + CLEN + LLEN;
-  */
-  parser->child_inputs = (void **)((char*) parser->storage + GLEN);
-  parser->long_opts = (struct option *)((char*) parser->storage + GLEN + CLEN);
-  parser->short_opts = (char*) parser->storage + GLEN + CLEN + LLEN;
+  storage = parser->storage;
+  parser->groups = parser->storage;
+  parser->child_inputs = (void **) (storage + gsum);
+  parser->long_opts = (struct option *) (storage + csum);
+  parser->short_opts = storage + lsum;
+  parser->opt_data = opt_data;
 
-  memset (parser->child_inputs, 0, szs.num_child_inputs * sizeof (void *));
+  memset (parser->child_inputs, 0, clen);
   parser_convert (parser, argp, flags);
 
   memset (&parser->state, 0, sizeof (struct argp_state));
@@ -586,19 +549,16 @@ parser_init (struct parser *parser, const struct argp *argp,
   if (err)
     return err;
 
-  /* Getopt is (currently) non-reentrant.  */
-  LOCK_GETOPT;
-
   if (parser->state.flags & ARGP_NO_ERRS)
     {
-      opterr = 0;
+      parser->opt_data.opterr = 0;
       if (parser->state.flags & ARGP_PARSE_ARGV0)
 	/* getopt always skips ARGV[0], so we have to fake it out.  As long
 	   as OPTERR is 0, then it shouldn't actually try to access it.  */
 	parser->state.argv--, parser->state.argc++;
     }
   else
-    opterr = 1;		/* Print error messages.  */
+    parser->opt_data.opterr = 1;	/* Print error messages.  */
 
   if (parser->state.argv == argv && argv[0])
     /* There's an argv[0]; use it for messages.  */
@@ -607,7 +567,7 @@ parser_init (struct parser *parser, const struct argp *argp,
       parser->state.name = short_name ? short_name + 1 : argv[0];
     }
   else
-    parser->state.name = program_invocation_short_name;
+    parser->state.name = __argp_short_program_name ();
 
   return 0;
 }
@@ -618,8 +578,6 @@ parser_finalize (struct parser *parser,
 		 error_t err, int arg_ebadkey, int *end_index)
 {
   struct group *group;
-
-  UNLOCK_GETOPT;
 
   if (err == EBADKEY && arg_ebadkey)
     /* Suppress errors generated by unparsed arguments.  */
@@ -782,7 +740,8 @@ parser_parse_opt (struct parser *parser, int opt, char *val)
 	for (group = parser->groups; group < parser->egroup; group++)
 	  if (group->short_end > short_index)
 	    {
-	      err = group_parse (group, &parser->state, opt, optarg);
+	      err = group_parse (group, &parser->state, opt,
+				 parser->opt_data.optarg);
 	      break;
 	    }
     }
@@ -791,7 +750,8 @@ parser_parse_opt (struct parser *parser, int opt, char *val)
        the user value in order to preserve the sign.  */
     err =
       group_parse (&parser->groups[group_key - 1], &parser->state,
-		   (opt << GROUP_BITS) >> GROUP_BITS, optarg);
+		   (opt << GROUP_BITS) >> GROUP_BITS,
+		   parser->opt_data.optarg);
 
   if (err == EBADKEY)
     /* At least currently, an option not recognized is an error in the
@@ -837,15 +797,20 @@ parser_parse_next (struct parser *parser, int *arg_ebadkey)
   if (parser->try_getopt && !parser->state.quoted)
     /* Give getopt a chance to parse this.  */
     {
-      optind = parser->state.next; /* Put it back in OPTIND for getopt.  */
-      optopt = KEY_END;	/* Distinguish KEY_ERR from a real option.  */
+      /* Put it back in OPTIND for getopt.  */
+      parser->opt_data.optind = parser->state.next;
+      /* Distinguish KEY_ERR from a real option.  */
+      parser->opt_data.optopt = KEY_END;
       if (parser->state.flags & ARGP_LONG_ONLY)
-	opt = getopt_long_only (parser->state.argc, parser->state.argv,
-				parser->short_opts, parser->long_opts, 0);
+	opt = _getopt_long_only_r (parser->state.argc, parser->state.argv,
+				   parser->short_opts, parser->long_opts, 0,
+				   &parser->opt_data);
       else
-	opt = getopt_long (parser->state.argc, parser->state.argv,
-			   parser->short_opts, parser->long_opts, 0);
-      parser->state.next = optind; /* And see what getopt did.  */
+	opt = _getopt_long_r (parser->state.argc, parser->state.argv,
+			      parser->short_opts, parser->long_opts, 0,
+			      &parser->opt_data);
+      /* And see what getopt did.  */
+      parser->state.next = parser->opt_data.optind;
 
       if (opt == KEY_END)
 	/* Getopt says there are no more options, so stop using
@@ -861,7 +826,7 @@ parser_parse_next (struct parser *parser, int *arg_ebadkey)
 	       here, whatever happens.  */
 	    parser->state.quoted = parser->state.next;
 	}
-      else if (opt == KEY_ERR && optopt != KEY_END)
+      else if (opt == KEY_ERR && parser->opt_data.optopt != KEY_END)
 	/* KEY_ERR can have the same value as a valid user short
 	   option, but in the case of a real error, getopt sets OPTOPT
 	   to the offending character, which can never be KEY_END.  */
@@ -887,15 +852,15 @@ parser_parse_next (struct parser *parser, int *arg_ebadkey)
 	/* A non-option arg; simulate what getopt might have done.  */
 	{
 	  opt = KEY_ARG;
-	  optarg = parser->state.argv[parser->state.next++];
+	  parser->opt_data.optarg = parser->state.argv[parser->state.next++];
 	}
     }
 
   if (opt == KEY_ARG)
     /* A non-option argument; try each parser in turn.  */
-    err = parser_parse_arg (parser, optarg);
+    err = parser_parse_arg (parser, parser->opt_data.optarg);
   else
-    err = parser_parse_opt (parser, opt, optarg);
+    err = parser_parse_opt (parser, opt, parser->opt_data.optarg);
 
   if (err == EBADKEY)
     *arg_ebadkey = (opt == KEY_END || opt == KEY_ARG);

@@ -1,22 +1,21 @@
 /* Name frobnication for compiling argp outside of glibc
-   Copyright (C) 1997, 2001 Free Software Foundation, Inc.
+   Copyright (C) 1997, 2003 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
    Written by Miles Bader <miles@gnu.ai.mit.edu>.
 
-   The GNU C Library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Library General Public License as
-   published by the Free Software Foundation; either version 2 of the
-   License, or (at your option) any later version.
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 2, or (at your option)
+   any later version.
 
-   The GNU C Library is distributed in the hope that it will be useful,
+   This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   Library General Public License for more details.
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
 
-   You should have received a copy of the GNU Library General Public
-   License along with the GNU C Library; see the file COPYING.LIB.  If not,
-   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-   Boston, MA 02111-1307, USA.  */
+   You should have received a copy of the GNU General Public License along
+   with this program; if not, write to the Free Software Foundation,
+   Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.  */
 
 #if !_LIBC
 /* This code is written for inclusion in gnu-libc, and uses names in the
@@ -77,12 +76,81 @@
 #undef __argp_fmtstream_wmargin
 #define __argp_fmtstream_wmargin argp_fmtstream_wmargin
 
+#include "mempcpy.h"
+#include "strcase.h"
+#include "strchrnul.h"
+#include "strndup.h"
+
 /* normal libc functions we call */
+#undef __flockfile
+#define __flockfile flockfile
+#undef __funlockfile
+#define __funlockfile funlockfile
+#undef __mempcpy
+#define __mempcpy mempcpy
 #undef __sleep
 #define __sleep sleep
 #undef __strcasecmp
 #define __strcasecmp strcasecmp
+#undef __strchrnul
+#define __strchrnul strchrnul
+#undef __strerror_r
+#define __strerror_r strerror_r
+#undef __strndup
+#define __strndup strndup
 #undef __vsnprintf
 #define __vsnprintf vsnprintf
 
+#if defined(HAVE_DECL_CLEARERR_UNLOCKED) && !HAVE_DECL_CLEARERR_UNLOCKED
+# define clearerr_unlocked(x) clearerr (x)
+#endif
+#if defined(HAVE_DECL_FEOF_UNLOCKED) && !HAVE_DECL_FEOF_UNLOCKED
+# define feof_unlocked(x) feof (x)
+# endif
+#if defined(HAVE_DECL_FERROR_UNLOCKED) && !HAVE_DECL_FERROR_UNLOCKED
+# define ferror_unlocked(x) ferror (x)
+# endif
+#if defined(HAVE_DECL_FFLUSH_UNLOCKED) && !HAVE_DECL_FFLUSH_UNLOCKED
+# define fflush_unlocked(x) fflush (x)
+# endif
+#if defined(HAVE_DECL_FGETS_UNLOCKED) && !HAVE_DECL_FGETS_UNLOCKED
+# define fgets_unlocked(x,y,z) fgets (x,y,z)
+# endif
+#if defined(HAVE_DECL_FPUTC_UNLOCKED) && !HAVE_DECL_FPUTC_UNLOCKED
+# define fputc_unlocked(x,y) fputc (x,y)
+# endif
+#if defined(HAVE_DECL_FPUTS_UNLOCKED) && !HAVE_DECL_FPUTS_UNLOCKED
+# define fputs_unlocked(x,y) fputs (x,y)
+# endif
+#if defined(HAVE_DECL_FREAD_UNLOCKED) && !HAVE_DECL_FREAD_UNLOCKED
+# define fread_unlocked(w,x,y,z) fread (w,x,y,z)
+# endif
+#if defined(HAVE_DECL_FWRITE_UNLOCKED) && !HAVE_DECL_FWRITE_UNLOCKED
+# define fwrite_unlocked(w,x,y,z) fwrite (w,x,y,z)
+# endif
+#if defined(HAVE_DECL_GETC_UNLOCKED) && !HAVE_DECL_GETC_UNLOCKED
+# define getc_unlocked(x) getc (x)
+# endif
+#if defined(HAVE_DECL_GETCHAR_UNLOCKED) && !HAVE_DECL_GETCHAR_UNLOCKED
+#  define getchar_unlocked() getchar ()
+# endif
+#if defined(HAVE_DECL_PUTC_UNLOCKED) && !HAVE_DECL_PUTC_UNLOCKED
+# define putc_unlocked(x,y) putc (x,y)
+# endif
+#if defined(HAVE_DECL_PUTCHAR_UNLOCKED) && !HAVE_DECL_PUTCHAR_UNLOCKED
+# define putchar_unlocked(x) putchar (x)
+# endif
+
+extern char *__argp_basename (char *name);
+
 #endif /* !_LIBC */
+
+#ifndef __set_errno
+#define __set_errno(e) (errno = (e))
+#endif
+
+#if defined _LIBC || HAVE_DECL_PROGRAM_INVOCATION_SHORT_NAME
+# define __argp_short_program_name()	(program_invocation_short_name)
+#else
+extern char *__argp_short_program_name (void);
+#endif

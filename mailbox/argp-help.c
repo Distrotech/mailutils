@@ -1,22 +1,21 @@
 /* Hierarchial argument parsing help output
-   Copyright (C) 1995,1996,1997,1998,1999,2000, 2001 Free Software Foundation, Inc.
+   Copyright (C) 1995-2003, 2004, 2005 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
    Written by Miles Bader <miles@gnu.ai.mit.edu>.
 
-   The GNU C Library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Library General Public License as
-   published by the Free Software Foundation; either version 2 of the
-   License, or (at your option) any later version.
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 2, or (at your option)
+   any later version.
 
-   The GNU C Library is distributed in the hope that it will be useful,
+   This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   Library General Public License for more details.
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
 
-   You should have received a copy of the GNU Library General Public
-   License along with the GNU C Library; see the file COPYING.LIB.  If not,
-   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-   Boston, MA 02111-1307, USA.  */
+   You should have received a copy of the GNU General Public License along
+   with this program; if not, write to the Free Software Foundation,
+   Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.  */
 
 #ifndef _GNU_SOURCE
 # define _GNU_SOURCE	1
@@ -26,73 +25,35 @@
 #include <config.h>
 #endif
 
-#include <mailutils/nls.h>
-
-#ifndef alloca
-# ifdef __GNUC__
-#  define alloca __builtin_alloca
-#  define HAVE_ALLOCA 1
-# else
-#  if defined HAVE_ALLOCA_H || defined _LIBC
-#   include <alloca.h>
-#  else
-#   ifdef _AIX
- #pragma alloca
-#   else
-#    ifndef alloca
-char *alloca ();
-#    endif
-#   endif
-#  endif
-# endif
-#endif
-
+#include <alloca.h>
+#include <errno.h>
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
 #include <stdarg.h>
-#ifdef HAVE_MALLOC_H
-# include <malloc.h>
-#endif
 #include <ctype.h>
-
-#ifdef HAVE_STRINGS_H
-# include <strings.h>
+#include <limits.h>
+#ifdef USE_IN_LIBIO
+# include <wchar.h>
 #endif
 
-#ifndef _
-/* This is for other GNU distributions with internationalized messages.  */
-# if defined HAVE_LIBINTL_H || defined _LIBC
-#  include <libintl.h>
-#  ifdef _LIBC
-#   undef dgettext
-#   define dgettext(domain, msgid) __dcgettext (domain, msgid, LC_MESSAGES)
-#  endif
-# else
-#  define dgettext(domain, msgid) (msgid)
-# endif
+#ifdef _LIBC
+# include <libintl.h>
+# undef dgettext
+# define dgettext(domain, msgid) \
+   INTUSE(__dcgettext) (domain, msgid, LC_MESSAGES)
+#else
+# include "gettext.h"
 #endif
 
 #include "argp.h"
 #include "argp-fmtstream.h"
 #include "argp-namefrob.h"
 
-#ifndef __P
-# if defined PROTOTYPES || (defined __STDC__ && __STDC__)
-#  define __P(Args) Args
-# else
-#  define __P(Args) ()
-# endif
+#ifndef SIZE_MAX
+# define SIZE_MAX ((size_t) -1)
 #endif
-
-#if !HAVE_DECL_STRCHRNUL
-extern char *strchrnul __P((const char *s, int c_in));
-#endif
-#if !HAVE_DECL_STRNDUP
-extern char *strndup __P((const char *s, size_t n));
-#endif
-
 
 /* User-selectable (using an environment variable) formatting parameters.
 
@@ -266,6 +227,9 @@ fill_in_uparams (const struct argp_state *state)
 
 /* Returns true if OPT is an documentation-only entry.  */
 #define odoc(opt) ((opt)->flags & OPTION_DOC)
+
+/* Returns true if OPT should not be translated */
+#define onotrans(opt) ((opt)->flags & OPTION_NO_TRANS)
 
 /* Returns true if OPT is the end-of-list marker for a list of options.  */
 #define oend(opt) __option_is_end (opt)
@@ -462,6 +426,8 @@ make_hol (const struct argp *argp, struct hol_cluster *cluster)
       hol->short_options = malloc (num_short_options + 1);
 
       assert (hol->entries && hol->short_options);
+      if (SIZE_MAX <= UINT_MAX)
+	assert (hol->num_entries <= SIZE_MAX / sizeof (struct hol_entry));
 
       /* Fill in the entries.  */
       so = hol->short_options;
@@ -566,7 +532,8 @@ hol_entry_short_iterate (const struct hol_entry *entry,
   return val;
 }
 
-static int
+static inline int
+__attribute__ ((always_inline))
 hol_entry_long_iterate (const struct hol_entry *entry,
 			int (*func)(const struct argp_option *opt,
 				    const struct argp_option *real,
@@ -590,7 +557,7 @@ hol_entry_long_iterate (const struct hol_entry *entry,
 }
 
 /* Iterator that returns true for the first short option.  */
-static int
+static inline int
 until_short (const struct argp_option *opt, const struct argp_option *real,
 	     const char *domain, void *cookie)
 {
@@ -712,14 +679,20 @@ static int
 canon_doc_option (const char **name)
 {
   int non_opt;
-  /* Skip initial whitespace.  */
-  while (isspace (**name))
-    (*name)++;
-  /* Decide whether this looks like an option (leading `-') or not.  */
-  non_opt = (**name != '-');
-  /* Skip until part of name used for sorting.  */
-  while (**name && !isalnum (**name))
-    (*name)++;
+
+  if (!*name)
+    non_opt = 1;
+  else
+    {
+      /* Skip initial whitespace.  */
+      while (isspace (**name))
+	(*name)++;
+      /* Decide whether this looks like an option (leading `-') or not.  */
+      non_opt = (**name != '-');
+      /* Skip until part of name used for sorting.  */
+      while (**name && !isalnum (**name))
+	(*name)++;
+    }
   return non_opt;
 }
 
@@ -772,7 +745,7 @@ hol_entry_cmp (const struct hol_entry *entry1,
 	return doc1 - doc2;
       else if (!short1 && !short2 && long1 && long2)
 	/* Only long options.  */
-	return strcasecmp (long1, long2);
+	return __strcasecmp (long1, long2);
       else
 	/* Compare short/short, long/short, short/long, using the first
 	   character of long options.  Entries without *any* valid
@@ -853,12 +826,16 @@ hol_append (struct hol *hol, struct hol *more)
 	  char *short_options =
 	    malloc (hol_so_len + strlen (more->short_options) + 1);
 
-	  memcpy (entries, hol->entries,
-		  hol->num_entries * sizeof (struct hol_entry));
-	  memcpy (entries + hol->num_entries, more->entries,
-		  more->num_entries * sizeof (struct hol_entry));
+	  assert (entries && short_options);
+	  if (SIZE_MAX <= UINT_MAX)
+	    assert (num_entries <= SIZE_MAX / sizeof (struct hol_entry));
 
-	  memcpy (short_options, hol->short_options, hol_so_len);
+	  __mempcpy (__mempcpy (entries, hol->entries,
+				hol->num_entries * sizeof (struct hol_entry)),
+		     more->entries,
+		     more->num_entries * sizeof (struct hol_entry));
+
+	  __mempcpy (short_options, hol->short_options, hol_so_len);
 
 	  /* Fix up the short options pointers from HOL.  */
 	  for (e = entries, left = hol->num_entries; left > 0; e++, left--)
@@ -1078,9 +1055,8 @@ hol_entry_help (struct hol_entry *entry, const struct argp_state *state,
   int old_wm = __argp_fmtstream_wmargin (stream);
   /* PEST is a state block holding some of our variables that we'd like to
      share with helper functions.  */
-  /* Some loosing compiler can not handle this ... lets play nice.  */
-  /* struct pentry_state pest = { entry, stream, hhstate, 1, state }; */
   struct pentry_state pest;
+
   pest.entry = entry;
   pest.stream = stream;
   pest.hhstate = hhstate;
@@ -1120,13 +1096,15 @@ hol_entry_help (struct hol_entry *entry, const struct argp_state *state,
     {
       __argp_fmtstream_set_wmargin (stream, uparams.doc_opt_col);
       for (opt = real, num = entry->num; num > 0; opt++, num--)
-	if (opt->name && ovisible (opt))
+	if (opt->name && *opt->name && ovisible (opt))
 	  {
 	    comma (uparams.doc_opt_col, &pest);
-	    /* Calling gettext here isn't quite right, since sorting will
+	    /* Calling dgettext here isn't quite right, since sorting will
 	       have been done on the original; but documentation options
 	       should be pretty rare anyway...  */
 	    __argp_fmtstream_puts (stream,
+				   onotrans (opt) ?
+				             opt->name :
 				   dgettext (state->root_argp->argp_domain,
 					     opt->name));
 	  }
@@ -1406,7 +1384,7 @@ argp_args_usage (const struct argp *argp, const struct argp_state *state,
   if (fdoc)
     {
       const char *cp = fdoc;
-      nl = strchrnul (cp, '\n');
+      nl = __strchrnul (cp, '\n');
       if (*nl != '\0')
 	/* This is a `multi-level' args doc; advance to the correct position
 	   as determined by our state in LEVELS, and update LEVELS.  */
@@ -1414,7 +1392,7 @@ argp_args_usage (const struct argp *argp, const struct argp_state *state,
 	  int i;
 	  multiple = 1;
 	  for (i = 0; i < *our_level; i++)
-	    cp = nl + 1, nl = strchrnul (cp, '\n');
+	    cp = nl + 1, nl = __strchrnul (cp, '\n');
 	  (*levels)++;
 	}
 
@@ -1482,7 +1460,7 @@ argp_doc (const struct argp *argp, const struct argp_state *state,
     {
       if (inp_text_limit)
 	/* Copy INP_TEXT so that it's nul-terminated.  */
-	inp_text = strndup (inp_text, inp_text_limit);
+	inp_text = __strndup (inp_text, inp_text_limit);
       input = __argp_input (argp, state);
       text =
 	(*argp->help_filter) (post
@@ -1556,12 +1534,19 @@ _help (const struct argp *argp, const struct argp_state *state, FILE *stream,
   if (! stream)
     return;
 
+#if _LIBC || (HAVE_FLOCKFILE && HAVE_FUNLOCKFILE)
+  __flockfile (stream);
+#endif
+
   if (! uparams.valid)
     fill_in_uparams (state);
 
   fs = __argp_make_fmtstream (stream, 0, uparams.rmargin, 0);
   if (! fs)
     {
+#if _LIBC || (HAVE_FLOCKFILE && HAVE_FUNLOCKFILE)
+      __funlockfile (stream);
+#endif
       return;
     }
 
@@ -1669,6 +1654,10 @@ Try `%s --help' or `%s --usage' for more information.\n"),
       anything = 1;
     }
 
+#if _LIBC || (HAVE_FLOCKFILE && HAVE_FUNLOCKFILE)
+  __funlockfile (stream);
+#endif
+
   if (hol)
     hol_free (hol);
 
@@ -1680,10 +1669,32 @@ Try `%s --help' or `%s --usage' for more information.\n"),
 void __argp_help (const struct argp *argp, FILE *stream,
 		  unsigned flags, char *name)
 {
-  _help (argp, 0, stream, flags, name);
+  struct argp_state state;
+  memset (&state, 0, sizeof state);
+  state.root_argp = argp;
+  _help (argp, &state, stream, flags, name);
 }
 #ifdef weak_alias
 weak_alias (__argp_help, argp_help)
+#endif
+
+#if ! (defined _LIBC || HAVE_DECL_PROGRAM_INVOCATION_SHORT_NAME)
+char *
+__argp_short_program_name (void)
+{
+# if HAVE_DECL_PROGRAM_INVOCATION_NAME
+  char *name = strrchr (program_invocation_name, '/');
+  return name ? name + 1 : program_invocation_name;
+# else
+  /* FIXME: What now? Miles suggests that it is better to use NULL,
+     but currently the value is passed on directly to fputs_unlocked,
+     so that requires more changes. */
+# if __GNUC__
+#  warning No reasonable value to return
+# endif /* __GNUC__ */
+  return "";
+# endif
+}
 #endif
 
 /* Output, if appropriate, a usage message for STATE to STREAM.  FLAGS are
@@ -1697,7 +1708,7 @@ __argp_state_help (const struct argp_state *state, FILE *stream, unsigned flags)
 	flags |= ARGP_HELP_LONG_ONLY;
 
       _help (state ? state->root_argp : 0, state, stream, flags,
-	     state ? state->name : program_invocation_short_name);
+	     state ? state->name : __argp_short_program_name ());
 
       if (!state || ! (state->flags & ARGP_NO_EXIT))
 	{
@@ -1726,19 +1737,47 @@ __argp_error (const struct argp_state *state, const char *fmt, ...)
 	{
 	  va_list ap;
 
-	  fputs (state ? state->name : program_invocation_short_name,
-			  stream);
-	  putc (':', stream);
-	  putc (' ', stream);
+#if _LIBC || (HAVE_FLOCKFILE && HAVE_FUNLOCKFILE)
+	  __flockfile (stream);
+#endif
 
 	  va_start (ap, fmt);
-	  vfprintf (stream, fmt, ap);
-	  va_end (ap);
 
-	  putc ('\n', stream);
+#ifdef USE_IN_LIBIO
+	  if (_IO_fwide (stream, 0) > 0)
+	    {
+	      char *buf;
+
+	      if (__asprintf (&buf, fmt, ap) < 0)
+		buf = NULL;
+
+	      __fwprintf (stream, L"%s: %s\n",
+			  state ? state->name : __argp_short_program_name (),
+			  buf);
+
+	      free (buf);
+	    }
+	  else
+#endif
+	    {
+	      fputs_unlocked (state
+			      ? state->name : __argp_short_program_name (),
+			      stream);
+	      putc_unlocked (':', stream);
+	      putc_unlocked (' ', stream);
+
+	      vfprintf (stream, fmt, ap);
+
+	      putc_unlocked ('\n', stream);
+	    }
 
 	  __argp_state_help (state, stream, ARGP_HELP_STD_ERR);
 
+	  va_end (ap);
+
+#if _LIBC || (HAVE_FLOCKFILE && HAVE_FUNLOCKFILE)
+	  __funlockfile (stream);
+#endif
 	}
     }
 }
@@ -1764,29 +1803,88 @@ __argp_failure (const struct argp_state *state, int status, int errnum,
 
       if (stream)
 	{
-	  fputs (state ? state->name : program_invocation_short_name,
-		 stream);
+#if _LIBC || (HAVE_FLOCKFILE && HAVE_FUNLOCKFILE)
+	  __flockfile (stream);
+#endif
+
+#ifdef USE_IN_LIBIO
+	  if (_IO_fwide (stream, 0) > 0)
+	    __fwprintf (stream, L"%s",
+			state ? state->name : __argp_short_program_name ());
+	  else
+#endif
+	    fputs_unlocked (state
+			    ? state->name : __argp_short_program_name (),
+			    stream);
 
 	  if (fmt)
 	    {
 	      va_list ap;
 
-	      putc (':', stream);
-	      putc (' ', stream);
-
 	      va_start (ap, fmt);
-	      vfprintf (stream, fmt, ap);
+#ifdef USE_IN_LIBIO
+	      if (_IO_fwide (stream, 0) > 0)
+		{
+		  char *buf;
+
+		  if (__asprintf (&buf, fmt, ap) < 0)
+		    buf = NULL;
+
+		  __fwprintf (stream, L": %s", buf);
+
+		  free (buf);
+		}
+	      else
+#endif
+		{
+		  putc_unlocked (':', stream);
+		  putc_unlocked (' ', stream);
+
+		  vfprintf (stream, fmt, ap);
+		}
+
 	      va_end (ap);
 	    }
 
 	  if (errnum)
 	    {
-	      putc (':', stream);
-	      putc (' ', stream);
-	      fputs (strerror (errnum), stream);
+	      char buf[200];
+
+#ifdef USE_IN_LIBIO
+	      if (_IO_fwide (stream, 0) > 0)
+		__fwprintf (stream, L": %s",
+			    __strerror_r (errnum, buf, sizeof (buf)));
+	      else
+#endif
+		{
+		  char const *s = NULL;
+		  putc_unlocked (':', stream);
+		  putc_unlocked (' ', stream);
+#if _LIBC || (HAVE_DECL_STRERROR_R && STRERROR_R_CHAR_P)
+		  s = __strerror_r (errnum, buf, sizeof buf);
+#elif HAVE_DECL_STRERROR_R
+		  if (__strerror_r (errnum, buf, sizeof buf) == 0)
+		    s = buf;
+#endif
+#if !_LIBC
+		  if (! s && ! (s = strerror (errnum)))
+		    s = dgettext (state->root_argp->argp_domain,
+				  "Unknown system error");
+#endif
+		  fputs (s, stream);
+		}
 	    }
 
-	  putc ('\n', stream);
+#ifdef USE_IN_LIBIO
+	  if (_IO_fwide (stream, 0) > 0)
+	    putwc_unlocked (L'\n', stream);
+	  else
+#endif
+	    putc_unlocked ('\n', stream);
+
+#if _LIBC || (HAVE_FLOCKFILE && HAVE_FUNLOCKFILE)
+	  __funlockfile (stream);
+#endif
 
 	  if (status && (!state || !(state->flags & ARGP_NO_EXIT)))
 	    exit (status);
