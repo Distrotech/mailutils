@@ -57,7 +57,10 @@ mail_from0 (msgset_t *mspec, message_t msg, void *data)
 	  address_destroy (&address);
 	}
     }
+  util_rfc2047_decode (&from);
+
   header_aget_value_unfold (hdr, MU_HEADER_SUBJECT, &subj);
+  util_rfc2047_decode (&subj);
   
   message_get_attribute (msg, &attr);
   
