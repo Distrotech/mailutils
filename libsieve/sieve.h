@@ -59,9 +59,11 @@ struct sieve_machine {
   sieve_printf_t error_printer; 
   sieve_printf_t debug_printer;
   sieve_action_log_t logger;
-
+  
+  mailer_t mailer;
   ticket_t ticket;
   mu_debug_t mu_debug;
+  char *daemon_email;
   void *data;
 };
 
