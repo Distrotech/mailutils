@@ -1,3 +1,10 @@
+2003-07-01  Sergey Poznyakoff 
+
+	* auth/pam.c: Minor indentation fix.
+	* comsat/comsat.c (notify_user): Bugfix: do not pass
+	size_t instead of off_t.
+	* mail.local/main.c (deliver): Likewise.
+
 2003-06-26  Sergey Poznyakoff
 
 	* mailbox/mu_auth.c (mu_auth_register_module): Fixed memory
