@@ -59,6 +59,9 @@
 /* An error occured when expunging.  */
 #define FILE_EXP        "Some deleted messages not removed"
 
+/* Command not permitted when TLS active. */
+#define TLS_ACTIVE      "Command not permitted when TLS active"
+
 /* APOP password file, without .db or .passwd, which are added based on file
    type automatically */
 #define APOP_PASSFILE_NAME "apop"
@@ -167,6 +170,7 @@
 #define ERR_TIMEOUT	14
 #define ERR_UNKNOWN	15
 #define ERR_MBOX_SYNC   16
+#define ERR_TLS_ACTIVE 17
 
 extern mailbox_t mbox;
 extern int state;

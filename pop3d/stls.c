@@ -30,6 +30,9 @@ pop3d_stls (const char *arg)
   if (state != AUTHORIZATION)
     return ERR_WRONG_STATE;
 
+  if (tls_done)
+    return ERR_TLS_ACTIVE;
+
   pop3d_outf ("+OK Begin TLS negotiation\r\n");
   pop3d_flush_output ();
 

@@ -377,6 +377,10 @@ pop3d_mainloop (int fd, FILE *infile, FILE *outfile)
 	pop3d_outf ("-ERR " TOO_LONG "\r\n");
       else if (status == ERR_FILE)
 	pop3d_outf ("-ERR " FILE_EXP "\r\n");
+#ifdef WITH_TLS
+      else if (status == ERR_TLS_ACTIVE)
+	pop3d_outf ("-ERR " TLS_ACTIVE "\r\n");
+#endif /* WITH_TLS */
       else
 	pop3d_outf ("-ERR unknown error\r\n");
 
