@@ -795,3 +795,14 @@ mh_create_message_id (int subpart)
   free (host);
   return p;
 }
+
+void
+mh_set_reply_regex (const char *str)
+{
+  char *err;
+  int rc = munre_set_regex (str, 0, &err);
+  if (rc)
+    mh_error ("reply_regex: %s%s%s", mu_strerror (rc),
+	      err ? ": " : "",
+	      err ? err : "");
+}

@@ -313,6 +313,7 @@ int mh_file_copy __P((const char *from, const char *to));
 char *mh_draft_name __P((void));
 char *mh_create_message_id __P((int));
 int mh_whom __P((char *filename, int check));
+void mh_set_reply_regex __P((const char *str));
 
 int mh_alias_read __P((char *name, int fail));
 int mh_alias_get __P((char *name, list_t *return_list));
