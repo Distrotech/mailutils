@@ -1,5 +1,11 @@
 2001-07-23 Alain Magloire
 
+	* util.c (util_msglist_command):  Check for interruption here
+	also and that will permit interruption on long commands like
+	"from *"
+
+2001-07-23 Alain Magloire
+
 	The reason the interrupt code did not work for me, is that
 	by default using signal will make function calls restartable,
 	at least on my default RH5.1, when read() was interrupted
