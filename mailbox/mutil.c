@@ -508,3 +508,24 @@ mu_normalize_path (char *path, const char *delim)
   return path;
 }
 
+char *
+mu_normalize_maildir (const char *dir)
+{
+  int len = strlen (dir);
+  if (dir[len-1] == '/')
+    return strdup (dir);
+  else if (strncasecmp (dir, "mbox:", 5) == 0 && dir[len-1] == '=')
+    {
+      if (len > 5 && strcmp (dir + len - 5, "user=") == 0)
+	return strdup (dir);
+      else
+	return NULL;
+    }
+  else
+    {
+      char *p = malloc (strlen (dir) + 2);
+      strcat (strcpy (p, dir), "/");
+      return p;
+    }
+}
+
