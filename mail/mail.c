@@ -25,8 +25,7 @@ size_t total;
 FILE *ofile;
 int interactive;
 
-const char *argp_program_version = "mail (" PACKAGE ") " VERSION;
-const char *argp_program_bug_address = "<bug-mailutils@gnu.org>";
+const char *argp_program_version = "mail (" PACKAGE_STRING ")";
 static char doc[] = "GNU mail -- the standard /bin/mail interface";
 static char args_doc[] = "[address...]";
 
@@ -354,8 +353,9 @@ main (int argc, char **argv)
 	       "%s, Copyright (C) 2001 Free Software Foundation, Inc.\n"
 	       "mail is free software with ABSOLUTELY NO WARRANTY.\n"
 	       "For details type `warranty'.\n"
-	       "Send bug reports to <bug-mailutils@gnu.org>.\n",
-	       argp_program_version);
+	       "Send bug reports to %s.\n",
+	       argp_program_version,
+	       argp_program_bug_address);
     }
 
   ml_readline_init ();

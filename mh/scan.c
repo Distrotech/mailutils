@@ -25,8 +25,7 @@
 #include <sys/stat.h>
 #include <time.h>
 
-const char *argp_program_version = "scan (" PACKAGE ") " VERSION;
-const char *argp_program_bug_address = "<bug-mailutils@gnu.org>";
+const char *argp_program_version = "scan (" PACKAGE_STRING ")";
 static char doc[] = "GNU MH scan";
 static char args_doc[] = "";
 

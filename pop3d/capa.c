@@ -45,7 +45,7 @@ pop3d_capa (const char *arg)
      message.  */
   /*pop3d_outf ("EXPIRE NEVER\r\n"); */
   if (state == TRANSACTION)	/* let's not advertise to just anyone */
-    pop3d_outf ("IMPLEMENTATION %s %s\r\n", IMPL, VERSION);
+    pop3d_outf ("IMPLEMENTATION %s\r\n", PACKAGE_STRING);
   pop3d_outf (".\r\n");
   return OK;
 }

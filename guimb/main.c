@@ -118,10 +118,9 @@ parse_opt (int key, char *arg, struct argp_state *state)
   return 0;
 }
 
-const char *argp_program_version = "guimb (" PACKAGE ") " VERSION;
-const char *argp_program_bug_address = "<bug-mailutils@gnu.org>";
+const char *argp_program_version = "guimb (" PACKAGE_STRING ")";
 static char doc[] =
-"GNU messages -- Process the contents of the specified mailboxes\n"
+"GNU guimb -- Process the contents of the specified mailboxes\n"
 "using a Scheme program or expression.";
 static char args_doc[] = "[mailbox...]";
 

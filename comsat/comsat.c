@@ -17,8 +17,6 @@
 
 #include "comsat.h"
 
-#define	IMPL		"GNU Comsat Daemon"
-
 #ifndef PATH_DEV
 # define PATH_DEV "/dev"
 #endif
@@ -53,8 +51,7 @@ typedef struct utmp UTMP;
 
 #define MAX_TTY_SIZE (sizeof (PATH_TTY_PFX) + sizeof (((UTMP*)0)->ut_line))
 
-const char *argp_program_version = "comsatd (" PACKAGE ") " VERSION;
-const char *argp_program_bug_address = "<bug-mailutils@gnu.org>";
+const char *argp_program_version = "comsatd (" PACKAGE_STRING ")";
 static char doc[] = "GNU comsatd";
 
 static struct argp_option options[] = 

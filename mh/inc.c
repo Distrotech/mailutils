@@ -19,8 +19,7 @@
 
 #include <mh.h>
 
-const char *argp_program_version = "inc (" PACKAGE ") " VERSION;
-const char *argp_program_bug_address = "<bug-mailutils@gnu.org>";
+const char *argp_program_version = "inc (" PACKAGE_STRING ")";
 static char doc[] = "GNU MH inc";
 static char args_doc[] = "";
 

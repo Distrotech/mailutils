@@ -51,8 +51,7 @@ sieve script interpreter.
 
 void mutil_register_all_mbox_formats(void);
 
-const char *argp_program_version = "sieve (" PACKAGE ") " VERSION;
-const char *argp_program_bug_address = "<bug-mailutils@gnu.org>";
+const char *argp_program_version = "sieve (" PACKAGE_STRING ")";
 
 static char doc[] =
   "GNU sieve -- a mail filtering tool\n"

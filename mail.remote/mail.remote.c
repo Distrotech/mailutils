@@ -39,8 +39,7 @@
 #include <mailutils/registrar.h>
 #include <mailutils/stream.h>
 
-const char *argp_program_version = "mail.remote (" PACKAGE ") " VERSION;
-const char *argp_program_bug_address = "<bug-mailutils@gnu.org>";
+const char *argp_program_version = "mail.remote (" PACKAGE_STRING ")";
 static char doc[] =
   "GNU mail.remote -- pseudo-sendmail interface for mail delivery\n"
   "\v"

@@ -36,8 +36,7 @@ void guess_retval (int ec);
 void mailer_err (char *fmt, ...);
 void notify_biff (mailbox_t mbox, char *name, size_t size);
 
-const char *argp_program_version = "mail.local (" PACKAGE ") " VERSION;
-const char *argp_program_bug_address = "<bug-mailutils@gnu.org>";
+const char *argp_program_version = "mail.local (" PACKAGE_STRING ")";
 static char doc[] = "GNU mail.local -- the local MDA";
 static char args_doc[] = "recipient [recipient ...]";
 

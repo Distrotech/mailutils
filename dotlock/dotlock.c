@@ -30,8 +30,7 @@
 #include <mailutils/errno.h>
 #include <mailutils/locker.h>
 
-const char *argp_program_version = "GNU dotlock (" PACKAGE ") " VERSION;
-const char *argp_program_bug_address = "<bug-mailutils@gnu.org>";
+const char *argp_program_version = "GNU dotlock (" PACKAGE_STRING ")";
 static char doc[] =
   "GNU dotlock -- lock mail spool files"
   "\v"

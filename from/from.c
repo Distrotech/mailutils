@@ -44,8 +44,7 @@
 #include <mailutils/registrar.h>
 #include <mailutils/stream.h>
 
-const char *argp_program_version = "from (" PACKAGE ") " VERSION;
-const char *argp_program_bug_address = "<bug-mailutils@gnu.org>";
+const char *argp_program_version = "from (" PACKAGE_STRING ")";
 static char doc[] = "GNU from -- display from and subject";
 
 static struct argp_option options[] = {

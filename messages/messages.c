@@ -30,8 +30,7 @@
 
 static int messages_count (const char *);
 
-const char *argp_program_version = "messages (" PACKAGE ") " VERSION;
-const char *argp_program_bug_address = "<bug-mailutils@gnu.org>";
+const char *argp_program_version = "messages (" PACKAGE_STRING ")";
 static char doc[] = "GNU messages -- count the number of messages in a mailbox";
 static char args_doc[] = "[mailbox...]";
 

@@ -38,8 +38,7 @@ struct daemon_param daemon_param = {
 /* Number of child processes.  */
 volatile size_t children;
 
-const char *argp_program_version = "imap4d (" PACKAGE ") " VERSION;
-const char *argp_program_bug_address = "<bug-mailutils@gnu.org>";
+const char *argp_program_version = "imap4d (" PACKAGE_STRING ")";
 static char doc[] = "GNU imap4d -- the IMAP4D daemon";
 
 static struct argp_option options[] = 

@@ -59,8 +59,7 @@ static int selected;
 
 static int action (observer_t, size_t);
 
-const char *argp_program_version = "frm (" PACKAGE ") " VERSION;
-const char *argp_program_bug_address = "<bug-mailutils@gnu.org>";
+const char *argp_program_version = "frm (" PACKAGE_STRING ")";
 static char doc[] = "GNU frm -- display From: lines";
 
 static struct argp_option options[] = {
