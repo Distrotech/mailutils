@@ -37,7 +37,6 @@ typedef struct _address *address_t;
 
 extern int address_create   __P ((address_t *, const char *));
 extern int address_createv  __P ((address_t *, const char *v[], size_t));
-extern int address_create0  __P ((address_t *, const char *));
 extern void address_destroy __P ((address_t *));
 
 extern int address_get_email
