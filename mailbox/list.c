@@ -280,19 +280,24 @@ list_get (list_t list, size_t indx, void **pitem)
 int
 list_do (list_t list, list_action_t * action, void *cbdata)
 {
-  struct list_data *current;
+  iterator_t itr;
   int status = 0;
   
   if (list == NULL || action == NULL)
     return EINVAL;
+  status = iterator_create(&itr, list);
+  if (status)
+    return status;
   monitor_rdlock (list->monitor);
-  for (current = list->head.next; current != &(list->head);
-       current = current->next)
+  for (iterator_first (itr); !iterator_is_done (itr); iterator_next (itr))
     {
+      void *item;
+      iterator_current (itr, &item);
       if ((status = action (current->item, cbdata)))
 	break;
     }
   monitor_unlock (list->monitor);
+  iterator_destroy (&itr);
   return status;
 }
 
@@ -309,16 +314,19 @@ list_to_array (list_t list, void **array, size_t count, size_t *pcount)
 {
   size_t total = 0;
 
-  if (list != NULL)
+  if (!list)
+    return EINVAL;
+  
+  total = (count < list->count) ? count : list->count;
+
+  if (array)
     {
       size_t i;
       struct list_data *current;
-      total = (count < list->count) ? count : list->count;
-      for (i = 0, current = list->head.next; i < total && current != &(list->head); current = current->next)
-        {
-          if (array)
-            array[i] = current->item;
-        }
+      
+      for (i = 0, current = list->head.next;
+	   i < total && current != &(list->head); current = current->next)
+	array[i] = current->item;
     }
   if (pcount)
     *pcount = total; 
