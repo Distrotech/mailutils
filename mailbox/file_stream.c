@@ -227,6 +227,12 @@ _file_open (stream_t stream, const char *filename, int port, int flags)
   if (fs == NULL)
     return EINVAL;
 
+  if (fs->file)
+    {
+      fclose (fs->file);
+      fs->file = NULL;
+    }
+
   /* Map the flags to the system equivalent.  */
   if (flags & MU_STREAM_WRITE)
     flg = O_WRONLY;

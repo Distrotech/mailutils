@@ -1,5 +1,5 @@
 /* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Library Public License as published by
@@ -16,9 +16,9 @@
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 /* Notes:
-	
+
  */
- 
+
 
 #ifdef HAVE_CONFIG_H
 # include <config.h>
@@ -39,22 +39,22 @@ struct _trans_stream
 {
 	stream_t 	stream;    	 /* encoder/decoder read/writes data to/from here */
 	int			t_offset;
-	
+
 	int 		min_size;
     int			s_offset;
 	char 	   *s_buf;					/* used when read it not big enough to handle min_size for decoder/encoder */
 
 	int			offset;		 			/* current stream offset */
 	int			line_len;
-		
+
 	int			w_rhd;    				/* working buffer read head  */
-	int			w_whd;					/* working buffer write head */					
+	int			w_whd;					/* working buffer write head */
 	char 	    w_buf[MU_TRANS_BSIZE]; 	/* working source/dest buffer */
 
 	int 		(*transcoder)(const char *iptr, size_t isize, char *optr, size_t osize, size_t *nbytes, int *line_len);
 };
 
-struct _ts_desc 
+struct _ts_desc
 {
 	const char *encoding;
 
@@ -72,14 +72,15 @@ static int _qp_decode(const char *iptr, size_t isize, char *optr, size_t osize, 
 static int _qp_encode(const char *iptr, size_t isize, char *optr, size_t osize, size_t *nbytes, int *line_len);
 
 #define NUM_TRANSCODERS 5
-struct _ts_desc tslist[NUM_TRANSCODERS] =     { { "base64", 			_base64_init, _base64_decode, _base64_encode},
-						 						{ "quoted-printable", 	_qp_init,	  _qp_decode, 	  _qp_encode},
-												{ "7bit", 				NULL},
-												{ "8bit", 				NULL},
-												{ "binary", 			NULL}
-											  };
+struct _ts_desc tslist[NUM_TRANSCODERS] = {
+  { "base64", _base64_init, _base64_decode, _base64_encode},
+  { "quoted-printable",	_qp_init, _qp_decode, _qp_encode},
+  { "7bit", NULL, NULL, NULL},
+  { "8bit", NULL, NULL,	NULL},
+  { "binary", NULL, NULL, NULL}
+};
 
-static void 
+static void
 _trans_destroy(stream_t stream)
 {
 	struct _trans_stream *ts = stream_get_owner(stream);
@@ -88,13 +89,13 @@ _trans_destroy(stream_t stream)
    	free(ts);
 }
 
-static int 
+static int
 _trans_read(stream_t stream, char *optr, size_t osize, off_t offset, size_t *nbytes)
 {
 	struct _trans_stream *ts = stream_get_owner(stream);
 	size_t obytes, wbytes;
 	int ret = 0, i;
-	
+
 	if ( nbytes == NULL || optr == NULL || osize == 0 )
 		return EINVAL;
 
@@ -107,7 +108,7 @@ _trans_read(stream_t stream, char *optr, size_t osize, off_t offset, size_t *nby
 
 	if ( offset == 0 )
 		ts->s_offset = ts->t_offset = ts->w_whd = ts->w_rhd = ts->offset = ts->line_len = 0;
-	
+
 	while ( *nbytes < osize ) {
 		if ( ( ts->w_rhd + ts->min_size ) >= ts->w_whd ) {
 			memmove(ts->w_buf, ts->w_buf + ts->w_rhd, ts->w_whd - ts->w_rhd);
@@ -149,11 +150,10 @@ _trans_read(stream_t stream, char *optr, size_t osize, off_t offset, size_t *nby
 }
 
 
-static int 
+static int
 _trans_write(stream_t stream, const char *iptr, size_t isize, off_t offset, size_t *nbytes)
 {
 	struct _trans_stream *ts = stream_get_owner(stream);
-	int ret = 0;
 
 	if ( nbytes == NULL || iptr == NULL || isize == 0 )
 		return EINVAL;
@@ -171,7 +171,7 @@ _trans_write(stream_t stream, const char *iptr, size_t isize, off_t offset, size
 	return EINVAL;
 }
 
-static int 
+static int
 _trans_open (stream_t stream, const char *filename, int port, int flags)
 {
 	struct _trans_stream *ts = stream_get_owner(stream);
@@ -179,7 +179,7 @@ _trans_open (stream_t stream, const char *filename, int port, int flags)
 	return stream_open(ts->stream, filename, port, flags);
 }
 
-static int 
+static int
 _trans_truncate (stream_t stream, off_t len)
 {
 	struct _trans_stream *ts = stream_get_owner(stream);
@@ -187,22 +187,22 @@ _trans_truncate (stream_t stream, off_t len)
 	return stream_truncate(ts->stream, len);
 }
 
-static int 
+static int
 _trans_size (stream_t stream, off_t *psize)
 {
 	struct _trans_stream *ts = stream_get_owner(stream);
-	
+
 	return stream_size(ts->stream, psize);
 }
 
-static int 
+static int
 _trans_flush (stream_t stream)
 {
 	struct _trans_stream *ts = stream_get_owner(stream);
 
 	return stream_flush(ts->stream);
 }
-static int 
+static int
 _trans_get_fd (stream_t stream, int *pfd)
 {
 	struct _trans_stream *ts = stream_get_owner(stream);
@@ -210,7 +210,7 @@ _trans_get_fd (stream_t stream, int *pfd)
 	return stream_get_fd(ts->stream, pfd);
 }
 
-static int 
+static int
 _trans_close (stream_t stream)
 {
 	struct _trans_stream *ts = stream_get_owner(stream);
@@ -222,7 +222,7 @@ _trans_close (stream_t stream)
  * base64 encode/decode
  *----------------------------------------------------*/
 
-static int 
+static int
 _b64_input(char c)
 {
 	const char table[64] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
@@ -235,7 +235,7 @@ _b64_input(char c)
 	return -1;
 }
 
-static int 
+static int
 _base64_init(struct _trans_stream *ts, int type)
 {
 	ts->min_size = 4;
@@ -244,7 +244,7 @@ _base64_init(struct _trans_stream *ts, int type)
 	return 0;
 }
 
-static int 
+static int
 _base64_decode(const char *iptr, size_t isize, char *optr, size_t osize, size_t *nbytes, int *line_len)
 {
 	int i = 0, tmp = 0, pad = 0;
@@ -281,13 +281,13 @@ _base64_decode(const char *iptr, size_t isize, char *optr, size_t osize, size_t 
 }
 
 #define BASE64_LINE_MAX 	77
-static int 
+static int
 _base64_encode(const char *iptr, size_t isize, char *optr, size_t osize, size_t *nbytes, int *line_len)
 {
 	size_t consumed = 0;
 	int pad = 0;
 	const char *b64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-	
+
 	*nbytes = 0;
 	if ( isize <= 3 )
 		pad = 1;
@@ -317,7 +317,7 @@ _base64_encode(const char *iptr, size_t isize, char *optr, size_t osize, size_t 
  *------------------------------------------------------*/
 static const char _hexdigits[16] = "0123456789ABCDEF";
 
-static int 
+static int
 _qp_init(struct _trans_stream *ts, int type)
 {
 	ts->min_size = 4;
@@ -326,7 +326,8 @@ _qp_init(struct _trans_stream *ts, int type)
 	return 0;
 }
 
-static int 
+#if 0
+static int
 _ishex(int c)
 {
 	int i;
@@ -340,8 +341,9 @@ _ishex(int c)
 
 	return 0;
 }
+#endif
 
-static int 
+static int
 _qp_decode(const char *iptr, size_t isize, char *optr, size_t osize, size_t *nbytes, int *line_len)
 {
 	char c;
@@ -403,7 +405,7 @@ _qp_decode(const char *iptr, size_t isize, char *optr, size_t osize, size_t *nby
 }
 
 
-static int 
+static int
 _qp_encode(const char *iptr, size_t isize, char *optr, size_t osize, size_t *nbytes, int *line_len)
 {
 #define QP_LINE_MAX	76
@@ -449,7 +451,7 @@ _qp_encode(const char *iptr, size_t isize, char *optr, size_t osize, size_t *nby
 	return consumed;
 }
 
-int 
+int
 encoder_stream_create(stream_t *stream, stream_t iostream, const char *encoding)
 {
 	struct _trans_stream *ts;
@@ -479,7 +481,7 @@ encoder_stream_create(stream_t *stream, stream_t iostream, const char *encoding)
 	stream_set_flush(*stream, _trans_flush, ts );
 	ts->stream = iostream;
 	if ( tslist[i]._init != NULL && (ret = tslist[i]._init(ts, MU_TRANS_ENCODE)) != 0 )
-		stream_destroy(stream, NULL);		
+		stream_destroy(stream, NULL);
 	else {
 		stream_set_read(*stream, _trans_read, ts );
 		stream_set_write(*stream, _trans_write, ts );
@@ -488,7 +490,7 @@ encoder_stream_create(stream_t *stream, stream_t iostream, const char *encoding)
 	return ret;
 }
 
-int 
+int
 decoder_stream_create(stream_t *stream, stream_t iostream, const char *encoding)
 {
 	struct _trans_stream *ts;
@@ -519,7 +521,7 @@ decoder_stream_create(stream_t *stream, stream_t iostream, const char *encoding)
 	stream_set_flush(*stream, _trans_flush, ts );
 	ts->stream = iostream;
 	if ( tslist[i]._init != NULL && (ret = tslist[i]._init(ts, MU_TRANS_DECODE)) != 0 )
-		stream_destroy(stream, NULL);		
+		stream_destroy(stream, NULL);
 	else {
 		stream_set_read(*stream, _trans_read, ts );
 		stream_set_write(*stream, _trans_write, ts );

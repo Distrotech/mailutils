@@ -33,10 +33,13 @@
 static void mailbox_imap_destroy (mailbox_t);
 static int mailbox_imap_open (mailbox_t, int);
 static int mailbox_imap_close (mailbox_t);
+static int imap_uidvalidity (mailbox_t, unsigned long *);
+static int imap_uidnext (mailbox_t, size_t *);
 static int imap_expunge (mailbox_t);
 static int imap_get_message (mailbox_t, size_t, message_t *);
 static int imap_messages_count (mailbox_t, size_t *);
-static int imap_unseen_count (mailbox_t, size_t *);
+static int imap_messages_recent (mailbox_t, size_t *);
+static int imap_message_unseen (mailbox_t, size_t *);
 static int imap_scan (mailbox_t, size_t, size_t *);
 static int imap_is_updated (mailbox_t);
 static int imap_append_message (mailbox_t, message_t);
@@ -47,7 +50,7 @@ static int imap_message_size (message_t, size_t *);
 static int imap_message_lines (message_t, size_t *);
 static int imap_message_fd (stream_t, int *);
 static int imap_message_read (stream_t , char *, size_t, off_t, size_t *);
-static int imap_message_uid (message_t, char *, size_t, size_t *);
+static int imap_message_uid (message_t, size_t *);
 
 /* Mime handling.  */
 static int imap_is_multipart (message_t, int *);
@@ -66,7 +69,6 @@ static int imap_attr_unset_flags (attribute_t, int);
 /* Header.  */
 static int imap_header_read (header_t, char*, size_t, off_t, size_t *);
 static int imap_header_get_value (header_t, const char*, char *, size_t, size_t *);
-static int imap_header_fd (stream_t, int *);
 
 /* Body.  */
 static int imap_body_read (stream_t, char *, size_t, off_t, size_t *);
@@ -116,8 +118,11 @@ _mailbox_imap_init (mailbox_t mailbox)
   mailbox->_get_message = imap_get_message;
   mailbox->_append_message = imap_append_message;
   mailbox->_messages_count = imap_messages_count;
-  mailbox->_unseen_count = imap_unseen_count;
+  mailbox->_messages_recent = imap_messages_recent;
+  mailbox->_message_unseen = imap_message_unseen;
   mailbox->_expunge = imap_expunge;
+  mailbox->_uidvalidity = imap_uidvalidity;
+  mailbox->_uidnext = imap_uidnext;
 
   mailbox->_scan = imap_scan;
   mailbox->_is_updated = imap_is_updated;
@@ -142,8 +147,6 @@ free_subparts (msg_imap_t msg_imap)
 
   if (msg_imap->message)
     message_destroy (&(msg_imap->message), msg_imap);
-  if (msg_imap->uid)
-    free (msg_imap->uid);
   if (msg_imap->parts)
     free (msg_imap->parts);
   free(msg_imap);
@@ -411,7 +414,7 @@ imap_get_message0 (msg_imap_t msg_imap, message_t *pmsg)
   message_set_get_num_parts (msg, imap_get_num_parts, msg_imap);
   message_set_get_part (msg, imap_get_part, msg_imap);
 
-  /* Set the UIDL call on the message. */
+  /* Set the UID on the message. */
   message_set_uid (msg, imap_message_uid, msg_imap);
 
   *pmsg = msg;
@@ -419,12 +422,37 @@ imap_get_message0 (msg_imap_t msg_imap, message_t *pmsg)
 }
 
 static int
-imap_unseen_count (mailbox_t mailbox, size_t *pnum)
+imap_message_unseen (mailbox_t mailbox, size_t *punseen)
 {
   m_imap_t m_imap = mailbox->data;
-  *pnum = m_imap->unseen;
+  *punseen = m_imap->unseen;
   return 0;
 }
+
+static int
+imap_messages_recent (mailbox_t mailbox, size_t *precent)
+{
+  m_imap_t m_imap = mailbox->data;
+  *precent = m_imap->recent;
+  return 0;
+}
+
+static int
+imap_uidvalidity (mailbox_t mailbox, unsigned long *puidvalidity)
+{
+  m_imap_t m_imap = mailbox->data;
+  *puidvalidity = m_imap->uidvalidity;
+  return 0;
+}
+
+static int
+imap_uidnext (mailbox_t mailbox, size_t *puidnext)
+{
+  m_imap_t m_imap = mailbox->data;
+  *puidnext = m_imap->uidnext;
+  return 0;
+}
+
 /* There is no explicit call to get the message count.  The count is send on
    a SELECT/EXAMINE command it is also sent async, meaning it will be piggy
    back on other server response as an untag "EXIST" response.  But we still
@@ -687,12 +715,37 @@ imap_message_size (message_t msg, size_t *psize)
 }
 
 static int
-imap_message_uid (message_t msg, char *buffer, size_t buflen, size_t *pnwriten)
+imap_message_uid (message_t msg, size_t *puid)
 {
-  (void)msg; (void)buffer; (void)buflen;
-  if (pnwriten)
-    *pnwriten = 0;
-  return ENOSYS;
+  msg_imap_t msg_imap = message_get_owner (msg);
+  m_imap_t m_imap = msg_imap->m_imap;
+  f_imap_t f_imap = m_imap->f_imap;
+  int status;
+
+  if (puid)
+    return 0;
+  /* Select first.  */
+  if (f_imap->state == IMAP_NO_STATE)
+    {
+      if (msg_imap->uid)
+	{
+	  *puid = msg_imap->uid;
+	  return 0;
+	}
+      status = imap_messages_count (m_imap->mailbox, NULL);
+      if (status != 0)
+	return status;
+      status = imap_writeline (f_imap, "g%d FETCH %d UID\r\n",
+			       f_imap->seq++, msg_imap->num);
+      CHECK_ERROR (f_imap, status);
+      MAILBOX_DEBUG0 (m_imap->mailbox, MU_DEBUG_PROT, f_imap->buffer);
+      f_imap->state = IMAP_FETCH;
+    }
+  status = message_operation (f_imap, msg_imap, 0, 0, 0, 0);
+  if (status != 0)
+    return status;
+  *puid = msg_imap->uid;
+  return 0;
 }
 
 static int
@@ -1056,16 +1109,6 @@ imap_header_read (header_t header, char *buffer, size_t buflen, off_t offset,
   return message_operation (f_imap, msg_imap, IMAP_HEADER, buffer, buflen,
 			    plen);
 }
-
-static int
-imap_header_fd (stream_t stream, int *pfd)
-{
-  header_t header = stream_get_owner (stream);
-  message_t msg = header_get_owner (header);
-  msg_imap_t msg_imap = message_get_owner (msg);
-  return imap_get_fd (msg_imap, pfd);
-}
-
 
 /* Body.  */
 static int

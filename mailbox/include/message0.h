@@ -1,5 +1,5 @@
 /* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Library Public License as published by
@@ -65,7 +65,8 @@ struct _message
   size_t hdr_buflen;
   int hdr_done;
 
-  int (*_get_uid)       __P ((message_t, char *, size_t, size_t *));
+  int (*_get_uidl)       __P ((message_t, char *, size_t, size_t *));
+  int (*_get_uid)        __P ((message_t, size_t *));
   int (*_get_num_parts)  __P ((message_t, size_t *));
   int (*_get_part)       __P ((message_t, size_t, message_t *));
   int (*_is_multipart)   __P ((message_t, int *));

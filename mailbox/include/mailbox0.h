@@ -69,8 +69,11 @@ struct _mailbox
   int  (*_get_message)     __P ((mailbox_t, size_t msgno, message_t *msg));
   int  (*_append_message)  __P ((mailbox_t, message_t msg));
   int  (*_messages_count)  __P ((mailbox_t, size_t *num));
-  int  (*_unseen_count)    __P ((mailbox_t, size_t *num));
+  int  (*_messages_recent) __P ((mailbox_t, size_t *num));
+  int  (*_message_unseen)  __P ((mailbox_t, size_t *num));
   int  (*_expunge)         __P ((mailbox_t));
+  int  (*_uidvalidity)     __P ((mailbox_t, unsigned long *num));
+  int  (*_uidnext)         __P ((mailbox_t, size_t *num));
 
   int  (*_scan)            __P ((mailbox_t, size_t msgno, size_t *count));
   int  (*_is_updated)      __P ((mailbox_t));

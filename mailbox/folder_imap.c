@@ -1155,35 +1155,35 @@ imap_flags (f_imap_t f_imap)
   msg_imap_t msg_imap = f_imap->callback.msg_imap;
   while ((flag = strtok_r (flags, " ()", &sp)) != NULL)
     {
-      if (strcmp (flag, "\\Seen") == 0)
+      if (strcasecmp (flag, "\\Seen") == 0)
 	{
 	  if (msg_imap)
 	    msg_imap->flags |= MU_ATTRIBUTE_SEEN;
 	  else
 	    f_imap->flags |= MU_ATTRIBUTE_SEEN;
 	}
-      else if (strcmp (flag, "\\Answered") == 0)
+      else if (strcasecmp (flag, "\\Answered") == 0)
 	{
 	  if (msg_imap)
 	    msg_imap->flags |= MU_ATTRIBUTE_ANSWERED;
 	  else
 	    f_imap->flags |= MU_ATTRIBUTE_ANSWERED;
 	}
-      else if (strcmp (flag, "\\Flagged") == 0)
+      else if (strcasecmp (flag, "\\Flagged") == 0)
 	{
 	  if (msg_imap)
 	    msg_imap->flags |= MU_ATTRIBUTE_FLAGGED;
 	  else
 	    f_imap->flags |= MU_ATTRIBUTE_FLAGGED;
 	}
-      else if (strcmp (flag, "\\Deleted") == 0)
+      else if (strcasecmp (flag, "\\Deleted") == 0)
 	{
 	  if (msg_imap)
 	    msg_imap->flags |= MU_ATTRIBUTE_DELETED;
 	  else
 	    f_imap->flags |= MU_ATTRIBUTE_DELETED;
 	}
-      else if (strcmp (flag, "\\Draft") == 0)
+      else if (strcasecmp (flag, "\\Draft") == 0)
 	{
 	  if (msg_imap)
 	    msg_imap->flags |= MU_ATTRIBUTE_DRAFT;
@@ -1256,8 +1256,7 @@ imap_fetch (f_imap_t f_imap)
     {
       status = imap_flags (f_imap);
     }
-  /* This the short form for BODYSTRUCTURE.  */
-  else if (strcmp (command, "BODY") == 0)
+  else if (strcasecmp (command, "BODY") == 0)
     {
       status = imap_bodystructure (f_imap);
     }
@@ -1269,11 +1268,17 @@ imap_fetch (f_imap_t f_imap)
     {
       command = strtok_r (NULL, " ()\n", &sp);
       if (f_imap->callback.msg_imap)
-	f_imap->callback.msg_imap->message_size = strtol (command, NULL, 10);
+	f_imap->callback.msg_imap->message_size = strtoul (command, NULL, 10);
     }
   else if (strncmp (command, "BODY", 4) == 0)
     {
       status = imap_string (f_imap);
+    }
+  else if (strncmp (command, "UID", 3) == 0)
+    {
+      command = strtok_r (NULL, " ()\n", &sp);
+      if (f_imap->callback.msg_imap)
+	f_imap->callback.msg_imap->uid = strtoul (command, NULL, 10);
     }
   return status;
 }
@@ -1483,7 +1488,7 @@ imap_parse (f_imap_t f_imap)
 	{
 
 	  /* Is it a Status Response.  */
-	  if (strcmp (response, "OK") == 0)
+	  if (strcasecmp (response, "OK") == 0)
 	    {
 	      /* Check for status response [code].  */
 	      if (*remainder == '[')
@@ -1496,13 +1501,14 @@ imap_parse (f_imap_t f_imap)
 		  subtag = strtok_r (cruft, " ", &sp);
 		  if (!subtag) subtag = empty;
 
-		  if (strcmp (subtag, "ALERT") == 0)
+		  if (strcasecmp (subtag, "ALERT") == 0)
 		    {
 		      /* The human-readable text contains a special alert that
 			 MUST be presented to the user in a fashion that calls
 			 the user's attention to the message.  */
+		      fprintf (stderr, "ALERT: %s\n", (sp) ? sp : "");
 		    }
-		  else if (strcmp (subtag, "BADCHARSET") == 0)
+		  else if (strcasecmp (subtag, "BADCHARSET") == 0)
 		    {
 		      /* Optionally followed by a parenthesized list of
 			 charsets.  A SEARCH failed because the given charset
@@ -1510,7 +1516,7 @@ imap_parse (f_imap_t f_imap)
 			 optional list of charsets is given, this lists the
 			 charsets that are supported by this implementation. */
 		    }
-		  else if (strcmp (subtag, "CAPABILITY") == 0)
+		  else if (strcasecmp (subtag, "CAPABILITY") == 0)
 		    {
 		      /* Followed by a list of capabilities.  This can appear
 			 in the initial OK or PREAUTH response to transmit an
@@ -1521,7 +1527,7 @@ imap_parse (f_imap_t f_imap)
 			free (f_imap->capa);
 		      f_imap->capa = strdup (cruft);
 		    }
-		  else if (strcmp (subtag, "NEWNAME") == 0)
+		  else if (strcasecmp (subtag, "NEWNAME") == 0)
 		    {
 		      /* Followed by a mailbox name and a new mailbox name.  A
 			 SELECT or EXAMINE failed because the target mailbox
@@ -1530,13 +1536,13 @@ imap_parse (f_imap_t f_imap)
 			 operation can succeed if the SELECT or EXAMINE is
 			 reissued with the new mailbox name. */
 		    }
-		  else if (strcmp (subtag, "PARSE") == 0)
+		  else if (strcasecmp (subtag, "PARSE") == 0)
 		    {
 		      /* The human-readable text represents an error in
 			 parsing the [RFC-822] header or [MIME-IMB] headers
 			 of a message in the mailbox.  */
 		    }
-		  else if (strcmp (subtag, "PERMANENTFLAGS") == 0)
+		  else if (strcasecmp (subtag, "PERMANENTFLAGS") == 0)
 		    {
 		      /* Followed by a parenthesized list of flags, indicates
 			 which of the known flags that the client can change
@@ -1551,19 +1557,19 @@ imap_parse (f_imap_t f_imap)
 			 that it is possible to create new keywords by
 			 attempting to store those flags in the mailbox.  */
 		    }
-		  else if (strcmp (subtag, "READ-ONLY") == 0)
+		  else if (strcasecmp (subtag, "READ-ONLY") == 0)
 		    {
 		      /* The mailbox is selected read-only, or its access
 			 while selected has changed from read-write to
 			 read-only.  */
 		    }
-		  else if (strcmp (subtag, "READ-WRITE") == 0)
+		  else if (strcasecmp (subtag, "READ-WRITE") == 0)
 		    {
 		      /* The mailbox is selected read-write, or its access
 			 while selected has changed from read-only to
 			 read-write.  */
 		    }
-		  else if (strcmp (subtag, "TRYCREATE") == 0)
+		  else if (strcasecmp (subtag, "TRYCREATE") == 0)
 		    {
 		      /* An APPEND or COPY attempt is failing because the
 			 target mailbox does not exist (as opposed to some
@@ -1571,13 +1577,15 @@ imap_parse (f_imap_t f_imap)
 			 the operation can succeed if the mailbox is first
 			 created by the CREATE command.  */
 		    }
-		  else if (strcmp (subtag, "UIDNEXT") == 0)
+		  else if (strcasecmp (subtag, "UIDNEXT") == 0)
 		    {
 		      /* Followed by a decimal number, indicates the next
 			 unique identifier value.  Refer to section 2.3.1.1
 			 for more information.  */
+		      char *value = strtok_r (NULL, " ", &sp);
+		      f_imap->selected->uidnext = strtol (value, NULL, 10);
 		    }
-		  else if (strcmp (subtag, "UIDVALIDITY") == 0)
+		  else if (strcasecmp (subtag, "UIDVALIDITY") == 0)
 		    {
 		      /* Followed by a decimal number, indicates the unique
 			 identifier validity value.  Refer to section 2.3.1.1
@@ -1585,7 +1593,7 @@ imap_parse (f_imap_t f_imap)
 		      char *value = strtok_r (NULL, " ", &sp);
 		      f_imap->selected->uidvalidity = strtol (value, NULL, 10);
 		    }
-		  else if (strcmp (subtag, "UNSEEN") == 0)
+		  else if (strcasecmp (subtag, "UNSEEN") == 0)
 		    {
 		      /* Followed by a decimal number, indicates the number of
 			 the first message without the \Seen flag set.  */
@@ -1608,66 +1616,66 @@ imap_parse (f_imap_t f_imap)
 		  printf("Untagged OK: %s\n", remainder);
 		}
 	    }
-	  else if (strcmp (response, "NO") == 0)
+	  else if (strcasecmp (response, "NO") == 0)
 	    {
 	      /* This does not mean failure but rather a strong warning.  */
 	      printf ("Untagged NO: %s\n", remainder);
 	    }
-	  else if (strcmp (response, "BAD") == 0)
+	  else if (strcasecmp (response, "BAD") == 0)
 	    {
 	      /* We're dead, protocol/syntax error.  */
 	      printf ("Untagged BAD: %s\n", remainder);
 	    }
-	  else if (strcmp (response, "PREAUTH") == 0)
+	  else if (strcasecmp (response, "PREAUTH") == 0)
 	    {
 	    }
-	  else if (strcmp (response, "BYE") == 0)
+	  else if (strcasecmp (response, "BYE") == 0)
 	    {
 	      /* We should close the stream. This is not recoverable.  */
 	      done = 1;
 	      f_imap->isopen = 0;
 	      stream_close (f_imap->folder->stream);
 	    }
-	  else if (strcmp (response, "CAPABILITY") == 0)
+	  else if (strcasecmp (response, "CAPABILITY") == 0)
 	    {
 	      if (f_imap->capa)
 		free (f_imap->capa);
 	      f_imap->capa = strdup (remainder);
 	    }
-	  else if (strcmp (remainder, "EXISTS") == 0)
+	  else if (strcasecmp (remainder, "EXISTS") == 0)
 	    {
 	      f_imap->selected->messages_count = strtol (response, NULL, 10);
 	    }
-	  else if (strcmp (remainder, "EXPUNGE") == 0)
+	  else if (strcasecmp (remainder, "EXPUNGE") == 0)
 	    {
 	    }
-	  else if (strncmp (remainder, "FETCH", 5) == 0)
+	  else if (strncasecmp (remainder, "FETCH", 5) == 0)
 	    {
 	      status = imap_fetch (f_imap);
 	      if (status != 0)
 		break;
 	    }
-	  else if (strcmp (response, "FLAGS") == 0)
+	  else if (strcasecmp (response, "FLAGS") == 0)
 	    {
 	      /* Flags define on the mailbox not a message flags.  */
 	      status = imap_flags (f_imap);
 	    }
-	  else if (strcmp (response, "LIST") == 0)
+	  else if (strcasecmp (response, "LIST") == 0)
 	    {
 	      status = imap_list (f_imap);
 	    }
-	  else if (strcmp (response, "LSUB") == 0)
+	  else if (strcasecmp (response, "LSUB") == 0)
 	    {
 	      status = imap_list (f_imap);
 	    }
-	  else if (strcmp (remainder, "RECENT") == 0)
+	  else if (strcasecmp (remainder, "RECENT") == 0)
 	    {
 	      f_imap->selected->recent = strtol (response, NULL, 10);
 	    }
-	  else if (strcmp (response, "SEARCH") == 0)
+	  else if (strcasecmp (response, "SEARCH") == 0)
 	    {
 	    }
-	  else if (strcmp (response, "STATUS") == 0)
+	  else if (strcasecmp (response, "STATUS") == 0)
 	    {
 	    }
 	  else
@@ -1686,12 +1694,12 @@ imap_parse (f_imap_t f_imap)
 	{
 	  /* Every transaction ends with a tagged response.  */
 	  done = 1;
-	  if (strcmp (response, "OK") == 0)
+	  if (strcasecmp (response, "OK") == 0)
 	    {
 	    }
 	  else /* NO and BAD */
 	    {
-	      if (strncmp (remainder, "LOGIN", 5) == 0)
+	      if (strncasecmp (remainder, "LOGIN", 5) == 0)
 		{
 		  observable_t observable = NULL;
 		  folder_get_observable (f_imap->folder, &observable);

@@ -220,11 +220,18 @@ mailbox_messages_count (mailbox_t mbox, size_t *num)
 }
 
 int
-mailbox_unseen_count (mailbox_t mbox, size_t *num)
+mailbox_messages_recent (mailbox_t mbox, size_t *num)
 {
-  if (mbox && mbox->_unseen_count)
-    return mbox->_unseen_count (mbox, num);
-  return mailbox_messages_count (mbox, num);
+  if (mbox == NULL || mbox->_messages_recent == NULL)
+    return ENOSYS;
+  return mbox->_messages_recent (mbox, num);
+}
+int
+mailbox_message_unseen (mailbox_t mbox, size_t *num)
+{
+  if (mbox == NULL || mbox->_message_unseen == NULL)
+    return ENOSYS;
+  return mbox->_message_unseen (mbox, num);
 }
 
 int
@@ -257,6 +264,22 @@ mailbox_size (mailbox_t mbox, off_t *psize)
   if (mbox == NULL || mbox->_size == NULL)
     return 0;
   return mbox->_size (mbox, psize);
+}
+
+int
+mailbox_uidvalidity (mailbox_t mbox, unsigned long *pvalid)
+{
+  if (mbox == NULL || mbox->_uidvalidity == NULL)
+    return 0;
+  return mbox->_uidvalidity (mbox, pvalid);
+}
+
+int
+mailbox_uidnext (mailbox_t mbox, size_t *puidnext)
+{
+  if (mbox == NULL || mbox->_uidnext == NULL)
+    return 0;
+  return mbox->_uidnext (mbox, puidnext);
 }
 
 /* locking */

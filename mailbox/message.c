@@ -411,9 +411,19 @@ message_set_attribute (message_t msg, attribute_t attribute, void *owner)
   return 0;
 }
 
-/* FIXME: not nonblocking safe.  */
 int
-message_get_uid (message_t msg, char *buffer, size_t buflen, size_t *pwriten)
+message_get_uid (message_t msg, size_t *puid)
+{
+  if (msg == NULL)
+    return EINVAL;
+  if (msg->_get_uid)
+    return msg->_get_uid (msg, puid);
+  *puid = 0;
+  return 0;
+}
+
+int
+message_get_uidl (message_t msg, char *buffer, size_t buflen, size_t *pwriten)
 {
   header_t header = NULL;
   size_t n = 0;
@@ -424,9 +434,9 @@ message_get_uid (message_t msg, char *buffer, size_t buflen, size_t *pwriten)
 
   buffer[0] = '\0';
   /* Try the function overload if error fallback.  */
-  if (msg->_get_uid)
+  if (msg->_get_uidl)
     {
-      status = msg->_get_uid (msg, buffer, buflen, pwriten);
+      status = msg->_get_uidl (msg, buffer, buflen, pwriten);
       if (status == 0)
 	return status;
     }
@@ -458,7 +468,7 @@ message_get_uid (message_t msg, char *buffer, size_t buflen, size_t *pwriten)
     }
   else
     {
-      static unsigned long seq;
+      size_t uid = 0;
       struct md5_ctx md5context;
       stream_t stream = NULL;
       char buf[1024];
@@ -466,6 +476,7 @@ message_get_uid (message_t msg, char *buffer, size_t buflen, size_t *pwriten)
       unsigned char md5digest[16];
       char *tmp;
       n = 0;
+      message_get_uid (msg, &uid);
       message_get_stream (msg, &stream);
       md5_init_ctx (&md5context);
       while (stream_read (stream, buf, sizeof (buf), offset, &n) == 0
@@ -479,10 +490,8 @@ message_get_uid (message_t msg, char *buffer, size_t buflen, size_t *pwriten)
       for (n = 0; n < 16; n++, tmp += 2)
 	sprintf (tmp, "%02x", md5digest[n]);
       *tmp = '\0';
-      /* Access to sequence is not thread-safe, but that is not a problem.  */
-      seq++;
       /* POP3 rfc says that an UID should not be longer than 70.  */
-      snprintf (buf + 32, 70, ".%lu.%lu", (unsigned long)time (NULL), seq);
+      snprintf (buf + 32, 70, ".%lu.%u", (unsigned long)time (NULL), uid);
 
       header_set_value (header, "X-UIDL", buf, 1);
       buflen--; /* leave space for the NULL.  */
@@ -492,14 +501,26 @@ message_get_uid (message_t msg, char *buffer, size_t buflen, size_t *pwriten)
 }
 
 int
-message_set_uid (message_t msg, int (* _get_uid)
-		  __P ((message_t, char *, size_t, size_t *)), void *owner)
+message_set_uid (message_t msg, int (*_get_uid) __P ((message_t, size_t *)),
+		 void *owner)
 {
   if (msg == NULL)
     return EINVAL;
   if (msg->owner != owner)
     return EACCES;
   msg->_get_uid = _get_uid;
+  return 0;
+}
+
+int
+message_set_uidl (message_t msg, int (* _get_uidl)
+		  __P ((message_t, char *, size_t, size_t *)), void *owner)
+{
+  if (msg == NULL)
+    return EINVAL;
+  if (msg->owner != owner)
+    return EACCES;
+  msg->_get_uidl = _get_uidl;
   return 0;
 }
 

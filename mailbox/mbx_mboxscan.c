@@ -156,7 +156,7 @@ do \
   { \
     if (*s == c0 || *s == c1) \
       { \
-        (mum)->old_flags |= (type); \
+        (mum)->attr_flags |= (type); \
         break; \
       } \
   } \
@@ -220,6 +220,19 @@ do \
  && (buf[1] == 'O' || buf[1] == 'o') \
  && (buf[2] == ':' || buf[2] == ' ' || buf[2] == '\t'))
 
+#define ISX_IMAPBASE(buf) (\
+(buf[0] == 'X' || buf[0] == 'x') \
+ && (buf[1] == '-') \
+ && (buf[2] == 'I' || buf[2] == 'i') \
+ && (buf[3] == 'M' || buf[3] == 'm') \
+ && (buf[4] == 'A' || buf[4] == 'a') \
+ && (buf[5] == 'P' || buf[5] == 'p') \
+ && (buf[6] == 'B' || buf[6] == 'b') \
+ && (buf[7] == 'A' || buf[7] == 'a') \
+ && (buf[8] == 'S' || buf[8] == 's') \
+ && (buf[9] == 'E' || buf[9] == 'e') \
+ && (buf[10] == ':' || buf[10] == ' ' || buf[10] == '\t'))
+
 #define ISX_UIDL(buf) (\
 (buf[0] == 'X' || buf[0] == 'x') \
  && (buf[1] == '-') \
@@ -268,8 +281,6 @@ do { \
     } \
 } while (0)
 
-//fprintf (stderr, "%d %d <%s> <%s>\n", i, l, (i)?field:"", p);
-
 #define FAST_HCONTENT_TYPE(mum,sf,buf,n) \
 FAST_HEADER(mum->fhdr[HCONTENT_TYPE],buf,n); \
 sf = &(mum->fhdr[HCONTENT_TYPE])
@@ -293,6 +304,10 @@ sf = &(mum->fhdr[HSUBJECT])
 #define FAST_HTO(mum,sf,buf,n) \
 FAST_HEADER(mum->fhdr[HTO],buf,n); \
 sf = &(mum->fhdr[HTO])
+
+#define FAST_HX_IMAPBASE(mum,sf,buf,n) \
+FAST_HEADER(mum->fhdr[HX_IMAPBASE],buf,n); \
+sf = &(mum->fhdr[HX_UID])
 
 #define FAST_HX_UIDL(mum,sf,buf,n) \
 FAST_HEADER(mum->fhdr[HX_UIDL],buf,n); \
@@ -483,45 +498,47 @@ mbox_scan0 (mailbox_t mailbox, size_t msgno, size_t *pcount, int do_notif)
 		    mum->fhdr[j] = NULL;
 		  }
 	    }
-	  else if (/*(n > 7) && */ ISSTATUS(buf))
+	  else if (ISSTATUS(buf))
 	    {
-	      mum->header_status = total - n;
-	      mum->header_status_end = total;
 	      ATTRIBUTE_SET(buf, mum, 'r', 'R', MU_ATTRIBUTE_READ);
 	      ATTRIBUTE_SET(buf, mum, 'o', 'O', MU_ATTRIBUTE_SEEN);
 	      ATTRIBUTE_SET(buf, mum, 'a', 'A', MU_ATTRIBUTE_ANSWERED);
 	      ATTRIBUTE_SET(buf, mum, 'd', 'D', MU_ATTRIBUTE_DELETED);
 	      sfield = NULL;
 	    }
-	  else if (/*(n > 12) && */ ISCONTENT_TYPE(buf))
+	  else if (ISCONTENT_TYPE(buf))
 	    {
 	      FAST_HCONTENT_TYPE(mum, sfield, buf, n);
 	    }
-	  else if (/*(n > 3) && */ ISCC(buf))
+	  else if (ISCC(buf))
 	    {
 	      FAST_HCC(mum, sfield, buf, n);
 	    }
-	  else if (/*(n > 5) && */ ISDATE(buf))
+	  else if (ISDATE(buf))
 	    {
 	      FAST_HDATE(mum, sfield, buf, n);
 	    }
-	  else if (/*(n > 5) && */ ISFROM(buf))
+	  else if (ISFROM(buf))
 	    {
 	      FAST_HFROM(mum, sfield, buf, n);
 	    }
-	  else if (/*(n > 8) && */ ISSUBJECT(buf))
+	  else if (ISSUBJECT(buf))
 	    {
 	      FAST_HSUBJECT (mum, sfield, buf, n);
 	    }
-	  else if (/*(n > 3) && */ ISTO(buf))
+	  else if (ISTO(buf))
 	    {
 	      FAST_HTO (mum, sfield, buf, n);
 	    }
-	  else if (/*(n > 7) && */ ISX_UIDL(buf))
+	  else if (ISX_IMAPBASE(buf))
+	    {
+	      FAST_HX_IMAPBASE (mum, sfield, buf, n);
+	    }
+	  else if (ISX_UIDL(buf))
 	    {
 	      FAST_HX_UIDL (mum, sfield, buf, n);
 	    }
-	  else if (/*(n > 6) && */ ISX_UID(buf))
+	  else if (ISX_UID(buf))
 	    {
 	      FAST_HX_UID (mum, sfield, buf, n);
 	    }
@@ -551,11 +568,11 @@ mbox_scan0 (mailbox_t mailbox, size_t msgno, size_t *pcount, int do_notif)
 
       newline = nl;
 
-      /* Every 50 mesgs update the lock, it should be every minute.  */
-      if ((mud->messages_count % 50) == 0)
+      /* Every 100 mesgs update the lock, it should be every minute.  */
+      if ((mud->messages_count % 100) == 0)
 	locker_touchlock (mailbox->locker);
 
-      /* Ping them every 1000 lines.  */
+      /* Ping them every 1000 lines. Should be tunable.  */
       if (do_notif)
 	if (((lines +1) % 1000) == 0)
 	  DISPATCH_PROGRESS(mailbox, mud);
@@ -574,6 +591,72 @@ mbox_scan0 (mailbox_t mailbox, size_t msgno, size_t *pcount, int do_notif)
   locker_unlock (mailbox->locker);
   monitor_unlock (mailbox->monitor);
 
+  /* Reset the uidvalidity.  */
+  if (mud->messages_count > 0)
+    {
+      mum = mud->umessages[0];
+      if (mum->fhdr[HX_IMAPBASE])
+	{
+	  char *s = mum->fhdr[HX_IMAPBASE];
+	  while (*s && !isdigit (*s)) s++;
+	  mud->uidvalidity = strtoul (s, &s, 10);
+	  mud->uidnext = strtoul (s, NULL, 10);
+	}
+      if (mud->uidvalidity == 0)
+	{
+	  char u[64];
+	  mud->uidvalidity = (unsigned long)time (NULL);
+	  mud->uidnext = mud->messages_count + 1;
+	  if (mum->fhdr[HX_IMAPBASE])
+	    free (mum->fhdr[HX_IMAPBASE]);
+	  sprintf (u, "%lu %u", mud->uidvalidity, mud->uidnext);
+	  mum->fhdr[HX_IMAPBASE] = strdup (u);
+	  /* Tell that we have been modified for expunging.  */
+	  mum->attr_flags |= MU_ATTRIBUTE_MODIFIED;
+	}
+    }
+  /* Reset the IMAP uids, if necessary.  */
+  {
+    size_t uid;
+    size_t ouid;
+    size_t i;
+    for (uid = ouid = i = 0; i < mud->messages_count; i++)
+      {
+	char *s;
+	mum = mud->umessages[i];
+	s = mum->fhdr[HX_UID];
+	if (s)
+	  {
+	    while (*s && !isdigit (*s)) s++;
+	    uid = strtoul (s, &s, 10);
+	  }
+	else
+	  uid = 0;
+	if (uid <= ouid)
+	  {
+	    char u[64];
+	    uid = ouid + 1;
+	    sprintf (u, "%d", uid);
+	    if (mum->fhdr[HX_UID])
+	      free (mum->fhdr[HX_UID]);
+	    mum->fhdr[HX_UID] = strdup (u);
+	    /* Note that we have modified for expunging.  */
+	    mum->attr_flags |= MU_ATTRIBUTE_MODIFIED;
+	  }
+	mum->uid = ouid = uid;
+      }
+    if (uid > mud->messages_count)
+      {
+	char u[64];
+	mud->uidnext = uid + 1;
+	mum = mud->umessages[0];
+	if (mum->fhdr[HX_IMAPBASE])
+	  free (mum->fhdr[HX_IMAPBASE]);
+	sprintf (u, "%lu %u", mud->uidvalidity, uid + 1);
+	mum->fhdr[HX_IMAPBASE] = strdup (u);
+	mum->attr_flags |= MU_ATTRIBUTE_MODIFIED;
+      }
+  }
 #ifdef WITH_PTHREAD
   pthread_cleanup_pop (0);
 #endif

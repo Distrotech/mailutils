@@ -31,6 +31,9 @@
 #define MAX_HDR_LEN 256
 #define BUF_SIZE	2048
 
+/* FIXME: this should be in a public header.  */
+extern int message_attachment_filename __P ((message_t, const char **filename));
+
 struct _msg_info {
 	char	*buf;
 	size_t	nbytes;
@@ -174,7 +177,7 @@ static char *_header_get_param(char *field_body, const char *param, size_t *len)
 	return NULL;
 }
 
-int message_attachment_filename(message_t msg, char **filename)
+int message_attachment_filename(message_t msg, const char **filename)
 {
 	char 		*pTmp, *fname = NULL;
 	header_t	hdr;
@@ -219,7 +222,8 @@ int message_save_attachment(message_t msg, const char *filename, void **data)
 	size_t				size;
 	size_t				nbytes;
 	header_t			hdr;
-	const char 				*content_encoding, *fname = NULL;
+	char 				*content_encoding;
+	const char 			*fname = NULL;
 
 	if ( msg == NULL || filename == NULL)
 		return EINVAL;
@@ -240,7 +244,7 @@ int message_save_attachment(message_t msg, const char *filename, void **data)
 						ret = ENOMEM;
 					header_get_value(hdr, "Content-Transfer-Encoding", content_encoding, size+1, 0);
 				} else
-					content_encoding = "7bit";
+					content_encoding = (char *)"7bit";
 				ret = decoder_stream_create(&info->ostream, fstream, content_encoding);
 			}
 		}

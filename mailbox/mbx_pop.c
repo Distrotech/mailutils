@@ -70,39 +70,42 @@ enum pop_state
   POP_AUTH_PASS, POP_AUTH_PASS_ACK
 };
 
-static void pop_destroy       __P ((mailbox_t));
+static void pop_destroy        __P ((mailbox_t));
 
 /*  Functions/Methods that implements the mailbox_t API.  */
-static int pop_open           __P ((mailbox_t, int));
-static int pop_close          __P ((mailbox_t));
-static int pop_get_message    __P ((mailbox_t, size_t, message_t *));
-static int pop_messages_count __P ((mailbox_t, size_t *));
-static int pop_expunge        __P ((mailbox_t));
-static int pop_scan           __P ((mailbox_t, size_t, size_t *));
-static int pop_is_updated     __P ((mailbox_t));
+static int pop_open            __P ((mailbox_t, int));
+static int pop_close           __P ((mailbox_t));
+static int pop_get_message     __P ((mailbox_t, size_t, message_t *));
+static int pop_messages_count  __P ((mailbox_t, size_t *));
+static int pop_messages_recent __P ((mailbox_t, size_t *));
+static int pop_message_unseen  __P ((mailbox_t, size_t *));
+static int pop_expunge         __P ((mailbox_t));
+static int pop_scan            __P ((mailbox_t, size_t, size_t *));
+static int pop_is_updated      __P ((mailbox_t));
 
 /* The implementation of message_t */
-static int pop_user           __P ((authority_t));
-static int pop_size           __P ((mailbox_t, off_t *));
+static int pop_user            __P ((authority_t));
+static int pop_size            __P ((mailbox_t, off_t *));
 /* We use pop_top for retreiving headers.  */
 /* static int pop_header_read (header_t, char *, size_t, off_t, size_t *); */
-static int pop_body_fd        __P ((stream_t, int *));
-static int pop_body_size      __P ((body_t, size_t *));
-static int pop_body_lines     __P ((body_t, size_t *));
-static int pop_body_read      __P ((stream_t, char *, size_t, off_t, size_t *));
-static int pop_message_read   __P ((stream_t, char *, size_t, off_t, size_t *));
-static int pop_message_size   __P ((message_t, size_t *));
-static int pop_message_fd     __P ((stream_t, int *));
-static int pop_top            __P ((header_t, char *, size_t, off_t, size_t *));
-static int pop_retr           __P ((pop_message_t, char *, size_t, off_t, size_t *));
-static int pop_get_fd         __P ((pop_message_t, int *));
-static int pop_attr_flags     __P ((attribute_t, int *));
-static int pop_uid            __P ((message_t, char *, size_t, size_t *));
-static int fill_buffer        __P ((pop_data_t, char *, size_t));
-static int pop_readline       __P ((pop_data_t));
-static int pop_read_ack       __P ((pop_data_t));
-static int pop_writeline      __P ((pop_data_t, const char *, ...));
-static int pop_write          __P ((pop_data_t));
+static int pop_body_fd         __P ((stream_t, int *));
+static int pop_body_size       __P ((body_t, size_t *));
+static int pop_body_lines      __P ((body_t, size_t *));
+static int pop_body_read       __P ((stream_t, char *, size_t, off_t, size_t *));
+static int pop_message_read    __P ((stream_t, char *, size_t, off_t, size_t *));
+static int pop_message_size    __P ((message_t, size_t *));
+static int pop_message_fd      __P ((stream_t, int *));
+static int pop_top             __P ((header_t, char *, size_t, off_t, size_t *));
+static int pop_retr            __P ((pop_message_t, char *, size_t, off_t, size_t *));
+static int pop_get_fd          __P ((pop_message_t, int *));
+static int pop_attr_flags      __P ((attribute_t, int *));
+static int pop_uidl            __P ((message_t, char *, size_t, size_t *));
+static int pop_uid             __P ((message_t, size_t *));
+static int fill_buffer         __P ((pop_data_t, char *, size_t));
+static int pop_readline        __P ((pop_data_t));
+static int pop_read_ack        __P ((pop_data_t));
+static int pop_writeline       __P ((pop_data_t, const char *, ...));
+static int pop_write           __P ((pop_data_t));
 
 /* This structure holds the info for a message. The pop_message_t
    type, will serve as the owner of the message_t and contains the command to
@@ -122,7 +125,7 @@ struct _pop_message
   size_t header_lines;
   size_t message_size;
   size_t num;
-  char *uid; /* Cache the uid string.  */
+  char *uidl; /* Cache the uidl string.  */
   message_t message;
   pop_data_t mpd; /* Back pointer.  */
 };
@@ -280,6 +283,8 @@ _mailbox_pop_init (mailbox_t mbox)
   /* Messages.  */
   mbox->_get_message = pop_get_message;
   mbox->_messages_count = pop_messages_count;
+  mbox->_messages_recent = pop_messages_recent;
+  mbox->_message_unseen = pop_message_unseen;
   mbox->_expunge = pop_expunge;
 
   mbox->_scan = pop_scan;
@@ -306,8 +311,8 @@ pop_destroy (mailbox_t mbox)
 	    {
 	      message_destroy (&(mpd->pmessages[i]->message),
 			       mpd->pmessages[i]);
-	      if (mpd->pmessages[i]->uid)
-		free (mpd->pmessages[i]->uid);
+	      if (mpd->pmessages[i]->uidl)
+		free (mpd->pmessages[i]->uidl);
 	      free (mpd->pmessages[i]);
 	      mpd->pmessages[i] = NULL;
 	    }
@@ -624,8 +629,8 @@ pop_close (mailbox_t mbox)
 	{
 	  message_destroy (&(mpd->pmessages[i]->message),
 			   mpd->pmessages[i]);
-	  if (mpd->pmessages[i]->uid)
-	    free (mpd->pmessages[i]->uid);
+	  if (mpd->pmessages[i]->uidl)
+	    free (mpd->pmessages[i]->uidl);
 	  free (mpd->pmessages[i]);
 	  mpd->pmessages[i] = NULL;
 	}
@@ -753,6 +758,9 @@ pop_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
   }
 
   /* Set the UIDL call on the message. */
+  message_set_uidl (msg, pop_uidl, mpm);
+
+  /* Set the UID on the message. */
   message_set_uid (msg, pop_uid, mpm);
 
   /* Add it to the list.  */
@@ -777,6 +785,30 @@ pop_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
   message_set_mailbox (msg, mbox);
   *pmsg = mpm->message = msg;
 
+  return 0;
+}
+
+/* There is no such thing in pop all messages should be consider recent.
+   FIXME: We could cheat and peek at the status if it was not strip
+   by the server ...  */
+static int
+pop_messages_recent (mailbox_t mbox, size_t *precent)
+{
+  return pop_messages_count (mbox, precent);
+}
+
+/* There is no such thing in pop all messages should be consider unseen.
+   FIXME: We could cheat and peek at the status if it was not strip
+   by the server ...  */
+static int
+pop_message_unseen (mailbox_t mbox, size_t *punseen)
+{
+  size_t count = 0;
+  int status = pop_messages_count (mbox, &count);
+  if (status != 0)
+    return status;
+  if (punseen)
+    *punseen = (count > 0) ? 1 : 0;
   return 0;
 }
 
@@ -1025,7 +1057,7 @@ pop_message_size (message_t msg, size_t *psize)
 
     default:
       /*
-	fprintf (stderr, "pop_uid state\n");
+	fprintf (stderr, "pop_message_size state\n");
       */
       break;
     }
@@ -1141,19 +1173,28 @@ pop_get_fd (pop_message_t mpm, int *pfd)
   return EINVAL;
 }
 
+static int
+pop_uid (message_t msg,  size_t *puid)
+{
+  pop_message_t mpm = message_get_owner (msg);
+  if (puid)
+    *puid = mpm->num;
+  return 0;
+}
+
 /* Get the UIDL.  Client should be prepare since it may fail.  UIDL is
    optional on many POP servers.
    FIXME:  We should check this with CAPA and fall back to a md5 scheme ?
    Or maybe check for "X-UIDL" a la Qpopper ?  */
 static int
-pop_uid (message_t msg, char *buffer, size_t buflen, size_t *pnwriten)
+pop_uidl (message_t msg, char *buffer, size_t buflen, size_t *pnwriten)
 {
   pop_message_t mpm = message_get_owner (msg);
   pop_data_t mpd;
   int status = 0;
-  void *func = (void *)pop_uid;
+  void *func = (void *)pop_uidl;
   size_t num;
-  /* According to the RFC uid's are no longer then 70 chars.  Still playit
+  /* According to the RFC uidl's are no longer then 70 chars.  Still playit
      safe  */
   char uniq[128];
 
@@ -1161,14 +1202,14 @@ pop_uid (message_t msg, char *buffer, size_t buflen, size_t *pnwriten)
     return EINVAL;
 
   /* Is it cache ?  */
-  if (mpm->uid)
+  if (mpm->uidl)
     {
-      size_t len = strlen (mpm->uid);
+      size_t len = strlen (mpm->uidl);
       if (buffer)
 	{
 	  buflen--; /* Leave space for the null.  */
 	  buflen = (len > buflen) ? buflen : len;
-	  memcpy (buffer, mpm->uid, buflen);
+	  memcpy (buffer, mpm->uidl, buflen);
 	  buffer[buflen] = '\0';
 	}
       else
@@ -1207,7 +1248,7 @@ pop_uid (message_t msg, char *buffer, size_t buflen, size_t *pnwriten)
 
     default:
       /*
-	fprintf (stderr, "pop_uid state\n");
+	fprintf (stderr, "pop_uidl state\n");
       */
       break;
     }
@@ -1233,7 +1274,7 @@ pop_uid (message_t msg, char *buffer, size_t buflen, size_t *pnwriten)
 	}
       else
 	buflen = num - 1; /* Do not count newline.  */
-      mpm->uid = strdup (uniq);
+      mpm->uidl = strdup (uniq);
       status = 0;
     }
 

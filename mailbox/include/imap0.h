@@ -166,7 +166,8 @@ struct _m_imap
   msg_imap_t *imessages;
   size_t recent;
   size_t unseen;
-  size_t uidvalidity;
+  unsigned long uidvalidity;
+  size_t uidnext;
   char *name;
 };
 
@@ -181,7 +182,7 @@ struct _msg_imap
   msg_imap_t *parts;
   msg_imap_t parent;
   int flags;
-  char *uid;
+  size_t uid;
 
   size_t message_size;
   size_t message_lines;
