@@ -44,7 +44,7 @@ mail_from0 (msgset_t *mspec, message_t msg, void *data)
       if (address_create (&address, from) == 0)
 	{
 	  char name[128];
-	  size_t len = strlen (from);
+	  size_t len = strlen (from) + 1;
 	  *name = '\0';
 	  address_get_personal (address, 1, name, sizeof name, NULL);
 	  if (*name && len)
@@ -53,7 +53,7 @@ mail_from0 (msgset_t *mspec, message_t msg, void *data)
 	      from[len - 1] = '\0';
 	    }
 	  else
-	    address_get_email (address, 1, from, strlen (from), NULL);
+	    address_get_email (address, 1, from, len, NULL);
 	  address_destroy (&address);
 	}
     }
@@ -61,17 +61,17 @@ mail_from0 (msgset_t *mspec, message_t msg, void *data)
   
   message_get_attribute (msg, &attr);
   
-  if (attribute_is_userflag(attr, MAIL_ATTRIBUTE_MBOXED))
+  if (attribute_is_userflag (attr, MAIL_ATTRIBUTE_MBOXED))
     cflag = 'M';
-  else if (attribute_is_userflag(attr, MAIL_ATTRIBUTE_SAVED))
+  else if (attribute_is_userflag (attr, MAIL_ATTRIBUTE_SAVED))
     cflag = '*';
-  else if (attribute_is_userflag(attr, MAIL_ATTRIBUTE_TAGGED))
+  else if (attribute_is_userflag (attr, MAIL_ATTRIBUTE_TAGGED))
     cflag = 'T';
   else if (attribute_is_read (attr))
     cflag = 'R';
   else if (attribute_is_seen (attr))
     cflag = 'U';
-  else if (attribute_is_recent(attr))
+  else if (attribute_is_recent (attr))
     cflag = 'N';
   else
     cflag = ' ';
@@ -79,13 +79,13 @@ mail_from0 (msgset_t *mspec, message_t msg, void *data)
   message_get_envelope (msg, &env);
   envelope_date (env, date, sizeof (date), NULL);
   p = date;
-  if (mu_parse_ctime_date_time(&p, &tm, &tz) == 0)
+  if (mu_parse_ctime_date_time (&p, &tm, &tz) == 0)
     strftime (date, sizeof(date), "%a %b %e %H:%M", &tm);
   
   message_size (msg, &m_size);
   message_lines (msg, &m_lines);
   
-  snprintf (st, sizeof(st), "%3d/%-5d", m_lines, m_size);
+  snprintf (st, sizeof (st), "%3d/%-5d", m_lines, m_size);
   
   /* The "From" field will take a third of the screen.
      Subject will take the rest.
