@@ -16,7 +16,7 @@
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 /* MH context functions. */
-
+  
 #include <mh.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -107,8 +107,13 @@ mh_context_write (mh_context_t *ctx)
   return 0;
 }
 
+/* FIXME: mh_context_get_value returns a pointer to the allocated memory.
+   Instead, it should return a const pointer to the static storage within
+   the header_t structure and be declared as
+   `const char *mh_context_get_value()'. Current implementation of
+   header_.* functions does not allow that. */
 char *
-mh_context_get_value (mh_context_t *ctx, const char *name, char *defval)
+mh_context_get_value (mh_context_t *ctx, const char *name, const char *defval)
 {
   char *p;
 
@@ -118,7 +123,7 @@ mh_context_get_value (mh_context_t *ctx, const char *name, char *defval)
 }
 
 int
-mh_context_set_value (mh_context_t *ctx, const char *name, char *value)
+mh_context_set_value (mh_context_t *ctx, const char *name, const char *value)
 {
   if (!ctx->header)
     {
