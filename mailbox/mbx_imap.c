@@ -2099,7 +2099,7 @@ flags_to_string (char **pbuf, int flag)
         strcat (abuf, " ");
       strcat (abuf, "\\Deleted");
     }
-  if ((flag & MU_ATTRIBUTE_SEEN) || (flag & MU_ATTRIBUTE_READ))
+  if (flag & MU_ATTRIBUTE_READ)
     {
       char *tmp = realloc (abuf, strlen (abuf) + strlen ("\\Seen") + 2);
       if (tmp == NULL)
