@@ -374,7 +374,8 @@ mhl_format_destroy (list_t *fmt)
 #define B_NEWLINE         8
 #define B_ADDRFIELD       9
 #define B_DATEFIELD      10
-#define B_MAX            11
+#define B_DECODE         12
+#define B_MAX            13
 		      
 /* String variables */
 #define S_OVERFLOWTEXT   0
@@ -660,14 +661,34 @@ eval_component (struct eval_env *env, char *name)
 int
 eval_body (struct eval_env *env)
 {
-  body_t body = NULL;
   stream_t input = NULL;
+  stream_t dstr = NULL;
   char buf[128]; /* FIXME: Fixed size. Bad */
   size_t n;
+  body_t body = NULL;
 
   env->prefix = env->svar[S_COMPONENT];
+
   message_get_body (env->msg, &body);
   body_get_stream (body, &input);
+
+  if (env->bvar[B_DECODE])
+    {
+      header_t hdr;
+      char *encoding = NULL;
+
+      message_get_header (env->msg, &hdr);
+      header_aget_value (hdr, MU_HEADER_CONTENT_TRANSFER_ENCODING, &encoding);
+      if (encoding)
+	{
+	  int rc = filter_create(&dstr, input, encoding,
+				 MU_FILTER_DECODE, MU_STREAM_READ);
+	  if (rc == 0)
+	    input = dstr;
+	  free (encoding);
+	}
+    }
+  
   stream_seek (input, 0, SEEK_SET);
   while (stream_sequential_readline (input, buf, sizeof buf, &n) == 0
 	 && n > 0)
@@ -675,6 +696,8 @@ eval_body (struct eval_env *env)
       buf[n] = 0;
       print (env, buf, 0);
     }
+  if (dstr)
+    stream_destroy (&dstr, stream_get_owner (dstr));
   return 0;
 }
 
@@ -770,7 +793,7 @@ eval_stmt (void *item, void *data)
 
 int
 mhl_format_run (list_t fmt,
-		int width, int length, int clearscreen, int bell,
+		int width, int length, int flags,
 		message_t msg, stream_t output)
 {
   int rc;
@@ -783,8 +806,9 @@ mhl_format_run (list_t fmt,
   list_create (&env.printed_fields);
   env.ivar[I_WIDTH] = width;
   env.ivar[I_LENGTH] = length;
-  env.bvar[B_CLEARSCREEN] = clearscreen;
-  env.bvar[B_BELL] = bell;
+  env.bvar[B_CLEARSCREEN] = flags & MHL_CLEARSCREEN;
+  env.bvar[B_BELL] = flags & MHL_BELL;
+  env.bvar[B_DECODE] = flags & MHL_DECODE;
   env.pos = 0;
   env.nlines = 0;
   env.msg = msg;
