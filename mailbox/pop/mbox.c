@@ -990,7 +990,8 @@ pop_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
   }
 
   /* Set the UIDL call on the message. */
-  message_set_uidl (msg, pop_uidl, mpm);
+  if (mpd->capa & CAPA_UIDL)
+    message_set_uidl (msg, pop_uidl, mpm);
 
   /* Set the UID on the message. */
   message_set_uid (msg, pop_uid, mpm);
