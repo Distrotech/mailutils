@@ -1,11 +1,17 @@
-2002-02-23  Sergey Poznyakoff  <gray@Mirddin.farlep.net>
+2002-02-23  Sergey Poznyakoff  
 
 	* lib/argcv.c: Yesterday's fix makes argcv_get include trailing
-	  whitespace to the arg array. To fix:
+	  whitespace to the argv array. To fix:
 	  (argcv_scan): Return len+1 if called on or after
 	  the terminating null character.
 	  (argcv_get): Initialize *argc to zero and continue scanning
 	  until argcv_scan return is  > len. Thanks Sam for noticing.
+
+	  More fixes:
+	  (argcv_scan): Correclty handle comments without intervening 
+	  whitespace between the comment character and remaining text, 
+	  e.g.:
+             set a=2 #comment
 
 2002-02-22  Sergey Poznyakoff 
 

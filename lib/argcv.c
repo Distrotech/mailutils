@@ -72,7 +72,7 @@ argcv_scan (int len, const char *command, const char *delim, const char* cmnt,
 
       /* If we have a token, and it starts with a comment character, skip
          to the newline and restart the token search. */
-      if (*save < len)
+      if (*save <= len)
 	{
 	  if (cmnt && strchr (cmnt, command[*start]) != NULL)
 	    {
