@@ -1,3 +1,59 @@
+2002-10-13  Sergey Poznyakoff
+
+	* guimb/scm/sieve-core.scm: Changed sieve-register-.* functions
+	  to allow for actions to accept tags.
+	  (sieve-get-opt-arg): New function. Returns the argument to a
+	  given tag.
+	* guimb/scm/sieve.scm.in: Use new sieve-register style.
+	  (sieve-preprocess-arguments): New function. Preprocess
+	  and group arguments into optional and positional types.
+	  (sieve-parse-arguments): New function. Parses arguments
+	  to an action or a test.
+	  (sieve-register-action,sieve-register-test): Rewritten.
+	* guimb/scm/mimeheader.scm: Updated to use new register style
+	* guimb/scm/numaddr.scm: Likewise.
+	* guimb/scm/redirect.scm: Likewise.
+	* guimb/scm/reject.scm: Likewise.
+
+	* guimb/scm/vacation.scm: New file. Implements "vacation"
+ 	  extension.
+	* guimb/scm/Makefile.am: Added vacation.scm
+
+	* libmu_scm/mu_message.c (mu_message_set_header): Bugfix.
+	* libmu_scm/mu_scm.c (_mu_scm_package_string, in scheme
+	  mu-package-string): New global.
+
+	* mail/eq.c: Allow a single argument as an extension to the
+	  standard '=' command. The effect is to move the current
+	  pointer to the given message.
+
+	* mail/util.c (util_error_range): New function. Outputs "message
+	  out of range" diagnostics.
+	  (util_get_message): New function. A wrapper around
+	  mailbox_get_message with the proper diagnostics.
+	* mail/mail.h: Likewise.
+
+	* mail/copy.c: Use util_get_message()
+	* mail/delete.c: Likewise.
+	* mail/followup.c: Likewise.
+	* mail/from.c: Likewise.
+	* mail/hold.c: Likewise.
+	* mail/mbox.c: Likewise.
+	* mail/pipe.c: Likewise.
+	* mail/print.c: Likewise.
+	* mail/quit.c: Likewise.
+	* mail/reply.c: Likewise.
+	* mail/size.c: Likewise.
+	* mail/top.c: Likewise.
+	* mail/undelete.c: Likewise.
+	* mail/var.c: Likewise.
+	* mail/write.c: Likewise.
+	* mail/decode.c: Updated util_isdeleted() invocation.
+
+	* mail.local/Makefile.am: Added /mailbox to INCLUDES
+	* lib/getline.h: Removed.
+	* mailbox/Makefile.am: Added /mailbox to INCLUDES
+	
 2002-10-02  Sergey Poznyakoff 
 
 	* configure.ac: Check if environ is declared.
