@@ -237,7 +237,7 @@ parse_log_facility (const char *str)
   return LOG_FACILITY;
 }
 
-static char license_text[] =
+char *mu_license_text =
     "   This program is free software; you can redistribute it and/or modify\n"
     "   it under the terms of the GNU General Public License as published by\n"
     "   the Free Software Foundation; either version 2, or (at your option)\n"
@@ -310,7 +310,7 @@ mu_common_argp_parser (int key, char *arg, struct argp_state *state)
       /* common */
     case 'L':
       printf ("License for %s:\n\n", argp_program_version);
-      printf ("%s", license_text);
+      printf ("%s", mu_license_text);
       exit (0);
 
     case ARG_SHOW_OPTIONS:
