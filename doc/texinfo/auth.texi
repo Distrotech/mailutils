@@ -4,7 +4,7 @@
 @comment *******************************************************************
 
 @smallexample
-@code{/* Prefixes @emph{authority_}, @emph{ticket_}, and @emph{wicket_t} are reserved */}
+@code{/* Prefixes @emph{authority_}, @emph{ticket_}, and @emph{wicket_} are reserved. */}
 @code{#include <mailutils/auth.h>}
 
 @end smallexample
