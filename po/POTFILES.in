@@ -106,11 +106,13 @@ mh/mh_msgset.c
 mh/mh_whatnow.c
 mh/mhl.c
 mh/mhpath.c
+mh/pick.c
 mh/refile.c
 mh/repl.c
 mh/rmf.c
 mh/rmm.c
 mh/scan.c
+mh/send.c
 mh/whatnow.c
 
 pop3d/apop.c
