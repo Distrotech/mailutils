@@ -17,7 +17,6 @@
 	* mailbox/auth.c: Likewised.
 	* mailbox/url.c: Likewised.
 	* mailbox/folder.c: Likewised.
-======= end
 
 2001-07-19 Sergey Poznyakoff
 	Added guile interface library.
