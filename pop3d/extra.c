@@ -138,6 +138,8 @@ pop3d_setio (FILE *in, FILE *out)
   if (!in || !out)
     pop3d_abquit (ERR_NO_OFILE);
 
+  setvbuf (in, NULL, _IOLBF, 0);
+  setvbuf (out, NULL, _IOLBF, 0);
   if (stdio_stream_create (&istream, in, MU_STREAM_NO_CLOSE)
       || stdio_stream_create (&ostream, out, MU_STREAM_NO_CLOSE))
     pop3d_abquit (ERR_NO_OFILE);
