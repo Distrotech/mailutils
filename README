@@ -1,6 +1,9 @@
 This is the GNU Mailutils package
 =================================
 
+* Introduction
+==============
+
 This package contains a series of useful mail clients, servers, and
 libraries.  These are the primary mail utilities of the GNU system.
 
@@ -21,8 +24,8 @@ COPYING.LESSER, COPYING and doc/texinfo/COPYING.DOC.
 This software is part of the GNU Project and belongs to the Free Software 
 Foundation.
 
-Why use this package?
-=====================
+* Why use this package?
+=======================
 
 This package started off to try and handle large mailbox files more
 gracefully then current POP3 servers did.  While it handles this task,
@@ -31,11 +34,11 @@ without any real effort on your part.  Also, if a new format is added
 at a later date, your program will support that new format
 automatically as soon as it is compiled against the new library.
 
-This server is also released as part of Debian, so you should expect
+This package is also released as part of Debian, so you should expect
 it to compile cleanly on all the platforms supported there.
 
-How to install
-==============
+* How to install
+================
 
 Please see the INSTALL file in this directory for the generic instructions
 on how to use configure. The following short summary describes the mailutils-
@@ -242,9 +245,18 @@ features:
                           Disables support for authentication using virtual
                           mail domains.
 
+Several environment variables affect the configuration. Currently,
+the only mailutils-specific variable is DEFAULT_CUPS_CONFDIR. It
+sets the location of CUPS (Common UNIX Printing System) configuration
+directory, which is needed for `mimeview' utility. By default, this
+location is $sysconfdir/cups. On most sites, however, it may be
+reasonable to set it to /etc/cups, e.g.:
 
-Where to report BUGS
-====================
+	./configure DEFAULT_CUPS_CONFDIR=/etc/cups ...
+
+
+* Where to report BUGS
+======================
 
 Please report any bugs to <bug-mailutils@gnu.org>.  We encourage sysadmins
 who will be using this package to subscribe to this list by sending an email
@@ -252,3 +264,23 @@ to <bug-mailutils-request@gnu.org> with the word `subscribe' in the body of
 the message. Another way to subscribe is by visiting
 http://mail.gnu.org/mailman/listinfo/bug-mailutils.
 
+* Copyright information:
+
+Copyright (C) 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
+
+   Permission is granted to anyone to make or distribute verbatim copies
+   of this document as received, in any medium, provided that the
+   copyright notice and this permission notice are preserved,
+   thus giving the recipient permission to redistribute in turn.
+
+   Permission is granted to distribute modified versions
+   of this document, or of portions of it,
+   under the above conditions, provided also that they
+   carry prominent notices stating who last changed them.
+
+
+Local Variables:
+mode: outline
+paragraph-separate: "[ 	]*$"
+version-control: never
+End:

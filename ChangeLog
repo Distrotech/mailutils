@@ -1,5 +1,13 @@
 2005-03-12  Sergey Poznyakoff 
 
+	* README: Updated. Switch to outline mode.
+	* README-alpha: Updated. Switch to outline mode.
+	* mailbox/mutil.c: Minor indentation fix
+	* mailbox/pop/pop3_sendline.c: Do not redefine _GNU_SOURCE
+	* mailbox/nntp/nntp_sendline.c: Likewise
+
+2005-03-12  Sergey Poznyakoff 
+
 	* lib/mailcap.c: New file. Routines for displaying MIME
 	messages.
 	* lib/Makefile.am: Added mailcap.c

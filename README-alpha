@@ -1,26 +1,131 @@
 This is the GNU mailutils package.
+This document describes the actions needed to build the pre-release
+or CVS version of the package. See end of file for copying conditions.
+
+* Introduction
 
 This is a *pre-release* version, and not ready for production use yet. If you
 are taking source from CVS, you will need to have libtool, automake, and
-autoconf installed to help contribute. The script autogen.sh is provided to
-help autoconfigure mailutils from the cvs src.  After you run
-autogen.sh, there should be a file 'INSTALL' with (generic)
-installation instructions.
+autoconf installed to help contribute. See the chapter `Building' for the
+detailed instructions. The script autogen.sh is provided to help
+autoconfigure mailutils from the cvs src.  After you run autogen.sh,
+there should be a file 'INSTALL' with (generic) installation instructions.
+Package-specific installation instructions are set forth in the file
+README.
+
+Please, note that the accompanying documentation may be inaccurate or
+incomplete. The ChangeLog file is the authoritative documentation of
+all recent changes.
 
 Report bugs to <bug-mailutils@gnu.org>
 
-To get this information from CVS issue the following commands:
+* Checking Out the Sources
 
-cvs -d :pserver:anoncvs@subversions.gnu.org:/cvsroot/mailutils login
+The following instructions apply if you wish to obtain sources from
+the CVS repository:
 
-Press enter when prompted for a password.
+To checkout the source tree from CVS issue the following command:
 
-cvs -d :pserver:anoncvs@subversions.gnu.org:/cvsroot/mailutils checkout mailutils
+CVS_RSH=ssh \
+ cvs -d :ext:anoncvs@savannah.gnu.org:/cvsroot/mailutils checkout mailutils
+
+Make sure SSHv2 is used.
 
 This will give you read-only access.  If you think you need write access,
 contact the mailing list.
 
-In order to build this you will need to call the auto* tools with
-the right arguments, see or run autogen.sh.
+* Building
+
+In order to build this you will first need to have right versions of
+autotools. At the time of this writing these are:
+
+  Package   Version (>=)
+  ========  ============
+  automake  1.8.5
+  autoconf  2.59
+  libtool   1.5.8
+  gettext   0.14.1
+
+To prepare the package for building run autogen.sh. Then run
+./configure with the desired options (See INSTALL and README for
+the detailed instructions). Finally, run make.
+
+* Debugging
+
+To enable additional debugging information, configure the package with
+--enable-debug option.
+
+Unless you compile mailutils statically, you will need to run following
+command to debug a utility:
+
+  libtool --mode execute gdb UTILITY-NAME
+
+Sometimes it is impossible or inconvenient to start a utility from the
+debugger. In this case, use --HANG option, which is supported by any
+of the mailutils programs. The option instructs the program to sleep
+for a given number of seconds (3600 by default) right after startup.
+For example, to debug `mimeview' utility, run
+
+	mimeview --HANG [OTHER-OPTIONS]
+
+Then switch to another terminal, get the PID of the ivoked utility
+and attach to it using gdb:
+
+	gdb mimeview PID
+
+Once in gdb, issue the following command
+
+	set _argp_hang=0
+
+Now set your breakpoints and proceed as usual.
+
+* Importing gnulib files
+
+Mailutils imports several source files from gnulib. These go mainly to
+the conventional library libmailutils (directory lib/), but several of them
+are incorporated into the main library libmailbox (directory mailbox/).
+The imported sources are kept in the CVS repository to avoid using eventually
+unstable versions appearing in the main gnulib CVS. Once in a time we
+update the sources. The update procedure is quite straightforward:
+change to the root directory of the mailutils tree and run `gnulib-sync'
+script:
+
+  $ cd mailutils
+  $ scripts/gnulib-sync $HOME/src/gnulib
+
+The script takes a single argument: name of the directory with the
+copy of gnulib source tree (see http://savannah.gnu.org/projects/gnulib
+for information on how to obtain gnulib sources). After incorporating
+the files, gnulib-sync leaves in the current directory two files named
+gnulib.changelog and gnulib.cvs. The file gnulib.changelog contains the
+entry to be prepended to ChangeLog, the file gnulib.cvs is a shell script
+with the commands necessary to incorporate all the changes into CVS.
+
+If you need to add more gnulib modules to mailutils, add their names
+to gnulib.modules file, following the instructions in its heading
+comment. Please avoid placing modules in :mailbox section, as this
+may lead to unwanted name clashes when linking user programs with
+libmailbox.
+
+* Copyright information:
+
+Copyright (C) 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
+
+   Permission is granted to anyone to make or distribute verbatim copies
+   of this document as received, in any medium, provided that the
+   copyright notice and this permission notice are preserved,
+   thus giving the recipient permission to redistribute in turn.
+
+   Permission is granted to distribute modified versions
+   of this document, or of portions of it,
+   under the above conditions, provided also that they
+   carry prominent notices stating who last changed them.
+
+
+Local Variables:
+mode: outline
+paragraph-separate: "[ 	]*$"
+version-control: never
+End:
 
 
