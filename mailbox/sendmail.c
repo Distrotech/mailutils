@@ -254,15 +254,11 @@ sendmail_send_message (mailer_t mailer, message_t msg, address_t from,
 	  }
 	if (!to)
 	  {
-            /* The -t seems to be implicit when there are no addresses,
-	       so it shouldn't be necessary to specify it. */
-	    /*
 	    if ((argvec[argc++] = strdup ("-t")) == 0)
 	      {
 		status = ENOMEM;
 		goto OPEN_STATE_CLEANUP;
 	      }
-	    */
 	  }
 	else
 	  {
