@@ -38,12 +38,13 @@ OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 #include "interp.h"
 #include "script.h"
 #include "tree.h"
-
+#include "sieve.h"
+  
 #include "util.h"
 #include "imparse.h"
 
     /* definitions */
-    extern int addrparse(void);
+extern int addrparse(void);
 
 struct vtags {
     int days;
@@ -403,6 +404,7 @@ tests: test                      { $$ = new_testlist($1, NULL); }
 	;
 
 %%
+
 commandlist_t *sieve_parse(sieve_script_t *script, FILE *f)
 {
     commandlist_t *t;
