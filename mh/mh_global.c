@@ -71,6 +71,9 @@ mh_read_profile ()
   mh_context_read (profile);
 
   mh_set_reply_regex (mh_global_profile_get ("Reply-Regex", NULL));
+  p = mh_global_profile_get ("Decode-Fallback", NULL);
+  if (p && mu_set_default_fallback (p))
+    mu_error (_("Incorrect value for decode-fallback"));
 }
 
 /* Global context */
