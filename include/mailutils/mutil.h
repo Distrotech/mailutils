@@ -129,6 +129,8 @@ extern char *mu_charset_lookup __P((char *lang, char *terr));
 extern int mu_true_answer_p __P((const char *p));
 extern int mu_scheme_autodetect_p __P((const char *scheme, const char **path));
 
+struct timeval; 
+  
 extern int mu_fd_wait __P((int fd, int *pflags, struct timeval *tvp));
 
 extern int mu_decode_filter __P((stream_t *pfilter, stream_t input,
