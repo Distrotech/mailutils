@@ -21,6 +21,7 @@
 #include <attribute.h>
 #include <header.h>
 #include <message.h>
+#include <mime.h>
 #include <mailbox.h>
 #include <event.h>
 
@@ -46,6 +47,7 @@ struct _message
   stream_t stream;
   body_t body;
   attribute_t attribute;
+  mime_t mime;
 
   /* who is the owner */
   void *owner;
@@ -61,7 +63,8 @@ struct _message
   int (*_from)       __P ((message_t msg, char *, size_t, size_t *));
   int (*_received)   __P ((message_t msg, char *, size_t, size_t *));
   int (*_get_uidl)       __P ((message_t msg, char *, size_t, size_t *));
-
+  int (*_get_num_parts)  __P ((message_t, size_t *nparts));
+  int (*_get_part)       __P ((message_t, size_t part, message_t *msg));
 };
 
 #ifdef _cplusplus

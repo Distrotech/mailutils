@@ -347,6 +347,107 @@ message_set_attribute (message_t msg, attribute_t attribute, void *owner)
 }
 
 int
+message_get_uidl (message_t msg, char *buffer, size_t buflen, size_t *pwritten)
+{
+  header_t header = NULL;
+  if (msg == NULL || buffer == NULL || buflen == 0)
+    return EINVAL;
+
+  buffer[0] = '0';
+  if (msg->_get_uidl)
+    return msg->_get_uidl (msg, buffer, buflen, pwritten);
+
+  message_get_header (msg, &header);
+  return header_get_value (header, "X-UIDL", buffer, buflen, pwritten);
+}
+
+int
+message_set_uidl (message_t msg, int (* _get_uidl)
+		  __P ((message_t msg, char *buffer, size_t buflen, size_t *pwritten)), void *owner)
+{
+  if (msg == NULL)
+    return EINVAL;
+  if (msg->owner != owner)
+    return EACCES;
+  msg->_get_uidl = _get_uidl;
+  return 0;
+}
+
+int
+message_is_mime (message_t msg)
+{
+  header_t header;
+  int status;
+
+  status = message_get_header(msg, &header);
+  if (status != 0)
+    return status;
+  status = header_get_value (header, "Mime-Version", NULL, 0, NULL);
+  return (status == 0);
+}
+
+int
+message_get_num_parts (message_t msg, size_t *pparts)
+{
+  if (msg == NULL || pparts == NULL)
+    return EINVAL;
+
+  if (msg->_get_num_parts)
+    return msg->_get_num_parts (msg, pparts);
+
+  if (msg->mime == NULL)
+    {
+      int status = mime_create (&(msg->mime), msg, 0);
+      if (status != 0)
+	return status;
+    }
+  return mime_get_num_parts (msg->mime, pparts);
+}
+
+int
+message_set_get_num_parts (message_t msg, int (*_get_num_parts)
+			   __P ((message_t, size_t *)), void *owner)
+{
+  if (msg == NULL)
+    return EINVAL;
+  if (msg->owner != owner)
+    return EACCES;
+  msg->_get_num_parts = _get_num_parts;
+  return 0;
+}
+
+int
+message_get_part (message_t msg, size_t part, message_t *pmsg)
+{
+  if (msg == NULL || pmsg == NULL)
+    return EINVAL;
+
+  if (msg->_get_part)
+    return msg->_get_part (msg, part, pmsg);
+
+  if (msg->mime == NULL)
+    {
+      int status = mime_create (&(msg->mime), msg, 0);
+      if (status != 0)
+	return status;
+    }
+  return mime_get_part (msg->mime, part, pmsg);
+}
+
+int
+message_set_get_part (message_t msg, int (*_get_part)
+		      __P ((message_t, size_t, message_t *)),
+		      void *owner)
+{
+  if (msg == NULL)
+    return EINVAL;
+  if (msg->owner != owner)
+    return EACCES;
+  msg->_get_part = _get_part;
+  return 0;
+}
+
+int
 message_register (message_t msg, size_t type,
 		  int (*action) (size_t typ, void *arg), void *arg)
 {
@@ -575,32 +676,6 @@ message_get_fd (stream_t stream, int *pfd)
   return stream_get_fd (is, pfd);
 }
 
-int
-message_get_uidl (message_t msg, char *buffer, size_t buflen, size_t *pwritten)
-{
-  header_t header = NULL;
-  if (msg == NULL || buffer == NULL || buflen == 0)
-    return EINVAL;
-
-  buffer[0] = '0';
-  if (msg->_get_uidl)
-    return msg->_get_uidl (msg, buffer, buflen, pwritten);
-
-  message_get_header (msg, &header);
-  return header_get_value (header, "X-UIDL", buffer, buflen, pwritten);
-}
-
-int
-message_set_uidl (message_t msg, int (* _get_uidl)
-		  __P ((message_t msg, char *buffer, size_t buflen, size_t *pwritten)), void *owner)
-{
-  if (msg == NULL)
-    return EINVAL;
-  if (msg->owner != owner)
-    return EACCES;
-  msg->_get_uidl = _get_uidl;
-  return 0;
-}
 static int
 extract_addr (const char *s, size_t n, char **presult, size_t *pnwrite)
 {

@@ -56,7 +56,7 @@ extern int message_set_body __P ((message_t, body_t, void *owner));
 
 extern int message_get_stream __P ((message_t, stream_t *));
 
-extern int message_is_multipart __P ((message_t));
+extern int message_is_mime __P ((message_t));
 
 extern int message_size     __P ((message_t, size_t *));
 extern int message_lines    __P ((message_t, size_t *));
@@ -75,13 +75,14 @@ extern int message_get_attribute __P ((message_t, attribute_t *));
 extern int message_set_attribute __P ((message_t, attribute_t, void *owner));
 
 extern int message_get_num_parts    __P ((message_t, size_t *nparts));
-extern int message_set_get_num_parts    __P ((message_t, size_t *nparts));
+extern int message_set_get_num_parts    __P ((message_t, int (*_getNum_parts)
+					      __P ((message_t, size_t *)),
+					      void *owner));
 
 extern int message_get_part  __P ((message_t, size_t part, message_t *msg));
-extern int message_set_get_part __P ((message_t, size_t part, message_t *msg));
-
-extern int message_add_part  __P ((message_t, message_t msg));
-extern int message_set_add_part  __P ((message_t, message_t msg));
+extern int message_set_get_part __P ((message_t, int (*_get_part)
+				      __P ((message_t, size_t, message_t *)),
+				      void *owner));
 
 extern int message_get_uidl  __P ((message_t, char *buffer, size_t, size_t *));
 extern int message_set_uidl  __P ((message_t, int (*_get_uidl)
