@@ -81,7 +81,7 @@ AC_ARG_WITH(ndbm,
   esac])
 
 AC_ARG_WITH(dbm,
- [  --with-old-dbm          use old DBM],
+ [  --with-dbm              use old DBM],
  [case "${withval}" in
   yes) use_dbm=ODBM ;;
   no)  use_dbm=no ;;
