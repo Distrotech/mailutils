@@ -227,6 +227,9 @@ if test x"${usedb2}" = x"yes"; then
 		LIBS="$LIBS -ldb"])
 fi
 
+dnl Make sysconfdir available to the application
+CPPFLAGS="$CPPFLAGS -DSYSCONFDIR=\\\"\$(sysconfdir)\\\""
+
 dnl Check for Guile
 AC_SUBST(GUILE_INCLUDES)
 AC_SUBST(GUILE_LIBS)

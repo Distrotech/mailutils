@@ -1,10 +1,13 @@
 2001-11-10  Jeff Bailey  <jbailey@outpost.dnsalias.org>
 
+	* pop3d/pop3d.h: Use SYSCONFDIR, not hardcoded /etc
+
 	* doc/man/.cvsignore: New File
 
 	* doc/Makefile.am: Add man to SUBDIRS
 
 	* configure.in: Build doc/man/Makefile
+	Provide -DSYSCONFDIR in CPPFLAGS
 
 	* doc/man/pop3d.1: New File
 

@@ -58,7 +58,7 @@
 
 /* APOP password file, without .db or .passwd, which are added based on file
    type automatically */
-#define APOP_PASSFILE	"/etc/apop"
+#define APOP_PASSFILE	SYSCONFDIR"/apop"
 
 /* Size of the MD5 digest for APOP */
 #define APOP_DIGEST	70
