@@ -204,9 +204,7 @@ main (int argc, char **argv)
   argv += index;
 
   if (!nolist_mode)
-    {
-      mh_read_aliases ();
-    }
+    mh_read_aliases ();
 
   if (!user_mode)
     {
