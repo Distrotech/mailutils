@@ -46,15 +46,15 @@ static struct argp_option options[] = {
 
 /* Traditional MH options */
 struct mh_option mh_option[] = {
-  {"audit",   5,  'a', MH_OPT_ARG, "audit-file" },
-  {"noaudit", 3,  'n', 0, },
-  {"changecur", 1, 'c',MH_OPT_BOOL},
-  {"file",    2, 'i', MH_OPT_ARG, "input-file"},
-  {"form",    4, 'F', MH_OPT_ARG, "format-file"},
-  {"format",  5, 't', MH_OPT_ARG, "string"},
-  {"truncate", 2, 'T', MH_OPT_BOOL, },
-  {"width",   1,  'w', MH_OPT_ARG, "number"},
-  {"quiet",   1,  'q', 0, },
+  {"audit",   5,  NULL, MH_OPT_ARG, "audit-file" },
+  {"noaudit", 3,  NULL, 0, },
+  {"changecur", 1, NULL, MH_OPT_BOOL},
+  {"file",    2, NULL, MH_OPT_ARG, "input-file"},
+  {"form",    4, NULL, MH_OPT_ARG, "format-file"},
+  {"format",  5, NULL, MH_OPT_ARG, "string"},
+  {"truncate", 2, NULL, MH_OPT_BOOL, },
+  {"width",   1,  NULL, MH_OPT_ARG, "number"},
+  {"quiet",   1,  NULL, 0, },
   { 0 }
 };
 

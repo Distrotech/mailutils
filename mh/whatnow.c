@@ -42,12 +42,12 @@ static struct argp_option options[] = {
 
 /* Traditional MH options */
 struct mh_option mh_option[] = {
-  {"draftfolder", 6, 'd', MH_OPT_ARG, "folder"},
-  {"nodraftfolder", 3, ARG_NODRAFTFOLDER, },
-  {"draftmessage", 6, 'm' },
-  {"editor", 1, 'e', MH_OPT_ARG, "program"},
-  {"noedit", 3, ARG_NOEDIT, },
-  {"prompt", 1, 'p' },
+  {"draftfolder", 6, NULL, MH_OPT_ARG, "folder"},
+  {"nodraftfolder", 3, NULL, },
+  {"draftmessage", 6, NULL },
+  {"editor", 1, NULL, MH_OPT_ARG, "program"},
+  {"noedit", 3, NULL, },
+  {"prompt", 1, NULL },
   { 0 }
 };
 

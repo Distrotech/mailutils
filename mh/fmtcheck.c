@@ -35,8 +35,8 @@ static struct argp_option options[] = {
 
 /* Traditional MH options */
 struct mh_option mh_option[] = {
-  {"form",    4,  'F', MH_OPT_ARG, "formatfile"},
-  {"format",  5,  't', MH_OPT_ARG, "string"},
+  {"form",    4,  NULL, MH_OPT_ARG, "formatfile"},
+  {"format",  5,  NULL, MH_OPT_ARG, "string"},
   { 0 }
 };
 

@@ -68,23 +68,23 @@ static struct argp_option options[] = {
 
 /* Traditional MH options */
 struct mh_option mh_option[] = {
-  {"annotate", 1, 'a', MH_OPT_BOOL },
-  {"build", 1, 'b', },
-  {"cc", 1, 'c', MH_OPT_ARG, "all/to/cc/me"},
-  {"nocc", 3, 'n', MH_OPT_ARG, "all/to/cc/me"},
-  {"form",    4,  'F', MH_OPT_ARG, "formatfile"},
-  {"width",   1,  'w', MH_OPT_ARG, "number"},
-  {"draftfolder", 6, 'd', MH_OPT_ARG, "folder"},
-  {"nodraftfolder", 3, ARG_NODRAFTFOLDER, },
-  {"draftmessage", 6, 'm' },
-  {"editor", 1, 'e', MH_OPT_ARG, "program"},
-  {"noedit", 3, ARG_NOEDIT, },
-  {"fcc", 1, ARG_FCC, MH_OPT_ARG, "folder"},
-  {"filter", 2, ARG_FILTER, MH_OPT_ARG, "program"},
-  {"inplace", 1, ARG_INPLACE, MH_OPT_BOOL },
-  {"query", 1, ARG_QUERY, MH_OPT_BOOL },
-  {"whatnowproc", 2, ARG_WHATNOWPROC, MH_OPT_ARG, "program"},
-  {"nowhatnowproc", 3, ARG_NOWHATNOWPROC },
+  {"annotate", 1, NULL, MH_OPT_BOOL },
+  {"build", 1, NULL, },
+  {"cc", 1, NULL, MH_OPT_ARG, "all/to/cc/me"},
+  {"nocc", 3, NULL, MH_OPT_ARG, "all/to/cc/me"},
+  {"form",    4,  NULL, MH_OPT_ARG, "formatfile"},
+  {"width",   1,  NULL, MH_OPT_ARG, "number"},
+  {"draftfolder", 6, NULL, MH_OPT_ARG, "folder"},
+  {"nodraftfolder", 3, NULL },
+  {"draftmessage", 6, NULL },
+  {"editor", 1, NULL, MH_OPT_ARG, "program"},
+  {"noedit", 3, NULL, },
+  {"fcc", 1, NULL, MH_OPT_ARG, "folder"},
+  {"filter", 2, NULL, MH_OPT_ARG, "program"},
+  {"inplace", 1, NULL, MH_OPT_BOOL },
+  {"query", 1, NULL, MH_OPT_BOOL },
+  {"whatnowproc", 2, NULL, MH_OPT_ARG, "program"},
+  {"nowhatnowproc", 3, NULL },
   { 0 }
 };
 
@@ -95,9 +95,8 @@ static char *format_str =
 "%<(nonnull)%(void(width))%(putaddr cc: )\\n%>"
 "%<{fcc}Fcc: %{fcc}\\n%>"
 "%<{subject}Subject: Re: %(unre{subject})\\n%>"
-"%<{date}In-reply-to: Your message of \""
-"%<(nodate{date})%{date}%|%(pretty{date})%>.\"%<{message-id}\n"
-"             %{message-id}%>\\n%>"
+"%(lit)%(concat(in_reply_to))%<(nonnull)%(void(width))%(printstr In-reply-to: )\\n%>"
+"%(lit)%(concat(references))%<(nonnull)%(void(width))%(printstr References: )\\n%>"
 "--------\n";
 
 static mh_format_t format;
@@ -119,12 +118,14 @@ decode_cc_flag (const char *opt, const char *arg)
       mh_error (_("%s %s is unknown"), opt, arg);
       exit (1);
     }
-  return 0; /* never reached */
+  return rc;
 }
 
 static int
 opt_handler (int key, char *arg, void *unused)
 {
+  char *s;
+  
   switch (key)
     {
     case 'b':
@@ -137,7 +138,7 @@ opt_handler (int key, char *arg, void *unused)
       break;
 
     case 'n':
-      rcpt_mask ^= decode_cc_flag ("-nocc", arg);
+      rcpt_mask &= ~decode_cc_flag ("-nocc", arg);
       break;
 	
     case 'd':
@@ -154,7 +155,9 @@ opt_handler (int key, char *arg, void *unused)
       break;
 
     case 'F':
-      mh_read_formfile (arg, &format_str);
+      s = mh_expand_name (MHLIBDIR, arg, 0);
+      mh_read_formfile (s, &format_str);
+      free (s);
       break;
 
     case 'm':
