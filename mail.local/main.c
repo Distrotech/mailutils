@@ -17,19 +17,25 @@
 
 #include <mail.local.h>
 
-int multiple_delivery;
-int ex_quota_tempfail;
-int exit_code = EX_OK;
-uid_t uid;
-char *quotadbname = NULL;
-int lock_timeout = 300;
+int multiple_delivery;     /* Don't return errors when delivering to multiple
+			      recipients */
+int ex_quota_tempfail;     /* Return temporary failure if mailbox quota is
+			      exceeded. If this variable is not set, mail.local
+			      will return "service unavailable" */
+int exit_code = EX_OK;     /* Exit code to be used */
+uid_t uid;                 /* Current user name */
+char *quotadbname = NULL;  /* Name of mailbox quota database */
+int lock_timeout = 300;    /* Locking timeout in seconds */
 
 /* Debuggig options */
-int debug_level;
-int debug_flags;
-int sieve_debug_flags;
-int sieve_enable_log;
-mu_debug_t mudebug;
+int debug_level;           /* General debugging level */ 
+int debug_flags;           /* Mailutils debugging flags */
+int sieve_debug_flags;     /* Sieve debugging flags */
+int sieve_enable_log;      /* Enables logging of executed Sieve actions */
+char *message_id_header;   /* Use the value of this header as message
+			      identifier when logging Sieve actions */
+mu_debug_t mudebug;        /* Mailutils debugging object */
+
 
 #define MAXFD 64
 #define EX_QUOTA() (ex_quota_tempfail ? EX_TEMPFAIL : EX_UNAVAILABLE)
@@ -59,6 +65,7 @@ static char args_doc[] = N_("recipient [recipient ...]");
 
 #define ARG_MULTIPLE_DELIVERY 1
 #define ARG_QUOTA_TEMPFAIL 2
+#define ARG_MESSAGE_ID_HEADER 3
 
 static struct argp_option options[] = 
 {
@@ -75,6 +82,8 @@ static struct argp_option options[] =
 #endif
   { "sieve", 'S', N_("PATTERN"), 0,
     N_("Set name pattern for user-defined sieve mail filters"), 0 },
+  { "message-id-header", ARG_MESSAGE_ID_HEADER, N_("STRING"), 0,
+    N_("Identify messages by the value of this header when logging Sieve actions"), 0 },
 #ifdef WITH_GUILE
   { "source", 's', N_("PATTERN"), 0,
     N_("Set name pattern for user-defined mail filters"), 0 },
@@ -127,6 +136,10 @@ parse_opt (int key, char *arg, struct argp_state *state)
       ex_quota_tempfail = 1;
       break;
 
+    case ARG_MESSAGE_ID_HEADER:
+      message_id_header = arg;
+      break;
+      
     case 'r':
     case 'f':
       if (from != NULL)
@@ -227,12 +240,27 @@ _sieve_action_log (void *user_name,
 		   const char *script, size_t msgno, message_t msg,
 		   const char *action, const char *fmt, va_list ap)
 {
-  size_t uid = 0;
   char *text = NULL;
   
-  message_get_uid (msg, &uid);
-
-  asprintf (&text, _("%s on msg uid %d"), action, uid);
+  if (message_id_header)
+    {
+      header_t hdr = NULL;
+      char *val = NULL;
+      message_get_header (msg, &hdr);
+      if (header_aget_value (hdr, message_id_header, &val) == 0
+	  || header_aget_value (hdr, MU_HEADER_MESSAGE_ID, &val) == 0)
+	{
+	  asprintf (&text, _("%s on msg %s"), action, val);
+	  free (val);
+	}
+    }
+  if (text == NULL)
+    {
+      size_t uid = 0;
+      message_get_uid (msg, &uid);
+      asprintf (&text, _("%s on msg uid %d"), action, uid);
+    }
+  
   if (fmt && strlen (fmt))
     {
       char *diag = NULL;
@@ -797,7 +825,7 @@ notify_biff (mailbox_t mbox, char *name, size_t size)
       inaddr.sin_addr.s_addr = htonl (INADDR_LOOPBACK);
       inaddr.sin_port = sp->s_port;
       
-      fd = socket (AF_INET, SOCK_DGRAM, 0);
+      fd = socket (PF_INET, SOCK_DGRAM, 0);
       if (fd < 0)
 	fd = -2; /* Mark failed initialization */
     }
