@@ -23,6 +23,7 @@ unsigned int cursor;
 unsigned int realcursor;
 unsigned int total;
 FILE *ofile;
+int interactive;
 
 const char *argp_program_version = "mail (" PACKAGE ") " VERSION;
 const char *argp_program_bug_address = "<bug-mailutils@gnu.org>";
@@ -130,10 +131,29 @@ mail_cmdline(void *closure, int cont)
 {
   struct mail_env_entry *pev = closure;
   char *prompt = NULL;
+  char *rc;
 
-  if (mail_is_terminal())
-    prompt = pev->set && pev->value != NULL ? pev->value : "? ";
-  return readline (prompt);
+  while (1)
+    {
+      if (!mailbox_is_updated (mbox))
+	{
+	  mailbox_messages_count (mbox, &total);
+	  fprintf (ofile, "New mail has arrived\n");
+	}
+
+      if (interactive)
+	prompt = pev->set && pev->value != NULL ? pev->value : "? ";
+      
+      rc = readline (prompt);
+
+      if (ml_got_interrupt())
+	{
+	  util_error("Interrupt");
+	  continue;
+	}
+      break;
+    }
+  return rc;
 }
 
 int
@@ -159,6 +179,7 @@ main (int argc, char **argv)
     list_append (bookie, sendmail_record);
   }
 
+  interactive = isatty (fileno(stdin));
   signal (SIGPIPE, SIG_IGN);
 
   /* set up the default environment */
@@ -181,14 +202,21 @@ main (int argc, char **argv)
   /* set defaults for execution */
   util_do_command ("set noallnet");
   util_do_command ("set noappend");
-  if (isatty (fileno(stdin))) { util_do_command ("set asksub"); }
-  else { util_do_command ("set noasksub"); }
+  if (interactive)
+    {
+      util_do_command ("set asksub");
+      util_do_command ("set crt");
+    }
+  else
+    {
+      util_do_command ("set noasksub");
+      util_do_command ("set nocrt");
+    }
   util_do_command ("set noaskbcc");
   util_do_command ("set askcc");
   util_do_command ("set noautoprint");
   util_do_command ("set nobang");
   util_do_command ("set nocmd");
-  util_do_command ("set nocrt");
   util_do_command ("set nodebug");
   util_do_command ("set nodot");
   util_do_command ("set escape=~");
@@ -205,7 +233,7 @@ main (int argc, char **argv)
   util_do_command ("set noonehop");
   util_do_command ("set nooutfolder");
   util_do_command ("set nopage");
-  util_do_command ("set prompt=?"); /* FIXME: "set prompt=\"? \"" */
+  util_do_command ("set prompt=\"? \"");
   util_do_command ("set noquiet");
   util_do_command ("set norecord");
   util_do_command ("set save");
@@ -265,11 +293,8 @@ main (int argc, char **argv)
   /* Or acting as a normal reader */
   else
     {
-      /* Initialize readline */
-#ifdef WITH_READLINE
-      rl_readline_name = "mail";
-      rl_attempted_completion_function = (CPPFunction*)util_command_completion;
-#endif
+      ml_readline_init ();
+      mail_set_my_name(args.user);
 
       /* open the mailbox */
       if (args.file == NULL)
@@ -299,7 +324,6 @@ main (int argc, char **argv)
 	  util_do_command ("z.");
 
       prompt = util_find_env ("prompt");
-      mail_set_is_terminal(isatty(0));
       mail_mainloop(mail_cmdline, (void*) prompt, 1);
       fprintf (ofile, "\n");
       util_do_command ("quit");
@@ -339,7 +363,7 @@ mail_mainloop(char *(*input) __P((void *, int)), void *closure, int do_history)
       cmd = util_stripwhite (command);
       util_do_command (cmd);
 #ifdef WITH_READLINE
-      if (do_history)
+      if (do_history && !(isspace(cmd[0]) || cmd[0] == '#'))
 	add_history (cmd);
 #endif
       if (command)
@@ -347,6 +371,29 @@ mail_mainloop(char *(*input) __P((void *, int)), void *closure, int do_history)
     }
 }
 
+static char warranty_stmt[] =
+"GNU mailutils - a suite of utilities for electronic mail\n\
+Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.\n\
+\n\
+   This program is free software; you can redistribute it and/or modify\n\
+   it under the terms of the GNU General Public License as published by\n\
+   the Free Software Foundation; either version 2, or (at your option)\n\
+   any later version.\n\
+\n\
+   This program is distributed in the hope that it will be useful,\n\
+   but WITHOUT ANY WARRANTY; without even the implied warranty of\n\
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n\
+   GNU General Public License for more details.\n\
+\n\
+   You should have received a copy of the GNU General Public License\n\
+   along with this program; if not, write to the Free Software\n\
+   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.\n";
 
+int
+mail_warranty(int argc, char **argv)
+{
+  fprintf (ofile, "%s", warranty_stmt);
+  return 0;
+}
 
 
