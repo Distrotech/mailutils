@@ -1,5 +1,5 @@
 /* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Library Public License as published by
@@ -25,6 +25,7 @@
 #endif
 
 #ifdef WITH_PTHREAD
+#  define _REENTRANT
 #  ifdef HAVE_PTHREAD_H
 #    include <pthread.h>
 #  endif

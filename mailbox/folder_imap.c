@@ -19,6 +19,10 @@
 # include <config.h>
 #endif
 
+#ifdef WITH_PTHREAD
+# define _REENTRANT
+#endif
+
 #include <stdlib.h>
 #include <ctype.h>
 #include <stdarg.h>
@@ -26,6 +30,10 @@
 #include <string.h>
 #include <assert.h>
 #include <fnmatch.h>
+
+#ifdef HAVE_ALLOCA_H
+# include <alloca.h>
+#endif
 
 #ifdef HAVE_STRINGS_H
 # include <strings.h>
@@ -1109,7 +1117,7 @@ imap_bodystructure0 (msg_imap_t msg_imap, char **ptr)
 	    no_arg = 0;
 	}
 
-      if (isdigit (**ptr))
+      if (isdigit ((unsigned)**ptr))
 	{
 	  char *start = *ptr;
 	  size_t size = strtoul (*ptr, ptr, 10);

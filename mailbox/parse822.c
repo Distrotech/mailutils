@@ -162,11 +162,11 @@ int parse822_is_digit(char c)
 {
     /* digit = <any ASCII decimal digit> */
 
-    return isdigit(c);
+    return isdigit((unsigned)c);
 }
 int parse822_is_ctl(char c)
 {
-    return iscntrl(c) || c == 127 /* DEL */;
+    return iscntrl((unsigned)c) || c == 127 /* DEL */;
 }
 int parse822_is_space(char c)
 {
@@ -1209,7 +1209,7 @@ int parse822_quote_local_part(char** quoted, const char* raw)
    */
 
   const char* s = 0;
- 
+
   if(!raw || !quoted || *quoted) {
     return EINVAL;
   }

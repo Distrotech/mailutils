@@ -1,3 +1,29 @@
+2001-04-16  Alain Magloire
+
+	To get things to compile on Solaris, change configure to check
+	for -lpthread since in libc the thread functions are defined
+	but all return ENOSYS, you need to explicitely link with -lphtread.
+	the ctype functions is*() arguments should be explicitely cast
+	since Solaris use them as indexes.  __REENTRANT as to be define
+	if compile with support for threads.  Never realize this but
+	setenv() is a BSD/GNU thing, so took a variant from libiberty
+	to cope.
+
+	* configure.in: Check for setenv. First check if -lphtread is ok.
+	* lib/setenv.c: New functions.
+	* lib/Makefile.am: add setenv.c in EXTRA_DIST.
+	* imap4d/imap4d.h: Include <alloca.h>
+	* mailbox/attachment.c: Include <alloca.h>
+	* (_header_get_param): isspace() cast argument.
+	* mail/mail.h: check if <paths.h> is available if not
+	define _PATH_SENDMAIL=/usr/lib/sendmail.
+	* mailbox/folder_imap.c: if pthread available, define _REENTRANT.
+	Include <alloca.h>.
+	(imap_bodystructure0): isdigit() cast argument.
+	* mailbox/mbx_mbox.c: if pthread available, define _REENTRANT.
+	Include <alloca.h>.
+	* mailbox/parse822.c: isdigit() cast argument unsigned.
+
 2001-04-15  Alain Magloire
 
 	The FILE* stream "stdout" is not an lvalue so it is an error to

@@ -26,6 +26,10 @@
 #include <unistd.h>
 #include <ctype.h>
 
+#ifdef HAVE_ALLOCA_H
+# include <alloca.h>
+#endif
+
 #ifdef HAVE_LIBGEN_H
 # include <libgen.h>
 #endif
@@ -165,13 +169,13 @@ static char *_header_get_param(char *field_body, const char *param, size_t *len)
 	p = strchr(str, ';' );
 	while ( p ) {
 		p++;
-		while( isspace(*p) )  /* walk upto start of param */
+		while( isspace((unsigned)*p) )  /* walk upto start of param */
 			p++;
 		if ( ( v = strchr(p, '=' ) ) == NULL )
 			break;
 		*len = 0;
 		v = e = v + 1;
-		while ( *e && (quoted || ( !_ISSPECIAL(*e) && !isspace(*e) ) ) ) { 	/* skip pass value and calc len */
+		while ( *e && (quoted || ( !_ISSPECIAL(*e) && !isspace((unsigned)*e) ) ) ) { 	/* skip pass value and calc len */
 			if ( *e == '\"' )
 				quoted = ~quoted, was_quoted = 1;
 			else

@@ -21,6 +21,13 @@
 # include <config.h>
 #endif
 
+#ifdef WITH_PTHREAD
+# define _REENTRANT
+# ifdef HAVE_PTHREAD_H
+#  define _XOPEN_SOURCE  500
+#  include <pthread.h>
+# endif
+#endif
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
@@ -33,10 +40,11 @@
 #include <ctype.h>
 #include <limits.h>
 #include <errno.h>
-#ifdef HAVE_PTHREAD_H
-#  define _XOPEN_SOURCE  500
-#  include <pthread.h>
+
+#ifdef HAVE_ALLOCA_H
+# include <alloca.h>
 #endif
+
 #ifdef HAVE_STRINGS_H
 # include <strings.h>
 #endif

@@ -23,13 +23,9 @@
 
 #include <stdlib.h>
 #include <errno.h>
-#ifdef HAVE_PTHREAD_H
-#  define _XOPEN_SOURCE  500
-#  include <pthread.h>
-#endif
 
-#include <filter0.h>
 #include <mailutils/property.h>
+#include <filter0.h>
 
 static int rfc822_property __P ((property_t, const char *, const char *));
 static int rfc822_init __P ((filter_t));

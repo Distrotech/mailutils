@@ -47,6 +47,11 @@
 #include <stdarg.h>
 #include <sys/time.h>
 #include <sys/stat.h>
+
+#ifdef HAVE_ALLOCA_H
+# include <alloca.h>
+#endif
+
 #ifdef HAVE_STRINGS_H
 # include <strings.h>
 #endif

@@ -32,6 +32,9 @@
 #include <stdarg.h>
 #include <signal.h>
 #include <ctype.h>
+#ifdef HAVE_PATHS_H
+#include <paths.h>
+#endif
 
 #include <argp.h>
 
@@ -145,6 +148,10 @@ int util_getlines __P((void));
 struct mail_env_entry *util_find_env __P((char *var));
 int util_printenv __P((int set));
 int util_isdeleted __P((int message));
+
+#ifndef _PATH_SENDMAIL
+#define _PATH_SENDMAIL "/usr/lib/sendmail"
+#endif
 
 #ifdef __cplusplus
 }
