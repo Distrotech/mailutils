@@ -1,3 +1,9 @@
+2003-02-06  Sergey Poznyakoff
+
+	* libsieve/actions.c (build_mime): Call message_unref.
+	* mailbox/body.c (lazy_create): Removed. Use mu_tempname()
+	  instead.
+
 2003-02-03  Sergey Poznyakoff
 
 	* auth/Makefile.am: Removed leftover AUTH_AUTHOBJS from LIBADD
