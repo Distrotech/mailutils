@@ -357,9 +357,6 @@ mailbox_unix_scan (mailbox_t mbox, size_t msgno, size_t *pcount)
   mailbox_unix_ilock (mbox, MU_LOCKER_WRLOCK);
   mailbox_unix_lock (mbox, MU_LOCKER_RDLOCK);
 
-  /*start at the beginning */
-  rewind (file);
-
   /* save the timestamp and size */
   {
     struct stat st;
@@ -474,9 +471,9 @@ mailbox_unix_scan (mailbox_t mbox, size_t msgno, size_t *pcount)
 
   if (mum)
     {
-      //mailbox_notification (mbox, MU_EVT_MBX_MSG_ADD);
       mum->body_end = total - newline;
       mum->body_lines = lines - newline;
+      DISPATCH_ADD_MSG(mbox, mud, file);
     }
   fclose (file);
   mailbox_unix_iunlock (mbox);
