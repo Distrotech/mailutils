@@ -25,8 +25,28 @@
 int
 mail_quit (int argc, char **argv)
 {
-  mailbox_expunge (mbox);
-  mailbox_close (mbox);
-  mailbox_destroy (&mbox);
+  if (mail_mbox_close ())
+    return 1;
   exit (0);
 }
+
+int
+mail_mbox_close ()
+{
+  url_t url = NULL;
+  size_t held_count;
+  
+  if (mail_mbox_commit ())
+    return 1;
+  
+  mailbox_expunge (mbox);
+
+  mailbox_get_url (mbox, &url);
+  mailbox_messages_count (mbox, &held_count);
+  fprintf (ofile, "Held %d messages in %s\n", held_count, url_to_string (url));
+  
+  mailbox_close (mbox);
+  mailbox_destroy (&mbox);
+  return 0;
+}
+
