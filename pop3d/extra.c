@@ -184,7 +184,8 @@ pop3d_bye ()
     }
   /* There's no reason closing in/out streams otherwise */
 #ifdef WITH_TLS
-  mu_deinit_tls_libs ();
+  if (tls_available)
+    mu_deinit_tls_libs ();
 #endif /* WITH_TLS */
 }
 
