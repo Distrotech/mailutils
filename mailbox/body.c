@@ -29,6 +29,7 @@
 #include <fcntl.h>
 
 #include <mailutils/stream.h>
+#include <mailutils/mutil.h>
 #include <body0.h>
 
 #define BODY_MODIFIED 0x10000
@@ -346,22 +347,5 @@ _body_get_lines0 (stream_t stream, size_t *plines)
 static int
 lazy_create (body_t body)
 {
-  const char *tmpdir = getenv ("TMPDIR");
-  int fd;
-  if (tmpdir == NULL)
-    tmpdir = P_tmpdir;
-  body->filename = calloc (strlen (tmpdir) + 1 + /* "muXXXXXX" */ 8 + 1,
-			   sizeof (char));
-  if (body->filename == NULL)
-    return ENOMEM;
-  sprintf (body->filename, "%s/muXXXXXX", tmpdir);
-#ifdef HAVE_MKSTEMP
-  fd = mkstemp (body->filename);
-#else
-  if (mktemp (body->filename))
-    fd = open (body->filename, O_RDWR|O_CREAT|O_EXCL, 0600);
-  else
-    fd = -1;
-#endif
-  return fd;
+  return mu_tempfile (NULL, &body->filename);
 }

@@ -52,7 +52,7 @@ collect_open_mailbox_file ()
   int fd;
 
   /* Create input mailbox */
-  fd = util_tempfile (&temp_filename);
+  fd = mu_tempfile (NULL, &temp_filename);
   if (fd == -1)
     exit (1);
 

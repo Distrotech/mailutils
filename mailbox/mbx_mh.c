@@ -50,6 +50,7 @@
 #include <mailutils/header.h>
 #include <mailutils/attribute.h>
 #include <mailutils/error.h>
+#include <mailutils/mutil.h>
 #include <registrar0.h>
 #include <mailbox0.h>
 
@@ -447,34 +448,9 @@ _mh_next_seq (struct _mh_data *mhd)
 static FILE *
 _mh_tempfile(struct _mh_data *mhd, char **namep)
 {
-  char *filename;
-  int fd;
-
-  filename = malloc (strlen (mhd->name) + /*'/'*/1 + /* "muXXXXXX" */8 + 1);
-  if (!filename)
-    return NULL;
-  sprintf (filename, "%s/muXXXXXX", mhd->name);
-
-#ifdef HAVE_MKSTEMP
-  {
-    int save_mask = umask (077);
-    fd = mkstemp (filename);
-    umask (save_mask);
-  }
-#else
-  if (mktemp (filename))
-    fd = open (filename, O_CREAT|O_EXCL|O_RDWR, 0600);
-  else
-    fd = -1;
-#endif
-
+  int fd = mu_tempfile (mhd->name, namep);
   if (fd == -1)
-    {
-      free (filename);
       return NULL;
-    }
-
-  *namep = filename;
   return fdopen (fd, "w");
 }
 

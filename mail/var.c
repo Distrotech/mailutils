@@ -443,7 +443,7 @@ var_pipe(int argc, char **argv, struct send_environ *env)
       return 1;
     }
 
-  fd = util_tempfile(NULL);
+  fd = mu_tempfile (NULL, NULL);
   if (fd == -1)
     return 1;
 

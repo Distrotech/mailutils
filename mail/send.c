@@ -136,7 +136,7 @@ mail_send0 (struct send_environ *env, int save_to)
   char *savefile = NULL;
   int int_cnt;
 
-  fd = util_tempfile (&filename);
+  fd = mu_tempfile (NULL, &filename);
 
   if (fd == -1)
     {
