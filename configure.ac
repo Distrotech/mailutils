@@ -1,21 +1,20 @@
-# Configuration for GNU mailutils - a suite of utilities for electronic mail
-#
-# Copyright (C) 1999, 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
-# 
-# GNU Mailutils is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2, or (at your option)
-# any later version.
-#
-# GNU Mailutils is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with GNU Mailutils; if not, write to the Free Software
-# Foundation, Inc.
-# 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+dnl Configuration for GNU Mailutils -- a suite of utilities for electronic mail
+dnl
+dnl Copyright (C) 1999,2000,2001,2002,2003,2004 Free Software Foundation, Inc.
+dnl 
+dnl GNU Mailutils is free software; you can redistribute it and/or modify
+dnl it under the terms of the GNU General Public License as published by
+dnl the Free Software Foundation; either version 2, or (at your option)
+dnl any later version.
+dnl
+dnl GNU Mailutils is distributed in the hope that it will be useful,
+dnl but WITHOUT ANY WARRANTY; without even the implied warranty of
+dnl MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+dnl GNU General Public License for more details.
+dnl
+dnl You should have received a copy of the GNU General Public License
+dnl along with GNU Mailutils; if not, write to the Free Software
+dnl Foundation, Inc. 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 AC_INIT([GNU Mailutils], [0.4.1], [bug-mailutils@gnu.org], [mailutils])
 AC_CONFIG_SRCDIR([mailbox/mailbox.c])
@@ -24,7 +23,7 @@ AC_CANONICAL_TARGET([])
 AM_INIT_AUTOMAKE
 AC_CONFIG_HEADERS([config.h])
 
-AC_PREREQ(2.54)
+AC_PREREQ(2.59)
 
 dnl Check for programs
 AC_PROG_CC
@@ -744,6 +743,7 @@ AC_CONFIG_FILES([Makefile
  lib/Makefile
  libmu_scm/Makefile
  libsieve/Makefile
+ libsieve/extensions/Makefile
  m4/Makefile
  mail/Makefile
  mail/testsuite/Makefile
