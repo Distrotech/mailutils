@@ -470,7 +470,9 @@ static int
 fetch_body (struct imap4d_command *command, char *arg)
 {
   struct imap4d_command c_body_p = fetch_command_table[F_BODY_PEEK];
+
   util_send ("%s ", command->name);
+
   if (strncasecmp (arg, ".PEEK", 5) == 0)
     {
       arg += strlen (".PEEK");
@@ -493,6 +495,7 @@ fetch_body (struct imap4d_command *command, char *arg)
       return 0;
     }
 
+  util_send ("%s", arg);
   fetch_operation (command->states, arg);
   return 0;
 }
@@ -500,8 +503,25 @@ fetch_body (struct imap4d_command *command, char *arg)
 static int
 fetch_operation (size_t msgno, char *arg)
 {
-  //char *partial = strchr (arg, '<');
+  off_t offset = 0;
+  size_t limit = -1; /* No limit. */
   message_t msg = NULL;
+  char *partial = strchr (arg, '<');
+
+  /* Check for section specific offset.  */
+  if (partial)
+    {
+      /* FIXME: This shoud be move in imap4d_fetch() and have more
+	 draconian check.  */
+      partial++;
+      offset = strtoul (partial, &partial, 10);
+      if (*partial == '.')
+	{
+	  partial++;
+	  limit = strtoul (partial, NULL, 10);
+	}
+    }
+
   mailbox_get_message (mbox, msgno, &msg);
 
   if (strncasecmp (arg, "[]", 2) == 0)
@@ -524,7 +544,8 @@ fetch_operation (size_t msgno, char *arg)
 	  off += n;
 	}
     }
-  else if (strncasecmp (arg, "[HEADER]", 8) == 0)
+  else if (strncasecmp (arg, "[HEADER]", 8) == 0
+	   || strncasecmp (arg, "[MIME]", 6) == 0)
     {
       header_t header = NULL;
       stream_t stream = NULL;
@@ -550,9 +571,46 @@ fetch_operation (size_t msgno, char *arg)
     {
       /* Not implemented.  */
     }
-  else if (strncasecmp (arg, "[HEADER.FIELDS", 15) == 0)
+  else if (strncasecmp (arg, "[HEADER.FIELDS", 14) == 0)
     {
-      /* Not implemented.  */
+      char *field;
+      char *sp = NULL;
+      header_t header = NULL;
+      size_t val_len = 0;
+      size_t total = 0;
+      char *buffer = NULL;
+
+      arg += 14;
+      message_get_header (msg, &header);
+
+      for (; field = strtok_r (arg, " ()]\r\n", &sp); arg = NULL, val_len = 0)
+	{
+	  size_t ototal;
+	  char *value = NULL;
+
+	  header_get_value (header, field, NULL, 0, &val_len);
+	  if (val_len == 0)
+	    continue;
+	  value = malloc (val_len + 1);
+	  if (!value)
+	    util_quit (1); /* FIXME: ENOMEM, send a "* BYE" to the client.  */
+	  header_get_value (header, field, value, val_len + 1, NULL);
+
+	  ototal = strlen (field) + val_len + 4; /* 4 for ": \r\n"  */
+	  buffer = realloc (buffer, ototal + total + 1);
+	  if (!buffer)
+	    util_quit (1); /* FIXME: ENOMEM, send a "* BYE" to the client.  */
+	  snprintf (buffer + total, ototal + 1, "%s: %s\r\n", field, value);
+	  free (value);
+	  total += ototal;
+	}
+
+      util_send ("{%u}\r\n", total + 2);
+      if (total)
+	util_send ("%s", buffer);
+      util_send ("\r\n");
+      if (buffer)
+	free (buffer);
     }
   else if (strncasecmp (arg, "[TEXT]", 6) == 0)
     {
