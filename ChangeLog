@@ -1,3 +1,10 @@
+2003-02-10  Sergey Poznyakoff
+
+	* mailbox/mbx_mh.c (mh_expunge, mh_save_attributes): Bugfix
+	* mh/mh.h (mh_annotate): New function.
+	* mh/mh_init.c: Likewise.
+	* mh/anno.c: Use mh_annotate
+
 2003-02-10  Sergey Poznyakoff 
 
 	* include/mailutils/header.h (MU_HEADER_ENV_SENDER,
