@@ -187,7 +187,7 @@ _mailbox_imap_init (mailbox_t mailbox)
       else
 	{
 	  /* Not a supported authentication mechanism. */
-	  return ENOTSUP;
+	  return ENOSYS;
 	}
     }
 
