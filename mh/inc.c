@@ -110,6 +110,10 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
     case ARG_FORM:
       mh_read_formfile (arg, &format_str);
       break;
+
+    case ARG_FORMAT:
+      format_str = arg;
+      break;
       
     case ARG_FILE:
       input_file = arg;
