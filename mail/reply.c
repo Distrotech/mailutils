@@ -79,12 +79,15 @@ mail_reply(int argc, char **argv)
 	  header_aget_value(hdr, MU_HEADER_CC, &env.cc);
 	}
 
-      header_aget_value(hdr, MU_HEADER_SUBJECT, &str);
-      if (str && strncasecmp (str, "Re:", 3))
-	util_strcat(&env.subj, "Re: ");
-      util_strcat(&env.subj, str);
-      free(str);
-
+      if (header_aget_value(hdr, MU_HEADER_SUBJECT, &str) == 0)
+	{
+	  if (strncasecmp (str, "Re:", 3))
+	    util_strcat (&env.subj, "Re: ");
+	  util_strcat (&env.subj, str);
+	  free (str);
+	}
+      else
+	util_strcat (&env.subj, "");
       fprintf(ofile, "To: %s\n", env.to);
       if (env.cc)
 	fprintf(ofile, "Cc: %s\n", env.cc);
