@@ -1,6 +1,7 @@
 /* sfrom, Simple From */
 #include <stdio.h>
 #include <unistd.h>
+#include <stdlib.h>
 #include <string.h>
 #include <mailutils.h>
 
@@ -35,7 +36,7 @@ int main (int argc, char **argv)
 
    for (msgno = 0; msgno < msg_total; msgno++)
       @{
-         if (mailbox_get_header (mbox, msgno, buffer,
+         if (mailbox_get_header (mbox, msgno, 0, buffer,
                                  sizeof (buffer), &size) != 0)
            @{
                fprintf (stderr, "header corrupted\n");

@@ -3,20 +3,49 @@ optionnaly another @code{body_t} part.
 
 @section Init/Destroy
 
-@deftypefun int body_init (body_t *@var{msg}, const mailbox_t @var{mbx})
-Private.
+@deftypefun int body_init (body_t *@var{bdy})
+Initialize an object @var{bdy}.
 @end deftypefun
 
-@deftypefun void body_destroy (body_t *@var{msg})
-The ressources allocate for clone @var{msg} are freed.
+@deftypefun void body_destroy (body_t *@var{bdy})
+The ressources allocate are @var{bdy} freed.
 @end deftypefun
 
-@deftypefun int body_get_header (body_t @var{msg}, header_t *@var{hdr})
+@section Attributes
+The body can cary header attributes if it is a mime.  They also come
+with the matching "set".
+
+@deftypefun int body_get_header (body_t @var{bdy}, header_t *@var{hdr})
+@end deftypefun
+@deftypefun int body_get_content_type (body_t @var{bdy}, char *@var{type}, size_t @var{len})
+@end deftypefun
+@deftypefun int body_get_content_description (body_t @var{bdy}, char *@var{type}, size_t @var{len})
+@end deftypefun
+@deftypefun int body_get_content_encoding (body_t @var{bdy}, char *@var{type}, size_t @var{len})
 @end deftypefun
 
-@deftypefun int body_get_content (body_t @var{msg}, char *buffer, size_t len, size_t *n)
+@section Attachements
+
+@deftypefun int body_set_filename (body_t @var{bdy}, char *file)
+Associate the body with a @var{file}.
+@end deftypefun
+@deftypefun int body_set_FILE (body_t @var{bdy}, FILE *fp)
+Associate the body with a FILE *@var{fp}.
 @end deftypefun
 
-@deftypefun int body_get_type (body_t @var{msg}, char *buffer, size_t len, size_t *n)
+@deftypefun int body_get_content (body_t @var{bdy}, off_t @var{offset}, char *buffer, size_t len, size_t *n)
 @end deftypefun
+
+@section Sub parts
+A body may contain another body
+@deftypefun int body_is_multipart (body_t @var{bdy})
+Return non-zero value if body has a second part.
+@end deftypefun
+@deftypefun int body_get_body (body_t @var{bdy}, body_t *@var{sub})
+Return the sub part in @var{bdy}.
+@end deftypefun
+@deftypefun int body_set_body (body_t @var{bdy}, body_t *@var{sub})
+Set a sub part for @var{bdy}.
+@end deftypefun
+
 

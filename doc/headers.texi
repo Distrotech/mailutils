@@ -57,7 +57,7 @@ Some basic macros is already provided for rfc822.
 @defmac MU_HDR_RESENT_SENDER
          "Resent-SENDER"
 @end defmac
-@defmac MU_HDR_TOs
+@defmac MU_HDR_TO
                     "To"
 @end defmac
 @defmac MU_HDR_RESENT_TO

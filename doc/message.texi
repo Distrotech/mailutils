@@ -1,63 +1,156 @@
-The @code{message_t} is a convenient way to manipulate messages.  It
+The @code{message_t} object is a convenient way to manipulate messages.  It
 encapsulates the @code{header_t} attribute and the @code{body_t}.
 This type, unless you ask explicitly with @code{message_clone}, only contains
 references on how to retrieve the information from the mailbox.
 
 @example
 @group
-    +------------------+
-    |  message_t       |
-    +------------------+
-    |  header_t        |             +----------------+
-    |  body_t[]  *-----|------------+|  body_t        |----* .....
-    |  type            |             +----------------+
-    |  body_count      |             |  header_t      |
-    +------------------+             |  content       |
-                                     |  type          |
-                                     |  next body *---|----//--
-                                     +----------------+
+                                 message_t
+        +----------+   +------>+-----------------------+
+        |3         |   |       |  header_t             |
+      +----------+ |   |       |-----------------------|
+      |2       *-|-|---+       |  body_t [0]           |
+    +----------+ | |           |  body_t [1]           |
+    |1         | | |           |  ...                  |
+  +----------+ | |-+           |  ...                  |
+  | 0        | | |             |  ...                  |
+  |          | | |             |                       |
+  |          | |-+             |                       |
+  |          |-+               |                       |
+  |          |                 |                       |
+  +----------+                 +-----------------------+
 @end group
 @end example
 
 @section Init/Destroy
 The common way to obtain a @code{message_t} is by requesting
-@code{mailbox_get_message}, or @code{mailbox_create_message} from
-a specific type of mailbox, they are not explicitely created.
+@code{mailbox_get_message}, or @code{mailbox_new_message} from
+a specific type of mailbox, they are not explicitly created.
 
 @example
 #include <mailutils.h>
+#include <stdio.h>
+#include <string.h>
 
-mailbox_t mbx;
-message_t msg, clone;
-mailbox_init_default (&mbx, NULL);
-mailbox_open (mbx, MU_MB_RDONLY);
-@dots{}
-mailbox_get_message (mbx, msg_no, &msg);
-/* before closing I need to make sure
-   that I have a copy not a reference of the message */
-message_clone (msg, &clone);
-/* safe to close/expunge, I got a copy */
-mailbox_close (mbx);
-/* ... */
-message_size (clone, &size);
+static int
+ack (mailer, int status, message_t msg, void *arg)
+@{
+   if (status == 0)
+     printf ("Ok message sent\n");
+   else
+     printf ("Error failed to deliver\n");
+   return 0;
+@}
+
+#define CONTENT "A GNU Generation\n"
+
+int main ()
+@{
+   mailer_t mailer;
+   message_t msg;
+   body_t bd;
+
+   mailer_init_default (&mailer, NULL);
+   mailer_new_message (&msg);
+
+   message_set_to (msg, "bug-mailutils@@gnu.org", 0);
+   message_set_subject (msg, "What is our generation ?", 0);
+   message_set_body (msg, CONTENT, strlen (CONTENT), 0);
+
+   mailer_set_delivery_cb (mailer, msg, ack, NULL);
+   mailer_send (mailer, msg, 1/* destroy */);
+   return 0;
+@}
 @end example
 
 @deftypefun void message_destroy (message_t *@var{msg})
-The ressources allocate for clone @var{msg} are freed.
+The resources allocated when cloning @var{msg} are freed.
 @end deftypefun
+
+@section Header attributes
+The @code{message_t} type provides some functions to set/retrieve some well
+know header attributes.
 
 @deftypefun int message_get_header (message_t @var{msg}, header_t *@var{hdr})
+Copy the @var{msg} header in @var{hdr}.
 @end deftypefun
 
-The @code{message_t} provides some methosd to retrieve some well know headers.
+@deftypefun int message_set_header (message_t @var{msg}, header_t @var{hdr})
+Make a copy of @var{hdr} and set the @var{msg}, any previous header is freed.
+@end deftypefun
+
 @deftypefun int message_get_from (message_t @var{msg}, char *buffer, size_t len, size_t *n)
+@end deftypefun
+@deftypefun int message_set_from (message_t @var{msg}, char *buffer, size_t len)
 @end deftypefun
 
 @deftypefun int message_get_to (message_t @var{msg}, char *buffer, size_t len, size_t *n)
 @end deftypefun
+@deftypefun int message_set_to (message_t @var{msg}, char *buffer, size_t len)
+@end deftypefun
 
-@deftypefun int message_get_date (message_t @var{msg}, char *buffer, size_t len, size_t *n)
+@deftypefun int message_get_subject (message_t @var{msg}, char *buffer, size_t len, size_t *n)
+@end deftypefun
+@deftypefun int message_set_subject (message_t @var{msg}, char *buffer, size_t len)
 @end deftypefun
 
 @deftypefun int message_get_cc (message_t @var{msg}, char *buffer, size_t len, size_t *n)
+@end deftypefun
+@deftypefun int message_set_cc (message_t @var{msg}, char *buffer, size_t len)
+@end deftypefun
+
+@deftypefun int message_get_bcc (message_t @var{msg}, char *buffer, size_t len, size_t *n)
+@end deftypefun
+@deftypefun int message_set_bcc (message_t @var{msg}, char *buffer, size_t len)
+@end deftypefun
+
+@deftypefun int message_is_mime (message_t @var{msg})
+Return non-zero value if message is multi-part.
+@end deftypefun
+
+@deftypefun int message_set_mime (message_t @var{msg})
+By default mime is use for more then one body, but it can be set
+explicitly to mime.
+@end deftypefun
+
+@section Content
+
+@deftypefun int message_get_body (message_t @var{msg}, int @var{num}, body_t *@var{body})
+Copy body number @var{num} of @var{msg} to @var{body}.
+@end deftypefun
+
+@deftypefun int message_set_body (message_t @var{msg}, int *@var{num}, body_t @var{body})
+Copy @var{body} to @var{msg},  @var{num} is set.
+@end deftypefun
+
+@deftypefun int message_set_content (message_t @var{msg}, char *@var{content}, size_t @var{len})
+Add @var{content} to the first body.
+@end deftypefun
+
+@section Miscellany
+
+@deftypefun int message_is_delete (message_t @var{msg})
+Return non-zero value if mark for deletion.
+@end deftypefun
+
+@deftypefun int message_get_mailbox (message_t @var{msg}, mailbox_t *mbx)
+If @var{msg} is associated with a mailbox, set @var{mbx} and return
+zero, otherwise @var{mbx} is unmodified and non-zero value is return.
+@end deftypefun
+
+@deftypefun int message_get_mailer (message_t @var{msg}, mailer_t *ml)
+If @var{msg} is associated with a mailer, set @var{mbx} and return
+zero, otherwise @var{ml} is unmodified and non-zero value is return.
+@end deftypefun
+
+@deftypefun int message_get_mid (message_t @var{msg}, char **mid)
+Set @var{mid} to the message ID.
+@end deftypefun
+
+@deftypefun int message_get_msg_number (message_t @var{msg}, size_t *number)
+Set @var{number} to the @var{msg} in the mailbox.
+@end deftypefun
+
+@deftypefun int message_get_body_count (message_t @var{msg}, size_t *number)
+Put the body count in @var{number}.
 @end deftypefun

@@ -12,8 +12,8 @@ Initializing and destroying a mailbox_t object.
 
 @deftypefun int mailbox_init (mailbox_t *@var{mbx}, const char * @var{url}, int @var{id})
 Based on the type of the @var{url}, @var{mbx} is initialize to a known type,
-if @var{id} is not zero, it represents the id of the mailbox. The @var{id}
-will be use instead of doing heuristic search on the @var{url}.
+if @var{id} is not zero, it represents the id of the mailbox, it will be use
+instead of doing heuristic search on the @var{url}.
 @example
 #include <mailutils.h>
 @dots{}
@@ -26,9 +26,9 @@ mailbox_init (&mbox, "file:///home/bar/.hiddenmail/bar", 0);
 @end deftypefun
 
 @deftypefun int mailbox_init_default (mailbox_t *@var{mbx}, const char * @var{user})
-Initialize the default mailbox of the system as set by the mail adminstrator.
+Initialize the default mailbox of the system as set by the mail administrator.
 It could be hardcoded or override by a configuration
-@file{$sysconfig/mailutils.conf}.
+@file{$@{sysconfig@}/mailutils.conf}.
 @example
 #include <mailutils.h>
 @dots{}
@@ -138,7 +138,7 @@ main ()
           sleep (NAP);
 
           /* It is a good habit to close the resources.
-             A mailbox could be a remote host and the locking
+             A mailbox could be on a remote host and the locking
              may interfere with normal delivery, for example with
              POP, the lock is hold during the entire session.
            */
@@ -150,8 +150,8 @@ main ()
 @end example
 
 @section Deletion
-Messages can be marked for deletion but the action of removing them is only
-taken when @code{mailbox_expunge} is called.
+Messages can be marked for deletion but destructive  action is only taken
+when @code{mailbox_expunge} is called.
 
 @deftypefun int mailbox_delete (mailbox_t @var{mbx}, size_t @var{msgno})
 Mark message @var{msgno} for deletion.
@@ -162,7 +162,7 @@ UnMark message @var{msgno} for deletion.
 @end deftypefun
 
 @deftypefun int mailbox_is_deleted (mailbox_t @var{mbx}, size_t @var{msgno})
-Return 1 if message @var{msgno} is mark deleted.
+Return non-zero if message @var{msgno} is mark deleted.
 @end deftypefun
 
 @deftypefun int mailbox_num_deleted (mailbox_t @var{mbx})
@@ -171,13 +171,13 @@ Return the number of Mailbox marked to be delete.
 
 @deftypefun int mailbox_expunge (mailbox_t @var{mbx})
 All messages marked for deletion will be removed and the mailbox updated,
-and notification  functions executed.
+and notification functions of all messages for @var{mbx} executed.
 @end deftypefun
 
 @section Message
-Messages are object that hold the offsets of the message in the mailbox.
-Certain mailboxes allow new messages to be appended the existing folder,
-int this case the stream must be @code{mailbox_open} with the proper
+@code{message_t} are objects that hold the offsets of the message in the
+mailbox. Certain mailboxes allow new messages to be appended to the existing
+folder, in this case the stream must be @code{mailbox_open} with the proper
 permission.
 
 @deftypefun int mailbox_new_message (mailbox_t @var{mbx}, message_t *@var{msg})
@@ -193,7 +193,8 @@ If @var{destroy} is set non-zero @code{message_destroy} will be call after deliv
 @deftypefun int mailbox_get_message (mailbox_t @var{mbx}, size_t @var{msgno}, message_t *@var{msg})
 @var{msg} is initialize, be warn when doing @code{mailbox_expunge} the
 offsets to the mailbox are losts and accessing the @var{msg} is undefined.
-To prevent this, it is possible to @code{message_clone} or set a notification.
+To prevent this, it is possible to @code{message_clone} or set a notification
+to take appropriate action.
 @end deftypefun
 
 @deftypefun int mailbox_destroy_message (mailbox_t @var{mbx}, message_t @var{msg})
@@ -215,25 +216,25 @@ Low level Reading funtions for contents and headers.
 @comment @var{body} will be append, otherwise it will overwrite any existing one.
 @comment @end deftypefun
 
-@deftypefun int mailbox_get_content (mailbox_t @var{mbx}, size_t @var{msgno}, off_t @var{off}, char *@var{buffer}, size_t @var{len}, size_t *@var{read})
+@deftypefun int mailbox_get_content (mailbox_t @var{mbx}, size_t @var{msgno}, off_t @var{off}, char *@var{buffer}, size_t @var{len}, size_t *@var{nread})
 Read the body of message @var{msgno} starting at offset @var{off} in
 @var{buffer} of size @var{len}. The number of bytes read is returned in
 @var{nread}.
 @end deftypefun
 
-@deftypefun int mailbox_get_mcontent (mailbox_t @var{mbx}, size_t @var{msgno}, off_t @var{off}, char **@var{buffer}, size_t *@var{read})
+@deftypefun int mailbox_get_mcontent (mailbox_t @var{mbx}, size_t @var{msgno}, off_t @var{off}, char **@var{buffer}, size_t *@var{nread})
 A buffer is allocated with @code{malloc(3)} return memory containing the body
 of message @var{msgno} starting at offset @var{off} in @var{buffer}.
 The number of bytes read is returned in @var{nread}.
 @end deftypefun
 
-@deftypefun int mailbox_get_header (mailbox_t @var{mbx}, size_t @var{msgno}, off_t @var{off}, char *@var{buffer}, size_t @var{len}, size_t *@var{read})
+@deftypefun int mailbox_get_header (mailbox_t @var{mbx}, size_t @var{msgno}, off_t @var{off}, char *@var{buffer}, size_t @var{len}, size_t *@var{nread})
 Read the header of message @var{msgno} starting at offset @var{off} in
 @var{buffer} of size @var{len}. The number of bytes read is returned
 in @var{nread}.
 @end deftypefun
 
-@deftypefun int mailbox_get_mheader (mailbox_t @var{mbx}, size_t @var{msgno}, off_t @var{off}, char **@var{buffer}, size_t *@var{read})
+@deftypefun int mailbox_get_mheader (mailbox_t @var{mbx}, size_t @var{msgno}, off_t @var{off}, char **@var{buffer}, size_t *@var{nread})
 A buffer allocate with @code{malloc(3)} is return containing the header of
 message @var{msgno} starting at offset @var{off} in @var{buffer}.
 The number of bytes read is returned in @var{nread}.
@@ -251,7 +252,6 @@ locking to provide synchronisation to the mailbox_t object.
 Grab the lock.  In some cases, i.e Unix mbox this may involve creating
 a .lock file in the spool directory.
 @comment Say something about permission the program be gid on some OS.
-
 @defmac MU_MB_RDLOCK
 Read lock.
 @end defmac
@@ -261,7 +261,6 @@ Write lock.
 @defmac MU_MB_RWLOCK
 Read/Write lock.
 @end defmac
-
 @end deftypefun
 
 Note on many mailboxes, RDLOCK is a noop.
@@ -349,7 +348,8 @@ Note that all locks are held, and @var{notification} should be very small and
 simple, it should not access or do any action on the mailbox doing this may
 cause undefined behaviour.
 @end deftypefun
-
+@deftypefun int mailbox_set_msg_destroy_cb (mailbox_t @var{mbx}, int (*@var{notification}) (mailbox_t @var{mbx}, message_t @var{msg}, void *@var{arg}))
+@end deftypefun
 
 @section Registration and Type
 
@@ -369,8 +369,8 @@ or add you own to the list.
 @end deftp
 
 @deftypefun int mailbox_list_type (struct mailbox_type *@var{mtype}, size_t @var{len}, size_t *@var{n})
-The @var{mtype} array will be initialize with the list of builtin up to
-@var{len}.  The number of struct maiblox_type is put in @var{n}.
+The @var{mtype} array will be initialize with the list of builtins up to
+@var{len}.  The number of struct mailbox_type is put in @var{n}.
 @end deftypefun
 
 @deftypefun int mailbox_list_mtype  (struct mailbox_type **@var{mtype}, size_t *@var{n})
@@ -386,7 +386,7 @@ Remove a mailbox @var{mtype} to the list of builtin.
 @end deftypefun
 
 @deftypefun int mailbox_get_type (struct mailbox_type **@var{mtype}, int @var{urlid})
-Base on the URL @var{urlid} return the mailbox_type.
+Base on the @var{urlid} return the mailbox_type.
 @end deftypefun
 
 @deftypefun int mailbox_get_name_type (mailbox_t @var{mbx}, int *@var{mbxid}, char *@var{name}, size_t @var{len}, size_t *@var{n})
@@ -423,7 +423,7 @@ struct mailbox_type mbx_ftp =
 @{
   "FTP MBOX", /* name type */
   (int)&mbx_ftp, /* need a uniq id */
-  &url_unix_type, /* url id */
+  &url_ftp, /* url id */
   mailbox_unix_init,    /* constructor */
   mailbox_unix_destroy  /* destructor */
 @};

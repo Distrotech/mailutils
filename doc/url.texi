@@ -91,7 +91,7 @@ Initialize and parse the @var{url}
 @end example
 @end deftp
 
-@section Helper functions
+@section URL registration
 
 @deftypefun int url_list_type (struct url_type @var{list}[], size_t @var{len}, size_t *@var{n})
 @end deftypefun
@@ -107,6 +107,57 @@ Initialize and parse the @var{url}
 
 @deftypefun int url_get_id (const url_t @var{url}, int *@var{id})
 @end deftypefun
+
+@section Helper functions
+
+@example
+#include <url.h>
+#include <stdio.h>
+#include <string.h>
+
+int main ()
+@{
+    char str[1024];
+    char buffer[1024];
+    long port = -1;
+    url_t u;
+
+    while (fgets (str, sizeof (str), stdin) != NULL)
+      @{
+         str[strlen (str) - 1] = '\0'; /* chop newline */
+         if (url_init (&u, str) != 0)
+           @{
+              printf ("%s --> FAILED\n", str);
+              continue;
+           @}
+         printf ("%s --> SUCCESS\n", str);
+
+         url_get_scheme (u, buffer, len, NULL);
+         printf ("\tscheme <%s>\n", buffer);
+
+         url_get_user (u, buffer, len, NULL);
+         printf ("\tuser <%s>\n", buffer);
+
+         url_get_passwd (u, buffer, len, NULL);
+         printf ("\tpasswd <%s>\n", buffer);
+
+         url_get_host (u, buffer, len, NULL);
+         printf ("\thost <%s>\n", buffer);
+
+         url_get_port (u, &port);
+         printf ("\tport %ld\n", port);
+
+         url_get_path (u, buffer, len, NULL);
+         printf ("\tpath <%s>\n", buffer);
+
+         url_get_query (u, buffer, len, NULL);
+         printf ("\tquery <%s>\n", buffer);
+
+         url_destroy (&u);
+     @}
+   return 0;
+@}
+@end example
 
 @deftypefun int url_get_scheme (const url_t @var{url}, char *@var{schem}, size_t @var{len}, size_t *@var{n})
 @end deftypefun
@@ -146,4 +197,3 @@ Initialize and parse the @var{url}
 
 @deftypefun int url_get_mquery (const url_t @var{url}, char **@var{buf}, size_t *@var{len})
 @end deftypefun
-

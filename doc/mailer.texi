@@ -1,5 +1,5 @@
 
-Mail Delivery is done here. Nothing is implemented and the API is still shaky.
+The API is still shaky.
 
 @section Init/Destroy
 
@@ -26,28 +26,13 @@ Use MPP protocol.
 Not Implemented.
 @end deftypefun
 
-
-@section User/Passwd
-
-On some mailer like MMP you need to identify.
-
-@deftypefun int mailer_user (mailer_t @var{mailer}, const char *@var{user})
-Not Implemented.
-@end deftypefun
-
-@deftypefun int mailer_passwd (mailer_t @var{mailer}, const char *@var{passwd})
-Not Implemented.
-@end deftypefun
-
 @section Open/Close
-The mailer is spawn, if it is a program, or the host is contacted.
 
 @deftypefun int mailer_open (mailer_t @var{mailer}, int @var{flag})
-Not Implemented.
+On mailer program, it is a @code{stat(2)} or ping a server for smtp.
 @end deftypefun
-
 @deftypefun int mailer_close (mailer_t @var{mailer})
-Not Implemented.
+Noop on most mailers.
 @end deftypefun
 
 @section Sending
@@ -58,34 +43,20 @@ Sending a message.
 Not Implemented.
 @end deftypefun
 
-@deftypefun int mailer_set_content (mailer_t @var{mailer}, char *, size_t)
-Not Implemented.
+@deftypefun int mailer_send (mailer_t @var{mailer}, message_t @var{msg}, int destroy)
+@var{msg} is delivered
 @end deftypefun
 
-@deftypefun int mailer_set_header (mailer_t @var{mailer}, char *, size_t)
-Not Implemented.
-@end deftypefun
-
-@deftypefun int mailbox_add_attachment (mailer_t, size_t msgno, const char *boundary, const char *header, FILE *file, int encoding)
-@end deftypefun
-
-@deftypefun int mailer_send_message (mailer_t @var{mailer}, size_t)
-Not Implemented.
-@end deftypefun
-
-@section Timeout
-@deftypefun int mailer_set_timeout (mailer_t @var{mailer}, size_t)
-Not Implemented.
-@end deftypefun
-
-@deftypefun int mailer_get_timeout (mailer_t @var{mailer}, size_t)
-Not Implemented.
+@section Notification
+@deftypefun int mailer_set_delivery_cb (mailer_t @var{mailer}, message_t @var{msg}, int *@var{notification}(mailer_t @var{mailer}, int @var{status}, size_t @var{msgno}, void *@var{arg})
+On delivery @code{notification (mailer, status, msgno, arg)} is
+executed.
 @end deftypefun
 
 @section SMTP
 @cindex SMTP
 
-TODO: todo
+TODO: describe protocol, url, mailto url etc ..
 
 @section UUCP
 @cindex UUCP
