@@ -234,6 +234,7 @@ sendmail_send_message (mailer_t mailer, message_t msg)
 	  status = errno;
 	else if (WIFEXITED(status))
 	  status = WEXITSTATUS(status);
+	observable_notify (mailer->observable, MU_EVT_MAILER_MESSAGE_SENT);
       }
     default:
       break;

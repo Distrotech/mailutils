@@ -583,6 +583,7 @@ smtp_send_message(mailer_t mailer, message_t msg)
       status = smtp_read_ack (smtp);
       CHECK_EAGAIN (smtp, status);
       MAILER_DEBUG0 (mailer, MU_DEBUG_PROT, smtp->buffer);
+      observable_notify (mailer->observable, MU_EVT_MAILER_MESSAGE_SENT);
       if (smtp->buffer[0] != '2')
 	{
 	  stream_close (mailer->stream);

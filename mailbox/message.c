@@ -384,6 +384,7 @@ message_get_attribute (message_t msg, attribute_t *pattribute)
 {
   if (msg == NULL || pattribute == NULL)
    return EINVAL;
+
   monitor_wrlock (msg->monitor);
   if (msg->attribute == NULL)
     {
