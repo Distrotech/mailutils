@@ -1,3 +1,26 @@
+2004-04-08  Sergey Poznyakoff  
+
+	* configure.ac: Add AM_ICONV
+	* mailbox/smtp.c (smtp_send_message): Correctly handle long
+	header lines. Fixes bug reported by William MacBain
+	<macbain@ott-fortimail.dnsalias.org>
+	* comsat/comsat.c (comsat_main): Make info text clearer.
+	* sieve/sieve.c (options): Likewise
+	* frm/frm.c: Likewise
+	* dotlock/dotlock.c (main): Fixed diagnostics to better suit
+	i18n.
+	* guimb/main.c (options): Add translators comment
+	* libsieve/actions.c: Likewise.
+	* libsieve/tests.c: Likewise.
+	* libsieve/comparator.c (sieve_match_part_checker): Likewise.
+	* mail/if.c (mail_if): Likewise.
+	* pop3d/popauth.c: Likewise.
+	* mail.remote/testsuite/mail.remote/send.exp: Updated copyright
+	date
+	* mailbox/mutil.c: Add missing gettext marker
+
+	* examples/pop3client.c: Rewritten to drop the readline dependency.
+	
 2004-02-08  Wojciech Polak
 
 	* pop3d/pop3d.c (pop3d_mainloop): Terminate the session
