@@ -60,6 +60,7 @@ extern int parse822_skip_crlf      __P ((const char** p, const char* e));
 extern int parse822_skip_lwsp_char __P ((const char** p, const char* e));
 extern int parse822_skip_lwsp      __P ((const char** p, const char* e));
 extern int parse822_skip_comments  __P ((const char** p, const char* e));
+extern int parse822_skip_nl        __P ((const char** p, const char* e));
 
 extern int parse822_digits         __P ((const char** p, const char* e, int min, int max, int* digits));
 extern int parse822_special        __P ((const char** p, const char* e, char c));
@@ -104,7 +105,7 @@ extern int parse822_field_name       __P ((const char** p, const char *e, char**
 
 extern int parse822_day       __P ((const char** p, const char* e, int* day));
 extern int parse822_date      __P ((const char** p, const char* e, int* day, int* mon, int* year));
-extern int parse822_time      __P ((const char** p, const char* e, int* h, int* m, int* s, int* tz, const char** tzname));
+extern int parse822_time      __P ((const char** p, const char* e, int* h, int* m, int* s, int* tz, const char** tz_name));
 extern int parse822_date_time __P ((const char** p, const char* e, struct tm* tm, mu_timezone* tz));
 
 

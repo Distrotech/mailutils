@@ -40,7 +40,7 @@ mail_print (int argc, char **argv)
       size_t n = 0, lines = 0;
       FILE *out = ofile;
       attribute_t attr;
-      
+
       if (mailbox_get_message (mbox, cursor, &mesg) != 0)
 	return 1;
 
@@ -56,7 +56,7 @@ mail_print (int argc, char **argv)
 	{
 	  size_t i, num = 0;
 	  char buffer[512];
-	  
+
 	  message_get_header (mesg, &hdr);
 	  header_get_field_count (hdr, &num);
 
@@ -95,10 +95,8 @@ mail_print (int argc, char **argv)
 
       message_get_attribute (mesg, &attr);
       attribute_set_read (attr);
-      
+
       return 0;
     }
   return 1;
 }
-
-

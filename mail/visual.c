@@ -31,7 +31,7 @@ mail_visual (int argc, char **argv)
       message_t msg = NULL;
       attribute_t attr = NULL;
       char *file = tempnam(getenv("TMPDIR"), "mu");
-      
+
       util_do_command ("copy %s", file); /* NOTE: copy does not set flags */
       util_do_command ("shell %s %s", getenv("VISUAL"), file);
 
@@ -42,7 +42,7 @@ mail_visual (int argc, char **argv)
       mailbox_get_message (mbox, cursor, &msg);
       message_get_attribute (msg, &attr);
       attribute_set_read (attr);
-      
+
       return 0;
     }
   return 1;

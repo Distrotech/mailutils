@@ -28,7 +28,7 @@ struct header_data
   char *header;
   char *expr;
 };
-    
+
 static msgset_t *msgset_select (int (*sel)(), void *closure, int rev,
 				int max_matches);
 static int select_header (message_t msg, void *closure);
@@ -114,7 +114,7 @@ msg      : header REGEXP /* /.../ */
            {
 	     struct header_data hd;
 	     hd.header = $1;
-	     hd.expr   = $2; 
+	     hd.expr   = $2;
 	     $$ = msgset_select (select_header, &hd, 0, 0);
 	     if ($1)
 	       free ($1);
@@ -289,7 +289,7 @@ yylex()
 	{
 	  char *p = ++cur_p;
 	  int len;
-	  
+
 	  while (*cur_p && *cur_p != '/')
 	    cur_p++;
 	  len = cur_p - p + 1;
@@ -487,7 +487,7 @@ select_header (message_t msg, void *closure)
   header_t hdr;
   char *contents;
   char *header = hd->header ? hd->header : MU_HEADER_SUBJECT;
-  
+
   message_get_header (msg, &hdr);
   if (header_aget_value (hdr, header, &contents) == 0)
     {

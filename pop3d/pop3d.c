@@ -134,8 +134,10 @@ main (int argc, char **argv)
 #endif
 #ifdef USE_VIRTUAL_DOMAINS
   mu_register_getpwnam (getpwnam_virtual);
+  mu_register_getpwnam (getpwnam_ip_virtual);
+  mu_register_getpwnam (getpwnam_host_virtual);
 #endif
-  
+
   /* Set the signal handlers.  */
   signal (SIGINT, pop3d_signal);
   signal (SIGQUIT, pop3d_signal);
@@ -146,7 +148,7 @@ main (int argc, char **argv)
   signal (SIGTERM, pop3d_signal);
   signal (SIGSTOP, pop3d_signal);
   signal (SIGPIPE, pop3d_signal);
-  signal (SIGABRT, pop3d_signal); 
+  signal (SIGABRT, pop3d_signal);
 
   if (mode == DAEMON)
     pop3d_daemon_init ();
@@ -292,7 +294,7 @@ pop3d_mainloop (int infile, int outfile)
 
   /* Lets boogie.  */
   fprintf (ofile, "+OK POP3 Ready %s\r\n", md5shared);
-  
+
   while (state != UPDATE)
     {
       char *buf, *arg, *cmd;
@@ -399,7 +401,7 @@ pop3d_daemon (unsigned int maxchildren, unsigned int port)
   pid_t pid;
   int listenfd, connfd;
   size_t size;
-  
+
   listenfd = socket (AF_INET, SOCK_STREAM, 0);
   if (listenfd == -1)
     {

@@ -1262,7 +1262,10 @@ imap_flags (f_imap_t f_imap, char **ptr)
       if (strcasecmp (flag, "\\Seen") == 0)
 	{
 	  if (msg_imap)
-	    msg_imap->flags |= MU_ATTRIBUTE_SEEN;
+	    {
+	      msg_imap->flags |= MU_ATTRIBUTE_SEEN;
+	      msg_imap->flags |= MU_ATTRIBUTE_READ;
+	    }
 	  else
 	    f_imap->flags |= MU_ATTRIBUTE_SEEN;
 	}
@@ -1293,13 +1296,6 @@ imap_flags (f_imap_t f_imap, char **ptr)
 	    msg_imap->flags |= MU_ATTRIBUTE_DRAFT;
 	  else
 	    f_imap->flags |= MU_ATTRIBUTE_DRAFT;
-	}
-      else if (strcasecmp (flag, "\\Read") == 0)
-	{
-	  if (msg_imap)
-	    msg_imap->flags |= MU_ATTRIBUTE_READ;
-	  else
-	    f_imap->flags |= MU_ATTRIBUTE_READ;
 	}
     }
   return 0;

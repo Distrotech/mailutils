@@ -26,7 +26,7 @@ mail_mbox (int argc, char **argv)
 {
   message_t msg;
   attribute_t attr;
-  
+
   if (argc > 1)
     return util_msglist_command (mail_mbox, argc, argv, 1);
   else
@@ -42,5 +42,3 @@ mail_mbox (int argc, char **argv)
     }
   return 0;
 }
-  
-

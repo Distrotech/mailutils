@@ -31,6 +31,7 @@
 #endif
 
 #include <mailutils/mailbox.h>
+#include <mailutils/mutil.h>
 #include <mailutils/error.h>
 
 #ifndef _PATH_MAILDIR

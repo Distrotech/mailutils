@@ -500,18 +500,7 @@ imap_messages_count (mailbox_t mailbox, size_t *pnum)
 
     case IMAP_SELECT:
       status = imap_send (f_imap);
-      if (status != 0)
-	{
-	  /* HACK!!!!! Force a reconnect here.  */
-	   if (status != EAGAIN && status != EINPROGRESS && status != EINTR)
-	     {
-	       CLEAR_STATE (f_imap);
-	       status = folder_open (f_imap->folder, f_imap->folder->flags);
-	       CHECK_EAGAIN (f_imap, status);
-	       return imap_messages_count (mailbox, pnum);
-	     }
-	   return status;
-	}
+      CHECK_EAGAIN (f_imap, status);
       f_imap->state = IMAP_SELECT_ACK;
 
     case IMAP_SELECT_ACK:
@@ -521,7 +510,6 @@ imap_messages_count (mailbox_t mailbox, size_t *pnum)
       break;
 
     default:
-      status = folder_open (f_imap->folder, f_imap->folder->flags);
       CHECK_EAGAIN (f_imap, status);
       return status;
     }
@@ -1267,9 +1255,9 @@ imap_envelope_date (envelope_t envelope, char *buffer, size_t buflen,
   if (now == (time_t)-1)
     {
       struct tm* gmt;
-      
+
       time(&now);
-      
+
       gmt = gmtime(&now);
 
       tm = *gmt;
@@ -1281,7 +1269,7 @@ imap_envelope_date (envelope_t envelope, char *buffer, size_t buflen,
     /* FIXME: I don't know what strftime does if the buflen is too
        short, or it fails. Assuming that it won't fail, this is my guess
        as to the right thing.
-     
+
        I think if the buffer is too short, it will fill it as much
        as it can, and nul terminate it. But I'll terminate it anyhow.
      */
@@ -1290,7 +1278,7 @@ imap_envelope_date (envelope_t envelope, char *buffer, size_t buflen,
 	len = buflen - 1;
 	buffer[len] = 0;
       }
-    
+
     if(plen)
       *plen = len;
   }

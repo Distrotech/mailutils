@@ -27,7 +27,7 @@ mail_hold (int argc, char **argv)
 {
   message_t msg;
   attribute_t attr;
-  
+
   if (argc > 1)
     return util_msglist_command (mail_hold, argc, argv, 1);
   else

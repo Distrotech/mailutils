@@ -111,7 +111,9 @@ static int pop_message_fd      __P ((stream_t, int *));
 static int pop_top             __P ((header_t, char *, size_t, off_t, size_t *));
 static int pop_retr            __P ((pop_message_t, char *, size_t, off_t, size_t *));
 static int pop_get_fd          __P ((pop_message_t, int *));
-static int pop_attr_flags      __P ((attribute_t, int *));
+static int pop_get_attribute   __P ((attribute_t, int *));
+static int pop_set_attribute   __P ((attribute_t, int));
+static int pop_unset_attribute __P ((attribute_t, int));
 static int pop_uidl            __P ((message_t, char *, size_t, size_t *));
 static int pop_uid             __P ((message_t, size_t *));
 static int fill_buffer         __P ((pop_data_t, char *, size_t));
@@ -140,6 +142,7 @@ struct _pop_message
   size_t message_size;
   size_t num;
   char *uidl; /* Cache the uidl string.  */
+  int attr_flags;
   message_t message;
   pop_data_t mpd; /* Back pointer.  */
 };
@@ -809,7 +812,9 @@ pop_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
 	free (mpm);
 	return status;
       }
-    attribute_set_get_flags (attribute, pop_attr_flags, msg);
+    attribute_set_get_flags (attribute, pop_get_attribute, msg);
+    attribute_set_set_flags (attribute, pop_set_attribute, msg);
+    attribute_set_unset_flags (attribute, pop_unset_attribute, msg);
     message_set_attribute (msg, attribute, mpm);
   }
 
@@ -1214,19 +1219,47 @@ pop_body_lines (body_t body, size_t *plines)
    the RETR some go as much as deleting after the TOP, since technicaly
    you can download a message via TOP without RET'reiving it.  */
 static int
-pop_attr_flags (attribute_t attr, int *pflags)
+pop_get_attribute (attribute_t attr, int *pflags)
 {
   message_t msg = attribute_get_owner (attr);
   pop_message_t mpm = message_get_owner (msg);
   char hdr_status[64];
   header_t header = NULL;
 
+  if (mpm == NULL || pflags == NULL)
+    return EINVAL;
+  if (mpm->attr_flags == 0)
+    {
+      hdr_status[0] = '\0';
+      message_get_header (mpm->message, &header);
+      header_get_value (header, "Status", hdr_status, sizeof hdr_status, NULL);
+      string_to_flags (hdr_status, &(mpm->attr_flags));
+    }
+  *pflags = mpm->attr_flags;
+  return 0;
+}
+
+static int
+pop_set_attribute (attribute_t attr, int flags)
+{
+  message_t msg = attribute_get_owner (attr);
+  pop_message_t mpm = message_get_owner (msg);
+
   if (mpm == NULL)
     return EINVAL;
-  hdr_status[0] = '\0';
-  message_get_header (mpm->message, &header);
-  header_get_value (header, "Status", hdr_status, sizeof (hdr_status), NULL);
-  string_to_flags (hdr_status, pflags);
+  mpm->attr_flags |= flags;
+  return 0;
+}
+
+static int
+pop_unset_attribute (attribute_t attr, int flags)
+{
+  message_t msg = attribute_get_owner (attr);
+  pop_message_t mpm = message_get_owner (msg);
+
+  if (mpm == NULL)
+    return EINVAL;
+  mpm->attr_flags &= ~flags;
   return 0;
 }
 

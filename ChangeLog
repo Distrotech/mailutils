@@ -1,3 +1,48 @@
+2001-09-03  Alain Magloire
+
+	* configure.in: AC_REPLACE_FUNCS(fgetpwent);
+
+	* include/mailutils/parse822.h: Add a prototype for
+	parse822_skip_nl().
+
+	* lib/Makefile.am: add fgetpwent.c
+	* lib/fgetpwent.c: New file.
+
+	* mail/from.c (mail_from): Use the cover functions
+	attribute_is_xxxx() instead of getting the flag.
+
+	* mailbox/attribute.c: Cleanup the mess.
+	attribute_set_{read,delete,seen,flagged,answered}.
+	attribute_unset_{read,delete,seen,flagged,answered}.
+	attribute_is_{read,delete,seen,flagged,answered}
+	should be no more then cover functions calling
+	attribute_set_flags(), attribute_get_flags() and
+	attribute_unset_flags().
+
+	* mailbox/folder_imap.c: MU_ATTRIBUTE_READ, is not
+	part of IMAP protocol use \\Seen.
+	* mailbox/mbx_imap.c: Remove the hack trying to reconnect,
+	it does not work.
+
+	* mailbox/mbx_pop.c(pop_get_messages): Set the new
+	functions for the attribute.
+	(pop_get_attribute): New functions.
+	(pop_set_attribute): New functions.
+	(pop_unset_attribute): New functions.
+	(pop_attr_flags): Removed.
+
+	* mutil.c (mu_hex2ul): GNU coding std.
+	(parse822_time): Do not use tzname as a variable name tzname
+	is global variable in libc, better clear away.
+	(parse822_date_time): Likewised.
+
+	* pop3d/Makefile.am: add virtual.c
+	* pop3d/pop3d.c (main): register getpwnam_ip_virtual,
+	getpwnam_host_virtual
+	* pop3d/pop3d.h: declare,
+	getpwnam_ip_virtual(), getpwnam_host_virtual().
+	* pop3d/virtual.c: New file.
+
 2001-09-02  Alain Magloire
 
 	* mailbox/mutil.c (getpwma_virtual): Memory overrun, did not

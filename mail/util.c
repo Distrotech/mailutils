@@ -141,7 +141,7 @@ util_msglist_command (function_t *func, int argc, char **argv, int set_cursor)
 {
   msgset_t *list = NULL, *mp;
   int status = 0;
-  
+
   if (msgset_parse (argc, argv, &list))
       return 1;
 
@@ -840,7 +840,7 @@ util_descend_subparts (message_t mesg, msgset_t *msgset, message_t *part)
       int nparts = 0;
       char *type = NULL;
       header_t hdr = NULL;
-      
+
       message_get_header (mesg, &hdr);
       util_get_content_type (hdr, &type);
       if (strncasecmp (type, "message/rfc822", strlen (type)) == 0)
@@ -852,7 +852,7 @@ util_descend_subparts (message_t mesg, msgset_t *msgset, message_t *part)
 	    }
 	  mesg = submsg;
 	}
-      
+
       message_get_num_parts (mesg, &nparts);
       if (nparts < msgset->msg_part[i])
 	{
@@ -860,7 +860,7 @@ util_descend_subparts (message_t mesg, msgset_t *msgset, message_t *part)
 		      msgset->msg_part[i]);
 	  return 1;
 	}
-      
+
       if (message_get_part (mesg, msgset->msg_part[i], &submsg))
 	{
 	  util_error ("can't get (sub)part from the message: %d",
@@ -874,20 +874,20 @@ util_descend_subparts (message_t mesg, msgset_t *msgset, message_t *part)
   *part = mesg;
   return 0;
 }
-      
+
 void
 util_msgset_iterate (msgset_t *msgset, int (*fun)(), void *closure)
 {
   for (; msgset; msgset = msgset->next)
     {
       message_t mesg;
-      
+
       if (mailbox_get_message (mbox, msgset->msg_part[0], &mesg) != 0)
 	return;
 
       if (util_descend_subparts (mesg, msgset, &mesg) == 0)
 	  (*fun)(mesg, msgset, closure);
-    }	  
+    }
 }
 
 int

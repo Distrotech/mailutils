@@ -113,8 +113,8 @@ AC_FUNC_FNMATCH
 if test "$ac_cv_func_fnmatch_works" = "no"; then
 : LIBOBJS="$LIBOBJS fnmatch.o"
 fi
-AC_REPLACE_FUNCS(setenv snprintf strtok_r strncasecmp strcasecmp strsignal \
- vasprintf)
+AC_REPLACE_FUNCS(fgetpwent setenv snprintf strtok_r strncasecmp strcasecmp \
+ strsignal vasprintf)
 AC_CHECK_FUNCS(mkstemp sigaction sysconf)
 
 dnl Check for libraries
@@ -243,7 +243,7 @@ fi
 
 dnl Output Makefiles
 AC_OUTPUT(Makefile mailutils.spec include/Makefile include/mailutils/Makefile
- m4/Makefile doc/Makefile argp/Makefile lib/Makefile lib/posix/Makefile 
- mailbox/Makefile imap4d/Makefile mailbox/include/Makefile from/Makefile 
+ m4/Makefile doc/Makefile argp/Makefile lib/Makefile lib/posix/Makefile
+ mailbox/Makefile imap4d/Makefile mailbox/include/Makefile from/Makefile
  mail/Makefile pop3d/Makefile frm/Makefile sieve/Makefile messages/Makefile
  scripts/Makefile libmu_scm/Makefile guimb/Makefile guimb/scm/Makefile MySql/Makefile)

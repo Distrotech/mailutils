@@ -125,7 +125,7 @@ struct message_set
   int *msg_part;        /* Array of part numbers: msg_part[0] is the message
 			   number */
 };
-  
+
 /* Global variables and constants*/
 extern mailbox_t mbox;
 extern unsigned int cursor;

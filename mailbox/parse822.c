@@ -1192,7 +1192,7 @@ int parse822_day(const char** p, const char* e, int* day)
 
   if((e - *p) < 3)
     return EPARSE;
- 
+
   for(d = 0; days[d]; d++) {
     if(strncasecmp(*p, days[d], 3) == 0) {
       *p += 3;
@@ -1245,7 +1245,7 @@ int parse822_date(const char** p, const char* e, int* day, int* mon, int* year)
 
   if((e - *p) < 3)
     return EPARSE;
- 
+
   for(m = 0; mons[m]; m++) {
     if(strncasecmp(*p, mons[m], 3) == 0) {
       *p += 3;
@@ -1292,7 +1292,7 @@ int parse822_date(const char** p, const char* e, int* day, int* mon, int* year)
 }
 
 int parse822_time(const char** p, const char* e,
-  int* hour, int* min, int* sec, int* tz, const char** tzname)
+  int* hour, int* min, int* sec, int* tz, const char** tz_name)
 {
   /* time        =  hour zone
    * hour        =  2DIGIT ":" 2DIGIT [":" 2DIGIT] ; 00:00:00 - 23:59:59
@@ -1323,7 +1323,7 @@ int parse822_time(const char** p, const char* e,
       { "MDT", -6 * 60 * 60 },
       { "PST", -8 * 60 * 60 },
       { "PDT", -7 * 60 * 60 },
-      { NULL, }
+      { NULL, 0 }
   };
 
   const char* save = *p;
@@ -1370,8 +1370,8 @@ int parse822_time(const char** p, const char* e,
       break;
   }
   if(tzs[z].tzname) {
-    if(tzname)
-      *tzname = tzs[z].tzname;
+    if(tz_name)
+      *tz_name = tzs[z].tzname;
 
     if(tz)
       *tz = tzs[z].tz;
@@ -1449,7 +1449,7 @@ int parse822_date_time(const char** p, const char* e, struct tm* tm, struct mu_t
   int sec = 0;
 
   int tzoffset = 0;
-  const char* tzname = 0;
+  const char* tz_name = 0;
 
   if((rc = parse822_day(p, e, &wday))) {
     if(rc != EPARSE)
@@ -1468,7 +1468,7 @@ int parse822_date_time(const char** p, const char* e, struct tm* tm, struct mu_t
     *p = save;
     return rc;
   }
-  if((rc = parse822_time(p, e, &hour, &min, &sec, &tzoffset, &tzname))) {
+  if((rc = parse822_time(p, e, &hour, &min, &sec, &tzoffset, &tz_name))) {
     *p = save;
     return rc;
   }
@@ -1493,14 +1493,14 @@ int parse822_date_time(const char** p, const char* e, struct tm* tm, struct mu_t
     tm->tm_gmtoff = tzoffset;
 #endif
 #ifdef HAVE_TM_ZONE
-    tm->tm_zone = tzname;
+    tm->tm_zone = tz_name;
 #endif
   }
 
   if(tz)
   {
     tz->utc_offset = tzoffset;
-    tz->tz_name = tzname;
+    tz->tz_name = tz_name;
   }
 
   return EOK;

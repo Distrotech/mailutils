@@ -37,7 +37,7 @@ mail_write (int argc, char **argv)
   msgset_t *msglist = NULL, *mp;
   int sender = 0;
   size_t total_size = 0, total_lines = 0, size;
-  
+
   if (isupper (argv[0][0]))
     sender = 1;
   else if (argc >= 2)
@@ -73,7 +73,7 @@ mail_write (int argc, char **argv)
       msgset_free (msglist);
       return 1;
     }
-  
+
   for (mp = msglist; mp; mp = mp->next)
     {
       attribute_t attr;
@@ -85,7 +85,7 @@ mail_write (int argc, char **argv)
       total_size += size;
       body_lines (bod, &size);
       total_lines += size;
-      
+
       body_get_stream (bod, &stream);
       /* should there be a separator? */
       while (stream_read(stream, buffer, sizeof (buffer) - 1, off, &n) == 0
@@ -95,7 +95,7 @@ mail_write (int argc, char **argv)
 	  fprintf (output, "%s", buffer);
 	  off += n;
 	}
-      
+
       /* mark as saved. */
 
       message_get_attribute (msg, &attr);

@@ -38,7 +38,7 @@ mail_tag (int argc, char **argv)
 {
   msgset_t *msgset;
   int action = argv[0][0] != 'u';
-  
+
   if (msgset_parse (argc, argv, &msgset))
     return 1;
 
@@ -47,4 +47,3 @@ mail_tag (int argc, char **argv)
   msgset_free (msgset);
   return 0;
 }
-

@@ -35,7 +35,8 @@
 
 /* convert a sequence of hex characters into an integer */
 
-unsigned long mu_hex2ul(char hex)
+unsigned long
+mu_hex2ul (char hex)
 {
   if (hex >= '0' && hex <= '9')
     return hex - '0';
@@ -49,21 +50,22 @@ unsigned long mu_hex2ul(char hex)
   return -1;
 }
 
-size_t mu_hexstr2ul(unsigned long* ul, const char* hex, size_t len)
+size_t
+mu_hexstr2ul (unsigned long *ul, const char *hex, size_t len)
 {
   size_t r;
 
   *ul = 0;
 
   for (r = 0; r < len; r++)
-  {
-    unsigned long v = mu_hex2ul(hex[r]);
+    {
+      unsigned long v = mu_hex2ul (hex[r]);
 
-    if(v == (unsigned long)-1)
-      return r;
+      if (v == (unsigned long)-1)
+	return r;
 
-    *ul = *ul * 16 + v;
-  }
+      *ul = *ul * 16 + v;
+    }
   return r;
 }
 
@@ -83,18 +85,18 @@ mu_tm2time (struct tm *timeptr, mu_timezone* tz)
 {
   int offset = tz ? tz->utc_offset : 0;
 
-  return mktime(timeptr) + mu_utc_offset() - offset;
+  return mktime (timeptr) + mu_utc_offset () - offset;
 }
 
 /* Convert time 0 at UTC to our localtime, that tells us the offset
    of our current timezone from UTC. */
 time_t
-mu_utc_offset(void)
+mu_utc_offset (void)
 {
   time_t t = 0;
-  struct tm* tm = gmtime(&t);
+  struct tm* tm = gmtime (&t);
 
-  return - mktime(tm);
+  return - mktime (tm);
 }
 
 static const char *months[] =
@@ -243,7 +245,6 @@ mu_parse_ctime_date_time (const char **p, struct tm *tm, mu_timezone * tz)
   return 0;
 }
 
-
 char *
 mu_get_homedir (void)
 {
@@ -252,7 +253,7 @@ mu_get_homedir (void)
     {
       struct passwd *pwd;
 
-      pwd = getpwuid(getuid());
+      pwd = getpwuid (getuid ());
       if (!pwd)
 	return NULL;
       homedir = pwd->pw_dir;
@@ -369,7 +370,7 @@ getpwnam_virtual (const char *u)
 {
   struct passwd *pw = NULL;
   FILE *pfile;
-  int i = 0, len = strlen (u), delim = 0;
+  size_t i = 0, len = strlen (u), delim = 0;
   char *filename;
 
   mu_virtual_domain = 0;

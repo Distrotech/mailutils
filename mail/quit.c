@@ -35,10 +35,10 @@ mail_mbox_close ()
 {
   url_t url = NULL;
   size_t held_count;
-  
+
   if (mail_mbox_commit ())
     return 1;
-  
+
   mailbox_save_attributes (mbox);
   mailbox_expunge (mbox);
 
@@ -63,9 +63,9 @@ mail_mbox_commit ()
   int hold = util_find_env ("hold")->set;
   url_t url;
   int is_user_mbox;
-  
+
   mailbox_get_url (mbox, &url);
-  is_user_mbox = strcmp (url_to_string (url), getenv("MBOX")) == 0; 
+  is_user_mbox = strcmp (url_to_string (url), getenv("MBOX")) == 0;
 
   {
     mailbox_t mb;
@@ -97,7 +97,7 @@ mail_mbox_commit ()
 	  if (!dest_mbox)
 	    {
 	      char *name = getenv ("MBOX");
-      
+
 	      if (mailbox_create_default (&dest_mbox, name)
 		  || mailbox_open (dest_mbox,
 				   MU_STREAM_WRITE | MU_STREAM_CREAT))
@@ -106,7 +106,7 @@ mail_mbox_commit ()
 		  return 1;
 		}
 	    }
-	  
+
 	  mailbox_append_message (dest_mbox, msg);
 	  attribute_set_deleted (attr);
 	  saved_count++;

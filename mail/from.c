@@ -36,7 +36,7 @@ mail_from (int argc, char **argv)
       int froml, subjl;
       char date[80], st[10];
       int cols = util_getcols () - 6;
-      int flags, cflag;
+      int cflag;
       size_t m_size = 0, m_lines = 0;
       const char *p;
       struct tm tm;
@@ -78,7 +78,6 @@ mail_from (int argc, char **argv)
 	}
 
       message_get_attribute (msg, &attr);
-      attribute_get_flags (attr, &flags);
 
       if (attribute_is_userflag(attr, MAIL_ATTRIBUTE_MBOXED))
 	cflag = 'M';
@@ -86,9 +85,9 @@ mail_from (int argc, char **argv)
 	cflag = '*';
       else if (attribute_is_userflag(attr, MAIL_ATTRIBUTE_TAGGED))
 	cflag = 'T';
-      else if (flags & MU_ATTRIBUTE_READ)
+      else if (attribute_is_read (attr))
 	cflag = 'R';
-      else if (flags & MU_ATTRIBUTE_SEEN)
+      else if (attribute_is_seen (attr))
 	cflag = 'U';
       else if (attribute_is_recent(attr))
 	cflag = 'N';

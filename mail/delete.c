@@ -50,7 +50,7 @@ mail_delete (int argc, char **argv)
 	{
 	  message_t msg;
 	  attribute_t attr;
-	  
+
 	  mailbox_get_message (mbox, realcursor, &msg);
 	  message_get_attribute (msg, &attr);
 	  if (!attribute_is_deleted (attr))
@@ -59,13 +59,13 @@ mail_delete (int argc, char **argv)
 	    realcursor = 1;
 	}
       while (realcursor != here);
-      
+
       cursor = realcursor;
     }
-  
+
   if (util_find_env("autoprint")->set)
     util_do_command("print");
-  
+
   return rc;
 }
 

@@ -37,7 +37,7 @@ mail_copy0 (int argc, char **argv, int mark)
   msgset_t *msglist = NULL, *mp;
   int sender = 0;
   size_t total_size = 0, total_lines = 0, size;
-  
+
   if (isupper (argv[0][0]))
     sender = 1;
   else if (argc >= 2)
@@ -80,9 +80,9 @@ mail_copy0 (int argc, char **argv, int mark)
       total_size += size;
       message_lines (msg, &size);
       total_lines += size;
-      
+
       if (mark)
-	{
+ 	{
 	  attribute_t attr;
 	  message_get_attribute (msg, &attr);
 	  attribute_set_userflag (attr, MAIL_ATTRIBUTE_SAVED);

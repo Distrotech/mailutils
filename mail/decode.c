@@ -40,7 +40,7 @@ mail_decode (int argc, char **argv)
 {
   msgset_t *msgset;
   struct decode_closure decode_closure;
-  
+
   if (msgset_parse (argc, argv, &msgset))
     return 1;
 
@@ -58,10 +58,10 @@ display_message (message_t mesg, msgset_t *msgset,
 {
   FILE *out;
   size_t lines = 0;
-  
+
   if (util_isdeleted (msgset->msg_part[0]))
     return 1;
-  
+
   message_lines (mesg, &lines);
   if ((util_find_env("crt"))->set && lines > util_getlines ())
     out = popen (getenv("PAGER"), "w");
@@ -82,7 +82,7 @@ display_message (message_t mesg, msgset_t *msgset,
     }
   return 0;
 }
-  
+
 static void
 display_headers (FILE *out, message_t mesg, const msgset_t *msgset,
 		 int select_hdr)
@@ -94,7 +94,7 @@ display_headers (FILE *out, message_t mesg, const msgset_t *msgset,
       size_t num = 0;
       size_t i = 0;
       char buffer[512];
-      
+
       message_get_header (mesg, &hdr);
       header_get_field_count (hdr, &num);
       for (i = 1; i <= num; i++)
@@ -137,7 +137,7 @@ display_part_header (FILE *out, const msgset_t *msgset,
   for (i = 1; i < msgset->npart; i++)
     fprintf (out, "]");
   fprintf (out, "\n");
-	      
+
   fprintf (out, "| Type=%s\n", type);
   fprintf (out, "| encoding=%s\n", encoding);
   fputc ('+', out);
@@ -156,7 +156,7 @@ display_message0 (FILE *out, message_t mesg, const msgset_t *msgset,
   char *type;
   char *encoding;
   int ismime = 0;
-  
+
   message_get_header (mesg, &hdr);
   util_get_content_type (hdr, &type);
   get_content_encoding (hdr, &encoding);
@@ -184,7 +184,7 @@ display_message0 (FILE *out, message_t mesg, const msgset_t *msgset,
   else if (strncasecmp (type, "message/rfc822", strlen (type)) == 0)
     {
       message_t submsg = NULL;
-      
+
       if (message_unencapsulate (mesg, &submsg, NULL) == 0)
 	display_message0 (out, submsg, msgset, select_hdr);
     }
@@ -199,7 +199,7 @@ display_message0 (FILE *out, message_t mesg, const msgset_t *msgset,
     {
       body_t body = NULL;
       stream_t b_stream = NULL;
-      
+
       display_part_header (out, msgset, type, encoding);
       display_headers (out, mesg, msgset, select_hdr);
 
@@ -208,20 +208,20 @@ display_message0 (FILE *out, message_t mesg, const msgset_t *msgset,
 	{
 	  stream_t d_stream = NULL;
 	  stream_t stream = NULL;
-	  
+
 	  /* Can we decode.  */
 	  if (filter_create(&d_stream, b_stream, encoding,
 			    MU_FILTER_DECODE, MU_STREAM_READ) == 0)
 	    stream = d_stream;
 	  else
 	    stream = b_stream;
-	  
+
 	  print_stream (stream, out);
 	  if (d_stream)
 	    stream_destroy (&d_stream, NULL);
 	}
     }
-  
+
   free (type);
   free (encoding);
 

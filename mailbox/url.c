@@ -143,7 +143,7 @@ url_parse (url_t url)
 {
   int err = 0;
   char *n = NULL;
-  struct _url u = { 0, };
+  struct _url u = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ,0 ,0, 0};
 
   if (!url || !url->name)
     return EINVAL;
