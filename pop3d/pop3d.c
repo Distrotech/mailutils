@@ -404,7 +404,14 @@ pop3d_mainloop (int fd, FILE *infile, FILE *outfile)
 	status = pop3d_capa (arg);
 #ifdef WITH_TLS
       else if ((strncasecmp (cmd, "STLS", 4) == 0) && tls_available)
-	status = pop3d_stls (arg);
+	{
+	  status = pop3d_stls (arg);
+	  if (status)
+	    {
+	      syslog (LOG_ERR, _("Session terminated"));
+	      break;
+	    }
+	}
 #endif /* WITH_TLS */
       else
 	status = ERR_BAD_CMD;
