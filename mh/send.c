@@ -21,6 +21,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <stdarg.h>
+#include <pwd.h>
 
 const char *argp_program_version = "send (" PACKAGE_STRING ")";
 static char doc[] = N_("GNU MH send\v"
@@ -28,29 +29,6 @@ static char doc[] = N_("GNU MH send\v"
 "Use -help to obtain the list of traditional MH options.");
 static char args_doc[] = N_("file [file...]");
 
-#define ARG_ALIAS            257
-#define ARG_DRAFT            258
-#define ARG_DRAFTFOLDER      259
-#define ARG_DRAFTMESSAGE     260
-#define ARG_NODRAFTFOLDER    261
-#define ARG_FILTER           262
-#define ARG_NOFILTER         263
-#define ARG_FORMAT           264
-#define ARG_NOFORMAT         265
-#define ARG_FORWARD          266
-#define ARG_NOFORWARD        267
-#define ARG_MIME             268
-#define ARG_NOMIME           269
-#define ARG_MSGID            270
-#define ARG_NOMSGID          271
-#define ARG_PUSH             272
-#define ARG_NOPUSH           273
-#define ARG_SPLIT            274
-#define ARG_VERBOSE          275
-#define ARG_NOVERBOSE        276
-#define ARG_WATCH            277
-#define ARG_NOWATCH          278
-#define ARG_WIDTH            279
 
 /* GNU options */
 static struct argp_option options[] = {
@@ -59,11 +37,11 @@ static struct argp_option options[] = {
   {"draft",         ARG_DRAFT,         NULL, 0,
    N_("Use prepared draft") },
   {"draftfolder",   ARG_DRAFTFOLDER,   N_("FOLDER"), 0,
-   N_("* Specify the folder for message drafts") },
-  {"draftmessage",  ARG_DRAFTMESSAGE,  N_("MESSAGE"), 0,
-   N_("* Invoke the draftmessage facility") },
+   N_("Specify the folder for message drafts") },
+  {"draftmessage",  ARG_DRAFTMESSAGE,  NULL, 0,
+   N_("Treat the arguments as a list of messages from the draftfolder") },
   {"nodraftfolder", ARG_NODRAFTFOLDER, NULL, 0,
-   N_("* Undo the effect of the last --draftfolder option") },
+   N_("Undo the effect of the last --draftfolder option") },
   {"filter",        ARG_FILTER,        N_("FILE"), 0,
   N_("* Set the filter program to preprocess the body of the message") },
   {"nofilter",      ARG_NOFILTER,      NULL, 0,
@@ -78,7 +56,7 @@ static struct argp_option options[] = {
    N_("* Use MIME encapsulation") },
   {"nomime",        ARG_NOMIME,        NULL, OPTION_HIDDEN, "" },
   {"msgid",         ARG_MSGID,         N_("BOOL"), OPTION_ARG_OPTIONAL,
-   N_("* Add Message-ID: field") },
+   N_("Add Message-ID: field") },
   {"nomsgid",       ARG_NOMSGID,       NULL, OPTION_HIDDEN, ""},
   {"push",          ARG_PUSH,          N_("BOOL"), OPTION_ARG_OPTIONAL,
    N_("Run in the backround.") },
@@ -118,6 +96,7 @@ struct mh_option mh_option[] = {
 };
 
 static int use_draft;            /* Use the prepared draft */
+static char *draft_folder;       /* Use this draft folder */
 static int reformat_recipients;  /* --format option */
 static int forward_notice;       /* Forward the failure notice to the sender,
 				    --forward flag */
@@ -153,8 +132,19 @@ opt_handler (int key, char *arg, void *unused)
       break;
 	
     case ARG_DRAFTFOLDER:
-    case ARG_DRAFTMESSAGE:
+      draft_folder = arg;
+      break;
+      
     case ARG_NODRAFTFOLDER:
+      draft_folder = NULL;
+      break;
+      
+    case ARG_DRAFTMESSAGE:
+      if (!draft_folder)
+	draft_folder = mh_global_profile_get ("Draft-Folder",
+					      mu_path_folder_dir);
+      break;
+      
     case ARG_FILTER:
     case ARG_NOFILTER:
       return 1;
@@ -267,7 +257,7 @@ check_file (char *name)
 {
   mailbox_t mbox;
 
-  mbox = mh_open_msg_file (name);
+  mbox = mh_open_msg_file (draft_folder, name);
   if (!mbox)
     return 1;
   if (!mbox_list && list_create (&mbox_list))
@@ -331,7 +321,25 @@ open_mailer ()
     }
   return mailer;
 }
-    
+
+static void
+create_message_id (header_t hdr)
+{
+  char date[4+2+2+2+2+2+1];
+  time_t t = time (NULL);
+  struct tm *tm = localtime (&t);
+  char *host;
+  char *p;
+	  
+  strftime (date, sizeof date, "%Y%m%d%H%M%S", tm);
+  mu_get_host_name (&host);
+	    
+  asprintf (&p, "<%s.%lu@%s>", date, (unsigned long) getpid (), host);
+  free (host);
+  header_set_value (hdr, MU_HEADER_MESSAGE_ID, p, 1);
+  free (p);
+}
+
 int
 _action_send (void *item, void *data)
 {
@@ -339,12 +347,48 @@ _action_send (void *item, void *data)
   message_t msg;
   int rc;
   mailer_t mailer;
+  header_t hdr;
+  size_t n;
 
   WATCH(("Getting message"));
   if ((rc = mailbox_get_message (mbox, 1, &msg)))
     {
       mh_error(_("cannot get message: %s"), mu_strerror (rc));
       return 1;
+    }
+
+  if (message_get_header (msg, &hdr) == 0)
+    {
+      char date[80];
+      time_t t = time (NULL);
+      struct tm *tm = localtime (&t);
+      
+      strftime (date, sizeof date, "%a, %d %b %Y %H:%M:%S %Z", tm);
+      header_set_value (hdr, MU_HEADER_DATE, date, 1);
+
+      if (header_get_value (hdr, MU_HEADER_FROM, NULL, 0, &n))
+	{
+	  char *from;
+	  char *email = mu_get_user_email (NULL);
+	  struct passwd *pw = getpwuid (getuid ());
+	  if (pw && pw->pw_gecos[0])
+	    {
+	      char *p = strchr (pw->pw_gecos, ',');
+	      if (p)
+		*p = 0;
+	      asprintf (&from, "\"%s\" <%s>", pw->pw_gecos, email);
+	      free (email);
+	    }
+	  else
+	    from = email;
+
+	  header_set_value (hdr, MU_HEADER_FROM, from, 1);
+	  free (from);
+	}
+	  
+      if (append_msgid
+	  && header_get_value (hdr, MU_HEADER_MESSAGE_ID, NULL, 0, &n))
+	create_message_id (hdr);
     }
 
   mailer = open_mailer ();
@@ -366,7 +410,7 @@ _action_send (void *item, void *data)
   return 0;
 }
 
-int
+static int
 send (int argc, char **argv)
 {
   int i, rc;
