@@ -39,6 +39,7 @@
 #include <mailutils/filter.h>
 #include <mailutils/registrar.h>
 #include <mailutils/stream.h>
+#include <mailutils/url.h>
 
 int msglist __P ((mailbox_t mbox, int show_all, int argc, char **argv, int **set, int *n));
 
