@@ -15,8 +15,6 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-
-/* FIXME: Those headers should be in "mail.h".  */
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -30,34 +28,39 @@ static void msg_to_pipe __P ((const char *cmd, message_t msg));
 /*
  * m[ail] address...
  if address is starting with
- '/' it is consider a file and the message is save to a file.
- '.' by extension dot is consider relative path.
- '|' a pipe the message is writent to the pipe.
+ 
+    '/'        it is considered a file and the message is saveed to a file;
+    '.'        it is considered to be a relative path;
+    '|'        it is considered to be a pipe, and the message is written to
+               there;
+	       
  example:
- mail joe '| cat >/tmp/save'
- mail will be send to joe and the message save in /tmp/save.
- */
+ 
+   mail joe '| cat >/tmp/save'
+
+ mail will be sent to joe and the message saved in /tmp/save. */
 
 int
 mail_send (int argc, char **argv)
 {
   compose_env_t env;
   int status;
-
+  int save_to = isupper (argv[0][0]);
   compose_init (&env);
 
   if (argc < 2)
-    compose_header_set (&env, MU_HEADER_TO, ml_readline ((char *)"To: "),
+    compose_header_set (&env, MU_HEADER_TO, ml_readline ("To: "),
 			COMPOSE_REPLACE);
   else
     {
       while (--argc)
 	{
-	  char *p = alias_expand (*++argv);
-	  if (isfilename(p))
+	  char *p = *++argv;
+	  if (isfilename (p))
 	    {
 	      env.outfiles = realloc (env.outfiles,
-				      (env.nfiles+1)*sizeof (*(env.outfiles)));
+				      (env.nfiles + 1) *
+				      sizeof (*(env.outfiles)));
 	      if (env.outfiles)
 		{
 		  env.outfiles[env.nfiles] = p;
@@ -66,8 +69,7 @@ mail_send (int argc, char **argv)
 	    }
 	  else
 	    {
-	      compose_header_set (&env, MU_HEADER_TO, p,
-				  COMPOSE_SINGLE_LINE);
+	      compose_header_set (&env, MU_HEADER_TO, p, COMPOSE_SINGLE_LINE);
 	      free (p);
 	    }
 	}
@@ -75,40 +77,34 @@ mail_send (int argc, char **argv)
 
   if (util_getenv (NULL, "askcc", Mail_env_boolean, 0) == 0)
     compose_header_set (&env, MU_HEADER_CC,
-			ml_readline ((char *)"Cc: "),
-			COMPOSE_REPLACE);
+			ml_readline ("Cc: "), COMPOSE_REPLACE);
   if (util_getenv (NULL, "askbcc", Mail_env_boolean, 0) == 0)
     compose_header_set (&env, MU_HEADER_BCC,
-			ml_readline ((char *)"Bcc: "),
-			COMPOSE_REPLACE);
+			ml_readline ("Bcc: "), COMPOSE_REPLACE);
 
   if (util_getenv (NULL, "asksub", Mail_env_boolean, 0) == 0)
     compose_header_set (&env, MU_HEADER_SUBJECT,
-			ml_readline ((char *)"Subject: "),
-			COMPOSE_REPLACE);
+			ml_readline ("Subject: "), COMPOSE_REPLACE);
   else
     {
       char *p;
       if (util_getenv (&p, "subject", Mail_env_string, 0) == 0)
-	compose_header_set (&env, MU_HEADER_SUBJECT,
-			    p,
-			    COMPOSE_REPLACE);
+	compose_header_set (&env, MU_HEADER_SUBJECT, p, COMPOSE_REPLACE);
     }
 
-  status = mail_send0 (&env, isupper(argv[0][0]));
+  status = mail_send0 (&env, save_to);
   compose_destroy (&env);
   return status;
 }
 
 void
-compose_init (compose_env_t *env)
+compose_init (compose_env_t * env)
 {
   memset (env, 0, sizeof (*env));
 }
 
 int
-compose_header_set (compose_env_t *env, char *name, char *value,
-		    int mode)
+compose_header_set (compose_env_t * env, char *name, char *value, int mode)
 {
   int status;
   char *old_value;
@@ -122,15 +118,15 @@ compose_header_set (compose_env_t *env, char *name, char *value,
 
   switch (mode)
     {
-    case COMPOSE_REPLACE:     
+    case COMPOSE_REPLACE:
     case COMPOSE_APPEND:
       status = header_set_value (env->header, name, value, mode);
       break;
-      
+
     case COMPOSE_SINGLE_LINE:
       if (!value || value[0] == 0)
 	return EINVAL;
-      
+
       if (header_aget_value (env->header, name, &old_value) == 0
 	  && old_value[0])
 	{
@@ -147,17 +143,17 @@ compose_header_set (compose_env_t *env, char *name, char *value,
 }
 
 char *
-compose_header_get (compose_env_t *env, char *name, char *defval)
+compose_header_get (compose_env_t * env, char *name, char *defval)
 {
   char *p;
-  
+
   if (header_aget_value (env->header, name, &p))
     p = defval;
   return p;
-}      
+}
 
 void
-compose_destroy (compose_env_t *env)
+compose_destroy (compose_env_t * env)
 {
   header_destroy (&env->header, NULL);
   if (env->outfiles)
@@ -182,11 +178,10 @@ compose_destroy (compose_env_t *env)
    mail. You must manually set the default for this environment variable
    by editing ROOTDIR/etc/mailx.rc to specify the mail agent of your
    choice. The default is sendmail, but it can be any command that takes
-   addresses on the command line and message contents on standard input.
-*/
+   addresses on the command line and message contents on standard input. */
 
 int
-mail_send0 (compose_env_t *env, int save_to)
+mail_send0 (compose_env_t * env, int save_to)
 {
   int done = 0;
   int fd;
@@ -215,7 +210,7 @@ mail_send0 (compose_env_t *env, int save_to)
   while (!done)
     {
       char *buf;
-      buf = ml_readline ((char *)" \b");
+      buf = ml_readline (" \b");
 
       if (ml_got_interrupt ())
 	{
@@ -253,10 +248,10 @@ mail_send0 (compose_env_t *env, int save_to)
 	  && util_getenv (NULL, "dot", Mail_env_boolean, 0) == 0)
 	done = 1;
       else if (util_getenv (&escape, "escape", Mail_env_string, 0) == 0
-               && buf[0] == escape[0])
+	       && buf[0] == escape[0])
 	{
 	  if (buf[1] == buf[0])
-	    fprintf (env->file, "%s\n", buf+1);
+	    fprintf (env->file, "%s\n", buf + 1);
 	  else if (buf[1] == '.')
 	    done = 1;
 	  else if (buf[1] == 'x')
@@ -272,13 +267,13 @@ mail_send0 (compose_env_t *env, int save_to)
 
 	      ofile = env->file;
 
-	      if (argcv_get (buf+1, "", NULL, &argc, &argv) == 0)
+	      if (argcv_get (buf + 1, "", NULL, &argc, &argv) == 0)
 		{
 		  struct mail_command_entry entry;
 		  entry = util_find_entry (mail_escape_table, argv[0]);
 
 		  if (entry.escfunc)
-		    status = (*entry.escfunc)(argc, argv, env);
+		    status = (*entry.escfunc) (argc, argv, env);
 		  else
 		    util_error ("Unknown escape %s", argv[0]);
 		}
@@ -288,7 +283,7 @@ mail_send0 (compose_env_t *env, int save_to)
 		}
 	      argcv_free (argc, argv);
 
-	      ofile =  env->ofile;
+	      ofile = env->ofile;
 	    }
 	}
       else
@@ -304,13 +299,13 @@ mail_send0 (compose_env_t *env, int save_to)
 	{
 	  FILE *fp = fopen (getenv ("DEAD"),
 			    util_getenv (NULL, "appenddeadletter",
-			                 Mail_env_boolean, 0) == 0 ?
+					 Mail_env_boolean, 0) == 0 ?
 			    "a" : "w");
 
 	  if (!fp)
 	    {
 	      util_error ("can't open file %s: %s", getenv ("DEAD"),
-			 strerror (errno));
+			  strerror (errno));
 	    }
 	  else
 	    {
@@ -330,126 +325,137 @@ mail_send0 (compose_env_t *env, int save_to)
       return 1;
     }
 
-  fclose (env->file); /* FIXME: freopen would be better */
+  fclose (env->file);		/* FIXME: freopen would be better */
 
-  file = fopen (filename, "r");
-  if (file != NULL)
+  /* Prepare the header */
+  header_set_value (env->header, "X-Mailer", argp_program_version, 1);
+
+  if (util_header_expand (&env->header) == 0)
     {
-      mailer_t mailer;
-      message_t msg = NULL;
+      file = fopen (filename, "r");
+      if (file != NULL)
+	{
+	  mailer_t mailer;
+	  message_t msg = NULL;
 
-      message_create (&msg, NULL);
+	  message_create (&msg, NULL);
 
-      /* Fill the header */
-      header_set_value (env->header, "X-Mailer", argp_program_version, 1);
-      message_set_header (msg, env->header, NULL);
+	  message_set_header (msg, env->header, NULL);
 
-      /* Fill the body.  */
-      {
-	body_t body = NULL;
-	stream_t stream = NULL;
-	off_t offset = 0;
-	char *buf = NULL;
-	size_t n = 0;
-	message_get_body (msg, &body);
-	body_get_stream (body, &stream);
-	while (getline (&buf, &n, file) >= 0)
+	  /* Fill the body.  */
 	  {
-	    size_t len = strlen (buf);
-	    stream_write (stream, buf, len, offset, &n);
-	    offset += len;
+	    body_t body = NULL;
+	    stream_t stream = NULL;
+	    off_t offset = 0;
+	    char *buf = NULL;
+	    size_t n = 0;
+	    message_get_body (msg, &body);
+	    body_get_stream (body, &stream);
+	    while (getline (&buf, &n, file) >= 0)
+	      {
+		size_t len = strlen (buf);
+		stream_write (stream, buf, len, offset, &n);
+		offset += len;
+	      }
+	    
+	    if (offset == 0)
+	      util_error ("Null message body; hope that's ok\n");
+	    if (buf)
+	      free (buf);
 	  }
 
-	if (offset == 0)
-	  util_error("Null message body; hope that's ok\n");
-	if (buf)
-	  free (buf);
-      }
+	  fclose (file);
 
-      fclose (file);
-
-      /* Save outgoing message */
-      if (save_to)
-	{
-	  savefile = compose_header_get (env, MU_HEADER_TO, NULL);
-	  if (savefile)
+	  /* Save outgoing message */
+	  if (save_to)
 	    {
-	      char *p = strchr (savefile, '@');
-	      if (p)
-		*p = 0;
-	    }
-	}
-      util_save_outgoing (msg, savefile);
-      if (savefile)
-	free (savefile);
-
-      /* Check if we need to save the message to files or pipes.  */
-      if (env->outfiles)
-	{
-	  int i;
-	  for (i = 0; i < env->nfiles; i++)
-	    {
-	      /* Pipe to a cmd.  */
-	      if (env->outfiles[i][0] == '|')
-		msg_to_pipe (&(env->outfiles[i][1]), msg);
-	      /* Save to a file.  */
-	      else
+	      char *tmp = compose_header_get (env, MU_HEADER_TO, NULL);
+	      address_t addr = NULL;
+	      
+	      address_create (&addr, tmp);
+	      address_aget_email (addr, 1, &savefile);
+	      address_destroy (&addr);
+	      if (savefile)
 		{
-		  int status;
-		  mailbox_t mbx = NULL;
-		  status = mailbox_create_default (&mbx, env->outfiles[i]);
-		  if (status == 0)
+		  char *p = strchr (savefile, '@');
+		  if (p)
+		    *p = 0;
+		}
+	    }
+	  util_save_outgoing (msg, savefile);
+	  if (savefile)
+	    free (savefile);
+
+	  /* Check if we need to save the message to files or pipes.  */
+	  if (env->outfiles)
+	    {
+	      int i;
+	      for (i = 0; i < env->nfiles; i++)
+		{
+		  /* Pipe to a cmd.  */
+		  if (env->outfiles[i][0] == '|')
+		    msg_to_pipe (&(env->outfiles[i][1]), msg);
+		  /* Save to a file.  */
+		  else
 		    {
-		      status = mailbox_open (mbx, MU_STREAM_WRITE
-					     | MU_STREAM_CREAT);
+		      int status;
+		      mailbox_t mbx = NULL;
+		      status = mailbox_create_default (&mbx, env->outfiles[i]);
 		      if (status == 0)
 			{
-			  mailbox_append_message (mbx, msg);
-			  mailbox_close (mbx);
+			  status = mailbox_open (mbx, MU_STREAM_WRITE
+						 | MU_STREAM_CREAT);
+			  if (status == 0)
+			    {
+			      mailbox_append_message (mbx, msg);
+			      mailbox_close (mbx);
+			    }
+			  mailbox_destroy (&mbx);
 			}
-		      mailbox_destroy (&mbx);
+		      if (status)
+			util_error ("can't create mailbox %s", env->outfiles[i]);
 		    }
-		  if (status)
-		    util_error("can't create mailbox %s", env->outfiles[i]);
 		}
 	    }
-	}
 
-      /* Do we need to Send the message on the wire?  */
-      if (compose_header_get (env, "to", NULL)
-	  || compose_header_get (env, "cc", NULL)
-	  || compose_header_get (env, "bcc", NULL))
-	{
-	  char *sendmail;
-	  if (util_getenv (&sendmail, "sendmail", Mail_env_string, 0) == 0)
+	  /* Do we need to Send the message on the wire?  */
+	  if (compose_header_get (env, MU_HEADER_TO, NULL)
+	      || compose_header_get (env, MU_HEADER_CC, NULL)
+	      || compose_header_get (env, MU_HEADER_BCC, NULL))
 	    {
-	      int status = mailer_create (&mailer, sendmail);
-	      if (status == 0)
+	      char *sendmail;
+	      if (util_getenv (&sendmail, "sendmail", Mail_env_string, 0) == 0)
 		{
-		  if (util_getenv (NULL, "verbose", Mail_env_boolean, 0) == 0)
-		    {
-		      mu_debug_t debug = NULL;
-		      mailer_get_debug (mailer, &debug);
-		      mu_debug_set_level (debug, MU_DEBUG_TRACE|MU_DEBUG_PROT);
-		    }
-		  status = mailer_open (mailer, MU_STREAM_RDWR);
+		  int status = mailer_create (&mailer, sendmail);
 		  if (status == 0)
 		    {
-		      mailer_send_message (mailer, msg, NULL, NULL);
-		      mailer_close (mailer);
+		      if (util_getenv (NULL, "verbose", Mail_env_boolean, 0)
+			  == 0)
+			{
+			  mu_debug_t debug = NULL;
+			  mailer_get_debug (mailer, &debug);
+			  mu_debug_set_level (debug,
+					      MU_DEBUG_TRACE | MU_DEBUG_PROT);
+			}
+		      status = mailer_open (mailer, MU_STREAM_RDWR);
+		      if (status == 0)
+			{
+			  mailer_send_message (mailer, msg, NULL, NULL);
+			  mailer_close (mailer);
+			}
+		      mailer_destroy (&mailer);
 		    }
-		  mailer_destroy (&mailer);
+		  if (status != 0)
+		    msg_to_pipe (sendmail, msg);
 		}
-	      if (status != 0)
-		msg_to_pipe (sendmail, msg);
+	      else
+		util_error ("variable sendmail not set: no mailer");
 	    }
-	  else
-	    util_error ("variable sendmail not set: no mailer");
+	  message_destroy (&msg, NULL);
+	  remove (filename);
+	  free (filename);
+	  return 0;
 	}
-      message_destroy (&msg, NULL);
-      remove (filename);
-      free (filename);
-      return 0;
     }
 
   remove (filename);
@@ -469,7 +475,7 @@ isfilename (const char *p)
 }
 
 /* FIXME: Should probably be in util.c.  */
-/* Call pope(cmd) and write the message to it.  */
+/* Call popen(cmd) and write the message to it.  */
 static void
 msg_to_pipe (const char *cmd, message_t msg)
 {
