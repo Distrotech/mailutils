@@ -325,15 +325,7 @@ main(int argc, char **argv)
     mailbox_name = argv[0];
 
   /* register the formats.  */
-  {
-    list_t bookie;
-    registrar_get_list (&bookie);
-    list_append (bookie, mbox_record);
-    list_append (bookie, path_record);
-    list_append (bookie, mh_record);
-    list_append (bookie, pop_record);
-    list_append (bookie, imap_record);
-  }
+  mu_register_all_mbox_formats ();
 
   /* Construct the mailbox_t, attach a notification and destroy  */
   {

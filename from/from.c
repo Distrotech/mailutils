@@ -116,15 +116,7 @@ main(int argc, char **argv)
   }
 
   /* Register the desire formats.  */
-  {
-    list_t bookie;
-    registrar_get_list (&bookie);
-    list_append (bookie, mbox_record);
-    list_append (bookie, path_record);
-    list_append (bookie, mh_record);
-    list_append (bookie, pop_record);
-    list_append (bookie, imap_record);
-  }
+  mu_register_all_mbox_formats ();
 
   if ((status = mailbox_create_default (&mbox, mailbox_name)) != 0)
     {

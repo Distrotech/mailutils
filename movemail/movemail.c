@@ -248,19 +248,9 @@ main (int argc, char **argv)
   
   /* Native Language Support */
   mu_init_nls ();
-  /* Register the desired formats.  */
-  {
-    list_t bookie;
-    registrar_get_list (&bookie);
-    list_append (bookie, mbox_record);
-    list_append (bookie, path_record);
-    list_append (bookie, pop_record);
-    list_append (bookie, imap_record);
-    list_append (bookie, mh_record);
-    /* Possible supported mailers.  */
-    list_append (bookie, sendmail_record);
-    list_append (bookie, smtp_record);
-  }
+  /* Register the desired mailbox formats.  */
+  mu_register_all_mbox_formats ();
+
   /* argument parsing */
 
   mu_error_set_print (movemail_error_printer);
