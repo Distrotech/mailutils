@@ -38,6 +38,7 @@
 #else
 # define _(String) (String)
 # define N_(String) String
+# define gettext(msgid) (msgid)
 # define dgettext(domain, msgid) (msgid)
 # define ngettext(sg,pl,cnt) (cnt == 1) ? (sg) : (pl)
 # define textdomain(Domain)
