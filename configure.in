@@ -55,6 +55,20 @@ AC_ARG_WITH(mail-rc,
   esac],
  [SITE_MAIL_RC="\$(sysconfdir)/mail.rc"])
 
+MU_CONF_MAILDIR=
+AC_ARG_WITH(maildir,
+ [  --with-maildir=PATH     use PATH instead of /var/spool/mail],
+ [case "$withval" in
+  /*/) MU_CONF_MAILDIR="\"${withval}\"";;
+  /*)  MU_CONF_MAILDIR="\"${withval}/\"";;
+  *:*[[/=]]) MU_CONF_MAILDIR="\"${withval}\"";;
+  *)  AC_MSG_ERROR(--with-maildir must be an absolute path or a valid URL);;
+  esac])
+
+if test "x$MU_CONF_MAILDIR" != x; then
+  AC_DEFINE_UNQUOTED(MU_CONF_MAILDIR,$MU_CONF_MAILDIR)
+fi
+
 use_dbm=no
 AC_ARG_WITH(gdbm,
  [  --with-gdbm             use GDBM],
@@ -142,7 +156,7 @@ if test "$ac_cv_func_fnmatch_works" = "no"; then
 fi
 AC_REPLACE_FUNCS(fgetpwent getpass setenv snprintf strtok_r strncasecmp strcasecmp \
  strsignal vasprintf)
-AC_CHECK_FUNCS(mkstemp sigaction sysconf getdelim vsyslog)
+AC_CHECK_FUNCS(mkstemp sigaction sysconf getdelim vsyslog setreuid setresuid seteuid)
 
 dnl Check for libraries
 AC_CHECK_FUNCS(argp_parse)
