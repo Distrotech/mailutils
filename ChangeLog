@@ -1,3 +1,18 @@
+2002-08-23  Sergey Poznyakoff
+
+	* testsuite/lib/mailutils.exp: Introduced -re flag
+	  to handle a pattern as a regular expression, and --
+	  flag to escape exact strings that actually happen
+	  to start with "-re".
+	  
+	* imap4d/testsuite/lib/imap4d.exp: Properly handle
+	  --re and -- flags.
+	  
+	* imap4d/testsuite/imap4d/examine.exp: Use -re to check
+	  uidvalidity value, as we can never be sure the seconds
+	  don't change between computing the uidvalidity value and
+	  running the test.
+
 2002-08-23  Sergey Poznyakoff  
 
 	* configure.ac: Check if crypt is declared.
