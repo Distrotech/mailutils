@@ -123,6 +123,15 @@ get_homedir (const char *user)
 static int
 user_mailbox_name (const char *user, char **mailbox_name)
 {
+  char *p;
+
+  p = strchr (mu_path_maildir, ':');
+  if (p && strncmp (mu_path_maildir, "mbox", p - mu_path_maildir))
+    {
+      *mailbox_name = strdup (mu_path_maildir);
+      return 0;
+    }
+  
 #ifdef USE_ENVIRON
   if (!user)
     user = (getenv ("LOGNAME")) ? getenv ("LOGNAME") : getenv ("USER");
@@ -221,7 +230,6 @@ tilde_expand (const char *file, char **buf)
     }
 
   free (path);
-  free (user);
   return *buf ? 0 : ENOMEM;
 }
 
