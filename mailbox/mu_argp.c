@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2001, 2002, 2003 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001, 2002, 2003, 2004 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -120,8 +120,10 @@ static struct argp_option mu_daemon_argp_option[] = {
    N_("Set idle timeout value to NUMBER seconds"), 0},
   {"transcript", 'x', NULL, 0,
    N_("output session transcript via syslog"), 0},
+  {"pidfile", 'P', N_("FILE"), 0,
+   N_("Set PID file"), 0},
   { NULL,      0, NULL, 0, NULL, 0 }
-};  
+};
 
 static error_t mu_common_argp_parser __P((int key, char *arg,
 					  struct argp_state *state));
@@ -520,7 +522,11 @@ mu_daemon_argp_parser (int key, char *arg, struct argp_state *state)
       p->mode = MODE_DAEMON;
       p->port = strtoul (arg, NULL, 10);
       break;
-      
+
+    case 'P':
+      p->pidfile = arg;
+      break;
+
     case 't':
       p->timeout = strtoul (arg, NULL, 10);
       break;
