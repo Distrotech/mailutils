@@ -182,8 +182,9 @@ main (int argc, char **argv)
     list_append (bookie, path_record);
     list_append (bookie, pop_record);
     list_append (bookie, imap_record);
-    /* Only use sendmail for mail ??  */
+    /* Possible supported mailers.  */
     list_append (bookie, sendmail_record);
+    list_append (bookie, smtp_record);
   }
 
   interactive = isatty (fileno(stdin));
@@ -252,6 +253,14 @@ main (int argc, char **argv)
   util_do_command ("set noSign");
   util_do_command ("set toplines=5");
   util_do_command ("set autoinc");
+
+  /* Set the default mailer to sendmail.  */
+  {
+    char *mailer_name = alloca (strlen ("sendmail:")
+				+ strlen (_PATH_SENDMAIL) + 1);
+    sprintf (mailer_name, "sendmail:%s", _PATH_SENDMAIL);
+    util_setenv ("sendmail", mailer_name, 0);
+  }
 
   /* GNU extensions to the environment, for sparky's sanity */
   util_do_command ("set mode=read");

@@ -452,23 +452,28 @@ util_screen_lines()
 
 
 /*
- * find environment entry var
+ * Find environment entry var
+
+ FIXME: We should probably call this util_getenv to be consitent with
+ util_printenv(), util_setenv() etc ..
  */
 struct mail_env_entry *
-util_find_env (char *variable)
+util_find_env (const char *variable)
 {
-  char *var = variable;
-  int len = strlen (var), need_free = 0;
+  /* Annoying, variable "ask" is equivalent to "asksub".  */
+  static const char *asksub = "asksub";
+  const char *var = variable;
+  int len = strlen (var);
   node *t;
 
   if (len < 1)
     return NULL;
 
+  /* Catch "ask" --> "asksub".  */
   if (len == strlen ("ask") && !strcmp ("ask", var))
     {
-      var = strdup ("asksub");
+      var = asksub;
       len = strlen (var);
-      need_free = 1;
     }
 
   if (environment == NULL)
@@ -486,8 +491,6 @@ util_find_env (char *variable)
       if (strlen (env_cursor->env_entry.var) == len &&
 	  !strcmp (var, env_cursor->env_entry.var))
 	{
-	  if (need_free)
-	    free (var);
 	  return &(env_cursor->env_entry);
 	}
     }
@@ -497,8 +500,6 @@ util_find_env (char *variable)
   env_cursor->env_entry.value = NULL;
   t = env_cursor;
   env_cursor = util_ll_add (env_cursor, 0);
-  if (need_free)
-    free (var);
   return &(t->env_entry);
 }
 
@@ -518,6 +519,46 @@ util_printenv (int set)
 	    fprintf (ofile, "=\"%s\"", env_cursor->env_entry.value);
 	  fprintf (ofile, "\n");
 	}
+    }
+  return 0;
+}
+
+/*
+ * Set environement
+ * The  util_setenv() function adds the variable name to the envi-
+ * ronment with the value value, if  name  does  not  already
+ * exist.   If  name  does exist in the environment, then its
+ * value is changed to value if  overwrite  is  non-zero;  if
+ * overwrite  is zero, then the value of name is not changed.
+ *
+ * A side effect of the code is if value is null the variable name
+ * will be unset.
+ */
+int
+util_setenv (const char *variable, const char *value, int overwrite)
+{
+  struct mail_env_entry *ep =  util_find_env (variable);
+  if (ep->set)
+    {
+      if (overwrite)
+	{
+	  ep->set = 0;
+	  if (ep->value)
+	    free (ep->value);
+	  ep->value = NULL;
+	  if (value)
+	    {
+	      ep->set = 1;
+	      ep->value = strdup (value);
+	    }
+	}
+    }
+  else
+    {
+      ep->set = 1;
+      if (ep->value)
+	free (ep->value);
+      ep->value = strdup (value);
     }
   return 0;
 }

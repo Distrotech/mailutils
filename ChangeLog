@@ -1,5 +1,35 @@
 2001-07-05  Alain Magloire
 
+	According to the man page:
+	"sendmail contains a command, possibly with options, that mailx
+	invokes to send mail. You must manually set the default for this
+	environment variable by editing ROOTDIR/etc/mailx.rc to specify the
+	mail agent of your choice. The default is sendmail, but it can be any
+	command that takes addresses on the command line and message contents
+	on standard input."
+
+	* mail/mail.c (main): Register smtp_record too as a mailer.
+	Set variable sendmail to _PATH_SENDMAIL as the default mailer.
+	* mail/mail.h: New proto util_setenv(), util_find_env()
+	change to be const char *.
+	* mail/send.c (msg_to_pipe): New function, open a pipe()
+	and write a message to it.
+	(mail_send0): Now create the mailer according to
+	util_find_env("sendmail")->value.  Use a pipe() if mailer_create()
+	fails.
+	* mail/set.c (mail_set): After free(entry->value) set the value
+	to NULL.
+	* mail/util.c (util_find_env): Change the prototype to be const.
+	Remove hack about need_free and use a static variable to hold
+	"asksub".
+	* mail/util.c (util_setenv): New function to set environment
+	model on libc call setenv().
+
+	* mailbox/message.c (message_sender): Set the default sender base on
+	the passwd entry.
+
+2001-07-05  Alain Magloire
+
 	We can send a message and if the address starts with '|'
 	the message is pipe to the cmd and if starts with '/' it is
 	save to a file.

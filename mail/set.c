@@ -47,6 +47,7 @@ mail_set (int argc, char **argv)
 	      entry->set = 0;
 	      if (entry->value)
 		free (entry->value);
+	      entry->value = NULL;
 	    }
 	  else if (i+1 < argc && argv[i+1][0] == '=')
 	    {

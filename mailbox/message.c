@@ -27,6 +27,7 @@
 #include <time.h>
 #include <string.h>
 #include <ctype.h>
+#include <pwd.h>
 
 #include "md5-rsa.h"
 
@@ -917,13 +918,21 @@ message_sender (envelope_t envelope, char *buf, size_t len, size_t *pnwrite)
   else if (status == EAGAIN)
     return status;
 
-  /* oops */
-  n = (7 > len) ? len: 7;
-  if (buf && len > 0)
-    {
-      memcpy (buf, "unknown", n);
-      buf [n] = '\0';
-    }
+  /* oops! We are still here */
+  {
+    struct passwd *pw;
+    const char *sender;
+    pw = getpwuid (getuid ());
+    sender = (pw) ? pw->pw_name : "unknown";
+    n = strlen (sender);
+    if (buf && len > 0)
+      {
+	len--; /* One for the null.  */
+	n = (n < len) ? n : len;
+	memcpy (buf, pw->pw_name, n);
+	buf[n] = '\0';
+      }
+  }
 
   if (pnwrite)
     *pnwrite = n;

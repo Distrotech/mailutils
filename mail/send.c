@@ -25,6 +25,8 @@
 #include "mail.h"
 
 static int isfilename __P ((const char *));
+static void msg_to_pipe __P ((const char *cmd, message_t msg));
+
 /*
  * m[ail] address...
  if address is starting with
@@ -113,12 +115,20 @@ free_env_headers (struct send_environ *env)
    If the variable "record" is set, the outgoing message is
    saved after being sent. If "save_to" argument is non-zero,
    the name of the save file is derived from "to" argument. Otherwise,
-   it is taken from the value of "record" variable. */
+   it is taken from the value of "record" variable.
+
+   sendmail
+
+   contains a command, possibly with options, that mailx invokes to send
+   mail. You must manually set the default for this environment variable
+   by editing ROOTDIR/etc/mailx.rc to specify the mail agent of your
+   choice. The default is sendmail, but it can be any command that takes
+   addresses on the command line and message contents on standard input.
+*/
 
 int
 mail_send0 (struct send_environ *env, int save_to)
 {
-  size_t n = 0;
   int done = 0;
   int fd;
   char *filename;
@@ -220,6 +230,7 @@ mail_send0 (struct send_environ *env, int save_to)
       free (buf);
     }
 
+  /* If interrupted dumpt the file to dead.letter.  */
   if (int_cnt)
     {
       if (util_find_env ("save")->set)
@@ -259,17 +270,6 @@ mail_send0 (struct send_environ *env, int save_to)
       mailer_t mailer;
       message_t msg = NULL;
       int status;
-      char *mailer_name = alloca (strlen ("sendmail:")
-				  + strlen (_PATH_SENDMAIL) + 1);
-      sprintf (mailer_name, "sendmail:%s", _PATH_SENDMAIL);
-      if ((status = mailer_create (&mailer, mailer_name)) != 0
-          || (status = mailer_open (mailer, MU_STREAM_RDWR)) != 0)
-        {
-          util_error ("%s: %s", mailer_name, strerror (status));
-	  remove (filename);
-	  free (filename);
-          return 1;
-        }
       message_create (&msg, NULL);
 
       /* Fill the header.  */
@@ -284,7 +284,7 @@ mail_send0 (struct send_environ *env, int save_to)
 	  header_set_value (header, MU_HEADER_BCC , strdup (env->bcc), 0);
 	if (env->subj && *env->subj != '\0')
 	  header_set_value (header, MU_HEADER_SUBJECT, strdup (env->subj), 1);
-	header_set_value (header, "X-Mailer", strdup (argp_program_version), 1);
+	header_set_value (header, "X-Mailer", strdup(argp_program_version), 1);
       }
 
       /* Fill the body.  */
@@ -293,6 +293,7 @@ mail_send0 (struct send_environ *env, int save_to)
 	stream_t stream = NULL;
 	off_t offset = 0;
 	char *buf = NULL;
+	size_t n = 0;
 	message_get_body (msg, &body);
 	body_get_stream (body, &stream);
 	while (getline (&buf, &n, file) >= 0)
@@ -325,10 +326,7 @@ mail_send0 (struct send_environ *env, int save_to)
       if (savefile)
 	free (savefile);
 
-      /* Send the message.  */
-      mailer_send_message (mailer, msg);
-
-      /* Save the message to files or pipes  */
+      /* Check if we need to save the message to files or pipes.  */
       if (env->outfiles)
 	{
 	  int i;
@@ -336,27 +334,7 @@ mail_send0 (struct send_environ *env, int save_to)
 	    {
 	      /* Pipe to a cmd.  */
 	      if (env->outfiles[i][0] == '|')
-		{
-		  FILE *fp = popen (&(env->outfiles[i][1]), "w");
-		  if (fp)
-		    {
-		      stream_t stream = NULL;
-		      char buffer[512];
-		      off_t off = 0;
-		      message_get_stream (msg, &stream);
-		      while (stream_read (stream, buffer,
-					  sizeof (buffer) - 1, off, &n) == 0
-			     && n != 0)
-			{
-			  buffer[n] = '\0';
-			  fprintf (fp, "%s", buffer);
-			  off += n;
-			}
-		      fclose (fp);
-		    }
-		  else
-		    util_error ("Piping %s failed", env->outfiles[i]);
-		}
+		msg_to_pipe (&(env->outfiles[i][1]), msg);
 	      /* Save to a file.  */
 	      else
 		{
@@ -379,8 +357,33 @@ mail_send0 (struct send_environ *env, int save_to)
 		}
 	    }
 	}
+
+      /* Do we need to Send the message on the wire?  */
+      if ((env->to && *env->to != '\0')
+	  || (env->cc && *env->cc != '\0')
+	  || (env->bcc && *env->bcc != '\0'))
+	{
+	  if (util_find_env ("sendmail")->set)
+	    {
+	      char *sendmail = util_find_env ("sendmail")->value;
+	      status = mailer_create (&mailer, sendmail);
+	      if (status == 0)
+		{
+		  status = mailer_open (mailer, MU_STREAM_RDWR);
+		  if (status == 0)
+		    {
+		      mailer_send_message (mailer, msg);
+		      mailer_close (mailer);
+		    }
+		  mailer_destroy (&mailer);
+		}
+	      if (status != 0)
+		msg_to_pipe (sendmail, msg);
+	    }
+	  else
+	    util_error ("variable sendmail not set: no mailer");
+	}
       message_destroy (&msg, NULL);
-      mailer_destroy (&mailer);
       remove (filename);
       free (filename);
       return 0;
@@ -400,4 +403,30 @@ isfilename (const char *p)
     if (*p == '/' || *p == '.' || *p == '|')
       return 1;
   return 0;
+}
+
+/* FIXME: Should probably be in util.c.  */
+/* Call pope(cmd) and write the message to it.  */
+static void
+msg_to_pipe (const char *cmd, message_t msg)
+{
+  FILE *fp = popen (cmd, "w");
+  if (fp)
+    {
+      stream_t stream = NULL;
+      char buffer[512];
+      off_t off = 0;
+      int n = 0;
+      message_get_stream (msg, &stream);
+      while (stream_read (stream, buffer, sizeof (buffer) - 1, off, &n) == 0
+	     && n != 0)
+	{
+	  buffer[n] = '\0';
+	  fprintf (fp, "%s", buffer);
+	  off += n;
+	}
+      fclose (fp);
+    }
+  else
+    util_error ("Piping %s failed", cmd);
 }
