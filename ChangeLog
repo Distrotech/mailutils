@@ -1,3 +1,27 @@
+2001-06-26 Sergey Poznyakoff
+	* mail/util.c:
+		Added extra argument to util_msglist_command(), controlling
+		whether it should move the cursor to the last message
+		processed.
+	* mail/delete.c,mail/dp.c,mail/edit.c,mail/from.c,mail/hold.c,
+	  mail/mbox.c,mail/print.c,mail/reply.c,mail/size.c,mail/top.c,
+	  mail/undelete.c,mail/util.c,mail/visual.c: Likewise.
+	* mail/util.c: util_screen_lines() function.
+		util_outfolder_name().
+		util_save_outgoing()
+	* mail/z.c: removed z_lines() in favor of util_screen_lines().
+	* mail/headers.c: use util_screen_lines(). 
+	* mail/touch.c: Initial implementation. Simply calls mail_mbox.
+		Maybe the table.c entry should point to mail_mbox instead?
+	* mail/write.c: use util_fullpath(). 
+	* mail/send.c: call util_save_outgoing() to preserve sent message.
+		Set umask 077 before calling mkstemp().
+	* mail/folders.c: Use $LISTER.
+	* mail/followup.c: Implemented.
+	* mail/from.c: Changed output format.
+	* mail/mbox.c: move mail_mbox_commit to quit.c.
+	* mail/quit.c: Likewise. Honour "keepsave" variable.
+
 2001-06-25  Alain Magloire
 
 	* doc/Makefile.am: add {c-api,framework,programs}.texi EXTRA_DIST
