@@ -1,5 +1,5 @@
 @c This is part of the GNU Mailutils manual.
-@c Copyright (C) 1999,2000,2001,2002 Free Software Foundation, Inc.
+@c Copyright (C) 1999,2000,2001,2002,2003 Free Software Foundation, Inc.
 @c See file mailutils.texi for copying conditions.
 @comment *******************************************************************
 
@@ -201,6 +201,7 @@ or single quotes).
 * address::            Specifies the default email address and domain.
 * daemon::             Options common for daemon programs.
 * auth::               Authentication-specific options.
+* encryption::         Encryption options.
 * logging::            Logging control options.
 * sieve: sieve group.  Sieve specific options
 * config sample::      A sample configuration file.
@@ -382,6 +383,27 @@ Name or IP of MySQL server to connect to.
 Name of the database to connect to.
 @item --sql-port @var{number}
 Port to use
+@end table
+
+@node encryption
+@subsection encryption --- TLS/SSL encryption options.
+@cindex :encryption
+
+These options control TLS/SSL encryption in @command{imap4d}
+and @command{pop3d} daemons.
+
+@table @option
+@item --ssl-cert @var{file}
+This option specifies the file name of the server side SSL certificate
+(accepts PEM format).
+@item --ssl-key @var{file}
+This option specifies the file name of the server side private SSL key
+(accepts PEM format). The key must be protected with 0600 file permissions
+(u=rw,g=,o=), otherwise @command{imap4d} or @command{pop3d} daemons will
+refuse to support TLS/SSL encryption.
+@item --ssl-cafile @var{file}
+This option specifies a file containing the list of trusted CAs (PEM list)
+in order to verify client's certificates. This option is not required.
 @end table
 
 @node logging
