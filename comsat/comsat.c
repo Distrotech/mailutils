@@ -47,22 +47,26 @@ typedef struct utmp UTMP;
 
 #define MAX_TTY_SIZE (sizeof (PATH_TTY_PFX) + sizeof (((UTMP*)0)->ut_line))
 
-static char short_options[] = "c:dhim:p:t:v";
-static struct option long_options[] =
+const char *argp_program_version = "comsatd (" PACKAGE ") " VERSION;
+const char *argp_program_bug_address = "<bug-mailutils@gnu.org>";
+static char doc[] = "GNU comsatd";
+
+static struct argp_option options[] = 
 {
-  {"config", required_argument, 0, 'c'},
-  {"daemon", no_argument, 0, 'd'},
-  {"help", no_argument, 0, 'h'},
-  {"inetd", no_argument, 0, 'i'},
-  {"maildir", required_argument, 0, 'm'},
-  {"port", required_argument, 0, 'p'},
-  {"timeout", required_argument, 0, 't'},
-  {"version", no_argument, 0, 'v'},
-  {0, 0, 0, 0}
+  {"config", 'c', "FILE", 0, "Read configuration from FILE", 0},
+  { NULL,      0, NULL, 0, NULL, 0 }
 };
 
-#define MODE_INETD 0
-#define MODE_DAEMON 1
+static error_t comsatd_parse_opt (int key, char *arg, struct argp_state *state);
+
+static struct argp argp = {
+  options,
+  comsatd_parse_opt,
+  NULL, 
+  doc,
+  mu_daemon_argp_child,
+  NULL, NULL
+};
 
 #define SUCCESS 0
 #define NOT_HERE 1
@@ -72,13 +76,16 @@ static struct option long_options[] =
 # define MAXHOSTNAMELEN 64
 #endif
 
-int mode = MODE_INETD;
-int port = 512; /* Default biff port */
-int timeout = 0;
+struct daemon_param daemon_param = {
+  MODE_INTERACTIVE,     /* Start in interactive (inetd) mode */
+  20,                   /* Default maximum number of children.
+			   Currently unused */
+  512,                  /* Default biff port */
+  0,                    /* Default timeout */
+};
 int maxlines = 5;
 char hostname[MAXHOSTNAMELEN];
 const char *username;
-const char *maildir = MU_PATH_MAILDIR;
 
 static void comsat_init (void);
 static void comsat_daemon_init (void);
@@ -92,55 +99,35 @@ static void change_user (const char *user);
 
 static int xargc;
 static char **xargv;
+char *config_file = NULL;
+
+static error_t
+comsatd_parse_opt (int key, char *arg, struct argp_state *state)
+{
+  switch (key)
+    {
+    case ARGP_KEY_INIT:
+      state->child_inputs[0] = state->input;
+      break;
+      
+    case 'c':
+      config_file = arg;
+      break;
+      
+    default:
+      return ARGP_ERR_UNKNOWN;
+    }
+  return 0;
+}
+
 
 int
 main(int argc, char **argv)
 {
   int c;
-  char *config_file = NULL;
-
-  while ((c = getopt_long (argc, argv, short_options, long_options, NULL))
-	 != -1)
-    {
-      switch (c)
-	{
-	case 'c':
-	  config_file = optarg;
-	  break;
-
-	case 'd':
-	  mode = MODE_DAEMON;
-	  break;
-
-	case 'h':
-	  help ();
-	  /*NOTREACHED*/
-
-	case 'i':
-	  mode = MODE_INETD;
-	  break;
-
-	case 'm':
-	  maildir = optarg;
-	  break;
-	  
-	case 'p':
-	  port = strtoul (optarg, NULL, 10);
-	  break;
-
-	case 't':
-	  timeout = strtoul (optarg, NULL, 10);
-	  break;
-
-	case 'v':
-	  printf (IMPL " ("PACKAGE " " VERSION ")\n");
-	  exit (EXIT_SUCCESS);
-	  break;
-
-	default:
-	  exit (EXIT_FAILURE);
-	}
-    }
+  
+  mu_create_argcv (argc, argv, &argc, &argv);
+  argp_parse (&argp, argc, argv, 0, 0, &daemon_param);
 
   maildir = mu_normalize_maildir (maildir);
   if (!maildir)
@@ -149,7 +136,7 @@ main(int argc, char **argv)
       exit (1);
     }
 
-  if (timeout > 0 && mode == MODE_DAEMON)
+  if (daemon_param.timeout > 0 && daemon_param.mode == MODE_DAEMON)
     {
       fprintf (stderr, "--timeout and --daemon are incompatible\n");
       exit (EXIT_FAILURE);
@@ -157,7 +144,7 @@ main(int argc, char **argv)
 
   comsat_init ();
 
-  if (mode == MODE_DAEMON)
+  if (daemon_param.mode == MODE_DAEMON)
     {
       /* Preserve invocation arguments */
       xargc = argc;
@@ -174,8 +161,8 @@ main(int argc, char **argv)
 
   chdir ("/");
 
-  if (mode == MODE_DAEMON)
-    comsat_daemon (port);
+  if (daemon_param.mode == MODE_DAEMON)
+    comsat_daemon (daemon_param.port);
   else
     c = comsat_main (0);
 

@@ -16,112 +16,87 @@
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #include "imap4d.h"
-
 #ifdef HAVE_MYSQL
 # include "../MySql/MySql.h"
 #endif
 
 FILE *ofile;
-unsigned int timeout = 1800; /* RFC2060: 30 minutes, if enable.  */
 mailbox_t mbox;
 char *homedir;
-char *maildir = MU_PATH_MAILDIR;
 int state = STATE_NONAUTH;
+
+struct daemon_param daemon_param = {
+  MODE_INTERACTIVE,     /* Start in interactive (inetd) mode */
+  20,                   /* Default maximum number of children */
+  143,                  /* Standard IMAP4 port */
+  1800                  /* RFC2060: 30 minutes. */ 
+};
 
 /* Number of child processes.  */
 volatile size_t children;
 
-static struct option long_options[] =
+const char *argp_program_version = "imap4d (" PACKAGE ") " VERSION;
+const char *argp_program_bug_address = "<bug-mailutils@gnu.org>";
+static char doc[] = "GNU imap4d -- the IMAP4D daemon";
+
+static struct argp_option options[] = 
 {
-  {"daemon", optional_argument, 0, 'd'},
-  {"help", no_argument, 0, 'h'},
-  {"inetd", no_argument, 0, 'i'},
-  {"maildir", required_argument, 0, 'm'},
-  {"port", required_argument, 0, 'p'},
-  {"other-namespace", required_argument, 0, 'O'},
-  {"shared-namespace", required_argument, 0, 'S'},
-  {"timeout", required_argument, 0, 't'},
-  {"version", no_argument, 0, 'v'},
-  {0, 0, 0, 0}
+  {"other-namespace", 'O', "PATHLIST", 0,
+   "set the `other' namespace", 0},
+  {"shared-namespace", 'S', "PATHLIST", 0,
+   "set the `shared' namespace", 0},
+  { NULL,      0, NULL, 0, NULL, 0 }
 };
 
-const char *short_options ="d::him:p:t:vO:P:S:";
+static error_t imap4d_parse_opt (int key, char *arg, struct argp_state *state);
+
+static struct argp argp = {
+  options,
+  imap4d_parse_opt,
+  NULL, 
+  doc,
+  mu_daemon_argp_child,
+  NULL, NULL
+};
 
 static int imap4d_mainloop      __P ((int, int));
 static void imap4d_daemon_init  __P ((void));
 static void imap4d_daemon       __P ((unsigned int, unsigned int));
 static int imap4d_mainloop      __P ((int, int));
-static void imap4d_usage       __P ((char *));
 
-#ifndef DEFMAXCHILDREN
-# define DEFMAXCHILDREN 20   /* Default maximum number of children */
-#endif
+static error_t
+imap4d_parse_opt (int key, char *arg, struct argp_state *state)
+{
+    switch (key)
+      {
+      case ARGP_KEY_INIT:
+       	state->child_inputs[0] = state->input;
+	break;
+	
+      case 'O':
+	set_namespace (NS_OTHER, arg);
+	break;
+	
+      case 'S':
+	set_namespace (NS_SHARED, arg);
+	break;
+	
+    default:
+      return ARGP_ERR_UNKNOWN;
+    }
+  return 0;
+}
 
 int
 main (int argc, char **argv)
 {
   struct group *gr;
-  static int mode = INTERACTIVE;
-  size_t maxchildren = DEFMAXCHILDREN;
-  int c = 0;
   int status = EXIT_SUCCESS;
-  unsigned int port;
 
-  port = 143;      /* Default IMAP4 port.  */
-  timeout = 1800;  /* RFC2060: 30 minutes, if enable.  */
   state = STATE_NONAUTH; /* Starting state in non-auth.  */
 
-  while ((c = getopt_long (argc, argv, short_options, long_options, NULL))
-         != -1)
-    {
-      switch (c)
-        {
-        case 'd':
-          mode = DAEMON;
-          if (optarg)
-            maxchildren = strtoul (optarg, NULL, 10);
-          if (maxchildren == 0)
-            maxchildren = DEFMAXCHILDREN;
-          break;
-
-        case 'h':
-          imap4d_usage (argv[0]);
-          break;
-
-        case 'i':
-          mode = INTERACTIVE;
-          break;
-
-	case 'm':
-	  maildir = optarg;
-	  break;
-	  
-        case 'p':
-          mode = DAEMON;
-          port = strtoul (optarg, NULL, 10);
-          break;
-
-	case 'O':
-	  set_namespace (NS_OTHER, optarg);
-	  break;
-
-	case 'S':
-	  set_namespace (NS_SHARED, optarg);
-	  break;
-
-        case 't':
-          timeout = strtoul (optarg, NULL, 10);
-          break;
-
-        case 'v':
-          printf ("GNU imap4 daemon" "("PACKAGE " " VERSION ")\n");
-          exit (0);
-          break;
-
-        default:
-          break;
-        }
-    }
+  mu_create_argcv (argc, argv, &argc, &argv);
+  argp_parse (&argp, argc, argv, 0, 0, &daemon_param);
 
   maildir = mu_normalize_maildir (maildir);
   if (!maildir)
@@ -172,7 +147,7 @@ main (int argc, char **argv)
   /*signal (SIGPIPE, SIG_IGN); */
   signal (SIGABRT, imap4d_signal);
 
-  if (mode == DAEMON)
+  if (daemon_param.mode == MODE_DAEMON)
     imap4d_daemon_init ();
   else
     {
@@ -181,7 +156,7 @@ main (int argc, char **argv)
     }
 
   /* Set up for syslog.  */
-  openlog ("gnu-imap4d", LOG_PID, LOG_FACILITY);
+  openlog ("gnu-imap4d", LOG_PID, log_facility);
 
   /* Redirect any stdout error from the library to syslog, they
      should not go to the client.  */
@@ -190,8 +165,8 @@ main (int argc, char **argv)
   umask (S_IROTH | S_IWOTH | S_IXOTH);  /* 007 */
 
   /* Actually run the daemon.  */
-  if (mode == DAEMON)
-    imap4d_daemon (maxchildren, port);
+  if (daemon_param.mode == MODE_DAEMON)
+    imap4d_daemon (daemon_param.maxchildren, daemon_param.port);
   /* exit (0) -- no way out of daemon except a signal.  */
   else
     status = imap4d_mainloop (fileno (stdin), fileno (stdout));
@@ -353,30 +328,5 @@ imap4d_daemon (unsigned int maxchildren, unsigned int port)
     }
 }
 
-/* Prints out usage information and exits the program */
-
-static void
-imap4d_usage (char *argv0)
-{
-  printf ("Usage: %s [OPTIONS]\n", argv0);
-  printf ("Runs the GNU IMAP4 daemon.\n\n");
-  printf ("  -d, --daemon[=MAXCHILDREN] runs in daemon mode with a maximum\n");
-  printf ("                           of MAXCHILDREN child processes\n");
-  printf ("                           MAXCHILDREN defaults to %d\n",
-	  DEFMAXCHILDREN);
-  printf ("  -h, --help               display this help and exit\n");
-  printf ("  -i, --inetd              runs in inetd mode (default)\n");
-  printf ("  -p, --port=PORT          specifies port to listen on, implies -d\n"
-);
-  printf ("                           defaults to 143, which need not be specified\n");
-  printf ("  -m, --maildir=PATH       set path to the mailspool directory\n");
-  printf ("  -O, --other-namespace=PATHLIST  sets the `other' namespace\n");
-  printf ("  -S, --shared-namespace=PATHLIST sets the `shared' namespace\n");
-  printf ("  -t, --timeout=TIMEOUT    sets idle timeout to TIMEOUT seconds\n");
-  printf ("                           TIMEOUT default is 1800 (30 minutes)\n");
-  printf ("  -v, --version            display version information and exit\n");
-  printf ("\nReport bugs to bug-mailutils@gnu.org\n");
-  exit (0);
-}
 
 

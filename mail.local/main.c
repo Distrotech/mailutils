@@ -22,7 +22,6 @@ int multiple_delivery;
 int ex_quota_tempfail;
 int exit_code = EX_OK;
 uid_t uid;
-char *maildir = MU_PATH_MAILDIR;
 char *quotadbname = NULL;
 int lock_timeout = 300;
 
@@ -40,73 +39,86 @@ void guess_retval (int ec);
 void mailer_err (char *fmt, ...);
 void notify_biff (mailbox_t mbox, char *name, size_t size);
 
-char short_opts[] = "hf:Llm:q:r:s:x::vW;";
+const char *argp_program_version = "mail.local (" PACKAGE ") " VERSION;
+const char *argp_program_bug_address = "<bug-mailutils@gnu.org>";
+static char doc[] = "GNU mail.local -- the local MDA";
+static char args_doc[] = "recipient [recipient ...]";
 
-static struct option long_opts[] = {
-  { "ex-multiple-delivery-success", no_argument, &multiple_delivery, 1 },
-  { "ex-quota-tempfail", no_argument, &ex_quota_tempfail, 1 },
-  { "from", required_argument, 0, 'f' },
-  { "help", no_argument, 0, 'h' },
-  { "license", no_argument, 0, 'L' },
-  { "maildir", required_argument, 0, 'm' },
-  { "quota-db", required_argument, 0, 'q' },
-  { "source", required_argument, 0, 's' },
-  { "timeout", required_argument, 0, 't' },
-  { "debug", optional_argument, 0, 'x' },
-  { "version", no_argument, 0, 'v' },
-  { 0, 0, 0, 0 }
-};
-    
+#define ARG_MULTIPLE_DELIVERY 1
+#define ARG_QUOTA_TEMPFAIL 2
 
-int
-main (int argc, char *argv[])
+static struct argp_option options[] = 
 {
-  int c;
-  FILE *fp;
-  char *from = NULL;
-  char *progfile_pattern = NULL;
-  char *tempfile = NULL;
-  
-  /* Preparative work: close inherited fds, force a reasonable umask
-     and prepare a logging. */
-  close_fds ();
-  umask (0077);
-
-  openlog ("mail.local", LOG_PID, LOG_FACILITY);
-  mu_error_set_print (mu_syslog_error_printer);
-  
-  uid = getuid ();
-  while ((c = getopt_long (argc, argv, short_opts, long_opts, NULL)) != EOF)
-    switch (c)
-      {
-      case 0: /* option already handled */
-	break;
-      case 'r':
-      case 'f':
-	if (from != NULL)
-	  {
-	    mu_error ("multiple --from options");
-	    return EX_USAGE;
-	  }
-	from = optarg;
-	break;
-
-      case 'h':
-	print_help ();
-	break;
-	
-      case 'L':
-	print_license ();
-	break;
-
-      case 'm':
-	maildir = optarg;
-	break;
-		
+  { "ex-multiple-delivery-success", ARG_MULTIPLE_DELIVERY, NULL, 0,
+    "Don't return errors when delivering to multiple recipients", 0 },
+  { "ex-quota-tempfail", ARG_QUOTA_TEMPFAIL, NULL, 0,
+    "Return temporary failure if disk or mailbox quota is exceeded", 0 },
+  { "from", 'f', "EMAIL", 0,
+    "Specify the sender's name" },
+  { NULL, 'r', NULL, OPTION_ALIAS, NULL },
 #ifdef USE_DBM
-      case 'q':
-	quotadbname = optarg;
-	break;
+  { "quota-db", 'q', "FILE", 0,
+    "Specify path to quota database", 0 },
+#endif
+#ifdef WITH_GUILE
+  { "source", 's', "PATTERN", 0,
+    "Set name pattern for user-defined mail filters", 0 },
+#endif
+  { "debug", 'x',
+#ifdef WITH_GUILE
+    "{NUMBER|guile}",
+#else
+    "NUMBER",
+#endif
+    0,
+    "Enable debugging", 0 },
+  { "timeout", 't', "NUMBER", 0,
+    "Set timeout for acquiring the lockfile" },
+
+  { NULL,      0, NULL, 0, NULL, 0 }
+};
+
+static error_t parse_opt (int key, char *arg, struct argp_state *state);
+
+static struct argp argp = {
+  options,
+  parse_opt,
+  args_doc, 
+  doc,
+  mu_common_argp_child,
+  NULL, NULL
+};
+
+char *from = NULL;
+char *progfile_pattern = NULL;
+
+static error_t
+parse_opt (int key, char *arg, struct argp_state *state)
+{
+  switch (key)
+    {
+    case ARG_MULTIPLE_DELIVERY:
+      multiple_delivery = 1;
+      break;
+
+    case ARG_QUOTA_TEMPFAIL:
+      ex_quota_tempfail = 1;
+      break;
+
+    case 'r':
+    case 'f':
+      if (from != NULL)
+	{
+	  mu_error ("multiple --from options");
+	  return EX_USAGE;
+	}
+      from = arg;
+      break;
+
+#ifdef USE_DBM
+    case 'q':
+      quotadbname = arg;
+      break;
 #endif
 
 #ifdef WITH_GUILE	
@@ -127,7 +139,7 @@ main (int argc, char *argv[])
 	      debug_guile = 1;
 	    else
 #endif
-	    debug_level = strtoul (optarg, NULL, 0);
+	      debug_level = strtoul (optarg, NULL, 0);
 	  }
 	else
 	  {
@@ -137,17 +149,38 @@ main (int argc, char *argv[])
 #endif
 	  }
 	break;
-	
-      case 'v':
-	print_version ();
-	break;
-	
-      default:
-	return EX_USAGE;
-      }
 
-  argc -= optind;
-  argv += optind;
+    default:
+      return ARGP_ERR_UNKNOWN;
+
+    case ARGP_KEY_ERROR:
+      exit (EX_USAGE);
+    }
+  return 0;
+}
+
+int
+main (int argc, char *argv[])
+{
+  FILE *fp;
+  char *tempfile = NULL;
+  int arg_index;
+  
+  /* Preparative work: close inherited fds, force a reasonable umask
+     and prepare a logging. */
+  close_fds ();
+  umask (0077);
+
+  mu_create_argcv (argc, argv, &argc, &argv);
+  argp_parse (&argp, argc, argv, 0, &arg_index, NULL);
+  
+  openlog ("mail.local", LOG_PID, log_facility);
+  mu_error_set_print (mu_syslog_error_printer);
+  
+  uid = getuid ();
+
+  argc -= arg_index;
+  argv += arg_index;
 
   if (!argc)
     print_help ();
@@ -729,31 +762,5 @@ static char help_message[] =
   exit (0);
 }
 
-void
-print_license ()
-{
-  static char license_text[] =
-    "   This program is free software; you can redistribute it and/or modify\n"
-    "   it under the terms of the GNU General Public License as published by\n"
-    "   the Free Software Foundation; either version 2, or (at your option)\n"
-    "   any later version.\n"
-    "\n"
-    "   This program is distributed in the hope that it will be useful,\n"
-    "   but WITHOUT ANY WARRANTY; without even the implied warranty of\n"
-    "   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n"
-    "   GNU General Public License for more details.\n"
-    "\n"
-    "   You should have received a copy of the GNU General Public License\n"
-    "   along with this program; if not, write to the Free Software\n"
-    "   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.\n";
-    printf ("%s", license_text);
-    exit (0);
-}
 
-void
-print_version ()
-{
-  printf ("mail.local ("PACKAGE " " VERSION ")\n");
-  exit (0);
-}
 

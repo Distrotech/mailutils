@@ -22,95 +22,49 @@
 #endif
 
 mailbox_t mbox;
-unsigned int timeout;
 int state;
 char *username;
-char *maildir = MU_PATH_MAILDIR;
 FILE *ifile;
 FILE *ofile;
 char *md5shared;
-/* Number of child processes.  */
-volatile size_t children;
 
-static struct option long_options[] =
-{
-  {"daemon", optional_argument, 0, 'd'},
-  {"help", no_argument, 0, 'h'},
-  {"inetd", no_argument, 0, 'i'},
-  {"maildir", required_argument, 0, 'm'},
-  {"port", required_argument, 0, 'p'},
-  {"timeout", required_argument, 0, 't'},
-  {"version", no_argument, 0, 'v'},
-  {0, 0, 0, 0}
+struct daemon_param daemon_param = {
+  MODE_INTERACTIVE,     /* Start in interactive (inetd) mode */
+  20,                   /* Default maximum number of children */
+  110,                  /* Standard POP3 port */
+  600                   /* Idle timeout */
 };
 
-const char *short_options = "d::him:p:t:v";
+/* Number of child processes.  */
+volatile size_t children;
 
 static int pop3d_mainloop       __P ((int, int));
 static void pop3d_daemon_init   __P ((void));
 static void pop3d_daemon        __P ((unsigned int, unsigned int));
 static void pop3d_usage         __P ((char *));
 
-#ifndef DEFMAXCHILDREN
-# define DEFMAXCHILDREN 10   /* Default maximum number of children */
-#endif
+const char *argp_program_version = "pop3d (" PACKAGE ") " VERSION;
+const char *argp_program_bug_address = "<bug-mailutils@gnu.org>";
+static char doc[] = "GNU pop3d -- the POP3 daemon";
+
+static struct argp argp = {
+  NULL,
+  NULL,
+  NULL, 
+  doc,
+  mu_daemon_argp_child,
+  NULL, NULL
+};
+
 
 int
 main (int argc, char **argv)
 {
   struct group *gr;
-  static int mode = INTERACTIVE;
-  size_t maxchildren = DEFMAXCHILDREN;
-  int c = 0;
   int status = OK;
-  unsigned int port;
   
-  port = 110;			/* Default POP3 port.  */
-  timeout = 600;		/* Default timeout of 600.  */
-
-  while ((c = getopt_long (argc, argv, short_options, long_options, NULL))
-	 != -1)
-    {
-      switch (c)
-	{
-	case 'd':
-	  mode = DAEMON;
-	  if (optarg)
-	    maxchildren = strtoul (optarg, NULL, 10);
-	  if (maxchildren == 0)
-	    maxchildren = DEFMAXCHILDREN;
-	  break;
-
-	case 'h':
-	  pop3d_usage (argv[0]);
-	  break;
-
-	case 'i':
-	  mode = INTERACTIVE;
-	  break;
-
-	case 'm':
-	  maildir = optarg;
-	  break;
-	  
-	case 'p':
-	  mode = DAEMON;
-	  port = strtoul (optarg, NULL, 10);
-	  break;
-
-	case 't':
-	  timeout = strtoul (optarg, NULL, 10);
-	  break;
-
-	case 'v':
-	  printf (IMPL " ("PACKAGE " " VERSION ")\n");
-	  exit (EXIT_SUCCESS);
-	  break;
-
-	default:
-	  break;
-	}
-    }
+  mu_create_argcv (argc, argv, &argc, &argv);
+  argp_parse (&argp, argc, argv, 0, 0, &daemon_param);
 
   maildir = mu_normalize_maildir (maildir);
   if (!maildir)
@@ -162,7 +116,7 @@ main (int argc, char **argv)
   signal (SIGPIPE, pop3d_signal);
   signal (SIGABRT, pop3d_signal);
 
-  if (mode == DAEMON)
+  if (daemon_param.mode == MODE_DAEMON)
     pop3d_daemon_init ();
   else
     {
@@ -171,7 +125,7 @@ main (int argc, char **argv)
     }
 
   /* Set up for syslog.  */
-  openlog ("gnu-pop3d", LOG_PID, LOG_FACILITY);
+  openlog ("gnu-pop3d", LOG_PID, log_facility);
   /* Redirect any stdout error from the library to syslog, they
      should not go to the client.  */
   mu_error_set_print (mu_syslog_error_printer);
@@ -179,8 +133,8 @@ main (int argc, char **argv)
   umask (S_IROTH | S_IWOTH | S_IXOTH);	/* 007 */
 
   /* Actually run the daemon.  */
-  if (mode == DAEMON)
-    pop3d_daemon (maxchildren, port);
+  if (daemon_param.mode == MODE_DAEMON)
+    pop3d_daemon (daemon_param.maxchildren, daemon_param.port);
   /* exit (EXIT_SUCCESS) -- no way out of daemon except a signal.  */
   else
     status = pop3d_mainloop (fileno (stdin), fileno (stdout));
@@ -451,26 +405,6 @@ pop3d_daemon (unsigned int maxchildren, unsigned int port)
     }
 }
 
-/* Prints out usage information and exits the program */
 
-static void
-pop3d_usage (char *argv0)
-{
-  printf ("Usage: %s [OPTIONS]\n", argv0);
-  printf ("Runs the GNU POP3 daemon.\n\n");
-  printf ("  -d, --daemon=MAXCHILDREN runs in daemon mode with a maximum\n");
-  printf ("                           of MAXCHILDREN child processes\n");
-  printf ("  -h, --help               display this help and exit\n");
-  printf ("  -i, --inetd              runs in inetd mode (default)\n");
-  printf ("  -m, --maildir=PATH       sets path to the mailspool directory\n");
-  printf ("  -p, --port=PORT          specifies port to listen on, implies -d\n"
-);
-  printf ("                           defaults to 110, which need not be specified\n");
-  printf ("  -t, --timeout=TIMEOUT    sets idle timeout to TIMEOUT seconds\n");
-  printf ("                           TIMEOUT default is 600 (10 minutes)\n");
-  printf ("  -v, --version            display version information and exit\n");
-  printf ("\nReport bugs to bug-mailutils@gnu.org\n");
-  exit (EXIT_SUCCESS);
-}
 
 
