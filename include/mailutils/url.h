@@ -38,6 +38,8 @@ extern int url_get_path    __P ((const url_t, char *, size_t, size_t *));
 extern int url_get_query   __P ((const url_t, char *, size_t, size_t *));
 extern const char* url_to_string   __P ((const url_t));
 
+extern int url_is_scheme   __P ((url_t, const char* scheme));
+
 extern int url_is_same_scheme __P ((url_t, url_t));
 extern int url_is_same_user   __P ((url_t, url_t));
 extern int url_is_same_path   __P ((url_t, url_t));

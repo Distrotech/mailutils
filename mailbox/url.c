@@ -429,6 +429,14 @@ url_to_string (const url_t url)
   return url->name;
 }
 
+int url_is_scheme (url_t url, const char* scheme)
+{
+  if(url && scheme && url->scheme && strcasecmp(url->scheme, scheme) == 0)
+    return 1;
+
+  return 0;
+}
+
 int
 url_is_same_scheme (url_t url1, url_t url2)
 {
