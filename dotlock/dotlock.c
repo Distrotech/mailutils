@@ -75,7 +75,6 @@ static int flags;
 static int retries;
 static int force;
 static int debug;
-static const char *program;
 
 static error_t
 parse_opt (int key, char *arg, struct argp_state *state)
@@ -88,13 +87,6 @@ parse_opt (int key, char *arg, struct argp_state *state)
 
     case 'u':
       unlock = 1;
-      break;
-
-    case 'T':
-      /* This options exists only to test whether internal and external
-	 locking work correctly/the same. */
-      flags |= MU_LOCKER_EXTERNAL;
-      program = arg;
       break;
 
     case 'r':
@@ -138,15 +130,15 @@ main (int argc, char *argv[])
 {
   locker_t locker = 0;
   int err = 0;
-  pid_t usergid = getgid();
-  pid_t mailgid = getegid();
+  pid_t usergid = getgid ();
+  pid_t mailgid = getegid ();
 
   /* Native Language Support */
   mu_init_nls ();
 
   /* Drop permissions during argument parsing. */
 
-  if(setegid(usergid) < 0)
+  if (setegid (usergid) < 0)
     return MU_DL_EX_ERROR;
 
   mu_argp_init (program_version, NULL);
@@ -168,10 +160,7 @@ main (int argc, char *argv[])
   if (retries != 0)
     locker_set_retries (locker, retries);
 
-  if (program != 0)
-    locker_set_external (locker, program);
-
-  if(setegid(mailgid) < 0)
+  if (setegid (mailgid) < 0)
     return MU_DL_EX_ERROR;
 
   if (unlock)
