@@ -20,15 +20,15 @@
 #endif
 
 #include <stdlib.h>
+#ifdef __EXT_QNX
+# undef __EXT_QNX
+#endif
+#include <unistd.h>
 
 #include <argp.h>
 
 #include <mailutils/errno.h>
 #include <mailutils/locker.h>
-
-#define MU_DL_EX_OK      0
-#define MU_DL_EX_ERROR   1
-#define MU_DL_EX_EXIST   3
 
 const char *argp_program_version = "GNU dotlock (" PACKAGE ") " VERSION;
 const char *argp_program_bug_address = "<bug-mailutils@gnu.org>";
@@ -54,6 +54,9 @@ static struct argp_option options[] = {
   {"debug", 'd', NULL, 0,
    "Print details of failure reasons to stderr", 0},
 
+  {"test", 'T', "PROGRAM", OPTION_HIDDEN,
+   "Test external dotlocker", 0},
+
   {NULL, 0, NULL, 0, NULL, 0}
 };
 
@@ -72,6 +75,7 @@ static int flags;
 static int retries;
 static int force;
 static int debug;
+static const char *program;
 
 static error_t
 parse_opt (int key, char *arg, struct argp_state *state)
@@ -86,11 +90,18 @@ parse_opt (int key, char *arg, struct argp_state *state)
       unlock = 1;
       break;
 
+    case 'T':
+      /* This options exists only to test whether internal and external
+	 locking work correctly/the same. */
+      flags |= MU_LOCKER_EXTERNAL;
+      program = arg;
+      break;
+
     case 'r':
       if (arg)
 	{
 	  retries = atoi (arg);
-	  if (retries == 0)
+	  if (retries <= 0)
 	    argp_error (state, "RETRIES must be greater than 0");
 	}
       flags |= MU_LOCKER_RETRY;
@@ -100,7 +111,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
       if (arg)
 	{
 	  force = atoi (arg);
-	  if (force == 0)
+	  if (force <= 0)
 	    argp_error (state, "MINUTES must be greater than 0");
 	  force *= 60;
 	}
@@ -127,6 +138,13 @@ main (int argc, char *argv[])
 {
   locker_t locker = 0;
   int err = 0;
+  pid_t usergid = getgid();
+  pid_t mailgid = getegid();
+
+  /* Drop permissions during argument parsing. */
+
+  if(setegid(usergid) < 0)
+    return MU_DL_EX_ERROR;
 
   argp_parse (&argp, argc, argv, 0, NULL, NULL);
 
@@ -145,10 +163,18 @@ main (int argc, char *argv[])
   if (retries != 0)
     locker_set_retries (locker, retries);
 
+  if (program != 0)
+    locker_set_external (locker, program);
+
+  if(setegid(mailgid) < 0)
+    return MU_DL_EX_ERROR;
+
   if (unlock)
     err = locker_remove_lock (locker);
   else
     err = locker_lock (locker);
+
+  setegid(usergid);
 
   locker_destroy (&locker);
 
@@ -161,6 +187,12 @@ main (int argc, char *argv[])
     case 0:
       err = MU_DL_EX_OK;
       break;
+    case EPERM:
+      err = MU_DL_EX_PERM;
+      break;
+    case MU_ERR_LOCK_NOT_HELD:
+      err = MU_DL_EX_NEXIST;
+      break;
     case MU_ERR_LOCK_CONFLICT:
       err = MU_DL_EX_EXIST;
       break;
@@ -171,3 +203,4 @@ main (int argc, char *argv[])
 
   return err;
 }
+

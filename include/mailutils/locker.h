@@ -18,10 +18,7 @@
 #ifndef _MAILUTILS_LOCKER_H
 #define _MAILUTILS_LOCKER_H
 
-#include <mailutils/mu_features.h>
 #include <mailutils/types.h>
-
-#include <sys/types.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -31,12 +28,20 @@ extern "C" {
 #define MU_LOCKER_EXPIRE_TIME        (10 * 60)
 #define MU_LOCKER_RETRIES            (10)
 #define MU_LOCKER_RETRY_SLEEP        (1)
+#define MU_LOCKER_EXTERNAL_PROGRAM   "dotlock"
+
+/* return codes for the external locker */
+#define MU_DL_EX_PERM    4 /* insufficient permissions */
+#define MU_DL_EX_EXIST   3 /* lock requested, but file is already locked */
+#define MU_DL_EX_NEXIST  2 /* unlock requested, but file is not locked */
+#define MU_DL_EX_ERROR   1 /* failed due to some other error */
+#define MU_DL_EX_OK      0 /* success */
 
 /* locker_create() flags */
 
-#define MU_LOCKER_NULL     0
-  /* Special locker type: means no lock. This is to be used with
-     temporary mailboxes stored in memory. */
+#define MU_LOCKER_SIMPLE   0x00
+  /* Just try and dotlock the file, not the default because its usually
+     better to retry. */
 #define MU_LOCKER_RETRY    0x01
   /* This requests that we loop retries times, sleeping retry_sleep
      seconds in between trying to obtain the lock before failing with
@@ -51,6 +56,13 @@ extern "C" {
      an external dotlocker, non-setgid programs will use a dotlocker,
      which locks and exits imediately. This is a protection against
      a server crashing, it's not generally useful. */
+#define MU_LOCKER_EXTERNAL 0x08
+  /* Use an external program to lock the file. This is necessary
+     for programs having permission to access a file, but do not
+     have write permission on the directory that contains that file. */
+#define MU_LOCKER_NULL     0x10
+  /* Special locker type: means no lock. This is to be used with
+     temporary mailboxes stored in memory. */
 
 #define MU_LOCKER_DEFAULT  (MU_LOCKER_RETRY)
 
@@ -63,11 +75,13 @@ extern int locker_set_flags __P ((locker_t, int));
 extern int locker_set_expire_time __P ((locker_t, int));
 extern int locker_set_retries __P ((locker_t, int));
 extern int locker_set_retry_sleep __P ((locker_t, int));
+extern int locker_set_external __P ((locker_t, const char* program));
 
 extern int locker_get_flags __P ((locker_t, int*));
 extern int locker_get_expire_time __P ((locker_t, int*));
 extern int locker_get_retries __P ((locker_t, int*));
 extern int locker_get_retry_sleep __P ((locker_t, int*));
+extern int locker_get_external __P ((locker_t, char**));
 
 extern int locker_lock          __P ((locker_t));
 extern int locker_touchlock     __P ((locker_t));
