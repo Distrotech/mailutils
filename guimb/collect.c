@@ -188,7 +188,20 @@ collect_drop_mailbox ()
     }
 }
 
-int
+SCM
+guimb_catch_body (void *data, mailbox_t unused)
+{
+  struct guimb_data *gd = data;
+  if (gd->program_file)
+    scm_primitive_load (scm_makfrom0str (gd->program_file));
+
+  if (gd->program_expr)
+    scm_eval_0str (gd->program_expr);
+
+  return SCM_BOOL_F;
+}
+
+SCM
 guimb_catch_handler (void *unused, SCM tag, SCM throw_args)
 {
   collect_drop_mailbox ();
@@ -202,3 +215,4 @@ guimb_exit (void *unused1, mailbox_t unused2)
   collect_drop_mailbox ();
   return rc;
 }
+
