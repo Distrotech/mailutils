@@ -1,3 +1,9 @@
+2003-04-18  Sergey Poznyakoff
+
+	* mailbox/imap/folder.c (imap_string): Bugfix. Handle numbers.
+	* mh/mhn.c (mhn_store_command): Bugfix. Properly use message
+	  part numbers.
+
 2003-04-11  Sergey Poznyakoff 
 
 	* mailbox/filter_trans.c (qp_decode): Bugfix.
