@@ -58,7 +58,6 @@ static int
 destroy (mu_sql_connection_t conn)
 {
   struct mu_pgsql_data *dp = conn->data;
-  free (dp->pgconn);
   free (dp);
   conn->data = NULL;
   return 0;
