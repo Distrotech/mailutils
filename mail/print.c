@@ -94,7 +94,7 @@ mail_print (int argc, char **argv)
 	pclose (out);
 
       message_get_attribute (mesg, &attr);
-      attribute_set_seen (attr);
+      attribute_set_read (attr);
       
       return 0;
     }
