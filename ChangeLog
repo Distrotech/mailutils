@@ -1,3 +1,8 @@
+2001-06-03  Sam Roberts
+
+	* mailbox/file_stream.c,mailbox/mapfile_stream.c: Return EINVAL
+	  for meaningless combination of MU_STREAM_READ + WRITE.
+
 2001-06-03  Alain Magloire
 
 	* doc/*; Bunch of typos corrected.
