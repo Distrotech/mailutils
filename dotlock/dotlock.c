@@ -32,12 +32,10 @@
 
 const char *argp_program_version = "GNU dotlock (" PACKAGE_STRING ")";
 static char doc[] =
-N_("GNU dotlock -- lock mail spool files")
-  "\v"
-N_("Returns 0 on success, 3 if the locking the file fails because"
+N_("GNU dotlock -- lock mail spool files"
+   "\v"
+   "Returns 0 on success, 3 if the locking the file fails because"
    " it's already locked, and 1 if some other kind of error occurred.");
-/* Note: keep \v excluded from the gettext strings, this way it's more
-   convenient for translators */
 
 static char args_doc[] = N_("FILE");
 error_t argp_err_exit_status = MU_DL_EX_ERROR;

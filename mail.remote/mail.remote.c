@@ -42,10 +42,10 @@
 
 const char *argp_program_version = "mail.remote (" PACKAGE_STRING ")";
 static char doc[] =
-N_("GNU mail.remote -- pseudo-sendmail interface for mail delivery\n")
+N_("GNU mail.remote -- pseudo-sendmail interface for mail delivery\n"
   "\v"
   "\n"
-N_("An RFC2822 formatted message is read from stdin and delivered using\n"
+  "An RFC2822 formatted message is read from stdin and delivered using\n"
   "the mailer. This utility can be used as a drop-in replacement\n"
   "for /bin/sendmail to forward mail directly to an SMTP gateway.\n"
   "\n"

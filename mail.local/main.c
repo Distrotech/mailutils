@@ -43,15 +43,15 @@ void notify_biff __P((mailbox_t mbox, char *name, size_t size));
 
 const char *argp_program_version = "mail.local (" PACKAGE_STRING ")";
 static char doc[] =
-N_("GNU mail.local -- the local MDA")
-"\v"
-N_("Debug flags are:\n"
-"  g - guimb stack traces\n"
-"  T - mailutil traces (MU_DEBUG_TRACE)\n"
-"  P - network protocols (MU_DEBUG_PROT)\n"
-"  t - sieve trace (MU_SIEVE_DEBUG_TRACE)\n"
-"  l - sieve action logs\n"
-"  0-9 - Set mail.local debugging level\n");
+N_("GNU mail.local -- the local MDA"
+   "\v"
+   "Debug flags are:\n"
+   "  g - guimb stack traces\n"
+   "  T - mailutil traces (MU_DEBUG_TRACE)\n"
+   "  P - network protocols (MU_DEBUG_PROT)\n"
+   "  t - sieve trace (MU_SIEVE_DEBUG_TRACE)\n"
+   "  l - sieve action logs\n"
+   "  0-9 - Set mail.local debugging level\n");
 
 static char args_doc[] = N_("recipient [recipient ...]");
 
