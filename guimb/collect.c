@@ -196,7 +196,7 @@ guimb_catch_body (void *data, mailbox_t unused)
     scm_primitive_load (scm_makfrom0str (gd->program_file));
 
   if (gd->program_expr)
-    scm_eval_0str (gd->program_expr);
+    scm_c_eval_string (gd->program_expr);
 
   return SCM_BOOL_F;
 }
