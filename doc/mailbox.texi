@@ -24,6 +24,26 @@ data structure to the user. Functions are provided to retrieve the information.
 @end group
 @end example
 
+@deftypefun  int mailbox_append_message (mailbox_t @var{mbox}, message_t @var{message})
+The @var{message} is appended to the mailbox @var{mbox}.
+
+The return value is @code{0} on success and a code number on error conditions:
+@table @code
+@item EINVAL
+@var{mbox} is null or @var{message} is invalid.
+@end table
+@end deftypefun
+
+@deftypefun  int mailbox_close (mailbox_t @var{mbox})
+The stream attach to @var{mbox} is closed.
+
+The return value is @code{0} on success and a code number on error conditions:
+@table @code
+@item EINVAL
+@var{mbox} is null.
+@end table
+@end deftypefun
+
 @deftypefun int mailbox_create (mailbox_t *@var{pmbox}, const char *@var{name})
 The function @code{mailbox_create} allocates and initializes @var{pmbox}.
 The concrete mailbox type instanciate is based on the scheme of the url @var{name}.
@@ -44,47 +64,12 @@ The environment variable @emph{$MAIL} or the string formed by
 for a default mailbox and calls @code{mailbox_create}.
 @end deftypefun
 
-@deftypefun  int mailbox_get_stream (mailbox_t @var{mbox}, stream_t *@var{pstream})
-The mailbox stream is put in @var{pstream}.
-
-The return value is @code{0} on success and a code number on error conditions:
-@table @code
-@item EINVAL
-@var{mbox} is invalid or @var{pstream} is NULL.
-@end table
+@deftypefun  void mailbox_destroy (mailbox_t *@var{pmbox})
+Destroys and releases resources held by @var{pmbox}.
 @end deftypefun
 
-@deftypefun int mailbox_set_stream (mailbox_t @var{mbox}, stream_t @var{stream})
-Set the @var{stream} connection to use for the mailbox.
-
-The return value is @code{0} on success and a code number on error conditions:
-@table @code
-@item EINVAL
-@var{mbox} or @var{stream} is NULL.
-@end table
-@end deftypefun
-
-@deftypefun int mailbox_open (mailbox_t @var{mbox}, int @var{flag})
-A connection is open, if no stream was provided, a stream
-is created based on the @var{mbox} type.  The @var{flag} can be OR'ed.
-See @code{stream_create} for @var{flag}'s description.
-
-The return value is @code{0} on success and a code number on error conditions:
-@table @code
-@item EAGAIN
-@itemx EINPROGRESS
-Operation in progress.
-@item EBUSY
-Resource busy.
-@item EINVAL
-@var{mbox} is null or flag is invalid.
-@item ENOMEM
-Not enough memory.
-@end table
-@end deftypefun
-
-@deftypefun  int mailbox_close (mailbox_t @var{mbox})
-The stream attach to @var{mbox} is closed.
+@deftypefun  int mailbox_expunge (mailbox_t @var{mbox})
+All messages marked for deletion are removed.
 
 The return value is @code{0} on success and a code number on error conditions:
 @table @code
@@ -93,8 +78,34 @@ The return value is @code{0} on success and a code number on error conditions:
 @end table
 @end deftypefun
 
-@deftypefun  void mailbox_destroy (mailbox_t *@var{pmbox})
-Destroys and releases resources held by @var{pmbox}.
+@deftypefun  int mailbox_get_auth (mailbox_t @var{mbox}, auth_t *@var{pauth})
+Retrieve the @var{*pauth} of the @var{mbox}.
+
+The return value is @code{0} on success and a code number on error conditions:
+@table @code
+@item EINVAL
+@var{mbox} is null.
+@end table
+@end deftypefun
+
+@deftypefun  int mailbox_get_debug (mailbox_t @var{mbox}, debug_t *@var{debug})
+Get a debug object.
+The return value is @code{0} on success and a code number on error conditions:
+@table @code
+@item EINVAL
+@var{mbox} is null.
+@item ENOMEM
+@end table
+@end deftypefun
+
+@deftypefun  int mailbox_get_locker (mailbox_t @var{mbox}, locker_t *@var{plocker})
+Return the @var{locker} object.
+
+The return value is @code{0} on success and a code number on error conditions:
+@table @code
+@item EINVAL
+@var{mbox} is null.
+@end table
 @end deftypefun
 
 @deftypefun  int mailbox_get_message (mailbox_t @var{mbox}, size_t @var{msgno}, message_t *@var{pmessage})
@@ -110,13 +121,84 @@ Not enough memory.
 @end table
 @end deftypefun
 
-@deftypefun  int mailbox_append_message (mailbox_t @var{mbox}, message_t @var{message})
-The @var{message} is appended to the mailbox @var{mbox}.
+@deftypefun  int mailbox_get_observable (mailbox_t mbox @var{mbox}, observable_t*@var{observable})
+Get the observable object.
 
 The return value is @code{0} on success and a code number on error conditions:
 @table @code
 @item EINVAL
-@var{mbox} is null or @var{message} is invalid.
+@var{mbox} is null.
+@item ENOMEM
+Not enough memory.
+@end table
+@end deftypefun
+
+@deftypefun  int mailbox_get_property (mailbox_t @var{mbox}, property_t *@var{property})
+Get the property object.
+The return value is @code{0} on success and a code number on error conditions:
+@table @code
+@item EINVAL
+@var{mbox} is null.
+@item ENOMEM
+@end table
+@end deftypefun
+
+@deftypefun  int mailbox_get_size (mailbox_t @var{mbox}, off_t *@var{psize})
+Gives the @var{mbox} size.
+
+The return value is @code{0} on success and a code number on error conditions:
+@table @code
+@item EINVAL
+@var{mbox} is null.
+@end table
+@end deftypefun
+
+@deftypefun  int mailbox_get_stream (mailbox_t @var{mbox}, stream_t *@var{pstream})
+The mailbox stream is put in @var{pstream}.
+
+The return value is @code{0} on success and a code number on error conditions:
+@table @code
+@item EINVAL
+@var{mbox} is invalid or @var{pstream} is NULL.
+@end table
+@end deftypefun
+
+@deftypefun  int mailbox_get_ticket (mailbox_t @var{mbox}, ticket_t @var{ticket})
+The return value is @code{0} on success and a code number on error conditions:
+
+@table @code
+@item EINVAL
+@var{mbox} is null.
+@end table
+@end deftypefun
+
+@deftypefun  int mailbox_get_url (mailbox_t @var{mbox}, url_t *@var{purl})
+Gives the constructed @var{url}.
+
+The return value is @code{0} on success and a code number on error conditions:
+@table @code
+@item EINVAL
+@var{mbox} is null.
+@end table
+@end deftypefun
+
+@deftypefun  int mailbox_is_updated (mailbox_t @var{mbox})
+Check if the mailbox is up-to-date.
+
+The return value is @code{0} on success and a code number on error conditions:
+@table @code
+@item EINVAL
+@var{mbox} is null.
+@end table
+@end deftypefun
+
+@deftypefun  int mailbox_message_unseen (mailbox_t @var{mbox}, size_t *@var{pnumber});
+Give the number of first unseen message in @var{mbox}.
+
+The return value is @code{0} on success and a code number on error conditions:
+@table @code
+@item EINVAL
+@var{mbox} is null.
 @end table
 @end deftypefun
 
@@ -140,48 +222,39 @@ The return value is @code{0} on success and a code number on error conditions:
 @end table
 @end deftypefun
 
-@deftypefun  int mailbox_message_unseen (mailbox_t @var{mbox}, size_t *@var{pnumber});
-Give the number of first unseen message in @var{mbox}.
+@deftypefun int mailbox_open (mailbox_t @var{mbox}, int @var{flag})
+A connection is open, if no stream was provided, a stream
+is created based on the @var{mbox} type.  The @var{flag} can be OR'ed.
+See @code{stream_create} for @var{flag}'s description.
+
+The return value is @code{0} on success and a code number on error conditions:
+@table @code
+@item EAGAIN
+@itemx EINPROGRESS
+Operation in progress.
+@item EBUSY
+Resource busy.
+@item EINVAL
+@var{mbox} is null or flag is invalid.
+@item ENOMEM
+Not enough memory.
+@end table
+@end deftypefun
+
+@deftypefun  int mailbox_scan (mailbox_t @var{mbox}, size_t @var{msgno}, size_t *@var{pcount});
+Scan the mailbox for new messages starting at message @var{msgno}.
 
 The return value is @code{0} on success and a code number on error conditions:
 @table @code
 @item EINVAL
 @var{mbox} is null.
+@item ENOMEM
+Not enough memory.
 @end table
 @end deftypefun
 
-@deftypefun  int mailbox_uidvalidity (mailbox_t @var{mbox}, size_t *@var{pnumber});
-Give the uid validity of @var{mbox}.
-
-The return value is @code{0} on success and a code number on error conditions:
-@table @code
-@item EINVAL
-@var{mbox} is null.
-@end table
-@end deftypefun
-
-@deftypefun  int mailbox_uidnext (mailbox_t @var{mbox}, size_t *@var{pnumber});
-Give the next predicted uid for @var{mbox}.
-
-The return value is @code{0} on success and a code number on error conditions:
-@table @code
-@item EINVAL
-@var{mbox} is null.
-@end table
-@end deftypefun
-
-@deftypefun  int mailbox_expunge (mailbox_t @var{mbox})
-All messages marked for deletion are removed.
-
-The return value is @code{0} on success and a code number on error conditions:
-@table @code
-@item EINVAL
-@var{mbox} is null.
-@end table
-@end deftypefun
-
-@deftypefun  int mailbox_get_locker (mailbox_t @var{mbox}, locker_t *@var{plocker})
-Return the @var{locker} object.
+@deftypefun  int mailbox_set_auth (mailbox_t @var{mbox}, auth_t @var{auth})
+Set the type of authentication for the mailbox.
 
 The return value is @code{0} on success and a code number on error conditions:
 @table @code
@@ -200,23 +273,13 @@ The return value is @code{0} on success and a code number on error conditions:
 @end table
 @end deftypefun
 
-@deftypefun  int mailbox_get_auth (mailbox_t @var{mbox}, auth_t *@var{pauth})
-Retrieve the @var{*pauth} of the @var{mbox}.
+@deftypefun int mailbox_set_stream (mailbox_t @var{mbox}, stream_t @var{stream})
+Set the @var{stream} connection to use for the mailbox.
 
 The return value is @code{0} on success and a code number on error conditions:
 @table @code
 @item EINVAL
-@var{mbox} is null.
-@end table
-@end deftypefun
-
-@deftypefun  int mailbox_set_auth (mailbox_t @var{mbox}, auth_t @var{auth})
-Set the type of authentication for the mailbox.
-
-The return value is @code{0} on success and a code number on error conditions:
-@table @code
-@item EINVAL
-@var{mbox} is null.
+@var{mbox} or @var{stream} is NULL.
 @end table
 @end deftypefun
 
@@ -230,7 +293,8 @@ The return value is @code{0} on success and a code number on error conditions:
 @end table
 @end deftypefun
 
-@deftypefun  int mailbox_get_ticket (mailbox_t @var{mbox}, ticket_t @var{ticket})
+@deftypefun  int mailbox_uidnext (mailbox_t @var{mbox}, size_t *@var{pnumber});
+Give the next predicted uid for @var{mbox}.
 
 The return value is @code{0} on success and a code number on error conditions:
 @table @code
@@ -239,31 +303,8 @@ The return value is @code{0} on success and a code number on error conditions:
 @end table
 @end deftypefun
 
-
-@deftypefun  int mailbox_is_updated (mailbox_t @var{mbox})
-Check if the mailbox is up-to-date.
-
-The return value is @code{0} on success and a code number on error conditions:
-@table @code
-@item EINVAL
-@var{mbox} is null.
-@end table
-@end deftypefun
-
-@deftypefun  int mailbox_scan (mailbox_t @var{mbox}, size_t @var{msgno}, size_t *@var{pcount});
-Scan the mailbox for new messages starting at message @var{msgno}.
-
-The return value is @code{0} on success and a code number on error conditions:
-@table @code
-@item EINVAL
-@var{mbox} is null.
-@item ENOMEM
-Not enough memory.
-@end table
-@end deftypefun
-
-@deftypefun  int mailbox_get_size (mailbox_t @var{mbox}, off_t *@var{psize})
-Gives the @var{mbox} size.
+@deftypefun  int mailbox_uidvalidity (mailbox_t @var{mbox}, size_t *@var{pnumber});
+Give the uid validity of @var{mbox}.
 
 The return value is @code{0} on success and a code number on error conditions:
 @table @code
@@ -272,46 +313,3 @@ The return value is @code{0} on success and a code number on error conditions:
 @end table
 @end deftypefun
 
-@deftypefun  int mailbox_get_url (mailbox_t @var{mbox}, url_t *@var{purl})
-Gives the constructed @var{url}.
-
-The return value is @code{0} on success and a code number on error conditions:
-@table @code
-@item EINVAL
-@var{mbox} is null.
-@end table
-@end deftypefun
-
-
-@deftypefun  int mailbox_get_observable (mailbox_t mbox @var{mbox}, observable_t*@var{observable})
-
-Get the observable object.
-
-The return value is @code{0} on success and a code number on error conditions:
-@table @code
-@item EINVAL
-@var{mbox} is null.
-@item ENOMEM
-Not enough memory.
-@end table
-@end deftypefun
-
-@deftypefun  int mailbox_get_property (mailbox_t @var{mbox}, property_t *@var{property})
-Get the property object.
-The return value is @code{0} on success and a code number on error conditions:
-@table @code
-@item EINVAL
-@var{mbox} is null.
-@item ENOMEM
-@end table
-@end deftypefun
-
-@deftypefun  int mailbox_get_debug (mailbox_t @var{mbox}, debug_t *@var{debug})
-Get a debug object.
-The return value is @code{0} on success and a code number on error conditions:
-@table @code
-@item EINVAL
-@var{mbox} is null.
-@item ENOMEM
-@end table
-@end deftypefun
