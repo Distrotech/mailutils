@@ -215,7 +215,7 @@ main (int argc, char **argv)
 	  int i;
 	  for (i = 0; i < argc; i++)
 	    {
-	      list_t al;
+	      list_t al = NULL;
 	      
 	      if (mh_alias_get (argv[i], &al) == 0)
 		{
@@ -239,7 +239,7 @@ main (int argc, char **argv)
 	  int i;
 	  for (i = 0; i < argc; i++)
 	    {
-	      list_t nl;
+	      list_t nl = NULL;
 
 	      if (mh_alias_get_alias (argv[i], &nl) == 0)
 		{
