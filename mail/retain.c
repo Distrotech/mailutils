@@ -20,6 +20,7 @@
 static list_t retained_headers = NULL;
 static list_t ignored_headers = NULL;
 static list_t unfolded_headers = NULL;
+static list_t sender_headers = NULL;
 
 static int
 process_list (int argc, char **argv,
@@ -105,3 +106,59 @@ mail_header_is_visible (char *str)
   else
     return !util_slist_lookup (ignored_headers, str);
 }
+
+/*
+ * sender [header-field...]
+ */
+
+int
+mail_sender (int argc, char **argv)
+{
+  return process_list (argc, argv, &sender_headers,
+		       util_slist_add,
+		       N_("Sender address is obtained from the envelope\n"));
+}
+
+int
+mail_nosender (int argc, char **argv)
+{
+  if (argc == 1)
+    {
+      util_slist_destroy (&sender_headers);
+      fprintf (ofile, _("Sender address is obtained from the envelope\n"));
+    }
+  else 
+    while (--argc)
+      util_slist_remove (&sender_headers, *++argv);
+  return 0;
+}
+
+
+address_t
+get_sender_address (message_t msg)
+{
+  iterator_t itr;
+  header_t header = NULL;
+  address_t addr = NULL;
+
+  if (message_get_header (msg, &header))
+    return NULL;
+  
+  if (!sender_headers || iterator_create (&itr, sender_headers))
+    return NULL;
+
+  for (iterator_first (itr); !addr && !iterator_is_done (itr);
+       iterator_next (itr))
+    {
+      char *name;
+      char *buf = NULL;
+      
+      iterator_current (itr, (void **)&name);
+      if (header_aget_value (header, name, &buf) == 0)
+	address_create (&addr, buf);
+      free (buf);
+    }
+  iterator_destroy (&itr);
+  return addr;
+}
+  

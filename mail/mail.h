@@ -337,6 +337,10 @@ extern char *ml_readline_with_intr __P((char *prompt));
 extern char *alias_expand __P ((char *name));
 extern void alias_destroy __P ((char *name));
 
+extern int mail_sender    __P ((int argc, char **argv));
+extern int mail_nosender  __P ((int argc, char **argv));
+extern address_t get_sender_address __P((message_t msg));
+
 #define COMPOSE_APPEND      0
 #define COMPOSE_REPLACE     1
 #define COMPOSE_SINGLE_LINE 2
