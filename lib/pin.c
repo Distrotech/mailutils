@@ -2,6 +2,10 @@
    for those libc's that don't already have it.  These variable are needed
    by the argp_ functions. */
 
+#ifdef HAVE_CONFIG_H
+# include <config.h>
+#endif
+
 #ifndef HAVE_PROGRAM_INVOCATION_NAME
 char *program_invocation_short_name = 0;
 char *program_invocation_name = 0;
