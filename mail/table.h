@@ -35,9 +35,11 @@ extern "C" {
 struct mail_command_entry {
   char *shortname;
   char *longname;
-  int (*func) __P((int, char**));
+  Function *func;
   char *synopsis;
 };
+
+struct mail_command_entry util_find_entry __P((char *cmd));
 
 static struct mail_command_entry mail_command_table[] = {
   { "a",	"alias",	mail_alias,

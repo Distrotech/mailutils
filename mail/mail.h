@@ -110,8 +110,11 @@ int util_get_argcv __P((const char *command, int *argc, char ***argv));
 int util_expand_msglist __P((const int argc, char **argv, int **list));
 int util_do_command __P((const char *cmd));
 int util_msglist_command __P((int (*func)(int, char**), int argc, char **argv));
-int* util_command_get __P((char *cmd));
+Function* util_command_get __P((char *cmd));
 int util_free_argv __P((int argc, char **argv));
+char **util_command_completion __P((char *cmd, int start, int end));
+char *util_command_generator __P((char *text, int state));
+char *util_stripwhite __P((char *string));
 
 #ifdef __cplusplus
 }

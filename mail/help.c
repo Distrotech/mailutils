@@ -35,35 +35,19 @@ mail_help (int argc, char **argv)
     }
   else
     {
-      int status = 0;
-      int command = 0;
-      while (++command < argc)
+      int status = 0, cmd = 0;
+      while (++cmd < argc)
 	{
-	  char *cmd = argv[command];
-	  int i = 0, printed = 0, sl = 0, ll = 0, len = strlen (cmd);
-	  while (mail_command_table[i].shortname != 0 && printed == 0)
+	  struct mail_command_entry entry = util_find_entry (argv[cmd]);
+	  if (entry.synopsis != NULL)
+	    printf ("%s\n", entry.synopsis);
+	  else
 	    {
-	      sl = strlen (mail_command_table[i].shortname);
-	      ll = strlen (mail_command_table[i].longname);
-	      if (sl == len && !strcmp (mail_command_table[i].shortname, cmd))
-		{
-		  printed = 1;
-		  printf ("%s\n", mail_command_table[i].synopsis);
-		}
-	      else if (sl < len && !strncmp (mail_command_table[i].longname,
-					     cmd, len))
-		{
-		  printed = 1;
-		  printf ("%s\n", mail_command_table[i].synopsis);
-		}
-	      i++;
-	    }
-	  if (printed == 0)
-	    {
-	      printf ("Unknown command: %s\n", cmd);
 	      status = 1;
+	      printf ("Unknown command: %s\n", argv[cmd]);
 	    }
 	}
+      return status;
     }
   return 1;
 }

@@ -113,7 +113,7 @@ static struct argp argp = { options, parse_opt, args_doc, doc };
 int
 main (int argc, char **argv)
 {
-  char *command = NULL;
+  char *command = NULL, *cmd = NULL;
   char *from[] = { "from", "*" };
   struct arguments args;
 
@@ -163,12 +163,32 @@ main (int argc, char **argv)
     mail_from (1, from);
   cursor = realcursor;
 
+  /* Initialize readline */
+  rl_readline_name = "mail";
+  rl_attempted_completion_function = (CPPFunction *)util_command_completion;
+
   while (1)
     {
+      int len;
       free (command);
       command = readline ("? ");
-      util_do_command (command);
-      add_history (command);
+      len = strlen (command);
+      while (command[len-1] == '\\')
+	{
+	  char *buf;
+	  char *command2 = readline ("> ");
+
+	  command[len-1] = '\0';
+	  buf = malloc ((len + strlen (command2)) * sizeof (char));
+	  strcpy (buf, command);
+	  strcat (buf, command2);
+	  free (command);
+	  command = buf;
+	  len = strlen (command);
+	}
+      cmd = util_stripwhite (command);
+      util_do_command (cmd);
+      add_history (cmd);
     }
 }
 

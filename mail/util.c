@@ -166,15 +166,19 @@ util_do_command (const char *cmd)
   int argc = 0;
   char **argv = NULL;
   int status = 0;
-  int (*command) (int, char**) = NULL;
+  Function *command;
 
   if (cmd[0] == '#')
     return 0;
 
-  if (util_get_argcv (cmd, &argc, &argv) != 0)
-    return util_free_argv (argc, argv);
-
-  command = util_command_get (argv[0]);
+  if (cmd)
+    {
+      if (util_get_argcv (cmd, &argc, &argv) != 0)
+	return util_free_argv (argc, argv);
+      command = util_command_get (argv[0]);
+    }
+  else
+    command = util_command_get ("quit");
 
   if (command != NULL)
     status = command (argc, argv);
@@ -218,23 +222,89 @@ util_msglist_command (int (*func)(int, char**), int argc, char **argv)
 /*
  * returns the function to run for command
  */
-int *
+Function *
 util_command_get (char *cmd)
 {
-  int i = 0;
+  struct mail_command_entry entry = util_find_entry (cmd);
+  return entry.func;
+}
+
+/*
+ * returns the mail_command_entry structure for the command matching cmd
+ */
+struct mail_command_entry
+util_find_entry (char *cmd)
+{
+  int i = 0, ll = 0, sl = 0;
   int len = strlen (cmd);
-  int sl, ll;
-  
+
   while (mail_command_table[i].shortname != 0)
     {
       sl = strlen (mail_command_table[i].shortname);
       ll = strlen (mail_command_table[i].longname);
       if (sl == len && !strcmp (mail_command_table[i].shortname, cmd))
-	return mail_command_table[i].func;
+	return mail_command_table[i];
       else if (sl < len && !strncmp (mail_command_table[i].longname, cmd, len))
-	return mail_command_table[i].func;
+	return mail_command_table[i];
       i++;
     }
+  return mail_command_table[i];
+}
 
+/*
+ * readline tab completion
+ */
+char **
+util_command_completion (char *cmd, int start, int end)
+{
+  if (start == 0)
+    return completion_matches (cmd, util_command_generator);
   return NULL;
 }
+
+/*
+ * more readline
+ */
+char *
+util_command_generator (char *text, int state)
+{
+  static int i, len;
+  char *name;
+  
+  if (!state)
+    {
+      i = 0;
+      len = strlen (text);
+    }
+  
+  while ((name = mail_command_table[i].longname))
+    {
+      i++;
+      /*if (strlen (mail_command_table[i].shortname) > strlen(name))
+	name = mail_command_table[i].shortname; */
+      if (strncmp (name, text, len) == 0)
+	return (strdup(name));
+    }
+  
+  return NULL;
+}
+
+/*
+ * removes whitespace from the beginning and end of a string
+ */
+char *
+util_stripwhite (char *string)
+{
+  register char *s, *t;
+  for (s = string; whitespace (*s); s++)
+    ;
+  if (*s == 0)
+    return s;
+  t = s + strlen (s) - 1;
+  while (t > s && whitespace (*t))
+    t--;
+  *++t = '\0';
+  return s;
+}
+
+
