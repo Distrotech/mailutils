@@ -9,6 +9,8 @@
 	(mh_format,mh_format_dump): Handle mhop_nop.
 	* mh/repl.c: New option --format.
 
+	* mail/mail.c (main): set rc by default
+	
 2003-08-10  Sergey Poznyakoff  
 
 	* mh/inc.c (opt_handler): Added missing support for
