@@ -218,13 +218,13 @@ Syntax, condensed from RFC 1738, and extended with the ;auth=
 of RFC 2384 (for POP) and RFC 2192 (for IMAP):
 
 url =
-    scheme ":" = "//"
+    scheme ":" [ "//"
 
     [ user [ ( ":" password ) | ( ";auth=" auth ) ] "@" ]
 
     host [ ":" port ]
 
-    [ ( "/" urlpath ) | ( "?" query ) ]
+    [ ( "/" urlpath ) | ( "?" query ) ] ]
 
 All hell will break loose in this parser if the user/pass/auth
 portion is missing, and the urlpath has any @ or : characters
@@ -263,8 +263,15 @@ url_parse0 (url_t u, char *name)
 
   name = p;
 
+  /* Check for nothing following the scheme. */
+  if(!*name)
+    return 0;
+
   if (strncmp (name, "//", 2) != 0)
-    return EPARSE;
+  {
+    u->path = name;
+    return 0;
+  }
 
   name += 2;
 

@@ -111,13 +111,13 @@ of RFC 2384 (for POP) and RFC 2192 (for IMAP) is:
 
 @example
 url =
-    scheme ":" = "//"
+    scheme ":" [ "//"
 
     [ user [ ( ":" password ) | ( ";auth=" auth ) ] "@" ]
 
     host [ ":" port ]
 
-    [ ( "/" urlpath ) | ( "?" query ) ]
+    [ ( "/" urlpath ) | ( "?" query ) ] ]
 @end example
 
 This is a generalized URL syntax, and may not be exactly appropriate
