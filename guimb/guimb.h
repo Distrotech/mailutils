@@ -36,6 +36,9 @@
 
 extern char *program_file;
 extern char *program_expr;
+extern char *user_name;
+extern char *output_mailbox;
+extern int  store_mailbox;
 extern mailbox_t mbox;
 extern size_t nmesg;
 extern size_t current_mesg_no;
