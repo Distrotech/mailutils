@@ -1,3 +1,39 @@
+2004-01-05  Sergey Poznyakoff  
+
+	* include/mailutils/libsieve.h (sieve_locus_t): New datatype.
+	(sieve_action_log_t): Changed type of the second argument.
+	* libsieve/actions.c (sieve_action_stop): Bugfix. Account for
+	-4 offset.
+	* libsieve/comparator.c (sieve_match_part_checker): Use
+	extended regular expressions by default.
+	* libsieve/prog.c (sieve_code_source,sieve_code_line): New
+	functions.
+	(sieve_code_action,sieve_code_test): Include line info before
+	coding the instruction.
+	* libsieve/runtime.c (instr_source,instr_line)
+	(sieve_get_locus): New functions
+	* libsieve/sieve.h (sieve_op_t.line): New member
+	* libsieve/sieve.l (push_source,pop_source): Include line info
+	* libsieve/sieve.y (sieve_machine_destroy)
+	(sieve_machine_begin): Initialize and destroy source_list
+	* libsieve/util.c (sieve_log_action): Updated call to
+	mach->logger.
+	
+	* libsieve/tests.c: Improved debugging messages
+	* libsieve/extensions/list.c: Likewise.
+	* libsieve/extensions/spamd.c: Likewise.
+	* libsieve/extensions/timestamp.c: Likewise.
+	* examples/numaddr.c: Likewise.
+	
+	* mail.local/main.c: Brought in sync with recent changes to
+	libsieve
+	* sieve/sieve.c: Likewise.	
+
+	* sieve/testsuite/lib/sieve.exp: Default to --line-info=no
+	
+	* include/mailutils/list.h (list_locate): New function
+	* mailbox/list.c: Likewise
+	
 2004-01-04  Wojciech Polak
 
 	* mail/send.c (mail_send): Bugfix. Removed free(p)
