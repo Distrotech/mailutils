@@ -39,7 +39,3 @@ common_ldadd = \
  ../lib/libmailutils.la\
  @AUTHLIBS@ @FRIBIDI_LIBS@ @MU_COMMON_LIBRARIES@
 
-install-exec-hook:
-	cd $(DESTDIR)$(bindir) && \
-	$(LN_S) -f frm$(EXEEXT) from$(EXEEXT)
-
