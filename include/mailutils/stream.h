@@ -55,9 +55,9 @@ extern int decoder_stream_create __P ((stream_t *stream, stream_t iostream,
 				       const char *encoding));
 extern int stdio_stream_create   __P ((stream_t *stream, FILE* stdio,
 				       int flags));
-extern int prog_stream_create    __P ((stream_t *stream, char *progname,
+extern int prog_stream_create    __P ((stream_t *stream, const char *progname,
 				       int flags));
-int filter_prog_stream_create    __P ((stream_t *stream, char *progname,
+int filter_prog_stream_create    __P ((stream_t *stream, const char *progname,
 				       stream_t input));
   
 extern void stream_destroy    __P ((stream_t *, void *owner));
