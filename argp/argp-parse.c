@@ -528,15 +528,15 @@ parser_init (struct parser *parser, const struct argp *argp,
   if (! parser->storage)
     return ENOMEM;
 
-  parser->groups = parser->storage;
+  parser->groups = (struct group *) parser->storage;
   /*  To please Watcom CC
   parser->child_inputs = parser->storage + GLEN;
   parser->long_opts = parser->storage + GLEN + CLEN;
   parser->short_opts = parser->storage + GLEN + CLEN + LLEN;
   */
-  parser->child_inputs = (void **)(parser->storage) + GLEN;
-  parser->long_opts = (struct option *)(parser->storage) + GLEN + CLEN;
-  parser->short_opts = (char *)(parser->storage) + GLEN + CLEN + LLEN;
+  parser->child_inputs = (void **)((char*) parser->storage + GLEN);
+  parser->long_opts = (struct option *)((char*) parser->storage + GLEN + CLEN);
+  parser->short_opts = (char*) parser->storage + GLEN + CLEN + LLEN;
 
   memset (parser->child_inputs, 0, szs.num_child_inputs * sizeof (void *));
   parser_convert (parser, argp, flags);
