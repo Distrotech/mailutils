@@ -1,3 +1,26 @@
+2004-06-12 Alain Magloire
+
+	* THANKS: Move part of it to AUTHORS file, reorder alphabetically
+	* AUTHORS: Reorder alpha.
+
+2004-06-12 Alain Magloire
+
+	Putting the framework for NNTP support.
+
+	* include/mailutils/nntp.h: New file
+	* include/mailutils/sys/nntp.h: New file
+	* mailbox/nntp/nntp_carrier.c: New file
+	* mailbox/nntp/nntp_connect.c: New file
+	* mailbox/nntp/nntp_create.c: New file
+	* mailbox/nntp/nntp_debug.c: New file
+	* mailbox/nntp/nntp_destroy.c: New file
+	* mailbox/nntp/nntp_disconnect.c: New file
+	* mailbox/nntp/nntp_readline.c: New file
+	* mailbox/nntp/nntp_response.c: New file
+	* mailbox/nntp/nntp_sendline.c: New file
+	* mailbox/nntp/nntp_stream.c: New file
+	* mailbox/nntp/nntp_timeout.c: New file
+
 2004-06-12  Sergey Poznyakoff
 
 	* auth/gsasl.c: Revised use of const modifiers

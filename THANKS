@@ -1,18 +1,22 @@
 GNU mailutils THANKS file
 
-GNU mailutils has originally been written by Jakob Kaivo, Jeff Bailey and
-Sean 'Shaleh' Perry. Many people further contributed to GNU mailutils by
-reporting problems, suggesting various improvements or submitting actual
-code. Here is a list of these people. Help us keep it complete and exempt
-of errors.
+Many people further contributed to GNU mailutils by reporting problems,
+suggesting various improvements or submitting actual code. Here is a list of
+these people. Help us keep it complete and exempt of errors.
 
-Frank Belew       <frb@wiw.org>
-Vesselin Atanasov <vesselin@bgnet.bg>
-Sergey Poznyakoff <gray@Mirddin.farlep.net>
-Jim Hull          <imaginos@imaginos.net>
-James Troup       <james@nocrew.org>
-Matthew Whitworth <matthew@okcomputer.org>
-Jordi Mallach     <jordi@sindominio.net>
-Olivier Bornet    <Olivier.Bornet@smartdata.ch>
-Simon Josefsson   <jas@extundo.com>
-Timothy Carpenter <timbeau_hk@yahoo.co.uk>
+Alain Magloire       <alainm@gnu.org>
+Frank Belew          <frb@wiw.org>
+Jakob 'sparky' Kaivo <jkaivo@elijah.nodomainname.net>
+James Troup          <james@nocrew.org>
+Jeff Bailey          <jbailey@nisa.net>
+Jim Hull             <imaginos@imaginos.net>
+Jordi Mallach        <jordi@sindominio.net>
+Matthew Whitworth    <matthew@okcomputer.org>
+Olivier Bornet       <Olivier.Bornet@smartdata.ch>
+Sam Roberts          <sroberts@uniserve.com>
+Sean 'Shaleh' Perry  <shaleh@debian.org>
+Sergey Poznyakoff    <gray@Mirddin.farlep.net>
+Simon Josefsson      <jas@extundo.com>
+Timothy Carpenter    <timbeau_hk@yahoo.co.uk>
+Vesselin Atanasov    <vesselin@bgnet.bg>
+Wojciech Polak       <polak@gnu.org>
