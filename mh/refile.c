@@ -18,6 +18,11 @@
 /* MH refile command */
 
 #include <mh.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <errno.h>
+#include <fcntl.h>
 
 const char *argp_program_version = "refile (" PACKAGE_STRING ")";
 static char doc[] = "GNU MH refile";
@@ -132,7 +137,7 @@ opt_handler (int key, char *arg, void *unused)
       break;
 
     case 'd':
-      source_file = "draft";
+      source_file = mh_expand_name ("draft", 0);
       break;
 
     case 'l':
@@ -190,6 +195,90 @@ refile (mailbox_t mbox, message_t msg, size_t num, void *data)
     }
 }
 
+mailbox_t
+open_source (char *file_name)
+{
+  struct stat st;
+  char *buffer;
+  int fd;
+  size_t len = 0;
+  mailbox_t tmp;
+  stream_t stream;
+  char *p;
+  
+  if (stat (file_name, &st) < 0)
+    {
+      mh_error ("can't stat file %s: %s", file_name, strerror (errno));
+      return NULL;
+    }
+
+  buffer = xmalloc (st.st_size+1);
+  fd = open (file_name, O_RDONLY);
+  if (fd == -1)
+    {
+      mh_error ("can't open file %s: %s", file_name, strerror (errno));
+      return NULL;
+    }
+
+  if (read (fd, buffer, st.st_size) != st.st_size)
+    {
+      mh_error ("error reading file %s: %s", file_name, strerror (errno));
+      return NULL;
+    }
+
+  buffer[st.st_size] = 0;
+  close (fd);
+
+  if (mailbox_create (&tmp, "/dev/null")
+      || mailbox_open (tmp, MU_STREAM_READ) != 0)
+    {
+      mh_error ("can't create temporary mailbox");
+      return NULL;
+    }
+
+  if (memory_stream_create (&stream, 0, MU_STREAM_RDWR)
+      || stream_open (stream))
+    {
+      mailbox_close (tmp);
+      mh_error ("can't create temporary stream");
+      return NULL;
+    }
+
+  for (p = buffer; *p && isspace (*p); p++)
+    ;
+
+  if (strncmp (p, "From ", 5))
+    {
+      struct tm *tm;
+      time_t t;
+      char date[80];
+      
+      time(&t);
+      tm = gmtime(&t);
+      strftime (date, sizeof (date),
+		"From GNU-MH-refile %a %b %e %H:%M:%S %Y%n",
+		tm);
+      stream_write (stream, date, strlen (date), 0, &len);
+    }      
+
+  stream_write (stream, p, strlen (p), len, &len);
+  mailbox_set_stream (tmp, stream);
+  if (mailbox_messages_count (tmp, &len)
+      || len < 1)
+    {
+      mh_error ("input file %s is not a valid message file", file_name);
+      return NULL;
+    }
+  else if (len > 1)
+    {
+      mh_error ("input file %s contains %lu messages",
+		(unsigned long) len);
+      return NULL;
+    }
+  free (buffer);
+  return tmp;
+}
+
 int
 main (int argc, char **argv)
 {
@@ -201,16 +290,24 @@ main (int argc, char **argv)
   mh_argp_parse (argc, argv, options, mh_option, args_doc, doc,
 		 opt_handler, NULL, &index);
 
-  if (source_file && index < argc)
+  if (source_file)
     {
-      mh_error ("both message set and source file given");
-      exit (1);
+      if (index < argc)
+	{
+	  mh_error ("both message set and source file given");
+	  exit (1);
+	}
+      mbox = open_source (source_file);
+      mh_msgset_parse (mbox, &msgset, 0, NULL, "first");
+    }
+  else
+    {
+      mbox = mh_open_folder (current_folder, 0);
+      mh_msgset_parse (mbox, &msgset, argc - index, argv + index, "cur");
     }
   
   open_folders ();
 
-  mbox = mh_open_folder (current_folder, 0);
-  mh_msgset_parse (mbox, &msgset, argc - index, argv + index, "cur");
   status = mh_iterate (mbox, &msgset, refile, NULL);
  
   enumerate_folders (_close_folder, NULL);
