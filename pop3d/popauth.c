@@ -269,13 +269,16 @@ action_create (struct action_data *ap)
   DBM_DATUM contents;
   char buf[256];
   int line = 0;
+
+  /* Make sure we have proper privileges if popauth is setuid */
+  setuid (getuid ());
   
   if (ap->input_name)
     {
       fp = fopen (ap->input_name, "r");
       if (!fp)
 	{
-	  mu_error("can't create %s: %s", ap->input_name, strerror (errno));
+	  mu_error("can't open %s: %s", ap->input_name, strerror (errno));
 	  return 1;
 	}
     }
