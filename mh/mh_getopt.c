@@ -25,9 +25,9 @@
 #include <stdlib.h>
 #include <mh_getopt.h>
 
-int mh_optind = 1;
-char *mh_optarg;
-char *mh_optptr;
+static int mh_optind = 1;
+static char *mh_optarg;
+static char *mh_optptr;
 
 int
 mh_getopt (int argc, char **argv, struct mh_option *mh_opt, const char *doc)
@@ -46,8 +46,11 @@ mh_getopt (int argc, char **argv, struct mh_option *mh_opt, const char *doc)
       return '+';
     }
   
-  if (mh_optptr[0] != '-')
-    return EOF;
+  if (mh_optptr[0] != '-' || mh_optptr[1] == '-')
+    {
+      mh_optind++;
+      return 0;
+    }
 
   optlen = strlen (mh_optptr+1);
   for (p = mh_opt; p->opt; p++)
@@ -64,6 +67,7 @@ mh_getopt (int argc, char **argv, struct mh_option *mh_opt, const char *doc)
   
   if (p->opt)
     {
+      char *longopt = p->longopt ? p->longopt : p->opt;
       switch (p->flags)
 	{
 	case MH_OPT_BOOL:
@@ -71,17 +75,20 @@ mh_getopt (int argc, char **argv, struct mh_option *mh_opt, const char *doc)
 	    mh_optarg = "no";
 	  else
 	    mh_optarg = "yes";
+	  asprintf (&argv[mh_optind], "--%s=%s", longopt, mh_optarg);
 	  break;
 	  
 	case MH_OPT_ARG:
+	  asprintf (&argv[mh_optind], "--%s", longopt);
 	  mh_optarg = argv[++mh_optind];
 	  break;
 
 	default:
+	  asprintf (&argv[mh_optind], "--%s", longopt);
 	  mh_optarg = NULL;
 	}
       mh_optind++;
-      return p->key;
+      return 1;
     }
   else if (!strcmp (mh_optptr+1, "help"))
     {
@@ -89,6 +96,14 @@ mh_getopt (int argc, char **argv, struct mh_option *mh_opt, const char *doc)
       exit (1);
     }
   return '?';
+}
+
+void
+mh_argv_preproc (int argc, char **argv, struct mh_argp_data *data)
+{
+  mh_optind = 1;
+  while (mh_getopt (argc, argv, data->mh_option, data->doc) != EOF)
+    ;
 }
 
 void
