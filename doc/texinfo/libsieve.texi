@@ -195,7 +195,6 @@ It is defined as follows:
 typedef int (*sieve_handler_t) (sieve_machine_t @var{mach},
                                 list_t @var{args}, list_t @var{tags});
 @end example
-@end deftp
 
 The arguments to the handler have the following meaning:
 
@@ -207,13 +206,13 @@ A list of required arguments to the handler
 @item tags
 A list of optional arguments (tags).
 @end table
+@end deftp
 
 @deftp {Data Type} sieve_printf_t
 A pointer to a diagnostic output function. It is defined as follows:
 @example
 typedef int (*sieve_printf_t) (void *@var{data}, const char *@var{fmt}, va_list @var{ap});
 @end example
-@end deftp
 
 @table @var
 @item data
@@ -224,6 +223,7 @@ Printf-like format string.
 @item ap
 Other arguments.
 @end table
+@end deftp
 
 @deftp {Data Type} sieve_parse_error_t
 This data type is declared as follows:
@@ -232,13 +232,13 @@ typedef int (*sieve_parse_error_t) (void *@var{data},
                                     const char *@var{filename}, int @var{lineno},
                                     const char *@var{fmt}, va_list @var{ap});
 @end example
-@end deftp
 
 It is used to declare error handlers for parsing errors. The
 application-specific data are passed in the @var{data}
 argument. Arguments @var{filename} and @var{line} indicate the location
 of the error in the source text, while @var{fmt} and @var{ap} give
 verbose description of the error.
+@end deftp
 
 @deftp {Data Type} sieve_action_log_t
 A pointer to the application-specific logging function:
@@ -250,7 +250,6 @@ typedef void (*sieve_action_log_t) (void *@var{data},
                                     const char *@var{action},
                                     const char *@var{fmt}, va_list @var{ap});
 @end example
-@end deftp
 
 @table @var
 @item data
@@ -273,6 +272,15 @@ The name of the action.
 @itemx var
 These two arguments give the detailed description of the action.
 @end table
+@end deftp
+
+@deftp {Data Type} sieve_relcmp_t
+@deftpx {Data Type} sieve_relcmpn_t
+@example
+typedef int (*sieve_relcmp_t) (int, int);  
+typedef int (*sieve_relcmpn_t) (size_t, size_t);  
+@end example
+@end deftp
 
 @deftp {Data Type} sieve_comparator_t
 @example
@@ -563,7 +571,7 @@ Find a register object describing the action @var{name}. Returns
 @deftypefun int sieve_register_action (sieve_machine_t @var{mach}, const char *@var{name}, sieve_handler_t @var{handler}, sieve_data_type *@var{arg_types}, sieve_tag_group_t *@var{tags}, int @var{required})
 @end deftypefun
                                
-@deftypefun int sieve_register_comparator (sieve_machine_t @var{mach}, const char *@var{name}, int @var{required}, sieve_comparator_t @var{is}, sieve_comparator_t @var{contains}, sieve_comparator_t @var{matches}, sieve_comparator_t @var{regex})
+@deftypefun int sieve_register_comparator (sieve_machine_t @var{mach}, const char *@var{name}, int @var{required}, sieve_comparator_t @var{is}, sieve_comparator_t @var{contains}, sieve_comparator_t @var{matches}, sieve_comparator_t @var{regex}, sieve_comparator_t @var{eq})
 @end deftypefun
                                    
 @deftypefun int sieve_tag_lookup (list_t @var{taglist}, char *@var{name}, sieve_value_t **@var{arg})
@@ -1193,6 +1201,36 @@ together, they escape the @samp{*}.
 @item :regex
 The @code{:regex} version specifies a match using POSIX Extended Regular
 Expressions.
+
+@item :value @var{relation}
+The @code{:value} match type does a relational comparison between
+strings. Valid values for @var{relation} are:
+
+@table @asis
+@item "eq"
+Equal
+
+@item "ne"
+Not Equal
+
+@item "gt"
+Greater Than
+
+@item "ge"
+Greater than or Equal
+
+@item "lt"
+Less Than
+
+@item "le"
+Less than or Equal
+@end table
+
+@item :count @var{relation}
+This match type first determines the number of the specified entities
+(headers, addresses, etc.) in the message and does a relational
+comparison of the number of entities to the values specified in the
+test expression. The test expression must be a list of one element.
 @end table
 
 @item comparator
