@@ -1,3 +1,20 @@
+2002-04-11  Sergey Poznyakoff 
+
+	* lib/mu_argp.c: Fixed auto-arranging of
+	  options groups. Fixed spelling of license option.
+	
+	* comsat/comsat.c: Fixed spelling of "license" option.
+	* frm/frm.c: Likewise.
+	* guimb/main.c: Likewise.
+	* imap4d/imap4d.c: Likewise.
+
+	* mail/mail.c: "mailutils" capability does not exist any more.
+	  Changed to "common", "license".
+	* messages/messages.c: Likewise.
+	* pop3d/pop3d.c: Likewise.
+	
+	* mail.local/main.c: Added "license" capability.
+
 2002-04-10 Sam Roberts
 
 	* mail.local/main.c: split mailutils capabilities
