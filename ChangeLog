@@ -1,3 +1,8 @@
+2002-01-14 Sergey Poznyakoff  
+
+	* argp/argp-parse.c (parser_init): Fixed erroneous typecasts.
+	* guimb/scm/Makefile.am: Added numaddr.scm to pkgdata_DATA.
+
 2002-01-12 Sam Roberts
 
 	* sieve/: sieve.c, sieve.h, svcb.c, svctx.c, svfield.c, svutil.c, sv.h:
