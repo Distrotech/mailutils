@@ -29,9 +29,12 @@
 #include <stdlib.h>
 #include <termios.h>
 #include <signal.h>
+#include <ctype.h>
 
-#include <readline/readline.h>
-#include <readline/history.h>
+#ifdef WITH_READLINE
+# include <readline/readline.h>
+# include <readline/history.h>
+#endif
 
 #include <mailutils/pop3.h>
 #include <mailutils/iterator.h>
@@ -68,7 +71,6 @@ int com_verbose (char *);
 void initialize_readline (void);
 char *stripwhite (char *);
 COMMAND *find_command (char *);
-void *xmalloc (size_t);
 char *dupstr (const char *);
 int execute_line (char *);
 int valid_argument (const char *, char *);
@@ -110,151 +112,24 @@ int verbose;
 /* When non-zero, this global means the user is done using this program. */
 int done;
 
-#if 0
-void *
-xmalloc (size_t size)
-{
-  void *m = malloc (size);
-  if (!m)
-    {
-      fprintf (stderr, "Memory exhausted\n");
-      exit (1);
-    }
-  return m;
-}
-#endif
-
 char *
 dupstr (const char *s)
 {
   char *r;
 
-  r = xmalloc (strlen (s) + 1);
+  r = malloc (strlen (s) + 1);
+  if (!r)
+    {
+      fprintf (stderr, "Memory exhausted\n");
+      exit (1);
+    }
   strcpy (r, s);
   return r;
 }
 
-int
-main (int argc, char **argv)
-{
-  char *line, *s;
-
-  (void)argc;
-  progname = strrchr (argv[0], '/');
-  if (progname)
-    progname++;
-  else
-    progname = argv[0];
-
-  initialize_readline ();	/* Bind our completer. */
-
-  /* Loop reading and executing lines until the user quits. */
-  for ( ; done == 0; )
-    {
-
-      line = readline ((char *)"pop3> ");
-
-      if (!line)
-        break;
-
-      /* Remove leading and trailing whitespace from the line.
-         Then, if there is anything left, add it to the history list
-         and execute it. */
-      s = stripwhite (line);
-
-      if (*s)
-        {
-          int status;
-          add_history (s);
-          status = execute_line (s);
-          if (status != 0)
-            fprintf (stderr, "Error: %s\n", strerror(status));
-        }
-
-      free (line);
-    }
-  exit (0);
-}
-
-/* Parse and execute a command line. */
-int
-execute_line (char *line)
-{
-  register int i;
-  COMMAND *command;
-  char *word;
-
-  /* Isolate the command word. */
-  i = 0;
-  while (line[i] && whitespace (line[i]))
-    i++;
-  word = line + i;
-
-  while (line[i] && !whitespace (line[i]))
-    i++;
-
-  if (line[i])
-    line[i++] = '\0';
-
-  command = find_command (word);
-
-  if (!command)
-    {
-      fprintf (stderr, "%s: No such command for %s.\n", word, progname);
-      return (-1);
-    }
-
-  /* Get argument to command, if any. */
-  while (whitespace (line[i]))
-    i++;
-
-  word = line + i;
-
-  /* Call the function. */
-  return ((*(command->func)) (word));
-}
-
-/* Look up NAME as the name of a command, and return a pointer to that
-   command.  Return a NULL pointer if NAME isn't a command name. */
-COMMAND *
-find_command (name)
-     char *name;
-{
-  register int i;
-
-  for (i = 0; commands[i].name; i++)
-    if (strcmp (name, commands[i].name) == 0)
-      return (&commands[i]);
-
-  return ((COMMAND *)NULL);
-}
-
-/* Strip whitespace from the start and end of STRING.  Return a pointer
-   into STRING. */
-char *
-stripwhite (char *string)
-{
-  register char *s, *t;
-
-  for (s = string; whitespace (*s); s++)
-    ;
-
-  if (*s == 0)
-    return (s);
-
-  t = s + strlen (s) - 1;
-  while (t > s && whitespace (*t))
-    t--;
-  *++t = '\0';
-
-  return s;
-}
-
-/* **************************************************************** */
-/*                                                                  */
-/*                  Interface to Readline Completion                */
-/*                                                                  */
-/* **************************************************************** */
+
+#ifdef WITH_READLINE
+/* Interface to Readline Completion */
 
 char *command_generator (const char *, int);
 char **pop_completion (char *, int, int);
@@ -323,6 +198,151 @@ command_generator (const char *text, int state)
 
   /* If no names matched, then return NULL. */
   return ((char *)NULL);
+}
+
+#else
+void
+initialize_readline ()
+{
+}
+
+char *
+readline (char *prompt)
+{
+  char buf[255];
+
+  if (prompt)
+    {
+      printf ("%s", prompt);
+      fflush (stdout);
+    }
+
+  if (!fgets (buf, sizeof (buf), stdin))
+    return NULL;
+  return strdup (buf);
+}
+
+void
+add_history (const char *s)
+{
+}
+#endif
+
+
+int
+main (int argc, char **argv)
+{
+  char *line, *s;
+
+  (void)argc;
+  progname = strrchr (argv[0], '/');
+  if (progname)
+    progname++;
+  else
+    progname = argv[0];
+
+  initialize_readline ();	/* Bind our completer. */
+
+  /* Loop reading and executing lines until the user quits. */
+  for ( ; done == 0; )
+    {
+
+      line = readline ((char *)"pop3> ");
+
+      if (!line)
+        break;
+
+      /* Remove leading and trailing whitespace from the line.
+         Then, if there is anything left, add it to the history list
+         and execute it. */
+      s = stripwhite (line);
+
+      if (*s)
+        {
+          int status;
+          add_history (s);
+          status = execute_line (s);
+          if (status != 0)
+            fprintf (stderr, "Error: %s\n", strerror(status));
+        }
+
+      free (line);
+    }
+  exit (0);
+}
+
+/* Parse and execute a command line. */
+int
+execute_line (char *line)
+{
+  register int i;
+  COMMAND *command;
+  char *word;
+
+  /* Isolate the command word. */
+  i = 0;
+  while (line[i] && isspace (line[i]))
+    i++;
+  word = line + i;
+
+  while (line[i] && !isspace (line[i]))
+    i++;
+
+  if (line[i])
+    line[i++] = '\0';
+
+  command = find_command (word);
+
+  if (!command)
+    {
+      fprintf (stderr, "%s: No such command for %s.\n", word, progname);
+      return (-1);
+    }
+
+  /* Get argument to command, if any. */
+  while (isspace (line[i]))
+    i++;
+
+  word = line + i;
+
+  /* Call the function. */
+  return ((*(command->func)) (word));
+}
+
+/* Look up NAME as the name of a command, and return a pointer to that
+   command.  Return a NULL pointer if NAME isn't a command name. */
+COMMAND *
+find_command (name)
+     char *name;
+{
+  register int i;
+
+  for (i = 0; commands[i].name; i++)
+    if (strcmp (name, commands[i].name) == 0)
+      return (&commands[i]);
+
+  return ((COMMAND *)NULL);
+}
+
+/* Strip whitespace from the start and end of STRING.  Return a pointer
+   into STRING. */
+char *
+stripwhite (char *string)
+{
+  register char *s, *t;
+
+  for (s = string; isspace (*s); s++)
+    ;
+
+  if (*s == 0)
+    return (s);
+
+  t = s + strlen (s) - 1;
+  while (t > s && isspace (*t))
+    t--;
+  *++t = '\0';
+
+  return s;
 }
 
 int
@@ -525,8 +545,7 @@ com_stat (char *arg)
 }
 
 int
-com_dele (arg)
-     char *arg;
+com_dele (char *arg)
 {
   unsigned msgno;
   if (!valid_argument ("dele", arg))
@@ -739,3 +758,4 @@ valid_argument (const char *caller, char *arg)
 
   return 1;
 }
+
