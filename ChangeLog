@@ -1,4 +1,4 @@
-2001-10-26  Alain Magloire
+2001-10-30  Alain Magloire
 
 	* acconfig.h: #define ssize_t.
 	* configure.in: Add AC_CHECK_TYPE(ssize_t, int);
