@@ -1,3 +1,18 @@
+2003-02-24  Sergey Poznyakoff  
+
+	* include/mailutils/mailcap.h: Added missing prototypes, protected
+	  argument decls with __P and the whole stuff with extern "C".
+	* mailbox/mailcap.c: Fixed indentation, adopted for 80-column
+	  screen.
+	* doc/texinfo/mailcap.inc: Removed. Auto-generated file
+	* examples/mailcap.c: New file.
+	* examples/Makefile.am: Added mailcap.c
+	* examples/.cvsignore: Added mailcap
+	* mailbox/testsuite/Mailcap: New file. Test data for mailcap.
+	* mailbox/testsuite/Makefile.am: Added Mailcap
+	* mailbox/testsuite/mailbox/mailcap.exp: New file.
+	* mailbox/testsuite/mailbox/DISTFILES: Added mailcap.exp
+	
 2003-02-23  Alain Magloire
 
 	* mailbox/refcount.c: Added a simple thread-safe implementation.
