@@ -2,6 +2,9 @@
 
 	* mailbox/mbx_default.c (mailbox_create_default): Check
 	for URL in the mailbox name.
+
+2001-05-23  Dave Inglis
+
 	* mailbox/mime.c (_mimepart_body_read): Use stream_is_seekable()
 	to detect if the stream is POP for example and read 'til the end.
 	(mime_get_part): Reuse the stream the original stream flags on the
