@@ -36,8 +36,12 @@ static char args_doc[] = N_("[+folder] [msg]");
 static struct argp_option options[] = {
   {"annotate", 'a', N_("BOOL"), OPTION_ARG_OPTIONAL,
    N_("Add Replied: header to the message being replied to")},
+  {"build", 'b', 0, 0,
+   N_("Build the draft and quit immediately.")},
   {"draftfolder", 'd', N_("FOLDER"), 0,
-   N_("Invoke the draftfolder facility")},
+   N_("Specify the folder for message drafts")},
+  {"nodraftfolder", ARG_NODRAFTFOLDER, 0, 0,
+   N_("Undo the effect of the last --draftfolder option")},
   {"draftmessage" , 'm', N_("MSG"), 0,
    N_("Invoke the draftmessage facility")},
   {"cc",       'c', "{all|to|cc|me}", 0,
@@ -51,8 +55,10 @@ static struct argp_option options[] = {
   {"filter", ARG_FILTER, N_("PROG"), 0,
    N_("Set the filter program to preprocess the body of the message being replied")},
   {"form",   'F', N_("FILE"), 0, N_("Read format from given file")},
-  {"inplace", ARG_INPLACE, N_("BOOL"), 0, N_("Annotate the message in place")},
-  {"query", ARG_QUERY, N_("BOOL"), 0, N_("Query for addresses to place in To: and Cc: lists")},
+  {"inplace", ARG_INPLACE, N_("BOOL"), OPTION_ARG_OPTIONAL,
+   N_("Annotate the message in place")},
+  {"query", ARG_QUERY, N_("BOOL"), OPTION_ARG_OPTIONAL,
+   N_("Query for addresses to place in To: and Cc: lists")},
   {"width", 'w', N_("NUMBER"), 0, N_("Set output width")},
   {"whatnowproc", ARG_WHATNOWPROC, N_("PROG"), 0,
    N_("Set the replacement for whatnow program")},
@@ -63,6 +69,7 @@ static struct argp_option options[] = {
 /* Traditional MH options */
 struct mh_option mh_option[] = {
   {"annotate", 1, 'a', MH_OPT_BOOL },
+  {"build", 1, 'b', },
   {"cc", 1, 'c', MH_OPT_ARG, "all/to/cc/me"},
   {"nocc", 3, 'n', MH_OPT_ARG, "all/to/cc/me"},
   {"form",    4,  'F', MH_OPT_ARG, "formatfile"},
@@ -94,15 +101,26 @@ static char *format_str =
 
 static mh_format_t format;
 static int width = 80;
+static char *draft_folder;
 static char *draft_file;
 static mh_msgset_t msgset;
 static mailbox_t mbox;
+static int build_only = 0; /* --build flag */
+static int query_mode = 0; /* --query flag */
 
 static int
 opt_handler (int key, char *arg, void *unused)
 {
   switch (key)
     {
+    case 'b':
+      build_only = 1;
+      break;
+      
+    case 'd':
+      draft_folder = arg;
+      break;
+      
     case '+':
     case 'f': 
       current_folder = arg;
@@ -121,8 +139,15 @@ opt_handler (int key, char *arg, void *unused)
 	}
       break;
 
+    case ARG_NODRAFTFOLDER:
+      draft_folder = NULL;
+      break;
+
+    case ARG_QUERY:
+      query_mode = is_true (arg);
+      break;
+      
     case 'a':
-    case 'd':
     case 'm':
     case 'c':
     case 'n':
@@ -131,7 +156,6 @@ opt_handler (int key, char *arg, void *unused)
     case ARG_FCC:
     case ARG_FILTER:
     case ARG_INPLACE:
-    case ARG_QUERY:
     case ARG_WHATNOWPROC:
       mh_error (_("option is not yet implemented"));
       exit (1);
@@ -190,6 +214,9 @@ main (int argc, char **argv)
       exit (1);
     }
 
+  if (!draft_folder)
+    draft_folder = mh_global_profile_get ("Draft-Folder", mu_path_folder_dir);
+  
   mbox = mh_open_folder (current_folder, 0);
   mh_msgset_parse (mbox, &msgset, argc - index, argv + index, "cur");
   if (msgset.count != 1)
@@ -198,7 +225,7 @@ main (int argc, char **argv)
       return 1;
     }
 
-  draft_file = mh_expand_name ("draft", 0);
+  draft_file = mh_expand_name (draft_folder, "reply", 0);
   
   make_draft ();
   
