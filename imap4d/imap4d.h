@@ -193,6 +193,7 @@ extern size_t uid_to_msgno __P ((size_t));
 extern RETSIGTYPE imap4d_sigchld __P ((int));
 extern RETSIGTYPE imap4d_signal __P ((int));
 extern int imap4d_bye __P ((int));
+extern int imap4d_bye0 __P ((int reason, struct imap4d_command *command));
 
 /* Namespace functions */
 extern int set_namespace __P((int i, char *str));
