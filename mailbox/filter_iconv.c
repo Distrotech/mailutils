@@ -50,24 +50,24 @@
 
 enum _icvt_state
   {
-    state_closed,
-    state_open,
-    state_literal,
-    state_octal,
-    state_iconv_error,
-    state_transport_error
+    state_closed,           /* Filter is closed */
+    state_open,             /* Filter is open and running in conversion mode */
+    state_copy_pass,        /* Filter is open and running in copy-pass mode */
+    state_copy_octal,       /* Filter is open and running in copy-octal mode */
+    state_iconv_error,      /* A fatal iconv error has occurred */
+    state_transport_error   /* A fatal transport error has occurred */
   };
 
 struct icvt_stream
 {
   stream_t stream;   /* I/O stream */
+  int fallback_mode;
   iconv_t cd;        /* Conversion descriptor */
   char *buf;         /* Conversion buffer */
   size_t bufsize;    /* Size of buf */
   size_t bufpos;     /* Current position in buf */
   enum _icvt_state state;
   int ec;            /* Error code */
-  char ICONV_CONST *errp;  /* Offending input if state == state_iconv_error */
   char errbuf[128];  /* Error message buffer */
 };
 
@@ -123,8 +123,9 @@ internal_icvt_read (stream_t stream, char *optr, size_t osize, size_t *pnbytes)
 {
   struct icvt_stream *s = stream_get_owner (stream);
   size_t nbytes = 0;
-  size_t cvtbytes = 0;
-  int rc, status;
+  int rc, status = 0;
+  char *ob = optr;
+  size_t olen = osize;
 
   if (s->bufpos == 0)
     {
@@ -147,21 +148,22 @@ internal_icvt_read (stream_t stream, char *optr, size_t osize, size_t *pnbytes)
     {
       char ICONV_CONST *ib = s->buf;
       size_t inlen = s->bufpos + nbytes;
-      char *ob = optr + cvtbytes;
-      size_t olen = osize - cvtbytes;
       
       rc = iconv (s->cd, &ib, &inlen, &ob, &olen);
-      cvtbytes += ib - s->buf;
+      if (ib > s->buf)
+	{
+	  memmove (s->buf, ib, inlen);
+	  s->bufpos = inlen;
+	}
+      else
+	s->bufpos += nbytes;
+      
       if (rc == -1)
 	{
 	  if (errno == E2BIG)
 	    {
-	      if (cvtbytes)
-		{
-		  memmove (s->buf, ib, inlen);
-		  s->bufpos = inlen;
-		  break;
-		}
+	      if (ob > optr)
+		break;
 	      else
 		{
 		  s->ec = MU_ERR_BUFSPACE;
@@ -172,22 +174,24 @@ internal_icvt_read (stream_t stream, char *optr, size_t osize, size_t *pnbytes)
 	    {
 	      int flags = 0; 
 	      stream_get_flags (stream, &flags);
-	      if (flags & MU_STREAM_STRICT)
+	      switch (s->fallback_mode)
 		{
+		case mu_fallback_none:
 		  s->state = state_iconv_error;
 		  s->ec = errno;
-		  s->errp = ib;
-		  if (cvtbytes)
-		    break;
-		  else
+		  if (ob == optr)
 		    return MU_ERR_FAILURE;
-		}
-	      else
-		{
-		  s->state = state_octal;
-		  memmove (s->buf, ib, inlen);
-		  s->bufpos = inlen;		  
-		  if (cvtbytes == 0)
+		  break;
+
+		case mu_fallback_copy_pass:
+		  s->state = state_copy_pass;
+		  if (ob == optr)
+		    return _icvt_read (stream, optr, osize, 0, pnbytes);
+		  break;
+		  
+		case mu_fallback_copy_octal:
+		  s->state = state_copy_octal;
+		  if (ob == optr)
 		    return _icvt_read (stream, optr, osize, 0, pnbytes);
 		  break;
 		}
@@ -199,16 +203,9 @@ internal_icvt_read (stream_t stream, char *optr, size_t osize, size_t *pnbytes)
 		  /* Try to reallocate temp buffer */
 		  char *p = realloc (s->buf, s->bufsize + 128);
 		  if (!p)
-		    {
-		      /* Rearrange the buffer anyway */
-		      memmove (s->buf, ib, inlen);
-		      s->bufpos = inlen;
-		      return ENOMEM;
-		    }
+		    return ENOMEM;
 		  s->bufsize += 128;
 		}
-	      memmove (s->buf, ib, inlen);
-	      s->bufpos = inlen;
 	      continue;
 	    }
 	  else
@@ -219,7 +216,7 @@ internal_icvt_read (stream_t stream, char *optr, size_t osize, size_t *pnbytes)
 	    }
 	}
     }
-  while (cvtbytes < osize
+  while (olen > 0 
 	 && (status = stream_sequential_read (s->stream,
 					      s->buf + s->bufpos,
 					      s->bufsize - s->bufpos,
@@ -229,20 +226,20 @@ internal_icvt_read (stream_t stream, char *optr, size_t osize, size_t *pnbytes)
   if (status)
     {
       s->state = state_transport_error;
-      s->ec = rc;
-      if (!cvtbytes)
+      s->ec = status;
+      if (ob == optr)
 	return MU_ERR_FAILURE;
     }
       
   if (*pnbytes)
-    *pnbytes = cvtbytes;
+    *pnbytes = ob - optr;
   return 0;
 }
 
-#define ISPRINT(c) ((c)>=' '&&(c)<127)
+#define ISPRINT(c) (((c)>=' '&&(c)<127)||c=='\n')
 
 static int
-octal_icvt_read (struct icvt_stream *s, char *optr, size_t osize, size_t *pnbytes)
+copy_octal (struct icvt_stream *s, char *optr, size_t osize, size_t *pnbytes)
 {
   size_t i, j;
   int status;
@@ -263,7 +260,9 @@ octal_icvt_read (struct icvt_stream *s, char *optr, size_t osize, size_t *pnbyte
 	    rdcount = s->bufsize;
 	}
 
-      status = stream_sequential_read (s->stream, s->buf, rdcount - s->bufpos,
+      status = stream_sequential_read (s->stream,
+				       s->buf + s->bufpos,
+				       rdcount - s->bufpos,
 				       &rdcount);
       if (status)
 	{
@@ -276,7 +275,7 @@ octal_icvt_read (struct icvt_stream *s, char *optr, size_t osize, size_t *pnbyte
 	s->bufpos += rdcount;
     }
   
-  for (i = j = 0; i < osize && j < s->bufpos; i++)
+  for (i = j = 0; j < osize && i < s->bufpos; i++)
     {
       if (ISPRINT (*(unsigned char*)(s->buf+i)))
 	optr[j++] = s->buf[i];
@@ -296,7 +295,7 @@ octal_icvt_read (struct icvt_stream *s, char *optr, size_t osize, size_t *pnbyte
 }
 
 static int
-literal_icvt_read (struct icvt_stream *s, char *optr, size_t osize, size_t *pnbytes)
+copy_pass (struct icvt_stream *s, char *optr, size_t osize, size_t *pnbytes)
 {
   int status;
   size_t nbytes;
@@ -340,11 +339,11 @@ _icvt_read (stream_t stream, char *optr, size_t osize,
     case state_closed:
       return EINVAL;
       
-    case state_literal:
-      return literal_icvt_read (s, optr, osize, pnbytes);
+    case state_copy_pass:
+      return copy_pass (s, optr, osize, pnbytes);
       
-    case state_octal:
-      return octal_icvt_read (s, optr, osize, pnbytes);
+    case state_copy_octal:
+      return copy_octal (s, optr, osize, pnbytes);
 	
     default:
       break;
@@ -369,7 +368,8 @@ _icvt_strerror (stream_t stream, char **pstr)
 	{
 	case EILSEQ:
 	  snprintf (s->errbuf, sizeof s->errbuf,
-		    _("Illegal multibyte sequence near %s"), s->errp);
+		    _("Illegal multibyte sequence near %*.*s"),
+		    s->bufpos, s->bufpos, s->buf);
 	  break;
 
 	default:
@@ -411,7 +411,8 @@ _icvt_wait (stream_t stream, int *pflags, struct timeval *tvp)
 
 int
 filter_iconv_create (stream_t *s, stream_t transport,
-		     char *fromcode, char *tocode, int flags)
+		     const char *fromcode, const char *tocode, int flags,
+		     enum mu_iconv_fallback_mode fallback_mode)
 {
   struct icvt_stream *iptr;
   iconv_t cd;
@@ -425,6 +426,7 @@ filter_iconv_create (stream_t *s, stream_t transport,
   if (!iptr)
     return ENOMEM;
   iptr->stream = transport;
+  iptr->fallback_mode = fallback_mode;
   iptr->cd = cd;
   iptr->state = state_closed;
   iptr->bufsize = 128;
