@@ -41,6 +41,7 @@
 #include <mailutils/property.h>
 #include <mailutils/error.h>
 #include <mailutils/nls.h>
+#include <mailutils/mu_auth.h>
 
 const char *program_version = "mail.remote (" PACKAGE_STRING ")";
 static char doc[] =
@@ -74,6 +75,8 @@ static struct argp_option options[] = {
   {"read-recipients", 't', NULL, 0, N_("Read message for recipients.") },
   {"debug", 'd', NULL,   0, N_("Print envelope commands in the SMTP protocol transaction. If specified more than once, the data part of the protocol transaction will also be printed.")},
   { NULL,   'o', N_("OPT"), 0, N_("Ignored for sendmail compatibility")},
+  { NULL,   'b', N_("OPT"), 0, N_("Ignored for sendmail compatibility")},
+  { NULL,   'i', NULL, 0, N_("Ignored for sendmail compatibility")},
   { NULL }
 };
 
@@ -95,6 +98,8 @@ parse_opt (int key, char *arg, struct argp_state *state)
       break;
 
     case 'o':
+    case 'b':
+    case 'i':
       break;
 
     case 't':
@@ -115,6 +120,7 @@ static struct argp argp = {
 };
 
 static const char *capa[] = {
+  "auth",
   "common",
   "mailer",
   "address",
@@ -158,6 +164,7 @@ main (int argc, char **argv)
     list_append (bookie, smtp_record);
   }
 
+  MU_AUTH_REGISTER_ALL_MODULES();
   mu_argp_init (program_version, NULL);
   mu_argp_parse (&argp, &argc, &argv, 0, capa, &optind, NULL);
 
