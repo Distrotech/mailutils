@@ -1,3 +1,53 @@
+2002-02-05  Sergey Poznyakoff 
+
+	Use argp_ functions instead of getopt to parse command
+	line arguments. This allows all mailutils programs
+	to share common code and to have the same subset
+	of command line options. Besides, this allows to have
+	a single configuration file for entire package.
+	The common command-line subsets are (struct argp_child):
+	
+	  1. mu_common_argp_child: handles --maildir,--log-facility,
+	     --license and --sql-.* family of options. (The latter
+	     are used to supply data for SQL getpwnam et al. functions
+	     instead of hard-coding them).
+	  2. mu_daemon_argp_child: handles --daemon,--inetd,--port
+	     and --timeout options.
+
+	* lib/mu_argp.c: (new) Handle command line arguments,
+	  common for all mailutils programs.
+	* lib/mu_argp.h: (new) Definitions for handling common
+	  mailutils command-line arguments.
+	* lib/Makefile.am: Added mu_argp.[ch]
+	
+	* comsat/Makefile.am: Added @ARGP.*@ substitutions
+	* imap4d/Makefile.am: Likewise.
+	* mail.local/Makefile.am: Likewise.
+	* pop3d/Makefile.am: Likewise.
+	
+	* comsat/comsat.c: Use argp_parse instead of getopt_long.
+	* imap4d/imap4d.c: Likewise.
+	* mail.local/main.c: Likewise.
+	* pop3d/pop3d.c: Likewise.
+	
+	* comsat/comsat.h: Added mu_argp.h and related stuff
+	* imap4d/imap4d.h: Likewise.
+	* imap4d/util.c: Likewise.
+	* mail.local/mail.local.h: Likewise.
+	* pop3d/extra.c: Likewise.
+	* pop3d/pop3d.h: Likewise.
+
+	* examples/mailutils.rc: (new) Sample mailutils configuration
+	  file.
+	* doc/texinfo/programs.texi: Added entry about mailutils.rc
+	  configuration file.
+
+	* MySql/MySql.c: Use configurable queries instead
+	  of hardcoded ones.
+	* MySql/MySql.h: Added new external declarations.
+	  Removed unneeded defines.
+	* configure.in: Removed notice about MySql.h
+
 2002-02-04  Sergey Poznyakoff  
 
 	* mail.local/Makefile.am (mail_local_LDADD): Add @AUTHLIBS@.
