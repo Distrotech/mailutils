@@ -25,8 +25,11 @@ int
 mail_echo (int argc, char **argv)
 {
   int i = 0;
-  for (i = 1; i < argc-1; i++)
-    printf ("%s ", argv[i]);
-  printf ("%s\n", argv[argc]);
+  if (argc > 1)
+    {
+      for (i = 1; i < argc - 1; i++)
+	printf ("%s ", argv[i]);
+      printf ("%s\n", argv[argc - 1]);
+    }
   return 0;
 }

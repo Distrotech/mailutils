@@ -36,9 +36,6 @@ util_ll_add (node *c, int data)
 {
   c->next = malloc (sizeof (node));
   c->data = data;
-  /*  c->env_entry.var = NULL;
-  c->env_entry.set = 0;
-  c->env_entry.value = NULL;*/
   c->next->env_entry.var = NULL;
   c->next->env_entry.set = 0;
   c->next->env_entry.value = NULL;
@@ -380,6 +377,9 @@ util_find_env (char *variable)
   int len = strlen (var), need_free = 0;
   node *t;
 
+  if (len < 1)
+    return NULL;
+
   if (len == strlen ("ask") && !strcmp ("ask", var))
     {
       var = strdup ("asksub");
@@ -407,7 +407,7 @@ util_find_env (char *variable)
 	  return &(env_cursor->env_entry);
 	}
     }
-  /*  env_cursor = util_ll_add (env_cursor, 0); */
+
   env_cursor->env_entry.var = strdup (var);
   env_cursor->env_entry.set = 0;
   env_cursor->env_entry.value = NULL;
@@ -422,12 +422,12 @@ util_find_env (char *variable)
  * print the environment 
  */
 int
-util_printenv (void)
+util_printenv (int set)
 {
   for (env_cursor = environment; env_cursor != NULL;
        env_cursor = env_cursor->next)
     {
-      if (env_cursor->env_entry.set)
+      if (env_cursor->env_entry.set == set)
 	{
 	  printf ("%s", env_cursor->env_entry.var);
 	  if (env_cursor->env_entry.value != NULL)

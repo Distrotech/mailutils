@@ -18,9 +18,9 @@
 #include "mail.h"
 
 /*
- * w[rite] [file]	GNU extension
+ * w[rite] [file] -- GNU extension
  * w[rite] [msglist] file
- * W[rite] [msglist]	GNU extension
+ * W[rite] [msglist] -- GNU extension
  */
 
 /*

@@ -18,7 +18,7 @@
 #include "mail.h"
 
 /*
- * fo[llowup] [message]
+ * fo[llowup] [msglist] -- GNU extension
  * F[ollowup] [msglist]
  */
 

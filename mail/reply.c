@@ -18,8 +18,8 @@
 #include "mail.h"
 
 /*
- * r[eply] [message]
- * r[espond] [message]
+ * r[eply] [msglist] -- GNU extension
+ * r[espond] [msglist] -- GNU extension
  * R[eply] [msglist]
  * R[espond] [msglist]
  */

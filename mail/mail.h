@@ -140,7 +140,7 @@ struct mail_command_entry util_find_entry __P((char *cmd));
 int util_getcols __P((void));
 int util_getlines __P((void));
 struct mail_env_entry *util_find_env __P((char *var));
-int util_printenv __P((void));
+int util_printenv __P((int set));
 
 #ifdef __cplusplus
 }

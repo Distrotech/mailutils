@@ -18,26 +18,27 @@
 #include "mail.h"
 
 /*
- * uns[et] name...
+ * uns[et] [name...] -- GNU extension
  */
 
 int
 mail_unset (int argc, char **argv)
 {
   if (argc < 2)
-    return 1;
+    return util_printenv (0);
   else
     {
       int status = 0, i = 1;
       for (i=1; i < argc; i++)
 	{
-	  char *buf = malloc ((6+strlen (argv[i])) * sizeof (char));
+	  char *buf = malloc ((7+strlen (argv[i])) * sizeof (char));
 	  strcpy (buf, "set no");
 	  strcat (buf, argv[i]);
 	  if (!util_do_command (buf))
 	    status = 1;
 	  free (buf);
 	}
+      return status;
     }
   return 1;
 }
