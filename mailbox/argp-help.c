@@ -26,6 +26,8 @@
 #include <config.h>
 #endif
 
+#include <mailutils/nls.h>
+
 #ifndef alloca
 # ifdef __GNUC__
 #  define alloca __builtin_alloca
