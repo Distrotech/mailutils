@@ -71,12 +71,6 @@ struct mh_option mh_option[] = {
   { 0 }
 };
 
-static char *format_str =
-"To:\n"
-"cc:\n"
-"Subject:\n"
-"--------\n";
-
 struct mh_whatnow_env wh_env = { 0 };
 const char *formfile;
 static int initial_edit = 1;
@@ -138,28 +132,6 @@ opt_handler (int key, char *arg, void *unused, struct argp_state *state)
       return 1;
     }
   return 0;
-}
-
-int 
-check_draft_disposition (struct mh_whatnow_env *wh)
-{
-  struct stat st;
-  int disp = DISP_REPLACE;
-
-  /* First check if the draft exists */
-  if (stat (wh->draftfile, &st) == 0)
-    {
-      if (use_draft)
-	disp = DISP_USE;
-      else
-	{
-	  printf (_("Draft \"%s\" exists (%lu bytes).\n"),
-		  wh->draftfile, (unsigned long) st.st_size);
-	  disp = mh_disposition (wh->draftfile);
-	}
-    }
-
-  return disp;
 }
   
 int
@@ -233,7 +205,7 @@ main (int argc, char **argv)
   if (!wh_env.draftfile)
     wh_env.draftfile = mh_expand_name (wh_env.draftfolder, "draft", 0);
 
-  switch (check_draft_disposition (&wh_env))
+  switch (check_draft_disposition (&wh_env, use_draft))
     {
     case DISP_QUIT:
       exit (0);
@@ -260,38 +232,8 @@ main (int argc, char **argv)
 	    }
 	  copy_message (mbox, msgset.list[0], wh_env.file);
 	}
-      else if (formfile)
-	{
-	  if (mh_file_copy (formfile, wh_env.file) == 0)
-	    exit (1);
-	}
       else
-	{
-	  int rc;
-	  stream_t stream;
-	  
-	  if ((rc = file_stream_create (&stream,
-					wh_env.file,
-					MU_STREAM_WRITE|MU_STREAM_CREAT)) != 0
-	      || (rc = stream_open (stream)))
-	    {
-	      mh_error (_("cannot open output file \"%s\": %s"),
-			wh_env.file, mu_strerror (rc));
-	      exit (1);
-	    }
-	  
-	  rc = stream_sequential_write (stream, 
-					format_str, strlen (format_str));
-	  stream_close (stream);
-	  stream_destroy (&stream, stream_get_owner (stream));
-
-	  if (rc)
-	    {
-	      mh_error (_("error writing to \"%s\": %s"),
-			wh_env.file, mu_strerror (rc));
-	      exit (1);
-	    }
-	}
+	mh_comp_draft (formfile, "components", wh_env.file);
     }
   
   /* Exit immediately if --build is given */
