@@ -39,19 +39,8 @@ prog_mda (struct mda_data *data)
   x_argv[0] = "mail.local";
   x_argv[1] = NULL;
 
-  message_get_stream (data->msg, &stream);
-  stream_flush (stream);
-  if (mailbox_create (&mbox, data->tempfile)
-      || mailbox_open (mbox, MU_STREAM_RDWR) != 0)
-    {
-      mailer_err ("can't open temporary storage");
-      return EX_UNAVAILABLE;
-    }
-
-  unlink (data->tempfile);
-  
   param.debug_guile = debug_guile;
-  param.mbox = mbox;
+  param.mbox = data->mbox;
   param.user_name = NULL;
   param.init = mda_init;
   param.catch_body = mda_catch_body;
@@ -117,7 +106,7 @@ mda_catch_body (void *data, mailbox_t mbox)
     return SCM_BOOL_F;
 
   mda_switch_to_user (NULL);
-  mda (md->msg, md->argv[0]);
+  mda (md->mbox, md->argv[0]);
   return SCM_BOOL_F;
 }
 
