@@ -108,7 +108,7 @@ mail_from0 (int msgno, int verbose)
      18, 16 for the other fields.
   */
   froml = cols / 3;
-  subjl = cols - froml - strlen (st) - strlen (date);
+  subjl = cols - froml - strlen (st) - 16;
   
   fromp = from ? from : "";
   subjp = subj ? subj : fromp;
