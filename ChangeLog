@@ -1,3 +1,12 @@
+2001-12-03  Alain Magloire
+
+	Suprisingly some OSes do not have getpass()
+	drop a dumb version in lib/getpass.c for missing plaforms.
+
+	* configure.in: Check for getpass ();
+	* lib/getpass.c: New file.
+	* lib/Makefile.am: Updated.
+
 2001-12-03  Sergey Poznyakoff
 
 	* configure.in: Fixed inconsistency: --with-dbm flag
