@@ -1,5 +1,24 @@
 2002-01-19 Sam Roberts
 
+	* sieve/: svcb.c, svutil.c: sv_mu_save_to() became
+	  mailbox/message.c:message_save_to_mailbox()
+	* sieve/sieve.c: Was setting debug on the mailbox before creating
+	  it...
+	* include/mailutils/message.h, mailbox/message.c:
+	  message_save_to_mailbox(): convenience function, perhaps it should
+	  go in mailbox/mutil.c, but nothing else in there is a mailutils API
+	  wrapper.
+	* include/mailutils/mailbox.h, mailbox/mailbox.c:
+	  mailbox_has_debug(): wasn't a way to see if a mailbox had one
+	* mailbox/folder_mbox.c: Give mbox folders a null authentication
+	  object, mailbox_get_authority() will now return one instead of
+	  suceeding, but not returning an object.
+	* include/mailutils/folder.h, mailbox/folder.c: folder_has_debug():
+	  there wasn't a way to see if folder had a debug object
+	* include/mailutils/auth.h, mailbox/auth.c:
+	  authority_create_null(): creates an authority that successfully
+	  does nothing, useful for concrete types that need to return an
+	  authority, but don't do any authentication.
 	* mailbox/mbx_imap.c: Append to INBOX if an explicit path wasn't
 	  supplied.
 	* mailbox/mbx_mbox.c: X-UID is 5 chars, not 4, and this line will
