@@ -51,28 +51,28 @@ main ()
       printf ("%s => SUCCESS\n", str);
 
       url_get_scheme (u, buffer, len, NULL);
-      printf (" scheme <%s>\n", buffer);
+      printf ("\tscheme <%s>\n", buffer);
 
       url_get_user (u, buffer, len, NULL);
-      printf (" user <%s>\n", buffer);
+      printf ("\tuser <%s>\n", buffer);
 
       url_get_passwd (u, buffer, len, NULL);
-      printf (" passwd <%s>\n", buffer);
+      printf ("\tpasswd <%s>\n", buffer);
 
       url_get_auth (u, buffer, len, NULL);
-      printf (" auth <%s>\n", buffer);
+      printf ("\tauth <%s>\n", buffer);
 
       url_get_host (u, buffer, len, NULL);
-      printf (" host <%s>\n", buffer);
+      printf ("\thost <%s>\n", buffer);
 
       url_get_port (u, &port);
-      printf (" port %ld\n", port);
+      printf ("\tport %ld\n", port);
 
       url_get_path (u, buffer, len, NULL);
-      printf (" path <%s>\n", buffer);
+      printf ("\tpath <%s>\n", buffer);
 
       url_get_query (u, buffer, len, NULL);
-      printf (" query <%s>\n", buffer);
+      printf ("\tquery <%s>\n", buffer);
 
       url_destroy (&u);
 
