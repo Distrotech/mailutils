@@ -42,36 +42,36 @@ sieve_require (list_t slist)
 
   for (iterator_first (itr); !iterator_is_done (itr); iterator_next (itr))
     {
-      char *s;
+      char *name;
+      int (*reqfn) __PMT ((sieve_machine_t mach, const char *name)) = NULL;
+      char *text = NULL;
       
-      iterator_current (itr, (void **)&s);
+      iterator_current (itr, (void **)&name);
 
-      if (strncmp (s, "comparator-", 11) == 0)
+      if (strncmp (name, "comparator-", 11) == 0)
 	{
-	  if (sieve_require_comparator (sieve_machine, s + 11))
-	    {
-	      sieve_compile_error (sieve_filename, sieve_line_num,
-				   "source for the required comparator %s is not available",
-				   s + 11);
-	    }
+	  name += 11;
+	  reqfn = sieve_require_comparator;
+	  text = "comparator";
 	}
-      else if (strncmp (s, "test-", 5)  == 0) /* GNU extension */
+      else if (strncmp (name, "test-", 5)  == 0) /* GNU extension */
 	{
-	  /* FIXME: test- requires are a GNU extension allowing to
-	     declare user-defined tests */
+	  name += 5;
+	  reqfn = sieve_require_test;
+	  text = "test";
 	}
       else
 	{
-	  sieve_register_t *reg;
-	  reg = sieve_action_lookup (sieve_machine, s);
-	  if (!reg)
-	    {
-	      sieve_compile_error (sieve_filename, sieve_line_num,
-				   "source for the required action %s is not available",
-				   s);
-	      break;
-	    }
-	  reg->required = 1;
+	  reqfn = sieve_require_action;
+	  text = "action";
+	}
+
+      if (reqfn (sieve_machine, name))
+	{
+	  sieve_compile_error (sieve_filename, sieve_line_num,
+			       "source for the required %s %s is not available",
+			       text,
+			       name);
 	}
     }
   iterator_destroy (&itr);
