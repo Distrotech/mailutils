@@ -1,0 +1,462 @@
+\input texinfo  @c -*-texinfo-*-
+@c %**start of header
+@setfilename mailutils.info
+@settitle mailutils, Programming Manual
+@c %**end of header
+
+@c This file has the new style title page commands.
+@c Run `makeinfo' rather than `texinfo-format-buffer'.
+
+@c smallbook
+
+@c tex
+@c \overfullrule=0pt
+@c end tex
+
+@include version.texi
+
+@c Combine indices.
+@syncodeindex ky cp
+@syncodeindex pg cp
+@syncodeindex tp cp
+
+@defcodeindex op
+@syncodeindex op fn
+@syncodeindex vr fn
+
+@ifinfo
+@direntry
+* mailutils: (libmailutils).         The GNU mailutils library API. 
+@end direntry
+This file documents @sc{mailutils},  library API.
+
+
+Published by the Free Software Foundation,
+59 Temple Place - Suite 330
+Boston, MA 02111-1307, USA
+
+Copyright 1999 Free Software Foundation, Inc.
+
+Permission is granted to make and distribute verbatim copies of
+this manual provided the copyright notice and this permission notice
+are preserved on all copies.
+
+@ignore
+Permission is granted to process this file through TeX and print the
+results, provided the printed document carries copying permission
+notice identical to this one except for the removal of this paragraph
+(this paragraph not being relevant to the printed manual).
+
+@end ignore
+Permission is granted to copy and distribute modified versions of this
+manual under the conditions for verbatim copying, provided that the entire
+resulting derived work is distributed under the terms of a permission
+notice identical to this one.
+
+Permission is granted to copy and distribute translations of this manual
+into another language, under the above conditions for modified versions,
+except that this permission notice may be stated in a translation approved
+by the Foundation.
+@end ifinfo
+
+@setchapternewpage off
+
+@titlepage
+@title mailutils, librairy API.
+@subtitle version @value{VERSION}, @value{UPDATED}
+@author Alain Magloire et al.
+
+@page
+@vskip 0pt plus 1filll
+Copyright @copyright{} 1999 Free Software Foundation, Inc.
+
+@sp 2
+Published by the Free Software Foundation, @*
+59 Temple Place - Suite 330, @*
+Boston, MA 02111-1307, USA
+
+Permission is granted to make and distribute verbatim copies of
+this manual provided the copyright notice and this permission notice
+are preserved on all copies.
+
+Permission is granted to copy and distribute modified versions of this
+manual under the conditions for verbatim copying, provided that the entire
+resulting derived work is distributed under the terms of a permission
+notice identical to this one.
+
+Permission is granted to copy and distribute translations of this manual
+into another language, under the above conditions for modified versions,
+except that this permission notice may be stated in a translation approved
+by the Foundation.
+
+@end titlepage
+@page
+
+
+@node Top, Introduction, (dir), (dir)
+@comment  node-name,  next,  previous,  up
+
+@ifinfo
+This document was produced for version @value{VERSION} of @sc{gnu}
+@sc{mailutils}.
+@end ifinfo
+
+@menu
+* Introduction::              GNU @sc{Mailutils}  Programmer's manual.
+* Maildrop::                  Creating a maildrop.
+* URL::                       Unified Ressource Locator.
+* Maildrop Macros::           Maildrop Helper Macros.
+* Mailbox::                   Mailbox API.
+* Mailbox Macros::            Mailbox Helper Macros.
+* Headers::                   Headers API.
+* Headers Macros::            Header helper Macros.
+* Headers Parsed::            Alternatives for Headers.
+* Headers Regex::             ERE with Headers.
+* Mime::                      Mime API.
+* Encoding::                  Encoding API.
+* RFC1522::                   RFC1522
+* Quoted Printable::          QP Encoding
+* Base64::                    B64 Encoding
+* Reporting Bugs::            Reporting Bugs.
+* Acknowledgement::           Thanks and Credits.
+* Concept Index::             Topics in this manual.
+* Index::                     All @sc{Mailutils} functions.
+@end menu
+
+@node Introduction,  Maildrop, Top, Top
+@comment  node-name,  next,  previous,  up
+@chapter Introduction
+@cindex Introduction
+
+@sc{gnu} @sc{Mailutils} offers a general purpose library aimed to provide
+a rich set of functions for accessing different mail formats and maildrops.
+For example writing a simple from command that will list @var{From} and
+@var{Subject} of a folder.
+
+@example
+/* sfrom, Simple From */
+#include <stdio.h>
+#include <unistd.h>
+#include <string.h>
+#include <mailutils.h>
+
+#define MAILDIR "/usr/spool/mail"
+#define DATA_SIZE 4096
+
+int main (int argc, char ** argv)
+@{
+  char buffer[DATA_SIZE];
+  char * data;
+  maildrop_t mdrop;
+  mailbox_t  mbox;
+  header_t rfc822;
+  int status, id, msg_no;
+  int size = DATA_SIZE;
+
+  if (argc == 2)
+    strncpy (buffer, argv[1], sizeof(buffer);
+  else
+    @{
+      char * maildir = getenv ("MAILDIR");
+      char * logname = getlogin();
+      snprintf (buffer, sizeof (buffer), "%s/%s",
+                (maildir) ? maildir : MAILDIR, 
+                (logname) ? logname : "nobody");
+    @} 
+
+  status = maildrop_create (&mdrop, NULL, buffer, 0);
+  if (status != 0)
+    @{
+      fprintf (stderr, "maildrop_create(%s), %s\n",
+               buffer, strerror(status));
+      exit (EXIT_FAILURE);
+    @}
+
+  maildrop_get_mailbox (mdrop, &mbox);
+
+  status = mailbox_open (mbox);
+  if (status != 0)
+    @{
+      fprintf (stderr, "mailbox_open(%s), %s\n",
+               buffer, strerror(status));
+      exit (EXIT_FAILURE);
+    @}
+
+  header_create (HEADER_RFC822 | HEADER_RFC1522, &rfc822);
+
+  data = xmalloc (size);
+
+  mailbox_stat (mbox, &msg_no, NULL);
+
+  for (id = 0; id < msg_no; id++)
+    @{
+      mailbox_get_header_size (mbox, id, &hd_size));
+      if (hd_size > size)
+        @{
+            data = xrealloc (data, hd_size);
+            size = hd_size;
+        @}
+      mailbox_get_header (mbox, id, data, size);
+      header_get_value(rfc822, "From", buffer, sizeof (buffer);
+      printf ("%s \t", buffer);
+      header_get_value(rfc822, "Subject", buffer, sizeof (buffer);
+      printf ("%s\n", buffer);
+    @}
+
+   free (data);
+   header_destroy (rfc822);
+   return maildrop_destroy (mdrop);
+@}
+@end example
+ 
+@node Maildrop, URL, Introduction, Top
+@comment  node-name,  next,  previous,  up
+@chapter Maildrop
+@cindex Maildrop
+
+For sending or receiving mail you must create a maildrop indicating the
+address/folder, this is done by calling @code{maildrop_create} and
+giving it an @var{url}.  
+
+@findex maildrop_create
+@findex maildrop_destroy
+@example
+
+int maildrop_create (maildrop_t * @var{mid}, const char * @var{url}
+                 char * @var{address}, int @var{flags})
+int maildrop_destroy (maildrop_t * @var{mid})
+
+@end example
+
+@noindent
+@var{mid} will contain maildrop id,
+@var{url} a url object,
+@var{addr} is a string that contains the maildrop address,
+@var{flags} specify execution flags.
+
+@example
+struct _maildrop
+  @{
+     /* PRIVATE */
+     url_t url;
+     mailbox_t mbox;
+
+     /* PUBLIC */
+     int (*_get_mailbox) (maildrop_t, mailbox_t *);
+     int (*_get_url) (maildrop_t, url_t *);
+  @};
+     
+typedef struct _maildrop * maildrop_t;
+
+@end example
+
+@node URL, Maildrop Macros, Maildrop, Top
+@comment  node-name,  next,  previous,  up
+@subsection URL
+@cindex URL
+
+See rfc2368, rfc2369, rfc2384
+
+@node Maildrop Macros, Mailbox, URL, Top
+@comment  node-name,  next,  previous,  up
+@subsection Maildrop Macros
+@cindex Maildrop Macros
+
+The predefined macros --taken directly from @file{mailutils.h}--are:
+@findex maildrop_get_mailbox
+@findex maildrop_get_url
+@example
+
+__inline__ int maildrop_get_mailbox (maildrop_t mdrop, mailbox_t * mbox)
+@{ *mbox = mdrop->mbox; return (*mbox) 0 : EINVAL; @}
+
+__inline__ int maildrop_get_url (maildrop_t mdrop, url_t * url)
+@{ *url = mdrop->url; return (*url) 0 : EINVAL; @}
+
+@end example
+
+@node Mailbox, Mailbox Macros, Maildrop Macros, Top
+@comment  node-name,  next,  previous,  up
+@chapter Mailbox
+@cindex Mailbox
+
+Those are different formats to access a folder.
+
+@table @samp
+@item POP3
+Post Office Protocol, Not Implemented.
+@item IMAP
+Not Implemented
+@item QMAIL
+Not Implemented
+@item UNIX
+Sketchy
+@end table
+
+@findex mailbox_create
+@findex mailbox_destroy
+@example
+
+int mailbox_create (mailbox_t * @var{mailbox}, int @var{flags})
+
+int maildrop_destroy (mailbox_t * @var{mailbox})
+
+@end example
+
+All implementation shall provide the minimum set of the API :
+
+@example
+
+struct _mailbox
+  @{
+      /* Private Data */
+      .....
+      /* Public API */
+     int (*_open) (url_t);
+     int (*_close) (mailbox_t);
+     int (*_set_header) (mailbox_t, size_t *, char *, size_t);
+     int (*_get_header) (mailbox_t, size_t, char *, size_t);
+     int (*_get_header_size) (mailbox_t, size_t, size_t *);
+     int (*_delete) (mailbox_t, size_t);
+     int (*_undelete) (mailbox_t, size_t);
+     int (*_set_body) (mailbox_t, size_t, char *, size_t);
+     int (*_get_body) (mailbox_t, size_t, char *, size_t);
+     int (*_get_body_size) (mailbox_t, size_t, size_t *);
+     int (*_set_timeout) (mailbox_t, size_t);
+     int (*_get_timeout) (mailbox_t, size_t *);
+     int (*_send_envelop) (mailbox_t, size_t, size_t);
+     int (*_stat) (mailbox_t, size_t *, size_t *);
+     int (*_update) (mailbox_t);
+ @};
+
+typedef struct _mailbox * mailbox_t;
+@end example
+
+@node Mailbox Macros, Headers, Mailbox, Top
+@comment  node-name,  next,  previous,  up
+@subsection Mailbox Macros
+@cindex Mailbox Macros
+
+@findex maildrop_get_header
+@findex maildrop_get_header_size
+@example
+
+__inline__ int mailbox_get_header (mailbox_t mbox, int id, char * hdr, int sz)
+@{ return mbox->_get_header (mbox, id, hdr, sz); @}
+
+__inline__ int mailbox_get_header_size (mailbox_t mbox, int id, int * sz)
+@{ return mbox->_get_header_size (mbox, id, sz); @}
+
+@end example
+
+@node Headers, Headers Macros, Mailbox Macros, Top
+@comment  node-name,  next,  previous,  up
+@chapter Headers
+@cindex Headers
+
+So far we plan support for RFC822 and RFC1522;
+
+@example
+int header_create (int flags, header_t * header);
+
+int header_destroy (header_t header);
+
+struct _header
+  @{
+      /* Private */
+      ...
+      /* Public */
+      char * (*_get_value) (header_t, char *);
+  @};
+
+typedef struct _header * header_t;
+@end example
+
+@node Headers Macros, Headers Parsed, Headers, Top
+@comment  node-name,  next,  previous,  up
+@subsection Headers Macros
+@cindex Headers Macros
+
+@example
+__inline__ int header_get_value (header_t hdr, char * h, char buf, size_t sz)
+@{ return hdr->_get_value (hdr, h, buf, sz); @}
+@end example
+
+@node Headers Parsed, Headers Regex, Headers Macros, Top
+@comment  node-name,  next,  previous,  up
+@subsection Headers Parsed
+@cindex Headers Parsed
+
+Return a hash table, a dictionnary,  ???
+
+@node Headers Regex, Mime, Headers Parsed, Top
+@comment  node-name,  next,  previous,  up
+@subsection Headers Parsed
+@cindex Headers Parsed
+
+Using regular expression ?
+
+@node Mime, Encoding, Headers Regex, Top
+@comment  node-name,  next,  previous,  up
+@chapter Mime
+@cindex Mime
+
+Mime stuff in the Body.
+
+@node Encoding, RFC1522, Mime, Top
+@comment  node-name,  next,  previous,  up
+@chapter Encoding
+@cindex Encoding
+
+@node RFC1522, Quoted Printable, Encoding, Top
+@comment  node-name,  next,  previous,  up
+@subsection RFC1522
+@cindex RFC1522
+
+@node Quoted Printable, Base64, RFC1522, Top
+@comment  node-name,  next,  previous,  up
+@subsection Quoted Printable
+@cindex Quoted Printable
+
+@node Base64, Reporting Bugs, Quoted Printable, Top
+@comment  node-name,  next,  previous,  up
+@subsection Base64
+@cindex Base64
+
+@node Reporting Bugs, Acknowledgement, Base64, Top
+@comment  node-name,  next,  previous,  up
+@chapter Reporting Bugs
+@cindex Reporting Bugs
+
+Email bug reports to @email{bug-mailutils@@gnu.org}.
+Be sure to include the word ``mailutils'' somewhere in the ``Subject:'' field.
+
+@node Acknowledgement, Concept Index, Reporting Bugs, Top
+@comment  node-name,  next,  previous,  up
+@chapter Acknowledgement
+@cindex Acknowledgement
+
+Jakob Kaivo  @email{jkaivo@@ndn.net},
+Jeff Bailey  @email{jbailey@@gnu.org},
+Sean Perry   @email{shaleh@@debian.org},
+
+@page
+@node Concept Index , Index, Acknowledgement, Top
+@comment node-name,  next,  previous,  up
+@unnumbered Concept Index
+
+This is a general index of all issues discussed in this manual
+
+@printindex cp
+@page
+
+@node Index,  , Concept Index, Top
+@unnumbered Index
+
+This is an alphabetical list of all @sc{mailutils} functions.
+
+@printindex fn
+
+@contents
+
+@bye

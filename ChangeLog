@@ -1,8 +1,19 @@
 1999-10-10  Jeff Bailey  <jbailey@cr499794-a.crdva1.bc.wave.home.com>
 
+        * THANKS: New file
+	
+	* doc/mailutils.texi: New File
+	Provided by Alain Magloire <alainm@rcsm.ece.mcgill.ca> with some
+	changes so that Makeinfo reports no errors.
+	
+	* doc/Makefile.am: New file
+
+	* configure.in: Deal with libsrc to lib rename
+
 	* pop3d/Makefile.am: Deal with libsrc to lib rename
 
-	* Makefile.am: Deal with libsrc to lib rename
+	* Makefile.am: Deal with libsrc to lib rename.
+	Add reference to doc/ subdirectory.
 
 	* libsrc/: Rename to lib/
 
