@@ -1,3 +1,13 @@
+2003-03-10  Sergey Poznyakoff 
+
+	* comsat/comsat.c: Use ngettext.
+	* mh/sortm.c: New file. Source for the sortm utility.
+	* mh/.cvsignore: Added sortm
+	* mh/Makefile.am: Likewise
+	* mh/README: Updated
+	* mh/TODO: Updated
+	* mh/mh_getopt.h: Updated
+	
 2003-03-03  Sergey Poznyakoff
 
 	* configure.ac: New option --with-included-argp

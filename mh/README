@@ -158,6 +158,25 @@ compatibility only.
 
 ** Message specs and folder names may be interspersed.
 
+* sortm
+
+** New option --numfield specifies numeric comparison for the given field.
+
+** Any number of --datefield, --textfield and --numfield options may be
+given, thus allowing to build sort criteria of arbitrary complexity.
+
+** The order of --.*field arguments sets the ordering priority. This
+differs from the behaviour of the standard sortm, which always orders
+datefield-major, textfield-minor.
+
+** Apart from sorting the mailfolder the following actions may be
+specified:
+ --list     list the ordered messages using a format string given
+	    by --form or --format option.
+ --dry-run  do not actually sort messages, rather print what would
+            have been done. This is useful for debugging purposes.
+
+
 
 Local variables:
 mode: outline
