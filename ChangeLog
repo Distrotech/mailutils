@@ -1,6 +1,15 @@
+2001-07-12 Sam Roberts
+
+	* examples/mbox-dates.c: Added pop and imap records.
+	* include/mailutils/mutil.h, mailbox/mutil.c: New functions -
+	mu_hex2ul(), mu_hexstr2ul().
+	* mailbox/message.c: unistd.h needed on QNX6
+	* TODO: Added Sergey's todo items and mine for sieve.
+
 2001-07-12  Jakob 'sparky' Kaivo  <jkaivo@elijah.nodomainname.net>
 
-	* include/mailutils/mailutils.h: new file
+	* include/mailutils/mailutils.h: new "catchall" header, includes
+	all mailutils headers
 
 2001-07-10 Sam Roberts
 
