@@ -291,7 +291,7 @@ mh_getyn (const char *fmt, ...)
   va_list ap;
   int rc;
   
-  if (mh_interactive_mode_p ())
+  if (!mh_interactive_mode_p ())
       return 1;
   va_start (ap, fmt);
   rc = mh_vgetyn (fmt, ap);
