@@ -29,7 +29,7 @@ int
 sieve_action_stop (sieve_machine_t mach, list_t args, list_t tags)
 {
   sieve_log_action (mach, "STOP", NULL);
-  mach->pc = (size_t) -4;
+  mach->pc = 0;
   return 0;
 }
 
