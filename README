@@ -4,27 +4,26 @@ This is the GNU mailutils package
 This package contains a series of useful mail clients, servers, and
 libraries.  These are the primary mail utilities of the GNU system.
 
-Specifically, this package contains a pop3 server, and an imap4
+Specifically, this package contains a POP3 server, and an IMAP4
 server.  It also provides a POSIX `mailx' client, and a collection of
 other tools.
 
 The central library is capable of reading mail from an `mbox' mailbox,
-as well as off of local or remote pop3 and imap4 servers.
+as well as off of local or remote POP3 and IMAP4 servers.
 
 You're welcome to use this library in your own programs, please see
 the examples subdirectory or these other applications.  All libraries
 are licensed using the GNU LGPL.  The documentation is licensed under
-the GNU FDL, and the Sieve library is licensed under a CMU license.
-Everything else is licensed using the GNU GPL.
+the GNU FDL, and everything else is licensed using the GNU GPL.
 
-This software is part of the GNU project and belongs to the Free Software 
+This software is part of the GNU Project and belongs to the Free Software 
 Foundation.
 
 Why use this package?
 =====================
 
 This package started off to try and handle large mailbox files more
-gracefully then current pop3 servers did.  While it handles this task,
+gracefully then current POP3 servers did.  While it handles this task,
 it also allows you to support a variety of different mailbox formats
 without any real effort on your part.  Also, if a new format is added
 at a later date, your program will support that new format
@@ -79,6 +78,16 @@ specific configuration options:
 
 	Build 'mail' without readline support.
 
+    --with-gnutls
+
+	Enable the TLS/SSL server-side encryption via GnuTLS
+	(a Transport Layer Security Library) in IMAP4/POP3 daemons.
+
+    --with-gsasl
+
+	Enable GNU SASL support (Simple Authentication and Security Layer
+	framework). IMAP4d supports this mechanism.
+
     --with-gssapi
 
 	Enable GSSAPI authentication. For this to work, you will have
@@ -86,7 +95,7 @@ specific configuration options:
 
     --without-guile
 
-	Do not build guile interface library.
+	Do not build Guile interface library.
 
     --with-mail-rc=FILE
 

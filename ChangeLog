@@ -1,3 +1,10 @@
+2003-02-10  Wojciech Polak
+
+	* */*: Fixed and/or updated copyrights.
+	* README: Updated.
+
+	* auth/tls.c: Changed `--ssl-key' arg to FILE type.
+
 2003-02-10  Frederic Gobry  <frederic.gobry@smartdata.ch>
 
 	* mailbox/rfc2047.c: avoid cutting utf-8 strings in the middle of
