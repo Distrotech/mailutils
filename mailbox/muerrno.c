@@ -19,9 +19,14 @@
 # include <config.h>
 #endif
 
+#include <errno.h>
 #include <string.h>
 
 #include <mailutils/errno.h>
+
+#ifndef EOK
+# define EOK 0
+#endif
 
 const char*
 mu_errname (int e)
@@ -42,26 +47,48 @@ mu_errname (int e)
 
     EN(MU_ERR_NO_HANDLER)
     EN(MU_ERR_EMPTY_VFN)
-    EN(MU_ERR_NO_PTR)
+
+    EN(MU_ERR_OUT_NULL)
+    EN(MU_ERR_OUT_PTR_NULL)
 
     EN(MU_ERR_MBX_NULL)
-    EN(MU_ERR_MBX_PTR_NULL)
+
+    EN(MU_ERR_BAD_822_FORMAT)
+    EN(MU_ERR_EMPTY_ADDRESS)
+
+    EN(MU_ERR_LOCKER_NULL)
+    EN(MU_ERR_LOCK_CONFLICT)
+    EN(MU_ERR_LOCK_BAD_LOCK)
+    EN(MU_ERR_LOCK_BAD_FILE)
+    EN(MU_ERR_LOCK_NOT_HELD)
   }
 
   return "SYSTEM ERROR";
 }
 
-const char* mu_errstr (int e)
+const char* mu_errstring (int e)
 {
   switch(e)
   {
 #define ES(x, d)  case x: return d;
-    ES(MU_ERR_NO_HANDLER,     "No registered handler")
-    ES(MU_ERR_EMPTY_VFN,      "Empty virtual function")
-    ES(MU_ERR_NO_PTR,         "No pointer")
+    ES(EOK,                     "Success")
 
-    ES(MU_ERR_MBX_NULL,       "Mailbox null")
-    ES(MU_ERR_MBX_PTR_NULL,   "Mailbox pointer null")
+    ES(MU_ERR_NO_HANDLER,       "No registered handler")
+    ES(MU_ERR_EMPTY_VFN,        "Empty virtual function")
+
+    ES(MU_ERR_OUT_NULL,         "Pointer to output null")
+    ES(MU_ERR_OUT_PTR_NULL,     "Pointer to output pointer null")
+
+    ES(MU_ERR_MBX_NULL,         "Mailbox null")
+
+    ES(MU_ERR_BAD_822_FORMAT,   "Format of RFC822 object is bad")
+    ES(MU_ERR_EMPTY_ADDRESS,    "Address contains no addr specs")
+
+    ES(MU_ERR_LOCKER_NULL,      "Locker null")
+    ES(MU_ERR_LOCK_CONFLICT,    "Conflict with previous locker")
+    ES(MU_ERR_LOCK_BAD_LOCK,    "Lock file check failed")
+    ES(MU_ERR_LOCK_BAD_FILE,    "File check failed")
+    ES(MU_ERR_LOCK_NOT_HELD,    "Lock not held on file")
   }
 
   return strerror(e);

@@ -45,8 +45,14 @@ extern "C" {
 #define MU_ERR_BAD_822_FORMAT  (MU_ERR_BASE | 0x006)
 #define MU_ERR_EMPTY_ADDRESS   (MU_ERR_BASE | 0x007)
 
+#define MU_ERR_LOCKER_NULL     (MU_ERR_BASE | 0x008)
+#define MU_ERR_LOCK_CONFLICT   (MU_ERR_BASE | 0x009)
+#define MU_ERR_LOCK_BAD_LOCK   (MU_ERR_BASE | 0x00a)
+#define MU_ERR_LOCK_BAD_FILE   (MU_ERR_BASE | 0x00b)
+#define MU_ERR_LOCK_NOT_HELD   (MU_ERR_BASE | 0x00c)
+
 const char* mu_errname __P((int e));
-const char* mu_errstr  __P((int e));
+const char* mu_errstring __P((int e));
 
 #ifdef __cplusplus
 }
