@@ -18,13 +18,14 @@
 #include "guimb.h"
 #include "getopt.h"
 
-static char short_options[] = "de:f:g:hM:m:s:u::v{";
+static char short_options[] = "c:de:f:g:hM:m:s:u::v{";
 static struct option long_options[] = {
+  {"code", required_argument, 0, 'c'},
   {"debug", no_argument, 0, 'd'},
   {"expression", required_argument, 0, 'e'},
   {"file", required_argument, 0, 'f'},
   {"help", no_argument, 0, 'h'},
-  {"guile-command", required_argument, 0, 'g'},
+  {"guile-arg", required_argument, 0, 'g'},
   {"maildir", required_argument, 0, 'm'},
   {"mailbox", required_argument, 0, 'M'},
   {"source", required_argument, 0, 's'},
@@ -79,6 +80,10 @@ main (int argc, char *argv[])
 	     != -1)
     switch (c)
       {
+      case 'c':
+	program_expr = optarg;
+	stop = 1;
+	break;
       case 'd':
 	debug_guile = 1;
 	break;
@@ -225,11 +230,16 @@ static char usage_str[] =
   "Usage: guimb [OPTIONS] [-{ SCRIPT-OPTIONS -}] [MBOX ...]\n"
   "Process the contents of the specified mailboxes using a Scheme program\n"
   "or expression.\n"
-  "Options are:\n"
+  "Options are:\n\n"
+  "  -c, --code EXPR           Execute given scheme expression.\n"
+  "  -s, --source PROGFILE     Load Scheme source code from PROGFILE, and exit\n"
+  "\nThe above switches stop argument processing, and pass all\n"
+  "remaining arguments as the value of (command-line).\n"
+  "\n"
   "  -d, --debug               Start with debugging evaluator and backtraces.\n"
   "  -e, --expression EXPR     Execute scheme expression.\n"
   "  -f, --file PROGFILE       Read program from PROGFILE.\n"
-  "  -g, --guile-command ARG   Append ARG to the command line passed to scheme\n"
+  "  -g, --guile-arg ARG       Append ARG to the command line passed to scheme\n"
   "                            program.\n"
   "  -m, --mailbox MBOX        Set default mailbox name.\n"
   "  -u, --user NAME           Act as local MDA for user NAME.\n"
@@ -238,7 +248,7 @@ static char usage_str[] =
   "\n"
   "Any arguments between -{ and -} are passed to the Scheme program verbatim.\n"
   "When both --file and --expression are specified, file is evaluated first.\n"
-  "If no mailboxes are specified, the standard input is read.\n\n"
+  "If no mailboxes are specified, the system mailbox of the current user is read.\n\n"
   "The semantics of the default mailbox depends on whether more mailbox\n"
   "arguments are specified in the command line. If they are, any messages\n"
   "that are not deleted after executing the script are appended to the default\n"
