@@ -177,22 +177,19 @@ static const char *mail_capa[] = {
 static char *
 mail_cmdline(void *closure, int cont)
 {
-  struct mail_env_entry *pev = closure;
-  char *prompt = NULL;
+  char *prompt = (char*) (closure ? closure : NULL);
   char *rc;
 
   (void)cont;
 
   while (1)
     {
-      if (util_find_env ("autoinc")->set && !mailbox_is_updated (mbox))
+      if (util_getenv (NULL, "autoinc", Mail_env_boolean, 0) == 0
+          && !mailbox_is_updated (mbox))
 	{
 	  mailbox_messages_count (mbox, &total);
 	  fprintf (ofile, "New mail has arrived\n");
 	}
-
-      if (interactive)
-	prompt = pev->set && pev->value != NULL ? pev->value : (char *)"? ";
 
       rc = ml_readline (prompt);
 
@@ -202,7 +199,7 @@ mail_cmdline(void *closure, int cont)
 	  continue;
 	}
 
-      if (!rc && util_find_env ("ignoreeof")->set)
+      if (!rc && util_getenv (NULL, "ignoreeof", Mail_env_boolean, 0) == 0)
 	{
 	  util_error ("Use \"quit\" to quit.");
 	  continue;
@@ -216,7 +213,7 @@ mail_cmdline(void *closure, int cont)
 int
 main (int argc, char **argv)
 {
-  struct mail_env_entry *mode = NULL, *prompt = NULL;
+  char *mode = NULL, *prompt = NULL;
   size_t modelen = 0;
   struct arguments args;
   int rc;
@@ -308,13 +305,14 @@ main (int argc, char **argv)
   util_do_command ("set noSign");
   util_do_command ("set toplines=5");
   util_do_command ("set autoinc");
-
+  util_do_command ("set regex");
+  
   /* Set the default mailer to sendmail.  */
   {
     char *mailer_name = alloca (strlen ("sendmail:")
 				+ strlen (_PATH_SENDMAIL) + 1);
     sprintf (mailer_name, "sendmail:%s", _PATH_SENDMAIL);
-    util_setenv ("sendmail", mailer_name, 0);
+    util_setenv ("sendmail", mailer_name, Mail_env_string, 1);
   }
 
   /* GNU extensions to the environment, for sparky's sanity */
@@ -332,7 +330,7 @@ main (int argc, char **argv)
   mu_argp_parse (&argp, &argc, &argv, 0, mail_capa, NULL, &args);
 
   /* read system-wide mail.rc and user's .mailrc */
-  if ((util_find_env ("rc"))->set)
+  if (util_getenv (NULL, "rc", Mail_env_boolean, 0) == 0)
     util_do_command ("source %s", SITE_MAIL_RC);
   util_do_command ("source %s", getenv ("MAILRC"));
   if (!interactive)
@@ -345,12 +343,12 @@ main (int argc, char **argv)
     }
 
   /* how should we be running? */
-  if ((mode = util_find_env ("mode")) == NULL || mode->set == 0)
+  if (util_getenv (&mode, "mode", Mail_env_string, 1))
     exit (EXIT_FAILURE);
-  modelen = strlen (mode->value);
+  modelen = strlen (mode);
 
   /* Interactive mode */
-  if (!(util_find_env("quiet"))->set)
+  if (util_getenv (NULL, "quiet", Mail_env_boolean, 0))
     {
       fprintf (ofile,
 	       "%s, Copyright (C) 2001 Free Software Foundation, Inc.\n"
@@ -364,7 +362,7 @@ main (int argc, char **argv)
   mail_set_my_name(args.user);
 
   /* Mode is just sending */
-  if (strlen ("send") == modelen && !strcmp ("send", mode->value))
+  if (strlen ("send") == modelen && !strcmp ("send", mode))
     {
       /* FIXME: set cmd to "mail [add1...]" */
       char *buf = NULL;
@@ -435,13 +433,13 @@ main (int argc, char **argv)
 	      exit (EXIT_FAILURE);
 	    }
 
-	  if (strlen ("exist") == modelen && !strcmp ("exist", mode->value))
+	  if (strlen ("exist") == modelen && !strcmp ("exist", mode))
 	    return (total < 1) ? 1 : 0;
 	  else if (strlen ("print") == modelen
-		   && !strcmp ("print", mode->value))
+		   && !strcmp ("print", mode))
 	    return util_do_command ("print *");
 	  else if (strlen ("headers") == modelen
-		   && !strcmp ("headers", mode->value))
+		   && !strcmp ("headers", mode))
 	    return util_do_command ("from *");
 	}
       
@@ -456,14 +454,14 @@ main (int argc, char **argv)
         }
 
       /* initial commands */
-      if ((util_find_env("header"))->set)
+      if (util_getenv(NULL, "header", Mail_env_boolean, 0) == 0)
 	{
 	  util_do_command ("summary");
 	  util_do_command ("z.");
 	}
 
-      prompt = util_find_env ("prompt");
-      mail_mainloop(mail_cmdline, (void*) prompt, 1);
+      util_getenv (&prompt, "prompt", Mail_env_string, 0);
+      mail_mainloop (mail_cmdline, (void*) prompt, 1);
       fprintf (ofile, "\n");
       util_do_command ("quit");
       return 0;
@@ -474,7 +472,7 @@ main (int argc, char **argv)
 
 
 void
-mail_mainloop(char *(*input) __P((void *, int)), void *closure, int do_history)
+mail_mainloop (char *(*input) __P((void *, int)), void *closure, int do_history)
 {
   char *command, *cmd;
   while ((command = (*input)(closure, 0)) != NULL)
