@@ -83,11 +83,11 @@ extern int attribute_set_flags       __P ((attribute_t, int));
 extern int attribute_unset_flags     __P ((attribute_t, int));
 
 extern int attribute_set_set_flags   __P ((attribute_t, int (*_set_flags)
-					   __P ((attribute_t, int)), void *));
+					   __PMT ((attribute_t, int)), void *));
 extern int attribute_set_unset_flags __P ((attribute_t, int (*_unset_flags)
-					   __P ((attribute_t, int)), void *));
+					   __PMT ((attribute_t, int)), void *));
 extern int attribute_set_get_flags   __P ((attribute_t, int (*_get_flags)
-					   __P ((attribute_t, int *)), void *));
+					   __PMT ((attribute_t, int *)), void *));
 extern int attribute_is_equal        __P ((attribute_t, attribute_t att2));
 
 extern int attribute_copy            __P ((attribute_t, attribute_t));
