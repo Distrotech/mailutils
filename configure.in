@@ -413,5 +413,4 @@ AC_OUTPUT(Makefile mailutils.spec
  comsat/Makefile
  mail.local/Makefile
  dotlock/Makefile
- mh/Makefile
  )
