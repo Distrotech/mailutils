@@ -27,45 +27,171 @@ GNU Mailutils provides a set of programs for handling the email.
 
 There are some command line options that are used so often that it is
 inconvenient to specify them in the command line each time you run
-a mailutils utility. The @file{mailutils.rc} provides a way to
+a mailutils utility. The @dfn{configuration files} provide a way to
 add default command line arguments without having to type them in
-the command line. The file is located in your system configuration
-directory (usually, @file{/etc} or @file{/usr/local/etc}).
-@footnote{Currently, the mailutils programs that use @file{mailutils.rc}
-are:
+the command line. Upon startup, each mailutils utility scans and
+processes the contents of the two startup files: the site-wide
+configuration file @file{mailutils.rc} and user-specific configuration
+file @file{.mailutils}. The site-wide configuration file is searched
+in your system configuration directory (usually, @file{/etc} or
+@file{/usr/local/etc}), the user-specific configuration file is searched
+in user home directory.
 
-@itemize @bullet
-@item imap4d
-@item pop3d
-@item mail.local
-@item comsatd
-@end itemize
-}
+Both files have simple line-oriented syntax. Comments begin with the
+pound sign (@samp{#}) and extend through the end of the line
+@footnote{If @samp{#} is not the first character on the line, it
+should be separated from the previous word by any amount of whitespace.}.
+Very long lines may be split across several lines by escaping final newline
+with a backslash (@samp{\}) character.
 
-The @file{mailutils.rc} has a simple line-oriented syntax. Upon
-startup, each mailutils program scans this file for a line that
-begins either with a program name or with word `mailutils'. When
-found, the rest of the line following the first word is split up
-at whitespace characters and resulting words are added to the 
-program arguments @emph{before} the command line options. Thus,
-the options specified in the command line override those from
-@file{mailutils.rc} file.
+Any non-comment line starts with a @dfn{tag}. A tag is either a name
+of a particular mailutils utility or @dfn{option group}, prefixed with
+colon (@samp{:}). The command line options common for several mailutils
+programs are divided into @dfn{option groups} or @dfn{capabilities},
+e.g. the options @option{--maildir} and @option{--license} form group
+@samp{mailutils}. These groups are discussed in detail below.
 
-The very long lines may be split across several lines of text by
-escaping final newline with a backslash (@samp{\}) character.
-The @samp{#} character introduces a comment (it must be
-preceeded by whitespace).
+When processing the configuration file, a mailutils utility selects
+those lines, whose tag is either the name of that utility or the name
+of the option group supported by it. For each line found, its tag
+is stripped away, and the rest of the line is split up into words.
+These words are regarded as command line options and are inserted to
+the program arguments @emph{before} any options from the command line.
+Thus the options from @file{.mailutils} take precedence over those
+from @file{mailutils.rc}, and the options from the command line take
+precedence over those from both configuration files.
 
-Here is an example of a simple @file{mailutils.rc} file. It tells
-all mailutils programs to use @file{/var/spool/mail} as a mailspool
-directory. All programs, except @command{imap4d} will issue diagnostics
-via @code{local1} @file{syslog} facility. @command{imap4d} will use
-@code{local2}.
+The word splitting occurs at whitespace characters and is similar to
+that performed by the shell. If an option must contain embedded
+whitespace, it should be enclosed in a pair of quotes (either double
+or single quotes).
+
+@menu
+* mailutils::           Options common for all utilities.
+* daemon::              Options common for daemon programs.
+* auth::                Authentication-specific options.
+* logging::             Logging control options.
+* config sample::       A sample configuration file.
+@end menu
+
+@node mailutils
+@subsection mailutils --- Options common for all utilities.
+@cindex :mailutils
+
+Option group @samp{mailutils} consists of options common for all
+utilities in the package:
+
+@table @option
+@item -m @var{path}
+@itemx --maildir=@var{path}
+Set path to the mailspool directory
+@end table
+
+Each program also understands the following informational options:
+
+@table @option
+@item -u
+@itemx --usage
+Display a short usage message and exit.
+@item -h
+@itemx --help
+Display help message and exit.
+@item -L
+@itemx --license
+Display GNU General Public License and exit.
+@item -v
+@itemx --version
+Display program version and exit.
+@end table
+
+@node daemon
+@subsection daemon --- Options common for daemon programs.
+@cindex :daemon
+
+@table @option
+@item -d[@var{number}]
+@itemx --daemon[=@var{number}]
+Run in standalone mode. An optional @var{number} specifies the maximum number
+of child processes the daemon is allowed to fork. When it is omitted,
+it defaults to 20 processes.
+@emph{Please note}, that there should be no whitespace between the
+@option{-d} and its parameter.
+@item -i
+@itemx --inetd
+Run in inetd mode.
+@item -p @var{number}
+@itemx --port @var{number}
+Listen on given port @var{number}. This option is meaningful only in
+standalone mode. It defaults to port 143.
+@item -t @var{number}
+@itemx --timeout @var{number}
+Set idle timeout to given @var{number} of seconds. The daemon breaks the
+connection if it receives no commands from the client within that number
+of seconds.
+@end table
+
+@node auth
+@subsection auth --- Authentication-specific options.
+@cindex :auth
+
+@table @option
+@item --pam-service @var{name}
+When compiled with @acronym{pam} support, this option specifies the
+name of @acronym{pam} service to be used when authenticating.
+@end table
+
+The following options exist in this group if the package was configured
+with @samp{--enable-sql} option:
+
+@table @option
+@item sql-getpwnam @var{query}
+SQL query to retrieve a passwd entry based on username
+@item sql-getpwuid @var{query} 
+@item sql-getpass @var{query}
+SQL query to retrieve a password from the database
+@item sql-host @var{name}
+Name or IP of MySQL server to connect to.
+@item sql-user @var{name}
+SQL user name
+@item sql-passwd @var{string}
+SQL connection password
+@item sql-db @var{string}
+Name of the database to connect to.
+@item sql-port @var{number}
+Port to use
+@end table
+
+@node logging
+@subsection logging --- Logging control options.
+@cindex :logging
+
+@table @option
+@item log-facility @var{facility}
+Output logs to the specified @command{syslog} facility. The following
+facility names are recognized: @samp{user}, @samp{daemon}, @samp{mail},
+@samp{auth} and @samp{local0} through @samp{local7}. These names are
+case-insensitive.
+@end table
+
+@node config sample
+@subsection A sample configuration file.
+@cindex mailutils.rc, an example
+
+The following configuration file specifies that all mailutils programs
+should use @file{/var/spool/mail} as a local mailspool
+directory. Programs performing authentication will use @acronym{pam}
+service @samp{mailutils}. All programs, except @command{imap4d} will
+issue log messages via @samp{mail} facility, @command{imap4d} will use
+facility @samp{local1}.
 
 @example
-mailutils --log-facility local1 --maildir /var/spool/mail
-imap4d --log-facility local2 --daemon=10
-@end example
+@group
+:mailutils --maildir /var/spool/mail
+:auth --pam-service mailutils
+:logging --log-facility mail
+imap4d --daemon=20 --timeout=1800 --log-facility local1
+@end group
+@end example 
 
 @page
 @node imap4d
@@ -88,6 +214,9 @@ This is the default operation mode.
 The server runs as daemon, forking a child for each new connection. This
 mode is triggered by @option{-d} command line switch.
 @end table
+
+The program uses following option groups: @xref{mailutils},
+@xref{daemon}, @xref{logging}, @xref{auth}.
 
 @subheading Command line options
 
@@ -154,6 +283,9 @@ The server runs as daemon, forking a child for each new connection. This
 mode is triggered by @option{-d} command line switch.
 @end table
 
+The program uses following option groups: @xref{mailutils},
+@xref{daemon}, @xref{logging}, @xref{auth}.
+
 @subheading Command line options
 
 @table @option
@@ -199,12 +331,11 @@ user's system mailbox and outputs the contents of @code{From} and
 the command line, the program reads that folder rather than the default
 mailbox.
 
+The program uses following option groups: @xref{mailutils}.
+
 The following command line options alter the behavior of the program:
 
 @table @option
-@item -h
-@itemx --help
-Display short help message and exit.
 @item -f STRING
 @item --field STRING
 Display the header named by STRING instead of @code{From} @code{Subject} pair.
@@ -236,9 +367,6 @@ an ATTR. Multiple @option{-s} options are allowed.
 @itemx --align
 Tidy mode. Currently is not implemented. Included for compatibility with
 @command{frm} program from Elm package.
-@item -v
-@itemx --version
-Display version information and exit
 @end table
 
 @page
@@ -281,6 +409,8 @@ General usage of @command{mail} program is:
 @noindent
 If [address...] part is present, @command{mail} switches to mail sending
 mode, otherwise it operates in mail reading mode.
+
+The program uses following option groups: @xref{mailutils}.
 
 @command{Mail} understands following command line options:
 
@@ -1489,6 +1619,9 @@ and appends the received data to the local mailboxes.
 @node Invocation
 @subsection Invoking mail.local
 
+The program uses following option groups: @xref{mailutils}, @xref{auth},
+@xref{logging}.
+
 @table @option
 @item -f @var{addr}
 @itemx --from @var{addr}
@@ -1634,6 +1767,8 @@ folder, the following output line is produced:
 where @var{folder} represents the folder name, @var{number} represents
 the number of messages.
 
+The program uses following option groups: @xref{mailutils}.
+
 The program accepts following command line options:
 
 @table @option
@@ -1739,6 +1874,8 @@ The program is currently in development
 It processes mailboxes, applying the user-supplied scheme procedures
 to each of them in turn and saves the resulting output in mailbox
 format.
+
+The program uses following option groups: @xref{mailutils}.
 
 @menu
 * Specifying Scheme Program to Execute::
@@ -2113,6 +2250,9 @@ either from @file{inetd.conf} or as a standalone daemon.
 
 @node Starting comsatd
 @subsection Starting comsatd
+
+@command{Comsatd} uses following option groups: @xref{mailutils},
+@xref{daemon}, @xref{logging}.
 
 @table @option
 @item -c @var{file}
