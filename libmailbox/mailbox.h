@@ -38,10 +38,8 @@
 #define mbox_lock(m,n)		m->_lock(m,n)
 
 /* Lock settings */
-/*
- * define this way so that it is opaque and can later become a struct w/o
+/* define this way so that it is opaque and can later become a struct w/o
  * people noticing (-:
- *
  */
 enum _mailbox_lock_t {MO_ULOCK, MO_RLOCK, MO_WLOCK}; /* new type */
 typedef enum _mailbox_lock_t mailbox_lock_t;

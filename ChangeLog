@@ -1,3 +1,23 @@
+Sean 'Shaleh' Perry <shaleh@debian.org>  Fri,  8 Oct 1999 01:08:42 -0700
+
+  * fixed the "if empty mailbox, return not implemented"
+    NB: seems there was a large assumption being made:
+        if unixmbox_open() failed, it was because it was not mbox
+    this was wrong for many reasons, so on actual "not mbox", return EBADMSG.
+    Prolly want to come up with a better error, but this works for now
+  * more cleaning in the mailbox code
+    a) added stat() call -- we can bomb earlier, plus detect if passed object
+       is a directory or file
+    b) unixmbox_close() free()'s mbox.  This will hamper the use when we add
+       support for more mailboxes later.  Need to find a solution.  Perhaps
+       a unixmbox_free() call.
+       There was also a small leak there -- mbox->name was being left.
+    c) To aid checking in unixbox_open(), added checks around fgets call.
+       Now properly detects EOF, errors, etc.  This was a large cause of the
+	   spurious "not implemented" bug.
+    d) all of unixmbox_open()'s function calls should now be checked
+	   NB: need to do the same for rest of file
+
 Sean 'Shaleh' Perry <shaleh@debian.org>  Thu,  7 Oct 1999 22:33:24 -0700
 
   * removed spurious code in from.c

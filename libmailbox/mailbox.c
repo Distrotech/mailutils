@@ -26,6 +26,9 @@
 #include <errno.h>
 #endif
 
+#include <sys/stat.h>
+#include <unistd.h>
+
 int _mbox_dummy1 (mailbox * mbox);
 int _mbox_dummy2 (mailbox * mbox, unsigned int num);
 int _mbox_dummy3 (mailbox * mbox, char *c);
@@ -35,6 +38,7 @@ mailbox *
 mbox_open (const char *name)
 {
   mailbox *mbox;
+  struct stat st;
 
   if ( name == NULL )
     {
@@ -57,6 +61,14 @@ mbox_open (const char *name)
       free (mbox);
       return NULL;
     }
+  /* check if we can look at file, prep for checks later in function */
+  if (stat (mbox->name, &st) == -1)
+    {
+      free (mbox->name);
+	  free (mbox);
+	  return NULL; /* errno set by stat() */
+    }
+
   mbox->messages = 0;
   mbox->num_deleted = 0;
   mbox->sizes = NULL;
@@ -71,27 +83,38 @@ mbox_open (const char *name)
   mbox->_get_body = _mbox_dummy4;
   mbox->_get_header = _mbox_dummy4;
 
-  if (unixmbox_open (mbox) == 0)
-    return mbox;
-  else
+  if (S_ISDIR (st.st_mode))
     {
-      /*
-       * Check errno to find out why it failed, if it's simply not a
-       * unix mbox format message, then try other mailbox types,
-       * otherwise, leave errno set and return NULL
+      /* for example...
+         if (maildir_open (mbox, name) == 1)
+           return mbox;
+         else if (errno != 0)
+           return NULL;
+         else
+           errno = 0;
        */
+      errno = ENOSYS;
     }
+  else if (S_ISREG (st.st_mode))
+    {
+      if (unixmbox_open (mbox) == 0)
+        return mbox;
+      else
+        {
+          /*
+           * Check errno to find out why it failed, if it's simply not a
+           * unix mbox format message, then try other mailbox types,
+           * otherwise, leave errno set and return NULL
+           */
+          if (errno == EBADMSG)
+            errno = ENOSYS; /* no other mailboxes supported right now */
+        }
+    }
+  else
+    errno = EINVAL; /* neither directory nor file, so bomb */
 
-  /* for example...
-     if (maildir_open (mbox, name) == 1)
-       return mbox;
-     else if (errno != 0)
-       return NULL;
-     else
-       errno = 0;
-   */
-
-  errno = ENOSYS;
+  free (mbox->name);
+  free (mbox);
   return NULL;
 }
 

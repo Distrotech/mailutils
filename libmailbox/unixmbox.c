@@ -64,12 +64,18 @@ unixmbox_open (mailbox * mbox)
       return -1;
     }
 
-  fgets (buf, 80, data->file);
+  if (fgets (buf, 80, data->file) == NULL)
+    {
+      if (feof(data->file))
+        goto END; /* empty file, no messages */
+	  unixmbox_close (mbox);
+	  return -1;
+    }
   if (strncmp (buf, "From ", 5))
     {
       /* This is NOT an mbox file */
       unixmbox_close (mbox);
-      errno = 0;
+      errno = EBADMSG; /* use this to signify wrong mbox type */
       return -1;
     }
 
@@ -79,7 +85,13 @@ unixmbox_open (mailbox * mbox)
 	{
 	  /* Beginning of a header */
 	  while (strchr (buf, '\n') == NULL)
-	    fgets (buf, 80, data->file); /* eat the From line */
+	    if (fgets (buf, 80, data->file) == NULL) /* eat the From line */
+          {
+            if (feof (data->file))
+              errno = EIO; /* corrupted mailbox? */
+            unixmbox_close (mbox);
+            return -1;
+          }
 
 	  mbox->messages++;
 
@@ -117,6 +129,13 @@ unixmbox_open (mailbox * mbox)
     }
   while (fgets (buf, 80, data->file));
 
+  if (!feof (data->file)) /* stopped due to error, not EOF */
+    {
+      unixmbox_close (mbox);
+      return -1; /* errno is set */
+    }
+
+END:
   mbox->_close = unixmbox_close;
   mbox->_delete = unixmbox_delete;
   mbox->_undelete = unixmbox_undelete;
@@ -149,7 +168,6 @@ unixmbox_close (mailbox * mbox)
   free (data->messages);
   free (mbox->sizes);
   free (data);
-  free (mbox);
   return 0;
 }
 

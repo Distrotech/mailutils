@@ -22,23 +22,32 @@ int main(int argc, char *argv[]) {
         fprintf(stderr, "who am I?\n");
         exit(-1);
       }
+	if (!strcmp(user, "root") && argc == 2)
+		user = argv[1];
+	else if (argc > 2)
+      {
+        fprintf(stderr,
+				"Usage: from [username] (argument valid when ran as root)\n");
+		exit(-1);
+      }
+
 	snprintf (mailpath, 256, "%s/%s", _PATH_MAILDIR, user);
 	mail = mbox_open(mailpath);
 	if( mail == NULL ) {
-		perror("mbox_open: ");
+		perror("mbox_open");
 		exit(-1);
 	}
 	for(i = 0; i < mail->messages; ++i) {
 		from = mbox_header_line(mail, i, "From");
 		if (from == NULL)
           {
-            perror("mbox_header_line: ");
+            perror("mbox_header_line");
             exit(-1);
           }
 		date = mbox_header_line(mail, i, "Date");
 		if (date == NULL)
           {
-            perror("mbox_header_line: ");
+            perror("mbox_header_line");
             exit(-1);
           }
 		printf("%s %s\n", from, date);

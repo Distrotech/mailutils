@@ -1,8 +1,17 @@
++ --> fixed/done
+- --> pending
+= --> on hold
+* --> in progress
+
 - autogen.sh (libtool) complains about libmailbox.la in noinst
 
-- libmailbox has a nasty bug -- if the mailbox is empty, the library has no idea
++ libmailbox has a nasty bug -- if the mailbox is empty, the library has no idea
   what to do
   
+- libmailbox needs an interface to set flags for each message
+
+- libmailbox needs an interface to set and create values in the header
+
 - crypt is linked even if pam was detected, it should be one or the other
 
 - test daemon code
