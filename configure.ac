@@ -37,7 +37,7 @@ AM_PROG_LEX
 
 dnl Internationalization macros.
 AM_GNU_GETTEXT(no-libtool, need-ngettext)
-AM_GNU_GETTEXT_VERSION(0.12.1)
+AM_GNU_GETTEXT_VERSION(0.13)
 AC_SUBST(INTLINCS)
 if test ".$BUILD_INCLUDED_LIBINTL" = ".yes" ; then
         AC_DEFINE(WITH_INCLUDED_LIBINTL,1,
@@ -479,6 +479,7 @@ MU_ENABLE_SUPPORT(mh,
                   [BUILD_MH_PROGRAMS='$(PROGRAMS_MH)';
                    BUILD_MH_LIBRARIES='$(LIBRARIES_MH)';
                    BUILD_MH_EXEC_HOOK=mh_finish_install])
+MU_ENABLE_SUPPORT(maildir)
 
 dnl AC_ARG_ENABLE([experimental],
 dnl               AC_HELP_STRING([--enable-experimental],
