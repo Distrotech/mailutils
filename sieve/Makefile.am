@@ -32,7 +32,10 @@ SRC = \
   sieve-lex.c \
   sieve-gram.c \
   sieve_err.c \
+  svcb.c \
+  svctx.c \
   svfield.c \
+  svutil.c \
   tree.c \
   util.c
 
@@ -46,6 +49,7 @@ HDR = \
   sieve_err.h \
   sieve_interface.h \
   svfield.h \
+  sv.h \
   tree.h \
   util.h
 
