@@ -1,5 +1,5 @@
 /* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU Library General Public License as published by
@@ -70,9 +70,9 @@ extern int folder_delete         __P ((folder_t, const char *));
 extern int folder_rename         __P ((folder_t, const char *, const char *));
 extern int folder_subscribe      __P ((folder_t, const char *));
 extern int folder_unsubscribe    __P ((folder_t, const char *));
-extern int folder_list           __P ((folder_t, const char *,
+extern int folder_list           __P ((folder_t, const char *, const char *,
 				       struct folder_list *));
-extern int folder_lsub           __P ((folder_t, const char *,
+extern int folder_lsub           __P ((folder_t, const char *, const char *,
 				       struct folder_list *));
 extern int folder_list_destroy   __P ((struct folder_list *));
 
