@@ -1,5 +1,5 @@
 /* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Library Public License as published by
@@ -32,7 +32,6 @@
 #include <mailutils/address.h>
 #include <mailer0.h>
 #include <registrar0.h>
-#include <bio.h>
 
 static struct _record _smtp_record =
 {
@@ -54,13 +53,16 @@ record_t smtp_record = &_smtp_record;
 
 struct _smtp
 {
+  mailer_t mailer;
   char *mailhost;
   char *localhost;
-  bio_t bio;
+
+  /* Buffered the IO.  */
   char *ptr;
   char *nl;
   char *buffer;
   size_t buflen;
+
   enum smtp_state
   {
     SMTP_NO_STATE, SMTP_OPEN, SMTP_GREETINGS, SMTP_EHLO, SMTP_EHLO_ACK,
@@ -69,10 +71,13 @@ struct _smtp
     SMTP_RCPT_TO_ACK, SMTP_DATA, SMTP_DATA_ACK, SMTP_SEND, SMTP_SEND_ACK,
     SMTP_SEND_DOT
   } state;
+
   int extended;
+
   address_t mail_from;
   address_t rcpt_to;
   size_t rcpt_index;
+
   off_t offset;
   int dsn;
   message_t message;
@@ -145,6 +150,10 @@ _mailer_smtp_init (mailer_t mailer)
   smtp = mailer->data = calloc (1, sizeof (*smtp));
   if (mailer->data == NULL)
     return ENOMEM;
+
+  smtp->mailer = mailer; /* Back pointer.  */
+  smtp->state = SMTP_NO_STATE;
+
   mailer->_destroy = smtp_destroy;
   mailer->_open = smtp_open;
   mailer->_close = smtp_close;
@@ -162,8 +171,6 @@ smtp_destroy(mailer_t mailer)
     free (smtp->mailhost);
   if (smtp->localhost)
     free (smtp->localhost);
-  if (smtp->bio)
-    bio_destroy (&(smtp->bio));
   if (smtp->buffer)
     free (smtp->buffer);
   if (smtp->mail_from)
@@ -288,13 +295,14 @@ smtp_open (mailer_t mailer, int flags)
 	{
 	  status = tcp_stream_create (&(mailer->stream));
 	  CHECK_ERROR (smtp, status);
+	  stream_setbufsiz (mailer->stream, BUFSIZ);
 	}
-      status = bio_create (&(smtp->bio), mailer->stream);
       CHECK_ERROR (smtp, status);
       smtp->state = SMTP_OPEN;
 
     case SMTP_OPEN:
-      MAILER_DEBUG2 (mailer, MU_DEBUG_PROT, "smtp_open (%s:%d)\n", smtp->mailhost, port);
+      MAILER_DEBUG2 (mailer, MU_DEBUG_PROT, "smtp_open (%s:%d)\n",
+		     smtp->mailhost, port);
       status = stream_open (mailer->stream, smtp->mailhost, port,
 			    mailer->flags);
       CHECK_EAGAIN (smtp, status);
@@ -750,7 +758,8 @@ smtp_write (smtp_t smtp)
   if (smtp->ptr > smtp->buffer)
     {
       len = smtp->ptr - smtp->buffer;
-      status = bio_write (smtp->bio, smtp->buffer, len, &len);
+      status = stream_write (smtp->mailer->stream, smtp->buffer, len,
+			     0, &len);
       if (status == 0)
         {
           memmove (smtp->buffer, smtp->buffer + len, len);
@@ -800,8 +809,8 @@ smtp_readline (smtp_t smtp)
   /* Must get a full line before bailing out.  */
   do
     {
-      status = bio_readline (smtp->bio, smtp->buffer + total,
-                             smtp->buflen - total, &n);
+      status = stream_readline (smtp->mailer->stream, smtp->buffer + total,
+				smtp->buflen - total, 0, &n);
       if (status != 0)
         return status;
 
