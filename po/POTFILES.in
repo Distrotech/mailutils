@@ -31,11 +31,10 @@ libsieve/comparator.c
 libsieve/prog.c
 libsieve/require.c
 libsieve/runtime.c
+libsieve/sieve-gram.c
 libsieve/sieve-lex.c
 libsieve/tests.c
 libsieve/util.c
-libsieve/sieve.y
-libsieve/sieve.l
 
 mail/alias.c
 mail/alt.c
