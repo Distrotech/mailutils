@@ -1,7 +1,9 @@
 2001-08-31 Sergey Poznyakoff
 	
 	* mailbix/mutil.c: Fixed declaration of _app_getpwnam.
-	Moved mu_virtual_domain out of #ifdef guard.
+	Moved mu_virtual_domain out of #ifdef guard. Fixed typo
+	in getpwnam_virtual: erroneously returned NULL instead of	
+	p.
 
 2001-08-31 Sergey Poznyakoff
 
