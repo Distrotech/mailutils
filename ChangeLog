@@ -1,3 +1,8 @@
+2002-11-13  Sergey Poznyakoff  
+
+	* mail/util.c (util_do_command): Interpret empty line as "next"
+	  command only when in interactive mode.
+
 2002-11-12  Sergey Poznyakoff
 
 	* libsieve/prog.c: New file. Code generator functions.
