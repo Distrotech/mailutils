@@ -52,7 +52,7 @@ imap4d_copy0 (char *arg, int isuid, char *resp, size_t resplen)
   const char *delim = "/";
   char *sp = NULL;
   size_t *set = NULL;
-  size_t n = 0;
+  int n = 0;
   mailbox_t cmbox = NULL;
 
   msgset = util_getword (arg, &sp);

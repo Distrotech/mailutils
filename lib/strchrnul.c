@@ -29,7 +29,7 @@ strchrnul (s, c_in)
      const char *s;
      int c_in;
 {
-  const unsigned char *char_ptr;
+  const char *char_ptr;
   const unsigned long int *longword_ptr;
   unsigned long int longword, magic_bits, charmask;
   unsigned char c;

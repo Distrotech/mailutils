@@ -26,6 +26,9 @@
 # include <dmalloc.h>
 #endif
 
+#ifdef HAVE_ALLOCA_H
+# include <alloca.h>
+#endif
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -127,7 +130,7 @@ struct message_set
 extern mailbox_t mbox;
 extern unsigned int cursor;
 extern unsigned int realcursor;
-extern unsigned int total;
+extern size_t total;
 extern FILE *ofile;
 extern int interactive;
 extern const struct mail_command_entry mail_command_table[];

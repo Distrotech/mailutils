@@ -21,7 +21,7 @@
 mailbox_t mbox;
 unsigned int cursor;
 unsigned int realcursor;
-unsigned int total;
+size_t total;
 FILE *ofile;
 int interactive;
 

@@ -832,7 +832,7 @@ util_descend_subparts (message_t mesg, msgset_t *msgset, message_t *part)
   for (i = 1; i < msgset->npart; i++)
     {
       message_t submsg = NULL;
-      unsigned int nparts = 0;
+      size_t nparts = 0;
       char *type = NULL;
       header_t hdr = NULL;
 

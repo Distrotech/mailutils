@@ -43,7 +43,8 @@ imap4d_store0 (char *arg, int isuid, char *resp, size_t resplen)
   char *sp = NULL;
   int status;
   int ack = 0;
-  size_t i, n = 0;
+  size_t i;
+  int n = 0;
   size_t *set = NULL;
   enum value_type { STORE_SET, STORE_ADD, STORE_UNSET } how;
 

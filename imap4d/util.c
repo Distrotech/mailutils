@@ -566,7 +566,7 @@ sc2string (int rc)
 static int
 add2set (size_t **set, int *n, unsigned long val)
 {
-  int *tmp;
+  size_t *tmp;
   tmp = realloc (*set, (*n + 1) * sizeof (**set));
   if (tmp == NULL)
     {

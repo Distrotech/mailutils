@@ -254,7 +254,7 @@ mail_send0 (struct send_environ *env, int save_to)
 	  else
 	    {
 	      char *buf = NULL;
-	      unsigned int n;
+	      size_t n;
 	      rewind (env->file);
 	      while (getline (&buf, &n, env->file) > 0)
 		fputs (buf, fp);
@@ -428,7 +428,7 @@ msg_to_pipe (const char *cmd, message_t msg)
       stream_t stream = NULL;
       char buffer[512];
       off_t off = 0;
-      unsigned int n = 0;
+      size_t n = 0;
       message_get_stream (msg, &stream);
       while (stream_read (stream, buffer, sizeof buffer - 1, off, &n) == 0
 	     && n != 0)

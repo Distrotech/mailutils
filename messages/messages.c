@@ -96,7 +96,7 @@ messages_count (const char *box)
 {
   mailbox_t mbox;
   url_t url = NULL;
-  int count;
+  size_t count;
 
   if (mailbox_create_default (&mbox, box) != 0)
     {

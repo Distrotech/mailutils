@@ -28,7 +28,7 @@ mail_size (int argc, char **argv)
     util_msglist_command (mail_size, argc, argv, 1);
   else
     {
-      unsigned int s = 0;
+      size_t s = 0;
       message_t msg;
       if (mailbox_get_message (mbox, cursor, &msg) != 0)
 	{
