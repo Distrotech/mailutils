@@ -57,11 +57,11 @@ static struct argp argp = {
 };
 
 static const char *pop3d_argp_capa[] = {
-  "common",
-  "license",
   "daemon",
-  "logging",
   "auth",
+  "common",
+  "logging",
+  "license",
   NULL
 };
 
@@ -71,7 +71,7 @@ pop3d_parse_opt (int key, char *arg, struct argp_state *astate)
     switch (key)
       {
       case ARGP_KEY_INIT:
-       	astate->child_inputs[1] = astate->input;
+       	astate->child_inputs[0] = astate->input;
 	break;
 
     default:
