@@ -388,7 +388,7 @@ main (int argc, char **argv)
     status = mailbox_create_default (&mbox, mailbox_name);
     if (status != 0)
       {
-	mu_error (_("Couldn't create mailbox <%s>: %s.\n"),
+	mu_error (_("Couldn't create mailbox <%s>: %s."),
 		  mailbox_name ? mailbox_name : _("default"),
 		  mu_strerror (status));
 	exit (3);
@@ -410,7 +410,7 @@ main (int argc, char **argv)
 	  goto cleanup1;
 	else
 	  {
-	    mu_error (_("Couldn't open mailbox <%s>: %s.\n"),
+	    mu_error (_("Couldn't open mailbox <%s>: %s."),
 		      url_to_string (url), mu_strerror (status));
 	    goto cleanup;
 	  }
@@ -427,7 +427,7 @@ main (int argc, char **argv)
     status = mailbox_scan (mbox, 1, &total);
     if (status != 0)
       {
-	mu_error (_("Couldn't scan mailbox <%s>: %s.\n"),
+	mu_error (_("Couldn't scan mailbox <%s>: %s."),
 		  url_to_string (url), mu_strerror (status));
 	goto cleanup;
       }
@@ -441,7 +441,7 @@ main (int argc, char **argv)
 cleanup:
     if (mailbox_close (mbox) != 0)
       {
-	mu_error (_("Couldn't close <%s>: %s.\n"),
+	mu_error (_("Couldn't close <%s>: %s."),
 		  url_to_string (url), mu_strerror (status));
 	return -1;
       }

@@ -111,12 +111,14 @@ main (int argc, char **argv)
   mu_register_all_mbox_formats ();
 
   if (args.argc < 1 && messages_count (NULL) < 0)
-      err = 1;
+    err = 1;
   else if (args.argc >= 1)
     {
-      for (i=0; i < args.argc; i++)
-	if (messages_count (args.argv[i]) < 0)
-	  err = 1;
+      for (i = 0; i < args.argc; i++)
+	{
+	  if (messages_count (args.argv[i]) < 0)
+	    err = 1;
+	}
     }
 
   return err;
@@ -133,9 +135,8 @@ messages_count (const char *box)
   status =  mailbox_create_default (&mbox, box);
   if (status != 0)
     {
-      fprintf (stderr, _("Couldn't create mailbox <%s>: %s.\n"),
-	       box ? box : _("default"),
-	       mu_strerror (status));
+      mu_error (_("Couldn't create mailbox <%s>: %s."),
+		box ? box : _("default"), mu_strerror (status));
       return -1;
     }
 
@@ -145,16 +146,16 @@ messages_count (const char *box)
   status =  mailbox_open (mbox, MU_STREAM_READ);
   if (status != 0)
     {
-      fprintf (stderr, _("Couldn't open mailbox <%s>: %s.\n"),
-	       box, mu_strerror (status));
+      mu_error (_("Couldn't open mailbox <%s>: %s."),
+		box, mu_strerror (status));
       return -1;
     }
 
   status = mailbox_messages_count (mbox, &count);
   if (status != 0)
     {
-      fprintf (stderr, _("Couldn't count messages in <%s>: %s.\n"),
-	       box, mu_strerror (status));
+      mu_error (_("Couldn't count messages in <%s>: %s."),
+		box, mu_strerror (status));
       return -1;
     }
 
@@ -166,8 +167,8 @@ messages_count (const char *box)
   status = mailbox_close (mbox);
   if (status != 0)
     {
-      fprintf (stderr, _("Couldn't close <%s>: %s.\n"),
-	       box, mu_strerror (status));
+      mu_error (_("Couldn't close <%s>: %s."),
+		box, mu_strerror (status));
       return -1;
     }
 
