@@ -29,6 +29,7 @@ EXTRA_DIST = \
  regex.m4 \
  utmp.m4 \
  tls.m4 \
+ gsasl.m4\
  iconv.m4 \
  codeset.m4 \
  gettext.m4 \
