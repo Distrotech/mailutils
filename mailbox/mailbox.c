@@ -199,7 +199,30 @@ mailbox_close (mailbox_t mbox)
 {
   if (mbox == NULL || mbox->_close == NULL)
     return MU_ERR_EMPTY_VFN;
+
   return mbox->_close (mbox);
+}
+
+int
+mailbox_flush (mailbox_t mbox, int expunge)
+{
+  size_t i, total = 0;
+  int status = 0;
+  
+  mailbox_messages_count (mbox, &total);
+  for (i = 1; i <= total; i++)
+    {
+      message_t msg = NULL;
+      attribute_t attr = NULL;
+      mailbox_get_message (mbox, i, &msg);
+      message_get_attribute (msg, &attr);
+      attribute_set_seen (attr);
+    }
+  if (expunge)
+    status = mailbox_expunge (mbox);
+  else
+    status = mailbox_save_attributes (mbox);
+  return status;
 }
 
 /* messages */
