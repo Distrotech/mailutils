@@ -28,6 +28,7 @@ PROGRAMS_MH = \
  mark\
  mhl\
  mhn\
+ mhparam\
  mhpath\
  pick\
  refile\
@@ -51,6 +52,7 @@ EXTRA_PROGRAMS = \
  mark\
  mhl\
  mhn\
+ mhparam\
  mhpath\
  pick\
  refile\
