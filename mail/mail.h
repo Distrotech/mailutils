@@ -94,19 +94,16 @@ typedef int function_t __P ((int, char **));
 #define EF_FLOW 0x01    /* Flow control command */
 #define EF_SEND 0x02    /* Send command */
 
-struct send_environ
+typedef struct compose_env
 {
-  char *to;
-  char *cc;
-  char *bcc;
-  char *subj;
-  int done;
-  char *filename;
-  FILE *file;
-  FILE *ofile;
-  char **outfiles;
-  int nfiles;
-};
+  header_t header;   /* The message headers */
+  char *filename;    /* Name of the temporary compose file */
+  FILE *file;        /* Temporary compose file */
+  FILE *ofile;       /* Diagnostics output channel */
+  char **outfiles;   /* Names of the output files. The message is to be
+		        saved in each of these. */
+  int nfiles;        /* Number of output files */
+} compose_env_t;
 
 struct mail_command_entry {
   const char *shortname;
@@ -114,7 +111,7 @@ struct mail_command_entry {
   const char *synopsis;
   int flags;
   int (*func)    __P ((int, char **));
-  int (*escfunc) __P ((int, char **, struct send_environ *));
+  int (*escfunc) __P ((int, char **, compose_env_t *));
 };
 
 typedef enum {
@@ -212,8 +209,8 @@ extern int if_cond __P ((void));
 
 extern void mail_mainloop __P ((char *(*input) __P((void *, int)), void *closure, int do_history));
 extern int mail_copy0 __P ((int argc, char **argv, int mark));
-extern int mail_send0 __P ((struct send_environ *env, int save_to));
-extern void free_env_headers __P ((struct send_environ *env));
+extern int mail_send0 __P ((compose_env_t *env, int save_to));
+extern void free_env_headers __P ((compose_env_t *env));
 
 /*extern void print_message __P((message_t mesg, char *prefix, int all_headers, FILE *file));*/
 
@@ -225,26 +222,26 @@ extern int mail_header_is_visible __P ((char *str));
 extern int mail_mbox_close __P ((void));
 extern char *mail_expand_name __P((const char *name));
 
-extern int var_shell __P ((int argc, char **argv, struct send_environ *env));
-extern int var_command __P ((int argc, char **argv, struct send_environ *env));
-extern int var_help __P ((int argc, char **argv, struct send_environ *env));
-extern int var_sign __P ((int argc, char **argv, struct send_environ *env));
-extern int var_bcc __P ((int argc, char **argv, struct send_environ *env));
-extern int var_cc __P ((int argc, char **argv, struct send_environ *env));
-extern int var_deadletter __P ((int argc, char **argv, struct send_environ *env));
-extern int var_editor __P ((int argc, char **argv, struct send_environ *env));
-extern int var_print __P ((int argc, char **argv, struct send_environ *env));
-extern int var_headers __P ((int argc, char **argv, struct send_environ *env));
-extern int var_insert __P ((int argc, char **argv, struct send_environ *env));
-extern int var_quote __P ((int argc, char **argv, struct send_environ *env));
-extern int var_type_input __P ((int argc, char **argv, struct send_environ *env));
-extern int var_read __P ((int argc, char **argv, struct send_environ *env));
-extern int var_subj __P ((int argc, char **argv, struct send_environ *env));
-extern int var_to __P ((int argc, char **argv, struct send_environ *env));
-extern int var_visual __P ((int argc, char **argv, struct send_environ *env));
-extern int var_write __P ((int argc, char **argv, struct send_environ *env));
-extern int var_exit __P ((int argc, char **argv, struct send_environ *env));
-extern int var_pipe __P ((int argc, char **argv, struct send_environ *env));
+extern int var_shell __P ((int argc, char **argv, compose_env_t *env));
+extern int var_command __P ((int argc, char **argv, compose_env_t *env));
+extern int var_help __P ((int argc, char **argv, compose_env_t *env));
+extern int var_sign __P ((int argc, char **argv, compose_env_t *env));
+extern int var_bcc __P ((int argc, char **argv, compose_env_t *env));
+extern int var_cc __P ((int argc, char **argv, compose_env_t *env));
+extern int var_deadletter __P ((int argc, char **argv, compose_env_t *env));
+extern int var_editor __P ((int argc, char **argv, compose_env_t *env));
+extern int var_print __P ((int argc, char **argv, compose_env_t *env));
+extern int var_headers __P ((int argc, char **argv, compose_env_t *env));
+extern int var_insert __P ((int argc, char **argv, compose_env_t *env));
+extern int var_quote __P ((int argc, char **argv, compose_env_t *env));
+extern int var_type_input __P ((int argc, char **argv, compose_env_t *env));
+extern int var_read __P ((int argc, char **argv, compose_env_t *env));
+extern int var_subj __P ((int argc, char **argv, compose_env_t *env));
+extern int var_to __P ((int argc, char **argv, compose_env_t *env));
+extern int var_visual __P ((int argc, char **argv, compose_env_t *env));
+extern int var_write __P ((int argc, char **argv, compose_env_t *env));
+extern int var_exit __P ((int argc, char **argv, compose_env_t *env));
+extern int var_pipe __P ((int argc, char **argv, compose_env_t *env));
 
 /* msgsets */
 extern void msgset_free __P ((msgset_t *msg_set));
@@ -258,8 +255,8 @@ extern int msgset_parse __P ((const int argc, char **argv, msgset_t **mset));
 extern int util_do_command __P ((const char *cmd, ...));
 extern int util_msglist_command __P ((function_t *func, int argc, char **argv, int set_cursor));
 extern int util_msglist_esccmd
-__P ((int (*escfunc) __P ((int, char **, struct send_environ *)),
-      int argc, char **argv, struct send_environ *env, int set_cursor));
+__P ((int (*escfunc) __P ((int, char **, compose_env_t *)),
+      int argc, char **argv, compose_env_t *env, int set_cursor));
 extern function_t* util_command_get __P ((const char *cmd));
 extern char *util_stripwhite __P ((char *string));
 extern struct mail_command_entry util_find_entry __P ((const struct mail_command_entry *table, const char *cmd));
@@ -306,6 +303,17 @@ extern char *ml_readline __P((const char *prompt));
 
 extern char *alias_expand __P ((char *name));
 extern void alias_destroy __P ((char *name));
+
+#define COMPOSE_APPEND      0
+#define COMPOSE_REPLACE     1
+#define COMPOSE_SINGLE_LINE 2
+
+void compose_init __P((compose_env_t *env));
+int compose_header_set __P((compose_env_t *env, char *name,
+			    char *value, int replace));
+char *compose_header_get __P((compose_env_t *env, char *name,
+			      char *defval));
+void compose_destroy __P((compose_env_t *env));
 
 #ifndef HAVE_READLINE_READLINE_H
 extern char *readline __P ((const char *prompt));
