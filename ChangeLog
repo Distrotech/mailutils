@@ -1,3 +1,32 @@
+2001-09-14 Sergey Poznyakoff
+
+	* mailbox/mbx_mh.c: Properly handle messages with null body.
+	Fixed bug in cyclic stream pool. Lowered MAX_OPEN_STREAMS
+	limit. It probably should be configurable.
+
+	A framework for porting MH utilities. Scan utility is in
+	working order, except that it ignores -form and -header
+	options.
+
+	* configure.in: Check for presense of GNU obstack functions.
+	* lib/Makefile.am: Added obstack.[ch]
+	* lib/obstack.c: (new)
+	* lib/obstack.h: (new)
+
+	* mh: (New directory) Implementation of MH commands.
+	* mh/Makefile.am: (new)
+	* mh/.cvsignore: (new)
+	* mh/mh.h: (new) Main header for mh functions.
+	* mh/mh_argp.c: (new) Coexistence between GNU long options,
+	traditional UNIX-style short options and traditional MH long options. 
+	* mh/mh_error.c: (new) Diagnostic output.
+	* mh/mh_fmtgram.y: (new) Parser for format strings.
+	* mh/mh_format.c: (new) Run-time execution of format strings.
+	* mh/mh_getopt.c: (new) MH-style options parsing.
+	* mh/mh_getopt.h: (new) Its prototypes.
+	* mh/mh_init.c: (new) Initialization module.
+	* mh/scan.c: (new) Implementation of scan command.
+
 2001-09-10 Sergey Poznyakoff
 
 	* mailbox/mbx_mh.c: Implemented append. Disabled reading of deleted
