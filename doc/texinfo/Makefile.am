@@ -11,6 +11,7 @@ mailutils_TEXINFOS = \
  c-api.texi \
  encoding.texi \
  envelope.texi \
+ http.c.texi \
  address.c.texi \
  url-parse.c.texi \
  framework.texi \
@@ -44,16 +45,7 @@ url-parse.c.texi: ${top_srcdir}/examples/url-parse.c
 sfrom.c.texi: ${top_srcdir}/examples/sfrom.c
 	sed '1,/.*\*\//d;s/\([{}]\)/@\1/g' $< > $@
 
-## Sam, the examples dir is not part of the distribution so this will not work
-## but we should probably have a "addrmsg" program and reenable this.
-## Alain.
-#ex-address.texi: ${top_srcdir}/doc/examples/addr.c
-#	sed -es/{/@{/g -e s/}/@}/g < $< > $@
-#sfrom.texi: ${top_srcdir}/doc/examples/sfrom.c
-#	sed -es/{/@{/g -e s/}/@}/g < $< > $@
-#ex-url.texi: ${top_srcdir}/doc/examples/url-parse.c
-#	sed -es/{/@{/g -e s/}/@}/g < $< > $@
+http.c.texi: ${top_srcdir}/examples/http.c
+	sed '1,/.*\*\//d;s/\([{}]\)/@\1/g' $< > $@
 
-#mailutils.info: mailutils.texi version.texi ex-address.texi
-#mailutils.dvi: mailutils.texi version.texi ex-address.texi
 DISTCLEANFILES=*.pgs

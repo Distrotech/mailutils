@@ -24,3 +24,4 @@ mailutils.pgs
 address.c.texi
 url-parse.c.texi
 sfrom.c.texi
+http.c.texi
