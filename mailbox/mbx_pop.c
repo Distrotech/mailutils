@@ -492,7 +492,6 @@ pop_open (mailbox_t mbox, int flags)
 {
   pop_data_t mpd = mbox->data;
   int status;
-  void *func = (void *)pop_open;
   char *host;
   size_t hostlen = 0;
   long port = 110;

@@ -1,3 +1,8 @@
+2001-11-11  Alain Magloire
+
+	* lib/mu_dbm.c: Add <errno.h>.
+	Remove trailing spaces.
+
 2001-11-11  Sergey Poznyakoff
 
 	* lib/mu_dbm.c: (new) These functions provide an
@@ -17,7 +22,7 @@
 	* pop3d/apop.c: Bunch of changes due to introduction of new
 	DBM interface.
 	* pop3d/pop3d.h: Likewise.
-	
+
 	* comsat/Makefile.am: Added comsat.h to sources
 
 2001-11-10  Jeff Bailey  <jbailey@outpost.dnsalias.org>
@@ -34,7 +39,7 @@
 	* doc/man/pop3d.1: New File
 
 	* doc/man/imap4d.1: New File
-	
+
 	* doc/man/Makefile.am: New File
 
 	* pop3d/pop3d.c: Change timeout to unsigned int from size_t.

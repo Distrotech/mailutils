@@ -29,13 +29,14 @@
 #ifdef HAVE_STRINGS_H
 # include <strings.h>
 #endif
+#include <errno.h>
 #include <mu_dbm.h>
 
 int
 mu_fcheck_perm (int fd, int mode)
 {
   struct stat st;
-  
+
   if (fstat (fd, &st) == -1)
     {
       if (errno == ENOENT)
@@ -47,12 +48,12 @@ mu_fcheck_perm (int fd, int mode)
     return 1;
   return 0;
 }
-  
+
 int
 mu_check_perm (char *name, int mode)
 {
   struct stat st;
-  
+
   if (stat (name, &st) == -1)
     {
       if (errno == ENOENT)
@@ -74,7 +75,7 @@ mu_dbm_open(char *name, DBM_FILE *db, int flags, int mode)
 {
   int f;
   char *pfname;
-  
+
   pfname = xmalloc (strlen (name) + sizeof DB_SUFFIX);
   strcat (strcpy (pfname, name), DB_SUFFIX);
   if (mu_check_perm (pfname, mode))
@@ -82,7 +83,7 @@ mu_dbm_open(char *name, DBM_FILE *db, int flags, int mode)
       free (pfname);
       return -1;
     }
-  
+
   switch (flags)
     {
     case MU_STREAM_CREAT:
@@ -147,7 +148,7 @@ mu_dbm_open(char *name, DBM_FILE *dbm, int flags, int mode)
   int f, rc;
   DB *db;
   char *pfname;
-  
+
   pfname = xmalloc (strlen (name) + sizeof DB_SUFFIX);
   strcat (strcpy (pfname, name), DB_SUFFIX);
   if (mu_check_perm (pfname, mode))
@@ -155,7 +156,7 @@ mu_dbm_open(char *name, DBM_FILE *dbm, int flags, int mode)
       free (pfname);
       return -1;
     }
-  
+
   switch (flags)
     {
     case MU_STREAM_CREAT:
@@ -177,7 +178,7 @@ mu_dbm_open(char *name, DBM_FILE *dbm, int flags, int mode)
   free (pfname);
   if (rc)
     return -1;
-  
+
   *dbm = malloc (sizeof **dbm);
   if (!*dbm)
     {
@@ -225,14 +226,14 @@ mu_dbm_firstkey (DBM_FILE db)
       if (db->db->cursor(db->db, NULL, &db->dbc, 0) != 0)
 	return key;
     }
-  
+
   if ((ret = db->dbc->c_get(db->dbc, &key, &data, DB_FIRST)) != 0)
     {
       key.data = NULL;
       key.size = 0;
       if (ret == DB_NOTFOUND)
 	errno = ENOENT;
-      else 
+      else
 	errno = ret;
     }
   return key;
@@ -246,17 +247,17 @@ mu_dbm_nextkey (DBM_FILE db, DBM_DATUM pkey /*unused*/)
 
   memset(&key, 0, sizeof key);
   memset(&data, 0, sizeof data);
-  
+
   if (!db->dbc)
     return key;
-  
+
   if ((ret = db->dbc->c_get(db->dbc, &key, &data, DB_NEXT)) != 0)
     {
       key.data = NULL;
       key.size = 0;
       if (ret == DB_NOTFOUND)
 	errno = ENOENT;
-      else 
+      else
 	errno = ret;
     }
   return key;
@@ -270,7 +271,7 @@ int
 mu_dbm_open(char *name, DBM_FILE *db, int flags, int mode)
 {
   int f;
-  
+
   switch (flags)
     {
     case MU_STREAM_CREAT:
@@ -296,7 +297,7 @@ mu_dbm_open(char *name, DBM_FILE *db, int flags, int mode)
       dbm_close (*db);
       return 1;
     }
-  
+
   return 0;
 }
 
@@ -339,7 +340,7 @@ int
 mu_dbm_open(char *name, DBM_FILE *db, int flags, int mode)
 {
   int f;
-  
+
   switch (flags)
     {
     case MU_STREAM_CREAT:
@@ -359,12 +360,12 @@ mu_dbm_open(char *name, DBM_FILE *db, int flags, int mode)
     {
       char *p;
       int fd;
-      
+
       p = xmalloc(strlen(name)+5);
       strcat(strcpy(p, name), ".pag");
       fd = open(p, f, mode);
       free(p);
-      if (fd < 0) 
+      if (fd < 0)
 	return -1;
       close(fd);
 
@@ -372,11 +373,11 @@ mu_dbm_open(char *name, DBM_FILE *db, int flags, int mode)
       strcat(strcpy(p, name), ".dir");
       fd = open(p, f, mode);
       free(p);
-      if (fd < 0) 
+      if (fd < 0)
 	return -1;
       close(fd);
     }
-  
+
   return dbminit(name);
 }
 
