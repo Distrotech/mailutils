@@ -110,11 +110,7 @@ main (int argc, char **argv)
     pop3_daemon_init ();
 
   /* change directories */
-#ifdef MAILSPOOLHOME
   chdir ("/");
-#else
-  chdir (_PATH_MAILDIR);
-#endif
 
   /* Set up for syslog */
   openlog ("gnu-pop3d", LOG_PID, LOG_MAIL);

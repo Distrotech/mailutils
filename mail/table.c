@@ -15,33 +15,9 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-#ifndef _TABLE_H
-#define _TABLE_H 1
-
 #include "mail.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#ifndef __P
-# ifdef __STDC__
-#  define __P(args) args
-# else
-#  define __P(args) ()
-# endif
-#endif /*__P */
-
-struct mail_command_entry {
-  char *shortname;
-  char *longname;
-  Function *func;
-  char *synopsis;
-};
-
-struct mail_command_entry util_find_entry __P((char *cmd));
-
-static struct mail_command_entry mail_command_table[] = {
+const struct mail_command_entry mail_command_table[] = {
   { "a",	"alias",	mail_alias,
 				"a[lias] [alias [address...]]" },
   { "g",	"group",	mail_alias,
@@ -122,10 +98,3 @@ static struct mail_command_entry mail_command_table[] = {
   { "#",	"#",		NULL,		"# comment" },
   { 0, 0, 0, 0,}
 };
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif /* _TABLE_H */
-

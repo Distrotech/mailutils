@@ -1,23 +1,10 @@
-INCLUDES =-I$(srcdir) -I$(top_srcdir)/lib -I$(top_srcdir)/libmailbox
+INCLUDES = -I$(top_srcdir)/lib -I$(top_srcdir)/include
 CPPFLAGS = -Wall -pedantic -ansi
 
-sbin_PROGRAMS =		imap4d
+sbin_PROGRAMS =	imap4d
 
-imap4d_SOURCES = 	capability.c \
-			login.c \
-			logout.c \
-			main.c \
-			noop.c
-
-imap4d_LDADD =		../libmailbox/libmailbox.la \
-			../lib/libmailutils.a \
-			@AUTHLIBS@
-
-noinst_HEADERS = 	capability.h \
-			imap.h \
-			imap_commands.h \
-			imap_types.h \
-			login.h \
-			logout.h \
-			noop.h
-
+imap4d_LDADD = ../mailbox/libmailbox.la ../lib/libmailutils.a @AUTHLIBS@
+imap4d_SOURCES = imap4d.c imap4d.h capability.c noop.c logout.c authenticate.c \
+	login.c select.c examine.c create.c delete.c rename.c subscribe.c \
+	unsubscribe.c list.c lsub.c status.c append.c check.c close.c \
+	expunge.c search.c fetch.c store.c copy.c uid.c util.c commands.c

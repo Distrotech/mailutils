@@ -16,49 +16,6 @@
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #include "mail.h"
-#include "table.h"
-
-/*
- * takes a string and splits it into several strings, breaking at ' '
- * command is the string to split
- * the number of strings is placed into argc
- * the split strings are put into argv
- * returns 0 on success, nonzero on failure
- */
-
-int
-util_get_argcv (const char *command, int *argc, char ***argv)
-{
-  int len = strlen (command);
-  int i = 0, j = 0;
-  int start = 0;
-
-  if (len < 1)
-    return 1;
-
-  *argc = 1;
-  
-  for (i = 0; i < len; i++)
-    if (command[i] == ' ')
-      (*argc)++;
-  
-  *argv = malloc ((*argc + 1) * sizeof (char *));
-
-  for (i = 0; i <= len; i++)
-    {
-      if (command[i] == ' ' || command[i] == '\0')
-	{
-	  (*argv)[j] = malloc ((i-start) * sizeof (char));
-	  if (argv[j] == NULL && (i-start > 0))
-	    return 1;
-	  strncpy ((*argv)[j], &command[start], i-start);
-	  (*argv)[j][i-start] = '\0';
-	  j++;
-	  start = i+1;
-	}
-    }
-  return 0;
-}
 
 /*
  * expands a standard message list into an array of numbers
@@ -142,20 +99,6 @@ util_expand_msglist (const int argc, char **argv, int **list)
 }
 
 /*
- * frees all elements of an argv array
- * argc is the number of elements
- * argv is the array
- */
-int
-util_free_argv (int argc, char **argv)
-{
-  while (--argc >= 0)
-    free (argv[argc]);
-  free (argv);
-  return 1;
-}
-
-/*
  * expands command into its command and arguments, then runs command
  * cmd is the command to parse and run
  * returns exit status of the command
@@ -173,8 +116,8 @@ util_do_command (const char *cmd)
 
   if (cmd)
     {
-      if (util_get_argcv (cmd, &argc, &argv) != 0)
-	return util_free_argv (argc, argv);
+      if (argcv_get (cmd, &argc, &argv) != 0)
+	return argcv_free (argc, argv);
       command = util_command_get (argv[0]);
     }
   else
@@ -188,7 +131,7 @@ util_do_command (const char *cmd)
       status = 1;
     }
 
-  util_free_argv (argc, argv);
+  argcv_free (argc, argv);
   return status;
 }
 
@@ -242,7 +185,9 @@ util_find_entry (char *cmd)
     {
       sl = strlen (mail_command_table[i].shortname);
       ll = strlen (mail_command_table[i].longname);
-      if (sl == len && !strcmp (mail_command_table[i].shortname, cmd))
+      if (sl > ll && !strncmp (mail_command_table[i].shortname, cmd, sl))
+	return mail_command_table[i];
+      else if (sl == len && !strcmp (mail_command_table[i].shortname, cmd))
 	return mail_command_table[i];
       else if (sl < len && !strncmp (mail_command_table[i].longname, cmd, len))
 	return mail_command_table[i];
@@ -279,9 +224,9 @@ util_command_generator (char *text, int state)
   
   while ((name = mail_command_table[i].longname))
     {
+      if (strlen (mail_command_table[i].shortname) > strlen(name))
+	name = mail_command_table[i].shortname;
       i++;
-      /*if (strlen (mail_command_table[i].shortname) > strlen(name))
-	name = mail_command_table[i].shortname; */
       if (strncmp (name, text, len) == 0)
 	return (strdup(name));
     }

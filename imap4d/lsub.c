@@ -15,43 +15,15 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-#include "mail.h"
+#include "imap4d.h"
 
 /*
- * l[ist]
- * *
+ *
  */
 
 int
-mail_list (int argc, char **argv)
+imap4d_lsub (int argc, char **argv)
 {
-  int i = 0, pos = 0, columns = 80, len = 0;
-  char *cmd;
-  char *col = getenv ("COLUMNS");
-
-  if (col)
-    columns = strtol (col, NULL, 10);
-    
-  for (i=0; mail_command_table[i].shortname != 0; i++)
-    {
-      len = strlen (mail_command_table[i].longname);
-      if (len < 1)
-	{
-	  cmd = mail_command_table[i].shortname;
-	  len = strlen (cmd);
-	}
-      else
-	cmd = mail_command_table[i].longname;
-
-      pos += len + 1;
-
-      if (pos >= columns)
-	{
-	  pos = 0;
-	  printf ("\n");
-	}
-      printf ("%s ", cmd);
-    }
-  printf ("\n");
-  return 0;
+  util_out (argv[0], TAG_NONE, "BAD %s Command not implemented", argv[1]);
+  return util_finish (argc, argv, RESP_BAD, "Command not implemented");
 }

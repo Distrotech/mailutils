@@ -15,43 +15,34 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-#include "mail.h"
+#include "imap4d.h"
 
-/*
- * l[ist]
- * *
- */
+int ifile;
+int ofile;
 
 int
-mail_list (int argc, char **argv)
+main (int argc, char **argv)
 {
-  int i = 0, pos = 0, columns = 80, len = 0;
-  char *cmd;
-  char *col = getenv ("COLUMNS");
+  chdir ("/");
+  openlog ("imap4d", LOG_PID, LOG_MAIL);
 
-  if (col)
-    columns = strtol (col, NULL, 10);
-    
-  for (i=0; mail_command_table[i].shortname != 0; i++)
-    {
-      len = strlen (mail_command_table[i].longname);
-      if (len < 1)
-	{
-	  cmd = mail_command_table[i].shortname;
-	  len = strlen (cmd);
-	}
-      else
-	cmd = mail_command_table[i].longname;
+  /* for each incoming connection */
+  {
+    char *remote_host = "";
+    ifile = fileno (stdin);
+    ofile = fileno (stdout);
 
-      pos += len + 1;
+    syslog (LOG_INFO, "Incoming connection from %s", remote_host);
+    util_out (NULL, TAG_NONE, "IMAP4rev1 GNU " PACKAGE " " VERSION);
+    while (1)
+      {
+	char *cmd = util_getline ();
+	/* check for updates */
+	util_do_command (cmd);
+	free (cmd);
+      }
+  }
 
-      if (pos >= columns)
-	{
-	  pos = 0;
-	  printf ("\n");
-	}
-      printf ("%s ", cmd);
-    }
-  printf ("\n");
+  closelog ();
   return 0;
 }

@@ -52,11 +52,24 @@ extern "C" {
 # endif
 #endif /*__P */
 
-/* Global variables */
+/* Type definitions */
+#ifndef Function
+typedef int Function ();
+#endif
+
+struct mail_command_entry {
+  char *shortname;
+  char *longname;
+  Function *func;
+  char *synopsis;
+};
+
+/* Global variables and constants*/
 mailbox_t mbox;
 unsigned int cursor;
 unsigned int realcursor;
 unsigned int total;
+extern const struct mail_command_entry mail_command_table[];
 
 /* Functions */
 int mail_alias __P((int argc, char **argv));
@@ -106,15 +119,14 @@ int mail_z __P((int argc, char **argv));
 int mail_bang __P((int argc, char **argv));	/* command ! */
 int mail_eq __P((int argc, char **argv));	/* command = */
 
-int util_get_argcv __P((const char *command, int *argc, char ***argv));
 int util_expand_msglist __P((const int argc, char **argv, int **list));
 int util_do_command __P((const char *cmd));
 int util_msglist_command __P((int (*func)(int, char**), int argc, char **argv));
 Function* util_command_get __P((char *cmd));
-int util_free_argv __P((int argc, char **argv));
 char **util_command_completion __P((char *cmd, int start, int end));
 char *util_command_generator __P((char *text, int state));
 char *util_stripwhite __P((char *string));
+struct mail_command_entry util_find_entry __P((char *cmd));
 
 #ifdef __cplusplus
 }
