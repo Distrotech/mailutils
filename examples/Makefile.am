@@ -33,7 +33,7 @@ noinst_PROGRAMS = \
  pop3client
 
 moddir=@SIEVE_MODDIR@
-mod_LTLIBRARIES = numaddr.la
+mod_LTLIBRARIES = numaddr.la timestamp.la
 
 INCLUDES = -I$(top_srcdir)/include -I$(top_srcdir)/lib -I$(top_builddir)/include/mailutils/gnu -I$(top_srcdir)/mailbox @INTLINCS@
 AM_LDFLAGS = ../mailbox/libmailbox.la ../lib/libmailutils.la
@@ -41,6 +41,10 @@ AM_LDFLAGS = ../mailbox/libmailbox.la ../lib/libmailutils.la
 numaddr_la_SOURCES = numaddr.c
 numaddr_la_LIBADD = ../libsieve/libsieve.la 
 numaddr_la_LDFLAGS = -module -avoid-version -no-undefined 
+
+timestamp_la_SOURCES = timestamp.c
+timestamp_la_LIBADD = ../libsieve/libsieve.la 
+timestamp_la_LDFLAGS = -module -avoid-version -no-undefined 
 
 mimetest_LDADD =\
  ../mailbox/mbox/libmu_mbox.la\
