@@ -1,15 +1,15 @@
 # Makefile
 
-CFLAGS  = -g -I../include -Wall
+CFLAGS  = -g -I../include -Wall -I../lib
 LDFLAGS = -g -static
 # On QNX
 LDLIBS 	= -lsocket
 # On GNU/Linux (if compile with threads)
 #LDLIBS 	= -lpthread
 
-MULIBS	= ../mailbox/.libs/libmailbox.a ../lib/.libs/libmailutils.a
+MULIBS	= ../lib/.libs/libmailutils.a ../mailbox/.libs/libmailbox.a ../lib/.libs/libmailutils.a 
 
-EXES    = addr mbox-explode mbox-dates mbox-auth url-parse mbox-check mimetest msg-send
+EXES    = addr mbox-explode mbox-dates mbox-auth url-parse mbox-check mimetest msg-send muemail
 
 default: $(EXES)
 
@@ -26,7 +26,7 @@ bad-dates: mbox-dates
 addr.test: addr
 	./addr < Addrs > Addrs.test
 	@echo "---- There should be no differences! ----"
-	diff -u Addrs.good Addrs.test
+	diff -C5 -u Addrs.good Addrs.test
 
 # url example and test
 

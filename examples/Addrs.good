@@ -1,3 +1,5 @@
+test. abc <sascha@silbe.org>=> error MU_ERR_BAD_822_FORMAT
+
 Sam <@[matrix (smtp)], @[nexus: \[node 12\]]:sroberts@[10].[1]> ;=> error MU_ERR_BAD_822_FORMAT
 
 a@b,z@y=> pcount 2
@@ -54,76 +56,73 @@ a@b,=> pcount 1
 
 ,,,=> error MU_ERR_EMPTY_ADDRESS
 
-a group: a@b,z@y ;=> pcount 3
-1 group <a group>
-2 email <a@b>
+a group: a@b,z@y ;=> pcount 2
+1 email <a@b>
    local-part <a> domain <b>
-3 email <z@y>
+2 email <z@y>
    local-part <z> domain <y>
 
-a group: ,a@b,z@y ;=> pcount 3
-1 group <a group>
-2 email <a@b>
+a group: ,a@b,z@y ;=> pcount 2
+1 email <a@b>
    local-part <a> domain <b>
-3 email <z@y>
+2 email <z@y>
    local-part <z> domain <y>
 
-a group: a@b,z@y, ;=> pcount 3
-1 group <a group>
-2 email <a@b>
+a group: a@b,z@y, ;=> pcount 2
+1 email <a@b>
    local-part <a> domain <b>
-3 email <z@y>
+2 email <z@y>
    local-part <z> domain <y>
 
-a group: ,a@b,z@y, ;=> pcount 3
-1 group <a group>
-2 email <a@b>
+a group: ,a@b,z@y, ;=> pcount 2
+1 email <a@b>
    local-part <a> domain <b>
-3 email <z@y>
+2 email <z@y>
    local-part <z> domain <y>
 
-a group: a@b,,z@y ;=> pcount 3
-1 group <a group>
-2 email <a@b>
+a group: a@b,,z@y ;=> pcount 2
+1 email <a@b>
    local-part <a> domain <b>
-3 email <z@y>
+2 email <z@y>
    local-part <z> domain <y>
 
-a group: a@b,,,z@y ;=> pcount 3
-1 group <a group>
-2 email <a@b>
+a group: a@b,,,z@y ;=> pcount 2
+1 email <a@b>
    local-part <a> domain <b>
-3 email <z@y>
+2 email <z@y>
    local-part <z> domain <y>
 
-a group: ,,,a@b,,, ;=> pcount 2
-1 group <a group>
-2 email <a@b>
+a group: ,,,a@b,,, ;=> pcount 1
+1 email <a@b>
    local-part <a> domain <b>
 
-a group: ,a@b ;=> pcount 2
-1 group <a group>
-2 email <a@b>
+a group: ,a@b ;=> pcount 1
+1 email <a@b>
    local-part <a> domain <b>
 
-a group: a@b, ;=> pcount 2
-1 group <a group>
-2 email <a@b>
+a group: a@b, ;=> pcount 1
+1 email <a@b>
    local-part <a> domain <b>
 
-a group: , ;=> pcount 1
-1 group <a group>
+a group: , ;=> error MU_ERR_EMPTY_ADDRESS
 
-a group: ,, ;=> pcount 1
-1 group <a group>
+a group: ,, ;=> error MU_ERR_EMPTY_ADDRESS
 
-a group: ,,, ;=> pcount 1
-1 group <a group>
+a group: ,,, ;=> error MU_ERR_EMPTY_ADDRESS
 
 Sam <@[matrix (smtp)], @[nexus: \[node 12\]]:sroberts@[10].[1]> ;=> error MU_ERR_BAD_822_FORMAT
 
-Aliens: Sam <@[matrix (smtp)]: sam@sam>, sroberts@[10].[1];=> pcount 3
-1 group <Aliens>
+Aliens: Sam <@[matrix (smtp)]: sam@sam>, sroberts@[10].[1];=> pcount 2
+1 email <sam@sam>
+   personal <Sam>
+   local-part <sam> domain <sam>
+   route <@[matrix (smtp)]>
+2 email <sroberts@[10].[1]>
+   local-part <sroberts> domain <[10].[1]>
+
+lo@hi, Aliens: Sam <@[matrix (smtp)]: sam@sam>, sroberts@[10].[1];=> pcount 3
+1 email <lo@hi>
+   local-part <lo> domain <hi>
 2 email <sam@sam>
    personal <Sam>
    local-part <sam> domain <sam>
@@ -131,19 +130,19 @@ Aliens: Sam <@[matrix (smtp)]: sam@sam>, sroberts@[10].[1];=> pcount 3
 3 email <sroberts@[10].[1]>
    local-part <sroberts> domain <[10].[1]>
 
-lo@hi, Aliens: Sam <@[matrix (smtp)]: sam@sam>, sroberts@[10].[1];=> pcount 4
-1 email <lo@hi>
-   local-part <lo> domain <hi>
-2 group <Aliens>
-3 email <sam@sam>
+Aliens: Sam <@[matrix (smtp)]: sam@sam>, sroberts@[10].[1];, hi@lo=> pcount 3
+1 email <sam@sam>
    personal <Sam>
    local-part <sam> domain <sam>
    route <@[matrix (smtp)]>
-4 email <sroberts@[10].[1]>
+2 email <sroberts@[10].[1]>
    local-part <sroberts> domain <[10].[1]>
+3 email <hi@lo>
+   local-part <hi> domain <lo>
 
-Aliens: Sam <@[matrix (smtp)]: sam@sam>, sroberts@[10].[1];, hi@lo=> pcount 4
-1 group <Aliens>
+lo@hi, Aliens: Sam <@[matrix (smtp)]: sam@sam>, sroberts@[10].[1];, hi@lo=> pcount 4
+1 email <lo@hi>
+   local-part <lo> domain <hi>
 2 email <sam@sam>
    personal <Sam>
    local-part <sam> domain <sam>
@@ -151,19 +150,6 @@ Aliens: Sam <@[matrix (smtp)]: sam@sam>, sroberts@[10].[1];, hi@lo=> pcount 4
 3 email <sroberts@[10].[1]>
    local-part <sroberts> domain <[10].[1]>
 4 email <hi@lo>
-   local-part <hi> domain <lo>
-
-lo@hi, Aliens: Sam <@[matrix (smtp)]: sam@sam>, sroberts@[10].[1];, hi@lo=> pcount 5
-1 email <lo@hi>
-   local-part <lo> domain <hi>
-2 group <Aliens>
-3 email <sam@sam>
-   personal <Sam>
-   local-part <sam> domain <sam>
-   route <@[matrix (smtp)]>
-4 email <sroberts@[10].[1]>
-   local-part <sroberts> domain <[10].[1]>
-5 email <hi@lo>
    local-part <hi> domain <lo>
 
 Sam <@mail2.uniserve.com:sroberts@uniserve.com>=> pcount 1
@@ -499,8 +485,7 @@ Catharine Shyong <shyong@t-iii.com>=> pcount 1
    personal <Catharine Shyong>
    local-part <shyong> domain <t-iii.com>
 
-DRUMS-Last-Call:;=> pcount 1
-1 group <DRUMS-Last-Call>
+DRUMS-Last-Call:;=> error MU_ERR_EMPTY_ADDRESS
 
 Detailed Revision/Update of Message Standards <drums@cs.utk.edu>=> pcount 1
 1 email <drums@cs.utk.edu>
@@ -522,12 +507,10 @@ IETF working group on revision of mail standards <drums@cs.utk.edu>=> pcount 1
    personal <IETF working group on revision of mail standards>
    local-part <drums> domain <cs.utk.edu>
 
-IETF-Announce:;=> pcount 1
-1 group <IETF-Announce>
+IETF-Announce:;=> error MU_ERR_EMPTY_ADDRESS
 
-IETF-Announce:;, drums@cs.utk.edu=> pcount 2
-1 group <IETF-Announce>
-2 email <drums@cs.utk.edu>
+IETF-Announce:;, drums@cs.utk.edu=> pcount 1
+1 email <drums@cs.utk.edu>
    local-part <drums> domain <cs.utk.edu>
 
 Jean-Baptiste Marchand <Jean-Baptiste.Marchand@epita.fr>=> pcount 1
@@ -559,7 +542,7 @@ OSULLIE@rte.ie, skidswam@hotmail.com, boot=> pcount 3
    local-part <OSULLIE> domain <rte.ie>
 2 email <skidswam@hotmail.com>
    local-part <skidswam> domain <hotmail.com>
-3 email <>
+3 email <boot@localhost>
    local-part <boot>
 
 Paul Hoffman / IMC <phoffman@imc.org>=> pcount 1
@@ -568,7 +551,7 @@ Paul Hoffman / IMC <phoffman@imc.org>=> pcount 1
    local-part <phoffman> domain <imc.org>
 
 Sam=> pcount 1
-1 email <>
+1 email <Sam@localhost>
    local-part <Sam>
 
 Sam Roberts <sam@cogent.ca>=> pcount 1
@@ -614,17 +597,16 @@ mcaustin@eudoramail.com, aposner@usaid.gov, Kieran.O'Leary@anpost.ie,=> pcount 3
 rfunk@wks.uts.ohio-state.eduofflinemailer-bounce@dikke.penguin.nl=> error MU_ERR_BAD_822_FORMAT
 
 root=> pcount 1
-1 email <>
+1 email <root@localhost>
    local-part <root>
 
 srr <sam@localhost>=> error MU_ERR_BAD_822_FORMAT
 
 whom it may concern: ;;whom.it.may.concern: ;=> error MU_ERR_BAD_822_FORMAT
 
-whom it may concern: mutt-dev@mutt.org, mutt-users@mutt.org;=> pcount 3
-1 group <whom it may concern>
-2 email <mutt-dev@mutt.org>
+whom it may concern: mutt-dev@mutt.org, mutt-users@mutt.org;=> pcount 2
+1 email <mutt-dev@mutt.org>
    local-part <mutt-dev> domain <mutt.org>
-3 email <mutt-users@mutt.org>
+2 email <mutt-users@mutt.org>
    local-part <mutt-users> domain <mutt.org>
 

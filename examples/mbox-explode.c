@@ -11,9 +11,13 @@
 #include <time.h>
 #include <unistd.h>
 
+#include <mailutils/debug.h>
 #include <mailutils/errno.h>
+#include <mailutils/list.h>
 #include <mailutils/mailbox.h>
 #include <mailutils/registrar.h>
+#include <mailutils/stream.h>
+#include <mailutils/message.h>
 
 int
 main (int argc, char **argv)

@@ -11,10 +11,12 @@
 #include <unistd.h>
 
 #include <mailutils/address.h>
+#include <mailutils/debug.h>
 #include <mailutils/errno.h>
 #include <mailutils/mailbox.h>
 #include <mailutils/parse822.h>
 #include <mailutils/registrar.h>
+#include <mailutils/stream.h>
 
 int
 main (int argc, char **argv)

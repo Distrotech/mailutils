@@ -28,11 +28,17 @@
 
 #include <sys/types.h>
 
+#include <mailutils/body.h>
+#include <mailutils/debug.h>
 #include <mailutils/errno.h>
-#include <mailutils/mailbox.h>
-#include <mailutils/header.h>
 #include <mailutils/filter.h>
+#include <mailutils/header.h>
+#include <mailutils/header.h>
+#include <mailutils/list.h>
+#include <mailutils/mailbox.h>
+#include <mailutils/message.h>
 #include <mailutils/registrar.h>
+#include <mailutils/stream.h>
 
 void message_display_parts(message_t msg, const char *indent);
 

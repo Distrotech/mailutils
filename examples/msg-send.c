@@ -8,7 +8,9 @@
 #include <unistd.h>
 
 #include <mailutils/address.h>
+#include <mailutils/debug.h>
 #include <mailutils/errno.h>
+#include <mailutils/list.h>
 #include <mailutils/mailer.h>
 #include <mailutils/message.h>
 #include <mailutils/registrar.h>
