@@ -660,7 +660,7 @@ if test x"$useguile" = x"yes"; then
 	    GUIMB=guimb
             MU_SCM=libmu_scm.la
             LIBMU_SCM=../libmu_scm/libmu_scm.la
-	    LIBMU_SCM_DEPS="../mailbox/mbox/libmu_mbox.la ../mailbox/imap/libmu_imap.la ../mailbox/pop/libmu_pop.la ../mailbox/mh/libmu_mh.la"
+	    LIBMU_SCM_DEPS="../mailbox/mbox/libmu_mbox.la ../mailbox/imap/libmu_imap.la ../mailbox/pop/libmu_pop.la ../mailbox/mh/libmu_mh.la ../mailbox/maildir/libmu_maildir.la"
             GUILE_PKGDATA="guile-procedures.txt mailutils.scm"
 	    GUILE_BUILT_SOURCES='$(DOT_X_FILES) $(DOT_DOC_FILES)'
             case "$GUILE_VERSION" in
