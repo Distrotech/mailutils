@@ -17,17 +17,6 @@
 
 #include "mail.h"
 
-static unsigned int
-z_lines()
-{
-  struct mail_env_entry *ep = util_find_env("screen");
-  size_t n;
-  
-  if (ep && ep->value && (n = atoi(ep->value)) != 0)
-    return n;
-  return util_getlines();
-}
-
 /* Scroll directions */
 #define D_BWD  -1 /* z- */
 #define D_NONE 0  /* z. */
@@ -117,7 +106,7 @@ int
 mail_z (int argc, char **argv)
 {
   unsigned int i, nlines;
-  unsigned int pagelines = z_lines();
+  unsigned int pagelines = util_screen_lines();
   int count;
   int dir;
   
