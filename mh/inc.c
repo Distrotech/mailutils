@@ -21,7 +21,7 @@
 
 const char *argp_program_version = "inc (" PACKAGE_STRING ")";
 static char doc[] = "GNU MH inc";
-static char args_doc[] = "";
+static char args_doc[] = "[+folder]";
 
 /* GNU options */
 static struct argp_option options[] = {
@@ -66,12 +66,18 @@ static FILE *audit_fp;
 static int changecur = -1;
 static int truncate_source = -1;
 static int quiet = 0;
+static char *append_folder;
 
 static int
 opt_handler (int key, char *arg, void *unused)
 {
   switch (key)
     {
+    case ARGP_KEY_FINI:
+      if (!append_folder)
+	append_folder = mh_global_profile_get ("Inbox", "inbox");
+      break;
+
     case 'a':
       audit_file = arg;
       break;
@@ -86,7 +92,7 @@ opt_handler (int key, char *arg, void *unused)
 
     case '+':
     case 'f': 
-      current_folder = arg;
+      append_folder = arg;
       break;
       
     case 'F':
@@ -187,7 +193,7 @@ main (int argc, char **argv)
       exit (1);
     }
 
-  output = mh_open_folder (current_folder, 1);
+  output = mh_open_folder (append_folder, 1);
   if (mailbox_messages_count (output, &lastmsg) != 0)
     {
       mh_error ("Can not read output mailbox");
