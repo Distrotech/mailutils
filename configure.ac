@@ -17,7 +17,7 @@
 # Foundation, Inc.
 # 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-AC_INIT([GNU Mailutils], [0.2.1], [bug-mailutils@gnu.org], [mailutils])
+AC_INIT([GNU Mailutils], [0.2.2], [bug-mailutils@gnu.org], [mailutils])
 AC_CONFIG_SRCDIR([mailbox/mailbox.c])
 AC_CONFIG_AUX_DIR([scripts])
 AC_CANONICAL_TARGET([])
@@ -118,6 +118,17 @@ MU_CHECK_GSASL(0.0.2, [
     AC_DEFINE(WITH_GSASL,1,[Define if mailutils is using GNU SASL])
     AUTHLIBS="$AUTHLIBS $GSASL_LIBS"
     IMAP_AUTHOBJS="$IMAP_AUTHOBJS auth_gsasl.o"])
+
+AC_SUBST(SITE_CRAM_MD5_PWD)
+SITE_CRAM_MD5_PWD="\$(sysconfdir)/cram-md5.pwd"
+AC_ARG_WITH(cram-passwd,
+            AC_HELP_STRING([--with-cram-passwd=FILE],
+                           [use keep passwords for CRAM-MD5 authentication method in FILE (default $SITE_CRAM_MD5_PWD)]),
+            [case "${withval}" in
+            /*) SITE_CRAM_MD5_PWD="${withval}";;
+            ./*|../*) AC_MSG_ERROR(Bad value for --with-cram-passwd);;
+            *)  SITE_CRAM_MD5_PWD="\$(sysconfdir)/${withval}";;
+            esac])
 
 MU_CHECK_TLS
 if test "$WITH_GNUTLS" != "no"; then
