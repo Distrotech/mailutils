@@ -1,5 +1,5 @@
 # This file is part of Mailutils testsuite.
-# Copyright (C) 2002, Free Software Foundation
+# Copyright (C) 2002, 2004, Free Software Foundation
 #  
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -153,6 +153,31 @@ It works?
 BODY END
 PATTERN BEGIN
 ENVELOPE FROM: <gray@gnu.org>
+ENVELOPE TO: <root@localhost>
+   0: To: <root@localhost>
+   1: From: gray@gnu.org
+   2: Cc: "Alain Magloire" <alainm@gnu.org>, "Jeff Bailey" <jbailey@gnu.org>
+   3: Subject: A complex test
+   4:
+   5: It works?
+   6:
+END OF MESSAGE
+PATTERN END
+MESSAGE END
+
+MESSAGE Complex+Read recipients
+OPTIONS -t
+TO <root@localhost>
+BODY BEGIN
+From: gray@gnu.org
+Cc: "Alain Magloire" <alainm@gnu.org>, "Jeff Bailey" <jbailey@gnu.org>
+Bcc: bug-mailutils@gnu.org
+Subject: A complex test
+
+It works?
+BODY END
+PATTERN BEGIN
+ENVELOPE FROM: <gray@gnu.org>
 ENVELOPE TO: <root@localhost>,<alainm@gnu.org>,<jbailey@gnu.org>
    0: To: <root@localhost>,<alainm@gnu.org>,<jbailey@gnu.org>
    1: From: gray@gnu.org
@@ -175,5 +200,6 @@ ENVELOPE TO: <bug-mailutils@gnu.org>
 END OF MESSAGE
 PATTERN END
 MESSAGE END
+
 
 # End of data
