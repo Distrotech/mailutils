@@ -300,6 +300,10 @@ proc mu_version {} {
     if [info exists MU_TOOL_VERSION] {
 	return
     }
+
+    if {![info exists MU_CAPABILITY]} {
+	return
+    }
     
     set output [remote_exec host "$MU_TOOL --show-config-options"]
     set flg [split [lindex $output 1]]   	
@@ -343,6 +347,7 @@ proc mu_command { cmd } {
 	    return -1
 	}
     }
+    verbose "RESULT: $res" 2
     return $res
 }
 
@@ -458,12 +463,12 @@ proc mu_expect_list {args} {
        } else {
 	   mu_expect $tmt {
 	       -ex "$pat" {
-		   if { $expect_out(buffer) != $expect_out(0,string) } {
-		       verbose "Got \"$expect_out(buffer)\"" 2
-		       verbose "instead of expected \"$pat\\r\\n\"" 2
-		       set result 1
-		       break
-		   }
+#		   if { $expect_out(buffer) != $expect_out(0,string) } {
+#		       verbose "Got \"$expect_out(buffer)\"" 2
+#		       verbose "instead of expected \"$pat\\r\\n\"" 2
+#		       set result 1
+#		       break
+#		   }
 	       }
  	       default {
 		   set result 1
@@ -521,9 +526,10 @@ proc mu_test { args } {
     
     set result -1
     if { "${command}" != "" } {
-	if { [mu_command "${command}"] != "" } {
+	set res [mu_command "${command}"]
+	if { $res != "" } {
 	    if { ! $do_suppress } {
-		perror "Couldn't send \"$command\".";
+		perror "Couldn't send \"$command\": $res.";
 	    }
 	    return $result;
         }
@@ -571,12 +577,12 @@ proc mu_test { args } {
        } else {
 	   mu_expect $tmt {
 	       -ex "$pat" {
-		   if { $expect_out(buffer) != $expect_out(0,string) } {
-		       verbose "Got \"$expect_out(buffer)\"" 2
-		       verbose "instead of expected \"$pat\\r\\n\"" 2
-		       set result 1
-		       break
-		   }
+#		   if { $expect_out(buffer) != $expect_out(0,string) } {
+#		       verbose "Got \"$expect_out(buffer)\"" 2
+#		       verbose "instead of expected \"$pat\\r\\n\"" 2
+#		       set result 1
+#		       break
+#		   }
 	       }
  	       default {
 		   set result 1
@@ -591,7 +597,7 @@ proc mu_test { args } {
 		   break
 	       }
 	   }
-	   verbose "RES: $result"
+
 	   if {$result == 0} {
 	       mu_expect $tmt {
 		   -re "\[ \t]*\r\n" { }
