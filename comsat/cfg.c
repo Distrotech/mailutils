@@ -239,6 +239,8 @@ read_config (const char *config_file)
   fclose (fp);
 }
 
+/*NOTE: currently unused. */
+#if 0
 static void
 netdef_free (netdef_t *netdef)
 {
@@ -266,7 +268,6 @@ acl_free (acl_t *acl)
     }
 }
 
-/*NOTE: currently unused. */
 static void
 discard_acl (acl_t *mark)
 {
@@ -279,6 +280,7 @@ discard_acl (acl_t *mark)
   else
     acl_head = acl_tail = NULL;
 }
+#endif
 
 int
 acl_match (struct sockaddr_in *sa_in)

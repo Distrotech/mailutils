@@ -60,7 +60,9 @@ util_ll_add (node *c, int data)
 
 /*
  * free a linked list
+ * Unused so far
  */
+#if 0
 static void
 util_ll_free (node *c)
 {
@@ -72,6 +74,7 @@ util_ll_free (node *c)
       free (c);
     }
 }
+#endif
 
 /*
  * expands command into its command and arguments, then runs command
