@@ -29,6 +29,7 @@
 #include <unistd.h>
 #include <syslog.h>
 
+#include <mu_asprintf.h>
 #include <mailutils/argcv.h>
 #include <mailutils/libsieve.h>
 #include <mailutils/argp.h>
@@ -261,7 +262,7 @@ stdout_action_log (void *unused,
 
   message_get_uid (msg, &uid);
 
-  fprintf (stdout, "%s on msg uid %d", action, uid);
+  fprintf (stdout, "%s on msg uid %lu", action, (unsigned long) uid);
   if (fmt && strlen (fmt))
     {
       fprintf (stdout, ": ");
