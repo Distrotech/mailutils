@@ -568,6 +568,7 @@ AC_CONFIG_FILES([Makefile mailutils.spec
  examples/Makefile
  auth/Makefile
  mailbox/include/Makefile
+ libsieve/Makefile
  imap4d/Makefile
  imap4d/testsuite/Makefile
  from/Makefile
