@@ -1,5 +1,5 @@
 /* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -29,7 +29,7 @@ mail_help (int argc, char **argv)
     {
       int i = 0;
       while (mail_command_table[i].synopsis != 0)
-	printf ("%s\n", mail_command_table[i++].synopsis);
+	fprintf (ofile, "%s\n", mail_command_table[i++].synopsis);
       return 0;
     }
   else
@@ -39,11 +39,11 @@ mail_help (int argc, char **argv)
 	{
 	  struct mail_command_entry entry = util_find_entry (argv[cmd]);
 	  if (entry.synopsis != NULL)
-	    printf ("%s\n", entry.synopsis);
+	    fprintf (ofile, "%s\n", entry.synopsis);
 	  else
 	    {
 	      status = 1;
-	      printf ("Unknown command: %s\n", argv[cmd]);
+	      fprintf (ofile, "Unknown command: %s\n", argv[cmd]);
 	    }
 	}
       return status;

@@ -84,6 +84,7 @@ mailbox_t mbox;
 unsigned int cursor;
 unsigned int realcursor;
 unsigned int total;
+FILE *ofile;
 extern const struct mail_command_entry mail_command_table[];
 
 /* Functions */

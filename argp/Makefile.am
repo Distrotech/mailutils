@@ -2,7 +2,7 @@ AUTOMAKE_OPTIONS = ../lib/ansi2knr
 
 INCLUDES = -I${top_srcdir}/lib
 
-noinst_LIBRARIES =  @ARGPLIBS@
+noinst_LIBRARIES =  @ARGPLIB@
 
 libargp_a_SOURCES = argp-ba.c argp-eexst.c argp-fmtstream.c argp-fs-xinl.c \
  argp-help.c argp-parse.c argp-pv.c argp-pvh.c argp-xinl.c pin.c

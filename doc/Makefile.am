@@ -1,5 +1,5 @@
 info_TEXINFOS = \
- mailutils.texi 
+ mailutils.texi
 
 EXTRA_DIST = \
  rfc1734.txt \
@@ -7,6 +7,7 @@ EXTRA_DIST = \
  rfc1957.txt \
  rfc2060.txt \
  rfc2449.txt \
+ address.texi \
  attribute.texi \
  auth.texi \
  body.texi \
@@ -15,6 +16,7 @@ EXTRA_DIST = \
  locker.texi \
  mailbox.texi \
  mailer.texi \
+ message.texi \
  sfrom.c.texi \
  stream.texi \
  url.texi \

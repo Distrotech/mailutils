@@ -1,5 +1,5 @@
 /* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -46,17 +46,17 @@ mail_shell (int argc, char **argv)
 	{
 	  char **argvec;
 	  char *buf = NULL;
-	  
+
 	  /* 1(shell) + 1 (-c) + 1(arg) + 1 (null) = 4  */
 	  argvec = malloc (4 * (sizeof (char *)));
-	  
+
 	  argcv_string (argc-1, &argv[1], &buf);
-	  
+
 	  argvec[0] = getenv("SHELL");
 	  argvec[1] = "-c";
 	  argvec[2] = buf;
 	  argvec[3] = NULL;
-	  
+
 	  execvp (argvec[0], argvec);
 	  free (buf); /* Being cute, nuke it when finish testing.  */
 	  free (argvec);

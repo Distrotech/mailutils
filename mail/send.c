@@ -84,8 +84,8 @@ mail_send (int argc, char **argv)
     {
       if (buf[0] == (util_find_env("escape"))->value[0])
 	{
-	  FILE *ostdout = stdout;
-	  stdout = file;
+	  FILE *ostdout = ofile;
+	  ofile = file;
 	  buf[strlen(buf)-1] = '\0';
 	  switch (buf[1])
 	    {
@@ -103,10 +103,10 @@ mail_send (int argc, char **argv)
 	      /* escape help */
 	      break;
 	    case 'A':
-	      printf ("%s", (util_find_env("Sign"))->value);
+	      fprintf (ofile, "%s", (util_find_env("Sign"))->value);
 	      break;
 	    case 'a':
-	      printf ("%s", (util_find_env("sign"))->value);
+	      fprintf (ofile, "%s", (util_find_env("sign"))->value);
 	      break;
 	    case 'b':
 	      bcc = realloc (bcc, (strlen(bcc) + strlen(buf) - 1) *
@@ -131,10 +131,10 @@ mail_send (int argc, char **argv)
 	      break;
 	    case 'e':
 	      fclose (file);
-	      stdout = ostdout;
+	      ofile = ostdout;
 	      util_do_command ("!%s %s", getenv("EDITOR"), filename);
 	      file = fopen (filename, "a");
-	      stdout = file;
+	      ofile = file;
 	      break;
 	    case 'f':
 	      util_do_command ("print %s", &buf[3]);
@@ -156,13 +156,13 @@ mail_send (int argc, char **argv)
 	      break;
 	    case 'p':
 	      fclose (file);
-	      stdout = ostdout;
+	      ofile = ostdout;
 	      if (/* numlines (filename) > */ util_getlines())
 		util_do_command ("!%s %s", getenv("PAGER"), filename);
 	      else
 		/* dump filename */;
 	      file = fopen (filename, "a");
-	      stdout = file;
+	      ofile = file;
 	      break;
 	    case 'q':
 	      fclose (file);
@@ -185,10 +185,10 @@ mail_send (int argc, char **argv)
 	      break;
 	    case 'v':
 	      fclose (file);
-	      stdout = ostdout;
+	      ofile = ostdout;
 	      util_do_command ("!%s %s", getenv("VISUAL"), filename);
 	      file = fopen (filename, "a");
-	      stdout = file;
+	      ofile = file;
 	      break;
 	    case 'w':
 	      {
@@ -207,7 +207,7 @@ mail_send (int argc, char **argv)
 	      fprintf (stderr, "Unknown escape %c\n", buf[0]);
 	      break;
 	    }
-	  stdout = ostdout;
+	  ofile = ostdout;
 	}
       else
 	fprintf (file, "%s", buf);

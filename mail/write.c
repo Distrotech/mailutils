@@ -1,5 +1,5 @@
 /* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -41,7 +41,7 @@ mail_write (int argc, char **argv)
   int *msglist = NULL;
   int num = 0, i = 0;
   int sender = 0;
-  
+
   if (isupper (argv[0][0]))
     sender = 1;
   else if (argc >= 2)

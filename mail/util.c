@@ -250,7 +250,7 @@ util_do_command (const char *c, ...)
     status = command (argc, argv);
   else
     {
-      printf ("Unknown command: %s\n", argv[0]);
+      fprintf (ofile, "Unknown command: %s\n", argv[0]);
       status = 1;
     }
 
@@ -418,10 +418,10 @@ util_printenv (int set)
     {
       if (env_cursor->env_entry.set == set)
 	{
-	  printf ("%s", env_cursor->env_entry.var);
+	  fprintf (ofile, "%s", env_cursor->env_entry.var);
 	  if (env_cursor->env_entry.value != NULL)
-	    printf ("=%s", env_cursor->env_entry.value);
-	  printf ("\n");
+	    fprintf (ofile, "=%s", env_cursor->env_entry.value);
+	  fprintf (ofile, "\n");
 	}
     }
   return 0;
@@ -489,51 +489,50 @@ readline (const char *prompt)
 {
   char *line;
   char *p;
-  size_t linelen, total;
+  size_t alloclen, linelen;
 
   if (prompt)
     {
-      printf ("%s",prompt);
-      fflush(stdout);
+      fprintf (ofile, "%s",prompt);
+      fflush (ofile);
     }
 
   p = line = calloc (1, 255);
-  linelen = 255;
-  total = 0;
+  alloclen = 255;
+  linelen = 0;
   for (;;)
     {
-      size_t len;
-      p = fgets (p, linelen, stdin);
-      len = (p) ? strlen (p) : 0;
+      size_t n;
+      p = fgets (p, alloclen - linelen, stdin);
+      n = (p) ? strlen (p) : 0;
 
-      total += len;
+      linelen += n;
 
       /* Error.  */
-      if (total == 0)
+      if (linelen == 0)
 	{
 	  free (line);
 	  return NULL;
 	}
 
       /* Ok.  */
-      if (line[total - 1] == '\n')
+      if (line[linelen - 1] == '\n')
 	{
-	  line[total - 1] = '\0';
+	  line[linelen - 1] = '\0';
 	  return line;
 	}
       else
         {
 	  char *tmp;
-	  linelen *= 2;
-	  tmp = realloc (line, linelen);
+	  alloclen *= 2;
+	  tmp = realloc (line, alloclen);
 	  if (tmp == NULL)
 	    {
 	      free (line);
 	      return NULL;
 	    }
 	  line = tmp;
-	  p = line + total;
-	  total += len;
+	  p = line + linelen;
 	}
     }
 }

@@ -1,5 +1,5 @@
 /* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -39,7 +39,7 @@ mail_print (int argc, char **argv)
       char buffer[BUFSIZ];
       off_t off = 0;
       size_t n = 0, lines = 0;
-      FILE *out = stdout;
+      FILE *out = ofile;
 
       if (mailbox_get_message (mbox, cursor, &mesg) != 0)
 	return 1;
@@ -73,15 +73,15 @@ mail_print (int argc, char **argv)
 	}
       else
 	message_get_stream (mesg, &stream);
-	  
+
       while (stream_read (stream, buffer, sizeof (buffer) - 1, off, &n) == 0
              && n != 0)
         {
           buffer[n] = '\0';
-          fprintf (out, "%s", buffer);
+	  fprintf (out, "%s", buffer);
           off += n;
         }
-      if (out != stdout)
+      if (out != ofile)
 	pclose (out);
       return 0;
     }

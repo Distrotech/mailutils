@@ -1,5 +1,5 @@
 /* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -36,7 +36,8 @@ mail_size (int argc, char **argv)
 	  return 1;
 	}
       message_size (msg, &s);
-      printf ("%c%2d %d\n", cursor == realcursor ? '>' : ' ', cursor, s);
+      fprintf (ofile, "%c%2d %d\n", cursor == realcursor ? '>' : ' ',
+	       cursor, s);
       return 0;
     }
   return 1;

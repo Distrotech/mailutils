@@ -1,5 +1,18 @@
 2001-04-15  Alain Magloire
 
+	The FILE* stream "stdout" is not an lvalue so it is an error to
+	attempt to assign to it.  To be able to redirect at will stdout
+	we need to assign it.  In GNU lib C, it was not error since stdout
+	stderr, and stdin are variables, but to be portable we can not
+	assume this.  The way out is to always use fprintf () and have
+	a global varialbe "ofile" pointing to stdout.
+
+	* mail/*: All the files under mail been change to use fprintf()
+	and ofile as the default stdout.
+	Copyright updated.
+
+2001-04-15  Alain Magloire
+
 	Create a argp directory, it contains the necessary
 	files to build a standalone libargp.a
 

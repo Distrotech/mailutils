@@ -1,5 +1,5 @@
 /* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -45,11 +45,11 @@ mail_list (int argc, char **argv)
       if (pos >= cols)
 	{
 	  pos = len + 1;
-	  printf ("\n%s ", cmd);
+	  fprintf (ofile, "\n%s ", cmd);
 	}
       else
-        printf ("%s ", cmd);
+        fprintf (ofile, "%s ", cmd);
     }
-  printf ("\n");
+  fprintf (ofile, "\n");
   return 0;
 }

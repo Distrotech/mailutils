@@ -126,6 +126,7 @@ main (int argc, char **argv)
   int modelen = 0;
   struct arguments args;
 
+  ofile = stdout;
   cursor = 1;
   realcursor = cursor;
 
@@ -221,12 +222,12 @@ main (int argc, char **argv)
   /* Interactive mode */
   if (!(util_find_env("quiet"))->set)
     {
-      printf ("%s, Copyright (C) 2001 Free Software Foundation, Inc.\n"
-	      "mail comes with ABSOLUTELY NO WARRANTY; for details type\n"
-	      "'warranty'. This is free software, and you are welcome to\n"
-	      "redistribute it under certain conditions; type 'copying'\n"
-	      "for details.\n",
-	      argp_program_version);
+      fprintf (ofile, "%s, Copyright (C) 2001 Free Software Foundation, Inc.\n"
+	       "mail comes with ABSOLUTELY NO WARRANTY; for details type\n"
+	       "'warranty'. This is free software, and you are welcome to\n"
+	       "redistribute it under certain conditions; type 'copying'\n"
+	       "for details.\n",
+	       argp_program_version);
     }
 
   /* Mode is just sending */

@@ -1,5 +1,5 @@
 /* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -61,7 +61,8 @@ mail_from (int argc, char **argv)
       header_get_value (hdr, MU_HEADER_SUBJECT, subj, subjl, NULL);
 
       snprintf (format, 64, "%%c%%2d %%-%ds%%-%ds\n", froml, subjl);
-      printf (format, cursor == realcursor ? '>' : ' ', cursor, from, subj);
+      fprintf (ofile, format, cursor == realcursor ? '>' : ' ', cursor,
+	       from, subj);
 
       free (from);
       free (subj);
