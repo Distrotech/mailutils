@@ -1,3 +1,7 @@
+1999-10-11  Jeff Bailey  <jbailey@cr499794-a.crdva1.bc.wave.home.com>
+
+	* libmailbox/Makefile.am: Remove no-install option, add -pedantic
+
 1999-10-12  Sean 'Shaleh' Perry  <shaleh@debian.org>
 
 	* made sure that the imap4 was REALLY broken
@@ -6,7 +10,8 @@
 
 	* imap4d/Makefile.am: New file
 
-	* configure.in: Create imap4d/Makefile
+	* configure.in: Create imap4d/Makefile, and no install option
+	for library
 
 	* pop3d/Makefile.am: Add warnings, remove unneeded variable
 
