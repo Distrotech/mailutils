@@ -15,7 +15,7 @@ DISTCLEANFILES=
 MAINTAINERCLEANFILES=$(BUILT_SOURCES)
 EXTRA_DIST = \
   $(BUILT_SOURCES) \
-  addr-lex.l addr.y gram-sieve.y sieve-gram.y sieve-lex.l
+  addr-lex.l addr.y gram-sieve.y sieve-gram.y sieve-lex.l md5-rsa.h
 
 bin_PROGRAMS = sieve
 
@@ -26,6 +26,7 @@ SRC = \
   imparse.c \
   interp.c \
   message.c \
+  md5-rsa.c \
   parseaddr.c \
   script.c \
   sieve-lex.c \

@@ -1,3 +1,11 @@
+2001-08-24  Alain Magloire
+
+	* sieve/Makefile.am: To EXTRA_DIST add md5-rsa.{c,h}.
+
+	* mailbox2/header.c(header_aget_value): Base on discussion with Sergey
+	if the call fails no memory should be allocated and the return status
+	should be return i.e. status != 0.
+
 2001-08-23 Sergey Poznyakoff
 
 	* mail/msgset.y: Fixed erroneous call to msgset_select
@@ -3042,4 +3050,4 @@
 1999-09-10  Jeff Bailey
 
 	* */*: Accomidate directory rearrange
-        
+

@@ -102,16 +102,9 @@ header_aget_value (header_t header, const char *name, char **pvalue)
       if (value == NULL)
         return MU_ERROR_NO_MEMORY;
       header_get_value (header, name, value, n + 1, NULL);
+      *pvalue = value;
     }
-  else
-    {
-      value = malloc (1);
-      if (value == NULL)
-        return MU_ERROR_NO_MEMORY;
-      *value = '\0';
-    }
-  *pvalue = value;
-  return 0;
+  return status;
 }
 
 int
@@ -145,16 +138,9 @@ header_aget_field_name (header_t header, size_t num, char **pvalue)
       if (value == NULL)
         return MU_ERROR_NO_MEMORY;
       header_get_field_name (header, num, value, n + 1, NULL);
+      *pvalue = value;
     }
-  else
-    {
-      value = malloc (1);
-      if (value == NULL)
-        return MU_ERROR_NO_MEMORY;
-      *value = '\0';
-    }
-  *pvalue = value;
-  return 0;
+  return status;
 }
 
 int
@@ -179,15 +165,8 @@ header_aget_field_value (header_t header, size_t num, char **pvalue)
       if (value == NULL)
         return MU_ERROR_NO_MEMORY;
       header_get_field_value (header, num, value, n + 1, NULL);
+      *pvalue = value;
     }
-  else
-    {
-      value = malloc (1);
-      if (value == NULL)
-        return MU_ERROR_NO_MEMORY;
-      *value = '\0';
-    }
-  *pvalue = value;
   return status;
 }
 
