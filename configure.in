@@ -55,8 +55,12 @@ dnl Check for working functions
 AC_REQUIRE([jm_FUNC_MALLOC])
 AC_REQUIRE([jm_FUNC_REALLOC])
 AC_FUNC_ALLOCA
-AC_FUNC_MEMCMP
-AC_REPLACE_FUNCS(snprintf, strtok_r, getline)
+# Not use.
+#AC_FUNC_MEMCMP
+AC_FUNC_MMAP
+# Provide the GNU one for loosing platforms
+AC_FUNC_FNMATCH
+AC_REPLACE_FUNCS(snprintf strtok_r)
 AC_CHECK_FUNCS(mkstemp)
 
 dnl Check for libraries
