@@ -210,11 +210,11 @@ dnl Check for headers
 AC_HEADER_STDC
 AC_HEADER_DIRENT
 AM_C_PROTOTYPES
-AC_CHECK_HEADERS(argp.h errno.h fcntl.h inttypes.h libgen.h limits.h malloc.h \
- paths.h shadow.h socket.h sys/socket.h stdarg.h stdio.h stdlib.h string.h \
- strings.h sys/file.h sysexits.h syslog.h termios.h termio.h sgtty.h utmp.h \
- utmpx.h unistd.h obstack.h termcap.h)
-
+AC_CHECK_HEADERS(argp.h errno.h fcntl.h getopt.h inttypes.h libgen.h limits.h\
+ malloc.h obstack.h paths.h shadow.h socket.h sys/socket.h stdarg.h stdio.h\
+ stdlib.h string.h strings.h sys/file.h sysexits.h syslog.h termcap.h\
+ termios.h termio.h sgtty.h utmp.h utmpx.h unistd.h)
+ 
 dnl Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
 AC_TYPE_UID_T
