@@ -17,10 +17,10 @@ EXTRA_DIST = alloca.c fnmatch.c fgetpwent.c getpass.c malloc.c obstack.c \
   strcasecmp.c strsignal.c xstrtol.c  vasprintf.c \
   utmp.c 
 
-noinst_HEADERS = argcv.h error.h fnmatch.h getline.h getopt.h md5.h \
+noinst_HEADERS = error.h fnmatch.h getopt.h md5.h \
  mu_dbm.h\
  regex.h snprintf.h xalloc.h xstrtol.h obstack.h \
- argp-fmtstream.h argp-namefrob.h argp.h mu_asprintf.h
+ mu_asprintf.h
 
 libmailutils_la_LIBADD = @LTLIBOBJS@ @ALLOCA@
 
