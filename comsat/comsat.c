@@ -578,7 +578,7 @@ void
 help ()
 {
   printf ("Usage: comsatd [OPTIONS]\n");
-  printf ("Options are:");
+  printf ("Options are:\n");
   printf ("  -c, --config=PATH      read configuration from the file\n");
   printf ("  -d, --daemon           run in daemon mode\n");
   printf ("  -h, --help             display this help and exit\n");
