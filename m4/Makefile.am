@@ -7,6 +7,7 @@ EXTRA_DIST = \
  gssapi.m4 \
  guile.m4 \
  malloc.m4 \
+ mu_libobj.m4 \
  realloc.m4 \
  regex.m4 \
  utmp.m4
