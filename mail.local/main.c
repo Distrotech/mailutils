@@ -43,9 +43,9 @@ void notify_biff __P((mailbox_t mbox, char *name, size_t size));
 
 const char *argp_program_version = "mail.local (" PACKAGE_STRING ")";
 static char doc[] =
-N_("GNU mail.local -- the local MDA"
+N_("GNU mail.local -- the local MDA")
 "\v"
-"Debug flags are:\n"
+N_("Debug flags are:\n"
 "  g - guimb stack traces\n"
 "  T - mailutil traces (MU_DEBUG_TRACE)\n"
 "  P - network protocols (MU_DEBUG_PROT)\n"
