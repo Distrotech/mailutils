@@ -1,3 +1,75 @@
+2004-06-02  Sergey Poznyakoff 
+
+	* configure.ac: Raised version number to 1.4.90
+	* NEWS: LIkewise
+        * mailbox/muerrno.c (MU_ERR_CONN_CLOSED,MU_ERR_PARSE):
+        New error codes.
+        (MU_ERR_NOENT): New error code. Use it instead
+	of ENOENT to avoid misguiding diagnostics
+        'No such file or directory'. Use ENOENT only for its
+	direct purpose.
+        * include/mailutils/errno.h: Likewise.
+
+	* auth/gsasl.c: Revise the usage of return codes.
+	* auth/tls.c: Likewise.
+	* examples/addr.c: Likewise.
+	* imap4d/namespace.c: Likewise.
+	* lib/mu_dbm.c: Likewise.
+	* mail/util.c: Likewise.
+	* mailbox/address.c: Likewise.
+	* mailbox/amd.c: Likewise.
+	* mailbox/attachment.c: Likewise.
+	* mailbox/attribute.c: Likewise.
+	* mailbox/auth.c: Likewise.
+	* mailbox/body.c: Likewise.
+	* mailbox/debug.c: Likewise.
+	* mailbox/envelope.c: Likewise.
+	* mailbox/file_stream.c: Likewise.
+	* mailbox/filter.c: Likewise.
+	* mailbox/filter_trans.c: Likewise.
+	* mailbox/folder.c: Likewise.
+	* mailbox/header.c: Likewise.
+	* mailbox/iterator.c: Likewise.
+	* mailbox/list.c: Likewise.
+	* mailbox/mailcap.c: Likewise.
+	* mailbox/mailer.c: Likewise.
+	* mailbox/mapfile_stream.c: Likewise.
+	* mailbox/mbx_default.c: Likewise.
+	* mailbox/memory_stream.c: Likewise.
+	* mailbox/message.c: Likewise.
+	* mailbox/mime.c: Likewise.
+	* mailbox/monitor.c: Likewise.
+	* mailbox/mu_auth.c: Likewise.
+	* mailbox/observer.c: Likewise.
+	* mailbox/property.c: Likewise.
+	* mailbox/refcount.c: Likewise.
+	* mailbox/registrar.c: Likewise.
+	* mailbox/rfc2047.c: Likewise.
+	* mailbox/sendmail.c: Likewise.
+	* mailbox/smtp.c: Likewise.
+	* mailbox/stream.c: Likewise.
+	* mailbox/tcp.c: Likewise.
+	* mailbox/ticket.c: Likewise.
+	* mailbox/url.c: Likewise.
+	* mailbox/wicket.c: Likewise.
+	* mailbox/imap/folder.c: Likewise.
+	* mailbox/imap/mbox.c: Likewise.
+	* mailbox/mbox/folder.c: Likewise.
+	* mailbox/mbox/mbox.c: Likewise.
+	* mailbox/mbox/url.c: Likewise.
+	* mailbox/pop/mbox.c: Likewise.
+	* mailbox/pop/pop3_capa.c: Likewise.
+	* mailbox/pop/pop3_carrier.c: Likewise.
+	* mailbox/pop/pop3_list.c: Likewise.
+	* mailbox/pop/pop3_lista.c: Likewise.
+	* mailbox/pop/pop3_retr.c: Likewise.
+	* mailbox/pop/pop3_stat.c: Likewise.
+	* mailbox/pop/pop3_timeout.c: Likewise.
+	* mailbox/pop/pop3_top.c: Likewise.
+	* mailbox/pop/pop3_uidl.c: Likewise.
+	* mailbox/pop/pop3_uidla.c: Likewise.
+	* mh/mh_ctx.c: Likewise.
+	
 2004-06-01  Sergey Poznyakoff 
 
 	* examples/mailcap.c (main): Bugfix: fields_count had wrong type.
