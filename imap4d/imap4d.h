@@ -25,8 +25,9 @@
 #define _QNX_SOURCE
 #define _GNU_SOURCE
 
+#include <sys/types.h>
 #ifdef HAVE_SECURITY_PAM_APPL_H
-#include <security/pam_appl.h>
+# include <security/pam_appl.h>
 #endif
 
 #ifdef HAVE_SHADOW_H
