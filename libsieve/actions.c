@@ -62,7 +62,7 @@ sieve_action_redirect (sieve_machine_t *mach, list_t args, list_t tags)
 }
 
 sieve_data_type fileinto_args[] = {
-  SVT_STRING_LIST,
+  SVT_STRING,
   SVT_VOID
 };
 
