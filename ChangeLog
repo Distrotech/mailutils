@@ -32,7 +32,12 @@
 	* include/mailutils/observer.h: Likewise.
 	* include/mailutils/registrar.h: Likewise.
 	* include/mailutils/stream.h: Likewise.
+	* include/mailutils/attribute.h: Likewise.
+	* include/mailutils/auth.h: Likewise.
 	
+	* include/mailutils/argp.h: Enclosed declarations in extern "C"
+	  block.
+	  
 2002-12-29  Wojciech Polak <polak@gnu.org>
 
 	* mail/mail.c: Updated FSF address.
