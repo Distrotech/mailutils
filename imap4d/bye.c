@@ -21,6 +21,12 @@
 int
 imap4d_bye (int reason)
 {
+  return imap4d_bye0 (reason, NULL);
+}
+
+int
+imap4d_bye0 (int reason, struct imap4d_command *command)
+{
   struct passwd *pw = getpwuid (getuid ());
   const char *username;
   int status = EXIT_FAILURE;
@@ -41,7 +47,8 @@ imap4d_bye (int reason)
       break;
 
     case ERR_SIGNAL:
-      util_out (RESP_BYE, "Quitting on signal");
+      if (ofile) 
+          util_out (RESP_BYE, "Quitting on signal");
       syslog (LOG_ERR, "Quitting on signal");
       break;
 
@@ -72,6 +79,10 @@ imap4d_bye (int reason)
       break;
     }
 
+  if (status == EXIT_SUCCESS && command)
+     util_finish (command, RESP_OK, "Completed");
   closelog ();
   exit (status);
 }
+
+
