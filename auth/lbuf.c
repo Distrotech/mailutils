@@ -1,0 +1,124 @@
+/* GNU Mailutils -- a suite of utilities for electronic mail
+   Copyright (C) 2003 Free Software Foundation, Inc.
+
+   This library is free software; you can redistribute it and/or
+   modify it under the terms of the GNU Lesser General Public
+   License as published by the Free Software Foundation; either
+   version 2 of the License, or (at your option) any later version.
+
+   This library is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+   Lesser General Public License for more details.
+
+   You should have received a copy of the GNU Lesser General Public
+   License along with this library; if not, write to the Free Software
+   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA  */
+
+#ifdef HAVE_CONFIG_H
+# include <config.h>
+#endif
+#include <stdlib.h>
+#include <string.h>
+#include <errno.h>
+#include <lbuf.h>
+
+struct _line_buffer {
+  char *buffer;        /* Line buffer */
+  size_t size;         /* Allocated size */
+  size_t level;        /* Current filling level */
+};
+
+int
+_auth_lb_create (struct _line_buffer **s)
+{
+  *s = malloc (sizeof (**s));
+  if (!*s)
+    return ENOMEM;
+  (*s)->buffer = NULL;
+  (*s)->size = 0;
+  (*s)->level = 0;
+  return 0;
+}
+
+void
+_auth_lb_destroy (struct _line_buffer **s)
+{
+  if (s && *s)
+    {
+      free ((*s)->buffer);
+      free (*s);
+      *s = NULL;
+    }
+}
+
+void
+_auth_lb_drop (struct _line_buffer *s)
+{
+  s->level = 0;
+}
+
+int
+_auth_lb_grow (struct _line_buffer *s, const char *ptr, size_t size)
+{
+  if (!s->buffer)
+    {
+      s->buffer = malloc (size);
+      s->size = size;
+      s->level = 0;
+    }
+  else if (s->size - s->level < size)
+    {
+      size_t newsize = s->size + size;
+      s->buffer = realloc (s->buffer, newsize);
+      if (s->buffer)
+	s->size = newsize;
+    }
+
+  if (!s->buffer)
+    return ENOMEM;
+  
+  memcpy (s->buffer + s->level, ptr, size);
+  s->level += size;
+  return 0;
+}
+
+int
+_auth_lb_read (struct _line_buffer *s, const char *optr, size_t osize)
+{
+  int len;
+
+  len = s->level > osize ? osize : s->level;
+  memcpy (optr, s->buffer, len);
+  if (s->level > len)
+    {
+      memmove (s->buffer, s->buffer + len, s->level - len);
+      s->level -= len;
+    }
+  else if (s->level == len)
+    s->level = 0;
+    
+  return len;
+}
+
+int
+_auth_lb_readline (struct _line_buffer *s, const char *ptr, size_t size)
+{
+  char *p = strchr (s->buffer, '\n');
+
+  if (p && p - s->buffer + 1 < size)
+    size = p - s->buffer + 1;
+  return _auth_lb_read (s, ptr, size);
+}
+  
+int
+_auth_lb_level (struct _line_buffer *s)
+{
+  return s->level;
+}
+
+char *
+_auth_lb_data (struct _line_buffer *s)
+{
+  return s->buffer;
+}
