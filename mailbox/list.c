@@ -134,7 +134,7 @@ list_set_comparator (list_t list, list_comparator_t comp)
 {
   list_comparator_t old_comp;
   if (list == NULL)
-    return EINVAL;
+    return NULL;
   old_comp = list->comp;
   list->comp = comp;
   return old_comp;
