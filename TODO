@@ -6,7 +6,7 @@
 * autogen.sh (libtool) complains about libmailbox.la in noinst (JB Oct 08/99)
 
 + libmailbox has a nasty bug -- if the mailbox is empty, the library has no idea
-  what to do
+  what to do (Shaleh Oct 07/99)
   
 - libmailbox needs an interface to set flags for each message
 
