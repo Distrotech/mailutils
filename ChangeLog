@@ -1,3 +1,42 @@
+2004-01-08  Sergey Poznyakoff 
+
+	* configure.ac (LIBMU_SCM_DEPS): Added maildir
+
+	* mailbox/amd.c: New file. Abstract mail directory level.	
+	* mailbox/Makefile.am: Added amd.c
+
+	* mailbox/include/amd.h: New file.
+	* mailbox/include/Makefile.am: Added amd.h
+
+	* mailbox/maildir/mbox.c: Implemented	
+	* mailbox/maildir/folder.c: New file
+	* mailbox/maildir/url.c: New file
+	* mailbox/maildir/Makefile.am: Added folder.c and url.c
+
+	* mailbox/mh/mbox.c: Re-implemented via AMD.
+	
+	* mailbox/include/registrar0.h: Added maildir support
+	* libmu_scm/mu_scm.c: Likewise.
+	* mailbox/mu_argp.c: Likewise.
+
+	* include/mailutils/registrar.h (mu_register_all_mbox_formats)
+	(mu_register_all_mailer_formats,mu_register_all_formats): New
+	macros.
+	
+	* frm/frm.c (main): Use mu_register_all_mbox_formats
+	* from/from.c: Likewise.
+	* movemail/movemail.c: Likewise.
+	
+	* mail/mail.c (main): Use mu_register_all_formats
+	* sieve/sieve.c: Likewise
+	* mh/mh_init.c (mh_init): Likewise
+		
+	* lib/Makefile.am: Minor formatting change
+	* messages/messages.c: Likewise
+	
+	* pop3d/pop3d.h (pop3d_mark_retr,pop3d_is_retr)
+	(pop3d_unmark_retr): Added external declarations.
+	
 2004-01-06  Sergey Poznyakoff 
 
 	* m4/Makefile.am: Removed.
