@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2001, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001, 2002, 2005 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -82,7 +82,8 @@ reply0 (msgset_t *mspec, message_t msg, void *data)
       for (i = 1; i <= count; i++)
 	{
 	  address_get_email (addr, i, buf, sizeof (buf), NULL);
-	  if (!mail_is_my_name (buf))
+	  if ((util_getenv (NULL, "metoo", Mail_env_boolean, 0) == 0)
+	      || !mail_is_my_name (buf))
 	    compose_header_set (&env, MU_HEADER_TO,
 				buf,
 				COMPOSE_SINGLE_LINE);
@@ -127,6 +128,8 @@ int
 mail_reply (int argc, char **argv)
 {
   int lower = islower (argv[0][0]);
+  if (util_getenv (NULL, "flipr", Mail_env_boolean, 0) == 0)
+    lower = !lower;
   return util_foreach_msg (argc, argv, MSG_NODELETED, reply0, &lower);
 }
 
