@@ -1,5 +1,28 @@
 2002-11-07  Sergey Poznyakoff  
 
+	* mailbox/stream.c: Fix memory leak. Patch provided by
+	  Frederic Gobry <frederic.gobry@smartdata.ch>
+	* mailbox/tcp.c: Likewise.
+
+	* mail.local/mailquota.c: Fixed comment.
+	* mail.local/main.c: Avoid unnecessary memory allocation.
+	
+	* libsieve/: New directory
+	* libsieve/Makefile.am: New file.
+	* libsieve/.cvsignore: New file.
+	* libsieve/sieve.y: New file.
+	* libsieve/sieve.l: New file.
+	* libsieve/sieve.h: New file.
+	* libsieve/util.c: New file.
+	* libsieve/sv.c: New file.
+
+	* sieve/ylwrap: Moved to ...
+	* scripts/ylwrap:  ... here
+	* scripts/Makefile.am: Added ylwrap
+	* sieve/Makefile.am: Removed ylwrap
+	
+2002-11-07  Sergey Poznyakoff  
+
 	* mail/mail.h (msgset_member,msgset_negate): New functions.
 	* mail/msgset.y: Added negation of message sets.
 	  `from ! subject:/daily/' outputs all messages whose subject

@@ -7,3 +7,8 @@ Makefile
 *.lo
 *.output
 *.tab.[ch]
+lex.yy.c
+sieve-gram.c
+sieve-gram.h
+sieve-lex.c
+sv
