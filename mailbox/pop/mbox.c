@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2003 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2003, 2005 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -2065,7 +2065,7 @@ pop_get_timestamp (pop_data_t mpd)
 static int
 pop_get_md5 (pop_data_t mpd)
 {
-  MD5_CTX md5context;
+  struct md5_ctx md5context;
   unsigned char md5digest[16];
   char digest[64]; /* Really it just has to be 32 + 1(null).  */
   char *tmp;
@@ -2076,10 +2076,11 @@ pop_get_md5 (pop_data_t mpd)
   if (timestamp == NULL)
     return EINVAL;
 
-  MD5Init (&md5context);
-  MD5Update (&md5context, (unsigned char *)timestamp, strlen (timestamp));
-  MD5Update (&md5context, (unsigned char *)mpd->passwd, strlen (mpd->passwd));
-  MD5Final (md5digest, &md5context);
+  md5_init_ctx (&md5context);
+  md5_process_bytes (timestamp, strlen (timestamp), &md5context);
+  md5_process_bytes (mpd->passwd, strlen (mpd->passwd), &md5context);
+  md5_finish_ctx (&md5context, md5digest);
+  
   for (tmp = digest, n = 0; n < 16; n++, tmp += 2)
     sprintf (tmp, "%02x", md5digest[n]);
   *tmp = '\0';

@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2003 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2003, 2005 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -52,16 +52,16 @@ mu_pop3_apop (mu_pop3_t pop3, const char *user, const char *secret)
       /* Generate the md5 from the secret and timestamp.  */
     case MU_POP3_NO_STATE:
       {
-	MD5_CTX md5context;
+	struct md5_ctx md5context;
 	unsigned char md5digest[16];
 	char digest[64]; /* Really it just has to be 32 + 1(null).  */
 	char *tmp;
 	size_t n;
 
-	MD5Init (&md5context);
-	MD5Update (&md5context, (unsigned char *)pop3->timestamp, strlen (pop3->timestamp));
-	MD5Update (&md5context, (unsigned char *)secret, strlen (secret));
-	MD5Final (md5digest, &md5context);
+	md5_init_ctx (&md5context);
+	md5_process_bytes (pop3->timestamp, strlen (pop3->timestamp), &md5context);
+	md5_process_bytes (secret, strlen (secret), &md5context);
+	md5_finish_ctx (&md5context, md5digest);
 	for (tmp = digest, n = 0; n < 16; n++, tmp += 2)
 	  {
 	    sprintf (tmp, "%02x", md5digest[n]);
