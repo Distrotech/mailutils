@@ -1,3 +1,7 @@
+2001-11-14  Sergey Poznyakoff
+
+	* comsat/action.c: Expand \n only for `echo'.
+
 2001-11-13  Alain Magloire
 
 	Try to use const whenever appropriate to make it clear
