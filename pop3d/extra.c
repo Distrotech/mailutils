@@ -124,7 +124,7 @@ pop3d_abquit (int reason)
 
     default:
       pop3d_outf ("-ERR Quitting (reason unknown)\r\n");
-      syslog (LOG_ERR, _("Quitting (numeric reason %d)"));
+      syslog (LOG_ERR, _("Quitting (numeric reason %d)"), reason);
       break;
     }
 
@@ -163,7 +163,7 @@ pop3d_init_tls_server ()
 
   if (stream_open (stream))
     {
-      const char *p;
+      char *p;
       stream_strerror (stream, &p);
       syslog (LOG_ERR, _("cannot open TLS stream: %s"), p);
       return 0;
@@ -224,7 +224,7 @@ pop3d_outf (const char *fmt, ...)
   free (buf);
   if (rc)
     {
-      const char *p;
+      char *p;
 
       if (stream_strerror (ostream, &p))
 	p = strerror (errno);
@@ -247,7 +247,7 @@ pop3d_readline (char *buffer, size_t size)
 
   if (rc)
     {
-      const char *p;
+      char *p;
 
       if (stream_strerror (ostream, &p))
 	p = strerror (errno);
