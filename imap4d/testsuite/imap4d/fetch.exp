@@ -76,8 +76,8 @@ imap4d_test "FETCH 1:* ENVELOPE"\
 #                RFC822.SIZE ENVELOPE)
 
 imap4d_test "FETCH 1:\* ALL"\
-"1 FETCH (FLAGS (\\Recent) INTERNALDATE \"28-Dec-2001 23:18:09 +0000\" RFC822.SIZE 1299 ENVELOPE (\"Fri, 28 Dec 2001 22:18:08 +0200\" \"Jabberwocky\" ((\"Foo Bar\" NIL \"foobar\" \"nonexistent.net\")) ((\"Foo Bar\" NIL \"foobar\" \"nonexistent.net\")) ((\"Foo Bar\" NIL \"foobar\" \"nonexistent.net\")) ((\"Bar\" NIL \"bar\" \"dontmailme.org\")) ((NIL NIL \"NIL\" NIL)) ((NIL NIL \"NIL\" NIL)) NIL \"<200112282018.fBSKI8N04906@nonexistent.net>\"))"\
-"2 FETCH (FLAGS (\\Recent) INTERNALDATE \"29-Dec-2001 00:28:09 +0000\" RFC822.SIZE 548 ENVELOPE (\"Fri, 28 Dec 2001 23:28:08 +0200\" \"Re: Jabberwocky\" ((\"Bar\" NIL \"bar\" \"dontmailme.org\")) ((\"Bar\" NIL \"bar\" \"dontmailme.org\")) ((\"Bar\" NIL \"bar\" \"dontmailme.org\")) ((\"Foo Bar\" NIL \"foobar\" \"nonexistent.net\")) ((NIL NIL \"NIL\" NIL)) ((NIL NIL \"NIL\" NIL)) NIL \"<200112232808.fERKR9N16790@dontmailme.org>\"))"\
+"1 FETCH (FLAGS (\\Recent) INTERNALDATE \"28-Dec-2001 22:18:09 +0000\" RFC822.SIZE 1299 ENVELOPE (\"Fri, 28 Dec 2001 22:18:08 +0200\" \"Jabberwocky\" ((\"Foo Bar\" NIL \"foobar\" \"nonexistent.net\")) ((\"Foo Bar\" NIL \"foobar\" \"nonexistent.net\")) ((\"Foo Bar\" NIL \"foobar\" \"nonexistent.net\")) ((\"Bar\" NIL \"bar\" \"dontmailme.org\")) ((NIL NIL \"NIL\" NIL)) ((NIL NIL \"NIL\" NIL)) NIL \"<200112282018.fBSKI8N04906@nonexistent.net>\"))"\
+"2 FETCH (FLAGS (\\Recent) INTERNALDATE \"28-Dec-2001 23:28:09 +0000\" RFC822.SIZE 548 ENVELOPE (\"Fri, 28 Dec 2001 23:28:08 +0200\" \"Re: Jabberwocky\" ((\"Bar\" NIL \"bar\" \"dontmailme.org\")) ((\"Bar\" NIL \"bar\" \"dontmailme.org\")) ((\"Bar\" NIL \"bar\" \"dontmailme.org\")) ((\"Foo Bar\" NIL \"foobar\" \"nonexistent.net\")) ((NIL NIL \"NIL\" NIL)) ((NIL NIL \"NIL\" NIL)) NIL \"<200112232808.fERKR9N16790@dontmailme.org>\"))"\
 "3 FETCH (FLAGS (\\Recent) INTERNALDATE \"13-Jul-2002 00:43:18 +0000\" RFC822.SIZE 1668 ENVELOPE (\"Sat, 13 Jul 2002 00:43:18 +0300\" \"Simple MIME\" ((\"Sergey Poznyakoff\" NIL \"gray\" \"Mirddin.farlep.net\")) ((\"Sergey Poznyakoff\" NIL \"gray\" \"Mirddin.farlep.net\")) ((\"Sergey Poznyakoff\" NIL \"gray\" \"Mirddin.farlep.net\")) ((\"Foo Bar\" NIL \"foobar\" \"nonexistent.net\")) ((NIL NIL \"NIL\" NIL)) ((NIL NIL \"NIL\" NIL)) NIL \"<200207122143.g6CLhIb05086@Mirddin.farlep.net>\"))"\
 "4 FETCH (FLAGS (\\Recent) INTERNALDATE \"13-Jul-2002 00:50:58 +0000\" RFC822.SIZE 3568 ENVELOPE (\"Sat, 13 Jul 2002 00:50:58 +0300\" \"Nested MIME\" ((\"Sergey Poznyakoff\" NIL \"gray\" \"Mirddin.farlep.net\")) ((\"Sergey Poznyakoff\" NIL \"gray\" \"Mirddin.farlep.net\")) ((\"Sergey Poznyakoff\" NIL \"gray\" \"Mirddin.farlep.net\")) ((\"Foo Bar\" NIL \"foobar\" \"nonexistent.net\")) ((NIL NIL \"NIL\" NIL)) ((NIL NIL \"NIL\" NIL)) NIL \"<200207122150.g6CLowb05126@Mirddin.farlep.net>\"))"\
 "OK"
@@ -494,7 +494,7 @@ imap4d_test "FETCH 2 RFC822.TEXT"\
 #                RFC822.SIZE)
 
 imap4d_test "FETCH 1 FAST" \
-"1 FETCH (FLAGS (\\Seen \\Recent) INTERNALDATE \"28-Dec-2001 23:18:09 +0000\" RFC822.SIZE 1299)"\
+"1 FETCH (FLAGS (\\Seen \\Recent) INTERNALDATE \"28-Dec-2001 22:18:09 +0000\" RFC822.SIZE 1299)"\
 "OK"
 
 # FULL           Macro equivalent to: (FLAGS INTERNALDATE
