@@ -1,6 +1,6 @@
 #! /bin/sh
 
-if [ "$1" = "-r"]; then
+if [ "$1" = "-r" ]; then
 	shift
 	rm -rf $*
 	exit 0
@@ -31,11 +31,11 @@ do
 	fi
 	mkdirhier $DSTDIR
 	chmod -R u+w $DSTDIR
-
+	rm -rf $DSTDIR/*
+	
 	cat $SRCDIR/DISTFILES |
 	while read NAME
 	do
-		test -f $DSTDIR/$NAME && rm $DSTDIR/$NAME
 		cp $SRCDIR/$NAME $DSTDIR/$NAME
 		chmod u+w $DSTDIR/$NAME
 	done
