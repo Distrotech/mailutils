@@ -144,12 +144,21 @@ sieve_value_create (sieve_data_type type, void *data)
       break;
 
     default:
-      sieve_compile_error (sieve_filename, sieve_line_num, "Invalid data type");
+      sieve_compile_error (sieve_filename, sieve_line_num,
+			   "Invalid data type");
       abort ();
     }
   return val;
 }
-    
+
+sieve_value_t *
+sieve_value_get (list_t vlist, size_t index)
+{
+  sieve_value_t *val = NULL;
+  list_get (vlist, index, (void **)&val);
+  return val;
+}
+
 void
 sieve_compile_error (const char *filename, int linenum, const char *fmt, ...)
 {
@@ -163,7 +172,7 @@ sieve_compile_error (const char *filename, int linenum, const char *fmt, ...)
 }
 
 void
-sieve_error (sieve_machine_t *mach, const char *fmt, ...)
+sieve_error (sieve_machine_t mach, const char *fmt, ...)
 {
   va_list ap;
 
@@ -183,7 +192,7 @@ sieve_debug_internal (sieve_printf_t printer, void *data, const char *fmt, ...)
 }
 
 void
-sieve_debug (sieve_machine_t *mach, const char *fmt, ...)
+sieve_debug (sieve_machine_t mach, const char *fmt, ...)
 {
   va_list ap;
 
@@ -191,6 +200,21 @@ sieve_debug (sieve_machine_t *mach, const char *fmt, ...)
   mach->debug_printer (mach->data, fmt, ap);
   va_end (ap);
 }
+
+void
+sieve_log_action (sieve_machine_t mach, const char *action,
+		  const char *fmt, ...)
+{
+  va_list ap;
+
+  if (!mach->logger)
+    return;
+  va_start (ap, fmt);
+  mach->logger (mach->data, mach->filename, mach->msgno, mach->msg,
+		action, fmt, ap);
+  va_end (ap);
+}
+  
 
 int
 _sieve_default_error_printer (void *unused, const char *fmt, va_list ap)
@@ -202,8 +226,10 @@ int
 _sieve_default_parse_error (void *unused, const char *filename, int lineno,
 			    const char *fmt, va_list ap)
 {
+  if (filename)
   fprintf (stderr, "%s:%d: ", filename, lineno);
   vfprintf (stderr, fmt, ap);
+  fprintf (stderr, "\n");
   return 0;
 }
 
@@ -325,3 +351,23 @@ sieve_print_tag_list (list_t list, sieve_printf_t printer, void *data)
 }
 
   
+int
+sieve_mark_deleted (message_t msg, int deleted)
+{
+  attribute_t attr = 0;
+  int rc;
+
+  rc = message_get_attribute (msg, &attr);
+
+  if (!rc)
+    {
+      if (deleted)
+	rc = attribute_set_deleted (attr);
+      else
+	rc = attribute_unset_deleted (attr);
+    }
+
+  return rc;
+}
+
+
