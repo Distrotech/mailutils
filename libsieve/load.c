@@ -97,6 +97,7 @@ sieve_load_ext (sieve_machine_t mach, const char *name)
 }
 
 #else
+#include <sieve.h>
 
 int
 sieve_load_ext (sieve_machine_t mach, const char *name)
