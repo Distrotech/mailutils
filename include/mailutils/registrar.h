@@ -140,9 +140,16 @@ extern record_t sendmail_record;
   list_append (bookie, smtp_record);\
 } while (0)
 
+#define mu_register_extra_formats() do {\
+  list_t bookie = 0;\
+  registrar_get_list (&bookie);\
+  list_append (bookie, nntp_record);\
+} while (0)
+
 #define mu_register_all_formats() do {\
   mu_register_all_mbox_formats ();\
   mu_register_all_mailer_formats ();\
+  mu_register_extra_formats();\
 } while (0)
 
 #ifdef __cplusplus
