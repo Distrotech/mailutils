@@ -49,6 +49,7 @@ if ![info exists MAILFLAGS] {
 
 #FIXME:
 set env(MAILRC) $srcdir/etc/mail.rc
+set env(MBOX) $srcdir/spool/mbox
 
 # The variable mail_prompt is a regexp which matches the mail prompt.
 global mail_prompt
