@@ -91,10 +91,10 @@ split_shortcut (const char *file, const char pfx[], char **user, char **rest)
   return 0;
 }
 
-static const char *
+static char *
 get_homedir (const char *user)
 {
-  const char *homedir = NULL;
+  char *homedir = NULL;
   struct mu_auth_data *auth = NULL;
   
   if (user)
@@ -172,7 +172,7 @@ plus_expand (const char *file, char **buf)
 {
   char *user = NULL;
   char *path = NULL;
-  const char *home;
+  char *home;
   int status, len;
   
   if ((status = split_shortcut (file, "+=", &user, &path)))
@@ -218,7 +218,7 @@ tilde_expand (const char *file, char **buf)
 {
   char *user = NULL;
   char *path = NULL;
-  const char *home;
+  char *home;
   int status;
   int len;
   
