@@ -1,3 +1,8 @@
+2003-12-10  Jordi Mallach  <jordi@gnu.org>
+
+	* LINGUAS: Added ro.
+	* ro.po: Added Romanian translation by Eugen Hoanca.
+
 2003-10-29  Jordi Mallach  <jordi@gnu.org>
 
 	* ca.po: Updated Spanish translation by
