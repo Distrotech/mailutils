@@ -1,0 +1,138 @@
+/* GNU Mailutils -- a suite of utilities for electronic mail
+   Copyright (C) 1999, 2000, 2001, 2003 Free Software Foundation, Inc.
+
+   This library is free software; you can redistribute it and/or
+   modify it under the terms of the GNU Lesser General Public
+   License as published by the Free Software Foundation; either
+   version 2 of the License, or (at your option) any later version.
+
+   This library is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+   Lesser General Public License for more details.
+
+   You should have received a copy of the GNU Lesser General Public
+   License along with this library; if not, write to the Free Software
+   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA  */
+
+#ifdef HAVE_CONFIG_H
+# include <config.h>
+#endif
+
+#ifdef ENABLE_POP
+
+#include <errno.h>
+#include <stdlib.h>
+#include <string.h>
+
+#ifdef HAVE_STRINGS_H
+# include <strings.h>
+#endif
+
+#include <mailutils/auth.h>
+#include <mailutils/mailbox.h>
+
+#include <folder0.h>
+#include <registrar0.h>
+#include <url0.h>
+
+/* We export url parsing and the initialisation of
+   the mailbox, via the register entry/record.  */
+
+static struct _record _pop_record =
+{
+  MU_POP_SCHEME,
+  _url_pop_init, /* Url init.  */
+  _mailbox_pop_init, /* Mailbox init.  */
+  NULL, /* Mailer init.  */
+  _folder_pop_init, /* Folder init.  */
+  NULL, /* No need for an back pointer.  */
+  NULL, /* _is_scheme method.  */
+  NULL, /* _get_url method.  */
+  NULL, /* _get_mailbox method.  */
+  NULL, /* _get_mailer method.  */
+  NULL  /* _get_folder method.  */
+};
+record_t pop_record = &_pop_record;
+
+static int folder_pop_open  __P ((folder_t, int));
+static int folder_pop_close __P ((folder_t));
+static int folder_pop_get_authority __P ((folder_t, authority_t *));
+extern int _pop_user         __P ((authority_t));
+extern int _pop_apop         __P ((authority_t));
+
+/* XXX: The way, the POP folder is handle is not clean at all.
+   the I/O functions should have been here on folder, not in  mbx_pop.c  */
+int
+_folder_pop_init (folder_t folder)
+{
+  int status;
+
+  /* Set the authority early:
+     (1) so we can check for errors.
+     (2) allow the client to get the authority for setting the ticket
+     before the open.  */
+  status = folder_pop_get_authority (folder, NULL);
+  if (status != 0)
+    return status;
+
+  folder->_open = folder_pop_open;
+  folder->_close = folder_pop_close;
+  return 0;
+}
+
+static int
+folder_pop_open (folder_t folder, int flags)
+{
+  mailbox_t mbox = folder->data;
+  return mailbox_open (mbox, flags);
+}
+
+static int
+folder_pop_close (folder_t folder)
+{
+  mailbox_t mbox = folder->data;
+  return mailbox_close (mbox);
+}
+
+static int
+folder_pop_get_authority (folder_t folder, authority_t *pauth)
+{
+  int status = 0;
+  if (folder->authority == NULL)
+    {
+      /* assert (folder->url); */
+      if (folder->url == NULL)
+	return EINVAL;
+
+      if (folder->url->auth == NULL
+	  || strcasecmp (folder->url->auth, "*") == 0)
+	{
+	  status = authority_create (&folder->authority, NULL, folder);
+	  authority_set_authenticate (folder->authority, _pop_user, folder);
+	}
+      /*
+	"+apop" could be supported.
+	Anything else starting with "+" is an extension mechanism.
+	Without a "+" it's a SASL mechanism.
+      */
+      else if (strcasecmp (folder->url->auth, "+APOP") == 0)
+	{
+	  status = authority_create (&folder->authority, NULL, folder);
+	  authority_set_authenticate (folder->authority, _pop_apop, folder);
+	}
+      else
+	{
+	  status = ENOSYS;
+	}
+    }
+  if (pauth)
+    *pauth = folder->authority;
+  return status;
+}
+
+#else
+#include <stdio.h>
+#include <registrar0.h>
+record_t pop_record = NULL;
+#endif
