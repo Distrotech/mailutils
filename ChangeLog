@@ -1,3 +1,17 @@
+2001-03-12  Sam Roberts
+
+	* frm/frm.c (main) : Changed to only print subject if
+	header_get_value(SUBJECT) returned success, otherwise I assume
+	it would print the stack.
+	(usage): Corrected a tiny typo in usage message.
+	(long_options): Added an option -f,--field that prints the named field
+	in the mailbox, and nothing else.
+
+2001-03-09  Alain Magloire
+
+	* mailbox/Makefile.am : add property.c in the src list.
+	* doc/mailutils.texi : add Sam to the list of acknowlegment.
+
 2001-03-09  Sam Roberts
 
 	* doc/address.texi: documented all the functions in address.h
@@ -12,7 +26,7 @@
 2001-03-03  Alain Magloire
 
 	* imap4d/fetch.c (fetch_operation) : HEADER.FIELDS.NOT implemented.
-	fetch_opertaion() tak e a new argument.
+	fetch_opertaion() take a new argument.
 	* imap4d/util.c (util_upper) : New function string upper.
 
 	* mailbox/heder.c : Added new functionnalities to help the imap4d
