@@ -145,6 +145,12 @@ _mh_init_global_sequences ()
     }
 }
 
+void
+mh_global_sequences_drop ()
+{
+  sequences = NULL;
+}
+
 char *
 mh_global_sequences_get (const char *name, const char *defval)
 {
