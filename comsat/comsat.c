@@ -468,7 +468,7 @@ notify_user (const char *user, const char *device, const char *path, off_t offse
       return;
     }
 
-  if ((status = stream_size (stream, size)))
+  if ((status = stream_size (stream, &size)))
     {
       syslog (LOG_ERR, _("can't get stream size (mailbox %s): %s"),
 	      path, mu_strerror (status));
