@@ -115,7 +115,7 @@ int
 mail_print (int argc, char **argv)
 {
   int lower = islower (argv[0][0]);
-  int rc = util_foreach_msg (argc, argv, MSG_NODELETED,
+  int rc = util_foreach_msg (argc, argv, MSG_NODELETED|MSG_SILENT,
 			     mail_print_msg, &lower);
   return rc;
 }
