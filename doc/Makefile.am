@@ -15,6 +15,7 @@ EXTRA_DIST = \
  encoding.texi \
  envelope.texi \
  ex-address.texi \
+ ex-url.texi \
  framework.texi \
  folder.texi \
  headers.texi \
@@ -44,6 +45,8 @@ EXTRA_DIST = \
 #ex-address.texi: ${top_srcdir}/doc/examples/addr.c
 #	sed -es/{/@{/g -e s/}/@}/g < $< > $@
 #sfrom.texi: ${top_srcdir}/doc/examples/sfrom.c
+#	sed -es/{/@{/g -e s/}/@}/g < $< > $@
+#ex-url.texi: ${top_srcdir}/doc/examples/url-parse.c
 #	sed -es/{/@{/g -e s/}/@}/g < $< > $@
 
 #mailutils.info: mailutils.texi version.texi ex-address.texi

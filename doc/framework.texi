@@ -12,7 +12,7 @@
 * Authenticator::               Authenticator.
 * Address::                     Address.
 * Locker::                      Locker.
-* URL::                         Unified Ressource Locator.
+* URL::                         Uniform Resource Locators.
 
 @end menu
 
