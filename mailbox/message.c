@@ -93,7 +93,7 @@ message_destroy (message_t *pmsg, void *owner)
 	{
 	  destroy_lock =  1;
 	  /* Notify the listeners.  */
-	  /* FIXME: to be removed since we do not supoort this event.  */
+	  /* FIXME: to be removed since we do not support this event.  */
 	  if (msg->observable)
 	    {
 	      observable_notify (msg->observable, MU_EVT_MESSAGE_DESTROY);
@@ -137,7 +137,7 @@ message_destroy (message_t *pmsg, void *owner)
 	     mailbox_destroy (&(msg->mailbox));
 	  */
 
-	  if (msg->ref <= 0)
+	  if (msg->ref == 0)
 	    free (msg);
 	}
       monitor_unlock (monitor);
