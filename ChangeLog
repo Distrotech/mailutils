@@ -1,3 +1,25 @@
+2002-04-10 Sam Roberts
+
+	* mail.local/main.c: split mailutils capabilities
+	* frm/frm.c: mailutils capabilities were split, and it now reports
+	  failure, rather than calling failure seccess.
+	* comsat/comsat.c, guimb/main.c, imap4d/imap4d.c: mailutils
+	  capbilities were split up
+	* mail.remote/: Makefile.am, mail.remote.c: A stub mail.remote. It
+	  is waiting on completion of the smtp mailer_t.
+	* lib/mu_argp.c: Default per-utility config files are ~/.programrc.
+	  If you want to segregate you mailutils configuration, make
+	  ~/.mailutils a directory, and put your config files in it (same
+	  name, minus the leading ".").  Also organized all common options
+	  under the heading "Common options", moved the daemon and auth
+	  options before the common options, and implemented a --lock-flags
+	  option.
+	* include/mailutils/locker.h, mailbox/locker.c:
+	  (locker_set_default_flags) new function to set the default locking
+	  flags Fixed bug wherein lock count wasn't incremented for external
+	  locking.  Fixed bug wherein the right flags wasn't checked during
+	  union init.
+
 2002-04-10  Sergey Poznyakoff
 
 	* imap4d/list.c: Removed imap_match().
