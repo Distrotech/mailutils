@@ -1,3 +1,8 @@
+2002-11-28  Frederic Gobry  <frederic.gobry@smartdata.ch>
+
+	* mailbox/filter_trans.c (qp_encode): fixed quoted-printable
+	encoding.
+	
 2002-11-27  Frederic Gobry  <frederic.gobry@smartdata.ch>
 
 	* mailbox/filter_trans.c (trans_read): applied patch from Sergey

@@ -456,30 +456,55 @@ qp_encode (const char *iptr, size_t isize, char *optr, size_t osize,
   int c;
   size_t consumed = 0;
 
-  (void)osize;
   *nbytes = 0;
-  while (consumed < isize && (*nbytes + 4) < isize)
+
+  /* Strategy: check if we have enough room in the output buffer only
+     once the required size has been computed. If there is not enough,
+     return and hope that the caller will free up the output buffer a
+     bit. */
+
+  while (consumed < isize)
     {
       if (*line_len == QP_LINE_MAX)
 	{
+	  /* to cut a qp line requires two bytes */
+	  if ((*nbytes) + 2 > osize) 
+	    return consumed;
+
 	  *optr++ = '=';
 	  *optr++ = '\n';
 	  (*nbytes) += 2;
 	  *line_len = 0;
 	}
 
-      c = *iptr++;
-      consumed++;
-      if (((c >= 32) && (c <= 60)) || ((c >= 62) && (c <= 126)) || (c == 9))
+      /* candidate byte to convert */
+      c = *iptr;
+
+      if (((c >= 32) && (c <= 60))  || 
+	  ((c >= 62) && (c <= 126)) || 
+	  (c == 9))
 	{
+	  /* a non-quoted character uses up one byte */
+	  if (*nbytes + 1 > osize) 
+	    return consumed;
+
 	  *optr++ = c;
 	  (*nbytes)++;
 	  (*line_len)++;
+
+	  iptr++;
+	  consumed++;
 	}
       else
 	{
+	  /* can we store the quoted character in the remaining of the
+	     line ? */
 	  if (*line_len >= (QP_LINE_MAX - 3))
 	    {
+	      /* check if we have enough room to store the padding */
+	      if (*nbytes + *line_len - QP_LINE_MAX + 3 > osize) 
+		return consumed;
+
 	      /* add spaces.  */
 	      while (*line_len < QP_LINE_MAX)
 		{
@@ -487,16 +512,23 @@ qp_encode (const char *iptr, size_t isize, char *optr, size_t osize,
 		  (*nbytes)++;
 		  (*line_len)++;
 		}
-	      consumed--;
-	      iptr--;
 	    }
 	  else
 	    {
+	      /* a quoted character uses up three bytes */
+	      if ((*nbytes) + 3 > osize) 
+		return consumed;
+
 	      *optr++ = '=';
+	      *optr++ = _hexdigits[(c >> 4) & 0xf];
 	      *optr++ = _hexdigits[c & 0xf];
-	      *optr++ = _hexdigits[(c/16) & 0xf];
-	      (*nbytes) += 3;
+
+	      (*nbytes)   += 3;
 	      (*line_len) += 3;
+
+	      /* we've actuall used up one byte of input */
+	      iptr     ++;
+	      consumed ++;
 	    }
 	}
     }
