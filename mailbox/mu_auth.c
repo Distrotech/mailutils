@@ -273,7 +273,7 @@ mu_auth_register_module (struct mu_auth_module *mod)
 	  for (i = 0; mu_auth_argp.children[i].argp; i++)
 	    ;
 	  tmp = realloc ((void*) mu_auth_argp.children,
-			 (i+1) * sizeof(mu_auth_argp.children[0]));
+			 (i + 2) * sizeof(mu_auth_argp.children[0]));
 	  mu_auth_argp.children = tmp;
 	}
       else
