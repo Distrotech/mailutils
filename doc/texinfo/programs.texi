@@ -1853,12 +1853,6 @@ character after printing each message.
 
 Contains the command prompt sequence.
 
-@item quiet
-@*Type: Boolean.
-@*Default: False.
-
-When set, suppresses the output of the startup banner.
-
 @item quit
 @*Type: Boolean.
 @*Default: False, unless started with @option{--quit} (@option{-q}) option.
