@@ -282,14 +282,22 @@ fetch_envelope (struct fetch_command *command, char **arg)
 
 /* FLAGS: The flags that are set for this message.  */
 /* FIXME: User flags not done. If enable change the PERMANENTFLAGS in SELECT */
-static int
-fetch_flags (struct fetch_command *command, char **arg)
+void
+fetch_flags0 (const char *prefix, message_t msg, int isuid)
 {
   attribute_t attr = NULL;
   int space = 0;
-  (void)arg; /* No argments.  */
-  message_get_attribute (command->msg, &attr);
-  util_send ("%s (", command->name);
+
+  message_get_attribute (msg, &attr);
+  if (isuid)
+    {
+      struct fetch_command *fcmd = &fetch_command_table[F_UID];
+      fcmd->msg = msg;
+      util_send ("(");
+      fetch_uid (fcmd, NULL);
+      util_send (" ");
+    }
+  util_send ("%s (", prefix);
   if (attribute_is_deleted (attr))
     {
       util_send ("\\Deleted");
@@ -322,9 +330,18 @@ fetch_flags (struct fetch_command *command, char **arg)
 	util_send (" ");
       util_send (" \\Draft");
     }
+  if (isuid)
+    util_send (")");
   util_send (")");
+}
+
+static int
+fetch_flags (struct fetch_command *command, char **arg)
+{
+  fetch_flags0 (command->name, command->msg, 0);
   return RESP_OK;
 }
+
 
 /* INTERNALDATE   The internal date of the message.
    Format:
