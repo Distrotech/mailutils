@@ -8,7 +8,18 @@ Version 0.6.1:
 
 * libsieve: New action 'vacation'
 
+* imap4d: Implemented SASL authentication using LOGIN and PLAIN mechanisms.
+
 * New SQL driver: odbc
+
+* Ukrainian localization
+
+* Bugfixes
+
+** Fixed possible mailbox corruption in imap4d
+** imap4d subscribe/unsubscribe was not working
+** Fixed displaying mail headers in different languages (mail,frm,from)
+** SQL authentication: prevent sql injection attacks
 
 
 Version 0.6:

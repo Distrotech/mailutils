@@ -47,6 +47,10 @@ libsieve/sieve.l
 libsieve/sieve.y
 libsieve/tests.c
 libsieve/util.c
+libsieve/extensions/vacation.c
+libsieve/extensions/list.c
+libsieve/extensions/spamd.c
+libsieve/extensions/timestamp.c
 
 mail/alias.c
 mail/alt.c

@@ -1,3 +1,28 @@
+2005-02-25  Sergey Poznyakoff 
+
+	* NEWS: Updated
+	* include/mailutils/libsieve.h (sieve_get_identifier): New
+	function.
+	(sieve_arg_error): New function.
+	* libsieve/actions.c: Removed spurions indications of action
+	names in diagnostic messages. Sieve_error prepends them
+	automatically now.
+	* libsieve/tests.c: Likewise.
+	* libsieve/extensions/list.c: Likewise.
+	* libsieve/extensions/timestamp.c: Likewise.
+	* libsieve/extensions/vacation.c: Likewise.
+	* libsieve/runtime.c (instr_action,instr_test): Update
+	mach->identifier.
+	* libsieve/sieve.h (struct sieve_machine.identifier): New
+	field.
+	
+	* libsieve/util.c (sieve_value_create): Bugfix.
+	(sieve_error): Prepend action or test identifier to the diagnostic
+	message.
+	(sieve_arg_error): New function.
+	
+	* po/POTFILES.in: Updated
+	
 2005-02-24  Sergey Poznyakoff
 
 	Update by gnulib-sync.
