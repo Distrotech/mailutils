@@ -12,6 +12,37 @@
 	  instead of gnutls_perror(), as the latter confuses mail clients.
 	  (mu_init_tls_libs): Removed useless initialization of the auto
 	  variable.
+
+	* mail/mail.h (msgset_parse,util_get_message):
+	  In order to get rid of superfluous 'Inappropriate message'
+	  diagnostics and provide a behaviour consistent with that
+	  of standard implementations, moved the flags argument
+	  from util_get_message to msgset_parse.
+	  (msgset_count): New function.
+	  (util_isdeleted): Reverted to older declaration (before
+	  2002-10-13).
+
+	* mail/msgset.y (msgset_parse): Take a new argument: flags
+	  (meaning the same as in the util_get_message call).
+	  (msgset_count): New function.
+	  
+	* mail/util.c (util_foreach_msg,util_range_msg): Updated
+	  calls to msgset_parse.
+	  (util_isdeleted): Reverted to older declaration.
+	  
+	* mail/copy.c: Updated calls to msgset_parse.
+	* mail/decode.c: Likewise.
+	* mail/delete.c: Likewise.
+	* mail/eq.c: Likewise.
+	* mail/followup.c: Likewise.
+	* mail/from.c: Likewise.
+	* mail/headers.c: Likewise.
+	* mail/next.c: Likewise.
+	* mail/pipe.c: Likewise.
+	* mail/previous.c: Likewise.
+	* mail/quit.c: Likewise.
+	* mail/tag.c: Likewise.
+	* mail/write.c: Likewise.
 	  
 2003-01-14  Wojciech Polak
 
