@@ -21,13 +21,6 @@
 # include <config.h>
 #endif
 
-#ifdef WITH_PTHREAD
-# ifdef HAVE_PTHREAD_H
-#  define _XOPEN_SOURCE  500
-#  include <pthread.h>
-# endif
-#endif
-
 #include <sys/types.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -38,6 +31,13 @@
 #include <errno.h>
 
 #include <dirent.h>
+
+#ifdef WITH_PTHREAD
+# ifdef HAVE_PTHREAD_H
+#  define _XOPEN_SOURCE  500
+#  include <pthread.h>
+# endif
+#endif
 
 #include <string.h>
 #ifdef HAVE_STRINGS_H
