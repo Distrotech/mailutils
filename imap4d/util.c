@@ -447,11 +447,22 @@ imap4d_readline (FILE *fp)
             }
         }
     }
-  while (number > 0);
+  while (number > 0 || (total && line[total - 1] != '\n'));
   /* syslog (LOG_INFO, "readline: %s", line); */
   return line;
 }
 
+char *
+imap4d_readline_ex (FILE *fp)
+{
+  int len;
+  char *s = imap4d_readline (fp);
+
+  if (s && (len = strlen (s)) > 0 && s[len-1] == '\n')
+      s[len-1] = 0;
+  return s;
+} 
+      
 int
 util_do_command (char *prompt)
 {
@@ -756,4 +767,113 @@ util_parse_attributes(char *items, char **save, int *flags)
 
   *save = items;
   return rc;
+}
+
+int
+util_base64_encode (const unsigned char *input, size_t input_len,
+		    unsigned char **output, size_t *output_len)
+{
+  static char b64tab[] =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+  size_t olen = 4 * (input_len + 2) / 3;
+  unsigned char *out = malloc (olen);
+  
+  if (!out)
+    return 1;
+  *output = out;
+  while (input_len >= 3)
+    {
+      *out++ = b64tab[input[0] >> 2];
+      *out++ = b64tab[((input[0] << 4) & 0x30) | (input[1] >> 4)];
+      *out++ = b64tab[((input[1] << 2) & 0x3c) | (input[2] >> 6)];
+      *out++ = b64tab[input[2] & 0x3f];
+      olen  -= 4;
+      input_len -= 3;
+      input += 3;
+    }
+
+  if (input_len > 0)
+    {
+      unsigned char c = (input[0] << 4) & 0x30;
+      *out++ = b64tab[input[0] >> 2];
+      if (input_len > 0)
+	c |= input[1] >> 4;
+      *out++ = b64tab[c];
+      *out++ = (input_len < 2) ? '-' : b64tab[(input[1] << 2) & 0x3c];
+      *out++ = '=';
+    }
+  *output_len = out - *output;
+  return 0;
+}
+
+int
+util_base64_decode (const unsigned char *input, size_t input_len,
+		    unsigned char **output, size_t *output_len)
+{
+  static int b64val[128] = {
+    -1, -1, -1, -1, -1, -1, -1, -1,  -1, -1, -1, -1, -1, -1, -1, -1, 
+    -1, -1, -1, -1, -1, -1, -1, -1,  -1, -1, -1, -1, -1, -1, -1, -1, 
+    -1, -1, -1, -1, -1, -1, -1, -1,  -1, -1, -1, 62, -1, -1, -1, 63, 
+    52, 53, 54, 55, 56, 57, 58, 59,  60, 61, -1, -1, -1, -1, -1, -1, 
+    -1,  0,  1,  2,  3,  4,  5,  6,   7,  8,  9, 10, 11, 12, 13, 14, 
+    15, 16, 17, 18, 19, 20, 21, 22,  23, 24, 25, -1, -1, -1, -1, -1, 
+    -1, 26, 27, 28, 29, 30, 31, 32,  33, 34, 35, 36, 37, 38, 39, 40, 
+    41, 42, 43, 44, 45, 46, 47, 48,  49, 50, 51, -1, -1, -1, -1, -1
+  };
+  int olen = input_len;
+  unsigned char *out = malloc (olen);
+
+  if (!out)
+    return 1;
+  *output = out;
+  do
+    {
+      if (input[0] > 127 || b64val[input[0]] == -1
+	  || input[1] > 127 || b64val[input[1]] == -1
+	  || input[2] > 127 || ((input[2] != '=') && (b64val[input[2]] == -1))
+	  || input[3] > 127 || ((input[3] != '=') && (b64val[input[3]] == -1)))
+	return -1;
+      *out++ = (b64val[input[0]] << 2) | (b64val[input[1]] >> 4);
+      if (input[2] != '=')
+	{
+	  *out++ = ((b64val[input[1]] << 4) & 0xf0) | (b64val[input[2]] >> 2);
+	  if (input[3] != '=')
+	    *out++ = ((b64val[input[2]] << 6) & 0xc0) | b64val[input[3]];
+	}
+      input += 4;
+      input_len -= 4;
+    }
+  while (input_len > 0);
+  *output_len = out - *output;
+  return 0;
+}
+
+char *
+util_localname ()
+{
+  static char *localname;
+
+  if (!localname)
+    {
+      char *name;
+      int name_len = 256;
+      int status;
+        
+      name = malloc (name_len);
+      while (name
+	     && (status = gethostname (name, name_len)) == 0
+	     && !memchr (name, 0, name_len))
+	{
+	  name_len *= 2;
+	  name = realloc (name, name_len);
+	}
+      if (status)
+	{
+	  syslog (LOG_CRIT, "Can't find out my own hostname");
+	  exit (1);
+        }
+                
+      localname = name;
+    }
+  return localname;
 }
