@@ -79,7 +79,7 @@ pop3_cmd (const char *cmd)
   return buf;
 }
 
-/* This is called if GNU POP needs to quit without going to the UPDATE stage.
+/* This is called if GNU POP3 needs to quit without going to the UPDATE stage.
    This is used for conditions such as out of memory, a broken socket, or
    being killed on a signal */
 
@@ -115,6 +115,7 @@ pop3_abquit (int reason)
       break;
     }
   fflush (ofile);
+  closelog();
   exit (1);
 }
 
@@ -145,11 +146,7 @@ void
 pop3_signal (int signal)
 {
   if (signal == SIGCHLD)
-    {
-      int stat;
-      while (waitpid (-1, &stat, WNOHANG) > 0);
-      return;
-    }
+    --children;
   else
     pop3_abquit (ERR_SIGNAL);
 }
@@ -170,7 +167,7 @@ pop3_readline (int fd)
   tv.tv_usec = 0;
   memset (buf, '\0', 1024);
 
-  while (strchr (buf, '\n') == NULL)
+  do
     {
       if (timeout > 0)
 	{
@@ -193,5 +190,7 @@ pop3_readline (int fd)
 	  strcat (ret, buf);
 	}
     }
+  while (strchr (buf, '\n') == NULL);
+
   return ret;
 }

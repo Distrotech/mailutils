@@ -17,6 +17,10 @@
 
 #include "pop3d.h"
 
+typedef struct sockaddr_in SA;
+unsigned int children = 0;
+#define strorepid(foo) /* will add more code here later */
+
 static struct option long_options[] =
 {
   {"daemon", 2, 0, 'd'},
@@ -32,7 +36,7 @@ int
 main (int argc, char **argv)
 {
   struct group *gr;
-  static int mode;
+  static int mode = INTERACTIVE;
   int maxchildren = 10;
   int option_index = 0;
   int c = 0;
@@ -47,6 +51,8 @@ main (int argc, char **argv)
 	case 'd':
 	  mode = DAEMON;
 	  maxchildren = optarg ? atoi (optarg) : 10;
+	  if (maxchildren <= 0)
+          maxchildren = 10;
 	  break;
 	case 'h':
 	  pop3_usage (argv[0]);
@@ -113,18 +119,11 @@ main (int argc, char **argv)
   umask (S_IROTH | S_IWOTH | S_IXOTH);	/* 007 */
 
   /* Actually run the daemon */
-  switch (mode)
-    {
-    case DAEMON:
-      if (maxchildren < 10)
-	maxchildren = 10;
+  if (mode == DAEMON)
       pop3_daemon (maxchildren);
-      break;
-    case INTERACTIVE:
-    default:
+      /* exit() -- no way out of daemon except a signal */
+  else
       pop3_mainloop (fileno (stdin), fileno (stdout));
-      break;
-    }
 
   /* Close the syslog connection and exit */
   closelog ();
@@ -136,19 +135,36 @@ main (int argc, char **argv)
 void
 pop3_daemon_init (void)
 {
-  if (fork ())
-    exit (0);			/* parent exits */
+  pid_t pid;
+  unsigned int i;
+#define MAXFD 64
+
+  pid = fork();
+  if (pid == -1)
+    {
+      perror(errno);
+      exit (-1);
+    }
+  else if (pid > 0)
+      exit (0);			/* parent exits */
+  
   setsid ();			/* become session leader */
 
-  if (fork ())
-    exit (0);			/* new parent exits */
-
-  /* close inherited file descriptors */
-  close (0);
-  close (1);
-  close (2);
-
   signal (SIGHUP, SIG_IGN);	/* ignore SIGHUP */
+
+  pid = fork();
+  if (pid == -1)
+    {
+      perror(errno);
+      exit (-1);
+    }
+  else if (pid > 0)
+      exit (0);			/* parent exits */
+  
+  /* close inherited file descriptors */
+  for (i = 0; i < MAXFD; ++i)
+      close(i);
+
   signal (SIGCHLD, pop3_signal);	/* for forking */
 }
 
@@ -208,6 +224,10 @@ pop3_mainloop (int infile, int outfile)
 	status = ERR_TOO_LONG;
       else if (strlen (cmd) > 4)
 	status = ERR_BAD_CMD;
+      else if (strncasecmp (cmd, "RETR", 4) == 0)
+	status = pop3_retr (arg);
+      else if (strncasecmp (cmd, "DELE", 4) == 0)
+	status = pop3_dele (arg);
       else if (strncasecmp (cmd, "USER", 4) == 0)
 	status = pop3_user (arg);
       else if (strncasecmp (cmd, "QUIT", 4) == 0)
@@ -220,10 +240,6 @@ pop3_mainloop (int infile, int outfile)
 	status = pop3_stat (arg);
       else if (strncasecmp (cmd, "LIST", 4) == 0)
 	status = pop3_list (arg);
-      else if (strncasecmp (cmd, "RETR", 4) == 0)
-	status = pop3_retr (arg);
-      else if (strncasecmp (cmd, "DELE", 4) == 0)
-	status = pop3_dele (arg);
       else if (strncasecmp (cmd, "NOOP", 4) == 0)
 	status = pop3_noop (arg);
       else if (strncasecmp (cmd, "RSET", 4) == 0)
@@ -255,6 +271,8 @@ pop3_mainloop (int infile, int outfile)
 	fprintf (ofile, "-ERR [IN-USE] " MBOX_LOCK "\r\n");
       else if (status == ERR_TOO_LONG)
 	fprintf (ofile, "-ERR " TOO_LONG "\r\n");
+	  else
+	fprintf (ofile, "-ERR unknown error\r\n");
 
       free (buf);
       free (cmd);
@@ -265,58 +283,67 @@ pop3_mainloop (int infile, int outfile)
   return OK;
 }
 
-/* Runs GNU POP in standalone daemon mode. This opens and binds to a port 
+/* Runs GNU POP3 in standalone daemon mode. This opens and binds to a port 
    (default 110) then executes a pop3_mainloop() upon accepting a connection.
    It starts maxchildren child processes to listen to and accept socket
    connections */
 
-int
-pop3_daemon (int maxchildren)
+void
+pop3_daemon (unsigned int maxchildren)
 {
-  int children = 0;
-  struct sockaddr_in client;
-  int sock, sock2;
-  unsigned int socksize;
+  SA server, client;
+  pid_t pid;
+  int listenfd, connfd;
 
-  sock = socket (PF_INET, SOCK_STREAM, (getprotobyname ("tcp"))->p_proto);
-  if (sock < 0)
+  if ( (listenfd = socket (AF_INET, SOCK_STREAM, 0)) == -1 )
     {
-      syslog (LOG_ERR, "%s\n", strerror (errno));
-      exit (1);
+      syslog (LOG_ERR, "socket: %s", strerror(errno));
+	  exit (-1);
     }
-  memset (&client, 0, sizeof (struct sockaddr_in));
-  client.sin_family = AF_INET;
-  client.sin_port = htons (port);
-  client.sin_addr.s_addr = htonl (INADDR_ANY);
-  socksize = sizeof (client);
-  if (bind (sock, (struct sockaddr *) &client, socksize))
+  memset (&server, 0, sizeof(server));
+  server.sin_family = AF_INET;
+  server.sin_addr.s_addr = htonl (INADDR_ANY);
+  server.sin_port = htonl (port);
+  
+  if (bind(listenfd, (SA *) &server, sizeof(server)) == -1 )
     {
-      perror ("Couldn't bind to socket");
-      exit (1);
+      syslog(LOG_ERR, "bind: %s", strerror(errno));
+      exit(-1);
     }
-  listen (sock, 128);
-  while (1)
+
+  if (listen(listenfd, 128) == -1)
     {
-      if (children < maxchildren)
-	{
-	  if (!fork ())
-	    {
-	      sock2 = accept (sock, &client, &socksize);
-	      pop3_mainloop (sock2, sock2);
-	      close (sock2);
-	      exit (OK);
-	    }
-	  else
-	    {
-	      /* wait (NULL); */
-	      children++;
-	    }
-	}
+      syslog(LOG_ERR, "listen: %s", strerror(errno));
+	  exit(-1);
+    }
+  
+  for ( ; ; )
+    {
+      if (children > maxchildren)
+        {
+          pause();
+          continue;
+        }
+      if ( (connfd = accept(listenfd, (SA *) &client, sizeof(client))) == -1)
+        {
+          syslog(LOG_ERR, "accept: %s", strerror(errno));
+          exit(-1);
+        }
+
+      pid = fork();
+      if (pid == -1)
+          syslog(LOG_ERR, "fork: %s", strerror(errno));
+      else if(pid == 0) /* child */
+        {
+          close(listenfd);
+          pop3_mainloop(connfd, connfd);
+        }
       else
-	{
-	  wait (NULL);
-	  children--;
-	}
+        {
+          storepid(pid);
+          ++children;
+        }
+
+	  close(connfd);
     }
-  return OK;
 }
