@@ -42,6 +42,7 @@ static int  month_start[]=
          31  28  31   30   31   30   31   31   30   31   30   31
      */
 
+/* NOTE: ignore GCC warning. The precedence of operators is OK here */
 #define leap_year(y) ((y) % 4 == 0 && (y) % 100 != 0 || (y) % 400 == 0)
 
 static int
