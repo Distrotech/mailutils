@@ -322,7 +322,7 @@ mailbox_pop_open (mailbox_t mbox, int flags)
   mailbox_pop_data_t mpd;
   int status;
   bio_t bio;
-  void *func = mailbox_pop_open;
+  void *func = (void *)mailbox_pop_open;
   int fd;
   char host[256]  ;
   long port;
@@ -395,9 +395,7 @@ mailbox_pop_open (mailbox_t mbox, int flags)
 	}
       /* Dealing whith Authentication */
       /* so far only normal user/pass supported */
-      if (mbox->auth)
-	auth_authenticate (mbox->auth, &mpd->user, &mpd->passwd);
-      else
+      if (mbox->auth == NULL)
 	{
 	  status = auth_create (&(mbox->auth), mbox);
 	  if (status != 0)
@@ -494,7 +492,7 @@ static int
 mailbox_pop_close (mailbox_t mbox)
 {
   mailbox_pop_data_t mpd;
-  void *func = mailbox_pop_close;
+  void *func = (void *)mailbox_pop_close;
   int status;
   bio_t bio;
 
@@ -543,7 +541,7 @@ mailbox_pop_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
   bio_t bio;
   int status;
   size_t i;
-  void *func = mailbox_pop_get_message;
+  void *func = (void *)mailbox_pop_get_message;
 
   /* sanity */
   if (mbox == NULL || pmsg == NULL || (mpd = mbox->data) == NULL)
@@ -829,7 +827,7 @@ mailbox_pop_messages_count (mailbox_t mbox, size_t *pcount)
 {
   mailbox_pop_data_t mpd;
   int status;
-  void *func = mailbox_pop_messages_count;
+  void *func = (void *)mailbox_pop_messages_count;
   bio_t bio;
 
   if (mbox == NULL || (mpd = (mailbox_pop_data_t)mbox->data) == NULL)
@@ -939,7 +937,7 @@ mailbox_pop_expunge (mailbox_t mbox)
   attribute_t attr;
   bio_t bio;
   int status;
-  void *func = mailbox_pop_expunge;
+  void *func = (void *)mailbox_pop_expunge;
 
   if (mbox == NULL ||
       (mpd = (mailbox_pop_data_t) mbox->data) == NULL)
@@ -1063,7 +1061,7 @@ mailbox_pop_readstream (stream_t is, char *buffer, size_t buflen,
   size_t nread = 0;
   bio_t bio;
   int status = 0;
-  void *func = mailbox_pop_readstream;
+  void *func = (void *)mailbox_pop_readstream;
 
   (void)offset;
   if (is == NULL || (mpm = is->owner) == NULL)

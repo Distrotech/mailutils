@@ -202,7 +202,7 @@ do \
 } while (0)
 
 /* notifications ADD_MESG */
-#define DISPATCH_ADD_MSG(mbox,mud,file) \
+#define DISPATCH_ADD_MSG(mbox,mud) \
 do \
 { \
   int bailing = 0; \
@@ -212,7 +212,6 @@ do \
     { \
       if (pcount) \
         *pcount = (mud)->messages_count; \
-      fclose (file); \
       mailbox_unix_unlock (mbox); \
       return EINTR; \
     } \
@@ -230,7 +229,7 @@ do \
  * struct incomplete.  So we only tell them about
  * the complete messages.
  */
-#define DISPATCH_PROGRESS(mbox,mud,file) \
+#define DISPATCH_PROGRESS(mbox,mud) \
 do \
 { \
     { \
@@ -243,7 +242,6 @@ do \
 	{ \
 	  if (pcount) \
 	    *pcount = (mud)->messages_count; \
-          fclose (file); \
           mailbox_unix_unlock (mbox); \
 	  return EINTR; \
 	} \
@@ -260,7 +258,6 @@ do \
   attr = calloc (1, sizeof(*(attr))); \
   if ((attr) == NULL) \
     { \
-      fclose (file); \
       mailbox_unix_iunlock (mbox); \
       mailbox_unix_unlock (mbox); \
       return ENOMEM; \
@@ -269,7 +266,7 @@ do \
 
 //    size_t num = 2 * ((mud)->messages_count) + 10;
 /* allocate slots for the new messages */
-#define ALLOCATE_MSGS(mbox,mud,file) \
+#define ALLOCATE_MSGS(mbox,mud) \
 do \
 { \
   if ((mud)->messages_count >= (mud)->umessages_count) \
@@ -279,7 +276,6 @@ do \
     m = realloc ((mud)->umessages, num * sizeof (*m)); \
     if (m == NULL) \
       { \
-        fclose (file); \
         mailbox_unix_iunlock (mbox); \
         mailbox_unix_unlock (mbox); \
         return ENOMEM; \
@@ -288,7 +284,6 @@ do \
     (mud)->umessages[num - 1] = calloc (1, sizeof (*(mum))); \
     if ((mud)->umessages[num - 1] == NULL) \
       { \
-        fclose (file); \
         mailbox_unix_iunlock (mbox); \
         mailbox_unix_unlock (mbox); \
         return ENOMEM; \
@@ -299,19 +294,19 @@ do \
 } while (0)
 
 static int
-mailbox_unix_scan (mailbox_t mbox, size_t msgno, size_t *pcount)
+mailbox_unix_scan0 (mailbox_t mbox, size_t msgno, size_t *pcount, int do_notif)
 {
 #define MSGLINELEN 1024
   char buf[MSGLINELEN];
   int inheader;
   int inbody;
-  off_t total;
+  off_t total = 0;
   mailbox_unix_data_t mud;
   mailbox_unix_message_t mum = NULL;
   int status = 0;
   size_t lines;
   int newline;
-  FILE *file;
+  size_t n = 0;
 
   int zn, isfrom = 0;
   char *temp;
@@ -321,69 +316,36 @@ mailbox_unix_scan (mailbox_t mbox, size_t msgno, size_t *pcount)
       (mud = (mailbox_unix_data_t)mbox->data) == NULL)
     return EINVAL;
 
-  /* the simplest way to deal with reentrancy issues is to
-   * duplicate the FILE * pointer instead of the orignal.
-   *
-   * QnX4(and earlier ?) has a BUFSIZ of about 512 ???
-   * we use setvbuf () to reset to something sane.
-   * Really something smaller would be counter productive.
-   */
-  {
-    file = fopen (mbox->name, "r");
-    if (file == NULL)
-      return errno;
-#if BUFSIZ <= 1024
-    {
-      char *iobuffer;
-      iobuffer = malloc (8192);
-      if (iobuffer != NULL)
-	if (setvbuf (file, iobuffer, _IOFBF, 8192) != 0)
-	  free (iobuffer);
-    }
-#endif
-  }
+  /* save the timestamp and size */
+  status = stream_size (mbox->stream, &(mud->size));
+  if (status != 0)
+    return status;
 
   /* grab the locks */
   mailbox_unix_ilock (mbox, MU_LOCKER_WRLOCK);
   mailbox_unix_lock (mbox, MU_LOCKER_RDLOCK);
 
-  /* save the timestamp and size */
-  {
-    struct stat st;
-    if (fstat (fileno (file), &st) != 0)
-      {
-	status = errno;
-	fclose (file);
-	mailbox_unix_iunlock (mbox);
-	mailbox_unix_unlock (mbox);
-	return status;
-      }
-    mud->mtime = st.st_mtime;
-    mud->size = st.st_size;
-  }
-
   /* seek to the starting point */
-  if (mud->umessages)
+  if (mud->umessages && msgno > 0 && mud->messages_count > 0
+      && msgno <= mud->messages_count)
     {
-      if (mud->messages_count > 0 &&
-	  msgno != 0 &&
-	  msgno <= mud->messages_count)
-	{
-	  mum = mud->umessages[msgno - 1];
-	  if (mum)
-	    fseek (file, mum->body_end, SEEK_SET);
-	  mud->messages_count = msgno;
-	}
+      mum = mud->umessages[msgno - 1];
+      if (mum)
+	total = mum->header_from;
+      mud->messages_count = msgno - 1;
     }
+  else
+    mud->messages_count = 0;
 
   newline = 1;
-  errno = total = lines = inheader = inbody = 0;
+  errno = lines = inheader = inbody = 0;
 
-  while (fgets (buf, sizeof (buf), file))
+  while ((status = stream_readline (mbox->stream, buf, sizeof (buf),
+				    total, &n)) == 0 && n != 0)
     {
-      int over, nl;
-      STRLEN (buf, over);
-      total += over;
+      int nl;
+      STRLEN(buf, n);
+      total += n;
 
       nl = (*buf == '\n') ? 1 : 0;
       VALID(buf, temp, isfrom, zn);
@@ -403,22 +365,23 @@ mailbox_unix_scan (mailbox_t mbox, size_t msgno, size_t *pcount)
 	      /* signal the end of the body */
 	      if (mum && !mum->body_end)
 		{
-		  mum->body_end = total - over - newline;
+		  mum->body_end = total - n - newline;
 		  mum->body_lines = --lines - newline;
-		  DISPATCH_ADD_MSG(mbox, mud, file);
+		  if (do_notif)
+		    DISPATCH_ADD_MSG(mbox, mud);
 		}
 	      /* allocate_msgs will initialize mum */
-	      ALLOCATE_MSGS(mbox, mud, file);
+	      ALLOCATE_MSGS(mbox, mud);
 	      mud->messages_count++;
 	      mum = mud->umessages[mud->messages_count - 1];
-	      mum->file = mud->file;
-              mum->header_from = total - over;
+	      mum->stream = mbox->stream;
+              mum->header_from = total - n;
               mum->header_from_end = total;
 	      lines = 0;
 	    }
-	  else if ((over > 7) && ISSTATUS(buf))
+	  else if ((n > 7) && ISSTATUS(buf))
 	    {
-	      mum->header_status = total - over;
+	      mum->header_status = total - n;
 	      mum->header_status_end = total;
 	      ATTRIBUTE_SET(buf, mum, 'r', 'R', MU_ATTRIBUTE_READ);
 	      ATTRIBUTE_SET(buf, mum, 'o', 'O', MU_ATTRIBUTE_SEEN);
@@ -433,7 +396,7 @@ mailbox_unix_scan (mailbox_t mbox, size_t msgno, size_t *pcount)
 	  /* set the body position */
 	  if (mum && !mum->body)
 	    {
-	      mum->body = total - over + nl;
+	      mum->body = total - n + nl;
 	      mum->header_lines = lines;
 	      lines = 0;
 	    }
@@ -446,25 +409,19 @@ mailbox_unix_scan (mailbox_t mbox, size_t msgno, size_t *pcount)
 	mailbox_unix_touchlock (mbox);
 
       /* ping them every 1000 lines */
-      if (((lines +1) % 1000) == 0)
-	DISPATCH_PROGRESS(mbox, mud, file);
+      if (do_notif)
+	if (((lines +1) % 1000) == 0)
+	  DISPATCH_PROGRESS(mbox, mud);
 
     } /* while */
-
-  status = errno;
-
-  /* not an error if we reach EOF */
-  if (feof (file))
-    status = 0;
-  clearerr (file);
 
   if (mum)
     {
       mum->body_end = total - newline;
       mum->body_lines = lines - newline;
-      DISPATCH_ADD_MSG(mbox, mud, file);
+      if (do_notif)
+	DISPATCH_ADD_MSG(mbox, mud);
     }
-  fclose (file);
   mailbox_unix_iunlock (mbox);
   mailbox_unix_unlock (mbox);
   if (pcount)

@@ -273,6 +273,8 @@ header_get_value (header_t header, const char *name, char *buffer,
     *buffer = '\0'; /* null terminated */
   if (pn)
     *pn = total;
+  if (total == 0)
+    return ENOENT;
   return 0;
 }
 
@@ -386,13 +388,13 @@ header_read (stream_t is, char *buf, size_t buflen,
 	     off_t off, size_t *pnread)
 {
   header_t header;
-  ssize_t len;
+  int len;
 
   if (is == NULL || (header = (header_t)is->owner) == NULL)
     return EINVAL;
 
   len = header->blurb_len - off;
-  if ((header->blurb_len - off) > 0)
+  if (len > 0)
     {
       if (buf)
 	{

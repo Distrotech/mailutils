@@ -256,7 +256,7 @@ mailbox_deregister (mailbox_t mbox, void *action)
   for (i = 0; i < mbox->event_num; i++)
     {
       event = &(mbox->event[i]);
-      if (event->_action == action)
+      if ((int)event->_action == (int)action)
 	{
 	  event->type = 0;
 	  event->_action = NULL;

@@ -43,10 +43,6 @@ typedef struct _message *message_t;
 
 /* A message is considered to be a container for:
  * header_t, body_t, and its attribute_t.
- * The notion of body_t is not visible/exported, since
- * they are alway tied to a floating message, there was no
- * need to create yet another object, getting the {i,o}stream_t
- * was enough.
  */
 
 extern int message_create        __P ((message_t *, void *owner));
@@ -71,20 +67,26 @@ extern int message_set_from  __P ((message_t,
 						      size_t, size_t *)),
 				   void *owner));
 extern int message_received  __P ((message_t, char *, size_t, size_t *));
-extern int message_set_received  __P ((message_t,
-				       int (*_received) __P ((message_t,
-							      char *, size_t,
-							      size_t *)),
-				       void *owner));
+extern int message_set_received  __P ((message_t, int (*_received)
+				       __P ((message_t, char *, size_t,
+					     size_t *)), void *owner));
 
 extern int message_get_attribute __P ((message_t, attribute_t *));
 extern int message_set_attribute __P ((message_t, attribute_t, void *owner));
 
+extern int message_get_num_parts    __P ((message_t, size_t *nparts));
+extern int message_set_get_num_parts    __P ((message_t, size_t *nparts));
+
+extern int message_get_part  __P ((message_t, size_t part, message_t *msg));
+extern int message_set_get_part __P ((message_t, size_t part, message_t *msg));
+
+extern int message_add_part  __P ((message_t, message_t msg));
+extern int message_set_add_part  __P ((message_t, message_t msg));
+
 /* events */
 #define MU_EVT_MSG_DESTROY 32
-extern int message_register __P ((message_t msg, size_t type,
-				  int (*action) (size_t typ, void *arg),
-				  void *arg));
+extern int message_register __P ((message_t msg, size_t type, int (*action)
+				  __P ((size_t typ, void *arg)), void *arg));
 extern int message_deregister __P ((message_t msg, void *action));
 
 /* misc functions */

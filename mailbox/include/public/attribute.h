@@ -35,42 +35,42 @@ extern "C" {
 struct _attribute;
 typedef struct _attribute * attribute_t;
 
-extern int attribute_create __P ((attribute_t *));
-extern void attribute_destroy __P ((attribute_t *));
+extern int attribute_create         __P ((attribute_t *));
+extern void attribute_destroy       __P ((attribute_t *));
 
-extern int attribute_is_seen __P ((attribute_t));
-extern int attribute_is_answered __P ((attribute_t));
-extern int attribute_is_flagged __P ((attribute_t));
-extern int attribute_is_deleted __P ((attribute_t));
-extern int attribute_is_draft __P ((attribute_t));
-extern int attribute_is_recent __P ((attribute_t));
-extern int attribute_is_read __P ((attribute_t));
+extern int attribute_is_seen        __P ((attribute_t));
+extern int attribute_is_answered    __P ((attribute_t));
+extern int attribute_is_flagged     __P ((attribute_t));
+extern int attribute_is_deleted     __P ((attribute_t));
+extern int attribute_is_draft       __P ((attribute_t));
+extern int attribute_is_recent      __P ((attribute_t));
+extern int attribute_is_read        __P ((attribute_t));
 
-extern int attribute_set_seen __P ((attribute_t));
-extern int attribute_set_answered __P ((attribute_t));
-extern int attribute_set_flagged __P ((attribute_t));
-extern int attribute_set_deleted __P ((attribute_t));
-extern int attribute_set_draft __P ((attribute_t));
-extern int attribute_set_recent __P ((attribute_t));
-extern int attribute_set_read __P ((attribute_t));
+extern int attribute_set_seen       __P ((attribute_t));
+extern int attribute_set_answered   __P ((attribute_t));
+extern int attribute_set_flagged    __P ((attribute_t));
+extern int attribute_set_deleted    __P ((attribute_t));
+extern int attribute_set_draft      __P ((attribute_t));
+extern int attribute_set_recent     __P ((attribute_t));
+extern int attribute_set_read       __P ((attribute_t));
 
-extern int attribute_unset_seen __P ((attribute_t));
+extern int attribute_unset_seen     __P ((attribute_t));
 extern int attribute_unset_answered __P ((attribute_t));
-extern int attribute_unset_flagged __P ((attribute_t));
-extern int attribute_unset_deleted __P ((attribute_t));
-extern int attribute_unset_draft __P ((attribute_t));
-extern int attribute_unset_recent __P ((attribute_t));
-extern int attribute_unset_read __P ((attribute_t));
+extern int attribute_unset_flagged  __P ((attribute_t));
+extern int attribute_unset_deleted  __P ((attribute_t));
+extern int attribute_unset_draft    __P ((attribute_t));
+extern int attribute_unset_recent   __P ((attribute_t));
+extern int attribute_unset_read     __P ((attribute_t));
 
-extern int attribute_is_equal __P ((attribute_t att1, attribute_t att2));
+extern int attribute_is_equal       __P ((attribute_t att1, attribute_t att2));
 
-extern int attribute_copy       __P ((attribute_t dst,
-				      attribute_t src));
+extern int attribute_copy           __P ((attribute_t dst,
+					  attribute_t src));
 
-extern int string_to_attribute __P ((const char *buf,
-				     attribute_t *pattr));
-extern int attribute_to_string __P ((attribute_t attr, char *buf,
-				     size_t len, size_t *));
+extern int string_to_attribute      __P ((const char *buf,
+					  attribute_t *pattr));
+extern int attribute_to_string      __P ((attribute_t attr, char *buf,
+					  size_t len, size_t *));
 
 #ifdef __cplusplus
 }

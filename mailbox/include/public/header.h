@@ -67,7 +67,7 @@ extern "C" {
 struct _header;
 typedef struct _header * header_t;
 
-extern int header_create         __P ((header_t *, const char *blurb,
+extern int header_create       __P ((header_t *, const char *blurb,
 				     size_t ln, void *owner));
 extern void header_destroy     __P ((header_t *, void *owner));
 
@@ -80,9 +80,9 @@ extern int header_entry_name   __P ((header_t, size_t num, char *buf,
 				     size_t buflen, size_t *total));
 extern int header_entry_value  __P ((header_t, size_t num, char *buf,
 				     size_t buflen, size_t *total));
-extern int header_get_stream  __P ((header_t, stream_t *stream));
-extern int header_size     __P ((header_t, size_t *size));
-extern int header_lines     __P ((header_t, size_t *lines));
+extern int header_get_stream   __P ((header_t, stream_t *stream));
+extern int header_size         __P ((header_t, size_t *size));
+extern int header_lines        __P ((header_t, size_t *lines));
 
 #ifdef _cplusplus
 }

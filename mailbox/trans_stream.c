@@ -74,8 +74,6 @@ static int _trans_read(stream_t stream, char *optr, size_t osize, off_t offset, 
 
 	*nbytes = 0;
 
-	if ( offset && ts->offset != offset )
-		return ESPIPE;
 	if ( offset == 0 )
 		ts->cur_offset = 0;		
 	if ( ( iptr = alloca(isize) ) == NULL )
@@ -89,13 +87,13 @@ static int _trans_read(stream_t stream, char *optr, size_t osize, off_t offset, 
 	if ( ( ret = stream_read(ts->stream, iptr + ts->llen, isize - ts->llen, ts->cur_offset, &osize) ) != 0 ) 
 		return ret;
 	ts->cur_offset += osize;
-	consumed = ts->transcoder(iptr, isize, optr, nbytes);
-	if ( ts->llen = (isize - consumed ) ) {
+	consumed = ts->transcoder(iptr, osize + ts->llen, optr, nbytes);
+	if ( ( ts->llen = ((osize + ts->llen) - consumed ) ) ) 
+	{
 		if ( ( ts->leftover = malloc(ts->llen) ) == NULL )
 			return ENOMEM;
 		memcpy(ts->leftover, iptr + consumed, ts->llen);		
 	}
-	ts->offset = offset;
 	return 0;
 }
 
@@ -112,7 +110,7 @@ static int _trans_write(stream_t stream, const char *iptr, size_t isize, off_t o
 
 	*nbytes = 0;
 
-	if ( offset && ts->offset != offset )
+	if ( offset && ts->cur_offset != offset )
 		return ESPIPE;
 	if ( offset == 0 )
 		ts->cur_offset = 0;		
@@ -197,19 +195,19 @@ static int _b64_input(char c)
 	return -1;
 }
 
-static int _b64_output(int index)
+static int _b64_output(int idx)
 {
 	const char table[64] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
-	if (index < 64)
-		return table[index];
+	if (idx < 64)
+		return table[idx];
 	return -1;
 }
 
 int _base64_decode(const char *iptr, size_t isize, char *optr, size_t *nbytes)
 {
-	int i, tmp = 0;
-	int consumed = 0;
+	int i = 0, tmp = 0;
+	size_t consumed = 0;
 	char data[4];
 		
 	while ( consumed < isize ) {
@@ -227,7 +225,10 @@ int _base64_decode(const char *iptr, size_t isize, char *optr, size_t *nbytes)
 			(*nbytes) += 3;
 		}
 		else // I did not get all the data
+		{
+			consumed -= i;
 			return consumed;
+		}
 		i = 0;
 	}
 	return consumed;
@@ -235,7 +236,7 @@ int _base64_decode(const char *iptr, size_t isize, char *optr, size_t *nbytes)
 
 int _base64_encode(const char *iptr, size_t isize, char *optr, size_t *nbytes)
 {
-	int     consumed = 0;
+	size_t consumed = 0;
 
 	while (consumed < (isize - 3) && (*nbytes + 4) < isize) {
 		*optr++ = _b64_output(*iptr >> 2);
@@ -270,7 +271,8 @@ static int _ishex(int c)
 int _qp_decode(const char *iptr, size_t isize, char *optr, size_t *nbytes)
 {
 	char c;
-	int last_char = 0, consumed = 0;
+	int last_char = 0;
+	size_t consumed = 0;
 	
 	while (consumed < isize) {
 		c = *iptr++;
@@ -332,8 +334,8 @@ int _qp_decode(const char *iptr, size_t isize, char *optr, size_t *nbytes)
 #define QP_LINE_MAX	76
 int _qp_encode(const char *iptr, size_t isize, char *optr, size_t *nbytes)
 {
-	int count = 0;
-	int consumed = 0, c;
+	int count = 0, c;
+	size_t consumed = 0;
 	
 	while (consumed < isize && (*nbytes + 4) < isize) {
 		if (count == QP_LINE_MAX) {

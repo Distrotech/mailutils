@@ -389,7 +389,7 @@ message_deregister (message_t msg, void *action)
   for (i = 0; i < msg->event_num; i++)
     {
       event = &(msg->event[i]);
-      if (event->_action == action)
+      if ((int)event->_action == (int)action)
 	{
 	  event->type = 0;
 	  event->_action = NULL;

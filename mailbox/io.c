@@ -132,11 +132,24 @@ stream_set_read (stream_t stream, int (*_read)
 {
   if (stream == NULL)
     return EINVAL;
-  if (owner == stream->owner &&
-      ((stream->flags & MU_STREAM_READ) ||
-       (stream->flags & MU_STREAM_RDWR)))
+  if (owner == stream->owner)
     {
       stream->_read = _read;
+      return 0;
+    }
+  return EACCES;
+}
+
+int
+stream_set_readline (stream_t stream, int (*_readline)
+		 (stream_t, char *, size_t, off_t, size_t *),
+		 void *owner)
+{
+  if (stream == NULL)
+    return EINVAL;
+  if (owner == stream->owner)
+    {
+      stream->_readline = _readline;
       return 0;
     }
   return EACCES;
@@ -149,10 +162,7 @@ stream_set_write (stream_t stream, int (*_write)
 {
   if (stream == NULL)
     return EINVAL;
-  if (stream->owner == owner &&
-      ((stream->flags & MU_STREAM_WRITE) ||
-       (stream->flags & MU_STREAM_RDWR) ||
-       (stream->flags & MU_STREAM_APPEND)))
+  if (stream->owner == owner)
     {
       stream->_write = _write;
       return 0;
@@ -167,6 +177,46 @@ stream_read (stream_t is, char *buf, size_t count,
   if (is == NULL || is->_read == NULL)
     return EINVAL;
   return is->_read (is, buf, count, offset, pnread);
+}
+
+int
+stream_readline (stream_t is, char *buf, size_t count,
+		 off_t offset, size_t *pnread)
+{
+  size_t n, nr = 0;
+  char c;
+  int status;
+  if (is == NULL)
+    return EINVAL;
+  if (is->_readline != NULL)
+    return is->_readline (is, buf, count, offset, pnread);
+
+  /* grossly inefficient hopefully they override this */
+  for (n = 1; n < count; n++)
+    {
+      status = stream_read (is, &c, 1, offset, &nr);
+      if (status != 0) /* error */
+	return status;
+      else if (nr == 1)
+	{
+	  *buf++ = c;
+	  offset++;
+	  if (c == '\n') /* newline is stored like fgets() */
+	    break;
+	}
+      else if (nr == 0)
+	{
+	  if (n == 1) /* EOF, no data read */
+	    n = 0;
+	  break; /* EOF, some data was read */
+	}
+    }
+
+  *buf = '\0';
+  if (pnread)
+    *pnread = n;
+
+  return 0;
 }
 
 int
@@ -203,5 +253,65 @@ stream_set_flags (stream_t stream, int fl, void *owner)
   if (stream->owner != owner)
     return EACCES;
   stream->flags = fl;
+  return 0;
+}
+
+int
+stream_size (stream_t stream, off_t *psize)
+{
+  if (stream == NULL || stream->_size == NULL)
+    return EINVAL;
+  return stream->_size (stream, psize);
+}
+
+int
+stream_set_size (stream_t stream, int (*_size)(stream_t, off_t *), void *owner)
+{
+  if (stream == NULL)
+    return EINVAL;
+  if (stream->owner != owner)
+    return EACCES;
+  stream->_size = _size;
+  return 0;
+}
+
+
+int
+stream_truncate (stream_t stream, off_t len)
+{
+  if (stream == NULL || stream->_truncate == NULL )
+    return EINVAL;
+
+  return stream->_truncate (stream, len);
+}
+
+int
+stream_set_truncate (stream_t stream, int (*_truncate) (stream_t, off_t),
+		     void *owner)
+{
+  if (stream == NULL)
+    return EINVAL;
+  if (stream->owner != owner)
+    return EACCES;
+  stream->_truncate = _truncate;
+  return 0;
+}
+
+int
+stream_flush (stream_t stream)
+{
+  if (stream == NULL || stream->_flush == NULL)
+    return EINVAL;
+  return stream->_flush (stream);
+}
+
+int
+stream_set_flush (stream_t stream, int (*_flush) (stream_t), void *owner)
+{
+  if (stream == NULL)
+    return EINVAL;
+  if (stream->owner != owner)
+    return EACCES;
+  stream->_flush = _flush;
   return 0;
 }

@@ -32,7 +32,7 @@ struct _msg_info {
 	char	*header_buf;
 	int		header_len;
 	int		header_size;
-	header_t hdr;	
+	header_t hdr;
 	message_t msg;
 	int		ioffset;
 	int 	ooffset;
@@ -51,7 +51,7 @@ int message_create_attachment(const char *content_type, const char *encoding, co
 	int ret;
 
 	if ( ( ret = message_create(newmsg, NULL) ) == 0 ) {
-		if ( content_type == NULL ) 
+		if ( content_type == NULL )
 			content_type = "text/plain";
 		if ( encoding == NULL )
 			encoding = "7bit";
@@ -61,21 +61,23 @@ int message_create_attachment(const char *content_type, const char *encoding, co
 			sprintf(header, MSG_HDR, content_type, encoding);
 			if ( ( ret = header_create( &hdr, header, strlen(header), *newmsg ) ) == 0 ) {
 				message_get_body(*newmsg, &body);
-				if ( ( ret = file_stream_create(&fstream, filename, MU_STREAM_READ) ) == 0 ) {
+				if ( ( ret = file_stream_create(&fstream) ) == 0 ) {
+				  if ( ( ret = stream_open(fstream, filename, 0,  MU_STREAM_READ) ) == 0 ) {
 					if ( ( ret = encoder_stream_create(&tstream, fstream, encoding) ) == 0 ) {
 						body_set_stream(body, tstream, *newmsg);
 						message_set_header(*newmsg, hdr, NULL);
 					}
+				  }
 				}
 			}
 		}
 	}
 	if ( ret ) {
-		if ( *newmsg ) 
+		if ( *newmsg )
 			message_destroy(newmsg, NULL);
 		if ( hdr )
 			header_destroy(&hdr, NULL);
-		if ( fstream ) 
+		if ( fstream )
 			stream_destroy(&fstream, NULL);
 	}
 	return ret;
@@ -87,14 +89,14 @@ static int _attachment_setup(struct _msg_info **info, message_t msg, stream_t *s
 	int 				sfl, ret;
 	body_t				body;
 
-	if ( ( ret = message_get_body(msg, &body) ) != 0 || 
-		 ( ret = body_get_stream(body, stream) ) != 0 ) 
+	if ( ( ret = message_get_body(msg, &body) ) != 0 ||
+		 ( ret = body_get_stream(body, stream) ) != 0 )
 		return ret;
 	stream_get_flags(*stream, &sfl);
 	if ( data == NULL && (sfl & MU_STREAM_NONBLOCK) )
 		return EINVAL;
 	if ( data )
-		*info = *data;		
+		*info = *data;
 	if ( *info == NULL ) {
 		if ( ( *info = calloc(1, sizeof(struct _msg_info)) ) == NULL )
 			return ENOMEM;
@@ -107,14 +109,14 @@ static int _attachment_setup(struct _msg_info **info, message_t msg, stream_t *s
 }
 
 static void _attachment_free(struct _msg_info *info, int free_message) {
-	if ( info->buf ) 
+	if ( info->buf )
 		free(info->buf);
 	if ( info->header_buf )
 		free(info->header_buf);
 	if ( free_message ) {
 		if ( info->msg )
 			message_destroy(&(info->msg), NULL);
-		else if ( info->hdr ) 
+		else if ( info->hdr )
 			header_destroy(&(info->hdr), NULL);
 	}
 	free(info);
@@ -128,7 +130,7 @@ int message_save_attachment(message_t msg, const char *filename, void **data)
 	int 				ret;
 	size_t				size;
 	char 				*content_encoding;
-	
+
 	if ( msg == NULL || filename == NULL)
 		return EINVAL;
 
@@ -142,10 +144,10 @@ int message_save_attachment(message_t msg, const char *filename, void **data)
 	}
 	if ( ret == 0 && ( ret = _attachment_setup( &info, msg, &stream, data) ) != 0 )
 		return ret;
-	
+
 	if ( ret != EAGAIN && info )
 		_attachment_free(info, ret);
-	return ret;	
+	return ret;
 }
 
 #if 0
@@ -158,14 +160,14 @@ int message_encapsulate(message_t msg, message_t *newmsg, void **data)
 
 	if ( msg == NULL || newmsg == NULL)
 		return EINVAL;
-		
+
 	if ( ( ret = message_create(&(info->msg), NULL) ) == 0 ) {
 		header = "Content-Type: message/rfc822\nContent-Transfer-Encoding: 7bit\n\n";
 		if ( ( ret = header_create( &(info->hdr), header, strlen(header), msg ) ) == 0 ) {
 			message_set_header(info->msg, info->hdr, NULL);
 		}
 	}
-	return ret;	
+	return ret;
 }
 #endif
 
@@ -183,7 +185,7 @@ int message_unencapsulate(message_t msg, message_t *newmsg, void **data)
 
 	if ( msg == NULL || newmsg == NULL)
 		return EINVAL;
-		
+
 	if ( (data == NULL || *data == NULL ) && ( ret = message_get_header(msg, &hdr) ) == 0 ) {
 		header_get_value(hdr, "Content-Type", NULL, 0, &size);
 		if ( size ) {
@@ -218,7 +220,7 @@ int message_unencapsulate(message_t msg, message_t *newmsg, void **data)
 					info->header_len += info->line_ndx;
 					memcpy(info->header_buf, info->line, info->line_ndx);
 					if ( info->line_ndx == 1 ) {
-						header_done = 1;						
+						header_done = 1;
 						break;
 					}
 					info->line_ndx = 0;
@@ -233,7 +235,7 @@ int message_unencapsulate(message_t msg, message_t *newmsg, void **data)
 	}
 	if ( ret == 0 && info->msg == NULL ) {
 		if ( ( ret = message_create(&(info->msg), NULL) ) == 0)
-			if ( ( ret = header_create(&(info->hdr), info->header_buf, info->header_len, info->msg) ) == 0 ) 
+			if ( ( ret = header_create(&(info->hdr), info->header_buf, info->header_len, info->msg) ) == 0 )
 				ret = message_set_header(info->msg, hdr, NULL);
 	}
 	if ( ret == 0 ) {
@@ -253,6 +255,6 @@ int message_unencapsulate(message_t msg, message_t *newmsg, void **data)
 	}
 	if ( ret != EAGAIN && info )
 		_attachment_free(info, ret);
-	return ret;	
+	return ret;
 }
 

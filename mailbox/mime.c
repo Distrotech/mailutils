@@ -77,7 +77,7 @@ static int _mime_append_part(mime_t mime, message_t msg, int body_offset, int bo
 				header_set_value(mime_part->hdr, "Content-Type", "message/rfc822", 0, 0);
 			else
 				header_set_value(mime_part->hdr, "Content-Type", "text/plain", 0, 0);
-		}			
+		}
 	}
 	mime_part->body_len = body_len;
 	mime_part->body_offset = body_offset;
@@ -122,21 +122,21 @@ static void _mime_munge_content_header(char *field_body )
 	_strtrim(field_body);
 
 	if ( ( e = strchr(str, ';') ) == NULL )
-		return; 
+		return;
 	while( *e == ';' ) {
 		p = e;
-		e++;	
+		e++;
 		while ( *e && isspace(*e) )  /* remove space upto param */
 			e++;
 		memmove(p+1, e, strlen(e)+1);
 		e = p+1;
-	
+
 		while ( *e && *e != '=' )   /* find end of value */
 			e++;
 		e = p = e+1;
 		while ( *e && (quoted || ( !_ISSPECIAL(*e) && !isspace(*e) ) ) ) {
 			if ( *e == '\\' ) {                /* escaped */
-				memmove(e, e+1, strlen(e)+2); 
+				memmove(e, e+1, strlen(e)+2);
 			} else if ( *e == '\"' )
 				quoted = ~quoted;
 			e++;
@@ -282,12 +282,12 @@ static int _mime_parse_mpart_message(mime_t mime)
 			nbytes--;
 			cp++;
 		}
-		if ( mime->flags & MIME_INCREAMENTAL_PARSER ) { 
-			/* 
-			 * can't really do this since returning EAGAIN will make the MUA think 
-			 * it should select on the messages stream fd. re-think this whole 
+		if ( mime->flags & MIME_INCREAMENTAL_PARSER ) {
+			/*
+			 * can't really do this since returning EAGAIN will make the MUA think
+			 * it should select on the messages stream fd. re-think this whole
 			 * non-blocking thing.....
-		
+
 			ret = EAGAIN;
 			break;
 			*/
@@ -326,15 +326,6 @@ static int _mime_message_fd(stream_t stream, int *fd)
 	struct _mime_part *mime_part = stream->owner;
 
 	return stream_get_fd(mime_part->mime->stream, fd);
-}
-
-static int _mime_new_message_read(stream_t stream, char *buf, size_t buflen, off_t off, size_t *nbytes)
-{
-	(void)stream; (void)buf; (void)buflen; (void)off;
-	if ( nbytes == NULL )
-		return(EINVAL);
-
-	return 0;
 }
 
 static int _mime_body_size (body_t body, size_t *psize)
