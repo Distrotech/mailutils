@@ -10,7 +10,16 @@ lib_LTLIBRARIES = libsieve.la
 
 noinst_PROGRAMS = sv
 
-libsieve_la_SOURCES = sieve-gram.c sieve-gram.h sieve-lex.c util.c
+libsieve_la_SOURCES = \
+ actions.c\
+ register.c\
+ require.c\
+ sieve-gram.c\
+ sieve-gram.h\
+ sieve-lex.c\
+ tests.c\
+ util.c
+
 sv_SOURCES = sv.c
 sv_LDADD = ./libsieve.la ../mailbox/libmailbox.la 
 noinst_HEADERS = sieve.h
