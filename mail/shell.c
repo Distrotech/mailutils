@@ -62,10 +62,16 @@ mail_execute (int shell, int argc, char **argv)
 {
   pid_t pid;
   char *buf = NULL;
+  char *argv0 = NULL;
 
-  /* Skip leading whitespace from argv[0] */
-  while (isspace (**argv))
-    (*argv)++;
+  if (argc)
+    {
+      argv0 = argv[0]; 
+  
+      /* Skip leading whitespace from argv[0] */
+      while (isspace (**argv))
+	(*argv)++;
+    }
 
   /* Expand arguments if required */
   if (util_getenv (NULL, "bang", Mail_env_boolean, 0) == 0)
@@ -77,7 +83,7 @@ mail_execute (int shell, int argc, char **argv)
     }
 
   /* Construct command line and save it to gnu-last-command variable */
-  argcv_string (argc, &argv[0], &buf);
+  argcv_string (argc, argv, &buf);
   util_setenv ("gnu-last-command", buf, Mail_env_string, 1);
 
   /* Do actual work */
@@ -111,18 +117,22 @@ mail_execute (int shell, int argc, char **argv)
       execvp (argv[0], argv);
       exit (1);
     }
-  else if (pid > 0)
+  else
     {
+      if (argv0) /* Restore argv[0], else argcv_free will coredump */
+	argv[0] = argv0;
       free (buf);
-      while (waitpid (pid, NULL, 0) == -1)
-	/* do nothing */;
-      return 0;
-    }
-  else if (pid < 0)
-    {
-      free (buf);
-      mu_error ("fork failed: %s", mu_strerror (errno));
-      return 1;
+      if (pid > 0)
+	{
+	  while (waitpid (pid, NULL, 0) == -1)
+	    /* do nothing */;
+	  return 0;
+	}
+      else /* if (pid < 0) */
+	{
+	  mu_error ("fork failed: %s", mu_strerror (errno));
+	  return 1;
+	}
     }
 }
 
