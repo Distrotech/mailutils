@@ -22,7 +22,7 @@ The resources allocate are release.
 @deftypefun int body_set_stream (body_t @var{body}, stream_t @var{stream}, void *@var{owner})
 @end deftypefun
 
-@deftypefun int body_get_filename __P ((body_t @var{body}, char *@var{buffer}, size_t@var{buflen}, size_t *@var{pwriten})
+@deftypefun int body_get_filename __P ((body_t @var{body}, char *@var{buffer}, size_t @var{buflen}, size_t *@var{pwriten}))
 @end deftypefun
 
 @deftypefun int body_set_filename (body_t @var{body}, const char*@var{buffer})

@@ -411,7 +411,7 @@ the instance of sieve machine. See @code{sieve_machine_init()}.
 This function returns the current message.
 @end deftypefun
 
-@deftypefun size_t sieve_get_message_num (sieve_machine_t @var{mach});
+@deftypefun size_t sieve_get_message_num (sieve_machine_t @var{mach})
 This function returns the current message number in the mailbox.
 If there are no mailbox, i.e. the execution of the sieve code is started
 with @code{sieve_message}, this function returns 1.
@@ -429,7 +429,7 @@ Returns the authentication ticket for this machine.
 Returns the mailer.
 @end deftypefun
 
-@deftypefun {char *} sieve_get_daemon_email __P((sieve_machine_t @var{mach})
+@deftypefun {char *} sieve_get_daemon_email (sieve_machine_t @var{mach})
 This function returns the @dfn{daemon email} associated with this
 instance of sieve machine. The daemon email is an email address used in
 envelope from addresses of automatic reply messages. By default its local
@@ -474,7 +474,7 @@ _sieve_default_parse_error (void *unused,
 @end example
 @end deftypefun
 
-@deftypefun void sieve_set_debug (sieve_machine_t @var{mach}, sieve_printf_t @var{debug}));
+@deftypefun void sieve_set_debug (sieve_machine_t @var{mach}, sieve_printf_t @var{debug});
 This function sets the debug printer function for the machine. If it is
 not set, the default debug printer is @code{NULL} which means no
 debugging information will be displayed.
