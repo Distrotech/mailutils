@@ -1,3 +1,17 @@
+2003-03-26  Sergey Poznyakoff 
+
+	* include/mailutils/errno.h (MU_ERR_FAILURE): New macro
+	* mailbox/muerrno.c: Likewise
+	* mailbox/mutil.c (mu_rfc2822_references,mu_rfc2822_in_reply_to):
+	  Return MU_ERR_FAILURE on error.
+	* mh/mh_format.c (builtin_concat): Extra safety check
+	  (builtin_in_reply_to,builtin_references): Check return value
+	  from the underlying library calls.
+	* mh/mh_msgset.c (_mh_msgset_parse): Accept "all" message spec
+	  on folders with only one message.
+	* mh/mhn.c: Print information about the external body parts.
+	* mh/whom.c (mh_option): Bugfix
+	
 2003-03-24  Sergey Poznyakoff 
 
 	* mh/mhn.c (stream_getline,parse_content_type): A couple of
