@@ -179,8 +179,8 @@ util_expand_msglist (const int argc, char **argv, int **list)
 		pattern[k] = toupper ((int)pattern[k]);
 
 	      if (pattern && subject && strstr (subject, pattern))
-		{
-		  current = util_ll_add (current, j);
+		    {
+		      current = util_ll_add (current, j);
 		}
 
 	      free (pattern);
@@ -242,7 +242,7 @@ util_expand_msglist (const int argc, char **argv, int **list)
       ret = calloc (1, sizeof (int));
       if (!ret)
 	{
-	  fprintf (ofile, "not enough memory\n");
+	  util_error("not enough memory");
 	  exit (1);
 	}
       ret [0] = cursor;
@@ -253,7 +253,7 @@ util_expand_msglist (const int argc, char **argv, int **list)
       ret = malloc (lc * sizeof (int));
       if (!ret)
 	{
-	  fprintf (ofile, "not enough memory\n");
+	  util_error("not enough memory");
 	  exit (1);
 	}
       lc = 0;
@@ -279,14 +279,14 @@ util_do_command (const char *c, ...)
   function_t *command;
   char *cmd = NULL;
   va_list ap;
-  int i, zcnt = 0;
-
+  static const char *delim = "=";
+  
   va_start (ap, c);
   status = vasprintf (&cmd, c, ap);
   va_end (ap);
   if (status < 0)
     return 0;
-
+  
   if (cmd)
     {
       struct mail_command_entry entry;
@@ -294,34 +294,12 @@ util_do_command (const char *c, ...)
       if (cmd[0] == '#')
 	return 0;
 
-      if (argcv_get (cmd, &argc, &argv) != 0)
+      if (argcv_get (cmd, delim, &argc, &argv) != 0)
 	return argcv_free (argc, argv);
 
-      /* Eliminate empty strings */
-      for (i = 0; i < argc; i++)
-	{
-	  if (argv[i][0] == 0)
-	    {
-	      int d;
-	      for (d = i; d < argc && argv[d][0] == 0; d++)
-		;
-	      if (d == argc)
-		{
-		  break;
-		}
-	      else
-		{
-		  char *s = argv[d];
-		  argv[d] = argv[i];
-		  argv[i] = s;
-		}
-	      zcnt++;
-	    }
-	}
+      entry = util_find_entry (mail_command_table, argv[0]);
 
-      entry = util_find_entry (argv[0]);
-
-      if (if_cond() == 0 && entry.isflow == 0)
+      if (if_cond() == 0 && (entry.flags & EF_FLOW) == 0)
 	{
 	  argcv_free (argc, argv);
 	  return 0;
@@ -332,10 +310,10 @@ util_do_command (const char *c, ...)
     command = util_command_get ("quit");
 
   if (command != NULL)
-    status = command (argc - zcnt, argv);
+    status = command (argc, argv);
   else
     {
-      fprintf (ofile, "Unknown command: %s\n", argv[0]);
+      util_error("Unknown command: %s", argv[0]);
       status = 1;
     }
 
@@ -348,7 +326,7 @@ util_do_command (const char *c, ...)
  * func is the function to run
  * argc is the number of arguments inculding the command and msglist
  * argv is the list of strings containing the command and msglist
- * set_cursor means whether the function should set the cursor to
+ * set_cursor means whether the function should set the cursor to 
  * the number of the last message processed. If set_cursor = 0, the
  * cursor is not altered.
  */
@@ -383,7 +361,7 @@ util_msglist_command (function_t *func, int argc, char **argv, int set_cursor)
 function_t *
 util_command_get (char *cmd)
 {
-  struct mail_command_entry entry = util_find_entry (cmd);
+  struct mail_command_entry entry = util_find_entry (mail_command_table, cmd);
   return entry.func;
 }
 
@@ -391,24 +369,24 @@ util_command_get (char *cmd)
  * returns the mail_command_entry structure for the command matching cmd
  */
 struct mail_command_entry
-util_find_entry (char *cmd)
+util_find_entry (const struct mail_command_entry *table, char *cmd)
 {
   int i = 0, ll = 0, sl = 0;
   int len = strlen (cmd);
 
-  while (mail_command_table[i].shortname != 0)
+  while (table[i].shortname != 0)
     {
-      sl = strlen (mail_command_table[i].shortname);
-      ll = strlen (mail_command_table[i].longname);
-      if (sl > ll && !strncmp (mail_command_table[i].shortname, cmd, sl))
-	return mail_command_table[i];
-      else if (sl == len && !strcmp (mail_command_table[i].shortname, cmd))
-	return mail_command_table[i];
-      else if (sl < len && !strncmp (mail_command_table[i].longname, cmd, len))
-	return mail_command_table[i];
+      sl = strlen (table[i].shortname);
+      ll = strlen (table[i].longname);
+      if (sl > ll && !strncmp (table[i].shortname, cmd, sl))
+	return table[i];
+      else if (sl == len && !strcmp (table[i].shortname, cmd))
+	return table[i];
+      else if (sl < len && !strncmp (table[i].longname, cmd, len))
+	return table[i];
       i++;
     }
-  return mail_command_table[i];
+  return table[i];
 }
 
 /*
@@ -452,7 +430,7 @@ util_screen_lines()
 {
   struct mail_env_entry *ep = util_find_env("screen");
   size_t n;
-
+  
   if (ep && ep->set && (n = atoi(ep->value)) != 0)
     return n;
   return util_getlines();
@@ -523,7 +501,7 @@ util_printenv (int set)
 	{
 	  fprintf (ofile, "%s", env_cursor->env_entry.var);
 	  if (env_cursor->env_entry.value != NULL)
-	    fprintf (ofile, "=%s", env_cursor->env_entry.value);
+	    fprintf (ofile, "=\"%s\"", env_cursor->env_entry.value);
 	  fprintf (ofile, "\n");
 	}
     }
@@ -546,101 +524,6 @@ util_isdeleted (int n)
   return 0;
 }
 
-/*
- * readline tab completion
- */
-#ifdef WITH_READLINE
-char **
-util_command_completion (char *cmd, int start, int end)
-{
-  if (start == 0)
-    return completion_matches (cmd, util_command_generator);
-  return NULL;
-}
-
-/*
- * more readline
- */
-char *
-util_command_generator (char *text, int state)
-{
-  static int i, len;
-  char *name;
-
-  if (!state)
-    {
-      i = 0;
-      len = strlen (text);
-    }
-
-  while ((name = mail_command_table[i].longname))
-    {
-      if (strlen (mail_command_table[i].shortname) > strlen(name))
-	name = mail_command_table[i].shortname;
-      i++;
-      if (strncmp (name, text, len) == 0)
-	return (strdup(name));
-    }
-
-  return NULL;
-}
-
-#else
-
-char *
-readline (const char *prompt)
-{
-  char *line;
-  char *p;
-  size_t alloclen, linelen;
-
-  if (prompt)
-    {
-      fprintf (ofile, "%s",prompt);
-      fflush (ofile);
-    }
-
-  p = line = calloc (1, 255);
-  alloclen = 255;
-  linelen = 0;
-  for (;;)
-    {
-      size_t n;
-      p = fgets (p, alloclen - linelen, stdin);
-      n = (p) ? strlen (p) : 0;
-
-      linelen += n;
-
-      /* Error.  */
-      if (linelen == 0)
-	{
-	  free (line);
-	  return NULL;
-	}
-
-      /* Ok.  */
-      if (line[linelen - 1] == '\n')
-	{
-	  line[linelen - 1] = '\0';
-	  return line;
-	}
-      else
-        {
-	  char *tmp;
-	  alloclen *= 2;
-	  tmp = realloc (line, alloclen);
-	  if (tmp == NULL)
-	    {
-	      free (line);
-	      return NULL;
-	    }
-	  line = tmp;
-	  p = line + linelen;
-	}
-    }
-}
-#endif
-
 char *
 util_get_homedir()
 {
@@ -648,12 +531,12 @@ util_get_homedir()
   if (!homedir)
     {
       /* Shouldn't happen, but one never knows */
-      fprintf(ofile, "can't get homedir\n");
+      util_error("can't get homedir");
       exit (EXIT_FAILURE);
     }
   return strdup(homedir);
 }
-
+		 
 char *
 util_fullpath(char *inpath)
 {
@@ -667,7 +550,7 @@ util_get_sender(int msgno, int strip)
   address_t addr = NULL;
   message_t msg = NULL;
   char buffer[512], *p;
-
+      
   mailbox_get_message (mbox, msgno, &msg);
   message_get_header (msg, &header);
   if (header_get_value (header, MU_HEADER_FROM, buffer, sizeof(buffer), NULL)
@@ -678,25 +561,25 @@ util_get_sender(int msgno, int strip)
       if (envelope_sender (env, buffer, sizeof (buffer), NULL)
 	  || address_create (&addr, buffer))
 	{
-	  fprintf (ofile, "can't determine sender name (msg %d)\n", msgno);
+	  util_error("can't determine sender name (msg %d)", msgno);
 	  return NULL;
 	}
     }
 
   if (address_get_email (addr, 1, buffer, sizeof(buffer), NULL))
     {
-      fprintf (ofile, "can't determine sender name (msg %d)\n", msgno);
+      util_error("can't determine sender name (msg %d)", msgno);
       address_destroy (&addr);
       return NULL;
     }
-
+  
   if (strip)
     {
       p = strchr (buffer, '@');
       if (p)
 	*p = 0;
     }
-
+  
   p = strdup (buffer);
   address_destroy (&addr);
   return p;
@@ -707,15 +590,15 @@ util_slist_print(list_t list, int nl)
 {
   iterator_t itr;
   char *name;
-
+  
   if (!list || iterator_create (&itr, list))
     return;
-
+  
   for (iterator_first (itr); !iterator_is_done (itr); iterator_next (itr))
     {
       iterator_current (itr, (void **)&name);
       fprintf (ofile, "%s%c", name, nl ? '\n' : ' ');
-
+      
     }
   iterator_destroy (&itr);
 }
@@ -726,10 +609,10 @@ util_slist_lookup(list_t list, char *str)
   iterator_t itr;
   char *name;
   int rc = 0;
-
+  
   if (!list || iterator_create (&itr, list))
     return 0;
-
+  
   for (iterator_first (itr); !iterator_is_done (itr); iterator_next (itr))
     {
       iterator_current (itr, (void **)&name);
@@ -747,13 +630,13 @@ void
 util_slist_add (list_t *list, char *value)
 {
   char *p;
-
+  
   if (!*list && list_create (list))
     return;
-
+  
   if ((p = strdup(value)) == NULL)
     {
-      fprintf (ofile, "not enough memory\n");
+      util_error("not enough memory\n");
       return;
     }
   list_append (*list, p);
@@ -764,10 +647,10 @@ util_slist_destroy (list_t *list)
 {
   iterator_t itr;
   char *name;
-
+  
   if (!*list || iterator_create (&itr, *list))
     return;
-
+  
   for (iterator_first (itr); !iterator_is_done (itr); iterator_next (itr))
     {
       iterator_current (itr, (void **)&name);
@@ -783,10 +666,10 @@ util_slist_to_string (list_t list, char *delim)
   iterator_t itr;
   char *name;
   char *str = NULL;
-
+  
   if (!list || iterator_create (&itr, list))
     return NULL;
-
+  
   for (iterator_first (itr); !iterator_is_done (itr); iterator_next (itr))
     {
       iterator_current (itr, (void **)&name);
@@ -816,14 +699,14 @@ util_strcat(char **dest, char *str)
       memcpy (newp + dlen - 1, str, slen);
     }
 }
-
+      
 void
 util_escape_percent (char **str)
 {
   int count;
   char *p, *q;
   char *newstr;
-
+  
   /* Count ocurrences of % in the string */
   count = 0;
   for (p = *str; *p; p++)
@@ -833,15 +716,15 @@ util_escape_percent (char **str)
   if (!count)
     return; /* nothing to do */
 
-  /* expand the string */
+  /* expand the string */ 
   newstr = malloc (strlen (*str) + 1 + count);
   if (!newstr)
     {
-      fprintf (ofile, "not enough memory\n");
+      util_error("not enough memory");
       exit (1); /* be on the safe side */
     }
 
-  /* and escape percent signs */
+  /* and escape percent signs */ 
   p = newstr;
   q = *str;
   while (*p = *q++)
@@ -865,7 +748,7 @@ util_outfolder_name (char *str)
     case '+':
       str = util_fullpath (str);
       break;
-
+      
     default:
       if (ep && ep->set)
 	{
@@ -879,13 +762,6 @@ util_outfolder_name (char *str)
     }
 
   return str;
-}
-
-char *
-util_whoami()
-{
-  struct passwd *pw = getpwuid(getuid());
-  return pw ? pw->pw_name : "unknown";
 }
 
 /* Save an outgoing message. "savefile" allows to override the setting
@@ -902,24 +778,24 @@ util_save_outgoing (message_t msg, char *savefile)
       outfile = fopen (filename, "a");
       if (!outfile)
 	{
-	  fprintf (outfile, "can't open save file %s: %s",
-		   filename, strerror (errno));
+	  util_error("can't open save file %s: %s",
+		     filename, strerror (errno));
 	}
       else
 	{
 	  char *buf;
 	  size_t bsize = 0;
-
+	  
 	  message_size (msg, &bsize);
 
 	  /* Try to allocate large buffer */
 	  for (; bsize > 1; bsize /= 2)
 	    if ((buf = malloc (bsize)))
 	      break;
-
+	  
 	  if (!bsize)
 	    {
-	      fprintf (ofile, "not enough memory for creating save file\n");
+	      util_error("not enough memory for creating save file");
 	    }
 	  else
 	    {
@@ -932,7 +808,7 @@ util_save_outgoing (message_t msg, char *savefile)
 	      time(&t);
 	      tm = gmtime(&t);
 	      strftime (date, sizeof (date), "%a %b %e %H:%M:%S %Y%n", tm);
-	      fprintf (outfile, "From %s %s\n", util_whoami(), date);
+	      fprintf (outfile, "From %s %s\n", mail_whoami(), date);
 
 	      message_get_stream (msg, &stream);
 	      while (stream_read (stream, buf, bsize, off, &n) == 0
@@ -947,4 +823,112 @@ util_save_outgoing (message_t msg, char *savefile)
 	}
       free (filename);
     }
+}
+
+#ifdef HAVE_STDARG_H
+void
+util_error (const char *format, ...)
+#else     
+void
+util_error (va_alist)
+     va_dcl
+#endif
+{
+  va_list ap;
+
+#ifdef HAVE_STDARG_H
+  va_start(ap, format);
+#else  
+  char *format;
+
+  va_start(ap);
+  format = va_arg(ap, char *);
+#endif
+
+  vfprintf(stderr, format, ap);
+  fprintf(stderr, "\n");
+
+  va_end(ap);
+}
+
+int
+util_help (const struct mail_command_entry *table, char *word)
+{
+  if (!word)
+    {
+      int i = 0;
+      FILE *out = stdout;
+
+      if ((util_find_env("crt"))->set)
+	out = popen (getenv("PAGER"), "w");
+
+      while (table[i].synopsis != 0)
+	fprintf (out, "%s\n", table[i++].synopsis);
+
+      if (out != stdout)
+	pclose (out);
+
+      return 0;
+    }
+  else
+    {
+      int status = 0;
+      struct mail_command_entry entry = util_find_entry(table, word);
+      if (entry.synopsis != NULL)
+	fprintf (stdout, "%s\n", entry.synopsis);
+      else
+	{
+	  status = 1;
+	  fprintf (stdout, "Unknown command: %s\n", word);
+	}
+      return status;
+    }
+  return 1;
+}
+
+int
+util_tempfile(char **namep)
+{
+  char *filename;
+  char *tmpdir;
+  int fd;
+  
+  /* We have to be extra careful about opening temporary files, since we
+     may be running with extra privilege i.e setgid().  */
+  tmpdir = (getenv ("TMPDIR")) ? getenv ("TMPDIR") : "/tmp";
+
+  filename = malloc (strlen (tmpdir) + /*'/'*/1 + /* "muXXXXXX" */8 + 1);
+  if (!filename)
+    return -1;
+  sprintf (filename, "%s/muXXXXXX", tmpdir);
+
+#ifdef HAVE_MKSTEMP
+  {
+    int save_mask = umask(077);
+    fd = mkstemp (filename);
+    umask(save_mask);
+  }
+#else
+  if (mktemp (filename))
+    fd = open(filename, O_CREAT|O_EXCL|O_RDWR, 0600);
+  else
+    fd = -1;
+#endif
+
+  if (fd == -1)
+    {
+      util_error("Can not open temporary file: %s", strerror(errno));
+      free(filename);
+      return -1;
+    }
+
+  if (namep)
+    *namep = filename;
+  else
+    {
+      unlink(filename);
+      free(filename);
+    }
+
+  return fd;
 }
