@@ -156,7 +156,7 @@ extern mailbox_t mbox;
 extern char *homedir;
 extern char *rootdir;
 extern int state;
-extern volatile size_t children;
+extern size_t children;
 extern int is_virtual;
 extern struct daemon_param daemon_param;
 extern struct mu_auth_data *auth_data; 

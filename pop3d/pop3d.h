@@ -208,7 +208,7 @@ extern int initial_state;
 extern char *username;
 extern char *maildir;
 extern char *md5shared;
-extern volatile size_t children;
+extern size_t children;
 extern struct daemon_param daemon_param;
 extern int debug_mode;
 #ifdef WITH_TLS
