@@ -21,6 +21,7 @@
 #include <pwd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <stdarg.h>
 
 char *current_folder = NULL;
 size_t current_message;
