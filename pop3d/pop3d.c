@@ -326,7 +326,7 @@ pop3_daemon (unsigned int maxchildren)
   server.sin_addr.s_addr = htonl (INADDR_ANY);
   server.sin_port = htons (port);
 
-  if (bind (listenfd, (SA *) &server, size) == -1)
+  if (bind (listenfd, (struct sockaddr *)&server, size) == -1)
     {
       syslog (LOG_ERR, "bind: %s", strerror (errno));
       exit (-1);
@@ -345,7 +345,7 @@ pop3_daemon (unsigned int maxchildren)
           pause ();
           continue;
         }
-      connfd = accept (listenfd, (SA *) &client, &size);
+      connfd = accept (listenfd, (struct sockaddr *)&client, &size);
       if (connfd == -1)
         {
           if (errno == EINTR)
