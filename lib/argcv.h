@@ -1,5 +1,5 @@
 /* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -35,12 +35,12 @@ extern "C" {
 # endif
 #endif /*__P */
 
-int argcv_get __P((const char *command, int *argc, char ***argv));
-int argcv_free __P((int argc, char **argv));
+extern int argcv_get    __P ((const char *command, int *argc, char ***argv));
+extern int argcv_string __P ((int argc, char **argv, char **string));
+extern int argcv_free   __P ((int argc, char **argv));
 
 #ifdef __cplusplus
 }
 #endif
 
 #endif /* _ARGCV_H */
-

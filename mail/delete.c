@@ -1,5 +1,5 @@
 /* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -26,7 +26,18 @@ mail_delete (int argc, char **argv)
 {
   if (argc > 1)
     return util_msglist_command (mail_delete, argc, argv);
-  else if (/* mailbox_delete (mbox, list[cursor]) == */ 0)
-    return 0;
+  else
+    {
+      message_t msg;
+      attribute_t attr;
+      if (mailbox_get_message (mbox, cursor, &msg) != 0)
+        {
+          fprintf (stderr, "Meessage %d does not exist\n", cursor);
+          return 1;
+        }
+      message_get_attribute (msg, &attr);
+      attribute_set_deleted (attr);
+      return 0;
+    }
   return 1;
 }

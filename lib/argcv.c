@@ -1,5 +1,5 @@
 /* argcv.c - simple functions for parsing input based on whitespace
-   Copyright (C) 1999 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -36,11 +36,11 @@ argcv_get (const char *command, int *argc, char ***argv)
     return 1;
 
   *argc = 1;
-  
+
   for (i = 0; i < len; i++)
     if (command[i] == ' ')
       (*argc)++;
-  
+
   *argv = malloc ((*argc + 1) * sizeof (char *));
 
   for (i = 0; i <= len; i++)
@@ -71,4 +71,46 @@ argcv_free (int argc, char **argv)
     free (argv[argc]);
   free (argv);
   return 1;
+}
+
+/* Take a argv an make string separated by ' '.  */
+
+int
+argcv_string (int argc, char **argv, char **pstring)
+{
+  int i;
+  size_t len;
+  char *buffer;
+
+  /* No need.  */
+  if (pstring == NULL)
+    return 1;
+
+  buffer = malloc (1);
+  if (buffer == NULL)
+    return 1;
+  *buffer = '\0';
+
+  for (len = i = 0; i < argc; i++)
+    {
+      len += strlen (argv[i] + 2);
+      buffer = realloc (buffer, len);
+      if (buffer == NULL)
+	return 1;
+      if (i != 0)
+	strcat (buffer, " ");
+      strcat (buffer, argv[i]);
+    }
+
+  /* Strip off trailing space.  */
+  if (*buffer != '\0')
+    {
+      while (buffer[strlen (buffer) - 1] == ' ')
+	{
+	  buffer[strlen (buffer) - 1] = '\0';
+	}
+    }
+  if (pstring)
+    *pstring = buffer;
+  return 0;
 }
