@@ -235,7 +235,7 @@ util_expand_msglist (const int argc, char **argv, int **list)
 	   * print 7[1],8[1-2]
 	   * should print the first attachment of message 7 and the first
 	   * and second attachments of message 8. The format inside the
-	   * brackets is the same as a msglist, so we should be able to 
+	   * brackets is the same as a msglist, so we should be able to
 	   * reuse this function for its expansion. This will primarily
 	   * be used by the new decode command, which needs discussion on
 	   * the mailing list to nail its syntax down (should it default to
@@ -917,12 +917,12 @@ util_error (va_alist)
 #else
   char *format;
 
-  va_start(ap);
-  format = va_arg(ap, char *);
+  va_start (ap);
+  format = va_arg (ap, char *);
 #endif
 
-  vfprintf(stderr, format, ap);
-  fprintf(stderr, "\n");
+  vfprintf (stderr, format, ap);
+  fprintf (stderr, "\n");
 
   va_end(ap);
 }
@@ -1025,7 +1025,7 @@ void *
 util_calloc (size_t nitems, size_t size)
 {
   void *p;
-  
+
   size *= nitems;
   p = util_malloc (size);
   memset (p, 0, size);

@@ -188,7 +188,17 @@ main (int argc, char **argv)
   }
 
   interactive = isatty (fileno(stdin));
+#ifdef HAVE_SIGACTION
+  {
+    struct sigaction act;
+    act.sa_handler = SIG_IGN;
+    sigemptyset (&act.sa_mask);
+    act.sa_flags = 0;
+    sigaction (SIGPIPE, &act, NULL);
+  }
+#else
   signal (SIGPIPE, SIG_IGN);
+#endif
 
   /* set up the default environment */
   if (!getenv ("HOME"))

@@ -34,10 +34,13 @@ sig_handler (int signo)
       break;
 #if defined (SIGWINCH)
     case SIGWINCH:
+      util_do_command ("set screen=%d", util_getlines());
       break;
 #endif
     }
+#ifndef HAVE_SIGACTION
   signal (signo, sig_handler);
+#endif
 }
 
 void
@@ -86,9 +89,22 @@ ml_readline_init ()
   rl_attempted_completion_function = (CPPFunction*)ml_command_completion;
   rl_getc_function = ml_getc;
 #endif
+#ifdef HAVE_SIGACTION
+  {
+    struct sigaction act;
+    act.sa_handler = sig_handler;
+    sigemptyset (&act.sa_mask);
+    act.sa_flags = 0;
+    sigaction (SIGINT, &act, NULL);
+#if defined(SIGWINCH)
+    sigaction (SIGWINCH, &act, NULL);
+#endif
+  }
+#else
   signal (SIGINT, sig_handler);
 #if defined(SIGWINCH)
   signal (SIGWINCH, sig_handler);
+#endif
 #endif
 }
 
@@ -192,7 +208,7 @@ set_tty ()
 
   new_settings = term_settings;
   new_settings.c_lflag &= ~(ICANON|ECHO);
-#if defined(TAB3)      
+#if defined(TAB3)
   new_settings.c_oflag &= ~(TAB3);
 #elif defined(OXTABS)
   new_settings.c_oflag &= ~(OXTABS);
@@ -224,7 +240,7 @@ set_tty ()
 
   ch_erase = term_settings.c_cc[VERASE];
   ch_kill = term_settings.c_cc[VKILL];
-  
+
   new_settings = term_settings;
   new_settings.c_lflag &= ~(ICANON | ECHO);
   new_settings.c_oflag &= ~(TAB3);
@@ -249,13 +265,13 @@ int
 set_tty ()
 {
   struct sgttyb new_settings;
-  
+
   if (ioctl(STDOUT, TIOCGETP, &term_settings) < 0)
     return 1;
 
   ch_erase = term_settings.sg_erase;
   ch_kill = term_settings.sg_kill;
-  
+
   new_settings = term_settings;
   new_settings.sg_flags |= CBREAK;
   new_settings.sg_flags &= ~(ECHO | XTABS);
@@ -284,7 +300,7 @@ ml_reread (char *prompt, char **text)
   int line_size;
   int pos;
   char *p;
-  
+
   if (*text)
     {
       line = strdup (*text);
@@ -314,16 +330,16 @@ ml_reread (char *prompt, char **text)
       fputs (prompt, stdout);
       fflush (stdout);
     }
-  
+
 #ifdef TIOCSTI
-    
+
   for (p = line; *p; p++)
     {
       ioctl(0, TIOCSTI, p);
     }
 
   pos = 0;
-  
+
   while ((ch = ml_getc (stdin)) != EOF && ch != '\n')
     {
       if (pos >= line_size)
@@ -344,13 +360,13 @@ ml_reread (char *prompt, char **text)
     }
 
 #else
-  
+
   fputs (line, stdout);
   fflush (stdout);
 
-# ifndef DUMB_MODE  
+# ifndef DUMB_MODE
   set_tty ();
-  
+
   while ((ch = ml_getc (stdin)) != EOF)
     {
       if (ch == ch_erase)
@@ -392,7 +408,7 @@ ml_reread (char *prompt, char **text)
 	}
       fflush (stdout);
     }
-  
+
   putc ('\n', stdout);
   restore_tty ();
 # else
@@ -406,7 +422,7 @@ ml_reread (char *prompt, char **text)
     }
 
   pos = 0;
-  
+
   while ((ch = ml_getc (stdin)) != EOF && ch != '\n')
     {
       if (pos >= line_size)
@@ -427,9 +443,9 @@ ml_reread (char *prompt, char **text)
     }
 # endif
 #endif
-  
+
   line[pos] = 0;
-  
+
   if (ml_got_interrupt ())
     free (line);
   else
