@@ -21,32 +21,89 @@
 
 #ifdef ENABLE_MAILDIR
 
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <stdlib.h>
+#include <string.h>
 #include <errno.h>
 
 #include <folder0.h>
 #include <registrar0.h>
 
+#include <maildir.h>
+
+static int
+_maildir_folder_init (folder_t folder ARG_UNUSED)
+{
+  return 0;
+}
+
+static int
+dir_exists (const char *name, const char *suf)
+{
+  struct stat st;
+  char *s = maildir_mkfilename (name, suf, NULL);
+      
+  if (stat (s, &st) < 0)
+    return 0;
+
+  free (s);
+  
+  return S_ISDIR (st.st_mode);
+}
+
+static int
+_maildir_is_scheme (record_t record, const char *url)
+{
+  if (!url || !record->scheme)
+    return 0;
+
+  if (strncmp (record->scheme, url, strlen (record->scheme)) == 0)
+    return 1;
+
+  if (strncmp (MU_PATH_SCHEME, url, MU_PATH_SCHEME_LEN) == 0)
+    {
+      /* Attemp auto-detection */
+      struct stat st;
+      
+      if (stat (url, &st) < 0)
+	return 1; /* mailbox_open will complain */
+
+      if (!S_ISDIR (st.st_mode))
+	return 0;
+
+      return dir_exists (url, TMPSUF)
+	     && dir_exists (url, CURSUF)
+ 	     && dir_exists (url, NEWSUF);
+    }
+  return 0;
+}
+
+/*
+  MAILDIR url
+  maildir:path
+*/
+int
+_maildir_url_init (url_t url)
+{
+  return amd_url_init (url, MU_MAILDIR_SCHEME);
+}
+
 static struct _record _maildir_record =
 {
   MU_MAILDIR_SCHEME,
-  _url_maildir_init, /* Url init.  */
+  _maildir_url_init, /* Url init.  */
   _mailbox_maildir_init, /* Mailbox init.  */
   NULL, /* Mailer init.  */
-  _folder_maildir_init, /* Folder init.  */
+  _maildir_folder_init, /* Folder init.  */
   NULL, /* back pointer.  */
-  NULL, /* _is_scheme method.  */
+  _maildir_is_scheme, /* _is_scheme method.  */
   NULL, /* _get_url method.  */
   NULL, /* _get_mailbox method.  */
   NULL, /* _get_mailer method.  */
   NULL  /* _get_folder method.  */
 };
 record_t maildir_record = &_maildir_record;
-
-int
-_folder_maildir_init (folder_t folder ARG_UNUSED)
-{
-  return 0;
-}
 
 #else
 #include <stdio.h>
