@@ -42,6 +42,7 @@ pop3_list_all (pop3_t pop3, iterator_t *piterator)
     case POP3_NO_STATE:
       status = pop3_writeline (pop3, "LIST\r\n");
       POP3_CHECK_ERROR (pop3, status);
+      pop3_debug_cmd (pop3);
       pop3->state = POP3_LIST;
 
     case POP3_LIST:
@@ -53,6 +54,7 @@ pop3_list_all (pop3_t pop3, iterator_t *piterator)
     case POP3_LIST_ACK:
       status = pop3_response (pop3, NULL, 0, NULL);
       POP3_CHECK_EAGAIN (pop3, status);
+      pop3_debug_cmd (pop3);
       POP3_CHECK_OK (pop3);
       pop3->state = POP3_LIST_RX;
 

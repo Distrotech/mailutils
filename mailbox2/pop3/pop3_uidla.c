@@ -41,6 +41,7 @@ pop3_uidl_all (pop3_t pop3, iterator_t *piterator)
     case POP3_NO_STATE:
       status = pop3_writeline (pop3, "UIDL\r\n");
       POP3_CHECK_ERROR (pop3, status);
+      pop3_debug_cmd (pop3);
       pop3->state = POP3_UIDL;
 
     case POP3_UIDL:
@@ -52,6 +53,7 @@ pop3_uidl_all (pop3_t pop3, iterator_t *piterator)
     case POP3_UIDL_ACK:
       status = pop3_response (pop3, NULL, 0, NULL);
       POP3_CHECK_EAGAIN (pop3, status);
+      pop3_debug_ack (pop3);
       POP3_CHECK_OK (pop3);
       pop3->state = POP3_UIDL_RX;
 

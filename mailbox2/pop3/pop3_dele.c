@@ -39,6 +39,7 @@ pop3_dele (pop3_t pop3, unsigned msgno)
     case POP3_NO_STATE:
       status = pop3_writeline (pop3, "DELE %d\r\n", msgno);
       POP3_CHECK_ERROR (pop3, status);
+      pop3_debug_cmd (pop3);
       pop3->state = POP3_DELE;
 
     case POP3_DELE:
@@ -50,6 +51,7 @@ pop3_dele (pop3_t pop3, unsigned msgno)
     case POP3_DELE_ACK:
       status = pop3_response (pop3, NULL, 0, NULL);
       POP3_CHECK_EAGAIN (pop3, status);
+      pop3_debug_ack (pop3);
       POP3_CHECK_OK (pop3);
       pop3->state = POP3_NO_STATE;
       break;

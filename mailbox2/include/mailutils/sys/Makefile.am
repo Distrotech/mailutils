@@ -5,6 +5,7 @@ pkginclude_HEADERS = \
  attribute.h  \
  authority.h  \
  bstream.h    \
+ debug.h      \
  envelope.h   \
  folder.h     \
  fstream.h    \
@@ -21,6 +22,7 @@ pkginclude_HEADERS = \
  observer.h   \
  pop3.h       \
  refcount.h   \
+ sdebug.h     \
  stream.h     \
  tcpstream.h  \
  ticket.h     \

@@ -28,43 +28,51 @@
 #include <mailutils/sys/pop3.h>
 
 int
-pop3_user (pop3_t pop3, const char *user)
+pop3_get_debug (pop3_t pop3, mu_debug_t *pdebug)
 {
-  int status;
-
-  if (pop3 == NULL || user == NULL)
+  if (pop3 == NULL || pdebug == NULL)
     return MU_ERROR_INVALID_PARAMETER;
 
-  switch (pop3->state)
+
+  if (pop3->debug == NULL)
     {
-    case POP3_NO_STATE:
-      status = pop3_writeline (pop3, "USER %s\r\n", user);
-      POP3_CHECK_ERROR (pop3, status);
-      pop3_debug_cmd (pop3);
-      pop3->state = POP3_USER;
-
-    case POP3_USER:
-      status = pop3_send (pop3);
-      POP3_CHECK_EAGAIN (pop3, status);
-      pop3->acknowledge = 0;
-      pop3->state = POP3_USER_ACK;
-
-    case POP3_USER_ACK:
-      status = pop3_response (pop3, NULL, 0, NULL);
-      POP3_CHECK_EAGAIN (pop3, status);
-      pop3_debug_ack (pop3);
-      POP3_CHECK_OK (pop3);
-      pop3->state = POP3_NO_STATE;
-      break;
-
-      /* They must deal with the error first by reopening.  */
-    case POP3_ERROR:
-      status = MU_ERROR_OPERATION_CANCELED;
-      break;
-
-    default:
-      status = MU_ERROR_OPERATION_IN_PROGRESS;
+      int status = mu_debug_stdio_create (&pop3->debug, stderr);
+      if (status != 0)
+	return status;
     }
+  *pdebug = pop3->debug;
+  return 0;
+}
 
-  return status;
+int
+pop3_set_debug (pop3_t pop3, mu_debug_t debug)
+{
+  if (pop3 == NULL)
+    return MU_ERROR_INVALID_PARAMETER;
+
+  if (pop3->debug)
+    mu_debug_destroy (&pop3->debug);
+  pop3->debug = debug;
+  return 0;
+}
+
+int
+pop3_debug_cmd (pop3_t pop3)
+{
+  if (pop3->debug)
+    {
+      mu_debug_print (pop3->debug, MU_DEBUG_PROT, pop3->io.buf);
+    }
+  return 0;
+}
+
+int
+pop3_debug_ack (pop3_t pop3)
+{
+  if (pop3->debug)
+    {
+      mu_debug_print (pop3->debug, MU_DEBUG_PROT, pop3->ack.buf);
+      mu_debug_print (pop3->debug, MU_DEBUG_PROT, "\n");
+    }
+  return 0;
 }

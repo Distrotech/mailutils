@@ -20,6 +20,7 @@
 
 #include <sys/types.h>
 #include <stdarg.h>
+#include <stdio.h>
 
 #ifndef __P
 #ifdef __STDC__
@@ -33,20 +34,22 @@
 extern "C" {
 #endif
 
-struct _debug;
-typedef struct _debug* mu_debug_t;
+struct _mu_debug;
+typedef struct _mu_debug* mu_debug_t;
 
 #define MU_DEBUG_TRACE 1
 #define MU_DEBUG_PROT  2
+
 extern int  mu_debug_ref       __P ((mu_debug_t));
 extern void mu_debug_destroy   __P ((mu_debug_t *));
-extern int  mu_debug_set_level __P ((mu_debug_t, size_t level));
-extern int  mu_debug_get_level __P ((mu_debug_t, size_t *plevel));
-extern int  mu_debug_print     __P ((mu_debug_t debug, size_t level,
+extern int  mu_debug_set_level __P ((mu_debug_t, unsigned int level));
+extern int  mu_debug_get_level __P ((mu_debug_t, unsigned int *plevel));
+extern int  mu_debug_print     __P ((mu_debug_t debug, unsigned int level,
 				     const char *format, ...));
-extern int  mu_debug_printv    __P ((mu_debug_t debug, size_t level,
+extern int  mu_debug_printv    __P ((mu_debug_t debug, unsigned int level,
 				     const char *format, va_list argp));
-extern int  mu_debug_stderr_create    __P ((mu_debug_t *));
+
+extern int  mu_debug_stdio_create    __P ((mu_debug_t *, FILE *));
 
 #ifdef __cplusplus
 }

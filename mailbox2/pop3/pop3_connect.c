@@ -92,6 +92,7 @@ pop3_connect (pop3_t pop3, const char *host, unsigned int port)
 	char *right, *left;
 	status = pop3_response (pop3, NULL, 0, &len);
 	POP3_CHECK_EAGAIN (pop3, status);
+	pop3_debug_ack (pop3);
 	if (strncasecmp (pop3->ack.buf, "+OK", 3) != 0)
 	  {
 	    stream_close (pop3->carrier);

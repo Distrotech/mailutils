@@ -102,10 +102,13 @@ struct _pop3
 
   enum pop3_state state;
   stream_t carrier; /* TCP Connection.  */
+  mu_debug_t debug; /* Send the debug info.  */
 };
 
 extern int  pop3_iterator_create __P ((pop3_t, iterator_t *));
 extern int  pop3_stream_create   __P ((pop3_t, stream_t *));
+extern int  pop3_debug_cmd       __P ((pop3_t));
+extern int  pop3_debug_ack       __P ((pop3_t));
 
 /* Check for non recoverable error.  */
 #define POP3_CHECK_EAGAIN(pop3, status) \

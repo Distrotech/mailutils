@@ -119,7 +119,11 @@ main (int argc, char **argv)
   char *line, *s;
 
   (void)argc;
-  progname = argv[0];
+  progname = strrchr (argv[0], '/');
+  if (progname)
+    progname++;
+  else
+    progname = argv[0];
 
   initialize_readline ();	/* Bind our completer. */
 
@@ -300,6 +304,7 @@ command_generator (const char *text, int state)
 int
 print_response ()
 {
+#if 0
   char response[1024];
   if (pop3)
     {
@@ -308,6 +313,7 @@ print_response ()
     }
   else
     fprintf (stderr, "Not connected, try `connect' first\n");
+#endif
   return 0;
 }
 
@@ -624,6 +630,9 @@ com_connect (char *arg)
   status = pop3_create (&pop3);
   if (status == 0)
     {
+      mu_debug_t debug;
+      pop3_get_debug (pop3, &debug);
+      mu_debug_set_level (debug, MU_DEBUG_PROT);
       pop3_connect (pop3, host, port);
       print_response ();
     }

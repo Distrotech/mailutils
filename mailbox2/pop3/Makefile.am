@@ -13,6 +13,7 @@ libmailbox_la_SOURCES = \
  pop3_carrier.c    \
  pop3_connect.c    \
  pop3_create.c     \
+ pop3_debug.c      \
  pop3_dele.c       \
  pop3_destroy.c    \
  pop3_disconnect.c \

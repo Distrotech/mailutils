@@ -40,6 +40,7 @@ pop3_pass (pop3_t pop3, const char *passwd)
     case POP3_NO_STATE:
       status = pop3_writeline (pop3, "PASS %s\r\n", passwd);
       POP3_CHECK_ERROR (pop3, status);
+      pop3_debug_cmd (pop3);
       pop3->state = POP3_PASS;
 
     case POP3_PASS:
@@ -51,6 +52,7 @@ pop3_pass (pop3_t pop3, const char *passwd)
     case POP3_PASS_ACK:
       status = pop3_response (pop3, NULL, 0, NULL);
       POP3_CHECK_EAGAIN (pop3, status);
+      pop3_debug_ack (pop3);
       POP3_CHECK_OK (pop3);
       pop3->state = POP3_NO_STATE;
       break;

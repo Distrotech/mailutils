@@ -41,6 +41,7 @@ pop3_stat (pop3_t pop3, unsigned *msg_count, size_t *size)
     case POP3_NO_STATE:
       status = pop3_writeline (pop3, "STAT\r\n");
       POP3_CHECK_ERROR (pop3, status);
+      pop3_debug_cmd (pop3);
       pop3->state = POP3_STAT;
 
     case POP3_STAT:
@@ -52,6 +53,7 @@ pop3_stat (pop3_t pop3, unsigned *msg_count, size_t *size)
     case POP3_STAT_ACK:
       status = pop3_response (pop3, NULL, 0, NULL);
       POP3_CHECK_EAGAIN (pop3, status);
+      pop3_debug_ack (pop3);
       POP3_CHECK_OK (pop3);
       pop3->state = POP3_NO_STATE;
 

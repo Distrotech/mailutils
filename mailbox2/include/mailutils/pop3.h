@@ -19,6 +19,7 @@
 #define _MAILUTILS_POP3_H
 
 #include <mailutils/iterator.h>
+#include <mailutils/debug.h>
 #include <mailutils/stream.h>
 
 #ifdef __cplusplus
@@ -42,11 +43,14 @@ extern void pop3_destroy      __P ((pop3_t *));
 extern int  pop3_connect      __P ((pop3_t, const char *, unsigned int));
 extern int  pop3_disconnect   __P ((pop3_t));
 
-extern int  pop3_set_carrier   __P ((pop3_t, stream_t));
-extern int  pop3_get_carrier   __P ((pop3_t, stream_t *));
+extern int  pop3_set_carrier  __P ((pop3_t, stream_t));
+extern int  pop3_get_carrier  __P ((pop3_t, stream_t *));
 
 extern int  pop3_set_timeout  __P ((pop3_t, int));
 extern int  pop3_get_timeout  __P ((pop3_t, int *));
+
+extern int  pop3_set_debug    __P ((pop3_t, mu_debug_t));
+extern int  pop3_get_debug    __P ((pop3_t, mu_debug_t *));
 
 extern int  pop3_apop         __P ((pop3_t, const char *, const char *));
 

@@ -267,54 +267,72 @@ static int
 _fds_is_readready (stream_t stream, int timeout)
 {
   struct _fds *fds = (struct _fds *)stream;
-  int ready;
-  struct timeval tv;
-  fd_set fset;
+  int ready = 0;
 
-  FD_ZERO (&fset);
-  FD_SET (fds->fd, &fset);
+  if (fds->fd >= 0)
+    {
+      struct timeval tv;
+      fd_set fset;
 
-  tv.tv_sec  = timeout / 100;
-  tv.tv_usec = (timeout % 1000) * 1000;
+      FD_ZERO (&fset);
+      FD_SET (fds->fd, &fset);
 
-  ready = select (fds->fd + 1, &fset, NULL, NULL, (timeout == -1) ? NULL: &tv);
-  return (ready == -1) ? 0 : 1;
+      tv.tv_sec  = timeout / 100;
+      tv.tv_usec = (timeout % 1000) * 1000;
+
+      ready = select (fds->fd + 1, &fset, NULL, NULL,
+		      (timeout == -1) ? NULL: &tv);
+      ready = (ready == -1) ? 0 : 1;
+    }
+  return ready;
 }
 
 static int
 _fds_is_writeready (stream_t stream, int timeout)
 {
   struct _fds *fds = (struct _fds *)stream;
-  int ready;
-  struct timeval tv;
-  fd_set fset;
+  int ready = 0;
 
-  FD_ZERO (&fset);
-  FD_SET (fds->fd, &fset);
+  if (fds->fd)
+    {
+      struct timeval tv;
+      fd_set fset;
 
-  tv.tv_sec  = timeout / 100;
-  tv.tv_usec = (timeout % 1000) * 1000;
+      FD_ZERO (&fset);
+      FD_SET (fds->fd, &fset);
 
-  ready = select (fds->fd + 1, NULL, &fset, NULL, (timeout == -1) ? NULL: &tv);
-  return (ready == -1) ? 0 : 1;
+      tv.tv_sec  = timeout / 100;
+      tv.tv_usec = (timeout % 1000) * 1000;
+
+      ready = select (fds->fd + 1, NULL, &fset, NULL,
+		      (timeout == -1) ? NULL: &tv);
+      ready = (ready == -1) ? 0 : 1;
+    }
+  return ready;
 }
 
 static int
 _fds_is_exceptionpending (stream_t stream, int timeout)
 {
   struct _fds *fds = (struct _fds *)stream;
-  int ready;
-  struct timeval tv;
-  fd_set fset;
+  int ready = 0;
 
-  FD_ZERO (&fset);
-  FD_SET  (fds->fd, &fset);
+  if (fds->fd)
+    {
+      struct timeval tv;
+      fd_set fset;
 
-  tv.tv_sec  = timeout / 100;
-  tv.tv_usec = (timeout % 1000) * 1000;
+      FD_ZERO (&fset);
+      FD_SET  (fds->fd, &fset);
 
-  ready = select (fds->fd + 1, NULL, NULL, &fset, (timeout == -1) ? NULL: &tv);
-  return (ready == -1) ? 0 : 1;
+      tv.tv_sec  = timeout / 100;
+      tv.tv_usec = (timeout % 1000) * 1000;
+
+      ready = select (fds->fd + 1, NULL, NULL, &fset,
+		      (timeout == -1) ? NULL: &tv);
+      ready = (ready == -1) ? 0 : 1;
+    }
+  return 0;
 }
 
 static int

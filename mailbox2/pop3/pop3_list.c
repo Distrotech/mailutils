@@ -43,6 +43,7 @@ pop3_list (pop3_t pop3, unsigned int msgno, size_t *psize)
 	return MU_ERROR_INVALID_PARAMETER;
       status = pop3_writeline (pop3, "LIST %d\r\n", msgno);
       POP3_CHECK_ERROR (pop3, status);
+      pop3_debug_cmd (pop3);
       pop3->state = POP3_LIST;
 
     case POP3_LIST:
@@ -53,6 +54,7 @@ pop3_list (pop3_t pop3, unsigned int msgno, size_t *psize)
 
     case POP3_LIST_ACK:
       status = pop3_response (pop3, NULL, 0, NULL);
+      pop3_debug_ack (pop3);
       POP3_CHECK_EAGAIN (pop3, status);
       POP3_CHECK_OK (pop3);
       pop3->state = POP3_NO_STATE;

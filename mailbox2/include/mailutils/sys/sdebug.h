@@ -15,36 +15,38 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-#ifdef HAVE_CONFIG_H
-# include <config.h>
+#ifndef _MAILUTILS_SYS_SDEBUG_H
+#define _MAILUTILS_SYS_SDEBUG_H
+
+#ifdef DMALLOC
+#include <dmalloc.h>
 #endif
 
-#include <mailutils/error.h>
-#include <mailutils/sys/pop3.h>
-#include <stdlib.h>
+#include <mailutils/refcount.h>
+#include <mailutils/sys/debug.h>
 
-void
-pop3_destroy (pop3_t *ppop3)
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#ifndef __P
+# ifdef __STDC__
+#  define __P(args) args
+# else
+#  define __P(args) ()
+# endif
+#endif /*__P */
+
+struct _sdebug
 {
-  if (ppop3 && *ppop3)
-    {
-      pop3_t pop3 = *ppop3;
-      if (pop3->ack.buf)
-	free (pop3->ack.buf);
+  struct _mu_debug base;
+  mu_refcount_t refcount;
+  int level;
+  FILE *fp;
+};
 
-      if (pop3->io.buf)
-	free (pop3->io.buf);
-
-      if (pop3->timestamp)
-	free (pop3->timestamp);
-
-      if (pop3->carrier)
-	stream_destroy (&pop3->carrier);
-
-      if (pop3->debug)
-	mu_debug_destroy (&pop3->debug);
-
-      free (pop3);
-      *ppop3 = NULL;
-    }
+#ifdef __cplusplus
 }
+#endif
+
+#endif /* _MAILUTILS_SYS_SDEBUG_H */

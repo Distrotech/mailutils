@@ -339,54 +339,70 @@ static int
 _tcp_is_readready (stream_t stream, int timeout)
 {
   struct _tcp_instance *tcp = (struct _tcp_instance *)stream;
-  int ready;
-  struct timeval tv;
-  fd_set fds;
+  int ready = 0;
 
-  FD_ZERO (&fds);
-  FD_SET (tcp->fd, &fds);
+  if (tcp->fd >= 0)
+    {
+      struct timeval tv;
+      fd_set fds;
+      FD_ZERO (&fds);
+      FD_SET (tcp->fd, &fds);
 
-  tv.tv_sec  = timeout / 100;
-  tv.tv_usec = (timeout % 1000) * 1000;
+      tv.tv_sec  = timeout / 100;
+      tv.tv_usec = (timeout % 1000) * 1000;
 
-  ready = select (tcp->fd + 1, &fds, NULL, NULL, (timeout == -1) ? NULL: &tv);
-  return (ready == -1) ? 0 : 1;
+      ready = select (tcp->fd + 1, &fds, NULL, NULL,
+		      (timeout == -1) ? NULL: &tv);
+      ready = (ready == -1) ? 0 : 1;
+    }
+  return ready;
 }
 
 static int
 _tcp_is_writeready (stream_t stream, int timeout)
 {
   struct _tcp_instance *tcp = (struct _tcp_instance *)stream;
-  int ready;
-  struct timeval tv;
-  fd_set fds;
+  int ready = 0;
 
-  FD_ZERO (&fds);
-  FD_SET (tcp->fd, &fds);
+  if (tcp->fd >= 0)
+    {
+      struct timeval tv;
+      fd_set fds;
 
-  tv.tv_sec  = timeout / 100;
-  tv.tv_usec = (timeout % 1000) * 1000;
+      FD_ZERO (&fds);
+      FD_SET (tcp->fd, &fds);
 
-  ready = select (tcp->fd + 1, NULL, &fds, NULL, (timeout == -1) ? NULL: &tv);
-  return (ready == -1) ? 0 : 1;
+      tv.tv_sec  = timeout / 100;
+      tv.tv_usec = (timeout % 1000) * 1000;
+
+      ready = select (tcp->fd + 1, NULL, &fds, NULL,
+		      (timeout == -1) ? NULL: &tv);
+      ready =  (ready == -1) ? 0 : 1;
+    }
+  return ready;
 }
 
 static int
 _tcp_is_exceptionpending (stream_t stream, int timeout)
 {
   struct _tcp_instance *tcp = (struct _tcp_instance *)stream;
-  int ready;
-  struct timeval tv;
-  fd_set fds;
+  int ready = 0;
 
-  FD_ZERO (&fds);
-  FD_SET  (tcp->fd, &fds);
+  if (tcp->fd >= 0)
+    {
+      struct timeval tv;
+      fd_set fds;
+      FD_ZERO (&fds);
+      FD_SET  (tcp->fd, &fds);
 
-  tv.tv_sec  = timeout / 100;
-  tv.tv_usec = (timeout % 1000) * 1000;
+      tv.tv_sec  = timeout / 100;
+      tv.tv_usec = (timeout % 1000) * 1000;
 
-  ready = select (tcp->fd + 1, NULL, NULL, &fds, (timeout == -1) ? NULL: &tv);
-  return (ready == -1) ? 0 : 1;
+      ready = select (tcp->fd + 1, NULL, NULL, &fds,
+		      (timeout == -1) ? NULL: &tv);
+      ready = (ready == -1) ? 0 : 1;
+    }
+  return ready;
 }
 
 static int
