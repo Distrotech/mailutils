@@ -498,7 +498,7 @@ Print a message only if there are unread messages in the mailbox.
 @itemx --summary
 Print a summary line.
 @item -s @var{attr}
-@itemx --status @var{atrr}
+@itemx --status @var{attr}
 Only display headers from messages with the given status.
 @var{Attr} may be one of the following: @samp{new}, @samp{read},
 @samp{unread}. It is sufficient to specify only first letter of
