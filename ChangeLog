@@ -1,3 +1,24 @@
+2002-02-08  Sam Roberts
+
+	* TODO: More things I think should be done, or did.
+	* mailbox/wicket.c: wicket: a ticket file now can contain multiple
+	  urls, when looking for a ticket, the first one which contains
+	  authentication information for the incomplete url is returned.
+	  wildcards are ok, so you can do:
+            # my ~/.tickets
+	    pop://sam:pass@pop.uniserve.com 
+	    *://sroberts:gnuless@mail.certicom.com
+	    imap://;AUTH=anon@*
+
+	  Actually, the last doesn't work, but it SHOULD. Another day.
+	* include/mailutils/url.h, mailbox/url.c: url_is_ticket() - new
+	  function, determines whether a url_t contains ticket information
+	  for another url
+	* doc/texinfo/url.texi: missing an @var{}
+	* mailbox/url_mbox.c: gcc doesn't like signed chars as array
+	  indexes, they could be negative
+	* sieve/sieve.c: buglet, forgot to initialize opts
+
 2002-02-07  Sergey Poznyakoff  
 
 	* imap4d/util.c (util_localname): return FQDN
