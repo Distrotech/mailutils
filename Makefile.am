@@ -5,3 +5,7 @@ ACLOCAL_AMFLAGS = -I m4
 SUBDIRS = include doc m4 lib mailbox from mail pop3d imap4d
 
 EXTRA_DIST = mailutils.spec mailutils.spec.in
+
+release:
+	$(MAKE) dist distdir=$(PACKAGE)-`date +"%y%m%d"`
+
