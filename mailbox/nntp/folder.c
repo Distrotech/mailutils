@@ -113,7 +113,9 @@ nntp_folder_open (folder_t folder, int flags)
   status = url_get_host (folder->url, NULL, 0, &len);
   if (status != 0)
     return status;
-  host = alloca (len + 1);
+  host = malloc (len + 1);
+  if (!host)
+    return ENOMEM;
   url_get_host (folder->url, host, len + 1, NULL);
   url_get_port (folder->url, &port);
 
@@ -121,6 +123,7 @@ nntp_folder_open (folder_t folder, int flags)
 
   /* Create the networking stack.  */
   status = tcp_stream_create (&carrier, host, port, folder->flags);
+  free (host);
   if (status != 0)
     return status;
   /* Ask for the stream internal buffering mechanism scheme.  */
