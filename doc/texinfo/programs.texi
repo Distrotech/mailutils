@@ -1264,11 +1264,14 @@ Displays current mailbox summary. E.g.:
 @itemx p [@var{msglist}]
 @item type [@var{msglist}]
 @itemx t [@var{msglist}]
-Prints out the messages from @var{msglist}. If the variable @code{crt}
-is set and the number of lines in the message is greater than the number
-of lines on screen, the message is piped through pager command specified
-by environment variable @code{PAGER}. The number of lines on screen is
-controlled by @code{screen} variable.
+Prints out the messages from @var{msglist}. The variable @code{crt}
+determines the minimum number of lines the body of the message must
+contain in order to be piped through pager command specified
+by environment variable @code{PAGER}. If @code{crt} is set to a numeric
+value, this value is taken as the mininmum number of lines. Otherwise,
+if @code{crt} is set without a value then the height of the terminal
+ screen is used to compute the threshold.  The number of lines on
+screen is controlled by @code{screen} variable.
 @item Print [@var{msglist}]
 @itemx P [@var{msglist}]
 @itemx Type [@var{msglist}]
@@ -1470,6 +1473,22 @@ To undo the effect of the previous example, do:
 & unset askcc crt indentprefix
 @end example
 
+@subheading Setting and unsetting shell environment variables.
+
+Shell environment may be modified using @samp{setenv} (@samp{sete})
+command. The command takes a list of assignments. The syntax of an
+assignment is:
+
+@table @samp
+@item @var{name}=@var{value}
+If variable @var{name} does not already exist in the environment,
+then it is added to the environment with the value @var{value}.
+If @var{name} does exist, then its value in the environment is
+changed to @var{value}. 
+@item @var{name}
+Delete the variable @var{name} from the environment (``unset'' it).
+@end table
+
 @subheading Conditional statements
 
 The conditional statement allows to execute a set of mail commands
@@ -1665,12 +1684,16 @@ fails, the value of environment variable @code{COLUMNS} is used.
 This variable contains the number of columns on terminal screen.
 
 @item crt
-@*Type: Boolean.
+@*Type: Boolean or Numeric
 @*Default: True in interactive mode, False otherwise.
 
-If @code{True}, any messages with number of lines greater than number of
-lines on terminal screen (as determined by @code{screen} variable) will
-be printed using program set in the environment variable @code{ENVIRON}.
+The variable @code{crt} determines the minimum number of lines the body
+of the message must contain in order to be piped through pager command
+specified by environment variable @code{PAGER}. If @code{crt} is set
+to a numeric value, this value is taken as the threshold. Otherwise,
+if @code{crt} is set without a value, then the height of the terminal
+screen is used to compute the threshold.  The number of lines on
+screen is controlled by @code{screen} variable.
 
 @item dot
 @*Type: Boolean.
