@@ -1,5 +1,10 @@
 2003-02-23  Alain Magloire
 
+	* include/mailutils/types.h: Added the mailcap structure.
+	* include/mailutils/mailcap.h: Include types.h
+
+2003-02-23  Alain Magloire
+
 	* doc/texinfo/mailcap.texi: Document the mailcap functions.
 	* doc/texinfo/mailcap.inc: Code example.
 	* doc/texinfo/Makefile.am: Added mailcap.texi and mailcap.inc
