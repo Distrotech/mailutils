@@ -1,3 +1,29 @@
+2204-06-20 Alain Magloire
+
+	* examples/nntpclient.c: An example of using nntp.
+
+	* mailbox/nntp/nntp_date.c: New file.
+	* mailbox/nntp/nntp_group.c: New file.
+	* mailbox/nntp/nntp_last.c: New file.
+	* mailbox/nntp/nntp_list_extensions.c: New file.
+	* mailbox/nntp/nntp_mode_reader.c: New file.
+	* mailbox/nntp/nntp_next.c: New file.
+	* mailbox/nntp/nntp_quit.c: New file.
+	* mailbox/nntp/nntp_stat.c: New file.
+	* mailbox/nntp/Makefile.am
+	* mailbox/nntp/nntp_article.c: Use new macros.
+	* mailbox/nntp/nntp_body.c: Use new macros.
+	* mailbox/nntp/nntp_connect.c: Use new macros.
+	* mailbox/nntp/nntp_head.c: Use new macros.
+	* mailbox/nntp/nntp_response.c: Use new macros.
+	* include/mailutils/nntp.h: New declarations.
+	* include/mailutils/sys/nntp.h: New declarations and macros..
+
+2204-06-20 Alain Magloire
+
+	* mailbox/pop/pop3_lista.c: Destroy the list on error.
+	* mailbox/pop/pop3_uidla.c: Destroy the list on error.
+
 2004-06-15  Alain Magloire
 
 	* mailbox/tcp.c(_tcp_close): Check the return value of close(2).
