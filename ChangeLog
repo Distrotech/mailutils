@@ -1,3 +1,19 @@
+2002-02-25 Sam Roberts
+
+	* sieve/examples/: .cvsignore, Makefile, Test, mbox.complex,
+	t-exists.sv, test.out: Exercise a little more of sieve.
+
+2002-02-23 Sam Roberts
+
+	* mailbox/: message.c, smtp.c: Include <mailutils/mutil.h> for
+	  mu_getpwuid() prototype.
+	* doc/texinfo/programs.texi: A # must be preceeded by whitespace to
+	  start an rcfile comment.
+
+2002-02-20 Sam Roberts
+
+	* TODO: Updated.
+
 2002-02-23  Sergey Poznyakoff  
 
 	* lib/argcv.c: Yesterday's fix makes argcv_get include trailing
