@@ -1,3 +1,15 @@
+2003-01-23  Sergey Poznyakoff 
+
+	* libsieve/util.c (_comp_action): Bugfix. Incorrectly handled
+	  multiple patterns.
+
+	* sieve/testsuite/scripts/mul-addr.sv: New file. Script for
+	  testing "multiple patterns" bug.
+	* sieve/testsuite/sieve/mul-addr.exp: New file. Testcase for
+	  "multiple patterns" bug.
+	* sieve/testsuite/scripts/DISTFILES: Updated
+	* sieve/testsuite/sieve/DISTFILES: Updated
+	
 2003-01-22  Sergey Poznyakoff
 
 	Renamed mu_errstring to mu_strerror for consistency
