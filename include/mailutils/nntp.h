@@ -28,36 +28,51 @@ extern "C" {
 struct _mu_nntp;
 typedef struct _mu_nntp* mu_nntp_t;
 
-extern int  mu_nntp_create       (mu_nntp_t *nntp);
-extern void mu_nntp_destroy      (mu_nntp_t *nntp);
+extern int  mu_nntp_create          (mu_nntp_t *nntp);
+extern void mu_nntp_destroy         (mu_nntp_t *nntp);
 
-extern int  mu_nntp_set_carrier  (mu_nntp_t nntp, stream_t carrier);
-extern int  mu_nntp_get_carrier  (mu_nntp_t nntp, stream_t *pcarrier);
+extern int  mu_nntp_set_carrier     (mu_nntp_t nntp, stream_t carrier);
+extern int  mu_nntp_get_carrier     (mu_nntp_t nntp, stream_t *pcarrier);
 
-extern int  mu_nntp_connect      (mu_nntp_t nntp);
-extern int  mu_nntp_disconnect   (mu_nntp_t nntp);
+extern int  mu_nntp_connect         (mu_nntp_t nntp);
+extern int  mu_nntp_disconnect      (mu_nntp_t nntp);
 
-extern int  mu_nntp_set_timeout  (mu_nntp_t nntp, int timeout);
-extern int  mu_nntp_get_timeout  (mu_nntp_t nntp, int *timeout);
+extern int  mu_nntp_set_timeout     (mu_nntp_t nntp, int timeout);
+extern int  mu_nntp_get_timeout     (mu_nntp_t nntp, int *timeout);
 
-extern int  mu_nntp_set_debug    (mu_nntp_t nntp, mu_debug_t debug);
+extern int  mu_nntp_set_debug       (mu_nntp_t nntp, mu_debug_t debug);
 
-extern int  mu_nntp_stls         (mu_nntp_t nntp);
+extern int  mu_nntp_stls            (mu_nntp_t nntp);
 
 
-extern int  mu_nntp_article      (mu_nntp_t nntp, unsigned long num, unsigned long *pnum, char **mid, stream_t *stream);
-extern int  mu_nntp_article_id   (mu_nntp_t nntp, const char *id, unsigned long *pnum, char **mid, stream_t *stream);
+extern int  mu_nntp_mode_reader     (mu_nntp_t nntp);
 
-extern int  mu_nntp_head         (mu_nntp_t nntp, unsigned long num, unsigned long *pnum, char **mid, stream_t *stream);
-extern int  mu_nntp_head_id      (mu_nntp_t nntp, const char *name, unsigned long *pnum, char **mid, stream_t *stream);
+/* A list is return with the multi-line answer.  It is the responsability of
+   the caller to call list_destroy() to dipose of the list.  */
+extern int  mu_nntp_list_extensions (mu_nntp_t nntp, list_t *plist);
 
-extern int  mu_nntp_body         (mu_nntp_t nntp, unsigned long num, unsigned long *pnum, char **mid, stream_t *stream);
-extern int  mu_nntp_body_id      (mu_nntp_t nntp, const char *name, unsigned long *pnum, char **mid, stream_t *stream);
+extern int  mu_nntp_quit            (mu_nntp_t nntp);
 
-extern int  mu_nntp_stat         (mu_nntp_t nntp, unsigned long num, char **id);
-extern int  mu_nntp_stat_id      (mu_nntp_t nntp, const char *name, char **id);
+extern int  mu_nntp_group           (mu_nntp_t nntp, const char *group, unsigned long *total, unsigned long *first,
+				     unsigned long *last, char **name);
 
-extern int  mu_nntp_group        (mu_nntp_t nntp, const char *group, long *total, long *first, long *last, char **name);
+extern int  mu_nntp_last            (mu_nntp_t nntp, unsigned long *number, char **mid);
+extern int  mu_nntp_next            (mu_nntp_t nntp, unsigned long *number, char **mid);
+
+extern int  mu_nntp_article         (mu_nntp_t nntp, unsigned long number, unsigned long *pnum, char **mid, stream_t *stream);
+extern int  mu_nntp_article_id      (mu_nntp_t nntp, const char *id, unsigned long *pnum, char **mid, stream_t *stream);
+
+extern int  mu_nntp_head            (mu_nntp_t nntp, unsigned long number, unsigned long *pnum, char **mid, stream_t *stream);
+extern int  mu_nntp_head_id         (mu_nntp_t nntp, const char *name, unsigned long *pnum, char **mid, stream_t *stream);
+
+extern int  mu_nntp_body            (mu_nntp_t nntp, unsigned long number, unsigned long *pnum, char **mid, stream_t *stream);
+extern int  mu_nntp_body_id         (mu_nntp_t nntp, const char *id, unsigned long *pnum, char **mid, stream_t *stream);
+
+extern int  mu_nntp_stat            (mu_nntp_t nntp, unsigned long number, unsigned long *pnum, char **mid);
+extern int  mu_nntp_stat_id         (mu_nntp_t nntp, const char *id, unsigned long *pnum, char **mid);
+
+extern int  mu_nntp_date            (mu_nntp_t nntp, unsigned int *year, unsigned int *month, unsigned int *day,
+				     unsigned int *hour, unsigned int *minute, unsigned int *second);
 
 
 /* Reads the multi-line response of the server, nread will be 0 when the termination octets

@@ -30,15 +30,46 @@
 extern "C" {
 #endif
 
+/* Response codes. */
+
+#define MU_NNTP_RESP_CODE_SERVER_DATE         111
+
+#define MU_NNTP_RESP_CODE_POSTING_ALLOWED     200
+#define MU_NNTP_RESP_CODE_POSTING_PROHIBITED  201
+#define MU_NNTP_RESP_CODE_LIST_FOLLOW         202
+
+#define MU_NNTP_RESP_CODE_CLOSING             205
+#define MU_NNTP_RESP_CODE_GROUP_SELECTED      211
+
+#define MU_NNTP_RESP_CODE_ARTICLE_FOLLOW      220
+#define MU_NNTP_RESP_CODE_HEAD_FOLLOW         221
+#define MU_NNTP_RESP_CODE_BODY_FOLLOW         222
+#define MU_NNTP_RESP_CODE_ARTICLE_FOUND       223
+
+#define MU_NNTP_RESP_CODE_TEMP_UNAVAILABLE    400
+#define MU_NNTP_RESP_CODE_NO_EXTENSION        402
+#define MU_NNTP_RESP_CODE_NO_ARTICLE_WITH_MID 430
+#define MU_NNTP_RESP_CODE_NO_GROUP_SELECTED   412
+#define MU_NNTP_RESP_CODE_NUMBER_INVALID      420
+#define MU_NNTP_RESP_CODE_NO_ARTICLE          422
+#define MU_NNTP_RESP_CODE_NO_ARTICLE_IN_RANGE 423
+#define MU_NNTP_RESP_CODE_PERM_UNAVAILABLE    502
+
 enum mu_nntp_state
   {
     MU_NNTP_NO_STATE,
     MU_NNTP_CONNECT, MU_NNTP_GREETINGS,
+    MU_NNTP_MODE_READER, MU_NNTP_MODE_READER_ACK,
+    MU_NNTP_LIST_EXTENSIONS, MU_NNTP_LIST_EXTENSIONS_ACK, MU_NNTP_LIST_EXTENSIONS_RX,
+    MU_NNTP_QUIT, MU_NNTP_QUIT_ACK,
+    MU_NNTP_GROUP, MU_NNTP_GROUP_ACK,
+    MU_NNTP_LAST, MU_NNTP_LAST_ACK,
+    MU_NNTP_NEXT, MU_NNTP_NEXT_ACK,
     MU_NNTP_ARTICLE, MU_NNTP_ARTICLE_ACK, MU_NNTP_ARTICLE_RX,
     MU_NNTP_HEAD,    MU_NNTP_HEAD_ACK,    MU_NNTP_HEAD_RX,
     MU_NNTP_BODY,    MU_NNTP_BODY_ACK, MU_NNTP_BODY_RX,
     MU_NNTP_STAT,    MU_NNTP_STAT_ACK,
-    MU_NNTP_STLS,    MU_NNTP_STLS_ACK, MU_NNTP_STLS_CONNECT,
+    MU_NNTP_DATE,    MU_NNTP_DATE_ACK,
     MU_NNTP_DONE,    MU_NNTP_UNKNOWN,  MU_NNTP_ERROR
   };
 
@@ -79,8 +110,9 @@ struct _mu_nntp
 
 extern int  mu_nntp_debug_cmd        (mu_nntp_t);
 extern int  mu_nntp_debug_ack        (mu_nntp_t);
-extern int  mu_nntp_stream_create    (mu_nntp_t pop3, stream_t *pstream);
+extern int  mu_nntp_stream_create    (mu_nntp_t nntp, stream_t *pstream);
 extern int  mu_nntp_carrier_is_ready (stream_t carrier, int flag, int timeout);
+extern int  mu_nntp_parse_article    (mu_nntp_t nntp, int code, unsigned long *pnum, char **mid);
 
 /* Check for non recoverable error.
    The error is consider not recoverable if not part of the signal set:
@@ -118,12 +150,23 @@ do \
   } \
 while (0)
 
-/* Check if we got "2xx". In NNTP protocol and ack of "2xx" means the command was successfull.
+/* Check if we got the rigth. In NNTP protocol and ack of "2xx" means the command was completed.
  */
-#define MU_NNTP_CHECK_OK(nntp) \
+#define MU_NNTP_CHECK_CODE(nntp, code) \
 do \
   { \
-     if (nntp->ack.buf[0] != '2') \
+     if (mu_nntp_response_code (nntp) == code) \
+       { \
+          nntp->state = MU_NNTP_NO_STATE; \
+          return EACCES; \
+       } \
+  } \
+while (0)
+
+#define MU_NNTP_CHECK_CODE2(nntp, code1, code2) \
+do \
+  { \
+     if (mu_nntp_response_code (nntp) == code1 || mu_nntp_response_code (nntp) == code2) \
        { \
           nntp->state = MU_NNTP_NO_STATE; \
           return EACCES; \
