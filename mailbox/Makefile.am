@@ -41,6 +41,7 @@ mbx_imap.c \
 mbx_mbox.c \
 mbx_pop.c \
 message.c \
+memory_stream.c \
 mime.c \
 misc.c \
 monitor.c \

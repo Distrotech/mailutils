@@ -119,11 +119,12 @@ extern int stream_get_state    __P ((stream_t, int *pstate));
 /* Misc.  */
 extern int file_stream_create     __P ((stream_t *stream));
 extern int mapfile_stream_create  __P ((stream_t *stream));
+extern int memory_stream_create   __P ((stream_t *stream));
+extern int tcp_stream_create      __P ((stream_t *stream));
 extern int encoder_stream_create  __P ((stream_t *stream, stream_t iostream,
 					const char *encoding));
 extern int decoder_stream_create  __P ((stream_t *stream, stream_t iostream,
 					const char *encoding));
-extern int tcp_stream_create      __P ((stream_t *stream));
 
 #ifdef __cplusplus
 }

@@ -495,6 +495,25 @@ header_get_value (header_t header, const char *name, char *buffer,
 }
 
 int
+header_aget_value (header_t header, const char *name, char **pvalue)
+{
+  char *value;
+  size_t n = 0;
+  int status = header_get_value (header, name, NULL, 0, &n);
+  if (status == 0)
+    {
+      value = calloc (n + 1, 1);
+      if (value == NULL)
+        return ENOMEM;
+      header_get_value (header, name, value, n + 1, NULL);
+      *pvalue = value;
+    }
+  else
+    *pvalue = strdup ("");
+  return 0;
+}
+
+int
 header_get_field_count (header_t header, size_t *pcount)
 {
   if (header == NULL)
@@ -553,6 +572,25 @@ header_get_field_name (header_t header, size_t num, char *buf,
 }
 
 int
+header_aget_field_name (header_t header, size_t num, char **pvalue)
+{
+  char *value;
+  size_t n = 0;
+  int status = header_get_field_name (header, num, NULL, 0, &n);
+  if (status == 0)
+    {
+      value = calloc (n + 1, 1);
+      if (value == NULL)
+        return ENOMEM;
+      header_get_field_name (header, num, value, n + 1, NULL);
+      *pvalue = value;
+    }
+  else
+    *pvalue  = strdup ("");
+  return 0;
+}
+
+int
 header_get_field_value (header_t header, size_t num, char *buf,
 			size_t buflen, size_t *nwritten)
 {
@@ -585,6 +623,25 @@ header_get_field_value (header_t header, size_t num, char *buf,
   if (nwritten)
     *nwritten = len;
   return 0;
+}
+
+int
+header_aget_field_value (header_t header, size_t num, char **pvalue)
+{
+  char *value;
+  size_t n = 0;
+  int status = header_get_field_value (header, num, NULL, 0, &n);
+  if (status == 0)
+    {
+      value = calloc (n + 1, 1);
+      if (value == NULL)
+        return ENOMEM;
+      header_get_field_value (header, num, value, n + 1, NULL);
+      *pvalue = value;
+    }
+  else
+    *pvalue = strdup ("");
+  return status;
 }
 
 int

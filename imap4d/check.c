@@ -26,5 +26,7 @@
 int
 imap4d_check (struct imap4d_command *command, char *arg)
 {
+  if (! (command->states & state))
+    return util_finish (command, RESP_BAD, "Wrong state");
   return util_finish (command, RESP_OK, "Completed");
 }

@@ -189,7 +189,7 @@ rfc822_read0 (filter_t filter, char *buffer, size_t buflen,
 	    rfc822->residue = 0;
 	}
       buffer += nread;
-    } while (buflen > 0 || !isreadline);
+    } while (buflen > 0 && !isreadline);
 
   if (isreadline)
     *buffer = '\0';

@@ -25,14 +25,11 @@ imap4d_close (struct imap4d_command *command, char *arg)
 {
   /* FIXME: Check args.  */
   /* FIXME: Check state and if they selected.  */
-  /* FIXME: state = AUTHENTICATE.  */
-
+  if (! (command->states & state))
+    return util_finish (command, RESP_BAD, "Wrong state");
   /* FIXME: Check and report errors.  */
   mailbox_expunge (mbox);
   mailbox_close (mbox);
   mailbox_destroy (&mbox);
-
-  /* FIXME: state = Not selected.  */
-
   return util_finish (command, RESP_OK, "Completed");
 }

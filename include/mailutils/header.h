@@ -74,56 +74,70 @@ extern "C" {
 struct _header;
 typedef struct _header * header_t;
 
-extern int header_create          __P ((header_t *, const char *,
-				      size_t, void *));
-extern void header_destroy        __P ((header_t *, void *));
-extern void *header_get_owner    __P ((header_t));
+extern int header_create           __P ((header_t *, const char *,
+					 size_t, void *));
+extern void header_destroy         __P ((header_t *, void *));
+extern void *header_get_owner      __P ((header_t));
 
-extern int header_is_modified     __P ((header_t));
-extern int header_clear_modified  __P ((header_t));
+extern int header_is_modified      __P ((header_t));
+extern int header_clear_modified   __P ((header_t));
 
-extern int header_get_property  __P ((header_t, property_t *));
-extern int header_set_property  __P ((header_t, property_t, void *));
+extern int header_get_property     __P ((header_t, property_t *));
+extern int header_set_property     __P ((header_t, property_t, void *));
 
-extern int header_set_value       __P ((header_t, const char *,
+extern int header_set_value        __P ((header_t, const char *,
 					const char *, int));
-extern int header_set_set_value   __P ((header_t, int (*_set_value)
-					__P ((header_t, const char *,
-					      const char *, int)), void *));
+extern int header_set_set_value    __P ((header_t,
+					 int (*_set_value) __P ((header_t,
+								 const char *,
+								 const char *,
+								 int)),
+					 void *));
 
-extern int header_get_value       __P ((header_t, const char *, char *,
-					size_t, size_t *));
-extern int header_set_get_value   __P ((header_t, int (*_get_value)
-					__P ((header_t, const char *, char *,
-					      size_t, size_t *)), void *));
-extern int header_set_get_fvalue  __P ((header_t, int (*_get_value)
-					__P ((header_t, const char *, char *,
-					      size_t, size_t *)), void *));
+extern int header_get_value        __P ((header_t, const char *, char *,
+					 size_t, size_t *));
+extern int header_aget_value       __P ((header_t, const char *, char **));
+extern int header_set_get_value    __P ((header_t,
+					 int (*_get_value) __P ((header_t,
+								 const char *,
+								 char *,
+								 size_t,
+								 size_t *)),
+					 void *));
+extern int header_set_get_fvalue   __P ((header_t,
+					 int (*_get_value) __P ((header_t,
+								 const char *,
+								 char *,
+								 size_t,
+								 size_t *)),
+					 void *));
 
-extern int header_get_field_count __P ((header_t, size_t *));
-extern int header_get_field_value __P ((header_t, size_t, char *,
-					size_t, size_t *));
-extern int header_get_field_name  __P ((header_t, size_t, char *,
-					size_t, size_t *));
+extern int header_get_field_count  __P ((header_t, size_t *));
+extern int header_get_field_value  __P ((header_t, size_t, char *,
+					 size_t, size_t *));
+extern int header_aget_field_value __P ((header_t, size_t, char **));
+extern int header_get_field_name   __P ((header_t, size_t, char *,
+					 size_t, size_t *));
+extern int header_aget_field_name  __P ((header_t, size_t, char **));
 
-extern int header_get_stream      __P ((header_t, stream_t *));
-extern int header_set_stream      __P ((header_t, stream_t, void *));
+extern int header_get_stream       __P ((header_t, stream_t *));
+extern int header_set_stream       __P ((header_t, stream_t, void *));
 
-extern int header_size            __P ((header_t, size_t *));
-extern int header_set_size        __P ((header_t, int (*_size)
-					__P ((header_t, size_t *)), void *));
+extern int header_size             __P ((header_t, size_t *));
+extern int header_set_size         __P ((header_t, int (*_size)
+					 __P ((header_t, size_t *)), void *));
 
-extern int header_lines           __P ((header_t, size_t *));
-extern int header_set_lines       __P ((header_t,
-					int (*_lines) __P ((header_t,
-							    size_t *)),
-					void *));
+extern int header_lines            __P ((header_t, size_t *));
+extern int header_set_lines        __P ((header_t,
+					 int (*_lines) __P ((header_t,
+							     size_t *)),
+					 void *));
 
-extern int header_set_fill        __P ((header_t,
-					int (*_fill) __P ((header_t, char *,
-							   size_t, off_t,
+extern int header_set_fill         __P ((header_t,
+					 int (*_fill) __P ((header_t, char *,
+							    size_t, off_t,
 							   size_t *)),
-					void *owner));
+					 void *owner));
 #ifdef __cplusplus
 }
 #endif

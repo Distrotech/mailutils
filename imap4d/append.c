@@ -24,5 +24,7 @@
 int
 imap4d_append (struct imap4d_command *command, char *arg)
 {
+  if (! (command->states & state))
+    return util_finish (command, RESP_BAD, "Wrong state");
   return util_finish (command, RESP_NO, "Not implemented");
 }

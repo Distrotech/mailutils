@@ -24,5 +24,7 @@
 int
 imap4d_examine (struct imap4d_command *command, char *arg)
 {
+  if (! (command->states & state))
+    return util_finish (command, RESP_BAD, "Wrong state");
   return imap4d_select0 (command, arg, MU_STREAM_READ);
 }

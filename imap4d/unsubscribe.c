@@ -24,5 +24,7 @@
 int
 imap4d_unsubscribe (struct imap4d_command *command, char *arg)
 {
+  if (! (command->states & state))
+    return util_finish (command, RESP_BAD, "Wrong state");
   return util_finish (command, RESP_NO, "Not supported");
 }

@@ -27,6 +27,8 @@ imap4d_status (struct imap4d_command *command, char *arg)
   char *sp = NULL;
   char *mailbox_name;
   char *data;
+  if (! (command->states & state))
+    return util_finish (command, RESP_BAD, "Wrong state");
   mailbox_name = util_getword (arg, &sp);
   data = util_getword (NULL, &sp);
   if (!mailbox_name || !data)

@@ -1,3 +1,36 @@
+2001-04-18  Alain Magloire
+
+	Finally took time to put the code in from Jakob first draft, in
+	an email excerpt:
+	states is the valid states for a command (eg. LOGIN is only valid in
+	non-authenticated state, SELECT is valid in authenticated or
+	selected). success is the state to enter when the command completes
+	successfully (STATE_NONE means no change) and failure is the state to
+	enter when the command fails.
+
+	* imap4d/*.c:  All the commands check there state.
+	* imap4d/fetch.c: Cleanup the fetch code, and broke
+	the fetch_operation() routine in multiple routines.
+	(fetch_message): New function.
+	(fetch_header): Likewised
+	(fetch_content): Likewised
+	(fetch_io): Likewised
+	(fetch_header_fields): Likewised
+	(fetch_header_fields_not): Likewised
+	(fetch_send_address): Likewised
+
+	* mailbox/header.c: Some functions were usefull while
+	programming the imap server, put them here.
+	(header_aget_value): New function.
+	(header_aget_field_name): New function.
+	(header_aget_field_value): New function.
+
+	* mailbox/memory_stream.c: New file, implemented a
+	malloc() buffer that you can access via the stream interface.
+	* mailbox/file_stream.c: Remove spurious checks.
+	* mailbox/mapfile_stream.c: Remove spurious checks.
+	(_mapfile_read): check if there is no newline left.
+
 2001-04-16  Alain Magloire
 
 	To get things to compile on Solaris, change configure to check

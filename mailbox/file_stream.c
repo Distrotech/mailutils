@@ -41,8 +41,7 @@ static void
 _file_destroy (stream_t stream)
 {
   struct _file_stream *fs = stream_get_owner (stream);
-
-  if (fs && fs->file)
+  if (fs->file)
     fclose (fs->file);
   free (fs);
 }
@@ -54,9 +53,6 @@ _file_read (stream_t stream, char *optr, size_t osize,
   struct _file_stream *fs = stream_get_owner (stream);
   size_t n;
   int err = 0;
-
-  if (fs == NULL)
-    return EINVAL;
 
   if (fs->offset != offset)
     {
@@ -86,9 +82,6 @@ _file_readline (stream_t stream, char *optr, size_t osize,
   struct _file_stream *fs = stream_get_owner (stream);
   size_t n = 0;
   int err = 0;
-
-  if (fs == NULL)
-    return EINVAL;
 
   if (fs->offset != offset)
     {
@@ -123,9 +116,6 @@ _file_write (stream_t stream, const char *iptr, size_t isize,
   size_t n;
   int err = 0;
 
-  if (fs == NULL)
-    return EINVAL;
-
   if (fs->offset != offset)
     {
       if (fseek (fs->file, offset, SEEK_SET) != 0)
@@ -153,9 +143,6 @@ static int
 _file_truncate (stream_t stream, off_t len)
 {
   struct _file_stream *fs = stream_get_owner (stream);
-
-  if (fs == NULL)
-    return EINVAL;
   if (ftruncate (fileno(fs->file), len) != 0)
     return errno;
   return 0;
@@ -166,9 +153,6 @@ _file_size (stream_t stream, off_t *psize)
 {
   struct _file_stream *fs = stream_get_owner (stream);
   struct stat stbuf;
-
-  if (fs == NULL)
-    return EINVAL;
   fflush (fs->file);
   if (fstat(fileno(fs->file), &stbuf) == -1)
     return errno;
@@ -181,9 +165,6 @@ static int
 _file_flush (stream_t stream)
 {
   struct _file_stream *fs = stream_get_owner (stream);
-
-  if (fs == NULL)
-    return EINVAL;
   return fflush (fs->file);
 }
 
@@ -191,9 +172,6 @@ static int
 _file_get_fd (stream_t stream, int *pfd)
 {
   struct _file_stream *fs = stream_get_owner (stream);
-
-  if (fs == NULL)
-    return EINVAL;
   if (pfd)
     *pfd = fileno (fs->file);
   return 0;
@@ -204,9 +182,6 @@ _file_close (stream_t stream)
 {
   struct _file_stream *fs = stream_get_owner (stream);
   int err = 0;
-
-  if (fs == NULL)
-    return EINVAL;
   if (fs->file)
     {
       if (fclose (fs->file) != 0)
@@ -225,9 +200,6 @@ _file_open (stream_t stream, const char *filename, int port, int flags)
   const char *mode;
 
   (void)port; /* Ignored.  */
-
-  if (fs == NULL)
-    return EINVAL;
 
   if (fs->file)
     {

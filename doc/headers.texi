@@ -72,16 +72,20 @@ MIME-Version
 
 @end deftypefun
 
-@deftypefun int header_get_value (header_t @var{hdr}, const char *fn, char *fv, size_t len, size_t *n)
+@deftypefun int header_get_value (header_t @var{hdr}, const char *@var{fn}, char *@var{fv}, size_t @var{len}, size_t *@var{n})
 Value of field-name @var{fn} is returned in buffer @var{fv} of size @var{len}.
 The number of bytes written is put in @var{n}.
+@end deftypefun
+
+@deftypefun int header_aget_value (header_t @var{hdr}, const char *@var{fn}, char **@var{fv})
+The value is allocated.
 @end deftypefun
 
 @deftypefun int header_get_stream (header_t @var{hdr}, stream_t *@var{pstream})
 @end deftypefun
 
-@deftypefun int header_size (header_t @var{hdr}, size_t *@var{size})
+@deftypefun int header_set_size (header_t @var{hdr}, size_t *@var{size})
 @end deftypefun
 
-@deftypefun int header_lines (header_t @var{hdr}, size_t *@var{lpines})
+@deftypefun int header_set_lines (header_t @var{hdr}, size_t *@var{lpines})
 @end deftypefun

@@ -207,6 +207,7 @@ util_finish (struct imap4d_command *command, int rc, const char *format, ...)
 {
   char *buf = NULL;
   const char *resp;
+  int new_state;
   va_list ap;
 
   va_start (ap, format);
@@ -216,6 +217,9 @@ util_finish (struct imap4d_command *command, int rc, const char *format, ...)
   resp = sc2string (rc);
   fprintf (ofile, "%s %s%s %s\r\n", command->tag, resp, command->name, buf);
   free (buf);
+  new_state = (rc == RESP_OK) ? command->success : command->failure;
+  if (new_state != STATE_NONE)
+    state = new_state;
   return 0;
 }
 

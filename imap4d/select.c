@@ -22,6 +22,8 @@
 int
 imap4d_select (struct imap4d_command *command, char *arg)
 {
+  if (! (command->states & state))
+    return util_finish (command, RESP_BAD, "Wrong state");
   return imap4d_select0 (command, arg, MU_STREAM_RDWR);
 }
 
@@ -61,6 +63,7 @@ imap4d_select0 (struct imap4d_command *command, char *arg, int flags)
       unsigned long uidvalidity = 0;
       size_t count = 0, recent = 0, unseen = 0, uidnext = 0;
 
+      state = STATE_SEL;
       mailbox_uidvalidity (mbox, &uidvalidity);
       mailbox_uidnext (mbox, &uidnext);
       mailbox_messages_count (mbox, &count);

@@ -25,11 +25,12 @@ int
 imap4d_expunge (struct imap4d_command *command, char *arg)
 {
   char *sp = NULL;
-
+  if (! (command->states & state))
+    return util_finish (command, RESP_BAD, "Wrong state");
   if (util_getword (arg, &sp))
     return util_finish (command, RESP_NO, "Too many args");
 
-  /* FIXME: Check state, check for errors.  */
+  /* FIXME: check for errors.  */
   mailbox_expunge (mbox);
   return util_finish (command, RESP_OK, "Completed");
 }

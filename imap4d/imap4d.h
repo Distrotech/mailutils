@@ -62,6 +62,8 @@
 #include <mailutils/body.h>
 #include <mailutils/address.h>
 #include <mailutils/registrar.h>
+#include <mailutils/filter.h>
+#include <mailutils/stream.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -80,17 +82,17 @@ struct imap4d_command
   const char *name;
   int (*func) __P ((struct imap4d_command *, char *));
   int states;
-  int success;
   int failure;
+  int success;
   char *tag;
 };
 
 /* Global variables and constants*/
-#define STATE_NONE	(1 << 0)
-#define STATE_NONAUTH	(1 << 1)
-#define STATE_AUTH	(1 << 2)
-#define STATE_SEL	(1 << 3)
-#define STATE_LOGOUT	(1 << 4)
+#define STATE_NONE	(0)
+#define STATE_NONAUTH	(1 << 0)
+#define STATE_AUTH	(1 << 1)
+#define STATE_SEL	(1 << 2)
+#define STATE_LOGOUT	(1 << 3)
 
 #define STATE_ALL	(STATE_NONE | STATE_NONAUTH | STATE_AUTH | STATE_SEL \
 			| STATE_LOGOUT)
@@ -105,7 +107,7 @@ extern struct imap4d_command imap4d_command_table[];
 extern FILE *ofile;
 extern unsigned int timeout;
 extern mailbox_t mbox;
-extern unsigned int state;
+extern int state;
 
 /* Imap4 commands */
 int imap4d_capability __P ((struct imap4d_command *, char *));
