@@ -75,6 +75,14 @@ char *alloca ();
 #include "argp.h"
 #include "argp-fmtstream.h"
 #include "argp-namefrob.h"
+
+#if !HAVE_DECL_STRCHRNUL
+extern char *strchrnul __P((const char *s, int c_in));
+#endif
+#if !HAVE_DECL_STRNDUP
+extern char *strndup __P((const char *s, size_t n));
+#endif
+
 
 /* User-selectable (using an environment variable) formatting parameters.
 
