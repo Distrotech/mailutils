@@ -71,8 +71,9 @@ libmh_a_SOURCES= \
  mh_format.c\
  mh_init.c\
  mh_list.c\
- mh_fmtgram.y\
+ mh_fmtgram.c\
  mh_msgset.c\
+ mh_sequence.c\
  mh_whatnow.c
 noinst_HEADERS = mh.h mh_getopt.h
 
@@ -80,8 +81,15 @@ LISPSRC = mailutils-mh.el
 lisp_LISP=@lisp_LISP@
 EXTRA_LISP = mailutils-mh.el
 
+BUILT_SOURCES= \
+	mh_fmtgram.c \
+        pick-gram.c \
+        pick-gram.h
+
+MAINTAINERCLEANFILES=$(BUILT_SOURCES)
+
 mhlib_DATA = replcomps mhl.format $(LISPSRC)
-EXTRA_DIST = replcomps mhl.format mailutils-mh.eli
+EXTRA_DIST = replcomps mhl.format mailutils-mh.eli mh_fmtgram.y pick.y
 DISTCLEANFILES = mailutils-mh.el
 
 mailutils-mh.el: mailutils-mh.eli
@@ -92,8 +100,21 @@ AM_CPPFLAGS = -DMHLIBDIR=\"$(mhlibdir)\"
 mh_LIBS = ./libmh.a ../mailbox/libmailbox.la ../lib/libmailutils.la @LTLIBINTL@
 LDADD = $(mh_LIBS)
 scan_LDADD = $(mh_LIBS) @CURSES_LIBS@
+pick_SOURCES = pick.c pick.h pick-gram.c pick-gram.h
 
+YLWRAP = $(SHELL) $(top_srcdir)/scripts/ylwrap
 AM_YFLAGS=-vt
+
+pick-gram.c pick-gram.h: $(srcdir)/pick.y
+	$(YLWRAP) "$(YACC) $(AM_YFLAGS) -d" $< \
+	          y.tab.c pick-gram.c y.tab.h pick-gram.h y.output pick.output \
+                  -- -yy pick_yy
+
+mh_fmtgram.c: $(srcdir)/mh_fmtgram.y
+	$(YLWRAP) "$(YACC) $(AM_YFLAGS)" $< \
+	          y.tab.c mh_fmtgram.c y.output fmtgram.y.output \
+                  -- -yy fmt_yy
+
 
 install-exec-hook: @BUILD_MH_EXEC_HOOK@
 	
