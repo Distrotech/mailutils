@@ -44,7 +44,7 @@ static struct argp_option options[] = {
   {"preserve", ARG_PRESERVE, N_("BOOL"), OPTION_ARG_OPTIONAL,
    N_("* Try to preserve message sequence numbers")},
   {"source", ARG_SOURCE, N_("FOLDER"), 0,
-   N_("Specify source folder. FOLDER will become the current folder after the program exits.")},
+   N_("Specify source folder. FOLDER will become the current folder after the program exits")},
   {"src", 0, NULL, OPTION_ALIAS, NULL},
   {"file", ARG_FILE, N_("FILE"), 0, N_("Use FILE as the source message")},
   {"license", ARG_LICENSE, 0,      0,

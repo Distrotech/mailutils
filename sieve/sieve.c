@@ -53,7 +53,7 @@ N_("GNU sieve -- a mail filtering tool\n\
 \v\
 Debug flags:\n\
   g - main parser traces\n\
-  T - mailutil traces (MU_DEBUG_TRACE)\n\
+  T - mailutils traces (MU_DEBUG_TRACE)\n\
   P - network protocols (MU_DEBUG_PROT)\n\
   t - sieve trace (MU_SIEVE_DEBUG_TRACE)\n\
   i - sieve instructions trace (MU_SIEVE_DEBUG_INSTR)\n");

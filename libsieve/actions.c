@@ -418,7 +418,7 @@ sieve_action_redirect (sieve_machine_t mach, list_t args, list_t tags)
       sieve_error (mach,
 		   /* TRANSLATORS: 'redirect' is the name of a Sieve action.
 		      Do not translate it! */
-		   _("%d: redirect - cannot create from address <%s>: %s\n"),
+		   _("%d: redirect - cannot create sender address <%s>: %s\n"),
 		   sieve_get_message_num (mach),
 		   fromaddr, mu_strerror (rc));
       free (fromaddr);

@@ -80,7 +80,7 @@ static struct argp_option mu_mailbox_argp_option[] = {
   {"lock-expire-timeout", ARG_LOCK_EXPIRE_TIMEOUT, N_("SECONDS"), 0,
    N_("Number of seconds after which the lock expires"), },
   {"external-locker", ARG_LOCK_EXTERNAL_PROGRAM, N_("PATH"), 0,
-   N_("Set full path to the external locker program.") },
+   N_("Set full path to the external locker program") },
   { NULL,      0, NULL, 0, NULL, 0 }
 };
 

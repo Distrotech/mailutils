@@ -46,7 +46,7 @@ static struct argp_option options[] = {
   {"to",      't', 0,      0, N_("Precede message by a list of addresses"), 0},
   {"user",    'u', N_("USER"), 0, N_("Operate on USER's mailbox"), 0},
   {"append",  'a', N_("HEADER: VALUE"), 0,
-   N_("Append given header to the message being sent."), 0},
+   N_("Append given header to the message being sent"), 0},
   { NULL,      0, NULL, 0, NULL, 0 }
 };
 

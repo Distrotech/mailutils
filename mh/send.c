@@ -52,7 +52,7 @@ static struct argp_option options[] = {
    N_("* Reformat To: and Cc: addresses") },
   {"noformat",      ARG_NOFORMAT,      NULL, OPTION_HIDDEN, "" },
   {"forward",       ARG_FORWARD,       N_("BOOL"), OPTION_ARG_OPTIONAL,
-   N_("* In case of failure forward the draft along with the failure notice to the sender.") },
+   N_("* In case of failure forward the draft along with the failure notice to the sender") },
   {"noforward",     ARG_NOFORWARD,     NULL, OPTION_HIDDEN, "" },
   {"mime",          ARG_MIME,          N_("BOOL"), OPTION_ARG_OPTIONAL,
    N_("* Use MIME encapsulation") },
