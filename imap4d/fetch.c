@@ -53,7 +53,7 @@ static int fetch_uid               __P ((struct fetch_command *, char**));
 static int fetch_envelope0         __P ((message_t));
 static int fetch_bodystructure0    __P ((message_t, int));
 static int bodystructure           __P ((message_t, int));
-static void send_parameter_list    __P ((char *));
+static void send_parameter_list    __P ((const char *));
 static int fetch_operation         __P ((message_t, char **, int));
 static int fetch_message           __P ((message_t, unsigned long, unsigned long));
 static int fetch_header            __P ((message_t, unsigned long, unsigned long));
@@ -1483,7 +1483,7 @@ fetch_send_address (const char *addr)
 
 /* Send parameter list for the bodystructure.  */
 static void
-send_parameter_list (char *buffer)
+send_parameter_list (const char *buffer)
 {
   int argc = 0;
   char **argv;
