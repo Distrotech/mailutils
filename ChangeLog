@@ -1,5 +1,35 @@
 2001-10-23  Alain Magloire
 
+	The message_t object makes no guaranty about the size and the lines
+	that it returns, if it is pointing to non-local file messages,
+	i.e POP3, IMAP4, the entire message may not have been dowloaded yet.
+	IMAP is very susceptible on the size, example:
+	 A003 APPEND saved-messages (\Seen) {310}
+	(1) If the IMAP4 server does not get the right size advertise in the
+	string literal, it will misbehave.
+	(2) Since we are assuming that the message will be in (unix)native
+	file system format meaning ending with NEWLINE, we will have
+	to do some calculations about the RFC822.SIZE of the message.
+	(3) As pointed about, it is not possible to rely on message_size()
+	nor message_lines() to return the right count and even missing by
+	one can be deadly.
+	So we download the message to a floating message to guaranty that
+	we know the exact size when transmitting it back the IMAP server,
+	this is the only sane thing to do IMHO.  We could always
+	be smart; check if the message is local (i.e from the local file
+	system: mbox, mh, etc ..) and was not modified.  If those two
+	requirements are true we can assume that the sizes/lines are right.
+	But for now do it simple, and create a temporary file/message_t.
+
+	* mailbox/mbx_imap.c (imap_append_message):  If the message
+	is from the same IMAP server optimize by doing COPY.  If not
+	call imap_append_message0() save the original message to a
+	floating message i.e. file, and use that floating message for
+	the append.  Temporary message is destroyed when finish.
+	The drawback is this function is no long nonblocking safe.
+
+2001-10-23  Alain Magloire
+
 	* mailbox/body.c: body_lines () nd body_size () were not
 	properly overriden given the wrong size and line number, fixed.
 	* mailbox/mbx_imap.c (mailbox_imap_close): Not to send another SELECT

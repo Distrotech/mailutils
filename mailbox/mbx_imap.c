@@ -54,6 +54,7 @@ static int  imap_scan             __P ((mailbox_t, size_t, size_t *));
 static int  imap_scan0            __P ((mailbox_t, size_t, size_t *, int));
 static int  imap_is_updated       __P ((mailbox_t));
 static int  imap_append_message   __P ((mailbox_t, message_t));
+static int  imap_append_message0  __P ((mailbox_t, message_t));
 static int  imap_copy_message     __P ((mailbox_t, message_t));
 
 /* message_t API.  */
@@ -751,12 +752,10 @@ imap_expunge (mailbox_t mailbox)
   return status;
 }
 
-/* Not Nonblocking safe.  */
+/* FIXME: Not ___Nonblocking___ safe.  */
 /* DANGER:  The message_t object makes no guaranty about the size and the lines
-   that it returns, if its pointing to non-local file messages.
-   FIXME: So we should download the message to a floating message so to
-   make sure that we know the exact size then transmit it back the IMAP
-   server.  */
+   that it returns, if its pointing to non-local file messages, so we
+   make a local copy.  */
 static int
 imap_append_message (mailbox_t mailbox, message_t msg)
 {
@@ -764,7 +763,6 @@ imap_append_message (mailbox_t mailbox, message_t msg)
   int status = 0;
   m_imap_t m_imap = mailbox->data;
   f_imap_t f_imap = m_imap->f_imap;
-
 
   /* FIXME: It is debatable if we should reconnect when the connection
    timeout or die.  For timeout client should ping i.e. send
@@ -780,6 +778,51 @@ imap_append_message (mailbox_t mailbox, message_t msg)
   if (f_imap->selected != m_imap && !message_is_modified (msg)
       && is_same_folder (mailbox, msg))
     return imap_copy_message (mailbox, msg);
+
+  /* copy the message to local disk by createing a floating message.  */
+  {
+    stream_t stream = NULL;
+    stream_t tstream = NULL;
+    message_t message = NULL;
+    off_t off = 0;
+    size_t n = 0;
+    char buf[128];
+
+    message_create (&message, NULL);
+    message_get_stream (msg, &stream);
+    message_get_stream (message, &tstream);
+
+    while ((status = stream_readline (stream, buf, sizeof buf, off, &n)) == 0
+	   && n > 0)
+      {
+	stream_write (tstream, buf, n, off, NULL);
+	off += n;
+      }
+    if (status == 0)
+      status = imap_append_message0 (mailbox, message);
+    message_destroy (&message, NULL);
+  }
+  return status;
+}
+
+/* Ok this mean that the message is coming from somewhere else.  IMAP
+   is very susceptible on the size, example:
+   A003 APPEND saved-messages (\Seen) {310}
+   if the server does not get the right size advertise in the string literal
+   it will misbehave.  Sine we are assuming that the message will be
+   in native file system format meaning ending with NEWLINE, we will have
+   to do the calculation.  But what is worse; the value return
+   by message_size () and message_lines () are no mean exact but rather
+   a gross approximation for certain type of mailbox.  So the sane
+   thing to do is to save the message in temporary file, this we say
+   we guarantee the size of the message.  */
+static int
+imap_append_message0 (mailbox_t mailbox, message_t msg)
+{
+  size_t total;
+  int status = 0;
+  m_imap_t m_imap = mailbox->data;
+  f_imap_t f_imap = m_imap->f_imap;
 
   switch (f_imap->state)
     {
