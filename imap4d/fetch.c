@@ -121,30 +121,15 @@ imap4d_fetch (struct imap4d_command *command, char *arg)
   for (i = 0; i < n; i++)
     {
       fcmd->states = set[i];
-      fcmd->tag = command->tag;
-      fcmd->success = 1;
-      status = fcmd->func (fcmd, sp);
-      if (status != 0)
-	{
-	  rc = RESP_BAD;
-	  errmsg = "Bogus attribute";
-	  break;
-	}
-      else
-	util_send (")\r\n");
+      util_send ("* FETCH %d (%s", set[i], command->name);
+      fcmd->func (fcmd, sp);
+      util_send (")\r\n");
     }
   free (set);
   return util_finish (command, rc, errmsg);
 }
 
 /* --------------- Fetch commands definition  ----- */
-#define EPILOGUE(command) \
-do { \
-  if (command->success) \
-    util_send ("* FETCH %d (%s", command->states, command->name); \
-  else \
-    util_send (" %s", command->name); \
-} while (0)
 
 static int
 fetch_all (struct imap4d_command *command, char *arg)
@@ -152,7 +137,6 @@ fetch_all (struct imap4d_command *command, char *arg)
   struct imap4d_command c_env = fetch_command_table[F_ENVELOPE];
   fetch_fast (command, arg);
   c_env.states = command->states;
-  c_env.success = 0;
   fetch_envelope (&c_env, arg);
   return 0;
 }
@@ -163,7 +147,6 @@ fetch_full (struct imap4d_command *command, char *arg)
   struct imap4d_command c_body = fetch_command_table[F_BODY];
   fetch_all (command, arg);
   c_body.states = command->states;
-  c_body.success = 0;
   fetch_body (&c_body, arg);
   return 0;
 }
@@ -175,14 +158,10 @@ fetch_fast (struct imap4d_command *command, char *arg)
   struct imap4d_command c_rfc = fetch_command_table[F_RFC822_SIZE];
   struct imap4d_command c_flags = fetch_command_table[F_FLAGS];
   c_flags.states = command->states;
-  c_flags.success = command->success;
   fetch_flags (&c_flags, arg);
-  command->success = 0;
   c_idate.states = command->states;
-  c_idate.success = 0;
   fetch_internaldate (&c_idate, arg);
   c_rfc.states = command->states;
-  c_rfc.success = 0;
   fetch_rfc822_size (&c_rfc, arg);
   return 0;
 }
@@ -201,7 +180,7 @@ fetch_envelope (struct imap4d_command *command, char *arg)
   int status;
   mailbox_get_message (mbox, command->states, &msg);
   message_get_header (msg, &header);
-  EPILOGUE(command);
+  util_send (" %s", command->name);
   status = header_get_value (header, "Date", buffer, sizeof (buffer), NULL);
   util_send (" \"%s\"", buffer);
   status = header_get_value (header, "Subject", buffer, sizeof (buffer), NULL);
@@ -232,7 +211,7 @@ fetch_flags (struct imap4d_command *command, char *arg)
   message_t msg = NULL;
   mailbox_get_message (mbox, command->states, &msg);
   message_get_attribute (msg, &attr);
-  EPILOGUE(command);
+  util_send (" %s", command->name);
   util_send (" (");
   if (attribute_is_deleted (attr))
     util_send (" \\Deleted");
@@ -256,7 +235,7 @@ fetch_internaldate (struct imap4d_command *command, char *arg)
   message_get_envelope (msg, &env);
   date[0] = '\0';
   envelope_date (env, date, sizeof (date), NULL);
-  EPILOGUE(command);
+  util_send (" %s", command->name);
   if (date[strlen (date) - 1] == '\n')
     date[strlen (date) - 1] = '\0';
   util_send (" \"%s\"", date);
@@ -269,7 +248,6 @@ fetch_rfc822_header (struct imap4d_command *command, char *arg)
   char buffer[64];
   struct imap4d_command c_body_p = fetch_command_table[F_BODY_PEEK];
   c_body_p.states = command->states;
-  c_body_p.success = command->success;
   strcpy (buffer, "[HEADER]");
   fetch_body_peek (&c_body_p, buffer);
   return 0;
@@ -284,7 +262,7 @@ fetch_rfc822_size (struct imap4d_command *command, char *arg)
   mailbox_get_message (mbox, command->states, &msg);
   message_size (msg, &size);
   message_lines (msg, &lines);
-  EPILOGUE(command);
+  util_send (" %s", command->name);
   util_send (" %u", size + lines);
   return 0;
 }
@@ -295,7 +273,6 @@ fetch_rfc822_text (struct imap4d_command *command, char *arg)
   char buffer[64];
   struct imap4d_command c_body = fetch_command_table[F_BODY];
   c_body.states = command->states;
-  c_body.success = command->success;
   strcpy (buffer, "[TEXT]");
   fetch_body (&c_body, buffer);
   return 0;
@@ -308,7 +285,6 @@ fetch_rfc822 (struct imap4d_command *command, char *arg)
   char buffer[64];
   struct imap4d_command c_body = fetch_command_table[F_BODY];
   c_body.states = command->states;
-  c_body.success = command->success;
   strcpy (buffer, "[]");
   fetch_body (&c_body, buffer);
   return 0;
@@ -330,7 +306,6 @@ fetch_body (struct imap4d_command *command, char *arg)
   mailbox_get_message (mbox, command->states, &msg);
   message_get_attribute (msg, &attr);
   c_body_p.states = command->states;
-  c_body_p.success = command->success;
   fetch_body_peek (&c_body_p, arg);
   attribute_set_seen (attr);
   return 0;
@@ -343,8 +318,7 @@ fetch_uid (struct imap4d_command *command, char *arg)
   message_t msg = NULL;
   mailbox_get_message (mbox, command->states, &msg);
   message_get_uid (msg, &uid);
-  EPILOGUE (command);
-  util_send (" %d", uid);
+  util_send (" %s %d", command->name, uid);
   return 0;
 }
 
@@ -356,7 +330,7 @@ fetch_body_peek (struct imap4d_command *command, char *arg)
 
   mailbox_get_message (mbox, command->states, &msg);
 
-  EPILOGUE(command);
+  util_send (" %s", command->name);
 
   if (strncasecmp (arg, "[]", 2) == 0)
     {
