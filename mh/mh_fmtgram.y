@@ -38,7 +38,8 @@ static void branch_fixup (size_t pc, size_t tgt);
 
   /* Lexical tie-ins */
 static int in_escape;       /* Set when inside an escape sequence */
-static int want_function;   /* Set when expecting function name */ 
+static int want_function;   /* Set when expecting function name */
+static int want_arg;        /* Expecting function argument */
 %}
 
 %union {
@@ -155,7 +156,7 @@ cbrace    : CBRACE
 	    }
           ;
 
-funcall   : fmtspec obrace { want_function = 1;} function { want_function = 0; } argument cbrace
+funcall   : fmtspec obrace { want_function = 1;} function { want_function = 0; want_arg = 1;} argument cbrace
             {
 	      if ($4)
 		{
@@ -368,6 +369,10 @@ static int backslash(int c);
 int
 yylex ()
 {
+  /* Reset the tie-in */
+  int expect_arg = want_arg;
+  want_arg = 0;
+  
   if (yydebug)
     fprintf (stderr, "[lex at %10.10s]\n", curp);
   if (*curp == '%')
@@ -459,7 +464,7 @@ yylex ()
 	obstack_1grow (&stack, *curp);
       curp++;
     }
-  while (*curp && !isdelim(*curp));
+  while (*curp && (expect_arg ? *curp != ')' : !isdelim(*curp)));
 
   obstack_1grow (&stack, 0);
   yylval.str = obstack_finish (&stack);
