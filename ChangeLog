@@ -1,3 +1,21 @@
+2002-12-09  Sergey Poznyakoff 
+
+	* libsieve/actions.c (build_mime,sieve_action_redirect): free
+	  return from mu_get_user_email().
+	* libsieve/sieve.y (statement production): Gross bugfix: do not
+	  run sieve_slist_destroy on the list, just list_destroy. All the
+	  items are already registered in the memory pool and will be
+	  freed by sieve_machine_destroy.
+	* libsieve/tests.c (_get_address_part): Bugfix: assign to *data
+	  only if ret is not null.
+	* libsieve/util.c (_comp_action): Do not run comparator if the
+	  sample is NULL.
+	* mail.local/main.c (sieve_test): Bugfix: run
+	  sieve_machine_destroy() only if the compilation succeeded.
+	  (deliver): Removed unused variable sb. Use isize instead.
+
+	* mailbox/mutil.c (mu_get_user_email): Added comment.
+
 2002-12-05  Sergey Poznyakoff  
 
 	* lib/Makefile.am (INCLUDES): Fixed path.
