@@ -1,20 +1,100 @@
+2001-03-17  Vesselin Atanasov
+
+	* configure.in: AC_REQUIRE is not .. required.  Just call
+	jm_FUNC_MALLOC and jm_FUNC_REALLOC.
+
+2001-03-17  Alain Magloire
+
+	Clean the property object, mailbox and mailer have property object
+	that you can examine.  Still a draft: the value of objects are ints.
+	This feature was put in to help the imap4d server, in this protocol
+	you can get a substring of the message starting from a certain offset.
+	To make the coding of imap4d simpler the complexity was move to the
+	library.  It is possible now by setting a property of the mailbox
+	to make it output rfc822 stream i.e. "\r\n" terminated stream, the
+	offset and the size are also in term of rfc822.
+
+	* mailbox/property.c (property_set_int): Removed.
+	* mailbox/property.c (property_set_long): Removed.
+	* mailbox/property.c (property_set_double): Removed.
+	* mailbox/property.c (property_set_set_value): Removed.
+	* mailbox/property.c (property_set_get_value): Removed.
+	* mailbox/property.c (property_add_propety): New function.
+	* mailbox/property.c (hash): Renamed poperty_hash.
+	* include/mailutils/property.h (struct property_list): New structure.
+
+	* mailbox/include/mailbox0.h: new fields properties, properties_count.
+	* mailbox/mailbox.c (mailbox_get_property): The function will create
+	the proprety and add the default properties.
+	(mailbox_destroy): The default poperties and property are freed.
+	(mailbox_is_updated): Return ENOSYS if the argumets are wrong.
+	(mailbox_scan): Return ENOSYS if the argumets are wrong.
+	(mailbox_uidvalidity): Return ENOSYS if the argumets are wrong.
+	(mailbox_uidnext): Return ENOSYS if the argumets are wrong.
+
+	* mailbox/mbx_mbox.c (mbx_init): Set its default properties.
+	(mbx_header_get_fvalue): Return the len, even if buffer is null.
+	(mbx_body_read): If property rfc822 is set call
+	mbx_body_readstream_rfc822 to the conversion.
+	(mbx_body_readstream_rfc822): New function, do the conversion.
+	(struct _mbox_message): Remove the stream field.
+	added struct rfc822.
+	(mbox_get_header_readstream): Removed.
+	(mbox_header_size): Do the conversion if rfc822 set.
+	(mbox_body_size): Do the conversion if rfc822 set.
+	(mbox_get_message): Set the property on the header_t.
+
+	* mailbox/mbx_pop.c (pop_init): Set its default properties.
+	(pop_open): Remove MU_STREAM_POP flag obsolete.
+	(pop_readline):  Do the converstion if rfc822 is set.
+
+	* mailbox/mbx_imap.c (mbx_imap_init): Set its default properties.
+	* mailbox/folder_imap.c (folder_imap_open): Remove MU_STREAM_IMAP,
+	no longer pertinent.
+	(imap_readline): If propety rfc822 is set don't strip '\r'.
+
+	* mailbox/header.c (header_set_property): New functions.
+	(header_get_property): New functions.
+	(header_destroy): Destroy property object.
+	(header_get_value): If property rfc822 is set
+	convert all "\n" to "\r\n".
+	(header_read): If property rfc822 is et convert to \n to \r\n.
+	(header_readline): If property rfc822 is et convert to \n to \r\n.
+	(fill_blurb): Clear the function overloading, when the blurb is fill.
+	* mailbox/include/header0.h: New field property.
+	* include/mailutils/header.h: Added prototypes for
+	header_set_property and header_get_property.
+
+	* include/mailutils/stream.h: Remove the identification macros;
+	MU_STREAM_IMAP, MU_STREAM_FILE, MU_STREAM_POP, it is part of the
+	properties of each object.
+
+	* mailbox/mailer.c (mailer_destroy): Free the properties.
+	* mailbox/mailer.c (mailer_get_poperty): New function, return the
+	property of the mailbox.
+
+	* mailbox/smtp.c (_mailer_smtp_init): Set its default properties.
+	* mailbox/sendmail.c (_sendmail_init): Set its default properties.
+
+	* mailbox/include/Makefile.am: Add property0.h.
+
 2001-03-09  Sam Roberts
 
-	* include/mailutils/address.h - api for new parser,
+	* include/mailutils/address.h: api for new parser,
 	address_create0(), and to get route, local-part, and domain.
-	* mailbox/address.c - implmentation of 3 new get functions, first
+	* mailbox/address.c: implementation of 3 new get functions, first
 	cut, needs cleanup
-	* mailbox/include/address0.h - new members of _address, deleted
+	* mailbox/include/address0.h: new members of _address, deleted
 	one that looked unused.
-	* mailbox/parse822.c - implementation of address_create0(),
+	* mailbox/parse822.c: implementation of address_create0(),
 	which handles groups, routes, and the hoary old comment phrase
 	* addr/addr.c - parses addresses from its command line or
 	stding using create() or create0().
-	* mailbox/mbx_imap.c - need strings.h on some systems, like Nto
+	* mailbox/mbx_imap.c: need strings.h on some systems, like Nto
 
 2001-03-12  Sam Roberts
 
-	* frm/frm.c (main) : Changed to only print subject if
+	* frm/frm.c (main): Changed to only print subject if
 	header_get_value(SUBJECT) returned success, otherwise I assume
 	it would print the stack.
 	(usage): Corrected a tiny typo in usage message.
@@ -23,8 +103,8 @@
 
 2001-03-09  Alain Magloire
 
-	* mailbox/Makefile.am : add property.c in the src list.
-	* doc/mailutils.texi : add Sam to the list of acknowlegment.
+	* mailbox/Makefile.am: add property.c in the src list.
+	* doc/mailutils.texi: add Sam to the list of acknowlegment.
 
 2001-03-09  Sam Roberts
 
@@ -43,7 +123,7 @@
 	fetch_opertaion() take a new argument.
 	* imap4d/util.c (util_upper) : New function string upper.
 
-	* mailbox/heder.c : Added new functionnalities to help the imap4d
+	* mailbox/heder.c: Added new functionnalities to help the imap4d
 	fetch command.
 	(header_get_field_count) : New function returns the number of header
 	fields in the header.
@@ -52,160 +132,162 @@
 
 2001-03-03  Alain Magloire
 
-	* include/mailutils/address.h : s/_cplusplus/__cplusplus/g
-	(include/mailutils/auth.h) : Likewised.
-	(include/mailutils/body.h) : Likewised.
-	(include/mailutils/debug.h) : Likewised.
-	(include/mailutils/header.h) : Likewised.
-	(include/mailutils/iterator.h) : Likewised.
-	(include/mailutils/list.h) : Likewised.
-	(include/mailutils/mailer.h) : Likewised.
-	(include/mailutils/message.h) : Likewised.
-	(include/mailutils/mime.h) : Likewised.
-	(include/mailutils/observer.h) : Likewised.
-	(include/mailutils/property.h) : Likewised.
+	* include/mailutils/address.h: s/_cplusplus/__cplusplus/g
+	(include/mailutils/auth.h): Likewised.
+	(include/mailutils/body.h): Likewised.
+	(include/mailutils/debug.h): Likewised.
+	(include/mailutils/header.h): Likewised.
+	(include/mailutils/iterator.h): Likewised.
+	(include/mailutils/list.h): Likewised.
+	(include/mailutils/mailer.h): Likewised.
+	(include/mailutils/message.h): Likewised.
+	(include/mailutils/mime.h): Likewised.
+	(include/mailutils/observer.h): Likewised.
+	(include/mailutils/property.h): Likewised.
 	(include/mailutils/registrar.h): Likewised.
-	(mailbox/include/address0.h) : Likewised.
-	(mailbox/include/auth0.h) : Likewised.
-	(mailbox/include/body0.h) : Likewised.
-	(mailbox/include/debug0.h) : Likewised.
-	(mailbox/include/header0.h) : Likewised.
-	(mailbox/include/iterator0.h) : Likewised.
-	(mailbox/include/list0.h) : Likewised.
-	(mailbox/include/mailer0.h) : Likewised.
-	(mailbox/include/message0.h) : Likewised.
-	(mailbox/include/mime0.h) : Likewised.
-	(mailbox/include/observer0.h) : Likewised.
+	(mailbox/include/address0.h): Likewised.
+	(mailbox/include/auth0.h): Likewised.
+	(mailbox/include/body0.h): Likewised.
+	(mailbox/include/debug0.h): Likewised.
+	(mailbox/include/header0.h): Likewised.
+	(mailbox/include/iterator0.h): Likewised.
+	(mailbox/include/list0.h): Likewised.
+	(mailbox/include/mailer0.h): Likewised.
+	(mailbox/include/message0.h): Likewised.
+	(mailbox/include/mime0.h): Likewised.
+	(mailbox/include/observer0.h): Likewised.
 	Pointed by Sam Roberts.
 
 2001-02-28  Alain Magloire
 
-	* mailbox/address.c (address_get_personal) : Remove surrounding quotes.
-	* mailbox/mbx_mbox.c (mbox_scan) : If the mailbox is updated don't
+	* mailbox/address.c (address_get_personal): Remove surrounding quotes.
+	* mailbox/mbx_mbox.c (mbox_scan): If the mailbox is updated don't
 	rescan again.
-	(mbox_expunge) : Same the uidvalidity in the header field "IMABase:"
+	(mbox_expunge): Same the uidvalidity in the header field "IMABase:"
 	on the first message of the mailbox.
 
-	* imap4d/fetch.c (fetch_envelope) : Envelope imap4 command implemented.
-	(fetch_send_address) : New function.
+	* imap4d/fetch.c (fetch_envelope): Envelope imap4 command implemented.
+	(fetch_send_address): New function.
 
 2001-02-26  Alain Magloire
 
-	* mailbox/mbx_imap.c (imap_submessage_size) : New function to
+	* mailbox/mbx_imap.c (imap_submessage_size): New function to
 	retrieve message size of attachments.
-	* imap4d/fetch.c : More functionnality for the FETCH command.
-	(fetch_operation) : New operation.
-	* imap4d/util.c (util_token) : little helper function.
+	* imap4d/fetch.c: More functionnality for the FETCH command.
+	(fetch_operation): New operation.
+	* imap4d/util.c (util_token): little helper function.
 
 2001-02-25  Alain Magloire
 
-	* lib/strtok_r.c : If there are no delimiters left save the old string
+	* lib/strtok_r.c: If there are no delimiters left save the old string
 	and return NULL.
 
-	* mailbox/folder_imap.c (imap_fetch) : Finish imap FETCH command.
-	(imap_rfc822) : New Function.
-	(imap_rfc822_text) : New Function.
-	(imap_rfc822_size) : New Function.
-	(imap_rfc822_header) : New Function.
-	(imap_uid) : New Function.
-	(imap_body) : New Function.
-	(imap_bodystructure0) : Save the size.
+	* mailbox/folder_imap.c (imap_fetch): Finish imap FETCH command.
+	(imap_rfc822): New Function.
+	(imap_rfc822_text): New Function.
+	(imap_rfc822_size): New Function.
+	(imap_rfc822_header): New Function.
+	(imap_uid): New Function.
+	(imap_body): New Function.
+	(imap_bodystructure0): Save the size.
 
 2001-02-22  Alain Magloire
 
-	* mailbox/property.c : New file.
-	* include/mailutils/property.h : New file.
-	* mailbox/mailbox.c (mailbox_get_property) : New function,
+	* mailbox/property.c: New file.
+	* include/mailutils/property.h: New file.
+	* mailbox/mailbox.c (mailbox_get_property): New function,
 	a first draft to let set "property" on a mailbox that can
 	change its behaviour.
-	* mailbox/include/mailbox0.h : New field in struct _mailbox, property.
+	* mailbox/include/mailbox0.h: New field in struct _mailbox, property.
 
-	* sieve/lex-sieve.lex : Add LGPL banner.
-	* sieve/gram-sieve.y : Add LGPL banner.
+	* sieve/lex-sieve.lex: Add LGPL banner.
+	* sieve/gram-sieve.y: Add LGPL banner.
 
 2001-02-22  Alain Magloire
 
-	* sieve : New Directory.
-	* sieve/lex-sieve.lex : RFC3028 tokenizer.
-	* sieve/gram-sieve.y : RFC3028 grammar.
+	* sieve: New Directory.
+	* sieve/lex-sieve.lex: RFC3028 tokenizer.
+	* sieve/gram-sieve.y: RFC3028 grammar.
 
 2001-02-20  Alain Magloire
 
-	* mailbox/mailbox.c (mailbox_set_ticket mailbox_set_authority
-	mailbox_set_stream) : Those objects are now part of th folder
-	if a folder is attached to the mailbox.
-	* mailbox/mbx_imap.c (imap_message_read imap_body_read) :
-	If offset == 0, reset the lines to 0.
+	* mailbox/mailbox.c (mailbox_set_ticket): Those objects are now part
+	of the folder if a folder is attached to the mailbox.
+	(mailbox_set_authority: Likewise.
+	(mailbox_set_stream): Likewise.
+	* mailbox/mbx_imap.c (imap_message_read): If offset == 0, reset
+	the lines to 0.
+	(imap_body_read): Likewise.
 
 2001-02-19  Alain Magloire
 
-	* mailbox/mbx_pop.c (pop_body_read) : Move the CHECK_BUSY higher
+	* mailbox/mbx_pop.c (pop_body_read): Move the CHECK_BUSY higher
 	it should be the first thing done.  If the state is POP_NO_STATE
 	reset the offset and the size to 0 i.e we are starting fresh.
-	(pop_header_read) : Likewise.
-	(pop_message_read) : Likewise.
-	* mailbox/stream.c (stream_write) : Don't call stream_flush().
+	(pop_header_read): Likewise.
+	(pop_message_read): Likewise.
+	* mailbox/stream.c (stream_write): Don't call stream_flush().
 
 2001-02-04  Alain Magloire
 
-	* mailbox/message.c (message_get_uid) : Add message_get_uid() for
+	* mailbox/message.c (message_get_uid): Add message_get_uid() for
 	the UID of the message (IMAP definition) and message_get_uidl() for
 	the POP3 definition.
-	* mailbox/attachment.c : Indentation fixes.
-	* mailbox/file_stream.c : Make sure that the FILE* is close before		opening.
-	* mailbox/folder_imap.c : Use strcasecmp() not strcmp().
-	* mailbox/mailbox.c : Added mailbox_uidnext() and mailbox_uidvalidity.
-	* mailbox/mapfile_stream.c : When munmap() failed we should check
+	* mailbox/attachment.c: Indentation fixes.
+	* mailbox/file_stream.c: Make sure that the FILE* is close before		opening.
+	* mailbox/folder_imap.c: Use strcasecmp() not strcmp().
+	* mailbox/mailbox.c: Added mailbox_uidnext() and mailbox_uidvalidity.
+	* mailbox/mapfile_stream.c: When munmap() failed we should check
 	against MAP_FAILED, not NULL.
-	* mailbox/mbx_imap.c : Implement imap_uidnext(), imap_uidvalidity()
+	* mailbox/mbx_imap.c: Implement imap_uidnext(), imap_uidvalidity()
 	imap_message_uid().
-	* mailbox/mbx_mbox.c : Implement mbox_uidnext(), mbox_uidvalidity()
+	* mailbox/mbx_mbox.c: Implement mbox_uidnext(), mbox_uidvalidity()
 	mbox_message_uid().
-	* mailbox/mbx_mboxscan.c : Implement uidvalidity, it is save int the
-	header of the first message, "X-IMAPbase: 127673838 123", a la c-client.
+	* mailbox/mbx_mboxscan.c: Implement uidvalidity, it is save int the
+	header of the first message, "X-IMAPbase: 127673838 12", a la c-client.
 	Save UID, it is save in "X-UID".
-	* mailbox/mbx_pop.c : Implement pop_messages_recent(),
+	* mailbox/mbx_pop.c: Implement pop_messages_recent(),
 	pop_message_unseen() and pop_uid().
-	* mailbox/trans_stream.c : Indentation fixes.
+	* mailbox/trans_stream.c: Indentation fixes.
 
 	* include/mailutils/message.h: New prototypes message_get_uid(),
 	message_set_get_uid().
 	* include/mailutils/mailbox.h: New prototypes mailbox_uidnext(),
 	mailbox_uidvalidity().
 
-	* lib/snprintf.c lib/snprintf.h : Put it under the LGPL term.
+	* lib/snprintf.c lib/snprintf.h: Put it under the LGPL term.
 
-	* mailbox/imap4d/fetch.c : First draft implementation, very yucky.
-	* mailbox/imap4d/select.c : First draft implementation.
-	* mailbox/imap4d/util.c : Add util_msgset() and util_send().
+	* mailbox/imap4d/fetch.c: First draft implementation, very yucky.
+	* mailbox/imap4d/select.c: First draft implementation.
+	* mailbox/imap4d/util.c: Add util_msgset() and util_send().
 	Reuse of util_getcommand() for subcommands.
 
-	* mailbox/pop3d/uidl.c : API change the call is message_get_uidl()
+	* mailbox/pop3d/uidl.c: API change the call is message_get_uidl()
 	to have UIDL POP3.
 
 
 2001-02-03  Alain Magloire
 
-	* mailbox/mailbox.c mailbox/mbx_mbox.c mailbox/mbx_imap.c :
+	* mailbox/mailbox.c mailbox/mbx_mbox.c mailbox/mbx_imap.c:
 	Implement mailbox_messages_recent() and mailbox_message_unseen(), this
 	time as define by the IMAP rfc.
 
 2001-02-02  Alain Magloire
 
-	* mailbox/header.c : ENOENT was not return if the header was
+	* mailbox/header.c: ENOENT was not return if the header was
 	not found.
 	* mailbox/mbx_mbox.c: When expunging check to see if the registar
 	the path_record too.
 
 2001-02-02  Alain Magloire
 
-	* pop3d/extra.c (pop3_readline) : Since the length of the string
+	* pop3d/extra.c (pop3_readline): Since the length of the string
 	is known, we can use memcpy() and friends for string manipulations.
 	memXXX() functions are builtin in GNU C (gcc) and are much faster
 	then the strXXX() counterparts. Small change in the loop to take
 	advantage of this.
 
-	* pop3d/quit.c : The rfc1939 insist that after a QUIT, we must
+	* pop3d/quit.c: The rfc1939 insist that after a QUIT, we must
 	release any resources and close the connection:
 	"Whether the removal was successful or not, the server
         then releases any exclusive-access lock on the maildrop
@@ -219,7 +301,7 @@
 
 	* mailbox/attachment.c: Typo should be "Content-Disposition"
 
-	* mailbox/mbx_mbox.c mailbox/mbx_mboxscan.c mailbox/header.c :
+	* mailbox/mbx_mbox.c mailbox/mbx_mboxscan.c mailbox/header.c:
 	Attempt to optimze the header, header_get_fvalue() is created,
 	The mailbox save/cache the most common headers, when doing a
 	header_get_value(), header_get_fvalue() is call first hoping
@@ -227,26 +309,26 @@
 	to the usual parsing.  The common elected headers are : From,
 	To, Cc, Subject, Date, Content-Type, X-UIDL, X-UID.
 
-	* mailbox/mailbox.c mailbox/mbx_mbox.c mailbox/mbx_imap.c :
+	* mailbox/mailbox.c mailbox/mbx_mbox.c mailbox/mbx_imap.c:
 	I've confuse the semantic of "unseen" and "recent", "unseen"
 	means new mail, not recent.  Renamed mailbox_recent_count()
 	to mailbox_unseen_count().
-	* include/mailutils/mailbox.h : updated for mailbox_unseen_count()
+	* include/mailutils/mailbox.h: updated for mailbox_unseen_count()
 
 
 2001-01-25  Alain Magloire
 
-	* frm/frm.c : Forget to add --summary option and fix return status.
+	* frm/frm.c: Forget to add --summary option and fix return status.
 	When being very quiet just freopen(/dev/null, w, stdout).
 
 2001-01-25  Alain Magloire
 
-	* pop3d/capa.c : Add UIDL in the capability list.
+	* pop3d/capa.c: Add UIDL in the capability list.
 	and update Copyrigth.
-	* pop3d/pop3d.c : Remove mbox_record register, only need path_record.
-	* pop3d/retr.c : When retrieve a message should be mark as read.
+	* pop3d/pop3d.c: Remove mbox_record register, only need path_record.
+	* pop3d/retr.c: When retrieve a message should be mark as read.
 	since we do not strip out the header "Status:".
-	* pop3d/top.c : Adjust stream_readline().
+	* pop3d/top.c: Adjust stream_readline().
 
 2001-01-25  Alain Magloire
 
@@ -256,10 +338,10 @@
 	The API of the library, and some utilities like pop3d are
 	stable enough to restart normal entries.
 
-	* mailbox/* : New Api to access mailbox.
-	* include/mailutils : Public prototypes of the API.
-	* frm/frm.c frm/Makefile.am : A clone of elm frm utility.
-	* from/from.c from/Makefile.am : A utility to scan mailboxes.
+	* mailbox/*: New Api to access mailbox.
+	* include/mailutils: Public prototypes of the API.
+	* frm/frm.c frm/Makefile.am: A clone of elm frm utility.
+	* from/from.c from/Makefile.am: A utility to scan mailboxes.
 	* pop3d/* : GNU pop3d server.
 
 2000-05-19  Sean 'Shaleh' Perry <shaleh@debian.org>
