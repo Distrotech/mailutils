@@ -38,6 +38,8 @@
 #else
 # define _(String) (String)
 # define N_(String) String
+# define dgettext(domain, msgid) (msgid)
+# define ngettext(sg,pl,cnt) (pl)
 # define textdomain(Domain)
 # define bindtextdomain(Package, Directory)
 #endif /* ENABLE_NLS */
