@@ -88,7 +88,7 @@ if ($opt_h) { usage(); exit(0); }
 $SAVETEXT=$TEXT="@ARGV";
 
 # Get the date
-chomp($DATE=`822-date`);
+chomp($DATE=`date +%Y-%m-%d`);
 
 $MAINTAINER = $ENV{'CVS_FULLNAME'} || $MAINTAINER;
 if ($MAINTAINER eq '') {
@@ -99,7 +99,7 @@ if ($EMAIL eq '') {
 	fatal "Could not figure out maintainer's email address:" . " $!";
 }
 
-print O "$MAINTAINER <$EMAIL>  $DATE\n\n";
+print O "$DATE  $MAINTAINER  <$EMAIL>\n\n";
 if ($TEXT) { write O } else { print O "  * \n\n"; $line=3; }
 # Rewind the current changelog to the beginning of the file
 seek S,0,0 or fatal "Couldn't rewind ChangeLog:" . " $!";
