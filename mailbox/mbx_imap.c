@@ -23,6 +23,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <time.h>
 
 #include <mailutils/address.h>
 #include <mailbox0.h>
@@ -82,6 +83,13 @@ static int imap_get_message0 (msg_imap_t, message_t *);
 static int message_operation (f_imap_t, msg_imap_t, enum imap_state, char *,
 			      size_t, size_t *);
 static void free_subparts (msg_imap_t);
+
+static const char *MONTHS[] =
+{
+  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+};
+
 
 /* Initialize the concrete object mailbox_t by overloading the function of the
    structure.  */
@@ -890,6 +898,12 @@ imap_envelope_date (envelope_t envelope, char *buffer, size_t buflen,
   msg_imap_t msg_imap = message_get_owner (msg);
   m_imap_t m_imap = msg_imap->m_imap;
   f_imap_t f_imap = m_imap->f_imap;
+  int year, mon, day, hour, min, sec;
+  int offt;
+  int i;
+  struct tm tm;
+  time_t now;
+  char month[5];
   int status;
   if (f_imap->state == IMAP_NO_STATE)
     {
@@ -904,7 +918,44 @@ imap_envelope_date (envelope_t envelope, char *buffer, size_t buflen,
       MAILBOX_DEBUG0 (m_imap->mailbox, MU_DEBUG_PROT, f_imap->buffer);
       f_imap->state = IMAP_FETCH;
     }
-  return message_operation (f_imap, msg_imap, 0, buffer, buflen, plen);
+  status = message_operation (f_imap, msg_imap, 0, buffer, buflen, plen);
+  if (status != 0)
+    return status;
+  day = mon = year = hour = min = sec = offt = 0;
+  month[0] = '\0';
+  sscanf (buffer, "%2d-%3s-%4d %2d:%2d:%2d %d", &day, month, &year,
+	  &hour, &min, &sec, &offt);
+  tm.tm_sec = sec;
+  tm.tm_min = min;
+  tm.tm_hour = hour;
+  tm.tm_mday = day;
+  for (i = 0; i < 12; i++)
+    {
+      if (strncasecmp(month, MONTHS[i], 3) == 0)
+	{
+	  mon = i;
+	  break;
+	}
+    }
+  tm.tm_mon = mon;
+  tm.tm_year = (year > 1900) ? year - 1900 : year;
+  tm.tm_yday = 0; /* unknown. */
+  tm.tm_wday = 0; /* unknown. */
+  tm.tm_isdst = -1; /* unknown. */
+  /* What to do the timezone?  */
+
+  now = mktime (&tm);
+  if (now == (time_t)-1)
+    {
+      /* Fall back to localtime.  */
+      now = time (NULL);
+      snprintf (buffer, buflen, "%s", ctime(&now));
+    }
+  else
+    {
+      strftime (buffer, buflen, " %a %b %d %H:%M:%S %Y", &tm);
+    }
+  return 0;
 }
 
 /* Attributes.  */
@@ -1131,6 +1182,7 @@ imap_body_lines (body_t body, size_t *plines)
   return 0;
 }
 
+/* FIXME: Send EISPIPE if trying to seek back.  */
 static int
 imap_body_read (stream_t stream, char *buffer, size_t buflen, off_t offset,
 		size_t *plen)
@@ -1144,11 +1196,12 @@ imap_body_read (stream_t stream, char *buffer, size_t buflen, off_t offset,
   char newbuf[2];
   int status = 0;
 
-  /* This so F*$&#g annoying, a buffer len of 1 is a killer.
-     If you have for example "\n", IMAP servers will transform
-     this to "\r\n" and since you ask for only 1 sends '\r' only.
-     '\r' will be stripped and the number of char read will be 0
-     which means we're done.  So we guard to at least ask for 2 chars.  */
+  /* This is so annoying, a buffer len of 1 is a killer. If you have for
+     example "\n" to retrieve from the server, IMAP will transform this to
+     "\r\n" and since you ask for only 1, the server will send '\r' only.
+     And ... '\r' will be stripped by (imap_readline()) the number of char
+     read will be 0 which means we're done .... sigh ...  So we guard to at
+     least ask for 2 chars.  */
   if (buflen == 1)
     {
       oldbuf = buffer;
@@ -1161,8 +1214,8 @@ imap_body_read (stream_t stream, char *buffer, size_t buflen, off_t offset,
       status = imap_messages_count (m_imap->mailbox, NULL);
       if (status != 0)
 	return status;
-      /* We strip the \r, but the offset/size on the imap server is with that
-	 octet so add it in the offset, since it's the number of lines.  */
+      /* We strip the \r, but the offset/size on the imap server is with the
+	 octet, so add it since it's the number of lines.  */
       if (msg_imap->part)
 	{
 	  char *section = section_name (msg_imap);

@@ -102,8 +102,6 @@ stream_close (stream_t stream)
 {
   if (stream == NULL)
     return EINVAL;
-  /* Make sure the writes were flush.  */
-  stream_flush (stream);
   stream->state = MU_STREAM_STATE_CLOSE;
   /* Clear the buffer of any residue left.  */
   if (stream->rbuffer.base)

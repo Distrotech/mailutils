@@ -1255,7 +1255,7 @@ mbox_get_message (mailbox_t mailbox, size_t msgno, message_t *pmsg)
   if (pmsg == NULL || mud == NULL)
     return EINVAL;
 
-  /* We did not start a scanning yet do it now.  */
+  /* If we did not start a scanning yet do it now.  */
   if (mud->messages_count == 0)
     {
       status = mbox_scan0 (mailbox, 1, NULL, 0);
@@ -1397,8 +1397,8 @@ mbox_append_message (mailbox_t mailbox, message_t msg)
   return 0;
 }
 
-/* FIXME: We need to escape line body line that begins with "From ", this
-   will required to read the body by line instead of by chuncks hearting
+/* FIXME: We need to escape body line that begins with "From ", this
+   will required to read the body by line instead of by chuncks hurting
    perfomance big time when expunging.  But should not this be the
    responsability of the client ?  */
 static int
@@ -1734,6 +1734,13 @@ mbox_messages_recent (mailbox_t mailbox, size_t *pcount)
   mbox_message_t mum;
   size_t j, recent;
 
+  /* If we did not start a scanning yet do it now.  */
+  if (mud->messages_count == 0)
+    {
+      int status = mbox_scan0 (mailbox, 1, NULL, 0);
+      if (status != 0)
+	return status;
+    }
   for (recent = j = 0; j < mud->messages_count; j++)
     {
       mum = mud->umessages[j];
@@ -1753,6 +1760,13 @@ mbox_message_unseen (mailbox_t mailbox, size_t *pmsgno)
   mbox_message_t mum;
   size_t j, unseen;
 
+  /* If we did not start a scanning yet do it now.  */
+  if (mud->messages_count == 0)
+    {
+      int status = mbox_scan0 (mailbox, 1, NULL, 0);
+      if (status != 0)
+	return status;
+    }
   for (unseen = j = 0; j < mud->messages_count; j++)
     {
       mum = mud->umessages[j];
@@ -1775,6 +1789,13 @@ mbox_uidvalidity (mailbox_t mailbox, unsigned long *puidvalidity)
   int status = mbox_messages_count (mailbox, NULL);
   if (status != 0)
     return status;
+  /* If we did not start a scanning yet do it now.  */
+  if (mud->messages_count == 0)
+    {
+      status = mbox_scan0 (mailbox, 1, NULL, 0);
+      if (status != 0)
+	return status;
+    }
   if (puidvalidity)
     *puidvalidity = mud->uidvalidity;
   return 0;
@@ -1787,6 +1808,13 @@ mbox_uidnext (mailbox_t mailbox, size_t *puidnext)
   int status = mbox_messages_count (mailbox, NULL);
   if (status != 0)
     return status;
+  /* If we did not start a scanning yet do it now.  */
+  if (mud->messages_count == 0)
+    {
+      status = mbox_scan0 (mailbox, 1, NULL, 0);
+      if (status != 0)
+	return status;
+    }
   if (puidnext)
     *puidnext = mud->uidnext;
   return 0;

@@ -395,12 +395,13 @@ pop_user (authority_t auth)
 	  CHECK_ERROR_CLOSE (mbox, mpd, EINVAL);
 	}
       status = pop_writeline (mpd, "PASS %s\r\n", mpd->passwd);
+      MAILBOX_DEBUG0 (mbox, MU_DEBUG_PROT, mpd->buffer);
       /* We have to nuke the passwd.  */
       memset (mpd->passwd, '\0', strlen (mpd->passwd));
       free (mpd->passwd);
       mpd->passwd = NULL;
       CHECK_ERROR_CLOSE (mbox, mpd, status);
-      MAILBOX_DEBUG0 (mbox, MU_DEBUG_PROT, "PASS *\n");
+      //MAILBOX_DEBUG0 (mbox, MU_DEBUG_PROT, "PASS *\n");
       mpd->state = POP_AUTH_PASS;
 
     case POP_AUTH_PASS:
@@ -908,8 +909,14 @@ pop_scan (mailbox_t mbox, size_t msgno, size_t *pcount)
   if (mbox->observable == NULL)
     return 0;
   for (i = msgno; i <= count; i++)
-    if (observable_notify (mbox->observable, MU_EVT_MESSAGE_ADD) != 0)
-      break;
+    {
+      if (observable_notify (mbox->observable, MU_EVT_MESSAGE_ADD) != 0)
+	break;
+      if (((i +1) % 10) == 0)
+	{
+	  observable_notify (mbox->observable, MU_EVT_MAILBOX_PROGRESS);
+	}
+    }
   return 0;
 }
 
@@ -1306,6 +1313,9 @@ pop_top (header_t header, char *buffer, size_t buflen,
 
   mpd = mpm->mpd;
 
+  /* Busy ? */
+  CHECK_BUSY (mpd->mbox, mpd, func, msg);
+
   /* We start fresh then reset the sizes.  */
   if (mpd->state == POP_NO_STATE)
     mpm->header_size = 0;
@@ -1313,9 +1323,6 @@ pop_top (header_t header, char *buffer, size_t buflen,
   /* Throw an error if trying to seek back.  */
   if ((size_t)offset < mpm->header_size)
     return ESPIPE;
-
-  /* Busy ? */
-  CHECK_BUSY (mpd->mbox, mpd, func, msg);
 
   /* Get the header.  */
   switch (mpd->state)
@@ -1408,16 +1415,16 @@ pop_header_read (header_t header, char *buffer, size_t buflen, off_t offset,
 
   mpd = mpm->mpd;
 
+  /* Busy ? */
+  CHECK_BUSY (mpd->mbox, mpd, func, msg);
+
   /* We start fresh then reset the sizes.  */
   if (mpd->state == POP_NO_STATE)
-    mpm->header_size = 0;
+    mpm->header_size = mpm->inbody = 0;
 
   /* Throw an error if trying to seek back.  */
   if ((size_t)offset < mpm->header_size)
     return ESPIPE;
-
-  /* Busy ? */
-  CHECK_BUSY (mpd->mbox, mpd, func, msg);
 
   mpm->skip_header = 0;
   mpm->skip_body = 1;
@@ -1441,16 +1448,16 @@ pop_body_read (stream_t is, char *buffer, size_t buflen, off_t offset,
 
   mpd = mpm->mpd;
 
+  /* Busy ? */
+  CHECK_BUSY (mpd->mbox, mpd, func, msg);
+
   /* We start fresh then reset the sizes.  */
   if (mpd->state == POP_NO_STATE)
-    mpm->body_size = 0;
+    mpm->body_size = mpm->inbody = 0;
 
   /* Can not seek back this a stream socket.  */
   if ((size_t)offset < mpm->body_size)
     return ESPIPE;
-
-  /* Busy ? */
-  CHECK_BUSY (mpd->mbox, mpd, func, msg);
 
   mpm->skip_header = 1;
   mpm->skip_body = 0;
@@ -1472,16 +1479,16 @@ pop_message_read (stream_t is, char *buffer, size_t buflen, off_t offset,
 
   mpd = mpm->mpd;
 
+  /* Busy ? */
+  CHECK_BUSY (mpd->mbox, mpd, func, msg);
+
   /* We start fresh then reset the sizes.  */
   if (mpd->state == POP_NO_STATE)
-    mpm->header_size = mpm->body_size = 0;
+    mpm->header_size = mpm->body_size = mpm->inbody = 0;
 
   /* Can not seek back this is a stream socket.  */
   if ((size_t)offset < (mpm->body_size + mpm->header_size))
     return ESPIPE;
-
-  /* Busy ? */
-  CHECK_BUSY (mpd->mbox, mpd, func, msg);
 
   mpm->skip_header = mpm->skip_body = 0;
   return pop_retr (mpm, buffer, buflen, offset, pnread);

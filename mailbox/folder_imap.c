@@ -63,11 +63,13 @@ static int folder_imap_unsubscribe __P ((folder_t, const char *));
 /* Private */
 /* static int imap_readline (f_imap_t); */
 static int imap_fetch          __P ((f_imap_t));
-static int imap_flags          __P ((f_imap_t));
-static int imap_bodystructure  __P ((f_imap_t));
-static int imap_literal_string __P ((f_imap_t));
-static int imap_string         __P ((f_imap_t));
-static int imap_quoted_string  __P ((f_imap_t, char *));
+static int imap_flags          __P ((f_imap_t, char **));
+static int imap_bodystructure  __P ((f_imap_t, char **));
+static int imap_literal_string __P ((f_imap_t, char **));
+static int imap_string         __P ((f_imap_t, char **));
+static int imap_quoted_string  __P ((f_imap_t, char **));
+#define TOKENLEN 32
+static int imap_token           __P ((char *, char **));
 
 /* Initialize the concrete IMAP mailbox: overload the folder functions  */
 int
@@ -705,15 +707,15 @@ folder_imap_unsubscribe (folder_t folder, const char *name)
    prefix-quoted with an octet count in the form of an open brace ("{"),
    the number of octets, close brace ("}"), and CRLF.  The sequence is read
    and put in the callback buffer, hopefully the callee did have enough
-   room.  Since we are using buffering on the stream(internal stream buffer)
-   We should have lots of room.  */
+   room.  */
 static int
-imap_literal_string (f_imap_t f_imap)
+imap_literal_string (f_imap_t f_imap, char **ptr)
 {
-  size_t len, total0, len0;
+  size_t len, len0, total;
   int status = 0;
-  for (len0 = len = total0 = 0; total0 < f_imap->callback.nleft;
-       total0 += len0)
+  int nl;
+  /* The (len + 1) in the for is to count the strip '\r' by imap_readline.  */
+  for (len0 = len = total = 0; total < f_imap->callback.nleft; total += (len + 1))
     {
       status = imap_readline (f_imap);
       if (status != 0)
@@ -722,179 +724,131 @@ imap_literal_string (f_imap_t f_imap)
 	  break;
 	}
       f_imap->ptr = f_imap->buffer;
+
       /* How much ?  */
-      len = len0 =  f_imap->nl - f_imap->buffer;
-      /* Check if the last read did not finish on a line do not copy in
+      len0= len = f_imap->nl - f_imap->buffer;
+      /* Check if the last read did not finish on a line, if yes do not copy in
 	 callback buffer the terminating sequence ")\r\n".  We are doing this
-	 by checking if the amounth (total0) we got so far correspond to what
-	 we expect + the line we just read (+1 taking to account the '\r') if
-	 yes then we should strip the termination string ")\r\n".  */
-      if ((len0 + 1 + total0) >= f_imap->callback.nleft)
+         by checking if the amount(total) we got so far + the len of the line
+         +1 (taking to account the strip '\r').  */
+      if ((total + len + 1) > f_imap->callback.nleft)
 	{
-	  char *seq = memchr (f_imap->buffer, ')', len0);
-	  if (seq)
-	    {
-	      len = seq - f_imap->buffer;
-	      /* Bad luck, if it is \r meaning the imap server  could not add
-		 the adjacent \n in the substring, maybe because it did not
-		 fit the number of byte we ask, skip it here.  */
-	      /* FIXME: Can this be dangerous ?  It can be if a the message
-		 contains char that is not 7bit ascii and no encoding were use
-		 of that message.  A solution would be to wait for the next
-		 char and if it is '\n' skip it if not use it, but that is to
-		 much work especially for nonblocking, the message should have
-		 been encoded.  */
-	      if (*(seq -1) == '\r')
-		len--;
-	    }
+	  len0 = len = f_imap->callback.nleft - total;
+	  /* ALERT: if we ask for a substring, for example we have :
+	     "123456\n", and ask for body[]<0.7> the server will send
+	     body[] {7} --> "123456\r".  There was not enough space
+	     to fit the nl .. annoying.  Take care of this here.  */
+	  if (f_imap->buffer[len - 1] == '\r')
+	    len0--;
 	}
-      /* Put the sequence of string in the callback structre for the calle to
-	 use.  */
+
       if (f_imap->callback.total < f_imap->callback.buflen)
 	{
-	  /* Check how much we can fill the buffer.  */
-	  int x = (f_imap->callback.buflen - f_imap->callback.total) - len;
-	  x = (x >= 0) ? len : -x;
-	  memcpy (f_imap->callback.buffer + f_imap->callback.total,
-		  f_imap->buffer, x);
-	  f_imap->callback.total += x;
+	  /* Check how much we can fill the callback buffer.  */
+          int x = (f_imap->callback.buflen - f_imap->callback.total) - len0;
+          x = (x >= 0) ? len0 : (x + len0);
+          memcpy (f_imap->callback.buffer + f_imap->callback.total,
+                  f_imap->buffer, x);
+          f_imap->callback.total += x;
+	}
 
-	  /* Depending on the type of request we incremente the xxxx_lines
-	     and  xxxx_sizes.  */
-	  if (len == len0 && f_imap->callback.msg_imap)
+      /* Depending on the type of request we incremente the xxxx_lines
+	 and  xxxx_sizes.  */
+      nl = (memchr (f_imap->buffer, '\n', len0)) ? 1 : 0;
+      if (f_imap->callback.msg_imap)
+	{
+	  switch (f_imap->callback.type)
 	    {
-	      switch (f_imap->callback.type)
-		{
-		case IMAP_HEADER:
-		  f_imap->callback.msg_imap->header_lines++;
-		  f_imap->callback.msg_imap->header_size +=
+	    case IMAP_HEADER:
+	      f_imap->callback.msg_imap->header_lines += nl;
+	      f_imap->callback.msg_imap->header_size += f_imap->callback.total;
+	      break;
 
-		    f_imap->callback.total;
-		  break;
+	    case IMAP_BODY:
+	      f_imap->callback.msg_imap->body_lines += nl;
+	      f_imap->callback.msg_imap->body_size += f_imap->callback.total;
+	      break;
 
-		case IMAP_BODY:
-		  f_imap->callback.msg_imap->body_lines++;
-		  f_imap->callback.msg_imap->body_size +=
-		    f_imap->callback.total;
-		  break;
+	    case IMAP_MESSAGE:
+	      f_imap->callback.msg_imap->message_lines += nl;
+	      /* The message size is known by sending RFC822.SIZE.  */
 
-		case IMAP_MESSAGE:
-		  f_imap->callback.msg_imap->message_lines++;
-
-		default:
-		  break;
-		}
+	    default:
+	      break;
 	    }
 	}
-      else
-	{
-	  /* This should never happen, the amount of in the literal string
-	     response is the same or less that we requested in the buffer
-	     of the callback.  They should always be enough room.  */
-	  break;
-	}
-      /* count the '\r' too, since it was strip in imap_readline ()  */
-      len0 += 1;
     }
-  f_imap->callback.nleft -= total0;
+  f_imap->callback.nleft -= total;
+  /* Move the command buffer, or do a full readline.  */
+  if (len == (f_imap->nl - f_imap->buffer))
+    {
+      len = 0;
+      status = imap_readline (f_imap);
+    }
+  *ptr = f_imap->buffer + len;
   return status;
 }
 
 /* A quoted string is a sequence of zero or more 7-bit characters,
    excluding CR and LF, with double quote (<">) characters at each end.
    Same thing as the literal, diferent format the result is put in the
-   callback buffer for the mailbox/calle.  */
+   callback buffer for the mailbox/callee.  */
 static int
-imap_quoted_string (f_imap_t f_imap, char *remainder)
+imap_quoted_string (f_imap_t f_imap, char **ptr)
 {
   char *bquote;
-  bquote = memchr (remainder, '"', strlen (remainder));
-  if (bquote)
+  int escaped = 0;
+  (*ptr)++;
+  bquote = *ptr;
+  while (**ptr && (**ptr != '"' || escaped))
     {
-      char *equote = memchr (bquote + 1, '"', strlen (bquote + 1));
-      if (equote)
-	{
-	  /* {De,In}cremente by one to not count the quotes.  */
-	  bquote++;
-	  equote--;
-	  f_imap->callback.total = (equote - bquote) + 1;
-	  /* Fill the call back buffer. The if is redundant there should always
-	     be enough room since the request is base on the buffer size.  */
-	  if (f_imap->callback.total <= f_imap->callback.buflen)
-	    {
-	      int nl = 0;
-	      memcpy (f_imap->callback.buffer, bquote, f_imap->callback.total);
-	      while (bquote && ((equote - bquote) >= 0))
-		{
-		  bquote = memchr (f_imap->callback.buffer, '\n',
-				   (equote - bquote) + 1);
-		  if (bquote)
-		    {
-		      nl++;
-		      bquote++;
-		    }
-		  else
-		    break;
-		}
-
-	      /* Depending on the type of request we incremente the xxxx_lines
-		 and  xxxx_sizes.  */
-	      switch (f_imap->callback.type)
-		{
-		case IMAP_HEADER:
-		  f_imap->callback.msg_imap->header_lines += nl;
-		  f_imap->callback.msg_imap->header_size +=
-		    f_imap->callback.total;
-		  break;
-
-		case IMAP_BODY:
-		  f_imap->callback.msg_imap->body_lines += nl;
-		  f_imap->callback.msg_imap->body_size +=
-		    f_imap->callback.total;
-		  break;
-
-		case IMAP_MESSAGE:
-		  f_imap->callback.msg_imap->message_lines += nl;
-
-		default:
-		  break;
-		}
-	    }
-	}
+      escaped = (**ptr == '\\') ? 1 : 0;
+      (*ptr)++;
     }
+  f_imap->callback.total = *ptr - bquote;
+  /* Fill the call back buffer. The if is redundant there should always
+     be enough room since the request is base on the buffer size.  */
+  if (f_imap->callback.total <= f_imap->callback.buflen)
+    memcpy (f_imap->callback.buffer, bquote, f_imap->callback.total);
+  if (**ptr == '"')
+    (*ptr)++;
   return 0;
 }
 
 /* Find which type of string the response is: literal or quoted and let the
    function fill the callback buffer.  */
 static int
-imap_string (f_imap_t f_imap)
+imap_string (f_imap_t f_imap, char **ptr)
 {
   int status = 0;
-  size_t len = f_imap->nl - f_imap->buffer;
-  char *bcurl = memchr (f_imap->buffer, '{', len);
-  if (bcurl)
+
+  /* Skip whites.  */
+  while (**ptr == ' ')
+    (*ptr)++;
+  switch (**ptr)
     {
-      char *ecurl;
-      len = f_imap->nl - bcurl;
-      ecurl = memchr (bcurl, '}', len);
-      if (ecurl)
+    case '{':
+      f_imap->callback.nleft = strtol ((*ptr) + 1, ptr, 10);
+      if (**ptr == '}')
 	{
-	  *ecurl = '\0';
-	  f_imap->callback.nleft = strtol (bcurl + 1, NULL, 10);
-	  /* We had 3 for ")\r\n" terminates the fetch command.  */
-	  f_imap->callback.nleft += 3;
+	  (*ptr)++;
+	  /* Reset the buffer to the beginning.  */
+	  f_imap->ptr = f_imap->buffer;
+	  status = imap_literal_string (f_imap, ptr);
 	}
-      f_imap->ptr = f_imap->buffer;
-      status = imap_literal_string (f_imap);
-    }
-  else
-    {
-      char *bracket = memchr (f_imap->buffer, ']', len);
-      if (bracket == NULL)
-	bracket = f_imap->buffer;
-      f_imap->ptr = f_imap->buffer;
-      status = imap_quoted_string (f_imap, bracket);
+      break;
+    case '"':
+      status = imap_quoted_string (f_imap, ptr);
+      break;
+      /* NIL */
+    case 'N':
+    case 'n':
+      (*ptr)++; /* I|i  */
+      (*ptr)++; /* L|l  */
+      break;
+    default:
+      /* Problem.  */
+      break;
     }
   return status;
 }
@@ -1027,30 +981,33 @@ section_name (msg_imap_t msg_imap)
   return section;
 }
 
-/* FIXME: This does not work for nonblocking.  */
-/* Recursive call, to parse the dismay of parentesis "()" in a BODYSTRUCTURE
-   call, not we use the short form of BODYSTRUCTURE, BODY with no argument.  */
+/* We do not pay particular attention to the content of the bodystructure
+   but rather to the paremetized list layout to discover how many messages
+   the originial message is composed of.  The information is later retrieve
+   when needed via the body[header.fields] command.  Note that this function
+   is recursive. */
 static int
-imap_bodystructure0 (msg_imap_t msg_imap, char **buffer, char **base)
+imap_bodystructure0 (msg_imap_t msg_imap, char **ptr)
 {
   int paren = 0;
   int no_arg = 0;
   int status = 0;
-  char *p = memchr (*buffer, '(', strlen (*buffer));
 
-  if (p == NULL)
-    return 0;
+  /* Skip space.  */
+  while (**ptr == ' ')
+    (*ptr)++;
+  if (**ptr != '(')
+    return 0;  /* Something is wrong.  */
 
+  /* Pass lparen.  */
+  ++(*ptr);
   paren++;
   no_arg++;
-
-  for (p = (p + 1); *p != '\0'; p++)
+  for (; **ptr; ++(*ptr))
     {
-      if (*p == '(')
+      if (**ptr == '(')
 	{
 	  paren++;
-	  /* If we did not parse any argment it means that it is a subpart of
-	     the message.  We create a new concrete msg_api for it. */
 	  if (no_arg)
 	    {
 	      msg_imap_t new_part;
@@ -1069,8 +1026,7 @@ imap_bodystructure0 (msg_imap_t msg_imap, char **buffer, char **base)
 		      new_part->num = msg_imap->num;
 		      new_part->m_imap = msg_imap->m_imap;
 		      new_part->flags = msg_imap->flags;
-		      //p++;
-		      imap_bodystructure0 (new_part, &p, base);
+		      status = imap_bodystructure0 (new_part, ptr);
 		    }
 		  else
 		    status = ENOMEM;
@@ -1078,83 +1034,87 @@ imap_bodystructure0 (msg_imap_t msg_imap, char **buffer, char **base)
 	      else
 		status = ENOMEM;
 	    }
-	}
-      if (*p == ')')
+        }
+      if (**ptr == ')')
+        {
+          no_arg = 1;
+          paren--;
+          /* Did we reach the same number of close paren ?  */
+          if (paren <= 0)
+            break;
+        }
+      /* Skip the rests */
+      else
 	{
-	  no_arg = 1;
-	  paren--;
-	  /* Did we reach the same number of close paren ?  */
-	  if (paren <= 0)
-	    break;
-	}
-      /* Skip over quoted strings.  */
-      else if (*p == '"')
-	{
-	  p++;
-	  while (*p && *p != '"') p++;
-	  if (*p == '\0') break;
+	  /* FIXME: set the command callback if EAGAIN to resume.  */
+          status = imap_string (msg_imap->m_imap->f_imap, ptr);
+	  if (status != 0)
+	    return status;
 	  no_arg = 0;
 	}
-      /* Dam !! a literal in the body description !!! We just read the line
-         and continue the parsing with this newline.  */
-      else if (*p == '{')
-	{
-	  size_t count;
-	  f_imap_t f_imap = msg_imap->m_imap->f_imap;
-	  f_imap->ptr = f_imap->buffer;
-	  imap_readline (f_imap);
-	  count = f_imap->nl - f_imap->buffer;
-	  if (count)
-	    {
-	      char *tmp = calloc (count + 1, sizeof (char));
-	      if (tmp)
-		{
-		  free (*base);
-		  *base = tmp;
-		  p = *base;
-		  memcpy (p, f_imap->buffer, count);
-		}
-	    }
-	}
-      /* Skip the rests */
-      else if (*p != ' ')
-	no_arg = 0;
-    } /* for */
-  *buffer = p;
-  return status;
-}
 
-/* Cover functions that calls the recursive imap_bodystructure0 to parse.  */
-static int
-imap_bodystructure (f_imap_t f_imap)
-{
-  char *p = strchr (f_imap->buffer, '(');
-  if (p)
-    {
-      p++;
-      p = strchr (p, '(');
-      if (p && f_imap->callback.msg_imap)
-	{
-	  char *s = calloc (strlen (p) + 1, sizeof (*s));
-	  char *base = s;
-	  strcpy (s, p);
-	  imap_bodystructure0 (f_imap->callback.msg_imap, &s, &base);
-	  free (base);
-	}
+      if (**ptr == '\0')
+	break;
     }
   return 0;
 }
 
-/* Parse the flags untag responses.  */
 static int
-imap_flags (f_imap_t f_imap)
+imap_bodystructure (f_imap_t f_imap, char **ptr)
+{
+  return imap_bodystructure0 (f_imap->callback.msg_imap, ptr);
+}
+
+/* The Format for a FLAG response is :
+   mailbox_data    ::=  "FLAGS" SPACE flag_list
+   flag_list       ::= "(" #flag ")"
+   flag            ::= "\Answered" / "\Flagged" / "\Deleted" /
+   "\Seen" / "\Draft" / flag_keyword / flag_extension
+   flag_extension  ::= "\" atom
+   ;; Future expansion.  Client implementations
+   ;; MUST accept flag_extension flags.  Server
+   ;; implementations MUST NOT generate
+   ;; flag_extension flags except as defined by
+   ;; future standard or standards-track
+   ;; revisions of this specification.
+   flag_keyword    ::= atom
+
+   S: * 14 FETCH (FLAGS (\Seen \Deleted))
+   S: * FLAGS (\Answered \Flagged \Deleted \Seen \Draft)
+
+   We assume that the '*' or the FLAGS keyword are strip.
+
+   FIXME:  User flags are not take to account. */
+static int
+imap_flags (f_imap_t f_imap, char **ptr)
 {
   char *flag;
-  char *sp = NULL;
-  char *flags = memchr (f_imap->buffer, '(', f_imap->nl - f_imap->buffer);
+  /* msg_imap may be null for an untag response deal with it.  */
   msg_imap_t msg_imap = f_imap->callback.msg_imap;
-  while ((flag = strtok_r (flags, " ()", &sp)) != NULL)
+
+  /* Skip space.  */
+  while (**ptr == ' ')
+    (*ptr)++;
+  /* Skip LPAREN.  */
+  if (**ptr == '(')
+    (*ptr)++;
+  for (;**ptr && **ptr != ')'; ++(*ptr))
     {
+      /* Skip space before next word.  */
+      while (**ptr == ' ')
+	(*ptr)++;
+      /* Save the beginning of the word.  */
+      flag = *ptr;
+      /* Get the next word boundary.  */
+      while (**ptr && **ptr != ' ' && **ptr != ')')
+	++*ptr;
+      /* Make a C string for the strcasecmp.  */
+      **ptr = '\0';
+      /* Bail out.  */
+      if (*flag == '\0')
+	break;
+
+      /* Guess the flag.  */
       if (strcasecmp (flag, "\\Seen") == 0)
 	{
 	  if (msg_imap)
@@ -1190,46 +1150,70 @@ imap_flags (f_imap_t f_imap)
 	  else
 	    f_imap->flags |= MU_ATTRIBUTE_DRAFT;
 	}
-      flags = NULL;
     }
   return 0;
+}
+
+static int
+imap_body (f_imap_t f_imap, char **ptr)
+{
+  char *sep;
+  while (**ptr && **ptr == ' ')
+    (*ptr)++;
+  if (**ptr == '[')
+    {
+      sep = strchr (*ptr, ']');
+      if (sep)
+	{
+	  sep++;
+	  *ptr = sep;
+	}
+    }
+  while (**ptr && **ptr == ' ')
+    (*ptr)++;
+  if (**ptr == '<')
+    {
+      sep = strchr (*ptr, '>');
+      if (sep)
+	{
+	  sep++;
+	  *ptr = sep;
+	}
+    }
+  return imap_string (f_imap, ptr);
+}
+
+static int
+imap_internaldate (f_imap_t f_imap, char **ptr)
+{
+  return imap_string (f_imap, ptr);
 }
 
 /* Parse imap unfortunately FETCH is use as response for many commands.  */
 static int
 imap_fetch (f_imap_t f_imap)
 {
-  char *command;
+  char command[128];
   size_t msgno = 0;
   size_t len = f_imap->nl - f_imap->buffer;
   m_imap_t m_imap = f_imap->selected;
-  const char *delim = " ()<>";
+  const char *delim = " ";
   int status = 0;
   char *sp = NULL;
-
-  /* If we have some data that was not clear it may mean that we returned
-     EAGAIN etc ...  In any case we have to clear it first.  */
-  if (f_imap->callback.nleft)
-    return imap_literal_string (f_imap);
-
-  /* We do not want to step over f_imap->buffer since it can be use further
-     down the chain.  */
-  command = alloca (len + 1);
-  memcpy (command, f_imap->buffer, len + 1);
 
   /* We should have a mailbox selected.  */
   assert (m_imap != NULL);
 
   /* Parse the FETCH respones to extract the pieces.  */
+  sp = f_imap->buffer;
 
   /* Skip untag '*'.  */
-  command = strtok_r (command, delim, &sp);
+  imap_token (command, &sp);
   /* Get msgno.  */
-  command = strtok_r (NULL, delim, &sp);
-  if (command)
-    msgno = strtol (command, NULL, 10);
+  imap_token (command, &sp);
+  msgno = strtol (command, NULL,  10);
   /* Skip FETCH .  */
-  command = strtok_r (NULL, delim,  &sp);
+  imap_token (command, &sp);
 
   /* It is actually possible, but higly unlikely that we do not have the
      message yet, for example a "FETCH (FLAGS (\Recent))" notification
@@ -1248,39 +1232,72 @@ imap_fetch (f_imap_t f_imap)
 	    }
 	}
     }
-  //assert (msg_imap != NULL);
+//  assert (msg_imap != NULL);
 
-  /* Get the command.  */
-  command = strtok_r (NULL, delim, &sp);
-  if (strncmp (command, "FLAGS", 5) == 0)
+#if 0
+  /* skip to '(' */
+  while (*sp && *sp != '(')
+    sp++;
+#endif
+
+  /* Get the commands.  */
+  while (*sp && *sp != ')')
     {
-      status = imap_flags (f_imap);
-    }
-  else if (strcasecmp (command, "BODY") == 0)
-    {
-      status = imap_bodystructure (f_imap);
-    }
-  else if (strncmp (command, "INTERNALDATE", 12) == 0)
-    {
-      status = imap_string (f_imap);
-    }
-  else if (strncmp (command, "RFC822.SIZE", 10) == 0)
-    {
-      command = strtok_r (NULL, " ()\n", &sp);
-      if (f_imap->callback.msg_imap)
-	f_imap->callback.msg_imap->message_size = strtoul (command, NULL, 10);
-    }
-  else if (strncmp (command, "BODY", 4) == 0)
-    {
-      status = imap_string (f_imap);
-    }
-  else if (strncmp (command, "UID", 3) == 0)
-    {
-      command = strtok_r (NULL, " ()\n", &sp);
-      if (f_imap->callback.msg_imap)
-	f_imap->callback.msg_imap->uid = strtoul (command, NULL, 10);
+      imap_token (command, &sp);
+      if (strncmp (command, "FLAGS", 5) == 0)
+	{
+	  status = imap_flags (f_imap, &sp);
+	}
+      else if (strcasecmp (command, "BODY") == 0
+	       || strcasecmp (command, "BODYSTRUCTURE") == 0)
+	{
+	  if (*sp == '[')
+	    status =  imap_body (f_imap, &sp);
+	  else
+	    status = imap_bodystructure (f_imap, &sp);
+	}
+      else if (strncmp (command, "INTERNALDATE", 12) == 0)
+	{
+	  status = imap_internaldate (f_imap, &sp);
+	}
+      else if (strncmp (command, "RFC822.SIZE", 10) == 0)
+	{
+	  imap_token (command, &sp);
+	  if (f_imap->callback.msg_imap)
+	    f_imap->callback.msg_imap->message_size = strtoul (command,
+							       NULL, 10);
+	}
+      else if (strncmp (command, "UID", 3) == 0)
+	{
+	  imap_token (command,  &sp);
+	  if (f_imap->callback.msg_imap)
+	    f_imap->callback.msg_imap->uid = strtoul (command, NULL, 10);
+	}
     }
   return status;
+}
+
+static int
+imap_token (char *buf, char **ptr)
+{
+  char *start = *ptr;
+  while (**ptr && **ptr == ' ')
+    (*ptr)++;
+  for (; **ptr; (*ptr)++, buf++)
+    {
+      if (**ptr == ' ' || **ptr == '.'
+	  || **ptr == '(' || **ptr == ')'
+	  || **ptr == '[' || **ptr == ']'
+	  || **ptr == '<' || **ptr  == '>')
+	{
+	  if (start == (*ptr))
+	    (*ptr)++;
+	  break;
+	}
+      *buf = **ptr;
+  }
+  *buf = '\0';
+  return  *ptr - start;;
 }
 
 /* C99 says that a conforming implementations of snprintf () should return the
@@ -1449,9 +1466,6 @@ imap_parse (f_imap_t f_imap)
   int done = 0;
   int status = 0;
   char empty[2];
-
-  if (f_imap->callback.nleft)
-    imap_literal_string (f_imap);
 
   /* We use that moronic hack to not check null for the tockenize strings.  */
   empty[0] = '\0';
@@ -1658,7 +1672,7 @@ imap_parse (f_imap_t f_imap)
 	  else if (strcasecmp (response, "FLAGS") == 0)
 	    {
 	      /* Flags define on the mailbox not a message flags.  */
-	      status = imap_flags (f_imap);
+	      status = imap_flags (f_imap, &remainder);
 	    }
 	  else if (strcasecmp (response, "LIST") == 0)
 	    {
@@ -1685,7 +1699,7 @@ imap_parse (f_imap_t f_imap)
 		     response, remainder);
 	    }
 	}
-      /* Continuation token.  */
+      /* Continuation token ???.  */
       else if (tag && tag[0] == '+')
 	{
 	  done = 1;
