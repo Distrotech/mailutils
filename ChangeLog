@@ -1,3 +1,8 @@
+2005-02-11  Sergey Poznyakoff 
+
+	* imap4d/unsubscribe.c: Rewritten. Thanks Andrew Barnes
+	for reporting the bug.
+
 2005-02-03  Sergey Poznyakoff
 
 	* guimb/main.c (parse_opt): Use arg instead of optarg.
