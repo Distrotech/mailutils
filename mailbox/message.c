@@ -418,7 +418,7 @@ message_get_uidl (message_t msg, char *buffer, size_t buflen, size_t *pwriten)
   if (msg == NULL || buffer == NULL || buflen == 0)
     return EINVAL;
 
-  buffer[0] = '0';
+  buffer[0] = '\0';
   if (msg->_get_uidl)
     return msg->_get_uidl (msg, buffer, buflen, pwriten);
 
@@ -430,18 +430,21 @@ message_get_uidl (message_t msg, char *buffer, size_t buflen, size_t *pwriten)
       || (status = header_get_value (header, "Message-ID", buffer,
 				     buflen, &n)) == 0)
     {
-      /* We need to collapse the header if it was mutiline.  */
       /* FIXME: Is header_get_value suppose to do this ?  */
+      /* We need to collapse the header if it was mutiline.  e points to the
+	 last char meaning in a C string that's '\0', s to the start. We also
+	 remove the spesky '<' '>' if they are around.  */
       char *s, *e;
       for (s = buffer, e = buffer + n; s <= e; s++)
 	{
-	  if (isspace (*s))
-	    memmove (s, s + 1, e - s);
+	  if (isspace (*s) || *s == '<' || *s == '>')
+	    {
+	      memmove (s, s + 1, e - (s + 1));
+	      e -= 1;
+	      *e = '\0';
+	    }
 	}
-      return 0;
     }
-  if (pwriten)
-    *pwriten = n;
   return status;
 }
 

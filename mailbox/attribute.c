@@ -53,6 +53,8 @@ attribute_destroy (attribute_t *pattr, void *owner)
 int
 attribute_get_flags (attribute_t attr, int *pflags)
 {
+  if (attr == NULL)
+    return EINVAL;
   if (attr->_get_flags)
     return attr->_get_flags (attr, pflags);
   if (pflags)
@@ -63,6 +65,8 @@ attribute_get_flags (attribute_t attr, int *pflags)
 int
 attribute_set_flags (attribute_t attr, int flags)
 {
+  if (attr == NULL)
+    return EINVAL;
   if (attr->_set_flags)
     return attr->_set_flags (attr, flags);
   attr->flags |= flags;
@@ -102,6 +106,17 @@ attribute_set_unset_flags (attribute_t attr, int (*_unset_flags)
   if (attr->owner != owner)
     return EACCES;
   attr->_unset_flags = _unset_flags;
+  return 0;
+}
+
+/* We add support for "USER" flag, it is a way for external objects
+   Not being the owner to add custom flags.  */
+int
+attribute_set_userflag (attribute_t attr, int flag)
+{
+  if (attr == NULL)
+    return EINVAL;
+  attr->user_flags |= flag;
   return 0;
 }
 
@@ -197,6 +212,14 @@ attribute_set_recent (attribute_t attr)
 }
 
 int
+attribute_is_userflag (attribute_t attr, int flag)
+{
+  if (attr == NULL)
+    return 0;
+  return attr->user_flags & flag;
+}
+
+int
 attribute_is_seen (attribute_t attr)
 {
   int status = 0;
@@ -274,6 +297,15 @@ attribute_is_recent (attribute_t attr)
   return (attr->flags == 0
 	  || ! ((attr->flags & MU_ATTRIBUTE_SEEN)
 		&& (attr->flags & MU_ATTRIBUTE_READ)));
+}
+
+int
+attribute_unset_userflag (attribute_t attr, int flag)
+{
+  if (attr == NULL)
+    return 0;
+  attr->user_flags &= ~flag;
+  return 0;
 }
 
 int
@@ -371,6 +403,7 @@ attribute_is_equal (attribute_t attr, attribute_t attr2)
   return attr->flags == attr2->flags;
 }
 
+/*   Miscellaneous.  */
 int
 attribute_copy (attribute_t dest, attribute_t src)
 {

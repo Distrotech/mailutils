@@ -22,6 +22,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <stdarg.h>
 
 #include <mailbox0.h>
 #include <stream0.h>
@@ -31,15 +32,15 @@
 #include <auth0.h>
 #include <header0.h>
 #include <attribute0.h>
+#include <bio.h>
+#include <ctype.h>
 
 /* Advance declarations.  */
 struct _pop_data;
 struct _pop_message;
-struct _bio;
 
 typedef struct _pop_data * pop_data_t;
 typedef struct _pop_message * pop_message_t;
-typedef struct _bio *bio_t;
 
 /* The different possible states of a Pop client, Note that POP3 is not
    reentrant. It is only one channel.  */
@@ -96,55 +97,11 @@ static int pop_get_flags (attribute_t, int *);
 static int pop_body_size (body_t, size_t *);
 static int pop_body_lines (body_t body, size_t *plines);
 static int pop_uidl (message_t, char *, size_t, size_t *);
-static int fill_buffer (bio_t bio, char *buffer, size_t buflen);
-
-/* According to the rfc:
-   RFC 2449                POP3 Extension Mechanism           November 1998
-
-   4.  Parameter and Response Lengths
-
-   This specification increases the length restrictions on commands and
-   parameters imposed by RFC 1939.
-
-   The maximum length of a command is increased from 47 characters (4
-   character command, single space, 40 character argument, CRLF) to 255
-   octets, including the terminating CRLF.
-
-   Servers which support the CAPA command MUST support commands up to
-   255 octets.  Servers MUST also support the largest maximum command
-   length specified by any supported capability.
-
-   The maximum length of the first line of a command response (including
-   the initial greeting) is unchanged at 512 octets (including the
-   terminating CRLF).  */
-
-/* Buffered I/O, since the connection maybe non-blocking, we use a little
-   working buffer to hold the I/O between us and the POP3 Server.  For
-   example if write () return EAGAIN, we keep on calling bio_write () until
-   the buffer is empty. bio_read () does a little more, it takes care of
-   filtering out the starting "." and return O(zero) when seeing the terminal
-   octets ".\r\n".  bio_readline () insists on having a _complete_ line .i.e
-   a string terminated by \n, it will allocate/grow the working buffer as
-   needed.  The "\r\n" termination is converted to '\n'.  bio_destroy ()
-   does not close the stream but only free () the working buffer.  */
-struct _bio
-{
-#define POP_BUFSIZ 512
-  stream_t stream;
-  size_t maxlen;
-  size_t len;
-  char *current;
-  char *buffer;
-  char *ptr;
-  char *nl;
-};
-
-static int  bio_create   (bio_t *, stream_t);
-static void bio_destroy  (bio_t *);
-static int  bio_readline (bio_t);
-static int  bio_read     (bio_t);
-static int  bio_write    (bio_t);
-
+static int fill_buffer (pop_data_t mpd, char *buffer, size_t buflen);
+static int pop_readline (pop_data_t mpd);
+static int pop_read_ack (pop_data_t mpd);
+static int pop_writeline (pop_data_t mpd, const char *format, ...);
+static int pop_write (pop_data_t mpd);
 
 /* This structure holds the info for a pop_get_message(). The pop_message_t
    type, will serve as the owner of the message_t and contains the command to
@@ -181,20 +138,52 @@ struct _pop_data
   pthread_mutex_t mutex;
 #endif
   int flags;  /* Flags of for the stream_t object.  */
-  bio_t bio;  /* Working I/O buffer.  */
+
+  /* Working I/O buffers.  */
+  bio_t bio;
+  char *buffer;
+  size_t buflen;
+  char *ptr;
+  char *nl;
+
   int is_updated;
   char *user;  /* Temporary holders for user and passwd.  */
   char *passwd;
   mailbox_t mbox; /* Back pointer.  */
 } ;
 
-/* Little Macro, since this is very repetitive.  */
+/* Usefull little Macros, since this is very repetitive.  */
 #define CLEAR_STATE(mpd) \
- mpd->func = NULL, \
+ mpd->id = 0, mpd->func = NULL, \
  mpd->state = POP_NO_STATE
 
+/* Clear the state and close the stream.  */
+#define CHECK_ERROR_CLOSE(mbox, mpd, status) \
+do \
+  { \
+     if (status != 0) \
+       { \
+          stream_close (mbox->stream); \
+          CLEAR_STATE (mpd); \
+          return status; \
+       } \
+  } \
+while (0)
+
+/* Clear the state.  */
+#define CHECK_ERROR(mpd, status) \
+do \
+  { \
+     if (status != 0) \
+       { \
+          CLEAR_STATE (mpd); \
+          return status; \
+       } \
+  } \
+while (0)
+
 /* Clear the state for non recoverable error.  */
-#define CHECK_NON_RECOVERABLE(mpd, status) \
+#define CHECK_EAGAIN(mpd, status) \
 do \
   { \
     if (status != 0) \
@@ -312,14 +301,19 @@ pop_destroy (mailbox_t *pmbox)
 		  message_destroy (&(mpd->pmessages[i]->message),
 				   mpd->pmessages[i]);
 		  free (mpd->pmessages[i]);
+		  mpd->pmessages[i] = NULL;
 		}
 	    }
 	  bio_destroy (&(mpd->bio));
+	  free (mpd->buffer);
+	  mpd->buffer = NULL;
 	  free (mpd->pmessages);
-	  free (mpd);
+	  mpd->pmessages = NULL;
 #ifdef HAVE_PHTREAD_H
 	  pthread_mutex_destroy (&(mpd->mutex));
 #endif
+	  free (mpd);
+	  mbox->data = NULL;
 	}
       /* Since the mailbox is destroy, close the stream but not via
 	 pop_close () which can return EAGAIN, or other unpleasant side
@@ -328,9 +322,15 @@ pop_destroy (mailbox_t *pmbox)
       stream_destroy (&(mbox->stream), mbox);
       auth_destroy (&(mbox->auth), mbox);
       if (mbox->name)
-	free (mbox->name);
+	{
+	  free (mbox->name);
+	  mbox->name = NULL;
+	}
       if (mbox->event)
-	free (mbox->event);
+	{
+	  free (mbox->event);
+	  mbox->event = NULL;
+	}
       if (mbox->url)
 	url_destroy (&(mbox->url));
       free (mbox);
@@ -403,7 +403,6 @@ pop_open (mailbox_t mbox, int flags)
 {
   pop_data_t mpd = mbox->data;
   int status;
-  bio_t bio;
   void *func = (void *)pop_open;
   char host[256]  ;
   long port;
@@ -430,114 +429,119 @@ pop_open (mailbox_t mbox, int flags)
   if (mpd->func && mpd->func != func)
     return EBUSY;
   mpd->func = func;
-  bio = mpd->bio;
 
   /* Enter the pop state machine, and boogy: AUTHORISATION State.  */
   switch (mpd->state)
     {
     case POP_NO_STATE:
+      /* allocate working io buffer.  */
+      if (mpd->buffer == NULL)
+	{
+	  mpd->buflen = 255;
+	  mpd->buffer = malloc (mpd->buflen + 1);
+	  if (mpd->buffer == NULL)
+	    {
+	      CHECK_ERROR (mpd, ENOMEM);
+	    }
+	  mpd->ptr = mpd->buffer;
+	}
+
       /* Spawn auth prologue.  */
       auth_prologue (mbox->auth);
+
       /* Create the networking stack.  */
       if (mbox->stream == NULL)
 	{
 	  status = tcp_stream_create (&(mbox->stream));
-	  if (status != 0)
-	    return status;
+	  CHECK_ERROR(mpd, status);
 	}
       mpd->state = POP_OPEN_CONNECTION;
 
     case POP_OPEN_CONNECTION:
       /* Establish the connection.  */
+      mailbox_debug (mbox, MU_MAILBOX_DEBUG_PROT, "open (%s:%d)\n",
+		     host, port);
       status = stream_open (mbox->stream, host, port, flags);
       if (status != 0)
 	{
 	  /* Clear the state for non recoverable error.  */
 	  if (status != EAGAIN && status != EINPROGRESS && status != EINTR)
 	    {
-	      mpd->func = NULL;
-	      mpd->state = POP_NO_STATE;
+	      CLEAR_STATE (mpd);
 	    }
 	  return status;
 	}
-      /* Allocate the struct for buffered I/O.  */
+      /* Need to destroy the old bio maybe a different stream.  */
       bio_destroy (&(mpd->bio));
+      /* Allocate the struct for buffered I/O.  */
       status = bio_create (&(mpd->bio), mbox->stream);
       /* Can't recover bailout.  */
-      if (status != 0)
-	{
-	  stream_close (bio->stream);
-	  CLEAR_STATE (mpd);
-	  return status;
-	}
-      bio = mpd->bio;
+      CHECK_ERROR_CLOSE (mbox, mpd, status);
       mpd->state = POP_GREETINGS;
 
     case POP_GREETINGS:
       /* Swallow the greetings.  */
-      status = bio_readline (bio);
-      CHECK_NON_RECOVERABLE (mpd, status);
-      mailbox_debug (mbox, MU_MAILBOX_DEBUG_PROT, bio->buffer);
-      if (strncasecmp (bio->buffer, "+OK", 3) != 0)
+      status = pop_read_ack (mpd);
+      CHECK_EAGAIN (mpd, status);
+      mailbox_debug (mbox, MU_MAILBOX_DEBUG_PROT, mpd->buffer);
+      if (strncasecmp (mpd->buffer, "+OK", 3) != 0)
 	{
-	  stream_close (bio->stream);
-	  CLEAR_STATE (mpd);
-	  return EACCES;
+	  CHECK_ERROR_CLOSE (mbox, mpd, EACCES);
 	}
 
       /*  Fetch the user/passwd from them.  */
       auth_authenticate (mbox->auth, &mpd->user, &mpd->passwd);
 
-      bio->len = snprintf (bio->buffer, bio->maxlen, "USER %s\r\n", mpd->user);
-      bio->ptr = bio->buffer;
-      mailbox_debug (mbox, MU_MAILBOX_DEBUG_PROT, bio->buffer);
-      free (mpd->user); mpd->user = NULL;
+      status = pop_writeline (mpd, "USER %s\r\n", mpd->user);
+      CHECK_ERROR_CLOSE(mbox, mpd, status);
+      mailbox_debug (mbox, MU_MAILBOX_DEBUG_PROT, mpd->buffer);
+      free (mpd->user);
+      mpd->user = NULL;
       mpd->state = POP_USER_TX;
 
     case POP_USER_TX:
       /* Send username.  */
-      status = bio_write (bio);
-      CHECK_NON_RECOVERABLE (mpd, status);
+      status = pop_write (mpd);
+      CHECK_EAGAIN (mpd, status);
       mpd->state = POP_USER_ACK;
 
     case POP_USER_ACK:
       /* Get the user ack.  */
-      status = bio_readline (bio);
-      CHECK_NON_RECOVERABLE (mpd, status);
-      mailbox_debug (mbox, MU_MAILBOX_DEBUG_PROT, bio->buffer);
-      if (strncasecmp (bio->buffer, "+OK", 3) != 0)
+      status = pop_read_ack (mpd);
+      CHECK_EAGAIN (mpd, status);
+      mailbox_debug (mbox, MU_MAILBOX_DEBUG_PROT, mpd->buffer);
+      if (strncasecmp (mpd->buffer, "+OK", 3) != 0)
 	{
-	  stream_close (bio->stream);
-	  CLEAR_STATE (mpd);
-	  return EACCES;
+	  CHECK_ERROR_CLOSE (mbox, mpd, EACCES);
 	}
-      bio->len = snprintf (bio->buffer, POP_BUFSIZ, "PASS %s\r\n",
-			   mpd->passwd);
-      bio->ptr = bio->buffer;
-      mailbox_debug (mbox, MU_MAILBOX_DEBUG_PROT, bio->buffer);
+      status = pop_writeline (mpd, "PASS %s\r\n", mpd->passwd);
+      CHECK_ERROR_CLOSE (mbox, mpd, status);
       /* We have to nuke the passwd.  */
       memset (mpd->passwd, 0, strlen (mpd->passwd));
-      free (mpd->passwd); mpd->passwd = NULL;
+      free (mpd->passwd);
+      mpd->passwd = NULL;
+      mailbox_debug (mbox, MU_MAILBOX_DEBUG_PROT, "PASS *\n");
       mpd->state = POP_PASS_TX;
 
     case POP_PASS_TX:
       /* Send passwd.  */
-      status = bio_write (bio);
-      CHECK_NON_RECOVERABLE (mpd, status);
+      status = pop_write (mpd);
+      CHECK_EAGAIN (mpd, status);
+      /* We have to nuke the passwd.  */
+      memset (mpd->buffer, 0, mpd->buflen);
       mpd->state = POP_PASS_ACK;
 
     case POP_PASS_ACK:
       /* Get the ack from passwd.  */
-      status = bio_readline (bio);
-      CHECK_NON_RECOVERABLE (mpd, status);
-      mailbox_debug (mbox, MU_MAILBOX_DEBUG_PROT, bio->buffer);
-      if (strncasecmp (bio->buffer, "+OK", 3) != 0)
+      status = pop_read_ack (mpd);
+      CHECK_EAGAIN (mpd, status);
+      mailbox_debug (mbox, MU_MAILBOX_DEBUG_PROT, mpd->buffer);
+      if (strncasecmp (mpd->buffer, "+OK", 3) != 0)
 	{
-	  stream_close (bio->stream);
-	  CLEAR_STATE (mpd);
-	  return EACCES;
+	  CHECK_ERROR_CLOSE (mbox, mpd, EACCES);
 	}
       break;  /* We're outta here.  */
+
     default:
       /*
 	fprintf (stderr, "pop_open unknown state\n");
@@ -560,7 +564,6 @@ pop_close (mailbox_t mbox)
   pop_data_t mpd = mbox->data;
   void *func = (void *)pop_close;
   int status;
-  bio_t bio;
   size_t i;
 
   if (mpd == NULL)
@@ -571,36 +574,33 @@ pop_close (mailbox_t mbox)
     return EBUSY;
 
   mpd->func = func;
-  bio = mpd->bio;
 
   /*  Ok boys, it's a wrap: UPDATE State.  */
   switch (mpd->state)
     {
     case POP_NO_STATE:
       /* Initiate the close.  */
-      bio->len = snprintf (bio->buffer, bio->maxlen, "QUIT\r\n");
-      bio->ptr = bio->buffer;
-      mailbox_debug (mbox, MU_MAILBOX_DEBUG_PROT, bio->buffer);
+      status = pop_writeline (mpd, "QUIT\r\n");
+      mailbox_debug (mbox, MU_MAILBOX_DEBUG_PROT, mpd->buffer);
       mpd->state = POP_QUIT_TX;
 
     case POP_QUIT_TX:
       /* Send the quit.  */
-      status = bio_write (mpd->bio);
-      CHECK_NON_RECOVERABLE (mpd, status);
+      status = pop_write (mpd);
+      CHECK_EAGAIN (mpd, status);
       mpd->state = POP_QUIT_ACK;
 
     case POP_QUIT_ACK:
       /* Glob the acknowledge.  */
-      status = bio_readline (bio);
-      CHECK_NON_RECOVERABLE (mpd, status);
-      mailbox_debug (mbox, MU_MAILBOX_DEBUG_PROT, bio->buffer);
+      status = pop_read_ack (mpd);
+      CHECK_EAGAIN (mpd, status);
+      mailbox_debug (mbox, MU_MAILBOX_DEBUG_PROT, mpd->buffer);
       /*  Now what ! and how can we tell them about errors ?  So far now
 	  lets just be verbose about the error but close the connection
 	  anyway.  */
-      if (strncasecmp (bio->buffer, "+OK", 3) != 0)
-	fprintf (stderr, "pop_close: %s\n", bio->buffer);
-      stream_close (bio->stream);
-      bio->stream = NULL;
+      if (strncasecmp (mpd->buffer, "+OK", 3) != 0)
+	fprintf (stderr, "pop_close: %s\n", mpd->buffer);
+      stream_close (mbox->stream);
       break;
 
     default:
@@ -618,6 +618,7 @@ pop_close (mailbox_t mbox)
 	  message_destroy (&(mpd->pmessages[i]->message),
 			   mpd->pmessages[i]);
 	  free (mpd->pmessages[i]);
+	  mpd->pmessages[i] = NULL;
 	}
     }
   /* And clear any residue.  */
@@ -626,6 +627,8 @@ pop_close (mailbox_t mbox)
   mpd->pmessages_count = 0;
   mpd->is_updated = 0;
   bio_destroy (&(mpd->bio));
+  free (mpd->buffer);
+  mpd->buffer = NULL;
 
   CLEAR_STATE (mpd);
   return 0;
@@ -636,8 +639,9 @@ static int
 pop_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
 {
   pop_data_t mpd = mbox->data;
-  int status;
+  message_t msg = NULL;
   pop_message_t mpm;
+  int status;
   size_t i;
 
   /* Sanity.  */
@@ -667,7 +671,6 @@ pop_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
 
   /* Create the message.  */
   {
-    message_t msg = NULL;
     stream_t stream = NULL;
     if ((status = message_create (&msg, mpm)) != 0
 	|| (status = stream_create (&stream, MU_STREAM_READ, mpm)) != 0)
@@ -681,8 +684,6 @@ pop_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
     stream_set_fd (stream, pop_get_fd, mpm);
     stream_set_flags (stream, MU_STREAM_READ, mpm);
     message_set_stream (msg, stream, mpm);
-    /* Save The message.  */
-    mpm->message = msg;
   }
 
   /* Create the header.  */
@@ -694,16 +695,16 @@ pop_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
       {
 	header_destroy (&header, mpm);
 	stream_destroy (&stream, mpm);
-	message_destroy (&(mpm->message), mpm);
+	message_destroy (&msg, mpm);
 	free (mpm);
 	return status;
       }
-    //stream_set_read (stream, pop_read_header, mpm);
-    stream_set_read (stream, pop_top, mpm);
+    //stream_set_read (stream, pop_top, mpm);
+    stream_set_read (stream, pop_read_header, mpm);
     stream_set_fd (stream, pop_get_fd, mpm);
     stream_set_flags (stream, MU_STREAM_READ, mpm);
     header_set_stream (header, stream, mpm);
-    message_set_header (mpm->message, header, mpm);
+    message_set_header (msg, header, mpm);
   }
 
   /* Create the attribute.  */
@@ -712,12 +713,12 @@ pop_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
     status = attribute_create (&attribute, mpm);
     if (status != 0)
       {
-	message_destroy (&(mpm->message), mpm);
+	message_destroy (&msg, mpm);
 	free (mpm);
 	return status;
       }
     attribute_set_get_flags (attribute, pop_get_flags, mpm);
-    message_set_attribute (mpm->message, attribute, mpm);
+    message_set_attribute (msg, attribute, mpm);
   }
 
   /* Create the body and its stream.  */
@@ -729,7 +730,7 @@ pop_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
       {
 	body_destroy (&body, mpm);
 	stream_destroy (&stream, mpm);
-	message_destroy (&(mpm->message), mpm);
+	message_destroy (&msg, mpm);
 	free (mpm);
 	return status;
       }
@@ -739,11 +740,11 @@ pop_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
     body_set_size (body, pop_body_size, mpm);
     body_set_lines (body, pop_body_lines, mpm);
     body_set_stream (body, stream, mpm);
-    message_set_body (mpm->message, body, mpm);
+    message_set_body (msg, body, mpm);
   }
 
   /* Set the UIDL call on the message. */
-  message_set_uidl (mpm->message, pop_uidl, mpm);
+  message_set_uidl (msg, pop_uidl, mpm);
 
   /* Add it to the list.  */
   {
@@ -751,7 +752,7 @@ pop_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
     m = realloc (mpd->pmessages, (mpd->pmessages_count + 1)*sizeof (*m));
     if (m == NULL)
       {
-	message_destroy (&(mpm->message), mpm);
+	message_destroy (&msg, mpm);
 	free (mpm);
 	return ENOMEM;
       }
@@ -760,7 +761,8 @@ pop_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
     mpd->pmessages_count++;
   }
 
-  *pmsg = mpm->message;
+  /* Save The message.  */
+  *pmsg = mpm->message = msg;
 
   return 0;
 }
@@ -772,7 +774,6 @@ pop_messages_count (mailbox_t mbox, size_t *pcount)
   pop_data_t mpd = mbox->data;
   int status;
   void *func = (void *)pop_messages_count;
-  bio_t bio;
 
   if (mpd == NULL)
     return EINVAL;
@@ -790,29 +791,29 @@ pop_messages_count (mailbox_t mbox, size_t *pcount)
     return EBUSY;
 
   mpd->func = func;
-  bio = mpd->bio;
 
   /* TRANSACTION state.  */
   switch (mpd->state)
     {
     case POP_NO_STATE:
-      bio->len = sprintf (bio->buffer, "STAT\r\n");
-      bio->ptr = bio->buffer;
-      mailbox_debug (mbox, MU_MAILBOX_DEBUG_PROT, bio->buffer);
+      status = pop_writeline (mpd, "STAT\r\n");
+      CHECK_ERROR (mpd, status);
+      mailbox_debug (mbox, MU_MAILBOX_DEBUG_PROT, mpd->buffer);
       mpd->state = POP_STAT_TX;
 
     case POP_STAT_TX:
       /* Send the STAT.  */
-      status = bio_write (bio);
-      CHECK_NON_RECOVERABLE (mpd, status);
+      status = pop_write (mpd);
+      CHECK_EAGAIN (mpd, status);
       mpd->state = POP_STAT_ACK;
 
     case POP_STAT_ACK:
       /* Get the ACK.  */
-      status = bio_readline (bio);
-      CHECK_NON_RECOVERABLE (mpd, status);
-      mailbox_debug (mbox, MU_MAILBOX_DEBUG_PROT, bio->buffer);
+      status = pop_read_ack (mpd);
+      CHECK_EAGAIN (mpd, status);
+      mailbox_debug (mbox, MU_MAILBOX_DEBUG_PROT, mpd->buffer);
       break;
+
     default:
       /*
 	fprintf (stderr, "pomp_messages_count: unknow state\n");
@@ -821,11 +822,11 @@ pop_messages_count (mailbox_t mbox, size_t *pcount)
     }
 
   /* Parse the answer.  */
-  status = sscanf (bio->buffer, "+OK %d %d", &(mpd->messages_count),
+  status = sscanf (mpd->buffer, "+OK %d %d", &(mpd->messages_count),
 		   &(mpd->size));
 
   /*  Clear the state _after_ the scanf, since another thread could
-      start writing over bio->buffer.  But We're not thread safe yet.  */
+      start writing over mpd->buffer.  But We're not thread safe yet.  */
   CLEAR_STATE (mpd);
 
   if (status == EOF || status != 2)
@@ -899,7 +900,6 @@ pop_expunge (mailbox_t mbox)
   pop_data_t mpd = mbox->data;
   size_t i;
   attribute_t attr;
-  bio_t bio;
   int status;
   void *func = (void *)pop_expunge;
 
@@ -911,7 +911,6 @@ pop_expunge (mailbox_t mbox)
     return EBUSY;
 
   mpd->func = func;
-  bio = mpd->bio;
 
   for (i = (int)mpd->id; i < mpd->pmessages_count; mpd->id = ++i)
     {
@@ -922,51 +921,29 @@ pop_expunge (mailbox_t mbox)
 	      switch (mpd->state)
 		{
 		case POP_NO_STATE:
-		  bio->len = sprintf (bio->buffer, "DELE %d\r\n",
-				      mpd->pmessages[i]->num);
-		  bio->ptr = bio->buffer;
-		  mailbox_debug (mbox, MU_MAILBOX_DEBUG_PROT, bio->buffer);
+		  status = pop_writeline (mpd, "DELE %d\r\n",
+					  mpd->pmessages[i]->num);
+		  CHECK_ERROR (mpd, status);
+		  mailbox_debug (mbox, MU_MAILBOX_DEBUG_PROT, mpd->buffer);
 		  mpd->state = POP_DELE_TX;
 
 		case POP_DELE_TX:
 		  /* Send DELETE.  */
-		  status = bio_write (bio);
-		  if (status != 0)
-		    {
-		      /* Clear the state for non recoverable error.  */
-		      if (status != EAGAIN && status != EINTR)
-			{
-			  mpd->func = NULL;
-			  mpd->id = 0;
-			  mpd->state = POP_NO_STATE;
-			}
-		      return status;
-		    }
+		  status = pop_write (mpd);
+		  CHECK_EAGAIN (mpd, status);
 		  mpd->state = POP_DELE_ACK;
 
 		case POP_DELE_ACK:
-		  status = bio_readline (bio);
-		  if (status != 0)
+		  status = pop_read_ack (mpd);
+		  CHECK_EAGAIN (mpd, status);
+		  mailbox_debug (mbox, MU_MAILBOX_DEBUG_PROT, mpd->buffer);
+		  if (strncasecmp (mpd->buffer, "+OK", 3) != 0)
 		    {
-		      /* Clear the state for non recoverable error.  */
-		      if (status != EAGAIN && status != EINTR)
-			{
-			  mpd->func = NULL;
-			  mpd->id = 0;
-			  mpd->state = POP_NO_STATE;
-			}
-		      return status;
-		    }
-		  mailbox_debug (mbox, MU_MAILBOX_DEBUG_PROT, bio->buffer);
-		  if (strncasecmp (bio->buffer, "+OK", 3) != 0)
-		    {
-		      mpd->func = NULL;
-		      mpd->id = 0;
-		      mpd->state = POP_NO_STATE;
-		      return ERANGE;
+		      CHECK_ERROR (mpd, ERANGE);
 		    }
 		  mpd->state = POP_NO_STATE;
 		  break;
+
 		default:
 		  /* fprintf (stderr, "pop_expunge: unknow state\n"); */
 		  break;
@@ -1049,10 +1026,8 @@ static int
 pop_get_fd (stream_t stream, int *pfd)
 {
   pop_message_t mpm = stream->owner;
-  if (mpm == NULL)
-    return EINVAL;
-  if (mpm->mpd->bio)
-    return stream_get_fd (mpm->mpd->bio->stream, pfd);
+  if (mpm && mpm->mpd && mpm->mpd->mbox)
+	return stream_get_fd (mpm->mpd->mbox->stream, pfd);
   return EINVAL;
 }
 
@@ -1065,7 +1040,6 @@ pop_uidl (message_t msg, char *buffer, size_t buflen, size_t *pnwriten)
 {
   pop_message_t mpm = msg->owner;
   pop_data_t mpd;
-  bio_t bio;
   int status = 0;
   void *func = (void *)pop_uidl;
   size_t num;
@@ -1076,7 +1050,6 @@ pop_uidl (message_t msg, char *buffer, size_t buflen, size_t *pnwriten)
     return EINVAL;
 
   mpd = mpm->mpd;
-  bio = mpd->bio;
 
   /* Busy ? */
   if (mpd->func && mpd->func != func)
@@ -1088,23 +1061,24 @@ pop_uidl (message_t msg, char *buffer, size_t buflen, size_t *pnwriten)
   switch (mpd->state)
     {
     case POP_NO_STATE:
-      bio->len = sprintf (bio->buffer, "UIDL %d\r\n", mpm->num);
-      bio->ptr = bio->buffer;
-      mailbox_debug (mpd->mbox, MU_MAILBOX_DEBUG_PROT, bio->buffer);
+      status = pop_writeline (mpd, "UIDL %d\r\n", mpm->num);
+      CHECK_ERROR (mpd, status);
+      mailbox_debug (mpd->mbox, MU_MAILBOX_DEBUG_PROT, mpd->buffer);
       mpd->state = POP_UIDL_TX;
 
     case POP_UIDL_TX:
       /* Send the UIDL.  */
-      status = bio_write (bio);
-      CHECK_NON_RECOVERABLE (mpd, status);
+      status = pop_write (mpd);
+      CHECK_EAGAIN (mpd, status);
       mpd->state = POP_UIDL_ACK;
 
     case POP_UIDL_ACK:
-      /* Resp from TOP. */
-      status = bio_readline (bio);
-      CHECK_NON_RECOVERABLE (mpd, status);
-      mailbox_debug (mpd->mbox, MU_MAILBOX_DEBUG_PROT, bio->buffer);
+      /* Resp from UIDL. */
+      status = pop_read_ack (mpd);
+      CHECK_EAGAIN (mpd, status);
+      mailbox_debug (mpd->mbox, MU_MAILBOX_DEBUG_PROT, mpd->buffer);
       break;
+
     default:
       /*
 	fprintf (stderr, "pop_uidl state\n");
@@ -1115,7 +1089,7 @@ pop_uidl (message_t msg, char *buffer, size_t buflen, size_t *pnwriten)
   CLEAR_STATE (mpd);
 
   *uniq = '\0';
-  status = sscanf (bio->buffer, "+OK %d %127s\n", &num, uniq);
+  status = sscanf (mpd->buffer, "+OK %d %127s\n", &num, uniq);
   if (status != 2)
     {
       status = EINVAL;
@@ -1144,7 +1118,6 @@ pop_top (stream_t is, char *buffer, size_t buflen,
 {
   pop_message_t mpm = is->owner;
   pop_data_t mpd;
-  bio_t bio;
   size_t nread = 0;
   int status = 0;
   void *func = (void *)pop_top;
@@ -1155,7 +1128,6 @@ pop_top (stream_t is, char *buffer, size_t buflen,
   /* We do not carry the offset(for pop), should be doc somewhere.  */
   (void)offset;
   mpd = mpm->mpd;
-  bio = mpd->bio;
 
   /* Busy ? */
   if (mpd->func && mpd->func != func)
@@ -1170,25 +1142,25 @@ pop_top (stream_t is, char *buffer, size_t buflen,
       /* TOP is an optionnal command, if we want to be compliant we can not
 	 count on it to exists. So we should be prepare when it fails and
 	 fall to a second scheme.  */
-      bio->len = sprintf (bio->buffer, "TOP %d 0\r\n", mpm->num);
-      bio->ptr = bio->buffer;
-      mailbox_debug (mpd->mbox, MU_MAILBOX_DEBUG_PROT, bio->buffer);
+      status = pop_writeline (mpd, "TOP %d 0\r\n", mpm->num);
+      CHECK_ERROR (mpd, status);
+      mailbox_debug (mpd->mbox, MU_MAILBOX_DEBUG_PROT, mpd->buffer);
       mpd->state = POP_TOP_TX;
 
     case POP_TOP_TX:
       /* Send the TOP.  */
-      status = bio_write (bio);
-      CHECK_NON_RECOVERABLE (mpd, status);
+      status = pop_write (mpd);
+      CHECK_EAGAIN (mpd, status);
       mpd->state = POP_TOP_ACK;
 
     case POP_TOP_ACK:
       /* Ack from TOP. */
-      status = bio_readline (bio);
-      CHECK_NON_RECOVERABLE (mpd, status);
-      mailbox_debug (mpd->mbox, MU_MAILBOX_DEBUG_PROT, bio->buffer);
-      if (strncasecmp (bio->buffer, "+OK", 3) != 0)
+      status = pop_read_ack (mpd);
+      CHECK_EAGAIN (mpd, status);
+      mailbox_debug (mpd->mbox, MU_MAILBOX_DEBUG_PROT, mpd->buffer);
+      if (strncasecmp (mpd->buffer, "+OK", 3) != 0)
 	{
-	  /* fprintf (stderr, "TOP not implmented\n"); */
+	  /* fprintf (stderr, "TOP not implemented\n"); */
 	  /* Fall back to RETR call.  */
 	  mpd->state = POP_NO_STATE;
 	  mpm->skip_header = 0;
@@ -1196,40 +1168,20 @@ pop_top (stream_t is, char *buffer, size_t buflen,
 	  return pop_retr (mpm, buffer, buflen, offset, pnread);
 	}
       mpd->state = POP_TOP_RX;
-      bio->current = bio->nl;
 
     case POP_TOP_RX:
       /* Get the header.  */
-      {
-	int nleft, n;
-	/* Do we need to fill up.  */
-	if (bio->current >= bio->nl)
-	  {
-	    bio->current = bio->buffer;
-	    status = bio_readline (bio);
-	    CHECK_NON_RECOVERABLE (mpd, status);
-	  }
-	n = bio->nl - bio->current;
-	nleft = buflen - n;
-	/* We got more then requested.  */
-	if (nleft <= 0)
-	  {
-	    memcpy (buffer, bio->current, buflen);
-	    bio->current += buflen;
-	    nread = buflen;
-	  }
-	else
-	  {
-	    /* Drain the buffer.  */
-	    memcpy (buffer, bio->current, n);
-	    bio->current += n;
-	    nread = n;
-	  }
-	break;
-      }
+      /* Do we need to fill up.  */
+      if (mpd->nl == NULL || mpd->ptr == mpd->buffer)
+	{
+	  status = pop_readline (mpd);
+	  CHECK_EAGAIN (mpd, status);
+	}
+      nread = fill_buffer (mpd, buffer, buflen);
       break;
+
     default:
-      /* Probabaly TOP was not supported so we have fall back to RETR.  */
+      /* Probaly TOP was not supported so we have fall back to RETR.  */
       mpm->skip_header = 0;
       mpm->skip_body = 1;
       return pop_retr (mpm, buffer, buflen, offset, pnread);
@@ -1314,25 +1266,32 @@ pop_read_message (stream_t is, char *buffer, size_t buflen, off_t offset,
 
 /* Little helper to fill the buffer without overflow.  */
 static int
-fill_buffer (bio_t bio, char *buffer, size_t buflen)
+fill_buffer (pop_data_t mpd, char *buffer, size_t buflen)
 {
   int nleft, n, nread = 0;
-  n = bio->nl - bio->current;
+
+  /* How much we can copy ?  */
+  n = mpd->ptr - mpd->buffer;
   nleft = buflen - n;
-  /* We got more then requested.  */
-  if (nleft <= 0)
+
+ /* We got more then requested.  */
+  if (nleft < 0)
     {
-      memcpy (buffer, bio->current, buflen);
-      bio->current += buflen;
+      size_t sentinel;
       nread = buflen;
+      sentinel = mpd->ptr - (mpd->buffer + nread);
+      memcpy (buffer, mpd->buffer, nread);
+      memmove (mpd->buffer, mpd->buffer + nread, sentinel);
+      mpd->ptr = mpd->buffer + sentinel;
     }
   else
     {
-      /* Drain the buffer.  */
-      memcpy (buffer, bio->current, n);
-      bio->current += n;
+      /* Drain our buffer.  */;
       nread = n;
+      memcpy (buffer, mpd->buffer, nread);
+      mpd->ptr = mpd->buffer;
     }
+
   return nread;
 }
 
@@ -1343,8 +1302,8 @@ pop_retr (pop_message_t mpm, char *buffer, size_t buflen, off_t offset,
 {
   pop_data_t mpd;
   size_t nread = 0;
-  bio_t bio;
   int status = 0;
+  size_t oldbuflen = buflen;
 
   (void)offset;
 
@@ -1355,82 +1314,103 @@ pop_retr (pop_message_t mpm, char *buffer, size_t buflen, off_t offset,
     return 0;
 
   mpd = mpm->mpd;
-  bio = mpd->bio;
 
   switch (mpd->state)
     {
     case POP_NO_STATE:
       mpm->body_lines = mpm->body_size = 0;
-      bio->len = sprintf (bio->buffer, "RETR %d\r\n", mpm->num);
-      bio->ptr = bio->buffer;
+      status = pop_writeline (mpd, "RETR %d\r\n", mpm->num);
+      mailbox_debug (mpd->mbox, MU_MAILBOX_DEBUG_PROT, mpd->buffer);
+      CHECK_ERROR (mpd, status);
       mpd->state = POP_RETR_TX;
 
     case POP_RETR_TX:
       /* Send the RETR command.  */
-      status = bio_write (bio);
-      CHECK_NON_RECOVERABLE (mpd, status);
+      status = pop_write (mpd);
+      CHECK_EAGAIN (mpd, status);
       mpd->state = POP_RETR_ACK;
 
     case POP_RETR_ACK:
       /* RETR ACK.  */
-      status = bio_readline (bio);
-      CHECK_NON_RECOVERABLE (mpd, status);
-      if (strncasecmp (bio->buffer, "+OK", 3) != 0)
+      status = pop_read_ack (mpd);
+      CHECK_EAGAIN (mpd, status);
+      if (strncasecmp (mpd->buffer, "+OK", 3) != 0)
 	{
-	  CLEAR_STATE (mpd);
-	  return EACCES;
+	  CHECK_ERROR (mpd, EACCES);
 	}
-      bio->current = bio->nl;
       mpd->state = POP_RETR_RX_HDR;
 
     case POP_RETR_RX_HDR:
       /* Skip/Take the header.  */
       while (!mpm->inbody)
-	{
+        {
 	  /* Do we need to fill up.  */
-	  if (bio->current >= bio->nl)
+	  if (mpd->nl == NULL || mpd->ptr == mpd->buffer)
 	    {
-	      bio->current = bio->buffer;
-	      status = bio_readline (bio);
-	      CHECK_NON_RECOVERABLE (mpd, status);
+	      status = pop_readline (mpd);
+	      if (status != 0)
+		{
+		  /* Do we have something in the buffer flush it first.  */
+		  if (buflen != oldbuflen)
+		    return 0;
+		  CHECK_EAGAIN (mpd, status);
+		}
 	    }
+	  /* Oops !! Hello houston we have a major problem here.  */
+	  if (mpd->buffer[0] == '\0')
+	    {
+	      /* Still Do the right thing.  */
+	      mpd->state = POP_STATE_DONE;
+	      return 0;
+	    }
+	  /* The problem is that we are using RETR instead of TOP to retreive
+	     headers, i.e the server contacted does not support it.  So we
+	     have to make sure that the next line really means end of the
+	     headers.  Still some cases we may loose.  But 99.9% of POPD
+	     encounter support TOP.  In the 0.1% case get GNU pop3d, or the
+	     hack below will suffice.  */
+	  if (mpd->buffer[0] == '\n' && mpd->buffer[1] == '\0')
+	    mpm->inbody = 1; /* break out of the while.  */
 	  if (mpm->skip_header == 0)
 	    {
-	      nread = fill_buffer (bio, buffer, buflen);
+	      nread = fill_buffer (mpd, buffer, buflen);
 	      if (pnread)
 		*pnread += nread;
 	      buflen -= nread ;
-	      if (buflen > 0)
-		buffer += nread;
-	      else
-		return 0;
+              if (buflen > 0)
+                buffer += nread;
+              else
+                return 0;
 	    }
 	  else
-	    bio->current = bio->nl;
-	  if (bio->buffer[0] == '\n')
-	    {
-	      mpm->inbody = 1;
-	      break;
-	    }
+	    mpd->ptr = mpd->buffer;
 	}
       mpd->state = POP_RETR_RX_BODY;
 
     case POP_RETR_RX_BODY:
       /* Start/Take the body.  */
-      {
-	while (mpm->inbody)
-	  {
-	    /* Do we need to fill up.  */
-	    if (bio->current >= bio->nl)
-	      {
-		bio->current = bio->buffer;
-		status = bio_readline (bio);
-		CHECK_NON_RECOVERABLE (mpd, status);
-		mpm->body_lines++;
-	      }
+      while (mpm->inbody)
+	{
+	  /* Do we need to fill up.  */
+	  if (mpd->nl == NULL || mpd->ptr == mpd->buffer)
+	    {
+	      status = pop_readline (mpd);
+	      if (status != 0)
+		{
+		  /* Flush The Buffer ?  */
+		  if (buflen != oldbuflen)
+		    return 0;
+		  CHECK_EAGAIN (mpd, status);
+		}
+	      mpm->body_lines++;
+	    }
+
+	    if (mpd->buffer[0] == '\0')
+	      mpm->inbody = 0; /* Breakout of the while.  */
+
 	    if (mpm->skip_body == 0)
 	      {
-		nread = fill_buffer (bio, buffer, buflen);
+		nread = fill_buffer (mpd, buffer, buflen);
 		mpm->body_size += nread;
 		if (pnread)
 		  *pnread += nread;
@@ -1442,21 +1422,17 @@ pop_retr (pop_message_t mpm, char *buffer, size_t buflen, off_t offset,
 	      }
 	    else
 	      {
-		mpm->body_size += (bio->nl - bio->current);
-		bio->current = bio->nl;
-	      }
-	    if (bio->buffer[0] == '\0')
-	      {
-		mpm->inbody = 0;
-		break;
+		mpm->body_size += (mpd->ptr - mpd->buffer);
+		mpd->ptr = mpd->buffer;
 	      }
 	  }
-      }
       mpd->state = POP_STATE_DONE;
-      /* Return here, because we want to return nread = 0 to notify the calle
-	 that we've finish.  If we don't we will start over again by sending
-	 another RETR.  hmm  Is there a better way.  */
-      return 0;
+      /* Return here earlier, because we want to return nread = 0 to notify
+	 the callee that we've finish, since there is already data in the
+	 we have to return them first and _then_ tell them its finish.  If we
+	 don't we will start over again by sending another RETR.  */
+      if (buflen != oldbuflen)
+	return 0;
 
     case POP_STATE_DONE:
       /* A convenient break, this is here so we can return 0 read on next
@@ -1472,158 +1448,124 @@ pop_retr (pop_message_t mpm, char *buffer, size_t buflen, off_t offset,
   return 0;
 }
 
-/* Allocate buffer for I/O.  */
 static int
-bio_create (bio_t *pbio, stream_t stream)
+pop_writeline (pop_data_t mpd, const char *format, ...)
 {
-  bio_t bio;
-  bio = calloc (1, sizeof (*bio));
-  if (bio == NULL)
-    return ENOMEM;
-  bio->maxlen = POP_BUFSIZ + 1;
-  bio->current = bio->ptr = bio->buffer = calloc (1, bio->maxlen);
-  bio->stream = stream;
-  *pbio = bio;
+  int len;
+  va_list ap;
+
+  va_start(ap, format);
+  do
+    {
+      len = vsnprintf (mpd->buffer, mpd->buflen - 1, format, ap);
+      if (len >= (int)mpd->buflen)
+	{
+	  mpd->buflen *= 2;
+	  mpd->buffer = realloc (mpd->buffer, mpd->buflen);
+	  if (mpd->buffer == NULL)
+	    return ENOMEM;
+	}
+    }
+  while (len > (int)mpd->buflen);
+  va_end(ap);
+  mpd->ptr = mpd->buffer + len;
   return 0;
 }
 
-/* Free() buffer but do not close the stream.  */
-static void
-bio_destroy (bio_t *pbio)
-{
-  if (pbio && *pbio)
-    {
-      bio_t bio = *pbio;
-      free (bio->buffer);
-      free (bio);
-      *pbio = NULL;
-    }
-}
-
-/* Send as much data as possible.  */
 static int
-bio_write (bio_t bio)
+pop_write (pop_data_t mpd)
 {
-  size_t nwritten = 0;
-  int status;
-
-  while (bio->len > 0)
-    {
-      status = stream_write (bio->stream, bio->ptr, bio->len, 0, &nwritten);
-      if (status != 0)
-	return status;
-      bio->len -= nwritten;
-      bio->ptr += nwritten;
-    }
-
-  bio->ptr = bio->buffer;
-  return 0;
-}
-
-/* Read into the buffer.  */
-static int
-bio_read (bio_t bio)
-{
-  size_t nread = 0;
-  int status, len;
-
-  len = bio->maxlen - (bio->ptr - bio->buffer) - 1;
-  status = stream_read (bio->stream, bio->ptr, len, 0, &nread);
-  if (status != 0)
-    return status;
-  else if (nread == 0) /* EOF ???? We got a situation here ??? */
-    {
-      bio->buffer[0] = '.';
-      bio->buffer[1] = '\r';
-      bio->buffer[2] = '\n';
-      nread = 3;
-    }
-  bio->ptr[nread] = '\0';
-  bio->ptr += nread;
-  return 0;
-}
-
-/* Responses to certain commands are multi-line.  In these cases, which
-   are clearly indicated below, after sending the first line of the
-   response and a CRLF, any additional lines are sent, each terminated
-   by a CRLF pair.  When all lines of the response have been sent, a
-   final line is sent, consisting of a termination octet (decimal code
-   046, ".") and a CRLF pair.  */
-static int
-bio_readline (bio_t bio)
-{
+  int status = 0;
   size_t len;
-  int status;
-
-  /* Still unread lines in the buffer ? */
-  if (bio->nl && bio->nl < bio->ptr)
+  if (mpd->ptr > mpd->buffer)
     {
-      memmove (bio->buffer, bio->nl + 1, bio->ptr - bio->nl);
-      bio->ptr = bio->buffer + (bio->ptr - bio->nl) - 1;
-      bio->nl = memchr (bio->buffer, '\n', bio->ptr - bio->buffer + 1);
+      len = mpd->ptr - mpd->buffer;
+      status = bio_write (mpd->bio, mpd->buffer, len, &len);
+      if (status == 0)
+	{
+	  memmove (mpd->buffer, mpd->buffer + len, len);
+	  mpd->ptr -= len;
+	}
     }
   else
-    bio->nl = bio->ptr = bio->buffer;
-
-  if (bio->nl == NULL || bio->nl == bio->ptr)
     {
-      for (;;)
+      mpd->ptr = mpd->buffer;
+      len = 0;
+    }
+  return status;
+}
+
+static int
+pop_read_ack (pop_data_t mpd)
+{
+  int status = pop_readline (mpd);
+  if (status == 0)
+    mpd->ptr = mpd->buffer;
+  return status;
+}
+
+/* Read a complete line form the pop server. Transform CRLF to LF, remove
+   the stuff by termination octet ".", put a null in the buffer when done.  */
+static int
+pop_readline (pop_data_t mpd)
+{
+  size_t n = 0;
+  size_t total = mpd->ptr - mpd->buffer;
+  int status;
+
+  /* Must get a full line before bailing out.  */
+  do
+    {
+      status = bio_readline (mpd->bio, mpd->buffer + total,
+			     mpd->buflen - total, &n);
+      if (status != 0)
+	return status;
+
+      total += n;
+      mpd->nl = memchr (mpd->buffer, '\n', total);
+      if (mpd->nl == NULL)  /* Do we have a full line.  */
 	{
-	  status = bio_read (bio);
-	  if (status != 0)
-	    return status;
-	  len = bio->ptr  - bio->buffer;
-	  /* Newline.  */
-	  bio->nl = memchr (bio->buffer, '\n', len);
-	  if (bio->nl == NULL)
+	  /* Allocate a bigger buffer ?  */
+	  if (total >= mpd->buflen -1)
 	    {
-	      if (len >= (bio->maxlen - 1))
-		{
-		  char *tbuf;
-		  tbuf = realloc (bio->buffer,
-				  (2*(bio->maxlen) + 2)*(sizeof(char)));
-		  if (tbuf == NULL)
-		    return ENOMEM;
-		  bio->buffer = tbuf;
-		  bio->maxlen *= 2;
-		}
-	      bio->ptr = bio->buffer + len;
+	      mpd->buflen *= 2;
+	      mpd->buffer = realloc (mpd->buffer, mpd->buflen + 1);
+	      if (mpd->buffer == NULL)
+		return ENOMEM;
 	    }
-	  else
-	    break;
 	}
+      mpd->ptr = mpd->buffer + total;
     }
+  while (mpd->nl == NULL);
 
-  /* When examining a multi-line response, the client checks
-     to see if the line begins with the termination octet "."(DOT).
-     If so and if octets other than CRLF follow, the first octet
-     of the line (the termination octet) is stripped away.  */
-  if (bio->buffer[0] == '.')
+  /* When examining a multi-line response, the client checks to see if the
+     line begins with the termination octet "."(DOT). If yes and if octets
+     other than CRLF follow, the first octet of the line (the termination
+     octet) is stripped away.  */
+  if (total >= 3  && mpd->buffer[0] == '.')
     {
-      if (bio->buffer[1] != '\r' && bio->buffer[2] != '\n')
+      if (mpd->buffer[1] != '\r' && mpd->buffer[2] != '\n')
 	{
-	  memmove (bio->buffer, bio->buffer + 1, bio->ptr - bio->buffer);
-	  bio->ptr--;
-	  bio->nl--;
+	  memmove (mpd->buffer, mpd->buffer + 1, total - 1);
+	  mpd->ptr--;
+	  mpd->nl--;
 	}
-      /* If so and if CRLF immediately
-         follows the termination character, then the response from the POP
-         server is ended and the line containing ".CRLF" is not considered
-         part of the multi-line response.  */
-        else if (bio->buffer[1] == '\r' && bio->buffer[2] == '\n')
+      /* And if CRLF immediately follows the termination character, then the
+	 response from the POP server is ended and the line containing
+	 ".CRLF" is not considered part of the multi-line response.  */
+      else if (mpd->buffer[1] == '\r' && mpd->buffer[2] == '\n')
 	{
-	  bio->buffer[0] = '\0';
-	  bio->nl = bio->ptr = bio->buffer;
-	  return 0;
+	  mpd->buffer[0] = '\0';
+	  mpd->ptr = mpd->buffer;
+	  mpd->nl = NULL;
 	}
     }
-
   /* \r\n --> \n\0  */
-  if (bio->nl > bio->buffer)
+  if (mpd->nl > mpd->buffer)
     {
-      *(bio->nl - 1) = '\n';
-      *(bio->nl) = '\0';
+      *(mpd->nl - 1) = '\n';
+      *(mpd->nl) = '\0';
+      mpd->ptr = mpd->nl;
     }
-
   return 0;
 }

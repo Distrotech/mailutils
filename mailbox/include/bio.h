@@ -15,10 +15,11 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-#ifndef _ATTRIBUTE0_H
-# define _ATTRIBUTE0_H
+#ifndef _BIO_H
+# define _BIO_H
 
-#include <mailutils/attribute.h>
+#include <sys/types.h>
+#include <mailutils/stream.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -32,20 +33,20 @@ extern "C" {
 # endif
 #endif /*__P */
 
-struct _attribute
-{
-  void *owner;
+typedef struct _bio * bio_t;
 
-  int flags;
-  int user_flags;
-
-  int (*_get_flags)   __P ((attribute_t, int *));
-  int (*_set_flags)   __P ((attribute_t, int));
-  int (*_unset_flags) __P ((attribute_t, int));
-};
+/* bufferred I/O */
+extern ssize_t bio_create __P ((bio_t *pbio, stream_t));
+extern void bio_destroy __P ((bio_t *pbio));
+extern ssize_t bio_read __P ((bio_t bio, char *vptr,
+			      size_t maxlen, size_t *pnread));
+extern ssize_t bio_readline __P ((bio_t bio, char *vptr,
+				  size_t maxlen, size_t *pnread));
+extern ssize_t bio_write __P ((bio_t bio, const char *vptr,
+			       size_t maxlen, size_t *pnwrite));
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* _ATTRIBUTE0_H */
+#endif /* _BIO_H */

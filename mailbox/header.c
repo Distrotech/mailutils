@@ -461,7 +461,7 @@ fill_blurb (header_t header)
 			    &nread);
       if (status != 0)
 	{
-	  if (status != EAGAIN || status != EINTR)
+	  if (status != EAGAIN && status != EINTR)
 	    {
 	      free (header->temp_blurb);
 	      header->temp_blurb = NULL;
@@ -481,7 +481,7 @@ fill_blurb (header_t header)
       memcpy (header->temp_blurb + header->temp_blurb_len, buf, nread);
       header->temp_blurb_len += nread;
     }
-  while (nread != 0);
+  while (nread > 0);
 
   /* parse it. */
   status = header_parse (header, header->temp_blurb, header->temp_blurb_len);
