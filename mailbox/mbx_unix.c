@@ -999,7 +999,11 @@ mailbox_unix_tmpfile (mailbox_t mbox, char *tmpmbox)
     }
   fp = fdopen(fd, "w+");
   if (fp == 0)
-    close(fd);
+    {
+      close(fd);
+      free (tmpmbox);
+      tmpmbox = NULL;
+    }
 
   /* really I should just remove the file here */
   /* remove(tmpmbox); */
@@ -1039,6 +1043,7 @@ mailbox_unix_expunge (mailbox_t mbox)
     {
       fclose (tmpfile);
       remove (tmpmbox);
+      free (tmpmbox);
       return ENOLCK;
     }
 
@@ -1298,6 +1303,7 @@ mailbox_unix_expunge (mailbox_t mbox)
   remove (tmpmbox);
 
 bailout:
+  free (tmpmbox);
   /* Release the locks */
   if (oflags > 0)
     fcntl (fileno (mud->file), F_SETFL, oflags);
