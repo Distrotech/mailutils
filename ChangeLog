@@ -1,3 +1,9 @@
+2002-10-14  Alain Magloire
+
+	* mailbox/getline.c: New LGPL implementation,
+	With a patch for Sergey.
+	* mailbox/getline.h: New LGPL implementation.
+
 2002-10-14  Sergey Poznyakoff
 
 	* configure.ac: Provide GUILE_BINDIR variable for Makefiles.
@@ -11,7 +17,7 @@
 	* libmu_scm/mu_scm.c (mu-path-maildir, mu-path-folder-dir): New
 	  globals.
 	* libmu_scm/mailutils.scm.in: Export new globals.
-	
+
 2002-10-13  Sergey Poznyakoff
 
 	* guimb/scm/sieve-core.scm: Changed sieve-register-.* functions
@@ -67,8 +73,8 @@
 	* mail.local/Makefile.am: Added /mailbox to INCLUDES
 	* lib/getline.h: Removed.
 	* mailbox/Makefile.am: Added /mailbox to INCLUDES
-	
-2002-10-02  Sergey Poznyakoff 
+
+2002-10-02  Sergey Poznyakoff
 
 	* configure.ac: Check if environ is declared.
 	* mail/setenv.c: Protect the declaration of environ by #if.
@@ -88,7 +94,7 @@
 
 	* mail.local/mail.local.h: Added missing includes.
 	* pop3d/popauth.c: Likewise.
-	
+
 2002-10-02  Sergey Poznyakoff
 
 	* mailbox/address.c (_address_get_nth): Get nth sub-address
@@ -109,7 +115,7 @@
 	* mail/Makefile.am: Added setenv.c
 	* mail/decode.c: Use util_get_crt() to check the value of
 	  the crt variable.
-	* mail/print.c: Likewise.  
+	* mail/print.c: Likewise.
 	* mail/mail.h (mail_setenv, util_get_crt, util_merge_addresses):
 	  New functions.
 	* mail/reply.c (mail_reply): Bugfix.
@@ -134,21 +140,21 @@
 	* mh/repl.c: New file. A framework for the `repl' program.
 	* mh/Makefile.am: Added repl
 	* mh/.cvsignore: Likewise.
-	
+
 2002-09-30  Sergey Poznyakoff
 
 	* configure.ac: Changed check for CURSES_LIBS
 	* mh/Makefile.am (scan_LDADD): Use CURSES_LIBS instead of
-	  directly linking -lcurses 
+	  directly linking -lcurses
 
-2002-09-27  Sergey Poznyakoff  
+2002-09-27  Sergey Poznyakoff
 
 	* mh/mh_format.c (strobj_len,print_string): Extra safety not to
 	  dereference NULL pointer.
 	  (_parse_date): Use local time if the date cannot be parsed.
 	* mh/refile.c: Implemented --draft and --file switches.
 
-2002-09-27  Sergey Poznyakoff 
+2002-09-27  Sergey Poznyakoff
 
 	* mail/file.c: Fixed typo.
 	* mh/folder.c (main): Correctly set current message number.
@@ -176,8 +182,8 @@
 	  to compose_env_t.
 	  (compose_init, compose_header_set, compose_header_get,
 	   compose_destroy): New functions.
-	   
-	* mail/send.c: Likewise. Use new compose functions.   
+
+	* mail/send.c: Likewise. Use new compose functions.
 	* mail/followup.c: Use new compose functions.
 	* mail/reply.c: Likewise.
 	* mail/util.c (util_msglist_esccmd): Declaration updated.
@@ -186,7 +192,7 @@
 	* doc/texinfo/programs.texi: Documented "editheaders" variable.
 	* mh/Makefile.am (install-exec-hook): Remove "folders" before
 	  linking "folder" to it.
-	
+
 2002-09-25  Sergey Poznyakoff
 
 	* mailbox/mutil.c: Fixed typo in #if directive.
@@ -202,7 +208,7 @@
 	   builtin_putnum, builtin_putnumf, builtin_tws,
 	   builtin_pretty): Implemented.
 	  (builtin_pers): Enclose the return in a pair of double-quotes.
-	* mh/mh_init.c (mh_my_email): New function.  
+	* mh/mh_init.c (mh_my_email): New function.
 	* mh/mh.h (mh_format_dump, mh_my_email): New function.
 	* mh/Makefile.am: Added fmtcheck
 
@@ -257,12 +263,12 @@
 	* mh/mh_argp.c: Use new configuration functions.
 	* mh/mh_init.c: Likewise.
 	* mh/scan.c: Likewise.
-	
+
 	* mh/Makefile.am: Added folder.c and mh_global.c
 	* mh/.cvsignore: Added folder.
 	* frm/frm.c: Fixed indentation.
 
-2002-09-19  Sergey Poznyakoff 
+2002-09-19  Sergey Poznyakoff
 
 	* mh/mhpath.c: New file. Source for mhpath command.
 	* mh/Makefile.am: Added mhpath.
@@ -278,8 +284,8 @@
 	* mh/mh.h (mh_get_message): New prototype.
 	* mh/mh_init.c (mh_iterate): Rewritten to expect msgset to
 	  contain message ordinal numbers.
-	  
-2002-09-19  Sergey Poznyakoff 
+
+2002-09-19  Sergey Poznyakoff
 
 	* mailbox/mbx_mh.c (_mh_message_save): Take into account
 	  trailing newline returned by envelope_date (should it
@@ -302,15 +308,15 @@
 	* mh/rmm.c: Updated mh_open_folder invocations.
 	* mh/scan.c: Likewise.
 	* mh/.cvsignore: Updated.
-	  
-2002-09-18  Sergey Poznyakoff 
+
+2002-09-18  Sergey Poznyakoff
 
 	* mailbox/mailbox.c: Include message.h
 	* mailbox/mbx_default.c (mu_path_folder_dir): New global. Holds
-	  the name of the user's folder directory. 
+	  the name of the user's folder directory.
 	* include/mailutils/mailbox.h: Likewise
 	* mailbox/mbx_mh.c: Preserve the envelope information in the
-	  message header. 
+	  message header.
 	* libmu_scm/mu_guimb.c (_scheme_main): Removed unused variable.
 
 	* mh/mh_ctx.c: New file. Context-related functions.
@@ -332,19 +338,19 @@
 
 	* mh/rmm.c: Use new mh functions.
 	* mh/scan.c: Likewise.
-	
-2002-09-17  Sergey Poznyakoff 
+
+2002-09-17  Sergey Poznyakoff
 
 	* m4/gssapi.m4: Removed unused variable
 
 	* mh/rmm.c: New file. Source for rmm program.
 	* mh/Makefile.am: Added rmm.c
 	* mh/mh.h (mh_open_folder): new function.
-	  
+
 	* mh/mh_init.c: Split mh_init() in two. The second part,
 	  mh_init2(), gets called after parsing the arguments.
 	  (mh_open_folder): New function. Open current folder.
-	  
+
 	* mh/mh_format.c (mh_format): Bugfix (NULL pointer dereference).
 	* mh/mh_argp.c (mh_argp_parse): Increased number of arguments.
 	  The last argument points to a location where to store the
@@ -353,18 +359,18 @@
 	* mh/mh_getopt.h (mh_argp_parse): Updated declaration.
 	* mh/inc.c (main): Updated invocation of mh_argp_parse.
 	* mh/scan.c: Likewise.
-	
-2002-09-12  Sergey Poznyakoff  
+
+2002-09-12  Sergey Poznyakoff
 
 	In order to make libmailutils self-contained, shuffled several
 	files from lib/ to mailutils/.
 
 	Added standalone guile module.
-	
+
 	* m4/mu_libobj.m4: New file. mu-specific version of
 	  AC_LIBOBJS.
 	* m4/Makefile.am: Added mu_libobj.m4
-	
+
 	* configure.ac: Use MU_LIBOBJS on functions needed for
 	  libmailbox.
 	  Add mailutils.scm to GUILE_PKGDATA.
@@ -377,7 +383,7 @@
 	  (mu_scm_init): Unconditionally register path_record format.
 	* libmu_scm/mailutils.scm.in: Source for mailutils.scm -- a module
 	  interface file for mailutils.
-	* libmu_scm/.cvsignore: Updated  
+	* libmu_scm/.cvsignore: Updated
 	* guimb/Makefile.am: Load libmu_scm.la
 
 	* lib/Makefile.am: Removed argp-related stuff.
@@ -399,7 +405,7 @@
 	* lib/argp-fmtstream.h: Likewise.
 	* lib/argp-namefrob.h: Likewise.
 	* lib/getopt.h: Likewise.
-		  
+
 	* mailbox/Makefile.am: Added argp-related stuff.
 	* mailbox/strndup.c: Moved from lib/
 	* mailbox/strtok_r.c: Likewise.
@@ -430,7 +436,7 @@
 	* lib/argcv.h: Moved to ...
 	* include/mailutils/argcv.h: ... here
 	* include/mailutils/argp.h: Conditionally include <gnu/argp.h>
-	
+
 	* mailbox/mu_argp.c: Changed licence to Lesser GPL
 	* mailbox/mu_auth.c: Likewise.
 	* mailbox/system.c: Likewise.
@@ -452,11 +458,11 @@
 	* mh/mh.h: Removed include <argp.h>
 	* mh/mh_error.c: Likewise.
 	* mailbox/mu_argp.c: Removed include <xalloc.h>
-	
-2002-09-10  Sergey Poznyakoff 
+
+2002-09-10  Sergey Poznyakoff
 
 	Added support for Guile 1.6.0:
-	
+
 	* configure.ac: Changed check for guile. Raised patchlevel to
 	  0.1.1
 	* m4/guile.m4: New file. Check for guile presence and usability.
@@ -468,7 +474,7 @@
 	  with guile 1.4.x
 	* scripts/guile-1.6: New directory. Contains scripts for use
 	  with guile 1.6 and hopefully higher.
-	* scripts/guile-1.4/Makefile.am: New file.  
+	* scripts/guile-1.4/Makefile.am: New file.
 	* scripts/guile-doc-snarf: Moved to ...
 	* scripts/guile-1.4/guile-doc-snarf: ... here
 	* scripts/guile-func-name-check: Moved to ...
@@ -479,7 +485,7 @@
 	* scripts/guile-1.6/Makefile.am: New file.
 	* scripts/guile-1.6/guile-doc-snarf: New file.
 	* scripts/guile-1.6/guile-doc-snarf.awk: New file.
-	
+
 	* guimb/Makefile.am: Added @GUILE_INCLUDES@ and @GUILE_LIBS@.
 	* libmu_scm/Makefile.am: Added @GUILE_INCLUDES@. Changed
 	  snarfing rules.
@@ -495,15 +501,15 @@
 	* libmu_scm/mu_message.c: Likewise.
 	* libmu_scm/mu_scm.c: Likewise.
 	* libmu_scm/mu_scm.h: Likewise.
-	
+
 	* auth/sql.c (mu_sql_authenticate): Removed unused variable.
-	
-2002-09-05  Sergey Poznyakoff 
+
+2002-09-05  Sergey Poznyakoff
 
 	* mailbox/mbx_mh.c: Rewritten to use MH sequence numbers
 	  as UIDs. This allows to simplify the code and to get rid
 	  of mh_message_number(), which didn't fit well in the
-	  mailutils framework. 
+	  mailutils framework.
 	* mh/mh.h: Changed type of `prog' to mh_instr_t, which is
 	  a union of all objects that can be held in a program text
 	  cell. This fixes potential problems due to sizeof(int)!=
@@ -513,19 +519,19 @@
 	* mh/mh_init.c (mh_message_number): A wrapper around
 	  message_get_uid call. Returns the sequence number of
 	  the message.
-	
-2002-09-04  Sergey Poznyakoff 
+
+2002-09-04  Sergey Poznyakoff
 
 	* README: Verbose description of --with-mail-spool configuration
 	  option. Spell-checked the file.
 
-	* examples/http.c: New file. Example of stream functions.  
-	* examples/Makefile.am: Added http.c  
+	* examples/http.c: New file. Example of stream functions.
+	* examples/Makefile.am: Added http.c
 	* doc/texinfo/Makefile.am: Added http.c.texi.
 	* doc/texinfo/.cvsignore: Likewise.
 	* doc/texinfo/stream.texi: Include http.c.texi.
 
-2002-09-03  Sergey Poznyakoff 
+2002-09-03  Sergey Poznyakoff
 
 	* mailbox/md5-rsa.c: Removed.
 	* mailbox/md5-rsa.h: Removed.
@@ -537,9 +543,9 @@
 	  (pop_get_message): Bugfix: check that the message number be not
 	  out of range.
 
-	* doc/texinfo/framework.texi: Included parse822 as extra node.  
-	  
-2002-09-03  Sergey Poznyakoff 
+	* doc/texinfo/framework.texi: Included parse822 as extra node.
+
+2002-09-03  Sergey Poznyakoff
 
 	* configure.ac: Bumped version number to 0.1
 	* Makefile.am: Added copyleft header. Removed README-alpha from
@@ -585,7 +591,7 @@
 	* scripts/Makefile.am: Likewise
 	* sieve/testsuite/Makefile.am: Likewise
 	* testsuite/Makefile.am: Likewise
-	
+
 	* doc/texinfo/mailutils.texi: Commented out inclusion of
 	  c-api.texi
 	* examples/url-parse.c: Indent output with explicit \t.
@@ -596,8 +602,8 @@
 	* sieve/Makefile.am: Added copyleft header. Removed
 	  RSA-copyrighted code, use lib/md5 instead.
 	* sieve/script.c: Use FSF md5 functions.
-	
-2002-09-02  Sergey Poznyakoff  
+
+2002-09-02  Sergey Poznyakoff
 
 	* NEWS: Updated.
 	* README: Updated.
@@ -615,14 +621,14 @@
 	* examples/sfrom.c: Likewise.
 	* examples/url-parse.c: Likewise.
 
-2002-09-02  Sergey Poznyakoff  
+2002-09-02  Sergey Poznyakoff
 
 	* comsat/comsat.c: Removed erroneous redeclaration of
 	  getutent.
 	* doc/texinfo/c-api.texi: Removed reference to non-implemented
 	  NNTP.
 	* doc/texinfo/programs.texi: Documented sieve.
-	
+
 	* guimb/scm/sieve.scm: Removed.
 	* guimb/scm/sieve.scm.in: Added to the repository.
 	* guimb/scm/Makefile.am: Make sieve.scm from sieve.scm.in
@@ -635,26 +641,26 @@
 	* mail/edit.c: Use mu_tempname
 	* mail/visual.c: Likewise.
 	* examples/mimetest.c: Likewise.
-	
+
 	* testsuite/lib/mailutils.exp: Couple of fixes.
 	* sieve/testsuite/sieve/DISTFILES: Temporarly removed compile.exp:
 	  it uses files not included in the distribution.
-	
-2002-08-29  Sergey Poznyakoff 
 
-	* Makefile.am: Added examples/ to SUBDIRS. 
+2002-08-29  Sergey Poznyakoff
+
+	* Makefile.am: Added examples/ to SUBDIRS.
 	* configure.ac: Build mailbox/testsuite/Makefile and
 	  examples/Makefile
 	* doc/texinfo/Makefile.am: Rules to generate examples .texi
 	  from sources in ../examples.
 	* doc/texinfo/address.texi: include address.c.texi
 	* doc/texinfo/url.texi: include url-parse.c.texi
-	
+
 	* doc/texinfo/ex-address.texi: Removed. Auto-generated file.
 	* doc/texinfo/ex-url.texi: Likewise.
 	* doc/texinfo/sfrom.c.texi: Likewise.
 	* doc/texinfo/.cvsignore: Added autogenerated files.
-	
+
 	* examples/Makefile: Removed.
 	* examples/Addrs: Removed. Incorporated into mailbox/testsuite.
 	* examples/Addrs.good: Likewise.
@@ -665,7 +671,7 @@
 	* examples/mbox-check.c: Removed.
 	* examples/mbox-dates.c: Removed.
 	* examples/mbox-explode.c: Removed.
-	
+
 	* examples/Makefile.am: New file.
 	* examples/sfrom.c: New file.
 	* examples/addr.c: Added copyleft header. Set user email domain
@@ -690,7 +696,7 @@
 	  exists. One never knows...
 	  (mu_command): Additional diagnostics
 	  (mu_expect_list,mu_test): Commented out extra checks.
-	  
+
 	* mailbox/Makefile.am: Added testsuite
 	* mailbox/testsuite: New directory.
 	* mailbox/testsuite/Makefile.am: New file.
@@ -706,8 +712,8 @@
 	* mailbox/testsuite/mailbox/address.exp: New file.
 	* mailbox/testsuite/mailbox/mime.exp: New file.
 	* mailbox/testsuite/mailbox/url.exp: New file.
-	
-2002-08-28  Sergey Poznyakoff 
+
+2002-08-28  Sergey Poznyakoff
 
 	* sieve/interp.c (sieve_interp_alloc): Fill allocalted memory
 	  with zeroes.
@@ -719,7 +725,7 @@
 	  main parser traces.
 	* sieve/sieve_interface.h (addrdebug, yydebug): external
 	  declarations.
-	
+
 	* include/mailutils/argp.h (mu_license_text): External
 	  declaration.
 	* mailbox/mu_argp.c (mu_license_text): removed static
@@ -765,7 +771,7 @@
 	* sieve/testsuite/scripts/size2.sv: New file.
 	* sieve/testsuite/scripts/stop.sv: New file.
 	* sieve/testsuite/scripts/true.sv: New file.
-	
+
 	* sieve/testsuite/sieve: New directory.
 	* sieve/testsuite/sieve/DISTFILES: New file.
 	* sieve/testsuite/sieve/action.exp: New file.
@@ -797,20 +803,20 @@
 	* frm/testsuite/frm: new directory.
 	* frm/testsuite/frm/DISTFILES: new file.
 	* frm/testsuite/frm/test.exp: new file.
-	
+
 	* from/Makefile.am: Added testsuite
 	* from/testsuite: new directory.
 	* from/testsuite/Makefile.am: new file.
-	* from/testsuite/.cvsignore: new file.  
-	* from/testsuite/from: new directory.         
+	* from/testsuite/.cvsignore: new file.
+	* from/testsuite/from: new directory.
 	* from/testsuite/from/DISTFILES: new file.
 	* from/testsuite/from/test.exp: new file.
 
 	* messages/messages.c: Added "mailbox" command line capability.
 	* messages/Makefile.am: Added testsuite
 	* messages/testsuite: new directory.
-	* messages/testsuite/Makefile.am: new file.  
-	* messages/testsuite/.cvsignore: new file.   
+	* messages/testsuite/Makefile.am: new file.
+	* messages/testsuite/.cvsignore: new file.
 	* messages/testsuite/messages: new directory.
 	* messages/testsuite/messages/DISTFILES: new file.
 	* messages/testsuite/messages/test.exp: new file.
@@ -819,11 +825,11 @@
 	* readmsg/readmsg.c (struct argp_option options): Fixed definition
 	  of -a option.
 	  (print_header): Last header was never seen.
-	  
+
 	* readmsg/Makefile.am: Added testsuite
 	* readmsg/testsuite: new directory.
-	* readmsg/testsuite/Makefile.am      
-	* readmsg/testsuite/.cvsignore: new file.       
+	* readmsg/testsuite/Makefile.am
+	* readmsg/testsuite/.cvsignore: new file.
 	* readmsg/testsuite/readmsg: new directory.
 	* readmsg/testsuite/readmsg/DISTFILES: new file.
 	* readmsg/testsuite/readmsg/test.exp: new file.
@@ -831,17 +837,17 @@
 	* imap4d/testsuite/config/unix.exp: Renamed to ...
 	* imap4d/testsuite/config/default.exp: ... this
 	* imap4d/testsuite/config/DISTFILES: Likewise.
-	
+
 	* mail/testsuite/config/unix.exp: Renamed to ...
 	* mail/testsuite/config/default.exp: ... this
 	* mail/testsuite/config/DISTFILES: Likewise.
-	
+
 	* pop3d/testsuite/config/unix.exp: Renamed to ...
 	* pop3d/testsuite/config/default.exp: ... this
 	* pop3d/testsuite/config/DISTFILES: Likewise.
-	
+
 	* configure.ac: Added new testsuites.
-	* testsuite/lib/mailutils.exp (mu_start): Modified.	
+	* testsuite/lib/mailutils.exp (mu_start): Modified.
 
 2002-08-26  Sergey Poznyakoff
 
@@ -850,8 +856,8 @@
 	* imap4d/fetch.c (fetch_envelope0): Emit whitespace before
 	  "from" header.
 	* imap4d/util.c: Fixed typo in comment.
-	* imap4d/testsuite/imap4d/append.exp: New file 
-	* imap4d/testsuite/imap4d/create.exp: New file 
+	* imap4d/testsuite/imap4d/append.exp: New file
+	* imap4d/testsuite/imap4d/create.exp: New file
 	* imap4d/testsuite/imap4d/expunge.exp: New file
 	* imap4d/testsuite/imap4d/examine.exp: Replaced
 	  [imap4d_uidvalidity] with simple regexp.
@@ -859,15 +865,15 @@
 	* imap4d/testsuite/lib/imap4d.exp (imap4d_test): Added new
 	  options: -long to emit long IMAP4D literal after the command,
 	  -silent to be silent about the results of the testcase.
-	
+
 	* imap4d/testsuite/imap4d/DISTFILES: Added new files.
 
 	* testsuite/lib/mailutils.exp (mu_expect_list): New procedure
-	
-2002-08-23  Sergey Poznyakoff 
+
+2002-08-23  Sergey Poznyakoff
 
 	* configure.ac: Added check for socklen_t.
-	
+
 	* imap4d/commands.c: Fixed allowed states for X-VERSION command.
 	* imap4d/fetch.c (fetch_operation) Fix section specification
 	  output.
@@ -876,7 +882,7 @@
 	  to imap4d.exp and renamed it to imap4d_uidvalidity.
 	* imap4d/testsuite/lib/imap4d.exp: Likewise
 	  (imap4d_test): Added new switches: -literal and -noliteral
-	  
+
 	* imap4d/testsuite/imap4d/fetch.exp: New file
 	* imap4d/testsuite/imap4d/x.exp: New file
 	* imap4d/testsuite/imap4d/DISTFILES: Added fetch.exp, x.exp
@@ -886,7 +892,7 @@
 	* testsuite/spool/mbox1: Likewise.
 	* mail/testsuite/mail/write.exp: Adjusted tests to the changes in
 	  mbox and mbox1.
-	
+
 	* libmu_scm/mu_address.c (mu_address_get_count): Fixed
 	  type of `count' variable
 	* mailbox/list.c (list_remove): Removed cast from void* to int,
@@ -899,23 +905,23 @@
 
 	* mail/folders.c (mail_folders): Protect directory name with
 	  quotes.
-	
+
 2002-08-23  Sergey Poznyakoff
 
 	* testsuite/lib/mailutils.exp: Introduced -re flag
 	  to handle a pattern as a regular expression, and --
 	  flag to escape exact strings that actually happen
 	  to start with "-re".
-	  
+
 	* imap4d/testsuite/lib/imap4d.exp: Properly handle
 	  --re and -- flags.
-	  
+
 	* imap4d/testsuite/imap4d/examine.exp: Use -re to check
 	  uidvalidity value, as we can never be sure the seconds
 	  don't change between computing the uidvalidity value and
 	  running the test.
 
-2002-08-23  Sergey Poznyakoff  
+2002-08-23  Sergey Poznyakoff
 
 	* configure.ac: Check if crypt is declared.
 	* auth/sql.c: Include <crypt.h> when available
@@ -931,7 +937,7 @@
 	* mailbox/parse822.c (parse822_time): Tolerate unknown
 	  timezone abbreviations.
 	* mailbox/system.c: Include <crypt.h> when available
-	
+
 	* imap4d/testsuite/imap4d/search.exp: New file. Provides tests
 	  for SEARCH command.
 	* imap4d/testsuite/imap4d/DISTFILES: Added search.exp
@@ -940,8 +946,8 @@
 	* pop3d/testsuite/pop3d/read.exp: Updated to match new mailbox.
 	* mail/testsuite/mail/z.exp: Likewise.
 	* mail/testsuite/mail/tag.exp: Likewise.
-	
-2002-08-22  Sergey Poznyakoff 
+
+2002-08-22  Sergey Poznyakoff
 
 	* configure.ac: Create imap4d/testsuite/Makefile
 	* imap4d/Makefile.am: Added testsuite
@@ -952,13 +958,13 @@
 	* imap4d/testsuite/config/unix.exp: Likewise.
 	* imap4d/testsuite/lib: Likewise.
 	* imap4d/testsuite/lib/DISTFILES: Likewise.
-	* imap4d/testsuite/lib/imap4d.exp: Likewise. 
+	* imap4d/testsuite/lib/imap4d.exp: Likewise.
 	* imap4d/testsuite/imap4d: Likewise.
 	* imap4d/testsuite/imap4d/DISTFILES: Likewise.
 	* imap4d/testsuite/imap4d/anystate.exp: Likewise.
-	* imap4d/testsuite/imap4d/examine.exp: Likewise. 
+	* imap4d/testsuite/imap4d/examine.exp: Likewise.
 	* imap4d/testsuite/imap4d/list.exp: Likewise.
-	
+
 	* imap4d/util.c (util_uidvalidity): New function. A wrapper
 	  around mailbox_uidvalidity. When a mailbox is selected whose
 	  first message does not keep X-UIDVALIDITY value, the uidvalidity
@@ -969,7 +975,7 @@
 	  selected mailbox will return different uidvalidity value. To
 	  avoid this, util_uidvalidity() first sees if it is asked to
 	  operate upon an already opened mailbox and if so, returns
-	  previously computed value. 
+	  previously computed value.
 
 	* imap4d/imap4d.h (util_uidvalidity): New function
 	* imap4d/select.c (imap4d_select_status): Use util_uidvalidity.
@@ -986,10 +992,10 @@
 
 	* README: Make this a bit more current.
 
-2002-08-21  Sergey Poznyakoff 
+2002-08-21  Sergey Poznyakoff
 
 	Added pop3d testsuite.
-	
+
 	* testsuite/makespool: New option -subst: sets sed command
 	  to be used.
 	* testsuite/etc/passwd.in: New file. Template for etc/passwd
@@ -1011,13 +1017,13 @@
 	* pop3d/testsuite/pop3d: Likewise.
 	* pop3d/testsuite/pop3d/DISTFILES: Likewise.
 	* pop3d/testsuite/pop3d/read.exp: Likewise.
-	
+
 	* mail/testsuite/lib/mail.exp: Updated
 	* mailbox/mu_argp.c: New hidden option
 	  --show-config-options. Displays a list of configuration
 	  defines from config.h
 
-2002-08-20  Sergey Poznyakoff 
+2002-08-20  Sergey Poznyakoff
 
 	* Makefile.am: Added testsuite subdirectory
 	* configure.ac: Likewise.
@@ -1034,17 +1040,17 @@
 
 	* mail/testsuite/folder: Moved to ...
 	* testsuite/folder: ... here
-	
+
 	* mail/testsuite/etc: Moved to ...
 	* testsuite/etc: ... here
-	
+
 	* mail/testsuite/Makefile.am: Removed etc, spool and folder test
 	  dirs.
 	* mail/testsuite/lib/mail.exp: Updated.
-	* mail/testsuite/mail/folder.exp: Updated. 
+	* mail/testsuite/mail/folder.exp: Updated.
 	* mail/testsuite/mail/write.exp: Updated.
 
-2002-08-15  Sergey Poznyakoff 
+2002-08-15  Sergey Poznyakoff
 
 	* configure.ac: If -lcrypt is present, add it to LIBS
 	  not to AUTHLIBS.
@@ -1059,21 +1065,21 @@
 	* mailbox/sendmail.c (sendmail_send_message): Bugfix. In spite
 	  of what the comment said, -t option is not implicit and must
 	  be specified.
-	
+
 	* mail/from.c: Bugfix: display even messages without Subject: or
 	  From: headers.
 	* mail/reply.c: Fixed improper use of header_aget_value().
 	* mail/util.c (util_do_command): For compatibility with older
 	  mails	treat a number alone on the line as "print NUMBER".
 
-2002-08-14  Sergey Poznyakoff 
+2002-08-14  Sergey Poznyakoff
 
 	* auth/virtual.c: Removed vestiges of mu_virtual_domain.
 	* doc/texinfo/programs.texi: Documented authentication concepts
 	  and related command line options.
 	* mail/testsuite/makespool: Added GNU copyleft header.
 
-2002-08-13  Sergey Poznyakoff  
+2002-08-13  Sergey Poznyakoff
 
 	* pop3d/apop.c: Switched to the new authentication/authorization
 	  functions.
@@ -1081,7 +1087,7 @@
 2002-08-13  Sergey Poznyakoff
 
 	To avoid confusion, pruned libmailbox directory.
-	
+
 	* libmailbox/mailbox.c: Removed obsolete files.
 	* libmailbox/maildir.c: Likewise.
 	* libmailbox/mh.c: Likewise.
@@ -1096,13 +1102,13 @@
 	* MySql/MySql.c: Likewise.
 	* MySql/MySql.h: Likewise.
 	* MySql/.cvsignore
-	
+
 	* auth/sql.c: Merged sql core stuff from MySql/MySql.c.
 	* auth/virtual.c: All functions made static.
 	* auth/system.c: Likewise.
 	* Makefile.am: Removed MySql
 	* configure.ac: Likewise.
-	
+
 2002-08-13  Sergey Poznyakoff
 
 	Moved authentication specific calls scattered all over the
@@ -1112,7 +1118,7 @@
 	mailutils-specific information. New options `--authentication'
 	and `--authorization' provide a way to override default
 	settings.
-	
+
 	* configure.ac: Check for prototypes of strtok_r, strchrnul,
 	  strndup, asprintf, vasprintf. Create auth/Makefile
 	* Makefile.am: Added auth to SUBDIRS.
@@ -1134,13 +1140,13 @@
 	* mail.local/main.c: Likewise.
 	* mail.local/script.c: Likewise.
 	* mailbox/mbx_default.c: Likewise.
-	* mailbox/message.c: Likewise.	
+	* mailbox/message.c: Likewise.
 	* mailbox/wicket.c: Likewise.
 
 	* mailbox/mu_argp.c: Removed pam- and sql-specific stuff
 	* mailbox/mu_auth.c: New file. Basic authentication/authorization
 	  functions.
-	* mailbox/Makefile.am: Added mu_auth.c 
+	* mailbox/Makefile.am: Added mu_auth.c
 
 	* auth/: New directory. The libmuauth library.
 	* auth/system.c: New file. System-specific
@@ -1150,9 +1156,9 @@
 	* auth/virtual.c: New file. Virtual-domain-specific auth functions.
 	* auth/Makefile.am: New file.
 
-	* pop3d/virtual.c: Removed. 
+	* pop3d/virtual.c: Removed.
 	* pop3d/Makefile.am: Removed virtual.c
-	
+
 	* include/mailutils/mu_auth.h: New file. Prototypes for mailutils
 	  authentication/authorization functions.
 	* include/mailutils/Makefile.am: Added mu_auth.h.
@@ -1161,17 +1167,17 @@
 	* include/mailutils/mutil.h (mu_register_getpwnam,
 	  mu_register_getpwuid,mu_getpwnam,mu_getpwuid,
 	  mu_virtual_domain): Removed.
-	* mailbox/mutil.c: Likewise.  
+	* mailbox/mutil.c: Likewise.
 
         * lib/argp-help.c: Provide declarations for strchrnul, strndup
 	  if necessary.
 	* lib/mu_asprintf.c: Likewise for vasprintf,asprintf
-	
+
 	* imap4d/imap4d.h: Include <mailutils/mu_auth.h>
 	* comsat/comsat.h: Likewise.
 	* mail.local/mail.local.h: Likewise.
 	* pop3d/pop3d.h: Likewise.
-	
+
 	* mailbox/smtp.c (message_has_bcc): Fixed inconsistency in
 	  passing arguments to header_get_value().
 	* mail/set.c (mail_set): Fixed inconsistency in passing arguments
@@ -1180,13 +1186,13 @@
 	  mu_get_homedir() does it now.
 	* mail/var.c (var_insert): Changed declaration to avoid
 	  `auth shadows parameter' warning.
-	  
+
 	* mailbox/locker.c (_locker_lock_dotlock): Bugfix: do not leave
 	  temporary lock file in case of errors
 
 	* mailbox/mailbox.c: Include <mailutils/attribute.h>
 	* mh/mh_init.c: Free return value of mu_get_homedir().
-	
+
 2002-08-08  Sergey Poznyakoff
 
 	* .cvsignore: Updated
@@ -1223,8 +1229,8 @@
 	* pop3d/popauth.c: Parse arguments using mu_argp instead of
 	  getopt_long.
 	* readmsg/readmsg.c: Likewise.
-	
-2002-08-07  Sergey Poznyakoff 
+
+2002-08-07  Sergey Poznyakoff
 
 	* mail/mail.h (struct mail_env_entry): Reorganized. Added
 	  type member and changed "value" to be a union.
@@ -1258,7 +1264,7 @@
 	* mail/top.c: Likewise.
 	* mail/var.c: Likewise.
 	* mail/mailline.c: Likewise.
-	
+
 	* mail/write.c: Honour "outfolder" variable. If called without
 	  arguments, deduce output file name from the number of current
 	  message.
@@ -1269,7 +1275,7 @@
 	  (mail_test_file): New function. Test the contents of an
 	  arbitrary file.
 	* mail/testsuite/mail/write.exp: New file. Tests for message
-	  saving and disposing commands: delete, mbox, [sS]ave, [wW]rite 
+	  saving and disposing commands: delete, mbox, [sS]ave, [wW]rite
 	* mail/testsuite/mail/DISTFILES: Added write.exp
 
 2002-08-06  Sergey Poznyakoff
@@ -1283,8 +1289,8 @@
 	* mail/testsuite/lib/mail.exp: Fixed paths.
 	  (mail_prepare_spools,mail_cleanup_spools): new procedures.
 	* mail/testsuite/mail/folder.exp: Corrected paths.
-	
-2002-08-06  Sergey Poznyakoff  
+
+2002-08-06  Sergey Poznyakoff
 
 	* Makefile.am: Added distcheck rule needed for
 	  test suite.
@@ -1294,7 +1300,7 @@
 	* acconfig.h: Removed
 	* doc/texinfo/Makefile.am: DISTCLEANFILES
 	* lib/Makefile.am: Use LTLIBOBJS.
-	
+
 	* m4/tm_gmtoff.m4: Removed.
 	* m4/tm_isdst.m4: Removed.
 	* m4/tm_zone.m4: Removed.
@@ -1308,17 +1314,17 @@
 	* mailbox2/mutil.c: Likewise.
 	* mailbox2/parse822.c: Likewise.
 	* mh/mh_format.c: Likewise.
-	
+
 	* imap4d/authenticate.c (imap4d_auth_capability): New function.
 	* imap4d/imap4d.h: Likewise.
 	* imap4d/capability.c (imap4d_capability): call
 	  imap4d_auth_capability() to output AUTH= capabilities.
-	
+
 2002-08-05  Jeff Bailey  <jbailey@outpost.dnsalias.org>
 
 	* lib/Makefile.am: Remove libtool hacks, automake now handles
 	LIBOBJS correctly.
-	
+
 	* .cvsignore: Add autom4te.cache
 
 	* configure.in: Rename to ...
@@ -1348,12 +1354,12 @@
 
 	* imap4d/list.c (imap4d_list): Remove state check. Bugfix:
 	  allow a meta-closure (*) in any position of the word.
-	  
+
 	* imap4d/util.c (util_finish): Do not allow to switch to
 	  a higher state in case of command failure.
 	  (util_do_command): Run the command only if it is allowed in
 	  the current state.
-	
+
 	* imap4d/commands.c: Added entry for X-VERSION
 	* imap4d/capability.c: Indicate X-VERSION capability.
 	* imap4d/append.c: Remove state check.
@@ -1383,7 +1389,7 @@
 2002-08-03  Sergey Poznyakoff
 
 	Use of attributes made consistent throughout the package:
-	
+
 	* imap4d/fetch.c (fetch_flags0): Use util_print_flags.
 	* imap4d/search.c (cond_keyword): Likewise for
 	  util_attribute_matches_flag.
@@ -1395,9 +1401,9 @@
 	  util_attribute_to_type() does the job.
 	  (imap4d_store0): Use util_attribute_to_type().
 	* imap4d/sync.c: Output the actual number of recent messages.
-	  
+
 	* imap4d/util.c: For consistency, reduced all operations
-	  with flags to manipulations with _imap4d_attrlist array 
+	  with flags to manipulations with _imap4d_attrlist array
 	  RFC2060 states that  \Seen flag means "Message has been read",
 	  so it should be mapped to our MU_ATTRIBUTE_READ.
 	  (util_print_flags, util_attribute_matches_flag): New functions.
@@ -1431,7 +1437,7 @@
 	* mailbox/mbx_imap.c (flags_to_string): Map \Seen to
 	  MU_ATTRIBUTE_READ.
 
-2002-08-02  Sergey Poznyakoff 
+2002-08-02  Sergey Poznyakoff
 
 	* MySql/MySql.c (getMpwuid): Bugfix. It should take a pointer as
 	  its argument;
@@ -1441,15 +1447,15 @@
 	* imap4d/fetch.c: include argcv.h
 	  (fetch_send_address): Added const specifier to the declaraton.
 
-2002-08-01  Sergey Poznyakoff  
+2002-08-01  Sergey Poznyakoff
 
 	* imap4d/util.c (util_msgset): Some comments
 	* mailbox/mu_argp.c (read_rc): Bugfix. linebuf must be freed
 	  no matter was the string accepted or not.
 	* pop3d/pop3d.c (pop3d_argp_capa): Bugfix. Was missing
 	  "mailbox" capability.
-	
-2002-08-01  Sergey Poznyakoff 
+
+2002-08-01  Sergey Poznyakoff
 
 	* imap4d/util.c (util_msgset): Bugfix.
 
@@ -1460,14 +1466,14 @@
 	  (notify): Call reset_uid(). when necessary.
 	  (reset_uid): Do not call notify().
 	  (imap4d_sync): Call notify().
-	  
-	* imap4d/imap4d.h (fetch_flags0): New prototype. 
+
+	* imap4d/imap4d.h (fetch_flags0): New prototype.
 
 	* imap4d/fetch.c (fetch_flags0): New function. Produces untagged
 	  fetch response for FETCH and STORE commands. If necessary outputs
 	  also UID.
 	* imap4d/store.c (imap4d_store0): Use fetch_flags0.
-	
+
 
 2002-07-27  Sergey Poznyakoff
 
@@ -1477,20 +1483,20 @@
 	  no duplicates. Fixed transcript support.
 	* THANKS: Added Jordy Mallach
 
-2002-07-26  Sergey Poznyakoff 
+2002-07-26  Sergey Poznyakoff
 
 	Provide session transcript support for the daemons. The
 	transcript is triggered by --transcript option to the
 	daemon. Its output goes to LOG_FACILITY.debug.
 	Fixed a couple of bugs in imap4d (Thanks, Jordy!)
-	
+
 	* include/mailutils/argp.h (struct daemon_param): New member
 	  `transcript'.
 	* mailbox/mu_argp.c (daemon option group): New option
 	  --transcript.
-	 
+
 	* imap4d/util.c: Provide session transcript support.
-	
+
 	* imap4d/fetch.c (bodystructure,send_parameter_list): Fixed
 	  possible NULL dereference.
 	* imap4d/imap4d.c (struct daemon_param): Initialize typescript
@@ -1522,7 +1528,7 @@
 2002-07-23  Sergey Poznyakoff
 
 	* imap4d/imap4d.c (imap4d_parse_opt): Fixed dereference of
-	  child_inputs. Thanks to Jordi Mallach. 
+	  child_inputs. Thanks to Jordi Mallach.
 	* pop3d/pop3d.c (pop3d_parse_opt): Likewise.
 	  (pop3d_argp_capa): Reordered capabilities to match those of
 	  imap4d.
@@ -1530,12 +1536,12 @@
 
 	header_aget_value was modified on May 9 but its invocations
 	throughout the code were not examined. Here goes the fix:
-	
+
 	* imap4d/fetch.c: Properly check the return from
 	  headers_aget_value.
 	* mail/followup.c: Likewise.
 	* mail/reply.c: Likewise.
-	
+
 2002-07-22  Sergey Poznyakoff
 
 	* mail/delete.c (mail_delete): Initialize auto variables.
@@ -1546,25 +1552,25 @@
 	* mail/testsuite/spool/teaparty.mbox: A mailbox for tag.exp and z.exp.
 	* mail/testsuite/spool/DISTFILES: Added teaparty.mbox
 	* mail/testsuite/etc/mail.rc: Set screen and columns.
-	
+
 2002-07-17  Sergey Poznyakoff
 
 	* mail/quit.c (mail_mbox_commit): Do not store deleted messages
-	  into mbox (Thanks Matthew Whitworth). 
+	  into mbox (Thanks Matthew Whitworth).
 
 2002-07-16  Sergey Poznyakoff
 
 	Based on ideas of Matthew Whitworth, moved mailbox file
 	expansion into a separate function:
-	
+
 	* mail/file.c (mail_expand_name): New function. Expands mail
 	  special characters in a filename.
 	* mail/mail.h: Likewise.
-	* mail/copy.c (mail_copy0): Use mail_expand_name(). 
+	* mail/copy.c (mail_copy0): Use mail_expand_name().
 
 	* mail/quit.c (mail_mbox_commit): Fixed typo.
 	  (mail_mbox_close): Do not expunge mailboxes if readonly is set.
-	  Helps in testing mail. 
+	  Helps in testing mail.
 	* mail/alt.c: Use mu_errstring() where appropriate.
 
 	* mail/testsuite/mail/folder.exp: (new file) A regression test
@@ -1574,25 +1580,25 @@
 	* mail/testsuite/folder/DISTFILES: New file
 	* mail/testsuite/folder/one: New file
 	* mail/testsuite/folder/two: New file
-	
+
 	* mail/testsuite/Makefile.am: Added folder.
 	* mail/testsuite/lib/mail.exp: Set MBOX variable.
 	* mail/testsuite/mail/read.exp: Force readonly mode before
 	  proceeding.
-	* mail/testsuite/spool/mbox: (new)  
-	* mail/testsuite/spool/DISTFILES: Added mbox  
-	
+	* mail/testsuite/spool/mbox: (new)
+	* mail/testsuite/spool/DISTFILES: Added mbox
+
 	* THANKS: Added Matthew Whitworth
 
-2002-07-15  Sergey Poznyakoff  
+2002-07-15  Sergey Poznyakoff
 
 	* mail/folders.c (mail_folders): If the value of "folder" variable
 	  does not start with '/' or '~', assume it is relative to the
 	  user's homedir.
 	* mail/file.c (mail_file): Likewise. Thanks to Matthew Whitworth
 	  <matthew@okcomputer.org> for reporting.
-	  
-2002-07-13  Sergey Poznyakoff  
+
+2002-07-13  Sergey Poznyakoff
 
 	* mailbox/mbx_default.c (mailbox_create_default): If the
 	  mailbox name does not start with a '/' and does not contain
@@ -1616,7 +1622,7 @@
 2002-07-02  Sergey Poznyakoff
 
 	* mail/mail.c (mail_capa): Added "mailbox" capability.
-	
+
 	Added framework for dejagnu testsuite.
 
 	* configure.in: Call AC_CANONICAL_SYSTEM.
@@ -1684,8 +1690,8 @@
 	  user's uid and change to his homedir before running his
 	  filtering script. Switch back to root before running
 	  mda().
-	
-2002-05-14  Sergey Poznyakoff  
+
+2002-05-14  Sergey Poznyakoff
 
 	* mail.remote/Makefile.am: Removed reference to non-existent
 	  mail.remote.h
@@ -1721,16 +1727,16 @@
 	  functions to set the default mailer
 	* lib/mu_asprintf.h: Removed dependency on mailutils.
 
-2002-05-13  Sergey Poznyakoff 
+2002-05-13  Sergey Poznyakoff
 
 	To avoid dependency problems moved mu_argp.c to mailbox. Changed
 	license to Lesser GPL.
-	
+
 	* lib/mu_argp.h: Moved to ...
 	* include/mailutils/mu_argp.h: here.
 	* lib/mu_argp.c: Moved to ...
 	* mailbox/mu_argp.c: here.
-	
+
 	* lib/Makefile.am: Removed mu_argp.* stuff.
 	* mailbox/Makefile.am: Added mu_argp.c
 	* include/mailutils/Makefile.am: Added mu_argp.h
@@ -1746,7 +1752,7 @@
 	* messages/messages.c: Likewise.
 	* pop3d/pop3d.h: Likewise.
 	* sieve/sieve.c: Likewise.
-	
+
 	* lib/utmp.c: Added missing includes.
 
 2002-05-12  Sam Roberts
@@ -1778,7 +1784,7 @@
 	  semantics for sending mail to bcc'ed addresses.
 	* include/mailutils/mailer.h, mailbox/mailer.c:
 	    mailer_check_to(): ensures that there all the to addresses are
-	    qualified. 
+	    qualified.
 	    mailer_check_from(): ensures that there is only one address, and
 	    it is qualified.
 	* include/mailutils/header.h, mailbox/header.c:
@@ -1817,7 +1823,7 @@
 	* include/mailutils/url.h, mailbox/url.c:
 	   url_is_scheme(url_t, const char*): new function
 
-2002-05-02  Sergey Poznyakoff  
+2002-05-02  Sergey Poznyakoff
 
 	* comsat/comsat.c: Provide extern declarations for *utent calls.
 
@@ -1828,7 +1834,7 @@
 	  {set,get,end}utent calls.
 	* m4/Makefile.am: Added utmp.m4
 	* configure.in: Call MU_CHECK_UTMP.
-	
+
 	* readmsg/msglist.c: Renamed isnumber to is_number. Apparently,
 	  OS X defines a macro with this name.
 	* libmu_scm/mu_address.c (_get_address_part): Bugfix. Was passing
@@ -1836,7 +1842,7 @@
 	* guimb/scm/numaddr.scm: Changed runtime error reporting.
 	* guimb/scm/redirect.scm: Likewise. Initialize sender variable.
 	* guimb/scm/sieve-core.scm: Provide new runtime-message function.
-	
+
 	* imap4d/select.c (imap4d_select0): Removed unused variable.
 	* mail.local/mail.local.h: Changed mda() declaration.
 	* mail.local/main.c: Likewise.
@@ -1844,7 +1850,7 @@
 	  to be delivered here, instead of doing it in deliver(). If the
 	  message was modified, drop it to the separate temporary file
 	  first, so that all modifications get to the user's maildrop.
-	  
+
 2002-04-26  Sam Roberts
 
 	* include/mailutils/mutil.h: Included <mailutils/types.h>, which
@@ -1861,12 +1867,12 @@
 	  extension test. The test is similar to "header" but works
 	  on multipart MIME messages also.
 	* guimb/scm/Makefile.am: Added mimeheader.scm
-	
+
 	* libmu_scm/mu_message.c: New interfaces: mu-message-multipart?,
 	  mu-message-get-num-parts, mu-message-get-part
 	* libmu_scm/mu_port.c (mu_port_mark): Do nothing if the port
 	  is not in open state.
-	
+
 2002-04-15  Sam Roberts
 
 	* doc/texinfo/programs.texi, include/mailutils/mutil.h,
@@ -1895,7 +1901,7 @@
 	  PROGRAM_INVOCATION_NAME_DECLARED and
 	  HAVE_PROGRAM_INVOCATION_NAME.
 	  (@BOTTOM@): Provide external declarations for
-	  program_invocation_.*name if necessary. 
+	  program_invocation_.*name if necessary.
 	* configure.in: Check if program_invocation_.*name are
 	  declared and/or defined.
 	* lib/Makefile.am: Always compile pin.c
@@ -1907,19 +1913,19 @@
 	  of program_invocation_.* variables.
 	* mh/mh_getopt.c: Removed include <mh.h>
 	* mh/mh_init.c: Added include <stdarg.h>
-	
+
 	* libmu_scm/mu_scm.h: include <mailutils/url.h>
-	
-2002-04-15  Sergey Poznyakoff 
+
+2002-04-15  Sergey Poznyakoff
 
 	* imap4d/namespace.c (namespace_getfullpath): Translate
 	  INBOX to the corresponding filename.
-	
+
 	* imap4d/copy.c (imap4d_copy0): Removed unnecessary code:
 	  namespace_getfullpath() now translates INBOX to filename.
 	* imap4d/select.c: Likewise.
 	* imap4d/status.c: Likewise.
-	
+
 2002-04-14  Sam Roberts
 
 	* include/mailutils/mutil.h, mailbox/locker.c, mailbox/mutil.c:
@@ -1930,11 +1936,11 @@
 
 	* configure.in: Bump version to 0.0.9d
 
-2002-04-11  Sergey Poznyakoff 
+2002-04-11  Sergey Poznyakoff
 
 	* lib/mu_argp.c: Fixed auto-arranging of
 	  options groups. Fixed spelling of license option.
-	
+
 	* comsat/comsat.c: Fixed spelling of "license" option.
 	* frm/frm.c: Likewise.
 	* guimb/main.c: Likewise.
@@ -1944,7 +1950,7 @@
 	  Changed to "common", "license".
 	* messages/messages.c: Likewise.
 	* pop3d/pop3d.c: Likewise.
-	
+
 	* mail.local/main.c: Added "license" capability.
 
 2002-04-10 Sam Roberts
@@ -1985,11 +1991,11 @@
 	  (mu_getpwnam,mu_register_getpwnam): Rewritten using retriever
 	  functions.
 	  (mu_getpwuid,mu_register_getpwuid): Likewise.
-	  
+
 	* include/mailutils/mutil.h: Prototypes for general-purpose
 	  retrieval functions.
 
-2002-04-08  Sergey Poznyakoff 
+2002-04-08  Sergey Poznyakoff
 
 	* include/mailutils/locker.h (MU_LOCKER_KERNEL): New locker
 	  type: implies kernel-locking.
@@ -2000,13 +2006,13 @@
 	  locking type switches to KERNEL.
 
 	* m4/gssapi.m4: Fixed typo.
-	
-2002-04-04  Sergey Poznyakoff 
+
+2002-04-04  Sergey Poznyakoff
 
 	* imap4d/lsub.c (imap4d_lsub): Return OK response, unless
    	  something grave has happened.
 
-2002-03-28  Sergey Poznyakoff  
+2002-03-28  Sergey Poznyakoff
 
 	Several bugfixes:
 	 1. mail -f~user/path coredumps
@@ -2014,7 +2020,7 @@
 	    work (same for frm and others).
 	 3. mail --mail-spool imap://hostname did not work (at least
 	    with our imap4d).
-	
+
 	* imap4d/list.c (print_dir): Enclose empty filename
 	  in doublequotes.
 	* mailbox/folder_imap.c (imap_string): Return 1 if
@@ -2023,16 +2029,16 @@
 	  strings, not enclosed in doublequotes.
 	* mailbox/mbx_default.c (user_mailbox_name): Operate
 	  only on mbox: and path URLs.
-	
+
 	* guimb/main.c (main): initialize c.
-	
-2002-03-28  Sergey Poznyakoff  
+
+2002-03-28  Sergey Poznyakoff
 
 	* lib/mu_argp.c: Renamed --maildir to --mail-spool.
 	* doc/texinfo/programs.texi: Documented --mail-spool option.
 	* configure.in: Renamed --with-maildir to --with-mail-spool for
 	  symmetry.
-	
+
 	* mail/mail.c: Some measures to help avoid the confusion about
 	  --file option:
 	  (Help output): Print additional note about --file taking
@@ -2043,30 +2049,30 @@
 	  avoid the confusion.
 	  (main): Print more detailed diagnostics if mailbox_scan
 	  failed.
-	
+
 	* include/mailutils/errno.h: New error code MU_ERR_NO_SUCH_USER
 	* mailbox/muerrno.c: Likewise.
 	* mailbox/mbx_default.c (split_shortcut): Properly handle "~/"
 	  filenames.
 	  (tilde_expand): Return MU_ERR_NO_SUCH_USER if an invalid username
 	  was specified.
-	
+
 2002-03-25  Sergey Poznyakoff
 
 	Was too quick about _exit :^)
-	
+
 	* configure.in: Check for _exit.
 	* mailbox/mutil.c (mu_spawnvp): Protected _exit by #ifdef.
-	
+
 2002-03-25  Sergey Poznyakoff
-	
+
 	Bunch of fixes:
 
 	Use of ~/.<program>rc caused problems with mail utility,
 	whose native profile is ~/.mailrc:
 	* lib/mu_argp.c: Renamed program-specific profiles to
-	  ~/.mu.<program>rc. 
-	* doc/texinfo/programs.texi: Documented use of ~/.mu.<program>rc 
+	  ~/.mu.<program>rc.
+	* doc/texinfo/programs.texi: Documented use of ~/.mu.<program>rc
 
 	* libmu_scm/mu_scm.h: Added some includes, needed after
 	  yesterday's modifications.
@@ -2098,7 +2104,7 @@
 	* mailbox2/include/mailutils/stream.h: Likewise.
 	* mailbox2/include/mailutils/ticket.h: Likewise.
 	* mailbox2/include/mailutils/url.h: Likewise.
-	
+
 2002-03-24 Sam Roberts
 
 	* dotlock/dotlock.c, include/mailutils/locker.h, mailbox/locker.c:
@@ -2133,7 +2139,7 @@
 	    use, but you can change a header without causing a recompile of
 	    everything. Also added some missing LGPL file headers.
 
-2002-03-21  Sergey Poznyakoff  
+2002-03-21  Sergey Poznyakoff
 
 	* include/mailutils/locker.h: New flag MU_LOCKER_NULL
 	  to be used with temporary mailboxes stored in memory.
@@ -2143,7 +2149,7 @@
 
 	* mailbox2/pop3/Makefile.am: libpop3_la_SOURCES was
 	  missing.
-	
+
 2002-03-19  Sam Roberts
 
 	* doc/texinfo/programs.texi: Document use of ~/.<program>rc.
