@@ -20,7 +20,7 @@
 static char **ml_command_completion __P((char *cmd, int start, int end));
 static char *ml_command_generator __P((char *text, int state));
 
-static int _interrupt;
+static volatile int _interrupted;
 
 static RETSIGTYPE
 sig_handler (int signo)
@@ -30,7 +30,7 @@ sig_handler (int signo)
     case SIGINT:
       if (util_find_env ("quit")->set)
 	exit (0);
-      _interrupt++;
+      _interrupted++;
       break;
 #if defined (SIGWINCH)
     case SIGWINCH:
@@ -43,14 +43,14 @@ sig_handler (int signo)
 void
 ml_clear_interrupt ()
 {
-  _interrupt = 0;
+  _interrupted = 0;
 }
 
 int
 ml_got_interrupt ()
 {
-  int rc = _interrupt;
-  _interrupt = 0;
+  int rc = _interrupted;
+  _interrupted = 0;
   return rc;
 }
 
@@ -66,7 +66,7 @@ ml_getc (FILE *stream)
 	  return c;
 	if (errno == EINTR)
 	  {
-	    if (_interrupt)
+	    if (_interrupted)
 	      break;
 	    /* keep going if we handled the signal */
 	  }
@@ -82,16 +82,16 @@ ml_readline_init ()
 {
   if (!interactive)
     return;
-  
+
 #ifdef WITH_READLINE
   rl_readline_name = "mail";
   rl_attempted_completion_function = (CPPFunction*)ml_command_completion;
   rl_getc_function = ml_getc;
 #endif
   signal (SIGINT, sig_handler);
-#if defined(SIGWINCH)      
+#if defined(SIGWINCH)
   signal (SIGWINCH, sig_handler);
-#endif  
+#endif
 }
 
 #ifdef WITH_READLINE
@@ -110,7 +110,7 @@ int
 ml_reread (char *prompt, char **text)
 {
   char *s;
-  
+
   insert_text = *text;
   rl_startup_hook = ml_insert_hook;
   s = readline (prompt);
@@ -194,10 +194,10 @@ readline (const char *prompt)
       size_t n;
 
       p = fgets (p, alloclen - linelen, stdin);
-      
+
       if (p)
 	n = strlen(p);
-      else if (_interrupt)
+      else if (_interrupted)
 	{
 	  free (line);
 	  return NULL;

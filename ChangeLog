@@ -1,5 +1,11 @@
 2001-07-06  Alain Magloire
 
+	* mail/mailline.c: "interupt" is actually a key word
+	for somce C compiler i.e. Watcomm C, rename it to "interrupted".
+	* mail/util.c: The macros O_CREAT etc needs <sys/fnct.h>.
+
+2001-07-06  Alain Magloire
+
 	* mail/mail.c: Be a little more verbose when mailbox_{create,open}()
 	fails at startup.
 	* doc/Makefile.am: Add the missing *.texi in the list of EXTRA_DIST.
