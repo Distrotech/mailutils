@@ -4,7 +4,7 @@ This is the GNU mailutils package
 This package contains a POP3 server and a simple replacement for `/bin/mail'.
 An IMAP4 server is being worked on.  These applications are tied around a
 central library that handles all mailbox activity called libmailbox, which is
-GPLd (See COPYING).  If you want to use this in your own programs, see the
+LGPLd (See COPYING).  If you want to use this in your own programs, see the
 examples subdirectory.
 
 This software is part of the GNU project and belongs to the Free Software 

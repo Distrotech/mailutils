@@ -1,6 +1,7 @@
 2000-01-19  Sean 'Shaleh' Perry
 
 	* mailbox/mbx_mh.c: some more code fleshing, still ugly
+	* README README-alpha: updates, corrected README to list mailbox as LGPL
 
 2000-01-19  Sean 'Shaleh' Perry
 
