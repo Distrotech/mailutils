@@ -228,11 +228,11 @@ var_headers(int argc, char **argv, struct send_environ *env)
 
 /* ~i[var-name] */
 int
-var_insert (int argc, char **argv, struct send_environ *env)
+var_insert (int argc, char **argv, struct send_environ *send_env)
 {
   struct mail_env_entry *env;
   
-  (void)env;
+  (void)send_env;
   if (var_check_args (argc, argv))
     return 1;
   env = util_find_env (argv[1], 0);
