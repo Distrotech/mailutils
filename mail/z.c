@@ -110,7 +110,7 @@ mail_z (int argc, char **argv)
   unsigned int pagelines = util_screen_lines();
   unsigned int count;
   int dir;
-  int crs;
+  int crs, end;
   
   if (z_parse_args(argc, argv, &count, &dir))
     return 1;
@@ -184,11 +184,11 @@ mail_z (int argc, char **argv)
     }
 
   cursor = crs;
-
+  end = cursor + nlines - 1;
   i = 0;
   do
     {
-      int cnt = util_range_msg (crs, crs + nlines - 1,
+      int cnt = util_range_msg (crs, end,
 				MSG_NODELETED|MSG_SILENT, mail_from0, NULL);
       if (cnt == 0)
 	break;
