@@ -20,6 +20,7 @@
 # include "../MySql/MySql.h"
 #endif
 
+FILE *ifile;
 FILE *ofile;
 mailbox_t mbox;
 char *homedir;
@@ -180,8 +181,6 @@ main (int argc, char **argv)
 static int
 imap4d_mainloop (int infile, int outfile)
 {
-  FILE *ifile;
-
   /* Reset hup to exit.  */
   signal (SIGHUP, imap4d_signal);
   /* Timeout alarm.  */
