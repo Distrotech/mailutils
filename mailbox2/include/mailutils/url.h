@@ -36,33 +36,33 @@ extern "C" {
 struct _url;
 typedef struct _url * url_t;
 
-extern int url_destroy   __P ((url_t));
-extern int url_parse     __P ((url_t));
+extern void url_destroy   __P ((url_t *));
+extern int  url_parse     __P ((url_t));
 
-extern int url_get_scheme  __P ((const url_t, char *, size_t, size_t *));
-extern int url_get_user    __P ((const url_t, char *, size_t, size_t *));
-extern int url_get_passwd  __P ((const url_t, char *, size_t, size_t *));
-extern int url_get_auth    __P ((const url_t, char *, size_t, size_t *));
-extern int url_get_host    __P ((const url_t, char *, size_t, size_t *));
-extern int url_get_port    __P ((const url_t, long *));
-extern int url_get_path    __P ((const url_t, char *, size_t, size_t *));
-extern int url_get_query   __P ((const url_t, char *, size_t, size_t *));
+extern int  url_get_scheme  __P ((const url_t, char *, size_t, size_t *));
+extern int  url_get_user    __P ((const url_t, char *, size_t, size_t *));
+extern int  url_get_passwd  __P ((const url_t, char *, size_t, size_t *));
+extern int  url_get_auth    __P ((const url_t, char *, size_t, size_t *));
+extern int  url_get_host    __P ((const url_t, char *, size_t, size_t *));
+extern int  url_get_port    __P ((const url_t, long *));
+extern int  url_get_path    __P ((const url_t, char *, size_t, size_t *));
+extern int  url_get_query   __P ((const url_t, char *, size_t, size_t *));
 extern const char* url_to_string   __P ((const url_t));
 
-extern int url_is_same_scheme __P ((url_t, url_t));
-extern int url_is_same_user   __P ((url_t, url_t));
-extern int url_is_same_path   __P ((url_t, url_t));
-extern int url_is_same_host   __P ((url_t, url_t));
-extern int url_is_same_port   __P ((url_t, url_t));
+extern int  url_is_same_scheme __P ((url_t, url_t));
+extern int  url_is_same_user   __P ((url_t, url_t));
+extern int  url_is_same_path   __P ((url_t, url_t));
+extern int  url_is_same_host   __P ((url_t, url_t));
+extern int  url_is_same_port   __P ((url_t, url_t));
 
 extern char* url_decode    __P ((const char *s));
 
-extern int  url_imap_create    __P ((url_t *, const char *));
-extern int  url_pop_create     __P ((url_t *, const char *));
-extern int  url_file_create    __P ((url_t *, const char *));
-extern int  url_path_create    __P ((url_t *, const char *));
-extern int  url_mbox_create    __P ((url_t *, const char *));
-extern int  url_smtp_create    __P ((url_t *, const char *));
+extern int   url_imap_create    __P ((url_t *, const char *));
+extern int   url_pop_create     __P ((url_t *, const char *));
+extern int   url_file_create    __P ((url_t *, const char *));
+extern int   url_path_create    __P ((url_t *, const char *));
+extern int   url_mbox_create    __P ((url_t *, const char *));
+extern int   url_smtp_create    __P ((url_t *, const char *));
 
 #ifdef __cplusplus
 }

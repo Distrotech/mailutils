@@ -46,7 +46,7 @@ pop3_create (pop3_t *ppop3)
   pop3->ack.buf = calloc (pop3->ack.len, 1);
   if (pop3->ack.buf == NULL)
     {
-      pop3_destroy (pop3);
+      pop3_destroy (&pop3);
       return MU_ERROR_NO_MEMORY;
     }
   pop3->ack.ptr = pop3->ack.buf;
@@ -56,7 +56,7 @@ pop3_create (pop3_t *ppop3)
   pop3->io.buf = calloc (pop3->io.len, 1);
   if (pop3->io.buf == NULL)
     {
-      pop3_destroy (pop3);
+      pop3_destroy (&pop3);
       return MU_ERROR_NO_MEMORY;
     }
   pop3->io.ptr = pop3->io.buf;

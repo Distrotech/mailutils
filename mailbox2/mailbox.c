@@ -19,30 +19,24 @@
 #include <mailutils/sys/mailbox.h>
 
 int
-mailbox_add_ref (mailbox_t mailbox)
+mailbox_ref (mailbox_t mailbox)
 {
   if (mailbox == NULL || mailbox->vtable == NULL
-      || mailbox->vtable->add_ref == NULL)
+      || mailbox->vtable->ref == NULL)
     return MU_ERROR_NOT_SUPPORTED;
-  return mailbox->vtable->add_ref (mailbox);
+  return mailbox->vtable->ref (mailbox);
 }
 
-int
-mailbox_release (mailbox_t mailbox)
+void
+mailbox_destroy (mailbox_t *pmailbox)
 {
-  if (mailbox == NULL || mailbox->vtable == NULL
-      || mailbox->vtable->release == NULL)
-    return MU_ERROR_NOT_SUPPORTED;
-  return mailbox->vtable->release (mailbox);
-}
-
-int
-mailbox_destroy (mailbox_t mailbox)
-{
-  if (mailbox == NULL || mailbox->vtable == NULL
-      || mailbox->vtable->destroy == NULL)
-    return MU_ERROR_NOT_SUPPORTED;
-  return mailbox->vtable->destroy (mailbox);
+  if (pmailbox && *pmailbox)
+    {
+      mailbox_t mailbox = *pmailbox;
+      if (mailbox->vtable && mailbox->vtable->destroy)
+	mailbox->vtable->destroy (pmailbox);
+      *pmailbox = NULL;
+    }
 }
 
 int
@@ -182,7 +176,6 @@ mailbox_scan (mailbox_t mailbox, size_t no, size_t *count)
   return mailbox->vtable->scan (mailbox, no, count);
 }
 
-
 /* Mailbox Stream.  */
 int
 mailbox_get_stream (mailbox_t mailbox, stream_t *stream)
@@ -192,7 +185,6 @@ mailbox_get_stream (mailbox_t mailbox, stream_t *stream)
     return MU_ERROR_NOT_SUPPORTED;
   return mailbox->vtable->get_stream (mailbox, stream);
 }
-
 
 /* Authentication.  */
 int
@@ -223,7 +215,6 @@ mailbox_get_property (mailbox_t mailbox, property_t *property)
   return mailbox->vtable->get_property (mailbox, property);
 }
 
-
 /* URL.  */
 int
 mailbox_get_url (mailbox_t mailbox, url_t *url)
@@ -233,7 +224,6 @@ mailbox_get_url (mailbox_t mailbox, url_t *url)
     return MU_ERROR_NOT_SUPPORTED;
   return mailbox->vtable->get_url (mailbox, url);
 }
-
 
 /* For any debuging */
 int
@@ -253,7 +243,6 @@ mailbox_set_debug (mailbox_t mailbox, mu_debug_t debug)
     return MU_ERROR_NOT_SUPPORTED;
   return mailbox->vtable->set_debug (mailbox, debug);
 }
-
 
 /* Events.  */
 int

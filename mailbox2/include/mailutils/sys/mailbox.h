@@ -35,49 +35,48 @@ extern "C" {
 struct _mailbox_vtable
 {
   /* Constructor/destructor and possible types.  */
-  int (*add_ref)         __P ((mailbox_t));
-  int (*release)         __P ((mailbox_t));
-  int (*destroy)         __P ((mailbox_t));
-  int (*get_folder)      __P ((mailbox_t, folder_t *));
+  int  (*ref)             __P ((mailbox_t));
+  void (*destroy)         __P ((mailbox_t *));
+  int  (*get_folder)      __P ((mailbox_t, folder_t *));
 
-  int (*open)            __P ((mailbox_t, int flag));
-  int (*close)           __P ((mailbox_t));
-  int (*uidvalidity)     __P ((mailbox_t, unsigned long *));
-  int (*uidnext)         __P ((mailbox_t, size_t *));
+  int  (*open)            __P ((mailbox_t, int flag));
+  int  (*close)           __P ((mailbox_t));
+  int  (*uidvalidity)     __P ((mailbox_t, unsigned long *));
+  int  (*uidnext)         __P ((mailbox_t, size_t *));
 
   /* Messages.  */
-  int (*get_message)     __P ((mailbox_t, size_t msgno, message_t *));
-  int (*append_message)  __P ((mailbox_t, message_t));
-  int (*messages_count)  __P ((mailbox_t, size_t *));
-  int (*messages_recent) __P ((mailbox_t, size_t *));
-  int (*messages_unseen)  __P ((mailbox_t, size_t *));
-  int (*expunge)         __P ((mailbox_t));
-  int (*save_attributes) __P ((mailbox_t));
+  int  (*get_message)     __P ((mailbox_t, size_t msgno, message_t *));
+  int  (*append_message)  __P ((mailbox_t, message_t));
+  int  (*messages_count)  __P ((mailbox_t, size_t *));
+  int  (*messages_recent) __P ((mailbox_t, size_t *));
+  int  (*messages_unseen) __P ((mailbox_t, size_t *));
+  int  (*expunge)         __P ((mailbox_t));
+  int  (*save_attributes) __P ((mailbox_t));
 
   /* Update and scanning.  */
-  int (*get_size)        __P ((mailbox_t, off_t *size));
-  int (*is_updated)      __P ((mailbox_t));
-  int (*scan)            __P ((mailbox_t, size_t no, size_t *count));
+  int  (*get_size)        __P ((mailbox_t, off_t *size));
+  int  (*is_updated)      __P ((mailbox_t));
+  int  (*scan)            __P ((mailbox_t, size_t no, size_t *count));
 
   /* Mailbox Stream.  */
-  int (*get_stream)      __P ((mailbox_t, stream_t *));
+  int  (*get_stream)      __P ((mailbox_t, stream_t *));
 
   /* Authentication.  */
-  int (*get_authority)   __P ((mailbox_t, authority_t *));
-  int (*set_authority)   __P ((mailbox_t, authority_t));
+  int  (*get_authority)   __P ((mailbox_t, authority_t *));
+  int  (*set_authority)   __P ((mailbox_t, authority_t));
 
   /* Property.  */
-  int (*get_property)    __P ((mailbox_t, property_t *));
+  int  (*get_property)    __P ((mailbox_t, property_t *));
 
   /* URL.  */
-  int (*get_url)         __P ((mailbox_t, url_t *));
+  int  (*get_url)         __P ((mailbox_t, url_t *));
 
   /* For any debuging */
-  int (*get_debug)       __P ((mailbox_t, mu_debug_t *));
-  int (*set_debug)       __P ((mailbox_t, mu_debug_t));
+  int  (*get_debug)       __P ((mailbox_t, mu_debug_t *));
+  int  (*set_debug)       __P ((mailbox_t, mu_debug_t));
 
   /* Events.  */
-  int (*get_observable)  __P ((mailbox_t, observable_t *));
+  int  (*get_observable)  __P ((mailbox_t, observable_t *));
 };
 
 struct _mailbox

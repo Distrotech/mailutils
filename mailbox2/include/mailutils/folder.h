@@ -54,23 +54,22 @@ struct list_response
   char *name;
 };
 
-extern int folder_create        __P ((folder_t *, const char *));
+extern int  folder_create        __P ((folder_t *, const char *));
 
-extern int folder_add_ref       __P ((folder_t));
-extern int folder_release       __P ((folder_t));
-extern int folder_destroy       __P ((folder_t));
+extern int  folder_ref           __P ((folder_t));
+extern void folder_destroy       __P ((folder_t *));
 
-extern int folder_open           __P ((folder_t, int flag));
-extern int folder_close          __P ((folder_t));
+extern int  folder_open           __P ((folder_t, int));
+extern int  folder_close          __P ((folder_t));
 
-extern int folder_delete         __P ((folder_t, const char *));
-extern int folder_rename         __P ((folder_t, const char *, const char *));
-extern int folder_subscribe      __P ((folder_t, const char *));
-extern int folder_unsubscribe    __P ((folder_t, const char *));
-extern int folder_list           __P ((folder_t, const char *, const char *,
-				       iterator_t *));
-extern int folder_lsub           __P ((folder_t, const char *, const char *,
-				       iterator_t *));
+extern int  folder_delete         __P ((folder_t, const char *));
+extern int  folder_rename         __P ((folder_t, const char *, const char *));
+extern int  folder_subscribe      __P ((folder_t, const char *));
+extern int  folder_unsubscribe    __P ((folder_t, const char *));
+extern int  folder_list           __P ((folder_t, const char *, const char *,
+					iterator_t *));
+extern int  folder_lsub           __P ((folder_t, const char *, const char *,
+					iterator_t *));
 
 /* Stream settings.  */
 extern int folder_get_stream     __P ((folder_t, stream_t *));

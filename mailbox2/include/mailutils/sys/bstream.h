@@ -19,7 +19,7 @@
 #define MAILUTILS_SYS_BSTREAM_H
 
 #include <mailutils/sys/stream.h>
-#include <mailutils/monitor.h>
+#include <mailutils/refcount.h>
 
 /* Read buffer */
 struct _rbuffer
@@ -33,10 +33,9 @@ struct _rbuffer
 struct _bs
 {
   struct _stream base;
-  int ref;
+  mu_refcount_t refcount;
   stream_t stream;
   struct _rbuffer rbuffer;
-  monitor_t lock;
 };
 
 #endif /* _MAILUTILS_SYS_BSTREAM_H */

@@ -24,30 +24,24 @@
 #include <mailutils/sys/ticket.h>
 
 int
-ticket_add_ref (ticket_t ticket)
+ticket_ref (ticket_t ticket)
 {
   if (ticket == NULL || ticket->vtable == NULL
-      || ticket->vtable->add_ref == NULL)
+      || ticket->vtable->ref == NULL)
     return MU_ERROR_NOT_SUPPORTED;
-  return ticket->vtable->add_ref (ticket);
+  return ticket->vtable->ref (ticket);
 }
 
-int
-ticket_release (ticket_t ticket)
+void
+ticket_destroy (ticket_t *pticket)
 {
-  if (ticket == NULL || ticket->vtable == NULL
-      || ticket->vtable->release == NULL)
-    return MU_ERROR_NOT_SUPPORTED;
-  return ticket->vtable->release (ticket);
-}
-
-int
-ticket_destroy (ticket_t ticket)
-{
-  if (ticket == NULL || ticket->vtable == NULL
-      || ticket->vtable->destroy == NULL)
-    return MU_ERROR_NOT_SUPPORTED;
-  return ticket->vtable->destroy (ticket);
+  if (pticket && *pticket)
+    {
+      ticket_t ticket = *pticket;
+      if (ticket->vtable && ticket->vtable->destroy)
+	ticket->vtable->destroy (pticket);
+      *pticket = NULL;
+    }
 }
 
 int

@@ -42,47 +42,46 @@ typedef struct _attribute * attribute_t;
 #define MU_ATTRIBUTE_MODIFIED 0x1000
 #define MU_ATTRIBUTE_RECENT   0x0000
 
-extern int attribute_create          __P ((attribute_t *));
+extern int  attribute_create          __P ((attribute_t *));
 
-extern int attribute_add_ref         __P ((attribute_t));
-extern int attribute_release         __P ((attribute_t));
-extern int attribute_destroy         __P ((attribute_t));
+extern int  attribute_ref             __P ((attribute_t));
+extern void attribute_destroy        __P ((attribute_t *));
 
-extern int attribute_is_seen         __P ((attribute_t));
-extern int attribute_is_answered     __P ((attribute_t));
-extern int attribute_is_flagged      __P ((attribute_t));
-extern int attribute_is_deleted      __P ((attribute_t));
-extern int attribute_is_draft        __P ((attribute_t));
-extern int attribute_is_recent       __P ((attribute_t));
-extern int attribute_is_read         __P ((attribute_t));
-extern int attribute_is_modified     __P ((attribute_t));
+extern int  attribute_is_seen         __P ((attribute_t));
+extern int  attribute_is_answered     __P ((attribute_t));
+extern int  attribute_is_flagged      __P ((attribute_t));
+extern int  attribute_is_deleted      __P ((attribute_t));
+extern int  attribute_is_draft        __P ((attribute_t));
+extern int  attribute_is_recent       __P ((attribute_t));
+extern int  attribute_is_read         __P ((attribute_t));
+extern int  attribute_is_modified     __P ((attribute_t));
 
-extern int attribute_set_seen        __P ((attribute_t));
-extern int attribute_set_answered    __P ((attribute_t));
-extern int attribute_set_flagged     __P ((attribute_t));
-extern int attribute_set_deleted     __P ((attribute_t));
-extern int attribute_set_draft       __P ((attribute_t));
-extern int attribute_set_recent      __P ((attribute_t));
-extern int attribute_set_read        __P ((attribute_t));
-extern int attribute_set_modified    __P ((attribute_t));
+extern int  attribute_set_seen        __P ((attribute_t));
+extern int  attribute_set_answered    __P ((attribute_t));
+extern int  attribute_set_flagged     __P ((attribute_t));
+extern int  attribute_set_deleted     __P ((attribute_t));
+extern int  attribute_set_draft       __P ((attribute_t));
+extern int  attribute_set_recent      __P ((attribute_t));
+extern int  attribute_set_read        __P ((attribute_t));
+extern int  attribute_set_modified    __P ((attribute_t));
 
-extern int attribute_unset_seen      __P ((attribute_t));
-extern int attribute_unset_answered  __P ((attribute_t));
-extern int attribute_unset_flagged   __P ((attribute_t));
-extern int attribute_unset_deleted   __P ((attribute_t));
-extern int attribute_unset_draft     __P ((attribute_t));
-extern int attribute_unset_recent    __P ((attribute_t));
-extern int attribute_unset_read      __P ((attribute_t));
-extern int attribute_unset_modified  __P ((attribute_t));
+extern int  attribute_unset_seen      __P ((attribute_t));
+extern int  attribute_unset_answered  __P ((attribute_t));
+extern int  attribute_unset_flagged   __P ((attribute_t));
+extern int  attribute_unset_deleted   __P ((attribute_t));
+extern int  attribute_unset_draft     __P ((attribute_t));
+extern int  attribute_unset_recent    __P ((attribute_t));
+extern int  attribute_unset_read      __P ((attribute_t));
+extern int  attribute_unset_modified  __P ((attribute_t));
 
 
-extern int attribute_get_flags       __P ((attribute_t, int *));
-extern int attribute_set_flags       __P ((attribute_t, int));
-extern int attribute_unset_flags     __P ((attribute_t, int));
-extern int attribute_clear_flags     __P ((attribute_t));
+extern int  attribute_get_flags       __P ((attribute_t, int *));
+extern int  attribute_set_flags       __P ((attribute_t, int));
+extern int  attribute_unset_flags     __P ((attribute_t, int));
+extern int  attribute_clear_flags     __P ((attribute_t));
 
-extern int attribute_is_equal        __P ((attribute_t, attribute_t));
-extern int attribute_copy            __P ((attribute_t dst, attribute_t src));
+extern int  attribute_is_equal        __P ((attribute_t, attribute_t));
+extern int  attribute_copy            __P ((attribute_t dst, attribute_t src));
 
 
 #ifdef __cplusplus

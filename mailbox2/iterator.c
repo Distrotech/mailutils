@@ -24,26 +24,20 @@
 #include <mailutils/sys/iterator.h>
 #include <mailutils/error.h>
 
-int
-(iterator_release) (iterator_t iterator)
+void
+iterator_destroy (iterator_t *piterator)
 {
-  if (iterator == NULL || iterator->vtable == NULL
-      || iterator->vtable->release == NULL)
-    return MU_ERROR_NOT_SUPPORTED;
-  return iterator->vtable->release (iterator);
+  if (piterator && *piterator)
+    {
+      iterator_t iterator = *piterator;
+      if (iterator->vtable && iterator->vtable->destroy)
+	iterator->vtable->destroy (piterator);
+      *piterator = NULL;
+    }
 }
 
 int
-(iterator_destroy) (iterator_t iterator)
-{
-  if (iterator == NULL || iterator->vtable == NULL
-      || iterator->vtable->destroy == NULL)
-    return MU_ERROR_NOT_SUPPORTED;
-  return iterator->vtable->destroy (iterator);
-}
-
-int
-(iterator_first) (iterator_t iterator)
+iterator_first (iterator_t iterator)
 {
   if (iterator == NULL || iterator->vtable == NULL
       || iterator->vtable->first == NULL)
@@ -52,7 +46,7 @@ int
 }
 
 int
-(iterator_next) (iterator_t iterator)
+iterator_next (iterator_t iterator)
 {
   if (iterator == NULL || iterator->vtable == NULL
       || iterator->vtable->next == NULL)
@@ -61,7 +55,7 @@ int
 }
 
 int
-(iterator_current) (iterator_t iterator, void *pitem)
+iterator_current (iterator_t iterator, void *pitem)
 {
   if (iterator == NULL || iterator->vtable == NULL
       || iterator->vtable->current == NULL)
@@ -70,7 +64,7 @@ int
 }
 
 int
-(iterator_is_done) (iterator_t iterator)
+iterator_is_done (iterator_t iterator)
 {
   if (iterator == NULL || iterator->vtable == NULL
       || iterator->vtable->is_done == NULL)

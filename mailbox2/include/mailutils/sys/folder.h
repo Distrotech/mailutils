@@ -35,35 +35,34 @@ extern "C" {
 
 struct _folder_vtable
 {
-  int (*add_ref) __P ((folder_t));
-  int (*release) __P ((folder_t));
-  int (*destroy) __P ((folder_t));
+  int  (*ref)     __P ((folder_t));
+  void (*destroy) __P ((folder_t *));
 
-  int (*open)    __P ((folder_t, int flag));
-  int (*close)   __P ((folder_t));
+  int  (*open)    __P ((folder_t, int flag));
+  int  (*close)   __P ((folder_t));
 
-  int (*delete)  __P ((folder_t, const char *));
-  int (*rename)  __P ((folder_t, const char *, const char *));
-  int (*subscribe) __P ((folder_t, const char *));
-  int (*unsubscribe) __P ((folder_t, const char *));
-  int (*list) __P ((folder_t, const char *, const char *, iterator_t *));
-  int (*lsub) __P ((folder_t, const char *, const char *, iterator_t *));
+  int  (*delete)  __P ((folder_t, const char *));
+  int  (*rename)  __P ((folder_t, const char *, const char *));
+  int  (*subscribe) __P ((folder_t, const char *));
+  int  (*unsubscribe) __P ((folder_t, const char *));
+  int  (*list) __P ((folder_t, const char *, const char *, iterator_t *));
+  int  (*lsub) __P ((folder_t, const char *, const char *, iterator_t *));
 
   /* Stream settings.  */
-  int (*get_stream) __P ((folder_t, stream_t *));
-  int (*set_stream) __P ((folder_t, stream_t));
+  int  (*get_stream) __P ((folder_t, stream_t *));
+  int  (*set_stream) __P ((folder_t, stream_t));
 
   /* Notifications.  */
-  int (*get_observable) __P ((folder_t, observable_t *));
-  int (*get_debug) __P ((folder_t, mu_debug_t *));
-  int (*set_debug) __P ((folder_t, mu_debug_t));
+  int  (*get_observable) __P ((folder_t, observable_t *));
+  int  (*get_debug) __P ((folder_t, mu_debug_t *));
+  int  (*set_debug) __P ((folder_t, mu_debug_t));
 
   /* Authentication.  */
-  int (*get_authority) __P ((folder_t, authority_t *));
-  int (*set_authority) __P ((folder_t, authority_t));
+  int  (*get_authority) __P ((folder_t, authority_t *));
+  int  (*set_authority) __P ((folder_t, authority_t));
 
   /* URL.  */
-  int (*get_url) __P ((folder_t, url_t *));
+  int  (*get_url) __P ((folder_t, url_t *));
 
 };
 

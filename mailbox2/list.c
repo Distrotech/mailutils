@@ -38,8 +38,8 @@ mu_list_create (mu_list_t *plist)
   list = calloc (sizeof (*list), 1);
   if (list == NULL)
     return ENOMEM;
-  status = monitor_create (&(list->lock));
-  if (status != 0)
+  status = mu_refcount_create (&(list->refcount));
+  if (list->refcount == NULL)
     {
       free (list);
       return status;
@@ -52,26 +52,36 @@ mu_list_create (mu_list_t *plist)
 }
 
 int
-mu_list_destroy (mu_list_t list)
+mu_list_ref (mu_list_t list)
 {
   if (list)
-    {
-      struct mu_list_data *current;
-      struct mu_list_data *previous;
-      monitor_lock (list->lock);
-      for (current = list->head.next; current != &(list->head);)
-	{
-	  previous = current;
-	  current = current->next;
-	  free (previous);
-	}
-      monitor_unlock (list->lock);
-      monitor_destroy (list->lock);
-      free (list);
-    }
+    return mu_refcount_inc (list->refcount);
   return 0;
 }
-
+void
+mu_list_destroy (mu_list_t *plist)
+{
+  if (plist && *plist)
+    {
+      mu_list_t list = *plist;
+      if (mu_refcount_dec (list->refcount) == 0)
+	{
+	  struct mu_list_data *current;
+	  struct mu_list_data *previous;
+	  mu_refcount_lock (list->refcount);
+	  for (current = list->head.next; current != &(list->head);)
+	    {
+	      previous = current;
+	      current = current->next;
+	      free (previous);
+	    }
+	  mu_refcount_unlock (list->refcount);
+	  mu_refcount_destroy (&list->refcount);
+	  free (list);
+	}
+      *plist = NULL;
+    }
+}
 int
 mu_list_append (mu_list_t list, void *item)
 {
@@ -84,13 +94,13 @@ mu_list_append (mu_list_t list, void *item)
   if (ldata == NULL)
     return ENOMEM;
   ldata->item = item;
-  monitor_lock (list->lock);
+  mu_refcount_lock (list->refcount);
   ldata->next = &(list->head);
   ldata->prev = list->head.prev;
   last->next = ldata;
   list->head.prev = ldata;
   list->count++;
-  monitor_unlock (list->lock);
+  mu_refcount_unlock (list->refcount);
   return 0;
 }
 
@@ -106,13 +116,13 @@ mu_list_prepend (mu_list_t list, void *item)
   if (ldata == NULL)
     return ENOMEM;
   ldata->item = item;
-  monitor_lock (list->lock);
+  mu_refcount_lock (list->refcount);
   ldata->prev = &(list->head);
   ldata->next = list->head.next;
   first->prev = ldata;
   list->head.next = ldata;
   list->count++;
-  monitor_unlock (list->lock);
+  mu_refcount_unlock (list->refcount);
   return 0;
 }
 
@@ -129,7 +139,9 @@ mu_list_count (mu_list_t list, size_t *pcount)
 {
   if (list == NULL || pcount == NULL)
     return EINVAL;
+  mu_refcount_lock (list->refcount);
   *pcount = list->count;
+  mu_refcount_unlock (list->refcount);
   return 0;
 }
 
@@ -140,7 +152,7 @@ mu_list_remove (mu_list_t list, void *item)
   int status = ENOENT;
   if (list == NULL)
     return EINVAL;
-  monitor_lock (list->lock);
+  mu_refcount_lock (list->refcount);
   for (previous = &(list->head), current = list->head.next;
        current != &(list->head); previous = current, current = current->next)
     {
@@ -154,7 +166,7 @@ mu_list_remove (mu_list_t list, void *item)
 	  break;
 	}
     }
-  monitor_unlock (list->lock);
+  mu_refcount_unlock (list->refcount);
   return ENOENT;
 }
 
@@ -166,7 +178,7 @@ mu_list_get (mu_list_t list, size_t index, void **pitem)
   int status = ENOENT;
   if (list == NULL || pitem == NULL)
     return EINVAL;
-  monitor_lock (list->lock);
+  mu_refcount_lock (list->refcount);
   for (current = list->head.next, count = 0; current != &(list->head);
        current = current->next, count++)
     {
@@ -177,23 +189,21 @@ mu_list_get (mu_list_t list, size_t index, void **pitem)
 	  break;
         }
     }
-  monitor_unlock (list->lock);
+  mu_refcount_unlock (list->refcount);
   return status;
 }
 
-static int  l_add_ref              __P ((iterator_t));
-static int  l_release              __P ((iterator_t));
-static int  l_destroy              __P ((iterator_t));
-static int  l_first                __P ((iterator_t));
-static int  l_next                 __P ((iterator_t));
-static int  l_current              __P ((iterator_t, void *));
-static int  l_is_done              __P ((iterator_t));
+static int  l_ref     __P ((iterator_t));
+static void l_destroy __P ((iterator_t *));
+static int  l_first   __P ((iterator_t));
+static int  l_next    __P ((iterator_t));
+static int  l_current __P ((iterator_t, void *));
+static int  l_is_done __P ((iterator_t));
 
 static struct _iterator_vtable l_i_vtable =
 {
   /* Base.  */
-  l_add_ref,
-  l_release,
+  l_ref,
   l_destroy,
 
   l_first,
@@ -214,56 +224,39 @@ mu_list_get_iterator (mu_list_t list, iterator_t *piterator)
   if (l_iterator == NULL)
     return MU_ERROR_NO_MEMORY;
 
-  l_iterator->base.vtable = &l_i_vtable;
-  l_iterator->ref = 1;
+  mu_refcount_create (&l_iterator->refcount);
+  if (l_iterator->refcount == NULL)
+    {
+      free (l_iterator);
+      return MU_ERROR_NO_MEMORY;
+    }
+  /* Incremente the reference count of the list.  */
   l_iterator->list = list;
+  mu_list_ref (list);
   l_iterator->current = NULL;
-  monitor_create (&(l_iterator->lock));
+  l_iterator->base.vtable = &l_i_vtable;
   *piterator = &l_iterator->base;
   return 0;
 }
 
 static int
-l_add_ref (iterator_t iterator)
+l_ref (iterator_t iterator)
 {
-  int status = 0;
   struct l_iterator *l_iterator = (struct l_iterator *)iterator;
-  if (l_iterator)
-    {
-      monitor_lock (l_iterator->lock);
-      status = ++l_iterator->ref;
-      monitor_unlock (l_iterator->lock);
-    }
-  return status;
+  return mu_refcount_inc (l_iterator->refcount);
 }
 
-static int
-l_release (iterator_t iterator)
+static void
+l_destroy (iterator_t *piterator)
 {
-  int status = 0;
-  struct l_iterator *l_iterator = (struct l_iterator *)iterator;
-  if (l_iterator)
+  struct l_iterator *l_iterator = (struct l_iterator *)*piterator;
+  if (mu_refcount_dec (l_iterator->refcount) == 0)
     {
-      monitor_lock (l_iterator->lock);
-      status = --l_iterator->ref;
-      if (status <= 0)
-        {
-          monitor_unlock (l_iterator->lock);
-          l_destroy (iterator);
-          return 0;
-        }
-      monitor_unlock (l_iterator->lock);
+      /* The reference was bumped when creating the iterator.  */
+      mu_list_destroy (&l_iterator->list);
+      mu_refcount_destroy (&l_iterator->refcount);
+      free (l_iterator);
     }
-  return status;
-}
-
-static int
-l_destroy (iterator_t iterator)
-{
-  struct l_iterator *l_iterator = (struct l_iterator *)iterator;
-  monitor_destroy (l_iterator->lock);
-  free (l_iterator);
-  return 0;
 }
 
 static int
@@ -273,9 +266,9 @@ l_first (iterator_t iterator)
   mu_list_t list = l_iterator->list;
   if (list)
     {
-      monitor_lock (list->lock);
+      mu_refcount_lock (list->refcount);
       l_iterator->current = l_iterator->list->head.next;
-      monitor_unlock (list->lock);
+      mu_refcount_unlock (list->refcount);
     }
   return 0;
 }
@@ -289,9 +282,9 @@ l_next (iterator_t iterator)
     {
       if (l_iterator->current)
 	{
-	  monitor_lock (list->lock);
+	  mu_refcount_lock (list->refcount);
 	  l_iterator->current = l_iterator->current->next;
-	  monitor_unlock (list->lock);
+	  mu_refcount_unlock (list->refcount);
 	}
       else
 	l_first (iterator);
@@ -307,9 +300,9 @@ l_is_done (iterator_t iterator)
   mu_list_t list = l_iterator->list;
   if (list)
     {
-      monitor_lock (list->lock);
+      mu_refcount_lock (list->refcount);
       done = (l_iterator->current == &(list->head));
-      monitor_unlock (list->lock);
+      mu_refcount_unlock (list->refcount);
     }
   return done;
 }
@@ -321,12 +314,12 @@ l_current (iterator_t iterator, void *item)
   mu_list_t list = l_iterator->list;
   if (list)
     {
-      monitor_lock (list->lock);
+      mu_refcount_lock (list->refcount);
       if (l_iterator->current)
 	*((void **)item) = l_iterator->current->item;
       else
 	*((void **)item) = NULL;
-      monitor_unlock (list->lock);
+      mu_refcount_unlock (list->refcount);
     }
   return 0;
 }

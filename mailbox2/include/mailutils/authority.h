@@ -37,12 +37,11 @@ extern "C" {
 struct _authority;
 typedef struct _authority *authority_t;
 
-extern int authority_add_ref      __P ((authority_t));
-extern int authority_release      __P ((authority_t));
-extern int authority_destroy      __P ((authority_t));
-extern int authority_set_ticket   __P ((authority_t, ticket_t));
-extern int authority_get_ticket   __P ((authority_t, ticket_t *));
-extern int authority_authenticate __P ((authority_t));
+extern int  authority_ref          __P ((authority_t));
+extern void authority_destroy      __P ((authority_t *));
+extern int  authority_set_ticket   __P ((authority_t, ticket_t));
+extern int  authority_get_ticket   __P ((authority_t, ticket_t *));
+extern int  authority_authenticate __P ((authority_t));
 
 extern int authority_userpass_create __P ((authority_t *));
 

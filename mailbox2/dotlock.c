@@ -34,7 +34,7 @@
 
 #include <mailutils/error.h>
 #include <mailutils/sys/locker.h>
-#include <mailutils/monitor.h>
+#include <mailutils/refcount.h>
 
 /* locking flags */
 #define MU_DOTLOCK_PID    1
@@ -50,50 +50,30 @@
 struct _dotlock
 {
   struct _locker base;
-  monitor_t lock;
+  mu_refcount_t refcount;
   int fd;
-  int ref;
   int refcnt;
   char *fname;
   int flags;
 };
 
 static int
-_dotlock_add_ref (locker_t locker)
+_dotlock_ref (locker_t locker)
 {
-  int status;
   struct _dotlock *dotlock = (struct _dotlock *)locker;
-  monitor_lock (dotlock->lock);
-  status = ++dotlock->ref;
-  monitor_unlock (dotlock->lock);
-  return status;
+  return mu_refcount_inc (dotlock->refcount);
 }
 
-static int
-_dotlock_destroy (locker_t locker)
+static void
+_dotlock_destroy (locker_t *plocker)
 {
-  struct _dotlock *dotlock = (struct _dotlock *)locker;
-  free (dotlock->fname);
-  monitor_destroy (dotlock->lock);
-  free (dotlock);
-  return 0;
-}
-
-static int
-_dotlock_release (locker_t locker)
-{
-  int status;
-  struct _dotlock *dotlock = (struct _dotlock *)locker;
-  monitor_lock (dotlock->lock);
-  status = --dotlock->ref;
-  if (status <= 0)
+  struct _dotlock *dotlock = (struct _dotlock *)*plocker;
+  if (mu_refcount_dec (dotlock->refcount) == 0)
     {
-      monitor_unlock (dotlock->lock);
-      _dotlock_destroy (locker);
-      return 0;
+      mu_refcount_destroy (&dotlock->refcount);
+      free (dotlock->fname);
+      free (dotlock);
     }
-  monitor_unlock (dotlock->lock);
-  return status;
 }
 
 static int
@@ -243,8 +223,7 @@ _dotlock_unlock (locker_t locker)
 
 static struct _locker_vtable _dotlock_vtable =
 {
-  _dotlock_add_ref,
-  _dotlock_release,
+  _dotlock_ref,
   _dotlock_destroy,
 
   _dotlock_lock,
@@ -264,6 +243,13 @@ locker_dotlock_create (locker_t *plocker, const char *filename)
   if (dotlock == NULL)
     return MU_ERROR_NO_MEMORY;
 
+  mu_refcount_create (&dotlock->refcount);
+  if (dotlock->refcount)
+    {
+      free (dotlock);
+      return MU_ERROR_NO_MEMORY;
+    }
+
   dotlock->fname = calloc (strlen (filename) + 5 /*strlen(".lock")*/ + 1, 1);
   if (dotlock->fname == NULL)
     {
@@ -273,11 +259,10 @@ locker_dotlock_create (locker_t *plocker, const char *filename)
   strcpy (dotlock->fname, filename);
   strcat (dotlock->fname, ".lock");
 
-  dotlock->base.vtable = &_dotlock_vtable;
   dotlock->flags = MU_DOTLOCK_PID | MU_DOTLOCK_TIME | MU_DOTLOCK_FCNTL;
   dotlock->fd = -1;
-  dotlock->ref = 1;
   dotlock->refcnt = 0;
+  dotlock->base.vtable = &_dotlock_vtable;
   *plocker = &dotlock->base;
   return 0;
 }

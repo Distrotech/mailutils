@@ -18,7 +18,7 @@
 #ifndef MAILUTILS_SYS_TCP_H
 #define MAILUTILS_SYS_TCP_H
 
-#include <mailutils/monitor.h>
+#include <mailutils/refcount.h>
 #include <mailutils/sys/stream.h>
 
 enum _tcp_state
@@ -33,14 +33,13 @@ enum _tcp_state
 struct _tcp_instance
 {
   struct _stream base;
-  int ref;
+  mu_refcount_t refcount;
   int  fd;
   char *host;
   int  port;
   int  state;
   int flags;
   unsigned long address;
-  monitor_t lock;
 };
 
 #endif /* _MAILUTILS_SYS_TCP_H */

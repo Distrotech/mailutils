@@ -22,7 +22,6 @@
 #  include <dmalloc.h>
 #endif
 
-#include <mailutils/monitor.h>
 #include <mailutils/list.h>
 #include <mailutils/observable.h>
 

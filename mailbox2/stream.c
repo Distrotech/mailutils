@@ -24,30 +24,24 @@
 #include <mailutils/sys/stream.h>
 
 int
-stream_add_ref (stream_t stream)
+stream_ref (stream_t stream)
 {
   if (stream == NULL || stream->vtable == NULL
-      || stream->vtable->add_ref == NULL)
+      || stream->vtable->ref == NULL)
     return MU_ERROR_NOT_SUPPORTED;
-  return stream->vtable->add_ref (stream);
+  return stream->vtable->ref (stream);
 }
 
-int
-stream_release (stream_t stream)
+void
+stream_destroy (stream_t *pstream)
 {
-  if (stream == NULL || stream->vtable == NULL
-      || stream->vtable->release == NULL)
-    return MU_ERROR_NOT_SUPPORTED;
-  return stream->vtable->release (stream);
-}
-
-int
-stream_destroy (stream_t stream)
-{
-  if (stream == NULL || stream->vtable == NULL
-      || stream->vtable->destroy == NULL)
-    return MU_ERROR_NOT_SUPPORTED;
-  return stream->vtable->destroy (stream);
+  if (pstream && *pstream)
+    {
+      stream_t stream = *pstream;
+      if (stream->vtable && stream->vtable->destroy)
+	stream->vtable->destroy (pstream);
+      *pstream = NULL;
+    }
 }
 
 int
@@ -157,7 +151,6 @@ stream_get_flags (stream_t stream, int *flags)
     return MU_ERROR_NOT_SUPPORTED;
   return stream->vtable->get_flags (stream, flags);
 }
-
 
 int
 stream_get_state (stream_t stream, enum stream_state *state)

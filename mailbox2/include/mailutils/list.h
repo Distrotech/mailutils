@@ -36,15 +36,16 @@ extern "C" {
 struct _list;
 typedef struct _list *mu_list_t;
 
-extern int mu_list_create       __P ((mu_list_t *));
-extern int mu_list_destroy      __P ((mu_list_t));
-extern int mu_list_append       __P ((mu_list_t, void *));
-extern int mu_list_prepend      __P ((mu_list_t, void *));
-extern int mu_list_is_empty     __P ((mu_list_t));
-extern int mu_list_count        __P ((mu_list_t, size_t *));
-extern int mu_list_remove       __P ((mu_list_t, void *));
-extern int mu_list_get          __P ((mu_list_t, size_t, void **));
-extern int mu_list_get_iterator __P ((mu_list_t, iterator_t *));
+extern int  mu_list_create       __P ((mu_list_t *));
+extern int  mu_list_ref          __P ((mu_list_t));
+extern void mu_list_destroy      __P ((mu_list_t *));
+extern int  mu_list_append       __P ((mu_list_t, void *));
+extern int  mu_list_prepend      __P ((mu_list_t, void *));
+extern int  mu_list_is_empty     __P ((mu_list_t));
+extern int  mu_list_count        __P ((mu_list_t, size_t *));
+extern int  mu_list_remove       __P ((mu_list_t, void *));
+extern int  mu_list_get          __P ((mu_list_t, size_t, void **));
+extern int  mu_list_get_iterator __P ((mu_list_t, iterator_t *));
 
 #ifdef __cplusplus
 }

@@ -51,18 +51,12 @@ observable_create (observable_t *pobservable)
   return 0;
 }
 
-int
-observable_release (observable_t observable)
+void
+observable_destroy (observable_t *pobservable)
 {
-  (void)observable;
-  return 1;
-}
-
-int
-observable_destroy (observable_t observable)
-{
-  if (observable)
+  if (pobservable && *pobservable)
     {
+      observable_t observable = *pobservable;
       iterator_t iterator = NULL;
       int status = mu_list_get_iterator (observable->list, &iterator);
       if (status == 0)
@@ -75,16 +69,16 @@ observable_destroy (observable_t observable)
 	      iterator_current (iterator, (void **)&info);
 	      if (info)
 		{
-		  observer_release (info->observer);
+		  observer_destroy (&info->observer);
 		  free (info);
 		}
 	    }
-	  iterator_release (iterator);
+	  iterator_destroy (&iterator);
 	}
-      mu_list_destroy (observable->list);
+      mu_list_destroy (&observable->list);
       free (observable);
+      *pobservable = NULL;
     }
-  return 0;
 }
 
 int
@@ -124,7 +118,7 @@ observable_detach (observable_t observable, observer_t observer)
           break;
         }
     }
-  iterator_release (iterator);
+  iterator_destroy (&iterator);
   if (found)
     {
       status = mu_list_remove (observable->list, info);
@@ -155,6 +149,6 @@ observable_notify_all (observable_t observable, struct event evt)
 	  status |= observer_action (info->observer, evt);
         }
     }
-  iterator_release (iterator);
+  iterator_destroy (&iterator);
   return status;
 }

@@ -26,14 +26,14 @@
 #include <termios.h>
 
 #include <mailutils/error.h>
-#include <mailutils/monitor.h>
+#include <mailutils/refcount.h>
 #include <mailutils/sys/ticket.h>
 
 struct _prompt_ticket
 {
   struct _ticket base;
   int ref;
-  monitor_t lock;
+  mu_refcount_t refcount;
 };
 
 static void
@@ -53,40 +53,21 @@ echo_on(struct termios *stored_settings)
 }
 
 static int
-_prompt_add_ref (ticket_t ticket)
+_prompt_ref (ticket_t ticket)
 {
-  int status;
   struct _prompt_ticket *prompt = (struct _prompt_ticket *)ticket;
-  monitor_lock (prompt->lock);
-  status = ++prompt->ref;
-  monitor_unlock (prompt->lock);
-  return status;
+  return mu_refcount_inc (prompt->refcount);
 }
 
-static int
-_prompt_destroy (ticket_t ticket)
+static void
+_prompt_destroy (ticket_t *pticket)
 {
-  struct _prompt_ticket *prompt = (struct _prompt_ticket *)ticket;
-  monitor_destroy (prompt->lock);
-  free (prompt);
-  return 0;
-}
-
-static int
-_prompt_release (ticket_t ticket)
-{
-  int status;
-  struct _prompt_ticket *prompt = (struct _prompt_ticket *)ticket;
-  monitor_lock (prompt->lock);
-  status = --prompt->ref;
-  if (status <= 0)
+  struct _prompt_ticket *prompt = (struct _prompt_ticket *)*pticket;
+  if (mu_refcount_dec (prompt->refcount) == 0)
     {
-      monitor_unlock (prompt->lock);
-      _prompt_destroy (ticket);
-      return 0;
+      mu_refcount_destroy (&prompt->refcount);
+      free (prompt);
     }
-  monitor_unlock (prompt->lock);
-  return status;
 }
 
 static int
@@ -119,8 +100,7 @@ _prompt_pop (ticket_t ticket, const char *challenge, char **parg)
 
 static struct _ticket_vtable _prompt_vtable =
 {
-  _prompt_add_ref,
-  _prompt_release,
+  _prompt_ref,
   _prompt_destroy,
 
   _prompt_pop,
@@ -138,10 +118,14 @@ ticket_prompt_create (ticket_t *pticket)
   if (prompt == NULL)
     return MU_ERROR_NO_MEMORY;
 
-  prompt->base.vtable = &_prompt_vtable;
-  prompt->ref = 1;
-  monitor_create (&(prompt->lock));
+  mu_refcount_create (&prompt->refcount);
+  if (prompt->refcount == NULL)
+    {
+      free (prompt);
+      return MU_ERROR_NO_MEMORY;
+    }
   *pticket = &prompt->base;
+  prompt->base.vtable = &_prompt_vtable;
   return 0;
 }
 

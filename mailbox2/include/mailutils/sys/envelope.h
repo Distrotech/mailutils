@@ -38,12 +38,14 @@ extern "C" {
 
 struct _envelope_vtable
 {
-  int (*add_ref)   __P ((envelope_t));
-  int (*release)   __P ((envelope_t));
-  int (*destroy)   __P ((envelope_t));
-  int (*sender)    __P ((envelope_t, address_t *));
-  int (*recipient) __P ((envelope_t, address_t *));
-  int (*date)      __P ((envelope_t, struct tm *, struct mu_timezone *));
+  int  (*ref)       __P ((envelope_t));
+  void (*destroy)   __P ((envelope_t *));
+  int  (*get_sender)    __P ((envelope_t, address_t *));
+  int  (*set_sender)    __P ((envelope_t, address_t));
+  int  (*get_recipient) __P ((envelope_t, address_t *));
+  int  (*set_recipient) __P ((envelope_t, address_t));
+  int  (*get_date)      __P ((envelope_t, struct tm *, struct mu_timezone *));
+  int  (*set_date)      __P ((envelope_t, struct tm *, struct mu_timezone *));
 };
 
 struct _envelope

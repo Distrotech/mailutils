@@ -24,30 +24,24 @@
 #include <mailutils/sys/message.h>
 
 int
-message_add_ref (message_t msg)
+message_ref (message_t msg)
 {
   if (msg == NULL || msg->vtable == NULL
-      || msg->vtable->add_ref == NULL)
+      || msg->vtable->ref == NULL)
     return MU_ERROR_NOT_SUPPORTED;
-  return msg->vtable->add_ref (msg);
+  return msg->vtable->ref (msg);
 }
 
-int
-message_release (message_t msg)
+void
+message_destroy (message_t *pmsg)
 {
-  if (msg == NULL || msg->vtable == NULL
-      || msg->vtable->release == NULL)
-    return MU_ERROR_NOT_SUPPORTED;
-  return msg->vtable->release (msg);
-}
-
-int
-message_destroy (message_t msg)
-{
-  if (msg == NULL || msg->vtable == NULL
-      || msg->vtable->destroy == NULL)
-    return MU_ERROR_NOT_SUPPORTED;
-  return msg->vtable->destroy (msg);
+  if (pmsg && *pmsg)
+    {
+      message_t msg = *pmsg;
+      if (msg->vtable && msg->vtable->destroy)
+	msg->vtable->destroy (pmsg);
+      *pmsg = NULL;
+    }
 }
 
 int

@@ -36,13 +36,12 @@ extern "C" {
 struct _observable;
 typedef struct _observable *observable_t;
 
-extern int observable_create     __P ((observable_t *));
-extern int observable_release    __P ((observable_t));
-extern int observable_destroy    __P ((observable_t));
+extern int  observable_create     __P ((observable_t *));
+extern void observable_destroy    __P ((observable_t *));
 
-extern int observable_attach     __P ((observable_t, int, observer_t));
-extern int observable_detach     __P ((observable_t, observer_t));
-extern int observable_notify_all __P ((observable_t, struct event));
+extern int  observable_attach     __P ((observable_t, int, observer_t));
+extern int  observable_detach     __P ((observable_t, observer_t));
+extern int  observable_notify_all __P ((observable_t, struct event));
 
 #ifdef __cplusplus
 }

@@ -352,7 +352,7 @@ com_capa (char *arg)
 	  printf ("Capa: %s\n", capa);
 	  free (capa);
 	}
-      iterator_destroy (iterator);
+      iterator_destroy (&iterator);
     }
   return status;
 }
@@ -377,7 +377,7 @@ com_uidl (char *arg)
 	      printf ("Msg: %d UIDL: %s\n", msgno, uidl);
 	      free (uidl);
 	    }
-	  iterator_destroy (uidl_iterator);
+	  iterator_destroy (&uidl_iterator);
 	}
     }
   else
@@ -411,7 +411,7 @@ com_list (char *arg)
 	      pop3_list_current (list_iterator, &msgno, &size);
 	      printf ("Msg: %d Size: %d\n", msgno, size);
 	    }
-	  iterator_destroy (list_iterator);
+	  iterator_destroy (&list_iterator);
 	}
     }
   else
@@ -577,7 +577,7 @@ com_top (char *arg)
       char buf[128];
       while ((stream_readline (stream, buf, sizeof buf, &n) == 0)  && n)
 	printf ("%s", buf);
-      stream_destroy (stream);
+      stream_destroy (&stream);
     }
   return 0;
 }
@@ -602,7 +602,7 @@ com_retr (char *arg)
       char buf[128];
       while ((stream_readline (stream, buf, sizeof buf, &n) == 0)  && n)
 	printf ("%s", buf);
-      stream_destroy (stream);
+      stream_destroy (&stream);
     }
   return 0;
 }
@@ -639,7 +639,7 @@ com_disconnect (char *arg)
   if (pop3)
     {
       pop3_disconnect (pop3);
-      pop3_destroy (pop3);
+      pop3_destroy (&pop3);
       pop3 = NULL;
     }
   return 0;
@@ -674,7 +674,7 @@ com_exit (char *arg)
   if (pop3)
     {
       pop3_disconnect (pop3);
-      pop3_destroy (pop3);
+      pop3_destroy (&pop3);
     }
   done = 1;
   return 0;

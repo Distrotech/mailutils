@@ -23,30 +23,24 @@
 #include <mailutils/sys/authority.h>
 
 int
-authority_add_ref (authority_t authority)
+authority_ref (authority_t authority)
 {
   if (authority == NULL || authority->vtable == NULL
-      || authority->vtable->add_ref == NULL)
+      || authority->vtable->ref == NULL)
     return MU_ERROR_NOT_SUPPORTED;
-  return authority->vtable->add_ref (authority);
+  return authority->vtable->ref (authority);
 }
 
-int
-authority_release (authority_t authority)
+void
+authority_destroy (authority_t *pauthority)
 {
-  if (authority == NULL || authority->vtable == NULL
-      || authority->vtable->release == NULL)
-    return MU_ERROR_NOT_SUPPORTED;
-  return authority->vtable->release (authority);
-}
-
-int
-authority_destroy (authority_t authority)
-{
-  if (authority == NULL || authority->vtable == NULL
-      || authority->vtable->destroy == NULL)
-    return MU_ERROR_NOT_SUPPORTED;
-  return authority->vtable->destroy (authority);
+  if (pauthority && *pauthority)
+    {
+      authority_t authority = *pauthority;
+      if (authority->vtable && authority->vtable->destroy)
+	authority->vtable->destroy (pauthority);
+      *pauthority = NULL;
+    }
 }
 
 int

@@ -35,17 +35,17 @@ extern "C" {
 struct _property;
 typedef struct _property *property_t;
 
-extern int property_create   __P ((property_t *));
-extern int property_destroy  __P ((property_t));
+extern int  property_create   __P ((property_t *));
+extern void property_destroy  __P ((property_t *));
 
-extern int property_set_value __P ((property_t, const char *, const char *,
-				    int));
-extern int property_get_value __P ((property_t, const char *, char * const *));
+extern int  property_set_value __P ((property_t, const char *, const char *,
+				     int));
+extern int  property_get_value __P ((property_t, const char *, char * const *));
 
 /* Helper functions.  */
-extern int property_set  __P ((property_t, const char *));
-extern int property_unset __P ((property_t, const char *));
-extern int property_is_set __P ((property_t, const char *));
+extern int  property_set  __P ((property_t, const char *));
+extern int  property_unset __P ((property_t, const char *));
+extern int  property_is_set __P ((property_t, const char *));
 
 #ifdef __cplusplus
 }

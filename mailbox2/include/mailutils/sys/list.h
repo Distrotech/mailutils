@@ -25,7 +25,7 @@
 #include <sys/types.h>
 
 #include <mailutils/list.h>
-#include <mailutils/monitor.h>
+#include <mailutils/refcount.h>
 #include <mailutils/sys/iterator.h>
 
 #ifndef __P
@@ -52,16 +52,15 @@ struct _list
   struct mu_list_data head;
   size_t count;
   size_t index;
-  monitor_t lock;
+  mu_refcount_t refcount;
 };
 
 struct l_iterator
 {
   struct _iterator base;
-  unsigned int ref;
   mu_list_t list;
   struct mu_list_data *current;
-  monitor_t lock;
+  mu_refcount_t refcount;
 };
 
 

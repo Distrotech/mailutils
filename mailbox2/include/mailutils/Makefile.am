@@ -27,6 +27,7 @@ pkginclude_HEADERS = \
  parse822.h   \
  pop3.h       \
  property.h   \
+ refcount.h   \
  stream.h     \
  ticket.h     \
  url.h

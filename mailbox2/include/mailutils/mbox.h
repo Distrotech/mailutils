@@ -18,8 +18,8 @@
 #ifndef _MAILUTILS_MBOX_H
 #define _MAILUTILS_MBOX_H
 
-#include <mailutils/message.h>
-#include <mailutils/observable.h>
+#include <mailutils/stream.h>
+#include <mailutils/attribute.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -37,33 +37,49 @@ struct _mbox;
 typedef struct _mbox *mbox_t;
 
 
-extern int mbox_create          __P ((mbox_t *));
-extern int mbox_destroy         __P ((mbox_t));
+extern int  mbox_create          __P ((mbox_t *));
+extern void mbox_destroy         __P ((mbox_t *));
 
-extern int mbox_uidvalidity     __P ((mbox_t, unsigned long *));
-extern int mbox_uidnext         __P ((mbox_t, unsigned long));
+extern int  mbox_get_uidvalidity __P ((mbox_t, unsigned long *));
+extern int  mbox_get_uidnext     __P ((mbox_t, unsigned long));
 
-extern int mbox_open            __P ((mbox_t, const char *, int));
-extern int mbox_close           __P ((mbox_t));
+extern int  mbox_open            __P ((mbox_t, const char *, int));
+extern int  mbox_close           __P ((mbox_t));
 
-extern int mbox_get_message     __P ((mbox_t, unsigned int, message_t *));
-extern int mbox_get_envelope    __P ((mbox_t, unsigned int, envelope_t *));
-extern int mbox_get_header      __P ((mbox_t, unsigned int, header_t *));
-extern int mbox_get_body        __P ((mbox_t, unsigned int, body_t *));
+extern int  mbox_get_attribute   __P ((mbox_t, unsigned int, attribute_t *));
+extern int  mbox_get_uid         __P ((mbox_t, unsigned int, unsigned long *));
 
-extern int mbox_get_flags       __P ((mbox_t, unsigned int, int *));
+extern int  mbox_get_separator   __P ((mbox_t, unsigned int, char **));
+extern int  mbox_set_separator   __P ((mbox_t, unsigned int, const char *));
 
-extern int mbox_get_size        __P ((mbox_t, unsigned long *));
+extern int  mbox_get_hstream     __P ((mbox_t, unsigned int, stream_t *));
+extern int  mbox_set_hstream     __P ((mbox_t, unsigned int, stream_t));
+extern int  mbox_get_hsize       __P ((mbox_t, unsigned int, unsigned *));
+extern int  mbox_get_hlines      __P ((mbox_t, unsigned int, unsigned *));
 
-extern int mbox_save_attributes __P ((mbox_t));
-extern int mbox_expunge         __P ((mbox_t));
-extern int mbox_is_modified     __P ((mbox_t));
+extern int  mbox_get_bstream     __P ((mbox_t, unsigned int, stream_t *));
+extern int  mbox_set_bstream     __P ((mbox_t, unsigned int, stream_t));
+extern int  mbox_get_bsize       __P ((mbox_t, unsigned int, unsigned *));
+extern int  mbox_get_blines      __P ((mbox_t, unsigned int, unsigned *));
 
-extern int mbox_scan            __P ((mbox_t, unsigned int, unsigned int *));
-extern int mbox_messages_count  __P ((mbox_t, unsigned int *));
-extern int mbox_get_obervable   __P ((mbox_t, observable_t *));
+extern int  mbox_get_size        __P ((mbox_t, unsigned long *));
 
-extern int mbox_append          __P ((mbox_t, message_t));
+extern int  mbox_save_attributes __P ((mbox_t));
+extern int  mbox_mark_deleted    __P ((mbox_t, unsigned int));
+extern int  mbox_unmark_deleted  __P ((mbox_t, unsigned int));
+extern int  mbox_expunge         __P ((mbox_t));
+extern int  mbox_is_modified     __P ((mbox_t));
+
+extern int  mbox_set_progress_cb __P ((mbox_t, int (*) __P ((int, void *)), void *));
+extern int  mbox_set_newmsg_cb   __P ((mbox_t, int (*) __P ((int, void *)), void *));
+extern int  mbox_newmsg_cb       __P ((mbox_t, int));
+extern int  mbox_progress_cb     __P ((mbox_t, int));
+
+extern int  mbox_scan            __P ((mbox_t, unsigned int, unsigned int *));
+extern int  mbox_messages_count  __P ((mbox_t, unsigned int *));
+
+extern int  mbox_append          __P ((mbox_t, const char *, stream_t));
+extern int  mbox_append_hb       __P ((mbox_t, const char *, stream_t, stream_t));
 
 
 #ifdef __cplusplus

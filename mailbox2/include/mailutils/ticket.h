@@ -36,13 +36,12 @@ extern "C" {
 struct _ticket;
 typedef struct _ticket *ticket_t;
 
-extern int ticket_add_ref __P ((ticket_t));
-extern int ticket_release __P ((ticket_t));
-extern int ticket_destroy __P ((ticket_t));
+extern int  ticket_ref __P ((ticket_t));
+extern void ticket_destroy __P ((ticket_t *));
 
-extern int ticket_pop     __P ((ticket_t, const char *, char **));
+extern int  ticket_pop     __P ((ticket_t, const char *, char **));
 
-extern int ticket_prompt_create __P ((ticket_t *));
+extern int  ticket_prompt_create __P ((ticket_t *));
 
 #ifdef __cplusplus
 }

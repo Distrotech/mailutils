@@ -26,34 +26,28 @@
 #include <mailutils/sys/header.h>
 
 int
-(header_add_ref) (header_t header)
+header_ref (header_t header)
 {
   if (header == NULL || header->vtable == NULL
-      || header->vtable->add_ref == NULL)
+      || header->vtable->ref == NULL)
     return MU_ERROR_NOT_SUPPORTED;
-  return header->vtable->add_ref (header);
+  return header->vtable->ref (header);
+}
+
+void
+header_destroy (header_t *pheader)
+{
+  if (pheader && *pheader)
+    {
+      header_t header = *pheader;
+      if (header->vtable && header->vtable->destroy)
+	header->vtable->destroy (pheader);
+      *pheader = NULL;
+    }
 }
 
 int
-(header_release) (header_t header)
-{
-  if (header == NULL || header->vtable == NULL
-      || header->vtable->release == NULL)
-    return MU_ERROR_NOT_SUPPORTED;
-  return header->vtable->release (header);
-}
-
-int
-(header_destroy) (header_t header)
-{
-  if (header == NULL || header->vtable == NULL
-      || header->vtable->destroy == NULL)
-    return MU_ERROR_NOT_SUPPORTED;
-  return header->vtable->destroy (header);
-}
-
-int
-(header_is_modified) (header_t header)
+header_is_modified (header_t header)
 {
   if (header == NULL || header->vtable == NULL
       || header->vtable->is_modified == NULL)
@@ -62,7 +56,7 @@ int
 }
 
 int
-(header_clear_modified) (header_t header)
+header_clear_modified (header_t header)
 {
   if (header == NULL || header->vtable == NULL
       || header->vtable->clear_modified == NULL)
@@ -71,8 +65,7 @@ int
 }
 
 int
-(header_set_value) (header_t header, const char *fn, const char *fv,
-		    int replace)
+header_set_value (header_t header, const char *fn, const char *fv, int replace)
 {
   if (header == NULL || header->vtable == NULL
       || header->vtable->set_value == NULL)
@@ -81,8 +74,8 @@ int
 }
 
 int
-(header_get_value) (header_t header, const char *name, char *buffer,
-		    size_t buflen, size_t *pn)
+header_get_value (header_t header, const char *name, char *buffer,
+		  size_t buflen, size_t *pn)
 {
   if (header == NULL || header->vtable == NULL
       || header->vtable->get_value == NULL)
@@ -108,7 +101,7 @@ header_aget_value (header_t header, const char *name, char **pvalue)
 }
 
 int
-(header_get_field_count) (header_t header, size_t *pcount)
+header_get_field_count (header_t header, size_t *pcount)
 {
   if (header == NULL || header->vtable == NULL
       || header->vtable->get_field_count == NULL)
@@ -117,8 +110,8 @@ int
 }
 
 int
-(header_get_field_name) (header_t header, size_t num, char *buf,
-			 size_t buflen, size_t *pn)
+header_get_field_name (header_t header, size_t num, char *buf,
+		       size_t buflen, size_t *pn)
 {
   if (header == NULL || header->vtable == NULL
       || header->vtable->get_field_name == NULL)
@@ -144,8 +137,8 @@ header_aget_field_name (header_t header, size_t num, char **pvalue)
 }
 
 int
-(header_get_field_value) (header_t header, size_t num, char *buf,
-			  size_t buflen, size_t *pn)
+header_get_field_value (header_t header, size_t num, char *buf,
+			size_t buflen, size_t *pn)
 {
   if (header == NULL || header->vtable == NULL
       || header->vtable->get_field_value == NULL)
@@ -171,7 +164,7 @@ header_aget_field_value (header_t header, size_t num, char **pvalue)
 }
 
 int
-(header_get_lines) (header_t header, size_t *plines)
+header_get_lines (header_t header, size_t *plines)
 {
   if (header == NULL || header->vtable == NULL
       || header->vtable->get_lines == NULL)
@@ -180,7 +173,7 @@ int
 }
 
 int
-(header_get_size) (header_t header, size_t *psize)
+header_get_size (header_t header, size_t *psize)
 {
   if (header == NULL || header->vtable == NULL
       || header->vtable->get_size == NULL)
@@ -189,7 +182,7 @@ int
 }
 
 int
-(header_get_stream) (header_t header, stream_t *pstream)
+header_get_stream (header_t header, stream_t *pstream)
 {
   if (header == NULL || header->vtable == NULL
       || header->vtable->get_stream == NULL)

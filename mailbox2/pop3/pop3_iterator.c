@@ -26,19 +26,17 @@
 #include <stdio.h>
 #include <mailutils/sys/pop3.h>
 
-static int  p_add_ref              __P ((iterator_t));
-static int  p_release              __P ((iterator_t));
-static int  p_destroy              __P ((iterator_t));
-static int  p_first                __P ((iterator_t));
-static int  p_next                 __P ((iterator_t));
-static int  p_current              __P ((iterator_t, void *));
-static int  p_is_done              __P ((iterator_t));
+static int   p_ref     __P ((iterator_t));
+static void  p_destroy __P ((iterator_t *));
+static int   p_first   __P ((iterator_t));
+static int   p_next    __P ((iterator_t));
+static int   p_current __P ((iterator_t, void *));
+static int   p_is_done __P ((iterator_t));
 
 static struct _iterator_vtable p_i_vtable =
 {
   /* Base.  */
-  p_add_ref,
-  p_release,
+  p_ref,
   p_destroy,
 
   p_first,
@@ -56,55 +54,32 @@ pop3_iterator_create (pop3_t pop3, iterator_t *piterator)
   if (p_iterator == NULL)
     return MU_ERROR_NO_MEMORY;
 
-  p_iterator->base.vtable = &p_i_vtable;
-  p_iterator->ref = 1;
+  mu_refcount_create (&p_iterator->refcount);
+  if (p_iterator->refcount == NULL)
+    {
+      free (p_iterator);
+      return MU_ERROR_NO_MEMORY;
+    }
   p_iterator->item = NULL;
   p_iterator->done = 0;
   p_iterator->pop3= pop3;
-  monitor_create (&p_iterator->lock);
+  p_iterator->base.vtable = &p_i_vtable;
   *piterator = &p_iterator->base;
   return 0;
 }
 
 static int
-p_add_ref (iterator_t iterator)
+p_ref (iterator_t iterator)
 {
-  int status = 0;
   struct p_iterator *p_iterator = (struct p_iterator *)iterator;
-  if (p_iterator)
-    {
-      monitor_lock (p_iterator->lock);
-      status = ++p_iterator->ref;
-      monitor_unlock (p_iterator->lock);
-    }
-  return status;
+  return mu_refcount_inc (p_iterator->refcount);
 }
 
-static int
-p_release (iterator_t iterator)
+static void
+p_destroy (iterator_t *piterator)
 {
-  int status = 0;
-  struct p_iterator *p_iterator = (struct p_iterator *)iterator;
-  if (p_iterator)
-    {
-      monitor_lock (p_iterator->lock);
-      status = --p_iterator->ref;
-      if (status <= 0)
-	{
-	  monitor_unlock (p_iterator->lock);
-	  p_destroy (iterator);
-	  return 0;
-	}
-      monitor_unlock (p_iterator->lock);
-    }
-  return status;
-}
-
-static int
-p_destroy (iterator_t iterator)
-{
-  struct p_iterator *p_iterator = (struct p_iterator *)iterator;
-  if (p_iterator)
+  struct p_iterator *p_iterator = (struct p_iterator *)*piterator;
+  if (mu_refcount_dec (p_iterator->refcount) == 0)
     {
       if (!p_iterator->done)
 	{
@@ -117,10 +92,9 @@ p_destroy (iterator_t iterator)
       if (p_iterator->item)
 	free (p_iterator->item);
       p_iterator->pop3->state = POP3_NO_STATE;
-      monitor_destroy (p_iterator->lock);
+      mu_refcount_destroy (&p_iterator->refcount);
       free (p_iterator);
     }
-  return 0;
 }
 
 static int
@@ -138,7 +112,7 @@ p_next (iterator_t iterator)
 
   if (p_iterator)
     {
-      monitor_lock (p_iterator->lock);
+      mu_refcount_lock (p_iterator->refcount);
       if (!p_iterator->done)
 	{
 	  /* The first readline will not consume the buffer, we just need to
@@ -170,7 +144,7 @@ p_next (iterator_t iterator)
 		}
 	    }
 	}
-      monitor_unlock (p_iterator->lock);
+      mu_refcount_unlock (p_iterator->refcount);
     }
   return status;
 }
@@ -182,9 +156,9 @@ p_is_done (iterator_t iterator)
   int status = 1;
   if (p_iterator)
     {
-      monitor_lock (p_iterator->lock);
+      mu_refcount_lock (p_iterator->refcount);
       status = p_iterator->done;
-      monitor_unlock (p_iterator->lock);
+      mu_refcount_unlock (p_iterator->refcount);
     }
   return status;
 }
@@ -195,13 +169,13 @@ p_current (iterator_t iterator, void *item)
   struct p_iterator *p_iterator = (struct p_iterator *)iterator;
   if (p_iterator)
     {
-      monitor_lock (p_iterator->lock);
+      mu_refcount_lock (p_iterator->refcount);
       if (item)
 	{
 	  *((char **)item) = p_iterator->item;
 	  p_iterator->item = NULL;
 	}
-      monitor_unlock (p_iterator->lock);
+      mu_refcount_unlock (p_iterator->refcount);
     }
   return 0;
 }

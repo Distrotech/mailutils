@@ -38,11 +38,10 @@ extern "C" {
 
 struct _ticket_vtable
 {
-  int (*add_ref) __P ((ticket_t));
-  int (*release) __P ((ticket_t));
-  int (*destroy) __P ((ticket_t));
+  int  (*ref)     __P ((ticket_t));
+  void (*destroy) __P ((ticket_t *));
 
-  int (*pop)     __P ((ticket_t, const char *, char **));
+  int  (*pop)     __P ((ticket_t, const char *, char **));
 };
 
 struct _ticket

@@ -27,41 +27,23 @@
 #include <mailutils/sys/memstream.h>
 
 static int
-_memory_add_ref (stream_t stream)
+_memory_ref (stream_t stream)
 {
-  int status;
   struct _memory_stream *mem = (struct _memory_stream *)stream;
-  monitor_lock (mem->lock);
-  status = ++mem->ref;
-  monitor_unlock (mem->lock);
-  return status;
+  return mu_refcount_inc (mem->refcount);
 }
 
-static int
-_memory_destroy (stream_t stream)
+static void
+_memory_destroy (stream_t *pstream)
 {
-  struct _memory_stream *mem = (struct _memory_stream *)stream;
-  if (mem && mem->ptr != NULL)
-    free (mem->ptr);
-  free (mem);
-  return 0;
-}
-
-static int
-_memory_release (stream_t stream)
-{
-  int status;
-  struct _memory_stream *mem = (struct _memory_stream *)stream;
-  monitor_lock (mem->lock);
-  status = --mem->ref;
-  if (status <= 0)
+  struct _memory_stream *mem = (struct _memory_stream *)*pstream;
+  if (mu_refcount_dec (mem->refcount) == 0)
     {
-      monitor_unlock (mem->lock);
-      _memory_destroy (stream);
-      return 0;
+      if (mem && mem->ptr != NULL)
+	free (mem->ptr);
+      mu_refcount_destroy (&mem->refcount);
+      free (mem);
     }
-  monitor_unlock (mem->lock);
-  return status;
 }
 
 static int
@@ -69,6 +51,8 @@ _memory_read (stream_t stream, void *optr, size_t osize, size_t *nbytes)
 {
   struct _memory_stream *mem = (struct _memory_stream *)stream;
   size_t n = 0;
+
+  mu_refcount_lock (mem->refcount);
   if (mem->ptr != NULL && (mem->offset < (off_t)mem->size))
     {
       n = ((mem->offset + osize) > mem->size) ?
@@ -76,6 +60,7 @@ _memory_read (stream_t stream, void *optr, size_t osize, size_t *nbytes)
       memcpy (optr, mem->ptr + mem->offset, n);
       mem->offset += n;
     }
+  mu_refcount_unlock (mem->refcount);
   if (nbytes)
     *nbytes = n;
   return 0;
@@ -87,6 +72,7 @@ _memory_readline (stream_t stream, char *optr, size_t osize, size_t *nbytes)
   struct _memory_stream *mem = (struct _memory_stream *)stream;
   char *nl;
   size_t n = 0;
+  mu_refcount_lock (mem->refcount);
   if (mem->ptr && (mem->offset < (off_t)mem->size))
     {
       /* Save space for the null byte.  */
@@ -98,6 +84,7 @@ _memory_readline (stream_t stream, char *optr, size_t osize, size_t *nbytes)
       optr[n] = '\0';
       mem->offset += n;
     }
+  mu_refcount_unlock (mem->refcount);
   if (nbytes)
     *nbytes = n;
   return 0;
@@ -108,6 +95,7 @@ _memory_write (stream_t stream, const void *iptr, size_t isize, size_t *nbytes)
 {
   struct _memory_stream *mem = (struct _memory_stream *)stream;
 
+  mu_refcount_lock (mem->refcount);
   /* Bigger we have to realloc.  */
   if (mem->size < (mem->offset + isize))
     {
@@ -120,6 +108,7 @@ _memory_write (stream_t stream, const void *iptr, size_t isize, size_t *nbytes)
 
   memcpy (mem->ptr + mem->offset, iptr, isize);
   mem->offset += isize;
+  mu_refcount_unlock (mem->refcount);
   if (nbytes)
     *nbytes = isize;
   return 0;
@@ -130,6 +119,7 @@ _memory_truncate (stream_t stream, off_t len)
 {
   struct _memory_stream *mem = (struct _memory_stream *)stream;
 
+  mu_refcount_lock (mem->refcount);
   if (len == 0)
     {
       free (mem->ptr);
@@ -144,6 +134,7 @@ _memory_truncate (stream_t stream, off_t len)
     }
   mem->size = len;
   mem->offset = len;
+  mu_refcount_unlock (mem->refcount);
   return 0;
 }
 
@@ -151,8 +142,10 @@ static int
 _memory_get_size (stream_t stream, off_t *psize)
 {
   struct _memory_stream *mem = (struct _memory_stream *)stream;
+  mu_refcount_lock (mem->refcount);
   if (psize)
     *psize = mem->size;
+  mu_refcount_unlock (mem->refcount);
   return 0;
 }
 
@@ -160,11 +153,13 @@ static int
 _memory_close (stream_t stream)
 {
   struct _memory_stream *mem = (struct _memory_stream *)stream;
+  mu_refcount_lock (mem->refcount);
   if (mem->ptr)
     free (mem->ptr);
   mem->ptr = NULL;
   mem->size = 0;
   mem->offset = 0;
+  mu_refcount_unlock (mem->refcount);
   return 0;
 }
 
@@ -278,6 +273,7 @@ _memory_open (stream_t stream, const char *filename, int port, int flags)
   (void)filename; /* Ignored.  */
   (void)flags; /* Ignored.  */
 
+  mu_refcount_lock (mem->refcount);
   /* Close any previous file.  */
   if (mem->ptr)
     free (mem->ptr);
@@ -285,13 +281,13 @@ _memory_open (stream_t stream, const char *filename, int port, int flags)
   mem->size = 0;
   mem->offset = 0;
   mem->flags = flags;
+  mu_refcount_unlock (mem->refcount);
   return 0;
 }
 
 static struct _stream_vtable _mem_vtable =
 {
-  _memory_add_ref,
-  _memory_release,
+  _memory_ref,
   _memory_destroy,
 
   _memory_open,
@@ -331,14 +327,17 @@ stream_memory_create (stream_t *pstream)
   if (mem == NULL)
     return MU_ERROR_NO_MEMORY;
 
-  mem->base.vtable = &_mem_vtable;
-  mem->ref = 1;
+  mu_refcount_create (&mem->refcount);
+  if (mem->refcount == NULL)
+    {
+      free (mem);
+      return MU_ERROR_NO_MEMORY;
+    }
   mem->ptr = NULL;
   mem->size = 0;
   mem->offset = 0;
   mem->flags = 0;
-  monitor_create (&(mem->lock));
+  mem->base.vtable = &_mem_vtable;
   *pstream = &mem->base;
-
   return 0;
 }

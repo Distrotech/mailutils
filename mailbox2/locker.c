@@ -24,34 +24,28 @@
 #include <mailutils/sys/locker.h>
 
 int
-(locker_add_ref) (locker_t locker)
+locker_ref (locker_t locker)
 {
   if (locker == NULL || locker->vtable == NULL
-      || locker->vtable->add_ref == NULL)
+      || locker->vtable->ref == NULL)
     return MU_ERROR_NOT_SUPPORTED;
-  return locker->vtable->add_ref (locker);
+  return locker->vtable->ref (locker);
+}
+
+void
+locker_destroy (locker_t *plocker)
+{
+  if (plocker && *plocker)
+    {
+      locker_t locker = *plocker;
+      if (locker->vtable && locker->vtable->destroy)
+	locker->vtable->destroy (plocker);
+      *plocker = NULL;
+    }
 }
 
 int
-(locker_release) (locker_t locker)
-{
-  if (locker == NULL || locker->vtable == NULL
-      || locker->vtable->release == NULL)
-    return MU_ERROR_NOT_SUPPORTED;
-  return locker->vtable->release (locker);
-}
-
-int
-(locker_destroy) (locker_t locker)
-{
-  if (locker == NULL || locker->vtable == NULL
-      || locker->vtable->destroy == NULL)
-    return MU_ERROR_NOT_SUPPORTED;
-  return locker->vtable->destroy (locker);
-}
-
-int
-(locker_lock) (locker_t locker)
+locker_lock (locker_t locker)
 {
   if (locker == NULL || locker->vtable == NULL
       || locker->vtable->lock == NULL)
@@ -60,7 +54,7 @@ int
 }
 
 int
-(locker_touchlock) (locker_t locker)
+locker_touchlock (locker_t locker)
 {
   if (locker == NULL || locker->vtable == NULL
       || locker->vtable->lock == NULL)
@@ -69,7 +63,7 @@ int
 }
 
 int
-(locker_unlock) (locker_t locker)
+locker_unlock (locker_t locker)
 {
   if (locker == NULL || locker->vtable == NULL
       || locker->vtable->lock == NULL)

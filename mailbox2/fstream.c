@@ -35,42 +35,23 @@
 
 
 static int
-_fs_add_ref (stream_t stream)
+_fs_ref (stream_t stream)
 {
   struct _fs *fs = (struct _fs *)stream;
-  int status;
-  monitor_lock (fs->lock);
-  status = ++fs->ref;
-  monitor_unlock (fs->lock);
-  return status;
+  return mu_refcount_inc (fs->refcount);
 }
 
-static int
-_fs_destroy (stream_t stream)
+static void
+_fs_destroy (stream_t *pstream)
 {
-  struct _fs *fs = (struct _fs *)stream;
-  if (fs->file)
-    fclose (fs->file);
-  monitor_destroy (fs->lock);
-  free (fs);
-  return 0;
-}
-
-static int
-_fs_release (stream_t stream)
-{
-  int status;
-  struct _fs *fs = (struct _fs *)stream;
-  monitor_lock (fs->lock);
-  status = --fs->ref;
-  if (status <= 0)
+  struct _fs *fs = (struct _fs *)*pstream;
+  if (mu_refcount_dec (fs->refcount) == 0)
     {
-      monitor_unlock (fs->lock);
-      _fs_destroy (stream);
-      return 0;
+      if (fs->file)
+	fclose (fs->file);
+      mu_refcount_destroy (&fs->refcount);
+      free (fs);
     }
-  monitor_unlock (fs->lock);
-  return status;
 }
 
 static int
@@ -201,7 +182,6 @@ _fs_seek (stream_t stream, off_t off, enum stream_whence whence)
   int err = 0;
   if (fs->file)
     {
-      errno = MU_ERROR_INVALID_PARAMETER;
       if (whence == MU_STREAM_WHENCE_SET)
 	err = fseek (fs->file, off, SEEK_SET);
       else if (whence == MU_STREAM_WHENCE_CUR)
@@ -210,7 +190,7 @@ _fs_seek (stream_t stream, off_t off, enum stream_whence whence)
 	err = fseek (fs->file, off, SEEK_END);
       else
 	err = MU_ERROR_INVALID_PARAMETER;
-      if (err != 0)
+      if (err == -1)
 	err = errno;
     }
   return err;
@@ -395,8 +375,7 @@ _fs_open (stream_t stream, const char *filename, int port, int flags)
 
 static struct _stream_vtable _fs_vtable =
 {
-  _fs_add_ref,
-  _fs_release,
+  _fs_ref,
   _fs_destroy,
 
   _fs_open,
@@ -436,11 +415,40 @@ stream_file_create (stream_t *pstream)
   if (fs == NULL)
     return MU_ERROR_NO_MEMORY ;
 
-  fs->base.vtable = &_fs_vtable;
-  fs->ref = 1;
+  mu_refcount_create (&fs->refcount);
+  if (fs->refcount == NULL)
+    {
+      free (fs);
+      return MU_ERROR_NO_MEMORY ;
+    }
   fs->file = NULL;
   fs->flags = 0;
-  monitor_create (&(fs->lock));
+  fs->base.vtable = &_fs_vtable;
+  *pstream = &fs->base;
+  return 0;
+}
+
+int
+stream_stdio_create (stream_t *pstream, FILE *fp)
+{
+  struct _fs *fs;
+
+  if (pstream == NULL)
+    return MU_ERROR_INVALID_PARAMETER;
+
+  fs = calloc (1, sizeof *fs);
+  if (fs == NULL)
+    return MU_ERROR_NO_MEMORY ;
+
+  mu_refcount_create (&fs->refcount);
+  if (fs->refcount == NULL)
+    {
+      free (fs);
+      return MU_ERROR_NO_MEMORY ;
+    }
+  fs->file = fp;
+  fs->flags = 0;
+  fs->base.vtable = &_fs_vtable;
   *pstream = &fs->base;
   return 0;
 }

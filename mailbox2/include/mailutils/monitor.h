@@ -30,7 +30,7 @@
 # define MU_MONITOR_INITIALIZER  PTHREAD_MUTEX_INITIALIZER
 
 # define monitor_create(m)  pthread_mutex_init (m, NULL)
-# define monitor_destroy(m) pthread_mutex_destroy (&m)
+# define monitor_destroy(m) pthread_mutex_destroy (m)
 
 # define monitor_cleanup_push(routine, arg) pthread_cleanup_push (routine, arg)
 # define monitor_cleanup_pop(execute)       pthread_cleanup_pop (execute)
@@ -45,7 +45,7 @@
 # define MU_MONITOR_INITIALIZER 0
 
 # define monitor_create(m) (*m = 0)
-# define monitor_destroy(m) (m = 0)
+# define monitor_destroy(m) (*m = 0)
 
 # define monitor_cleanup_push(routine, arg) {
 # define monitor_cleanup_pop(execute)       }

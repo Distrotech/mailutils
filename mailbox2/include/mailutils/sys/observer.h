@@ -22,7 +22,7 @@
 #  include <dmalloc.h>
 #endif
 
-#include <mailutils/monitor.h>
+#include <mailutils/refcount.h>
 #include <mailutils/observer.h>
 #include <mailutils/list.h>
 
@@ -40,11 +40,10 @@ extern "C" {
 
 struct _observer_vtable
 {
-  int (*add_ref) __P ((observer_t));
-  int (*release) __P ((observer_t));
-  int (*destroy) __P ((observer_t));
+  int  (*ref)     __P ((observer_t));
+  void (*destroy) __P ((observer_t *));
 
-  int (*action)  __P ((observer_t, struct event));
+  int  (*action)  __P ((observer_t, struct event));
 };
 
 struct _observer
@@ -60,10 +59,9 @@ struct _observable
 struct _dobserver
 {
   struct _observer base;
-  int ref;
+  mu_refcount_t refcount;
   void *arg;
   int (*action) __P ((void *, struct event));
-  monitor_t lock;
 };
 
 #ifdef __cplusplus

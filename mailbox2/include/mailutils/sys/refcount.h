@@ -15,14 +15,15 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-#ifndef _MAILUTILS_SYS_AUTHORITY_H
-#define _MAILUTILS_SYS_AUTHORITY_H
+#ifndef _MAILUTILS_SYS_REFCOUNT_H
+#define _MAILUTILS_SYS_REFCOUNT_H
 
 #ifdef DMALLOC
 #include <dmalloc.h>
 #endif
 
-#include <mailutils/authority.h>
+#include <mailutils/refcount.h>
+#include <mailutils/monitor.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -36,23 +37,14 @@ extern "C" {
 # endif
 #endif /*__P */
 
-struct _authority_vtable
+struct _refcount
 {
-  int  (*ref)          __P ((authority_t));
-  void (*destroy)      __P ((authority_t *));
-
-  int  (*set_ticket)   __P ((authority_t, ticket_t));
-  int  (*get_ticket)   __P ((authority_t, ticket_t *));
-  int  (*authenticate) __P ((authority_t));
-};
-
-struct _authority
-{
-  struct _authority_vtable *vtable;
+  unsigned int ref;
+  monitor_t lock;
 };
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* _MAILUTILS_SYS_AUTHORITY_H */
+#endif /* _MAILUTILS_SYS_REFCOUNT_H */

@@ -329,14 +329,14 @@ util_cpystr (char *dst, const char *src, size_t size)
   return len;
 }
 
-static list_t _app_getpwnam = NULL;
+static mu_list_t _app_getpwnam = NULL;
 
 void
 mu_register_getpwnam (struct passwd *(*fun) __P((const char *)))
 {
-  if (!_app_getpwnam && list_create (&_app_getpwnam))
+  if (!_app_getpwnam && mu_list_create (&_app_getpwnam))
     return;
-  list_append (_app_getpwnam, fun);
+  mu_list_append (_app_getpwnam, fun);
 }
 
 struct passwd *
@@ -347,7 +347,7 @@ mu_getpwnam (const char *name)
 
   p = getpwnam (name);
 
-  if (!p && iterator_create (&itr, _app_getpwnam) == 0)
+  if (p && mu_list_get_iterator (_app_getpwnam, &itr) == 0)
     {
       struct passwd *(*fun) __P((const char *));
       for (iterator_first (itr); !p && !iterator_is_done (itr);
@@ -356,7 +356,6 @@ mu_getpwnam (const char *name)
 	  iterator_current (itr, (void **)&fun);
 	  p = (*fun) (name);
 	}
-
       iterator_destroy (&itr);
     }
   return p;

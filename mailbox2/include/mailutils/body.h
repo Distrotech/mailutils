@@ -38,19 +38,19 @@ extern "C" {
 struct _body;
 typedef struct _body *body_t;
 
-extern int body_add_ref        __P ((body_t));
-extern int body_release        __P ((body_t));
-extern int body_destroy        __P ((body_t));
+extern int  body_ref            __P ((body_t));
+extern void body_release        __P ((body_t *));
+extern int  body_destroy        __P ((body_t));
 
-extern int body_is_modified    __P ((body_t));
-extern int body_clear_modified __P ((body_t));
+extern int  body_is_modified    __P ((body_t));
+extern int  body_clear_modified __P ((body_t));
 
-extern int body_get_stream     __P ((body_t, stream_t *));
+extern int  body_get_stream     __P ((body_t, stream_t *));
 
-extern int body_get_property   __P ((body_t, property_t *));
+extern int  body_get_property   __P ((body_t, property_t *));
 
-extern int body_get_size       __P ((body_t, size_t*));
-extern int body_get_lines      __P ((body_t, size_t *));
+extern int  body_get_size       __P ((body_t, size_t*));
+extern int  body_get_lines      __P ((body_t, size_t *));
 
 #ifdef __cplusplus
 }

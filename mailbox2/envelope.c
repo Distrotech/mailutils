@@ -23,55 +23,76 @@
 #include <mailutils/sys/envelope.h>
 
 int
-(envelope_add_ref) (envelope_t envelope)
+envelope_ref (envelope_t envelope)
 {
   if (envelope == NULL || envelope->vtable == NULL
-      || envelope->vtable->add_ref == NULL)
+      || envelope->vtable->ref == NULL)
     return MU_ERROR_NOT_SUPPORTED;
-  return envelope->vtable->add_ref (envelope);
+  return envelope->vtable->ref (envelope);
+}
+
+void
+envelope_destroy (envelope_t *penvelope)
+{
+  if (penvelope && *penvelope)
+    {
+      envelope_t envelope = *penvelope;
+      if (envelope->vtable && envelope->vtable->destroy)
+	envelope->vtable->destroy (penvelope);
+      *penvelope = NULL;
+    }
 }
 
 int
-(envelope_release) (envelope_t envelope)
+envelope_get_sender (envelope_t envelope, address_t *paddr)
 {
   if (envelope == NULL || envelope->vtable == NULL
-      || envelope->vtable->release == NULL)
+      || envelope->vtable->get_sender == NULL)
     return MU_ERROR_NOT_SUPPORTED;
-  return envelope->vtable->release (envelope);
+  return envelope->vtable->get_sender (envelope, paddr);
 }
 
 int
-(envelope_destroy) (envelope_t envelope)
+envelope_set_sender (envelope_t envelope, address_t addr)
 {
   if (envelope == NULL || envelope->vtable == NULL
-      || envelope->vtable->destroy == NULL)
+      || envelope->vtable->set_sender == NULL)
     return MU_ERROR_NOT_SUPPORTED;
-  return envelope->vtable->destroy (envelope);
+  return envelope->vtable->set_sender (envelope, addr);
 }
 
 int
-(envelope_sender) (envelope_t envelope, address_t *paddr)
+envelope_get_recipient (envelope_t envelope, address_t *paddr)
 {
   if (envelope == NULL || envelope->vtable == NULL
-      || envelope->vtable->sender == NULL)
+      || envelope->vtable->get_recipient == NULL)
     return MU_ERROR_NOT_SUPPORTED;
-  return envelope->vtable->sender (envelope, paddr);
+  return envelope->vtable->get_recipient (envelope, paddr);
 }
 
 int
-(envelope_recipient) (envelope_t envelope, address_t *paddr)
+envelope_set_recipient (envelope_t envelope, address_t addr)
 {
   if (envelope == NULL || envelope->vtable == NULL
-      || envelope->vtable->recipient == NULL)
+      || envelope->vtable->set_recipient == NULL)
     return MU_ERROR_NOT_SUPPORTED;
-  return envelope->vtable->recipient (envelope, paddr);
+  return envelope->vtable->set_recipient (envelope, addr);
 }
 
 int
-(envelope_date) (envelope_t envelope, struct tm *tm, struct mu_timezone *tz)
+envelope_get_date (envelope_t envelope, struct tm *tm, struct mu_timezone *tz)
 {
   if (envelope == NULL || envelope->vtable == NULL
-      || envelope->vtable->date == NULL)
+      || envelope->vtable->get_date == NULL)
     return MU_ERROR_NOT_SUPPORTED;
-  return envelope->vtable->date (envelope, tm, tz);
+  return envelope->vtable->get_date (envelope, tm, tz);
+}
+
+int
+envelope_set_date (envelope_t envelope, struct tm *tm, struct mu_timezone *tz)
+{
+  if (envelope == NULL || envelope->vtable == NULL
+      || envelope->vtable->set_date == NULL)
+    return MU_ERROR_NOT_SUPPORTED;
+  return envelope->vtable->set_date (envelope, tm, tz);
 }

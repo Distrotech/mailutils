@@ -20,18 +20,17 @@
 
 #include <sys/types.h>
 
-#include <mailutils/monitor.h>
+#include <mailutils/refcount.h>
 #include <mailutils/sys/stream.h>
 
 struct _memory_stream
 {
   struct _stream base;
-  int ref;
+  mu_refcount_t refcount;
   char *ptr;
   size_t  size;
   off_t  offset;
   int flags;
-  monitor_t lock;
 };
 
 #endif /* _MAILUTILS_SYS_MEMSTREAM_H */

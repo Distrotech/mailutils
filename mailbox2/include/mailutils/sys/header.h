@@ -34,24 +34,23 @@ extern "C" {
 
 struct _header_vtable
 {
-  int (*add_ref)   __P ((header_t));
-  int (*release)   __P ((header_t));
-  int (*destroy)   __P ((header_t));
+  int  (*ref)             __P ((header_t));
+  void (*destroy)         __P ((header_t *));
 
-  int (*is_modified)    __P ((header_t));
-  int (*clear_modified) __P ((header_t));
+  int  (*is_modified)     __P ((header_t));
+  int  (*clear_modified)  __P ((header_t));
 
-  int (*set_value) __P ((header_t, const char *, const char *, int));
-  int (*get_value) __P ((header_t, const char *, char *, size_t, size_t *));
+  int  (*set_value)       __P ((header_t, const char *, const char *, int));
+  int  (*get_value)        __P ((header_t, const char *, char *, size_t, size_t *));
 
-  int (*get_field_count) __P ((header_t, size_t *));
-  int (*get_field_value) __P ((header_t, size_t, char *, size_t, size_t *));
-  int (*get_field_name)  __P ((header_t, size_t, char *, size_t, size_t *));
+  int  (*get_field_count) __P ((header_t, size_t *));
+  int  (*get_field_value) __P ((header_t, size_t, char *, size_t, size_t *));
+  int  (*get_field_name)  __P ((header_t, size_t, char *, size_t, size_t *));
 
-  int (*get_stream)     __P ((header_t, stream_t *));
+  int  (*get_stream)      __P ((header_t, stream_t *));
 
-  int (*get_size)        __P ((header_t, size_t *));
-  int (*get_lines)       __P ((header_t, size_t *));
+  int  (*get_size)        __P ((header_t, size_t *));
+  int  (*get_lines)       __P ((header_t, size_t *));
 };
 
 struct _header

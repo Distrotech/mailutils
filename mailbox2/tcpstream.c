@@ -32,11 +32,10 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <sys/time.h>
-#include <sys/types.h>
-#include <unistd.h>
 
 #include <mailutils/sys/tcpstream.h>
 #include <mailutils/error.h>
+#include <mailutils/monitor.h>
 
 /* On solaris inet_addr() return -1.  */
 #ifndef INADDR_NONE
@@ -47,48 +46,29 @@ static void
 _tcp_cleanup (void *arg)
 {
   struct _tcp_instance *tcp = arg;
-  monitor_unlock (tcp->lock);
+  mu_refcount_unlock (tcp->refcount);
 }
 
 static int
-_tcp_add_ref (stream_t stream)
+_tcp_ref (stream_t stream)
 {
   struct _tcp_instance *tcp = (struct _tcp_instance *)stream;
-  int status;
-  monitor_lock (tcp->lock);
-  status = ++tcp->ref;
-  monitor_unlock (tcp->lock);
-  return status;
+  return mu_refcount_inc (tcp->refcount);
 }
 
-static int
-_tcp_destroy (stream_t stream)
+static void
+_tcp_destroy (stream_t *pstream)
 {
-  struct _tcp_instance *tcp = (struct _tcp_instance *)stream;
-  if (tcp->host)
-    free (tcp->host);
-  if (tcp->fd != -1)
-    close (tcp->fd);
-  monitor_destroy (tcp->lock);
-  free (tcp);
-  return 0;
-}
-
-static int
-_tcp_release (stream_t stream)
-{
-  int status;
-  struct _tcp_instance *tcp = (struct _tcp_instance *)stream;
-  monitor_lock (tcp->lock);
-  status = --tcp->ref;
-  if (status <= 0)
+  struct _tcp_instance *tcp = (struct _tcp_instance *)*pstream;
+  if (mu_refcount_dec (tcp->refcount) == 0)
     {
-      monitor_unlock (tcp->lock);
-      _tcp_destroy (stream);
-      return 0;
+      if (tcp->host)
+	free (tcp->host);
+      if (tcp->fd != -1)
+	close (tcp->fd);
+      mu_refcount_destroy (&tcp->refcount);
+      free (tcp);
     }
-  monitor_unlock (tcp->lock);
-  return status;
 }
 
 static int
@@ -107,10 +87,10 @@ _tcp_close (stream_t stream)
 {
   struct _tcp_instance *tcp = (struct _tcp_instance *)stream;
 
-  monitor_lock (tcp->lock);
+  mu_refcount_lock (tcp->refcount);
   monitor_cleanup_push (_tcp_cleanup, tcp);
   _tcp_close0 (stream);
-  monitor_unlock (tcp->lock);
+  mu_refcount_unlock (tcp->refcount);
   monitor_cleanup_pop (0);
   return 0;
 }
@@ -168,12 +148,12 @@ _tcp_open0 (stream_t stream, const char *host, int port, int flags)
       tcp->state = TCP_STATE_RESOLVE;
 
     case TCP_STATE_RESOLVE:
-      memset (&soc_addr, 0, sizeof (soc_addr));
+      memset (&soc_addr, 0, sizeof soc_addr);
       soc_addr.sin_family = AF_INET;
       soc_addr.sin_port = htons (tcp->port);
       soc_addr.sin_addr.s_addr = tcp->address;
 
-      if ((connect (tcp->fd, (struct sockaddr *)&soc_addr, sizeof (soc_addr))) == -1)
+      if ((connect (tcp->fd, (struct sockaddr *)&soc_addr, sizeof soc_addr)) == -1)
 	{
 	  ret = errno;
 	  if (ret == EINPROGRESS || ret == EAGAIN)
@@ -188,7 +168,7 @@ _tcp_open0 (stream_t stream, const char *host, int port, int flags)
       tcp->state = TCP_STATE_CONNECTING;
 
     case TCP_STATE_CONNECTING:
-      namelen = sizeof (peer_addr);
+      namelen = sizeof peer_addr;
       if (getpeername (tcp->fd, (struct sockaddr *)&peer_addr, &namelen) == 0)
 	tcp->state = TCP_STATE_CONNECTED;
       else
@@ -207,10 +187,10 @@ _tcp_open (stream_t stream, const char *host, int port, int flags)
 {
   int status;
   struct _tcp_instance *tcp = (struct _tcp_instance *)stream;
-  monitor_lock (tcp->lock);
+  mu_refcount_lock (tcp->refcount);
   monitor_cleanup_push (_tcp_cleanup, tcp);
   status = _tcp_open0 (stream, host, port, flags);
-  monitor_unlock (tcp->lock);
+  mu_refcount_unlock (tcp->refcount);
   monitor_cleanup_pop (0);
   return status;
 }
@@ -231,19 +211,18 @@ static int
 _tcp_read (stream_t stream, void *buf, size_t buf_size, size_t *br)
 {
   struct _tcp_instance *tcp = (struct _tcp_instance *)stream;
-  int bytes;
+  int bytes = 0;
+  int status = 0;
 
-  if (br == NULL)
-    return MU_ERROR_INVALID_PARAMETER;
-  *br = 0;
   bytes = recv (tcp->fd, buf, buf_size, 0);
   if (bytes == -1)
     {
-      *br = 0;
-      return errno;
+      bytes = 0;
+      status = errno;
     }
-  *br = bytes;
-  return 0;
+  if (br)
+    *br = bytes;
+  return status;
 }
 
 static int
@@ -287,19 +266,18 @@ static int
 _tcp_write (stream_t stream, const void *buf, size_t buf_size, size_t *bw)
 {
   struct _tcp_instance *tcp = (struct _tcp_instance *)stream;
-  int 	bytes;
+  int bytes = 0;
+  int status = 0;
 
-  if (bw == NULL)
-    return MU_ERROR_INVALID_PARAMETER;
-  *bw = 0;
   bytes = send (tcp->fd, buf, buf_size, 0);
   if (bytes == -1)
     {
-      *bw = 0;
-      return errno;
+      bytes = 0;
+      status = errno;
     }
-  *bw = bytes;
-  return 0;
+  if (bw)
+    *bw = bytes;
+  return status;
 }
 
 static int
@@ -420,8 +398,7 @@ _tcp_is_open (stream_t stream)
 
 static struct _stream_vtable _tcp_vtable =
 {
-  _tcp_add_ref,
-  _tcp_release,
+  _tcp_ref,
   _tcp_destroy,
 
   _tcp_open,
@@ -461,13 +438,17 @@ stream_tcp_create (stream_t *pstream)
   if (tcp == NULL)
     return MU_ERROR_NO_MEMORY;
 
-  tcp->base.vtable = &_tcp_vtable;
-  tcp->ref = 1;
+  mu_refcount_create (&tcp->refcount);
+  if (tcp->refcount == NULL)
+    {
+      free (tcp);
+      return MU_ERROR_NO_MEMORY;
+    }
   tcp->fd = -1;
   tcp->host = NULL;
   tcp->port = -1;
   tcp->state = TCP_STATE_INIT;
-  monitor_create (&(tcp->lock));
+  tcp->base.vtable = &_tcp_vtable;
   *pstream = &tcp->base;
   return 0;
 }

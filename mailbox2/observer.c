@@ -25,34 +25,28 @@
 #include <mailutils/sys/observer.h>
 
 int
-(observer_add_ref) (observer_t observer)
+observer_ref (observer_t observer)
 {
   if (observer == NULL || observer->vtable == NULL
-      || observer->vtable->add_ref == NULL)
+      || observer->vtable->ref == NULL)
     return MU_ERROR_NOT_SUPPORTED;
-  return observer->vtable->add_ref (observer);
+  return observer->vtable->ref (observer);
+}
+
+void
+observer_destroy (observer_t *pobserver)
+{
+  if (pobserver && *pobserver)
+    {
+      observer_t observer = *pobserver;
+      if (observer->vtable || observer->vtable->destroy)
+	observer->vtable->destroy (pobserver);
+      *pobserver = NULL;
+    }
 }
 
 int
-(observer_release) (observer_t observer)
-{
-  if (observer == NULL || observer->vtable == NULL
-      || observer->vtable->release == NULL)
-    return MU_ERROR_NOT_SUPPORTED;
-  return observer->vtable->release (observer);
-}
-
-int
-(observer_destroy) (observer_t observer)
-{
-  if (observer == NULL || observer->vtable == NULL
-      || observer->vtable->destroy == NULL)
-    return MU_ERROR_NOT_SUPPORTED;
-  return observer->vtable->destroy (observer);
-}
-
-int
-(observer_action) (observer_t observer, struct event evt)
+observer_action (observer_t observer, struct event evt)
 {
   if (observer == NULL || observer->vtable == NULL
       || observer->vtable->action == NULL)
@@ -63,39 +57,21 @@ int
 
 
 static int
-_dobserver_add_ref (observer_t observer)
+_dobserver_ref (observer_t observer)
 {
   struct _dobserver *dobserver = (struct _dobserver *)observer;
-  int status;
-  monitor_lock (dobserver->lock);
-  status = ++dobserver->ref;
-  monitor_unlock (dobserver->lock);
-  return status;
+  return mu_refcount_inc (dobserver->refcount);
 }
 
-static int
-_dobserver_destroy (observer_t observer)
+static void
+_dobserver_destroy (observer_t *pobserver)
 {
-  struct _dobserver *dobserver = (struct _dobserver *)observer;
-  monitor_destroy (dobserver->lock);
-  free (dobserver);
-  return 0;
-}
-
-static int
-_dobserver_release (observer_t observer)
-{
-  int status;
-  struct _dobserver *dobserver = (struct _dobserver *)observer;
-  monitor_lock (dobserver->lock);
-  status = --dobserver->ref;
-  if (status <= 0)
+  struct _dobserver *dobserver = (struct _dobserver *)*pobserver;
+  if (mu_refcount_dec (dobserver->refcount) == 0)
     {
-      monitor_unlock (dobserver->lock);
-      return _dobserver_destroy (observer);
+      mu_refcount_destroy (&dobserver->refcount);
+      free (dobserver);
     }
-  monitor_unlock (dobserver->lock);
-  return status;
 }
 
 static int
@@ -109,8 +85,7 @@ _dobserver_action (observer_t observer, struct event evt)
 
 static struct _observer_vtable _dobserver_vtable =
 {
-  _dobserver_add_ref,
-  _dobserver_release,
+  _dobserver_ref,
   _dobserver_destroy,
 
   _dobserver_action
@@ -130,11 +105,15 @@ observer_create (observer_t *pobserver,
   if (dobserver)
     return MU_ERROR_NO_MEMORY;
 
-  dobserver->base.vtable = &_dobserver_vtable;
-  dobserver->ref = 1;
+  mu_refcount_create (&dobserver->refcount);
+  if (dobserver->refcount == NULL)
+    {
+      free (dobserver);
+      return MU_ERROR_NO_MEMORY;
+    }
   dobserver->arg = arg;
   dobserver->action = action;
-  monitor_create (&(dobserver->lock));
+  dobserver->base.vtable = &_dobserver_vtable;
   *pobserver = &dobserver->base;
   return 0;
 }

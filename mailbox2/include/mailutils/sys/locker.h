@@ -38,13 +38,12 @@ extern "C" {
 
 struct _locker_vtable
 {
-  int (*add_ref)   __P ((locker_t));
-  int (*release)   __P ((locker_t));
-  int (*destroy)   __P ((locker_t));
+  int  (*ref)       __P ((locker_t));
+  void (*destroy)   __P ((locker_t *));
 
-  int (*lock)      __P ((locker_t));
-  int (*touchlock) __P ((locker_t));
-  int (*unlock)    __P ((locker_t));
+  int  (*lock)      __P ((locker_t));
+  int  (*touchlock) __P ((locker_t));
+  int  (*unlock)    __P ((locker_t));
 };
 
 struct _locker

@@ -40,7 +40,7 @@ static void
 _bs_cleanup (void *arg)
 {
   struct _bs *bs = arg;
-  monitor_unlock (bs->lock);
+  mu_refcount_unlock (bs->refcount);
 }
 
 static int
@@ -61,33 +61,22 @@ refill (struct _bs *bs)
 }
 
 static int
-_bs_add_ref (stream_t stream)
+_bs_ref (stream_t stream)
 {
   struct _bs *bs = (struct _bs *)stream;
-  return stream_add_ref (bs->stream);
+  return mu_refcount_inc (bs->refcount);
 }
 
-static int
-_bs_destroy (stream_t stream)
+static void
+_bs_destroy (stream_t *pstream)
 {
-  struct _bs *bs = (struct _bs *)stream;
-  stream_destroy (bs->stream);
-  monitor_destroy (bs->lock);
-  free (bs);
-  return 0;
-}
-
-static int
-_bs_release (stream_t stream)
-{
-  struct _bs *bs = (struct _bs *)stream;
-  int status = stream_release (bs->stream);
-  if (status == 0)
+  struct _bs *bs = (struct _bs *)*pstream;
+  if (mu_refcount_dec (bs->refcount) == 0)
     {
-      _bs_destroy (stream);
-      return 0;
+      stream_destroy (&bs->stream);
+      mu_refcount_destroy (&bs->refcount);
+      free (bs);
     }
-  return status;
 }
 
 static int
@@ -101,7 +90,7 @@ static int
 _bs_close (stream_t stream)
 {
   struct _bs *bs = (struct _bs *)stream;
-  monitor_lock (bs->lock);
+  mu_refcount_lock (bs->refcount);
   /* Clear the buffer of any residue left.  */
   if (bs->rbuffer.base && bs->rbuffer.bufsize)
     {
@@ -109,7 +98,7 @@ _bs_close (stream_t stream)
       bs->rbuffer.count = 0;
       memset (bs->rbuffer.base, '\0', bs->rbuffer.bufsize);
     }
-  monitor_unlock (bs->lock);
+  mu_refcount_unlock (bs->refcount);
   return stream_close (bs->stream);
 }
 
@@ -141,7 +130,7 @@ _bs_read (stream_t stream, void *buf, size_t count, size_t *pnread)
       char *p = buf;
       int r;
 
-      monitor_lock (bs->lock);
+      mu_refcount_lock (bs->refcount);
       monitor_cleanup_push (_bs_cleanup, bs);
 
       /* If the amount requested is bigger then the buffer cache size
@@ -200,7 +189,7 @@ _bs_read (stream_t stream, void *buf, size_t count, size_t *pnread)
 		*pnread = count;
 	    }
 	}
-      monitor_unlock (bs->lock);
+      mu_refcount_unlock (bs->refcount);
       monitor_cleanup_pop (0);
     }
   return status;
@@ -234,7 +223,7 @@ _bs_readline (stream_t stream, char *buf, size_t count, size_t *pnread)
       size_t len;
       size_t total = 0;
 
-      monitor_lock (bs->lock);
+      mu_refcount_lock (bs->refcount);
       monitor_cleanup_push (_bs_cleanup, bs);
 
       count--;  /* Leave space for the null.  */
@@ -282,7 +271,7 @@ _bs_readline (stream_t stream, char *buf, size_t count, size_t *pnread)
       if (pnread)
 	*pnread = s - buf;
 
-      monitor_unlock (bs->lock);
+      mu_refcount_unlock (bs->refcount);
       monitor_cleanup_pop (0);
     }
   return status;
@@ -374,8 +363,13 @@ _bs_is_readready (stream_t stream, int timeout)
 {
   struct _bs *bs = (struct _bs *)stream;
   /* Drain our buffer first.  */
+  mu_refcount_lock (bs->refcount);
   if (bs->rbuffer.count > 0)
-    return 1;
+    {
+      mu_refcount_unlock (bs->refcount);
+      return 1;
+    }
+  mu_refcount_unlock (bs->refcount);
   return stream_is_readready (bs->stream, timeout);
 }
 
@@ -403,8 +397,7 @@ _bs_is_open (stream_t stream)
 
 static struct _stream_vtable _bs_vtable =
 {
-  _bs_add_ref,
-  _bs_release,
+  _bs_ref,
   _bs_destroy,
 
   _bs_open,
@@ -444,11 +437,16 @@ stream_buffer_create (stream_t *pstream, stream_t stream, size_t bufsize)
   if (bs == NULL)
     return MU_ERROR_NO_MEMORY;
 
-  bs->base.vtable = &_bs_vtable;
-  bs->ref = 1;
+  mu_refcount_create (&(bs->refcount));
+  if (bs->refcount == NULL)
+    {
+      free (bs);
+      return MU_ERROR_NO_MEMORY;
+    }
+
   bs->stream = stream;
   bs->rbuffer.bufsize = bufsize;
-  monitor_create (&(bs->lock));
+  bs->base.vtable = &_bs_vtable;
   *pstream = &bs->base;
   return 0;
 }

@@ -54,19 +54,21 @@ address_create (address_t *a, const char *s)
       (*a)->addr = strdup (s);
       if (!(*a)->addr)
 	{
-	  address_destroy (*a);
+	  address_destroy (a);
 	  return ENOMEM;
         }
     }
   return status;
 }
 
-int
-address_destroy (address_t address)
+void
+address_destroy (address_t *paddress)
 {
-  if (address)
+  if (paddress && *paddress)
     {
       address_t current;
+      address_t address = *paddress;
+
       for (; address; address = current)
 	{
 	  if (address->addr)
@@ -86,8 +88,8 @@ address_destroy (address_t address)
 	  current = address->next;
 	  free (address);
 	}
+      *paddress = NULL;
     }
-  return 0;
 }
 
 int

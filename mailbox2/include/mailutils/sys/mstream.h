@@ -19,19 +19,18 @@
 #define MAILUTILS_SYS_MSTREAM_H
 
 #include <mailutils/sys/stream.h>
-#include <mailutils/monitor.h>
+#include <mailutils/refcount.h>
 
 struct _ms
 {
   struct _stream base;
-  int ref;
+  mu_refcount_t refcount;
   int fd;
   int flags;
   int mflags;
   char *ptr;
   size_t size;
   off_t offset;
-  monitor_t lock;
 };
 
 #endif /* _MAILUTILS_SYS_MSTREAM_H */

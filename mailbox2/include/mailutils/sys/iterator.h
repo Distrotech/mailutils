@@ -27,14 +27,13 @@ extern "C" {
 struct _iterator_vtable
 {
   /* Base */
-  int (*add_ref) __P ((iterator_t));
-  int (*release) __P ((iterator_t));
-  int (*destroy) __P ((iterator_t));
+  int  (*ref)     __P ((iterator_t));
+  void (*destroy) __P ((iterator_t *));
 
-  int (*first)   __P ((iterator_t));
-  int (*next)    __P ((iterator_t));
-  int (*current) __P ((iterator_t, void *));
-  int (*is_done) __P ((iterator_t));
+  int  (*first)   __P ((iterator_t));
+  int  (*next)    __P ((iterator_t));
+  int  (*current) __P ((iterator_t, void *));
+  int  (*is_done) __P ((iterator_t));
 };
 
 struct _iterator

@@ -37,35 +37,34 @@ extern "C" {
 
 struct _message_vtable
 {
-  int (*add_ref)        __P ((message_t));
-  int (*release)        __P ((message_t));
-  int (*destroy)        __P ((message_t));
+  int  (*ref)            __P ((message_t));
+  void (*destroy)        __P ((message_t *));
 
-  int (*is_modified)    __P ((message_t));
-  int (*clear_modified) __P ((message_t));
-  int (*get_mailbox)    __P ((message_t, mailbox_t *));
+  int  (*is_modified)    __P ((message_t));
+  int  (*clear_modified) __P ((message_t));
+  int  (*get_mailbox)    __P ((message_t, mailbox_t *));
 
-  int (*get_envelope)   __P ((message_t, envelope_t *));
-  int (*get_header)     __P ((message_t, header_t *));
-  int (*get_body)       __P ((message_t, body_t *));
-  int (*get_attribute)  __P ((message_t, attribute_t *));
+  int  (*get_envelope)   __P ((message_t, envelope_t *));
+  int  (*get_header)     __P ((message_t, header_t *));
+  int  (*get_body)       __P ((message_t, body_t *));
+  int  (*get_attribute)  __P ((message_t, attribute_t *));
 
-  int (*get_stream)     __P ((message_t, stream_t *));
+  int  (*get_stream)     __P ((message_t, stream_t *));
 
-  int (*get_property)   __P ((message_t, property_t *));
+  int  (*get_property)   __P ((message_t, property_t *));
 
-  int (*is_multipart)   __P ((message_t, int *));
+  int  (*is_multipart)   __P ((message_t, int *));
 
-  int (*get_size)       __P ((message_t, size_t *));
+  int  (*get_size)       __P ((message_t, size_t *));
 
-  int (*get_lines)      __P ((message_t, size_t *));
+  int  (*get_lines)      __P ((message_t, size_t *));
 
-  int (*get_num_parts)  __P ((message_t, size_t *nparts));
+  int  (*get_num_parts)  __P ((message_t, size_t *nparts));
 
-  int (*get_part)       __P ((message_t, size_t, message_t *));
+  int  (*get_part)       __P ((message_t, size_t, message_t *));
 
-  int (*get_uidl)       __P ((message_t, char *, size_t, size_t *));
-  int (*get_uid)        __P ((message_t, size_t *));
+  int  (*get_uidl)       __P ((message_t, char *, size_t, size_t *));
+  int  (*get_uid)        __P ((message_t, size_t *));
 };
 
 struct _message

@@ -40,48 +40,29 @@
 #endif
 
 static int
-_map_add_ref (stream_t stream)
+_map_ref (stream_t stream)
 {
-  int status;
   struct _ms *ms = (struct _ms *)stream;
-  monitor_lock (ms->lock);
-  status = ++ms->ref;
-  monitor_unlock (ms->lock);
-  return status;
+  return mu_refcount_inc (ms->refcount);
 }
 
-static int
-_map_destroy (stream_t stream)
+static void
+_map_destroy (stream_t *pstream)
 {
-  struct _ms *ms = (struct _ms *)stream;
+  struct _ms *ms = (struct _ms *)*pstream;
 
-  if (ms->ptr != MAP_FAILED)
+  if (mu_refcount_dec (ms->refcount) == 0)
     {
-      if (ms->ptr)
-	munmap (ms->ptr, ms->size);
+      if (ms->ptr != MAP_FAILED)
+	{
+	  if (ms->ptr)
+	    munmap (ms->ptr, ms->size);
+	}
       if (ms->fd != -1)
 	close (ms->fd);
-      monitor_destroy (ms->lock);
+      mu_refcount_destroy (&ms->refcount);
+      free (ms);
     }
-  free (ms);
-  return 0;
-}
-
-static int
-_map_release (stream_t stream)
-{
-  int status;
-  struct _ms *ms = (struct _ms *)stream;
-  monitor_lock (ms->lock);
-  status = --ms->ref;
-  if (status <= 0)
-    {
-      monitor_unlock (ms->lock);
-      _map_destroy (stream);
-      return 0;
-    }
-  monitor_unlock (ms->lock);
-  return status;
 }
 
 static int
@@ -90,7 +71,7 @@ _map_read (stream_t stream, void *optr, size_t osize, size_t *nbytes)
   struct _ms *ms = (struct _ms *)stream;
   size_t n = 0;
 
-  monitor_lock (ms->lock);
+  mu_refcount_lock (ms->refcount);
   if (ms->ptr != MAP_FAILED && ms->ptr)
     {
       if (ms->offset < (off_t)ms->size)
@@ -101,7 +82,7 @@ _map_read (stream_t stream, void *optr, size_t osize, size_t *nbytes)
 	  ms->offset += n;
 	}
     }
-  monitor_unlock (ms->lock);
+  mu_refcount_unlock (ms->refcount);
 
   if (nbytes)
     *nbytes = n;
@@ -114,7 +95,7 @@ _map_readline (stream_t stream, char *optr, size_t osize, size_t *nbytes)
   struct _ms *ms = (struct _ms *)stream;
   size_t n = 0;
 
-  monitor_lock (ms->lock);
+  mu_refcount_lock (ms->refcount);
   if (ms->ptr != MAP_FAILED && ms->ptr)
     {
       if (ms->offset < (off_t)ms->size)
@@ -130,7 +111,7 @@ _map_readline (stream_t stream, char *optr, size_t osize, size_t *nbytes)
 	  ms->offset += n;
 	}
     }
-  monitor_unlock (ms->lock);
+  mu_refcount_unlock (ms->refcount);
 
   if (nbytes)
     *nbytes = n;
@@ -144,7 +125,7 @@ _map_write (stream_t stream, const void *iptr, size_t isize, size_t *nbytes)
   int err = 0;
   size_t n = 0;
 
-  monitor_lock (ms->lock);
+  mu_refcount_lock (ms->refcount);
   if (ms->mflags & PROT_WRITE)
     {
       /* Bigger we have to remmap.  */
@@ -175,7 +156,8 @@ _map_write (stream_t stream, const void *iptr, size_t isize, size_t *nbytes)
     }
   else
     err = MU_ERROR_IO;
-  monitor_unlock (ms->lock);
+
+  mu_refcount_lock (ms->refcount);
 
   if (nbytes)
     *nbytes = n;
@@ -188,7 +170,7 @@ _map_truncate (stream_t stream, off_t len)
   struct _ms *ms = (struct _ms *)stream;
   int err = 0;
 
-  monitor_lock (ms->lock);
+  mu_refcount_lock (ms->refcount);
   if (ms->ptr != MAP_FAILED)
     {
       /* Remap.  */
@@ -209,7 +191,7 @@ _map_truncate (stream_t stream, off_t len)
 	    err = errno;
 	}
      }
-  monitor_unlock (ms->lock);
+  mu_refcount_unlock (ms->refcount);
   return err;
 }
 
@@ -220,7 +202,7 @@ _map_get_size (stream_t stream, off_t *psize)
   struct stat stbuf;
   int err = 0;
 
-  monitor_lock (ms->lock);
+  mu_refcount_lock (ms->refcount);
   stbuf.st_size = 0;
   if (ms->ptr != MAP_FAILED)
     {
@@ -251,7 +233,7 @@ _map_get_size (stream_t stream, off_t *psize)
 	    }
 	}
     }
-  monitor_unlock (ms->lock);
+  mu_refcount_unlock (ms->refcount);
   if (psize)
     *psize = stbuf.st_size;
   return err;
@@ -262,10 +244,10 @@ _map_flush (stream_t stream)
 {
   int err = 0;
   struct _ms *ms = (struct _ms *)stream;
-  monitor_lock (ms->lock);
+  mu_refcount_lock (ms->refcount);
   if (ms->ptr != MAP_FAILED && ms->ptr != NULL)
     err = msync (ms->ptr, ms->size, MS_SYNC);
-  monitor_unlock (ms->lock);
+  mu_refcount_unlock (ms->refcount);
   return 0;
 }
 
@@ -338,7 +320,7 @@ _map_close (stream_t stream)
 {
   struct _ms *ms = (struct _ms *)stream;
   int err = 0;
-  monitor_lock (ms->lock);
+  mu_refcount_lock (ms->refcount);
   if (ms->ptr != MAP_FAILED)
     {
       if (ms->ptr && munmap (ms->ptr, ms->size) != 0)
@@ -349,7 +331,7 @@ _map_close (stream_t stream)
     if (close (ms->fd) != 0)
       err = errno;
   ms->fd = -1;
-  monitor_unlock (ms->lock);
+  mu_refcount_unlock (ms->refcount);
   return err;
 }
 
@@ -455,8 +437,7 @@ _map_open (stream_t stream, const char *filename, int port, int flags)
 
 static struct _stream_vtable _map_vtable =
 {
-  _map_add_ref,
-  _map_release,
+  _map_ref,
   _map_destroy,
 
   _map_open,
@@ -501,13 +482,17 @@ stream_mapfile_create (stream_t *pstream)
   if (ms == NULL)
     return MU_ERROR_NO_MEMORY;
 
-  ms->base.vtable = &_map_vtable;
-  ms->ref = 1;
+  mu_refcount_create (&ms->refcount);
+  if (ms->refcount == NULL)
+    {
+      free (ms);
+      return MU_ERROR_NO_MEMORY;
+    }
   ms->fd = -1;
   ms->offset = -1;
   ms->flags = 0;
   ms->mflags = 0;
-  monitor_create (&(ms->lock));
+  ms->base.vtable = &_map_vtable;
   *pstream = &ms->base;
 
   return 0;

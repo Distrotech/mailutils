@@ -15,18 +15,19 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-#ifndef MAILUTILS_SYS_FSTREAM_H
-#define MAILUTILS_SYS_FSTREAM_H
+#ifndef MAILUTILS_SYS_FDSTREAM_H
+#define MAILUTILS_SYS_FDSTREAM_H
 
-#include <mailutils/sys/stream.h>
 #include <mailutils/refcount.h>
+#include <mailutils/sys/stream.h>
 
-struct _fs
+struct _fds
 {
   struct _stream base;
   mu_refcount_t refcount;
+  int  fd;
+  int  state;
   int flags;
-  FILE *file;
 };
 
-#endif /* _MAILUTILS_SYS_FSTREAM_H */
+#endif /* _MAILUTILS_SYS_FDSTREAM_H */

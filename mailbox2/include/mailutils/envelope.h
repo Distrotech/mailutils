@@ -36,13 +36,15 @@ extern "C" {
 struct _envelope;
 typedef struct _envelope *envelope_t;
 
-extern int envelope_add_ref   __P ((envelope_t));
-extern int envelope_release   __P ((envelope_t));
-extern int envelope_destroy   __P ((envelope_t));
+extern int  envelope_ref       __P ((envelope_t));
+extern void envelope_destroy   __P ((envelope_t *));
 
-extern int envelope_sender    __P ((envelope_t, address_t *));
-extern int envelope_recipient __P ((envelope_t, address_t *));
-extern int envelope_date      __P ((envelope_t, struct tm *, struct mu_timezone *));
+extern int  envelope_get_sender    __P ((envelope_t, address_t *));
+extern int  envelope_set_sender    __P ((envelope_t, address_t));
+extern int  envelope_get_recipient __P ((envelope_t, address_t *));
+extern int  envelope_set_recipient __P ((envelope_t, address_t));
+extern int  envelope_get_date      __P ((envelope_t, struct tm *, struct mu_timezone *));
+extern int  envelope_set_date      __P ((envelope_t, struct tm *, struct mu_timezone *));
 
 #ifdef __cplusplus
 }

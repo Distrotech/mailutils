@@ -23,7 +23,7 @@
 #endif
 
 #include <mailutils/attribute.h>
-#include <mailutils/monitor.h>
+#include <mailutils/refcount.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -39,14 +39,13 @@ extern "C" {
 
 struct _attribute_vtable
 {
-  int (*add_ref)   __P ((attribute_t));
-  int (*release)   __P ((attribute_t));
-  int (*destroy)   __P ((attribute_t));
+  int  (*ref)       __P ((attribute_t));
+  void (*destroy)   __P ((attribute_t *));
 
-  int (*get_flags)   __P ((attribute_t, int *));
-  int (*set_flags)   __P ((attribute_t, int));
-  int (*unset_flags) __P ((attribute_t, int));
-  int (*clear_flags) __P ((attribute_t));
+  int  (*get_flags)   __P ((attribute_t, int *));
+  int  (*set_flags)   __P ((attribute_t, int));
+  int  (*unset_flags) __P ((attribute_t, int));
+  int  (*clear_flags) __P ((attribute_t));
 };
 
 struct _attribute
@@ -58,9 +57,8 @@ struct _attribute
 struct _da
 {
   struct _attribute base;
-  int ref;
+  mu_refcount_t refcount;
   int flags;
-  monitor_t lock;
 };
 
 #ifdef __cplusplus

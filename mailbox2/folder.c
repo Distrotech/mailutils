@@ -20,30 +20,24 @@
 #include <mailutils/sys/folder.h>
 
 int
-folder_add_ref (folder_t folder)
+folder_ref (folder_t folder)
 {
   if (folder == NULL || folder->vtable == NULL
-      || folder->vtable->add_ref == NULL)
+      || folder->vtable->ref == NULL)
     return MU_ERROR_NOT_SUPPORTED;
-  return folder->vtable->add_ref (folder);
+  return folder->vtable->ref (folder);
 }
 
-int
-folder_release (folder_t folder)
+void
+folder_destroy (folder_t *pfolder)
 {
-  if (folder == NULL || folder->vtable == NULL
-      || folder->vtable->release == NULL)
-    return MU_ERROR_NOT_SUPPORTED;
-  return folder->vtable->release (folder);
-}
-
-int
-folder_destroy (folder_t folder)
-{
-  if (folder == NULL || folder->vtable == NULL
-      || folder->vtable->destroy == NULL)
-    return MU_ERROR_NOT_SUPPORTED;
-  return folder->vtable->destroy (folder);
+  if (pfolder && *pfolder)
+    {
+      folder_t folder = *pfolder;
+      if (folder->vtable && folder->vtable->destroy)
+	folder->vtable->destroy (pfolder);
+      *pfolder = NULL;
+    }
 }
 
 int

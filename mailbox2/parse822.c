@@ -671,7 +671,7 @@ int parse822_address_list(address_t* a, const char* s)
     }
 
     if(rc) {
-	address_destroy(*a);
+	address_destroy(a);
     }
 
     return rc;
@@ -754,7 +754,7 @@ int parse822_group(const char** p, const char* e, address_t* a)
     if(rc || (rc = parse822_special(p, e, ';'))) {
 	*p = save;
 
-	address_destroy(*asave);
+	address_destroy(asave);
     }
 
     return rc;
@@ -785,7 +785,7 @@ int parse822_mail_box(const char** p, const char* e, address_t* a)
 	}
 	/* but if something else is wrong, destroy the address */
 	if(rc) {
-	    address_destroy(*a);
+	    address_destroy(a);
 	    *p = save;
 	}
 
@@ -854,7 +854,7 @@ int parse822_route_addr(const char** p, const char* e, address_t* a)
     if((rc = parse822_special(p, e, '>'))) {
 	*p = save;
 
-	address_destroy(*a);
+	address_destroy(a);
 
 	return rc;
     }

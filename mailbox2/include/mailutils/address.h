@@ -35,11 +35,10 @@ extern "C" {
 struct _address;
 typedef struct _address *address_t;
 
-extern int address_create   __P ((address_t *, const char *));
+extern int  address_create   __P ((address_t *, const char *));
 
-extern int address_add_ref  __P ((address_t));
-extern int address_release  __P ((address_t));
-extern int address_destroy  __P ((address_t));
+extern int  address_ref      __P ((address_t));
+extern void address_destroy  __P ((address_t *));
 
 extern int address_get_email
 	__P ((address_t, size_t, char *, size_t, size_t *));

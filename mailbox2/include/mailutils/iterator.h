@@ -33,14 +33,13 @@ extern "C" {
 struct _iterator;
 typedef struct _iterator *iterator_t;
 
-extern int iterator_add_ref __P ((iterator_t));
-extern int iterator_destroy __P ((iterator_t));
-extern int iterator_release __P ((iterator_t));
+extern int  iterator_ref     __P ((iterator_t));
+extern void iterator_destroy __P ((iterator_t *));
 
-extern int iterator_first   __P ((iterator_t));
-extern int iterator_next    __P ((iterator_t));
-extern int iterator_current __P ((iterator_t, void *));
-extern int iterator_is_done __P ((iterator_t));
+extern int  iterator_first   __P ((iterator_t));
+extern int  iterator_next    __P ((iterator_t));
+extern int  iterator_current __P ((iterator_t, void *));
+extern int  iterator_is_done __P ((iterator_t));
 
 #ifdef __cplusplus
 }

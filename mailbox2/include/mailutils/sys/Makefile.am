@@ -20,6 +20,7 @@ pkginclude_HEADERS = \
  observable.h \
  observer.h   \
  pop3.h       \
+ refcount.h   \
  stream.h     \
  tcpstream.h  \
  ticket.h     \

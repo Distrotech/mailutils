@@ -28,38 +28,36 @@
 #include <mailutils/sys/pop3.h>
 
 /* Implementation of the stream for TOP and RETR.  */
-static int p_add_ref       __P ((stream_t));
-static int p_release       __P ((stream_t));
-static int p_destroy       __P ((stream_t));
+static int  p_ref           __P ((stream_t));
+static void p_destroy       __P ((stream_t *));
 
-static int p_open          __P ((stream_t, const char *, int, int));
-static int p_close         __P ((stream_t));
+static int  p_open          __P ((stream_t, const char *, int, int));
+static int  p_close         __P ((stream_t));
 
-static int p_read          __P ((stream_t, void *, size_t, size_t *));
-static int p_readline      __P ((stream_t, char *, size_t, size_t *));
-static int p_write         __P ((stream_t, const void *, size_t, size_t *));
+static int  p_read          __P ((stream_t, void *, size_t, size_t *));
+static int  p_readline      __P ((stream_t, char *, size_t, size_t *));
+static int  p_write         __P ((stream_t, const void *, size_t, size_t *));
 
-static int p_seek          __P ((stream_t, off_t, enum stream_whence));
-static int p_tell          __P ((stream_t, off_t *));
+static int  p_seek          __P ((stream_t, off_t, enum stream_whence));
+static int  p_tell          __P ((stream_t, off_t *));
 
-static int p_get_size      __P ((stream_t, off_t *));
-static int p_truncate      __P ((stream_t, off_t));
-static int p_flush         __P ((stream_t));
+static int  p_get_size      __P ((stream_t, off_t *));
+static int  p_truncate      __P ((stream_t, off_t));
+static int  p_flush         __P ((stream_t));
 
-static int p_get_fd        __P ((stream_t, int *));
-static int p_get_flags     __P ((stream_t, int *));
-static int p_get_state     __P ((stream_t, enum stream_state *));
+static int  p_get_fd        __P ((stream_t, int *));
+static int  p_get_flags     __P ((stream_t, int *));
+static int  p_get_state     __P ((stream_t, enum stream_state *));
 
-static int p_is_readready  __P ((stream_t, int timeout));
-static int p_is_writeready __P ((stream_t, int timeout));
-static int p_is_exceptionpending  __P ((stream_t, int timeout));
+static int  p_is_readready  __P ((stream_t, int timeout));
+static int  p_is_writeready __P ((stream_t, int timeout));
+static int  p_is_exceptionpending  __P ((stream_t, int timeout));
 
-static int p_is_open       __P ((stream_t));
+static int  p_is_open       __P ((stream_t));
 
 static struct _stream_vtable p_s_vtable =
 {
-  p_add_ref,
-  p_release,
+  p_ref,
   p_destroy,
 
   p_open,
@@ -96,50 +94,32 @@ pop3_stream_create (pop3_t pop3, stream_t *pstream)
   if (p_stream == NULL)
     return MU_ERROR_NO_MEMORY;
 
-  p_stream->base.vtable = &p_s_vtable;
-  p_stream->ref = 1;
+  mu_refcount_create (&p_stream->refcount);
+  if (p_stream->refcount == NULL)
+    {
+      free (p_stream);
+      return MU_ERROR_NO_MEMORY;
+    }
+
   p_stream->done = 0;
   p_stream->pop3 = pop3;
-  monitor_create (&p_stream->lock);
+  p_stream->base.vtable = &p_s_vtable;
   *pstream = &p_stream->base;
   return 0;
 }
 
 static int
-p_add_ref (stream_t stream)
+p_ref (stream_t stream)
 {
   struct p_stream *p_stream = (struct p_stream *)stream;
-  int status = 0;
-  if (p_stream)
-    {
-      monitor_lock (p_stream->lock);
-      status = ++p_stream->ref;
-      monitor_unlock (p_stream->lock);
-    }
-  return status;
+  return mu_refcount_inc (p_stream->refcount);
 }
 
-static int
-p_release (stream_t stream)
+static void
+p_destroy (stream_t *pstream)
 {
-  struct p_stream *p_stream = (struct p_stream *)stream;
-  int status = 0;
-  if (p_stream)
-    {
-      monitor_lock (p_stream->lock);
-      status = --p_stream->ref;
-      if (status <= 0)
-	p_destroy (stream);
-      monitor_unlock (p_stream->lock);
-    }
-  return status;
-}
-
-static int
-p_destroy (stream_t stream)
-{
-  struct p_stream *p_stream = (struct p_stream *)stream;
-  if (p_stream)
+  struct p_stream *p_stream = (struct p_stream *)*pstream;
+  if (mu_refcount_dec (p_stream->refcount) == 0)
     {
       if (!p_stream->done)
 	{
@@ -150,10 +130,9 @@ p_destroy (stream_t stream)
 	    n = 0;
 	}
       p_stream->pop3->state = POP3_NO_STATE;
-      monitor_destroy (p_stream->lock);
+      mu_refcount_destroy (&p_stream->refcount);
       free (p_stream);
     }
-  return 0;
 }
 
 static int
@@ -180,7 +159,7 @@ p_read (stream_t stream, void *buf, size_t buflen, size_t *pn)
   char *p = buf;
   if (p_stream)
     {
-      monitor_lock (p_stream->lock);
+      mu_refcount_lock (p_stream->refcount);
       if (!p_stream->done)
 	{
 	  do
@@ -215,7 +194,7 @@ p_read (stream_t stream, void *buf, size_t buflen, size_t *pn)
 	    }
 	  while (buflen > 0);
 	}
-      monitor_unlock (p_stream->lock);
+      mu_refcount_unlock (p_stream->refcount);
     }
   if (pn)
     *pn = n;
@@ -230,7 +209,7 @@ p_readline (stream_t stream, char *buf, size_t buflen, size_t *pn)
   int status = 0;
   if (p_stream)
     {
-      monitor_lock (p_stream->lock);
+      mu_refcount_lock (p_stream->refcount);
       if (!p_stream->done)
 	{
 	  status = pop3_readline (p_stream->pop3, buf, buflen, &n);
@@ -240,7 +219,7 @@ p_readline (stream_t stream, char *buf, size_t buflen, size_t *pn)
 	      p_stream->done = 1;
 	    }
 	}
-      monitor_unlock (p_stream->lock);
+      mu_refcount_unlock (p_stream->refcount);
     }
   if (pn)
     *pn = n;

@@ -23,11 +23,12 @@
 #include <mailutils/sys/pop3.h>
 #include <stdlib.h>
 
-int
-pop3_destroy (pop3_t pop3)
+void
+pop3_destroy (pop3_t *ppop3)
 {
-  if (pop3)
+  if (ppop3 && *ppop3)
     {
+      pop3_t pop3 = *ppop3;
       if (pop3->ack.buf)
 	free (pop3->ack.buf);
 
@@ -37,7 +38,10 @@ pop3_destroy (pop3_t pop3)
       if (pop3->timestamp)
 	free (pop3->timestamp);
 
+      if (pop3->carrier)
+	stream_destroy (&pop3->carrier);
+
       free (pop3);
+      *ppop3 = NULL;
     }
-  return 0;
 }

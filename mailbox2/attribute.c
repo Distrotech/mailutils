@@ -20,45 +20,33 @@
 
 #include <sys/types.h>
 #include <stdlib.h>
-#include <string.h>
-#include <errno.h>
-
-#ifdef HAVE_STRINGS_H
-# include <strings.h>
-#endif
 
 #include <mailutils/error.h>
 #include <mailutils/sys/attribute.h>
 
 int
-(attribute_add_ref) (attribute_t attribute)
+attribute_ref (attribute_t attribute)
 {
   if (attribute == NULL || attribute->vtable == NULL
-      || attribute->vtable->add_ref == NULL)
+      || attribute->vtable->ref == NULL)
     return MU_ERROR_NOT_SUPPORTED;
-  return attribute->vtable->add_ref (attribute);
+  return attribute->vtable->ref (attribute);
+}
+
+void
+attribute_destroy (attribute_t *pattribute)
+{
+  if (pattribute && *pattribute)
+    {
+      attribute_t attribute = *pattribute;
+      if (attribute->vtable && attribute->vtable->destroy)
+	attribute->vtable->destroy (pattribute);
+      *pattribute = NULL;
+    }
 }
 
 int
-(attribute_release) (attribute_t attribute)
-{
-  if (attribute == NULL || attribute->vtable == NULL
-      || attribute->vtable->release == NULL)
-    return MU_ERROR_NOT_SUPPORTED;
-  return attribute->vtable->release (attribute);
-}
-
-int
-(attribute_destroy) (attribute_t attribute)
-{
-  if (attribute == NULL || attribute->vtable == NULL
-      || attribute->vtable->destroy == NULL)
-    return MU_ERROR_NOT_SUPPORTED;
-  return attribute->vtable->destroy (attribute);
-}
-
-int
-(attribute_get_flags) (attribute_t attribute, int *pflags)
+attribute_get_flags (attribute_t attribute, int *pflags)
 {
   if (attribute == NULL || attribute->vtable == NULL
       || attribute->vtable->get_flags == NULL)
@@ -67,7 +55,7 @@ int
 }
 
 int
-(attribute_set_flags) (attribute_t attribute, int flags)
+attribute_set_flags (attribute_t attribute, int flags)
 {
   if (attribute == NULL || attribute->vtable == NULL
       || attribute->vtable->set_flags == NULL)
@@ -76,7 +64,7 @@ int
 }
 
 int
-(attribute_unset_flags) (attribute_t attribute, int flags)
+attribute_unset_flags (attribute_t attribute, int flags)
 {
   if (attribute == NULL || attribute->vtable == NULL
       || attribute->vtable->unset_flags == NULL)
@@ -85,7 +73,7 @@ int
 }
 
 int
-(attribute_clear_flags) (attribute_t attribute)
+attribute_clear_flags (attribute_t attribute)
 {
   if (attribute == NULL || attribute->vtable == NULL
       || attribute->vtable->clear_flags == NULL)
@@ -328,116 +316,5 @@ attribute_copy (attribute_t dest, attribute_t src)
   attribute_get_flags (src, &sflags);
   attribute_clear_flags (dest);
   attribute_set_flags (dest, sflags);
-  return 0;
-}
-
-static int
-_da_add_ref (attribute_t attribute)
-{
-  struct _da *da = (struct _da *)attribute;
-  int status;
-  monitor_lock (da->lock);
-  status = ++da->ref;
-  monitor_unlock (da->lock);
-  return status;
-}
-
-static int
-_da_destroy (attribute_t attribute)
-{
-  struct _da *da = (struct _da *)attribute;
-  monitor_destroy (da->lock);
-  free (da);
-  return 0;
-}
-
-static int
-_da_release (attribute_t attribute)
-{
-  struct _da *da = (struct _da *)attribute;
-  int status;
-  monitor_lock (da->lock);
-  status = --da->ref;
-  if (status <= 0)
-    {
-      monitor_unlock (da->lock);
-      _da_destroy (attribute);
-      return 0;
-    }
-  monitor_unlock (da->lock);
-  return status;
-}
-
-static int
-_da_get_flags (attribute_t attribute, int *pflags)
-{
-  struct _da *da = (struct _da *)attribute;
-  monitor_lock (da->lock);
-  if (pflags)
-    *pflags = da->flags;
-  monitor_unlock (da->lock);
-  return 0;
-}
-
-static int
-_da_set_flags (attribute_t attribute, int flags)
-{
-  struct _da *da = (struct _da *)attribute;
-  monitor_lock (da->lock);
-  da->flags |= (flags | MU_ATTRIBUTE_MODIFIED);
-  monitor_unlock (da->lock);
-  return 0;
-}
-
-static int
-_da_unset_flags (attribute_t attribute, int flags)
-{
-  struct _da *da = (struct _da *)attribute;
-  monitor_lock (da->lock);
-  da->flags &= ~flags;
-  /* If Modified was being unset do not reset it.  */
-  if (!(flags & MU_ATTRIBUTE_MODIFIED))
-    da->flags |= MU_ATTRIBUTE_MODIFIED;
-  monitor_unlock (da->lock);
-  return 0;
-}
-
-static int
-_da_clear_flags (attribute_t attribute)
-{
-  struct _da *da = (struct _da *)attribute;
-  monitor_lock (da->lock);
-  da->flags = 0;
-  monitor_unlock (da->lock);
-  return 0;
-}
-
-static struct _attribute_vtable _da_vtable =
-{
-  _da_add_ref,
-  _da_release,
-  _da_destroy,
-
-  _da_get_flags,
-  _da_set_flags,
-  _da_unset_flags,
-  _da_clear_flags
-};
-
-int
-attribute_create (attribute_t *pattribute)
-{
-  struct _da *da;
-  if (pattribute == NULL)
-    return MU_ERROR_INVALID_PARAMETER;
-  da = calloc (1, sizeof *da);
-  if (da == NULL)
-    return MU_ERROR_NO_MEMORY;
-
-  da->base.vtable = &_da_vtable;
-  da->ref = 1;
-  da->flags = 0;
-  monitor_create (&(da->lock));
-  *pattribute = &da->base;
   return 0;
 }

@@ -35,16 +35,15 @@ extern "C" {
 struct _locker;
 typedef struct _locker *locker_t;
 
-extern int locker_add_ref        __P ((locker_t));
-extern int locker_release        __P ((locker_t));
-extern int locker_destroy        __P ((locker_t));
+extern int  locker_ref            __P ((locker_t));
+extern void locker_destroy        __P ((locker_t *));
 
-extern int locker_lock           __P ((locker_t));
-extern int locker_touchlock      __P ((locker_t));
-extern int locker_unlock         __P ((locker_t));
+extern int  locker_lock           __P ((locker_t));
+extern int  locker_touchlock      __P ((locker_t));
+extern int  locker_unlock         __P ((locker_t));
 
-extern int locker_dotlock_create __P ((locker_t *, const char *filename));
-extern int locker_nfslock_create __P ((locker_t *, const char *filename));
+extern int  locker_dotlock_create __P ((locker_t *, const char *filename));
+extern int  locker_nfslock_create __P ((locker_t *, const char *filename));
 
 #ifdef __cplusplus
 }

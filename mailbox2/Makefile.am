@@ -15,8 +15,10 @@ libmailbox_la_SOURCES = \
  attribute.c  \
  authority.c  \
  bstream.c    \
+ dattribute.c \
  dotlock.c    \
  envelope.c   \
+ fdstream.c   \
  folder.c     \
  fstream.c    \
  header.c     \
@@ -33,6 +35,7 @@ libmailbox_la_SOURCES = \
  observer.c   \
  parse822.c   \
  pticket.c    \
+ refcount.c     \
  stream.c     \
  tcpstream.c  \
  ticket.c

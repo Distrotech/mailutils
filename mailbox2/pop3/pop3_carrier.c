@@ -37,7 +37,7 @@ pop3_set_carrier (pop3_t pop3, stream_t carrier)
   if (pop3->carrier)
     {
       stream_close (pop3->carrier);
-      stream_release (pop3->carrier);
+      stream_destroy (&pop3->carrier);
     }
   pop3->carrier = carrier;
   return 0;
@@ -59,12 +59,10 @@ pop3_get_carrier (pop3_t pop3, stream_t *pcarrier)
       status = stream_buffer_create (&(pop3->carrier), carrier, 1024);
       if (status != 0)
 	{
-	  stream_release (carrier);
+	  stream_destroy (&carrier);
 	  return status;
 	}
     }
-  /* Incremente the ref count, since we are exposing it.  */
-  stream_add_ref (pop3->carrier);
   *pcarrier = pop3->carrier;
   return 0;
 }

@@ -53,14 +53,12 @@ struct event
 #define MU_EVT_MAILBOX_CORRUPT     0x040
 #define MU_EVT_MAILER_MESSAGE_SENT 0x080
 
-extern int observer_create  __P ((observer_t *, int (*action)
-				       __P ((void *, struct event)), void *));
+extern int  observer_create  __P ((observer_t *, int (*action)
+				   __P ((void *, struct event)), void *));
 
-extern int observer_add_ref __P ((observer_t));
-extern int observer_release __P ((observer_t));
-extern int observer_destroy __P ((observer_t));
-
-extern int observer_action  __P ((observer_t, struct event));
+extern int  observer_ref __P ((observer_t));
+extern void observer_destroy __P ((observer_t *));
+extern int  observer_action  __P ((observer_t, struct event));
 
 #ifdef __cplusplus
 }

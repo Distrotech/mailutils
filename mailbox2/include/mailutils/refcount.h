@@ -15,44 +15,36 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-#ifndef _MAILUTILS_SYS_AUTHORITY_H
-#define _MAILUTILS_SYS_AUTHORITY_H
+#ifndef _MAILUTILS_REFCOUNT_H
+#define _MAILUTILS_REFCOUNT_H
 
-#ifdef DMALLOC
-#include <dmalloc.h>
+#include <sys/types.h>
+
+#ifndef __P
+#ifdef __STDC__
+#define __P(args) args
+#else
+#define __P(args) ()
 #endif
-
-#include <mailutils/authority.h>
+#endif /*__P */
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#ifndef __P
-# ifdef __STDC__
-#  define __P(args) args
-# else
-#  define __P(args) ()
-# endif
-#endif /*__P */
+/* forward declaration */
+struct _refcount;
+typedef struct _refcount *mu_refcount_t;
 
-struct _authority_vtable
-{
-  int  (*ref)          __P ((authority_t));
-  void (*destroy)      __P ((authority_t *));
-
-  int  (*set_ticket)   __P ((authority_t, ticket_t));
-  int  (*get_ticket)   __P ((authority_t, ticket_t *));
-  int  (*authenticate) __P ((authority_t));
-};
-
-struct _authority
-{
-  struct _authority_vtable *vtable;
-};
+extern int  mu_refcount_create  __P ((mu_refcount_t *));
+extern void mu_refcount_destroy __P ((mu_refcount_t *));
+extern int  mu_refcount_inc     __P ((mu_refcount_t));
+extern int  mu_refcount_dec     __P ((mu_refcount_t));
+extern int  mu_refcount_lock    __P ((mu_refcount_t));
+extern int  mu_refcount_unlock  __P ((mu_refcount_t));
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* _MAILUTILS_SYS_AUTHORITY_H */
+#endif /* _MAILUTILS_REFCOUNT_H */

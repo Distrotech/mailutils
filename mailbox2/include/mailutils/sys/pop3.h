@@ -24,7 +24,7 @@
 #include <mailutils/sys/stream.h>
 #include <mailutils/sys/iterator.h>
 #include <mailutils/error.h>
-#include <mailutils/monitor.h>
+#include <mailutils/refcount.h>
 
 #ifdef DMALLOC
 # include <dmalloc.h>
@@ -59,19 +59,17 @@ struct p_iterator
 {
   struct _iterator base;
   pop3_t pop3;
-  unsigned int ref;
+  mu_refcount_t refcount;
   int done;
   char *item;
-  monitor_t lock;
 };
 
 struct p_stream
 {
   struct _stream base;
   pop3_t pop3;
-  unsigned ref;
+  mu_refcount_t refcount;
   int done;
-  monitor_t lock;
 };
 
 struct work_buf
