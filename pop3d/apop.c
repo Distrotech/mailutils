@@ -46,7 +46,6 @@ char *
 pop3d_apopuser (const char *user)
 {
   char *password;
-  int rc;
   char buf[POP_MAXCMDLEN];
 
 #ifdef USE_DBM
@@ -54,7 +53,7 @@ pop3d_apopuser (const char *user)
     DBM_FILE db;
     DBM_DATUM key, data;
 
-    rc = mu_dbm_open (APOP_PASSFILE, &db, MU_STREAM_READ, 0600);
+    int rc = mu_dbm_open (APOP_PASSFILE, &db, MU_STREAM_READ, 0600);
     if (rc)
       {
 	if (rc == -1)
