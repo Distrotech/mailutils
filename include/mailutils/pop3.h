@@ -44,6 +44,8 @@ extern int  mu_pop3_set_debug    (mu_pop3_t pop3, void (*print) __P((const char 
 
 extern int  mu_pop3_apop         (mu_pop3_t pop3, const char *name, const char *digest);
 
+extern int  mu_pop3_stls         (mu_pop3_t pop3);
+
 /* It is the responsability of the caller to call list_destroy() when done
    with the list.  The item in the list is of type "const char *",
    no processing is done on the item except the removal of the trailing newline.  */

@@ -45,6 +45,7 @@ enum mu_pop3_state
     MU_POP3_RETR,    MU_POP3_RETR_ACK, MU_POP3_RETR_RX,
     MU_POP3_RSET,    MU_POP3_RSET_ACK,
     MU_POP3_STAT,    MU_POP3_STAT_ACK,
+    MU_POP3_STLS,    MU_POP3_STLS_ACK, MU_POP3_STLS_CONNECT,
     MU_POP3_TOP,     MU_POP3_TOP_ACK,  MU_POP3_TOP_RX,
     MU_POP3_UIDL,    MU_POP3_UIDL_ACK, MU_POP3_UIDL_RX,
     MU_POP3_USER,    MU_POP3_USER_ACK,
@@ -53,40 +54,40 @@ enum mu_pop3_state
 
 /* Structure holding the data necessary to do proper buffering.  */
 struct mu_pop3_work_buf
-{
-  char *buf;
-  char *ptr;
-  char *nl;
-  size_t len;
-  off_t offset; /* To synchronize with the stream buffering. */
-};
+  {
+    char *buf;
+    char *ptr;
+    char *nl;
+    size_t len;
+    off_t offset; /* To synchronize with the stream buffering. */
+  };
 
 /* Structure to hold things general to POP3 mailbox, like its state, etc ... */
 struct _mu_pop3
-{
-  /* Working I/O buffer.
-     io.buf: Working io buffer
-     io.ptr: Points to the end of the buffer, the non consumed chars
-     io.nl: Points to the '\n' char in the string
-     io.len: Len of io_buf.  */
-  struct mu_pop3_work_buf io;
+  {
+    /* Working I/O buffer.
+       io.buf: Working io buffer
+       io.ptr: Points to the end of the buffer, the non consumed chars
+       io.nl: Points to the '\n' char in the string
+       io.len: Len of io_buf.  */
+    struct mu_pop3_work_buf io;
 
-  /* Holds the first line response of the last command, i.e the ACK:
-     ack.buf: Buffer for the ack
-     ack.ptr: Working pointer, indicate the start of the non consumed chars
-     ack.len: Size 512 according to RFC2449.  */
-  struct mu_pop3_work_buf ack;
-  int acknowledge;
+    /* Holds the first line response of the last command, i.e the ACK:
+       ack.buf: Buffer for the ack
+       ack.ptr: Working pointer, indicate the start of the non consumed chars
+       ack.len: Size 512 according to RFC2449.  */
+    struct mu_pop3_work_buf ack;
+    int acknowledge;
 
-  char *timestamp; /* For apop, if supported.  */
-  unsigned timeout;  /* Default is 10 minutes.  */
+    char *timestamp; /* For apop, if supported.  */
+    unsigned timeout;  /* Default is 10 minutes.  */
 
-  void (*debug)(const char *log); /* function to print debug long.  */
+    void (*debug)(const char *log); /* function to print debug long.  */
 
-  enum mu_pop3_state state;  /* Indicate the state of the running command.  */
+    enum mu_pop3_state state;  /* Indicate the state of the running command.  */
 
-  stream_t carrier; /* TCP Connection.  */
-};
+    stream_t carrier; /* TCP Connection.  */
+  };
 
 extern int  mu_pop3_debug_cmd       (mu_pop3_t);
 extern int  mu_pop3_debug_ack       (mu_pop3_t);
