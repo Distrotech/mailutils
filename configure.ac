@@ -634,15 +634,15 @@ if test "$EMACS" != "no"; then
 fi
 AC_SUBST(lisp_LISP)
 
-dnl Define ATTRIBUTE_UNUSED macro
+dnl Define ARG_UNUSED macro
 dnl
 AH_BOTTOM([
 #if __GNUC__ < 2 || (__GNUC__ == 2 && __GNUC_MINOR__ < 7)
 #  define __attribute__(x)
 #endif
 
-#ifndef ATTRIBUTE_UNUSED
-# define ATTRIBUTE_UNUSED __attribute__ ((__unused__))
+#ifndef ARG_UNUSED
+# define ARG_UNUSED __attribute__ ((__unused__))
 #endif
 ])
 
