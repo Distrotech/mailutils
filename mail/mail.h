@@ -80,11 +80,11 @@ typedef int function_t ();
 #define EF_REG  0x00    /* Regular command */
 #define EF_FLOW 0x01    /* Flow control command */
 #define EF_SEND 0x02    /* Send command */
-  
+
 struct mail_command_entry {
   char *shortname;
   char *longname;
-  int flags;     
+  int flags;
   function_t *func;
   char *synopsis;
 };
@@ -113,7 +113,7 @@ extern unsigned int cursor;
 extern unsigned int realcursor;
 extern unsigned int total;
 extern FILE *ofile;
-extern int interactive;  
+extern int interactive;
 extern const struct mail_command_entry mail_command_table[];
 extern const struct mail_command_entry mail_escape_table[];
 
@@ -165,7 +165,7 @@ int mail_z __P((int argc, char **argv));
 int mail_eq __P((int argc, char **argv));	/* command = */
 
 int if_cond __P((void));
-  
+
 void mail_mainloop __P((char *(*input) __P((void *, int)), void *closure, int do_history));
 int mail_copy0 __P((int argc, char **argv, int mark));
 int mail_send0 __P((struct send_environ *env, int save_to));
@@ -201,7 +201,7 @@ int var_write __P((int argc, char **argv, struct send_environ *env));
 int var_exit __P((int argc, char **argv, struct send_environ *env));
 int var_pipe __P((int argc, char **argv, struct send_environ *env));
 
-  
+
 int util_expand_msglist __P((const int argc, char **argv, int **list));
 int util_do_command __P((const char *cmd, ...));
 int util_msglist_command __P((function_t *func, int argc, char **argv, int set_cursor));
@@ -217,13 +217,14 @@ int util_isdeleted __P((int message));
 char *util_get_homedir __P((void));
 char *util_fullpath __P((char *inpath));
 char *util_get_sender __P((int msgno, int strip));
-  
+
 void util_slist_print __P((list_t list, int nl));
 int util_slist_lookup __P((list_t list, char *str));
 void util_slist_add __P((list_t *list, char *value));
 void util_slist_destroy __P((list_t *list));
 char *util_slist_to_string __P((list_t list, char *delim));
 void util_strcat __P((char **dest, char *str));
+void util_strupper __P((char *str));
 void util_escape_percent __P((char **str));
 char *util_outfolder_name __P((char *str));
 void util_save_outgoing __P((message_t msg, char *savefile));
@@ -235,22 +236,22 @@ int ml_got_interrupt __P((void));
 void ml_clear_interrupt __P((void));
 void ml_readline_init __P((void));
 int ml_reread __P((char *prompt, char **text));
-  
+
 char *alias_expand __P((char *name));
 void alias_destroy __P((char *name));
 
 #ifndef HAVE_READLINE_READLINE_H
 char *readline __P((const char *prompt));
-#endif  
+#endif
 
 #ifndef _PATH_SENDMAIL
 #define _PATH_SENDMAIL "/usr/lib/sendmail"
 #endif
 
-/* Message attributes */  
+/* Message attributes */
 #define MAIL_ATTRIBUTE_MBOXED   0x0001
 #define MAIL_ATTRIBUTE_SAVED    0x0002
-  
+
 #ifdef __cplusplus
 }
 #endif

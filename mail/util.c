@@ -699,8 +699,10 @@ util_strupper (char *s)
 {
   if (s)
     {
-      while (s++)
-	*s = toupper ((int)*s);
+      int i;
+      int len = strlen (s);
+      for (i = 0; i < len; i++)
+	s[i] = toupper ((int)s[i]);
     }
 }
 
