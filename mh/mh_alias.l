@@ -233,16 +233,19 @@ push_source (const char *name, int fail)
   struct stat st;
   const char *filename;
   
-  if (stat (name, &st))
+  filename = mh_expand_name (NULL, name, 0);
+  if (stat (filename, &st))
     {
       if (fail)
-	ali_parse_error (_("can't stat `%s': %s"), name, strerror (errno));
+	ali_parse_error (_("can't stat `%s': %s"), filename, strerror (errno));
+      free (filename);
       return 1;
     }
 
   if (ali_filename && st.st_ino == ali_source_inode)
     {
       ali_parse_error (_("recursive inclusion"));
+      free (filename);
       return 1;
     }
   if (ctx = ctx_lookup (st.st_ino))
@@ -251,21 +254,21 @@ push_source (const char *name, int fail)
       if (ctx->prev)
 	ali_parse_error_loc (ctx->prev->filename, ctx->prev->line,
                              _("`%s' already included here"),
-                             name);
+                             filename);
       else
 	ali_parse_error (_("`%s' already included at top level"),
-			 name);
+			 filename);
+      free (filename);
       return 1;
     }
                 
-  fp = fopen (name, "r");
+  fp = fopen (filename, "r");
   if (!fp)
     {
-      ali_parse_error (_("can't open `%s': %s"), name, strerror (errno));
+      ali_parse_error (_("can't open `%s': %s"), filename, strerror (errno));
+      free (filename);
       return 1;
     }
-
-  filename = strdup (name);
   
   /* Push current context */
   if (ali_filename)
