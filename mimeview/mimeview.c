@@ -372,7 +372,7 @@ run_mailcap (mu_mailcap_entry_t entry, const char *type)
     }
   
   /*
-    if (mu_mailcap_entry_coupiousoutput (entry, &flag) == 0 && flag)
+    if (mu_mailcap_entry_copiousoutput (entry, &flag) == 0 && flag)
     pager = open_pager ();
   */
 
