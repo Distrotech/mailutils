@@ -230,7 +230,7 @@ opt_handler (int key, char *arg, void *unused)
   return 0;
 }
 
-static int
+static void
 watch_printf (const char *fmt, ...)
 {
   va_list ap;
@@ -249,24 +249,24 @@ draft_name()
   return mh_expand_name (draftfolder, "draft", 0);
 }
 
-static list_t mbox_list;
+static list_t mesg_list;
 static mh_context_t *mts_profile;
 
 int
 check_file (char *name)
 {
-  mailbox_t mbox;
+  message_t msg;
 
-  mbox = mh_open_msg_file (draft_folder, name);
-  if (!mbox)
+  msg = mh_file_to_message (draft_folder, name);
+  if (!msg)
     return 1;
-  if (!mbox_list && list_create (&mbox_list))
+  if (!mesg_list && list_create (&mesg_list))
     {
-      mh_error (_("can't create mailbox list"));
+      mh_error (_("can't create message list"));
       return 1;
     }
   
-  return list_append (mbox_list, mbox);
+  return list_append (mesg_list, msg);
 }
 
 void
@@ -343,19 +343,13 @@ create_message_id (header_t hdr)
 int
 _action_send (void *item, void *data)
 {
-  mailbox_t mbox = item;
-  message_t msg;
+  message_t msg = item;
   int rc;
   mailer_t mailer;
   header_t hdr;
   size_t n;
 
   WATCH(("Getting message"));
-  if ((rc = mailbox_get_message (mbox, 1, &msg)))
-    {
-      mh_error(_("cannot get message: %s"), mu_strerror (rc));
-      return 1;
-    }
 
   if (message_get_header (msg, &hdr) == 0)
     {
@@ -427,7 +421,7 @@ send (int argc, char **argv)
       return 1;
     }
 
-  rc = list_do (mbox_list, _action_send, NULL);
+  rc = list_do (mesg_list, _action_send, NULL);
   return rc;
 }
 	  
