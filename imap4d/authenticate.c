@@ -17,24 +17,79 @@
 
 #include "imap4d.h"
 
-extern int auth_gssapi __P((struct imap4d_command *, char **username));
-
 struct imap_auth {
   char *name;
-  int (*handler) __P((struct imap4d_command *, char **));
-} imap_auth_tab[] = {
-#ifdef WITH_GSSAPI
-  { "GSSAPI", auth_gssapi },
-#endif  
-  { NULL, NULL }
+  imap4d_auth_handler_fp handler;
 };
+
+static list_t imap_auth_list;
+
+static int
+comp (const void *item, const void *data)
+{
+  struct imap_auth *p = item;
+  return strcmp (p->name, (char*) data);
+}
+
+void
+auth_add (char *name, imap4d_auth_handler_fp handler)
+{
+  struct imap_auth *p = malloc (sizeof (*p));
+
+  if (!p)
+    imap4d_bye (ERR_NO_MEM);
+
+  p->name = name;
+  p->handler = handler;
+  if (!imap_auth_list)
+    {
+      list_create (&imap_auth_list);
+      list_set_comparator (imap_auth_list, comp);
+    }
+  list_append (imap_auth_list, (void*)p);
+}
+
+void
+auth_remove (char *name)
+{
+  list_remove (imap_auth_list, (void*) name);
+}
+
+static int
+_auth_capa (void *item, void *usused)
+{
+  struct imap_auth *p = item;
+  util_send(" AUTH=%s", p->name);
+  return 0;
+}
+
+struct auth_data {
+  struct imap4d_command *command;
+  char *auth_type;
+  char *arg;
+  char *username;
+  int result;
+};
+
+static int
+_auth_try (void *item, void *data)
+{
+  struct imap_auth *p = item;
+  struct auth_data *ap = data;
+
+  if (strcmp (p->name, ap->auth_type) == 0)
+    {
+      ap->result = p->handler (ap->command,
+			       ap->auth_type, ap->arg, &ap->username);
+      return 1;
+    }
+  return 0;
+}
 
 void
 imap4d_auth_capability ()
 {
-  struct imap_auth *ap;
-  for (ap = imap_auth_tab; ap->name; ap++)
-    util_send(" AUTH=%s", ap->name);
+  list_do (imap_auth_list, _auth_capa, NULL);
 }
 
 int
@@ -42,24 +97,25 @@ imap4d_authenticate (struct imap4d_command *command, char *arg)
 {
   char *sp = NULL;
   char *auth_type;
-  struct imap_auth *ap;
-  char *username = NULL;
+  struct auth_data adata;
   
   auth_type = util_getword (arg, &sp);
   util_unquote (&auth_type);
   if (!auth_type)
     return util_finish (command, RESP_BAD, "Too few arguments");
 
-  for (ap = imap_auth_tab; ap->name; ap++)
-    if (strcmp (auth_type, ap->name) == 0)
-      {
-	if (ap->handler (command, &username))
-	  return 1;
-      }
+  adata.command = command;
+  adata.auth_type = auth_type;
+  adata.arg = sp;
+  adata.username = NULL;
 
-  if (username)
+  if (list_do (imap_auth_list, _auth_try, &adata) == 0)
+    return util_finish (command, RESP_NO,
+			"Authentication mechanism not supported");
+  
+  if (adata.result == RESP_OK && adata.username)
     {
-      auth_data = mu_get_auth_by_name (username);
+      auth_data = mu_get_auth_by_name (adata.username);
       if (auth_data == NULL)
 	return util_finish (command, RESP_NO,
 			    "User name or passwd rejected");
@@ -71,11 +127,13 @@ imap4d_authenticate (struct imap4d_command *command, char *arg)
       /* FIXME: Check for errors.  */
       chdir (homedir);
       namespace_init (homedir);
-      syslog (LOG_INFO, _("User '%s' logged in"), username);
-      return 0;
+      syslog (LOG_INFO, _("User '%s' logged in"), adata.username);
+      
+      return util_finish (command, RESP_OK,
+			  "%s authentication successful", auth_type);
     }
       
-  return util_finish (command, RESP_NO,
-		      "Authentication mechanism not supported");
+  return util_finish (command, adata.result,
+		      "%s authentication failed", auth_type);
 }
 
