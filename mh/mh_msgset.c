@@ -587,7 +587,6 @@ mh_msgset_negate (mailbox_t mbox, mh_msgset_t *msgset)
   list = calloc (total, sizeof (list[0]));
   if (!list)
     mh_err_memory (1);
-
   for (i = 1, msgno = 0; i <= total; i++)
     {
       if (!mh_msgset_member (msgset, i))
@@ -605,3 +604,14 @@ mh_msgset_negate (mailbox_t mbox, mh_msgset_t *msgset)
   msgset->list = list;
 }
 
+void
+mh_msgset_uids (mailbox_t mbox, mh_msgset_t *msgset)
+{
+  size_t i;
+  for (i = 0; i < msgset->count; i++)
+    {
+      message_t msg;
+      mailbox_get_message (mbox, msgset->list[i], &msg);
+      mh_message_number (msg, &msgset->list[i]);
+    }
+}
