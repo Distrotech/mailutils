@@ -86,6 +86,7 @@ static int _mime_append_part(mime_t mime, message_t msg, int offset, int len, in
 		mime_part->lines = lines;
 		mime_part->offset = offset;
 	} else {
+		message_ref(msg);
 		message_size(msg, &mime_part->len);
 		message_lines(msg, &mime_part->lines);
 		if ( mime->nmtp_parts > 1 )
@@ -372,7 +373,7 @@ static int _mime_set_content_type(mime_t mime)
 	size_t		size;
 	
 	if ( mime->nmtp_parts > 1 ) {
-		if ( mime->flags & MIME_ADDED_MULTIPART )
+		if ( mime->flags & MIME_ADDED_MULTIPART_CT )
 			return 0;
 		if ( mime->flags & MIME_MULTIPART_MIXED )
 			strcpy(content_type, "multipart/mixed; boundary=");
@@ -386,11 +387,11 @@ static int _mime_set_content_type(mime_t mime)
 		strcat(content_type, "\"");
 		strcat(content_type, mime->boundary);
 		strcat(content_type, "\"");
-		mime->flags |= MIME_ADDED_MULTIPART;
+		mime->flags |= MIME_ADDED_MULTIPART_CT;
 	} else {
-		if ( (mime->flags & (MIME_ADDED_CONTENT_TYPE|MIME_ADDED_MULTIPART)) == MIME_ADDED_CONTENT_TYPE )
+		if ( (mime->flags & (MIME_ADDED_CT|MIME_ADDED_MULTIPART_CT)) == MIME_ADDED_CT )
 			return 0;
-		mime->flags &= ~MIME_ADDED_MULTIPART;
+		mime->flags &= ~MIME_ADDED_MULTIPART_CT;
 		if ( mime->nmtp_parts )
 			message_get_header(mime->mtp_parts[0]->msg, &hdr);
 		if ( hdr == NULL || header_get_value(hdr, "Content-Type", NULL, 0, &size) != 0 || size == 0 )
@@ -398,9 +399,11 @@ static int _mime_set_content_type(mime_t mime)
 		else
 			header_get_value(hdr, "Content-Type", content_type, sizeof(content_type), &size);
 	}
-	mime->flags |= MIME_ADDED_CONTENT_TYPE;
+	mime->flags |= MIME_ADDED_CT;
 	return header_set_value(mime->hdrs, "Content-Type", content_type, 1);
 }
+
+#define ADD_CHAR(buf, c, offset, buflen, nbytes) {*(buf)++ = c; (offset)++; (nbytes)++;if (--(buflen) == 0) return 0;}
 
 static int _mime_body_read(stream_t stream, char *buf, size_t buflen, off_t off, size_t *nbytes)
 {
@@ -417,6 +420,8 @@ static int _mime_body_read(stream_t stream, char *buf, size_t buflen, off_t off,
 	if ( off == 0 ) { 			/* reset message */
 		mime->cur_offset = 0;
 		mime->cur_part = 0;
+		if ( mime->nmtp_parts > 1 )
+			mime->flags |= MIME_INSERT_BOUNDARY;
 	}
 
 	if ( off != mime->cur_offset )
@@ -425,39 +430,37 @@ static int _mime_body_read(stream_t stream, char *buf, size_t buflen, off_t off,
 	if ( nbytes )
 		*nbytes = 0;
 
-	if ( mime->cur_part == mime->nmtp_parts )
-		return 0;
-
 	if ( ( ret = _mime_set_content_type(mime) ) == 0 ) {
 		do {
 			len = 0;
 			if ( mime->nmtp_parts > 1 ) {
-				if ( ( mime->flags & MIME_INSERT_BOUNDARY || mime->cur_offset == 0 ) ) {
-					mime->cur_part++;
-					len = 2;
-					buf[0] = buf[1] = '-';
-					buf+=2;
-					len += strlen(mime->boundary);
-					strcpy(buf, mime->boundary);
-					buf+= strlen(mime->boundary);
-					if ( mime->cur_part == mime->nmtp_parts ) {
-						len+=2;
-						buf[0] = buf[1] = '-';
-						buf+=2;
+				if ( mime->flags & MIME_INSERT_BOUNDARY ) {
+					if ( ( mime->flags & MIME_ADDING_BOUNDARY ) == 0 ) {
+						mime->boundary_len = strlen(mime->boundary);
+						mime->preamble = 2;
+						if ( mime->cur_part == mime->nmtp_parts )
+							mime->postamble = 2;
+						mime->flags |= MIME_ADDING_BOUNDARY;
 					}
-					len++;
-					buf[0] = '\n';
-					buf++;
-					mime->flags &= ~MIME_INSERT_BOUNDARY;
-					buflen =- len;
+					while(mime->preamble) {
+						mime->preamble--;
+						ADD_CHAR(buf, '-', mime->cur_offset, buflen, *nbytes);
+					}
+					len = strlen(mime->boundary) - mime->boundary_len;
+					while(mime->boundary_len) {
+						mime->boundary_len--;
+						ADD_CHAR(buf, mime->boundary[len++], mime->cur_offset, buflen, *nbytes);
+					}
+					while(mime->postamble) {
+						mime->postamble--;
+						ADD_CHAR(buf, '-', mime->cur_offset, buflen, *nbytes);						
+					}
+					mime->flags &= ~(MIME_INSERT_BOUNDARY|MIME_ADDING_BOUNDARY);
 					mime->part_offset = 0;
-					if ( mime->cur_part == mime->nmtp_parts ) {
-						if ( nbytes )
-							*nbytes += len;
-						mime->cur_offset +=len;
-						break;
-					}
+					ADD_CHAR(buf, '\n',mime->cur_offset, buflen, *nbytes);
 				}
+				if ( mime->cur_part >= mime->nmtp_parts )
+				   return 0;
 				message_get_stream(mime->mtp_parts[mime->cur_part]->msg, &msg_stream);
 			} else {
 				body_t body;
@@ -470,8 +473,10 @@ static int _mime_body_read(stream_t stream, char *buf, size_t buflen, off_t off,
 			if ( nbytes )
 				*nbytes += len;
 			mime->cur_offset += len;
-			if ( ret == 0 && part_nbytes == 0 && mime->nmtp_parts > 1 )
+			if ( ret == 0 && part_nbytes == 0 && mime->nmtp_parts > 1 ) {
 				mime->flags |= MIME_INSERT_BOUNDARY;
+				mime->cur_part++;
+			}
 		} while( ret == 0 && part_nbytes == 0 );
 	}
 	return ret;
@@ -494,13 +499,14 @@ static int _mime_body_size (body_t body, size_t *psize)
 {
 	message_t	msg = body_get_owner(body);
 	mime_t		mime = message_get_owner(msg);
-	int 		i;
+	int 		i, ret;
 	size_t		size;
 
 	if ( mime->nmtp_parts == 0 )
 		return EINVAL;
 
-	_mime_set_content_type(mime);
+	if ( (ret = _mime_set_content_type(mime) ) != 0 )
+		return ret;
 	for ( i=0;i<mime->nmtp_parts;i++ ) {
 		message_size(mime->mtp_parts[i]->msg, &size);
 		*psize+=size;
@@ -517,13 +523,14 @@ static int _mime_body_lines (body_t body, size_t *plines)
 {
 	message_t	msg = body_get_owner(body);
 	mime_t		mime = message_get_owner(msg);
-	int 		i;
+	int 		i, ret;
 	size_t		lines;
 
 	if ( mime->nmtp_parts == 0 )
 		return EINVAL;
 
-	_mime_set_content_type(mime);
+	if ( (ret = _mime_set_content_type(mime) ) != 0 )
+		return ret;
 	for ( i = 0; i < mime->nmtp_parts; i++ ) {
 		message_lines(mime->mtp_parts[i]->msg, &lines);
 		plines+=lines;
@@ -566,7 +573,7 @@ int mime_create(mime_t *pmime, message_t msg, int flags)
 		}
 	}
 	else {
-		mime->flags |= MIME_NEW_MESSAGE;
+		mime->flags |= MIME_NEW_MESSAGE | MIME_MULTIPART_MIXED;
 	}
 	if ( ret != 0 ) {
 		if ( mime->content_type )
@@ -591,13 +598,16 @@ void mime_destroy(mime_t *pmime)
 		if ( mime->mtp_parts != NULL ) {
 			for ( i = 0; i < mime->nmtp_parts; i++ ) {
 				mime_part = mime->mtp_parts[i];
-				if ( mime_part->msg ) {
+				if ( mime_part->msg && mime->flags & MIME_NEW_MESSAGE )
+					message_unref(mime_part->msg);
+				else
 					message_destroy(&mime_part->msg, mime_part);
-					free (mime_part);
-				}
+				free (mime_part);
 			}
 			free (mime->mtp_parts);
 		}
+		if ( mime->msg && mime->flags & MIME_NEW_MESSAGE )
+			message_destroy(&mime->msg, mime);
 		if ( mime->content_type )
 			free(mime->content_type);
 		if ( mime->cur_buf )
@@ -662,9 +672,13 @@ int mime_get_num_parts(mime_t mime, int *nmtp_parts)
 
 int mime_add_part(mime_t mime, message_t msg)
 {
+	int ret;
+	
 	if ( mime == NULL || msg == NULL || ( mime->flags & MIME_NEW_MESSAGE ) == 0 )
 		return EINVAL;
-	return _mime_append_part(mime, msg, 0, 0, 0);
+	if ( ( ret = _mime_append_part(mime, msg, 0, 0, 0) ) == 0 )
+		ret = _mime_set_content_type(mime);
+	return ret;
 }
 
 int mime_get_message(mime_t mime, message_t *msg)

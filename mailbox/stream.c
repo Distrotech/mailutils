@@ -231,7 +231,7 @@ stream_readline (stream_t is, char *buf, size_t count,
 
   *buf = '\0';
   if (pnread)
-    *pnread = n;
+    *pnread = (n == count) ? n - 1: n;
 
   return 0;
 }

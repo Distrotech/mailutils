@@ -308,7 +308,7 @@ _file_open (stream_t stream, const char *filename, int port, int flags)
     }
 #if BUFSIZ <= 1024
   /* Give us some room to breath, for OS with two small stdio buffers.  */
-  setvbuf (fs->file, iobuffer, _IOFBF, 8192);
+  setvbuf (fs->file, NULL, _IOFBF, 8192);
 #endif
   stream_set_flags (stream, flags |MU_STREAM_NO_CHECK);
   return 0;

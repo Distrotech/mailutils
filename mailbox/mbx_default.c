@@ -21,9 +21,12 @@
 
 #include <string.h>
 #include <stdlib.h>
-#include <paths.h>
 #include <errno.h>
 #include <stdio.h>
+
+#ifdef HAVE_PATHS_H
+# include <paths.h>
+#endif
 
 #include <mailutils/mailbox.h>
 

@@ -51,9 +51,10 @@ extern "C" {
 #define MIME_PARSER_ACTIVE			0x80000000
 #define MIME_PARSER_HAVE_CR			0x40000000
 #define MIME_NEW_MESSAGE			0x20000000
-#define MIME_ADDED_CONTENT_TYPE		0x10000000
-#define MIME_ADDED_MULTIPART		0x08000000
+#define MIME_ADDED_CT				0x10000000
+#define MIME_ADDED_MULTIPART_CT		0x08000000
 #define MIME_INSERT_BOUNDARY		0x04000000
+#define MIME_ADDING_BOUNDARY		0x02000000
 
 struct _mime
 {
@@ -70,7 +71,9 @@ struct _mime
 	int					cur_offset;
 	int					cur_part;
 	int					part_offset;
-	
+	int					boundary_len;
+	int					preamble;
+	int					postamble;	
 	/* parser state */	
 	char	*cur_line;
 	int 	line_ndx;

@@ -285,7 +285,7 @@ smtp_open (mailer_t mailer, int flags)
       /* allocate a working io buffer.  */
       if (smtp->buffer == NULL)
         {
-          smtp->buflen = 255; /* Initial guess.  */
+          smtp->buflen = 512; /* Initial guess.  */
           smtp->buffer = malloc (smtp->buflen + 1);
           if (smtp->buffer == NULL)
             {
@@ -305,7 +305,7 @@ smtp_open (mailer_t mailer, int flags)
       smtp->state = SMTP_OPEN;
 
     case SMTP_OPEN:
-      MAILER_DEBUG2 (mailer, MU_DEBUG_PROT, "smtp_open (%s:%d)\n", smtp->localhost, port);
+      MAILER_DEBUG2 (mailer, MU_DEBUG_PROT, "smtp_open (%s:%d)\n", smtp->mailhost, port);
       status = stream_open (mailer->stream, smtp->mailhost, port,
 			    mailer->flags);
       CHECK_EAGAIN (smtp, status);
@@ -565,7 +565,8 @@ smtp_send_message(mailer_t mailer, message_t msg)
 		CHECK_ERROR (smtp, status);
 	      }
 	    smtp->offset += n;
-	    status = smtp_write (smtp);
+	    MAILER_DEBUG0 (mailer, MU_DEBUG_PROT, smtp->buffer);
+		status = smtp_write (smtp);
 	    CHECK_EAGAIN (smtp, status);
 	  }
 	smtp->offset = 0;
@@ -716,25 +717,36 @@ get_rcpt (message_t msg, address_t *prcpt_to)
     }
   return EINVAL;
 }
-  static int
+
+/* C99 says that a conforming implementations of snprintf ()
+   should return the number of char that would have been call
+   but many GNU/Linux && BSD implementations return -1 on error.
+   Worse QNX/Neutrino actually does not put the terminal
+   null char.  So let's try to cope.  */
+static int
 smtp_writeline (smtp_t smtp, const char *format, ...)
 {
   int len;
   va_list ap;
+  int done = 1;
 
   va_start(ap, format);
   do
     {
       len = vsnprintf (smtp->buffer, smtp->buflen - 1, format, ap);
-      if (len >= (int)smtp->buflen)
+      if (len < 0 || (len >= (int)smtp->buflen)
+	  || !memchr (smtp->buffer, '\0', len + 1))
         {
           smtp->buflen *= 2;
           smtp->buffer = realloc (smtp->buffer, smtp->buflen);
           if (smtp->buffer == NULL)
             return ENOMEM;
+	  done = 0;
         }
+      else
+	done = 1;
     }
-  while (len > (int)smtp->buflen);
+  while (!done);
   va_end(ap);
   smtp->ptr = smtp->buffer + len;
   return 0;

@@ -1551,25 +1551,35 @@ pop_retr (pop_message_t mpm, char *buffer, size_t buflen, off_t offset,
   return 0;
 }
 
+/* C99 says that a conforming implementations of snprintf ()
+   should return the number of char that would have been call
+   but many GNU/Linux && BSD implementations return -1 on error.
+   Worse QnX/Neutrino actually does not put the terminal
+   null char.  So let's try to cope.  */
 static int
 pop_writeline (pop_data_t mpd, const char *format, ...)
 {
   int len;
   va_list ap;
+  int done = 1;
 
   va_start(ap, format);
   do
     {
       len = vsnprintf (mpd->buffer, mpd->buflen - 1, format, ap);
-      if (len >= (int)mpd->buflen)
+      if (len < 0 || len >= (int)mpd->buflen
+	  || !memchr (mpd->buffer, '\0', len + 1))
 	{
 	  mpd->buflen *= 2;
 	  mpd->buffer = realloc (mpd->buffer, mpd->buflen);
 	  if (mpd->buffer == NULL)
 	    return ENOMEM;
+	  done = 0;
 	}
+      else
+	done = 1;
     }
-  while (len > (int)mpd->buflen);
+  while (!done);
   va_end(ap);
   mpd->ptr = mpd->buffer + len;
   return 0;
