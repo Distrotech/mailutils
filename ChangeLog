@@ -1,5 +1,43 @@
 2001-06-09  Alain Magloire
 
+	* mailbox/tcp.c (_tcp_get_fd): Buglet, comparing fd against EINVAL
+	instead of -1.
+
+	* mailbox2/pop3/pop3_apop.c: New.
+	* mailbox2/pop3/pop3_capa.c: New.
+	* mailbox2/pop3/pop3_close.c: New.
+	* mailbox2/pop3/pop3_create.c: New.
+	* mailbox2/pop3/pop3_dele.c: New.
+	* mailbox2/pop3/pop3_destroy.c: New.
+	* mailbox2/pop3/pop3_iterator.c: New.
+	* mailbox2/pop3/pop3_list.c: New.
+	* mailbox2/pop3/pop3_lista.c: New.
+	* mailbox2/pop3/pop3_noop.c: New.
+	* mailbox2/pop3/pop3_open.c: New.
+	* mailbox2/pop3/pop3_pass.c: New.
+	* mailbox2/pop3/pop3_quit.c: New.
+	* mailbox2/pop3/pop3_readline.c: New.
+	* mailbox2/pop3/pop3_response.c: New.
+	* mailbox2/pop3/pop3_retr.c: New.
+	* mailbox2/pop3/pop3_rset.c: New.
+	* mailbox2/pop3/pop3_sendline.c: New.
+	* mailbox2/pop3/pop3_stat.c: New.
+	* mailbox2/pop3/pop3_stream.c: New.
+	* mailbox2/pop3/pop3_timeout.c: New.
+	* mailbox2/pop3/pop3_top.c: New.
+	* mailbox2/pop3/pop3_uidl.c: New.
+	* mailbox2/pop3/pop3_uidla.c: New.
+	* mailbox2/pop3/pop3_user.c: New.
+
+	* mailbox2/tcp.c: New.
+	* mailbox2/iterator.c: New.
+	* mailbox2/stream.c: New.
+
+	* mailbox2/pop3/pop3client.c: Test case should probably somewhere else
+	in example/ perhaps?
+
+2001-06-09  Alain Magloire
+
 	* mailbox2/*: First attempt to define the new API.
 	POP3 was implemented.
 

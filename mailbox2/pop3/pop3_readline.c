@@ -55,6 +55,9 @@ pop3_getline (pop3_t pop3)
 	      if (status != 0)
 		return status;
 
+	      if (fd == -1)
+		return MU_ERROR_IO;
+
 	      FD_ZERO (&rfds);
 	      FD_SET (fd, &rfds);
 	      tv.tv_sec = pop3->timeout;
@@ -139,7 +142,7 @@ pop3_readline (pop3_t pop3, char *buffer, size_t buflen, size_t *pnread)
   int status;
 
   /* Do we need to fill up? Yes if no NL or the buffer is empty.  */
-  if (pop3->io.nl == NULL || pop3->io.ptr == pop3->io.buf)
+  if (pop3->stream && (pop3->io.nl == NULL || pop3->io.ptr == pop3->io.buf))
     {
       status = pop3_getline (pop3);
       if (status != 0)

@@ -30,6 +30,9 @@ pop3_response (pop3_t pop3, char *buffer, size_t buflen, size_t *pnread)
   size_t n = 0;
   int status = 0;
 
+  if (pop3 == NULL)
+    return MU_ERROR_INVALID_PARAMETER;
+
   if (!pop3->acknowledge)
     {
       size_t len = pop3->ack.len - (pop3->ack.ptr  - pop3->ack.buf);
@@ -37,6 +40,9 @@ pop3_response (pop3_t pop3, char *buffer, size_t buflen, size_t *pnread)
       pop3->ack.ptr += n;
       if (status != 0)
 	return status;
+      len = pop3->ack.ptr - pop3->ack.buf;
+      if (len && pop3->ack.buf[len - 1] == '\n')
+	pop3->ack.buf[len - 1] = '\0';
       pop3->acknowledge = 1; /* Flag that we have the ack.  */
       pop3->ack.ptr = pop3->ack.buf;
     }

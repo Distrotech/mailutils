@@ -126,7 +126,7 @@ static int _tcp_get_fd(stream_t stream, int *fd)
 {
 	struct _tcp_instance *tcp = stream_get_owner(stream);
 
-	if ( fd == NULL || tcp->fd == EINVAL )
+	if ( fd == NULL || tcp->fd == -1 )
 		return EINVAL;
 
 	*fd = tcp->fd;

@@ -44,5 +44,7 @@ pop3_close (pop3_t pop3)
       free (pop3->timestamp);
       pop3->timestamp = NULL;
     }
-  return stream_close (pop3->stream);
+  if (pop3->stream)
+    return stream_close (pop3->stream);
+  return 0;
 }

@@ -24,7 +24,7 @@
 #include <errno.h>
 #include <netdb.h>
 #include <fcntl.h>
-#define __USE_BSD
+//#define __USE_BSD
 #include <string.h>
 #include <strings.h>
 #include <sys/types.h>
@@ -178,7 +178,7 @@ _tcp_get_fd (stream_t stream, int *fd)
 {
   struct _tcp_instance *tcp = (struct _tcp_instance *)stream;
 
-  if (fd == NULL || tcp->fd == EINVAL)
+  if (fd == NULL || tcp->fd == -1)
     return MU_ERROR_INVALID_PARAMETER;
 
   *fd = tcp->fd;

@@ -40,7 +40,7 @@ int
 pop3_send (pop3_t pop3)
 {
   int status = 0;
-  if (pop3->io.ptr > pop3->io.buf)
+  if (pop3->stream && (pop3->io.ptr > pop3->io.buf))
     {
       size_t n = 0;
       size_t len = pop3->io.ptr - pop3->io.buf;
