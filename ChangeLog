@@ -1,3 +1,13 @@
+2001-09-05 Sergey Poznyakoff
+
+	* MySql/MySql.h: New defines MHOST, MPORT, etc.
+	* MySql/MySql.c: Improved error logging. Fixed memory leak due
+	to absence of mysql_close() calls (noticeable on imap4d when
+	doing multiple login attempts).
+	Provide configurable parameters to mysql_real_reconnect to
+	allow connecting to the remote database and/or non-standard
+	ports.
+
 2001-09-04  Alain Magloire
 
 	* mailbox/mbx_imap.c (message_operation):  Check if the
