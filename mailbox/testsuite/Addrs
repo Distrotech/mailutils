@@ -638,4 +638,6 @@ P. D. Q. Bach <bach@somewhere.org>=> pcount 1
    personal <P. D. Q. Bach>
    local-part <bach> domain <somewhere.org>
 
+"A bad quote\" <devnull@localhost>=> error MU_ERR_BAD_822_FORMAT
+
 # NOTE: This file must end with an empty line
