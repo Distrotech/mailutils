@@ -1,3 +1,17 @@
+2004-08-31  Wojciech Polak
+
+	* mailbox/file_stream.c (prog_stream_create): Changed type
+	of the second argument to const char*.
+	(filter_prog_stream_create): Likewise.
+	(_prog_stream_create): Changed type of the third argument
+	to const char*.
+	* include/mailutils/stream.h (prog_stream_create): Changed
+	type of the second argument to const char*.
+	(filter_prog_stream_create): Likewise.
+	* doc/texinfo/stream.texi: Updated.
+
+	* configure.ac (AM_GNU_GETTEXT_VERSION): Bump to 0.14.1.
+
 2004-08-24  Sergey Poznyakoff
 
 	* mail/util.c (util_do_command): Fixed coredump on unparseable

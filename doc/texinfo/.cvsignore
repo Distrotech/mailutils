@@ -6,6 +6,9 @@ mailutils.info*
 muint.info*
 texinfo.tex
 version.texi
+index.html
+stamp-1
+vers-muint.texi
 mailutils.log
 mailutils.dvi
 mailutils.aux

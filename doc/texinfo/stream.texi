@@ -67,10 +67,10 @@ If @code{MU_STREAM_NO_CLOSE} is specified, @code{fclose()} will not be called on
 @var{stdio} when the stream is closed.
 @end deftypefun
 
-@deftypefun  int prog_stream_create (stream_t *@var{stream}, char *@var{progname}, int @var{flags})
+@deftypefun  int prog_stream_create (stream_t *@var{stream}, const char *@var{progname}, int @var{flags})
 @end deftypefun
 
-@deftypefun  int filter_prog_stream_create (stream_t *@var{stream}, char *@var{progname}, stream_t @var{input})
+@deftypefun  int filter_prog_stream_create (stream_t *@var{stream}, const char *@var{progname}, stream_t @var{input})
 @end deftypefun
 
 @deftypefun void stream_destroy (stream_t *@var{stream}, void *@var{owner})
