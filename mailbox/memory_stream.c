@@ -103,7 +103,7 @@ _memory_write (stream_t stream, const char *iptr, size_t isize,
   if (mfs->capacity < ((size_t)offset + isize))
     {
       /* Realloc by fixed blocks of 128.  */
-      int newsize = MU_STREAM_MEMORY_BLOCKSIZE *
+      size_t newsize = MU_STREAM_MEMORY_BLOCKSIZE *
 	(((offset + isize)/MU_STREAM_MEMORY_BLOCKSIZE) + 1);
       char *tmp =  realloc (mfs->ptr, newsize);
       if (tmp == NULL)
