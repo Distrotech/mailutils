@@ -17,12 +17,26 @@
 
 #include "imap4d.h"
 
+char *capa[] = {
+  "IMAP4rev1",
+  "NAMESPACE",
+#ifdef WITH_GSSAPI
+  "AUTH=GSSAPI",
+#endif
+  NULL
+};
+
 int
 imap4d_capability (struct imap4d_command *command, char *arg)
 {
+  int i;
+  
   (void)arg;
   if (! (command->states & state))
     return util_finish (command, RESP_BAD, "Wrong state");
-  util_out (RESP_NONE,  "CAPABILITY IMAP4rev1 NAMESPACE");
+  util_send ("* CAPABILITY");
+  for (i = 0; capa[i]; i++)
+    util_send(" %s", capa[i]);
+  util_send("\r\n");
   return util_finish (command, RESP_OK, "Completed");
 }
