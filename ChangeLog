@@ -1,3 +1,7 @@
+2003-02-07  Frederic Gobry  <frederic.gobry@smartdata.ch>
+
+	* mailbox/rfc2047.c: implemented a preliminary RFC2047 encoder.
+
 2003-02-06  Sergey Poznyakoff
 
 	* libsieve/actions.c (build_mime): Call message_unref.

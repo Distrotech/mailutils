@@ -44,6 +44,8 @@ int mime_get_message	__P ((mime_t mime, message_t *msg));
 int rfc2047_decode      __P((const char *tocode, const char *fromstr,
 			     char **ptostr));
 
+int rfc2047_encode      __P((const char *charset, const char *encoding, 
+			     const char *text, char **result));
   
 #ifdef __cplusplus
 }

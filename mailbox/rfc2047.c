@@ -157,3 +157,459 @@ rfc2047_decode (const char *tocode, const char *input, char **ptostr)
   return status;
 }
 
+
+
+/* --------------------------------------------------
+   RFC 2047 Encoder
+   -------------------------------------------------- */
+
+#define MAX_QUOTE 75
+
+/* Be more conservative in what we quote. This is never a problem for
+   the recipient, except for the extra overhead in the message size */
+static int
+must_quote (char c)
+{
+  if (((c >  32) && (c <= 57))  || 
+      ((c >= 64) && (c <= 126)))
+    return 0;
+
+  return 1;
+}
+
+typedef struct _encoder rfc2047_encoder;
+
+struct _encoder {
+  char   encoding;
+  const char * charset;
+
+  int must_open;
+
+  const unsigned char * src;
+  char * dst, * result;
+
+  int todo, done, quotesize;
+
+  int  (* count) (rfc2047_encoder * enc);
+  void (* next)  (rfc2047_encoder * enc);
+  void (* flush) (rfc2047_encoder * enc);
+
+  unsigned char buffer [4];
+
+  int  state;
+
+};
+
+
+static int
+_open_quote (const char * charset,
+	    char encoding,
+	    char ** dst, int * done)
+{
+  int len = strlen (charset) + 5;
+
+  (* done) += len;
+  
+  if (* dst)
+    {
+      sprintf (* dst, "=?%s?%c?", charset, encoding);
+      (* dst) += len;
+    }
+
+  /* in the initial length of the quote we already count the final ?= */
+  return len + 2;
+}
+
+static void
+_close_quote (char ** dst, int * done)
+{
+  * done += 2;
+  
+  if (* dst)
+    {
+      strcpy (* dst, "?=");
+      (* dst) += 2;
+    }
+}
+
+static void
+init_quoted (rfc2047_encoder * enc)
+{
+  enc->must_open = 1;
+}
+
+
+static void
+insert_quoted (rfc2047_encoder * enc)
+{
+  int size;
+
+  if (enc->must_open)
+    {
+      enc->must_open = 0;
+      enc->quotesize = _open_quote (enc->charset, enc->encoding, 
+				    & enc->dst, & enc->done);
+    }
+  else 
+    {
+      size = enc->count (enc);
+  
+      if (enc->quotesize + size > MAX_QUOTE)
+	{
+	  _close_quote (& enc->dst, & enc->done);
+
+	  if (enc->dst) * (enc->dst ++) = ' ';
+	  enc->done ++;
+
+	  enc->quotesize = _open_quote (enc->charset, enc->encoding, 
+					& enc->dst, & enc->done);
+	}
+    }
+  
+  enc->next (enc);
+}
+
+static void
+flush_quoted (rfc2047_encoder * enc)
+{
+  if (enc->must_open) return;
+
+  enc->flush (enc);
+  _close_quote (& enc->dst, & enc->done);
+}
+
+
+
+static void
+insert_unquoted (rfc2047_encoder * enc)
+{
+  if (enc->dst) * (enc->dst ++) = * (enc->src);
+  enc->src ++;
+  enc->todo --;
+  enc->done ++;
+}
+
+
+static int
+is_next_quoted (const char * src) 
+{
+  while (isspace (* src)) src ++;
+
+  while (* src) 
+    {
+      if (isspace (* src)) return 0;
+      if (must_quote (* src)) return 1;
+
+      src ++;
+    }
+
+  return 0;
+}
+
+
+/* Quoted-printable encoder */
+
+static void
+qp_init (rfc2047_encoder * enc)
+{
+  return;
+}
+
+static int
+qp_count (rfc2047_encoder * enc)
+{
+  return must_quote (* enc->src) ? 3 : 1;
+}
+
+static const char _hexdigit[16] = "0123456789ABCDEF";
+
+static void
+qp_next (rfc2047_encoder * enc)
+{
+  if (must_quote (* enc->src))
+    {
+      /* special encoding of space as a '_' to increase readability */
+      if (* enc->src == ' ')
+	{
+	  if (enc->dst)
+	    {
+	      * (enc->dst ++) = '_';
+	      enc->src ++;
+	    }
+	
+	enc->done ++;
+	enc->quotesize ++;
+	}
+      else {
+	/* default encoding */
+	if (enc->dst)
+	  {
+	    * (enc->dst ++) = '=';
+	    * (enc->dst ++) = _hexdigit [* (enc->src) >> 4];
+	    * (enc->dst ++) = _hexdigit [* (enc->src) & 0xF];
+	    
+	    enc->src ++;
+	  }
+	
+	enc->done += 3;
+	enc->quotesize += 3;
+      }
+    }
+  else
+    {
+      if (enc->dst)
+	{
+	  * (enc->dst ++) = * (enc->src ++);
+	}
+
+      enc->done ++;
+      enc->quotesize ++;
+    }
+
+  enc->todo --;
+}
+
+static void
+qp_flush (rfc2047_encoder * enc)
+{
+  return;
+}
+
+
+/* Base64 encoder */
+
+const char *b64 =
+"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+
+static void
+base64_init (rfc2047_encoder * enc)
+{
+  enc->state = 0;
+  return;
+}
+
+static int
+base64_count (rfc2047_encoder * enc)
+{
+  /* Count the size of the encoded block only once, at the first byte
+     transmitted. */
+  if (enc->state == 0) return 4;
+  return 0;
+}
+
+static void
+base64_next (rfc2047_encoder * enc)
+{
+  enc->buffer [enc->state ++] = * (enc->src ++);
+
+  enc->todo --;
+
+  /* We have a full quantum */
+  if (enc->state >= 3) 
+    {
+      if (enc->dst)
+	{
+	  * (enc->dst ++) = b64 [(enc->src[0] >> 2)];
+	  * (enc->dst ++) = b64 [((enc->src[0] & 0x3) << 4) | (enc->src[1] >> 4)];
+	  * (enc->dst ++) = b64 [((enc->src[1] & 0xF) << 2) | (enc->src[2] >> 6)];
+	  * (enc->dst ++) = b64 [(enc->src[2] & 0x3F)];
+
+	  enc->src += 3;
+	}
+
+      enc->done += 4;
+      enc->quotesize += 4;
+
+      enc->state = 0;
+    }
+  return;
+}
+
+static void
+base64_flush (rfc2047_encoder * enc)
+{
+  if (enc->state == 0) return;
+
+  if (enc->dst) 
+    {
+      switch (enc->state)
+	{
+	case 1:
+	  * (enc->dst ++) = b64 [(enc->src[0] >> 2)];
+	  * (enc->dst ++) = b64 [((enc->src[0] & 0x3) << 4)];
+	  * (enc->dst ++) = '=';
+	  * (enc->dst ++) = '=';
+	  break;
+	
+	case 2:
+	  * (enc->dst ++) = b64 [(enc->src[0] >> 2)];
+	  * (enc->dst ++) = b64 [((enc->src[0] & 0x3) << 4) | (enc->src[1] >> 4)];
+	  * (enc->dst ++) = b64 [((enc->src[1] & 0xF) << 2)];
+	  * (enc->dst ++) = '=';
+	  break;
+	}
+    }
+
+  enc->done += 4;
+  enc->quotesize += 4;
+  enc->state = 0;
+  return;
+}
+
+
+/* States of the RFC2047 encoder */
+enum {
+  ST_SPACE,   /* waiting for non-quoted whitespace */
+  ST_WORD,    /* waiting for non-quoted word */
+  ST_QUOTED,  /* waiting for quoted word */
+  ST_QUOTED_SPACE, /* waiting for quoted whitespace */
+};
+
+
+
+/**
+   Encode a header according to RFC 2047
+   
+   @param charset
+     Charset of the text to encode
+   @param encoding
+     Requested encoding (must be "base64" or "quoted-printable")
+   @param text
+     Actual text to encode
+   @param result [OUT]
+     Encoded string
+*/
+int
+rfc2047_encode (const char *charset, const char *encoding,
+		const char *text, char ** result)
+{
+  rfc2047_encoder enc;
+
+  int is_compose;
+  int state;
+
+  if (! charset  ||
+      ! encoding || 
+      ! text     || 
+      ! result) return EINVAL;
+
+  do 
+    {
+      if (strcmp (encoding, "base64") == 0) 
+	{
+	  base64_init (& enc);
+	  enc.encoding = 'B';
+	  enc.next  = base64_next;
+	  enc.count = base64_count;
+	  enc.flush = base64_flush;
+	  break;
+	}
+      
+      if (strcmp (encoding, "quoted-printable") == 0) 
+	{
+	  qp_init (& enc);
+	  enc.encoding = 'Q';
+	  enc.next  = qp_next;
+	  enc.count = qp_count;
+	  enc.flush = qp_flush;
+	  break;
+	}
+      
+      return ENOENT;
+    } 
+  while (0);
+
+  enc.dst = NULL;
+  enc.charset = charset;
+
+  /* proceed in two passes: count, then fill */
+  for (is_compose = 0 ; is_compose <= 1 ; is_compose ++) 
+    {
+      state = ST_SPACE;
+
+      enc.src  = text;
+      enc.todo = strlen (text);
+      enc.done = 0;
+
+      while (enc.todo) 
+	{
+	  
+	  switch (state) 
+	    {
+	    case ST_SPACE:
+	      if (isspace (* enc.src)) 
+		{
+		  insert_unquoted (& enc);
+		  break;
+		}
+
+	      if (is_next_quoted (enc.src)) 
+		{
+		  init_quoted (& enc);
+		  state = ST_QUOTED;
+		}
+	      else 
+		{
+		  state = ST_WORD;
+		}
+	      break;
+
+	    case ST_WORD:
+	      if (isspace (* enc.src)) 
+		{
+		  state = ST_SPACE;
+		  break;
+		}
+
+	      insert_unquoted (& enc);
+	      break;
+	      
+	    case ST_QUOTED:
+	      if (isspace (* enc.src))
+		{
+		  if (is_next_quoted (enc.src))
+		    {
+		      state = ST_QUOTED_SPACE;
+		    }
+		  else
+		    {
+		      flush_quoted (& enc);
+		      state = ST_SPACE;
+		    }
+		  break;
+		}
+
+	      insert_quoted (& enc);
+	      break;
+	      
+	    case ST_QUOTED_SPACE:
+	      if (! isspace (* enc.src))
+		{
+		  state = ST_QUOTED;
+		  break;
+		}
+
+	      insert_quoted (& enc);
+	      break;
+	    }
+	}
+
+      if (state == ST_QUOTED ||
+	  state == ST_QUOTED_SPACE)
+	{
+	  flush_quoted (& enc);
+	}
+
+      if (enc.dst == NULL) 
+	{
+	  enc.dst = malloc (enc.done + 1);
+	  if (enc.dst == NULL) return -ENOMEM;
+	  enc.result = enc.dst;
+	}
+    }
+
+  * (enc.dst) = '\0';
+  * result = enc.result;
+
+  return 0;
+}
