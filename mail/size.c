@@ -25,19 +25,21 @@ int
 mail_size (int argc, char **argv)
 {
   if (argc > 1)
-    util_msglist_command (mail_size, argc, argv, 1);
+    util_msglist_command (mail_size, argc, argv, 0);
   else
     {
-      size_t s = 0;
+      size_t size = 0, lines = 0;
       message_t msg;
       if (mailbox_get_message (mbox, cursor, &msg) != 0)
 	{
 	  util_error("Could not read message %d", cursor);
 	  return 1;
 	}
-      message_size (msg, &s);
-      fprintf (ofile, "%c%2d %d\n", cursor == realcursor ? '>' : ' ',
-	       cursor, s);
+      message_size (msg, &size);
+      message_lines (msg, &lines);
+
+      fprintf (ofile, "%c%2d %3d/%-5d\n", cursor == realcursor ? '>' : ' ',
+	       cursor, lines, size);
       return 0;
     }
   return 1;
