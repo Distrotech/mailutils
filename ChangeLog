@@ -1,3 +1,33 @@
+2002-08-06  Sergey Poznyakoff  
+
+	* Makefile.am: Added distcheck rule needed for
+	  test suite.
+	* configure.ac: Added missing AH_BOTTOM and descriptions to
+	  AC_DEFINEs. Replaced sr_STRUCT_TM.* with AC_CHECK_MEMBERS
+	  (no aggregate members, so it's safe here).
+	* acconfig.h: Removed
+	* doc/texinfo/Makefile.am: DISTCLEANFILES
+	* lib/Makefile.am: Use LTLIBOBJS.
+	
+	* m4/tm_gmtoff.m4: Removed.
+	* m4/tm_isdst.m4: Removed.
+	* m4/tm_zone.m4: Removed.
+	* m4/Makefile.am: Removed tm_ files.
+
+	* mail/testsuite/Makefile.am: Fixed generation of site.exp. Added
+	  DISTCLEANFILES.
+
+	* mailbox/mutil.c: Changed HAVE_TM_.* to HAVE_STRUCT_TM_.*
+	* mailbox/parse822.c: Likewise.
+	* mailbox2/mutil.c: Likewise.
+	* mailbox2/parse822.c: Likewise.
+	* mh/mh_format.c: Likewise.
+	
+	* imap4d/authenticate.c (imap4d_auth_capability): New function.
+	* imap4d/imap4d.h: Likewise.
+	* imap4d/capability.c (imap4d_capability): call
+	  imap4d_auth_capability() to output AUTH= capabilities.
+	
 2002-08-05  Jeff Bailey  <jbailey@outpost.dnsalias.org>
 
 	* lib/Makefile.am: Remove libtool hacks, automake now handles
