@@ -1,10 +1,10 @@
-GNU mailutils NEWS -- history of user-visible changes.  2004-11-15
+GNU mailutils NEWS -- history of user-visible changes.  2004-12-23
 Copyright (C) 2002, 2003, 2004 Free Software Foundation, Inc.
 See the end of file for copying conditions.
 
 Please send mailutils bug reports to <bug-mailutils@gnu.org>.
 
-Version 0.5.1:
+Version 0.6:
 
 * New features:
 
@@ -26,6 +26,8 @@ simultaneously. Which of the interfaces to use is defined at run time
 by --sql-interface option.
 
 ** Mail.local is able to retrieve mailbox quotas from SQL database.
+
+* movemail: Special mode for interfacing with Emacs (--emacs option)
 
 * Bug fixes
 

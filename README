@@ -126,6 +126,7 @@ specific configuration options:
 
 	Enable GNU SASL support (Simple Authentication and Security Layer
 	framework). IMAP4d supports this mechanism.
+	This requires GSASL version 0.2.3 or newer.
 
     --with-gssapi
 
