@@ -54,7 +54,7 @@ static struct argp_option options[] = {
    N_("Set the mhl filter to preprocess the body of the message being replied")},
   {"form",   ARG_FORM, N_("FILE"), 0, N_("Read format from given file")},
   {"format", ARG_FORMAT, N_("BOOL"), OPTION_ARG_OPTIONAL,
-   N_("Include a copy of the message being replied. The message will be processed either using the default filter \"mhl.reply\", or using the filter specified by --filter option.") },
+   N_("Include a copy of the message being replied. The message will be processed using either the default filter \"mhl.reply\", or the filter specified by --filter option.") },
   {"inplace", ARG_INPLACE, N_("BOOL"), OPTION_ARG_OPTIONAL,
    N_("* Annotate the message in place")},
   {"query", ARG_QUERY, N_("BOOL"), OPTION_ARG_OPTIONAL,

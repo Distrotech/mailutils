@@ -29,7 +29,7 @@ static char args_doc[] = N_("[arg...]");
 static struct argp_option options[] = {
   {"compile", 'c', NULL,   0, N_("print C compiler flags to compile with"), 0},
   {"link",    'l', NULL,   0,
-   N_("print libraries to link with. Possible arguments are: auth, guile, all,"
+   N_("print libraries to link with. Possible arguments are: auth, guile, all, "
       "mbox, mh, maildir, imap, pop"), 0},
   {"info", 'i', NULL, 0,
    N_("print a list of configuration options used to build mailutils. If arguments "
