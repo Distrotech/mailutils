@@ -24,7 +24,7 @@
 #include <string.h>
 #include <errno.h>
 
-#include <mailcap.h>
+#include <mailutils/mailcap.h>
 
 /* Definition of the structure, this should be in mailutils/sys/mailcap.h.  */
 struct _mu_mailcap_entry

@@ -59,6 +59,7 @@ iterator.c \
 list.c \
 locker.c \
 mailbox.c \
+mailcap.c \
 mailer.c \
 mapfile_stream.c \
 mbx_default.c \
