@@ -26,10 +26,18 @@
 #endif /*__P */
 
 #include <stdarg.h>
+#include <stdio.h>
 
-extern int mu_vasprintf __P ((char **result, const char *format, va_list * args));
-
-extern int mu_asprintf __P ((char **result, const char *format, ...));
+#if !HAVE_DECL_VASPRINTF
+extern int vasprintf __P((char **result, const char *format, va_list args));
+#endif
+#if !HAVE_DECL_ASPRINTF
+#if __STDC__
+extern int asprintf __P((char **result, const char *format, ...));
+#else
+extern int asprintf ();
+#endif
+#endif
 
 #endif
 
