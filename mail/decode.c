@@ -31,8 +31,7 @@ struct decode_closure
 
 static int print_stream __P ((stream_t, FILE *));
 static int display_message __P ((message_t, msgset_t *msgset, void *closure));
-static int display_message0 __P ((FILE *, message_t, const msgset_t *, int));
-static int mailcap_lookup __P ((const char *));
+static int display_message0 __P ((message_t, const msgset_t *, int));
 static int get_content_encoding __P ((header_t hdr, char **value));
 static void run_metamail __P((const char *mailcap, message_t mesg));
 
@@ -56,27 +55,14 @@ mail_decode (int argc, char **argv)
 int
 display_message (message_t mesg, msgset_t *msgset, void *arg)
 {
-  FILE *out;
-  size_t lines = 0;
   struct decode_closure *closure = arg;
-  int pagelines = util_getenv (NULL, "metamail", Mail_env_string, 0) == 0 ?
-                     0 : util_get_crt ();
   attribute_t attr = NULL;
 
   message_get_attribute (mesg, &attr);
   if (attribute_is_deleted (attr))
     return 1;
 
-  message_lines (mesg, &lines);
-  if (pagelines && lines > pagelines)
-    out = popen (getenv ("PAGER"), "w");
-  else
-    out = ofile;
-
-  display_message0 (out, mesg, msgset, closure->select_hdr);
-
-  if (out != ofile)
-    pclose (out);
+  display_message0 (mesg, msgset, closure->select_hdr);
 
   /* Mark enclosing message as read */
   if (mailbox_get_message (mbox, msgset->msg_part[0], &mesg) == 0)
@@ -151,7 +137,7 @@ display_part_header (FILE *out, const msgset_t *msgset,
 }
 
 static int
-display_message0 (FILE *out, message_t mesg, const msgset_t *msgset,
+display_message0 (message_t mesg, const msgset_t *msgset,
 		  int select_hdr)
 {
   size_t nparts = 0;
@@ -180,7 +166,7 @@ display_message0 (FILE *out, message_t mesg, const msgset_t *msgset,
 	    {
 	      msgset_t *set = msgset_expand (msgset_dup (msgset),
 					     msgset_make_1 (j));
-	      display_message0 (out, message, set, 0);
+	      display_message0 (message, set, 0);
 	      msgset_free (set);
 	    }
 	}
@@ -190,44 +176,59 @@ display_message0 (FILE *out, message_t mesg, const msgset_t *msgset,
       message_t submsg = NULL;
 
       if (message_unencapsulate (mesg, &submsg, NULL) == 0)
-	display_message0 (out, submsg, msgset, select_hdr);
+	display_message0 (submsg, msgset, select_hdr);
     }
   else if (util_getenv (&tmp, "metamail", Mail_env_string, 0) == 0)
     {
       run_metamail (tmp, mesg);
     }
-  else if (mailcap_lookup (type))
-    {
-      /* FIXME: lookup .mailcap and do the appropriate action when
-	 an match engry is found.  */
-      /* Do something, spawn a process etc ....  */
-    }
-  else /*if (strncasecmp (type, "text/plain", strlen ("text/plain")) == 0
-	 || strncasecmp (type, "text/html", strlen ("text/html")) == 0)*/
+  else
     {
       body_t body = NULL;
       stream_t b_stream = NULL;
+      stream_t d_stream = NULL;
+      stream_t stream = NULL;
+      header_t hdr = NULL;
+      char *no_ask = NULL;
+      
+      message_get_body (mesg, &body);
+      message_get_header (mesg, &hdr);
+      body_get_stream (body, &b_stream);
 
-      display_part_header (out, msgset, type, encoding);
-      display_headers (out, mesg, msgset, select_hdr);
+      /* Can we decode.  */
+      if (filter_create(&d_stream, b_stream, encoding,
+			MU_FILTER_DECODE, MU_STREAM_READ) == 0)
+	stream = d_stream;
+      else
+	stream = b_stream;
 
-      if (message_get_body (mesg, &body) == 0 &&
-	  body_get_stream (body, &b_stream) == 0)
+      util_getenv (&no_ask, "mimenoask", Mail_env_string, 0);
+      
+      display_part_header (ofile, msgset, type, encoding);
+      if (display_stream_mailcap (NULL, stream, hdr, no_ask, interactive,
+				  0,
+				  util_getenv (NULL, "verbose",
+					       Mail_env_boolean, 0) ? 0 : 9))
 	{
-	  stream_t d_stream = NULL;
-	  stream_t stream = NULL;
-
-	  /* Can we decode.  */
-	  if (filter_create(&d_stream, b_stream, encoding,
-			    MU_FILTER_DECODE, MU_STREAM_READ) == 0)
-	    stream = d_stream;
+	  size_t lines = 0;
+	  int pagelines = util_get_crt ();
+	  FILE *out;
+	  
+	  message_lines (mesg, &lines);
+	  if (pagelines && lines > pagelines)
+	    out = popen (getenv ("PAGER"), "w");
 	  else
-	    stream = b_stream;
+	    out = ofile;
+
+	  display_headers (out, mesg, msgset, select_hdr);
 
 	  print_stream (stream, out);
-	  if (d_stream)
-	    stream_destroy (&d_stream, NULL);
+
+	  if (out != ofile)
+	    pclose (out);
 	}
+      if (d_stream)
+	stream_destroy (&d_stream, NULL);
     }
 
   free (type);
@@ -270,12 +271,6 @@ get_content_encoding (header_t hdr, char **value)
       encoding = strdup ("7bit"); /* Default.  */
     }
   *value = encoding;
-  return 0;
-}
-
-static int
-mailcap_lookup (const char *type ARG_UNUSED)
-{
   return 0;
 }
 
@@ -331,8 +326,11 @@ run_metamail (const char *mailcap_cmd, message_t mesg)
 	  stream_t pstr;
 	  char buffer[512];
 	  size_t n;
-
+	  char *no_ask;
+	  
 	  setenv ("METAMAIL_PAGER", getenv ("PAGER"), 0);
+	  if (util_getenv (&no_ask, "mimenoask", Mail_env_string, 0))
+	    setenv ("MM_NOASK", no_ask, 1);
 	  
 	  status = message_get_stream (mesg, &stream);
 	  if (status)
