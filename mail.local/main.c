@@ -25,6 +25,7 @@ int ex_quota_tempfail;     /* Return temporary failure if mailbox quota is
 int exit_code = EX_OK;     /* Exit code to be used */
 uid_t uid;                 /* Current user name */
 char *quotadbname = NULL;  /* Name of mailbox quota database */
+char *quota_query = NULL;  /* SQL query to retrieve mailbox quota */
 
 /* Debuggig options */
 int debug_level;           /* General debugging level */ 
@@ -63,8 +64,9 @@ Debug flags are:\n\
 static char args_doc[] = N_("recipient [recipient ...]");
 
 #define ARG_MULTIPLE_DELIVERY 1
-#define ARG_QUOTA_TEMPFAIL 2
+#define ARG_QUOTA_TEMPFAIL    2
 #define ARG_MESSAGE_ID_HEADER 3
+#define ARG_QUOTA_QUERY       4
 
 static struct argp_option options[] = 
 {
@@ -77,7 +79,11 @@ static struct argp_option options[] =
   { NULL, 'r', NULL, OPTION_ALIAS, NULL },
 #ifdef USE_DBM
   { "quota-db", 'q', N_("FILE"), 0,
-    N_("Specify path to quota database"), 0 },
+    N_("Specify path to quota DBM database"), 0 },
+#endif
+#ifdef USE_SQL
+  { "quota-query", ARG_QUOTA_QUERY, N_("STRING"), 0,
+    N_("SQL query to retrieve mailbox quota"), 0 },
 #endif
   { "sieve", 'S', N_("PATTERN"), 0,
     N_("Set name pattern for user-defined sieve mail filters"), 0 },
@@ -135,6 +141,10 @@ parse_opt (int key, char *arg, struct argp_state *state)
 
     case ARG_MESSAGE_ID_HEADER:
       message_id_header = arg;
+      break;
+
+    case ARG_QUOTA_QUERY:
+      quota_query = arg;
       break;
       
     case 'r':
