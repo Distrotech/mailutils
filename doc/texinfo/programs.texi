@@ -1761,6 +1761,17 @@ Automatically incorporate newly arrived messages.
 Causes the delete command to behave like dp - thus, after deleting a
 message, the next one will be typed automatically.
 
+@item datefield
+@*Type: Boolean.
+@*Default: False.
+@vrindex datefield, mail variable
+
+By default the date in a header summary is taken from the SMTP
+envelope of the message. Setting this variable tells @command{mail}
+to use the date from @code{Date:} header field, converted to
+localtime. Notice, that for messages lacking this field @command{mail}
+will fall back to using SMTP envelope.
+
 @item charset
 @*Type: string
 @*Default: @samp{auto}
@@ -1808,6 +1819,15 @@ screen is controlled by @code{screen} variable.
 
 If @code{True}, causes @command{mail} to interpret a period alone on a line as the
 terminator of a message you are sending.
+
+@item emptystart
+@*Type: Boolean.
+@*Default: False.
+@vrindex emptystart, mail variable
+
+If the mailbox is empty, @command{mail} normally prints @samp{No mail for user} and
+exits immediately. If this option is set, @command{mail} will start no matter is
+the mailbox empty or not.
 
 @item editheaders
 @*Type: Boolean.
