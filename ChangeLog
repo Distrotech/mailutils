@@ -1,3 +1,18 @@
+2002-11-15  Sergey Poznyakoff
+
+	* sieve/examples/ex-3.1b.sv: Require redirect.
+	* sieve/examples/example.sv: Likewise.
+	* sieve/testsuite/sieve/action.exp: Adapted for changed sieve
+	  diagnostics format.
+	* sieve/testsuite/sieve/address.exp: Likewise.
+	* sieve/testsuite/sieve/allof.exp: Likewise.
+	* sieve/testsuite/sieve/anyof.exp: Likewise.
+	* sieve/testsuite/sieve/envelope.exp: Likewise.
+	* sieve/testsuite/sieve/exists.exp: Likewise.
+	* sieve/testsuite/sieve/false.exp: Likewise.
+	* sieve/testsuite/sieve/header.exp: Likewise.
+	* sieve/testsuite/sieve/size.exp: Likewise.
+
 2002-11-15  Sergey Poznyakoff 
 
 	* mailbox/list.c (list_replace): New function.
