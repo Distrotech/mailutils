@@ -18,23 +18,30 @@
 #ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
-#include <stdlib.h>
+
+#include <getline.h>
+#include <pwd.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <syslog.h>
+#include <unistd.h>
+#include <xalloc.h>
+
+#include <sys/types.h>
+#include <sys/stat.h>
+
 #ifdef HAVE_STRINGS_H
 # include <strings.h>
 #endif
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <unistd.h>
-#include <pwd.h>
-#include <xalloc.h>
-#include <getline.h>
-#include <mailutils/mutil.h>
+
 #include <mailutils/error.h>
+#include <mailutils/mutil.h>
+#include <mailutils/locker.h>
+
 #include <argcv.h>
 #include <mu_argp.h>
+
 #ifdef HAVE_MYSQL
 # include "../MySql/MySql.h"
 #endif
@@ -49,21 +56,37 @@
 #define ARG_SQL_DB 8
 #define ARG_SQL_PORT 9
 #define ARG_PAM_SERVICE 10
+#define ARG_LOCK_FLAGS 11
 
-static struct argp_option mu_common_argp_option[] = {
-  {"mail-spool", 'm', "URL", 0,
-   "use specified URL as a mailspool directory", 0},
-  { "license", 'L', NULL, 0, "print license and exit", 0 },
+static struct argp_option mu_common_argp_options[] = 
+{
+  { NULL, 0, NULL, 0, "Common options:", 0},
+  { NULL, 0, NULL, 0, NULL, 0 }
+};
+
+/* Option to print the licence. */
+static struct argp_option mu_licence_argp_option[] = {
+  { "license", 'L', NULL, 0, "Print license and exit", -2 },
   { NULL,      0, NULL, 0, NULL, 0 }
 };
 
+/* Options used by programs that access mailboxes. */
+static struct argp_option mu_mailbox_argp_option[] = {
+  {"mail-spool", 'm', "URL", 0,
+   "Use specified URL as a mailspool directory", 0},
+  {"lock-flags", ARG_LOCK_FLAGS, "FLAGS", 0,
+   "Default locker flags (E=external, R=retry, T=time, P=pid)", 0},
+  { NULL,      0, NULL, 0, NULL, 0 }
+};
+
+/* Options used by programs that log to syslog. */
 static struct argp_option mu_logging_argp_option[] = {
   {"log-facility", ARG_LOG_FACILITY, "FACILITY", 0,
-   "output logs to syslog FACILITY", 0},
+   "Output logs to syslog FACILITY", 0},
   { NULL,      0, NULL, 0, NULL, 0 }
 };
 
-
+/* Options used by programs that use extended authentication mechanisms. */
 static struct argp_option mu_auth_argp_option[] = {
 #ifdef USE_LIBPAM
   { "pam-service", ARG_PAM_SERVICE, "STRING", 0,
@@ -83,22 +106,23 @@ static struct argp_option mu_auth_argp_option[] = {
   {"sql-passwd", ARG_SQL_PASSWD, "STRING", 0,
    "SQL connection password", 0},
   {"sql-db", ARG_SQL_DB, "STRING", 0,
-   "name of the database to connect to", 0},
+   "Name of the database to connect to", 0},
   {"sql-port", ARG_SQL_PORT, "NUMBER", 0,
-   "port to use", 0},
+   "Port to use", 0},
 #endif
   { NULL,      0, NULL, 0, NULL, 0 }
 };
 
+/* Options used by programs that become daemons. */
 static struct argp_option mu_daemon_argp_option[] = {
   {"daemon", 'd', "NUMBER", OPTION_ARG_OPTIONAL,
-   "runs in daemon mode with a maximum of NUMBER children"},
+   "Runs in daemon mode with a maximum of NUMBER children"},
   {"inetd",  'i', 0, 0,
-   "run in inetd mode", 0},
+   "Run in inetd mode", 0},
   {"port", 'p', "PORT", 0,
-   "listen on specified port number", 0},
+   "Listen on specified port number", 0},
   {"timeout", 't', "NUMBER", 0,
-   "set idle timeout value to NUMBER seconds", 0},
+   "Set idle timeout value to NUMBER seconds", 0},
   { NULL,      0, NULL, 0, NULL, 0 }
 };  
 
@@ -108,71 +132,74 @@ static error_t mu_daemon_argp_parser __P((int key, char *arg,
 					  struct argp_state *state));
 
 struct argp mu_common_argp = {
-  mu_common_argp_option,
+  mu_common_argp_options,
   mu_common_argp_parser,
-  "",
-  "",
-  NULL,
-  NULL,
-  NULL
 };
 
 struct argp_child mu_common_argp_child = {
   &mu_common_argp,
   0,
-  "Common mailutils options",
-  1
+  "",
+  -10,
 };
 
-struct argp mu_auth_argp = {
-  mu_auth_argp_option,
+struct argp mu_licence_argp = {
+  mu_licence_argp_option,
   mu_common_argp_parser,
-  "",
-  "",
-  NULL,
-  NULL,
-  NULL
 };
 
-struct argp_child mu_auth_argp_child = {
-  &mu_auth_argp,
+struct argp_child mu_licence_argp_child = {
+  &mu_licence_argp,
   0,
-  "Authentication-relevant options",
-  1
+  "",
+  -2
+};
+
+struct argp mu_mailbox_argp = {
+  mu_mailbox_argp_option,
+  mu_common_argp_parser,
+};
+
+struct argp_child mu_mailbox_argp_child = {
+  &mu_mailbox_argp,
+  0,
+  "",
+  -3
 };
 
 struct argp mu_logging_argp = {
   mu_logging_argp_option,
   mu_common_argp_parser,
-  "",
-  "",
-  NULL,
-  NULL,
-  NULL
 };
 
 struct argp_child mu_logging_argp_child = {
   &mu_logging_argp,
   0,
-  "Logging options",
-  1
+  "",
+  -3
+};
+
+struct argp mu_auth_argp = {
+  mu_auth_argp_option,
+  mu_common_argp_parser,
+};
+
+struct argp_child mu_auth_argp_child = {
+  &mu_auth_argp,
+  0,
+  "Authentication options",
 };
 
 struct argp mu_daemon_argp = {
   mu_daemon_argp_option,
   mu_daemon_argp_parser,
-  "",
-  "",
-  NULL,
-  NULL,
-  NULL
 };
 
 struct argp_child mu_daemon_argp_child = {
   &mu_daemon_argp,
   0,
   "Daemon configuration options",
-  1
+  0
 };
 
 int log_facility = LOG_FACILITY;
@@ -240,31 +267,63 @@ int  sql_port = MPORT;
 char *pam_service = NULL;
 #endif
 
-static error_t 
+static error_t
 mu_common_argp_parser (int key, char *arg, struct argp_state *state)
 {
   char *p;
-  
+
   switch (key)
     {
+      /* common */
+    case 'L':
+      printf ("Licence for %s:\n\n", argp_program_version);
+      printf ("%s", license_text);
+      exit (0);
+
+      /* mailbox */
     case 'm':
       mu_path_maildir = arg;
       break;
 
-    case 'L':
-      printf ("%s", license_text);
-      exit (0);
+    case ARG_LOCK_FLAGS:
+      {
+	int flags = 0;
+	for ( ; *arg; arg++)
+	  {
+	    switch (*arg)
+	      {
+	      case 'E':
+		flags |= MU_LOCKER_EXTERNAL;
+		break;
+	      case 'R':
+		flags |= MU_LOCKER_RETRY;
+		break;
+	      case 'T':
+		flags |= MU_LOCKER_TIME;
+		break;
+	      case 'P':
+		flags |= MU_LOCKER_PID;
+		break;
+	      default:
+		argp_error (state, "invalid lock flag '%c'", *arg);
+	      }
+	  }
+	locker_set_default_flags(flags);
+      }
+      break;
 
+      /* log */
     case ARG_LOG_FACILITY:
       log_facility = parse_log_facility (arg);
       break;
 
+      /* authentication */
 #ifdef USE_LIBPAM
     case ARG_PAM_SERVICE:
       pam_service = arg;
       break;
 #endif
-      
+
 #ifdef HAVE_MYSQL
     case ARG_SQL_GETPWNAM:
       sql_getpwnam_query = arg;
@@ -273,7 +332,7 @@ mu_common_argp_parser (int key, char *arg, struct argp_state *state)
     case ARG_SQL_GETPWUID:
       sql_getpwuid_query = arg;
       break;
-      
+
     case ARG_SQL_GETPASS:
       sql_getpass_query = arg;
       break;
@@ -281,39 +340,38 @@ mu_common_argp_parser (int key, char *arg, struct argp_state *state)
     case ARG_SQL_HOST:
       sql_host = arg;
       break;
-      
+
     case ARG_SQL_USER:
       sql_user = arg;
       break;
-      
+
     case ARG_SQL_PASSWD:
       sql_passwd = arg;
       break;
-      
+
     case ARG_SQL_DB:
       sql_db = arg;
       break;
-      
+
     case ARG_SQL_PORT:
       sql_port = strtoul (arg, NULL, 0);
       if (sql_port == 0)
-        {
-          sql_host = NULL;
-          sql_socket = arg;
-        }
+	{
+	  sql_host = NULL;
+	  sql_socket = arg;
+	}
       break;
-      
+
 #endif
     case ARGP_KEY_FINI:
       p = mu_normalize_maildir (mu_path_maildir);
       if (!p)
 	{
-	  mu_error ("Badly formed maildir: %s", mu_path_maildir);
-	  exit (mu_argp_error_code);
+	  argp_error (state, "badly formed maildir: %s", mu_path_maildir);
 	}
       mu_path_maildir = p;
       break;
-      
+
     default:
       return ARGP_ERR_UNKNOWN;
     }
@@ -508,6 +566,7 @@ mu_create_argcv (const char *capa[],
   int x_argc;
   char **x_argv;
   int i;
+  int rcdir = 0;
 
   progname = strrchr (argv[0], '/');
   if (progname)
@@ -530,20 +589,61 @@ mu_create_argcv (const char *capa[],
   /* Add global config file. */
   read_rc (progname, MU_CONFIG_FILE, capa, &x_argc, &x_argv);
 
-  /* Add per-user config file. */
-  read_rc (progname, MU_USER_CONFIG_FILE, capa, &x_argc, &x_argv);
+  /* Look for per-user config files in ~/.mailutils/ or in ~/, but
+     not both. This allows mailutils' utilities to have their config
+     files segregated, if necessary. */
 
-  /* Add per-program (and per-user) config file. */
   {
-    char* progrc = malloc (strlen (progname)
-			   + 6 /* ~/.mu. */
-			   + 3 /* rc */  + 1);
+    struct stat s;
+    char* rcdirname = mu_tilde_expansion (MU_USER_CONFIG_FILE, "/", NULL);
+
+    if (!rcdirname)
+      {
+	fprintf (stderr, "%s: not enough memory\n", progname);
+	exit (1);
+      }
+    if(stat(rcdirname, &s) == 0 && S_ISDIR(s.st_mode))
+      rcdir = 1;
+
+    free(rcdirname);
+  }
+
+  /* Add per-user config file. */
+  if(!rcdir)
+  {
+    read_rc (progname, MU_USER_CONFIG_FILE, capa, &x_argc, &x_argv);
+  }
+  else
+  {
+    char* userrc = NULL;
+
+    asprintf(&userrc, "%s/mailutils", MU_USER_CONFIG_FILE);
+
+    if (!userrc)
+      {
+	fprintf (stderr, "%s: not enough memory\n", progname);
+	exit (1);
+      }
+    read_rc (progname, userrc, capa, &x_argc, &x_argv);
+
+    free(userrc);
+  }
+
+  /* Add per-user, per-program config file. */
+  {
+    char* progrc = NULL;
+
+    if(rcdir)
+      asprintf(&progrc, "%s/%src", MU_USER_CONFIG_FILE, progname);
+    else
+      asprintf(&progrc, "~/.%src", progname);
+
     if (!progrc)
       {
 	fprintf (stderr, "%s: not enough memory\n", progname);
 	exit (1);
       }
-    sprintf (progrc, "~/.mu.%src", progname);
+
     read_rc (NULL, progrc, capa, &x_argc, &x_argv);
     free (progrc);
   }
@@ -563,10 +663,12 @@ struct argp_capa {
   char *capability;
   struct argp_child *child;
 } mu_argp_capa[] = {
-  {"mailutils", &mu_common_argp_child},
-  {"daemon", &mu_daemon_argp_child},
-  {"auth", &mu_auth_argp_child},
+  {"common",  &mu_common_argp_child},
+  {"licence", &mu_licence_argp_child},
+  {"mailbox", &mu_mailbox_argp_child},
   {"logging", &mu_logging_argp_child},
+  {"auth",    &mu_auth_argp_child},
+  {"daemon",  &mu_daemon_argp_child},
   {NULL,}
 };
 
@@ -584,16 +686,18 @@ static struct argp *
 mu_build_argp (const struct argp *template, const char *capa[])
 {
   int n;
+  int nchild;
   struct argp_child *ap;
   struct argp *argp;
-  
-  /* Count the capabilities */
+  int group = -100;
+
+  /* Count the capabilities. */
   for (n = 0; capa && capa[n]; n++)
     ;
   if (template->children)
     for (; template->children[n].argp; n++)
       ;
-      
+
   ap = calloc (n + 1, sizeof (*ap));
   if (!ap)
     {
@@ -601,32 +705,42 @@ mu_build_argp (const struct argp *template, const char *capa[])
       abort ();
     }
 
-  n = 0;
+  /* Copy the template's children. */
+  nchild = 0;
   if (template->children)
-    for (; template->children[n].argp; n++)
-      ap[n] = template->children[n];
-  
-  for (; capa && capa[n]; n++)
+    for (n = 0; template->children[n].argp; n++, nchild++)
+      ap[nchild] = template->children[n];
+
+  group = -nchild - 1;
+
+  /* Append any capabilities to the children or options, as appropriate. */
+  for (n = 0; capa && capa[n]; n++)
     {
-      struct argp_child *tmp = find_argp_child (capa[n]);
-      if (!tmp)
+      struct argp_child *child = find_argp_child (capa[n]);
+      if (!child)
 	{
 	  mu_error ("INTERNAL ERROR: requested unknown argp capability %s",
 		    capa[n]);
 	  abort ();
 	}
-      ap[n] = *tmp;
-      ap[n].group = n;
+      ap[nchild] = *child;
+//    ap[nchild].group = group++;
+      nchild++;
     }
-  ap[n].argp = NULL;
+  ap[nchild].argp = NULL;
+
+  /* Copy the template, and give it the expanded children. */
   argp = malloc (sizeof (*argp));
   if (!argp)
     {
       mu_error ("out of memory");
       abort ();
     }
+
   memcpy (argp, template, sizeof (*argp));
+
   argp->children = ap;
+
   return argp;
 }
 
