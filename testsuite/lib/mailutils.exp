@@ -1,0 +1,364 @@
+# -*- tcl -*-
+# This file is part of Mailutils testsuite.
+# Copyright (C) 2002, Free Software Foundation
+#  
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#   
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#  
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software Foundation,
+# Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. 
+
+verbose "STARTED" 1
+
+proc mu_init {} {
+    global TOOL_EXECUTABLE
+    global MU_TOOL
+    global MU_SPOOL_SOURCE 
+    global MU_FOLDER_SOURCE
+    global MU_SPOOL_DIR 
+    global MU_FOLDER_DIR
+    global MU_RC_DIR 
+    global MU_MAKESPOOL
+    global TOOL_NAME
+    global MU_TOOL_ARGS
+    global base_dir
+    global top_srcdir
+    global objdir
+    global host_board
+    
+    if [info exists TOOL_EXECUTABLE] {
+	set MU_TOOL $TOOL_EXECUTABLE
+    }
+
+    if ![info exists MU_TOOL] {
+	if ![is_remote host] {
+	    set MU_TOOL [findfile $base_dir/../$TOOL_NAME "$base_dir/../$TOOL_NAME" [transform $TOOL_NAME]]
+	    set MU_SPOOL_SOURCE "$top_srcdir/testsuite/spool"
+	    set MU_FOLDER_SOURCE "$top_srcdir/testsuite/folder"
+	    set MU_SPOOL_DIR "$objdir/data/spool"
+	    set MU_FOLDER_DIR "$objdir/data/folder"
+	    set MU_RC_DIR "$top_srcdir/testsuite/etc"
+	    set MU_MAKESPOOL "$top_srcdir/testsuite/makespool"
+	} else {
+	    if [info exists host_board] {
+		if [board_info $host_board exists top_builddir] {
+		    append MU_TOOL "[board_info $host_board top_builddir]/$TOOL_NAME/$TOOL_NAME"
+		} elseif [board_info $host_board exists top_srcdir] {
+		    append MU_TOOL "[board_info $host_board top_srcdir]/$TOOL_NAME/$TOOL_NAME"
+	        }
+	    }
+
+	    if ![info exists MU_TOOL] {
+		perror "The test suite is not set up for the remote testing"
+	        perror "Please, read file README in $TOOL_NAME/testsuite subdirectory"
+	        perror "for instructions on how to set up it."
+	        exit 1
+	    }
+	    set MU_RC_DIR "[board_info $host_board top_srcdir]/etc"
+	    set MU_SPOOL_SOURCE "[board_info $host_board top_srcdir]/spool"
+	    set MU_FOLDER_SOURCE "[board_info $host_board top_srcdir]/folder" 
+	    set MU_SPOOL_DIR "[board_info $host_board objdir]/data/spool"
+	    set MU_FOLDER_DIR "[board_info $host_board objdir]/data/folder"
+	    set MU_MAKESPOOL "[board_info $host_board top_srcdir]/makespool"
+	}
+    }
+}
+    
+### Only procedures should come after this point.
+
+proc mu_prepare_spools {} {
+    global MU_SPOOL_SOURCE
+    global MU_SPOOL_DIR
+    global MU_FOLDER_SOURCE
+    global MU_FOLDER_DIR
+    global MU_MAKESPOOL
+
+    set output [remote_exec host "$MU_MAKESPOOL \
+		    $MU_SPOOL_SOURCE $MU_SPOOL_DIR\
+	            $MU_FOLDER_SOURCE $MU_FOLDER_DIR"]
+}
+
+proc mu_cleanup_spools {} {
+    global MU_SPOOL_SOURCE
+    global MU_SPOOL_DIR
+    global MU_FOLDER_SOURCE
+    global MU_FOLDER_DIR
+    global MU_MAKESPOOL
+
+    if { $MU_SPOOL_SOURCE != $MU_SPOOL_DIR } {
+	set output [remote_exec host "$MU_MAKESPOOL -r \
+		    $MU_SPOOL_DIR $MU_FOLDER_DIR"]
+    }
+}
+	    
+proc mu_version {} {
+    global MU_TOOL
+    global MU_TOOL_FLAGS
+    global MU_TOOL_VERSION
+
+    if [info exists MU_TOOL_VERSION] {
+	return
+    }
+    
+    set output [remote_exec host "$MU_TOOL --version"]
+    regexp " \[0-9\]\[^ \t\n\r\]+" "$output" MU_TOOL_VERSION
+}
+
+##
+
+proc mu_send { string } {
+    global suppress_flag;
+    if {[info exists suppress_flag] && $suppress_flag} {
+	return "suppressed";
+    }
+    return [remote_send host "$string"]
+}
+
+proc mu_command { cmd } {
+    set res [mu_send "$cmd\n"]
+    mu_expect 30 {
+	-ex "\r\n" { }
+	default {
+	    perror "mu_command for target failed";
+	    return -1
+	}
+    }
+    return $res
+}
+
+proc mu_expect { args } {
+    global env
+    if { [lindex $args 0] == "-notransfer" } {
+	set notransfer -notransfer;
+	set args [lrange $args 1 end];
+    } else {
+	set notransfer "";
+    }
+
+    if { [llength $args] == 2  && [lindex $args 0] != "-re" } {
+	set gtimeout [lindex $args 0];
+	set expcode [list [lindex $args 1]];
+    } else {
+	upvar timeout timeout;
+
+	set expcode $args;
+	if [target_info exists mailutils,timeout] {
+	    if [info exists timeout] {
+		if { $timeout < [target_info mailutils,timeout] } {
+		    set gtimeout [target_info mailutils,timeout];
+		} else {
+		    set gtimeout $timeout;
+		}
+	    } else {
+		set gtimeout [target_info mailutils,timeout];
+	    }
+	}
+
+	if ![info exists gtimeout] {
+	    global timeout;
+	    if [info exists timeout] {
+		set gtimeout $timeout;
+	    } else {
+		# Eeeeew.
+		set gtimeout 60;
+	    }
+	}
+    }
+
+    global suppress_flag;
+    global remote_suppress_flag;
+    global verbose
+    if [info exists remote_suppress_flag] {
+	set old_val $remote_suppress_flag;
+    }
+    if [info exists suppress_flag] {
+	if { $suppress_flag } {
+	    set remote_suppress_flag 1;
+	}
+    }
+
+    verbose "RUNNING remote_expect host $gtimeout $notransfer $expcode" 2
+
+    set code [catch \
+	{uplevel remote_expect host $gtimeout $notransfer $expcode} string];
+    if [info exists old_val] {
+	set remote_suppress_flag $old_val;
+    } else {
+	if [info exists remote_suppress_flag] {
+	    unset remote_suppress_flag;
+	}
+    }
+
+    if {$code == 1} {
+        global errorInfo errorCode;
+
+	return -code error -errorinfo $errorInfo -errorcode $errorCode $string
+    } elseif {$code == 2} {
+	return -code return $string
+    } elseif {$code == 3} {
+	return
+    } elseif {$code > 4} {
+	return -code $code $string
+    }
+}
+
+# mu_test COMMAND PATTERN
+# COMMAND   - Command to send to mail
+# PATTERN   - A list of strings to expect in return
+# Return value:
+#        -3 - eof
+#        -2 - timeout
+#        -1 - generic failure
+#         1 - test fails
+#         0 - test succeeds
+proc mu_test { args } {
+    global verbose
+    global suppress_flag
+    upvar timeout timeout
+    
+    set command [lindex $args 0]
+    set pattern [lindex $args 1]
+
+    if { [info exists suppress_flag] && $suppress_flag } {
+	set do_suppress 1
+    } else {
+	set do_suppress 0
+    }
+
+    if $verbose>2 then {
+	send_user "Command: \"$command\"\n"
+	send_user "Pattern: \"$pattern\"\n"
+    }
+    
+    set result -1
+    if { "${command}" != "" } {
+	if { [mu_command "${command}"] != "" } {
+	    if { ! $do_suppress } {
+		perror "Couldn't send \"$command\".";
+	    }
+	    return $result;
+        }
+    }
+
+    if [info exists timeout] {
+	set tmt $timeout;
+    } else {
+	global timeout;
+	if [info exists timeout] {
+	    set tmt $timeout;
+	} else {
+	    set tmt 60;
+	}
+    }
+
+    set result 0
+    for {set i 0} {$i < [llength $pattern]} {incr i} {
+	regsub "\[ \t\]*$" [lindex ${pattern} $i] "" pat
+	verbose "i=$i, pat=$pat" 2
+	mu_expect $tmt {
+	    -ex "$pat" {
+		if { $expect_out(buffer) != $expect_out(0,string) } {
+		    verbose "Got \"$expect_out(buffer)\"" 2
+		    verbose "instead of expected \"$pat\\r\\n\"" 2
+		    set result 1
+		    break
+		}
+		mu_expect $tmt {
+		    -re "\[ \t]*\r\n" { }
+		    default {
+			set result 1
+			break
+		    }
+		    timeout {
+			set result -2
+			break
+		    }
+		    eof {
+			set result -3
+			break
+		    }
+		}
+	    }
+	    default {
+		set result 1
+		break
+	    }
+	    timeout {
+		set result -2
+		break
+	    }
+	    eof {
+		set result -3
+		break
+	    }
+	}
+    }
+
+    return $result
+}
+
+proc mu_test_file {args} {
+    global verbose
+    
+    set default ""
+    set message ""
+
+    for {set i 0} {$i < [llength $args]} {incr i} {
+	set a [lindex $args $i]
+	if {"$a" == "-default"} {
+	    set default [lindex $args [expr $i + 1]]
+	    incr i
+	} elseif {"$a" == "-message"} {
+	    set message [lindex $args [expr $i + 1]]
+	    incr i
+	} else {
+	    set args [lrange $args $i end]
+	    break
+	}
+    }
+    
+    if {"$message" == ""}  {
+	set message "Contents of [lindex $args 0]"
+    }
+
+    if $verbose>2 then {
+	send_user "Message is \"$message\"\n"
+    }
+
+    set filename [lindex $args 0]
+    set pattern [lrange $args 1 end]
+
+    set res [remote_spawn host "/bin/cat $filename"]
+    if { $res < 0 || $res == "" } {
+	perror "Reading $filename failed."
+	return 1;
+    }
+    set result [mu_test "" $pattern]
+    if {$result == 0} {
+	pass "$message"
+    } elseif {$result == 1} {
+	if { "$default" == "" || "$default" != "FAIL" } {
+	    fail "$message"
+	} else {
+	    xfail "$message"
+	    set result 0
+	}
+    } elseif {$result == -2} {
+	fail "$message (timeout)"
+    } elseif {$result == -3} {
+	fail "$message (eof)"
+    } else {
+	fail "$message"
+    }
+    return $result
+}
+    
+
