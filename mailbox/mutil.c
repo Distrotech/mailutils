@@ -613,7 +613,7 @@ mu_tempname (const char *tmpdir)
  * to find it.
  */
 int 
-mu_spawnvp (const char* prog, const char* const av_[], int* stat)
+mu_spawnvp (const char *prog, const char *const av_[], int *stat)
 {
   pid_t pid;
   int err = 0;
@@ -623,7 +623,7 @@ mu_spawnvp (const char* prog, const char* const av_[], int* stat)
   struct sigaction savequit;
   sigset_t chldmask;
   sigset_t savemask;
-  char** av = (char**) av_;
+  char **av = (char **) av_;
 
   if (!prog || !av)
     return EINVAL;
@@ -635,13 +635,20 @@ mu_spawnvp (const char* prog, const char* const av_[], int* stat)
   if (sigaction (SIGINT, &ignore, &saveintr) < 0)
     return errno;
   if (sigaction (SIGQUIT, &ignore, &savequit) < 0)
-    return errno;
+    {
+      sigaction (SIGINT, &saveintr, NULL);
+      return errno;
+    }
 
   sigemptyset (&chldmask);	/* now block SIGCHLD */
   sigaddset (&chldmask, SIGCHLD);
 
   if (sigprocmask (SIG_BLOCK, &chldmask, &savemask) < 0)
-    return errno;
+    {
+      sigaction (SIGINT, &saveintr, NULL);
+      sigaction (SIGQUIT, &savequit, NULL);
+      return errno;
+    }
 
 #ifdef HAVE_VFORK
   pid = vfork ();
@@ -675,7 +682,7 @@ mu_spawnvp (const char* prog, const char* const av_[], int* stat)
 	    err = errno;	/* error other than EINTR from waitpid() */
 	    break;
 	  }
-      if(err == 0 && stat)
+      if (err == 0 && stat)
 	*stat = progstat;
     }
 
