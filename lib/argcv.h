@@ -28,7 +28,7 @@ extern "C" {
 #endif
 
 #ifndef __P
-# ifdef __STDC__
+# if defined PROTOTYPES || (defined __STDC__ && __STDC__)
 #  define __P(args) args
 # else
 #  define __P(args) ()
