@@ -22,6 +22,7 @@
 
 #include <netinet/in.h>
 
+#include <krb5.h>
 #include <gssapi/gssapi.h>
 #include <gssapi/gssapi_generic.h>
 
@@ -55,13 +56,31 @@ display_status_1 (char *m, OM_uint32 code, int type)
   while (msg_ctx);
 }
 
-void
+static void
 display_status (char *msg, OM_uint32 maj_stat, OM_uint32 min_stat)
 {
   display_status_1 (msg, maj_stat, GSS_C_GSS_CODE);
   display_status_1 (msg, min_stat, GSS_C_MECH_CODE);
 }
 
+static int
+imap4d_gss_userok(gss_buffer_t client_name, char *name)
+{
+  int rc = -1;
+  krb5_principal p;
+  krb5_context kcontext;
+  
+  krb5_init_context (&kcontext);
+  
+  if (krb5_parse_name (kcontext, client_name->value, &p) != 0)
+    return -1;
+  if (krb5_kuserok (kcontext, p, name))
+    rc = 0;
+  else
+    rc = 1;
+  krb5_free_principal (kcontext, p);
+  return rc;
+}
 
 int
 auth_gssapi (struct imap4d_command *command, char **username)
@@ -78,7 +97,9 @@ auth_gssapi (struct imap4d_command *command, char **username)
   size_t size;
   gss_name_t server_name;
   gss_qop_t quality;
-
+  gss_name_t client;
+  gss_buffer_desc client_name;
+  
   /* Obtain server credentials. RFC 1732 states, that 
       "The server must issue a ready response with no data and pass the
        resulting client supplied token to GSS_Accept_sec_context as
@@ -134,7 +155,7 @@ auth_gssapi (struct imap4d_command *command, char **username)
 					 server_creds,
 					 &tokbuf,
 					 GSS_C_NO_CHANNEL_BINDINGS,
-					 NULL,
+					 &client,
 					 &mech_type,
 					 &outbuf,
 					 &cflags,
@@ -186,7 +207,7 @@ auth_gssapi (struct imap4d_command *command, char **username)
 
   token_str = imap4d_readline_ex (ifile);
   util_base64_decode (token_str, strlen (token_str),
-		      &tokbuf.value, &tokbuf.length);
+		      (unsigned char **)&tokbuf.value, &tokbuf.length);
   free (token_str);
   
   gss_unwrap (&min_stat, context, &tokbuf, &outbuf, &cflags, &quality);
@@ -213,7 +234,40 @@ auth_gssapi (struct imap4d_command *command, char **username)
 
   *username = strdup ((char*)outbuf.value + 4);
   gss_release_buffer (&min_stat, &outbuf);
-  
+
+  maj_stat = gss_display_name(&min_stat, client,
+			      &client_name, &mech_type);
+  if (maj_stat != GSS_S_COMPLETE)
+    {
+      display_status ("get client name", maj_stat, min_stat);
+      maj_stat = gss_delete_sec_context (&min_stat, &context, &outbuf);
+      gss_release_buffer (&min_stat, &outbuf);
+      free (*username);
+      util_finish (command, RESP_NO,
+		   "GSSAPI authentication failed");
+      return 1;
+    }
+
+  if (imap4d_gss_userok (&client_name, *username))
+    {
+      syslog (LOG_NOTICE, "GSSAPI user %s is NOT authorized as %s",
+	      client_name.value, *username);
+      util_finish (command, RESP_NO,
+		   "GSSAPI user %s is NOT authorized as %s",
+		   client_name.value, *username);
+      maj_stat = gss_delete_sec_context (&min_stat, &context, &outbuf);
+      gss_release_buffer (&min_stat, &outbuf);
+      gss_release_buffer (&min_stat, &client_name);
+      free (*username);
+      return 1;
+    }
+  else
+    {
+      syslog (LOG_NOTICE, "GSSAPI user %s is authorized as %s",
+	      client_name.value, *username);
+    }
+
+  gss_release_buffer (&min_stat, &client_name);
   maj_stat = gss_delete_sec_context (&min_stat, &context, &outbuf);
   gss_release_buffer (&min_stat, &outbuf);
   util_finish (command, RESP_OK,
