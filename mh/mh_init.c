@@ -81,11 +81,13 @@ mh_init2 ()
 							     "inbox"));
 
   mh_sequences_name = mh_profile_value ("mh-sequences", MH_SEQUENCES_FILE);
-  asprintf (&seq_name, "%s/%s", current_folder+3, mh_sequences_name);
+  p = mh_expand_name (current_folder, 0);
+  asprintf (&seq_name, "%s/%s", p, mh_sequences_name);
+  free (p);
   sequences = mh_context_create (seq_name, 1);
   if (mh_context_read (sequences) == 0)
     {
-      char *p = mh_context_get_value (sequences, "cur", "0");
+      p = mh_context_get_value (sequences, "cur", "0");
       current_message = strtoul (p, NULL, 10);
     }
 }
@@ -196,7 +198,6 @@ mh_get_my_name (char *name)
   my_email = mu_get_user_email (name);
 }
 
-
 int
 mh_is_my_name (char *name)
 {
@@ -215,7 +216,7 @@ mh_check_folder (char *pathname)
     p++;
   else
     p = pathname;
-
+  
   if (stat (p, &st))
     {
       if (errno == ENOENT)
@@ -346,12 +347,16 @@ mh_message_number (message_t msg, size_t *pnum)
 }
 
 mailbox_t
-mh_open_folder (const char *folder)
+mh_open_folder (const char *folder, int create)
 {
   mailbox_t mbox = NULL;
   char *name;
-
+  int flags = MU_STREAM_READ;
+  
   name = mh_expand_name (folder, 1);
+  if (create && mh_check_folder (name))
+    exit (0);
+    
   if (mailbox_create_default (&mbox, name))
     {
       mh_error ("Can't create mailbox %s: %s",
@@ -359,7 +364,10 @@ mh_open_folder (const char *folder)
       exit (1);
     }
 
-  if (mailbox_open (mbox, MU_STREAM_READ))
+  if (create)
+    flags |= MU_STREAM_CREAT;
+  
+  if (mailbox_open (mbox, flags))
     {
       mh_error ("Can't open mailbox %s: %s", name, strerror (errno));
       exit (1);
@@ -385,7 +393,7 @@ mh_get_dir ()
   return mhdir;
 }
 
-const char *
+char *
 mh_expand_name (const char *name, int is_folder)
 {
   char *tmp = NULL;
