@@ -17,7 +17,7 @@
 
 #include <mail.local.h>
 
-#if defined (USE_DBM) || defined (USE_SQL)
+#if defined (USE_MAILBOX_QUOTAS)
 
 #define DEFRETVAL MQUOTA_UNLIMITED
 
@@ -225,7 +225,7 @@ sql_retrieve_quota (char *name, size_t *quota)
 		    mu_strerror (status));
 	  rc = RETR_FAILURE;
 	}
-      else if (tmp == NULL || strcasecmp (tmp, "none") == 0)
+      else if (tmp == NULL || tmp[0] == 0 || strcasecmp (tmp, "none") == 0)
 	rc = RETR_UNLIMITED;
       else
 	{
