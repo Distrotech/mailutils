@@ -20,7 +20,6 @@
 /*
  * Now you're messing with a sumbitch
  */
-static int get_attribute_type __P ((const char *, int *));
 
 int
 imap4d_store (struct imap4d_command *command, char *arg)
@@ -123,7 +122,7 @@ imap4d_store0 (char *arg, int isuid, char *resp, size_t resplen)
 	      int type = 0;
 	      char item[64] = "";
 	      util_token (item, sizeof (item), &items);
-	      if (get_attribute_type (item, &type))
+	      if (!util_attribute_to_type (item, &type))
 		{
 		  if (how == STORE_ADD )
 		    attribute_set_flags (attr, type);
@@ -157,22 +156,3 @@ imap4d_store0 (char *arg, int isuid, char *resp, size_t resplen)
   return RESP_OK;
 }
 
-static int
-get_attribute_type (const char *item, int *type)
-{
-  if (strcasecmp (item, "\\Answered") == 0)
-    *type = MU_ATTRIBUTE_ANSWERED;
-  else if (strcasecmp (item, "\\Deleted") == 0)
-    *type = MU_ATTRIBUTE_DELETED;
-  else if (strcasecmp (item, "\\Draft") == 0)
-    *type = MU_ATTRIBUTE_DRAFT;
-  else if (strcasecmp (item, "\\Flagged") == 0)
-    *type = MU_ATTRIBUTE_FLAGGED;
-  else if (strcasecmp (item, "\\Recent") == 0)
-    *type = MU_ATTRIBUTE_RECENT;
-  else if (strcasecmp (item, "\\Seen") == 0)
-    *type = MU_ATTRIBUTE_SEEN;
-  else
-    return 0;
-  return 1;
-}
