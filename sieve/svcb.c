@@ -14,11 +14,15 @@ sv_getsize (void *mc, int *size)
   sv_msg_ctx_t *m = (sv_msg_ctx_t *) mc;
   size_t sz = 0;
 
-  message_size (m->msg, &sz);
+  m->rc = message_size (m->msg, &sz);
+
+  if(m->rc)
+    return SIEVE_RUN_ERROR;
 
   *size = sz;
 
-  sv_print (m->ic, SV_PRN_QRY, "getsize -> %d\n", *size);
+  mu_debug_print (m->debug, SV_DEBUG_MSG_QUERY, "msg uid %d getsize: %d\n",
+      m->uid, size);
 
   return SIEVE_OK;
 }
@@ -48,7 +52,9 @@ sv_getheader (void *mc, const char *name, const char ***body)
 
       header_get_field_count (h, &i);
 
-      sv_print (m->ic, SV_PRN_QRY, "getheader, filling cache with %d fields\n", i);
+      mu_debug_print (m->debug, SV_DEBUG_HDR_FILL,
+		      "msg uid %d cache: filling with %d fields\n",
+		      m->uid, i);
 
       for (; i > 0; i--)
 	{
@@ -59,7 +65,9 @@ sv_getheader (void *mc, const char *name, const char ***body)
 	  if (m->rc)
 	    break;
 
-	  sv_print (m->ic, SV_PRN_QRY, "getheader, cacheing %s=%s\n", fn, fv);
+	  mu_debug_print (m->debug, SV_DEBUG_HDR_FILL,
+			  "msg uid %d cache: %s: %s\n", m->uid,
+			  fn, fv);
 
 	  m->rc = sv_field_cache_add (&m->cache, fn, fv);
 
@@ -67,7 +75,7 @@ sv_getheader (void *mc, const char *name, const char ***body)
 	    {
 	      fv = 0;		/* owned by the cache */
 	    }
-	  if (m->rc)
+	  else
 	    break;
 
 	  /* the cache doesn't want it, and we don't need it */
@@ -76,28 +84,39 @@ sv_getheader (void *mc, const char *name, const char ***body)
 	}
       free (fn);
       free (fv);
+      if (m->rc)
+	{
+	  mu_debug_print (m->debug, SV_DEBUG_MSG_QUERY,
+			  "msg uid %d cache: failed %s\n",
+			  m->uid, sv_strerror (m->rc));
+	  if (m->rc == ENOMEM)
+	    return SIEVE_NOMEM;
+	  return SIEVE_RUN_ERROR;
+	}
     }
-  if (!m->rc)
-    {
-      m->rc = sv_field_cache_get (&m->cache, name, body);
-    }
-  if (m->rc)
-    {
-      sv_print (m->ic, SV_PRN_QRY, "getheader %s, failed %s\n", name, strerror (m->rc));
-    }
-  else
+
+  if ((m->rc = sv_field_cache_get (&m->cache, name, body)) == EOK)
     {
       const char **b = *body;
-      int i = 1;
-      sv_print (m->ic, SV_PRN_QRY, "getheader, %s=%s", name, b[0]);
-      while (b[0] && b[i])
+      int i;
+      for (i = 0; b[i]; i++)
 	{
-	  sv_print (m->ic, SV_PRN_QRY, ", %s", b[i]);
-	  i++;
+	  mu_debug_print (m->debug, SV_DEBUG_MSG_QUERY, "msg uid %d getheader: %s: %s\n",
+		    m->uid, name, b[i]);
 	}
-      sv_print (m->ic, SV_PRN_QRY, "\n");
     }
-  return sv_mu_errno_to_rc (m->rc);
+  else
+    mu_debug_print (m->debug, SV_DEBUG_MSG_QUERY, "msg uid %d getheader: %s (not found)\n",
+		    m->uid, name);
+
+  switch (m->rc)
+    {
+    case 0:
+      return SIEVE_OK;
+    case ENOMEM:
+      return SIEVE_NOMEM;
+    }
+  return SIEVE_RUN_ERROR;
 }
 
 /*
@@ -136,21 +155,30 @@ void* mc, // from sieve_execute_script(, mc);
 const char** errmsg // fill it in if you return failure
 */
 
-void
-sv_print_action (const char* a, void *ac, void *ic, void *sc, void *mc)
+static void action_log(sv_msg_ctx_t* mc, const char* action, const char* fmt, ...)
 {
-//sv_msg_ctx_t *m = (sv_msg_ctx_t *) mc;
+  const char* script = mc->sc->file;
+  message_t msg = mc->msg;
+  sv_action_log_t log = mc->sc->ic->action_log;
+  va_list ap;
 
-  sv_print (ic, SV_PRN_ACT, "action => %s\n", a);
+  va_start(ap, fmt);
+
+  if(log)
+    log(script, msg, action, fmt, ap);
+
+  va_end(ap);
 }
 
 int
 sv_keep (void *ac, void *ic, void *sc, void *mc, const char **errmsg)
 {
-  //sv_msg_ctx_t * m = (sv_msg_ctx_t *) mc;
+  sv_msg_ctx_t * m = (sv_msg_ctx_t *) mc;
   //sieve_keep_context_t * a = (sieve_keep_context_t *) ac;
+  *errmsg = "keep";
+  m->rc = 0;
 
-  sv_print_action ("KEEP", ac, ic, sc, mc);
+  action_log (mc, "KEEP", "");
 
   return SIEVE_OK;
 }
@@ -160,75 +188,78 @@ sv_fileinto (void *ac, void *ic, void *sc, void *mc, const char **errmsg)
 {
   sieve_fileinto_context_t *a = (sieve_fileinto_context_t *) ac;
   sv_msg_ctx_t *m = (sv_msg_ctx_t *) mc;
-  sv_interp_ctx_t *i = (sv_interp_ctx_t *) ic;
-  const char *what = "fileinto";
-  int res = 0;
 
-  sv_print_action ("FILEINTO", ac, ic, sc, mc);
-  sv_print (i, SV_PRN_ACT, "  into <%s>\n", a->mailbox);
+  m->rc = 0;
 
-  if (!i->opt_no_actions)
+  action_log (mc, "FILEINTO", "save copy in %s", a->mailbox);
+
+  if ((m->svflags & SV_FLAG_NO_ACTIONS) == 0)
     {
-      res = sv_mu_save_to (a->mailbox, m->msg, i->ticket, &what);
+      *errmsg = "fileinto(saving)";
+      m->rc = sv_mu_save_to (a->mailbox, m->msg, m->ticket, m->debug);
+      if (!m->rc)
+	{
+	  *errmsg = "fileinto(saving)";
+	  m->rc = sv_mu_mark_deleted (m->msg);
+	}
     }
 
-  if (res)
-    {
-      assert(what);
-
-      *errmsg = strerror (res);
-      sv_print (i, SV_PRN_ACT, "  %s failed with [%d] %s\n",
-		what, res, *errmsg);
-    }
-
-  m->rc = res;
-
-  return res ? SIEVE_FAIL : SIEVE_OK;
+  return m->rc ? SIEVE_FAIL : SIEVE_OK;
 }
 
 int
 sv_redirect (void *ac, void *ic, void *sc, void *mc, const char **errmsg)
 {
-  sv_print_action ("REDIRECT", ac, ic, sc, mc);
+  sv_msg_ctx_t *m = (sv_msg_ctx_t *) mc;
 
-  return SIEVE_OK;
+  *errmsg = "redirect";
+  m->rc = 0;
+
+  action_log (mc, "REDIRECT", "");
+
+  return SIEVE_FAIL;
 }
 
 int
 sv_discard (void *ac, void *ic, void *sc, void *mc, const char **errmsg)
 {
   sv_msg_ctx_t *m = (sv_msg_ctx_t *) mc;
-  sv_interp_ctx_t *i = (sv_interp_ctx_t *) ic;
-  int res = 0;
+//sv_interp_ctx_t *i = (sv_interp_ctx_t *) ic;
 
-  sv_print_action ("DISCARD", ac, ic, sc, mc);
+  *errmsg = "discard";
+  m->rc = 0;
 
-  if (!i->opt_no_actions)
+  action_log(mc, "DISCARD", "");
+
+  if ((m->svflags & SV_FLAG_NO_ACTIONS) == 0)
     {
-      res = sv_mu_mark_deleted (m->msg);
+      m->rc = sv_mu_mark_deleted (m->msg);
     }
-  if (res)
-    *errmsg = strerror (res);
 
-  return SIEVE_OK;
+  return m->rc ? SIEVE_FAIL : SIEVE_OK;
 }
 
 int
 sv_reject (void *ac, void *ic, void *sc, void *mc, const char **errmsg)
 {
-  sv_print_action ("REJECT", ac, ic, sc, mc);
+  sv_msg_ctx_t *m = (sv_msg_ctx_t *) mc;
 
-  return SIEVE_OK;
+  *errmsg = "reject";
+  m->rc = 0;
+
+  action_log(mc, "REJECT", "");
+
+  return SIEVE_FAIL;
 }
 
-/*
+#if 0
 int sv_notify(void *ac, void *ic, void *sc, void *mc, const char **errmsg)
 {
     sv_print_action("NOTIFY", ac, ic, sc, mc);
 
     return SIEVE_OK;
 }
-*/
+#endif
 
 int
 sv_autorespond (void *ac, void *ic, void *sc, void *mc, const char **errmsg)
@@ -259,9 +290,11 @@ sieve_imapflags_t mark = { markflags, 1 };
 int
 sv_parse_error (int lineno, const char *msg, void *ic, void *sc)
 {
-  sv_interp_ctx_t* i = (sv_interp_ctx_t*) ic;
+  sv_interp_ctx_t *i = (sv_interp_ctx_t *) ic;
+  sv_script_ctx_t *s = (sv_script_ctx_t *) sc;
 
-  sv_print (i, SV_PRN_ERR, "%s:%d: %s\n", i->opt_script, lineno, msg);
+  if (i->parse_error)
+    i->parse_error (s->file, lineno, msg);
 
   return SIEVE_OK;
 }
@@ -269,122 +302,61 @@ sv_parse_error (int lineno, const char *msg, void *ic, void *sc)
 int
 sv_execute_error (const char *msg, void *ic, void *sc, void *mc)
 {
-  sv_interp_ctx_t* i = (sv_interp_ctx_t*) ic;
+  sv_interp_ctx_t *i = (sv_interp_ctx_t *) ic;
+  sv_script_ctx_t *s = (sv_script_ctx_t *) sc;
+  sv_msg_ctx_t *m = (sv_msg_ctx_t *) sc;
 
-  sv_print (i, SV_PRN_ERR, "sieve execute failed, %s\n", msg);
-
-  return SIEVE_OK;
-}
-
-int
-sv_summary (const char *msg, void *ic, void *sc, void *mc)
-{
-  sv_msg_ctx_t *m = (sv_msg_ctx_t *) mc;
-
-  m->summary = strdup (msg);
+  if (i->execute_error)
+    i->execute_error (s->file, m->msg, m->rc, msg);
 
   return SIEVE_OK;
 }
 
-/* register all these callbacks */
+/* register supported callbacks */
 
 int
 sv_register_callbacks (sieve_interp_t * i)
 {
-  int res;
+  int rc = 0;
 
-  res = sieve_register_size (i, &sv_getsize);
-  if (res != SIEVE_OK)
-    {
-      printf ("sieve_register_size() returns %d\n", res);
-      exit (1);
-    }
-  res = sieve_register_header (i, &sv_getheader);
-  if (res != SIEVE_OK)
-    {
-      printf ("sieve_register_header() returns %d\n", res);
-      exit (1);
-    }
-  res = sieve_register_redirect (i, &sv_redirect);
-  if (res != SIEVE_OK)
-    {
-      printf ("sieve_register_redirect() returns %d\n", res);
-      exit (1);
-    }
-  res = sieve_register_keep (i, &sv_keep);
-  if (res != SIEVE_OK)
-    {
-      printf ("sieve_register_keep() returns %d\n", res);
-      exit (1);
-    }
-#if 0
-  res = sieve_register_envelope (i, &sv_getenvelope);
-  if (res != SIEVE_OK)
-    {
-      printf ("sieve_register_envelope() returns %d\n", res);
-      exit (1);
-    }
-#endif
-  res = sieve_register_discard (i, &sv_discard);
-  if (res != SIEVE_OK)
-    {
-      printf ("sieve_register_discard() returns %d\n", res);
-      exit (1);
-    }
-  res = sieve_register_reject (i, &sv_reject);
-  if (res != SIEVE_OK)
-    {
-      printf ("sieve_register_reject() returns %d\n", res);
-      exit (1);
-    }
-  res = sieve_register_fileinto (i, &sv_fileinto);
-  if (res != SIEVE_OK)
-    {
-      printf ("sieve_register_fileinto() returns %d\n", res);
-      exit (1);
-    }
-#if 0
-  res = sieve_register_vacation (i, &sv_vacation);
-  if (res != SIEVE_OK)
-    {
-      printf ("sieve_register_vacation() returns %d\n", res);
-      exit (1);
-    }
-  res = sieve_register_imapflags (i, &mark);
-  if (res != SIEVE_OK)
-    {
-      printf ("sieve_register_imapflags() returns %d\n", res);
-      exit (1);
-    }
-#endif
+  /* These 4 callbacks are mandatory. */
+  if (rc == EOK)
+    rc = sieve_register_size (i, &sv_getsize);
+  if (rc == EOK)
+    rc = sieve_register_header (i, &sv_getheader);
+  if (rc == EOK)
+    rc = sieve_register_redirect (i, &sv_redirect);
+  if (rc == EOK)
+    rc = sieve_register_keep (i, &sv_keep);
 
 #if 0
-  res = sieve_register_notify (i, &sv_notify);
-  if (res != SIEVE_OK)
-    {
-      printf ("sieve_register_notify() returns %d\n", res);
-      exit (1);
-    }
+  if (rc == EOK)
+    rc = sieve_register_envelope (i, &sv_getenvelope);
 #endif
-  res = sieve_register_parse_error (i, &sv_parse_error);
-  if (res != SIEVE_OK)
-    {
-      printf ("sieve_register_parse_error() returns %d\n", res);
-      exit (1);
-    }
-  res = sieve_register_execute_error (i, &sv_execute_error);
-  if (res != SIEVE_OK)
-    {
-      printf ("sieve_register_execute_error() returns %d\n", res);
-      exit (1);
-    }
-  res = sieve_register_summary (i, &sv_summary);
-  if (res != SIEVE_OK)
-    {
-      printf ("sieve_register_summary() returns %d\n", res);
-      exit (1);
-    }
-  return res;
+  if (rc == EOK)
+    rc = sieve_register_discard (i, &sv_discard);
+#if 0
+  if (rc == EOK)
+    rc = sieve_register_reject (i, &sv_reject);
+#endif
+  /* The "fileinto" extension. */
+  if (rc == EOK)
+    rc = sieve_register_fileinto (i, &sv_fileinto);
+#if 0
+  if (rc == EOK)
+    rc = sieve_register_vacation (i, &sv_vacation);
+#endif
+#if 0
+  if (rc == EOK)
+    rc = sieve_register_imapflags (i, &mark);
+#endif
+#if 0
+  if (rc == EOK)
+    rc = sieve_register_notify (i, &sv_notify);
+#endif
+  if (rc == EOK)
+    rc = sieve_register_parse_error (i, &sv_parse_error);
+  if (rc == EOK)
+    rc = sieve_register_execute_error (i, &sv_execute_error);
+  return rc;
 }
-
-

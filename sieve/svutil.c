@@ -1,6 +1,7 @@
 /** utility wrappers around mailutils functionality **/
 
 #include <errno.h>
+#include <string.h>
 
 #include "sv.h"
 
@@ -13,7 +14,7 @@ sv_mu_errno_to_rc (int eno)
       return SIEVE_NOMEM;
     case ENOENT:
       return SIEVE_FAIL;
-    case EOK:
+    case 0:
       return SIEVE_OK;
     }
   return SIEVE_INTERNAL_ERROR;
@@ -21,13 +22,6 @@ sv_mu_errno_to_rc (int eno)
 
 /* we hook mailutils debug output into our diagnostics using this */
 
-int
-sv_mu_debug_print (mu_debug_t d, const char *fmt, va_list ap)
-{
-  sv_printv(mu_debug_get_owner(d), SV_PRN_MU, fmt, ap);
-
-  return 0;
-}
 
 int
 sv_mu_copy_debug_level (const mailbox_t from, mailbox_t to)
@@ -54,85 +48,62 @@ sv_mu_copy_debug_level (const mailbox_t from, mailbox_t to)
 }
 
 int
-sv_mu_save_to (const char *toname, message_t mesg,
-	    ticket_t ticket, const char **errmsg)
+sv_mu_save_to (const char *toname, message_t msg,
+	       ticket_t ticket, mu_debug_t debug)
 {
-  int res = 0;
+  int rc = 0;
   mailbox_t to = 0;
-  mailbox_t from = 0;
 
-  res = mailbox_create_default (&to, toname);
+  rc = mailbox_create_default (&to, toname);
 
-  if (res == ENOENT)
-    *errmsg = "no handler for this type of mailbox";
+  if (!rc && debug)
+    {
+      mailbox_set_debug (to, debug);
+    }
 
-  if (!res && ticket)
+  if (!rc && ticket)
     {
       folder_t folder = NULL;
       authority_t auth = NULL;
 
-      if (!res)
-      {
-	*errmsg = "mailbox_get_folder";
-	res = mailbox_get_folder (to, &folder);
-      }
+      if (!rc)
+	rc = mailbox_get_folder (to, &folder);
 
-      if (!res)
-      {
-	*errmsg = "folder_get_authority";
-	res = folder_get_authority (folder, &auth);
-      }
+      if (!rc)
+	rc = folder_get_authority (folder, &auth);
 
-      if (!res)
-      {
-	*errmsg = "authority_set_ticket";
-	res = authority_set_ticket (auth, ticket);
-      }
+      if (!rc)
+	rc = authority_set_ticket (auth, ticket);
     }
-  if (!res)
-    {
-      if (message_get_mailbox (mesg, &from) == 0)
-	sv_mu_copy_debug_level (from, to);
-    }
-  if (!res)
-    {
-      *errmsg = "mailbox_open";
-      res = mailbox_open (to, MU_STREAM_WRITE | MU_STREAM_CREAT);
-    }
-  if (!res)
-    {
-      *errmsg = "mailbox_append_message";
-      res = mailbox_append_message (to, mesg);
 
-      if (!res)
-	{
-	  *errmsg = "mailbox_close";
-	  res = mailbox_close (to);
-	}
-      else
-	{
-	  mailbox_close (to);
-	}
+  if (!rc)
+    rc = mailbox_open (to, MU_STREAM_WRITE | MU_STREAM_CREAT);
+
+  if (!rc)
+    rc = mailbox_append_message (to, msg);
+
+  if (!rc)
+    rc = mailbox_close (to);
+  else
+    {
+      mailbox_close (to);
     }
+
   mailbox_destroy (&to);
 
-  if(res == 0)
-    *errmsg = 0;
-
-  return res;
+  return rc;
 }
 
 int
 sv_mu_mark_deleted (message_t msg)
 {
   attribute_t attr = 0;
-  int res;
+  int rc;
 
-  res = message_get_attribute (msg, &attr);
+  rc = message_get_attribute (msg, &attr);
 
-  if (!res)
+  if (!rc)
     attribute_set_deleted (attr);
 
-  return res;
+  return rc;
 }
-

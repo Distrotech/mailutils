@@ -75,15 +75,23 @@ sv_field_cache_add (sv_field_cache_t * m, const char *name, char *body)
     }
   else
     {
+      char* n = 0;
       /* create a new entry in the hash table */
       sv_field_t* field = (sv_field_t *) malloc (sizeof (sv_field_t) +
 						8 * sizeof (char *));
-      if (field)
-	{
-	  return ENOMEM;
-	}
+      if (!field)
+	return ENOMEM;
+
+      n = strdup (name);
+
+      if(!n)
+      {
+	free(field);
+	return ENOMEM;
+      }
+	
       m->cache[cl] = field;
-      m->cache[cl]->name = strdup (name);
+      m->cache[cl]->name = n;
       m->cache[cl]->contents[0] = body;
       m->cache[cl]->ncontents = 1;
     }
