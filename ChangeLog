@@ -1,3 +1,15 @@
+1999-11-23  Jakob 'sparky' Kaivo  <jkaivo@elijah.nodomainname.net>
+
+	* TODO: Mention Maildir
+
+	* libmailbox/mailbox.c (mbox_init): new function
+
+	* libmailbox/maildir.h: new file
+
+	* libmailbox/maildir.c: new file
+
+	* libmailbox/mailbox.c (mbox_open): uncommented maildir_open attempt
+
 1999-11-15  Jeff Bailey  <jbailey@nisa.net>
 
 	* lib/ansi2knr*: Add

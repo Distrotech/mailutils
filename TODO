@@ -20,6 +20,8 @@
 
 + libmailbox has a nasty bug -- if the mailbox is empty, the library has no idea
   what to do (Shaleh Oct 07/99)
+
+* Maildir is VERY rough
   
 [mail]
 - clean up 'mail''s compilation, why is there a mail script?
