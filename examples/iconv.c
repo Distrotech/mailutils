@@ -42,7 +42,7 @@ main (int argc, char **argv)
   rc = stdio_stream_create (&in, stdin, 0);
   assert (rc == 0);
   assert (stream_open (in) == 0);
-  assert (filter_iconv_create (&cvt, in, argv[1], argv[2], 0) == 0);
+  assert (filter_iconv_create (&cvt, in, argv[1], argv[2], 0, mu_fallback_none) == 0);
   assert (stream_open (cvt) == 0);
   
   rc = stdio_stream_create (&out, stdout, 0);

@@ -27,6 +27,8 @@
 #include <mailutils/filter.h>
 #include <mailutils/errno.h>
 
+enum mu_iconv_fallback_mode rfc2047_fallback_mode = mu_fallback_copy_octal;
+
 int
 rfc2047_decode (const char *tocode, const char *input, char **ptostr)
 {
@@ -121,14 +123,30 @@ rfc2047_decode (const char *tocode, const char *input, char **ptostr)
 	  if (status != 0)
 	    break;
 
-	  status = filter_iconv_create (&cvt, filter, fromcode, tocode, 0);
+	  status = filter_iconv_create (&cvt, filter, fromcode, tocode,
+					MU_STREAM_NO_CLOSE,
+					rfc2047_fallback_mode);
 	  if (status)
-	    cvt = filter;
-	  if (stream_open (cvt))
 	    {
-	      stream_destroy (cvt, stream_get_owner (cvt));
 	      cvt = filter;
+	      /* Note: the filter stream is already open! */
 	    }
+	  else
+	    {
+	      if (stream_open (cvt))
+		{
+		  stream_destroy (&cvt, stream_get_owner (cvt));
+		  cvt = filter;
+		}
+	      else
+		{
+		  int flags;
+		  stream_get_flags (cvt, &flags);
+		  flags &= ~MU_STREAM_NO_CLOSE;
+		  stream_set_flags (cvt, flags);
+		}
+	    }
+	  
 	  while (stream_sequential_read (cvt, buffer + bufpos,
 					 bufsize - bufpos,
 					 &nbytes) == 0 && nbytes)
