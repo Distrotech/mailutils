@@ -26,38 +26,82 @@
 #include <sieve.h>
 
 int
-sieve_action_stop (sieve_machine_t *mach, list_t args, list_t tags)
+sieve_action_stop (sieve_machine_t mach, list_t args, list_t tags)
 {
+  sieve_log_action (mach, "STOP", NULL);
+  mach->pc = 0;
   return 0;
 }
 
 int
-sieve_action_keep (sieve_machine_t *mach, list_t args, list_t tags)
+sieve_action_keep (sieve_machine_t mach, list_t args, list_t tags)
 {
+  sieve_log_action (mach, "KEEP", NULL);
   return 0;
 }
 
 int
-sieve_action_discard (sieve_machine_t *mach, list_t args, list_t tags)
+sieve_action_discard (sieve_machine_t mach, list_t args, list_t tags)
 {
+  sieve_log_action (mach, "DISCARD", NULL);
+  if (sieve_is_dry_run (mach))
+    return 0;
+  sieve_mark_deleted (mach->msg, 1);
   return 0;
 }
 
 int
-sieve_action_fileinto (sieve_machine_t *mach, list_t args, list_t tags)
+sieve_action_fileinto (sieve_machine_t mach, list_t args, list_t tags)
 {
+  int rc;
+  sieve_value_t *val = sieve_value_get (args, 0);
+  if (!val)
+    {
+      sieve_error (mach, "fileinto: can't get filename!");
+      sieve_abort (mach);
+    }
+  sieve_log_action (mach, "FILEINTO", "delivering into %s", val->v.string);
+  if (sieve_is_dry_run (mach))
+    return 0;
+
+  rc = message_save_to_mailbox (mach->msg, mach->ticket, mach->mu_debug,
+				val->v.string);
+  if (rc)
+    sieve_error (mach, "fileinto: cannot save to mailbox: %s",
+		 mu_errstring (rc));
+  else
+    sieve_mark_deleted (mach->msg, 1);    
+  
+  return rc;
+}
+
+int
+sieve_action_reject (sieve_machine_t mach, list_t args, list_t tags)
+{
+  sieve_value_t *val = sieve_value_get (args, 0);
+  if (!val)
+    {
+      sieve_error (mach, "redirect: can't get text!");
+      sieve_abort (mach);
+    }
+  sieve_log_action (mach, "REJECT", NULL);  
+  if (sieve_is_dry_run (mach))
+    return 0;
   return 0;
 }
 
 int
-sieve_action_reject (sieve_machine_t *mach, list_t args, list_t tags)
+sieve_action_redirect (sieve_machine_t mach, list_t args, list_t tags)
 {
-  return 0;
-}
-
-int
-sieve_action_redirect (sieve_machine_t *mach, list_t args, list_t tags)
-{
+  sieve_value_t *val = sieve_value_get (args, 0);
+  if (!val)
+    {
+      sieve_error (mach, "redirect: can't get address!");
+      sieve_abort (mach);
+    }
+  sieve_log_action (mach, "REDIRECT", "to %s", val->v.string);
+  if (sieve_is_dry_run (mach))
+    return 0;
   return 0;
 }
 
@@ -71,8 +115,8 @@ sieve_register_standard_actions ()
 {
   sieve_register_action ("stop", sieve_action_stop, NULL, NULL, 1);
   sieve_register_action ("keep", sieve_action_keep, NULL, NULL, 1);
-  sieve_register_action ("discard", sieve_action_keep, NULL, NULL, 1);
-  sieve_register_action ("fileinto", sieve_action_keep, fileinto_args,
+  sieve_register_action ("discard", sieve_action_discard, NULL, NULL, 1);
+  sieve_register_action ("fileinto", sieve_action_fileinto, fileinto_args,
 			 NULL, 1);
   sieve_register_action ("reject", sieve_action_reject, fileinto_args,
 			 NULL, 0);
