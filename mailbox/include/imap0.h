@@ -140,10 +140,24 @@ struct _f_imap
   size_t seq; /* Sequence number to build a tag.  */
   char *capa; /* Cabilities of the server.  */
   size_t flags;
-  struct literal_string callback;
+
+  /* IO use to hold the literal and quoted strings send by
+     the IMAP server.  */
+  struct
+  {
+    stream_t stream;
+    off_t offset;
+    size_t nleft;  /* nleft to read in the literal. */
+    msg_imap_t msg_imap;
+    enum imap_state type;
+  } string;
+
+  /* Use for LIST and LSUB.  */
+  struct folder_list flist;
 
   int isopen;
-  /* Buffer I/O  */
+
+  /* Server channel buffer I/O  */
   size_t buflen;
   char *buffer;
   char *ptr;
@@ -155,7 +169,6 @@ struct _f_imap
   /* Login  */
   char *user;
   char *passwd;
-
 };
 
 struct _m_imap
@@ -187,6 +200,7 @@ struct _msg_imap
   size_t uid;
 
   header_t fheader;
+  char *internal_date;
 
   size_t message_size;
   size_t message_lines;

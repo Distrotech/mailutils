@@ -22,15 +22,24 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <stdio.h>
 
 #include <sys/types.h>
 
 #include <mailutils/stream.h>
 
+#undef min
+#define min(a,b) ((a) < (b) ? (a) : (b))
+
+#define MU_STREAM_MEMORY_BLOCKSIZE 128
+
 struct _memory_stream
 {
   char *ptr;
   size_t size;
+  size_t capacity;
 };
 
 static void
@@ -71,7 +80,7 @@ _memory_readline (stream_t stream, char *optr, size_t osize,
       osize--;
       nl = memchr (mfs->ptr + offset, '\n', mfs->size - offset);
       n = (nl) ? (size_t)(nl - (mfs->ptr + offset) + 1) : mfs->size - offset;
-      n = (n > osize)  ? osize : n;
+      n = min (n, osize);
       memcpy (optr, mfs->ptr + offset, n);
       optr[n] = '\0';
     }
@@ -87,13 +96,17 @@ _memory_write (stream_t stream, const char *iptr, size_t isize,
   struct _memory_stream *mfs = stream_get_owner (stream);
 
   /* Bigger we have to realloc.  */
-  if (mfs->size < (offset + isize))
+  if (mfs->capacity < (offset + isize))
     {
-      char *tmp =  realloc (mfs->ptr, offset + isize);
+      /* Realloc by fixed blocks of 128.  */
+      int newsize = MU_STREAM_MEMORY_BLOCKSIZE *
+	(((offset + isize)/MU_STREAM_MEMORY_BLOCKSIZE) + 1);
+      char *tmp =  realloc (mfs->ptr, newsize);
       if (tmp == NULL)
 	return ENOMEM;
       mfs->ptr = tmp;
       mfs->size = offset + isize;
+      mfs->capacity = newsize;
     }
 
   memcpy (mfs->ptr + offset, iptr, isize);
@@ -109,7 +122,8 @@ _memory_truncate (stream_t stream, off_t len)
 
   if (len == 0)
     {
-      free (mfs->ptr);
+      if (mfs->ptr)
+	free (mfs->ptr);
       mfs->ptr = NULL;
     }
   else
@@ -120,6 +134,7 @@ _memory_truncate (stream_t stream, off_t len)
       mfs->ptr = tmp;
     }
   mfs->size = len;
+  mfs->capacity = len;
   return 0;
 }
 
@@ -137,11 +152,10 @@ _memory_close (stream_t stream)
 {
   struct _memory_stream *mfs = stream_get_owner (stream);
   if (mfs->ptr)
-    {
-      free (mfs->ptr);
-      mfs->ptr = NULL;
-      mfs->size = 0;
-    }
+    free (mfs->ptr);
+  mfs->ptr = NULL;
+  mfs->size = 0;
+  mfs->capacity = 0;
   return 0;
 }
 
@@ -149,6 +163,7 @@ static int
 _memory_open (stream_t stream, const char *filename, int port, int flags)
 {
   struct _memory_stream *mfs = stream_get_owner (stream);
+  int status = 0;
 
   (void)port; /* Ignored.  */
   (void)filename; /* Ignored.  */
@@ -156,13 +171,47 @@ _memory_open (stream_t stream, const char *filename, int port, int flags)
 
   /* Close any previous file.  */
   if (mfs->ptr)
-    {
-      free (mfs->ptr);
-      mfs->ptr = NULL;
-      mfs->size = 0;
-    }
+    free (mfs->ptr);
+  mfs->ptr = NULL;
+  mfs->size = 0;
+  mfs->capacity = 0;
   stream_set_flags (stream, flags |MU_STREAM_NO_CHECK);
-  return 0;
+  if (filename)
+    {
+      struct stat statbuf;
+      if (stat (filename, &statbuf) == 0)
+        {
+          mfs->ptr = calloc (statbuf.st_size, 1);
+          if (mfs->ptr)
+            {
+              FILE *fp;
+              mfs->capacity = statbuf.st_size;
+              mfs->size = statbuf.st_size;
+              fp = fopen (filename, "r");
+              if (fp)
+                {
+                  size_t r = fread (mfs->ptr, mfs->size, 1, fp);
+                  if (r != mfs->size)
+                    status = EIO;
+                  fclose (fp);
+                }
+              else
+                status = errno;
+              if (status != 0)
+                {
+                  free (mfs->ptr);
+                  mfs->ptr = NULL;
+                  mfs->capacity = 0;
+                  mfs->size = 0;
+                }
+            }
+          else
+            status = ENOMEM;
+        }
+      else
+        status = EIO;
+    }
+  return status;
 }
 
 int

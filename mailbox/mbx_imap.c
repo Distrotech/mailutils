@@ -174,6 +174,8 @@ free_subparts (msg_imap_t msg_imap)
     free (msg_imap->parts);
   if (msg_imap->fheader)
     header_destroy (&msg_imap->fheader, NULL);
+  if (msg_imap->internal_date)
+    free (msg_imap->internal_date);
   free(msg_imap);
 }
 
@@ -672,9 +674,15 @@ imap_expunge (mailbox_t mailbox)
     {
     case IMAP_NO_STATE:
       {
-	char *set;
+	char *set = NULL;
 	status = delete_to_string (m_imap, &set);
 	CHECK_ERROR (f_imap, status);
+	if (set == NULL || *set == '\0')
+	  {
+	    if (set)
+	      free (set);
+	    return 0;
+	  }
 	status = imap_writeline (f_imap,
 				 "g%d STORE %s +FLAGS.SILENT (\\Deleted)\r\n",
 				 f_imap->seq++, set);
@@ -1224,22 +1232,33 @@ imap_envelope_date (envelope_t envelope, char *buffer, size_t buflen,
   const char** datep = &date;
     /* reserve as much space as we need for internal-date */
   int status;
-  if (f_imap->state == IMAP_NO_STATE)
+
+  if (msg_imap->internal_date == NULL)
     {
-      /* Select first.  */
-      status = imap_messages_count (m_imap->mailbox, NULL);
+      if (f_imap->state == IMAP_NO_STATE)
+	{
+	  /* Select first.  */
+	  status = imap_messages_count (m_imap->mailbox, NULL);
+	  if (status != 0)
+	    return status;
+	  status = imap_writeline (f_imap,
+				   "g%d FETCH %d INTERNALDATE\r\n",
+				   f_imap->seq++, msg_imap->num);
+	  CHECK_ERROR (f_imap, status);
+	  MAILBOX_DEBUG0 (m_imap->mailbox, MU_DEBUG_PROT, f_imap->buffer);
+	  f_imap->state = IMAP_FETCH;
+	}
+      status = fetch_operation (f_imap, msg_imap, datebuf,
+				sizeof datebuf, NULL);
       if (status != 0)
 	return status;
-      status = imap_writeline (f_imap,
-			       "g%d FETCH %d INTERNALDATE\r\n",
-			       f_imap->seq++, msg_imap->num);
-      CHECK_ERROR (f_imap, status);
-      MAILBOX_DEBUG0 (m_imap->mailbox, MU_DEBUG_PROT, f_imap->buffer);
-      f_imap->state = IMAP_FETCH;
+      msg_imap->internal_date = strdup (datebuf);
     }
-  status = fetch_operation (f_imap, msg_imap, datebuf, sizeof datebuf, NULL);
-  if (status != 0)
-    return status;
+  else
+    {
+      date = msg_imap->internal_date;
+      datep = &date;
+    }
 
   if (mu_parse_imap_date_time(datep, &tm, &tz) != 0)
     now = (time_t)-1;
@@ -1322,6 +1341,10 @@ imap_attr_set_flags (attribute_t attribute, int flag)
   m_imap_t m_imap = msg_imap->m_imap;
   f_imap_t f_imap = m_imap->f_imap;
   int status = 0;
+
+  /* If already set don't bother.  */
+  if (msg_imap->flags & flag)
+    return 0;
 
   /* The delete FLAG is not pass yet but only on the expunge.  */
   if (flag & MU_ATTRIBUTE_DELETED)
@@ -1696,7 +1719,7 @@ imap_get_fd (msg_imap_t msg_imap, int *pfd)
 /* Since so many operations are fetch, we regoup this into one function.  */
 static int
 fetch_operation (f_imap_t f_imap, msg_imap_t msg_imap, char *buffer,
-		   size_t buflen, size_t *plen)
+		 size_t buflen, size_t *plen)
 {
   int status = 0;
 
@@ -1705,13 +1728,11 @@ fetch_operation (f_imap_t f_imap, msg_imap_t msg_imap, char *buffer,
     case IMAP_FETCH:
       status = imap_send (f_imap);
       CHECK_EAGAIN (f_imap, status);
-      if (f_imap->callback.buffer)
-	free (f_imap->callback.buffer);
-      f_imap->callback.buffer = NULL;
-      f_imap->callback.buflen = 0;
-      f_imap->callback.total = 0;
-      f_imap->callback.nleft = 0;
-      f_imap->callback.msg_imap = msg_imap;
+      stream_truncate (f_imap->string.stream, 0);
+      f_imap->string.offset = 0;
+      f_imap->string.nleft = 0;
+      f_imap->string.type = IMAP_NO_STATE;
+      f_imap->string.msg_imap = msg_imap;
       f_imap->state = IMAP_FETCH_ACK;
 
     case IMAP_FETCH_ACK:
@@ -1725,25 +1746,21 @@ fetch_operation (f_imap_t f_imap, msg_imap_t msg_imap, char *buffer,
       break;
     }
 
-  if (status == 0 && f_imap->isopen == 0 && f_imap->callback.total == 0)
+  f_imap->state = IMAP_NO_STATE;
+
+  /* The server may have timeout any case connection is gone away.  */
+  if (status == 0 && f_imap->isopen == 0 && f_imap->string.offset == 0)
     status = EBADF;
 
-  buflen = min (buflen, f_imap->callback.total);
-  if (f_imap->callback.buffer)
-    {
-      if (buffer)
-	memcpy (buffer, f_imap->callback.buffer, buflen);
-      free (f_imap->callback.buffer);
-    }
-  if (plen)
-    *plen = buflen;
-  f_imap->callback.buffer = NULL;
-  f_imap->callback.buflen = 0;
-  f_imap->callback.total = 0;
-  f_imap->callback.nleft = 0;
-  f_imap->callback.type = 0;
-  f_imap->callback.msg_imap = NULL;
-  f_imap->state = IMAP_NO_STATE;
+  if (buffer)
+    stream_read (f_imap->string.stream, buffer, buflen, 0, plen);
+  else if (plen)
+    *plen = 0;
+  stream_truncate (f_imap->string.stream, 0);
+  f_imap->string.offset = 0;
+  f_imap->string.nleft = 0;
+  f_imap->string.type = IMAP_NO_STATE;
+  f_imap->string.msg_imap = NULL;
   return status;
 }
 

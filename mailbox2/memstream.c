@@ -60,8 +60,7 @@ _stream_memory_read (stream_t stream, void *optr, size_t osize,
   mu_refcount_lock (mem->refcount);
   if (mem->ptr != NULL && (offset < (off_t)mem->size))
     {
-      n = ((offset + osize) > mem->size) ?
-	mem->size - offset :  osize;
+      n = ((offset + osize) > mem->size) ? mem->size - offset :  osize;
       memcpy (optr, mem->ptr + offset, n);
     }
   mu_refcount_unlock (mem->refcount);
@@ -130,7 +129,8 @@ _stream_memory_truncate (stream_t stream, off_t len)
   mu_refcount_lock (mem->refcount);
   if (len == 0)
     {
-      free (mem->ptr);
+      if (mem->ptr)
+	free (mem->ptr);
       mem->ptr = NULL;
     }
   else

@@ -264,11 +264,15 @@ folder_imap_open (folder_t folder, int flags)
             {
               CHECK_ERROR (f_imap, ENOMEM);
             }
+	  memory_stream_create (&f_imap->string.stream);
         }
       else
         {
 	  /* Clear from any residue.  */
           memset (f_imap->buffer, '\0', f_imap->buflen);
+	  stream_truncate (f_imap->string.stream, 0);
+	  f_imap->string.offset = 0;
+	  f_imap->string.nleft = 0;
         }
       f_imap->ptr = f_imap->buffer;
 
@@ -598,10 +602,10 @@ folder_imap_list (folder_t folder, const char *ref, const char *name,
     }
 
   /* Build the folder list.  */
-  if (f_imap->callback.flist.num > 0)
+  if (f_imap->flist.num > 0)
     {
       struct list_response **plist = NULL;
-      size_t num = f_imap->callback.flist.num;
+      size_t num = f_imap->flist.num;
       size_t j = 0;
       plist = calloc (num, sizeof (*plist));
       if (plist)
@@ -609,7 +613,7 @@ folder_imap_list (folder_t folder, const char *ref, const char *name,
 	  size_t i;
 	  for (i = 0; i < num; i++)
 	    {
-	      struct list_response *lr = f_imap->callback.flist.element[i];
+	      struct list_response *lr = f_imap->flist.element[i];
 	      /* printf ("%s --> %s\n", lr->name, name); */
 	      if (fnmatch (name, lr->name, 0) == 0)
 		{
@@ -628,7 +632,7 @@ folder_imap_list (folder_t folder, const char *ref, const char *name,
       pflist->element = plist;
       pflist->num = j;
     }
-  folder_list_destroy (&(f_imap->callback.flist));
+  folder_list_destroy (&(f_imap->flist));
   f_imap->state = IMAP_NO_STATE;
   return status;
 }
@@ -671,10 +675,10 @@ folder_imap_lsub (folder_t folder, const char *ref, const char *name,
     }
 
   /* Build the folder list.  */
-  if (f_imap->callback.flist.num > 0)
+  if (f_imap->flist.num > 0)
     {
       struct list_response **plist = NULL;
-      size_t num = f_imap->callback.flist.num;
+      size_t num = f_imap->flist.num;
       size_t j = 0;
       plist = calloc (num, sizeof (*plist));
       if (plist)
@@ -682,7 +686,7 @@ folder_imap_lsub (folder_t folder, const char *ref, const char *name,
 	  size_t i;
 	  for (i = 0; i < num; i++)
 	    {
-	      struct list_response *lr = f_imap->callback.flist.element[i];
+	      struct list_response *lr = f_imap->flist.element[i];
 	      /* printf ("%s --> %s\n", lr->name, name); */
 	      plist[i] = calloc (1, sizeof (**plist));
 	      if (plist[i] == NULL
@@ -697,7 +701,7 @@ folder_imap_lsub (folder_t folder, const char *ref, const char *name,
 	}
       pflist->element = plist;
       pflist->num = j;
-      folder_list_destroy (&(f_imap->callback.flist));
+      folder_list_destroy (&(f_imap->flist));
     }
   f_imap->state = IMAP_NO_STATE;
   f_imap->state = IMAP_NO_STATE;
@@ -811,8 +815,7 @@ folder_imap_unsubscribe (folder_t folder, const char *name)
 /* A literal is a sequence of zero or more octets (including CR and LF),
    prefix-quoted with an octet count in the form of an open brace ("{"),
    the number of octets, close brace ("}"), and CRLF.  The sequence is read
-   and put in the callback buffer, hopefully the callee did have enough
-   room.  */
+   and put in the string buffer.  */
 static int
 imap_literal_string (f_imap_t f_imap, char **ptr)
 {
@@ -820,7 +823,7 @@ imap_literal_string (f_imap_t f_imap, char **ptr)
   int status = 0;
   int nl;
   /* The (len + 1) in the for is to count the strip '\r' by imap_readline.  */
-  for (len0 = len = total = 0; total < f_imap->callback.nleft; total += (len + 1))
+  for (len0 = len = total = 0; total < f_imap->string.nleft; total += (len + 1))
     {
       status = imap_readline (f_imap);
       /*fprintf (stderr, "%d: %s", strlen (f_imap->buffer), f_imap->buffer);*/
@@ -834,12 +837,12 @@ imap_literal_string (f_imap_t f_imap, char **ptr)
       /* How much ?  */
       len0 = len = f_imap->nl - f_imap->buffer;
       /* Check if the last read did not finish on a line, if yes do not copy in
-	 callback buffer the terminating sequence ")\r\n".  We are doing this
+	 string buffer the terminating sequence ")\r\n".  We are doing this
          by checking if the amount(total) we got so far + the len of the line
          +1 (taking to account the strip '\r') goes behond the request.  */
-      if ((total + len + 1) > f_imap->callback.nleft)
+      if ((total + len + 1) > f_imap->string.nleft)
 	{
-	  len0 = len = f_imap->callback.nleft - total;
+	  len0 = len = f_imap->string.nleft - total;
 	  /* ALERT: if we ask for a substring, for example we have :
 	     "123456\n", and ask for body[]<0.7> the server will send
 	     body[] {7} --> "123456\r".  There was not enough space
@@ -848,45 +851,39 @@ imap_literal_string (f_imap_t f_imap, char **ptr)
 	    len0--;
 	}
 
-      if (f_imap->callback.total < f_imap->callback.buflen)
+      stream_write (f_imap->string.stream, f_imap->buffer,
+		    len0, f_imap->string.offset, NULL);
+      f_imap->string.offset += len0;
+
+      /* Depending on the type of request we incremente the xxxx_lines
+	 and  xxxx_sizes.  */
+      nl = (memchr (f_imap->buffer, '\n', len0)) ? 1 : 0;
+      if (f_imap->string.msg_imap)
 	{
-	  /* Check how much we can fill the callback buffer.  */
-          int x = (f_imap->callback.buflen - f_imap->callback.total) - len0;
-          x = (x >= 0) ? len0 : (x + len0);
-	  if (f_imap->callback.buffer)
-	    memcpy (f_imap->callback.buffer + f_imap->callback.total,
-		    f_imap->buffer, x);
-          f_imap->callback.total += x;
-
-	  /* Depending on the type of request we incremente the xxxx_lines
-	     and  xxxx_sizes.  */
-	  nl = (memchr (f_imap->buffer, '\n', len0)) ? 1 : 0;
-	  if (f_imap->callback.msg_imap)
+	  switch (f_imap->string.type)
 	    {
-	      switch (f_imap->callback.type)
-		{
-		case IMAP_HEADER:
-		  f_imap->callback.msg_imap->header_lines += nl;
-		  f_imap->callback.msg_imap->header_size += x;
-		  break;
+	    case IMAP_HEADER:
+	      f_imap->string.msg_imap->header_lines += nl;
+	      f_imap->string.msg_imap->header_size += len0;
+	      break;
 
-		case IMAP_BODY:
-		  f_imap->callback.msg_imap->body_lines += nl;
-		  f_imap->callback.msg_imap->body_size += x;
-		  break;
+	    case IMAP_BODY:
+	      f_imap->string.msg_imap->body_lines += nl;
+	      f_imap->string.msg_imap->body_size += len0;
+	      break;
 
-		case IMAP_MESSAGE:
-		  f_imap->callback.msg_imap->message_lines += nl;
-		  /* The message size is known by sending RFC822.SIZE.  */
+	    case IMAP_MESSAGE:
+	      f_imap->string.msg_imap->message_lines += nl;
+	      /* The message size is known by sending RFC822.SIZE.  */
 
-		default:
-		  break;
-		}
+	    default:
+	      break;
 	    }
 	}
     }
-  f_imap->callback.nleft -= total;
-  /* Move the command buffer, or do a full readline.  */
+  f_imap->string.nleft -= total;
+  /* We may have trailing junk like the closing ")\r\n" from a literal string
+     glob it by moving the command buffer, or doing a full readline.  */
   if (len == (size_t)(f_imap->nl - f_imap->buffer))
     {
       len = 0;
@@ -899,12 +896,14 @@ imap_literal_string (f_imap_t f_imap, char **ptr)
 /* A quoted string is a sequence of zero or more 7-bit characters,
    excluding CR and LF, with double quote (<">) characters at each end.
    Same thing as the literal, diferent format the result is put in the
-   callback buffer for the mailbox/callee.  */
+   string buffer for the mailbox/callee.  */
 static int
 imap_quoted_string (f_imap_t f_imap, char **ptr)
 {
   char *bquote;
   int escaped = 0;
+  size_t len;
+
   (*ptr)++;
   bquote = *ptr;
   while (**ptr && (**ptr != '"' || escaped))
@@ -912,23 +911,18 @@ imap_quoted_string (f_imap_t f_imap, char **ptr)
       escaped = (**ptr == '\\') ? 1 : 0;
       (*ptr)++;
     }
-  f_imap->callback.total = *ptr - bquote;
-  if (f_imap->callback.buffer)
-    free (f_imap->callback.buffer);
-  f_imap->callback.buffer = calloc (f_imap->callback.total + 1, 1);
-  f_imap->callback.buflen = f_imap->callback.total;
-  /* Fill the call back buffer. The if is redundant there should always
-     be enough room since the request is base on the buffer size.  */
-  if (f_imap->callback.total <= f_imap->callback.buflen
-      && f_imap->callback.buffer)
-    memcpy (f_imap->callback.buffer, bquote, f_imap->callback.total);
+
+  len = *ptr - bquote;
+  stream_write (f_imap->string.stream, bquote, len,
+		f_imap->string.offset, NULL);
+  f_imap->string.offset += len;
   if (**ptr == '"')
     (*ptr)++;
   return 0;
 }
 
 /* Find which type of string the response is: literal or quoted and let the
-   function fill the callback buffer.  */
+   function fill the string buffer.  */
 static int
 imap_string (f_imap_t f_imap, char **ptr)
 {
@@ -940,15 +934,11 @@ imap_string (f_imap_t f_imap, char **ptr)
   switch (**ptr)
     {
     case '{':
-      f_imap->callback.nleft = strtol ((*ptr) + 1, ptr, 10);
+      f_imap->string.nleft = strtol ((*ptr) + 1, ptr, 10);
       if (**ptr == '}')
 	{
 	  (*ptr)++;
 	  /* Reset the buffer to the beginning.  */
-	  if (f_imap->callback.buffer)
-	    free (f_imap->callback.buffer);
-	  f_imap->callback.buffer = calloc (f_imap->callback.nleft + 1, 1);
-	  f_imap->callback.buflen = f_imap->callback.nleft;
 	  f_imap->ptr = f_imap->buffer;
 	  status = imap_literal_string (f_imap, ptr);
 	}
@@ -984,15 +974,15 @@ imap_list (f_imap_t f_imap)
   buffer = alloca (len);
   memcpy (buffer, f_imap->buffer, len);
   buffer[len] = '\0';
-  plr = realloc (f_imap->callback.flist.element,
-		 (f_imap->callback.flist.num + 1) * sizeof (*plr));
+  plr = realloc (f_imap->flist.element,
+		 (f_imap->flist.num + 1) * sizeof (*plr));
   if (plr == NULL)
     return ENOMEM;
-  f_imap->callback.flist.element = plr;
-  lr = plr[f_imap->callback.flist.num] = calloc (1, sizeof (*lr));
+  f_imap->flist.element = plr;
+  lr = plr[f_imap->flist.num] = calloc (1, sizeof (*lr));
   if (lr == NULL)
     return ENOMEM;
-  (f_imap->callback.flist.num)++;
+  (f_imap->flist.num)++;
 
   /* Glob untag.  */
   tok = strtok_r (buffer, " ", &sp);
@@ -1215,7 +1205,7 @@ imap_bodystructure0 (msg_imap_t msg_imap, char **ptr)
 static int
 imap_bodystructure (f_imap_t f_imap, char **ptr)
 {
-  return imap_bodystructure0 (f_imap->callback.msg_imap, ptr);
+  return imap_bodystructure0 (f_imap->string.msg_imap, ptr);
 }
 
 /* The Format for a FLAG response is :
@@ -1241,10 +1231,10 @@ imap_bodystructure (f_imap_t f_imap, char **ptr)
 static int
 imap_flags (f_imap_t f_imap, char **ptr)
 {
-  char *start_flag;
-  char *end_flag;
+  char *start;
+  char *end;
   /* msg_imap may be null for an untag response deal with it.  */
-  msg_imap_t msg_imap = f_imap->callback.msg_imap;
+  msg_imap_t msg_imap = f_imap->string.msg_imap;
 
   /* Skip space.  */
   while (**ptr == ' ')
@@ -1262,21 +1252,21 @@ imap_flags (f_imap_t f_imap, char **ptr)
 	(*ptr)++;
 
       /* Save the beginning of the word.  */
-      start_flag = *ptr;
+      start = *ptr;
 
       /* Get the next word boundary.  */
       while (**ptr && **ptr != ' ' && **ptr != ')')
 	++(*ptr);
 
       /* Make a C string for the strcasecmp.  */
-      end_flag = *ptr;
+      end = *ptr;
 
       /* Bail out.  */
-      if (*start_flag == '\0')
+      if (*start == '\0')
 	break;
 
       /* Guess the flag.  */
-      if (strncasecmp (start_flag, "\\Seen", end_flag - start_flag) == 0)
+      if (strncasecmp (start, "\\Seen", end - start) == 0)
 	{
 	  if (msg_imap)
 	    {
@@ -1286,28 +1276,28 @@ imap_flags (f_imap_t f_imap, char **ptr)
 	  else
 	    f_imap->flags |= MU_ATTRIBUTE_SEEN;
 	}
-      else if (strncasecmp (start_flag, "\\Answered", end_flag - start_flag) == 0)
+      else if (strncasecmp (start, "\\Answered", end - start) == 0)
 	{
 	  if (msg_imap)
 	    msg_imap->flags |= MU_ATTRIBUTE_ANSWERED;
 	  else
 	    f_imap->flags |= MU_ATTRIBUTE_ANSWERED;
 	}
-      else if (strncasecmp (start_flag, "\\Flagged", end_flag - start_flag) == 0)
+      else if (strncasecmp (start, "\\Flagged", end - start) == 0)
 	{
 	  if (msg_imap)
 	    msg_imap->flags |= MU_ATTRIBUTE_FLAGGED;
 	  else
 	    f_imap->flags |= MU_ATTRIBUTE_FLAGGED;
 	}
-      else if (strncasecmp (start_flag, "\\Deleted", end_flag - start_flag) == 0)
+      else if (strncasecmp (start, "\\Deleted", end - start) == 0)
 	{
 	  if (msg_imap)
 	    msg_imap->flags |= MU_ATTRIBUTE_DELETED;
 	  else
 	    f_imap->flags |= MU_ATTRIBUTE_DELETED;
 	}
-      else if (strncasecmp (start_flag, "\\Draft", end_flag - start_flag) == 0)
+      else if (strncasecmp (start, "\\Draft", end - start) == 0)
 	{
 	  if (msg_imap)
 	    msg_imap->flags |= MU_ATTRIBUTE_DRAFT;
@@ -1343,20 +1333,20 @@ imap_body (f_imap_t f_imap, char **ptr)
 	  section[len] = '\0';
 	  /* strupper.  */
 	  for (; *p; p++) if (isupper((unsigned)*p)) *p = toupper ((unsigned)*p);
-	  /* Set the callback type to update the correct line count.  */
+	  /* Set the string type to update the correct line count.  */
 	  //if (!strstr (section, "FIELD"))
 	    {
               if (strstr (section, "MIME") || (strstr (section, "HEADER")))
                 {
-                  f_imap->callback.type = IMAP_HEADER;
+                  f_imap->string.type = IMAP_HEADER;
                 }
               else if (strstr (section, "TEXT") || len > 0)
                 {
-                  f_imap->callback.type = IMAP_BODY;
+                  f_imap->string.type = IMAP_BODY;
                 }
               else if (len == 0) /* body[]  */
                 {
-                  f_imap->callback.type = IMAP_MESSAGE;
+                  f_imap->string.type = IMAP_MESSAGE;
                 }
 	    }
 	  sep++; /* Move pass the ']'  */
@@ -1379,16 +1369,19 @@ imap_body (f_imap_t f_imap, char **ptr)
   /* If the state scan.  Catch it here.  */
   if (f_imap->state == IMAP_SCAN_ACK)
     {
-      if (f_imap->callback.msg_imap->fheader)
-	header_destroy (&f_imap->callback.msg_imap->fheader, NULL);
-      status = header_create (&f_imap->callback.msg_imap->fheader,
-			      f_imap->callback.buffer, f_imap->callback.total,
-			      NULL);
-      free (f_imap->callback.buffer);
-      f_imap->callback.buffer = NULL;
-      f_imap->callback.buflen = 0;
-      f_imap->callback.total = 0;
-      f_imap->callback.nleft = 0;
+      char *buffer;
+      off_t total = 0;
+      if (f_imap->string.msg_imap && f_imap->string.msg_imap->fheader)
+	header_destroy (&f_imap->string.msg_imap->fheader, NULL);
+      stream_size (f_imap->string.stream, &total);
+      buffer = malloc (total + 1);
+      stream_read (f_imap->string.stream, buffer, total, 0, NULL);
+      status = header_create (&f_imap->string.msg_imap->fheader,
+			      buffer, total, NULL);
+      free (buffer);
+      stream_truncate (f_imap->string.stream, 0);
+      f_imap->string.offset = 0;
+      f_imap->string.nleft = 0;
     }
   return status;
 }
@@ -1404,8 +1397,8 @@ imap_uid (f_imap_t f_imap, char **ptr)
 {
   char token[128];
   imap_token (token, sizeof (token), ptr);
-  if (f_imap->callback.msg_imap)
-    f_imap->callback.msg_imap->uid = strtoul (token, NULL, 10);
+  if (f_imap->string.msg_imap)
+    f_imap->string.msg_imap->uid = strtoul (token, NULL, 10);
   return 0;
 }
 
@@ -1413,9 +1406,9 @@ static int
 imap_rfc822 (f_imap_t f_imap, char **ptr)
 {
   int status;
-  f_imap->callback.type = IMAP_MESSAGE;
+  f_imap->string.type = IMAP_MESSAGE;
   status = imap_body (f_imap, ptr);
-  f_imap->callback.type = 0;
+  f_imap->string.type = 0;
   return status;
 }
 
@@ -1424,8 +1417,8 @@ imap_rfc822_size (f_imap_t f_imap, char **ptr)
 {
   char token[128];
   imap_token (token, sizeof (token), ptr);
-  if (f_imap->callback.msg_imap)
-    f_imap->callback.msg_imap->message_size = strtoul (token, NULL, 10);
+  if (f_imap->string.msg_imap)
+    f_imap->string.msg_imap->message_size = strtoul (token, NULL, 10);
   return 0;
 }
 
@@ -1433,9 +1426,9 @@ static int
 imap_rfc822_header (f_imap_t f_imap, char **ptr)
 {
   int status;
-  f_imap->callback.type = IMAP_HEADER;
+  f_imap->string.type = IMAP_HEADER;
   status = imap_string (f_imap, ptr);
-  f_imap->callback.type = 0;
+  f_imap->string.type = 0;
   return status;
 }
 
@@ -1443,9 +1436,9 @@ static int
 imap_rfc822_text (f_imap_t f_imap, char **ptr)
 {
   int status;
-  f_imap->callback.type = IMAP_HEADER;
+  f_imap->string.type = IMAP_HEADER;
   status = imap_string (f_imap, ptr);
-  f_imap->callback.type = 0;
+  f_imap->string.type = 0;
   return status;
 }
 
@@ -1493,8 +1486,8 @@ imap_fetch (f_imap_t f_imap)
   /* It is actually possible, but higly unlikely that we do not have the
      message yet, for example a "FETCH (FLAGS (\Recent))" notification
      for a newly messsage.  */
-  if (f_imap->callback.msg_imap == NULL
-      || f_imap->callback.msg_imap->num != msgno)
+  if (f_imap->string.msg_imap == NULL
+      || f_imap->string.msg_imap->num != msgno)
     {
       /* Find the imap mesg struct.  */
       size_t i;
@@ -1504,7 +1497,7 @@ imap_fetch (f_imap_t f_imap)
 	{
 	  if (m_imap->imessages[i] && m_imap->imessages[i]->num == msgno)
 	    {
-	      f_imap->callback.msg_imap = m_imap->imessages[i];
+	      f_imap->string.msg_imap = m_imap->imessages[i];
 	      break;
 	    }
 	}
@@ -1767,6 +1760,7 @@ imap_parse (f_imap_t f_imap)
   int done = 0;
   int status = 0;
   char empty[2];
+  char *buffer = NULL;
 
   /* We use that moronic hack to not check null for the tockenize strings.  */
   empty[0] = '\0';
@@ -1774,7 +1768,7 @@ imap_parse (f_imap_t f_imap)
   while (! done)
     {
       char *tag, *response, *remainder;
-      char *buffer;
+
       status = imap_readline (f_imap);
       if (status != 0)
 	{
@@ -1787,17 +1781,24 @@ imap_parse (f_imap_t f_imap)
 
       /* We do not want to step over f_imap->buffer since it can be use
 	 further down the chain.  */
-      buffer = alloca ((f_imap->ptr - f_imap->buffer) + 1);
-      memcpy (buffer, f_imap->buffer, (f_imap->ptr - f_imap->buffer) + 1);
+      if (buffer)
+	{
+	  free (buffer);
+	  buffer = NULL;
+	}
+      buffer = calloc ((f_imap->ptr - f_imap->buffer) + 1, 1);
+      memcpy (buffer, f_imap->buffer, (f_imap->ptr - f_imap->buffer));
 
       /* Tokenize the string.  */
       {
 	char *sp = NULL;
 	tag = strtok_r (buffer, " ", &sp);
 	response = strtok_r (NULL, " ", &sp);
-	if (!response) response = empty;
+	if (!response)
+	  response = empty;
 	remainder = strtok_r (NULL, "\n", &sp);
-	if (!remainder) remainder = empty;
+	if (!remainder)
+	  remainder = empty;
       }
 
       /* Is the response untagged ?  */
@@ -1831,6 +1832,7 @@ imap_parse (f_imap_t f_imap)
 			 is not supported by this implementation.  If the
 			 optional list of charsets is given, this lists the
 			 charsets that are supported by this implementation. */
+		      mu_error ("BADCHARSET: %s\n", (sp) ? sp : "");
 		    }
 		  else if (strcasecmp (subtag, "CAPABILITY") == 0)
 		    {
@@ -1851,12 +1853,14 @@ imap_parse (f_imap_t f_imap)
 			 mailbox name.  This is a hint to the client that the
 			 operation can succeed if the SELECT or EXAMINE is
 			 reissued with the new mailbox name. */
+		      mu_error ("NEWNAME: %s\n", (sp) ? sp : "");
 		    }
 		  else if (strcasecmp (subtag, "PARSE") == 0)
 		    {
 		      /* The human-readable text represents an error in
 			 parsing the [RFC-822] header or [MIME-IMB] headers
 			 of a message in the mailbox.  */
+		      mu_error ("PARSE: %s\n", (sp) ? sp : "");
 		    }
 		  else if (strcasecmp (subtag, "PERMANENTFLAGS") == 0)
 		    {
@@ -1892,6 +1896,7 @@ imap_parse (f_imap_t f_imap)
 			 other reason).  This is a hint to the client that
 			 the operation can succeed if the mailbox is first
 			 created by the CREATE command.  */
+		      mu_error ("TRYCREATE: %s\n", (sp) ? sp : "");
 		    }
 		  else if (strcasecmp (subtag, "UIDNEXT") == 0)
 		    {
@@ -2031,5 +2036,8 @@ imap_parse (f_imap_t f_imap)
 	}
       f_imap->ptr = f_imap->buffer;
     }
+
+  if (buffer)
+    free (buffer);
   return status;
 }

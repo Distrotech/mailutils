@@ -345,6 +345,14 @@ main (int argc, char **argv)
 	  exit (EXIT_FAILURE);
 	}
 
+      /* Could we enable this at runtime, via the a set environment?  */
+      if (0)
+	{
+	  mu_debug_t debug = NULL;
+	  mailbox_get_debug (mbox, &debug);
+	  mu_debug_set_level (debug, MU_DEBUG_TRACE|MU_DEBUG_PROT);
+	}
+
       if (mailbox_open (mbox, MU_STREAM_RDWR) != 0)
 	{
 	  util_error ("Can not open mailbox");

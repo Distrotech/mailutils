@@ -1,10 +1,31 @@
-2001-10-13  Jeff Bailey  <jbailey@outpost.dnsalias.org>
+2001-10-13  Alain Malgoire
+
+	* mail/mail.c: Possibility to enable debuging output.
+	It should probably be a runtime option via set debug=1 or something
+	for now it is disable between if (0) {...}.
+
+	More cleanup in the IMAP code.  A memory stream buffer is
+	use to save the string literal sended by the IMAP server.
+	The allocation is handle by the memory_stream which simplifies
+	the code.
+
+	* folder_imap.c (folder_imap.c): Create a memory stream to
+	hold the literal or quoted string send by the IMAP server.
+	(folder_imap_list folder_imap_lsub): There is no callback
+	field the struct folder_list is in struct _f_imap now.
+	(imap_literal_string imap_quoted_string imap_string):  Use the
+	memory string stream to save the result.
+	(imap_body): Still need to be clean, but creates the cache
+	header when doing the scan.
+	(imap_parse): Do not use alloca().
+
+2001-10-13  Jeff Bailey
 
 	* guimb/Makefile.am: Remove GNU Makeism.
 
 	* libmu_scm/Makefile.am: Remove GNU Makeism.
 
-2001-10-12  Jeff Bailey  <jbailey@outpost.dnsalias.org>
+2001-10-12  Jeff Bailey
 
 	* libmu_scm/Makefile.am: Fixes for RO srcdir.
 
