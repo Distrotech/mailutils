@@ -1,3 +1,21 @@
+2003-09-27  Sergey Poznyakoff
+
+	* configure.ac: Moved fgetpwent from AC_CHECK_FUNCS to
+	MU_CHECK_FUNCS.
+	
+	* lib/Makefile.am: Removed fgetpwent.c
+	* mailbox/Makefile.am: Added fgetpwent.c
+	* lib/fgetpwent.c: Moved to ...
+	* mailbox/fgetpwent.c: ... here
+
+	* imap4d/imap4d.h: Added missing include
+	* imap4d/search.c (imap4d_search0): Use case-insensitive
+	comparison
+	* imap4d/status.c (status_get_handler): Likewise
+	* imap4d/util.c: Fixed wording of the comment.
+
+	* mailbox/locker.c (_locker_destroy_private): Bugfix
+
 2003-09-25  Sergey Poznyakoff  
 
 	* mailbox/munre.c (munre_set_regex): Bugfix again.
