@@ -71,7 +71,7 @@ mh_context_read (mh_context_t *ctx)
   fread (blurb, st.st_size, 1, fp);
   fclose (fp);
   
-  if (status = header_create (&ctx->header, blurb, st.st_size, NULL))
+  if ((status = header_create (&ctx->header, blurb, st.st_size, NULL)) != 0) 
     free (blurb);
 
   return status;
@@ -111,14 +111,20 @@ mh_context_write (mh_context_t *ctx)
    Instead, it should return a const pointer to the static storage within
    the header_t structure and be declared as
    `const char *mh_context_get_value()'. Current implementation of
-   header_.* functions does not allow that. */
+   header_.* functions does not allow that.
+
+   This has two drawbacks:
+     1) The function is declared as returning char * instead of
+        intended const char *.
+     2) Ugly typecast when returning defval. */
+  
 char *
 mh_context_get_value (mh_context_t *ctx, const char *name, const char *defval)
 {
   char *p;
 
   if (header_aget_value (ctx->header, name, &p))
-    p = defval;
+    p = (char *) defval; 
   return p;
 }
 
