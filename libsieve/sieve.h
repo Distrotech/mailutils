@@ -20,7 +20,7 @@
 
 #define SIEVE_CODE_INCR 128
 
-typedef void (*sieve_instr_t) __P((sieve_machine_t *mach));
+typedef void (*sieve_instr_t) __P((sieve_machine_t mach));
 
 typedef union {
   sieve_instr_t instr;
@@ -34,6 +34,7 @@ typedef union {
 
 struct sieve_machine {
   /* Static data */
+  char *filename;         /* Name of the source script */
   list_t memory_pool;     /* Pool of allocated memory objects */
 
   size_t progsize;        /* Number of allocated program cells */
@@ -55,13 +56,16 @@ struct sieve_machine {
   sieve_parse_error_t parse_error_printer;
   sieve_printf_t error_printer; 
   sieve_printf_t debug_printer;
+  sieve_action_log_t logger;
+
+  ticket_t ticket;
+  mu_debug_t mu_debug;
   void *data;
 };
 
 extern char *sieve_filename;
 extern int sieve_line_num;
-extern int sieve_yydebug;
-extern sieve_machine_t *sieve_machine;
+extern sieve_machine_t sieve_machine;
 extern int sieve_error_count; 
 
 void sieve_compile_error __P((const char *filename, int linenum,
@@ -95,12 +99,14 @@ int sieve_code_number __P((long num));
 int sieve_code_test __P((sieve_register_t *reg, list_t arglist));
 int sieve_code_action __P((sieve_register_t *reg, list_t arglist));
      
-void instr_action __P((sieve_machine_t *mach));
-void instr_test __P((sieve_machine_t *mach));
-void instr_push __P((sieve_machine_t *mach));
-void instr_pop __P((sieve_machine_t *mach));
-void instr_allof __P((sieve_machine_t *mach));
-void instr_anyof __P((sieve_machine_t *mach));
-void instr_not __P((sieve_machine_t *mach));
-void instr_branch __P((sieve_machine_t *mach));
-void instr_brz __P((sieve_machine_t *mach));
+void instr_action __P((sieve_machine_t mach));
+void instr_test __P((sieve_machine_t mach));
+void instr_push __P((sieve_machine_t mach));
+void instr_pop __P((sieve_machine_t mach));
+void instr_allof __P((sieve_machine_t mach));
+void instr_anyof __P((sieve_machine_t mach));
+void instr_not __P((sieve_machine_t mach));
+void instr_branch __P((sieve_machine_t mach));
+void instr_brz __P((sieve_machine_t mach));
+
+int sieve_mark_deleted __P((message_t msg, int deleted));
