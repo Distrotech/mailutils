@@ -146,7 +146,7 @@ mail_cmdline(void *closure, int cont)
       if (interactive)
 	prompt = pev->set && pev->value != NULL ? pev->value : (char *)"? ";
 
-      rc = readline (prompt);
+      rc = ml_readline (prompt);
 
       if (ml_got_interrupt())
 	{
@@ -223,16 +223,8 @@ main (int argc, char **argv)
   /* set defaults for execution */
   util_do_command ("set noallnet");
   util_do_command ("set noappend");
-  if (interactive)
-    {
-      util_do_command ("set asksub");
-      util_do_command ("set crt");
-    }
-  else
-    {
-      util_do_command ("set noasksub");
-      util_do_command ("set nocrt");
-    }
+  util_do_command ("set asksub");
+  util_do_command ("set crt");
   util_do_command ("set noaskbcc");
   util_do_command ("set askcc");
   util_do_command ("set noautoprint");
@@ -293,6 +285,14 @@ main (int argc, char **argv)
   if ((util_find_env ("rc"))->set)
     util_do_command ("source %s", SITE_MAIL_RC);
   util_do_command ("source %s", getenv ("MAILRC"));
+  if (!interactive)
+    {
+      util_do_command ("set nocrt");
+      util_do_command ("set noasksub");
+      util_do_command ("set noaskcc");
+      util_do_command ("set noaskbcc");
+      util_do_command ("set quiet");
+    }
 
   /* how should we be running? */
   if ((mode = util_find_env ("mode")) == NULL || mode->set == 0)
