@@ -203,6 +203,9 @@ struct mh_whatnow_env {   /* An environment for whatnow shell */
 #define DISP_USE 1
 #define DISP_REPLACE 2
 
+typedef int (*mh_context_iterator) __PMT((char *field,
+					  char *value, char *data));
+
 extern char *current_folder;
 extern size_t current_message;
 extern char mh_list_format[];
@@ -212,7 +215,8 @@ void mh_init __P((void));
 void mh_init2 __P((void));
 void mh_read_profile __P((void));
 int mh_read_formfile __P((char *name, char **pformat));
-mailbox_t mh_open_msg_file (char *file_name);
+mailbox_t mh_open_msg_file (char *folder, char *file_name);
+void mh_install __P((char *name, int automode));
 
 char *mh_global_profile_get __P((char *name, char *defval));
 int mh_global_profile_set __P((const char *name, const char *value));
@@ -222,6 +226,8 @@ char *mh_current_folder __P((void));
 char *mh_global_sequences_get __P((const char *name, const char *defval));
 int mh_global_sequences_set __P((const char *name, const char *value));
 void mh_global_save_state __P((void));
+int mh_global_context_iterate __P((mh_context_iterator fp, void *data));
+int mh_global_sequences_iterate __P((mh_context_iterator fp, void *data));
 
 int mh_getyn __P((const char *fmt, ...));
 int mh_check_folder __P((char *pathname, int confirm));
@@ -247,6 +253,8 @@ char *mh_context_get_value __P((mh_context_t *ctx, const char *name,
 				const char *defval));
 int mh_context_set_value __P((mh_context_t *ctx, const char *name,
 			      const char *value));
+int mh_context_iterate __P((mh_context_t *ctx,
+			    mh_context_iterator fp, void *data));
 
 int mh_message_number __P((message_t msg, size_t *pnum));
 
@@ -279,4 +287,6 @@ void *xrealloc __P((void *, size_t));
 int mh_spawnp __P((const char *prog, const char *file));
 int mh_whatnow __P((struct mh_whatnow_env *wh, int initial_edit));
 int mh_disposition __P((const char *filename));
+int mh_usedraft __P((const char *filename));
 int mh_file_copy __P((const char *from, const char *to));
+
