@@ -1,3 +1,21 @@
+2004-11-15  Wojciech Polak
+
+	* examples/config: New directory.
+	* examples/cpp: Likewise.
+	* examples/scheme: Likewise.
+	* examples/config/Makefile.am: New file.
+	* examples/cpp/Makefile.am: Likewise.
+	* examples/scheme/Makefile.am: Likewise.
+
+	* examples/comsat.conf: Moved to config/.
+	* examples/dot.biffrc: Likewise.
+	* examples/gnu-imap4d.pam: Likewise.
+	* examples/gnu-pop3d.pam: Likewise.
+	* examples/mailutils.rc: Likewise.
+	* examples/reply.scm: Moved to scheme/.
+	* examples/Makefile.am: Updated.
+	* configure.ac: Updated.
+
 2004-11-15  Sergey Poznyakoff 
 
 	* imap4d/imap4d.c: New option --tls-required: do not allow

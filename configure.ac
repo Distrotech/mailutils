@@ -740,6 +740,9 @@ AC_CONFIG_FILES([Makefile
  doc/texinfo/Makefile
  dotlock/Makefile
  examples/Makefile
+ examples/config/Makefile
+ examples/cpp/Makefile
+ examples/scheme/Makefile
  frm/Makefile
  frm/testsuite/Makefile
  from/Makefile
