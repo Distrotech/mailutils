@@ -35,6 +35,7 @@
 #include <errno.h>
 #include <ctype.h>
 #include <dirent.h>
+#include <limits.h>
 
 #ifdef WITH_PTHREAD
 # ifdef HAVE_PTHREAD_H
@@ -65,6 +66,10 @@
 #include <registrar0.h>
 #include <amd.h>
 #include <maildir.h>
+
+#ifndef PATH_MAX 
+# define PATH_MAX _POSIX_PATH_MAX
+#endif
 
 struct _maildir_message
 {
