@@ -1,3 +1,7 @@
+2004-06-15  Sergey Poznyakoff
+
+	* libmu_scm/Makefile.am (mailutils.scm): Fixed producing rule.
+
 2004-06-14 Alain Magloire
 
 	* mailbox/nntp/Makefile.am: New file
@@ -29,6 +33,7 @@
 	* mailbox/nntp/nntp_stream.c: New file
 	* mailbox/nntp/nntp_timeout.c: New file
 
+>>>>>>> 1.888
 2004-06-12  Sergey Poznyakoff
 
 	* auth/gsasl.c: Revised use of const modifiers
