@@ -1,3 +1,45 @@
+2002-11-21  Sergey Poznyakoff 
+
+	* mailbox/file_stream.c (_file_destroy): Bugfix. Do not close the
+	  stream.
+	* imap4d/append.c (imap4d_append0): Simplified a lot.
+
+	* imap4d/testsuite/lib/imap4d.exp (default_imap4d_start): Save
+	  imap4d spawn id in the global variable.
+	  (default_imap4d_stop): Moved functionality from imap4d_exit
+	  (imap4d_stop): Call default_imap4d_stop unless it has already
+	  been called.
+	  (imap4d_exit): Call imap4d_stop
+	* imap4d/testsuite/imap4d/anystate.exp: Call imap4d_stop at the
+	  end.
+	* imap4d/testsuite/imap4d/append.exp: Likewise.
+	* imap4d/testsuite/imap4d/create.exp: Likewise.
+	* imap4d/testsuite/imap4d/examine.exp: Likewise.
+	* imap4d/testsuite/imap4d/expunge.exp: Likewise.
+	* imap4d/testsuite/imap4d/fetch.exp: Likewise.
+	* imap4d/testsuite/imap4d/list.exp: Likewise.
+	* imap4d/testsuite/imap4d/search.exp: Likewise.
+	* imap4d/testsuite/imap4d/x.exp: Likewise.
+	
+	* mail/testsuite/lib/mail.exp (default_mail_start): Save
+	  mail spawn id in the global variable.
+	  (default_mail_stop): Moved functionality from mail_exit
+	  (mail_stop): Call default_mail_stop unless it has already
+	  been called.
+	  (mail_exit): Call mail_stop
+	* mail/testsuite/mail/alias.exp: Call mail_stop at the end.
+	* mail/testsuite/mail/folder.exp: LIkewise.
+	* mail/testsuite/mail/read.exp: LIkewise.
+	* mail/testsuite/mail/send.exp: LIkewise.
+	* mail/testsuite/mail/tag.exp: LIkewise.
+	* mail/testsuite/mail/write.exp: LIkewise.
+
+	* pop3d/testsuite/lib/pop3d.exp: Fixed exit functions.
+	
+	* mailbox/mailbox.c (mailbox_flush,mailbox_append_message)
+	  (mailbox_save_attributes,mailbox_expunge): Return EACCES
+	  if mailbox was open readonly.
+	
 2002-11-21  Sergey Poznyakoff
 
 	* mailbox/parse822.c (parse822_quoted_string): Free qstr before
