@@ -299,7 +299,7 @@ _file_open (stream_t stream, const char *filename, int port, int flags)
   else /* Default readonly.  */
     mode = "rb";
 
-  fs->file = fopen (filename, mode);
+  fs->file = fdopen (fd, mode);
   if (fs->file == NULL)
     {
       int ret = errno;
