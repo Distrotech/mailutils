@@ -19,13 +19,18 @@
 #include <stdarg.h>
 #include <mailutils/mailutils.h>
 
-typedef struct sieve_machine sieve_machine_t;
+typedef struct sieve_machine *sieve_machine_t;
 
-typedef int (*sieve_handler_t) __P((sieve_machine_t *mach,
+typedef int (*sieve_handler_t) __P((sieve_machine_t mach,
 				    list_t args, list_t tags));
 typedef int (*sieve_printf_t) __P((void *data, const char *fmt, va_list ap));
 typedef int (*sieve_parse_error_t) __P((void *data,
 					const char *filename, int lineno,
+					const char *fmt, va_list ap));
+typedef void (*sieve_action_log_t) __P((void *data,
+					const char *script,
+					size_t msgno, message_t msg,
+					const char *action,
 					const char *fmt, va_list ap));
 
 typedef enum {
@@ -71,6 +76,13 @@ typedef struct {
   sieve_tag_def_t *tags;
 } sieve_register_t;
 
+/* Debugging levels */
+#define MU_SIEVE_DEBUG_TRACE  0x0001 
+#define MU_SIEVE_DEBUG_INSTR  0x0002
+#define MU_SIEVE_DEBUG_DISAS  0x0004
+#define MU_SIEVE_DRY_RUN      0x0008
+
+extern int sieve_yydebug;
 
 void *sieve_alloc __P((size_t size));
 void *sieve_palloc __P((list_t *pool, size_t size));
@@ -78,7 +90,7 @@ void *sieve_prealloc __P((list_t *pool, void *ptr, size_t size));
 void sieve_pfree __P((list_t *pool, void *ptr));
 char *sieve_pstrdup __P((list_t *pool, const char *str));
 
-int sieve_compile __P((sieve_machine_t *mach, const char *name));
+int sieve_compile __P((sieve_machine_t mach, const char *name));
 
 sieve_value_t * sieve_value_create __P((sieve_data_type type, void *data));
 
@@ -94,23 +106,36 @@ int sieve_register_action __P((const char *name, sieve_handler_t handler,
 void sieve_slist_destroy __P((list_t *plist));
 void sieve_require __P((list_t slist));
 
-void sieve_abort __P((sieve_machine_t *mach));
+void sieve_abort __P((sieve_machine_t mach));
 
-void *sieve_get_data __P((sieve_machine_t *mach));
-message_t sieve_get_message __P((sieve_machine_t *mach));
-size_t sieve_get_message_num __P((sieve_machine_t *mach));
-int sieve_get_debug_level __P((sieve_machine_t *mach));
+void *sieve_get_data __P((sieve_machine_t mach));
+message_t sieve_get_message __P((sieve_machine_t mach));
+size_t sieve_get_message_num __P((sieve_machine_t mach));
+int sieve_get_debug_level __P((sieve_machine_t mach));
+ticket_t sieve_get_ticket __P((sieve_machine_t mach));
 
-void sieve_error __P((sieve_machine_t *mach, const char *fmt, ...));
-void sieve_debug __P((sieve_machine_t *mach, const char *fmt, ...));
+void sieve_error __P((sieve_machine_t mach, const char *fmt, ...));
+void sieve_debug __P((sieve_machine_t mach, const char *fmt, ...));
+void sieve_log_action __P((sieve_machine_t mach, const char *action,
+			   const char *fmt, ...));
 
-int sieve_mailbox __P((sieve_machine_t *mach, mailbox_t mbox));
-int sieve_disass __P((sieve_machine_t *mach));
+int sieve_mailbox __P((sieve_machine_t mach, mailbox_t mbox));
+int sieve_disass __P((sieve_machine_t mach));
 
-void sieve_machine_init __P((sieve_machine_t *mach, void *data));
-void sieve_machine_set_error __P((sieve_machine_t *mach,
+int sieve_machine_init __P((sieve_machine_t *mach, void *data));
+void sieve_machine_set_error __P((sieve_machine_t mach,
 				  sieve_printf_t error_printer));
-void sieve_machine_set_parse_error __P((sieve_machine_t *mach,
+void sieve_machine_set_parse_error __P((sieve_machine_t mach,
 					sieve_parse_error_t p));
-void sieve_machine_set_debug __P((sieve_machine_t *mach,
-				  sieve_printf_t debug, int level));
+void sieve_machine_set_debug __P((sieve_machine_t mach,
+				  sieve_printf_t debug));
+void sieve_machine_set_debug_level __P((sieve_machine_t mach,
+					mu_debug_t dbg,
+					int level));
+void sieve_machine_set_logger __P((sieve_machine_t mach,
+				   sieve_action_log_t logger));
+void sieve_machine_set_ticket __P((sieve_machine_t mach,
+				   ticket_t ticket));
+sieve_value_t *sieve_value_get __P((list_t vlist, size_t index));
+
+int sieve_is_dry_run __P((sieve_machine_t mach));
