@@ -52,9 +52,9 @@ MAINTAINERCLEANFILES=$(INCFILES)
 
 ## Web documentation
 BASE_URL="http://www.gnu.org/software/mailutils/manual/"
-TEXI2HTML=${SHELL} `cd $(top_srcdir); pwd`/missing --run texi2html
-DVIPS=${SHELL} `cd $(top_srcdir); pwd`/missing --run dvips
-INFO=${SHELL} `cd $(top_srcdir); pwd`/missing --run info
+TEXI2HTML=${SHELL} `cd $(top_srcdir); pwd`/scripts/missing --run texi2html
+DVIPS=${SHELL} `cd $(top_srcdir); pwd`/scripts/missing --run dvips
+INFO=${SHELL} `cd $(top_srcdir); pwd`/scripts/missing --run info
 EXTRA_DIST = index.html.in
 
 html: html_mono html_node html_chapter
