@@ -1,4 +1,5 @@
 #! %BINDIR%/guimb --source
+# Emacs, its -*- scheme -*-
 !#
 ;;;; GNU mailutils - a suite of utilities for electronic mail
 ;;;; Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
@@ -130,11 +131,19 @@
 				 (>= end (1- input-length))
 				 (not (char-numeric?
 				       (string-ref input-line end))))
-				 end)))
+
+				(cond
+				 ((char-numeric? (string-ref input-line end))
+				  (1+ end))
+				 (else
+				  end)))))
 		      (num (string->number (substring input-line start end))) 
-		      (q (string-ref input-line end))
+		      (q (if (< end input-length)
+			     (string-ref input-line end)
+			 #f))
 		      (k 1))
 		 (case q
+		   ((#f) #f) ;; nothing
 		   ((#\K)
 		    (set! end (1+ end))
 		    (set! k 1024))
@@ -145,11 +154,8 @@
 		    (set! end (1+ end))
 		    (set! k 1073741824))
 		   (else
-		    (cond
-		     ((char-numeric? q) 
-		      (set! end (1+ end)))
-		     ((not (delimiter? q))
-		      (lex-error "Unknown qualifier (" q ")")))))
+		    (if (not (delimiter? q))
+		      (lex-error "Unknown qualifier (" q ")"))))
 		 (set! input-index end)
 		 (cons 'number (* num k))))
 	      (else
@@ -410,7 +416,8 @@
 (define (sieve-find-test name)
   (sieve-syntax-table-lookup sieve-test-table name))
 
-(define (sieve-register-test name function opt-arg-list req-arg-list)
+(define (sieve-register-test name function req-arg-list  opt-arg-list)
+  (DEBUG 100 "sieve-register-test" name req-arg-list opt-arg-list)
   (cond
    ((not (list? opt-arg-list))
     (lex-error "sieve-register-test: opt-arg-list must be a list"))
@@ -427,10 +434,14 @@
 		   (list name function opt-arg-list req-arg-list)))))))
    
 
+;;; sieve-preprocess-arguments: Preprocess and group the arguments. Returns
+;;; a cons whose car is a list of all optional arguments, and the cdr is
+;;; a list of the rest of the arguments.
+;;;
 ;;; arguments = *argument [test / test-list]
 ;;; argument = string-list / number / tag
 
-(define (sieve-parse-arguments tag-gram)
+(define (sieve-preprocess-arguments tag-gram)
   (do ((opt-list '())   ;; List of optional arguments (tags)
        (arg-list '())   ;; List of positional arguments
        (last-tag #f)    ;; Description of the last tag from tag-gram
@@ -472,16 +483,77 @@
 	  (else
 	   (set! arg-list (append arg-list (list token)))))
 	 #f)
-	((delimiter token #\[) ;;FIXME: tags are not allowed to take
-	                       ;;string-list arguments. 
-	 (set! state 'arg)
+	((delimiter token #\[) 
 	 (putback-token)
-	 (set! arg-list (append arg-list
-				(list (require-string-list))))
-	 #f)
+	 (cond
+	  ((and (eq? state 'opt) (pair? last-tag))
+	   (cond
+	    ((cdr last-tag)
+	     (if (not (eq? (cdr last-tag) 'string-list))
+		 (syntax-error
+		  "Tag :" (car last-tag) " takes string list argument"))
+	     (set! opt-list (append opt-list (list (require-string-list))))
+	     (set! last-tag #f))
+	    (else
+	     (set! state 'arg)
+	     (set! arg-list (append arg-list (list (require-string-list)))))))
+	  (else
+	   (set! arg-list (append arg-list (list (require-string-list))))))
+ 	 #f)
 	(else
 	 #t)) 
        (cons opt-list arg-list))))
+
+;;; sieve-parse-arguments: Parse the arguments to a test or an action.
+;;; ENTRY is the syntax table entry to guide the parsing
+;;;
+(define (sieve-parse-arguments ident entry)
+  (DEBUG 100 "sieve-parse-arguments" entry)
+  (let ((arg-list (sieve-preprocess-arguments (car (cdr entry)))))
+    ;; Process positional arguments
+    (do ((expect (car (cdr (cdr entry))) (cdr expect))
+	 (argl (cdr arg-list) (cdr argl))
+	 (n 1 (1+ n)))
+	((cond
+	  ((null? expect)
+	   (if (not (null? argl))
+	       (syntax-error
+		"Too many positional arguments for " ident
+		" (bailed out at " (car argl) ")"))
+	   #t)
+	  ((null? argl)
+	   (if (not (null? expect))
+	       (syntax-error
+		"Too few positional arguments for " ident))
+	   #t)
+	  (else #f)) #f)
+      (let ((expect-type (car expect))
+	    (arg (car argl)))
+	(cond
+	 ((and (eq? expect-type 'string-list)
+	       (eq? (car arg) 'string))
+	  ;; Coerce string to string-list
+	  (sieve-exp-append (list 'list (cdr arg))))
+	 ((eq? expect-type (car arg))
+	  (if (eq? expect-type 'string-list)
+	      (sieve-exp-append (append (list 'list) (cdr arg)))
+	      (sieve-exp-append (cdr arg))))
+	 (else
+	  (syntax-error
+	   "Type mismatch in argument " n " to " (cdr ident)
+	   "; expected " expect-type ", but got " (car arg))))))
+    ;; Process optional arguments (tags).
+    ;; They have already been tested
+    (for-each
+     (lambda (tag)
+       (sieve-exp-append (cond
+			  ((eq? (car tag) 'tag)
+			   (string->symbol (string-append "#:" (cdr tag))))
+			  ((eq? (car tag) 'string-list)
+			   (append (list 'list) (cdr tag)))
+			  (else
+			   (cdr tag)))))
+     (car arg-list))))
 
 ;;; test-list = "(" test *("," test) ")"
 (define (sieve-parse-test-list)
@@ -527,50 +599,8 @@
 	  (if (not test)
 	      (syntax-error "Unknown test name: " (cdr ident)))
 	  (putback-token)
-	  (let ((arg-list (sieve-parse-arguments (car (cdr test)))))
-	    (sieve-exp-append (car test))
-	    ;; Process positional arguments
-	    (do ((expect (car (cdr (cdr test))) (cdr expect))
-		 (argl (cdr arg-list) (cdr argl))
-		 (n 1 (1+ n)))
-		((cond
-		  ((null? expect)
-		   (if (not (null? argl))
-		       (syntax-error
-			"Too many positional arguments for " ident
-			" (bailed out at " (car argl) ")"))
-		   #t)
-		  ((null? argl)
-		   (if (not (null? expect))
-		       (syntax-error
-			"Too few positional arguments for " ident))
-		   #t)
-		  (else #f)) #f)
-		(let ((expect-type (car expect))
-		      (arg (car argl)))
-		  (cond
-		   ((and (eq? expect-type 'string-list)
-			 (eq? (car arg) 'string))
-		    ;; Coerce string to string-list
-		    (sieve-exp-append (list 'list (cdr arg))))
-		   ((eq? expect-type (car arg))
-		    (if (eq? expect-type 'string-list)
-			(sieve-exp-append (append (list 'list) (cdr arg)))
-			(sieve-exp-append (cdr arg))))
-		   (else
-		    (syntax-error
-		     "Type mismatch in argument " n " to " (cdr ident)
-		     "; expected " expect-type ", but got " (car arg))))))
-	    ;; Process optional arguments (tags).
-	    ;; They have already been tested 
-	    (for-each
-	     (lambda (tag)
-	       (sieve-exp-append (if (eq? (car tag) 'tag)
-				     (string->symbol
-				      (string-append "#:" (cdr tag)))
-				   (cdr tag))))
-	     (car arg-list))
-	    ))))))
+	  (sieve-exp-append (car test))
+	  (sieve-parse-arguments (cdr ident) test))))))
     (sieve-exp-finish))
   current-token)
 
@@ -664,46 +694,47 @@
 
 ;;; Actions
 
-;;; Each entry is: (list ACTION-NAME FUNCTION ARG-LIST)
-;;; ARG-LIST is a list of argument types
+;;; Each entry is: (list NAME FUNCTION OPT-ARG-LIST REQ-ARG-LIST)
+;;; NAME is a string representing the action name,
+;;; FUNCTION is a corresponding function:
+;;;       (define (action-foo [arg [arg...]] . opt-args)
+;;; notice, that its name must begin with "action-"
+;;; OPT-ARG-LIST is a list of optional arguments (tags),
+;;; REQ-ARG-LIST is a list of required (positional) arguments
 (define sieve-action-table '())
 
 (define (sieve-find-action name)
   (sieve-syntax-table-lookup sieve-action-table name))
 
-(define (sieve-register-action name proc . arg-list)
-  (if (not (sieve-find-action name))
-      (set! sieve-action-table (append sieve-action-table
-				       (list
-					(append
-					 (list name proc) arg-list))))))
+(define (sieve-register-action name function req-arg-list opt-arg-list)
+  (cond
+   ((not (list? opt-arg-list))
+    (lex-error "sieve-register-action: opt-arg-list must be a list"))
+   ((not (list? req-arg-list))
+    (lex-error "sieve-register-action: req-arg-list must be a list"))
+   ((not (or (eq? function #f)
+	     (eq? function #t)
+	     (procedure? function)))
+    (lex-error "sieve-register-action: bad type for function" function))
+   (else
+    (set! sieve-action-table
+	  (append sieve-action-table
+		  (list
+		   (list name function opt-arg-list req-arg-list)))))))
 
 (define (sieve-parse-action)
   (let* ((name (cdr current-token))
 	 (descr (sieve-find-action name)))
     (cond
      (descr
-      (if (car descr)
-	  (sieve-exp-begin (car descr)))
-      (do ((arg (cdr descr) (cdr arg)))
-	  ((null? arg) #f)
-	(read-token)
-	(case (car arg)
-	  ((string)
-	   (require-string 'dont-read))
-	  ((string-list)
-	   (require-string-list 'dont-read))
-	  ((number)
-	   (require-number 'dont-read))
-	  ((tag)
-	   (require-tag 'dont-read))
-	  (else
-	   (syntax-error "Malformed table entry for " name " :" (car arg))))
-	(if (car descr)
-	    (sieve-exp-append (cdr current-token))))
-      (require-semicolon)
-      (if (car descr)
-	  (sieve-exp-finish)))
+      (cond
+       ((car descr)
+	(sieve-exp-begin (car descr))
+	(sieve-parse-arguments name descr)
+	(require-semicolon 'dont-read)
+	(sieve-exp-finish))
+       (else
+	(require-semicolon))))
      (else
       (syntax-error "Unknown identifier: " name)))))
 
@@ -853,7 +884,7 @@
      (display (string-append
 	       ";;;; A Guile mailbox parser made from " filename) port)
      (newline port) 
-     (display ";;;; by sieve.scm, GNU mailutils (0.0.9)" port)
+     (display ";;;; by sieve.scm, GNU %PACKAGE% %VERSION%" port)
      (newline port)
      
      (display "(define sieve-parser #f)" port)
