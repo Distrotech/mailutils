@@ -104,7 +104,10 @@ static int action_pop ();
 static folder_action action = action_print;
 
 int show_all = 0; /* List all folders. Raised by --all switch */
-int create_flag = 0; /* Create non-existent folders (--create) */
+int create_flag = -1; /* Create non-existent folders (--create).
+		         -1: Prompt before creating
+		          0: Do not create
+		          1: Always create without prompting */
 int fast_mode = 0; /* Fast operation mode. (--fast) */
 int print_header = 0; /* Display the header line (--header) */
 int recurse = 0; /* Recurse sub-folders */
@@ -282,9 +285,20 @@ _scan (const char *name, int depth)
 
   if (!dir && errno == ENOENT)
     {
-      if (mh_check_folder (name, !create_flag))
-	return;
-      dir = opendir (name);
+      if (create_flag)
+	{
+	  if (mh_check_folder (name, create_flag == -1))
+	    {
+	      push_folder = 0;
+	      return;
+	    }
+	  dir = opendir (name);
+	}
+      else
+	{
+	  push_folder = 0;
+	  return;
+	}
     }
 
   if (!dir)
