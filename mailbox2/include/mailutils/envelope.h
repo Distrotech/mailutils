@@ -19,15 +19,13 @@
 # define _MAILUTILS_ENVELOPE_H
 
 #include <mailutils/mu_features.h>
+#include <mailutils/types.h>
 #include <mailutils/address.h>
 #include <mailutils/mutil.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-struct _envelope;
-typedef struct _envelope *envelope_t;
 
 extern int  envelope_ref       __P ((envelope_t));
 extern void envelope_destroy   __P ((envelope_t *));

@@ -19,6 +19,7 @@
 #define _MAILUTILS_MBOX_H
 
 #include <mailutils/mu_features.h>
+#include <mailutils/types.h>
 #include <mailutils/stream.h>
 #include <mailutils/attribute.h>
 #include <mailutils/debug.h>
@@ -26,10 +27,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-struct _mbox;
-typedef struct _mbox *mbox_t;
-
 
 extern int  mbox_create __P ((mbox_t *));
 extern void mbox_destroy __P ((mbox_t *));

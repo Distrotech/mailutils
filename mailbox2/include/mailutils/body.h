@@ -20,6 +20,7 @@
 
 #include <sys/types.h>
 #include <mailutils/mu_features.h>
+#include <mailutils/types.h>
 #include <mailutils/property.h>
 #include <mailutils/stream.h>
 
@@ -28,8 +29,6 @@ extern "C" {
 #endif
 
 /* forward declaration */
-struct _body;
-typedef struct _body *body_t;
 
 extern int  body_ref            __P ((body_t));
 extern void body_release        __P ((body_t *));

@@ -20,14 +20,12 @@
 
 #include <sys/types.h>
 #include <mailutils/mu_features.h>
+#include <mailutils/types.h>
 #include <mailutils/stream.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-struct _mu_debug;
-typedef struct _mu_debug* mu_debug_t;
 
 #define MU_DEBUG_TRACE 1
 #define MU_DEBUG_PROT  2

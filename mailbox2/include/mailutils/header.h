@@ -20,6 +20,7 @@
 
 #include <sys/types.h>
 #include <mailutils/mu_features.h>
+#include <mailutils/types.h>
 #include <mailutils/stream.h>
 
 #ifdef __cplusplus
@@ -65,10 +66,6 @@ extern "C" {
 #define MU_HEADER_X_IMAPBASE                "X-IMAPbase"
 
 /* Mime support header attribute */
-
-/* forward declaration */
-struct _header;
-typedef struct _header * header_t;
 
 extern int  header_ref             __P ((header_t));
 extern void header_destroy         __P ((header_t *));

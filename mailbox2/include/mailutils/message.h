@@ -18,13 +18,8 @@
 #ifndef _MAILUTILS_MESSAGE_H
 #define _MAILUTILS_MESSAGE_H
 
-#include <sys/types.h>
-
-/* forward declaration */
-struct _message;
-typedef struct _message *message_t;
-
 #include <mailutils/mu_features.h>
+#include <mailutils/types.h>
 #include <mailutils/envelope.h>
 #include <mailutils/header.h>
 #include <mailutils/body.h>

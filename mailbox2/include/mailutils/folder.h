@@ -21,6 +21,7 @@
 #include <sys/types.h>
 
 #include <mailutils/mu_features.h>
+#include <mailutils/types.h>
 #include <mailutils/url.h>
 #include <mailutils/observable.h>
 #include <mailutils/debug.h>
@@ -35,8 +36,6 @@ extern "C" {
 #endif
 
 /* Forward declaration.  */
-struct _folder;
-typedef struct _folder *folder_t;
 
 #define MU_FOLDER_ATTRIBUTE_DIRECTORY 0x001
 #define MU_FOLDER_ATTRIBUTE_FILE      0x002

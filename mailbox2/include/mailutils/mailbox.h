@@ -18,13 +18,8 @@
 #ifndef _MAILUTILS_MAILBOX_H
 #define _MAILUTILS_MAILBOX_H
 
-#include <sys/types.h>
-
-/* Forward declaration.  */
-struct _mailbox;
-typedef struct _mailbox *mailbox_t;
-
 #include <mailutils/mu_features.h>
+#include <mailutils/types.h>
 #include <mailutils/url.h>
 #include <mailutils/observer.h>
 #include <mailutils/debug.h>

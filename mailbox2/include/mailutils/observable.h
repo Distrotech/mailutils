@@ -18,16 +18,13 @@
 #ifndef _MAILUTILS_OBSERVABLE_H
 #define _MAILUTILS_OBSERVABLE_H
 
-#include <sys/types.h>
 #include <mailutils/mu_features.h>
+#include <mailutils/types.h>
 #include <mailutils/observer.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-struct _observable;
-typedef struct _observable *observable_t;
 
 extern int  observable_create     __P ((observable_t *));
 extern void observable_destroy    __P ((observable_t *));

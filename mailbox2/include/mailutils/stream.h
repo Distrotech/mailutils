@@ -18,9 +18,9 @@
 #ifndef _MAILUTILS_STREAM_H
 #define _MAILUTILS_STREAM_H
 
-#include <sys/types.h>
 #include <stdio.h>
 #include <mailutils/mu_features.h>
+#include <mailutils/types.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -41,9 +41,6 @@ enum stream_state
   MU_STREAM_STATE_WRITE,
   MU_STREAM_STATE_CLOSE
 };
-
-struct _stream;
-typedef struct _stream *stream_t;
 
 extern int  stream_ref __P ((stream_t));
 extern void stream_destroy __P ((stream_t *));

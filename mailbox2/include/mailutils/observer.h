@@ -18,15 +18,12 @@
 #ifndef _MAILUTILS_OBSERVER_H
 #define _MAILUTILS_OBSERVER_H
 
-#include <sys/types.h>
 #include <mailutils/mu_features.h>
+#include <mailutils/types.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-struct _observer;
-typedef struct _observer * observer_t;
 
 struct event
 {

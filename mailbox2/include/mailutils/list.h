@@ -20,14 +20,12 @@
 
 #include <sys/types.h>
 #include <mailutils/mu_features.h>
+#include <mailutils/types.h>
 #include <mailutils/iterator.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-struct _list;
-typedef struct _list *mu_list_t;
 
 extern int  mu_list_create       __P ((mu_list_t *));
 extern int  mu_list_ref          __P ((mu_list_t));

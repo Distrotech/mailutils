@@ -19,6 +19,7 @@
 #define _MAILUTILS_POP3_H
 
 #include <mailutils/mu_features.h>
+#include <mailutils/types.h>
 #include <mailutils/iterator.h>
 #include <mailutils/debug.h>
 #include <mailutils/stream.h>
@@ -27,8 +28,6 @@
 extern "C" {
 #endif
 
-struct _pop3;
-typedef struct _pop3* pop3_t;
 typedef iterator_t pop3_capa_iterator_t;
 typedef iterator_t pop3_list_iterator_t;
 typedef iterator_t pop3_uidl_iterator_t;

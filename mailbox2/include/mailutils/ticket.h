@@ -18,16 +18,12 @@
 #ifndef _MAILUTILS_TICKET_H
 #define _MAILUTILS_TICKET_H
 
-#include <sys/types.h>
 #include <mailutils/mu_features.h>
+#include <mailutils/types.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-/* forward declaration */
-struct _ticket;
-typedef struct _ticket *ticket_t;
 
 extern int  ticket_ref __P ((ticket_t));
 extern void ticket_destroy __P ((ticket_t *));

@@ -19,13 +19,11 @@
 #define _MAILUTILS_ITERATOR_H
 
 #include <mailutils/mu_features.h>
+#include <mailutils/types.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-struct _iterator;
-typedef struct _iterator *iterator_t;
 
 extern int  iterator_ref     __P ((iterator_t));
 extern void iterator_destroy __P ((iterator_t *));

@@ -18,16 +18,12 @@
 #ifndef _MAILUTILS_REFCOUNT_H
 #define _MAILUTILS_REFCOUNT_H
 
-#include <sys/types.h>
 #include <mailutils/mu_features.h>
+#include <mailutils/types.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-/* forward declaration */
-struct _refcount;
-typedef struct _refcount *mu_refcount_t;
 
 extern int  mu_refcount_create  __P ((mu_refcount_t *));
 extern void mu_refcount_destroy __P ((mu_refcount_t *));

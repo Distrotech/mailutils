@@ -20,13 +20,11 @@
 
 #include <sys/types.h>
 #include <mailutils/mu_features.h>
+#include <mailutils/types.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-struct _lockfile;
-typedef struct _lockfile *lockfile_t;
 
 extern int  lockfile_ref            __P ((lockfile_t));
 extern void lockfile_destroy        __P ((lockfile_t *));

@@ -18,15 +18,12 @@
 #ifndef _MAILUTILS_PROPERTY_H
 #define _MAILUTILS_PROPERTY_H
 
-#include <sys/types.h>
 #include <mailutils/mu_features.h>
+#include <mailutils/types.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-struct _property;
-typedef struct _property *property_t;
 
 extern int  property_create   __P ((property_t *));
 extern void property_destroy  __P ((property_t *));
