@@ -1,5 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2002, 2003, 
+   2005 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -41,7 +42,31 @@ mail_from0 (msgset_t *mspec, message_t msg, void *data)
       if (address_create (&address, from) == 0)
 	{
 	  char name[128];
-	  size_t len = strlen (from) + 1;
+	  size_t len;
+	  char *email;
+	  
+	  if (address_aget_email (address, 1, &email) == 0)
+	    {
+	      if (util_getenv (NULL, "showto", Mail_env_boolean, 0) == 0
+		  && mail_is_my_name (email))
+		{
+		  char *tmp;
+
+		  if (header_aget_value_unfold (hdr, MU_HEADER_TO, &tmp) == 0)
+		    {
+		      address_t addr_to;
+		      if (address_create (&addr_to, tmp) == 0)
+			{
+			  address_destroy (&address);
+			  address = addr_to;
+			}
+		      free (tmp);
+		    }
+		}
+	      free (email);
+	    }
+	      
+	  len = strlen (from) + 1;
 	  *name = '\0';
 	  address_get_personal (address, 1, name, sizeof name, NULL);
 	  if (*name && len)
