@@ -60,6 +60,8 @@ extern int authority_get_ticket       __P ((authority_t, ticket_t *));
 extern int authority_authenticate     __P ((authority_t));
 extern int authority_set_authenticate __P ((authority_t, int (*_authenticate) __P ((authority_t)), void *));
 
+extern int authority_create_null      __P ((authority_t *pauthority, void *owner));
+
 struct _wicket;
 typedef struct _wicket *wicket_t;
 

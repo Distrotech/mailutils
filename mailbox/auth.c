@@ -26,6 +26,23 @@
 #include <auth0.h>
 
 
+static int
+_authenticate_null (authority_t auth)
+{
+  (void) auth;
+  return 0;
+}
+
+int
+authority_create_null (authority_t *pauthority, void *owner)
+{
+  int rc = authority_create(pauthority, NULL, owner);
+  if(rc)
+    return rc;
+  (*pauthority)->_authenticate = _authenticate_null;
+  return 0;
+}
+
 int
 authority_create (authority_t *pauthority, ticket_t ticket, void *owner)
 {
