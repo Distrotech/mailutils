@@ -1,3 +1,8 @@
+2002-05-14  Sergey Poznyakoff  
+
+	* mail.remote/Makefile.am: Removed reference to non-existent
+	  mail.remote.h
+
 2002-05-13  Sam Roberts
 
 	* comsat/comsat.h, frm/frm.c, from/from.c, guimb/main.c,
