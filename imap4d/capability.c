@@ -20,9 +20,6 @@
 char *capa[] = {
   "IMAP4rev1",
   "NAMESPACE",
-#ifdef WITH_GSSAPI
-  "AUTH=GSSAPI",
-#endif
   "X-VERSION",
   NULL
 };
@@ -36,6 +33,7 @@ imap4d_capability (struct imap4d_command *command, char *arg)
   util_send ("* CAPABILITY");
   for (i = 0; capa[i]; i++)
     util_send(" %s", capa[i]);
+  imap4d_auth_capability ();
   util_send("\r\n");
 
   return util_finish (command, RESP_OK, "Completed");
