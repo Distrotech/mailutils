@@ -58,8 +58,10 @@ display_message (message_t mesg, msgset_t *msgset, void *arg)
   size_t lines = 0;
   struct decode_closure *closure = arg;
   int pagelines = util_get_crt ();
+  attribute_t attr = NULL;
 
-  if (util_isdeleted (mesg))
+  message_get_attribute (mesg, &attr);
+  if (attribute_is_deleted (attr))
     return 1;
 
   message_lines (mesg, &lines);

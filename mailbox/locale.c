@@ -231,7 +231,7 @@ mu_charset_lookup (char *lang, char *terr)
   for (p = langtab; p->lang; p++)
     if (strcasecmp (p->lang, lang) == 0
 	&& (terr == NULL 
-	    || !p->terr == NULL
+	    || p->terr == NULL
 	    || !strcasecmp (p->terr, terr) == 0))
       return p->charset;
   return NULL;
