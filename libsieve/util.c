@@ -159,6 +159,7 @@ sieve_value_create (sieve_data_type type, void *data)
     case SVT_VALUE_LIST:
     case SVT_STRING_LIST:
       val->v.list = data;
+      break;
       
     case SVT_TAG:
     case SVT_IDENT:
@@ -201,10 +202,32 @@ void
 sieve_error (sieve_machine_t mach, const char *fmt, ...)
 {
   va_list ap;
-
+  
   va_start (ap, fmt);
-  mach->error_printer (mach->data, fmt, ap);
+  if (mach->identifier)
+    {
+      char *new_fmt = malloc (strlen (mach->identifier) + 2 +
+			      strlen (fmt) + 1);
+      if (new_fmt)
+	{
+	  strcpy (new_fmt, mach->identifier);
+	  strcat (new_fmt, ": ");
+	  strcat (new_fmt, fmt);
+	  mach->error_printer (mach->data, new_fmt, ap);
+	  free (new_fmt);
+	}
+      else
+	mach->error_printer (mach->data, fmt, ap);
+    }
+  else
+    mach->error_printer (mach->data, fmt, ap);
   va_end (ap);
+}
+
+void
+sieve_arg_error (sieve_machine_t mach, int n)
+{
+  sieve_error (mach, _("cannot retrieve argument %d"), n);
 }
 
 void
