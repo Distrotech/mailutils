@@ -52,28 +52,26 @@ mail_whoami ()
   return my_name;
 }
 
-/* FIXME: this lacks domain name part! */
 void
 mail_set_my_name (char *name)
 {
-  char hostname[256];
-
   if (!name)
     {
-      struct passwd *pw = getpwuid(getuid());
+      struct passwd *pw = getpwuid (getuid ());
       if (!pw)
 	{
-	  util_error("can't determine my username");
+	  util_error ("can't determine my username");
 	  exit (1);
 	}
       name = pw->pw_name;
     }
-
   my_name = strdup (name);
-  gethostname(hostname, sizeof(hostname));
-  hostname[sizeof(hostname)-1] = 0;
-  my_email = xmalloc (strlen (name) + strlen (hostname) + 2);
-  sprintf (my_email, "%s@%s", name, hostname);
+  my_email = mu_get_user_email (name);
+  if (!my_email)
+    {
+      util_error("can't determine my email address: %s", strerror (errno));
+      exit (1);
+    }
 }
    
 int
