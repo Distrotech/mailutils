@@ -451,7 +451,9 @@ main (int argc, char **argv)
 	    return util_do_command ("from *");
 	}
       
-      if (total == 0)
+      if (total == 0
+	  && (strcmp (mode, "read")
+	      || util_getenv (NULL, "emptystart", Mail_env_boolean, 0)))
         {
 	  if (args.file)
 	    fprintf (ofile, _("%s: 0 messages\n"), args.file);
