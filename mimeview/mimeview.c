@@ -20,12 +20,14 @@
 #endif
 
 #include <mimeview.h>
+#include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/wait.h>
 
 const char *program_version = "mimeview (" PACKAGE_STRING ")";
-static char doc[] = N_("GNU mimeview -- display MIME files\
-Default mime.types file is ") SYSCONFDIR "/cups/mime.types"
-N_("\nDebug flags are:\n\
+static char doc[] = N_("GNU mimeview -- display files, using mailcap mechanism.\
+Default mime.types file is ") DEFAULT_CUPS_CONFDIR "/mime.types"
+N_("\n\nDebug flags are:\n\
   g - Mime.types parser traces\n\
   l - Mime.types lexical analyzer traces\n\
   0-9 - Set debugging level\n");
@@ -47,7 +49,7 @@ static struct argp_option options[] = {
 int debug_level;       /* Debugging level set by --debug option */
 static int dry_run;    /* Dry run mode */
 static char *metamail; /* Name of metamail program, if requested */
-static char *mimetypes_config = SYSCONFDIR "/cups";
+static char *mimetypes_config = DEFAULT_CUPS_CONFDIR;
 
 char *mimeview_file;   /* Name of the file to view */
 FILE *mimeview_fp;     /* Its descriptor */ 
@@ -164,13 +166,14 @@ close_file ()
 
 static struct obstack expand_stack;
 
-static void
+static int
 expand_string (char **pstr, const char *filename, const char *type)
 {
   char *p;
   size_t namelen = strlen (filename);
   size_t typelen = strlen (type);
-
+  int rc = 0;
+  
   for (p = *pstr; *p; )
     {
       switch (p[0])
@@ -181,6 +184,7 @@ expand_string (char **pstr, const char *filename, const char *type)
 	      case 's':
 		obstack_grow (&expand_stack, filename, namelen);
 		p += 2;
+		rc = 1;
 		break;
 		
 	      case 't':
@@ -236,6 +240,7 @@ expand_string (char **pstr, const char *filename, const char *type)
   obstack_1grow (&expand_stack, 0);
   free (*pstr);
   *pstr = obstack_finish (&expand_stack);
+  return rc;
 }
 
 static int
@@ -336,16 +341,97 @@ dump_mailcap_entry (mu_mailcap_entry_t entry)
   printf ("\n");
 }
 
+pid_t
+create_filter (char *cmd, int outfd, int *infd)
+{
+  pid_t pid;
+  int lp[2];
+
+  if (infd)
+    pipe (lp);
+  
+  pid = fork ();
+  if (pid == -1)
+    {
+      if (infd)
+	{
+	  close (lp[0]);
+	  close (lp[1]);
+	}
+      mu_error ("fork: %s", mu_strerror (errno));
+      return -1;
+    }
+
+  if (pid == 0)
+    {
+      /* Child process */
+      int argc;
+      char **argv;
+
+      argcv_get (cmd, "", NULL, &argc, &argv);
+      
+      /* Create input channel: */
+      if (lp[0] != 0)
+	dup2 (lp[0], 0);
+      close (lp[1]);
+      
+      /* Create output channel */
+      if (outfd != -1 && outfd != 1)
+	dup2 (outfd, 1);
+
+      execvp (argv[0], argv);
+      mu_error (_("Cannot execute `%s': %s"), cmd, mu_strerror (errno));
+      _exit (127);
+    }
+
+  /* Master process */
+  if (infd)
+    {
+      *infd = lp[1];
+      close (lp[0]);
+    }
+  return pid;
+}
+
+void
+print_exit_status (int status)
+{
+  if (WIFEXITED (status)) 
+    printf (_("Command exited with status %d\n"), WEXITSTATUS(status));
+  else if (WIFSIGNALED (status)) 
+    printf(_("Command terminated on signal %d\n"), WTERMSIG(status));
+  else
+    printf (_("Command terminated"));
+}
+
+static char *
+get_pager ()
+{
+  char *pager = getenv ("MIMEVIEW_PAGER");
+  if (!pager)
+    {
+      pager = getenv ("METAMAIL_PAGER");
+      if (!pager)
+	{
+	  pager = getenv ("PAGER");
+	  if (!pager)
+	    pager = "more";
+	}
+    }
+  return pager;
+}
+
 int
 run_mailcap (mu_mailcap_entry_t entry, const char *type)
 {
-  char *view_command;
-  size_t size;
-  int flag;
-  int status;
-  int argc;
-  char **argv;
-  /*  pid_t pager = -1; */
+  char *view_command;   
+  size_t size;          
+  int flag;             
+  int status;           
+  int fd;                
+  int *pfd = NULL;      
+  int outfd = -1;       
+  pid_t pid, pager_pid;
   
   if (debug_level > 1)
     dump_mailcap_entry (entry);
@@ -357,42 +443,46 @@ run_mailcap (mu_mailcap_entry_t entry, const char *type)
 
   /* NOTE: We don't create temporary file for %s, we just use
      mimeview_file instead */
-  expand_string (&view_command, mimeview_file, type);
+  if (expand_string (&view_command, mimeview_file, type))
+    pfd = NULL;
+  else
+    pfd = &fd;
   DEBUG (0, (_("Executing %s...\n"), view_command));
 
   if (dry_run)
     return 0;
 
-  status = argcv_get (view_command, "", NULL, &argc, &argv);
-  free (view_command);
-  if (status)
-    {
-      mu_error (_("Cannot parse command line: %s"), mu_strerror (status));
-      return 1;
-    }
+  flag = 0;
+  if (mu_mailcap_entry_copiousoutput (entry, &flag) == 0 && flag)
+    pager_pid = create_filter (get_pager (), -1, &outfd);
   
-  /*
-    if (mu_mailcap_entry_copiousoutput (entry, &flag) == 0 && flag)
-    pager = open_pager ();
-  */
-
-  if (pager <= 0)
+  pid = create_filter (view_command, outfd, pfd);
+  if (pid > 0)
     {
-      if (mu_spawnvp (argv[0], argv, &status))
-	mu_error (_("Cannot execute command: %s"), mu_strerror (status));
-
-      if (debug_level)
+      if (pfd)
 	{
-	  if (WIFEXITED (status)) 
-	    printf (_("Command exited with status %d\n"), WEXITSTATUS(status));
-	  else if (WIFSIGNALED (status)) 
-	    printf(_("Command terminated on signal %d\n"), WTERMSIG(status));
-	  else
-	    printf (_("Command terminated"));
+	  char buf[512];
+	  size_t n;
+	
+	  fseek (mimeview_fp, 0, SEEK_SET);
+	  while ((n = fread (buf, 1, sizeof buf, mimeview_fp)) > 0)
+	    {
+	      write (fd, buf, n);
+	    }
+	  free (buf);
+	  close (fd);
 	}
+	
+      while (waitpid (pid, &status, 0) < 0)
+	if (errno != EINTR)
+	  {
+	    mu_error ("waitpid: %s", mu_strerror (errno));
+	    break;
+	  }
+      if (debug_level)
+	print_exit_status (status);
     }
-  argcv_free (argc, argv);
-  /* close_pager (pager); */
+  free (view_command);
 }
 
 void
