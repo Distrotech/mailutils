@@ -38,12 +38,14 @@ dnl Check for libraries
 AC_CHECK_LIB(resolv, res_query)
 LTDL_LIB=
 AC_SUBST(LTDL_LIB)
-AC_CHECK_LIB(ltdl, lt_dlinit,[
-	AC_DEFINE(HAVE_LIBLTDL,
-                  1,
-                  [Define to 1 if you have the `ltdl' library (-lltdl).])
-	LTDL_LIB=-lltdl],
-        [LTDL_LIB=""])
+if test "$enable_shared" = yes; then
+  AC_CHECK_LIB(ltdl, lt_dlinit,[
+    AC_DEFINE(HAVE_LIBLTDL,
+	      1,
+	      [Define to 1 if you have the `ltdl' library (-lltdl).])
+    LTDL_LIB=-lltdl],
+    [LTDL_LIB=""])
+fi
 MU_DEBUG_MODE
 
 # Initialize authlibs
@@ -307,6 +309,7 @@ AC_CHECK_FUNCS(argp_parse, :,
 	       MU_LIBOBJ(argp-pv)
 	       MU_LIBOBJ(argp-pvh)
 	       MU_LIBOBJ(argp-xinl)
+               MU_LIBOBJ(pin)
 	       ])
 
 AC_MSG_CHECKING(whether extern program_invocation_name is present)
