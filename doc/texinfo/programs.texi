@@ -2033,6 +2033,25 @@ a multipart message. For example:
 set metamail="metamail -m mail -p"
 @end smallexample
 
+@item mimenoask
+@*Type: String
+@*Default: Empty
+@vrindex mimenoask, mail variable
+
+By default @command{mail} asks for comnfirmation before running
+interpreter to view a part of the multi-part message. If this variable
+is set, its value is treated as a comma-separated list of MIME types
+for which no confirmation is needed. Elements of this list may include
+shell-style globbing patterns, e.g. setting
+
+@smallexample
+set mimenoask=text/*,image/jpeg
+@end smallexample
+
+@noindent
+will disable prompting before displaying any textual files, no
+matter what their subtype is, and before displaying files with
+type @samp{image/jpeg}.
 
 @item metoo
 @*Type: Boolean.
