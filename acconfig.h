@@ -80,6 +80,9 @@
 
 #undef MU_CONF_MAILDIR
 
+#undef PROGRAM_INVOCATION_NAME_DEFINED
+#undef HAVE_PROGRAM_INVOCATION_NAME
+
 @BOTTOM@
 
 #ifdef HAVE_PATHS_H
@@ -103,4 +106,9 @@
 /* Newer versions of readline have rl_completion_matches */
 #ifndef HAVE_RL_COMPLETION_MATCHES
 # define rl_completion_matches completion_matches
+#endif
+
+#ifndef PROGRAM_INVOCATION_NAME_DECLARED
+extern char *program_invocation_short_name;
+extern char *program_invocation_name;
 #endif
