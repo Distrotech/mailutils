@@ -379,3 +379,37 @@ mh_iterate (mailbox_t mbox, mh_msgset_t *msgset,
 
   return 0;
 }
+
+int
+mh_spawnp (const char *prog, const char *file)
+{
+  int argc, i, rc, status;
+  char **argv, **xargv;
+
+  if (argcv_get (prog, "", "#", &argc, &argv))
+    {
+      mh_error (_("cannot split line %s"), prog);
+      argcv_free (argc, argv);
+      return 1;
+    }
+
+  xargv = calloc (argc + 2, sizeof (*xargv));
+  if (!xargv)
+    {
+      mh_error (_("not enough memory"));
+      argcv_free (argc, argv);
+      return 1;
+    }
+
+  for (i = 0; i < argc; i++)
+    xargv[i] = argv[i];
+  xargv[i++] = (char*) file;
+  xargv[i++] = NULL;
+
+  rc = mu_spawnvp (xargv[0], (const char**) xargv, &status);
+
+  free (xargv);
+  argcv_free (argc, argv);
+
+  return rc;
+}
