@@ -1,3 +1,13 @@
+2004-07-05  Sergey Poznyakoff
+
+	* include/mailutils/registrar.h (mu_register_extra_formats): New
+	macro.
+	(mu_register_all_formats): Call mu_register_extra_formats()
+	* mailbox/mu_argp.c (mu_conf_option): Added ENABLE_NNTP
+	* mailbox/nntp/Makefile.am: Add nntp0.h
+	* mh/Makefile.am: Added libmu_nntp.la
+	* readmsg/readmsg.c (main): Call mu_register_extra_formats()
+
 2004-07-05  Sergey Poznyakoff 
 
 	* include/mailutils/registrar.h (mu_register_all_mbox_formats):
