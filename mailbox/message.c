@@ -63,7 +63,8 @@ message_destroy (message_t *pmsg, void *owner)
       message_t msg = *pmsg;
 
       msg->ref--;
-      if (msg->owner == owner)
+      if ((msg->owner && msg->owner == owner)
+	  || (msg->owner == NULL && msg->ref <= 0))
 	{
 	  /* Notify the listeners.  */
 	  /* FIXME: to be removed since we do not supoort this event.  */
@@ -92,6 +93,9 @@ message_destroy (message_t *pmsg, void *owner)
 	  /*  Mime.  */
 	  if (msg->mime)
 	    mime_destroy (&(msg->mime));
+
+	  /* Loose the owner.  */
+	  msg->owner = NULL;
 
 	  if (msg->ref <= 0)
 	    free (msg);
