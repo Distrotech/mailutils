@@ -17,6 +17,7 @@
 
 #include "mail.h"
 #include <mailutils/mutil.h>
+#include <mailutils/mime.h>
 #include <pwd.h>
 #ifdef HAVE_TERMIOS_H
 # include <termios.h>
@@ -750,7 +751,6 @@ comp (const void *item, const void *data)
 void
 util_slist_remove (list_t *list, char *value)
 {
-  char *p;
   list_comparator_t cp;
   
   if (!*list)

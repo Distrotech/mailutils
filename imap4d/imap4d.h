@@ -87,6 +87,7 @@
 #include <mailutils/registrar.h>
 #include <mailutils/stream.h>
 #include <mailutils/mu_auth.h>
+#include <mailutils/iterator.h>
 #include <mailutils/url.h>
 #include <mailutils/tls.h>
 #include <mailutils/nls.h>

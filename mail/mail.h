@@ -64,6 +64,7 @@
 #include <mailutils/body.h>
 #include <mailutils/debug.h>
 #include <mailutils/errno.h>
+#include <mailutils/error.h>
 #include <mailutils/envelope.h>
 #include <mailutils/filter.h>
 #include <mailutils/header.h>

@@ -24,6 +24,7 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <string.h>
 
 #include <mailutils/argp.h>
 #include <mailutils/error.h>
@@ -160,7 +161,7 @@ mu_check_tls_environment (void)
 
       if (stat (ssl_cert, &st) == -1)
 	{
-	  mu_error ("%s: %s.", ssl_cert, strerror(errno));
+	  mu_error ("%s: %s.", ssl_cert, mu_strerror (errno));
 	  return 0;
 	}
       if (!(st.st_mode & S_IFREG) || !(st.st_mode & S_IFLNK))
@@ -172,7 +173,7 @@ mu_check_tls_environment (void)
 
       if (stat (ssl_key, &st) == -1)
 	{
-	  mu_error ("%s: %s.", ssl_key, strerror(errno));
+	  mu_error ("%s: %s.", ssl_key, mu_strerror(errno));
 	  return 0;
 	}
       if (!(st.st_mode & S_IFREG) || !(st.st_mode & S_IFLNK))

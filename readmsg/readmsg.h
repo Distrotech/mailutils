@@ -41,6 +41,8 @@
 #include <mailutils/url.h>
 #include <mailutils/nls.h>
 #include <mailutils/tls.h>
+#include <mailutils/argp.h>
+#include <mailutils/error.h>
 
 int msglist __P ((mailbox_t mbox, int show_all, int argc, char **argv, int **set, int *n));
 
