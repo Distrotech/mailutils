@@ -209,7 +209,11 @@ mailbox_flush (mailbox_t mbox, int expunge)
   if (!(mbox->flags & (MU_STREAM_RDWR|MU_STREAM_WRITE|MU_STREAM_APPEND)))
     return EACCES;
   mailbox_messages_count (mbox, &total);
-  for (i = 1; i <= total; i++)
+  if (mbox->flags & MU_STREAM_APPEND)
+    i = total;
+  else
+    i = 1;
+  for ( ; i <= total; i++)
     {
       message_t msg = NULL;
       attribute_t attr = NULL;
