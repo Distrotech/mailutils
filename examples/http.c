@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2004 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -19,10 +19,10 @@
    It connects to a remote HTTP server and prints the contents of its
    index page */
 
-#include <stdlib.h>
 #include <stdio.h>
-#include <errno.h>
+#include <stdlib.h>
 #include <string.h>
+#include <errno.h>
 #include <unistd.h>
 
 #include <mailutils/mailutils.h>
@@ -31,7 +31,7 @@ const char *wbuf = "GET / HTTP/1.0\r\n\r\n";
 char rbuf[1024];
 
 int
-main ()
+main (void)
 {
   int ret, off = 0, fd;
   stream_t stream;
@@ -41,7 +41,7 @@ main ()
   ret = tcp_stream_create (&stream, "www.gnu.org", 80, MU_STREAM_NONBLOCK);
   if (ret != 0)
     {
-      mu_error ( "tcp_stream_create: %s\n", mu_strerror (ret));
+      mu_error ("tcp_stream_create: %s", mu_strerror (ret));
       exit (EXIT_FAILURE);
     }
 
@@ -54,7 +54,7 @@ connect_again:
           ret = stream_get_fd (stream, &fd);
           if (ret != 0)
             {
-              mu_error ( "stream_get_fd: %s\n", mu_strerror (ret));
+              mu_error ("stream_get_fd: %s", mu_strerror (ret));
               exit (EXIT_FAILURE);
             }
           FD_ZERO (&fds);
@@ -62,14 +62,14 @@ connect_again:
           select (fd + 1, NULL, &fds, NULL, NULL);
           goto connect_again;
         }
-      mu_error ( "stream_open: %s\n", mu_strerror (ret));
+      mu_error ("stream_open: %s", mu_strerror (ret));
       exit (EXIT_FAILURE);
     }
 
   ret = stream_get_fd (stream, &fd);
   if (ret != 0)
     {
-      mu_error ( "stream_get_fd: %s\n", mu_strerror (ret));
+      mu_error ("stream_get_fd: %s", mu_strerror (ret));
       exit (EXIT_FAILURE);
     }
 
@@ -85,13 +85,13 @@ write_again:
           off += nb;
           goto write_again;
         }
-      mu_error ( "stream_write: %s\n", mu_strerror (ret));
+      mu_error ("stream_write: %s", mu_strerror (ret));
       exit (EXIT_FAILURE);
     }
 
   if (nb != strlen (wbuf))
     {
-      mu_error ( "stream_write: %s\n", "nb != wbuf length");
+      mu_error ("stream_write: %s", "nb != wbuf length");
       exit (EXIT_FAILURE);
     }
 
@@ -108,7 +108,7 @@ write_again:
             }
           else
             {
-              mu_error ( "stream_read: %s\n", mu_strerror (ret));
+              mu_error ("stream_read: %s", mu_strerror (ret));
               exit (EXIT_FAILURE);
             }
         }
@@ -119,7 +119,7 @@ write_again:
   ret = stream_close (stream);
   if (ret != 0)
     {
-      mu_error ( "stream_close: %s\n", mu_strerror (ret));
+      mu_error ("stream_close: %s", mu_strerror (ret));
       exit (EXIT_FAILURE);
     }
 
