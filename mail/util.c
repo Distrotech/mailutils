@@ -553,16 +553,16 @@ util_isdeleted (int n)
 }
 
 char *
-util_get_homedir()
+util_get_homedir ()
 {
-  char *homedir = mu_get_homedir();
+  char *homedir = mu_get_homedir ();
   if (!homedir)
     {
       /* Shouldn't happen, but one never knows */
-      util_error("can't get homedir");
+      util_error ("can't get homedir");
       exit (EXIT_FAILURE);
     }
-  return strdup(homedir);
+  return homedir;
 }
 
 char *
