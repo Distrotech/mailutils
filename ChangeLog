@@ -1,3 +1,8 @@
+2003-05-28  Sergey Poznyakoff  
+
+	* mh/mhn.c (store_handler): Honor the `name' attribute of
+	the Content-Type header.
+
 2003-05-26  Sergey Poznyakoff
 
 	* imap4d/auth_gss.c (auth_gssapi): Check return codes
