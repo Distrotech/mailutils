@@ -95,7 +95,7 @@ main (int argc, char **argv)
     pam_service = (char *)"gnu-pop3d";
 #endif
 
-  if (isatty (0))
+  if (daemon_param.mode == MODE_INTERACTIVE && isatty (0))
     {
       /* If input is a tty, switch to debug mode */
       debug_mode = 1;
