@@ -1,3 +1,8 @@
+2001-08-12 Alain Magloire
+
+	* mailbox2/*: Move more code from the original mailbox
+	To much to enumarate.
+
 2001-08-07 Alain Magloire
 
 	* m4/regex.m4: New file to check for GNU regex.
