@@ -36,7 +36,7 @@ AM_PROG_LEX
 
 dnl Internationalization macros.
 AM_GNU_GETTEXT(no-libtool, need-ngettext)
-AM_GNU_GETTEXT_VERSION(0.13)
+AM_GNU_GETTEXT_VERSION(0.14.1)
 AM_ICONV
 AC_CHECK_HEADERS(iconv.h)
 AC_CHECK_TYPE(iconv_t,:,
