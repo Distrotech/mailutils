@@ -51,6 +51,9 @@ mu_pop3_uidl_all (mu_pop3_t pop3, list_t *plist)
       MU_POP3_CHECK_EAGAIN (pop3, status);
       mu_pop3_debug_ack (pop3);
       MU_POP3_CHECK_OK (pop3);
+      status = list_create (plist);
+      MU_POP3_CHECK_ERROR(pop3, status);
+      list_set_destroy_item(*plist, free);
       pop3->state = MU_POP3_UIDL_RX;
 
     case MU_POP3_UIDL_RX:
@@ -65,7 +68,7 @@ mu_pop3_uidl_all (mu_pop3_t pop3, list_t *plist)
           {
             MU_POP3_CHECK_ERROR(pop3, ENOMEM);
           }
-        while ((status = mu_pop3_readline (pop3, uidla, 512, &n)) > 0 && n > 0)
+        while ((status = mu_pop3_readline (pop3, uidla, 512, &n)) == 0 && n > 0)
           {
             /* Nuke the trailing newline  */
             if (uidla[n - 1] == '\n')

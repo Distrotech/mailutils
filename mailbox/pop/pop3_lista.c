@@ -50,7 +50,7 @@ mu_pop3_list_all (mu_pop3_t pop3, list_t *plist)
     case MU_POP3_LIST_ACK:
       status = mu_pop3_response (pop3, NULL, 0, NULL);
       MU_POP3_CHECK_EAGAIN (pop3, status);
-      mu_pop3_debug_cmd (pop3);
+      mu_pop3_debug_ack (pop3);
       MU_POP3_CHECK_OK (pop3);
       status = list_create (plist);
       MU_POP3_CHECK_ERROR(pop3, status);
@@ -69,7 +69,7 @@ mu_pop3_list_all (mu_pop3_t pop3, list_t *plist)
           {
             MU_POP3_CHECK_ERROR(pop3, ENOMEM);
           }
-        while ((status = mu_pop3_readline (pop3, lista, 512, &n)) > 0 && n > 0)
+        while ((status = mu_pop3_readline (pop3, lista, 512, &n)) == 0 && n > 0)
           {
             /* Nuke the trailing newline  */
             if (lista[n - 1] == '\n')

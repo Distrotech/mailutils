@@ -75,7 +75,7 @@ mu_pop3_capa (mu_pop3_t pop3, list_t *plist)
           {
             MU_POP3_CHECK_ERROR(pop3, ENOMEM);
           }
-        while ((status = mu_pop3_readline (pop3, capability, 512, &n)) > 0 && n > 0)
+        while ((status = mu_pop3_readline (pop3, capability, 512, &n)) == 0 && n > 0)
           {
             /* Nuke the trailing newline  */
             if (capability[n - 1] == '\n')

@@ -40,7 +40,7 @@ mu_pop3_connect (mu_pop3_t pop3)
     return EINVAL;
 
   /* A networking stack.  */
-  if (pop3->carrier)
+  if (pop3->carrier == NULL)
     return EINVAL;
 
   /* Enter the pop state machine, and boogy: AUTHORISATION State.  */
