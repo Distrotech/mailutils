@@ -52,6 +52,8 @@ struct mh_machine
   size_t msgno;             /* Its number */
 };
 
+static char *_get_builtin_name __P((mh_builtin_fp ptr));
+
 /* Functions for handling string objects. */
 
 void
@@ -410,6 +412,180 @@ mh_format (mh_format_t *fmt, message_t msg, size_t msgno,
   return mach.ind;
 }
 
+void
+mh_format_dump (mh_format_t *fmt)
+{
+  mh_instr_t *prog = fmt->prog;
+  size_t pc = 1;
+  int stop = 0;
+  
+  while (!stop)
+    {
+      mh_opcode_t opcode;
+      int num;
+      
+      printf ("% 4.4ld: ", (long) pc);
+      switch (opcode = MHI_OPCODE(prog[pc++]))
+	{
+	case mhop_stop:
+	  printf ("stop");
+	  stop = 1;
+	  break;
+
+	case mhop_branch:
+	  num = MHI_NUM(prog[pc++]);
+	  printf ("branch %d, %lu",
+		  num, (unsigned long) pc + num - 1);
+	  break;
+
+	case mhop_num_asgn:
+	  printf ("num_asgn");
+	  break;
+	  
+	case mhop_str_asgn:
+	  printf ("str_asgn");
+	  break;
+	  
+	case mhop_num_arg:
+	  num = MHI_NUM(prog[pc++]);
+	  printf ("num_arg %d", num);
+	  break;
+	  
+	case mhop_str_arg:
+	  {
+	    size_t skip = MHI_NUM(prog[pc++]);
+	    char *s = MHI_STR(prog[pc]);
+	    printf ("str_arg \"");
+	    for (; *s; s++)
+	      {
+		switch (*s)
+		  {
+		  case '\a':
+		    printf ("\\a");
+		    break;
+		    
+		  case '\b':
+		    printf ("\\b");
+		    break;
+		    
+		  case '\f':
+		    printf ("\\f");
+		    break;
+		    
+		  case '\n':
+		    printf ("\\n");
+		    break;
+		    
+		  case '\r':
+		    printf ("\\r");
+		    break;
+		    
+		  case '\t':
+		    printf ("\\t");
+		    break;
+
+		  case '"':
+		    printf ("\\\"");
+		    break;
+		    
+		  default:
+		    if (isprint (*s))
+		      putchar (*s);
+		    else
+		      printf ("\\%03o", *s);
+		    break;
+		  }
+	      }
+	    printf ("\"");
+	    pc += skip;
+	  }
+	  break;
+
+	case mhop_num_branch:
+	  num = MHI_NUM(prog[pc++]);
+	  printf ("num_branch %d, %lu",
+		  num, (unsigned long) (pc + num - 1));
+	  break;
+
+	case mhop_str_branch:
+	  num = MHI_NUM(prog[pc++]);
+	  printf ("str_branch %d, %lu",
+		  num, (unsigned long) (pc + num - 1));
+	  break;
+
+	case mhop_call:
+	  {
+	    char *name = _get_builtin_name (MHI_BUILTIN (prog[pc++]));
+	    printf ("call %s", name ? name : "UNKNOWN");
+	  }
+	  break;
+
+	case mhop_header:
+	  printf ("header");
+	  break;
+
+	case mhop_body:
+	  printf ("body");
+
+	case mhop_num_to_arg:
+	  printf ("num_to_arg");
+	  break;
+	  
+	  /* assign reg_str to arg_str */
+	case mhop_str_to_arg:
+	  printf ("str_to_arg");
+	  break;
+
+	  /* Convert arg_str to arg_num */
+	case mhop_str_to_num:
+	  printf ("str_to_num");
+	  break;
+  
+	  /* Convert arg_num to arg_str */
+	case mhop_num_to_str:
+	  printf ("num_to_str");
+	  break;
+
+	case mhop_num_print:
+	  printf ("print");
+	  break;
+	  
+	case mhop_str_print:
+	  printf ("str_print");
+	  break;
+
+	case mhop_fmtspec:
+	  {
+	    int space = 0;
+	    
+	    num = MHI_NUM(prog[pc++]);
+	    printf ("fmtspec: %#x, ", num);
+	    if (num & MH_FMT_RALIGN)
+	      {
+		printf ("MH_FMT_RALIGN");
+		space++;
+	      }
+	    if (num & MH_FMT_ZEROPAD)
+	      {
+		if (space)
+		  printf ("|");
+		printf ("MH_FMT_ZEROPAD");
+		space++;
+	      }
+	    if (space)
+	      printf ("; ");
+	    printf ("%d", num & MH_WIDTH_MASK);
+	  }
+	  break;
+
+	default:
+	  mh_error ("Unknown opcode: %x", opcode);
+	  abort ();
+	}
+      printf ("\n");
+    }
+}
+
 /* Free any memory associated with a format structure. The structure
    itself is assumed to be in static storage. */
 void
@@ -482,8 +658,9 @@ builtin_timenow (struct mh_machine *mach)
 static void
 builtin_me (struct mh_machine *mach)
 {
-  /*FIXME*/
-  /*  mach->arg_str = "me";*/
+  char *s = mh_my_email ();
+  strobj_free (&mach->arg_str);
+  strobj_create (&mach->arg_str, s);
 }
 
 static void
@@ -578,8 +755,9 @@ builtin_getenv (struct mh_machine *mach)
 static void
 builtin_profile (struct mh_machine *mach)
 {
-  /*FIXME*/
-  /*mach->arg_str = "profile";*/
+  char *val = strobj_ptr (&mach->arg_str);
+  strobj_free (&mach->arg_str);
+  strobj_create (&mach->arg_str, mh_global_profile_get (val, ""));
 }
 
 static void
@@ -645,28 +823,36 @@ builtin_trim (struct mh_machine *mach)
 static void
 builtin_putstr (struct mh_machine *mach)
 {
-  /*FIXME*/
+  print_string (mach, 0,
+		strobj_ptr (&mach->arg_str), strobj_len (&mach->arg_str));
 }
 
 /*     putstrf    expr              print str in a fixed width*/
 static void
 builtin_putstrf (struct mh_machine *mach)
 {
-  /*FIXME*/
+  print_string (mach, mach->reg_num,
+		strobj_ptr (&mach->arg_str), strobj_len (&mach->arg_str));
 }
 
 /*     putnum     expr              print num*/
 static void
 builtin_putnum (struct mh_machine *mach)
 {
-  /*FIXME*/
+  char *p;
+  asprintf (&p, "%d", mach->arg_num);
+  print_string (mach, 0, p, strlen (p));
+  free (p);
 }
 
 /*     putnumf    expr              print num in a fixed width*/
 static void
 builtin_putnumf (struct mh_machine *mach)
 {
-  /*FIXME*/
+  char *p;
+  asprintf (&p, "%d", mach->arg_num);
+  print_string (mach, mach->reg_num, p, strlen (p));
+  free (p);
 }
 
 static int
@@ -979,18 +1165,91 @@ builtin_rclock (struct mh_machine *mach)
   mach->arg_num = now - mu_tm2time (&tm, &tz);
 }
 
+struct
+{
+  const char *std;
+  const char *dst;
+  int utc_offset;     /* offset from GMT (hours) */
+} tzs[] = {
+  { "GMT", "BST", 0 },
+  { "EST", "EDT", -5 },
+  { "CST", "CDT", -6 },
+  { "MST", "MDT", -7 },
+  { "PST", "PDT", -8 },
+  { NULL, 0}
+};
+
+static void
+date_cvt (struct mh_machine *mach, int pretty)
+{
+  struct tm tm;
+  mu_timezone tz;
+  char buf[80];
+  int i, len;
+  const char *tzname = NULL;
+  
+  if (_parse_date (mach, &tm, &tz))
+    return;
+
+  if (pretty)
+    {
+      for (i = 0; tzs[i].std; i++)
+	{
+	  int offset = tzs[i].utc_offset;
+	  int dst = 0;
+	  
+#ifdef HAVE_STRUCT_TM_TM_ISDST
+	  if (tm.tm_isdst)
+	    dst = -1;
+#endif
+
+	  if (tz.utc_offset == (offset + dst) * 3600)
+	    {
+	      if (dst)
+		tzname = tzs[i].dst;
+	      else
+		tzname = tzs[i].std;
+	      break;
+	    }
+	}
+    }
+  
+  len = strftime (buf, sizeof buf,
+		  "%a, %d %b %Y %H:%M:%S ", &tm);
+  if (tzname)
+    snprintf (buf + len, sizeof(buf) - len, "%s", tzname);
+  else
+    {
+      int min, hrs, sign;
+      int offset = tz.utc_offset;
+      
+      if (offset < 0)
+	{
+	  sign = '-';
+	  offset = - offset;
+	}
+      else
+	sign = '+';
+      min = offset / 60;
+      hrs = min / 60;
+      min %= 60;
+      snprintf (buf + len, sizeof(buf) - len, "%c%02d%02d", sign, hrs, min);
+    }
+  strobj_create (&mach->arg_str, buf);
+}
+
 /*      tws        date     string   official 822 rendering */
 static void
 builtin_tws (struct mh_machine *mach)
 {
-  /*FIXME: noop*/
+  date_cvt (mach, 0);
 }
 
 /*     pretty     date     string   user-friendly rendering*/
 static void
 builtin_pretty (struct mh_machine *mach)
 {
-  /*FIXME: noop*/
+  date_cvt (mach, 1);
 }
 
 /*     nodate     date     integer  str not a date string */
@@ -1050,11 +1309,18 @@ builtin_pers (struct mh_machine *mach)
   if (rc)
     return;
 
-  if (address_get_personal (addr, 1, buf, sizeof buf, &n) == 0)
-    strobj_create (&mach->arg_str, buf);
+  if (address_get_personal (addr, 1, buf, sizeof buf, &n) == 0
+      && n > 1)
+    {
+      char *p;
+      asprintf (&p, "\"%s\"", buf);
+      strobj_create (&mach->arg_str, p);
+      free (p);
+    }
   address_destroy (&addr);
 }
 
+/* FIXME: address_get_comments never returns any comments. */
 /*     note       addr     string   commentary text*/
 static void
 builtin_note (struct mh_machine *mach)
@@ -1373,5 +1639,16 @@ mh_lookup_builtin (char *name, int *rest)
 	  return bp;
 	}
     }
+  return NULL;
+}
+
+char *
+_get_builtin_name (mh_builtin_fp ptr)
+{
+  mh_builtin_t *bp;
+
+  for (bp = builtin_tab; bp->name; bp++)
+    if (bp->fun == ptr)
+      return bp->name;
   return NULL;
 }
