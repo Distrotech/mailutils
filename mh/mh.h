@@ -116,14 +116,31 @@ enum mh_type
 };
 
 typedef int mh_opcode_t;
+
+struct mh_machine;
+typedef void (*mh_builtin_fp)(struct mh_machine *);
+
+typedef union {
+  mh_opcode_t opcode;
+  mh_builtin_fp builtin;
+  int num;
+  void *ptr;
+  char str[1]; /* Any number of characters follows */
+} mh_instr_t;
+
+#define MHI_OPCODE(m) (m).opcode
+#define MHI_BUILTIN(m) (m).builtin
+#define MHI_NUM(m) (m).num
+#define MHI_PTR(m) (m).ptr
+#define MHI_STR(m) (m).str
+
 typedef struct mh_format mh_format_t;
+
 struct mh_format
 {
   size_t progsize;          /* Size of allocated program*/
-  mh_opcode_t *prog;        /* Program itself */
+  mh_instr_t *prog;         /* Program itself */
 };
-struct mh_machine;
-typedef void (*mh_builtin_fp)(struct mh_machine *);
 
 typedef struct mh_builtin mh_builtin_t;
 
@@ -164,6 +181,8 @@ void mh_error(const char *fmt, ...);
 
 FILE *mh_audit_open (char *name, mailbox_t mbox);
 void mh_audit_close (FILE *fp);
+
+int mh_message_number (message_t msg, size_t *pnum);
 
 void *xmalloc (size_t);
 void *xrealloc (void *, size_t);

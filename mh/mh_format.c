@@ -39,7 +39,7 @@ struct mh_machine
   
   size_t pc;                /* Program counter */
   size_t progsize;          /* Size of allocated program*/
-  mh_opcode_t *prog;        /* Program itself */
+  mh_instr_t *prog;         /* Program itself */
   int stop;                 /* Stop execution immediately */
 
   char *outbuf;             /* Output buffer */
@@ -184,14 +184,14 @@ mh_format (mh_format_t *fmt, message_t msg, size_t msgno,
   while (!mach.stop)
     {
       mh_opcode_t opcode;
-      switch (opcode = mach.prog[mach.pc++])
+      switch (opcode = MHI_OPCODE(mach.prog[mach.pc++]))
 	{
 	case mhop_stop:
 	  mach.stop = 1;
 	  break;
 
 	case mhop_branch:
-	  mach.pc += mach.prog[mach.pc];
+	  mach.pc += MHI_NUM(mach.prog[mach.pc]);
 	  break;
 
 	case mhop_num_asgn:
@@ -203,33 +203,33 @@ mh_format (mh_format_t *fmt, message_t msg, size_t msgno,
 	  break;
 	  
 	case mhop_num_arg:
-	  mach.arg_num = mach.prog[mach.pc++];
+	  mach.arg_num = MHI_NUM(mach.prog[mach.pc++]);
 	  break;
 	  
 	case mhop_str_arg:
 	  {
-	    size_t skip = mach.prog[mach.pc++];
-	    strobj_set (&mach.arg_str, (char*)&mach.prog[mach.pc]);
+	    size_t skip = MHI_NUM(mach.prog[mach.pc++]);
+	    strobj_set (&mach.arg_str, MHI_STR(mach.prog[mach.pc]));
 	    mach.pc += skip;
 	  }
 	  break;
 
 	case mhop_num_branch:
 	  if (!mach.arg_num)
-	    mach.pc += mach.prog[mach.pc];
+	    mach.pc += MHI_NUM(mach.prog[mach.pc]);
 	  else
 	    mach.pc++;
 	  break;
 
 	case mhop_str_branch:
 	  if (!*strobj_ptr (&mach.arg_str))
-	    mach.pc += mach.prog[mach.pc];
+	    mach.pc += MHI_NUM(mach.prog[mach.pc]);
 	  else
 	    mach.pc++;
 	  break;
 
 	case mhop_call:
-	  (*(mh_builtin_fp) mach.prog[mach.pc++]) (&mach);
+	  MHI_BUILTIN (mach.prog[mach.pc++]) (&mach);
 	  break;
 
 	case mhop_header:
@@ -369,7 +369,7 @@ mh_format (mh_format_t *fmt, message_t msg, size_t msgno,
 	  break;
 
 	case mhop_fmtspec:
-	  mach.fmtflags = mach.prog[mach.pc++];
+	  mach.fmtflags = MHI_NUM(mach.prog[mach.pc++]);
 	  break;
 	  
 	default:

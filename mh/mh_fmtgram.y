@@ -218,29 +218,29 @@ cntl      : if cond list end elif_part else_part fi
 
 	      /* Fixup first condition */
 	      if ($5.cond)
-		format.prog[$2] = $5.cond - $2;
+		MHI_NUM(format.prog[$2]) = $5.cond - $2;
 	      else if ($6)
-		format.prog[$2] = $6 - $2;
+		MHI_NUM(format.prog[$2]) = $6 - $2;
 	      else
-		format.prog[$2] = $7.cond - $2;
+		MHI_NUM(format.prog[$2]) = $7.cond - $2;
 
 	      /* Link all "false" lists */
 	      if ($5.cond)
 		{
 		  start_pc = $5.end;
 		  end_pc = $5.end;
-		  for (; format.prog[end_pc]; end_pc = format.prog[end_pc])
-		    ;
+		  while (MHI_NUM(format.prog[end_pc]))
+		    end_pc = MHI_NUM(format.prog[end_pc]);
 		}
 
 	      if (start_pc)
-		format.prog[end_pc] = $4;
+		MHI_NUM(format.prog[end_pc]) = $4;
 	      else
 		start_pc = $4;
 
 	      /* Now, fixup the end branches */
 	      branch_fixup (start_pc, $7.end);
-	      format.prog[start_pc] = $7.end - start_pc;
+	      MHI_NUM(format.prog[start_pc]) = $7.end - start_pc;
 	    }
           ;
 
@@ -300,7 +300,7 @@ elif_part : /* empty */
           | elif_list end
             {
 	      $$.cond = $1.cond;
-	      format.prog[$2] = $1.end;
+	      MHI_NUM(format.prog[$2]) = $1.end;
 	      $$.end = $2;
 	    }
           ;
@@ -308,14 +308,14 @@ elif_part : /* empty */
 elif_list : elif cond list
             {
 	      $$.cond = $1;
-	      format.prog[$2] = pc - $2 + 2;
+	      MHI_NUM(format.prog[$2]) = pc - $2 + 2;
 	      $$.end = 0;
 	    }
           | elif_list end elif cond list
             {
-	      format.prog[$4] = pc - $4 + 2;
+	      MHI_NUM(format.prog[$4]) = pc - $4 + 2;
 	      $$.cond = $1.cond;
-	      format.prog[$2] = $1.end;
+	      MHI_NUM(format.prog[$2]) = $1.end;
 	      $$.end = $2;
 	    }
           ;
@@ -508,11 +508,11 @@ backslash(int c)
 void
 branch_fixup (size_t epc, size_t tgt)
 {
-  size_t prev = format.prog[epc];
+  size_t prev = MHI_NUM(format.prog[epc]);
   if (!prev)
     return;
   branch_fixup (prev, tgt);
-  format.prog[prev] = tgt - prev - 1;
+  MHI_NUM(format.prog[prev]) = tgt - prev - 1;
 }
 
 
@@ -534,36 +534,47 @@ size_t
 mh_code_string (char *string)
 {
   int length = strlen (string) + 1;
-  size_t count = (length + sizeof (mh_opcode_t)) / sizeof (mh_opcode_t);
+  size_t count = (length + sizeof (mh_instr_t)) / sizeof (mh_instr_t);
   size_t start_pc = pc;
   
   mh_code_op (mhop_str_arg);
   prog_reserve (count);
-  format.prog[pc++] = (mh_opcode_t) count;
-  memcpy (&format.prog[pc], string, length);
+  MHI_NUM(format.prog[pc++]) = count;
+  memcpy (MHI_STR(format.prog[pc]), string, length);
   pc += count;
   return start_pc;
 }
  
 size_t
-mh_code_op (mh_opcode_t op)
+mh_code (mh_instr_t *instr)
 {
   prog_reserve (1);
-  format.prog[pc] = op;
+  format.prog[pc] = *instr;
   return pc++;
+}
+
+size_t
+mh_code_op (mh_opcode_t op)
+{
+  mh_instr_t instr;
+  MHI_OPCODE(instr) = op;
+  return mh_code(&instr);
 }
 
 size_t
 mh_code_number (int num)
 {
+  mh_instr_t instr;
   size_t ret = mh_code_op (mhop_num_arg);
-  mh_code_op ((mh_opcode_t) num);
+  MHI_NUM(instr) = num;
+  mh_code (&instr);
   return ret;
 }
 
 size_t
 mh_code_builtin (mh_builtin_t *bp, int argtype)
 {
+  mh_instr_t instr;
   size_t start_pc = pc;
   if (bp->argtype != argtype)
     {
@@ -607,7 +618,8 @@ mh_code_builtin (mh_builtin_t *bp, int argtype)
 	}
     }
   mh_code_op (mhop_call);
-  mh_code_op ((mh_opcode_t)bp->fun);
+  MHI_BUILTIN(instr) = bp->fun;
+  mh_code (&instr);
   return start_pc;
 }
 
