@@ -64,8 +64,8 @@ static struct argp_option mu_common_argp_options[] =
   { NULL, 0, NULL, 0, NULL, 0 }
 };
 
-/* Option to print the licence. */
-static struct argp_option mu_licence_argp_option[] = {
+/* Option to print the license. */
+static struct argp_option mu_license_argp_option[] = {
   { "license", 'L', NULL, 0, "Print license and exit", -2 },
   { NULL,      0, NULL, 0, NULL, 0 }
 };
@@ -139,20 +139,20 @@ struct argp mu_common_argp = {
 struct argp_child mu_common_argp_child = {
   &mu_common_argp,
   0,
-  "",
-  -10,
+  NULL,
+  0,
 };
 
-struct argp mu_licence_argp = {
-  mu_licence_argp_option,
+struct argp mu_license_argp = {
+  mu_license_argp_option,
   mu_common_argp_parser,
 };
 
-struct argp_child mu_licence_argp_child = {
-  &mu_licence_argp,
+struct argp_child mu_license_argp_child = {
+  &mu_license_argp,
   0,
-  "",
-  -2
+  NULL,
+  0
 };
 
 struct argp mu_mailbox_argp = {
@@ -163,8 +163,8 @@ struct argp mu_mailbox_argp = {
 struct argp_child mu_mailbox_argp_child = {
   &mu_mailbox_argp,
   0,
-  "",
-  -3
+  NULL,
+  0
 };
 
 struct argp mu_logging_argp = {
@@ -175,8 +175,8 @@ struct argp mu_logging_argp = {
 struct argp_child mu_logging_argp_child = {
   &mu_logging_argp,
   0,
-  "",
-  -3
+  NULL,
+  0
 };
 
 struct argp mu_auth_argp = {
@@ -188,6 +188,7 @@ struct argp_child mu_auth_argp_child = {
   &mu_auth_argp,
   0,
   "Authentication options",
+  0
 };
 
 struct argp mu_daemon_argp = {
@@ -276,7 +277,7 @@ mu_common_argp_parser (int key, char *arg, struct argp_state *state)
     {
       /* common */
     case 'L':
-      printf ("Licence for %s:\n\n", argp_program_version);
+      printf ("License for %s:\n\n", argp_program_version);
       printf ("%s", license_text);
       exit (0);
 
@@ -664,7 +665,7 @@ struct argp_capa {
   struct argp_child *child;
 } mu_argp_capa[] = {
   {"common",  &mu_common_argp_child},
-  {"licence", &mu_licence_argp_child},
+  {"license", &mu_license_argp_child},
   {"mailbox", &mu_mailbox_argp_child},
   {"logging", &mu_logging_argp_child},
   {"auth",    &mu_auth_argp_child},
@@ -688,8 +689,9 @@ mu_build_argp (const struct argp *template, const char *capa[])
   int n;
   int nchild;
   struct argp_child *ap;
+  struct argp_option *opt;
   struct argp *argp;
-  int group = -100;
+  int group = 0;
 
   /* Count the capabilities. */
   for (n = 0; capa && capa[n]; n++)
@@ -711,8 +713,14 @@ mu_build_argp (const struct argp *template, const char *capa[])
     for (n = 0; template->children[n].argp; n++, nchild++)
       ap[nchild] = template->children[n];
 
-  group = -nchild - 1;
+  /* Find next group number */
+  for (opt = template->options;
+       opt && ((opt->name && opt->key) || opt->doc); opt++)
+    if (opt->group > group)
+      group = opt->group;
 
+  group++;
+    
   /* Append any capabilities to the children or options, as appropriate. */
   for (n = 0; capa && capa[n]; n++)
     {
@@ -724,7 +732,7 @@ mu_build_argp (const struct argp *template, const char *capa[])
 	  abort ();
 	}
       ap[nchild] = *child;
-//    ap[nchild].group = group++;
+      ap[nchild].group = group++;
       nchild++;
     }
   ap[nchild].argp = NULL;
