@@ -1,3 +1,21 @@
+2001-05-19  Sam Roberts
+
+	* mailbox/parse822.c: parse822 is a little smarter in the way
+	it handles CRLF.
+
+2001-05-19  Alain Magloire
+
+	* mailbox/mbx_default (mailbox_create_default):  Base on a
+	suggestion/patch by Sam Roberts to provide tilde, plus and equal
+	(~ + = ) expansion.
+	* mailbox/address.c: Unfold field-bodies with NL.
+	* mailbox/parse822.c (parse822_field_body): New function.
+	(parse822_field_name): New function.
+
+	* pop3d/user.c:  Use mailbox_create() now instead of
+	mailbox_create_default.
+	* pop3d/apop.c: Likewise.
+
 2001-05-16  Dave Inglis
 
 	* mailbox/mime.c (_mime_parse_mpart): Better check for the
