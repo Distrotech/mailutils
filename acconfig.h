@@ -30,6 +30,9 @@
 /* Define if struct tm has a tm_gmtoff member */
 #undef HAVE_TM_GMTOFF
 
+/* Define to proper type when ino_t is not declared */
+#undef ino_t
+
 /* Define if enable Posix Thread */
 #undef WITH_PTHREAD
 
