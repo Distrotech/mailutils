@@ -107,10 +107,12 @@ This document was produced for version @value{VERSION} of @sc{gnu}
 * Message::                     Message API.
 * Headers::                     Headers API.
 * Body::                        Body API.
-* Steam::                       Stream API.
-* URL::                         Unified Ressource Locator.
+* Attribute::                   Attribute.
+* Stream::                      Stream API.
 * Authenticator::               Authenticator.
+* Locker::                      Locker.
 * Encoding::                    Encoding API.
+* URL::                         Unified Ressource Locator.
 * Reporting Bugs::              Reporting Bugs.
 * Acknowledgement::             Thanks and Credits.
 * Concept Index ::
@@ -223,21 +225,22 @@ and @emph{Subject} of a folder.
 
 @include locker.texi
 
-@node Encoding, Reporting Bugs, Locker , Top
+@node Encoding, URL, Locker , Top
 @comment  node-name,  next,  previous,  up
 @chapter Encoding
 @cindex Encoding
 
-@node URL, Authenticator, Stream, Top
+@include encoding.texi
+
+@node URL, Reporting Bugs, Encoding, Top
 @comment  node-name,  next,  previous,  up
 @chapter URL
 @cindex URL
 
 @include url.texi
 
-@include encoding.texi
 
-@node Reporting Bugs, Acknowledgement, Encoding, Top
+@node Reporting Bugs, Acknowledgement, URL, Top
 @comment  node-name,  next,  previous,  up
 @chapter Reporting Bugs
 @cindex Reporting Bugs
