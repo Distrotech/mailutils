@@ -1562,6 +1562,11 @@ imap_readline (f_imap_t f_imap)
       if (status != 0)
         return status;
 
+      /* The server went away:  It maybe a timeout and some imap server
+	 does not send the BYE.  Consider like an error.  */
+      if (n == 0)
+	return EIO;
+
       total += n;
       f_imap->offset += n;
       f_imap->nl = memchr (f_imap->buffer, '\n', total);

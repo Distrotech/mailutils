@@ -538,7 +538,12 @@ pop_open (mailbox_t mbox, int flags)
 	    url_get_auth (mbox->url, auth, sizeof (auth), &n);
 	    if (n == 0 || strcasecmp (auth, "*") == 0)
 	      {
-		authority_create (&(mbox->authority), mbox->ticket, mbox);
+		ticket_t ticket = NULL;
+		if (mbox->folder)
+		  folder_get_ticket (mbox->folder, &ticket);
+		if (ticket == NULL)
+		  ticket = mbox->ticket;
+		authority_create (&(mbox->authority), ticket, mbox);
 		authority_set_authenticate (mbox->authority, pop_user, mbox);
 	      }
 	    else if (strcasecmp (auth, "+apop") == 0)
@@ -1814,6 +1819,11 @@ pop_readline (pop_data_t mpd)
 				mpd->buflen - total,  mpd->offset, &n);
       if (status != 0)
 	return status;
+
+      /* The server went away:  It maybe a timeout and some pop server
+	 does not send the -ERR.  Consider this like an error.  */
+      if (n == 0)
+	return EIO;
 
       total += n;
       mpd->offset += n;

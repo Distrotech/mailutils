@@ -822,6 +822,10 @@ smtp_readline (smtp_t smtp)
       if (status != 0)
         return status;
 
+      /* Server went away, consider this like an error.  */
+      if (n == 0)
+	return EIO;
+
       total += n;
       smtp->nl = memchr (smtp->buffer, '\n', total);
       if (smtp->nl == NULL)  /* Do we have a full line.  */
