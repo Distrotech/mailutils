@@ -1,5 +1,5 @@
 /* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU Library General Public License as published by
@@ -59,7 +59,7 @@ mailbox_mbox_init (mailbox_t *mbox, const char *name)
   */
   if (stat (name, &st) == -1)
     {
-      return -1; /* errno set by stat () */
+      return errno; /* errno set by stat () */
     }
 
   if (S_ISREG (st.st_mode))
@@ -77,7 +77,7 @@ mailbox_mbox_init (mailbox_t *mbox, const char *name)
       if (fd == -1)
 	{
 	  /* Oops !! wrong permission ? file deleted ? */
-	  return -1; /* errno set by open () */
+	  return errno; /* errno set by open () */
 	}
 
       /* Read a small chunck */
@@ -91,6 +91,7 @@ mailbox_mbox_init (mailbox_t *mbox, const char *name)
       */
       if (count == 0) /*empty file*/
 	{
+	  close (fd);
 	  return mailbox_unix_init (mbox, name);
 	}
 
@@ -99,11 +100,13 @@ mailbox_mbox_init (mailbox_t *mbox, const char *name)
 	  if (strncmp (head, "From ", 5) == 0)
 	    {
 	      /* This is Unix Mbox */
+	      close (fd);
 	      return mailbox_unix_init (mbox, name);
 	    }
 	}
 
       /* Try MMDF */
+      close (fd);
 #endif
       return mailbox_unix_init (mbox, name);
     }
@@ -121,5 +124,5 @@ mailbox_mbox_init (mailbox_t *mbox, const char *name)
 void
 mailbox_mbox_destroy (mailbox_t *mbox)
 {
-  return (*mbox)->mtype->_destroy (mbox);
+  (*mbox)->mtype->_destroy (mbox);
 }

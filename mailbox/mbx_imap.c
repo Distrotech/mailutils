@@ -1,5 +1,5 @@
 /* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU Library General Public License as published by
@@ -17,6 +17,7 @@
 
 #include <mbx_imap.h>
 #include <url_imap.h>
+#include <errno.h>
 
 
 struct mailbox_type _mailbox_imap_type =
@@ -35,5 +36,5 @@ mailbox_imap_destroy (mailbox_t *mbox)
 int
 mailbox_imap_init (mailbox_t *mbox, const char *name)
 {
-  return -1;
+  return ENOSYS;
 }

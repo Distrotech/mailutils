@@ -1,5 +1,5 @@
 /* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU Library General Public License as published by
@@ -24,57 +24,44 @@ mailbox_open (mailbox_t mbox, int flag)
 }
 
 int
-mailbox_close (mailbox_t mbox, int flag)
+mailbox_close (mailbox_t mbox)
 {
-  return mbox->_close (mbox, flag);
-}
-
-
-/* type */
-int
-mailbox_get_type (mailbox_t mbox, int *type, char *desc, int offset, int len)
-{
-  return mbox->_get_type (mbox, type, desc, offset, len);
-}
-
-int
-mailbox_get_mtype (mailbox_t mbox, int *type, char **desc, int *len)
-{
-  return mbox->_get_mtype (mbox, type, desc, offset, len);
+  return mbox->_close (mbox);
 }
 
 
 /* passwd */
 int
-mailbox_get_passwd (mailbox_t mbox, char *passwd, int offset, int len)
+mailbox_get_passwd (mailbox_t mbox, char *passwd, size_t len, size_t *n)
 {
-  return mbox->_get_passwd (mbox, passwd, offset, len);
+  return mbox->_get_passwd (mbox, passwd, len, n);
 }
 
 int
-mailbox_get_mpasswd (mailbox_t mbox, char **passwd, int *len)
+mailbox_get_mpasswd (mailbox_t mbox, char **passwd, size_t *n)
 {
-  return mbox->_get_mpasswd (mbox, passwd, len);
+  return mbox->_get_mpasswd (mbox, passwd, n);
 }
 
 int
-mailbox_set_passwd  (mailbox_t mbox, const char *passwd, int offset, int len)
+mailbox_set_passwd  (mailbox_t mbox, const char *passwd,
+		     size_t len)
 {
-  return mbox->_set_passwd (mbox, passwd, offset, len);
+  return mbox->_set_passwd (mbox, passwd, len);
 }
 
 
 /* deleting */
 int
-mailbox_delete (mailbox_t mbox, int id)
+mailbox_delete (mailbox_t mbox, size_t msgno)
 {
-  return mbox->_delete (mbox, id);
+  return mbox->_delete (mbox, msgno);
 }
 
 int
-mailbox_undelete (mailbox_t mbox, int id)
+mailbox_undelete (mailbox_t mbox, size_t msgno)
 {
-  return mbox->_undelete (mbox, id);
+  return mbox->_undelete (mbox, msgno);
 }
 
 int
@@ -84,69 +71,73 @@ mailbox_expunge (mailbox_t mbox)
 }
 
 int
-mailbox_is_deleted (mailbox_t mbox, int)
+mailbox_is_deleted (mailbox_t mbox, size_t msgno)
 {
-  return mbox->_is_deleted (mbox, int);
+  return mbox->_is_deleted (mbox, msgno);
 }
 
 
 /* appending */
 int
-mailbox_new_msg (mailbox_t mbox, int * id)
+mailbox_new_msg (mailbox_t mbox, size_t *msgno)
 {
-  return mbox->_new_msg (mbox, id);
+  return mbox->_new_msg (mbox, msgno);
 }
 
 int
-mailbox_set_header (mailbox_t mbox, int id, const char *h,
-		    int offset, int n, int replace)
+mailbox_set_header (mailbox_t mbox, size_t msgno, const char *h,
+		    size_t len, int replace)
 {
-  return mbox->_set_header (mbox, id, h, offset, n, replace);
+  return mbox->_set_header (mbox, msgno, h, len, replace);
 }
 
 int
-mailbox_set_body (mailbox_t mbox, int id, const char *b,
-		  int offset, int n, int replace)
+mailbox_set_body (mailbox_t mbox, size_t msgno, const char *b,
+		  size_t len, int replace)
 {
-  return mbox->_set_body (mbox, id, b, offset, n, replace);
+  return mbox->_set_body (mbox, msgno, b, len, replace);
 }
 
 int
-mailbox_append (mailbox_t mbox, int id)
+mailbox_append (mailbox_t mbox, size_t msgno)
 {
-  return mbox->_append (mbox, id);
+  return mbox->_append (mbox, msgno);
 }
 
 int
-mailbox_destroy_msg (mailbox_t mbox, int id)
+mailbox_destroy_msg (mailbox_t mbox, size_t msgno)
 {
-  return mbox->_destroy_msg (mbox, id);
+  return mbox->_destroy_msg (mbox, msgno);
 }
 
 
 /* reading */
 int
-mailbox_get_body (mailbox_t mbox, int id, char *b, int offset, int n)
+mailbox_get_body (mailbox_t mbox, size_t msgno, off_t off, char *b,
+		  size_t len, size_t *n)
 {
-  return mbox->_get_body (mbox, id, b, offset, n);
+  return mbox->_get_body (mbox, msgno, off, b, len, n);
 }
 
 int
-mailbox_get_mbody (mailbox_t mbox, int id, char **b, int *n)
+mailbox_get_mbody (mailbox_t mbox, size_t msgno, off_t off,
+		   char **b, size_t *n)
 {
-  return mbox->_get_body (mbox, id, b, n);
+  return mbox->_get_mbody (mbox, msgno, off, b, n);
 }
 
 int
-mailbox_get_header (mailbox_t mbox, int id, char *h, int offset, int n)
+mailbox_get_header (mailbox_t mbox, size_t msgno, off_t off, char *h,
+		    size_t len, size_t *n)
 {
-  return mbox->_get_header (mbox, id, h, offset, n);
+  return mbox->_get_header (mbox, msgno, off, h, len, n);
 }
 
 int
-mailbox_get_mheader (mailbox_t mbox, int id, char **h, int *n)
+mailbox_get_mheader (mailbox_t mbox, size_t msgno, off_t off,
+		     char **h, size_t *n)
 {
-  return mbox->_get_header (mbox, id, h, n);
+  return mbox->_get_mheader (mbox, msgno, off, h, n);
 }
 
 
@@ -166,7 +157,7 @@ mailbox_unlock (mailbox_t mbox)
 
 /* misc */
 int
-mailbox_scan (mailbox_t mbox, int *msgs)
+mailbox_scan (mailbox_t mbox, size_t *msgs)
 {
   return mbox->_scan (mbox, msgs);
 }
@@ -178,31 +169,32 @@ mailbox_is_updated (mailbox_t mbox)
 }
 
 int
-mailbox_get_timeout (mailbox_t mbox, int *timeout)
+mailbox_get_timeout (mailbox_t mbox, size_t *timeout)
 {
   return mbox->_get_timeout (mbox, timeout);
 }
 
 int
-mailbox_set_timeout (mailbox_t mbox, int timeout)
+mailbox_set_timeout (mailbox_t mbox, size_t timeout)
 {
   return mbox->_set_timeout (mbox, timeout);
 }
 
 int
-mailbox_get_refresh (mailbox_t mbox, int *refresh)
+mailbox_get_refresh (mailbox_t mbox, size_t *refresh)
 {
   return mbox->_get_refresh (mbox, refresh);
 }
 
 int
-mailbox_set_refresh (mailbox_t mbox, int refresh)
+mailbox_set_refresh (mailbox_t mbox, size_t refresh)
 {
   return mbox->_set_refresh (mbox, refresh);
 }
 
 int
-mailbox_set_notification (mailbox_t mbox, int (*notif) __P ((mailbox_t mbox)))
+mailbox_set_notification (mailbox_t mbox,
+			  int (*notif) __P ((mailbox_t, void *)))
 {
   return mbox->_set_notification (mbox, notif);
 }

@@ -1,5 +1,5 @@
 /* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU Library General Public License as published by
@@ -19,6 +19,8 @@
 # define _MAILBOX_H
 
 #include <url.h>
+#include <sys/types.h>
+#include <unistd.h>
 #include <stdlib.h>
 
 #ifdef __cplusplus
@@ -52,77 +54,98 @@ struct mailbox_type
 struct _mailbox
 {
   /* Data */
-  char *name;
-  int messages;
-  int num_deleted;
-  long size;
-  int timeout;
-  int refresh;
-  mailbox_lock_t lock;
-  int (*func) __P ((mailbox_t));
 
-  void *data;
+  char *name;
+  uid_t owner;
+  gid_t group;
+  size_t messages;
+  size_t num_deleted;
+  off_t size;
+  int lock;
+  size_t timeout;
+  size_t refresh;
+  int (*func) __P ((mailbox_t, void *arg));
   struct mailbox_type *mtype;
+
+  /* back pointer to the specific mailbox */
+  void *data;
 
   /* Functions */
 
-  //void (*_destroy)         __P ((mailbox_t *));
+#define MU_MB_RDONLY ((int)1)
+#define MU_MB_WRONLY (MU_MB_RDONLY << 1)
+#define MU_MB_RDWR   (MU_MB_WRONLY << 1)
+#define MU_MB_APPEND (MU_MB_RDWR << 1)
+#define MU_MB_CREAT  (MU_MB_APPEND << 1)
 
   int  (*_open)            __P ((mailbox_t, int flag));
-  int  (*_close)           __P ((mailbox_t, int flag));
+  int  (*_close)           __P ((mailbox_t));
 
   /* type */
   int  (*_get_name)       __P ((mailbox_t, int *id, char *name,
-				 int offset, int len));
-  int  (*_get_mname)      __P ((mailbox_t, int *id, char **name,
-				 int *len));
+				 size_t len, size_t *n));
+  int  (*_get_mname)      __P ((mailbox_t, int *id, char **name, size_t *n));
 
   /* passwd if needed */
-  int  (*_get_passwd)      __P ((mailbox_t, char * passwd, int offset, int n));
-  int  (*_get_mpasswd)     __P ((mailbox_t, char **passwd, int *n));
-  int  (*_set_passwd)      __P ((mailbox_t, const char * passwd,
-				 int offset, int n));
+  int  (*_get_passwd)      __P ((mailbox_t, char *passwd,
+				 size_t len, size_t *n));
+  int  (*_get_mpasswd)     __P ((mailbox_t, char **passwd, size_t *n));
+  int  (*_set_passwd)      __P ((mailbox_t, const char *passwd, size_t len));
   /* deleting mesgs */
-  int  (*_delete)          __P ((mailbox_t, int id));
-  int  (*_undelete)        __P ((mailbox_t, int id));
-  int  (*_is_deleted)      __P ((mailbox_t, int id));
+  int  (*_is_deleted)      __P ((mailbox_t, size_t msgno));
+  int  (*_delete)          __P ((mailbox_t, size_t msgno));
+  int  (*_undelete)        __P ((mailbox_t, size_t msgno));
   int  (*_expunge)         __P ((mailbox_t));
+  int  (*_is_updated)      __P ((mailbox_t));
+  int  (*_scan)            __P ((mailbox_t, size_t *msgs));
 
   /* appending messages */
-  int  (*_new_msg)         __P ((mailbox_t, int *id));
-  int  (*_set_header)      __P ((mailbox_t, int id, const char *h,
-				 int offset, int n, int replace));
-  int  (*_set_body)        __P ((mailbox_t, int id, const char *b,
-				 int offset, int n, int replace));
-  int  (*_append)          __P ((mailbox_t, int id));
-  int  (*_destroy_msg)     __P ((mailbox_t, int id));
+  int  (*_new_msg)         __P ((mailbox_t, size_t *msgno));
+  int  (*_set_header)      __P ((mailbox_t, size_t msgno, const char *h,
+				 size_t len, int replace));
+  int  (*_set_body)        __P ((mailbox_t, size_t msgno, const char *b,
+				 size_t len, int replace));
+  int  (*_append)          __P ((mailbox_t, size_t msgno));
+  int  (*_destroy_msg)     __P ((mailbox_t, size_t msgno));
 
+#define MU_MB_RDLOCK 0
+#define MU_MB_WRLOCK 1
   /* locking */
   int  (*_lock)            __P ((mailbox_t, int flag));
   int  (*_unlock)          __P ((mailbox_t));
+  int  (*_ilock)           __P ((mailbox_t, int flag));
+  int  (*_iunlock)         __P ((mailbox_t));
 
   /* reading mesgs */
-  int  (*_get_body)        __P ((mailbox_t, int id, char *v,
-				 int offset, int n));
-  int  (*_get_mbody)       __P ((mailbox_t, int id, char **v, int *n));
-  int  (*_get_header)      __P ((mailbox_t, int id, char *h,
-				 int offset, int n));
-  int  (*_get_mheader)     __P ((mailbox_t, int id, char **h, int *n));
+  int  (*_get_body)        __P ((mailbox_t, size_t msgno, off_t off,
+				 char *b, size_t len, size_t *n));
+  int  (*_get_mbody)       __P ((mailbox_t, size_t msgno, off_t off,
+				 char **b, size_t *n));
+  int  (*_get_header)      __P ((mailbox_t, size_t msgno, off_t off,
+				 char *h, size_t len, size_t *n));
+  int  (*_get_mheader)     __P ((mailbox_t, size_t msgno, off_t off,
+				 char **h, size_t *n));
+  int  (*_get_size)        __P ((mailbox_t, size_t msgno,
+				 size_t *h, size_t *b));
 
   /* setting flags */
-  int  (*_msg_is_read)     __P ((mailbox_t, int id));
-  int  (*_msg_set_read)    __P ((mailbox_t, int id));
-  int  (*_msg_is_seen)     __P ((mailbox_t, int id));
-  int  (*_msg_set_seen)    __P ((mailbox_t, int id));
+  int  (*_is_read)         __P ((mailbox_t, size_t msgno));
+  int  (*_set_read)        __P ((mailbox_t, size_t msgno));
+  int  (*_is_seen)         __P ((mailbox_t, size_t msgno));
+  int  (*_set_seen)        __P ((mailbox_t, size_t msgno));
+
+  /* owner and group */
+  int  (*_set_owner)       __P ((mailbox_t, uid_t uid));
+  int  (*_get_owner)       __P ((mailbox_t, uid_t *uid));
+  int  (*_set_group)       __P ((mailbox_t, gid_t gid));
+  int  (*_get_group)       __P ((mailbox_t, gid_t *gid));
 
   /* miscellany */
-  int  (*_scan)            __P ((mailbox_t, int *msgs));
-  int  (*_is_updated)      __P ((mailbox_t));
-  int  (*_get_timeout)     __P ((mailbox_t, int *timeout));
-  int  (*_set_timeout)     __P ((mailbox_t, int timeout));
-  int  (*_get_size)        __P ((mailbox_t, int id, size_t *size));
-  int  (*_get_refresh)     __P ((mailbox_t, int *refresh));
-  int  (*_set_refresh)     __P ((mailbox_t, int refresh));
+  int  (*_size)            __P ((mailbox_t, off_t *size));
+  int  (*_get_timeout)     __P ((mailbox_t, size_t *timeout));
+  int  (*_set_timeout)     __P ((mailbox_t, size_t timeout));
+  int  (*_get_refresh)     __P ((mailbox_t, size_t *refresh));
+  int  (*_set_refresh)     __P ((mailbox_t, size_t refresh));
   int  (*_set_notification) __P ((mailbox_t,
 				  int (*func) __P ((mailbox_t, void * arg))));
 };
@@ -132,8 +155,9 @@ extern int  mailbox_init    __P ((mailbox_t *, const char *name, int id));
 extern void mailbox_destroy __P ((mailbox_t *));
 
 /* mailbox registration */
-extern int mailbox_list_type   __P ((struct mailbox_type mtype[], int size));
-extern int mailbox_list_mtype  __P ((struct mailbox_type *mtype[], int *size));
+extern int mailbox_list_type   __P ((struct mailbox_type mtype[],
+				     size_t len, size_t *n));
+extern int mailbox_list_mtype  __P ((struct mailbox_type **mtype, size_t *n));
 extern int mailbox_add_type    __P ((struct mailbox_type *mtype));
 extern int mailbox_remove_type __P ((struct mailbox_type *mtype));
 extern int mailbox_get_type    __P ((struct mailbox_type **mtype, int id));
@@ -147,97 +171,112 @@ extern int mailbox_get_type    __P ((struct mailbox_type **mtype, int id));
 #endif
 
 extern INLINE int mailbox_open        __P ((mailbox_t, int flag));
-extern INLINE int mailbox_close       __P ((mailbox_t, int flag));
+extern INLINE int mailbox_close       __P ((mailbox_t));
 
 /* type */
 extern INLINE int mailbox_get_name    __P ((mailbox_t, int *id, char *name,
-					    int offset, int len));
+					    size_t len, size_t *n));
 extern INLINE int mailbox_get_mname   __P ((mailbox_t, int *id, char **name,
-					    int *len));
+					    size_t *n));
 
 /* passwd */
 extern INLINE int mailbox_get_passwd  __P ((mailbox_t, char *passwd,
-					    int offset, int len));
+					    size_t len, size_t *n));
 extern INLINE int mailbox_get_mpasswd __P ((mailbox_t, char **passwd,
-					    int *len));
+					    size_t *n));
 extern INLINE int mailbox_set_passwd  __P ((mailbox_t, const char *passwd,
-					    int offset, int len));
+					    size_t len));
 
 /* deleting */
-extern INLINE int mailbox_delete      __P ((mailbox_t, int));
-extern INLINE int mailbox_undelete    __P ((mailbox_t, int));
+extern INLINE int mailbox_delete      __P ((mailbox_t, size_t msgno));
+extern INLINE int mailbox_undelete    __P ((mailbox_t, size_t msgno));
 extern INLINE int mailbox_expunge     __P ((mailbox_t));
-extern INLINE int mailbox_is_deleted  __P ((mailbox_t, int));
+extern INLINE int mailbox_is_deleted  __P ((mailbox_t, size_t msgno));
 
 /* appending */
-extern INLINE int mailbox_new_msg     __P ((mailbox_t, int * id));
-extern INLINE int mailbox_set_header  __P ((mailbox_t, int id, const char *h,
-					    int offset, int n, int replace));
-extern INLINE int mailbox_set_body    __P ((mailbox_t, int id, const char *b,
-					    int offset, int n, int replace));
-extern INLINE int mailbox_append      __P ((mailbox_t, int id));
-extern INLINE int mailbox_destroy_msg __P ((mailbox_t, int id));
+extern INLINE int mailbox_new_msg     __P ((mailbox_t, size_t * msgno));
+extern INLINE int mailbox_set_header  __P ((mailbox_t, size_t msgno,
+					    const char *h, size_t len,
+					    int replace));
+extern INLINE int mailbox_set_body    __P ((mailbox_t, size_t msgno,
+					    const char *b, size_t len,
+					    int replace));
+extern INLINE int mailbox_append      __P ((mailbox_t, size_t msgno));
+extern INLINE int mailbox_destroy_msg __P ((mailbox_t, size_t msgno));
 
 /* reading */
-extern INLINE int mailbox_get_body    __P ((mailbox_t, int id, char *b,
-					    int offset, int n));
-extern INLINE int mailbox_get_mbody   __P ((mailbox_t, int id, char **b,
-					    int *n));
-extern INLINE int mailbox_get_header  __P ((mailbox_t, int id, char *h,
-					    int offset, int n));
-extern INLINE int mailbox_get_mheader  __P ((mailbox_t, int id, char **h,
-					     int *n));
+extern INLINE int mailbox_get_body    __P ((mailbox_t, size_t msgno,
+					    off_t off, char *b,
+					    size_t len, size_t *n));
+extern INLINE int mailbox_get_mbody   __P ((mailbox_t, size_t msgno, off_t off,
+					    char **b, size_t *n));
+extern INLINE int mailbox_get_header  __P ((mailbox_t, size_t msgno, off_t off,
+					    char *h, size_t len, size_t *n));
+extern INLINE int mailbox_get_mheader __P ((mailbox_t, size_t msgno, off_t off,
+					    char **h, size_t *n));
 
 /* locking */
 extern INLINE int mailbox_lock        __P ((mailbox_t, int flag));
 extern INLINE int mailbox_unlock      __P ((mailbox_t));
 
+/* owner and group */
+extern INLINE int mailbox_set_owner   __P ((mailbox_t, uid_t uid));
+extern INLINE int mailbox_set_group   __P ((mailbox_t, gid_t gid));
+
 /* miscellany */
-extern INLINE int mailbox_scan        __P ((mailbox_t, int *msgs));
+extern INLINE int mailbox_scan        __P ((mailbox_t, size_t *msgs));
 extern INLINE int mailbox_is_updated  __P ((mailbox_t));
-extern INLINE int mailbox_get_timeout __P ((mailbox_t, int *timeout));
-extern INLINE int mailbox_set_timeout __P ((mailbox_t, int timeout));
-extern INLINE int mailbox_get_refresh __P ((mailbox_t, int *refresh));
-extern INLINE int mailbox_set_refresh __P ((mailbox_t, int refresh));
-extern INLINE int mailbox_get_size    __P ((mailbox_t, int id, size_t *size));
-extern INLINE int mailbox_set_notification  __P ((mailbox_t, int
-						  (*func) __P ((mailbox_t))));
+extern INLINE int mailbox_get_timeout __P ((mailbox_t, size_t *timeout));
+extern INLINE int mailbox_set_timeout __P ((mailbox_t, size_t timeout));
+extern INLINE int mailbox_get_refresh __P ((mailbox_t, size_t *refresh));
+extern INLINE int mailbox_set_refresh __P ((mailbox_t, size_t refresh));
+extern INLINE int mailbox_get_size    __P ((mailbox_t, size_t msgno,
+					    size_t *header, size_t *body));
+extern INLINE int mailbox_set_notification  __P ((mailbox_t,
+						  int (*func)
+						  __P ((mailbox_t, void *))));
 
 #ifdef MU_USE_MACROS
 #define mailbox_open(m, f)	         m->_open (m, f)
-#define mailbox_close(m, f)              m->_close (m, f)
+#define mailbox_close(m)                 m->_close (m)
 
 /* type */
-#define mailbox_get_name(m, t, d, o, n)  m->_get_name (m, t, d, o, n)
+#define mailbox_get_name(m, t, d, l, n)  m->_get_name (m, t, d, l, n)
 #define mailbox_get_mtype(m, t, d, n)    m->_get_mtype (m, t, d, n)
 
 /* passwd */
-#define mailbox_get_passwd(m, p, o, n)   m->_get_passwd (m, p, o, n)
+#define mailbox_get_passwd(m, p, l, n)   m->_get_passwd (m, p, l, n)
 #define mailbox_get_mpasswd(m, p, n)     m->_get_mpasswd (m, p, n)
-#define mailbox_set_passwd(m, p, o, n)   m->_set_passwd (m, p, o, n)
+#define mailbox_set_passwd(m, p, l)      m->_set_passwd (m, p, l)
 
 /* deleting */
-#define mailbox_delete(m, id)            m->_delete (m, id)
-#define mailbox_undelete(m, id)          m->_undelete (m, id)
-#define mailbox_is_deleted(m, id)        m->_is_deleted (m, id)
+#define mailbox_delete(m, mid)           m->_delete (m, mid)
+#define mailbox_undelete(m, mid)         m->_undelete (m, mid)
+#define mailbox_is_deleted(m, mid)       m->_is_deleted (m, mid)
 #define mailbox_expunge(m)               m->_expunge (m)
 
 /* appending */
-#define mailbox_new_msg(m, id)                m->_new_msg (m, id)
-#define mailbox_set_header(m, id, h, o, n, r) m->_set_header(m, id, h, o, n, r)
-#define mailbox_set_body(m, id, b, o, n, r)   m->_set_body (m, id, b, o, n, r)
-#define mailbox_append(m, id)                 m->_append (m, id)
-#define mailbox_destroy_msg(m, id)            m->_destroy_msg (m, id)
+#define mailbox_new_msg(m, mid)               m->_new_msg (m, mid)
+#define mailbox_set_header(m, mid, h, l, r)   m->_set_header(m, mid, h, n, r)
+#define mailbox_set_body(m, mid, b, l r)      m->_set_body (m, mid, b, l, r)
+#define mailbox_append(m, mid)                m->_append (m, mid)
+#define mailbox_destroy_msg(m, mid)           m->_destroy_msg (m, mid)
 
 /* locking */
 #define mailbox_lock(m, f)                    m->_lock (m, f)
 #define mailbox_unlock(m)                     m->_unlock (m)
 
 /* reading */
-#define mailbox_get_header(m, id, h, o, n)    m->_get_header (m, id, h, o, n)
-#define mailbox_get_mheader(m, id, h, n)      m->_get_header (m, id, h, n)
-#define mailbox_get_body(m, id, b, o, n)      m->_get_body (m, id, b, o, n)
-#define mailbox_get_mbody(m, id, b, n)        m->_get_body (m, id, b, n)
+#define mailbox_get_header(m, mid, h, l, n)   m->_get_header (m, mid, h, o, n)
+#define mailbox_get_mheader(m, mid, h, l)     m->_get_header (m, mid, h, l)
+#define mailbox_get_body(m, mid, b, l, n)     m->_get_body (m, mid, b, l, n)
+#define mailbox_get_mbody(m, mid, b, n)       m->_get_body (m, mid, b, n)
+
+/* owner and group */
+#define mailbox_set_owner(m, uid)             m->_set_owner(m, uid)
+#define mailbox_get_owner(m, uid)             m->_set_owner(m, uid)
+#define mailbox_set_group(m, gid)             m->_set_group(m, gid)
+#define mailbox_get_group(m, gid)             m->_set_group(m, gid)
 
 /* miscellany */
 #define mailbox_scan(m, t)                    m->_scan (m, t)
@@ -246,7 +285,7 @@ extern INLINE int mailbox_set_notification  __P ((mailbox_t, int
 #define mailbox_set_timeout(m, t)             m->_set_timeout (m, t)
 #define mailbox_get_refresh(m, r)             m->_get_refresh (m, r)
 #define mailbox_set_refresh(m, r)             m->_set_refresh (m, r)
-#define mailbox_get_size(m, id, size)         m->_get_size(m, id, size)
+#define mailbox_get_size(m, mid, sh, sb)      m->_get_size(m, mid, sh, sb)
 #define mailbox_set_notification(m, func)    m->_set_notification (m, func)
 #endif /* MU_USE_MACROS */
 
