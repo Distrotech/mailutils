@@ -186,31 +186,14 @@ main (int argc, char **argv)
       mh_error ("Can not read input mailbox");
       exit (1);
     }
-  
-  /* Select and open output mailbox */
-  if (mh_check_folder (current_folder))
-    exit (0);
-  
-  if (mailbox_create_default (&output, current_folder))
-    {
-      mh_error ("Can't create output mailbox %s: %s",
-		current_folder, strerror (errno));
-      exit (1);
-    }
 
-  if (mailbox_open (output, MU_STREAM_RDWR|MU_STREAM_CREAT))
-    {
-      mh_error ("Can't open mailbox %s: %s", current_folder,
-		strerror (errno));
-      exit (1);
-    }
-
+  output = mh_open_folder (current_folder, 1);
   if (mailbox_messages_count (output, &lastmsg) != 0)
     {
       mh_error ("Can not read output mailbox");
       exit (1);
     }
-
+  
   buffer = xmalloc (width);
   
   /* Fixup options */
@@ -242,7 +225,7 @@ main (int argc, char **argv)
 
       if (n == 1 && changecur)
 	{
-	  message_t msg;
+	  message_t msg = NULL;
       
 	  mailbox_get_message (output, lastmsg+1, &msg);
 	  mh_message_number (msg, &current_message);
