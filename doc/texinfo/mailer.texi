@@ -111,9 +111,6 @@ was a from, and supplying the recipient list from the to (if there
 is no recipient list, assume it will read the message contents for
 the recipients).
 
-Note: do we need to supply -t to sendmail to force it to read the
-message contents to find the recipients?
-
 Note: since the stdout and stderr of sendmail is closed, we have no
 way of ever giving feedback on failure. Also, what should the return
 code be from mailer_send_message() when sendmail returns 1? 1 maps to EPERM,
