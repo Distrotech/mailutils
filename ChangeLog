@@ -1,5 +1,16 @@
 2001-10-19  Sergey Poznyakoff
 
+	MH inc is fully functional:
+
+	* mh/inc.c: Implemented -audit.
+	* mh/mh_init.c: New functions mh_audit_open(), mh_audit_close().
+	* mh/mh.h: Protos for new functions.
+	* mh/mh_format.c: Minor bugfix in builtin_mbox().
+
+	* guimb/Makefile.am: Removed superfluous -I.
+
+2001-10-19  Sergey Poznyakoff
+
 	Implemented saving of MH context. 
 
 	* mh/inc.c: Fixed truncate option. Implemented -changecur. The only
