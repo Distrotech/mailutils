@@ -1,0 +1,45 @@
+##   Process this file with GNU Automake to create Makefile.in
+##
+##   Copyright (C) 2004 Free Software Foundation, Inc.
+##
+##   GNU Mailutils is free software; you can redistribute it and/or
+##   modify it under the terms of the GNU General Public License as
+##   published by the Free Software Foundation; either version 2, or (at
+##   your option) any later version.
+##
+##   This program is distributed in the hope that it will be useful, but
+##   WITHOUT ANY WARRANTY; without even the implied warranty of
+##   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+##   General Public License for more details.
+##
+##   You should have received a copy of the GNU General Public License
+##   along with this program; if not, write to the Free Software
+##   Foundation, Inc. 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+INCLUDES = -I${top_srcdir}/include -I${top_srcdir}/mailbox\
+	-I${top_srcdir}/mailbox/include\
+	-I${top_builddir}/include/mailutils/gnu \
+	@INTLINCS@
+
+MU_CXX_LIBS = libmu_cpp.la
+lib_LTLIBRARIES = @MU_CXX_LIBS@
+EXTRA_LTLIBRARIES = $(MU_CXX_LIBS)
+
+libmu_cpp_la_SOURCES = \
+ address.cc\
+ filter.cc\
+ header.cc\
+ iterator.cc\
+ list.cc\
+ mailbox.cc\
+ mailcap.cc\
+ mailer.cc\
+ message.cc\
+ pop3.cc\
+ stream.cc\
+ url.cc
+
+libmu_cpp_la_DEPENDENCIES = @MU_LTLIBOBJS@
+libmu_cpp_la_LIBADD = @MU_LTLIBOBJS@ @MU_COMMON_LIBRARIES@
+libmu_cpp_la_LDFLAGS = -version-info 0:0:0
+
