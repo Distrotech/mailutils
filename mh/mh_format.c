@@ -1680,10 +1680,31 @@ builtin_references (struct mh_machine *mach)
 {
   char *value;
 
-  strobj_free (&mach->reg_str);
+  strobj_free (&mach->arg_str);
   mu_rfc2822_references (mach->message, &value);
   strobj_create (&mach->arg_str, value);
   free (value);
+}
+
+static void
+builtin_package (struct mh_machine *mach)
+{
+  strobj_free (&mach->arg_str);
+  strobj_set (&mach->arg_str, PACKAGE);
+}
+
+static void
+builtin_package_string (struct mh_machine *mach)
+{
+  strobj_free (&mach->arg_str);
+  strobj_set (&mach->arg_str, PACKAGE_STRING);
+}
+
+static void
+builtin_version (struct mh_machine *mach)
+{
+  strobj_free (&mach->arg_str);
+  strobj_set (&mach->arg_str, VERSION);
 }
 
 /* Builtin function table */
@@ -1767,6 +1788,9 @@ mh_builtin_t builtin_tab[] = {
   { "printstr", builtin_printstr, mhtype_none, mhtype_str },
   { "in_reply_to", builtin_in_reply_to, mhtype_str,  mhtype_none },
   { "references", builtin_references, mhtype_str,  mhtype_none },
+  { "package",  builtin_package,  mhtype_str, mhtype_none },
+  { "package_string",  builtin_package_string,  mhtype_str, mhtype_none },
+  { "version",  builtin_version,  mhtype_str, mhtype_none },
   { 0 }
 };
 
