@@ -48,6 +48,7 @@
 #include <mailutils/error.h>
 #include <mailbox0.h>
 #include <registrar0.h>
+#include <url0.h>
 
 #define PROP_RFC822 1
 
@@ -288,11 +289,45 @@ _mailbox_pop_init (mailbox_t mbox)
 {
   pop_data_t mpd;
   int status = 0;
+  ticket_t ticket = NULL;
+  const char *auth = mbox->url->auth;
+
+  /* Allocate authority based on AUTH type, default to user/pass */
+  if (mbox->folder)
+    folder_get_ticket (mbox->folder, &ticket);
+  if (ticket == NULL)
+    ticket = mbox->ticket;
+  if ((status = authority_create (&mbox->authority, ticket, mbox)))
+    {
+      return status;
+    }
+
+  if (auth == NULL || strcasecmp (auth, "*") == 0)
+    {
+      authority_set_authenticate (mbox->authority, pop_user, mbox);
+    }
+  /*
+  else...
+
+     "+apop" could be supported.
+
+     Anything else starting with "+" is an extension mechanism.
+
+     Without a "+" it's a SASL mechanism.
+   */
+  else
+    {
+      authority_destroy (&mbox->authority, mbox);
+      return ENOTSUP;
+    }
 
   /* Allocate specifics for pop data.  */
   mpd = mbox->data = calloc (1, sizeof (*mpd));
   if (mbox->data == NULL)
-    return ENOMEM;
+    {
+      authority_destroy (&mbox->authority, mbox);
+      return ENOMEM;
+    }
 
   mpd->mbox = mbox;		/* Back pointer.  */
 
@@ -343,6 +378,7 @@ END:
 	free (mbox->properties);
       if (mbox->data)
 	free (mbox->data);
+      authority_destroy (&mbox->authority, mbox);
     }
 
   return status;
@@ -592,33 +628,6 @@ pop_open (mailbox_t mbox, int flags)
 	if (strncasecmp (mpd->buffer, "+OK", 3) != 0)
 	  {
 	    CHECK_ERROR_CLOSE (mbox, mpd, EACCES);
-	  }
-
-	/* Create an authentication if none was set, according to the url.  The
-	   default is User/Passwd.  */
-	if (mbox->authority == NULL)
-	  {
-	    char auth[64] = "";
-	    size_t n = 0;
-	    url_get_auth (mbox->url, auth, sizeof (auth), &n);
-	    if (n == 0 || strcasecmp (auth, "*") == 0)
-	      {
-		ticket_t ticket = NULL;
-		if (mbox->folder)
-		  folder_get_ticket (mbox->folder, &ticket);
-		if (ticket == NULL)
-		  ticket = mbox->ticket;
-		authority_create (&(mbox->authority), ticket, mbox);
-		authority_set_authenticate (mbox->authority, pop_user, mbox);
-	      }
-	    else if (strcasecmp (auth, "+apop") == 0)
-	      {
-		/* Not supported.  */
-	      }
-	    else
-	      {
-		/* What can we do ? flag an error ?  */
-	      }
 	  }
 	mpd->state = POP_AUTH;
       }
