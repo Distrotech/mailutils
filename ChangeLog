@@ -1,5 +1,37 @@
 2002-01-21  Sergey Poznyakoff 
 
+	* acconfig.h: Added WITH_GUILE define.
+	* configure.in: Define WITH_GUILE. Added mail.local.
+	* Makefile.am: Added mail.local.
+	
+	* guimb/run_scm.c: Deleted. 
+	* guimb/Makefile.am: Removed run_scm.c
+	* guimb/collect.c (guimb_catch_body, guimb_catch_handler) New
+	  functions.
+	* guimb/guimb.h: Added new declarations.
+	* guimb/main.c: New command line options: --maildir (set
+	  mailspool pathname), --source (set scheme source file name).
+	  Use mu_process_mailbox instead of run_main.
+	* guimb/scm/sieve.scm: Add "#!" magic to the beginning of
+	  the output script. Improved diagnostics. Fixed bug in
+	  next-token-from-port.
+	
+	* libmu_scm/mu_guimb.c: (new)
+	* libmu_scm/Makefile.am: Added mu_guimb.c
+	* libmu_scm/mu_message.c (mu_message_send): Initialize mailer
+	  to NULL.
+	* libmu_scm/mu_scm.h: Added proto for mu_process_mailbox.
+
+	* mail.local: Added to repository.
+	* mail.local/Makefile.am: Likewise.
+	* mail.local/.cvsignore: Likewise. 
+	* mail.local/mail.local.h: Likewise. 
+	* mail.local/main.c: Likewise. 
+	* mail.local/mailquota.c: Likewise. 
+	* mail.local/script.c: Likewise. 
+	
+2002-01-21  Sergey Poznyakoff 
+
 	* configure.in: New option --with-maildir allows to
 	  specify the location of mailspool instead of the
 	  default _PATH_MAILDIR.
