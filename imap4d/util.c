@@ -731,6 +731,7 @@ util_strcasestr (const char *haystack, const char *needle)
   return NULL;
 }
 
+
 struct
 {
   char *name;
@@ -740,7 +741,7 @@ struct
   { "\\Flagged",  MU_ATTRIBUTE_FLAGGED },
   { "\\Deleted", MU_ATTRIBUTE_DELETED },
   { "\\Draft", MU_ATTRIBUTE_DRAFT },
-  { "\\Seen", MU_ATTRIBUTE_SEEN },
+  { "\\Seen", MU_ATTRIBUTE_READ },
   { "\\Recent", MU_ATTRIBUTE_RECENT },
 };
 
@@ -761,43 +762,83 @@ util_attribute_to_type (const char *item, int *type)
   return 1;
 }
 
+/* Note: currently unused. Not needed, possibly? */
 int
 util_type_to_attribute (int type, char **attr_str)
 {
-  *attr_str = NULL;
-  if (type == MU_ATTRIBUTE_RECENT)
+  char *attr_list[NATTR];
+  int nattr = 0;
+  int i;
+  size_t len = 0;
+
+  if (MU_ATTRIBUTE_IS_UNSEEN(type))
     *attr_str = strdup("\\Recent");
   else
+    *attr_str = NULL;
+
+  for (i = 0; i < _imap4d_nattr; i++)
+    if (type & _imap4d_attrlist[i].flag)
+      {
+	attr_list[nattr++] = _imap4d_attrlist[i].name;
+	len += 1 + strlen(_imap4d_attrlist[i].name);
+      }
+  
+  *attr_str = malloc(len+1);
+  (*attr_str)[0] = 0;
+  if (*attr_str)
     {
-      char *attr_list[NATTR];
-      int nattr = 0;
-      int i;
-      size_t len = 0;
-
-      for (i = 0; i < _imap4d_nattr; i++)
-	if (type & _imap4d_attrlist[i].flag)
-	  {
-	    attr_list[nattr++] = _imap4d_attrlist[i].name;
-	    len += 1 + strlen(_imap4d_attrlist[i].name);
-	  }
-
-      *attr_str = malloc(len+1);
-      (*attr_str)[0] = 0;
-      if (*attr_str)
+      for (i = 0; i < nattr; i++)
 	{
-	  for (i = 0; i < nattr; i++)
-	    {
-	      strcat(*attr_str, attr_list[i]);
-	      if (i != nattr-1)
-		strcat(*attr_str, " ");
-	    }
+	  strcat(*attr_str, attr_list[i]);
+	  if (i != nattr-1)
+	    strcat(*attr_str, " ");
 	}
     }
-
+  
   if (!*attr_str)
     imap4d_bye (ERR_NO_MEM);
   return 0;
 }
+
+void
+util_print_flags(attribute_t attr)
+{
+  int i;
+  int flags = 0;
+  int space = 0;
+  
+  attribute_get_flags (attr, &flags);
+  for (i = 0; i < _imap4d_nattr; i++)
+    if (flags & _imap4d_attrlist[i].flag)
+      {
+	if (space)
+	  util_send (" ");
+	else
+	  space = 1;
+	util_send (_imap4d_attrlist[i].name);
+      }
+  
+  if (MU_ATTRIBUTE_IS_UNSEEN(flags))
+    {
+      if (space)
+	  util_send (" ");
+      util_send ("\\Recent");
+    }
+}
+
+int
+util_attribute_matches_flag (attribute_t attr, const char *item)
+{
+  int flags = 0, mask = 0;
+  
+  attribute_get_flags (attr, &flags);
+  util_attribute_to_type (item, &mask);
+  if (mask == MU_ATTRIBUTE_RECENT)
+    return MU_ATTRIBUTE_IS_UNSEEN (flags);
+
+  return flags & mask;
+}
+
 
 int
 util_parse_attributes(char *items, char **save, int *flags)
