@@ -1,3 +1,14 @@
+2004-01-10  Wojciech Polak
+
+	* include/mailutils/mailutils.h: Added missing header files.
+	* include/mailutils/gsasl.h: Include <gsasl.h>.
+
+	* messages/messages.c (main): Use mu_register_all_mbox_formats().
+	(messages_count): Improved diagnostics.
+	* messages/Makefile.am: Updated.
+	* frm/frm.c (main): Unified diagnostic messages.
+	* frm/Makefile.am: Updated.
+
 2004-01-09  Sergey Poznyakoff 
 
 	* NEWS: Documented new features.
