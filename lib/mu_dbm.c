@@ -31,6 +31,7 @@
 #endif
 #include <errno.h>
 #include <mu_dbm.h>
+#include <xalloc.h>
 
 int
 mu_fcheck_perm (int fd, int mode)
