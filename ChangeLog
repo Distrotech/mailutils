@@ -1,5 +1,12 @@
+2005-03-14  Sergey Poznyakoff 
+
+	* mimeview/mimetypes.l (<HEX>): Bugfix
+	* mimeview/mimetypes.y (b_string): Bugfix
+	
 2005-03-13  Sergey Poznyakoff 
 
+	Sources are tagged alpha_0_6_1
+	
 	* Makefile.am (SUBDIRS): Reordered. Due to the specifics
 	of gnulib imports, libmailutils depends on libmailbox.
 	Added config/.
