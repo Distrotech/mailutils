@@ -19,8 +19,8 @@ dnl
 dnl MU_ENABLE_SUPPORT(feature, [action-if-true], [action-if-false])
 
 AC_DEFUN([MU_ENABLE_SUPPORT], [
-	pushdef([mu_upcase],translit($1,[a-z],[A-Z]))
-	pushdef([mu_cache_var],[mu_cv_enable_]$1)
+	pushdef([mu_upcase],translit($1,[a-z-],[A-Z_]))
+	pushdef([mu_cache_var],[mu_cv_enable_]translit($1,[-],[_]))
 
 	AC_ARG_ENABLE($1, 
 	              AC_HELP_STRING([--disable-]$1,
