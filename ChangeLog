@@ -1,3 +1,104 @@
+2002-02-27  Sergey Poznyakoff  
+
+	* imap4d/status.c: Provide better diagnostics.
+	* comsat/comsat.c: Use mu_path_maildir instead of maildir.
+	* guimb/collect.c: Likewise.
+	* imap4d/select.c: Likewise.
+	* lib/mu_argp.c: Likewise.
+	* mail.local/main.c: Likewise.
+	* pop3d/apop.c: Likewise.
+	* pop3d/user.c: Likewise.
+	* lib/mu_argp.h: Removed extern char *maildir.
+
+	* mailbox/mbx_default.c: Essentially rewritten.
+	  mailbox_open_default() supports the following naming schemes:
+
+	   %           --> system mailbox for the real uid
+           %user       --> system mailbox for the given user
+           ~/file      --> /home/user/file
+           ~user/file  --> /home/user/file
+           +file       --> /home/user/Mail/file
+           =file       --> /home/user/Mail/file
+
+	* mail/file.c: Do not handle '%name' separately:
+  	  mailbox_open_default now does it.
+	* mail/mail.c: Properly handle --user (open user's system
+	  mailbox).
+	* mailbox/mutil.c (mu_getcwd): New function. Return the name
+	  of current working directory. The return value is malloc'ed
+	  (mu_get_full_path): New function. Translate cwd-relative
+	  pathname to its absolute equivalent. Both moved from
+	  mbx_default.c.
+	
+	* mail.local/mailquota.c (check_quota): Initialize contentd
+	  to all zeroes before mu_dbm_fetch. This is needed by
+	  (at least) Berkeley DBM.
+	
+	* include/mailutils/mu_features.h: (new) Define system-dependent
+	  macros, used by all mailutils. Currently, it contains only
+	  __P() definition.
+	* include/mailutils/Makefile.am: Added mu_features.h.
+
+	Removed definitions of __P() scattered over multiple header
+	files. Included <mailutils/mu_features.h> instead. Files
+	affected:
+	
+	* imap4d/imap4d.h,
+	* mail/mail.h,
+	* pop3d/pop3d.h,
+	* readmsg/readmsg.h,
+	* include/mailutils/address.h,
+	* include/mailutils/attribute.h,
+	* include/mailutils/auth.h,
+	* include/mailutils/body.h,
+	* include/mailutils/debug.h,
+	* include/mailutils/envelope.h,
+	* include/mailutils/errno.h,
+	* include/mailutils/error.h,
+	* include/mailutils/filter.h,
+	* include/mailutils/folder.h,
+	* include/mailutils/header.h,
+	* include/mailutils/iterator.h,
+	* include/mailutils/list.h,
+	* include/mailutils/locker.h,
+	* include/mailutils/mailbox.h,
+	* include/mailutils/mailer.h,
+	* include/mailutils/message.h,
+	* include/mailutils/mime.h,
+	* include/mailutils/monitor.h,
+	* include/mailutils/mutil.h,
+	* include/mailutils/observer.h,
+	* include/mailutils/parse822.h,
+	* include/mailutils/property.h,
+	* include/mailutils/registrar.h,
+	* include/mailutils/stream.h,
+	* include/mailutils/url.h,
+	* mailbox/include/address0.h,
+	* mailbox/include/attribute0.h,
+	* mailbox/include/auth0.h,
+	* mailbox/include/body0.h,
+	* mailbox/include/debug0.h,
+	* mailbox/include/envelope0.h,
+	* mailbox/include/filter0.h,
+	* mailbox/include/folder0.h,
+	* mailbox/include/header0.h,
+	* mailbox/include/imap0.h,
+	* mailbox/include/iterator0.h,
+	* mailbox/include/list0.h,
+	* mailbox/include/mailbox0.h,
+	* mailbox/include/mailer0.h,
+	* mailbox/include/message0.h,
+	* mailbox/include/mime0.h,
+	* mailbox/include/monitor0.h,
+	* mailbox/include/observer0.h,
+	* mailbox/include/property0.h,
+	* mailbox/include/registrar0.h,
+	* mailbox/include/stream0.h,
+	* mailbox/include/url0.h.
+	
+	* lib/argcv.h: Use PROTOTYPES to determine whether the compiler
+	  understands function prototypes.
+
 2002-02-25 Sam Roberts
 
 	* sieve/examples/: .cvsignore, Makefile, Test, mbox.complex,
