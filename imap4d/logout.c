@@ -29,7 +29,6 @@ imap4d_logout (struct imap4d_command *command, char *arg)
     return util_finish (command, RESP_BAD, "Wrong state");
   if (util_getword (arg, &sp))
     return util_finish (command, RESP_BAD, "Too many args");
-  util_finish (command, RESP_OK, "Completed");
-  imap4d_bye (OK);
+  imap4d_bye0 (OK, command);
   return 0;
 }
