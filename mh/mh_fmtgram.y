@@ -298,6 +298,7 @@ cond      : cond_expr
 		mh_code_op (mhop_num_branch);
 	      $$ = mh_code_op (0);
 	    }
+          ;
 
 cond_expr : component
           | funcall
