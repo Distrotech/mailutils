@@ -156,6 +156,7 @@ extern char *strtok_r __P((char *s, const char *delim, char **save_ptr));
 extern int  imap4d_append __P ((struct imap4d_command *, char *));
 extern int  imap4d_append0 __P((mailbox_t mbox, int flags, char *text));
 extern int  imap4d_authenticate __P ((struct imap4d_command *, char *));
+extern int  imap4d_auth_capability __P((void));
 extern int  imap4d_capability __P ((struct imap4d_command *, char *));
 extern int  imap4d_check __P ((struct imap4d_command *, char *));
 extern int  imap4d_close __P ((struct imap4d_command *, char *));
@@ -186,7 +187,7 @@ extern int  imap4d_uid __P ((struct imap4d_command *, char *));
 extern int  imap4d_unsubscribe __P ((struct imap4d_command *, char *));
 extern int  imap4d_namespace __P ((struct imap4d_command *, char *));
 extern int  imap4d_version __P ((struct imap4d_command *, char *));
-
+  
 /* Shared between fetch and store */  
 extern void fetch_flags0 (const char *prefix, message_t msg, int isuid);
 

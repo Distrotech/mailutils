@@ -30,6 +30,14 @@ struct imap_auth {
 };
 
 int
+imap4d_auth_capability ()
+{
+  struct imap_auth *ap;
+  for (ap = imap_auth_tab; ap->name; ap++)
+    util_send(" AUTH=%s", ap->name);
+}
+
+int
 imap4d_authenticate (struct imap4d_command *command, char *arg)
 {
   char *sp = NULL;
