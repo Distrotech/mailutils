@@ -65,7 +65,9 @@ extern "C" {
 #define MU_HEADER_ENV_SENDER                "X-Envelope-Sender"
 #define MU_HEADER_ENV_DATE                  "X-Envelope-Date"
 #define MU_HEADER_FCC                       "Fcc"
-
+#define MU_HEADER_DELIVERY_DATE             "Delivery-date"
+#define MU_HEADER_ENVELOPE_TO               "Envelope-to"
+  
 /* Mime support header attribute */
 
 extern int header_create __P ((header_t *, const char *, size_t, void *));
