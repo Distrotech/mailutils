@@ -336,6 +336,8 @@ imap4d_daemon (unsigned int maxchildren, unsigned int port)
       exit (1);
     }
 
+  syslog (LOG_INFO, _("GNU imap4d started"));
+
   for (;;)
     {
       if (children > maxchildren)

@@ -432,6 +432,8 @@ pop3d_daemon (unsigned int maxchildren, unsigned int port)
       exit (EXIT_FAILURE);
     }
 
+  syslog (LOG_INFO, _("GNU pop3d started"));
+
   for (;;)
     {
       if (children > maxchildren)
