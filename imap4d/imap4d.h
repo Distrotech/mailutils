@@ -171,6 +171,7 @@ extern int  imap4d_rename __P ((struct imap4d_command *, char *));
 extern int  imap4d_search __P ((struct imap4d_command *, char *));
 extern int  imap4d_select __P ((struct imap4d_command *, char *));
 extern int  imap4d_select0 __P ((struct imap4d_command *, char *, int));
+extern void imap4d_select_status __P((void));
 extern int  imap4d_status __P ((struct imap4d_command *, char *));
 extern int  imap4d_store __P ((struct imap4d_command *, char *));
 extern int  imap4d_store0 __P ((char *, int, char *, size_t));
@@ -179,7 +180,7 @@ extern int  imap4d_uid __P ((struct imap4d_command *, char *));
 extern int  imap4d_unsubscribe __P ((struct imap4d_command *, char *));
 extern int  imap4d_namespace __P ((struct imap4d_command *, char *));
   
-/* Synchronisation on simultenous access.  */
+/* Synchronisation on simultaneous access.  */
 extern int imap4d_sync __P ((void));
 extern int imap4d_sync_flags __P ((size_t));
 extern size_t uid_to_msgno __P ((size_t));
@@ -189,6 +190,11 @@ extern RETSIGTYPE imap4d_sigchld __P ((int));
 extern RETSIGTYPE imap4d_signal __P ((int));
 extern int imap4d_bye __P ((int));
 
+/* Namespace functions */
+extern char * namespace_getfullpath __P((char *name, const char *delim));
+extern char * namespace_checkfullpath __P((char *name, const char *pattern,
+					   const char *delim));
+  
 /* Helper functions.  */
 extern int  util_out __P ((int, const char *, ...));
 extern int  util_send __P ((const char *, ...));
@@ -214,7 +220,8 @@ extern int util_parse_internal_date __P((char *date, time_t *timep));
 extern int util_parse_822_date __P((char *date, time_t *timep));
 extern int util_parse_ctime_date __P((char *date, time_t *timep));
 extern char *util_strcasestr __P((const char *haystack, const char *needle));
-
+extern char *util_normalize_path (char *path, const char *delim);
+  
 #ifdef __cplusplus
 }
 #endif
