@@ -292,46 +292,47 @@ make_tmp (const char *from, char **tempfile)
     }
 
   line = 0;
-  while (getline (&buf, &n, stdin) > 0) {
-    line++;
-    if (line == 1)
-      {
-	if (memcmp (buf, "From ", 5))
-	  {
-	    struct mu_auth_data *auth;
-	    if (!from)
-	      {
-		auth = mu_get_auth_by_uid (uid);
-		if (auth)
-		  from = auth->name;
-	      }
-	    if (from)
-	      {
-		time (&t);
-		fprintf (fp, "From %s %s", from, ctime (&t));
-	      }
-	    else
-	      {
-		mailer_err ("Can't determine sender address");
-		exit (EX_UNAVAILABLE);
-	      }
-	    if (auth)
-	      mu_auth_data_free (auth);
-	  }
-      }
-    else if (!memcmp (buf, "From ", 5))
-      fputc ('>', fp);
-    if (fputs (buf, fp) == EOF)
-      {
-	mailer_err ("temporary file write error");
-	fclose (fp);
-	return NULL;
-      }
-  }
-
+  while (getline (&buf, &n, stdin) > 0)
+    {
+      line++;
+      if (line == 1)
+	{
+	  if (memcmp (buf, "From ", 5))
+	    {
+	      struct mu_auth_data *auth;
+	      if (!from)
+		{
+		  auth = mu_get_auth_by_uid (uid);
+		  if (auth)
+		    from = auth->name;
+		}
+	      if (from)
+		{
+		  time (&t);
+		  fprintf (fp, "From %s %s", from, ctime (&t));
+		}
+	      else
+		{
+		  mailer_err ("Can't determine sender address");
+		  exit (EX_UNAVAILABLE);
+		}
+	      if (auth)
+		mu_auth_data_free (auth);
+	    }
+	}
+      else if (!memcmp (buf, "From ", 5))
+	fputc ('>', fp);
+      if (fputs (buf, fp) == EOF)
+	{
+	  mailer_err ("temporary file write error");
+	  fclose (fp);
+	  return NULL;
+	}
+    }
+  
   if (buf && strchr (buf, '\n') == NULL)
     putc ('\n', fp);
-
+  
   putc ('\n', fp);
   free (buf);
   
@@ -465,15 +466,17 @@ deliver (FILE *fp, char *name)
       n = 0;
       status = 0;
       fseek (fp, 0, SEEK_SET);
-      while (getline(&buf, &n, fp) > 0) {
-	status = stream_write (stream, buf, strlen (buf), off, &nwr);
-	if (status)
-	  {
-	    mailer_err ("error writing to mailbox: %s", mu_errstring (status));
-	    break;
-	  }
-	off += nwr;
-      }
+      while (getline(&buf, &n, fp) > 0)
+	{
+	  status = stream_write (stream, buf, strlen (buf), off, &nwr);
+	  if (status)
+	    {
+	      mailer_err ("error writing to mailbox: %s",
+			  mu_errstring (status));
+	      break;
+	    }
+	  off += nwr;
+	}
       free (buf);
       switch_user_id (0);
     }
