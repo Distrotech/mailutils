@@ -209,9 +209,6 @@ amd_open (mailbox_t mailbox, int flags)
 
   amd->mtime = st.st_mtime;
 
-  /* FIXME: is this the right kind of locking for mh folders? */
-  if (mailbox->locker == NULL)
-    status = locker_create (&mailbox->locker, amd->name, 0);
   return 0;
 }
 
@@ -220,7 +217,7 @@ amd_close (mailbox_t mailbox)
 {
   if (!mailbox)
     return EINVAL;
-  return locker_unlock (mailbox->locker);
+  return 0;
 }
 
 static struct _amd_message *
