@@ -35,7 +35,9 @@
 #include <mailutils/registrar.h>
 #include <mailutils/mutil.h>
 
+#ifdef HAVE_LIBGUILE_H
 #include <libguile.h>
+#endif
 
 extern SCM _mu_scm_mailer;
 extern SCM _mu_scm_debug;
