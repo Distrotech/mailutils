@@ -16,75 +16,19 @@
    along with GNU Mailutils; if not, write to the Free Software
    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA  */
 
-#ifdef HAVE_CONFIG_H
-# include <config.h>
-#endif
+#include <frm.h>
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <sys/types.h>
-#ifdef HAVE_TERMIOS_H
-# include <termios.h>
-#endif
-#include <sys/ioctl.h>
-#include <sys/stat.h>
-
-#ifdef HAVE_ICONV_H
-# include <iconv.h>
-#endif
-#ifndef MB_LEN_MAX
-# define MB_LEN_MAX 4
-#endif
-
-#include <mbswidth.h>
-#include <xalloc.h>
-
-#ifdef HAVE_FRIBIDI_FRIBIDI_H
-# include <fribidi/fribidi.h>
-#endif
-
-#include <mailutils/address.h>
-#include <mailutils/argp.h>
-#include <mailutils/attribute.h>
-#include <mailutils/debug.h>
-#include <mailutils/errno.h>
-#include <mailutils/header.h>
-#include <mailutils/list.h>
-#include <mailutils/mailbox.h>
-#include <mailutils/message.h>
-#include <mailutils/observer.h>
-#include <mailutils/registrar.h>
-#include <mailutils/stream.h>
-#include <mailutils/url.h>
-#include <mailutils/nls.h>
-#include <mailutils/tls.h>
-#include <mailutils/error.h>
-#include <mailutils/mutil.h>
-#include <mailutils/mime.h>
-
-static char *show_field;   /* Show this header field instead of the default
-			      `From: Subject:' pair. -f option */
-static int show_to;        /* Additionally display To: field. -l option */ 
-static int show_number;    /* Prefix each line with the message number. -n */
 static int show_summary;   /* Summarize the number of messages by message
 			      status in each mailbox. -S option */
 static int be_quiet;       /* Quiet mode. -q option. */
 static int show_query;     /* Additional flag toggled by -q to display 
 			      a one-line summary for each mailbox */
 static int align = 0;      /* Tidy mode. -t option. */
-static int dbug;           /* Debug level. -d option.*/
 
 #define IS_READ 0x001
 #define IS_OLD  0x010
 #define IS_NEW  0x100
 static int select_attribute;
-static int selected;
-
-static int action (observer_t, size_t);
-void init_output (size_t s);
 
 const char *program_version = "frm (" PACKAGE_STRING ")";
 static char doc[] = N_("GNU frm -- display From: lines");
@@ -187,36 +131,6 @@ decode_attr (char *arg)
 
 
 
-/* Get the number of columns on the screen
-   First try an ioctl() call, not all shells set the COLUMNS environ.
-   If ioctl does not succeed on stdout, try it on /dev/tty, as we
-   may work via a pipe.
-   
-   This function was taken from mail/util.c. It should probably reside
-   in the library */
-int
-util_getcols (void)
-{
-  struct winsize ws;
-  
-  ws.ws_col = ws.ws_row = 0;
-  if (ioctl (1, TIOCGWINSZ, (char *) &ws) < 0)
-    {
-      int fd = open ("/dev/tty", O_RDWR);
-      ioctl (fd, TIOCGWINSZ, (char *) &ws);
-      close (fd);
-    }
-  if (ws.ws_row == 0)
-    {
-      const char *columns = getenv ("COLUMNS");
-      if (columns)
-	ws.ws_col = strtol (columns, NULL, 10);
-    }
-  return ws.ws_col;
-}
-
-
-
 static struct argp_option options[] = {
   {"debug",  'd', NULL,   0, N_("Enable debugging output"), 0},
   {"field",  'f', N_("NAME"), 0, N_("Header field to display"), 0},
@@ -236,7 +150,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
   switch (key)
     {
     case 'd':
-      dbug++;
+      frm_debug++;
       break;
 
     case 'f':
@@ -309,486 +223,44 @@ static const char *frm_argp_capa[] = {
   NULL
 };
 
-
-/* Charset magic */
-static char *output_charset = NULL;
-
-const char *
-get_charset ()
-{
-  char *tmp;
-  
-  if (!output_charset)
-    {
-      char locale[32];
-      
-      memset (locale, 0, sizeof (locale));
-
-      /* Try to deduce the charset from LC_ALL or LANG variables */
-
-      tmp = getenv ("LC_ALL");
-      if (!tmp)
-	tmp = getenv ("LANG");
-
-      if (tmp)
-	{
-	  char *sp = NULL;
-	  char *lang;
-	  char *terr;
-
-	  strncpy (locale, tmp, sizeof (locale) - 1);
-	  
-	  lang = strtok_r (locale, "_", &sp);
-	  terr = strtok_r (NULL, ".", &sp);
-	  output_charset = strtok_r (NULL, "@", &sp);
-
-	  if (output_charset)
-	    output_charset = xstrdup (output_charset);
-	  else
-	    output_charset = mu_charset_lookup (lang, terr);
-
-	  if (!output_charset)
-	    output_charset = "ASCII";
-	}
-    }
-  return output_charset;
-}
-
-
-/* BIDI support (will be moved to lib when it's ready) */
-#ifdef HAVE_LIBFRIBIDI
-
-static int fb_charset_num = -1;
-FriBidiChar *logical;
-char *outstring;
-size_t logical_size;
-
-void
-alloc_logical (size_t size)
-{
-  logical = xmalloc (size * sizeof (logical[0]));
-  logical_size = size;
-  outstring = xmalloc (size);
-}
-
-void
-puts_bidi (char *string)
-{
-  if (fb_charset_num == -1)
-    {
-      fb_charset_num = fribidi_parse_charset (get_charset ());
-      if (fb_charset_num && dbug)
-	mu_error (_("fribidi failed to recognize charset `%s'"),
-		  get_charset ());
-    }
-  
-  if (fb_charset_num == 0)
-    puts (string);
-  else
-    {
-      FriBidiStrIndex len;
-      FriBidiCharType base = FRIBIDI_TYPE_ON;
-      fribidi_boolean log2vis;
-      
-      static FriBidiChar *visual;
-      static size_t visual_size;
-      
-      
-      len = fribidi_charset_to_unicode (fb_charset_num,
-					string, strlen (string),
-					logical);
-
-      if (len + 1 > visual_size)
-	{
-	  visual_size = len + 1;
-	  visual = xrealloc (visual, visual_size * sizeof *visual);
-	}
-      
-      /* Create a bidi string. */
-      log2vis = fribidi_log2vis (logical, len, &base,
-				 /* output */
-				 visual, NULL, NULL, NULL);
-
-      if (log2vis)
-	{
-	  FriBidiStrIndex idx, st;
-	  FriBidiStrIndex new_len;
-	  
-	  for (idx = 0; idx < len;)
-	    {
-	      FriBidiStrIndex wid, inlen;
-	      
-	      wid = 3 * logical_size;
-	      st = idx;
-
-	      if (fb_charset_num != FRIBIDI_CHARSET_CAP_RTL)
-		{
-		  while (wid > 0 && idx < len)
-		    wid -= fribidi_wcwidth (visual[idx++]);
-		}
-	      else
-		{
-		  while (wid > 0 && idx < len)
-		    {
-		      wid--;
-		      idx++;
-		    }
-		}
-	      
-	      if (wid < 0 && idx > st + 1)
-		idx--;
-	      inlen = idx - st;
-
-	      new_len = fribidi_unicode_to_charset (fb_charset_num,
-						    visual + st, inlen,
-						    outstring);
-	      printf ("%s", outstring);
-	    }
-	  putchar ('\n');
-	}
-      else
-	{
-	  /* Print the string as is */
-	  puts (string);
-	}
-    }
-}
-#else
-# define alloc_logical(s)
-# define puts_bidi puts
-#endif
-
-
-/* Output functions */
-
-/* Number of columns in output:
-
-     Maximum     4     message number, to, from, subject   -ln
-     Default     2     from, subject                       [none]
-     Minimum     1     FIELD                               -f FIELD
-*/
-
-static int numfields;      /* Number of output fields */
-static int fieldwidth[4];  /* Field start positions */
-static char *linebuf;      /* Output line buffer */
-static size_t linemax;     /* Size of linebuf */
-static size_t linepos;     /* Position in the output line buffer */
-static int curfield;       /* Current output field */
-static int nextstart;      /* Start position of the next field */
-static int curcol;         /* Current output column */
-
-typedef void (*fmt_formatter) (const char *fmt, ...);
-
-static fmt_formatter format_field;
-
-void
-print_line ()
-{
-  if (linebuf)
-    {
-      puts_bidi (linebuf);
-      linebuf[0] = 0;
-      linepos = 0;
-      curcol = nextstart = 0;
-    }
-  else
-    putchar ('\n');
-  curfield = 0;
-}
-
-void
-format_field_simple (const char *fmt, ...)
-{
-  va_list ap;
-  if (curfield++)
-    putchar ('\t');
-  va_start (ap, fmt);
-  vprintf (fmt, ap);
-  va_end (ap);
-}
-
-void
-format_field_align (const char *fmt, ...)
-{
-  size_t n, width;
-  va_list ap;
-
-  va_start (ap, fmt);
-  if (nextstart != 0)
-    {
-      if (curcol >= nextstart)
-	{
-	  if (curfield == numfields - 1)
-	    {
-	      puts_bidi (linebuf);
-	      linepos = 0;
-	      printf ("%*s", nextstart, "");
-	    }
-	  else
-	    {
-	      linebuf[linepos++] = ' ';
-	      curcol++;
-	    }
-	}
-      else if (nextstart != curcol)
-	{
-	  /* align to field start */
-	  n = snprintf (linebuf + linepos, linemax - linepos,
-			"%*s", nextstart - curcol, "");
-	  linepos += n;
-	  curcol = nextstart;
-	}
-    }
-
-  n = vsnprintf (linebuf + linepos, linemax - linepos, fmt, ap);
-  va_end (ap);
-
-  /* Compute output width */
-  if (curfield == numfields - 1)
-    {
-      for ( ; n > 0; n--)
-	{
-	  int c = linebuf[linepos + n];
-	  linebuf[linepos + n] = 0;
-	  width = mbswidth (linebuf + linepos, 0);
-	  if (width <= fieldwidth[curfield])
-	    break;
-	  linebuf[linepos + n] = c;
-	}
-    }
-  else
-    width = mbswidth (linebuf + linepos, 0);
-
-  /* Increment counters */
-  linepos += n;
-  curcol += width;
-  nextstart += fieldwidth[curfield++];
-}
-
-void
-init_output (size_t s)
-{
-  int i;
-  size_t width = 0;
-
-  if (s == 0)
-    {
-      format_field = format_field_simple;
-      return;
-    }
-  
-  format_field = format_field_align;
-	  
-  /* Allocate the line buffer */
-  linemax = s * MB_LEN_MAX + 1;
-  linebuf = xmalloc (linemax);
-  alloc_logical (s);
-	  
-  /* Set up column widths */
-  if (show_number)
-    fieldwidth[numfields++] = 5;
-  
-  if (show_to)
-    fieldwidth[numfields++] = 20;
-  
-  if (show_field)
-    fieldwidth[numfields++] = 0;
-  else
-    {
-      fieldwidth[numfields++] = 20;
-      fieldwidth[numfields++] = 0;
-    }
-  
-  for (i = 0; i < numfields; i++)
-    width += fieldwidth[i];
-  
-  fieldwidth[numfields-1] = util_getcols () - width;
-}
-
-
-/*
-  FIXME: Generalize this function and move it
-  to `mailbox/locale.c'. Do the same with the one
-  from `from/from.c' and `mail/util.c'...
-*/
-static char *
-rfc2047_decode_wrapper (char *buf, size_t buflen)
-{
-  int rc;
-  char *tmp;
-  const char *charset = get_charset ();
-  
-  if (strcmp (charset, "ASCII") == 0)
-    return strdup (buf);
-
-  rc = rfc2047_decode (charset, buf, &tmp);
-  if (rc)
-    {
-      if (dbug)
-	mu_error (_("Cannot decode line `%s': %s"),
-		  buf, mu_strerror (rc));
-      return strdup (buf);
-    }
-
-  return tmp;
-}
-
-/* Retrieve the Personal Name from the header To: or From:  */
-static int
-get_personal (header_t hdr, const char *field, char **personal)
-{
-  char *hfield;
-  int status;
-
-  status = header_aget_value_unfold (hdr, field, &hfield);
-  if (status == 0)
-    {
-      address_t address = NULL;
-      char *s;
-      
-      address_create (&address, hfield);
-      
-      address_aget_personal (address, 1, &s);
-      address_destroy (&address);
-      if (s == NULL)
-	s = hfield;
-      else
-	free (hfield);
-
-      *personal = rfc2047_decode_wrapper (s, strlen (s));
-      free (s);
-    }
-  return status;
-}
 
 static struct
 {
-  size_t index;
   size_t new;
   size_t read;
   size_t unread;
 } counter;
 
-/* Observable action is being called on discovery of each message. */
-/* FIXME: The format of the display is poorly done, please correct.  */
+
+static int selected;
+
 static int
-action (observer_t o, size_t type)
+frm_select (size_t index, message_t msg)
 {
-  int status;
+  header_t hdr = NULL;
+  attribute_t attr = NULL;
+  
+  message_get_attribute (msg, &attr);
+  message_get_header (msg, &hdr);
 
-  switch (type)
-    {
-    case MU_EVT_MESSAGE_ADD:
-      {
-	mailbox_t mbox = observer_get_owner (o);
-	message_t msg = NULL;
-	header_t hdr = NULL;
-	attribute_t attr = NULL;
+  if (attribute_is_read (attr))
+    counter.read++;
+  else if (attribute_is_seen (attr))
+    counter.unread++;
+  else if (attribute_is_recent (attr))
+    counter.new++;
 
-	counter.index++;
+  if (((select_attribute & IS_READ) && (!attribute_is_read (attr)))
+      || ((select_attribute & IS_NEW) && (!attribute_is_recent (attr)))
+      || ((select_attribute & IS_OLD) && (!attribute_is_seen (attr))))
+    return 0;
+  
+  if (select_attribute)
+    selected++;
 
-	mailbox_get_message (mbox, counter.index, &msg);
-
-	message_get_attribute (msg, &attr);
-	message_get_header (msg, &hdr);
-
-	if (attribute_is_read (attr))
-	  counter.read++;
-	else if (attribute_is_seen (attr))
-	  counter.unread++;
-	else if (attribute_is_recent (attr))
-	  counter.new++;
-	
-	if (((select_attribute & IS_READ) && (!attribute_is_read (attr)))
-	    || ((select_attribute & IS_NEW) && (!attribute_is_recent (attr)))
-	    || ((select_attribute & IS_OLD) && (!attribute_is_seen (attr))))
-	  break;
-
-	if (select_attribute)
-	  selected = 1;
-
-	if (be_quiet)
-	  break;
-	
-	if (show_number)
-	  format_field ("%4lu:", (u_long) counter.index);
-
-	if (show_to)
-	  {
-	    char *hto;
-	    status = get_personal (hdr, MU_HEADER_TO, &hto);
-
-	    if (status == 0)
-	      {
-		format_field ("(%s)", hto);
-		free (hto);
-	      }
-	    else
-	      format_field ("(none)");
-	  }
-
-	if (show_field) /* FIXME: This should be also rfc2047_decode. */
-	  {
-	    char *hfield;
-	    status = header_aget_value_unfold (hdr, show_field, &hfield);
-	    if (status == 0)
-	      {
-		format_field ("%s", hfield);
-		free (hfield);
-	      }
-	    else
-	      format_field ("");
-	  }
-	else
-	  {
-	    char *tmp;
-	    status = get_personal (hdr, MU_HEADER_FROM, &tmp);
-	    if (status == 0)
-	      {
-		format_field ("%s", tmp);
-		free (tmp);
-	      }
-	    else
-	      format_field ("");
-
-	    status = header_aget_value_unfold (hdr, MU_HEADER_SUBJECT,
-					       &tmp);
-	    if (status == 0)
-	      {
-		char *s = rfc2047_decode_wrapper (tmp, strlen (tmp));
-		format_field ("%s", s);
-		free (s);
-		free (tmp);
-	      }
-	  }
-	print_line ();
-	break;
-      }
-
-    case MU_EVT_MAILBOX_PROGRESS:
-      /* Noop.  */
-      break;
-    }
-  return 0;
+  return !be_quiet;
 }
 
-static void
-frm_abort (mailbox_t *mbox)
-{
-  int status;
-  
-  if ((status = mailbox_close (*mbox)) != 0)
-    {
-      url_t url;
-      
-      mu_error (_("Could not close <%s>: %s."),
-		url_to_string (url), mu_strerror (status));
-      exit (3);
-    }
-  
-  mailbox_destroy (mbox);
-  exit (3);
-}
 
 /* This is a clone of the elm program call "frm".  It is a good example on
    how to use the observable(callback) of libmailbox.  "frm" has to
@@ -800,69 +272,11 @@ frm_abort (mailbox_t *mbox)
 int
 frm (char *mailbox_name)
 {
+  size_t total;
   int status;
-  mailbox_t mbox;
-  url_t url = NULL;
-  size_t total = 0;
 
-  status = mailbox_create_default (&mbox, mailbox_name);
-  if (status != 0)
-    {
-      mu_error (_("Could not create mailbox <%s>: %s."),
-		mailbox_name ? mailbox_name : _("default"),
-		mu_strerror (status));
-      exit (3);
-    }
-
-  if (dbug)
-    {
-      mu_debug_t debug;
-      mailbox_get_debug (mbox, &debug);
-      mu_debug_set_level (debug, MU_DEBUG_TRACE|MU_DEBUG_PROT);
-    }
-
-  mailbox_get_url (mbox, &url);
-
-  status = mailbox_open (mbox, MU_STREAM_READ);
-  if (status == ENOENT)
-    /* nothing to do */;
-  else if (status != 0)
-    {
-      mu_error (_("Could not open mailbox <%s>: %s."),
-		url_to_string (url), mu_strerror (status));
-      frm_abort (&mbox);
-    }
-  else
-    {
-      observer_t observer;
-      observable_t observable;
-      
-      observer_create (&observer, mbox);
-      observer_set_action (observer, action, mbox);
-      mailbox_get_observable (mbox, &observable);
-      observable_attach (observable, MU_EVT_MESSAGE_ADD, observer);
-
-      memset (&counter, 0, sizeof counter);
-      
-      status = mailbox_scan (mbox, 1, &total);
-      if (status != 0)
-	{
-	  mu_error (_("Could not scan mailbox <%s>: %s."),
-		    url_to_string (url), mu_strerror (status));
-	  frm_abort (&mbox);
-	}
-      
-      observable_detach (observable, observer);
-      observer_destroy (&observer, mbox);
-      
-      if ((status = mailbox_close (mbox)) != 0)
-	{
-	  mu_error (_("Could not close <%s>: %s."),
-		    url_to_string (url), mu_strerror (status));
-	  exit (3);
-	}
-    }
-  mailbox_destroy (&mbox);
+  selected = 0;
+  frm_scan (mailbox_name, frm_select, &total);
   
   if (show_summary)
     {
