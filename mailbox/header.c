@@ -24,6 +24,7 @@
 #include <io0.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <errno.h>
 
 static int header_parse (header_t h, char *blurb, int len);
@@ -113,11 +114,14 @@ header_parse (header_t header, char *blurb, int len)
     return 0;
 
   header->blurb_len = len;
-  header->blurb = calloc (1, header->blurb_len + 1);
+  header->blurb = calloc (header->blurb_len + 1, 1);
   if (header->blurb == NULL)
     return ENOMEM;
   memcpy (header->blurb, blurb, header->blurb_len);
 
+  free (header->hdr);
+  header->hdr = NULL;
+  header->hdr_count = 0;
   for (header_start = header->blurb;; header_start = ++header_end)
     {
       char *fn, *fn_end, *fv, *fv_end;
@@ -195,27 +199,68 @@ header_parse (header_t header, char *blurb, int len)
       header->hdr_count++;
     } /* for (header_start ...) */
 
-#if 0
-  header->blurb_len -= len;
-  if (header->blurb_len <= 0)
-    {
-      free (header->blurb);
-      free (header->hdr);
-      return EINVAL;
-    }
-  /* always add the separtor LF */
-  header->blurb [header->blurb_len] = '\n';
-  header->blurb_len++;
-#endif
-  return 0;
+ return 0;
 }
 
+/* FIXME: grossly inneficient, to many copies and reallocating
+ * This all header business need a good rewrite.
+ */
 int
-header_set_value (header_t h, const char *fn, const char *fv,
-		  size_t n, int replace)
+header_set_value (header_t header, const char *fn, const char *fv, int replace)
 {
-  (void)h; (void)fn; (void)fv; (void)n; (void)replace;
-  return ENOSYS;
+  char *blurb;
+  size_t len;
+
+  if (header == NULL || fn == NULL || fv == NULL)
+    return EINVAL;
+
+  /* Easy approach: if replace, overwrite the field-{namve,value}
+   * and readjust the pointers by calling header_parse ()
+   * this is wastefull and bad, we're just fragmenting the memory
+   * it can be done better.  But that may imply a rewite of the headers
+   * So for another day.
+   */
+  {
+    size_t name_len;
+    size_t i;
+    size_t fn_len;
+    size_t fv_len;
+    len = header->blurb_len;
+    for (name_len = strlen (fn), i = 0; i < header->hdr_count; i++)
+      {
+	fn_len = header->hdr[i].fn_end - header->hdr[i].fn;
+	fv_len = header->hdr[i].fv_end - header->hdr[i].fv;
+	if (fn_len == name_len &&
+	    strncasecmp (header->hdr[i].fn, fn, fn_len) == 0)
+	  {
+	    if (replace)
+	      {
+		blurb = header->blurb;
+		memmove (header->hdr[i].fn, header->hdr[i + 1].fn,
+			 header->hdr[header->hdr_count - 1].fv_end
+			 - header->hdr[i + 1].fn + 1 + 1);
+		/* readjust the pointers if move */
+		len -= fn_len + fv_len + 2;
+		i--;
+		blurb = header->blurb;
+		header_parse (header, blurb, len);
+		free (blurb);
+	      }
+	  }
+      }
+  }
+
+  /* and it's getting worse, we free/malloc at will */
+  len = strlen (fn) + strlen (fv) + 1 + 1 + 1 + 1;
+  blurb = calloc (header->blurb_len + len, 1);
+  if (blurb == NULL)
+    return ENOMEM;
+  sprintf (blurb, "%s: %s\n", fn, fv);
+  memcpy (blurb + len - 1, header->blurb, header->blurb_len);
+  free (header->blurb);
+  header_parse (header, blurb, len + header->blurb_len);
+  free (blurb);
+  return 0;
 }
 
 int

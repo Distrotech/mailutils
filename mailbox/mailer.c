@@ -35,7 +35,8 @@ int 	_mailer_sock_connect(char *host, int port);
 char	*_mailer_find_mailbox(char *addr);
 int 	_mailer_send_command(mailer_t ml, message_t msg, int cmd);
 char 	*nb_fgets(char *buf, int size, int s);
-char 	*nb_fprintf(int s, char *format, ...);
+const char 	*nb_fprintf(int s, const char *format, ...);
+static int _mailer_rctp(mailer_t ml, char *str);
 
 #define nb_read		read
 #define nb_write 	write
@@ -76,15 +77,15 @@ mailer_destroy(mailer_t *pml)
 	return (0);
 }
 
-int 
-mailer_connect(mailer_t ml, char *host) 
+int
+mailer_connect(mailer_t ml, char *host)
 {
 	if (!ml || !host)
 		return (EINVAL);
 
 	if ((ml->socket = _mailer_sock_connect(host, 25)) < 0)
 		return (-1);
-	do 	
+	do
 	{
 		nb_fgets(ml->line_buf, MAILER_LINE_BUF_SIZE, ml->socket); /* read header line */
 	} while ( strlen(ml->line_buf) > 4 && *(ml->line_buf+3) == '-');
@@ -92,8 +93,8 @@ mailer_connect(mailer_t ml, char *host)
 	return (0);
 }
 
-int 
-mailer_disconnect(mailer_t ml) 
+int
+mailer_disconnect(mailer_t ml)
 {
 	if (!ml || (ml->socket != -1))
 		return (EINVAL);
@@ -102,7 +103,7 @@ mailer_disconnect(mailer_t ml)
 	return (0);
 }
 
-int 
+int
 mailer_send_header(mailer_t ml, message_t msg)
 {
 	header_t 	hdr;
@@ -138,7 +139,8 @@ mailer_send_header(mailer_t ml, message_t msg)
 int
 mailer_send_message(mailer_t ml, message_t msg)
 {
-	int 	status, len = 0, data_len = 0, consumed = 0;
+	int 	status, data_len = 0;
+	size_t consumed = 0, len = 0;
 	char 	*data, *p, *q;
 
 	if (!ml || !msg || (ml->socket == -1))
@@ -227,13 +229,13 @@ _mailer_find_mailbox(char *addr)
 {
     char *p, *c;
     p = addr;
-    if ( (c = strchr( p, '<')) != 0) 
+    if ( (c = strchr( p, '<')) != 0)
     {
         p = c+1;
-        if ( c = strchr( p, '>'))
+        if ( (c = strchr( p, '>')) )
             *c = '\0';
     }
-    else if ( (c = strchr( p, '(' )) != 0 ) 
+    else if ( (c = strchr( p, '(' )) != 0 )
     {
         --c;
         while ( c > p && *c && isspace( *c ) ) {
@@ -244,14 +246,14 @@ _mailer_find_mailbox(char *addr)
     return p;
 }
 
-int
+static int
 _mailer_rctp(mailer_t ml, char *str)
 {
 	char 		*p, *c = NULL, *q = NULL;
 
 	for (q = p = str; q && *p; p = q+1)
 	{
-		if ( q = strchr( p, ','))
+		if ( (q = strchr( p, ',')) )
 			*q = '\0';
 		while ( p && *p && isspace( *p ) )
 			p++;
@@ -270,10 +272,10 @@ int
 _mailer_send_command(mailer_t ml, message_t msg, int cmd)
 {
 	header_t	hdr;
-	char 		*p, *c = NULL, *q = NULL;
+	char 		*p;
 	char		str[128];
 	size_t		str_len;
-	char		*success = "250";
+	const char		*success = "250";
 
 	switch (cmd)
 	{
@@ -320,7 +322,7 @@ _mailer_send_command(mailer_t ml, message_t msg, int cmd)
 }
 
 char *
-nb_fgets( char *buf, int size, int s ) 
+nb_fgets( char *buf, int size, int s )
 {
 	static char *buffer[25];
 	char *p, *b, *d;
@@ -331,9 +333,9 @@ nb_fgets( char *buf, int size, int s )
 		return 0;
 	bytes = i = strlen( p = b = buffer[s] );
 	*( d = buf ) = '\0';
-	for ( ; i-- > 0; p++ ) 
+	for ( ; i-- > 0; p++ )
 		{
-		if ( *p == '\n' ) 
+		if ( *p == '\n' )
 			{
 			char c = *( p+1 );
 
@@ -346,19 +348,19 @@ nb_fgets( char *buf, int size, int s )
 		}
 	flags = fcntl( s, F_GETFL );
 	fcntl( s, F_SETFL, O_NONBLOCK );
-	while ( bytes <= size ) 
+	while ( bytes <= size )
 		{
 		fd_set fds;
 
 		FD_ZERO( &fds );
 		FD_SET( s, &fds );
 		select( s+1, &fds, 0, 0, 0 ); /* we really don't care what it returns */
-		if ( ( i = nb_read( s, p, BUFFSIZE - bytes ) ) == -1 ) 
+		if ( ( i = nb_read( s, p, BUFFSIZE - bytes ) ) == -1 )
 			{
 			*b = '\0';
 			return 0;
-			} 
-		else if ( i == 0 ) 
+			}
+		else if ( i == 0 )
 			{
 			*( p+1 ) = '\0';
 			strcat( d, b );
@@ -368,9 +370,9 @@ nb_fgets( char *buf, int size, int s )
 			}
 		*( p+i ) = '\0';
 		bytes += i;
-		for ( ; i-- > 0; p++ ) 
+		for ( ; i-- > 0; p++ )
 			{
-			if ( *p == '\n' ) 
+			if ( *p == '\n' )
 				{
 				char c = *( p+1 );
 
@@ -382,7 +384,7 @@ nb_fgets( char *buf, int size, int s )
 				return buf;
 				}
 			}
-		if ( bytes == BUFFSIZE ) 
+		if ( bytes == BUFFSIZE )
 			{
 			memcpy( d, b, BUFFSIZE );
 			d += BUFFSIZE;
@@ -397,8 +399,8 @@ nb_fgets( char *buf, int size, int s )
 	return buf;
 }
 
-char *
-nb_fprintf( int s, char *format, ... ) 
+const char *
+nb_fprintf( int s, const char *format, ... )
 {
 	char buf[MAILER_LINE_BUF_SIZE];
 	va_list vl;

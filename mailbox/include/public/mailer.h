@@ -38,6 +38,7 @@ struct _mailer;
 typedef struct _mailer *mailer_t;
 
 extern int mailer_create			__P ((mailer_t *, message_t));
+extern int mailer_destroy			__P ((mailer_t *));
 extern int mailer_connect		__P ((mailer_t, char *host));
 extern int mailer_disconnect	__P ((mailer_t));
 extern int mailer_send_header	__P ((mailer_t, message_t));

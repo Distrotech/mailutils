@@ -25,6 +25,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <unistd.h>
 
 #include <io0.h>
 #include <tcp.h>
@@ -126,10 +127,10 @@ static int _tcp_get_fd(stream_t stream, int *fd)
 static int _tcp_read(stream_t stream, char *buf, size_t buf_size, off_t offset, size_t *br)
 {
 	struct _tcp_instance *tcp = stream->owner;
-	int 	bytes;	
-	
+	int 	bytes;
+
 	offset = offset;
-	if ( br == NULL )	
+	if ( br == NULL )
 		return EINVAL;
 	*br = 0;
 	if ( ( bytes = recv(tcp->fd, buf, buf_size, 0) ) == -1 ) {
@@ -143,10 +144,10 @@ static int _tcp_read(stream_t stream, char *buf, size_t buf_size, off_t offset, 
 static int _tcp_write(stream_t stream, const char *buf, size_t buf_size, off_t offset, size_t *bw)
 {
 	struct _tcp_instance *tcp = stream->owner;
-	int 	bytes;	
-	
+	int 	bytes;
+
 	offset = offset;
-	if ( bw == NULL )	
+	if ( bw == NULL )
 		return EINVAL;
 	*bw = 0;
 	if ( ( bytes = send(tcp->fd, buf, buf_size, 0) ) == -1 ) {

@@ -74,9 +74,9 @@ static int _mime_append_part(mime_t mime, message_t msg, int body_offset, int bo
 		mime->header_length = 0;
 		if ( ( ret = header_get_value(mime_part->hdr, "Content-Type", NULL, 0, &size) ) != 0 || size == 0 ) {
 			if ( _mime_is_multipart_digest(mime) )
-				header_set_value(mime_part->hdr, "Content-Type", "message/rfc822", 0, 0);
+				header_set_value(mime_part->hdr, "Content-Type", "message/rfc822", 0);
 			else
-				header_set_value(mime_part->hdr, "Content-Type", "text/plain", 0, 0);
+				header_set_value(mime_part->hdr, "Content-Type", "text/plain", 0);
 		}
 	}
 	mime_part->body_len = body_len;

@@ -770,37 +770,6 @@ mailbox_unix_expunge (mailbox_t mbox)
     goto bailout;
   stream_flush (mbox->stream);
 
-  /* we need to readjust the pointers */
-  {
-    size_t dlast;
-    for (j = dirty, dlast = mud->messages_count - 1;
-	 j < mud->messages_count; j++)
-      {
-	/* clear all the references,
-	 * any attach messages been already destroy above
-	 */
-	mum = mud->umessages[j];
-	if (mum->new_attr && attribute_is_deleted (mum->new_attr))
-	  {
-	    memmove (mud->umessages + j, mud->umessages + j + 1,
-		     (dlast - dirty) * sizeof (mum));
-	    mum->header_from = mum->header_from_end = 0;
-	    mum->header_status = mum->header_status_end = 0;
-	    mum->body = mum->body_end = 0;
-	    mum->header_lines = mum->body_lines = 0;
-	    attribute_destroy (&(mum->new_attr));
-	    mud->umessages[dlast] = mum;
-	    dlast--;
-	    mum = mud->umessages[j];
-	  }
-	mum->header_from = mum->header_from_end = 0;
-	mum->header_status = mum->header_status_end = 0;
-	mum->body = mum->body_end = 0;
-	mum->header_lines = mum->body_lines = 0;
-      }
-    mailbox_unix_scan0 (mbox, dirty, NULL, 0);
-  }
-
   /* Don't remove the tmp mbox in case of errors */
   remove (tmpmbox);
 
@@ -813,6 +782,37 @@ mailbox_unix_expunge (mailbox_t mbox)
   fclose (tempfile);
   sigprocmask (SIG_UNBLOCK, &sigset, 0);
 
+  /* we need to readjust the pointers */
+  if (status == 0)
+    {
+      size_t dlast;
+      for (j = dirty, dlast = mud->messages_count - 1;
+	   j < mud->messages_count; j++)
+	{
+	  /* clear all the references,
+	   * any attach messages been already destroy above
+	   */
+	  mum = mud->umessages[j];
+	  if (mum->new_attr && attribute_is_deleted (mum->new_attr))
+	    {
+	      memmove (mud->umessages + j, mud->umessages + j + 1,
+		       (dlast - dirty) * sizeof (mum));
+	      mum->header_from = mum->header_from_end = 0;
+	      mum->header_status = mum->header_status_end = 0;
+	      mum->body = mum->body_end = 0;
+	      mum->header_lines = mum->body_lines = 0;
+	      attribute_destroy (&(mum->new_attr));
+	      mud->umessages[dlast] = mum;
+	      dlast--;
+	      mum = mud->umessages[j];
+	    }
+	  mum->header_from = mum->header_from_end = 0;
+	  mum->header_status = mum->header_status_end = 0;
+	  mum->body = mum->body_end = 0;
+	  mum->header_lines = mum->body_lines = 0;
+	}
+      mailbox_unix_scan0 (mbox, dirty, NULL, 0);
+    }
   return status;
 }
 
