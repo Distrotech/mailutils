@@ -393,8 +393,9 @@ comptag: IS			 { $$ = IS; }
 				   $$ = REGEX; }
 	;
 
-sizetag: OVER			 { $$ = OVER; }
+sizetag : OVER			 { $$ = OVER; }
 	| UNDER			 { $$ = UNDER; }
+        ;
 
 testlist: '(' tests ')'		 { $$ = $2; }
 	;
