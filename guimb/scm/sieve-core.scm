@@ -17,6 +17,8 @@
 
 ;;;; This module provides core functionality for the sieve scripts.
 
+(define sieve-my-email "")
+
 ;;; List of open mailboxes.
 ;;; Each entry is: (list MAILBOX-NAME OPEN-FLAGS MBOX)
 (define sieve-mailbox-list '())
@@ -48,6 +50,44 @@
    sieve-mailbox-list)
   (set! sieve-mailbox-list '()))
 
+(use-modules (ice-9 popen))
+
+(define PATH-SENDMAIL "/usr/lib/sendmail")
+
+;;; Bounce a message.
+;;; Current mailutils API does not provide a way to send a message
+;;; specifying its recipients (like "sendmail -t foo@bar.org" does),
+;;; hence the need for this function.
+(define (sieve-message-bounce message addr-list)
+  (catch #t
+	 (lambda ()
+	   (let ((port (open-output-pipe
+			(apply string-append
+			       (append
+				(list
+				 PATH-SENDMAIL
+				 " -oi -t ")
+				(map
+				 (lambda (addr)
+				   (string-append addr " "))
+				 addr-list))))))
+	     ;; Write headers
+	     (for-each
+	      (lambda (hdr)
+		(display (string-append (car hdr) ": " (cdr hdr)) port)
+		(newline port))
+	      (mu-message-get-header-fields message))
+	     (newline port)
+	     ;; Write body
+	     (let ((body (mu-message-get-body message)))
+	       (do ((line (mu-body-read-line body) (mu-body-read-line body)))
+		   ((eof-object? line) #f)
+		   (display line port)))
+	     (close-output-port port)))
+	 (lambda args
+	   (runtime-error LOG_ERR "redirect: Can't send message")
+	   (write args))))
+
 ;;; Comparators
 (cond
  (sieve-parser
@@ -61,47 +101,7 @@
 
 ;;; Basic five actions:
 
-;;; reject
-
-(define sieve-option-quote #t)
-(define sieve-indent-prefix "\t")
-
-(define (action-reject reason)
-  (let* ((out-msg (mu-message-create))
-	 (out-port (mu-message-get-port out-msg "w"))
-	 (in-port (mu-message-get-port sieve-current-message "r")))
-    (mu-message-set-header out-msg "To"
-			   (mu-message-get-header sieve-current-message
-						  "From"))
-    (mu-message-set-header out-msg "Cc"
-			   (mu-message-get-header sieve-current-message "Cc"))
-    (mu-message-set-header out-msg "Subject"
-			   (string-append
-			    "Re: "
-			    (mu-message-get-header sieve-current-message
-						   "Subject")))
-    (display reason out-port)
-
-    (cond
-     (sieve-option-quote
-      (display "\n\nThe rejected message follows:\n" out-port)
-      (do ((hdr (mu-message-get-header-fields sieve-current-message)
-		(cdr hdr)))
-	  ((null? hdr) #f)
-	(let ((s (car hdr)))
-	  (display (string-append
-		    sieve-indent-prefix
-		    (car s) ": " (cdr s) "\n") out-port)))
-      (display sieve-indent-prefix out-port)
-      (newline out-port)
-      (do ((line (read-line in-port) (read-line in-port)))
-	  ((eof-object? line) #f)
-	(display (string-append sieve-indent-prefix line "\n") out-port))))
-    (close-input-port in-port)
-    (close-output-port out-port)
-	
-    (mu-message-send out-msg))
-  (mu-message-delete sieve-current-message))
+;;; reject is defined in reject.scm
 
 ;;; fileinto
 
@@ -129,9 +129,7 @@
  (sieve-parser
   (sieve-register-action "keep" action-keep)
   (sieve-register-action "discard" action-discard)
-  (sieve-register-action "reject" action-reject 'string)
   (sieve-register-action "fileinto" action-fileinto 'string)))
-
 
 ;;; Some utilities.
 
