@@ -79,6 +79,7 @@ enum pop_state
   POP_NO_STATE, POP_STATE_DONE,
   POP_OPEN_CONNECTION,
   POP_GREETINGS,
+  POP_CAPA, POP_CAPA_ACK,
   POP_APOP, POP_APOP_ACK,
   POP_DELE, POP_DELE_ACK,
   POP_LIST, POP_LIST_ACK, POP_LIST_RX,
@@ -87,12 +88,26 @@ enum pop_state
   POP_RETR, POP_RETR_ACK, POP_RETR_RX_HDR, POP_RETR_RX_BODY,
   POP_RSET, POP_RSET_ACK,
   POP_STAT, POP_STAT_ACK,
+  POP_STLS, POP_STLS_ACK,
   POP_TOP,  POP_TOP_ACK,  POP_TOP_RX,
   POP_UIDL, POP_UIDL_ACK,
   POP_AUTH, POP_AUTH_DONE,
   POP_AUTH_USER, POP_AUTH_USER_ACK,
   POP_AUTH_PASS, POP_AUTH_PASS_ACK
 };
+
+/*  POP3 capabilities  */
+#define CAPA_TOP             0x00000001
+#define CAPA_USER            0x00000002
+#define CAPA_UIDL            0x00000004
+#define CAPA_RESP_CODES      0x00000008
+#define CAPA_LOGIN_DELAY     0x00000010
+#define CAPA_PIPELINING      0x00000020
+#define CAPA_EXPIRE          0x00000040
+#define CAPA_SASL            0x00000080
+#define CAPA_STLS            0x00000100
+#define CAPA_IMPLEMENTATION  0x00000200
+static unsigned long capa;
 
 static void pop_destroy        __P ((mailbox_t));
 
@@ -540,9 +555,7 @@ _pop_apop (authority_t auth)
 }
 
 
-/* Open the connection to the sever, and send the authentication.
-   FIXME: Should also send the CAPA command to detect for example the suport
-   for TOP, APOP, ... and DTRT(Do The Right Thing).  */
+/* Open the connection to the sever, and send the authentication. */
 static int
 pop_open (mailbox_t mbox, int flags)
 {
@@ -633,8 +646,59 @@ pop_open (mailbox_t mbox, int flags)
 	  {
 	    CHECK_ERROR_CLOSE (mbox, mpd, EACCES);
 	  }
-	mpd->state = POP_AUTH;
+	status = pop_writeline (mpd, "CAPA\r\n");
+	CHECK_ERROR (mpd, status);
+	MAILBOX_DEBUG0 (mbox, MU_DEBUG_PROT, mpd->buffer);
+	mpd->state = POP_CAPA;
       }
+
+    case POP_CAPA:
+      status = pop_write (mpd);
+      CHECK_EAGAIN (mpd, status);
+      mpd->state = POP_CAPA_ACK;
+
+    case POP_CAPA_ACK:
+      status = pop_read_ack (mpd);
+      CHECK_EAGAIN (mpd, status);
+      MAILBOX_DEBUG0 (mbox, MU_DEBUG_PROT, mpd->buffer);
+
+      if (!strncasecmp (mpd->buffer, "+OK", 3))
+	{
+	  capa = 0;
+          do
+            {
+	      status = pop_read_ack (mpd);
+	      MAILBOX_DEBUG0 (mbox, MU_DEBUG_PROT, mpd->buffer);
+
+	      /* Here we check some common capabilities like TOP, USER, UIDL,
+		 and STLS. The rest are ignored. Please note that some
+		 capabilities might have an extra arguments. For instance,
+		 SASL can have CRAM-MD5 and/or KERBEROS_V4, and etc.
+		 This is why I suggest adding (in a future) an extra variable,
+		 for example `capa_sasl'. It would hold the following flags:
+		 SASL_CRAM_MD5, SASL_KERBEROS_V4, and so on. Also the EXPIRE
+		 and LOGIN-DELAY capabilities have an extra arguments!
+		 Note that there is no APOP capability, even though APOP
+		 is an optional command in POP3. -- W.P. */
+
+	      if (!strncasecmp (mpd->buffer, "TOP", 3))
+		capa |= CAPA_TOP;
+	      else if (!strncasecmp (mpd->buffer, "USER", 4))
+		capa |= CAPA_USER;
+	      else if (!strncasecmp (mpd->buffer, "UIDL", 4))
+		capa |= CAPA_UIDL;
+	      else if (!strncasecmp (mpd->buffer, "STLS", 4))
+		capa |= CAPA_STLS;
+	    }
+	  while (mpd->nl);
+	}
+      /* else
+        mu_error ("CAPA not implemented\n"); */ /* FIXME */
+
+    case POP_STLS:
+    case POP_STLS_ACK:
+
+      mpd->state = POP_AUTH;
 
     case POP_AUTH:
     case POP_AUTH_USER:
@@ -1317,7 +1381,7 @@ pop_uid (message_t msg,  size_t *puid)
 
 /* Get the UIDL.  Client should be prepare since it may fail.  UIDL is
    optional on many POP servers.
-   FIXME:  We should check this with CAPA and fall back to a md5 scheme ?
+   FIXME:  We should check the "capa & CAPA_UIDL" and fall back to a md5 scheme ?
    Or maybe check for "X-UIDL" a la Qpopper ?  */
 static int
 pop_uidl (message_t msg, char *buffer, size_t buflen, size_t *pnwriten)
@@ -1419,7 +1483,7 @@ pop_uidl (message_t msg, char *buffer, size_t buflen, size_t *pnwriten)
 }
 
 /* How we retrieve the headers.  If it fails we jump to the pop_retr()
-   code .i.e send a RETR and skip the body, ugly.
+   code i.e. send a RETR and skip the body, ugly.
    NOTE: if the offset is different, flag an error, offset is meaningless
    on a socket but we better warn them, some stuff like mime_t may try to
    read ahead, for example for the headers.  */
@@ -1454,13 +1518,20 @@ pop_top (header_t header, char *buffer, size_t buflen,
   switch (mpd->state)
     {
     case POP_NO_STATE:
-      /* TOP is an optionnal command, if we want to be compliant we can not
-	 count on it to exists. So we should be prepare when it fails and
-	 fall to a second scheme.  */
-      status = pop_writeline (mpd, "TOP %d 0\r\n", mpm->num);
-      CHECK_ERROR (mpd, status);
-      MAILBOX_DEBUG0 (mpd->mbox, MU_DEBUG_PROT, mpd->buffer);
-      mpd->state = POP_TOP;
+      if (capa & CAPA_TOP)
+        {
+	  status = pop_writeline (mpd, "TOP %d 0\r\n", mpm->num);
+	  CHECK_ERROR (mpd, status);
+	  MAILBOX_DEBUG0 (mpd->mbox, MU_DEBUG_PROT, mpd->buffer);
+	  mpd->state = POP_TOP;
+	}
+      else /* Fall back to RETR call.  */
+        {
+	  mpd->state = POP_NO_STATE;
+	  mpm->skip_header = 0;
+	  mpm->skip_body = 1;
+	  return pop_retr (mpm, buffer, buflen, offset, pnread);
+        }
 
     case POP_TOP:
       /* Send the TOP.  */
@@ -1473,15 +1544,8 @@ pop_top (header_t header, char *buffer, size_t buflen,
       status = pop_read_ack (mpd);
       CHECK_EAGAIN (mpd, status);
       MAILBOX_DEBUG0 (mpd->mbox, MU_DEBUG_PROT, mpd->buffer);
-      if (strncasecmp (mpd->buffer, "+OK", 3) != 0)
-	{
-	  /* mu_error ("TOP not implemented\n"); */
-	  /* Fall back to RETR call.  */
-	  mpd->state = POP_NO_STATE;
-	  mpm->skip_header = 0;
-	  mpm->skip_body = 1;
-	  return pop_retr (mpm, buffer, buflen, offset, pnread);
-	}
+      /* if (strncasecmp (mpd->buffer, "+OK", 3) != 0)
+	   mu_error ("TOP not implemented\n"); */ /* FIXME */
       mpd->state = POP_TOP_RX;
 
     case POP_TOP_RX:
