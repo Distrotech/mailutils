@@ -35,7 +35,7 @@ munre_set_regex (char *str, int caseflag, char **errp)
   int rc;
   int flags = REG_EXTENDED;
 
-  if (!errp)
+  if (errp)
     *errp = NULL;
 
   if (!str)
