@@ -47,7 +47,8 @@ main (int argc, char **argv)
   port = 110;			/* Default POP3 port.  */
   timeout = 0;			/* Default timeout of 0.  */
 
-  while ((c = getopt_long (argc, argv, short_options, long_options, NULL)) && c != -1)
+  while ((c = getopt_long (argc, argv, short_options, long_options, NULL))
+	 != -1)
     {
       switch (c)
 	{

@@ -44,8 +44,9 @@ pop3_apopuser (const char *user)
       }
 
 #ifdef BDB2
-  if ((errno = db_open (APOP_PASSFILE ".db", DB_HASH, DB_RDONLY, 0600,
-			NULL, NULL, &dbp)) != 0)
+  errno = db_open (APOP_PASSFILE ".db", DB_HASH, DB_RDONLY, 0600, NULL,
+		   NULL, &dbp);
+  if (errno != 0)
     {
       syslog (LOG_ERR, "Unable to open APOP database: %s", strerror (errno));
       return NULL;
@@ -57,14 +58,16 @@ pop3_apopuser (const char *user)
   strncpy (buf, user, sizeof (buf));
   key.data = buf;
   key.size = strlen (user);
-  if ((errno = dbp->get (dbp, NULL, &key, &data, 0)) != 0)
+  errno = dbp->get (dbp, NULL, &key, &data, 0);
+  if (errno != 0)
     {
       syslog (LOG_ERR, "db_get error: %s", strerror (errno));
       dbp->close (dbp, 0);
       return NULL;
     }
 
-  if ((password = malloc (sizeof (char) * data.size)) == NULL)
+  password = malloc (sizeof (char) * data.size);
+  if (password == NULL)
     {
       dbp->close (dbp, 0);
       return NULL;
@@ -74,13 +77,15 @@ pop3_apopuser (const char *user)
   dbp->close (dbp, 0);
   return password;
 #else /* !BDBD2 */
-  if ((apop_file = fopen (APOP_PASSFILE ".passwd", "r")) == NULL)
+  apop_file = fopen (APOP_PASSFILE ".passwd", "r");
+  if (apop_file == NULL)
     {
       syslog (LOG_INFO, "Unable to open APOP password file");
       return NULL;
     }
 
-  if ((password = malloc (sizeof (char) * APOP_DIGEST)) == NULL)
+  password = malloc (sizeof (char) * APOP_DIGEST);
+  if (password == NULL)
     {
       fclose (apop_file);
       pop3_abquit (ERR_NO_MEM);
@@ -89,7 +94,9 @@ pop3_apopuser (const char *user)
 
   while (fgets (buf, sizeof (buf) - 1, apop_file) != NULL)
     {
-      tmp = index (buf, ':');
+      tmp = strchr (buf, ':');
+      if (tmp == NULL)
+	continue;
       *tmp = '\0';
       tmp++;
 
@@ -97,8 +104,9 @@ pop3_apopuser (const char *user)
 	continue;
 
       strncpy (password, tmp, strlen (tmp));
-      tmp = index (password, '\n');
-      *tmp = '\0';
+      tmp = strchr (password, '\n');
+      if (tmp)
+	*tmp = '\0';
       break;
     }
 
@@ -130,9 +138,12 @@ pop3_apop (const char *arg)
     return ERR_BAD_ARGS;
 
   username = pop3_cmd (arg);
-  user_digest = pop3_args (arg);
   if (strlen (username) > (POP_MAXCMDLEN - APOP_DIGEST))
-    return ERR_BAD_ARGS;
+    {
+      free (username);
+      return ERR_BAD_ARGS;
+    }
+  user_digest = pop3_args (arg);
 
   password = pop3_apopuser (username);
   if (password == NULL)

@@ -171,7 +171,7 @@ pop3_user (const char *arg)
 	  state = AUTHORIZATION;
 	  return ERR_UNKNOWN;
 	}
-      else if (mailbox_open (mbox, 0) != 0)
+      else if (mailbox_open (mbox, MU_STREAM_RDWR) != 0)
 	{
 	  state = AUTHORIZATION;
 	  return ERR_MBOX_LOCK;
