@@ -2,7 +2,7 @@
 
 AUTOMAKE_OPTIONS = ../lib/ansi2knr
 
-INCLUDES = -I${top_srcdir}/include -I${top_srcdir}/mailbox/include -I${srcdir}/lib
+INCLUDES = -I${top_srcdir}/include -I${top_srcdir}/mailbox/include -I${top_srcdir}/lib
 CFLAGS = -Wall -pedantic -g -DTESTING
 
 SUBDIRS = include
