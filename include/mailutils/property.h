@@ -35,19 +35,14 @@ extern "C" {
 struct _property;
 typedef struct _property *property_t;
 
-extern int property_create   __P ((property_t *, void *));
+extern int  property_create   __P ((property_t *, void *));
 extern void property_destroy __P ((property_t *, void *));
 extern void *property_get_owner __P ((property_t));
 
-extern int property_set_value __P ((property_t, const char *, const char *));
-extern int property_get_value
-__P ((property_t, const char *, char *, size_t, size_t *));
-
-extern int property_add_defaults
-__P ((property_t, const char *, const char *,
-      int (*) __P ((property_t, const char *, const char *)),
-      int (*) __P ((property_t, const char *, char *, size_t, size_t *)),
-      void *));
+extern int  property_set_value __P ((property_t, const char *,
+				     const char *, int));
+extern int property_get_value __P ((property_t, const char *, char *,
+				    size_t, size_t *));
 
 /* Helper functions.  */
 extern int property_set  __P ((property_t, const char *));

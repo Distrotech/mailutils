@@ -353,37 +353,15 @@ _mailbox_pop_init (mailbox_t mbox)
 
   mbox->_get_size = pop_get_size;
 
-  /* Properties.  */
-  mbox->properties = calloc (1, sizeof (*(mbox->properties)));
-  if (mbox->properties == NULL)
-    {
-      status = ENOMEM;
-      goto END;
-    }
-  mbox->properties_count = 1;
-  mbox->properties[0].key = strdup ("TYPE");
-  mbox->properties[0].value = strdup ("POP3");
-  if (mbox->properties[0].key == NULL || mbox->properties[0].value == NULL)
-    {
-      status = ENOMEM;
-      goto END;
-    }
+  /* Set our properties.  */
+  {
+    property_t property = NULL;
+    mailbox_get_property (mbox, &property);
+    property_set_value (property, "TYPE", "POP3", 1);
+  }
 
-  /* Hack!  */
+  /* Hack! POP does not really have a folder.  */
   mbox->folder->data = mbox;
-
-END:
-  if (status != 0)
-    {
-      if (mbox->properties[0].key)
-	free (mbox->properties[0].key);
-      if (mbox->properties[0].value)
-	free (mbox->properties[0].value);
-      if (mbox->properties)
-	free (mbox->properties);
-      if (mbox->data)
-	free (mbox->data);
-    }
 
   return status;
 }

@@ -19,7 +19,6 @@
 #define _MAILUTILS_BODY_H
 
 #include <sys/types.h>
-#include <mailutils/property.h>
 #include <mailutils/stream.h>
 
 #ifndef __P
@@ -46,9 +45,6 @@ extern int body_clear_modified __P ((body_t));
 
 extern int body_get_stream     __P ((body_t, stream_t *));
 extern int body_set_stream     __P ((body_t, stream_t, void *owner));
-
-extern int body_get_property   __P ((body_t, property_t *));
-extern int body_set_property   __P ((body_t, property_t, void *));
 
 extern int body_get_filename   __P ((body_t, char *, size_t, size_t *));
 

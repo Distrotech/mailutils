@@ -508,6 +508,7 @@ int parse822_word(const char** p, const char* e, char** word)
 
 	    return rc;
 	}
+	assert(qstr == NULL);
     }
 
     if(rc != EPARSE) {
@@ -532,6 +533,7 @@ int parse822_word(const char** p, const char* e, char** word)
 
 	    return rc;
 	}
+	assert (atom == NULL);
     }
 
     return EPARSE;
@@ -562,6 +564,7 @@ int parse822_phrase(const char** p, const char* e, char** phrase)
 	    if(rc != EOK)
 		break;
 	}
+	assert(word == NULL);
 	if(rc == EPARSE)
 	    rc = EOK; /* its not an error to find no more words */
     }
@@ -713,6 +716,7 @@ int parse822_group(const char** p, const char* e, address_t* a)
 
     if((rc = parse822_special(p, e, ':'))) {
 	*p = save;
+	str_free(&phrase);
 	return rc;
     }
 
@@ -807,12 +811,9 @@ int parse822_mail_box(const char** p, const char* e, address_t* a)
 	    (*a)->personal = phrase;
 
 	    return EOK;
-	} else if(rc != EPARSE) {
-	    /* some internal error, fail out */
-	    *p = save;
-	    str_free(&phrase);
-	    return rc;
 	}
+	/* some internal error, fail out */
+	str_free(&phrase);
 	*p = save;
 
 	return rc;
@@ -910,10 +911,9 @@ int parse822_route(const char** p, const char* e, char** route)
 	rc = str_append(route, accumulator);
     }
     if(rc) {
-	str_free(&accumulator);
 	*p = save;
     }
-
+    str_free(&accumulator);
     return rc;
 }
 
@@ -1008,8 +1008,8 @@ int parse822_local_part(const char** p, const char* e, char** local_part)
 	    if((rc = str_append(local_part, ".")) == EOK) {
 		rc = str_append(local_part, more);
 	    }
-	    str_free(&more);
 	}
+	str_free(&more);
     }
 
     if(rc == EPARSE) {
@@ -1062,8 +1062,8 @@ int parse822_domain(const char** p, const char* e, char** domain)
 	    if((rc = str_append(domain, ".")) == EOK) {
 		rc = str_append(domain, more);
 	    }
-	    str_free(&more);
 	}
+	str_free(&more);
     }
     if(rc == EPARSE) {
 	/* we didn't parse more ("." sub-domain) pairs, that's ok */

@@ -27,7 +27,7 @@
 #include <string.h>
 
 #include <mailutils/property.h>
-#include <mailutils/iterator.h>
+#include <mailutils/monitor.h>
 
 #ifndef __P
 #ifdef __STDC__
@@ -41,19 +41,19 @@
 extern "C" {
 #endif
 
-struct property_data
+struct property_item
 {
-  size_t hash;
   char *key;
   char *value;
-  int (*_set_value) __P ((property_t, const char *, const char *));
-  int (*_get_value) __P ((property_t, const char *, char *, size_t, size_t *));
+  int set;
+  struct property_item *next;
 };
 
 struct _property
 {
+  struct property_item *items;
   void *owner;
-  list_t list;
+  monitor_t lock;
 };
 
 #ifdef __cplusplus

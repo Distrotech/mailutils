@@ -161,12 +161,11 @@ _mailer_smtp_init (mailer_t mailer)
   mailer->_send_message = smtp_send_message;
 
   /* Set our properties.  */
-  mailer->properties = calloc (1, sizeof (*(mailer->properties)));
-  if (mailer->properties == NULL)
-    return ENOMEM;
-  mailer->properties_count = 1;
-  mailer->properties[0].key = strdup ("TYPE");
-  mailer->properties[0].value = strdup ("SMTP");
+  {
+    property_t property = NULL;
+    mailer_get_property (mailer, &property);
+    property_set_value (property, "TYPE", "SMTP", 1);
+  }
 
   return 0;
 }

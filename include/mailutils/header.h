@@ -20,7 +20,6 @@
 
 #include <sys/types.h>
 #include <mailutils/stream.h>
-#include <mailutils/property.h>
 
 #ifndef __P
 #ifdef __STDC__
@@ -85,9 +84,6 @@ extern void *header_get_owner      __P ((header_t));
 
 extern int header_is_modified      __P ((header_t));
 extern int header_clear_modified   __P ((header_t));
-
-extern int header_get_property     __P ((header_t, property_t *));
-extern int header_set_property     __P ((header_t, property_t, void *));
 
 extern int header_set_value        __P ((header_t, const char *,
 					const char *, int));

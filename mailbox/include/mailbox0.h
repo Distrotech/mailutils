@@ -40,14 +40,6 @@ extern "C" {
 # endif
 #endif /*__P */
 
-struct default_properties
-{
-  char *key;
-  char *value;
-  int (*_set_value) __P ((property_t, const char *, const char *));
-  int (*_get_value) __P ((property_t, const char *, char *, size_t, size_t *));
-};
-
 struct _mailbox
 {
   /* Data */
@@ -56,8 +48,6 @@ struct _mailbox
   ticket_t ticket;
   authority_t authority;
   property_t property;
-  struct default_properties *properties;
-  size_t properties_count;
   locker_t locker;
   stream_t stream;
   url_t url;
@@ -72,25 +62,25 @@ struct _mailbox
 
   void (*_destroy)         __P ((mailbox_t));
 
-  int  (*_open)            __P ((mailbox_t, int flag));
+  int  (*_open)            __P ((mailbox_t, int));
   int  (*_close)           __P ((mailbox_t));
 
   /* messages */
-  int  (*_get_message)     __P ((mailbox_t, size_t msgno, message_t *msg));
-  int  (*_append_message)  __P ((mailbox_t, message_t msg));
-  int  (*_messages_count)  __P ((mailbox_t, size_t *num));
-  int  (*_messages_recent) __P ((mailbox_t, size_t *num));
-  int  (*_message_unseen)  __P ((mailbox_t, size_t *num));
+  int  (*_get_message)     __P ((mailbox_t, size_t, message_t *));
+  int  (*_append_message)  __P ((mailbox_t, message_t));
+  int  (*_messages_count)  __P ((mailbox_t, size_t *));
+  int  (*_messages_recent) __P ((mailbox_t, size_t *));
+  int  (*_message_unseen)  __P ((mailbox_t, size_t *));
   int  (*_expunge)         __P ((mailbox_t));
   int  (*_save_attributes) __P ((mailbox_t));
-  int  (*_uidvalidity)     __P ((mailbox_t, unsigned long *num));
-  int  (*_uidnext)         __P ((mailbox_t, size_t *num));
-  int  (*_get_property)    __P ((mailbox_t, property_t *num));
+  int  (*_uidvalidity)     __P ((mailbox_t, unsigned long *));
+  int  (*_uidnext)         __P ((mailbox_t, size_t *));
+  int  (*_get_property)    __P ((mailbox_t, property_t *));
 
-  int  (*_scan)            __P ((mailbox_t, size_t msgno, size_t *count));
+  int  (*_scan)            __P ((mailbox_t, size_t, size_t *));
   int  (*_is_updated)      __P ((mailbox_t));
 
-  int  (*_get_size)        __P ((mailbox_t, off_t *size));
+  int  (*_get_size)        __P ((mailbox_t, off_t *));
 
 };
 

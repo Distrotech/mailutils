@@ -122,29 +122,6 @@ filter_close (stream_t stream)
   return stream_close (filter->stream);
 }
 
-static int
-filter_property (property_t property, const char *key, const char *value)
-{
-  filter_t filter = property_get_owner (property);
-  (void)key;
-  if (value)
-    {
-      if (strcasecmp (value, "READ") == 0)
-	{
-         filter->direction = MU_STREAM_READ;
-       }
-      else if (strcasecmp (value, "WRITE") == 0)
-	{
-         filter->direction = MU_STREAM_WRITE;
-       }
-      else if (strcasecmp (value, "RDWR") == 0)
-	{
-         filter->direction = MU_STREAM_RDWR;
-       }
-    }
-  return 0;
-}
-
 /* NOTE: We will leak here since the monitor of the filter will never
    be release.  That's ok we can leave with this, it's only done once.  */
 static list_t filter_list;
@@ -241,12 +218,11 @@ filter_create (stream_t *pstream, stream_t stream, const char *name,
 	  free (filter);
 	  return status;
 	}
-      property_add_defaults (filter->property, "DIRECTION",
-			     ((filter->direction == MU_STREAM_WRITE) ? "WRITE":
-			     (filter->direction == MU_STREAM_RDWR) ? "RDWR" :
-			     "READ"), filter_property, NULL, filter);
-      property_add_defaults (filter->property, "NAME", filter_record->name,
-			     NULL, NULL, filter);
+      property_set_value (filter->property, "DIRECTION",
+			  ((filter->direction == MU_STREAM_WRITE) ? "WRITE":
+			   (filter->direction == MU_STREAM_RDWR) ? "RDWR" :
+			   "READ"), 1);
+      property_set_value (filter->property, "TYPE", filter_record->name, 1);
       stream_set_property (*pstream, filter->property, filter);
 
       if (f_init != NULL)

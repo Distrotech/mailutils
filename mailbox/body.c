@@ -81,9 +81,6 @@ body_destroy (body_t *pbody, void *owner)
 	      stream_destroy (&(body->fstream), NULL);
 	    }
 
-	  if (body->property)
-	    property_destroy (&(body->property), body);
-
 	  free (body);
 	}
       *pbody = NULL;
@@ -109,33 +106,6 @@ int
 body_clear_modified (body_t body)
 {
   (void)body;
-  return 0;
-}
-
-int
-body_set_property (body_t body, property_t property, void *owner)
-{
-  if (body == NULL)
-    return EINVAL;
-  if (body->owner != owner)
-    return EACCES;
-  property_destroy (&(body->property), body);
-  body->property = property;
-  return 0;
-}
-
-int
-body_get_property (body_t body, property_t *pproperty)
-{
-  if (body == NULL || pproperty == NULL)
-    return EINVAL;
-  if (body->property == NULL)
-    {
-      int status = property_create (&(body->property), body);
-      if (status != 0)
-	return status;
-    }
-  *pproperty = body->property;
   return 0;
 }
 

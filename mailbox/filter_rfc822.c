@@ -27,7 +27,6 @@
 #include <mailutils/property.h>
 #include <filter0.h>
 
-static int rfc822_property __P ((property_t, const char *, const char *));
 static int rfc822_init __P ((filter_t));
 static void rfc822_destroy __P ((filter_t));
 static int rfc822_read __P ((filter_t, char *, size_t, off_t, size_t *));
@@ -55,16 +54,6 @@ static struct _filter_record _rfc822_filter =
 filter_record_t rfc822_filter = &_rfc822_filter;
 
 static int
-rfc822_property (property_t property, const char *key, const char *value)
-{
-  filter_t filter = property_get_owner (property);
-  struct rfc822 *rfc822 = filter->data;
-  (void)key;
-  rfc822->lines = strtoul (value, NULL, 10);
-  return 0;
-}
-
-static int
 rfc822_init (filter_t filter)
 {
   property_t property;
@@ -79,8 +68,7 @@ rfc822_init (filter_t filter)
 
   /* We are interested in this property.  */
   if ((status = stream_get_property (filter->filter_stream, &property) != 0)
-      || (status = property_add_defaults (property, "LINES", "0",
-					  rfc822_property, NULL, filter)) != 0)
+      || (status = property_set_value (property, "LINES", "0", 1)) != 0)
     {
       free (filter->data);
       filter->data = NULL;

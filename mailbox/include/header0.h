@@ -64,7 +64,6 @@ struct _header
   size_t fhdr_count;
   struct _hdr *fhdr;
   int flags;
-  property_t property;
 
   /* Streams.  */
   stream_t stream;

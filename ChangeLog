@@ -1,3 +1,65 @@
+2001-10-14  Alain Magloire
+
+	The code for property.c has been change for a more simple approach,
+	it is the same approach as in mail/util.c(environment) settings.
+	The old code was simply overkill, property_t was seldomly use
+	if at all and no need for heavy hash table and all that jazz.
+
+	* mailbox/property.c:  New code, the same as mail/util.c
+	environment.
+	* mailbox/mbx_mbox.c (_mbx_init): Remove property_add_defaults() etc ..
+	no longer in use in the initialisation code.
+	* mailbox/mbx_imap.c: Likewised
+	* mailbox/mbx_pop.c: Likewised
+	* mailbox/mbx_mh.c: Likewised
+	* mailbox/header.c: Remove property code.
+	* mailbox/body.c: Remove property code.
+	* mailbox/message.c: Remove property code.
+	* mailbox/filter.c: Change the code according to the new property_t.
+	* mailbox/filter_rfc822.c: Change the code according to the new
+	property_t.
+	* include/mailutils/header.h: Remove property.
+	* include/mailutils/body.h: Remove property.
+	* include/mailutils/message.h: Remove property.
+	* include/mailutils/property.h: Remove property_add_defaults()
+	property_set_valued () takes one more argument for overwrite.
+	* mailbox/include/header0.hy: Remove property field.
+	* mailbox/include/body0.hy: Remove property field.
+	* mailbox/include/message0.hy: Remove property field.
+	* mailbox/mailbox.c(mailbox_get_property mailbox_set_property):
+	Changed Property code.
+	* mailbox/mailer.c(mailer_set_property mailer_get_property):
+	Changed Property code.
+
+	* mailbox/folder_imap.c (imap_search imap_expunge imap_status): Stubs
+	Search is not implemented yet, STATUS neither and EXPUNGE is not used.
+
+	* mailbox/list.c: Rename variable index to indx to shutup
+	gcc whos confusing with index() when warning level was high.
+	* mailbox/md5-rsa.c: Likewised.
+
+	* mailbox/mailbox.c (mailbox_get_debug mailbox_set_debug):
+	The debug object was being set on the folder not the mailbox.
+
+	* mailbox/mbx_imap.c (imap_messages_count): Attempt to reconnect
+	if the connection timeout.  Is this wise ?
+	(imap_scan0): Move gut of imap_scan() code tho here.
+	(imap_scan): Stub calling imap_scan0() with notification enable.
+	(imap_expunge): After CLOSE, call imap_scan0() wiht notification
+	disable.
+
+	Memory leak in parse822, this was a real pain to trace, because
+	of the recursive nature of the algorithm.  Sam should buy me
+	a beer for this.
+
+	* mailbox/parse822.c: Use more assert to catch errors.
+	(parse822_group): phrase was not free() in case of failure.
+	(parse822_mail_box): Dead if branch remove and free phrase.
+	(parse822_route): accumulator was not being freed.
+	(parse822_local_part): Move down st_free(more).
+	(parse822_domain): Move down st_free(more).
+
+
 2001-10-14 Sergey Poznyakoff
 
 	Small fixes:

@@ -169,17 +169,6 @@ mailbox_destroy (mailbox_t *pmbox)
       if (mbox->folder)
 	folder_destroy (&(mbox->folder));
 
-      if (mbox->properties)
-	{
-	  size_t i;
-	  for (i = 0; i < mbox->properties_count; i++)
-	    {
-	      if (mbox->properties[i].key)
-		free (mbox->properties[i].key);
-	    }
-	  free (mbox->properties);
-	}
-
       if (mbox->property)
 	property_destroy (&(mbox->property), mbox);
 
@@ -427,25 +416,9 @@ mailbox_get_property (mailbox_t mbox, property_t *pproperty)
     return EINVAL;
   if (mbox->property == NULL)
     {
-      size_t i;
       int status = property_create (&(mbox->property), mbox);
       if (status != 0)
 	return status;
-      /* Add the defaults.  */
-      for (i = 0; i < mbox->properties_count; i++)
-	{
-	  status = property_add_defaults (mbox->property,
-					  mbox->properties[i].key,
-					  mbox->properties[i].value,
-					  mbox->properties[i]._set_value,
-					  mbox->properties[i]._get_value,
-					  mbox);
-	  if (status != 0)
-	    {
-	      property_destroy (&(mbox->property), mbox);
-	      return status;
-	    }
-	}
     }
   *pproperty = mbox->property;
   return 0;
@@ -456,14 +429,8 @@ mailbox_set_debug (mailbox_t mbox, mu_debug_t debug)
 {
   if (mbox == NULL)
     return EINVAL;
-  if (mbox->folder)
-    {
-      int status = folder_set_debug (mbox->folder, debug);
-      if (status)
-	return status;
-    }
   if (mbox->debug)
-    mu_debug_destroy (&(mbox->debug), mbox);
+    mu_debug_destroy (&mbox->debug, mbox);
   mbox->debug = debug;
   return 0;
 }
@@ -473,17 +440,6 @@ mailbox_get_debug (mailbox_t mbox, mu_debug_t *pdebug)
 {
   if (mbox == NULL || pdebug == NULL)
     return EINVAL;
-  if (mbox->folder)
-    {
-      int status = folder_get_debug (mbox->folder, pdebug);
-      if (status == 0)
-	{
-	  if (mbox->debug)
-	    mu_debug_destroy (&(mbox->debug), mbox);
-	  mbox->debug = *pdebug;
-	}
-      return status;
-    }
   if (mbox->debug == NULL)
     {
       int status = mu_debug_create (&(mbox->debug), mbox);

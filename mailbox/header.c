@@ -100,9 +100,6 @@ header_destroy (header_t *ph, void *owner)
 
 	  header_free_cache (header);
 
-	  if (header->property)
-	    property_destroy (&(header->property), header);
-
 	  free (header);
 	}
       *ph = NULL;
@@ -777,33 +774,6 @@ header_size (header_t header, size_t *psize)
 
   if (psize)
     *psize = header->blurb_len;
-  return 0;
-}
-
-int
-header_set_property (header_t header, property_t property, void *owner)
-{
-  if (header == NULL)
-    return EINVAL;
-  if (header->owner != owner)
-    return EACCES;
-  property_destroy (&(header->property), header);
-  header->property = property;
-  return 0;
-}
-
-int
-header_get_property (header_t header, property_t *pp)
-{
-  if (header == NULL || pp == NULL)
-    return EINVAL;
-  if (header->property == NULL)
-    {
-      int status = property_create (&(header->property), header);
-      if (status != 0)
-	return status;
-    }
-  *pp = header->property;
   return 0;
 }
 

@@ -59,43 +59,46 @@ static struct _record _imap_record =
 record_t imap_record = &_imap_record;
 
 #ifndef HAVE_STRTOK_R
-char *strtok_r                     __P ((char *, const char *, char **));
+char *strtok_r                      __P ((char *, const char *, char **));
 #endif
 
-/* Concrete IMAP implementation.  */
-static int folder_imap_open        __P ((folder_t, int));
-static int folder_imap_create      __P ((folder_t));
-static int folder_imap_close       __P ((folder_t));
-static void folder_imap_destroy    __P ((folder_t));
-static int folder_imap_delete      __P ((folder_t, const char *));
-static int folder_imap_list        __P ((folder_t, const char *, const char *,
-					 struct folder_list *));
-static int folder_imap_lsub        __P ((folder_t, const char *, const char *,
-					 struct folder_list *));
-static int folder_imap_rename      __P ((folder_t, const char *,
-					 const char *));
-static int folder_imap_subscribe   __P ((folder_t, const char *));
-static int folder_imap_unsubscribe __P ((folder_t, const char *));
+/* Concrete folder_t IMAP implementation.  */
+static int  folder_imap_open        __P ((folder_t, int));
+static int  folder_imap_create      __P ((folder_t));
+static int  folder_imap_close       __P ((folder_t));
+static void folder_imap_destroy     __P ((folder_t));
+static int  folder_imap_delete      __P ((folder_t, const char *));
+static int  folder_imap_list        __P ((folder_t, const char *, const char *,
+					  struct folder_list *));
+static int  folder_imap_lsub        __P ((folder_t, const char *, const char *,
+					  struct folder_list *));
+static int  folder_imap_rename      __P ((folder_t, const char *,
+					  const char *));
+static int  folder_imap_subscribe   __P ((folder_t, const char *));
+static int  folder_imap_unsubscribe __P ((folder_t, const char *));
 
-/* Private */
-/* static int imap_readline (f_imap_t); */
 /* FETCH  */
-static int imap_fetch          __P ((f_imap_t));
-static int imap_rfc822         __P ((f_imap_t, char **));
-static int imap_rfc822_size    __P ((f_imap_t, char **));
-static int imap_rfc822_header  __P ((f_imap_t, char **));
-static int imap_rfc822_text    __P ((f_imap_t, char **));
-static int imap_flags          __P ((f_imap_t, char **));
-static int imap_bodystructure  __P ((f_imap_t, char **));
-static int imap_body           __P ((f_imap_t, char **));
-static int imap_uid            __P ((f_imap_t, char **));
+static int  imap_fetch              __P ((f_imap_t));
+static int  imap_rfc822             __P ((f_imap_t, char **));
+static int  imap_rfc822_size        __P ((f_imap_t, char **));
+static int  imap_rfc822_header      __P ((f_imap_t, char **));
+static int  imap_rfc822_text        __P ((f_imap_t, char **));
+static int  imap_flags              __P ((f_imap_t, char **));
+static int  imap_bodystructure      __P ((f_imap_t, char **));
+static int  imap_body               __P ((f_imap_t, char **));
+static int  imap_internaldate       __P ((f_imap_t, char **));
+
+static int  imap_uid                __P ((f_imap_t, char **));
+static int  imap_status             __P ((f_imap_t));
+static int  imap_expunge            __P ((f_imap_t, unsigned int));
+static int  imap_search             __P ((f_imap_t));
 
 /* String.  */
-static int imap_literal_string __P ((f_imap_t, char **));
-static int imap_string         __P ((f_imap_t, char **));
-static int imap_quoted_string  __P ((f_imap_t, char **));
+static int  imap_literal_string     __P ((f_imap_t, char **));
+static int  imap_string             __P ((f_imap_t, char **));
+static int  imap_quoted_string      __P ((f_imap_t, char **));
 
-static int imap_token          __P ((char *, size_t, char **));
+static int  imap_token              __P ((char *, size_t, char **));
 
 /* Initialize the concrete IMAP mailbox: overload the folder functions  */
 int
@@ -486,7 +489,7 @@ folder_imap_delete (folder_t folder, const char *name)
   return status;
 }
 
-/* Since the mailutils API does not offer recursive listing. There is no need
+/* Since mailutils API does not offer recursive listing. There is no need
    to follow IMAP "bizarre" recursive rules. The use of '%' is sufficient.  So
    the approach is everywhere there is a regex in the path we change that
    branch for '%' and do the matching ourself with fnmatch().  */
@@ -809,8 +812,6 @@ folder_imap_unsubscribe (folder_t folder, const char *name)
   f_imap->state = IMAP_NO_STATE;
   return status;
 }
-
-/*  Implementation.  */
 
 /* A literal is a sequence of zero or more octets (including CR and LF),
    prefix-quoted with an octet count in the form of an open brace ("{"),
@@ -1563,6 +1564,32 @@ imap_fetch (f_imap_t f_imap)
 }
 
 static int
+imap_search (f_imap_t f_imap)
+{
+  (void)f_imap;
+  /* Not implemented.  No provision for this in the API, yet.  */
+  return 0;
+}
+
+static int
+imap_status (f_imap_t f_imap)
+{
+  (void)f_imap;
+  /* Not implemented.  No provision for this in the API, yet.  */
+  return 0;
+}
+
+static int
+imap_expunge (f_imap_t f_imap, unsigned msgno)
+{
+  (void)f_imap; (void)msgno;
+  /* We should not have this, since do not send the expunge, but rather
+     use SELECT/CLOSE.  */
+  return 0;
+}
+
+
+static int
 imap_token (char *buf, size_t len, char **ptr)
 {
   char *start = *ptr;
@@ -1973,6 +2000,8 @@ imap_parse (f_imap_t f_imap)
 	    }
 	  else if (strcasecmp (remainder, "EXPUNGE") == 0)
 	    {
+	      unsigned int msgno = strtol (response, NULL, 10);
+	      status = imap_expunge (f_imap, msgno);
 	    }
 	  else if (strncasecmp (remainder, "FETCH", 5) == 0)
 	    {
@@ -1999,9 +2028,11 @@ imap_parse (f_imap_t f_imap)
 	    }
 	  else if (strcasecmp (response, "SEARCH") == 0)
 	    {
+	      status = imap_search (f_imap);
 	    }
 	  else if (strcasecmp (response, "STATUS") == 0)
 	    {
+	      status = imap_status (f_imap);
 	    }
 	  else
 	    {
@@ -2021,6 +2052,7 @@ imap_parse (f_imap_t f_imap)
 	  done = 1;
 	  if (strcasecmp (response, "OK") == 0)
 	    {
+	      /* Cool we are doing ok.  */
 	    }
 	  else /* NO and BAD */
 	    {

@@ -158,7 +158,7 @@ list_remove (list_t list, void *item)
    Every time we iterate through the loop to get the data, an easy
    fix is to a an index to the current.  */
 int
-list_get (list_t list, size_t index, void **pitem)
+list_get (list_t list, size_t indx, void **pitem)
 {
   struct list_data *current;
   size_t count;
@@ -169,7 +169,7 @@ list_get (list_t list, size_t index, void **pitem)
   for (current = list->head.next, count = 0; current != &(list->head);
        current = current->next, count++)
     {
-      if (count == index)
+      if (count == indx)
         {
           *pitem = current->item;
 	  status = 0;

@@ -278,12 +278,11 @@ _mailbox_mbox_init (mailbox_t mailbox)
   mailbox->_get_size = mbox_get_size;
 
   /* Set our properties.  */
-  mailbox->properties = calloc (1, sizeof (*(mailbox->properties)));
-  if (mailbox->properties == NULL)
-    return ENOMEM;
-  mailbox->properties_count = 1;
-  mailbox->properties[0].key = strdup ("TYPE");
-  mailbox->properties[0].value = strdup ("MBOX");
+  {
+    property_t property = NULL;
+    mailbox_get_property (mailbox, &property);
+    property_set_value (property, "TYPE", "MBOX", 1);
+  }
 
   MAILBOX_DEBUG1 (mailbox, MU_DEBUG_TRACE, "mbox_init(%s)\n", mud->name);
   return 0; /* okdoke */

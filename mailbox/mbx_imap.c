@@ -51,6 +51,7 @@ static int  imap_messages_count   __P ((mailbox_t, size_t *));
 static int  imap_messages_recent  __P ((mailbox_t, size_t *));
 static int  imap_message_unseen   __P ((mailbox_t, size_t *));
 static int  imap_scan             __P ((mailbox_t, size_t, size_t *));
+static int  imap_scan0            __P ((mailbox_t, size_t, size_t *, int));
 static int  imap_is_updated       __P ((mailbox_t));
 static int  imap_append_message   __P ((mailbox_t, message_t));
 static int  imap_copy_message     __P ((mailbox_t, message_t));
@@ -148,12 +149,11 @@ _mailbox_imap_init (mailbox_t mailbox)
   m_imap->mailbox = mailbox;
 
   /* Set our properties.  */
-  mailbox->properties = calloc (1, sizeof (*(mailbox->properties)));
-  if (mailbox->properties == NULL)
-    return ENOMEM;
-  mailbox->properties_count = 1;
-  mailbox->properties[0].key = strdup ("TYPE");
-  mailbox->properties[0].value = strdup ("IMAP");
+  {
+    property_t property = NULL;
+    mailbox_get_property (mailbox, &property);
+    property_set_value (property, "TYPE", "IMAP4", 1);
+  }
   return 0;
 }
 
@@ -218,11 +218,13 @@ mailbox_imap_destroy (mailbox_t mailbox)
 static int
 mailbox_imap_open (mailbox_t mailbox, int flags)
 {
+  mailbox->flags = flags;
   return folder_open (mailbox->folder, flags);
 }
 
 /* We can not close the folder in term of shuting down the connection but if
-   we were the selected mailbox we send the close and deselect ourself.  */
+   we were the selected mailbox we send the close and deselect ourself.
+   The CLOSE is also use to expunge instead of sending expunge.  */
 static int
 mailbox_imap_close (mailbox_t mailbox)
 {
@@ -501,6 +503,16 @@ imap_messages_count (mailbox_t mailbox, size_t *pnum)
   f_imap_t f_imap = m_imap->f_imap;
   int status = 0;
 
+  /* FIXME: It is debatable if we should reconnect when the connection
+     timeout or die.  For timeout client should ping i.e. send
+     a NOOP via imap_is_updated() function to keep the connection alive.  */
+  if (!f_imap->isopen)
+    {
+      status = folder_open (mailbox->folder, mailbox->flags);
+      if (status != 0)
+	return status;
+    }
+
   /* Are we already selected ? */
   if (m_imap == (f_imap->selected))
     {
@@ -544,6 +556,12 @@ imap_messages_count (mailbox_t mailbox, size_t *pnum)
   return status;
 }
 
+static int
+imap_scan (mailbox_t mailbox, size_t msgno, size_t *pcount)
+{
+  return imap_scan0 (mailbox, msgno, pcount , 1);
+}
+
 /* Usually when this function is call it is because there is an oberver
    attach an the client is try to build some sort of list/tree header
    as the scanning progress.  But doing this for each message can be
@@ -553,7 +571,7 @@ imap_messages_count (mailbox_t mailbox, size_t *pnum)
    transcation but rather a big one.  The bad thing is that every thing
    will be cache in the structure using a lot of memory.  */
 static int
-imap_scan (mailbox_t mailbox, size_t msgno, size_t *pcount)
+imap_scan0 (mailbox_t mailbox, size_t msgno, size_t *pcount, int notif)
 {
   int status;
   size_t i;
@@ -596,11 +614,15 @@ imap_scan (mailbox_t mailbox, size_t msgno, size_t *pcount)
 
   f_imap->state = IMAP_NO_STATE;
 
+  /* Do not send notifications.  */
+  if (!notif)
+    return 0;
+
   /* If no callbacks bail out early.  */
   if (mailbox->observable == NULL)
     return 0;
 
-  for (i = msgno; i <= *pcount; i++)
+  for (i = msgno; i <= count; i++)
     {
       if (observable_notify (mailbox->observable, MU_EVT_MESSAGE_ADD) != 0)
 	break;
@@ -704,14 +726,24 @@ imap_expunge (mailbox_t mailbox)
       MAILBOX_DEBUG0 (m_imap->mailbox, MU_DEBUG_PROT, f_imap->buffer);
       f_imap->state = IMAP_NO_STATE;
 
+      /* We are not sending EXPUNGE, rather we close the mailbox
+	 which will purge.  */
+    case IMAP_CLOSE:
+    case IMAP_CLOSE_ACK:
+      status = mailbox_imap_close (mailbox);
+      CHECK_EAGAIN (f_imap, status);
+
+      /* Rescan after expunging but do not trigger the observers.  */
+    case IMAP_SCAN:
+    case IMAP_SCAN_ACK:
+      status = imap_scan0 (mailbox, 1, NULL, 0);
+      CHECK_EAGAIN (f_imap, status);
+
     default:
       /* mu_error ("imap_expunge: unknow state\n"); */
       break;
     }
 
-  /* Tell the server to delete the messages but without sending the
-     EXPUNGE response.  We can do the calculations.  */
-  status = mailbox_imap_close (mailbox);
   return status;
 }
 

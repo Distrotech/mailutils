@@ -46,7 +46,6 @@ struct _body
   char *filename;
   stream_t stream;
   stream_t fstream;
-  property_t property;
   int flags;
 
   int (*_size)  (body_t, size_t*);

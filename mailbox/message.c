@@ -185,37 +185,6 @@ message_clear_modified (message_t msg)
 }
 
 int
-message_set_property (message_t msg, property_t property, void *owner)
-{
-  if (msg == NULL)
-    return EINVAL;
-  if (msg->owner != owner)
-    return EACCES;
-  header_set_property (msg->header, property, msg);
-  body_set_property (msg->body, property, msg);
-  property_destroy (&(msg->property), msg);
-  msg->property = property;
-  return 0;
-}
-
-int
-message_get_property (message_t msg, property_t *pproperty)
-{
-  if (msg == NULL || pproperty == NULL)
-    return EINVAL;
-  if (msg->property == NULL)
-    {
-      int status = property_create (&(msg->property), msg);
-      if (status != 0)
-        return status;
-      header_set_property (msg->header, msg->property, msg);
-      body_set_property (msg->body, msg->property, msg);
-    }
-  *pproperty = msg->property;
-  return 0;
-}
-
-int
 message_get_mailbox (message_t msg, mailbox_t *pmailbox)
 {
   if (msg == NULL || pmailbox == NULL)
