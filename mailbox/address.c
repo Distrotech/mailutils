@@ -37,7 +37,7 @@
 
 /* Get email addresses from rfc822 address.  */
 int
-address_create (address_t *a, const char *s)
+address_create (address_t * a, const char *s)
 {
   /* 'a' must exist, and can't already have been initialized
    */
@@ -46,7 +46,7 @@ address_create (address_t *a, const char *s)
   if (!a)
     return MU_ERR_OUT_PTR_NULL;
 
-  if(!s)
+  if (!s)
     return EINVAL;
 
   *a = NULL;
@@ -63,29 +63,29 @@ address_create (address_t *a, const char *s)
 	{
 	  address_destroy (a);
 	  return ENOMEM;
-        }
+	}
     }
   return status;
 }
 
 /* Get email addresses from array of rfc822 addresses. */
 int
-address_createv (address_t *a, const char *sv[], size_t len)
+address_createv (address_t * a, const char *sv[], size_t len)
 {
   int status = 0;
   size_t buflen = 0;
-  char* buf = 0;
+  char *buf = 0;
   size_t i;
 
-  if(!a)
+  if (!a)
     return MU_ERR_OUT_PTR_NULL;
 
   if (!sv)
     return EINVAL;
 
-  if (len == (size_t)-1)
+  if (len == (size_t) - 1)
     {
-      const char** vp = sv;
+      const char **vp = sv;
 
       len = 0;
 
@@ -97,14 +97,14 @@ address_createv (address_t *a, const char *sv[], size_t len)
     return EINVAL;
 
   for (i = 0; i < len; i++)
-  {
-    /* NULL strings are allowed */
-    if(sv[i])
-      buflen += strlen(sv[i]);
-  }
+    {
+      /* NULL strings are allowed */
+      if (sv[i])
+	buflen += strlen (sv[i]);
+    }
 
   buflen += (len - 1) * strlen (", ");
-  buflen += 1; /* Termination null.  */
+  buflen += 1;			/* Termination null.  */
 
   buf = malloc (buflen);
 
@@ -113,11 +113,11 @@ address_createv (address_t *a, const char *sv[], size_t len)
 
   for (i = 0, buf[0] = '\0'; i < len; i++)
     {
-      if(i != 0)
+      if (i != 0)
 	strcat (buf, ", ");
 
-      if(sv[i])
-        strcat (buf, sv[i]);
+      if (sv[i])
+	strcat (buf, sv[i]);
     }
 
   status = address_create (a, buf);
@@ -128,7 +128,7 @@ address_createv (address_t *a, const char *sv[], size_t len)
 }
 
 void
-address_destroy (address_t *paddress)
+address_destroy (address_t * paddress)
 {
   if (paddress && *paddress)
     {
@@ -157,181 +157,299 @@ address_destroy (address_t *paddress)
     }
 }
 
-int address_concatenate (address_t to, address_t* from)
+int
+address_concatenate (address_t to, address_t * from)
 {
-  if(!to || !from || !*from)
+  if (!to || !from || !*from)
     return EINVAL;
 
-  while(to->next)
+  while (to->next)
     to = to->next;
 
-  assert(to && !to->next);
+  assert (to && !to->next);
 
   to->next = *from;
   *from = NULL;
 
   to = to->next;
 
-  if(to->addr)
-  {
-    free(to->addr);
-    to->addr = NULL;
-  }
+  if (to->addr)
+    {
+      free (to->addr);
+      to->addr = NULL;
+    }
 
   return 0;
 }
 
+address_t 
+_address_get_nth (address_t addr, size_t no)
+{
+  int i;
+  
+  for (i = 1; addr; addr = addr->next, i++)
+    if (i == no)
+      break;
+  return addr;
+}
+
 int
 address_get_personal (address_t addr, size_t no, char *buf, size_t len,
-		      size_t *n)
+		      size_t * n)
 {
-  size_t i, j;
-  int status = ENOENT;
+  size_t i;
+  address_t subaddr;
+  
   if (addr == NULL)
     return EINVAL;
-  for (i = 0, j = 1; addr; addr = addr->next, j++)
-    {
-      if (j == no)
-	{
-	  i = mu_cpystr (buf, addr->personal, len);
-	  status = 0;
-	  break;
-	}
-    }
+
+  subaddr = _address_get_nth (addr, no);
+  if (!subaddr)
+    return ENOENT;
+  
+  i = mu_cpystr (buf, subaddr->personal, len);
   if (n)
     *n = i;
-  return status;
+  return 0;
 }
 
 int
 address_get_comments (address_t addr, size_t no, char *buf, size_t len,
-		      size_t *n)
+		      size_t * n)
 {
-  size_t i, j;
-  int status = ENOENT;
+  size_t i;
+  address_t subaddr;
+  
   if (addr == NULL)
     return EINVAL;
-  for (j = 1; addr; addr = addr->next, j++)
+
+  subaddr = _address_get_nth (addr, no);
+  if (!subaddr)
+    return ENOENT;
+
+  i = mu_cpystr (buf, subaddr->comments, len);
+  if (n)
+    *n = i;
+  return 0;
+}
+
+int
+address_get_email (address_t addr, size_t no, char *buf, size_t len,
+		   size_t * n)
+{
+  size_t i;
+  address_t subaddr;
+
+  if (addr == NULL)
+    return EINVAL;
+
+  subaddr = _address_get_nth (addr, no);
+  if (!subaddr)
+    return ENOENT;
+  
+  i = mu_cpystr (buf, subaddr->email, len);
+  if (n)
+    *n = i;
+  return 0;
+}
+
+#define format_char(c) do {\
+ if (buflen) \
+   {\
+      *buf++ = c;\
+      buflen--;\
+   }\
+ else\
+   rc++;\
+} while(0) 
+
+#define format_string(str) do {\
+ if (buflen) \
+   {\
+      int n = snprintf (buf, buflen, "%s", str);\
+      buf += n;\
+      buflen -= n;\
+   }\
+ else\
+   rc += strlen (str);\
+} while (0)
+     
+size_t
+address_format_string (address_t addr, char *buf, size_t buflen)
+{
+  int rc = 0;
+  int comma = 0;
+  
+  for (;addr; addr = addr->next)
     {
-      if (j == no)
+      if (addr->email)
 	{
-	  i = mu_cpystr (buf, addr->comments, len);
-	  if (n)
-	    *n = i;
-	  status = 0;
-	  break;
+	  int space = 0;
+
+	  if (comma)
+	    format_char (',');
+	  
+	  if (addr->personal)
+	    {
+	      format_char ('"');
+	      format_string (addr->personal);
+	      format_char ('"');
+	      space++;
+	    }
+	  
+	  if (addr->comments)
+	    {
+	      if (space)
+		format_char (' ');
+	      format_char ('(');
+	      format_string (addr->comments);
+	      format_char (')');
+	      space++;
+	    }
+	  
+	  if (space)
+	    format_char (' ');
+	  format_char ('<');
+	  format_string (addr->email);
+	  format_char ('>');
+	  comma++;
 	}
     }
+  format_char (0);
+  return rc;
+}
+
+int
+address_aget_personal (address_t addr, size_t no, char **buf)
+{
+  int status;
+  address_t subaddr;
+  
+  if (addr == NULL)
+    return EINVAL;
+
+  subaddr = _address_get_nth (addr, no);
+  if (!subaddr)
+    return ENOENT;
+
+  if (subaddr->personal)
+    {
+      *buf = strdup (subaddr->personal);
+      if (!*buf)
+	status = ENOMEM;
+    }
+  else
+    buf = NULL;
   return status;
 }
 
 int
-address_get_email (address_t addr, size_t no, char *buf, size_t len, size_t *n)
+address_aget_comments (address_t addr, size_t no, char **buf)
 {
-  size_t i, j;
-  int status = ENOENT;
+  int status;
+  address_t subaddr;
+  
   if (addr == NULL)
     return EINVAL;
-  for (j = 1; addr; addr = addr->next, j++)
+
+  subaddr = _address_get_nth (addr, no);
+  if (!subaddr)
+    return ENOENT;
+
+  if (subaddr->comments)
     {
-      if (j == no)
-	{
-	  i = mu_cpystr (buf, addr->email, len);
-	  if (n)
-	    *n = i;
-	  status = 0;
-	  break;
-	}
+      *buf = strdup (subaddr->comments);
+      if (!*buf)
+	status = ENOMEM;
     }
+  else
+    buf = NULL;
   return status;
 }
 
 int
 address_aget_email (address_t addr, size_t no, char **buf)
 {
-  size_t j;
-  int status = ENOENT;
+  int status = 0;
+  address_t subaddr;
+  
   if (addr == NULL || buf == NULL)
     return EINVAL;
-  for (j = 1; addr; addr = addr->next, j++)
+
+  subaddr = _address_get_nth (addr, no);
+  if (!subaddr)
+    return ENOENT;
+  
+  if (subaddr->email)
     {
-      if (j == no)
-	{
-	  status = 0;
-	  *buf = NULL;
-	  if (addr->email)
-	    {
-	      *buf = strdup (addr->email);
-	      if (!*buf)
-		status = ENOMEM;
-	    }
-	  break;
-	}
+      *buf = strdup (subaddr->email);
+      if (!*buf)
+	status = ENOMEM;
     }
+  else
+    *buf = NULL;
+
   return status;
 }
 
 int
-address_get_local_part (address_t addr, size_t no, char *buf, size_t len, size_t *n)
+address_get_local_part (address_t addr, size_t no, char *buf, size_t len,
+			size_t * n)
 {
-  size_t i, j;
-  int status = ENOENT;
+  size_t i;
+  address_t subaddr;
+  
   if (addr == NULL)
     return EINVAL;
-  for (j = 1; addr; addr = addr->next, j++)
-    {
-      if (j == no)
-	{
-	  i = mu_cpystr (buf, addr->local_part, len);
-	  if (n)
-	    *n = i;
-	  status = 0;
-	  break;
-	}
-    }
-  return status;
+
+  subaddr = _address_get_nth (addr, no);
+  if (!subaddr)
+    return ENOENT;
+
+  i = mu_cpystr (buf, subaddr->local_part, len);
+  if (n)
+    *n = i;
+  return 0;
 }
 
 int
-address_get_domain (address_t addr, size_t no, char *buf, size_t len, size_t *n)
+address_get_domain (address_t addr, size_t no, char *buf, size_t len,
+		    size_t * n)
 {
-  size_t i, j;
-  int status = ENOENT;
+  size_t i;
+  address_t subaddr;
+  
   if (addr == NULL)
     return EINVAL;
-  for (j = 1; addr; addr = addr->next, j++)
-    {
-      if (j == no)
-	{
-	  i = mu_cpystr (buf, addr->domain, len);
-	  if (n)
-	    *n = i;
-	  status = 0;
-	  break;
-	}
-    }
-  return status;
+
+  subaddr = _address_get_nth (addr, no);
+  if (!subaddr)
+    return ENOENT;
+  
+  i = mu_cpystr (buf, subaddr->domain, len);
+  if (n)
+    *n = i;
+  return 0;
 }
 
 int
-address_get_route (address_t addr, size_t no, char *buf, size_t len, size_t *n)
+address_get_route (address_t addr, size_t no, char *buf, size_t len,
+		   size_t * n)
 {
-  size_t i, j;
-  int status = ENOENT;
+  size_t i;
+  address_t subaddr;
+  
   if (addr == NULL)
     return EINVAL;
-  for (j = 1; addr; addr = addr->next, j++)
-    {
-      if (j == no)
-	{
-	  i = mu_cpystr (buf, addr->route, len);
-	  if (n)
-	    *n = i;
-	  status = 0;
-	  break;
-	}
-    }
-  return status;
+
+  subaddr = _address_get_nth (addr, no);
+  if (!subaddr)
+    return ENOENT;
+  
+  i = mu_cpystr (buf, subaddr->route, len);
+  if (n)
+    *n = i;
+  return 0;
 }
 
 static int
@@ -359,35 +477,40 @@ _address_is_unix_mailbox (address_t addr)
 }
 
 int
-address_is_group (address_t addr, size_t no, int* yes)
+address_is_group (address_t addr, size_t no, int *yes)
 {
-  size_t j;
-  int status = ENOENT;
-  if(addr == NULL)
+  address_t subaddr;
+  
+  if (addr == NULL)
     return EINVAL;
-  for (j = 1; addr; addr = addr->next, j++)
-    {
-      if (j == no)
-	{
-	  status = 0;
-	  if(yes)
-	    {
-	       *yes = _address_is_group(addr);
-	    }
-	  break;
-	}
-    }
-  return status;
+
+  subaddr = _address_get_nth (addr, no);
+  if (!subaddr)
+    return ENOENT;
+  
+  if (yes)
+    *yes = _address_is_group (subaddr);
+  return 0;
 }
 
 int
-address_to_string (address_t addr, char *buf, size_t len, size_t *n)
+address_to_string (address_t addr, char *buf, size_t len, size_t * n)
 {
   size_t i;
   if (addr == NULL)
     return EINVAL;
   if (buf)
     *buf = '\0';
+
+  if (!addr->addr)
+    {
+      i = address_format_string (addr, NULL, 0);
+      addr->addr = malloc (i + 1);
+      if (!addr->addr)
+	return ENOMEM;
+      address_format_string (addr, addr->addr, i+1);
+    }
+      
   i = mu_cpystr (buf, addr->addr, len);
   if (n)
     *n = i;
@@ -395,7 +518,7 @@ address_to_string (address_t addr, char *buf, size_t len, size_t *n)
 }
 
 int
-address_get_count (address_t addr, size_t *pcount)
+address_get_count (address_t addr, size_t * pcount)
 {
   size_t j;
   for (j = 0; addr; addr = addr->next, j++)
@@ -404,45 +527,118 @@ address_get_count (address_t addr, size_t *pcount)
     *pcount = j;
   return 0;
 }
+
 int
-address_get_group_count (address_t addr, size_t *pcount)
+address_get_group_count (address_t addr, size_t * pcount)
 {
   size_t j;
   for (j = 0; addr; addr = addr->next)
-  {
-    if(_address_is_group(addr))
-      j++;
-  }
+    {
+      if (_address_is_group (addr))
+	j++;
+    }
   if (pcount)
     *pcount = j;
   return 0;
 }
 
 int
-address_get_email_count (address_t addr, size_t *pcount)
+address_get_email_count (address_t addr, size_t * pcount)
 {
   size_t j;
   for (j = 0; addr; addr = addr->next)
-  {
-    if(_address_is_email(addr))
-      j++;
-  }
+    {
+      if (_address_is_email (addr))
+	j++;
+    }
   if (pcount)
     *pcount = j;
   return 0;
 }
 
 int
-address_get_unix_mailbox_count (address_t addr, size_t *pcount)
+address_get_unix_mailbox_count (address_t addr, size_t * pcount)
 {
   size_t j;
   for (j = 0; addr; addr = addr->next)
-  {
-    if(_address_is_unix_mailbox(addr))
-      j++;
-  }
+    {
+      if (_address_is_unix_mailbox (addr))
+	j++;
+    }
   if (pcount)
     *pcount = j;
   return 0;
 }
 
+int
+address_contains_email (address_t addr, const char *email)
+{
+  for (; addr; addr = addr->next)
+    if (strcasecmp (addr->email, email) == 0)
+      return 1;
+  return 0;
+}
+
+address_t
+address_dup (address_t src)
+{
+  address_t dst = calloc (1, sizeof (*dst));
+
+  if (!dst)
+    return NULL;
+
+  if (src->comments)
+    dst->comments = strdup (src->comments);
+  if (src->personal)
+    dst->personal = strdup (src->personal);
+  if (src->email)
+    dst->email = strdup (src->email);
+  if (src->local_part)
+    dst->local_part = strdup (src->local_part);
+  if (src->domain)
+    dst->domain = strdup (src->domain);
+  if (src->route)
+    dst->route = strdup (src->route);
+
+  return dst;
+}
+  
+int
+address_union (address_t *a, address_t b)
+{
+  address_t last = NULL;
+    
+  if (!a || !b)
+    return EINVAL;
+
+  if (!*a)
+    {
+      *a = address_dup (b);
+      if (!*a)
+	return ENOMEM;
+      last = *a;
+      b = b->next;
+    }
+  else
+    {
+      if ((*a)->addr)
+	{
+	  free ((*a)->addr);
+	  (*a)->addr = NULL;
+	}
+      for (last = *a; last->next; last = last->next)
+	;
+    }
+
+  for (; b; b = b->next)
+    if (!address_contains_email (*a, b->email))
+      {
+	address_t next = address_dup (b);
+	if (!next)
+	  return ENOMEM;
+	last->next = next;
+	last = next;
+      }
+  return 0;
+}
+  
