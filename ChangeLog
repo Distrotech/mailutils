@@ -1,3 +1,48 @@
+2002-05-08  Sam Roberts
+
+	* mailbox/: smtp.c, include/mailer0.h: Implemented correct
+	  semantics for sending mail to bcc'ed addresses.
+	* include/mailutils/mailer.h, mailbox/mailer.c:
+	    mailer_check_to(): ensures that there all the to addresses are
+	    qualified. 
+	    mailer_check_from(): ensures that there is only one address, and
+	    it is qualified.
+	* include/mailutils/header.h, mailbox/header.c:
+	   header_parse(): wasn't ignoring LWSP after "bcc : ...", fixed.	header_set_value():
+	   header_set_value(): there was no way to remove a field, now
+	    calling set with a field value of NULL removes the field.
+	   header_get_value(): was concatenating the values of all the
+	    fields with the same name, now it doesn't.
+	   header_get_address(): convenience function to get an address_t
+	    from a header field.
+	   header.h: sorted API functions to top of header, and ones used in
+	    implementing header_t to the bottom.
+	* include/mailutils/address.h, mailbox/address.c:
+	    address_concatenate() - appends one address list to another
+	    address_get_group_count() - the number of groups in an address_t
+	    address_get_unix_mailbox_count() - the number of unix mailboxes..
+	* include/mailutils/mutil.h, mailbox/mutil.c:
+	   mu_get_host_name(): returns this host name, looking gethostname()
+	    up with gethostbyname() if possible.
+ 	   mu_get_user_email_domain() and family now use mu_get_host_name()
+	* mailbox/parse822.c: address parsing now creates email addresses
+	  for unqualified "unix" style mailboxes by using the
+	  mu_get_user_email_domain().
+	* include/mailutils/message.h, mailbox/message.c:
+	  message_create_copy(): creates a copy of a message, useful when you
+	  want to operate on a temporary copy of a message.
+	* mailbox/mbx_imap.c: Moved message copy code into
+	  message_create_copy().
+	* mailbox/tcp.c: Attempting to connect to port 0 is now an error,
+	  and resolver failures cause MU_ERR_GETHOSTBYNAME instead of the
+	  less-than-useful EINVAL.
+	* include/mailutils/errno.h, mailbox/muerrno.c: Added smtp and
+	  mailer return codes.
+	* mailbox/url_smtp.c: _url_smtp_init(): using url_parse(), now
+	  accepts host AND port as args
+	* include/mailutils/url.h, mailbox/url.c:
+	   url_is_scheme(url_t, const char*): new function
+
 2002-05-02  Sergey Poznyakoff  
 
 	* comsat/comsat.c: Provide extern declarations for *utent calls.
