@@ -7,6 +7,9 @@
 	functions.
 	* pop3d/quit.c (pop3d_quit): Call update_login_delay().
 	* pop3d/user.c (pop3d_user): Call check_login_delay().
+
+	* mh/mh_format.c (builtin_formataddr): Fixed checking for duplicate
+	addresses.
 	
 2003-10-10  Alain Magloire
 
