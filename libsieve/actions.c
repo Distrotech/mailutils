@@ -154,7 +154,7 @@ build_mime (mime_t *pmime, message_t msg, const char *text)
     free (sender);
     stream_printf (stream, &off,
 		   "Message was refused by recipient's mail filtering program.\n");
-    stream_printf (stream, &off, "Reason given was as follows:\n");
+    stream_printf (stream, &off, "Reason given was as follows:\n\n");
     stream_printf (stream, &off, "%s", text);
     stream_close (stream);
     mime_add_part (mime, newmsg);
