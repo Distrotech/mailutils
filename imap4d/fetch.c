@@ -337,17 +337,25 @@ fetch_flags (struct fetch_command *command, char **arg)
 static int
 fetch_internaldate (struct fetch_command *command, char **arg ARG_UNUSED)
 {
-  char date[128], *p;
+  char date[128];
   envelope_t env = NULL;
-  struct tm tm;
+  struct tm tm, *tmp = NULL;
   mu_timezone tz;
 
   message_get_envelope (command->msg, &env);
   date[0] = '\0';
-  envelope_date (env, date, sizeof (date), NULL);
-  p = date;
-  mu_parse_ctime_date_time ((const char **) &p, &tm, &tz);
-  strftime (date, sizeof (date), "%d-%b-%Y %H:%M:%S", &tm);
+  if (envelope_date (env, date, sizeof (date), NULL) == 0)
+    {
+      char *p = date;
+      if (mu_parse_ctime_date_time ((const char **) &p, &tm, &tz) == 0)
+	tmp = &tm;
+    }
+  if (!tmp)
+    {
+      time_t t = time(NULL);
+      tmp = localtime(&t);
+    }
+  strftime (date, sizeof (date), "%d-%b-%Y %H:%M:%S", tmp);
   util_send ("%s", command->name);
   util_send (" \"%s +0000\"", date);
   return RESP_OK;
