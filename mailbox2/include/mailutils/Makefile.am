@@ -21,6 +21,7 @@ pkginclude_HEADERS = \
  md5-rsa.h    \
  message.h    \
  monitor.h    \
+ mu_features.h \
  mutil.h      \
  observable.h \
  observer.h   \
