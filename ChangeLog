@@ -1,3 +1,13 @@
+2003-09-05  Sergey Poznyakoff 
+
+	* lib/mu_dbm.c (mu_fcheck_perm, mu_check_perm): Return
+	MU_ERR_UNSAFE_PERMS when appropriate.
+	* mailbox/muerrno.c: Fixed indentation.
+	* pop3d/popauth.c: Use mu_strerror.
+	
+	* mh/ali.c (main): Bugfix. Lists were not initialized.
+	* mh/mh_alias.l (push_source): Honor Path variable.
+	
 2003-09-04  Wojciech Polak
 
 	* include/mailutils/errno.h: Added MU_ERR_UNSAFE_PERMS.
