@@ -1,0 +1,42 @@
+README -- Differences between Mailutils and the RAND implementation of MH:
+
+
+* All programs use usual GNU long options. The support for MH single-dot
+options is provided for backward compatibility.
+
+* Format specifications
+** Function unre
+This function is a GNU extension. It removes any leading whitespace
+and eventual "Re:" prefix from its string argument. Useful for creating
+subjects in reply messages:
+
+	%<{subject}Subject: Re: %(unre{subject})\\n%>
+
+** Function rcpt
+Mailutils provides new format function rcpt. The function takes a
+string argument (one of "to", "cc", "me", "all") and returns true
+if the given element is present in the recipient mask (as modified
+by any --cc and --nocc options) and false otherwise. It is used in
+default formats for repl and comp, e.g.:
+
+	%(lit)%<(rcpt to)%(formataddr{to})%>
+
+Notice that this means that usual replcomps file will be ignoring
+--cc and --nocc options, unless it has been modified as shown above.
+
+* rmm
+
+** Different behaviour if one of the messages in the list does not exist.
+
+Mailutils rmm does not delete any messages. Standard rmm in this case
+deletes all messages preceeding the non-existent one.
+
+** The rmmproc: profile component is not used.
+
+* fmtdump command is not provided. Use fmtcheck instead.
+
+
+Local variables:
+mode: outline
+paragraph-separate: "[ 	]*$"
+end:
