@@ -1,4 +1,4 @@
-require "fileinto";
+require [ "fileinto", "redirect" ];
 
 require [ "comparator-i;octet", "comparator-i;ascii-casemap" ];
 
