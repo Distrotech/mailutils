@@ -1,3 +1,32 @@
+2005-03-05  Sergey Poznyakoff 
+
+	POSIX compatibility issues in mail
+	
+	* mail/alt.c (mail_is_my_name): Do not check `metoo'. The
+	caller is responsible for that.
+	* mail/reply.c (reply0): Check for `metoo' before calling
+	mail_is_my_name().
+	(mail_reply): Honor `flipr' variable
+	* mail/decode.c: Mark message as read and shown
+	* mail/mbox.c: Likewise
+	* mail/pipe.c: Likewise
+	* mail/print.c: Likewise
+	* mail/top.c: Likewise
+	* mail/undelete.c: Likewise
+	* mail/visual.c: Likewise
+	* mail/from.c (mail_from0): If `showto' is set and the
+	mail comes from the user that invoked the program, show
+	`To:' address instead of `From:'.
+	* mail/mail.c (default_setup): Added variables, required by
+	POSIX: flipr, showto, bang. Added placeholders for debug,
+	onehop and sendwait.
+	* mail/mail.h (util_mark_read): New function
+	* mail/shell.c: If `bang' is set, expand every occurrence
+	of ! in argument array.
+	* mail/touch.c: Rewritten in accordance with POSIX specs:
+	do not mbox deleted and saved messages.
+	* mail/util.c (util_mark_read): New function
+	
 2005-03-04  Sergey Poznyakoff  
 
 	* mail/mail.h (MAIL_ATTRIBUTE_SHOWN): New attribute. Shows
