@@ -51,6 +51,7 @@
 #include <mailutils/list.h>
 #include <mailutils/iterator.h>
 #include <mailutils/address.h>
+#include <mailutils/mutil.h>
 
 #include <argcv.h>
 #include <getline.h>
@@ -141,7 +142,7 @@ int mail_z __P((int argc, char **argv));
   
 void mail_mainloop __P((char *(*input) __P((void *, int)), void *closure, int do_history));
 int mail_copy0 __P((int argc, char **argv, int mark));
-int mail_send0 __P((char *to, char *cc, char *bcc, char *subj));
+int mail_send0 __P((char *to, char *cc, char *bcc, char *subj, int save_to));
 int mail_mbox_commit __P((void));
 int mail_is_alt_name __P((char *name));
 int mail_header_is_visible __P((char *str));
@@ -155,7 +156,7 @@ int mail_eq __P((int argc, char **argv));	/* command = */
 
 int util_expand_msglist __P((const int argc, char **argv, int **list));
 int util_do_command __P((const char *cmd, ...));
-int util_msglist_command __P((function_t *func, int argc, char **argv));
+int util_msglist_command __P((function_t *func, int argc, char **argv, int set_cursor));
 function_t* util_command_get __P((char *cmd));
 char **util_command_completion __P((char *cmd, int start, int end));
 char *util_command_generator __P((char *text, int state));
@@ -163,6 +164,7 @@ char *util_stripwhite __P((char *string));
 struct mail_command_entry util_find_entry __P((char *cmd));
 int util_getcols __P((void));
 int util_getlines __P((void));
+int util_screen_lines __P((void));
 struct mail_env_entry *util_find_env __P((char *var));
 int util_printenv __P((int set));
 int util_isdeleted __P((int message));
@@ -176,7 +178,9 @@ void util_slist_add __P((list_t *list, char *value));
 void util_slist_destroy __P((list_t *list));
 char *util_slist_to_string __P((list_t list, char *delim));
 void util_strcat __P((char **dest, char *str));
-void util_escape_percent (char **str);
+void util_escape_percent __P((char **str));
+char *util_outfolder_name __P((char *str));
+void util_save_outgoing __P((message_t msg, char *savefile));
 
 char *alias_expand __P((char *name));
 void alias_destroy __P((char *name));
@@ -191,6 +195,7 @@ char *readline __P((const char *prompt));
 
 /* Message attributes */  
 #define MAIL_ATTRIBUTE_MBOXED   0x0001
+#define MAIL_ATTRIBUTE_SAVED    0x0002
   
 #ifdef __cplusplus
 }

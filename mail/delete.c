@@ -25,7 +25,7 @@ int
 mail_delete (int argc, char **argv)
 {
   if (argc > 1)
-    return util_msglist_command (mail_delete, argc, argv);
+    return util_msglist_command (mail_delete, argc, argv, 0);
   else
     {
       message_t msg;

@@ -24,9 +24,10 @@
  */
 
 /*
- * Shared between mail_copy() and mail_save().
+ * mail_copy0() is shared between mail_copy() and mail_save().
+ * argc, argv -- argument count & vector
+ * mark -- whether we should mark the message as saved.
  */
-
 int
 mail_copy0 (int argc, char **argv, int mark)
 {
@@ -36,7 +37,8 @@ mail_copy0 (int argc, char **argv, int mark)
   int *msglist = NULL;
   int num = 0, i = 0;
   int sender = 0;
-
+  size_t total_size = 0, total_lines = 0, size;
+  
   if (isupper (argv[0][0]))
     sender = 1;
   else if (argc >= 2)
@@ -63,18 +65,26 @@ mail_copy0 (int argc, char **argv, int mark)
       free (msglist);
       return 1;
     }
-    
-  fprintf (ofile, "%s\n", filename);
 
   for (i = 0; i < num; i++)
     {
       mailbox_get_message (mbox, msglist[i], &msg);
       mailbox_append_message (mbx, msg);
+
+      message_size (msg, &size);
+      total_size += size;
+      message_lines (msg, &size);
+      total_lines += size;
+      
       if (mark)
 	{
-	  /*FIXME: mark as saved */;
+	  attribute_t attr;
+	  message_get_attribute (msg, &attr);
+	  attribute_set_userflag (attr, MAIL_ATTRIBUTE_SAVED);
 	}
     }
+
+  fprintf (ofile, "\"%s\" %3ld/%-5ld\n", filename, total_lines, total_size);
 
   mailbox_close (mbx);
   mailbox_destroy (&mbx);

@@ -35,7 +35,7 @@ const struct mail_command_entry mail_command_table[] = {
   { "el",	"else",		1, mail_else,	"el[se]" }, 
   { "en",	"endif",	1, mail_endif,	"en[dif]" }, 
   { "ex",	"exit",		0, mail_exit,	"ex[it]" },
-  { "F",	"Followup",	0, mail_followup,	"F[ollowup] [msglist]" },
+  { "F",	"Followup",	0, mail_followup,"F[ollowup] [msglist]" },
   { "fi",	"file",		0, mail_file,	"fi[le] [file]" },
   { "fold",	"folder",	0, mail_file,	"fold[er] [file]" },
   { "folders",	"folders",	0, mail_folders,"folders" },

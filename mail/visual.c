@@ -25,14 +25,24 @@ int
 mail_visual (int argc, char **argv)
 {
   if (argc > 1)
-    return util_msglist_command (mail_visual, argc, argv);
+    return util_msglist_command (mail_visual, argc, argv, 1);
   else
     {
+      message_t msg = NULL;
+      attribute_t attr = NULL;
       char *file = tempnam(getenv("TMPDIR"), "mu");
-      util_do_command ("copy %s", file);
+      
+      util_do_command ("copy %s", file); /* NOTE: copy does not set flags */
       util_do_command ("shell %s %s", getenv("VISUAL"), file);
+
       remove (file);
       free (file);
+
+      /* Mark as read */
+      mailbox_get_message (mbox, cursor, &msg);
+      message_get_attribute (msg, &attr);
+      attribute_set_read (attr);
+      
       return 0;
     }
   return 1;

@@ -28,7 +28,7 @@ int
 mail_print (int argc, char **argv)
 {
   if (argc > 1)
-    return util_msglist_command (mail_print, argc, argv);
+    return util_msglist_command (mail_print, argc, argv, 1);
   else
     {
       message_t mesg;
@@ -39,7 +39,8 @@ mail_print (int argc, char **argv)
       off_t off = 0;
       size_t n = 0, lines = 0;
       FILE *out = ofile;
-
+      attribute_t attr;
+      
       if (mailbox_get_message (mbox, cursor, &mesg) != 0)
 	return 1;
 
@@ -87,6 +88,9 @@ mail_print (int argc, char **argv)
       if (out != ofile)
 	pclose (out);
 
+      message_get_attribute (mesg, &attr);
+      attribute_set_read (attr);
+      
       return 0;
     }
   return 1;

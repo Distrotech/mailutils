@@ -28,7 +28,7 @@ int
 mail_reply(int argc, char **argv)
 {
   if (argc > 1)
-    return util_msglist_command(mail_reply, argc, argv);
+    return util_msglist_command(mail_reply, argc, argv, 1);
   else
     {
       message_t msg;
@@ -84,7 +84,7 @@ mail_reply(int argc, char **argv)
 	fprintf(ofile, "Cc: %s\n", cc);
       fprintf(ofile, "Subject: %s\n\n", subj);
       
-      return mail_send0(to, cc, NULL, subj);
+      return mail_send0(to, cc, NULL, subj, 0);
     }
   return 1;
 }

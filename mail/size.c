@@ -25,7 +25,7 @@ int
 mail_size (int argc, char **argv)
 {
   if (argc > 1)
-    util_msglist_command (mail_size, argc, argv);
+    util_msglist_command (mail_size, argc, argv, 1);
   else
     {
       unsigned int s = 0;

@@ -26,7 +26,7 @@ int
 mail_dp (int argc, char **argv)
 {
   if (argc > 1)
-    util_msglist_command (mail_delete, argc, argv);
+    util_msglist_command (mail_delete, argc, argv, 0);
   else
     util_do_command ("delete");
   util_do_command ("next");

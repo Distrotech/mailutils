@@ -25,7 +25,7 @@ int
 mail_edit (int argc, char **argv)
 {
   if (argc > 1)
-    return util_msglist_command (mail_edit, argc, argv);
+    return util_msglist_command (mail_edit, argc, argv, 1);
   else
     {
       char *file = tempnam(getenv("TMPDIR"), "mu");
