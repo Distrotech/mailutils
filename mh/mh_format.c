@@ -1723,6 +1723,9 @@ builtin_formataddr (struct mh_machine *mach)
 {
   address_t addr, dest;
   size_t size;
+  int i;
+  size_t num;
+  char *buf;
   
   if (strobj_len (&mach->reg_str) == 0)
     dest = NULL;
@@ -1735,38 +1738,27 @@ builtin_formataddr (struct mh_machine *mach)
       return;
     }
 
-  if (addrlist_lookup (mach->addrlist, addr))
+  address_get_count (addr, &num);
+  for (i = 1; i <= num; i++)
     {
-      address_destroy (&dest);
-      address_destroy (&addr);
-      return;
-    }
-  
-  if (rcpt_mask & RCPT_ME)
-    address_union (&dest, addr);
-  else
-    {
-      int i;
-      size_t num;
-      char *buf;
-      
-      address_get_count (addr, &num);
-      for (i = 1; i <= num; i++)
+      if (address_aget_email (addr, i, &buf) == 0)
 	{
-	  if (address_aget_email (addr, i, &buf) == 0)
+	  if ((rcpt_mask & RCPT_ME) || !mh_is_my_name (buf))
 	    {
-	      if (!mh_is_my_name (buf))
+	      address_t subaddr;
+	      address_get_nth (addr, i, &subaddr);
+	      if (!addrlist_lookup (mach->addrlist, subaddr))
 		{
-		  address_t subaddr;
-		  address_get_nth (addr, i, &subaddr);
+		  list_append (mach->addrlist, subaddr);
 		  address_union (&dest, subaddr);
-		  address_destroy (&subaddr);
 		}
-	      free (buf);
+	      else
+		address_destroy (&subaddr);
 	    }
+	  free (buf);
 	}
     }
-  list_append (mach->addrlist, addr);
+
   if (address_to_string (dest, NULL, 0, &size) == 0)
     {
       strobj_realloc (&mach->reg_str, size + 1);
