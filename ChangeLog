@@ -1,5 +1,30 @@
 2002-08-13  Sergey Poznyakoff
 
+	To avoid confusion, pruned libmailbox directory.
+	
+	* libmailbox/mailbox.c: Removed obsolete files.
+	* libmailbox/maildir.c: Likewise.
+	* libmailbox/mh.c: Likewise.
+	* libmailbox/unixmbox.c: Likewise.
+	* libmailbox/Makefile.am: Likewise.
+	* libmailbox/mailbox.h: Likewise.
+	* libmailbox/maildir.h: Likewise.
+	* libmailbox/mh.h: Likewise.
+	* libmailbox/unixmbox.h: Likewise.
+
+	* MySql/Makefile.am: Removed.
+	* MySql/MySql.c: Likewise.
+	* MySql/MySql.h: Likewise.
+	* MySql/.cvsignore
+	
+	* auth/sql.c: Merged sql core stuff from MySql/MySql.c.
+	* auth/virtual.c: All functions made static.
+	* auth/system.c: Likewise.
+	* Makefile.am: Removed MySql
+	* configure.ac: Likewise.
+	
+2002-08-13  Sergey Poznyakoff
+
 	Moved authentication specific calls scattered all over the
 	code to one place: libmuauth library. The new code returns
 	authorization credentials in struct mu_auth_data. It contains
