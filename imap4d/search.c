@@ -509,7 +509,7 @@ parse_simple_key (struct parsebuf *pb)
 
   if (!condp->name)
     {
-      if (util_msgset (pb->token, &set, &n, 0) == 0) /*FIXME: isuid? */
+      if (util_msgset (pb->token, &set, &n, 0) == 0) 
 	{
 	  put_code (pb, cond_msgset);
 	  put_code (pb, (inst_t) n);
