@@ -521,7 +521,10 @@ mail_send0 (compose_env_t * env, int save_to)
 						 | MU_STREAM_CREAT);
 			  if (status == 0)
 			    {
-			      mailbox_append_message (mbx, msg);
+			      status = mailbox_append_message (mbx, msg);
+			      if (status)
+				util_error (_("can't append message: %s"),
+					    mu_strerror (status));
 			      mailbox_close (mbx);
 			    }
 			  mailbox_destroy (&mbx);

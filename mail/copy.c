@@ -37,6 +37,7 @@ mail_copy0 (int argc, char **argv, int mark)
   msgset_t *msglist = NULL, *mp;
   int sender = 0;
   size_t total_size = 0, total_lines = 0, size;
+  int status;
 
   if (isupper (argv[0][0]))
     sender = 1;
@@ -72,14 +73,17 @@ mail_copy0 (int argc, char **argv, int mark)
 
   for (mp = msglist; mp; mp = mp->next)
     {
-      int status;
-      
       status = util_get_message (mbox, mp->msg_part[0], &msg);
       if (status)
         break;
 
-      mailbox_append_message (mbx, msg);
-
+      status = mailbox_append_message (mbx, msg);
+      if (status)
+	{
+	  util_error (_("can't append message: %s"), mu_strerror (status));
+	  break;
+	}
+      
       message_size (msg, &size);
       total_size += size;
       message_lines (msg, &size);
@@ -93,7 +97,8 @@ mail_copy0 (int argc, char **argv, int mark)
 	}
     }
 
-  fprintf (ofile, "\"%s\" %3d/%-5d\n", filename, total_lines, total_size);
+  if (status == 0)
+    fprintf (ofile, "\"%s\" %3d/%-5d\n", filename, total_lines, total_size);
 
   mailbox_close (mbx);
   mailbox_destroy (&mbx);

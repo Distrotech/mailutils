@@ -98,6 +98,8 @@ mail_mbox_commit ()
 	  && (attribute_is_userflag (attr, MAIL_ATTRIBUTE_MBOXED)
 	      || (!hold && attribute_is_read (attr))))
 	{
+	  int status;
+	  
 	  if (!dest_mbox)
 	    {
 	      char *name = getenv ("MBOX");
@@ -111,9 +113,14 @@ mail_mbox_commit ()
 		}
 	    }
 
-	  mailbox_append_message (dest_mbox, msg);
-	  attribute_set_deleted (attr);
-	  saved_count++;
+	  status = mailbox_append_message (dest_mbox, msg);
+	  if (status)
+	    util_error (_("can't append message: %s"), mu_strerror (status));
+	  else
+	    {
+	      attribute_set_deleted (attr);
+	      saved_count++;
+	    }
 	}
       else if (!keepsave && attribute_is_userflag (attr, MAIL_ATTRIBUTE_SAVED))
 	attribute_set_deleted (attr);
