@@ -71,7 +71,7 @@ struct _mailer
   void (*_destroy)     __P ((mailer_t));
   int (*_open)         __P ((mailer_t, int flags));
   int (*_close)        __P ((mailer_t));
-  int (*_send_message) __P ((mailer_t, message_t));
+  int (*_send_message) __P ((mailer_t, message_t, address_t, address_t));
 };
 
 #define MAILER_NOTIFY(mailer, type) \

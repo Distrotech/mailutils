@@ -169,11 +169,35 @@ mailer_close (mailer_t mailer)
 
 /* messages */
 int
-mailer_send_message (mailer_t mailer, message_t msg)
+mailer_send_message (mailer_t mailer, message_t msg, address_t from, address_t to)
 {
+  int status;
+  size_t count = 0;
+
   if (mailer == NULL || mailer->_send_message == NULL)
     return ENOSYS;
-  return mailer->_send_message (mailer, msg);
+
+  /* Common API checking. */
+
+  if (from)
+    {
+      if ((status = address_get_email_count (from, &count)) != 0)
+	return status;
+
+      if (count != 1)
+	return EINVAL;
+    }
+
+  if (to)
+    {
+      if ((status = address_get_email_count (to, &count)) != 0)
+	return status;
+
+      if (count < 1)
+	return EINVAL;
+    }
+
+  return mailer->_send_message (mailer, msg, from, to);
 }
 
 int

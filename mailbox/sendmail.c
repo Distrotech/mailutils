@@ -19,14 +19,17 @@
 # include <config.h>
 #endif
 
-#include <sys/types.h>
-#include <stdio.h>
-#include <unistd.h>
-#include <sys/wait.h>
+#include <assert.h>
 #include <errno.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
+#include <sys/types.h>
+#include <sys/wait.h>
+
+#include <mailutils/address.h>
 #include <mailutils/stream.h>
 #include <mailer0.h>
 #include <registrar0.h>
@@ -64,7 +67,7 @@ typedef struct _sendmail * sendmail_t;
 static void sendmail_destroy (mailer_t);
 static int sendmail_open (mailer_t, int);
 static int sendmail_close (mailer_t);
-static int sendmail_send_message (mailer_t, message_t);
+static int sendmail_send_message (mailer_t, message_t, address_t, address_t);
 
 int
 _mailer_sendmail_init (mailer_t mailer)
@@ -143,7 +146,7 @@ sendmail_close (mailer_t mailer)
 }
 
 static int
-sendmail_send_message (mailer_t mailer, message_t msg)
+sendmail_send_message (mailer_t mailer, message_t msg, address_t from, address_t to)
 {
   sendmail_t sendmail = mailer->data;
   int status = 0;
@@ -156,24 +159,119 @@ sendmail_send_message (mailer_t mailer, message_t msg)
     case SENDMAIL_NO_STATE:
       {
 	int tunnel[2];
-	int argc = 3;
+	int argc = 0;
 	char **argvec = NULL;
+	size_t tocount = 0;
+	char *emailfrom = NULL;
 
-	argvec = realloc (argvec, argc * (sizeof (*argvec)));
-	argvec[0] = strdup (sendmail->path);
-	/* do not treat '.' as message terminator*/
-	argvec[1] = strdup ("-oi");
-	argvec[2] = strdup ("-t");
+	/* Count the length of the arg vec: */
 
-	argc++;
-	argvec = realloc (argvec, argc * (sizeof (*argvec)));
-	argvec[argc - 1] = NULL;
+	argc++;			/* terminating NULL */
+	argc++;			/* sendmail */
+	argc++;			/* -oi (do not treat '.' as message terminator) */
+
+	if (from)
+	  {
+	    if ((status = address_aget_email (from, 1, &emailfrom)) != 0)
+	      goto NO_STATE_CLEANUP;
+
+	    if (!emailfrom)
+	      {
+		/* the address wasn't fully qualified, choke (for now) */
+		status = EINVAL;
+
+  MAILER_DEBUG1 (mailer, MU_DEBUG_TRACE,
+      "envelope from (%s) not fully qualifed\n", emailfrom);
+
+		goto NO_STATE_CLEANUP;
+	      }
+
+	    argc += 2;		/* -f from */
+	  }
+	if (to)
+	  {
+	    status = address_get_email_count (to, &tocount);
+
+	    assert (!status);
+	    assert (tocount);
+
+	    argc += tocount;	/* 1 per to address */
+	  }
+	else
+	  {
+	    argc++;		/* -t */
+	  }
+
+	/* Allocate arg vec: */
+	if ((argvec = calloc (argc, sizeof (*argvec))) == 0)
+	  {
+	    status = ENOMEM;
+	    goto NO_STATE_CLEANUP;
+	  }
+
+	argc = 0;
+
+	if ((argvec[argc++] = strdup (sendmail->path)) == 0)
+	  {
+	    status = ENOMEM;
+	    goto NO_STATE_CLEANUP;
+	  }
+
+	if ((argvec[argc++] = strdup ("-oi")) == 0)
+	  {
+	    status = ENOMEM;
+	    goto NO_STATE_CLEANUP;
+	  }
+	if (from)
+	  {
+	    if ((argvec[argc++] = strdup ("-f")) == 0)
+	      {
+		status = ENOMEM;
+		goto NO_STATE_CLEANUP;
+	      }
+	    argvec[argc++] = emailfrom;
+	  }
+	if (!to)
+	  {
+	    if ((argvec[argc++] = strdup ("-t")) == 0)
+	      {
+		status = ENOMEM;
+		goto NO_STATE_CLEANUP;
+	      }
+	  }
+	else
+	  {
+	    int i = 1;
+	    int count = 0;
+
+	    address_get_count (to, &count);
+
+	    for (; i <= count; i++)
+	      {
+		char *email = 0;
+		if ((status = address_aget_email (to, i, &email)) != 0)
+		  goto NO_STATE_CLEANUP;
+		if (!email)
+		  {
+		    /* the address wasn't fully qualified, choke (for now) */
+		    status = EINVAL;
+
+  MAILER_DEBUG1 (mailer, MU_DEBUG_TRACE,
+      "envelope to (%s) not fully qualifed\n", email);
+
+		    goto NO_STATE_CLEANUP;
+		  }
+		argvec[argc++] = email;
+	      }
+	  }
+
+	assert (argvec[argc] == NULL);
 
 	if (pipe (tunnel) == 0)
 	  {
-	    sendmail->fd = tunnel [1];
+	    sendmail->fd = tunnel[1];
 	    sendmail->pid = vfork ();
-	    if (sendmail->pid == 0) /* Child.  */
+	    if (sendmail->pid == 0)	/* Child.  */
 	      {
 		close (STDIN_FILENO);
 		close (STDOUT_FILENO);
@@ -181,21 +279,34 @@ sendmail_send_message (mailer_t mailer, message_t msg)
 		close (tunnel[1]);
 		dup2 (tunnel[0], STDIN_FILENO);
 		execv (sendmail->path, argvec);
-		exit (1);
+		exit (errno);
 	      }
 	    else if (sendmail->pid == -1)
+	    {
 	      status = errno;
+
+	      MAILER_DEBUG1 (mailer, MU_DEBUG_TRACE,
+		      "vfork() failed: %s\n", strerror(status));
+	    }
 	  }
 	else
+	{
 	  status = errno;
-	for (argc = 0; argvec[argc]; argc++)
+	      MAILER_DEBUG1 (mailer, MU_DEBUG_TRACE,
+		      "pipe() failed: %s\n", strerror(status));
+	    }
+
+      NO_STATE_CLEANUP:
+	MAILER_DEBUG0 (mailer, MU_DEBUG_TRACE, "exec argv:");
+	for (argc = 0; argvec && argvec[argc]; argc++)
 	  {
-	    MAILER_DEBUG1 (mailer, MU_DEBUG_TRACE, "%s ", argvec[argc]);
+	    MAILER_DEBUG1 (mailer, MU_DEBUG_TRACE, " %s", argvec[argc]);
 	    free (argvec[argc]);
 	  }
 	MAILER_DEBUG0 (mailer, MU_DEBUG_TRACE, "\n");
 	free (argvec);
 	close (tunnel[0]);
+
 	if (status != 0)
 	  {
 	    close (sendmail->fd);
@@ -204,7 +315,7 @@ sendmail_send_message (mailer_t mailer, message_t msg)
 	sendmail->state = SENDMAIL_SEND;
       }
 
-    case SENDMAIL_SEND: /* Parent.  */
+    case SENDMAIL_SEND:	/* Parent.  */
       {
 	stream_t stream = NULL;
 	char buffer[512];
@@ -219,6 +330,10 @@ sendmail_send_message (mailer_t mailer, message_t msg)
 	    if (write (sendmail->fd, buffer, len) == -1)
 	      {
 		status = errno;
+
+	      MAILER_DEBUG1 (mailer, MU_DEBUG_TRACE,
+		      "write() failed: %s\n", strerror(status));
+
 		break;
 	      }
 	    sendmail->offset += len;
@@ -226,11 +341,22 @@ sendmail_send_message (mailer_t mailer, message_t msg)
 	if (status == EAGAIN)
 	  return status;
 	close (sendmail->fd);
-	rc = waitpid(sendmail->pid, &status, 0);
-        if (rc < 0)
+	rc = waitpid (sendmail->pid, &status, 0);
+	if (rc < 0)
+	{
 	  status = errno;
-	else if (WIFEXITED(status))
-	  status = WEXITSTATUS(status);
+	      MAILER_DEBUG2 (mailer, MU_DEBUG_TRACE,
+		      "waitpid(%d) failed: %s\n",
+		      sendmail->pid, strerror(status));
+	}
+	else if (WIFEXITED (status))
+	{
+	  status = WEXITSTATUS (status);
+	      MAILER_DEBUG2 (mailer, MU_DEBUG_TRACE,
+		      "%s exited with: %s\n",
+		      sendmail->path, strerror(status));
+	}
+	/* Shouldn't this notification only happen on success? */
 	observable_notify (mailer->observable, MU_EVT_MAILER_MESSAGE_SENT);
       }
     default:

@@ -133,7 +133,7 @@ while (0)
 static void smtp_destroy (mailer_t);
 static int smtp_open (mailer_t, int);
 static int smtp_close (mailer_t);
-static int smtp_send_message (mailer_t, message_t);
+static int smtp_send_message (mailer_t, message_t, address_t, address_t);
 static int smtp_writeline (smtp_t smtp, const char *format, ...);
 static int smtp_readline (smtp_t);
 static int smtp_read_ack (smtp_t);
@@ -413,13 +413,17 @@ smtp_close (mailer_t mailer)
 }
 
 static int
-smtp_send_message(mailer_t mailer, message_t msg)
+smtp_send_message(mailer_t mailer, message_t msg, address_t from, address_t to)
 {
   smtp_t smtp = mailer->data;
   int status;
 
   if (smtp == NULL || msg == NULL)
     return EINVAL;
+
+/* FIXME: implement the from and to */
+  if(from || to)
+    return ENOSYS;
 
   switch (smtp->state)
     {

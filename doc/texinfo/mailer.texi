@@ -4,216 +4,7 @@
 
 @end example
 
-The API is still shaky and undefined.
-
-
-
-** mailer_t API enhancement
-
-Problem, the current API doesn't allow sending mail in anything
-other than sendmail -t mode, and with the SMTP mailer, it is
-exposing the Bcc: to all the to: and cc: recipients, unless the
-receiving MTA is being nice enough to clean them up, but I have
-the impression that it won't. Has anybody noticed?
-
-I need to do DSNs and Sieve redirects, so...
-
-* mailer_t API
-
-int mailer_send(mailer_t, message_t, address_t from, address_t to);
-
-If from is not nul, implies -f.
-If to is nul, implies -t.
-
-* Use cases
-
-Each of these might benefit from a handy wrapper around mailer_send().
-
-I have to look at what mailutil's mail util does, hasn't it had to deal with
-this, or does it just always deliver in sendmail -t mode?
-
-- original submission
-
- 1 - fill in header addresses
-
- 2 - mailer_deliver(mailer, msg, NULL, NULL);
-
-   - from will be filled in if missing,
-
-   - bcc's will be deleted before delivery to a non-bcc address,
-
-   - message-id and date will be added, if missing,
-
-   - a to: or apparently-to: will be added if non is present (for RFC
-     compliance)
-
-- MTA-style .forward ( and sieve-style redirect )
-
- 1 - get the envelope from of the message to be forwarded
-
- 2 - mailer_deliver(mailer, msg, from, to)
-
-- MUA-style bounce
-
- 1 - add Resent-[to,from,....]
-
- 2 - mailer_deliver(mailer, msg, NULL, to)
-
-   (question... does sendmail use the Resent-* fields INSTEAD of
-    the "normal" fields if they are present? nullmailer-inject
-    documents that it does, see below. If so, then the
-    "to" argument above is not necessary. )
-
-- DSN "bounce"
-
- 1 - compose DSN
-
- 2 - mailer_deliver(mailer, msg, address_t( "<>" ), to)
-
-   Don't want mail loops, so the nul but valid SMTP address of <> is
-   the envelop from.
-
-* implement mailer_t using sendmail
-
-/sbin/sendmail isn't always sendmail... sometimes its a sendmail-compatible
-wrapper, so assume /sbin/sendmail understands only a recipient
-list, -f, -F, -t, and -oi, these seem to be pretty basic. Cross fingers.
-
-
-Pipe to "/sbin/sendmail -oi [-f from] <to|-t>", supplying -f if there
-was a from, and supplying either the recipient list from the to,
-or the -t flag.
-
-Note: since the stdout and stderr of sendmail is closed, we have no
-way of ever giving feedback on failure. Also, what should the return
-code be from mailer_send() when sendmail returns 1? 1 maps to EPERM,
-which is less than descriptive!
-
-* implement mailer_t using SMTP
-
-We have to do it all ourselves....
-
-Actually, I think some things (like date and message-id being inserted)
-will be done by the receiving SMTP MTA. However, the specs say we
-are supposed to canonicalize the mail before sending it, not rely
-on the receiving SMTP agent to patch up our mail. Hmm... which is
-the right way?
-
-** Notes on non-RFC822 addresses.
-
-An address that has no domain is not and RFC822 email address. What
-do I do with them? Should the user of the API be responsible for
-determining what is mean by email to "john" means? Or should the
-be able to configure sendmail to decide globally what this means. If so, we
-can pass the address to sendmail, but we have to decide for SMTTP! So,
-right now these addresses are rejected. This could be changed.
-
-** Notes on recovery of envelope addresses associate with a message.
-
-Qmail:
-
-  Return-Path and Delivered-To filled in with the envelope from and to.
-
-Sendmail:
-
-  Return-Path filled in with the envelope from.
-  Apparently-To filled in with envelope to if there are no recipient
-    addresses in the header.
-
-  Generally you are to assume YOU are the envelope-to.
-
-Also found:
-
-   from -> Return-path:
-   to   -> Envelope-to: 
-
-Mbox:
-
-  The _From line is supposed to have the envelope from in it.
-
-** Summary of what nullmailer-inject and sendmail do
-
-Nullmailer-inject:
-
-@example
-
--a  (arg) ignore header recipients, use only command line
--b  (arg AND header) use both the command line and message header for recipients
--e  (arg OR header)
--h  (header)
-
--f  envelope sender
-
-Add Message-ID?
-Add Date?
-Add (arg) addresses to the (header)?
-Add ' Cc: recipient list not shown: ;' if there are no to: or cc: fields?
-
-@end example
-
-Sendmail:
-
-@example
-
--F  full name of the sender
--f  envelope sender
-
--G  what does it do?
-
--t  read message for recipients (to:, cc:, and bcc: - bcc: lines
-    deleted before transmission)
-
--i  ignore dots alone on lines, they don't teminate the message
-
-@end example
-
-If there are no recipients in the headers (to:, cc:, and bcc:), then
-do one of:
-
-  nothing leaves  the  message unchanged,
-
-  add-to adds a To: header with the envelope recipients,
-
-  add-apparently-to  adds  an  Apparently-To:  header with the
-        envelope recipients,
-
-  add-bcc  adds  an  empty  Bcc: header,
-
-  add-to-undisclosed adds a header reading 'To: undisclosed-recipients:;'.
-
-
-@subsection nullmailer-inject's manual page, note its handling of resent-*
-
-The  following  lines  are parsed for recipient addresses:
-To, Cc,  Bcc,  Apparently-To,  Resent-To,  Resent-Cc,  and
-Resent-Bcc.
-
-The  following sender address lines are parsed and rewrit-
-ten: Sender, From, Reply-To, Return-Path,  Return-Receipt-
-To,  Errors-To,  Resent-Sender,  Resent-From,  and Resent-
-Reply-To.  If the Return-Path header field is present  and
-contains  a  single  address, its contents will be used to
-set the envelope sender address.
-
-If the message contains any of the following fields, it is
-treated  as  a resent message: Resent-Sender, Resent-From,
-Resent-Reply-To, Resent-To, Resent-Cc, Resent-Bcc, Resent-
-Date,  Resent-Message-ID.   If the message is resent, only
-the recipient fields prefixed with  Resent-  are  examined
-for addresses.
-
-Any  occurrences  of Bcc, Resent-Bcc, Return-Path, or Con-
-tent-Length are discarded after they are parsed (if neces-
-sary).
-
-If the header lacks a Message-Id field, a unique string is
-generated and added to the message.  If the header lacks a
-Date field, the current local date and time in RFC822 for-
-mat is appended to the message.  If the message has no  To
-or  Cc  fields, the following line is appended to the mes-
-sage:
-
-    Cc: recipient list not shown: ;
+The API is still changing.
 
 @deftypefun int mailer_create (mailer_t *, const char *)
 @end deftypefun
@@ -227,21 +18,24 @@ sage:
 @deftypefun int mailer_close (mailer_t)
 @end deftypefun
 
-@deftypefun int mailer_send(mailer_t, message_t, address_t @var{from}, address_t @var{to});
+@deftypefun int mailer_send_message(mailer_t @var{mailer}, message_t @var{msg}, address_t @var{from}, address_t @var{to});
 
-If from is not nul, it must containg a single fully qualified
+If from is not @var{NULL}, it must containg a single fully qualified
 RFC2822 email address which will be used as the envelope from
 address. This is the address to which delivery status notifications
 are sent, so it never matters what it is set to until it REALLY matters.
+This is equivalent to sendmail's @var{-f} flag.
 
-If to is nul, then the contents of the standard "To:", "Cc:", and 
-"Bcc:" fields will be used as recipient addresses.
-@end deftypefun
+The default for @var{from} is provided by the specific mailer.
 
-@deftypefun int mailer_send_message (mailer_t, message_t)
+If to is not @var{NULL}, then the message will be sent to the list of
+addresses that it specifies.
 
-Identical to @code{mailer_send_message()} with @var{from}
-and @var{to} both @code{NULL}.
+The default for @var{to} is to use the contents of the standard "To:", "Cc:",
+and "Bcc:" fields, this is equivalent to sendmail's @var{-t} flag.
+
+Note: the previous implementation of mailer_send_message() was equivalent
+to having both @var{from} and @var{to} be @var{NULL}.
 
 @end deftypefun
 
@@ -265,3 +59,80 @@ and @var{to} both @code{NULL}.
 
 @deftypefun int mailer_get_url (mailer_t, url_t *)
 @end deftypefun
+
+@subheading Some usage notes.
+
+Some possible use cases the API must support are:
+
+- original submission
+
+ 1 - fill in header addresses
+
+ 2 - mailer_send_message(mailer, msg, NULL, NULL);
+
+   - from will be filled in if missing,
+
+   - bcc's will be deleted before delivery to a non-bcc address,
+
+   - message-id and date will be added, if missing,
+
+   - a to: or apparently-to: will be added if non is present (for RFC
+     compliance)
+
+- MTA-style .forward ( and sieve-style redirect )
+
+ 1 - get the envelope from of the message to be forwarded
+
+ 2 - mailer_send_message(mailer, msg, from, to)
+
+- MUA-style bounce
+
+ 1 - add Resent-[to,from,....]
+
+ 2 - mailer_send_message(mailer, msg, NULL, to)
+
+- DSN "bounce"
+
+ 1 - compose DSN
+
+ 2 - mailer_deliver(mailer, msg, address_t( "<>" ), to)
+
+   Don't want mail loops, so the nul but valid SMTP address of <> is
+   the envelope from.
+
+@subheading The sendmail mailer.
+
+/sbin/sendmail isn't always sendmail... sometimes its a sendmail-compatible
+wrapper, so assume /sbin/sendmail understands only a recipient
+list, -f, -F, -t, and -oi, these seem to be pretty basic. Cross fingers.
+
+Pipe to "/sbin/sendmail -oi [-f from] <to|-t>", supplying -f if there
+was a from, and supplying either the recipient list from the to,
+or the -t flag.
+
+Note: since the stdout and stderr of sendmail is closed, we have no
+way of ever giving feedback on failure. Also, what should the return
+code be from mailer_send_message() when sendmail returns 1? 1 maps to EPERM,
+which is less than descriptive!
+
+@subheading The SMTP mailer.
+
+This is very rundamentary right now, all of what sendmail does must be
+implemented.
+
+Actually, I think some things (like date and message-id being inserted)
+will be done by the receiving SMTP MTA. However, the specs say we
+are supposed to canonicalize the mail before sending it, not rely
+on the receiving SMTP agent to patch up our mail. Hmm... which is
+the right way?
+
+@subheading Non-RFC822 addresses.
+
+An address that has no domain is not and RFC822 email address. What
+do I do with them? Should the user of the API be responsible for
+determining what is mean by email to "john" means? Or should the
+be able to configure sendmail to decide globally what this means. If so, we
+can pass the address to sendmail, but we have to decide for SMTTP! So,
+right now these addresses are rejected. This could be changed.
+
+
