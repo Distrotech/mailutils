@@ -26,9 +26,9 @@
 int
 imap4d_login (int argc, char **argv)
 {
-  if (argv > 4)
+  if (argc > 4)
     return TOO_MANY;
-  else if (argv < 4)
+  else if (argc < 4)
     return TOO_FEW;
   return NOT_IMPL;
 }
