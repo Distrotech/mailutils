@@ -1,3 +1,18 @@
+2001-08-18 Sergey Poznyakoff
+
+	* libmu_scm/mu_mime.c: (new) Scheme primitives for handling
+	mime messages.
+	* libmu_scm/mu_message.c: mu_scm_message_add_owner() - add new
+	object to the owner chain of the message.
+	* libmu_scm/mu_scm.h: Prototypes for new functions.
+	* libmu_scm/mu_scm.c: Call mu_scm_mime_init().
+
+	* guimb/scm/reject.scm: (new) Implementation of Sieve "reject"
+	action.
+	* guimb/scm/redirect.scm: Moved sieve-message-bounce to
+	sieve-core.scm
+	* guimb/scm/sieve-core.scm: New function sieve-message-bounce.
+
 2001-08-16 Sergey Poznyakoff
 
 	* mail/msgset.y: Implemented :/expr/ -- search in the message
