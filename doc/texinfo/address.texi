@@ -267,6 +267,6 @@ The return value is @code{0}.
 
 @section Example
 @example
-@include ex-address.texi
+@include address.c.texi
 @end example
 
