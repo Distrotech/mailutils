@@ -5,6 +5,10 @@
 	* mail.local/main.c (deliver): Likewise.
 	* frm/frm.c: Minor fix in help output.
 
+	* mail/copy.c: Check for error return from mailbox_append_message
+	* mail/quit.c: Likewise.
+	* mail/send.c: Likewise.
+
 2004-01-13  Sergey Poznyakoff 
 
 	* frm/frm.c: Lots of changes for compatibility with ELM.
