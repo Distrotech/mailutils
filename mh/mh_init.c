@@ -25,9 +25,9 @@
 
 char *current_folder = NULL;
 size_t current_message = 0;
-char *ctx_name;
-header_t ctx_header;
-header_t profile_header;
+mh_context_t *context;
+mh_context_t *profile;
+mh_context_t *sequences;
 
 char mh_list_format[] = 
 "%4(msg)%<(cur)+%| %>%<{replied}-%?{encrypted}E%| %>"
@@ -62,56 +62,38 @@ void
 mh_init2 ()
 {
   char *mh_sequences_name;
+  char *seq_name, *ctx_name;
+  char *p;
 
-  /* Set MH context */
+  mu_path_folder_dir = mh_get_dir ();
+  p = getenv ("CONTEXT");
+  if (!p)
+    p = "context";
+  ctx_name = mh_expand_name (p, 0);
+  context = mh_context_create (ctx_name, 1);
+  mh_context_read (context);
+  
   if (current_folder)
     current_folder = mu_tilde_expansion (current_folder, "/", NULL);
   else
-    current_folder = mh_profile_value ("Current-Folder",
-				       mh_profile_value ("Inbox", "inbox"));
-  if (strchr (current_folder, '/') == NULL)
-    {
-      char *mhdir = mh_profile_value ("Path", "Mail");
-      char *p = mu_get_homedir ();
-
-      if (mhdir[0] == '/')
-	asprintf (&current_folder, "mh:%s/%s", mhdir, current_folder);
-      else
-	asprintf (&current_folder, "mh:%s/%s/%s", p, mhdir, current_folder);
-      if (!current_folder)
-	{
-	  mh_error ("low memory");
-	  exit (1);
-	}
-      free (p);
-    }
-  else if (strchr (current_folder, ':') == NULL)
-    {
-      char *p;
-      p = xmalloc (strlen (current_folder) + 4);
-      strcat (strcpy (p, "mh:"), current_folder);
-      current_folder = p;
-    }
+    current_folder = mh_context_get_value (context, "Current-Folder",
+					   mh_profile_value ("Inbox",
+							     "inbox"));
 
   mh_sequences_name = mh_profile_value ("mh-sequences", MH_SEQUENCES_FILE);
-  asprintf (&ctx_name, "%s/%s", current_folder+3, mh_sequences_name);
-  if (mh_read_context_file (ctx_name, &ctx_header) == 0)
+  asprintf (&seq_name, "%s/%s", current_folder+3, mh_sequences_name);
+  sequences = mh_context_create (seq_name, 1);
+  if (mh_context_read (sequences) == 0)
     {
-      char buf[64];
-      size_t n;
-       
-      if (!header_get_value (ctx_header, "cur", buf, sizeof buf, &n))
-	current_message = strtoul (buf, NULL, 10);
+      char *p = mh_context_get_value (sequences, "cur", "0");
+      current_message = strtoul (p, NULL, 10);
     }
 }
 
 char *
 mh_profile_value (char *name, char *defval)
 {
-  char *p;
-  if (header_aget_value (profile_header, name, &p))
-    p = defval;
-  return p;
+  return mh_context_get_value (profile, name, defval);
 }
 
 void
@@ -130,7 +112,8 @@ mh_read_profile ()
       asprintf (&p, "%s/%s", home, MH_USER_PROFILE);
       free (home);
     }
-  mh_read_context_file (p, &profile_header);
+  profile = mh_context_create (p, 1);
+  mh_context_read (profile);
 }
   
 void
@@ -138,76 +121,8 @@ mh_save_context ()
 {
   char buf[64];
   snprintf (buf, sizeof buf, "%d", current_message);
-  if (!ctx_header)
-    {
-      if (header_create (&ctx_header, NULL, 0, NULL))
-	{
-	  mh_error ("Can't create context: %s", strerror (errno));
-	  return;
-	}
-    }
-  header_set_value (ctx_header, "cur", buf, 1);
-  mh_write_context_file (ctx_name, ctx_header);
-}
-
-int 
-mh_read_context_file (char *path, header_t *header)
-{
-  int status;
-  char *blurb;
-  struct stat st;
-  FILE *fp;
-
-  if (stat (path, &st))
-    return errno;
-
-  blurb = malloc (st.st_size);
-  if (!blurb)
-    return ENOMEM;
-  
-  fp = fopen (path, "r");
-  if (!fp)
-    {
-      free (blurb);
-      return errno;
-    }
-
-  fread (blurb, st.st_size, 1, fp);
-  fclose (fp);
-  
-  if (status = header_create (header, blurb, st.st_size, NULL))
-    free (blurb);
-
-  return status;
-}
-
-int 
-mh_write_context_file (char *path, header_t header)
-{
-  stream_t stream;
-  char buffer[512];
-  size_t off = 0, n;
-  FILE *fp;
-  
-  fp = fopen (path, "w");
-  if (!fp)
-    {
-      mh_error ("can't write context file %s: %s", path, strerror (errno));
-      return 1;
-    }
-  
-  header_get_stream (header, &stream);
-
-  while (stream_read (stream, buffer, sizeof buffer - 1, off, &n) == 0
-	 && n != 0)
-    {
-      buffer[n] = '\0';
-      fprintf (fp, "%s", buffer);
-      off += n;
-    }
-
-  fclose (fp);
-  return 0;
+  mh_context_set_value (sequences, "cur", buf);
+  mh_context_write (sequences);
 }
 
 int
@@ -431,23 +346,113 @@ mh_message_number (message_t msg, size_t *pnum)
 }
 
 mailbox_t
-mh_open_folder ()
+mh_open_folder (const char *folder)
 {
   mailbox_t mbox = NULL;
-  
-  if (mailbox_create_default (&mbox, current_folder))
+  char *name;
+
+  name = mh_expand_name (folder, 1);
+  if (mailbox_create_default (&mbox, name))
     {
       mh_error ("Can't create mailbox %s: %s",
-		current_folder, strerror (errno));
+		name, strerror (errno));
       exit (1);
     }
 
   if (mailbox_open (mbox, MU_STREAM_READ))
     {
-      mh_error ("Can't open mailbox %s: %s", current_folder, strerror (errno));
+      mh_error ("Can't open mailbox %s: %s", name, strerror (errno));
       exit (1);
     }
+
+  free (name);
 
   return mbox;
 }
 
+char *
+mh_get_dir ()
+{
+  char *mhdir = mh_profile_value ("Path", "Mail");
+  if (mhdir[0] != '/')
+    {
+      char *p = mu_get_homedir ();
+      asprintf (&mhdir, "%s/%s", p, mhdir);
+      free (p);
+    }
+  else 
+    mhdir = strdup (mhdir);
+  return mhdir;
+}
+
+const char *
+mh_expand_name (const char *name, int is_folder)
+{
+  char *tmp = NULL;
+  char *p = NULL;
+  
+  tmp = mu_tilde_expansion (name, "/", NULL);
+  if (tmp[0] == '+')
+    name = tmp + 1;
+  else
+    name = tmp;
+
+  if (is_folder)
+    asprintf (&p, "mh:%s/%s", mu_path_folder_dir, name);
+  else
+    asprintf (&p, "%s/%s", mu_path_folder_dir, name);
+  free (tmp);
+  return p;
+}
+
+int
+mh_iterate (mailbox_t mbox, mh_msgset_t *msgset,
+	    mh_iterator_fp itr, void *data)
+{
+  int rc;
+  int last = 0;
+  size_t i, total = 0;
+
+  if (rc = mailbox_messages_count (mbox, &total))
+    {
+      mh_error ("can't count messages in %s: %s",
+		current_folder, mu_errstring (rc));
+      exit (1);
+    }
+	
+  for (i = 1; i <= total; i++)
+    {
+      message_t msg;
+      size_t num;
+      int rc;
+      
+      if ((rc = mailbox_get_message (mbox, i, &msg)) != 0)
+	{
+	  mh_error ("can't get message %d: %s", i, mu_errstring (rc));
+	  return 1;
+	}
+
+      if ((rc = mh_message_number (msg, &num)) != 0)
+	{
+	  mh_error ("can't get sequence number for message %d: %s",
+		    i, mu_errstring (rc));
+	  return 1;
+	}
+
+      rc = mh_msgset_member (msgset, num);
+      if (rc == last + 1)
+	{
+	  itr (mbox, msg, num, data);
+	  last = rc;
+	}
+      else if (rc && last && last < msgset->count)
+	break;
+    }
+  if (last < msgset->count)
+    {
+      mh_error ("message %d does not exist", msgset->list[last]);
+      exit (1);
+    }
+
+  return 0;
+}
