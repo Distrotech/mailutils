@@ -58,6 +58,7 @@ struct sieve_machine {
 
   int debug_level;        /* Debugging level */
   jmp_buf errbuf;         /* Target location for non-local exits */
+  char *identifier;       /* Name of action or test being executed */
   
   mailbox_t mailbox;      /* Mailbox to operate upon */
   size_t    msgno;        /* Current message number */
