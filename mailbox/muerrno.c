@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -81,6 +81,8 @@ mu_errname (int e)
     EN(MU_ERR_BAD_2047_INPUT);
     EN(MU_ERR_NOUSERNAME);
     EN(MU_ERR_NOPASSWORD);
+
+    EN(MU_ERR_UNSAFE_PERMS);
   }
 
   return "SYSTEM ERROR";
@@ -132,9 +134,10 @@ mu_strerror (int e)
 
     ES(MU_ERR_NOUSERNAME,       _("User name is not supplied"));
     ES(MU_ERR_NOPASSWORD,       _("User password is not supplied"));
+
+    ES(MU_ERR_UNSAFE_PERMS,     _("Unsafe file permissions. Set 0600."));
   }
 
   return strerror (e);
 }
-
 

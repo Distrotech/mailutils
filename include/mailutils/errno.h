@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2003 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -24,7 +24,7 @@
 extern "C" {
 #endif
 
-#define MU_ERR_BASE            0x1000
+#define MU_ERR_BASE                 0x1000
 
 #define MU_ERR_FAILURE              (MU_ERR_BASE + 1)
 #define MU_ERR_NO_HANDLER           (MU_ERR_BASE + 2)
@@ -69,7 +69,10 @@ extern "C" {
 
 #define MU_ERR_NOUSERNAME           (MU_ERR_BASE + 28)
 #define MU_ERR_NOPASSWORD           (MU_ERR_BASE + 29)
-  
+
+#define MU_ERR_UNSAFE_PERMS         (MU_ERR_BASE + 30)
+  /* unsafe file permissions */
+
 const char *mu_errname __P((int e));
 const char *mu_strerror __P((int e));
 
