@@ -7,5 +7,5 @@ SUBDIRS = include doc m4 lib mailbox from mail pop3d imap4d
 EXTRA_DIST = mailutils.spec mailutils.spec.in README-alpha COPYING.FDL
 
 release:
-	$(MAKE) dist distdir=$(PACKAGE)-`date +"%y%m%d"`
+	$(MAKE) dist distdir=$(PACKAGE)-`date +"%Y%m%d"`
 
