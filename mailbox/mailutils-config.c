@@ -156,10 +156,15 @@ main (int argc, char **argv)
 		    entry[i] = entry[j];
 		    entry[j] = tmp;
 		  }
+	      
 	    }
 
 	  for (j = 0; j < n; j++)
-	    printf ("%s", entry[j].ptr);
+	    {
+	      if (j > 0 && entry[j].level == entry[j-1].level)
+		continue;
+	      printf ("%s", entry[j].ptr);
+	    }
 	  printf ("\n");
 	  return 0;
 	}
@@ -191,8 +196,7 @@ main (int argc, char **argv)
       return 0;
     }
   
-  argp_help (&argp, stdout, ARGP_HELP_USAGE,
-	     program_invocation_short_name);
+  argp_help (&argp, stdout, ARGP_HELP_USAGE, program_invocation_short_name);
   return 0;
 }
   
