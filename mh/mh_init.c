@@ -818,5 +818,31 @@ mh_install (char *name, int automode)
       exit (1);
     }
 }
-      
+        
+void
+mh_annotate (message_t msg, char *field, char *text, int date)
+{
+  header_t hdr;
+  attribute_t attr;
   
+  if (message_get_header (msg, &hdr))
+    return;
+
+  if (date)
+    {
+      time_t t;
+      struct tm *tm;
+      char datebuf[80];
+      t = time (NULL);
+      tm = localtime (&t);
+      strftime (datebuf, sizeof datebuf, "%a, %d %b %Y %H:%M:%S %Z", tm);
+
+      header_set_value (hdr, field, datebuf, 0);
+    }
+
+  if (text)
+    header_set_value (hdr, field, text, 0);
+  message_get_attribute (msg, &attr);
+  attribute_set_modified (attr);
+}
+

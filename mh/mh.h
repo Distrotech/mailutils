@@ -290,3 +290,4 @@ int mh_disposition __P((const char *filename));
 int mh_usedraft __P((const char *filename));
 int mh_file_copy __P((const char *from, const char *to));
 
+void mh_annotate __P((message_t msg, char *field, char *text, int date));
