@@ -11,11 +11,11 @@ Report bugs to <bug-mailutils@gnu.org>
 
 To get this information from CVS issue the following commands:
 
-cvs -d :pserver:anoncvs@subversions.gnu.org:/cvs login
+cvs -d :pserver:anoncvs@subversions.gnu.org:/cvsroot/mailutils login
 
 Press enter when prompted for a password.
 
-cvs -d :pserver:anoncvs@subversions.gnu.org:/cvs checkout mailutils
+cvs -d :pserver:anoncvs@subversions.gnu.org:/cvsroot/mailutils checkout mailutils
 
 This will give you read-only access.  If you think you need write access,
 contact the mailing list.

@@ -1,3 +1,7 @@
+2001-10-17  Sam Roberts
+
+	* README-alpha : Update cvs repository path.
+
 2001-10-17  Sergey Poznyakoff
 	
 	After discussion with Jeff, removed maintainer-mode quirks
