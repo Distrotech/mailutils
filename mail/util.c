@@ -22,7 +22,12 @@
 # include <termios.h>
 #endif
 #include <sys/ioctl.h>
-#include <sys/fcntl.h>
+
+#ifdef HAVE_FCNTL_H
+# include <fcntl.h>
+#else
+# include <sys/fcntl.h>
+#endif
 
 typedef struct _node {
   /* for the msglist expander */
