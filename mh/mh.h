@@ -61,6 +61,7 @@ extern char *strchrnul __P((const char *s, int c_in));
 #define MH_USER_PROFILE ".mh_profile"
 #define MH_GLOBAL_PROFILE "mh-profile"
 #define MH_CONTEXT_FILE "context"
+#define DEFAULT_ALIAS_FILE MHLIBDIR "/MailAliases"
 
 #define is_true(arg) ((arg)==NULL||(arg)[0] == 'y')
 
@@ -311,6 +312,17 @@ int mh_file_copy __P((const char *from, const char *to));
 char *mh_draft_name __P((void));
 char *mh_create_message_id __P((int));
 int mh_whom __P((char *filename, int check));
+
+int mh_alias_read __P((char *name, int fail));
+int mh_alias_get __P((char *name, list_t *return_list));
+int mh_alias_get_address __P((char *name, address_t *addr));
+int mh_alias_get_alias __P((char *uname, list_t *return_list));
+int mh_read_aliases __P((void));
+
+typedef int (*mh_alias_enumerator_t) __PMT((char *alias, list_t names,
+					    void *data));
+void mh_alias_enumerate __P((mh_alias_enumerator_t fun, void *data));
+
 
 void mh_annotate __P((message_t msg, char *field, char *text, int date));
 
