@@ -1,5 +1,12 @@
 2001-11-17  Alain Magloire
 
+	* include/mailutils/mailbox.h: Remove prototype
+	mailbox_destroy_folder().
+	* mailbox/mailbox.c (mailbox_destroy_folder): Remove.
+	* comsat/comsat.c (notify_user): remove mailbox_destroy_folder().
+
+2001-11-17  Alain Magloire
+
 	* mailbox/folder_imap.c (authenticate_imap_login): Pass the
 	url in  ticket_pop.
 	* mailbox/mbx_pop.c (pop_get_user): Pass the url in ticket_pop()

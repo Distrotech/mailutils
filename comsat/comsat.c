@@ -486,7 +486,6 @@ notify_user (const char *user, const char *device, const char *path, off_t offse
     }
 
   stream_write (stream, blurb, size, 0, &count);
-  mailbox_destroy_folder (tmp);
   mailbox_set_stream (tmp, stream);
   mailbox_messages_count (tmp, &count);
   mailbox_get_message (tmp, 1, &msg);

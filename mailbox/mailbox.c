@@ -429,9 +429,3 @@ mailbox_set_folder (mailbox_t mbox, folder_t folder)
    mbox->folder = folder;
   return 0;
 }
-
-void
-mailbox_destroy_folder (mailbox_t mbox)
-{
-  folder_destroy (&mbox->folder);
-}

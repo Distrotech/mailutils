@@ -54,7 +54,6 @@ extern int  mailbox_open            __P ((mailbox_t, int flag));
 extern int  mailbox_close           __P ((mailbox_t));
 extern int  mailbox_get_folder      __P ((mailbox_t, folder_t *));
 extern int  mailbox_set_folder      __P ((mailbox_t, folder_t));
-extern void mailbox_destroy_folder  __P ((mailbox_t mbox));
 extern int  mailbox_uidvalidity     __P ((mailbox_t, unsigned long *));
 extern int  mailbox_uidnext         __P ((mailbox_t, size_t *));
 
