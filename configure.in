@@ -145,6 +145,14 @@ dnl Virtual domain support, at least for pop3d
 AC_ARG_ENABLE(virtual-domains, [  --enable-virtual-domains  enable virtual domain support (default no)], [use_virtual_domains="yes"],,)
 if test x"$use_virtual_domains" = x"yes"; then
    AC_DEFINE(USE_VIRTUAL_DOMAINS)
+   AC_SUBST(SITE_VIRTUAL_PWDDIR)
+   AC_ARG_WITH(virtual-pwddir,
+    [  --with-virtual-pwddir=DIR   use DIR instead of \$sysconfdir/domain],
+    [case "${withval}" in
+     /*) SITE_VIRTUAL_PWDDIR="${withval}";;
+     *)  SITE_VIRTUAL_PWDDIR="\$(sysconfdir)/${withval}";;
+    esac],
+    [SITE_VIRTUAL_PWDDIR="\$(sysconfdir)/domain"])
 fi
 
 dnl Use either PAM or CRYPT, not both.
