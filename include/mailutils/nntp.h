@@ -28,6 +28,9 @@ extern "C" {
 struct _mu_nntp;
 typedef struct _mu_nntp* mu_nntp_t;
 
+#define MU_NNTP_DEFAULT_PORT  119
+#define MU_NNTP_URL_SCHEME    "nntp"
+
 extern int  mu_nntp_create          (mu_nntp_t *nntp);
 extern void mu_nntp_destroy         (mu_nntp_t *nntp);
 

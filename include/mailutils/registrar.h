@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2004 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -88,16 +88,18 @@ extern int record_set_get_folder  __P ((record_t, int (*_get_folder)
 extern record_t imap_record;
 /* Remote Mailbox POP3, pop://  */
 extern record_t pop_record;
+/* Remote newsgroup NNTP, nntp://  */
+extern record_t nntp_record;
 
 /* Local Mailbox Unix Mailbox, "mbox:"  */
 extern record_t mbox_record;
 /* Local Folder/Mailbox, /  */
 extern record_t path_record;
-/* Local MH, "mh:" */  
+/* Local MH, "mh:" */
 extern record_t mh_record;
 /* Maildir, "maildir:" */
 extern record_t maildir_record;
-  
+
 /* SMTP mailer, "smtp://"  */
 extern record_t smtp_record;
 /* Sendmail, "sendmail:"  */
@@ -112,6 +114,7 @@ extern record_t sendmail_record;
   list_append (bookie, imap_record);\
   list_append (bookie, mh_record);\
   list_append (bookie, maildir_record);\
+  list_append (bookie, nntp_record);\
 } while (0)
 
 #define mu_register_local_mbox_formats() do {\
@@ -128,8 +131,9 @@ extern record_t sendmail_record;
   registrar_get_list (&bookie);\
   list_append (bookie, pop_record);\
   list_append (bookie, imap_record);\
+  list_append (bookie, nntp_record);\
 } while (0)
-  
+
 #define mu_register_all_mailer_formats() do {\
   list_t bookie = 0;\
   registrar_get_list (&bookie);\
@@ -141,7 +145,7 @@ extern record_t sendmail_record;
   mu_register_all_mbox_formats ();\
   mu_register_all_mailer_formats ();\
 } while (0)
-  
+
 #ifdef __cplusplus
 }
 #endif

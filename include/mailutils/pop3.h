@@ -29,6 +29,8 @@ extern "C" {
 struct _mu_pop3;
 typedef struct _mu_pop3* mu_pop3_t;
 
+#define MU_POP3_DEFAULT_PORT 110
+
 extern int  mu_pop3_create       (mu_pop3_t *pop3);
 extern void mu_pop3_destroy      (mu_pop3_t *pop3);
 

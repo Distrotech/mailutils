@@ -1,11 +1,40 @@
-2004-07-03  Sergey Poznyakoff  
+2004-07-05  Alain Magloire
+
+	* configure.ac: enable NNTP support.
+
+	* example/Makefile.am: Enable NNTP.
+	* frm/Makefile.am: Enable NNTP.
+	* from/Makefile.am: Enable NNTP.
+	* messages/Makefile.am: Enable NNTP.
+	* readmsg/Makefile.am: Enable NNTP.
+	* guimb/Makefile.am: Enable NNTP.
+	* mail/Makefile.am: Enable NNTP.
+	* sieve/Makefile.am: Enable NNTP.
+
+	* imap4d/Makefile.am: Put @AUTHLIBS@ before libmailbox.a (failed on cygwin if not).
+	* pop3d/Makefile.am: Put @AUTHLIBS@ before libmailbox.a (failed on cygwin if not).
+	* mail.local/Makefile.am: Put @AUTHLIBS@ before libmailbox.a (failed on cygwin if not).
+
+	* mailbox/stream.c (stream_wait): Bugfix.  If we buffer return true if the cache still
+	have data.
+
+	* include/mailutils/nntp.h: Define the default NNTP port number.
+	* include/mailutils/pop3.h: Define the default POP3 port number.
+	* include/mailutils/registrar.h: Enable NNTP.
+
+	* mailbox/nntp/folder.c: New file.
+	* mailbox/nntp/mbox.c: New file.
+	* mailbox/nntp/url.c: New file.
+	* mailbox/nntp/Makefile.am: Updated.
+
+2004-07-03  Sergey Poznyakoff
 
 	* mailbox/list.c (list_data_dup): Bugfix: *ptr was not assigned.
 	* doc/texinfo/muint.texi: Automake does	not allow two independent
 	texi sources to include the same file (version.texi, in this
 	case). What a stupid lossage! However it handles all files whose
 	name matches "vers*.texi" as version.texi, which allows to
-	override the bug: include vers-muint.texi instead of version.texi. 
+	override the bug: include vers-muint.texi instead of version.texi.
 
 2004-07-01  Sergey Poznyakoff
 
@@ -25,7 +54,7 @@
 	* examples/nntpclient.c: Fixed printf formats
 	(com_newgroups,com_newnews): Variable declarations are only allowed
 	before the statements.
-	
+
 	* mailbox/nntp/nntp_article.c: Fixed printf formats
 	* mailbox/nntp/nntp_body.c: Likewise
 	* mailbox/nntp/nntp_head.c: Likewise
@@ -35,7 +64,7 @@
 
 	* mailbox/pop/pop3_iterator.c (pop3_itr_getitem): Changed
 	declaration
-	
+
 2004-06-30  Alain Magloire
 
 	* configure.ac: Add nntp directory.

@@ -1,7 +1,7 @@
 dnl Configuration for GNU Mailutils -- a suite of utilities for electronic mail
 dnl
 dnl Copyright (C) 1999,2000,2001,2002,2003,2004 Free Software Foundation, Inc.
-dnl 
+dnl
 dnl GNU Mailutils is free software; you can redistribute it and/or modify
 dnl it under the terms of the GNU General Public License as published by
 dnl the Free Software Foundation; either version 2, or (at your option)
@@ -262,7 +262,7 @@ AC_CHECK_HEADERS(errno.h fcntl.h inttypes.h libgen.h limits.h\
  malloc.h obstack.h paths.h shadow.h socket.h sys/socket.h stdarg.h stdio.h\
  stdlib.h string.h strings.h sys/file.h sysexits.h syslog.h termcap.h\
  termios.h termio.h sgtty.h utmp.h utmpx.h unistd.h)
- 
+
 dnl Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
 AC_TYPE_UID_T
@@ -426,7 +426,7 @@ AC_ARG_WITH([postgres],
 
 AH_TEMPLATE(USE_SQL,[Enables SQL support])
 AH_TEMPLATE(HAVE_MYSQL,[Define if you have libmysql])
-AH_TEMPLATE(HAVE_PGSQL,[Define if you have libpq]) 
+AH_TEMPLATE(HAVE_PGSQL,[Define if you have libpq])
 
 if test x"$use_mysql" = x"yes" -a x"$use_postgres" = x"yes"; then
  AC_MSG_ERROR(Use either --with-mysql or --with-postgres, not both)
@@ -471,6 +471,7 @@ AC_ARG_WITH([virtual-pwddir],
 
 MU_ENABLE_SUPPORT(imap)
 MU_ENABLE_SUPPORT(pop)
+MU_ENABLE_SUPPORT(nntp)
 
 AC_SUBST(BUILD_SMTP_PROGRAMS)
 AC_SUBST(RUN_SMTP_DEJATOOL)
@@ -590,12 +591,12 @@ if test x"$usereadline" = x"yes"; then
 
 	dnl FIXME This should only link in the curses libraries if it's
 	dnl really needed!
-	
+
 	saved_LIBS=$LIBS
 	LIBS="$LIBS $CURSES_LIBS"
 	AC_CHECK_LIB(readline, readline, mu_have_readline=yes)
 	LIBS=$saved_LIBS
-	
+
 	if test x"$mu_have_readline" = x"yes"; then
 		AC_CHECK_HEADERS(readline/readline.h,
 			AC_DEFINE(WITH_READLINE,1,[Enable use of readline]))

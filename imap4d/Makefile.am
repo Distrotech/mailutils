@@ -62,12 +62,13 @@ imap4d_SOURCES = \
 
 imap4d_LDADD = \
  @IMAP_AUTHOBJS@\
+ @AUTHLIBS@ \
  ../mailbox/mbox/libmu_mbox.la\
  ../mailbox/mh/libmu_mh.la\
  ../mailbox/maildir/libmu_maildir.la\
  ../mailbox/libmailbox.la\
  ../lib/libmailutils.la\
- @AUTHLIBS@ @SERV_AUTHLIBS@ @MU_COMMON_LIBRARIES@
+ @SERV_AUTHLIBS@ @MU_COMMON_LIBRARIES@
 
 ## This kludge is necessary to correctly establish imap4d -> IMAP_AUTHOBJS
 ## dependency. Think about better approach         --gray

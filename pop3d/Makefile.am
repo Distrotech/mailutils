@@ -29,12 +29,13 @@ pop3d_SOURCES = apop.c auth.c capa.c dele.c extra.c pop3d.c pop3d.h \
  uidl.c user.c logindelay.c expire.c
 
 pop3d_LDADD = \
+ @AUTHLIBS@ \
  ../mailbox/mbox/libmu_mbox.la\
  ../mailbox/mh/libmu_mh.la\
  ../mailbox/maildir/libmu_maildir.la\
  ../mailbox/libmailbox.la\
  ../lib/libmailutils.la\
- @AUTHLIBS@ @MU_COMMON_LIBRARIES@
+ @MU_COMMON_LIBRARIES@
 
 popauth_SOURCES = popauth.c
 popauth_LDADD = ../mailbox/libmailbox.la ../lib/libmailutils.la @MU_COMMON_LIBRARIES@

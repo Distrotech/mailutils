@@ -31,6 +31,7 @@ guimb_LDADD = \
  ../mailbox/mbox/libmu_mbox.la\
  ../mailbox/imap/libmu_imap.la\
  ../mailbox/pop/libmu_pop.la\
+ ../mailbox/nntp/libmu_nntp.la\
  ../mailbox/mh/libmu_mh.la\
  ../mailbox/maildir/libmu_maildir.la\
  ../mailbox/libmailbox.la\
