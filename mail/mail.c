@@ -143,7 +143,7 @@ mail_cmdline(void *closure, int cont)
 
       if (interactive)
 	prompt = pev->set && pev->value != NULL ? pev->value : "? ";
-      
+
       rc = readline (prompt);
 
       if (ml_got_interrupt())
@@ -157,7 +157,7 @@ mail_cmdline(void *closure, int cont)
 	  util_error ("Use \"quit\" to quit.");
 	  continue;
 	}
-      
+
       break;
     }
   return rc;
@@ -252,7 +252,7 @@ main (int argc, char **argv)
   util_do_command ("set noSign");
   util_do_command ("set toplines=5");
   util_do_command ("set autoinc");
-  
+
   /* GNU extensions to the environment, for sparky's sanity */
   util_do_command ("set mode=read");
   util_do_command ("set nobyname");
@@ -336,7 +336,10 @@ main (int argc, char **argv)
 
       /* initial commands */
       if ((util_find_env("header"))->set)
+	{
+	  util_do_command ("summary");
 	  util_do_command ("z.");
+	}
 
       prompt = util_find_env ("prompt");
       mail_mainloop(mail_cmdline, (void*) prompt, 1);

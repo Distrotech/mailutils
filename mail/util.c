@@ -18,6 +18,7 @@
 #include "mail.h"
 #include <mailutils/mutil.h>
 #include <pwd.h>
+#include <sys/ioctl.h>
 
 typedef struct _node {
   /* for the msglist expander */
@@ -401,21 +402,41 @@ util_stripwhite (char *string)
 }
 
 /*
- * get the number of columns on the screen
+ * Get the number of columns on the screen
+ * First try an ioctl() call not all shells set the COLUMNS environ.
  */
 int
 util_getcols (void)
 {
-    return strtol (getenv("COLUMNS"), NULL, 10);
+  struct winsize ws;
+
+  ws.ws_col = ws.ws_row = 0;
+  if ((ioctl(1, TIOCGWINSZ, (char *) &ws) < 0)
+      || ws.ws_row == 0)
+    ws.ws_col = strtol (getenv("COLUMNS"), NULL, 10);
+
+  /* FIXME: Should we exit()/abort() if col <= 0 ?  */
+  return ws.ws_col;
 }
 
 /*
- * get the number of lines on the screen
+ * Get the number of lines on the screen
+ * First try an ioctl() call not all shells set the LINES environ.
  */
 int
 util_getlines (void)
 {
-    return strtol (getenv("LINES"), NULL, 10);
+  struct winsize ws;
+
+  ws.ws_col = ws.ws_row = 0;
+  if ((ioctl(1, TIOCGWINSZ, (char *) &ws) < 0)
+      || ws.ws_row == 0)
+    ws.ws_row = strtol (getenv("LINES"), NULL, 10);
+
+  /* FIXME: Should we exit()/abort() if row <= 0 ?  */
+
+  /* Reserve at least 2 line for the prompt.  */
+  return ws.ws_row - 2;
 }
 
 int

@@ -72,13 +72,13 @@ z_parse_args(int argc, char **argv, int *return_count, int *return_dir)
 	}
 
       argc -= an;
- 
+
       if (argc > 1)
 	{
 	  util_error("Too many arguments for the scrolling command");
 	  return 1;
 	}
-      
+
       if (argp && *argp)
 	{
 	  if (dir == D_NONE)
@@ -95,10 +95,10 @@ z_parse_args(int argc, char **argv, int *return_count, int *return_dir)
 	}
 
    }
- 
+
  *return_count = mul * count;
  *return_dir = dir;
- 
+
  return 0;
 }
 
@@ -109,12 +109,12 @@ mail_z (int argc, char **argv)
   unsigned int pagelines = util_screen_lines();
   int count;
   int dir;
-  
+
   if (z_parse_args(argc, argv, &count, &dir))
     return 1;
 
   nlines = pagelines;
-  
+
   count *= pagelines;
   switch (dir)
     {
@@ -138,10 +138,10 @@ mail_z (int argc, char **argv)
 	}
 
       cursor += count;
-      
+
       if (cursor + nlines > total)
 	nlines = total - cursor;
-  
+
       if (nlines <= 0)
 	{
 	  fprintf(stdout, "On last screenful of messages\n");
@@ -149,11 +149,35 @@ mail_z (int argc, char **argv)
 	}
 
     case D_NONE:
+      {
+	/* z. is a GNU extension, so it will be more usefull
+	   when we reach the last message to show a full screen
+	   of the last message.  This behaviour is use on startup
+	   when displaying the summary and the headers, new messages
+	   are last but we want to display a screenfull with the
+	   real cursor set by symmary() to the new message.  */
+	/* Find the start of the last screen page.  */
+	int lastpage =  total - pagelines + 1;
+	if (lastpage <= 0)
+	  lastpage = 1;
+	if (cursor > lastpage)
+	  {
+	    realcursor = cursor;
+	    cursor = lastpage;
+	    for (i = 0; i < nlines; i++)
+	      {
+		mail_from(0, NULL);
+		cursor++;
+	      }
+	    cursor = realcursor;
+	    return 1;
+	  }
+      }
       break;
     }
-  
+
   realcursor = cursor;
-  
+
   for (i = 0; i < nlines; i++)
     {
       mail_from(0, NULL);
@@ -161,6 +185,6 @@ mail_z (int argc, char **argv)
     }
 
   cursor = realcursor;
-  
+
   return 1;
 }

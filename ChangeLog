@@ -1,3 +1,25 @@
+2001-07-03  Alain Magloire
+
+	* mail/headers.c:  Catch the overflow in the calculation by
+	reseting the number of lines to default screen lines.
+	* mail/mail.c (main): Add a "summary" call also for the
+	initial commands on startup(in interactive).
+	* mail.h: Proto for mail_summary() and mail_version().
+	* table.c: Add mail_summary() and mail_version() in the cmd table.
+	* util.c (util_getcols): First try an ioctl(TIOCGWINSZ,..) call
+	not all shells set the COLUMNS environ.
+	(util_getlines): Likewised. Also take to account the prompt
+	in the lines number.
+	* z.c (mail_z): Change the behaviour of "z." to show a screenfull
+	when the lastpage is reach.  This is very practical when starting
+	mail, since "z." is the initial command to show the header summary.
+	* mail/version.c: New file, show mail version, mail_version().
+	* mail/summary.c: New file, display a short summary of the mailbox.
+	mail_summary().
+	* mail/Makefile.am: add summary.c and version.c
+
+	* mailbox2/include/mailutils/mbox.h: Proto for Unix-Mbox.
+
 2001-07-03  Jakob 'sparky' Kaivo  <jkaivo@elijah.nodomainname.net>
 
 	* README-alpha: note that INSTALL is generated
@@ -21,7 +43,7 @@
 	* mailbox/attribute.c: added attribute_set_modified() function.
 	Fixed attribute_unset.* functions to raise MU_ATTRIBUTE_MODIFIED bit.
 	* include/mailutils/attribute.h: Proto for attribute_set_modified().
-	
+
 2001-07-02 Alain Magloire
 
 	* mailbox2/tcp.c: make it thread-safe.

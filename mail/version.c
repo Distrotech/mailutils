@@ -18,40 +18,13 @@
 #include "mail.h"
 
 /*
- * h[eaders] [msglist] -- GNU extension
+ * ve[rsion]
  */
 
-/*
- * NOTE: check for messages near each other and only print them once
- *	 should probably build a dynamic msglist for this
- */
 
 int
-mail_headers (int argc, char **argv)
+mail_version (int argc, char **argv)
 {
-  int low = 1, high = total, *list = NULL;
-  int lines = util_screen_lines ();
-  int num = util_expand_msglist (argc, argv, &list);
-
-  lines = (lines / num) - 2;
-  if (lines < 0)
-    lines = util_screen_lines ();
-
-  if (lines < total)
-    {
-      low = list[0] - (lines / 2);
-      if (low < 1)
-	low = 1;
-      high = low + lines;
-      if (high > total)
-	{
-	  high = total;
-	  low = high - lines;
-	}
-    }
-
-  util_do_command ("from %d-%d", low, high);
-
-  free (list);
+  fprintf (ofile, "%s\n", argp_program_version);
   return 0;
 }
