@@ -45,6 +45,8 @@ extern int debug_set_level __P ((debug_t, size_t level));
 extern int debug_get_level __P ((debug_t, size_t *plevel));
 extern int debug_print     __P ((debug_t debug, size_t level,
 				 const char *format, ...));
+extern int debug_printv    __P ((debug_t debug, size_t level,
+				 const char *format, va_list argp));
 extern int debug_set_print __P ((debug_t, int (*_print) __P ((debug_t, const char *, va_list)), void *owner));
 
 #ifdef __cplusplus

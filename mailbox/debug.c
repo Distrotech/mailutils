@@ -98,17 +98,29 @@ debug_print (debug_t debug, size_t level, const char *format, ...)
 {
   va_list ap;
 
+  va_start (ap, format);
+
+  debug_printv (debug, level, format, ap);
+  
+  va_end (ap);
+
+  return 0;
+}
+
+int
+debug_printv (debug_t debug, size_t level, const char *format, va_list ap)
+{
   if (debug == NULL || format == NULL)
     return EINVAL;
 
   if (!(debug->level & level))
     return 0;
 
-  va_start (ap, format);
   if (debug->_print)
     debug->_print (debug, format, ap);
   else
     vfprintf (stderr, format, ap);
-  va_end (ap);
+
   return 0;
 }
+
