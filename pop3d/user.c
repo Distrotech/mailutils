@@ -17,51 +17,8 @@
 
 #include "pop3d.h"
 
-static int is_virtual = 0;
-
 #ifdef HAVE_MYSQL
 # include "../MySql/MySql.h"
-#endif
-
-#ifdef USE_VIRTUAL_DOMAINS
-
-/* XXX: Should not this be configurable somehow??  */
-#define VIRTUAL_PWDDIR "/etc/domains"
-
-static struct passwd *
-pop3d_virtual (const char *u)
-{
-  struct passwd *pw;
-  char *filename;
-  FILE *pfile;
-  size_t i = 0, len = strlen (u), delim = 0;
-
-  for (i = 0; i < len && delim == 0; i++)
-    if (u[i] == '!' || u[i] == ':' || u[i] == '@')
-      delim = i;
-
-  if (delim == 0)
-    return NULL;
-
-  filename = malloc (strlen (VIRTUAL_PWDDIR) + strlen (&u[delim + 1]) + 1);
-  if (filename == NULL)
-    pop3d_abquit (ERR_NO_MEM);
-
-  sprintf (filename, "%s/%s", VIRTUAL_PWDDIR, &u[delim + 1]);
-  pfile = fopen (filename, "r");
-  free (filename);
-  while (pfile != NULL && (pw = fgetpwent (pfile)) != NULL)
-    {
-      if (strlen (pw->pw_name) == delim
-	  && !strncmp (u, pw->pw_name, delim))
-	{
-	  is_virtual = 1;
-	  return pw;
-	}
-    }
-  return NULL;
-}
-
 #endif
 
 #ifdef USE_LIBPAM
@@ -184,11 +141,6 @@ pop3d_user (const char *arg)
 
       pw = mu_getpwnam (arg);
 
-#ifdef USE_VIRTUAL_DOMAINS
-      if (pw == NULL)
-	pw = pop3d_virtual (arg);
-#endif
-
       if (pw == NULL)
 	{
 	  syslog (LOG_INFO, "User '%s': nonexistent", arg);
@@ -242,7 +194,7 @@ pop3d_user (const char *arg)
       }
 #endif /* USE_LIBPAM */
 
-      if (pw->pw_uid > 0 && !is_virtual)
+      if (pw->pw_uid > 0 && !mu_virtual_domain)
 	{
 	  setuid (pw->pw_uid);
 
@@ -250,7 +202,7 @@ pop3d_user (const char *arg)
 				 + strlen (pw->pw_name) + 1, 1);
 	  sprintf (mailbox_name, "%s/%s", _PATH_MAILDIR, pw->pw_name);
 	}
-      else if (is_virtual)
+      else if (mu_virtual_domain)
 	{
 	  mailbox_name = calloc (strlen (pw->pw_dir) + strlen ("/INBOX"), 1);
 	  sprintf (mailbox_name, "%s/INBOX", pw->pw_dir);
