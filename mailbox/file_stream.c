@@ -27,12 +27,17 @@
 
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/wait.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <syslog.h>
 
 #include <mailutils/stream.h>
 #include <mailutils/error.h>
+#include <mailutils/errno.h>
+#include <mailutils/argcv.h>
 #include <mailutils/nls.h>
+#include <mailutils/list.h>
 
 struct _file_stream
 {
@@ -573,123 +578,418 @@ stdio_stream_create (stream_t *stream, FILE *file, int flags)
   return 0;
 }
 
-static int
-_prog_close (stream_t stream)
+
+struct _prog_stream
 {
-  struct _file_stream *fs = stream_get_owner (stream);
-  int err = 0;
+  pid_t pid;
+  int status;
+  pid_t writer_pid;
+  size_t argc;
+  char **argv;
+  stream_t in, out;
 
-  if (!stream)
-    return EINVAL;
+  stream_t input;
+};
 
-  if (fs->file)
+static list_t prog_stream_list;
+
+static int
+_prog_stream_register (struct _prog_stream *stream)
+{
+  if (!prog_stream_list)
     {
-      int flags = 0;
-
-      stream_get_flags (stream, &flags);
-
-      if ((flags & MU_STREAM_NO_CLOSE) == 0)
-	{
-	  if (pclose (fs->file) != 0)
-	    err = errno;
-	}
-      
-      fs->file = NULL;
+      int rc = list_create (&prog_stream_list);
+      if (rc)
+	return rc;
     }
-  return err;
+  return list_append (prog_stream_list, stream);
+}
+
+static void
+_prog_stream_unregister (struct _prog_stream *stream)
+{
+  list_remove (prog_stream_list, stream);
 }
 
 static int
-_prog_open (stream_t stream)
+_prog_waitpid (void *item, void *data ARG_UNUSED)
 {
-  struct _file_stream *fs = stream_get_owner (stream);
-  const char *mode;
-  int flags = 0;
-
-  if (!fs || !fs->filename)
-    return EINVAL;
-
-  if (fs->file)
+  struct _prog_stream *str = item;
+  int status;
+  if (str->pid > 0)
     {
-      pclose (fs->file);
-      fs->file = NULL;
+      if (waitpid (str->pid, &str->status, WNOHANG) == str->pid)
+	str->pid = -1;
+    }
+  if (str->writer_pid > 0)
+    waitpid (str->writer_pid, &status, WNOHANG);
+  return 0;
+}
+
+static void
+_prog_stream_wait (struct _prog_stream *stream)
+{
+  list_do (prog_stream_list, _prog_waitpid, NULL);
+  if (stream->pid > 0)
+    {
+      kill (stream->pid, SIGTERM);
+      kill (stream->pid, SIGKILL);
+      kill (stream->writer_pid, SIGKILL);
+      list_do (prog_stream_list, _prog_waitpid, NULL);
+    }
+}
+
+#if defined (HAVE_SYSCONF) && defined (_SC_OPEN_MAX)
+# define getmaxfd() sysconf (_SC_OPEN_MAX)
+#elif defined (HAVE_GETDTABLESIZE)
+# define getmaxfd() getdtablesize ()
+#else
+# define getmaxfd() 64
+#endif
+     
+static int
+start_program_filter (pid_t *pid, int *p, int argc, char **argv, char *errfile)
+{
+  int rightp[2], leftp[2];
+  int i;
+  int rc = 0;
+  
+  pipe (leftp);
+  pipe (rightp);
+  
+  switch (*pid = fork ())
+    {
+      /* The child branch.  */
+    case 0:
+      /* attach the pipes */
+
+      /* Right-end */
+      if (rightp[1] != 1)
+	{
+	  close (1);
+	  dup2 (rightp[1], 1);
+	}
+      close (rightp[0]); 
+
+      /* Left-end */
+      if (leftp[0] != 0)
+	{
+	  close (0);
+	  dup2 (leftp[0], 0);
+	}
+      close (leftp[1]);
+
+      /* Error output */
+      if (errfile)
+	{
+	  i = open (errfile, O_CREAT|O_WRONLY|O_APPEND, 0644);
+	  if (i > 0 && i != 2)
+	    {
+	      dup2 (i, 2);
+	      close (i);
+	    }
+	}
+      /* Close unneded descripitors */
+      for (i = getmaxfd (); i > 2; i--)
+	close (i);
+
+      syslog (LOG_ERR|LOG_USER, "run %s %s",
+	      argv[0], argv[1]);
+      /*FIXME: Switch to other uid/gid if desired */
+      execvp (argv[0], argv);
+		
+      /* Report error via syslog */
+      syslog (LOG_ERR|LOG_USER, "can't run %s (ruid=%d, euid=%d): %m",
+	      argv[0], getuid (), geteuid ());
+      exit (127);
+      /********************/
+
+      /* Parent branches: */
+    case -1:
+      /* Fork has failed */
+      /* Restore things */
+      rc = errno;
+      close (rightp[0]);
+      close (rightp[1]);
+      close (leftp[0]);
+      close (leftp[1]);
+      break;
+		
+    default:
+      p[0] = rightp[0];
+      close (rightp[1]);
+		
+      p[1] = leftp[1];
+      close (leftp[0]);
+    }
+  return rc;
+}
+
+static void
+_prog_destroy (stream_t stream)
+{
+  struct _prog_stream *fs = stream_get_owner (stream);
+  argcv_free (fs->argc, fs->argv);
+  if (fs->in)
+    stream_destroy (&fs->in, stream_get_owner (fs->in));
+  if (fs->out)
+    stream_destroy (&fs->out, stream_get_owner (fs->out));
+  _prog_stream_unregister (fs);
+}
+
+static int
+_prog_close (stream_t stream)
+{
+  struct _prog_stream *fs = stream_get_owner (stream);
+  
+  if (!stream)
+    return EINVAL;
+  
+  if (fs->pid <= 0)
+    return 0;
+
+  _prog_stream_wait (fs);
+  
+  stream_close (fs->in);
+  stream_destroy (&fs->in, stream_get_owner (fs->in));
+
+  stream_close (fs->out);
+  stream_destroy (&fs->out, stream_get_owner (fs->out));
+
+  if (WIFEXITED (fs->status))
+    {
+      if (WEXITSTATUS (fs->status) == 0)
+	return 0;
+      else if (WEXITSTATUS (fs->status) == 127)
+	return MU_ERR_PROCESS_NOEXEC;
+      else
+	return MU_ERR_PROCESS_EXITED;
+    }
+  else if (WIFSIGNALED (fs->status))
+    return MU_ERR_PROCESS_SIGNALED;
+  return MU_ERR_PROCESS_UNKNOWN_FAILURE;
+}
+
+static int
+feed_input (struct _prog_stream *fs)
+{
+  pid_t pid;
+  size_t size;
+  char buffer[128];
+  int rc = 0;
+
+  pid = fork ();
+  switch (pid)
+    {
+    default:
+      /* Master */
+      fs->writer_pid = pid;
+      stream_close (fs->out);
+      stream_destroy (&fs->out, stream_get_owner (fs->out));
+      break;
+      
+    case 0:
+      /* Child */
+      while (stream_sequential_read (fs->input, buffer, sizeof (buffer),
+				     &size) == 0
+	     && size > 0)
+	stream_sequential_write (fs->out, buffer, size);
+      stream_close (fs->out);
+      exit (0);
+      
+    case -1:
+      rc = errno;
     }
 
-  stream_get_flags(stream, &flags);
+  return rc;
+}
+  
+static int
+_prog_open (stream_t stream)
+{
+  struct _prog_stream *fs = stream_get_owner (stream);
+  int rc;
+  int pfd[2];
+  int flags;
+  int seekable_flag;
+  sigset_t chldmask;
+  
+  if (!fs || fs->argc == 0)
+    return EINVAL;
 
-  if (flags & MU_STREAM_APPEND)
-    mode = "w";
-  else if (flags & MU_STREAM_READ)
-    mode = "r";
-  else if (flags & MU_STREAM_WRITE)
-    mode = "w";
-  else /* Default readonly.  */
-    mode = "r";
+  if (fs->pid)
+    {
+      _prog_close (stream);
+    }
 
-  fs->file = popen (fs->filename, mode);
-  if (!fs->file)
-    return errno;
+  stream_get_flags (stream, &flags);
+  seekable_flag = (flags & MU_STREAM_SEEKABLE);
+  
+  sigemptyset (&chldmask);	/* now block SIGCHLD */
+  sigaddset (&chldmask, SIGCHLD);
+  
+  rc = start_program_filter (&fs->pid, pfd, fs->argc, fs->argv, NULL);
+  if (rc)
+    return rc;
 
+  if (flags & (MU_STREAM_READ|MU_STREAM_RDWR))
+    {
+      FILE *fp = fdopen (pfd[0], "r");
+      rc = stdio_stream_create (&fs->in, fp, MU_STREAM_READ|seekable_flag);
+      if (rc)
+	{
+	  _prog_close (stream);
+	  return rc;
+	}
+      rc = stream_open (fs->in);
+      if (rc)
+	{
+	  _prog_close (stream);
+	  return rc;
+	}
+    }
+  else
+    close (pfd[0]);
+  
+  if (flags & (MU_STREAM_WRITE|MU_STREAM_RDWR))
+    {
+      FILE *fp = fdopen (pfd[1], "w");
+      rc = stdio_stream_create (&fs->out, fp, MU_STREAM_WRITE|seekable_flag);
+      if (rc)
+	{
+	  _prog_close (stream);
+	  return rc;
+	}
+      rc = stream_open (fs->out);
+      if (rc)
+	{
+	  _prog_close (stream);
+	  return rc;
+	}
+    }
+  else
+    close (pfd[1]);
+
+  _prog_stream_register (fs);
+  if (fs->input)
+    return feed_input (fs);
+  return 0;
+}
+
+static int
+_prog_read (stream_t stream, char *optr, size_t osize,
+	    off_t offset, size_t *pnbytes)
+{
+  struct _prog_stream *fs = stream_get_owner (stream);
+  return stream_read (fs->in, optr, osize, offset, pnbytes);
+}
+
+static int
+_prog_readline (stream_t stream, char *optr, size_t osize,
+		off_t offset, size_t *pnbytes)
+{
+  struct _prog_stream *fs = stream_get_owner (stream);
+  return stream_readline (fs->in, optr, osize, offset, pnbytes);
+}
+
+static int
+_prog_write (stream_t stream, const char *iptr, size_t isize,
+	     off_t offset, size_t *pnbytes)
+{
+  struct _prog_stream *fs = stream_get_owner (stream);
+  return stream_write (fs->out, iptr, isize, offset, pnbytes);
+}
+
+static int
+_prog_flush (stream_t stream)
+{
+  struct _prog_stream *fs = stream_get_owner (stream);
+  stream_flush (fs->in);
+  stream_flush (fs->out);
+  return 0;
+}
+
+static int
+_prog_get_fd (stream_t stream, int *pfd, int *pfd2)
+{
+  int rc;
+  struct _prog_stream *fs = stream_get_owner (stream);
+  
+  if ((rc = stream_get_fd (fs->in, pfd)) != 0)
+    return rc;
+  return stream_get_fd (fs->out, pfd2);
+}
+
+int
+_prog_stream_create (struct _prog_stream **pfs,
+		     stream_t *stream, char *progname, int flags)
+{
+  struct _prog_stream *fs;
+  int ret;
+
+  if (stream == NULL)
+    return EINVAL;
+
+  if (progname == NULL || (flags & MU_STREAM_NO_CLOSE))
+    return EINVAL;
+
+  if ((flags & (MU_STREAM_READ|MU_STREAM_WRITE)) ==
+      (MU_STREAM_READ|MU_STREAM_WRITE))
+    {
+      flags &= ~(MU_STREAM_READ|MU_STREAM_WRITE);
+      flags |= MU_STREAM_RDWR;
+    }
+  
+  fs = calloc (1, sizeof (*fs));
+  if (fs == NULL)
+    return ENOMEM;
+  if (argcv_get (progname, "", "#", &fs->argc, &fs->argv))
+    {
+      argcv_free (fs->argc, fs->argv);
+      free (fs);
+      return ENOMEM;
+    }
+
+  ret = stream_create (stream, flags|MU_STREAM_NO_CHECK, fs);
+  if (ret != 0)
+    {
+      argcv_free (fs->argc, fs->argv);
+      free (fs);
+      return ret;
+    }
+
+  stream_set_read (*stream, _prog_read, fs);
+  stream_set_readline (*stream, _prog_readline, fs);
+  stream_set_write (*stream, _prog_write, fs);
+  
+  /* We don't need to open the FILE, just return success. */
+
+  stream_set_open (*stream, _prog_open, fs);
+  stream_set_close (*stream, _prog_close, fs);
+  stream_set_fd (*stream, _prog_get_fd, fs);
+  stream_set_flush (*stream, _prog_flush, fs);
+  stream_set_destroy (*stream, _prog_destroy, fs);
+
+  if (pfs)
+    *pfs = fs;
   return 0;
 }
 
 int
 prog_stream_create (stream_t *stream, char *progname, int flags)
 {
-  struct _file_stream *fs;
-  int ret;
+  return _prog_stream_create (NULL, stream, progname, flags);
+}
 
-  if (stream == NULL)
-    return EINVAL;
-
-  if (progname == NULL
-      || (flags & MU_STREAM_RDWR)
-      || (flags & (MU_STREAM_READ|MU_STREAM_WRITE)) ==
-      (MU_STREAM_READ|MU_STREAM_WRITE))
-    return EINVAL;
-  
-  fs = calloc (1, sizeof (struct _file_stream));
-  if (fs == NULL)
-    return ENOMEM;
-
-  fs->filename = strdup (progname);
-
-  ret = stream_create (stream, flags|MU_STREAM_NO_CHECK, fs);
-  if (ret != 0)
-    {
-      free (fs);
-      return ret;
-    }
-
-  /* Check if we need to enable caching */
-
-  if (flags & MU_STREAM_SEEKABLE)
-    {
-      if ((ret = memory_stream_create (&fs->cache, 0, MU_STREAM_RDWR))
-	  || (ret = stream_open (fs->cache)))
-	{
-	  stream_destroy (stream, fs);
-	  free (fs);
-	  return ret;
-	}
-      stream_set_read (*stream, _stdin_file_read, fs);
-      stream_set_readline (*stream, _stdin_file_readline, fs);
-      stream_set_write (*stream, _stdout_file_write, fs);
-    }
-  else
-    {
-      stream_set_read (*stream, _file_read, fs);
-      stream_set_readline (*stream, _file_readline, fs);
-      stream_set_write (*stream, _file_write, fs);
-    }
-  
-  /* We don't need to open the FILE, just return success. */
-
-  stream_set_open (*stream, _prog_open, fs);
-  stream_set_close (*stream, _prog_close, fs);
-  stream_set_fd (*stream, _file_get_fd, fs);
-  stream_set_flush (*stream, _file_flush, fs);
-  stream_set_destroy (*stream, _file_destroy, fs);
+int
+filter_prog_stream_create (stream_t *stream, char *progname, stream_t input)
+{
+  struct _prog_stream *fs;
+  int rc = _prog_stream_create (&fs, stream, progname, MU_STREAM_RDWR);
+  if (rc)
+    return rc;
+  fs->input = input;
 
   return 0;
 }
+
