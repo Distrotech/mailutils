@@ -292,9 +292,10 @@ make_tmp (const char *from, char **tempfile)
   char *buf = NULL;
   size_t n = 0;
   int line;
-  
+
   *tempfile = mu_tempname (NULL);
   fp = fopen (*tempfile, "w+");
+
   if (fp == NULL)
     {
       mailer_err ("unable to open temporary file");
@@ -309,7 +310,7 @@ make_tmp (const char *from, char **tempfile)
 	{
 	  if (memcmp (buf, "From ", 5))
 	    {
-	      struct mu_auth_data *auth;
+	      struct mu_auth_data *auth = NULL;
 	      if (!from)
 		{
 		  auth = mu_get_auth_by_uid (uid);
