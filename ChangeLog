@@ -1,3 +1,48 @@
+2002-09-10  Sergey Poznyakoff 
+
+	Added support for Guile 1.6.0:
+	
+	* configure.ac: Changed check for guile. Raised patchlevel to
+	  0.1.1
+	* m4/guile.m4: New file. Check for guile presence and usability.
+	  Determine its version.
+	* m4/Makefile.am: Add guile.m4
+
+	* scripts/Makefile.am: Updated
+	* scripts/guile-1.4: New directory. Contains scripts for use
+	  with guile 1.4.x
+	* scripts/guile-1.6: New directory. Contains scripts for use
+	  with guile 1.6 and hopefully higher.
+	* scripts/guile-1.4/Makefile.am: New file.  
+	* scripts/guile-doc-snarf: Moved to ...
+	* scripts/guile-1.4/guile-doc-snarf: ... here
+	* scripts/guile-func-name-check: Moved to ...
+	* scripts/guile-1.4/guile-func-name-check: ... here
+	* scripts/guile-snarf.awk: Moved to ...
+	* scripts/guile-1.4/guile-snarf.awk: ... here
+
+	* scripts/guile-1.6/Makefile.am: New file.
+	* scripts/guile-1.6/guile-doc-snarf: New file.
+	* scripts/guile-1.6/guile-doc-snarf.awk: New file.
+	
+	* guimb/Makefile.am: Added @GUILE_INCLUDES@ and @GUILE_LIBS@.
+	* libmu_scm/Makefile.am: Added @GUILE_INCLUDES@. Changed
+	  snarfing rules.
+	* mail.local/Makefile.am: Added @GUILE_INCLUDES@ and @GUILE_LIBS@.
+	* guimb/scm/sieve.scm.in: string->obarray-symbol is deprecated
+	  in 1.6.0. Use another approach.
+
+	* libmu_scm/mu_address.c: Upgrade to guile 1.6.0
+	* libmu_scm/mu_body.c: Likewise.
+	* libmu_scm/mu_guimb.c: Likewise.
+	* libmu_scm/mu_logger.c: Likewise.
+	* libmu_scm/mu_mailbox.c: Likewise.
+	* libmu_scm/mu_message.c: Likewise.
+	* libmu_scm/mu_scm.c: Likewise.
+	* libmu_scm/mu_scm.h: Likewise.
+	
+	* auth/sql.c (mu_sql_authenticate): Removed unused variable.
+	
 2002-09-05  Sergey Poznyakoff 
 
 	* mailbox/mbx_mh.c: Rewritten to use MH sequence numbers
