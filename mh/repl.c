@@ -76,6 +76,7 @@ struct mh_option mh_option[] = {
   {"width",   1,  'w', MH_OPT_ARG, "number"},
   {"draftfolder", 6, 'd', MH_OPT_ARG, "folder"},
   {"nodraftfolder", 3, ARG_NODRAFTFOLDER, },
+  {"draftmessage", 6, 'm' },
   {"editor", 1, 'e', MH_OPT_ARG, "program"},
   {"noedit", 3, ARG_NOEDIT, },
   {"fcc", 1, ARG_FCC, MH_OPT_ARG, "folder"},
@@ -101,8 +102,9 @@ static char *format_str =
 
 static mh_format_t format;
 static int width = 80;
-static char *draft_folder;
-static char *draft_file;
+
+struct mh_whatnow_env wh_env = { 0 };
+static int initial_edit = 1;
 static mh_msgset_t msgset;
 static mailbox_t mbox;
 static int build_only = 0; /* --build flag */
@@ -117,6 +119,7 @@ decode_cc_flag (const char *opt, const char *arg)
       mh_error (_("%s %s is unknown"), opt, arg);
       exit (1);
     }
+  return 0; /* never reached */
 }
 
 static int
@@ -125,6 +128,7 @@ opt_handler (int key, char *arg, void *unused)
   switch (key)
     {
     case 'b':
+    case ARG_NOWHATNOWPROC:
       build_only = 1;
       break;
       
@@ -137,7 +141,11 @@ opt_handler (int key, char *arg, void *unused)
       break;
 	
     case 'd':
-      draft_folder = arg;
+      wh_env.draftfolder = arg;
+      break;
+      
+    case 'e':
+      wh_env.editor = arg;
       break;
       
     case '+':
@@ -149,6 +157,10 @@ opt_handler (int key, char *arg, void *unused)
       mh_read_formfile (arg, &format_str);
       break;
 
+    case 'm':
+      wh_env.draftmessage = arg;
+      break;
+      
     case 'w':
       width = strtoul (arg, NULL, 0);
       if (!width)
@@ -159,17 +171,18 @@ opt_handler (int key, char *arg, void *unused)
       break;
 
     case ARG_NODRAFTFOLDER:
-      draft_folder = NULL;
+      wh_env.draftfolder = NULL;
       break;
 
+    case ARG_NOEDIT:
+      initial_edit = 0;
+      break;
+      
     case ARG_QUERY:
       query_mode = is_true (arg);
       break;
       
     case 'a':
-    case 'm':
-    case 'e':
-    case ARG_NOEDIT:
     case ARG_FCC:
     case ARG_FILTER:
     case ARG_INPLACE:
@@ -193,11 +206,11 @@ make_draft ()
 #define bufsize sizeof(buffer)
 
   /* FIXME: first check if the draft exists */
-  fp = fopen (draft_file, "w+");
+  fp = fopen (wh_env.file, "w+");
   if (!fp)
     {
       mh_error (_("cannot open draft file %s: %s"),
-		draft_file, strerror (errno));
+		wh_env.file, strerror (errno));
       exit (1);
     }
   
@@ -213,6 +226,24 @@ make_draft ()
   mh_format (&format, msg, msgset.list[0], buffer, bufsize);
   fprintf (fp, "%s", buffer);
   fclose (fp);
+
+  {
+    url_t url;
+    size_t num;
+    char *msgname, *p;
+    
+    mailbox_get_url (mbox, &url);
+    mh_message_number (msg, &num);
+    asprintf (&msgname, "%s/%lu", url_to_string (url), (unsigned long) num);
+    p = strchr (msgname, ':');
+    if (!p)
+      wh_env.msg = msgname;
+    else
+      {
+	wh_env.msg = strdup (p+1);
+	free (msgname);
+      }
+  }
 }
 
 int
@@ -231,8 +262,9 @@ main (int argc, char **argv)
       exit (1);
     }
 
-  if (!draft_folder)
-    draft_folder = mh_global_profile_get ("Draft-Folder", mu_path_folder_dir);
+  if (!wh_env.draftfolder)
+    wh_env.draftfolder = mh_global_profile_get ("Draft-Folder",
+						mu_path_folder_dir);
   
   mbox = mh_open_folder (current_folder, 0);
   mh_msgset_parse (mbox, &msgset, argc - index, argv + index, "cur");
@@ -242,9 +274,13 @@ main (int argc, char **argv)
       return 1;
     }
   
-  draft_file = mh_expand_name (draft_folder, "reply", 0);
+  wh_env.file = mh_expand_name (wh_env.draftfolder, "reply", 0);
   
   make_draft ();
-  
-  return 0;
+
+  /* Exit immediately if --build is given */
+  if (build_only)
+    return 0;
+
+  return mh_whatnow (&wh_env, initial_edit);
 }
