@@ -343,7 +343,7 @@ attribute_is_recent (attribute_t attr)
   /* something is recent when it is not read and not seen.  */
   return (attr->flags == 0
 	  || ! ((attr->flags & MU_ATTRIBUTE_SEEN)
-		&& (attr->flags & MU_ATTRIBUTE_READ)));
+		|| (attr->flags & MU_ATTRIBUTE_READ)));
 }
 
 int
@@ -521,13 +521,13 @@ flags_to_string (int flags, char *buffer, size_t len, size_t *pn)
   *status = *a = '\0';
 
   if (flags & MU_ATTRIBUTE_SEEN)
-    strcat (a, "R");
+    strcat (a, "O");
   if (flags & MU_ATTRIBUTE_ANSWERED)
     strcat (a, "A");
   if (flags & MU_ATTRIBUTE_FLAGGED)
     strcat (a, "F");
   if (flags & MU_ATTRIBUTE_READ)
-    strcat (a, "O");
+    strcat (a, "R");
   if (flags & MU_ATTRIBUTE_DELETED)
     strcat (a, "d");
 
