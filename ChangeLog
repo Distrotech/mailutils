@@ -1,3 +1,9 @@
+2003-05-20  Sergey Poznyakoff
+
+	* imap4d/auth_gss.c (auth_gssapi): Do not output surplus text
+	after the '+'.
+	Don't use strdup as the username is not zero terminated.
+
 2003-05-19  Wojciech Polak
 
 	* mailbox/pop/mbox.c: Moved variable `capa' to struct _pop_data.
