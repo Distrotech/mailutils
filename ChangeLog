@@ -1,3 +1,15 @@
+2004-06-23  Sergey Poznyakoff
+
+	* guimb/collect.c (guimb_catch_body): Use scm_c_eval_string
+	* include/mailutils/guile.h: Provide a definition of
+	scm_c_eval_string for Guile 1.4x
+	* include/mailutils/mutil.h: Forward declaration of struct timeval
+	needed for the prototype of mu_fd_wait().
+	* libmu_scm/Makefile.am (mailutils.scm): Fixed producing rule.
+	* libmu_scm/mailutils.scm.in: Added an end-of-file comment
+	* libmu_scm/mu_mailbox.c: Use SCM_UNSPECIFIED where appropriate.
+	* libmu_scm/mu_message.c: Likewise.
+
 2204-06-20 Alain Magloire
 
 	* examples/nntpclient.c: An example of using nntp.
