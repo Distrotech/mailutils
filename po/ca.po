@@ -6,8 +6,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: mailutils 0.2\n"
-"POT-Creation-Date: 2002-12-28 00:56+0100\n"
-"PO-Revision-Date: 2002-12-28 01:07+0100\n"
+"POT-Creation-Date: 2002-12-28 19:01+0100\n"
+"PO-Revision-Date: 2002-12-28 19:13+0100\n"
 "Last-Translator: Jordi Mallach <jordi@sindominio.net>\n"
 "Language-Team: Catalan <ca@dodds.net>\n"
 "MIME-Version: 1.0\n"
@@ -29,7 +29,9 @@ msgstr "CONSULTA"
 
 #: auth/sql.c:401
 msgid "SQL query to retrieve a passwd entry based on username"
-msgstr "Consulta SQL per a obtindre una entrada de contrasenya basada en el nom d'usuari"
+msgstr ""
+"Consulta SQL per a obtindre una entrada de contrasenya basada en el nom "
+"d'usuari"
 
 #: auth/sql.c:403
 msgid "SQL query to retrieve a passwd entry based on UID"
@@ -435,9 +437,10 @@ msgstr "no s'ha pogut obrir %s: %s\n"
 msgid "msg %d : %s\n"
 msgstr "msg %d : %s\n"
 
-#: guimb/collect.c:34 guimb/main.c:45 mail/if.c:55 mh/mh_argp.c:117
-#: mh/mh_ctx.c:31 mh/mh_ctx.c:41 mh/mh_msgset.c:35 mh/mh_msgset.c:593
-#: mh/mh_msgset.c:606
+#: guimb/collect.c:34 guimb/main.c:45 libsieve/sieve.l:125
+#: libsieve/sieve.l:585 libsieve/sieve.l:625 libsieve/sieve.l:682 mail/if.c:55
+#: mh/mh_argp.c:117 mh/mh_ctx.c:31 mh/mh_ctx.c:41 mh/mh_msgset.c:35
+#: mh/mh_msgset.c:593 mh/mh_msgset.c:606
 msgid "not enough memory"
 msgstr "no hi ha memòria suficient"
 
@@ -933,6 +936,38 @@ msgstr "pila buida"
 msgid "mailbox_scan: %s"
 msgstr "mailbox_scan: %s"
 
+#: libsieve/sieve.l:227
+#, c-format
+msgid "can't stat `%s': %s"
+msgstr "no es pot fer «stat» de «%s»: %s"
+
+#: libsieve/sieve.l:233 libsieve/sieve.l:238
+msgid "recursive inclusion"
+msgstr "inclusió recursiva"
+
+#: libsieve/sieve.l:241
+#, c-format
+msgid "`%s' already included here"
+msgstr "«%s» ja està inclòs ací"
+
+#: libsieve/sieve.l:245
+#, c-format
+msgid "`%s' already included at top level"
+msgstr "«%s» ja està inclòs en el nivell superior"
+
+#: libsieve/sieve.l:254 mail/source.c:59
+#, c-format
+msgid "can't open `%s': %s"
+msgstr "no es pot obrir «%s»: %s"
+
+#: libsieve/sieve.l:423
+msgid "preprocessor syntax"
+msgstr "sintaxi de preprocessador"
+
+#: libsieve/sieve.l:432
+msgid "missing closing quote in preprocessor statement"
+msgstr "falten les comilles finals en la sentència de preprocessador"
+
 #: libsieve/sieve.y:229
 #, c-format
 msgid "unknown test: %s"
@@ -1345,11 +1380,6 @@ msgstr "La conducció de %s ha fallat"
 #: mail/source.c:51
 msgid "source requires an argument"
 msgstr "source requereix un argument"
-
-#: mail/source.c:59
-#, c-format
-msgid "can't open `%s': %s"
-msgstr "no es pot obrir «%s»: %s"
 
 #: mail/summary.c:66
 #, c-format
@@ -3286,47 +3316,3 @@ msgstr "no es pot obrir %s: %s\n"
 #, c-format
 msgid "expunge on %s failed: %s\n"
 msgstr "la eliminació en %s ha fallat: %s\n"
-
-#~ msgid "Cc: %s\n"
-#~ msgstr "Cc: %s\n"
-
-#~ msgid ""
-#~ "%s, Copyright (C) 2001 Free Software Foundation, Inc.\n"
-#~ "mail is free software with ABSOLUTELY NO WARRANTY.\n"
-#~ "For details type `warranty'.\n"
-#~ "Send bug reports to %s.\n"
-#~ msgstr ""
-#~ "%s, Copyright © 2001 Free Software Foundation, Inc.\n"
-#~ "mail és programari lliure amb ABSOLUTAMENT CAP GARANTIA.\n"
-#~ "Per més detalls, teclejeu «warranty».\n"
-#~ "Envieu informes d'error a %s.\n"
-
-#~ msgid ""
-#~ "GNU Mailutils is free software; you can redistribute it and/or modify\n"
-#~ "it under the terms of the GNU General Public License as published by\n"
-#~ "the Free Software Foundation; either version 2, or (at your option)\n"
-#~ "any later version.\n"
-#~ "\n"
-#~ msgstr "FITXER<"
-
-#~ msgid ""
-#~ "GNU Mailutils is distributed in the hope that it will be useful,\n"
-#~ "but WITHOUT ANY WARRANTY; without even the implied warranty of\n"
-#~ "MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n"
-#~ "GNU General Public License for more details.\n"
-#~ "\n"
-#~ msgstr ""
-#~ "GNU Mailutils es distribueix amb l'expectativa de que serà útil,\n"
-#~ "però SENSE CAP GARANTIA; ni tan sols la garantia implícita de\n"
-#~ "COMERCIABILITAT o ADEQUACIÓ PER UN PROPÒSIT PARTICULAR.  Vegeu la\n"
-#~ "Llicència Pública General GNU per obtenir-ne més detalls.\n"
-#~ "\n"
-
-#~ msgid ""
-#~ "You should have received a copy of the GNU General Public License\n"
-#~ "along with GNU Mailutils; if not, write to the Free Software\n"
-#~ "Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.\n"
-#~ msgstr ""
-#~ "Hauríeu d'haver rebut una còpia de la Llicència Pública General GNU\n"
-#~ "juntament amb GNU Mailutils; en cas contrari, escriviu a la Free\n"
-#~ "Software Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.\n"
