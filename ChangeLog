@@ -1,3 +1,10 @@
+2002-02-18  Jeff Bailey  <jbailey@outpost.dnsalias.org>
+
+	* mail.local/Makefile.am: Fix install_exec_hook so that
+	DESTDIR installs work correctly.
+	
+	* comsat/Makefile.am: Use libmailutils.la
+
 2002-02-17  Sergey Poznyakoff
 
 	* imap4d/list.c: Take into account st_dev. Patch provided

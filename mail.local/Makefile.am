@@ -10,6 +10,6 @@ mail_local_LDADD = @ARGPLIBS@ @LIBMU_SCM@ ../mailbox/libmailbox.la \
 
 install-exec-hook:
 	for i in $(libexec_PROGRAMS); do\
-		chown root:mail $(libexecdir)/$$i;\
-		chmod 4755 $(libexecdir)/$$i;\
+		chown root:mail $(DESTDIR)$(libexecdir)/$$i;\
+		chmod 4755 $(DESTDIR)$(libexecdir)/$$i;\
 	done
