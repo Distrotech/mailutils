@@ -1,6 +1,13 @@
 2000-04-19  Jeff Bailey  <jbailey@nisa.net>
 
-	* configure.in: Test for limits.h and inttypes.h
+	* configure.in: Test for limits.h and inttypes.h, add malloc
+	and realloc checks.
+	* m4/: New directory
+	* m4/Makefile.am: New file to support directory
+	* m4/malloc.m4: File to support lib/ directory
+	* m4/realloc.m4: File to support lib/ directory
+	* lib/xalloc.h: New file to support xmalloc.c
+	* lib/xmalloc.c: New version from sh-utils-2.0g
 
 2000-03-28  Jakob 'sparky' Kaivo  <jkaivo@elijah.nodomainname.net>
 

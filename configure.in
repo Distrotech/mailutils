@@ -26,6 +26,11 @@ AC_CHECK_HEADERS(malloc.h stdlib.h stdio.h errno.h unistd.h\
                  inttypes.h)
 AC_CHECK_HEADERS(string.h strings.h, break)
 
+dnl Check for working functions
+
+AC_REQUIRE([jm_FUNC_MALLOC])
+AC_REQUIRE([jm_FUNC_REALLOC])
+
 dnl Check for libraries
 
 dnl Use either PAM or CRYPT, not both.
