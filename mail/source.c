@@ -1,5 +1,5 @@
 /* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -24,7 +24,7 @@
 int
 mail_source (int argc, char **argv)
 {
-#if 0
+#if 1
 
   /* On sparky's machine, there is an odd SEGV coming from a free() deep
      withing fopen(). I don't get it */
@@ -32,18 +32,21 @@ mail_source (int argc, char **argv)
   if (argc == 2)
     {
       FILE *rc = fopen (argv[1], "r");
-      char *buf = NULL;
-      size_t s = 0;
-      while (getline (&buf, &s, rc) >= 0)
+      if (rc != NULL)
 	{
-	  buf[strlen(buf) - 1] = '\0';
-	  util_do_command("%s", buf);
-	  free (buf);
-	  buf = NULL;
-	  s = 0;
+	  char *buf = NULL;
+	  size_t s = 0;
+	  while (getline (&buf, &s, rc) >= 0)
+	    {
+	      buf[strlen(buf) - 1] = '\0';
+	      util_do_command("%s", buf);
+	      free (buf);
+	      buf = NULL;
+	      s = 0;
+	    }
+	  fclose (rc);
+	  return 0;
 	}
-      fclose (rc);
-      return 0;
     }
 #endif
   return 1;
