@@ -30,7 +30,8 @@ struct daemon_param daemon_param = {
   MODE_INTERACTIVE,     /* Start in interactive (inetd) mode */
   20,                   /* Default maximum number of children */
   143,                  /* Standard IMAP4 port */
-  1800                  /* RFC2060: 30 minutes. */ 
+  1800,                 /* RFC2060: 30 minutes. */
+  0                     /* No transcript by default */
 };
 
 /* Number of child processes.  */
@@ -78,20 +79,20 @@ static int imap4d_mainloop      __P ((int, int));
 static error_t
 imap4d_parse_opt (int key, char *arg, struct argp_state *state)
 {
-    switch (key)
-      {
-      case ARGP_KEY_INIT:
-       	state->child_inputs[0] = state->input;
-	break;
-	
-      case 'O':
-	set_namespace (NS_OTHER, arg);
-	break;
-	
-      case 'S':
-	set_namespace (NS_SHARED, arg);
-	break;
-	
+  switch (key)
+    {
+    case ARGP_KEY_INIT:
+      state->child_inputs[0] = state->input;
+      break;
+      
+    case 'O':
+      set_namespace (NS_OTHER, arg);
+      break;
+      
+    case 'S':
+      set_namespace (NS_SHARED, arg);
+      break;
+      
     default:
       return ARGP_ERR_UNKNOWN;
     }
