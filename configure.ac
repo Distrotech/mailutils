@@ -276,6 +276,8 @@ AC_CHECK_TYPE(socklen_t, , AC_DEFINE(socklen_t, int, [Define to int if <sys/type
 # include <socket.h>
 #endif
 ])
+AC_CHECK_TYPE(long long, , AC_DEFINE(LONG_LONG, long, [Define to long if compiler does not support]))
+AC_CHECK_TYPE(long double, , AC_DEFINE(LONG_DOUBLE, double, [Define to double if compiler does not support]))
 
 AC_STRUCT_TM
 AC_CHECK_MEMBERS([struct tm.tm_zone, struct tm.tm_gmtoff, struct tm.tm_isdst],

@@ -1,8 +1,9 @@
 2003-05-24  Alain Magloire
 
-	* snprintf.c: Change to be under LGPL not GPL.
+	* configure.ac: Check for "long long" and "long double".
+	* lib/snprintf.c: Change to be under LGPL not GPL.
 	(vsnprintf): implement "%lld", "%qd", "%Lg"
-	* snprintf.h: New macro LONG_LONG, LONG_DOUBLE
+	* lib/snprintf.h: New macro LONG_LONG, LONG_DOUBLE
 	default to long long, long double.
 
 2003-05-20  Sergey Poznyakoff
