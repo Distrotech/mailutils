@@ -23,6 +23,8 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <limits.h>
+#include <unistd.h>
 #include <mailutils/argp.h>
 #include <mailutils/error.h>
 #include <mailutils/mu_auth.h>
@@ -31,12 +33,60 @@
 
 #include <gsasl.h>
 
+char *gsasl_cram_md5_pwd = SITE_CRAM_MD5_PWD;
+
+#define ARG_CRAM_PASSWD 1
+
+static struct argp_option _gsasl_argp_options[] = {
+  {NULL, 0, NULL, 0, N_("GSASL options"), 0},
+  {"cram-passwd", ARG_CRAM_PASSWD, N_("FILE"), 0,
+   N_("Specify password file for CRAM-MD5 authentication"), 0},
+  { NULL,      0, NULL, 0, NULL, 0 }
+};
+
+static error_t
+_gsasl_argp_parser (int key, char *arg, struct argp_state *state)
+{
+  switch (key)
+    {
+    case ARG_CRAM_PASSWD:
+      gsasl_cram_md5_pwd = arg;
+      break;
+
+    default:
+      return ARGP_ERR_UNKNOWN;
+    }
+  return 0;
+}
+
+static struct argp _gsasl_argp = {
+  _gsasl_argp_options,
+  _gsasl_argp_parser
+};
+
+static struct argp_child _gsasl_argp_child = {
+  &_gsasl_argp,
+  0,
+  NULL,
+  0
+};
+
+void
+mu_gsasl_init_argp ()
+{
+  if (mu_register_capa ("gsasl", &_gsasl_argp_child))
+    {
+      mu_error (_("INTERNAL ERROR: cannot register argp capability gsasl"));
+      abort ();
+    }
+}
+
+
 struct _gsasl_stream {
   Gsasl_session_ctx *sess_ctx; /* Context */
   int last_err;        /* Last Gsasl error code */
   
-  stream_t stream;     /* Underlying stream */
-  size_t offset;       /* Current offset */
+  int fd;              /* File descriptor */
 
   char *buffer;        /* Line buffer */
   size_t size;         /* Allocated size */
@@ -47,7 +97,6 @@ static void
 _gsasl_destroy (stream_t stream)
 {
   struct _gsasl_stream *s = stream_get_owner (stream);
-  stream_destroy (&s->stream, stream_get_owner (s->stream));
   free (s->buffer);
   s->buffer = NULL;
 }
@@ -106,17 +155,20 @@ _gsasl_readline (stream_t stream, char *optr, size_t osize,
     {
       char buf[80];
       size_t sz;
-      
-      rc = stream_readline (s->stream, buf, sizeof (buf), s->offset, &sz);
-      if (rc)
-	return rc;
 
-      s->offset += sz;
-      
+      sz = read (s->fd, buf, sizeof (buf));
+      if (sz == (size_t) -1)
+	{
+	  if (errno == EINTR)
+	    continue;
+	  return errno;
+	}
+
       rc = buffer_grow (s, buf, sz);
       if (rc)
 	return rc;
 
+      len = UINT_MAX; /* override the bug in libgsasl */
       rc = gsasl_decode (s->sess_ctx, s->buffer, s->level, NULL, &len);
     }
   while (rc == GSASL_NEEDS_MORE);
@@ -148,8 +200,11 @@ _gsasl_readline (stream_t stream, char *optr, size_t osize,
       len = osize;
     }
   else
-    memcpy (optr, bufp, len);
-
+    {
+      buffer_drop (s);
+      memcpy (optr, bufp, len);
+    }
+  
   if (nbytes)
     *nbytes = len;
   
@@ -158,57 +213,103 @@ _gsasl_readline (stream_t stream, char *optr, size_t osize,
   return 0;
 }
 
+int
+write_chunk (struct _gsasl_stream *s, char *start, char *end)
+{
+  size_t chunk_size = end - start + 1;
+  size_t len;
+  size_t wrsize;
+  char *buf = NULL;
+      
+  len = UINT_MAX; /* override the bug in libgsasl */
+  gsasl_encode (s->sess_ctx, start, chunk_size, NULL, &len);
+  buf = malloc (len);
+  if (!buf)
+    return ENOMEM;
+
+  gsasl_encode (s->sess_ctx, start, chunk_size, buf, &len);
+
+  wrsize = 0;
+  do
+    {
+      size_t sz = write (s->fd, buf + wrsize, len - wrsize);
+      if (sz == (size_t)-1)
+	{
+	  if (errno == EINTR)
+	    continue;
+	  free (buf);
+	  return errno;
+	}
+      wrsize += sz;
+    }
+  while (wrsize < len);
+  
+  free (buf);
+
+  return 0;
+}
+
+
 static int
 _gsasl_write (stream_t stream, const char *iptr, size_t isize,
 	      off_t offset, size_t *nbytes)
 {
   int rc;
+  size_t total = 0;
   struct _gsasl_stream *s = stream_get_owner (stream);
   
   rc = buffer_grow (s, iptr, isize);
   if (rc)
     return rc;
-  
-  if (s->level >= 2
-      && s->buffer[s->level - 2] == '\r'
-      && s->buffer[s->level - 1] == '\n')
+
+  if (s->level > 2)
     {
-      size_t len, wrsize;
-      char *buf = NULL;
+      char *start, *end;
       
-      gsasl_encode (s->sess_ctx, s->buffer, s->level, NULL, &len);
-      buf = malloc (len);
-      if (!buf)
-	return ENOMEM;
+      for (start = s->buffer, end = strchr (start, '\n');
+	   end && end < s->buffer + s->level;
+	   start = end + 1, end = strchr (start, '\n'))
+	if (end[-1] == '\r')
+	  {
+	    int rc = write_chunk (s, start, end);
+	    if (rc)
+	      return rc;
+	  }
 
-      gsasl_encode (s->sess_ctx, s->buffer, s->level, buf, &len);
-      rc = stream_write (s->stream, buf, len, s->offset, &wrsize);
-      free (buf);
-      if (rc)
-	return rc;
-      s->offset += wrsize;
-
-      if (nbytes)
-	*nbytes = wrsize;
+      if (start > s->buffer)
+	{
+	  if (start < s->buffer + s->level)
+	    {
+	      int rest = s->buffer + s->level - start + 1;
+	      memmove (s->buffer, start, rest);
+	      s->level = rest;
+	    }
+	  else 
+	    s->level = 0;
+	}
+    }
+  
+  if (nbytes)
+    *nbytes = isize;
       
-      s->level = 0;
-  } 
   return 0;
 }
 
 static int
 _gsasl_flush (stream_t stream)
 {
-  struct _gsasl_stream *s = stream_get_owner (stream);
-  stream_flush (s->stream);
   return 0;
 }
 
 static int
 _gsasl_close (stream_t stream)
 {
+  int flags;
   struct _gsasl_stream *s = stream_get_owner (stream);
-  stream_close (s->stream);
+
+  stream_get_flags (stream, &flags);
+  if (!(flags & MU_STREAM_NO_CLOSE))
+    close (s->fd);
   if (s->sess_ctx)
     gsasl_server_finish (s->sess_ctx);
   return 0;
@@ -231,11 +332,12 @@ _gsasl_strerror (stream_t stream, const char **pstr)
 
 
 int
-gsasl_stream_create (stream_t *stream, stream_t ins,
+gsasl_stream_create (stream_t *stream, int fd,
 		     Gsasl_session_ctx *ctx, int flags)
 {
   struct _gsasl_stream *s;
-
+  int rc;
+    
   if (stream == NULL)
     return EINVAL;
 
@@ -248,8 +350,15 @@ gsasl_stream_create (stream_t *stream, stream_t ins,
   if (s == NULL)
     return ENOMEM;
 
-  s->stream = ins;
+  s->fd = fd;
   s->sess_ctx = ctx;
+
+  rc = stream_create (stream, flags|MU_STREAM_NO_CHECK, s);
+  if (rc)
+    {
+      free (s);
+      return rc;
+    }
 
   stream_set_open (*stream, _gsasl_open, s);
   stream_set_close (*stream, _gsasl_close, s);
@@ -261,7 +370,7 @@ gsasl_stream_create (stream_t *stream, stream_t ins,
     stream_set_readline (*stream, _gsasl_readline, s);
   else
     stream_set_write (*stream, _gsasl_write, s);
-    
+
   return 0;
 }
   
