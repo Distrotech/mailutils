@@ -1,3 +1,7 @@
+2003-01-23  Wojciech Polak
+
+	* doc/texinfo/programs.texi: Added the 'encryption' node.
+
 2003-01-23  Sergey Poznyakoff 
 
 	* libsieve/util.c (_comp_action): Bugfix. Incorrectly handled
