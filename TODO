@@ -23,8 +23,6 @@ read locks don't do anything.
 is closed or destroyed it can make sure that the lock
 is definitely gone.
 
-** argcv.c should unescape strings as well as unquote them
-
 ** write a fnmatch() that doesn't respect []
 
 ** select needed
@@ -55,8 +53,6 @@ and use them in mail.remote.
 ** header_get_value() returns the newline?
 
 ** implement a header_field_unfold()?
-
-** pipe_open_stream() - implemented with popen()
 
 ** support AUTH=anonymous (imap://cyrus.andrew.cmu.edu/archive.info-cyrus)
 

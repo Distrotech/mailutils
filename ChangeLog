@@ -3,6 +3,7 @@
 	* mailbox/argcv.c: Implemented escaping/unescaping
 	of non-printable characters
 	* TODO: Updated.
+	* NEWS: Updated
 	* mh/Makefile.am (mh_finish_install): Fixed. Thanks
 	Andreas Voegele <voegelas@gmx.net> for the patch.
 

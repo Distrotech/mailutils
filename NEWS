@@ -19,6 +19,11 @@ time units.
 
 * New features.
 
+** libmailbox
+
+*** argcv_get unescapes all unprintable characters, argcv_string
+escapes them.
+
 ** pop3d
 
 *** more extensive diagnostics for APOP authentications
