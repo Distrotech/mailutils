@@ -23,6 +23,6 @@ imap4d_capability (struct imap4d_command *command, char *arg)
   (void)arg;
   if (! (command->states & state))
     return util_finish (command, RESP_BAD, "Wrong state");
-  util_out (RESP_NONE,  "CAPABILITY IMAP4rev1");
+  util_out (RESP_NONE,  "CAPABILITY IMAP4rev1 NAMESPACE");
   return util_finish (command, RESP_OK, "Completed");
 }
