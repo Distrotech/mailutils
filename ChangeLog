@@ -1,59 +1,60 @@
+1999-12-15  Alain Magloire
+
+	* url/url_mbox.h url/url_pop.h url/url_imap.h url/url_mailto.h
+	New files.
+
 1999-12-01  Alain Magloire
 
-	* url/{_cpystr,chewurl,url,url_imap,url_mailto,url_mbox,url_pop}.c :
-	New files, first attempt to define the URL API.
+	* url/_cpystr.c url/chewurl.c url/url.c url/url_imap.c
+	url/url_mailto.c url/url_mbox.c url/url_pop.c : New files,
+	first attempt to define the URL API.
 
 	* lib/Makefile.am: added xmalloc.c, xstrdup.c, xstrtol.{c,h}
-	* lib/{xmalloc,xstrdup,xstrtol}.c lib/xstrtol.h : New files
+	* lib/xmalloc.c lib/xstrdup.c lib/xstrtol.c lib/xstrtol.h : New files
 	
-1999-11-21  Jeff Bailey  <jbailey@nisa.net>
+1999-11-21  Jeff Bailey
 
 	* doc/rfc*: Add.  Standards followed should be included here.
 
-1999-11-23  Jakob 'sparky' Kaivo  <jkaivo@elijah.nodomainname.net>
+1999-11-23  Jakob 'sparky' Kaivo
 
 	* TODO: Mention Maildir
-
 	* libmailbox/mailbox.c (mbox_init): new function
-
 	* libmailbox/maildir.h: new file
-
 	* libmailbox/maildir.c: new file
-
 	* libmailbox/mailbox.c (mbox_open): uncommented maildir_open attempt
 
-1999-11-15  Jeff Bailey  <jbailey@nisa.net>
+1999-11-15  Jeff Bailey
 
-	* lib/ansi2knr*: Add
+	* lib/ansi2knr.c lib/ansi2knr.h: Add
 
 	* configure.in: Add AM_C_PROTOTYPES
 
 	* libmailbox/Makefile.am: Add ansi2knr handling
 
-1999-11-08  Sean 'Shaleh' Perry  <shaleh@debian.org>
+1999-11-08  Sean 'Shaleh' Perry
 
-	* cleaned up some of the auto{make,conf} magic for non-Linux 
+	* cleaned up some of the automake autoconf magic for non-Linux 
 
-1999-11-07  Sean 'Shaleh' Perry  <shaleh@debian.org>
+1999-11-07  Sean 'Shaleh' Perry
 
 	* TODO: restructuring, now split into sections 
-	* libmailbox/*: added two new functions to the api and began implementing
-	them in unixmbox
-	    is_updated() => has this mailbox been updated externally?
+	* libmailbox/mailbox.c libmailbox/mailbox.h: added two new functions
+	to the api and began implementing them in unixmbox
+		is_updated() => has this mailbox been updated externally?
 		scan() => build info on mailbox, removing old data as needed
-	      currently not implemented
+		currently not implemented
 
-1999-11-06  Sean 'Shaleh' Perry  <shaleh@debian.org>
+1999-11-06  Sean 'Shaleh' Perry
 
-	* libmailbox/*: more work on expunge
-	* libmailbox/*: added a tester routine
-	* *: added -g to Makefile.am
+	* libmailbox/mailbox.c: more work on expunge
+	* libmailbox/mailbox.c: added a tester routine
+	* Makefile.am: added -g
 
-1999-11-06  Sean 'Shaleh' Perry  <shaleh@debian.org>
+1999-11-06  Sean 'Shaleh' Perry
 
-	* libmailbox/unixmbox.*: work on expunge
-	    use read/write along with lseek
-		still blows up -- getting there
+	* libmailbox/unixmbox.c: work on expunge
+	use read/write along with lseek still blows up -- getting there
 	* mail/mail.c: check return value of mbox_open()
 
 1999-10-23  Alain Magloire
