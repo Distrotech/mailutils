@@ -125,7 +125,7 @@ struct imap4d_command
 #define ERR_NO_OFILE 2
 #define ERR_TIMEOUT 3
 #define ERR_SIGNAL 4
-
+  
 /* Namespace numbers */
 #define NS_PRIVATE 0
 #define NS_OTHER   1
@@ -147,7 +147,7 @@ extern int state;
 extern volatile size_t children;
 extern int is_virtual;
 extern struct daemon_param daemon_param;
-  
+	
 #ifndef HAVE_STRTOK_R
 extern char *strtok_r __P((char *s, const char *delim, char **save_ptr));
 #endif
@@ -185,7 +185,10 @@ extern int  imap4d_subscribe __P ((struct imap4d_command *, char *));
 extern int  imap4d_uid __P ((struct imap4d_command *, char *));
 extern int  imap4d_unsubscribe __P ((struct imap4d_command *, char *));
 extern int  imap4d_namespace __P ((struct imap4d_command *, char *));
-  
+
+/* Shared between fetch and store */  
+extern void fetch_flags0 (const char *prefix, message_t msg, int isuid);
+
 /* Synchronisation on simultaneous access.  */
 extern int imap4d_sync __P ((void));
 extern int imap4d_sync_flags __P ((size_t));
