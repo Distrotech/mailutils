@@ -2,7 +2,7 @@ AUTOMAKE_OPTIONS = ansi2knr
 noinst_LIBRARIES = libmailutils.a
 
 libmailutils_a_SOURCES = basename.c getopt.c getopt1.c md5.c getline.c \
-  xstrdup.c xmalloc.c argcv.c
+  xstrdup.c xmalloc.c argcv.c signame.c
 
 EXTRA_DIST = alloca.c fnmatch.c setenv.c snprintf.c strchrnul.c strndup.c \
   strnlen.c strtok_r.c xstrtol.c vasprintf.c

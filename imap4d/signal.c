@@ -39,9 +39,9 @@ imap4d_sigchld (int signo)
 RETSIGTYPE
 imap4d_signal (int signo)
 {
-  extern const char *const sys_siglist[];
-  /* syslog (LOG_CRIT, "got signal %d", signo); */
-  syslog (LOG_CRIT, "got signal %s", sys_siglist[signo]);
+  extern char *mu_signame __P((int signo));
+
+  syslog (LOG_CRIT, "got signal %s", mu_signame(signo));
   /* Master process.  */
   if (!ofile)
     {

@@ -1,3 +1,11 @@
+2001-05-21  Alain Magloire
+
+	* configure.in, imap4d/signal.c, pop3d/signal.c:
+	sys_siglist is not defined on some systems (namely, Solaris).
+	* lib/signame.c: (added) Provide mu_signame() function to convert
+	signal number to string representation.
+	* lib/strtok_r.c: bugfix
+
 2001-05-19  Alain Magloire
 
 	* AUTHORS: Update to reflect Sergey and Sam contributions.
