@@ -124,7 +124,6 @@ verbose "MAILRC is $srcdir/etc/mail.rc" 2
             return 1
 	}
     }
-    mail_send "#\n"
     return 0
 }
 
@@ -154,14 +153,6 @@ proc mail_send { string } {
 }
 
 proc mail_command { cmd } {
-    global mail_prompt
-    mail_expect 30 {
-	-re "\[\r\n\]?${mail_prompt}$" {}
-	default {
-	    perror "mail not initialized"
-            return 1
-	}
-    }
     set res [mail_send "$cmd\n"]
     mail_expect 30 {
 	-ex "${cmd}\r\n" { }
@@ -267,7 +258,8 @@ proc mail_expect { args } {
 proc default_mail_test { args } {
     global verbose
     global mail_prompt
-    global suppress_flag;
+    global suppress_flag
+    global mail_prompt	
     upvar timeout timeout
     
     set command [lindex $args 0]
@@ -328,6 +320,14 @@ proc default_mail_test { args } {
 		set result -3
 		break
 	    }
+	}
+    }
+
+    mail_expect 30 {
+	-re "\[\r\n\]?${mail_prompt}$" {}
+	default {
+	    perror "mail not initialized"
+            return 1
 	}
     }
     return $result
