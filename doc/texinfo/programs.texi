@@ -54,7 +54,7 @@ program.
 A tag is either a name of a particular mailutils utility or @dfn{option
 group}, prefixed with colon (@samp{:}). The command line options common for
 several mailutils programs are divided into @dfn{option groups} or
-@dfn{capabilities}, e.g. the options @option{--maildir} and
+@dfn{capabilities}, e.g. the options @option{--mail-spool} and
 @option{--license} form group @samp{mailutils}. These groups are discussed
 in detail below.
 
@@ -92,7 +92,7 @@ utilities in the package:
 
 @table @option
 @item -m @var{path}
-@itemx --maildir=@var{path}
+@itemx --mail-spool=@var{path}
 Set path to the mailspool directory
 @end table
 
@@ -195,7 +195,7 @@ facility @samp{local1}.
 
 @example
 @group
-:mailutils --maildir /var/spool/mail
+:mailutils --mail-spool /var/spool/mail
 :auth --pam-service mailutils
 :logging --log-facility mail
 imap4d --daemon=20 --timeout=1800 --log-facility local1
@@ -244,7 +244,7 @@ Display short help message and exit.
 @itemx --inetd
 Run in inetd mode.
 @item -m @var{path}
-@itemx --maildir=@var{path}
+@itemx --mail-spool=@var{path}
 Set path to the mailspool directory
 @item -O @var{pathlist}
 @itemx --other-namespace=@var{pathlist}
@@ -312,7 +312,7 @@ Display short help message and exit.
 @itemx --inetd
 Run in inetd mode.
 @item -m @var{path}
-@itemx --maildir=@var{path}
+@itemx --mail-spool=@var{path}
 Set path to the mailspool directory
 @item -p @var{number}
 @itemx --port @var{number}
@@ -448,7 +448,7 @@ Print header summary to stdout and exit.
 @itemx --ignore
 Ignore interrupts.
 @item -m @var{path}
-@itemx --maildir=@var{path}
+@itemx --mail-spool=@var{path}
 Set path to the mailspool directory
 @item -n
 @itemx --norc
@@ -1647,7 +1647,7 @@ Display this help and exit.
 @itemx --license
 Display GNU General Public License and exit.
 @item -m @var{path}
-@itemx --maildir @var{path}
+@itemx --mail-spool @var{path}
 Specify path to mailspool directory.
 @item -q
 @itemx --quota-db @var{file}
@@ -2009,7 +2009,7 @@ Start with debugging evaluator and backtraces.
 @itemx --expression EXPR
 Execute given Scheme expression.
 @item -m @var{path}
-@itemx --maildir=@var{path}
+@itemx --mail-spool=@var{path}
 Set path to the mailspool directory
 @item -f PROGFILE
 @itemx --file PROGFILE
@@ -2282,7 +2282,7 @@ comsatd -c /etc/comsat.conf
 
 This is the default operation mode.
 @item -m @var{path}
-@itemx --maildir=@var{path}
+@itemx --mail-spool=@var{path}
 Set path to the mailspool directory
 @item -p @var{number}
 @itemx --port @var{number}
