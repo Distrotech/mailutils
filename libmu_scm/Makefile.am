@@ -66,7 +66,7 @@ mailutils.scm: mailutils.scm.in $(libmu_scm_la_SOURCES:.c=.inc)
 ## Add -MG to make the .x magic work with auto-dep code.
 MKDEP = $(CC) -M -MG $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)
 
-install-exec-local:
+install-data-hook:
 	@if test -f $(DESTDIR)$(libdir)/libmu_scm.so; then \
 		$(LN_S) -f $(DESTDIR)$(libdir)/libmu_scm.so \
                         $(DESTDIR)$(libdir)/libguile-mailutils-v-$(VERSION).so; \
