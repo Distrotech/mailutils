@@ -1,3 +1,13 @@
+2001-08-07 Alain Magloire
+
+	* mail/msgset.y:  Draft implementation of a proposition
+	to allow regular implementation.
+	(REGEXP): Passing the address of the pointer instead of the pointer.
+	(INDENT): Likewised.
+	* mail/Makefile.am: Add in EXTRA_DIST msgset.c to force its
+	generation when doing the distribution, having yacc should
+	not be required.
+
 2001-08-06 Sergey Poznyakoff
 	* mail/msgset.y: (new) A parser for message set specifications
 	of arbitrary complexity. Returns a singly linked list of
@@ -14,7 +24,7 @@
 	util_get_hdr_value() (from decode.c).
 	* mail/decode.c: Use util_msgset_iterate(). Moved get_content_type()
 	and get_hdr_value() to util.c
-	* mail/table.c: Fixed synopsis for decode. 
+	* mail/table.c: Fixed synopsis for decode.
 
         * libmu_scm/Makefile.am: Removed .x and .doc files from EXTRA_DIST.
           Thanks to Alain.
