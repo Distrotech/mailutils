@@ -48,8 +48,8 @@ static struct argp_option options[] = {
   {"editor", ARG_EDITOR, N_("PROG"), 0, N_("Set the editor program to use")},
   {"noedit", ARG_NOEDIT, 0, 0, N_("Suppress the initial edit")},
   {"fcc",    ARG_FCC, N_("FOLDER"), 0, N_("* Set the folder to receive Fcc's.")},
-  {"filter", ARG_FILTER, N_("PROG"), 0,
-   N_("* Set the filter program to preprocess the body of the message being replied")},
+  {"filter", ARG_FILTER, N_("MHL-FILTER"), 0,
+   N_("Set the mhl filter to preprocess the body of the message being replied")},
   {"form",   ARG_FORM, N_("FILE"), 0, N_("Read format from given file")},
   {"inplace", ARG_INPLACE, N_("BOOL"), OPTION_ARG_OPTIONAL,
    N_("* Annotate the message in place")},
@@ -108,6 +108,7 @@ static mailbox_t mbox;
 static int build_only = 0; /* --build flag */
 static int query_mode = 0; /* --query flag */
 static int use_draft = 0;  /* --use flag */
+static char *mhl_filter = NULL; /* --filter flag */
 
 static int
 decode_cc_flag (const char *opt, const char *arg)
@@ -188,9 +189,12 @@ opt_handler (int key, char *arg, void *unused)
       query_mode = is_true (arg);
       break;
       
+    case ARG_FILTER:
+      mhl_filter = arg;
+      break;
+      
     case ARG_ANNOTATE:
     case ARG_FCC:
-    case ARG_FILTER:
     case ARG_INPLACE:
     case ARG_WHATNOWPROC:
     case ARG_NOWHATNOWPROC:
@@ -252,18 +256,38 @@ make_draft (mailbox_t mbox, int disp, struct mh_whatnow_env *wh)
 
   if (disp == DISP_REPLACE)
     {
-      FILE *fp = fopen (wh->file, "w+");
-      char *buf = NULL;
-
-      if (!fp)
+      stream_t str;
+      char *buf;
+      
+      rc = file_stream_create (&str, wh->file,
+			       MU_STREAM_WRITE|MU_STREAM_CREAT);
+      if (rc)
 	{
-	  mh_error (_("cannot open draft file %s: %s"),
-		    wh->file, strerror (errno));
+	  mh_error (_("cannot create draft file stream %s: %s"),
+		    wh->file, mu_strerror (rc));
 	  exit (1);
 	}
+
+      if ((rc = stream_open (str)))
+	{
+	  mh_error (_("cannot open draft file %s: %s"),
+		    wh->file, mu_strerror (rc));
+	  exit (1);
+	}	  
+
       mh_format (&format, msg, msgset.list[0], width, &buf);
-      fprintf (fp, "%s", buf);
-      fclose (fp);
+      stream_sequential_write (str, buf, strlen (buf));
+
+      if (mhl_filter)
+	{
+	  list_t filter = mhl_format_compile (mhl_filter);
+	  if (!filter)
+	    exit (1);
+	  mhl_format_run (filter, width, 0, 0, 0, msg, str);
+	  mhl_format_destroy (&filter);
+	}
+
+      stream_destroy (&str, stream_get_owner (str));
       free (buf);
     }
 
