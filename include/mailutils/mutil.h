@@ -76,6 +76,7 @@ extern struct passwd * getpwnam_virtual __P((const char *u));
 extern char * mu_get_user_email __P((char *name));
 extern char * mu_normalize_path __P((char *path, const char *delim));
 extern char * mu_normalize_maildir __P((const char *dir));
+extern int mu_tempfile __P((const char *tmpdir, char **namep));
 
 #ifdef __cplusplus
 }

@@ -32,6 +32,7 @@
 #include <netdb.h>
 #include <errno.h>
 
+#include <mailutils/error.h>
 #include <mailutils/mutil.h>
 #include <mailutils/iterator.h>
 
@@ -529,3 +530,58 @@ mu_normalize_maildir (const char *dir)
     }
 }
 
+/* Create and open a temporary file. Be vary careful about it, since we
+   may be running with extra privilege i.e setgid().
+   Returns file descriptor of the open file.
+   If namep is not NULL, the pointer to the malloced file name will
+   be stored there. Otherwise, the file is unlinked right after open,
+   i.e. it will disappear after close(fd). */
+
+#ifndef P_tmpdir
+# define P_tmpdir "/tmp"
+#endif
+
+int
+mu_tempfile (const char *tmpdir, char **namep)
+{
+  char *filename;
+  int fd;
+
+  if (!tmpdir)
+    tmpdir = (getenv ("TMPDIR")) ? getenv ("TMPDIR") : P_tmpdir;
+
+  filename = malloc (strlen (tmpdir) + /*'/'*/1 + /* "muXXXXXX" */8 + 1);
+  if (!filename)
+    return -1;
+  sprintf (filename, "%s/muXXXXXX", tmpdir);
+
+#ifdef HAVE_MKSTEMP
+  {
+    int save_mask = umask (077);
+    fd = mkstemp (filename);
+    umask (save_mask);
+  }
+#else
+  if (mktemp (filename))
+    fd = open (filename, O_CREAT|O_EXCL|O_RDWR, 0600);
+  else
+    fd = -1;
+#endif
+
+  if (fd == -1)
+    {
+      mu_error ("Can not open temporary file: %s", strerror(errno));
+      free (filename);
+      return -1;
+    }
+
+  if (namep)
+    *namep = filename;
+  else
+    {
+      unlink (filename);
+      free (filename);
+    }
+
+  return fd;
+}
