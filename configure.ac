@@ -1,6 +1,6 @@
 dnl Configuration for GNU Mailutils -- a suite of utilities for electronic mail
 dnl
-dnl Copyright (C) 1999,2000,2001,2002,2003,2004 Free Software Foundation, Inc.
+dnl Copyright (C) 1999,2000,2001,2002,2003,2004,2005 Free Software Foundation, Inc.
 dnl
 dnl GNU Mailutils is free software; you can redistribute it and/or modify
 dnl it under the terms of the GNU General Public License as published by
@@ -16,7 +16,7 @@ dnl You should have received a copy of the GNU General Public License
 dnl along with GNU Mailutils; if not, write to the Free Software
 dnl Foundation, Inc. 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-AC_INIT([GNU Mailutils], [0.6], [bug-mailutils@gnu.org], [mailutils])
+AC_INIT([GNU Mailutils], [0.6.1], [bug-mailutils@gnu.org], [mailutils])
 AC_CONFIG_SRCDIR([mailbox/mailbox.c])
 AC_CONFIG_AUX_DIR([scripts])
 AC_CANONICAL_TARGET([])
@@ -78,7 +78,13 @@ fi
 MU_DEBUG_MODE
 
 # Initialize authlibs
+
+AC_SUBST(AUTHLIBS)
+AC_SUBST(AUTHLIBS_DEPENDENCY)
+AC_SUBST(AUTHINCS)
+
 AUTHLIBS=../auth/libmuauth.la
+AUTHLIBS_DEPENDENCY=$AUTHLIBS
 
 dnl Check for arguments
 AC_ARG_ENABLE([pam],
@@ -441,6 +447,7 @@ AC_SUBST(SQL_LTLIBOBJS)
 BUILD_SQL=
 AC_SUBST(BUILD_SQL)
 AC_SUBST(SQLLIB)
+AC_SUBST(SQLLIB_DEPENDENCY)
 
 SQL_LOADABLE_MODULES=
 AC_SUBST(SQL_LOADABLE_MODULES)
@@ -508,6 +515,60 @@ AC_ARG_WITH(postgres,
 	 no)    ;;
         esac])
 
+
+# *********
+# ODBC
+# *********
+AH_TEMPLATE(USE_SQL_ODBC,[When defined, enable ODBC support])
+AH_TEMPLATE(HAVE_LIBODBC,[Define if you have libodbc or libiodbc]) 
+AC_SUBST(ODBCLIBS)
+
+check_lib_odbc() {
+  MU_CHECK_LIB(odbc, SQLAllocHandle, [],
+	       [ AC_DEFINE(USE_SQL_ODBC)
+                 AC_DEFINE(HAVE_LIBODBC)
+	         MU_SQL_LDADD(ODBCLIBS, $mu_cv_lib_odbc)],
+               [AC_MSG_FAILURE([The requested library libobdc is not found or is unusable])],
+               [/usr/local/lib])
+}
+
+check_lib_iodbc() {
+  MU_CHECK_LIB(iodbc, SQLAllocHandle, [],
+	       [ AC_DEFINE(USE_SQL_ODBC)
+                 AC_DEFINE(HAVE_LIBODBC)
+		 MU_SQL_LDADD(ODBCLIBS, $mu_cv_lib_iodbc)],
+               [AC_MSG_FAILURE([The requested library libiodbc is not found or is unusable])],
+               [/usr/local/lib])
+}
+
+with_flag_used=odbc
+
+odbc_init() {
+         case $with_flag_used in
+	 yes|odbc|ODBC)
+		check_lib_odbc
+		;;
+	 iodbc|iODBC|IODBC)
+		check_lib_iodbc
+		;;
+	 no)	;;
+	 esac
+}
+
+AC_ARG_WITH(odbc,
+	AC_HELP_STRING([--with-odbc[={odbc|iodbc}]],
+	[Configure to work with ODBC]),
+	[case $withval in
+	 yes|odbc|ODBC|iodbc|iODBC|IODBC)
+		add_sql_module "odbc"
+		with_flag_used=$withval
+		;;
+	 no)    with_flag_used=$withval
+		;;
+	 *)	AC_MSG_ERROR([unsupported option value: $withval])
+        esac])
+
+
 ### General SQL support
 AC_ARG_WITH(sql,
         AC_HELP_STRING([--with-sql=modlist],
@@ -530,6 +591,7 @@ if test -n "$SQL_MODULES"; then
   AC_DEFINE(USE_SQL)
   BUILD_SQL=libsql.la
   SQLLIB=../sql/libsql.la
+  SQLLIB_DEPENDENCY=$SQLLIB
 
   for module in $SQL_MODULES
   do
@@ -638,9 +700,6 @@ char *crypt(const char *key, const char *salt);
 #endif])
 
 AC_CHECK_LIB(crypt, crypt)
-
-AC_SUBST(AUTHLIBS)
-AC_SUBST(AUTHINCS)
 
 #When using thread support some platforms need -D_REENTRANT to get the
 #right prototypes including errno.
