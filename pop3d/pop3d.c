@@ -17,9 +17,10 @@
 
 #include "pop3d.h"
 
+/* save some line space */
 typedef struct sockaddr_in SA;
 
-/* count of number of child processes */
+/* number of child processes */
 unsigned int children = 0;
 
 static struct option long_options[] =
@@ -143,7 +144,7 @@ pop3_daemon_init (void)
   pid = fork();
   if (pid == -1)
     {
-      perror(errno);
+      perror("fork failed:");
       exit (-1);
     }
   else if (pid > 0)
@@ -156,7 +157,7 @@ pop3_daemon_init (void)
   pid = fork();
   if (pid == -1)
     {
-      perror(errno);
+      perror("fork failed:");
       exit (-1);
     }
   else if (pid > 0)
@@ -295,18 +296,20 @@ pop3_daemon (unsigned int maxchildren)
   SA server, client;
   pid_t pid;
   int listenfd, connfd;
+  size_t size;
 
   if ( (listenfd = socket (AF_INET, SOCK_STREAM, 0)) == -1 )
     {
       syslog (LOG_ERR, "socket: %s", strerror(errno));
 	  exit (-1);
     }
-  memset (&server, 0, sizeof(server));
+  size = sizeof(server);
+  memset (&server, 0, size);
   server.sin_family = AF_INET;
   server.sin_addr.s_addr = htonl (INADDR_ANY);
   server.sin_port = htonl (port);
   
-  if (bind(listenfd, (SA *) &server, sizeof(server)) == -1 )
+  if (bind(listenfd, (SA *) &server, size) == -1 )
     {
       syslog(LOG_ERR, "bind: %s", strerror(errno));
       exit(-1);
@@ -325,7 +328,7 @@ pop3_daemon (unsigned int maxchildren)
           pause();
           continue;
         }
-      if ( (connfd = accept(listenfd, (SA *) &client, sizeof(client))) == -1)
+      if ( (connfd = accept(listenfd, (SA *) &client, &size)) == -1)
         {
           syslog(LOG_ERR, "accept: %s", strerror(errno));
           exit(-1);

@@ -143,6 +143,7 @@ int ifile;
 FILE *ofile;
 time_t curr_time;
 char *md5shared;
+unsigned int children;
 
 int pop3_dele (const char *arg);
 int pop3_list (const char *arg);
@@ -165,7 +166,7 @@ int pop3_lock (void);
 int pop3_unlock (void);
 int pop3_getsizes (void);
 int pop3_mainloop (int infile, int outfile);
-int pop3_daemon (int maxchildren);
+int pop3_daemon (unsigned int maxchildren);
 void pop3_usage (char *argv0);
 void pop3_signal (int signal);
 void pop3_sigchld (int signal);
