@@ -23,12 +23,14 @@
 #include <stdlib.h>
 
 #include <list0.h>
+#include <iterator0.h>
 
 int
 list_create (list_t *plist)
 {
   list_t list;
   int status;
+  
   if (plist == NULL)
     return EINVAL;
   list = calloc (sizeof (*list), 1);
@@ -54,6 +56,7 @@ list_destroy (list_t *plist)
       list_t list = *plist;
       struct list_data *current;
       struct list_data *previous;
+      
       monitor_wrlock (list->monitor);
       for (current = list->head.next; current != &(list->head);)
 	{
@@ -73,6 +76,7 @@ list_append (list_t list, void *item)
 {
   struct list_data *ldata;
   struct list_data *last;
+  
   if (list == NULL)
     return EINVAL;
   last = list->head.prev;
@@ -95,6 +99,7 @@ list_prepend (list_t list, void *item)
 {
   struct list_data *ldata;
   struct list_data *first;
+  
   if (list == NULL)
     return EINVAL;
   first = list->head.next;
@@ -116,6 +121,7 @@ int
 list_is_empty (list_t list)
 {
   size_t n = 0;
+  
   list_count (list, &n);
   return (n == 0);
 }
@@ -133,6 +139,7 @@ list_comparator_t
 list_set_comparator (list_t list, list_comparator_t comp)
 {
   list_comparator_t old_comp;
+  
   if (list == NULL)
     return NULL;
   old_comp = list->comp;
@@ -152,6 +159,7 @@ list_remove (list_t list, void *item)
   struct list_data *current, *previous;
   list_comparator_t comp;
   int status = ENOENT;
+  
   if (list == NULL)
     return EINVAL;
   comp = list->comp ? list->comp : def_comp;
@@ -161,6 +169,7 @@ list_remove (list_t list, void *item)
     {
       if (comp (current->item, item) == 0)
 	{
+	  iterator_advance (list->itr, current);
 	  previous->next = current->next;
 	  current->next->prev = previous;
 	  free (current);
@@ -198,15 +207,13 @@ list_replace (list_t list, void *old_item, void *new_item)
   return status;
 }
 
-/* FIXME: FIXME: FIXME: URGENT:
-   Every time we iterate through the loop to get the data, an easy
-   fix is to a an index to the current.  */
 int
 list_get (list_t list, size_t indx, void **pitem)
 {
   struct list_data *current;
   size_t count;
   int status = ENOENT;
+  
   if (list == NULL || pitem == NULL)
     return EINVAL;
   monitor_rdlock (list->monitor);
@@ -229,6 +236,7 @@ list_do (list_t list, list_action_t * action, void *cbdata)
 {
   struct list_data *current;
   int status = 0;
+  
   if (list == NULL || action == NULL)
     return EINVAL;
   monitor_rdlock (list->monitor);
