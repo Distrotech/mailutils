@@ -166,7 +166,7 @@ int pop3_lock (void);
 int pop3_unlock (void);
 int pop3_getsizes (void);
 int pop3_mainloop (int infile, int outfile);
-int pop3_daemon (unsigned int maxchildren);
+void pop3_daemon (unsigned int maxchildren);
 void pop3_usage (char *argv0);
 void pop3_signal (int signal);
 void pop3_sigchld (int signal);
