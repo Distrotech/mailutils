@@ -350,6 +350,7 @@ text:          { BEGIN(ML); multiline_begin (); }
                  multiline_add ();
                  multiline_finish ();
                  return MULTILINE; }
+<ML>#[ \t]*include.*\n      { sieve_include (); }
 <ML>.*\n { sieve_line_num++; multiline_add (); } 
 {WS}     ;
 \n { sieve_line_num++; } 
@@ -439,7 +440,7 @@ sieve_include ()
   if (usepath && name[0] != '/' && memcmp (name, "..", 2))
     {
       char *p = name;
-      if (list_do (sieve_include_path, _try_include, &p))
+      if (sieve_include_path && list_do (sieve_include_path, _try_include, &p))
 	{
 	  push_source (p);
 	  free (name);
