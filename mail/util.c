@@ -84,13 +84,29 @@ util_expand_msglist (const int argc, char **argv, int **list)
     {
       if (!strcmp (argv[i], "+"))
 	{
-	  /* FIXME: next [un]deleted message */
-	  current = util_ll_add (current, realcursor + 1);
+	  /* first [un]deleted message */
+	  int n = realcursor + 1;
+	  while (n <= total)
+	    {
+	      if (util_isdeleted (n) && !undelete)
+		n++;
+	      else
+		break;
+	    }
+	  current = util_ll_add (current, n);
 	}
       else if (!strcmp (argv[i], "-"))
-	{
-	  /* FIXME: prev [un]deleted message */
-	  current = util_ll_add (current, realcursor - 1);
+	{ 
+	  /* previous [un]deleted message */
+	  int n = realcursor - 1;
+	  while (n > 0)
+	    {
+	      if (util_isdeleted (n) && !undelete)
+		n--;
+	      else
+		break;
+	    }
+	  current = util_ll_add (current, n);
 	}
       else if (!strcmp (argv[i], "."))
 	{
@@ -99,16 +115,33 @@ util_expand_msglist (const int argc, char **argv, int **list)
 	}
       else if (!strcmp (argv[i], "^"))
 	{
-	  /* FIXME: first [un]deleted message */
+	  /* first [un]deleted message */
+	  int n = 1;
+	  while (n <= total)
+	    {
+	      if (util_isdeleted (n) && !undelete)
+		n++;
+	      else
+		break;
+	    }
 	  current = util_ll_add (current, 1);
 	}
       else if (!strcmp (argv[i], "$"))
 	{
-	  /* FIXME: should this be last [un]deleted? */
+	  /* last [un]deleted message */
+	  int n = total;
+	  while (n > 0)
+	    {
+	      if (util_isdeleted (n) && !undelete)
+		n--;
+	      else
+		break;
+	    }
 	  current = util_ll_add (current, total);
 	}
       else if (!strcmp (argv[i], "*"))
 	{
+	  /* all messages */
 	  util_ll_free (first);
 	  current = first = malloc (sizeof (node));
 	  for (i = 1; i <= total; i++)
@@ -147,10 +180,11 @@ util_expand_msglist (const int argc, char **argv, int **list)
 	}
       else if (isalpha(argv[i][0]))
 	{
-	  /* FIXME: all messages from argv[i] */
+	  /* FIXME: all messages from sender argv[i] */
 	}
       else if (strchr (argv[i], '-') != NULL)
 	{
+	  /* message range */
 	  int j, x, y;
 	  char *arg = strdup (argv[i]);
 	  for (j=0; j < strlen (arg); j++)
@@ -165,6 +199,7 @@ util_expand_msglist (const int argc, char **argv, int **list)
 	}
       else
 	{
+	  /* single message */
 	  current = util_ll_add (current, strtol (argv[i], NULL, 10));
 	}
     }
@@ -435,5 +470,21 @@ util_printenv (int set)
 	  printf ("\n");
 	}
     }
+  return 0;
+}
+
+/* 
+ * return 1 if a message is deleted
+ */
+int
+util_isdeleted (int n)
+{
+  message_t msg;
+  attribute_t attr;
+  if (mailbox_get_message (mbox, n, &msg) != 0)
+    return 0;
+  message_get_attribute (msg, &attr);
+  if (attribute_is_deleted (attr))
+    return 1;
   return 0;
 }

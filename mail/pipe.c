@@ -49,7 +49,7 @@ mail_pipe (int argc, char **argv)
 	{
 	  if (mailbox_get_message (mbox, list[i], &msg) == 0)
 	    {
-	      printf ("message %d\n", list[i]);
+	      fprintf (stderr, "message %d\n", list[i]);
 	      message_get_stream (msg, &stream);
 	      off = 0;
 	      while (stream_read (stream, buffer, sizeof (buffer) - 1, off,

@@ -44,6 +44,9 @@ mail_print (int argc, char **argv)
       if (mailbox_get_message (mbox, cursor, &mesg) != 0)
 	return 1;
 
+      if (util_isdeleted (cursor))
+        return 1;
+
       message_lines (mesg, &lines);
 
       if ((util_find_env("crt"))->set && lines > util_getlines ())

@@ -18,26 +18,54 @@
 #include "mail.h"
 
 /*
- * sh[ell]
+ * sh[ell] [command] -- GNU extension
+ * ![command] -- GNU extension
  */
 
 int
 mail_shell (int argc, char **argv)
 {
-  if (argc > 1)
-    return 1;
-  else
+  if (argv[0][0] == '!' && strlen (argv[0]) > 1)
+    {
+      char *buf = NULL;
+      argv[0][0] = ' ';
+      argcv_string (argc, argv, &buf);
+      if (buf)
+	{
+	  int ret = util_do_command ("shell %s", &buf[1]);
+	  free (buf);
+	  return ret;
+	}
+      else
+	return util_do_command ("shell");
+    }
+  else if (argc > 1)
     {
       int pid = fork ();
       if (pid == 0)
 	{
-	  free (argv[0]);
-	  /*
-	  argv[0] = getenv ("SHELL");
-	  if (!argv[0])
-	  */
-	    argv[0] = strdup ("/bin/sh");
-	  execv ("/bin/sh", argv);
+	  const char *shell = getenv ("SHELL");
+	  const char **argvec;
+	  char *buf = NULL;
+	  
+	  if (shell == NULL)
+	    shell = "/bin/sh";
+	  
+	  /* 1(shell) + 1 (-c) + 1(arg) + 1 (null) = 4  */
+	  argvec = malloc (4 * (sizeof (char *)));
+	  
+	  argcv_string (argc-1, &argv[1], &buf);
+	  
+	  argvec[0] = shell;
+	  argvec[1] = "-c";
+	  argvec[2] = buf;
+	  argvec[3] = NULL;
+	  
+	  /* why does this complain if argvec[2] is in the path but not
+	     fully qualified ? */
+	  execvp (shell, argvec);
+	  free (buf); /* Being cute, nuke it when finish testing.  */
+	  free (argvec);
 	  return 1;
 	}
       else if (pid > 0)
@@ -46,6 +74,17 @@ mail_shell (int argc, char **argv)
 	    /* do nothing */;
 	  return 0;
 	}
+      return 1;
+    }
+  else
+    {
+      char *shell = getenv ("SHELL");
+      if (!shell)
+	shell = strdup ("/bin/sh");
+      return util_do_command ("shell %s", shell);
     }
   return 1;
 }
+
+
+

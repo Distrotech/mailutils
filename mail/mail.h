@@ -141,6 +141,7 @@ int util_getcols __P((void));
 int util_getlines __P((void));
 struct mail_env_entry *util_find_env __P((char *var));
 int util_printenv __P((int set));
+int util_isdeleted __P((int message));
 
 #ifdef __cplusplus
 }

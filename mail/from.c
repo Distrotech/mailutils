@@ -36,10 +36,10 @@ mail_from (int argc, char **argv)
       int cols = util_getcols () - 6;
 
       if (mailbox_get_message (mbox, cursor, &msg) != 0)
-	{
-	  fprintf (stderr, "Could not read message %d\n", cursor);
-	  return 1;
-	}
+	return 1;
+
+      if (util_isdeleted (cursor))
+	return 1;
 
       froml = cols / 3;
       subjl = cols * 2 / 3;

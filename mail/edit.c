@@ -21,65 +21,22 @@
  * e[dit] [msglist]
  */
 
-/* FIXME:  Can this be done by simply calling:
-   copy [msglist] tempfile
-   ! editor tempfile
-*/
-
 int
 mail_edit (int argc, char **argv)
 {
-  message_t msg;
-  mailbox_t mbx;
-  int *msglist = NULL;
-  char *filename;
-  char *cmdbuf;
-  const char *tmpdir;
-  const char *editor;
-  int num, i;
-
-  /* Get a temp filename.  */
-  tmpdir = getenv ("TMPDIR");
-  if (tmpdir == NULL)
-    tmpdir = "/tmp"; /* FIXME: use _PATH_TMP */
-  filename = tempnam (tmpdir, "mu");
-  if (filename == NULL)
-    {
-      fprintf (stderr, "Unable to create temp file\n");
-      return 1;
-    }
-
-  mailbox_create (&mbx, filename, 0);
-  mailbox_open (mbx, MU_STREAM_WRITE | MU_STREAM_CREAT);
-
-  num = util_expand_msglist (argc, argv, &msglist);
-  if (num > 0)
-    {
-      for (i = 0; i < num; i++)
-	{
-	  mailbox_get_message (mbox, msglist[i], &msg);
-	  mailbox_append_message (mbx, msg);
-	}
-    }
+  if (argc > 1)
+    return util_msglist_command (mail_edit, argc, argv);
   else
     {
-      mailbox_get_message (mbox, cursor, &msg);
-      mailbox_append_message (mbx, msg);
+      char *file = tempnam(getenv("TMPDIR"), "mu");
+      char *editor = getenv ("EDITOR");
+      if (!editor)
+	editor = strdup ("ed");
+      util_do_command ("copy %s", file);
+      util_do_command ("shell %s %s", editor, file);
+      remove (file);
+      free (file);
+      return 0;
     }
-
-  /* Build the command buffer: ! " " editor " " filename \0  */
-  editor = getenv ("EDITOR");
-  if (editor == NULL)
-    editor = "/bin/vi";
-  /* ! +  editor +  space  + filename = len */
-  cmdbuf = calloc (strlen (editor) + strlen (filename) + 4, sizeof (char));
-  sprintf (cmdbuf, "!%s %s", editor, filename);
-  util_do_command (cmdbuf);
-  mailbox_close (mbx);
-  mailbox_destroy (&mbx);
-  remove (filename);
-  free (filename);
-  free (cmdbuf);
-  free (msglist);
-  return 0;
+  return 1;
 }

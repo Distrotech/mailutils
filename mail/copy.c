@@ -24,7 +24,7 @@
  */
 
 /*
- * NOTE: outfolder variable, see save.c
+ * NOTE: outfolder variable
  */
 
 int

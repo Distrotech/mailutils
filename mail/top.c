@@ -1,5 +1,5 @@
 /* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1999 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -19,7 +19,6 @@
 
 /*
  * to[p] [msglist]
- * FIXME:  Need to check for toplines variable value, how ?
  */
 
 int
@@ -31,28 +30,30 @@ mail_top (int argc, char **argv)
     {
       message_t msg;
       stream_t stream;
-      int toplines = 5; /* FIXME: Use variable TOPLINES.  */
-      off_t off = 0;
-      size_t n = 0;
       char buf[BUFSIZ];
-      int status;
+      size_t n;
+      off_t off;
+      int lines = strtol ((util_find_env("toplines"))->value, NULL, 10);
+      
+      if (lines < 0)
+	return 1;
 
       if (mailbox_get_message (mbox, cursor, &msg) != 0)
-        {
-          fprintf (stderr, "Could not read message %d\n", cursor);
-          return 1;
-        }
+	return 1;
+
+      if (util_isdeleted (cursor))
+	return 1;
 
       message_get_stream (msg, &stream);
-      while (toplines--)
-        {
-          status = stream_readline (stream, buf, sizeof (buf), off, &n);
-          if (status != 0 || n == 0)
-            break;
+      for (n = 0, off = 0; lines > 0; lines--, off += n)
+	{
+	  int status = stream_readline (stream, buf, sizeof (buf), off, &n);
+	  if (status != 0 || n == 0)
+	    break;
 	  printf ("%s", buf);
-	  off += n;
 	}
-      return 0;
     }
   return 1;
 }
+
+

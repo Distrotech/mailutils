@@ -24,6 +24,19 @@
 int
 mail_visual (int argc, char **argv)
 {
-  printf ("Function not implemented in %s line %d\n", __FILE__, __LINE__);
+  if (argc > 1)
+    return util_msglist_command (mail_visual, argc, argv);
+  else
+    {
+      char *file = tempnam(getenv("TMPDIR"), "mu");
+      char *editor = getenv ("VISUAL");
+      if (!editor)
+	editor = strdup ("vi");
+      util_do_command ("copy %s", file);
+      util_do_command ("shell %s %s", editor, file);
+      remove (file);
+      free (file);
+      return 0;
+    }
   return 1;
 }
