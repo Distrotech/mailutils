@@ -3,6 +3,9 @@
 # See file COPYING in the distribution root directory for copying conditions.
 
 info_TEXINFOS = mailutils.texi
+
+INCFILES=addr.inc http.inc numaddr.inc sfrom.inc url-parse.inc 
+
 mailutils_TEXINFOS = \
  address.texi \
  attribute.texi \
@@ -11,14 +14,13 @@ mailutils_TEXINFOS = \
  c-api.texi \
  encoding.texi \
  envelope.texi \
- http.c.texi \
- address.c.texi \
- url-parse.c.texi \
  framework.texi \
  folder.texi \
  headers.texi \
  imap4.texi \
  iterator.texi \
+ libmuauth.texi \
+ libsieve.texi \
  locker.texi \
  mailbox.texi \
  mailer.texi \
@@ -31,21 +33,16 @@ mailutils_TEXINFOS = \
  pop3.texi \
  programs.texi \
  sendmail.texi \
- sfrom.c.texi \
  smtp.texi \
  stream.texi \
- url.texi
+ url.texi \
+ $(INCFILES)
 
-address.c.texi: ${top_srcdir}/examples/addr.c
-	sed '1,/.*\*\//d;s/\([{}]\)/@\1/g' $< > $@
+VPATH = ${top_srcdir}/examples/
 
-url-parse.c.texi: ${top_srcdir}/examples/url-parse.c
-	sed '1,/.*\*\//d;s/\([{}]\)/@\1/g' $< > $@
+SUFFIXES=.c .inc
+.c.inc:
+	sed '1{s/\/\*/@comment  /;b};2,/.*\*\//{s/\*\///;s/^/@comment/;b};s/\([{}]\)/@\1/g' $< > $@
 
-sfrom.c.texi: ${top_srcdir}/examples/sfrom.c
-	sed '1,/.*\*\//d;s/\([{}]\)/@\1/g' $< > $@
-
-http.c.texi: ${top_srcdir}/examples/http.c
-	sed '1,/.*\*\//d;s/\([{}]\)/@\1/g' $< > $@
-
-DISTCLEANFILES=*.pgs
+DISTCLEANFILES=*.pgs 
+MAINTAINERCLEANFILES=$(INCFILES)
