@@ -30,6 +30,7 @@ struct inode_list
 {
   struct inode_list *next;
   ino_t inode;
+  dev_t dev;
 };
 
 /*
@@ -168,6 +169,7 @@ imap4d_list (struct imap4d_command *command, char *arg)
 	  stat (cwd, &st);
 	  inode_rec.next = NULL;
 	  inode_rec.inode = st.st_ino;
+	  inode_rec.dev   = st.st_dev;
 	  list_file (cwd, ref, (dir) ? dir : "", delim, &inode_rec);
 	  chdir (homedir);
 	}
@@ -179,10 +181,10 @@ imap4d_list (struct imap4d_command *command, char *arg)
 }
 
 static int
-inode_list_lookup (struct inode_list *list, ino_t inode)
+inode_list_lookup (struct inode_list *list, struct stat *st)
 {
   for (; list; list = list->next)
-    if (list->inode == inode)
+    if (list->inode == st->st_ino && list->dev == st->st_dev)
       return 1;
   return 0;
 }
@@ -248,7 +250,7 @@ list_file (const char *cwd, const char *ref, const char *pattern,
 			print_dir (ref, entry, delim);
 
 		      if (S_ISDIR (st.st_mode)
-			  && inode_list_lookup (inode_list, st.st_ino) == 0)
+			  && inode_list_lookup (inode_list, &st) == 0)
 			{
 			  if (chdir (entry) == 0)
 			    {
@@ -257,6 +259,7 @@ list_file (const char *cwd, const char *ref, const char *pattern,
 			      struct inode_list inode_rec;
 
 			      inode_rec.inode = st.st_ino;
+			      inode_rec.dev   = st.st_dev;
 			      inode_rec.next = inode_list;
 			      rf = calloc (strlen (ref) + strlen (delim) +
 					   strlen (entry) + 1, 1);
