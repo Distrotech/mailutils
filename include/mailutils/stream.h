@@ -62,7 +62,8 @@ extern void stream_destroy    __P ((stream_t *, void *owner));
 extern int stream_open        __P ((stream_t));
 extern int stream_close       __P ((stream_t));
 extern int stream_is_seekable __P ((stream_t));
-extern int stream_get_fd      __P ((stream_t , int *));
+extern int stream_get_fd      __P ((stream_t, int *));
+extern int stream_get_fd2     __P ((stream_t, int *, int *));
 extern int stream_read        __P ((stream_t, char *, size_t, off_t,
 				    size_t *));
 extern int stream_readline    __P ((stream_t, char *, size_t, off_t,
@@ -105,7 +106,7 @@ extern int stream_set_close    __P ((stream_t,
       int (*_close) __PMT ((stream_t)), void *owner));
 
 extern int stream_set_fd       __P ((stream_t,
-      int (*_get_fd) __PMT ((stream_t, int *)), void *owner));
+      int (*_get_fd) __PMT ((stream_t, int *, int *)), void *owner));
 
 extern int stream_set_read     __P ((stream_t,
       int (*_read) __PMT ((stream_t, char *, size_t, off_t, size_t *)),

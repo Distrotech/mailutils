@@ -427,7 +427,15 @@ stream_get_fd (stream_t stream, int *pfd)
 {
   if (stream == NULL || stream->_get_fd == NULL)
     return EINVAL;
-  return stream->_get_fd (stream, pfd);
+  return stream->_get_fd (stream, pfd, NULL);
+}
+
+int
+stream_get_fd2 (stream_t stream, int *pfd1, int *pfd2)
+{
+  if (stream == NULL || stream->_get_fd == NULL)
+    return EINVAL;
+  return stream->_get_fd (stream, pfd1, pfd2);
 }
 
 int
@@ -544,7 +552,8 @@ stream_set_close (stream_t stream, int (*_close) (stream_t), void *owner)
 }
 
 int
-stream_set_fd (stream_t stream, int (*_get_fd) (stream_t, int *), void *owner)
+stream_set_fd (stream_t stream, int (*_get_fd) (stream_t, int *, int *),
+	       void *owner)
 {
   if (stream == NULL)
     return EINVAL;
