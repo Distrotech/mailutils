@@ -9,6 +9,8 @@
 	  "multiple patterns" bug.
 	* sieve/testsuite/scripts/DISTFILES: Updated
 	* sieve/testsuite/sieve/DISTFILES: Updated
+
+	* imap4d/auth_gsasl.c: Removed leftover "while"
 	
 2003-01-22  Sergey Poznyakoff
 

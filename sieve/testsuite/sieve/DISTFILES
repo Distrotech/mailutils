@@ -10,6 +10,7 @@ header.exp
 i-casemap.exp
 i-numeric.exp
 i-octet.exp
+mul-addr.exp
 not.exp
 redirect.exp
 reject.exp

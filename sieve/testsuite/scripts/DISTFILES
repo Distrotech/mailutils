@@ -31,6 +31,7 @@ i-octet-is.sv
 i-octet-matches.sv
 i-octet-regex.sv
 keep.sv
+mul-addr.sv
 not.sv
 null.sv
 numaddr.sv
