@@ -1,3 +1,18 @@
+2001-11-11  Alain Magloire
+
+	Most daemon will share the same code to daemonize(), we use
+	a generic one, lib/daemon.c, so any bug fix will impact the
+	others and reduce maintainance/duplication.
+
+	* lib/Makefile.am: Addition daemon.c
+	* lib/daemon.c: New file.
+	* pop3d/pop3d.c (pop3d_daemon_init): Use lib/daemon.c:daemon() code
+	instead.
+	* imap4d/imap4d.c (imap4d_daemon_init): Use lib/daemon.c:daemon code
+	instead.
+	* comstat/comstat.c (comstat_daemon_init): Use lib/daemon.c:daemon code
+	instead. Remove trailing spaces.
+
 2001-11-11  Sergey Poznyakoff
 
 	* comsat/action.c: (new) User-defined actions for comsat.

@@ -151,9 +151,11 @@ main (int argc, char **argv)
 
   if (mode == DAEMON)
     pop3d_daemon_init ();
-
-  /* Make sure we are in the root directory.  */
-  chdir ("/");
+  else
+    {
+      /* Make sure we are in the root directory.  */
+      chdir ("/");
+    }
 
   /* Set up for syslog.  */
   openlog ("gnu-pop3d", LOG_PID, LOG_FACILITY);
@@ -179,43 +181,15 @@ main (int argc, char **argv)
 static void
 pop3d_daemon_init (void)
 {
-  pid_t pid;
+  extern int daemon (int, int);
 
-  pid = fork ();
-  if (pid == -1)
+  /* Become a daemon. Take care to close inherited fds and to hold
+     first three one, in, out, err   */
+  if (daemon (0, 0) < 0)
     {
-      perror ("fork failed:");
+      perror ("failed to become a daemon:");
       exit (EXIT_FAILURE);
     }
-  else if (pid > 0)
-    exit (EXIT_SUCCESS);	/* Parent exits.  */
-
-  setsid ();			/* Become session leader.  */
-
-  signal (SIGHUP, SIG_IGN);	/* Ignore SIGHUP.  */
-
-  /* The second fork is to guarantee that the daemon cannot acquire a
-     controlling terminal.  */
-  pid = fork ();
-  if (pid == -1)
-    {
-      perror("fork failed:");
-      exit (EXIT_FAILURE);
-    }
-  else if (pid > 0)
-    exit (EXIT_SUCCESS);	/* Parent exits.  */
-
-  /* Close inherited file descriptors.  */
-  {
-    size_t i;
-#if defined(HAVE_SYSCONF) && defined(_SC_OPEN_MAX)
-    size_t fdlimit = sysconf(_SC_OPEN_MAX);
-#else
-    size_t fdlimit = 64;
-#endif
-    for (i = 0; i < fdlimit; ++i)
-      close (i);
-  }
 
   /* SIGCHLD is not ignore but rather use to do some simple load balancing.  */
 #ifdef HAVE_SIGACTION

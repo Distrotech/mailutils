@@ -21,7 +21,7 @@
 
 #ifndef PATH_DEV
 # define PATH_DEV "/dev"
-#endif 
+#endif
 #ifndef PATH_TTY_PFX
 # define PATH_TTY_PFX PATH_DEV
 #endif
@@ -96,7 +96,7 @@ main(int argc, char **argv)
 {
   int c;
   char *config_file = NULL;
-  
+
   while ((c = getopt_long (argc, argv, short_options, long_options, NULL))
 	 != -1)
     {
@@ -171,7 +171,7 @@ sig_hup (int sig)
     syslog (LOG_ERR, "can't restart: not started with absolute pathname");
   else
     execvp (xargv[0], xargv);
-      
+
   signal (sig, sig_hup);
 }
 
@@ -185,7 +185,7 @@ comsat_init ()
   list_append (bookie, path_record);
 
   gethostname (hostname, sizeof hostname);
-	
+
   /* Set signal handlers */
   signal (SIGTTOU, SIG_IGN);
   signal (SIGCHLD, SIG_IGN);
@@ -196,46 +196,15 @@ comsat_init ()
 static void
 comsat_daemon_init (void)
 {
-  pid_t pid;
+  extern int daemon (int, int);
 
-  pid = fork ();
-  if (pid == -1)
+  /* Become a daemon. Take care to close inherited fds and to hold
+     first three one, in, out, err.  Do not do the chdir("/").   */
+  if (daemon (1, 0) < 0)
     {
-      perror ("fork failed:");
+      perror ("failed to become a daemon:");
       exit (EXIT_FAILURE);
     }
-  else if (pid > 0)
-    exit (EXIT_SUCCESS);	/* Parent exits.  */
-
-  /* Child: */
-  signal (SIGHUP, sig_hup);
-
-  setsid ();			/* Become session leader.  */
-
-  /* The second fork is to guarantee that the daemon cannot acquire a
-     controlling terminal.  */
-  pid = fork ();
-  if (pid == -1)
-    {
-      perror("fork failed");
-      exit (EXIT_FAILURE);
-    }
-  else if (pid > 0)
-    exit (EXIT_SUCCESS);	/* Parent exits.  */
-
-  /* Close inherited file descriptors.  */
-  {
-    size_t i, fdmax;
-#if defined(HAVE_SYSCONF) && defined(_SC_OPEN_MAX)
-    fdmax = sysconf(_SC_OPEN_MAX);
-#elif defined(HAVE_GETDTABLESIZE)
-    fdmax = getdtablesize ();*/
-#else
-    fdmax = 64;
-#endif
-    for (i = 0; i < fdmax; ++i)
-      close (i);
-  }
 }
 
 unsigned maxrequests = 16;       /* Maximum number of request allowed per
@@ -256,14 +225,14 @@ comsat_daemon (int port)
   unsigned overflow_count = 0; /* Number of overflows achieved during
 				  the current interval */
   time_t now;
-  
+
   fd = socket (AF_INET, SOCK_DGRAM, 0);
   if (fd == -1)
     {
       syslog (LOG_CRIT, "socket: %m");
       exit (1);
     }
-  
+
   memset (&local_sin, 0, sizeof local_sin);
   local_sin.sin_family = AF_INET;
   local_sin.sin_addr.s_addr = INADDR_ANY; /*FIXME*/
@@ -276,13 +245,13 @@ comsat_daemon (int port)
     }
 
   syslog (LOG_NOTICE, "GNU comsat started");
-  
+
   last_request_time = last_overflow_time = time (NULL);
   while (1)
     {
       fd_set fdset;
       int rc;
-      
+
       FD_ZERO (&fdset);
       FD_SET (fd, &fdset);
       rc = select (fd+1, &fdset, NULL, NULL, NULL);
@@ -316,7 +285,7 @@ comsat_daemon (int port)
 		overflow_count = 0;
 	      last_overflow_time = time (NULL);
 	    }
-      
+
 	  if (now - last_request_time <= request_control_interval)
 	    reqcount++;
 	  else
@@ -341,7 +310,7 @@ comsat_main (int fd)
   char *p, *endp;
   size_t offset;
   char *path = NULL;
-  
+
   len = sizeof sin_from;
   rdlen = recvfrom (fd, buffer, sizeof buffer, 0,
 		    (struct sockaddr*)&sin_from, &len);
@@ -359,9 +328,9 @@ comsat_main (int fd)
 	      inet_ntoa (sin_from.sin_addr));
       return 1;
     }
-  
+
   syslog (LOG_INFO, "%d bytes from %s", rdlen, inet_ntoa (sin_from.sin_addr));
-  
+
   buffer[rdlen] = 0;
 
   /* Parse the buffer */
@@ -399,7 +368,7 @@ comsat_main (int fd)
       syslog (LOG_ERR, "fork: %m");
       return 1;
     }
-  
+
   if (pid > 0)
     {
       struct timeval tv;
@@ -408,7 +377,7 @@ comsat_main (int fd)
       select (0, NULL, NULL, NULL, &tv);
       kill (pid, SIGKILL); /* Just in case the child is hung */
       return 0;
-    }								      
+    }
 
   /* Child: do actual I/O */
   notify_user (buffer, tty, path, offset);
@@ -420,7 +389,7 @@ get_newline_str (FILE *fp)
 {
 #if defined(OPOST) && defined(ONLCR)
   struct termios tbuf;
-	    
+
   tcgetattr (fileno (fp), &tbuf);
   if ((tbuf.c_oflag & OPOST) && (tbuf.c_oflag & ONLCR))
     return "\n";
@@ -484,7 +453,7 @@ notify_user (char *user, char *device, char *path, off_t offset)
 	      path, strerror (status));
       return;
     }
-  
+
   /* Read headers */
   size -= offset;
   blurb = malloc (size + 1);
@@ -514,7 +483,7 @@ notify_user (char *user, char *device, char *path, off_t offset)
   mailbox_set_stream (tmp, stream);
   mailbox_messages_count (tmp, &count);
   mailbox_get_message (tmp, 1, &msg);
-  
+
   run_user_action (fp, cr, msg);
   fclose (fp);
 }
@@ -624,7 +593,7 @@ mailbox_path (const char *user)
 {
   struct passwd *pw;
   char *mailbox_name;
-  
+
   pw = mu_getpwnam (user);
   if (!pw)
     {
@@ -638,7 +607,7 @@ mailbox_path (const char *user)
 			     + strlen (pw->pw_name) + 1, 1);
       sprintf (mailbox_name, "%s/%s", _PATH_MAILDIR, pw->pw_name);
     }
-  else 
+  else
     {
       mailbox_name = calloc (strlen (pw->pw_dir) + strlen ("/INBOX"), 1);
       sprintf (mailbox_name, "%s/INBOX", pw->pw_dir);

@@ -102,7 +102,7 @@ main (int argc, char **argv)
 	case 'S':
 	  set_namespace (NS_SHARED, optarg);
 	  break;
-	  
+
         case 't':
           timeout = strtoul (optarg, NULL, 10);
           break;
@@ -145,7 +145,7 @@ main (int argc, char **argv)
 #ifdef USE_VIRTUAL_DOMAINS
   mu_register_getpwnam (getpwnam_virtual);
 #endif
-	
+
   /* Set the signal handlers.  */
   signal (SIGINT, imap4d_signal);
   signal (SIGQUIT, imap4d_signal);
@@ -161,9 +161,11 @@ main (int argc, char **argv)
 
   if (mode == DAEMON)
     imap4d_daemon_init ();
-
-  /* Make sure we are in the root.  */
-  chdir ("/");
+  else
+    {
+      /* Make sure we are in the root.  */
+      chdir ("/");
+    }
 
   /* Set up for syslog.  */
   openlog ("gnu-imap4d", LOG_PID, LOG_FACILITY);
@@ -203,7 +205,7 @@ imap4d_mainloop (int infile, int outfile)
     imap4d_bye (ERR_NO_OFILE);
 
   setvbuf(ofile, NULL, _IOLBF, 0);
-  
+
   syslog (LOG_INFO, "Incoming connection opened");
 
   /* log information on the connecting client */
@@ -240,43 +242,15 @@ imap4d_mainloop (int infile, int outfile)
 static void
 imap4d_daemon_init (void)
 {
-  pid_t pid;
+  extern int daemon (int, int);
 
-  pid = fork ();
-  if (pid == -1)
-    {
-      perror ("fork failed:");
-      exit (1);
-    }
-  else if (pid > 0)
-    exit (0);                   /* Parent exits.  */
-
-  setsid ();                    /* Become session leader.  */
-
-  signal (SIGHUP, SIG_IGN);     /* Ignore SIGHUP.  */
-
-  /* The second fork is to guarantee that the daemon cannot acquire a
-     controlling terminal.  */
-  pid = fork ();
-  if (pid == -1)
+  /* Become a daemon. Take care to close inherited fds and to hold
+     first three one, in, out, err   */
+  if (daemon (0, 0) < 0)
     {
       perror("fork failed:");
       exit (1);
     }
-  else if (pid > 0)
-    exit (0);                   /* Parent exits.  */
-
-  /* Close inherited file descriptors.  */
-  {
-    size_t i;
-#if defined(HAVE_SYSCONF) && defined(_SC_OPEN_MAX)
-    size_t fdlimit = sysconf(_SC_OPEN_MAX);
-#else
-    size_t fdlimit = 64;
-#endif
-    for (i = 0; i < fdlimit; ++i)
-      close (i);
-  }
 
   /* SIGCHLD is not ignore but rather use to do some simple load balancing.  */
 #ifdef HAVE_SIGACTION
