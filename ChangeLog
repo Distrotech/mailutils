@@ -1,8 +1,41 @@
+2004-06-29  Alain Magloire
+
+	Continuing the framework for NNTP support
+
+	* mailbox/nntp/.cvsignore: New file.
+	* mailbox/nntp/nntp_help.c: New file.
+	* mailbox/nntp/nntp_ihave.c: New file.
+	* mailbox/nntp/nntp_list_active.c: New file.
+	* mailbox/nntp/nntp_list_distribpats.c: New file.
+	* mailbox/nntp/nntp_list_distributions.c: New file.
+	* mailbox/nntp/nntp_list_newsgroups.c: New file.
+	* mailbox/nntp/nntp_list_times.c: New file.
+	* mailbox/nntp/nntp_newgroups.c: New file.
+	* mailbox/nntp/nntp_newnews.c: New file.
+	* mailbox/nntp/nntp_post.c: New file.
+
+	* mailbox/nntp/nntp_article.c: implemenation.
+	* mailbox/nntp/nntp_body.c: implemenation.
+	* mailbox/nntp/nntp_connect.c: implemenation.
+	* mailbox/nntp/nntp_date.c: implemenation.
+	* mailbox/nntp/nntp_destroy.c: implemenation.
+	* mailbox/nntp/nntp_group.c: implemenation.
+	* mailbox/nntp/nntp_head.c: implemenation.
+	* mailbox/nntp/nntp_list_extensions.c: implemenation.
+	* mailbox/nntp/nntp_stat.c: implemenation.
+	* mailbox/nntp/nntp_stream.c: implemenation.
+
+	* include/mailutils/nntp.h: Declarations.
+	* include/mailutils/sys/nntp.h: Declarations.
+
+	* examples/nntpclient.c: Adujsted.
+	* examples/pop3client.c: Minor bug fixes.
+
 2004-06-28  Sergey Poznyakoff
 
 	* mailbox/filter_iconv.c (internal_icvt_read)
 	(copy_pass): Fixed mistyped conditions.
-	
+
 	* mailbox/include/iterator0.h (struct _iterator): rewritten as
 	a general-purpose iterator structure.
 	* include/mailutils/iterator.h (iterator_create): Changed
@@ -11,10 +44,10 @@
 	(iterator_set_first,iterator_set_next)
 	(iterator_set_getitem,iterator_set_finished_p)
 	(iterator_set_dup,iterator_set_destroy): New functions.
-	* mailbox/iterator.c: Likewise	
+	* mailbox/iterator.c: Likewise
 	* include/mailutils/list.h (list_get_iterator): New function
 	* mailbox/list.c: Likewise
-	
+
 	* examples/listop.c: Replace iterator_create with
 	list_get_iterator.
 	* examples/nntpclient.c: Likewise
@@ -42,7 +75,7 @@
 2004-06-27  Sergey Poznyakoff
 
 	* direntry: New file
-	
+
 2004-06-27  Sergey Poznyakoff
 
 	See ChangeLog.0.5 for earlier entries
