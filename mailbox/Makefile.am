@@ -2,7 +2,7 @@
 # Copyright (C) 2000,2001,2002 Free Software Foundation
 # See file COPYING in the distribution root directory for copying conditions.
 
-INCLUDES = -I${top_srcdir}/include -I$(top_srcdir)/intl -I${top_srcdir}/mailbox -I${top_srcdir}/mailbox/include -I${top_srcdir}/include/mailutils/gnu
+INCLUDES = -I${top_srcdir}/include -I$(top_srcdir)/intl -I${top_srcdir}/mailbox -I${top_srcdir}/mailbox/include -I${top_srcdir}/include/mailutils/gnu @INTLINCS@
 AM_CFLAGS = -DSITE_VIRTUAL_PWDDIR=\"@SITE_VIRTUAL_PWDDIR@\"
 
 SUBDIRS = include testsuite
@@ -86,9 +86,9 @@ url_smtp.c \
 wicket.c
 
 libmailbox_la_DEPENDENCIES = @MU_LTLIBOBJS@
-libmailbox_la_LIBADD = @MU_LTLIBOBJS@ @LIBINTL@
+libmailbox_la_LIBADD = @MU_LTLIBOBJS@ @LTLIBINTL@
 libmailbox_la_LDFLAGS = -version-info 0:0:0
 
 mailutils_config_SOURCES = mailutils-config.c
-mailutils_config_LDADD = ./libmailbox.la ../lib/libmailutils.la
+mailutils_config_LDADD = ./libmailbox.la ../lib/libmailutils.la @LTLIBINTL@
 mailutils_config_CFLAGS = -DCOMPILE_FLAGS="\"-I$(includedir)\"" -I$(top_srcdir)/intl -DLINK_FLAGS="\"-L$(libdir)\"" -DAUTHLIBS="\"$(MYSQLLIBS)\"" -DGUILE_LIBS="\"$(GUILE_LIBS)\""

@@ -3,13 +3,13 @@
 # See file COPYING in the distribution root directory for copying conditions.
 
 AM_YFLAGS=-vt
-INCLUDES = -I${top_srcdir}/include -I${top_srcdir}/lib -I${top_srcdir}/mailbox
+INCLUDES = -I${top_srcdir}/include -I${top_srcdir}/lib -I${top_srcdir}/mailbox @INTLINCS@
 AM_CFLAGS = -DSITE_MAIL_RC=\"@SITE_MAIL_RC@\"
 
 bin_PROGRAMS = mail
 
 mail_LDADD = ../mailbox/libmailbox.la ../lib/libmailutils.la \
-             @READLINE_LIBS@ 
+             @READLINE_LIBS@ @LTLIBINTL@
 
 EXTRA_DIST = msgset.c
 

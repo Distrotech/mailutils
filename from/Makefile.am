@@ -2,9 +2,9 @@
 # Copyright (C) 2000,2001,2002 Free Software Foundation
 # See file COPYING in the distribution root directory for copying conditions.
 
-INCLUDES = -I$(top_srcdir)/include -I$(top_srcdir)/lib
+INCLUDES = -I$(top_srcdir)/include -I$(top_srcdir)/lib @INTLINCS@
 SUBDIRS = testsuite
 
 bin_PROGRAMS = from
 
-from_LDADD = ../mailbox/libmailbox.la ../lib/libmailutils.la
+from_LDADD = ../mailbox/libmailbox.la ../lib/libmailutils.la @LTLIBINTL@
