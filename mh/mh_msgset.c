@@ -356,7 +356,7 @@ _mh_msgset_parse (mailbox_t mbox, mh_msgset_t *msgset, int argc, char **argv)
 	      
 	    case '-':
 	      end = strtoul (p+1, &p, 0);
-	      if (*p || end == start)
+	      if (*p)
 		msgset_abort (argv[i]);
 	      if (end < start)
 		{
