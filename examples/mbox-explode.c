@@ -21,8 +21,10 @@ main(int argc, char **argv)
   mailbox_t mbox;
   size_t i;
   size_t count = 0;
-  char *mailbox_name = "+dbuild.details";
+  char *mailbox_name;
   int status;
+
+  mailbox_name = (argc > 1) ? argv[0] : "+dbuild.details";
 
   /* Register the desire formats.  */
   {
@@ -63,15 +65,20 @@ main(int argc, char **argv)
 
     if (
       (status = mailbox_get_message (mbox, i, &msg)) != 0 ||
-      (status = message_get_header (msg, &hdr)) != 0 ||
-      (status = header_get_value (
-          hdr, MU_HEADER_SUBJECT, subj, sizeof (subj), &len)) != 0 ||
-      (status = header_get_value (
-          hdr, MU_HEADER_DATE, date, sizeof (date), &len)) != 0
-      )
+      (status = message_get_header (msg, &hdr)) != 0)
     {
       fprintf (stderr, "msg %d : %s\n", i, strerror(status));
       exit(2);
+    }
+
+    if (
+       (status = header_get_value (
+          hdr, MU_HEADER_SUBJECT, subj, sizeof (subj), &len)) != 0 ||
+      (status = header_get_value (
+          hdr, MU_HEADER_DATE, date, sizeof (date), &len)) != 0)
+    {
+      fprintf (stderr, "msg %d : No Subject|Date\n", i);
+      continue;
     }
 
     if (strcasecmp(subj, "WTLS 1.0 Daily Build-details") ==  0)
@@ -88,8 +95,8 @@ main(int argc, char **argv)
         exit(1);
       }
 
-      printf ("Processing for: year %d month %d day %d\n",
-        tm.tm_year + 1900, tm.tm_mon, tm.tm_mday);
+      printf ("%d Processing for: year %d month %d day %d\n",
+        i, tm.tm_year + 1900, tm.tm_mon, tm.tm_mday);
 
       snprintf(dir, sizeof(dir), "%d.%02d.%02d",
         tm.tm_year + 1900, tm.tm_mon, tm.tm_mday);
@@ -142,7 +149,7 @@ main(int argc, char **argv)
           snprintf(path, sizeof(path), "%s/%s", dir, fname);
           printf("  filename %s\n", path);
 
-          if((status = message_save_attachment(msg, path, NULL))) {
+          if((status = message_save_attachment(part, path, NULL))) {
             fprintf (stderr, "save attachment failed: %s\n", strerror(status));
             break;
           }

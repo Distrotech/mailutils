@@ -279,7 +279,7 @@ _mapfile_open (stream_t stream, const char *filename, int port, int flags)
       mfs->fd = -1;
     }
   /* Map the flags to the system equivalent */
-  if (flags & MU_STREAM_WRITE && flags & MU_STREAM_READ)
+  if ((flags & MU_STREAM_WRITE) && (flags & MU_STREAM_READ))
     return EINVAL;
   else if (flags & MU_STREAM_WRITE)
     {

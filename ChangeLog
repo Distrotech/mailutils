@@ -1,5 +1,12 @@
 2001-06-09  Alain Magloire
 
+	* examples/mbox-explode.c: message_save_attachment, should take
+	the part.  Continue if the message does have a Date or Subject field.
+
+	* mailbox/mapfile_stream.c (_mapfile_open): Identation.
+
+2001-06-09  Alain Magloire
+
 	* mailbox/tcp.c (_tcp_get_fd): Buglet, comparing fd against EINVAL
 	instead of -1.
 
@@ -72,7 +79,7 @@
 	* examples/mbox-dates.c: example of using the date-time parser, it
 	  prints all the dates in a mailbox that it can't parse.
 	* examples/Makefile: makes the mbox-* examples.
-	
+
 2001-06-01  Alain Magloire
 
 	* mailbox/mbx_pop.c (pop_writeline): if buffer is NULL noop.
