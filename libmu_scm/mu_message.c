@@ -630,7 +630,6 @@ SCM_DEFINE (mu_message_get_user_flag, "mu-message-get-user-flag", 2, 0, 0,
 {
   message_t msg;
   attribute_t attr;
-  int ret = 0;
 
   SCM_ASSERT (mu_scm_is_message (MESG), MESG, SCM_ARG1, FUNC_NAME);
   msg = mu_scm_message_get (MESG);
@@ -731,13 +730,16 @@ SCM_DEFINE (mu_message_get_body, "mu-message-get-body", 1, 0, 0,
 }
 #undef FUNC_NAME
 
-SCM_DEFINE (mu_message_send, "mu-message-send", 1, 1, 0,
-	    (SCM MESG, SCM MAILER),
+SCM_DEFINE (mu_message_send, "mu-message-send", 1, 3, 0,
+	    (SCM MESG, SCM MAILER, SCM FROM, SCM TO),
 	    "Sends the message MESG. Optional MAILER overrides default\n"
-	    "mailer settings in mu-mailer.\n")
+	    "mailer settings in mu-mailer.\n"
+	    "Optional FROM and TO are sender and recever addresses\n")
 #define FUNC_NAME s_mu_message_send
 {
   char *mailer_name;
+  address_t from = NULL;
+  address_t to = NULL;
   mailer_t mailer;
   message_t msg;
   int status;
@@ -754,6 +756,20 @@ SCM_DEFINE (mu_message_send, "mu-message-send", 1, 1, 0,
   else
     mailer_name = SCM_CHARS(_mu_scm_mailer);
 
+  if (!SCM_UNBNDP (FROM))
+    {
+      SCM_ASSERT (SCM_NIMP (FROM) && SCM_STRINGP (FROM)
+		  && address_create (&from, SCM_CHARS (FROM)) == 0,
+		  FROM, SCM_ARG3, FUNC_NAME);
+    }
+  
+  if (!SCM_UNBNDP (TO))
+    {
+      SCM_ASSERT (SCM_NIMP (TO) && SCM_STRINGP (TO)
+		  && address_create (&to, SCM_CHARS (TO)) == 0,
+		  TO, SCM_ARG4, FUNC_NAME);
+    }
+
   if (mailer_create (&mailer, mailer_name))
     {
       return SCM_BOOL_F;
@@ -769,7 +785,7 @@ SCM_DEFINE (mu_message_send, "mu-message-send", 1, 1, 0,
   status = mailer_open (mailer, MU_STREAM_RDWR);
   if (status == 0)
     {
-      status = mailer_send_message (mailer, msg);
+      status = mailer_send_message (mailer, msg, from, to);
       mailer_close (mailer);
     }
   mailer_destroy (&mailer);
