@@ -365,7 +365,7 @@ b_string (union argument *args)
   for (i = 0; i < str->len; i++)
     {
       int c = getc (mimeview_fp);
-      if (c == EOF || c != str->ptr[i])
+      if (c == EOF || (char)c != str->ptr[i])
 	return 0;
     }
   return 1;
