@@ -13,7 +13,7 @@ as well as off of local or remote pop3 and imap4 servers.
 
 You're welcome to use this library in your own programs, please see
 the examples subdirectory or these other applications.  All libraries
-are licensd using the GNU LGPL.  The documentation is licensed under
+are licensed using the GNU LGPL.  The documentation is licensed under
 the GNU FDL, and the Sieve library is licensed under a CMU license.
 Everything else is licensed using the GNU GPL.
 
@@ -99,6 +99,34 @@ specific configuration options:
 
 	Override the location of the mailspool. The default value depends
 	on the system. Usually it is either /var/spool/mail or /var/mail.
+	PATH is either an absolute directory name, or a valid `mbox' URL
+	in the form:
+
+		mbox:path;type=TYPE;param=N;user=
+
+	This method allows you to use indexed mailspools. For servers with
+	a really big number of users this may provide a significant speedup
+	in opening the mailbox. 
+
+	TYPE is one of:
+		hash       --  The user's mailbox is kept in a subdirectory
+			       whose name is determined by hashing first
+			       N characters of the user name. There are
+			       256 subdirectories named from 00 through FF.
+		index	   --  The user's mailbox is located PARAM directories
+                               down the `path'. The directories are named
+                               after the first N letters of a login name.
+			       For example, when N=2 the mailbox for
+			       user `smith' is `/var/spool/mail/s/m/smith'.
+	        rev-index  --  Same as above, except that the last letters
+			       are used, thus the mailbox for `smith' will
+	                       be /var/spool/mail/h/t/smith. This may provide
+	                       a better average distribution than the `index'
+			       method.
+	
+If you wish to use APOP authentication in POP3 daemon, you will have
+to enable DBM support in mailutils. To do so, use one of the following
+options:
 
     --with-gdbm
 
@@ -115,6 +143,9 @@ specific configuration options:
     --with-dbm
 
 	Use old DBM
+
+Only one dbm option may be specified. Which one depends on the flavor
+of DBM you are using. GDBM is most common for GNU system.
 
     --with-log-facility=facility
 
