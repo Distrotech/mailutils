@@ -1,3 +1,8 @@
+2003-09-22  Sergey Poznyakoff
+
+	* mailbox/munre.c (munre_set_regex): Bugfix.
+	* mh/replgroupcomps: Added trailing newline
+
 2003-09-21  Sergey Poznyakoff  
 
 	Added decoding of RFC 2047 headers to MUA programs (mail and mh).
