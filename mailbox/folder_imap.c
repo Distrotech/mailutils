@@ -1461,7 +1461,7 @@ imap_parse (f_imap_t f_imap)
 	  break;
 	}
       /* Comment out to see all reading traffic.  */
-      fprintf (stderr, "\t\t%s", f_imap->buffer);
+      /* fprintf (stderr, "\t\t%s", f_imap->buffer); */
 
       /* We do not want to step over f_imap->buffer since it can be use
 	 further down the chain.  */
