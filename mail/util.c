@@ -51,7 +51,7 @@ util_ll_add (node *c, int data)
   c->data = data;
   c->next->env_entry.var = NULL;
   c->next->env_entry.set = 0;
-  c->next->env_entry.value = NULL;
+  c->next->env_entry.value.number = 0;
   c->next->next = NULL;
   return c->next;
 }
@@ -314,11 +314,11 @@ util_getlines (void)
 int
 util_screen_lines ()
 {
-  struct mail_env_entry *ep = util_find_env ("screen");
+  int screen;
   size_t n;
 
-  if (ep && ep->set && (n = strtoul (ep->value, NULL, 10)) != 0)
-    return n;
+  if (util_getenv (&screen, "screen", Mail_env_number, 0) == 0)
+    return screen;
   n = util_getlines();
   util_do_command ("set screen=%d", n);
   return n;
@@ -327,25 +327,70 @@ util_screen_lines ()
 int
 util_screen_columns ()
 {
-  struct mail_env_entry *ep = util_find_env("columns");
+  int cols;
   size_t n;
 
-  if (ep && ep->set && (n = strtoul (ep->value, NULL, 10)) != 0)
-    return n;
+  if (util_getenv (&cols, "columns", Mail_env_number, 0) == 0)
+    return cols;
   n = util_getcols();
   util_do_command ("set columns=%d", n);
   return n;
 }
 
+/* Functions for dealing with internal environment variables */
 
-/*
- * Find environment entry var
+/* Retrieve the value of a specified variable of given type.
+   The value is stored in the location pointed to by PTR variable.
+   VARIABLE and TYPE specify the variable name and type. If the
+   variable is not found and WARN is not null, the warning message
+   is issued.
 
- FIXME: We should probably call this util_getenv to be consitent with
- util_printenv(), util_setenv() etc ..
- */
+   Return value is 0 if the variable is found, 1 otherwise.
+   If PTR is not NULL, it must point to
+
+   int           if TYPE is Mail_env_number or Mail_env_boolean
+   const char *  if TYPE is Mail_env_string. 
+
+   Passing PTR=NULL may be used to check whether the variable is set
+   without retrieving its value. */
+   
+int
+util_getenv (void *ptr, const char *variable, mail_env_data_t type, int warn)
+{
+  struct mail_env_entry *env = util_find_env (variable, 0);
+
+  if (!mail_env_entry_is_set (env) || env->type != type)
+    {
+      if (warn)
+	util_error ("No value set for \"%s\"", variable);
+      return 1;
+    }
+  if (ptr)
+    switch (type)
+      {
+      case Mail_env_string:
+	*(char**)ptr = env->value.string;
+	break;
+
+      case Mail_env_number:
+	*(int*)ptr = env->value.number;
+	break;
+
+      case Mail_env_boolean:
+	*(int*)ptr = env->set;
+	break;
+
+      default:
+	break;
+      }
+	
+  return 0;
+}
+
+/* Find environment entry var. If not found and CREATE is not null, then
+   create the (unset and untyped) variable */
 struct mail_env_entry *
-util_find_env (const char *variable)
+util_find_env (const char *variable, int create)
 {
   /* Annoying, variable "ask" is equivalent to "asksub".  */
   static const char *asksub = "asksub";
@@ -365,34 +410,33 @@ util_find_env (const char *variable)
 
   if (environment == NULL)
     {
+      if (!create)
+	return 0;
       environment = xmalloc (sizeof (node));
       environment->env_entry.var = NULL;
       environment->env_entry.set = 0;
-      environment->env_entry.value = NULL;
+      environment->env_entry.value.number = 0;
       environment->next = NULL;
     }
 
-  for (env_cursor = environment; env_cursor->next != NULL;
+  for (env_cursor = environment; env_cursor->next;
        env_cursor = env_cursor->next)
     {
       if (strlen (env_cursor->env_entry.var) == len &&
 	  !strcmp (var, env_cursor->env_entry.var))
-	{
-	  return &(env_cursor->env_entry);
-	}
+	return &env_cursor->env_entry;
     }
 
   env_cursor->env_entry.var = strdup (var);
   env_cursor->env_entry.set = 0;
-  env_cursor->env_entry.value = NULL;
+  env_cursor->env_entry.type = Mail_env_whatever;
+  env_cursor->env_entry.value.number = 0;
   t = env_cursor;
   env_cursor = util_ll_add (env_cursor, 0);
-  return &(t->env_entry);
+  return &t->env_entry;
 }
 
-/*
- * print the environment
- */
+/* print the environment */
 int
 util_printenv (int set)
 {
@@ -402,53 +446,95 @@ util_printenv (int set)
       if (env_cursor->env_entry.set == set)
 	{
 	  fprintf (ofile, "%s", env_cursor->env_entry.var);
-	  if (env_cursor->env_entry.value != NULL)
-	    fprintf (ofile, "=\"%s\"", env_cursor->env_entry.value);
+	  switch (env_cursor->env_entry.type)
+	    {
+	    case Mail_env_number:
+	      fprintf (ofile, "=%d", env_cursor->env_entry.value.number);
+	      break;
+	      
+	    case Mail_env_string:
+	      fprintf (ofile, "=\"%s\"", env_cursor->env_entry.value.string);
+	      break;
+	      
+	    case Mail_env_boolean:
+	      break;
+	      
+	    case Mail_env_whatever:
+	      fprintf (ofile, "oops?");
+	    }
 	  fprintf (ofile, "\n");
 	}
     }
   return 0;
 }
 
-/*
- * Set environement
- * The  util_setenv() function adds the variable name to the envi-
- * ronment with the value value, if  name  does  not  already
- * exist.   If  name  does exist in the environment, then its
- * value is changed to value if  overwrite  is  non-zero;  if
- * overwrite  is zero, then the value of name is not changed.
- *
- * A side effect of the code is if value is null the variable name
- * will be unset.
- */
-int
-util_setenv (const char *variable, const char *value, int overwrite)
+/* Initialize environment entry: clear set indicator and free any memory
+   associated with the data */
+void
+util_mail_env_free (struct mail_env_entry *ep)
 {
-  struct mail_env_entry *ep =  util_find_env (variable);
-  if (ep->set)
+  if (!mail_env_entry_is_set (ep))
+    return;
+  
+  switch (ep->type)
     {
-      if (overwrite)
-	{
-	  ep->set = 0;
-	  if (ep->value)
-	    free (ep->value);
-	  ep->value = NULL;
-	  if (value)
-	    {
-	      ep->set = 1;
-	      ep->value = strdup (value);
-	    }
-	}
+    case Mail_env_string:
+      free (ep->value.string);
+      ep->value.string = NULL;
+      break;
+	      
+    default:
+      break;
     }
-  else
+  ep->set = 0;
+}
+
+/* Set environement
+   The  util_setenv() function adds the variable name to the envi-
+   ronment with the value value, if  name  does  not  already
+   exist.   If  name  does exist in the environment, then its
+   value is changed to value if  overwrite  is  non-zero;  if
+   overwrite  is zero, then the value of name is not changed.
+ 
+   A side effect of the code is if value is null the variable name
+   will be unset. */
+int
+util_setenv (const char *variable, void *value, mail_env_data_t type,
+	     int overwrite)
+{
+  struct mail_env_entry *ep =  util_find_env (variable, 1);
+
+  if (ep->set && !overwrite)
+    return 0;
+
+  util_mail_env_free (ep);
+  
+  ep->type = type;
+  if (value)
     {
       ep->set = 1;
-      if (ep->value)
-	free (ep->value);
-      ep->value = strdup (value);
+      switch (type)
+	{
+	case Mail_env_number:
+	  ep->value.number = *(int*)value;
+	  break;
+	  
+	case Mail_env_string:
+	  ep->value.string = strdup (value);
+	  break;
+	  
+	case Mail_env_boolean:
+	  break;
+		  
+	default:
+	  abort();
+	}
     }
+
   return 0;
 }
+
+/* ************************* */
 
 /*
  * return 1 if a message is deleted
@@ -480,9 +566,42 @@ util_get_homedir()
 }
 
 char *
-util_fullpath(const char *inpath)
+util_fullpath (const char *inpath)
 {
   return mu_tilde_expansion(inpath, "/", NULL);
+}
+
+char *
+util_folder_path (const char *name)
+{
+  char *folder;
+  char *tmp;
+
+  if (util_getenv (&folder, "folder", Mail_env_string, 1))
+    return NULL;
+      
+  if (!name)
+    return NULL;
+  if (name[0] == '+')
+    name++;
+  
+  if (folder[0] != '/' && folder[1] != '~')
+    {
+      char *home = mu_get_homedir ();
+      tmp  = xmalloc (strlen (home) + 1 +
+		      strlen (folder) + 1 +
+		      strlen (name) + 1);
+      sprintf (tmp, "%s/%s/%s", home, folder, name);
+    }
+  else
+    {
+      tmp  = xmalloc (strlen (folder) + 1 +
+		      strlen (name) + 1);
+      sprintf (tmp, "%s/%s", folder, name);
+    }
+  name = tmp;
+
+  return (char*) name;
 }
 
 char *
@@ -690,21 +809,27 @@ util_escape_percent (char **str)
 char *
 util_outfolder_name (char *str)
 {
-  struct mail_env_entry *ep = util_find_env("outfolder");
+  char *outfolder;
 
+  if (!str)
+    return NULL;
+  
   switch (*str)
     {
     case '/':
     case '~':
-    case '+':
       str = util_fullpath (str);
+      break;
+      
+    case '+':
+      str = util_folder_path (str);
       break;
 
     default:
-      if (ep && ep->set)
+      if (util_getenv (&outfolder, "outfolder", Mail_env_string, 0) == 0)
 	{
 	  char *ns = NULL;
-	  asprintf (&ns, "%s/%s", ep->value, str);
+	  asprintf (&ns, "%s/%s", outfolder, str);
 	  str = util_fullpath (ns);
 	  free (ns);
 	}
@@ -712,7 +837,7 @@ util_outfolder_name (char *str)
 
     }
 
-  return str;
+  return strdup (str);
 }
 
 /* Save an outgoing message. "savefile" allows to override the setting
@@ -720,11 +845,12 @@ util_outfolder_name (char *str)
 void
 util_save_outgoing (message_t msg, char *savefile)
 {
-  struct mail_env_entry *ep = util_find_env("record");
-  if (ep->set)
+  char *record;
+  
+  if (util_getenv (&record, "record", Mail_env_string, 0) == 0)
     {
       FILE *outfile;
-      char *filename = util_outfolder_name (savefile ? savefile : ep->value);
+      char *filename = util_outfolder_name (savefile ? savefile : record);
 
       outfile = fopen (filename, "a");
       if (!outfile)
@@ -810,8 +936,8 @@ util_help (const struct mail_command_entry *table, char *word)
       int i = 0;
       FILE *out = stdout;
 
-      if ((util_find_env("crt"))->set)
-	out = popen (getenv("PAGER"), "w");
+      if (util_getenv (NULL, "crt", Mail_env_boolean, 0) == 0)
+	out = popen (getenv ("PAGER"), "w");
 
       while (table[i].synopsis != 0)
 	fprintf (out, "%s\n", table[i++].synopsis);
