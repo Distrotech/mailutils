@@ -1,3 +1,9 @@
+2002-02-14  Sergey Poznyakoff
+
+	* mail.local/main.c: Removed confusing print_help()
+	  function.
+	* imap4d/authenticate.c: Fixed indentation.
+
 2002-02-13  Jeff Bailey  <jbailey@outpost.dnsalias.org>
 
         This change permits linking on systems that don't support
