@@ -2,7 +2,7 @@
 
 	* mailbox2/pop3/*: Pop3 functions are thread-safe and cancel-safe.
 	The problem is monitor.h, we will probably end up doing a monitor.h.in
-	and set a compile time if threading was enable or not.
+	and set at compile time if threading is enable or not.
 
 2001-07-01 Alain Magloire
 
