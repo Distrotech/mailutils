@@ -42,6 +42,10 @@
 #include <mbswidth.h>
 #include <xalloc.h>
 
+#ifdef HAVE_FRIBIDI_FRIBIDI_H
+# include <fribidi/fribidi.h>
+#endif
+
 #include <mailutils/address.h>
 #include <mailutils/argp.h>
 #include <mailutils/attribute.h>
@@ -80,6 +84,7 @@ static int select_attribute;
 static int selected;
 
 static int action (observer_t, size_t);
+void init_output (size_t s);
 
 const char *program_version = "frm (" PACKAGE_STRING ")";
 static char doc[] = N_("GNU frm -- display From: lines");
@@ -182,127 +187,13 @@ decode_attr (char *arg)
 
 
 
-static struct argp_option options[] = {
-  {"debug",  'd', NULL,   0, N_("Enable debugging output"), 0},
-  {"field",  'f', N_("NAME"), 0, N_("Header field to display"), 0},
-  {"to",     'l', NULL,   0, N_("Include the To: information"), 0},
-  {"number", 'n', NULL,   0, N_("Display message numbers"), 0},
-  {"Quiet",  'Q', NULL,   0, N_("Very quiet"), 0},
-  {"query",  'q', NULL,   0, N_("Print a message if the mailbox contains some unread mail"), 0},
-  {"summary",'S', NULL,   0, N_("Print a summary of messages"), 0},
-  {"status", 's', N_("STATUS"), 0, attr_help, 0},
-  {"align",  't', NULL,   0, N_("Tidy mode: align subject lines"), 0},
-  {0, 0, 0, 0}
-};
-
-/* Number of columns in output:
-
-     Maximum     4     message number, to, from, subject   -ln
-     Default     2     from, subject                       [none]
-     Minimum     1     FIELD                               -f FIELD
-*/
-
-static int numfields;      /* Number of output fields */
-static int fieldwidth[4];  /* Field start positions */
-static char *linebuf;      /* Output line buffer */
-static size_t linemax;     /* Size of linebuf */
-static size_t linepos;     /* Position in the output line buffer */
-static int curfield;       /* Current output field */
-static int nextstart;      /* Start position of the next field */
-static int curcol;         /* Current output column */
-
-typedef void (*fmt_formatter) (const char *fmt, ...);
-
-static fmt_formatter format_field;
-
-void
-print_line ()
-{
-  if (linebuf)
-    {
-      puts (linebuf);
-      linebuf[0] = 0;
-      linepos = 0;
-      curcol = nextstart = 0;
-      curfield = 0;
-    }
-  else
-    putchar ('\n');
-}
-
-void
-format_field_simple (const char *fmt, ...)
-{
-  va_list ap;
-  va_start (ap, fmt);
-  vprintf (fmt, ap);
-  putchar (' ');
-  va_end (ap);
-}
-
-void
-format_field_align (const char *fmt, ...)
-{
-  size_t n, width;
-  va_list ap;
-
-  va_start (ap, fmt);
-  if (nextstart != 0)
-    {
-      if (curcol >= nextstart)
-	{
-	  if (curfield == numfields - 1)
-	    {
-	      puts (linebuf);
-	      linepos = 0;
-	      printf ("%*s", nextstart, "");
-	    }
-	  else
-	    {
-	      linebuf[linepos++] = ' ';
-	      curcol++;
-	    }
-	}
-      else if (nextstart != curcol)
-	{
-	  /* align to field start */
-	  n = snprintf (linebuf + linepos, linemax - linepos,
-			"%*s", nextstart - curcol, "");
-	  linepos += n;
-	  curcol = nextstart;
-	}
-    }
-
-  n = vsnprintf (linebuf + linepos, linemax - linepos, fmt, ap);
-  va_end (ap);
-
-  /* Compute output width */
-  if (curfield == numfields - 1)
-    {
-      for ( ; n > 0; n--)
-	{
-	  int c = linebuf[linepos + n];
-	  linebuf[linepos + n] = 0;
-	  width = mbswidth (linebuf + linepos, 0);
-	  if (width <= fieldwidth[curfield])
-	    break;
-	  linebuf[linepos + n] = c;
-	}
-    }
-  else
-    width = mbswidth (linebuf + linepos, 0);
-
-  /* Increment counters */
-  linepos += n;
-  curcol += width;
-  nextstart += fieldwidth[curfield++];
-}
-
-/*
- * Get the number of columns on the screen
- * First try an ioctl() call not all shells set the COLUMNS environ.
- * This function was taken from mail/util.c.
- */
+/* Get the number of columns on the screen
+   First try an ioctl() call, not all shells set the COLUMNS environ.
+   If ioctl does not succeed on stdout, try it on /dev/tty, as we
+   may work via a pipe.
+   
+   This function was taken from mail/util.c. It should probably reside
+   in the library */
 int
 util_getcols (void)
 {
@@ -323,6 +214,21 @@ util_getcols (void)
     }
   return ws.ws_col;
 }
+
+
+
+static struct argp_option options[] = {
+  {"debug",  'd', NULL,   0, N_("Enable debugging output"), 0},
+  {"field",  'f', N_("NAME"), 0, N_("Header field to display"), 0},
+  {"to",     'l', NULL,   0, N_("Include the To: information"), 0},
+  {"number", 'n', NULL,   0, N_("Display message numbers"), 0},
+  {"Quiet",  'Q', NULL,   0, N_("Very quiet"), 0},
+  {"query",  'q', NULL,   0, N_("Print a message if the mailbox contains some unread mail"), 0},
+  {"summary",'S', NULL,   0, N_("Print a summary of messages"), 0},
+  {"status", 's', N_("STATUS"), 0, attr_help, 0},
+  {"align",  't', NULL,   0, N_("Tidy mode: align subject lines"), 0},
+  {0, 0, 0, 0}
+};
 
 static error_t
 parse_opt (int key, char *arg, struct argp_state *state)
@@ -369,39 +275,13 @@ parse_opt (int key, char *arg, struct argp_state *state)
       break;
 
     case ARGP_KEY_FINI:
-      if (align && (linemax = util_getcols ()))
-	{
-	  int i;
-	  size_t width = 0;
-	  
-	  format_field = format_field_align;
-	  
-	  /* Allocate the line buffer */
-	  linemax = linemax * MB_LEN_MAX + 1;
-	  linebuf = xmalloc (linemax);
-	  
-	  /* Set up column widths */
-	  if (show_number)
-	    fieldwidth[numfields++] = 5;
-	  
-	  if (show_to)
-	    fieldwidth[numfields++] = 20;
-	  
-	  if (show_field)
-	    fieldwidth[numfields++] = 0;
-	  else
-	    {
-	      fieldwidth[numfields++] = 20;
-	      fieldwidth[numfields++] = 0;
-	    }
-	  
-	  for (i = 0; i < numfields; i++)
-	    width += fieldwidth[i];
-	  
-	  fieldwidth[numfields-1] = util_getcols () - width;
-	}
-      else
-	format_field = format_field_simple;
+      {
+	size_t s;
+	if (align && (s = util_getcols ()))
+	  init_output (s);
+	else
+	  init_output (0);
+      }
       break;
       
     default: 
@@ -429,22 +309,19 @@ static const char *frm_argp_capa[] = {
   NULL
 };
 
-/*
-  FIXME: Generalize this function and move it
-  to `mailbox/locale.c'. Do the same with the one
-  from `from/from.c' and `mail/util.c'...
-*/
-static char *
-rfc2047_decode_wrapper (char *buf, size_t buflen)
-{
-  int rc;
-  char *tmp;
-  static char *charset = NULL;
+
+/* Charset magic */
+static char *output_charset = NULL;
 
-  if (!charset)
+const char *
+get_charset ()
+{
+  char *tmp;
+  
+  if (!output_charset)
     {
       char locale[32];
-
+      
       memset (locale, 0, sizeof (locale));
 
       /* Try to deduce the charset from LC_ALL or LANG variables */
@@ -463,15 +340,283 @@ rfc2047_decode_wrapper (char *buf, size_t buflen)
 	  
 	  lang = strtok_r (locale, "_", &sp);
 	  terr = strtok_r (NULL, ".", &sp);
-	  charset = strtok_r (NULL, "@", &sp);
-	  
-	  if (!charset)
-	    charset = mu_charset_lookup (lang, terr);
+	  output_charset = strtok_r (NULL, "@", &sp);
 
-	  if (!charset)
-	    charset = "ASCII";
+	  if (output_charset)
+	    output_charset = xstrdup (output_charset);
+	  else
+	    output_charset = mu_charset_lookup (lang, terr);
+
+	  if (!output_charset)
+	    output_charset = "ASCII";
 	}
     }
+  return output_charset;
+}
+
+
+/* BIDI support (will be moved to lib when it's ready) */
+#ifdef HAVE_LIBFRIBIDI
+
+static int fb_charset_num = -1;
+FriBidiChar *logical;
+char *outstring;
+size_t logical_size;
+
+void
+alloc_logical (size_t size)
+{
+  logical = xmalloc (size * sizeof (logical[0]));
+  logical_size = size;
+  outstring = xmalloc (size);
+}
+
+void
+puts_bidi (char *string)
+{
+  if (fb_charset_num == -1)
+    {
+      fb_charset_num = fribidi_parse_charset (get_charset ());
+      if (fb_charset_num && dbug)
+	mu_error (_("fribidi failed to recognize charset `%s'"),
+		  get_charset ());
+    }
+  
+  if (fb_charset_num == 0)
+    puts (string);
+  else
+    {
+      FriBidiStrIndex len;
+      FriBidiCharType base = FRIBIDI_TYPE_ON;
+      fribidi_boolean log2vis;
+      
+      static FriBidiChar *visual;
+      static size_t visual_size;
+      
+      
+      len = fribidi_charset_to_unicode (fb_charset_num,
+					string, strlen (string),
+					logical);
+
+      if (len + 1 > visual_size)
+	{
+	  visual_size = len + 1;
+	  visual = xrealloc (visual, visual_size * sizeof *visual);
+	}
+      
+      /* Create a bidi string. */
+      log2vis = fribidi_log2vis (logical, len, &base,
+				 /* output */
+				 visual, NULL, NULL, NULL);
+
+      if (log2vis)
+	{
+	  FriBidiStrIndex idx, st;
+	  FriBidiStrIndex new_len;
+	  
+	  for (idx = 0; idx < len;)
+	    {
+	      FriBidiStrIndex wid, inlen;
+	      
+	      wid = 3 * logical_size;
+	      st = idx;
+
+	      if (fb_charset_num != FRIBIDI_CHARSET_CAP_RTL)
+		{
+		  while (wid > 0 && idx < len)
+		    wid -= fribidi_wcwidth (visual[idx++]);
+		}
+	      else
+		{
+		  while (wid > 0 && idx < len)
+		    {
+		      wid--;
+		      idx++;
+		    }
+		}
+	      
+	      if (wid < 0 && idx > st + 1)
+		idx--;
+	      inlen = idx - st;
+
+	      new_len = fribidi_unicode_to_charset (fb_charset_num,
+						    visual + st, inlen,
+						    outstring);
+	      printf ("%s", outstring);
+	    }
+	  putchar ('\n');
+	}
+      else
+	{
+	  /* Print the string as is */
+	  puts (string);
+	}
+    }
+}
+#else
+# define alloc_logical(s)
+# define puts_bidi puts
+#endif
+
+
+/* Output functions */
+
+/* Number of columns in output:
+
+     Maximum     4     message number, to, from, subject   -ln
+     Default     2     from, subject                       [none]
+     Minimum     1     FIELD                               -f FIELD
+*/
+
+static int numfields;      /* Number of output fields */
+static int fieldwidth[4];  /* Field start positions */
+static char *linebuf;      /* Output line buffer */
+static size_t linemax;     /* Size of linebuf */
+static size_t linepos;     /* Position in the output line buffer */
+static int curfield;       /* Current output field */
+static int nextstart;      /* Start position of the next field */
+static int curcol;         /* Current output column */
+
+typedef void (*fmt_formatter) (const char *fmt, ...);
+
+static fmt_formatter format_field;
+
+void
+print_line ()
+{
+  if (linebuf)
+    {
+      puts_bidi (linebuf);
+      linebuf[0] = 0;
+      linepos = 0;
+      curcol = nextstart = 0;
+    }
+  else
+    putchar ('\n');
+  curfield = 0;
+}
+
+void
+format_field_simple (const char *fmt, ...)
+{
+  va_list ap;
+  if (curfield++)
+    putchar ('\t');
+  va_start (ap, fmt);
+  vprintf (fmt, ap);
+  va_end (ap);
+}
+
+void
+format_field_align (const char *fmt, ...)
+{
+  size_t n, width;
+  va_list ap;
+
+  va_start (ap, fmt);
+  if (nextstart != 0)
+    {
+      if (curcol >= nextstart)
+	{
+	  if (curfield == numfields - 1)
+	    {
+	      puts_bidi (linebuf);
+	      linepos = 0;
+	      printf ("%*s", nextstart, "");
+	    }
+	  else
+	    {
+	      linebuf[linepos++] = ' ';
+	      curcol++;
+	    }
+	}
+      else if (nextstart != curcol)
+	{
+	  /* align to field start */
+	  n = snprintf (linebuf + linepos, linemax - linepos,
+			"%*s", nextstart - curcol, "");
+	  linepos += n;
+	  curcol = nextstart;
+	}
+    }
+
+  n = vsnprintf (linebuf + linepos, linemax - linepos, fmt, ap);
+  va_end (ap);
+
+  /* Compute output width */
+  if (curfield == numfields - 1)
+    {
+      for ( ; n > 0; n--)
+	{
+	  int c = linebuf[linepos + n];
+	  linebuf[linepos + n] = 0;
+	  width = mbswidth (linebuf + linepos, 0);
+	  if (width <= fieldwidth[curfield])
+	    break;
+	  linebuf[linepos + n] = c;
+	}
+    }
+  else
+    width = mbswidth (linebuf + linepos, 0);
+
+  /* Increment counters */
+  linepos += n;
+  curcol += width;
+  nextstart += fieldwidth[curfield++];
+}
+
+void
+init_output (size_t s)
+{
+  int i;
+  size_t width = 0;
+
+  if (s == 0)
+    {
+      format_field = format_field_simple;
+      return;
+    }
+  
+  format_field = format_field_align;
+	  
+  /* Allocate the line buffer */
+  linemax = s * MB_LEN_MAX + 1;
+  linebuf = xmalloc (linemax);
+  alloc_logical (s);
+	  
+  /* Set up column widths */
+  if (show_number)
+    fieldwidth[numfields++] = 5;
+  
+  if (show_to)
+    fieldwidth[numfields++] = 20;
+  
+  if (show_field)
+    fieldwidth[numfields++] = 0;
+  else
+    {
+      fieldwidth[numfields++] = 20;
+      fieldwidth[numfields++] = 0;
+    }
+  
+  for (i = 0; i < numfields; i++)
+    width += fieldwidth[i];
+  
+  fieldwidth[numfields-1] = util_getcols () - width;
+}
+
+
+/*
+  FIXME: Generalize this function and move it
+  to `mailbox/locale.c'. Do the same with the one
+  from `from/from.c' and `mail/util.c'...
+*/
+static char *
+rfc2047_decode_wrapper (char *buf, size_t buflen)
+{
+  int rc;
+  char *tmp;
+  const char *charset = get_charset ();
   
   if (strcmp (charset, "ASCII") == 0)
     return strdup (buf);
@@ -566,7 +711,7 @@ action (observer_t o, size_t type)
 	  break;
 	
 	if (show_number)
-	  format_field ("%4lu: ", (u_long) counter.index);
+	  format_field ("%4lu:", (u_long) counter.index);
 
 	if (show_to)
 	  {
@@ -575,7 +720,7 @@ action (observer_t o, size_t type)
 
 	    if (status == 0)
 	      {
-		format_field ("(%s) ", hto);
+		format_field ("(%s)", hto);
 		free (hto);
 	      }
 	    else
