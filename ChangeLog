@@ -72,11 +72,11 @@
 	(quotes): Removed.
 	(address_get_personal): Remove the code to unquote, parse822 takes
 	care if it. Return value when no field is ENOENT.
-	(address_get_comments): Reutrn value when no field ENOENT.
-	(address_get_local_part): Reutrn value when no field ENOENT.
-	(address_get_domain): Reutrn value when no field ENOENT.
-	(address_get_email): Reutrn value when no field ENOENT.
-	(address_get_route): Reutrn value when no field ENOENT.
+	(address_get_comments): Return value when no field ENOENT.
+	(address_get_local_part): Return value when no field ENOENT.
+	(address_get_domain): Return value when no field ENOENT.
+	(address_get_email): Return value when no field ENOENT.
+	(address_get_route): Return value when no field ENOENT.
 	* mailbox/message.c (message_sender): Use parse822 to retrieve
 	the email from the From: field.
 	(message_set_mailbox): New function.
