@@ -1,4 +1,9 @@
-2001-06-07 21:07  sroberts
+2001-06-09  Alain Magloire
+
+	* mailbox2/*: First attempt to define the new API.
+	POP3 was implemented.
+
+2001-06-07  Sam Roberts
 
 	* .cvsignore, AUTHORS, COPYING, Makefile.am, NEWS, README,
 	addr-lex.l, addr.y, comparator.c, comparator.h, exitcodes.h,
@@ -9,7 +14,6 @@
 	sysexits.h, test.c, tree.c, tree.h, util.c, util.h, xmalloc.c,
 	xmalloc.h: Initial commit of the port of CMU's sieve engine. It
 	builds, and some actions work, but has seen very little use.
-
 
 2001-06-03  Sam Roberts
 
