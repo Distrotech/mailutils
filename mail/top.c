@@ -29,7 +29,6 @@ top0 (msgset_t *mspec, message_t msg, void *data)
   size_t n;
   off_t off;
   int lines;
-  attribute_t attr = NULL;
   
   if (util_getenv (&lines, "toplines", Mail_env_number, 1)
       || lines < 0)
@@ -45,9 +44,8 @@ top0 (msgset_t *mspec, message_t msg, void *data)
     }
   cursor = mspec->msg_part[0];
 
-  message_get_attribute (msg, &attr);
-  attribute_set_read (attr);
-  attribute_set_userflag (attr, MAIL_ATTRIBUTE_SHOWN);
+  util_mark_read (msg);
+
   return 0;
 }
 

@@ -1,5 +1,6 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2002, 2003, 
+   2005 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -77,11 +78,8 @@ display_message (message_t mesg, msgset_t *msgset, void *arg)
 
   /* Mark enclosing message as read */
   if (mailbox_get_message (mbox, msgset->msg_part[0], &mesg) == 0)
-    {
-      attribute_t attr;
-      message_get_attribute (mesg, &attr);
-      attribute_set_read (attr);
-    }
+    util_mark_read (mesg);
+
   return 0;
 }
 

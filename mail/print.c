@@ -103,9 +103,7 @@ mail_print_msg (msgset_t *mspec, message_t mesg, void *data)
   if (out != ofile)
     pclose (out);
   
-  message_get_attribute (mesg, &attr);
-  attribute_set_read (attr);
-  attribute_set_userflag (attr, MAIL_ATTRIBUTE_SHOWN);
+  util_mark_read (mesg);
 
   cursor = mspec->msg_part[0];
   

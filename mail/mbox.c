@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2001 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001, 2005 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -28,6 +28,7 @@ mbox0 (msgset_t *mspec, message_t msg, void *data)
 
   message_get_attribute (msg, &attr);
   attribute_set_userflag (attr, MAIL_ATTRIBUTE_MBOXED);
+  util_mark_read (msg);
   
   cursor = mspec->msg_part[0];
   
