@@ -171,7 +171,8 @@ main (int argc, char **argv)
   struct mail_env_entry *mode = NULL, *prompt = NULL;
   size_t modelen = 0;
   struct arguments args;
-
+  int rc;
+  
   ofile = stdout;
   cursor = 1;
   realcursor = cursor;
@@ -353,29 +354,42 @@ main (int argc, char **argv)
 	  mu_debug_set_level (debug, MU_DEBUG_TRACE|MU_DEBUG_PROT);
 	}
 
-      if (mailbox_open (mbox, MU_STREAM_RDWR) != 0)
+      if ((rc = mailbox_open (mbox, MU_STREAM_RDWR)) != 0 && rc != ENOENT)
 	{
-	  util_error ("Can not open mailbox");
+	  url_t url = NULL;
+	  mailbox_get_url (mbox, &url);
+	  util_error ("Can not open mailbox %s: %s",
+		      url_to_string (url), strerror (rc));
 	  exit (EXIT_FAILURE);
 	}
 
-      if (mailbox_scan (mbox, 1, &total) != 0)
+      if (rc)
+	total = 0;
+      else
 	{
-	  util_error ("Can not read mailbox");
-	  exit (EXIT_FAILURE);
+	  if (mailbox_scan (mbox, 1, &total) != 0)
+	    {
+	      util_error ("Can not read mailbox");
+	      exit (EXIT_FAILURE);
+	    }
+
+	  if (strlen ("exist") == modelen && !strcmp ("exist", mode->value))
+	    return (total < 1) ? 1 : 0;
+	  else if (strlen ("print") == modelen
+		   && !strcmp ("print", mode->value))
+	    return util_do_command ("print *");
+	  else if (strlen ("headers") == modelen
+		   && !strcmp ("headers", mode->value))
+	    return util_do_command ("from *");
 	}
-
-      if (strlen ("exist") == modelen && !strcmp ("exist", mode->value))
-	return (total < 1) ? 1 : 0;
-      else if (strlen ("print") == modelen && !strcmp ("print", mode->value))
-	return util_do_command ("print *");
-      else if (strlen ("headers") == modelen
-	       && !strcmp ("headers", mode->value))
-	return util_do_command ("from *");
-
+      
       if (total == 0)
         {
-          fprintf (ofile, "No mail for %s\n", mail_whoami());
+	  if (args.file)
+	    fprintf (ofile, "%s: 0 messages\n", args.file);
+	  else
+	    fprintf (ofile, "No mail for %s\n",
+		     args.user ? args.user : mail_whoami ());
           return 1;
         }
 
