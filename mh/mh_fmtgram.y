@@ -502,6 +502,7 @@ mh_format_parse (char *format_str, mh_format_t *fmt)
     yydebug = 1;
   start = curp = format_str;
   obstack_init (&stack);
+  format.prog = NULL;
   format.progsize = 0;
   pc = 0;
   mh_code_op (mhop_stop);
