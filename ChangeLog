@@ -1,3 +1,49 @@
+2002-08-05  Sergey Poznyakoff
+
+	* imap4d/version.c: New file. Support for X-VERSION command
+	* imap4d/Makefile.am: Added version.c
+
+	* imap4d/imap4d.c (main): Imply debug mode if the input stream is
+	  connected to a tty. Don't try to switch to "mail" group id in
+	  debug mode.
+	  (imap4d_mainloop): Do not reveal our version. One may issue
+	  X-VERSION command in authenticated state to get it.
+	* imap4d/imap4d.h (imap4d_version): New function.
+
+	* imap4d/list.c (imap4d_list): Remove state check. Bugfix:
+	  allow a meta-closure (*) in any position of the word.
+	  
+	* imap4d/util.c (util_finish): Do not allow to switch to
+	  a higher state in case of command failure.
+	  (util_do_command): Run the command only if it is allowed in
+	  the current state.
+	
+	* imap4d/commands.c: Added entry for X-VERSION
+	* imap4d/capability.c: Indicate X-VERSION capability.
+	* imap4d/append.c: Remove state check.
+	* imap4d/authenticate.c: Likewise.
+	* imap4d/check.c: Likewise.
+	* imap4d/close.c: Likewise.
+	* imap4d/copy.c: Likewise.
+	* imap4d/create.c: Likewise.
+	* imap4d/delete.c: Likewise.
+	* imap4d/examine.c: Likewise.
+	* imap4d/expunge.c: Likewise.
+	* imap4d/fetch.c: Likewise.
+	* imap4d/login.c: Likewise.
+	* imap4d/logout.c: Likewise.
+	* imap4d/lsub.c: Likewise.
+	* imap4d/namespace.c: Likewise.
+	* imap4d/noop.c: Likewise.
+	* imap4d/rename.c: Likewise.
+	* imap4d/search.c: Likewise.
+	* imap4d/select.c: Likewise.
+	* imap4d/status.c: Likewise.
+	* imap4d/store.c: Likewise.
+	* imap4d/subscribe.c: Likewise.
+	* imap4d/uid.c: Likewise.
+	* imap4d/unsubscribe.c: Likewise.
+
 2002-08-03  Sergey Poznyakoff
 
 	Use of attributes made consistent throughout the package:
