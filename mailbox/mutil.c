@@ -29,7 +29,7 @@
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
-
+#include <ctype.h>
 #include <sys/param.h>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -47,6 +47,7 @@
 #include <mailutils/mu_auth.h>
 #include <mailutils/header.h>
 #include <mailutils/message.h>
+#include <mailutils/envelope.h>
 
 /* convert a sequence of hex characters into an integer */
 

@@ -22,6 +22,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <errno.h>
+#include <ctype.h>
 #include <mailutils/stream.h>
 #include <mailutils/filter.h>
 #include <mailutils/errno.h>
@@ -65,11 +66,9 @@ rfc2047_decode (const char *tocode, const char *input, char **ptostr)
       char *encoded_text = NULL;
       stream_t filter = NULL;
       stream_t in_stream = NULL;
-      char *pbuffer = NULL;
       const char *filter_type = NULL;
       size_t nbytes = 0, size;
       char *sp = NULL;
-      char *end_position = NULL;
 
       start_position = strstr (fromstr, "=?");
       if (!start_position)
