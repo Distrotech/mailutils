@@ -754,6 +754,8 @@ The actual escape character may be changed by setting the value of
 
 @node Quitting Compose Mode
 @subsubheading Quitting Compose Mode
+@kyindex ~., mail escape
+@kyindex ~x, mail escape
 
 There are several commands allowing you to quit the compose mode.
 
@@ -775,6 +777,7 @@ when mail variable @code{ignore} is set. In this case, you can use
 
 @node Getting Help on Compose Escapes
 @subsubheading Getting Help on Compose Escapes: ~?
+@kyindex ~?, mail escape
 
 The @samp{~?} escape prints on screen a brief summary of the available
 compose escapes. @emph{Please note}, that @samp{~h} escape prompts
@@ -782,6 +785,8 @@ for changing the header values, and does @emph{not} give help.
 
 @node Editing the Message
 @subsubheading Editing the Message: ~e and ~v
+@kyindex ~e, mail escape
+@kyindex ~v, mail escape
 
 If you are not satisfied with the message as it is, you can edit it
 using a text editor specified either by @code{EDITOR} or by
@@ -820,6 +825,8 @@ commands.
 
 @node Enclosing Another Message
 @subsubheading Enclosing Another Message: ~m and ~M
+@kyindex ~m, mail escape
+@kyindex ~M, mail escape
 
 If you are sending mail from within mail command mode, you can enclose
 the contents of any message sent to you by using @samp{~m} or @samp{~M}
@@ -857,6 +864,8 @@ The @samp{~d} escape is a shorthand for
 
 @node Printing And Saving the Message
 @subsubheading Printing And Saving the Message
+@kyindex ~p, mail escape
+@kyindex ~w, mail escape
 
 The @samp{~p} escape types the contents of the message entered so far,
 including headers, on your terminal. You can save the message to
@@ -865,6 +874,8 @@ argument.
 
 @node Signing the Message
 @subsubheading Signing the Message: ~a and ~A
+@kyindex ~a, mail escape
+@kyindex ~A, mail escape
 
 To save you the effort of typing your signature at the end of each
 message, you can use @samp{~a} or @samp{~A} escapes. If your signature
@@ -876,6 +887,8 @@ the message.
 
 @node Printing Another Message
 @subsubheading Printing Another Message: ~f and ~F
+@kyindex ~f, mail escape
+@kyindex ~F, mail escape
 
 Sometimes it is necessary to view the contents of another message,
 while composing. These two escapes allow it. Both take the message
@@ -887,12 +900,15 @@ all headers.
 
 @node Inserting Value of a Mail Variable
 @subsubheading Inserting Value of a Mail Variable: ~i
+@kyindex ~i, mail escape
 
 The @samp{~i} escape enters the value of the named mail variable into
 the body of the message being composed.
 
 @node Executing Other Mail Commands
 @subsubheading Executing Other Mail Commands: ~: and ~-
+@kyindex ~:, mail escape
+@kyindex ~-, mail escape
 
 You can execute a mail command from within compose mode using @samp{~:}
 or @samp{~-} escapes. For example, typing
@@ -914,6 +930,8 @@ the only commands that can reasonably be used are: @code{alias},
 
 @node Executing Shell Commands
 @subsubheading Executing Shell Commands: ~! and ~|
+@kyindex ~!, mail escape
+@kyindex ~|, mail escape
 
 The @samp{~!} escape executes specified command and returns you to
 @command{mail} compose mode without altering your message. When used without
@@ -970,6 +988,7 @@ commands the user enters.
 * Editing Messages::
 * Aliasing::
 * Replying::
+* Controlling Sender Fields::
 * Incorporating New Mail::
 * Shell Escapes::
 @end menu
@@ -1000,6 +1019,11 @@ Typing EOF (@samp{C-D}) alone is equivalent to @samp{quit}.
 
 @node Obtaining Online Help
 @subsubheading Obtaining Online Help
+@kyindex help, mail command
+@kyindex ?, mail command
+@kyindex list, mail command
+@kyindex version, mail command
+@kyindex warranty, mail command
 
 Following commands can be used during the session to request online
 help:
@@ -1023,6 +1047,8 @@ Display program warranty statement.
 
 @node Moving Within a Mailbox
 @subsubheading Moving Within a Mailbox
+@kyindex next, mail command
+@kyindex prev, mail command
 
 @table @samp
 @item next
@@ -1035,6 +1061,9 @@ Move to the previous message.
 
 @node Changing mailbox/directory
 @subsubheading Changing Mailbox/Directory
+@kyindex chdir, mail command
+@kyindex file, mail command
+@kyindex folder, mail command
 
 @table @samp
 @item cd [@var{dir}]
@@ -1061,6 +1090,9 @@ name followed by the summary information regarding it, e.g.:
 
 @node Controlling Header Display
 @subsubheading Controlling Header Display
+@kyindex discard, mail command
+@kyindex ignore, mail command
+@kyindex retain, mail command
 
 To control which headers in the message should be displayed, @command{mail}
 keeps two lists: a @dfn{retained} header list and an @dfn{ignored}
@@ -1087,6 +1119,13 @@ arguments, this command prints the contents of retained list.
 
 @node Displaying Information
 @subsubheading Displaying Information
+@kyindex =, mail command
+@kyindex headers, mail command
+@kyindex from, mail command
+@kyindex z, mail command
+@kyindex size, mail command
+@kyindex folders, mail command
+@kyindex summary, mail command
 
 @table @samp
 @item =
@@ -1132,6 +1171,14 @@ Displays current mailbox summary. E.g.:
 
 @node Displaying Messages
 @subsubheading Displaying Messages
+@kyindex print, mail command
+@kyindex type, mail command
+@kyindex Print, mail command
+@kyindex Type, mail command
+@kyindex decode, mail command
+@kyindex top, mail command
+@kyindex pipe, mail command
+@kyindex |, mail command
 
 @table @samp
 @item print [@var{msglist}]
@@ -1181,6 +1228,9 @@ the value of this variable is used as a command name.
 
 @node Marking Messages
 @subsubheading Marking Messages
+@kyindex tag, mail command
+@kyindex hold, mail command
+@kyindex preserve, mail command
 
 @table @samp
 @item tag [@var{msglist}]
@@ -1204,6 +1254,10 @@ does not override the effect of @code{delete} command.
 
 @node Disposing of Messages
 @subsubheading Disposing of Messages
+@kyindex delete, mail command
+@kyindex undelete, mail command
+@kyindex dt, mail command
+@kyindex dp, mail command
 
 @table @samp
 @item delete [@var{msglist}]
@@ -1224,6 +1278,14 @@ prints the message, immediately following last deleted one.
 
 @node Saving Messages
 @subsubheading Saving Messages
+@kyindex save, mail command
+@kyindex Save, mail command
+@kyindex write, mail command
+@kyindex Write, mail command
+@kyindex mbox, mail command
+@kyindex touch, mail command
+@kyindex copy, mail command
+@kyindex Copy, mail command
 
 @table @samp
 @item save [[@var{msglist}] @var{file}]
@@ -1281,6 +1343,8 @@ deletion.
 
 @node Editing Messages
 @subsubheading Editing Messages
+@kyindex edit, mail command
+@kyindex visual, mail command
 
 These command allow to edit messages in a mailbox. @emph{Please note},
 that modified messages currently do not replace original ones. i.e.
@@ -1300,6 +1364,10 @@ Edits each message in @var{msglist} with the editor, specified in
 
 @node Aliasing
 @subsubheading Aliasing
+@kyindex alias, mail command
+@kyindex group, mail command
+@kyindex unalias, mail command
+@kyindex alternates, mail command
 
 @table @samp
 @item alias [alias [@var{address}...]]
@@ -1326,6 +1394,13 @@ alternate names is displayed.
 
 @node Replying
 @subsubheading Replying
+@kyindex mail, mail command
+@kyindex reply, mail command
+@kyindex Reply, mail command
+@kyindex respond, mail command
+@kyindex Respond, mail command
+@kyindex followup, mail command
+@kyindex Followup, mail command
 
 @table @samp
 @item mail [@var{address}...]
@@ -1360,8 +1435,128 @@ Similar to @code{followup}, but reply message is sent only to
 originators of messages in @var{msglist}.
 @end table
 
+To determine the sender of the message @command{mail} uses the
+list of sender fields (@pxref{Controlling Sender Fields}). The first field
+from this list is looked up in message headers. If it is found
+and contains a valid email address, this address is used as
+the sender address. If not, the second field is searched and
+so on. This process continues until a field is found in the
+headers, or the sender field list is exhausted, whichever happens
+first.
+
+If the previous step did not determine the sender address, the
+address from SMTP envelope is used.
+
+Let's illustrate this. Suppose your mailbox contains the following:
+
+@smallexample
+@cartouche
+ U  1 block@@helsingor.org  Fri Jun 30 18:30  8/245    Re: The Sa
+& Print 1
+From: Antonius Block <block@@helsingor.org>
+To: Smeden Plog <plog@@helsingor.org>
+Date: Tue, 27 Apr 2004 13:23:41 +0300
+Reply-To: <root@@helsingor.org>
+Subject: News
+
+Hi
+@end cartouche
+@end smallexample
+
+@noindent
+Now, you issue the following commands:
+
+@smallexample
+@cartouche
+& sender mail-followup-to reply-to from
+& reply
+To: <root@@helsingor.org>
+Subject: Re: News
+
+@end cartouche
+@end smallexample
+
+@noindent
+As you see, the value of @code{Reply-To} field was taken as the
+sender address.
+
+Now, let's try the following command sequence:
+
+@smallexample
+# Clear the sender list
+& nosender
+# Set new sender list
+& sender From
+@end smallexample
+
+@noindent
+Now, the @code{From} address will be taken:
+
+@smallexample
+@cartouche
+& reply
+To: Antonius Block <block@@helsingor.org>
+Subject: Re: News
+
+@end cartouche
+@end smallexample
+
+@node Controlling Sender Fields
+@subsubheading Controlling Sender Fields
+@kyindex sender, mail command
+@kyindex nosender, mail command
+
+Commands @code{sender} and @code{nosender} are used to manipulate
+the contents of the sender field list.
+
+If the command @code{sender} is used without arguments, it displays
+the contents of the sender field list. If arguments are given,
+each argument is appended to the sender field list. For example:
+
+@smallexample
+@cartouche
+& sender
+Sender address is obtained from the envelope
+& sender mail-followup-to reply-to
+& sender
+mail-followup-to
+reply-to
+& sender from
+& sender
+mail-followup-to
+reply-to
+from
+@end cartouche
+@end smallexample
+
+Command @code{nosender} is used to remove items from the sender
+field list:
+
+@smallexample
+@cartouche
+& sender
+mail-followup-to
+reply-to
+from
+& nosender reply-to
+& sender
+mail-followup-to
+from
+@end cartouche
+@end smallexample
+
+When used without arguments, this command clears the list:
+
+@smallexample
+@cartouche
+& nosender
+Sender address is obtained from the envelope
+@end cartouche
+@end smallexample
+
 @node Incorporating New Mail
 @subsubheading Incorporating New Mail
+@kyindex incorporate, mail command
 
 The @code{incorporate} (@code{inc}) command incorporates newly arrived
 messages to the displayed list of messages. This is done automatically
@@ -1370,6 +1565,8 @@ before returning to @command{mail} command prompt if the variable
 
 @node Shell Escapes
 @subsubheading Shell Escapes
+@kyindex shell, mail command
+@kyindex !, mail command
 
 To run arbitrary shell command from @command{mail} command prompt, use
 @code{shell} (@code{sh}) command. If no arguments are specified, the
@@ -1384,17 +1581,25 @@ command can also be spelled as @code{!}.
 @subsection Scripting
 
 @subsubheading Comments
+
 The @samp{#} character introduces an end-of-line comment. All characters
 until and including the end of line are ignored.
 
 @subsubheading Displaying Arbitrary Text
+@kyindex echo, mail command
+
 The @samp{echo} (@samp{ec}) command prints its arguments to stdout.
 
 @subsubheading Sourcing External Command Files
+@kyindex source, mail command
+
 The command @samp{source @var{filename}} reads commands from the named
 file. Its minimal abbreviation is @samp{so}.
 
 @subsubheading Setting and Unsetting the Variables
+@kyindex set, mail command
+@kyindex unset, mail command
+
 The mail variables may be set using @samp{set} (@samp{se}) command. The
 command takes a list of assignments. The syntax of an assignment is
 
@@ -1448,6 +1653,9 @@ Delete the variable @var{name} from the environment (``unset'' it).
 @end table
 
 @subsubheading Conditional Statements
+@kyindex if, mail command
+@kyindex else, mail command
+@kyindex endif, mail command
 
 The conditional statement allows to execute a set of mail commands
 depending on the mode the @command{mail} program is in. The conditional
@@ -1500,6 +1708,7 @@ Following variables control the behavior of @sc{gnu} @command{mail}:
 @item Sign
 @*Type: String.
 @*Default: Unset.
+@vrindex Sign, mail variable
 
 Contains the filename holding users signature. The contents of this
 file is appended to the end of a message being composed by @code{~A}
@@ -1507,6 +1716,7 @@ escape.
 @item appenddeadletter
 @*Type: Boolean.
 @*Default: False.
+@vrindex appenddeadletter, mail variable
 
 If this variable is @code{True}, the contents of canceled letter is
 appended to the user's @file{dead.letter} file. Otherwise it overwrites
@@ -1515,6 +1725,7 @@ its contents.
 @item askbcc
 @*Type: Boolean.
 @*Default: False.
+@vrindex askbcc, mail variable
 
 When set to @code{True} the user will be prompted to enter @code{Bcc}
 field before composing the message.
@@ -1522,6 +1733,7 @@ field before composing the message.
 @item askcc
 @*Type: Boolean.
 @*Default: True.
+@vrindex askcc, mail variable
 
 When set to @code{True} the user will be prompted to enter @code{Cc}
 field before composing the message.
@@ -1529,6 +1741,7 @@ field before composing the message.
 @item asksub
 @*Type: Boolean.
 @*Default: True in interactive mode, False otherwise.
+@vrindex asksub, mail variable
 
 When set to @code{True} the user will be prompted to enter @code{Subject}
 field before composing the message.
@@ -1536,12 +1749,14 @@ field before composing the message.
 @item autoinc
 @*Type: Boolean.
 @*Default: True.
+@vrindex autoinc, mail variable
 
 Automatically incorporate newly arrived messages.
 
 @item autoprint
 @*Type: Boolean.
 @*Default: False.
+@vrindex autoprint, mail variable
 
 Causes the delete command to behave like dp - thus, after deleting a
 message, the next one will be typed automatically.
@@ -1549,6 +1764,7 @@ message, the next one will be typed automatically.
 @item charset
 @*Type: string
 @*Default: @samp{auto}
+@vrindex charset, mail variable
 
 The value of this variable controls the output character set for the
 header fields encoding using RFC 2047. If the variable is unset, no
@@ -1560,6 +1776,7 @@ variable. Otherwise, its value is taken as the name of the charset.
 @item cmd
 @*Type: String.
 @*Default: Unset.
+@vrindex cmd, mail variable
 
 Contains default shell command for @code{pipe}.
 
@@ -1567,12 +1784,14 @@ Contains default shell command for @code{pipe}.
 @*Type: Numeric.
 @*Default: Detected at startup by querying the terminal device. If this
 fails, the value of environment variable @code{COLUMNS} is used.
+@vrindex columns, mail variable
 
 This variable contains the number of columns on terminal screen.
 
 @item crt
 @*Type: Boolean or Numeric
 @*Default: True in interactive mode, False otherwise.
+@vrindex crt, mail variable
 
 The variable @code{crt} determines the minimum number of lines the body
 of the message must contain in order to be piped through pager command
@@ -1585,6 +1804,7 @@ screen is controlled by @code{screen} variable.
 @item dot
 @*Type: Boolean.
 @*Default: False.
+@vrindex dot, mail variable
 
 If @code{True}, causes @command{mail} to interpret a period alone on a line as the
 terminator of a message you are sending.
@@ -1592,6 +1812,7 @@ terminator of a message you are sending.
 @item editheaders
 @*Type: Boolean.
 @*Default: False.
+@vrindex editheaders, mail variable
 
 When set, @command{mail} will include message headers in the text to
 be the @code{~e} and @code{~v} escapes, thus allowing you to customize
@@ -1600,6 +1821,7 @@ the headers.
 @item escape
 @*Type: String.
 @*Default: ~
+@vrindex escape, mail variable
 
 If defined, the first character of this option gives the character to
 denoting escapes.
@@ -1607,6 +1829,7 @@ denoting escapes.
 @item folder
 @*Type: String.
 @*Default: Unset.
+@vrindex folder, mail variable
 
 The name of the directory to use for storing folders of messages. If
 unset, @env{$HOME} is assumed.
@@ -1614,6 +1837,7 @@ unset, @env{$HOME} is assumed.
 @item header
 @*Type: Boolean.
 @*Default: True, unless started with @option{--nosum} (@option{-N}) option.
+@vrindex header, mail variable
 
 Whether to run @code{headers} command automatically after entering
 interactive mode.
@@ -1621,6 +1845,7 @@ interactive mode.
 @item hold
 @*Type: Boolean.
 @*Default: False.
+@vrindex hold, mail variable
 
 When set to @code{True}, the read or saved messages will be stored in
 user's mailbox (@file{$HOME/mbox}). Otherwise, they will be held in
@@ -1630,6 +1855,7 @@ upon user's system mailbox.
 @item ignore
 @*Type: Boolean.
 @*Default: False.
+@vrindex ignore, mail variable
 
 When set to @code{True}, @command{mail} will ignore keyboard interrupts
 when composing messages. Otherwise an interrupt will be taken as a
@@ -1638,6 +1864,7 @@ signal to abort composing.
 @item ignoreeof
 @*Type: Boolean.
 @*Default: False.
+@vrindex ignoreeof, mail variable
 
 Controls whether typing EOF character terminates the letter being
 composed.
@@ -1645,12 +1872,14 @@ composed.
 @item indentprefix
 @*Type: String.
 @*Default: "\t" (a tab character).
+@vrindex indentprefix, mail variable
 
 String used by the @code{~m} tilde escape for indenting quoted messages.
 
 @item keepsave
 @*Type: Boolean.
 @*Default: False.
+@vrindex keepsave, mail variable
 
 Controls whether saved messages should be kept in system mailbox too.
 This variable is in effect only when operating upon a user's system
@@ -1659,6 +1888,7 @@ mailbox.
 @item mailx
 @*Type: Boolean.
 @*Default: False.
+@vrindex mailx, mail variable
 
 When set, enables @dfn{mailx compatibility mode}. This mode
 has the following effects:
@@ -1677,6 +1907,7 @@ if the message was sent successfully.
 @item metoo
 @*Type: Boolean.
 @*Default: False.
+@vrindex metoo, mail variable
 
 Usually, when an alias is expanded that contains the sender, the sender
 is removed from the expansion.  Setting this option causes the sender to
@@ -1685,12 +1916,14 @@ be included in the group.
 @item mode
 @*Type: String.
 @*Default: The name of current operation mode.
+@vrindex mode, mail variable
 
 Setting this variable does not affect the operation mode of the program.
 
-@item noregex
+@item regex
 @*Type: Boolean.
-@*Default: False.
+@*Default: True.
+@vrindex regex, mail variable
 
 Setting this to @code{True} enables use of regular expressions in
 @samp{/.../} message specifications.
@@ -1698,6 +1931,7 @@ Setting this to @code{True} enables use of regular expressions in
 @item outfolder
 @*Type: String.
 @*Default: Unset.
+@vrindex outfolder, mail variable
 
 Contains the directory in which files created by @code{save},
 @code{write}, etc. commands will be stored. When unset, current
@@ -1706,6 +1940,7 @@ directory is assumed.
 @item page
 @*Type: Boolean.
 @*Default: False.
+@vrindex page, mail variable
 
 If set to @code{True}, the @code{pipe} command will emit a linefeed
 character after printing each message.
@@ -1713,18 +1948,21 @@ character after printing each message.
 @item prompt
 @*Type: String.
 @*Default: "? "
+@vrindex prompt, mail variable
 
 Contains the command prompt sequence.
 
 @item quit
 @*Type: Boolean.
 @*Default: False, unless started with @option{--quit} (@option{-q}) option.
+@vrindex quit, mail variable
 
 When set, causes keyboard interrupts to terminate the program.
 
 @item rc
 @*Type: Boolean.
 @*Default: True, unless started with @option{--norc} (@option{-N}) option.
+@vrindex rc, mail variable
 
 When this variable is set, @command{mail} will read the system-wide
 configuration file upon startup. See @ref{Mail Configuration Files}.
@@ -1732,12 +1970,14 @@ configuration file upon startup. See @ref{Mail Configuration Files}.
 @item record
 @*Type: String.
 @*Default: Unset.
+@vrindex record, mail variable
 
 When set, any outgoing message will be saved to the named file.
 
 @item replyprefix
 @*Type: String
 @*Default: @samp{Re: }
+@vrindex replyprefix, mail variable
 
 Sets the prefix that will be used when constructing the subject line
 of a reply message.
@@ -1745,6 +1985,7 @@ of a reply message.
 @item replyregex
 @*Type: String
 @*Default: @samp{^re: *}
+@vrindex replyregex, mail variable
 
 Sets the regular expression used to recognize subjects of reply
 messages. If the @code{Subject} header of the message matches this
@@ -1765,6 +2006,7 @@ set replyregex="^(re|odp|aw|ang)(\\[[0-9]+\\])?:[[:blank:]]"
 @item save
 @*Type: Boolean.
 @*Default: True.
+@vrindex save, mail variable
 
 When set, the aborted messages will be stored in the user's
 @file{dead.file}. See also @code{appenddeadletter}.
@@ -1773,18 +2015,21 @@ When set, the aborted messages will be stored in the user's
 @*Type: Numeric.
 @*Default: Detected at startup by querying the terminal device. If this
 fails, the value of environment variable @code{LINES} is used.
+@vrindex screen, mail variable
 
 This variable contains the number of lines on terminal screen.
 
 @item sendmail
 @*Type: String.
 @*Default: sendmail:/usr/lib/sendmail
+@vrindex sendmail, mail variable
 
 Contains the URL of mail transport agent.
 
 @item sign
 @*Type: String.
 @*Default: Unset.
+@vrindex sign, mail variable
 
 Contains the user's signature. The contents of this variable is appended
 to the end of a message being composed by @code{~a} escape. Use
@@ -1793,6 +2038,7 @@ to the end of a message being composed by @code{~a} escape. Use
 @item subject
 @*Type: String.
 @*Default: Unset.
+@vrindex subject, mail variable
 
 Contains default subject line. This will be used when @code{asksub} is
 off.
@@ -1800,14 +2046,29 @@ off.
 @item toplines
 @*Type: Numeric.
 @*Default: 5
+@vrindex toplines, mail variable
 
 Number of lines to be displayed by @code{top} and @code{Top} commands.
 
 @item verbose
 @*Type: Boolean.
 @*Default: False.
+@vrindex verbose, mail variable
 
 When set, the actual delivery of messages is displayed on the user's terminal.
+
+@item xmailer
+@*Type: Boolean.
+@*Default: Set.
+@vrindex xmailer, mail variable
+
+Controls whether the header @samp{X-Mailer} should be added to 
+outgoing messages. The default value of this header is
+
+@smallexample
+X-Mailer: mail (GNU Mailutils @value{VERSION})
+@end smallexample
+
 @end table
 
 @node Mail Configuration Files
