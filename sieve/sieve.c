@@ -69,7 +69,7 @@ static struct argp_option options[] =
    "Compile script and exit", 0},
 
   {"dump", 'D', 0, 0,
-   "Compile script, dump disasembled sieve code on terminal and exit", 0 },
+   "Compile script, dump disassembled sieve code to terminal and exit", 0 },
   
   {"mbox-url", 'f', "MBOX", 0,
    "Mailbox to sieve (defaults to user's mail spool)", 0},
