@@ -26,6 +26,7 @@
 
 #include <mailutils/list.h>
 #include <mailutils/monitor.h>
+#include <mailutils/iterator.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -44,6 +45,7 @@ struct _list
   size_t count;
   monitor_t monitor;
   list_comparator_t comp;
+  struct _iterator *itr;
 };
 
 
