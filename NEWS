@@ -1,4 +1,4 @@
-GNU mailutils NEWS -- history of user-visible changes.  2004-01-09
+GNU mailutils NEWS -- history of user-visible changes.  2004-01-12
 Copyright (C) 2002, 2003, 2004 Free Software Foundation, Inc.
 See the end of file for copying conditions.
 
@@ -7,6 +7,17 @@ Please send mailutils bug reports to <bug-mailutils@gnu.org>.
 Version 0.4.1:
 
 * New features:
+
+** Autodetection of local folder formats.
+
+"Local" is a format of mail folder that uses local disk (possibly via
+NFS) as its storage medium. Currently mailutils is able to handle
+three local formats: UNIX mailbox, MH and Maildir. Usually these are
+specified using a corresponding URL prefix. However, if an absolute
+path name is given instead of a fully qualified URL, mailutils tries to
+autodetect the format of the folder in question and handle it
+appropriately (previous versions of mailutils assumed the folder
+to be in UNIX mailbox format).
 
 ** movemail: new program
 

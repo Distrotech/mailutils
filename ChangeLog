@@ -1,3 +1,34 @@
+2004-01-12  Sergey Poznyakoff
+
+	* include/mailutils/mailutils.h: Removed gsasl.h (reverses part
+	of changes made 2004-01-10). Reason: unconditional inclusion
+	causes compilation failure if libgsasl is not installed.
+
+	* NEWS: Updated
+	
+	* mailbox/maildir/maildir.h: New file.
+	* mailbox/amd.c (amd_url_init): New function
+	* mailbox/include/amd.h: Likewise.
+	* mailbox/include/registrar0.h (_url_mh_init,_folder_mh_init)
+	(_url_maildir_init,_folder_maildir_init): Removed.
+
+	* mailbox/maildir/url.c: Removed.
+	* mailbox/maildir/maildir.h: New file
+	* mailbox/maildir/folder.c: Auto-detection of maildir format.
+	* mailbox/maildir/mbox.c (mkfilename): Renamed to
+	maildir_mkfilename. Made external.
+	* mailbox/maildir/Makefile.am: Removed url.c, added maildir.h
+
+	* mailbox/mbox/folder.c (_path_is_scheme): New
+	function. Implements auto-detection for the "path" scheme.
+	
+	* mailbox/mh/url.c: Removed	
+	* mailbox/mh/Makefile.am: Removed url.c
+	* mailbox/mh/folder.c: Auto-detection of MH format.
+	
+	* mailbox/url.c: Fixed indentation 
+	* frm/frm.c: Minor changes.
+
 2004-01-11  Sergey Poznyakoff
 
 	* mailbox/amd.c (amd_open,amd_close): Bugfix
