@@ -10,6 +10,7 @@ GNU Mailutils provides a set of programs for handling the email.
 * pop3d::       POP3 daemon.
 * frm::         List headers from a mailbox.
 * mail::        Send and receive mail.
+* mail.local::  Deliver mail to the local mailbox.
 * messages::    Count the number of messages in a mailbox.
 * readmsg::     Extract messages from a folder.
 * sieve::       Filter a mailbox.
@@ -22,7 +23,7 @@ GNU Mailutils provides a set of programs for handling the email.
 @section IMAP4 daemon
 @pindex imap4d
 
-imap4d has two operation modes:
+@command{imap4d} has two operation modes:
 
 @table @asis
 @item Inetd
@@ -36,32 +37,43 @@ This is the default operation mode.
 
 @item Standalone
 The server runs as daemon, forking a child for each new connection. This
-mode is triggered by @samp{-d} command line switch.
+mode is triggered by @option{-d} command line switch.
 @end table
 
 @subheading Command line options
 
-@table @samp
-@item -d[NUMBER]
-@itemx --daemon[=NUMBER]
-Run in standalone mode. An optional NUMBER specifies the maximum number
+@table @option
+@item -d[@var{number}]
+@itemx --daemon[=@var{number}]
+Run in standalone mode. An optional @var{number} specifies the maximum number
 of child processes the daemon is allowed to fork. When it is omitted,
 it defaults to 20 processes.
 @emph{Please note}, that there should be no whitespace between the
-@samp{-d} and its parameter.
+@option{-d} and its parameter.
 @item -h
 @itemx --help
 Display short help message and exit.
 @item -i
 @itemx --inetd
 Run in inetd mode.
-@item -p NUMBER
-@itemx --port NUMBER
-Listen on given port NUMBER. This option is meaningful only in
+@item -m @var{path}
+@itemx --maildir=@var{path}
+Set path to the mailspool directory
+@item -O @var{pathlist}
+@itemx --other-namespace=@var{pathlist}
+Set the list of directories forming the ``Other User's'' namespace.
+@var{pathlist} is a list of directory names separated by colons.
+@item -p @var{number}
+@itemx --port @var{number}
+Listen on given port @var{number}. This option is meaningful only in
 standalone mode. It defaults to port 143.
-@item -t NUMBER
-@itemx --timeout NUMBER
-Set idle timeout to given NUMBER of seconds. Default is 1800 seconds (30
+@item -S @var{pathlist}
+@itemx --shared-namespace=@var{pathlist}
+Set the list of directories, forming the ``Shared''
+namespace. @var{pathlist} is a list of directory names separated by colons.
+@item -t @var{number}
+@itemx --timeout @var{number}
+Set idle timeout to given @var{number} of seconds. Default is 1800 seconds (30
 minutes).  The daemon breaks the connection if it receives no commands
 from the client within that number of seconds.
 @item -v
@@ -74,7 +86,7 @@ Display program version and exit.
 @section POP3 daemon
 @pindex pop3d
 
-The @file{pop3d} daemon implements the Post Office Protocol server.
+The @command{pop3d} daemon implements the Post Office Protocol server.
 
 pop3d has two operation modes:
 
@@ -90,32 +102,35 @@ This is the default operation mode.
 
 @item Standalone
 The server runs as daemon, forking a child for each new connection. This
-mode is triggered by @samp{-d} command line switch.
+mode is triggered by @option{-d} command line switch.
 @end table
 
 @subheading Command line options
 
-@table @samp
-@item -d[NUMBER]
-@itemx --daemon[=NUMBER]
-Run in standalone mode. An optional NUMBER specifies the maximum number
+@table @option
+@item -d[@var{number}]
+@itemx --daemon[=@var{number}]
+Run in standalone mode. An optional @var{number} specifies the maximum number
 of child processes the daemon is allowed to fork. When it is omitted,
 it defaults to 10 processes.
 @emph{Please note}, that there should be no whitespace between the
-@samp{-d} and its parameter.
+@option{-d} and its parameter.
 @item -h
 @itemx --help
 Display short help message and exit.
 @item -i
 @itemx --inetd
 Run in inetd mode.
-@item -p NUMBER
-@itemx --port NUMBER
-Listen on given port NUMBER. This option is meaningful only in
+@item -m @var{path}
+@itemx --maildir=@var{path}
+Set path to the mailspool directory
+@item -p @var{number}
+@itemx --port @var{number}
+Listen on given port @var{number}. This option is meaningful only in
 standalone mode. It defaults to port 110.
-@item -t NUMBER
-@itemx --timeout NUMBER
-Set idle timeout to given NUMBER of seconds. Default is 600 seconds (10
+@item -t @var{number}
+@itemx --timeout @var{number}
+Set idle timeout to given @var{number} of seconds. Default is 600 seconds (10
 minutes).  The daemon breaks the connection if it receives no commands
 from the client within that number of seconds.
 @item -v
@@ -128,8 +143,8 @@ Display program version and exit.
 @section frm --- List headers from a mailbox.
 @pindex frm
 
-The @file{frm} command outputs a header information of
-the selected messages in a mailbox. By default, @file{frm} reads the
+The @command{frm} command outputs a header information of
+the selected messages in a mailbox. By default, @command{frm} reads the
 user's system mailbox and outputs the contents of @code{From} and
 @code{Subject} headers for each message. If a folder is specified in
 the command line, the program reads that folder rather than the default
@@ -137,7 +152,7 @@ mailbox.
 
 The following command line options alter the behavior of the program:
 
-@table @samp
+@table @option
 @item -h
 @itemx --help
 Display short help message and exit.
@@ -167,11 +182,11 @@ Print a summary line.
 Only display headers from messages with the given status.
 ATTR may be one of the following: @samp{new}, @samp{read},
 @samp{unread}. It is sufficient to specify only first letter of
-an ATTR. Multiple @samp{-s} options are allowed.
+an ATTR. Multiple @option{-s} options are allowed.
 @item -t
 @itemx --align
 Tidy mode. Currently is not implemented. Included for compatibility with
-@file{frm} program from Elm package.
+@command{frm} program from Elm package.
 @item -v
 @itemx --version
 Display version information and exit
@@ -182,18 +197,18 @@ Display version information and exit
 @section mail ---  send and receive mail.
 @pindex mail
 
-@code{Mail} is an enhanced version of standard @file{/bin/mail} program.
+@command{Mail} is an enhanced version of standard @command{/bin/mail} program.
 As well as its predecessor, it can be used either in sending mode or
-in reading mode. @code{Mail} enters sending mode when one or more
+in reading mode. @command{Mail} enters sending mode when one or more
 email addresses were specified in this command line. In this mode the
 program waits until user finishes composing the message, then attempts
 to send it to the specified addresses and exits.
 See @ref{Composing Mail}, for a detailed description of this behavior.
 
-If the command line contained no email addresses, @code{mail} switches
+If the command line contained no email addresses, @command{mail} switches
 to reading mode. In this mode it allows to read and manipulate the
 contents of a mailbox. The URL of the mailbox to operate upon is
-taken from the argument of @samp{--file} command line option. If it
+taken from the argument of @option{--file} command line option. If it
 is not specified, the user's system mailbox is assumed. For more
 detail, see @ref{Reading Mail}.
 
@@ -209,18 +224,18 @@ detail, see @ref{Reading Mail}.
 @node Invoking Mail
 @subsection Command line options
 
-General usage of @file{mail} program is:
+General usage of @command{mail} program is:
 
 @example
       mail [OPTION...] [address...]
 @end example
 @noindent
-If [address...] part is present, @file{mail} switches to mail sending
+If [address...] part is present, @command{mail} switches to mail sending
 mode, otherwise it operates in mail reading mode.
 
-@file{Mail} understands following command line options:
+@command{Mail} understands following command line options:
 
-@table @samp
+@table @option
 @item -e
 @itemx --exist
 Return true if the mailbox contains some messages. Return false
@@ -232,8 +247,8 @@ Operate on mailbox FILE. If this option is not specified, the default
 is user's system mailbox. If it is specified without argument, the
 default is $HOME/mbox.
 @emph{Please note}, that there should be no whitespace between the
-short variant of the option (@samp{-f}), and its parameter. Similarly,
-when using long option (@samp{--file}), its argument must be preceded by
+short variant of the option (@option{-f}), and its parameter. Similarly,
+when using long option (@option{--file}), its argument must be preceded by
 equal sign.
 @item -F
 @itemx --byname
@@ -244,6 +259,9 @@ Print header summary to stdout and exit.
 @item -i
 @itemx --ignore
 Ignore interrupts.
+@item -m @var{path}
+@itemx --maildir=@var{path}
+Set path to the mailspool directory
 @item -n
 @itemx --norc
 Do not read the system-wide mailrc file. @xref{Mail Configuration Files}.
@@ -389,7 +407,7 @@ The following are the examples of valid message lists:
 
 You can compose the message by simply typing the contents of it, line
 by line. But usually this is not enough, you would need to edit
-your text, to quote some messages, etc. @file{Mail} provides these
+your text, to quote some messages, etc. @command{Mail} provides these
 capabilities through @dfn{compose escapes}. The @dfn{compose escapes}
 are single-character commands, preceded by special @dfn{escape character},
 which defaults to @samp{~}. The combination @code{escape character + command}
@@ -578,11 +596,11 @@ the only commands that can reasonably be used are: @code{alias},
 @subsubsection Executing Shell Commands: ~! and ~|
 
 The @samp{~!} escape executes specified command and returns you to
-@file{mail} compose mode without altering your message. When used without
+@command{mail} compose mode without altering your message. When used without
 arguments, it starts your login shell. The @samp{~|} escape pipes the
 message composed so far through the given shell command and replaces the
 message with the output the command produced. If the command produced
-no output, @file{mail} assumes that something went wrong and retains
+no output, @command{mail} assumes that something went wrong and retains
 the old contents of your message.
 
 @c *********************************************************************
@@ -591,7 +609,7 @@ the old contents of your message.
 @subsection Reading mail
 
 To read messages from a given mailbox, use one of the following ways of
-invoking @file{mail}:
+invoking @command{mail}:
 
 @table @code
 @item mail
@@ -609,12 +627,12 @@ to use the last variant of invocation, unless you are a super-user.
 Similarly, the last but one variant is also greatly affected by the
 permissions the target mailbox has.
 
-Unless you have started mail with @samp{--norc} command line option,
+Unless you have started mail with @option{--norc} command line option,
 it will read the contents of the system-wide configuration file.
 Then it reads the contents of user configuration file, if any.
 For detailed description of these files, see @ref{Mail Configuration Files}.
-After this initial setup, @file{mail} displays the first page of header
-lines and enters interactive mode. In interactive mode, @file{mail}
+After this initial setup, @command{mail} displays the first page of header
+lines and enters interactive mode. In interactive mode, @command{mail}
 displays its prompt (@samp{?}, if not set otherwise) and executes the
 commands the user enters.
 
@@ -645,7 +663,7 @@ Following commands quit the program:
 
 @table @samp
 @item quit
-Terminates the session. If @file{mail} was operating upon user's system
+Terminates the session. If @command{mail} was operating upon user's system
 mailbox, then all undeleted and unsaved messages that have been read and
 are not marked with hold flag are saved to the user's mbox file
 (@file{$HOME/mbox}). The messages, marked with @code{delete} are removed.
@@ -723,7 +741,7 @@ name followed by the summary information regarding it, e.g.:
 @node Controlling Header Display
 @subsubsection Controlling header display
 
-To control which headers in the message should be displayed, @file{mail}
+To control which headers in the message should be displayed, @command{mail}
 keeps two lists: a @dfn{retained} header list and an @dfn{ignored}
 header list. If @dfn{retained} header list is not empty, only the
 header fields listed in it are displayed when printing the message.
@@ -1006,7 +1024,7 @@ To undo the effect of the previous example, do:
 @subheading Conditional statements
 
 The conditional statement allows to execute a set of mail commands
-depending on the mode the @file{mail} program is in. The conditional
+depending on the mode the @command{mail} program is in. The conditional
 statement is:
 
 @example
@@ -1023,9 +1041,9 @@ branch of the statement. @var{cond} can be one of the following:
 
 @table @samp
 @item s
-True if @file{mail} is operating in mail sending mode.
+True if @command{mail} is operating in mail sending mode.
 @item r
-True if @file{mail} is operating in mail reading mode.
+True if @command{mail} is operating in mail reading mode.
 @item t
 True if stdout is a terminal device (as opposed to a regular file).
 @end table
@@ -1114,13 +1132,13 @@ originators of messages in @var{msglist}.
 
 The @code{incorporate} (@code{inc}) command incorporates newly arrived
 messages to the displayed list of messages. This is done automatically
-before returning to @file{mail} command prompt if the variable
+before returning to @command{mail} command prompt if the variable
 @code{autoinc} is set.
 
 @node Shell Escapes
 @subsubsection Shell escapes
 
-To run arbitrary shell command from @file{mail} command prompt, use
+To run arbitrary shell command from @command{mail} command prompt, use
 @code{shell} (@code{sh}) command. If no arguments are specified, the
 command starts the user login shell. Otherwise, it uses its first
 argument as a file name to execute and all subsequent arguments are
@@ -1132,7 +1150,7 @@ command can also be spelled as @code{!}.
 @node Mail Variables
 @subsection How to alter the behavior of mail
 
-Following variables control the behavior of GNU @file{mail}:
+Following variables control the behavior of GNU @command{mail}:
 
 @table @code
 @item Sign
@@ -1209,7 +1227,7 @@ be printed using program set in the environment variable @code{ENVIRON}.
 @*Type: Boolean.
 @*Default: False.
 
-If @code{True}, causes @file{mail} to interpret a period alone on a line as the
+If @code{True}, causes @command{mail} to interpret a period alone on a line as the
 terminator of a message you are sending.
 
 @item escape
@@ -1228,7 +1246,7 @@ unset, $HOME is assumed.
 
 @item header
 @*Type: Boolean.
-@*Default: True, unless started with @samp{--nosum} (@samp{-N}) option.
+@*Default: True, unless started with @option{--nosum} (@option{-N}) option.
 
 Whether to run @code{headers} command automatically after entering
 interactive mode.
@@ -1246,7 +1264,7 @@ upon user's system mailbox.
 @*Type: Boolean.
 @*Default: False.
 
-When set to @code{True}, @file{mail} will ignore keyboard interrupts
+When set to @code{True}, @command{mail} will ignore keyboard interrupts
 when composing messages. Otherwise an interrupt will be taken as a
 signal to abort composing.
 
@@ -1321,15 +1339,15 @@ When set, suppresses the output of the startup banner.
 
 @item quit
 @*Type: Boolean.
-@*Default: False, unless started with @samp{--quit} (@samp{-q}) option.
+@*Default: False, unless started with @option{--quit} (@option{-q}) option.
 
 When set, causes keyboard interrupts to terminate the program.
 
 @item rc
 @*Type: Boolean.
-@*Default: True, unless started with @samp{--norc} (@samp{-N}) option.
+@*Default: True, unless started with @option{--norc} (@option{-N}) option.
 
-When this variable is set, @file{mail} will read the system-wide
+When this variable is set, @command{mail} will read the system-wide
 configuration file upon startup. See @ref{Mail Configuration Files}.
 
 @item record
@@ -1389,27 +1407,173 @@ When set, the actual delivery of messages is displayed on the user's terminal.
 @node Mail Configuration Files
 @subsection Personal and system-wide configuration files
 
-Upon startup, @file{mail} reads the contents of the two command files:
+Upon startup, @command{mail} reads the contents of the two command files:
 the system-wide configuration file, and the user's configuration
 file. Each line read from these files is processed like a usual
-@file{mail} command.
+@command{mail} command.
 
-When run with @samp{--norc} (@samp{-N}) option, @file{mail} does
+When run with @option{--norc} (@option{-N}) option, @command{mail} does
 not read the contents of system-wide configuration file. The user's
 file, if it exists, is always processed.
 
 The user's configuration file is located in the user's home
 directory and is named @file{.mailrc}. The location and name of
 the system-wide configuration file is determined when configuring the
-package via @samp{--with-mail-rc} option. It defaults to
+package via @option{--with-mail-rc} option. It defaults to
 @file{@var{sysconfdir}/mail.rc}.
+
+@page
+@node mail.local
+@section mail.local --- Deliver mail to the local mailbox.
+@pindex mail.local
+
+@command{mail.local} reads the standard input up to an end-of-file
+and appends the received data to the local mailboxes.
+
+@menu
+* Invocation::     Mail.local options
+* MTA::            Using mail.local with various MTAs
+* Mailbox Quotas:: Setting up mailbox quotas. 
+* Filters::        Implementing user-defined mail filters. 
+@end menu
+
+@node Invocation
+@subsection Invoking mail.local
+
+@table @option
+@item -f @var{addr}
+@itemx --from @var{addr}
+Specify the sender's name. This option forces @command{mail.local} to
+add @samp{From } envelope to the beginning of the message. If it is
+not specified, @command{mail.local} first looks into the first line
+from the standard input. If it starts with @samp{From }, it is assumed
+to contain a valid envelope. If it does not, @command{mail.local}
+creates the envelope by using current user name and date.
+@item -h
+@itemx --help
+Display this help and exit.
+@item -L
+@itemx --license
+Display GNU General Public License and exit.
+@item -m @var{path}
+@itemx --maildir @var{path}
+Specify path to mailspool directory.
+@item -q
+@itemx --quota-db @var{file}
+Specify path to mailbox quota database (@pxref{Mailbox Quotas}). 
+@item -s @var{pattern}
+@itemx --source @var{pattern}
+Set name pattern for user-defined mail filters (@pxref{Filters}). The
+metacharacters @samp{%u} and @samp{%h} in the pattern are expanded to
+the current recipient user name and home directory correspondingly.
+@item -t @var{number}
+@itemx --timeout @var{number}
+Wait @var{number} seconds for acquiring the lockfile. If it doesn't
+become available after that amount of time, return failure. The timeout
+defaults to 5 minutes.
+@item -x guile
+@itemx --debug guile
+Start with guile debugging evaluator and backtraces. This is convenient
+for debugging user-defined filters (@pxref{Filters}).
+@item -x @var{number}
+@itemx --debug @var{number}
+Set debugging level.
+@item -v
+@itemx --version
+Display program version and exit.
+@item --ex-multiple-delivery-success
+Don't return errors when delivering to multiple recipients.
+@item --ex-quota-tempfail
+Return temporary failure if disk or mailbox quota is exceeded. By
+default, 'service unavailable' is returned if the message exceeds
+the mailbox quota.
+@end table
+
+@node MTA
+@subsection Using mail.local with various MTAs
+
+This section explains how to invoke @command{mail.local} from
+configuration files of various Mail Transport Agents.
+
+All examples in this section suppose that @command{mail.local}
+must receive following command line switches:
+
+@example
+  -s %h/.filter.scm -q /etc/mail/userquota
+@end example
+
+@menu
+* sendmail::    Using mail.local with sendmail.
+* exim::        Using mail.local with exim.
+@end menu
+
+@node sendmail
+@subsubsection Using mail.local with sendmail.
+
+The @command{mail.local} must be invoked from the local mailer
+definition in the @file{sendmail.cf} file. It must have the
+following flags set @samp{lswS}, meaning the mailer is local,
+the quote characters should be stripped off the address before
+invoking the mailer, the user must have a valid account on this
+machine and the userid should not be reset before calling the
+mailer. Additionally, @samp{fn} flags may be specified to allow
+@command{mail.local} to generate usual @samp{From } envelope
+instead of the one supplied by sendmail.
+
+Here is an example of mailer definition in @file{sendmail.cf}
+
+@example 
+Mlocal, P=/usr/local/libexec/mail.local,
+        F=lsDFMAw5:/|@@qSPfhn9,
+        S=EnvFromL/HdrFromL, R=EnvToL/HdrToL,
+        T=DNS/RFC822/X-Unix,
+        A=mail -s %h/.filter.scm -q /etc/mail/userquota $u
+@end example
+
+To define local mailer in @samp{mc} source file, it will suffice to
+set:
+
+@example
+define(`LOCAL_MAILER_PATH', `/usr/local/libexec/mail.local')
+define(`LOCAL_MAILER_ARGS',
+       `mail -s %h/.filter.scm -q /etc/mail/userquota $u')
+@end example
+
+@node exim
+@subsubsection Using mail.local with exim.
+
+Using @command{mail.local} with exim is quite straightforward. The
+following example illustrates the definition of appropriate transport
+and director in @file{exim.conf}:
+
+@example
+# transport
+mail_local_pipe:
+  driver = pipe
+  command = /usr/local/libexec/mail.local -s %h/.filter.scm \
+              -q /etc/mail/userquota $local_part
+  return_path_add
+  delivery_date_add
+  envelope_to_add
+  
+# director
+mail_local:
+  driver = localuser
+  transport = mail_local_pipe
+@end example
+
+@node Mailbox Quotas
+@subsection Setting up mailbox quotas
+
+@node Filters
+@subsection Implementing user-defined mail filters.
 
 @page
 @node messages
 @section messages --- Count the number of messages in a mailbox.
 @pindex messages
 
-@code{Messages} prints on standard output the number of messages
+@command{Messages} prints on standard output the number of messages
 contained in each folder specified in command line. If no folders
 are specified, it operates upon user's system mailbox. For each
 folder, the following output line is produced:
@@ -1423,7 +1587,7 @@ the number of messages.
 
 The program accepts following command line options:
 
-@table @samp
+@table @option
 @item -q
 @itemx --quite
 @itemx -s
@@ -1476,7 +1640,7 @@ printed.
 
 @subheading Command line options
 
-@table @samp
+@table @option
 
 @item -a
 @itemx --show-all
@@ -1522,7 +1686,7 @@ The program is currently in development
 @section guimb --- A mailbox scanning and processing language.
 @pindex guimb
 
-@file{Guimb} is for mailboxes what @file{awk} is for text files.
+@command{Guimb} is for mailboxes what @command{awk} is for text files.
 It processes mailboxes, applying the user-supplied scheme procedures
 to each of them in turn and saves the resulting output in mailbox
 format.
@@ -1539,53 +1703,88 @@ format.
 @subsection Specifying Scheme Program to Execute
 
 The Scheme program or expression to be executed is passed to
-@file{guimb} via the following options:
+@command{guimb} via the following options:
 
-@table @samp
-@item -e
-@itemx --expression EXPR
-Execute scheme expression.
-@item -f
-@itemx --file PROGFILE
-Read and execute program from PROGFILE.
+@table @option
+@item -s @var{file}
+@itemx --source @var{file}
+Load Scheme source code from @var{file}.
+@item -c @var{expr}
+@itemx --code @var{expr}
+Execute given scheme expression.
 @end table
 
-You can specify both of them. In this case, the PROGFILE is executed
-first.
+The above switches stop further argument processing, and pass all
+remaining arguments as the value of @code{(command-line)}.
+
+If the remaining arguments must be processed by @command{guimb} itself,
+use following options:
+
+@table @option
+@item -e @var{expr}
+@itemx --expression @var{expr}
+Execute scheme expression.
+@item -f @var{file}
+@itemx --file @var{file}
+Load Scheme source code from @var{file}.
+@end table
+
+You can specify both of them. In this case, the @var{file} is read
+first, then @var{expr} is executed. You may still pass any additional
+arguments to the script using @option{--guile-arg} option
+(@pxref{Passing Options to Scheme}).
 
 @node Specifying Mailboxes to Operate Upon
 @subsection Specifying Mailboxes to Operate Upon
 
-There are four basic ways of passing mailboxes to @file{guimb}.
+There are four basic ways of passing mailboxes to @command{guimb}.
 
 @table @code
-@item guimb [OPTIONS] [mailbox...]
+@item guimb [@var{options}] [@var{mailbox}...]
 The resulting mailbox is not saved, unless the user-supplied
 scheme program saves it.
-@item guimb [OPTIONS] --mailbox DEFMBOX
-The contents of DEFMBOX is processed and is replaced with the resulting
+@item guimb [@var{options}] --mailbox @var{defmbox}
+The contents of @var{defmbox} is processed and is replaced with the resulting
 mailbox contents. Useful for applying filters to user's mailbox.
-@item guimb [OPTIONS] --mailbox DEFMBOX mailbox [mailbox...]
+@item guimb [@var{options}] --mailbox @var{defmbox} mailbox [mailbox...]
 The contents of specified mailboxes is processed, and the resulting
-mailbox contents is appended to DEFMBOX.
-@item guimb [OPTIONS] --user USER [mailbox...]
+mailbox contents is appended to @var{defmbox}.
+@item guimb [@var{options}] --user @var{username} [mailbox...]
 The contents of specified mailboxes is processed, and the resulting
 mailbox contents is appended to the user's system mailbox. This allows
-to use @file{guimb} as a mail delivery agent.
+to use @command{guimb} as a mail delivery agent.
 @end table
 
-If no mailboxes are specified in the command line, @file{guimb} reads
-and processes its standard input.
+If no mailboxes are specified in the command line, @command{guimb} reads
+and processes the system mailbox of the current user.
 
 @node Passing Options to Scheme
 @subsection Passing Options to Scheme
 
 Sometimes it is necessary to pass some command line options to the
-scheme procedure. This can be done via @samp{-g}
-(@samp{--guile-command}) command line option. For example:
+scheme procedure. There are three ways of doing so.
+
+When using @option{--source} (@option{-s}) or @option{--code}
+(@option{-c}) options, all the rest of the command line following
+the option's argument is passed to Scheme program verbatim. This
+allows for making guimb scripts executable by the shell. If your system
+supports @samp{#!} magic at the start of scripts, add the following two
+lines to the beginning of your script to allow for its immediate execution:
 
 @example
-guimb --guile-command -opt --guile-command 24 --file progfile
+#! /usr/local/bin/guimb -s
+!#
+@end example
+
+@noindent
+(replace @samp{/usr/local/bin/} with the actual path to the @command{guimb}).
+
+Otherwise, if you use @option{--file} or @option{--expression} oprions,
+the additional arguments may be passed to the Scheme program @option{-g}
+(@option{--guile-arg}) command line option. For example:
+
+@example
+guimb --guile-arg -opt --guile-arg 24 --file progfile
 @end example
 
 In this example, the scheme procedure will see the following command line:
@@ -1594,29 +1793,29 @@ In this example, the scheme procedure will see the following command line:
 progfile -opt 24
 @end example
 
-If there are many arguments to be passed to Scheme, it is more
-convenient to enclose them in @samp{-@{} and @samp{-@}} escapes:
+Finally, if there are many arguments to be passed to Scheme, it is more
+convenient to enclose them in @option{-@{} and @option{-@}} escapes:
 
 @example
 guimb -@{ -opt 24 -@} --file progfile
 @end example
 
-All arguments enclosed between @samp{-@{} and @samp{-@}} are not processed
-by @file{guimb}, they are instead passed to the Scheme program verbatim.
-
 @node Guimb Invocation Summary
 @subsection Guimb Invocation Summary
 
 This is a short summary of the command line options available to
-@file{guimb}.
+@command{guimb}.
 
-@table @samp
+@table @option
 @item -d
 @itemx --debug
 Start with debugging evaluator and backtraces.
 @item -e EXPR
 @itemx --expression EXPR
 Execute given Scheme expression.
+@item -m @var{path}
+@itemx --maildir=@var{path}
+Set path to the mailspool directory
 @item -f PROGFILE
 @itemx --file PROGFILE
 Read Scheme program from PROGFILE.
@@ -1624,7 +1823,7 @@ Read Scheme program from PROGFILE.
 @itemx --guile-command ARG
 Append ARG to the command line passed to Scheme program.
 @item -@{ ... -@}
-Pass all command line options enclosed between @samp{-@{} and @samp{-@}}
+Pass all command line options enclosed between @option{-@{} and @option{-@}}
 to Scheme program.
 @item -m
 @itemx --mailbox MBOX
@@ -1866,7 +2065,7 @@ either from @file{inetd.conf} or as a standalone daemon.
 @node Starting comsatd
 @subsection Starting comsatd
 
-@table @samp
+@table @option
 @item -c @var{file}
 @itemx --config @var{file}
 Read configuration from given @var{file}. For more information about
@@ -1884,6 +2083,9 @@ comsatd -c /etc/comsat.conf
 @end example
 
 This is the default operation mode.
+@item -m @var{path}
+@itemx --maildir=@var{path}
+Set path to the mailspool directory
 @item -p @var{number}
 @itemx --port @var{number}
 Specify the port number to listen on. Default is 512.
@@ -1902,7 +2104,7 @@ The configuration parameters for comsatd are kept in a single
 configuration file. The file uses line-oriented format: each line
 contains a single statement. Comments are introduced with the @samp{#}
 sign and empty lines are ignored. You can specify the configuration
-file to use by using @samp{-c} or @samp{--config} command line switch.
+file to use by using @option{-c} or @option{--config} command line switch.
 
 The configuration file statements can logically be subdivided into
 @dfn{General Settings}, @dfn{Security Settings} and @dfn{Access Control
@@ -1931,7 +2133,7 @@ it is enabled.
 @node Security Settings
 @subsubsection Security Settings
 
-These statements control the way @file{comsatd} fights possible
+These statements control the way @command{comsatd} fights possible
 flooding attacks.
 
 @table @asis
@@ -1949,7 +2151,7 @@ within @var{number} seconds, the overflow-delay-time is doubled.
 @node Access Control Lists
 @subsubsection Access Control Lists
 
-Access control lists determine from which addresses @file{comsatd}
+Access control lists determine from which addresses @command{comsatd}
 will receive mail notification messages.
 
 The access control lists are introduced in configuration file using
@@ -1976,7 +2178,7 @@ Means a single host with IP address @var{netnum}.
 Denotes any IP address. It is equivalent to @samp{0.0.0.0/0}.
 @end table
 
-Upon receiving a notification message, @file{comsatd} compares its
+Upon receiving a notification message, @command{comsatd} compares its
 source address against each ACL rule in the order of their appearance
 in the configuration file. The first rule that matches the packet
 determines whether the message will be processed or rejected. If
@@ -1999,13 +2201,13 @@ acl deny any
 @end example
 
 @noindent
-which makes @file{comsatd} receive the notification messages from
+which makes @command{comsatd} receive the notification messages from
 localhost only.
 
 @node dot.biffrc
 @subsection A per-user configuration file.
 
-By default, when a notification arrives, @file{comsatd} prints subject,
+By default, when a notification arrives, @command{comsatd} prints subject,
 from headers and the first five lines from the new message to the user's
 tty. The user is allowed to change this behavior by using his own
 configuration file. This file should be located in the user's home
