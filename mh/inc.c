@@ -20,7 +20,8 @@
 #include <mh.h>
 
 const char *argp_program_version = "inc (" PACKAGE_STRING ")";
-static char doc[] = "GNU MH inc";
+static char doc[] = N_("GNU MH inc\v"
+"Use -help to obtain the list of traditional MH options.");
 static char args_doc[] = N_("[+folder]");
 
 /* GNU options */
@@ -38,9 +39,6 @@ static struct argp_option options[] = {
   {"width",   'w', N_("NUMBER"), 0, N_("Set output width")},
   {"quiet",   'q', 0,        0, N_("Be quiet")},
   {"license", 'l', 0,        0, N_("Display software license"), -1},
-
-  { N_("\nUse -help switch to obtain the list of traditional MH options. "), 0, 0, OPTION_DOC, "" },
-  
   { 0 }
 };
 

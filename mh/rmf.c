@@ -29,7 +29,8 @@
 #include <dirent.h>
 
 const char *argp_program_version = "rmf (" PACKAGE_STRING ")";
-static char doc[] = "GNU MH rmf";
+static char doc[] = N_("GNU MH rmf\v"
+"Use -help to obtain the list of traditional MH options.");
 static char args_doc[] = N_("[+folder]");
 
 /* GNU options */
@@ -38,7 +39,6 @@ static struct argp_option options[] = {
   {"interactive", 'i', N_("BOOL"), OPTION_ARG_OPTIONAL,
     N_("Interactive mode: ask for confirmation before removing each folder")},
   {"recursive", 'r', NULL, 0, N_("Recursively delete all subfolders")},
-  { N_("\nUse -help switch to obtain the list of traditional MH options. "), 0, 0, OPTION_DOC, "" },
   { 0 }
 };
 

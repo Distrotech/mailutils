@@ -361,13 +361,13 @@ main (int argc, char *argv[])
     {
       if ((rc = wicket_create (&wicket, opts.tickets)) != 0)
 	{
-	  mu_error (_("wicket create <%s> failed: %s\n"),
+	  mu_error (_("wicket_create <%s> failed: %s"),
 		   opts.tickets, mu_strerror (rc));
 	  goto cleanup;
 	}
       if ((rc = wicket_get_ticket (wicket, &ticket, 0, 0)) != 0)
 	{
-	  mu_error (_("ticket get failed: %s\n"), mu_strerror (rc));
+	  mu_error (_("ticket_get failed: %s"), mu_strerror (rc));
 	  goto cleanup;
 	}
       sieve_set_ticket (mach, ticket);
@@ -378,18 +378,18 @@ main (int argc, char *argv[])
     {
       if ((rc = mu_debug_create (&debug, mach)))
 	{
-	  mu_error (_("mu_debug_create failed: %s\n"), mu_strerror (rc));
+	  mu_error (_("mu_debug_create failed: %s"), mu_strerror (rc));
 	  goto cleanup;
 	}
       if ((rc = mu_debug_set_level (debug, opts.debug_level)))
 	{
-	  mu_error (_("mu_debug_set_level failed: %s\n"),
+	  mu_error (_("mu_debug_set_level failed: %s"),
 		    mu_strerror (rc));
 	  goto cleanup;
 	}
       if ((rc = mu_debug_set_print (debug, debugfp, mach)))
 	{
-	  mu_error (_("mu_debug_set_print failed: %s\n"),
+	  mu_error (_("mu_debug_set_print failed: %s"),
 		    mu_strerror (rc));
 	  goto cleanup;
 	}
@@ -400,14 +400,14 @@ main (int argc, char *argv[])
   /* Create, give a ticket to, and open the mailbox. */
   if ((rc = mailbox_create_default (&mbox, opts.mbox)) != 0)
     {
-      mu_error (_("mailbox create <%s> failed: %s\n"),
+      mu_error (_("mailbox_create <%s> failed: %s"),
 	       opts.mbox ? opts.mbox : _("default"), mu_strerror (rc));
       goto cleanup;
     }
 
   if (debug && (rc = mailbox_set_debug (mbox, debug)))
     {
-      mu_error (_("mailbox_set_debug failed: %s\n"), mu_strerror (rc));
+      mu_error (_("mailbox_set_debug failed: %s"), mu_strerror (rc));
       goto cleanup;
     }
 
@@ -447,8 +447,8 @@ main (int argc, char *argv[])
 
   if (rc != 0)
     {
-      mu_error (_("open on %s failed: %s\n"),
-	       opts.mbox ? opts.mbox : _("default"), mu_strerror (rc));
+      mu_error (_("open on %s failed: %s"),
+		opts.mbox ? opts.mbox : _("default"), mu_strerror (rc));
       goto cleanup;
     }
 
@@ -465,7 +465,7 @@ cleanup:
          any messages that were marked DELETED even if execution failed
          on a later message. */
       if ((e = mailbox_expunge (mbox)) != 0)
-	mu_error (_("expunge on %s failed: %s\n"),
+	mu_error (_("expunge on %s failed: %s"),
 		  opts.mbox ? opts.mbox : _("default"), mu_strerror (e));
 
       if (e && !rc)

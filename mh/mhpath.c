@@ -20,13 +20,13 @@
 #include <mh.h>
 
 const char *argp_program_version = "mhpath (" PACKAGE_STRING ")";
-static char doc[] = "GNU MH mhpath";
+static char doc[] = N_("GNU MH mhpath\v"
+"Use -help to obtain the list of traditional MH options.");
 static char args_doc[] = N_("[+folder] [msgs]");
 
 /* GNU options */
 static struct argp_option options[] = {
   {"folder",  'f', N_("FOLDER"), 0, N_("Specify folder to operate upon")},
-  { N_("\nUse -help switch to obtain the list of traditional MH options. "), 0, 0, OPTION_DOC, "" },
   { 0 }
 };
 

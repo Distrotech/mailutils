@@ -22,7 +22,8 @@
 #include <sys/stat.h>
 
 const char *argp_program_version = "comp (" PACKAGE_STRING ")";
-static char doc[] = "GNU MH comp";
+static char doc[] = N_("GNU MH comp\v"
+"Use -help to obtain the list of traditional MH options.");
 static char args_doc[] = "[msg]";
 
 #define ARG_NOEDIT      1
@@ -49,7 +50,6 @@ static struct argp_option options[] = {
   {"whatnowproc", ARG_WHATNOWPROC, N_("PROG"), 0,
    N_("Set the replacement for whatnow program")},
   {"use", 'u', N_("BOOL"), OPTION_ARG_OPTIONAL, N_("Use draft file preserved after the last session") },
-  { N_("\nUse -help switch to obtain the list of traditional MH options. "), 0, 0, OPTION_DOC, "" },
   { 0 }
 };
 
