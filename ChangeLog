@@ -1,3 +1,26 @@
+2001-05-27  Sergey Poznyakoff
+
+	* imap4d/imap4d.c, imap4d/capability.c, imap4d/copy.c,
+	  imap4d/create.c, imap4d/delete.c, imap4d/imap4d.h,
+          imap4d/list.c, imap4d/rename.c, imap4d/select.c,
+          imap4d/status.c, imap4d/namespace.c (added):
+		implemented NAMESPACE (rfc2342) support
+
+	* imap4d/util.c:
+		added util_normalize_path() function.
+		util_msgset() bailed out at 1:1 -- fixed.
+		Added util_parse_internal_date(), util_parse_header_date(),
+		util_parse_rfc822_date().
+
+	* imap4d/bye.c: typo in diagnostic output
+	* imap4d/noop.c: issue unsolicited response (as per rfc2060)
+	* imap4d/select.c: ditto
+	* imap4d/store.c: set MU_ATTRIBUTE_MODIFIED on a message, so
+		expunge will know it was modified.
+
+	* imap4d/search.c: implemented. Charsets other than US-ASCII are
+		not supported, though.  
+
 2001-05-27  Sam Roberts
 	* mailbox/address.c: removed unfolding of lines at a NL before parsing.
 	* mailbox/parse822.c: consider LF and CRLF equivalent for purposes
