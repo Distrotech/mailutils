@@ -1,3 +1,8 @@
+2003-08-13  Sergey Poznyakoff 
+
+	* mh/mh_sequence.c (mh_seq_add): Update current_message
+	if the sequence being set is "cur". Free temporary storage.
+
 2003-08-12  Sergey Poznyakoff 
 
 	* mh/folder.c (_scan): Prompt for creating the folder
