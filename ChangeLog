@@ -1,3 +1,36 @@
+2001-08-31 Sergey Poznyakoff
+
+	Generalized mu_getpwnam interface. mu_register_getpwnam allows
+	to register several functions which will be tried in turn in
+	order to obtain struct passwd*. Changed virtual domain code
+	in pop3d and imap4d to use this approach.
+
+	* mailbox/mutil.c: _app_getpwnam is a list of getpwnam functions.
+	mu_getpwnam calls each function in succession until it finds one
+	which returns non-NULL value.
+	* include/mailutils/mutil.h: Fixed mu_.*getpwnam declarations. Added
+	declaration for mu_virtual_domain and getpwnam_virtual()
+	* mailbox/Makefile.am: Add -DSITE_VIRTUAL_PWDDIR to CFLAGS.
+
+	* configure.in: New option --with-virtual-pwddir allows to configure
+	the path to domain passwd files. Defaults to <sysconfdir>/domain.
+
+	* imap4d/copy.c: Use mu_virtual_domain instead of is_virtual.
+	* imap4d/select.c: Likewise.
+	* imap4d/status.c: Likewise.
+
+	* imap4d/imap4d.c: Register getpwnam_virtual for handling virtual
+	domains.
+	* pop3d/pop3d.c: Likewise.
+
+	* imap4d/login.c: Removed imap4d_virtual. Its functionality passed
+	to getpwnam_virtual.
+	* pop3d/pop3d.h: Include mutil.h
+	* pop3d/user.c: Removed pop3d_virtual. Its functions are performed
+	by getpwnam_virtual. Renamed is_virtual to mu_virtual_domain.
+
+	* mail/alias.c: Use linear hash ordering.
+
 2001-08-30  Alain Magloire
 
 	In the virtual code, change the chdir() and build the full
