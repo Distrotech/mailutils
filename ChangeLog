@@ -31,6 +31,10 @@
 	
 	* mailbox/date.c: Added missing includes
 	* mailbox/tcp.c: Removed unused variables.
+
+	* imap4d/search.c (_scan_body): Bugfix. Add null terminator to
+	  the string read.
+	* imap4d/testsuite/imap4d/search.exp: Fixed `wine' testcase.
 	
 2002-12-10  Sergey Poznyakoff
 
