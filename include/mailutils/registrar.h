@@ -97,12 +97,38 @@ extern record_t file_record;
 extern record_t path_record;
 /* Local MH, "mh:" */  
 extern record_t mh_record;
+/* Maildir, "maildir:" */
+extern record_t maildir_record;
   
 /* SMTP mailer, "smtp://"  */
 extern record_t smtp_record;
 /* Sendmail, "sendmail:"  */
 extern record_t sendmail_record;
 
+#define mu_register_all_mbox_formats() do {\
+  list_t bookie = 0;\
+  registrar_get_list (&bookie);\
+  list_append (bookie, path_record);\
+  list_append (bookie, file_record);\
+  list_append (bookie, mbox_record);\
+  list_append (bookie, pop_record);\
+  list_append (bookie, imap_record);\
+  list_append (bookie, mh_record);\
+  list_append (bookie, maildir_record);\
+} while (0)
+
+#define mu_register_all_mailer_formats() do {\
+  list_t bookie = 0;\
+  registrar_get_list (&bookie);\
+  list_append (bookie, sendmail_record);\
+  list_append (bookie, smtp_record);\
+} while (0)
+
+#define mu_register_all_formats() do {\
+  mu_register_all_mbox_formats ();\
+  mu_register_all_mailer_formats ();\
+} while (0)
+  
 #ifdef __cplusplus
 }
 #endif
