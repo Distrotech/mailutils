@@ -31,11 +31,6 @@ struct daemon_param daemon_param = {
   0				/* No transcript by default */
 };
 
-#ifdef WITH_TLS
-int tls_available;
-int tls_done;
-#endif /* WITH_TLS */
-
 int login_disabled;
 
 /* Number of child processes.  */
@@ -126,6 +121,9 @@ main (int argc, char **argv)
   MU_AUTH_REGISTER_ALL_MODULES ();
   imap4d_capability_init ();
 
+  auth_gssapi_init ();
+  auth_gsasl_init ();
+  
 #ifdef WITH_TLS
   mu_tls_init_argp ();
 #endif /* WITH_TLS */
@@ -199,11 +197,7 @@ main (int argc, char **argv)
 
   /* Check TLS environment, i.e. cert and key files */
 #ifdef WITH_TLS
-  tls_available = mu_check_tls_environment ();
-  if (tls_available)
-    tls_available = mu_init_tls_libs ();
-  if (tls_available)
-    imap4d_capability_add ("STARTTLS");
+  starttls_init ();
 #endif /* WITH_TLS */
 
   /* Actually run the daemon.  */
