@@ -3,16 +3,16 @@
    Copyright (C) 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
-   it under the terms of the GNU General Public License as published by
+   it under the terms of the GNU Lesser General Public License as published by
    the Free Software Foundation; either version 2, or (at your option)
    any later version.
 
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
+   GNU Lesser General Public License for more details.
 
-   You should have received a copy of the GNU General Public License
+   You should have received a copy of the GNU Lesser General Public License
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
@@ -25,15 +25,25 @@
 #include <unistd.h>  
 #include <sys/file.h>
 #include <sys/stat.h>
-#include <errno.h>  
+#include <errno.h>
+#include <string.h>  
 #include <sieve.h>
 #include <sieve-gram.h>
-
-
+  
 char *sieve_filename;  
 int sieve_line_num;  
 ino_t sieve_source_inode;
-  
+
+static list_t string_list;
+ 
+static int number __P ((void));
+static int string __P ((void));
+static void multiline_begin __P ((void));
+static void multiline_add __P ((void));
+static void multiline_finish __P ((void));
+static void ident __P((const char *text));
+static void sieve_include __P((void));
+
 #ifdef FLEX_SCANNER
 #define xinput() (yyin ? getc(yyin) : EOF)
 #undef YY_INPUT
@@ -185,7 +195,7 @@ struct buffer_ctx {
 static struct buffer_ctx *context_stack;
 
 static struct buffer_ctx *ctx_lookup __P((ino_t ino));
-static int push_source __P((char *name));
+static int push_source __P((const char *name));
 static int pop_source __P((void));
 
 struct buffer_ctx *
@@ -200,7 +210,7 @@ ctx_lookup (ino_t ino)
 }
         
 int
-push_source (char *name)
+push_source (const char *name)
 {
   FILE *fp;
   struct buffer_ctx *ctx;
@@ -300,6 +310,7 @@ pop_source ()
 
 WS [ \t][ \t]*
 IDENT [a-zA-Z_][a-zA-Z_0-9]+
+SIZESUF [kKmMgG]
 
 %%
          /* C-style comments */
@@ -320,18 +331,20 @@ elsif	return ELSIF;
 else	return ELSE;    
 anyof	return ANYOF;   
 allof	return ALLOF;   
-true	return TRUE;    
-false   return FALSE;
 not     return NOT;
          /* Other tokens */
-{IDENT} return IDENT; 
-:{IDENT} { return TAG; }
-0[0-7]*          { return NUMBER; }
-0x[0-9a-fA-F][0-9a-fA-F]+   { return NUMBER; }
-[1-9][0-9]*      { return NUMBER; }
-\"[^"\n]*\" { return STRING; }
-text:   { BEGIN(ML); }
-<ML>.[ \t]*\n  { BEGIN(INITIAL); sieve_line_num++; return MULTILINE; }
+{IDENT}  { ident (yytext); return IDENT; } 
+:{IDENT} { ident (yytext + 1); return TAG; }
+0[0-7]*{SIZESUF}*                     { return number (); }
+0x[0-9a-fA-F][0-9a-fA-F]+{SIZESUF}*   { return number (); }
+[1-9][0-9]*{SIZESUF}*                 { return number (); }
+\"[^"\n]*\"                 { return string (); }
+text:          { BEGIN(ML); multiline_begin (); }
+<ML>.[ \t]*\n  { BEGIN(INITIAL);
+                 sieve_line_num++;
+                 multiline_add ();
+                 multiline_finish ();
+                 return MULTILINE; }
 <ML>.*\n { sieve_line_num++; } 
 {WS}     ;
 \n { sieve_line_num++; } 
@@ -394,5 +407,107 @@ sieve_open_source (const char *name)
   return push_source (name);
 }
   
-  
+int
+number ()
+{
+  char *p;
+  yylval.number = strtol (yytext, &p, 0);
+  switch (*p)
+    {
+    case 'k':
+    case 'K':
+      yylval.number *= 1024L;
+      break;
+      
+    case 'm':
+    case 'M':
+      yylval.number *= 1024*1024L;
+      break;
+      
+    case 'g':
+    case 'G':
+      yylval.number *= 1024*1024*1024L;
+    }
+  return NUMBER;
+}
 
+int
+string ()
+{
+  yylval.string = sieve_alloc (yyleng - 1);
+  memcpy (yylval.string, yytext + 1, yyleng - 2);
+  yylval.string[yyleng - 2] = 0;
+  return STRING; 
+}
+
+void
+multiline_add ()
+{
+  char *s = strdup (yytext);
+  if (!s)
+    {
+      yyerror ("not enough memory");
+      exit (1);
+    }
+  list_append (string_list, s);
+}
+
+void
+multiline_begin ()
+{
+  int status;
+  
+  if (string_list)
+    sieve_slist_destroy (&string_list);
+  status = list_create (&string_list);
+  if (status)
+    {
+      sieve_error ("list_create: %s", mu_errstring (status));
+      exit (1);
+    }
+}
+
+void
+multiline_finish ()
+{
+  iterator_t itr;
+  int length = 0;
+  char *p;
+  
+  if (!string_list || iterator_create (&itr, string_list))
+    return;
+
+  /* Count number of characters in the multiline */
+  for (iterator_first (itr); !iterator_is_done (itr); iterator_next (itr))
+    {
+      char *s;
+      iterator_current (itr, (void **)&s);
+      length += strlen (s);
+    }
+
+  /* Copy the contents */
+  yylval.string = sieve_alloc (length + 1);
+  p = yylval.string;
+  for (iterator_first (itr); !iterator_is_done (itr); iterator_next (itr))
+    {
+      char *s;
+      iterator_current (itr, (void **)&s);
+      strcpy (p, s);
+      p += strlen (s);
+      free (s);
+    }
+  *p = 0;
+  iterator_destroy (&itr);
+  list_destroy (&string_list);
+}
+
+void
+ident (const char *text)
+{
+  yylval.string = strdup (text);
+  if (!yylval.string)
+    {
+      yyerror ("not enough memory");
+      exit (1);
+    }
+}
