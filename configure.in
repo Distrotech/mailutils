@@ -46,7 +46,7 @@ dnl Check for headers
 AC_HEADER_STDC
 AC_HEADER_DIRENT
 AM_C_PROTOTYPES
-AC_CHECK_HEADERS(errno.h fcntl.h inttypes.h libgen.h limits.h malloc.h \
+AC_CHECK_HEADERS(argp.h errno.h fcntl.h inttypes.h libgen.h limits.h malloc.h \
  paths.h shadow.h stdio.h stdlib.h  string.h strings.h sys/file.h syslog.h \
  unistd.h)
 
@@ -72,12 +72,18 @@ AC_REPLACE_FUNCS(snprintf strtok_r vasprintf strncasecmp strcasecmp)
 AC_CHECK_FUNCS(mkstemp)
 
 dnl Check for libraries
+AC_CHECK_FUNCS(argp_parse)
+if test x"$ac_cv_func_argp_parse" != xyes; then
+	AC_REPLACE_FUNCS(strndup strnlen strchrnul)
+	AC_SUBST(ARGPLIBS)
+fi
 
 dnl Use either PAM or CRYPT, not both.
 if test x"$testpam" = x"yes"; then
 	AC_CHECK_HEADERS(security/pam_appl.h)
 	if test x"$ac_cv_header_security_pam_appl_h" = x"yes"; then
-		AC_CHECK_LIB(pam, pam_start, AUTHLIBS="-lpam -ldl" ac_cv_have_libpam="yes",, -ldl)
+		AC_CHECK_LIB(pam, pam_start,
+			AUTHLIBS="-lpam -ldl" ac_cv_have_libpam="yes",, -ldl)
 		AC_DEFINE(USE_LIBPAM)
 		AM_CONDITIONAL(USE_LIBPAM, test x"$ac_cv_have_libpam" != xno)
 	fi
@@ -93,28 +99,29 @@ AC_SUBST(AUTHLIBS)
 
 dnl Check threading support
 if test x"$usepthread" = x"yes"; then
-    AC_SEARCH_LIBS(pthread_cancel, pthread,
-      [AC_CHECK_FUNCS(pthread_rwlock_init)
-      AC_CHECK_HEADERS(pthread.h,  AC_DEFINE(WITH_PTHREAD))])
+	AC_SEARCH_LIBS(pthread_cancel, pthread,
+		[AC_CHECK_FUNCS(pthread_rwlock_init)
+			AC_CHECK_HEADERS(pthread.h,  AC_DEFINE(WITH_PTHREAD))])
 fi
 
 dnl Do we need extra libs for networking?
 AC_CHECK_FUNC(gethostbyname, [true],
-    AC_CHECK_LIB(nsl, gethostbyaddr, LIBS="-lnsl $LIBS"))
+	AC_CHECK_LIB(nsl, gethostbyaddr, LIBS="-lnsl $LIBS"))
 
 AC_CHECK_FUNC(socket, [true],
-    AC_CHECK_LIB(socket, socket, LIBS="-lsocket $LIBS"))
+	AC_CHECK_LIB(socket, socket, LIBS="-lsocket $LIBS"))
 
 dnl Check for GNU Readline
 if test x"$usereadline" = x"yes"; then
-    AC_CHECK_LIB(readline, readline,
-      AC_CHECK_HEADERS(readline/readline.h, AC_DEFINE(WITH_READLINE)))
+	AC_CHECK_LIB(readline, readline,
+		[AC_CHECK_HEADERS(readline/readline.h, AC_DEFINE(WITH_READLINE))
+		LIBS="$LIBS -lreadline"])
 fi
 
 dnl Check for Berkeley DB
 if test x"${usedb2}" = x"yes"; then
-    AC_CHECK_LIB(db, db_open, [AC_CHECK_HEADERS(db.h, AC_DEFINE(WITH_BDB2))
-      LIBS="$LIBS -ldb"])
+	AC_CHECK_LIB(db, db_open, [AC_CHECK_HEADERS(db.h, AC_DEFINE(WITH_BDB2))
+		LIBS="$LIBS -ldb"])
 fi
 
 dnl Output Makefiles
