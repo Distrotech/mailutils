@@ -9,7 +9,7 @@ Initialize the mailer object.
 Not Implemented.
 
 @defmac MU_ML_PROGRAM
-Program like sendmail, mail, mailx to deliver the mail
+Program like Sendmail, mail, mailx to deliver the mail
 @end defmac
 
 @defmac MU_ML_SMTP
@@ -29,7 +29,7 @@ Not Implemented.
 @section Open/Close
 
 @deftypefun int mailer_open (mailer_t @var{mailer}, int @var{flag})
-On mailer program, it is a @code{stat(2)} or ping a server for smtp.
+On mailer program, it is a @code{stat(2)} or ping a server for SMTP.
 @end deftypefun
 @deftypefun int mailer_close (mailer_t @var{mailer})
 Noop on most mailers.
@@ -56,12 +56,12 @@ executed.
 @section SMTP
 @cindex SMTP
 
-TODO: describe protocol, url, mailto url etc ..
+TODO: describe protocol, URL, mailto URL etc ..
 
 @section UUCP
 @cindex UUCP
 
-Yeurk ! It this to old ? Is it worth it ?
+ ! It this to old ? Is it worth it ?
 
 @section Program
 @cindex Sendmail

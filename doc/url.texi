@@ -5,8 +5,8 @@ necessary information to initialize @code{mailbox_t}, or @code{mailer_t}
 properly.
 
 @section POP3
-The POP URL scheme contains a pop server, optionnal port number
-and the authentication mechanism.  The genereal form is
+The POP URL scheme contains a pop server, optional port number
+and the authentication mechanism.  The general form is
 
 @example
 @url{pop://user;AUTH=type@@hostname:port}
@@ -33,7 +33,7 @@ Description of the fields and examples are needed.
 @section File
 
 Local folder should be handle by this URL.  It is preferable to let
-the mailbox recognise the type of mailbox and take the appropriate
+the mailbox recognize the type of mailbox and take the appropriate
 action.
 
 @example
@@ -42,7 +42,7 @@ action.
 @url{file://home/obelix/Mail}
 @end example
 
-For MMDF, MH local mailboxes urls are provided,  but it is preferable to
+For MMDF, MH local mailboxes URLs are provided,  but it is preferable to
 use @url{file://path} and let the library figure out which one.
 
 @example
@@ -67,9 +67,9 @@ to mailing lists.
 
 For more complete information see @cite{rfc2368}.
 
-@section URL funtions
+@section URL functions
 
-Helper functions are provided to retreive and set  the @emph{URL} fields.
+Helper functions are provided to retrieve and set  the @emph{URL} fields.
 
 @deftypefun int  url_init (url_t *@var{url}, const char *name)
 Initialize and parse the @var{url}

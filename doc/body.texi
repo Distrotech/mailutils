@@ -1,5 +1,5 @@
 The @code{body_t} type contains a @code{header_t}, a content and
-optionnaly another @code{body_t} part.
+optionally another @code{body_t} part.
 
 @section Init/Destroy
 
@@ -8,11 +8,11 @@ Initialize an object @var{bdy}.
 @end deftypefun
 
 @deftypefun void body_destroy (body_t *@var{bdy})
-The ressources allocate are @var{bdy} freed.
+The resources allocate are @var{bdy} freed.
 @end deftypefun
 
 @section Attributes
-The body can cary header attributes if it is a mime.  They also come
+The body can carry header attributes if it is a mime.  They also come
 with the matching "set".
 
 @deftypefun int body_get_header (body_t @var{bdy}, header_t *@var{hdr})
@@ -24,7 +24,7 @@ with the matching "set".
 @deftypefun int body_get_content_encoding (body_t @var{bdy}, char *@var{type}, size_t @var{len})
 @end deftypefun
 
-@section Attachements
+@section Attachments
 
 @deftypefun int body_set_filename (body_t @var{bdy}, char *file)
 Associate the body with a @var{file}.

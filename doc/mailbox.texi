@@ -1,10 +1,10 @@
 Mail boxes come in different formats and may be on a remote hosts,
-only accessible through Mail Delivery Agent(MDA).  Regardeless
+only accessible through Mail Delivery Agent(MDA).  Regardless
 of the format and the protocol use, some common actions are needed like
 reading, saving, deleting, scanning ... Those actions are provided via a
 unify API mailbox_t.
 
-All functions of the mailbox_t API return 0 if succesfull or non-zero
+All functions of the mailbox_t API return 0 if successful or non-zero
 for failure, unless specify otherwise.
 
 @section Init/Destroy
@@ -48,7 +48,7 @@ mailbox_init_default (&mbx, NULL);
 @end deftypefun
 
 @deftypefun int mailbox_destroy (mailbox_t *@var{mbx})
-All ressources allocated are release.  If the stream is not open,
+All resources allocated are release.  If the stream is not open,
 @code{mailbox_close} is call.
 @end deftypefun
 
@@ -58,7 +58,7 @@ on some cases like POP3, when opening, the lock can be persistent until
 the stream is closed as required by the RFC.
 
 @deftypefun int mailbox_open (mailbox_t @var{mbx}, int @var{flag})
-Open the mailbox box stream. This funtion will call @code{mailbox_scan}.
+Open the mailbox box stream. This function will call @code{mailbox_scan}.
 
 @defmac MU_MB_RDONLY
 Stream is open read-only.
@@ -106,7 +106,7 @@ main ()
 
     if (mailbox_init_default (&mbx, NULL) != 0)
       @{
-          fprintf ("Can't initiliaze system mailbox\n");
+          fprintf ("Can't initialize system mailbox\n");
           exit (EXIT_FAILURE);
       @}
     /* the open may fail if no mailbox was created,
@@ -158,7 +158,7 @@ Mark message @var{msgno} for deletion.
 @end deftypefun
 
 @deftypefun int mailbox_undelete (mailbox_t @var{mbx}, size_t @var{msgno})
-UnMark message @var{msgno} for deletion.
+Unmark message @var{msgno} for deletion.
 @end deftypefun
 
 @deftypefun int mailbox_is_deleted (mailbox_t @var{mbx}, size_t @var{msgno})
@@ -192,7 +192,7 @@ If @var{destroy} is set non-zero @code{message_destroy} will be call after deliv
 
 @deftypefun int mailbox_get_message (mailbox_t @var{mbx}, size_t @var{msgno}, message_t *@var{msg})
 @var{msg} is initialize, be warn when doing @code{mailbox_expunge} the
-offsets to the mailbox are losts and accessing the @var{msg} is undefined.
+offsets to the mailbox are lost and accessing the @var{msg} is undefined.
 To prevent this, it is possible to @code{message_clone} or set a notification
 to take appropriate action.
 @end deftypefun
@@ -203,7 +203,7 @@ this @var{msg} are executed.
 @end deftypefun
 
 @section Reading Contents/Headers
-Low level Reading funtions for contents and headers.
+Low level Reading functions for contents and headers.
 
 @comment @deftypefun int mailbox_set_header (mailbox_t @var{mbx}, size_t @var{msgno}, const char *@var{header}, size_t @var{len}, int @var{replace})
 @comment Fill the header of new message @var{msgno}.  If @var{replace} is zero the
@@ -245,8 +245,8 @@ Most mailboxes will lock before changing their contents.  External usage of
 those functions are discourage, since they may interfere with normal
 operation and cause deadlocks.  If however there is need to access the
 mailbox outside the functions provided by the library, locking and unlocking
-can be done explicitely.  There is another level of internal
-locking to provide synchronisation to the mailbox_t object.
+can be done explicitly.  There is another level of internal
+locking to provide synchronization to the mailbox_t object.
 
 @deftypefun int mailbox_lock (mailbox_t @var{mbx}, int @var{flag})
 Grab the lock.  In some cases, i.e Unix mbox this may involve creating
@@ -287,7 +287,7 @@ Set the file permission to @var{mode}.  If the Mailbox was not
 
 @section Scanning
 
-Scan is done implicitely on @code{mailbox_open}.
+Scan is done implicitly on @code{mailbox_open}.
 
 @deftypefun int mailbox_scan (mailbox_t @var{mbx}, size_t *@var{msgs})
 The mailbox is parse and @var{msgs} if not NULL contain the message count.
@@ -303,7 +303,7 @@ A notification function can be set to monitor progress.
 Return 1 if @var{mbx} is up to date 0 otherwise.
 @end deftypefun
 
-@deftypefun int mailbox_size (mailbox_t @var{mbx}, offt_t *@var{size})
+@deftypefun int mailbox_size (mailbox_t @var{mbx}, off_t *@var{size})
 @var{size} is assign the mailbox total size.
 @end deftypefun
 
@@ -346,7 +346,7 @@ function is called, @code{notification (mbx, arg)}. Not Implemented.
 When parsing the mailbox every count call @code{notification (msgcount, arg)}.
 Note that all locks are held, and @var{notification} should be very small and
 simple, it should not access or do any action on the mailbox doing this may
-cause undefined behaviour.
+cause undefined behavior.
 @end deftypefun
 @deftypefun int mailbox_set_msg_destroy_cb (mailbox_t @var{mbx}, int (*@var{notification}) (mailbox_t @var{mbx}, message_t @var{msg}, void *@var{arg}))
 @end deftypefun
@@ -460,7 +460,7 @@ locking policy, appending envelope, describe the flags use in _open(..), etc...
 @cindex POP3 Mbox
 
 TODO: describe timeout policies, describe the flags use in _open(..),
-describe different authorisation supported.
+describe different authorization supported.
 
 @section IMAP Mbox
 @cindex IMAP Mbox
