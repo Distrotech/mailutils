@@ -143,5 +143,9 @@ readmsg/readmsg.c
 
 sieve/sieve.c
 
+mimeview/mimeview.c
+mimeview/mimetypes.y
+mimeview/mimetypes.l
+
 # EOF
 

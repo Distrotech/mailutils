@@ -1,8 +1,23 @@
-2005-03-08  Sergey Poznyakoff  <gray@Noldor.runasimi.org>
+2005-03-08  Sergey Poznyakoff
+
+	* TODO: Updated
+	* configure.ac (DEFAULT_CUPS_CONFDIR): New variable
+	* doc/texinfo/programs.texi (mimeview): Documented the program
+	* mimeview/Makefile.am (AM_CFLAGS): Use DEFAULT_CUPS_CONFDIR
+	* mimeview/mimeview.c (create_filter,print_exit_status)
+	(get_pager): New function
+	(run_mailcap): Pipe file contents to the command if its invocation
+	does not contain %s.
+	Use pager if `copiousoutput' is specified in mailcap
+
+	* po/POTFILES.in: Updated
+	
+2005-03-08  Sergey Poznyakoff 
 
 	TODO:121 said: "file viewer, based on the mimetypes api. I want to do
 	a "v foo.blah", have it look up .blah in mime.types, and do the a
-	ction spec'ed in mailcap." Here it goes:
+	ction spec'ed in mailcap."
+	So, here it goes:
 
 	* mimeview: New directory
 	* mimeview/mimetypes.y: New file
@@ -10,12 +25,13 @@
 	* mimeview/mimeview.c: New file
 	* mimeview/mimeview.h: New file
 	* mimeview/Makefile.am: New file
+	* mimeview/.cvsignore: New file	 
 
 	* configure.ac: Added mimeview
 	* Makefile.am: Likewise
 	* doc/texinfo/programs.texi (mimeview): New section.
 	(mail): Document recently added variables.
-	* mailbox/mailcap.c (mu_mailcap_entry_coupiousoutput): Bugfix
+	* mailbox/mailcap.c (mu_mailcap_entry_copiousoutput): Bugfix
 	
 2005-03-07  Sergey Poznyakoff
 

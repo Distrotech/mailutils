@@ -120,7 +120,6 @@ file?)
 
 ** mimeview:
 *** Support test, print and copiousoutput.
-*** Pipe files to the command's stdin if its mailcap entry does not have %s.
 *** Support nametemplate
 
 ** all
