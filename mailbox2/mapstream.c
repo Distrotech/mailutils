@@ -53,13 +53,6 @@ _map_destroy (stream_t *pstream)
 
   if (mu_refcount_dec (ms->refcount) == 0)
     {
-      if (ms->ptr != MAP_FAILED)
-	{
-	  if (ms->ptr)
-	    munmap (ms->ptr, ms->size);
-	}
-      if (ms->fd != -1)
-	close (ms->fd);
       mu_refcount_destroy (&ms->refcount);
       free (ms);
     }

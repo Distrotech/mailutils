@@ -25,6 +25,7 @@
 # include <strings.h>
 #endif
 
+#include <stdio.h>
 #include <mailutils/sys/pop3.h>
 
 int
@@ -36,7 +37,10 @@ pop3_get_debug (pop3_t pop3, mu_debug_t *pdebug)
 
   if (pop3->debug == NULL)
     {
-      int status = mu_debug_stdio_create (&pop3->debug, stderr);
+      stream_t stream;
+      int status = stream_stdio_create (&stream, stderr);
+      if (status == 0)
+	status = mu_debug_stream_create (&pop3->debug, stream, 0);
       if (status != 0)
 	return status;
     }

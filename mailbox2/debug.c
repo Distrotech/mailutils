@@ -63,20 +63,9 @@ mu_debug_get_level (mu_debug_t debug, unsigned int *plevel)
 }
 
 int
-mu_debug_print (mu_debug_t debug, unsigned int level, const char *fmt, ...)
+mu_debug_print (mu_debug_t debug, unsigned int level, const char *msg)
 {
-  va_list ap;
-  va_start (ap, fmt);
-  mu_debug_printv (debug, level, fmt, ap);
-  va_end (ap);
-  return 0;
-}
-
-int
-mu_debug_printv (mu_debug_t debug, unsigned int level, const char *fmt,
-		 va_list ap)
-{
-  if (debug == NULL || debug->vtable == NULL || debug->vtable->printv == NULL)
+  if (debug == NULL || debug->vtable == NULL || debug->vtable->print == NULL)
     return MU_ERROR_NOT_SUPPORTED;
-  return debug->vtable->printv (debug, level, fmt, ap);
+  return debug->vtable->print (debug, level, msg);
 }

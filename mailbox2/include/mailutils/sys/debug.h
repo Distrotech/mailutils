@@ -43,7 +43,7 @@ struct _mu_debug_vtable
 
   int  (*get_level) __P ((mu_debug_t, unsigned int *));
   int  (*set_level) __P ((mu_debug_t, unsigned int));
-  int  (*printv)    __P ((mu_debug_t, unsigned int, const char *, va_list));
+  int  (*print)     __P ((mu_debug_t, unsigned int, const char *));
 };
 
 struct _mu_debug

@@ -39,8 +39,6 @@ _memory_destroy (stream_t *pstream)
   struct _memory_stream *mem = (struct _memory_stream *)*pstream;
   if (mu_refcount_dec (mem->refcount) == 0)
     {
-      if (mem && mem->ptr != NULL)
-	free (mem->ptr);
       mu_refcount_destroy (&mem->refcount);
       free (mem);
     }

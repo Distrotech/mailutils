@@ -52,8 +52,6 @@ _fds_destroy (stream_t *pstream)
   struct _fds *fds = (struct _fds *)*pstream;
   if (mu_refcount_dec (fds->refcount) == 0)
     {
-      if (fds->fd != -1)
-	close (fds->fd);
       mu_refcount_destroy (&fds->refcount);
       free (fds);
     }

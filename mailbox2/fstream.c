@@ -47,8 +47,6 @@ _fs_destroy (stream_t *pstream)
   struct _fs *fs = (struct _fs *)*pstream;
   if (mu_refcount_dec (fs->refcount) == 0)
     {
-      if (fs->file)
-	fclose (fs->file);
       mu_refcount_destroy (&fs->refcount);
       free (fs);
     }
@@ -347,7 +345,7 @@ _fs_open (stream_t stream, const char *filename, int port, int flags)
 	  || filebuf.st_nlink != 1
 	  || !S_ISREG(fdbuf.st_mode))
 	{
-	  mu_error ("%s must be a plain file with one link\n", filename);
+	  /*mu_error ("%s must be a plain file with one link\n", filename); */
 	  close (fd);
 	  return EINVAL;
 	}

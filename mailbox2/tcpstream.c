@@ -64,8 +64,6 @@ _tcp_destroy (stream_t *pstream)
     {
       if (tcp->host)
 	free (tcp->host);
-      if (tcp->fd != -1)
-	close (tcp->fd);
       mu_refcount_destroy (&tcp->refcount);
       free (tcp);
     }
@@ -78,6 +76,9 @@ _tcp_close0 (stream_t stream)
   if (tcp->fd != -1)
     close (tcp->fd);
   tcp->fd = -1;
+  if (tcp->host)
+    free (tcp->host);
+  tcp->host = NULL;
   tcp->state = TCP_STATE_INIT;
   return 0;
 }
@@ -108,6 +109,8 @@ _tcp_open0 (stream_t stream, const char *host, int port, int flags)
   if (tcp->state == TCP_STATE_INIT)
     {
       tcp->port = port;
+      if (tcp->host)
+	free (tcp->host);
       tcp->host = strdup (host);
       if (tcp->host == NULL)
 	return MU_ERROR_NO_MEMORY;

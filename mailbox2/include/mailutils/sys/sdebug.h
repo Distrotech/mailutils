@@ -42,7 +42,8 @@ struct _sdebug
   struct _mu_debug base;
   mu_refcount_t refcount;
   int level;
-  FILE *fp;
+  stream_t stream;
+  int close_on_destroy;
 };
 
 #ifdef __cplusplus

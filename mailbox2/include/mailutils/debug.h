@@ -19,8 +19,7 @@
 #define _MAILUTILS_DEBUG_H
 
 #include <sys/types.h>
-#include <stdarg.h>
-#include <stdio.h>
+#include <mailutils/stream.h>
 
 #ifndef __P
 #ifdef __STDC__
@@ -42,14 +41,11 @@ typedef struct _mu_debug* mu_debug_t;
 
 extern int  mu_debug_ref       __P ((mu_debug_t));
 extern void mu_debug_destroy   __P ((mu_debug_t *));
-extern int  mu_debug_set_level __P ((mu_debug_t, unsigned int level));
-extern int  mu_debug_get_level __P ((mu_debug_t, unsigned int *plevel));
-extern int  mu_debug_print     __P ((mu_debug_t debug, unsigned int level,
-				     const char *format, ...));
-extern int  mu_debug_printv    __P ((mu_debug_t debug, unsigned int level,
-				     const char *format, va_list argp));
+extern int  mu_debug_set_level __P ((mu_debug_t, unsigned int));
+extern int  mu_debug_get_level __P ((mu_debug_t, unsigned int *));
+extern int  mu_debug_print     __P ((mu_debug_t, unsigned int, const char *));
 
-extern int  mu_debug_stdio_create    __P ((mu_debug_t *, FILE *));
+extern int  mu_debug_stream_create   __P ((mu_debug_t *, stream_t, int));
 
 #ifdef __cplusplus
 }

@@ -48,7 +48,6 @@ int com_stat (char *);
 int com_top  (char *);
 int com_uidl (char *);
 int com_user (char *);
-int print_response (void);
 
 void initialize_readline (void);
 char *stripwhite (char *);
@@ -152,7 +151,7 @@ main (int argc, char **argv)
   exit (0);
 }
 
-/* Execute a command line. */
+/* Parse and execute a command line. */
 int
 execute_line (char *line)
 {
@@ -302,28 +301,11 @@ command_generator (const char *text, int state)
 }
 
 int
-print_response ()
-{
-#if 0
-  char response[1024];
-  if (pop3)
-    {
-      pop3_response (pop3, response, sizeof response, NULL);
-      fprintf (stderr, "%s\n", response);
-    }
-  else
-    fprintf (stderr, "Not connected, try `connect' first\n");
-#endif
-  return 0;
-}
-
-int
 com_user (char *arg)
 {
   if (!valid_argument ("user", arg))
     return 1;
-  pop3_user (pop3, arg);
-  return print_response ();
+  return pop3_user (pop3, arg);
 }
 int
 com_apop (char *arg)
@@ -336,8 +318,7 @@ com_apop (char *arg)
   digest = strtok (NULL, " ");
   if (!valid_argument ("apop", user) || !valid_argument ("apop", digest))
     return 1;
-  pop3_apop (pop3, user, digest);
-  return print_response ();
+  return pop3_apop (pop3, user, digest);
 }
 
 int
@@ -346,7 +327,6 @@ com_capa (char *arg)
   iterator_t iterator;
   int status = pop3_capa (pop3, &iterator);
   (void)arg;
-  print_response ();
   if (status == 0)
     {
       for (iterator_first (iterator);
@@ -370,7 +350,6 @@ com_uidl (char *arg)
     {
       iterator_t uidl_iterator;
       int status = pop3_uidl_all (pop3, &uidl_iterator);
-      print_response ();
       if (status == 0)
 	{
 	  for (iterator_first (uidl_iterator);
@@ -392,8 +371,6 @@ com_uidl (char *arg)
       unsigned int msgno = strtoul (arg, NULL, 10);
       if (pop3_uidl (pop3, msgno, &uidl) == 0)
 	printf ("Msg: %d UIDL: %s\n", msgno, (uidl) ? uidl : "");
-      else
-	print_response ();
     }
   return 0;
 }
@@ -405,7 +382,6 @@ com_list (char *arg)
     {
       iterator_t list_iterator;
       int status = pop3_list_all (pop3, &list_iterator);
-      print_response ();
       if (status == 0)
 	{
 	  for (iterator_first (list_iterator);
@@ -426,8 +402,6 @@ com_list (char *arg)
       unsigned int msgno = strtoul (arg, NULL, 10);
       if (pop3_list (pop3, msgno, &size) == 0)
 	printf ("Msg: %d Size: %d\n", msgno, size);
-      else
-	print_response ();
     }
   return 0;
 }
@@ -436,8 +410,7 @@ int
 com_noop (char *arg)
 {
   (void)arg;
-  pop3_noop (pop3);
-  return print_response ();
+  return pop3_noop (pop3);
 }
 
 static void
@@ -475,8 +448,7 @@ com_pass (arg)
       pass [strlen (pass) - 1] = '\0'; /* nuke the trailing line.  */
       arg = pass;
     }
-  pop3_pass (pop3, arg);
-  return print_response ();
+  return pop3_pass (pop3, arg);
 }
 
 int
@@ -487,7 +459,6 @@ com_stat (char *arg)
   (void)arg;
   count = size = 0;
   pop3_stat (pop3, &count, &size);
-  print_response ();
   fprintf (stdout, "Mesgs: %d Size %d\n", count, size);
   return 0;
 }
@@ -500,8 +471,7 @@ com_dele (arg)
   if (!valid_argument ("dele", arg))
       return 1;
   msgno = strtoul (arg, NULL, 10);
-  pop3_dele (pop3, msgno);
-  return print_response ();
+  return pop3_dele (pop3, msgno);
 }
 
 /* Print out help for ARG, or for all of the commands if ARG is
@@ -548,8 +518,7 @@ int
 com_rset (char *arg)
 {
   (void)arg;
-  pop3_rset (pop3);
-  return print_response ();
+  return pop3_rset (pop3);
 }
 
 int
@@ -575,7 +544,6 @@ com_top (char *arg)
   msgno = strtoul (arg, NULL, 10);
 
   status = pop3_top (pop3, msgno, lines, &stream);
-  print_response ();
 
   if (status == 0)
     {
@@ -600,7 +568,6 @@ com_retr (char *arg)
 
   msgno = strtoul (arg, NULL, 10);
   status = pop3_retr (pop3, msgno, &stream);
-  print_response ();
 
   if (status == 0)
     {
@@ -634,7 +601,6 @@ com_connect (char *arg)
       pop3_get_debug (pop3, &debug);
       mu_debug_set_level (debug, MU_DEBUG_PROT);
       pop3_connect (pop3, host, port);
-      print_response ();
     }
   else
     fprintf (stderr, "Failed to create pop3: %s\n", strerror (status));
@@ -662,12 +628,10 @@ com_quit (char *arg)
     {
       if (pop3_quit (pop3) == 0)
 	{
-	  print_response ();
 	  pop3_disconnect (pop3);
 	}
       else
 	{
-	  print_response ();
 	  fprintf (stdout, "Try 'exit' to leave %s\n", progname);
 	}
     }
