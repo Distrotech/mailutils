@@ -128,7 +128,7 @@ dnl Check threading support
 # We have to rearrange things a little, it appears that the new autoconf
 # does not like long cascading AC_CHECK_LIB.
 if test x"$usepthread" = x"yes"; then
-	AC_CHECK_LIB(pthread, pthread_cancel, have_libpthread=yes
+	AC_CHECK_LIB(pthread, pthread_cancel, have_libpthread=yes,
 		 have_libpthread=no)
         if test x"$have_libpthread" = x"yes"; then
 		AC_CHECK_HEADERS(pthread.h, AC_DEFINE(WITH_PTHREAD))
@@ -152,10 +152,14 @@ AC_CHECK_FUNC(socket, [true],
 	AC_CHECK_LIB(socket, socket, LIBS="-lsocket $LIBS"))
 
 dnl Check for GNU Readline
+AC_SUBST(READLINE_LIBS)
 if test x"$usereadline" = x"yes"; then
 	AC_CHECK_LIB(readline, readline,
-		[AC_CHECK_HEADERS(readline/readline.h, AC_DEFINE(WITH_READLINE))
-		LIBS="$LIBS -lreadline"])
+		      [AC_CHECK_HEADERS(readline/readline.h, 
+		       AC_DEFINE(WITH_READLINE))
+		       READLINE_LIBS="-lcurses -lreadline"],
+			:,
+		       -lcurses)
 fi
 
 dnl Check for Berkeley DB
