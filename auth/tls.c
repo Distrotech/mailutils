@@ -145,8 +145,7 @@ mu_check_tls_environment (void)
 int
 mu_init_tls_libs (void)
 {
-  int rs = 1;
-  rs = gnutls_global_init ();
+  int rs = gnutls_global_init ();
 
   if (rs == 0)			/* Reverse for tls_available */
     rs = 1;
@@ -199,10 +198,15 @@ mu_init_tls_server (int fd_in, int fd_out)
     gnutls_certificate_set_x509_trust_file (x509_cred, ssl_cafile,
 					    GNUTLS_X509_FMT_PEM);
 
-  gnutls_certificate_set_x509_key_file (x509_cred,
-					ssl_cert, ssl_key,
-					GNUTLS_X509_FMT_PEM);
-
+  rs = gnutls_certificate_set_x509_key_file (x509_cred,
+					     ssl_cert, ssl_key,
+					     GNUTLS_X509_FMT_PEM);
+  if (rs < 0)
+    {
+      mu_error (_("cannot parse cerificate/key: %s"), gnutls_strerror (rs));
+      return 0;
+    }
+  
   generate_dh_params ();
   gnutls_certificate_set_dh_params (x509_cred, dh_params);
 
@@ -213,8 +217,7 @@ mu_init_tls_server (int fd_in, int fd_out)
   if (rs < 0)
     {
       gnutls_deinit (session);
-      mu_error (_("TLS/SSL handshake failed!"));
-      gnutls_perror (rs);
+      mu_error (_("TLS/SSL handshake failed: %s"), gnutls_strerror (rs));
       return 0;			/* failed */
     }
   return (gnutls_session) session;
