@@ -1,4 +1,4 @@
-GNU mailutils NEWS -- history of user-visible changes.  2005-03-07
+GNU mailutils NEWS -- history of user-visible changes.  2005-03-12
 Copyright (C) 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 See the end of file for copying conditions.
 
@@ -28,10 +28,14 @@ Implemented following variables: flipr, showto, bang.
 The command `touch' does not alter messages that were deleted or saved
 to a file.
 
-** The `decode' command inspects `metamail' variable to see if
-it should use an external program for displaying MIME message
-parts. The variable, if set, should contain the invocation line
-of the program. Thus, settting
+** The `decode' command uses `mailcap' extension to display
+parts of MIME multy-part messages. By default the built-in mailcap
+engine is used. Normally `mail' asks for confirmation before running
+an interpreter to display a message part, unless the type of the part
+is listed in `mimenoask' mail variable.
+
+If `metamail' variable is set, it specifies the external program
+to be used instead of the built-in engine. Thus, settting
 
       set metamail="metamail -m mail -p"
 
@@ -39,7 +43,9 @@ in your ~/.mailrc enables use of the standard `metamail' program
 by `decode'.
 
 Before calling `metamail', the environment variable METAMAIL_PAGER
-is set to the value of the variable PAGER.
+is set to the value of the variable PAGER. If `mimenoask' mail
+variable is set, its value is passed to `metamail' via MM_NOASK
+environment variable.
 
 * from
 The `from' utility was rewritten. It is now fully compatible with the

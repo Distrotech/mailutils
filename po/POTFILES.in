@@ -36,6 +36,7 @@ imap4d/signal.c
 imap4d/util.c
 
 lib/xmalloc.c
+lib/mailcap.c
 
 libsieve/actions.c
 libsieve/comparator.c

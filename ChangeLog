@@ -1,3 +1,19 @@
+2005-03-12  Sergey Poznyakoff 
+
+	* lib/mailcap.c: New file. Routines for displaying MIME
+	messages.
+	* lib/Makefile.am: Added mailcap.c
+	* mimeview/mimeview.c: Rewritten using display_stream_mailcap.
+	* mail/decode.c: Implemented built-in mailcap mechanism
+	* mail/Makefile.am: (mail_LDADD): Changed order of loading
+	libmailutils/libmailbox
+	* mimeview/Makefile.am (mimeview_LDADD): Likewise
+	* doc/texinfo/programs.texi (mail): Documented variable
+	mimenoask
+	* po/POTFILES.in: Updated
+	* examples/mta.c (header): Removed unused global
+	* NEWS: Updated
+	
 2005-03-10  Sergey Poznyakoff
 
 	* TODO: Updated
