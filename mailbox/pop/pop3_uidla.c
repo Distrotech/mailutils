@@ -25,13 +25,13 @@
 #include <mailutils/sys/pop3.h>
 
 int
-mu_pop3_uidl_all (mu_pop3_t pop3, list_t *plist)
+mu_pop3_uidl_all (mu_pop3_t pop3, iterator_t *piterator)
 {
-  int status;
+  int status = 0;
 
   if (pop3 == NULL)
     return EINVAL;
-  if (plist == NULL)
+  if (piterator == NULL)
     return MU_ERR_OUT_PTR_NULL;
 
   switch (pop3->state)
@@ -53,45 +53,13 @@ mu_pop3_uidl_all (mu_pop3_t pop3, list_t *plist)
       MU_POP3_CHECK_EAGAIN (pop3, status);
       mu_pop3_debug_ack (pop3);
       MU_POP3_CHECK_OK (pop3);
-      status = list_create (plist);
-      MU_POP3_CHECK_ERROR(pop3, status);
-      list_set_destroy_item(*plist, free);
+      status = mu_pop3_iterator_create (pop3, piterator);
+      MU_POP3_CHECK_ERROR (pop3, status);
       pop3->state = MU_POP3_UIDL_RX;
 
     case MU_POP3_UIDL_RX:
-      {
-        /* UIDL line are 512 octets maximum according to RFC 1939.
-           But do not use the stack and malloc.  */
-        char *uidla;
-        size_t n = 0;
-
-        uidla = malloc (512);
-        if (uidla == NULL)
-          {
-            /* MU_POP3_CHECK_ERROR(pop3, ENOMEM)
-	       Do not use the macro since we have to remove the list
-	       if things go wrong.
-	    */
-	    pop3->io.ptr = pop3->io.buf;
-	    pop3->state = MU_POP3_ERROR;
-	    list_destroy (plist);
-	    return ENOMEM;
-          }
-
-        while ((status = mu_pop3_readline (pop3, uidla, 512, &n)) == 0 && n > 0)
-          {
-            /* Nuke the trailing newline  */
-            if (uidla[n - 1] == '\n')
-              uidla[n - 1] = '\0';
-            /* add to the list.  */
-            list_append (*plist, strdup (uidla));
-            n = 0;
-          }
-        free (uidla);
-        MU_POP3_CHECK_EAGAIN (pop3, status);
-        pop3->state = MU_POP3_NO_STATE;
-        break;
-      }
+      /* The iterator_t will read the stream and set the state to MU_POP3_NO_STATE when done.  */
+      break;
 
       /* They must deal with the error first by reopening.  */
     case MU_POP3_ERROR:
@@ -104,4 +72,3 @@ mu_pop3_uidl_all (mu_pop3_t pop3, list_t *plist)
 
   return status;
 }
-

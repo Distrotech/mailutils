@@ -26,13 +26,13 @@
 #include <mailutils/sys/pop3.h>
 
 int
-mu_pop3_list_all (mu_pop3_t pop3, list_t *plist)
+mu_pop3_list_all (mu_pop3_t pop3, iterator_t *piterator)
 {
-  int status;
+  int status = 0;
 
   if (pop3 == NULL)
     return EINVAL;
-  if (plist == NULL)
+  if (piterator == NULL)
     return MU_ERR_OUT_PTR_NULL;
 
   switch (pop3->state)
@@ -54,43 +54,13 @@ mu_pop3_list_all (mu_pop3_t pop3, list_t *plist)
       MU_POP3_CHECK_EAGAIN (pop3, status);
       mu_pop3_debug_ack (pop3);
       MU_POP3_CHECK_OK (pop3);
-      status = list_create (plist);
-      MU_POP3_CHECK_ERROR(pop3, status);
-      list_set_destroy_item(*plist, free);
+      status = mu_pop3_iterator_create (pop3, piterator);
+      MU_POP3_CHECK_ERROR (pop3, status);
       pop3->state = MU_POP3_LIST_RX;
 
     case MU_POP3_LIST_RX:
-      {
-        /* LIST line should not be over 512 octets maximum according to RFC 2449.
-           But do not use the stack and malloc.  */
-        char *lista;
-        size_t n = 0;
-
-        lista = malloc (512);
-        if (lista == NULL)
-          {
-            /* MU_POP3_CHECK_ERROR(pop3, ENOMEM);
-	       Do not use the macro we need to clear the list if errors. */
-	    pop3->io.ptr = pop3->io.buf;
-	    pop3->state = MU_POP3_ERROR;
-	    list_destroy (plist);
-	    return ENOMEM;
-          }
-
-        while ((status = mu_pop3_readline (pop3, lista, 512, &n)) == 0 && n > 0)
-          {
-            /* Nuke the trailing newline  */
-            if (lista[n - 1] == '\n')
-              lista[n - 1] = '\0';
-            /* add to the list.  */
-            list_append (*plist, strdup (lista));
-            n = 0;
-          }
-        free (lista);
-        MU_POP3_CHECK_EAGAIN (pop3, status);
-        pop3->state = MU_POP3_NO_STATE;
-        break;
-      }
+      /* The iterator_t will read the stream and set the state to MU_POP3_NO_STATE when done.  */
+      break;
 
       /* They must deal with the error first by reopening.  */
     case MU_POP3_ERROR:
