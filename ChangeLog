@@ -1,5 +1,24 @@
 2005-03-13  Sergey Poznyakoff 
 
+	* Makefile.am (SUBDIRS): Reordered. Due to the specifics
+	of gnulib imports, libmailutils depends on libmailbox.
+	Added config/.
+	* configure.ac (AC_CONFIG_FILES): Added config/Makefile
+	* lib/mailcap.c (mime_context_fill): Return integer code
+	(display_stream_mailcap): Bail out if mime_context_fill
+	returns 1
+
+	* mailbox/Makefile.am: Removed mailutils-config.c. It should
+	live in a separate directory to satisfy interlibrary dependencies.
+	* mailbox/mailutils-config.c: Moved to config
+	* config: New directory
+	* config/mailutils-config.c: New file
+	* config/Makefile.am: New file
+	
+	* po/POTFILES.in: Updated
+
+2005-03-13  Sergey Poznyakoff 
+
 	* lib/mailcap.c Include ctype.h
 	(mime_context_fill): Remove leading whitespace
 	when preparing lists.

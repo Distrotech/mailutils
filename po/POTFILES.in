@@ -3,6 +3,8 @@
 # Copyright (C) 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 #
 
+config/mailutils-config.c
+
 sql/mysql.c
 sql/postgres.c
 
@@ -90,7 +92,6 @@ mailbox/argp-help.c
 mailbox/argp-parse.c
 mailbox/file_stream.c
 mailbox/filter_iconv.c
-mailbox/mailutils-config.c
 mailbox/message.c
 mailbox/mu_argp.c
 mailbox/mu_auth.c
