@@ -29,26 +29,33 @@ typedef union {
   list_t list;
   long number;
   char *string;
+  size_t pc;
 } sieve_op_t;
 
 struct sieve_machine {
+  /* Static data */
   list_t memory_pool;     /* Pool of allocated memory objects */
 
   size_t progsize;        /* Number of allocated program cells */
-  size_t pc;              /* Current program counter */
   sieve_op_t *prog;       /* Compiled program */
 
+  /* Runtime data */
+  size_t pc;              /* Current program counter */
   long reg;               /* Numeric register */
   list_t stack;           /* Runtime stack */
 
-  int debug_level;
+  int debug_level;        /* Debugging level */
+  jmp_buf errbuf;         /* Target location for non-local exits */
 
-  sieve_printf_t error_printer;
+  mailbox_t mailbox;      /* Mailbox to operate upon */
+  size_t    msgno;        /* Current message number */
+  message_t msg;          /* Current message */
+
+  /* User supplied data */
+  sieve_parse_error_t parse_error_printer;
+  sieve_printf_t error_printer; 
   sieve_printf_t debug_printer;
-
   void *data;
-  
-  jmp_buf errbuf;
 };
 
 extern char *sieve_filename;
@@ -57,10 +64,10 @@ extern int sieve_yydebug;
 extern sieve_machine_t *sieve_machine;
 extern int sieve_error_count; 
 
-void sieve_error __P((const char *fmt, ...));
+void sieve_compile_error __P((const char *filename, int linenum,
+			      const char *fmt, ...));
 void sieve_debug_internal __P((sieve_printf_t printer, void *data,
 			       const char *fmt, ...));
-void sieve_debug __P((sieve_machine_t *mach, const char *fmt, ...));
 void sieve_print_value __P((sieve_value_t *val, sieve_printf_t printer,
 			    void *data));
 void sieve_print_value_list __P((list_t list, sieve_printf_t printer,
@@ -68,7 +75,11 @@ void sieve_print_value_list __P((list_t list, sieve_printf_t printer,
 void sieve_print_tag_list __P((list_t list, sieve_printf_t printer,
 			       void *data));
 
-int _sieve_default_error_printer __P((void*data, const char *fmt, va_list ap));
+int _sieve_default_error_printer __P((void *data,
+				      const char *fmt, va_list ap));
+int _sieve_default_parse_error __P((void *unused,
+				    const char *filename, int lineno,
+				    const char *fmt, va_list ap));
 
 int sieve_lex_begin __P((const char *name));
 void sieve_lex_finish __P((void));
@@ -91,3 +102,5 @@ void instr_pop __P((sieve_machine_t *mach));
 void instr_allof __P((sieve_machine_t *mach));
 void instr_anyof __P((sieve_machine_t *mach));
 void instr_not __P((sieve_machine_t *mach));
+void instr_branch __P((sieve_machine_t *mach));
+void instr_brz __P((sieve_machine_t *mach));
