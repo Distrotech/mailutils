@@ -1,3 +1,45 @@
+2002-07-26  Sergey Poznyakoff 
+
+	Provide session transcript support for the daemons. The
+	transcript is triggered by --transcript option to the
+	daemon. Its output goes to LOG_FACILITY.debug.
+	Fixed a couple of bugs in imap4d (Thanks, Jordy!)
+	
+	* include/mailutils/argp.h (struct daemon_param): New member
+	  `transcript'.
+	* mailbox/mu_argp.c (daemon option group): New option
+	  --transcript.
+	 
+	* imap4d/util.c: Provide session transcript support.
+	
+	* imap4d/fetch.c (bodystructure,send_parameter_list): Fixed
+	  possible NULL dereference.
+	* imap4d/imap4d.c (struct daemon_param): Initialize typescript
+	  member.
+	* imap4d/login.c: Changed PAM error handling.
+	* imap4d/signal.c: Handle SIGPIPE separately. Many clients seem to
+	  not wait for a response to LOGOUT command.
+
+	* pop3d/extra.c (pop3d_outf): New function. Provides output
+	  functionality with session transcript support.
+	  (pop3d_readline): Support for session transcript.
+	* pop3d/pop3d.h (pop3d_outf): New prototype.
+	* pop3d/apop.c: Use pop3d_outf instead of fprintf
+	* pop3d/capa.c: Likewise.
+	* pop3d/dele.c: Likewise.
+	* pop3d/list.c: Likewise.
+	* pop3d/noop.c: Likewise.
+	* pop3d/quit.c: Likewise.
+	* pop3d/retr.c: Likewise.
+	* pop3d/rset.c: Likewise.
+	* pop3d/stat.c: Likewise.
+	* pop3d/top.c:  Likewise.
+	* pop3d/uidl.c: Likewise.
+	* pop3d/user.c: Likewise.
+	  (pop3d_user): Removed unneded PAM_ERROR.
+	* pop3d/pop3d.c: Likewise.
+	  (struct daemon_param): Initialize transcript member.
+
 2002-07-23  Sergey Poznyakoff
 
 	* imap4d/imap4d.c (imap4d_parse_opt): Fixed dereference of
