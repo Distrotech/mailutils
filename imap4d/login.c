@@ -42,7 +42,7 @@ imap4d_login (struct imap4d_command *command, char *arg)
 
   if (auth_data == NULL)
     {
-      syslog (LOG_INFO, _("User '%s': nonexistent"), arg);
+      syslog (LOG_INFO, _("User '%s': nonexistent"), username);
       return util_finish (command, RESP_NO, "User name or passwd rejected");
     }
 
@@ -50,7 +50,7 @@ imap4d_login (struct imap4d_command *command, char *arg)
   openlog ("gnu-imap4d", LOG_PID, log_facility);
   if (rc)
     {
-      syslog (LOG_INFO, _("Login failed: %s"), arg);
+      syslog (LOG_INFO, _("Login failed: %s"), username);
       return util_finish (command, RESP_NO, "User name or passwd rejected");
     }
   
