@@ -74,7 +74,12 @@ mailer_create (mailer_t *pmailer, const char *name, int id)
       if (mailer == NULL)
 	return ENOMEM;
 
-      RWLOCK_INIT (&(mailer->rwlock), NULL);
+      status = RWLOCK_INIT (&(mailer->rwlock), NULL);
+      if (status != 0)
+        {
+          mailer_destroy (&mailer);
+          return status;
+        }
 
       /* Parse the url, it may be a bad one and we should bailout if this
          failed.  */
