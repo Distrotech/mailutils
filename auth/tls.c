@@ -19,6 +19,7 @@
 # include <config.h>
 #endif
 
+#include <stdio.h>
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -28,8 +29,11 @@
 #include <mailutils/mu_auth.h>
 #include <mailutils/tls.h>
 #include <mailutils/nls.h>
+#include <mailutils/stream.h>
 
 #ifdef WITH_TLS
+
+#include <gnutls/gnutls.h>
 
 #define DH_BITS 768
 
@@ -145,14 +149,7 @@ mu_check_tls_environment (void)
 int
 mu_init_tls_libs (void)
 {
-  int rs = gnutls_global_init ();
-
-  if (rs == 0)			/* Reverse for tls_available */
-    rs = 1;
-  else
-    rs = 0;
-
-  return rs;			/* Returns 1 on success */
+  return !gnutls_global_init (); /* Returns 1 on success */
 }
 
 int
@@ -185,14 +182,153 @@ initialize_tls_session (void)
   gnutls_certificate_server_set_request (session, GNUTLS_CERT_REQUEST);
   gnutls_dh_set_prime_bits (session, DH_BITS);
 
-  return (gnutls_session) session;
+  return session;
 }
 
-gnutls_session
-mu_init_tls_server (int fd_in, int fd_out)
+/* ************************* TLS Stream Support **************************** */
+
+enum tls_stream_state {
+  state_init,
+  state_open,
+  state_closed,
+  state_destroyed
+};
+
+struct _tls_stream {
+  int ifd;
+  int ofd;
+  int last_err;
+  enum tls_stream_state state;
+  gnutls_session session;  
+};
+
+
+static void
+_tls_destroy (stream_t stream)
 {
-  int rs = 0;
-  gnutls_session session = 0;
+  struct _tls_stream *s = stream_get_owner (stream);
+  if (s->session && s->state == state_closed)
+    {
+      gnutls_deinit (s->session);
+      s->state = state_destroyed;
+    }
+  free (s);
+}
+    
+static int
+_tls_read (stream_t stream, char *optr, size_t osize,
+	   off_t offset, size_t *nbytes)
+{
+  struct _tls_stream *s = stream_get_owner (stream);
+  int rc;
+  
+  if (!stream || s->state != state_open)
+    return EINVAL;
+  rc = gnutls_record_recv (s->session, optr, osize);
+  if (rc >= 0)
+    {
+      *nbytes = rc;
+      return 0;
+    }
+  s->last_err = rc;
+  return EIO;
+}
+
+static int
+_tls_readline (stream_t stream, char *optr, size_t osize,
+		off_t offset, size_t *nbytes)
+{
+  struct _tls_stream *s = stream_get_owner (stream);
+  int rc;
+  char *ptr;
+  size_t rdsize;
+  
+  if (!stream || s->state != state_open || osize < 2)
+    return EINVAL;
+
+  osize--; /* Allow for terminating zero */
+  ptr = optr;
+  rdsize = 0;
+  do
+    {
+      rc = gnutls_record_recv (s->session, ptr + rdsize, osize - rdsize);
+      if (rc < 0)
+	{
+	  s->last_err = rc;
+	  return EIO;
+	}
+      rdsize += rc;
+    }
+  while (osize > rdsize && rc > 0 && ptr[rdsize-1] != '\n');
+
+  ptr[rdsize] = 0;
+  
+  if (nbytes)
+    *nbytes = rdsize;
+  
+  return 0;
+}
+
+static int
+_tls_write (stream_t stream, const char *iptr, size_t isize,
+	    off_t offset, size_t *nbytes)
+{
+  struct _tls_stream *s = stream_get_owner (stream);
+  int rc;
+  
+  if (!stream || s->state != state_open)
+    return EINVAL;
+
+  /* gnutls_record_send() docs say:
+       If the EINTR is returned by the internal push function (write())
+       then GNUTLS_E_INTERRUPTED, will be returned. If GNUTLS_E_INTERRUPTED or
+       GNUTLS_E_AGAIN is returned you must call this function again, with the
+       same parameters. Otherwise the write operation will be
+       corrupted and the connection will be terminated. */
+    
+  do
+    rc = gnutls_record_send (s->session, iptr, isize);
+  while (rc == GNUTLS_E_INTERRUPTED || rc == GNUTLS_E_AGAIN);
+
+  if (rc < 0)
+    {
+      s->last_err = rc;
+      return EIO;
+    }
+
+  if (nbytes)
+    *nbytes = rc;
+
+  return 0;
+}
+
+static int
+_tls_flush (stream_t stream)
+{
+  struct _tls_stream *s = stream_get_owner (stream);
+  /* noop */
+  return 0;
+}
+
+static int
+_tls_close (stream_t stream)
+{
+  struct _tls_stream *s = stream_get_owner (stream);
+  if (s->session && s->state == state_open)
+    {
+      gnutls_bye (s->session, GNUTLS_SHUT_RDWR);
+      s->state = state_closed;
+    }
+}
+
+static int
+_tls_open (stream_t stream)
+{
+  struct _tls_stream *s = stream_get_owner (stream);
+  int rc = 0;
+  
+  if (!stream || s->state != state_init)
+    return EINVAL;
 
   gnutls_certificate_allocate_credentials (&x509_cred);
 
@@ -200,39 +336,74 @@ mu_init_tls_server (int fd_in, int fd_out)
     gnutls_certificate_set_x509_trust_file (x509_cred, ssl_cafile,
 					    GNUTLS_X509_FMT_PEM);
 
-  rs = gnutls_certificate_set_x509_key_file (x509_cred,
+  rc = gnutls_certificate_set_x509_key_file (x509_cred,
 					     ssl_cert, ssl_key,
 					     GNUTLS_X509_FMT_PEM);
-  if (rs < 0)
+  if (rc < 0)
     {
-      mu_error (_("cannot parse certificate/key: %s"), gnutls_strerror (rs));
-      return 0;
+      s->last_err = rc;
+      return EIO;
     }
   
   generate_dh_params ();
   gnutls_certificate_set_dh_params (x509_cred, dh_params);
 
-  session = initialize_tls_session ();
-  gnutls_transport_set_ptr2 (session, fd_in, fd_out);
+  s->session = initialize_tls_session ();
+  gnutls_transport_set_ptr2 (s->session, s->ifd, s->ofd);
 
-  rs = gnutls_handshake (session);
-  if (rs < 0)
+  rc = gnutls_handshake (s->session);
+  if (rc < 0)
     {
-      gnutls_deinit (session);
-      mu_error (_("TLS/SSL handshake failed: %s"), gnutls_strerror (rs));
-      return 0;			/* failed */
+      gnutls_deinit (s->session);
+      s->last_err = rc;
+      return EIO;
     }
-  return (gnutls_session) session;
+  s->state = state_open;
+  return 0;
 }
 
-void
-mu_deinit_tls_server (gnutls_session session)
+int
+_tls_strerror (stream_t stream, const char **pstr)
 {
-  if (session)
+  struct _tls_stream *s = stream_get_owner (stream);
+  *pstr = gnutls_strerror (s->last_err);
+  return 0;
+}
+
+int
+tls_stream_create (stream_t *stream, int in_fd, int out_fd, int flags)
+{
+  struct _tls_stream *s;
+  int rc;
+
+  if (stream == NULL)
+    return EINVAL;
+
+  s = calloc (1, sizeof (*s));
+  if (s == NULL)
+    return ENOMEM;
+
+  s->ifd = in_fd;
+  s->ofd = out_fd;
+
+  rc = stream_create (stream, flags|MU_STREAM_NO_CHECK, s);
+  if (rc)
     {
-      gnutls_bye (session, GNUTLS_SHUT_RDWR);
-      gnutls_deinit (session);
+      free (s);
+      return rc;
     }
+
+  stream_set_open (*stream, _tls_open, s);
+  stream_set_close (*stream, _tls_close, s);
+  stream_set_read (*stream, _tls_read, s);
+  stream_set_readline (*stream, _tls_readline, s);
+  stream_set_write (*stream, _tls_write, s);
+  stream_set_flush (*stream, _tls_flush, s);
+  stream_set_destroy (*stream, _tls_destroy, s);
+  stream_set_strerror (*stream, _tls_strerror, s);
+  
+  s->state = state_init;
+  return 0;
 }
 
 #endif /* WITH_TLS */
