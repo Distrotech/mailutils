@@ -958,6 +958,7 @@ static int
 mh_scan0 (mailbox_t mailbox, size_t msgno, size_t *pcount, int do_notify)
 {
   struct _mh_data *mhd = mailbox->data;
+  struct _mh_message *msg;
   DIR *dir;
   struct dirent *entry;
   int status = 0;
@@ -979,13 +980,13 @@ mh_scan0 (mailbox_t mailbox, size_t msgno, size_t *pcount, int do_notify)
 
   locker_lock (mailbox->locker);
 
-  /* Do actual work */
+  /* Do actual work. */
+
   while ((entry = readdir (dir)))
     {
       char *namep;
       int attr_flags;
       size_t num;
-      struct _mh_message *msg;
 
       attr_flags = 0;
       switch (entry->d_name[0])
@@ -1024,13 +1025,6 @@ mh_scan0 (mailbox_t mailbox, size_t msgno, size_t *pcount, int do_notify)
 
 	  _mh_message_insert (mhd, msg);
 
-	  /* This scans the message */
-	  mh_message_stream_open (msg);
-	  mh_message_stream_close (msg);
-
-	  /* Notify */
-	  if (do_notify)
-	    DISPATCH_ADD_MSG(mailbox, mhd);
 	}
       else
 	{
@@ -1040,6 +1034,13 @@ mh_scan0 (mailbox_t mailbox, size_t msgno, size_t *pcount, int do_notify)
 
   closedir (dir);
 
+  if (do_notify)
+    for (msg = mhd->msg_head; msg; msg = msg->next)
+      {
+	
+	DISPATCH_ADD_MSG(mailbox, mhd);
+      }
+	  
   if (stat (mhd->name, &st) == 0)
     mhd->mtime = st.st_mtime;
 
@@ -1055,7 +1056,11 @@ mh_scan0 (mailbox_t mailbox, size_t msgno, size_t *pcount, int do_notify)
 	  /* FIXME mhd->uidnext = mhd->msg_count + 1;*/
 	  /* Tell that we have been modified for expunging.  */
 	  if (mhd->msg_head)
-	    mhd->msg_head->attr_flags |= MU_ATTRIBUTE_MODIFIED;
+	    {
+	      mh_message_stream_open (mhd->msg_head);
+	      mh_message_stream_close (mhd->msg_head);
+	      mhd->msg_head->attr_flags |= MU_ATTRIBUTE_MODIFIED;
+	    }
 	}
     }
 
