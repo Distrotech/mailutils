@@ -679,7 +679,15 @@ header_size (header_t header, size_t *psize)
     }
 
   if (psize)
-    *psize = header->blurb_len;
+    {
+      *psize = header->blurb_len;
+      if (property_is_set (header->property, "RFC822"))
+	{
+	  size_t lines = 0;
+	  header_lines (header, &lines);
+	  *psize += lines;
+	}
+    }
   return 0;
 }
 
@@ -896,7 +904,7 @@ header_read (stream_t is, char *buf, size_t buflen, off_t off, size_t *pnread)
       char *s = header->blurb;
       char *e = header->blurb + header->blurb_len;
       /* Get to the offset.  */
-      for (j = 0; j < (size_t)off && s <= e; j++, s++)
+      for (j = 0; j < (size_t)off && s < e; j++, s++)
 	{
 	  if (*s == '\n')
 	    {
@@ -910,7 +918,7 @@ header_read (stream_t is, char *buf, size_t buflen, off_t off, size_t *pnread)
       if (residue)
 	buf[0] = '\r';
       /* Copy.  */
-      for (j = residue ; j < buflen && s <= e; j++, s++)
+      for (j = residue ; j < buflen && s < e; j++, s++)
 	{
 	  if (*s == '\n')
 	    {

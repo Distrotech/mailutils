@@ -1164,12 +1164,8 @@ mbox_header_fill (header_t header, char *buffer, size_t len,
 	  mum->fhdr[j] = NULL;
 	}
     }
-  if (mum->mud->mailbox->properties[PROP_RFC822].value)
-    return mbox_readstream_rfc822 (mum, buffer, len, off, pnread, 0,
-				   mum->header_from_end, mum->body);
-  else
-    return mbox_readstream (mum, buffer, len, off, pnread, 0,
-			    mum->header_from_end, mum->body);
+  return mbox_readstream (mum, buffer, len, off, pnread, 0,
+			  mum->header_from_end, mum->body);
 }
 
 static int
@@ -1238,8 +1234,10 @@ mbox_header_size (header_t header, size_t *psize)
   if (psize)
     {
       *psize = mum->body - mum->header_from_end;
+#if 1
       if (mum->mud->mailbox->properties[PROP_RFC822].value)
 	*psize += mum->header_lines;
+#endif
     }
   return 0;
 }
@@ -1266,8 +1264,10 @@ mbox_body_size (body_t body, size_t *psize)
   if (psize)
     {
       *psize = mum->body_end - mum->body + 1;
+#if 1
       if (mum->mud->mailbox->properties[PROP_RFC822].value)
 	*psize += mum->body_lines;
+#endif
     }
   return 0;
 }
