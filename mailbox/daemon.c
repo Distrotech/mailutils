@@ -25,6 +25,7 @@
 #include <fcntl.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <string.h>
 
 #include <mailutils/daemon.h>
 
@@ -55,7 +56,8 @@ daemon_create_pidfile (const char *filename)
       return 2; /* failure */
     }
   
-  snprintf (pid_string, sizeof (pid_string) - 1, "%lu\n", current_pid);
+  snprintf (pid_string, sizeof (pid_string) - 1, "%lu\n",
+	    (unsigned long) current_pid);
   write (fd, pid_string, strlen (pid_string));
   close (fd);
   

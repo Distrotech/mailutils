@@ -78,7 +78,7 @@ mail_from0 (msgset_t *mspec, message_t msg, void *data)
 
   date[0] = 0;
   if (util_getenv (NULL, "datefield", Mail_env_boolean, 0) == 0
-      && header_get_value (hdr, MU_HEADER_DATE, &date, sizeof (date), NULL) == 0)
+      && header_get_value (hdr, MU_HEADER_DATE, date, sizeof (date), NULL) == 0)
     {
       time_t t;
       if (mu_parse_date (date, &t, NULL) == 0)
