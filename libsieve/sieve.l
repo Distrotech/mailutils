@@ -43,11 +43,12 @@ static int string __P ((void));
 static void multiline_begin __P ((void));
 static void multiline_add __P ((char *));
 static void multiline_finish __P ((void));
+static char *multiline_strip_tabs __P((char *text));
 static void ident __P((const char *text));
 static void sieve_include __P((void));
 static void sieve_searchpath __P((void));
 static char *str_escape __P((void));
- static int isemptystr __P((char *text));
+static int isemptystr __P((char *text));
  
 #ifdef FLEX_SCANNER
 #define xinput() (yyin ? getc(yyin) : EOF)
