@@ -1,3 +1,8 @@
+2003-09-02  Wojciech Polak
+
+	* mailbox/pop/mbox.c (pop_get_message): Check UIDL capability
+	before using pop_uidl().
+
 2003-09-02  Sergey Poznyakoff  
 
 	* mail/mail.c: Fixed description of --file argument.
