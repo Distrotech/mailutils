@@ -36,7 +36,7 @@ AC_PROG_YACC
 AM_PROG_LEX
 
 dnl Internationalization macros.
-AM_GNU_GETTEXT(use-libtool)
+AM_GNU_GETTEXT(no-libtool, need-ngettext)
 AM_GNU_GETTEXT_VERSION(0.11.5)
 AC_SUBST(INTLINCS)
 if test ".$BUILD_INCLUDED_LIBINTL" = ".yes" ; then
