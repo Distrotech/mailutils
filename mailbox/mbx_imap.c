@@ -47,6 +47,7 @@ static int imap_append_message (mailbox_t, message_t);
 
 /* Message API.  */
 
+static int imap_submessage_size (msg_imap_t, size_t *);
 static int imap_message_size (message_t, size_t *);
 static int imap_message_lines (message_t, size_t *);
 static int imap_message_fd (stream_t, int *);
@@ -698,6 +699,33 @@ imap_message_lines (message_t msg, size_t *plines)
   return 0;
 }
 
+/* Sometimes a message is just a place container for other sub parts.
+   In those cases imap bodystructure does not set the message_size aka
+   the body_size.  But we can calculate it since the message_size
+   is the sum of its subparts.  */
+static int
+imap_submessage_size (msg_imap_t msg_imap, size_t *psize)
+{
+  if (psize)
+    {
+      if (msg_imap->message_size == 0)
+	{
+	  size_t i, size;
+	  for (size = i = 0; i < msg_imap->num_parts; i++, size = 0)
+	    {
+
+	      if (msg_imap->parts[i])
+		imap_submessage_size (msg_imap->parts[i], &size);
+	      *psize += size;
+	    }
+	}
+      else
+	*psize = (msg_imap->message_size + msg_imap->header_size)
+	  - msg_imap->message_lines;
+    }
+  return 0;
+}
+
 static int
 imap_message_size (message_t msg, size_t *psize)
 {
@@ -707,16 +735,11 @@ imap_message_size (message_t msg, size_t *psize)
   int status;
 
   /* If there is a parent it means it is a sub message, IMAP does not give
-     the full size of mime messages, so the message_size was retrieve from
-     doing a bodystructure and represent rather the body_size.  */
+     the full size of mime messages, so the message_size retrieved from
+     doing a bodystructure represents rather the body_size.  */
   if (msg_imap->parent)
     {
-      if (psize)
-	{
-	  *psize = (msg_imap->message_size + msg_imap->header_size)
-	    - msg_imap->message_lines;
-	}
-      return 0;
+      return imap_submessage_size (msg_imap, psize);
     }
 
   /* Select first.  */

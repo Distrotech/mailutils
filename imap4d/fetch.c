@@ -18,7 +18,7 @@
 #include "imap4d.h"
 
 /* This will suck, too.
-   Alain: Yest it does.  */
+   Alain: Yes it does.  */
 
 /*  Taken from RFC2060
     fetch           ::= "FETCH" SPACE set SPACE ("ALL" / "FULL" /
@@ -45,6 +45,8 @@ static int fetch_bodystructure (struct imap4d_command *, char*);
 static int fetch_body_peek (struct imap4d_command *, char*);
 static int fetch_body (struct imap4d_command *, char*);
 static int fetch_uid (struct imap4d_command *, char*);
+
+static int fetch_operation (size_t, char *);
 
 struct imap4d_command fetch_command_table [] =
 {
@@ -79,48 +81,44 @@ struct imap4d_command fetch_command_table [] =
   { 0, 0},
 };
 
+/* NOTE: the states field in the command structure is use to as a place
+   holder for the message number.  */
 int
 imap4d_fetch (struct imap4d_command *command, char *arg)
 {
   char *sp = NULL;
   char *msgset;
   int *set = NULL;
-  char *item;
   int i, n = 0;
   int rc = RESP_OK;
   int status;
   const char *errmsg = "Completed";
   struct imap4d_command *fcmd;
+  char item[32];
 
   msgset = util_getword (arg, &sp);
   if (!msgset)
     return util_finish (command, RESP_BAD, "Too few args");
 
-  item = strchr (sp, '[');
-  if (item)
-    {
-      char *s = alloca (item - sp + 1);
-      memcpy (s, sp, item - sp);
-      s[item - sp] = '\0';
-      arg = item;
-      item = s;
-    }
-  else
-      arg = item = sp;
+  /* Get the command name.  */
+  item[0] = '\0';
+  util_token (item, sizeof (item), &sp);
 
+  /* Search in the table.  */
   fcmd = util_getcommand (item, fetch_command_table);
   if (!fcmd)
     return util_finish (command, RESP_BAD, "Command unknown");
 
+  /* Get the message numbers in set[].  */
   status = util_msgset (msgset, &set, &n, 0);
   if (status != 0)
     return util_finish (command, RESP_BAD, "Bogus number set");
 
-  /* We use the states to hold the msgno/uid.  */
   for (i = 0; i < n; i++)
     {
+      /* We use the states field to hold the msgno/uid.  */
       fcmd->states = set[i];
-      util_send ("* FETCH %d (%s", set[i], command->name);
+      util_send ("* FETCH %d (", set[i]);
       fcmd->func (fcmd, sp);
       util_send (")\r\n");
     }
@@ -128,8 +126,7 @@ imap4d_fetch (struct imap4d_command *command, char *arg)
   return util_finish (command, rc, errmsg);
 }
 
-/* --------------- Fetch commands definition  ----- */
-
+/* Combination of (FAST ENVELOPE).  */
 static int
 fetch_all (struct imap4d_command *command, char *arg)
 {
@@ -140,6 +137,7 @@ fetch_all (struct imap4d_command *command, char *arg)
   return 0;
 }
 
+/* Combination of (ALL BODY).  */
 static int
 fetch_full (struct imap4d_command *command, char *arg)
 {
@@ -150,6 +148,7 @@ fetch_full (struct imap4d_command *command, char *arg)
   return 0;
 }
 
+/* Combination of (FLAGS INTERNALDATE RFC822.SIZE).  */
 static int
 fetch_fast (struct imap4d_command *command, char *arg)
 {
@@ -165,6 +164,8 @@ fetch_fast (struct imap4d_command *command, char *arg)
   return 0;
 }
 
+/* Header: Date, Subject, From, Sender, Reply-To, To, Cc, Bcc, In-Reply-To,
+   and Message-Id.  */
 /* FIXME, FIXME:
    - incorrect DATE
    - address not the correct format
@@ -183,6 +184,7 @@ fetch_envelope (struct imap4d_command *command, char *arg)
   message_get_header (msg, &header);
   util_send (" %s", command->name);
 
+  /* FIXME: Incorrect Date.  */
   status = header_get_value (header, "Date", buffer, sizeof (buffer), NULL);
   if (status != 0)
     util_send (" NIL");
@@ -238,6 +240,8 @@ fetch_envelope (struct imap4d_command *command, char *arg)
   return 0;
 }
 
+/* The flags that are set for this message.  */
+/* FIXME: User flags not done.  */
 static int
 fetch_flags (struct imap4d_command *command, char *arg)
 {
@@ -259,6 +263,8 @@ fetch_flags (struct imap4d_command *command, char *arg)
   return 0;
 }
 
+/* The internal date of the message.  */
+/* FIXME: Wrong format.  */
 static int
 fetch_internaldate (struct imap4d_command *command, char *arg)
 {
@@ -276,17 +282,35 @@ fetch_internaldate (struct imap4d_command *command, char *arg)
   return 0;
 }
 
+/* Equivalent to BODY.PEEK[HEADER].  */
 static int
 fetch_rfc822_header (struct imap4d_command *command, char *arg)
 {
-  char buffer[64];
-  struct imap4d_command c_body_p = fetch_command_table[F_BODY_PEEK];
-  c_body_p.states = command->states;
+  char buffer[16];
+  util_send (" %s", command->name);
   strcpy (buffer, "[HEADER]");
-  fetch_body_peek (&c_body_p, buffer);
+  fetch_operation (command->states, buffer);
   return 0;
 }
 
+/* Equivalent to BODY[TEXT].  */
+/* FIXME: send a Fetch flag if the mail was not set seen ?  */
+static int
+fetch_rfc822_text (struct imap4d_command *command, char *arg)
+{
+  char buffer[16];
+  attribute_t attr = NULL;
+  message_t msg = NULL;
+  mailbox_get_message (mbox, command->states, &msg);
+  message_get_attribute (msg, &attr);
+  attribute_set_read (attr);
+  util_send (" %s", command->name);
+  strcpy (buffer, "[TEXT]");
+  fetch_operation (command->states, buffer);
+  return 0;
+}
+
+/* The [RFC-822] size of the message.  */
 static int
 fetch_rfc822_size (struct imap4d_command *command, char *arg)
 {
@@ -296,55 +320,52 @@ fetch_rfc822_size (struct imap4d_command *command, char *arg)
   mailbox_get_message (mbox, command->states, &msg);
   message_size (msg, &size);
   message_lines (msg, &lines);
-  util_send (" %s", command->name);
-  util_send (" %u", size + lines);
+  util_send (" %s %u", command->name, size + lines);
   return 0;
 }
 
-static int
-fetch_rfc822_text (struct imap4d_command *command, char *arg)
-{
-  char buffer[64];
-  struct imap4d_command c_body = fetch_command_table[F_BODY];
-  c_body.states = command->states;
-  strcpy (buffer, "[TEXT]");
-  fetch_body (&c_body, buffer);
-  return 0;
-}
-
-
+/* Equivalent to BODY[].  */
+/* FIXME: send a Fetch flag if the mail was not set seen ?  */
 static int
 fetch_rfc822 (struct imap4d_command *command, char *arg)
 {
-  char buffer[64];
-  struct imap4d_command c_body = fetch_command_table[F_BODY];
-  c_body.states = command->states;
-  strcpy (buffer, "[]");
-  fetch_body (&c_body, buffer);
+  if (*arg == '.')
+    {
+      if (strcasecmp (arg, ".SIZE") == 0)
+	{
+	  struct imap4d_command c_rfc= fetch_command_table[F_RFC822_SIZE];
+	  c_rfc.states = command->states;
+	  fetch_rfc822_size (&c_rfc, arg);
+	}
+      else if (strcasecmp (arg, ".TEXT") == 0)
+	{
+	  struct imap4d_command c_rfc = fetch_command_table[F_RFC822_TEXT];
+	  c_rfc.states = command->states;
+	  fetch_rfc822_text (&c_rfc, arg);
+	}
+      else if (strcasecmp (arg, ".HEADER") == 0)
+	{
+	  struct imap4d_command c_rfc = fetch_command_table[F_RFC822_HEADER];
+	  c_rfc.states = command->states;
+	  fetch_rfc822_header (&c_rfc, arg);
+	}
+    }
+  else
+    {
+      char buffer[16];
+      attribute_t attr = NULL;
+      message_t msg = NULL;
+      mailbox_get_message (mbox, command->states, &msg);
+      message_get_attribute (msg, &attr);
+      attribute_set_read (attr);
+      util_send (" %s", command->name);
+      strcpy (buffer, "[]");
+      fetch_operation (command->states, buffer);
+    }
   return 0;
 }
 
-/* FIXME: not implemeted.  */
-static int
-fetch_bodystructure (struct imap4d_command *command, char *arg)
-{
-  return 0;
-}
-
-static int
-fetch_body (struct imap4d_command *command, char *arg)
-{
-  attribute_t attr = NULL;
-  message_t msg = NULL;
-  struct imap4d_command c_body_p = fetch_command_table[F_BODY_PEEK];
-  mailbox_get_message (mbox, command->states, &msg);
-  message_get_attribute (msg, &attr);
-  c_body_p.states = command->states;
-  fetch_body_peek (&c_body_p, arg);
-  attribute_set_seen (attr);
-  return 0;
-}
-
+/* The unique identifier for the message.  */
 static int
 fetch_uid (struct imap4d_command *command, char *arg)
 {
@@ -356,15 +377,61 @@ fetch_uid (struct imap4d_command *command, char *arg)
   return 0;
 }
 
+/* FIXME: not implemeted.  */
+static int
+fetch_bodystructure (struct imap4d_command *command, char *arg)
+{
+  util_send (" %s ()", command->name);
+  return 0;
+}
+
+/* An alternate form of BODY that does not implicitly set the \Seen flag.  */
 static int
 fetch_body_peek (struct imap4d_command *command, char *arg)
 {
-  message_t msg = NULL;
-  //char *partial = strchr (arg, '<');
+  struct imap4d_command c_body = fetch_command_table[F_BODY];
+  c_body.states = command->states;
+  return fetch_body (&c_body, arg);
+}
 
-  mailbox_get_message (mbox, command->states, &msg);
-
+/* FIXME: send notificaton if seen attribute is set?  */
+/* FIXME: partial offset not done.  */
+/* FIXME: HEADER.FIELDS not done.  */
+/* FIXME: HEADER.FIELDS.NOT not done.  */
+static int
+fetch_body (struct imap4d_command *command, char *arg)
+{
+  struct imap4d_command c_body_p = fetch_command_table[F_BODY_PEEK];
   util_send (" %s", command->name);
+  if (strcasecmp (arg, ".PEEK") == 0)
+    {
+      arg += strlen (".PEEK");
+    }
+  else if (*arg == '[')
+    {
+      attribute_t attr = NULL;
+      message_t msg = NULL;
+      mailbox_get_message (mbox, command->states, &msg);
+      message_get_attribute (msg, &attr);
+      attribute_set_seen (attr);
+    }
+  else if (*arg != '[' && *arg != '.')
+    {
+      struct imap4d_command c_bs = fetch_command_table[F_BODYSTRUCTURE];
+      c_bs.states = command->states;
+      return fetch_bodystructure (&c_bs, arg);
+    }
+
+  fetch_operation (command->states, arg);
+  return 0;
+}
+
+static int
+fetch_operation (size_t msgno, char *arg)
+{
+  //char *partial = strchr (arg, '<');
+  message_t msg = NULL;
+  mailbox_get_message (mbox, msgno, &msg);
 
   if (strncasecmp (arg, "[]", 2) == 0)
     {
@@ -375,7 +442,7 @@ fetch_body_peek (struct imap4d_command *command, char *arg)
       message_get_stream (msg, &stream);
       message_size (msg, &size);
       message_size (msg, &lines);
-      util_send (" BODY[] {%u}\r\n", size + lines);
+      util_send ("{%u}\r\n", size + lines);
       while (stream_readline (stream, buffer, sizeof (buffer), off, &n) == 0
 	     && n > 0)
 	{
@@ -396,7 +463,7 @@ fetch_body_peek (struct imap4d_command *command, char *arg)
       message_get_header (msg, &header);
       header_size (header, &size);
       header_lines (header, &lines);
-      util_send (" BODY[HEADER] {%u}\r\n", size + lines);
+      util_send ("{%u}\r\n", size + lines);
       header_get_stream (header, &stream);
       while (stream_readline (stream, buffer, sizeof (buffer), off, &n) == 0
 	     && n > 0)
@@ -408,6 +475,14 @@ fetch_body_peek (struct imap4d_command *command, char *arg)
 	  off += n;
 	}
     }
+  else if (strncasecmp (arg, "[HEADER.FIELDS.NOT", 19) == 0)
+    {
+      /* Not implemented.  */
+    }
+  else if (strncasecmp (arg, "[HEADER.FIELDS", 15) == 0)
+    {
+      /* Not implemented.  */
+    }
   else if (strncasecmp (arg, "[TEXT]", 6) == 0)
     {
       body_t body = NULL;
@@ -418,7 +493,7 @@ fetch_body_peek (struct imap4d_command *command, char *arg)
       message_get_body (msg, &body);
       body_size (body, &size);
       body_lines (body, &lines);
-      util_send (" BODY[TEXT] {%u}\r\n", size + lines);
+      util_send ("{%u}\r\n", size + lines);
       body_get_stream (body, &stream);
       while (stream_readline (stream, buffer, sizeof (buffer), off, &n) == 0
 	     && n > 0)
@@ -430,7 +505,6 @@ fetch_body_peek (struct imap4d_command *command, char *arg)
 	  off += n;
 	}
     }
-  else
-    util_send (" Not supported");
+  /* else util_send (" Not supported"); */
   return 0;
 }

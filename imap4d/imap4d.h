@@ -130,6 +130,7 @@ int util_do_command __P ((char *prompt));
 char *imap4d_readline __P ((int fd));
 void util_quit __P ((int));
 char *util_getword __P ((char *s, char **save_ptr));
+int util_token __P ((char *s, size_t, char **save_ptr));
 int util_msgset __P ((char *s, int **set, int *n, int isuid));
 struct imap4d_command *util_getcommand __P ((char *cmd,
 					     struct imap4d_command []));

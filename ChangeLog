@@ -1,3 +1,11 @@
+2001-02-26  Alain Magloire
+
+	* mailbox/mbx_imap.c (imap_submessage_size) : New function to
+	retrieve message size of attachments.
+	* imap4d/fetch.c : More functionnality for the FETCH command.
+	(fetch_operation) : New operation.
+	* imap4d/util.c (util_token) : little helper function.
+
 2001-02-25  Alain Magloire
 
 	* lib/strtok_r.c : If there are no delimiters left save the old string

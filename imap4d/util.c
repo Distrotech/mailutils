@@ -28,6 +28,35 @@ util_getword (char *s, char **save)
   return strtok_r (s, " \r\n", save);
 }
 
+int
+util_token (char *buf, size_t len, char **ptr)
+{
+  char *start = *ptr;
+  size_t i;
+  /* Skip leading space.  */
+  while (**ptr && **ptr == ' ')
+    (*ptr)++;
+  for (i = 1; **ptr && i < len; (*ptr)++, buf++, i++)
+    {
+      if (**ptr == ' ' || **ptr == '.'
+          || **ptr == '(' || **ptr == ')'
+          || **ptr == '[' || **ptr == ']'
+          || **ptr == '<' || **ptr  == '>')
+        {
+          /* Advance.  */
+          if (start == (*ptr))
+            (*ptr)++;
+          break;
+        }
+      *buf = **ptr;
+  }
+  *buf = '\0';
+  /* Skip trailing space.  */
+  while (**ptr && **ptr == ' ')
+    (*ptr)++;
+  return  *ptr - start;;
+}
+
 /* Return in set an allocated array contain (n) numbers, for imap messsage set
 
    set ::= sequence_num / (sequence_num ":" sequence_num) / (set "," set)
