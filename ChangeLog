@@ -1,3 +1,42 @@
+2002-11-18  Sergey Poznyakoff 
+
+	* mailbox/mailer.c (mailer_get_url): New function.
+	* mailbox/sendmail.c (sendmail_send_message): Bugfix: stream_read
+	  should not use sendmail->offset for positioning.
+
+	* examples/mta.c: Test if environment variable MTA_APPEND is set.
+
+	* include/mailutils/libsieve.h: Added comments.
+	* libsieve/actions.c: Implemented reject and redirect.
+	* libsieve/sieve.h (struct sieve_machine): New members
+	  mailer and daemon_email.
+	* libsieve/sieve.l: Call multiline_add for each line in ML state.
+	* libsieve/sieve.y (sieve_get_mailer,sieve_set_mailer)
+	  (sieve_get_daemo_email,sieve_set_daemon_email): New functions.
+	  
+	* sieve/Makefile.am: Enable testsuite subdir.
+	* sieve/sieve.c: New option --email sets user email address.
+
+	* sieve/testsuite/Reject: New file
+	* sieve/testsuite/Redirect: New file
+	* sieve/testsuite/Makefile.am: Added Reject and Redirect
+	* sieve/testsuite/lib/sieve.exp (sieve_test): Pass --email
+	  and --mailer options to sieve.
+	  (sieve_driver_test): New procedure.
+
+	* sieve/testsuite/scripts/redirect.sv: New file
+	* sieve/testsuite/scripts/reject.sv: New file
+	* sieve/testsuite/scripts/DISTFILES: Added redirect.sv and
+	  reject.sv
+
+	* sieve/testsuite/sieve/redirect.exp: New file
+	* sieve/testsuite/sieve/reject.exp: New file
+	* sieve/testsuite/sieve/DISTFILES: Added redirect.exp and
+	  reject.exp
+	  
+	* libmu_scm/mu_message.c (mu_message_set_header): Fixed memory
+	  leak.
+
 2002-11-15  Sergey Poznyakoff
 
 	* sieve/examples/ex-3.1b.sv: Require redirect.
