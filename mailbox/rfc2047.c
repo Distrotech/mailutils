@@ -78,7 +78,7 @@ rfc2047_decode (const char *tocode, const char *input, char **ptostr)
 	  fromcode = strtok_r (start_position + 2, "?", &sp);
 	  encoding_type = strtok_r (NULL, "?", &sp);
 	  encoded_text = strtok_r (NULL, "?", &sp);
-	  if (sp[0] != '=')
+	  if (sp == NULL || sp[0] != '=')
 	    {
 	      status = MU_ERR_BAD_2047_INPUT;
 	      break;
