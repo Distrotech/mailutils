@@ -151,6 +151,10 @@ extern int state;
 extern volatile size_t children;
 extern int is_virtual;
 
+#ifndef HAVE_STRTOK_R
+extern char *strtok_r __P((char *s, const char *delim, char **save_ptr));
+#endif
+  
 /* Imap4 commands */
 extern int  imap4d_append __P ((struct imap4d_command *, char *));
 extern int  imap4d_append0 __P((mailbox_t mbox, int flags, char *text));
