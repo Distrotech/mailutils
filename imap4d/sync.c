@@ -30,6 +30,7 @@ struct _uid_table
 
 static struct _uid_table *uid_table;
 static size_t uid_table_count;
+static int uid_table_loaded;
 
 static void
 add_flag (char **pbuf, const char *f)
@@ -160,6 +161,7 @@ free_uids (void)
       uid_table = NULL;
     }
   uid_table_count = 0;
+  uid_table_loaded = 0;
 }
 
 static void
@@ -199,6 +201,7 @@ reset_uids (void)
       attribute_copy (uid_table[uid_table_count].attr, attr);
       uid_table_count++;
     }
+  uid_table_loaded = 1;
 }
 
 static void
@@ -206,6 +209,7 @@ notify (void)
 {
   size_t total = 0;
   int reset = 0;
+  size_t recent = 0;
   
   mailbox_messages_count (mbox, &total);
 
@@ -218,7 +222,6 @@ notify (void)
   if (uid_table)
     {
       size_t i;
-      size_t recent = 0;
 
       for (i = 1; i <= total; i++)
 	{
@@ -229,11 +232,11 @@ notify (void)
 	  notify_uid (uid);
 	}
       notify_deleted ();
-      util_out (RESP_NONE, "%d EXISTS", total);
       mailbox_messages_recent (mbox, &recent);
-      if (recent)
-	util_out (RESP_NONE, "%d RECENT", recent);
     }
+
+  util_out (RESP_NONE, "%d EXISTS", total);
+  util_out (RESP_NONE, "%d RECENT", recent);
 
   if (!reset)
     reset_uids ();
@@ -271,12 +274,12 @@ imap4d_sync_flags (size_t msgno)
 int
 imap4d_sync (void)
 {
-  /* If mbox --> NULL, it means to free all the ressources.
+  /* If mbox --> NULL, it means to free all the resources.
      It may be because of close or before select/examine a new mailbox.
      If it was a close we do not send any notification.  */
   if (mbox == NULL)
     free_uids ();
-  else if (uid_table == NULL || !mailbox_is_updated (mbox))
+  else if (!uid_table_loaded || !mailbox_is_updated (mbox))
     notify ();
   else
     {
