@@ -1,3 +1,69 @@
+2002-11-14  Sergey Poznyakoff
+
+	Started actually rewriting sieve to use libsieve library.
+	The CMU-based sources are available under the tag
+	ver-0-1-2-with-cmu-sieve.
+	
+	* Makefile.am: Added libsieve.
+	* configure.ac: Likewise.
+
+	* mailbox/mbx_mboxscan.c (mbox_scan0): Compute uids before
+	  calling DISPATCH_ADD_MSG.
+	* mailbox/mbx_mh.c (mh_scan0): Implemented EVT_MESSAGE_ADD
+	  notification.
+	* include/mailutils/libsieve.h: Changed sieve_machine_t to be
+	  a pointer to structure.
+	* libsieve/Makefile.am: Removed sv.c
+	* libsieve/sv.c: Removed.
+	* libsieve/runtime.c: Reflect change of sieve_machine_t type.
+	* libsieve/sieve.y: Likewise.
+	* libsieve/sieve.h (struct sieve_machine): New members: filename,
+	  logger, ticket, mu_debug.
+	* libsieve/actions.c: Implemented stop, keep, discard and
+	  fileinto.
+	* libsieve/tests.c: Implemented true, false, exists and size.
+	* libsieve/util.c (sieve_value_get, sieve_log_action)
+	  (sieve_mark_deleted): New functions.
+	  
+	* sieve/gram-sieve.y: Removed.
+	* sieve/parseaddr.c: Removed.
+	* sieve/sv.h: Removed.
+	* sieve/tree.h: Removed.
+	* sieve/addr-lex.l: Removed.
+	* sieve/imparse.c: Removed.
+	* sieve/parseaddr.h: Removed.
+	* sieve/sieve-lex.l: Removed.
+	* sieve/svcb.c: Removed.
+	* sieve/util.c: Removed.
+	* sieve/imparse.h: Removed.
+	* sieve/script.c: Removed.
+	* sieve/svctx.c: Removed.
+	* sieve/util.h: Removed.
+	* sieve/interp.c: Removed.
+	* sieve/script.h: Removed.
+	* sieve/sieve.h: Removed.
+	* sieve/svfield.c: Removed.
+	* sieve/addr.y: Removed.
+	* sieve/interp.h: Removed.
+	* sieve/sieve_err.c: Removed.
+	* sieve/svfield.h: Removed.
+	* sieve/comparator.c: Removed.
+	* sieve/message.c: Removed.
+	* sieve/sieve_err.h: Removed.
+	* sieve/svutil.c: Removed.
+	* sieve/comparator.h: Removed.
+	* sieve/message.h: Removed.
+	* sieve/sieve-gram.y: Removed.
+	* sieve/sieve_interface.h: Removed.
+	* sieve/tree.c: Removed.
+	* sieve/AUTHORS: Removed.
+	* sieve/COPYING: Removed.
+	* sieve/NEWS: Removed.
+	* sieve/README: Removed.
+
+	* sieve/Makefile.am: Pruned for the new implementation.
+	* sieve/sieve.c: Use libsieve calls.
+	
 2002-11-13  Sergey Poznyakoff  
 
 	* include/mailutils/libsieve.h: (sieve_vprintf_t): Removed.
