@@ -1,5 +1,17 @@
 2001-11-10  Jeff Bailey  <jbailey@outpost.dnsalias.org>
 
+	* doc/man/.cvsignore: New File
+
+	* doc/Makefile.am: Add man to SUBDIRS
+
+	* configure.in: Build doc/man/Makefile
+
+	* doc/man/pop3d.1: New File
+
+	* doc/man/imap4d.1: New File
+	
+	* doc/man/Makefile.am: New File
+
 	* pop3d/pop3d.c: Change timeout to unsigned int from size_t.
 	Thanks to James Troup <james@nocrew.org>
 

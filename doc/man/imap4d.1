@@ -1,0 +1,65 @@
+.\"                                      Hey, EMACS: -*- nroff -*-
+.\" First parameter, NAME, should be all caps
+.\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
+.\" other parameters are allowed: see man(7), man(1)
+.TH IMAP4D 1 "November 10th, 2001"
+.\" Please adjust this date whenever revising the manpage.
+.\"
+.\" Some roff macros, for reference:
+.\" .nh        disable hyphenation
+.\" .hy        enable hyphenation
+.\" .ad l      left justify
+.\" .ad b      justify to both left and right margins
+.\" .nf        disable filling
+.\" .fi        enable filling
+.\" .br        insert line break
+.\" .sp <n>    insert n+1 empty lines
+.\" for manpage-specific macros, see man(7)
+.SH NAME
+imap4d \- RFC1939 compliant POP3 Daemon. 
+.SH SYNOPSIS
+.B imap4d
+.RI [ options ]
+.SH DESCRIPTION
+This manual page documents briefly the
+.B imap4d
+command.
+This man page is not intended to be complete.
+Instead, it has documentation in the GNU Info format; see below.
+.PP
+.\" TeX users may be more comfortable with the \fB<whatever>\fP and
+.\" \fI<whatever>\fP escape sequences to invode bold face and italics, 
+.\" respectively.
+.SH OPTIONS
+These programs follow the usual GNU command line syntax, with long
+options starting with two dashes (`-').
+A summary of options is included below.
+For a complete description, see the Info files.
+.TP
+.B \-h, \-\-help
+Show summary of options.
+.TP
+.B \-v, \-\-version
+Show version of program.
+.TP
+.B \-d, \-\-daemon=MAXCHILDREN
+Runs in daemon mode with a maximum of MAXCHILDREN child processes.
+.TP
+.B \-i, \-\-inetd
+Runs in inetd mode (default).
+.TP
+.B \-p, \-\-port=PORT
+Specifies port to listen on, implies -d defaults to 110, which need not be specified.
+.TP
+.B \-t, \-\-timeout=TIMEOUT
+Sets idle timeout to TIMEOUT seconds TIMEOUT default is 600 (10 minutes).
+.SH SEE ALSO
+.BR RFC1730.
+.br
+The programs are documented fully by
+.IR "mailutils" ,
+available via the Info system.
+.SH AUTHOR
+This manual page was written by Jeff Bailey <jbailey@gnu.org>.
+Copyright (C) 2001 Free Software Foundation.  This document is
+in the PUBLIC DOMAIN.

@@ -249,7 +249,8 @@ fi
 
 dnl Output Makefiles
 AC_OUTPUT(Makefile mailutils.spec include/Makefile include/mailutils/Makefile
- m4/Makefile doc/Makefile doc/rfc/Makefile doc/texinfo/Makefile argp/Makefile
+ m4/Makefile doc/Makefile doc/man/Makefile doc/rfc/Makefile
+ doc/texinfo/Makefile argp/Makefile
  lib/Makefile lib/posix/Makefile mailbox/Makefile imap4d/Makefile
  mailbox/include/Makefile from/Makefile mail/Makefile pop3d/Makefile
  frm/Makefile sieve/Makefile messages/Makefile scripts/Makefile
