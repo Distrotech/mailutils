@@ -30,6 +30,7 @@
 
 #include <mailutils/mutil.h>
 #include <auth0.h>
+#include <url0.h>
 
 struct myticket_data
 {
@@ -38,12 +39,11 @@ struct myticket_data
   char *filename;
 };
 
-static char * stripwhite __P ((char *));
-static int myticket_create __P ((ticket_t *, const char *, const char *, const char *));
-static void myticket_destroy __P ((ticket_t));
-static int myticket_pop __P ((ticket_t, url_t, const char *, char **));
-static char * get_pass __P ((url_t, const char *, const char *));
-static char * get_user __P ((url_t, const char *));
+static int   myticket_create  __P ((ticket_t *, const char *, const char *, const char *));
+static void  myticket_destroy __P ((ticket_t));
+static int   myticket_pop     __P ((ticket_t, url_t, const char *, char **));
+static int   get_pass         __P ((url_t, const char *, const char *, char**));
+static int   get_user         __P ((url_t, const char *, char **));
 
 int
 wicket_create (wicket_t *pwicket, const char *filename)
@@ -164,8 +164,6 @@ myticket_create (ticket_t *pticket, const char *user, const char *pass, const ch
 	  status = ENOMEM;
 	  return status;
 	}
-      if (!pass)
-	mdata->pass = get_pass (NULL, user, filename);
     }
 
   if (pass)
@@ -186,13 +184,41 @@ static int
 myticket_pop (ticket_t ticket, url_t url, const char *challenge, char **parg)
 {
   struct myticket_data *mdata = NULL;
+  int e = 0;
+
   ticket_get_data (ticket, (void **)&mdata);
-  if (challenge && (strstr (challenge, "ass") != NULL
-		    || strstr (challenge, "ASS") != NULL))
-    *parg = (mdata->pass) ? strdup (mdata->pass) : get_pass (url, mdata->user, mdata->filename);
+  if (challenge &&
+    (
+      strstr (challenge, "ass") != NULL ||
+      strstr (challenge, "ASS") != NULL
+   )
+      )
+  {
+    if(mdata->pass)
+    {
+      *parg = strdup(mdata->pass);
+      if(!*parg)
+	e = ENOMEM;
+    }
+    else
+    {
+      e = get_pass (url, mdata->user, mdata->filename, parg);
+    }
+  }
   else
-    *parg = (mdata->user) ? strdup (mdata->user) : get_user (url, mdata->filename);
-  return 0;
+  {
+    if(mdata->user)
+    {
+      *parg = strdup(mdata->user);
+      if(!*parg)
+	e = ENOMEM;
+    }
+    else
+    {
+      e = get_user (url, mdata->filename, parg);
+    }
+  }
+  return e;
 }
 
 static void
@@ -212,132 +238,213 @@ myticket_destroy (ticket_t ticket)
     }
 }
 
-/* Strip whitespace from the start and end of STRING.  Return a pointer
-   into STRING. */
-static char *
-stripwhite (char *string)
+static int
+get_ticket (url_t url, const char *user, const char *filename, url_t * ticket)
 {
-  register char *s, *t;
+  int err = 0;
+  FILE *fp = NULL;
+  size_t buflen = 128;
+  char *buf = NULL;
 
-  for (s = string; isspace (*s); s++)
-    ;
 
-  if (*s == 0)
-    return (s);
+  if (!filename || !url)
+    return EINVAL;
 
-  t = s + strlen (s) - 1;
-  while (t > s && isspace (*t))
-    t--;
-  *++t = '\0';
+  fp = fopen (filename, "r");
 
-  return s;
+  if (!fp)
+    return errno;
+
+  buf = malloc (buflen);
+
+  if (!buf)
+    {
+      fclose (fp);
+      return ENOMEM;
+    }
+
+  while (!feof (fp) && !ferror (fp))
+    {
+      char *ptr = buf;
+      int len = 0;
+      url_t u = NULL;
+
+      /* fgets:
+	 1) return true, read some data
+           1a) read a newline, so break
+           1b) didn't read newline, so realloc & continue
+         2) returned NULL, so no more data
+       */
+      while (fgets (ptr, buflen, fp) != NULL)
+	{
+	  char *tmp = NULL;
+	  len = strlen (buf);
+	  /* Check if a complete line.  */
+	  if (len && buf[len - 1] == '\n')
+	    break;
+
+	  buflen *= 2;
+	  tmp = realloc (buf, buflen);
+	  if (tmp == NULL)
+	    {
+	      free (buf);
+	      fclose (fp);
+	      return ENOMEM;
+	    }
+	  buf = tmp;
+	  ptr = buf + len;
+	}
+
+      len = strlen (buf);
+
+      /* Truncate a trailing newline. */
+      if (len && buf[len - 1] == '\n')
+	buf[len - 1] = 0;
+
+      /* Skip leading spaces.  */
+      ptr = buf;
+      while (isspace (*ptr))
+	ptr++;
+
+      /* Skip comments. */
+      if (*ptr == '#')
+	continue;
+
+      /* Skip empty lines. */
+      if ((len = strlen (ptr)) == 0)
+	continue;
+
+      if ((err = url_create (&u, ptr)) != 0)
+	{
+	  free (buf);
+	  fclose (fp);
+	  return err;
+	}
+      if ((err = url_parse (u)) != 0)
+	{
+	  /* TODO: send output to the debug stream */
+	  /*
+	     printf ("url_parse %s failed: [%d] %s\n", str, err, strerror (err));
+	   */
+	  url_destroy (&u);
+	  continue;
+	}
+
+
+      if (!url_is_ticket (u, url))
+	{
+	  url_destroy (&u);
+	  continue;
+	}
+      /* Also needs to be for name, if we required. */
+      if (user)
+	{
+	  if (u->name && strcmp (u->name, "*") != 0
+	      && strcmp (user, u->name) != 0)
+	    {
+	      url_destroy (&u);
+	      continue;
+	    }
+	}
+
+      /* Looks like a match! */
+      *ticket = u;
+      u = NULL;
+      break;
+    }
+
+  fclose (fp);
+  free (buf);
+
+  return 0;
 }
 
-static char *
-get_user (url_t url, const char *filename)
+static int
+get_user (url_t url, const char *filename, char **user)
 {
-  struct passwd *pw;
-  char *u = (char *)"";
+  char *u = 0;
+
   if (url)
     {
       size_t n = 0;
       url_get_user (url, NULL, 0, &n);
-      u = calloc (1, n + 1);
-      url_get_user (url, u, n + 1, NULL);
-      return u;
-    }
-  else if (filename)
-    {
-      /* do something.  */
-    }
-  pw = getpwuid (getuid ());
-  if (pw)
-    u = pw->pw_name;
-  return strdup (u);
-}
 
-static char *
-get_pass (url_t url, const char *u, const char *filename)
-{
-  char *user = NULL;
-  char *pass = NULL;
-
-  if (u)
-    user = strdup (u);
-  else if (url)
-    {
-      size_t n = 0;
-      url_get_user (url, NULL, 0, &n);
-      user = calloc (1, n + 1);
-      url_get_user (url, user, n + 1, NULL);
-    }
-  else
-    user = get_user (NULL, filename);
-
-  if (filename && user)
-    {
-      FILE *fp;
-      fp = fopen (filename, "r");
-      if (fp)
+      if (n)
 	{
-	  char *buf;
-	  size_t buflen;
-
-	  buflen = 128;
-	  buf = malloc (buflen);
-	  if (buf)
-	    {
-	      char *ptr = buf;
-	      while (fgets (ptr, buflen, fp) != NULL)
-		{
-		  size_t len = strlen (buf);
-		  char *sep;
-		  /* Check if a complete line.  */
-		  if (len && buf[len - 1] != '\n')
-		    {
-		      char *tmp =  realloc (buf, 2*buflen);
-		      if (tmp == NULL)
-			break;
-		      buf = tmp;
-		      ptr = buf + len;
-		      continue;
-		    }
-
-		  ptr = buf;
-
-		  /* Comments.  */
-		  if (*ptr == '#')
-		    continue;
-
-		  /* Skip leading spaces.  */
-		  while (isspace (*ptr))
-		    {
-		      ptr++;
-		      len--;
-		    }
-
-		  /* user:passwd.  Separator maybe ": \t" */
-		  if (len && ((sep = memchr (ptr, ':', len)) != NULL
-			      || (sep = memchr (ptr, ' ', len)) != NULL
-			      || (sep = memchr (ptr, '\t', len)) != NULL))
-		    {
-		      *sep++ = '\0';
-		      ptr = stripwhite (ptr);
-		      if (strcmp (ptr, user) == 0)
-			{
-			  pass = strdup (stripwhite (sep));
-			  break;
-			}
-		    }
-		  ptr = buf;
-		}
-	    }
-
-	  if (buf)
-	    free (buf);
-	  fclose (fp);
+	  u = calloc (1, n + 1);
+	  url_get_user (url, u, n + 1, NULL);
 	}
     }
-  free (user);
-  return pass;
+  if (!u && filename)
+    {
+      url_t ticket = 0;
+      int e = get_ticket (url, NULL, filename, &ticket);
+      if (e)
+	return e;
+
+      if (ticket)
+	{
+	  size_t n = 0;
+	  url_get_user (ticket, NULL, 0, &n);
+
+	  if (n)
+	    {
+	      u = calloc (1, n + 1);
+	      url_get_user (ticket, u, n + 1, NULL);
+	    }
+	  url_destroy (&ticket);
+	}
+    }
+  else
+    {
+      struct passwd *pw = getpwuid (getuid ());
+      if (pw && pw->pw_name)
+	{
+	  u = strdup (pw->pw_name);
+	  if (!u)
+	    return ENOMEM;
+	}
+    }
+  *user = u;
+  return 0;
+}
+
+static int
+get_pass (url_t url, const char *user, const char *filename, char **pass)
+{
+  char *u = 0;
+
+  if (url)
+    {
+      size_t n = 0;
+      url_get_passwd (url, NULL, 0, &n);
+
+      if (n)
+	{
+	  u = calloc (1, n + 1);
+	  url_get_passwd (url, u, n + 1, NULL);
+	}
+    }
+  if (!u && filename)
+    {
+      url_t ticket = 0;
+      int e = get_ticket (url, user, filename, &ticket);
+      if (e)
+	return e;
+
+      if (ticket)
+	{
+	  size_t n = 0;
+	  url_get_passwd (ticket, NULL, 0, &n);
+
+	  if (n)
+	    {
+	      u = calloc (1, n + 1);
+	      url_get_passwd (ticket, u, n + 1, NULL);
+	    }
+	  url_destroy (&ticket);
+	}
+    }
+  *pass = u;
+  return 0;
 }
