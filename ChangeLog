@@ -1,3 +1,40 @@
+2002-10-02  Sergey Poznyakoff
+
+	* mailbox/address.c (_address_get_nth): Get nth sub-address
+	  from an address.
+	  (most of the functions): Rewritten using _address_get_nth
+	  (address_aget_personal, address_aget_comments): new functions.
+	  (address_dup): New function. Create a copy of a (single)
+	  address.
+	  (address_contains_email): New function. Check if the given email
+	  is contained in the address.
+	  (address_union): New function. Create a union of two addresses.
+	* include/mailutils/address.h (address_contains_email,
+	  address_union): new functions.
+
+	* mail/setenv.c: New file. Implements `setenv' command: an
+	  extension allowing to manipulate the shell environment.
+	* mail/table.c: Added setenv command.
+	* mail/Makefile.am: Added setenv.c
+	* mail/decode.c: Use util_get_crt() to check the value of
+	  the crt variable.
+	* mail/print.c: Likewise.  
+	* mail/mail.h (mail_setenv, util_get_crt, util_merge_addresses):
+	  New functions.
+	* mail/reply.c (mail_reply): Bugfix.
+	* mail/send.c (compose_header_set): COMPOSE_SINGLE_LINE part
+	  rewritten.
+	* mail/util.c (util_get_crt): Return the value of the "crt"
+	  variable. The variable may be either boolean or numeric,
+	  meaning the minimum number of lines the body of the message
+	  must contain in order to be put through the pager.
+	  (util_merge_addresses): Add new address to the comma-separated
+	  address list, unless it is already present there.
+	* mail/var.c (dump_headers): Do not print extra newline after
+	  the headers.
+	* doc/texinfo/programs.texi: Documented crt variable
+	  and setenv command.
+
 2002-10-01  Sergey Poznyakoff
 
 	* guimb/scm/sieve-core.scm: Added :regex tag -- an
