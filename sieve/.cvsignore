@@ -1,0 +1,14 @@
+gram-sieve.tab.c
+Makefile
+Makefile.in
+addr.c
+addr.h
+sieve-gram.c
+sieve-gram.h
+addr-lex.c
+sieve-lex.c
+.deps
+.libs
+sieve
+test
+_*
