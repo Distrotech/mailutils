@@ -100,7 +100,7 @@ if ($EMAIL eq '') {
 }
 
 print O "$DATE  $MAINTAINER  <$EMAIL>\n\n";
-if ($TEXT) { write O } else { print O "  * \n\n"; $line=3; }
+if ($TEXT) { write O } else { print O "\t* \n\n"; $line=3; }
 # Rewind the current changelog to the beginning of the file
 seek S,0,0 or fatal "Couldn't rewind ChangeLog:" . " $!";
 # Copy the rest of the changelog file to new one
@@ -121,7 +121,7 @@ copy("ChangeLog.dch","ChangeLog") or
 
 # Format for standard ChangeLogs
 format O =
-  * ^<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+	* ^<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     $TEXT
 
  ~~ ^<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
