@@ -49,6 +49,7 @@ pkginclude_HEADERS = \
  nls.h \
  observer.h \
  parse822.h \
+ pop3.h \
  property.h \
  registrar.h \
  stream.h \
@@ -56,4 +57,4 @@ pkginclude_HEADERS = \
  types.h \
  url.h 
 
-SUBDIRS = gnu
+SUBDIRS = gnu sys
