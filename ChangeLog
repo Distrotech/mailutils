@@ -1,3 +1,13 @@
+2002-04-15  Sergey Poznyakoff 
+
+	* imap4d/namespace.c (namespace_getfullpath): Translate
+	  INBOX to the corresponding filename.
+	
+	* imap4d/copy.c (imap4d_copy0): Removed unnecessary code:
+	  namespace_getfullpath() now translates INBOX to filename.
+	* imap4d/select.c: Likewise.
+	* imap4d/status.c: Likewise.
+	
 2002-04-14 22:34  sroberts
 
 	* include/mailutils/mutil.h, mailbox/locker.c, mailbox/mutil.c:
