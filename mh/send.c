@@ -18,6 +18,9 @@
 /* MH send command */
 
 #include <mh.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <stdarg.h>
 
 const char *argp_program_version = "send (" PACKAGE_STRING ")";
 static char doc[] = N_("GNU MH send\v"
@@ -54,7 +57,7 @@ static struct argp_option options[] = {
   {"alias",         ARG_ALIAS,         N_("FILE"), 0,
    N_("* Specify additional alias file") },
   {"draft",         ARG_DRAFT,         NULL, 0,
-   N_("* Use prepared draft") },
+   N_("Use prepared draft") },
   {"draftfolder",   ARG_DRAFTFOLDER,   N_("FOLDER"), 0,
    N_("* Specify the folder for message drafts") },
   {"draftmessage",  ARG_DRAFTMESSAGE,  N_("MESSAGE"), 0,
@@ -78,15 +81,15 @@ static struct argp_option options[] = {
    N_("* Add Message-ID: field") },
   {"nomsgid",       ARG_NOMSGID,       NULL, OPTION_HIDDEN, ""},
   {"push",          ARG_PUSH,          N_("BOOL"), OPTION_ARG_OPTIONAL,
-   N_("* Run in the backround.") },
+   N_("Run in the backround.") },
   {"nopush",        ARG_NOPUSH,        NULL, OPTION_HIDDEN, "" },
   {"split",         ARG_SPLIT,         N_("SECONDS"), 0,
    N_("* Split the draft into several partial messages and send them with SECONDS interval") },
   {"verbose",       ARG_VERBOSE,       N_("BOOL"), OPTION_ARG_OPTIONAL,
-   N_("* Print the transcript of interactions with the transport system") },
+   N_("Print the transcript of interactions with the transport system") },
   {"noverbose",     ARG_NOVERBOSE,     NULL, OPTION_HIDDEN, "" },
   {"watch",         ARG_WATCH,         N_("BOOL"), OPTION_ARG_OPTIONAL,
-   N_("* Monitor the delivery of mail") },
+   N_("Monitor the delivery of mail") },
   {"nowatch",       ARG_NOWATCH,       NULL, OPTION_HIDDEN, "" },
   {"width",         ARG_WIDTH,         N_("NUMBER"), 0,
    N_("* Make header fields no longer than NUMBER columns") },
@@ -114,6 +117,7 @@ struct mh_option mh_option[] = {
   { 0 }
 };
 
+static int use_draft;            /* Use the prepared draft */
 static int reformat_recipients;  /* --format option */
 static int forward_notice;       /* Forward the failure notice to the sender,
 				    --forward flag */
@@ -129,6 +133,11 @@ static int verbose;              /* Produce verbose diagnostics */
 static int watch;                /* Watch the delivery process */
 static unsigned width = 76;      /* Maximum width of header fields */
 
+#define WATCH(c) do {\
+  if (watch)\
+    watch_printf c;\
+} while (0)
+
 static int
 opt_handler (int key, char *arg, void *unused)
 {
@@ -137,7 +146,12 @@ opt_handler (int key, char *arg, void *unused)
   switch (key)
     {
     case ARG_ALIAS:
-    case ARG_DRAFT:      
+      return 1;
+      
+    case ARG_DRAFT:
+      use_draft = 1;
+      break;
+	
     case ARG_DRAFTFOLDER:
     case ARG_DRAFTMESSAGE:
     case ARG_NODRAFTFOLDER:
@@ -225,7 +239,154 @@ opt_handler (int key, char *arg, void *unused)
     }
   return 0;
 }
-      
+
+static int
+watch_printf (const char *fmt, ...)
+{
+  va_list ap;
+
+  va_start (ap, fmt);
+  vfprintf (stderr, fmt, ap);
+  fprintf (stderr, "\n");
+  va_end (ap);
+}
+
+static char *
+draft_name()
+{
+  char *draftfolder = mh_global_profile_get ("Draft-Folder",
+					     mu_path_folder_dir);
+  return mh_expand_name (draftfolder, "draft", 0);
+}
+
+static list_t mbox_list;
+static mh_context_t *mts_profile;
+
+int
+check_file (char *name)
+{
+  mailbox_t mbox;
+
+  mbox = mh_open_msg_file (name);
+  if (!mbox)
+    return 1;
+  if (!mbox_list && list_create (&mbox_list))
+    {
+      mh_error (_("can't create mailbox list"));
+      return 1;
+    }
+  
+  return list_append (mbox_list, mbox);
+}
+
+void
+read_mts_profile ()
+{
+  char *p;
+
+  p = mh_expand_name (MHLIBDIR, "mtstailor", 0);
+  if (!p)
+    {
+      char *home = mu_get_homedir ();
+      if (!home)
+	abort (); /* shouldn't happen */
+      asprintf (&p, "%s/%s", home, ".mtstailor");
+      free (home);
+    }
+  mts_profile = mh_context_create (p, 1);
+  mh_context_read (mts_profile);
+}
+
+
+mailer_t
+open_mailer ()
+{
+  char *url = mh_context_get_value (mts_profile,
+				    "url",
+				    "sendmail:/usr/sbin/sendmail");
+  mailer_t mailer;
+  int status;
+    
+  WATCH(("creating mailer %s", url));
+  status = mailer_create (&mailer, url);
+  if (status)
+    {
+      mh_error(_("cannot create mailer \"%s\""), url);
+      return NULL;
+    }
+
+  if (verbose)
+    {
+      mu_debug_t debug = NULL;
+      mailer_get_debug (mailer, &debug);
+      mu_debug_set_level (debug, MU_DEBUG_TRACE | MU_DEBUG_PROT);
+    }
+
+  WATCH(("opening mailer %s", url));
+  status = mailer_open (mailer, MU_STREAM_RDWR);
+  if (status)
+    {
+      mh_error(_("cannot open mailer \"%s\""), url);
+      return NULL;
+    }
+  return mailer;
+}
+    
+int
+_action_send (void *item, void *data)
+{
+  mailbox_t mbox = item;
+  message_t msg;
+  int rc;
+  mailer_t mailer;
+
+  WATCH(("Getting message"));
+  if ((rc = mailbox_get_message (mbox, 1, &msg)))
+    {
+      mh_error(_("cannot get message: %s"), mu_strerror (rc));
+      return 1;
+    }
+
+  mailer = open_mailer ();
+  if (!mailer)
+    return 1;
+
+  WATCH(("Sending message"));
+  rc = mailer_send_message (mailer, msg, NULL, NULL);
+  if (rc)
+    {
+      mh_error(_("cannot send message: %s"), mu_strerror (rc));
+      return 1;
+    }
+
+  WATCH(("Destroying the mailer"));
+  mailer_close (mailer);
+  mailer_destroy (&mailer);
+  
+  return 0;
+}
+
+int
+send (int argc, char **argv)
+{
+  int i, rc;
+  
+  for (i = 0; i < argc; i++)
+    if (check_file (argv[i]))
+      return 1;
+
+  read_mts_profile ();
+  
+  if (background && daemon (0, 0) < 0)
+    {
+      mh_error(_("cannot switch to background: %s"), mu_strerror (errno));
+      return 1;
+    }
+
+  rc = list_do (mbox_list, _action_send, NULL);
+  return rc;
+}
+	  
 int
 main (int argc, char **argv)
 {
@@ -236,5 +397,27 @@ main (int argc, char **argv)
   mh_argp_parse (argc, argv, options, mh_option, args_doc, doc,
 		 opt_handler, NULL, &index);
 
-  return 0;
+  argc -= index;
+  argv += index;
+
+  if (argc == 0)
+    {
+      struct stat st;
+      static char *xargv[2];
+      xargv[0] = draft_name();
+
+      if (stat (xargv[0], &st))
+	{
+	  mh_error(_("cannot stat %s: %s"), xargv[0], mu_strerror (errno));
+	  return 1;
+	}
+
+      if (!use_draft && !mh_usedraft (xargv[0]))
+	exit (0);
+      xargv[1] = NULL;
+      argv = xargv;
+      argc = 1;
+    }
+
+  return send(argc, argv);  
 }
