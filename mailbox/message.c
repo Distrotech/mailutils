@@ -560,7 +560,7 @@ message_write (stream_t os, const char *buf, size_t buflen,
 {
   message_t msg;
   int status = 0;
-  size_t bufsize = 0;
+  size_t bufsize = buflen;
 
   if (os == NULL || (msg = os->owner) == NULL)
     return EINVAL;
@@ -653,7 +653,7 @@ message_write (stream_t os, const char *buf, size_t buflen,
       buflen -= written;
     }
   if (pnwrite)
-    *pnwrite = busize - buflen;
+    *pnwrite = bufsize - buflen;
   return status;
 }
 

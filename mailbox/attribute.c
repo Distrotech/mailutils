@@ -171,7 +171,7 @@ attribute_is_recent (attribute_t attr)
   /* something is recent when it is not read and not seen.  */
   return (attr->flag == 0
 	  || ! ((attr->flag & MU_ATTRIBUTE_SEEN)
-		&& (attr->flag & MU_ATTRIBUTE_READ));
+		&& (attr->flag & MU_ATTRIBUTE_READ)));
 }
 
 int
@@ -233,7 +233,7 @@ attribute_unset_recent (attribute_t attr)
 {
   if (attr == NULL)
     return 0;
-  attr-> |= MU_ATTRIBUTE_SEEN;
+  attr->flag |= MU_ATTRIBUTE_SEEN;
   return 0;
 }
 
