@@ -35,8 +35,8 @@ mu_debug_t mudebug;
 #define EX_QUOTA() (ex_quota_tempfail ? EX_TEMPFAIL : EX_UNAVAILABLE)
 
 void close_fds ();
-FILE *make_tmp (const char *from, char **tempfile);
-void deliver (FILE *fp, char *name);
+int make_tmp __P((const char *from, message_t *msg, char **tempfile));
+void deliver (message_t msg, char *name);
 void guess_retval (int ec);
 void mailer_err (char *fmt, ...);
 void notify_biff (mailbox_t mbox, char *name, size_t size);
@@ -99,15 +99,15 @@ static const char *argp_capa[] = {
   "auth",
   "common",
   "license",
-  "mailbox",
   "logging",
+  "mailbox",
+  "mailer",
   NULL
 };
 
 char *from = NULL;
 char *progfile_pattern = NULL;
 char *sieve_pattern = NULL;
-message_t sieve_msg = NULL;
 
 #define D_DEFAULT "9s"
 
@@ -264,8 +264,8 @@ _sieve_parse_error (void *user_name, const char *filename, int lineno,
 int
 main (int argc, char *argv[])
 {
-  FILE *fp;
   char *tempfile = NULL;
+  message_t message = NULL;
   int arg_index;
   
   /* Preparative work: close inherited fds, force a reasonable umask
@@ -324,35 +324,8 @@ main (int argc, char *argv[])
     list_append (bookie, smtp_record);
   }
 
-  fp = make_tmp (from, &tempfile);
-  if (sieve_pattern)
-    {
-      stream_t stream;
-      int status;
-      
-      fflush (fp);
-      file_stream_create (&stream, tempfile, MU_STREAM_RDWR);
-      if ((status = stream_open (stream)))
-	{
-	  mu_error ("Opening temporary file failed: %s\n",
-		    mu_errstring (status));
-	  return EX_TEMPFAIL;
-	}
-
-      if ((status = message_create (&sieve_msg, NULL)))
-	{
-	  mu_error ("Can't create temporary message: %s\n",
-		    mu_errstring (status));
-	  return EX_TEMPFAIL;
-	}
-
-      if ((status = message_set_stream (sieve_msg, stream, NULL)))
-	{
-	  mu_error ("Can't assign stream to temporary message: %s\n",
-		    mu_errstring (status));
-	  return EX_TEMPFAIL;
-	}
-    }
+  if (make_tmp (from, &message, &tempfile))
+    exit (exit_code);
   
   if (multiple_delivery)
     multiple_delivery = argc > 1;
@@ -363,7 +336,7 @@ main (int argc, char *argv[])
       struct mda_data mda_data;
       
       memset (&mda_data, 0, sizeof mda_data);
-      mda_data.fp = fp;
+      mda_data.msg = message;
       mda_data.argv = argv;
       mda_data.progfile_pattern = progfile_pattern;
       mda_data.tempfile = tempfile;
@@ -373,12 +346,12 @@ main (int argc, char *argv[])
   
   unlink (tempfile);
   for (; *argv; argv++)
-    mda (fp, *argv);
+    mda (message, *argv);
   return exit_code;
 }
 
 int
-sieve_test (struct mu_auth_data *auth)
+sieve_test (struct mu_auth_data *auth, message_t msg)
 {
   int rc = 1;
   char *progfile;
@@ -414,13 +387,13 @@ sieve_test (struct mu_auth_data *auth)
 	    {
 	      attribute_t attr;
 	      
-	      message_get_attribute (sieve_msg, &attr);
+	      message_get_attribute (msg, &attr);
 	      attribute_unset_deleted (attr);
 	      if (switch_user_id (auth, 1) == 0)
 		{
 		  chdir (auth->dir);
 		
-		  rc = sieve_message (mach, sieve_msg);
+		  rc = sieve_message (mach, msg);
 		  if (rc == 0)
 		    rc = attribute_is_deleted (attr) == 0;
 
@@ -436,9 +409,9 @@ sieve_test (struct mu_auth_data *auth)
 }
 
 int
-mda (FILE *fp, char *username)
+mda (message_t msg, char *username)
 {
-  deliver (fp, username);
+  deliver (msg, username);
 
   if (multiple_delivery)
     exit_code = EX_OK;
@@ -491,24 +464,41 @@ switch_user_id (struct mu_auth_data *auth, int user)
   return rc;
 }
 
-FILE *
-make_tmp (const char *from, char **tempfile)
+static int
+tmp_write (stream_t stream, off_t *poffset, char *buf, size_t len)
 {
-  time_t t;
-  FILE *fp;
+  size_t n = 0;
+  int status = stream_write (stream, buf, len, *poffset, &n);
+  if (status == 0 && n != len)
+    status = EIO;
+  *poffset += n;
+  return status;
+}
+
+int
+make_tmp (const char *from, message_t *msg, char **tempfile)
+{
+  stream_t stream;
   char *buf = NULL;
   size_t n = 0;
-  int line;
-
+  off_t offset = 0;
+  size_t line;
+  int status;
+  static char *newline = "\n";
+  
   *tempfile = mu_tempname (NULL);
-  fp = fopen (*tempfile, "w+");
-
-  if (fp == NULL)
+  if ((status = file_stream_create (&stream, *tempfile, MU_STREAM_RDWR)))
     {
-      mailer_err ("unable to open temporary file");
+      mailer_err ("unable to open temporary file: %s", mu_errstring (status));
       exit (exit_code);
     }
 
+  if ((status = stream_open (stream)))
+    {
+      mailer_err ("unable to open temporary file: %s", mu_errstring (status));
+      exit (exit_code);
+    }
+  
   line = 0;
   while (getline (&buf, &n, stdin) > 0)
     {
@@ -526,8 +516,13 @@ make_tmp (const char *from, char **tempfile)
 		}
 	      if (from)
 		{
+		  time_t t;
+		  char *ptr;
+		  
 		  time (&t);
-		  fprintf (fp, "From %s %s", from, ctime (&t));
+		  asprintf (&ptr, "From %s %s", from, ctime (&t));
+		  status = tmp_write (stream, &offset, ptr, strlen (ptr));
+		  free (ptr);
 		}
 	      else
 		{
@@ -539,35 +534,61 @@ make_tmp (const char *from, char **tempfile)
 	    }
 	}
       else if (!memcmp (buf, "From ", 5))
-	fputc ('>', fp);
-      if (fputs (buf, fp) == EOF)
 	{
-	  mailer_err ("temporary file write error");
-	  fclose (fp);
-	  return NULL;
+	  static char *escape = ">";
+	  status = tmp_write (stream, &offset, escape, 1);
+	}
+
+      if (!status)
+	status = tmp_write (stream, &offset, buf, strlen (buf));
+      
+      if (status)
+	{
+	  mailer_err ("temporary file write error: %s", mu_errstring (status));
+	  stream_destroy (&stream, stream_get_owner (stream));
+	  return status;
 	}
     }
   
   if (buf && strchr (buf, '\n') == NULL)
-    putc ('\n', fp);
-  
-  putc ('\n', fp);
+    status = tmp_write (stream, &offset, newline, 1);
+
+  status = tmp_write (stream, &offset, newline, 1);
   free (buf);
+
+  if (status)
+    {
+      errno = status;
+      mailer_err ("temporary file write error: %s", mu_errstring (status));
+      stream_destroy (&stream, stream_get_owner (stream));
+      return status;
+    }
+
+  if ((status = message_create (msg, NULL)) == 0)
+    status = message_set_stream (*msg, stream, NULL);
   
-  return fp;
+  if (status)
+    {
+      errno = status;
+      mailer_err ("temporary message creation error: %s",
+		  mu_errstring (status));
+      stream_destroy (&stream, stream_get_owner (stream));
+      return status;
+    }
+      
+  return status;
 }
 
 void
-deliver (FILE *fp, char *name)
+deliver (message_t msg, char *name)
 {
   mailbox_t mbox;
   char *path;
   url_t url = NULL;
-  size_t n = 0;
   locker_t lock;
   struct mu_auth_data *auth;
   int status;
-  stream_t stream;
+  stream_t istream, ostream;
   size_t size;
   int failed = 0;
 #if defined(USE_DBM)
@@ -582,9 +603,16 @@ deliver (FILE *fp, char *name)
       return;
     }
 
-  if (!sieve_test (auth))
+  if (!sieve_test (auth, msg))
     {
       exit_code = EX_OK;
+      mu_auth_data_free (auth);
+      return;
+    }
+
+  if ((status = message_get_stream (msg, &istream)) != 0)
+    {
+      mailer_err ("can't get input message stream: %s", mu_errstring (status));
       mu_auth_data_free (auth);
       return;
     }
@@ -629,7 +657,7 @@ deliver (FILE *fp, char *name)
       return;
     }
 
-  if ((status = mailbox_get_stream (mbox, &stream)))
+  if ((status = mailbox_get_stream (mbox, &ostream)))
     {
       mailer_err ("can't get stream for mailbox %s: %s",
 		  path, mu_errstring (status));
@@ -637,7 +665,7 @@ deliver (FILE *fp, char *name)
       return;
     }
 
-  if ((status = stream_size (stream, (off_t *) &size)))
+  if ((status = stream_size (ostream, (off_t *) &size)))
     {
       mailer_err ("can't get stream size (mailbox %s): %s",
 		  path, mu_errstring (status));
@@ -656,9 +684,10 @@ deliver (FILE *fp, char *name)
     case MQUOTA_UNLIMITED:
       break;
     default:
-      if (fstat (fileno (fp), &sb))
+      if ((status = stream_size (istream, (off_t *) &isize)))
 	{
-	  mailer_err ("cannot stat tempfile: %s", strerror (errno));
+	  mailer_err ("can't get stream size (input message): %s",
+		      path, mu_errstring (status));
 	  exit_code = EX_UNAVAILABLE;
 	  failed++;
 	}
@@ -675,26 +704,46 @@ deliver (FILE *fp, char *name)
   
   if (!failed && switch_user_id (auth, 1) == 0)
     {
+      off_t ioff = 0;
       off_t off = size;
-      size_t nwr;
+      size_t nwr, nrd;
       char *buf = NULL;
+      size_t bufsize = 1024;
 
-      n = 0;
-      status = 0;
-      fseek (fp, 0, SEEK_SET);
-      while (getline(&buf, &n, fp) > 0)
+      stream_size (istream, (off_t *) &bufsize);
+      for (; (buf = malloc (bufsize)) == NULL && bufsize > 1; bufsize /= 2)
+	;
+      
+      if (!buf)
 	{
-	  status = stream_write (stream, buf, strlen (buf), off, &nwr);
-	  if (status)
-	    {
-	      mailer_err ("error writing to mailbox: %s",
-			  mu_errstring (status));
-	      break;
-	    }
-	  off += nwr;
+	  status = errno = ENOMEM;
+	  failed++;
 	}
-      free (buf);
+      else
+	{
+	  status = 0;
+
+	  while ((status = stream_read (istream, buf, bufsize, ioff, &nrd))
+		 == 0
+		 && nrd > 0)
+	    {
+	      status = stream_write (ostream, buf, nrd, off, &nwr);
+	      if (status)
+		break;
+	      ioff += nrd;
+	      off += nwr;
+	    }
+	  
+	  free (buf);
+	}
+      
       switch_user_id (auth, 0);
+
+      if (status)
+	{
+	  mailer_err ("error writing to mailbox: %s",
+		      mu_errstring (status));
+	}
     }
 
   if (!failed)
