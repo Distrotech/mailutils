@@ -183,6 +183,9 @@ AC_REPLACE_FUNCS(fgetpwent getpass setenv snprintf strtok_r strncasecmp \
 AC_CHECK_FUNCS(mkstemp sigaction sysconf getdelim vsyslog setreuid \
  setresuid seteuid vfork _exit)
 
+## Check for presence of utmp.h and utmp-related functions
+MU_CHECK_UTMP
+
 dnl Check for libraries
 AC_CHECK_FUNCS(argp_parse, :,
                [LIBOBJS="$LIBOBJS argp-ba.o argp-eexst.o argp-fmtstream.o \
@@ -410,4 +413,5 @@ AC_OUTPUT(Makefile mailutils.spec
  comsat/Makefile
  mail.local/Makefile
  dotlock/Makefile
+ mh/Makefile
  )
