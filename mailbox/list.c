@@ -389,7 +389,7 @@ next (void *owner)
 }
 
 static int
-getitem (void *owner, void **pret)
+getitem (void *owner, void * const *pret)
 {
   struct list_iterator *itr = owner;
   *pret = itr->cur->item;
