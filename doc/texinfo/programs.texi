@@ -33,7 +33,8 @@ the command line. Upon startup, each mailutils utility scans and
 processes the contents of the three startup files: the site-wide
 configuration file @file{mailutils.rc}, the user-specific configuration
 file @file{.mailutils}, and the program-specific configuration
-file @file{.<program>rc}. The site-wide configuration file is searched
+file @file{.mu.@var{program}rc} (where @var{program} means the
+program name). The site-wide configuration file is searched
 in your system configuration directory (usually, @file{/etc} or
 @file{/usr/local/etc}), the user-specific and program-specific
 configuration files are searched in the user's home directory.
