@@ -5,9 +5,9 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: mailutils 0.3\n"
-"POT-Creation-Date: 2003-02-16 13:55+0200\n"
-"PO-Revision-Date: 2003-03-22 16:23+0100\n"
+"Project-Id-Version: mailutils 0.3.1\n"
+"POT-Creation-Date: 2003-03-22 15:56+0100\n"
+"PO-Revision-Date: 2003-04-18 19:42+0200\n"
 "Last-Translator: Jordi Mallach <jordi@gnu.org>\n"
 "Language-Team: Catalan <ca@dodds.net>\n"
 "MIME-Version: 1.0\n"
@@ -15,8 +15,9 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n!=1;\n"
 
-#: auth/pam.c:153 auth/sql.c:409 auth/sql.c:411 mh/anno.c:40 mh/whatnow.c:36
-#: pop3d/popauth.c:80
+#: auth/pam.c:153 auth/sql.c:410 auth/sql.c:412 mh/anno.c:40 mh/pick.c:42
+#: mh/pick.c:45 mh/pick.c:47 mh/pick.c:49 mh/pick.c:51 mh/pick.c:53
+#: mh/pick.c:55 mh/pick.c:59 mh/whatnow.c:36 pop3d/popauth.c:80
 msgid "STRING"
 msgstr "CADENA"
 
@@ -24,73 +25,74 @@ msgstr "CADENA"
 msgid "Use STRING as PAM service name"
 msgstr "Usa CADENA com el nom del servei PAM"
 
-#: auth/sql.c:160 auth/sql.c:254 auth/sql.c:345
+#: auth/sql.c:160 auth/sql.c:254 auth/sql.c:346
 #, c-format
 msgid "MySQL: connect failed: %s"
 msgstr "MySQL: la connexió ha fallat: %s"
 
-#: auth/sql.c:175 auth/sql.c:270 auth/sql.c:360
+#: auth/sql.c:175 auth/sql.c:270 auth/sql.c:361
 #, c-format
 msgid "MySQL: query failed: %s"
 msgstr "MySQL: la consulta ha fallat: %s"
 
-#: auth/sql.c:185 auth/sql.c:280 auth/sql.c:370
+#: auth/sql.c:185 auth/sql.c:280 auth/sql.c:371
 #, c-format
 msgid "MySQL: can't store result: %s"
 msgstr "MySQL: no es pot emmagatzemar el resultat: %s"
 
-#: auth/sql.c:192 auth/sql.c:287 auth/sql.c:377
+#: auth/sql.c:192 auth/sql.c:287 auth/sql.c:378
 #, c-format
 msgid "MySQL: can't fetch row: %s"
 msgstr "MySQL: no es pot rebre la fila: %s"
 
-#: auth/sql.c:399 auth/sql.c:401 auth/sql.c:403
+#: auth/sql.c:400 auth/sql.c:402 auth/sql.c:404
 msgid "QUERY"
 msgstr "CONSULTA"
 
-#: auth/sql.c:400
+#: auth/sql.c:401
 msgid "SQL query to retrieve a passwd entry based on username"
 msgstr "Consulta SQL per a obtindre una entrada de contrasenya basada en el nom d'usuari"
 
-#: auth/sql.c:402
+#: auth/sql.c:403
 msgid "SQL query to retrieve a passwd entry based on UID"
 msgstr "Consulta SQL per a obtindre una entrada de contrasenya basada en l'UID"
 
-#: auth/sql.c:404
+#: auth/sql.c:405
 msgid "SQL query to retrieve a password from the database"
 msgstr "Consulta SQL per a obtindre una contrasenya de la base de dades"
 
-#: auth/sql.c:405
+#: auth/sql.c:406
 msgid "HOSTNAME"
 msgstr "SERVIDOR"
 
-#: auth/sql.c:406
+#: auth/sql.c:407
 msgid "Name or IP of MySQL server to connect to"
 msgstr "Nom o IP del servidor MySQL al que connectar"
 
-#: auth/sql.c:407 frm/frm.c:68 guimb/main.c:66 guimb/main.c:67 mh/mark.c:29
+#: auth/sql.c:408 frm/frm.c:68 guimb/main.c:66 guimb/main.c:67 mh/mark.c:29
+#: mh/pick.c:84
 msgid "NAME"
 msgstr "NOM"
 
-#: auth/sql.c:408
+#: auth/sql.c:409
 msgid "SQL user name"
 msgstr "Nom d'usuari SQL"
 
-#: auth/sql.c:410
+#: auth/sql.c:411
 msgid "SQL connection password"
 msgstr "Contrasenya de connexió SQL"
 
-#: auth/sql.c:412
+#: auth/sql.c:413
 msgid "Name of the database to connect to"
 msgstr "Nom de la base de dades a la qual connectar"
 
-#: auth/sql.c:413 mail.local/main.c:82 mailbox/mu_argp.c:103
-#: mailbox/mu_argp.c:109 mh/inc.c:45 mh/mhl.c:41 mh/mhl.c:43 mh/repl.c:58
-#: mh/scan.c:46
+#: auth/sql.c:414 mail.local/main.c:82 mailbox/mu_argp.c:103
+#: mailbox/mu_argp.c:109 mh/forw.c:62 mh/inc.c:47 mh/mhl.c:41 mh/mhl.c:43
+#: mh/repl.c:58 mh/scan.c:47 mh/send.c:72
 msgid "NUMBER"
 msgstr "NÚMERO"
 
-#: auth/sql.c:414
+#: auth/sql.c:415
 msgid "Port to use"
 msgstr "Port a usar"
 
@@ -100,8 +102,10 @@ msgstr "Opcions de xifrat"
 
 #: auth/tls.c:53 auth/tls.c:55 auth/tls.c:57 comsat/comsat.c:58
 #: dotlock/dotlock.c:40 mail/mail.c:33 mail.local/main.c:71 mh/fmtcheck.c:29
-#: mh/inc.c:29 mh/inc.c:33 mh/inc.c:39 mh/mhl.c:39 mh/refile.c:46 mh/repl.c:53
-#: mh/scan.c:40 mh/scan.c:50 pop3d/popauth.c:78 pop3d/popauth.c:79
+#: mh/forw.c:50 mh/forw.c:52 mh/inc.c:29 mh/inc.c:33 mh/inc.c:40 mh/mhl.c:39
+#: mh/mhn.c:35 mh/mhn.c:61 mh/refile.c:47 mh/repl.c:53 mh/scan.c:41
+#: mh/scan.c:52 mh/send.c:35 mh/send.c:45 mh/whom.c:27 pop3d/popauth.c:78
+#: pop3d/popauth.c:79
 msgid "FILE"
 msgstr "FITXER"
 
@@ -242,78 +246,82 @@ msgstr "no s'ha pogut convertir en dimoni"
 msgid "GNU comsat started"
 msgstr "s'ha iniciat GNU comsat"
 
-#: comsat/comsat.c:289
+#: comsat/comsat.c:290
 #, c-format
-msgid "too many requests: pausing for %u seconds"
-msgstr "hi ha massa peticions: es pausarà durant %u segons"
+msgid "too many requests: pausing for %u second"
+msgid_plural "too many requests: pausing for %u seconds"
+msgstr[0] "hi ha massa peticions: es pausarà durant %u segon"
+msgstr[1] "hi ha massa peticions: es pausarà durant %u segons"
 
-#: comsat/comsat.c:342
+#: comsat/comsat.c:345
 #, c-format
 msgid "DENIED attempt to connect from %s"
 msgstr "s'ha DENEGAT l'intent de connexió des de %s"
 
-#: comsat/comsat.c:347
+#: comsat/comsat.c:351
 #, c-format
-msgid "%d bytes from %s"
-msgstr "%d bytes des de %s"
+msgid "%d byte from %s"
+msgid_plural "%d bytes from %s"
+msgstr[0] "%d byte des de %s"
+msgstr[1] "%d bytes des de %s"
 
-#: comsat/comsat.c:355
+#: comsat/comsat.c:361
 #, c-format
 msgid "malformed input: %s"
 msgstr "entrada malformada: %s"
 
-#: comsat/comsat.c:370
+#: comsat/comsat.c:376
 #, c-format
 msgid "malformed input: %s@%s (near %s)"
 msgstr "entrada malformada: %s@%s (prop de %s)"
 
-#: comsat/comsat.c:435
+#: comsat/comsat.c:441
 #, c-format
 msgid "can't open device %s: %m"
 msgstr "no es pot obrir el dispositiu %s: %m"
 
-#: comsat/comsat.c:451 mail/file.c:90 mail.local/main.c:634
+#: comsat/comsat.c:457 mail/file.c:90 mail.local/main.c:634
 #: mail.local/main.c:653 readmsg/readmsg.c:265
 #, c-format
 msgid "can't open mailbox %s: %s"
 msgstr "no es pot obrir la bústia %s: %s"
 
-#: comsat/comsat.c:458 mail.local/main.c:674
+#: comsat/comsat.c:464 mail.local/main.c:674
 #, c-format
 msgid "can't get stream for mailbox %s: %s"
 msgstr "no es pot obtindre el flux per a la bústia %s: %s"
 
-#: comsat/comsat.c:465 mail.local/main.c:682
+#: comsat/comsat.c:471 mail.local/main.c:682
 #, c-format
 msgid "can't get stream size (mailbox %s): %s"
 msgstr "no es pot obtindre la mida del flux (bústia %s): %s"
 
-#: comsat/comsat.c:482
+#: comsat/comsat.c:488
 #, c-format
 msgid "can't create temporary mailbox: %s"
 msgstr "no es pot crear una bústia temporal: %s"
 
-#: comsat/comsat.c:489
+#: comsat/comsat.c:495
 #, c-format
 msgid "can't create temporary stream: %s"
 msgstr "no es pot crear un flux temporal: %s"
 
-#: comsat/comsat.c:536
+#: comsat/comsat.c:542
 #, c-format
 msgid "bad line name in utmp record: %s"
 msgstr "línia de nom errònia en el registre utmp: %s"
 
-#: comsat/comsat.c:544
+#: comsat/comsat.c:550
 #, c-format
 msgid "not a character device: %s"
 msgstr "no és un dispositiu de caràcter: %s"
 
-#: comsat/comsat.c:577 pop3d/popauth.c:275 pop3d/popauth.c:510
+#: comsat/comsat.c:583 pop3d/popauth.c:275 pop3d/popauth.c:510
 #, c-format
 msgid "no such user: %s"
 msgstr "no existeix l'usuari: %s"
 
-#: comsat/comsat.c:597
+#: comsat/comsat.c:603
 #, c-format
 msgid "user nonexistent: %s"
 msgstr "no existeix l'usuari: %s"
@@ -478,7 +486,7 @@ msgstr "msg %d : %s\n"
 
 #: guimb/collect.c:34 guimb/main.c:43 libsieve/sieve.l:126
 #: libsieve/sieve.l:586 libsieve/sieve.l:626 libsieve/sieve.l:683 mail/if.c:55
-#: mh/mh_init.c:119 mh/mh_msgset.c:600
+#: mh/mh_init.c:120 mh/mh_msgset.c:600
 msgid "not enough memory"
 msgstr "no hi ha memòria suficient"
 
@@ -690,7 +698,7 @@ msgstr "La sessió està finalitzant per l'usuari: %s"
 msgid "Quitting (numeric reason %d)"
 msgstr "S'està eixint (raó numèrica %d)"
 
-#: imap4d/list.c:246 mh/folder.c:278 mh/mh_init.c:233 mh/rmf.c:111
+#: imap4d/list.c:246 mh/folder.c:308 mh/mh_init.c:234 mh/rmf.c:126
 #: pop3d/popauth.c:213
 #, c-format
 msgid "can't stat %s: %s"
@@ -1087,7 +1095,7 @@ msgstr "Tipus de dades invàlid"
 msgid "\"%s\": not a group"
 msgstr "«%s»: no és un grup"
 
-#: mail/alt.c:63 mh/mh_init.c:135
+#: mail/alt.c:63 mh/mh_init.c:136
 msgid "can't determine my username"
 msgstr "no es pot determinar el nostre nom d'usuari"
 
@@ -1265,12 +1273,12 @@ msgstr "Useu «quit» per a eixir."
 msgid "Can not create mailbox for %s: %s"
 msgstr "No es pot crear la bústia per a %s: %s"
 
-#: mail/mail.c:390 mh/inc.c:192
+#: mail/mail.c:390 mh/inc.c:201
 #, c-format
 msgid "Can not create mailbox %s: %s"
 msgstr "No es pot crear la bústia %s: %s"
 
-#: mail/mail.c:407 mh/inc.c:201
+#: mail/mail.c:407 mh/inc.c:210
 #, c-format
 msgid "Can not open mailbox %s: %s"
 msgstr "No es pot obrir la bústia %s: %s"
@@ -2375,27 +2383,34 @@ msgstr ""
 msgid "[msg [msg...]]"
 msgstr "[msg [msg...]]"
 
-#: mh/anno.c:30 mh/folder.c:46 mh/folder.c:56 mh/inc.c:31 mh/mark.c:27
-#: mh/mh_whatnow.c:83 mh/mhl.c:31 mh/mhpath.c:29 mh/refile.c:35 mh/refile.c:43
-#: mh/repl.c:37 mh/repl.c:47 mh/repl.c:50 mh/rmf.c:38 mh/rmm.c:29 mh/scan.c:36
-#: mh/whatnow.c:28 readmsg/readmsg.c:42
+#: mh/anno.c:30 mh/folder.c:46 mh/folder.c:56 mh/forw.c:34 mh/forw.c:40
+#: mh/inc.c:31 mh/mark.c:27 mh/mh_whatnow.c:83 mh/mhl.c:31 mh/mhn.c:33
+#: mh/mhpath.c:29 mh/pick.c:36 mh/refile.c:35 mh/refile.c:44 mh/repl.c:37
+#: mh/repl.c:47 mh/repl.c:50 mh/rmf.c:38 mh/rmm.c:29 mh/scan.c:36 mh/send.c:39
+#: mh/whatnow.c:28 mh/whom.c:31 readmsg/readmsg.c:42
 msgid "FOLDER"
 msgstr "CARPETA"
 
-#: mh/anno.c:31 mh/folder.c:57 mh/mark.c:28 mh/mhl.c:32 mh/mhpath.c:30
-#: mh/refile.c:36 mh/repl.c:47 mh/rmm.c:30
+#: mh/anno.c:31 mh/folder.c:57 mh/forw.c:41 mh/mark.c:28 mh/mhl.c:32
+#: mh/mhn.c:34 mh/mhpath.c:30 mh/pick.c:37 mh/refile.c:36 mh/repl.c:47
+#: mh/rmm.c:30
 msgid "Specify folder to operate upon"
 msgstr "Especifica la carpeta sobre la qual operar"
 
-#: mh/anno.c:32 mh/anno.c:35 mh/folder.c:60 mh/folder.c:62 mh/folder.c:64
-#: mh/folder.c:66 mh/folder.c:68 mh/inc.c:37 mh/inc.c:43 mh/mark.c:37
-#: mh/mark.c:40 mh/mhl.c:33 mh/mhl.c:36 mh/refile.c:39 mh/refile.c:41
-#: mh/repl.c:33 mh/repl.c:54 mh/repl.c:56 mh/repl.c:63 mh/rmf.c:40
-#: mh/scan.c:38 mh/scan.c:44 mh/scan.c:48
+#: mh/anno.c:32 mh/anno.c:35 mh/folder.c:60 mh/folder.c:63 mh/folder.c:66
+#: mh/folder.c:69 mh/folder.c:72 mh/forw.c:30 mh/forw.c:46 mh/forw.c:56
+#: mh/forw.c:59 mh/forw.c:67 mh/forw.c:69 mh/inc.c:37 mh/inc.c:44 mh/mark.c:37
+#: mh/mark.c:40 mh/mhl.c:33 mh/mhl.c:36 mh/mhn.c:39 mh/mhn.c:44 mh/mhn.c:47
+#: mh/mhn.c:50 mh/mhn.c:55 mh/mhn.c:58 mh/mhn.c:63 mh/mhn.c:68 mh/mhn.c:71
+#: mh/mhn.c:80 mh/pick.c:81 mh/pick.c:86 mh/pick.c:89 mh/refile.c:39
+#: mh/refile.c:42 mh/repl.c:33 mh/repl.c:54 mh/repl.c:56 mh/repl.c:63
+#: mh/rmf.c:40 mh/scan.c:38 mh/scan.c:45 mh/scan.c:49 mh/send.c:49
+#: mh/send.c:52 mh/send.c:55 mh/send.c:58 mh/send.c:61 mh/send.c:66
+#: mh/send.c:69 mh/whom.c:37
 msgid "BOOL"
 msgstr "BOOL"
 
-#: mh/anno.c:33 mh/repl.c:55
+#: mh/anno.c:33 mh/forw.c:57 mh/repl.c:55
 msgid "* Annotate the message in place"
 msgstr "* Apunta el missatge en el lloc"
 
@@ -2403,7 +2418,7 @@ msgstr "* Apunta el missatge en el lloc"
 msgid "Add FIELD: Date header"
 msgstr "Afegeix la capçalera CAMP: Data"
 
-#: mh/anno.c:38
+#: mh/anno.c:38 mh/pick.c:40
 msgid "FIELD"
 msgstr "CAMP"
 
@@ -2415,7 +2430,14 @@ msgstr "Afegeix aquest CAMP a la capçalera del missatge"
 msgid "Field value for the component"
 msgstr "Valor del camp per al component"
 
-#: mh/anno.c:123
+#: mh/anno.c:43 mh/fmtcheck.c:38 mh/folder.c:77 mh/forw.c:72 mh/inc.c:52
+#: mh/install-mh.c:30 mh/mark.c:44 mh/mhl.c:50 mh/mhn.c:86 mh/mhpath.c:32
+#: mh/pick.c:93 mh/refile.c:49 mh/repl.c:65 mh/rmf.c:47 mh/rmm.c:32
+#: mh/scan.c:56 mh/send.c:75 mh/whatnow.c:39 mh/whom.c:42
+msgid "Display software license"
+msgstr "Mostra la llicència del programari"
+
+#: mh/anno.c:128
 msgid "Component name: "
 msgstr "Nom del component: "
 
@@ -2423,15 +2445,16 @@ msgstr "Nom del component: "
 msgid "GNU MH fmtcheckUse -help to obtain the list of traditional MH options."
 msgstr "GNU MH fmtcheckUtilitzeu el commutador -help per a obtindre la llista de les opcions tradicionals d'MH."
 
-#: mh/fmtcheck.c:30 mh/inc.c:40 mh/mhl.c:40 mh/repl.c:53 mh/scan.c:41
+#: mh/fmtcheck.c:30 mh/forw.c:51 mh/inc.c:41 mh/mhl.c:40 mh/repl.c:53
+#: mh/scan.c:42
 msgid "Read format from given file"
 msgstr "Llig el format des del fitxer donat"
 
-#: mh/fmtcheck.c:31 mh/inc.c:41 mh/scan.c:42
+#: mh/fmtcheck.c:31 mh/inc.c:42 mh/scan.c:43
 msgid "FORMAT"
 msgstr "FORMAT"
 
-#: mh/fmtcheck.c:32 mh/inc.c:42 mh/scan.c:43
+#: mh/fmtcheck.c:32 mh/inc.c:43 mh/scan.c:44
 msgid "Use this format string"
 msgstr "Usa aquesta cadena de format"
 
@@ -2443,11 +2466,11 @@ msgstr "Bolca el llistat de codi de format compilat"
 msgid "Enable parser debugging output"
 msgstr "Habilita l'eixida de depuració de l'analitzador"
 
-#: mh/fmtcheck.c:57
+#: mh/fmtcheck.c:60
 msgid "format string not specified"
 msgstr "no s'ha especificat la cadena de format"
 
-#: mh/fmtcheck.c:104 mh/inc.c:174 mh/repl.c:325 mh/scan.c:174
+#: mh/fmtcheck.c:111 mh/inc.c:183 mh/repl.c:330 mh/scan.c:183
 msgid "Bad format string"
 msgstr "La cadena de format és errònia"
 
@@ -2491,67 +2514,177 @@ msgstr "Llistat totes les carpetes"
 msgid "Create non-existing folders"
 msgstr "Crea les carpetes no existents"
 
-#: mh/folder.c:63
+#: mh/folder.c:64
 msgid "List only the folder names"
 msgstr "Llista només els noms de les carpetes"
 
-#: mh/folder.c:65
+#: mh/folder.c:67
 msgid "Print the header line"
 msgstr "Mostra la línia de capçalera"
 
-#: mh/folder.c:67
+#: mh/folder.c:70
 msgid "Scan folders recursively"
 msgstr "Escaneja les carpetes recursivament"
 
-#: mh/folder.c:69
+#: mh/folder.c:73
 msgid "Output the total statistics"
 msgstr "Mostra les estadístiques totals"
 
-#: mh/folder.c:261 mh/rmf.c:92
+#: mh/folder.c:291 mh/rmf.c:107
 #, c-format
 msgid "can't scan folder %s: %s"
 msgstr "no es pot escanejar la carpeta %s: %s"
 
-#: mh/folder.c:334
+#: mh/folder.c:364
 #, c-format
 msgid " has %4lu message  (%4lu-%4lu)"
 msgid_plural " has %4lu messages (%4lu-%4lu)"
 msgstr[0] " té %4lu missatge (%4lu-%4lu)"
 msgstr[1] " té %4lu missatges (%4lu-%4lu)"
 
-#: mh/folder.c:345
+#: mh/folder.c:375
 msgid " has no messages"
 msgstr " no té missatges"
 
-#: mh/folder.c:354
+#: mh/folder.c:384
 msgid "(others)"
 msgstr "(altres)"
 
-#: mh/folder.c:407
+#: mh/folder.c:431
 msgid "Folder                  # of messages     (  range  )  cur msg   (other files)\n"
 msgstr "Carpeta                 # de missatges    ( rang )   mis act  (altres fitxers)\n"
 
-#: mh/folder.c:413
+#: mh/folder.c:437
 msgid "TOTAL"
 msgstr "TOTAL"
 
-#: mh/folder.c:414
+#: mh/folder.c:438
 #, c-format
 msgid "%4lu message  "
 msgid_plural "%4lu messages "
 msgstr[0] "%4lu missatge"
 msgstr[1] "%4lu missatges"
 
-#: mh/folder.c:417
+#: mh/folder.c:441
 #, c-format
 msgid "in %4lu folder"
 msgid_plural "in %4lu folders"
 msgstr[0] "en %4lu carpeta"
 msgstr[1] "en %4lu carpetes"
 
-#: mh/folder.c:525
+#: mh/folder.c:549
 msgid "too many arguments"
 msgstr "massa arguments"
+
+#: mh/forw.c:23
+msgid ""
+"GNU MH forwOptions marked with `*' are not yet implemented.\n"
+"Use -help to obtain the list of traditional MH options."
+msgstr ""
+"GNU MH forwLes opcions marcades amb «*» encara no estan implementades.\n"
+"Utilitzeu el commutador -help per a obtindre la llista de les opcions tradicionals d'MH."
+
+#: mh/forw.c:31 mh/repl.c:34
+msgid "* Add Replied: header to the message being replied to"
+msgstr "* Afegeix la capçalera Replied: al missatge al que s'està responent"
+
+#: mh/forw.c:33 mh/repl.c:36
+msgid "Build the draft and quit immediately."
+msgstr "Construeix l'esborrany i ix immediatament."
+
+#: mh/forw.c:35 mh/repl.c:38 mh/send.c:40 mh/whatnow.c:29 mh/whom.c:32
+msgid "Specify the folder for message drafts"
+msgstr "Especifica la carpeta per a esborranys de missatges"
+
+#: mh/forw.c:37 mh/repl.c:40 mh/send.c:44 mh/whatnow.c:31 mh/whom.c:36
+msgid "Undo the effect of the last --draftfolder option"
+msgstr "Desfés l'efecte de la última opció --draftfolder"
+
+#: mh/forw.c:38 mh/repl.c:41 mh/whatnow.c:32
+msgid "MSG"
+msgstr "MSG"
+
+#: mh/forw.c:39 mh/repl.c:42 mh/whatnow.c:33
+msgid "Invoke the draftmessage facility"
+msgstr "Invoca el servei de missatge esborrany"
+
+#: mh/forw.c:42 mh/forw.c:63 mh/mhl.c:45 mh/repl.c:48 mh/repl.c:59
+#: mh/whatnow.c:34
+msgid "PROG"
+msgstr "PROG"
+
+#: mh/forw.c:43 mh/repl.c:48 mh/whatnow.c:34
+msgid "Set the editor program to use"
+msgstr "Estableix l'editor a usar"
+
+#: mh/forw.c:45 mh/repl.c:49 mh/whatnow.c:35
+msgid "Suppress the initial edit"
+msgstr "Suprimeix la edició inicial"
+
+#: mh/forw.c:47
+msgid "Format messages"
+msgstr "Formata els missatges"
+
+#: mh/forw.c:49
+msgid "Undo the effect of the last --format option"
+msgstr "Desfés l'efecte de la última opció --format"
+
+#: mh/forw.c:53
+msgid "Use filter FILE to preprocess the body of the message"
+msgstr "Utilitza el filtre FITXER per a preprocessar el cos del missatge"
+
+#: mh/forw.c:55
+msgid "Undo the effect of the last --filter option"
+msgstr "Desfés l'efecte de la última opció --filter"
+
+#: mh/forw.c:60
+msgid "Use MIME encapsulation"
+msgstr "Utilitza la encapsulació MIME"
+
+#: mh/forw.c:62 mh/inc.c:48 mh/mhl.c:42 mh/repl.c:58 mh/scan.c:48
+msgid "Set output width"
+msgstr "Estableix l'amplària de l'eixida"
+
+#: mh/forw.c:64 mh/repl.c:60
+msgid "* Set the replacement for whatnow program"
+msgstr "* Estableix el reemplaç per al programa whatnow"
+
+#: mh/forw.c:66 mh/repl.c:62
+msgid "* Ignore whatnowproc variable. Use standard `whatnow' shell instead."
+msgstr "* Descarta la variable whatnowproc. Utilitza l'intèrpret estàndard «whatnow» en el seu lloc."
+
+#: mh/forw.c:68 mh/repl.c:63
+msgid "Use draft file preserved after the last session"
+msgstr "Usa el fitxer d'esborrany preservat després de la última sessió"
+
+#: mh/forw.c:144 mh/inc.c:130 mh/mhl.c:112 mh/repl.c:176 mh/scan.c:121
+msgid "Invalid width"
+msgstr "Amplària no vàlida"
+
+#: mh/forw.c:193 mh/repl.c:202 mh/scan.c:135
+msgid "option is not yet implemented"
+msgstr "l'opció encara no està implementada"
+
+#: mh/forw.c:282 mh/mh_init.c:517
+#, c-format
+msgid "cannot open output file \"%s\": %s"
+msgstr "no es pot obrir el fitxer d'entrada «%s»: %s"
+
+#: mh/forw.c:323
+msgid "Forwarded message\n"
+msgstr "Missatge reenviat\n"
+
+#: mh/forw.c:328
+msgid "Forwarded messages\n"
+msgstr "Missatges reenviats\n"
+
+#: mh/forw.c:340
+msgid "End of Forwarded message"
+msgstr "Final del missatge reenviat"
+
+#: mh/forw.c:342
+msgid "End of Forwarded messages"
+msgstr "Final dels missatges reenviats"
 
 #: mh/inc.c:23
 msgid "GNU MH incUse -help to obtain the list of traditional MH options."
@@ -2581,46 +2714,34 @@ msgstr "Inhabilita l'auditat"
 msgid "Mark first incorporated message as current (default)"
 msgstr "Marca el primer missatge incorporat com l'actual (per defecte)"
 
-#: mh/inc.c:44
+#: mh/inc.c:45
 msgid "Truncate source mailbox after incorporating (default)"
 msgstr "Trunca la bústia d'origen després d'incorporar-la (per defecte)"
 
-#: mh/inc.c:46 mh/mhl.c:42 mh/repl.c:58 mh/scan.c:47
-msgid "Set output width"
-msgstr "Estableix l'amplària de l'eixida"
-
-#: mh/inc.c:48
+#: mh/inc.c:50 mh/mhn.c:84
 msgid "Be quiet"
 msgstr "Sigues silenciós"
 
-#: mh/inc.c:50 mh/scan.c:54
-msgid "Display software license"
-msgstr "Mostra la llicència del programari"
-
-#: mh/inc.c:121 mh/mhl.c:109 mh/repl.c:175 mh/scan.c:116
-msgid "Invalid width"
-msgstr "Amplària no vàlida"
-
-#: mh/inc.c:183
+#: mh/inc.c:192
 msgid "Can not create default mailbox"
 msgstr "No es pot crear la bústia per defecte"
 
-#: mh/inc.c:209
+#: mh/inc.c:218
 #, c-format
 msgid "Can not read input mailbox: %s"
 msgstr "No es pot llegir la bústia d'entrada: %s"
 
-#: mh/inc.c:216
+#: mh/inc.c:225
 #, c-format
 msgid "Can not read output mailbox: %s"
 msgstr "No es pot llegir la bústia d'eixida: %s"
 
-#: mh/inc.c:237
+#: mh/inc.c:246
 #, c-format
 msgid "%d: can't get message: %s"
 msgstr "%d: no es pot obtindre el missatge: %s"
 
-#: mh/inc.c:244
+#: mh/inc.c:253
 #, c-format
 msgid "%d: error appending message: %s"
 msgstr "%d: s'ha produït un error en afegir el missatge: %s"
@@ -2653,31 +2774,31 @@ msgstr "Esborra missatges de la seqüència"
 msgid "List the sequences"
 msgstr "Llista la seqüència"
 
-#: mh/mark.c:38
+#: mh/mark.c:38 mh/pick.c:87
 msgid "Create public sequence"
 msgstr "Crea una seqüència pública"
 
-#: mh/mark.c:41
+#: mh/mark.c:41 mh/pick.c:90
 msgid "Empty the sequence before adding messages"
 msgstr "Buida la seqüència abans d'afegir missatges"
 
-#: mh/mark.c:68
+#: mh/mark.c:70 mh/pick.c:138
 msgid "can't create sequence list"
 msgstr "no es pot crear la llista de seqüències"
 
-#: mh/mark.c:146 mh/mark.c:163
+#: mh/mark.c:151 mh/mark.c:168
 msgid "private"
 msgstr "privat"
 
-#: mh/mark.c:209
+#: mh/mark.c:214
 msgid "--add requires at least one --sequence argument"
 msgstr "--add requereix al menys un argument --sequence"
 
-#: mh/mark.c:219
+#: mh/mark.c:224
 msgid "--delete requires at least one --sequence argument"
 msgstr "--delete requereix al menys un argument --sequence"
 
-#: mh/mh_argp.c:174
+#: mh/mh_argp.c:174 mh/mhn.c:2310 mh/mhn.c:2321
 msgid "extra arguments"
 msgstr "arguments extra"
 
@@ -2690,12 +2811,12 @@ msgstr ""
 "Açò és %s\n"
 "\n"
 
-#: mh/mh_ctx.c:85
+#: mh/mh_ctx.c:91
 #, c-format
 msgid "can't write context file %s: %s"
 msgstr "no es pot escriure el fitxer de context %s: %s"
 
-#: mh/mh_ctx.c:133
+#: mh/mh_ctx.c:141
 #, c-format
 msgid "Can't create context %s: %s"
 msgstr "no es pot crear el context %s: %s"
@@ -2708,16 +2829,16 @@ msgstr "ERROR INTERN: tipus d'element inesperat (si us plau, informeu)"
 msgid "undefined function"
 msgstr "funció indefinida"
 
-#: mh/mh_fmtgram.y:630
+#: mh/mh_fmtgram.y:632
 msgid "INTERNAL ERROR: unknown argtype (please report)"
 msgstr "ERROR INTERN: argtype desconegut (si us plau, informeu)"
 
-#: mh/mh_fmtgram.y:636
+#: mh/mh_fmtgram.y:638
 #, c-format
 msgid "missing argument for %s"
 msgstr "manca un argument per a %s"
 
-#: mh/mh_fmtgram.y:645
+#: mh/mh_fmtgram.y:647
 #, c-format
 msgid "extra arguments to %s"
 msgstr "sobren arguments per a %s"
@@ -2759,90 +2880,85 @@ msgstr ""
 "Si us plau, useu les opcions llargues GNU en el seu lloc.\n"
 "Executeu %s --help per a obtindre més informació sobre aquestes.\n"
 
-#: mh/mh_init.c:77
+#: mh/mh_init.c:78
 #, c-format
 msgid "can't stat format file %s: %s"
 msgstr "no es pot fer «stat» del fitxer de format %s: %s"
 
-#: mh/mh_init.c:84
+#: mh/mh_init.c:85
 #, c-format
 msgid "can't open format file %s: %s"
 msgstr "no es pot obrir el fitxer de format %s: %s"
 
-#: mh/mh_init.c:214
+#: mh/mh_init.c:215
 #, c-format
 msgid "Create folder \"%s\""
 msgstr "Crea la carpeta «%s»"
 
-#: mh/mh_init.c:222
+#: mh/mh_init.c:223
 #, c-format
 msgid "Can't create directory %s: %s"
 msgstr "No es pot crear el directori %s: %s"
 
-#: mh/mh_init.c:274
+#: mh/mh_init.c:275
 msgid "Please answer yes or no: "
 msgstr "Si us plau, contesteu sí o no: "
 
-#: mh/mh_init.c:297
+#: mh/mh_init.c:298
 msgid "low memory"
 msgstr "poca memòria"
 
-#: mh/mh_init.c:307
+#: mh/mh_init.c:308
 #, c-format
 msgid "Can't open audit file %s: %s"
 msgstr "No es pot obrir el fitxer d'auditat %s: %s"
 
-#: mh/mh_init.c:350
+#: mh/mh_init.c:351
 #, c-format
 msgid "Can't create mailbox %s: %s"
 msgstr "No es pot crear la bústia %s: %s"
 
-#: mh/mh_init.c:360
+#: mh/mh_init.c:361
 #, c-format
 msgid "Can't open mailbox %s: %s"
 msgstr "No es pot obrir la bústia %s: %s"
 
-#: mh/mh_init.c:437 mh/mh_msgset.c:164
+#: mh/mh_init.c:438 mh/mh_msgset.c:164
 #, c-format
 msgid "can't get message %d: %s"
 msgstr "no es pot obtindre el missatge %d: %s"
 
-#: mh/mh_init.c:455
+#: mh/mh_init.c:456
 #, c-format
 msgid "cannot split line %s"
 msgstr "no es pot tallar la línia %s"
 
-#: mh/mh_init.c:507
+#: mh/mh_init.c:508
 #, c-format
 msgid "cannot open input file \"%s\": %s"
 msgstr "no es pot obrir el fitxer d'entrada «%s»: %s"
 
-#: mh/mh_init.c:516
-#, c-format
-msgid "cannot open output file \"%s\": %s"
-msgstr "no es pot obrir el fitxer d'entrada «%s»: %s"
-
-#: mh/mh_init.c:530
+#: mh/mh_init.c:531
 #, c-format
 msgid "write error on \"%s\": %s"
 msgstr "error d'escriptura en «%s»: %s"
 
-#: mh/mh_init.c:711
+#: mh/mh_init.c:560
 #, c-format
 msgid "can't stat file %s: %s"
 msgstr "no es pot fer «stat» del fitxer %s: %s"
 
-#: mh/mh_init.c:717
+#: mh/mh_init.c:566 mh/mhn.c:1993
 #, c-format
 msgid "can't create input stream (file %s): %s"
 msgstr "no es pot crear un flux d'entrada (fitxer %s): %s"
 
-#: mh/mh_init.c:724
+#: mh/mh_init.c:573 mh/mhn.c:2000
 #, c-format
 msgid "can't open input stream (file %s): %s"
 msgstr "no es pot obrir el flux d'entrada (fitxer %s): %s"
 
-#: mh/mh_init.c:737
+#: mh/mh_init.c:586
 #, c-format
 msgid ""
 "Prior to using MH, it is necessary to have a file in your login\n"
@@ -2857,46 +2973,46 @@ msgstr ""
 "és el camí a utilitzar en totes les operacions de carpeta MH. El camí\n"
 "d'MH suggerit és %s...\n"
 
-#: mh/mh_init.c:760
+#: mh/mh_init.c:609
 msgid "Do you need help"
 msgstr "Necessiteu ajuda"
 
-#: mh/mh_init.c:763
+#: mh/mh_init.c:612
 #, c-format
 msgid "Do you want the standard MH path \"%s\""
 msgstr "Voleu el camí d'MH estàndard «%s»"
 
-#: mh/mh_init.c:768
+#: mh/mh_init.c:617
 msgid "Do you want a path below your login directory"
 msgstr "Voleu un camí sota el vostre directori d'entrada"
 
-#: mh/mh_init.c:770
-msgid "What is the path?"
-msgstr "Quin és el camí?"
+#: mh/mh_init.c:619
+msgid "What is the path? "
+msgstr "Quin és el camí? "
 
-#: mh/mh_init.c:772
-msgid "What is the full path?"
-msgstr "Quin és el camí sencer?"
+#: mh/mh_init.c:621
+msgid "What is the full path? "
+msgstr "Quin és el camí sencer? "
 
-#: mh/mh_init.c:800 mh/mh_list.c:263
+#: mh/mh_init.c:649 mh/mh_list.c:263
 #, c-format
 msgid "cannot open file %s: %s"
 msgstr "no es pot obrir el fitxer %s: %s"
 
-#: mh/mh_init.c:831
+#: mh/mh_init.c:680
 msgid "I'm going to create the standard MH path for you.\n"
 msgstr "Es va a crear el camí d'MH estàndard.\n"
 
-#: mh/mh_init.c:836
+#: mh/mh_init.c:685 mh/send.c:460
 #, c-format
 msgid "cannot stat %s: %s"
 msgstr "no es pot fer «stat» de %s: %s"
 
-#: mh/mh_init.c:842
+#: mh/mh_init.c:691
 msgid "You already have an MH profile, use an editor to modify it"
 msgstr "Ja teniu un perfil d'MH, utilitzeu un editor per a modificar-lo"
 
-#: mh/mh_init.c:847
+#: mh/mh_init.c:696
 #, c-format
 msgid ""
 "You already have file %s which is not a regular file or a symbolic link.\n"
@@ -2993,7 +3109,7 @@ msgstr "EDITOR"
 msgid "no alternate message to display"
 msgstr "no hi ha cap missatge alternatiu per a mostrar"
 
-#: mh/mh_whatnow.c:322 mh/mh_whatnow.c:393
+#: mh/mh_whatnow.c:322 mh/mh_whatnow.c:380
 msgid "no draft file to display"
 msgstr "no hi ha cap fitxer d'esborrany per a mostrar"
 
@@ -3002,87 +3118,96 @@ msgstr "no hi ha cap fitxer d'esborrany per a mostrar"
 msgid "draft left on \"%s\".\n"
 msgstr "s'ha deixat l'esborrany en «%s».\n"
 
-#: mh/mh_whatnow.c:385
-#, c-format
-msgid " at %s\n"
-msgstr "en %s\n"
-
-#: mh/mh_whatnow.c:401
-msgid "malformed message"
-msgstr "missatge malformat"
-
-#: mh/mh_whatnow.c:412
-msgid "No recipients"
-msgstr "Cap destinatari"
-
-#: mh/mh_whatnow.c:433
-msgid "-- Network Recipients --"
-msgstr "-- Destinataris de xarxa --"
-
-#: mh/mh_whatnow.c:464
+#: mh/mh_whatnow.c:391
 msgid "List the message being distributed/replied-to on the terminal."
 msgstr "Llista el missatge que està sent distribuït/contestat en el terminal."
 
-#: mh/mh_whatnow.c:466
+#: mh/mh_whatnow.c:393
 msgid "Edit the message. If EDITOR is omitted use the one that was used on the preceeding round unless the profile entry \"LASTEDITOR-next\" names an alternate editor."
 msgstr "Edita el missatge. Si s'omet EDITOR, usa el que es va usar en la ronda anterior a no ser que la entrada «LASTEDITOR-next» del perfil nombre un editor alternatiu."
 
-#: mh/mh_whatnow.c:470 mh/mh_whatnow.c:500 mh/mh_whatnow.c:590
+#: mh/mh_whatnow.c:397 mh/mh_whatnow.c:427 mh/mh_whatnow.c:517
 msgid "List the draft on the terminal."
 msgstr "Llista l'esborrany en el terminal."
 
-#: mh/mh_whatnow.c:472
+#: mh/mh_whatnow.c:399
 msgid "Send the message in the background."
 msgstr "Envia el missatge en segon pla."
 
-#: mh/mh_whatnow.c:474
+#: mh/mh_whatnow.c:401
 msgid "Terminate the session. Preserve the draft, unless -delete flag is given."
 msgstr "Finalitza la sessió. Preserva l'esborrany, si no s'ha donat el senyalador -delete."
 
-#: mh/mh_whatnow.c:476 mh/mh_whatnow.c:501
+#: mh/mh_whatnow.c:403 mh/mh_whatnow.c:428
 msgid "Refile the draft into the given FOLDER."
 msgstr "Torna a desar l'esborrany en la CARPETA donada."
 
-#: mh/mh_whatnow.c:478
+#: mh/mh_whatnow.c:405
 msgid "Send the message. The -watch flag causes the delivery process to be monitored. SWITCHES are passed to send program verbatim."
 msgstr "Envia el missatge. El senyalador -watch fa que el procés d'enviament es monitoritze. Els COMMUTADORS es passen al programa d'enviament sense modificació."
 
-#: mh/mh_whatnow.c:481
+#: mh/mh_whatnow.c:408
 msgid "List the addresses and verify that they are acceptable to the transport service."
 msgstr "Llista les adreces i verifica que siguen acceptables per al servei de transport."
 
-#: mh/mh_whatnow.c:497
+#: mh/mh_whatnow.c:424
 msgid "Terminate the session. Preserve the draft."
 msgstr "Finalitza la sessió. Preserva l'esborrany."
 
-#: mh/mh_whatnow.c:498
+#: mh/mh_whatnow.c:425
 msgid "Replace the draft with the newly created one"
 msgstr "Reemplaça l'esborrany amb el recentment creat"
 
-#: mh/mh_whatnow.c:499
+#: mh/mh_whatnow.c:426
 msgid "Use this draft"
 msgstr "Usa aquest esborrany"
 
-#: mh/mh_whatnow.c:556
+#: mh/mh_whatnow.c:483
 msgid "What now?"
 msgstr "Ara què?"
 
-#: mh/mh_whatnow.c:580
+#: mh/mh_whatnow.c:507
 msgid "Disposition?"
 msgstr "Disposició?"
 
-#: mh/mh_whatnow.c:588
+#: mh/mh_whatnow.c:515
 msgid "Don't use the draft."
 msgstr "No utilitzes l'esborrany."
 
-#: mh/mh_whatnow.c:589
+#: mh/mh_whatnow.c:516
 msgid "Use the draft."
 msgstr "Utilitza l'esborrany."
 
-#: mh/mh_whatnow.c:631
+#: mh/mh_whatnow.c:558
 #, c-format
 msgid "Use \"%s\"?"
 msgstr "Utilitzar \"%s\"?"
+
+#: mh/mh_whom.c:37
+#, c-format
+msgid "can't create list: %s"
+msgstr "no es pot crear la llista: %s"
+
+#: mh/mh_whom.c:112
+#, c-format
+msgid " at %s"
+msgstr " en %s"
+
+#: mh/mh_whom.c:152
+msgid "malformed message"
+msgstr "missatge malformat"
+
+#: mh/mh_whom.c:165
+msgid "-- Local Recipients --"
+msgstr "-- Destinataris locals --"
+
+#: mh/mh_whom.c:171
+msgid "-- Network Recipients --"
+msgstr "-- Destinataris de xarxa --"
+
+#: mh/mh_whom.c:177
+msgid "No recipients"
+msgstr "Cap destinatari"
 
 #: mh/mhl.c:25
 msgid "GNU MH mhlUse -help to obtain the list of traditional MH options."
@@ -3104,10 +3229,6 @@ msgstr "Neteja la pantalla després de cada pantalla d'eixida"
 msgid "Set output screen length"
 msgstr "Estableix la mida de la pantalla d'eixida"
 
-#: mh/mhl.c:45 mh/repl.c:48 mh/repl.c:59 mh/whatnow.c:34
-msgid "PROG"
-msgstr "PROG"
-
 #: mh/mhl.c:46
 msgid "Use given PROG instead of the default"
 msgstr "Utilitza el PROG donat en comptes del predeterminat"
@@ -3116,34 +3237,259 @@ msgstr "Utilitza el PROG donat en comptes del predeterminat"
 msgid "Disable use of moreproc program"
 msgstr "Inhabilita l'ús del programa moreproc"
 
-#: mh/mhl.c:118
+#: mh/mhl.c:121
 msgid "Invalid length"
 msgstr "Mida no vàlida"
 
-#: mh/mhl.c:155
+#: mh/mhl.c:162
 #, c-format
 msgid "cannot create output stream: %s"
 msgstr "no es pot crear un flux d'eixida: %s"
 
-#: mh/mhl.c:161
+#: mh/mhl.c:168
 #, c-format
 msgid "cannot open output stream: %s"
 msgstr "no es pot obrir el flux d'eixida: %s"
 
-#: mh/mhl.c:180
+#: mh/mhl.c:187
 #, c-format
 msgid "cannot create input stream: %s"
 msgstr "no es pot crear el flux d'entrada: %s"
 
-#: mh/mhl.c:186
+#: mh/mhl.c:193
 #, c-format
 msgid "cannot open input stream: %s"
 msgstr "no es pot obrir el flux d'entrada: %s"
 
-#: mh/mhl.c:194
+#: mh/mhl.c:201
 #, c-format
 msgid "input stream %s is not a message (%s)"
 msgstr "el flux d'entrada %s no és un missatge (%s)"
+
+#: mh/mhn.c:27
+msgid ""
+"GNU MH mhnOptions marked with `*' are not yet implemented.\n"
+"Use -help to obtain the list of traditional MH options."
+msgstr ""
+"GNU MH mhnLes opcions marcades amb «*» encara no estan implementades.\n"
+"Utilitzeu el commutador -help per a obtindre la llista de les opcions tradicionals d'MH."
+
+#: mh/mhn.c:36
+msgid "Specify file to operate upon"
+msgstr "Especifica el fitxer sobre el qual operar"
+
+#: mh/mhn.c:38
+msgid "MIME editing options"
+msgstr "Opcions d'edició de MIME"
+
+#: mh/mhn.c:40
+msgid "Compose the MIME message (default)"
+msgstr "Composa el missatge MIME (per defecte)"
+
+#: mh/mhn.c:43
+msgid "Listing options"
+msgstr "Opcions de llistat"
+
+#: mh/mhn.c:45
+msgid "List the table of contents"
+msgstr "Llista la taula de continguts"
+
+# banner... grmph... «anunci» no... jm
+#: mh/mhn.c:48
+msgid "Print the banner above the listing"
+msgstr "Mostra l'anunci damunt del llistat"
+
+#: mh/mhn.c:51
+msgid "List the decoded sizes"
+msgstr "Llista les mides decodificades"
+
+#: mh/mhn.c:54
+msgid "Display options"
+msgstr "Opcions de mostreig"
+
+#: mh/mhn.c:56
+msgid "Display the contents of the messages"
+msgstr "Llista els continguts dels missatges"
+
+#: mh/mhn.c:59
+msgid "* Display messages serially"
+msgstr "* Mostra els missatges en sèrie"
+
+#: mh/mhn.c:62
+msgid "Read mhl format from FILE"
+msgstr "Llig el format d'mhl des de FITXER"
+
+#: mh/mhn.c:64
+msgid "Pause prior to displaying content"
+msgstr "Pausa abans de mostrar el contingut"
+
+#: mh/mhn.c:67
+msgid "Saving options"
+msgstr "Opcions de desat"
+
+#: mh/mhn.c:69
+msgid "Store the contents of the messages on disk"
+msgstr "Desa els continguts dels missatges en disc"
+
+#: mh/mhn.c:72
+msgid "Use filenames from the content headers"
+msgstr "Utilitza els noms de fitxers de les capçaleres del contingut"
+
+#: mh/mhn.c:75
+msgid "Other options"
+msgstr "Altres opcions"
+
+#: mh/mhn.c:76
+msgid "PART"
+msgstr "PART"
+
+#: mh/mhn.c:77
+msgid "Limit the scope of the operation to the given part"
+msgstr "Limita l'efecte de l'operació a la part donada"
+
+#: mh/mhn.c:78
+msgid "CONTENT"
+msgstr "CONTINGUT"
+
+#: mh/mhn.c:79
+msgid "Operate on message part with given multipart content"
+msgstr "Opera en la part del missatge amb el contingut de múltiples parts donat"
+
+#: mh/mhn.c:81
+msgid "Print additional information"
+msgstr "Mostra informació addicional"
+
+#: mh/mhn.c:548
+#, c-format
+msgid "malformed part specification (near %s)"
+msgstr "especificació de part malformada: (prop de %s)"
+
+#: mh/mhn.c:1079
+msgid " msg part type/subtype              size  description\n"
+msgstr " msg part tipus/subtipus            mida descripció\n"
+
+#: mh/mhn.c:1116
+#, c-format
+msgid "%lu: can't get message body: %s"
+msgstr "%lu: no es pot obtindre el cos del missatge: %s"
+
+#: mh/mhn.c:1138
+#, c-format
+msgid "can't create proc stream (command %s): %s"
+msgstr "no es pot crear un flux de procés (ordre %s): %s"
+
+#: mh/mhn.c:1145
+#, c-format
+msgid "can't open proc stream (command %s): %s"
+msgstr "no es pot obrir el flux de procés (ordre %s): %s"
+
+#: mh/mhn.c:1186
+#, c-format
+msgid "can't parse command line `%s'"
+msgstr "no es pot analitzar la línia d'ordres «%s»"
+
+#: mh/mhn.c:1193
+#, c-format
+msgid "can't create temporary stream (file %s): %s"
+msgstr "no es pot crear un flux temporal (fitxer %s): %s"
+
+#: mh/mhn.c:1201
+#, c-format
+msgid "can't open temporary stream (file %s): %s"
+msgstr "no es pot obrir el flux temporal (fitxer %s): %s"
+
+#: mh/mhn.c:1247
+msgid "part "
+msgstr "part "
+
+#: mh/mhn.c:1265
+msgid "Press <return> to show content..."
+msgstr "Premeu «retorn» per a mostrar els continguts..."
+
+#: mh/mhn.c:1324
+#, c-format
+msgid "can't create output stream: %s"
+msgstr "no es pot crear un flux d'eixida: %s"
+
+#: mh/mhn.c:1330
+#, c-format
+msgid "can't open output stream: %s"
+msgstr "no es pot obrir el flux d'eixida: %s"
+
+#: mh/mhn.c:1486
+#, c-format
+msgid "storing message %s part %s as file %s\n"
+msgstr "s'està desant el missatge %s, part %s en el fitxer %s\n"
+
+#: mh/mhn.c:1491
+#, c-format
+msgid "storing message %lu part %s as file %s\n"
+msgstr "s'està desant el missatge %lu, part %s en el fitxer %s\n"
+
+#: mh/mhn.c:1502
+#, c-format
+msgid "File %s already exists. Rewrite"
+msgstr "El fitxer %s ja existeix. Reescriure"
+
+#: mh/mhn.c:1515 mh/mhn.c:2259
+#, c-format
+msgid "can't create output stream (file %s): %s"
+msgstr "no es pot crear un flux d'eixida (fitxer %s): %s"
+
+#: mh/mhn.c:1523 mh/mhn.c:2267
+#, c-format
+msgid "can't open output stream (file %s): %s"
+msgstr "no es pot obrir el flux d'eixida (fitxer %s): %s"
+
+#: mh/mhn.c:1637
+#, c-format
+msgid "%s:%lu: missing %c"
+msgstr "%s:%lu: manca %c"
+
+#: mh/mhn.c:1683
+#, c-format
+msgid "%s:%lu: missing subtype"
+msgstr "%s:%lu: manca el subtipus"
+
+#: mh/mhn.c:1701
+#, c-format
+msgid "%s:%lu: comment redefined"
+msgstr "%s:%lu: el comentari està redefinit"
+
+#: mh/mhn.c:1713 mh/mhn.c:1844
+#, c-format
+msgid "%s:%lu: description redefined"
+msgstr "%s:%lu: la descripció està redefinida"
+
+#: mh/mhn.c:1725 mh/mhn.c:1856
+#, c-format
+msgid "%s:%lu: content id redefined"
+msgstr "%s:%lu: l'id del contingut està redefinit"
+
+#: mh/mhn.c:1744 mh/mhn.c:1877
+#, c-format
+msgid "%s:%lu: syntax error"
+msgstr "%s:%lu: error de sintaxi"
+
+#: mh/mhn.c:1891
+#, c-format
+msgid "%s:%lu: no such message: %lu"
+msgstr "%s:%lu no existeix el missatge: %lu"
+
+#: mh/mhn.c:1982
+#, c-format
+msgid "%s:%lu: missing filename"
+msgstr "%s:%lu: manca el nom del fitxer"
+
+#: mh/mhn.c:2038
+#, c-format
+msgid "can't open filter stream: %s"
+msgstr "no es pot obrir el flux de filtre: %s"
+
+#: mh/mhn.c:2159
+#, c-format
+msgid "%s:%lu: unmatched #end"
+msgstr "%s:%lu: #end no emparellat"
 
 #: mh/mhpath.c:23
 msgid "GNU MH mhpathUse -help to obtain the list of traditional MH options."
@@ -3152,6 +3498,117 @@ msgstr "GNU MH mhpathUtilitzeu el commutador -help per a obtindre la llista de 
 #: mh/mhpath.c:25 mh/rmm.c:25 mh/scan.c:32
 msgid "[+folder] [msgs]"
 msgstr "[+carpeta] [msgs]"
+
+#: mh/pick.c:29
+msgid ""
+"GNU MH pickOptions marked with `*' are not yet implemented.\n"
+"Use -help to obtain the list of traditional MH options."
+msgstr ""
+"GNU MH pickLes opcions marcades amb «*» encara no estan implementades.\n"
+"Utilitzeu el commutador -help per a obtindre la llista de les opcions tradicionals d'MH."
+
+#: mh/pick.c:32
+msgid "[messages]"
+msgstr "[missatges]"
+
+# FIXME: cal comprovar el context. jm
+#: mh/pick.c:39
+msgid "Specifying search patterns:"
+msgstr "Especificació de patrons de cerca:"
+
+#: mh/pick.c:41
+msgid "Search the named header field"
+msgstr "Cerca el camp de capçalera esmentat"
+
+#: mh/pick.c:43
+msgid "A pattern to look for"
+msgstr "Un patró pel qual cercar"
+
+#: mh/pick.c:46
+msgid "Flags controlling the type of regular expressions. STRING must consist of one or more of the following letters: B=basic, E=extended, I=ignore case, C=case sensitive. Default is \"EI\". The flags remain in effect until the next occurrence of --cflags option. The option must occur right before --pattern or --component option (or its alias)."
+msgstr "Els senyaladors que controlen el tipus de les expressions regulars. CADENA ha de consistir d'una o més de les següents lletres: B=bàsica, E=extesa, I=no distingeix entre majúscules i minúscules, C=distingeix entre majúscules i minúscules. El valor per defecte és «EI». Els senyaladors tenen efecte fins la següent ocurrència d'una opció --cflags. L'opció ha de tindre lloc just abans d'una opció --pattern o --component (o els seus àlies)."
+
+#: mh/pick.c:48
+msgid "Same as --component cc --pattern STRING"
+msgstr "Igual que --component cc --pattern CADENA"
+
+#: mh/pick.c:50
+msgid "Same as --component date --pattern STRING"
+msgstr "Igual que --component date --pattern CADENA"
+
+#: mh/pick.c:52
+msgid "Same as --component from --pattern STRING"
+msgstr "Igual que --component date --pattern CADENA"
+
+#: mh/pick.c:54
+msgid "Same as --component subject --pattern STRING"
+msgstr "Igual que --component subject --pattern CADENA"
+
+#: mh/pick.c:56
+msgid "Same as --component to --pattern STRING"
+msgstr "Igual que --component to --pattern CADENA"
+
+# Constraint ha de tindre un significat matemàtic ací, no de limitació... jm.
+#: mh/pick.c:58
+msgid "Date constraint operations:"
+msgstr "Operacions de restricció de data:"
+
+#: mh/pick.c:60
+msgid "Search in the named date header field (default is `Date:')"
+msgstr "Cerca en el camp de capçalera de data esmentada (per defecte és «Date:»)"
+
+#: mh/pick.c:61 mh/pick.c:63
+msgid "DATE"
+msgstr "DATA"
+
+#: mh/pick.c:62
+msgid "Match messages after the given date"
+msgstr "Fes coincidir els missatges posteriors a la data donada"
+
+#: mh/pick.c:64
+msgid "Match messages before the given date"
+msgstr "Fes coincidir els missatges anteriors a la data donada"
+
+#: mh/pick.c:66
+msgid "Logical operations and grouping:"
+msgstr "Operacions lògiques i agrupacions:"
+
+#: mh/pick.c:68
+msgid "Logical AND (default)"
+msgstr "AND lògic (per defecte)"
+
+#: mh/pick.c:70
+msgid "Logical OR"
+msgstr "OR lògic"
+
+#: mh/pick.c:72
+msgid "Logical NOT"
+msgstr "NOT lògic"
+
+#: mh/pick.c:74
+msgid "Open group"
+msgstr "Obre el grup"
+
+#: mh/pick.c:77
+msgid "Close group"
+msgstr "Tanca el grup"
+
+#: mh/pick.c:80
+msgid "Operations over the selected messages:"
+msgstr "Operacions sobre els missatges seleccionats:"
+
+#: mh/pick.c:82
+msgid "List the numbers of the selected messages (default)"
+msgstr "Llista els números dels missatges seleccionats (per defecte)"
+
+#: mh/pick.c:85
+msgid "Add matching messages to the given sequence"
+msgstr "Afegeix els missatges coincidents a la seqüència donada"
+
+#: mh/pick.c:265 mh/pick.c:278
+#, c-format
+msgid "invalid option -- %s"
+msgstr "l'opció no és vàlida -- %s"
 
 #: mh/refile.c:28
 msgid ""
@@ -3170,39 +3627,39 @@ msgid "Use <mh-dir>/draft as the source message"
 msgstr "Usa <mh-dir>/draft com el missatge d'origen"
 
 #: mh/refile.c:40
-msgid "* Preserve the source folder copy"
-msgstr "* Preserva la còpia de la carpeta d'origen"
+msgid "Preserve the source folder copy."
+msgstr "Preserva la còpia de la carpeta d'origen"
 
-#: mh/refile.c:42
+#: mh/refile.c:43
 msgid "* Try to preserve message sequence numbers"
 msgstr "* Tracta de preservar la numeració de la seqüència dels missatges"
 
-#: mh/refile.c:44
+#: mh/refile.c:45
 msgid "Specify source folder. FOLDER will become the current folder after the program exits."
 msgstr "Especifica la carpeta d'origen. CARPETA es convertirà en la carpeta actual després de l'eixida del programa."
 
-#: mh/refile.c:46
+#: mh/refile.c:47
 msgid "Use FILE as the source message"
 msgstr "Usa FITXER com el missatge d'origen"
 
-#: mh/refile.c:71 mh/refile.c:90
+#: mh/refile.c:74 mh/refile.c:93
 msgid "can't create folder list"
 msgstr "no es pot crear la llista de carpetes"
 
-#: mh/refile.c:84
+#: mh/refile.c:87
 msgid "no folder specified"
 msgstr "no s'ha especificat cap carpeta"
 
-#: mh/refile.c:96 mh/refile.c:121
+#: mh/refile.c:99 mh/refile.c:124
 msgid "can't create iterator"
 msgstr "no es pot crear l'iterador"
 
-#: mh/refile.c:192
+#: mh/refile.c:198
 #, c-format
 msgid "error appending message: %s"
 msgstr "error en afegir el missatge: %s"
 
-#: mh/refile.c:237
+#: mh/refile.c:257
 msgid "both message set and source file given"
 msgstr "s'han donat el conjunt de missatges i el fitxer d'origen"
 
@@ -3218,30 +3675,6 @@ msgstr ""
 msgid "[+folder] [msg]"
 msgstr "[+carpeta] [msg]"
 
-#: mh/repl.c:34
-msgid "* Add Replied: header to the message being replied to"
-msgstr "* Afegeix la capçalera Replied: al missatge al que s'està responent"
-
-#: mh/repl.c:36
-msgid "Build the draft and quit immediately."
-msgstr "Construeix l'esborrany i ix immediatament."
-
-#: mh/repl.c:38 mh/whatnow.c:29
-msgid "Specify the folder for message drafts"
-msgstr "Especifica la carpeta per a esborranys de missatges"
-
-#: mh/repl.c:40 mh/whatnow.c:31
-msgid "Undo the effect of the last --draftfolder option"
-msgstr "Desfés l'efecte de la última opció --draftfolder"
-
-#: mh/repl.c:41 mh/whatnow.c:32
-msgid "MSG"
-msgstr "MSG"
-
-#: mh/repl.c:42 mh/whatnow.c:33
-msgid "Invoke the draftmessage facility"
-msgstr "Invoca el servei de missatge esborrany"
-
 #: mh/repl.c:44
 msgid "Specify whom to place on the Cc: list of the reply"
 msgstr "Especifica a quí ficar en la llista de Cc: de la resposta"
@@ -3249,14 +3682,6 @@ msgstr "Especifica a quí ficar en la llista de Cc: de la resposta"
 #: mh/repl.c:46
 msgid "Specify whom to remove from the Cc: list of the reply"
 msgstr "Especifica a quí eliminar de la llista de Cc: de la resposta"
-
-#: mh/repl.c:48 mh/whatnow.c:34
-msgid "Set the editor program to use"
-msgstr "Estableix l'editor a usar"
-
-#: mh/repl.c:49 mh/whatnow.c:35
-msgid "Suppress the initial edit"
-msgstr "Suprimeix la edició inicial"
 
 #: mh/repl.c:50
 msgid "* Set the folder to receive Fcc's."
@@ -3274,50 +3699,34 @@ msgstr "Estableix el filtre mhl per a preprocessar el cos del missatge al que s'
 msgid "* Query for addresses to place in To: and Cc: lists"
 msgstr "* Consulta les adreces a ficar en les llistes To: i Cc:"
 
-#: mh/repl.c:60
-msgid "* Set the replacement for whatnow program"
-msgstr "* Estableix el reemplaç per al programa whatnow"
-
-#: mh/repl.c:62
-msgid "* Ignore whatnowproc variable. Use standard `whatnow' shell instead."
-msgstr "* Descarta la variable whatnowproc. Utilitza l'intèrpret estàndard «whatnow» en el seu lloc."
-
-#: mh/repl.c:63
-msgid "Use draft file preserved after the last session"
-msgstr "Usa el fitxer d'esborrany preservat després de la última sessió"
-
-#: mh/repl.c:119
+#: mh/repl.c:121
 #, c-format
 msgid "%s %s is unknown"
 msgstr "%s %s és desconegut"
 
-#: mh/repl.c:201 mh/scan.c:126
-msgid "option is not yet implemented"
-msgstr "l'opció encara no està implementada"
-
-#: mh/repl.c:224
+#: mh/repl.c:229
 #, c-format
 msgid "Draft \"%s\" exists (%lu byte).\n"
 msgid_plural "Draft \"%s\" exists (%lu bytes).\n"
 msgstr[0] "L'esborrany «%s» existeix (%lu byte).\n"
 msgstr[1] "L'esborrany «%s» existeix (%lu bytes).\n"
 
-#: mh/repl.c:251
+#: mh/repl.c:256
 #, c-format
 msgid "cannot read message %lu: %s"
 msgstr "no es pot llegir el missatge %lu: %s"
 
-#: mh/repl.c:266
+#: mh/repl.c:271
 #, c-format
 msgid "cannot create draft file stream %s: %s"
 msgstr "no es pot crear el flux del fitxer d'esborrany %s: %s"
 
-#: mh/repl.c:273
+#: mh/repl.c:278
 #, c-format
 msgid "cannot open draft file %s: %s"
 msgstr "no es pot obrir el fitxer d'esborrany %s: %s"
 
-#: mh/repl.c:337
+#: mh/repl.c:342
 msgid "only one message at a time!"
 msgstr "només un missatge a l'hora!"
 
@@ -3333,16 +3742,16 @@ msgstr "Especifica la carpeta a eliminar"
 msgid "Interactive mode: ask for confirmation before removing each folder"
 msgstr "Mode interactiu: demana confirmació abans de eliminar cada carpeta"
 
-#: mh/rmf.c:43
+#: mh/rmf.c:44
 msgid "Recursively delete all subfolders"
 msgstr "Elimina recursivament totes les subcarpetes"
 
-#: mh/rmf.c:96
+#: mh/rmf.c:111
 #, c-format
 msgid "Remove folder %s"
 msgstr "Elimina la carpeta %s"
 
-#: mh/rmf.c:121
+#: mh/rmf.c:136
 #, c-format
 msgid "can't unlink %s: %s"
 msgstr "no es pot desenllaçar %s: %s"
@@ -3363,22 +3772,122 @@ msgstr "Especifica la carpeta a escanejar"
 msgid "Clear screen after displaying the list"
 msgstr "Neteja la pantalla després de mostrar la llista"
 
-#: mh/scan.c:45
+#: mh/scan.c:46
 msgid "Display header"
 msgstr "Mostra la capçalera"
 
-#: mh/scan.c:49
+#: mh/scan.c:50
 msgid "List messages in reverse order"
 msgstr "Llista els missatges en ordre invers"
 
-#: mh/scan.c:51
+#: mh/scan.c:53
 msgid "[Not yet implemented]"
 msgstr "[Encara no implementat]"
 
-#: mh/scan.c:227
+#: mh/scan.c:236
 #, c-format
 msgid "Folder %s  %s\n"
 msgstr "Carpeta %s  %s\n"
+
+#: mh/send.c:27
+msgid ""
+"GNU MH sendOptions marked with `*' are not yet implemented.\n"
+"Use -help to obtain the list of traditional MH options."
+msgstr ""
+"GNU MH sendLes opcions marcades amb «*» encara no estan implementades.\n"
+"Utilitzeu el commutador -help per a obtindre la llista de les opcions tradicionals d'MH."
+
+#: mh/send.c:30
+msgid "file [file...]"
+msgstr "fitxer [fitxer...]"
+
+#: mh/send.c:36 mh/whom.c:28
+msgid "* Specify additional alias file"
+msgstr "* Especifica un fitxer d'àlies addicional"
+
+#: mh/send.c:38 mh/whom.c:30
+msgid "Use prepared draft"
+msgstr "Utilitza l'esborrany preparat"
+
+#: mh/send.c:42 mh/whom.c:34
+msgid "Treat the arguments as a list of messages from the draftfolder"
+msgstr "Tracta els arguments com una llista de missatges de la carpeta d'esborranys"
+
+#: mh/send.c:46
+msgid "* Use filter FILE to preprocess the body of the message"
+msgstr "* Utilitza el filtre FITXER per a preprocessar el cos del missatge"
+
+#: mh/send.c:48
+msgid "* Undo the effect of the last --filter option"
+msgstr "* Desfés l'efecte de la última opció --filter"
+
+#: mh/send.c:50
+msgid "* Reformat To: and Cc: addresses"
+msgstr "* Reformata les adreces To: i Cc:"
+
+#: mh/send.c:53
+msgid "* In case of failure forward the draft along with the failure notice to the sender."
+msgstr "* En cas de fallada, reenvia l'esborrany junt amb la nota de la fallada al remitent."
+
+#: mh/send.c:56
+msgid "* Use MIME encapsulation"
+msgstr "* Utilitza encapsulació MIME"
+
+#: mh/send.c:59
+msgid "Add Message-ID: field"
+msgstr "Afegeix un camp Message-ID:"
+
+#: mh/send.c:62
+msgid "Run in the backround."
+msgstr "Executa-ho en segon pla."
+
+#: mh/send.c:64
+msgid "SECONDS"
+msgstr "SEGONS"
+
+#: mh/send.c:65
+msgid "* Split the draft into several partial messages and send them with SECONDS interval"
+msgstr "* Divideix l'esborrany en diversos missatges parcials i envial's en un intervals de SEGONS"
+
+#: mh/send.c:67
+msgid "Print the transcript of interactions with the transport system"
+msgstr "Mostra la transcripció de les interaccions amb el sistema de transport"
+
+#: mh/send.c:70
+msgid "Monitor the delivery of mail"
+msgstr "Monitoritza l'enviament de correu"
+
+#: mh/send.c:73
+msgid "* Make header fields no longer than NUMBER columns"
+msgstr "* Fes que els camps de les capçaleres no siguen més llargs que NÚMERO columnes"
+
+#: mh/send.c:199 mh/send.c:224
+msgid "Invalid number"
+msgstr "El número no és vàlid"
+
+#: mh/send.c:263
+msgid "can't create message list"
+msgstr "no es pot crear la llista de missatges"
+
+#: mh/send.c:302
+#, c-format
+msgid "cannot create mailer \"%s\""
+msgstr "no es pot crear el servidor «%s»"
+
+#: mh/send.c:317
+#, c-format
+msgid "cannot open mailer \"%s\""
+msgstr "no es pot obrir el servidor de correu «%s»"
+
+#: mh/send.c:399
+#, c-format
+msgid "cannot send message: %s"
+msgstr "no es pot enviar el missatge: %s"
+
+#: mh/send.c:426
+#, c-format
+msgid "cannot switch to background: %s"
+msgstr "no es pot canviar al segon pla: %s"
 
 #: mh/whatnow.c:24
 msgid "[FILE]"
@@ -3387,6 +3896,14 @@ msgstr "[FITXER]"
 #: mh/whatnow.c:36
 msgid "Set the prompt"
 msgstr "Estableix l'indicatiu"
+
+#: mh/whom.c:21
+msgid "GNU MH whomUse -help to obtain the list of traditional MH options."
+msgstr "GNU MH whomUtilitzeu el commutador -help per a obtindre la llista de les opcions tradicionals d'MH."
+
+#: mh/whom.c:38
+msgid "Check if addresses are deliverable"
+msgstr "Comprova si es pot repartir a les adreces"
 
 #: pop3d/apop.c:56
 msgid "Bad permissions on APOP password db"
