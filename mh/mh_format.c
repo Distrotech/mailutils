@@ -559,6 +559,23 @@ mh_format (mh_format_t *fmt, message_t msg, size_t msgno,
   return mach.ind;
 }
 
+int
+mh_format_str (mh_format_t *fmt, char *str, size_t width, char **pret)
+{
+  message_t msg = NULL;
+  header_t hdr = NULL;
+  int rc;
+  
+  if (message_create (&msg, NULL))
+    return -1;
+  message_get_header (msg, &hdr);
+  header_set_value (hdr, "text", str, 1);
+  rc = mh_format (fmt, msg, 1, width, pret);
+  message_destroy (&msg, NULL);
+  return rc;
+}
+  
+
 void
 mh_format_dump (mh_format_t *fmt)
 {
