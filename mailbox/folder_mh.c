@@ -19,6 +19,8 @@
 # include <config.h>
 #endif
 
+#ifdef ENABLE_MH
+
 #include <errno.h>
 
 #include <folder0.h>
@@ -46,3 +48,9 @@ _folder_mh_init (folder_t folder)
   (void)folder;
   return 0;
 }
+
+#else
+#include <stdio.h>
+#include <registrar0.h>
+record_t mh_record = NULL;
+#endif

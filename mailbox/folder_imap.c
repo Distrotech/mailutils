@@ -19,6 +19,8 @@
 # include <config.h>
 #endif
 
+#ifdef ENABLE_IMAP
+
 #include <stdlib.h>
 #include <ctype.h>
 #include <stdarg.h>
@@ -2273,3 +2275,9 @@ imap_parse (f_imap_t f_imap)
     free (buffer);
   return status;
 }
+
+#else
+#include <stdio.h>
+#include <registrar0.h>
+record_t imap_record = NULL;
+#endif

@@ -19,6 +19,8 @@
 # include <config.h>
 #endif
 
+#ifdef ENABLE_IMAP
+
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
@@ -82,3 +84,4 @@ _url_imap_init (url_t url)
   return status;
 }
 
+#endif

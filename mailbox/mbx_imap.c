@@ -19,6 +19,8 @@
 # include <config.h>
 #endif
 
+#ifdef ENABLE_IMAP
+
 #include <errno.h>
 #include <string.h>
 #ifdef HAVE_STRINGS_H
@@ -2248,3 +2250,5 @@ delete_to_string (m_imap_t m_imap, char **pset)
   *pset = set;
   return 0;
 }
+
+#endif

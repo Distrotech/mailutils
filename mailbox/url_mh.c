@@ -19,6 +19,8 @@
 # include <config.h>
 #endif
 
+#ifdef ENABLE_MH
+
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
@@ -71,3 +73,5 @@ _url_mh_init (url_t url)
 
   return 0;
 }
+
+#endif

@@ -19,6 +19,8 @@
 # include <config.h>
 #endif
 
+#ifdef ENABLE_SENDMAIL
+
 #include <assert.h>
 #include <errno.h>
 #include <stdio.h>
@@ -393,4 +395,8 @@ sendmail_send_message (mailer_t mailer, message_t msg, address_t from,
   return status;
 }
 
-
+#else
+#include <stdio.h>
+#include <registrar0.h>
+record_t sendmail_record = NULL;
+#endif

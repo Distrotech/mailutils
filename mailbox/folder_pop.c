@@ -19,6 +19,8 @@
 # include <config.h>
 #endif
 
+#ifdef ENABLE_POP
+
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
@@ -128,3 +130,9 @@ folder_pop_get_authority (folder_t folder, authority_t *pauth)
     *pauth = folder->authority;
   return status;
 }
+
+#else
+#include <stdio.h>
+#include <registrar0.h>
+record_t pop_record = NULL;
+#endif

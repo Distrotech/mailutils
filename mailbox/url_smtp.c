@@ -19,6 +19,8 @@
 # include <config.h>
 #endif
 
+#ifdef ENABLE_SMTP
+
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
@@ -53,3 +55,4 @@ _url_smtp_init (url_t url)
   return 0;
 }
 
+#endif

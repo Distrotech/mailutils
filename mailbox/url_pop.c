@@ -19,6 +19,8 @@
 # include <config.h>
 #endif
 
+#ifdef ENABLE_POP
+
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
@@ -70,3 +72,5 @@ _url_pop_init (url_t url)
 
   return status;
 }
+
+#endif

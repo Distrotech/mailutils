@@ -19,6 +19,8 @@
 # include <config.h>
 #endif
 
+#ifdef ENABLE_SENDMAIL
+
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
@@ -75,3 +77,4 @@ _url_sendmail_init (url_t url)
   return status;
 }
 
+#endif

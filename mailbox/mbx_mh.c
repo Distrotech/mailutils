@@ -21,6 +21,8 @@
 # include <config.h>
 #endif
 
+#ifdef ENABLE_MH
+
 #include <sys/types.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -29,7 +31,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <errno.h>
-
+#include <ctype.h>
 #include <dirent.h>
 
 #ifdef WITH_PTHREAD
@@ -1436,4 +1438,4 @@ mh_envelope_sender (envelope_t envelope, char *buf, size_t len, size_t *psize)
   return 0;
 }
 
-
+#endif

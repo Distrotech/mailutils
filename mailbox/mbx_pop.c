@@ -19,6 +19,8 @@
 # include <config.h>
 #endif
 
+#ifdef ENABLE_POP
+
 #include <termios.h>
 #include <errno.h>
 #include <stdlib.h>
@@ -2109,3 +2111,5 @@ pop_readline (pop_data_t mpd)
     }
   return 0;
 }
+
+#endif

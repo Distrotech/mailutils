@@ -23,6 +23,8 @@
 # include <config.h>
 #endif
 
+#ifdef ENABLE_SMTP
+
 #include <assert.h>
 #include <errno.h>
 #include <ctype.h>
@@ -1135,3 +1137,8 @@ smtp_readline (smtp_t smtp)
   return 0;
 }
 
+#else
+#include <stdio.h>
+#include <registrar0.h>
+record_t smtp_record = NULL;
+#endif
