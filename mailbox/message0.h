@@ -48,6 +48,7 @@ struct _message
   body_t body;
   attribute_t attribute;
   size_t num;
+  size_t size;
 
   /* who is the owner */
   void *owner;

@@ -54,6 +54,7 @@ extern int message_set_ostream __P ((message_t, ostream_t, void *owner));
 extern int message_is_multipart __P ((message_t));
 
 extern int message_get_size     __P ((message_t, size_t *));
+extern int message_set_size     __P ((message_t, size_t, void *owner));
 
 extern int message_get_attribute __P ((message_t, attribute_t *));
 extern int message_set_attribute __P ((message_t, attribute_t, void *owner));

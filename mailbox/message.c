@@ -157,7 +157,7 @@ message_destroy (message_t *pmsg, void *owner)
       message_t msg = *pmsg;
 
       msg->ref_count--;
-      if ((msg->owner && msg->owner != owner) ||
+      if ((msg->owner && msg->owner == owner) ||
 	  (msg->owner == NULL && msg->ref_count <= 0))
 	{
 	  /* header */
@@ -247,13 +247,24 @@ message_set_ostream (message_t msg, ostream_t os, void *owner)
 }
 
 int
-message_size (message_t msg, size_t *size)
+message_get_size (message_t msg, size_t *psize)
 {
   if (msg == NULL)
     return EINVAL;
-  if (msg->_size)
-    return msg->_size (msg, size);
-  return ENOSYS;
+  if (psize)
+    *psize = msg->size;
+  return 0;
+}
+
+int
+message_set_size (message_t msg, size_t size, void *owner)
+{
+  if (msg == NULL)
+    return EINVAL;
+  if (msg->owner != owner)
+    return EACCES;
+  msg->size = size;
+  return 0;
 }
 
 int

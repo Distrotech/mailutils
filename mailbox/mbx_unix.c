@@ -1265,9 +1265,9 @@ mailbox_unix_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
   off_t offset = 0;
   mailbox_unix_data_t mud;
   mailbox_unix_message_t mum;
-  message_t msg;
-  istream_t is;
-  header_t header;
+  message_t msg = NULL;
+  istream_t is = NULL;
+  header_t header = NULL;
 
   if (mbox == NULL || pmsg == NULL ||
       (mud = (mailbox_unix_data_t)mbox->data) == NULL ||
@@ -1294,6 +1294,9 @@ mailbox_unix_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
 	return status;
       }
 
+    if (nread == 0)
+      break;
+
     tbuf = realloc (pbuf, offset + nread);
     if (tbuf == NULL)
       {
@@ -1315,8 +1318,9 @@ mailbox_unix_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
     }
 
   /* set the header */
-  status = header_init (&header, pbuf, offset, MU_HEADER_RFC822, mum);
-  if (status != 0)
+  if ((status = header_init (&header, pbuf,
+			     offset, MU_HEADER_RFC822, mum)) != 0 ||
+      (status = message_set_header (msg, header, mum)) != 0)
     {
       free (pbuf);
       message_destroy (&msg, mum);
@@ -1327,9 +1331,9 @@ mailbox_unix_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
 
   /* prepare the istream */
   status = istream_init (&is, mailbox_unix_readstream, mum);
-  if (status != 0)
+  if ((status = istream_init (&is, mailbox_unix_readstream, mum)) != 0 ||
+      (status = message_set_istream (msg, is, mum)) != 0)
     {
-      free (pbuf);
       message_destroy (&msg, mum);
       return status;
     }
@@ -1337,6 +1341,19 @@ mailbox_unix_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
 
   /* set the attribute */
   status = message_set_attribute (msg, mum->new_attr, mum);
+  if (status != 0)
+    {
+      message_destroy (&msg, mum);
+      return status;
+    }
+
+  /* set the size */
+  status = message_set_size (msg, mum->body_end - mum->body, mum);
+  if (status != 0)
+    {
+      message_destroy (&msg, mum);
+      return status;
+    }
 
   if (pmsg)
     *pmsg = msg;
