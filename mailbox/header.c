@@ -259,14 +259,29 @@ header_set_value (header_t header, const char *fn, const char *fv, int replace)
   blurb = calloc (header->blurb_len + len + 2, 1);
   if (blurb == NULL)
     return ENOMEM;
-  sprintf (blurb, "%s: %s\n", fn, fv);
+
+  sprintf (blurb, "%s: %s", fn, fv);
+
+  /* Strip off trailing newlines.  */
+  while (blurb[strlen (blurb) - 1] == '\n')
+    {
+      blurb[strlen (blurb) - 1] = '\0';
+    }
+  len = strlen (blurb);
+  blurb[len] = '\n';
+  len++;
+
+  /* Prepend the rest of the headers.  */
   if (header->blurb)
     {
       memcpy (blurb + len, header->blurb, header->blurb_len);
       free (header->blurb);
     }
+  else
+    blurb [len] = '\n';
+
   /* before parsing the new blurb make sure it is properly terminated
-     by \n\n. The trailing NL separtor.  */
+     by \n\n. The trailing NL separator.  */
   if (blurb[header->blurb_len + len - 1] != '\n'
       || blurb[header->blurb_len + len - 2] != '\n')
     {
