@@ -186,7 +186,7 @@ mail_z (int argc, char **argv)
 
   for (i = 0; i < nlines && cursor <= total; )
     {
-      if (mail_from(0, NULL) == 0)
+      if (mail_from0 (cursor, 0) == 0)
 	i++;
       cursor++;
     }
