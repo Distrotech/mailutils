@@ -1,3 +1,8 @@
+2005-03-15  Sergey Poznyakoff  
+
+	* mailbox/mailbox.c (mailbox_flush): Do not re-save all messages
+	if the mailbox was opened in append mode.
+
 2005-03-14  Sergey Poznyakoff 
 
 	* mimeview/mimetypes.l (<HEX>): Bugfix
