@@ -2,11 +2,14 @@
 
 CFLAGS  = -g -I../include -Wall
 LDFLAGS = -g -static
+# On QNX
 LDLIBS 	= -lsocket
+# On GNU/Linux (if compile with threads)
+#LDLIBS 	= -lpthread
 
 MULIBS	= ../mailbox/.libs/libmailbox.a ../lib/libmailutils.a
 
-EXES    = addr mbox-explode mbox-dates mbox-auth url-parse mbox-check
+EXES    = addr mbox-explode mbox-dates mbox-auth url-parse mbox-check mimetest
 
 default: $(EXES)
 
@@ -31,6 +34,9 @@ url.test: url-parse
 	./url-parse < Urls > Urls.test
 	@echo "---- There should be no differences! ----"
 	diff -u Urls.good Urls.test
+
+# mimetest example and test
+# TODO
 
 # clean and empty
 
