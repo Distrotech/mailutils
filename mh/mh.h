@@ -190,11 +190,16 @@ typedef void (*mh_iterator_fp) __P((mailbox_t mbox, message_t msg,
 struct mh_whatnow_env {   /* An environment for whatnow shell */
   char *file;             /* The file being processed */
   char *msg;              /* The original message (if any) */
+  char *draftfile;        /* File to preserve the draft into */
   char *draftfolder;
   char *draftmessage;
   char *editor;
   char *prompt;
 };
+
+#define DISP_QUIT 0
+#define DISP_USE 1
+#define DISP_REPLACE 2
 
 extern char *current_folder;
 extern size_t current_message;
@@ -268,3 +273,4 @@ void *xrealloc __P((void *, size_t));
      
 int mh_spawnp __P((const char *prog, const char *file));
 int mh_whatnow __P((struct mh_whatnow_env *wh, int initial_edit));
+int mh_disposition __P((const char *filename));
