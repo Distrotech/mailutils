@@ -4,6 +4,7 @@
 
 EXTRA_DIST = \
  debug.m4 \
+ enable.m4 \
  gssapi.m4 \
  guile.m4 \
  malloc.m4 \
