@@ -109,6 +109,7 @@ mh_scan (mailbox_t mbox, size_t *msgs)
   struct dirent *entry;
   mh_data *data;
   unsigned int count = 0;
+  int parse_sequence_file = 0;
 
   data = mbox->data;
 
@@ -129,6 +130,7 @@ mh_scan (mailbox_t mbox, size_t *msgs)
         continue; /* spurious file beginning w/ '.' */
       else { /* MH info in .mh_sequences */
         /* FIXME: parse this file */
+        parse_sequence_file = 1;
       }
     }
 	if(mh_sequence(entry->d_name)) {
@@ -137,6 +139,17 @@ mh_scan (mailbox_t mbox, size_t *msgs)
 	}
   }
   closedir(maildir);
+
+  if(parse_sequence_file && count) {
+    char *path = malloc(strlen(mbox->name) + strlen(".mh_sequences") + 2);
+	sprintf(path, "%s/.mh_sequences", mbox->name);
+    fp = fopen(path, "r");
+    while(!feof(fp)) {
+      /* FIXME: parse the contents */
+    }
+    fclose(fp);
+    free(path);
+  }
 
   stat(mbox->name, &st);
   data->mtime = st.st_mtime;

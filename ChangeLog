@@ -1,5 +1,9 @@
 2000-01-19  Sean 'Shaleh' Perry
 
+	* mailbox/mbx_mh.c: some more code fleshing, still ugly
+
+2000-01-19  Sean 'Shaleh' Perry
+
 	* mailbox/mbx_mh.c: new file
 	no header, no error checking, no hable englais
 	* url/url_mh.{c,h}: new files
