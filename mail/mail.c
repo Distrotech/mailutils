@@ -182,6 +182,7 @@ main (int argc, char **argv)
     list_append (bookie, path_record);
     list_append (bookie, pop_record);
     list_append (bookie, imap_record);
+    list_append (bookie, mh_record);
     /* Possible supported mailers.  */
     list_append (bookie, sendmail_record);
     list_append (bookie, smtp_record);
