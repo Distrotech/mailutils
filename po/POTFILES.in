@@ -51,6 +51,10 @@ mail/util.c
 mail/var.c
 mail/z.c
 
+mail.local/main.c
+mail.local/mailquota.c
+mail.local/script.c
+
 mailbox/argp-parse.c
 mailbox/mailutils-config.c
 
@@ -62,6 +66,7 @@ pop3d/lock.c
 pop3d/pop3d.c
 pop3d/popauth.c
 pop3d/quit.c
+pop3d/signal.c
 pop3d/user.c
 
 readmsg/readmsg.c
