@@ -116,7 +116,7 @@ if test x"$usepthread" = x"yes"; then
 		AC_SEARCH_LIBS(pthread_cancel, pthread,
 			[AC_CHECK_FUNCS(pthread_rwlock_init)
 			AC_CHECK_HEADERS(pthread.h, AC_DEFINE(WITH_PTHREAD))
-			ACDEFINE(_REENTRANT)]))
+			AC_DEFINE(_REENTRANT)]))
 fi
 
 dnl Do we need extra libs for networking?
