@@ -24,34 +24,30 @@
 int
 mail_headers (int argc, char **argv)
 {
-  if (argc > 1)
-    return util_msglist_command (mail_headers, argc, argv);
-  else
+  char buf[64];
+  int low = 1, high = total, middle = cursor;
+  int lines = util_getlines () - 2;
+  
+  if (argc > 2)
+    return 1;
+  
+  if (argc == 2)
+    middle = strtol (argv[1], NULL, 10);
+
+  if (lines < total)
     {
-      message_t msg;
-      header_t hdr;
-      stream_t is;
-      char buffer[BUFSIZ];
-      off_t off = 0;
-      size_t n = 0;
-
-      if (mailbox_get_message (mbox, cursor, &msg) != 0)
+      low = middle - (lines / 2);
+      if (low < 1)
+	low = 1;
+      high = low + lines;
+      if (high > total)
 	{
-	  printf ("Could not read message %d\n", cursor);
-	  return 1;
+	  high = total;
+	  low = high - lines;
 	}
-
-      message_get_header (msg, &hdr);
-      header_get_stream (hdr, &is);
-
-      while (stream_read (is, buffer, sizeof (buffer) - 1, off, &n) == 0
-	     && n != 0)
-	{
-	  buffer[n] = '\0';
-	  printf ("%s", buffer);
-	  off += n;
-	}
-      return 0;
     }
-  return 1;
+    
+  memset (buf, '\0', 64);
+  snprintf (buf, 64, "from %d-%d", low, high);
+  return util_do_command (buf);
 }

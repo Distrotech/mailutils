@@ -119,7 +119,6 @@ int
 main (int argc, char **argv)
 {
   char *command = NULL, *cmd = NULL;
-  char *from[] = { "from", "*" };
   struct arguments args;
 
   cursor = 1;
@@ -162,11 +161,7 @@ main (int argc, char **argv)
 	exit (0);
     }
 
-  /* mail_from (2, from); */
-  /* FIXME: this is bad form */
-  for (cursor = 1; cursor <= total; cursor++)
-    mail_from (1, from);
-  cursor = realcursor;
+  util_do_command ("from *");
 
   /* Initialize readline */
   rl_readline_name = "mail";

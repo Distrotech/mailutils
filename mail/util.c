@@ -17,6 +17,32 @@
 
 #include "mail.h"
 
+typedef struct _node {
+  int data;
+  struct _node *next;
+} node;
+
+static node *
+util_ll_add (node *c, int data)
+{
+  c->next = malloc (sizeof (node));
+  c->data = data;
+  c->next->next = NULL;
+  return c->next;
+}
+
+static void
+util_ll_free (node *c)
+{
+  node *t = c;
+  while (t != NULL)
+    {
+      c = t;
+      t = t->next;
+      free (c);
+    }
+}
+
 /*
  * expands a standard message list into an array of numbers
  * argc is the number of elements being passed in
@@ -30,98 +56,93 @@ util_expand_msglist (const int argc, char **argv, int **list)
 {
   int i = 0, lc = 0;
   int undelete = 0;
-  int hyphen = 0;
+  int *ret = NULL;
+  /* let's try a linked list */
+  node *first = malloc (sizeof (node));
+  node *current = first;
+  first->next = NULL;
 
   if (util_command_get (argv[0]) == util_command_get ("undelete"))
     undelete = 1;
 
-  *list = malloc (argc * sizeof (int));
   for (i = 1; i < argc; i++)
     {
       if (!strcmp (argv[i], "+"))
 	{
-	  *list[lc++] = i; /* FIXME: next [un]deleted message */
+	  /* FIXME: next [un]deleted message */
+	  current = util_ll_add (current, realcursor + 1);
 	}
       else if (!strcmp (argv[i], "-"))
 	{
-	  hyphen = 1; /* FIXME: previous [un]deleted message */
+	  /* FIXME: prev [un]deleted message */
+	  current = util_ll_add (current, realcursor - 1);
 	}
       else if (!strcmp (argv[i], "."))
 	{
-	  *list[lc++] = realcursor;
+	  /* the current cursor location */
+	  current = util_ll_add (current, realcursor);
 	}
       else if (!strcmp (argv[i], "^"))
 	{
-	  *list[lc++] = i; /* FIXME: first [un]deleted message */
+	  /* FIXME: first [un]deleted message */
+	  current =util_ll_add (current, 1);
 	}
       else if (!strcmp (argv[i], "$"))
 	{
-	  *list[lc++] = i; /* FIXME: the last message */
+	  /* FIXME: should this be last [un]deleted? */
+	  current = util_ll_add (current, total);
 	}
       else if (!strcmp (argv[i], "*"))
 	{
-	  free (*list);
-	  *list = malloc (total * sizeof(int));
-	  for (i = 0; i < total; i++)
-	    *list[i] = i + 1;
-	  return total;
+	  util_ll_free (first);
+	  current = first = malloc (sizeof (node));
+	  for (i = 1; i <= total; i++)
+	    current = util_ll_add (current, i);
+	  i = argc + 1;
 	}
       else if (argv[i][0] == '/')
 	{
-	  *list[lc++] = i; /* FIXME: all messages with pattern following / in
-			     the subject line, case insensitive */
+	  /* FIXME: all messages with pattern following / in
+	     the subject line, case insensitive */
 	}
       else if (argv[i][0] == ':')
 	{
-	  *list[lc++] = i; /* FIXME: all messages of type argv[i][1] */
+	  /* FIXME: all messages of type argv[i][1] */
 	}
       else if (isalpha(argv[i][0]))
 	{
-	  *list[lc++] = i; /* FIXME: all messages from argv[i] */
+	  /* FIXME: all messages from argv[i] */
+	}
+      else if (strchr (argv[i], '-') != NULL)
+	{
+	  int j, x, y;
+	  char *arg = strdup (argv[i]);
+	  for (j=0; j < strlen (arg); j++)
+	    if (arg[j] == '-')
+	      break;
+	  arg[j] = '\0';
+	  x = strtol (arg, NULL, 10);
+	  y = strtol (&(arg[j + 1]), NULL, 10);
+	  for (; x <= y; x++)
+	    current = util_ll_add (current, x);
+	  free (arg);
 	}
       else
 	{
-	  int j;
-	  int len = strlen (argv[i]);
-
-	  for (j = 0; j < len; j++)
-	    if (argv[i][j] == '-')
-	      {
-		hyphen = 1;
-		break;
-	      }
-	  if (hyphen)
-            {
-              if (j != len) /* One argument "x-y".  */
-                {
-                  int x, y;
-                  char *arg = strdup (argv[i]);
-                  arg[j] = '\0';
-                  x = atoi (arg);
-                  y = atoi (&(arg[j + 1]));
-                  /* In this case, we also have to realloc() the list.  */
-                  *list = realloc (*list, (argc + 2) * sizeof (int));
-                  for (; x <= y; x++, lc++)
-                    *list[lc] = x;
-                  free (arg);
-                }
-              else if (i == 3)  /* 3 arguments "x" "-" "y".  */
-                {
-                  int x, y;
-                  x = *list[lc - 1];
-                  y = atoi (argv[i]);
-                  for (; x <= y; x++, lc++)
-                    *list[lc] = x;
-                }
-              else  /* Badly form.  */
-                *list[lc++] = atoi (argv[i]);
-              hyphen = 0;
-            }
-          else
-            *list[lc++] = atoi(argv[i]);
+	  current = util_ll_add (current, strtol (argv[i], NULL, 10));
 	}
     }
-  return lc;
+
+  for (current = first; current != NULL; current = current->next)
+    lc++;
+
+  ret = malloc (lc * sizeof (int));
+  lc = 0;
+  for (current = first; current != NULL; current = current->next)
+    ret [lc++] = current->data;
+  util_ll_free (first);
+  *list = ret;
+  return lc-1;
 }
 
 /*
@@ -135,7 +156,7 @@ util_do_command (const char *cmd)
   int argc = 0;
   char **argv = NULL;
   int status = 0;
-  Function *command;
+  function_t *command;
 
   if (cmd[0] == '#')
     return 0;
@@ -169,7 +190,7 @@ util_do_command (const char *cmd)
  */
 
 int
-util_msglist_command (int (*func)(int, char**), int argc, char **argv)
+util_msglist_command (function_t *func, int argc, char **argv)
 {
   int i;
   int *list = NULL;
@@ -192,7 +213,7 @@ util_msglist_command (int (*func)(int, char**), int argc, char **argv)
 /*
  * returns the function to run for command
  */
-Function *
+function_t *
 util_command_get (char *cmd)
 {
   struct mail_command_entry entry = util_find_entry (cmd);
@@ -279,4 +300,28 @@ util_stripwhite (char *string)
   return s;
 }
 
+/*
+ * get the number of columns on the screen
+ */
+int
+util_getcols (void)
+{
+  int columns = 80;
+  char *col = getenv ("COLUMNS");
+  if (col)
+    columns = strtol (col, NULL, 10);
+  return columns;
+}
 
+/*
+ * get the number of lines on the screen
+ */
+int
+util_getlines (void)
+{
+  int lines = 24;
+  char *lin = getenv ("LINES");
+  if (lin)
+    lines = strtol (lin, NULL, 10);
+  return lines;
+}

@@ -20,6 +20,6 @@
 int
 mail_exit (int argc, char **argv)
 {
-  printf ("Function not implemented in %s line %d\n", __FILE__, __LINE__);
-  return 1;
+  mailbox_close (mbox);
+  exit (0);
 }

@@ -32,12 +32,8 @@ mail_from (int argc, char **argv)
       header_t hdr;
       char *from, *subj;
       int froml, subjl;
-      int columns = 74;
       char format[64];
-      char *col = getenv("COLUMNS");
-
-      if (col)
-	columns = strtol (col, NULL, 10) - 5;
+      int cols = util_getcols () - 6;
 
       if (mailbox_get_message (mbox, cursor, &msg) != 0)
 	{
@@ -45,9 +41,9 @@ mail_from (int argc, char **argv)
 	  return 1;
 	}
 
-      froml = columns / 3;
-      subjl = columns * 2 / 3;
-      if (froml + subjl > columns)
+      froml = cols / 3;
+      subjl = cols * 2 / 3;
+      if (froml + subjl > cols)
 	subjl--;
 
       from = malloc (froml * sizeof (char));

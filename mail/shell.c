@@ -26,13 +26,12 @@ mail_shell (int argc, char **argv)
 {
   if (argc > 1)
     return 1;
-  else if (fork ())
+  else if (!fork ())
     {
       char *path = getenv ("SHELL");
       if (path == NULL)
-	path = strdup ("sh");
-      execl (path, path);
-      free (path);
+	path = strdup ("/bin/sh");
+      execv (path, &path);
       return 1;
     }
   else

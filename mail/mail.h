@@ -40,6 +40,8 @@
 #include <mailutils/header.h>
 #include <mailutils/body.h>
 
+#include <argcv.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -53,14 +55,14 @@ extern "C" {
 #endif /*__P */
 
 /* Type definitions */
-#ifndef Function
-typedef int Function ();
+#ifndef function_t
+typedef int function_t ();
 #endif
 
 struct mail_command_entry {
   char *shortname;
   char *longname;
-  Function *func;
+  function_t *func;
   char *synopsis;
 };
 
@@ -121,12 +123,14 @@ int mail_eq __P((int argc, char **argv));	/* command = */
 
 int util_expand_msglist __P((const int argc, char **argv, int **list));
 int util_do_command __P((const char *cmd));
-int util_msglist_command __P((int (*func)(int, char**), int argc, char **argv));
-Function* util_command_get __P((char *cmd));
+int util_msglist_command __P((function_t *func, int argc, char **argv));
+function_t* util_command_get __P((char *cmd));
 char **util_command_completion __P((char *cmd, int start, int end));
 char *util_command_generator __P((char *text, int state));
 char *util_stripwhite __P((char *string));
 struct mail_command_entry util_find_entry __P((char *cmd));
+int util_getcols __P((void));
+int util_getlines __P((void));
 
 #ifdef __cplusplus
 }

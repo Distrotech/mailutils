@@ -24,6 +24,19 @@
 int
 mail_bang (int argc, char **argv)
 {
-  printf ("Function not implemented in %s line %d\n", __FILE__, __LINE__);
+  int pid = fork ();
+  if (pid == 0)
+    {
+      free (argv[0]);
+      argv[0] = strdup ("/bin/sh");
+      execv ("/bin/sh", argv);
+      return 1;
+    }
+  else if (pid > 0)
+    {
+      while (waitpid(pid, NULL, 0) == -1)
+	/* do nothing */;
+      return 0;
+    }
   return 1;
 }

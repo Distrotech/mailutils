@@ -25,13 +25,10 @@
 int
 mail_list (int argc, char **argv)
 {
-  int i = 0, pos = 0, columns = 80, len = 0;
-  char *cmd;
-  char *col = getenv ("COLUMNS");
+  char *cmd = NULL;
+  int i = 0, pos = 0, len = 0;
+  int cols = util_getcols () - 5;
 
-  if (col)
-    columns = strtol (col, NULL, 10);
-    
   for (i=0; mail_command_table[i].shortname != 0; i++)
     {
       len = strlen (mail_command_table[i].longname);
@@ -45,7 +42,7 @@ mail_list (int argc, char **argv)
 
       pos += len + 1;
 
-      if (pos >= columns)
+      if (pos >= cols)
 	{
 	  pos = 0;
 	  printf ("\n");
