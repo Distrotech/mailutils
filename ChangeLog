@@ -1,5 +1,7 @@
-2002-05-10 09:02  sroberts
+2002-05-10 Sam Roberts
 
+	* mailbox/tcp.c: The arg check I added was checking floating data
+	  instead of actual args, serious error, fixed.
 	* examples/: Addrs, Addrs.good, Makefile, mbox-check.c,
 	  mbox-dates.c, mbox-explode.c, mimetest.c, msg-send.c: Tweaked
 	  header files to build without errors.
