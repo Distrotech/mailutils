@@ -1,3 +1,7 @@
+2003-04-11  Sergey Poznyakoff 
+
+	* mailbox/filter_trans.c (qp_decode): Bugfix.
+
 2003-04-03  Sergey Poznyakoff
 
 	* examples/base64.c (main): Use custom ISPRINT macro
