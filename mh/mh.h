@@ -41,8 +41,10 @@
 #include <mailutils/error.h>
 #include <mailutils/errno.h>
 #include <mailutils/nls.h>
+#include <mailutils/argcv.h>
 
 #include <mu_asprintf.h>
+#include <getline.h>
 
 #define MH_FMT_RALIGN 0x1000
 #define MH_FMT_ZEROPAD 0x2000
@@ -183,6 +185,15 @@ typedef void (*mh_iterator_fp) __P((mailbox_t mbox, message_t msg,
 #define RCPT_ME   0x0004
 #define RCPT_ALL  (RCPT_TO|RCPT_CC|RCPT_ME)
 
+struct mh_whatnow_env {   /* An environment for whatnow shell */
+  char *file;             /* The file being processed */
+  char *msg;              /* The original message (if any) */
+  char *draftfolder;
+  char *draftmessage;
+  char *editor;
+  char *prompt;
+};
+
 extern char *current_folder;
 extern size_t current_message;
 extern char mh_list_format[];
@@ -253,3 +264,5 @@ int mh_decode_rcpt_flag __P((const char *arg));
 void *xmalloc __P((size_t));
 void *xrealloc __P((void *, size_t));
      
+int mh_spawnp __P((const char *prog, const char *file));
+int mh_whatnow __P((struct mh_whatnow_env *wh, int initial_edit));
