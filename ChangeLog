@@ -1,3 +1,9 @@
+2001-10-12  Jeff Bailey  <jbailey@outpost.dnsalias.org>
+
+	* libmu_scm/Makefile.am: Fixes for RO srcdir.
+
+	* guimb/Makefile.am: Fixes for RO srcdir.
+
 2001-10-11 Alain Magloire
 
 	A small cleanup of the IMAP code.

@@ -1,5 +1,5 @@
 AUTOMAKE_OPTIONS = ../lib/ansi2knr
-INCLUDES =-I$(srcdir) -I$(top_srcdir)/lib -I$(top_srcdir)/include \
+INCLUDES =-I$(CURDIR) -I$(top_builddir) -I$(srcdir) -I$(top_srcdir)/lib -I$(top_srcdir)/include \
  -I$(top_srcdir)/libmu_scm
 
 SUBDIRS=scm
@@ -14,6 +14,9 @@ pkgdata_DATA=@GUILE_PROCEDURES_TXT@
 DOT_X_FILES=run_scm.x
 DOT_DOC_FILES=run_scm.doc
 BUILT_SOURCES=@GUILE_BUILT_SOURCES@
+
+DISTCLEANFILES=$(DOT_X_FILES) $(DOT_DOC_FILES)
+
 
 CPPFLAGS=-DDATADIR=\"$(pkgdatadir)\"
 ETAGS_ARGS = --regex='/SCM_\(GLOBAL_\)?\(G?PROC\|G?PROC1\|SYMBOL\|VCELL\|CONST_LONG\).*\"\([^\"]\)*\"/\3/' \

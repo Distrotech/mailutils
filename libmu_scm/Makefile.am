@@ -1,5 +1,5 @@
 AUTOMAKE_OPTIONS = ../lib/ansi2knr
-INCLUDES =-I$(srcdir) -I$(top_srcdir)/lib -I$(top_srcdir)/include
+INCLUDES =-I$(CURDIR) -I$(top_builddir) -I$(srcdir) -I$(top_srcdir)/lib -I$(top_srcdir)/include
 
 noinst_LIBRARIES=@MU_SCM@
 EXTRA_LIBRARIES=libmu_scm.a
@@ -20,6 +20,8 @@ DOT_X_FILES=mu_address.x mu_body.x mu_mailbox.x mu_message.x mu_mime.x\
 DOT_DOC_FILES=mu_address.doc mu_body.doc mu_mailbox.doc mu_message.doc \
  mu_mime.doc mu_logger.doc mu_port.doc mu_scm.doc  
 BUILT_SOURCES=@GUILE_BUILT_SOURCES@ 
+
+DISTCLEANFILES=$(DOT_X_FILES) $(DOT_DOC_FILES)
 
 CPPFLAGS=-DDATADIR=\"$(pkgdatadir)\"
 ETAGS_ARGS = --regex='/SCM_\(GLOBAL_\)?\(G?PROC\|G?PROC1\|SYMBOL\|VCELL\|CONST_LONG\).*\"\([^\"]\)*\"/\3/' \
