@@ -233,8 +233,8 @@ pop3_mainloop (int infile, int outfile)
   if (md5shared == NULL)
     pop3_abquit (ERR_NO_MEM);
 
-  snprintf (md5shared, strlen (local_hostname) + 50, "<%d.%ld@%s>", getpid (),
-	    time (NULL), local_hostname);
+  snprintf (md5shared, strlen (local_hostname) + 50, "<%u.%u@%s>", getpid (),
+	    (int)time (NULL), local_hostname);
   free (local_hostname);
 
   fflush (ofile);

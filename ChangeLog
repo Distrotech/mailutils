@@ -1,5 +1,20 @@
 2001-04-15  Alain Magloire
 
+	Create a argp directory, it contains the necessary
+	files to build a standalone libargp.a
+
+	* argp: New directory.
+	argp-ba.c, argp-eexst.c, argp-fmtstream.c, argp-fmtstream.h
+	argp-fs-xinl.c, argp-help.c, argp-namefrob.h, argp-parse.c
+	argp-pv.c, argp-pvh.c, argp-xinl.c, argp.h, pin.c.
+
+	* mail/mail.c:  Comment out the code that use readline
+	specifics WITH_READLINE.
+	* mail/mail.h: Likewised.
+	* mail/util.c: Likewised.
+
+2001-04-15  Alain Magloire
+
 	* Makefile.am: Add argp in the list of subdirs.
 	* configure.am:  Check for argp.h and look for
 	argp_parse().

@@ -33,7 +33,6 @@
 #include <mailutils/address.h>
 
 static int action (observer_t, size_t);
-static int counter;
 
 static struct option long_options[] =
 {
@@ -59,7 +58,6 @@ static int show_subject = 1;
 static int show_number;
 static int show_summary;
 static int be_quiet;
-static int be_silent;
 static int align = 1;
 static int show_query;
 static int have_new_mail;

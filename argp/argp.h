@@ -28,13 +28,6 @@
 #define __need_error_t
 #include <errno.h>
 
-#ifndef HAVE_PTHREAD_H
-#define flockfile(arg)
-#define funlockfile(arg)
-#define fputs_unlocked fputs
-#define fwrite_unlocked fwrite
-#endif
-
 #ifndef __error_t_defined
 typedef int error_t;
 # define __error_t_defined

@@ -517,7 +517,7 @@ hol_free (struct hol *hol)
   free (hol);
 }
 
-static inline int
+static int
 hol_entry_short_iterate (const struct hol_entry *entry,
 			 int (*func)(const struct argp_option *opt,
 				     const struct argp_option *real,
@@ -542,7 +542,7 @@ hol_entry_short_iterate (const struct hol_entry *entry,
   return val;
 }
 
-static inline int
+static int
 hol_entry_long_iterate (const struct hol_entry *entry,
 			int (*func)(const struct argp_option *opt,
 				    const struct argp_option *real,
@@ -566,7 +566,7 @@ hol_entry_long_iterate (const struct hol_entry *entry,
 }
 
 /* Iterator that returns true for the first short option.  */
-static inline int
+static int
 until_short (const struct argp_option *opt, const struct argp_option *real,
 	     const char *domain, void *cookie)
 {
@@ -1525,15 +1525,12 @@ _help (const struct argp *argp, const struct argp_state *state, FILE *stream,
   if (! stream)
     return;
 
-  flockfile (stream);
-
   if (! uparams.valid)
     fill_in_uparams (state);
 
   fs = __argp_make_fmtstream (stream, 0, uparams.rmargin, 0);
   if (! fs)
     {
-      funlockfile (stream);
       return;
     }
 
@@ -1641,8 +1638,6 @@ Try `%s --help' or `%s --usage' for more information.\n"),
       anything = 1;
     }
 
-  funlockfile (stream);
-
   if (hol)
     hol_free (hol);
 
@@ -1700,22 +1695,19 @@ __argp_error (const struct argp_state *state, const char *fmt, ...)
 	{
 	  va_list ap;
 
-	  flockfile (stream);
-
-	  fputs_unlocked (state ? state->name : program_invocation_short_name,
+	  fputs (state ? state->name : program_invocation_short_name,
 			  stream);
-	  putc_unlocked (':', stream);
-	  putc_unlocked (' ', stream);
+	  putc (':', stream);
+	  putc (' ', stream);
 
 	  va_start (ap, fmt);
 	  vfprintf (stream, fmt, ap);
 	  va_end (ap);
 
-	  putc_unlocked ('\n', stream);
+	  putc ('\n', stream);
 
 	  __argp_state_help (state, stream, ARGP_HELP_STD_ERR);
 
-	  funlockfile (stream);
 	}
     }
 }
@@ -1741,17 +1733,15 @@ __argp_failure (const struct argp_state *state, int status, int errnum,
 
       if (stream)
 	{
-	  flockfile (stream);
-
-	  fputs_unlocked (state ? state->name : program_invocation_short_name,
-			  stream);
+	  fputs (state ? state->name : program_invocation_short_name,
+		 stream);
 
 	  if (fmt)
 	    {
 	      va_list ap;
 
-	      putc_unlocked (':', stream);
-	      putc_unlocked (' ', stream);
+	      putc (':', stream);
+	      putc (' ', stream);
 
 	      va_start (ap, fmt);
 	      vfprintf (stream, fmt, ap);
@@ -1760,14 +1750,12 @@ __argp_failure (const struct argp_state *state, int status, int errnum,
 
 	  if (errnum)
 	    {
-	      putc_unlocked (':', stream);
-	      putc_unlocked (' ', stream);
+	      putc (':', stream);
+	      putc (' ', stream);
 	      fputs (strerror (errnum), stream);
 	    }
 
-	  putc_unlocked ('\n', stream);
-
-	  funlockfile (stream);
+	  putc ('\n', stream);
 
 	  if (status && (!state || !(state->flags & ARGP_NO_EXIT)))
 	    exit (status);

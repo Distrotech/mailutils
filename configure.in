@@ -75,7 +75,10 @@ dnl Check for libraries
 AC_CHECK_FUNCS(argp_parse)
 if test x"$ac_cv_func_argp_parse" != xyes; then
 	AC_REPLACE_FUNCS(strndup strnlen strchrnul)
+	ARGPLIBS="libargp.a"
+	ARGPINCS="-I../argp"
 	AC_SUBST(ARGPLIBS)
+	AC_SUBST(ARGPINCS)
 fi
 
 dnl Use either PAM or CRYPT, not both.

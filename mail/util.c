@@ -1,5 +1,5 @@
 /* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -96,7 +96,7 @@ util_expand_msglist (const int argc, char **argv, int **list)
 	  current = util_ll_add (current, n);
 	}
       else if (!strcmp (argv[i], "-"))
-	{ 
+	{
 	  /* previous [un]deleted message */
 	  int n = realcursor - 1;
 	  while (n > 0)
@@ -321,56 +321,18 @@ util_find_entry (char *cmd)
 }
 
 /*
- * readline tab completion
- */
-char **
-util_command_completion (char *cmd, int start, int end)
-{
-  if (start == 0)
-    return completion_matches (cmd, util_command_generator);
-  return NULL;
-}
-
-/*
- * more readline
- */
-char *
-util_command_generator (char *text, int state)
-{
-  static int i, len;
-  char *name;
-
-  if (!state)
-    {
-      i = 0;
-      len = strlen (text);
-    }
-
-  while ((name = mail_command_table[i].longname))
-    {
-      if (strlen (mail_command_table[i].shortname) > strlen(name))
-	name = mail_command_table[i].shortname;
-      i++;
-      if (strncmp (name, text, len) == 0)
-	return (strdup(name));
-    }
-
-  return NULL;
-}
-
-/*
  * removes whitespace from the beginning and end of a string
  */
 char *
 util_stripwhite (char *string)
 {
   register char *s, *t;
-  for (s = string; whitespace (*s); s++)
+  for (s = string; isspace ((unsigned)*s); s++)
     ;
   if (*s == 0)
     return s;
   t = s + strlen (s) - 1;
-  while (t > s && whitespace (*t))
+  while (t > s && isspace ((unsigned)*t))
     t--;
   *++t = '\0';
   return s;
@@ -446,7 +408,7 @@ util_find_env (char *variable)
 }
 
 /*
- * print the environment 
+ * print the environment
  */
 int
 util_printenv (int set)
@@ -465,7 +427,7 @@ util_printenv (int set)
   return 0;
 }
 
-/* 
+/*
  * return 1 if a message is deleted
  */
 int
@@ -480,3 +442,99 @@ util_isdeleted (int n)
     return 1;
   return 0;
 }
+
+/*
+ * readline tab completion
+ */
+#ifdef WITH_READLINE
+char **
+util_command_completion (char *cmd, int start, int end)
+{
+  if (start == 0)
+    return completion_matches (cmd, util_command_generator);
+  return NULL;
+}
+
+/*
+ * more readline
+ */
+char *
+util_command_generator (char *text, int state)
+{
+  static int i, len;
+  char *name;
+
+  if (!state)
+    {
+      i = 0;
+      len = strlen (text);
+    }
+
+  while ((name = mail_command_table[i].longname))
+    {
+      if (strlen (mail_command_table[i].shortname) > strlen(name))
+	name = mail_command_table[i].shortname;
+      i++;
+      if (strncmp (name, text, len) == 0)
+	return (strdup(name));
+    }
+
+  return NULL;
+}
+
+#else
+
+char *
+readline (const char *prompt)
+{
+  char *line;
+  char *p;
+  size_t linelen, total;
+
+  if (prompt)
+    {
+      printf ("%s",prompt);
+      fflush(stdout);
+    }
+
+  p = line = calloc (1, 255);
+  linelen = 255;
+  total = 0;
+  for (;;)
+    {
+      size_t len;
+      p = fgets (p, linelen, stdin);
+      len = (p) ? strlen (p) : 0;
+
+      total += len;
+
+      /* Error.  */
+      if (total == 0)
+	{
+	  free (line);
+	  return NULL;
+	}
+
+      /* Ok.  */
+      if (line[total - 1] == '\n')
+	{
+	  line[total - 1] = '\0';
+	  return line;
+	}
+      else
+        {
+	  char *tmp;
+	  linelen *= 2;
+	  tmp = realloc (line, linelen);
+	  if (tmp == NULL)
+	    {
+	      free (line);
+	      return NULL;
+	    }
+	  line = tmp;
+	  p = line + total;
+	  total += len;
+	}
+    }
+}
+#endif

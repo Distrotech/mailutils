@@ -245,8 +245,10 @@ main (int argc, char **argv)
   else
     {
       /* Initialize readline */
+#ifdef WITH_READLINE
       rl_readline_name = "mail";
       rl_attempted_completion_function = (CPPFunction*)util_command_completion;
+#endif
 
       /* open the mailbox */
       if (args.file == NULL)
@@ -300,7 +302,9 @@ main (int argc, char **argv)
 	    }
 	  cmd = util_stripwhite (command);
 	  util_do_command (cmd);
+#ifdef WITH_READLINE
 	  add_history (cmd);
+#endif
 	}
     }
   /* We should never reach this point */

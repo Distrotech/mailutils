@@ -34,10 +34,6 @@
 #include <string.h>
 #include <unistd.h>
 
-#ifndef HAVE_PTHREAD_H
-# define fwrite_unlocked fwrite
-#endif
-
 #if    (_LIBC - 0 && !defined (USE_IN_LIBIO)) \
     || (defined (__GNU_LIBRARY__) && defined (HAVE_LINEWRAP_H))
 /* line_wrap_stream is available, so use that.  */

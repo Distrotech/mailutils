@@ -2,13 +2,11 @@ AUTOMAKE_OPTIONS = ../lib/ansi2knr no-dependencies
 
 CFLAGS = -Wall -pedantic -g
 
-INCLUDES = -I${top_srcdir}/include -I${top_srcdir}/lib
+INCLUDES = -I${top_srcdir}/include -I${top_srcdir}/lib @ARGPINCS@
 
 bin_PROGRAMS = mail
 
-mail_DEPENDENCIES = @ARGPLIB@ ../mailbox/libmailbox.la
-
-mail_LDADD = @ARGPLIB@ ../mailbox/libmailbox.la ../lib/libmailutils.a
+mail_LDADD = @ARGPLIBS@ ../mailbox/libmailbox.la ../lib/libmailutils.a
 
 mail_SOURCES = alias.c alt.c cd.c copy.c delete.c discard.c dp.c echo.c \
   edit.c eq.c exit.c file.c folders.c followup.c from.c headers.c help.c \

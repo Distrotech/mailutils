@@ -217,12 +217,7 @@ static struct mutex getopt_lock = MUTEX_INITIALIZER;
 #define LOCK_GETOPT   mutex_lock (&getopt_lock)
 #define UNLOCK_GETOPT mutex_unlock (&getopt_lock)
 
-#elif defined(HAVE_PTHREAD_H)
-static struct pthread_mutex_t getopt_lock = PTHREAD_MUTEX_INITIALIZER;
-#define LOCK_GETOPT   pthread_mutex_lock (&getopt_lock)
-#define UNLOCK_GETOPT pthread_mutex_unlock (&getopt_lock)
-
-#else /* !HAVE_CTHREADS_H !HAVE_PTHREAD_H */
+#else /* !HAVE_CTHREADS_H */
 
 #define LOCK_GETOPT    (void)0
 #define UNLOCK_GETOPT  (void)0
