@@ -254,51 +254,49 @@ _scan (const char *name, int depth)
   info.name = strdup (name);
   while ((entry = readdir (dir)))
     {
-      switch (entry->d_name[0])
+      if (entry->d_name[0] == '.')
 	{
-	case '.':
 	  if (strcmp (entry->d_name, mh_seq_name) == 0)
 	    read_seq_file (&info, name, entry->d_name);
-	  break;
-	  
-	case ',':
-	  continue;
-
-	case '0':case '1':case '2':case '3':case '4':
-	case '5':case '6':case '7':case '8':case '9':
-	  uid = strtoul (entry->d_name, &p, 10);
-	  if (*p)
-	    info.others++;
-	  else
-	    {
-	      info.message_count++;
-	      if (info.min == 0 || uid < info.min)
-		info.min = uid;
-	      if (uid > info.max)
-		info.max = uid;
-	    }
-	  break;
-
-	default:
+	}
+      else if (entry->d_name[0] != ',')
+	{
 	  asprintf (&p, "%s/%s", name, entry->d_name);
 	  if (stat (p, &st) < 0)
-	    {
-	      mh_error ("can't stat %s: %s", p, strerror (errno));
-	      info.others++;
-	    }
+	    mh_error ("can't stat %s: %s", p, strerror (errno));
 	  else if (S_ISDIR (st.st_mode))
 	    {
+	      info.others++;
 	      _scan (p, depth+1);
 	    }
 	  else
-	    /* Invalid entry. */
-	    info.others++;
-	  free (p);
+	    {
+	      char *endp;
+	      uid = strtoul (entry->d_name, &endp, 10);
+	      if (*endp)
+		info.others++;
+	      else
+		{
+		  info.message_count++;
+		  if (info.min == 0 || uid < info.min)
+		    info.min = uid;
+		  if (uid > info.max)
+		    info.max = uid;
+		}
+	    }
 	}
-      
+    }
+  
+  if (info.cur)
+    {
+      asprintf (&p, "%s/%lu", name, (unsigned long) info.cur);
+      if (stat (p, &st) < 0 || !S_ISREG (st.st_mode))
+	info.cur = 0;
+      free (p);
     }
   closedir (dir);
-  install_folder_info (name, &info);
+  if (depth > 0)
+    install_folder_info (name, &info);
 }
     
 static void
@@ -309,39 +307,41 @@ print_all ()
   for (info = folder_info; info < end; info++)
     {
       int len = strlen (info->name);
-      printf ("%s", info->name);
+      if (len < 22)
+	printf ("%22.22s", info->name);
+      else
+	printf ("%s", info->name);
+      
       if (strcmp (info->name, current_folder) == 0)
-	{
-	  printf ("+");
-	  len++;
-	}
-
-      for (; len < 20; len++)
-	putchar (' ');
-
+	printf ("+");
+      else
+	printf (" ");
+      
       if (info->message_count)
 	{
-	  printf (" has %4lu messages (%4lu-%4lu)",
+	  printf (info->message_count == 1 ?
+		  " has %4lu message  (%4lu-%4lu)" :
+		  " has %4lu messages (%4lu-%4lu)",
 		  (unsigned long) info->message_count,
 		  (unsigned long) info->min,
 		  (unsigned long) info->max);
 	  if (info->cur)
 	    printf ("; cur=%4lu", (unsigned long) info->cur);
-
-	  if (info->others)
-	    {
-	      if (!info->cur)
-		printf (";           ");
-	      else
-		printf ("; ");
-	      printf ("(others)");
-	    }
-	  printf (".\n");
 	}
       else
 	{
-	  printf (" has no messages.\n");
+	  printf (" has no messages");
 	}
+      
+      if (info->others)
+	{
+	  if (!info->cur)
+	    printf (";           ");
+	  else
+	    printf ("; ");
+	  printf ("(others)");
+	}
+      printf (".\n");
     }
 }
 
@@ -374,7 +374,6 @@ action_print ()
   if (show_all)
     {
       _scan (mu_path_folder_dir, 0);
-      folder_info_count--; /* do not count folder directory */
     }
   else
     {
@@ -398,7 +397,7 @@ action_print ()
       print_all ();
 
       if (print_total)
-	printf ("%24.24s=%4lu messages in %4lu folders\n",
+	printf ("\n%24.24s=%4lu messages in %4lu folders\n",
 		"TOTAL",
 		(unsigned long) message_count,
 		(unsigned long) folder_info_count);
