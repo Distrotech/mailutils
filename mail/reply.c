@@ -97,8 +97,8 @@ reply0 (msgset_t *mspec, message_t msg, void *data)
     {
       char *p = NULL;
       
-      if (strncasecmp (str, "Re:", 3))
-	util_strcat (&p, "Re: ");
+      if (munre_subject (str, NULL))
+	util_strcat (&p, util_reply_prefix ());
       util_strcat (&p, str);
       free (str);
       compose_header_set (&env, MU_HEADER_SUBJECT, p, COMPOSE_REPLACE);
