@@ -63,7 +63,7 @@ extern char *strchrnul __P((const char *s, int c_in));
 #define MH_CONTEXT_FILE "context"
 #define DEFAULT_ALIAS_FILE MHLIBDIR "/MailAliases"
 
-#define is_true(arg) ((arg)==NULL||(arg)[0] == 'y')
+#define is_true(arg) ((arg) == NULL||mu_true_answer_p (arg) == 1)
 
 enum mh_opcode
 {

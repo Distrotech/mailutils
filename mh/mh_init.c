@@ -256,7 +256,7 @@ mh_vgetyn (const char *fmt, va_list ap)
   while (1)
     {
       char *p;
-      int len;
+      int len, rc;
       
       vfprintf (stdout, fmt, ap);
       fprintf (stdout, "? ");
@@ -269,17 +269,13 @@ mh_vgetyn (const char *fmt, va_list ap)
 
       while (*p && isspace (*p))
 	p++;
-      
-      switch (p[0])
-	{
-	case 'y':
-	case 'Y':
-	  return 1;
-	case 'n':
-	case 'N':
-	  return 0;
-	}
 
+      rc = mu_true_answer_p (p);
+
+      if (rc >= 0)
+	return rc;
+
+      /* TRANSLATORS: See msgids "nN" and "yY". */
       fprintf (stdout, _("Please answer yes or no: "));
     }
   return 0; /* to pacify gcc */

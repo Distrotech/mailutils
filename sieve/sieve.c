@@ -117,16 +117,12 @@ static int sieve_print_locus = 1; /* Should the log messages include the
 static int
 is_true_p (char *p)
 {
+  int rc;
   if (!p)
     return 1;
-  /* TRANSLATORS: This is the list of characters meaning 'Yes'. Please, 
-     preserve yY in your translation, e.g., for German:
-
-     msgstr "yYjJ";
-  */
-  if (strchr (_("yY"), *p))
-    return 1;
-  return 0;
+  if ((rc = mu_true_answer_p (p)) == -1)
+    return 0;
+  return rc;
 }
 
 static error_t

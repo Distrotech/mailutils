@@ -139,7 +139,7 @@ parse_headers (FILE *fp, compose_env_t *env)
       
       header_destroy (&header, NULL);
       p = ml_readline (_("Edit again?"));
-      if (*p == 'y' || *p == 'Y')
+      if (mu_true_answer_p (p) == 1)
 	return -1;
       else
 	return 1;
