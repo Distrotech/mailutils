@@ -1,4 +1,19 @@
-2003-03-26  Sergey Poznyakof
+2003-03-27  Sergey Poznyakoff 
+
+	* mailbox/filter_trans.c (_hexdigits): Must be zero-terminated,
+	  otherwise the native Darwin loader refuses to load it.
+	  (qp_decode): Bugfix: in accordance with rfc1892 a sequence
+	  of whitespace is allowed in an encoded string provided that
+	  it is followed by a printable character.
+	  (qp_encode): Preserve trailing whitespace.
+	* include/mailutils/nls.h [!ENABLE_NLS]: Provide defines for
+	  dgettext and ngettext.
+	* mailbox/argp-parse.c: Include <mailutils/nls.h>
+	* mh/mhn.c (mhn_store_command): If no message part is available
+	  ignore %p and %P metacharacters.
+	  (store_handler): Unlink the file if it exists.
+	  
+2003-03-26  Sergey Poznyakoff
 
         * mailbox/mu_auth.c (mu_auth_data_alloc): Fixed COPY macro.
 	* mh/mhn.c (main): Ignore sighups.
