@@ -184,7 +184,7 @@ _mime_munge_content_header (char *field_body)
 	{
 	  if (*e == '\\')
 	    {			/* escaped */
-	      memmove (e, e + 1, strlen (e) + 2);
+	      memmove (e, e + 1, strlen (e));
 	    }
 	  else if (*e == '\"')
 	    quoted = ~quoted;
