@@ -1,3 +1,22 @@
+2002-12-27  Sergey Poznyakoff
+
+	* configure.ac: Set version number to 0.2.1.
+	
+	* mail/mail.c: Removed startup banner.
+	  Bugfix: --quit option was handled incorrectly
+	* doc/texinfo/programs.texi: Removed references to `set quiet'
+
+	* mail/quit.c: Use ngettext
+	* mail/summary.c: Likewise.
+	* frm/frm.c: Likewise.
+	* mail/testsuite/mail/folder.exp: Reflect recent changes in
+          the handling of plurals.
+	* mail/testsuite/mail/write.exp: Likewise.
+
+	* mail.remote/Makefile.am: Added @INTLINCS@ and @LTLIBINTL@
+
+	* AUTHORS: Added Wojciech Polak.
+	
 2002-12-27  Wojciech Polak <polak@gnu.org>
 
 	* mail/summary.c: Small NLS improvement.
