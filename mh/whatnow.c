@@ -19,7 +19,7 @@
 
 #include <mh.h>
 
-const char *argp_program_version = "whatnow (" PACKAGE_STRING ")";
+const char *program_version = "whatnow (" PACKAGE_STRING ")";
 static char doc[] = "GNU MH whatnow";
 static char args_doc[] = N_("[FILE]");
 
@@ -101,6 +101,7 @@ main (int argc, char **argv)
   
   mu_init_nls ();
 
+  mu_argp_init (program_version, NULL);
   mh_argp_parse (argc, argv, 0, options, mh_option, args_doc, doc,
 		 opt_handler, NULL, &index);
   argc -= index;

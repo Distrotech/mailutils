@@ -30,7 +30,7 @@
 
 static int messages_count (const char *);
 
-const char *argp_program_version = "messages (" PACKAGE_STRING ")";
+const char *program_version = "messages (" PACKAGE_STRING ")";
 static char doc[] = N_("GNU messages -- count the number of messages in a mailbox");
 static char args_doc[] = N_("[mailbox...]");
 
@@ -100,6 +100,7 @@ main (int argc, char **argv)
   /* Native Language Support */
   mu_init_nls ();
 
+  mu_argp_init (program_version, NULL);
   mu_argp_parse (&argp, &argc, &argv, 0, argp_capa, NULL, &args);
 
   registrar_get_list (&bookie);

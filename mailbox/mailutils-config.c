@@ -22,7 +22,7 @@
 #include <mailutils/argp.h>
 #include <mu_asprintf.h>
 
-const char *argp_program_version = "mailutils-config (" PACKAGE_STRING ")";
+const char *program_version = "mailutils-config (" PACKAGE_STRING ")";
 static char doc[] = N_("GNU mailutils-config -- Display compiler and loader options needed for building a program with mailutils");
 static char args_doc[] = N_("[arg...]");
 
@@ -94,6 +94,7 @@ main (int argc, char **argv)
 {
   int index;
   
+  mu_argp_init (program_version, NULL);
   if (mu_argp_parse (&argp, &argc, &argv, 0, argp_capa, &index, NULL))
     {
       argp_help (&argp, stdout, ARGP_HELP_SEE, program_invocation_short_name);

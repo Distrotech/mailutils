@@ -50,7 +50,7 @@ typedef struct utmp UTMP;
 
 #define MAX_TTY_SIZE (sizeof (PATH_TTY_PFX) + sizeof (((UTMP*)0)->ut_line))
 
-const char *argp_program_version = "comsatd (" PACKAGE_STRING ")";
+const char *program_version = "comsatd (" PACKAGE_STRING ")";
 static char doc[] = "GNU comsatd";
 
 static struct argp_option options[] = 
@@ -139,6 +139,7 @@ main(int argc, char **argv)
   /* Native Language Support */
   mu_init_nls ();
 
+  mu_argp_init (program_version, NULL);
   mu_argp_parse (&argp, &argc, &argv, 0, comsat_argp_capa,
 		 NULL, &daemon_param);
 

@@ -116,7 +116,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
   return 0;
 }
 
-const char *argp_program_version = "guimb (" PACKAGE_STRING ")";
+const char *program_version = "guimb (" PACKAGE_STRING ")";
 static char doc[] =
 N_("GNU guimb -- Process the contents of the specified mailboxes "
 "using a Scheme program or expression.");
@@ -149,6 +149,7 @@ main (int argc, char *argv[])
   mu_init_nls ();
 
   append_arg ("");
+  mu_argp_init (program_version, NULL);
   mu_argp_parse (&argp, &argc, &argv, 0, guimb_argp_capa, NULL, &c);
   
   for (; c < argc; c++)

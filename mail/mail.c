@@ -24,7 +24,7 @@ size_t total;
 FILE *ofile;
 int interactive;
 
-const char *argp_program_version = "mail (" PACKAGE_STRING ")";
+const char *program_version = "mail (" PACKAGE_STRING ")";
 static char doc[] = N_("GNU mail -- the standard /bin/mail interface");
 static char args_doc[] = N_("[address...]");
 
@@ -324,6 +324,7 @@ main (int argc, char **argv)
 
   /* argument parsing */
 
+  mu_argp_init (program_version, NULL);
   mu_argp_parse (&argp, &argc, &argv, 0, mail_capa, NULL, &args);
 
   /* read system-wide mail.rc and user's .mailrc */

@@ -19,7 +19,7 @@
 
 #include <mh.h>
 
-const char *argp_program_version = "anno (" PACKAGE_STRING ")";
+const char *program_version = "anno (" PACKAGE_STRING ")";
 static char doc[] = N_("GNU MH anno\v"
 "Options marked with `*' are not yet implemented.\n"
 "Use -help to obtain the list of traditional MH options.");
@@ -116,6 +116,7 @@ main (int argc, char **argv)
   
   mu_init_nls ();
 
+  mu_argp_init (program_version, NULL);
   mh_argp_parse (argc, argv, 0, options, mh_option, args_doc, doc,
 		 opt_handler, NULL, &index);
 

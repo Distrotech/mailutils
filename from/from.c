@@ -46,7 +46,7 @@
 #include <mailutils/stream.h>
 #include <mailutils/nls.h>
 
-const char *argp_program_version = "from (" PACKAGE_STRING ")";
+const char *program_version = "from (" PACKAGE_STRING ")";
 static char doc[] = N_("GNU from -- display from and subject");
 
 static struct argp_option options[] = {
@@ -103,6 +103,7 @@ main(int argc, char **argv)
 
   {
     int opt;
+    mu_argp_init (program_version, NULL);
     mu_argp_parse (&argp, &argc, &argv, 0, capa, &opt, NULL);
     mailbox_name = argv[opt];
   }

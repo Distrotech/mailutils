@@ -41,7 +41,7 @@
 #include <mailutils/error.h>
 #include <mailutils/nls.h>
 
-const char *argp_program_version = "mail.remote (" PACKAGE_STRING ")";
+const char *program_version = "mail.remote (" PACKAGE_STRING ")";
 static char doc[] =
 N_("GNU mail.remote -- pseudo-sendmail interface for mail delivery\n"
   "\v"
@@ -143,6 +143,7 @@ main (int argc, char **argv)
     list_append (bookie, smtp_record);
   }
 
+  mu_argp_init (program_version, NULL);
   mu_argp_parse (&argp, &argc, &argv, 0, capa, &optind, NULL);
 
   if (optfrom)

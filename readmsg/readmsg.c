@@ -28,7 +28,7 @@ static void print_header __P ((message_t, int no_header, int all_header, const c
 static void print_body __P ((message_t));
 static int  string_starts_with __P ((const char * s1, const char *s2));
 
-const char *argp_program_version = "readmsg (" PACKAGE_STRING ")";
+const char *program_version = "readmsg (" PACKAGE_STRING ")";
 static char doc[] = N_("GNU readmsg -- print messages");
 static error_t readmsg_parse_opt  __P((int key, char *arg,
 				       struct argp_state *astate));
@@ -228,6 +228,7 @@ main (int argc, char **argv)
   /* Native Language Support */
   mu_init_nls ();
 
+  mu_argp_init (program_version, NULL);
   mu_argp_parse (&argp, &argc, &argv, 0, readmsg_argp_capa, &index, NULL);
 
   /* Registration.  */

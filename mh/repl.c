@@ -21,7 +21,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-const char *argp_program_version = "reply (" PACKAGE_STRING ")";
+const char *program_version = "reply (" PACKAGE_STRING ")";
 static char doc[] = N_("GNU MH repl\v"
 "Options marked with `*' are not yet implemented.\n"
 "Use -help to obtain the list of traditional MH options.");
@@ -323,6 +323,7 @@ main (int argc, char **argv)
   /* Native Language Support */
   mu_init_nls ();
 
+  mu_argp_init (program_version, NULL);
   mh_argp_parse (argc, argv, 0, options, mh_option, args_doc, doc,
 		 opt_handler, NULL, &index);
   if (mh_format_parse (format_str, &format))

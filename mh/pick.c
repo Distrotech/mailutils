@@ -25,7 +25,7 @@
 #define obstack_chunk_free free
 #include <obstack.h>
 
-const char *argp_program_version = "pick (" PACKAGE_STRING ")";
+const char *program_version = "pick (" PACKAGE_STRING ")";
 static char doc[] = N_("GNU MH pick\v"
 "Options marked with `*' are not yet implemented.\n"
 "Use -help to obtain the list of traditional MH options.");
@@ -347,6 +347,7 @@ main (int argc, char **argv)
 
   flags = isatty (0) ? 0 : ARGP_NO_ERRS;
   mu_init_nls ();
+  mu_argp_init (program_version, NULL);
   mh_argp_parse (argc, argv, flags, options, mh_option,
 		 args_doc, doc, opt_handler, NULL, &index);
   if (pick_parse (lexlist))

@@ -47,7 +47,7 @@ static error_t pop3d_parse_opt  __P((int key, char *arg,
 				     struct argp_state *astate));
 static void pop3d_log_connection __P((int fd));
 
-const char *argp_program_version = "pop3d (" PACKAGE_STRING ")";
+const char *program_version = "pop3d (" PACKAGE_STRING ")";
 static char doc[] = N_("GNU pop3d -- the POP3 daemon");
 
 static struct argp argp = {
@@ -97,6 +97,7 @@ main (int argc, char **argv)
   /* Native Language Support */
   mu_init_nls ();
 
+  mu_argp_init (program_version, NULL);
   MU_AUTH_REGISTER_ALL_MODULES();
 #ifdef WITH_TLS
   mu_tls_init_argp ();

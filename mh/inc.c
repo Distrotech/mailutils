@@ -19,7 +19,7 @@
 
 #include <mh.h>
 
-const char *argp_program_version = "inc (" PACKAGE_STRING ")";
+const char *program_version = "inc (" PACKAGE_STRING ")";
 static char doc[] = N_("GNU MH inc\v"
 "Use -help to obtain the list of traditional MH options.");
 static char args_doc[] = N_("[+folder]");
@@ -175,6 +175,7 @@ main (int argc, char **argv)
   /* Native Language Support */
   mu_init_nls ();
 
+  mu_argp_init (program_version, NULL);
   mh_argp_parse (argc, argv, 0, options, mh_option, args_doc, doc,
 		 opt_handler, NULL, NULL);
 

@@ -45,7 +45,7 @@
 
 void mutil_register_all_mbox_formats (void);
 
-const char *argp_program_version = "sieve (" PACKAGE_STRING ")";
+const char *program_version = "sieve (" PACKAGE_STRING ")";
 
 static char doc[] =
 N_("GNU sieve -- a mail filtering tool\n"
@@ -310,6 +310,7 @@ main (int argc, char *argv[])
   /* Native Language Support */
   mu_init_nls ();
 
+  mu_argp_init (program_version, NULL);
   sieve_argp_init ();
   rc = mu_argp_parse (&argp, &argc, &argv, ARGP_IN_ORDER, sieve_argp_capa,
 		      0, &opts);

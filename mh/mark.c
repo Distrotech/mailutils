@@ -17,7 +17,7 @@
 
 #include <mh.h>
 
-const char *argp_program_version = "mark (" PACKAGE_STRING ")";
+const char *program_version = "mark (" PACKAGE_STRING ")";
 static char doc[] = N_("GNU MH mark\v"
 "Use -help to obtain the list of traditional MH options.");
 static char args_doc[] = "[msgs...]";
@@ -193,6 +193,7 @@ main (int argc, char **argv)
   url_t url;
   
   mu_init_nls ();
+  mu_argp_init (program_version, NULL);
   mh_argp_parse (argc, argv, 0, options, mh_option, args_doc, doc,
 		 opt_handler, NULL, &index);
 

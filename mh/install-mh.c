@@ -17,7 +17,7 @@
 
 #include <mh.h>
 
-const char *argp_program_version = "install-mh (" PACKAGE_STRING ")";
+const char *program_version = "install-mh (" PACKAGE_STRING ")";
 static char doc[] = N_("GNU MH install-mh\v"
 "Use -help to obtain the list of traditional MH options.");
 static char args_doc[] = "";
@@ -66,9 +66,11 @@ main (int argc, char **argv)
 {
   char *home, *name;
   extern int mh_auto_install;
+  
   /* Native Language Support */
   mu_init_nls ();
 
+  mu_argp_init (program_version, NULL);
   mh_auto_install = 0;
   mh_argp_parse (argc, argv, 0, options, mh_option, args_doc, doc,
 		 opt_handler, NULL, NULL);

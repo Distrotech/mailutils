@@ -30,7 +30,7 @@
 #include <mailutils/locker.h>
 #include <mailutils/nls.h>
 
-const char *argp_program_version = "GNU dotlock (" PACKAGE_STRING ")";
+const char *program_version = "GNU dotlock (" PACKAGE_STRING ")";
 static char doc[] =
 N_("GNU dotlock -- lock mail spool files"
    "\v"
@@ -38,7 +38,6 @@ N_("GNU dotlock -- lock mail spool files"
    " it's already locked, and 1 if some other kind of error occurred.");
 
 static char args_doc[] = N_("FILE");
-error_t argp_err_exit_status = MU_DL_EX_ERROR;
 
 static struct argp_option options[] = {
   {"unlock", 'u', NULL, 0,
@@ -148,6 +147,8 @@ main (int argc, char *argv[])
   if(setegid(usergid) < 0)
     return MU_DL_EX_ERROR;
 
+  mu_argp_init (program_version, NULL);
+  argp_err_exit_status = MU_DL_EX_ERROR;
   argp_parse (&argp, argc, argv, 0, NULL, NULL);
 
   if ((err = locker_create (&locker, file, flags)))

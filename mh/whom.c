@@ -17,7 +17,7 @@
 
 #include <mh.h>
 
-const char *argp_program_version = "whom (" PACKAGE_STRING ")";
+const char *program_version = "whom (" PACKAGE_STRING ")";
 static char doc[] = N_("GNU MH whom\v"
 "Use -help to obtain the list of traditional MH options.");
 static char args_doc[] = "[file]";
@@ -111,6 +111,7 @@ main (int argc, char **argv)
   
   mu_init_nls ();
   
+  mu_argp_init (program_version, NULL);
   mh_argp_parse (argc, argv, 0, options, mh_option, args_doc, doc,
 		 opt_handler, NULL, &index);
 

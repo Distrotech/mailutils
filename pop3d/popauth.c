@@ -51,7 +51,7 @@ int (*ftab[]) __P((struct action_data *)) = {
   action_chpass
 };
 
-const char *argp_program_version = "popauth (" PACKAGE_STRING ")";
+const char *program_version = "popauth (" PACKAGE_STRING ")";
 static char doc[] = N_("GNU popauth -- manage pop3 authentication database");
 static error_t popauth_parse_opt  __P((int key, char *arg,
 				       struct argp_state *astate));
@@ -168,6 +168,7 @@ main(int argc, char **argv)
   /* Native Language Support */
   mu_init_nls ();
 
+  mu_argp_init (program_version, NULL);
   mu_argp_parse (&argp, &argc, &argv, 0,
 		 popauth_argp_capa, NULL, &adata);
 

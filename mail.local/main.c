@@ -41,7 +41,7 @@ void guess_retval __P((int ec));
 void mailer_err __P((char *fmt, ...));
 void notify_biff __P((mailbox_t mbox, char *name, size_t size));
 
-const char *argp_program_version = "mail.local (" PACKAGE_STRING ")";
+const char *program_version = "mail.local (" PACKAGE_STRING ")";
 static char doc[] =
 N_("GNU mail.local -- the local MDA"
    "\v"
@@ -278,6 +278,7 @@ main (int argc, char *argv[])
   
   mu_argp_error_code = EX_CONFIG;
   MU_AUTH_REGISTER_ALL_MODULES();
+  mu_argp_init (program_version, NULL);
   sieve_argp_init ();
   mu_argp_parse (&argp, &argc, &argv, 0, argp_capa, &arg_index, NULL);
   

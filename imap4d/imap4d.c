@@ -36,7 +36,7 @@ int login_disabled;
 /* Number of child processes.  */
 volatile size_t children;
 
-const char *argp_program_version = "imap4d (" PACKAGE_STRING ")";
+const char *program_version = "imap4d (" PACKAGE_STRING ")";
 static char doc[] = N_("GNU imap4d -- the IMAP4D daemon");
 
 #define ARG_LOGIN_DISABLED 1
@@ -124,6 +124,7 @@ main (int argc, char **argv)
   MU_AUTH_REGISTER_ALL_MODULES ();
   imap4d_capability_init ();
 
+  mu_argp_init (program_version, NULL);
 #ifdef WITH_TLS
   mu_tls_init_argp ();
 #endif /* WITH_TLS */
