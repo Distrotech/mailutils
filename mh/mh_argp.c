@@ -72,12 +72,14 @@ mh_argp_parse (int argc, char **argv,
 	       struct argp_option *option,
 	       struct mh_option *mh_option,
 	       char *argp_doc, char *doc,
-	       int (*handler)(), void *closure, int *index)
+	       int (*handler)(), void *closure, int *pindex)
 {
   struct argp argp;
   struct mh_argp_data data;
   char *p;
-
+  int index;
+  int extra  = 0;
+  
   program_invocation_name = argv[0];
   p = strrchr (argv[0], '/');
   if (p)
@@ -120,11 +122,22 @@ mh_argp_parse (int argc, char **argv,
       for (; i < _argc; i++)
 	_argv[i] = xargv[i-argc];
       _argv[i] = NULL;
-      argp_parse (&argp, _argc, _argv, 0, index, &data);
+      argp_parse (&argp, _argc, _argv, 0, &index, &data);
       free (_argv);
+      extra = index < _argc;
     }
   else
-    argp_parse (&argp, argc, argv, 0, index, &data);
+    {
+      argp_parse (&argp, argc, argv, 0, &index, &data);
+      extra = index < argc;
+    }
+  if (pindex)
+    *pindex = index;
+  else if (extra)
+    {
+      mh_error ("extra arguments");
+      exit (1);
+    }
   mh_init2 ();
   return 0;
 }
