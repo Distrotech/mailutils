@@ -1,3 +1,19 @@
+2001-07-27 Sergey Poznyakoff
+	* lib/xmalloc.c: call mu_error() instead of error().
+	* lib/malloc.c,lib/realloc.c: (new) Provide rpl_malloc() and
+	rpl_realloc() (required by m4/malloc.m4, m4/realloc.m4)
+	* lib/Makefile.am: Added malloc.c, realloc.c.
+
+	* mail/mail.h: Include <xalloc.h>
+	* mail/util.c: Removed util_[mc]alloc() in favor of x[mc]alloc().
+	* mail/alias.c: Use x[mc]alloc() instead of util_[cm]alloc().
+	* mail/alt.c: Likewise.
+	* mail/mail.c: Likewise.
+	* mail/mailline.c: Likewise.
+	* mail/shell.c: Likewise.
+	* mail/unset.c: Likewise.
+	* mail/var.c: Likewise.
+
 2001-07-25 Alain Magloire
 
 	Base on Jakob idea propose an implementation for decode.
