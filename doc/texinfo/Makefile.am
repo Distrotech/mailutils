@@ -20,6 +20,7 @@ mailutils_TEXINFOS = \
  imap4.texi \
  iterator.texi \
  libmuauth.texi \
+ libmu_scm.texi \
  libsieve.texi \
  locker.texi \
  mailbox.texi \
