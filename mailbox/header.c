@@ -234,7 +234,7 @@ header_set_value (header_t h, const char *fn, const char *fv,
 
 int
 header_get_value (header_t header, const char *name, char *buffer,
-		  size_t buflen, size_t *n)
+		  size_t buflen, size_t *pn)
 {
   size_t i = 0;
   size_t name_len;
@@ -285,8 +285,8 @@ header_get_value (header_t header, const char *name, char *buffer,
     }
   if (buffer)
     *buffer = '\0'; /* null terminated */
-  if (n)
-    *n = total;
+  if (pn)
+    *pn = total;
   return 0;
 }
 

@@ -47,7 +47,6 @@ struct _message
   body_t body;
   attribute_t attribute;
   size_t num;
-  size_t size;
 
   /* who is the owner */
   void *owner;
@@ -55,15 +54,6 @@ struct _message
 
   event_t event;
   size_t event_num;
-
-  int (*_get_header)  __P ((message_t msg, header_t *hdr));
-  int (*_set_header)  __P ((message_t msg, header_t hdr, void *owner));
-
-  int (*_get_attribute)  __P ((message_t msg, attribute_t *attr));
-  int (*_set_attribute)  __P ((message_t msg, attribute_t attr, void *owner));
-
-  int (*_get_stream) __P ((message_t msg, stream_t *));
-  int (*_set_stream) __P ((message_t msg, stream_t, void *owner));
 
   int (*_from)       __P ((message_t msg, char *, size_t, size_t *));
   int (*_received)   __P ((message_t msg, char *, size_t, size_t *));
