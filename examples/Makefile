@@ -8,11 +8,9 @@ MULIBS	= ../mailbox/.libs/libmailbox.a ../lib/libmailutils.a
 
 EXES    = addr mbox-explode mbox-dates mbox-auth url-parse mbox-check
 
-$(EXES): $(MULIBS)
-
 default: $(EXES)
 
-$(EXES): $(MBOXLIB)
+$(EXES): $(MULIBS)
 
 # example of parsing the date fields, prints all the incorrectly
 # formatted dates in a mailbox.

@@ -1,3 +1,9 @@
+scheme:
+scheme:/absolute/path
+scheme:relative/path
+scheme:///relative/path
+scheme:////absolute/path
+
 scheme://%75%73%65%72:%70%61%73%73@%68%6f%73%74
 
 ftp://user:pass@host//a/path
