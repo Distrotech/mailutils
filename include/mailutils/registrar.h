@@ -38,103 +38,85 @@
 extern "C" {
 #endif
 
-struct mailbox_entry;
-typedef struct mailbox_entry* mailbox_entry_t;
-struct mailer_entry;
-typedef struct mailer_entry* mailer_entry_t;
-struct folder_entry;
-typedef struct folder_entry* folder_entry_t;
-struct _registrar_record;
-typedef struct _registrar_record* registrar_record_t;
-
-struct mailbox_entry
-{
-  int (*_url_init)     __P ((url_t));
-  int (*_mailbox_init) __P ((mailbox_t));
-};
-struct mailer_entry
-{
-  int (*_url_init)     __P ((url_t));
-  int (*_mailer_init)  __P ((mailer_t));
-};
-struct folder_entry
-{
-  int (*_url_init)     __P ((url_t));
-  int (*_folder_init)  __P ((folder_t));
-};
-
+/* Record.  */
 struct _record;
 typedef struct _record* record_t;
+
+/* Public Interface, to allow static initialization.  */
+struct _record
+{
+  /* Should not be access directly but rather by the stub functions.  */
+  const char *scheme;
+  int (*_url)     __P ((url_t));
+  int (*_mailbox) __P ((mailbox_t));
+  int (*_mailer)  __P ((mailer_t));
+  int (*_folder)  __P ((folder_t));
+  void *data; /* back pointer.  */
+
+  /* Stub functions to override. The defaut is to return the fields.  */
+  int (*_is_scheme)   __P ((record_t, const char *));
+  int (*_get_url)     __P ((record_t, int (*(*_url)) __P ((url_t))));
+  int (*_get_mailbox) __P ((record_t, int (*(*_mailbox)) __P ((mailbox_t))));
+  int (*_get_mailer)  __P ((record_t, int (*(*_mailer)) __P ((mailer_t))));
+  int (*_get_folder)  __P ((record_t, int (*(*_folder)) __P ((folder_t))));
+};
 
 /* Registration.  */
 extern int registrar_get_list     __P ((list_t *));
 extern int registrar_record       __P ((record_t));
 extern int unregistrar_record     __P ((record_t));
 
-/* Record.  */
-extern int record_create          __P ((record_t *, void *owner));
-extern void record_destroy        __P ((record_t *));
-
+/* Scheme.  */
 extern int record_is_scheme       __P ((record_t, const char *));
 extern int record_set_scheme      __P ((record_t, const char *));
 extern int record_set_is_scheme   __P ((record_t, int (*_is_scheme)
-					__P ((const char *))));
-extern int record_get_mailbox     __P ((record_t, mailbox_entry_t *));
-extern int record_set_mailbox     __P ((record_t, mailbox_entry_t));
-extern int record_set_get_mailbox __P ((record_t, int (*_get_mailbox)
-					__P ((mailbox_entry_t *))));
-extern int record_get_mailer      __P ((record_t, mailer_entry_t *));
-extern int record_set_mailer      __P ((record_t, mailer_entry_t));
-extern int record_set_get_mailer  __P ((record_t, int (*_get_mailer)
-				       __P ((mailer_entry_t *))));
-extern int record_get_folder      __P ((record_t, folder_entry_t *));
-extern int record_set_folder      __P ((record_t, folder_entry_t));
-extern int record_set_get_folder  __P ((record_t, int (*_get_folder)
-					__P ((folder_entry_t *))));
+					__P ((record_t, const char *))));
 
-#define MU_POP_PORT 110
-#define MU_POP_SCHEME "pop://"
-#define MU_POP_SCHEME_LEN 6
-extern int url_pop_init  __P ((url_t));
-extern mailbox_entry_t pop_entry;
+/* Url.  */
+extern int record_get_url         __P ((record_t, int (*(*)) __P ((url_t))));
+extern int record_set_url         __P ((record_t, int (*) __P ((url_t))));
+extern int record_set_get_url     __P ((record_t, int (*_get_url)
+					__P ((record_t,
+					      int (*(*)) __P ((url_t))))));
+/*  Mailbox. */
+extern int record_get_mailbox     __P ((record_t, int (*(*))
+					__P ((mailbox_t))));
+extern int record_set_mailbox     __P ((record_t, int (*) __P ((mailbox_t))));
+extern int record_set_get_mailbox __P ((record_t, int (*_get_mailbox)
+					__P ((record_t,
+					      int (*(*)) __P((mailbox_t))))));
+/* Mailer.  */
+extern int record_get_mailer      __P ((record_t,
+					int (*(*)) __P ((mailer_t))));
+extern int record_set_mailer      __P ((record_t, int (*) __P ((mailer_t))));
+extern int record_set_get_mailer  __P ((record_t, int (*_get_mailer)
+				       __P ((record_t,
+					     int (*(*)) __P ((mailer_t))))));
+/* Folder.  */
+extern int record_get_folder      __P ((record_t,
+					int (*(*)) __P ((folder_t))));
+extern int record_set_folder      __P ((record_t, int (*) __P ((folder_t))));
+extern int record_set_get_folder  __P ((record_t, int (*_get_folder)
+					__P ((record_t,
+					      int (*(*)) __P ((folder_t))))));
+
+/* Records provided by the library.  */
+
+/* Remote Folder "imap://"  */
+extern record_t imap_record;
+/* Remote Mailbox POP3, pop://  */
 extern record_t pop_record;
 
-#define MU_IMAP_PORT 143
-#define MU_IMAP_SCHEME "imap://"
-#define MU_IMAP_SCHEME_LEN 7
-extern int url_imap_init  __P ((url_t));
-extern folder_entry_t imap_entry;
-extern record_t imap_record;
-
-#define MU_MBOX_SCHEME "mbox:"
-#define MU_MBOX_SCHEME_LEN 5
-extern int url_mbox_init __P ((url_t));
-extern mailbox_entry_t mbox_entry;
+/* Local Mailbox Unix Mailbox, "mbox:"  */
 extern record_t mbox_record;
-
-#define MU_FILE_SCHEME "file:"
-#define MU_FILE_SCHEME_LEN 5
-extern int url_file_init __P ((url_t));
-extern mailbox_entry_t file_entry;
+/* Local Folder/Mailbox, "file:"  */
 extern record_t file_record;
-
-#define MU_PATH_SCHEME "/"
-#define MU_PATH_SCHEME_LEN 1
-extern int url_path_init __P ((url_t));
-extern mailbox_entry_t path_entry;
+/* Local Folder/Mailbox, /  */
 extern record_t path_record;
 
-#define MU_SMTP_SCHEME "smtp://"
-#define MU_SMTP_SCHEME_LEN 7
-#define MU_SMTP_PORT 25
-extern int url_smtp_init __P ((url_t));
-extern mailer_entry_t smtp_entry;
+/* SMTP mailer, "smtp://"  */
 extern record_t smtp_record;
-
-#define MU_SENDMAIL_SCHEME "sendmail:"
-#define MU_SENDMAIL_SCHEME_LEN 9
-extern int url_sendmail_init __P ((url_t));
-extern mailer_entry_t sendmail_entry;
+/* Sendmail, "sendmail:"  */
 extern record_t sendmail_record;
 
 #ifdef _cplusplus

@@ -101,7 +101,7 @@ main(int argc, char **argv)
 	  address_t address = NULL;
 	  address_create (&address, buf);
 	  len = 0;
-	  address_get_personal (address, personal, sizeof (personal), &len);
+	  address_get_personal (address, 1, personal, sizeof (personal), &len);
 	  printf ("%s\t", (len != 0) ? personal : buf);
 	  address_destroy (&address);
 	}

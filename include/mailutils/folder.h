@@ -44,13 +44,11 @@ extern "C" {
 struct _folder;
 typedef struct _folder *folder_t;
 
-#define MU_FOLDER_ATTRIBUTE_NOINFERIORS 0x001
-#define MU_FOLDER_ATTRIBUTE_NOSELECT    0x002
-#define MU_FOLDER_ATTRIBUTE_MARKED      0x004
-#define MU_FOLDER_ATTRIBUTE_UNMARKED    0x008
+#define MU_FOLDER_ATTRIBUTE_DIRECTORY 0x001
+#define MU_FOLDER_ATTRIBUTE_FILE      0x002
 struct folder_list
 {
-  int attribute;
+  int type;
   int separator;
   char *name;
 };
@@ -62,9 +60,13 @@ extern void folder_destroy       __P ((folder_t *));
 extern int folder_open           __P ((folder_t, int flag));
 extern int folder_close          __P ((folder_t));
 
-extern int folder_delete_mailbox __P ((folder_t, const char *));
-
+extern int folder_delete         __P ((folder_t, const char *));
+extern int folder_rename         __P ((folder_t, const char *, const char *));
+extern int folder_subscribe      __P ((folder_t, const char *));
+extern int folder_unsubscribe    __P ((folder_t, const char *));
 extern int folder_list           __P ((folder_t, const char *pattern,
+				       struct folder_list ***flist, size_t *));
+extern int folder_lsub           __P ((folder_t, const char *pattern,
 				       struct folder_list ***flist, size_t *));
 extern int folder_list_destroy   __P ((struct folder_list ***, size_t));
 
@@ -74,7 +76,6 @@ extern int folder_set_stream     __P ((folder_t, stream_t));
 
   /* Notifications.  */
 extern int folder_get_observable  __P ((folder_t, observable_t *));
-extern int folder_set_observable  __P ((folder_t, observable_t));
 extern int folder_get_debug       __P ((folder_t, debug_t *));
 extern int folder_set_debug       __P ((folder_t, debug_t));
 
