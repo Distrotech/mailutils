@@ -24,6 +24,7 @@ AM_CFLAGS = -DSITE_MAIL_RC=\"@SITE_MAIL_RC@\"
 bin_PROGRAMS = mail
 
 mail_LDADD = \
+ ../lib/libmailutils.la\
  ../mailbox/mbox/libmu_mbox.la\
  ../mailbox/imap/libmu_imap.la\
  ../mailbox/pop/libmu_pop.la\
@@ -31,7 +32,6 @@ mail_LDADD = \
  ../mailbox/mh/libmu_mh.la\
  ../mailbox/maildir/libmu_maildir.la\
  ../mailbox/libmailbox.la\
- ../lib/libmailutils.la\
  @AUTHLIBS@ @READLINE_LIBS@ @MU_COMMON_LIBRARIES@
 
 EXTRA_DIST = msgset.c
