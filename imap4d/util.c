@@ -671,87 +671,27 @@ add2set (size_t **set, int *n, unsigned long val)
   return 0;
 }
 
-static const char *months[] =
-{
-  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
-};
-
-#define c2d(c) (c-'0')
+extern int imap_parse_date_time __P((const char **p, struct tm *tm, int *tz));
+extern time_t mu_mktime __P((struct tm *timeptr, int tz));
 
 int
 util_parse_internal_date0 (char *date, time_t *timep, char **endp)
 {
   struct tm tm;
-  int n, i;
-  int year, day, hour, min, sec;
-  char mon[4];
-  char tzs[6];
+  int tz;
   time_t time;
-  int off;
+  char **datep = &date;
 
-  memset (&tm, 0, sizeof (tm));
-  n = sscanf (date, "%2d-%3s-%4d %2d:%2d:%2d %5s%n\n",
-	      &day, mon, &year,
-	      &hour, &min, &sec, tzs, &off);
-
-  switch (n)
-    {
-    case 3:
-    case 6:
-      if (endp)
-	return 1;
-      /*FALLTHRU*/
-    case 7:
-      break;
-    default:
-      return 1;
-    }
-
-  tm.tm_mday = day;
-  for (i = 0; i < 11; i++)
-    if (strncmp (months[i], mon, 3) == 0)
-      break;
-  if (i == 12)
+  if (imap_parse_date_time((const char **)datep, &tm, &tz))
     return 1;
-  tm.tm_mon = i;
-  tm.tm_year = (year < 1900) ? year : year - 1900;
 
-  if (n >= 6)
-    {
-      tm.tm_hour = hour;
-      tm.tm_min = min;
-      tm.tm_sec = sec;
-    }
-
-  tm.tm_isdst = -1; /* unknown. */
-
-  time = mktime (&tm);
+  time = mu_mktime (&tm, tz);
   if (time == (time_t) -1)
     return 2;
 
-  if (n == 7)
-    {
-      int tz;
-
-      if (strlen (tzs) != 5)
-	return 3;
-
-      for (i = 1; i <= 4; i++)
-	if (!isdigit (tzs[i]))
-	  return 3;
-
-      tz = (c2d (tzs[1])*10 + c2d (tzs[2]))*60 +
-	    c2d (tzs[3])*10 + c2d (tzs[4]);
-      if (tzs[0] == '-')
-	tz = -tz;
-      else if (tzs[0] != '+')
-	return 4;
-      time -= tz*60;
-    }
   *timep = time;
   if (endp)
-    *endp = date + off;
+    *endp = *datep;
   return 0;
 }
 
@@ -769,11 +709,17 @@ util_parse_822_date (char *date, time_t *timep)
   
   if (parse822_date_time(&date, date+strlen(date), &tm) == 0)
     {
-      *timep = mktime (&tm);
+      *timep = mu_mktime (&tm, 0);
       return 0;
     }
   return 1;
 }
+
+static const char *months[] =
+{
+  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+};
 
 int
 util_parse_ctime_date (char *date, time_t *timep)
@@ -789,7 +735,6 @@ util_parse_ctime_date (char *date, time_t *timep)
   wday[0] = '\0';
   day = mon = year = hour = min = sec = offt = 0;
 
-  /* RFC822 Date: format.  */
   if (sscanf (date, "%3s %3s %2d %2d:%2d:%2d %d\n", wday, month, &day,
 	      &hour, &min, &sec, &year) != 7)
     return 1;
@@ -810,8 +755,8 @@ util_parse_ctime_date (char *date, time_t *timep)
   tm.tm_yday = 0; /* unknown. */
   tm.tm_wday = 0; /* unknown. */
   tm.tm_isdst = -1; /* unknown. */
-  /* What to do the timezone?  */
-  *timep = mktime (&tm);
+  /* MOTE: UTC */
+  *timep = mu_mktime (&tm, 0);
   return 0;
 }
 
