@@ -17,7 +17,7 @@
 # Foundation, Inc.
 # 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-AC_INIT([GNU Mailutils], [0.3], [bug-mailutils@gnu.org], [mailutils])
+AC_INIT([GNU Mailutils], [0.3.1], [bug-mailutils@gnu.org], [mailutils])
 AC_CONFIG_SRCDIR([mailbox/mailbox.c])
 AC_CONFIG_AUX_DIR([scripts])
 AC_CANONICAL_TARGET([])
@@ -633,6 +633,18 @@ if test "$EMACS" != "no"; then
 	lisp_LISP='$(LISPSRC)'
 fi
 AC_SUBST(lisp_LISP)
+
+dnl Define ATTRIBUTE_UNUSED macro
+dnl
+AH_BOTTOM([
+#if __GNUC__ < 2 || (__GNUC__ == 2 && __GNUC_MINOR__ < 7)
+#  define __attribute__(x)
+#endif
+
+#ifndef ATTRIBUTE_UNUSED
+# define ATTRIBUTE_UNUSED __attribute__ ((__unused__))
+#endif
+])
 
 dnl Make sysconfdir available to the application
 dnl This must be done LAST, since CPPFLAGS is passed by configure
