@@ -32,8 +32,6 @@ static char *prev_name;
 char *
 mail_expand_name (const char *name)
 {
-  struct mail_env_entry *env;
-
   switch (name[0])
     {
     case '#':
@@ -52,32 +50,7 @@ mail_expand_name (const char *name)
       break;
 	  
     case '+':
-      env = util_find_env ("folder");
-      if (!env->set)
-	{
-	  util_error ("No value set for \"folder\"");
-	  return NULL;
-	}
-      else
-	{
-	  char *tmp;
-	  
-	  if (env->value[0] != '/' && env->value[1] != '~')
-	    {
-	      char *home = mu_get_homedir ();
-	      tmp  = xmalloc (strlen (home) + 1 +
-			      strlen (env->value) + 1 +
-			      strlen (name + 1) + 1);
-	      sprintf (tmp, "%s/%s/%s", home, env->value, name + 1);
-	    }
-	  else
-	    {
-	      tmp  = xmalloc (strlen (env->value) + 1 +
-			      strlen (name + 1) + 1);
-	      sprintf (tmp, "%s/%s", env->value, name + 1);
-	    }
-	  name = tmp;
-	}
+      name = util_folder_path (name);
       break;
 
     default:
@@ -139,7 +112,7 @@ mail_file (int argc, char **argv)
       mbox = newbox;
       mailbox_messages_count (mbox, &total);
       cursor = realcursor = 1;
-      if ((util_find_env("header"))->set)
+      if (util_getenv (NULL, "header", Mail_env_boolean, 0) == 0)
 	{
 	  util_do_command ("summary");
 	  util_do_command ("z.");
