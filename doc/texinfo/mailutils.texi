@@ -118,10 +118,10 @@ Mailutils.
 @end ifinfo
 @menu
 * Introduction::                GNU Mailutils
-@comment * Concrete API::                Concrete API.
-* Framework::                   Framework.
-* Authentication Library::      Auxiliary library for authenticating users.
-* Sieve Library::               GNU implementation of Sieve mail filtering.
+* libmailbox::                  Main library               
+* libmuauth::                   Auxiliary library for authenticating users.
+* libmu_scm::                   Interface with Guile
+* libsieve::                    GNU implementation of Sieve mail filtering.
 * Programs::                    Programs.
 * Reporting Bugs::              How to report a bug.
 * News::                        Where to get information about @sc{gnu} Mailutils
@@ -134,7 +134,7 @@ Indices
 
 @end menu
 
-@node Introduction, Framework, Top, Top
+@node Introduction, libmailbox, Top, Top
 @comment  node-name,  next,  previous,  up
 @chapter Introduction
 @cindex Introduction
@@ -257,34 +257,34 @@ Notifications}
 
 @end itemize
 
-@comment @node Concrete API, Framework, Introduction, Top
-@comment @comment  node-name,  next,  previous,  up
-@comment @chapter Concrete API
-@comment @cindex Concrete API
-
-@comment @include c-api.texi
-
-@node Framework, Authentication Library, Introduction, Top
+@node libmailbox, libmuauth, Introduction, Top
 @comment  node-name,  next,  previous,  up
 @chapter Framework
 @cindex Framework
 
 @include framework.texi
 
-@node Authentication Library, Sieve Library, Framework, Top
+@node libmuauth, libmu_scm, libmailbox, Top
 @chapter Authentication Library
 @cindex Authentication Library
 @cindex libmuauth
 
 @include libmuauth.texi
 
-@node Sieve Library, Programs, Authentication Library, Top
+@node libmu_scm, libsieve, libmuauth, Top
+@chapter Mailutils to Scheme interface
+@cindex Scheme
+@cindex libmu_scm
+
+@include libmu_scm.texi
+
+@node libsieve, Programs, libmu_scm, Top
 @chapter Sieve Library
 @cindex Sieve Library
 @cindex libsieve
 @include libsieve.texi
 
-@node Programs, Reporting Bugs, Sieve Library, Top
+@node Programs, Reporting Bugs, libsieve, Top
 @comment  node-name,  next,  previous,  up
 @chapter Programs
 @cindex Programs

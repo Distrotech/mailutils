@@ -15,6 +15,44 @@ This chapter describes @sc{gnu} Sieve library.
 @node Library Description
 @section Library Description
 
+@code{Libsieve} is @sc{gnu} implementation of the mail filtering
+language Sieve.
+
+The library is built around a @dfn{Sieve Machine} --- an abstract
+computer constructed specially to handle mail filtering tasks. This
+computer has two registers: program counter and numeric accumulator;
+a runtime stack of unlimited depth and the code segment. A set of
+functions is provided for creating and destroying instances of Sieve
+Machine, manipulating its internal data, compiling and executing a
+sieve program.
+
+The following is a typical scenario of using @code{libsieve}:
+
+@enumerate
+@item Application program creates the instance of sieve machine.
+
+@item Then @code{sieve_compile} function is called to translate
+the Sieve source into an equivalent program executable by the
+Machine
+
+@item A mailbox is opened and associated with the Machine
+
+@item The Machine executes the program over the mailbox
+
+@item When the execution of the program is finished, all messages upon which
+an action was executed other than @code{keep} are marked with the delete
+flag. Thus, running @code{mailbox_expunge} upon the mailbox finishes
+the job, leaving in the mailbox only those messages that were preserved
+by the filter.
+
+@item Finally, the instance of Sieve Machine is destroyed and the
+resources allocated for it are reclaimed.
+
+@end enumerate
+
+The following sections describe in detail the functions from the
+Sieve Library.
+
 @menu
 * Sieve Data Types::
 * Manipulating the Sieve Machine::
@@ -188,7 +226,7 @@ Other arguments.
 @end table
 
 @deftp {Function Type} sieve_parse_error_t
-This data type is decalred as follows:
+This data type is declared as follows:
 @example
 typedef int (*sieve_parse_error_t) (void *@var{data},
                                     const char *@var{filename}, int @var{lineno},
@@ -233,7 +271,7 @@ The name of the action.
 
 @item fmt
 @itemx var
-These two arguments give the detaied description of the action.
+These two arguments give the detailed description of the action.
 @end table
 
 @deftp {Function Type} sieve_comparator_t
@@ -322,14 +360,15 @@ order.
 @deftypefn int sieve_machine_add_destructor (sieve_machine_t @var{mach}, sieve_destructor_t @var{destr}, void *@var{ptr});
 
 This function registers a destructor function @var{dest}. The purpose
-of the destructor is to free any resourses assotiated with the item
-@var{ptr}. The desctructor function takes a single argument --- a
+of the destructor is to free any resources associated with the item
+@var{ptr}. The destructor function takes a single argument --- a
 pointer to the data being destroyed. All registered destructors are
 called in reverse order upon execution of
 @code{sieve_machine_destroy()}. Here's a short example of the use
 of this function:
 
 @example
+@group
 static void
 free_regex (void *data)
 @{
@@ -349,6 +388,7 @@ match_part_checker (const char *name, list_t tags, list_t args)
   .
   .
 @}
+@end group
 @end example
 @end deftypefn
 
@@ -407,8 +447,10 @@ not set, the default parse error printer will be used. It is defined as
 follows:
 
 @example
+@group
 int
-_sieve_default_parse_error (void *unused, const char *filename, int lineno,
+_sieve_default_parse_error (void *unused,
+                            const char *filename, int lineno,
 			    const char *fmt, va_list ap)
 @{
   if (filename)
@@ -417,6 +459,7 @@ _sieve_default_parse_error (void *unused, const char *filename, int lineno,
   fprintf (stderr, "\n");
   return 0;
 @}
+@end group
 @end example
 @end deftypefn
 
@@ -567,7 +610,7 @@ If @var{ptr} is @code{NULL}, no operation is performed.
 @subsection Compiling and Executing the Script
 
 @deftypefn int sieve_compile (sieve_machine_t @var{mach}, const char *@var{name})
-Compile the seive script from the file @var{name}.
+Compile the sieve script from the file @var{name}.
 @end deftypefn
 
 @deftypefn int sieve_mailbox (sieve_machine_t @var{mach}, mailbox_t @var{mbox})
@@ -591,6 +634,7 @@ The input language understood by the @sc{gnu} Sieve Library is a superset of
 the Sieve language as described in RFC 3028.
 
 @menu
+* Lexical Structure::
 * Syntax::
 * Preprocessor::
 * Require Statement::
@@ -599,9 +643,307 @@ the Sieve language as described in RFC 3028.
 * Actions::
 @end menu
 
+@node Lexical Structure
+@subsection Lexical Structure
+
+@subheading Whitespace and Comments
+
+Comments are semantically equivalent to whitespace and can be used
+anyplace that whitespace is (with one exception in multi-line strings,
+as described below).
+
+There are two kinds of comments: hash comments, that begin with a
+@samp{#} character that is not contained within a string and continue
+until the next newline, and C-style or bracketed comments, that are
+delimited by @samp{/*} and @samp{*/} tokens. The bracketed comments
+may span multiple lines. E.g.:
+
+@example
+if size :over 100K
+  @{ # this is a comment
+    discard;
+  @}
+  
+if size :over 100K
+  @{ /* this is a comment
+       this is still a comment */ discard /* this is a comment again
+     */ ;
+  @}
+@end example
+
+Like in C, bracketed comments do not nest.
+
+@subheading Lexical Tokens
+
+The basic lexical entities are @dfn{identifiers} and @dfn{literals}.
+
+An @dfn{identifier} is a sequence of letters, digits and underscores, started
+with a letter or underscore. For example, @code{header} and
+@code{check_822_again} are valid identifiers, whereas @code{1st} is not.
+A special form of identifier is @dfn{tag}: it is an identifier prefixed
+with a colon (@samp{:}), e.g.: @code{:comparator}. 
+
+A @dfn{literal} is a data that is not executed, merely evaluated ``as
+is'', to be used as arguments to commands. There are four kinds of
+literals:
+
+@itemize
+@item Number
+
+@dfn{Numbers} are given as ordinary unsigned decimal numbers. An
+optional suffix may be used to indicate a multiple of a power of two.
+The suffixes are: @samp{K} specifying ``kibi-'', or 1,024 (2^10) times
+the value of the number; @samp{M} specifying ``mebi-'', or 1,048,576
+(2^20) times the value of the number; and @samp{G} specifying ``tebi-'',
+or 1,073,741,824 (2^30) times the value of the number.
+
+The numbers have 32 bits of magnitude.
+
+@item String
+
+A @dfn{string} is any sequence of characters enclosed in double quotes
+(@samp{"}). A string cannot contain newlines and double quote
+characters. This limitation will disappear in future releases.
+
+@item Multiline Strings
+
+A @dfn{multiline string} is used to represent large blocks of text
+with embedded newlines and special characters. It starts with the
+keyword @code{text:} followed by a newline and ends with a dot
+(@samp{.}) on a newline by itself. Any characters between these two
+markers are taken verbatim. For example:
+
+@example
+text:
+**This is an authomatic response from my message filtering program.**
+
+I can not attend your message right now. However it
+will be saved, and I will read it as soon as I am back.
+
+Regards,
+Fred
+.
+@end example
+
+Notice that a hashed comment or whitespace may occur between
+@code{text:} and the newline. However, when used inside the multiline
+string a hash sign looses its special meaning (except in one case, see
+below) and is taken as is, as well as bracketed comment delimiters.
+In other words, no comments are allowed within a multiline string. E.g.:
+    
+@example
+text: # This is a comment
+
+Sample text
+# This line is taken verbatim
+/* And this line too */
+.
+@end example
+
+The only exception to this rule is that preprocessor @code{include}
+statement is expanded as usual when found within a multiline string
+(@pxref{#include}), e.g.:
+
+@example
+text:
+#include <myresponse.txt>
+.
+@end example
+
+This results in the contents of file @file{myresponse.txt} being read
+and interpreted as the contents of the multiline string.
+
+@item String Lists
+
+A @dfn{string list} is a comma-delimited list of quoted strings, enclosed
+in a pair of square brackets, e.g.:
+
+@example
+["me@@example.com", "me00@@landru.example.edu"]
+@end example
+
+For convenience, in any context where a list of strings is appropriate,
+a single string is allowed without being a member of a list: it is
+equivalent to a list with a single member.  For example, the following
+two statements are equivalent:
+
+@example
+exists "To";
+exists ["To"];
+@end example
+
+@end itemize
+
 @node Syntax
 @subsection Syntax
 
+Being designed for the sole purpose of filtering mail, Sieve has a very
+simple syntax. 
+
+@menu
+* Commands::
+* Actions Described::
+* Control Flow::
+* Tests and Conditions::
+@end menu
+
+@node Commands
+@subsubsection Commands
+
+The basic syntax element is a @dfn{command}. It is defined as follows:
+
+@example
+@var{command-name} [@var{tags}] @var{args}
+@end example
+@noindent
+where @var{command-name} is an identifier representing the name of the
+command, @var{tags} is an optional list of @dfn{optional} or
+@dfn{tagged arguments} and @var{args} is a list of @dfn{required} or
+@dfn{positional arguments}.
+
+Positional arguments are literals delimited with whitespace. They
+provide the command with the information necessary to its proper
+functioning. Each command has a fixed number of positional arguments. It
+is an error to supply more arguments to the command or to give it fewer
+arguments than it accepts.
+
+Optional arguments allow to modify the behaviour of the command, like
+command line options in UNIX do. They are a list of @dfn{tags}
+(@pxref{Lexical Structure}) separated by whitespace. An optional
+argument may have at most one parameter.
+
+Each command understands a set of optional arguments. Supplying it tags
+that it does not understand results in an error.
+
+For example, consider the following command
+
+@example
+header :mime :comparator "i;octet" ["to", "from"] "bug-mailutils@@gnu.org"
+@end example
+@noindent
+Here, given that @code{header} takes two positional arguments:
+@code{header} is command name, the list @code{["to", "from"]} is first
+positional argument and the string @code{"bug-mailutils@@gnu.org"} is second
+positional argument. There are two optional arguments: @code{:mime} and
+@code{:comparator}. The latter has a string @code{"i;octet"} as its
+parameter.
+
+@node Actions Described
+@subsubsection Actions Described
+
+An @dfn{action} is a Sieve command that performs some operation over
+the message. Actions do the main job in any Sieve
+program. Syntactically, an action is a command terminated with
+semicolon, e.g.:
+
+@example
+keep;
+
+fileinto "mbox";
+@end example
+
+@sc{gnu} Sieve provides the full set of actions described in RFC 3028.
+It also allows to extend this set using loadable
+actions. @xref{Actions}, for detailed discussion of actions.
+
+@node Control Flow
+@subsubsection Control Flow
+
+The only control flow statement Sieve has is ``if'' statement. In its
+simplest form it is:
+
+@example
+if @code{condition} @{ @dots{} @}
+@end example
+
+The effect of this statement is that the sequence of actions between the
+curly braces is executed only if the @code{condition} evaluates to
+@code{true}.
+
+The more elaborate form of this statement allows to execute two
+different sets of actions depending on whether the condition is
+true or not:
+
+@example
+if @code{condition} @{ @dots{} @} else @{ @dots{} @}
+@end example
+
+The most advanced form of the ``if'' statement allows to select an
+action depending on what condition from the set of conditions is met.
+
+@example
+if @code{cond1} @{ @dots{} @} elsif @code{cond2} @{ @dots{} @} else @{ @dots{} @}
+@end example
+
+There may be any number of ``elsif'' branches in an ``if''
+statement. However it may have at most one ``else'' branch.
+Notes for C programmers:
+
+@enumerate
+@item The braces surrounding each branch of an ``if'' statement are
+required.
+@item The ``else if'' construct is disallowed. Use ``elsif'' keyword
+instead.
+@end enumerate
+
+Here's an example of ``if'' statement:
+
+@example
+if header :contains "from" "coyote"
+  @{
+    discard;
+  @}
+elsif header :contains ["subject"] ["$$$"]
+  @{
+    discard;
+  @}
+else
+  @{
+    fileinto "INBOX";
+  @}
+@end example
+
+The following section describes in detail conditions used in ``if''
+statements.
+
+@node Tests and Conditions
+@subsubsection Tests and Conditions
+
+@dfn{Tests} are Sieve commands that return boolean value. E.g. the
+test
+
+@example
+header :contains "from" "coyote"
+@end example
+@noindent
+returns true only if the header ``From'' of the current message contains
+substring ``coyote''.
+
+The tests shipped with the @sc{gnu} Sieve are described in @ref{Tests}.
+
+@dfn{Condition} is a Sieve expression that evaluates to @code{true} or
+@code{false}. In its simplest form, condition is just a Sieve test.
+
+To reverse the sense of a condition use keyword @code{not}, e.g.: 
+
+@example
+not header :contains "from" "coyote"
+@end example
+
+The results of several conditions may be joined together by logical
+@code{and} and @code{or} operations. The special form @code{allof}
+takes several tests as its arguments and computes the logical @code{and}
+of their results. Similarly, the form @code{anyof} performs logical
+@code{or} over the results of its arguments. E.g.:
+
+@example
+if anyof (not exists ["From", "Date"],
+          header :contains "from" "fool@@example.edu")
+  @{
+    discard;
+  @}
+@end example
+                   
 @node Preprocessor
 @subsection Preprocessor
 @cindex Sieve preprocessor statements, a @sc{gnu} extension
@@ -609,7 +951,7 @@ the Sieve language as described in RFC 3028.
 The preprocessor statements are a @sc{gnu} extension to the Sieve language.
 The syntax for a preprocessor statement is similar to that used in
 @code{C} programming language, i.e.: a pound character (@samp{#})
-followed by a preprocessor directive and any arguments. Any amount of
+followed by a preprocessor directive and its arguments. Any amount of
 whitespace can be inserted between the @samp{#} and the directive.
 Currently implemented directives are @code{include} and @code{searchpath}.
 
@@ -677,6 +1019,7 @@ sieve allows the @code{require} and any other statements to be
 interspersed.
 
 By default the following actions and comparators are always required:
+
 @itemize
 @item stop
 @item keep
@@ -826,7 +1169,6 @@ A @var{comparator} syntax item is defined as follows:
 :comparator "@var{comparator-name}"
 @end example
 @noindent
-@sp 1
 It instructs sieve to use the given comparator with the test.
 If @var{comparator-name} is not one of @samp{i;octet},
 @samp{i;ascii-casemap} it must be required prior to using it.
@@ -866,7 +1208,6 @@ an appropriate error message. For example, the statement:
 @example
 if header :matches :comparator "i;ascii-numeric"
 @end example
-@sp 1
 @noindent
 would result in the following error message:
 
@@ -876,15 +1217,18 @@ in call to `header'
 @end example
 
 @deffn Test false
+
 This test always evaluates to ``false''.
 @end deffn
 
 @deffn Test true
+
 This test always evaluates to ``true''.
 @end deffn
 
 @deffn Test address [@var{address-part}][@var{comparator}][@var{match-type}] @var{header-names} @var{key-list}
 
+@noindent
 Tagged arguments:
 
 @table @var
@@ -898,7 +1242,6 @@ Specifies the comparator to be used instead of the default @code{i;ascii-casemap
 @item match-type
 Specifies the match type to be used instead of the default @code{:is}.
 @end table
-@sp 1
 @noindent
 Required arguments:
 
@@ -909,7 +1252,6 @@ A list of header names.
 @item key-list
 A list of address values.
 @end table
-@sp 1
 @noindent
 
 The @code{address} test matches Internet addresses in structured headers
@@ -936,8 +1278,8 @@ if address :is :all "from" "tim@@example.com"
 @end deffn
 
 @deffn Test size [:over|:under] @var{number}
-@sp 1
 @noindent
+
 The @code{size} test deals with the size of a message. The required
 argument @var{number} represents the size of the message in bytes. It
 may be suffixed with the following quantifiers:
@@ -968,8 +1310,8 @@ initial header until the last character in the message body.
 @end deffn
 
 @deffn Test envelope [@var{address-part}][@var{comparator}][@var{match-type}] @var{envelope-part} @var{key-list}
-@sp 1
 @noindent
+
 Tagged arguments:
 
 @table @var
@@ -983,7 +1325,6 @@ Specifies the comparator to be used instead of the default @code{i;ascii-casemap
 @item match-type
 Specifies the match type to be used instead of the default @code{:is}.
 @end table
-@sp 1
 @noindent
 Required arguments:
 
@@ -994,7 +1335,6 @@ A list of envelope parts to operate upon.
 @item key-list
 A list of address values.
 @end table
-@sp 1
 @noindent
 
 The @code{envelope} test is true if the specified part of the @sc{smtp}
@@ -1010,8 +1350,8 @@ meaningless.
 @end deffn
 
 @deffn Test exists @var{header-names}
-@sp 1
 @noindent
+
 Required arguments:
 
 @table @var
@@ -1091,7 +1431,7 @@ header :contains ["X-Caffeine"] [""] @result{} true
 @end deffn
 
 @deffn Test numaddr [:over|:under] @var{header-names} @var{number}
-
+@noindent
 This test is provided as an example of loadable extension tests. You
 must use @samp{require "test-numaddr"} statement before actually using
 it.
@@ -1156,7 +1496,7 @@ if header :contains ["from"] ["idiot@@example.edu"]
 
 @deffn Action fileinto @var{folder}
 @noindent
-@sp 1
+
 Required arguments:
 
 @table @var
@@ -1256,6 +1596,8 @@ if header :mime :matches "Content-Type"
 @end deffn
 
 @deffn Action redirect @var{address}
+@noindent
+
 The @code{redirect} action is used to send the message to another user at
 a supplied @var{address}, as a mail forwarding feature does.  This action
 makes no changes to the message body or existing headers, but it may add

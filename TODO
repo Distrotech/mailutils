@@ -115,14 +115,34 @@ IMPORTANT:
 
 + support AUTH=anonymous (imap://cyrus.andrew.cmu.edu/archive.info-cyrus)
 
+[libmuauth]
+
+- First argument to mu_auth_fp (and second one to mu_auth_runlist) should
+  be struct mu_auth_data ** instead of void *.
+
 [examples]
 
 - unify the mbox-* and mimetest examples with messages, it would be nice
   to have a general purpose tool
 
+[mh]
+
+- see mh/TODO
+
 [sieve]
 
-+ need to deal with the envelope addressing issues
+- Implement boolean shortcut evaluation for `allof' and `anyof'
+
+- Extend the `text:' token. The planned syntax is:
+
+     text:[-][delimiter]
+
+     The meaning of optional flags is the same as in shell "here document"
+     construct: '-' strips all leading tab characters from the string body,
+     thus allowing it to be indented in a natural fashion; 'delimiter'
+     introduces the new end-of-text delimiter instead of the default
+     dot. If 'delimiter' starts with a backslash, no preprocessing will
+     be performed within a string.
 
 - uid isn't good to identify messages, use message-id?
 

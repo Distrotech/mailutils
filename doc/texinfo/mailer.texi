@@ -24,7 +24,7 @@ The API is still changing.
 
 @deftypefun int mailer_send_message (mailer_t @var{mailer}, message_t @var{msg}, address_t @var{from}, address_t @var{to});
 
-If from is not @var{NULL}, it must containg a single fully qualified
+If from is not @var{NULL}, it must contain a single fully qualified
 RFC2822 email address which will be used as the envelope from
 address. This is the address to which delivery status notifications
 are sent, so it never matters what it is set to until it REALLY matters.
@@ -101,7 +101,7 @@ Some possible use cases the API must support are:
 
  2 - mailer_deliver(mailer, msg, address_t( "<>" ), to)
 
-   Don't want mail loops, so the nul but valid SMTP address of <> is
+   Don't want mail loops, so the null but valid SMTP address of <> is
    the envelope from.
 
 @subheading The sendmail mailer.

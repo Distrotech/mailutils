@@ -310,7 +310,7 @@ of seconds.
 @cindex :auth
 
 These options control the authorization and authentication module
-lists. For a description of auhtentication concepts, refer to
+lists. For a description of authentication concepts, refer to
 @xref{authentication}.
 
 @table @option
@@ -351,7 +351,7 @@ The hashed value of the user password is retrieved from the @acronym{sql}
 database using query supplied by @option{--sql-getpass} option
 (see below).
 @item pam
-The user is authenicated via pluggable authentication module
+The user is authenticated via pluggable authentication module
 (@acronym{pam}). The @acronym{pam} service name to be used is
 configured via @option{--pam-service} option (see below)
 @end table
@@ -455,7 +455,7 @@ be run either as a standalone program or from @file{inetd.conf} file.
 
 @sc{gnu} imap4d supports a notion of @dfn{namespaces} defined in RFC 2342. A
 namespace is a set of directories upon which the user has certain
-permissions. It should be understood that these persmissions apply
+permissions. It should be understood that these permissions apply
 only if the underlying filesystem allows them.
 
 The three namespaces supported by @command{imap4d} are:
@@ -1306,7 +1306,7 @@ Prints out the messages from @var{msglist}. The variable @code{crt}
 determines the minimum number of lines the body of the message must
 contain in order to be piped through pager command specified
 by environment variable @code{PAGER}. If @code{crt} is set to a numeric
-value, this value is taken as the mininmum number of lines. Otherwise,
+value, this value is taken as the minimum number of lines. Otherwise,
 if @code{crt} is set without a value then the height of the terminal
  screen is used to compute the threshold.  The number of lines on
 screen is controlled by @code{screen} variable.
@@ -2028,7 +2028,7 @@ Enable network protocol traces (MU_DEBUG_PROT)
 Enable sieve trace (MU_SIEVE_DEBUG_TRACE)
 
 @item l
-Enble sieve action logs
+Enable sieve action logs
 @end table
 
 The digits in the range @samp{0} -- @samp{9} used in @var{flags} set
@@ -2209,7 +2209,7 @@ by default only the first one is presented.
 
 @item -d
 @itemx --debug
-Display mailbox debuging information.
+Display mailbox debugging information.
 
 @item -f @var{MAILBOX}
 @itemx --folder=@var{MAILBOX}
@@ -2513,7 +2513,6 @@ The program uses following option groups: @xref{mailbox}.
 * Specifying Mailboxes to Operate Upon::
 * Passing Options to Scheme::
 * Guimb Invocation Summary::
-* Scheme Procedures and Variables::
 @end menu
 
 @node Specifying Scheme Program to Execute
@@ -2596,7 +2595,7 @@ lines to the beginning of your script to allow for its immediate execution:
 @noindent
 (replace @samp{/usr/local/bin/} with the actual path to the @command{guimb}).
 
-Otherwise, if you use @option{--file} or @option{--expression} oprions,
+Otherwise, if you use @option{--file} or @option{--expression} options,
 the additional arguments may be passed to the Scheme program @option{-g}
 (@option{--guile-arg}) command line option. For example:
 
@@ -2656,213 +2655,6 @@ Display help message.
 Display program version.
 @end table
 
-@node Scheme Procedures and Variables
-@subsection Scheme Procedures and Variables
-
-@menu
-* Address Functions::
-* Mailbox Functions::
-* Message Functions::
-* MIME Functions::
-* Log Functions::
-@end menu
-
-
-@node Address Functions
-@subsubsection Address Functions
-
-@deffn Function mu-address-get-personal ADDRESS NUM
-Return personal part of an email address.
-@end deffn
-
-@deffn Function mu-address-get-comments ADDRESS NUM
-@end deffn
-
-@deffn Function mu-address-get-email ADDRESS NUM
-Return email part of an email address.
-@end deffn
-
-@deffn Function mu-address-get-domain ADDRESS NUM
-Return domain part of an email address
-@end deffn
-
-@deffn Function mu-address-get-local ADDRESS NUM
-Return local part of an email address.
-@end deffn
-
-@deffn Function mu-address-get-count ADDRESS
-Return number of parts in email address.
-@end deffn
-
-@node Mailbox Functions
-@subsubsection Mailbox Functions
-
-@deffn Function mu-mailbox-open URL MODE
-Opens a mailbox specified by URL.
-@end deffn
-
-@deffn Function mu-mailbox-close MBOX
-Closes mailbox MBOX
-@end deffn
-
-@deffn Function mu-mailbox-get-url MBOX
-Returns the URL of the mailbox.
-@end deffn
-
-@deffn Function mu-mailbox-get-port MBOX MODE
-Returns a port associated with the contents of the MBOX.
-MODE is a string defining operation mode of the stream. It may
-contain any of the two characters: @samp{r} for reading, @samp{w} for
-writing.
-@end deffn
-
-@deffn Function mu-mailbox-get-message MBOX MSGNO
-Retrieve from MBOX message # MSGNO.
-@end deffn
-
-@deffn Function mu-mailbox-messages-count MBOX
-Returns number of messages in the mailbox.
-@end deffn
-
-@deffn Function mu-mailbox-expunge MBOX
-Expunges deleted messages from the mailbox.
-@end deffn
-
-@deffn Function mu-mailbox-url MBOX
-Returns the URL of the mailbox
-@end deffn
-
-@deffn Function mu-mailbox-append-message MBOX MESG
-Appends the message to the mailbox
-@end deffn
-
-@node Message Functions
-@subsubsection Message Functions
-
-@deffn Function mu-message-copy MESG
-Creates the copy of the given message.
-@end deffn
-
-@deffn Function mu-message-set-header MESG HEADER VALUE REPLACE
-Sets new VALUE to the header HEADER of the message MESG.
-If the HEADER is already present in the message its value
-is replaced with the supplied one if the optional REPLACE is
-#t. Otherwise new header is created and appended.
-@end deffn
-
-@deffn Function mu-message-get-size MESG
-Returns the size of the given message.
-@end deffn
-
-@deffn Function mu-message-get-lines MESG
-Returns number of lines in the given message.
-@end deffn
-
-@deffn Function mu-message-get-sender MESG
-Returns the sender email address for the message MESG.
-@end deffn
-
-@deffn Function mu-message-get-header MESG HEADER
-Returns the header value of the HEADER in the MESG.
-@end deffn
-
-@deffn Function mu-message-get-header-fields MESG HEADERS
-Returns the list of headers in the MESG. If optional HEADERS is
-specified it should be a list of header names to restrict return
-value to.
-@end deffn
-
-@deffn Function mu-message-set-header-fields MESG LIST REPLACE
-Set the headers in the message MESG from LIST
-LIST is a list of (cons HEADER VALUE)
-Optional parameter REPLACE specifies whether the new header
-values should replace the headers already present in the
-message.
-@end deffn
-
-@deffn Function mu-message-delete MESG FLAG
-Mark given message as deleted. Optional FLAG allows to toggle deleted mark
-The message is deleted if it is #t and undeleted if it is #f
-@end deffn
-
-@deffn Function mu-message-get-flag MESG FLAG
-Return value of the attribute FLAG.
-@end deffn
-
-@deffn Function mu-message-set-flag MESG FLAG VALUE
-Set the given attribute of the message. If optional VALUE is #f, the
-attribute is unset.
-@end deffn
-
-@deffn Function mu-message-get-user-flag MESG FLAG
-Returns value of the user attribute FLAG.
-@end deffn
-
-@deffn Function mu-message-set-user-flag MESG FLAG VALUE
-Set the given user attribute of the message. If optional VALUE is
-#f, the attribute is unset.
-@end deffn
-
-@deffn Function mu-message-get-port MESG MODE FULL
-Returns a port associated with the given MESG. MODE is a string
-defining operation mode of the stream. It may contain any of the
-two characters: @samp{r} for reading, @samp{w} for writing.
-If optional FULL argument specified, it should be a boolean value.
-If it is #t then the returned port will allow access to any
-part of the message (including headers). If it is #f then the port
-accesses only the message body (the default).
-@end deffn
-
-@deffn Function mu-message-get-body MESG
-Returns the message body for the message MESG.
-@end deffn
-
-@deffn Function mu-message-send MESG MAILER
-Sends the message MESG. Optional MAILER overrides default
-mailer settings in mu-mailer.
-@end deffn
-
-@node MIME Functions
-@subsubsection MIME Functions
-
-@deffn Function mu-mime-create FLAGS MESG
-Creates a new MIME object.
-@end deffn
-
-@deffn Function mu-mime-multipart? MIME
-Returns #t if MIME is a multipart object.
-@end deffn
-
-@deffn Function mu-mime-get-num-parts MIME
-Returns number of parts in a MIME object.
-@end deffn
-
-@deffn Function mu-mime-get-part MIME PART
-Returns part number PART from a MIME object.
-@end deffn
-
-@deffn Function mu-mime-add-part MIME MESG
-Adds MESG to the MIME object.
-@end deffn
-
-@deffn Function mu-mime-get-message MIME
-Converts MIME object to a message.
-@end deffn
-
-@node Log Functions
-@subsubsection Log Functions
-
-@deffn Function mu-openlog IDENT OPTION FACILITY
-Opens a connection to the system logger for Guile program.
-@end deffn
-
-@deffn Function mu-logger PRIO TEXT
-Generates a log message to be distributed via syslogd.
-@end deffn
-
-@deffn Function mu-closelog
-Closes the channel to the system logger open by mu-openlog.
-@end deffn
 
 @page
 @node comsatd

@@ -1,3 +1,34 @@
+2002-12-14  Sergey Poznyakoff 
+
+	* mail/previous.c: Skip deleted messages
+	* mail/next: Likewise.
+	
+	* auth/sql.c (mu_auth_sql_by_uid): Fixed typo.
+	
+	* include/mailutils/libsieve.h: Changed type of `number'
+	  to size_t.
+	* libsieve/sieve.y (union): Likewise
+	* include/mailutils/mu_auth.h: Removed duplicate declaration
+	  of mu_auth_data_free.
+	* libsieve/actions.c (build_mime): To improve readability,
+	  output additional newline before reporting the reason.
+	* libsieve/sieve.l: Allow backslashes in quoted strings.
+	* sieve/testsuite/Reject: Updated
+	
+	* doc/texinfo/libmu_scm.texi: New file. Documents libmu_scm
+	  library.
+	* doc/texinfo/Makefile.am: Added libmu_scm.texi
+	* doc/texinfo/libmuauth.texi: Updated
+	* doc/texinfo/libsieve.texi: Updated
+	* doc/texinfo/mailutils.texi: Updated
+	* doc/texinfo/programs.texi: Updated
+	* doc/texinfo/imap4.texi: Updated
+	* doc/texinfo/mailer.texi: Updated
+	
+	* TODO: Updated
+	* mh/TODO: New file
+	* NEWS: Updated
+	
 2002-12-13  Sergey Poznyakoff 
 
 	* mail.local/mail.local.h: Create temporary mailbox instead of

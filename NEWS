@@ -10,6 +10,10 @@ Version 0.2:
   to disable support for any protocol or mailbox format to reduce
   the size of the library.
 
+* Added new utility mailutils-config. This utility prints gcc command
+  line options needed for compiling and linknig an application against
+  mailutils.
+
 * libsieve: New library. Supports Sieve language as described in
   RFC 3028 and provides a mechanism for dynamic loading of
   user-defined actions, tests and comparators.
