@@ -1,8 +1,25 @@
-To convert a sieve script into equivalent Scheme program, executable
-by guimb, run:
+To convert a sieve script into equivalent Scheme program, run:
 
-  guile -s sieve.scm --file <sieve-script-name> --output <output-file-name>
+     sieve.scm --file <sieve-script-name> --output <scm-file-name>
 
-To compile and execute a sieve script upon a mailbox, run:
+The produced script can then be run as:
 
-  guimb -f sieve.scm -{ --file <sieve-script-name> -} --mailbox ~/mbox
+     guile -s <scm-file-name> [MAILBOX]
+
+  If MAILBOX is not given, the script will operate upon the user's system 
+mailbox. 
+
+  To invoke the script directly by its name, add executable bit to its 
+permissions. 
+
+  The same script may be used by mail.local to sieve the incoming mail upon
+its arrival, see node "Programs -> mail.local" in the accompanying 
+documentation for more information on this.
+
+  To execute the sieve script directly, without saving the produced Scheme
+text to a file, run:
+
+     sieve.scm --file <sieve-script-name> [MAILBOX]
+
+The semantics of MAILBOX argument is described above.
+
