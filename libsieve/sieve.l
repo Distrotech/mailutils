@@ -634,7 +634,7 @@ multiline_begin ()
   if (status)
     {
       sieve_compile_error (sieve_filename, sieve_line_num,
-                           "list_create: %s", mu_errstring (status));
+                           "list_create: %s", mu_strerror (status));
       exit (1);
     }
 

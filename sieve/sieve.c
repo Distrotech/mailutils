@@ -121,7 +121,7 @@ parser (int key, char *arg, struct argp_state *state)
     case 'e':
       rc = mu_set_user_email (arg);
       if (rc)
-	argp_error (state, _("invalid email: %s"), mu_errstring (rc));
+	argp_error (state, _("invalid email: %s"), mu_strerror (rc));
       break;
       
     case 'n':
@@ -323,7 +323,7 @@ main (int argc, char *argv[])
   rc = sieve_machine_init (&mach, NULL);
   if (rc)
     {
-      mu_error (_("can't initialize sieve machine: %s"), mu_errstring (rc));
+      mu_error (_("can't initialize sieve machine: %s"), mu_strerror (rc));
       return 1;
     }
 
@@ -362,12 +362,12 @@ main (int argc, char *argv[])
       if ((rc = wicket_create (&wicket, opts.tickets)) != 0)
 	{
 	  mu_error (_("wicket create <%s> failed: %s\n"),
-		   opts.tickets, mu_errstring (rc));
+		   opts.tickets, mu_strerror (rc));
 	  goto cleanup;
 	}
       if ((rc = wicket_get_ticket (wicket, &ticket, 0, 0)) != 0)
 	{
-	  mu_error (_("ticket get failed: %s\n"), mu_errstring (rc));
+	  mu_error (_("ticket get failed: %s\n"), mu_strerror (rc));
 	  goto cleanup;
 	}
       sieve_set_ticket (mach, ticket);
@@ -378,19 +378,19 @@ main (int argc, char *argv[])
     {
       if ((rc = mu_debug_create (&debug, mach)))
 	{
-	  mu_error (_("mu_debug_create failed: %s\n"), mu_errstring (rc));
+	  mu_error (_("mu_debug_create failed: %s\n"), mu_strerror (rc));
 	  goto cleanup;
 	}
       if ((rc = mu_debug_set_level (debug, opts.debug_level)))
 	{
 	  mu_error (_("mu_debug_set_level failed: %s\n"),
-		    mu_errstring (rc));
+		    mu_strerror (rc));
 	  goto cleanup;
 	}
       if ((rc = mu_debug_set_print (debug, debugfp, mach)))
 	{
 	  mu_error (_("mu_debug_set_print failed: %s\n"),
-		    mu_errstring (rc));
+		    mu_strerror (rc));
 	  goto cleanup;
 	}
     }
@@ -401,13 +401,13 @@ main (int argc, char *argv[])
   if ((rc = mailbox_create_default (&mbox, opts.mbox)) != 0)
     {
       mu_error (_("mailbox create <%s> failed: %s\n"),
-	       opts.mbox ? opts.mbox : _("default"), mu_errstring (rc));
+	       opts.mbox ? opts.mbox : _("default"), mu_strerror (rc));
       goto cleanup;
     }
 
   if (debug && (rc = mailbox_set_debug (mbox, debug)))
     {
-      mu_error (_("mailbox_set_debug failed: %s\n"), mu_errstring (rc));
+      mu_error (_("mailbox_set_debug failed: %s\n"), mu_strerror (rc));
       goto cleanup;
     }
 
@@ -419,14 +419,14 @@ main (int argc, char *argv[])
       if ((rc = mailbox_get_folder (mbox, &folder)))
 	{
 	  mu_error (_("mailbox_get_folder failed: %s"),
-		   mu_errstring (rc));
+		   mu_strerror (rc));
 	  goto cleanup;
 	}
 
       if ((rc = folder_get_authority (folder, &auth)))
 	{
 	  mu_error (_("folder_get_authority failed: %s"),
-		   mu_errstring (rc));
+		   mu_strerror (rc));
 	  goto cleanup;
 	}
 
@@ -434,7 +434,7 @@ main (int argc, char *argv[])
       if (auth && (rc = authority_set_ticket (auth, ticket)))
 	{
 	  mu_error (_("authority_set_ticket failed: %s"),
-		   mu_errstring (rc));
+		   mu_strerror (rc));
 	  goto cleanup;
 	}
     }
@@ -448,7 +448,7 @@ main (int argc, char *argv[])
   if (rc != 0)
     {
       mu_error (_("open on %s failed: %s\n"),
-	       opts.mbox ? opts.mbox : _("default"), mu_errstring (rc));
+	       opts.mbox ? opts.mbox : _("default"), mu_strerror (rc));
       goto cleanup;
     }
 
@@ -466,7 +466,7 @@ cleanup:
          on a later message. */
       if ((e = mailbox_expunge (mbox)) != 0)
 	mu_error (_("expunge on %s failed: %s\n"),
-		  opts.mbox ? opts.mbox : _("default"), mu_errstring (e));
+		  opts.mbox ? opts.mbox : _("default"), mu_strerror (e));
 
       if (e && !rc)
 	rc = e;

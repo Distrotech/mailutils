@@ -449,21 +449,21 @@ notify_user (const char *user, const char *device, const char *path, off_t offse
       || (status = mailbox_open (mbox, MU_STREAM_READ)) != 0)
     {
       syslog (LOG_ERR, _("can't open mailbox %s: %s"),
-	      path, mu_errstring (status));
+	      path, mu_strerror (status));
       return;
     }
 
   if ((status = mailbox_get_stream (mbox, &stream)))
     {
       syslog (LOG_ERR, _("can't get stream for mailbox %s: %s"),
-	      path, mu_errstring (status));
+	      path, mu_strerror (status));
       return;
     }
 
   if ((status = stream_size (stream, (off_t *) &size)))
     {
       syslog (LOG_ERR, _("can't get stream size (mailbox %s): %s"),
-	      path, mu_errstring (status));
+	      path, mu_strerror (status));
       return;
     }
 
@@ -480,14 +480,14 @@ notify_user (const char *user, const char *device, const char *path, off_t offse
       || (status = mailbox_open (tmp, MU_STREAM_READ)) != 0)
     {
       syslog (LOG_ERR, _("can't create temporary mailbox: %s"),
-	      mu_errstring (status));
+	      mu_strerror (status));
       return;
     }
 
   if ((status = memory_stream_create (&stream, 0, 0)))
     {
       syslog (LOG_ERR, _("can't create temporary stream: %s"),
-	      mu_errstring (status));
+	      mu_strerror (status));
       return;
     }
 

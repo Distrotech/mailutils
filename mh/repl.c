@@ -249,7 +249,7 @@ make_draft (mailbox_t mbox, int disp, struct mh_whatnow_env *wh)
     {
       mh_error (_("cannot read message %lu: %s"),
 		(unsigned long) msgset.list[0],
-		mu_errstring (rc));
+		mu_strerror (rc));
       exit (1);
     }
 

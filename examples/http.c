@@ -41,7 +41,7 @@ main ()
   ret = tcp_stream_create (&stream, "www.gnu.org", 80, MU_STREAM_NONBLOCK);
   if (ret != 0)
     {
-      mu_error ( "tcp_stream_create: %s\n", mu_errstring (ret));
+      mu_error ( "tcp_stream_create: %s\n", mu_strerror (ret));
       exit (EXIT_FAILURE);
     }
 
@@ -54,7 +54,7 @@ connect_again:
           ret = stream_get_fd (stream, &fd);
           if (ret != 0)
             {
-              mu_error ( "stream_get_fd: %s\n", mu_errstring (ret));
+              mu_error ( "stream_get_fd: %s\n", mu_strerror (ret));
               exit (EXIT_FAILURE);
             }
           FD_ZERO (&fds);
@@ -62,14 +62,14 @@ connect_again:
           select (fd + 1, NULL, &fds, NULL, NULL);
           goto connect_again;
         }
-      mu_error ( "stream_open: %s\n", mu_errstring (ret));
+      mu_error ( "stream_open: %s\n", mu_strerror (ret));
       exit (EXIT_FAILURE);
     }
 
   ret = stream_get_fd (stream, &fd);
   if (ret != 0)
     {
-      mu_error ( "stream_get_fd: %s\n", mu_errstring (ret));
+      mu_error ( "stream_get_fd: %s\n", mu_strerror (ret));
       exit (EXIT_FAILURE);
     }
 
@@ -85,7 +85,7 @@ write_again:
           off += nb;
           goto write_again;
         }
-      mu_error ( "stream_write: %s\n", mu_errstring (ret));
+      mu_error ( "stream_write: %s\n", mu_strerror (ret));
       exit (EXIT_FAILURE);
     }
 
@@ -108,7 +108,7 @@ write_again:
             }
           else
             {
-              mu_error ( "stream_read: %s\n", mu_errstring (ret));
+              mu_error ( "stream_read: %s\n", mu_strerror (ret));
               exit (EXIT_FAILURE);
             }
         }
@@ -119,7 +119,7 @@ write_again:
   ret = stream_close (stream);
   if (ret != 0)
     {
-      mu_error ( "stream_close: %s\n", mu_errstring (ret));
+      mu_error ( "stream_close: %s\n", mu_strerror (ret));
       exit (EXIT_FAILURE);
     }
 

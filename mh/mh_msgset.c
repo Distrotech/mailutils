@@ -60,7 +60,7 @@ msgset_last (mailbox_t mbox, size_t *pnum)
   rc = mailbox_messages_count (mbox, &count);
   if (rc)
     {
-      mh_error (_("can't get last message: %s"), mu_errstring (rc));
+      mh_error (_("can't get last message: %s"), mu_strerror (rc));
       exit (1);
     }
   *pnum = count;
@@ -161,7 +161,7 @@ msgset_preproc_part (mailbox_t mbox, char *arg, char **rest)
 	rc = mailbox_get_message (mbox, num, &msg);
 	if (rc)
 	  {
-	    mh_error (_("can't get message %d: %s"), num, mu_errstring (rc));
+	    mh_error (_("can't get message %d: %s"), num, mu_strerror (rc));
 	    exit (1);
 	  }
 	message_get_uid (msg, &uid);

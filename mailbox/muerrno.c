@@ -81,7 +81,8 @@ mu_errname (int e)
   return "SYSTEM ERROR";
 }
 
-const char* mu_errstring (int e)
+const char *
+mu_strerror (int e)
 {
   switch(e)
   {
@@ -121,7 +122,7 @@ const char* mu_errstring (int e)
     ES(MU_ERR_TCP_NO_PORT,      _("Tcp connections need a postive port"))
   }
 
-  return strerror(e);
+  return strerror (e);
 }
 
 

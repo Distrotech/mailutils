@@ -314,7 +314,7 @@ sieve_mailbox (sieve_machine_t mach, mailbox_t mbox)
   mach->msgno = 0;
   rc = mailbox_scan (mbox, 1, &total);
   if (rc)
-    sieve_error (mach, _("mailbox_scan: %s"), mu_errstring (errno));
+    sieve_error (mach, _("mailbox_scan: %s"), mu_strerror (errno));
 
   observable_detach (observable, observer);
   observer_destroy (&observer, mach);

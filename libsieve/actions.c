@@ -71,7 +71,7 @@ sieve_action_fileinto (sieve_machine_t mach, list_t args, list_t tags)
 				val->v.string);
   if (rc)
     sieve_error (mach, _("fileinto: cannot save to mailbox: %s"),
-		 mu_errstring (rc));
+		 mu_strerror (rc));
   else
     sieve_mark_deleted (mach->msg, 1);    
   
@@ -254,7 +254,7 @@ sieve_action_reject (sieve_machine_t mach, list_t args, list_t tags)
       sieve_error (mach,
 		   _("%d: reject - can't create to address <%s>: %s\n"),
 		   sieve_get_message_num (mach),
-		   addrtext, mu_errstring (rc));
+		   addrtext, mu_strerror (rc));
       free (addrtext);
       goto end;
     }
@@ -267,7 +267,7 @@ sieve_action_reject (sieve_machine_t mach, list_t args, list_t tags)
 		   _("%d: reject - can't create from address <%s>: %s\n"),
 		   sieve_get_message_num (mach),
 		   sieve_get_daemon_email (mach),
-		   mu_errstring (rc));
+		   mu_strerror (rc));
       goto end;
     }
   
@@ -281,7 +281,7 @@ sieve_action_reject (sieve_machine_t mach, list_t args, list_t tags)
 		   _("%d: reject - can't open mailer %s: %s\n"),
 		   sieve_get_message_num (mach),
 		   url_to_string (url),
-		   mu_errstring (rc));
+		   mu_strerror (rc));
       goto end;
     }
 
@@ -363,7 +363,7 @@ sieve_action_redirect (sieve_machine_t mach, list_t args, list_t tags)
       sieve_error (mach,
 		   _("%d: redirect - parsing to `%s' failed: %s\n"),
 		   sieve_get_message_num (mach),
-		   val->v.string, mu_errstring (rc));
+		   val->v.string, mu_strerror (rc));
       return 1;
     }
   
@@ -384,7 +384,7 @@ sieve_action_redirect (sieve_machine_t mach, list_t args, list_t tags)
     {
       sieve_error (mach,
 		   _("%d: redirect - can't get envelope sender: %s\n"),
-		   sieve_get_message_num (mach), mu_errstring (rc));
+		   sieve_get_message_num (mach), mu_strerror (rc));
       goto end;
     }
 
@@ -394,7 +394,7 @@ sieve_action_redirect (sieve_machine_t mach, list_t args, list_t tags)
       sieve_error (mach,
 		   _("%d: redirect - can't create from address <%s>: %s\n"),
 		   sieve_get_message_num (mach),
-		   fromaddr, mu_errstring (rc));
+		   fromaddr, mu_strerror (rc));
       free (fromaddr);
       goto end;
     }
@@ -406,7 +406,7 @@ sieve_action_redirect (sieve_machine_t mach, list_t args, list_t tags)
     {
       sieve_error (mach, _("%d: can't copy message: %s"),
 		   sieve_get_message_num (mach),
-		   mu_errstring (rc));
+		   mu_strerror (rc));
       goto end;
     }
   
@@ -434,7 +434,7 @@ sieve_action_redirect (sieve_machine_t mach, list_t args, list_t tags)
 		   _("%d: redirect - can't open mailer %s: %s\n"),
 		   sieve_get_message_num (mach),
 		   url_to_string (url),
-		   mu_errstring (rc));
+		   mu_strerror (rc));
       goto end;
     }
   

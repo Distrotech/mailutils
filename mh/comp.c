@@ -190,7 +190,7 @@ copy_message (mailbox_t mbox, size_t n, const char *file)
       || (rc = stream_open (out)))
     {
       mh_error (_("cannot open output file \"%s\": %s"),
-		file, mu_errstring (rc));
+		file, mu_strerror (rc));
       free (buffer);
       return 1;
     }
@@ -202,7 +202,7 @@ copy_message (mailbox_t mbox, size_t n, const char *file)
       if ((rc = stream_sequential_write (out, buffer, rdsize)) != 0)
 	{
 	  mh_error (_("error writing to \"%s\": %s"),
-		    file, mu_errstring (rc));
+		    file, mu_strerror (rc));
 	  break;
 	}
       size -= rdsize;
@@ -276,7 +276,7 @@ main (int argc, char **argv)
 	      || (rc = stream_open (stream)))
 	    {
 	      mh_error (_("cannot open output file \"%s\": %s"),
-			wh_env.file, mu_errstring (rc));
+			wh_env.file, mu_strerror (rc));
 	      exit (1);
 	    }
 	  
@@ -288,7 +288,7 @@ main (int argc, char **argv)
 	  if (rc)
 	    {
 	      mh_error (_("error writing to \"%s\": %s"),
-			wh_env.file, mu_errstring (rc));
+			wh_env.file, mu_strerror (rc));
 	      exit (1);
 	    }
 	}

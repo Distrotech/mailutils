@@ -36,7 +36,7 @@
 #define C(X) do {\
   int e;\
   if((e = X) != 0) { \
-       fprintf(stderr, "%s failed: %s\n", #X, mu_errstring(e)); \
+       fprintf(stderr, "%s failed: %s\n", #X, mu_strerror(e)); \
        exit(1);\
   }\
 } while (0)

@@ -121,7 +121,7 @@ main(int argc, char **argv)
     {
       fprintf (stderr, _("opening %s failed: %s\n"),
 	  mailbox_name,
-	  mu_errstring (status)
+	  mu_strerror (status)
 	  );
       exit (1);
     }
@@ -138,7 +138,7 @@ main(int argc, char **argv)
     {
       fprintf (stderr, _("opening %s failed: %s\n"),
 	  mailbox_name,
-	  mu_errstring (status)
+	  mu_strerror (status)
 	  );
       exit (1);
     }
@@ -152,7 +152,7 @@ main(int argc, char **argv)
       if ((status = mailbox_get_message (mbox, i, &msg)) != 0
 	  || (status = message_get_header (msg, &hdr)) != 0)
 	{
-	  fprintf (stderr, _("msg %d : %s\n"), i, mu_errstring(status));
+	  fprintf (stderr, _("msg %d : %s\n"), i, mu_strerror(status));
 	  exit(2);
 	}
 

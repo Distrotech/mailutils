@@ -288,19 +288,19 @@ main (int argc, char *argv[])
       
       if ((rc = mu_debug_create (&mudebug, NULL)))
 	{
-	  mu_error (_("mu_debug_create failed: %s\n"), mu_errstring (rc));
+	  mu_error (_("mu_debug_create failed: %s\n"), mu_strerror (rc));
 	  exit (EX_TEMPFAIL);
 	}
       if ((rc = mu_debug_set_level (mudebug, debug_flags)))
 	{
 	  mu_error (_("mu_debug_set_level failed: %s\n"),
-		    mu_errstring (rc));
+		    mu_strerror (rc));
 	  exit (EX_TEMPFAIL);
 	}
       if ((rc = mu_debug_set_print (mudebug, _mu_debug_printer, NULL)))
 	{
 	  mu_error (_("mu_debug_set_print failed: %s\n"),
-		    mu_errstring (rc));
+		    mu_strerror (rc));
 	  exit (EX_TEMPFAIL);
 	}
     }
@@ -373,7 +373,7 @@ sieve_test (struct mu_auth_data *auth, mailbox_t mbx)
       if (rc)
 	{
 	  mu_error (_("can't initialize sieve machine: %s"),
-		    mu_errstring (rc));
+		    mu_strerror (rc));
 	}
       else
 	{
@@ -493,13 +493,13 @@ make_tmp (const char *from, mailbox_t *mbox)
   tempfile = mu_tempname (NULL);
   if ((status = file_stream_create (&stream, tempfile, MU_STREAM_RDWR)))
     {
-      mailer_err (_("unable to open temporary file: %s"), mu_errstring (status));
+      mailer_err (_("unable to open temporary file: %s"), mu_strerror (status));
       exit (exit_code);
     }
 
   if ((status = stream_open (stream)))
     {
-      mailer_err (_("unable to open temporary file: %s"), mu_errstring (status));
+      mailer_err (_("unable to open temporary file: %s"), mu_strerror (status));
       exit (exit_code);
     }
   
@@ -548,7 +548,7 @@ make_tmp (const char *from, mailbox_t *mbox)
       
       if (status)
 	{
-	  mailer_err (_("temporary file write error: %s"), mu_errstring (status));
+	  mailer_err (_("temporary file write error: %s"), mu_strerror (status));
 	  stream_destroy (&stream, stream_get_owner (stream));
 	  return status;
 	}
@@ -565,7 +565,7 @@ make_tmp (const char *from, mailbox_t *mbox)
   if (status)
     {
       errno = status;
-      mailer_err (_("temporary file write error: %s"), mu_errstring (status));
+      mailer_err (_("temporary file write error: %s"), mu_strerror (status));
       stream_destroy (&stream, stream_get_owner (stream));
       return status;
     }
@@ -575,7 +575,7 @@ make_tmp (const char *from, mailbox_t *mbox)
       || (status = mailbox_open (*mbox, MU_STREAM_READ))
       || (status = mailbox_set_stream (*mbox, stream)))
     {
-      mailer_err (_("temporary file open error: %s"), mu_errstring (status));
+      mailer_err (_("temporary file open error: %s"), mu_strerror (status));
       stream_destroy (&stream, stream_get_owner (stream));
       return status;
     }
@@ -585,7 +585,7 @@ make_tmp (const char *from, mailbox_t *mbox)
     {
       errno = status;
       mailer_err (_("temporary message creation error: %s"),
-		  mu_errstring (status));
+		  mu_strerror (status));
       stream_destroy (&stream, stream_get_owner (stream));
       return status;
     }
@@ -623,7 +623,7 @@ deliver (mailbox_t imbx, char *name)
 
   if ((status = mailbox_get_stream (imbx, &istream)) != 0)
     {
-      mailer_err (_("can't get input message stream: %s"), mu_errstring (status));
+      mailer_err (_("can't get input message stream: %s"), mu_strerror (status));
       mu_auth_data_free (auth);
       return;
     }
@@ -631,7 +631,7 @@ deliver (mailbox_t imbx, char *name)
   if ((status = mailbox_create (&mbox, auth->mailbox)) != 0)
     {
       mailer_err (_("can't open mailbox %s: %s"),
-		  auth->mailbox, mu_errstring (status));
+		  auth->mailbox, mu_strerror (status));
       mu_auth_data_free (auth);
       return;
     }
@@ -649,7 +649,7 @@ deliver (mailbox_t imbx, char *name)
     return;
   if (status != 0)
     {
-      mailer_err (_("can't open mailbox %s: %s"), path, mu_errstring (status));
+      mailer_err (_("can't open mailbox %s: %s"), path, mu_strerror (status));
       mailbox_destroy (&mbox);
       return;
     }
@@ -662,7 +662,7 @@ deliver (mailbox_t imbx, char *name)
 
   if (status)
     {
-      mailer_err (_("cannot lock mailbox '%s': %s"), path, mu_errstring (status));
+      mailer_err (_("cannot lock mailbox '%s': %s"), path, mu_strerror (status));
       mailbox_destroy (&mbox);
       exit_code = EX_TEMPFAIL;
       return;
@@ -671,7 +671,7 @@ deliver (mailbox_t imbx, char *name)
   if ((status = mailbox_get_stream (mbox, &ostream)))
     {
       mailer_err (_("can't get stream for mailbox %s: %s"),
-		  path, mu_errstring (status));
+		  path, mu_strerror (status));
       mailbox_destroy (&mbox);
       return;
     }
@@ -679,7 +679,7 @@ deliver (mailbox_t imbx, char *name)
   if ((status = stream_size (ostream, (off_t *) &size)))
     {
       mailer_err (_("can't get stream size (mailbox %s): %s"),
-		  path, mu_errstring (status));
+		  path, mu_strerror (status));
       mailbox_destroy (&mbox);
       return;
     }
@@ -703,7 +703,7 @@ deliver (mailbox_t imbx, char *name)
 	if ((status = stream_size (istream, (off_t *) &isize)))
 	  {
 	    mailer_err (_("can't get stream size (input message): %s"),
-			path, mu_errstring (status));
+			path, mu_strerror (status));
 	    exit_code = EX_UNAVAILABLE;
 	    failed++;
 	  }
@@ -759,7 +759,7 @@ deliver (mailbox_t imbx, char *name)
       if (status)
 	{
 	  mailer_err (_("error writing to mailbox: %s"),
-		      mu_errstring (status));
+		      mu_strerror (status));
 	}
     }
 

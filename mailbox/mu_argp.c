@@ -402,7 +402,7 @@ mu_common_argp_parser (int key, char *arg, struct argp_state *state)
       if ((err = mu_set_user_email(arg)) != 0)
 	  {
 	    argp_error (state, _("invalid email-addr '%s': %s"),
-		arg, mu_errstring(err));
+		arg, mu_strerror(err));
 	  }
       break;
 
@@ -410,7 +410,7 @@ mu_common_argp_parser (int key, char *arg, struct argp_state *state)
       if ((err = mu_set_user_email_domain(arg)) != 0)
 	  {
 	    argp_error (state, _("invalid email-domain '%s': %s"),
-		arg, mu_errstring(err));
+		arg, mu_strerror(err));
 	  }
       break;
 
@@ -419,7 +419,7 @@ mu_common_argp_parser (int key, char *arg, struct argp_state *state)
       if ((err = mailer_set_url_default (arg)) != 0)
 	  {
 	    argp_error (state, _("invalid mailer url '%s': %s"),
-			arg, mu_errstring(err));
+			arg, mu_strerror(err));
 	  }
       break;
 

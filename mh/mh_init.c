@@ -394,7 +394,7 @@ mh_iterate (mailbox_t mbox, mh_msgset_t *msgset,
       num = msgset->list[i];
       if ((rc = mailbox_get_message (mbox, num, &msg)) != 0)
 	{
-	  mh_error (_("can't get message %d: %s"), num, mu_errstring (rc));
+	  mh_error (_("can't get message %d: %s"), num, mu_strerror (rc));
 	  return 1;
 	}
 
@@ -450,7 +450,7 @@ mh_file_copy (const char *from, const char *to)
   
   if (stat (from, &st))
     {
-      mh_error ("mh_copy: %s", mu_errstring (errno));
+      mh_error ("mh_copy: %s", mu_strerror (errno));
       return -1;
     }
 
@@ -465,7 +465,7 @@ mh_file_copy (const char *from, const char *to)
       || (rc = stream_open (in)))
     {
       mh_error (_("cannot open input file \"%s\": %s"),
-		from, mu_errstring (rc));
+		from, mu_strerror (rc));
       free (buffer);
       return 1;
     }
@@ -474,7 +474,7 @@ mh_file_copy (const char *from, const char *to)
       || (rc = stream_open (out)))
     {
       mh_error (_("cannot open output file \"%s\": %s"),
-		to, mu_errstring (rc));
+		to, mu_strerror (rc));
       free (buffer);
       stream_close (in);
       stream_destroy (&in, stream_get_owner (in));
@@ -488,7 +488,7 @@ mh_file_copy (const char *from, const char *to)
       if ((rc = stream_sequential_write (out, buffer, rdsize)) != 0)
 	{
 	  mh_error (_("write error on \"%s\": %s"),
-		    to, mu_errstring (rc));
+		    to, mu_strerror (rc));
 	  break;
 	}
       st.st_size -= rdsize;

@@ -45,14 +45,14 @@ main (int argc, const char **argv)
 
   if (status != 0)
     {
-      fprintf (stderr, "mailbox_create: %s\n", mu_errstring (status));
+      fprintf (stderr, "mailbox_create: %s\n", mu_strerror (status));
       exit (EXIT_FAILURE);
     }
 
   status = mailbox_open (mbox, MU_STREAM_READ);
   if (status != 0)
     {
-      fprintf (stderr, "mailbox_open: %s\n", mu_errstring (status));
+      fprintf (stderr, "mailbox_open: %s\n", mu_strerror (status));
       exit (EXIT_FAILURE);
     }
 
@@ -67,7 +67,7 @@ main (int argc, const char **argv)
           || (status = message_get_header (msg, &hdr)) != 0)
         {
           fprintf (stderr, "Error message: %s\n",
-                   mu_errstring (status));
+                   mu_strerror (status));
           exit (EXIT_FAILURE);
         }
 

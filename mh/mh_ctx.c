@@ -132,7 +132,7 @@ mh_context_set_value (mh_context_t *ctx, const char *name, const char *value)
 	{
 	  mh_error (_("Can't create context %s: %s"),
 		    ctx->name,
-		    mu_errstring (rc));
+		    mu_strerror (rc));
 	  return 1;
 	}
     }

@@ -112,7 +112,7 @@ compose_header_set (compose_env_t * env, char *name, char *value, int mode)
   if (!env->header
       && (status = header_create (&env->header, NULL, 0, NULL)) != 0)
     {
-      util_error (_("can't create header: %s"), mu_errstring (status));
+      util_error (_("can't create header: %s"), mu_strerror (status));
       return status;
     }
 

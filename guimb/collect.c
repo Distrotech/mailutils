@@ -39,7 +39,7 @@ collect_open_default ()
       || mailbox_open (mbox, MU_STREAM_RDWR) != 0)
     {
       util_error (_("can't open default mailbox %s: %s"),
-		  default_mailbox, mu_errstring (errno));
+		  default_mailbox, mu_strerror (errno));
       exit (1);
     }
 

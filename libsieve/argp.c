@@ -87,7 +87,7 @@ sieve_argp_parser (int key, char *arg, struct argp_state *state)
 	  if (rc)
 	    {
 	      argp_error (state, "can't create list: %s",
-			mu_errstring (rc));
+			mu_strerror (rc));
 	      exit (1);
 	    }
 	}

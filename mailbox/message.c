@@ -453,7 +453,7 @@ int
 message_size (message_t msg, size_t *psize)
 {
   size_t hsize, bsize;
-	int ret = 0;
+  int ret = 0;
 
   if (msg == NULL)
     return EINVAL;
@@ -1066,7 +1066,7 @@ message_save_to_mailbox (message_t msg, ticket_t ticket, mu_debug_t debug,
     {
       mu_debug_print (debug, MU_DEBUG_TRACE,
 		      _("mailbox_create_default (%s) failed: %s\n"), toname,
-		      mu_errstring (rc));
+		      mu_strerror (rc));
       goto end;
     }
 
@@ -1097,7 +1097,7 @@ message_save_to_mailbox (message_t msg, ticket_t ticket, mu_debug_t debug,
     {
       mu_debug_print (debug, MU_DEBUG_TRACE,
 		      _("mailbox_open (%s) failed: %s\n"), toname,
-		      mu_errstring (rc));
+		      mu_strerror (rc));
       goto end;
     }
 
@@ -1105,7 +1105,7 @@ message_save_to_mailbox (message_t msg, ticket_t ticket, mu_debug_t debug,
     {
       mu_debug_print (debug, MU_DEBUG_TRACE,
 		      _("mailbox_append_message (%s) failed: %s\n"), toname,
-		      mu_errstring (rc));
+		      mu_strerror (rc));
       goto end;
     }
 
@@ -1117,7 +1117,7 @@ end:
 	{
 	  mu_debug_print (debug, MU_DEBUG_TRACE,
 			  _("mailbox_close (%s) failed: %s\n"), toname,
-			  mu_errstring (rc));
+			  mu_strerror (rc));
 	}
     }
   else

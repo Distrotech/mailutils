@@ -260,7 +260,7 @@ do \
           stream_close (mbox->stream); \
           CLEAR_STATE (mpd); \
           mpd->func = (void *)-1; \
-          MAILBOX_DEBUG1(mbox, MU_DEBUG_PROT, "CHECK_ERROR_CLOSE: %s\n", mu_errstring (status));\
+          MAILBOX_DEBUG1(mbox, MU_DEBUG_PROT, "CHECK_ERROR_CLOSE: %s\n", mu_strerror (status));\
           return status; \
        } \
   } \
@@ -274,7 +274,7 @@ do \
        { \
           CLEAR_STATE (mpd); \
           mpd->func = (void*)-1; \
-          MAILBOX_DEBUG1(mpd->mbox, MU_DEBUG_PROT, "CHECK_ERROR: %s\n", mu_errstring (status));\
+          MAILBOX_DEBUG1(mpd->mbox, MU_DEBUG_PROT, "CHECK_ERROR: %s\n", mu_strerror (status));\
           return status; \
        } \
   } \
@@ -290,7 +290,7 @@ do \
            { \
              CLEAR_STATE (mpd); \
              mpd->func = (void *)-1; \
-             MAILBOX_DEBUG1(mpd->mbox, MU_DEBUG_PROT, "CHECK_EAGAIN: %s\n", mu_errstring (status));\
+             MAILBOX_DEBUG1(mpd->mbox, MU_DEBUG_PROT, "CHECK_EAGAIN: %s\n", mu_strerror (status));\
            } \
          return status; \
       } \

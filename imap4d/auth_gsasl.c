@@ -31,7 +31,7 @@ create_gsasl_stream (stream_t *newstr, stream_t str, int flags)
   if (rc)
     {
       syslog (LOG_ERR, _("cannot create SASL stream: %s"),
-	      mu_errstring (rc));
+	      mu_strerror (rc));
       return RESP_NO;
     }
 
@@ -39,7 +39,7 @@ create_gsasl_stream (stream_t *newstr, stream_t str, int flags)
     {
       char *p;
       if (stream_strerror (*newstr, &p))
-	p = mu_errstring (rc);
+	p = mu_strerror (rc);
       syslog (LOG_ERR, _("cannot open SASL input stream: %s"), p);
       return RESP_NO;
     }

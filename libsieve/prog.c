@@ -155,7 +155,7 @@ sieve_code_command (sieve_register_t *reg, list_t arglist)
 	{
 	  sieve_compile_error (sieve_filename, sieve_line_num,
                                _("can't create iterator: %s"),
-  		               mu_errstring (rc));
+  		               mu_strerror (rc));
 	  return 1;
 	}
   
@@ -183,7 +183,7 @@ sieve_code_command (sieve_register_t *reg, list_t arglist)
 		{
 		  sieve_compile_error (sieve_filename, sieve_line_num,
                                        _("%s:%d: can't create tag list: %s"),
-			               mu_errstring (rc));
+			               mu_strerror (rc));
 		  err = 1;
 		  break;
 		}
@@ -207,7 +207,7 @@ sieve_code_command (sieve_register_t *reg, list_t arglist)
 		    {
 		      sieve_compile_error (sieve_filename, sieve_line_num,
 			  	         _("%s:%d: can't create check list: %s"),
-					   mu_errstring (rc));
+					   mu_strerror (rc));
 		      err = 1;
 		      break;
 		    }
@@ -255,7 +255,7 @@ sieve_code_command (sieve_register_t *reg, list_t arglist)
 		{
 		  sieve_compile_error (sieve_filename, sieve_line_num,
                                        _("can't create arg list: %s"),
-			               mu_errstring (rc));
+			               mu_strerror (rc));
 		  err = 1;
 		  break;
 		}

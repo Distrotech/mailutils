@@ -55,7 +55,7 @@ parse_headers (FILE *fp, compose_env_t *env)
   
   if ((status = header_create (&header, NULL, 0, NULL)) != 0)
     {
-      util_error (_("can't create header: %s"), mu_errstring (status));
+      util_error (_("can't create header: %s"), mu_strerror (status));
       return 1;
     }
 

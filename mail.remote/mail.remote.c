@@ -149,7 +149,7 @@ main (int argc, char **argv)
       if ((status = address_create (&from, optfrom)))
 	{
 	  fprintf (stderr, _("Parsing from addresses failed: %s\n"),
-		   mu_errstring (status));
+		   mu_strerror (status));
 	  goto end;
 	}
     }
@@ -161,33 +161,33 @@ main (int argc, char **argv)
       if ((status = address_createv (&to, (const char **) av, -1)))
 	{
 	  fprintf (stderr, _("Parsing to addresses failed: %s\n"),
-		   mu_errstring (status));
+		   mu_strerror (status));
 	  goto end;
 	}
     }
 
   if ((status = stdio_stream_create (&in, stdin, MU_STREAM_SEEKABLE)))
     {
-      fprintf (stderr, _("Failed: %s\n"), mu_errstring (status));
+      fprintf (stderr, _("Failed: %s\n"), mu_strerror (status));
       goto end;
     }
 
   if ((status = stream_open (in)))
     {
-      fprintf (stderr, _("Opening stdin failed: %s\n"), mu_errstring (status));
+      fprintf (stderr, _("Opening stdin failed: %s\n"), mu_strerror (status));
       goto end;
     }
 
   if ((status = message_create (&msg, NULL)))
     {
-      fprintf (stderr, _("Failed: %s\n"), mu_errstring (status));
+      fprintf (stderr, _("Failed: %s\n"), mu_strerror (status));
       goto end;
     }
 
   if ((status = message_set_stream (msg, in, NULL)))
     {
       fprintf (stderr, _("Failed: %s\n"),
-	       mu_errstring (status));
+	       mu_strerror (status));
       goto end;
     }
 
@@ -196,7 +196,7 @@ main (int argc, char **argv)
       const char *url = NULL;
       mailer_get_url_default (&url);
       fprintf (stderr, _("Creating mailer '%s' failed: %s\n"),
-	  url, mu_errstring (status));
+	  url, mu_strerror (status));
       goto end;
     }
 
@@ -215,19 +215,19 @@ main (int argc, char **argv)
       const char *url = NULL;
       mailer_get_url_default (&url);
       fprintf (stderr, _("Opening mailer '%s' failed: %s\n"),
-	  url, mu_errstring (status));
+	  url, mu_strerror (status));
       goto end;
     }
 
   if ((status = mailer_send_message (mailer, msg, from, to)))
     {
-      fprintf (stderr, _("Sending message failed: %s\n"), mu_errstring (status));
+      fprintf (stderr, _("Sending message failed: %s\n"), mu_strerror (status));
       goto end;
     }
 
   if ((status = mailer_close (mailer)))
     {
-      fprintf (stderr, _("Closing mailer failed: %s\n"), mu_errstring (status));
+      fprintf (stderr, _("Closing mailer failed: %s\n"), mu_strerror (status));
       goto end;
     }
 

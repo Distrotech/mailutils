@@ -36,7 +36,7 @@ sieve_require (list_t slist)
     {
       sieve_compile_error (sieve_filename, sieve_line_num,
                    _("cannot create iterator: %s"),
-		   mu_errstring (status));
+		   mu_strerror (status));
       return;
     }
 

@@ -1135,7 +1135,7 @@ util_header_expand (header_t *phdr)
   rc = header_create (&hdr, "", 0, NULL);
   if (rc)
     {
-      util_error (_("can't create temporary header: %s"), mu_errstring (rc));
+      util_error (_("can't create temporary header: %s"), mu_strerror (rc));
       return 1;
     }
       
@@ -1177,10 +1177,10 @@ util_header_expand (header_t *phdr)
 		  errcnt++;
 		  if (exp)
 		    util_error (_("can't parse address `%s' (while expanding `%s'): %s"),
-				exp, p, mu_errstring (rc));
+				exp, p, mu_strerror (rc));
 		  else
 		    util_error (_("can't parse address `%s': %s"),
-				p, mu_errstring (rc));
+				p, mu_strerror (rc));
 		}
 	      
 	      free (exp);
@@ -1233,7 +1233,7 @@ util_get_message (mailbox_t mbox, size_t msgno, message_t *msg)
   if (status)
     {
       util_error (_("can't get message %lu: %s"),
-		  (unsigned long) msgno, mu_errstring (status));
+		  (unsigned long) msgno, mu_strerror (status));
       return status;
     }
 

@@ -337,7 +337,7 @@ main(int argc, char **argv)
       {
 	fprintf (stderr, _("could not create mailbox <%s>: %s\n"),
 	    mailbox_name ? mailbox_name : _("default"),
-	    mu_errstring(status));
+	    mu_strerror(status));
 	exit (3);
       }
 
@@ -361,7 +361,7 @@ main(int argc, char **argv)
 	  {
 	    fprintf (stderr, _("could not open mailbox %s: %s\n"),
 		     url_to_string (url),
-		     mu_errstring(status));
+		     mu_strerror(status));
 	    
 	    goto cleanup;
 	  }
@@ -384,7 +384,7 @@ main(int argc, char **argv)
 	mailbox_get_url (mbox, &url);
 	fprintf (stderr, _("could not scan mailbox <%s>: %s\n"),
 		 url_to_string (url),
-		 mu_errstring(status));
+		 mu_strerror(status));
 	goto cleanup;
       }
 

@@ -381,14 +381,14 @@ main (int argc, char **argv)
 	  if (rc != 0)
 	    {
 	      util_error (_("Can not create mailbox for %s: %s"), args.user,
-			  mu_errstring (rc));
+			  mu_strerror (rc));
 	      exit (EXIT_FAILURE);
 	    }
 	}
       else if ((rc = mailbox_create_default (&mbox, args.file)) != 0)
 	{
 	  util_error (_("Can not create mailbox %s: %s"), args.file,
-		      mu_errstring (rc));
+		      mu_strerror (rc));
 	  exit (EXIT_FAILURE);
 	}
 
@@ -405,7 +405,7 @@ main (int argc, char **argv)
 	  url_t url = NULL;
 	  mailbox_get_url (mbox, &url);
 	  util_error (_("Can not open mailbox %s: %s"),
-		      url_to_string (url), mu_errstring (rc));
+		      url_to_string (url), mu_strerror (rc));
 	  exit (EXIT_FAILURE);
 	}
 
@@ -418,7 +418,7 @@ main (int argc, char **argv)
 	      url_t url = NULL;
 	      mailbox_get_url (mbox, &url);
 	      util_error (_("Can not read mailbox %s: %s"),
-			  url_to_string (url), mu_errstring (rc));
+			  url_to_string (url), mu_strerror (rc));
 	      exit (EXIT_FAILURE);
 	    }
 

@@ -87,7 +87,7 @@ mail_file (int argc, char **argv)
 	  || mailbox_open (newbox, MU_STREAM_RDWR) != 0)
 	{
 	  mailbox_destroy (&newbox);
-	  util_error(_("can't open mailbox %s: %s"), name, mu_errstring (errno));
+	  util_error(_("can't open mailbox %s: %s"), name, mu_strerror (errno));
 	  free (name);
 	  return 1;
 	}

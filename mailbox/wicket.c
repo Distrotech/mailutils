@@ -327,7 +327,7 @@ get_ticket (url_t url, const char *user, const char *filename, url_t * ticket)
 	{
 	  /* TODO: send output to the debug stream */
 	  /*
-	     printf ("url_parse %s failed: [%d] %s\n", str, err, mu_errstring (err));
+	     printf ("url_parse %s failed: [%d] %s\n", str, err, mu_strerror (err));
 	   */
 	  url_destroy (&u);
 	  continue;

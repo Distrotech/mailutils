@@ -159,7 +159,7 @@ main (int argc, char **argv)
   if ((status = header_create (&header, NULL, 0, NULL)) != 0)
     {
       mu_error ("%s: can't create header: %s",
-		progname, mu_errstring (status));
+		progname, mu_strerror (status));
       return 1;
     }
 
@@ -300,7 +300,7 @@ mta_send (message_t msg)
   if (c)
     {
       mu_error ("%s: address_to_string failure: %s",
-		progname, mu_errstring (c));
+		progname, mu_strerror (c));
       return 1;
     }
   value = malloc (n + 1);
@@ -409,7 +409,7 @@ message_finalize (message_t msg, int warn)
       if (c)
 	{
 	  mu_error ("%s: address_to_string failure: %s",
-		    progname, mu_errstring (c));
+		    progname, mu_strerror (c));
 	  return 1;
 	}
       value = malloc (n + 1);
@@ -447,7 +447,7 @@ mta_stdin (int argc, char **argv)
   if ((c = mailbox_create_default (&mbox, tempfile)) != 0)
     {
       mu_error ("%s: can't create mailbox %s: %s",
-		progname, tempfile, mu_errstring (c));
+		progname, tempfile, mu_strerror (c));
       unlink (tempfile);
       return 1;
     }
@@ -455,7 +455,7 @@ mta_stdin (int argc, char **argv)
   if ((c = mailbox_open (mbox, MU_STREAM_RDWR)) != 0)
     {
       mu_error ("%s: can't open mailbox %s: %s",
-		progname, tempfile, mu_errstring (c));
+		progname, tempfile, mu_strerror (c));
       unlink (tempfile);
       return 1;
     }
@@ -660,7 +660,7 @@ smtp (int fd)
 		{
 		  mu_error ("%s: can't create mailbox %s: %s",
 			    progname,
-			    tempfile, mu_errstring (c));
+			    tempfile, mu_strerror (c));
 		  unlink (tempfile);
 		  exit (1);
 		}
@@ -669,7 +669,7 @@ smtp (int fd)
 		{
 		  mu_error ("%s: can't open mailbox %s: %s",
 			    progname, 
-			    tempfile, mu_errstring (c));
+			    tempfile, mu_strerror (c));
 		  unlink (tempfile);
 		  exit (1);
 		}

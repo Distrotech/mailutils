@@ -181,7 +181,7 @@ refile_folder (void *data, mailbox_t mbox)
   rc = mailbox_append_message (mbox, msg);
   if (rc)
     {
-      mh_error (_("error appending message: %s"), mu_errstring (rc));
+      mh_error (_("error appending message: %s"), mu_strerror (rc));
       exit (1);
     }
 }

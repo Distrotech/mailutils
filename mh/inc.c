@@ -175,7 +175,7 @@ main (int argc, char **argv)
       if ((rc = mailbox_create_default (&input, NULL)) != 0)
 	{
 	  mh_error (_("Can not create default mailbox"),
-		    mu_errstring (rc));
+		    mu_strerror (rc));
 	  exit (1);
 	}
       f_truncate = 1;
@@ -184,7 +184,7 @@ main (int argc, char **argv)
   else if ((rc = mailbox_create_default (&input, input_file)) != 0)
     {
       mh_error (_("Can not create mailbox %s: %s"),
-		input_file, mu_errstring (rc));
+		input_file, mu_strerror (rc));
       exit (1);
     }
 
@@ -194,13 +194,13 @@ main (int argc, char **argv)
       mailbox_get_url (input, &url);
       mh_error (_("Can not open mailbox %s: %s"),
 		url_to_string (url),
-		mu_errstring (errno));
+		mu_strerror (errno));
       exit (1);
     }
 
   if ((rc = mailbox_messages_count (input, &total)) != 0)
     {
-      mh_error (_("Can not read input mailbox: %s"), mu_errstring (errno));
+      mh_error (_("Can not read input mailbox: %s"), mu_strerror (errno));
       exit (1);
     }
 
@@ -208,7 +208,7 @@ main (int argc, char **argv)
   if ((rc = mailbox_messages_count (output, &lastmsg)) != 0)
     {
       mh_error (_("Can not read output mailbox: %s"),
-		mu_errstring (errno));
+		mu_strerror (errno));
       exit (1);
     }
   
@@ -231,14 +231,14 @@ main (int argc, char **argv)
       if ((rc = mailbox_get_message (input, n, &imsg)) != 0)
 	{
 	  mh_error (_("%d: can't get message: %s"),
-		    n, mu_errstring (errno));
+		    n, mu_strerror (errno));
 	  continue;
 	}
 
       if ((rc = mailbox_append_message (output, imsg)) != 0)
 	{
 	  mh_error (_("%d: error appending message: %s"),
-		    n, mu_errstring (errno));
+		    n, mu_strerror (errno));
 	  continue;
 	}
 

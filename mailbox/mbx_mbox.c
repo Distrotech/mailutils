@@ -665,7 +665,7 @@ mbox_expunge0 (mailbox_t mailbox, int remove_deleted)
       mailbox_destroy (&tmpmailbox);
       remove (tmpmboxname);
       free (tmpmboxname);
-      mu_error ("Failed to grab the lock: %s\n", mu_errstring(status));
+      mu_error ("Failed to grab the lock: %s\n", mu_strerror(status));
       return status;
     }
 
@@ -718,7 +718,7 @@ mbox_expunge0 (mailbox_t mailbox, int remove_deleted)
 	      if (status != 0)
 		{
 		  mu_error ("Error expunge:%d: %s", __LINE__,
-			  mu_errstring (status));
+			  mu_strerror (status));
 		  goto bailout0;
 		}
 	    }
@@ -727,7 +727,7 @@ mbox_expunge0 (mailbox_t mailbox, int remove_deleted)
 	  if (status != 0)
 	    {
 	      mu_error ("Error expunge:%d: %s", __LINE__,
-		       mu_errstring (status));
+		       mu_strerror (status));
 	      goto bailout0;
 	    }
 	  /* Clear the dirty bits.  */
@@ -750,7 +750,7 @@ mbox_expunge0 (mailbox_t mailbox, int remove_deleted)
 					     total, &n) != 0))
 		{
 		  mu_error ("Error expunge:%d: %s", __LINE__,
-			   mu_errstring (status));
+			   mu_strerror (status));
 		  goto bailout0;
 		}
 	      len -= n;
@@ -762,7 +762,7 @@ mbox_expunge0 (mailbox_t mailbox, int remove_deleted)
 	  if (status != 0)
 	    {
 	      mu_error ("Error expunge:%d: %s", __LINE__,
-		       mu_errstring (status));
+		       mu_strerror (status));
 	      goto bailout0;
 	    }
 	  total++;
@@ -792,7 +792,7 @@ mbox_expunge0 (mailbox_t mailbox, int remove_deleted)
 		if (status != 0)
 		  {
 		    mu_error ("Error expunge:%d: %s", __LINE__,
-			     mu_errstring (status));
+			     mu_strerror (status));
 		    goto bailout0;
 		  }
 		total += n;
@@ -803,7 +803,7 @@ mbox_expunge0 (mailbox_t mailbox, int remove_deleted)
 	  {
 	    /* Corrupted mailbox.  */
 	    mu_error ("Error expunge:%d: %s", __LINE__,
-		     mu_errstring (status));
+		     mu_strerror (status));
 	    goto bailout0;
 	  }
       }
@@ -824,7 +824,7 @@ mbox_expunge0 (mailbox_t mailbox, int remove_deleted)
 	  if (status != 0)
 	    {
 	      mu_error ("Error expunge:%d: %s\n", __LINE__,
-		       mu_errstring (status));
+		       mu_strerror (status));
 	      goto bailout;
 	    }
 	  off += n;
@@ -838,7 +838,7 @@ mbox_expunge0 (mailbox_t mailbox, int remove_deleted)
   if (status != 0)
     {
       mu_error ("Error expunging:%d: %s\n", __LINE__,
-	       mu_errstring (status));
+	       mu_strerror (status));
       goto bailout;
     }
 
@@ -1421,7 +1421,7 @@ mbox_append_message (mailbox_t mailbox, message_t msg)
 	{
 	  MAILBOX_DEBUG1 (mailbox, MU_DEBUG_TRACE,
 			  "mbox_append_message: %s\n",
-			  mu_errstring(status));
+			  mu_strerror(status));
 	  return status;
 	}
 

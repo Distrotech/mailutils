@@ -39,13 +39,13 @@ main ()
       if ((rc = url_create (&u, str)) != 0)
         {
           fprintf (stderr, "url_create %s ERROR: [%d] %s",
-                   str, rc, mu_errstring (rc));
+                   str, rc, mu_strerror (rc));
           exit (1);
         }
       if ((rc = url_parse (u)) != 0)
         {
           printf ("%s => FAILED: [%d] %s\n",
-                  str, rc, mu_errstring (rc));
+                  str, rc, mu_strerror (rc));
           continue;
         }
       printf ("%s => SUCCESS\n", str);

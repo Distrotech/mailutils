@@ -74,7 +74,7 @@ imap4d_select0 (struct imap4d_command *command, char *arg, int flags)
 	}
     }
   status = util_finish (command, RESP_NO, "Couldn't open %s, %s",
-			mailbox_name, mu_errstring (status));
+			mailbox_name, mu_strerror (status));
   free (mailbox_name);
   return status;
 }

@@ -194,13 +194,13 @@ display_file (const char *name)
       rc = file_stream_create (&stream, name, MU_STREAM_READ);
       if (rc)
 	{
-	  mh_error ("file_stream_create: %s", mu_errstring (rc));
+	  mh_error ("file_stream_create: %s", mu_strerror (rc));
 	  return;
 	}
       rc = stream_open (stream);
       if (rc)
 	{
-	  mh_error ("stream_open: %s", mu_errstring (rc));
+	  mh_error ("stream_open: %s", mu_strerror (rc));
 	  return;
 	} 
       
@@ -426,7 +426,7 @@ whom (struct mh_whatnow_env *wh, int argc, char **argv, int *status)
 		  rc = address_aget_email (addr, i, &buf);
 		  if (rc)
 		    {
-		      mh_error("address_aget_email: %s", mu_errstring (rc));
+		      mh_error("address_aget_email: %s", mu_strerror (rc));
 		      continue;
 		    }
 		  printf ("  ");

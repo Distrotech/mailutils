@@ -153,7 +153,7 @@ main (int argc, char *argv[])
   if ((err = locker_create (&locker, file, flags)))
     {
       if (debug)
-	fprintf (stderr, _("locker create failed: %s\n"), mu_errstring (err));
+	fprintf (stderr, _("locker create failed: %s\n"), mu_strerror (err));
       return MU_DL_EX_ERROR;
     }
 
@@ -182,7 +182,7 @@ main (int argc, char *argv[])
 
   if (debug && err)
     fprintf (stderr, _("%s %s failed: %s\n"),
-	     unlock ? _("unlocking") : _("locking"), file, mu_errstring (err));
+	     unlock ? _("unlocking") : _("locking"), file, mu_strerror (err));
 
   switch (err)
     {
