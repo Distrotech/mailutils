@@ -17,7 +17,7 @@
 ##   Foundation, Inc.
 ##   59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-AUTOMAKE_OPTIONS = gnu 1.7.1 dist-bzip2 readme-alpha std-options
+AUTOMAKE_OPTIONS = gnits 1.7.1 dist-bzip2 std-options
 ACLOCAL_AMFLAGS = -I m4
 
 SUBDIRS = include m4 intl po lib testsuite mailbox libsieve examples doc \
@@ -25,7 +25,7 @@ SUBDIRS = include m4 intl po lib testsuite mailbox libsieve examples doc \
           mail sieve scripts libmu_scm guimb messages comsat readmsg \
           mail.local mail.remote dotlock mh 
 
-EXTRA_DIST = mailutils.spec mailutils.spec.in COPYING.FDL
+EXTRA_DIST = mailutils.spec mailutils.spec.in COPYING.LIB
 
 release:
 	$(MAKE) dist distdir=$(PACKAGE)-`date +"%Y%m%d"`
