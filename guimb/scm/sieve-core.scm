@@ -17,7 +17,15 @@
 
 ;;;; This module provides core functionality for the sieve scripts.
 
-(define sieve-my-email "")
+;;; The email address for originator of error messages. Should be <>
+;;; but current mailutils API is unable to parse and handle it.
+;;; Site administrators are supposed to replace it with the
+;;; actual value.
+(define sieve-daemon-email "MAILER-DAEMON@localhost")
+
+;;; The email address of the user whose mailbox is being processed.
+;;; If #f, it will be set by sieve-main
+(define sieve-my-email #f)
 
 ;;; List of open mailboxes.
 ;;; Each entry is: (list MAILBOX-NAME OPEN-FLAGS MBOX)
@@ -49,44 +57,6 @@
 	    (mu-mailbox-close mbox)))))
    sieve-mailbox-list)
   (set! sieve-mailbox-list '()))
-
-(use-modules (ice-9 popen))
-
-(define PATH-SENDMAIL "/usr/lib/sendmail")
-
-;;; Bounce a message.
-;;; Current mailutils API does not provide a way to send a message
-;;; specifying its recipients (like "sendmail -t foo@bar.org" does),
-;;; hence the need for this function.
-(define (sieve-message-bounce message addr-list)
-  (catch #t
-	 (lambda ()
-	   (let ((port (open-output-pipe
-			(apply string-append
-			       (append
-				(list
-				 PATH-SENDMAIL
-				 " -oi -t ")
-				(map
-				 (lambda (addr)
-				   (string-append addr " "))
-				 addr-list))))))
-	     ;; Write headers
-	     (for-each
-	      (lambda (hdr)
-		(display (string-append (car hdr) ": " (cdr hdr)) port)
-		(newline port))
-	      (mu-message-get-header-fields message))
-	     (newline port)
-	     ;; Write body
-	     (let ((body (mu-message-get-body message)))
-	       (do ((line (mu-body-read-line body) (mu-body-read-line body)))
-		   ((eof-object? line) #f)
-		   (display line port)))
-	     (close-pipe port)))
-	 (lambda args
-	   (runtime-error LOG_ERR "redirect: Can't send message")
-	   (write args))))
 
 ;;; Comparators
 (cond
@@ -396,7 +366,6 @@
   (let ((count (mu-mailbox-messages-count current-mailbox)))
     (do ((n 1 (1+ n)))
 	((> n count) #f)
-	(display n)(newline)
 	(set! sieve-current-message
 	      (mu-mailbox-get-message current-mailbox n))
 	(catch 'sieve-stop
