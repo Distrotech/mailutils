@@ -1,6 +1,8 @@
 Makefile
 Makefile.in
 mail.remote
+out.sendmail
+.gdbinit
 .deps
 .libs
 .*.swp

@@ -3,7 +3,7 @@ ACLOCAL_AMFLAGS = -I m4
 
 SUBDIRS = include doc m4 lib MySql mailbox frm from pop3d imap4d \
           mail sieve scripts libmu_scm guimb messages comsat readmsg \
-          mail.local dotlock
+          mail.local mail.remote dotlock
 
 EXTRA_DIST = mailutils.spec mailutils.spec.in README-alpha COPYING.FDL
 

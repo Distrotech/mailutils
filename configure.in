@@ -412,5 +412,8 @@ AC_OUTPUT(Makefile mailutils.spec
  MySql/Makefile
  comsat/Makefile
  mail.local/Makefile
+ mail.remote/Makefile
+ mh/Makefile
  dotlock/Makefile
  )
+
