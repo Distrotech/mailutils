@@ -132,6 +132,11 @@ struct imap4d_command
 #define NS_SHARED  2
 #define NS_MAX     3
 
+/* Wildcard return codes */
+#define WCARD_NOMATCH        0
+#define WCARD_MATCH          1
+#define WCARD_RECURSE_MATCH  2
+       
 extern struct imap4d_command imap4d_command_table[];
 extern FILE *ifile;
 extern FILE *ofile;
@@ -227,11 +232,19 @@ extern int util_parse_ctime_date __P((const char *date, time_t *timep));
 extern char *util_strcasestr __P((const char *haystack, const char *needle));
 extern int util_parse_attributes __P((char *items, char **save, int *flags));
 
-int util_base64_encode __P((const unsigned char *input, size_t input_len,
-			    unsigned char **output, size_t *output_len));
-int util_base64_decode __P((const unsigned char *input, size_t input_len,
-			    unsigned char **output, size_t *output_len));
-char *util_localname __P((void));
+extern int util_base64_encode __P((const unsigned char *input,
+				   size_t input_len,
+				   unsigned char **output,
+				   size_t *output_len));
+extern int util_base64_decode __P((const unsigned char *input,
+				   size_t input_len,
+				   unsigned char **output,
+				   size_t *output_len));
+extern char *util_localname __P((void));
+
+extern int util_wcard_match __P((const char *string, const char *pattern,
+				 const char *delim));
+
   
 #ifdef __cplusplus
 }
