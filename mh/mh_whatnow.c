@@ -330,7 +330,7 @@ static int
 push (struct mh_whatnow_env *wh, int argc, char **argv, int *status)
 {
   int rc;
-  invoke ("sendproc", "send", argc, argv, "-push", wh->file, &rc);
+  invoke ("sendproc", MHBINDIR "/send", argc, argv, "-push", wh->file, &rc);
   return 0;
 }
 
@@ -359,7 +359,7 @@ static int
 refile (struct mh_whatnow_env *wh, int argc, char **argv, int *status)
 {
   int rc;
-  invoke ("fileproc", "refile", argc, argv, "-file", wh->file, &rc);
+  invoke ("fileproc", MHBINDIR "/refile", argc, argv, "-file", wh->file, &rc);
   return 0;
 }
 
@@ -368,7 +368,7 @@ static int
 send (struct mh_whatnow_env *wh, int argc, char **argv, int *status)
 {
   int rc;
-  invoke ("sendproc", "send", argc, argv, wh->file, NULL, &rc);
+  invoke ("sendproc", MHBINDIR "/send", argc, argv, wh->file, NULL, &rc);
   return 0;
 }
 
