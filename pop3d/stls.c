@@ -27,7 +27,7 @@ pop3d_stls (const char *arg)
   if (strlen (arg) != 0)
     return ERR_BAD_ARGS;
 
-  if (state != AUTHORIZATION)
+  if (state != initial_state)
     return ERR_WRONG_STATE;
 
   if (tls_done)
@@ -40,6 +40,9 @@ pop3d_stls (const char *arg)
 
   if (!tls_done)
     return ERR_UNKNOWN;
+
+  state = AUTHORIZATION;  /* Confirm we're in this state. Necessary for
+			     --tls-required to work */
 
   return OK;
 }
