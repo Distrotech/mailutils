@@ -23,7 +23,12 @@
 
 #include <stdio.h>
 #include <ctype.h>
-#include <getopt.h>
+#ifdef HAVE_GETOPT_H
+# include <getopt.h>
+#else
+# include <mailutils/gnu/getopt.h>
+#endif
+
 
 #define __need_error_t
 #include <errno.h>
