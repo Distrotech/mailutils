@@ -120,6 +120,7 @@ alias_t *
 alias_lookup_or_install(char *name, int install)
 {
   unsigned i, pos;
+  alias_t *slot = NULL; 
   
   if (!aliases)
     {
@@ -138,8 +139,8 @@ alias_lookup_or_install(char *name, int install)
     {
       if (aliases[i].name == NULL)
 	{
-	  if (install)
-	    return &aliases[i];
+	  if (!slot && install)
+	    slot = &aliases[i];
 	}
       else if (strcmp(aliases[i].name, name) == 0)
 	return &aliases[i];
@@ -152,6 +153,9 @@ alias_lookup_or_install(char *name, int install)
   if (!install)
     return NULL;
 
+  if (slot)
+    return slot;
+  
   if (alias_rehash())
     return NULL;
   
