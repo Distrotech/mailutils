@@ -57,6 +57,7 @@ AC_REQUIRE([jm_FUNC_REALLOC])
 AC_FUNC_ALLOCA
 AC_FUNC_MEMCMP
 AC_REPLACE_FUNCS(snprintf, strtok_r, getline)
+AC_CHEC_FUNCS(mkstemp)
 
 dnl Check for libraries
 
