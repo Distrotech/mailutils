@@ -28,11 +28,20 @@ extern "C" {
 
 extern int tls_stream_create __P((stream_t *stream, 
                                   int in_fd, int out_fd, int flags));
+extern int tls_stream_create_client __P((stream_t *stream,
+					 int in_fd, int out_fd,
+					 int flags));
+extern int tls_stream_create_client_from_tcp __P((stream_t *stream,
+						  stream_t tcp_str,
+						  int flags));
 
 extern int mu_check_tls_environment __P((void));
 extern int mu_init_tls_libs __P((void));
 extern void mu_deinit_tls_libs __P((void));
 extern void mu_tls_init_argp __P((void));
+extern void mu_tls_init_client_argp __P((void));
+
+extern int mu_tls_enable;
   
 #ifdef __cplusplus
 }
