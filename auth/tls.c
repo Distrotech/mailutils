@@ -345,7 +345,8 @@ _tls_open (stream_t stream)
   gnutls_certificate_set_dh_params (x509_cred, dh_params);
 
   s->session = initialize_tls_session ();
-  gnutls_transport_set_ptr2 (s->session, s->ifd, s->ofd);
+  gnutls_transport_set_ptr2 (s->session, (gnutls_transport_ptr) s->ifd,
+			     (gnutls_transport_ptr) s->ofd);
 
   rc = gnutls_handshake (s->session);
   if (rc < 0)

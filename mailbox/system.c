@@ -44,7 +44,7 @@
 
 /* System database */
 static int
-mu_auth_system (void *return_data, struct passwd *pw)
+mu_auth_system (struct mu_auth_data **return_data, struct passwd *pw)
 {
   char *mailbox_name;
   int rc;
@@ -59,7 +59,7 @@ mu_auth_system (void *return_data, struct passwd *pw)
 
   sprintf (mailbox_name, "%s%s", mu_path_maildir, pw->pw_name);
   
-  rc = mu_auth_data_alloc ((struct mu_auth_data **) return_data,
+  rc = mu_auth_data_alloc (return_data,
 			   pw->pw_name,
 			   pw->pw_passwd,
 			   pw->pw_uid,
@@ -74,8 +74,9 @@ mu_auth_system (void *return_data, struct passwd *pw)
 }
 
 int
-mu_auth_system_by_name (void *return_data, void *key,
-			void *unused_func_data, void *unused_call_data)
+mu_auth_system_by_name (struct mu_auth_data **return_data, void *key,
+			void *func_data ARG_UNUSED,
+			void *call_data ARG_UNUSED)
 {
   if (!key)
     {
@@ -86,8 +87,9 @@ mu_auth_system_by_name (void *return_data, void *key,
 }
 
 static int
-mu_auth_system_by_uid (void *return_data, void *key,
-		       void *unused_func_data, void *unused_call_data)
+mu_auth_system_by_uid (struct mu_auth_data **return_data, void *key,
+		       void *func_data ARG_UNUSED,
+		       void *call_data ARG_UNUSED)
 {
   if (!key)
     {
@@ -98,9 +100,9 @@ mu_auth_system_by_uid (void *return_data, void *key,
 }
 
 static int
-mu_authenticate_generic (void *ignored_return_data,
+mu_authenticate_generic (struct mu_auth_data **return_data ARG_UNUSED,
 			 void *key,
-			 void *ignored_func_data,
+			 void *func_data ARG_UNUSED,
 			 void *call_data)
 {
   struct mu_auth_data *auth_data = key;
@@ -113,9 +115,9 @@ mu_authenticate_generic (void *ignored_return_data,
 
 /* Called only if generic fails */
 static int
-mu_authenticate_system (void *ignored_return_data,
+mu_authenticate_system (struct mu_auth_data **return_data ARG_UNUSED,
 			void *key,
-			void *ignored_func_data,
+			void *func_data ARG_UNUSED,
 			void *call_data)
 {
   struct mu_auth_data *auth_data = key;

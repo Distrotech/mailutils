@@ -214,11 +214,11 @@ struct argp mu_sql_argp = {
 
 
 # ifdef HAVE_MYSQL
-int mysql_auth_sql_by_name __P((void *return_data, void *key,
+int mysql_auth_sql_by_name __P((struct mu_auth_data **return_data, void *key,
 				void *func_data, void *call_data));
-int mysql_auth_sql_by_uid __P((void *return_data, void *key,
+int mysql_auth_sql_by_uid __P((struct mu_auth_data **return_data, void *key,
 			       void *func_data, void *call_data));
-int mysql_sql_authenticate __P((void *return_data, void *key,
+int mysql_sql_authenticate __P((struct mu_auth_data **return_data, void *key,
 				void *func_data, void *call_data));
 
 #  define mu_sql_authenticate mysql_sql_authenticate
@@ -228,11 +228,11 @@ int mysql_sql_authenticate __P((void *return_data, void *key,
 # endif
 
 # ifdef HAVE_PGSQL
-int pg_auth_sql_by_name __P((void *return_data, void *key,
+int pg_auth_sql_by_name __P((struct mu_auth_data **return_data, void *key,
 			     void *func_data, void *call_data));
-int pg_auth_sql_by_uid __P((void *return_data, void *key,
+int pg_auth_sql_by_uid __P((struct mu_auth_data **return_data, void *key,
 			    void *func_data, void *call_data));
-int pg_sql_authenticate __P((void *return_data, void *key,
+int pg_sql_authenticate __P((struct mu_auth_data **return_data, void *key,
 			     void *func_data, void *call_data));
 
 #  define mu_sql_authenticate pg_sql_authenticate

@@ -101,9 +101,9 @@ mu_pam_conv (int num_msg, const struct pam_message **msg,
 static struct pam_conv PAM_conversation = { &mu_pam_conv, NULL };
 
 int
-mu_authenticate_pam (void *ignored_return_data,
+mu_authenticate_pam (struct mu_auth_data **return_data ARG_UNUSED,
 		     void *key,
-		     void *ignored_func_data,
+		     void *func_data ARG_UNUSED,
 		     void *call_data)
 {
   struct mu_auth_data *auth_data = key;
@@ -163,10 +163,10 @@ struct argp mu_pam_argp = {
 #else
 
 int
-mu_authenticate_pam (void *ignored_return_data,
-		     void *key,
-		     void *ignored_func_data,
-		     void *call_data)
+mu_authenticate_pam (struct mu_auth_data **return_data ARG_UNUSED,
+		     void *key ARG_UNUSED,
+		     void *func_data ARG_UNUSED,
+		     void *call_data ARG_UNUSED)
 {
   errno = ENOSYS;
   return 1;

@@ -22,6 +22,7 @@
 #ifdef HAVE_PGSQL
 #include <sql.h>
 #include <libpq-fe.h>
+#include <ctype.h>
 
 static PGconn *
 pg_connect ()
@@ -81,12 +82,14 @@ pg_auth_common (PGresult *res, char *query_str, struct mu_auth_data **auth)
 
   ntuples = PQntuples (res);
   nfields = PQnfields (res);
-  if (ntuples > 1 && nfields)
+  if ((ntuples > 1 && nfields) || ntuples == 0)
     {
       mu_error (ngettext("query returned %d tuple: %s",
 			 "query returned %d tuples: %s",
 			 ntuples),
 		ntuples, query_str);
+      if (ntuples == 0)
+        return 1;
     }
   
   if (nfields < 6)
@@ -105,7 +108,7 @@ pg_auth_common (PGresult *res, char *query_str, struct mu_auth_data **auth)
   homedir = chop (PQgetvalue (res, 0, 4));
   shell = chop (PQgetvalue (res, 0, 5));
   
-  if (ntuples == 7)
+  if (nfields == 7)
     {
       mailbox_name = strdup (chop (PQgetvalue (res, 0, 6)));
     }
@@ -133,7 +136,7 @@ pg_auth_common (PGresult *res, char *query_str, struct mu_auth_data **auth)
 }
 
 int
-pg_auth_sql_by_name (void *return_data, void *key,
+pg_auth_sql_by_name (struct mu_auth_data **return_data, void *key,
 		     void *func_data ARG_UNUSED,
 		     void *call_data ARG_UNUSED)
 {
@@ -171,8 +174,7 @@ pg_auth_sql_by_name (void *return_data, void *key,
     }
   else
     {
-      rc = pg_auth_common (res, query_str,
-			   (struct mu_auth_data **)return_data);
+      rc = pg_auth_common (res, query_str, return_data);
       PQclear(res);
     }
 
@@ -183,7 +185,7 @@ pg_auth_sql_by_name (void *return_data, void *key,
 }
 
 int
-pg_auth_sql_by_uid (void *return_data, void *key,
+pg_auth_sql_by_uid (struct mu_auth_data **return_data, void *key,
 		    void *func_data ARG_UNUSED,
 		    void *call_data ARG_UNUSED)
 {
@@ -222,8 +224,7 @@ pg_auth_sql_by_uid (void *return_data, void *key,
     }
   else
     {
-      rc = pg_auth_common (res, query_str,
-			   (struct mu_auth_data **)return_data);
+      rc = pg_auth_common (res, query_str, return_data);
       PQclear(res);
     }
 
@@ -234,7 +235,7 @@ pg_auth_sql_by_uid (void *return_data, void *key,
 }
 
 int
-pg_sql_authenticate (void *return_data ARG_UNUSED, void *key,
+pg_sql_authenticate (struct mu_auth_data **return_data ARG_UNUSED, void *key,
 		     void *func_data ARG_UNUSED, void *call_data)
 {
   PGconn *conn;
@@ -278,12 +279,14 @@ pg_sql_authenticate (void *return_data ARG_UNUSED, void *key,
 	  char *p;
 	  int ntuples = PQntuples (res);
 	  int nfields = PQnfields (res);
-	  if (ntuples > 1 && nfields)
+	  if ((ntuples > 1 && nfields) || ntuples == 0)
 	    {
 	      mu_error (ngettext("query returned %d tuple: %s",
 				 "query returned %d tuples: %s",
 				 ntuples),
 			ntuples, query_str);
+	      if (ntuples == 0)
+	        return 1;
 	    }
 	  
 	  if (nfields > 1)

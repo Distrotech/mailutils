@@ -29,7 +29,7 @@
 
 
 int
-mysql_auth_sql_by_name (void *return_data, void *key,
+mysql_auth_sql_by_name (struct mu_auth_data **return_data, void *key,
 			void *func_data ARG_UNUSED,
 			void *call_data ARG_UNUSED)
 {
@@ -104,7 +104,7 @@ mysql_auth_sql_by_name (void *return_data, void *key,
     }
 
   if (mailbox_name)
-    rc = mu_auth_data_alloc ((struct mu_auth_data **) return_data,
+    rc = mu_auth_data_alloc (return_data,
 			     row[0],
 			     row[1],
 			     atoi (row[2]),
@@ -125,7 +125,7 @@ mysql_auth_sql_by_name (void *return_data, void *key,
 }
 
 int
-mysql_auth_sql_by_uid (void *return_data, void *key,
+mysql_auth_sql_by_uid (struct mu_auth_data **return_data, void *key,
 		       void *func_data ARG_UNUSED,
 		       void *call_data ARG_UNUSED)
 {
@@ -202,7 +202,7 @@ mysql_auth_sql_by_uid (void *return_data, void *key,
     }
 
   if (mailbox_name)
-    rc = mu_auth_data_alloc ((struct mu_auth_data **) return_data,
+    rc = mu_auth_data_alloc (return_data,
 			     row[0],
 			     row[1],
 			     atoi (row[2]),
@@ -223,7 +223,8 @@ mysql_auth_sql_by_uid (void *return_data, void *key,
 }
 
 int
-mysql_sql_authenticate (void *return_data ARG_UNUSED, void *key,
+mysql_sql_authenticate (struct mu_auth_data **return_data ARG_UNUSED,
+			void *key,
 			void *func_data ARG_UNUSED, void *call_data)
 {
   struct mu_auth_data *auth_data = key;

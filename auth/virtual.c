@@ -133,7 +133,7 @@ getpwnam_ip_virtual (const char *u)
 
 /* Virtual domains */
 static int
-mu_auth_virt_domain_by_name (void *return_data, void *key,
+mu_auth_virt_domain_by_name (struct mu_auth_data **return_data, void *key,
 			     void *unused_func_data, void *unused_call_data)
 {
   int rc;
@@ -157,7 +157,7 @@ mu_auth_virt_domain_by_name (void *return_data, void *key,
   mailbox_name = calloc (strlen (pw->pw_dir) + strlen ("/INBOX") + 1, 1);
   sprintf (mailbox_name, "%s/INBOX", pw->pw_dir);
 
-  rc = mu_auth_data_alloc ((struct mu_auth_data **) return_data,
+  rc = mu_auth_data_alloc (return_data,
 			   pw->pw_name,
 			   pw->pw_passwd,
 			   pw->pw_uid,
@@ -201,8 +201,10 @@ struct argp mu_virt_argp = {
 
 #else
 static int
-mu_auth_virt_domain_by_name (void *return_data, void *key,
-			     void *unused_func_data, void *unused_call_data)
+mu_auth_virt_domain_by_name (struct mu_auth_data **return_data ARG_UNUSED,
+			     void *key ARG_UNUSED,
+			     void *func_data ARG_UNUSED,
+			     void *call_data ARG_UNUSED)
 {
   errno = ENOSYS;
   return 1;
