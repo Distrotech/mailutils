@@ -55,7 +55,8 @@ extern filter_record_t base64_filter;
 extern filter_record_t binary_filter;
 extern filter_record_t bit8_filter;
 extern filter_record_t bit7_filter;
-
+extern filter_record_t rfc_2047_Q_filter;
+  
 #ifdef __cplusplus
 }
 #endif
