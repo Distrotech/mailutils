@@ -233,9 +233,6 @@ int imap_parse        __P ((f_imap_t));
 int imap_readline     __P ((f_imap_t));
 char *section_name    __P ((msg_imap_t));
 
-int authenticate_imap_login     __P ((authority_t auth));
-int authenticate_imap_sasl_anon __P ((authority_t auth));
-
 #ifdef __cplusplus
 }
 #endif

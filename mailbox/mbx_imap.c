@@ -165,32 +165,6 @@ _mailbox_imap_init (mailbox_t mailbox)
     property_set_value (property, "TYPE", "IMAP4", 1);
   }
 
-  assert(folder);
-  assert(folder->url);
-
-  if (folder->authority == NULL)
-    {
-      const char *auth = folder->url->auth;
-
-      if (auth == NULL || strcasecmp (auth, "*") == 0)
-	{
-	  authority_create (&(folder->authority), folder->ticket, folder);
-	  authority_set_authenticate (folder->authority,
-	      authenticate_imap_login, folder);
-	}
-      else if (strcasecmp (auth, "anon") == 0)
-	{
-	  authority_create (&(folder->authority), folder->ticket, folder);
-	  authority_set_authenticate (folder->authority,
-	      authenticate_imap_sasl_anon, folder);
-	}
-      else
-	{
-	  /* Not a supported authentication mechanism. */
-	  return ENOSYS;
-	}
-    }
-
   return 0;
 }
 

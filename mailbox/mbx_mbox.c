@@ -380,14 +380,6 @@ mbox_open (mailbox_t mailbox, int flags)
   MAILBOX_DEBUG2 (mailbox, MU_DEBUG_TRACE, "mbox_open(%s, 0x%x)\n",
 		  mud->name, mailbox->flags);
 
-  /* Not of any use to try authenticate for a file mailbox.  Do it anyways.  */
-  if (mailbox->authority)
-    {
-      status = authority_authenticate (mailbox->authority);
-      if (status != 0)
-	return status;
-    }
-
   /* Give an appropriate way to file lock.  */
   /* FIXME: use dotlock external program: we may not be setgid.  */
   if (mailbox->locker == NULL)

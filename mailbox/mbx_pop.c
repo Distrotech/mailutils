@@ -99,7 +99,7 @@ static int pop_scan            __P ((mailbox_t, size_t, size_t *));
 static int pop_is_updated      __P ((mailbox_t));
 
 /* The implementation of message_t */
-static int pop_user            __P ((authority_t));
+int _pop_user            __P ((authority_t));
 static int pop_get_size        __P ((mailbox_t, off_t *));
 /* We use pop_top for retreiving headers.  */
 /* static int pop_header_read (header_t, char *, size_t, off_t, size_t *); */
@@ -290,41 +290,6 @@ _mailbox_pop_init (mailbox_t mbox)
 {
   pop_data_t mpd;
   int status = 0;
-  ticket_t ticket = NULL;
-  char auth[64];
-  authority_t authority = NULL;
-
-  /* Allocate authority based on AUTH type, default to user/pass */
-  if (mbox->folder)
-    folder_get_ticket (mbox->folder, &ticket);
-  if (ticket == NULL)
-    ticket = mbox->ticket;
-
-  if ((status = authority_create (&authority, ticket, mbox->folder)))
-    return status;
-
-  *auth = '\0';
-  url_get_auth (mbox->url, auth, sizeof auth, NULL);
-  if (*auth == '\0' || strcasecmp (auth, "*") == 0)
-    {
-      authority_set_authenticate (authority, pop_user, mbox->folder);
-    }
-  /*
-  else...
-
-     "+apop" could be supported.
-
-     Anything else starting with "+" is an extension mechanism.
-
-     Without a "+" it's a SASL mechanism.
-   */
-  else
-    {
-      authority_destroy (&authority, mbox->folder);
-      return ENOSYS;
-    }
-
-  folder_set_authority (mbox->folder, authority);
 
   /* Allocate specifics for pop data.  */
   mpd = mbox->data = calloc (1, sizeof (*mpd));
@@ -400,8 +365,8 @@ pop_destroy (mailbox_t mbox)
 
 /* Simple User/pass authentication for pop. We ask for the info
    from the standard input.  */
-static int
-pop_user (authority_t auth)
+int
+_pop_user (authority_t auth)
 {
   folder_t folder = authority_get_owner (auth);
   mailbox_t mbox = folder->data;

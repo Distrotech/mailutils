@@ -43,7 +43,6 @@ extern "C" {
 struct _folder
 {
   /* Data */
-  ticket_t ticket;
   authority_t authority;
   observable_t observable;
   mu_debug_t debug;

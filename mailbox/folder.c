@@ -187,8 +187,6 @@ folder_destroy (folder_t *pfolder)
 	  if (folder->_destroy)
 	    folder->_destroy (folder);
 	  monitor_wrlock (monitor);
-	  if (folder->ticket)
-	    ticket_destroy (&(folder->ticket), folder);
 	  if (folder->authority)
 	    authority_destroy (&(folder->authority), folder);
 	  if (folder->stream)
@@ -262,29 +260,6 @@ folder_get_authority (folder_t folder, authority_t *pauthority)
   return 0;
 }
 
-int
-folder_set_ticket (folder_t folder, ticket_t ticket)
-{
-  if (folder == NULL)
-    return EINVAL;
-  if (folder->ticket)
-    ticket_destroy (&(folder->ticket), folder);
-  if (folder->authority)
-    {
-      authority_set_ticket (folder->authority, ticket);
-    }
-  folder->ticket = ticket;
-  return 0;
-}
-
-int
-folder_get_ticket (folder_t folder, ticket_t *pticket)
-{
-  if (folder == NULL || pticket == NULL)
-    return EINVAL;
-  *pticket = folder->ticket;
-  return 0;
-}
 int
 folder_get_observable (folder_t folder, observable_t *pobservable)
 {

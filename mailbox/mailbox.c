@@ -151,12 +151,6 @@ mailbox_destroy (mailbox_t *pmbox)
 	  stream_destroy (&(mbox->stream), mbox);
 	}
 
-      if (mbox->ticket)
-	ticket_destroy (&(mbox->ticket), mbox);
-
-      if (mbox->authority)
-	authority_destroy (&(mbox->authority), mbox);
-
       if (mbox->url)
         url_destroy (&(mbox->url));
 
@@ -316,58 +310,6 @@ mailbox_get_locker (mailbox_t mbox, locker_t *plocker)
 }
 
 int
-mailbox_set_authority (mailbox_t mbox, authority_t authority)
-{
-  if (mbox == NULL)
-    return EINVAL;
-  /* The authority is set on the folder if exist, not the mailbox.  */
-  if (mbox->folder)
-    return folder_set_authority (mbox->folder, authority);
-  if (mbox->authority)
-    authority_destroy (&(mbox->authority), mbox);
-  mbox->authority = authority;
-  return 0;
-}
-
-int
-mailbox_get_authority (mailbox_t mbox, authority_t *pauthority)
-{
-  if (mbox == NULL || pauthority == NULL)
-    return EINVAL;
-  /* The authority is set on the folder if exist, not the mailbox.  */
-  if (mbox->folder)
-    return folder_get_authority  (mbox->folder, pauthority);
-  *pauthority = mbox->authority;
-  return 0;
-}
-
-int
-mailbox_set_ticket (mailbox_t mbox, ticket_t ticket)
-{
-  if (mbox == NULL)
-    return EINVAL;
-  /* The ticket is set on the folder if exist, not the mailbox.  */
-  if (mbox->folder)
-    return folder_set_ticket (mbox->folder, ticket);
-  if (mbox->ticket)
-    ticket_destroy (&(mbox->ticket), mbox);
-  mbox->ticket = ticket;
-  return 0;
-}
-
-int
-mailbox_get_ticket (mailbox_t mbox, ticket_t *pticket)
-{
-  if (mbox == NULL || pticket == NULL)
-    return EINVAL;
-  /* The ticket is set on the folder if exist, not the mailbox.  */
-  if (mbox->folder)
-    return folder_get_ticket (mbox->folder, pticket);
-  *pticket = mbox->ticket;
-  return 0;
-}
-
-int
 mailbox_set_stream (mailbox_t mbox, stream_t stream)
 {
   if (mbox == NULL)
@@ -456,6 +398,24 @@ mailbox_get_url (mailbox_t mbox, url_t *purl)
   if (mbox == NULL || purl == NULL)
     return EINVAL;
   *purl = mbox->url;
+  return 0;
+}
+
+int
+mailbox_get_folder (mailbox_t mbox, folder_t *pfolder)
+{
+  if (mbox == NULL || pfolder == NULL)
+    return EINVAL;
+  *pfolder = mbox->folder;
+  return 0;
+}
+
+int
+mailbox_set_folder (mailbox_t mbox, folder_t folder)
+{
+  if (mbox == NULL)
+    return EINVAL;
+   mbox->folder = folder;
   return 0;
 }
 

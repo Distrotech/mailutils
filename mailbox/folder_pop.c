@@ -19,6 +19,8 @@
 # include <config.h>
 #endif
 
+#include <stdlib.h>
+#include <string.h>
 #include <errno.h>
 
 #include <folder0.h>
@@ -43,9 +45,73 @@ static struct _record _pop_record =
 };
 record_t pop_record = &_pop_record;
 
+static int folder_pop_open  __P ((folder_t, int));
+static int folder_pop_close __P ((folder_t));
+static int folder_pop_get_authority __P ((folder_t, authority_t *));
+extern int _pop_user         __P ((authority_t));
+
 int
 _folder_pop_init (folder_t folder)
 {
-  (void)folder;
+  int status;
+
+  /* Set the authority early:
+     (1) so we can check for errors.
+     (2) allow the client to get the authority for setting the ticket
+     before the open.  */
+  status = folder_pop_get_authority (folder, NULL);
+  if (status != 0)
+    return status;
+
+  folder->_open = folder_pop_open;
+  folder->_close = folder_pop_close;
   return 0;
+}
+
+static int
+folder_pop_open (folder_t folder, int flags)
+{
+  mailbox_t mbox = folder->data;
+  return mailbox_open (mbox, flags);
+}
+
+static int
+folder_pop_close (folder_t folder)
+{
+  mailbox_t mbox = folder->data;
+  return mailbox_close (mbox);
+}
+
+static int
+folder_pop_get_authority (folder_t folder, authority_t *pauth)
+{
+  int status = 0;
+  if (folder->authority == NULL)
+    {
+      char *auth;
+      size_t n = 0;
+
+      url_get_auth (folder->url, NULL, 0, &n);
+      auth = calloc (n + 1, 1);
+      if (auth == NULL)
+	return ENOMEM;
+      if (strcasecmp (auth, "*") == 0)
+	{
+	  status = authority_create (&folder->authority, NULL, folder);
+	  authority_set_authenticate (folder->authority, _pop_user, folder);
+	}
+      /*
+	else...
+	"+apop" could be supported.
+	Anything else starting with "+" is an extension mechanism.
+	Without a "+" it's a SASL mechanism.
+      */
+      else
+	{
+	  status = ENOSYS;
+	}
+    }
+  if (pauth)
+    *pauth = folder->authority;
+  return status;
 }

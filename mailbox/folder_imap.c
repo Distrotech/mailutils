@@ -84,6 +84,10 @@ static int  folder_imap_rename      __P ((folder_t, const char *,
 					  const char *));
 static int  folder_imap_subscribe   __P ((folder_t, const char *));
 static int  folder_imap_unsubscribe __P ((folder_t, const char *));
+static int  folder_imap_get_authority __P ((folder_t, authority_t *));
+
+static int  authenticate_imap_login __P ((authority_t));
+static int  authenticate_imap_sasl_anon __P ((authority_t));
 
 /* FETCH  */
 static int  imap_fetch              __P ((f_imap_t));
@@ -114,10 +118,21 @@ static int  imap_token              __P ((char *, size_t, char **));
 int
 _folder_imap_init (folder_t folder)
 {
+  int status;
   f_imap_t f_imap;
+
+  /* Set the authority early:
+     (1) so we can check for errors.
+     (2) allow the client to get the authority for setting the ticket
+     before the open.  */
+  status = folder_imap_get_authority (folder, NULL);
+  if (status != 0)
+    return status;
+
   f_imap = folder->data = calloc (1, sizeof (*f_imap));
   if (f_imap == NULL)
     return ENOMEM;
+
   f_imap->folder = folder;
   f_imap->state = IMAP_NO_STATE;
 
@@ -152,8 +167,47 @@ folder_imap_destroy (folder_t folder)
     }
 }
 
+static int
+folder_imap_get_authority (folder_t folder, authority_t *pauth)
+{
+  int status = 0;
+  if (folder->authority == NULL)
+    {
+      char *auth;
+      size_t n = 0;
+      url_get_auth (folder->url, NULL, 0, &n);
+      auth = calloc (n + 1, 1);
+      if (auth == NULL)
+	return ENOMEM;
+      url_get_auth (folder->url, auth, n + 1, NULL);
+      if (strcasecmp (auth, "*") == 0)
+	{
+	  status = authority_create (&folder->authority, NULL, folder);
+	  if (status == 0)
+	    authority_set_authenticate (folder->authority,
+					authenticate_imap_login, folder);
+	}
+      else if (strcasecmp (auth, "anon") == 0)
+	{
+	  status = authority_create (&folder->authority, NULL, folder);
+	  if (status == 0)
+	    authority_set_authenticate (folder->authority,
+					authenticate_imap_sasl_anon, folder);
+	}
+      else
+	{
+	  /* Not a supported authentication mechanism. */
+	  status = ENOSYS;
+	}
+      free (auth);
+    }
+  if (pauth)
+    *pauth = folder->authority;
+  return status;
+}
+
 /* Simple User/pass authentication for imap.  */
-int
+static int
 authenticate_imap_login (authority_t auth)
 {
   folder_t folder = authority_get_owner (auth);
@@ -231,51 +285,49 @@ authenticate_imap_login (authority_t auth)
 }
 
 /*
-The anonymous SASL mechanism is defined in rfc2245.txt as a single
-message from client to server:
+  The anonymous SASL mechanism is defined in rfc2245.txt as a single
+  message from client to server:
 
-message         = [email / token]
+  message         = [email / token]
 
-So the message is optional.
+  So the message is optional.
 
-The command is:
+  The command is:
 
-C: <tag> authenticate anonymous
+  C: <tag> authenticate anonymous
 
-The server responds with a request for continuation data (the "message"
-in the SASL syntax). We respond with no data, which is legal.
+  The server responds with a request for continuation data (the "message"
+  in the SASL syntax). We respond with no data, which is legal.
 
-S: +
-C: 
+  S: +
+  C:
 
-The server should then respond with OK on success, or else a failure
-code (NO or BAD).
+  The server should then respond with OK on success, or else a failure
+  code (NO or BAD).
 
-If OK, then we are authenticated!
+  If OK, then we are authenticated!
 
-So, states are:
+  So, states are:
 
-AUTH_ANON_REQ
+  AUTH_ANON_REQ
 
-> g%u AUTHENTICATE ANONYMOUS
+  > g%u AUTHENTICATE ANONYMOUS
 
-AUTH_ANON_WAIT_CONT
+  AUTH_ANON_WAIT_CONT
 
-< +
+  < +
 
-AUTH_ANON_MSG
+  AUTH_ANON_MSG
 
->
+  >
 
-AUTH_ANON_WAIT_RESP
+  AUTH_ANON_WAIT_RESP
 
-< NO/BAD/OK
-
-
+  < NO/BAD/OK
 
 */
 
-int
+static int
 authenticate_imap_sasl_anon (authority_t auth)
 {
   folder_t folder = authority_get_owner (auth);
@@ -290,62 +342,47 @@ authenticate_imap_sasl_anon (authority_t auth)
       {
 	FOLDER_DEBUG1 (folder, MU_DEBUG_PROT, "g%u AUTHENTICATE ANONYMOUS\n",
 		       f_imap->seq);
-
 	status = imap_writeline (f_imap, "g%u AUTHENTICATE ANONYMOUS\r\n",
 				 f_imap->seq);
-
 	f_imap->seq++;
-
 	CHECK_ERROR_CLOSE (folder, f_imap, status);
-
 	f_imap->state = IMAP_AUTH_ANON_REQ_SEND;
       }
 
     case IMAP_AUTH_ANON_REQ_SEND:
       status = imap_send (f_imap);
-
       CHECK_EAGAIN (f_imap, status);
-
       f_imap->state = IMAP_AUTH_ANON_WAIT_CONT;
 
     case IMAP_AUTH_ANON_WAIT_CONT:
       status = imap_parse (f_imap);
-
       CHECK_EAGAIN (f_imap, status);
-
       FOLDER_DEBUG0 (folder, MU_DEBUG_PROT, f_imap->buffer);
-
       if (strncmp ("+", f_imap->buffer, 2) == 0)
 	{
 	  f_imap->state = IMAP_AUTH_ANON_MSG;
 	}
       else
 	{
-	  /* something is wrong! */
+	  /* Something is wrong! */
 	}
       f_imap->state = IMAP_AUTH_ANON_MSG;
 
     case IMAP_AUTH_ANON_MSG:
       FOLDER_DEBUG0 (folder, MU_DEBUG_PROT, "\n");
-
       status = imap_writeline (f_imap, "\r\n");
-
       CHECK_ERROR_CLOSE (folder, f_imap, status);
-
       f_imap->state = IMAP_AUTH_ANON_MSG_SEND;
 
     case IMAP_AUTH_ANON_MSG_SEND:
       status = imap_send (f_imap);
-
       CHECK_EAGAIN (f_imap, status);
 
       f_imap->state = IMAP_AUTH_ANON_WAIT_RESP;
 
     case IMAP_AUTH_ANON_WAIT_RESP:
       status = imap_parse (f_imap);
-
       CHECK_EAGAIN (f_imap, status);
-
       FOLDER_DEBUG0 (folder, MU_DEBUG_PROT, f_imap->buffer);
 
     default:
@@ -460,10 +497,10 @@ folder_imap_open (folder_t folder, int flags)
     case IMAP_LOGIN:
     case IMAP_LOGIN_ACK:
       assert (folder->authority);
-	{
-	  status = authority_authenticate (folder->authority);
-	  CHECK_EAGAIN (f_imap, status);
-	}
+      {
+	status = authority_authenticate (folder->authority);
+	CHECK_EAGAIN (f_imap, status);
+      }
 
     case IMAP_AUTH_DONE:
     default:

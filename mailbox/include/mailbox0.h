@@ -45,8 +45,6 @@ struct _mailbox
   /* Data */
   observable_t observable;
   mu_debug_t debug;
-  ticket_t ticket;
-  authority_t authority;
   property_t property;
   locker_t locker;
   stream_t stream;
