@@ -1,5 +1,5 @@
 /* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -39,6 +39,9 @@
 /* An action on a message that doesn't exist */
 #define NO_MESG		"No such message"
 
+/* An action on a message that doesn't exist */
+#define MESG_DELE	"Message has been deleted"
+
 /* A command that is known but not implemented */
 #define NOT_IMPL	"Not implemented"
 
@@ -51,7 +54,7 @@
 /* The command argument was > 40 characters */
 #define TOO_LONG	"Argument too long"
 
-/* APOP password file, without .db or .passwd, which are added based on file 
+/* APOP password file, without .db or .passwd, which are added based on file
    type automatically */
 #define APOP_PASSFILE	"/etc/apop"
 
@@ -129,17 +132,18 @@
 #define ERR_BAD_ARGS	2
 #define ERR_BAD_LOGIN	3
 #define ERR_NO_MESG	4
-#define ERR_NOT_IMPL	5
-#define ERR_BAD_CMD	6
-#define ERR_MBOX_LOCK	7
-#define ERR_TOO_LONG	8
-#define ERR_NO_MEM	9
-#define ERR_DEAD_SOCK	10
-#define ERR_SIGNAL	11
-#define ERR_FILE        12
-#define ERR_NO_OFILE    13
-#define ERR_TIMEOUT	14
-#define ERR_UNKNOWN	15
+#define ERR_MESG_DELE   5
+#define ERR_NOT_IMPL	6
+#define ERR_BAD_CMD	7
+#define ERR_MBOX_LOCK	8
+#define ERR_TOO_LONG	9
+#define ERR_NO_MEM	10
+#define ERR_DEAD_SOCK	11
+#define ERR_SIGNAL	12
+#define ERR_FILE        13
+#define ERR_NO_OFILE    14
+#define ERR_TIMEOUT	15
+#define ERR_UNKNOWN	16
 
 mailbox_t mbox;
 

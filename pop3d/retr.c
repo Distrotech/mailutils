@@ -1,5 +1,5 @@
 /* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -22,12 +22,12 @@
 int
 pop3_retr (const char *arg)
 {
-  unsigned int mesg, size, read = 0;
+  size_t mesgno, n;
   char buf[BUFFERSIZE];
   message_t msg;
-  header_t hdr;
-  body_t body;
+  attribute_t attr;
   stream_t stream;
+  off_t off;
 
   if ((strlen (arg) == 0) || (strchr (arg, ' ') != NULL))
     return ERR_BAD_ARGS;
@@ -35,37 +35,32 @@ pop3_retr (const char *arg)
   if (state != TRANSACTION)
     return ERR_WRONG_STATE;
 
-  mesg = atoi (arg);
+  mesgno = atoi (arg);
 
-  if (mailbox_get_message (mbox, mesg, &msg) != 0)
+  if (mailbox_get_message (mbox, mesgno, &msg) != 0)
     return ERR_NO_MESG;
 
-  message_get_header (msg, &hdr);
-  message_get_body (msg, &body);
+  message_get_attribute (msg, &attr);
+  if (attribute_is_deleted (attr))
+    return ERR_MESG_DELE;
 
-  /* Header */
+  message_get_stream (msg, &stream);
   fprintf (ofile, "+OK\r\n");
-  header_get_stream (hdr, &stream);
-  header_size (hdr, &size);
-  while (read < size)
+  off = n = 0;
+  while (stream_readline (stream, buf, sizeof (buf) - 1, off, &n) == 0
+	 && n > 0)
     {
-      stream_read (stream, buf, BUFFERSIZE, 0, NULL);
-      fprintf (ofile, "%s", buf);
-      read += BUFFERSIZE;
+      /* Nuke the trainline newline.  */
+      if (buf[n - 1] == '\n')
+	buf[n - 1] = '\0';
+      if (buf[0] == '.')
+	fprintf (ofile, ".%s\r\n", buf);
+      else
+	fprintf (ofile, "%s\r\n", buf);
+      off += n;
     }
 
-
-  /* body */
-  body_get_stream (body, &stream);
-  body_lines (body, &size);
-  while (read < size)
-    {
-      stream_read (stream, buf, BUFFERSIZE, 0, NULL);
-      fprintf (ofile, "%s", buf);
-      read += BUFFERSIZE;
-    }
   fprintf (ofile, ".\r\n");
 
   return OK;
 }
-

@@ -260,6 +260,8 @@ pop3_mainloop (int infile, int outfile)
 	fprintf (ofile, "-ERR " BAD_ARGS "\r\n");
       else if (status == ERR_NO_MESG)
 	fprintf (ofile, "-ERR " NO_MESG "\r\n");
+      else if (status == ERR_MESG_DELE)
+	fprintf (ofile, "-ERR " MESG_DELE "\r\n");
       else if (status == ERR_NOT_IMPL)
 	fprintf (ofile, "-ERR " NOT_IMPL "\r\n");
       else if (status == ERR_BAD_CMD)

@@ -1,5 +1,5 @@
 /* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -175,7 +175,7 @@ pop3_apop (const char *arg)
       state = AUTHORIZATION;
       return ERR_UNKNOWN;
     }
-  else if (mailbox_open (mbox, 0) != 0)
+  else if (mailbox_open (mbox, MU_STREAM_RDWR) != 0)
     {
       free (username);
       state = AUTHORIZATION;
@@ -188,4 +188,3 @@ pop3_apop (const char *arg)
   syslog (LOG_INFO, "User %s logged in with mailbox %s", username, NULL);
   return OK;
 }
-

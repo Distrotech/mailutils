@@ -26,6 +26,7 @@
 #include <sys/stat.h>
 #include <time.h>
 #include <string.h>
+#include <ctype.h>
 
 /* FIXME: This should be part of the address_t object when implemented.  */
 static int extract_addr(const char *s, size_t n, char **presult,
@@ -408,18 +409,40 @@ message_set_attribute (message_t msg, attribute_t attribute, void *owner)
 }
 
 int
-message_get_uidl (message_t msg, char *buffer, size_t buflen, size_t *pwritten)
+message_get_uidl (message_t msg, char *buffer, size_t buflen, size_t *pwriten)
 {
   header_t header = NULL;
+  size_t n = 0;
+  int status;
+
   if (msg == NULL || buffer == NULL || buflen == 0)
     return EINVAL;
 
   buffer[0] = '0';
   if (msg->_get_uidl)
-    return msg->_get_uidl (msg, buffer, buflen, pwritten);
+    return msg->_get_uidl (msg, buffer, buflen, pwriten);
 
+  /* Be compatible with Qpopper ? qppoper saves the UIDL in "X-UIDL".
+     We use "Message-ID" as a fallback.  Is this bad ? should we generate
+     a chksum or do the same as Qpopper save it in the header.  */
   message_get_header (msg, &header);
-  return header_get_value (header, "X-UIDL", buffer, buflen, pwritten);
+  if ((status = header_get_value (header, "X-UIDL", buffer, buflen, &n)) == 0
+      || (status = header_get_value (header, "Message-ID", buffer,
+				     buflen, &n)) == 0)
+    {
+      /* We need to collapse the header if it was mutiline.  */
+      /* FIXME: Is header_get_value suppose to do this ?  */
+      char *s, *e;
+      for (s = buffer, e = buffer + n; s <= e; s++)
+	{
+	  if (isspace (*s))
+	    memmove (s, s + 1, e - s);
+	}
+      return 0;
+    }
+  if (pwriten)
+    *pwriten = n;
+  return status;
 }
 
 int

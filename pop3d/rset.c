@@ -1,5 +1,5 @@
 /* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -22,7 +22,8 @@
 int
 pop3_rset (const char *arg)
 {
-  int i = 0, total = 0;
+  size_t i;
+  size_t total = 0;
 
   if (strlen (arg) != 0)
     return ERR_BAD_ARGS;
@@ -33,8 +34,14 @@ pop3_rset (const char *arg)
   mailbox_messages_count (mbox, &total);
 
   for (i = 1; i <= total; i++)
-    /* FIXME: undelete message i */ ;
-
+    {
+      message_t msg;
+      attribute_t attr;
+      mailbox_get_message (mbox, i, &msg);
+      message_get_attribute (msg, &attr);
+      if (attribute_is_deleted (attr))
+	attribute_unset_deleted (attr);
+    }
   fprintf (ofile, "+OK\r\n");
   return OK;
 }
