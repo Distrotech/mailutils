@@ -1,3 +1,24 @@
+2003-10-10  Alain Magloire
+
+	GNU Mailutils 0.4 was released.  New code added.
+
+	* configure.ac: Added include/mailutils/sys/Makefile.
+	* mailbox/pop/Makefile.am (libmu_pop_la_sources): Added all the pop3_*.c code
+	now part of libmu_pop.a
+	* include/mailutils/Makefile.am (pkginclude_HEADERS): Added file pop3d.h
+	(SUBDIRS): New directory sys added.
+	* include/mailutils/sys/Makefile.am: new Makefile.am
+	* example/Makefile.am: pop3client.c Added.
+
+	* doc/rfc/rfc3206.txt: New publish RFC for POP3
+
+2003-10-10  Alain Magloire
+
+	* mailbos/pop/pop3_readline.c (pop3_getline): Use stream_sequential_readline()
+	instead of stream_readline() and do not maintain any offsets.
+	* include/mailutils/sys/pop3d.h (struct mu_pop3_work_buf): Remove of the offset field.
+	* examples/pop3client.c: Changes to check for errors.
+
 2003-10-10  Sergey Poznyakoff
 
 	* configure.ac: Raised patchlevel number
