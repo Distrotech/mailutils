@@ -23,8 +23,7 @@ mail_start "--file=%mbox1"
 mail_command "set readonly"
 
 mail_command "set folder=\"$MU_FOLDER_DIR\""
-# FIXME: Need -re here
-#mail_test "folders" "one  two"
+mail_test "folders" -re "one.*two"
 
 mail_test "file +one" \
  "Held 4 messages in $MU_SPOOL_DIR/mbox1" 
@@ -55,6 +54,6 @@ mail_test "file &" \
 mail_test "sum" \
  "\"$MU_SPOOL_DIR/mbox\": 1 messages 1 new"
 mail_test "headers" \
- ">N   1 Sergey Poznyakoff  Sun Jul 16 12:11  12/429   MBOX"	
+ ">N   1 Sergey Poznyakoff  Sun Jul 16 12:11  12/425   MBOX"	
 
 #End of folder.exp
