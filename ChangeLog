@@ -1,5 +1,11 @@
 2004-02-08  Wojciech Polak
 
+	* pop3d/pop3d.c (pop3d_mainloop): Terminate the session
+	after receiving an illegal TLS packet.
+	* imap4d/starttls.c (imap4d_starttls): Likewise.
+
+2004-02-08  Wojciech Polak
+
 	* doc/texinfo/*: Updated to the current API.
 	* doc/man/*: Too many outdated stuff... Replaced it
 	with the "always fresh" man pages ;).
