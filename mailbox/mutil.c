@@ -30,6 +30,7 @@
 #include <unistd.h>
 
 #include <mailutils/mutil.h>
+#include <mailutils/iterator.h>
 
 /* convert a sequence of hex characters into an integer */
 
@@ -325,21 +326,79 @@ util_cpystr (char *dst, const char *src, size_t size)
   return len;
 }
 
-static struct passwd *(*_app_getpwnam) __P((const char *)) = NULL;
+static list_t *_app_getpwnam = NULL;
 
 void
 mu_register_getpwnam (struct passwd *(*fun) __P((const char *)))
 {
-  _app_getpwnam = fun;
+  if (!_app_getpwnam && list_create (&_app_getpwnam))
+    return;
+  list_append (_app_getpwnam, fun);
 }
 
 struct passwd *
 mu_getpwnam (const char *name)
 {
   struct passwd *p;
+  iterator_t itr;
 
-  p = getpwnam (name);
-  if (!p && _app_getpwnam)
-    p = (*_app_getpwnam)(name);
+  p = getpwnam (name); 
+
+  if (!p && iterator_create (&itr, _app_getpwnam) == 0)
+    {
+      struct passwd *(*fun) __P((char *));
+      for (iterator_first (itr); !p && !iterator_is_done (itr);
+	   iterator_next (itr))
+	{
+	  iterator_current (itr, (void **)&fun);
+	  p = (*fun) (name);
+	}
+
+      iterator_destroy (&itr);
+    }
   return p;
 }
+
+#ifdef USE_VIRTUAL_DOMAINS
+
+int mu_virtual_domain;
+
+struct passwd *
+getpwnam_virtual (const char *u)
+{
+  struct passwd *pw = NULL;
+  FILE *pfile;
+  int i = 0, len = strlen (u), delim = 0;
+  char *filename;
+  
+  mu_virtual_domain = 0;
+  for (i = 0; i < len && delim == 0; i++)
+    if (u[i] == '!' || u[i] == ':' || u[i] == '@')
+      delim = i;
+
+  if (delim == 0)
+    return NULL;
+
+  filename = malloc (strlen (SITE_VIRTUAL_PWDDIR) +
+		     strlen (&u[delim + 1]) + 1);
+  if (filename == NULL)
+    return NULL;
+
+  sprintf (filename, "%s/%s", SITE_VIRTUAL_PWDDIR, &u[delim + 1]);
+  pfile = fopen (filename, "r");
+  free (filename);
+	  
+  if (pfile)
+    while ((pw = fgetpwent (pfile)) != NULL)
+      {
+	if (strlen (pw->pw_name) == delim && !strncmp (u, pw->pw_name, delim))
+	  {
+	    mu_virtual_domain = 1;
+	    break;
+	  }
+      }
+
+  return NULL;
+}
+
+#endif
