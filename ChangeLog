@@ -21,6 +21,18 @@
 	* sieve/testsuite/Reject: Use regexp instead of hardcoded
 	  version number.
 	
+	* testsuite/spool/bigto.mbox: New file. A mailbox for
+	  testing the behaviour of various utilities on
+	  structured headers that contain long lists of addresses.
+	* testsuite/spool/DISTFILES: Added bigto.mbox
+	* frm/testsuite/frm/test.exp: Test frm -l on long to: headers.
+	* sieve/testsuite/scripts/numaddr.sv: New file. A script invoking
+	  loadable test.
+	* sieve/testsuite/scripts/DISTFILES: Added numaddr.sv
+	* sieve/testsuite/sieve/ext.exp: New file. Test for sieve loadable
+	  extensions.
+	* sieve/testsuite/sieve/DISTFILES: Added ext.exp
+	
 2002-11-21  Sergey Poznyakoff 
 
 	* mailbox/file_stream.c (_file_destroy): Bugfix. Do not close the
