@@ -295,6 +295,13 @@ static int _mime_parse_mpart_message(mime_t mime)
 	return ret;
 }
 
+static int _mime_message_fd(stream_t stream, int *fd)
+{
+	struct _mime_part *mime_part = stream->owner;
+
+	return stream_get_fd(mime_part->mime->stream, fd);
+}
+
 static int _mime_message_read(stream_t stream, char *buf, size_t buflen, off_t off, size_t *nbytes)
 {
 	struct _mime_part *mime_part = stream->owner;
@@ -448,7 +455,9 @@ int mime_get_part(mime_t mime, int part, message_t *msg)
 					if ( ( ret = stream_create(&stream, MU_STREAM_READ, mime_part) ) == 0 ) {
 						body_set_size (body, _mime_body_size, mime_part);
 						stream_set_read(stream, _mime_message_read, mime_part);
+						stream_set_fd(stream, _mime_message_fd, mime_part);
 						body_set_stream(body, stream, mime_part);
+						message_set_body(mime_part->msg, body, mime_part);
 						*msg = mime_part->msg;
 						return 0;
 					}

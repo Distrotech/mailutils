@@ -25,89 +25,102 @@
 
 struct _file_stream
 {
-	FILE		*file;
-	int 		offset;
+  FILE		*file;
+  int 		offset;
 };
 
-static void _file_destroy(stream_t stream)
+static void
+_file_destroy (stream_t stream)
 {
-	struct _file_stream *fs = stream->owner;	
+  struct _file_stream *fs = stream->owner;
 
-	if ( fs->file )
-		fclose(fs->file);
-	free(fs); 
+  if (fs->file)
+    fclose (fs->file);
+  free (fs);
 }
 
-static int _file_read(stream_t stream, char *optr, size_t osize, off_t offset, size_t *nbytes)
+static int
+_file_read (stream_t stream, char *optr, size_t osize,
+	    off_t offset, size_t *nbytes)
 {
-	struct _file_stream *fs = stream->owner;
+  struct _file_stream *fs = stream->owner;
 
-	if ( fs->offset != offset ) {
-		fseek( fs->file, offset, SEEK_SET );
-		fs->offset = offset;
-	}
-	*nbytes = fread( optr, osize, 1, fs->file);
-	if ( *nbytes == 0 ) {
-		if ( ferror( fs->file ) )
-			return errno;
-	} else
-		fs->offset += *nbytes;
-	return 0;
-}
-	
-
-static int _file_write(stream_t stream, const char *iptr, size_t isize, off_t offset, size_t *nbytes)
-{
-	struct _file_stream *fs = stream->owner;
-
-	if ( fs->offset != offset ) {
-		fseek( fs->file, offset, SEEK_SET );
-		fs->offset = offset;
-	}
-	*nbytes = fwrite( iptr, isize, 1, fs->file);
-	if ( *nbytes == 0 ) {
-		if ( ferror( fs->file ) )
-			return errno;
-	} else
-		fs->offset += *nbytes;
-	return 0;
+  if (fs->offset != offset)
+    {
+      fseek (fs->file, offset, SEEK_SET);
+      fs->offset = offset;
+    }
+  *nbytes = fread (optr, osize, 1, fs->file);
+  if (*nbytes == 0)
+    {
+      if (ferror(fs->file))
+	return errno;
+    }
+  else
+    fs->offset += *nbytes;
+  return 0;
 }
 
-int file_stream_create(stream_t *stream, const char *filename, int flags)
+static int
+_file_write (stream_t stream, const char *iptr, size_t isize,
+	    off_t offset, size_t *nbytes)
 {
-	struct _file_stream *fs;
-	char *mode;
-	int ret;
-		
-	if ( stream == NULL || filename == NULL )
-		return EINVAL;
-		
-	if ( ( fs = calloc(sizeof(struct _file_stream), 1) ) == NULL )
-		return ENOMEM;
+  struct _file_stream *fs = stream->owner;
 
-	if ( ( flags & ( MU_STREAM_READ|MU_STREAM_WRITE ) ) == ( MU_STREAM_READ|MU_STREAM_WRITE ) ) 
-		mode = "r+b";
-	else if ( flags & MU_STREAM_READ ) 
-		mode = "rb";
-	else if ( flags & MU_STREAM_WRITE )
-		mode = "wb";
-	else
-		return EINVAL;
+  if (fs->offset != offset)
+    {
+      fseek (fs->file, offset, SEEK_SET);
+      fs->offset = offset;
+    }
+  *nbytes = fwrite (iptr, isize, 1, fs->file);
+  if (*nbytes == 0)
+    {
+      if (ferror (fs->file))
+	return errno;
+    }
+  else
+    fs->offset += *nbytes;
+  return 0;
+}
 
-	if ( ( fs->file = fopen(filename, mode) ) == NULL ) {
-		ret = errno;
-		free( fs );
-		return ret;
-	}		
-	if ( ( ret = stream_create(stream, flags, fs) ) != 0 ) {
-		fclose( fs->file );
-		free( fs );
-		return ret;
-	}
+int
+file_stream_create (stream_t *stream, const char *filename, int flags)
+{
+  struct _file_stream *fs;
+  char *mode;
+  int ret;
 
-	stream_set_read(*stream, _file_read, fs );
-	stream_set_write(*stream, _file_write, fs );
-	stream_set_destroy(*stream, _file_destroy, fs );
-	return 0;
+  if (stream == NULL || filename == NULL)
+    return EINVAL;
+
+  if ((fs = calloc(sizeof(struct _file_stream), 1)) == NULL)
+    return ENOMEM;
+
+  if (flags & MU_STREAM_RDWR)
+    mode = "r+b";
+  else if (flags & MU_STREAM_READ)
+    mode = "rb";
+  else if (flags & MU_STREAM_WRITE)
+    mode = "wb";
+  else
+    return EINVAL;
+
+  if ((fs->file = fopen (filename, mode)) == NULL)
+    {
+      ret = errno;
+      free (fs);
+      return ret;
+    }
+  if ((ret = stream_create (stream, flags, fs)) != 0)
+    {
+      fclose (fs->file);
+      free (fs);
+      return ret;
+    }
+
+  stream_set_read(*stream, _file_read, fs );
+  stream_set_write(*stream, _file_write, fs );
+  stream_set_destroy(*stream, _file_destroy, fs );
+  return 0;
 }
 
