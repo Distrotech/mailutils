@@ -301,6 +301,7 @@ main (int argc, char **argv)
   util_do_command ("set autoinc");
   util_do_command ("set regex");
   util_do_command ("set replyprefix=\"Re: \"");
+  util_do_command ("set charset=auto");
   /* Start in mail reading mode */
   util_do_command ("set mode=read");
   util_do_command ("set noquit");
@@ -410,6 +411,7 @@ main (int argc, char **argv)
 	  mailbox_get_url (mbox, &url);
 	  util_error (_("Can not open mailbox %s: %s"),
 		      url_to_string (url), mu_strerror (rc));
+	  mailbox_destroy (&mbox);
 	  exit (EXIT_FAILURE);
 	}
 
