@@ -26,17 +26,18 @@
 extern "C" { /*}*/
 #endif
 
-#define MU_STREAM_READ	   0x00000001
-#define MU_STREAM_WRITE	   0x00000002
-#define MU_STREAM_RDWR     0x00000004
-#define MU_STREAM_APPEND   0x00000008
-#define MU_STREAM_CREAT	   0x00000010
-#define MU_STREAM_NONBLOCK 0x00000020
-/* Stream will be destroy on stream_destroy without checking the owner. */
-#define MU_STREAM_NO_CHECK 0x00000040
-#define MU_STREAM_SEEKABLE 0x00000080
-#define MU_STREAM_NO_CLOSE 0x00000100
-
+#define MU_STREAM_READ	      0x00000001
+#define MU_STREAM_WRITE	      0x00000002
+#define MU_STREAM_RDWR        0x00000004
+#define MU_STREAM_APPEND      0x00000008
+#define MU_STREAM_CREAT	      0x00000010
+#define MU_STREAM_NONBLOCK    0x00000020
+/* Stream will be destroyed on stream_destroy without checking the owner. */
+#define MU_STREAM_NO_CHECK    0x00000040
+#define MU_STREAM_SEEKABLE    0x00000080
+#define MU_STREAM_NO_CLOSE    0x00000100
+#define MU_STREAM_ALLOW_LINKS 0x00000200
+  
 /* Functions useful to users of the pre-defined stream types. */
 
 extern int file_stream_create    __P ((stream_t *stream, const char* filename, int flags));
