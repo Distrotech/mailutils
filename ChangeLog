@@ -1,3 +1,54 @@
+2002-11-20  Sergey Poznyakoff 
+
+	* mailbox/mailer.c: Fixed indentation.
+
+	* include/mailutils/libsieve.h (sieve_test_lookup)
+	  (sieve_action_lookup,sieve_register_test)
+	  (sieve_register_action,sieve_register_comparator)
+	  (sieve_comparator_lookup,sieve_require_comparator)
+	  (sieve_get_comparator): Accept the pointer to 
+	  sieve machine as first argument.
+	* libsieve/sieve.h (struct sieve_machine): New members
+	  test_list, action_list and comp_list provide independent
+	  symbol space for this particular instance of sieve.
+	* libsieve/actions.c (build_mime,sieve_action_redirect): Removed
+	  unused argument.
+	  (sieve_register_standard_actions): Changed declaration.
+	* libsieve/comparator.c (sieve_register_comparator)
+	  (sieve_require_comparator,sieve_comparator_lookup)
+	  (sieve_get_comparator)
+	  (sieve_register_standard_comparators): Accept the pointer
+	  to sieve machine as first argument.
+	* libsieve/register.c (sieve_test_lookup,sieve_action_lookup)
+	  (sieve_register_test,sieve_register_action): Accept the pointer
+	  to sieve machine as first argument.
+	* libsieve/require.c: Adjust for above changes.
+	* libsieve/sieve.y: Likewise.
+	* libsieve/tests.c: Likewise.
+	  (sieve_test_header): New tag :mime. Directs header to test
+	  headers in all parts of a multipart message, not only main
+	  message headers.
+	* libsieve/util.c (sieve_tag_lookup): New function.
+
+	* sieve/sieve.c: Added "mailer" capability. Removed spurious
+	  --mailer-url command line switch.
+	  (main): Do not create mailer. sieve_message() will do it
+	  if necessary.
+	* sieve/testsuite/scripts/header-mime.sv: New file. Test script
+	  for 'header :mime' extension.
+	* sieve/testsuite/scripts/DISTFILES: Added header-mime.sv
+	* sieve/testsuite/sieve/header.exp: Test :mime tag.
+	
+	* mail.local/mail.local.h (mda): Changed prototype.
+	  (struct mda_data): Replaced FILE *fp with message_t msg.
+	* mail.local/script.c: Adjust for above changes.
+	* mail.local/main.c (make_tmp): Create a message instead
+	  of returning file pointer.
+	  (argp_capa): Added "mailer" capability.
+	  (sieve_test): Second argument.
+	  (mda,deliver): Take message_t as first argument, instead of
+	  FILE*.
+
 2002-11-19  Sergey Poznyakoff
 
 	* libsieve/comparator.c (i_ascii_casemap_contains): Fixed
