@@ -17,4 +17,5 @@
 
 /* Define if using libpam */
 #undef USE_LIBPAM
+#undef HAVE_SNPRINTF
 

@@ -15,7 +15,6 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-#include <locker.h>
 #include <errno.h>
 #include <sys/types.h>
 #include <stdlib.h>
@@ -28,6 +27,8 @@
 #include <time.h>
 #include <utime.h>
 #include <signal.h>
+
+#include <mailutils/locker.h>
 
 #define LOCKFILE_ATTR           0444
 #define LOCK_EXPIRE_TIME        (5 * 60)

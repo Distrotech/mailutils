@@ -21,7 +21,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <io0.h>
+#include <stream0.h>
 
 struct _ts_desc {
 	const char *encoding;

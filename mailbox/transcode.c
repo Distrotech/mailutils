@@ -21,8 +21,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <io0.h>
-#include <transcode.h>
+#include <steam0.h>
+#include <mailutils/transcode.h>
 
 int _base64_decode(stream_t stream, char *optr, size_t osize, off_t offset, size_t *nbytes);
 int _base64_encode(stream_t stream, const char *optr, size_t osize, off_t offset, size_t *nbytes);

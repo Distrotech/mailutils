@@ -21,12 +21,12 @@
 #include <registrar0.h>
 #include <message0.h>
 #include <url0.h>
-#include <io0.h>
+#include <stream0.h>
 #include <body0.h>
 #include <attribute0.h>
-#include <header.h>
-#include <auth.h>
-#include <locker.h>
+#include <mailutils/header.h>
+#include <mailutils/auth.h>
+#include <mailutils/locker.h>
 
 //#define HAVE_PTHREAD_H
 
@@ -37,7 +37,6 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <signal.h>
-#include <mailutils_errno.h>
 #include <time.h>
 #ifdef HAVE_PTHREAD_H
 # include <pthread.h>
@@ -48,6 +47,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <limits.h>
+#include <errno.h>
 
 #define ATTRIBUTE_IS_DELETED(flag)        (flag & MU_ATTRIBUTE_DELETED)
 #define ATTRIBUTE_IS_EQUAL(flag1, flag2)  (flag1 == flag2)
@@ -160,7 +160,7 @@ unix_create (mailbox_t *pmbox, const char *name)
 
   /* Sanity check.  */
   if (name == NULL || *name == '\0')
-    return MU_ERROR_INVALID_ARG;
+    return EINVAL;
 
   name_len = strlen (name);
 
@@ -183,14 +183,14 @@ unix_create (mailbox_t *pmbox, const char *name)
   /* Allocate memory for mbox.  */
   mbox = calloc (1, sizeof (*mbox));
   if (mbox == NULL)
-    return MU_ERROR_OUT_OF_MEMORY;
+    return ENOMEM;
 
   /* Allocate specific unix mbox data.  */
   mud = mbox->data = calloc (1, sizeof (*mud));
   if (mbox->data == NULL)
     {
       unix_destroy (&mbox);
-      return MU_ERROR_OUT_OF_MEMORY;
+      return ENOMEM;
     }
 
   /* Copy the name.  */
@@ -198,7 +198,7 @@ unix_create (mailbox_t *pmbox, const char *name)
   if (mbox->name == NULL)
     {
       unix_destroy (&mbox);
-      return MU_ERROR_OUT_OF_MEMORY;
+      return ENOMEM;
     }
   memcpy (mbox->name, name, name_len);
 
@@ -212,7 +212,7 @@ unix_create (mailbox_t *pmbox, const char *name)
       if (mud->dirname == NULL)
 	{
 	  unix_destroy (&mbox);
-	  return MU_ERROR_OUT_OF_MEMORY;
+	  return ENOMEM;
 	}
       memcpy (mud->dirname, name, sep - name);
 
@@ -221,7 +221,7 @@ unix_create (mailbox_t *pmbox, const char *name)
       if (mud->basename == NULL)
 	{
 	  unix_destroy (&mbox);
-	  return MU_ERROR_OUT_OF_MEMORY;
+	  return ENOMEM;
 	}
       memcpy (mud->basename, sep, name_len - (sep - name));
     }
@@ -233,7 +233,7 @@ unix_create (mailbox_t *pmbox, const char *name)
       if (mud->dirname == NULL)
 	{
 	  unix_destroy (&mbox);
-	  return MU_ERROR_OUT_OF_MEMORY;
+	  return ENOMEM;
 	}
       mud->dirname[0] = '.';
 
@@ -241,7 +241,7 @@ unix_create (mailbox_t *pmbox, const char *name)
       if (mud->basename == NULL)
 	{
 	  unix_destroy (&mbox);
-	  return MU_ERROR_OUT_OF_MEMORY;
+	  return ENOMEM;
 	}
       memcpy (mud->basename, name, name_len);
     }

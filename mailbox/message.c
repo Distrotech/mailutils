@@ -16,7 +16,7 @@
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 
-#include <io0.h>
+#include <stream0.h>
 #include <message0.h>
 
 #include <errno.h>

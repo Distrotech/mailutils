@@ -15,15 +15,6 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-#include <mailbox0.h>
-#include <io0.h>
-#include <body0.h>
-#include <message0.h>
-#include <registrar0.h>
-#include <auth0.h>
-#include <header0.h>
-#include <attribute0.h>
-
 #include <termios.h>
 #include <errno.h>
 #include <stdlib.h>
@@ -31,6 +22,15 @@
 #include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
+
+#include <mailbox0.h>
+#include <stream0.h>
+#include <body0.h>
+#include <message0.h>
+#include <registrar0.h>
+#include <auth0.h>
+#include <header0.h>
+#include <attribute0.h>
 
 
 /* The different possible states of a Pop client, it maps to the POP3 commands.
@@ -54,8 +54,8 @@ enum pop_state
   POP_TOP_TX,  POP_TOP_ACK,  POP_TOP_RX,
   POP_UIDL_TX, POP_UIDL_ACK,
   POP_USER_TX, POP_USER_ACK,
-  POP_CLOSE_CONNECTION, /* I do not think a shutdown of a connection will
-			   block.  More for the symmetry.  */
+  POP_CLOSE_CONNECTION /* I do not think a shutdown of a connection will
+			  block.  More for the symmetry.  */
 };
 
 /*  Those two are exportable funtions i.e. they are visible/call when you
@@ -535,6 +535,7 @@ pop_open (mailbox_t mbox, int flags)
       /*
 	fprintf (stderr, "pop_open unknown state\n");
       */
+      break;
     }/* End AUTHORISATION state. */
 
   /* Spawn cleanup functions.  */
@@ -596,6 +597,7 @@ pop_close (mailbox_t mbox)
       /*
 	fprintf (stderr, "pop_close unknow state");
       */
+      break;
     } /* UPDATE state.  */
 
   /* free the messages */
@@ -794,6 +796,7 @@ pop_messages_count (mailbox_t mbox, size_t *pcount)
       /*
 	fprintf (stderr, "pomp_messages_count: unknow state\n");
       */
+      break;
     }
 
   status = sscanf (bio->buffer, "+OK %d %d", &(mpd->messages_count),
@@ -937,6 +940,7 @@ pop_expunge (mailbox_t mbox)
 		  break;
 		default:
 		  /* fprintf (stderr, "pop_expunge: unknow state\n"); */
+		  break;
 		} /* switch (state) */
 	    } /* if attribute_is_deleted() */
 	} /* message_get_attribute() */
@@ -1068,6 +1072,7 @@ pop_uidl (message_t msg, char *buffer, size_t buflen, size_t *pnwriten)
       /*
 	fprintf (stderr, "pop_uidl state\n");
       */
+      break;
     }
 
   CLEAR_STATE (mpd);
@@ -1181,6 +1186,7 @@ pop_header_read (stream_t is, char *buffer, size_t buflen,
       break;
     default:
 	  /* fprintf (stderr, "pop_header_blurb unknown state\n"); */
+      break;
     } /* switch (state) */
 
   if (nread == 0)
@@ -1295,6 +1301,7 @@ pop_readstream (stream_t is, char *buffer, size_t buflen,
       }
     default:
       /* fprintf (stderr, "pop_readstream unknow state\n"); */
+      break;
     } /* Switch state.  */
 
   if (nread == 0)

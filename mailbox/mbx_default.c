@@ -1,9 +1,9 @@
-#include <mailbox.h>
 #include <string.h>
 #include <stdlib.h>
 #include <paths.h>
 #include <errno.h>
 #include <stdio.h>
+#include <mailutils/mailbox.h>
 
 #ifndef _PATH_MAILDIR
 # define _PATH_MAILDIR "/var/spool/mail"

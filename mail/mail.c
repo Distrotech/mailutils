@@ -1,5 +1,5 @@
 /* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -20,19 +20,24 @@
 #endif
 
 #include <errno.h>
-#include <mailbox.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
 #include <getopt.h>
 
+#include <mailutils/mailbox.h>
+
 #ifdef HAVE_PATHS_H
-#include <paths.h>
+# include <paths.h>
 #endif
 
 #ifndef _PATH_MAILDIR
-#define _PATH_MAILDIR "/var/spool/mail"
+# define _PATH_MAILDIR "/var/spool/mail"
+#endif
+
+#ifndef VERSION
+# define VERSION "0.0"
 #endif
 
 static struct option long_options[] =
@@ -45,15 +50,26 @@ static struct option long_options[] =
 int
 main (int argc, char **argv)
 {
-  char *foo, bar[80];
-  int i = 0;
-  char c = 0;
-  char *mboxname = 0;
-  mailbox *mbox = 0;
+  char bar[80];
+  char buf[128];
+  char foo[80];
+  mailbox_t mbox;
+  message_t msg;
+  header_t hdr;
+  body_t body;
+  attribute_t attr;
+  stream_t os;
+  int c;
+  char *mboxname = NULL;
+  size_t count = 0;
+  int status;
+  int num = 0;
+  size_t n;
 
-  i = getopt_long (argc, argv, "hv", long_options, (int *)0);
 
-  switch (i)
+  c = getopt_long (argc, argv, "hv", long_options, (int *)0);
+
+  switch (c)
     {
     case 'v':
       printf("mail (GNU mailutils) %s\n", VERSION);
@@ -74,25 +90,20 @@ Report bugs to <bug-mailutils@gnu.org>.\n");
       break;
     }
 
+  if (argc > 1)
+    mboxname = argv[1];
 
-
-  mboxname = getenv ("MAIL");
-  if (mboxname == NULL)
+  if ((status = mailbox_create_default (&mbox, mboxname)) != 0 ||
+      (status = mailbox_open (mbox, MU_MAILBOX_RDWR)) != 0)
     {
-      foo = getenv ("LOGNAME");
-      mboxname = malloc ((strlen(foo) + strlen(_PATH_MAILDIR) + 2) * sizeof(char));
-      strcpy (mboxname, _PATH_MAILDIR "/");
-      strcat (mboxname, foo);
-      free (foo);
+      fprintf (stderr, "Ack, %s, reading %s\n", strerror (status), mboxname);
+      exit (1);
     }
 
-  mbox = mbox_open (mboxname);
-  if (mbox == NULL)
-    {
-      fprintf (stderr, "Ack, %s, reading %s\n", strerror(errno), mboxname);
-	  exit (1);
-    }
-  printf ("Number of messages: %d\n", mbox->messages);
+  mailbox_messages_count (mbox, &count);
+  printf ("Experimental Mail. Type ? for help\n");
+  printf ("Number of messages: %d\n", count);
+
   while (1)
     {
       printf ("& ");
@@ -101,57 +112,167 @@ Report bugs to <bug-mailutils@gnu.org>.\n");
       c = bar[0];
       if (c == 'd' || c == 'D' || c == 'b' || c == 'B' || c == 'h' ||
 	  c == 'H' || c == 'r' || c == 'R' || c == 'f' || c == 'F' ||
-	  c == 'T' || c == 't' )
+	  c == 'T' || c == 't' || c == 'p' || c == 'P')
 	{
-	  printf ("# ");
-	  fgets (bar, 80, stdin);
+	  if (sscanf (bar, "%80s %d\n", foo, &num) == 1)
+	    {
+	      printf ("# ");
+	      fgets (bar, 80, stdin);
+	      num = atoi (bar);
+	    }
 	}
       switch (c)
 	{
 	case 'q':
 	case 'Q':
-	  mbox_close (mbox);
+	  printf ("<<Quit>>\n");
+	  mailbox_close (mbox);
 	  return 0;
 	  break;
 	case 'f':
 	case 'F':
-	  foo = mbox_header_line (mbox, atoi (bar) - 1, "from");
-	  printf ("%s\n", foo);
-	  free (foo);
+	  printf ("<<From %d>>\n", num);
+	  {
+	    size_t i;
+	    if (num == 0)
+	      num = 1;
+	    for (i = num; i <= count; i++)
+	      {
+		if ((status = mailbox_get_message (mbox, i, &msg)) != 0 ||
+		    (status = message_get_header (msg, &hdr)) != 0 ||
+		    (status = header_get_value (hdr, "From", buf,
+						sizeof(buf), &n)) != 0)
+		  {
+		    fprintf (stderr, "msg %d: %s\n", i, strerror (status));
+		    break;
+		  }
+		else
+		  printf ("%d From: %s\n", i, buf);
+		if ((i % 10) == 0)
+		  {
+		    char tmp[16];
+		    *tmp = '\0';
+		    printf ("\nHit (q|Q)uit to break\n");
+		    fgets (tmp, sizeof(tmp), stdin);
+		    if (*tmp == 'q' || *tmp == 'Q')
+		      break;
+		  }
+	      }
+	  }
 	  break;
 	case 'r':
 	case 'R':
- 	  foo = mbox_get_header (mbox, atoi (bar) - 1);
-          printf ("%s\n", foo);
-	  free (foo);
-	  foo = mbox_get_body (mbox, atoi (bar) - 1);
-	  printf ("%s", foo);
-	  free (foo);
+	  printf ("<<Reply %d>>\n", num);
 	  break;
 	case 'h':
 	case 'H':
-	  foo = mbox_get_header (mbox, atoi (bar) - 1);
-	  printf ("%s", foo);
-	  free (foo);
+	  printf ("<<Header %d>>\n", num);
+	  if ((status = mailbox_get_message (mbox, num, &msg)) != 0 ||
+	      (status = message_get_header (msg, &hdr)) != 0 ||
+	      (status = header_get_stream (hdr, &os)) != 0)
+	    fprintf (stderr, "msg %d: %s\n", num, strerror (status));
+	  else
+	    {
+	      off_t off = 0;
+	      while (stream_read (os, buf, sizeof (buf) - 1,
+				  off, &n) == 0 && n != 0)
+		{
+		  buf[n] = '\0';
+		  printf (buf);
+		  off += n;
+		}
+	    }
 	  break;
 	case 'b':
 	case 'B':
-	  foo = mbox_get_body (mbox, atoi (bar) - 1);
-      printf ("%s", foo);
-      free (foo);
-      break;
+	  printf ("<<Body %d>>\n", num);
+	  if ((status = mailbox_get_message (mbox, num, &msg)) != 0 ||
+	      (status = message_get_body (msg, &body)) != 0 ||
+	      (status = body_get_stream (body, &os)) != 0)
+	    fprintf (stderr, "msg %d: %s\n", num, strerror (status));
+	  else
+	    {
+	      off_t off = 0;
+	      while (stream_read (os, buf, sizeof (buf) - 1,
+				  off, &n) == 0 && n != 0)
+		{
+		  buf[n] = '\0';
+		  printf (buf);
+		  off += n;
+		}
+	    }
+	  break;
 	case 'd':
 	case 'D':
-	  mbox_delete (mbox, atoi (bar) - 1);
+	  printf ("<<Delete %d>>\n", num);
+	  if ((status = mailbox_get_message (mbox, num, &msg)) != 0 ||
+	      (status = message_get_attribute (msg, &attr)) != 0)
+	    fprintf (stderr, "msg %d: %s\n", num, strerror (status));
+	  else
+	    {
+	      status = attribute_set_deleted (attr);
+	      if (status != 0)
+		fprintf (stderr, "Delete %d: %s\n", num, strerror (status));
+	      else
+		printf ("msg %d mark deleted\n", num);
+	    }
+	  break;
+	case 'u':
+	case 'U':
+	  printf ("<<Undelete %d>>\n", num);
+	  if ((status = mailbox_get_message (mbox, num, &msg)) != 0 ||
+	      (status = message_get_attribute (msg, &attr)) != 0)
+	    fprintf (stderr, "msg %d: %s\n", num, strerror (status));
+	  else
+	    {
+	      status = attribute_unset_deleted (attr);
+	      if (status != 0)
+		fprintf (stderr, "Undelete %d: %s\n", num, strerror (status));
+	      else
+		printf ("msg %d unmark deleted\n", num);
+	    }
 	  break;
 	case 'x':
 	case 'X':
-	  mbox_expunge (mbox);
+	  printf ("<<Expunge>>\n");
+	  status = mailbox_expunge (mbox);
+	  if (status != 0)
+	    printf ("Expunging: %s\n", strerror (status));
+	  mailbox_messages_count (mbox, &count);
+	  printf ("Number of messages: %d\n", count);
 	  break;
-    case 't':
-    case 'T':
-      mbox_tester (mbox, atoi (bar) - 1);
-      break;
+	case 'p':
+	case 'P':
+	  printf ("<<Print %d>>\n", num);
+	  if ((status = mailbox_get_message (mbox, num, &msg)) != 0 ||
+	      (status = message_get_stream (msg, &os)) != 0)
+	    {
+	      fprintf (stderr, "msg %d: %s\n", num, strerror (status));
+	      break;
+	    }
+	  else
+	    {
+	      off_t off = 0;
+	      while (stream_read (os, buf, sizeof (buf) - 1,
+				  off, &n) == 0 && n != 0)
+		{
+		  buf[n] = '\0';
+		  printf (buf);
+		  off += n;
+		}
+	    }
+	  break;
+	case '?':
+	  printf ("\
+ (d|D)elete  num-msg\n\
+ (b|B)ody    num-msg\n\
+ (f|F)rom    num-msg\n\
+ (h|H)eader  num-msg\n\
+ (p|P)rint   num-msg\n\
+ (q|Q)uit    num-msg\n\
+ (r|R)eply   num-msg\n\
+e(x|X)punge  num-msg\n");
+	  break;
 	default:
 	  break;
 	}

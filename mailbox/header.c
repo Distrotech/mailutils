@@ -19,13 +19,13 @@
 #ifdef HAVE_CONFIG_H
 # include "config.h"
 #endif
-
-#include <header0.h>
-#include <io0.h>
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <errno.h>
+
+#include <header0.h>
+#include <stream0.h>
 
 static int header_parse (header_t h, const char *blurb, int len);
 static int header_read (stream_t is, char *buf, size_t buflen,

@@ -15,8 +15,6 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
-#include <mailbox0.h>
-#include <registrar0.h>
 
 #include <dirent.h>
 #include <errno.h>
@@ -26,6 +24,9 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <ctype.h>
+
+#include <mailbox0.h>
+#include <registrar0.h>
 
 static int mailbox_mh_create (mailbox_t *pmbox, const char *name);
 static void mailbox_mh_destroy (mailbox_t *pmbox);

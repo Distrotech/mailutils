@@ -1,0 +1,96 @@
+/* GNU mailutils - a suite of utilities for electronic mail
+   Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU Library General Public License as published by
+   the Free Software Foundation; either version 2, or (at your option)
+   any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU Library General Public License for more details.
+
+   You should have received a copy of the GNU Library General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
+
+#ifndef _MAILBOX0_H
+#define _MAILBOX0_H
+
+#include <mailutils/mailbox.h>
+#include <mailutils/event.h>
+
+#include <sys/types.h>
+#include <stdio.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#ifndef __P
+# ifdef __STDC__
+#  define __P(args) args
+# else
+#  define __P(args) ()
+# endif
+#endif /*__P */
+
+struct _mailbox
+{
+  /* Data */
+  char *name;
+  auth_t auth;
+  locker_t locker;
+  stream_t stream;
+  url_t url;
+
+  /* register events */
+  event_t event;
+  size_t event_num;
+
+  /* debug information */
+  int debug_level;
+  void *debug_arg;
+  char *debug_buffer;
+  size_t debug_bufsize;
+  int (*debug_print)       __P ((void *arg, const char *, size_t));
+
+  /* Back pointer to the specific mailbox */
+  void *data;
+
+  /* Public methods */
+
+  int  (*_create)          __P ((mailbox_t *, const char *));
+  void (*_destroy)         __P ((mailbox_t *));
+
+  int  (*_open)            __P ((mailbox_t, int flag));
+  int  (*_close)           __P ((mailbox_t));
+
+  /* messages */
+  int  (*_get_message)     __P ((mailbox_t, size_t msgno, message_t *msg));
+  int  (*_append_message)  __P ((mailbox_t, message_t msg));
+  int  (*_messages_count)  __P ((mailbox_t, size_t *num));
+  int  (*_expunge)         __P ((mailbox_t));
+
+  int  (*_scan)            __P ((mailbox_t, size_t msgno, size_t *count));
+  int  (*_is_updated)      __P ((mailbox_t));
+
+  int  (*_size)            __P ((mailbox_t, off_t *size));
+
+  /* private */
+  int  (*_num_deleted)     __P ((mailbox_t, size_t *));
+};
+
+/* private */
+extern int mailbox_num_deleted    __P ((mailbox_t, size_t *));
+
+extern int mailbox_notification   __P ((mailbox_t mbox, size_t type));
+
+extern int mailbox_debug __P ((mailbox_t, int level, const char *fmt, ...));
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* _MAILBOX0_H */

@@ -27,8 +27,8 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 
-#include <io0.h>
-#include <tcp.h>
+#include <stream0.h>
+#include <tcp0.h>
 
 static int _tcp_close(stream_t stream)
 {

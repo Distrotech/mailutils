@@ -15,13 +15,13 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-#include <message.h>
-#include <io.h>
-
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include <mailutils/message.h>
+#include <mailutils/stream.h>
 
 #define MAX_HDR_LEN 256
 #define BUF_SIZE	2048

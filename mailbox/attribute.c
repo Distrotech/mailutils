@@ -15,12 +15,12 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-#include <attribute0.h>
-
 #include <sys/types.h>
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
+
+#include <attribute0.h>
 
 int
 attribute_create (attribute_t *pattr, void *owner)

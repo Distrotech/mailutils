@@ -15,15 +15,15 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-
-#include <body0.h>
-#include <io0.h>
-
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+
+#include <body0.h>
+#include <stream0.h>
+
 
 static int body_read (stream_t is, char *buf, size_t buflen,
 			 off_t off, size_t *pnread );

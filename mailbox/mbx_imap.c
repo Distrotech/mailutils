@@ -15,9 +15,9 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
+#include <errno.h>
 #include <mailbox0.h>
 #include <registrar0.h>
-#include <errno.h>
 
 
 static int mailbox_imap_create (mailbox_t *mbox, const char *name);

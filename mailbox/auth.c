@@ -15,13 +15,13 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-#include <auth0.h>
-#include <cpystr.h>
-
 #include <errno.h>
 #include <sys/types.h>
 #include <string.h>
 #include <stdlib.h>
+
+#include <auth0.h>
+#include <cpystr.h>
 
 int
 auth_create (auth_t *pauth, void *owner)

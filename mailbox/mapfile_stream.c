@@ -26,7 +26,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-#include <io0.h>
+#include <stream0.h>
 
 #ifdef _POSIX_MAPPED_FILES
 

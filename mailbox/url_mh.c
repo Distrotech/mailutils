@@ -16,7 +16,7 @@
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #include <url0.h>
-#include <registrar.h>
+#include <mailutils/registrar.h>
 
 #include <errno.h>
 #include <stdlib.h>

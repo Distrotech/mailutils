@@ -15,11 +15,11 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-#include <io0.h>
-
 #include <errno.h>
 #include <stdlib.h>
 #include <stdio.h>
+
+#include <stream0.h>
 
 int
 stream_create (stream_t *pstream, int flags, void *owner)

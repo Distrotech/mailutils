@@ -18,9 +18,8 @@
 
 #include <message0.h>
 #include <mime0.h>
-#include <io0.h>
+#include <stream0.h>
 #include <body0.h>
-#include <mime.h>
 
 #include <errno.h>
 #include <stdio.h>
