@@ -26,6 +26,17 @@ var_continue()
   fprintf(stdout, "(continue)\n");
 }
 
+static int var_check_args (int argc, char **argv)
+{
+  if (argc == 1)
+    {
+      util_error ("%c%s requires an argument", 
+                   util_find_env ("escape")->value[0], argv[0]);
+      return 1;
+    }
+  return 0;
+}
+
 /* ~![shell-command] */
 int
 var_shell(int argc, char **argv, struct send_environ *env)
@@ -44,7 +55,9 @@ var_command(int argc, char **argv, struct send_environ *env)
 {
   struct mail_command_entry entry;
   int status;
-  
+
+  if (var_check_args (argc, argv))
+    return 1;
   if (argv[1][0] == '#')
     return 0;
   entry = util_find_entry(mail_command_table, argv[1]);
@@ -206,8 +219,10 @@ var_headers(int argc, char **argv, struct send_environ *env)
 int
 var_insert(int argc, char **argv, struct send_environ *env)
 {
+  if (var_check_args (argc, argv))
+    return 1;
   fprintf(ofile, "%s", util_find_env(argv[1])->value);
-  return 1;
+  return 0;
 }
 
 /* ~m[mesg-list] */
@@ -301,11 +316,15 @@ var_type_input(int argc, char **argv, struct send_environ *env)
 int
 var_read(int argc, char **argv, struct send_environ *env)
 {
-  char *filename = util_fullpath(argv[1]);
-  FILE *inf = fopen(filename, "r");
+  char *filename;
+  FILE *inf;
   size_t size, lines;
   char buf[512];
   
+  if (var_check_args (argc, argv))
+    return 1;
+  filename = util_fullpath(argv[1]);
+  inf = fopen(filename, "r");
   if (!inf)
     {
       util_error("can't open %s: %s\n", filename, strerror(errno));
@@ -330,6 +349,8 @@ var_read(int argc, char **argv, struct send_environ *env)
 int
 var_subj(int argc, char **argv, struct send_environ *env)
 {
+  if (var_check_args (argc, argv))
+    return 1;
   free(env->subj);
   env->subj = strdup(argv[1]);
   return 0;
@@ -348,10 +369,16 @@ var_to(int argc, char **argv, struct send_environ *env)
 int
 var_write(int argc, char **argv, struct send_environ *env)
 {
-  char *filename = util_fullpath(argv[1]);
-  FILE *fp = fopen(filename, "w"); /*FIXME: check for the existence first */
+  char *filename;
+  FILE *fp;
   size_t size, lines;
   char buf[512];
+  
+  if (var_check_args (argc, argv))
+    return 1;
+
+  filename = util_fullpath(argv[1]);
+  fp = fopen(filename, "w"); /*FIXME: check for the existence first */
   
   if (!fp)
     {
