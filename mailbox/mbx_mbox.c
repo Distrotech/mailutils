@@ -58,6 +58,26 @@ struct _mbox_data;
 typedef struct _mbox_data* mbox_data_t;
 typedef struct _mbox_message* mbox_message_t;
 
+#define HDRSIZE      8
+const char *fhdr_table[] =
+{
+#define HFROM         0
+  "From",
+#define HTO           1
+  "To",
+#define HCC           2
+  "Cc",
+#define HSUBJECT      3
+  "Subject",
+#define HDATE         4
+  "Date",
+#define HX_UIDL       5
+  "X-UIDL",
+#define HX_UID        6
+  "X-UID",
+#define HCONTENT_TYPE 7
+  "Content-Type",
+};
 /* Keep the position of where the header and body starts and ends.
    old_flags is the "Status:" message.  */
 struct _mbox_message
@@ -70,6 +90,11 @@ struct _mbox_message
   off_t header_status_end;
   off_t body;
   off_t body_end;
+
+  /* Fast header retrieve, we save here the most common header. Reasons this
+     will speed the header search.  The header are copied on write or if we
+     the fast status failed.  */
+  char *fhdr[HDRSIZE];
 
   /* The old_flags contains the definition of Header.  */
   int old_flags;
@@ -122,7 +147,7 @@ static int mbox_close                 __P ((mailbox_t));
 static int mbox_get_message           __P ((mailbox_t, size_t, message_t *));
 static int mbox_append_message        __P ((mailbox_t, message_t));
 static int mbox_messages_count        __P ((mailbox_t, size_t *));
-static int mbox_recent_count          __P ((mailbox_t, size_t *));
+static int mbox_unseen_count          __P ((mailbox_t, size_t *));
 static int mbox_expunge               __P ((mailbox_t));
 static int mbox_scan                  __P ((mailbox_t, size_t, size_t *));
 static int mbox_is_updated            __P ((mailbox_t));
@@ -210,7 +235,7 @@ _mailbox_mbox_init (mailbox_t mailbox)
   mailbox->_get_message = mbox_get_message;
   mailbox->_append_message = mbox_append_message;
   mailbox->_messages_count = mbox_messages_count;
-  mailbox->_recent_count = mbox_recent_count;
+  mailbox->_unseen_count = mbox_unseen_count;
   mailbox->_expunge = mbox_expunge;
 
   mailbox->_scan = mbox_scan;
@@ -238,7 +263,11 @@ mbox_destroy (mailbox_t mailbox)
 	  mbox_message_t mum = mud->umessages[i];
 	  if (mum)
 	    {
+	      size_t j;
 	      message_destroy (&(mum->message), mum);
+	      for (j = 0; j < HDRSIZE; j++)
+		if (mum->fhdr[j])
+		  free (mum->fhdr[j]);
 	      free (mum);
 	    }
 	}
@@ -347,7 +376,11 @@ mbox_close (mailbox_t mailbox)
       /* Destroy the attach messages.  */
       if (mum)
 	{
+	  size_t j;
 	  message_destroy (&(mum->message), mum);
+	  for (j = 0; j < HDRSIZE; j++)
+	    if (mum->fhdr[j])
+	      free (mum->fhdr[j]);
 	  free (mum);
 	}
     }
@@ -735,6 +768,11 @@ mbox_expunge (mailbox_t mailbox)
 		  //mum->header_status = mum->header_status_end = 0;
 		  //mum->body = mum->body_end = 0;
 		  //mum->header_lines = mum->body_lines = 0;
+		  for (i = 0; i < HDRSIZE; i++)
+		    if (mum->fhdr[i])
+		      {
+			free (mum->fhdr[i]);
+		      }
 		  memset (mum, 0, sizeof (*mum));
 		  /* We are not free()ing the useless mum, but instead
 		     we put it back in the pool, to be reuse.  */
@@ -900,6 +938,34 @@ mbox_header_fill (header_t header, char *buffer, size_t len,
 {
   message_t msg = header_get_owner (header);
   return mbox_get_header_readstream (msg, buffer, len, off, pnread, 0);
+}
+
+static int
+mbox_header_get_fvalue (header_t header, const char *name, char *buffer,
+		       size_t buflen, size_t *pnread)
+{
+  size_t i, fv_value = 0;
+  message_t msg = header_get_owner (header);
+  mbox_message_t mum = message_get_owner (msg);
+  int err = ENOENT;
+  for (i = 0; i < HDRSIZE; i++)
+    if (*name == *(fhdr_table[i]) && strcasecmp (fhdr_table[i], name) == 0)
+      {
+	fv_value = (mum->fhdr[i]) ? strlen (mum->fhdr[i]) : 0;
+	if (buffer && buflen > 0)
+	  {
+	    buflen--;
+	    fv_value = (fv_value < buflen) ? fv_value : buflen;
+	    memcpy (buffer, mum->fhdr[i], fv_value);
+	    buffer[fv_value] = '\0';
+	  }
+	err = 0;
+	break;
+      }
+
+  if (pnread)
+    *pnread = fv_value;
+  return err;
 }
 
 static int
@@ -1128,12 +1194,11 @@ mbox_get_message (mailbox_t mailbox, size_t msgno, message_t *pmsg)
     status = header_create (&header, NULL, 0, msg);
     if (status != 0)
       {
-	//stream_destroy (&stream, header);
-	header_destroy (&header, msg);
 	message_destroy (&msg, mum);
 	return status;
       }
     header_set_fill (header, mbox_header_fill, msg);
+    header_set_get_fvalue (header, mbox_header_get_fvalue, msg);
     header_set_size (header, mbox_header_size, msg);
     header_set_lines (header, mbox_header_lines, msg);
     message_set_header (msg, header, mum);
@@ -1537,7 +1602,7 @@ mbox_messages_count (mailbox_t mailbox, size_t *pcount)
 }
 
 static int
-mbox_recent_count (mailbox_t mailbox, size_t *pcount)
+mbox_unseen_count (mailbox_t mailbox, size_t *pcount)
 {
   mbox_data_t mud = mailbox->data;
   mbox_message_t mum;

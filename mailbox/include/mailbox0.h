@@ -69,7 +69,7 @@ struct _mailbox
   int  (*_get_message)     __P ((mailbox_t, size_t msgno, message_t *msg));
   int  (*_append_message)  __P ((mailbox_t, message_t msg));
   int  (*_messages_count)  __P ((mailbox_t, size_t *num));
-  int  (*_recent_count)    __P ((mailbox_t, size_t *num));
+  int  (*_unseen_count)    __P ((mailbox_t, size_t *num));
   int  (*_expunge)         __P ((mailbox_t));
 
   int  (*_scan)            __P ((mailbox_t, size_t msgno, size_t *count));

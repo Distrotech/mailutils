@@ -36,6 +36,7 @@ static int mailbox_imap_close (mailbox_t);
 static int imap_expunge (mailbox_t);
 static int imap_get_message (mailbox_t, size_t, message_t *);
 static int imap_messages_count (mailbox_t, size_t *);
+static int imap_unseen_count (mailbox_t, size_t *);
 static int imap_scan (mailbox_t, size_t, size_t *);
 static int imap_is_updated (mailbox_t);
 static int imap_append_message (mailbox_t, message_t);
@@ -63,7 +64,7 @@ static int imap_attr_set_flags (attribute_t, int);
 static int imap_attr_unset_flags (attribute_t, int);
 
 /* Header.  */
-static int imap_header_read (stream_t, char*, size_t, off_t, size_t *);
+static int imap_header_read (header_t, char*, size_t, off_t, size_t *);
 static int imap_header_get_value (header_t, const char*, char *, size_t, size_t *);
 static int imap_header_fd (stream_t, int *);
 
@@ -115,6 +116,7 @@ _mailbox_imap_init (mailbox_t mailbox)
   mailbox->_get_message = imap_get_message;
   mailbox->_append_message = imap_append_message;
   mailbox->_messages_count = imap_messages_count;
+  mailbox->_unseen_count = imap_unseen_count;
   mailbox->_expunge = imap_expunge;
 
   mailbox->_scan = imap_scan;
@@ -340,18 +342,12 @@ imap_get_message0 (msg_imap_t msg_imap, message_t *pmsg)
   /* Create the header.  */
   {
     header_t header = NULL;
-    stream_t stream = NULL;
-    if ((status = header_create (&header, NULL, 0,  msg)) != 0
-        || (status = stream_create (&stream, mailbox->flags, header)) != 0)
+    if ((status = header_create (&header, NULL, 0,  msg)) != 0)
       {
-        stream_destroy (&stream, header);
-        header_destroy (&header, msg);
         message_destroy (&msg, msg_imap);
         return status;
       }
-    stream_set_read (stream, imap_header_read, header);
-    stream_set_fd (stream, imap_header_fd, header);
-    header_set_stream (header, stream, msg);
+    header_set_fill (header, imap_header_read, msg);
     header_set_get_value (header, imap_header_get_value, msg);
     message_set_header (msg, header, msg_imap);
   }
@@ -422,11 +418,17 @@ imap_get_message0 (msg_imap_t msg_imap, message_t *pmsg)
   return 0;
 }
 
+static int
+imap_unseen_count (mailbox_t mailbox, size_t *pnum)
+{
+  m_imap_t m_imap = mailbox->data;
+  *pnum = m_imap->unseen;
+  return 0;
+}
 /* There is no explicit call to get the message count.  The count is send on
    a SELECT/EXAMINE command it is also sent async, meaning it will be piggy
    back on other server response as an untag "EXIST" response.  But we still
    send a SELECT.  */
-
 static int
 imap_messages_count (mailbox_t mailbox, size_t *pnum)
 {
@@ -1014,10 +1016,9 @@ imap_header_get_value (header_t header, const char *field, char * buffer,
 }
 
 static int
-imap_header_read (stream_t stream, char *buffer, size_t buflen, off_t offset,
+imap_header_read (header_t header, char *buffer, size_t buflen, off_t offset,
 		  size_t *plen)
 {
-  header_t header = stream_get_owner (stream);
   message_t msg = header_get_owner (header);
   msg_imap_t msg_imap = message_get_owner (msg);
   m_imap_t m_imap = msg_imap->m_imap;

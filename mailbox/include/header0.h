@@ -61,11 +61,14 @@ struct _header
   size_t blurb_len;
   size_t hdr_count;
   struct _hdr *hdr;
+  size_t fhdr_count;
+  struct _hdr *fhdr;
   int flags;
 
   /* Streams.  */
   stream_t stream;
   int (*_get_value) __P ((header_t, const char *, char *, size_t , size_t *));
+  int (*_get_fvalue) __P ((header_t, const char *, char *, size_t , size_t *));
   int (*_set_value) __P ((header_t, const char *, const char *, int));
   int (*_lines)     __P ((header_t, size_t *));
   int (*_size)      __P ((header_t, size_t *));

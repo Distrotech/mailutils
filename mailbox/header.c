@@ -64,11 +64,21 @@ header_destroy (header_t *ph, void *owner)
       /* Can we destroy ?.  */
       if (h->owner == owner)
 	{
+	  size_t i;
 	  stream_destroy (&(h->stream), h);
 	  if (h->hdr)
 	    free (h->hdr);
 	  if (h->blurb)
 	    free (h->blurb);
+	  for (i = 0; i < h->fhdr_count; i++)
+	    {
+	      if (h->fhdr[i].fn)
+		free (h->fhdr[i].fn);
+	      if (h->fhdr[i].fv)
+		free (h->fhdr[i].fv);
+	    }
+	  if (h->fhdr)
+	    free (h->fhdr);
 	  free (h);
 	}
       *ph = NULL;
@@ -87,13 +97,10 @@ header_is_modified (header_t header)
   return (header) ? (header->flags & HEADER_MODIFIED) : 0;
 }
 
-/* Parsing is done in a rather simple fashion.
-   meaning we just consider an entry to be
-   a field-name an a field-value.  So they
-   maybe duplicate of field-name like "Received"
-   they are just put in the array, see _get_value()
-   on how to handle the case.
-   in the case of error .i.e a bad header construct
+/* Parsing is done in a rather simple fashion, meaning we just consider an
+   entry to be a field-name an a field-value.  So they maybe duplicate of
+   field-name like "Received" they are just put in the array, see _get_value()
+   on how to handle the case. in the case of error .i.e a bad header construct
    we do a full stop and return what we have so far.  */
 static int
 header_parse (header_t header, const char *blurb, int len)
@@ -191,11 +198,11 @@ header_parse (header_t header, const char *blurb, int len)
 	  free (header->hdr);
 	  return ENOMEM;
 	}
+      hdr[header->hdr_count].fn = fn;
+      hdr[header->hdr_count].fn_end = fn_end;
+      hdr[header->hdr_count].fv = fv;
+      hdr[header->hdr_count].fv_end = fv_end;
       header->hdr = hdr;
-      header->hdr[header->hdr_count].fn = fn;
-      header->hdr[header->hdr_count].fn_end = fn_end;
-      header->hdr[header->hdr_count].fv = fv;
-      header->hdr[header->hdr_count].fv_end = fv_end;
       header->hdr_count++;
     } /* for (header_start ...) */
 
@@ -218,7 +225,7 @@ header_set_value (header_t header, const char *fn, const char *fv, int replace)
     return header->_set_value (header, fn, fv, replace);
 
   /* Try to fill out the buffer, if we know how.  */
-  if (header->blurb == NULL && header->_get_value == NULL)
+  if (header->blurb == NULL)
     {
       int err = fill_blurb (header);
       if (err != 0)
@@ -310,6 +317,72 @@ header_set_value (header_t header, const char *fn, const char *fv, int replace)
   return 0;
 }
 
+static int
+header_set_fvalue (header_t header, const char *name, char *buffer)
+{
+  struct _hdr *thdr;
+  thdr = realloc (header->fhdr, (header->fhdr_count + 1) * sizeof(*thdr));
+  if (thdr)
+    {
+      size_t len = strlen (name);
+      char *field = malloc (len + 1);
+      if (field == NULL)
+	return ENOMEM;
+      memcpy (field, name, len);
+      field[len] = '\0';
+      thdr[header->fhdr_count].fn = field;
+      thdr[header->fhdr_count].fn_end = field + len;
+
+      len = strlen (buffer);
+      field =  malloc (len + 1);
+      if (field == NULL)
+	return ENOMEM;
+      memcpy (field, buffer, len);
+      field[len] = '\0';
+      thdr[header->fhdr_count].fv = field;
+      thdr[header->fhdr_count].fv_end = field + len;
+      header->fhdr_count++;
+      header->fhdr = thdr;
+      return 0;
+    }
+  return ENOMEM;
+}
+
+static int
+header_get_fvalue (header_t header, const char *name, char *buffer,
+		  size_t buflen, size_t *pn)
+{
+  size_t i, fn_len, fv_len = 0;
+  size_t name_len;
+  int err = ENOENT;
+
+  if (header->_get_fvalue)
+    return header->_get_fvalue (header, name, buffer, buflen, pn);
+
+  for (i = 0, name_len = strlen (name); i < header->fhdr_count; i++)
+    {
+      fn_len = header->fhdr[i].fn_end - header->fhdr[i].fn;
+      if (fn_len == name_len
+	  && strcasecmp (header->fhdr[i].fn, name) == 0)
+	{
+	  fv_len = header->fhdr[i].fv_end - header->fhdr[i].fv;
+	  if (buffer && buflen > 0)
+	    {
+	      buflen--;
+	      fv_len = (fv_len < buflen) ? fv_len : buflen;
+	      memcpy (buffer, header->fhdr[i].fv, fv_len);
+	      buffer[fv_len] = '\0';
+	    }
+	  err = 0;
+	  break;
+	}
+    }
+  if (pn)
+    *pn = fv_len;
+  return err;
+
+}
+
 int
 header_get_value (header_t header, const char *name, char *buffer,
 		  size_t buflen, size_t *pn)
@@ -323,11 +396,35 @@ header_get_value (header_t header, const char *name, char *buffer,
   if (header == NULL || name == NULL)
     return EINVAL;
 
+  /* First Try the Fast header for hits.  */
+  err = header_get_fvalue (header, name, buffer, buflen, pn);
+  if (err == 0)
+    return 0;
+
   if (header->_get_value)
-    return header->_get_value (header, name, buffer, buflen, pn);
+    {
+      char buf[1024]; /* should suffice for field-value. */
+      size_t len = 0;
+      err = header->_get_value (header, name, buf, sizeof (buf), &len);
+      if (err == 0)
+	{
+	  /* Save in the fast header buffer.  */
+	  header_set_fvalue (header, name, buf);
+	  if (buffer && buflen > 0)
+	    {
+	      buflen--;
+	      buflen = (len < buflen) ? len : buflen;
+	      memcpy (buffer, buf, buflen);
+	      buffer[buflen] = '\0';
+	      if (pn)
+		*pn = buflen;
+	    }
+	}
+      return err;
+    }
 
   /* Try to fill out the buffer, if we know how.  */
-  if (header->blurb == NULL && header->_get_value == NULL)
+  if (header->blurb == NULL)
     {
       err = fill_blurb (header);
       if (err != 0)
@@ -378,16 +475,6 @@ header_get_value (header_t header, const char *name, char *buffer,
   if (total == 0)
     {
       err = ENOENT;
-#if 0
-      /* No don't do this, the problem is we do not know if we have the
-	 entire header value of part of it.  */
-      if (header->_get_value)
-	{
-	  err = header->_get_value (header, name, buffer, buflen + 1, pn);
-	  if (err == 0)
-	    header_set_value (header, name, buffer, 0);
-	}
-#endif
     }
 
   return err;
@@ -471,8 +558,21 @@ header_size (header_t header, size_t *psize)
 }
 
 int
+header_set_get_fvalue (header_t header, int (*_get_fvalue)
+		       __P ((header_t, const char *, char *, size_t, size_t *)),
+		       void *owner)
+{
+  if (header == NULL)
+    return EINVAL;
+  if (header->owner != owner)
+    return EACCES;
+  header->_get_fvalue = _get_fvalue;
+  return 0;
+}
+
+int
 header_set_get_value (header_t header, int (*_get_value)
-		     (header_t, const char *, char *, size_t, size_t *),
+		     __P ((header_t, const char *, char *, size_t, size_t *)),
 		     void *owner)
 {
   if (header == NULL)
@@ -527,18 +627,27 @@ fill_blurb (header_t header)
   char buf[1024];
   char *tbuf;
   size_t nread = 0;
+  size_t i;
 
-  if (header->_fill == NULL && header->stream == NULL)
+  if (header->_fill == NULL)
     return 0;
+
+  /* Free any fast header, since we will load the entire headers.  */
+  for (i = 0; i < header->fhdr_count; i++)
+    {
+      if (header->fhdr[i].fn)
+	free (header->fhdr[i].fn);
+      if (header->fhdr[i].fv)
+	free (header->fhdr[i].fv);
+    }
+  if (header->fhdr)
+    free (header->fhdr);
+  header->_get_fvalue = NULL;
 
   do
     {
-      if (header->_fill)
-	status = header->_fill (header, buf, sizeof (buf),
-				header->temp_blurb_len, &nread) ;
-      else
-	status = stream_read (header->stream, buf, sizeof (buf),
-			      header->temp_blurb_len, &nread);
+      status = header->_fill (header, buf, sizeof (buf),
+			      header->temp_blurb_len, &nread) ;
       if (status != 0)
 	{
 	  if (status != EAGAIN && status != EINTR)
@@ -605,7 +714,7 @@ header_read (stream_t is, char *buf, size_t buflen, off_t off, size_t *pnread)
     return EINVAL;
 
   /* Try to fill out the buffer, if we know how.  */
-  if (header->blurb == NULL && header->_fill)
+  if (header->blurb == NULL)
     {
       int err = fill_blurb (header);
       if (err != 0)
@@ -646,7 +755,7 @@ header_readline (stream_t is, char *buf, size_t buflen, off_t off, size_t *pn)
     }
 
   /* Try to fill out the buffer, if we know how.  */
-  if (header->blurb == NULL && header->_fill)
+  if (header->blurb == NULL)
     {
       int err = fill_blurb (header);
       if (err != 0)

@@ -85,8 +85,7 @@ static int pop_is_updated     __P ((mailbox_t));
 static int pop_user           __P ((authority_t));
 static int pop_size           __P ((mailbox_t, off_t *));
 /* We use pop_top for retreiving headers.  */
-/* static int pop_header_read (stream_t, char *, size_t, off_t, size_t *); */
-static int pop_header_fd      __P ((stream_t, int *));
+/* static int pop_header_read (header_t, char *, size_t, off_t, size_t *); */
 static int pop_body_fd        __P ((stream_t, int *));
 static int pop_body_size      __P ((body_t, size_t *));
 static int pop_body_lines     __P ((body_t, size_t *));
@@ -94,7 +93,7 @@ static int pop_body_read      __P ((stream_t, char *, size_t, off_t, size_t *));
 static int pop_message_read   __P ((stream_t, char *, size_t, off_t, size_t *));
 static int pop_message_size   __P ((message_t, size_t *));
 static int pop_message_fd     __P ((stream_t, int *));
-static int pop_top            __P ((stream_t, char *, size_t, off_t, size_t *));
+static int pop_top            __P ((header_t, char *, size_t, off_t, size_t *));
 static int pop_retr           __P ((pop_message_t, char *, size_t, off_t, size_t *));
 static int pop_get_fd         __P ((pop_message_t, int *));
 static int pop_attr_flags     __P ((attribute_t, int *));
@@ -706,19 +705,13 @@ pop_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
   /* Create the header.  */
   {
     header_t header = NULL;
-    stream_t stream = NULL;
-    if ((status = header_create (&header, NULL, 0,  msg)) != 0
-	|| (status = stream_create (&stream, mbox->flags, header)) != 0)
+    if ((status = header_create (&header, NULL, 0,  msg)) != 0)
       {
-	stream_destroy (&stream, header);
-	header_destroy (&header, msg);
 	message_destroy (&msg, mpm);
 	free (mpm);
 	return status;
       }
-    stream_set_read (stream, pop_top, header);
-    stream_set_fd (stream, pop_header_fd, header);
-    header_set_stream (header, stream, msg);
+    header_set_fill (header, pop_top, msg);
     message_set_header (msg, header, mpm);
   }
 
@@ -1130,16 +1123,6 @@ pop_body_fd (stream_t stream, int *pfd)
   return pop_get_fd (mpm, pfd);
 }
 
-/* Stub to call the fd from header object.  */
-static int
-pop_header_fd (stream_t stream, int *pfd)
-{
-  header_t header = stream_get_owner (stream);
-  message_t msg = header_get_owner (header);
-  pop_message_t mpm = message_get_owner (msg);
-  return pop_get_fd (mpm, pfd);
-}
-
 /* Stub to call the fd from message object.  */
 static int
 pop_message_fd (stream_t stream, int *pfd)
@@ -1267,10 +1250,9 @@ pop_uid (message_t msg, char *buffer, size_t buflen, size_t *pnwriten)
    on a socket but we better warn them, some stuff like mime_t may try to
    read ahead, for example for the headers.  */
 static int
-pop_top (stream_t is, char *buffer, size_t buflen,
+pop_top (header_t header, char *buffer, size_t buflen,
 	 off_t offset, size_t *pnread)
 {
-  header_t header = stream_get_owner (is);
   message_t msg = header_get_owner (header);
   pop_message_t mpm = message_get_owner (msg);
   pop_data_t mpd;
@@ -1372,10 +1354,10 @@ pop_top (stream_t is, char *buffer, size_t buflen,
 #if 0
 /* Stub to call pop_retr ().   Call form the stream object of the header.  */
 static int
-pop_header_read (stream_t is, char *buffer, size_t buflen, off_t offset,
+pop_header_read (header_t header, char *buffer, size_t buflen, off_t offset,
 		 size_t *pnread)
 {
-  message_t msg = stream_get_owner (is);
+  message_t msg = header_get_owner (header);
   pop_message_t mpm = message_get_owner (msg);
   pop_data_t mpd;
   void *func = (void *)pop_header_read;

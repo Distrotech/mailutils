@@ -1,5 +1,5 @@
 /* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Library Public License as published by
@@ -183,11 +183,11 @@ int message_attachment_filename(message_t msg, char **filename)
 
 	if ( filename != NULL && ( ret = message_get_header(msg, &hdr) ) == 0 ) {
 		*filename = NULL;
-		header_get_value(hdr, "Content-Dispostion", NULL, 0, &size);
+		header_get_value(hdr, "Content-Disposition", NULL, 0, &size);
 		if ( size ) {
 			if ( ( pTmp = alloca(size+1) ) == NULL )
 				ret = ENOMEM;
-			header_get_value(hdr, "Content-Dispostion", pTmp, size+1, 0);
+			header_get_value(hdr, "Content-Disposition", pTmp, size+1, 0);
 			if ( strstr( pTmp, "attachment" ) != NULL )
 				fname = _header_get_param(pTmp, "filename", &size);
 		}
