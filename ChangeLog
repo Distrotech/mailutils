@@ -1,3 +1,7 @@
+2004-12-02  Sergey Poznyakoff
+
+	* doc/texinfo/programs.texi: Documented movemail.
+
 2004-11-18  Sergey Poznyakoff
 
 	* mailbox/imap/folder.c (authenticate_imap_select): Use
