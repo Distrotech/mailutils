@@ -384,7 +384,7 @@ mail_send0 (struct send_environ *env, int save_to)
 		  status = mailer_open (mailer, MU_STREAM_RDWR);
 		  if (status == 0)
 		    {
-		      mailer_send_message (mailer, msg);
+		      mailer_send_message (mailer, msg, NULL, NULL);
 		      mailer_close (mailer);
 		    }
 		  mailer_destroy (&mailer);
