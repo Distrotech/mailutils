@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2002 Free Software Foundation, Inc.
+   Copyright (C) 2002,2003 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -98,8 +98,8 @@ static char *format_str =
 "%<(nonnull)%(void(width))%(putaddr cc: )\\n%>"
 "%<{fcc}Fcc: %{fcc}\\n%>"
 "%<{subject}Subject: Re: %(unre{subject})\\n%>"
-"%(lit)%(concat(in_reply_to))%<(nonnull)%(void(width))%(printstr In-reply-to: )\\n%>"
-"%(lit)%(concat(references))%<(nonnull)%(void(width))%(printstr References: )\\n%>"
+"%(lit)%(concat(in_reply_to))%<(nonnull)%(void(width))%(printhdr In-reply-to: )\\n%>"
+"%(lit)%(concat(references))%<(nonnull)%(void(width))%(printhdr References: )\\n%>"
 "X-Mailer: MH \\(%(package_string)\\)\\n" 
 "--------\n";
 
@@ -216,11 +216,11 @@ make_draft (mailbox_t mbox, int disp, struct mh_whatnow_env *wh)
   struct stat st;
   
   /* First check if the draft exists */
-  if (stat (wh->draftfile, &st) == 0)
+  if (!build_only && stat (wh->draftfile, &st) == 0)
     {
       if (use_draft)
 	disp = DISP_USE;
-      else
+      else 
 	{
 	  printf (ngettext ("Draft \"%s\" exists (%lu byte).\n",
 			    "Draft \"%s\" exists (%lu bytes).\n",
@@ -258,8 +258,7 @@ make_draft (mailbox_t mbox, int disp, struct mh_whatnow_env *wh)
   if (disp == DISP_REPLACE)
     {
       FILE *fp = fopen (wh->file, "w+");
-      char buffer[1024];
-#define bufsize sizeof(buffer)
+      char *buf = NULL;
 
       if (!fp)
 	{
@@ -267,9 +266,10 @@ make_draft (mailbox_t mbox, int disp, struct mh_whatnow_env *wh)
 		    wh->file, strerror (errno));
 	  exit (1);
 	}
-      mh_format (&format, msg, msgset.list[0], buffer, bufsize);
-      fprintf (fp, "%s", buffer);
+      mh_format (&format, msg, msgset.list[0], width, &buf);
+      fprintf (fp, "%s", buf);
       fclose (fp);
+      free (buf);
     }
 
   {
