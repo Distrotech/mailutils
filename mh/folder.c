@@ -362,12 +362,7 @@ print_fast ()
   struct folder_info *info, *end = folder_info + folder_info_count;
 
   for (info = folder_info; info < end; info++)
-    {
-      printf ("%s", info->name);
-      if (strcmp (info->name, current_folder) == 0)
-	printf ("+");
-      printf ("\n");
-    }
+    printf ("%s\n", info->name);
 }
 
 static int
