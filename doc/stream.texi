@@ -115,12 +115,14 @@ main(int argc, char **argv)
   ret = tcp_stream_create (&stream);
   if (ret != 0)
     @{
-       fprintf (stderr, "tcp_stream_create: %s\n", mailutils_error(ret));
+       fprintf (stderr, "tcp_stream_create: %s\n",
+                mailutils_error(ret));
        exit (EXIT_FAILURE);
     @}
 
 connect_again:
-  ret = stream_open (stream, "www.netscape.com", 80, MU_STREAM_NONBLOCK);
+  ret = stream_open (stream, "www.netscape.com", 80,
+                     MU_STREAM_NONBLOCK);
   if (ret != 0)
     @{
        if (ret == MU_ERROR_EAGAIN)
