@@ -20,3 +20,7 @@ mailutils.ps
 mailutils.tmp
 mailutils.cps
 mailutils.fns
+mailutils.pgs
+address.c.texi
+url-parse.c.texi
+sfrom.c.texi
