@@ -685,7 +685,7 @@ static const char *months[] =
 #define c2d(c) (c-'0')
 
 int
-util_parse_internal_date (char *date, time_t *timep)
+util_parse_internal_date0 (char *date, time_t *timep, char **endp)
 {
   struct tm tm;
   char *save;
@@ -695,18 +695,24 @@ util_parse_internal_date (char *date, time_t *timep)
   char sign[2];
   char tzs[6];
   time_t time;
-
+  int off;
+  
   memset (&tm, 0, sizeof (tm));
-  n = sscanf (date, "%2d-%3s-%4d %2d:%2d:%2d %5s\n",
+  n = sscanf (date, "%2d-%3s-%4d %2d:%2d:%2d %5s%n\n",
 	      &day, mon, &year,
-	      &hour, &min, &sec, &tzs);
+	      &hour, &min, &sec, &tzs, &off);
 
   switch (n)
     {
     case 3:
     case 6:
-    case 7:  break;
-    default: return 1;
+      if (endp)
+	return 1;
+      /*FALLTHRU*/
+    case 7:
+      break;
+    default:
+      return 1;
     }
   
   tm.tm_mday = day;
@@ -752,8 +758,17 @@ util_parse_internal_date (char *date, time_t *timep)
       time -= tz*60;
     }
   *timep = time;
+  if (endp)
+    *endp = date + off;
   return 0;
 }
+
+int
+util_parse_internal_date (char *date, time_t *timep)
+{
+  return util_parse_internal_date0 (date, timep, NULL);
+}
+
 
 int
 util_parse_header_date (char *date, time_t *timep)
@@ -798,6 +813,9 @@ util_parse_header_date (char *date, time_t *timep)
   if (time == (time_t) -1)
     return 2;
 
+  /*FIXME: mktime corrects for the timezone. We should fix up the
+    correction here */
+  
   if (n == 8)
     {
       int sign;
@@ -860,4 +878,135 @@ util_parse_rfc822_date (char *date, time_t *timep)
   /* What to do the timezone?  */
   *timep = mktime (&tm);
   return 0;
+}
+
+/* Return the first ocurrence of NEEDLE in HAYSTACK. Case insensitive
+   comparison */
+char *
+util_strcasestr (const char *haystack, const char *needle)
+{
+  register char *needle_end = strchr(needle, '\0');
+  register char *haystack_end = strchr(haystack, '\0');
+  register size_t needle_len = needle_end - needle;
+  register size_t needle_last = needle_len - 1;
+  register const char *begin;
+
+  if (needle_len == 0)
+    return (char *) haystack_end;
+
+  if ((size_t) (haystack_end - haystack) < needle_len)
+    return NULL;
+
+  for (begin = &haystack[needle_last]; begin < haystack_end; ++begin)
+    {
+      register const char *n = &needle[needle_last];
+      register const char *h = begin;
+
+      do
+	if (tolower(*h) != tolower(*n))
+	  goto loop;		/* continue for loop */
+      while (--n >= needle && --h >= haystack);
+
+      return (char *) h;
+
+    loop:;
+    }
+
+  return NULL;
+}
+
+struct
+{
+  char *name;
+  int flag;
+} _imap4d_attrlist[] = {
+  "\\Answered", MU_ATTRIBUTE_ANSWERED,
+  "\\Flagged",  MU_ATTRIBUTE_FLAGGED,  
+  "\\Deleted", MU_ATTRIBUTE_DELETED,  
+  "\\Draft", MU_ATTRIBUTE_DRAFT,    
+  "\\Seen", MU_ATTRIBUTE_SEEN,     
+  "\\Recent", MU_ATTRIBUTE_RECENT,
+};
+
+#define NATTR sizeof(_imap4d_attrlist)/sizeof(_imap4d_attrlist[0])
+
+int _imap4d_nattr = NATTR;
+
+int
+util_attribute_to_type (const char *item, int *type)
+{
+  int i;
+  for (i = 0; i < _imap4d_nattr; i++)
+    if (strcasecmp (item, _imap4d_attrlist[i].name) == 0)
+      {
+	*type = _imap4d_attrlist[i].flag;
+	return 0;
+      }
+  return 1;
+}
+
+int
+util_type_to_attribute (int type, char **attr_str)
+{
+  *attr_str = NULL;
+  if (type == MU_ATTRIBUTE_RECENT)
+    *attr_str = strdup("\\Recent");
+  else
+    {
+      char *attr_list[NATTR];
+      int nattr = 0;
+      int i;
+      size_t len = 0;
+
+      for (i = 0; i < _imap4d_nattr; i++)
+	if (type & _imap4d_attrlist[i].flag)
+	  {
+	    attr_list[nattr++] = _imap4d_attrlist[i].name;
+	    len += 1 + strlen(_imap4d_attrlist[i].name);
+	  }
+
+      *attr_str = malloc(len+1);
+      (*attr_str)[0] = 0;
+      if (*attr_str)
+	{
+	  for (i = 0; i < nattr; i++)
+	    {
+	      strcat(*attr_str, attr_list[i]);
+	      if (i != nattr-1)
+		strcat(*attr_str, " ");
+	    }
+	}
+    }
+  
+  if (!*attr_str)
+    imap4d_bye (ERR_NO_MEM);
+  return 0;
+}
+  
+int
+util_parse_attributes(char *items, char **save, int *flags)
+{
+  int rc;
+  
+  *flags = 0;
+  while (*items)
+    {
+      int type = 0;
+      char item[64] = "";
+
+      util_token (item, sizeof (item), &items);
+      if (!util_attribute_to_type (item, &type))
+	*flags |= type;
+      /*FIXME: else? */
+
+      if (*items == ')')
+	{
+	  items++;
+	  rc = 0;
+	  break;
+	}
+    }
+  
+  *save = items;
+  return rc;
 }
