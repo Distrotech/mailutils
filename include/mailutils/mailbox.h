@@ -86,6 +86,7 @@ extern int  mailbox_get_property    __P ((mailbox_t, property_t *));
 extern int  mailbox_get_url         __P ((mailbox_t, url_t *));
 
 /* For any debuging */
+extern int  mailbox_has_debug       __P ((mailbox_t));
 extern int  mailbox_get_debug       __P ((mailbox_t, mu_debug_t *));
 extern int  mailbox_set_debug       __P ((mailbox_t, mu_debug_t));
 

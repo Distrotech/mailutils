@@ -29,7 +29,7 @@
 /* The Mailbox Factory.
    Create an iterator for registrar and see if any url scheme match,
    Then we call the mailbox's url_create() to parse the URL. Last
-   initiliaze the concrete mailbox and folder.  */
+   initialize the concrete mailbox and folder.  */
 int
 mailbox_create (mailbox_t *pmbox, const char *name)
 {
@@ -378,6 +378,15 @@ mailbox_get_property (mailbox_t mbox, property_t *pproperty)
 }
 
 int
+mailbox_has_debug (mailbox_t mailbox)
+{
+  if (mailbox == NULL)
+    return 0;
+
+  return mailbox->debug ? 1 : 0;
+}
+
+int
 mailbox_set_debug (mailbox_t mbox, mu_debug_t debug)
 {
   if (mbox == NULL)
@@ -385,6 +394,8 @@ mailbox_set_debug (mailbox_t mbox, mu_debug_t debug)
   if (mbox->debug)
     mu_debug_destroy (&mbox->debug, mbox);
   mbox->debug = debug;
+  if(!folder_has_debug(mbox->folder))
+    folder_set_debug(mbox->folder, debug);
   return 0;
 }
 
