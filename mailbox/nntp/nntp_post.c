@@ -29,8 +29,6 @@ int
 mu_nntp_post (mu_nntp_t nntp, stream_t stream)
 {
   int status;
-  unsigned long dummy = 0;
-  char *buf;
 
   if (nntp == NULL)
     return EINVAL;

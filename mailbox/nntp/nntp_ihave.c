@@ -29,8 +29,6 @@ int
 mu_nntp_ihave (mu_nntp_t nntp, const char *mid, stream_t stream)
 {
   int status;
-  unsigned long dummy = 0;
-  char *buf;
 
   if (nntp == NULL)
     return EINVAL;

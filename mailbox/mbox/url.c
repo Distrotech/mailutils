@@ -111,7 +111,7 @@ static char *
 _url_path_index (const char *spooldir, const char *iuser, int index_depth)
 {
   const unsigned char* user = (const unsigned char*) iuser;
-  int i, ulen = strlen (user);
+  int i, ulen = strlen (iuser);
   char *mbox, *p;
   
   if (ulen == 0)
@@ -131,7 +131,7 @@ _url_path_index (const char *spooldir, const char *iuser, int index_depth)
       *p++ = transtab[ user[ulen-1] ];
     }
   *p++ = '/';
-  strcpy (p, user);
+  strcpy (p, iuser);
   return mbox;
 }
 
@@ -140,7 +140,7 @@ static char *
 _url_path_rev_index (const char *spooldir, const char *iuser, int index_depth)
 {
   const unsigned char* user = (const unsigned char*) iuser;
-  int i, ulen = strlen (user);
+  int i, ulen = strlen (iuser);
   char *mbox, *p;
   
   if (ulen == 0)
@@ -160,7 +160,7 @@ _url_path_rev_index (const char *spooldir, const char *iuser, int index_depth)
       *p++ = transtab[ user[0] ];
     }
   *p++ = '/';
-  strcpy (p, user);
+  strcpy (p, iuser);
   return mbox;
 }
 

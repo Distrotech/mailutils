@@ -626,7 +626,7 @@ message_get_uidl (message_t msg, char *buffer, size_t buflen, size_t *pwriten)
       while (stream_read (stream, buf, sizeof (buf), offset, &n) == 0
 	     && n > 0)
 	{
-	  MD5Update (&md5context, buf, n);
+	  MD5Update (&md5context, (unsigned char*)buf, n);
 	  offset += n;
 	}
       MD5Final (md5digest, &md5context);

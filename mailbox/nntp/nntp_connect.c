@@ -64,7 +64,6 @@ mu_nntp_connect (mu_nntp_t nntp)
       {
 	size_t len = 0;
 	int code;
-	char *right, *left;
 	status = mu_nntp_response (nntp, NULL, 0, &len);
 	MU_NNTP_CHECK_EAGAIN (nntp, status);
 	mu_nntp_debug_ack (nntp);

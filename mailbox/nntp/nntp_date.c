@@ -32,8 +32,6 @@ mu_nntp_date (mu_nntp_t nntp, unsigned int *year, unsigned int *month, unsigned 
 	      unsigned int *hour, unsigned int *min, unsigned int *sec)
 {
   int status;
-  unsigned long dummy = 0;
-  char *buf;
 
   if (nntp == NULL)
     return EINVAL;
@@ -81,7 +79,6 @@ mu_nntp_parse_date (mu_nntp_t nntp, int code, unsigned int *year, unsigned int *
 		    unsigned int *hour, unsigned int *min, unsigned int *sec)
 {
   unsigned int dummy = 0;
-  char *buf;
   char format[32];
 
   if (year == NULL)

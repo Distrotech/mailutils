@@ -51,6 +51,7 @@
 #include <mailutils/observer.h>
 #include <mailutils/property.h>
 #include <mailutils/stream.h>
+#include <mailutils/iterator.h>
 #include <mailutils/url.h>
 #include <mailutils/nntp.h>
 
@@ -66,16 +67,20 @@ static int  nntp_mailbox_close           __P ((mailbox_t));
 static int  nntp_mailbox_get_message     __P ((mailbox_t, size_t, message_t *));
 static int  nntp_mailbox_messages_count  __P ((mailbox_t, size_t *));
 static int  nntp_mailbox_scan            __P ((mailbox_t, size_t, size_t *));
-static int  nntp_mailbox_get_size        __P ((mailbox_t, off_t *));
+/* FIXME
+   static int  nntp_mailbox_get_size        __P ((mailbox_t, off_t *)); */
 
 static int  nntp_message_get_transport2  __P ((stream_t, mu_transport_t *, mu_transport_t *));
 static int  nntp_message_read            __P ((stream_t, char *, size_t, off_t, size_t *));
 static int  nntp_message_size            __P ((message_t, size_t *));
-static int  nntp_message_line            __P ((message_t, size_t *));
+/* FIXME
+   static int  nntp_message_line            __P ((message_t, size_t *)); */
 static int  nntp_message_uidl            __P ((message_t, char *, size_t, size_t *));
 static int  nntp_message_uid             __P ((message_t, size_t *));
 
-static int  nntp_header_get_transport2   __P ((header_t, char *, size_t, off_t, size_t *));
+/* FIXME
+   static int  nntp_header_get_transport2   __P ((header_t, char *,
+                                                  size_t, off_t, size_t *)); */
 static int  nntp_header_fill             __P ((header_t, char *, size_t, off_t, size_t *));
 
 static int  nntp_body_get_transport2     __P ((stream_t, mu_transport_t *, mu_transport_t *));
@@ -198,7 +203,6 @@ nntp_mailbox_open (mailbox_t mbox, int flags)
   int status = 0;
   m_nntp_t m_nntp = mbox->data;
   f_nntp_t f_nntp = m_nntp->f_nntp;
-  folder_t folder = f_nntp->folder;
   iterator_t iterator;
 
   /* m_nntp must have been created during mailbox initialization. */
@@ -273,7 +277,6 @@ static int
 nntp_mailbox_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
 {
   m_nntp_t m_nntp = mbox->data;
-  f_nntp_t f_nntp = m_nntp->f_nntp;
   msg_nntp_t msg_nntp;
   message_t msg = NULL;
   int status;
@@ -421,7 +424,7 @@ nntp_mailbox_messages_count (mailbox_t mbox, size_t *pcount)
   return status;
 }
 
-/* Update and scanning.  */
+/* Update and scanning. FIXME: Is not used */
 static int
 nntp_is_updated (mailbox_t mbox)
 {
@@ -522,7 +525,6 @@ nntp_message_uid (message_t msg,  size_t *puid)
 {
   msg_nntp_t msg_nntp = message_get_owner (msg);
   m_nntp_t m_nntp = msg_nntp->m_nntp;
-  f_nntp_t f_nntp = m_nntp->f_nntp;
   int status;
 
   if (puid)
@@ -539,11 +541,11 @@ nntp_message_uid (message_t msg,  size_t *puid)
 }
 
 static int
-nntp_message_uidl (message_t msg, char *buffer, size_t buflen, size_t *pnwriten)
+nntp_message_uidl (message_t msg, char *buffer, size_t buflen,
+		   size_t *pnwriten)
 {
   msg_nntp_t msg_nntp = message_get_owner (msg);
   m_nntp_t m_nntp = msg_nntp->m_nntp;
-  f_nntp_t f_nntp = m_nntp->f_nntp;
   int status = 0;
 
   /* Select first.  */

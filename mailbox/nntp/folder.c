@@ -33,6 +33,7 @@
 #include <mailutils/errno.h>
 #include <mailutils/mailbox.h>
 #include <mailutils/registrar.h>
+#include <mailutils/url.h>
 
 #include <folder0.h>
 #include "nntp0.h"
@@ -64,7 +65,6 @@ static int  nntp_folder_list    __P ((folder_t folder, const char *ref, const ch
 int
 _nntp_folder_init (folder_t folder)
 {
-  int status;
   f_nntp_t f_nntp;
 
   f_nntp = folder->data = calloc (1, sizeof (*f_nntp));
