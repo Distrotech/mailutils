@@ -253,7 +253,6 @@ action       : command
 		 else if (!reg->required)
 		   sieve_compile_error (sieve_filename, sieve_line_num,
                                 "action `%s' has not been required",
-				sieve_filename, sieve_line_num,
 				$1.ident);
 		 else if (sieve_code_action (reg, $1.args))
 		   YYERROR;
@@ -430,6 +429,8 @@ sieve_compile (sieve_machine_t mach, const char *name)
   sieve_machine_begin (mach);
   sieve_register_standard_actions ();
   sieve_register_standard_tests ();
+  sieve_register_standard_comparators ();
+  
   if (sieve_lex_begin (name) == 0)
     {
       sieve_machine->filename = sieve_pstrdup (&sieve_machine->memory_pool,
