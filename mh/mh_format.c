@@ -360,7 +360,7 @@ mh_format (mh_format_t *fmt, message_t msg, size_t msgno,
 	      print_string (&mach, strobj_ptr (&mach.reg_str), fmtwidth);
 	      reset_fmt_defaults (&mach);
 	    }
-	  else
+	  else if (mach.reg_str.ptr)
 	    {
 	      print_string (&mach,
 			   strobj_ptr (&mach.reg_str),
