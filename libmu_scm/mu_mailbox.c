@@ -73,7 +73,7 @@ mu_scm_mailbox_print (SCM mailbox_smob, SCM port, scm_print_state * pstate)
 	  scm_puts (p, port);
 	  
 	  snprintf (buf, sizeof (buf), " (%d)", count);
-      scm_puts (buf, port);
+	  scm_puts (buf, port);
 	}
       else
 	scm_puts ("uninitialized", port);
