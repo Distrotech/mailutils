@@ -25,6 +25,17 @@
 static int isfilename __P ((const char *));
 static void msg_to_pipe __P ((const char *cmd, message_t msg));
 
+static void
+read_cc_bcc (compose_env_t *env)
+{
+  if (util_getenv (NULL, "askcc", Mail_env_boolean, 0) == 0)
+    compose_header_set (env, MU_HEADER_CC,
+			ml_readline ("Cc: "), COMPOSE_REPLACE);
+  if (util_getenv (NULL, "askbcc", Mail_env_boolean, 0) == 0)
+    compose_header_set (env, MU_HEADER_BCC,
+			ml_readline ("Bcc: "), COMPOSE_REPLACE);
+}
+
 /*
  * m[ail] address...
  if address is starting with
@@ -75,12 +86,8 @@ mail_send (int argc, char **argv)
 	}
     }
 
-  if (util_getenv (NULL, "askcc", Mail_env_boolean, 0) == 0)
-    compose_header_set (&env, MU_HEADER_CC,
-			ml_readline ("Cc: "), COMPOSE_REPLACE);
-  if (util_getenv (NULL, "askbcc", Mail_env_boolean, 0) == 0)
-    compose_header_set (&env, MU_HEADER_BCC,
-			ml_readline ("Bcc: "), COMPOSE_REPLACE);
+  if (util_getenv (NULL, "mailx", Mail_env_boolean, 0))
+    read_cc_bcc (&env);
 
   if (util_getenv (NULL, "asksub", Mail_env_boolean, 0) == 0)
     compose_header_set (&env, MU_HEADER_SUBJECT,
@@ -326,6 +333,11 @@ mail_send0 (compose_env_t * env, int save_to)
     }
 
   fclose (env->file);		/* FIXME: freopen would be better */
+
+  /* In mailx compatibility mode, ask for Cc and Bcc after editing
+     the body of the message */
+  if (util_getenv (NULL, "mailx", Mail_env_boolean, 0) == 0)
+    read_cc_bcc (env);
 
   /* Prepare the header */
   header_set_value (env->header, "X-Mailer", argp_program_version, 1);
