@@ -65,7 +65,7 @@ static char doc[] = N_("GNU frm -- display From: lines");
 
 static struct argp_option options[] = {
   {"debug",  'd', NULL,   0, N_("Enable debugging output"), 0},
-  {"field",  'f', "NAME", 0, N_("Header field to display"), 0},
+  {"field",  'f', N_("NAME"), 0, N_("Header field to display"), 0},
   {"to",     'l', NULL,   0, N_("Include the To: information"), 0},
   {"number", 'n', NULL,   0, N_("Display message numbers"), 0},
   {"Quiet",  'Q', NULL,   0, N_("Very quiet"), 0},

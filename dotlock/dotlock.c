@@ -44,16 +44,16 @@ static struct argp_option options[] = {
   {"unlock", 'u', NULL, 0,
    N_("Unlock"), 0},
 
-  {"force", 'f', "MINUTES", OPTION_ARG_OPTIONAL,
+  {"force", 'f', N_("MINUTES"), OPTION_ARG_OPTIONAL,
    N_("Forcibly break an existing lock older than a certain time"), 0},
 
-  {"retry", 'r', "RETRIES", OPTION_ARG_OPTIONAL,
+  {"retry", 'r', N_("RETRIES"), OPTION_ARG_OPTIONAL,
    N_("Retry the lock a few times"), 0},
 
   {"debug", 'd', NULL, 0,
    N_("Print details of failure reasons to stderr"), 0},
 
-  {"test", 'T', "PROGRAM", OPTION_HIDDEN,
+  {"test", 'T', N_("PROGRAM"), OPTION_HIDDEN,
    N_("Test external dotlocker"), 0},
 
   {NULL, 0, NULL, 0, NULL, 0}

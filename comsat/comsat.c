@@ -55,7 +55,7 @@ static char doc[] = "GNU comsatd";
 
 static struct argp_option options[] = 
 {
-  {"config", 'c', "FILE", 0, N_("Read configuration from FILE"), 0},
+  {"config", 'c', N_("FILE"), 0, N_("Read configuration from FILE"), 0},
   { NULL, 0, NULL, 0, NULL, 0 }
 };
 

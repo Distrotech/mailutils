@@ -41,9 +41,9 @@ static char doc[] = N_("GNU imap4d -- the IMAP4D daemon");
 
 static struct argp_option options[] = 
 {
-  {"other-namespace", 'O', "PATHLIST", 0,
+  {"other-namespace", 'O', N_("PATHLIST"), 0,
    N_("set the `other' namespace"), 0},
-  {"shared-namespace", 'S', "PATHLIST", 0,
+  {"shared-namespace", 'S', N_("PATHLIST"), 0,
    N_("set the `shared' namespace"), 0},
   { NULL,      0, NULL, 0, NULL, 0 }
 };

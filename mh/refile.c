@@ -30,16 +30,16 @@ static char args_doc[] = N_("messages folder [folder...]");
 
 /* GNU options */
 static struct argp_option options[] = {
-  {"folder",  'f', "FOLDER", 0, N_("Specify folder to operate upon")},
+  {"folder",  'f', N_("FOLDER"), 0, N_("Specify folder to operate upon")},
   {"draft",   'd', NULL, 0, N_("Use <mh-dir>/draft as the source message")},
-  {"link",    'l', "BOOL", OPTION_ARG_OPTIONAL,
+  {"link",    'l', N_("BOOL"), OPTION_ARG_OPTIONAL,
    N_("(not implemented) Preserve the source folder copy")},
-  {"preserve", 'p', "BOOL", OPTION_ARG_OPTIONAL,
+  {"preserve", 'p', N_("BOOL"), OPTION_ARG_OPTIONAL,
    N_("(not implemented) Try to preserve message sequence numbers")},
-  {"source", 's', "FOLDER", 0,
+  {"source", 's', N_("FOLDER"), 0,
    N_("Specify source folder. FOLDER will became the current folder after the program exits.")},
   {"src", 0, NULL, OPTION_ALIAS, NULL},
-  {"file", 'F', "FILE", 0, N_("Use FILE as the source message")},
+  {"file", 'F', N_("FILE"), 0, N_("Use FILE as the source message")},
   { N_("\nUse -help switch to obtain the list of traditional MH options. "), 0, 0, OPTION_DOC, "" },
   { 0 }
 };

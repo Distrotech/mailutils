@@ -31,15 +31,15 @@ static char args_doc[] = N_("[+folder] [msgs]");
 
 /* GNU options */
 static struct argp_option options[] = {
-  {"folder",  'f', "FOLDER", 0, N_("Specify folder to scan")},
-  {"clear",   'c', "BOOL",   OPTION_ARG_OPTIONAL,
+  {"folder",  'f', N_("FOLDER"), 0, N_("Specify folder to scan")},
+  {"clear",   'c', N_("BOOL"),   OPTION_ARG_OPTIONAL,
    N_("Clear screen after displaying the list")},
-  {"form",    'F', "FILE",   0, N_("Read format from given file")},
-  {"format",  't', "FORMAT", 0, N_("Use this format string")},
-  {"header",  'H', "BOOL",   OPTION_ARG_OPTIONAL, N_("Display header")},
-  {"width",   'w', "NUMBER", 0, N_("Set output width")},
-  {"reverse", 'r', "BOOL",   OPTION_ARG_OPTIONAL, N_("List messages in reverse order")},
-  {"file",    'i', "FILE",   0, N_("[Not yet implemented]")},
+  {"form",    'F', N_("FILE"),   0, N_("Read format from given file")},
+  {"format",  't', N_("FORMAT"), 0, N_("Use this format string")},
+  {"header",  'H', N_("BOOL"),   OPTION_ARG_OPTIONAL, N_("Display header")},
+  {"width",   'w', N_("NUMBER"), 0, N_("Set output width")},
+  {"reverse", 'r', N_("BOOL"),   OPTION_ARG_OPTIONAL, N_("List messages in reverse order")},
+  {"file",    'i', N_("FILE"),   0, N_("[Not yet implemented]")},
   
   {"license", 'l', 0,        0, N_("Display software license"), -1},
 

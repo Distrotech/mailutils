@@ -72,7 +72,7 @@ N_("GNU mail.remote -- pseudo-sendmail interface for mail delivery\n"
   "the data part of the protocol transaction will also be printed to stdout.\n");
 
 static struct argp_option options[] = {
-  {"from",  'f', "ADDR", 0, N_("Override the default from address\n")},
+  {"from",  'f', N_("ADDR"), 0, N_("Override the default from address\n")},
   {"debug", 'd', NULL,   0, N_("Enable debugging output")},
   {      0, 'o', "OPT",  OPTION_HIDDEN, N_("Ignored for sendmail compatibility")},
   {0}

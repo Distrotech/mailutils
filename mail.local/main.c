@@ -64,22 +64,22 @@ static struct argp_option options[] =
     N_("Don't return errors when delivering to multiple recipients"), 0 },
   { "ex-quota-tempfail", ARG_QUOTA_TEMPFAIL, NULL, 0,
     N_("Return temporary failure if disk or mailbox quota is exceeded"), 0 },
-  { "from", 'f', "EMAIL", 0,
+  { "from", 'f', N_("EMAIL"), 0,
     N_("Specify the sender's name") },
   { NULL, 'r', NULL, OPTION_ALIAS, NULL },
 #ifdef USE_DBM
-  { "quota-db", 'q', "FILE", 0,
+  { "quota-db", 'q', N_("FILE"), 0,
     N_("Specify path to quota database"), 0 },
 #endif
-  { "sieve", 'S', "PATTERN", 0,
+  { "sieve", 'S', N_("PATTERN"), 0,
     N_("Set name pattern for user-defined sieve mail filters"), 0 },
 #ifdef WITH_GUILE
-  { "source", 's', "PATTERN", 0,
+  { "source", 's', N_("PATTERN"), 0,
     N_("Set name pattern for user-defined mail filters"), 0 },
 #endif
-  { "debug", 'x', "FLAGS", 0,
+  { "debug", 'x', N_("FLAGS"), 0,
     N_("Enable debugging"), 0 },
-  { "timeout", 't', "NUMBER", 0,
+  { "timeout", 't', N_("NUMBER"), 0,
     N_("Set timeout for acquiring the lockfile") },
   { NULL,      0, NULL, 0, NULL, 0 }
 };

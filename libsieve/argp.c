@@ -30,9 +30,9 @@ static error_t sieve_argp_parser __P((int key, char *arg,
 
 /* Options used by programs that use extended authentication mechanisms. */
 static struct argp_option sieve_argp_option[] = {
-  { "includedir", 'I', "DIR", 0,
+  { "includedir", 'I', N_("DIR"), 0,
     "Append directory DIR to the list of directories searched for include files", 0 },
-  { "libdir", 'L', "DIR", 0,
+  { "libdir", 'L', N_("DIR"), 0,
     "Append directory DIR to the list of directories searched for library files", 0 },
   { NULL,      0, NULL, 0, NULL, 0 }
 };

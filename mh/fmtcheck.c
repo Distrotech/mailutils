@@ -25,8 +25,8 @@ static char args_doc[] = "";
 
 /* GNU options */
 static struct argp_option options[] = {
-  {"form",    'F', "FILE",   0, N_("Read format from given file")},
-  {"format",  't', "FORMAT", 0, N_("Use this format string")},
+  {"form",    'F', N_("FILE"),   0, N_("Read format from given file")},
+  {"format",  't', N_("FORMAT"), 0, N_("Use this format string")},
   {"dump",    'd', NULL,     0, N_("Dump the listing of compiled format code")},
   { N_("\nUse -help switch to obtain the list of traditional MH options. "), 0, 0, OPTION_DOC, "" },
   

@@ -67,32 +67,32 @@ static struct argp_option mu_license_argp_option[] = {
 
 /* Options used by programs that access mailboxes. */
 static struct argp_option mu_mailbox_argp_option[] = {
-  {"mail-spool", 'm', "URL", 0,
+  {"mail-spool", 'm', N_("URL"), 0,
    N_("Use specified URL as a mailspool directory"), 0},
-  {"lock-flags", ARG_LOCK_FLAGS, "FLAGS", 0,
+  {"lock-flags", ARG_LOCK_FLAGS, N_("FLAGS"), 0,
    N_("Default locker flags (E=external, R=retry, T=time, P=pid)"), 0},
   { NULL,      0, NULL, 0, NULL, 0 }
 };
 
 /* Options used by programs that do address mapping. */
 static struct argp_option mu_address_argp_option[] = {
-  {"email-addr", 'E', "EMAIL", 0,
+  {"email-addr", 'E', N_("EMAIL"), 0,
    N_("Set current user's email address (default is loginname@defaultdomain)"), 0},
-  {"email-domain", 'D', "DOMAIN", 0,
+  {"email-domain", 'D', N_("DOMAIN"), 0,
    N_("Set domain for unqualified user names (default is this host)"), 0},
   { NULL,      0, NULL, 0, NULL, 0 }
 };
 
 /* Options used by programs that send mail. */
 static struct argp_option mu_mailer_argp_option[] = {
-  {"mailer", 'M', "MAILER", 0,
+  {"mailer", 'M', N_("MAILER"), 0,
    N_("Use specified URL as the default mailer"), 0},
   { NULL,      0, NULL, 0, NULL, 0 }
 };
 
 /* Options used by programs that log to syslog. */
 static struct argp_option mu_logging_argp_option[] = {
-  {"log-facility", ARG_LOG_FACILITY, "FACILITY", 0,
+  {"log-facility", ARG_LOG_FACILITY, N_("FACILITY"), 0,
    N_("Output logs to syslog FACILITY"), 0},
   { NULL,      0, NULL, 0, NULL, 0 }
 };
@@ -100,13 +100,13 @@ static struct argp_option mu_logging_argp_option[] = {
 
 /* Options used by programs that become daemons. */
 static struct argp_option mu_daemon_argp_option[] = {
-  {"daemon", 'd', "NUMBER", OPTION_ARG_OPTIONAL,
+  {"daemon", 'd', N_("NUMBER"), OPTION_ARG_OPTIONAL,
    N_("Runs in daemon mode with a maximum of NUMBER children")},
   {"inetd",  'i', 0, 0,
    N_("Run in inetd mode"), 0},
-  {"port", 'p', "PORT", 0,
+  {"port", 'p', N_("PORT"), 0,
    N_("Listen on specified port number"), 0},
-  {"timeout", 't', "NUMBER", 0,
+  {"timeout", 't', N_("NUMBER"), 0,
    N_("Set idle timeout value to NUMBER seconds"), 0},
   {"transcript", 'x', NULL, 0,
    N_("output session transcript via syslog"), 0},

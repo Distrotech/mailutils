@@ -37,9 +37,9 @@ static struct argp_option options[] =
 {
   { "debug", 'd', 0, 0, N_("Display debugging information"), 1 },
   { "header", 'h', 0, 0, N_("Display entire header"), 1 },
-  { "weedlist", 'w', "LIST", 0,
+  { "weedlist", 'w', N_("LIST"), 0,
     N_("List of header names separated by whitespace or commas"), 1 },
-  { "folder", 'f', "FOLDER", 0, N_("Folder to use"), 1 },
+  { "folder", 'f', N_("FOLDER"), 0, N_("Folder to use"), 1 },
   { "no-header", 'n', 0, 0, N_("Exclude all headers"), 1 },
   { "form-feeds", 'p', 0, 0, N_("Output formfeeds between messages"), 1 },
   { "show-all-match", 'a', NULL, 0,

@@ -31,7 +31,7 @@ static char args_doc[] = N_("[address...]");
 
 static struct argp_option options[] = {
   {"exist",   'e', 0,      0, N_("Return true if mail exists"), 0},
-  {"file",    'f', "FILE", OPTION_ARG_OPTIONAL,
+  {"file",    'f', N_("FILE"), OPTION_ARG_OPTIONAL,
 			          N_("Operate on mailbox FILE (default ~/mbox)"), 0},
   {"byname",  'F', 0,      0, N_("Save messages according to sender"), 0},
   {"headers", 'H', 0,      0, N_("Write a header summary and exit"), 0},
@@ -41,9 +41,9 @@ static struct argp_option options[] = {
   {"print",   'p', 0,      0, N_("Print all mail to standard output"), 0},
   {"quit",    'q', 0,      0, N_("Cause interrupts to terminate program"), 0},
   {"read",    'r', 0,      0, N_("Same as -p"), 0},
-  {"subject", 's', "SUBJ", 0, N_("Send a message with a Subject of SUBJ"), 0},
+  {"subject", 's', N_("SUBJ"), 0, N_("Send a message with a Subject of SUBJ"), 0},
   {"to",      't', 0,      0, N_("Precede message by a list of addresses"), 0},
-  {"user",    'u', "USER", 0, N_("Operate on USER's mailbox"), 0},
+  {"user",    'u', N_("USER"), 0, N_("Operate on USER's mailbox"), 0},
   {NULL,      0,  NULL,    OPTION_DOC,
    N_("Note: Argument to --file (-f) option is optional. If it is present, "
    "it must follow the short option immediately, without any intervening "

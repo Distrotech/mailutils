@@ -73,19 +73,19 @@ static struct argp_option options[] =
   {"dump", 'D', 0, 0,
    N_("Compile script, dump disassembled sieve code to terminal and exit"), 0 },
   
-  {"mbox-url", 'f', "MBOX", 0,
+  {"mbox-url", 'f', N_("MBOX"), 0,
    N_("Mailbox to sieve (defaults to user's mail spool)"), 0},
 
-  {"ticket", 't', "TICKET", 0,
+  {"ticket", 't', N_("TICKET"), 0,
    N_("Ticket file for mailbox authentication"), 0},
 
-  {"debug", 'd', "FLAGS", OPTION_ARG_OPTIONAL,
+  {"debug", 'd', N_("FLAGS"), OPTION_ARG_OPTIONAL,
    N_("Debug flags (defaults to \"" D_DEFAULT "\")"), 0},
 
   {"verbose", 'v', NULL, 0,
    N_("Log all actions"), 0},
   
-  {"email", 'e', "ADDRESS", 0,
+  {"email", 'e', N_("ADDRESS"), 0,
    N_("Override user email address"), 0},
   
   {0}

@@ -25,17 +25,17 @@ static char args_doc[] = N_("[+folder]");
 
 /* GNU options */
 static struct argp_option options[] = {
-  {"file",    'i', "FILE",   0, N_("Incorporate mail from named file")},
-  {"folder",  'f', "FOLDER", 0, N_("Specify folder to incorporate mail to")},
-  {"audit",   'a', "FILE", 0, N_("Enable audit")},
+  {"file",    'i', N_("FILE"),   0, N_("Incorporate mail from named file")},
+  {"folder",  'f', N_("FOLDER"), 0, N_("Specify folder to incorporate mail to")},
+  {"audit",   'a', N_("FILE"), 0, N_("Enable audit")},
   {"noaudit", 'n', 0, 0, N_("Disable audit")},
-  {"changecur", 'c', "BOOL", OPTION_ARG_OPTIONAL,
+  {"changecur", 'c', N_("BOOL"), OPTION_ARG_OPTIONAL,
    N_("Mark first incorporated message as current (default)")},
-  {"form",    'F', "FILE",   0, N_("Read format from given file")},
-  {"format",  't', "FORMAT", 0, N_("Use this format string")},
-  {"truncate", 'T', "BOOL", OPTION_ARG_OPTIONAL,
+  {"form",    'F', N_("FILE"),   0, N_("Read format from given file")},
+  {"format",  't', N_("FORMAT"), 0, N_("Use this format string")},
+  {"truncate", 'T', N_("BOOL"), OPTION_ARG_OPTIONAL,
    N_("Truncate source mailbox after incorporating (default)")},
-  {"width",   'w', "NUMBER", 0, N_("Set output width")},
+  {"width",   'w', N_("NUMBER"), 0, N_("Set output width")},
   {"quiet",   'q', 0,        0, N_("Be quiet")},
   {"license", 'l', 0,        0, N_("Display software license"), -1},
 
@@ -46,7 +46,7 @@ static struct argp_option options[] = {
 
 /* Traditional MH options */
 struct mh_option mh_option[] = {
-  {"audit",   5,  'a', MH_OPT_ARG, "audit-file"},
+  {"audit",   5,  'a', MH_OPT_ARG, "audit-file" },
   {"noaudit", 3,  'n', 0, },
   {"changecur", 1, 'c',MH_OPT_BOOL},
   {"file",    2, 'i', MH_OPT_ARG, "input-file"},

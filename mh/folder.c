@@ -43,7 +43,7 @@ static struct argp_option options[] = {
   {N_("Actions are:"), 0, 0, OPTION_DOC, "", 0 },
   {"print", 'p', NULL, 0, N_("List the folders (default)"), 1 },
   {"list", 'l', NULL, 0, N_("List the contents of the folder stack"), 1},
-  {"push", ARG_PUSH, "FOLDER", OPTION_ARG_OPTIONAL,
+  {"push", ARG_PUSH, N_("FOLDER"), OPTION_ARG_OPTIONAL,
     N_("Push the folder on the folder stack. If FOLDER is specified, it is pushed. "
        "Otherwise, if a folder is given in the command line (via + or --folder), "
        "it is pushed on stack. Otherwise, the current folder and the top of the folder "
@@ -51,14 +51,20 @@ static struct argp_option options[] = {
   {"pop", ARG_POP, NULL, 0, N_("Pop the folder off the folder stack"), 1},
   
   {N_("Options are:"), 0, 0, OPTION_DOC, "", 2 },
-  {"folder",  'f', "FOLDER", 0, N_("Specify folder to operate upon"), 3},
+  {"folder",  'f', N_("FOLDER"), 0, N_("Specify folder to operate upon"), 3},
   {"all", 'a', NULL, 0, N_("List all folders"), 3},
-  {"create", 'c', "BOOL", OPTION_ARG_OPTIONAL, N_("Create non-existing folders"), 3},
-  {"fast", 'F', "BOOL", OPTION_ARG_OPTIONAL, N_("List only the folder names"), 3},
-  {"header", 'h', "BOOL", OPTION_ARG_OPTIONAL, N_("Print the header line"), 3},
-  {"recurse", 'r', "BOOL", OPTION_ARG_OPTIONAL, N_("Scan folders recursively"), 3},
-  {"total", 't', "BOOL", OPTION_ARG_OPTIONAL, N_("Output the total statistics"), 3},
-  { N_("\nUse -help switch to obtain the list of traditional MH options. "), 0, 0, OPTION_DOC, "", 4 },
+  {"create", 'c', N_("BOOL"), OPTION_ARG_OPTIONAL, 
+    N_("Create non-existing folders"), 3},
+  {"fast", 'F', N_("BOOL"), OPTION_ARG_OPTIONAL, 
+    N_("List only the folder names"), 3},
+  {"header", 'h', N_("BOOL"), OPTION_ARG_OPTIONAL, 
+    N_("Print the header line"), 3},
+  {"recurse", 'r', N_("BOOL"), OPTION_ARG_OPTIONAL,
+    N_("Scan folders recursively"), 3},
+  {"total", 't', N_("BOOL"), OPTION_ARG_OPTIONAL, 
+    N_("Output the total statistics"), 3},
+  { N_("\nUse -help switch to obtain the list of traditional MH options. "), 
+    0, 0, OPTION_DOC, "", 4 },
   
   {NULL},
 };

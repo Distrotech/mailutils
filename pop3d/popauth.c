@@ -75,10 +75,10 @@ static struct argp_option options[] =
     "  For a user: --modify --username <username>\n"), 2 },
   
   { NULL, 0, NULL, 0, N_("Options are:"), 3 },
-  { "file", 'f', "FILE", 0, N_("Read input from FILE (default stdin)"), 3 },
-  { "output", 'o', "FILE", 0, N_("Direct output to file"), 3 },
-  { "password", 'p', "STRING", 0, N_("Specify user's password"), 3 },
-  { "user", 'u', "USERNAME", 0, N_("Specify user name"), 3 },
+  { "file", 'f', N_("FILE"), 0, N_("Read input from FILE (default stdin)"), 3 },
+  { "output", 'o', N_("FILE"), 0, N_("Direct output to file"), 3 },
+  { "password", 'p', N_("STRING"), 0, N_("Specify user's password"), 3 },
+  { "user", 'u', N_("USERNAME"), 0, N_("Specify user name"), 3 },
   { NULL, }
 };
 

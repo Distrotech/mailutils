@@ -34,8 +34,8 @@ static char args_doc[] = N_("[+folder]");
 
 /* GNU options */
 static struct argp_option options[] = {
-  {"folder",  'f', "FOLDER", 0, N_("Specify the folder to delete")},
-  {"interactive", 'i', "BOOL", OPTION_ARG_OPTIONAL,
+  {"folder",  'f', N_("FOLDER"), 0, N_("Specify the folder to delete")},
+  {"interactive", 'i', N_("BOOL"), OPTION_ARG_OPTIONAL,
     N_("Interactive mode: ask for confirmation before removing each folder")},
   {"recursive", 'r', NULL, 0, N_("Recursively delete all subfolders")},
   { N_("\nUse -help switch to obtain the list of traditional MH options. "), 0, 0, OPTION_DOC, "" },

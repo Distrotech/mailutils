@@ -46,6 +46,7 @@
 #include <mailutils/argp.h>
 #include <mailutils/mu_auth.h>
 #include <mailutils/error.h>
+#include <mailutils/nls.h>
 
 /*#define DEBUG(c) do { printf c; printf("\n"); } while (0)*/
 #define DEBUG(c)
@@ -205,9 +206,9 @@ static error_t mu_auth_argp_parser __P((int key, char *arg,
 
 /* Options used by programs that use extended authentication mechanisms. */
 static struct argp_option mu_auth_argp_option[] = {
-  { "authentication", ARG_AUTHENTICATION, "MODLIST", 0,
+  { "authentication", ARG_AUTHENTICATION, N_("MODLIST"), 0,
     "Set list of modules to be used for authentication", 0 },
-  { "authorization", ARG_AUTHORIZATION, "MODLIST", 0,
+  { "authorization", ARG_AUTHORIZATION, N_("MODLIST"), 0,
     "Set list of modules to be used for authorization", 0 },
   { NULL,      0, NULL, 0, NULL, 0 }
 };

@@ -25,7 +25,7 @@ static char args_doc[] = N_("[+folder] [msgs]");
 
 /* GNU options */
 static struct argp_option options[] = {
-  {"folder",  'f', "FOLDER", 0, N_("Specify folder to operate upon")},
+  {"folder",  'f', N_("FOLDER"), 0, N_("Specify folder to operate upon")},
   { N_("\nUse -help switch to obtain the list of traditional MH options. "),
    0, 0, OPTION_DOC, "" },
   { 0 }
