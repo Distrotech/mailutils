@@ -1,3 +1,12 @@
+2002-03-09  Sergey Poznyakoff  
+
+	* lib/mu_argp.c: Process user's private initialization file
+	  after processig the site-wide one.
+	  (mu_create_argcv): was allocating an extra slot in argv array.
+	* mail.local/main.c: Added `auth' capability.
+	* doc/texinfo/programs.texi: Documented new configuration file
+	  mechanism.
+
 2002-03-09  Sergey Poznyakoff
 
 	* configure.in: Check for libresolv.
