@@ -56,8 +56,7 @@ AC_REQUIRE([jm_FUNC_MALLOC])
 AC_REQUIRE([jm_FUNC_REALLOC])
 AC_FUNC_ALLOCA
 AC_FUNC_MEMCMP
-AC_CHECK_FUNC(snprintf, AC_DEFINE(HAVE_SNPRINTF),
-  LIBOBJS="$LIBOBJS snprintf.o")
+AC_REPLACE_FUNCS(snprintf, strtok_r)
 
 dnl Check for libraries
 
