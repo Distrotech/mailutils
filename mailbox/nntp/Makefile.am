@@ -57,7 +57,7 @@ libmu_nntp_la_SOURCES = \
  nntp_stat.c \
  nntp_stream.c \
  nntp_timeout.c \
- \
+ nntp0.h \
  url.c \
  folder.c \
  mbox.c
