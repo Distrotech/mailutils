@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2003 Free Software Foundation, Inc.
+   Copyright (C) 2003, 2004 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU Lesser General Public License as published by
@@ -67,9 +67,9 @@ spamd_connect_socket (sieve_machine_t mach, stream_t *stream, char *path)
       return errno;
     }
 
-  memset(&addr, 0, sizeof addr);
+  memset (&addr, 0, sizeof addr);
   addr.sun_family = AF_UNIX;
-  strncpy(addr.sun_path, path, sizeof addr.sun_path - 1);
+  strncpy (addr.sun_path, path, sizeof addr.sun_path - 1);
   addr.sun_path[sizeof addr.sun_path - 1] = 0;
   if (connect (fd, (struct sockaddr *) &addr, sizeof(addr)))
     {
