@@ -15,39 +15,28 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-/* vi:sw=4:ts=8 */
 /*
-Things to (maybe) do:
+Things to consider:
 
-  - groups used to return the number of addresses, now it returns
-    success... but doesn't create an _address for 'foo:;'. Should
-    it create one with just a personal?
+  - A group should create an address node with a group, accessable
+    with address_get_group().
 
-x - C comments only.
-x - no C++ reserved words.
-x - fix is_digit() to be like the other is functions
+  - Make domain optional in addr-spec, for parsing address lists
+    provided to local mail utilities.
 
-  - what should return codes be, possible errors are:
-     . no mem (ENOMEM)
-     . function wasn't called correctly, usually a missing argument (EINVAL)
-     . invalid syntax found during parsing (ENOENT)
-
-     All functions should return ==0 on success, and errno on failure.
-
-x - const-correct the APIs
-x - "new = (char*) realloc()", cast not needed
-x - mailbox_t* nuked in favor of address_t
-x - fix handful of memory leaks detected by Alain
-
-  - test for memory leaks, so I don't have to rely on Alains sharp eyes
-  - fix the realloc, try a struct _string { char* b, size_t sz };
-x - where does parse822.h go?
-  - parse field names and bodies
-  - parse dates (pull from Mail++)
-  - parse Received: field
-x - check RFC again, can groups be nested? No!
-  - should we do best effort parsing, so parsing "sam@locahost, foo@"
+  - Should we do best effort parsing, so parsing "sam@locahost, foo@"
     gets one address, or just say it is or it isn't in RFC format?
+    Right now we're strict, we'll see how it goes.
+
+  - quote local-part when generating email field of address_t.
+
+  - parse field names and bodies?
+  - parse dates?
+  - parse Received: field?
+
+  - test for memory leaks on malloc failure
+  - fix the realloc, try a struct _string { char* b, size_t sz };
+
 */
 
 #ifdef HAVE_CONFIG_H
@@ -536,40 +525,6 @@ static int fill_mb(
     return rc;
 }
 
-/* FIXME: Delete this one. adddress.c do the work now.  */
-#if 0
-int address_create0 (address_t* a, const char* s)
-{
-    /* 'a' must exist, and can't already have been initialized
-     */
-
-    int status = 0;
-
-    if(!a || *a) {
-	return EINVAL;
-    }
-
-    status = parse822_address_list(a, (char*) s);
-
-    if(status == EOK) {
-	if(!*a) {
-	    /* there was a group that got parsed correctly, but had
-	     * no addresses...
-	     */
-	    return EPARSE;
-	}
-	(*a)->addr = strdup(s);
-
-	if(!(*a)->addr) {
-	    address_destroy(a);
-	    return ENOMEM;
-	}
-    }
-
-    return status;
-}
-#endif
-
 int parse822_address_list(address_t* a, const char* s)
 {
     /* address-list = #(address) */
@@ -708,8 +663,6 @@ int parse822_mail_box(const char** p, const char* e, address_t* a)
 
     /* -> addr-spec */
     if((rc = parse822_addr_spec(p, e, a)) == EOK) {
-	/*int rc = EOK; */
-
 	parse822_skip_ws(p, e);
 
 	/* yuck. */
@@ -733,7 +686,6 @@ int parse822_mail_box(const char** p, const char* e, address_t* a)
     /* -> phrase route-addr */
     {
 	char* phrase = 0;
-	/*int rc; */
 
 	rc = parse822_phrase(p, e, &phrase);
 
@@ -1161,3 +1113,4 @@ int parse822_field_body(const char** p, const char* e, Rope& fieldbody)
     return 1;
 }
 #endif
+
