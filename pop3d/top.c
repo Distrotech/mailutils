@@ -58,7 +58,7 @@ pop3d_top (const char *arg)
   if (attribute_is_deleted (attr))
     return ERR_MESG_DELE;
 
-  fprintf (ofile, "+OK\r\n");
+  pop3d_outf ("+OK\r\n");
 
   /* Header.  */
   message_get_header (msg, &hdr);
@@ -74,10 +74,10 @@ pop3d_top (const char *arg)
       if (buf[n - 1] == '\n')
 	{
 	  buf[n - 1] = '\0';
-	  fprintf (ofile, "%s\r\n", buf);
+	  pop3d_outf ("%s\r\n", buf);
 	}
       else
-	fprintf (ofile, "%s", buf);
+	pop3d_outf ("%s", buf);
       off += n;
     }
 
@@ -102,16 +102,16 @@ pop3d_top (const char *arg)
 	      continue;
 	    }
 	  if (buf[0] == '.')
-	    fprintf (ofile, ".%s\r\n", buf);
+	    pop3d_outf (".%s\r\n", buf);
 	  else
-	    fprintf (ofile, "%s\r\n", buf);
+	    pop3d_outf ("%s\r\n", buf);
 	  lines--;
 	  off += n;
 	}
     }
 
   free (buf);
-  fprintf (ofile, ".\r\n");
+  pop3d_outf (".\r\n");
 
   return OK;
 }

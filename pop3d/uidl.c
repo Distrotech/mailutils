@@ -34,7 +34,7 @@ pop3d_uidl (const char *arg)
   if (strlen (arg) == 0)
     {
       size_t total = 0;
-      fprintf (ofile, "+OK\r\n");
+      pop3d_outf ("+OK\r\n");
       mailbox_messages_count (mbox, &total);
       for (mesgno = 1; mesgno <= total; mesgno++)
         {
@@ -43,10 +43,10 @@ pop3d_uidl (const char *arg)
           if (!attribute_is_deleted (attr))
             {
               message_get_uidl (msg, uidl, sizeof (uidl), NULL);
-              fprintf (ofile, "%d %s\r\n", mesgno, uidl);
+              pop3d_outf ("%d %s\r\n", mesgno, uidl);
             }
         }
-      fprintf (ofile, ".\r\n");
+      pop3d_outf (".\r\n");
     }
   else
     {
@@ -57,7 +57,7 @@ pop3d_uidl (const char *arg)
       if (attribute_is_deleted (attr))
         return ERR_MESG_DELE;
       message_get_uidl (msg, uidl, sizeof (uidl), NULL);
-      fprintf (ofile, "+OK %d %s\r\n", mesgno, uidl);
+      pop3d_outf ("+OK %d %s\r\n", mesgno, uidl);
     }
 
   return OK;

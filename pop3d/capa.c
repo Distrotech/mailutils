@@ -35,17 +35,17 @@ pop3d_capa (const char *arg)
   if (state != AUTHORIZATION && state != TRANSACTION)
     return ERR_WRONG_STATE;
 
-  fprintf (ofile, "+OK Capability list follows\r\n");
-  fprintf (ofile, "TOP\r\n");
-  fprintf (ofile, "USER\r\n");
-  fprintf (ofile, "UIDL\r\n");
-  fprintf (ofile, "RESP-CODES\r\n");
-  fprintf (ofile, "PIPELINING\r\n");
+  pop3d_outf ("+OK Capability list follows\r\n");
+  pop3d_outf ("TOP\r\n");
+  pop3d_outf ("USER\r\n");
+  pop3d_outf ("UIDL\r\n");
+  pop3d_outf ("RESP-CODES\r\n");
+  pop3d_outf ("PIPELINING\r\n");
   /* FIXME: This can be Implemented by setting an header field on the
      message.  */
-  /*fprintf (ofile, "EXPIRE NEVER\r\n"); */
+  /*pop3d_outf ("EXPIRE NEVER\r\n"); */
   if (state == TRANSACTION)	/* let's not advertise to just anyone */
-    fprintf (ofile, "IMPLEMENTATION %s %s\r\n", IMPL, VERSION);
-  fprintf (ofile, ".\r\n");
+    pop3d_outf ("IMPLEMENTATION %s %s\r\n", IMPL, VERSION);
+  pop3d_outf (".\r\n");
   return OK;
 }

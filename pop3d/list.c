@@ -37,7 +37,7 @@ pop3d_list (const char *arg)
   if (strlen (arg) == 0)
     {
       size_t total = 0;
-      fprintf (ofile, "+OK\r\n");
+      pop3d_outf ("+OK\r\n");
       mailbox_messages_count (mbox, &total);
       for (mesgno = 1; mesgno <= total; mesgno++)
 	{
@@ -47,10 +47,10 @@ pop3d_list (const char *arg)
 	    {
 	      message_size (msg, &size);
 	      message_lines (msg, &lines);
-	      fprintf (ofile, "%d %d\r\n", mesgno, size + lines);
+	      pop3d_outf ("%d %d\r\n", mesgno, size + lines);
 	    }
 	}
-      fprintf (ofile, ".\r\n");
+      pop3d_outf (".\r\n");
     }
   else
     {
@@ -62,7 +62,7 @@ pop3d_list (const char *arg)
 	return ERR_MESG_DELE;
       message_size (msg, &size);
       message_lines (msg, &lines);
-      fprintf (ofile, "+OK %d %d\r\n", mesgno, size + lines);
+      pop3d_outf ("+OK %d %d\r\n", mesgno, size + lines);
     }
 
   return OK;

@@ -256,7 +256,7 @@ pop3d_apop (const char *arg)
   username = strdup (pw->pw_name);
   if (username == NULL)
     pop3d_abquit (ERR_NO_MEM);
-  fprintf (ofile, "+OK opened mailbox for %s\r\n", username);
+  pop3d_outf ("+OK opened mailbox for %s\r\n", username);
   /* mailbox name */
   {
     url_t url = NULL;

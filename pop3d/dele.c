@@ -39,6 +39,6 @@ pop3d_dele (const char *arg)
 
   message_get_attribute (msg, &attr);
   attribute_set_deleted (attr);
-  fprintf (ofile, "+OK Message %d marked\r\n", num);
+  pop3d_outf ("+OK Message %d marked\r\n", num);
   return OK;
 }

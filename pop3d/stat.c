@@ -55,7 +55,7 @@ pop3d_stat (const char *arg)
 	  num++;
 	}
     }
-  fprintf (ofile, "+OK %d %d\r\n", num, tsize);
+  pop3d_outf ("+OK %d %d\r\n", num, tsize);
 
   return OK;
 }

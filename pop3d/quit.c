@@ -35,7 +35,7 @@ pop3d_quit (const char *arg)
       pop3d_unlock ();
       if (mailbox_expunge (mbox) != 0)
 	err = ERR_FILE;
-      if (mailbox_close (mbox) != 0)
+      if (mailbox_close (mbox) != 0) 
 	err = ERR_FILE;
       mailbox_destroy (&mbox);
       syslog (LOG_INFO, "Session ended for user: %s", username);
@@ -48,6 +48,6 @@ pop3d_quit (const char *arg)
   free (md5shared);
 
   if (err == OK)
-    fprintf (ofile, "+OK\r\n");
+    pop3d_outf ("+OK\r\n");
   return err;
 }

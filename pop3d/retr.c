@@ -46,7 +46,7 @@ pop3d_retr (const char *arg)
     return ERR_MESG_DELE;
 
   message_get_stream (msg, &stream);
-  fprintf (ofile, "+OK\r\n");
+  pop3d_outf ("+OK\r\n");
 
   off = n = 0;
   buf = malloc (buflen * sizeof (*buf));
@@ -68,9 +68,9 @@ pop3d_retr (const char *arg)
 	  continue;
 	}
       if (buf[0] == '.')
-	fprintf (ofile, ".%s\r\n", buf);
+	pop3d_outf (".%s\r\n", buf);
       else
-	fprintf (ofile, "%s\r\n", buf);
+	pop3d_outf ("%s\r\n", buf);
       off += n;
     }
 
@@ -78,7 +78,7 @@ pop3d_retr (const char *arg)
     attribute_set_read (attr);
 
   free (buf);
-  fprintf (ofile, ".\r\n");
+  pop3d_outf (".\r\n");
 
   return OK;
 }

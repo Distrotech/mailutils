@@ -42,6 +42,6 @@ pop3d_rset (const char *arg)
       if (attribute_is_deleted (attr))
 	attribute_unset_deleted (attr);
     }
-  fprintf (ofile, "+OK\r\n");
+  pop3d_outf ("+OK\r\n");
   return OK;
 }
