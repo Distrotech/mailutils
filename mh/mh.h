@@ -44,9 +44,14 @@
 #include <mailutils/argcv.h>
 #include <mailutils/debug.h>
 #include <mailutils/mailer.h>
+#include <mailutils/envelope.h>
 
 #include <mu_asprintf.h>
 #include <getline.h>
+
+#if !HAVE_DECL_STRCHRNUL
+extern char *strchrnul __P((const char *s, int c_in));
+#endif
 
 #define MH_FMT_RALIGN 0x1000
 #define MH_FMT_ZEROPAD 0x2000
@@ -215,7 +220,8 @@ void mh_init __P((void));
 void mh_init2 __P((void));
 void mh_read_profile __P((void));
 int mh_read_formfile __P((char *name, char **pformat));
-mailbox_t mh_open_msg_file (char *folder, char *file_name);
+message_t mh_file_to_message (char *folder, char *file_name);
+message_t mh_stream_to_message (stream_t stream);
 void mh_install __P((char *name, int automode));
 
 char *mh_global_profile_get __P((char *name, char *defval));
@@ -291,3 +297,9 @@ int mh_usedraft __P((const char *filename));
 int mh_file_copy __P((const char *from, const char *to));
 
 void mh_annotate __P((message_t msg, char *field, char *text, int date));
+
+list_t mhl_format_compile __P((char *name));
+int mhl_format_run __P((list_t fmt, int width, int length,
+			int clearscreen, int bell,
+			message_t msg, stream_t output));
+void mhl_format_destroy (list_t *fmt);
