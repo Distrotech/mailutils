@@ -1,3 +1,83 @@
+2002-08-28  Sergey Poznyakoff 
+
+	* sieve/interp.c (sieve_interp_alloc): Fill allocalted memory
+	  with zeroes.
+	* sieve/svcb.c: Implemented envelope test (see comment, though)
+	* sieve/sieve-gram.y: Include "sieve.h"
+	* sieve/sieve-lex.l: Handle C-style comments.
+	* sieve/sieve.c: Handle --license option. Additional debugging
+	  flags: 'a' to produce address parser traces, 'g' to produce
+	  main parser traces.
+	* sieve/sieve_interface.h (addrdebug, yydebug): external
+	  declarations.
+	
+	* include/mailutils/argp.h (mu_license_text): External
+	  declaration.
+	* mailbox/mu_argp.c (mu_license_text): removed static
+	  qualifier.
+
+	* configure.ac: Added testsuite for sieve. Changed version number
+	  to 0.0.9e.
+	* sieve/Makefile.am: Likewise
+
+	* sieve/testsuite: New directory.
+	* sieve/testsuite/Makefile.am: New file.
+	* sieve/testsuite/.cvsignore: New file.
+	* sieve/testsuite/lib: New directory.
+	* sieve/testsuite/lib/DISTFILES: New file.
+	* sieve/testsuite/lib/sieve.exp: New file.
+	* sieve/testsuite/scripts: New directory.
+	* sieve/testsuite/scripts/DISTFILES: New file.
+	* sieve/testsuite/scripts/addr_is_all.sv: New file.
+	* sieve/testsuite/scripts/addr_is_domain.sv: New file.
+	* sieve/testsuite/scripts/addr_is_local.sv: New file.
+	* sieve/testsuite/scripts/addr_matches.sv: New file.
+	* sieve/testsuite/scripts/address.sv: New file.
+	* sieve/testsuite/scripts/allof00.sv: New file.
+	* sieve/testsuite/scripts/allof01.sv: New file.
+	* sieve/testsuite/scripts/allof11.sv: New file.
+	* sieve/testsuite/scripts/anyof00.sv: New file.
+	* sieve/testsuite/scripts/anyof01.sv: New file.
+	* sieve/testsuite/scripts/anyof11.sv: New file.
+	* sieve/testsuite/scripts/discard.sv: New file.
+	* sieve/testsuite/scripts/envelope1.sv: New file.
+	* sieve/testsuite/scripts/exists1.sv: New file.
+	* sieve/testsuite/scripts/exists2.sv: New file.
+	* sieve/testsuite/scripts/exists3.sv: New file.
+	* sieve/testsuite/scripts/false.sv: New file.
+	* sieve/testsuite/scripts/fileinto.sv: New file.
+	* sieve/testsuite/scripts/header1.sv: New file.
+	* sieve/testsuite/scripts/header2.sv: New file.
+	* sieve/testsuite/scripts/header3.sv: New file.
+	* sieve/testsuite/scripts/keep.sv: New file.
+	* sieve/testsuite/scripts/not.sv: New file.
+	* sieve/testsuite/scripts/null.sv: New file.
+	* sieve/testsuite/scripts/size1.sv: New file.
+	* sieve/testsuite/scripts/size2.sv: New file.
+	* sieve/testsuite/scripts/stop.sv: New file.
+	* sieve/testsuite/scripts/true.sv: New file.
+	
+	* sieve/testsuite/sieve: New directory.
+	* sieve/testsuite/sieve/DISTFILES: New file.
+	* sieve/testsuite/sieve/action.exp: New file.
+	* sieve/testsuite/sieve/address.exp: New file.
+	* sieve/testsuite/sieve/allof.exp: New file.
+	* sieve/testsuite/sieve/anyof.exp: New file.
+	* sieve/testsuite/sieve/compile.exp: New file.
+	* sieve/testsuite/sieve/envelope.exp: New file.
+	* sieve/testsuite/sieve/exists.exp: New file.
+	* sieve/testsuite/sieve/false.exp: New file.
+	* sieve/testsuite/sieve/header.exp: New file.
+	* sieve/testsuite/sieve/not.exp: New file.
+	* sieve/testsuite/sieve/size.exp: New file.
+	* sieve/testsuite/sieve/true.exp: New file.
+
+	* testsuite/lib/mailutils.exp (mu_exec): added -arg-list option.
+	* testsuite/spool/sieve.mbox: New file. Mailbox for testing sieve.
+	* testsuite/spool/DISTFILES: Added sieve.mbox
+	* imap4d/testsuite/imap4d/list.exp: Updated to match new spooldir
+	  contents.
+
 2002-08-27  Sergey Poznyakoff
 
 	* frm/frm.c: Fixed return status when the mailbox does not exist.
