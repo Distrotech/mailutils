@@ -1,3 +1,31 @@
+2002-05-13  Sergey Poznyakoff 
+
+	To avoid dependency problems moved mu_argp.c to mailbox. Changed
+	license to Lesser GPL.
+	
+	* lib/mu_argp.h: Moved to ...
+	* include/mailutils/mu_argp.h: here.
+	* lib/mu_argp.c: Moved to ...
+	* mailbox/mu_argp.c: here.
+	
+	* lib/Makefile.am: Removed mu_argp.* stuff.
+	* mailbox/Makefile.am: Added mu_argp.c
+	* include/mailutils/Makefile.am: Added mu_argp.h
+
+	* comsat/comsat.h: Changed mu_argp.h to mailutils/mu_argp.h
+	* frm/frm.c: Likewise.
+	* from/from.c: Likewise.
+	* guimb/main.c: Likewise.
+	* imap4d/imap4d.h: Likewise.
+	* imap4d/search.c: Likewise.
+	* mail/mail.h: Likewise.
+	* mail.local/mail.local.h: Likewise.
+	* messages/messages.c: Likewise.
+	* pop3d/pop3d.h: Likewise.
+	* sieve/sieve.c: Likewise.
+	
+	* lib/utmp.c: Added missing includes.
+
 2002-05-10 Sam Roberts
 
 	* mailbox/tcp.c: Not a good day, second typo in a row in
