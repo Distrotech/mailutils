@@ -1,6 +1,6 @@
-GNU mailutils NEWS -- history of user-visible changes.  2003-06-07
+GNU mailutils NEWS -- history of user-visible changes.  2003-27-07
 Copyright (C) 2002, 2003 Free Software Foundation, Inc.
-See the end for copying conditions.
+See the end of file for copying conditions.
 
 Please send mailutils bug reports to <bug-mailutils@gnu.org>.
 
@@ -19,6 +19,8 @@ time units.
 
 ** Various fixes and improvements in MH in order to interoperate better
 with MH-E.
+
+** Correctly handle MIME parts with an empty body.
 
 * New features.
 
@@ -41,6 +43,8 @@ the persistence of message unique-ids as required by RFC 1939.
 
 *** popauth: new option --create.
 
+The option allows to convert a plaintext file into DBM database.
+
 ** mail
 
 New configuration file variable `mailx' enables the mailx
@@ -50,8 +54,6 @@ composing the body.
 The default behavior is to ask for these values before composing
 the body.
 
-
-The option allows to convert a plaintext file into DBM database.
 
 
 Version 0.3.1:

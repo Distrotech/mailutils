@@ -1,3 +1,26 @@
+2003-08-27  Sergey Poznyakoff 
+
+	* NEWS: Updated
+	* mailbox/mime.c (_mime_parse_mpart_message): Allow for
+	empty part body.
+	* examples/mimetest.c: Print the number of lines along with the
+	message sizes.
+
+	* testsuite/spool/mbox1: Added fifth message for testing
+	empty MIME parts.
+	* mailbox/testsuite/Mime: Updated for the new contents of
+	mbox1
+	* frm/testsuite/frm/test.exp: Likewise.
+	* from/testsuite/from/test.exp: Likewise.
+	* imap4d/testsuite/imap4d/examine.exp: Likewise.
+	* imap4d/testsuite/imap4d/expunge.exp: Likewise.
+	* imap4d/testsuite/imap4d/fetch.exp: Likewise.
+	* mail/testsuite/mail/folder.exp: Likewise.
+	* mail/testsuite/mail/write.exp: Likewise.
+	* messages/testsuite/messages/test.exp: Likewise.
+	* readmsg/testsuite/readmsg/test.exp: Likewise.
+	* sieve/testsuite/sieve/header.exp: Likewise.
+
 2003-08-22  Sergey Poznyakoff
 
 	* examples/mta.c (mta_send): Fixed printing of envelope
