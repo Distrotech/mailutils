@@ -1,3 +1,23 @@
+2001-12-29 Sergey Poznyakoff
+
+	* guimb/scm/numaddr.scm: (new) Implements "numaddr" extension
+	  test. The test counts Internet addresses in structured headers
+	  that contain addresses.  It returns true if the total number of
+	  addresses satisfies the requested relation, e.g.:
+		if numaddr :over [ "To", "Cc" ] 50 { discard; }
+	  
+	* guimb/scm/Makefile.am: Added numaddr.scm.
+	* guimb/scm/redirect.scm: Use mu-message-send instead of
+	  sieve-message-bounce.
+	* guimb/scm/reject.scm: Likewise.
+	* guimb/scm/sieve-core.scm: Introduced sieve-daemon-email
+	  variable. Removed sieve-message-bounce, since recent modifications
+	  to mailer_send_message() and mu-message-send provide all the
+          required functionality.
+
+	* pop3d/popauth.c: Reset the user privileges in case popauth is
+	  installed setuid.
+
 2001-12-28 Sergey Poznyakoff
 
 	* comsat/comsat.h: Added include <argcv.h>
