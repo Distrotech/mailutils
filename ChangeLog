@@ -1,3 +1,10 @@
+2003-07-08  Sergey Poznyakoff
+
+	* configure.ac: Raised version number
+	* NEWS: Started entry for 0.3.2
+	* comsat/comsat.c: Bugfix.
+	* pop3d/apop.c: Provide more extensive diagnostics.
+
 2003-07-01  Sergey Poznyakoff 
 
 	* auth/pam.c: Minor indentation fix.
