@@ -5,6 +5,7 @@ pkginclude_HEADERS = \
  attribute.h  \
  authority.h  \
  bstream.h    \
+ dattribute.h \
  debug.h      \
  envelope.h   \
  folder.h     \
@@ -12,15 +13,16 @@ pkginclude_HEADERS = \
  header.h     \
  iterator.h   \
  list.h       \
- locker.h     \
+ lockfile.h   \
  mailbox.h    \
  mbox.h       \
+ mapstream.h  \
  memstream.h  \
  message.h    \
- mstream.h    \
  observable.h \
  observer.h   \
  pop3.h       \
+ pticket.h    \
  refcount.h   \
  sdebug.h     \
  stream.h     \

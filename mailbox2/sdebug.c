@@ -27,19 +27,19 @@
 #include <mailutils/sys/sdebug.h>
 #include <mailutils/error.h>
 
-static int
-_sdebug_ref (mu_debug_t debug)
+int
+_mu_debug_stream_ref (mu_debug_t debug)
 {
-  struct _sdebug *sdebug = (struct _sdebug *)debug;
+  struct _mu_debug_stream *sdebug = (struct _mu_debug_stream *)debug;
   return mu_refcount_inc (sdebug->refcount);
 }
 
-static void
-_sdebug_destroy (mu_debug_t *pdebug)
+void
+_mu_debug_stream_destroy (mu_debug_t *pdebug)
 {
   if (pdebug && *pdebug)
     {
-      struct _sdebug *sdebug = (struct _sdebug *)*pdebug;
+      struct _mu_debug_stream *sdebug = (struct _mu_debug_stream *)*pdebug;
       if (mu_refcount_dec (sdebug->refcount) == 0)
 	{
 	  if (sdebug->stream)
@@ -55,27 +55,27 @@ _sdebug_destroy (mu_debug_t *pdebug)
     }
 }
 
-static int
-_sdebug_set_level (mu_debug_t debug, size_t level)
+int
+_mu_debug_stream_set_level (mu_debug_t debug, size_t level)
 {
-  struct _sdebug *sdebug = (struct _sdebug *)debug;
+  struct _mu_debug_stream *sdebug = (struct _mu_debug_stream *)debug;
   sdebug->level = level;
   return 0;
 }
 
-static int
-_sdebug_get_level (mu_debug_t debug, size_t *plevel)
+int
+_mu_debug_stream_get_level (mu_debug_t debug, size_t *plevel)
 {
-  struct _sdebug *sdebug = (struct _sdebug *)debug;
+  struct _mu_debug_stream *sdebug = (struct _mu_debug_stream *)debug;
   if (plevel)
     *plevel = sdebug->level;
   return 0;
 }
 
-static int
-_sdebug_print (mu_debug_t debug, size_t level, const char *mesg)
+int
+_mu_debug_stream_print (mu_debug_t debug, size_t level, const char *mesg)
 {
-  struct _sdebug *sdebug = (struct _sdebug *)debug;
+  struct _mu_debug_stream *sdebug = (struct _mu_debug_stream *)debug;
 
   if (mesg == NULL)
     return MU_ERROR_INVALID_PARAMETER;
@@ -86,21 +86,21 @@ _sdebug_print (mu_debug_t debug, size_t level, const char *mesg)
   return stream_write (sdebug->stream, mesg, strlen (mesg), NULL);
 }
 
-struct _mu_debug_vtable _sdebug_vtable =
+static struct _mu_debug_vtable _mu_debug_stream_vtable =
 {
-  _sdebug_ref,
-  _sdebug_destroy,
+  _mu_debug_stream_ref,
+  _mu_debug_stream_destroy,
 
-  _sdebug_get_level,
-  _sdebug_set_level,
-  _sdebug_print
+  _mu_debug_stream_get_level,
+  _mu_debug_stream_set_level,
+  _mu_debug_stream_print
 };
 
 int
 mu_debug_stream_create (mu_debug_t *pdebug, stream_t stream,
 			int close_on_destroy)
 {
-  struct _sdebug *sdebug;
+  struct _mu_debug_stream *sdebug;
 
   if (pdebug == NULL || stream == NULL)
     return MU_ERROR_INVALID_PARAMETER;
@@ -119,7 +119,7 @@ mu_debug_stream_create (mu_debug_t *pdebug, stream_t stream,
   sdebug->level = 0;
   sdebug->stream = stream;
   sdebug->close_on_destroy = close_on_destroy;
-  sdebug->base.vtable = &_sdebug_vtable;
+  sdebug->base.vtable = &_mu_debug_stream_vtable;
   *pdebug = &sdebug->base;
   return 0;
 }

@@ -21,7 +21,11 @@
 #include <mailutils/refcount.h>
 #include <mailutils/sys/stream.h>
 
-struct _fds
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+struct _stream_fd
 {
   struct _stream base;
   mu_refcount_t refcount;
@@ -29,5 +33,32 @@ struct _fds
   int  state;
   int flags;
 };
+
+int  _stream_fd_ctor __P ((struct _stream_fd *, int));
+void _stream_fd_dtor __P ((struct _stream_fd *));
+
+int  _stream_fd_ref  __P ((stream_t));
+void _stream_fd_destroy __P ((stream_t *));
+int  _stream_fd_open    __P ((stream_t, const char *, int, int));
+int  _stream_fd_close   __P ((stream_t));
+int  _stream_fd_read    __P ((stream_t, void *, size_t, size_t *));
+int  _stream_fd_readline __P ((stream_t, char *, size_t, size_t *));
+int  _stream_fd_write    __P ((stream_t, const void *, size_t, size_t *));
+int  _stream_fd_get_fd   __P ((stream_t, int *));
+int  _stream_fd_get_flags __P ((stream_t, int *));
+int  _stream_fd_get_size  __P ((stream_t, off_t *));
+int  _stream_fd_truncate  __P ((stream_t, off_t));
+int  _stream_fd_flush     __P ((stream_t));
+int  _stream_fd_get_state __P ((stream_t, enum stream_state *));
+int  _stream_fd_seek      __P ((stream_t, off_t, enum stream_whence));
+int  _stream_fd_tell      __P ((stream_t, off_t *));
+int  _stream_fd_is_readready __P ((stream_t, int ));
+int  _stream_fd_is_writeready __P ((stream_t, int));
+int  _stream_fd_is_exceptionpending __P ((stream_t, int));
+int  _stream_fd_is_open __P ((stream_t));
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* _MAILUTILS_SYS_FDSTREAM_H */

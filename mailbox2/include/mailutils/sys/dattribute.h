@@ -15,44 +15,40 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-#ifndef _MAILUTILS_SYS_LOCKER_H
-#define _MAILUTILS_SYS_LOCKER_H
+#ifndef _MAILUTILS_SYS_DATTRIBUTE_H
+# define _MAILUTILS_SYS_DATTRIBUTE_H
 
 #ifdef DMALLOC
-#include <dmalloc.h>
+#  include <dmalloc.h>
 #endif
 
-#include <mailutils/locker.h>
+#include <mailutils/sys/attribute.h>
+#include <mailutils/refcount.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#ifndef __P
-# ifdef __STDC__
-#  define __P(args) args
-# else
-#  define __P(args) ()
-# endif
-#endif /*__P */
-
-struct _locker_vtable
+/* A simple default attribute implementation.  */
+struct _attribute_default
 {
-  int  (*ref)       __P ((locker_t));
-  void (*destroy)   __P ((locker_t *));
-
-  int  (*lock)      __P ((locker_t));
-  int  (*touchlock) __P ((locker_t));
-  int  (*unlock)    __P ((locker_t));
+  struct _attribute base;
+  mu_refcount_t refcount;
+  int flags;
 };
 
-struct _locker
-{
-  struct _locker_vtable *vtable;
-};
+extern int  _attribute_default_ctor        __P ((struct _attribute_default *));
+extern void _attribute_default_dtor        __P ((struct _attribute_default *));
+extern int  _attribute_default_ref         __P ((attribute_t));
+extern void _attribute_default_destroy     __P ((attribute_t *));
+
+extern int  _attribute_default_get_flags   __P ((attribute_t, int *));
+extern int  _attribute_default_set_flags   __P ((attribute_t, int));
+extern int  _attribute_default_unset_flags __P ((attribute_t, int));
+extern int  _attribute_default_clear_flags __P ((attribute_t));
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* _MAILUTILS_SYS_ENVELOPE_H */
+#endif /* _MAILUTILS_SYS_ATTRIBUTE_H */

@@ -19,7 +19,7 @@
 #define _MAILUTILS_SYS_MBOX_H
 
 #include <time.h>
-#include <mailutils/locker.h>
+#include <mailutils/lockfile.h>
 #include <mailutils/mbox.h>
 
 #ifdef __cplusplus
@@ -27,35 +27,6 @@ extern "C" {
 #endif
 
 typedef struct _mbox_message* mbox_message_t;
-
-
-/* Keep the file positions of where the headers and bodies start and end.
-   attribute is the "Status:" message.  */
-struct _mbox_message
-{
-  /* Offset of the messages in the mailbox.  */
-  off_t from_;
-
-  /* Fast header retrieve, we save here the most common headers. This will
-     speed the header search.  The entire headers are copied, when modified,
-     by the header_t object, we do not have to worry about updating them.  */
-  char **fhdr;
-
-  struct
-  {
-    stream_t stream;
-    unsigned int lines;
-    unsigned int size;
-    off_t start;
-    off_t end;
-  } header, body;
-
-  /* UID i.e. see IMAP  */
-  unsigned long uid;
-  attribute_t attribute; /* The attr_flags contains the "Status:" attribute  */
-
-  mbox_t mbox; /* Back pointer.  */
-};
 
 /* The umessages is an array of pointers that contains umessages_count of
    mbox_message_t*; umessages[umessages_count].  We do it this way because
@@ -85,13 +56,41 @@ struct _mbox
     MBOX_STATE_APPEND_BODY
   } state ;
 
-  locker_t  locker;
-
+  lockfile_t  lockfile;
   struct
   {
     int (*cb) __P ((int, void *));
     void *arg;
   } newmsg, progress, corrupt;
+};
+
+/* Keep the file positions of where the headers and bodies start and end.
+   attribute is the "Status:" message.  */
+struct _mbox_message
+{
+  /* Offset of the messages in the mailbox.  */
+  off_t from_;
+
+  /* Fast header retrieve, we save here the most common headers. This will
+     speed the header search.  The entire headers are copied, when modified,
+     by the header_t object, we do not have to worry about updating them.  */
+  char **fhdr;
+
+  struct
+  {
+    stream_t stream;
+    unsigned int lines;
+    unsigned int size;
+    off_t start;
+    off_t end;
+  } header, body;
+
+  /* UID i.e. see IMAP  */
+  unsigned long uid;
+  unsigned int attr_flags;
+  attribute_t attribute; /* The attr_flags contains the "Status:" attribute  */
+
+  mbox_t mbox; /* Back pointer.  */
 };
 
 #ifdef __cplusplus

@@ -29,7 +29,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-#include <mailutils/sys/mstream.h>
+#include <mailutils/sys/mapstream.h>
 #include <mailutils/error.h>
 
 #ifdef _POSIX_MAPPED_FILES
@@ -39,17 +39,17 @@
 # define MAP_FAILED (void*)-1
 #endif
 
-static int
-_map_ref (stream_t stream)
+int
+_stream_mmap_ref (stream_t stream)
 {
-  struct _ms *ms = (struct _ms *)stream;
+  struct _stream_mmap *ms = (struct _stream_mmap *)stream;
   return mu_refcount_inc (ms->refcount);
 }
 
-static void
-_map_destroy (stream_t *pstream)
+void
+_stream_mmap_destroy (stream_t *pstream)
 {
-  struct _ms *ms = (struct _ms *)*pstream;
+  struct _stream_mmap *ms = (struct _stream_mmap *)*pstream;
 
   if (mu_refcount_dec (ms->refcount) == 0)
     {
@@ -58,10 +58,10 @@ _map_destroy (stream_t *pstream)
     }
 }
 
-static int
-_map_read (stream_t stream, void *optr, size_t osize, size_t *nbytes)
+int
+_stream_mmap_read (stream_t stream, void *optr, size_t osize, size_t *nbytes)
 {
-  struct _ms *ms = (struct _ms *)stream;
+  struct _stream_mmap *ms = (struct _stream_mmap *)stream;
   size_t n = 0;
 
   mu_refcount_lock (ms->refcount);
@@ -82,10 +82,10 @@ _map_read (stream_t stream, void *optr, size_t osize, size_t *nbytes)
   return 0;
 }
 
-static int
-_map_readline (stream_t stream, char *optr, size_t osize, size_t *nbytes)
+int
+_stream_mmap_readline (stream_t stream, char *optr, size_t osize, size_t *nbytes)
 {
-  struct _ms *ms = (struct _ms *)stream;
+  struct _stream_mmap *ms = (struct _stream_mmap *)stream;
   size_t n = 0;
 
   mu_refcount_lock (ms->refcount);
@@ -111,10 +111,10 @@ _map_readline (stream_t stream, char *optr, size_t osize, size_t *nbytes)
   return 0;
 }
 
-static int
-_map_write (stream_t stream, const void *iptr, size_t isize, size_t *nbytes)
+int
+_stream_mmap_write (stream_t stream, const void *iptr, size_t isize, size_t *nbytes)
 {
-  struct _ms *ms = (struct _ms *)stream;
+  struct _stream_mmap *ms = (struct _stream_mmap *)stream;
   int err = 0;
   size_t n = 0;
 
@@ -157,10 +157,10 @@ _map_write (stream_t stream, const void *iptr, size_t isize, size_t *nbytes)
   return err;
 }
 
-static int
-_map_truncate (stream_t stream, off_t len)
+int
+_stream_mmap_truncate (stream_t stream, off_t len)
 {
-  struct _ms *ms = (struct _ms *)stream;
+  struct _stream_mmap *ms = (struct _stream_mmap *)stream;
   int err = 0;
 
   mu_refcount_lock (ms->refcount);
@@ -188,10 +188,10 @@ _map_truncate (stream_t stream, off_t len)
   return err;
 }
 
-static int
-_map_get_size (stream_t stream, off_t *psize)
+int
+_stream_mmap_get_size (stream_t stream, off_t *psize)
 {
-  struct _ms *ms = (struct _ms *)stream;
+  struct _stream_mmap *ms = (struct _stream_mmap *)stream;
   struct stat stbuf;
   int err = 0;
 
@@ -232,11 +232,11 @@ _map_get_size (stream_t stream, off_t *psize)
   return err;
 }
 
-static int
-_map_flush (stream_t stream)
+int
+_stream_mmap_flush (stream_t stream)
 {
   int err = 0;
-  struct _ms *ms = (struct _ms *)stream;
+  struct _stream_mmap *ms = (struct _stream_mmap *)stream;
   mu_refcount_lock (ms->refcount);
   if (ms->ptr != MAP_FAILED && ms->ptr != NULL)
     err = msync (ms->ptr, ms->size, MS_SYNC);
@@ -244,27 +244,27 @@ _map_flush (stream_t stream)
   return 0;
 }
 
-static int
-_map_get_fd (stream_t stream, int *pfd)
+int
+_stream_mmap_get_fd (stream_t stream, int *pfd)
 {
-  struct _ms *ms = (struct _ms *)stream;
+  struct _stream_mmap *ms = (struct _stream_mmap *)stream;
   if (pfd)
     *pfd = ms->fd;
   return 0;
 }
 
-static int
-_map_get_flags (stream_t stream, int *flags)
+int
+_stream_mmap_get_flags (stream_t stream, int *flags)
 {
-  struct _ms *ms = (struct _ms *)stream;
+  struct _stream_mmap *ms = (struct _stream_mmap *)stream;
   if (flags == NULL)
     return MU_ERROR_INVALID_PARAMETER;
   *flags = ms->flags;
   return 0;
 }
 
-static int
-_map_get_state (stream_t stream, enum stream_state *state)
+int
+_stream_mmap_get_state (stream_t stream, enum stream_state *state)
 {
   (void)stream;
   if (state == NULL)
@@ -273,10 +273,10 @@ _map_get_state (stream_t stream, enum stream_state *state)
   return 0;
 }
 
-static int
-_map_seek (stream_t stream, off_t off, enum stream_whence whence)
+int
+_stream_mmap_seek (stream_t stream, off_t off, enum stream_whence whence)
 {
-  struct _ms *ms = (struct _ms *)stream;
+  struct _stream_mmap *ms = (struct _stream_mmap *)stream;
   off_t noff = ms->offset;
   int err = 0;
   if (whence == MU_STREAM_WHENCE_SET)
@@ -290,7 +290,7 @@ _map_seek (stream_t stream, off_t off, enum stream_whence whence)
   if (noff >= 0)
     {
       if (noff > ms->offset)
-	_map_truncate (stream, noff);
+	_stream_mmap_truncate (stream, noff);
       ms->offset = noff;
     }
   else
@@ -298,20 +298,20 @@ _map_seek (stream_t stream, off_t off, enum stream_whence whence)
   return err;
 }
 
-static int
-_map_tell (stream_t stream, off_t *off)
+int
+_stream_mmap_tell (stream_t stream, off_t *off)
 {
-  struct _ms *ms = (struct _ms *)stream;
+  struct _stream_mmap *ms = (struct _stream_mmap *)stream;
   if (off == NULL)
     return MU_ERROR_INVALID_PARAMETER;
   *off = ms->offset;
   return 0;
 }
 
-static int
-_map_close (stream_t stream)
+int
+_stream_mmap_close (stream_t stream)
 {
-  struct _ms *ms = (struct _ms *)stream;
+  struct _stream_mmap *ms = (struct _stream_mmap *)stream;
   int err = 0;
   mu_refcount_lock (ms->refcount);
   if (ms->ptr != MAP_FAILED)
@@ -328,40 +328,39 @@ _map_close (stream_t stream)
   return err;
 }
 
-static int
-_map_is_open (stream_t stream)
+int
+_stream_mmap_is_open (stream_t stream)
 {
-  struct _ms *ms = (struct _ms *)stream;
+  struct _stream_mmap *ms = (struct _stream_mmap *)stream;
   return (ms->ptr == MAP_FAILED) ? 0 : 1;
 }
 
-static int
-_map_is_readready (stream_t stream, int timeout)
+int
+_stream_mmap_is_readready (stream_t stream, int timeout)
 {
   (void)timeout;
-  return _map_is_open (stream);
+  return _stream_mmap_is_open (stream);
 }
 
-static int
-_map_is_writeready (stream_t stream, int timeout)
+int
+_stream_mmap_is_writeready (stream_t stream, int timeout)
 {
   (void)timeout;
-  return _map_is_open (stream);
+  return _stream_mmap_is_open (stream);
 }
 
-static int
-_map_is_exceptionpending (stream_t stream, int timeout)
+int
+_stream_mmap_is_exceptionpending (stream_t stream, int timeout)
 {
   (void)stream;
   (void)timeout;
   return 0;
 }
 
-
-static int
-_map_open (stream_t stream, const char *filename, int port, int flags)
+int
+_stream_mmap_open (stream_t stream, const char *filename, int port, int flags)
 {
-  struct _ms *ms = (struct _ms *)stream;
+  struct _stream_mmap *ms = (struct _stream_mmap *)stream;
   int mflag, flg;
   struct stat st;
 
@@ -400,7 +399,19 @@ _map_open (stream_t stream, const char *filename, int port, int flags)
       flg = O_RDONLY;
     }
 
-  ms->fd = open (filename, flg);
+  /* Anonymous Mapping.  */
+  if (filename == NULL)
+    {
+#ifdef MAP_ANON
+      mflag |= MAP_ANON;
+#else
+      filename = "/dev/zero";
+      ms->fd = open (filename, flg);
+#endif
+    }
+  else
+    ms->fd = open (filename, flg);
+
   if (ms->fd < 0)
     return errno;
   if (fstat (ms->fd, &st) != 0)
@@ -428,45 +439,70 @@ _map_open (stream_t stream, const char *filename, int port, int flags)
   return 0;
 }
 
-static struct _stream_vtable _map_vtable =
+static struct _stream_vtable _stream_mmap_vtable =
 {
-  _map_ref,
-  _map_destroy,
+  _stream_mmap_ref,
+  _stream_mmap_destroy,
 
-  _map_open,
-  _map_close,
+  _stream_mmap_open,
+  _stream_mmap_close,
 
-  _map_read,
-  _map_readline,
-  _map_write,
+  _stream_mmap_read,
+  _stream_mmap_readline,
+  _stream_mmap_write,
 
-  _map_seek,
-  _map_tell,
+  _stream_mmap_seek,
+  _stream_mmap_tell,
 
-  _map_get_size,
-  _map_truncate,
-  _map_flush,
+  _stream_mmap_get_size,
+  _stream_mmap_truncate,
+  _stream_mmap_flush,
 
-  _map_get_fd,
-  _map_get_flags,
-  _map_get_state,
+  _stream_mmap_get_fd,
+  _stream_mmap_get_flags,
+  _stream_mmap_get_state,
 
-  _map_is_readready,
-  _map_is_writeready,
-  _map_is_exceptionpending,
+  _stream_mmap_is_readready,
+  _stream_mmap_is_writeready,
+  _stream_mmap_is_exceptionpending,
 
-  _map_is_open
+  _stream_mmap_is_open
 };
+
+int
+_stream_mmap_ctor (struct _stream_mmap *ms)
+{
+  mu_refcount_create (&ms->refcount);
+  if (ms->refcount == NULL)
+    return MU_ERROR_NO_MEMORY;
+  ms->fd = -1;
+  ms->offset = -1;
+  ms->flags = 0;
+  ms->mflags = 0;
+  ms->base.vtable = &_stream_mmap_vtable;
+  return 0;
+}
+
+void
+_stream_mmap_dtor (struct _stream_mmap *ms)
+{
+  mu_refcount_destroy (&ms->refcount);
+  ms->fd = -1;
+  ms->offset = -1;
+  ms->mflags = 0;
+  ms->ptr = MAP_FAILED;
+}
 
 #endif /* _POSIX_MAPPED_FILES */
 
 int
-stream_mapfile_create (stream_t *pstream)
+stream_mmap_create (stream_t *pstream)
 {
 #ifndef _POSIX_MAPPED_FILES
   return ENOSYS;
 #else
-  struct _ms *ms;
+  struct _stream_mmap *ms;
+  int status;
 
   if (pstream == NULL)
     return MU_ERROR_INVALID_PARAMETER;
@@ -475,19 +511,10 @@ stream_mapfile_create (stream_t *pstream)
   if (ms == NULL)
     return MU_ERROR_NO_MEMORY;
 
-  mu_refcount_create (&ms->refcount);
-  if (ms->refcount == NULL)
-    {
-      free (ms);
-      return MU_ERROR_NO_MEMORY;
-    }
-  ms->fd = -1;
-  ms->offset = -1;
-  ms->flags = 0;
-  ms->mflags = 0;
-  ms->base.vtable = &_map_vtable;
+  status = _stream_mmap_ctor (ms);
+  if (status != 0)
+    return status;
   *pstream = &ms->base;
-
   return 0;
 #endif /* _POSIX_MAPPED_FILES */
 }

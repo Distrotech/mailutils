@@ -21,52 +21,52 @@
 
 #include <stdlib.h>
 #include <mailutils/error.h>
-#include <mailutils/sys/locker.h>
+#include <mailutils/sys/lockfile.h>
 
 int
-locker_ref (locker_t locker)
+lockfile_ref (lockfile_t lockfile)
 {
-  if (locker == NULL || locker->vtable == NULL
-      || locker->vtable->ref == NULL)
+  if (lockfile == NULL || lockfile->vtable == NULL
+      || lockfile->vtable->ref == NULL)
     return MU_ERROR_NOT_SUPPORTED;
-  return locker->vtable->ref (locker);
+  return lockfile->vtable->ref (lockfile);
 }
 
 void
-locker_destroy (locker_t *plocker)
+lockfile_destroy (lockfile_t *plockfile)
 {
-  if (plocker && *plocker)
+  if (plockfile && *plockfile)
     {
-      locker_t locker = *plocker;
-      if (locker->vtable && locker->vtable->destroy)
-	locker->vtable->destroy (plocker);
-      *plocker = NULL;
+      lockfile_t lockfile = *plockfile;
+      if (lockfile->vtable && lockfile->vtable->destroy)
+	lockfile->vtable->destroy (plockfile);
+      *plockfile = NULL;
     }
 }
 
 int
-locker_lock (locker_t locker)
+lockfile_lock (lockfile_t lockfile)
 {
-  if (locker == NULL || locker->vtable == NULL
-      || locker->vtable->lock == NULL)
+  if (lockfile == NULL || lockfile->vtable == NULL
+      || lockfile->vtable->lock == NULL)
     return MU_ERROR_NOT_SUPPORTED;
-  return locker->vtable->lock (locker);
+  return lockfile->vtable->lock (lockfile);
 }
 
 int
-locker_touchlock (locker_t locker)
+lockfile_touchlock (lockfile_t lockfile)
 {
-  if (locker == NULL || locker->vtable == NULL
-      || locker->vtable->lock == NULL)
+  if (lockfile == NULL || lockfile->vtable == NULL
+      || lockfile->vtable->lock == NULL)
     return MU_ERROR_NOT_SUPPORTED;
-  return locker->vtable->lock (locker);
+  return lockfile->vtable->lock (lockfile);
 }
 
 int
-locker_unlock (locker_t locker)
+lockfile_unlock (lockfile_t lockfile)
 {
-  if (locker == NULL || locker->vtable == NULL
-      || locker->vtable->lock == NULL)
+  if (lockfile == NULL || lockfile->vtable == NULL
+      || lockfile->vtable->lock == NULL)
     return MU_ERROR_NOT_SUPPORTED;
-  return locker->vtable->lock (locker);
+  return lockfile->vtable->lock (lockfile);
 }

@@ -27,14 +27,7 @@
 
 #include <mailutils/error.h>
 #include <mailutils/refcount.h>
-#include <mailutils/sys/ticket.h>
-
-struct _prompt_ticket
-{
-  struct _ticket base;
-  int ref;
-  mu_refcount_t refcount;
-};
+#include <mailutils/sys/pticket.h>
 
 static void
 echo_off(struct termios *stored_settings)
@@ -52,17 +45,17 @@ echo_on(struct termios *stored_settings)
   tcsetattr (0, TCSANOW, stored_settings);
 }
 
-static int
-_prompt_ref (ticket_t ticket)
+int
+_ticket_prompt_ref (ticket_t ticket)
 {
-  struct _prompt_ticket *prompt = (struct _prompt_ticket *)ticket;
+  struct _ticket_prompt *prompt = (struct _ticket_prompt *)ticket;
   return mu_refcount_inc (prompt->refcount);
 }
 
-static void
-_prompt_destroy (ticket_t *pticket)
+void
+_ticket_prompt_destroy (ticket_t *pticket)
 {
-  struct _prompt_ticket *prompt = (struct _prompt_ticket *)*pticket;
+  struct _ticket_prompt *prompt = (struct _ticket_prompt *)*pticket;
   if (mu_refcount_dec (prompt->refcount) == 0)
     {
       mu_refcount_destroy (&prompt->refcount);
@@ -70,8 +63,8 @@ _prompt_destroy (ticket_t *pticket)
     }
 }
 
-static int
-_prompt_pop (ticket_t ticket, const char *challenge, char **parg)
+int
+_ticket_prompt_pop (ticket_t ticket, const char *challenge, char **parg)
 {
   char arg[256];
   struct termios stored_settings;
@@ -98,18 +91,35 @@ _prompt_pop (ticket_t ticket, const char *challenge, char **parg)
   return 0;
 }
 
-static struct _ticket_vtable _prompt_vtable =
+static struct _ticket_vtable _ticket_prompt_vtable =
 {
-  _prompt_ref,
-  _prompt_destroy,
+  _ticket_prompt_ref,
+  _ticket_prompt_destroy,
 
-  _prompt_pop,
+  _ticket_prompt_pop,
 };
+
+int
+_ticket_prompt_ctor (struct _ticket_prompt *prompt)
+{
+  mu_refcount_create (&prompt->refcount);
+  if (prompt->refcount == NULL)
+    return MU_ERROR_NO_MEMORY;
+  prompt->base.vtable = &_ticket_prompt_vtable;
+  return 0;
+}
+
+void
+_ticket_prompt_dtor (struct _ticket_prompt *prompt)
+{
+  mu_refcount_destroy (&prompt->refcount);
+}
 
 int
 ticket_prompt_create (ticket_t *pticket)
 {
-  struct _prompt_ticket *prompt;
+  struct _ticket_prompt *prompt;
+  int status;
 
   if (pticket == NULL)
     return MU_ERROR_INVALID_PARAMETER;
@@ -118,14 +128,12 @@ ticket_prompt_create (ticket_t *pticket)
   if (prompt == NULL)
     return MU_ERROR_NO_MEMORY;
 
-  mu_refcount_create (&prompt->refcount);
-  if (prompt->refcount == NULL)
+  status = _ticket_prompt_ctor (prompt);
+  if (status != 0)
     {
       free (prompt);
-      return MU_ERROR_NO_MEMORY;
+      return status;
     }
   *pticket = &prompt->base;
-  prompt->base.vtable = &_prompt_vtable;
   return 0;
 }
-

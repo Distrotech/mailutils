@@ -34,17 +34,17 @@
 #include <mailutils/error.h>
 
 
-static int
-_fs_ref (stream_t stream)
+int
+_stream_stdio_ref (stream_t stream)
 {
-  struct _fs *fs = (struct _fs *)stream;
+  struct _stream_stdio *fs = (struct _stream_stdio *)stream;
   return mu_refcount_inc (fs->refcount);
 }
 
-static void
-_fs_destroy (stream_t *pstream)
+void
+_stream_stdio_destroy (stream_t *pstream)
 {
-  struct _fs *fs = (struct _fs *)*pstream;
+  struct _stream_stdio *fs = (struct _stream_stdio *)*pstream;
   if (mu_refcount_dec (fs->refcount) == 0)
     {
       mu_refcount_destroy (&fs->refcount);
@@ -52,10 +52,10 @@ _fs_destroy (stream_t *pstream)
     }
 }
 
-static int
-_fs_read (stream_t stream, void *optr, size_t osize, size_t *nbytes)
+int
+_stream_stdio_read (stream_t stream, void *optr, size_t osize, size_t *nbytes)
 {
-  struct _fs *fs = (struct _fs *)stream;
+  struct _stream_stdio *fs = (struct _stream_stdio *)stream;
   size_t n = 0;
   int err = 0;
 
@@ -74,10 +74,10 @@ _fs_read (stream_t stream, void *optr, size_t osize, size_t *nbytes)
   return err;
 }
 
-static int
-_fs_readline (stream_t stream, char *optr, size_t osize, size_t *nbytes)
+int
+_stream_stdio_readline (stream_t stream, char *optr, size_t osize, size_t *nbytes)
 {
-  struct _fs *fs = (struct _fs *)stream;
+  struct _stream_stdio *fs = (struct _stream_stdio *)stream;
   size_t n = 0;
   int err = 0;
 
@@ -99,10 +99,10 @@ _fs_readline (stream_t stream, char *optr, size_t osize, size_t *nbytes)
   return err;
 }
 
-static int
-_fs_write (stream_t stream, const void *iptr, size_t isize, size_t *nbytes)
+int
+_stream_stdio_write (stream_t stream, const void *iptr, size_t isize, size_t *nbytes)
 {
-  struct _fs *fs = (struct _fs *)stream;
+  struct _stream_stdio *fs = (struct _stream_stdio *)stream;
   size_t n = 0;
   int err = 0;
 
@@ -123,19 +123,19 @@ _fs_write (stream_t stream, const void *iptr, size_t isize, size_t *nbytes)
   return err;
 }
 
-static int
-_fs_truncate (stream_t stream, off_t len)
+int
+_stream_stdio_truncate (stream_t stream, off_t len)
 {
-  struct _fs *fs = (struct _fs *)stream;
+  struct _stream_stdio *fs = (struct _stream_stdio *)stream;
   if (fs->file && ftruncate (fileno (fs->file), len) != 0)
     return MU_ERROR_IO;
   return 0;
 }
 
-static int
-_fs_get_size (stream_t stream, off_t *psize)
+int
+_stream_stdio_get_size (stream_t stream, off_t *psize)
 {
-  struct _fs *fs = (struct _fs *)stream;
+  struct _stream_stdio *fs = (struct _stream_stdio *)stream;
   struct stat stbuf;
   stbuf.st_size = 0;
   if (fs->file)
@@ -149,19 +149,19 @@ _fs_get_size (stream_t stream, off_t *psize)
   return 0;
 }
 
-static int
-_fs_flush (stream_t stream)
+int
+_stream_stdio_flush (stream_t stream)
 {
-  struct _fs *fs = (struct _fs *)stream;
+  struct _stream_stdio *fs = (struct _stream_stdio *)stream;
   if (fs->file)
     return fflush (fs->file);
   return 0;
 }
 
-static int
-_fs_get_fd (stream_t stream, int *pfd)
+int
+_stream_stdio_get_fd (stream_t stream, int *pfd)
 {
-  struct _fs *fs = (struct _fs *)stream;
+  struct _stream_stdio *fs = (struct _stream_stdio *)stream;
   int status = 0;
   if (pfd)
     {
@@ -173,10 +173,10 @@ _fs_get_fd (stream_t stream, int *pfd)
   return status;
 }
 
-static int
-_fs_seek (stream_t stream, off_t off, enum stream_whence whence)
+int
+_stream_stdio_seek (stream_t stream, off_t off, enum stream_whence whence)
 {
-  struct _fs *fs = (struct _fs *)stream;
+  struct _stream_stdio *fs = (struct _stream_stdio *)stream;
   int err = 0;
   if (fs->file)
     {
@@ -194,28 +194,28 @@ _fs_seek (stream_t stream, off_t off, enum stream_whence whence)
   return err;
 }
 
-static int
-_fs_tell (stream_t stream, off_t *off)
+int
+_stream_stdio_tell (stream_t stream, off_t *off)
 {
-  struct _fs *fs = (struct _fs *)stream;
+  struct _stream_stdio *fs = (struct _stream_stdio *)stream;
   if (off == NULL)
     return MU_ERROR_INVALID_PARAMETER;
   *off = (fs->file) ? ftell (fs->file) : 0;
   return 0;
 }
 
-static int
-_fs_get_flags (stream_t stream, int *flags)
+int
+_stream_stdio_get_flags (stream_t stream, int *flags)
 {
-  struct _fs *fs = (struct _fs *)stream;
+  struct _stream_stdio *fs = (struct _stream_stdio *)stream;
   if (flags == NULL)
     return MU_ERROR_INVALID_PARAMETER;
   *flags = fs->flags;
   return 0;
 }
 
-static int
-_fs_get_state (stream_t stream, enum stream_state *state)
+int
+_stream_stdio_get_state (stream_t stream, enum stream_state *state)
 {
   (void)stream;
   if (state == NULL)
@@ -224,40 +224,39 @@ _fs_get_state (stream_t stream, enum stream_state *state)
   return 0;
 }
 
-static int
-_fs_is_open (stream_t stream)
+int
+_stream_stdio_is_open (stream_t stream)
 {
-  struct _fs *fs = (struct _fs *)stream;
+  struct _stream_stdio *fs = (struct _stream_stdio *)stream;
   return (fs->file) ? 1 : 0;
 }
 
-static int
-_fs_is_readready (stream_t stream, int timeout)
+int
+_stream_stdio_is_readready (stream_t stream, int timeout)
 {
   (void)timeout;
-  return _fs_is_open (stream);
+  return _stream_stdio_is_open (stream);
 }
 
-static int
-_fs_is_writeready (stream_t stream, int timeout)
+int
+_stream_stdio_is_writeready (stream_t stream, int timeout)
 {
   (void)timeout;
-  return _fs_is_open (stream);
+  return _stream_stdio_is_open (stream);
 }
 
-static int
-_fs_is_exceptionpending (stream_t stream, int timeout)
+int
+_stream_stdio_is_exceptionpending (stream_t stream, int timeout)
 {
   (void)stream;
   (void)timeout;
   return 0;
 }
 
-
-static int
-_fs_close (stream_t stream)
+int
+_stream_stdio_close (stream_t stream)
 {
-  struct _fs *fs = (struct _fs *)stream;
+  struct _stream_stdio *fs = (struct _stream_stdio *)stream;
   int err = 0;
   if (fs->file)
     {
@@ -268,10 +267,10 @@ _fs_close (stream_t stream)
   return err;
 }
 
-static int
-_fs_open (stream_t stream, const char *filename, int port, int flags)
+int
+_stream_stdio_open (stream_t stream, const char *filename, int port, int flags)
 {
-  struct _fs *fs = (struct _fs *)stream;
+  struct _stream_stdio *fs = (struct _stream_stdio *)stream;
   int flg;
   int fd;
   const char *mode;
@@ -371,40 +370,60 @@ _fs_open (stream_t stream, const char *filename, int port, int flags)
   return 0;
 }
 
-static struct _stream_vtable _fs_vtable =
+static struct _stream_vtable _stream_stdio_vtable =
 {
-  _fs_ref,
-  _fs_destroy,
+  _stream_stdio_ref,
+  _stream_stdio_destroy,
 
-  _fs_open,
-  _fs_close,
+  _stream_stdio_open,
+  _stream_stdio_close,
 
-  _fs_read,
-  _fs_readline,
-  _fs_write,
+  _stream_stdio_read,
+  _stream_stdio_readline,
+  _stream_stdio_write,
 
-  _fs_seek,
-  _fs_tell,
+  _stream_stdio_seek,
+  _stream_stdio_tell,
 
-  _fs_get_size,
-  _fs_truncate,
-  _fs_flush,
+  _stream_stdio_get_size,
+  _stream_stdio_truncate,
+  _stream_stdio_flush,
 
-  _fs_get_fd,
-  _fs_get_flags,
-  _fs_get_state,
+  _stream_stdio_get_fd,
+  _stream_stdio_get_flags,
+  _stream_stdio_get_state,
 
-  _fs_is_readready,
-  _fs_is_writeready,
-  _fs_is_exceptionpending,
+  _stream_stdio_is_readready,
+  _stream_stdio_is_writeready,
+  _stream_stdio_is_exceptionpending,
 
-  _fs_is_open
+  _stream_stdio_is_open
 };
+
+int
+_stream_stdio_ctor (struct _stream_stdio *fs, FILE *fp)
+{
+  mu_refcount_create (&fs->refcount);
+  if (fs->refcount == NULL)
+    return MU_ERROR_NO_MEMORY ;
+  fs->file = fp;
+  fs->flags = 0;
+  fs->base.vtable = &_stream_stdio_vtable;
+  return 0;
+}
+
+void
+_stream_stdio_dtor (struct _stream_stdio *fs)
+{
+  mu_refcount_destroy (&fs->refcount);
+  /* We may leak if they did not close the FILE * */
+  fs->file = NULL;
+}
 
 int
 stream_file_create (stream_t *pstream)
 {
-  struct _fs *fs;
+  struct _stream_stdio *fs;
 
   if (pstream == NULL)
     return MU_ERROR_INVALID_PARAMETER;
@@ -421,7 +440,7 @@ stream_file_create (stream_t *pstream)
     }
   fs->file = NULL;
   fs->flags = 0;
-  fs->base.vtable = &_fs_vtable;
+  fs->base.vtable = &_stream_stdio_vtable;
   *pstream = &fs->base;
   return 0;
 }
@@ -429,7 +448,7 @@ stream_file_create (stream_t *pstream)
 int
 stream_stdio_create (stream_t *pstream, FILE *fp)
 {
-  struct _fs *fs;
+  struct _stream_stdio *fs;
 
   if (pstream == NULL)
     return MU_ERROR_INVALID_PARAMETER;
@@ -446,7 +465,7 @@ stream_stdio_create (stream_t *pstream, FILE *fp)
     }
   fs->file = fp;
   fs->flags = 0;
-  fs->base.vtable = &_fs_vtable;
+  fs->base.vtable = &_stream_stdio_vtable;
   *pstream = &fs->base;
   return 0;
 }

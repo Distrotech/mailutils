@@ -25,7 +25,7 @@ libmailbox_la_SOURCES = \
  header.c     \
  iterator.c   \
  list.c       \
- locker.c     \
+ lockfile.c   \
  mailbox.c    \
  md5-rsa.c    \
  memstream.c  \

@@ -33,23 +33,23 @@
 #include <mailutils/error.h>
 
 static void
-_fds_cleanup (void *arg)
+_stream_fd_cleanup (void *arg)
 {
-  struct _fds *fds = arg;
+  struct _stream_fd *fds = arg;
   mu_refcount_unlock (fds->refcount);
 }
 
-static int
-_fds_ref (stream_t stream)
+int
+_stream_fd_ref (stream_t stream)
 {
-  struct _fds *fds = (struct _fds *)stream;
+  struct _stream_fd *fds = (struct _stream_fd *)stream;
   return mu_refcount_inc (fds->refcount);
 }
 
-static void
-_fds_destroy (stream_t *pstream)
+void
+_stream_fd_destroy (stream_t *pstream)
 {
-  struct _fds *fds = (struct _fds *)*pstream;
+  struct _stream_fd *fds = (struct _stream_fd *)*pstream;
   if (mu_refcount_dec (fds->refcount) == 0)
     {
       mu_refcount_destroy (&fds->refcount);
@@ -58,39 +58,40 @@ _fds_destroy (stream_t *pstream)
 }
 
 static int
-_fds_close0 (stream_t stream)
+_stream_fd_close0 (stream_t stream)
 {
-  struct _fds *fds = (struct _fds *)stream;
+  struct _stream_fd *fds = (struct _stream_fd *)stream;
+  fds->state = MU_STREAM_STATE_CLOSE;
   if (fds->fd != -1)
     close (fds->fd);
   fds->fd = -1;
   return 0;
 }
 
-static int
-_fds_close (stream_t stream)
+int
+_stream_fd_close (stream_t stream)
 {
-  struct _fds *fds = (struct _fds *)stream;
+  struct _stream_fd *fds = (struct _stream_fd *)stream;
 
   mu_refcount_lock (fds->refcount);
-  monitor_cleanup_push (_fds_cleanup, fds);
-  _fds_close0 (stream);
+  monitor_cleanup_push (_stream_fd_cleanup, fds);
+  _stream_fd_close0 (stream);
   mu_refcount_unlock (fds->refcount);
   monitor_cleanup_pop (0);
   return 0;
 }
 
-static int
-_fds_open (stream_t stream, const char *name, int port, int flags)
+int
+_stream_fd_open (stream_t stream, const char *name, int port, int flags)
 {
   (void)stream; (void)name; (void)port; (void)flags;
   return MU_ERROR_NOT_SUPPORTED;
 }
 
-static int
-_fds_get_fd (stream_t stream, int *fd)
+int
+_stream_fd_get_fd (stream_t stream, int *fd)
 {
-  struct _fds *fds = (struct _fds *)stream;
+  struct _stream_fd *fds = (struct _stream_fd *)stream;
 
   if (fd == NULL || fds->fd == -1)
     return MU_ERROR_INVALID_PARAMETER;
@@ -99,13 +100,14 @@ _fds_get_fd (stream_t stream, int *fd)
   return 0;
 }
 
-static int
-_fds_read (stream_t stream, void *buf, size_t buf_size, size_t *br)
+int
+_stream_fd_read (stream_t stream, void *buf, size_t buf_size, size_t *br)
 {
-  struct _fds *fds = (struct _fds *)stream;
+  struct _stream_fd *fds = (struct _stream_fd *)stream;
   int bytes = 0;
   int status = 0;
 
+  fds->state = MU_STREAM_STATE_READ;
   bytes = read (fds->fd, buf, buf_size);
   if (bytes == -1)
     {
@@ -117,15 +119,16 @@ _fds_read (stream_t stream, void *buf, size_t buf_size, size_t *br)
   return status;
 }
 
-static int
-_fds_readline (stream_t stream, char *buf, size_t buf_size, size_t *br)
+int
+_stream_fd_readline (stream_t stream, char *buf, size_t buf_size, size_t *br)
 {
-  struct _fds *fds = (struct _fds *)stream;
+  struct _stream_fd *fds = (struct _stream_fd *)stream;
   int status = 0;
   size_t n;
   int nr = 0;
   char c;
 
+  fds->state = MU_STREAM_STATE_READ;
   /* Grossly inefficient hopefully they override this */
   for (n = 1; n < buf_size; n++)
     {
@@ -154,13 +157,14 @@ _fds_readline (stream_t stream, char *buf, size_t buf_size, size_t *br)
   return status;
 }
 
-static int
-_fds_write (stream_t stream, const void *buf, size_t buf_size, size_t *bw)
+int
+_stream_fd_write (stream_t stream, const void *buf, size_t buf_size, size_t *bw)
 {
-  struct _fds *fds = (struct _fds *)stream;
+  struct _stream_fd *fds = (struct _stream_fd *)stream;
   int bytes = 0;
   int status = 0;
 
+  fds->state = MU_STREAM_STATE_WRITE;
   bytes = write (fds->fd, buf, buf_size);
   if (bytes == -1)
     {
@@ -172,10 +176,10 @@ _fds_write (stream_t stream, const void *buf, size_t buf_size, size_t *bw)
   return status;
 }
 
-static int
-_fds_seek (stream_t stream, off_t off, enum stream_whence whence)
+int
+_stream_fd_seek (stream_t stream, off_t off, enum stream_whence whence)
 {
-  struct _fds *fds = (struct _fds *)stream;
+  struct _stream_fd *fds = (struct _stream_fd *)stream;
   int err = 0;
   if (fds->fd)
     {
@@ -193,10 +197,10 @@ _fds_seek (stream_t stream, off_t off, enum stream_whence whence)
   return err;
 }
 
-static int
-_fds_tell (stream_t stream, off_t *off)
+int
+_stream_fd_tell (stream_t stream, off_t *off)
 {
-  struct _fds *fds = (struct _fds *)stream;
+  struct _stream_fd *fds = (struct _stream_fd *)stream;
   int err = 0;
   if (off)
     {
@@ -207,13 +211,13 @@ _fds_tell (stream_t stream, off_t *off)
 	  *off = 0;
 	}
     }
-  return err;;
+  return err;
 }
 
-static int
-_fds_get_size (stream_t stream, off_t *psize)
+int
+_stream_fd_get_size (stream_t stream, off_t *psize)
 {
-  struct _fds *fds = (struct _fds *)stream;
+  struct _stream_fd *fds = (struct _stream_fd *)stream;
   struct stat stbuf;
   int err = 0;
   stbuf.st_size = 0;
@@ -224,47 +228,47 @@ _fds_get_size (stream_t stream, off_t *psize)
   return err;
 }
 
-static int
-_fds_truncate (stream_t stream, off_t len)
+int
+_stream_fd_truncate (stream_t stream, off_t len)
 {
-  struct _fds *fds = (struct _fds *)stream;
+  struct _stream_fd *fds = (struct _stream_fd *)stream;
   int err = 0;
   if (ftruncate (fds->fd, len) == -1)
-    err = errno ;
+    err = errno;
   return err;
 }
 
-static int
-_fds_flush (stream_t stream)
+int
+_stream_fd_flush (stream_t stream)
 {
   (void)stream;
   return 0;
 }
 
-static int
-_fds_get_flags (stream_t stream, int *flags)
+int
+_stream_fd_get_flags (stream_t stream, int *flags)
 {
-  struct _fds *fds = (struct _fds *)stream;
+  struct _stream_fd *fds = (struct _stream_fd *)stream;
   if (flags == NULL)
     return MU_ERROR_INVALID_PARAMETER;
   *flags = fds->flags;
   return 0;
 }
 
-static int
-_fds_get_state (stream_t stream, enum stream_state *state)
+int
+_stream_fd_get_state (stream_t stream, enum stream_state *state)
 {
-  (void)stream;
+  struct _stream_fd *fds = (struct _stream_fd *)stream;
   if (state == NULL)
     return MU_ERROR_INVALID_PARAMETER;
-  *state = MU_STREAM_NO_STATE;
+  *state = fds->state;
   return 0;
 }
 
-static int
-_fds_is_readready (stream_t stream, int timeout)
+int
+_stream_fd_is_readready (stream_t stream, int timeout)
 {
-  struct _fds *fds = (struct _fds *)stream;
+  struct _stream_fd *fds = (struct _stream_fd *)stream;
   int ready = 0;
 
   if (fds->fd >= 0)
@@ -285,13 +289,13 @@ _fds_is_readready (stream_t stream, int timeout)
   return ready;
 }
 
-static int
-_fds_is_writeready (stream_t stream, int timeout)
+int
+_stream_fd_is_writeready (stream_t stream, int timeout)
 {
-  struct _fds *fds = (struct _fds *)stream;
+  struct _stream_fd *fds = (struct _stream_fd *)stream;
   int ready = 0;
 
-  if (fds->fd)
+  if (fds->fd >= 0)
     {
       struct timeval tv;
       fd_set fset;
@@ -309,13 +313,13 @@ _fds_is_writeready (stream_t stream, int timeout)
   return ready;
 }
 
-static int
-_fds_is_exceptionpending (stream_t stream, int timeout)
+int
+_stream_fd_is_exceptionpending (stream_t stream, int timeout)
 {
-  struct _fds *fds = (struct _fds *)stream;
+  struct _stream_fd *fds = (struct _stream_fd *)stream;
   int ready = 0;
 
-  if (fds->fd)
+  if (fds->fd >= 0)
     {
       struct timeval tv;
       fd_set fset;
@@ -333,47 +337,66 @@ _fds_is_exceptionpending (stream_t stream, int timeout)
   return 0;
 }
 
-static int
-_fds_is_open (stream_t stream)
+int
+_stream_fd_is_open (stream_t stream)
 {
-  struct _fds *fds = (struct _fds *)stream;
+  struct _stream_fd *fds = (struct _stream_fd *)stream;
   return fds->fd >= 0;
 }
 
-static struct _stream_vtable _fds_vtable =
+static struct _stream_vtable _stream_fd_vtable =
 {
-  _fds_ref,
-  _fds_destroy,
+  _stream_fd_ref,
+  _stream_fd_destroy,
 
-  _fds_open,
-  _fds_close,
+  _stream_fd_open,
+  _stream_fd_close,
 
-  _fds_read,
-  _fds_readline,
-  _fds_write,
+  _stream_fd_read,
+  _stream_fd_readline,
+  _stream_fd_write,
 
-  _fds_seek,
-  _fds_tell,
+  _stream_fd_seek,
+  _stream_fd_tell,
 
-  _fds_get_size,
-  _fds_truncate,
-  _fds_flush,
+  _stream_fd_get_size,
+  _stream_fd_truncate,
+  _stream_fd_flush,
 
-  _fds_get_fd,
-  _fds_get_flags,
-  _fds_get_state,
+  _stream_fd_get_fd,
+  _stream_fd_get_flags,
+  _stream_fd_get_state,
 
-  _fds_is_readready,
-  _fds_is_writeready,
-  _fds_is_exceptionpending,
+  _stream_fd_is_readready,
+  _stream_fd_is_writeready,
+  _stream_fd_is_exceptionpending,
 
-  _fds_is_open
+  _stream_fd_is_open
 };
+
+
+int
+_stream_fd_ctor (struct _stream_fd *fds, int fd)
+{
+  mu_refcount_create (&fds->refcount);
+  if (fds->refcount == NULL)
+    return MU_ERROR_NO_MEMORY;
+  fds->fd = fd;
+  fds->base.vtable = &_stream_fd_vtable;
+  return 0;
+}
+
+void
+_stream_fd_dtor (struct _stream_fd *fds)
+{
+  mu_refcount_destroy (&fds->refcount);
+}
 
 int
 stream_fd_create (stream_t *pstream, int fd)
 {
-  struct _fds *fds;
+  struct _stream_fd *fds;
+  int status;
 
   if (pstream == NULL || fd < 0)
     return MU_ERROR_INVALID_PARAMETER;
@@ -382,14 +405,12 @@ stream_fd_create (stream_t *pstream, int fd)
   if (fds == NULL)
     return MU_ERROR_NO_MEMORY;
 
-  mu_refcount_create (&fds->refcount);
-  if (fds->refcount == NULL)
+  status = _stream_fd_ctor (fds, fd);
+  if (status != 0)
     {
       free (fds);
-      return MU_ERROR_NO_MEMORY;
+      return status;
     }
-  fds->fd = fd;
-  fds->base.vtable = &_fds_vtable;
   *pstream = &fds->base;
   return 0;
 }

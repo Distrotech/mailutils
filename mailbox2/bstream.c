@@ -37,14 +37,14 @@
 #include <mailutils/sys/bstream.h>
 
 static void
-_bs_cleanup (void *arg)
+_stream_buffer_cleanup (void *arg)
 {
-  struct _bs *bs = arg;
+  struct _stream_buffer *bs = arg;
   mu_refcount_unlock (bs->refcount);
 }
 
 static int
-refill (struct _bs *bs)
+refill (struct _stream_buffer *bs)
 {
   int status;
   if (bs->rbuffer.base == NULL)
@@ -60,17 +60,17 @@ refill (struct _bs *bs)
   return status;
 }
 
-static int
-_bs_ref (stream_t stream)
+int
+_stream_buffer_ref (stream_t stream)
 {
-  struct _bs *bs = (struct _bs *)stream;
+  struct _stream_buffer *bs = (struct _stream_buffer *)stream;
   return mu_refcount_inc (bs->refcount);
 }
 
-static void
-_bs_destroy (stream_t *pstream)
+void
+_stream_buffer_destroy (stream_t *pstream)
 {
-  struct _bs *bs = (struct _bs *)*pstream;
+  struct _stream_buffer *bs = (struct _stream_buffer *)*pstream;
   if (mu_refcount_dec (bs->refcount) == 0)
     {
       stream_destroy (&bs->stream);
@@ -79,17 +79,17 @@ _bs_destroy (stream_t *pstream)
     }
 }
 
-static int
-_bs_open (stream_t stream, const char *name, int port, int flags)
+int
+_stream_buffer_open (stream_t stream, const char *name, int port, int flags)
 {
-  struct _bs *bs = (struct _bs *)stream;
+  struct _stream_buffer *bs = (struct _stream_buffer *)stream;
   return stream_open (bs->stream, name, port, flags);
 }
 
-static int
-_bs_close (stream_t stream)
+int
+_stream_buffer_close (stream_t stream)
 {
-  struct _bs *bs = (struct _bs *)stream;
+  struct _stream_buffer *bs = (struct _stream_buffer *)stream;
   mu_refcount_lock (bs->refcount);
   /* Clear the buffer of any residue left.  */
   if (bs->rbuffer.base && bs->rbuffer.bufsize)
@@ -106,11 +106,11 @@ _bs_close (stream_t stream)
    use as a fully fledge buffer mechanism.  It is a simple mechanims for
    networking. Lots of code between POP and IMAP can be share this way.
    The buffering is on the read only, the writes fall through.  */
-static int
-_bs_read (stream_t stream, void *buf, size_t count, size_t *pnread)
+int
+_stream_buffer_read (stream_t stream, void *buf, size_t count, size_t *pnread)
 {
   int status = 0;
-  struct _bs *bs = (struct _bs *)stream;
+  struct _stream_buffer *bs = (struct _stream_buffer *)stream;
 
   /* Noop.  */
   if (count == 0)
@@ -131,7 +131,7 @@ _bs_read (stream_t stream, void *buf, size_t count, size_t *pnread)
       int r;
 
       mu_refcount_lock (bs->refcount);
-      monitor_cleanup_push (_bs_cleanup, bs);
+      monitor_cleanup_push (_stream_buffer_cleanup, bs);
 
       /* If the amount requested is bigger then the buffer cache size
 	 bypass it.  Do no waste time and let it through.  */
@@ -199,11 +199,11 @@ _bs_read (stream_t stream, void *buf, size_t count, size_t *pnread)
  * Read at most n-1 characters.
  * Stop when a newline has been read, or the count runs out.
  */
-static int
-_bs_readline (stream_t stream, char *buf, size_t count, size_t *pnread)
+int
+_stream_buffer_readline (stream_t stream, char *buf, size_t count, size_t *pnread)
 {
   int status = 0;
-  struct _bs *bs = (struct _bs *)stream;
+  struct _stream_buffer *bs = (struct _stream_buffer *)stream;
 
   /* Noop.  */
   if (count == 0)
@@ -224,7 +224,7 @@ _bs_readline (stream_t stream, char *buf, size_t count, size_t *pnread)
       size_t total = 0;
 
       mu_refcount_lock (bs->refcount);
-      monitor_cleanup_push (_bs_cleanup, bs);
+      monitor_cleanup_push (_stream_buffer_cleanup, bs);
 
       count--;  /* Leave space for the null.  */
 
@@ -277,91 +277,74 @@ _bs_readline (stream_t stream, char *buf, size_t count, size_t *pnread)
   return status;
 }
 
-static int
-_bs_write (stream_t stream, const void *buf, size_t count, size_t *pnwrite)
+int
+_stream_buffer_write (stream_t stream, const void *buf, size_t count,
+		      size_t *pnwrite)
 {
-  struct _bs *bs = (struct _bs *)stream;
-  int err = 0;
-  size_t nwriten = 0;
-  size_t total = 0;
-  int nleft = count;
-  const char *p = buf;
-
-  /* First try to send it all.  */
-  while (nleft > 0)
-    {
-      err = stream_write (bs->stream, p, nleft, &nwriten);
-      if (err != 0 || nwriten == 0)
-        break;
-      nleft -= nwriten;
-      total += nwriten;
-      p += nwriten;
-    }
-  if (pnwrite)
-    *pnwrite = total;
-  return err;
+  struct _stream_buffer *bs = (struct _stream_buffer *)stream;
+  return stream_write (bs->stream, buf, count, pnwrite);
 }
 
-static int
-_bs_get_fd (stream_t stream, int *pfd)
+int
+_stream_buffer_get_fd (stream_t stream, int *pfd)
 {
-  struct _bs *bs = (struct _bs *)stream;
+  struct _stream_buffer *bs = (struct _stream_buffer *)stream;
   return stream_get_fd (bs->stream, pfd);
 }
 
-static int
-_bs_get_flags (stream_t stream, int *pfl)
+int
+_stream_buffer_get_flags (stream_t stream, int *pfl)
 {
-  struct _bs *bs = (struct _bs *)stream;
+  struct _stream_buffer *bs = (struct _stream_buffer *)stream;
   return stream_get_flags (bs->stream, pfl);
 }
 
-static int
-_bs_get_size (stream_t stream, off_t *psize)
+int
+_stream_buffer_get_size (stream_t stream, off_t *psize)
 {
-  struct _bs *bs = (struct _bs *)stream;
+  struct _stream_buffer *bs = (struct _stream_buffer *)stream;
   return stream_get_size (bs->stream, psize);
 }
 
-static int
-_bs_truncate (stream_t stream, off_t len)
+int
+_stream_buffer_truncate (stream_t stream, off_t len)
 {
-  struct _bs *bs = (struct _bs *)stream;
+  struct _stream_buffer *bs = (struct _stream_buffer *)stream;
   return stream_truncate (bs->stream, len);
 }
 
-static int
-_bs_flush (stream_t stream)
+int
+_stream_buffer_flush (stream_t stream)
 {
-  struct _bs *bs = (struct _bs *)stream;
+  struct _stream_buffer *bs = (struct _stream_buffer *)stream;
   return stream_flush (bs->stream);
 }
 
-static int
-_bs_get_state (stream_t stream, enum stream_state *pstate)
+int
+_stream_buffer_get_state (stream_t stream, enum stream_state *pstate)
 {
-  struct _bs *bs = (struct _bs *)stream;
+  struct _stream_buffer *bs = (struct _stream_buffer *)stream;
   return stream_get_state (bs->stream, pstate);
 }
 
-static int
-_bs_seek (stream_t stream, off_t off, enum stream_whence whence)
+int
+_stream_buffer_seek (stream_t stream, off_t off, enum stream_whence whence)
 {
-  struct _bs *bs = (struct _bs *)stream;
+  struct _stream_buffer *bs = (struct _stream_buffer *)stream;
   return stream_seek (bs->stream, off, whence);
 }
 
-static int
-_bs_tell (stream_t stream, off_t *off)
+int
+_stream_buffer_tell (stream_t stream, off_t *off)
 {
-  struct _bs *bs = (struct _bs *)stream;
+  struct _stream_buffer *bs = (struct _stream_buffer *)stream;
   return stream_tell (bs->stream, off);
 }
 
-static int
-_bs_is_readready (stream_t stream, int timeout)
+int
+_stream_buffer_is_readready (stream_t stream, int timeout)
 {
-  struct _bs *bs = (struct _bs *)stream;
+  struct _stream_buffer *bs = (struct _stream_buffer *)stream;
   /* Drain our buffer first.  */
   mu_refcount_lock (bs->refcount);
   if (bs->rbuffer.count > 0)
@@ -373,62 +356,84 @@ _bs_is_readready (stream_t stream, int timeout)
   return stream_is_readready (bs->stream, timeout);
 }
 
-static int
-_bs_is_writeready (stream_t stream, int timeout)
+int
+_stream_buffer_is_writeready (stream_t stream, int timeout)
 {
-  struct _bs *bs = (struct _bs *)stream;
+  struct _stream_buffer *bs = (struct _stream_buffer *)stream;
   return stream_is_writeready (bs->stream, timeout);
 }
 
-static int
-_bs_is_exceptionpending (stream_t stream, int timeout)
+int
+_stream_buffer_is_exceptionpending (stream_t stream, int timeout)
 {
-  struct _bs *bs = (struct _bs *)stream;
+  struct _stream_buffer *bs = (struct _stream_buffer *)stream;
   return stream_is_exceptionpending (bs->stream, timeout);
 }
 
-static int
-_bs_is_open (stream_t stream)
+int
+_stream_buffer_is_open (stream_t stream)
 {
-  struct _bs *bs = (struct _bs *)stream;
+  struct _stream_buffer *bs = (struct _stream_buffer *)stream;
   return stream_is_open (bs->stream);
 }
 
 
-static struct _stream_vtable _bs_vtable =
+static struct _stream_vtable _stream_buffer_vtable =
 {
-  _bs_ref,
-  _bs_destroy,
+  _stream_buffer_ref,
+  _stream_buffer_destroy,
 
-  _bs_open,
-  _bs_close,
+  _stream_buffer_open,
+  _stream_buffer_close,
 
-  _bs_read,
-  _bs_readline,
-  _bs_write,
+  _stream_buffer_read,
+  _stream_buffer_readline,
+  _stream_buffer_write,
 
-  _bs_seek,
-  _bs_tell,
+  _stream_buffer_seek,
+  _stream_buffer_tell,
 
-  _bs_get_size,
-  _bs_truncate,
-  _bs_flush,
+  _stream_buffer_get_size,
+  _stream_buffer_truncate,
+  _stream_buffer_flush,
 
-  _bs_get_fd,
-  _bs_get_flags,
-  _bs_get_state,
+  _stream_buffer_get_fd,
+  _stream_buffer_get_flags,
+  _stream_buffer_get_state,
 
-  _bs_is_readready,
-  _bs_is_writeready,
-  _bs_is_exceptionpending,
+  _stream_buffer_is_readready,
+  _stream_buffer_is_writeready,
+  _stream_buffer_is_exceptionpending,
 
-  _bs_is_open
+  _stream_buffer_is_open
 };
+
+int
+_stream_buffer_ctor (struct _stream_buffer *bs, stream_t stream,
+		     size_t bufsize)
+{
+  mu_refcount_create (&(bs->refcount));
+  if (bs->refcount == NULL)
+    return MU_ERROR_NO_MEMORY;
+
+  bs->stream = stream;
+  bs->rbuffer.bufsize = bufsize;
+  bs->base.vtable = &_stream_buffer_vtable;
+  return 0;
+}
+
+void
+_stream_buffer_dtor (struct _stream_buffer *bs)
+{
+  stream_destroy (&bs->stream);
+  mu_refcount_destroy (&bs->refcount);
+}
 
 int
 stream_buffer_create (stream_t *pstream, stream_t stream, size_t bufsize)
 {
-  struct _bs *bs;
+  struct _stream_buffer *bs;
+  int status;
 
   if (pstream == NULL || stream == NULL || bufsize == 0)
     return MU_ERROR_INVALID_PARAMETER;
@@ -437,16 +442,9 @@ stream_buffer_create (stream_t *pstream, stream_t stream, size_t bufsize)
   if (bs == NULL)
     return MU_ERROR_NO_MEMORY;
 
-  mu_refcount_create (&(bs->refcount));
-  if (bs->refcount == NULL)
-    {
-      free (bs);
-      return MU_ERROR_NO_MEMORY;
-    }
-
-  bs->stream = stream;
-  bs->rbuffer.bufsize = bufsize;
-  bs->base.vtable = &_bs_vtable;
+  status = _stream_buffer_ctor (bs, stream, bufsize);
+  if (status != 0)
+    return status;
   *pstream = &bs->base;
   return 0;
 }

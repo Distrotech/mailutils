@@ -81,8 +81,8 @@ extern int  stream_is_open __P ((stream_t));
 /* Misc.  */
 extern int  stream_file_create    __P ((stream_t *));
 extern int  stream_stdio_create   __P ((stream_t *, FILE *));
-extern int  stream_mapfile_create __P ((stream_t *));
-extern int  stream_memory_create  __P ((stream_t *));
+extern int  stream_mmap_create    __P ((stream_t *));
+extern int  stream_memory_create  __P ((stream_t *, size_t));
 extern int  stream_tcp_create     __P ((stream_t *));
 extern int  stream_fd_create      __P ((stream_t *, int));
 extern int  stream_buffer_create  __P ((stream_t *, stream_t, size_t));

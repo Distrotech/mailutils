@@ -1,3 +1,51 @@
+2001-09-22 Alain Magloire
+
+	In order to provide inheritance, it is necessary to make
+	the base functions/methods visible so the extended object
+	could reuse some base methods if necessary.  Inheritance
+	is possible because we always add to the end of the vtable
+	structure new functions.
+	For example, mime_t object will be also a message_t.
+	and it will be possible to do
+	{
+	  mime_t mime;
+	  header_t header;
+	  ...
+	  message_get_header ((message_t)mime, header);
+	}
+	Another example is tcpstream(socket stream) extends
+	fdstream(file description stream);
+	Also the name of the functions have change to match better
+	there purpose.
+
+	* mailbox2/Makefile.am: lockfile.c added.
+	* mailbox2/bstream.c: Reoganisation to make the
+	functions visible.
+	* mailbox2/dattribute.c: Likewise.
+	* mailbox2/dotlock.c: Likewise.
+	* mailbox2/fdstream.c: Likewise.
+	* mailbox2/fstream.c: Likewise.
+	* mailbox2/mapstream.c: Likewise.
+	* mailbox2/memstream.c: Likewise.
+	* mailbox2/pticket.c: Likewise.
+	* mailbox2/sdebug.c: Likewise.
+	* mailbox2/tcpstream.c: Likewise.
+
+	* mailbox2/include/mailutils/Makefile.am: lockfile.h added.
+	* mailbox2/include/mailutils/attribute.h: Add the new prototypes.
+	* mailbox2/include/mailutils/mbox.h: Add the new prototypes.
+	* mailbox2/include/mailutils/stream.h: Add the new prototypes.
+
+	* mailbox2/include/mailutils/sys/Makefile.am: dattribute.h lockfile.h
+	mapstream.h pticket.h added.
+	* mailbox2/include/mailutils/sys/bstream.h: Add new prototypes.
+	* mailbox2/include/mailutils/sys/fdstream.h: Likewise.
+	* mailbox2/include/mailutils/sys/fstream.h: Likewise.
+	* mailbox2/include/mailutils/sys/mbox.h: Likewise.
+	* mailbox2/include/mailutils/sys/memstream.h: Likewise.
+	* mailbox2/include/mailutils/sys/sdebug.h: Likewise.
+	* mailbox2/include/mailutils/sys/tcpstream.h: Likewise.
+
 2001-09-20 Sergey Poznyakoff
 
 	* frm/frm.c: Print newline not depending on the presence
@@ -21,21 +69,20 @@
 	* mailbox2/sdebug.c (mu_debug_stream_create): New function
 	replace mu_debug_stdio_create().
 	* mailbox2/fdstream.c (_fds_desroy): Do not close the stream
-	when distroying, it should have been done explicitely with
+	when destroying, it should have been done explicitely with
 	stream_close ();
 	* mailbox2/fstream.c (_fs_desroy): Do not close the stream
-	when distroying, it should have been done explicitely with
+	when destroying, it should have been done explicitely with
 	stream_close ();
 	* mailbox2/mapstream.c (_map_desroy): Do not close the stream
-	when distroying, it should have been done explicitely with
+	when destroying, it should have been done explicitely with
 	stream_close ();
 	* mailbox2/memstream.c (_memory_desroy): Do not close the stream
-	when distroying, it should have been done explicitely with
+	when destroying, it should have been done explicitely with
 	stream_close ();
 	* mailbox2/tcpstream.c (_tcp_desroy): Do not close the stream
-	when distroying, it should have been done explicitely with
+	when destroying, it should have been done explicitely with
 	stream_close ();
-
 
 2001-09-18 Sam Roberts
 
@@ -2144,7 +2191,7 @@
 2001-04-23  Alain Magloire
 
 	Sergey Poznyakoff noted: When the user's mailbox has zero size, mmap
-	fails on Solaris. On GNU/Linux it reuturn NULL buf subsequent munmap
+	fails on Solaris. On GNU/Linux it return NULL buf subsequent munmap
 	fails.
 
 	* mailbox/mapfile_stream.c:  To take care of this, mfs->ptr is set

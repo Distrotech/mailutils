@@ -33,53 +33,35 @@
 #include <signal.h>
 
 #include <mailutils/error.h>
-#include <mailutils/sys/locker.h>
+#include <mailutils/sys/dotlock.h>
 #include <mailutils/refcount.h>
-
-/* locking flags */
-#define MU_DOTLOCK_PID    1
-#define MU_DOTLOCK_FCNTL  2
-#define MU_DOTLOCK_TIME   4
-
-#define MU_DOTLOCK_EXPIRE_TIME        (5 * 60)
-
-#define LOCKFILE_ATTR           0444
 
 /* First draft by Brian Edmond. */
 
-struct _dotlock
+int
+_lockfile_dotlock_ref (lockfile_t lockfile)
 {
-  struct _locker base;
-  mu_refcount_t refcount;
-  int fd;
-  int refcnt;
-  char *fname;
-  int flags;
-};
-
-static int
-_dotlock_ref (locker_t locker)
-{
-  struct _dotlock *dotlock = (struct _dotlock *)locker;
+  struct _lockfile_dotlock *dotlock = (struct _lockfile_dotlock *)lockfile;
   return mu_refcount_inc (dotlock->refcount);
 }
 
-static void
-_dotlock_destroy (locker_t *plocker)
+void
+_lockfile_dotlock_destroy (lockfile_t *plockfile)
 {
-  struct _dotlock *dotlock = (struct _dotlock *)*plocker;
+  struct _lockfile_dotlock *dotlock = (struct _lockfile_dotlock *)*plockfile;
   if (mu_refcount_dec (dotlock->refcount) == 0)
     {
       mu_refcount_destroy (&dotlock->refcount);
-      free (dotlock->fname);
+      if (dotlock->fname)
+	free (dotlock->fname);
       free (dotlock);
     }
 }
 
-static int
-_dotlock_lock (locker_t locker)
+int
+_lockfile_dotlock_lock (lockfile_t lockfile)
 {
-  struct _dotlock *dotlock = (struct _dotlock *)locker;
+  struct _lockfile_dotlock *dotlock = (struct _lockfile_dotlock *)lockfile;
   int   fd = -1;
   char  buf[16];
   pid_t pid;
@@ -104,31 +86,34 @@ _dotlock_lock (locker_t locker)
   if (fd != -1)
     {
       /* Check to see if this process is still running.  */
-      if (dotlock->flags & MU_DOTLOCK_PID)
+      if (dotlock->flags & MU_LOCKFILE_DOTLOCK_PID)
         {
 	  int nread = read (fd, buf, sizeof (buf) - 1);
           if (nread > 0)
             {
 	      buf[nread] = '\0';
-              pid = strtol (buf, NULL, 10);
-              if (pid > 0)
-                {
-                  /* Process is gone so we try to remove the lock.  */
-                  if (kill (pid, 0) == -1)
-                    removed = 1;
-                }
-	      else
-		removed = 1; /* Corrupted file, remove the lock.  */
-            }
+              switch (pid = strtol (buf, NULL, 10))
+		{
+		case LONG_MIN:
+		case LONG_MAX:
+		  if (errno == ERANGE)
+		    removed = 1;
+		  break;
+		default:
+		  /* Process is gone so we try to remove the lock.  */
+		  if (kill (pid, 0) == -1)
+		    removed = 1;
+		}
+	    }
         }
       /* Check to see if the lock expired.  */
-      if (dotlock->flags & MU_DOTLOCK_TIME)
+      if (dotlock->flags & MU_LOCKFILE_DOTLOCK_TIME)
         {
           struct stat stbuf;
 
           fstat (fd, &stbuf);
           /* The lock has expired.  */
-          if ((time (NULL) - stbuf.st_mtime) > MU_DOTLOCK_EXPIRE_TIME)
+          if ((time (NULL) - stbuf.st_mtime) > MU_LOCKFILE_DOTLOCK_EXPIRE_TIME)
             removed = 1;
         }
 
@@ -138,7 +123,7 @@ _dotlock_lock (locker_t locker)
     }
 
   /* Try to create the lockfile.  */
-  fd = open (dotlock->fname, O_WRONLY | O_CREAT | O_EXCL, LOCKFILE_ATTR);
+  fd = open (dotlock->fname, O_WRONLY | O_CREAT | O_EXCL, MU_LOCKFILE_DOTLOCK_ATTR);
   if (fd == -1)
     return errno;
   else
@@ -165,7 +150,7 @@ _dotlock_lock (locker_t locker)
   write (fd, buf, strlen (buf));
 
   /* Try to get a file lock.  */
-  if (dotlock->flags & MU_DOTLOCK_FCNTL)
+  if (dotlock->flags & MU_LOCKFILE_DOTLOCK_FCNTL)
     {
       struct flock fl;
 
@@ -186,26 +171,26 @@ _dotlock_lock (locker_t locker)
   return 0;
 }
 
-static int
-_dotlock_touchlock (locker_t locker)
+int
+_lockfile_dotlock_touchlock (lockfile_t lockfile)
 {
-  struct _dotlock *dotlock = (struct _dotlock *)locker;
+  struct _lockfile_dotlock *dotlock = (struct _lockfile_dotlock *)lockfile;
   if (!dotlock || !dotlock->fname || dotlock->fd == -1)
     return MU_ERROR_INVALID_PARAMETER;
   return utime (dotlock->fname, NULL);
 }
 
-static int
-_dotlock_unlock (locker_t locker)
+int
+_lockfile_dotlock_unlock (lockfile_t lockfile)
 {
-  struct _dotlock *dotlock = (struct _dotlock *)locker;
+  struct _lockfile_dotlock *dotlock = (struct _lockfile_dotlock *)lockfile;
   if (!dotlock || !dotlock->fname || dotlock->fd == -1 || dotlock->refcnt <= 0)
     return EINVAL;
 
   if (--dotlock->refcnt > 0)
     return 0;
 
-  if (dotlock->flags & MU_DOTLOCK_FCNTL)
+  if (dotlock->flags & MU_LOCKFILE_DOTLOCK_FCNTL)
     {
       struct flock fl;
 
@@ -221,48 +206,68 @@ _dotlock_unlock (locker_t locker)
   return 0;
 }
 
-static struct _locker_vtable _dotlock_vtable =
+static struct _lockfile_vtable _lockfile_dotlock_vtable =
 {
-  _dotlock_ref,
-  _dotlock_destroy,
+  _lockfile_dotlock_ref,
+  _lockfile_dotlock_destroy,
 
-  _dotlock_lock,
-  _dotlock_touchlock,
-  _dotlock_unlock,
+  _lockfile_dotlock_lock,
+  _lockfile_dotlock_touchlock,
+  _lockfile_dotlock_unlock,
 };
 
 int
-locker_dotlock_create (locker_t *plocker, const char *filename)
+_lockfile_dotlock_ctor (struct _lockfile_dotlock *dotlock,
+			const char *filename)
 {
-  struct _dotlock *dotlock;
+  mu_refcount_create (&dotlock->refcount);
+  if (dotlock->refcount)
+    return MU_ERROR_NO_MEMORY;
 
-  if (plocker == NULL || filename == NULL)
+  dotlock->fname = calloc (strlen (filename) + 5 /*strlen(".lock")*/ + 1, 1);
+  if (dotlock->fname == NULL)
+    {
+      mu_refcount_destroy (&dotlock->refcount);
+      return MU_ERROR_NO_MEMORY;
+    }
+  strcpy (dotlock->fname, filename);
+  strcat (dotlock->fname, ".lock");
+
+  dotlock->flags = MU_LOCKFILE_DOTLOCK_PID | MU_LOCKFILE_DOTLOCK_TIME
+    | MU_LOCKFILE_DOTLOCK_FCNTL;
+  dotlock->fd = -1;
+  dotlock->refcnt = 0;
+  dotlock->base.vtable = &_lockfile_dotlock_vtable;
+  return 0;
+}
+
+void
+_lockfile_dotlock_dtor (struct _lockfile_dotlock *dotlock)
+{
+  mu_refcount_destroy (&dotlock->refcount);
+  if (dotlock->fname)
+    free (dotlock->fname);
+}
+
+int
+lockfile_dotlock_create (lockfile_t *plockfile, const char *filename)
+{
+  struct _lockfile_dotlock *dotlock;
+  int status;
+
+  if (plockfile == NULL || filename == NULL)
     return MU_ERROR_INVALID_PARAMETER;
 
   dotlock = calloc (1, sizeof *dotlock);
   if (dotlock == NULL)
     return MU_ERROR_NO_MEMORY;
 
-  mu_refcount_create (&dotlock->refcount);
-  if (dotlock->refcount)
+  status = _lockfile_dotlock_ctor (dotlock, filename);
+  if (status != 0)
     {
       free (dotlock);
-      return MU_ERROR_NO_MEMORY;
+      return status;
     }
-
-  dotlock->fname = calloc (strlen (filename) + 5 /*strlen(".lock")*/ + 1, 1);
-  if (dotlock->fname == NULL)
-    {
-      free (dotlock);
-      return MU_ERROR_NO_MEMORY;
-    }
-  strcpy (dotlock->fname, filename);
-  strcat (dotlock->fname, ".lock");
-
-  dotlock->flags = MU_DOTLOCK_PID | MU_DOTLOCK_TIME | MU_DOTLOCK_FCNTL;
-  dotlock->fd = -1;
-  dotlock->refcnt = 0;
-  dotlock->base.vtable = &_dotlock_vtable;
-  *plocker = &dotlock->base;
+  *plockfile = &dotlock->base;
   return 0;
 }

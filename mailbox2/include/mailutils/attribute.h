@@ -42,8 +42,6 @@ typedef struct _attribute * attribute_t;
 #define MU_ATTRIBUTE_MODIFIED 0x1000
 #define MU_ATTRIBUTE_RECENT   0x0000
 
-extern int  attribute_create          __P ((attribute_t *));
-
 extern int  attribute_ref             __P ((attribute_t));
 extern void attribute_destroy        __P ((attribute_t *));
 
@@ -83,6 +81,8 @@ extern int  attribute_clear_flags     __P ((attribute_t));
 extern int  attribute_is_equal        __P ((attribute_t, attribute_t));
 extern int  attribute_copy            __P ((attribute_t dst, attribute_t src));
 
+extern int  attribute_default_create  __P ((attribute_t *));
+extern int  attribute_status_create   __P ((attribute_t *, const char *));
 
 #ifdef __cplusplus
 }

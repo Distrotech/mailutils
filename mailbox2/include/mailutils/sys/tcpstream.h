@@ -19,9 +19,13 @@
 #define MAILUTILS_SYS_TCP_H
 
 #include <mailutils/refcount.h>
-#include <mailutils/sys/stream.h>
+#include <mailutils/sys/fdstream.h>
 
-enum _tcp_state
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+enum _stream_tcp_state
 {
   TCP_STATE_INIT,
   TCP_STATE_RESOLVE,
@@ -30,16 +34,21 @@ enum _tcp_state
   TCP_STATE_CONNECTED
 };
 
-struct _tcp_instance
+struct _stream_tcp
 {
-  struct _stream base;
-  mu_refcount_t refcount;
-  int  fd;
+  struct _stream_fd base;
   char *host;
   int  port;
   int  state;
-  int flags;
   unsigned long address;
 };
+
+void _stream_tcp_destroy __P ((stream_t *));
+int  _stream_tcp_close __P ((stream_t));
+int _stream_tcp_open     __P ((stream_t, const char *, int, int));
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* _MAILUTILS_SYS_TCP_H */

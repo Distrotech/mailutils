@@ -23,14 +23,49 @@
 #include <mailutils/refcount.h>
 #include <mailutils/sys/stream.h>
 
-struct _memory_stream
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#ifndef MU_STREAM_MEMORY_BLOCKSIZE
+#define MU_STREAM_MEMORY_BLOCKSIZE 512
+#endif
+
+struct _stream_memory
 {
   struct _stream base;
   mu_refcount_t refcount;
   char *ptr;
-  size_t  size;
-  off_t  offset;
+  size_t capacity;
+  size_t size;
+  off_t offset;
   int flags;
 };
+
+extern int  _stream_memory_ctor __P ((struct _stream_memory *, size_t));
+extern void _stream_memory_dtor __P ((struct _stream_memory *));
+extern int  _stream_memory_ref  __P ((stream_t));
+extern void _stream_memory_destroy __P ((stream_t *));
+extern int  _stream_memory_open    __P ((stream_t, const char *, int, int));
+extern int  _stream_memory_close   __P ((stream_t));
+extern int  _stream_memory_read    __P ((stream_t, void *, size_t, size_t *));
+extern int  _stream_memory_readline __P ((stream_t, char *, size_t, size_t *));
+extern int  _stream_memory_write __P ((stream_t, const void *, size_t, size_t *));
+extern int  _stream_memory_get_fd __P ((stream_t, int *));
+extern int  _stream_memory_get_flags __P ((stream_t, int *));
+extern int  _stream_memory_get_size  __P ((stream_t, off_t *));
+extern int  _stream_memory_truncate  __P ((stream_t, off_t));
+extern int  _stream_memory_flush     __P ((stream_t));
+extern int  _stream_memory_get_state __P ((stream_t, enum stream_state *));
+extern int  _stream_memory_seek __P ((stream_t, off_t, enum stream_whence));
+extern int  _stream_memory_tell __P ((stream_t, off_t *));
+extern int  _stream_memory_is_readready __P ((stream_t, int ));
+extern int  _stream_memory_is_writeready __P ((stream_t, int));
+extern int  _stream_memory_is_exceptionpending __P ((stream_t, int));
+extern int  _stream_memory_is_open __P ((stream_t));
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* _MAILUTILS_SYS_MEMSTREAM_H */

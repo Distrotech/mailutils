@@ -28,19 +28,19 @@
 #endif
 
 #include <mailutils/error.h>
-#include <mailutils/sys/attribute.h>
+#include <mailutils/sys/dattribute.h>
 
-static int
-_da_ref (attribute_t attribute)
+int
+_attribute_default_ref (attribute_t attribute)
 {
-  struct _da *da = (struct _da *)attribute;
+  struct _attribute_default *da = (struct _attribute_default *)attribute;
   return mu_refcount_inc (da->refcount);
 }
 
-static void
-_da_destroy (attribute_t *pattribute)
+void
+_attribute_default_destroy (attribute_t *pattribute)
 {
-  struct _da *da = (struct _da *)*pattribute;
+  struct _attribute_default *da = (struct _attribute_default *)*pattribute;
   if (mu_refcount_dec (da->refcount) == 0)
     {
       mu_refcount_destroy (&da->refcount);
@@ -48,10 +48,10 @@ _da_destroy (attribute_t *pattribute)
     }
 }
 
-static int
-_da_get_flags (attribute_t attribute, int *pflags)
+int
+_attribute_default_get_flags (attribute_t attribute, int *pflags)
 {
-  struct _da *da = (struct _da *)attribute;
+  struct _attribute_default *da = (struct _attribute_default *)attribute;
   mu_refcount_lock (da->refcount);
   if (pflags)
     *pflags = da->flags;
@@ -59,20 +59,20 @@ _da_get_flags (attribute_t attribute, int *pflags)
   return 0;
 }
 
-static int
-_da_set_flags (attribute_t attribute, int flags)
+int
+_attribute_default_set_flags (attribute_t attribute, int flags)
 {
-  struct _da *da = (struct _da *)attribute;
+  struct _attribute_default *da = (struct _attribute_default *)attribute;
   mu_refcount_lock (da->refcount);
   da->flags |= (flags | MU_ATTRIBUTE_MODIFIED);
   mu_refcount_unlock (da->refcount);
   return 0;
 }
 
-static int
-_da_unset_flags (attribute_t attribute, int flags)
+int
+_attribute_default_unset_flags (attribute_t attribute, int flags)
 {
-  struct _da *da = (struct _da *)attribute;
+  struct _attribute_default *da = (struct _attribute_default *)attribute;
   mu_refcount_lock (da->refcount);
   da->flags &= ~flags;
   /* If Modified was being unset do not reset it.  */
@@ -82,45 +82,115 @@ _da_unset_flags (attribute_t attribute, int flags)
   return 0;
 }
 
-static int
-_da_clear_flags (attribute_t attribute)
+int
+_attribute_default_clear_flags (attribute_t attribute)
 {
-  struct _da *da = (struct _da *)attribute;
+  struct _attribute_default *da = (struct _attribute_default *)attribute;
   mu_refcount_lock (da->refcount);
   da->flags = 0;
   mu_refcount_unlock (da->refcount);
   return 0;
 }
 
-static struct _attribute_vtable _da_vtable =
+static struct _attribute_vtable _attribute_default_vtable =
 {
-  _da_ref,
-  _da_destroy,
+  _attribute_default_ref,
+  _attribute_default_destroy,
 
-  _da_get_flags,
-  _da_set_flags,
-  _da_unset_flags,
-  _da_clear_flags
+  _attribute_default_get_flags,
+  _attribute_default_set_flags,
+  _attribute_default_unset_flags,
+  _attribute_default_clear_flags
 };
 
 int
-attribute_create (attribute_t *pattribute)
+_attribute_default_ctor (struct _attribute_default *da)
 {
-  struct _da *da;
+  mu_refcount_create (&(da->refcount));
+  if (da->refcount == NULL)
+    return MU_ERROR_NO_MEMORY;
+  da->flags = 0;
+  da->base.vtable = &_attribute_default_vtable;
+  return 0;
+}
+
+void
+_attribute_default_dtor (struct _attribute_default *da)
+{
+  mu_refcount_destroy (&da->refcount);
+}
+
+int
+attribute_default_create (attribute_t *pattribute)
+{
+  struct _attribute_default *da;
+  int status;
+
   if (pattribute == NULL)
     return MU_ERROR_INVALID_PARAMETER;
+
   da = calloc (1, sizeof *da);
   if (da == NULL)
     return MU_ERROR_NO_MEMORY;
 
-  mu_refcount_create (&(da->refcount));
-  if (da->refcount == NULL)
+  status = _attribute_default_ctor (da);
+  if (status != 0)
     {
       free (da);
-      return MU_ERROR_NO_MEMORY;
+      return status;
     }
-  da->flags = 0;
-  da->base.vtable = &_da_vtable;
   *pattribute = &da->base;
+  return 0;
+}
+
+int
+attribute_status_create (attribute_t *pattribute, const char *field)
+{
+  struct _attribute_default *da;
+  int status;
+  char *colon;
+
+  if (pattribute == NULL || field == NULL)
+    return MU_ERROR_INVALID_PARAMETER;
+
+  da = calloc (1, sizeof *da);
+  if (da == NULL)
+    return MU_ERROR_NO_MEMORY;
+
+  status = _attribute_default_ctor (da);
+  if (status != 0)
+    {
+      free (da);
+      return status;
+    }
+  *pattribute = &da->base;
+
+  colon = strchr (field, ':');
+  if (colon)
+    field = ++colon;
+
+  for (; *field; field++)
+    {
+      switch (*field)
+	{
+	case 'r':
+	case 'R':
+	  attribute_set_read (*pattribute);
+	  break;
+	case 'O':
+	case 'o':
+	  attribute_set_seen (*pattribute);
+	  break;
+	case 'a':
+	case 'A':
+	  attribute_set_answered (*pattribute);
+	  break;
+	case 'd':
+	case 'D':
+	  attribute_set_deleted (*pattribute);
+	  break;
+	}
+    }
+  attribute_unset_modified (*pattribute);
   return 0;
 }

@@ -15,7 +15,7 @@ pkginclude_HEADERS = \
  header.h     \
  iterator.h   \
  list.h       \
- locker.h     \
+ lockfile.h   \
  mailbox.h    \
  mbox.h       \
  md5-rsa.h    \

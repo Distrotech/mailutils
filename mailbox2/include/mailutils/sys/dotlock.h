@@ -15,39 +15,50 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-#ifndef _MAILUTILS_SYS_SDEBUG_H
-#define _MAILUTILS_SYS_SDEBUG_H
+#ifndef _MAILUTILS_SYS_DOTLOCK_H
+#define _MAILUTILS_SYS_DOTLOCK_H
 
 #ifdef DMALLOC
 #include <dmalloc.h>
 #endif
 
 #include <mailutils/refcount.h>
-#include <mailutils/sys/debug.h>
+#include <mailutils/sys/lockfile.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct _mu_debug_stream
+/* locking flags */
+#define MU_LOCKFILE_DOTLOCK_PID    1
+#define MU_LOCKFILE_DOTLOCK_FCNTL  2
+#define MU_LOCKFILE_DOTLOCK_TIME   4
+
+#define MU_LOCKFILE_DOTLOCK_EXPIRE_TIME        (5 * 60)
+
+#define MU_LOCKFILE_DOTLOCK_ATTR           0444
+
+struct _lockfile_dotlock
 {
-  struct _mu_debug base;
+  struct _lockfile base;
   mu_refcount_t refcount;
-  int level;
-  stream_t stream;
-  int close_on_destroy;
+  int fd;
+  int refcnt; /* For recursive file locking.  */
+  char *fname;
+  int flags;
 };
 
-int  _mu_debug_stream_ctor __P ((struct _mu_debug_stream *));
-int  _mu_debug_stream_dtor __P ((struct _mu_debug_stream *));
-int  _mu_debug_stream_ref  __P ((mu_debug_t));
-void _mu_debug_stream_destroy __P ((mu_debug_t *));
-int  _mu_debug_stream_set_level __P ((mu_debug_t, size_t));
-int  _mu_debug_stream_get_level __P ((mu_debug_t, size_t *));
-int  _mu_debug_stream_print     __P ((mu_debug_t, size_t, const char *));
+extern int  _lockfile_dotlock_ctor __P ((struct _lockfile_dotlock *, const char *));
+extern void _lockfile_dotlock_dtor __P ((struct _lockfile_dotlock *));
+extern int  _lockfile_dotlock_ref  __P ((lockfile_t));
+extern void _lockfile_dotlock_destroy __P ((lockfile_t *));
+
+extern int  _lockfile_dotlock_lock    __P ((lockfile_t));
+extern int  _lockfile_dotlock_touchlock __P ((lockfile_t));
+extern int  _lockfile_dotlock_unlock    __P ((lockfile_t));
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* _MAILUTILS_SYS_SDEBUG_H */
+#endif /* _MAILUTILS_SYS_DOTLOCK_H */

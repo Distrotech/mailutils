@@ -15,39 +15,44 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-#ifndef _MAILUTILS_SYS_SDEBUG_H
-#define _MAILUTILS_SYS_SDEBUG_H
+#ifndef _MAILUTILS_SYS_LOCKFILE_H
+#define _MAILUTILS_SYS_LOCKFILE_H
 
 #ifdef DMALLOC
 #include <dmalloc.h>
 #endif
 
-#include <mailutils/refcount.h>
-#include <mailutils/sys/debug.h>
+#include <mailutils/lockfile.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct _mu_debug_stream
+#ifndef __P
+# ifdef __STDC__
+#  define __P(args) args
+# else
+#  define __P(args) ()
+# endif
+#endif /*__P */
+
+struct _lockfile_vtable
 {
-  struct _mu_debug base;
-  mu_refcount_t refcount;
-  int level;
-  stream_t stream;
-  int close_on_destroy;
+  int  (*ref)       __P ((lockfile_t));
+  void (*destroy)   __P ((lockfile_t *));
+
+  int  (*lock)      __P ((lockfile_t));
+  int  (*touchlock) __P ((lockfile_t));
+  int  (*unlock)    __P ((lockfile_t));
 };
 
-int  _mu_debug_stream_ctor __P ((struct _mu_debug_stream *));
-int  _mu_debug_stream_dtor __P ((struct _mu_debug_stream *));
-int  _mu_debug_stream_ref  __P ((mu_debug_t));
-void _mu_debug_stream_destroy __P ((mu_debug_t *));
-int  _mu_debug_stream_set_level __P ((mu_debug_t, size_t));
-int  _mu_debug_stream_get_level __P ((mu_debug_t, size_t *));
-int  _mu_debug_stream_print     __P ((mu_debug_t, size_t, const char *));
+struct _lockfile
+{
+  struct _lockfile_vtable *vtable;
+};
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* _MAILUTILS_SYS_SDEBUG_H */
+#endif /* _MAILUTILS_SYS_LOCKFILE_H */

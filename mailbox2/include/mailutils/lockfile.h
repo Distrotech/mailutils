@@ -15,8 +15,8 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
-#ifndef _MAILUTILS_LOCKER_H
-#define _MAILUTILS_LOCKER_H
+#ifndef _MAILUTILS_LOCKFILE_H
+#define _MAILUTILS_LOCKFILE_H
 
 #include <sys/types.h>
 
@@ -32,21 +32,21 @@ extern "C" {
 # endif
 #endif /*__P */
 
-struct _locker;
-typedef struct _locker *locker_t;
+struct _lockfile;
+typedef struct _lockfile *lockfile_t;
 
-extern int  locker_ref            __P ((locker_t));
-extern void locker_destroy        __P ((locker_t *));
+extern int  lockfile_ref            __P ((lockfile_t));
+extern void lockfile_destroy        __P ((lockfile_t *));
 
-extern int  locker_lock           __P ((locker_t));
-extern int  locker_touchlock      __P ((locker_t));
-extern int  locker_unlock         __P ((locker_t));
+extern int  lockfile_lock           __P ((lockfile_t));
+extern int  lockfile_touchlock      __P ((lockfile_t));
+extern int  lockfile_unlock         __P ((lockfile_t));
 
-extern int  locker_dotlock_create __P ((locker_t *, const char *filename));
-extern int  locker_nfslock_create __P ((locker_t *, const char *filename));
+extern int  lockfile_dotlock_create __P ((lockfile_t *, const char *filename));
+extern int  lockfile_nfslock_create __P ((lockfile_t *, const char *filename));
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* _MAILUTILS_MAILBOX_H */
+#endif /* _MAILUTILS_LOCKFILE_H */
