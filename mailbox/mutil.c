@@ -57,7 +57,7 @@ size_t mu_hexstr2ul(unsigned long* ul, const char* hex, size_t len)
   {
     unsigned long v = mu_hex2ul(hex[r]);
 
-    if(v == -1)
+    if(v == (unsigned long)-1)
       return r;
 
     *ul = *ul * 16 + v;
