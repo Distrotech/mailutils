@@ -23,7 +23,7 @@ ACLOCAL_AMFLAGS = -I m4
 SUBDIRS = include intl po lib testsuite mailbox libsieve doc \
           sql auth examples frm pop3d imap4d \
           mail sieve scripts libmu_scm guimb messages comsat readmsg \
-          mail.local mail.remote dotlock mh movemail
+          mail.local mail.remote dotlock mh movemail mimeview
 
 EXTRA_DIST = COPYING.LESSER @MU_EXTRA_DIST@
 

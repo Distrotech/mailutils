@@ -118,8 +118,10 @@ file?)
 
 ** forward only MTA, nullmailer like, but accepting SMTP on 25 from localhost
 
-** file viewer, based on the mimetypes api. I want to do a "v foo.blah",
-have it look up .blah in mime.types, and do the action spec'ed in mailcap.
+** mimeview:
+*** Support test, print and copiousoutput.
+*** Pipe files to the command's stdin if its mailcap entry does not have %s.
+*** Support nametemplate
 
 ** all
 

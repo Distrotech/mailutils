@@ -1,3 +1,22 @@
+2005-03-08  Sergey Poznyakoff  <gray@Noldor.runasimi.org>
+
+	TODO:121 said: "file viewer, based on the mimetypes api. I want to do
+	a "v foo.blah", have it look up .blah in mime.types, and do the a
+	ction spec'ed in mailcap." Here it goes:
+
+	* mimeview: New directory
+	* mimeview/mimetypes.y: New file
+	* mimeview/mimetypes.l: New file
+	* mimeview/mimeview.c: New file
+	* mimeview/mimeview.h: New file
+	* mimeview/Makefile.am: New file
+
+	* configure.ac: Added mimeview
+	* Makefile.am: Likewise
+	* doc/texinfo/programs.texi (mimeview): New section.
+	(mail): Document recently added variables.
+	* mailbox/mailcap.c (mu_mailcap_entry_coupiousoutput): Bugfix
+	
 2005-03-07  Sergey Poznyakoff
 
 	* TODO: Updated
