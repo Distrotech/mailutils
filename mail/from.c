@@ -84,6 +84,8 @@ mail_from (int argc, char **argv)
 	cflag = 'M';
       else if (attribute_is_userflag(attr, MAIL_ATTRIBUTE_SAVED))
 	cflag = '*';
+      else if (attribute_is_userflag(attr, MAIL_ATTRIBUTE_TAGGED))
+	cflag = 'T';
       else if (flags & MU_ATTRIBUTE_READ)
 	cflag = 'R';
       else if (flags & MU_ATTRIBUTE_SEEN)
@@ -106,7 +108,7 @@ mail_from (int argc, char **argv)
 
       /* The "From" field will take a third of the screen.
 	 Subject will take the rest.
-	 FIXME: This is not quiet correct we use fix sizes
+	 FIXME: This is not quite correct that we use fixed sizes
 	 18, 16 for the other fields.
       */
       froml = cols / 3;
