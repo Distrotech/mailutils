@@ -1,3 +1,12 @@
+2002-11-21  Sergey Poznyakoff
+
+	* mailbox/parse822.c (parse822_quoted_string): Free qstr before
+	  returning error status. Otherwise, addresses like
+		"A wrong quote\" <addr@dom.ain>
+	  hit the assert in parse822_word() and coredump.
+	  (parse822_word_dot): Removed misleading comment.
+	* mailbox/testsuite/Addrs: Added a testcase for this.
+
 2002-11-20  Sergey Poznyakoff 
 
 	* mailbox/mailer.c: Fixed indentation.
