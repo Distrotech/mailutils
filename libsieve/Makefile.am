@@ -11,6 +11,7 @@ lib_LTLIBRARIES = libsieve.la
 libsieve_la_SOURCES = \
  actions.c\
  comparator.c\
+ load.c\
  prog.c\
  register.c\
  require.c\
@@ -20,6 +21,7 @@ libsieve_la_SOURCES = \
  sieve-lex.c\
  tests.c\
  util.c
+libsieve_la_LIBADD=@LTDL_LIB@
 
 noinst_HEADERS = sieve.h
 
