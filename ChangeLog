@@ -1,3 +1,8 @@
+2003-02-07  Wojciech Polak
+
+	* doc/texinfo/programs.texi: Added info about WITH_GNUTLS
+	  and WITH_GSASL to the `General Information' node.
+
 2003-02-07  Frederic Gobry  <frederic.gobry@smartdata.ch>
 
 	* mailbox/rfc2047.c: implemented a preliminary RFC2047 encoder.
