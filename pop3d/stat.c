@@ -31,8 +31,7 @@ pop3_stat (const char *arg)
   if (state != TRANSACTION)
     return ERR_WRONG_STATE;
 
-  /* FIXME: unimplemented! */
-  /* mailbox_size (mbox, &size); */
+  mailbox_size (mbox, &size);
   mailbox_messages_count (mbox, &mesgs);
 
   fprintf (ofile, "+OK %d %d\r\n", mesgs, (int)size);

@@ -85,7 +85,7 @@ util_expand_msglist (const int argc, char **argv, int **list)
       else if (!strcmp (argv[i], "^"))
 	{
 	  /* FIXME: first [un]deleted message */
-	  current =util_ll_add (current, 1);
+	  current = util_ll_add (current, 1);
 	}
       else if (!strcmp (argv[i], "$"))
 	{
@@ -104,6 +104,27 @@ util_expand_msglist (const int argc, char **argv, int **list)
 	{
 	  /* FIXME: all messages with pattern following / in
 	     the subject line, case insensitive */
+	  /* This currently appears to be quit b0rked */
+	  message_t msg;
+	  header_t hdr;
+	  char subj[128];
+	  int j = 1, k = 0, l2 = 0;
+	  int len = strlen (&argv[i][1]);
+	  for (j = 1; j <= total; j++)
+	    {
+	      mailbox_get_message (mbox, j, &msg);
+	      message_get_header (msg, &hdr);
+	      header_get_value (hdr, MU_HEADER_SUBJECT, subj, 128, NULL);
+	      l2 = strlen (subj);
+	      for (k = 0; i < strlen (subj); k++)
+		{
+		  if (l2-k >= len && !strncasecmp (&argv[i][1], &subj[k], len))
+		    {
+		      current = util_ll_add (current, j);
+		      k = 128;
+		    }
+		}
+	    }
 	}
       else if (argv[i][0] == ':')
 	{

@@ -25,6 +25,11 @@
 int
 mail_dp (int argc, char **argv)
 {
-  printf ("Function not implemented in %s line %d\n", __FILE__, __LINE__);
-  return 1;
+  if (argc > 1)
+    util_msglist_command (mail_delete, argc, argv);
+  else
+    util_do_command ("delete");
+  util_do_command ("next");
+  util_do_command ("print");
+  return 0;
 }

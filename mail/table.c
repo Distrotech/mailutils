@@ -67,6 +67,8 @@ const struct mail_command_entry mail_command_table[] = {
   { "T",	"Type",		mail_printall,	"T[ype] [msglist]" },
   { "p",	"print",	mail_print,	"p[rint] [msglist]" },
   { "t",	"type",		mail_print,	"t[ype] [msglist]" },
+  { "prev",	"previous",	mail_previous,  "prev[ious] [message]" },
+  { "-",	"-",		mail_previous,	"- [message]" },
   { "q",	"quit",		mail_quit,	"q[uit]" },
 
   /* Hmm... will this work? */

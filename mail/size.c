@@ -24,6 +24,20 @@
 int
 mail_size (int argc, char **argv)
 {
-  printf ("Function not implemented in %s line %d\n", __FILE__, __LINE__);
+  if (argc > 1)
+    util_msglist_command (mail_size, argc, argv);
+  else
+    {
+      unsigned int s = 0;
+      message_t msg;
+      if (mailbox_get_message (mbox, cursor, &msg) != 0)
+	{
+	  fprintf (stderr, "Could not read message %d\n", cursor);
+	  return 1;
+	}
+      message_size (msg, &s);
+      printf ("%c%2d %d\n", cursor == realcursor ? '>' : ' ', cursor, s);
+      return 0;
+    }
   return 1;
 }

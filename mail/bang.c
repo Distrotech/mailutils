@@ -24,18 +24,17 @@
 int
 mail_bang (int argc, char **argv)
 {
-  int pid = fork ();
-  if (pid == 0)
+  if (!fork ())
     {
-      free (argv[0]);
-      argv[0] = strdup ("/bin/sh");
-      execv ("/bin/sh", argv);
+      char *path = getenv ("SHELL");
+      if (path == NULL)
+	path = strdup ("/bin/sh");
+      execv (path, &path);
       return 1;
     }
-  else if (pid > 0)
+  else
     {
-      while (waitpid(pid, NULL, 0) == -1)
-	/* do nothing */;
+      wait(NULL);
       return 0;
     }
   return 1;

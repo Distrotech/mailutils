@@ -24,6 +24,20 @@
 int
 mail_unset (int argc, char **argv)
 {
-  printf ("Function not implemented in %s line %d\n", __FILE__, __LINE__);
+  if (argc < 2)
+    return 1;
+  else
+    {
+      int status = 0, i = 1;
+      for (i=1; i < argc; i++)
+	{
+	  char *buf = malloc ((6+strlen (argv[i])) * sizeof (char));
+	  strcpy (buf, "set no");
+	  strcat (buf, argv[i]);
+	  if (!util_do_command (buf))
+	    status = 1;
+	  free (buf);
+	}
+    }
   return 1;
 }

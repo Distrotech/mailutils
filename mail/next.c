@@ -33,8 +33,9 @@ mail_next (int argc, char **argv)
     }
   else if (argc == 2)
     {
-      printf ("Function not implemented in %s line %d\n", __FILE__, __LINE__);
-      return 1;
+      cursor = strtol (argv[1], NULL, 10);
+      realcursor = cursor;
+      return 0;
     }
   return 1;
 }

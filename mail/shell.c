@@ -26,18 +26,26 @@ mail_shell (int argc, char **argv)
 {
   if (argc > 1)
     return 1;
-  else if (!fork ())
-    {
-      char *path = getenv ("SHELL");
-      if (path == NULL)
-	path = strdup ("/bin/sh");
-      execv (path, &path);
-      return 1;
-    }
   else
     {
-      wait(NULL);
-      return 0;
+      int pid = fork ();
+      if (pid == 0)
+	{
+	  free (argv[0]);
+	  /*
+	  argv[0] = getenv ("SHELL");
+	  if (!argv[0])
+	  */
+	    argv[0] = strdup ("/bin/sh");
+	  execv ("/bin/sh", argv);
+	  return 1;
+	}
+      else if (pid > 0)
+	{
+	  while (waitpid(pid, NULL, 0) == -1)
+	    /* do nothing */;
+	  return 0;
+	}
     }
   return 1;
 }

@@ -25,6 +25,17 @@
 int
 mail_previous (int argc, char **argv)
 {
-  printf ("Function not implemented in %s line %d\n", __FILE__, __LINE__);
+  if (argc < 2)
+    {
+      cursor--;
+      realcursor--;
+      return 0;
+    }
+  else if ( argc == 2)
+    {
+      cursor = strtol (argv[1], NULL, 10);
+      realcursor = cursor;
+      return 0;
+    }
   return 1;
 }

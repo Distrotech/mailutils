@@ -24,6 +24,41 @@
 int
 mail_set (int argc, char **argv)
 {
-  printf ("Function not implemented in %s line %d\n", __FILE__, __LINE__);
+  if (argc < 2)
+    {
+      /* step through the environment */
+    }
+  else
+    {
+      int i = 0;
+      char *var = NULL, *value = NULL;
+      for (i = 1; i < argc; i++)
+	{
+	  if (!strncmp ("no", argv[i], 2))
+	    {
+	      /* unset variable */
+	    }
+	  else if (strchr (argv[i], '=') != NULL)
+	    {
+	      int j = 0;
+	      var = strdup (argv[i]);
+	      for (j = 0; j < strlen (var); j++)
+		if (var[j] == '=')
+		  {
+		    var[j] = '\0';
+		    break;
+		  }
+	      value = strdup (&var[j+1]);
+	      /* set var = value */
+	      free (var);
+	      free (value);
+	    }
+	  else
+	    {
+	      /* set var = NULL */
+	    }
+	}
+      return 0;
+    }
   return 1;
 }
