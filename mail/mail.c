@@ -258,11 +258,21 @@ static char *default_setup[] = {
   "set xmailer",
   "unfold subject",
   "sender mail-followup-to reply-to from",
-
+  "set nocmd",
+  
   /* Start in mail reading mode */
   "set mode=read",
   "set noquit",
-  "set rc"
+  "set rc",
+
+  "set noflipr",
+  "set noshowto",
+  "set nobang",
+  
+  /* These settings are not yet used */
+  "set nodebug",
+  "set noonehop",
+  "set nosendwait",
 };
 
 int
@@ -465,7 +475,7 @@ main (int argc, char **argv)
         }
 
       /* initial commands */
-      if (util_getenv(NULL, "header", Mail_env_boolean, 0) == 0)
+      if (util_getenv (NULL, "header", Mail_env_boolean, 0) == 0)
 	{
 	  util_do_command ("summary");
 	  util_do_command ("z.");
