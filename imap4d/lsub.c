@@ -27,10 +27,11 @@ imap4d_lsub (struct imap4d_command *command, char *arg)
   char *sp;
   char *ref;
   char *wcard;
-  char *file;
+  char *file = NULL;
+  char *pattern = NULL;
   const char *delim = "/";
   FILE *fp;
-
+  
   if (! (command->states & state))
     return util_finish (command, RESP_BAD, "Wrong state");
 
@@ -43,21 +44,34 @@ imap4d_lsub (struct imap4d_command *command, char *arg)
   util_unquote (&ref);
   util_unquote (&wcard);
 
-  /* FIXME: Get the matching in list.  */
+  asprintf (&pattern, "%s%s", ref, wcard);
+  if (!pattern)
+    return util_finish (command, RESP_NO, "Not enough memory");
+  
   asprintf (&file, "%s/.mailboxlist", homedir);
+  if (!file)
+    {
+      free (pattern);
+      return util_finish (command, RESP_NO, "Not enough memory");
+    }
+  
   fp = fopen (file, "r");
   free (file);
   if (fp)
     {
-      char buffer[124];
-      while (fgets (buffer, sizeof (buffer), fp))
-        {
-	  size_t n = strlen (buffer);
-	  if (n && buffer[n - 1] == '\n')
-	    buffer[n - 1] = '\0';
-	  util_out (RESP_NONE, "LIST () \"%s\" %s", delim, buffer);
-        }
+      char *buf = NULL;
+      size_t n = 0;
+	
+      while (getline(&buf, &n, fp) > 0)
+	{
+	  int len = strlen (buf);
+	  if (buf[len - 1] == '\n')
+	    buf[len - 1] = '\0';
+	  if (util_wcard_match (buf, pattern, delim) != WCARD_NOMATCH)
+	    util_out (RESP_NONE, "LIST () \"%s\" %s", delim, buf);
+	}
       fclose (fp);
+      free (buf);
       return util_finish (command, RESP_OK, "Completed");
     }
   else if (errno == ENOENT)
