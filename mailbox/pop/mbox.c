@@ -110,6 +110,8 @@ enum pop_state
 #define CAPA_IMPLEMENTATION  0x00000200
 
 static void pop_destroy        __P ((mailbox_t));
+static int pop_capa            __P ((mailbox_t));
+static int pop_stls            __P ((mailbox_t));
 
 /*  Functions/Methods that implements the mailbox_t API.  */
 static int pop_open            __P ((mailbox_t, int));
@@ -393,6 +395,68 @@ pop_destroy (mailbox_t mbox)
     }
 }
 
+/*
+  POP3 CAPA support.
+ */
+
+static int
+pop_capa (mailbox_t mbox)
+{
+  pop_data_t mpd = mbox->data;
+  int status;
+
+  status = pop_writeline (mpd, "CAPA\r\n");
+  CHECK_ERROR (mpd, status);
+  MAILBOX_DEBUG0 (mbox, MU_DEBUG_PROT, mpd->buffer);
+
+  status = pop_write (mpd);
+  CHECK_EAGAIN (mpd, status);
+  mpd->state = POP_CAPA_ACK;
+
+  /* POP_CAPA_ACK */
+
+  status = pop_read_ack (mpd);
+  CHECK_EAGAIN (mpd, status);
+  MAILBOX_DEBUG0 (mbox, MU_DEBUG_PROT, mpd->buffer);
+
+  if (!strncasecmp (mpd->buffer, "+OK", 3))
+    {
+      mpd->capa = 0;
+      do
+	{
+	  status = pop_read_ack (mpd);
+	  MAILBOX_DEBUG0 (mbox, MU_DEBUG_PROT, mpd->buffer);
+
+	  /* Here we check some common capabilities like TOP, USER, UIDL,
+	     and STLS. The rest are ignored. Please note that some
+	     capabilities might have an extra arguments. For instance,
+	     SASL can have CRAM-MD5 and/or KERBEROS_V4, and etc.
+	     This is why I suggest adding (in a future) an extra variable,
+	     for example `capa_sasl'. It would hold the following flags:
+	     SASL_CRAM_MD5, SASL_KERBEROS_V4, and so on. Also the EXPIRE
+	     and LOGIN-DELAY capabilities have an extra arguments!
+	     Note that there is no APOP capability, even though APOP
+	     is an optional command in POP3. -- W.P. */
+
+	  if (!strncasecmp (mpd->buffer, "TOP", 3))
+	    mpd->capa |= CAPA_TOP;
+	  else if (!strncasecmp (mpd->buffer, "USER", 4))
+	    mpd->capa |= CAPA_USER;
+	  else if (!strncasecmp (mpd->buffer, "UIDL", 4))
+	    mpd->capa |= CAPA_UIDL;
+	  else if (!strncasecmp (mpd->buffer, "STLS", 4))
+	    mpd->capa |= CAPA_STLS;
+	}
+      while (mpd->nl);
+      return status;
+    }
+  else
+    {
+      /* mu_error ("CAPA not implemented\n"); */ /* FIXME */
+      return -1;
+    }
+}
+
 /* Simple User/pass authentication for pop. We ask for the info
    from the standard input.  */
 int
@@ -555,9 +619,12 @@ _pop_apop (authority_t auth)
   return 0;
 }
 
-static
-int
-tls (mailbox_t mbox)
+/*
+  Client side STLS support.
+ */
+
+static int
+pop_stls (mailbox_t mbox)
 {
 #ifdef WITH_TLS
   pop_data_t mpd = mbox->data;
@@ -566,7 +633,7 @@ tls (mailbox_t mbox)
   
   if (!mu_tls_enable || !(mpd->capa & CAPA_STLS))
     return -1;
-  
+
   status = pop_writeline (mpd, "STLS\r\n");
   CHECK_ERROR (mpd, status);
   status = pop_write (mpd);
@@ -587,7 +654,7 @@ tls (mailbox_t mbox)
   return status;
 #else
   return -1;
-#endif  
+#endif /* WITH_TLS */
 }
 
 /* Open the connection to the sever, and send the authentication. */
@@ -681,58 +748,19 @@ pop_open (mailbox_t mbox, int flags)
 	  {
 	    CHECK_ERROR_CLOSE (mbox, mpd, EACCES);
 	  }
-	status = pop_writeline (mpd, "CAPA\r\n");
-	CHECK_ERROR (mpd, status);
-	MAILBOX_DEBUG0 (mbox, MU_DEBUG_PROT, mpd->buffer);
 	mpd->state = POP_CAPA;
       }
 
     case POP_CAPA:
-      status = pop_write (mpd);
-      CHECK_EAGAIN (mpd, status);
-      mpd->state = POP_CAPA_ACK;
-
     case POP_CAPA_ACK:
-      status = pop_read_ack (mpd);
-      CHECK_EAGAIN (mpd, status);
-      MAILBOX_DEBUG0 (mbox, MU_DEBUG_PROT, mpd->buffer);
-
-      if (!strncasecmp (mpd->buffer, "+OK", 3))
-	{
-	  mpd->capa = 0;
-          do
-            {
-	      status = pop_read_ack (mpd);
-	      MAILBOX_DEBUG0 (mbox, MU_DEBUG_PROT, mpd->buffer);
-
-	      /* Here we check some common capabilities like TOP, USER, UIDL,
-		 and STLS. The rest are ignored. Please note that some
-		 capabilities might have an extra arguments. For instance,
-		 SASL can have CRAM-MD5 and/or KERBEROS_V4, and etc.
-		 This is why I suggest adding (in a future) an extra variable,
-		 for example `capa_sasl'. It would hold the following flags:
-		 SASL_CRAM_MD5, SASL_KERBEROS_V4, and so on. Also the EXPIRE
-		 and LOGIN-DELAY capabilities have an extra arguments!
-		 Note that there is no APOP capability, even though APOP
-		 is an optional command in POP3. -- W.P. */
-
-	      if (!strncasecmp (mpd->buffer, "TOP", 3))
-		mpd->capa |= CAPA_TOP;
-	      else if (!strncasecmp (mpd->buffer, "USER", 4))
-		mpd->capa |= CAPA_USER;
-	      else if (!strncasecmp (mpd->buffer, "UIDL", 4))
-		mpd->capa |= CAPA_UIDL;
-	      else if (!strncasecmp (mpd->buffer, "STLS", 4))
-		mpd->capa |= CAPA_STLS;
-	    }
-	  while (mpd->nl);
-	}
-      /* else
-        mu_error ("CAPA not implemented\n"); */ /* FIXME */
+      pop_capa (mbox);
+      mpd->state = POP_STLS;
 
     case POP_STLS:
     case POP_STLS_ACK:
-      tls (mbox);
+      status = pop_stls (mbox);
+      if (status == 0)
+	pop_capa (mbox);
       mpd->state = POP_AUTH;
 
     case POP_AUTH:
