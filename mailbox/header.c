@@ -606,6 +606,17 @@ header_get_value (header_t header, const char *name, char *buffer,
 }
 
 int
+header_get_value_unfold (header_t header, const char *name, char *buffer,
+			 size_t buflen, size_t *pn)
+{
+  int rc = header_get_value (header, name, buffer, buflen, pn);
+
+  if (rc == 0)
+    mu_string_unfold (buffer, pn);
+  return rc;
+}
+
+int
 header_aget_value (header_t header, const char *name, char **pvalue)
 {
   char *value;
@@ -621,6 +632,15 @@ header_aget_value (header_t header, const char *name, char **pvalue)
     }
 
   return status;
+}
+
+int
+header_aget_value_unfold (header_t header, const char *name, char **pvalue)
+{
+  int rc = header_aget_value (header, name, pvalue);
+  if (rc == 0)
+    mu_string_unfold (*pvalue, NULL);
+  return rc;
 }
 
 int
@@ -753,6 +773,16 @@ header_get_field_value (header_t header, size_t num, char *buf,
 }
 
 int
+header_get_field_value_unfold (header_t header, size_t num, char *buf,
+			       size_t buflen, size_t *nwritten)
+{
+  int rc = header_get_field_value (header, num, buf, buflen, nwritten);
+  if (rc == 0)
+    mu_string_unfold (buf, nwritten);
+  return rc;
+}
+
+int
 header_aget_field_value (header_t header, size_t num, char **pvalue)
 {
   char *value;
@@ -769,6 +799,15 @@ header_aget_field_value (header_t header, size_t num, char **pvalue)
   else
     *pvalue = strdup ("");
   return status;
+}
+
+int
+header_aget_field_value_unfold (header_t header, size_t num, char **pvalue)
+{
+  int rc = header_aget_field_value (header, num, pvalue);
+  if (rc == 0)
+    mu_string_unfold (*pvalue, NULL);
+  return rc;
 }
 
 int
@@ -1169,3 +1208,4 @@ header_get_stream (header_t header, stream_t *pstream)
   *pstream = header->stream;
   return 0;
 }
+

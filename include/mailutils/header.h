@@ -90,6 +90,17 @@ extern int header_get_field_name __P ((header_t, size_t index, char *, size_t, s
 extern int header_aget_field_value __P ((header_t, size_t index, char **));
 extern int header_aget_field_name __P ((header_t, size_t index, char **));
 
+extern int header_get_value_unfold __P((header_t header, const char *name,
+					char *buffer, size_t buflen,
+					size_t *pn));
+extern int header_aget_value_unfold __P((header_t header, const char *name,
+					 char **pvalue));
+extern int header_get_field_value_unfold __P((header_t header, size_t num,
+					      char *buf, size_t buflen,
+					      size_t *nwritten));
+extern int header_aget_field_value_unfold __P((header_t header, size_t num,
+					       char **pvalue));
+
 extern int header_get_stream __P ((header_t, stream_t *));
 extern int header_set_stream __P ((header_t, stream_t, void *));
 
@@ -130,6 +141,7 @@ extern int header_set_fill __P ((header_t,
 						      size_t, off_t,
 						      size_t *)), void *owner));
 
+  
 #ifdef __cplusplus
 }
 #endif
