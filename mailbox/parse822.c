@@ -211,12 +211,53 @@ int parse822_is_smtp_q(char c)
 
 /***** From RFC 822, 3.3 Lexical Tokens *****/
 
-int parse822_skip_ws(const char** p, const char* e)
+int parse822_skip_crlf(const char** p, const char* e)
 {
-    while((*p != e) && parse822_is_lwsp_char(**p)) {
-	*p += 1;
+    const char* s = *p;
+    if(
+	(&s[1] < e) &&
+	s[0] == '\r' &&
+	s[1] == '\n'
+	)
+    {
+	*p += 2;
+
+	return EOK;
     }
-    return EOK;
+    return EPARSE;
+}
+int parse822_skip_lwsp_char(const char** p, const char* e)
+{
+    if(*p < e && parse822_is_lwsp_char(**p)) {
+	*p += 1;
+	return EOK;
+    }
+    return EPARSE;
+}
+int parse822_skip_lwsp(const char** p, const char* e)
+{
+    /*
+     * linear-white-space = 1*([CRLF] LWSP-char)
+     */
+    int space = 0;
+
+    while(*p != e) {
+	const char* save = *p;
+
+	if(parse822_skip_lwsp_char(p, e) == EOK) {
+	    space = 1;
+	    continue;
+	}
+	if(parse822_skip_crlf(p, e) == EOK) {
+	    if(parse822_skip_lwsp_char(p, e) == EOK) {
+		continue;
+	    }
+	    *p = save;
+	    return EPARSE;
+	}
+	break;
+    }
+    return space ? EOK : EPARSE;
 }
 
 int parse822_skip_comments(const char** p, const char* e)
@@ -258,7 +299,7 @@ int parse822_digits(const char** p, const char* e,
 
 int parse822_special(const char** p, const char* e, char c)
 {
-    parse822_skip_ws(p, e); /* not comments, they start with a special... */
+    parse822_skip_lwsp(p, e); /* not comments, they start with a special... */
 
     if((*p != e) && **p == c) {
 	*p += 1;
@@ -694,7 +735,7 @@ int parse822_mail_box(const char** p, const char* e, address_t* a)
 
     /* -> addr-spec */
     if((rc = parse822_addr_spec(p, e, a)) == EOK) {
-	parse822_skip_ws(p, e);
+	parse822_skip_lwsp(p, e);
 
 	/* yuck. */
 	if((rc = parse822_comment(p, e, &(*a)->personal)) == EPARSE) {
@@ -1087,20 +1128,18 @@ int parse822_domain_literal(const char** p, const char* e, char** domain_literal
     return rc;
 }
 
-#if 0
-
 /***** From RFC 822, 3.2 Header Field Definitions *****/
 
 int parse822_field_name(const char** p, const char* e, char** fieldname)
 {
     /* field-name = 1*<any char, excluding ctlS, space, and ":"> ":" */
 
-    Ptr save = p;
+    const char *save = *p;
 
-    Rope fn;
+    char *fn = NULL;
 
     while(*p != e) {
-	char c = *p;
+	char c = **p;
 
 	if(!parse822_is_char(c))
 	    break;
@@ -1112,66 +1151,67 @@ int parse822_field_name(const char** p, const char* e, char** fieldname)
 	if(c == ':')
 	    break;
 
-	fn.append(c);
+	str_append_char(&fn, c);
 	*p += 1;
     }
     /* must be at least one char in the field name */
-    if(fn.empty()) {
-	p = save;
-	return 0;
+    if(!fn) {
+	*p = save;
+	return EPARSE;
     }
     parse822_skip_comments(p, e);
 
     if(!parse822_special(p, e, ':')) {
-	p = save;
-	return 0;
+	*p = save;
+	if (fn)
+	  free (fn);
+	return EPARSE;
     }
 
-    fieldname = fn;
+    *fieldname = fn;
 
-    return 1;
+    return EOK;
 }
 
-int parse822_field_body(const char** p, const char* e, Rope& fieldbody)
+int parse822_field_body(const char **p, const char *e, char** fieldbody)
 {
     /* field-body = *text [CRLF lwsp-char field-body] */
 
-    Ptr save = p;
+    /*const char *save = *p; */
 
-    Rope fb;
+    char *fb = NULL;
 
     for(;;)
     {
-	Ptr eol = p;
+	const char *eol = *p;
 	while(eol != e) {
-	    char c = *eol;
+	    /*char c = *eol; */
 	    if(eol[0] == '\r' && (eol+1) != e && eol[1] == '\n')
 		break;
 	    ++eol;
 	}
-	fb.append(p, eol);
-	p = eol;
+	str_append_range(&fb, *p, eol);
+	*p = eol;
 	if(eol == e)
 	    break; /* no more, so we're done */
 
-	assert(p[0] == '\r');
-	assert(p[1] == '\n');
+	/*assert(p[0] == '\r'); */
+	/*assert(p[1] == '\n'); */
 
-	p += 2;
+	*p += 2;
 
 	if(*p == e)
 	    break; /* no more, so we're done */
 
 	/* check if next line is a continuation line */
-	if(*p != ' ' && *p != '\t')
+	if(**p != ' ' && **p != '\t')
 	    break;
     }
 
-    fieldbody = fb;
+    *fieldbody = fb;
 
-    return 1;
+    return EOK;
 }
-#endif
 
 /***** RFC 822 Quoting Functions *****/
 
