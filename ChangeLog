@@ -1,3 +1,9 @@
+2003-09-04  Wojciech Polak
+
+	* include/mailutils/errno.h: Added MU_ERR_UNSAFE_PERMS.
+	* mailbox/muerrno.c: Likewise.
+	* mailbox/wicket.c (get_ticket): Check file permissions.
+
 2003-09-02  Wojciech Polak
 
 	* mailbox/pop/mbox.c (pop_get_message): Check UIDL capability
