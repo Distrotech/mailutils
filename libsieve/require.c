@@ -43,20 +43,34 @@ sieve_require (list_t slist)
   for (iterator_first (itr); !iterator_is_done (itr); iterator_next (itr))
     {
       char *s;
-      sieve_register_t *reg;
       
       iterator_current (itr, (void **)&s);
 
-      /* FIXME: if (strncmp (s, "comparator-", 11) ... */
-      reg = sieve_action_lookup (s);
-      if (!reg)
+      if (strncmp (s, "comparator-", 11) == 0)
 	{
-	  sieve_compile_error (sieve_filename, sieve_line_num,
-                       "source for the required action %s is not available",
-		       s);
-	  break;
+	  if (sieve_require_comparator (s + 11))
+	    {
+	      sieve_compile_error (sieve_filename, sieve_line_num,
+				   "source for the required comparator %s is not available",
+				   s + 11);
+	    }
 	}
-      reg->required = 1;
+      else if (strncmp (s, "test-", 5)  == 0) /* GNU extension */
+	{
+	}
+      else
+	{
+	  sieve_register_t *reg;
+	  reg = sieve_action_lookup (s);
+	  if (!reg)
+	    {
+	      sieve_compile_error (sieve_filename, sieve_line_num,
+				   "source for the required action %s is not available",
+				   s);
+	      break;
+	    }
+	  reg->required = 1;
+	}
     }
   iterator_destroy (&itr);
 }
