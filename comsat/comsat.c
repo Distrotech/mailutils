@@ -215,7 +215,7 @@ comsat_daemon_init (void)
      first three one, in, out, err.  Do not do the chdir("/").   */
   if (daemon (1, 0) < 0)
     {
-      perror (_("failed to become a daemon:"));
+      perror (_("failed to become a daemon"));
       exit (EXIT_FAILURE);
     }
 }
@@ -603,14 +603,3 @@ mailbox_path (const char *user)
   return mailbox_name;
 }
 
-#if 0
-/* A debugging hook */
-volatile int _st=0;
-void
-stop()
-{
-  syslog (LOG_ALERT, _("waiting for debug"));
-  while (!_st)
-    _st=_st;
-}
-#endif

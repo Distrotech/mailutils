@@ -279,7 +279,7 @@ imap4d_daemon_init (void)
      first three one, in, out, err   */
   if (daemon (0, 0) < 0)
     {
-      perror (_("fork failed:"));
+      perror (_("fork failed"));
       exit (1);
     }
 
