@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2004 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -166,6 +166,16 @@ sendmail_close (mailer_t mailer)
   return 0;
 }
 
+static int
+mailer_property_is_set (mailer_t mailer, const char *name)
+{
+  property_t property = NULL;
+
+  mailer_get_property (mailer, &property);
+  return property_is_set (property, name);
+}
+
+
 /* Close FD unless it is part of pipe P */
 #define SCLOSE(fd,p) if (p[0]!=fd&&p[1]!=fd) close(fd)
 
@@ -195,7 +205,8 @@ sendmail_send_message (mailer_t mailer, message_t msg, address_t from,
 
 	argc++;			/* terminating NULL */
 	argc++;			/* sendmail */
-	argc++;			/* -oi (do not treat '.' as message terminator) */
+	argc++;			/* -oi (do not treat '.' as message
+				   terminator) */
 
 	if (from)
 	  {
@@ -216,6 +227,7 @@ sendmail_send_message (mailer_t mailer, message_t msg, address_t from,
 
 	    argc += 2;		/* -f from */
 	  }
+	
 	if (to)
 	  {
 	    status = address_get_email_count (to, &tocount);
@@ -225,10 +237,8 @@ sendmail_send_message (mailer_t mailer, message_t msg, address_t from,
 
 	    argc += tocount;	/* 1 per to address */
 	  }
-	else
-	  {
-	    argc++;		/* -t */
-	  }
+
+	argc++;		/* -t */
 
 	/* Allocate arg vec: */
 	if ((argvec = calloc (argc, sizeof (*argvec))) == 0)
@@ -259,7 +269,8 @@ sendmail_send_message (mailer_t mailer, message_t msg, address_t from,
 	      }
 	    argvec[argc++] = emailfrom;
 	  }
-	if (!to)
+	
+	if (!to || mailer_property_is_set (mailer, "READ_RECIPIENTS"))
 	  {
 	    if ((argvec[argc++] = strdup ("-t")) == 0)
 	      {

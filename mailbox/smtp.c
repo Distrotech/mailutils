@@ -915,12 +915,21 @@ smtp_address_add (address_t *paddr, const char *value)
 }
 
 static int
+_smtp_property_is_set (smtp_t smtp, const char *name)
+{
+  property_t property = NULL;
+
+  mailer_get_property (smtp->mailer, &property);
+  return property_is_set (property, name);
+}
+
+static int
 _smtp_set_rcpt (smtp_t smtp, message_t msg, address_t to)
 {
   int status = 0;
   header_t header = NULL;
   char *value;
-  
+
   /* Get RCPT_TO from TO, or the message. */
 
   if (to)
@@ -939,45 +948,48 @@ _smtp_set_rcpt (smtp_t smtp, message_t msg, address_t to)
 	return status;
     }
 
-  if ((status = message_get_header (msg, &header)))
-    return status;
-
-  status = header_aget_value (header, MU_HEADER_TO, &value);
-
-  if (status == 0)
+  if (!to || _smtp_property_is_set (smtp, "READ_RECIPIENTS"))
     {
-      smtp_address_add (&smtp->rcpt_to, value);
-      free (value);
+      if ((status = message_get_header (msg, &header)))
+	return status;
+
+      status = header_aget_value (header, MU_HEADER_TO, &value);
+
+      if (status == 0)
+	{
+	  smtp_address_add (&smtp->rcpt_to, value);
+	  free (value);
+	}
+      else if (status != ENOENT)
+	goto end;
+
+      status = header_aget_value (header, MU_HEADER_CC, &value);
+
+      if (status == 0)
+	{
+	  smtp_address_add (&smtp->rcpt_to, value);
+	  free (value);
+	}
+      else if (status != ENOENT)
+	goto end;
+
+      status = header_aget_value (header, MU_HEADER_BCC, &value);
+      if (status == 0)
+	{
+	  smtp_address_add (&smtp->rcpt_bcc, value);
+	  free (value);
+	}
+      else if (status != ENOENT)
+	goto end;
+
+      /* If to or bcc is present, the must be OK. */
+      if (smtp->rcpt_to && (status = mailer_check_to (smtp->rcpt_to)))
+	goto end;
+
+      if (smtp->rcpt_bcc && (status = mailer_check_to (smtp->rcpt_bcc)))
+	goto end;
     }
-  else if (status && status != ENOENT)
-    goto end;
-
-  status = header_aget_value (header, MU_HEADER_CC, &value);
-
-  if (status == 0)
-    {
-      smtp_address_add (&smtp->rcpt_to, value);
-      free (value);
-    }
-  else if (status && status != ENOENT)
-    goto end;
-
-  status = header_aget_value (header, MU_HEADER_BCC, &value);
-  if (status == 0)
-    {
-      smtp_address_add (&smtp->rcpt_bcc, value);
-      free (value);
-    }
-  else if (status && status != ENOENT)
-    goto end;
-
-  /* If to or bcc is present, the must be OK. */
-  if (smtp->rcpt_to && (status = mailer_check_to (smtp->rcpt_to)))
-    goto end;
-
-  if (smtp->rcpt_bcc && (status = mailer_check_to (smtp->rcpt_bcc)))
-    goto end;
-
+  
 end:
 
   if (status)
