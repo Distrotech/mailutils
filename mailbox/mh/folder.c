@@ -86,24 +86,26 @@ mh_dir_p (const char *name)
 static int
 _mh_is_scheme (record_t record, const char *url)
 {
+  const char *path;
+  
   if (!url || !record->scheme)
     return 0;
 
   if (strncmp (record->scheme, url, strlen (record->scheme)) == 0)
     return 1;
 
-  if (strncmp (MU_PATH_SCHEME, url, MU_PATH_SCHEME_LEN) == 0)
+  if (mu_scheme_autodetect_p (url, &path))
     {
       /* Attemp auto-detection */
       struct stat st;
       
-      if (stat (url, &st) < 0)
+      if (stat (path, &st) < 0)
 	return 1; /* mailbox_open will complain */
 
       if (!S_ISDIR (st.st_mode))
 	return 0;
 
-      return mh_dir_p (url);
+      return mh_dir_p (path);
     }
 
   return 0;
