@@ -1333,7 +1333,8 @@ mbox_append_message0 (mailbox_t mailbox, message_t msg, off_t *psize,
   int status = 0;
   size_t n = 0;
   char nl = '\n';
-
+  size_t orig_size = *psize;
+  
   switch (mud->state)
     {
     case MBOX_NO_STATE:
@@ -1407,11 +1408,15 @@ mbox_append_message0 (mailbox_t mailbox, message_t msg, off_t *psize,
 	/* Write the separator to the mailbox.  */
 	n = snprintf (buffer, sizeof (buffer), "From %s %s",
 		      mud->sender, mud->date);
-	stream_write (mailbox->stream, buffer, n, *psize, &n);
+	status = stream_write (mailbox->stream, buffer, n, *psize, &n);
+	if (status)
+	  break;
 	*psize += n;
 
 	/* Add the newline, the above may be truncated.  */
-	stream_write (mailbox->stream, &nl , 1, *psize, &n);
+	status = stream_write (mailbox->stream, &nl , 1, *psize, &n);
+	if (status)
+	  break;
 	*psize += n;
 
 	free (mud->sender);
@@ -1448,6 +1453,7 @@ mbox_append_message0 (mailbox_t mailbox, message_t msg, off_t *psize,
 		    mud->state = MBOX_NO_STATE;
 		    mud->off = 0;
 		  }
+		stream_truncate (mailbox->stream, orig_size);
 		return status;
 	      }
 	    mud->off += nread;
@@ -1470,7 +1476,7 @@ mbox_append_message0 (mailbox_t mailbox, message_t msg, off_t *psize,
 
 	    status = stream_write (mailbox->stream, buffer, nread,
 				    *psize, &n);
-	    if (status != 0)
+	    if (status)
 	      break;
 	    *psize += n;
 	  }
@@ -1483,7 +1489,9 @@ mbox_append_message0 (mailbox_t mailbox, message_t msg, off_t *psize,
 	    n = sprintf (buffer, "X-IMAPbase: %lu %u\n",
 			 (unsigned long) mud->uidvalidity,
 			 (unsigned) mud->uidnext);
-	    stream_write (mailbox->stream, buffer, n, *psize, &n);
+	    status = stream_write (mailbox->stream, buffer, n, *psize, &n);
+	    if (status)
+	      break;
 	    *psize += n;
 	  }
 	mud->state = MBOX_STATE_APPEND_ATTRIBUTE;
@@ -1526,14 +1534,14 @@ mbox_append_message0 (mailbox_t mailbox, message_t msg, off_t *psize,
 	    n = sprintf (suid, "X-UID: %u\n", (unsigned) uid);
 	    /* Put the UID.  */
 	    status = stream_write (mailbox->stream, suid, n, *psize, &n);
-	    if (status != 0)
+	    if (status)
 	      break;
 	    *psize += n;
 	  }
 
 	/* New line separator of the Header.  */
 	status = stream_write (mailbox->stream, &nl , 1, *psize, &n);
-	if (status != 0)
+	if (status)
 	  break;
 	*psize += n;
 	mud->state = MBOX_STATE_APPEND_BODY;
@@ -1563,14 +1571,16 @@ mbox_append_message0 (mailbox_t mailbox, message_t msg, off_t *psize,
 	      }
 	    mud->off += nread;
 	    status = stream_write (mailbox->stream, buffer, nread, *psize, &n);
-	    if (status != 0)
+	    if (status)
 	      break;
 	    *psize += n;
 	  }
 	while (nread > 0);
 	mud->off = 0;
 	n = 0;
-	stream_write (mailbox->stream, &nl, 1, *psize, &n);
+	status = stream_write (mailbox->stream, &nl, 1, *psize, &n);
+	if (status)
+	  break;
 	*psize += n;
       }
 
@@ -1601,16 +1611,21 @@ mbox_append_message0 (mailbox_t mailbox, message_t msg, off_t *psize,
 			mud->state = MBOX_NO_STATE;
 			mud->off = 0;
 		      }
-		    stream_flush (mailbox->stream);
+		    stream_truncate (mailbox->stream, orig_size);
 		    return status;
 		  }
-		stream_write (mailbox->stream, buffer, nread, *psize, &n);
+		status = stream_write (mailbox->stream, buffer, nread,
+				       *psize, &n);
+		if (status)
+		  break;
 		mud->off += nread;
 		*psize += n;
 	      }
 	    while (nread > 0);
 	    n = 0;
-       	    stream_write (mailbox->stream, &nl, 1, *psize, &n);
+       	    status = stream_write (mailbox->stream, &nl, 1, *psize, &n);
+	    if (status)
+	      break;
 	    *psize += n;
 	  }
 
@@ -1619,7 +1634,10 @@ mbox_append_message0 (mailbox_t mailbox, message_t msg, off_t *psize,
 	}
     } /* is_expunging */
   mud->state = MBOX_NO_STATE;
-  stream_flush (mailbox->stream);
+  if (status)
+    stream_truncate (mailbox->stream, orig_size);
+  else
+    stream_flush (mailbox->stream);
   return status;
 }
 
