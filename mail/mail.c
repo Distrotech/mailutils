@@ -176,7 +176,7 @@ static const char *mail_capa[] = {
 static char *
 mail_cmdline(void *closure, int cont)
 {
-  char *prompt = (char*) (closure ? closure : NULL);
+  char *prompt = (char*) closure;
   char *rc;
 
   (void)cont;
