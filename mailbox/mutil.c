@@ -47,8 +47,6 @@
 #include <mailutils/parse822.h>
 #include <mailutils/mu_auth.h>
 
-#include "mu_asprintf.h"
-
 /* convert a sequence of hex characters into an integer */
 
 unsigned long
@@ -595,12 +593,15 @@ mu_get_user_email (const char *name)
       return NULL;
     }
 
-  mu_asprintf (&email, "%s@%s", localpart, domainpart);
 
-  free (localpart);
-
+  email = malloc (strlen (localpart) + 1
+		  + strlen (domainpart) + 1);
   if (!email)
     errno = ENOMEM;
+  else
+    sprintf (email, "%s@%s", localpart, domainpart);
+
+  free (localpart);
 
   return email;
 }

@@ -44,7 +44,6 @@
 #include <mailutils/mailbox.h>
 
 #include <argcv.h>
-#include <mu_asprintf.h>
 
 #define ARG_LOG_FACILITY 1
 #define ARG_LOCK_FLAGS 2
@@ -638,15 +637,20 @@ mu_create_argcv (const char *capa[],
     }
   else
     {
-      char* userrc = NULL;
+      char *userrc = NULL;
 
-      mu_asprintf(&userrc, "%s/mailutils", MU_USER_CONFIG_FILE);
+      userrc = malloc (sizeof (MU_USER_CONFIG_FILE) /* provides an extra slot
+						       for null byte as well */
+		       + 1 /* slash */
+		       + 9 /*mailutils*/); 
 
       if (!userrc)
 	{
 	  fprintf (stderr, "%s: not enough memory\n", progname);
 	  exit (1);
 	}
+      
+      sprintf(userrc, "%s/mailutils", MU_USER_CONFIG_FILE);
       read_rc (progname, userrc, capa, &x_argc, &x_argv);
       
       free(userrc);
@@ -654,18 +658,31 @@ mu_create_argcv (const char *capa[],
 
   /* Add per-user, per-program config file. */
   {
-    char* progrc = NULL;
+    char *progrc = NULL;
+    int size;
     
-    if(rcdir)
-      mu_asprintf(&progrc, "%s/%src", MU_USER_CONFIG_FILE, progname);
+    if (rcdir)
+      size = sizeof (MU_USER_CONFIG_FILE)
+	             + 1
+		     + strlen (progname)
+		     + 2 /* rc */;
     else
-      mu_asprintf(&progrc, "~/.mu.%src", progname);
+      size = 6 /*~/.mu.*/
+	     + strlen (progname)
+	     + 3 /* "rc" + null terminator */;
+
+    progrc = malloc (size);
 
     if (!progrc)
       {
 	fprintf (stderr, "%s: not enough memory\n", progname);
 	exit (1);
       }
+
+    if (rcdir)
+      sprintf (progrc, "%s/%src", MU_USER_CONFIG_FILE, progname);
+    else
+      sprintf (progrc, "~/.mu.%src", progname);
 
     read_rc (NULL, progrc, capa, &x_argc, &x_argv);
     free (progrc);
