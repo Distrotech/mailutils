@@ -31,6 +31,14 @@
   && (m)->debug_printer)
 #define INSTR_DISASS(m) ((m)->debug_level & MU_SIEVE_DEBUG_DISAS)
 
+void
+instr_nop (sieve_machine_t mach)
+{
+  if (INSTR_DEBUG (mach))
+    sieve_debug (mach, "%4lu: NOP\n",
+		 (unsigned long) (mach->pc - 1));
+}
+
 static int
 instr_run (sieve_machine_t mach)
 {
@@ -113,54 +121,6 @@ instr_pop (sieve_machine_t mach)
 }
 
 void
-instr_allof (sieve_machine_t mach)
-{
-  int num = SIEVE_ARG (mach, 0, number);
-  int val = 1;
-
-  SIEVE_ADJUST(mach, 1);
-
-  if (INSTR_DEBUG (mach))
-    {
-      sieve_debug (mach, "%4lu: ALLOF %d\n", (unsigned long)(mach->pc - 2),
-		   num);
-      if (INSTR_DISASS (mach))
-	return;
-    }
-  
-  while (num-- > 0)
-    {
-      instr_pop (mach);
-      val &= mach->reg;
-    }
-  mach->reg = val;
-}
-
-void
-instr_anyof (sieve_machine_t mach)
-{
-  int num = SIEVE_ARG (mach, 0, number);
-  int val = 0;
-
-  SIEVE_ADJUST(mach, 1);
-
-  if (INSTR_DEBUG (mach))
-    {
-      sieve_debug (mach, "%4lu: ANYOF %d\n", (unsigned long)(mach->pc - 2),
-		   num);
-      if (INSTR_DISASS (mach))
-	return;
-    }
-
-  while (num-- > 0)
-    {
-      instr_pop (mach);
-      val |= mach->reg;
-    }
-  mach->reg = val;
-}
-
-void
 instr_not (sieve_machine_t mach)
 {
   if (INSTR_DEBUG (mach))
@@ -206,6 +166,25 @@ instr_brz (sieve_machine_t mach)
     }
   
   if (!mach->reg)
+    mach->pc += num;
+}
+  
+void
+instr_brnz (sieve_machine_t mach)
+{
+  long num = SIEVE_ARG (mach, 0, number);
+  SIEVE_ADJUST (mach, 1);
+
+  if (INSTR_DEBUG (mach))
+    {
+      sieve_debug (mach, "%4lu: BRNZ %lu\n",
+		   (unsigned long)(mach->pc-2),
+		   (unsigned long)(mach->pc + num));
+      if (INSTR_DISASS (mach))
+	return;
+    }
+  
+  if (mach->reg)
     mach->pc += num;
 }
   
