@@ -25,7 +25,6 @@ SRC = \
   comparator.c \
   imparse.c \
   interp.c \
-  md5.c \
   message.c \
   parseaddr.c \
   script.c \
@@ -38,12 +37,8 @@ SRC = \
 
 HDR = \
   comparator.h \
-  exitcodes.h \
-  hmac-md5.h \
   imparse.h \
   interp.h \
-  md5.h \
-  md5global.h \
   message.h \
   parseaddr.h \
   script.h \

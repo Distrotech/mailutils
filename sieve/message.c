@@ -85,7 +85,7 @@ int do_reject(action_list_t *a, char *msg)
     return 0;
 }
 
-/* fileinto message m into mailbox 
+/* fileinto message m into mailbox
  *
  * incompatible with: reject
  */
@@ -235,7 +235,7 @@ int do_vacation(action_list_t *a, char *addr, char *fromaddr,
 int do_setflag(action_list_t *a, char *flag)
 {
     action_list_t *b = NULL;
- 
+
     /* see if this conflicts with any previous actions taken on this message */
     while (a != NULL) {
 	b = a;
@@ -243,7 +243,7 @@ int do_setflag(action_list_t *a, char *flag)
 	    return SIEVE_RUN_ERROR;
 	a = a->next;
     }
- 
+
     /* add to the action list */
     a = (action_list_t *) xmalloc(sizeof(action_list_t));
     if (a == NULL)
@@ -262,7 +262,7 @@ int do_setflag(action_list_t *a, char *flag)
 int do_addflag(action_list_t *a, char *flag)
 {
     action_list_t *b = NULL;
- 
+
     /* see if this conflicts with any previous actions taken on this message */
     while (a != NULL) {
 	b = a;
@@ -270,7 +270,7 @@ int do_addflag(action_list_t *a, char *flag)
 	    return SIEVE_RUN_ERROR;
 	a = a->next;
     }
- 
+
     /* add to the action list */
     a = (action_list_t *) xmalloc(sizeof(action_list_t));
     if (a == NULL)
@@ -289,7 +289,7 @@ int do_addflag(action_list_t *a, char *flag)
 int do_removeflag(action_list_t *a, char *flag)
 {
     action_list_t *b = NULL;
- 
+
     /* see if this conflicts with any previous actions taken on this message */
     while (a != NULL) {
 	b = a;
@@ -297,7 +297,7 @@ int do_removeflag(action_list_t *a, char *flag)
 	    return SIEVE_RUN_ERROR;
 	a = a->next;
     }
- 
+
     /* add to the action list */
     a = (action_list_t *) xmalloc(sizeof(action_list_t));
     if (a == NULL)
@@ -317,7 +317,7 @@ int do_removeflag(action_list_t *a, char *flag)
 int do_mark(action_list_t *a)
 {
     action_list_t *b = NULL;
- 
+
     /* see if this conflicts with any previous actions taken on this message */
     while (a != NULL) {
 	b = a;
@@ -325,7 +325,7 @@ int do_mark(action_list_t *a)
 	    return SIEVE_RUN_ERROR;
 	a = a->next;
     }
- 
+
     /* add to the action list */
     a = (action_list_t *) xmalloc(sizeof(action_list_t));
     if (a == NULL)
@@ -344,7 +344,7 @@ int do_mark(action_list_t *a)
 int do_unmark(action_list_t *a)
 {
     action_list_t *b = NULL;
- 
+
     /* see if this conflicts with any previous actions taken on this message */
     while (a != NULL) {
 	b = a;
@@ -352,7 +352,7 @@ int do_unmark(action_list_t *a)
 	    return SIEVE_RUN_ERROR;
 	a = a->next;
     }
- 
+
     /* add to the action list */
     a = (action_list_t *) xmalloc(sizeof(action_list_t));
     if (a == NULL)
@@ -435,7 +435,7 @@ int do_denotify(notify_action_t *notify)
 	if (notify->headers)
 	    free_sl(notify->headers);
     }
-    
+
     notify->exists = 0;
 
     return 0;
@@ -480,9 +480,9 @@ char *get_address(address_part_t addrpart, void **data, void **marker,
 	ret = NULL;
     } else {
 	if (canon_domain && a->domain)
-	    lcase(a->domain);
+	    strlower (a->domain);
 
-	switch (addrpart) { 
+	switch (addrpart) {
 	case ADDRESS_ALL:
 #define U_DOMAIN "unspecified-domain"
 #define U_USER "unknown-user"
@@ -501,7 +501,7 @@ char *get_address(address_part_t addrpart, void **data, void **marker,
 	case ADDRESS_LOCALPART:
 	    ret = a->mailbox;
 	    break;
-	    
+
 	case ADDRESS_DOMAIN:
 	    ret = a->domain;
 	    break;
@@ -551,10 +551,10 @@ int free_address(void **data, void **marker)
 
 #define NEWMAIL_MSG "You have new mail"
 
-notify_action_t *default_notify_action(void)    
+notify_action_t *default_notify_action(void)
 {
     notify_action_t *ret = xmalloc(sizeof(notify_action_t));
-    
+
     ret->exists   = -1; /* flag as default action */
     ret->priority = "medium";
     ret->message  = xstrdup(NEWMAIL_MSG);

@@ -143,7 +143,7 @@ reqs: /* empty */
 
 require: REQUIRE stringlist ';'	{ if (!check_reqs($2)) {
                                     yyerror("unsupported feature");
-				    YYERROR; 
+				    YYERROR;
                                   } }
 	;
 
@@ -236,7 +236,7 @@ action: REJCT STRING             { if (!parse_script->support.reject) {
 					    YYERROR;
 					}
 
-					$$ = new_command(NOTIFY); 
+					$$ = new_command(NOTIFY);
 					$$->u.n.priority = $2;
 					$$->u.n.message = $3;
 					$$->u.n.headers_list = $4;
@@ -255,31 +255,31 @@ priority: /* nothing */ { $$ = "medium"; }
         | HIGH { $$ = "high"; }
         ;
 
-optional_headers: /* empty */ { 	                        
+optional_headers: /* empty */ {
 				$$ = NULL;
 	                      }
                  | stringlist { $$ = $1; }
                  ;
 
 vtags: /* empty */		 { $$ = new_vtags(); }
-	| vtags DAYS NUMBER	 { if ($$->days != -1) { 
+	| vtags DAYS NUMBER	 { if ($$->days != -1) {
 					yyerror("duplicate :days"); YYERROR; }
 				   else { $$->days = $3; } }
-	| vtags ADDRESSES stringlist { if ($$->addresses != NULL) { 
-					yyerror("duplicate :addresses"); 
+	| vtags ADDRESSES stringlist { if ($$->addresses != NULL) {
+					yyerror("duplicate :addresses");
 					YYERROR;
 				       } else if (!verify_addresses($3)) {
 					  YYERROR;
 				       } else {
 					 $$->addresses = $3; } }
-	| vtags SUBJECT STRING	 { if ($$->subject != NULL) { 
-					yyerror("duplicate :subject"); 
+	| vtags SUBJECT STRING	 { if ($$->subject != NULL) {
+					yyerror("duplicate :subject");
 					YYERROR;
 				   } else if (!ok_header($3)) {
 					YYERROR;
 				   } else { $$->subject = $3; } }
-	| vtags MIME		 { if ($$->mime != -1) { 
-					yyerror("duplicate :mime"); 
+	| vtags MIME		 { if ($$->mime != -1) {
+					yyerror("duplicate :mime");
 					YYERROR; }
 				   else { $$->mime = MIME; } }
 	;
@@ -312,7 +312,7 @@ test: ANYOF testlist		 { $$ = new_test(ANYOF); $$->u.tl = $2; }
 				   else
 #endif
 				     pl = (patternlist_t *) $4;
-				       
+
 				   $$ = build_header(HEADER, $2, $3, pl);
 				   if ($$ == NULL) { YYERROR; } }
 	| addrorenv aetags stringlist stringlist
@@ -326,7 +326,7 @@ test: ANYOF testlist		 { $$ = new_test(ANYOF); $$->u.tl = $2; }
 				   else
 #endif
 				     pl = (patternlist_t *) $4;
-				       
+
 				   $$ = build_address($1, $2, $3, pl);
 				   if ($$ == NULL) { YYERROR; } }
 	| NOT test		 { $$ = new_test(NOT); $$->u.t = $2; }
@@ -341,27 +341,27 @@ addrorenv: ADDRESS		 { $$ = ADDRESS; }
 
 aetags: /* empty */              { $$ = new_aetags(); }
         | aetags addrparttag	 { $$ = $1;
-				   if ($$->addrtag != -1) { 
+				   if ($$->addrtag != -1) {
 			yyerror("duplicate or conflicting address part tag");
 			YYERROR; }
 				   else { $$->addrtag = $2; } }
 	| aetags comptag         { $$ = $1;
-				   if ($$->comptag != -1) { 
+				   if ($$->comptag != -1) {
 			yyerror("duplicate comparator type tag"); YYERROR; }
 				   else { $$->comptag = $2; } }
 	| aetags COMPARATOR STRING { $$ = $1;
-				   if ($$->comparator != NULL) { 
+				   if ($$->comparator != NULL) {
 			yyerror("duplicate comparator tag"); YYERROR; }
 				   else { $$->comparator = $3; } }
 	;
 
 htags: /* empty */		 { $$ = new_htags(); }
 	| htags comptag		 { $$ = $1;
-				   if ($$->comptag != -1) { 
+				   if ($$->comptag != -1) {
 			yyerror("duplicate comparator type tag"); YYERROR; }
 				   else { $$->comptag = $2; } }
 	| htags COMPARATOR STRING { $$ = $1;
-				   if ($$->comparator != NULL) { 
+				   if ($$->comparator != NULL) {
 			yyerror("duplicate comparator tag");
 					YYERROR; }
 				   else { $$->comparator = $3; } }
@@ -426,7 +426,7 @@ int yyerror(char *msg)
 
     parse_script->err++;
     if (parse_script->interp.err) {
-	ret = parse_script->interp.err(yylineno, msg, 
+	ret = parse_script->interp.err(yylineno, msg,
 				       parse_script->interp.interp_context,
 				       parse_script->script_context);
     }
@@ -438,7 +438,7 @@ static int check_reqs(stringlist_t *sl)
 {
     int i = 1;
     stringlist_t *s;
-    
+
     while (sl != NULL) {
 	s = sl;
 	sl = sl->next;
@@ -575,7 +575,7 @@ static struct vtags *canon_vtags(struct vtags *v)
     assert(parse_script->interp.vacation != NULL);
 
     if (v->days == -1) { v->days = 7; }
-    if (v->days < parse_script->interp.vacation->min_response) 
+    if (v->days < parse_script->interp.vacation->min_response)
        { v->days = parse_script->interp.vacation->min_response; }
     if (v->days > parse_script->interp.vacation->max_response)
        { v->days = parse_script->interp.vacation->max_response; }
@@ -628,9 +628,9 @@ static int verify_mailboxes(stringlist_t *sl)
 static int verify_flag(char *f)
 {
     char errbuf[100];
- 
+
     if (f[0] == '\\') {
-	lcase(f);
+	strlower(f);
 	if (strcmp(f, "\\seen") && strcmp(f, "\\answered") &&
 	    strcmp(f, "\\flagged") && strcmp(f, "\\draft") &&
 	    strcmp(f, "\\deleted")) {
@@ -647,7 +647,7 @@ static int verify_flag(char *f)
     }
     return 1;
 }
- 
+
 static int verify_flags(stringlist_t *sl)
 {
     for (; sl != NULL && verify_flag(sl->s); sl = sl->next) ;
