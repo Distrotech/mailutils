@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 2002, 2003 Free Software Foundation, Inc.
+   Copyright (C) 2002, 2003, 2004 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -44,23 +44,24 @@
 #include <mailutils/argp.h>
 #include <mailutils/mu_auth.h>
 #include <mailutils/error.h>
+#include <mailutils/errno.h>
 #include <mailutils/nls.h>
+#include <mailutils/sql.h>
 
 #ifdef USE_SQL
 
+int sql_interface = 0;
 char *mu_sql_getpwnam_query;
 char *mu_sql_getpass_query;
 char *mu_sql_getpwuid_query;
 
 char *mu_sql_host = NULL;          /* Hostname to connect to. NULL for UNIX
-                                   socket connection */
+				      socket connection */
 char *mu_sql_user = "accounts";    /* Username for mysql access */    
 char *mu_sql_passwd = "yurpass";   /* Password for mysql access */
 char *mu_sql_db = "accounts";      /* Database Name */
-char *mu_sql_socket = NULL;        /* Socket name to use. Valid only if
-				   connecting via UNIX sockets */
 int  mu_sql_port = 0;              /* Port number to connect to.
-				   0 means default port */
+				      0 means default port */
 
 char *
 mu_sql_expand_query (const char *query, const char *ustr)
@@ -130,16 +131,19 @@ mu_sql_expand_query (const char *query, const char *ustr)
   return res;
 }
 
-# define ARG_SQL_GETPWNAM 1
-# define ARG_SQL_GETPWUID 2
-# define ARG_SQL_GETPASS 3
-# define ARG_SQL_HOST 4
-# define ARG_SQL_USER 5
-# define ARG_SQL_PASSWD 6
-# define ARG_SQL_DB 7
-# define ARG_SQL_PORT 8
+# define ARG_SQL_INTERFACE 256
+# define ARG_SQL_GETPWNAM  257
+# define ARG_SQL_GETPWUID  258
+# define ARG_SQL_GETPASS   259
+# define ARG_SQL_HOST      260
+# define ARG_SQL_USER      261
+# define ARG_SQL_PASSWD    262
+# define ARG_SQL_DB        263
+# define ARG_SQL_PORT      264
 
 static struct argp_option mu_sql_argp_option[] = {
+  {"sql-interface", ARG_SQL_INTERFACE, N_("NAME"), 0,
+   N_("Type of SQL interface to use"), 0},
   {"sql-getpwnam", ARG_SQL_GETPWNAM, N_("QUERY"), 0,
    N_("SQL query to retrieve a passwd entry based on username"), 0},
   {"sql-getpwuid", ARG_SQL_GETPWUID, N_("QUERY"), 0,
@@ -164,6 +168,12 @@ mu_sql_argp_parser (int key, char *arg, struct argp_state *state)
 {
   switch (key)
     {
+    case ARG_SQL_INTERFACE:
+      sql_interface = mu_sql_interface_index (arg);
+      if (sql_interface == 0)
+	argp_error (state, _("Unknown SQL interface '%s'"), arg);
+      break;
+      
     case ARG_SQL_GETPWNAM:
       mu_sql_getpwnam_query = arg;
       break;
@@ -194,11 +204,6 @@ mu_sql_argp_parser (int key, char *arg, struct argp_state *state)
 
     case ARG_SQL_PORT:
       mu_sql_port = strtoul (arg, NULL, 0);
-      if (mu_sql_port == 0)
-	{
-	  mu_sql_host = NULL;
-	  mu_sql_socket = arg;
-	}
       break;
 
     default:
@@ -212,45 +217,369 @@ struct argp mu_sql_argp = {
   mu_sql_argp_parser,
 };
 
+static int
+mu_auth_sql_by_name (struct mu_auth_data **return_data,
+		     const void *key,
+		     void *func_data ARG_UNUSED,
+		     void *call_data ARG_UNUSED)
+{
+  int status, rc;
+  char *query_str = NULL;
+  mu_sql_connection_t conn;
+  size_t n;
+  
+  if (!key)
+    {
+      errno = EINVAL;
+      return 1;
+    }
 
-# ifdef HAVE_MYSQL
-int mysql_auth_sql_by_name __P((struct mu_auth_data **return_data,
-				const void *key,
-				void *func_data, void *call_data));
-int mysql_auth_sql_by_uid __P((struct mu_auth_data **return_data,
-			       const void *key,
-			       void *func_data, void *call_data));
-int mysql_sql_authenticate __P((struct mu_auth_data **return_data,
-				const void *key,
-				void *func_data, void *call_data));
+  query_str = mu_sql_expand_query (mu_sql_getpwnam_query, key);
 
-#  define mu_sql_authenticate mysql_sql_authenticate
-#  define mu_auth_sql_by_name mysql_auth_sql_by_name
-#  define mu_auth_sql_by_uid  mysql_auth_sql_by_uid
+  if (!query_str)
+    return 1;
 
-# endif
+  status = mu_sql_connection_init (&conn,
+				   sql_interface,
+				   mu_sql_host,
+				   mu_sql_port,
+				   mu_sql_user, mu_sql_passwd,
+				   mu_sql_db);
 
-# ifdef HAVE_PGSQL
-int pg_auth_sql_by_name __P((struct mu_auth_data **return_data, void *key,
-			     void *func_data, void *call_data));
-int pg_auth_sql_by_uid __P((struct mu_auth_data **return_data, void *key,
-			    void *func_data, void *call_data));
-int pg_sql_authenticate __P((struct mu_auth_data **return_data, void *key,
-			     void *func_data, void *call_data));
+  if (status)
+    {
+      mu_error ("%s. SQL error: %s",
+		mu_strerror (status), mu_sql_strerror (conn));
+      mu_sql_connection_destroy (&conn);
+      free (query_str);
+      return status;
+    }
 
-#  define mu_sql_authenticate pg_sql_authenticate
-#  define mu_auth_sql_by_name pg_auth_sql_by_name
-#  define mu_auth_sql_by_uid  pg_auth_sql_by_uid
+  status = mu_sql_connect (conn);
 
-# endif
+  if (status)
+    {
+      mu_error ("%s. SQL error: %s",
+		mu_strerror (status), mu_sql_strerror (conn));
+      mu_sql_connection_destroy (&conn);
+      free (query_str);
+      return status;
+    }
+  
+  status = mu_sql_query (conn, query_str);
+  free (query_str);
+  
+  if (status)
+    {
+      mu_error (_("SQL Query failed: %s"),
+		(status == MU_ERR_SQL) ?  mu_sql_strerror (conn) :
+	 	                          mu_strerror (status));
+      mu_sql_connection_destroy (&conn);
+      return 1;
+    }
+
+  status = mu_sql_store_result (conn);
+
+  if (status)
+    {
+      mu_error (_("cannot store SQL result: %s"),
+		(status == MU_ERR_SQL) ?  mu_sql_strerror (conn) :
+	 	                          mu_strerror (status));
+      mu_sql_connection_destroy (&conn);
+      return 1;
+    }
+
+  mu_sql_num_tuples (conn, &n);
+  if (n == 0)
+    {
+      rc = 1;
+    }
+  else
+    {
+      char *mailbox_name;
+      char *name;
+      
+      mu_sql_get_column (conn, 0, 0, &name);
+
+      if (n == 7)
+	{
+	  char *tmp;
+	  mu_sql_get_column (conn, 0, 6, &tmp);
+	  mailbox_name = strdup (tmp);
+	}
+      else
+	{
+	  mailbox_name = malloc (strlen (mu_path_maildir) +
+				 strlen (name) + 1);
+	  if (mailbox_name)
+	    sprintf (mailbox_name, "%s%s", mu_path_maildir, name);
+	}
+      
+      if (mailbox_name)
+	{
+	  char *passwd, *suid, *sgid, *dir, *shell;
+	  
+	  mu_sql_get_column (conn, 0, 1, &passwd);
+	  mu_sql_get_column (conn, 0, 2, &suid);
+	  mu_sql_get_column (conn, 0, 3, &sgid);
+	  mu_sql_get_column (conn, 0, 4, &dir);
+	  mu_sql_get_column (conn, 0, 5, &shell);
+	  
+	  rc = mu_auth_data_alloc (return_data,
+				   name,
+				   passwd,
+				   atoi (suid),
+				   atoi (sgid),
+				   "SQL User",
+				   dir,
+				   shell,
+				   mailbox_name,
+				   1);
+	}
+      else
+	rc = 1;
+      
+      free (mailbox_name);
+    }
+  
+  mu_sql_release_result (conn);
+  mu_sql_disconnect (conn);
+  mu_sql_connection_destroy (&conn);
+  
+  return rc;
+}
+
+static int
+mu_auth_sql_by_uid (struct mu_auth_data **return_data,
+		    const void *key,
+		    void *func_data ARG_UNUSED,
+		    void *call_data ARG_UNUSED)
+{
+  char uidstr[64];
+  int status, rc;
+  char *query_str = NULL;
+  mu_sql_connection_t conn;
+  size_t n;
+  
+  if (!key)
+    {
+      errno = EINVAL;
+      return 1;
+    }
+
+  snprintf (uidstr, sizeof (uidstr), "%u", *(uid_t*)key);
+  query_str = mu_sql_expand_query (mu_sql_getpwuid_query, uidstr);
+
+  if (!query_str)
+    return 1;
+
+  status = mu_sql_connection_init (&conn,
+				   sql_interface,
+				   mu_sql_host,
+				   mu_sql_port,
+				   mu_sql_user, mu_sql_passwd,
+				   mu_sql_db);
+
+  if (status)
+    {
+      mu_error ("%s. SQL error: %s",
+		mu_strerror (status), mu_sql_strerror (conn));
+      mu_sql_connection_destroy (&conn);
+      free (query_str);
+      return status;
+    }
+
+  status = mu_sql_connect (conn);
+
+  if (status)
+    {
+      mu_error ("%s. SQL error: %s",
+		mu_strerror (status), mu_sql_strerror (conn));
+      mu_sql_connection_destroy (&conn);
+      free (query_str);
+      return status;
+    }
+  
+  status = mu_sql_query (conn, query_str);
+  free (query_str);
+  
+  if (status)
+    {
+      mu_error (_("SQL Query failed: %s"),
+		(status == MU_ERR_SQL) ?  mu_sql_strerror (conn) :
+	 	                          mu_strerror (status));
+      mu_sql_connection_destroy (&conn);
+      return 1;
+    }
+
+  status = mu_sql_store_result (conn);
+
+  if (status)
+    {
+      mu_error (_("cannot store SQL result: %s"),
+		(status == MU_ERR_SQL) ?  mu_sql_strerror (conn) :
+	 	                          mu_strerror (status));
+      mu_sql_connection_destroy (&conn);
+      return 1;
+    }
+
+  mu_sql_num_tuples (conn, &n);
+
+  if (n == 0)
+    {
+      rc = 1;
+    }
+  else
+    {
+      char *name;
+      char *mailbox_name;
+      
+      mu_sql_get_column (conn, 0, 0, &name);
+  
+      if (n == 7)
+	{
+	  char *tmp;
+	  mu_sql_get_column (conn, 0, 6, &tmp);
+	  mailbox_name = strdup (tmp);
+	}
+      else
+	{
+	  mailbox_name = malloc (strlen (mu_path_maildir) +
+				 strlen (name) + 1);
+	  if (mailbox_name)
+	    sprintf (mailbox_name, "%s%s", mu_path_maildir, name);
+	}
+      
+      if (mailbox_name)
+	{
+	  char *passwd, *suid, *sgid, *dir, *shell;
+	  
+	  mu_sql_get_column (conn, 0, 1, &passwd);
+	  mu_sql_get_column (conn, 0, 2, &suid);
+	  mu_sql_get_column (conn, 0, 3, &sgid);
+	  mu_sql_get_column (conn, 0, 4, &dir);
+	  mu_sql_get_column (conn, 0, 5, &shell);
+	  
+	  rc = mu_auth_data_alloc (return_data,
+				   name,
+				   passwd,
+				   atoi (suid),
+				   atoi (sgid),
+				   "SQL User",
+				   dir,
+				   shell,
+				   mailbox_name,
+				   1);
+	}
+      else
+	rc = 1;
+      free (mailbox_name);
+    }
+  
+  mu_sql_release_result (conn);
+  mu_sql_disconnect (conn);
+  mu_sql_connection_destroy (&conn);
+  
+  return rc;
+}
+
+static int
+mu_sql_authenticate (struct mu_auth_data **return_data ARG_UNUSED,
+		     const void *key,
+		     void *func_data ARG_UNUSED, void *call_data)
+{
+  mu_sql_connection_t conn;
+  struct mu_auth_data *auth_data = key;
+  char *pass = call_data;
+  char *sql_pass;
+  char *query_str = NULL;
+  int rc, status;
+  
+  if (!auth_data)
+    return 1;
+
+  query_str = mu_sql_expand_query (mu_sql_getpass_query, auth_data->name);
+
+  if (!query_str)
+    return 1;
+
+  status = mu_sql_connection_init (&conn,
+				   sql_interface,
+				   mu_sql_host,
+				   mu_sql_port,
+				   mu_sql_user, mu_sql_passwd,
+				   mu_sql_db);
+
+  if (status)
+    {
+      mu_error ("%s. SQL error: %s",
+		mu_strerror (status), mu_sql_strerror (conn));
+      mu_sql_connection_destroy (&conn);
+      free (query_str);
+      return status;
+    }
+
+  status = mu_sql_connect (conn);
+
+  if (status)
+    {
+      mu_error ("%s. SQL error: %s",
+		mu_strerror (status), mu_sql_strerror (conn));
+      mu_sql_connection_destroy (&conn);
+      free (query_str);
+      return status;
+    }
+  
+  status = mu_sql_query (conn, query_str);
+  free (query_str);
+  
+  if (status)
+    {
+      mu_error (_("SQL Query failed: %s"),
+		(status == MU_ERR_SQL) ?  mu_sql_strerror (conn) :
+	 	                          mu_strerror (status));
+      mu_sql_connection_destroy (&conn);
+      return 1;
+    }
+
+  status = mu_sql_store_result (conn);
+
+  if (status)
+    {
+      mu_error (_("cannot store SQL result: %s"),
+		(status == MU_ERR_SQL) ?  mu_sql_strerror (conn) :
+	 	                          mu_strerror (status));
+      mu_sql_connection_destroy (&conn);
+      return 1;
+    }
+
+  status = mu_sql_get_column (conn, 0, 0, &sql_pass);
+  if (status)
+    {
+      mu_error (_("cannot get password from SQL: %s"),
+		(status == MU_ERR_SQL) ?  mu_sql_strerror (conn) :
+	 	                          mu_strerror (status));
+      mu_sql_release_result (conn);
+      mu_sql_connection_destroy (&conn);
+      return 1;
+    }
+  
+  rc = strcmp (sql_pass, crypt (pass, sql_pass));
+
+  mu_sql_disconnect (conn);
+  mu_sql_connection_destroy (&conn);
+  
+  return rc;
+}
 
 #else
 
 # define mu_sql_authenticate mu_auth_nosupport
 # define mu_auth_sql_by_name mu_auth_nosupport
-# define mu_auth_sql_by_uid  mu_auth_nosupport
+# define mu_auth_sql_by_uid mu_auth_nosupport
 
 #endif
+
 
 struct mu_auth_module mu_auth_sql_module = {
   "sql",
