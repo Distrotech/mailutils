@@ -1,13 +1,13 @@
-# Mensajes en español para mailutils 0.2.1.
+# Mensajes en español para mailutils 0.2.2.
 # Copyright (C) 2003 Free Software Foundation, Inc.
 # This file is distributed under the same license as the mailutils package.
 # Cristian Othón Martínez Vera <cfuga@itam.mx>, 2003.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: mailutils 0.2.1\n"
-"POT-Creation-Date: 2003-01-03 13:49+0100\n"
-"PO-Revision-Date: 2003-01-07 20:51-0600\n"
+"Project-Id-Version: mailutils 0.2.2\n"
+"POT-Creation-Date: 2003-01-23 11:07+0100\n"
+"PO-Revision-Date: 2003-01-23 13:29-0600\n"
 "Last-Translator: Cristian Othón Martínez Vera <cfuga@itam.mx>\n"
 "Language-Team: Spanish <es@li.org>\n"
 "MIME-Version: 1.0\n"
@@ -15,7 +15,8 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: auth/pam.c:154 auth/sql.c:410 auth/sql.c:412 pop3d/popauth.c:80
+#: auth/pam.c:154 auth/sql.c:409 auth/sql.c:411 mh/whatnow.c:39
+#: pop3d/popauth.c:80
 msgid "STRING"
 msgstr "CADENA"
 
@@ -23,52 +24,74 @@ msgstr "CADENA"
 msgid "Use STRING as PAM service name"
 msgstr "Utilizar la CADENA como el nombre de servicio PAM"
 
-#: auth/sql.c:400 auth/sql.c:402 auth/sql.c:404
+#: auth/sql.c:160 auth/sql.c:254 auth/sql.c:345
+#, c-format
+msgid "MySQL: connect failed: %s"
+msgstr "MySQL: falló la conexión: %s"
+
+#: auth/sql.c:175 auth/sql.c:270 auth/sql.c:360
+#, c-format
+msgid "MySQL: query failed: %s"
+msgstr "MySQL: falló la petición: %s"
+
+#: auth/sql.c:185 auth/sql.c:280 auth/sql.c:370
+#, c-format
+msgid "MySQL: can't store result: %s"
+msgstr "MySQL: no se puede almacenar el resultado: %s"
+
+# Aquí es más adecuado traducir 'row' como 'tupla', pero no sé si todo
+# los hispanoparlantes lo entiendan. cfuga
+#: auth/sql.c:192 auth/sql.c:287 auth/sql.c:377
+#, c-format
+msgid "MySQL: can't fetch row: %s"
+msgstr "MySQL: no se puede obtener la fila: %s"
+
+#: auth/sql.c:399 auth/sql.c:401 auth/sql.c:403
 msgid "QUERY"
 msgstr "PETICIÓN"
 
-#: auth/sql.c:401
+#: auth/sql.c:400
 msgid "SQL query to retrieve a passwd entry based on username"
 msgstr "Petición SQL para obtener una entrada de contraseña basada en el nombre de usuario"
 
-#: auth/sql.c:403
+#: auth/sql.c:402
 msgid "SQL query to retrieve a passwd entry based on UID"
 msgstr "Petición SQL para obtener una entrada de contraseña basada en el UID"
 
-#: auth/sql.c:405
+#: auth/sql.c:404
 msgid "SQL query to retrieve a password from the database"
 msgstr "Petición SQL para obtener una contraseña de la base de datos"
 
-#: auth/sql.c:406
+#: auth/sql.c:405
 msgid "HOSTNAME"
 msgstr "ANFITRIÓN"
 
-#: auth/sql.c:407
+#: auth/sql.c:406
 msgid "Name or IP of MySQL server to connect to"
 msgstr "Nombre o IP del servidor MySQL a conectarse"
 
-#: auth/sql.c:408 frm/frm.c:68 guimb/main.c:68 guimb/main.c:69
+#: auth/sql.c:407 frm/frm.c:68 guimb/main.c:68 guimb/main.c:69
 msgid "NAME"
 msgstr "NOMBRE"
 
-#: auth/sql.c:409
+#: auth/sql.c:408
 msgid "SQL user name"
 msgstr "Nombre de usuario SQL"
 
-#: auth/sql.c:411
+#: auth/sql.c:410
 msgid "SQL connection password"
 msgstr "Contraseña de conexión SQL"
 
-#: auth/sql.c:413
+#: auth/sql.c:412
 msgid "Name of the database to connect to"
 msgstr "Nombre de la base de datos a conectarse"
 
-#: auth/sql.c:414 mail.local/main.c:82 mailbox/mu_argp.c:103
-#: mailbox/mu_argp.c:109 mh/inc.c:38 mh/repl.c:56 mh/scan.c:40
+#: auth/sql.c:413 mail.local/main.c:82 mailbox/mu_argp.c:103
+#: mailbox/mu_argp.c:109 mh/inc.c:38 mh/repl.c:64 mh/scan.c:41
 msgid "NUMBER"
 msgstr "NÚMERO"
 
-#: auth/sql.c:415
+#: auth/sql.c:414
 msgid "Port to use"
 msgstr "Puerto a utilizar"
 
@@ -163,7 +186,7 @@ msgstr "%s:%d: no se puede decodificar netdef: %s"
 
 #: comsat/comsat.c:58 dotlock/dotlock.c:40 mail/mail.c:33 mail.local/main.c:71
 #: mh/fmtcheck.c:28 mh/inc.c:28 mh/inc.c:30 mh/inc.c:34 mh/refile.c:42
-#: mh/repl.c:53 mh/scan.c:37 mh/scan.c:42 pop3d/popauth.c:78
+#: mh/repl.c:59 mh/scan.c:38 mh/scan.c:43 pop3d/popauth.c:78
 #: pop3d/popauth.c:79
 msgid "FILE"
 msgstr "FICHERO"
@@ -184,7 +207,7 @@ msgstr "reiniciando"
 msgid "can't restart: not started with absolute pathname"
 msgstr "no se puede reiniciar: no se inició con nombre de ruta absoluto"
 
-#: comsat/comsat.c:218 pop3d/pop3d.c:180
+#: comsat/comsat.c:218 pop3d/pop3d.c:197
 msgid "failed to become a daemon:"
 msgstr "no se pudo volver un demonio:"
 
@@ -432,10 +455,9 @@ msgstr "falló al abrir %s: %s\n"
 msgid "msg %d : %s\n"
 msgstr "msg %d : %s\n"
 
-#: guimb/collect.c:34 guimb/main.c:45 libsieve/sieve.l:125
-#: libsieve/sieve.l:585 libsieve/sieve.l:625 libsieve/sieve.l:682 mail/if.c:55
-#: mh/mh_argp.c:117 mh/mh_ctx.c:31 mh/mh_ctx.c:41 mh/mh_msgset.c:35
-#: mh/mh_msgset.c:593 mh/mh_msgset.c:606
+#: guimb/collect.c:34 guimb/main.c:45 libsieve/sieve.l:126
+#: libsieve/sieve.l:586 libsieve/sieve.l:626 libsieve/sieve.l:683 mail/if.c:55
+#: mh/mh_init.c:115 mh/mh_msgset.c:600
 msgid "not enough memory"
 msgstr "memoria insuficiente"
 
@@ -533,32 +555,32 @@ msgstr "[buzón...]"
 msgid "At least one of -fecs must be used. Try guimb --help for more info."
 msgstr "Al menos se debe usar uno de -fecs. Pruebe `guimb --help' para obtener más información."
 
-#: guimb/util.c:50 guimb/util.c:57 mail/util.c:627 mail/util.c:634
+#: guimb/util.c:50 guimb/util.c:57 mail/util.c:638 mail/util.c:645
 #, c-format
 msgid "can't determine sender name (msg %d)"
 msgstr "no se puede determinar el nombre del remitente (msg %d)"
 
-#: imap4d/auth_gss.c:52
+#: imap4d/auth_gss.c:51
 #, c-format
 msgid "GSS-API error %s: %s\n"
 msgstr "error de GSS-API %s: %s\n"
 
-#: imap4d/auth_gss.c:223
+#: imap4d/auth_gss.c:214
 #, c-format
 msgid "client requested unsupported protection mechanism (%d)"
 msgstr "el cliente solicitó un mecanismo de protección sin soporte (%d)"
 
-#: imap4d/auth_gss.c:253
+#: imap4d/auth_gss.c:239
 #, c-format
 msgid "GSSAPI user %s is NOT authorized as %s"
 msgstr "el usuario GSSAPI %s NO está autorizado como %s"
 
-#: imap4d/auth_gss.c:266
+#: imap4d/auth_gss.c:249
 #, c-format
 msgid "GSSAPI user %s is authorized as %s"
 msgstr "el usuario GSSAPI %s está autorizado como %s"
 
-#: imap4d/authenticate.c:74 imap4d/login.c:60
+#: imap4d/authenticate.c:130 imap4d/login.c:63
 #, c-format
 msgid "User '%s' logged in"
 msgstr "El usuario '%s' está conectado"
@@ -579,59 +601,63 @@ msgstr "establece el `otro' espacio de nombres"
 msgid "set the `shared' namespace"
 msgstr "establece el espacio de nombres `compartido'"
 
-#: imap4d/imap4d.c:131 pop3d/pop3d.c:111
+#: imap4d/imap4d.c:49
+msgid "Disable LOGIN command"
+msgstr "Desactivar el comando LOGIN"
+
+#: imap4d/imap4d.c:155 pop3d/pop3d.c:121
 msgid "Error getting mail group"
 msgstr "Error al obtener el grupo mail"
 
-#: imap4d/imap4d.c:137 pop3d/pop3d.c:117
+#: imap4d/imap4d.c:161 pop3d/pop3d.c:127
 msgid "Error setting mail group"
 msgstr "Error al establecer el grupo mail"
 
-#: imap4d/imap4d.c:216 pop3d/pop3d.c:218
+#: imap4d/imap4d.c:240 pop3d/pop3d.c:218
 msgid "Incoming connection opened"
 msgstr "Conexión de entrada abierta"
 
-#: imap4d/imap4d.c:218 pop3d/pop3d.c:230
+#: imap4d/imap4d.c:242 pop3d/pop3d.c:230
 #, c-format
 msgid "can't obtain IP address of client: %s"
 msgstr "no se puede obtener la dirección IP del cliente: %s"
 
-#: imap4d/imap4d.c:221 pop3d/pop3d.c:233
+#: imap4d/imap4d.c:245 pop3d/pop3d.c:233
 #, c-format
 msgid "connect from %s"
 msgstr "conectado desde %s"
 
-#: imap4d/imap4d.c:226 pop3d/pop3d.c:223
+#: imap4d/imap4d.c:250 pop3d/pop3d.c:223
 msgid "Started in debugging mode"
 msgstr "Iniciado en modo de depuración"
 
-#: imap4d/imap4d.c:259
+#: imap4d/imap4d.c:282
 msgid "fork failed:"
 msgstr "falló fork:"
 
-#: imap4d/imap4d.c:319 pop3d/pop3d.c:404
+#: imap4d/imap4d.c:342 pop3d/pop3d.c:438
 #, c-format
 msgid "too many children (%lu)"
 msgstr "demasiados hijos (%lu)"
 
-#: imap4d/bye.c:43 pop3d/extra.c:97
+#: imap4d/bye.c:43 pop3d/extra.c:99
 msgid "Out of memory"
 msgstr "Memoria agotada"
 
-#: imap4d/bye.c:49 pop3d/extra.c:102
+#: imap4d/bye.c:49 pop3d/extra.c:104
 msgid "Quitting on signal"
 msgstr "Terminando con la señal"
 
-#: imap4d/bye.c:55 pop3d/extra.c:110
+#: imap4d/bye.c:55 pop3d/extra.c:112
 msgid "Session timed out for no user"
 msgstr "La sesión expiró para un usuario ausente"
 
-#: imap4d/bye.c:57 pop3d/extra.c:108
+#: imap4d/bye.c:57 pop3d/extra.c:110
 #, c-format
 msgid "Session timed out for user: %s"
 msgstr "La sesión expiró para el usuario: %s"
 
-#: imap4d/bye.c:61 pop3d/extra.c:114
+#: imap4d/bye.c:61 pop3d/extra.c:116
 msgid "No socket to send to"
 msgstr "No hay un socket para enviar"
 
@@ -644,22 +670,22 @@ msgstr "Terminando la sesión"
 msgid "Session terminating for user: %s"
 msgstr "Sesión terminada para el usuario: %s"
 
-#: imap4d/bye.c:75 pop3d/extra.c:124
+#: imap4d/bye.c:75 pop3d/extra.c:127
 msgid "Unknown quit"
 msgstr "Salida desconocida"
 
-#: imap4d/list.c:246 mh/folder.c:276 mh/mh_init.c:183 mh/rmf.c:109
+#: imap4d/list.c:246 mh/folder.c:276 mh/mh_init.c:191 mh/rmf.c:109
 #: pop3d/popauth.c:213
 #, c-format
 msgid "can't stat %s: %s"
 msgstr "no se puede hacer stat a %s: %s"
 
-#: imap4d/login.c:42 pop3d/user.c:77
+#: imap4d/login.c:45 pop3d/user.c:77
 #, c-format
 msgid "User '%s': nonexistent"
 msgstr "Usuario '%s': no existe"
 
-#: imap4d/login.c:50
+#: imap4d/login.c:53
 #, c-format
 msgid "Login failed: %s"
 msgstr "Falló la entrada: %s"
@@ -674,22 +700,27 @@ msgstr "%s:%d: ERROR INTERNO"
 msgid "got signal %s"
 msgstr "se recibió la señal %s"
 
-#: imap4d/signal.c:46 pop3d/signal.c:46
+#: imap4d/signal.c:46 pop3d/signal.c:47
 msgid "MASTER: exiting on signal"
 msgstr "MAESTRO: terminando con la señal"
 
-#: imap4d/util.c:450
+#: imap4d/util.c:469
 msgid "unexpected eof on input"
 msgstr "fin-de-fichero inesperado en la entrada"
 
-#: imap4d/util.c:452
+#: imap4d/util.c:478
 #, c-format
-msgid "error reading from input file: %m"
-msgstr "error al leer del fichero de entrada: %m"
+msgid "error reading from input file: %s"
+msgstr "error al leer del fichero de entrada: %s"
 
-#: imap4d/util.c:982
+#: imap4d/util.c:993
 msgid "Can't find out my own hostname"
 msgstr "No se puede encontrar el nombre de anfitrión propio"
+
+#: imap4d/util.c:1160 pop3d/extra.c:168
+#, c-format
+msgid "cannot open TLS stream: %s"
+msgstr "no se puede abrir el flujo TLS: %s"
 
 #: lib/getopt.c:686
 #, c-format
@@ -701,7 +732,6 @@ msgstr "%s: la opción `%s' es ambigua\n"
 msgid "%s: option `--%s' doesn't allow an argument\n"
 msgstr "%s: la opción `--%s' no admite un argumento\n"
 
-# continuar aqui
 #: lib/getopt.c:716
 #, c-format
 msgid "%s: option `%c%s' doesn't allow an argument\n"
@@ -832,12 +862,12 @@ msgstr "%d: no se puede obtener la dirección de correo electrónico"
 msgid "%d: redirect - can't open mailer %s: %s\n"
 msgstr "%d: redirect - no se puede abrir el programa de correo %s: %s\n"
 
-#: libsieve/comparator.c:168
+#: libsieve/comparator.c:170
 #, c-format
 msgid "regex error: %s"
 msgstr "error de expresión regular: %s"
 
-#: libsieve/comparator.c:173
+#: libsieve/comparator.c:175
 msgid "regex error"
 msgstr "error de expresión regular"
 
@@ -846,14 +876,28 @@ msgstr "error de expresión regular"
 msgid "match type specified twice in call to `%s'"
 msgstr "se especificó dos veces el tipo de coincidencia en la llamada a `%s'"
 
-#: libsieve/comparator.c:259
+#: libsieve/comparator.c:273
+#, c-format
+msgid "comparator %s is incompatible with :count in call to `%s'"
+msgstr "el comparador %s es incompatible con :count en la llamada a `%s'"
+
+#: libsieve/comparator.c:289
+msgid "second argument must be a list of one element"
+msgstr "el segundo argumento debe ser una lista de un elemento"
+
+#: libsieve/comparator.c:297
+msgid "second argument cannot be converted to number"
+msgstr "el segundo argumento no se puede convertir a número"
+
+#: libsieve/comparator.c:307
+#, c-format
+msgid "invalid relational match `%s' in call to `%s'"
+msgstr "coincidencia relacional `%s' inválida en la llamada a `%s'"
+
+#: libsieve/comparator.c:320
 #, c-format
 msgid "comparator `%s' is incompatible with match type `%s' in call to `%s'"
 msgstr "el comparador `%s' es incompatible con el tipo de coincidencia `%s' en la llamada a `%s'"
-
-#: libsieve/comparator.c:260
-msgid "is"
-msgstr "es"
 
 #: libsieve/prog.c:38
 msgid "out of memory!"
@@ -909,7 +953,7 @@ msgstr "muy pocos argumentos en la llamada a `%s'"
 msgid "cannot create iterator: %s"
 msgstr "no se puede crear un iterador: %s"
 
-#: libsieve/require.c:72
+#: libsieve/require.c:77
 #, c-format
 msgid "source for the required %s %s is not available"
 msgstr "la fuente para el %s requerido %s no está disponible"
@@ -927,35 +971,35 @@ msgstr "desbordamiento por debajo de la pila"
 msgid "mailbox_scan: %s"
 msgstr "mailbox_scan: %s"
 
-#: libsieve/sieve.l:227
+#: libsieve/sieve.l:228
 #, c-format
 msgid "can't stat `%s': %s"
 msgstr "no se puede hacer stat sobre `%s': %s"
 
-#: libsieve/sieve.l:233 libsieve/sieve.l:238
+#: libsieve/sieve.l:234 libsieve/sieve.l:239
 msgid "recursive inclusion"
 msgstr "inclusión recursiva"
 
-#: libsieve/sieve.l:241
+#: libsieve/sieve.l:242
 #, c-format
 msgid "`%s' already included here"
 msgstr "`%s' ya se incluyó aquí"
 
-#: libsieve/sieve.l:245
+#: libsieve/sieve.l:246
 #, c-format
 msgid "`%s' already included at top level"
 msgstr "`%s' ya se incluyó en el nivel principal"
 
-#: libsieve/sieve.l:254 mail/source.c:59
+#: libsieve/sieve.l:255 mail/source.c:59
 #, c-format
 msgid "can't open `%s': %s"
 msgstr "no se puede abrir `%s': %s"
 
-#: libsieve/sieve.l:423
+#: libsieve/sieve.l:424
 msgid "preprocessor syntax"
 msgstr "sintaxis de preprocesador"
 
-#: libsieve/sieve.l:432
+#: libsieve/sieve.l:433
 msgid "missing closing quote in preprocessor statement"
 msgstr "falta una comilla que cierra en una declaración del preprocesador"
 
@@ -979,27 +1023,27 @@ msgstr "acción desconocida: %s"
 msgid "action `%s' has not been required"
 msgstr "no se ha requerido la acción `%s'"
 
-#: libsieve/tests.c:104
+#: libsieve/tests.c:127
 msgid "address: can't get argument 1"
 msgstr "dirección: no se puede obtener el argumento 1"
 
-#: libsieve/tests.c:110
+#: libsieve/tests.c:133
 msgid "address: can't get argument 2"
 msgstr "dirección: no se puede obtener el argumento 2"
 
-#: libsieve/tests.c:144 libsieve/tests.c:224
+#: libsieve/tests.c:191 libsieve/tests.c:276
 msgid "header: can't get argument 1"
 msgstr "encabezado: no se puede obtener el argumento 1"
 
-#: libsieve/tests.c:150 libsieve/tests.c:230
+#: libsieve/tests.c:197 libsieve/tests.c:282
 msgid "header: can't get argument 2"
 msgstr "encabezado: no se puede obtener el argumento 2"
 
-#: libsieve/tests.c:252
+#: libsieve/tests.c:305
 msgid "size: can't get argument!"
 msgstr "tamaño: ¡No se puede obtener el argumento!"
 
-#: libsieve/tests.c:306
+#: libsieve/tests.c:359
 msgid "exists: can't get argument!"
 msgstr "existe: ¡No se puede obtener el argumento!"
 
@@ -1012,7 +1056,7 @@ msgstr "Tipo de datos inválido"
 msgid "\"%s\": not a group"
 msgstr "\"%s\": no es un grupo"
 
-#: mail/alt.c:63 mh/mh_init.c:123
+#: mail/alt.c:63 mh/mh_init.c:131
 msgid "can't determine my username"
 msgstr "no se puede determinar el nombre de usuario"
 
@@ -1220,14 +1264,14 @@ msgstr "No hay correo para %s\n"
 #: mail/mail.c:505
 msgid ""
 "GNU Mailutils -- a suite of utilities for electronic mail\n"
-"Copyright (C) 1999, 2000, 2001, 2002 Free Software Foundation, Inc.\n"
+"Copyright (C) 1999, 2000, 2001, 2002, 2003 Free Software Foundation, Inc.\n"
 "\n"
 msgstr ""
 "GNU Mailutils -- un conjunto de utilidades para el correo electrónico\n"
-"Copyright (C) 1999, 2000, 2001, 2002 Free Software Foundation, Inc.\n"
+"Copyright (C) 1999, 2000, 2001, 2002, 2003 Free Software Foundation, Inc.\n"
 "\n"
 
-#: mail/mail.c:509 mailbox/mu_argp.c:241 mh/mh_argp.c:150
+#: mail/mail.c:509 mailbox/mu_argp.c:241 mh/mh_argp.c:139
 msgid ""
 "   GNU Mailutils is free software; you can redistribute it and/or modify\n"
 "   it under the terms of the GNU General Public License as published by\n"
@@ -1264,13 +1308,27 @@ msgstr ""
 msgid "not enough memory to edit the line"
 msgstr "no hay suficiente memoria para editar la línea"
 
-#: mail/msgset.y:155
+#: mail/msgset.y:161
 msgid "unknown message type"
 msgstr "tipo de mensaje desconocido"
 
-#: mail/msgset.y:445
+#: mail/msgset.y:246 mail/msgset.y:251
+msgid " near end"
+msgstr " cerca del final"
+
+#: mail/msgset.y:253 mail/msgset.y:256
+#, c-format
+msgid " near %s"
+msgstr " cerca de %s"
+
+#: mail/msgset.y:471
 msgid "range error"
 msgstr "error de rango"
+
+#: mail/msgset.y:736 mail/util.c:203
+#, c-format
+msgid "%lu: Inappropriate message (has been deleted)"
+msgstr "%lu: Mensaje inapropiado (se ha borrado)"
 
 #: mail/next.c:43 mail/previous.c:43
 msgid "No applicable message"
@@ -1289,11 +1347,6 @@ msgid "Saved %d message in %s\n"
 msgid_plural "Saved %d messages in %s\n"
 msgstr[0] "%d mensaje guardado en %s\n"
 msgstr[1] "%d mensajes guardados en %s\n"
-
-#: mail/reply.c:64
-#, c-format
-msgid "Your message of %s"
-msgstr "Su mensaje del %s"
 
 #: mail/retain.c:33
 msgid "No fields are currently being retained\n"
@@ -1387,80 +1440,79 @@ msgstr "unalias requiere por lo menos un argumento"
 msgid "Unknown command: %s"
 msgstr "Comando desconocido: %s"
 
-#: mail/util.c:371
+#: mail/util.c:379
 #, c-format
 msgid "No value set for \"%s\""
 msgstr "No se ha establecido un valor para \"%s\""
 
-#: mail/util.c:469
+#: mail/util.c:477
 msgid "oops?"
 msgstr "¿Ups?"
 
-#: mail/util.c:564
+#: mail/util.c:575
 msgid "can't get homedir"
 msgstr "no se puede obtener el directorio inicial"
 
-#: mail/util.c:702
+#: mail/util.c:713
 msgid "not enough memory\n"
 msgstr "no hay suficiente memoria\n"
 
-#: mail/util.c:860
+#: mail/util.c:871
 #, c-format
 msgid "can't open save file %s: %s"
 msgstr "no se puede abrir el fichero para guardar %s: %s"
 
-#: mail/util.c:877
+#: mail/util.c:888
 msgid "not enough memory for creating save file"
 msgstr "no hay suficiente memoria para crear el fichero para guardar"
 
-#: mail/util.c:962
+#: mail/util.c:973
 #, c-format
 msgid "Unknown command: %s\n"
 msgstr "Comando desconocido: %s\n"
 
-#: mail/util.c:987
+#: mail/util.c:998
 msgid "can't unencapsulate message/part"
 msgstr "no se puede desencapsular el mensaje/parte"
 
-#: mail/util.c:996
+#: mail/util.c:1007
 #, c-format
 msgid "no such (sub)part in the message: %d"
 msgstr "no hay tal (sub)parte en el mensaje: %d"
 
-#: mail/util.c:1003
+#: mail/util.c:1014
 #, c-format
 msgid "can't get (sub)part from the message: %d"
 msgstr "no se puede obtener la (sub)parte del mensaje: %d"
 
-#: mail/util.c:1127
+#: mail/util.c:1138
 #, c-format
 msgid "can't create temporary header: %s"
 msgstr "no se puede crear el encabezado temporal: %s"
 
-#: mail/util.c:1168
+#: mail/util.c:1179
 #, c-format
 msgid "can't parse address `%s' (while expanding `%s'): %s"
 msgstr "no se puede decodificar la dirección `%s' (al expandir `%s'): %s"
 
-#: mail/util.c:1171
+#: mail/util.c:1182
 #, c-format
 msgid "can't parse address `%s': %s"
 msgstr "no se puede decodificar la dirección `%s': %s"
 
-#: mail/util.c:1224
+#: mail/util.c:1235
 #, c-format
 msgid "can't get message %lu: %s"
 msgstr "no se puede obtener el mensaje %lu: %s"
 
-#: mail/util.c:1232
-#, c-format
-msgid "%lu: Inappropriate message (has been deleted)"
-msgstr "%lu: Mensaje inapropiado (se ha borrado)"
-
-#: mail/util.c:1242
+#: mail/util.c:1246
 #, c-format
 msgid "%d: invalid message number"
 msgstr "%d: número de mensaje inválido"
+
+#: mail/util.c:1253
+msgid "No applicable messages"
+msgstr "No hay mensajes aplicables"
 
 #: mail/var.c:94 mail/var.c:120
 #, c-format
@@ -2117,107 +2169,107 @@ msgstr "ERROR INTERNO: no se puede registrar la capacidad auth de argp"
 msgid "MODLIST"
 msgstr "LISTAMOD"
 
-#: mailbox/muerrno.c:89
+#: mailbox/muerrno.c:90
 msgid "Success"
 msgstr "Éxito"
 
-#: mailbox/muerrno.c:91
+#: mailbox/muerrno.c:92
 msgid "No registered handler"
 msgstr "No hay un manejador registrado"
 
-#: mailbox/muerrno.c:92
+#: mailbox/muerrno.c:93
 msgid "Empty virtual function"
 msgstr "Función virtual vacía"
 
-#: mailbox/muerrno.c:94
+#: mailbox/muerrno.c:95
 msgid "Pointer to output null"
 msgstr "Apuntador a salida nula"
 
-#: mailbox/muerrno.c:95
+#: mailbox/muerrno.c:96
 msgid "Pointer to output pointer null"
 msgstr "Apuntador a apuntador de salida nulo"
 
-#: mailbox/muerrno.c:97
+#: mailbox/muerrno.c:98
 msgid "Mailbox null"
 msgstr "Buzón nulo"
 
-#: mailbox/muerrno.c:99
+#: mailbox/muerrno.c:100
 msgid "Format of RFC822 object is bad"
 msgstr "El formato del objeto RFC822 es erróneo"
 
-#: mailbox/muerrno.c:100
+#: mailbox/muerrno.c:101
 msgid "Address contains no addr specs"
 msgstr "La dirección no contiene ninguna especificación de dirección"
 
-#: mailbox/muerrno.c:102
+#: mailbox/muerrno.c:103
 msgid "Locker null"
 msgstr "Bloqueador nulo"
 
-#: mailbox/muerrno.c:103
+#: mailbox/muerrno.c:104
 msgid "Conflict with previous locker"
 msgstr "Conflicto con un bloqueador previo"
 
-#: mailbox/muerrno.c:104
+#: mailbox/muerrno.c:105
 msgid "Lock file check failed"
 msgstr "Falló la revisión del fichero de bloqueo"
 
-#: mailbox/muerrno.c:105
+#: mailbox/muerrno.c:106
 msgid "File check failed"
 msgstr "Falló la revisión del fichero"
 
-#: mailbox/muerrno.c:106
+#: mailbox/muerrno.c:107
 msgid "Lock not held on file"
 msgstr "No se conservó el bloqueo en el fichero"
 
-#: mailbox/muerrno.c:107
+#: mailbox/muerrno.c:108
 msgid "Failed to exec external locker"
 msgstr "Falló la ejecución del bloqueador externo"
 
-#: mailbox/muerrno.c:108
+#: mailbox/muerrno.c:109
 msgid "External locker failed"
 msgstr "Falló el bloqueador externo"
 
-#: mailbox/muerrno.c:109
+#: mailbox/muerrno.c:110
 msgid "External locker killed"
 msgstr "Murió el bloqueador externo"
 
-#: mailbox/muerrno.c:111
+#: mailbox/muerrno.c:112
 msgid "No such user name"
 msgstr "No hay tal nombre de usuario"
 
-#: mailbox/muerrno.c:113
+#: mailbox/muerrno.c:114
 msgid "DNS name resolution failed"
 msgstr "Falló la resolución de nombre DNS"
 
-#: mailbox/muerrno.c:114
+#: mailbox/muerrno.c:115
 msgid "State busy, must resume operation"
 msgstr "Estado ocupado, debe reiniciar la operación"
 
-#: mailbox/muerrno.c:115
+#: mailbox/muerrno.c:116
 msgid "Not a valid mailer from address"
 msgstr "No es una dirección de programa de correo de válida"
 
-#: mailbox/muerrno.c:116
+#: mailbox/muerrno.c:117
 msgid "Not a valid mailer to address"
 msgstr "No es una dirección de programa de corre para válida"
 
-#: mailbox/muerrno.c:117
+#: mailbox/muerrno.c:118
 msgid "No receipt addresses found"
 msgstr "No se encontraron dirección de receptores"
 
-#: mailbox/muerrno.c:118
+#: mailbox/muerrno.c:119
 msgid "Malformed or unsupported mailer URL"
 msgstr "URL de programa de correo malformado o sin soporte"
 
-#: mailbox/muerrno.c:119
+#: mailbox/muerrno.c:120
 msgid "SMTP rcpt to command failed"
 msgstr "Falló el comando SMTP rcpt to"
 
-#: mailbox/muerrno.c:120
+#: mailbox/muerrno.c:121
 msgid "Tcp connections need a host"
 msgstr "Las conexiones TCP necesitan un anfitrión"
 
-#: mailbox/muerrno.c:121
+#: mailbox/muerrno.c:122
 msgid "Tcp connections need a postive port"
 msgstr "Las conexiones TCP necesitan un puerto positivo"
 
@@ -2262,15 +2314,15 @@ msgstr "Número de mensajes en %s: %d\n"
 msgid "Couldn't close %s.\n"
 msgstr "No se puede cerrar %s.\n"
 
-#: mh/fmtcheck.c:28 mh/inc.c:34 mh/repl.c:53 mh/scan.c:37
+#: mh/fmtcheck.c:28 mh/inc.c:34 mh/repl.c:59 mh/scan.c:38
 msgid "Read format from given file"
 msgstr "Leer el formato del fichero dado"
 
-#: mh/fmtcheck.c:29 mh/inc.c:35 mh/scan.c:38
+#: mh/fmtcheck.c:29 mh/inc.c:35 mh/scan.c:39
 msgid "FORMAT"
 msgstr "FORMATO"
 
-#: mh/fmtcheck.c:29 mh/inc.c:35 mh/scan.c:38
+#: mh/fmtcheck.c:29 mh/inc.c:35 mh/scan.c:39
 msgid "Use this format string"
 msgstr "Utilizar esta cadena de formato"
 
@@ -2279,7 +2331,7 @@ msgid "Dump the listing of compiled format code"
 msgstr "Volcar el listado del código de formato compilado"
 
 #: mh/fmtcheck.c:31 mh/folder.c:66 mh/inc.c:42 mh/mhpath.c:29 mh/refile.c:43
-#: mh/repl.c:59 mh/rmf.c:41 mh/rmm.c:29 mh/scan.c:46
+#: mh/repl.c:68 mh/rmf.c:41 mh/rmm.c:29 mh/scan.c:47
 msgid ""
 "\n"
 "Use -help switch to obtain the list of traditional MH options. "
@@ -2291,7 +2343,7 @@ msgstr ""
 msgid "format string not specified"
 msgstr "no se especificó la cadena de formato"
 
-#: mh/fmtcheck.c:96 mh/inc.c:168 mh/repl.c:189 mh/scan.c:146
+#: mh/fmtcheck.c:96 mh/inc.c:168 mh/repl.c:304 mh/scan.c:170
 msgid "Bad format string"
 msgstr "Cadena de formato errónea"
 
@@ -2311,9 +2363,9 @@ msgstr "Enlistar las carpetas (por omisión)"
 msgid "List the contents of the folder stack"
 msgstr "Enlistar los contenidos de la pila de carpetas"
 
-#: mh/folder.c:46 mh/folder.c:54 mh/inc.c:29 mh/mhpath.c:28 mh/refile.c:33
-#: mh/refile.c:39 mh/repl.c:39 mh/repl.c:47 mh/repl.c:50 mh/rmf.c:37
-#: mh/rmm.c:28 mh/scan.c:34 readmsg/readmsg.c:42
+#: mh/folder.c:46 mh/folder.c:54 mh/inc.c:29 mh/mh_whatnow.c:83 mh/mhpath.c:28
+#: mh/refile.c:33 mh/refile.c:39 mh/repl.c:43 mh/repl.c:53 mh/repl.c:56
+#: mh/rmf.c:37 mh/rmm.c:28 mh/scan.c:35 mh/whatnow.c:31 readmsg/readmsg.c:42
 msgid "FOLDER"
 msgstr "CARPETA"
 
@@ -2325,11 +2377,11 @@ msgstr "Agregar la carpeta a la pila de carpeta. Si se especifica la CARPETA, se
 msgid "Pop the folder off the folder stack"
 msgstr "Sacar la carpeta de la pila de carpetas"
 
-#: mh/folder.c:53 pop3d/popauth.c:77
+#: mh/folder.c:53 mh/mh_whatnow.c:152 pop3d/popauth.c:77
 msgid "Options are:"
 msgstr "Las opciones son:"
 
-#: mh/folder.c:54 mh/mhpath.c:28 mh/refile.c:33 mh/repl.c:47 mh/rmm.c:28
+#: mh/folder.c:54 mh/mhpath.c:28 mh/refile.c:33 mh/repl.c:53 mh/rmm.c:28
 msgid "Specify folder to operate upon"
 msgstr "Especificar la carpeta en la cual operar"
 
@@ -2338,9 +2390,9 @@ msgid "List all folders"
 msgstr "Mostrar todas las carpetas"
 
 #: mh/folder.c:56 mh/folder.c:58 mh/folder.c:60 mh/folder.c:62 mh/folder.c:64
-#: mh/inc.c:32 mh/inc.c:36 mh/refile.c:35 mh/refile.c:37 mh/repl.c:37
-#: mh/repl.c:54 mh/repl.c:55 mh/rmf.c:38 mh/scan.c:35 mh/scan.c:39
-#: mh/scan.c:41
+#: mh/inc.c:32 mh/inc.c:36 mh/refile.c:35 mh/refile.c:37 mh/repl.c:39
+#: mh/repl.c:60 mh/repl.c:62 mh/repl.c:67 mh/rmf.c:38 mh/scan.c:36
+#: mh/scan.c:40 mh/scan.c:42
 msgid "BOOL"
 msgstr "BOOL"
 
@@ -2432,7 +2484,7 @@ msgstr "Marcar el primer mensaje incorporado como actual (por omisión)"
 msgid "Truncate source mailbox after incorporating (default)"
 msgstr "Truncar el buzón fuente después de incorporar (por omisión)"
 
-#: mh/inc.c:38 mh/repl.c:56 mh/scan.c:40
+#: mh/inc.c:38 mh/repl.c:64 mh/scan.c:41
 msgid "Set output width"
 msgstr "Establecer la anchura de la salida"
 
@@ -2440,11 +2492,11 @@ msgstr "Establecer la anchura de la salida"
 msgid "Be quiet"
 msgstr "Estar callado"
 
-#: mh/inc.c:40 mh/scan.c:44
+#: mh/inc.c:40 mh/scan.c:45
 msgid "Display software license"
 msgstr "Mostrar la licencia del software"
 
-#: mh/inc.c:114 mh/repl.c:119 mh/scan.c:108
+#: mh/inc.c:114 mh/repl.c:180 mh/scan.c:112
 msgid "Invalid width"
 msgstr "Anchura inválida"
 
@@ -2472,11 +2524,11 @@ msgstr "%d: no se puede obtener el mensaje: %s"
 msgid "%d: error appending message: %s"
 msgstr "%d: error al agregar el mensaje: %s"
 
-#: mh/mh_argp.c:138
+#: mh/mh_argp.c:127
 msgid "extra arguments"
 msgstr "argumentos extra"
 
-#: mh/mh_argp.c:148
+#: mh/mh_argp.c:137
 #, c-format
 msgid ""
 "This is %s\n"
@@ -2485,7 +2537,7 @@ msgstr ""
 "Este es %s\n"
 "\n"
 
-#: mh/mh_ctx.c:91
+#: mh/mh_ctx.c:85
 #, c-format
 msgid "can't write context file %s: %s"
 msgstr "no se puede escribir el fichero de contexto %s: %s"
@@ -2495,42 +2547,55 @@ msgstr "no se puede escribir el fichero de contexto %s: %s"
 msgid "Can't create context %s: %s"
 msgstr "No se puede crear el contexto %s: %s"
 
-#: mh/mh_fmtgram.y:97
+#: mh/mh_fmtgram.y:98
 msgid "UNEXPECTED item TYPE"
 msgstr "elemento TIPO INESPERADO"
 
-#: mh/mh_fmtgram.y:203
+#: mh/mh_fmtgram.y:204
 msgid "undefined function"
 msgstr "función indefinida"
 
-#: mh/mh_fmtgram.y:618
+#: mh/mh_fmtgram.y:623
 msgid "UNKNOWN ARGTYPE"
 msgstr "TIPOARG DESCONOCIDO"
 
-#: mh/mh_fmtgram.y:624
+#: mh/mh_fmtgram.y:629
 #, c-format
 msgid "missing argument for %s"
 msgstr "falta el argumento para %s"
 
-#: mh/mh_fmtgram.y:633
+#: mh/mh_fmtgram.y:638
 #, c-format
 msgid "extra arguments to %s"
 msgstr "argumentos extra para %s"
 
-#: mh/mh_getopt.c:99
+#: mh/mh_format.c:422
+#, c-format
+msgid "Unknown opcode: %x"
+msgstr "Código de operación desconocido: %x"
+
+#: mh/mh_format.c:736 mh/mh_format.c:748
+msgid "format: divide by zero"
+msgstr "formato: división entre cero"
+
+#: mh/mh_format.c:1637
+msgid "Invalid recipient mask"
+msgstr "Máscara de destinatario inválida"
+
+#: mh/mh_getopt.c:116
 msgid "Compatibility syntax:\n"
 msgstr "Sintaxis de compatibilidad\n"
 
-#: mh/mh_getopt.c:100
+#: mh/mh_getopt.c:117
 #, c-format
 msgid "%s [switches] %s\n"
 msgstr "%s [opciones] %s\n"
 
-#: mh/mh_getopt.c:101
+#: mh/mh_getopt.c:118
 msgid "  switches are:\n"
 msgstr "  las opciones son:\n"
 
-#: mh/mh_getopt.c:122
+#: mh/mh_getopt.c:139
 #, c-format
 msgid ""
 "\n"
@@ -2551,82 +2616,197 @@ msgstr "no se puede hacer stat sobre el fichero de formato %s: %s"
 msgid "can't open format file %s: %s"
 msgstr "no se puede abrir el fichero de formato %s: %s"
 
-#: mh/mh_init.c:164
+#: mh/mh_init.c:172
 #, c-format
 msgid "Create folder \"%s\""
 msgstr "Crear carpeta \"%s\""
 
-#: mh/mh_init.c:172
+#: mh/mh_init.c:180
 #, c-format
 msgid "Can't create directory %s: %s"
 msgstr "No se puede crear el directorio %s: %s"
 
-#: mh/mh_init.c:224
+#: mh/mh_init.c:232
 msgid "Please answer yes or no: "
 msgstr "Por favor responda si ó no:"
 
-#: mh/mh_init.c:249
+#: mh/mh_init.c:257
 msgid "low memory"
 msgstr "memoria escasa"
 
-#: mh/mh_init.c:259
+#: mh/mh_init.c:267
 #, c-format
 msgid "Can't open audit file %s: %s"
 msgstr "No se puede abrir el fichero de auditoría %s: %s"
 
-#: mh/mh_init.c:302
+#: mh/mh_init.c:310
 #, c-format
 msgid "Can't create mailbox %s: %s"
 msgstr "No se puede crear el buzón %s: %s"
 
-#: mh/mh_init.c:312
+#: mh/mh_init.c:320
 #, c-format
 msgid "Can't open mailbox %s: %s"
 msgstr "No se puede abrir el buzón %s: %s"
 
-#: mh/mh_init.c:371 mh/mh_msgset.c:167
+#: mh/mh_init.c:397 mh/mh_msgset.c:164
 #, c-format
 msgid "can't get message %d: %s"
 msgstr "no se puede obtener el mensaje %d: %s"
 
-#: mh/mh_msgset.c:44
+#: mh/mh_init.c:415
+#, c-format
+msgid "cannot split line %s"
+msgstr "no se puede dividir la línea %s"
+
+#: mh/mh_init.c:467
+#, c-format
+msgid "cannot open input file \"%s\": %s"
+msgstr "no se puede abrir el fichero de entrada \"%s\": %s"
+
+#: mh/mh_init.c:476
+#, c-format
+msgid "cannot open output file \"%s\": %s"
+msgstr "no se puede abrir el fichero de entrada \"%s\": %s"
+
+#: mh/mh_init.c:490
+#, c-format
+msgid "write error on \"%s\": %s"
+msgstr "error de escritura en \"%s\": %s"
+
+#: mh/mh_msgset.c:41
 #, c-format
 msgid "bad message list `%s'"
 msgstr "lista de mensajes `%s' errónea"
 
-#: mh/mh_msgset.c:66
+#: mh/mh_msgset.c:63
 #, c-format
 msgid "can't get last message: %s"
 msgstr "no se puede obtener el último mensaje: %s"
 
-#: mh/mh_msgset.c:99
+#: mh/mh_msgset.c:96
 msgid "no cur message"
 msgstr "no hay mensaje actual"
 
-#: mh/mh_msgset.c:110
+#: mh/mh_msgset.c:107
 msgid "no prev message"
 msgstr "no hay mensaje previo"
 
-#: mh/mh_msgset.c:125
+#: mh/mh_msgset.c:122
 msgid "no next message"
 msgstr "no hay mensaje siguiente"
 
-#: mh/mh_msgset.c:337
+#: mh/mh_msgset.c:334
 #, c-format
 msgid "message set %s does not exist"
 msgstr "el conjunto de mensajes %s no existe"
 
-#: mh/mh_msgset.c:354
+#: mh/mh_msgset.c:351
 #, c-format
 msgid "message %d does not exist"
 msgstr "el mensaje %d no existe"
 
-#: mh/mh_msgset.c:380 mh/mh_msgset.c:408
+#: mh/mh_msgset.c:377 mh/mh_msgset.c:405
 #, c-format
 msgid "no messages in range %s"
 msgstr "no hay mensajes en el rango %s"
 
-#: mh/mhpath.c:24 mh/rmm.c:24 mh/scan.c:30
+#: mh/mh_whatnow.c:57
+#, c-format
+msgid "%s is unknown. Hit <CR> for help"
+msgstr "%s es desconocido. Presione <RET> para ayuda"
+
+#: mh/mh_whatnow.c:91
+msgid "SWITCHES"
+msgstr "OPCIONES"
+
+#: mh/mh_whatnow.c:97
+msgid "EDITOR"
+msgstr "EDITOR"
+
+#: mh/mh_whatnow.c:265
+msgid "no alternate message to display"
+msgstr "no hay un mensaje alternativo para mostrar"
+
+#: mh/mh_whatnow.c:315 mh/mh_whatnow.c:380
+msgid "no draft file to display"
+msgstr "no hay un fichero borrador para mostrar"
+
+#: mh/mh_whatnow.c:340
+#, c-format
+msgid "draft left on \"%s\".\n"
+msgstr "se dejó el borrador en \"%s\".\n"
+
+#: mh/mh_whatnow.c:372
+#, c-format
+msgid " at %s\n"
+msgstr " en %s\n"
+
+#: mh/mh_whatnow.c:388
+msgid "malformed message"
+msgstr "mensaje malformado"
+
+#: mh/mh_whatnow.c:399
+msgid "No recipients"
+msgstr "No hay destinatarios"
+
+#: mh/mh_whatnow.c:420
+msgid "-- Network Recipients --"
+msgstr "-- Destinatarios de Red --"
+
+#: mh/mh_whatnow.c:451
+msgid "List the message being distributed/replied-to on the terminal."
+msgstr "Muestra la lista que se está distribuyendo/respondiendo a en la terminal."
+
+#: mh/mh_whatnow.c:453
+msgid "Edit the message. If EDITOR is omitted use the one that was used on the preceeding round unless the profile entry \"LASTEDITOR-next\" names an alternate editor."
+msgstr "Editar el mensaje. Si se omite EDITOR se usa el que se utilizó en la sesión anterior, a menos que la entrada del perfil \"LASTEDITOR-next\" nombre un editor alternativo"
+
+#: mh/mh_whatnow.c:457 mh/mh_whatnow.c:487
+msgid "List the draft on the terminal."
+msgstr "Muestra el borrador en la terminal."
+
+#: mh/mh_whatnow.c:459
+msgid "Send the message in the background."
+msgstr "Envía el mensaje en el fondo."
+
+#: mh/mh_whatnow.c:461
+msgid "Terminate the session. Preserve the draft, unless -delete flag is given."
+msgstr "Termina la sesión. Conserva el borrador, a menos que se de la opción -delete."
+
+#: mh/mh_whatnow.c:463 mh/mh_whatnow.c:488
+msgid "Refile the draft into the given FOLDER."
+msgstr "Conserva el borrador en la CARPETA dada."
+
+#: mh/mh_whatnow.c:465
+msgid "Send the message. The -watch flag causes the delivery process to be monitored. SWITCHES are passed to send program verbatim."
+msgstr "Envía el mensaje. La opción -watch causa que el proceso de entrega sea monitorizado. Las OPCIONES se pasan al programa de envío textualmente."
+
+#: mh/mh_whatnow.c:468
+msgid "List the addresses and verify that they are acceptable to the transport service."
+msgstr "Muestra las direcciones y verifica que sean aceptables para el servicio de transporte."
+
+#: mh/mh_whatnow.c:484
+msgid "Terminate the session. Preserve the draft."
+msgstr "Termina la sesión. Conserva el borrador."
+
+#: mh/mh_whatnow.c:485
+msgid "Replace the draft with the newly created one"
+msgstr "Reemplaza el borrador con el recién creado"
+
+#: mh/mh_whatnow.c:486
+msgid "Use this draft"
+msgstr "Utilizar este borrador"
+
+#: mh/mh_whatnow.c:543
+msgid "What now?"
+msgstr "¿Ahora qué?"
+
+#: mh/mh_whatnow.c:567
+msgid "Disposition?"
+msgstr "¿Disposición?"
+
+#: mh/mhpath.c:24 mh/rmm.c:24 mh/scan.c:31
 msgid "[+folder] [msgs]"
 msgstr "[+carpeta] [msgs]"
 
@@ -2703,81 +2883,103 @@ msgstr "el fichero de entrada %s contiene %lu mensajes"
 msgid "both message set and source file given"
 msgstr "se dieron un conjunto de mensajes y un fichero fuente"
 
-#: mh/repl.c:24
+#: mh/repl.c:26
 msgid "[+folder] [msg]"
 msgstr "[+carpeta] [msg]"
 
-#: mh/repl.c:38
+#: mh/repl.c:40
 msgid "Add Replied: header to the message being replied to"
 msgstr "Agregar el encabezado Replied: al mensaje que se está respondiendo"
 
-#: mh/repl.c:40
-msgid "Invoke the draftfolder facility"
-msgstr "Invocar la facilidad de carpeta de borrador"
+#: mh/repl.c:42
+msgid "Build the draft and quit immediately."
+msgstr "Crea el borrador y termina inmediatamente."
 
-#: mh/repl.c:41
+#: mh/repl.c:44 mh/whatnow.c:32
+msgid "Specify the folder for message drafts"
+msgstr "Especificar la carpeta para los mensajes borrador"
+
+#: mh/repl.c:46 mh/whatnow.c:34
+msgid "Undo the effect of the last --draftfolder option"
+msgstr "Deshace el efecto de la última opción --draftfolder"
+
+#: mh/repl.c:47 mh/whatnow.c:35
 msgid "MSG"
 msgstr "MSG"
 
-#: mh/repl.c:42
+#: mh/repl.c:48 mh/whatnow.c:36
 msgid "Invoke the draftmessage facility"
 msgstr "Invocar la facilidad de mensaje de borrador"
 
-#: mh/repl.c:44
+#: mh/repl.c:50
 msgid "Specify whom to place on the Cc: list of the reply"
 msgstr "Especificar a quién colocar en la lista Cc: de la respuesta"
 
-#: mh/repl.c:46
+#: mh/repl.c:52
 msgid "Specify whom to remove from the Cc: list of the reply"
 msgstr "Especificar a quién eliminar de la lista Cc: de la respuesta"
 
-#: mh/repl.c:48 mh/repl.c:51 mh/repl.c:57
+#: mh/repl.c:54 mh/repl.c:57 mh/repl.c:65 mh/whatnow.c:37
 msgid "PROG"
 msgstr "PROG"
 
-#: mh/repl.c:48
+#: mh/repl.c:54 mh/whatnow.c:37
 msgid "Set the editor program to use"
 msgstr "Establece el programa editor a utilizar"
 
-#: mh/repl.c:49
+#: mh/repl.c:55 mh/whatnow.c:38
 msgid "Suppress the initial edit"
 msgstr "Suprime la edición inicial"
 
-#: mh/repl.c:50
+#: mh/repl.c:56
 msgid "Set the folder to receive Fcc's."
 msgstr "Establece la carpeta para recibir Fcc's."
 
-#: mh/repl.c:52
+#: mh/repl.c:58
 msgid "Set the filter program to preprocess the body of the message being replied"
 msgstr "Establecer el programa filtro para preprocesar el cuerpo del mensaje que se está respondiendo"
 
-#: mh/repl.c:54
+#: mh/repl.c:61
 msgid "Annotate the message in place"
 msgstr "Comentar el mensaje en el mismo lugar"
 
-#: mh/repl.c:55
+#: mh/repl.c:63
 msgid "Query for addresses to place in To: and Cc: lists"
 msgstr "Preguntar por direcciones a colocar en las listas Para: y Cc:"
 
-#: mh/repl.c:58
+#: mh/repl.c:66
 msgid "Set the replacement for whatnow program"
 msgstr "Establecer el reemplazo para el programa whatnow"
 
-#: mh/repl.c:136
+#: mh/repl.c:67
+msgid "Use draft file preserved after the last session"
+msgstr "Usar el último fichero borrador conservado después de la última sesión"
+
+#: mh/repl.c:123
+#, c-format
+msgid "%s %s is unknown"
+msgstr "%s %s es desconocido"
+
+#: mh/repl.c:202
 msgid "option is not yet implemented"
 msgstr "la opción aún no está implementada"
 
-#: mh/repl.c:158
+#: mh/repl.c:225
 #, c-format
-msgid "cannot open draft file %s: %s"
-msgstr "no se puede abrir el fichero borrador %s: %s"
+msgid "Draft \"%s\" exists (%lu bytes).\n"
+msgstr "El borrador \"%s\" existe (%lu bytes).\n"
 
-#: mh/repl.c:166
+#: mh/repl.c:250
 #, c-format
 msgid "cannot read message %lu: %s"
 msgstr "no se puede leer el mensaje %lu: %s"
 
-#: mh/repl.c:197
+#: mh/repl.c:264
+#, c-format
+msgid "cannot open draft file %s: %s"
+msgstr "no se puede abrir el fichero borrador %s: %s"
+
+#: mh/repl.c:316
 msgid "only one message at a time!"
 msgstr "¡Sólo un mensaje a la vez!"
 
@@ -2803,34 +3005,42 @@ msgstr "Borrar la carpeta %s"
 msgid "can't unlink %s: %s"
 msgstr "no se puede borrar %s: %s"
 
-#: mh/scan.c:34
+#: mh/scan.c:35
 msgid "Specify folder to scan"
 msgstr "Especificar la carpeta a revisar"
 
-#: mh/scan.c:36
+#: mh/scan.c:37
 msgid "Clear screen after displaying the list"
 msgstr "Limpiar la pantalla antes de mostrar la lista"
 
-#: mh/scan.c:39
+#: mh/scan.c:40
 msgid "Display header"
 msgstr "Mostrar el encabezado"
 
-#: mh/scan.c:41
+#: mh/scan.c:42
 msgid "List messages in reverse order"
 msgstr "Enlistar los mensajes en orden inverso"
 
-#: mh/scan.c:42
+#: mh/scan.c:43
 msgid "[Not yet implemented]"
 msgstr "[Aún no está implementado]"
 
-#: mh/scan.c:118
+#: mh/scan.c:122
 msgid "'i' is not yet implemented."
 msgstr "'i' aún no está implementado."
 
-#: mh/scan.c:222
+#: mh/scan.c:225
 #, c-format
 msgid "Folder %s  %s\n"
 msgstr "Carpeta %s %s\n"
+
+#: mh/whatnow.c:24
+msgid "[FILE]"
+msgstr "[FICHERO]"
+
+#: mh/whatnow.c:39
+msgid "Set the prompt"
+msgstr "Establecer el prompt"
 
 #: pop3d/apop.c:56
 msgid "Bad permissions on APOP password db"
@@ -2860,17 +3070,22 @@ msgstr "No se puede abrir el fichero de contraseñas APOP %s"
 msgid "User '%s' logged in with mailbox '%s'"
 msgstr "Usuario '%s' conectado con el buzón '%s'"
 
-#: pop3d/extra.c:118
+#: pop3d/extra.c:120
 #, c-format
 msgid "Mailbox was updated by other party: %s"
 msgstr "El buzón fue actualizado por otro participante: %s"
+
+#: pop3d/extra.c:231 pop3d/extra.c:254
+#, c-format
+msgid "write failed: %s"
+msgstr "falló la escritura: %s"
 
 #: pop3d/lock.c:34
 #, c-format
 msgid "mailbox '%s' lock failed: %s"
 msgstr "falló el bloqueo del buzón '%s': %s"
 
-#: pop3d/pop3d.c:47
+#: pop3d/pop3d.c:51
 msgid "GNU pop3d -- the POP3 daemon"
 msgstr "GNU pop3d -- el demonio POP3"
 
@@ -3221,3 +3436,12 @@ msgstr "falló al abrir %s: %s\n"
 #, c-format
 msgid "expunge on %s failed: %s\n"
 msgstr "falló al vaciar %s: %s\n"
+
+#~ msgid "is"
+#~ msgstr "es"
+
+#~ msgid "Your message of %s"
+#~ msgstr "Su mensaje del %s"
+
+#~ msgid "Invoke the draftfolder facility"
+#~ msgstr "Invocar la facilidad de carpeta de borrador"
