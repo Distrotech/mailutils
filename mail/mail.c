@@ -230,18 +230,7 @@ main (int argc, char **argv)
   mu_init_nls ();
 
   /* Register the desired formats.  */
-  {
-    list_t bookie;
-    registrar_get_list (&bookie);
-    list_append (bookie, mbox_record);
-    list_append (bookie, path_record);
-    list_append (bookie, pop_record);
-    list_append (bookie, imap_record);
-    list_append (bookie, mh_record);
-    /* Possible supported mailers.  */
-    list_append (bookie, sendmail_record);
-    list_append (bookie, smtp_record);
-  }
+  mu_register_all_formats ();
 
   interactive = isatty (fileno(stdin));
 #ifdef HAVE_SIGACTION

@@ -44,8 +44,6 @@
 #include <mailutils/nls.h>
 #include <mailutils/tls.h>
 
-void mutil_register_all_mbox_formats (void);
-
 const char *program_version = "sieve (" PACKAGE_STRING ")";
 
 static char doc[] =
@@ -367,7 +365,7 @@ main (int argc, char *argv[])
   if (rc)
     return 1;
 
-  mutil_register_all_mbox_formats ();
+  mu_register_all_formats ();
 
   /* Sieve interpreter setup. */
   rc = sieve_machine_init (&mach, NULL);
@@ -535,17 +533,3 @@ cleanup:
   return rc ? 1 : 0;
 }
 
-void
-mutil_register_all_mbox_formats (void)
-{
-  list_t bookie = 0;
-  registrar_get_list (&bookie);
-  list_append (bookie, path_record);
-  list_append (bookie, file_record);
-  list_append (bookie, mbox_record);
-  list_append (bookie, pop_record);
-  list_append (bookie, imap_record);
-  list_append (bookie, mh_record);
-  list_append (bookie, sendmail_record);
-  list_append (bookie, smtp_record);
-}
