@@ -33,8 +33,6 @@ prog_mda (struct mda_data *data)
 {
   char *x_argv[2];
   guimb_param_t param;
-  mailbox_t mbox;
-  stream_t stream = NULL;
   
   x_argv[0] = "mail.local";
   x_argv[1] = NULL;
