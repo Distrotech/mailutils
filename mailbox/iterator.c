@@ -22,8 +22,7 @@
 #include <errno.h>
 #include <stdlib.h>
 
-#include <mailutils/list.h>
-
+#include <list0.h>
 #include <iterator0.h>
 
 int
@@ -36,6 +35,10 @@ iterator_create (iterator_t *piterator, list_t list)
   if (iterator == NULL)
     return ENOMEM;
   iterator->list = list;
+  iterator->cur = NULL;
+  iterator->next = list->itr;
+  list->itr = iterator;
+  iterator->is_advanced = 0;
   *piterator = iterator;
   return 0;
 }
@@ -43,9 +46,24 @@ iterator_create (iterator_t *piterator, list_t list)
 void
 iterator_destroy (iterator_t *piterator)
 {
-  if (piterator && *piterator)
+  iterator_t itr, prev;
+  
+  if (!piterator || !*piterator)
+    return;
+
+  for (itr = (*piterator)->list->itr, prev = NULL;
+       itr;
+       prev = itr, itr = itr->next)
+    if (*piterator == itr)
+      break;
+
+  if (itr)
     {
-      free (*piterator);
+      if (prev)
+	prev->next = itr->next;
+      else
+	itr->list->itr = itr->next;
+      free(itr);
       *piterator = NULL;
     }
 }
@@ -53,32 +71,55 @@ iterator_destroy (iterator_t *piterator)
 int
 iterator_first (iterator_t iterator)
 {
-  iterator->index = 0;
+  iterator->cur = iterator->list->head.next;
+  iterator->is_advanced = 0;
   return 0;
 }
 
 int
 iterator_next (iterator_t iterator)
 {
-  iterator->index++;
+  if (!iterator->is_advanced)
+    iterator->cur = iterator->cur->next;
+  iterator->is_advanced = 0;
   return 0;
 }
 
 int
 iterator_current (iterator_t iterator, void **pitem)
 {
-  return list_get (iterator->list, iterator->index, pitem);
+  if (!iterator->cur)
+    return ENOENT;
+  *pitem = iterator->cur->item;
+  return 0;
 }
 
 int
 iterator_is_done (iterator_t iterator)
 {
-  size_t count;
-  int status;
   if (iterator == NULL)
     return 1;
-  status = list_count (iterator->list, &count);
-  if (status != 0)
-    return 1;
-  return (iterator->index >= count);
+  return iterator->cur == NULL || iterator->cur == &iterator->list->head;
+}
+
+int
+iterator_get_list (iterator_t iterator, list_t *plist)
+{
+  if (!iterator)
+    return EINVAL;
+    *plist = iterator->list;
+  return NULL;
+}
+
+void
+iterator_advance (iterator_t iterator, struct list_data *e)
+{
+  for (; iterator; iterator = iterator->next)
+    {
+      if (iterator->cur == e)
+	{
+	  iterator->cur = e->next;
+	  iterator->is_advanced++;
+	}
+    }
 }
