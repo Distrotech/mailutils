@@ -1,3 +1,8 @@
+2002-12-27  Jordi Mallach  <jordi@gnu.org>
+
+	* mh/inc.c: Fixed typo.
+	* mh/repl.c: Likewise.
+
 2002-12-27  Sergey Poznyakoff
 
 	* configure.ac: Set version number to 0.2.1.

@@ -1,3 +1,11 @@
+2002-12-27  Jordi Mallach  <jordi@gnu.org>
+
+	* ca.po: Added Catalan translation.
+	* LINGUAS: Added "ca".
+	
+	* POTFILES.in: Extract messages from the bison sources, not their
+	output.
+
 2002-12-23  Wojciech Polak  <polak@gnu.org>
 
 	* POTFILES.in: Added.
