@@ -23,12 +23,6 @@
 #include <sys/stat.h>
 #include <stdarg.h>
 
-char *current_folder = NULL;
-size_t current_message = 0;
-mh_context_t *context;
-mh_context_t *profile;
-mh_context_t *sequences;
-
 char mh_list_format[] = 
 "%4(msg)%<(cur)+%| %>%<{replied}-%?{encrypted}E%| %>"
 "%02(mon{date})/%02(mday{date})"
@@ -61,70 +55,8 @@ mh_init ()
 void
 mh_init2 ()
 {
-  char *mh_sequences_name;
-  char *seq_name, *ctx_name;
-  char *p;
-
-  mu_path_folder_dir = mh_get_dir ();
-  p = getenv ("CONTEXT");
-  if (!p)
-    p = "context";
-  ctx_name = mh_expand_name (p, 0);
-  context = mh_context_create (ctx_name, 1);
-  mh_context_read (context);
-  
-  if (current_folder)
-    current_folder = mu_tilde_expansion (current_folder, "/", NULL);
-  else
-    current_folder = mh_context_get_value (context, "Current-Folder",
-					   mh_profile_value ("Inbox",
-							     "inbox"));
-
-  mh_sequences_name = mh_profile_value ("mh-sequences", MH_SEQUENCES_FILE);
-  p = mh_expand_name (current_folder, 0);
-  asprintf (&seq_name, "%s/%s", p, mh_sequences_name);
-  free (p);
-  sequences = mh_context_create (seq_name, 1);
-  if (mh_context_read (sequences) == 0)
-    {
-      p = mh_context_get_value (sequences, "cur", "0");
-      current_message = strtoul (p, NULL, 10);
-    }
-}
-
-char *
-mh_profile_value (char *name, char *defval)
-{
-  return mh_context_get_value (profile, name, defval);
-}
-
-void
-mh_read_profile ()
-{
-  char *p;
-  
-  p = getenv ("MH");
-  if (p)
-    p = mu_tilde_expansion (p, "/", NULL);
-  else
-    {
-      char *home = mu_get_homedir ();
-      if (!home)
-	abort (); /* shouldn't happen */
-      asprintf (&p, "%s/%s", home, MH_USER_PROFILE);
-      free (home);
-    }
-  profile = mh_context_create (p, 1);
-  mh_context_read (profile);
-}
-  
-void
-mh_save_context ()
-{
-  char buf[64];
-  snprintf (buf, sizeof buf, "%d", current_message);
-  mh_context_set_value (sequences, "cur", buf);
-  mh_context_write (sequences);
+  mh_current_folder ();
+  mh_global_sequences_get ("cur", NULL);
 }
 
 int
@@ -207,7 +139,7 @@ mh_is_my_name (char *name)
 }
 
 int
-mh_check_folder (char *pathname)
+mh_check_folder (char *pathname, int confirm)
 {
   char *p;
   struct stat st;
@@ -221,10 +153,10 @@ mh_check_folder (char *pathname)
     {
       if (errno == ENOENT)
 	{
-	  if (mh_getyn ("Create folder \"%s\"", p))
+	  if (!confirm || mh_getyn ("Create folder \"%s\"", p))
 	    {
 	      int perm = 0711;
-	      char *pb = mh_profile_value ("Folder-Protect", NULL);
+	      char *pb = mh_global_profile_get ("Folder-Protect", NULL);
 	      if (pb)
 		perm = strtoul (pb, NULL, 8);
 	      if (mkdir (p, perm)) 
@@ -354,7 +286,7 @@ mh_open_folder (const char *folder, int create)
   int flags = MU_STREAM_READ;
   
   name = mh_expand_name (folder, 1);
-  if (create && mh_check_folder (name))
+  if (create && mh_check_folder (name, 1))
     exit (0);
     
   if (mailbox_create_default (&mbox, name))
@@ -381,7 +313,7 @@ mh_open_folder (const char *folder, int create)
 char *
 mh_get_dir ()
 {
-  char *mhdir = mh_profile_value ("Path", "Mail");
+  char *mhdir = mh_global_profile_get ("Path", "Mail");
   if (mhdir[0] != '/')
     {
       char *p = mu_get_homedir ();

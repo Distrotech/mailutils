@@ -81,7 +81,7 @@ opt_handler (int key, char *arg, void *unused)
       break;
       
     case 'c':
-      changecur = arg[0] == 'y';
+      changecur = is_true(arg);
       break;
 
     case '+':
@@ -98,7 +98,7 @@ opt_handler (int key, char *arg, void *unused)
       break;
 
     case 'T':
-      truncate_source = arg[0] == 'y';
+      truncate_source = is_true(arg);
       break;
       
     case 'w':
@@ -243,7 +243,7 @@ main (int argc, char **argv)
     }
 
   if (changecur)
-    mh_save_context ();
+    mh_global_save_state ();
   
   mailbox_close (output);
   mailbox_destroy (&output);

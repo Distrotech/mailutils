@@ -82,7 +82,7 @@ opt_handler (int key, char *arg, void *unused)
       break;
       
     case 'c':
-      clear = arg[0] == 'y';
+      clear = is_true(arg);
       break;
       
     case 'F':
@@ -94,7 +94,7 @@ opt_handler (int key, char *arg, void *unused)
       break;
       
     case 'H':
-      header = arg[0] == 'y';
+      header = is_true(arg);
       break;
       
     case 'w':
@@ -107,7 +107,7 @@ opt_handler (int key, char *arg, void *unused)
       break;
       
     case 'r':
-      reverse = arg[0] == 'y';
+      reverse = is_true(arg);
       break;
       
     case 'i':
@@ -210,6 +210,7 @@ scan (mailbox_t mbox)
     for (i = 1; i <= total; i++)
       list_message (mbox, i, buffer, width);
   clear_screen ();
+  mh_global_save_state ();
   return 0;
 }
 

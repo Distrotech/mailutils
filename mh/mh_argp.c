@@ -97,7 +97,7 @@ mh_argp_parse (int argc, char **argv,
   data.handler = handler;
   data.doc = argp_doc;
   
-  p = mh_profile_value (program_invocation_short_name, NULL);
+  p = mh_global_profile_get (program_invocation_short_name, NULL);
   if (p)
     {
       int _argc;

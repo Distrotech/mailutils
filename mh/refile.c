@@ -27,8 +27,8 @@ static char args_doc[] = "messages folder [folder...]";
 static struct argp_option options[] = {
   {"folder",  'f', "FOLDER", 0, "Specify folder to operate upon"},
   {"draft",   'd', NULL, 0, "Use <mh-dir>/draft as the source message"},
-  {"link",    'l', "BOOL", OPTION_ARG_OPTIONAL, "Preserve the source folder copy"},
-  {"preserve", 'p', "BOOL", OPTION_ARG_OPTIONAL, "Try to preserve message sequence numbers"},
+  {"link",    'l', "BOOL", OPTION_ARG_OPTIONAL, "(not implemented) Preserve the source folder copy"},
+  {"preserve", 'p', "BOOL", OPTION_ARG_OPTIONAL, "(not implemented) Try to preserve message sequence numbers"},
   {"source", 's', "FOLDER", 0, "Specify source folder. FOLDER will became the current folder after the program exits."},
   {"src", 0, NULL, OPTION_ALIAS, NULL},
   {"file", 'F', "FILE", 0, "Use FILE as the source message"},
@@ -136,11 +136,11 @@ opt_handler (int key, char *arg, void *unused)
       break;
 
     case 'l':
-      link_flag = arg[0] == 'y';
+      link_flag = is_true(arg);
       break;
       
     case 'p':
-      preserve_flag = arg[0] == 'y';
+      preserve_flag = is_true(arg);
       break;
 	
     case 's':
@@ -158,7 +158,7 @@ opt_handler (int key, char *arg, void *unused)
 }
 
 void
-_close_folder (void *unuses, mailbox_t mbox)
+_close_folder (void *unused, mailbox_t mbox)
 {
   mailbox_close (mbox);
   mailbox_destroy (&mbox);
