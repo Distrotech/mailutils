@@ -330,7 +330,8 @@ static int
 _body_readline (stream_t stream, char *optr, size_t osize,
 		off_t offset, size_t *nbytes)
 {
-  message_t msg = stream_get_owner (stream);
+  body_t body = stream_get_owner (stream);
+  message_t msg = body_get_owner (body);
   struct _mhdraft_message *mp = message_get_owner (msg);
   stream_t str;
 
@@ -341,7 +342,8 @@ _body_readline (stream_t stream, char *optr, size_t osize,
 static int
 _body_stream_size (stream_t stream, off_t *psize)
 {
-  message_t msg = stream_get_owner (stream);
+  body_t body = stream_get_owner (stream);
+  message_t msg = body_get_owner (body);
   struct _mhdraft_message *mp = message_get_owner (msg);
   
   if (psize)
