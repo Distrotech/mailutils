@@ -52,8 +52,8 @@ imap4d_signal (int signo)
       imap4d_bye (ERR_TIMEOUT);
 
     case SIGPIPE:
-      exit (0);
-
+      imap4d_bye (ERR_NO_OFILE);
+      
     default:
       imap4d_bye (ERR_SIGNAL);
     }
