@@ -1,3 +1,10 @@
+2004-06-04  Sergey Poznyakoff
+
+	* NEWS: Updated
+	* examples/pop3client.c: Minor fixes.
+	* libsieve/extensions/spamd.c: Minor formatting changes
+	* mailbox/pop/pop3_sendline.c: Bugfix
+
 2004-06-04  Sergey Poznyakoff 
 
 	Use adbstract transport layer in streams, instead of
