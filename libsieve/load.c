@@ -29,30 +29,21 @@
 
 typedef int (*sieve_module_init_t) __PMT((sieve_machine_t mach));
 
-static int inited = 0;
-
 static void
 _free_loaded_module (void *data)
 {
   lt_dlclose ((lt_dlhandle)data);
+  lt_dlexit ();
 }
 
-int wd ()
-{
-  int volatile _s=0;
-  while (!_s);
-}
-	
 static lt_dlhandle
 load_module (sieve_machine_t mach, const char *name)
 {
   lt_dlhandle handle;
-  if (!inited)
-    {
-      if (lt_dlinit ())
-	return NULL;
-      inited++;
-    }
+
+  if (lt_dlinit ())
+    return NULL;
+
   handle = lt_dlopenext (name);
   if (handle)
     {
@@ -74,6 +65,7 @@ load_module (sieve_machine_t mach, const char *name)
   if (!handle)
     {
       sieve_error (mach, "%s", lt_dlerror ());
+      lt_dlexit ();
     }
   return handle;
 }
