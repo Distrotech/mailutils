@@ -39,6 +39,7 @@ libsieve/comparator.c
 libsieve/prog.c
 libsieve/require.c
 libsieve/runtime.c
+libsieve/sieve.l
 libsieve/sieve.y
 libsieve/tests.c
 libsieve/util.c
