@@ -31,7 +31,6 @@
 #ifndef HAVE_GETUTENT_CALLS
 extern void setutent __P((void));
 extern struct utmp *getutent __P((void));
-extern void getutent __P((void));
 #endif
 
 #ifdef UTMPX
