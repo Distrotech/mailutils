@@ -1,3 +1,8 @@
+2004-01-19  Wojciech Polak
+
+	* libsieve/tests.c (retrieve_header): Unfold the header,
+	use header_aget_field_value_unfold().
+
 2004-01-15  Sergey Poznyakoff
 
 	* imap4d/util.c (util_base64_encode): Bugfix. Patch submitted
