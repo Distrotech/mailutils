@@ -25,6 +25,7 @@ int
 imap4d_expunge (struct imap4d_command *command, char *arg)
 {
   char *sp = NULL;
+
   if (! (command->states & state))
     return util_finish (command, RESP_BAD, "Wrong state");
   if (util_getword (arg, &sp))
@@ -32,5 +33,7 @@ imap4d_expunge (struct imap4d_command *command, char *arg)
 
   /* FIXME: check for errors.  */
   mailbox_expunge (mbox);
+
+  imap4d_sync ();
   return util_finish (command, RESP_OK, "Completed");
 }

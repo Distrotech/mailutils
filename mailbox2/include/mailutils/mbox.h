@@ -63,7 +63,8 @@ extern int  mbox_get_size        __P ((mbox_t, off_t *));
 extern int  mbox_get_separator   __P ((mbox_t, unsigned int, char **));
 extern int  mbox_set_separator   __P ((mbox_t, unsigned int, const char *));
 
-extern int  mbox_expunge         __P ((mbox_t, int));
+extern int  mbox_expunge         __P ((mbox_t));
+extern int  mbox_save            __P ((mbox_t));
 extern int  mbox_has_newmail     __P ((mbox_t));
 
 extern int  mbox_set_progress_cb __P ((mbox_t,
@@ -73,8 +74,8 @@ extern int  mbox_set_newmsg_cb   __P ((mbox_t,
 extern int  mbox_set_error_cb    __P ((mbox_t,
 				       int (*) __P ((int, void *)), void *));
 
-extern int  mbox_scan            __P ((mbox_t, unsigned int,
-				       unsigned int *, int));
+extern int  mbox_scan            __P ((mbox_t, unsigned int, unsigned int *));
+extern int  mbox_count  __P ((mbox_t, unsigned int *));
 
 extern int  mbox_append          __P ((mbox_t, const char *, attribute_t,
 				       stream_t));

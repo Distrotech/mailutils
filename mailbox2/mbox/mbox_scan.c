@@ -134,9 +134,9 @@ mbox_alloc_umessages (mbox_t mbox)
    The approach is to detect the "From " at the start of a new message, give
    the position of the header and scan until "\n" then set header and body
    position, scan until we it another "From ".  */
-
 int
-mbox_scan (mbox_t mbox, unsigned int msgno, unsigned int *pcount, int do_notif)
+mbox_scan0 (mbox_t mbox, unsigned int msgno, unsigned int *pcount,
+	    int do_notif)
 {
 #define MSGLINELEN 1024
   char buf[MSGLINELEN];
@@ -417,4 +417,16 @@ mbox_scan (mbox_t mbox, unsigned int msgno, unsigned int *pcount, int do_notif)
     }
   lockfile_unlock (mbox->lockfile);
   return status;
+}
+
+int
+mbox_scan (mbox_t mbox, unsigned int msgno, unsigned int *pcount)
+{
+  return mbox_scan0 (mbox, msgno, pcount, 1);
+}
+
+int
+mbox_count (mbox_t mbox, unsigned int *pcount)
+{
+  return mbox_scan0 (mbox, 1, pcount, 0);
 }

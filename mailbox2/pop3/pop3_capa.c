@@ -69,3 +69,33 @@ pop3_capa (pop3_t pop3, iterator_t *piterator)
 
   return status;
 }
+
+int
+pop3_capa_first (pop3_capa_iterator_t iterator)
+{
+  return iterator_first (iterator);
+}
+
+int
+pop3_capa_current (pop3_capa_iterator_t iterator, char **s)
+{
+  return iterator_current (iterator, s);
+}
+
+int
+pop3_capa_next (pop3_capa_iterator_t iterator)
+{
+  return iterator_next (iterator);
+}
+
+int
+pop3_capa_is_done (pop3_capa_iterator_t iterator)
+{
+  return iterator_is_done (iterator);
+}
+
+void
+pop3_capa_destroy (pop3_capa_iterator_t *piterator)
+{
+  iterator_destroy (piterator);
+}

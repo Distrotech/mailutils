@@ -217,7 +217,7 @@ attribute_mbox_create (attribute_t *pattribute, mbox_t mbox,
 }
 
 int
-attribute_mbox_msgno (attribute_t attribute, unsigned int msgno)
+attribute_mbox_set_msgno (attribute_t attribute, unsigned int msgno)
 {
   struct _attribute_mbox *ma = (struct _attribute_mbox *)attribute;
   if (ma)

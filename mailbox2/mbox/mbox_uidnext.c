@@ -35,7 +35,7 @@ mbox_get_uidnext (mbox_t mbox, unsigned long *puidnext)
      the mailbox as change on disk.  */
   if (mbox->messages_count == 0)
     {
-      int status = mbox_scan (mbox, 0, NULL, 0);
+      int status = mbox_count (mbox, NULL);
       if (status != 0)
         return status;
     }

@@ -128,11 +128,11 @@ extern int  mbox_set_default_hcache __P ((mbox_t));
 extern int  mbox_debug_print      __P ((mbox_t, const char *, ...));
 
 extern int  stream_mbox_create   __P ((stream_t *, mbox_t, unsigned int, int));
-extern int  stream_mbox_msgno    __P ((stream_t, unsigned int));
-extern void _stream_mbox_dtor    __P ((stream_t));
+extern int  stream_mbox_set_msgno __P ((stream_t, unsigned int));
+extern void _stream_mbox_dtor     __P ((stream_t));
 
 extern int  attribute_mbox_create __P ((attribute_t *, mbox_t, unsigned int));
-extern int  attribute_mbox_msgno  __P ((attribute_t, unsigned int));
+extern int  attribute_mbox_set_msgno __P ((attribute_t, unsigned int));
 extern int  mbox_attribute_to_status __P ((attribute_t, char *, size_t,
                                            size_t *));
 extern void _attribute_mbox_dtor     __P ((attribute_t));
@@ -142,6 +142,8 @@ extern void mbox_release_attribute   __P ((mbox_t, unsigned int));
 extern void mbox_release_hstream     __P ((mbox_t, unsigned int));
 extern void mbox_release_bstream     __P ((mbox_t, unsigned int));
 extern void mbox_release_msg         __P ((mbox_t, unsigned int));
+
+extern int  mbox_scan0 __P ((mbox_t, unsigned int, unsigned int *, int));
 
 #ifdef __cplusplus
 }

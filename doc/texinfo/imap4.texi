@@ -4,7 +4,11 @@
 
 @end example
 
-Internet Message Access Protocol - Version (4rev1).  Not implemented.
+Internet Message Access Protocol - Version (4rev1).  In IMAP the client
+must be prepared to accept any responses at all times.  The server responses
+have three forms: status reponses, server data and command continuation
+request. Untaged responses, for hitorical reasons are also call
+"unsolicited responses".
 
 @subsection Commands
 

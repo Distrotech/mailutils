@@ -4,8 +4,8 @@
 
 @end example
 
-The most common mailbox format on UNIX platform is @emph{mbox}.  Mbox file
-is messages separated by the special format string.
+The most common mailbox format on UNIX platform is @emph{mbox}.  Mbox is a
+text file that contains messages separated by a special format string.
 @example
    From SP envelope-sender SP date [SP moreinfo]
 @end example
@@ -24,15 +24,16 @@ is messages separated by the special format string.
 A @var{mbox_t} is created, initialized and destroyed by @code{mbox_create ()}
 and @code{mbox_destroy ()}. When opening, @code{mbox_open ()} will do a quick
 check to see if the format is a valid format or an empty file. The scanning
-of the mailbox is done by @code{mbox_scan ()}.
-The function, @code{mbox_scan ()}, takes callback functions called during the
-scanning to provide information. The scanning will cache some of the headers
-fields for speed.  Closing the mailbox, @code{mbox_close ()} will free
-any resources like, headers cache, locks etc ... All the messages with
-attributes marked deleted will only be removed on @code{mbox_expunge ()}.
-If only the attributes need to be save but the messages not removed, this
-can be done by @code{mbox_save_attributes ()}.  New messages are added with
-@code{mbox_append ()}.  Attributes are saved in the @emph{Status:} header
+of the mailbox is done by @code{mbox_scan ()}, the function, takes callback
+functions called during the scanning to provide information on progress and
+new messages found. The scanning will cache some of the headers fields for
+speed, new fields could be add with @code{mbox_add_hcache ()}.  On Closing
+the @var{mbox_t}, @code{mbox_close ()} will free any resources like, headers
+cache, locks etc ... The messages with attributes marked deleted will only
+be removed on @code{mbox_expunge ()}, if there is a need to save the
+modification without purging @code{mbox_save ()} is more appropriate.
+New messages are added to the mbox with @code{mbox_append ()}.
+Attributes are saved in the @emph{Status:} header
 field, Read is 'R', Seen is 'O', Deleted is 'd' and Reply is 'r'.
 
 @subsubsection Initialization
@@ -59,9 +60,9 @@ reclaim memory.
 
 @deftypefun int mbox_set_carrier (mbox_t, stream_t @var{carrier});
 
-Another type of stream can be provided to work on, the @var{carrier}
+Another type of stream can be provided, the @var{carrier}
 is set in the @var{mbox_t} handle.  Any  previous @var{carrier} stream in
-the handle, will be close and release.  Since the parsing code
+the handle, will be close and destroy.  Since the parsing code
 maintain only the offsets off the message the @var{carrier} stream must be
 seekable.
 
@@ -124,6 +125,15 @@ is called first.
 @table @code
 @item MU_ERROR_INVALID_PARAMETER
 @item same as @code{mbox_scan ()}
+@end table
+@end deftypefun
+
+@deftypefun int mbox_get_uid (mbox_t, unsigned int @var{msgno}, unsigned long *@var{uid})
+
+Return the @var{uid} of the message @var{msgno}.
+
+@table @code
+@item MU_ERROR_INVALID_PARAMETER
 @end table
 @end deftypefun
 
@@ -245,28 +255,43 @@ Return the @var{size} of mailbox.
 @end table
 @end deftypefun
 
+@deftypefun int mbox_set_hcache (mbox_t, const char **@var{array}, size_t @var{len})
+
+Set the @var{array} of fields as the header to cache when doing the scanning.
+If @var{array} is NULL the header cache is emptied.
+
+@table @code
+@item MU_ERROR_INVALID_PARAMETER
+@item MU_ERROR_NO_MEMORY
+@end table
+@end deftypefun
+
+@deftypefun int mbox_add_hcache (mbox_t, const char **@var{array}, size_t @var{len})
+
+Add to the current cache for the scan, the fields in @var{array}.
+
+@table @code
+@item MU_ERROR_INVALID_PARAMETER
+@item MU_ERROR_NO_MEMORY
+@end table
+@end deftypefun
+
+@deftypefun int mbox_value_hcache (mbox_t, unsigned int @var{msgno}, const char *@var{field}, char *@var{buffer}, size_t @var{buflen}, size_t *@var{writen})
+
+Get the value of @var{field} in the header cache for @var{msgno}.  The
+result is copied in a @var{buffer} of @var{buflen} and @var{writen} is set
+to the number of byte put in @var{buffer}.
+
+@table @code
+@item MU_ERROR_INVALID_PARAMETER
+@item MU_ERROR_NO_ENTRY
+@end table
+@end deftypefun
+
 @deftypefun int mbox_save (mbox_t)
 
 Save the changes to the messages back to the mailbox, but do not
 remove messages mark for deletion in the process.
-
-@table @code
-@item MU_ERROR_INVALID_PARAMETER
-@end table
-@end deftypefun
-
-@deftypefun int mbox_mak_deleted (mbox_t, unsigned int @var{msgno})
-
-Mark @var{msgno} for deletion.
-
-@table @code
-@item MU_ERROR_INVALID_PARAMETER
-@end table
-@end deftypefun
-
-@deftypefun int mbox_unmak_deleted (mbox_t, unsigned int @var{msgno})
-
-Unmark @var{msgno} if it was marked for deletion.
 
 @table @code
 @item MU_ERROR_INVALID_PARAMETER
@@ -305,7 +330,7 @@ and a body, @var{bstream}.  The variable @var{sep} should contain a valid
 @end table
 @end deftypefun
 
-@deftypefun int mbox_scan (mbox_t, unsigned int start, unsigned int *@var{count})
+@deftypefun int mbox_scan (mbox_t, unsigned int @var{start}, unsigned int *@var{count})
 
 Start scanning the mailbox for new messages.  The variable @var{start} can be
 a message number starting point.  The result of the scanning will be in
@@ -322,21 +347,43 @@ MU_ERROR_INTERRUPTED.
 @end table
 @end deftypefun
 
-@deftypefun int mbox_set_progress_cb (mbox_t, int (*@var{callback}) (int, void *)), void *@var{arg})
+@deftypefun int mbox_count (mbox_t, unsigned int *@var{count})
+
+Same as @code{mbox_scan ()} but does not call the callbacks.
+
+@end deftypefun
+@deftypefun int mbox_set_progress_cb (mbox_t, int (*@var{callback}) (int @var{percentage}, void *)), void *@var{arg})
 
 Set the callback function for progress.  The variable @var{arg} will be pass
-back in the callback as the second argument.
+back in the callback as the second argument.  The first argument of the
+callback represents a @var{percentage} of the scanning progress.
+
 @table @code
 @item MU_ERROR_INVALID_PARAMETER
 @end table
 @end deftypefun
 
-@deftypefun int mbox_set_newmsg_cb (mbox_t, int (*@var{callback}) (int, void *)), void *@var{arg})
+@deftypefun int mbox_set_newmsg_cb (mbox_t, int (*@var{callback}) (int @var{count}, void *)), void *@var{arg})
 
 Set the callback function for new messages.  The variable @var{arg} will be
+pass back in the callback as the second argument.  The  first argument
+is the total of messages found.
+
+@table @code
+@item MU_ERROR_INVALID_PARAMETER
+@end table
+@end deftypefun
+
+@deftypefun int mbox_set_error_cb (mbox_t, int (*@var{callback}) (int, void *)), void *@var{arg})
+
+Set the callback function for errors.  The variable @var{arg} will be
 pass back in the callback as the second argument.
 
 @table @code
 @item MU_ERROR_INVALID_PARAMETER
 @end table
+@end deftypefun
+@deftypefun int  mbox_has_newmail (mbox_t)
+
+Return nonzero if there is new mail append to the mbox_t.
 @end deftypefun

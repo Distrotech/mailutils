@@ -1,3 +1,35 @@
+2001-10-20  Alain Magloire
+
+	* configure.in: Set to 0.0.9c.
+
+	* doc/texinfo/mbox.texi: Update the doc for mbox(Unix).
+	* doc/texinfo/pop.texi: Update the doc for mbox(Unix).
+
+	* imap4d/expunge.c: Bug:  Expunge was not sending the
+	untag "* %d EXPUNGED" for message deleted.  Call imap4d_sync ()
+	which will do the right thing.
+	* imap4d/noop.c: Bug: It should call imap4d_sync () to notify
+	the client of any changes.
+	* imap4d/sync.c (notify_deleted): Typo should be EXPUNGED
+	with a D.
+	(imap4d_sync): Bug: Checked also if the number of messages changed.
+
+	* mailbox/folder_imap.c (imap_flags): Bug: Rewrite it to be generic
+	and sets the flags for the attribute.
+	(imap_fetch_flags): Call imap_flags().
+	(imap_permanentflags): Call imap_flags().
+
+	* mailbox2/include/mailutils/mbox.h: Update prototypes.
+	* mailbox2/include/mailutils/sys/mbox.h: Update prototypes.
+	* mailbox2/include/mailutils/pop3.h: Update prototypes.
+	* mailbox2/mbox/mbox_expunge.c (mbox_expunge): Calls mbox_expunge0 ().
+	(mbox_save): Calls mbox_expunge0().
+	* mailbox2/mbox/mbox_scan.c (mbox_scan): Calls mbox_scan0 ().
+	(mbox_count): Calls mbox_scan0().
+	* mailbox2/pop3/pop3_capa.c: Provide a special iterator.
+	* mailbox2/pop3/pop3_lista.c: Provide a special iterator.
+	* mailbox2/pop3/pop3_uidla.c: Provide a special iterator.
+
 2001-10-19  Sergey Poznyakoff
 
 	MH inc is fully functional:
@@ -11,7 +43,7 @@
 
 2001-10-19  Sergey Poznyakoff
 
-	Implemented saving of MH context. 
+	Implemented saving of MH context.
 
 	* mh/inc.c: Fixed truncate option. Implemented -changecur. The only
 	feature inc lacks so far is -audit.
@@ -23,13 +55,13 @@
 	New functions: mh_save_context, mh_write_context_file, mh_check_folder,
 	mh_getyn.
 	* mh/mh.h: Prototypes for new functions.
-	
+
 2001-10-17  Sam Roberts
 
 	* README-alpha : Update cvs repository path.
 
 2001-10-17  Sergey Poznyakoff
-	
+
 	After discussion with Jeff, removed maintainer-mode quirks
 	and introduced --enable-debug switch.
 

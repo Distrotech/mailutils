@@ -368,7 +368,7 @@ _stream_mbox_dtor (stream_t stream)
 }
 
 int
-stream_mbox_msgno (stream_t stream, unsigned int msgno)
+stream_mbox_set_msgno (stream_t stream, unsigned int msgno)
 {
   struct _stream_mbox *ms = (struct _stream_mbox *)stream;
   if (ms)

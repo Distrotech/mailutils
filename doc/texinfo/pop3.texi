@@ -81,9 +81,8 @@ means only one operation can be done at a time, all the functions will return
 MU_ERROR_OPERATION_IN_PROGRESS if call during another operation.  The
 functions @code{pop3_list_all ()}, @code{pop3_uidl_all ()} and
 @code{pop3_capa ()} return iterators @code{pop3_list_current ()},
-@code{pop3_uidl_current ()} are provided as cover function to format the
-string return by @code{iterator_current ()}, @code{iterator_destroy ()} must
-be call to release any resources.
+@code{pop3_uidl_current ()} are provided as cover function. The iterator must
+be destroy when finish.
 
 In a multithreaded application, only one thread should access @var{pop3_t}
 handles.
@@ -197,16 +196,16 @@ any remaining responses from CAPA and clear the way for new operations.
 
 void print_capabilities (pop3_t pop3)
 @{
-   iterator_t iterator;
+   pop3_capa_iterator_t iterator;
    status = pop3_capa (pop3, &iterator);
    if (status == 0)
     @{
-        for (iterator_first (iterator);
-             !iterator_is_done (iterator);
-             iterator_next (iterator))
+        for (pop3_capa_first (iterator);
+             !pop3_capa_is_done (iterator);
+             pop3_capa_next (iterator))
           @{
               char *capa;
-              if (iterator_current (iterator, &capa) == 0)
+              if (pop3_capa_current (iterator, &capa) == 0)
                @{;
                    printf ("CAPA: %s\n", capa);
                    free (capa);
@@ -272,13 +271,13 @@ around to scan properly the string return by the @code{iterator_current ()}.
 
 void print_list (pop3_t pop3)
 @{
-   iterator_t iterator;
+   pop3_list_iterator_t iterator;
    status = pop3_list_all (pop3, &iterator);
    if (status == 0)
     @{
-        for (iterator_first (iterator);
-             !iterator_is_done (iterator);
-             iterator_next (iterator))
+        for (pop3_list_first (iterator);
+             !pop3_list_is_done (iterator);
+             pop3_list_next (iterator))
           @{
               unsigned int msgno, size;
               if (pop3_list_current (iterator, &msgno, &size) == 0)
@@ -286,7 +285,7 @@ void print_list (pop3_t pop3)
                    printf ("LIST: %d %d\n", msgno, size);
                @}
           @}
-        iterator (&iterator);
+        pop3_list_destroy (&iterator);
     @}
    else
      printf ("NONE\n");
@@ -392,7 +391,7 @@ print_message (pop3_t pop3, unsigned int msgno)
        while ((stream_readline (stream, buf, sizeof buf, &n) == 0)
               && n)
          printf ("%s", buf);
-       stream_release (stream);
+       stream_destroy (&stream);
     @}
    return status;
 @}
@@ -466,7 +465,7 @@ print_top (pop3_t pop3, unsigned int msgno, unsigned int lines)
         while ((stream_readline (stream, buf, sizeof buf, &n) == 0)
                && n)
           printf ("%s", buf);
-        stream_release (stream);
+        stream_destroy (&stream);
      @}
   return status;
 @}
@@ -510,13 +509,13 @@ must be destroyed by the caller.
 
 void print_uidl (pop3_t pop3)
 @{
-   iterator_t iterator;
+   pop3_uidl_iterator_t iterator;
    status = pop3_uidl_all (pop3, &iterator);
    if (status == 0)
     @{
-        for (iterator_first (iterator);
-             !iterator_is_done (iterator);
-             iterator_next (iterator))
+        for (pop3_uidl_first (iterator);
+             !pop3_uidl_is_done (iterator);
+             pop3_uidl_next (iterator))
           @{
               unsigned int msgno;
               char *uidl;
@@ -526,7 +525,7 @@ void print_uidl (pop3_t pop3)
                    free (uidl);
                @}
           @}
-        iterator (&iterator);
+        pop3_uidl_destroy (&iterator);
     @}
    else
      printf ("NONE\n");
@@ -577,8 +576,9 @@ Sends the User command.
 
 @deftypefun int pop3_writeline (pop3_t, const char *@var{format}, ...);
 
-Copy in the internal buffer of @code{pop3_t} the string, @code{pop3_send ()}
-should be called later to flush the string to the POP3 server.
+Copy in the internal buffer of @code{pop3_t} the formatted string,
+@code{pop3_send ()} should be called later to flush the string to the
+POP3 server.
 
 @table @code
 @item MU_ERROR_INVALID_PARAMETER

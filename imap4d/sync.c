@@ -113,7 +113,7 @@ notify_deleted (void)
 	{
 	  if (!(uid_table[i].notify))
 	    {
-	      util_out (RESP_NONE, "%d EXPUNGE", uid_table[i].msgno);
+	      util_out (RESP_NONE, "%d EXPUNGED", uid_table[i].msgno);
 	      uid_table[i].notify = 1;
 	    }
 	}
@@ -175,8 +175,8 @@ free_uids (void)
 	attribute_destroy (&(uid_table[i].attr), NULL);
       free (uid_table);
       uid_table = NULL;
-      uid_table_count = 0;
     }
+  uid_table_count = 0;
 }
 
 static void
@@ -240,11 +240,19 @@ imap4d_sync_flags (size_t msgno)
 int
 imap4d_sync (void)
 {
-  /* if mbox --> NULL, it means to free all the ressources.
-     it may be because of close or before select/examine a new mailbox.  */
+  /* If mbox --> NULL, it means to free all the ressources.
+     It may be because of close or before select/examine a new mailbox.
+     If it was a close we do not send any notification.  */
   if (mbox == NULL)
     free_uids ();
   else if (uid_table == NULL || !mailbox_is_updated (mbox))
     reset_uids ();
+  else
+    {
+      size_t count = 0;
+      mailbox_messages_count (mbox, &count);
+      if (count != uid_table_count)
+	reset_uids ();
+    }
   return 0;
 }

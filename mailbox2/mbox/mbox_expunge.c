@@ -113,8 +113,8 @@ mbox_tmpfile (mbox_t mbox, char **pbox)
    The real downside to the approach is that when things go wrong
    the temporary file may be left in /tmp, which is not all that bad
    because at least, we have something to recuperate when failure.  */
-int
-mbox_expunge (mbox_t mbox, int remove_deleted)
+static int
+mbox_expunge0 (mbox_t mbox, int remove_deleted)
 {
   mbox_message_t mum;
   int status = 0;
@@ -382,9 +382,9 @@ mbox_expunge (mbox_t mbox, int remove_deleted)
 	      mum->from_ = mum->header.start = 0;
 	      mum->body.start = mum->body.end = 0;
 	      mum->header.lines = mum->body.lines = 0;
-	      stream_mbox_msgno (mum->header.stream, j + 1);
-	      stream_mbox_msgno (mum->body.stream, j + 1);
-	      attribute_mbox_msgno (mum->attribute, j + 1);
+	      stream_mbox_set_msgno (mum->header.stream, j + 1);
+	      stream_mbox_set_msgno (mum->body.stream, j + 1);
+	      attribute_mbox_set_msgno (mum->attribute, j + 1);
 	    }
 	}
 
@@ -396,7 +396,19 @@ mbox_expunge (mbox_t mbox, int remove_deleted)
 
       /* This should reset the messages_count, the last argument 0 means
 	 not to send event notification.  */
-      mbox_scan (mbox, dirty, NULL, 0);
+      mbox_scan0 (mbox, dirty, NULL, 0);
     }
   return status;
+}
+
+int
+mbox_expunge (mbox_t mbox)
+{
+  return mbox_expunge0 (mbox, 1);
+}
+
+int
+mbox_save (mbox_t mbox)
+{
+  return mbox_expunge0 (mbox, 0);
 }

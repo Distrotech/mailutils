@@ -75,6 +75,30 @@ pop3_uidl_all (pop3_t pop3, iterator_t *piterator)
 }
 
 int
+pop3_uidl_first (pop3_uidl_iterator_t iterator)
+{
+  return iterator_first (iterator);
+}
+
+int
+pop3_uidl_is_done (pop3_uidl_iterator_t iterator)
+{
+  return iterator_is_done (iterator);
+}
+
+int
+pop3_uidl_next (pop3_uidl_iterator_t iterator)
+{
+  return iterator_next (iterator);
+}
+
+void
+pop3_uidl_destroy (pop3_uidl_iterator_t *piterator)
+{
+  iterator_destroy (piterator);
+}
+
+int
 pop3_uidl_current (iterator_t iterator, unsigned int *pno, char **puidl)
 {
   char *buf;

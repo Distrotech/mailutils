@@ -34,7 +34,7 @@ mbox_get_uidvalidity (mbox_t mbox, unsigned long *puidvalidity)
   /* If we did not start a scanning yet do it now.  */
   if (mbox->messages_count == 0)
     {
-      int status = mbox_scan (mbox, 0, NULL, 0);
+      int status = mbox_count (mbox, NULL);
       if (status != 0)
         return status;
     }

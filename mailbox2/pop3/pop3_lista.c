@@ -76,7 +76,32 @@ pop3_list_all (pop3_t pop3, iterator_t *piterator)
 }
 
 int
-pop3_list_current (iterator_t iterator, unsigned int *pno, size_t *plen)
+pop3_list_first (pop3_list_iterator_t iterator)
+{
+  return iterator_first (iterator);
+}
+
+int
+pop3_list_next (pop3_list_iterator_t iterator)
+{
+  return iterator_next (iterator);
+}
+
+int
+pop3_list_is_done (pop3_list_iterator_t iterator)
+{
+  return iterator_is_done (iterator);
+}
+
+void
+pop3_list_destroy (pop3_list_iterator_t *piterator)
+{
+  iterator_destroy (piterator);
+}
+
+int
+pop3_list_current (pop3_list_iterator_t iterator, unsigned int *pno,
+		   size_t *plen)
 {
   char *buf;
   int status = iterator_current (iterator, (void *)&buf);

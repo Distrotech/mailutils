@@ -91,7 +91,9 @@ static int  imap_rfc822             __P ((f_imap_t, char **));
 static int  imap_rfc822_size        __P ((f_imap_t, char **));
 static int  imap_rfc822_header      __P ((f_imap_t, char **));
 static int  imap_rfc822_text        __P ((f_imap_t, char **));
-static int  imap_flags              __P ((f_imap_t, char **));
+static int  imap_fetch_flags        __P ((f_imap_t, char **));
+static int  imap_permanentflags     __P ((f_imap_t, char **));
+static int  imap_flags              __P ((char **, int *));
 static int  imap_bodystructure      __P ((f_imap_t, char **));
 static int  imap_body               __P ((f_imap_t, char **));
 static int  imap_internaldate       __P ((f_imap_t, char **));
@@ -1266,12 +1268,27 @@ imap_bodystructure (f_imap_t f_imap, char **ptr)
 
    FIXME:  User flags are not take to account. */
 static int
-imap_flags (f_imap_t f_imap, char **ptr)
+imap_fetch_flags (f_imap_t f_imap, char **ptr)
+{
+  msg_imap_t msg_imap = f_imap->string.msg_imap;
+  if (msg_imap)
+    imap_flags (ptr, &msg_imap->flags);
+  return 0;
+}
+
+static int
+imap_permanentflags (f_imap_t f_imap, char **ptr)
+{
+  imap_flags (ptr, &f_imap->flags);
+  return 0;
+}
+
+static int
+imap_flags (char **ptr, int *pflags)
 {
   char *start;
   char *end;
-  /* msg_imap may be null for an untag response deal with it.  */
-  msg_imap_t msg_imap = f_imap->string.msg_imap;
+  int flags = 0;
 
   /* Skip space.  */
   while (**ptr == ' ')
@@ -1286,65 +1303,52 @@ imap_flags (f_imap_t f_imap, char **ptr)
     {
       /* Skip space before next word.  */
       while (**ptr == ' ')
-	(*ptr)++;
+        (*ptr)++;
 
       /* Save the beginning of the word.  */
       start = *ptr;
-
-      /* Get the next word boundary.  */
+       /* Get the next word boundary.  */
       while (**ptr && **ptr != ' ' && **ptr != ')')
-	++(*ptr);
+        ++(*ptr);
 
-      /* Make a C string for the strcasecmp.  */
+      /* Save the end for the strcasecmp.  */
       end = *ptr;
 
       /* Bail out.  */
       if (*start == '\0')
-	break;
+        break;
 
       /* Guess the flag.  */
       if (strncasecmp (start, "\\Seen", end - start) == 0)
-	{
-	  if (msg_imap)
-	    {
-	      msg_imap->flags |= MU_ATTRIBUTE_SEEN;
-	      msg_imap->flags |= MU_ATTRIBUTE_READ;
-	    }
-	  else
-	    f_imap->flags |= MU_ATTRIBUTE_SEEN;
-	}
+        {
+	  flags |= MU_ATTRIBUTE_SEEN;
+	  flags |= MU_ATTRIBUTE_READ;
+        }
       else if (strncasecmp (start, "\\Answered", end - start) == 0)
-	{
-	  if (msg_imap)
-	    msg_imap->flags |= MU_ATTRIBUTE_ANSWERED;
-	  else
-	    f_imap->flags |= MU_ATTRIBUTE_ANSWERED;
-	}
+        {
+	  flags |= MU_ATTRIBUTE_ANSWERED;
+        }
       else if (strncasecmp (start, "\\Flagged", end - start) == 0)
-	{
-	  if (msg_imap)
-	    msg_imap->flags |= MU_ATTRIBUTE_FLAGGED;
-	  else
-	    f_imap->flags |= MU_ATTRIBUTE_FLAGGED;
-	}
+        {
+	  flags |= MU_ATTRIBUTE_FLAGGED;
+        }
       else if (strncasecmp (start, "\\Deleted", end - start) == 0)
-	{
-	  if (msg_imap)
-	    msg_imap->flags |= MU_ATTRIBUTE_DELETED;
-	  else
-	    f_imap->flags |= MU_ATTRIBUTE_DELETED;
-	}
+        {
+	  flags |= MU_ATTRIBUTE_DELETED;
+        }
       else if (strncasecmp (start, "\\Draft", end - start) == 0)
-	{
-	  if (msg_imap)
-	    msg_imap->flags |= MU_ATTRIBUTE_DRAFT;
-	  else
-	    f_imap->flags |= MU_ATTRIBUTE_DRAFT;
-	}
+        {
+	  flags |= MU_ATTRIBUTE_DRAFT;
+        }
     }
-  while (**ptr && **ptr != ')');
+  while (**ptr && **ptr != ')'); /* do {} */
+
+  /* Skip the last rparen.  */
   if (**ptr == ')')
     (*ptr)++;
+
+  if (pflags)
+    *pflags = flags;
   return 0;
 }
 
@@ -1548,7 +1552,7 @@ imap_fetch (f_imap_t f_imap)
 
       if (strncmp (token, "FLAGS", 5) == 0)
 	{
-	  status = imap_flags (f_imap, &sp);
+	  status = imap_fetch_flags (f_imap, &sp);
 	}
       else if (strcasecmp (token, "BODY") == 0)
 	{
@@ -2053,7 +2057,7 @@ imap_parse (f_imap_t f_imap)
 	  else if (strcasecmp (response, "FLAGS") == 0)
 	    {
 	      /* Flags define on the mailbox not a message flags.  */
-	      status = imap_flags (f_imap, &remainder);
+	      status = imap_permanentflags (f_imap, &remainder);
 	    }
 	  else if (strcasecmp (response, "LIST") == 0)
 	    {

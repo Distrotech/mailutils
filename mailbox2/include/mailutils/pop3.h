@@ -36,6 +36,9 @@ extern "C" {
 
 struct _pop3;
 typedef struct _pop3* pop3_t;
+typedef iterator_t pop3_capa_iterator_t;
+typedef iterator_t pop3_list_iterator_t;
+typedef iterator_t pop3_uidl_iterator_t;
 
 extern int  pop3_create       __P ((pop3_t *));
 extern void pop3_destroy      __P ((pop3_t *));
@@ -55,13 +58,22 @@ extern int  pop3_get_debug    __P ((pop3_t, mu_debug_t *));
 extern int  pop3_apop         __P ((pop3_t, const char *, const char *));
 
 extern int  pop3_capa         __P ((pop3_t, iterator_t *));
-extern int  pop3_capa_current __P ((iterator_t, char **));
+extern int  pop3_capa_first   __P ((pop3_capa_iterator_t));
+extern int  pop3_capa_current __P ((pop3_capa_iterator_t, char **));
+extern int  pop3_capa_next    __P ((pop3_capa_iterator_t));
+extern int  pop3_capa_is_done __P ((pop3_capa_iterator_t));
+extern void pop3_capa_destroy __P ((pop3_capa_iterator_t *));
 
 extern int  pop3_dele         __P ((pop3_t, unsigned int));
 
 extern int  pop3_list         __P ((pop3_t, unsigned int, size_t *));
-extern int  pop3_list_all     __P ((pop3_t, iterator_t *));
-extern int  pop3_list_current __P ((iterator_t, unsigned int *, size_t *));
+extern int  pop3_list_all     __P ((pop3_t, pop3_list_iterator_t *));
+extern int  pop3_list_first   __P ((pop3_list_iterator_t));
+extern int  pop3_list_current __P ((pop3_list_iterator_t,
+				    unsigned int *, size_t *));
+extern int  pop3_list_next    __P ((pop3_list_iterator_t));
+extern int  pop3_list_is_done __P ((pop3_list_iterator_t));
+extern void pop3_list_destroy __P ((pop3_list_iterator_t *));
 
 extern int  pop3_noop         __P ((pop3_t));
 extern int  pop3_pass         __P ((pop3_t, const char *));
@@ -73,8 +85,13 @@ extern int  pop3_top          __P ((pop3_t, unsigned int,
 				   unsigned int, stream_t *));
 
 extern int  pop3_uidl         __P ((pop3_t, unsigned int, char **));
-extern int  pop3_uidl_all     __P ((pop3_t, iterator_t *));
-extern int  pop3_uidl_current __P ((iterator_t, unsigned int *, char **));
+extern int  pop3_uidl_all     __P ((pop3_t, pop3_uidl_iterator_t *));
+extern int  pop3_uidl_first   __P ((pop3_uidl_iterator_t));
+extern int  pop3_uidl_is_done __P ((pop3_uidl_iterator_t));
+extern int  pop3_uidl_current __P ((pop3_uidl_iterator_t,
+				    unsigned int *, char **));
+extern int  pop3_uidl_next    __P ((pop3_uidl_iterator_t));
+extern void pop3_uidl_destroy __P ((pop3_uidl_iterator_t *));
 
 extern int  pop3_user         __P ((pop3_t, const char *));
 

@@ -97,6 +97,6 @@ mbox_set_separator (mbox_t mbox, unsigned int msgno, const char *sep)
   if (mbox->umessages[msgno]->separator)
     free (mbox->umessages[msgno]->separator);
   mbox->umessages[msgno]->separator = (sep) ? strdup (sep) : NULL;
-  mbox->umessage[msgno]->attr_flags |= MU_ATTRIBUTE_MODIFIED;
+  mbox->umessages[msgno]->attr_flags |= MU_ATTRIBUTE_MODIFIED;
   return 0;
 }
