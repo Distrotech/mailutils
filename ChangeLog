@@ -1,5 +1,11 @@
 2002-12-24  Sergey Poznyakoff 
 
+	* doc/texinfo/Makefile.am: Fixed referencing /scripts/missing
+	  program.
+	* po/.cvsignore: Removed LINGUAS.
+
+2002-12-24  Sergey Poznyakoff 
+
 	* configure.ac: Specify use-libtool to AM_GNU_GETTEXT.
 	  Define WITH_INCLUDED_LIBINTL and INTLINCS if we are using
 	  the included gettext.
