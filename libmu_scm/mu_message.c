@@ -801,7 +801,7 @@ SCM_DEFINE (mu_message_send, "mu-message-send", 1, 3, 0,
   mailer_t mailer = NULL;
   message_t msg;
   int status;
-  
+
   SCM_ASSERT (mu_scm_is_message (MESG), MESG, SCM_ARG1, FUNC_NAME);
   msg = mu_scm_message_get (MESG);
   
@@ -812,8 +812,11 @@ SCM_DEFINE (mu_message_send, "mu-message-send", 1, 3, 0,
       mailer_name = SCM_STRING_CHARS (MAILER);
     }
   else
-    mailer_name = SCM_STRING_CHARS(_mu_scm_mailer);
-
+    {
+      SCM val = MU_SCM_SYMBOL_VALUE("mu-mailer");
+      mailer_name = SCM_STRING_CHARS(val);
+    }
+  
   if (!SCM_UNBNDP (FROM) && FROM != SCM_BOOL_F)
     {
       SCM_ASSERT (SCM_NIMP (FROM) && SCM_STRINGP (FROM)
@@ -833,7 +836,7 @@ SCM_DEFINE (mu_message_send, "mu-message-send", 1, 3, 0,
       return SCM_BOOL_F;
     }
 
-  if (SCM_INUM(_mu_scm_debug))
+  if (SCM_INUM(MU_SCM_SYMBOL_VALUE("mu-debug")))
     {
       mu_debug_t debug = NULL;
       mailer_get_debug (mailer, &debug);
