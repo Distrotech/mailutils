@@ -19,4 +19,7 @@ cvs -d :pserver:anoncvs@subversions.gnu.org:/cvs checkout mailutils
 This will give you read-only access.  If you think you need write access,
 contact the mailing list.
 
+In order to build this you will neet to call the auto* tools with
+the right arguments, see or run autogen.sh.
+
 
