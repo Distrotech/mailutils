@@ -22,6 +22,7 @@ noinst_LTLIBRARIES = libmailutils.la
 INCLUDES = -I${top_srcdir}/include -I${top_srcdir}/mailbox -I${top_builddir}/include/mailutils/gnu @INTLINCS@
 libmailutils_la_SOURCES = \
  daemon.c\
+ mailcap.c\
  mu_dbm.c\
  xalloc_die.c
 
