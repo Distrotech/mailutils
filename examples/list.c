@@ -105,14 +105,6 @@ list_retrieve_header (void *item, void *data, int idx, char **pval)
   return 1;
 }
 
-static int
-waitdebug()
-{
-  static volatile int _st=0;
-  while (!_st)
-    _st=_st;
-}
-
 
 /* The test proper */
 

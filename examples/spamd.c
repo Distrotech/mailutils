@@ -212,14 +212,6 @@ decode_boolean (char *str)
   return 0;
 }
 
-static int
-waitdebug()
-{
-  static volatile int _st=0;
-  while (!_st)
-    _st=_st;
-}
-
 
 /* Signal handling */
 
@@ -253,7 +245,6 @@ static int got_sigpipe;
 static RETSIGTYPE
 sigpipe_handler (int sig ARG_UNUSED)
 {
-  printf("PIPE!\n");
   got_sigpipe = 1;
 }
 
