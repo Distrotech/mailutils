@@ -158,7 +158,7 @@ static int
 status_uidvalidity (mailbox_t smbox)
 {
   unsigned long uidvalidity = 0;
-  mailbox_uidvalidity (smbox, &uidvalidity);
+  util_uidvalidity (smbox, &uidvalidity);
   util_send ("UIDVALIDITY %u", uidvalidity);
   return 0;
 }
