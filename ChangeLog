@@ -2,8 +2,8 @@
 
 	* configure.in: Set to 0.0.9c.
 
-	* doc/texinfo/mbox.texi: Update the doc for mbox(Unix).
-	* doc/texinfo/pop.texi: Update the doc for mbox(Unix).
+	* doc/texinfo/mbox.texi: Updated the docs for mbox(Unix).
+	* doc/texinfo/pop.texi: Updated the docs for pop3.
 
 	* imap4d/expunge.c: Bug:  Expunge was not sending the
 	untag "* %d EXPUNGED" for message deleted.  Call imap4d_sync ()
