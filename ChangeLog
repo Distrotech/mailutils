@@ -14,6 +14,7 @@
 	  data returned with GSASL_OK code (proposed by Simon Josefsson
 	  <jas@extundo.com>) 
 	* imap4d/bye.c (imap4d_bye0): Added missing argument to syslog.
+ 	* pop3d/extra.c (pop3d_abquit): Likewise.
 	* imap4d/util.c (util_set_input, util_set_output): Bugfix
 	
 	* include/mailutils/stream.h (stream_set_strerror)
@@ -42,7 +43,8 @@
 	  spaces.
 	  (builtin_concat): Compress whitespace before further processing.
 	* mh/mh_getopt.c: Added missing includes.
-	
+	* mh/comp.c (opt_handler): Removed unused variable
+
 2003-01-31  Sergey Poznyakoff
 
 	* mailbox/file_stream.c (_file_readline): Make sure the
