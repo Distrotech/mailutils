@@ -1232,7 +1232,7 @@ section_name (msg_imap_t msg_imap)
 	  char *tmp;
 	  char part[64];
 	  size_t partlen;
-	  snprintf (part, sizeof part, "%u", msg_imap->part);
+	  snprintf (part, sizeof part, "%lu", (unsigned long) msg_imap->part);
 	  partlen = strlen (part);
 	  tmp = realloc (section, sectionlen + partlen + 2);
 	  if (tmp == NULL)

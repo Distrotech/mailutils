@@ -2178,9 +2178,11 @@ add_number (char **pset, size_t start, size_t end)
   if (start == 0)
     *buf = '\0';
   else if (start != end)
-    snprintf (buf, sizeof buf, "%d:%d", start, end);
+    snprintf (buf, sizeof buf, "%lu:%lu",
+	      (unsigned long) start,
+	      (unsigned long) end);
   else
-    snprintf (buf, sizeof buf, "%d", start);
+    snprintf (buf, sizeof buf, "%lu", (unsigned long) start);
 
   if (set_len)
     tmp = realloc (set, set_len + strlen (buf) + 2 /* null and comma */);

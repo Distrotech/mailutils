@@ -1235,7 +1235,7 @@ mbox_envelope_date (envelope_t envelope, char *buf, size_t len,
 
 static int
 mbox_envelope_sender (envelope_t envelope, char *buf, size_t len,
-		    size_t *pnwrite)
+		      size_t *pnwrite)
 {
   message_t msg = envelope_get_owner (envelope);
   mbox_message_t mum = message_get_owner (msg);
@@ -1602,7 +1602,8 @@ mbox_append_message0 (mailbox_t mailbox, message_t msg, off_t *psize,
 	if (first && is_expunging)
 	  {
 	    n = sprintf (buffer, "X-IMAPbase: %lu %u\n",
-			 mud->uidvalidity, mud->uidnext);
+			 (unsigned long) mud->uidvalidity,
+			 (unsigned) mud->uidnext);
 	    stream_write (mailbox->stream, buffer, n, *psize, &n);
 	    *psize += n;
 	  }
@@ -1643,7 +1644,7 @@ mbox_append_message0 (mailbox_t mailbox, message_t msg, off_t *psize,
 
 	if (status == 0 || uid != 0)
 	  {
-	    n = sprintf (suid, "X-UID: %d\n", uid);
+	    n = sprintf (suid, "X-UID: %u\n", (unsigned) uid);
 	    /* Put the UID.  */
 	    status = stream_write (mailbox->stream, suid, n, *psize, &n);
 	    if (status != 0)
@@ -1730,7 +1731,7 @@ mbox_append_message0 (mailbox_t mailbox, message_t msg, off_t *psize,
 	      }
 	    while (nread > 0);
 	    n = 0;
-	    stream_write (mailbox->stream, &nl, 1, *psize, &n);
+       	    stream_write (mailbox->stream, &nl, 1, *psize, &n);
 	    *psize += n;
 	  }
 

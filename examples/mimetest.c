@@ -139,7 +139,7 @@ main (int argc, char **argv)
       header_get_value (hdr, MU_HEADER_FROM, from, sizeof (from), NULL);
       header_get_value (hdr, MU_HEADER_SUBJECT, subject, sizeof (subject),
                         NULL);
-      printf ("Message: %d\n", i);
+      printf ("Message: %lu\n", (unsigned long) i);
       printf ("From: %s\n", from);
       printf ("Subject: %s\n", subject);
 
@@ -148,8 +148,10 @@ main (int argc, char **argv)
           fprintf (stderr, "message_get_num_parts - %s\n", mu_errstring (ret));
           exit (2);
         }
-      printf ("Number of parts in message - %d\n", nparts);
-      printf ("Total message size - %d\n", msize);
+      printf ("Number of parts in message - %lu\n",
+	      (unsigned long) nparts);
+      printf ("Total message size - %lu\n",
+	      (unsigned long) msize);
       message_display_parts (msg, 0);
     }
   mailbox_close (mbox);
@@ -203,7 +205,8 @@ message_display_parts (message_t msg, int indent)
       header_get_value (hdr, MU_HEADER_CONTENT_TYPE, type, sizeof (type),
                         NULL);
       printf ("%*.*sType of part %d = %s\n", indent, indent, "", j, type);
-      printf ("%*.*sMessage part size - %d\n", indent, indent, "", msize);
+      printf ("%*.*sMessage part size - %lu\n", indent, indent, "",
+	      (unsigned long) msize);
       encoding[0] = '\0';
       header_get_value (hdr, MU_HEADER_CONTENT_TRANSFER_ENCODING, encoding,
                         sizeof (encoding), NULL);

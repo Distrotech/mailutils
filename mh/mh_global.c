@@ -146,7 +146,7 @@ void
 mh_global_save_state ()
 {
   char buf[64];
-  snprintf (buf, sizeof buf, "%d", current_message);
+  snprintf (buf, sizeof buf, "%lu", (unsigned long) current_message);
   mh_context_set_value (sequences, "cur", buf);
   mh_context_write (sequences);
 

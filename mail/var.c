@@ -559,7 +559,8 @@ var_read (int argc, char **argv, compose_env_t *env)
       fputs (buf, ofile);
     }
   fclose (inf);
-  fprintf (stdout, "\"%s\" %d/%d\n", filename, lines, size);
+  fprintf (stdout, "\"%s\" %lu/%lu\n", filename,
+	   (unsigned long) lines, (unsigned long) size);
   free (filename);
   return 0;
 }
@@ -614,7 +615,8 @@ var_write (int argc, char **argv, compose_env_t *env)
       fputs (buf, fp);
     }
   fclose (fp);
-  fprintf (stdout, "\"%s\" %d/%d\n", filename, lines, size);
+  fprintf (stdout, "\"%s\" %lu/%lu\n", filename,
+	   (unsigned long) lines, (unsigned long) size);
   free (filename);
   return 0;
 }
@@ -719,7 +721,8 @@ var_pipe (int argc, char **argv, compose_env_t *env)
 	    rc = 0;
 	}
 
-      fprintf (stdout, "\"|%s\" in: %d/%d ", argv[1], lines, size);
+      fprintf (stdout, "\"|%s\" in: %lu/%lu ", argv[1],
+	       (unsigned long) lines, (unsigned long) size);
       if (rc)
 	{
 	  fprintf (stdout, "no lines out\n");
@@ -741,7 +744,8 @@ var_pipe (int argc, char **argv, compose_env_t *env)
 	    }
 	  fclose (env->file);
 
-	  fprintf (stdout, "out: %d/%d\n", lines, size);
+	  fprintf (stdout, "out: %lu/%lu\n",
+		   (unsigned long) lines, (unsigned long) size);
 	}
 
       /* Clean up the things */

@@ -316,7 +316,7 @@ mta_send (message_t msg)
 
   message_get_stream (msg, &stream);
   line = 0;
-  fprintf (diag, "%4d: ", line);
+  fprintf (diag, "%4lu: ", (unsigned long) line);
   while (stream_read (stream, buffer, sizeof buffer - 1, off, &n) == 0
 	 && n != 0)
     {
@@ -328,7 +328,7 @@ mta_send (message_t msg)
 	  if (buffer[i] == '\n')
 	    {
 	      line++;
-	      fprintf (diag, "%4d: ", line);
+	      fprintf (diag, "%4lu: ", (unsigned long) line);
 	    }
 	}
       off += n;

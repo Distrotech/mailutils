@@ -195,9 +195,11 @@ _mh_message_name (struct _mh_message *mhm, int deleted)
   size_t len = strlen (mhm->mhd->name) + 32;
   filename = malloc (len);
   if (deleted)
-    snprintf (filename, len, "%s/,%d", mhm->mhd->name, mhm->seq_number);
+    snprintf (filename, len, "%s/,%lu", mhm->mhd->name,
+	      (unsigned long) mhm->seq_number);
   else
-    snprintf (filename, len, "%s/%d", mhm->mhd->name, mhm->seq_number);
+    snprintf (filename, len, "%s/%lu", mhm->mhd->name,
+	      (unsigned long) mhm->seq_number);
   return filename;
 }
 
@@ -557,7 +559,8 @@ _mh_message_save (struct _mh_data *mhd, struct _mh_message *mhm, int expunge)
 
   /* Add imapbase */
   if (!mhd->msg_head || (mhd->msg_head == mhm)) /*FIXME*/
-    fprintf (fp, "X-IMAPbase: %lu %u\n", mhd->uidvalidity, _mh_next_seq(mhd));
+    fprintf (fp, "X-IMAPbase: %lu %u\n",
+	     (unsigned long) mhd->uidvalidity, (unsigned) _mh_next_seq(mhd));
 
   message_get_envelope (msg, &env);
   if (envelope_date (env, buffer, sizeof buffer, &n) == 0 && n > 0)
