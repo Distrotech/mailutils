@@ -1318,8 +1318,7 @@ mailbox_unix_get_message (mailbox_t mbox, size_t msgno, message_t *pmsg)
     }
 
   /* set the header */
-  if ((status = header_init (&header, pbuf,
-			     offset, MU_HEADER_RFC822, mum)) != 0 ||
+  if ((status = header_init (&header, pbuf, offset, mum)) != 0 ||
       (status = message_set_header (msg, header, mum)) != 0)
     {
       free (pbuf);

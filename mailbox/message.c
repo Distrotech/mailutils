@@ -74,7 +74,7 @@ int message_clone (message_t omsg, message_t *pmsg)
     } while (nread > 0);
 
 
-    status = header_init (&header, pbuf, offset, MU_HEADER_RFC822, NULL);
+    status = header_init (&header, pbuf, offset, NULL);
     if (status != 0)
       {
 	free (pbuf);

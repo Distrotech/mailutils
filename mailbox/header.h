@@ -33,8 +33,6 @@
 extern "C" {
 #endif
 
-#define MU_HEADER_RFC822                0
-
 #define MU_HEADER_UNIX_FROM             "From "
 #define MU_HEADER_RETURN_PATH           "Return-Path"
 #define MU_HEADER_RECEIVED              "Received"
@@ -69,7 +67,7 @@ struct _header;
 typedef struct _header * header_t;
 
 extern int header_init         __P ((header_t *, const char *blurb,
-				     size_t ln, int flag, void *owner));
+				     size_t ln, void *owner));
 extern void header_destroy     __P ((header_t *, void *owner));
 
 extern int header_set_value    __P ((header_t, const char *fn,
