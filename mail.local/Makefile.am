@@ -2,7 +2,7 @@
 # Copyright (C) 2000,2001,2002 Free Software Foundation
 # See file COPYING in the distribution root directory for copying conditions.
 
-INCLUDES =-I$(srcdir) -I$(top_srcdir)/lib -I$(top_srcdir)/mailbox -I$(top_srcdir)/include -I$(top_srcdir)/libmu_scm @GUILE_INCLUDES@ @INTLINCS@
+INCLUDES =-I$(srcdir) -I$(top_srcdir)/lib -I$(top_srcdir)/mailbox -I$(top_srcdir)/include @GUILE_INCLUDES@ @INTLINCS@
 SUBDIRS = testsuite
 
 libexec_PROGRAMS = mail.local
