@@ -194,6 +194,7 @@ main (int argc, char *argv[])
 	
 #ifdef HAVE_MYSQL
   mu_register_getpwnam (getMpwnam);
+  mu_register_getpwuid (getMpwuid);
 #endif
 #ifdef USE_VIRTUAL_DOMAINS
   mu_register_getpwnam (getpwnam_virtual);
@@ -393,7 +394,7 @@ make_tmp (const char *from, char **tempfile)
 	  {
 	    if (!from)
 	      {
-		struct passwd *pw = getpwuid (uid);
+		struct passwd *pw = mu_getpwuid (uid);
 		if (pw)
 		  from = pw->pw_name;
 	      }
