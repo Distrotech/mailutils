@@ -60,6 +60,11 @@ sieve_require (list_t slist)
 	  reqfn = sieve_require_test;
 	  text = "test";
 	}
+      else if (strcmp (name, "relational") == 0) /* RFC 3431 */
+	{
+	  reqfn = sieve_require_relational;
+	  text = "";
+	}
       else
 	{
 	  reqfn = sieve_require_action;
