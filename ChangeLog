@@ -1,3 +1,16 @@
+2001-09-16  Alain Magloire
+
+	This is after a exchange with Dave Inglis and Sam Roberts.
+	Basically they recommand to drop the XX_release() functions
+	and only to keep XX_create (), XX_destroy ().  We have simple
+	reference count strategy for memory management.
+
+	* mailbox2/* : Way too much to enumerate.
+	* mailbox2/refcount.c: New file
+	* mailbox2/include/mailutils/refcount.h: New file
+	* mailbox2/include/mailutils/sys/refcount.h: New file
+	* mailbox2/fdstream.c: stream_fd_create ().
+
 2001-09-15  Alain Magloire
 
 	The exercise is to crank up the warnings from gcc and cleanup
