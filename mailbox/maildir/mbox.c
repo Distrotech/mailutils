@@ -71,6 +71,7 @@ struct _maildir_message
   struct _amd_message amd_message;
   int newflag;
   char *file_name;
+  unsigned long uid;
 };
 
 
@@ -311,6 +312,22 @@ maildir_msg_free (struct _amd_message *amsg)
   free (mp->file_name);
 }
 
+static int
+maildir_message_uid (message_t msg, size_t *puid)
+{
+  struct _maildir_message *mp = message_get_owner (msg);
+  if (puid)
+    *puid = mp->uid;
+  return 0;
+}
+
+static size_t
+maildir_next_uid (struct _amd_data *amd)
+{
+  struct _maildir_message *msg = (struct _maildir_message *) amd->msg_tail;
+  return (msg ? msg->uid : 0) + 1;
+}
+
 /* According to http://www.qmail.org/qmail-manual-html/man5/maildir.html 
    a file in tmp may be safely removed if it has not been accessed in 36
    hours */
@@ -371,6 +388,7 @@ maildir_msg_init (struct _amd_data *amd, struct _amd_message *amm)
     {
       if (stat (name, &st) < 0 && errno == ENOENT)
 	{
+	  msg->uid = amd->next_uid (amd);
 	  msg->file_name = name;
 	  return 0;
 	}
@@ -520,7 +538,10 @@ maildir_scan_dir (struct _amd_data *amd, DIR *dir)
 	    msg->amd_message.attr_flags = 0;
 	  msg->amd_message.deleted = msg->amd_message.attr_flags & MU_ATTRIBUTE_DELETED;
 	  if (insert)
-	    _amd_message_insert (amd, (struct _amd_message*) msg);
+	    {
+	      msg->uid = amd->next_uid (amd);
+	      _amd_message_insert (amd, (struct _amd_message*) msg);
+	    }
 	}
     }
   return 0;
@@ -620,8 +641,8 @@ _mailbox_maildir_init (mailbox_t mailbox)
   amd->msg_file_name = maildir_message_name;
   amd->scan0 = maildir_scan0;
   amd->msg_cmp = maildir_message_cmp;
-  amd->message_uid = NULL; /* FIXME */
-  amd->next_uid = NULL; /* FIXME */
+  amd->message_uid = maildir_message_uid;
+  amd->next_uid = maildir_next_uid;
   
   /* Set our properties.  */
   {
