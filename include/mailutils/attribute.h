@@ -31,7 +31,18 @@ extern "C" {
 #define MU_ATTRIBUTE_SEEN     0x10
 #define MU_ATTRIBUTE_READ     0x20
 #define MU_ATTRIBUTE_MODIFIED 0x40
-#define MU_ATTRIBUTE_RECENT   0x00
+
+/* A message is recent if the current session is the first session
+   to have been notified about it. Practically, a message is considered
+   "recent" if it does not have MU_ATTRIBUTE_SEEN set. For consistency
+   a pseudo-attribute is provided: */
+#define MU_ATTRIBUTE_RECENT   0 
+
+#define MU_ATTRIBUTE_IS_UNSEEN(f) \
+      ((f) == 0 || ! ((f) & MU_ATTRIBUTE_SEEN))
+
+#define MU_ATTRIBUTE_IS_UNREAD(f) \
+      ((f) == 0 || ! ((f) & MU_ATTRIBUTE_READ))
 
 extern int attribute_create          __P ((attribute_t *, void *));
 extern void attribute_destroy        __P ((attribute_t *, void *));
