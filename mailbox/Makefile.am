@@ -178,10 +178,12 @@ sysexits.h: sysexit_.h
 	mv sysexits.h-t sysexits.h
 MOSTLYCLEANFILES += sysexits.h sysexits.h-t
 
+libmailbox_la_SOURCES += unlocked-io.h
+
 libmailbox_la_SOURCES += printf-args.h printf-parse.h vasnprintf.h
 
 libmailbox_la_SOURCES += vsnprintf.h
 
 libmailbox_la_SOURCES += xsize.h
 
-EXTRA_DIST += getline.c getline.c getndelim2.c getndelim2.c getopt.c getopt1.c mempcpy.c mempcpy.h mempcpy.c regex.c strcasecmp.c strncasecmp.c strchrnul.c strndup.c strnlen.c strtok_r.c vasnprintf.c printf-args.c printf-parse.c asnprintf.c vsnprintf.c
+EXTRA_DIST += regex.c getline.c getline.c getndelim2.c getndelim2.c getopt.c getopt1.c mempcpy.c mempcpy.h mempcpy.c strcasecmp.c strncasecmp.c strchrnul.c strndup.c strnlen.c strtok_r.c vasnprintf.c printf-args.c printf-parse.c asnprintf.c vsnprintf.c

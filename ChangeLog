@@ -1,3 +1,13 @@
+2005-02-24  Sergey Poznyakoff
+
+	Update by gnulib-sync.
+	
+	* lib/stdbool.h: New file
+	* m4/unlocked-io.m4: New file
+	* m4/argp.m4: Updated
+	* m4/gnulib.m4: Updated
+	* mailbox/Makefile.am: Updated
+
 2005-02-23  Sergey Poznyakoff  
 
 	Synchronized with the recent gnulib. Provide a way to

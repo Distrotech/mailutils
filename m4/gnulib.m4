@@ -101,6 +101,9 @@ gl_FUNC_STRNLEN
 # sysexits
 gl_SYSEXITS
 
+# unlocked-io
+gl_FUNC_GLIBC_UNLOCKED_IO
+
 # vasnprintf
 gl_FUNC_VASNPRINTF
 
