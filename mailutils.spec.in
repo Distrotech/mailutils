@@ -17,23 +17,23 @@ Group: Console/Mail
 %description
 GNU mail utilities
 
-%package libmailbox
+%package -n libmailbox
 Summary: GNU mail utilities mailbox access library
 Copyright: LGPL
 Group: Development/Libraries
 
-%description libmailbox
+%description -n libmailbox
 The runtime library libmailbox. This library contains various mailbox
 access routines and support for a number of mailbox types, such as
 mbox, Maildir, POP3, and IMAP4.
 
-%package libmailbox-devel
+%package -n libmailbox-dev
 Summary: GNU mail utilities mailbox access library development
 Copyright: LGPL
 Requires: libmailbox
 Group: Development/Libraries
 
-%description libmailbox-devel
+%description -n libmailbox-dev
 The static library and header files for libmailbox. API documentation
 is in mailutils-doc.
 
@@ -46,21 +46,21 @@ Group: Development/Libraries
 API reference for libmailbox and user documentation for the rest of
 the GNU mail utilities.
 
-%package mail
+%package -n gnu-mail
 Summary: GNU mail utilties mail(x) replacement
 Requires: libmailbox
 Group: Console/Mail
 
-%description mail
+%description -n gnu-mail
 A replacement for /bin/mail(x) conforming to the UNIX98 specification
 for mailx.
 
-%package pop3d
+%package -n gnu-pop3d
 Summary: GNU mail utilites POP3 daemon
 Requires: libmailbox
 Group: Networking/Daemons
 
-%description pop3d
+%description -n gnu-pop3d
 The GNU POP3 daemon. Uses libmailbox to support different styles of
 mailboxes.
 
@@ -79,9 +79,9 @@ gzip -9n $RPM_BUILD_ROOT%{prefix}/info/*
 %clean
 rm -rf $RPM_BUILD_ROOT
 
-%post libmailbox -p /sbin/ldconfig
+%post -n libmailbox -p /sbin/ldconfig
 
-%postun libmailbox -p /sbin/ldconfig
+%postun -n libmailbox -p /sbin/ldconfig
 
 %post doc
 /sbin/install-info %{prefix}/info/mailutils.info.gz %{prefix}/info/dir
@@ -90,11 +90,11 @@ rm -rf $RPM_BUILD_ROOT
 /sbin/install-info --delete %{prefix}/info/mailutils.info.gz \
     %{prefix}/info/dif
 
-%files libmailbox
+%files -n libmailbox
 %defattr(-, root, root)
 %{prefix}/lib/libmailbox.so.*
 
-%files libmailbox-devel
+%files -n libmailbox-dev
 %defattr(-, root, root)
 %{prefix}/lib/lib*.so
 %{prefix}/lib/*a
@@ -104,10 +104,10 @@ rm -rf $RPM_BUILD_ROOT
 %doc AUTHORS COPYING ChangeLog NEWS README THANKS TODO
 %{prefix}/info/*
 
-%files mail
+%files -n gnu-mail
 %defattr(-, root, root)
 %{prefix}/bin/mail
 
-%files pop3d
+%files -n gnu-pop3d
 %defattr(-, root, root)
 %{prefix}/sbin/pop3d

@@ -9,3 +9,5 @@ EXTRA_DIST = mailutils.spec mailutils.spec.in README-alpha COPYING.FDL
 release:
 	$(MAKE) dist distdir=$(PACKAGE)-`date +"%Y%m%d"`
 
+rpm: dist
+	rpm -ta --clean gdbc-$(VERSION).tar.gz
