@@ -362,7 +362,7 @@ mu_daemon_argp_parser (int key, char *arg, struct argp_state *state)
 #endif
 
 #ifndef MU_USER_CONFIG_FILE
-# define MU_USER_CONFIG_FILE ".mailutils"
+# define MU_USER_CONFIG_FILE "~/.mailutils"
 #endif
 
 static int
@@ -375,6 +375,12 @@ member (const char *array[], const char *text, size_t len)
   return 0;
 }
 
+/*
+Appends applicable options found in file NAME to argv. If progname
+is NULL, all the options found are assumed to apply. Otherwise they
+apply only if the line starts with ":something", and something is
+found in the CAPA array, or the line starts with PROGNAME.
+*/
 void
 read_rc (const char *progname, const char *name, const char *capa[],
 	 int *argc, char ***argv)
@@ -385,10 +391,20 @@ read_rc (const char *progname, const char *name, const char *capa[],
   size_t n = 0;
   int x_argc = *argc;
   char **x_argv = *argv;
+  char* rcfile = mu_tilde_expansion (name, "/", NULL);
 
-  fp = fopen (name, "r");
+  if (!rcfile)
+    {
+      fprintf (stderr, "%s: not enough memory\n", progname);
+      exit (1);
+    }
+
+  fp = fopen (rcfile, "r");
   if (!fp)
+  {
+    free(rcfile);
     return;
+  }
   
   while (getline (&buf, &n, fp) > 0)
     {
@@ -435,12 +451,19 @@ read_rc (const char *progname, const char *name, const char *capa[],
 	}
 
       len = 0;
+      if(progname)
+      {
       for (p = kwp; *p && !isspace (*p); p++)
 	len++;
+      }
+      else
+	p = kwp; /* Use the whole line. */
 
-      if ((kwp[0] == ':'
-	   && member (capa, kwp+1, len-1))
-	  || strncmp (progname, kwp, len) == 0)
+      if (
+	  progname == NULL
+	  || (kwp[0] == ':' && member (capa, kwp+1, len-1))
+	  || strncmp (progname, kwp, len) == 0
+	  )
 	{
 	  int i, n_argc = 0;
 	  char **n_argv;
@@ -471,6 +494,7 @@ read_rc (const char *progname, const char *name, const char *capa[],
 	}
     }
   fclose (fp);
+  free(rcfile);
 
   *argc = x_argc;
   *argv = x_argv;
@@ -485,8 +509,7 @@ mu_create_argcv (const char *capa[],
   int x_argc;
   char **x_argv;
   int i;
-  struct passwd *pw;
-  
+
   progname = strrchr (argv[0], '/');
   if (progname)
     progname++;
@@ -505,28 +528,30 @@ mu_create_argcv (const char *capa[],
   x_argv[x_argc] = argv[x_argc];
   x_argc++;
 
+  /* Add global config file. */
   read_rc (progname, MU_CONFIG_FILE, capa, &x_argc, &x_argv);
-  pw = getpwuid (getuid ());
-  if (pw)
-    {
-      struct stat sb;
 
-      if (stat (pw->pw_dir, &sb) == 0 && S_ISDIR (sb.st_mode))
-	{
-	  /* note: sizeof return value counts terminating zero */
-	  char *name = xmalloc (strlen (pw->pw_dir) + 1
-					+ sizeof (MU_USER_CONFIG_FILE));
-	  sprintf (name, "%s/%s", pw->pw_dir, MU_USER_CONFIG_FILE);
-	  read_rc (progname, name, capa, &x_argc, &x_argv);
-	  free (name);
-	}
-    }
+  /* Add per-user config file. */
+  read_rc (progname, MU_USER_CONFIG_FILE, capa, &x_argc, &x_argv);
+
+  /* Add per-program (and per-user) config file. */
+  {
+    char* progrc = malloc (strlen (progname) + 3 /* ~/ */  + 3 /* rc */  + 1);
+    if (!progrc)
+      {
+	fprintf (stderr, "%s: not enough memory\n", progname);
+	exit (1);
+      }
+    sprintf (progrc, "~/.%src", progname);
+    read_rc (NULL, progrc, capa, &x_argc, &x_argv);
+    free (progrc);
+  }
 
   /* Finally, add the command line options */
   x_argv = realloc (x_argv, (x_argc + argc) * sizeof (x_argv[0]));
   for (i = 1; i < argc; i++)
     x_argv[x_argc++] = argv[i];
-  
+
   x_argv[x_argc] = NULL;
 
   *p_argc = x_argc;
@@ -562,9 +587,9 @@ mu_build_argp (const struct argp *template, const char *capa[])
   struct argp *argp;
   
   /* Count the capabilities */
-  for (n = 0; capa[n]; n++)
+  for (n = 0; capa && capa[n]; n++)
     ;
-  if (template->children)
+  if (template && template->children)
     for (; template->children[n].argp; n++)
       ;
       
@@ -576,11 +601,11 @@ mu_build_argp (const struct argp *template, const char *capa[])
     }
 
   n = 0;
-  if (template->children)
+  if (template && template->children)
     for (; template->children[n].argp; n++)
       ap[n] = template->children[n];
   
-  for (; capa[n]; n++)
+  for (; capa && capa[n]; n++)
     {
       struct argp_child *tmp = find_argp_child (capa[n]);
       if (!tmp)
@@ -621,3 +646,4 @@ mu_argp_parse(const struct argp *argp,
   free ((void*) argp);
   return ret;
 }
+
