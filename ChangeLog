@@ -1,3 +1,19 @@
+2002-09-05  Sergey Poznyakoff 
+
+	* mailbox/mbx_mh.c: Rewritten to use MH sequence numbers
+	  as UIDs. This allows to simplify the code and to get rid
+	  of mh_message_number(), which didn't fit well in the
+	  mailutils framework. 
+	* mh/mh.h: Changed type of `prog' to mh_instr_t, which is
+	  a union of all objects that can be held in a program text
+	  cell. This fixes potential problems due to sizeof(int)!=
+	  sizeof(void*).
+	* mh/mh_fmtgram.y: Likewise.
+	* mh/mh_format.c: Likewise.
+	* mh/mh_init.c (mh_message_number): A wrapper around
+	  message_get_uid call. Returns the sequence number of
+	  the message.
+	
 2002-09-04  Sergey Poznyakoff 
 
 	* README: Verbose description of --with-mail-spool configuration
