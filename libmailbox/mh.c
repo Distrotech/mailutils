@@ -51,7 +51,7 @@ mh_open (mailbox * mbox)
       char *foo = NULL;
       if (entry->d_name[0] == '.')
 	{
-	  if (strcmp(entry->d_name, ".mh_sequences" == 0))
+	  if (strcmp(entry->d_name, ".mh_sequences") == 0)
 	    /* TODO: deal with mh sequence files */;
 	  continue;
 	}
