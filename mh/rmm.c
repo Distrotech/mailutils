@@ -21,7 +21,7 @@
 
 const char *argp_program_version = "rmm (" PACKAGE_STRING ")";
 static char doc[] = "GNU MH rmm";
-static char args_doc[] = "[+folder][messages]";
+static char args_doc[] = "[+folder] [msgs]";
 
 /* GNU options */
 static struct argp_option options[] = {
@@ -73,7 +73,7 @@ main (int argc, char **argv)
 
   mbox = mh_open_folder (current_folder, 0);
 
-  mh_msgset_parse (mbox, &msgset, argc - index, argv + index);
+  mh_msgset_parse (mbox, &msgset, argc - index, argv + index, "cur");
 
   status = mh_iterate (mbox, &msgset, rmm, NULL);
 
