@@ -474,10 +474,11 @@ _comp_action (void *item, void *data)
 
   d.comp = cp->comp;
   for (i = 0; cp->retr (item, cp->data, i, &d.sample) == 0; i++)
-    {
-      rc = sieve_vlist_do (cp->val, _comp_action2, &d);
-      free (d.sample);
-    }
+    if (d.sample)
+      {	    
+        rc = sieve_vlist_do (cp->val, _comp_action2, &d);
+        free (d.sample);
+      }
   return rc;
 }
 
