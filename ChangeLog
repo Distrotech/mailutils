@@ -1,3 +1,10 @@
+2001-10-08 Sergey Poznyakoff
+
+	* mail/z.c: Bugfix: Did not display the last message when the
+	number of lines in last page was less than pagelines.
+	* mailbox/mbx_pop.c: Use ENOSYS instead of ENOTSUP.
+	* mh/mh_format.c: Fixed memory leak in strobj_free().
+ 
 2001-10-05 Alain Magloire
 
 	* mailbox/folder_imap.c (imap_flags): Bailout at the matching
