@@ -549,7 +549,7 @@ mbox_scan0 (mailbox_t mailbox, size_t msgno, size_t *pcount, int do_notif)
   size_t n = 0;
   stream_t stream;
   char **sfield = NULL;
-
+  size_t min_uid = 0;
   int zn, isfrom = 0;
   char *temp;
 
@@ -636,8 +636,19 @@ mbox_scan0 (mailbox_t mailbox, size_t msgno, size_t *pcount, int do_notif)
 		{
 		  mum->body_end = total - n - newline;
 		  mum->body_lines = --lines - newline;
+
+		  if (mum->uid <= min_uid)
+		    {
+		      mum->uid = ++min_uid;
+		      /* Note that modification for when expunging.  */
+		      mum->attr_flags |= MU_ATTRIBUTE_MODIFIED;
+		    }
+		  else
+		    min_uid = mum->uid;
+	  
 		  if (do_notif)
 		    DISPATCH_ADD_MSG(mailbox, mud);
+
 		}
 	      /* Allocate_msgs will initialize mum.  */
 	      ALLOCATE_MSGS(mailbox, mud);
@@ -785,6 +796,16 @@ mbox_scan0 (mailbox_t mailbox, size_t msgno, size_t *pcount, int do_notif)
     {
       mum->body_end = total - newline;
       mum->body_lines = lines - newline;
+
+      if (mum->uid <= min_uid)
+	{
+	  mum->uid = ++min_uid;
+	  /* Note that modification for when expunging.  */
+	  mum->attr_flags |= MU_ATTRIBUTE_MODIFIED;
+	}
+      else
+	min_uid = mum->uid;
+      
       if (do_notif)
 	DISPATCH_ADD_MSG(mailbox, mud);
     }
@@ -805,33 +826,14 @@ mbox_scan0 (mailbox_t mailbox, size_t msgno, size_t *pcount, int do_notif)
 	  mum->attr_flags |= MU_ATTRIBUTE_MODIFIED;
 	}
     }
-  /* Reset the IMAP uids, if necessary. UID according to IMAP RFC is a 32 bit
-     ascending number for each messages  */
-  {
-    size_t uid;
-    size_t ouid;
-    size_t i;
-    for (uid = ouid = i = 0; i < mud->messages_count; i++)
-      {
-	mum = mud->umessages[i];
-	uid = mum->uid;
-	if (uid <= ouid)
-	  {
-	    uid = ouid + 1;
-	    mum->uid = ouid = uid;
-	    /* Note that modification for when expunging.  */
-	    mum->attr_flags |= MU_ATTRIBUTE_MODIFIED;
-	  }
-	else
-	  ouid = uid;
-      }
-    if (mud->messages_count > 0 && uid >= mud->uidnext)
-      {
-	mum = mud->umessages[0];
-	mud->uidnext = uid + 1;
-	mum->attr_flags |= MU_ATTRIBUTE_MODIFIED;
-      }
-  }
+      
+  if (mud->messages_count > 0 && min_uid >= mud->uidnext)
+    {
+      mum = mud->umessages[0];
+      mud->uidnext = min_uid + 1;
+      mum->attr_flags |= MU_ATTRIBUTE_MODIFIED;
+    }
+
 #ifdef WITH_PTHREAD
   pthread_cleanup_pop (0);
 #endif
