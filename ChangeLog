@@ -1,4 +1,9 @@
-2003-10-17  Sergey Poznyakoff  <gray@Mirddin.farlep.net>
+2003-10-17  Sergey Poznyakoff
+
+	* mailbox2: It is hopelessly obsolete. Removed. We'd better modify
+	the files "in situ".
+	
+2003-10-17  Sergey Poznyakoff
 
 	* doc/texinfo/programs.texi (pop3d): Documented new option.
 	* examples/timestamp.c: New file. Implements sieve extension
