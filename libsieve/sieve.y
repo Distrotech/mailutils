@@ -39,6 +39,10 @@ static void branch_fixup __P((size_t start, size_t end));
   list_t list;
   size_t pc;
   struct {
+    size_t start;
+    size_t end;
+  } pclist;
+  struct {
     char *ident;
     list_t args;
   } command;
@@ -57,7 +61,7 @@ static void branch_fixup __P((size_t start, size_t end));
 %type <value> arg
 %type <list> slist stringlist stringorlist arglist maybe_arglist
 %type <command> command
-%type <number> testlist
+%type <pclist> testlist
 %type <pc> action test statement list elsif else cond begin if block
 %type <branch> elsif_branch maybe_elsif else_part
 
@@ -171,15 +175,19 @@ block        : '{' list '}'
 
 testlist     : cond_expr
                {
-		 if (sieve_code_instr (instr_push))
+		 $$.start = $$.end = sieve_machine->pc;
+		 if (sieve_code_instr (instr_brz)
+		     || sieve_code_number (0))
 		   YYERROR;
-		 $$ = 1;
 	       }
              | testlist ',' cond_expr
                {
-		 if (sieve_code_instr (instr_push))
+		 sieve_machine->prog[$1.end+1].pc = sieve_machine->pc;
+		 $1.end = sieve_machine->pc;
+		 if (sieve_code_instr (instr_brz)
+		     || sieve_code_number (0))
 		   YYERROR;
-		 $$ = $1 + 1;
+		 $$ = $1;
 	       }
              ;
 
@@ -195,15 +203,11 @@ cond_expr    : test
                { /* to placate bison */ }
              | ANYOF '(' testlist ')'
                {
-		 if (sieve_code_instr (instr_anyof)
-		     || sieve_code_number ($3))
-		   YYERROR;
+		 sieve_code_anyof ($3.start);
 	       }
              | ALLOF '(' testlist ')'
                {
-		 if (sieve_code_instr (instr_allof)
-		     || sieve_code_number ($3))
-		   YYERROR;
+		 sieve_code_allof ($3.start);
 	       }
              | NOT cond_expr
                {
