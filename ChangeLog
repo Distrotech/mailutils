@@ -1,3 +1,45 @@
+2002-11-05  Sergey Poznyakoff 
+
+	* mail/reply.c: Add In-Reply-To and References headers to the
+	  outgoing message.
+	* mail/var.c (var_quote): Output prefix sequence before each line
+	  of multiline headers.
+	* mail/from.c (mail_from0): Function shared between from.c and
+	  headers.c
+	* mail/headers.c: Use mail_from0 to avoid spurious diagnostics
+	  about deleted messages.
+	* mail/msgset.y (yylex): allow for '-' in field names. Notice,
+	  that if the dash means 'range' and the first message in the
+	  range is not numeric, there should be whitespace between
+	  them.
+	* mail/util.c (util_get_message): Expanded semantics of the last
+	  argument. It now contains flags that control how
+	  util_get_message operates. Flags are a bitwise sum of the
+	  following:
+		MSG_ALL		Return any message (deleted or not)
+		MSG_NODELETED	Do not return deleted messages.
+		MSG_SILENT	Do not output warnings about deleted
+				messages.
+	* mail/mail.h (mail_from0): New function.
+	  (MSG_ALL,MSG_NODELETED,MSG_SILENT): New macros.
+	  
+	* mail/copy.c: Use MSG_.* macros in calls to util_get_message.
+	* mail/delete.c: Likewise.
+	* mail/followup.c: Likewise.
+	* mail/hold.c: Likewise.
+	* mail/mbox.c: Likewise.
+	* mail/pipe.c: Likewise.
+	* mail/print.c: Likewise.
+	* mail/quit.c: Likewise.
+	* mail/size.c: Likewise.
+	* mail/top.c: Likewise.
+	* mail/undelete.c: Likewise.
+	* mail/write.c: Likewise.
+
+	* mail/testsuite/mail/send.exp: Changed to reflect new reply behaviour.
+
+	* include/mailutils/header.h: Added MU_HEADER_REFERENCES.
+	
 2002-11-04  Sergey Poznyakoff
 
 	* auth/virtual.c (mu_auth_virt_domain_by_name): Bugfix. Didn't
