@@ -398,7 +398,7 @@ getpwnam_virtual (const char *u)
 	  }
       }
 
-  return NULL;
+  return pw;
 }
 
 #endif
