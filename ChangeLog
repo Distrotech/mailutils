@@ -1,5 +1,7 @@
 1999-10-03  Jeff Bailey  <jbailey@cr499794-a.crdva1.bc.wave.home.com>
 
+	* mail/mail.c: Support --help, --version.
+
 	* mail/Makefile.am: Add -Wall to compile line.
 
 	* libmailbox/Makefile.am: Add -Wall to compile line.

@@ -22,6 +22,9 @@
 #include <mailbox.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
+#include <getopt.h>
 
 #ifdef HAVE_PATHS_H
 #include <paths.h>
@@ -31,20 +34,46 @@
 #define _PATH_MAILDIR "/var/spool/mail"
 #endif
 
+static struct option long_options[] =
+{
+  {"help", 0, NULL, 'h'},
+  {"version", 0, NULL, 'v'},
+  {NULL, 0, NULL, 0}
+};
+
 int
 main (int argc, char **argv)
 {
   char *foo, bar[80];
   int i = 0;
   char c = 0;
-  char *mboxname;
-  mailbox *mbox;
+  char *mboxname = 0;
+  mailbox *mbox = 0;
 
-  if (argc != 1)
+  i = getopt_long (argc, argv, "hv", long_options, (int *)0);
+
+  switch (i)
     {
-      fprintf (stderr, "Usage: %s\n", argv[0]);
-      return 1;
+    case 'v':
+      printf("mail (GNU mailutils) %s\n", VERSION);
+      exit (0);
+      break;
+    case 'h':
+      printf("\
+Usage: mail [OPTION]...\n\
+Access the current users mailbox through a simple text mode interface\n\
+\n\
+  --version  Show version information\n\
+  --help     Show this message\n\
+\n\
+Report bugs to <bug-mailutils@gnu.org>.\n");
+      exit (0);
+      break;
+    default:
+      break;
     }
+
+
 
   mboxname = getenv ("MAIL");
   if (mboxname == NULL)
