@@ -740,7 +740,7 @@ SCM_DEFINE (mu_message_send, "mu-message-send", 1, 3, 0,
   char *mailer_name;
   address_t from = NULL;
   address_t to = NULL;
-  mailer_t mailer;
+  mailer_t mailer = NULL;
   message_t msg;
   int status;
   
