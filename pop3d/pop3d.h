@@ -62,14 +62,30 @@
 /* Command not permitted when TLS active. */
 #define TLS_ACTIVE      "Command not permitted when TLS active"
 
+/* Trying to log in within the minimum login delay interval */
+#define LOGIN_DELAY     "Attempt to log in within the minimum login delay interval"
+
 /* APOP password file, without .db or .passwd, which are added based on file
    type automatically */
 #define APOP_PASSFILE_NAME "apop"
 
 #ifdef USE_DBM
 # define APOP_PASSFILE SYSCONFDIR "/" APOP_PASSFILE_NAME
+# define ENABLE_LOGIN_DELAY
 #else
 # define APOP_PASSFILE SYSCONFDIR "/" APOP_PASSFILE_NAME ".passwd"
+# undef ENABLE_LOGIN_DELAY
+#endif
+
+#ifdef ENABLE_LOGIN_DELAY
+# define LOGIN_STAT_FILE "/var/run/pop3-login"
+extern time_t login_delay;
+extern char *login_stat_file;
+extern int check_login_delay __P((char *username));
+extern void update_login_delay __P((char *username));
+#else
+# define check_login_delay(u) 0
+# define update_login_delay(u)
 #endif
 
 /* Size of the MD5 digest for APOP */
@@ -173,6 +189,7 @@
 #define ERR_MBOX_SYNC   16
 #define ERR_TLS_ACTIVE  17
 #define ERR_TLS_IO      18
+#define ERR_LOGIN_DELAY 19
 
 extern mailbox_t mbox;
 extern int state;
