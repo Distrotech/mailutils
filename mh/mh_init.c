@@ -24,6 +24,8 @@
 
 char *current_folder = "inbox";
 size_t current_message;
+char *ctx_name;
+header_t ctx_header;
 char mh_list_format[] = 
 "%4(msg)%<(cur)+%| %>%<{replied}-%?{encrypted}E%| %>"
 "%02(mon{date})/%02(mday{date})"
@@ -37,8 +39,6 @@ void
 mh_init ()
 {
   list_t bookie;
-  char *ctx_name;
-  header_t header = NULL;
 
   /* Register mailbox formats */
   registrar_get_list (&bookie);
@@ -73,16 +73,31 @@ mh_init ()
 
   ctx_name = xmalloc (strlen (current_folder)+sizeof (MH_SEQUENCES_FILE)+2);
   sprintf (ctx_name, "%s/%s", current_folder+3, MH_SEQUENCES_FILE);
-  if (mh_read_context_file (ctx_name, &header) == 0)
+  if (mh_read_context_file (ctx_name, &ctx_header) == 0)
     {
       char buf[64];
       size_t n;
        
-      if (!header_get_value (header, "cur", buf, sizeof buf, &n))
+      if (!header_get_value (ctx_header, "cur", buf, sizeof buf, &n))
  	current_message = strtoul (buf, NULL, 10);
-      header_destroy (&header, NULL);
     }
-  free (ctx_name);
+}
+
+void
+mh_save_context ()
+{
+  char buf[64];
+  snprintf (buf, sizeof buf, "%d", current_message);
+  if (!ctx_header)
+    {
+      if (header_create (&ctx_header, NULL, 0, NULL))
+	{
+	  mh_error ("Can't create context: %s", strerror (errno));
+	  return;
+	}
+    }
+  header_set_value (ctx_header, "cur", buf, 1);
+  mh_write_context_file (ctx_name, ctx_header);
 }
 
 int 
@@ -114,6 +129,35 @@ mh_read_context_file (char *path, header_t *header)
     free (blurb);
 
   return status;
+}
+
+int 
+mh_write_context_file (char *path, header_t header)
+{
+  stream_t stream;
+  char buffer[512];
+  size_t off = 0, n;
+  FILE *fp;
+  
+  fp = fopen (path, "w");
+  if (!fp)
+    {
+      mh_error ("can't write context file %s: %s", path, strerror (errno));
+      return 1;
+    }
+  
+  header_get_stream (header, &stream);
+
+  while (stream_read (stream, buffer, sizeof buffer - 1, off, &n) == 0
+	 && n != 0)
+    {
+      buffer[n] = '\0';
+      fprintf (fp, "%s", buffer);
+      off += n;
+    }
+
+  fclose (fp);
+  return 0;
 }
 
 int
@@ -202,3 +246,78 @@ mh_is_my_name (char *name)
   return strcasecmp (name, my_email) == 0;
 }
 
+int
+mh_check_folder (char *pathname)
+{
+  char *p;
+  struct stat st;
+  
+  if ((p = strchr (pathname, ':')) != NULL)
+    p++;
+  else
+    p = pathname;
+
+  if (stat (p, &st))
+    {
+      if (errno == ENOENT)
+	{
+	  if (mh_getyn ("Create folder \"%s\"", p))
+	    {
+	      if (mkdir (p, 0777)) /* FIXME: Permissions */
+		{
+		  mh_error ("Can't create directory %s: %s",
+			    p, strerror (errno));
+		  return 1;
+		}
+	      return 0;
+	    }
+	  else
+	    return 1;
+	}
+      else
+	{
+	  mh_error ("can't stat %s: %s", p, strerror (errno));
+	  return 1;
+	}
+    }
+  return 0;
+}
+
+int
+mh_getyn (const char *fmt, ...)
+{
+  va_list ap;
+  char repl[64];
+  
+  va_start (ap, fmt);
+  while (1)
+    {
+      char *p;
+      int len;
+      
+      vfprintf (stdout, fmt, ap);
+      fprintf (stdout, "?");
+      p = fgets (repl, sizeof repl, stdin);
+      if (!p)
+	return 0;
+      len = strlen (p);
+      if (len > 0 && p[len-1] == '\n')
+	p[len--] = 0;
+
+      while (*p && isspace (*p))
+	p++;
+      
+      switch (p[0])
+	{
+	case 'y':
+	case 'Y':
+	  return 1;
+	case 'n':
+	case 'N':
+	  return 0;
+	}
+
+      fprintf (stdout, "Please answer yes or no: ");
+    }
+  return 0; /* to pacify gcc */
+}
