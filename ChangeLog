@@ -1,3 +1,10 @@
+2001-10-16  Sergey Poznyakoff
+	
+	* doc/texinfo/mailutils.texi: Eliminated overfull \hboxes in printed
+	output.
+	* doc/texinfo/programs.texi: Likewise. Use @ref instead of @xref
+	wherever appropriate.
+
 2001-10-15  Alain Magloire
 
 	* mailbox/sendmail.c: Use vfork() instead of fork().  In a
