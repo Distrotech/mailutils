@@ -21,10 +21,33 @@
  * ve[rsion]
  */
 
+static char *with_defs[] =
+{
+#ifdef WITH_PTHREAD
+  "PTHREAD",
+#endif
+#ifdef WITH_BDB2
+  "BDB2",
+#endif
+#ifdef WITH_READLINE
+  "READLINE",
+#endif
+  NULL
+};
+
 
 int
 mail_version (int argc, char **argv)
 {
-  fprintf (ofile, "%s\n", argp_program_version);
+  fprintf (ofile, "%s", argp_program_version);
+  if (with_defs[0] != NULL)
+    {
+      int i;
+      fprintf (ofile, " (");
+      for (i = 0; with_defs[i]; i++)
+	fprintf (ofile, " %s", with_defs[i]);
+      fprintf (ofile, " )");
+    }
+  fprintf (ofile, "\n");
   return 0;
 }
