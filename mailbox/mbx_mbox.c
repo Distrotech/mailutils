@@ -34,7 +34,6 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <signal.h>
-#include <stdlib.h>
 #include <time.h>
 #include <string.h>
 #include <ctype.h>
@@ -177,7 +176,7 @@ static int mbox_uidvalidity           __P ((mailbox_t, unsigned long *));
 static int mbox_uidnext               __P ((mailbox_t, size_t *));
 static int mbox_scan                  __P ((mailbox_t, size_t, size_t *));
 static int mbox_is_updated            __P ((mailbox_t));
-static int mbox_get_size                  __P ((mailbox_t, off_t *));
+static int mbox_get_size              __P ((mailbox_t, off_t *));
 
 /* private stuff */
 static int mbox_scan0                 __P ((mailbox_t, size_t, size_t *, int));
@@ -344,7 +343,7 @@ mbox_open (mailbox_t mailbox, int flags)
 
       /* Try to mmap () the file first.  */
       if (status == 0)
-	{
+	{ 
 	  status = mapfile_stream_create (&(mailbox->stream));
 	  if (status == 0)
 	    {
@@ -1015,7 +1014,7 @@ mbox_expunge (mailbox_t mailbox)
 	      if (status != 0)
 		{
 		  mu_error ("Error expunge:%d: %s", __LINE__,
-			    strerror (status));
+			  strerror (status));
 		  goto bailout0;
 		}
 	    }
@@ -1024,7 +1023,7 @@ mbox_expunge (mailbox_t mailbox)
 	  if (status != 0)
 	    {
 	      mu_error ("Error expunge:%d: %s", __LINE__,
-			strerror (status));
+		       strerror (status));
 	      goto bailout0;
 	    }
 	  /* Clear the dirty bits.  */
@@ -1047,7 +1046,7 @@ mbox_expunge (mailbox_t mailbox)
 					     total, &n) != 0))
 		{
 		  mu_error ("Error expunge:%d: %s", __LINE__,
-			    strerror (status));
+			   strerror (status));
 		  goto bailout0;
 		}
 	      len -= n;
@@ -1059,7 +1058,7 @@ mbox_expunge (mailbox_t mailbox)
 	  if (status != 0)
 	    {
 	      mu_error ("Error expunge:%d: %s", __LINE__,
-			strerror (status));
+		       strerror (status));
 	      goto bailout0;
 	    }
 	  total++;
@@ -1089,7 +1088,7 @@ mbox_expunge (mailbox_t mailbox)
 		if (status != 0)
 		  {
 		    mu_error ("Error expunge:%d: %s", __LINE__,
-			      strerror (status));
+			     strerror (status));
 		    goto bailout0;
 		  }
 		total += n;
@@ -1100,7 +1099,7 @@ mbox_expunge (mailbox_t mailbox)
 	  {
 	    /* Corrupted mailbox.  */
 	    mu_error ("Error expunge:%d: %s", __LINE__,
-		      strerror (status));
+		     strerror (status));
 	    goto bailout0;
 	  }
       }
@@ -1121,7 +1120,7 @@ mbox_expunge (mailbox_t mailbox)
 	  if (status != 0)
 	    {
 	      mu_error ("Error expunge:%d: %s\n", __LINE__,
-			strerror (status));
+		       strerror (status));
 	      goto bailout;
 	    }
 	  off += n;
@@ -1135,7 +1134,7 @@ mbox_expunge (mailbox_t mailbox)
   if (status != 0)
     {
       mu_error ("Error expunging:%d: %s\n", __LINE__,
-		strerror (status));
+	       strerror (status));
       goto bailout;
     }
 
@@ -1573,9 +1572,9 @@ mbox_get_message (mailbox_t mailbox, size_t msgno, message_t *pmsg)
   message_t msg = NULL;
 
   /* Sanity checks.  */
-  if (pmsg == NULL || mud == NULL)
+  if (pmsg == NULL || mud == NULL) 
     return EINVAL;
-
+  
   /* If we did not start a scanning yet do it now.  */
   if (mud->messages_count == 0)
     {
@@ -1587,7 +1586,7 @@ mbox_get_message (mailbox_t mailbox, size_t msgno, message_t *pmsg)
   /* Second sanity: check the message number.  */
   if (!(mud->messages_count > 0
 	&& msgno > 0
-	&& msgno <= mud->messages_count))
+	&& msgno <= mud->messages_count)) 
     return EINVAL;
 
   mum = mud->umessages[msgno - 1];
