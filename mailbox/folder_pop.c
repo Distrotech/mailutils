@@ -20,57 +20,32 @@
 #endif
 
 #include <errno.h>
-#include <stdlib.h>
-#include <string.h>
 
+#include <folder0.h>
 #include <registrar0.h>
-#include <url0.h>
 
-static void url_smtp_destroy (url_t purl);
+/* We export url parsing and the initialisation of
+   the mailbox, via the register entry/record.  */
 
-static void
-url_smtp_destroy (url_t url)
+static struct _record _pop_record =
 {
-  (void) url;
-}
+  MU_POP_SCHEME,
+  _url_pop_init, /* Mailbox init.  */
+  _mailbox_pop_init, /* Mailbox init.  */
+  NULL, /* Mailer init.  */
+  _folder_pop_init, /* Folder init.  */
+  NULL, /* No need for an back pointer.  */
+  NULL, /* _is_scheme method.  */
+  NULL, /* _get_url method.  */
+  NULL, /* _get_mailbox method.  */
+  NULL, /* _get_mailer method.  */
+  NULL  /* _get_folder method.  */
+};
+record_t pop_record = &_pop_record;
 
-/*
-  UNIX File
-  file:path
-*/
 int
-_url_smtp_init (url_t url)
+_folder_pop_init (folder_t folder)
 {
-  const char *name = url_to_string (url);
-  size_t len = strlen (name);
-
-  /* reject the obvious */
-  if (name == NULL || strncmp (MU_SMTP_SCHEME, name, MU_SMTP_SCHEME_LEN) != 0
-      || len < (MU_SMTP_SCHEME_LEN + 1) /* (scheme)+1(path)*/)
-    return EINVAL;
-
-  /* do I need to decode url encoding '% hex hex' ? */
-
-  /* TYPE */
-  url->_destroy = url_smtp_destroy;
-
-  /* SCHEME */
-  url->scheme = strdup (MU_SMTP_SCHEME);
-  if (url->scheme == NULL)
-    {
-      url_smtp_destroy (url);
-      return ENOMEM;
-    }
-
-  /* PATH */
-  name += MU_SMTP_SCHEME_LEN; /* pass the scheme */
-  url->host = strdup (name);
-  if (url->host == NULL)
-    {
-      url_smtp_destroy (url);
-      return ENOMEM;
-    }
-  url->port = MU_SMTP_PORT;
-
+  (void)folder;
   return 0;
 }

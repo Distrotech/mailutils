@@ -65,7 +65,6 @@ struct _mailbox
 
   /* Public methods */
 
-  int  (*_init)            __P ((mailbox_t));
   void (*_destroy)         __P ((mailbox_t));
 
   int  (*_open)            __P ((mailbox_t, int flag));

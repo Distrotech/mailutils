@@ -36,7 +36,8 @@ mailbox_create (mailbox_t *pmbox, const char *name)
 {
   int status = EINVAL;
   record_t record = NULL;
-  mailbox_entry_t entry = NULL;
+  int (*m_init) __P ((mailbox_t)) = NULL;
+  int (*u_init) __P ((url_t)) = NULL;
   iterator_t iterator;
   list_t list;
   int found = 0;
@@ -55,8 +56,9 @@ mailbox_create (mailbox_t *pmbox, const char *name)
       iterator_current (iterator, (void **)&record);
       if (record_is_scheme (record, name))
 	{
-	  record_get_mailbox (record, &entry);
-	  if (entry)
+	  record_get_mailbox (record, &m_init);
+	  record_get_url (record, &u_init);
+	  if (m_init && u_init)
 	    {
 	      found = 1;
 	      break;
@@ -87,7 +89,7 @@ mailbox_create (mailbox_t *pmbox, const char *name)
       /* Parse the url, it may be a bad one and we should bailout if this
 	 failed.  */
       if ((status = url_create (&url, name)) != 0
-	  || (status = entry->_url_init (url)) != 0)
+	  || (status = u_init (url)) != 0)
 	{
 	  mailbox_destroy (&mbox);
 	  return status;
@@ -95,7 +97,7 @@ mailbox_create (mailbox_t *pmbox, const char *name)
       mbox->url = url;
 
       /* Create the concrete mailbox type.  */
-      status = entry->_mailbox_init (mbox);
+      status = m_init (mbox);
       if (status != 0)
 	{
 	  mailbox_destroy (&mbox);

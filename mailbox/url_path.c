@@ -23,11 +23,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <mailutils/registrar.h>
+#include <registrar0.h>
 #include <url0.h>
 
 static void url_path_destroy (url_t);
-int url_path_init (url_t);
 
 static void
 url_path_destroy (url_t url)
@@ -36,7 +35,7 @@ url_path_destroy (url_t url)
 }
 
 int
-url_path_init (url_t url)
+_url_path_init (url_t url)
 {
   const char *name = url_to_string (url);
   /* reject the obvious */
@@ -46,7 +45,6 @@ url_path_init (url_t url)
   /* FIXME: do I need to decode url encoding '% hex hex' ? */
 
   /* TYPE */
-  url->_init = url_path_init;
   url->_destroy = url_path_destroy;
 
   /* SCHEME */

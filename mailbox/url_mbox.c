@@ -23,10 +23,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <mailutils/registrar.h>
+#include <registrar0.h>
 #include <url0.h>
 
-int url_mbox_init (url_t purl);
 static void url_mbox_destroy (url_t purl);
 
 static void
@@ -40,7 +39,7 @@ url_mbox_destroy (url_t url)
   mbox:path
 */
 int
-url_mbox_init (url_t url)
+_url_mbox_init (url_t url)
 {
   const char *name = url_to_string (url);
   size_t len = strlen (name);
@@ -53,7 +52,6 @@ url_mbox_init (url_t url)
   /* do I need to decode url encoding '% hex hex' ? */
 
   /* TYPE */
-  url->_init = url_mbox_init;
   url->_destroy = url_mbox_destroy;
 
   /* SCHEME */

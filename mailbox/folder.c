@@ -55,7 +55,8 @@ folder_create (folder_t *pfolder, const char *name)
 {
   int status = EINVAL;
   record_t record = NULL;
-  folder_entry_t entry = NULL;
+  int (*f_init) __P ((folder_t)) = NULL;
+  int (*u_init) __P ((url_t)) = NULL;
   iterator_t iterator;
   list_t list;
   int found = 0;
@@ -74,8 +75,9 @@ folder_create (folder_t *pfolder, const char *name)
       iterator_current (iterator, (void **)&record);
       if (record_is_scheme (record, name))
         {
-          record_get_folder (record, &entry);
-          if (entry)
+          record_get_folder (record, &f_init);
+          record_get_url (record, &u_init);
+          if (f_init && u_init)
 	    {
 	      found = 1;
 	      break;
@@ -92,7 +94,7 @@ folder_create (folder_t *pfolder, const char *name)
       /* Parse the url, it may be a bad one and we should bailout if this
 	 failed.  */
       if ((status = url_create (&url, name) != 0)
-          || (status = entry->_url_init (url)) != 0)
+          || (status = u_init (url)) != 0)
 	return status;
 
       monitor_wrlock (&folder_lock);
@@ -122,7 +124,7 @@ folder_create (folder_t *pfolder, const char *name)
 	  if (status == 0)
 	    {
 	      /* Create the concrete folder type.  */
-	      status = entry->_folder_init (folder);
+	      status = f_init (folder);
 	      if (status == 0)
 		{
 		  *pfolder = folder;
@@ -350,11 +352,19 @@ folder_list_destroy (struct folder_list ***pflist, size_t count)
 }
 
 int
-folder_delete_mailbox (folder_t folder, const char *name)
+folder_delete (folder_t folder, const char *name)
 {
-  if (folder == NULL || folder->_delete_mailbox == NULL)
+  if (folder == NULL || folder->_delete == NULL)
     return ENOSYS;
-  return folder->_delete_mailbox (folder, name);
+  return folder->_delete (folder, name);
+}
+
+int
+folder_rename (folder_t folder, const char *oldname, const char *newname)
+{
+  if (folder == NULL || folder->_rename == NULL)
+    return ENOSYS;
+  return folder->_rename (folder, oldname, newname);
 }
 
 int

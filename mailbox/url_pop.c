@@ -24,8 +24,8 @@
 #include <string.h>
 #include <errno.h>
 
-#include <mailutils/registrar.h>
 #include <url0.h>
+#include <registrar0.h>
 
 static void url_pop_destroy (url_t url);
 
@@ -40,7 +40,7 @@ url_pop_destroy (url_t url)
   pop://[<user>;AUTH=<auth>@]<host>[:<port>]
 */
 int
-url_pop_init (url_t url)
+_url_pop_init (url_t url)
 {
   const char *host_port, *indexe;
   char *name = url->name;
@@ -52,7 +52,6 @@ url_pop_init (url_t url)
   /* do I need to decode url encoding '% hex hex' ? */
 
   /* TYPE */
-  url->_init = url_pop_init;
   url->_destroy = url_pop_destroy;
 
   /* SCHEME */

@@ -36,19 +36,48 @@ extern "C" {
 # endif
 #endif /*__P */
 
-struct _record
-{
-  const char *scheme;
-  mailbox_entry_t mailbox;
-  mailer_entry_t mailer;
-  folder_entry_t folder;
-  int is_allocated;
-  void *onwer;
-  int (*_is_scheme)   __P ((record_t, const char *));
-  int (*_get_mailbox) __P ((record_t, mailbox_entry_t *_mailbox));
-  int (*_get_mailer)  __P ((record_t, mailer_entry_t *_mailer));
-  int (*_get_folder)  __P ((record_t, folder_entry_t *_mailer));
-};
+#define MU_POP_PORT 110
+#define MU_POP_SCHEME "pop://"
+#define MU_POP_SCHEME_LEN 6
+extern int _url_pop_init          __P ((url_t));
+extern int _mailbox_pop_init      __P ((mailbox_t));
+extern int _folder_pop_init       __P ((folder_t));
+
+#define MU_IMAP_PORT 143
+#define MU_IMAP_SCHEME "imap://"
+#define MU_IMAP_SCHEME_LEN 7
+extern int _url_imap_init         __P ((url_t));
+extern int _mailbox_imap_init     __P ((mailbox_t));
+extern int _folder_imap_init      __P ((folder_t));
+
+#define MU_MBOX_SCHEME "mbox:"
+#define MU_MBOX_SCHEME_LEN 5
+extern int _url_mbox_init         __P ((url_t));
+extern int _mailbox_mbox_init     __P ((mailbox_t));
+extern int _folder_mbox_init      __P ((folder_t));
+
+#define MU_FILE_SCHEME "file:"
+#define MU_FILE_SCHEME_LEN 5
+extern int _url_file_init         __P ((url_t));
+extern int _mailbox_file_init     __P ((mailbox_t));
+extern int _folder_file_init      __P ((folder_t));
+
+#define MU_PATH_SCHEME "/"
+#define MU_PATH_SCHEME_LEN 1
+extern int _url_path_init         __P ((url_t));
+extern int _mailbox_path_init     __P ((mailbox_t));
+extern int _folder_path_init      __P ((folder_t));
+
+#define MU_SMTP_SCHEME "smtp://"
+#define MU_SMTP_SCHEME_LEN 7
+#define MU_SMTP_PORT 25
+extern int _url_smtp_init         __P ((url_t));
+extern int _mailer_smtp_init      __P ((mailer_t));
+
+#define MU_SENDMAIL_SCHEME "sendmail:"
+#define MU_SENDMAIL_SCHEME_LEN 9
+extern int _url_sendmail_init     __P ((url_t));
+extern int _mailer_sendmail_init  __P ((mailer_t));
 
 #ifdef __cplusplus
 }

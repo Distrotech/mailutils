@@ -24,30 +24,73 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <string.h>
+#include <glob.h>
+#include <stdio.h>
 
 #include <folder0.h>
 #include <registrar0.h>
 
-
-static int fmbox_init (folder_t);
-
-struct folder_entry _fmbox_entry =
-{
-  url_path_init, fmbox_init
-};
-
-/* We export two functions: url parsing and the initialisation of
+/* We export url parsing and the initialisation of
    the mailbox, via the register entry/record.  */
-folder_entry_t fmbox_entry = &_fmbox_entry;
 
-static void fmbox_destroy (folder_t);
-static int fmbox_open (folder_t, int);
-static int fmbox_close (folder_t);
-static int fmbox_delete (folder_t, const char *);
-static int fmbox_list (folder_t, const char *,
-		       struct folder_list ***, size_t *);
+static struct _record _mbox_record =
+{
+  MU_MBOX_SCHEME,
+  _url_mbox_init, /* Mailbox init.  */
+  _mailbox_mbox_init, /* Mailbox init.  */
+  NULL, /* Mailer init.  */
+  _folder_mbox_init, /* Folder init.  */
+  NULL, /* No need for an back pointer.  */
+  NULL, /* _is_scheme method.  */
+  NULL, /* _get_url method.  */
+  NULL, /* _get_mailbox method.  */
+  NULL, /* _get_mailer method.  */
+  NULL  /* _get_folder method.  */
+};
+record_t mbox_record = &_mbox_record;
 
-static int fmbox_list0 (const char *, struct folder_list ***, size_t *, int);
+static struct _record _file_record =
+{
+  MU_FILE_SCHEME,
+  _url_file_init,     /* Mailbox init.  */
+  _mailbox_file_init, /* Mailbox init.  */
+  NULL,               /* Mailer init.  */
+  _folder_mbox_init,  /* Folder init.  */
+  NULL, /* No need for an owner.  */
+  NULL, /* _is_scheme method.  */
+  NULL, /* _get_url method.  */
+  NULL, /* _get_mailbox method.  */
+  NULL, /* _get_mailer method.  */
+  NULL  /* _get_folder method.  */
+};
+record_t file_record = &_file_record;
+
+static struct _record _path_record =
+{
+  MU_PATH_SCHEME,
+  _url_path_init,     /* Mailbox init.  */
+  _mailbox_file_init, /* Mailbox init.  */
+  NULL,               /* Mailer init.  */
+  _folder_mbox_init,  /* Folder init.  */
+  NULL, /* No need for an owner.  */
+  NULL, /* is_scheme method.  */
+  NULL, /* get_url method.  */
+  NULL, /* get_mailbox method.  */
+  NULL, /* get_mailer method.  */
+  NULL  /* get_folder method.  */
+};
+record_t path_record = &_path_record;
+
+/* lsub/subscribe/unsubscribe are not needed.  */
+static void folder_mbox_destroy (folder_t);
+static int folder_mbox_open (folder_t, int);
+static int folder_mbox_close (folder_t);
+static int folder_mbox_delete (folder_t, const char *);
+static int folder_mbox_rename (folder_t , const char *, const char *);
+static int folder_mbox_list (folder_t, const char *,
+			     struct folder_list ***, size_t *);
+
+static char *get_pathname (const char *, const char *);
 
 struct _fmbox
 {
@@ -56,11 +99,10 @@ struct _fmbox
 typedef struct _fmbox *fmbox_t;
 
 
-static int
-fmbox_init (folder_t folder)
+int
+_folder_mbox_init (folder_t folder)
 {
   fmbox_t dfolder;
-  //char *dirname;
   size_t name_len = 0;
 
   dfolder = folder->data = calloc (1, sizeof (dfolder));
@@ -77,20 +119,20 @@ fmbox_init (folder_t folder)
     }
   url_get_path (folder->url, dfolder->dirname, name_len + 1, NULL);
 
-  folder->_init = fmbox_init;
-  folder->_destroy = fmbox_destroy;
+  folder->_destroy = folder_mbox_destroy;
 
-  folder->_open = fmbox_open;
-  folder->_close = fmbox_close;
+  folder->_open = folder_mbox_open;
+  folder->_close = folder_mbox_close;
 
-  folder->_list = fmbox_list;
-  folder->_delete_mailbox = fmbox_delete;
+  folder->_list = folder_mbox_list;
+  folder->_delete = folder_mbox_delete;
+  folder->_rename = folder_mbox_rename;
 
   return 0;
 }
 
 void
-fmbox_destroy (folder_t folder)
+folder_mbox_destroy (folder_t folder)
 {
   if (folder->data)
     {
@@ -102,104 +144,160 @@ fmbox_destroy (folder_t folder)
     }
 }
 
+/* Noop. */
 static int
-fmbox_open (folder_t folder, int flags)
+folder_mbox_open (folder_t folder, int flags)
 {
   (void)(folder);
+
   (void)(flags);
   return 0;
 }
 
+/*  Noop.  */
 static int
-fmbox_close (folder_t folder)
+folder_mbox_close (folder_t folder)
 {
   (void)(folder);
   return 0;
 }
 
 static int
-fmbox_delete (folder_t folder, const char *dirname)
+folder_mbox_delete (folder_t folder, const char *filename)
 {
-  (void)(folder);
-  (void)dirname;
-  return 0;
+  fmbox_t fmbox = folder->data;
+  if (filename)
+    {
+      int status = 0;
+      char *pathname = get_pathname (fmbox->dirname, filename);
+      if (pathname)
+	{
+	  if (remove (pathname) != 0)
+	    status = errno;
+	  free (pathname);
+	}
+      else
+	status = ENOMEM;
+      return status;
+    }
+  return EINVAL;
 }
 
 static int
-fmbox_list (folder_t folder, const char *pattern,
+folder_mbox_rename (folder_t folder, const char *oldpath, const char *newpath)
+{
+  fmbox_t fmbox = folder->data;
+  if (oldpath && newpath)
+    {
+      int status = 0;
+      char *pathold = get_pathname (fmbox->dirname, oldpath);
+      if (pathold)
+	{
+	  char *pathnew = get_pathname (fmbox->dirname, newpath);
+	  if (pathnew)
+	    {
+	      if (rename (pathold, pathnew) != 0)
+		status = errno;
+	      free (pathnew);
+	    }
+	  else
+	    status = ENOMEM;
+	  free (pathold);
+	}
+      else
+	status = ENOMEM;
+      return status;
+    }
+  return EINVAL;
+}
+
+/* The listing is not recursif and we use glob() some expansion for us.
+   Unfortunately glov() does not expand the '~'.  We also return
+   The full pathname so it can be use to create other folders.  */
+static int
+folder_mbox_list (folder_t folder, const char *pattern,
 	    struct folder_list ***pflist, size_t *pnum)
 {
   fmbox_t fmbox = folder->data;
-  struct folder_list **list = NULL;
-  char *dirname = NULL;
+  char *pathname = NULL;
   int status;
   size_t num = 0;
+  glob_t gl;
 
-  if (pattern == NULL)
+  pathname = get_pathname (fmbox->dirname, pattern);
+  if (pathname)
     {
-      dirname = strdup (fmbox->dirname);
-    }
-  else if (pattern[0] != '/')
-    {
-      size_t len = strlen (pattern);
-      dirname = calloc (strlen (fmbox->dirname) + len + 2, sizeof (char));
-      if (dirname)
-	  sprintf (dirname, "%s/%s", fmbox->dirname, pattern);
+      memset(&gl, 0, sizeof(gl));
+      status = glob (pathname, 0, NULL, &gl);
+      free (pathname);
+      num = gl.gl_pathc;
     }
   else
-    dirname = strdup (pattern);
+    status = ENOMEM;
 
-  if (dirname == NULL)
-    return errno;
-
-  status = fmbox_list0 (dirname, &list, &num, (strchr (dirname, '*') != NULL));
+  /* Build the folder list from glob.  */
   if (status == 0)
     {
       if (pflist)
-	*pflist = list;
-      if (pnum)
-	*pnum = num;
+	{
+	  struct folder_list **flist;
+	  flist = calloc (num, sizeof (*flist));
+	  if (flist)
+	    {
+	      size_t i;
+	      struct stat stbuf;
+	      for (i = 0; i < num; i++)
+		{
+		  flist[i] = calloc (1, sizeof (**flist));
+		  if (flist[i] == NULL
+		      || (flist[i]->name = strdup (gl.gl_pathv[i])) == NULL)
+		    {
+		      num = i;
+		      break;
+		    }
+		  if (stat (gl.gl_pathv[i], &stbuf) == 0)
+		    {
+		      if (S_ISDIR(stbuf.st_mode))
+			flist[i]->type = MU_FOLDER_ATTRIBUTE_DIRECTORY;
+		      if (S_ISREG(stbuf.st_mode))
+			flist[i]->type = MU_FOLDER_ATTRIBUTE_FILE;
+		    }
+		  flist[i]->separator = '/';
+		}
+	    }
+	  else
+	    status = ENOMEM;
+	  *pflist = flist;
+	}
+      globfree (&gl);
     }
+  else
+    {
+      status = (status == GLOB_NOSPACE) ? ENOMEM :
+	((status == GLOB_NOMATCH) ? ENOENT : EINVAL);
+    }
+  if (pnum)
+    *pnum = num;
   return status;
 }
 
-static int
-fmbox_list0 (const char *dirname, struct folder_list ***pflist,
-	     size_t *pnum, int recurse)
+static char *
+get_pathname (const char *dirname, const char *basename)
 {
-  DIR *dp;
-  struct dirent *rp;
-  struct stat stbuf;
-  struct folder_list **flist = *pflist;
-  char buf[512];
-  dp = opendir (dirname);
-  if (dp == NULL)
+  char *pathname = NULL;
+  /* null basename gives dirname.  */
+  if (basename == NULL)
+    pathname = (dirname) ? strdup (dirname) : strdup (".");
+  /* Absolute.  */
+  else if (basename[0] == '/')
+    pathname = strdup (basename);
+  /* Relative.  */
+  else
     {
-      return errno;
+      size_t len = strlen (basename);
+      pathname = calloc (strlen (dirname) + len + 2, sizeof (char));
+      if (pathname)
+	sprintf (pathname, "%s/%s", dirname, basename);
     }
-  while ((rp = readdir (dp)) != NULL)
-    {
-      if (rp->d_name[0] == '.')
-	continue;
-      flist = realloc (flist, (*pnum + 1) * sizeof (*flist));
-      flist[*pnum] = calloc (1, sizeof (**flist));
-      sprintf (buf, "%s/%s", dirname, rp->d_name);
-      if (stat (buf, &stbuf) == 0)
-	{
-	  int isdir = S_ISDIR(stbuf.st_mode);
-	  if (isdir)
-	    flist[*pnum]->attribute |= MU_FOLDER_ATTRIBUTE_NOSELECT;
-	  flist[*pnum]->name = strdup (buf);
-	  (*pnum)++;
-	  if (isdir && recurse)
-	    {
-		fmbox_list0 (buf, &flist, pnum, recurse);
-	    }
-	}
-      else
-	(*pnum)++;
-    }
-  closedir (dp);
-  *pflist = flist;
-  return 0;
+  return pathname;
 }

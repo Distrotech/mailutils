@@ -36,7 +36,8 @@ mailer_create (mailer_t *pmailer, const char *name, int id)
 {
   int status = EINVAL;
   record_t record = NULL;
-  mailer_entry_t entry = NULL;
+  int (*m_init) __P ((mailer_t)) = NULL;
+  int (*u_init) __P ((url_t)) = NULL;
   list_t list = NULL;
   iterator_t iterator;
   int found = 0;
@@ -55,10 +56,13 @@ mailer_create (mailer_t *pmailer, const char *name, int id)
       iterator_current (iterator, (void **)&record);
       if (record_is_scheme (record, name))
         {
-          status = record_get_mailer (record, &entry);
-          if (status == 0)
-            found = 1;
-          break;
+          record_get_mailer (record, &m_init);
+          record_get_url (record, &u_init);
+          if (m_init  && u_init)
+	    {
+	      found = 1;
+	      break;
+	    }
         }
     }
   iterator_destroy (&iterator);
@@ -83,14 +87,14 @@ mailer_create (mailer_t *pmailer, const char *name, int id)
       /* Parse the url, it may be a bad one and we should bailout if this
          failed.  */
       if ((status = url_create (&url, name)) != 0
-          || (status = entry->_url_init (url)) != 0)
+          || (status = u_init (url)) != 0)
         {
           mailer_destroy (&mailer);
           return status;
         }
       mailer->url = url;
 
-      status = entry->_mailer_init (mailer);
+      status = m_init (mailer);
       if (status != 0)
 	{
 	  mailer_destroy (&mailer);

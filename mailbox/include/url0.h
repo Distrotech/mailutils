@@ -52,7 +52,6 @@ struct _url
 
   void  *data;
 
-  int   (*_init)       __P ((url_t url));
   void  (*_destroy)    __P ((url_t url));
 
   /* Methods */

@@ -23,6 +23,7 @@ envelope.c \
 file_stream.c \
 folder.c \
 folder_mbox.c \
+folder_pop.c \
 header.c \
 iterator.c \
 list.c \

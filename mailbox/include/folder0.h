@@ -59,14 +59,18 @@ struct _folder
 
   /* Public methods */
 
-  int  (*_init)            __P ((folder_t));
-  void (*_destroy)         __P ((folder_t));
+  void (*_destroy)     __P ((folder_t));
 
-  int  (*_open)            __P ((folder_t, int flag));
-  int  (*_close)           __P ((folder_t));
-  int  (*_list)            __P ((folder_t, const char *,
-				 struct folder_list ***, size_t *));
-  int  (*_delete_mailbox)  __P ((folder_t, const char *));
+  int  (*_open)        __P ((folder_t, int flag));
+  int  (*_close)       __P ((folder_t));
+  int  (*_list)        __P ((folder_t, const char *,
+			     struct folder_list ***, size_t *));
+  int  (*_lsub)        __P ((folder_t, const char *,
+			     struct folder_list ***, size_t *));
+  int  (*_delete)      __P ((folder_t, const char *));
+  int  (*_rename)      __P ((folder_t, const char *, const char *));
+  int  (*_subscribe)   __P ((folder_t, const char *));
+  int  (*_unsubscribe) __P ((folder_t, const char *));
 };
 
 

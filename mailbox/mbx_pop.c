@@ -39,31 +39,6 @@
 #include <registrar0.h>
 #include <bio.h>
 
-static int pop_init (mailbox_t);
-
-static struct mailbox_entry _pop_entry =
-{
-  url_pop_init, pop_init
-};
-static struct _record _pop_record =
-{
-  MU_POP_SCHEME,
-  &_pop_entry, /* Mailbox entry.  */
-  NULL, /* Mailer entry.  */
-  NULL, /* folder entry.  */
-  0, /* Not malloc()ed.  */
-  NULL, /* No need for an owner.  */
-  NULL, /* is_scheme method.  */
-  NULL, /* get_mailbox method.  */
-  NULL, /* get_mailer method.  */
-  NULL /* get_folder method.  */
-};
-
-/* We export two functions: url parsing and the initialisation of
-   the mailbox, via the register entry/record.  */
-record_t pop_record = &_pop_record;
-mailbox_entry_t pop_entry = &_pop_entry;
-
 /* Advance declarations.  */
 struct _pop_data;
 struct _pop_message;
@@ -259,8 +234,8 @@ while (0)
 
 
 /* Parse the url, allocate mailbox_t, allocate pop internal structures.  */
-static int
-pop_init (mailbox_t mbox)
+int
+_mailbox_pop_init (mailbox_t mbox)
 {
   pop_data_t mpd;
 
@@ -274,7 +249,6 @@ pop_init (mailbox_t mbox)
   mpd->state = POP_NO_STATE; /* Init with no state.  */
 
   /* Initialize the structure.  */
-  mbox->_init = pop_init;
   mbox->_destroy = pop_destroy;
 
   mbox->_open = pop_open;

@@ -65,7 +65,6 @@ struct _mailer
   void *data;
 
   /* Public methods.  */
-  int (*_init)         __P ((mailer_t));
   void (*_destroy)     __P ((mailer_t));
   int (*_open)         __P ((mailer_t, int flags));
   int (*_close)        __P ((mailer_t));

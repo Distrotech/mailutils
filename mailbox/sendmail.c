@@ -31,30 +31,23 @@
 #include <mailer0.h>
 #include <registrar0.h>
 
-static int sendmail_init (mailer_t);
-
-static struct mailer_entry _sendmail_entry =
-{
-  url_sendmail_init, sendmail_init
-};
 static struct _record _sendmail_record =
 {
   MU_SENDMAIL_SCHEME,
-  NULL, /* Mailbox entry.  */
-  &_sendmail_entry, /* Mailer entry.  */
+  _url_sendmail_init,    /* url init.  */
+  NULL,                  /* Mailbox entry.  */
+  _mailer_sendmail_init, /* Mailer entry.  */
   NULL, /* Folder entry.  */
-  0, /* Not malloc()ed.  */
-  NULL, /* No need for an owner.  */
-  NULL, /* is_scheme method.  */
-  NULL, /* get_mailbox method.  */
-  NULL, /* get_mailer method.  */
-  NULL /* get_folder method.  */
+  NULL, /* No need for a back pointer.  */
+  NULL, /* _is_scheme method.  */
+  NULL, /* _get_url method.  */
+  NULL, /* _get_mailbox method.  */
+  NULL, /* _get_mailer method.  */
+  NULL  /* _get_folder method.  */
 };
-
-/* We export two functions: url parsing and the initialisation of
+/* We export, url parsing and the initialisation of
    the mailbox, via the register entry/record.  */
 record_t sendmail_record = &_sendmail_record;
-mailer_entry_t sendmail_entry = &_sendmail_entry;
 
 struct _sendmail
 {
@@ -74,7 +67,7 @@ static int sendmail_close (mailer_t);
 static int sendmail_send_message (mailer_t, message_t);
 
 int
-sendmail_init (mailer_t mailer)
+_mailer_sendmail_init (mailer_t mailer)
 {
   sendmail_t sendmail;
 
@@ -83,9 +76,7 @@ sendmail_init (mailer_t mailer)
   if (mailer->data == NULL)
     return ENOMEM;
   sendmail->state = SENDMAIL_NO_STATE;
-  mailer->_init = sendmail_init;
   mailer->_destroy = sendmail_destroy;
-
   mailer->_open = sendmail_open;
   mailer->_close = sendmail_close;
   mailer->_send_message = sendmail_send_message;

@@ -49,31 +49,6 @@
 #define ATTRIBUTE_IS_DELETED(flag)        (flag & MU_ATTRIBUTE_DELETED)
 #define ATTRIBUTE_IS_EQUAL(flag1, flag2)  (flag1 == flag2)
 
-static int mbox_init (mailbox_t mailbox);
-
-/* Registrar variables.  */
-static struct mailbox_entry _mbox_entry =
-{
-  url_mbox_init, mbox_init
-};
-mailbox_entry_t mbox_entry = &_mbox_entry;
-extern struct folder_entry _fmbox_entry;
-
-static struct _record _mbox_record =
-{
-  MU_MBOX_SCHEME,
-  &_mbox_entry, /* Mailbox entry.  */
-  NULL, /* Mailer entry.  */
-  &_fmbox_entry, /* Folder entry.  */
-  0, /* Not malloc()ed.  */
-  NULL, /* No need for an owner.  */
-  NULL, /* is_scheme method.  */
-  NULL, /* get_mailbox method.  */
-  NULL, /* get_mailer method.  */
-  NULL /* get_folder method.  */
-};
-record_t mbox_record = &_mbox_record;
-
 static void mbox_destroy (mailbox_t);
 
 struct _mbox_message;
@@ -170,8 +145,8 @@ static void mbox_cleanup (void *);
 /* We allocate the mbox_data_t struct, but don't do any parsing on the name or
    even test for existence.  However we do strip any leading "mbox:" part of
    the name, this is suppose to be the protocol/scheme name.  */
-static int
-mbox_init (mailbox_t mailbox)
+int
+_mailbox_mbox_init (mailbox_t mailbox)
 {
   mbox_data_t mud;
   size_t name_len;
@@ -208,7 +183,6 @@ mbox_init (mailbox_t mailbox)
   mud->state = MBOX_NO_STATE;
 
   /* Overloading the default.  */
-  mailbox->_init = mbox_init;
   mailbox->_destroy = mbox_destroy;
 
   mailbox->_open = mbox_open;
@@ -1189,6 +1163,7 @@ mbox_get_message (mailbox_t mailbox, size_t msgno, message_t *pmsg)
   return 0;
 }
 
+/* FIXME: We have to generate a Message-ID: if the message have none.  */
 static int
 mbox_append_message (mailbox_t mailbox, message_t msg)
 {

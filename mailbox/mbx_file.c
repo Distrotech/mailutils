@@ -27,53 +27,6 @@
 #include <mailbox0.h>
 #include <registrar0.h>
 
-static int mailbox_file_init (mailbox_t mbox);
-
-/* Register variables.  */
-static struct mailbox_entry _file_entry =
-{
-  url_file_init, mailbox_file_init
-};
-mailbox_entry_t file_entry = &_file_entry;
-extern struct folder_entry  _fmbox_entry;
-
-static struct _record _file_record =
-{
-  MU_FILE_SCHEME,
-  &_file_entry, /* Mailbox entry.  */
-  NULL, /* Mailer entry.  */
-  &_fmbox_entry, /* Folder entry.  */
-  0, /* Not malloc()ed.  */
-  NULL, /* No need for an owner.  */
-  NULL, /* is_scheme method.  */
-  NULL, /* get_mailbox method.  */
-  NULL, /* get_mailer method.  */
-  NULL /* get_folder method.  */
-};
-record_t file_record = &_file_record;
-
-/* Register variables.  */
-static struct mailbox_entry _path_entry =
-{
-  url_path_init, mailbox_file_init
-};
-mailbox_entry_t path_entry = &_path_entry;
-
-static struct _record _path_record =
-{
-  MU_PATH_SCHEME,
-  &_path_entry, /* Mailbox entry.  */
-  NULL, /* Mailer entry.  */
-  &_fmbox_entry, /* Folder entry.  */
-  0, /* Not malloc()ed.  */
-  NULL, /* No need for an owner.  */
-  NULL, /* is_scheme method.  */
-  NULL, /* get_mailbox method.  */
-  NULL, /* get_mailer method.  */
-  NULL /* get_folder method.  */
-};
-record_t path_record = &_path_record;
-
 /*
   Caveat there is no specific URL for file mailbox or simple path name,
     <path_name>
@@ -87,8 +40,8 @@ record_t path_record = &_path_record;
   out to be wrong.
 */
 
-static int
-mailbox_file_init (mailbox_t mbox)
+int
+_mailbox_file_init (mailbox_t mbox)
 {
   struct stat st;
   size_t len = 0;
@@ -113,7 +66,7 @@ mailbox_file_init (mailbox_t mbox)
      file does not exist.  */
   if (stat (path, &st) < 0)
     {
-      status = mbox_entry->_mailbox_init (mbox);
+      status = _mailbox_mbox_init (mbox);
     }
   else if (S_ISREG (st.st_mode))
     {
@@ -121,12 +74,12 @@ mailbox_file_init (mailbox_t mbox)
 	FIXME: We should do an open() and try
 	to do a better reconnaissance of the type,
 	maybe MMDF.  For now assume Unix MBox */
-      status = mbox_entry->_mailbox_init (mbox);
+      status = _mailbox_mbox_init (mbox);
     }
   /* Is that true ?  Are all directories Maildir ?? */
   else if (S_ISDIR (st.st_mode))
     {
-      /*status = maildir_entry._mailbox_init (mbox);*/
+      /*status = _mailbox_maildir_init (mbox);*/
       status = EINVAL;
     }
 

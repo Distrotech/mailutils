@@ -34,30 +34,23 @@
 #include <registrar0.h>
 #include <bio.h>
 
-static int smtp_init (mailer_t);
-
-static struct mailer_entry _smtp_entry =
-{
-  url_smtp_init, smtp_init
-};
 static struct _record _smtp_record =
 {
   MU_SMTP_SCHEME,
-  NULL, /* Mailbox entry.  */
-  &_smtp_entry, /* Mailer entry.  */
-  NULL, /* Mailer entry.  */
-  0, /* Not malloc()ed.  */
-  NULL, /* No need for an owner.  */
-  NULL, /* is_scheme method.  */
-  NULL, /* get_mailbox method.  */
-  NULL, /* get_mailer method.  */
-  NULL /* get_folder method.  */
+  _url_smtp_init,      /* url init.  */
+  NULL,                /* Mailbox init.  */
+  &_mailer_smtp_init,  /* Mailer init.  */
+  NULL, /* Folder init.  */
+  NULL, /* No need for a back pointer.  */
+  NULL, /* _is_scheme method.  */
+  NULL, /* _get_url method.  */
+  NULL, /* _get_mailbox method.  */
+  NULL, /* _get_mailer method.  */
+  NULL  /* _get_folder method.  */
 };
-
-/* We export two functions: url parsing and the initialisation of
+/* We export : url parsing and the initialisation of
    the mailbox, via the register entry/record.  */
 record_t smtp_record = &_smtp_record;
-mailer_entry_t smtp_entry = &_smtp_entry;
 
 struct _smtp
 {
@@ -144,7 +137,7 @@ static int get_rcpt (message_t , address_t *);
 static int get_from (message_t , char *, address_t *);
 
 int
-smtp_init (mailer_t mailer)
+_mailer_smtp_init (mailer_t mailer)
 {
   smtp_t smtp;
 
@@ -152,10 +145,7 @@ smtp_init (mailer_t mailer)
   smtp = mailer->data = calloc (1, sizeof (*smtp));
   if (mailer->data == NULL)
     return ENOMEM;
-
-  mailer->_init = smtp_init;
   mailer->_destroy = smtp_destroy;
-
   mailer->_open = smtp_open;
   mailer->_close = smtp_close;
   mailer->_send_message = smtp_send_message;
