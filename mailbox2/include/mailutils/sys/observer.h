@@ -54,7 +54,7 @@ struct _observer
 
 struct _observable
 {
-  list_t list;
+  mu_list_t list;
 };
 
 struct _dobserver

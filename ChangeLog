@@ -1,3 +1,9 @@
+2001-08-28  Alain Magloire
+
+	* mailbox2/include/mailutils/list.h:  the typedef list_t
+	is rename mu_list_t, as a suggestion from Sam R.
+	* mailbox2/list.c: All the function names are prefix with "mu_".
+
 2001-08-27  Alain Magloire
 
 	* mailbox/folder_imap.c (imap_list): When \NoSelect, it is

@@ -34,17 +34,17 @@ extern "C" {
 #endif
 
 struct _list;
-typedef struct _list *list_t;
+typedef struct _list *mu_list_t;
 
-extern int list_create       __P ((list_t *));
-extern int list_destroy      __P ((list_t));
-extern int list_append       __P ((list_t, void *));
-extern int list_prepend      __P ((list_t, void *));
-extern int list_is_empty     __P ((list_t));
-extern int list_count        __P ((list_t, size_t *));
-extern int list_remove       __P ((list_t, void *));
-extern int list_get          __P ((list_t, size_t, void **));
-extern int list_get_iterator __P ((list_t, iterator_t *));
+extern int mu_list_create       __P ((mu_list_t *));
+extern int mu_list_destroy      __P ((mu_list_t));
+extern int mu_list_append       __P ((mu_list_t, void *));
+extern int mu_list_prepend      __P ((mu_list_t, void *));
+extern int mu_list_is_empty     __P ((mu_list_t));
+extern int mu_list_count        __P ((mu_list_t, size_t *));
+extern int mu_list_remove       __P ((mu_list_t, void *));
+extern int mu_list_get          __P ((mu_list_t, size_t, void **));
+extern int mu_list_get_iterator __P ((mu_list_t, iterator_t *));
 
 #ifdef __cplusplus
 }

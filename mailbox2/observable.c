@@ -41,7 +41,7 @@ observable_create (observable_t *pobservable)
   observable = calloc (sizeof (*observable), 1);
   if (observable == NULL)
     return MU_ERROR_NO_MEMORY;
-  status = list_create (&(observable->list));
+  status = mu_list_create (&(observable->list));
   if (status != 0 )
     {
       free (observable);
@@ -64,7 +64,7 @@ observable_destroy (observable_t observable)
   if (observable)
     {
       iterator_t iterator = NULL;
-      int status = list_get_iterator (observable->list, &iterator);
+      int status = mu_list_get_iterator (observable->list, &iterator);
       if (status == 0)
 	{
 	  struct observer_info *info;
@@ -81,7 +81,7 @@ observable_destroy (observable_t observable)
 	    }
 	  iterator_release (iterator);
 	}
-      list_destroy (observable->list);
+      mu_list_destroy (observable->list);
       free (observable);
     }
   return 0;
@@ -98,7 +98,7 @@ observable_attach (observable_t observable, int type,  observer_t observer)
     return MU_ERROR_NO_MEMORY;
   info->type = type;
   info->observer = observer;
-  return list_append (observable->list, info);
+  return mu_list_append (observable->list, info);
 }
 
 int
@@ -110,7 +110,7 @@ observable_detach (observable_t observable, observer_t observer)
   struct observer_info *info;
   if (observable == NULL ||observer == NULL)
     return EINVAL;
-  status = list_get_iterator (observable->list, &iterator);
+  status = mu_list_get_iterator (observable->list, &iterator);
   if (status != 0)
     return status;
   for (iterator_first (iterator); !iterator_is_done (iterator);
@@ -127,7 +127,7 @@ observable_detach (observable_t observable, observer_t observer)
   iterator_release (iterator);
   if (found)
     {
-      status = list_remove (observable->list, info);
+      status = mu_list_remove (observable->list, info);
       free (info);
     }
   return status;
@@ -142,7 +142,7 @@ observable_notify_all (observable_t observable, struct event evt)
 
   if (observable == NULL)
     return MU_ERROR_INVALID_PARAMETER;
-  status = list_get_iterator (observable->list, &iterator);
+  status = mu_list_get_iterator (observable->list, &iterator);
   if (status != 0)
     return status;
   for (iterator_first (iterator); !iterator_is_done (iterator);

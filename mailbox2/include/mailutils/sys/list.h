@@ -40,16 +40,16 @@
 extern "C" {
 #endif
 
-struct list_data
+struct mu_list_data
 {
   void *item;
-  struct list_data *next;
-  struct list_data *prev;
+  struct mu_list_data *next;
+  struct mu_list_data *prev;
 };
 
 struct _list
 {
-  struct list_data head;
+  struct mu_list_data head;
   size_t count;
   size_t index;
   monitor_t lock;
@@ -59,8 +59,8 @@ struct l_iterator
 {
   struct _iterator base;
   unsigned int ref;
-  list_t list;
-  struct list_data *current;
+  mu_list_t list;
+  struct mu_list_data *current;
   monitor_t lock;
 };
 

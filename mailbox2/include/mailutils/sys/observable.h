@@ -40,7 +40,7 @@ extern "C" {
 
 struct _observable
 {
-  list_t list;
+  mu_list_t list;
 };
 
 #ifdef __cplusplus

@@ -29,9 +29,9 @@
    need to be thread-safe.  */
 
 int
-list_create (list_t *plist)
+mu_list_create (mu_list_t *plist)
 {
-  list_t list;
+  mu_list_t list;
   int status;
   if (plist == NULL)
     return EINVAL;
@@ -52,12 +52,12 @@ list_create (list_t *plist)
 }
 
 int
-list_destroy (list_t list)
+mu_list_destroy (mu_list_t list)
 {
   if (list)
     {
-      struct list_data *current;
-      struct list_data *previous;
+      struct mu_list_data *current;
+      struct mu_list_data *previous;
       monitor_lock (list->lock);
       for (current = list->head.next; current != &(list->head);)
 	{
@@ -73,10 +73,10 @@ list_destroy (list_t list)
 }
 
 int
-list_append (list_t list, void *item)
+mu_list_append (mu_list_t list, void *item)
 {
-  struct list_data *ldata;
-  struct list_data *last;
+  struct mu_list_data *ldata;
+  struct mu_list_data *last;
   if (list == NULL)
     return EINVAL;
   last = list->head.prev;
@@ -95,10 +95,10 @@ list_append (list_t list, void *item)
 }
 
 int
-list_prepend (list_t list, void *item)
+mu_list_prepend (mu_list_t list, void *item)
 {
-  struct list_data *ldata;
-  struct list_data *first;
+  struct mu_list_data *ldata;
+  struct mu_list_data *first;
   if (list == NULL)
     return EINVAL;
   first = list->head.next;
@@ -117,15 +117,15 @@ list_prepend (list_t list, void *item)
 }
 
 int
-list_is_empty (list_t list)
+mu_list_is_empty (mu_list_t list)
 {
   size_t n = 0;
-  list_count (list, &n);
+  mu_list_count (list, &n);
   return (n == 0);
 }
 
 int
-list_count (list_t list, size_t *pcount)
+mu_list_count (mu_list_t list, size_t *pcount)
 {
   if (list == NULL || pcount == NULL)
     return EINVAL;
@@ -134,9 +134,9 @@ list_count (list_t list, size_t *pcount)
 }
 
 int
-list_remove (list_t list, void *item)
+mu_list_remove (mu_list_t list, void *item)
 {
-  struct list_data *current, *previous;
+  struct mu_list_data *current, *previous;
   int status = ENOENT;
   if (list == NULL)
     return EINVAL;
@@ -159,9 +159,9 @@ list_remove (list_t list, void *item)
 }
 
 int
-list_get (list_t list, size_t index, void **pitem)
+mu_list_get (mu_list_t list, size_t index, void **pitem)
 {
-  struct list_data *current;
+  struct mu_list_data *current;
   size_t count;
   int status = ENOENT;
   if (list == NULL || pitem == NULL)
@@ -203,7 +203,7 @@ static struct _iterator_vtable l_i_vtable =
 };
 
 int
-list_get_iterator (list_t list, iterator_t *piterator)
+mu_list_get_iterator (mu_list_t list, iterator_t *piterator)
 {
   struct l_iterator *l_iterator;
 
@@ -270,7 +270,7 @@ static int
 l_first (iterator_t iterator)
 {
   struct l_iterator *l_iterator = (struct l_iterator *)iterator;
-  list_t list = l_iterator->list;
+  mu_list_t list = l_iterator->list;
   if (list)
     {
       monitor_lock (list->lock);
@@ -284,7 +284,7 @@ static int
 l_next (iterator_t iterator)
 {
   struct l_iterator *l_iterator = (struct l_iterator *)iterator;
-  list_t list = l_iterator->list;
+  mu_list_t list = l_iterator->list;
   if (list)
     {
       if (l_iterator->current)
@@ -304,7 +304,7 @@ l_is_done (iterator_t iterator)
 {
   struct l_iterator *l_iterator = (struct l_iterator *)iterator;
   int done = 0;
-  list_t list = l_iterator->list;
+  mu_list_t list = l_iterator->list;
   if (list)
     {
       monitor_lock (list->lock);
@@ -318,7 +318,7 @@ static int
 l_current (iterator_t iterator, void *item)
 {
   struct l_iterator *l_iterator = (struct l_iterator *)iterator;
-  list_t list = l_iterator->list;
+  mu_list_t list = l_iterator->list;
   if (list)
     {
       monitor_lock (list->lock);
