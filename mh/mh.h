@@ -123,6 +123,8 @@ enum mh_opcode
      Format: mhop_fmtspec number */
   mhop_fmtspec,
 
+  /* 18. Noop */
+  mhop_nop
 };    
 
 enum mh_type
