@@ -43,29 +43,23 @@ extern int url_get_id __P ((const url_t, int *id));
 
 extern int url_get_scheme  __P ((const url_t, char *sch,
 					size_t, size_t *));
-extern int url_get_mscheme __P ((const url_t, char **, size_t *));
 
 extern int url_get_user    __P ((const url_t, char *usr,
 					size_t, size_t *));
-extern int url_get_muser   __P ((const url_t, char **, size_t *));
 
 extern int url_get_passwd  __P ((const url_t, char *passwd,
 					size_t, size_t *));
-extern int url_get_mpasswd __P ((const url_t, char **, size_t *));
 
 extern int url_get_host    __P ((const url_t, char *host,
 					size_t, size_t *));
-extern int url_get_mhost   __P ((const url_t, char **, size_t *));
 
 extern int url_get_port    __P ((const url_t, long *port));
 
 extern int url_get_path    __P ((const url_t, char *path,
 					size_t, size_t *));
-extern int url_get_mpath   __P ((const url_t, char **, size_t *));
 
 extern int url_get_query   __P ((const url_t, char *qeury,
 					size_t, size_t *));
-extern int url_get_mquery  __P ((const url_t, char **, size_t *));
 
 #ifdef __cplusplus
 }

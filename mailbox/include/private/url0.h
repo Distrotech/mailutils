@@ -55,29 +55,23 @@ struct _url
 
   int   (*_get_scheme)  __P ((const url_t, char *scheme,
 			      size_t len, size_t *n));
-  int   (*_get_mscheme) __P ((const url_t, char **, size_t *n));
 
   int   (*_get_user)    __P ((const url_t, char *user,
 			      size_t len, size_t *n));
-  int   (*_get_muser)   __P ((const url_t, char **, size_t *n));
 
   int   (*_get_passwd)  __P ((const url_t, char *passwd,
 			      size_t len, size_t *n));
-  int   (*_get_mpasswd) __P ((const url_t, char **, size_t *n));
 
   int   (*_get_host)    __P ((const url_t, char *host,
 			      size_t len, size_t *n));
-  int   (*_get_mhost)   __P ((const url_t, char **, size_t *n));
 
   int   (*_get_port)    __P ((const url_t, long *port));
 
   int   (*_get_path)    __P ((const url_t, char *path,
 			      size_t len, size_t *n));
-  int   (*_get_mpath)   __P ((const url_t, char **, size_t *n));
 
   int   (*_get_query)   __P ((const url_t, char *query,
 			      size_t len, size_t *n));
-  int   (*_get_mquery)  __P ((const url_t, char **, size_t *n));
 };
 
 

@@ -138,7 +138,10 @@ url_pop_create (url_t *purl, const char *name)
     }
 
   /* HOST:PORT */
-  indexe = strchr (++host_port, ':');
+  if (*host_port == '@')
+    host_port++;
+
+  indexe = strchr (host_port, ':');
   if (indexe == NULL)
     {
       url->host = strdup (host_port);
@@ -160,6 +163,13 @@ url_pop_create (url_t *purl, const char *name)
     {
       url_pop_destroy (&url);
       return ENOMEM;
+    }
+  else
+    {
+      /* playing smart and nuking any trailing slashes on the host */
+      size_t len = strlen (url->host);
+      if (url->host[len - 1] == '/')
+	url->host[len - 1] = '\0'; /* leak a bit */
     }
 
   *purl = url;
