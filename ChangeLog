@@ -1,3 +1,10 @@
+2004-02-05  Sergey Poznyakoff
+
+	* include/mailutils/header.h (MU_HEADER_DELIVERY_DATE)
+	(MU_HEADER_ENVELOPE_TO): New macros.
+	* mailbox/amd.c (amd_envelope_date): Use Delivery-Date
+	if X-Envelope-Date is not present. 
+
 2004-02-03  Sergey Poznyakoff
 
 	* mailbox/maildir/mbox.c (maildir_message_cmp): Compare the
