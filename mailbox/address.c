@@ -49,6 +49,8 @@ address_create (address_t *a, const char *s)
   save = s;
   e = &s[strlen (s)];
   fb = calloc (1, 1);
+  if (!fb)
+    return ENOMEM;
 
   /* We need to unfold the string. Do the same thing as parse822_field_body()
      but we have to be more flexible in allowing bare '\n' as CRLF.  */
@@ -69,10 +71,10 @@ address_create (address_t *a, const char *s)
       fb[len + (eol - s)] = '\0';
 
       s = eol;
-      s += 2;
-
       if (s == e)
 	break; /* no more, so we're done */
+
+      s += 2;
 
       /* check if next line is a continuation line */
       if (*s != ' ' && *s != '\t')
