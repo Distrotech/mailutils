@@ -214,7 +214,7 @@ imap4d_fetch0 (char *arg, int isuid, char *resp, size_t resplen)
     }
   free (set);
   snprintf (resp, resplen, "Completed");
-  return rc;
+  return RESP_OK;
 }
 
 /* ALL:
