@@ -153,6 +153,9 @@ so refile never makes links even if called with --link option. The
 latter is actually a synonym for --copy, which preserves the original
 message.
 
+** --preserve option is not implemented. It is retained for backward
+compatibility only.
+
 ** Message specs and folder names may be interspersed.
 
 
