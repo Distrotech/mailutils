@@ -23,22 +23,31 @@ static char *ml_command_generator __P((char *text, int state));
 static int _interrupt;
 
 static RETSIGTYPE
-sig_int(int signo)
+sig_handler (int signo)
 {
-  if (util_find_env("quit")->set)
-    exit (0);
-  _interrupt++;
-  signal (signo, sig_int);
+  switch (signo)
+    {
+    case SIGINT:
+      if (util_find_env ("quit")->set)
+	exit (0);
+      _interrupt++;
+      break;
+#if defined (SIGWINCH)
+    case SIGWINCH:
+      break;
+#endif
+    }
+  signal (signo, sig_handler);
 }
 
 void
-ml_clear_interrupt()
+ml_clear_interrupt ()
 {
   _interrupt = 0;
 }
 
 int
-ml_got_interrupt()
+ml_got_interrupt ()
 {
   int rc = _interrupt;
   _interrupt = 0;
@@ -51,8 +60,19 @@ ml_getc (FILE *stream)
 {
     unsigned char c;
 
-    if (read (fileno (stream), &c, 1) == 1)
-      return c;
+    while (1)
+      {
+	if (read (fileno (stream), &c, 1) == 1)
+	  return c;
+	if (errno == EINTR)
+	  {
+	    if (_interrupt)
+	      break;
+	    /* keep going if we handled the signal */
+	  }
+	else
+	  break;
+      }
     return EOF;
 }
 #endif
@@ -68,7 +88,10 @@ ml_readline_init ()
   rl_attempted_completion_function = (CPPFunction*)ml_command_completion;
   rl_getc_function = ml_getc;
 #endif
-  signal(SIGINT, sig_int);
+  signal (SIGINT, sig_handler);
+#if defined(SIGWINCH)      
+  signal (SIGWINCH, sig_handler);
+#endif  
 }
 
 #ifdef WITH_READLINE
@@ -76,23 +99,23 @@ ml_readline_init ()
 static char *insert_text;
 
 static int
-ml_insert_hook()
+ml_insert_hook ()
 {
   if (insert_text)
-    rl_insert_text(insert_text);
+    rl_insert_text (insert_text);
   return 0;
 }
 
 int
-ml_reread(char *prompt, char **text)
+ml_reread (char *prompt, char **text)
 {
   char *s;
   
   insert_text = *text;
   rl_startup_hook = ml_insert_hook;
-  s = readline(prompt);
+  s = readline (prompt);
   if (*text)
-    free(*text);
+    free (*text);
   *text = s;
   rl_startup_hook = NULL;
   return 0;
@@ -139,13 +162,13 @@ ml_command_generator (char *text, int state)
 #else
 
 int
-ml_reread(char *prompt, char **text)
+ml_reread (char *prompt, char **text)
 {
   char *s;
   /*FIXME*/
-  s = readline(prompt);
+  s = readline (prompt);
   if (*text)
-    free(*text);
+    free (*text);
   *text = s;
   return 0;
 }
