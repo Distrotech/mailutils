@@ -79,8 +79,6 @@ _cond_pop()
  * en[dif]
  */
 
-/* This may have to go right into the main loop */
-
 int
 mail_if (int argc, char **argv)
 {
