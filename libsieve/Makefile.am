@@ -10,6 +10,7 @@ lib_LTLIBRARIES = libsieve.la
 
 libsieve_la_SOURCES = \
  actions.c\
+ comparator.c\
  prog.c\
  register.c\
  require.c\
