@@ -1,4 +1,29 @@
-2004-01-22  Sergey Poznyakoff  <gray@Mirddin.farlep.net>
+2004-01-27  Sergey Poznyakoff  
+
+	* mailbox/smtp.c: Control the value
+	of READ_RECIPIENTS property to decide whether the message
+	should be scanned for recipient addresses.
+	* mailbox/sendmail.c: Likewise.
+	* mail.remote/mail.remote.c: New option -t (compatible with
+	sendmail).
+	Simplified the help message.
+	(main): Restructured.
+	* mail.remote/testsuite/mail.remote/send.exp (mail_remote_test):
+	Added OPTION statement
+	* mail.remote/testsuite/Data: Added new test.
+
+	* mailbox/mailbox.c (mailbox_lock, mailbox_unlock): New
+	functions.
+	* include/mailutils/mailbox.h: Likewise
+	* imap4d/close.c (imap4d_close): Return NO on failure.
+
+	* mailbox/include/mailer0.h (struct _mailer): Removed
+	unused field properties_count.
+	
+	* TODO: Updated
+	* NEWS: Updated
+
+2004-01-22  Sergey Poznyakoff
 
 	* mailbox/amd.c: Use sorted message array with binary
 	searches/inserts. This speeds up the mh/maildir
