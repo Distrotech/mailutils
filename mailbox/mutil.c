@@ -20,22 +20,28 @@
 # include <config.h>
 #endif
 
+#include <errno.h>
+#include <netdb.h>
+#include <pwd.h>
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <time.h>
+#include <unistd.h>
+
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+
 #ifdef HAVE_STRINGS_H
 #include <strings.h>
 #endif
-#include <time.h>
-#include <pwd.h>
-#include <unistd.h>
-#include <string.h>
-#include <netdb.h>
-#include <errno.h>
-#include <sys/stat.h>
 
 #include <mailutils/error.h>
-#include <mailutils/mutil.h>
 #include <mailutils/iterator.h>
+#include <mailutils/list.h>
+#include <mailutils/mutil.h>
 
 /* convert a sequence of hex characters into an integer */
 
@@ -687,3 +693,83 @@ mu_tempfile (const char *tmpdir, char **namep)
 
   return fd;
 }
+
+/* See Advanced Programming in the UNIX Environment, Stevens,
+ * program  10.20 for the rational for the signal handling. I
+ * had to look it up, so if somebody else is curious, thats where
+ * to find it.
+ */
+int mu_spawnvp(const char* prog, const char* const av_[], int* stat)
+{
+  pid_t pid;
+  int err = 0;
+  int progstat;
+  struct sigaction ignore;
+  struct sigaction saveintr;
+  struct sigaction savequit;
+  sigset_t chldmask;
+  sigset_t savemask;
+  char** av = (char**) av_;
+
+  if (!prog || !av)
+    return EINVAL;
+
+  ignore.sa_handler = SIG_IGN;	/* ignore SIGINT and SIGQUIT */
+  ignore.sa_flags = 0;
+  sigemptyset (&ignore.sa_mask);
+
+  if (sigaction (SIGINT, &ignore, &saveintr) < 0)
+    return errno;
+  if (sigaction (SIGQUIT, &ignore, &savequit) < 0)
+    return errno;
+
+  sigemptyset (&chldmask);	/* now block SIGCHLD */
+  sigaddset (&chldmask, SIGCHLD);
+
+  if (sigprocmask (SIG_BLOCK, &chldmask, &savemask) < 0)
+    return errno;
+
+#ifdef HAVE_VFORK
+  pid = vfork ();
+#else
+  pid = fork ();
+#endif
+
+  if (pid < 0)
+    {
+      err = errno;
+    }
+  else if (pid == 0)
+    {				/* child */
+      /* restore previous signal actions & reset signal mask */
+      sigaction (SIGINT, &saveintr, NULL);
+      sigaction (SIGQUIT, &savequit, NULL);
+      sigprocmask (SIG_SETMASK, &savemask, NULL);
+
+      execvp(av[0], av);
+      _exit (127);		/* exec error */
+    }
+  else
+    {				/* parent */
+      while (waitpid (pid, &progstat, 0) < 0)
+	if (errno != EINTR)
+	  {
+	    err = errno;	/* error other than EINTR from waitpid() */
+	    break;
+	  }
+      if(err == 0 && stat)
+	*stat = progstat;
+    }
+
+  /* restore previous signal actions & reset signal mask */
+  /* preserve first error number, but still try and reset the signals */
+  if (sigaction (SIGINT, &saveintr, NULL) < 0)
+    err = err ? err : errno;
+  if (sigaction (SIGQUIT, &savequit, NULL) < 0)
+    err = err ? err : errno;
+  if (sigprocmask (SIG_SETMASK, &savemask, NULL) < 0)
+    err = err ? err : errno;
+
+  return err;
+}
+
