@@ -1,3 +1,38 @@
+2002-12-31  Sergey Poznyakoff
+
+	* include/mailutils/guile.h: New file. Interface declarations
+	  for libmu_scm.h
+	* include/mailutils/Makefile.am: Added guile.h.
+	* libmu_scm/mu_scm.h: Include <mailutils/guile.h>
+	* libmu_scm/mu_mime.c: Removed unneded inlcudes.
+	* libmu_scm/mu_scm.c: Likewise.
+	* libmu_scm/mu_util.c: Likewise.
+	
+	* libmu_scm/mu_guimb.c: Include "mu_scm.h"
+	
+	* guimb/Makefile.am: Removed -I$(top_srcdir)/libmu_scm
+	* mail.local/Makefile.am: Likewise.
+	
+	* mail.local/script.c: Include <mailutils/guile.h>
+
+	* mailbox/Makefile.am (mailutils_config_CFLAGS): Corrected
+	  definition of AUTHLIBS.
+	
+	* guimb/guimb.h: Added missing includes.
+	
+	* include/mailutils/body.h: Use __PMT in nested declarations
+	  for C++ compatibility.
+	* include/mailutils/debug.h: Likewise.
+	* include/mailutils/envelope.h: Likewise.
+	* include/mailutils/error.h: Likewise.
+	* include/mailutils/filter.h: Likewise.
+	* include/mailutils/header.h: Likewise.
+	* include/mailutils/message.h: Likewise.
+	* include/mailutils/mutil.h: Likewise.
+	* include/mailutils/observer.h: Likewise.
+	* include/mailutils/registrar.h: Likewise.
+	* include/mailutils/stream.h: Likewise.
+	
 2002-12-29  Wojciech Polak <polak@gnu.org>
 
 	* mail/mail.c: Updated FSF address.
