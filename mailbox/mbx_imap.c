@@ -312,6 +312,12 @@ mailbox_imap_close (mailbox_t mailbox)
 	m_imap->messages_count = 0;
 	m_imap->recent = 0;
 	m_imap->unseen = 0;
+	/* Clear the callback string structure.  */
+	stream_truncate (f_imap->string.stream, 0);
+	f_imap->string.offset = 0;
+	f_imap->string.nleft = 0;
+	f_imap->string.type = IMAP_NO_STATE;
+	f_imap->string.msg_imap = NULL;
 	monitor_unlock (mailbox->monitor);
       }
       break;
@@ -640,11 +646,23 @@ imap_scan0 (mailbox_t mailbox, size_t msgno, size_t *pcount, int notif)
       status = imap_send (f_imap);
       CHECK_EAGAIN (f_imap, status);
       f_imap->state = IMAP_SCAN_ACK;
+      /* Clear the callback string structure.  */
+      stream_truncate (f_imap->string.stream, 0);
+      f_imap->string.offset = 0;
+      f_imap->string.nleft = 0;
+      f_imap->string.type = IMAP_NO_STATE;
+      f_imap->string.msg_imap = NULL;
 
     case IMAP_SCAN_ACK:
       status = imap_parse (f_imap);
       CHECK_EAGAIN (f_imap, status);
       MAILBOX_DEBUG0 (mailbox, MU_DEBUG_PROT, f_imap->buffer);
+      /* Clear the callback string structure.  */
+      stream_truncate (f_imap->string.stream, 0);
+      f_imap->string.offset = 0;
+      f_imap->string.nleft = 0;
+      f_imap->string.type = IMAP_NO_STATE;
+      f_imap->string.msg_imap = NULL;
       break;
 
     default:

@@ -38,7 +38,6 @@ static int _body_read     __P ((stream_t, char *, size_t, off_t, size_t *));
 static int _body_readline __P ((stream_t, char *, size_t, off_t, size_t *));
 static int _body_truncate __P ((stream_t, off_t));
 static int _body_size     __P ((stream_t, off_t *));
-static int _body_lines    __P ((stream_t, size_t *));
 static int _body_write    __P ((stream_t, const char *, size_t, off_t, size_t *));
 static int _body_get_size  __P ((body_t, size_t *));
 static int _body_get_lines __P ((body_t, size_t *));
