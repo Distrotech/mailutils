@@ -258,6 +258,8 @@ Jakob Kaivo @email{jkaivo@@ndn.net},
 Jeff Bailey @email{jbailey@@gnu.org},
 Sean Perry @email{shaleh@@debian.org},
 Thomas Fletcher @email{thomasf@@qnx.com}.
+Dave Inglis @email{dinglis@@qnx.com}.
+Brian Edmond @email{briane@@qnx.com}.
 
 @page
 @node Concept Index , Index, Acknowledgement, Top
