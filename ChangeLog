@@ -1,3 +1,7 @@
+2001-07-20  Jakob 'sparky' Kaivo  <jkaivo@elijah.nodomainname.net>
+
+	* messages/messages.c: new file, implement of elm messages command
+
 2001-07-20 Alain Magloire
 
 	* mailbox/misc.c: Removed, _cpystr() function move in mutil.c
@@ -13,6 +17,7 @@
 	* mailbox/auth.c: Likewised.
 	* mailbox/url.c: Likewised.
 	* mailbox/folder.c: Likewised.
+======= end
 
 2001-07-19 Sergey Poznyakoff
 	Added guile interface library.
