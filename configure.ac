@@ -534,6 +534,7 @@ BDB2)
                                        AC_DEFINE(WITH_BDB2,1,
                                                  [Enable use of Berkeley DB]))
                      LIBS="$LIBS -ldb"
+                     MU_DB2_CURSOR
 		     POPAUTH=popauth]);;
 NDBM)
 	AC_CHECK_LIB(ndbm, dbm_open,
