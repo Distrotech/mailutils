@@ -257,4 +257,8 @@ extern int pop3d_init_tls_server    __P ((void));
 extern void pop3d_deinit_tls_server __P ((void));
 #endif /* WITH_TLS */
 
+extern void pop3d_mark_retr __P((attribute_t attr));
+extern int pop3d_is_retr __P((attribute_t attr));
+extern void pop3d_unmark_retr __P((attribute_t attr));
+
 #endif /* _POP3D_H */
