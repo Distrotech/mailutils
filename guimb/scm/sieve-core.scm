@@ -83,7 +83,7 @@
 	       (do ((line (mu-body-read-line body) (mu-body-read-line body)))
 		   ((eof-object? line) #f)
 		   (display line port)))
-	     (close-output-port port)))
+	     (close-pipe port)))
 	 (lambda args
 	   (runtime-error LOG_ERR "redirect: Can't send message")
 	   (write args))))
@@ -391,9 +391,12 @@
 ;;; Sieve-main
 (define sieve-current-message #f)
 (define (sieve-main)
+  (if (not sieve-my-email)
+      (set! sieve-my-email (mu-username->email)))
   (let ((count (mu-mailbox-messages-count current-mailbox)))
     (do ((n 1 (1+ n)))
 	((> n count) #f)
+	(display n)(newline)
 	(set! sieve-current-message
 	      (mu-mailbox-get-message current-mailbox n))
 	(catch 'sieve-stop
