@@ -167,11 +167,10 @@
 #endif /* __P */
 
 extern mailbox_t mbox;
-
 extern unsigned int timeout;
 extern int state;
 extern char *username;
-extern int ifile;
+extern FILE *ifile;
 extern FILE *ofile;
 extern char *md5shared;
 extern volatile size_t children;
@@ -202,5 +201,5 @@ extern RETSIGTYPE pop3d_signal  __P ((int));
 extern RETSIGTYPE pop3d_sigchld __P ((int));
 extern void pop3d_daemon_init   __P ((void));
 extern char *pop3d_apopuser     __P ((const char *));
-extern char *pop3d_readline     __P ((int));
+extern char *pop3d_readline     __P ((FILE *));
 #endif /* _POP3D_H */

@@ -58,6 +58,9 @@ static struct _record _imap_record =
    via the register entry/record.  */
 record_t imap_record = &_imap_record;
 
+#ifndef HAVE_STRTOK_R
+char *strtok_r                     __P ((char *, const char *, char **));
+#endif
 /* Concrete IMAP implementation.  */
 static int folder_imap_open        __P ((folder_t, int));
 static int folder_imap_create      __P ((folder_t));

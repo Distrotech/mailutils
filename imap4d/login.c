@@ -100,7 +100,7 @@ imap4d_login (struct imap4d_command *command, char *arg)
 #ifndef USE_LIBPAM
   if (pw == NULL || pw->pw_uid < 1)
     return util_finish (command, RESP_NO, "User name or passwd rejected");
-  if (strcmp (pw->pw_passwd, crypt (pass, pw->pw_passwd)))
+  if (strcmp (pw->pw_passwd, (char *)crypt (pass, pw->pw_passwd)))
     {
 #ifdef HAVE_SHADOW_H
       struct spwd *spw;

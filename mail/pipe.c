@@ -30,7 +30,7 @@ mail_pipe (int argc, char **argv)
   char *cmd;
   FILE *pipe;
   int *list, num = 0;
-  char buffer[BUFSIZ];
+  char buffer[512];
   off_t off = 0;
   size_t n = 0;
 

@@ -96,7 +96,6 @@ pop3d_user (const char *arg)
   buf = pop3d_readline (ifile);
   cmd = pop3d_cmd (buf);
   tmp = pop3d_args (buf);
-  free (buf);
 
   if (strlen (tmp) > POP_MAXCMDLEN)
     {
@@ -137,12 +136,13 @@ pop3d_user (const char *arg)
 #ifndef USE_LIBPAM
       if (pw == NULL || pw->pw_uid < 1)
 	return ERR_BAD_LOGIN;
-      if (strcmp (pw->pw_passwd, crypt (pass, pw->pw_passwd)))
+      if (strcmp (pw->pw_passwd, (char *)crypt (pass, pw->pw_passwd)))
 	{
 #ifdef HAVE_SHADOW_H
 	  struct spwd *spw;
 	  spw = getspnam ((char *)arg);
-	  if (spw == NULL || strcmp (spw->sp_pwdp, crypt (pass, spw->sp_pwdp)))
+	  if (spw == NULL || strcmp (spw->sp_pwdp,
+				     (char *)crypt (pass, spw->sp_pwdp)))
 #endif /* HAVE_SHADOW_H */
 	    {
 	      syslog (LOG_INFO, "User '%s': authentication failed", arg);
@@ -155,6 +155,8 @@ pop3d_user (const char *arg)
 	int pamerror;
 	_user = (char *) arg;
 	_pwd = pass;
+	/* libpam doesn't log to LOG_MAIL */
+	closelog ();
 	pamerror = pam_start ("gnu-pop3d", arg, &PAM_conversation, &pamh);
 	PAM_ERROR;
 	pamerror = pam_authenticate (pamh, 0);
@@ -165,6 +167,7 @@ pop3d_user (const char *arg)
 	PAM_ERROR;
       pam_errlab:
 	pam_end (pamh, PAM_SUCCESS);
+	openlog ("gnu-pop3d", LOG_PID, LOG_FACILITY);
 	if (pamerror != PAM_SUCCESS)
 	  {
 	    syslog (LOG_INFO, "User '%s': authentication failed", _user);
@@ -176,8 +179,8 @@ pop3d_user (const char *arg)
       if (pw != NULL && pw->pw_uid > 1)
 	setuid (pw->pw_uid);
 
-      if ((status = mailbox_create_default (&mbox, arg) != 0)
-	  || (status = mailbox_open (mbox, MU_STREAM_RDWR) != 0))
+      if ((status = mailbox_create_default (&mbox, arg)) != 0
+	  || (status = mailbox_open (mbox, MU_STREAM_RDWR)) != 0)
 	{
 	  mailbox_destroy (&mbox);
 	  /* For non existent mailbox, we fake.  */

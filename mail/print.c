@@ -36,7 +36,7 @@ mail_print (int argc, char **argv)
       header_t hdr;
       body_t body;
       stream_t stream;
-      char buffer[BUFSIZ];
+      char buffer[512];
       off_t off = 0;
       size_t n = 0, lines = 0;
       FILE *out = ofile;

@@ -30,7 +30,7 @@ mail_top (int argc, char **argv)
     {
       message_t msg;
       stream_t stream;
-      char buf[BUFSIZ];
+      char buf[512];
       size_t n;
       off_t off;
       int lines = strtol ((util_find_env("toplines"))->value, NULL, 10);

@@ -21,7 +21,7 @@ mailbox_t mbox;
 size_t timeout;
 int state;
 char *username;
-int ifile;
+FILE *ifile;
 FILE *ofile;
 char *md5shared;
 /* Number of child processes.  */
@@ -224,10 +224,12 @@ pop3d_mainloop (int infile, int outfile)
 
   /* Reset hup to exit.  */
   signal (SIGHUP, pop3d_signal);
+  /* Timeout alarm.  */
+  signal (SIGALRM, pop3d_signal);
 
-  ifile = infile;
+  ifile = fdopen (infile, "r");
   ofile = fdopen (outfile, "w");
-  if (ofile == NULL)
+  if (!ofile || !ofile)
     pop3d_abquit (ERR_NO_OFILE);
 
   state = AUTHORIZATION;
@@ -303,6 +305,9 @@ pop3d_mainloop (int infile, int outfile)
 	    pop3d_abquit (ERR_MBOX_SYNC); /* Out of sync, Bail out.  */
 	}
 
+      /* Refresh the Lock.  */
+      pop3d_touchlock ();
+
       if (strlen (arg) > POP_MAXCMDLEN || strlen (cmd) > POP_MAXCMDLEN)
 	status = ERR_TOO_LONG;
       else if (strlen (cmd) > 4)
@@ -361,7 +366,6 @@ pop3d_mainloop (int infile, int outfile)
       else
 	fprintf (ofile, "-ERR unknown error\r\n");
 
-      free (buf);
       free (cmd);
       free (arg);
     }

@@ -154,81 +154,35 @@ pop3d_usage (char *argv0)
 RETSIGTYPE
 pop3d_signal (int signo)
 {
-  (void)signo;
   syslog (LOG_CRIT, "got signal %d", signo);
+  /* Master process.  */
+  if (!ofile)
+    {
+       syslog(LOG_CRIT, "MASTER: exiting on signal");
+       exit (1); /* abort(); */
+    }
+
+  if (signo == SIGALRM)
+    pop3d_abquit (ERR_TIMEOUT);
   pop3d_abquit (ERR_SIGNAL);
 }
 
-/* Gets a line of input from the client */
-/* We can also implement PIPELINING by keeping a static buffer.
-   Implementing this cost an extra allocation with more uglier code.
-   Is it worth it?  How many clients actually use PIPELINING?
- */
+/* Gets a line of input from the client, caller should free() */
 char *
-pop3d_readline (int fd)
+pop3d_readline (FILE *fp)
 {
-  static char *buffer = NULL; /* Note: This buffer is never free()d.  */
-  static size_t total = 0;
-  char *nl;
-  char *line;
-  size_t len;
+  static char buffer[512];
+  char *ptr;
 
-  nl = memchr (buffer, '\n', total);
-  if (!nl)
-    {
-      /* Need to refill the buffer.  */
-      do
-	{
-	  char buf[512];
-	  int nread;
+  alarm (timeout);
+  ptr = fgets (buffer, sizeof (buffer), fp);
+  alarm (0);
 
-	  if (timeout)
-	    {
-	      int available;
-	      fd_set rfds;
-	      struct timeval tv;
+  /* We should probably check ferror() too, but if ptr is null we
+     are done anyway;  if (!ptr && ferror(fp)) */
+  if (!ptr)
+    pop3d_abquit (ERR_NO_OFILE);
 
-	      FD_ZERO (&rfds);
-	      FD_SET (fd, &rfds);
-	      tv.tv_sec = timeout;
-	      tv.tv_usec = 0;
-
-	      available = select (fd + 1, &rfds, NULL, NULL, &tv);
-	      if (!available)
-		pop3d_abquit (ERR_TIMEOUT);
-	      else if (available == -1)
-		{
-		  if (errno == EINTR)
-		    continue;
-		  pop3d_abquit (ERR_NO_OFILE);
-		}
-	    }
-
-	  errno = 0;
-	  nread = read (fd, buf, sizeof (buf) - 1);
-	  if (nread < 1)
-	    {
-	      if (errno == EINTR)
-		continue;
-	      pop3d_abquit (ERR_NO_OFILE);
-	    }
-	  buf[nread] = '\0';
-
-	  buffer = realloc (buffer, (total + nread + 1) * sizeof (*buffer));
-	  if (buffer == NULL)
-	    pop3d_abquit (ERR_NO_MEM);
-	  memcpy (buffer + total, buf, nread + 1); /* copy the null too.  */
-	  total += nread;
-	}
-      while ((nl = memchr (buffer, '\n', total)) == NULL);
-    }
-
-  nl++;
-  len = nl - buffer;
-  line = calloc (len + 1, sizeof (*line));
-  memcpy (line, buffer, len); /* copy the newline too.  */
-  line[len] = '\0';
-  total -= len;
-  memmove (buffer, nl, total);
-  return line;
+  /* Caller should not free () this ... should we strdup() then?  */
+  return ptr;
 }

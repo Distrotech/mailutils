@@ -340,6 +340,51 @@ util_finish (struct imap4d_command *command, int rc, const char *format, ...)
   return status;
 }
 
+#if 0
+/* Need a replacement for readline that can support literals.  */
+char *
+imap4d_readline (FILE *fp)
+{
+  char buffer[512];
+  char *line;
+  size_t len;
+
+  alarm (timeout);
+  line = fgets (buffer, sizeof (buffer), fp);
+  alarm (0);
+  if (!line)
+    util_quit (1);
+  line = strdup (buffer);
+  len = strlen (buffer);
+  if (len > 2)
+    {
+      len--; /* C arrays are 0-based.  */
+      if (line[len] == '\n' && line[len - 1] == '}')
+	{
+	  while (len && line[len] != '{') len--;
+	  if (line [len] == '{')
+	    {
+	      char *sp = NULL;
+	      long number = strtoul (line + len + 1, &sp, 10);
+	      if (*sp != '+')
+		util_send ("+ GO AHEAD\r\n");
+	      line[len] = '\0';
+	      while (number > 0)
+		{
+		  char *literal = imap4d_readline (fd);
+		  size_t n = strlen (literal);
+		  line = realloc (line, strlen (line) + n + 1);
+		  strcat (line, literal);
+		  number -= n;
+		  free (literal);
+		}
+	    }
+	}
+    }
+  return line;
+}
+#endif
+
 char *
 imap4d_readline (int fd)
 {

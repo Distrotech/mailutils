@@ -43,7 +43,7 @@
 # endif
 #endif
 #ifndef N_
-# define N_(msgid) (msgid)
+# define N_(msgid) msgid
 #endif
 
 #if _LIBC - 0
@@ -525,9 +525,14 @@ parser_init (struct parser *parser, const struct argp *argp,
     return ENOMEM;
 
   parser->groups = parser->storage;
+  /*  To please Watcom CC
   parser->child_inputs = parser->storage + GLEN;
   parser->long_opts = parser->storage + GLEN + CLEN;
   parser->short_opts = parser->storage + GLEN + CLEN + LLEN;
+  */
+  parser->child_inputs = (char *)(parser->storage) + GLEN;
+  parser->long_opts = (char *)(parser->storage) + GLEN + CLEN;
+  parser->short_opts = (char *)(parser->storage) + GLEN + CLEN + LLEN;
 
   memset (parser->child_inputs, 0, szs.num_child_inputs * sizeof (void *));
   parser_convert (parser, argp, flags);

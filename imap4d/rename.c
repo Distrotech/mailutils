@@ -18,8 +18,8 @@
 #include "imap4d.h"
 
 /*
- *
- */
+  FIXME: Renaming a mailbox we must change the UIDVALIDITY
+  of the mailbox.  */
 
 int
 imap4d_rename (struct imap4d_command *command, char *arg)

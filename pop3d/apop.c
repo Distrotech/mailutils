@@ -69,8 +69,8 @@ pop3d_apopuser (const char *user)
 	return NULL;
       }
 
-    memset (&key, 0, sizeof (DBT));
-    memset (&data, 0, sizeof (DBT));
+    memset (&key, 0, sizeof DBT);
+    memset (&data, 0, sizeof DBT);
 
     strncpy (buf, user, sizeof buf);
     /* strncpy () is lame and does not NULL terminate.  */

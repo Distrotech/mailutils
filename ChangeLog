@@ -1,3 +1,50 @@
+2001-05-03 Alain Magloire
+
+	* argp/argp-help.c (hol_entry_help): Some compiler like Watcomm
+	can not initialize a local structure struct ..  = { .. }.  Do it
+	explicitely field by field.
+	* argp/arpg-parse.c: Watcomm choke on N_() macro.
+	(parser_init): Watcomm does not like operation on a void * pointer.
+
+	* imap4d/login.c: Cast the return of crypt(), since some platforms
+	do not provide a prototype in <unistd.h>
+
+	* pop3d/user.c: Cast the return of crypt(), since in may not be
+	declare in <unistd.h>.
+
+	* lib/snprintf.c: Use only __STDC__ to detect <stdar.h>
+	* lib/snprintf.h: Use only __STDC__.
+
+	* mail/mail.h: The global variable should be declare extern.
+	* mail/pipe.c: Use 512 buffer instead of BUFSIZ, go easy on the stack.
+	* mail/print.c: Use 512 buffer instead of BUFSIZ, go easy on the stack.
+	* mail/write.c: Use 512 buffer instead of BUFSIZ, go easy on the stack.
+
+	* mailbox/folder_imap.c: Declare strtock_r ().
+
+2001-05-03 Sergey Poznyakoff
+
+	* pop3d/user.c: Misplace parentheses around the mailbox_xx() calls.
+	Do not free (buf) since it is now static storage. Unfortunately most
+	of the pam modules do openlog() on their own, thus after
+	authentication all logging output flows to where the last pam module
+	has directed it, which is usually `auth' facility.
+	Put back closelog()/openlog().
+	* pop3d/pop3d.h: ifile is now FILE *.
+	pop3d_realine () take FILE * as a prototype.
+	* pop3d/pop3d.c (pop3d_mainloop): Refresh lock, pop3d_touchlock().
+	Register SIGALRM in the child.
+	Do not free (buf) since it is now static storage.
+	* pop3d/extra.c (pop3d_readline): Change to use
+	fgets () and alarm ().
+	With small modification from Alain.
+	(pop3d_signal): ofile will be NULL in the *child* process:
+	whereas in the parent one, ofile will always be NULL, since it lives
+	in the BSS (FILE *ofile;) and gets initialized only in the child
+	process. Thus, when the parent receives any signal, SIGTERM for
+	example, it does pop3d_abquit(ERR_SIGNAL) and dies doing
+	fprintf(ofile, ...)
+
 2001-05-02 Alain Magloire
 
 	Some of the Makefile.am contain gcc specific options

@@ -17,6 +17,13 @@
 
 #include "mail.h"
 
+/* Global variables and constants*/
+mailbox_t mbox;
+unsigned int cursor;
+unsigned int realcursor;
+unsigned int total;
+FILE *ofile;
+
 const char *argp_program_version = "mail (" PACKAGE ") " VERSION;
 const char *argp_program_bug_address = "<bug-mailutils@gnu.org>";
 static char doc[] = "GNU mail -- the standard /bin/mail interface";

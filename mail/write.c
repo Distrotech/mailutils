@@ -35,7 +35,7 @@ mail_write (int argc, char **argv)
   stream_t stream;
   FILE *output;
   char *filename = NULL;
-  char buffer[BUFSIZ];
+  char buffer[512];
   off_t off = 0;
   size_t n = 0;
   int *msglist = NULL;

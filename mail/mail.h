@@ -83,11 +83,11 @@ struct mail_env_entry {
 };
 
 /* Global variables and constants*/
-mailbox_t mbox;
-unsigned int cursor;
-unsigned int realcursor;
-unsigned int total;
-FILE *ofile;
+extern mailbox_t mbox;
+extern unsigned int cursor;
+extern unsigned int realcursor;
+extern unsigned int total;
+extern FILE *ofile;
 extern const struct mail_command_entry mail_command_table[];
 
 /* Functions */
