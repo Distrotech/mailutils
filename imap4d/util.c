@@ -1254,10 +1254,19 @@ util_run_events (int old_state, int new_state)
   if (event_list)
     {
       struct state_event ev;
-
+      iterator_t itr;
       ev.old_state = old_state;
       ev.new_state = new_state;
-      list_do (event_list, event_exec, &ev);
+
+      iterator_create (&itr, event_list);
+      for (iterator_first (itr); !iterator_is_done (itr); iterator_next (itr))
+	{
+	  struct state_event *p;
+	  iterator_current (itr, (void **)&p);
+	  if (event_exec (p, &ev))
+	    break;
+	}
+      iterator_destroy (&itr);
     }
 }
   
