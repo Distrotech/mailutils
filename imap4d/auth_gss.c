@@ -132,7 +132,7 @@ auth_gssapi (struct imap4d_command *command,
 
   /* Start the dialogue */
 
-  util_send ("+ GO AHEAD\r\n");
+  util_send ("+ \r\n");
   util_flush_output ();
   
   context = GSS_C_NO_CONTEXT;
@@ -221,7 +221,18 @@ auth_gssapi (struct imap4d_command *command,
   protection_mech = mech;
   client_buffer_size = sec_level & 0x00ffffffff;
 
-  *username = strdup ((char *) outbuf.value + 4);
+  *username = malloc (outbuf.length - 4 + 1);
+  if (!*username)
+    {
+      syslog (LOG_NOTICE, _("not enough memory"));
+      gss_release_buffer (&min_stat, &outbuf);
+      maj_stat = gss_delete_sec_context (&min_stat, &context, &outbuf);
+      gss_release_buffer (&min_stat, &outbuf);
+      return RESP_NO;
+    }
+       
+  memcpy (*username, (char *) outbuf.value + 4, outbuf.length - 4);
+  (*username)[outbuf.length - 4] = '\0';
   gss_release_buffer (&min_stat, &outbuf);
 
   maj_stat = gss_display_name (&min_stat, client, &client_name, &mech_type);
