@@ -1,3 +1,44 @@
+2004-06-28  Sergey Poznyakoff
+
+	* mailbox/filter_iconv.c (internal_icvt_read)
+	(copy_pass): Fixed mistyped conditions.
+	
+	* mailbox/include/iterator0.h (struct _iterator): rewritten as
+	a general-purpose iterator structure.
+	* include/mailutils/iterator.h (iterator_create): Changed
+	proto.
+	(iterator_attach,iterator_detach,iterator_advance)
+	(iterator_set_first,iterator_set_next)
+	(iterator_set_getitem,iterator_set_finished_p)
+	(iterator_set_dup,iterator_set_destroy): New functions.
+	* mailbox/iterator.c: Likewise	
+	* include/mailutils/list.h (list_get_iterator): New function
+	* mailbox/list.c: Likewise
+	
+	* examples/listop.c: Replace iterator_create with
+	list_get_iterator.
+	* examples/nntpclient.c: Likewise
+	* examples/pop3client.c: Likewise
+	* imap4d/util.c: Likewise
+	* libsieve/comparator.c: Likewise
+	* libsieve/prog.c: Likewise
+	* libsieve/register.c: Likewise
+	* libsieve/require.c: Likewise
+	* libsieve/sieve.l: Likewise
+	* mail/retain.c: Likewise
+	* mail/util.c: Likewise
+	* mailbox/filter.c: Likewise
+	* mailbox/folder.c: Likewise
+	* mailbox/mailbox.c: Likewise
+	* mailbox/mailer.c: Likewise
+	* mailbox/mu_auth.c: Likewise
+	* mailbox/mutil.c: Likewise
+	* mailbox/observer.c: Likewise
+	* mh/ali.c: Likewise
+	* mh/mh_alias.y: Likewise
+	* mh/pick.y: Likewise
+	* mh/refile.c: Likewise
+
 2004-06-27  Sergey Poznyakoff
 
 	* direntry: New file
