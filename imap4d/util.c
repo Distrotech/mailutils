@@ -1125,6 +1125,39 @@ util_set_output (stream_t str)
   ostream = str;
 }
 
+/* Wait TIMEOUT seconds for data on the input stream.
+   Returns 0   if no data available
+           1   if some data is available
+	   -1  an error occurred */
+int
+util_wait_input (int timeout)
+{
+  int rc, fd;
+  fd_set rdset;
+  
+  if (stream_get_fd (istream, &fd))
+    {
+      errno = ENOSYS;
+      return -1;
+    }
+
+  FD_ZERO (&rdset);
+  FD_SET (fd, &rdset);
+
+  do
+    {
+      struct timeval tv;
+
+      tv.tv_sec = timeout;
+      tv.tv_usec = 0;
+      
+      rc = select (fd + 1, &rdset, NULL, NULL, &tv);
+    }
+  while (rc == -1 && errno == EINTR);
+
+  return rc;
+}
+
 void
 util_flush_output ()
 {
