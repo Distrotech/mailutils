@@ -296,7 +296,7 @@ main (int argc, char **argv)
 
       /* initial commands */
       if ((util_find_env("header"))->set)
-	  util_do_command ("z.");
+	  util_do_command ("z");
 
       prompt = util_find_env ("prompt");
       mail_set_is_terminal(isatty(0));

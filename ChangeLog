@@ -1,9 +1,19 @@
+2001-06-25  Alain Magloire
+
+	* doc/Makefile.am: add {c-api,framework,programs}.texi EXTRA_DIST
+	* imap4d/imap4d.c (imap4d_usage): Cut and paste typo.
+	* pop3d/pop3d.c (pop3d_usage): Cut and paste typo.
+	* include/mailutils/Makefile.am: add mutil.h to the list.
+	* lib/strisignal.c: Define __P if not set.
+	* m4/Makefile.am: Added tm_gmtoff.m4 tm_isdst.m4 tm_zone.m4
+	* mail/mail.c (main): typo "z." --> "z"
+
 2001-06-25 Sergey Poznyakoff
 	* mail/if.c: Removed confusing comment.
 	* mail/copy.c: Split off mail_copy0. It is shared between mail_copy
 		and mail_save. Implemented Copy command.
 		Use mailbox_open_default() instead of mailbox_open().
-		Fixed possible memory leaks. 
+		Fixed possible memory leaks.
 	* mail/write.c: Implemented Write. Fixed memory leaks.
 	* mail/Makefile.am: removed discard.c
 	* mail/discard.c: removed. Implemented in retain.c.
@@ -127,7 +137,7 @@
           use imap_parse_date_time() in util_parse_internal_date0().
 	  (Proposed by Sam).
 	* imap4d/imap4d.h: Added missing declarations.
-        * mailbox/mbx_imap.c: Patch from Sam: added imap_parse_date_time(). 
+        * mailbox/mbx_imap.c: Patch from Sam: added imap_parse_date_time().
           imap_parse_date_time() returns tm/timezone pair.
 	* mailbox/folder_mbox.c: added #include <sys/types.h>. It is needed
           on FreeBSD before inclusion of <dirent.h>

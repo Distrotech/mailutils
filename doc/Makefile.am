@@ -11,13 +11,16 @@ EXTRA_DIST = \
  attribute.texi \
  auth.texi \
  body.texi \
+ c-api.texi \
  encoding.texi \
  ex-address.texi \
+ framework.texi \
  headers.texi \
  locker.texi \
  mailbox.texi \
  mailer.texi \
  message.texi \
+ programs.texi \
  sfrom.c.texi \
  stream.texi \
  url.texi \

@@ -18,6 +18,7 @@ pkginclude_HEADERS = \
  message.h \
  mime.h \
  monitor.h \
+ mutil.h \
  observer.h \
  parse822.h \
  property.h \

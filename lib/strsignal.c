@@ -25,6 +25,14 @@
 #include <stdio.h>
 #endif
 
+#ifndef __P
+# ifdef __STDC__
+#  define __P(args) args
+# else
+#  define __P(args) ()
+# endif
+#endif /*__P */
+
 /* Some systems do not define NSIG in <signal.h>.  */
 #ifndef NSIG
 # ifdef  _NSIG

@@ -464,8 +464,7 @@ pop3d_usage (char *argv0)
   printf ("  -i, --inetd              runs in inetd mode (default)\n");
   printf ("  -p, --port=PORT          specifies port to listen on, implies -d\n"
 );
-  printf ("                           defaults to 110, which need not be specifi
-ed\n");
+  printf ("                           defaults to 110, which need not be specified\n");
   printf ("  -t, --timeout=TIMEOUT    sets idle timeout to TIMEOUT seconds\n");
   printf ("                           TIMEOUT default is 600 (10 minutes)\n");
   printf ("  -v, --version            display version information and exit\n");
