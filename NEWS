@@ -1,10 +1,28 @@
-GNU mailutils NEWS -- history of user-visible changes.  2003-10-06
+GNU mailutils NEWS -- history of user-visible changes.  2003-10-13
 Copyright (C) 2002, 2003 Free Software Foundation, Inc.
 See the end of file for copying conditions.
 
 Please send mailutils bug reports to <bug-mailutils@gnu.org>.
 
-Version 0.4:
+Version 0.4.1:
+
+* Bug fixes:
+
+** mh
+*** (formataddr): Fixed checking for duplicate addresses.
+
+** pop3d:
+
+*** Do not save delete marks when exiting on timeout.
+
+* New features:
+
+** pop3d
+*** New option --login-delay. Support for login-delay
+*** New option --undelete. Forces pop3d to clear deletion
+marks from all messages after opening the mailbox.
+
+
 
 * Bug fixes:
 

@@ -2,6 +2,8 @@
 
 	* NEWS: Updated
 	* pop3d/logindelay.c: Couple of bugfixes.
+	* pop3d/popauth.c (options): New option --permissions allows to
+	override default permissions on the database file.
 
 2003-10-11  Sergey Poznyakoff
 
