@@ -1,0 +1,59 @@
+The GNU implementation of MH is primarily aiming to provide an interface
+between Mailutils and Emacs using mh-e module. Therefore, a subset of MH
+utilities has been selected that would provide such basic functionality.
+When this functionality is achieved, other utilities may be implemented.
+
+Utilities Ordered by Importance
+===============================
+
+The `State' column gives the state of the given utility:
+
+- Not implemented
++ Fully implemented
+* Partially implemented. The `Comments' column lists the missing features
+
+The `Nice' column gives aproximate priority of the utility in the terms
+of unix nice level (-20 the highest, +20 the lowest)
+
+State	Nice	Utility		Comments
+-------------------------------------------
++	-20	scan
++	-20	inc
+*	-20	repl		Only a framework is implemented
+-	-20	forw
+-	-20	send
+*	-20	refile		--link
+*	-20	rmm		rmproc:	
+*	-15	folder(s)	--pack,--verbose
+-	-15	mhn
++	-10	rmf
+-	0	install-mh	Not necessary. Will be implemented as a noop
+-	4	mhl
+-	5	mark
+-	5	pick
+-	10	anno
+-	10	burst
+-	10	whom
++	10	mhpath
+-	20	sortm
+
+Utilities In Alphabetical Order
+===============================
+
+anno
+burst
+folder(s)
+forw
+install-mh
+mark
+mhl
+mhn
+mhpath
+pick
+refile
+repl
+rmf
+rmm
+send
+sortm
+whom
