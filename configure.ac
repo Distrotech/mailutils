@@ -1,5 +1,5 @@
 dnl Process this file with autoconf to procude a configure script.
-AC_INIT([GNU Mailutils], [0.0.9d], [bug-mailutils@gnu.org])
+AC_INIT([GNU Mailutils], [0.0.9e], [bug-mailutils@gnu.org])
 AC_CONFIG_SRCDIR([mailbox/mailbox.c])
 AC_CANONICAL_TARGET([])
 AM_INIT_AUTOMAKE
@@ -495,6 +495,7 @@ AC_CONFIG_FILES([Makefile mailutils.spec
  frm/Makefile
  frm/testsuite/Makefile
  sieve/Makefile
+ sieve/testsuite/Makefile
  messages/Makefile
  messages/testsuite/Makefile
  scripts/Makefile
