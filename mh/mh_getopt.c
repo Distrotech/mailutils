@@ -31,7 +31,7 @@ char *mh_optarg;
 char *mh_optptr;
 
 int
-mh_getopt (int argc, char **argv, struct mh_option *mh_opt)
+mh_getopt (int argc, char **argv, struct mh_option *mh_opt, const char *doc)
 {
   struct mh_option *p;
   int optlen;
@@ -86,19 +86,19 @@ mh_getopt (int argc, char **argv, struct mh_option *mh_opt)
     }
   else if (!strcmp (mh_optptr+1, "help"))
     {
-      mh_help (mh_opt);
+      mh_help (mh_opt, doc);
       exit (1);
     }
   return '?';
 }
 
 void
-mh_help (struct mh_option *mh_opt)
+mh_help (struct mh_option *mh_opt, const char *doc)
 {
   struct mh_option *p;
 
   printf ("Compatibility syntax:\n");
-  printf ("%s [+folder] [msgs] [switches]\n", program_invocation_short_name);
+  printf ("%s [switches] %s\n", program_invocation_short_name, doc);
   printf ("  switches are:\n");
   
   for (p = mh_opt; p->opt; p++)
@@ -120,4 +120,5 @@ mh_help (struct mh_option *mh_opt)
       printf ("\n");
     }
   printf ("  -help\n");
+  printf ("\nPlease use GNU long options instead. Run %s --help for more info on these.\n", program_invocation_short_name);
 }

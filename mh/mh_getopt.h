@@ -15,11 +15,12 @@ struct mh_option
 extern int mh_optind;
 extern char *mh_optarg;
 
-int mh_getopt (int argc, char **argv, struct mh_option *mh_opt);
-int mh_argp_parse (int argc, char **argv,
-		   struct argp_option *option,
-		   struct mh_option *mh_option,
-		   char *argp_doc, char *doc,
-		   int (*handler)(), void *closure, int *index);
-void mh_help (struct mh_option *mh_option);
-void mh_license (const char *name);
+int mh_getopt __P((int argc, char **argv, struct mh_option *mh_opt,
+		   const char *doc));
+int mh_argp_parse __P((int argc, char **argv,
+		       struct argp_option *option,
+		       struct mh_option *mh_option,
+		       char *argp_doc, char *doc,
+		       int (*handler)(), void *closure, int *index));
+void mh_help __P((struct mh_option *mh_option, const char *doc));
+void mh_license __P((const char *name));
