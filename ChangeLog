@@ -10,6 +10,9 @@
 	Recall signal() if we did not have sigaction.
 	(ml_readline_init):  Use sigaction to set SIGWINCH and SIGINT.
 
+	* libmu_scm/mu_scm.h:  Guard with HAVE_LIBGUILE_H.
+	* guimb/guimb.h : Guard with HAVE_LIBGUILE_H.
+
 2001-07-22 Sergey Poznyakoff
 	Renamed debug_.* symbols to mu_debug_.* to avoid nameclashes.
 	Files affected:
