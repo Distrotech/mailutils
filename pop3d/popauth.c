@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2002, 2005 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -151,7 +151,7 @@ popauth_parse_opt (int key, char *arg, struct argp_state *astate)
       break;
 	  
     case 'p':
-      ap->passwd = optarg;
+      ap->passwd = arg;
       break;
       
     case 'm':
@@ -160,19 +160,19 @@ popauth_parse_opt (int key, char *arg, struct argp_state *astate)
       break;
 	
     case 'f':
-      ap->input_name = optarg;
+      ap->input_name = arg;
       break;
 	  
     case 'o':
-      ap->output_name = optarg;
+      ap->output_name = arg;
       break;
 	
     case 'u':
-      ap->username = optarg;
+      ap->username = arg;
       break;
 	
     case 'P':
-      set_db_perms (astate, optarg, &permissions);
+      set_db_perms (astate, arg, &permissions);
       break;
       
     case ARGP_KEY_FINI:

@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2002, 2005 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -166,20 +166,20 @@ parse_opt (int key, char *arg, struct argp_state *state)
 
 #ifdef WITH_GUILE	
     case 's':
-      progfile_pattern = optarg;
+      progfile_pattern = arg;
       break;
 #endif
 
     case 'S':
-      sieve_pattern = optarg;
+      sieve_pattern = arg;
       break;
       
     case 'x':
       do
 	{
-	  if (!optarg)
-	    optarg = D_DEFAULT;
-	  switch (*optarg)
+	  if (!arg)
+	    arg = D_DEFAULT;
+	  switch (*arg)
 	    {
 	    case 'g':
 #ifdef WITH_GUILE
@@ -208,14 +208,14 @@ parse_opt (int key, char *arg, struct argp_state *state)
 	      break;
 
 	    default:
-	      if (isdigit (*optarg))
-		debug_level = *optarg - '0';
+	      if (isdigit (*arg))
+		debug_level = *arg - '0';
 	      else
 		argp_error (state, _("%c is not a valid debug flag"), *arg);
 	      break;
 	    }
 	}
-      while (*++optarg);
+      while (*++arg);
       break;
       
     default:
