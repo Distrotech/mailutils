@@ -68,7 +68,7 @@ AC_FUNC_ALLOCA
 AC_FUNC_MMAP
 AC_FUNC_FNMATCH
 if test "$ac_cv_func_fnmatch_works" = "no"; then
-    AC_LIBOBJ(fnmatch)
+    LIBOBJS(fnmatch)
 fi
 AC_REPLACE_FUNCS(setenv snprintf strtok_r strncasecmp strcasecmp vasprintf)
 AC_CHECK_FUNCS(mkstemp)
