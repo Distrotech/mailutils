@@ -10,5 +10,6 @@ rmf
 refile
 mhpath
 folder
+fmtcheck
 *.output
 .gdbinit
