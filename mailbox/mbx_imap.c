@@ -506,18 +506,30 @@ imap_messages_count (mailbox_t mailbox, size_t *pnum)
 
     case IMAP_SELECT:
       status = imap_send (f_imap);
-      CHECK_EAGAIN (f_imap, status);
       if (status != 0)
-	f_imap->selected = NULL;
+	{
+	  /* HACK!!!!! Force a reconnect here.  */
+	   if (status != EAGAIN && status != EINPROGRESS && status != EINTR)
+	     {
+	       CLEAR_STATE (f_imap);
+	       status = folder_open (f_imap->folder, f_imap->folder->flags);
+	       CHECK_EAGAIN (f_imap, status);
+	       return imap_messages_count (mailbox, pnum);
+	     }
+	   return status;
+	}
       f_imap->state = IMAP_SELECT_ACK;
 
     case IMAP_SELECT_ACK:
       status = imap_parse (f_imap);
       CHECK_EAGAIN (f_imap, status);
       MAILBOX_DEBUG0 (mailbox, MU_DEBUG_PROT, f_imap->buffer);
+      break;
 
     default:
-      break;
+      status = folder_open (f_imap->folder, f_imap->folder->flags);
+      CHECK_EAGAIN (f_imap, status);
+      return status;
     }
 
   if (pnum)
@@ -1722,8 +1734,9 @@ message_operation (f_imap_t f_imap, msg_imap_t msg_imap, char *buffer,
     case IMAP_FETCH_ACK:
       status = imap_parse (f_imap);
       CHECK_EAGAIN (f_imap, status);
-      MAILBOX_DEBUG0 (f_imap->selected->mailbox, MU_DEBUG_PROT,
-		      f_imap->buffer);
+      if (f_imap->selected)
+	MAILBOX_DEBUG0 (f_imap->selected->mailbox, MU_DEBUG_PROT,
+			f_imap->buffer);
 
     default:
       break;

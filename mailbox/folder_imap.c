@@ -422,7 +422,7 @@ folder_imap_create (folder_t folder)
     case IMAP_CREATE:
       status = imap_send (f_imap);
       CHECK_EAGAIN (f_imap, status);
-      f_imap->state = IMAP_DELETE_ACK;
+      f_imap->state = IMAP_CREATE_ACK;
 
     case IMAP_CREATE_ACK:
       status = imap_parse (f_imap);
@@ -951,7 +951,7 @@ imap_string (f_imap_t f_imap, char **ptr)
   return status;
 }
 
-/* FIXME: does not worl for nobloking.  */
+/* FIXME: does not work for nonblocking.  */
 static int
 imap_list (f_imap_t f_imap)
 {

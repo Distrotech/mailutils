@@ -1,3 +1,20 @@
+2001-06-01  Alain Magloire
+
+	* mailbox/debug.c(debug_print): Noop is format is NULL;
+	* mailbox/mbx_imap.c (imap_messages_count):  Hack! Force a
+	reconnect if the server timeout on us.  This is not the right
+	approach and does not work well, fix later.
+	(message_operation):  Check if selected is not null, first.
+	* mailbox/folder_imap.c (folder_imap_create): Wrong state.
+	* mailbox/mime.c: Pass down the return value if not ENOENT.
+
+2001-05-30  Dave Inglis
+
+	* mailbox/mbx_pop.c (CHECK_ERROR): Force the mailbox to call connect
+	again when an error occured.  For example the QPopper(Qalcomm) POP3
+	server timeout very quickly, 30 seconds violating the RFC.  So when
+	Readin the stream again we reconnect.
+
 2001-05-30  Dave Inglis
 
 	* mailbox/filter_trans.c (base64_decode): The variable should

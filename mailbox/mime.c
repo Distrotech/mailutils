@@ -606,9 +606,11 @@ mime_create(mime_t *pmime, message_t msg, int flags)
 				else if ( ( ret = header_get_value(mime->hdrs, MU_HEADER_CONTENT_TYPE, mime->content_type, size+1, 0) ) == 0 )
 					_mime_munge_content_header(mime->content_type);
 			} else {
-				ret = 0;
-				if ( ( mime->content_type = strdup("text/plain; charset=us-ascii") ) == NULL ) /* default as per spec. */
-					ret = ENOMEM;
+				if (ret == ENOENT) {
+					ret = 0;
+					if ( ( mime->content_type = strdup("text/plain; charset=us-ascii") ) == NULL ) /* default as per spec. */
+						ret = ENOMEM;
+				}
 			}
 			if  (ret == 0 ) {
 				mime->msg = msg;
