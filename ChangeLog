@@ -1,3 +1,21 @@
+1999-10-11  Jeff Bailey  <jbailey@cr499794-a.crdva1.bc.wave.home.com>
+
+	* imap4d/Makefile.am: New file
+
+	* configure.in: Create imap4d/Makefile
+
+	* pop3d/Makefile.am: Add warnings
+
+        * TODO: Update
+        
+	* impa4rev1/: Rename to imap4d. (I asked first, really I did...)
+	
+	* lib/Makefile.am: Update for new files
+
+	* lib/getline.c: New File
+
+	* lib/getline.h: New file
+
 1999-10-11  Sean 'Shaleh' Perry  <shaleh@debian.org>
 
 	* added my imap code -- PLEASE DO NOT TOUCH
