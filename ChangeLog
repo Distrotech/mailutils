@@ -1,3 +1,59 @@
+2003-01-22  Sergey Poznyakoff 
+
+	* configure.ac: Renamed AUTHOBJS to IMAP_AUTHOBJS for
+	  clarity. Added call to MU_CHECK_GSASL.
+
+	* m4/gsasl.m4: New file. Detect the presense of libgsasl library.
+	* m4/Makefile.am: Added gsasl.m4
+	
+	* auth/gsasl.c: New file. Placeholder for gsasl stream support.
+	* auth/Makefile.am: Added gsasl.c.
+	* auth/tls.c: Include stdlib.h
+	  (mu_deinit_tls_libs): Changed return type to void
+
+	* imap4d/Makefile.am: Renamed AUTHOBJS to IMAP_AUTHOBJS.
+	* imap4d/authenticate.c: Rewritten capability and authentication
+	  systems.
+	* imap4d/capability.c: Use comparator function for list deletions.
+	* imap4d/imap4d.c (tls_available,tls_done): Removed.
+	  (main): Call auth_gssapi_init, auth_gsasl_init
+	* imap4d/imap4d.h (tls_available,tls_done): Removed.
+	  (starttls_init,util_atexit): New functions.
+	  (imap4d_auth_handler_fp): New data type.
+	  (auth_gssapi_init,auth_gsasl_init): New functions/macros
+	* imap4d/starttls.c (tls_available,tls_done): Static variables.
+	  (imap4d_starttls): Register mu_deinit_tls_libs as an 'atexit'
+	  function.
+	  (starttls_init): New function.
+	* imap4d/util.c (util_setio): Make sure both streams are
+	  line-buffered.
+	  (util_get_input,util_get_output)
+	  (util_set_input,util_set_output): New functions for manipulating
+	  io streams.
+	  (util_atexit): New function.
+
+	* imap4d/auth_gss.c (auth_gssapi): Changed declaration and return
+	  values to match new authentication framework.
+	  (auth_gssapi_init): New function
+	* imap4d/auth_gsasl.c: New file.
+	
+	* include/mailutils/list.h (list_comparator_t): New datatype.
+	  (list_set_comparator): New function
+	* include/mailutils/tls.h (mu_deinit_tls_libs): Changed type
+	  to void.
+	* include/mailutils/gsasl.h: New file.
+	* include/mailutils/Makefile.am: Added gsasl.h.
+	
+	* mailbox/include/list0.h (struct _list): New member comp.
+	* mailbox/list.c (list_set_comparator): New function.
+	  (list_remove, list_replace): Use list->comp for
+	  comparing list items with the supplied data.
+
+	* pop3d/extra.c (pop3d_setio): Make sure both streams are
+	  line-buffered.
+
+	* mailbox/.cvsignore: Updated
+	
 2003-01-21  Sergey Poznyakoff 
 
 	Implemented LOGINDISABLED.

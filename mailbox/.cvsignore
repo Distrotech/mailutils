@@ -7,3 +7,4 @@ Makefile.in
 T
 _*
 .gdbinit
+mailutils-config
