@@ -1,3 +1,15 @@
+2003-10-17  Alain Magloire
+
+	First try of implementing CAPA EXPIRE in pop3d.
+
+	* pop3d/expire.c: New file.
+	* pop3d/pop3d.c: New options --expire, expire new gloval variable.
+	* pop3d/quit.c (pop3d_fix_mark): Set the X-Expire-Timestamp for
+	RETR messages.
+	* pop3d/capa.c: Advertise EXPIRE.
+	* pop3d/pop3d.h: Declaration of global variale expire.
+	* pop3d/retr.c: Set a flag on downloaded messages.
+
 2003-10-17  Sergey Poznyakoff
 
 	* mailbox2: It is hopelessly obsolete. Removed. We'd better modify
