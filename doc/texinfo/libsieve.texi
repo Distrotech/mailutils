@@ -3,6 +3,17 @@
 @c See file mailutils.texi for copying conditions.
 @comment *******************************************************************
 
+This chapter describes GNU Sieve library.
+
+@menu
+* Library Description::
+* Input Language::
+* Extensions::
+@end menu
+
+@node Library Description
+@section Library Description
+
 @menu
 * Sieve Data Types::
 * Manipulating the Sieve Machine::
@@ -13,7 +24,7 @@
 @end menu
 
 @node Sieve Data Types
-@section Sieve Data Types
+@subsection Sieve Data Types
 
 @deftp {Data Type} sieve_machine_t
 This is an opaque data type representing a pointer to an instance of
@@ -284,9 +295,9 @@ case. [FIXME: describe how to do that]
 @end deftp
 
 @node Manipulating the Sieve Machine
-@section Manipulating the Sieve Machine
+@subsection Manipulating the Sieve Machine
 
-This section describes functions used to create an instance of the
+This subsection describes functions used to create an instance of the
 sieve machine, read or alter its internal fields and destroy it.
 
 @deftypefn int sieve_machine_init (sieve_machine_t *@var{mach}, void *@var{data})
@@ -468,7 +479,7 @@ return value is a pointer to a static constant string.
 @end deftypefn
 
 @node Logging and Diagnostic Functions 
-@section Logging and Diagnostic Functions 
+@subsection Logging and Diagnostic Functions 
 
 @deftypefn void sieve_error (sieve_machine_t @var{mach}, const char *@var{fmt}, @dots{})
 Format and output an error message using error printer of the machine @var{mach}.
@@ -487,7 +498,7 @@ Immediately abort the execution of the script.
 @end deftypefn
 
 @node Symbol Space Functions
-@section Symbol Space Functions
+@subsection Symbol Space Functions
 
 @deftypefn {sieve_register_t *} sieve_test_lookup (sieve_machine_t @var{mach}, const char *@var{name})
 Find a register object describing the test @var{name}. Returns
@@ -515,7 +526,7 @@ Find a register object describing the action @var{name}. Returns
 @end deftypefn
 
 @node Memory Allocation
-@section Memory Allocation
+@subsection Memory Allocation
 
 The following functions act as their libc counterparts. The allocated
 memory is associated with the @var{mach} argument and is automatically
@@ -552,7 +563,7 @@ If @var{ptr} is @code{NULL}, no operation is performed.
 @end deftypefn
 
 @node Compiling and Executing the Script
-@section Compiling and Executing the Script
+@subsection Compiling and Executing the Script
 
 @deftypefn int sieve_compile (sieve_machine_t @var{mach}, const char *@var{name})
 Compile the seive script from the file @var{name}.
@@ -572,5 +583,579 @@ over the @var{message}.
 Dump the disassembled code of the sieve machine @var{mach}.
 @end deftypefn
 
+@node Input Language
+@section Input Language
 
+The input language understood by the GNU Sieve Library is a superset of
+the Sieve language as described in RFC 3028.
+
+@menu
+* Syntax::
+* Preprocessor::
+* Require Statement::
+* Comparators::
+* Tests::
+* Actions::
+@end menu
+
+@node Syntax
+@subsection
+
+@node Preprocessor
+@subsection Preprocessor
+@cindex Sieve preprocessor statements, a GNU extension
+
+The preprocessor statements are a GNU extension to the Sieve language.
+The syntax for a preprocessor statement is similar to that used in
+@code{C} programming language, i.e.: a pound character (@samp{#})
+followed by a preprocessor directive and any arguments. Any amount of
+whitespace can be inserted between the @samp{#} and the directive.
+Currently implemented directives are @code{include} and @code{searchpath}.
+
+@menu
+* #include::        Include the contents of a file.
+* #searchpath::     Modify the current search path.
+@end menu
+
+@node #include
+@subsubsection Sieve #include directive
+@cindex #include, sieve
+
+The @code{#include} directive reads in the contents of the given file.
+The contents is ``inserted'' into the text being parsed starting at the
+line where the directive appears. The directive takes two forms:
+
+@table @code
+@item #include "@var{filename}"
+The @var{filename} is taken relative to the current directory.
+
+@item #include <@var{filename}>"
+The @var{filename} is searched in the list of include directories
+as specified by the @option{-I} command line options.
+@end table
+
+If @var{filename} starts with a directory separator character
+(@samp{/}) both forms have the same effect.
+
+@node #searchpath
+@subsubsection Sieve #searchpath directive
+@cindex #searchpath, sieve
+
+The @code{#searchpath} directive adds its argument to the list of
+directories searched for loadable modules. It has the same effect
+as @option{-L} command line switch used by GNU sieve utility
+(@pxref{sieve group}). 
+
+@node Require Statement
+@subsection Require Statement
+
+@example
+Syntax:   require @var{string};
+          require @var{string-list};
+@end example
+
+The require statement informs the parser that a script makes use of a certain
+extension. Multiple capabilities can be declared using the second form
+of the statement. The actual handling of a capability name depends on
+its suffix.
+
+If the name starts with @samp{comparator-}, it is understood
+as a request to use the specified comparator. The comparator name
+consists of the characters following the suffix.
+
+If the name starts with @samp{test-}, it means a request to use
+the given test. The test name consists of the characters following
+the suffix.
+
+Otherwise, the capability is understood as a name of an action to be
+used.
+
+The @code{require} statement, if present, must be used before any other
+statement that is using the required capability. As an extension, the GNU
+sieve allows the @code{require} and any other statements to be
+interspersed.
+
+By default the following actions and comparators are always required:
+@itemize
+@item stop
+@item keep
+@item discard
+@item i;octet
+@item i;ascii-casemap
+@end itemize
+
+Example:
+
+@example
+require ["fileinto", "reject"];
+
+require "fileinto";
+
+require "comparator-i;ascii-numeric";
+@end example
+
+When processing arguments for @code{require} statement, GNU libsieve
+uses the following algorithm:
+
+@enumerate 1
+@item Look up the name in a symbol table. If the name begins with
+@samp{comparator-} it is looked up in the comparator table. If it
+begins with @samp{test-}, the test table is used instead. Otherwise
+the name is looked up in the action table.
+
+@item If the name is found, the search is terminated.
+
+@item Otherwise, transform the name. First, any @samp{comparator-} or
+@samp{test-} prefix is stripped. Then, any character other than
+alphanumeric characters, @samp{.} and @samp{,} is replaced with
+dash (@samp{-}). The name thus obtained is used as a file name
+of an external loadable module. 
+
+@item Try to load the module. The module is searched in the
+following search paths (in the order given):
+
+@enumerate 1
+@item Mailutils module directory. By default it is
+@file{$prefix/lib/mailutils}.
+
+@item Sieve library path as given with the @option{-L} options in
+the command line
+
+@item Additional search directories specified with the
+@code{#searchpath} directive.
+
+@item The value of the environment variable LTDL_LIBRARY_PATH.
+
+@item System library search path: The system dependent library
+search path (e.g. on Linux it is set by the contents of the file
+@file{/etc/ld.so.conf} and the value of the environment variable
+LD_LIBRARY_PATH).
+@end enumerate
+
+The value of LTDL_LIBRARY_PATH and LD_LIBRARY_PATH must be a
+colon-separated list of absolute directories, for example,
+@samp{"/usr/lib/mypkg:/lib/foo"}.
+
+In any of these directories, @command{libsieve} first attempts to find
+and load the given filename. If this fails, it tries to append the
+following suffixes to the file name:
+
+@enumerate 1
+@item the libtool archive extension @samp{.la}
+
+@item the extension used for native dynamic libraries on the host
+platform, e.g., @samp{.so}, @samp{.sl}, etc.
+@end enumerate
+
+@item If the module is found, @command{libsieve} executes its
+initialization function (see below) and again looks up the name
+in the symbol table. If found, search terminates successfully.
+
+@item If either the module is not found, or the symbol wasn't
+found after execution of the module initialization function,
+search is terminated with an error status. @command{libsieve} then
+issues the following diagnostic message:
+
+@example
+source for the required action NAME is not available
+@end example
+@end enumerate
+
+@node Comparators
+@subsection Comparators
+
+GNU libsieve supports the following built-in comparators:
+
+@table @code
+@item i;octet
+This comparator simply compares the two arguments octet by octet
+
+@item i;ascii-casemap
+It treats uppercase and lowercase characters in the @sc{ascii} subset of
+@sc{utf-8} as the same. This is the default comparator.
+
+@item i;ascii-numeric
+Treats the two arguments as @sc{ascii} representation of decimal
+numbers and compares their numeric values. This comparator must
+be explicitly required prior to use.
+@end table 
+
+@node Tests
+@subsection Tests
+
+This section describes the built-in tests supported by GNU libsieve.
+In the discussion below the following macro-notations are used:
+
+@table @var
+@item match-type
+This tag specifies the matching type to be used with the test. It can
+be one of the following:
+
+@table @code
+@item :is
+The @code{:is} match type describes an absolute match; if the contents of
+the first string are absolutely the same as the contents of the
+second string, they match.  Only the string ``frobnitzm'' is the string
+``frobnitzm''.  The null key ``:is'' and only ``:is'' the null value.
+This is the default match-type.
+
+@item :contains
+The @code{:contains} match type describes a substring match.  If the value
+argument contains the key argument as a substring, the match is true.
+For instance, the string ``frobnitzm'' contains ``frob'' and ``nit'', but
+not ``fbm''.  The null key ``'' is contained in all values.
+
+@item :matches
+The @code{:matches} version specifies a wildcard match using the
+characters @samp{*} and @samp{?}. @samp{*} matches zero or more
+characters, and @samp{?} matches a single character. @samp{?} and
+@samp{*} may be escaped as @samp{\\?} and @samp{\\*} in strings to match
+against themselves.  The first backslash escapes the second backslash;
+together, they escape the @samp{*}.
+
+@item :regex
+The @code{:regex} version specifies a match using POSIX Extended Regular
+Expressions.
+@end table
+
+@item comparator
+A @var{comparator} syntax item is defined as follows:
+
+@example
+:comparator "@var{comparator-name}"
+@end example
+@noindent
+@sp 1
+It instructs sieve to use the given comparator with the test.
+If @var{comparator-name} is not one of @samp{i;octet},
+@samp{i;ascii-casemap} it must be required prior to using it.
+For example:
+
+@example
+require "comparator-i;ascii-numeric";
+
+if header :comparator "i;ascii-numeric" :is "X-Num" "10"
+  @{
+    ...
+@end example
+
+@item address-part
+This syntax item is used when testing structured Internet addresses. It
+specifies which part of an address must be used in comparisons.
+Exactly one of the following tags may be used:
+
+@table @code
+@item :all
+Use the whole address. This is the default.
+
+@item :localpart
+Use local part of the address.
+
+@item :domain
+Use domain part of the address.
+@end table
+
+@end table
+
+@emph{Notice}, that @var{match-type} modifiers interact with
+comparators. Some comparators are not suitable for matching with
+@code{:contains} or @code{:matches}. If this occurs, sieve issues
+an appropriate error message. For example, the statement:
+
+@example
+if header :matches :comparator "i;ascii-numeric"
+@end example
+@sp 1
+@noindent
+would result in the following error message:
+
+@example
+comparator `i;ascii-numeric' is incompatible with match type `:matches'
+in call to `header'
+@end example
+
+@menu
+* false:Sieve test false.
+* true:Sieve test true.
+* address:Sieve test address.
+* size:Sieve test size.
+* envelope:Sieve test envelope.
+* exists:Sieve test exists.
+* header:Sieve test header.
+* numaddr:Sieve test numaddr.
+@end menu
+
+@node Sieve test false
+@subsubsection Sieve test false
+
+@example
+Syntax: false
+@end example
+
+This test always evaluates to ``false''.
+
+@node Sieve test true
+@subsubsection Sieve test true
+
+@example
+Syntax: true
+@end example
+
+This test always evaluates to ``true''.
+
+@node Sieve test address
+@subsubsection Sieve test address
+
+@example
+Syntax: address [@var{address-part}][@var{comparator}][@var{match-type}]
+                @var{header-names} @var{key-list}
+@end example
+@sp 1
+@noindent
+Tagged arguments:
+
+@table @var
+@item address-part
+Selects the address part to compare. Default is the whole email address
+(@code{:all}).
+
+@item comparator
+Specifies the comparator to be used instead of the default @code{i;ascii-casemap}.
+
+@item match-type
+Specifies the match type to be used instead of the default @code{:is}.
+@end table
+@sp 1
+@noindent
+Required arguments:
+
+@table @var
+@item header-names
+A list of header names.
+
+@item key-list
+A list of address values.
+@end table
+@sp 1
+@noindent
+
+The @code{address} test matches Internet addresses in structured headers
+that contain addresses.  It returns @code{true} if any header contains any
+key in the specified part of the address, as modified by 
+@var{comparator} and @var{match-type} optional arguments.
+
+This test returns @code{true} if any combination of the
+@var{header-names} and @var{key-list} arguments match.
+
+The @code{address} primitive never acts on the phrase part of an email
+address, nor on comments within that address. Use the @code{header} test
+instead. It also never acts on group names, although it does act on the
+addresses within the group construct.
+
+Example:
+
+@example
+if address :is :all "from" "tim@@example.com"
+  @{
+     discard;
+  @} 
+@end example
+
+@node Sieve test size
+@subsubsection Sieve test size
+
+@example
+Syntax: size [:over|:under] @var{number}
+@end example
+@sp 1
+@noindent
+The @code{size} test deals with the size of a message. The required
+argument @var{number} represents the size of the message in bytes. It
+may be suffixed with the following quantifiers:
+
+@table @samp
+@item k
+@itemx K
+The number is expressed in kilobytes.
+@item m
+@itemx M
+The number is expressed in megabytes.
+@item g
+@item G
+The number is expressed in gigabytes.
+@end table
+
+If the tagged argument is @samp{:over}, and the size of the message is greater
+than @var{number}, the test is true; otherwise, it is false.
+
+If the argument is @samp{:under}, and the size of the message is less than
+the @var{number}, the test is true; otherwise, it is false.
+
+Otherwise, the test is true only if the size of the message equals
+exactly @var{number}. This is a GNU extension 
+
+The size of a message is defined to be the number of octets from the
+initial header until the last character in the message body.
+
+
+@node Sieve test envelope
+@subsubsection Sieve test envelope
+
+@example
+Syntax:   envelope [@var{address-part}][@var{comparator}][@var{match-type}]
+                   @var{envelope-part} @var{key-list}
+@end example
+@sp 1
+@noindent
+Tagged arguments:
+
+@table @var
+@item address-part
+Selects the address part to compare. Default is the whole email address
+(@code{:all}).
+
+@item comparator
+Specifies the comparator to be used instead of the default @code{i;ascii-casemap}.
+
+@item match-type
+Specifies the match type to be used instead of the default @code{:is}.
+@end table
+@sp 1
+@noindent
+Required arguments:
+
+@table @var
+@item envelope-parts
+A list of envelope parts to operate upon.
+
+@item key-list
+A list of address values.
+@end table
+@sp 1
+@noindent
+
+The @code{envelope} test is true if the specified part of the @sc{smtp}
+envelope matches the specified key.
+
+If the envelope-part strings is (case insensitive) @samp{from},
+then matching occurs against the FROM address used in the
+@command{SMTP MAIL} command.  
+
+@emph{Notice}, that due to the limitations imposed by @sc{smtp} envelope
+structure the use of any other values in @var{envelope-parts} header is
+meaningless.
+
+@node Sieve test exists
+@subsubsection Sieve test exists
+
+@example
+Syntax:   exists @var{header-names}
+@end example
+@sp 1
+@noindent
+
+The @code{exists} test is @code{true} if the headers listed in
+@var{header-names} argument exist within the message. All of the headers
+must exist or the test is false.
+
+The following example throws out mail that doesn't have a From header
+and a Date header:
+
+@example
+if not exists ["From","Date"]
+  @{
+     discard;
+  @}
+@end example
+
+@node Sieve test header
+@subsubsection Sieve test header
+
+@example
+Syntax:  header [@var{comparator}] [@var{match-type}] [:mime]
+                @var{header-names} @var{key-list}
+@end example
+
+@noindent
+Tagged arguments:
+
+@table @asis
+@item @var{comparator}
+Specifies the comparator to be used instead of the default @code{i;ascii-casemap}.
+
+@item @var{match-type}
+Specifies the match type to be used instead of the default @code{:is}.
+
+@item :mime
+This tag instructs @code{header} to search through the mime headers in
+multipart messages as well.
+
+@end table
+@sp 1
+@noindent
+Required arguments:
+
+@table @var
+@item header-names
+A list of header names.
+
+@item key-list
+A list of header values.
+@end table
+@sp 1
+@noindent
+The @code{header} test evaluates to true if any header name matches any
+key.  The type of match is specified by the optional match argument,
+which defaults to ":is" if not explicitly given.
+
+The test returns @code{true} if any combination of the @var{header-names}
+and @var{key-list} arguments match.
+
+If a header listed in @var{header-names} exists, it contains the null
+key (@samp{""}).  However, if the named header is not present, it
+does not contain the null key.  So if a message contained the header
+
+@example
+X-Caffeine: C8H10N4O2
+@end example
+@sp 1
+@noindent
+these tests on that header evaluate as follows:
+
+@example 
+header :is ["X-Caffeine"] [""] @result{} false
+header :contains ["X-Caffeine"] [""] @result{} true
+@end example
+
+@node Sieve test numaddr
+@subsubsection Sieve test numaddr
+
+@example
+Syntax: require "test-numaddr";
+        numaddr [:over|:under] @var{header-names} @var{number}
+@end example
+@sp 1
+@noindent
+
+This test is provided as an example of loadable extension tests. You
+must use @samp{require "test-numaddr"} statement before actually using
+it.
+
+The @code{numaddr} test counts Internet addresses in structured headers
+that contain addresses.  It returns true if the total number of
+addresses satisfies the requested relation.
+
+If the tagged argument is @samp{:over} and the number of addresses is
+greater than @var{number}, the test is true; otherwise, it is false.
+
+If the tagged argument is @samp{:under} and the number of addresses is
+less than @var{number}, the test is true; otherwise, it is false.
+
+If the tagged argument is not given, @samp{:over} is assumed. 
+        
+@node Actions
+@subsection Actions
+
+@node Extensions
+@section Extensions
 
