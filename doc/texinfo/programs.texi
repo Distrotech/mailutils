@@ -2979,23 +2979,46 @@ Mailutils libraries.
 
 When invoked without arguments, it produces the flags necessary to
 link against the basic library of Mailutils: @file{libmailbox}.
-Up to two arguments may be given that alter this behavior. These
-are:
+Arguments may be given that alter this behavior. These are:
 
 @table @samp
+
 @item auth
 Print flags to link against @file{libmuauth}, the library adding new
 authentication methods to @file{libmailbox}.
 
 @item guile
 Print flags to link against @file{libmu_scm}, the Guile interface
-library. 
+library.
+
+@item mbox
+Link against @code{mbox} format library.
+
+@item mh
+Link against @code{mh} format library.
+
+@item maildir
+Link against @code{maildir} format library.
+
+@item imap
+Link against @code{imap} format library.
+
+@item pop
+Link against @code{pop} format library.
+
+@item all
+Link against all Mailutils format libraries.
 @end table
 
-Both arguments may be given simultaneously, e.g.:
+The order of arguments does not matter.
+
+For example, if you wrote a program @file{myprog.c} that uses
+standard @sc{unix} mailbox format, @sc{mh} format and the
+Guile interface, then you would link it with the following
+command:
 
 @example
-cc -omyprog myprog.o `mailutils-config --link auth guile`
+cc -omyprog myprog.o `mailutils-config --link mbox mh guile`
 @end example
 
 @node General Information

@@ -1,3 +1,12 @@
+2003-09-11  Sergey Poznyakoff  
+
+	* mailbox/imap/folder.c (authenticate_imap_login): Do not
+	close the stream on authentication failures.
+	(authenticate_imap_select): Bugfix
+	(imap_parse): Use MU_ERR_AUTH_FAILURE where appropriate.
+
+	* doc/texinfo/programs.texi: Updated
+
 2003-09-10  Sergey Poznyakoff 
 
 	* include/mailutils/errno.h (MU_ERR_BAD_AUTH_SCHEME)
