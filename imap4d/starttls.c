@@ -34,6 +34,8 @@ imap4d_starttls (struct imap4d_command *command, char *arg)
   if (util_getword (arg, &sp))
     return util_finish (command, RESP_BAD, "Too many args");
 
+  util_atexit (mu_deinit_tls_libs);
+
   status = util_finish (command, RESP_OK, "Begin TLS negotiation");
   util_flush_output ();
   tls_done = imap4d_init_tls_server ();
@@ -43,8 +45,14 @@ imap4d_starttls (struct imap4d_command *command, char *arg)
       imap4d_capability_remove ("STARTTLS");
       login_disabled = 0;
       imap4d_capability_remove ("LOGINDISABLED");
-      util_atexit (mu_deinit_tls_libs);
     }
+  else
+    {
+      syslog (LOG_ERR, _("Session terminated"));
+      util_bye ();
+      exit (0);
+    }
+
   return status;
 }
 
