@@ -1235,8 +1235,9 @@ mu_set_default_fallback (const char *str)
 }
 
 int
-mu_decode_filter (stream_t *pfilter, stream_t input, char *filter_type,
-		  char *fromcode, char *tocode)
+mu_decode_filter (stream_t *pfilter, stream_t input,
+		  const char *filter_type,
+		  const char *fromcode, const char *tocode)
 {
   stream_t filter;
   

@@ -132,8 +132,8 @@ extern int mu_scheme_autodetect_p __P((const char *scheme, const char **path));
 extern int mu_fd_wait __P((int fd, int *pflags, struct timeval *tvp));
 
 extern int mu_decode_filter __P((stream_t *pfilter, stream_t input,
-				 char *filter_type,
-				 char *fromcode, char *tocode));
+				 const char *filter_type,
+				 const char *fromcode, const char *tocode));
 
 extern enum mu_iconv_fallback_mode mu_default_fallback_mode;
 extern int mu_set_default_fallback __P((const char *str));

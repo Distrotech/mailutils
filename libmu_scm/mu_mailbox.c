@@ -51,7 +51,6 @@ mu_scm_mailbox_print (SCM mailbox_smob, SCM port, scm_print_state * pstate)
   struct mu_mailbox *mum = (struct mu_mailbox *) SCM_CDR (mailbox_smob);
   size_t count = 0;
   url_t url = NULL;
-  char *p;
 
   mailbox_messages_count (mum->mbox, &count);
   mailbox_get_url (mum->mbox, &url);
@@ -65,7 +64,7 @@ mu_scm_mailbox_print (SCM mailbox_smob, SCM port, scm_print_state * pstate)
     }
   else
     {
-      p = url_to_string (url);
+      const char *p = url_to_string (url);
       if (p)
 	{
 	  char buf[64];

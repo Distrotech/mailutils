@@ -124,7 +124,7 @@ mu_insert_stack_entry (list_t *pflist, struct auth_stack_entry *entry)
 
 int
 mu_auth_runlist (list_t flist, struct mu_auth_data **return_data,
-		 void *key, void *data)
+		 const void *key, void *data)
 {
   int rc = 1;
   iterator_t itr;
@@ -149,7 +149,7 @@ mu_auth_runlist (list_t flist, struct mu_auth_data **return_data,
 
 int
 mu_auth_nosupport (struct mu_auth_data **return_data ARG_UNUSED,
-		   void *key ARG_UNUSED,
+		   const void *key ARG_UNUSED,
 		   void *func_data ARG_UNUSED,
 		   void *call_data ARG_UNUSED)
 {

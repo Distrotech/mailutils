@@ -136,7 +136,8 @@ pg_auth_common (PGresult *res, char *query_str, struct mu_auth_data **auth)
 }
 
 int
-pg_auth_sql_by_name (struct mu_auth_data **return_data, void *key,
+pg_auth_sql_by_name (struct mu_auth_data **return_data,
+		     const void *key,
 		     void *func_data ARG_UNUSED,
 		     void *call_data ARG_UNUSED)
 {
@@ -185,7 +186,8 @@ pg_auth_sql_by_name (struct mu_auth_data **return_data, void *key,
 }
 
 int
-pg_auth_sql_by_uid (struct mu_auth_data **return_data, void *key,
+pg_auth_sql_by_uid (struct mu_auth_data **return_data,
+		    const void *key,
 		    void *func_data ARG_UNUSED,
 		    void *call_data ARG_UNUSED)
 {
@@ -235,13 +237,14 @@ pg_auth_sql_by_uid (struct mu_auth_data **return_data, void *key,
 }
 
 int
-pg_sql_authenticate (struct mu_auth_data **return_data ARG_UNUSED, void *key,
+pg_sql_authenticate (struct mu_auth_data **return_data ARG_UNUSED,
+		     const void *key,
 		     void *func_data ARG_UNUSED, void *call_data)
 {
   PGconn *conn;
   PGresult *res = NULL;
   
-  struct mu_auth_data *auth_data = key;
+  const struct mu_auth_data *auth_data = key;
   char *pass = call_data;
   char *query_str = NULL;
   int rc = 1;

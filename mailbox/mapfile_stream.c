@@ -244,7 +244,7 @@ _mapfile_get_transport2 (stream_t stream, mu_transport_t *pin, mu_transport_t *p
     *pout = NULL;
   
   if (pin)
-    *pin = mfs->fd;
+    *pin = (mu_transport_t) mfs->fd;
   return 0;
 }
 

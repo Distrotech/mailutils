@@ -253,7 +253,7 @@ _gsasl_open (stream_t stream)
 }
 
 int
-_gsasl_strerror (stream_t stream, char **pstr)
+_gsasl_strerror (stream_t stream, const char **pstr)
 {
   struct _gsasl_stream *s = stream_get_owner (stream);
   *pstr = gsasl_strerror (s->last_err);

@@ -1787,14 +1787,15 @@ builtin_putaddr (struct mh_machine *mach)
 static void
 builtin_unre (struct mh_machine *mach)
 {
-  char *p;
+  const char *p;
   int rc = munre_subject (strobj_ptr (&mach->arg_str), &p);
   if (rc == 0 && p != strobj_ptr (&mach->arg_str))
     {
-      p = strdup (p);
+      char *q = strdup (p); /* Create a copy, since strobj_create will
+			       destroy p */
       strobj_free (&mach->arg_str);
-      strobj_create (&mach->arg_str, p);
-      free (p);
+      strobj_create (&mach->arg_str, q);
+      free (q);
     }
 }  
 

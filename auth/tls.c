@@ -534,7 +534,7 @@ _tls_open_client (stream_t stream)
 }
 
 int
-_tls_strerror (stream_t stream, char **pstr)
+_tls_strerror (stream_t stream, const char **pstr)
 {
   struct _tls_stream *s = stream_get_owner (stream);
   *pstr = gnutls_strerror (s->last_err);

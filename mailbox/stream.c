@@ -663,7 +663,7 @@ stream_set_flags (stream_t stream, int fl)
 
 int
 stream_set_strerror (stream_t stream,
-		     int (*fp) (stream_t, char **), void *owner)
+		     int (*fp) (stream_t, const char **), void *owner)
 {
   if (stream == NULL)
     return EINVAL;
@@ -716,7 +716,7 @@ stream_sequential_readline (stream_t stream, char *buf, size_t size,
 }
 
 int
-stream_sequential_write (stream_t stream, char *buf, size_t size)
+stream_sequential_write (stream_t stream, const char *buf, size_t size)
 {
   if (stream == NULL)
     return EINVAL;
@@ -780,7 +780,7 @@ stream_wait (stream_t stream, int *pflags, struct timeval *tvp)
 }
 
 int
-stream_strerror (stream_t stream, char **p)
+stream_strerror (stream_t stream, const char **p)
 {
   if (stream == NULL)
     return EINVAL;

@@ -39,7 +39,7 @@ create_gsasl_stream (stream_t *newstr, stream_t transport, int flags)
 
   if ((rc = stream_open (*newstr)) != 0)
     {
-      char *p;
+      const char *p;
       if (stream_strerror (*newstr, &p))
 	p = mu_strerror (rc);
       syslog (LOG_ERR, _("cannot open SASL input stream: %s"), p);
@@ -148,7 +148,6 @@ auth_gsasl_capa_init (int disable)
 {
   int rc;
   char *listmech, *name, *s;
-  size_t size;
 
   rc =  gsasl_server_mechlist (ctx, &listmech);
   if (rc != GSASL_OK)
@@ -283,9 +282,3 @@ auth_gsasl_init ()
   auth_gsasl_capa_init (0);
 }
 
-wd()
-{
-  int _st=0;
-  while (_st==0)
-    _st=_st;
-}

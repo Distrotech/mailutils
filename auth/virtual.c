@@ -57,7 +57,7 @@
 static char *site_virtual_pwddir = SITE_VIRTUAL_PWDDIR;
 
 static struct passwd *
-getpwnam_virtual (char *u)
+getpwnam_virtual (const char *u)
 {
   struct passwd *pw = NULL;
   FILE *pfile;
@@ -133,7 +133,8 @@ getpwnam_ip_virtual (const char *u)
 
 /* Virtual domains */
 static int
-mu_auth_virt_domain_by_name (struct mu_auth_data **return_data, void *key,
+mu_auth_virt_domain_by_name (struct mu_auth_data **return_data,
+			     const void *key,
 			     void *unused_func_data, void *unused_call_data)
 {
   int rc;
@@ -202,7 +203,7 @@ struct argp mu_virt_argp = {
 #else
 static int
 mu_auth_virt_domain_by_name (struct mu_auth_data **return_data ARG_UNUSED,
-			     void *key ARG_UNUSED,
+			     const void *key ARG_UNUSED,
 			     void *func_data ARG_UNUSED,
 			     void *call_data ARG_UNUSED)
 {

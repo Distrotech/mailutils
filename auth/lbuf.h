@@ -24,9 +24,8 @@ void _auth_lb_destroy __P((struct _line_buffer **s));
 void _auth_lb_drop __P((struct _line_buffer *s));
 
 int _auth_lb_grow __P((struct _line_buffer *s, const char *ptr, size_t size));
-int _auth_lb_read __P((struct _line_buffer *s, const char *ptr, size_t size));
-int _auth_lb_readline __P((struct _line_buffer *s, const char *ptr,
-			   size_t size));
+int _auth_lb_read __P((struct _line_buffer *s, char *ptr, size_t size));
+int _auth_lb_readline __P((struct _line_buffer *s, char *ptr, size_t size));
 int _auth_lb_writelines __P((struct _line_buffer *s, const char *iptr,
 			     size_t isize, off_t offset,
 			     int (*wr) __PMT ((void *data, char *start,

@@ -407,34 +407,35 @@ mh_expand_name (const char *base, const char *name, int is_folder)
 {
   char *tmp = NULL;
   char *p = NULL;
+  char *namep;
   
   tmp = mu_tilde_expansion (name, "/", NULL);
   if (tmp[0] == '+')
-    name = tmp + 1;
+    namep = tmp + 1;
   else if (strncmp (tmp, "../", 3) == 0 || strncmp (tmp, "./", 2) == 0)
     {
       char *cwd = mu_getcwd ();
-      asprintf (&name, "%s/%s", cwd, tmp);
+      asprintf (&namep, "%s/%s", cwd, tmp);
       free (cwd);
       free (tmp);
       tmp = NULL;
     }
   else
-    name = tmp;
+    namep = tmp;
   
   if (!base)
     base = mu_path_folder_dir;
   if (is_folder)
     {
-      if (name[0] == '/')
-	asprintf (&p, "mh:%s", name);
+      if (namep[0] == '/')
+	asprintf (&p, "mh:%s", namep);
       else
-	asprintf (&p, "mh:%s/%s", base, name);
+	asprintf (&p, "mh:%s/%s", base, namep);
     }
-  else if (name[0] != '/')
-    asprintf (&p, "%s/%s", base, name);
+  else if (namep[0] != '/')
+    asprintf (&p, "%s/%s", base, namep);
   else
-    return name;
+    return namep;
   
   free (tmp);
   return p;

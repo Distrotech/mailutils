@@ -35,7 +35,7 @@ struct mu_auth_data {
 };
 
 typedef int (*mu_auth_fp) __P((struct mu_auth_data **data,
-			       void *key,
+			       const void *key,
 			       void *func_data,
 			       void *call_data));
 
@@ -52,7 +52,7 @@ struct mu_auth_module {
 
 extern int mu_auth_runlist __P((list_t flist,
 				struct mu_auth_data **return_data,
-				void *key, void *data));
+				const void *key, void *data));
 extern struct mu_auth_data *
 mu_get_auth_by_name __P ((const char *username));
 
@@ -63,7 +63,7 @@ extern int
 mu_authenticate __P((struct mu_auth_data *auth_data, char *pass));
 
 extern int mu_auth_nosupport __P((struct mu_auth_data **return_data,
-				  void *key,
+				  const void *key,
 				  void *func_data,
 				  void *call_data));
 

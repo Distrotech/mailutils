@@ -62,6 +62,7 @@
 #include <mailutils/url.h>
 #include <mailutils/observer.h>
 #include <mailutils/errno.h>
+#include <mailutils/locker.h>
 #include <mailbox0.h>
 #include <registrar0.h>
 #include <amd.h>
@@ -236,7 +237,7 @@ read_random (void *buf, size_t size)
 }
 
 char *
-maildir_mkfilename (char *directory, char *suffix, char *name)
+maildir_mkfilename (const char *directory, const char *suffix, const char *name)
 {
   size_t size = strlen (directory) + 1 + strlen (suffix) + 1;
   char *tmp;

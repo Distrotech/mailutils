@@ -44,7 +44,7 @@
 
 /* System database */
 static int
-mu_auth_system (struct mu_auth_data **return_data, struct passwd *pw)
+mu_auth_system (struct mu_auth_data **return_data, const struct passwd *pw)
 {
   char *mailbox_name;
   int rc;
@@ -74,7 +74,8 @@ mu_auth_system (struct mu_auth_data **return_data, struct passwd *pw)
 }
 
 int
-mu_auth_system_by_name (struct mu_auth_data **return_data, void *key,
+mu_auth_system_by_name (struct mu_auth_data **return_data,
+			const void *key,
 			void *func_data ARG_UNUSED,
 			void *call_data ARG_UNUSED)
 {
@@ -87,7 +88,8 @@ mu_auth_system_by_name (struct mu_auth_data **return_data, void *key,
 }
 
 static int
-mu_auth_system_by_uid (struct mu_auth_data **return_data, void *key,
+mu_auth_system_by_uid (struct mu_auth_data **return_data,
+		       const void *key,
 		       void *func_data ARG_UNUSED,
 		       void *call_data ARG_UNUSED)
 {
@@ -101,11 +103,11 @@ mu_auth_system_by_uid (struct mu_auth_data **return_data, void *key,
 
 static int
 mu_authenticate_generic (struct mu_auth_data **return_data ARG_UNUSED,
-			 void *key,
+			 const void *key,
 			 void *func_data ARG_UNUSED,
 			 void *call_data)
 {
-  struct mu_auth_data *auth_data = key;
+  const struct mu_auth_data *auth_data = key;
   char *pass = call_data;
 
   return !auth_data
@@ -116,11 +118,11 @@ mu_authenticate_generic (struct mu_auth_data **return_data ARG_UNUSED,
 /* Called only if generic fails */
 static int
 mu_authenticate_system (struct mu_auth_data **return_data ARG_UNUSED,
-			void *key,
+			const void *key,
 			void *func_data ARG_UNUSED,
 			void *call_data)
 {
-  struct mu_auth_data *auth_data = key;
+  const struct mu_auth_data *auth_data = key;
   char *pass = call_data;
 
 #ifdef HAVE_SHADOW_H

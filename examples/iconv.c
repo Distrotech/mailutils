@@ -58,7 +58,7 @@ main (int argc, char **argv)
   stream_flush (out);
   if (rc)
     {
-      char *p;
+      const char *p;
       stream_strerror (cvt, &p);
       fprintf (stderr, "error: %s / %s\n", mu_strerror (rc), p);
     }

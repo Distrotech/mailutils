@@ -498,7 +498,7 @@ _file_open (stream_t stream)
 }
 
 int
-_file_strerror (stream_t unused, char **pstr)
+_file_strerror (stream_t unused, const char **pstr)
 {
   *pstr = strerror (errno);
   return 0;

@@ -500,7 +500,8 @@ static int
 send (int argc, char **argv)
 {
   int i, rc;
-
+  char *p;
+  
   /* Verify all arguments */
   for (i = 0; i < argc; i++)
     if (check_file (argv[i]))
@@ -518,8 +519,9 @@ send (int argc, char **argv)
 
   /* Prepend url specifier to the folder dir. We won't need this
      when the default format becomes configurable */
-  asprintf (&mu_path_folder_dir, "mh:%s", mu_path_folder_dir);
-
+  asprintf (&p, "mh:%s", mu_path_folder_dir);
+  mu_path_folder_dir = p;
+  
   /* Finally, do the work */
   rc = list_do (mesg_list, _action_send, NULL);
   return rc;

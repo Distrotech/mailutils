@@ -29,7 +29,8 @@
 
 
 int
-mysql_auth_sql_by_name (struct mu_auth_data **return_data, void *key,
+mysql_auth_sql_by_name (struct mu_auth_data **return_data,
+			const void *key,
 			void *func_data ARG_UNUSED,
 			void *call_data ARG_UNUSED)
 {
@@ -224,7 +225,7 @@ mysql_auth_sql_by_uid (struct mu_auth_data **return_data, void *key,
 
 int
 mysql_sql_authenticate (struct mu_auth_data **return_data ARG_UNUSED,
-			void *key,
+			const void *key,
 			void *func_data ARG_UNUSED, void *call_data)
 {
   struct mu_auth_data *auth_data = key;

@@ -16,6 +16,9 @@
    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA  */
 
 #include "imap4d.h"
+#ifdef WITH_GSASL
+# include <mailutils/gsasl.h>
+#endif
 
 mailbox_t mbox;
 char *homedir;

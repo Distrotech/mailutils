@@ -352,7 +352,7 @@ _icvt_read (stream_t stream, char *optr, size_t osize,
 }
 
 int
-_icvt_strerror (stream_t stream, char **pstr)
+_icvt_strerror (stream_t stream, const char **pstr)
 {
   struct icvt_stream *s = stream_get_owner (stream);
   switch (s->state)
@@ -369,7 +369,7 @@ _icvt_strerror (stream_t stream, char **pstr)
 	case EILSEQ:
 	  snprintf (s->errbuf, sizeof s->errbuf,
 		    _("Illegal multibyte sequence near %*.*s"),
-		    s->bufpos, s->bufpos, s->buf);
+		    (int) s->bufpos, (int) s->bufpos, s->buf);
 	  break;
 
 	default:
@@ -384,7 +384,7 @@ _icvt_strerror (stream_t stream, char **pstr)
       break;
       
     default:
-      *pstr = (char*) mu_strerror (s->ec);
+      *pstr = mu_strerror (s->ec);
     }
   
   return 0;

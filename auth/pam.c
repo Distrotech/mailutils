@@ -102,11 +102,11 @@ static struct pam_conv PAM_conversation = { &mu_pam_conv, NULL };
 
 int
 mu_authenticate_pam (struct mu_auth_data **return_data ARG_UNUSED,
-		     void *key,
+		     const void *key,
 		     void *func_data ARG_UNUSED,
 		     void *call_data)
 {
-  struct mu_auth_data *auth_data = key;
+  const struct mu_auth_data *auth_data = key;
   char *pass = call_data;
   pam_handle_t *pamh;
   int pamerror;
@@ -164,7 +164,7 @@ struct argp mu_pam_argp = {
 
 int
 mu_authenticate_pam (struct mu_auth_data **return_data ARG_UNUSED,
-		     void *key ARG_UNUSED,
+		     const void *key ARG_UNUSED,
 		     void *func_data ARG_UNUSED,
 		     void *call_data ARG_UNUSED)
 {

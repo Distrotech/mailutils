@@ -85,7 +85,7 @@ _auth_lb_grow (struct _line_buffer *s, const char *ptr, size_t size)
 }
 
 int
-_auth_lb_read (struct _line_buffer *s, const char *optr, size_t osize)
+_auth_lb_read (struct _line_buffer *s, char *optr, size_t osize)
 {
   int len;
 
@@ -103,7 +103,7 @@ _auth_lb_read (struct _line_buffer *s, const char *optr, size_t osize)
 }
 
 int
-_auth_lb_readline (struct _line_buffer *s, const char *ptr, size_t size)
+_auth_lb_readline (struct _line_buffer *s, char *ptr, size_t size)
 {
   char *p = strchr (s->buffer, '\n');
 

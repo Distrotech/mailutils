@@ -161,7 +161,7 @@ pop3d_init_tls_server ()
 
   if (stream_open (stream))
     {
-      char *p;
+      const char *p;
       stream_strerror (stream, &p);
       syslog (LOG_ERR, _("cannot open TLS stream: %s"), p);
       return 0;
@@ -220,7 +220,7 @@ pop3d_outf (const char *fmt, ...)
   free (buf);
   if (rc)
     {
-      char *p;
+      const char *p;
 
       if (stream_strerror (ostream, &p))
 	p = strerror (errno);
@@ -243,7 +243,7 @@ pop3d_readline (char *buffer, size_t size)
 
   if (rc)
     {
-      char *p;
+      const char *p;
 
       if (stream_strerror (ostream, &p))
 	p = strerror (errno);

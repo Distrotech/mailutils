@@ -214,11 +214,14 @@ struct argp mu_sql_argp = {
 
 
 # ifdef HAVE_MYSQL
-int mysql_auth_sql_by_name __P((struct mu_auth_data **return_data, void *key,
+int mysql_auth_sql_by_name __P((struct mu_auth_data **return_data,
+				const void *key,
 				void *func_data, void *call_data));
-int mysql_auth_sql_by_uid __P((struct mu_auth_data **return_data, void *key,
+int mysql_auth_sql_by_uid __P((struct mu_auth_data **return_data,
+			       const void *key,
 			       void *func_data, void *call_data));
-int mysql_sql_authenticate __P((struct mu_auth_data **return_data, void *key,
+int mysql_sql_authenticate __P((struct mu_auth_data **return_data,
+				const void *key,
 				void *func_data, void *call_data));
 
 #  define mu_sql_authenticate mysql_sql_authenticate
