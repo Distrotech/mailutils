@@ -138,7 +138,7 @@ attribute_set_seen (attribute_t attr)
   if (attr->_set_flags)
     status = attr->_set_flags (attr, MU_ATTRIBUTE_SEEN);
   attr->flags |= MU_ATTRIBUTE_SEEN;
-  return 0;
+  return status;
 }
 
 int
@@ -150,7 +150,7 @@ attribute_set_answered (attribute_t attr)
   if (attr->_set_flags)
     status = attr->_set_flags (attr, MU_ATTRIBUTE_ANSWERED);
   attr->flags |= MU_ATTRIBUTE_ANSWERED;
-  return 0;
+  return status;
 }
 
 int
@@ -162,7 +162,7 @@ attribute_set_flagged (attribute_t attr)
   if (attr->_set_flags)
     status = attr->_set_flags (attr, MU_ATTRIBUTE_FLAGGED);
   attr->flags |= MU_ATTRIBUTE_FLAGGED;
-  return 0;
+  return status;
 }
 
 int
@@ -174,7 +174,7 @@ attribute_set_read (attribute_t attr)
   if (attr->_set_flags)
     status = attr->_set_flags (attr, MU_ATTRIBUTE_READ);
   attr->flags |= MU_ATTRIBUTE_READ;
-  return 0;
+  return status;
 }
 
 int
@@ -198,7 +198,7 @@ attribute_set_draft (attribute_t attr)
   if (attr->_set_flags)
     status = attr->_set_flags (attr, MU_ATTRIBUTE_DRAFT);
   attr->flags |= MU_ATTRIBUTE_DRAFT;
-  return 0;
+  return status;
 }
 
 int
@@ -209,15 +209,15 @@ attribute_set_recent (attribute_t attr)
     return EINVAL;
   if (attr->_unset_flags)
     {
-      status = attr->_unset_flags (attr, MU_ATTRIBUTE_READ);
-      status = attr->_unset_flags (attr, MU_ATTRIBUTE_SEEN);
+      status |= attr->_unset_flags (attr, MU_ATTRIBUTE_READ);
+      status |= attr->_unset_flags (attr, MU_ATTRIBUTE_SEEN);
     }
   if (attr == NULL)
     {
       attr->flags &= ~MU_ATTRIBUTE_READ;
       attr->flags &= ~MU_ATTRIBUTE_SEEN;
     }
-  return 0;
+  return status;
 }
 
 int
@@ -231,77 +231,70 @@ attribute_is_userflag (attribute_t attr, int flag)
 int
 attribute_is_seen (attribute_t attr)
 {
-  int status = 0;
   if (attr == NULL)
     return 0;
   if (attr->_get_flags)
-    status = attr->_get_flags (attr, &(attr->flags));
+    attr->_get_flags (attr, &(attr->flags));
   return attr->flags & MU_ATTRIBUTE_SEEN;
 }
 
 int
 attribute_is_answered (attribute_t attr)
 {
-  int status = 0;
   if (attr == NULL)
     return 0;
   if (attr->_get_flags)
-    status = attr->_get_flags (attr, &(attr->flags));
+    attr->_get_flags (attr, &(attr->flags));
   return attr->flags & MU_ATTRIBUTE_ANSWERED;
 }
 
 int
 attribute_is_flagged (attribute_t attr)
 {
-  int status = 0;
   if (attr == NULL)
     return 0;
   if (attr->_get_flags)
-    status = attr->_get_flags (attr, &(attr->flags));
+    attr->_get_flags (attr, &(attr->flags));
   return attr->flags & MU_ATTRIBUTE_FLAGGED;
 }
 
 int
 attribute_is_read (attribute_t attr)
 {
-  int status = 0;
   if (attr == NULL)
     return 0;
   if (attr->_get_flags)
-    status = attr->_get_flags (attr, &(attr->flags));
+    attr->_get_flags (attr, &(attr->flags));
   return attr->flags & MU_ATTRIBUTE_READ;
 }
 
 int
 attribute_is_deleted (attribute_t attr)
 {
-  int status = 0;
   if (attr == NULL)
     return 0;
   if (attr->_get_flags)
-    status = attr->_get_flags (attr, &(attr->flags));
+    attr->_get_flags (attr, &(attr->flags));
   return attr->flags & MU_ATTRIBUTE_DELETED;
 }
 
 int
 attribute_is_draft (attribute_t attr)
 {
-  int status = 0;
   if (attr == NULL)
     return 0;
   if (attr->_get_flags)
-    status = attr->_get_flags (attr, &(attr->flags));
+    attr->_get_flags (attr, &(attr->flags));
   return attr->flags & MU_ATTRIBUTE_DRAFT;
 }
 
 int
 attribute_is_recent (attribute_t attr)
 {
-  int status = 0;
   if (attr == NULL)
     return 0;
   if (attr->_get_flags)
-    status = attr->_get_flags (attr, &(attr->flags));
+    attr->_get_flags (attr, &(attr->flags));
   /* something is recent when it is not read and not seen.  */
   return (attr->flags == 0
 	  || ! ((attr->flags & MU_ATTRIBUTE_SEEN)
@@ -437,17 +430,20 @@ string_to_flags (const char *buffer, int *pflags)
       sep++;
     }
   else
-    return EINVAL;
+    sep = buffer;
 
-  while (*sep == ' ') sep++; /* glob spaces */
-  if (strchr (sep, 'R') != NULL || strchr (sep, 'r') != NULL)
-     *pflags |= MU_ATTRIBUTE_READ;
-  if (strchr (sep, 'O') != NULL || strchr (sep, 'o') != NULL)
-     *pflags |= MU_ATTRIBUTE_SEEN;
-  if (strchr (sep, 'A') != NULL || strchr (sep, 'a') != NULL)
-     *pflags |= MU_ATTRIBUTE_ANSWERED;
-  if (strchr (sep, 'F') != NULL || strchr (sep, 'f') != NULL)
-     *pflags |= MU_ATTRIBUTE_FLAGGED;
+  while (*sep)
+    {
+      if (strchr (sep, 'R') != NULL || strchr (sep, 'r') != NULL)
+	*pflags |= MU_ATTRIBUTE_READ;
+      if (strchr (sep, 'O') != NULL || strchr (sep, 'o') != NULL)
+	*pflags |= MU_ATTRIBUTE_SEEN;
+      if (strchr (sep, 'A') != NULL || strchr (sep, 'a') != NULL)
+	*pflags |= MU_ATTRIBUTE_ANSWERED;
+      if (strchr (sep, 'F') != NULL || strchr (sep, 'f') != NULL)
+	*pflags |= MU_ATTRIBUTE_FLAGGED;
+      sep++;
+    }
   return 0;
 }
 

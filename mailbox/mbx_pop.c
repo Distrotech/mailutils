@@ -1034,17 +1034,14 @@ pop_attr_flags (attribute_t attr, int *pflags)
   pop_message_t mpm = message_get_owner (msg);
   char hdr_status[64];
   header_t header = NULL;
-  int err;
 
   if (mpm == NULL)
     return EINVAL;
   hdr_status[0] = '\0';
   message_get_header (mpm->message, &header);
-  err  = header_get_value (header, "Status",
-			   hdr_status, sizeof (hdr_status), NULL);
-  if (err != 0)
-    err = string_to_flags (hdr_status, pflags);
-  return err;
+  header_get_value (header, "Status", hdr_status, sizeof (hdr_status), NULL);
+  string_to_flags (hdr_status, pflags);
+  return 0;
 }
 
 /* stub to call from body object.  */
