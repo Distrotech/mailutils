@@ -117,7 +117,7 @@ if test "$ac_cv_func_fnmatch_works" = "no"; then
 fi
 AC_REPLACE_FUNCS(fgetpwent setenv snprintf strtok_r strncasecmp strcasecmp \
  strsignal vasprintf)
-AC_CHECK_FUNCS(mkstemp sigaction sysconf getdelim)
+AC_CHECK_FUNCS(mkstemp sigaction sysconf getdelim vsyslog)
 
 dnl Check for libraries
 AC_CHECK_FUNCS(argp_parse)
