@@ -22,6 +22,9 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <stdarg.h>
+#include <unistd.h>
+#include <errno.h>
+#include <fcntl.h>
 
 char mh_list_format[] = 
 "%4(msg)%<(cur)+%| %>%<{replied}-%?{encrypted}E%| %>"
@@ -502,4 +505,90 @@ mh_file_copy (const char *from, const char *to)
   stream_destroy (&out, stream_get_owner (out));
   
   return rc;
+}
+
+mailbox_t
+mh_open_msg_file (char *file_name)
+{
+  struct stat st;
+  char *buffer;
+  int fd;
+  size_t len = 0;
+  mailbox_t tmp;
+  stream_t stream;
+  char *p;
+  
+  if (stat (file_name, &st) < 0)
+    {
+      mh_error (_("can't stat file %s: %s"), file_name, strerror (errno));
+      return NULL;
+    }
+
+  buffer = xmalloc (st.st_size+1);
+  fd = open (file_name, O_RDONLY);
+  if (fd == -1)
+    {
+      mh_error (_("can't open file %s: %s"), file_name, strerror (errno));
+      return NULL;
+    }
+
+  if (read (fd, buffer, st.st_size) != st.st_size)
+    {
+      mh_error (_("error reading file %s: %s"), file_name, strerror (errno));
+      return NULL;
+    }
+
+  buffer[st.st_size] = 0;
+  close (fd);
+
+  if (mailbox_create (&tmp, "/dev/null")
+      || mailbox_open (tmp, MU_STREAM_READ) != 0)
+    {
+      mh_error (_("can't create temporary mailbox"));
+      return NULL;
+    }
+
+  if (memory_stream_create (&stream, 0, MU_STREAM_RDWR)
+      || stream_open (stream))
+    {
+      mailbox_close (tmp);
+      mh_error (_("can't create temporary stream"));
+      return NULL;
+    }
+
+  for (p = buffer; *p && isspace (*p); p++)
+    ;
+
+  if (strncmp (p, "From ", 5))
+    {
+      struct tm *tm;
+      time_t t;
+      char date[80];
+      
+      time(&t);
+      tm = gmtime(&t);
+      strftime (date, sizeof (date),
+		"From GNU-MH-refile %a %b %e %H:%M:%S %Y%n",
+		tm);
+      stream_write (stream, date, strlen (date), 0, &len);
+    }      
+
+  stream_write (stream, p, strlen (p), len, &len);
+  mailbox_set_stream (tmp, stream);
+  if (mailbox_messages_count (tmp, &len)
+      || len < 1)
+    {
+      mh_error (_("input file %s is not a valid message file"), file_name);
+      return NULL;
+    }
+  else if (len > 1)
+    {
+      mh_error (ngettext ("input file %s contains %lu message",
+			  "input file %s contains %lu messages",
+			  len),
+		(unsigned long) len);
+      return NULL;
+    }
+  free (buffer);
+  return tmp;
 }
