@@ -17,14 +17,152 @@
 # Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA. 
 
 mail_start "--file=%mbox1"
+
 mail_test "headers" \
-">N   1 Foo Bar            Fri Dec 28 22:18  44/1255  Jabberwocky\r\n" \
-" N   2 Bar                Fri Dec 28 23:28  13/535   Re: Jabberwocky\r\n"
+">N   1 Foo Bar            Fri Dec 28 22:18  44/1255  Jabberwocky" \
+" N   2 Bar                Fri Dec 28 23:28  13/535   Re: Jabberwocky"
 
 mail_test "print"\
-	"Date: Fri, 28 Dec 2001 22:18:08 +0200" \
-	"From: Foo Bar <foobar@nonexistent.net>" \
-	"To: Bar <bar@dontmailme.org>" \
+	"Received: (from foobar@nonexistent.net) "\
+	"	by nonexistent.net id fBSKI8N04906"\
+	"	for bar@dontmailme.org; Fri, 28 Dec 2001 22:18:08 +0200"\
+	"Date: Fri, 28 Dec 2001 22:18:08 +0200"\
+	"From: Foo Bar <foobar@nonexistent.net>"\
+	"Message-Id: <200112282018.fBSKI8N04906@nonexistent.net>"\
+	"To: Bar <bar@dontmailme.org>"\
+	"Subject: Jabberwocky"\
+	""\
+	"`Twas brillig, and the slithy toves"\
+	"Did gyre and gimble in the wabe;"\
+	"All mimsy were the borogoves,"\
+	"And the mome raths outgrabe."\
+	""\
+	"`Beware the Jabberwock, my son!"\
+	"The jaws that bite, the claws that catch!"\
+	"Beware the Jujub bird, and shun"\
+	"The frumious Bandersnatch!'"\
+	""\
+	"He took his vorpal sword in hand:"\
+	"Long time the manxome foe he sought --"\
+	"So rested he by the Tumtum gree,"\
+	"And stood awhile in thought."\
+	""\
+	"And as in uffish thought he stood,"\
+	"The Jabberwock, with eyes of flame,"\
+	"Came whiffling through the tulgey wook,"\
+	"And burbled as it came!"\
+	""\
+	"One, two!  One, two!  And through and through"\
+	"The vorpal blade went snicker-snack!"\
+	"He left it dead, and with its head"\
+	"He went galumphing back."\
+	""\
+	"`And has thou slain the Jabberwock?"\
+	"Come to my arms, my beamish boy!"\
+	"O frabjous day!  Calloh!  Callay!"\
+	"He chortled in his joy."\
+	""\
+	"`Twas brillig, and the slithy toves"\
+	"Did gyre and gimble in the wabe;"\
+	"All mimsy were the borogoves,"\
+	"And the mome raths outgrabe."
+
+mail_test "Print"\
+	"Received: (from foobar@nonexistent.net) "\
+	"	by nonexistent.net id fBSKI8N04906"\
+	"	for bar@dontmailme.org; Fri, 28 Dec 2001 22:18:08 +0200"\
+	"Date: Fri, 28 Dec 2001 22:18:08 +0200"\
+	"From: Foo Bar <foobar@nonexistent.net>"\
+	"Message-Id: <200112282018.fBSKI8N04906@nonexistent.net>"\
+	"To: Bar <bar@dontmailme.org>"\
+	"Subject: Jabberwocky"\
+	""\
+	"`Twas brillig, and the slithy toves"\
+	"Did gyre and gimble in the wabe;"\
+	"All mimsy were the borogoves,"\
+	"And the mome raths outgrabe."\
+	""\
+	"`Beware the Jabberwock, my son!"\
+	"The jaws that bite, the claws that catch!"\
+	"Beware the Jujub bird, and shun"\
+	"The frumious Bandersnatch!'"\
+	""\
+	"He took his vorpal sword in hand:"\
+	"Long time the manxome foe he sought --"\
+	"So rested he by the Tumtum gree,"\
+	"And stood awhile in thought."\
+	""\
+	"And as in uffish thought he stood,"\
+	"The Jabberwock, with eyes of flame,"\
+	"Came whiffling through the tulgey wook,"\
+	"And burbled as it came!"\
+	""\
+	"One, two!  One, two!  And through and through"\
+	"The vorpal blade went snicker-snack!"\
+	"He left it dead, and with its head"\
+	"He went galumphing back."\
+	""\
+	"`And has thou slain the Jabberwock?"\
+	"Come to my arms, my beamish boy!"\
+	"O frabjous day!  Calloh!  Callay!"\
+	"He chortled in his joy."\
+	""\
+	"`Twas brillig, and the slithy toves"\
+	"Did gyre and gimble in the wabe;"\
+	"All mimsy were the borogoves,"\
+	"And the mome raths outgrabe."
+
+mail_test "top" \
+	"Received: (from foobar@nonexistent.net) "\
+	"	by nonexistent.net id fBSKI8N04906"\
+	"	for bar@dontmailme.org; Fri, 28 Dec 2001 22:18:08 +0200"\
+	"Date: Fri, 28 Dec 2001 22:18:08 +0200"\
+	"From: Foo Bar <foobar@nonexistent.net>"
+
+mail_command "set toplines=10"
+mail_test -message "top (2)" "top" \
+	"Received: (from foobar@nonexistent.net) "\
+	"	by nonexistent.net id fBSKI8N04906"\
+	"	for bar@dontmailme.org; Fri, 28 Dec 2001 22:18:08 +0200"\
+	"Date: Fri, 28 Dec 2001 22:18:08 +0200"\
+	"From: Foo Bar <foobar@nonexistent.net>"\
+	"Message-Id: <200112282018.fBSKI8N04906@nonexistent.net>"\
+	"To: Bar <bar@dontmailme.org>"\
+	"Subject: Jabberwocky"\
+	""\
+	"`Twas brillig, and the slithy toves"
+
+mail_test -message "headers (2)" "headers" \
+">R   1 Foo Bar            Fri Dec 28 22:18  44/1255  Jabberwocky" \
+" N   2 Bar                Fri Dec 28 23:28  13/535   Re: Jabberwocky"
+
+mail_test "next" \
+"Received: (from bar@dontmailme.org) "\
+"	by dontmailme.org id fERKR9N16790"\
+"	for foobar@nonexistent.net; Fri, 28 Dec 2001 22:18:08 +0200"\
+"Date: Fri, 28 Dec 2001 23:28:08 +0200"\
+"From: Bar <bar@dontmailme.org>"\
+"To: Foo Bar <foobar@nonexistent.net>"\
+"Message-Id: <200112232808.fERKR9N16790@dontmailme.org>"\
+"Subject: Re: Jabberwocky"\
+""\
+"It seems very pretty, but it's *rather* hard to understand!'"\
+"Somehow it seems to fill my head with ideas -- only I don't"\
+"exactly know what they are!  However, SOMEBODY killed SOMETHING:"\
+"that's clear, at any rate..."
+
+mail_test -message "headers (3)" "headers" \
+" R   1 Foo Bar            Fri Dec 28 22:18  44/1255  Jabberwocky" \
+">R   2 Bar                Fri Dec 28 23:28  13/535   Re: Jabberwocky"
+
+mail_test "prev"\
+	"Received: (from foobar@nonexistent.net) "\
+	"	by nonexistent.net id fBSKI8N04906"\
+	"	for bar@dontmailme.org; Fri, 28 Dec 2001 22:18:08 +0200"\
+	"Date: Fri, 28 Dec 2001 22:18:08 +0200"\
+	"From: Foo Bar <foobar@nonexistent.net>"\
+	"Message-Id: <200112282018.fBSKI8N04906@nonexistent.net>"\
+	"To: Bar <bar@dontmailme.org>"\
 	"Subject: Jabberwocky"\
 	""\
 	"`Twas brillig, and the slithy toves"\
@@ -32,11 +170,30 @@ mail_test "print"\
 	"All mimsy were the borogoves,"\
 	"And the mome raths outgrabe."
 
-mail_test -message "headers (2)" "headers" \
-">R   1 Foo Bar            Fri Dec 28 22:18  44/1255  Jabberwocky\r\n" \
-" N   2 Bar                Fri Dec 28 23:28  13/535   Re: Jabberwocky\r\n"
+mail_test -message "headers (4)" "headers" \
+">R   1 Foo Bar            Fri Dec 28 22:18  44/1255  Jabberwocky" \
+" R   2 Bar                Fri Dec 28 23:28  13/535   Re: Jabberwocky"
 
-mail_test "next" \
+mail_test -message "print (2)" "print 2"\
+"Received: (from bar@dontmailme.org) "\
+"	by dontmailme.org id fERKR9N16790"\
+"	for foobar@nonexistent.net; Fri, 28 Dec 2001 22:18:08 +0200"\
+"Date: Fri, 28 Dec 2001 23:28:08 +0200"\
+"From: Bar <bar@dontmailme.org>"\
+"To: Foo Bar <foobar@nonexistent.net>"\
+"Message-Id: <200112232808.fERKR9N16790@dontmailme.org>"\
+"Subject: Re: Jabberwocky"\
+""\
+"It seems very pretty, but it's *rather* hard to understand!'"\
+"Somehow it seems to fill my head with ideas -- only I don't"\
+"exactly know what they are!  However, SOMEBODY killed SOMETHING:"\
+"that's clear, at any rate..."
+
+mail_test -message "default ignore output" "ignore"\
+	"No fields are currently being ignored"
+
+mail_command "ignore Received Message-Id"
+mail_test "print"\
 "Date: Fri, 28 Dec 2001 23:28:08 +0200"\
 "From: Bar <bar@dontmailme.org>"\
 "To: Foo Bar <foobar@nonexistent.net>"\
@@ -47,26 +204,35 @@ mail_test "next" \
 "exactly know what they are!  However, SOMEBODY killed SOMETHING:"\
 "that's clear, at any rate..."
 
-mail_test -message "headers (3)" "headers" \
-" R   1 Foo Bar            Fri Dec 28 22:18  44/1255  Jabberwocky\r\n" \
-">R   2 Bar                Fri Dec 28 23:28  13/535   Re: Jabberwocky\r\n"
+mail_test -message "Print (2)" "Print 2"\
+"Received: (from bar@dontmailme.org) "\
+"	by dontmailme.org id fERKR9N16790"\
+"	for foobar@nonexistent.net; Fri, 28 Dec 2001 22:18:08 +0200"\
+"Date: Fri, 28 Dec 2001 23:28:08 +0200"\
+"From: Bar <bar@dontmailme.org>"\
+"To: Foo Bar <foobar@nonexistent.net>"\
+"Message-Id: <200112232808.fERKR9N16790@dontmailme.org>"\
+"Subject: Re: Jabberwocky"\
+""\
+"It seems very pretty, but it's *rather* hard to understand!'"\
+"Somehow it seems to fill my head with ideas -- only I don't"\
+"exactly know what they are!  However, SOMEBODY killed SOMETHING:"\
+"that's clear, at any rate..."
 
-mail_test "prev"\
-	"Date: Fri, 28 Dec 2001 22:18:08 +0200" \
-	"From: Foo Bar <foobar@nonexistent.net>" \
-	"To: Bar <bar@dontmailme.org>" \
-	"Subject: Jabberwocky"\
-	""\
-	"`Twas brillig, and the slithy toves"\
-	"Did gyre and gimble in the wabe;"\
-	"All mimsy were the borogoves,"\
-	"And the mome raths outgrabe."
+mail_test -message "default retain output" "retain"\
+	"No fields are currently being retained"
 
-mail_test -message "headers (4)" "headers" \
-">R   1 Foo Bar            Fri Dec 28 22:18  44/1255  Jabberwocky\r\n" \
-" R   2 Bar                Fri Dec 28 23:28  13/535   Re: Jabberwocky\r\n"
+mail_command "retain from subject"
+mail_test -message "working retain" "print 2"\
+"From: Bar <bar@dontmailme.org>"\
+"Subject: Re: Jabberwocky"\
+""\
+"It seems very pretty, but it's *rather* hard to understand!'"\
+"Somehow it seems to fill my head with ideas -- only I don't"\
+"exactly know what they are!  However, SOMEBODY killed SOMETHING:"\
+"that's clear, at any rate..."
 
-
+#FIXME: test decode
 
 #mail_exit
 return 0
