@@ -48,6 +48,9 @@
 /* Define if using libreadline */
 #undef WITH_READLINE
 
+/* Define when using Guile */
+#undef WITH_GUILE
+
 /* Define _REENTRANT when using threads.  */
 #undef _REENTRANT
 
