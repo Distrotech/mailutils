@@ -1,5 +1,14 @@
 2001-08-29  Jakob 'sparky' Kaivo  <jkaivo@elijah.nodomainname.net>
 
+	* imap4d/select.c (imap4d_select0): 
+	* imap4d/copy.c (imap4d_copy0): 
+	* imap4d/status.c (imap4d_status): treat INBOX differently if virtual
+
+	* imap4d/login.c (imap4d_virtual): new function
+	(imap4d_login): call imap4d_virtual
+
+	* imap4d/imap4d.h: add is_virtual variable
+
 	* configure.in (USE_VIRTUAL_DOMAINS): add virtual domain option
 
 	* pop3d/user.c (pop3d_virtual): new function for "virtual domains"
