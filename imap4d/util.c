@@ -410,7 +410,13 @@ util_finish (struct imap4d_command *command, int rc, const char *format, ...)
   va_end (ap);
   free (buf);
   /* Reset the state.  */
-  new_state = (rc == RESP_OK) ? command->success : command->failure;
+  if (rc == RESP_OK)
+    new_state = command->success;
+  else if (command->failure <= state)
+    new_state = command->failure;
+  else
+    new_state = STATE_NONE;
+  
   if (new_state != STATE_NONE)
     state = new_state;
   return status;
@@ -553,8 +559,12 @@ util_do_command (char *prompt)
       nullcommand.tag = tag;
       return util_finish (&nullcommand, RESP_BAD,  "Invalid command");
     }
-
+	   
   command->tag = tag;
+
+  if (command->states && (command->states & state) == 0)
+    return util_finish (command, RESP_BAD, "Wrong state");
+  
   len = strlen (sp);
   if (len  && sp[len - 1] == '\n')
     sp[len - 1] = '\0';
