@@ -1,3 +1,13 @@
+2004-04-14  Sergey Poznyakoff
+
+	* mail.remote/mail.remote.c: Use "auth" capability. 
+	* mail.remote/Makefile.am (mail_remote_LDADD): Add @AUTHLIBS@
+	* mailbox/mu_argp.c (read_rc, mu_create_argcv): Do not bail
+	out if mu_tilde_expansion() returns NULL. There may be users
+	without homedir.
+	* mailbox/mutil.c (mu_get_user_email): Use mu_get_auth_by_uid()
+	instead of getpwuid().
+
 2004-04-14  Jordi Mallach
 
 	* examples/pop3client (pop_completion): Use rl_completion_matches.
