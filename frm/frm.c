@@ -43,6 +43,7 @@
 #include <mailutils/tls.h>
 #include <mailutils/error.h>
 #include <mailutils/mutil.h>
+#include <mailutils/mime.h>
 
 static char* show_field;
 static int show_to;
@@ -99,7 +100,7 @@ abbreviation of those is also accepted.");
 
 /* Attribute table handling */
 
-/* Prepares the table for use: computes minimum abbreviation lengths */
+/* Prepares the table for use. Computes minimum abbreviation lengths. */
 static void
 prepare_attrs (void)
 {
@@ -205,7 +206,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
     case 'Q':
       /* Very silent.  */
       be_quiet += 2;
-      if (freopen("/dev/null", "w", stdout) == NULL)
+      if (freopen ("/dev/null", "w", stdout) == NULL)
 	{
 	  perror (_("Can not be very quiet"));
 	  exit (3);
@@ -326,7 +327,7 @@ get_personal (header_t hdr, const char *field, char *personal, size_t buflen)
   return status;
 }
 
-/* Observable Action this is being call at every message discover.  */
+/* Observable action is being called on discovery of each message. */
 /* FIXME: The format of the display is poorly done, please correct.  */
 static int
 action (observer_t o, size_t type)
@@ -351,8 +352,8 @@ action (observer_t o, size_t type)
 	message_get_header (msg, &hdr);
 
 	if (((select_attribute & IS_READ) && (!attribute_is_read (attr)))
-	    || (select_attribute & IS_NEW) && (!attribute_is_recent (attr))
-	    || (select_attribute & IS_OLD) && (!attribute_is_seen (attr)))
+	    || ((select_attribute & IS_NEW) && (!attribute_is_recent (attr)))
+	    || ((select_attribute & IS_OLD) && (!attribute_is_seen (attr))))
 	  break;
 
 	if (attribute_is_recent (attr))
@@ -419,11 +420,11 @@ action (observer_t o, size_t type)
 }
 
 /* This is a clone of the elm program call "frm".  It is a good example on
-   how to use the observable(callback) of libmailutils.  "frm" has to
+   how to use the observable(callback) of libmailbox.  "frm" has to
    be very interactive, it is not possible to call mailbox_messages_count()
    and wait for the scanning to finish before displaying.  As soon as the scan
-   find a new message we want to know about it, this is done by registering
-   an observable type MU_MAILBOX_MSG_ADD.  The rest is formating code.  */
+   finds a new message we want to know about it. This is done by registering
+   an observable type MU_MAILBOX_MSG_ADD. The rest is formatting code.  */
 
 int
 main (int argc, char **argv)
@@ -524,7 +525,7 @@ cleanup:
 
     mailbox_destroy (&mbox);
 
-    if(status != 0)
+    if (status != 0)
       return 3;
   }
 
@@ -537,10 +538,11 @@ cleanup:
   if (show_query && have_new_mail)
     printf (_("You have new mail.\n"));
 
-  /* 0 - selected messages discover.
-     1 - have messages.
-     2 - no message.
-  */
+  /* EXIT STATUS
+     Frm returns a zero status ("true") if messages matching `status' are
+     present.  Frm returns 1 if no messages matching `status' are present,
+     but there are some messages, returns 2 if there are no messages at
+     all, or returns 3 if an error occurred. */
 
   if (selected)
     status = 0;
