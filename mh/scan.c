@@ -21,6 +21,9 @@
 #ifdef HAVE_TERMCAP_H
 # include <termcap.h>
 #endif
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <time.h>
 
 const char *argp_program_version = "scan (" PACKAGE ") " VERSION;
 const char *argp_program_bug_address = "<bug-mailutils@gnu.org>";
@@ -57,19 +60,12 @@ struct mh_option mh_option[] = {
   { 0 }
 };
 
-static char *scan_folder = "inbox";
 static int clear;
-static char *formfile;
-static char *format_str = 
-"%4(msg)%<(cur)+%| %>%<{replied}-%?{encrypted}E%| %>"
-"%02(mon{date})/%02(mday{date})"
-"%<{date} %|*%>"
-"%<(mymbox{from})%<{to}To:%14(friendly{to})%>%>"
-"%<(zero)%17(friendly{from})%>"
-"  %{subject}%<{body}<<%{body}>>%>";
+static char *format_str = mh_list_format;
 
 static int width = 80;
 static int reverse;
+static int header;
 
 static mh_format_t format;
 
@@ -82,7 +78,7 @@ opt_handler (int key, char *arg, void *unused)
   switch (key)
     {
     case 'f': 
-      scan_folder = arg;
+      current_folder = arg;
       break;
       
     case 'c':
@@ -90,7 +86,7 @@ opt_handler (int key, char *arg, void *unused)
       break;
       
     case 'F':
-      formfile = arg;
+      format_str = mh_read_formfile (arg);
       break;
       
     case 't':
@@ -98,7 +94,7 @@ opt_handler (int key, char *arg, void *unused)
       break;
       
     case 'H':
-      clear = arg[0] == 'y';
+      header = arg[0] == 'y';
       break;
       
     case 'w':
@@ -128,54 +124,31 @@ opt_handler (int key, char *arg, void *unused)
   return 0;
 }
 
-void
-set_folder ()
-{
-  scan_folder = mu_tilde_expansion (scan_folder, "/", NULL);
-  if (strchr (scan_folder, '/') == NULL)
-    {
-      char *p = mu_get_homedir ();
-      asprintf (&scan_folder, "mh:%s/Mail/%s", p, scan_folder);
-      if (!scan_folder)
-	{
-	  mh_error ("low memory");
-	  exit (1);
-	}
-    }
-  else if (strchr (scan_folder, ':') == NULL)
-    {
-      char *p;
-      p = xmalloc (strlen (scan_folder) + 4);
-      strcat (strcpy (p, "mh:"), scan_folder);
-      scan_folder = p;
-    }
-}
 
 int
 main (int argc, char **argv)
 {
   mailbox_t mbox = NULL;
 
-  mh_init ();
   mh_argp_parse (argc, argv, options, mh_option, args_doc, doc,
 		 opt_handler, NULL);
+  mh_init ();
 
-  set_folder ();
   if (mh_format_parse (format_str, &format))
     {
       mh_error ("Bad format string");
       exit (1);
     }
 
-  if (mailbox_create_default (&mbox, scan_folder))
+  if (mailbox_create_default (&mbox, current_folder))
     {
-      mh_error ("Can't create mailbox %s: %s", scan_folder, strerror (errno));
+      mh_error ("Can't create mailbox %s: %s", current_folder, strerror (errno));
       exit (1);
     }
 
   if (mailbox_open (mbox, MU_STREAM_READ))
     {
-      mh_error ("Can't open mailbox %s: %s", scan_folder, strerror (errno));
+      mh_error ("Can't open mailbox %s: %s", current_folder, strerror (errno));
       exit (1);
     }
 
@@ -194,29 +167,33 @@ putstdout(char c)
 void
 clear_screen ()
 {
-#ifdef HAVE_TERMCAP_H
   if (clear)
     {
-      char termcap_buf[1024];
-      char *buffer;
-      char *termname;
-      
-      if ((termname = getenv("TERM")) == NULL)
-	  /* No terminal; Try ansi */
-	termname = "ansi";
-      
-      if (tgetent(termcap_buf, termname) != 1)
-	fprintf (stdout, "\f");
-      else
+#ifdef HAVE_TERMCAP_H
+      if (isatty (1))
 	{
-	  char *clr = tgetstr ("cl", &buffer);
-	  if (clr)
-	    tputs(clr, 1, (int (*)())putstdout);
-	  else
-	    fprintf (stdout, "\f");
+	  char termcap_buf[1024];
+	  char *buffer = termcap_buf;
+	  char *termname;
+      
+	  if ((termname = getenv("TERM")) == NULL)
+	    /* No terminal; Try ansi */
+	    termname = "ansi";
+      
+	  if (tgetent(termcap_buf, termname) == 1)
+	    {
+	      char *clr = tgetstr ("cl", &buffer);
+	      if (clr)
+		{
+		  tputs(clr, 1, (int (*)())putstdout);
+		  return;
+		}
+	    }
 	}
-    }
 #endif
+      /* Fall back to formfeed */
+      fprintf (stdout, "\f");
+    }
 }
 
 int
@@ -224,8 +201,20 @@ scan (mailbox_t mbox)
 {
   size_t i, total;
   char *buffer;
-
+  
   buffer = xmalloc (width);
+
+  if (header)
+    {
+      url_t url = NULL;
+      char datestr[64];
+      time_t t;
+      
+      mailbox_get_url (mbox, &url);
+      time (&t);
+      strftime (datestr, sizeof datestr, "%c", localtime (&t));
+      printf ("Folder %s  %s\n", url_to_string (url), datestr);
+    }
   
   mailbox_messages_count (mbox, &total);
 
