@@ -72,6 +72,7 @@ Software Foundation raise funds for GNU development.''
 @page
 @summarycontents
 @page
+@contents
 
 @node Top, Introduction, (dir), (dir)
 @comment  node-name,  next,  previous,  up
@@ -371,12 +372,12 @@ This is an alphabetical list of all Mailutils functions.
 @page
 
 @node Variable Index, Keyword Index, Function Index, Top
-
+@unnumbered Variable Index
 @printindex vr
 @page
 
 @node Keyword Index, Program Index, Variable Index, Top
-
+@unnumbered Keyword Index
 @printindex ky
 @page
 
@@ -394,5 +395,5 @@ This is an alphabetical list of all Mailutils functions.
 This is a general index of all issues discussed in this manual
 
 @printindex cp
-@contents
+
 @bye
