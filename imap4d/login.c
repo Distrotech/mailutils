@@ -147,9 +147,8 @@ imap4d_login (struct imap4d_command *command, char *arg)
     setuid (pw->pw_uid);
 
   homedir = mu_normalize_path (strdup (pw->pw_dir), "/");
-  /* FIXME: Check for errors.  */
   chdir (homedir);
-  namespace_init(pw->pw_dir);
+  namespace_init (pw->pw_dir);
   syslog (LOG_INFO, "User '%s' logged in", username);
   return util_finish (command, RESP_OK, "Completed");
 }
