@@ -1,3 +1,42 @@
+2002-10-29  Sergey Poznyakoff 
+
+	Following the proposition of Olivier Bornet
+	<Olivier.Bornet@smartdata.ch>, added a possibility to
+	disable the support for certain protocols.
+	
+	* m4/enable.m4: New file. Implements MU_ENABLE_SUPPORT defun.
+	* m4/Makefile.am: Added enable.m4
+	* configure.ac: New switches --disable-pop, --disable-imap
+	  --disable-mh, --disable-smtp and --disable-sendmail allow
+	  to disable corresponding protocols.
+	* Makefile.am: Conditionally build directories depending on
+	  protocols that may be disabled.
+	* mailbox/mu_argp.c: Updated to reflect the set of ENABLE_
+	  defines.
+	* mailbox/folder_imap.c: Conditionally compile the contents.
+	* mailbox/folder_mh.c: Likewise.
+	* mailbox/folder_pop.c: Likewise.
+	* mailbox/mbx_imap.c: Likewise.
+	* mailbox/mbx_mh.c: Likewise.
+	* mailbox/mbx_pop.c: Likewise.
+	* mailbox/sendmail.c: Likewise.
+	* mailbox/smtp.c: Likewise.
+	* mailbox/url_imap.c: Likewise.
+	* mailbox/url_mh.c: Likewise.
+	* mailbox/url_pop.c: Likewise.
+	* mailbox/url_sendmail.c: Likewise.
+	* mailbox/url_smtp.c: Likewise.
+
+	* sieve/sieve.c: Option -M none disables creating
+	  the mailer.
+	* sieve/testsuite/lib/sieve.exp: Start sieve with "-M none".
+	
+	Bugfixes to the docs, contributed by Olivier Bornet:
+	
+	* doc/texinfo/mailbox.texi: Documented the return code.
+	* doc/texinfo/headers.texi: Fixed names of the macro-
+	  definitions.
+
 2002-10-15  Sergey Poznyakoff  
 
 	* guimb/scm/README: Updated.
