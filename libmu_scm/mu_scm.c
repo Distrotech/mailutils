@@ -91,4 +91,5 @@ mu_scm_init ()
   mu_scm_address_init ();
   mu_scm_body_init ();
   mu_scm_logger_init ();
+  mu_scm_port_init ();
 }
