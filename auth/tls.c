@@ -120,11 +120,6 @@ mu_check_tls_environment (void)
 		    ssl_cert);
 	  return 0;
 	}
-      if ((st.st_mode & S_IRWXG) || (st.st_mode & S_IRWXO))
-	{
-	  mu_error (_("Wrong permissions on %s. Set 0600."), ssl_cert);
-	  return 0;
-	}
 
       if (stat (ssl_key, &st) == -1)
 	return 0;
