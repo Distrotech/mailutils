@@ -25,7 +25,10 @@
 #include <sieve.h>
 
 sieve_machine_t *sieve_machine;
-int sieve_error_count; 
+int sieve_error_count;
+
+static void branch_fixup __P((size_t start, size_t end));
+ 
 %}
 
 %union {
@@ -39,6 +42,11 @@ int sieve_error_count;
     char *ident;
     list_t args;
   } command;
+  struct {
+    size_t begin;
+    size_t cond;
+    size_t branch;
+  } branch;
 }
 
 %token <string> IDENT TAG
@@ -47,10 +55,11 @@ int sieve_error_count;
 %token REQUIRE IF ELSIF ELSE ANYOF ALLOF NOT
 
 %type <value> arg
-%type <list> slist stringlist arglist maybe_arglist
+%type <list> slist stringlist stringorlist arglist maybe_arglist
 %type <command> command
 %type <number> testlist
-%type <pc> action test statement list
+%type <pc> action test statement list elsif else cond begin if block
+%type <branch> elsif_branch maybe_elsif else_part
 
 %%
 
@@ -63,43 +72,108 @@ list         : statement
              | list statement
              ;
 
-statement    : REQUIRE stringlist ';'
+statement    : REQUIRE stringorlist ';'
                {
 		 sieve_require ($2);
 		 sieve_slist_destroy (&$2);
 		 $$ = sieve_machine->pc;
 	       }
              | action ';'
-             | IF cond block maybe_elsif maybe_else
+	     /* 1  2     3       4    */ 
+             | if cond block else_part
                {
-		 /* FIXME!! */
+		 sieve_machine->prog[$2].pc = $4.begin - $2 - 1;
+		 if ($4.branch)
+		   branch_fixup ($4.branch, sieve_machine->pc);
+	       }		 
+             ;
+
+if           : IF
+               {
 		 $$ = sieve_machine->pc;
 	       }
              ;
 
+else_part    : maybe_elsif
+               {
+		 if ($1.begin)
+		   sieve_machine->prog[$1.cond].pc =
+		                  sieve_machine->pc - $1.cond - 1;
+		 else
+		   {
+		     $$.begin = sieve_machine->pc;
+		     $$.branch = 0;
+		   }
+	       }
+             | maybe_elsif else block
+               {
+		 if ($1.begin)
+		   {
+		     sieve_machine->prog[$1.cond].pc = $3 - $1.cond - 1;
+		     sieve_machine->prog[$2].pc = $1.branch;
+		     $$.begin = $1.begin;
+		     $$.branch = $2;
+		   }
+		 else
+		   {
+		     $$.begin = $3;
+		     $$.branch = $2;
+		   }
+	       }
+             ;
+
 maybe_elsif  : /* empty */
-             | elsif
+               {
+		 $$.begin = 0;
+	       }
+             | elsif_branch
              ;
 
-elsif        : ELSIF cond block
-             | elsif ELSIF cond block
+elsif_branch : elsif begin cond block
+               {
+		 $$.begin = $2; 
+		 $$.branch = $1;
+		 $$.cond = $3;
+	       }
+             | elsif_branch elsif begin cond block
+               {
+		 sieve_machine->prog[$1.cond].pc = $3 - $1.cond - 1;
+		 sieve_machine->prog[$2].pc = $1.branch;
+		 $$.begin = $1.begin;
+		 $$.branch = $2;
+		 $$.cond = $4;
+	       }
              ;
 
-maybe_else   : /* empty */
-             | ELSE block
+elsif        : ELSIF
+               {
+		 sieve_code_instr (instr_branch);
+		 $$ = sieve_machine->pc;
+		 sieve_code_number (0);
+	       }
+             ;
+
+else         : ELSE
+               {
+		 sieve_code_instr (instr_branch);
+		 $$ = sieve_machine->pc;
+		 sieve_code_number (0);
+	       }
              ;
 
 block        : '{' list '}'
+               {
+		 $$ = $2;
+	       }
              ;
 
-
-testlist     : cond
+testlist     : cond_expr
                {
 		 if (sieve_code_instr (instr_push))
 		   YYERROR;
 		 $$ = 1;
 	       }
-             | testlist ',' cond
+             | testlist ',' cond_expr
                {
 		 if (sieve_code_instr (instr_push))
 		   YYERROR;
@@ -107,7 +181,15 @@ testlist     : cond
 	       }
              ;
 
-cond         : test
+cond         : cond_expr
+               {
+		 sieve_code_instr (instr_brz);
+		 $$ = sieve_machine->pc;
+		 sieve_code_number (0);
+	       }
+             ;
+
+cond_expr    : test
                { /* to placate bison */ }
              | ANYOF '(' testlist ')'
                {
@@ -121,12 +203,18 @@ cond         : test
 		     || sieve_code_number ($3))
 		   YYERROR;
 	       }
-             | NOT cond
+             | NOT cond_expr
                {
 		 if (sieve_code_instr (instr_not))
 		   YYERROR;
 	       }
              ;
+
+begin        : /* empty */
+               {
+		 $$ = sieve_machine->pc;
+	       }
+             ; 
 
 test         : command
                {
@@ -134,14 +222,14 @@ test         : command
 		 $$ = sieve_machine->pc;
 
 		 if (!reg)
-		   sieve_error ("%s:%d: unknown test: %s",
-				sieve_filename, sieve_line_num,
+		   sieve_compile_error (sieve_filename, sieve_line_num,
+                                "unknown test: %s",
 				$1.ident);
 		 else if (!reg->required)
-		   sieve_error ("%s:%d: test `%s' has not been required",
-				sieve_filename, sieve_line_num,
+		   sieve_compile_error (sieve_filename, sieve_line_num,
+                                "test `%s' has not been required",
 				$1.ident);
-		 if (sieve_code_test (reg, $1.args))
+		 else if (sieve_code_test (reg, $1.args))
 		   YYERROR;
 	       }
              ;
@@ -159,14 +247,15 @@ action       : command
 		 
 		 $$ = sieve_machine->pc;
 		 if (!reg)
-		   sieve_error ("%s:%d: unknown action: %s",
-				sieve_filename, sieve_line_num,
+		   sieve_compile_error (sieve_filename, sieve_line_num,
+                                "unknown action: %s",
 				$1.ident);
 		 else if (!reg->required)
-		   sieve_error ("%s:%d: action `%s' has not been required",
+		   sieve_compile_error (sieve_filename, sieve_line_num,
+                                "action `%s' has not been required",
 				sieve_filename, sieve_line_num,
 				$1.ident);
-		 if (sieve_code_action (reg, $1.args))
+		 else if (sieve_code_action (reg, $1.args))
 		   YYERROR;
 	       }
              ;
@@ -194,6 +283,10 @@ arg          : stringlist
                {
 		 $$ = sieve_value_create (SVT_STRING_LIST, $1);
 	       }
+             | STRING
+               {
+		 $$ = sieve_value_create (SVT_STRING, $1);
+               } 
              | MULTILINE
                {
 		 $$ = sieve_value_create (SVT_STRING, $1);
@@ -207,13 +300,16 @@ arg          : stringlist
 		 $$ = sieve_value_create (SVT_TAG, $1);
 	       }
              ;
- 
-stringlist   : STRING
+
+stringorlist : STRING
                {
 		 list_create (&$$);
 		 list_append ($$, $1);
 	       }
-             | '[' slist ']'
+             | stringlist
+             ;
+
+stringlist   : '[' slist ']'
                {
 		 $$ = $2;
 	       }
@@ -236,20 +332,47 @@ slist        : STRING
 int
 yyerror (char *s)
 {
-  sieve_error ("%s:%d: %s", sieve_filename, sieve_line_num, s);
+  sieve_compile_error (sieve_filename, sieve_line_num, "%s", s);
   return 0;
 }
 
-/* FIXME: When posix thread support is added, sieve_machine_begin() should
-   aquire the global mutex, locking the current compilation session, and
-   sieve_machine_finish() should release it */
 void
-sieve_machine_begin (sieve_machine_t *mach, sieve_printf_t err, void *data)
+sieve_machine_init (sieve_machine_t *mach, void *data)
 {
   memset (mach, 0, sizeof (*mach));
-
-  mach->error_printer = err ? err : _sieve_default_error_printer;
   mach->data = data;
+  mach->error_printer = _sieve_default_error_printer;
+  mach->parse_error_printer = _sieve_default_parse_error;
+}
+
+void
+sieve_machine_set_error (sieve_machine_t *mach, sieve_printf_t error_printer)
+{
+  mach->error_printer = error_printer ?
+                           error_printer : _sieve_default_error_printer;
+}
+
+void
+sieve_machine_set_parse_error (sieve_machine_t *mach, sieve_parse_error_t p)
+{
+  mach->parse_error_printer = p ? p : _sieve_default_parse_error;
+}
+
+void
+sieve_machine_set_debug (sieve_machine_t *mach,
+			 sieve_printf_t debug, int level)
+{
+  if (debug)
+    mach->debug_printer = debug;
+  mach->debug_level = level;
+}
+
+/* FIXME: When posix thread support is added, sieve_machine_begin() should
+   acquire the global mutex, locking the current compilation session, and
+   sieve_machine_finish() should release it */
+void
+sieve_machine_begin (sieve_machine_t *mach)
+{
   sieve_machine = mach;
   sieve_error_count = 0;
   sieve_code_instr (NULL);
@@ -262,12 +385,11 @@ sieve_machine_finish (sieve_machine_t *mach)
 }
 
 int
-sieve_compile (sieve_machine_t *mach, const char *name,
-	       void *extra_data, sieve_printf_t err)
+sieve_compile (sieve_machine_t *mach, const char *name)
 {
   int rc;
   
-  sieve_machine_begin (mach, err, extra_data);
+  sieve_machine_begin (mach);
   sieve_register_standard_actions ();
   sieve_register_standard_tests ();
   sieve_lex_begin (name);
@@ -279,3 +401,19 @@ sieve_compile (sieve_machine_t *mach, const char *name,
   return rc;
 }
 
+static void
+_branch_fixup (size_t start, size_t end)
+{
+  size_t prev = sieve_machine->prog[start].pc;
+  if (!prev)
+    return;
+  branch_fixup (prev, end);
+  sieve_machine->prog[prev].pc = end - prev - 1;
+}
+
+void
+branch_fixup (size_t start, size_t end)
+{
+  _branch_fixup (start, end);
+  sieve_machine->prog[start].pc = end - start - 1;
+}
