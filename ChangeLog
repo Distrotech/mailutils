@@ -45,6 +45,7 @@
 	* libmu_scm/*: Likewise.
 	* libsieve/*: Likewise.
 	* mailbox/*: Likewise.
+	* mailbox2/*: Likewise.
 	* mapi/*: Likewise.
 	* mh/*: Likewise.
 	* pop3d/*: Likewise.
