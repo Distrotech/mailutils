@@ -53,6 +53,22 @@
 	* imap4d/auth_gss.c (auth_gssapi): Use imap4d_gss_userok() to
 	  check if the principal is allowed to use a given mailbox.
 
+2002-02-11 Sam Roberts
+
+	* pop3d/pop3d.c: Removed static prototype for non-existent
+	  function.
+	* doc/rfc/: rfc1891.txt, rfc1892.txt, rfc1893.txt, rfc1894.txt:
+	  Added RFCs related to delivery and message status notification.
+	* sieve/: sieve.c, svcb.c: better logging and error reporting
+	* include/mailutils/debug.h, mailbox/debug.c,
+	  mailbox/include/debug0.h: Added level argument of mu_debug_print()
+	  to the print callback, useful for determing the level and
+	  forwarding to syslog, or something.
+
+2002-02-09 Sam Roberts
+
+	* mailbox/mbx_default.c: removed unused variable
+
 2002-02-08  Sam Roberts
 
 	* TODO: More things I think should be done, or did.
