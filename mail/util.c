@@ -18,6 +18,9 @@
 #include "mail.h"
 #include <mailutils/mutil.h>
 #include <pwd.h>
+#ifdef HAVE_TERMIOS_H
+# include <termios.h>
+#endif
 #include <sys/ioctl.h>
 
 typedef struct _node {
