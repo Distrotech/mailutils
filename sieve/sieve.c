@@ -27,8 +27,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-
-#include <sys/stat.h>
+#include <syslog.h>
 
 #include <mailutils/argcv.h>
 #include <mailutils/libsieve.h>
@@ -84,6 +83,9 @@ static struct argp_option options[] =
   {"debug", 'd', "FLAGS", OPTION_ARG_OPTIONAL,
    "Debug flags (defaults to \"" D_DEFAULT "\")", 0},
 
+  {"verbose", 'v', NULL, 0,
+   "Log all actions", 0},
+  
   {"email", 'e', "ADDRESS", 0,
    "Override user email address", 0},
   
@@ -97,6 +99,7 @@ struct options {
   char *tickets;
   int debug_level;
   int sieve_debug;
+  int verbose;
   char *mailer;
   char *script;
 };
@@ -116,6 +119,7 @@ parser (int key, char *arg, struct argp_state *state)
 	opts->mailer = strdup ("sendmail:");
       if (!opts->debug_level)
 	opts->debug_level = MU_DEBUG_ERROR;
+      log_facility = 0;
       break;
 
     case 'e':
@@ -190,6 +194,10 @@ parser (int key, char *arg, struct argp_state *state)
 	}
       break;
 
+    case 'v':
+      opts->verbose = 1;
+      break;
+      
     case ARGP_KEY_ARG:
       if (opts->script)
 	argp_error (state, "only one SCRIPT can be specified");
@@ -219,27 +227,44 @@ static const char *sieve_argp_capa[] =
   "common",
   "mailbox",
   "license",
+  "logging",
   NULL
 };
 
-int
-sieve_debug_printer (void *unused, const char *fmt, va_list ap)
+static int
+sieve_stderr_debug_printer (void *unused, const char *fmt, va_list ap)
 {
   vfprintf (stderr, fmt, ap);
   return 0;
 }
 
 static int
-debug_print (mu_debug_t unused, size_t level, const char *fmt, va_list ap)
+sieve_syslog_debug_printer (void *unused, const char *fmt, va_list ap)
+{
+  vsyslog (LOG_DEBUG, fmt, ap);
+  return 0;
+}
+
+static int
+stderr_debug_print (mu_debug_t unused, size_t level, const char *fmt,
+		    va_list ap)
 {
   vfprintf ((level == MU_DEBUG_ERROR) ? stderr : stdout, fmt, ap);
   return 0;
 }
 
+static int
+syslog_debug_print (mu_debug_t unused, size_t level, const char *fmt,
+		    va_list ap)
+{
+  vsyslog ((level == MU_DEBUG_ERROR) ? LOG_ERR : LOG_DEBUG, fmt, ap);
+  return 0;
+}
+
 static void
-action_log (void *unused,
-	    const char *script, size_t msgno, message_t msg,
-	    const char *action, const char *fmt, va_list ap)
+stdout_action_log (void *unused,
+		   const char *script, size_t msgno, message_t msg,
+		   const char *action, const char *fmt, va_list ap)
 {
   size_t uid = 0;
 
@@ -254,6 +279,29 @@ action_log (void *unused,
   fprintf (stdout, "\n");
 }
 
+static void
+syslog_action_log (void *unused,
+		   const char *script, size_t msgno, message_t msg,
+		   const char *action, const char *fmt, va_list ap)
+{
+  size_t uid = 0;
+  char *text = NULL;
+  
+  message_get_uid (msg, &uid);
+
+  asprintf (&text, "%s on msg uid %d", action, uid);
+  if (fmt && strlen (fmt))
+    {
+      char *diag = NULL;
+      asprintf (&diag, fmt, ap);
+      syslog (LOG_NOTICE, "%s: %s", text, diag);
+      free (diag);
+    }
+  else
+    syslog (LOG_NOTICE, "%s", text);
+  free (text);
+}
+
 int
 main (int argc, char *argv[])
 {
@@ -265,7 +313,8 @@ main (int argc, char *argv[])
   mailbox_t mbox = 0;
   int rc;
   struct options opts = {0};
-
+  int (*debugfp) __P ((mu_debug_t, size_t level, const char *, va_list));
+    
   rc = mu_argp_parse (&argp, &argc, &argv, ARGP_IN_ORDER, sieve_argp_capa,
 		      0, &opts);
 
@@ -281,8 +330,23 @@ main (int argc, char *argv[])
       mu_error ("can't initialize sieve machine: %s", mu_errstring (rc));
       return 1;
     }
-  sieve_set_debug (mach, sieve_debug_printer);
-  sieve_set_logger (mach, action_log);
+
+  if (log_facility)
+    {
+      openlog ("sieve", LOG_PID, log_facility);
+      mu_error_set_print (mu_syslog_error_printer);
+      sieve_set_debug (mach, sieve_syslog_debug_printer);
+      if (opts.verbose)
+	sieve_set_logger (mach, syslog_action_log);
+      debugfp = syslog_debug_print;
+    }
+  else
+    {
+      sieve_set_debug (mach, sieve_stderr_debug_printer);
+      if (opts.verbose)
+	sieve_set_logger (mach, stdout_action_log);
+      debugfp = stderr_debug_print;
+    }
   
   rc = sieve_compile (mach, opts.script);
   if (rc)
@@ -324,13 +388,13 @@ main (int argc, char *argv[])
       if ((rc = mu_debug_set_level (debug, opts.debug_level)))
 	{
 	  mu_error ("mu_debug_set_level failed: %s\n",
-		   mu_errstring (rc));
+		    mu_errstring (rc));
 	  goto cleanup;
 	}
-      if ((rc = mu_debug_set_print (debug, debug_print, mach)))
+      if ((rc = mu_debug_set_print (debug, debugfp, mach)))
 	{
 	  mu_error ("mu_debug_set_print failed: %s\n",
-		   mu_errstring (rc));
+		    mu_errstring (rc));
 	  goto cleanup;
 	}
     }
