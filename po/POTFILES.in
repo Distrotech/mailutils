@@ -3,7 +3,9 @@
 # Copyright (C) 2002, 2003 Free Software Foundation, Inc.
 #
 
+auth/mysql.c
 auth/pam.c
+auth/pgsql.c
 auth/sql.c
 auth/tls.c
 auth/virtual.c
