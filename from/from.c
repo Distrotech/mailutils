@@ -46,6 +46,9 @@
 #include <mailutils/stream.h>
 #include <mailutils/nls.h>
 #include <mailutils/tls.h>
+#include <mailutils/mutil.h>
+#include <mailutils/error.h>
+#include <mailutils/mime.h>
 
 const char *program_version = "from (" PACKAGE_STRING ")";
 static char doc[] = N_("GNU from -- display from and subject");
