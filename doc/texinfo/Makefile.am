@@ -76,7 +76,7 @@ BASE_URL="http://www.gnu.org/software/mailutils/manual/"
 TEXI2HTML=${SHELL} `cd $(top_srcdir); pwd`/scripts/missing --run texi2html
 DVIPS=${SHELL} `cd $(top_srcdir); pwd`/scripts/missing --run dvips
 INFO=${SHELL} `cd $(top_srcdir); pwd`/scripts/missing --run info
-EXTRA_DIST = index.html.in
+EXTRA_DIST = index.html.in COPYING.DOC
 
 html: html_mono html_node html_chapter
 
