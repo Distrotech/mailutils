@@ -25,7 +25,7 @@ static char args_doc[] = N_("[+folder]");
 
 /* GNU options */
 static struct argp_option options[] = {
-  {"file",    'i', "FILE",   0, N_("Inorporate mail from named file")},
+  {"file",    'i', "FILE",   0, N_("Incorporate mail from named file")},
   {"folder",  'f', "FOLDER", 0, N_("Specify folder to incorporate mail to")},
   {"audit",   'a', "FILE", 0, N_("Enable audit")},
   {"noaudit", 'n', 0, 0, N_("Disable audit")},

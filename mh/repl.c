@@ -55,7 +55,7 @@ static struct argp_option options[] = {
   {"query", ARG_QUERY, "BOOL", 0, N_("Query for addresses to place in To: and Cc: lists")},
   {"width", 'w', "NUMBER", 0, N_("Set output width")},
   {"whatnowproc", ARG_WHATNOWPROC, "PROG", 0,
-   N_("Set the relacement for whatnow program")},
+   N_("Set the replacement for whatnow program")},
   { N_("\nUse -help switch to obtain the list of traditional MH options. "), 0, 0, OPTION_DOC, "" },
   { 0 }
 };
