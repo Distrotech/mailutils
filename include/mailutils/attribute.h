@@ -41,6 +41,7 @@ typedef struct _attribute * attribute_t;
 #define MU_ATTRIBUTE_DRAFT    0x08
 #define MU_ATTRIBUTE_SEEN     0x10
 #define MU_ATTRIBUTE_READ     0x20
+#define MU_ATTRIBUTE_MODIFIED 0x40
 #define MU_ATTRIBUTE_RECENT   0x00
 
 extern int attribute_create          __P ((attribute_t *, void *));
