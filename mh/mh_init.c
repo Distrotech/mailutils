@@ -291,7 +291,7 @@ mh_open_folder (const char *folder, int create)
 {
   mailbox_t mbox = NULL;
   char *name;
-  int flags = MU_STREAM_READ;
+  int flags = MU_STREAM_RDWR;
   
   name = mh_expand_name (folder, 1);
   if (create && mh_check_folder (name, 1))
