@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2001, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001, 2002, 2003 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -45,7 +45,7 @@ mail_copy0 (int argc, char **argv, int mark)
   else
     filename = strdup ("mbox");
 
-  if (msgset_parse (argc, argv, &msglist))
+  if (msgset_parse (argc, argv, MSG_NODELETED|MSG_SILENT, &msglist))
     {
       if (filename)
 	free (filename);
@@ -74,7 +74,7 @@ mail_copy0 (int argc, char **argv, int mark)
     {
       int status;
       
-      status = util_get_message (mbox, mp->msg_part[0], &msg, MSG_NODELETED);
+      status = util_get_message (mbox, mp->msg_part[0], &msg);
       if (status)
         break;
 

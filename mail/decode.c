@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -40,7 +40,7 @@ mail_decode (int argc, char **argv)
   msgset_t *msgset;
   struct decode_closure decode_closure;
 
-  if (msgset_parse (argc, argv, &msgset))
+  if (msgset_parse (argc, argv, MSG_NODELETED|MSG_SILENT, &msgset))
     return 1;
 
   decode_closure.select_hdr = islower (argv[0][0]);
