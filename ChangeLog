@@ -1,3 +1,34 @@
+2004-08-07  Sergey Poznyakoff  
+
+	* Makefile.am: Raised automake requirements to version
+	1.8.5
+	* examples/nntpclient.c: Minor fixes.
+	* imap4d/Makefile.am (INCLUDES): Added -Imailbox
+	* imap4d/imap4d.h: Added missing includes
+	* include/mailutils/nls.h [!ENABLE_NLS]: Define gettext()
+	* include/mailutils/nntp.h: Minor changes. The screen is 80x24!
+	* mailbox/locker.c (_locker_lock_dotlock): Make sure the lock file
+	is writable for the owner.
+	* mailbox/imap/folder.c (authenticate_imap_sasl_anon): Use
+	auth_state instead of state. Possibly this was a typo...
+	* mailbox/include/imap0.h (struct _f_imap.capac): Changed
+	type to int.
+	* mailbox/maildir/mbox.c (maildir_gethostname): Fixed a gross
+	memory allocation bug.
+
+	* mailbox/message.c: Minor changes.
+	* mailbox/mbox/url.c: Likewise.
+	* mailbox/nntp/folder.c: Likewise.
+	* mailbox/nntp/mbox.c: Likewise.
+	* mailbox/nntp/nntp_article.c: Likewise.
+	* mailbox/nntp/nntp_connect.c: Likewise.
+	* mailbox/nntp/nntp_date.c: Likewise.
+	* mailbox/nntp/nntp_head.c: Likewise.
+	* mailbox/nntp/nntp_ihave.c: Likewise.
+	* mailbox/nntp/nntp_post.c: Likewise.
+
+	* scripts/guile-1.6/guile-doc-snarf: Bugfix. Always use $AWK.
+
 2004-08-06  Sergey Poznyakoff
 
 	* include/mailutils/daemon.h: Include types.h
