@@ -270,6 +270,7 @@ sieve_match_part_checker (const char *name, list_t tags, list_t args)
 	  if (comp && strcmp (comp->arg->v.string, "i;ascii-numeric"))
 	    {
 	      sieve_compile_error (sieve_filename, sieve_line_num,
+				   /* TRANSLATORS: Do not translate ':count'. It is the name of a Sieve tag */
 			   _("comparator %s is incompatible with :count in call to `%s'"),
 				   comp->arg->v.string,
 				   name);

@@ -50,6 +50,9 @@ append_arg (char *arg)
 
 static struct argp_option options[] = {
   {NULL, 0, NULL, 0,
+   /* TRANSLATORS: (command-line) is the name of Guile function. Do not
+      translate it.
+   */
    N_("The following switches stop argument processing, and pass all\n"
    "remaining arguments as the value of (command-line):"), 1},
   {"code", 'c', N_("EXPR"), 0, N_("Execute given scheme expression."), 1},

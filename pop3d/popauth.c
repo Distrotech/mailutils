@@ -446,6 +446,8 @@ fill_pass (struct action_data *ap)
 	if (!p)
 	  exit (1);
 	ap->passwd = strdup (p);
+	/* TRANSLATORS: Please try to format this string so that it has
+	   the same length as the translation of 'Password:' above */
 	p = getpass (_("Confirm :"));
 	if (strcmp (ap->passwd, p) == 0)
 	  break;

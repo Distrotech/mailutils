@@ -127,13 +127,19 @@ sieve_test_address (sieve_machine_t mach, list_t args, list_t tags)
   h = sieve_value_get (args, 0);
   if (!h)
     {
-      sieve_error (mach, _("address: can't get argument 1"));
+      sieve_error (mach,
+		   /* TRANSLATORS: 'address' is the name of a Sieve test.
+		      Do not translate it! */
+		   _("address: can't get argument 1"));
       sieve_abort (mach);
     }
   v = sieve_value_get (args, 1);
   if (!v)
     {
-      sieve_error (mach, _("address: can't get argument 2"));
+      sieve_error (mach,
+		   /* TRANSLATORS: 'address' is the name of a Sieve test.
+		      Do not translate it! */
+		   _("address: can't get argument 2"));
       sieve_abort (mach);
     }
 
@@ -193,13 +199,19 @@ sieve_test_header (sieve_machine_t mach, list_t args, list_t tags)
   h = sieve_value_get (args, 0);
   if (!h)
     {
-      sieve_error (mach, _("header: can't get argument 1"));
+      sieve_error (mach,
+		   /* TRANSLATORS: 'header' is the name of a Sieve test.
+		      Do not translate it! */
+		   _("header: can't get argument 1"));
       sieve_abort (mach);
     }
   v = sieve_value_get (args, 1);
   if (!v)
     {
-      sieve_error (mach, _("header: can't get argument 2"));
+      sieve_error (mach,
+		   /* TRANSLATORS: 'header' is the name of a Sieve test.
+		      Do not translate it! */
+		   _("header: can't get argument 2"));
       sieve_abort (mach);
     }
 
@@ -286,7 +298,10 @@ sieve_test_envelope (sieve_machine_t mach, list_t args, list_t tags)
   v = sieve_value_get (args, 1);
   if (!v)
     {
-      sieve_error (mach, _("header: can't get argument 2"));
+      sieve_error (mach,
+		   /* TRANSLATORS: 'header' is the name of a Sieve test.
+		      Do not translate it! */
+		   _("header: can't get argument 2"));
       sieve_abort (mach);
     }
 
@@ -309,7 +324,10 @@ sieve_test_size (sieve_machine_t mach, list_t args, list_t tags)
   sieve_value_t *val = sieve_value_get (args, 0);
   if (!val)
     {
-      sieve_error (mach, _("size: can't get argument!"));
+      sieve_error (mach,
+		   /* TRANSLATORS: 'size' is the name of a Sieve test.
+		      Do not translate it! */
+		   _("size: can't get argument!"));
       sieve_abort (mach);
     }
 
@@ -366,7 +384,10 @@ sieve_test_exists (sieve_machine_t mach, list_t args, list_t tags)
   val = sieve_value_get (args, 0);
   if (!val)
     {
-      sieve_error (mach, _("exists: can't get argument!"));
+      sieve_error (mach,
+		   /* TRANSLATORS: 'size' is the name of a Sieve test.
+		      Do not translate it! */
+		   _("exists: can't get argument!"));
       sieve_abort (mach);
     }
 

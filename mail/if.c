@@ -85,6 +85,7 @@ mail_if (int argc, char **argv)
 
   if (argc != 2)
     {
+      /* TRANSLATORS: 'if' is the function name. Do not translate it */
       util_error(_("if requires an argument: s | r | t"));
       return 1;
     }
@@ -131,6 +132,7 @@ mail_else (int argc ARG_UNUSED, char **argv ARG_UNUSED)
 
   if (_cond_level == 0)
     {
+      /* TRANSLATORS: 'else' and 'if' are function names. Do not translate them */
       util_error(_("else without matching if"));
       return 1;
     }
@@ -146,6 +148,7 @@ mail_endif (int argc ARG_UNUSED, char **argv ARG_UNUSED)
 {
   if (_cond_level == 0)
     {
+      /* TRANSLATORS: 'endif' and 'if' are function names. Do not translate them */
       util_error(_("endif without matching if"));
       return 1;
     }
