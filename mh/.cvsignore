@@ -19,5 +19,6 @@ install-mh
 mark
 anno
 mhl
+pick
 *.output
 .gdbinit
