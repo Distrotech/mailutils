@@ -1,12 +1,17 @@
 2001-10-31  Alain Magloire
 
 	* messages/message.c (messages_count): getenv ("MAIL") may return NULL.
-	In this case we were trying to printf (" ..%s\n", NULL); GNU/Linux 
+	In this case we were trying to printf (" ..%s\n", NULL); GNU/Linux
 	seems to cope with it but QNX/Neutrino sigsegv miserably.  Fix the code
 	by getting the url of the mailbox and calling url_to_string().
 
 	* mailbox/mbx_default.c: If the argument is NULL __or__ an empty
 	string check MAIL and FOLDER environment.
+
+	* imap4d/namespace.c: Put namespace_enumerate() and namespace_enumerate()
+	static scope.
+
+	* mail/msgset.y: search "mail.h" in the current dir.
 
 2001-10-31  Alain Magloire
 
