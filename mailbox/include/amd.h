@@ -39,9 +39,6 @@ do \
 struct _amd_data;
 struct _amd_message
 {
-  struct _amd_message *next;
-  struct _amd_message *prev;
-
   stream_t stream;          /* Associated file stream */
   off_t body_start;         /* Offset of body start in the message file */
   off_t body_end;           /* Offset of body end (size of file, effectively)*/
@@ -72,8 +69,8 @@ struct _amd_data
   
   /* List of messages: */
   size_t msg_count; /* number of messages in the list */
-  struct _amd_message *msg_head;  /* First */
-  struct _amd_message *msg_tail;  /* Last */
+  size_t msg_max;   /* maximum message buffer capacity */
+  struct _amd_message **msg_array;
 
   unsigned long uidvalidity;
 
@@ -92,9 +89,13 @@ struct _amd_data
 
 int amd_init_mailbox __P((mailbox_t mailbox, size_t mhd_size,
 			  struct _amd_data **pmhd));
-void _amd_message_insert __P((struct _amd_data *mhd,
-			      struct _amd_message *msg));
+int _amd_message_insert __P((struct _amd_data *mhd,
+			     struct _amd_message *msg));
 int amd_message_stream_open __P((struct _amd_message *mhm));
 void amd_message_stream_close __P((struct _amd_message *mhm));
 void amd_cleanup (void *arg);
 int amd_url_init (url_t url, const char *scheme);
+struct _amd_message *_amd_get_message __P((struct _amd_data *amd,
+					   size_t msgno));
+int amd_msg_lookup __P((struct _amd_data *amd, struct _amd_message *msg,
+			size_t *pret));

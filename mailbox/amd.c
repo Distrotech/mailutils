@@ -107,15 +107,139 @@ static int amd_pool_open_count __P((struct _amd_data *amd));
 static struct _amd_message **amd_pool_lookup __P((struct _amd_message *mhm));
 
 static int amd_envelope_date __P((envelope_t envelope, char *buf, size_t len,
-				 size_t *psize));
+				  size_t *psize));
 static int amd_envelope_sender __P((envelope_t envelope, char *buf, size_t len,
 				   size_t *psize));
+
+/* Operations on message array */
 
-/* Should be in other header file.  */
-extern int amd_message_number __P ((message_t msg, size_t *pnum));
+/* Perform binary search for message MSG on a segment of message array
+   of AMD between the indexes FIRST and LAST inclusively.
+   If found, return 0 and store index of the located entry in the
+   variable PRET. Otherwise, return 1 and place into PRET index of
+   the nearest array element that is less than MSG (in the sense of
+   amd->msg_cmp)
+   Indexes are zero-based. */
+   
+static int
+amd_msg_bsearch (struct _amd_data *amd, off_t first, off_t last,
+		 struct _amd_message *msg,
+		 off_t *pret)
+{
+  off_t mid;
+  int rc;
+
+  if (last < first)
+    return 1;
+  
+  mid = (first + last) / 2;
+  rc = amd->msg_cmp (amd->msg_array[mid], msg);
+  if (rc > 0)
+    return amd_msg_bsearch (amd, first, mid-1, msg, pret);
+  *pret = mid;
+  if (rc < 0)
+    return amd_msg_bsearch (amd, mid+1, last, msg, pret);
+  /* else */
+  return 0;
+}
+
+/* Search for message MSG in the message array of AMD.
+   If found, return 0 and store index of the located entry in the
+   variable PRET. Otherwise, return 1 and place into PRET index of
+   the array element that is less than MSG (in the sense of
+   amd->msg_cmp)
+   Index returned in PRET is 1-based, so *PRET == 0 means that MSG
+   is less than the very first element of the message array.
+
+   In other words, when amd_msg_lookup() returns 1, the value in *PRET
+   can be regarded as a 0-based index of the array slot where MSG can
+   be inserted */
 
 int
-amd_init_mailbox (mailbox_t mailbox, size_t amd_size, struct _amd_data **pamd)
+amd_msg_lookup (struct _amd_data *amd, struct _amd_message *msg,
+		 size_t *pret)
+{
+  int rc;
+  off_t i;
+  
+  if (!amd->msg_array)
+    {
+      *pret = 0;
+      return 1;
+    }
+  
+  rc = amd->msg_cmp (msg, amd->msg_array[0]);
+  if (rc < 0)
+    {
+      *pret = 0;
+      return 1;
+    }
+  else if (rc == 0)
+    {
+      *pret = 1;
+      return 0;
+    }
+  
+  rc = amd->msg_cmp (msg, amd->msg_array[amd->msg_count - 1]);
+  if (rc > 0)
+    {
+      *pret = amd->msg_count;
+      return 1;
+    }
+  else if (rc == 0)
+    {
+      *pret = amd->msg_count;
+      return 0;
+    }
+  
+  rc = amd_msg_bsearch (amd, 0, amd->msg_count - 1, msg, &i);
+  *pret = i + 1;
+  return rc;
+}
+
+#define AMD_MSG_INC 64
+
+/* Prepare the message array for insertion of a new message
+   at position INDEX (zero based), by moving its contents
+   one slot to the right. If necessary, expand the array by
+   AMD_MSG_INC */
+int
+amd_array_expand (struct _amd_data *amd, size_t index)
+{
+  if (amd->msg_count == amd->msg_max)
+    {
+      struct _amd_message **p;
+      
+      amd->msg_max += AMD_MSG_INC; /* FIXME: configurable? */
+      p = realloc (amd->msg_array, amd->msg_max * amd->msg_size);
+      if (!p)
+	{
+	  amd->msg_max -= AMD_MSG_INC;
+	  return ENOMEM;
+	}
+      amd->msg_array = p;
+    }
+  memmove (&amd->msg_array[index+1], &amd->msg_array[index],
+	   (amd->msg_count-index) * amd->msg_size);
+  amd->msg_count++;
+  return 0;
+}
+
+/* Shrink the message array by removing element at INDEX-1 and
+   shifting left by one position all the elements on the right of
+   it. */
+int
+amd_array_shrink (struct _amd_data *amd, size_t index)
+{
+  memmove (&amd->msg_array[index-1], &amd->msg_array[index],
+	   (amd->msg_count-index) * amd->msg_size);
+  amd->msg_count--;
+  return 0;
+}
+
+
+int
+amd_init_mailbox (mailbox_t mailbox, size_t amd_size, struct _amd_data **pamd) 
 {
   struct _amd_data *amd;
   size_t name_len;
@@ -171,21 +295,19 @@ static void
 amd_destroy (mailbox_t mailbox)
 {
   struct _amd_data *amd = mailbox->data;
-  struct _amd_message *msg, *next;
-
+  size_t i;
+  
   if (!amd)
     return;
 
   monitor_wrlock (mailbox->monitor);
-  msg = amd->msg_head;
-  while (msg)
+  for (i = 0; i < amd->msg_count; i++)
     {
-      next = msg->next;
-      message_destroy (&msg->message, msg);
-      free (msg);
-      msg = next;
+      message_destroy (&amd->msg_array[i]->message, amd->msg_array[i]);
+      free (amd->msg_array[i]);
     }
-
+  free (amd->msg_array);
+	
   if (amd->name)
     free (amd->name);
 
@@ -220,16 +342,13 @@ amd_close (mailbox_t mailbox)
   return 0;
 }
 
-static struct _amd_message *
+struct _amd_message *
 _amd_get_message (struct _amd_data *amd, size_t msgno)
 {
-  size_t n;
-  struct _amd_message *msg;
-
-  for (n = 1, msg = amd->msg_head; msg && n < msgno; n++, msg = msg->next)
-    ;
-
-  return msg;
+  msgno--;
+  if (msgno >= amd->msg_count)
+    return NULL;
+  return amd->msg_array[msgno];
 }
 
 static int
@@ -440,7 +559,7 @@ _amd_message_save (struct _amd_data *amd, struct _amd_message *mhm, int expunge)
 
   /* Add imapbase */
   if (amd->next_uid
-      && (!amd->msg_head || (amd->msg_head == mhm))) /*FIXME*/
+      && (!amd->msg_array || (amd->msg_array[0] == mhm))) /*FIXME*/
     {
       nbytes += fprintf (fp, "X-IMAPbase: %lu %u\n",
 			 (unsigned long) amd->uidvalidity,
@@ -556,7 +675,12 @@ amd_append_message (mailbox_t mailbox, message_t msg)
   status = _amd_message_save (amd, mhm, 0);
   mhm->message = NULL;
   /* Insert and re-scan the message */
-  _amd_message_insert (amd, mhm);
+  status = _amd_message_insert (amd, mhm);
+  if (status)
+    {
+      free (mhm);
+      return status;
+    }
 
   if (amd->msg_finish_delivery)
     amd->msg_finish_delivery (amd, mhm);
@@ -588,8 +712,7 @@ static int
 amd_messages_recent (mailbox_t mailbox, size_t *pcount)
 {
   struct _amd_data *amd = mailbox->data;
-  struct _amd_message *mhm;
-  size_t count;
+  size_t count, i;
 
   /* If we did not start a scanning yet do it now.  */
   if (amd->msg_count == 0)
@@ -599,9 +722,9 @@ amd_messages_recent (mailbox_t mailbox, size_t *pcount)
 	return status;
     }
   count = 0;
-  for (mhm = amd->msg_head; mhm; mhm = mhm->next)
+  for (i = 0; i < amd->msg_count; i++)
     {
-      if (MU_ATTRIBUTE_IS_UNSEEN(mhm->attr_flags))
+      if (MU_ATTRIBUTE_IS_UNSEEN(amd->msg_array[i]->attr_flags))
 	count++;
     }
   *pcount = count;
@@ -613,8 +736,7 @@ static int
 amd_message_unseen (mailbox_t mailbox, size_t *pmsgno)
 {
   struct _amd_data *amd = mailbox->data;
-  struct _amd_message *mhm;
-  size_t i, unseen;
+  size_t i;
 
   /* If we did not start a scanning yet do it now.  */
   if (amd->msg_count == 0)
@@ -623,15 +745,15 @@ amd_message_unseen (mailbox_t mailbox, size_t *pmsgno)
       if (status != 0)
 	return status;
     }
-  for (unseen = i = 1, mhm = amd->msg_head; mhm; i++, mhm = mhm->next)
+
+  for (i = 0; i < amd->msg_count; i++)
     {
-      if (MU_ATTRIBUTE_IS_UNREAD(mhm->attr_flags))
+      if (MU_ATTRIBUTE_IS_UNREAD(amd->msg_array[0]->attr_flags))
 	{
-	  unseen = i;
+	  *pmsgno = i + 1;
 	  break;
 	}
     }
-  *pmsgno = unseen;
   return 0;
 }
 
@@ -640,7 +762,8 @@ amd_expunge (mailbox_t mailbox)
 {
   struct _amd_data *amd = mailbox->data;
   struct _amd_message *mhm;
-
+  size_t i;
+  
   if (amd == NULL)
     return EINVAL;
 
@@ -648,21 +771,19 @@ amd_expunge (mailbox_t mailbox)
     return 0;
 
   /* Find the first dirty(modified) message.  */
-  for (mhm = amd->msg_head; mhm; mhm = mhm->next)
+  for (i = 0; i < amd->msg_count; i++)
     {
+      mhm = amd->msg_array[i];
       if ((mhm->attr_flags & MU_ATTRIBUTE_MODIFIED) ||
 	  (mhm->attr_flags & MU_ATTRIBUTE_DELETED) ||
 	  (mhm->message && message_is_modified (mhm->message)))
 	break;
     }
 
-  if (!mhm)
-    return 0; /* Nothing changed, just return.  */
-
-  while (mhm)
+  while (i < amd->msg_count)
     {
-      struct _amd_message *next = mhm->next;
-
+      mhm = amd->msg_array[i];
+      
       if (mhm->attr_flags & MU_ATTRIBUTE_DELETED)
 	{
 	  if (!mhm->deleted)
@@ -676,15 +797,19 @@ amd_expunge (mailbox_t mailbox)
 	      free (new_name);
 	    }
 	  _amd_message_delete (amd, mhm);
+	  /* Do not increase i! */
 	}
-      else if ((mhm->attr_flags & MU_ATTRIBUTE_MODIFIED)
-	       || (mhm->message && message_is_modified (mhm->message)))
+      else
 	{
-	  _amd_attach_message (mailbox, mhm, NULL);
-	  mhm->deleted = mhm->attr_flags & MU_ATTRIBUTE_DELETED;
-	  _amd_message_save (amd, mhm, 1);
+	  if ((mhm->attr_flags & MU_ATTRIBUTE_MODIFIED)
+	      || (mhm->message && message_is_modified (mhm->message)))
+	    {
+	      _amd_attach_message (mailbox, mhm, NULL);
+	      mhm->deleted = mhm->attr_flags & MU_ATTRIBUTE_DELETED;
+	      _amd_message_save (amd, mhm, 1);
+	    }
+	  i++; /* Move to the next message */
 	}
-      mhm = next;
     }
 
   return 0;
@@ -695,7 +820,8 @@ amd_save_attributes (mailbox_t mailbox)
 {
   struct _amd_data *amd = mailbox->data;
   struct _amd_message *mhm;
-
+  size_t i;
+  
   if (amd == NULL)
     return EINVAL;
 
@@ -703,19 +829,17 @@ amd_save_attributes (mailbox_t mailbox)
     return 0;
 
   /* Find the first dirty(modified) message.  */
-  for (mhm = amd->msg_head; mhm; mhm = mhm->next)
+  for (i = 0; i < amd->msg_count; i++)
     {
+      mhm = amd->msg_array[i];
       if ((mhm->attr_flags & MU_ATTRIBUTE_MODIFIED)
 	  || (mhm->message && message_is_modified (mhm->message)))
 	break;
     }
 
-  if (!mhm)
-    return 0; /* Nothing changed, just return.  */
-
-  while (mhm)
+  for ( ; i < amd->msg_count; i++)
     {
-      struct _amd_message *next = mhm->next;
+      mhm = amd->msg_array[i];
 
       if ((mhm->attr_flags & MU_ATTRIBUTE_MODIFIED)
 	  || (mhm->message && message_is_modified (mhm->message)))
@@ -724,7 +848,6 @@ amd_save_attributes (mailbox_t mailbox)
 	  mhm->deleted = mhm->attr_flags & MU_ATTRIBUTE_DELETED;
 	  _amd_message_save (amd, mhm, 0);
 	}
-      mhm = next;
     }
 
   return 0;
@@ -782,61 +905,52 @@ amd_cleanup (void *arg)
 }
 
 /* Insert message msg into the message list on the appropriate position */
-void
+int
 _amd_message_insert (struct _amd_data *amd, struct _amd_message *msg)
 {
-  struct _amd_message *p;
-  struct _amd_message *prev;
+  size_t index;
 
-  for (p = amd->msg_head; p && amd->msg_cmp (p, msg) < 0; p = p->next)
-    ;
-
-  if (!p)
+  if (amd_msg_lookup (amd, msg, &index))
     {
-      msg->next = NULL;
-      msg->prev = amd->msg_tail;
-      amd->msg_tail = msg;
-      if (!amd->msg_head)
-	amd->msg_head = msg;
+      /* Not found. Index is the index of the array cell where msg
+	 must be placed */
+      int rc = amd_array_expand (amd, index);
+      if (rc)
+	return rc;
+      amd->msg_array[index] = msg;
+      msg->amd = amd;
     }
   else
     {
-      msg->next = p;
-      msg->prev = p->prev;
-      p->prev = msg;
+      /*FIXME: Found? Shouldn't happen */
+      return EEXIST;
     }
-  if ((prev = msg->prev) != NULL)
-    prev->next = msg;
-  else
-    amd->msg_head = msg;
-  msg->amd = amd;
-  amd->msg_count++;
+  return 0;
 }
 
 static void
 _amd_message_delete (struct _amd_data *amd, struct _amd_message *msg)
 {
-  struct _amd_message *p;
-  struct _amd_message **pp = amd_pool_lookup (msg);
+  size_t index;
+  struct _amd_message **pp;
 
+  if (amd_msg_lookup (amd, msg, &index))
+    {
+      /* FIXME: Not found? */
+      return;
+    }
+
+  msg = _amd_get_message (amd, index);
+
+  pp = amd_pool_lookup (msg);
   if (pp)
     *pp = NULL;
   
-  if ((p = msg->next) != NULL)
-    p->prev = msg->prev;
-  else
-    amd->msg_tail = msg->prev;
-
-  if ((p = msg->prev) != NULL)
-    p->next = msg->next;
-  else
-    amd->msg_head = msg->next;
-
   message_destroy (&msg->message, msg);
   if (amd->msg_free)
     amd->msg_free (msg);
   free (msg);
-  amd->msg_count--;
+  amd_array_shrink (amd, index);
 }
 
 /* Scan given message and fill amd_message_t fields.
@@ -935,7 +1049,7 @@ amd_is_updated (mailbox_t mailbox)
   struct stat st;
   struct _amd_data *amd = mailbox->data;
 
-  if (!amd->msg_head)
+  if (amd->msg_count == 0)
     return 0;
 
   if (stat (amd->name, &st) < 0)

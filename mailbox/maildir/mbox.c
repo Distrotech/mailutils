@@ -324,7 +324,8 @@ maildir_message_uid (message_t msg, size_t *puid)
 static size_t
 maildir_next_uid (struct _amd_data *amd)
 {
-  struct _maildir_message *msg = (struct _maildir_message *) amd->msg_tail;
+  struct _maildir_message *msg = (struct _maildir_message *)
+                                   _amd_get_message (amd, amd->msg_count);
   return (msg ? msg->uid : 0) + 1;
 }
 
@@ -489,13 +490,17 @@ maildir_message_lookup (struct _amd_data *amd, char *file_name)
   char *p = strchr (file_name, ':');
   size_t length = p ? p - file_name : strlen (file_name);
   int rc;
+  size_t i;
   
-  for (msg = (struct _maildir_message *) amd->msg_head;
-       msg
-	 && strlen (msg->file_name) >= length
-	 && (rc = memcmp (msg->file_name, file_name, length)) < 0;
-       msg = (struct _maildir_message *) msg->amd_message.next)
-    ;
+  /*FIXME!*/
+  for (i = 0; i < amd->msg_count; i++)
+    {
+      msg = (struct _maildir_message *) amd->msg_array[i];
+
+      if (strlen (msg->file_name) <= length
+	  && (rc = memcmp (msg->file_name, file_name, length)) == 0)
+	break;
+    }
   return rc == 0 ? msg : NULL;
 }
 
@@ -588,8 +593,8 @@ maildir_scan0 (mailbox_t mailbox, size_t msgno ARG_UNUSED, size_t *pcount,
 
   if (do_notify)
     {
-      struct _amd_message *mp;
-      for (mp = amd->msg_head; mp; mp = mp->next)
+      size_t i;
+      for (i = 0; i < amd->msg_count++; i++)
 	{
 	  DISPATCH_ADD_MSG(mailbox, amd);
 	}
@@ -609,11 +614,11 @@ maildir_scan0 (mailbox_t mailbox, size_t msgno ARG_UNUSED, size_t *pcount,
 	  amd->uidvalidity = (unsigned long) time (NULL);
 	  /* FIXME amd->uidnext = amd->msg_count + 1;*/
 	  /* Tell that we have been modified for expunging.  */
-	  if (amd->msg_head)
+	  if (amd->msg_count)
 	    {
-	      amd_message_stream_open (amd->msg_head);
-	      amd_message_stream_close (amd->msg_head);
-	      amd->msg_head->attr_flags |= MU_ATTRIBUTE_MODIFIED;
+	      amd_message_stream_open (amd->msg_array[0]);
+	      amd_message_stream_close (amd->msg_array[0]);
+	      amd->msg_array[0]->attr_flags |= MU_ATTRIBUTE_MODIFIED;
 	    }
 	}
     }
