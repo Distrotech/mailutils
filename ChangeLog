@@ -1,3 +1,23 @@
+2003-08-21  Sergey Poznyakoff 
+
+	* include/mailutils/iterator.h (iterator_dup): New function
+	* mailbox/iterator.c: Likewise.
+	* include/mailutils/list.h (list_insert): New function.
+	* mailbox/list.c: Likewise.
+	* mh/ali.c: New file
+	* mh/mh_alias.y: New file
+	* mh/mh_alias.l: New file
+	* mh/Makefile.am: Added new files
+	* mh/.cvsignore: Likewise.
+	* mh/mh.h (mh_alias_read,mh_alias_get)
+	(mh_alias_get_address,mh_alias_get_alias)
+	(mh_read_aliase,smh_alias_enumerate): New functions.
+	* mh/mh_getopt.h: Updated
+	* mh/mh_whom.c (scan_addrs): Added support for aliases
+	* mh/mhparam.c: Fixed year in the copyleft header.
+	* mh/whom.c: Added support for aliases.
+	* mh/mh_init.c: Minor cleanup
+	
 2003-08-20  Sergey Poznyakoff
 
 	* comsat/action.c (expand_escape): Use argcv_unescape_char()

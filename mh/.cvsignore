@@ -5,6 +5,10 @@ Makefile.in
 mh_fmtgram.c
 pick-gram.c 
 pick-gram.h
+mh_alias_gram.c
+mh_alias_lex.c
+mh_alias.h
+ali
 scan
 inc
 rmm
