@@ -116,7 +116,6 @@ rmf (const char *name)
 {
   DIR *dir;
   struct dirent *entry;
-  char *cur_path;
   int failures = 0;
   
   dir = opendir (name);
@@ -124,7 +123,7 @@ rmf (const char *name)
   if (!dir)
     {
       mh_error (_("can't scan folder %s: %s"), name, strerror (errno));
-      return;
+      return 1;
     }
 
   if (interactive && !mh_getyn (_("Remove folder %s"), name))
