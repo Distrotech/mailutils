@@ -120,19 +120,22 @@
 ;;; Register standard actions
 (cond
  (sieve-parser
-  (sieve-register-action "keep" action-keep)
-  (sieve-register-action "discard" action-discard)
-  (sieve-register-action "fileinto" action-fileinto 'string)))
+  (sieve-register-action "keep" action-keep '() '())
+  (sieve-register-action "discard" action-discard '() '())
+  (sieve-register-action "fileinto" action-fileinto (list 'string) '())))
 
 ;;; Some utilities.
 
-(define (find-comp opt-args)
+(define (sieve-get-opt-arg opt-args tag default)
   (cond
-   ((member #:comparator opt-args) =>
+   ((member tag opt-args) =>
     (lambda (x)
       (car (cdr x))))
    (else
-    string-ci=?)))
+    default)))
+
+(define (find-comp opt-args)
+  (sieve-get-opt-arg opt-args #:comparator string-ci=?))
 
 (define (find-match opt-args)
   (cond
@@ -358,24 +361,24 @@
  (sieve-parser
   (sieve-register-test "address"
 		       test-address
-		       (append address-part comparator match-type)
-                       (list 'string-list 'string-list))
+                       (list 'string-list 'string-list)
+		       (append address-part comparator match-type))
   (sieve-register-test "size"
 		       test-size
-		       size-comp
-                       (list 'number))
+                       (list 'number)
+		       size-comp)
   (sieve-register-test "envelope"
 		       test-envelope
-		       (append comparator address-part match-type)
-                       (list 'string-list 'string-list))
+                       (list 'string-list 'string-list)
+		       (append comparator address-part match-type))
   (sieve-register-test "exists"
 		       test-exists
-		       '()
-                       (list 'string-list))
+                       (list 'string-list) 
+                       '())
   (sieve-register-test "header"
 		       test-header
-		       (append comparator match-type)
-		       (list 'string-list 'string-list))
+		       (list 'string-list 'string-list)
+		       (append comparator match-type))
   (sieve-register-test "false" #f '() '())
   (sieve-register-test "true"  #t '() '())))
 
