@@ -16,6 +16,7 @@
    Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #include "mail.h"
+#include <dirent.h>
 
 /*
  * folders
@@ -24,7 +25,37 @@
 int
 mail_folders (int argc, char **argv)
 {
-  fprintf (ofile, "Function not implemented in %s line %d\n",
-	   __FILE__, __LINE__);
-  return 1;
+  DIR *dir;
+  struct dirent *dirent;
+  char *path;
+  struct mail_env_entry *env = util_find_env ("folder");
+
+  if (!env->set)
+    {
+      fprintf(ofile, "No value set for \"folder\"\n");
+      return 1;
+    }
+
+  path = util_fullpath(env->value);
+  dir = opendir(path);
+  if (!dir)
+    {
+      fprintf(ofile, "can't open directory `%s'\n", path);
+      free(path);
+      return 1;
+    }
+  
+
+  while (dirent = readdir(dir))
+    {
+      if (dirent->d_name[0] == '.')
+	continue;
+      fprintf(ofile, "%s\n", dirent->d_name);
+    }
+  
+  closedir(dir);
+
+  free(path);
+  
+  return 0;
 }
