@@ -31,6 +31,7 @@ struct mh_argp_data
   struct mh_option *mh_option;
   int (*handler)();
   void *closure;
+  char *doc;
 };
 
 static error_t
@@ -40,7 +41,8 @@ parse_opt (int key, char *arg, struct argp_state *state)
   switch (key)
     {
     case ARGP_KEY_INIT:
-      while ((key = mh_getopt (state->argc, state->argv, data->mh_option))
+      while ((key = mh_getopt (state->argc, state->argv, data->mh_option,
+			       data->doc))
 	     != EOF
 	     && key != '?')
 	{
@@ -93,7 +95,8 @@ mh_argp_parse (int argc, char **argv,
   data.mh_option = mh_option;
   data.closure = closure;
   data.handler = handler;
-
+  data.doc = argp_doc;
+  
   p = mh_profile_value (program_invocation_short_name, NULL);
   if (p)
     {
