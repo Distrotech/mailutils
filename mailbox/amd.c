@@ -1371,7 +1371,8 @@ amd_envelope_date (envelope_t envelope, char *buf, size_t len,
 
   if ((status = message_get_header (msg, &hdr)) != 0)
     return status;
-  if (header_aget_value (hdr, MU_HEADER_ENV_DATE, &from))
+  if (header_aget_value (hdr, MU_HEADER_ENV_DATE, &from)
+      && header_aget_value (hdr, MU_HEADER_DELIVERY_DATE, &from))
     return ENOSYS;
 
   /* Format:  "sender date" */
