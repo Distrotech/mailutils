@@ -1,3 +1,13 @@
+2003-02-23  Alain Magloire
+
+	* doc/texinfo/mailcap.texi: Document the mailcap functions.
+	* doc/texinfo/mailcap.inc: Code example.
+	* doc/texinfo/Makefile.am: Added mailcap.texi and mailcap.inc
+
+	* mailbox/Makefile.am: Added mailcap.c
+	* mailbox/mailcap.c: include <mailutils/mailcap.h>
+	* include/mailutils/Makefile.am: Added mailcap.h
+
 2003-02-22  Alain Magloire
 
 	First implementation of rfc1524.
