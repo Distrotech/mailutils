@@ -442,3 +442,69 @@ mu_get_user_email (char *name)
   sprintf (email, "%s@%s", name, domainpart);
   return email;
 }
+
+/* mu_normalize_path: convert pathname containig relative paths specs (../)
+   into an equivalent absolute path. Strip trailing delimiter if present,
+   unless it is the only character left. E.g.:
+
+         /home/user/../smith   -->   /home/smith
+	 /home/user/../..      -->   /
+
+   FIXME: delim is superfluous. The function deals with unix filesystem
+   paths, so delim should be always "/" */
+char *
+mu_normalize_path (char *path, const char *delim)
+{
+  int len;
+  char *p;
+
+  if (!path)
+    return path;
+
+  len = strlen (path);
+
+  /* Empty string is returned as is */
+  if (len == 0)
+    return path;
+
+  /* delete trailing delimiter if any */
+  if (len && path[len-1] == delim[0])
+    path[len-1] = 0;
+
+  /* Eliminate any /../ */
+  for (p = strchr (path, '.'); p; p = strchr (p, '.'))
+    {
+      if (p > path && p[-1] == delim[0])
+	{
+	  if (p[1] == '.' && (p[2] == 0 || p[2] == delim[0]))
+	    /* found */
+	    {
+	      char *q, *s;
+
+	      /* Find previous delimiter */
+	      for (q = p-2; *q != delim[0] && q >= path; q--)
+		;
+
+	      if (q < path)
+		break;
+	      /* Copy stuff */
+	      s = p + 2;
+	      p = q;
+	      while ((*q++ = *s++))
+		;
+	      continue;
+	    }
+	}
+
+      p++;
+    }
+
+  if (path[0] == 0)
+    {
+      path[0] = delim[0];
+      path[1] = 0;
+    }
+
+  return path;
+}
+
