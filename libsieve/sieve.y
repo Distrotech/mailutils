@@ -75,7 +75,9 @@ list         : statement
 statement    : REQUIRE stringorlist ';'
                {
 		 sieve_require ($2);
-		 sieve_slist_destroy (&$2);
+		 /*  All the items in $2 are registered in memory_pool,
+		     so we don't free them */
+		 list_destroy (&$2);
 		 $$ = sieve_machine->pc;
 	       }
              | action ';'
@@ -461,7 +463,7 @@ sieve_machine_add_destructor (sieve_machine_t mach, sieve_destructor_t destr,
 			      void *ptr)
 {
   struct sieve_destr_record *p;
-  
+
   if (!mach->destr_list && list_create (&mach->destr_list))
     return 1;
   p = sieve_malloc (mach, sizeof (*p));
@@ -521,7 +523,7 @@ sieve_compile (sieve_machine_t mach, const char *name)
   int rc;
   
   sieve_machine_begin (mach);
-  
+
   if (sieve_lex_begin (name) == 0)
     {
       sieve_machine->filename = sieve_mstrdup (sieve_machine, name);
