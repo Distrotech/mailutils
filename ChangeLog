@@ -1,3 +1,11 @@
+2002-12-24  Wojciech Polak <polak@gnu.org>
+
+	* po/POTFILES.in: Updated.
+	* po/.cvsignore: Removed Makevars.
+	* mail.local/*: Added NLS.
+	* mailbox/Makefile.am: Removed "-I${top_srcdir}/intl" from INCLUDES
+	  due to @INTLINCS@.
+
 2002-12-24  Sergey Poznyakoff 
 
 	* doc/texinfo/Makefile.am: Fixed referencing /scripts/missing
