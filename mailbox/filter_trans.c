@@ -269,7 +269,7 @@ base64_decode (const char *iptr, size_t isize, char *optr, size_t osize,
 {
   int i = 0, tmp = 0, pad = 0;
   size_t consumed = 0;
-  char data[4];
+  unsigned char data[4];
 
   (void) line_len;
   *nbytes = 0;
@@ -316,7 +316,8 @@ base64_encode (const char *iptr, size_t isize, char *optr, size_t osize,
   int pad = 0;
   const char *b64 =
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-
+  const unsigned char* ptr = iptr;
+	
   *nbytes = 0;
   if (isize <= 3)
     pad = 1;
@@ -330,12 +331,10 @@ base64_encode (const char *iptr, size_t isize, char *optr, size_t osize,
 	  if ((*nbytes + 4) > osize)
 	    return consumed;
 	}
-      *optr++ = b64[iptr[0] >> 2];
-      *optr++ = b64[((iptr[0] << 4) + (--isize ? (iptr[1] >> 4): 0)) & 0x3f];
-      *optr++ = isize ?
-	b64[((iptr[1] << 2) + (--isize ? (iptr[2] >> 6) : 0 )) & 0x3f]
-	: '=';
-      *optr++ = isize ? b64[iptr[2] & 0x3f] : '=';
+      *optr++ = b64[ptr[0] >> 2];
+      *optr++ = b64[((ptr[0] << 4) + (--isize ? (ptr[1] >> 4): 0)) & 0x3f];
+      *optr++ = isize ? b64[((iptr[1] << 2) + (--isize ? (ptr[2] >> 6) : 0 )) & 0x3f] : '=';
+      *optr++ = isize ? b64[ptr[2] & 0x3f] : '=';
       iptr += 3;
       consumed += 3;
       (*nbytes) += 4;

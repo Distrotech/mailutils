@@ -348,7 +348,7 @@ _mimepart_body_read(stream_t stream, char *buf, size_t buflen, off_t off, size_t
 	read_len = (int)mime_part->len - (int)off;
 	if ( read_len <= 0 ) {
 		if ( !stream_is_seekable (mime_part->mime->stream) ) {
-			while( ( ret = stream_read(mime_part->mime->stream, buf, buflen, mime_part->offset + off, nbytes) ) == 0 && *nbytes > 0 )
+			while( ( ret = stream_read(mime_part->mime->stream, buf, buflen, mime_part->offset + off, nbytes) ) == 0 && *nbytes )
 			   off += *nbytes;
 			*nbytes = 0;	  
 		}
@@ -447,7 +447,7 @@ _mime_body_read(stream_t stream, char *buf, size_t buflen, off_t off, size_t *nb
 	body_t		body = stream_get_owner(stream);
 	message_t	msg = body_get_owner(body);
 	mime_t		mime = message_get_owner(msg);
-	int 		ret = 0, len;
+	int 		ret = 0;
 	size_t		part_nbytes = 0;
 	stream_t	msg_stream = NULL;
 
@@ -469,8 +469,8 @@ _mime_body_read(stream_t stream, char *buf, size_t buflen, off_t off, size_t *nb
 
 	if ( ( ret = _mime_set_content_type(mime) ) == 0 ) {
 		do {
-			len = 0;
 			if ( mime->nmtp_parts > 1 ) {
+				int len;
 				if ( mime->flags & MIME_INSERT_BOUNDARY ) {
 					if ( ( mime->flags & MIME_ADDING_BOUNDARY ) == 0 ) {
 						mime->boundary_len = strlen(mime->boundary);
@@ -508,14 +508,16 @@ _mime_body_read(stream_t stream, char *buf, size_t buflen, off_t off, size_t *nb
 				body_get_stream(part_body, &msg_stream);
 			}
 			ret = stream_read(msg_stream, buf, buflen, mime->part_offset, &part_nbytes );
-    		len += part_nbytes;
-			mime->part_offset += part_nbytes;
-			if ( nbytes )
-				*nbytes += len;
-			mime->cur_offset += len;
+			if ( part_nbytes ) {
+				mime->part_offset += part_nbytes;
+				mime->cur_offset += part_nbytes;
+				if ( nbytes )
+					*nbytes += part_nbytes;
+			}
 			if ( ret == 0 && part_nbytes == 0 ) {
 				mime->flags |= MIME_INSERT_BOUNDARY;
 				mime->cur_part++;
+				ADD_CHAR(buf, '\n', mime->cur_offset, buflen, *nbytes);
 			}
 		} while( ret == 0 && part_nbytes == 0 && mime->cur_part <= mime->nmtp_parts );
 	}

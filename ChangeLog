@@ -1,3 +1,11 @@
+2001-05-30  Dave Inglis
+
+	* mailbox/filter_trans.c (base64_decode): The variable should
+	be unsigned char not signed char.  By default gcc treats a
+	declaration of "char*" like "signed char*", CC Watcom did not.
+	(base64_encode): Likewised.
+	* mailbox/mime.c: Read 'itl the end of the stream.
+
 2001-05-29  Sergey Poznyakoff
 	* imap4d/uid.c, imap4d/search.c: support for UID SEARCH command;
 	* imap4d/util.c: forgotten fix to util_msgset().
@@ -26,9 +34,10 @@
 		expunge will know it was modified.
 
 	* imap4d/search.c: implemented. Charsets other than US-ASCII are
-		not supported, though.  
+		not supported, though.
 
 2001-05-27  Sam Roberts
+
 	* mailbox/address.c: removed unfolding of lines at a NL before parsing.
 	* mailbox/parse822.c: consider LF and CRLF equivalent for purposes
 	of unfolding lines.
