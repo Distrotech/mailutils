@@ -35,11 +35,10 @@
 #include <mailutils/error.h>
 #include <mailutils/address.h>
 #include <mailutils/registrar.h>
+#include <mailutils/stream.h>
+#include <mailutils/guile.h>
 #include <mailutils/nls.h>
 #include <mu_asprintf.h>
-
-#include <libguile.h>
-#include <mu_scm.h>
 
 extern char *program_file;
 extern char *program_expr;
