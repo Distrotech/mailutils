@@ -85,6 +85,12 @@ extern int _mailer_smtp_init      __P ((mailer_t));
 extern int _url_sendmail_init     __P ((url_t));
 extern int _mailer_sendmail_init  __P ((mailer_t));
 
+#define MU_MH_SCHEME "mh:"
+#define MU_MH_SCHEME_LEN 3
+extern int _url_mh_init     __P ((url_t));
+extern int _mailbox_mh_init __P((mailbox_t mailbox));
+extern int _folder_mh_init  __P ((folder_t));
+  
 #ifdef __cplusplus
 }
 #endif
