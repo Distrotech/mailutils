@@ -37,6 +37,9 @@ int
 sieve_action_keep (sieve_machine_t mach, list_t args, list_t tags)
 {
   sieve_log_action (mach, "KEEP", NULL);
+  if (sieve_is_dry_run (mach))
+    return 0;
+  sieve_mark_deleted (mach->msg, 0);
   return 0;
 }
 
