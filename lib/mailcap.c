@@ -25,6 +25,7 @@
 #define obstack_chunk_free free
 #include <obstack.h>  
 #include <sys/wait.h>
+#include <ctype.h>
 
 /* Default mailcap path, the $HOME/.mailcap: entry is prepended to it */
 #define DEFAULT_MAILCAP \
