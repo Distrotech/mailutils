@@ -65,6 +65,8 @@ const struct mail_command_entry mail_command_table[] = {
   { "ret",	"retain",	"ret[ain] [header-field]",	0, mail_retain, 0 },
   { "S",	"Save",		"S[ave] [msglist]",		0, mail_save, 0 },
   { "s",	"save",		"s[ave] [[msglist] file]",	0, mail_save, 0 },
+  { "sen",      "sendheader",   "sen[dheader] [[header][: value]]", EF_SEND,
+    mail_sendheader },
   { "se",	"set", "se[t] [name[=[string]]...] [name=number...] [noname...]",
 	0, mail_set, 0 },
   { "sete",     "setenv", "sete[nv] [name[=value]]", 0, mail_setenv, 0 },
