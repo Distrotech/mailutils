@@ -42,7 +42,7 @@ pop3_uidl (const char *arg)
           message_get_attribute (msg, &attr);
           if (!attribute_is_deleted (attr))
             {
-              message_get_uid (msg, uidl, sizeof (uidl), NULL);
+              message_get_uidl (msg, uidl, sizeof (uidl), NULL);
               fprintf (ofile, "%d %s\r\n", mesgno, uidl);
             }
         }
@@ -56,7 +56,7 @@ pop3_uidl (const char *arg)
       message_get_attribute (msg, &attr);
       if (attribute_is_deleted (attr))
         return ERR_MESG_DELE;
-      message_get_uid (msg, uidl, sizeof (uidl), NULL);
+      message_get_uidl (msg, uidl, sizeof (uidl), NULL);
       fprintf (ofile, "+OK %d %s\r\n", mesgno, uidl);
     }
 
