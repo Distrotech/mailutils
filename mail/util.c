@@ -104,12 +104,17 @@ util_do_command (const char *c, ...)
 	  return 0;
 	}
 
-      /* Hitting return i.e. no command, is equivalent to next
-	 according to the POSIX spec.  */
       if (cmd[0] == '\0')
 	{
 	  free (cmd);
-	  cmd = strdup ("next");
+	  
+	  /* Hitting return i.e. no command, is equivalent to next
+	     according to the POSIX spec. Note, that this applies
+	     to interactive state only. */
+	  if (interactive)
+	    cmd = strdup ("next");
+	  else
+	    return 0;
 	}
 
       if (argcv_get (cmd, delim, NULL, &argc, &argv) == 0)
