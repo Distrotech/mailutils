@@ -46,49 +46,52 @@ extern "C" {
 #endif /*__P */
 
 /* Constructor/destructor and possible types.  */
-extern int  mailbox_create        __P ((mailbox_t *, const char *));
-extern void mailbox_destroy       __P ((mailbox_t *));
-extern int mailbox_create_default __P ((mailbox_t *, const char *));
+extern int  mailbox_create         __P ((mailbox_t *, const char *));
+extern void mailbox_destroy        __P ((mailbox_t *));
+extern int mailbox_create_default  __P ((mailbox_t *, const char *));
 
-extern int mailbox_open           __P ((mailbox_t, int flag));
-extern int mailbox_close          __P ((mailbox_t));
-extern int mailbox_set_folder     __P ((mailbox_t, folder_t));
+extern int mailbox_open            __P ((mailbox_t, int flag));
+extern int mailbox_close           __P ((mailbox_t));
+extern int mailbox_set_folder      __P ((mailbox_t, folder_t));
+extern int mailbox_uidvalidity     __P ((mailbox_t, unsigned long *));
+extern int mailbox_uidnext         __P ((mailbox_t, size_t *));
 
 /* Messages.  */
-extern int mailbox_get_message    __P ((mailbox_t, size_t msgno, message_t *));
-extern int mailbox_append_message __P ((mailbox_t, message_t));
-extern int mailbox_messages_count __P ((mailbox_t, size_t *));
-extern int mailbox_unseen_count   __P ((mailbox_t, size_t *));
-extern int mailbox_expunge        __P ((mailbox_t));
+extern int mailbox_get_message     __P ((mailbox_t, size_t msgno, message_t *));
+extern int mailbox_append_message  __P ((mailbox_t, message_t));
+extern int mailbox_messages_count  __P ((mailbox_t, size_t *));
+extern int mailbox_messages_recent __P ((mailbox_t, size_t *));
+extern int mailbox_message_unseen  __P ((mailbox_t, size_t *));
+extern int mailbox_expunge         __P ((mailbox_t));
 
 /* Update and scanning.  */
-extern int mailbox_size           __P ((mailbox_t, off_t *size));
-extern int mailbox_is_updated     __P ((mailbox_t));
-extern int mailbox_scan           __P ((mailbox_t, size_t no, size_t *count));
+extern int mailbox_size            __P ((mailbox_t, off_t *size));
+extern int mailbox_is_updated      __P ((mailbox_t));
+extern int mailbox_scan            __P ((mailbox_t, size_t no, size_t *count));
 
 /* Mailbox Stream.  */
-extern int mailbox_set_stream     __P ((mailbox_t, stream_t));
-extern int mailbox_get_stream     __P ((mailbox_t, stream_t *));
+extern int mailbox_set_stream      __P ((mailbox_t, stream_t));
+extern int mailbox_get_stream      __P ((mailbox_t, stream_t *));
 
 /* Lock settings.  */
-extern int mailbox_get_locker     __P ((mailbox_t, locker_t *));
-extern int mailbox_set_locker     __P ((mailbox_t, locker_t));
+extern int mailbox_get_locker      __P ((mailbox_t, locker_t *));
+extern int mailbox_set_locker      __P ((mailbox_t, locker_t));
 
 /* Authentication.  */
-extern int mailbox_get_authority  __P ((mailbox_t, authority_t *));
-extern int mailbox_set_authority  __P ((mailbox_t, authority_t));
-extern int mailbox_get_ticket     __P ((mailbox_t, ticket_t *));
-extern int mailbox_set_ticket     __P ((mailbox_t, ticket_t));
+extern int mailbox_get_authority   __P ((mailbox_t, authority_t *));
+extern int mailbox_set_authority   __P ((mailbox_t, authority_t));
+extern int mailbox_get_ticket      __P ((mailbox_t, ticket_t *));
+extern int mailbox_set_ticket      __P ((mailbox_t, ticket_t));
 
 /* URL.  */
-extern int mailbox_get_url        __P ((mailbox_t, url_t *));
+extern int mailbox_get_url         __P ((mailbox_t, url_t *));
 
 /* For any debuging */
-extern int mailbox_get_debug      __P ((mailbox_t, debug_t *));
-extern int mailbox_set_debug      __P ((mailbox_t, debug_t));
+extern int mailbox_get_debug       __P ((mailbox_t, debug_t *));
+extern int mailbox_set_debug       __P ((mailbox_t, debug_t));
 
 /* Events.  */
-extern int mailbox_get_observable __P ((mailbox_t, observable_t *));
+extern int mailbox_get_observable  __P ((mailbox_t, observable_t *));
 
 #ifdef __cplusplus
 }

@@ -98,10 +98,14 @@ extern int message_set_get_part     __P ((message_t, int (*_get_part)
 					  __P ((message_t, size_t,
 						message_t *)), void *owner));
 
-extern int message_get_uid          __P ((message_t, char *, size_t, size_t *));
-extern int message_set_uid          __P ((message_t, int (*_get_uid)
+extern int message_get_uidl         __P ((message_t, char *, size_t, size_t *));
+extern int message_set_uidl         __P ((message_t, int (*_get_uidl)
 					  __P ((message_t, char *, size_t,
 						size_t *)), void *owner));
+extern int message_get_uid          __P ((message_t, size_t *));
+extern int message_set_uid          __P ((message_t, int (*_get_uid)
+					  __P ((message_t, size_t *)),
+					  void *owner));
 
 /* misc functions */
 extern int message_create_attachment __P ((const char *content_type,
