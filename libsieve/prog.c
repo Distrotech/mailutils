@@ -119,7 +119,7 @@ _compare_ptr (void *item, void *data)
 }
 
 struct check_arg {
-  char *name;
+  const char *name;
   list_t args;
   list_t tags;
 };
@@ -317,3 +317,33 @@ sieve_code_test (sieve_register_t *reg, list_t arglist)
          || sieve_code_command (reg, arglist);
 }
 
+void
+sieve_code_anyof (size_t start)
+{
+  size_t end = sieve_machine->pc;
+  while (sieve_machine->prog[start+1].pc != 0)
+    {
+      size_t next = sieve_machine->prog[start+1].pc;
+      sieve_machine->prog[start].instr = instr_brnz;
+      sieve_machine->prog[start+1].pc = end - start - 2;
+      start = next;
+    }
+  sieve_machine->prog[start].instr = instr_nop;
+  sieve_machine->prog[start+1].instr = instr_nop;
+}
+
+void
+sieve_code_allof (size_t start)
+{
+  size_t end = sieve_machine->pc;
+  
+  while (sieve_machine->prog[start+1].pc != 0)
+    {
+      size_t next = sieve_machine->prog[start+1].pc;
+      sieve_machine->prog[start+1].pc = end - start - 2;
+      start = next;
+    }
+  sieve_machine->prog[start].instr = instr_nop;
+  sieve_machine->prog[start+1].instr = instr_nop;
+}
+		
