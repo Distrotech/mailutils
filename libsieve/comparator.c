@@ -363,7 +363,7 @@ i_ascii_casemap_contains (const char *pattern, const char *text)
   
   haystack = (const unsigned char *)text;
 
-  if ((b = U (*(needle = (const unchar*)pattern))))
+  if ((b = U (*(needle = (const unsigned char*)pattern))))
     {
       haystack--;		
       do
@@ -438,7 +438,7 @@ i_ascii_casemap_matches (const char *pattern, const char *text)
   int rc;
   char *p = strdup (text);
   _pattern_upcase (p, NULL);
-  rc = fnmatch (pattern, text, 0) == 0;
+  rc = fnmatch (pattern, p, 0) == 0;
   free (p);
   return rc;
 #endif
