@@ -104,7 +104,7 @@ _gsasl_destroy (stream_t stream)
 #define buffer_drop(s) s->level = 0
 
 int
-buffer_grow (struct _gsasl_stream *s, char *ptr, size_t size)
+buffer_grow (struct _gsasl_stream *s, const char *ptr, size_t size)
 {
   if (!s->buffer)
     {
@@ -255,7 +255,6 @@ _gsasl_write (stream_t stream, const char *iptr, size_t isize,
 	      off_t offset, size_t *nbytes)
 {
   int rc;
-  size_t total = 0;
   struct _gsasl_stream *s = stream_get_owner (stream);
   
   rc = buffer_grow (s, iptr, isize);
@@ -323,7 +322,7 @@ _gsasl_open (stream_t stream)
 }
 
 int
-_gsasl_strerror (stream_t stream, const char **pstr)
+_gsasl_strerror (stream_t stream, char **pstr)
 {
   struct _gsasl_stream *s = stream_get_owner (stream);
   *pstr = gsasl_strerror (s->last_err);
