@@ -44,7 +44,7 @@ imap4d_bye0 (int reason, struct imap4d_command *command)
       break;
 
     case ERR_SIGNAL:
-      if (util_is_ofile())
+      if (!util_is_master ())
 	util_out (RESP_BYE, "Quitting on signal");
       syslog (LOG_ERR, _("Quitting on signal"));
       break;
@@ -79,12 +79,7 @@ imap4d_bye0 (int reason, struct imap4d_command *command)
   if (status == EXIT_SUCCESS && command)
      util_finish (command, RESP_OK, "Completed");
 
-#ifdef WITH_TLS
-  if (tls_done)
-    imap4d_deinit_tls_server ();
-  if (tls_available)
-    mu_deinit_tls_libs ();
-#endif /* WITH_TLS */
+  util_bye ();
 
   closelog ();
   exit (status);
