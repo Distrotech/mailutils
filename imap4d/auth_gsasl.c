@@ -47,6 +47,19 @@ create_gsasl_stream (stream_t *newstr, stream_t str, int flags)
   return RESP_OK;
 }
 
+void
+gsasl_replace_streams (void *self, void *data)
+{
+  stream_t *s = data;
+
+  util_set_input (s[0]);
+  util_set_output (s[1]);
+  free (s);
+  util_event_remove (self);
+  free (self);
+  return 0;
+}
+
 
 static int
 auth_gsasl (struct imap4d_command *command,
@@ -55,13 +68,11 @@ auth_gsasl (struct imap4d_command *command,
   char *input = NULL;
   char output[512];
   size_t output_len;
-  char *s, *client_init;
+  char *s;
   int rc;
 
-  client_init = util_getword (arg, &s);
-  if (!client_init)
-    return RESP_BAD;
-  util_unquote (&client_init);
+  input = util_getword (arg, &s);
+  util_unquote (&input);
   
   rc = gsasl_server_start (ctx, auth_type, &sess_ctx);
   if (rc != GSASL_OK)
@@ -73,7 +84,6 @@ auth_gsasl (struct imap4d_command *command,
 
   gsasl_server_application_data_set (sess_ctx, username);
 
-  input = client_init;
   output[0] = '\0';
   output_len = sizeof (output);
 
@@ -100,21 +110,30 @@ auth_gsasl (struct imap4d_command *command,
   if (sess_ctx)
     {
       stream_t in, out, new_in, new_out;
+      stream_t *s;
+      int infd, outfd;
       
       util_get_input (&in);
+      stream_get_fd (in, &infd);
+      
       util_get_output (&out);
-      if (create_gsasl_stream (&new_in, in, MU_STREAM_READ))
+      stream_get_fd (out, &outfd);
+      if (create_gsasl_stream (&new_in, infd, MU_STREAM_READ))
 	return RESP_NO;
-      if (create_gsasl_stream (&new_out, out, MU_STREAM_WRITE))
+      if (create_gsasl_stream (&new_out, outfd, MU_STREAM_WRITE))
 	{
 	  stream_destroy (&new_in, stream_get_owner (new_in));
 	  return RESP_NO;
 	}
 
-      util_set_input (new_in);
-      util_set_output (new_out);
+      s = calloc (2, sizeof (stream_t));
+      s[0] = new_in;
+      s[1] = new_out;
+      util_register_event (STATE_NONAUTH, STATE_AUTH,
+			   gsasl_replace_streams, s);
     }
 
+  
   auth_gsasl_capa_init (1);
   return RESP_OK;
 }
@@ -223,6 +242,25 @@ cb_external (Gsasl_session_ctx *ctx)
   return GSASL_AUTHENTICATION_ERROR;
 }
 
+/* This gets called when SASL mechanism CRAM-MD5 or DIGEST-MD5 is invoked */
+
+static int
+cb_retrieve (Gsasl_session_ctx *ctx,
+	     const char *authentication_id,
+	     const char *authorization_id,
+	     const char *realm,
+	     char *key,
+	     size_t *keylen)
+{
+  char **username = gsasl_server_application_data_get (ctx);
+
+  if (username && authentication_id)
+    *username = strdup (authentication_id);
+
+  return gsasl_md5pwd_get_password (gsasl_cram_md5_pwd, authentication_id,
+				    key, keylen);
+}
+
 void
 auth_gsasl_init ()
 {
@@ -240,6 +278,11 @@ auth_gsasl_init ()
   gsasl_server_callback_validate_set (ctx, cb_validate);
   gsasl_server_callback_service_set (ctx, cb_service);
 
+  if (gsasl_cram_md5_pwd && access (gsasl_cram_md5_pwd, R_OK) == 0)
+    {
+      gsasl_server_callback_retrieve_set (ctx, cb_retrieve);
+    }
+  
   auth_gsasl_capa_init (0);
 }
 
