@@ -170,9 +170,12 @@ url_parse (url_t url)
 
 
 #define UALLOC(X) \
-  		if(u.X && (url->X = url_decode(u.X)) == 0) { \
+  		if(u.X && u.X[0] && (url->X = url_decode(u.X)) == 0) { \
 		  err = ENOMEM; \
 		  goto CLEANUP; \
+		} else { \
+		  /* Set zero-length strings to NULL. */ \
+		  u.X = NULL; \
 		}
 
 	UALLOC (scheme)
