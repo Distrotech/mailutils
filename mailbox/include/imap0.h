@@ -92,6 +92,7 @@ enum imap_state
   IMAP_COPY, IMAP_COPY_ACK,
   IMAP_CREATE, IMAP_CREATE_ACK,
   IMAP_DELETE, IMAP_DELETE_ACK,
+  IMAP_EXPUNGE, IMAP_EXPUNGE_ACK,
   IMAP_FETCH, IMAP_FETCH_ACK,
   IMAP_GREETINGS,
   IMAP_HEADER,
@@ -142,7 +143,8 @@ struct _f_imap
   enum imap_state state;
 
   size_t seq; /* Sequence number to build a tag.  */
-  char *capa; /* Cabilities of the server.  */
+  char **capav; /* Cabilities of the server.  */
+  size_t capac; /* Number of capabilities in the above array */
   int flags;
 
   /* IO use to hold the literal and quoted strings send by
@@ -166,7 +168,7 @@ struct _f_imap
   char *buffer;
   char *ptr;
   char *nl;
-  off_t offset; /* Dummy, this is use because of the stream buffering.
+  off_t offset; /* Dummy, this is used because of the stream buffering.
                    The stream_t maintains and offset and the offset we use must
                    be in sync.  */
 
