@@ -45,6 +45,11 @@ specific configuration options:
 	Compile mailutils with debugging support. This disables compiler
 	optimizations and adds debugging information to the binaries.
 
+    --enable-experimental
+
+        Build experimental and/or unfinished utilities as well. In the
+        current version (0.2), this option enables building of MH utilities.
+
     --disable-pam
 
 	Do not build PAM support. By default configure will build PAM support
