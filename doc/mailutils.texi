@@ -103,7 +103,7 @@ This document was produced for version @value{VERSION} of @sc{gnu}
 @menu
 * Introduction::                GNU @sc{mailutils}
 * Mailbox::                     Mailbox API.
-* Mailer::                      Protocol Use to Send Mail.
+* Mailer::                      Protocol Used to Send Mail.
 * Message::                     Message API.
 * Headers::                     Headers API.
 * Body::                        Body API.
@@ -125,8 +125,9 @@ This document was produced for version @value{VERSION} of @sc{gnu}
 @chapter Introduction
 @cindex Introduction
 
-@sc{gnu} @sc{Mailutils} offers a general purpose library aim to provide
-a rich set of functions for accessing different mailbox formats and mailers.
+@sc{gnu} @sc{Mailutils} offers a general purpose library whose aim is to
+provide a rich set of functions for accessing different mailbox formats and
+mailers.
 
 @example
 @group
@@ -139,7 +140,7 @@ a rich set of functions for accessing different mailbox formats and mailers.
   -----------               +-----------------+    |   |  ...      |
  (  jeff    )           +---|-* message_t[0]  |    |   +-----------+
   -----------           |   |   message_t[1]  |    |
- (  sean    )           |   |   ...           |    |    auth_t
+ (  shaleh  )           |   |   ...           |    |    auth_t
   ----------            |   +-----------------+    +-->+----------+
                         |                              |  user    |
    message_t            |                              |  passwd  |
@@ -155,8 +156,8 @@ a rich set of functions for accessing different mailbox formats and mailers.
 @end group
 @end example
 
-For example writing a simple @command{from} command that will list @emph{From}
-and @emph{Subject} of a folder.
+For example writing a simple @command{from} command that will list the 
+@emph{From} and @emph{Subject} headers of every mail in a folder.
 
 @example
 @include sfrom.c.texi
@@ -256,7 +257,7 @@ Be sure to include the word ``mailutils'' somewhere in the ``Subject:'' field.
 In no particular order,
 Jakob Kaivo @email{jkaivo@@ndn.net},
 Jeff Bailey @email{jbailey@@gnu.org},
-Sean Perry @email{shaleh@@debian.org},
+Sean 'Shaleh' Perry @email{shaleh@@debian.org},
 Thomas Fletcher @email{thomasf@@qnx.com}.
 Dave Inglis @email{dinglis@@qnx.com}.
 Brian Edmond @email{briane@@qnx.com}.

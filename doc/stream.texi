@@ -13,16 +13,16 @@ The stream is open write only.
 The stream is open read and write.
 @item MU_STREAM_APPEND
 @findex MU_STREAM_APPEND
-The stream is open in append mode for write.
+The stream is open in append mode for writing.
 @item MU_STREAM_CREAT
 @findex MU_STREAM_CREAT
-The stream is create.
+The stream is created.
 @item MU_STREAM_NONBLOCK
 @findex MU_STREAM_NONBLOCK
 The stream is set non blocking.
 @item MU_STREAM_NO_CHECK
 @findex MU_STREAM_NO_CHECK
-Stream is destroy without checking for the owner.
+Stream is destroyed without checking for the owner.
 @end table
 @end deftypefun
 

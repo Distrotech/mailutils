@@ -1,6 +1,6 @@
 @code{#include <mailutils/mailbox.h>}
 @deftp {Data Type} mailbox_t
-The @code{mailbox_t} object is use to hold information and it is an opaque
+The @code{mailbox_t} object is used to hold information and it is an opaque
 data structure to the user. Functions are provided to retrieve the information.
 @end deftp
 @example
@@ -25,13 +25,13 @@ data structure to the user. Functions are provided to retrieve the information.
 @end example
 
 @deftypefun int mailbox_create (mailbox_t *@var{pmbox}, const char *@var{name}, int @var{id})
-The funcion @code{mailbox_create} allocates and initializes @var{pmbox}.
-The validation is base on the scheme of the url @var{name} or @var{id}.
+The function @code{mailbox_create} allocates and initializes @var{pmbox}.
+The validation is based on the scheme of the url @var{name} or @var{id}.
 
 The return value is @code{0} on success and a code number on error conditions:
 @table @code
 @item EINVAL
-The url @var{name} supply is invalid or not supported.
+The url @var{name} supplied is invalid or not supported.
 @var{pmbox} is NULL.
 @item ENOMEM
 Not enough memory to allocate resources.
@@ -39,7 +39,7 @@ Not enough memory to allocate resources.
 @end deftypefun
 
 @deftypefun int mailbox_create_default (mailbox_t *@var{pmbox}, const char *@var{user})
-The environment variable @emph{$MAIL} or the string form by
+The environment variable @emph{$MAIL} or the string formed by
 @emph{$MAILDIR}/@var{user}" or @emph{$LOGNAME} if @var{user} is null,
 for a default mailbox and calls @code{mailbox_create}.
 @end deftypefun
@@ -60,14 +60,14 @@ Set the @var{stream} connection to use for the mailbox.
 The return value is @code{0} on success and a code number on error conditions:
 @table @code
 @item EINVAL
-@var{mbox} or @var{stream} are NULL.
+@var{mbox} or @var{stream} is NULL.
 @end table
 @end deftypefun
 
 @deftypefun int mailbox_open (mailbox_t @var{mbox}, int @var{flag})
 A connection is open, if no stream was provided, a stream
-is create base on the @var{mbox} type.  The @var{flag} can be OR'ed.
-See @code{stream_create} for @var{flag} description.
+is created based on the @var{mbox} type.  The @var{flag} can be OR'ed.
+See @code{stream_create} for @var{flag}'s description.
 
 The return value is @code{0} on success and a code number on error conditions:
 @table @code
@@ -84,7 +84,7 @@ Not enough memory.
 @end deftypefun
 
 @deftypefun  int mailbox_close (mailbox_t @var{mbox})
-The stream attach to @var{mbox} is close.
+The stream attach to @var{mbox} is closed.
 
 The return value is @code{0} on success and a code number on error conditions:
 @table @code
@@ -94,12 +94,12 @@ The return value is @code{0} on success and a code number on error conditions:
 @end deftypefun
 
 @deftypefun  void mailbox_destroy (mailbox_t *@var{pmbox})
-Destroy and releases resources hold by @var{pmbox}.
+Destroys and releases resources held by @var{pmbox}.
 @end deftypefun
 
 @deftypefun  int mailbox_get_message (mailbox_t @var{mbox}, size_t @var{msgno}, message_t *@var{pmessage})
-Retreive message number @var{msgno}, @var{pmessage} is allocate and
-initialize.
+Retreive message number @var{msgno}, @var{pmessage} is allocated and
+initialized.
 
 The return value is @code{0} on success and a code number on error conditions:
 @table @code
@@ -111,7 +111,7 @@ Not enough memory.
 @end deftypefun
 
 @deftypefun  int mailbox_append_message (mailbox_t @var{mbox}, message_t @var{message})
-The @var{message} is append to the mailbox @var{mbox}.
+The @var{message} is appended to the mailbox @var{mbox}.
 
 The return value is @code{0} on success and a code number on error conditions:
 @table @code
@@ -121,7 +121,7 @@ The return value is @code{0} on success and a code number on error conditions:
 @end deftypefun
 
 @deftypefun  int mailbox_messages_count (mailbox_t @var{mbox}, size_t *@var{pnumber});
-Give the number of message is @var{mbox}.
+Give the number of messaged in @var{mbox}.
 
 The return value is @code{0} on success and a code number on error conditions:
 @table @code
@@ -131,7 +131,7 @@ The return value is @code{0} on success and a code number on error conditions:
 @end deftypefun
 
 @deftypefun  int mailbox_expunge (mailbox_t @var{mbox})
-All the messages set deleted are removed.
+All messages marked for deletion are removed.
 
 The return value is @code{0} on success and a code number on error conditions:
 @table @code
@@ -161,7 +161,7 @@ The return value is @code{0} on success and a code number on error conditions:
 @end deftypefun
 
 @deftypefun  int mailbox_get_auth (mailbox_t @var{mbox}, auth_t *@var{pauth})
-Retriever the @var{*pauth} of the @var{mbox}.
+Retrieve the @var{*pauth} of the @var{mbox}.
 
 The return value is @code{0} on success and a code number on error conditions:
 @table @code
@@ -171,7 +171,7 @@ The return value is @code{0} on success and a code number on error conditions:
 @end deftypefun
 
 @deftypefun  int mailbox_set_auth (mailbox_t @var{mbox}, auth_t @var{auth})
-Set the type of authaurity for the mailbox.
+Set the type of authentication for the mailbox.
 
 The return value is @code{0} on success and a code number on error conditions:
 @table @code
@@ -181,7 +181,7 @@ The return value is @code{0} on success and a code number on error conditions:
 @end deftypefun
 
 @deftypefun  int mailbox_is_updated (mailbox_t @var{mbox})
-Check if the mailbox is uptodate.
+Check if the mailbox is up-to-date.
 
 The return value is @code{0} on success and a code number on error conditions:
 @table @code

@@ -1,6 +1,6 @@
 
 @comment See rfc2368, rfc2369, rfc2384
-A mailbox and mailer can be describe in a URL, the string will contain the
+A mailbox and mailer can be described in a URL, the string will contain the
 necessary information to initialize @code{mailbox_t}, or @code{mailer_t}
 properly.
 
@@ -13,7 +13,7 @@ and the authentication mechanism.  The general form is
 @url{pop://obelix;AUTH=+APOP@@village.gaulois.org:2000}
 @end example
 
-If @emph{:port} is omitted the default value is 110. Different form of
+If @emph{:port} is omitted the default value is 110. Different forms of
 authentication can be specified with @emph{;AUTH=type}.
 The special string @emph{;AUTH=*} indicates that the client will use
 a default scheme base on the capability of the server.
@@ -52,13 +52,13 @@ use @url{file://path} and let the library figure out which one.
 
 @section Mailto
 
-After setting a mailer, @url{mailto:} is use to tell the mailer where
+After setting a mailer, @url{mailto:} is used to tell the mailer where
 and to whom the message is for.
 @example
 @url{mailto://hostname}
 @end example
 
-Mailto can be use to generate short messages for example to subscribe
+Mailto can be used to generate short messages, for example to subscribe
 to mailing lists.
 @example
 @url{mailto://bug-mailutils@@gnu.org?body=subscribe}
@@ -69,7 +69,7 @@ For more complete information see @cite{rfc2368}.
 
 @section URL functions
 
-Helper functions are provided to retrieve and set  the @emph{URL} fields.
+Helper functions are provided to retrieve and set the @emph{URL} fields.
 
 @deftypefun int  url_init (url_t *@var{url}, const char *name)
 Initialize and parse the @var{url}
