@@ -1,5 +1,5 @@
-             @c This is part of the GNU Mailutils manual.
-@c Copyright (C) 1999,2000,2001 Free Software Foundation, Inc.
+@c This is part of the GNU Mailutils manual.
+@c Copyright (C) 1999,2000,2001,2002 Free Software Foundation, Inc.
 @c See file mailutils.texi for copying conditions.
 @comment *******************************************************************
 
@@ -196,6 +196,7 @@ or single quotes).
 @menu
 * default::        Options understood by most GNU utilities.
 * mailbox::        Specifies the mail spool location, and locking strategy.
+* mailer::         Sets the mailer URL.
 * address::        Specifies the default email address and domain.
 * daemon::         Options common for daemon programs.
 * auth::           Authentication-specific options.
@@ -236,6 +237,17 @@ location of the mail spool, and the locking strategy.
 Set path to the mailspool directory
 @item --lock-flags=@var{flags}
 Set the default mailbox lock flags (E=external, R=retry, T=time, P=pid).
+@end table
+
+@node mailer
+@subsection mailer --- Sets the default mailer URL.
+@cindex :mailer
+
+This option group overrides the default mailer URL (@url{sendmail:}).
+
+@table @option
+@item -m @var{url}
+@itemx --mailer @var{url}
 @end table
 
 @node address
@@ -2179,17 +2191,18 @@ utilities in detail.
 @subsection A Sieve Interpreter
 
 Sieve interpreter @command{sieve} allows to apply Sieve scripts to an
-arbitrary number of mailboxes. Currently @command{sieve} supports the
-following actions:
+arbitrary number of mailboxes. GNU @command{sieve} supports full set
+of actions and tests described in RFC 3028.
 
-@itemize
-@item stop
-@item keep
-@item discard
-@item fileinto
-@end itemize
+@menu
+* Invoking Sieve::
+* Logging and Debugging::
+* Input Language::
+* Extending Sieve::
+@end menu
 
-@subheading Invocation
+@node Invoking Sieve
+@subsubsection Invocation
 
 The @command{sieve} invocation syntax is:
 
@@ -2212,16 +2225,25 @@ Specify debug flags. The @var{flags} argument is a sequence of one or
 more of the following letters:
 
 @multitable @columnfractions .40 .45
-@item @samp{a} @tab Enable address parser traces
 @item @samp{g} @tab Enable main parser traces
 @item @samp{T} @tab Enable mailutil traces
 @item @samp{P} @tab Trace network protocols
-@item @samp{t} @tab Enable sieve trace 
-@item @samp{h} @tab Debug sieve header filling
-@item @samp{q} @tab Trace sieve message queries
+@item @samp{t} @tab Enable sieve trace
+@item @samp{i} @tab Trace the program instructions
 @end multitable
 
-When omitted, @var{flags} defaults to @samp{TPt}.
+@xref{Logging and Debugging}, for detailed discussion of these.
+
+@item -D
+@itemx --dump
+Compile the script, dump disassembled code on standard output and exit.
+
+@item -e @var{address}
+@item --email @var{address}
+Override the user email address. This is useful for @code{reject} and
+@code{redirect} actions. By default, the user email address is deduced
+from the user name and the full name of the machine where sieve is
+executed.
 
 @item -f
 @itemx --mbox-url=@var{mbox}
@@ -2231,10 +2253,6 @@ Mailbox to sieve (defaults to user's system mailbox)
 @itemx --keep-going
 Keep on going if execution fails on a message
 
-@item -M
-@itemx --mailer-url=@var{mailer}
-Override the mailer URL (defaults to "sendmail:")
-
 @item -n
 @itemx --no-actions
 Dry run: do not execute any actions, just print what would be done.
@@ -2242,11 +2260,140 @@ Dry run: do not execute any actions, just print what would be done.
 @item -t @var{ticket}
 @itemx --ticket=@var{ticket}
 Ticket file for mailbox authentication
+
+@item -v
+@itemx --verbose
+Log all actions executed.
 @end table
 
 Apart from these, @command{sieve} understands the options from the
-@code{mailbox} option group (@pxref{mailbox}).
+following groups: @code{mailbox}, @code{mailer}, @code{logging}.
 
+@node Logging and Debugging
+@subsubsection Logging and debugging
+
+The default behavior of @command{sieve} is to remain silent about
+anything except errors. However, it is sometimes necessary to see
+which actions are executed and on which messages. This is particularly
+useful when debugging the sieve scripts. The @option{--verbose}
+(@option{-v}) option outputs log of every action executed.
+
+Option @option{--debug} allows to produce even more detailed debugging
+information. This option takes an argument specifying the
+debugging level to be enabled. The argument can consist of the
+following letters:
+
+@table @samp
+@item @samp{t}
+This flag enables sieve tracing. It means that every test will be logged
+when executed.
+
+@item @samp{T}
+This flag enables debugging of underlying @code{mailutils} library.
+
+@item @samp{P}
+Trace network protocols: produces log of network transactions executed
+while running the script.
+
+@item @samp{g}
+Enable main parser traces. This is useful for debugging the sieve grammar.
+
+@item @samp{i}
+Trace the program instructions. It is the most extensive debugging
+level. It produces the full execution log of a sieve program, showing
+each instruction and states of the sieve machine. It is only useful
+for debugging the code generator.
+@end table
+
+@emph{Note}, that there should be no whitespace
+between the short variant of the option (@option{-d}), and its
+argument.  Similarly, when using long option (@option{--debug}),
+its argument must be preceded by equal sign.
+
+If the argument to @option{--debug} is omitted, it defaults to
+@samp{TPt}. 
+
+Option @option{--dump} produces the disassembled dump of the compiled
+sieve program. 
+
+By default @command{sieve} output all diagnostics on standard error and verbose
+logs on standard output. This behaviour is changed when
+@option{--log-facility} is given in the command line (@pxref{logging}).
+This option causes @command{sieve} to output its diagnostics to
+the given syslog facility.
+
+@node Input Language
+@subsubsection Input Language
+
+@node Extending Sieve
+@subsubsection Extending Sieve
+The basic set of sieve actions, tests and comparators may be extended
+using loadable extensions. Usual @code{require} mechanism is used for
+that.
+
+When processing arguments for @code{require} statement, @command{sieve}
+uses the following algorithm:
+
+@enumerate 1
+@item Look up the name in a symbol table. If the name begins with
+@samp{comparator-} it is looked up in the comparator table. If it
+begins with @samp{test-}, the test table is used instead. Otherwise
+the name is looked up in the action table.
+
+@item If the name is found, the search is terminated.
+
+@item Otherwise, transform the name. First, any @samp{comparator-} or
+@samp{test-} prefix is stripped. Then, any character other than
+alphanumeric characters, @samp{.} and @samp{,} is replaced with
+dash (@samp{-}). The name thus obtained is used as a file name
+of an external loadable module. 
+
+@item Try to load the module. The module is searched in the
+following search paths (in the order given):
+
+@enumerate 1
+@item Mailutils module directory. By default it is
+@file{$prefix/lib/mailutils}.
+
+@item The value of the environment variable LTDL_LIBRARY_PATH.
+
+@item System library search path: The system dependent library
+search path (e.g. on Linux it is set by the contents of the file
+@file{/etc/ld.so.conf} and the value of the environment variable
+LD_LIBRARY_PATH).
+
+@end enumerate
+
+Each search path must be a colon-separated list of absolute directories,
+for example, @samp{"/usr/lib/mypkg:/lib/foo"}.
+
+In any of these directories, @command{sieve} first attempts to find
+and load the given filename. If this fails, it tries to append the
+following suffixes to the file name:
+
+@enumerate 1
+@item the libtool archive extension @samp{.la}
+
+@item the extension used for native dynamic libraries on the host
+platform, e.g., @samp{.so}, @samp{.sl}, etc.
+@end enumerate
+
+@item If the module is found, @command{sieve} executes its
+initialization function (see below) and again looks up the name
+in the symbol table. If found, search terminates successfully.
+
+@item If either the module is not found, or the symbol wasn't
+found after execution of the module initialization function,
+search is terminated with an error status. @command{sieve} then displays
+the following diagnostic message:
+
+@example
+source for the required action NAME is not available
+@end example
+
+@end enumerate
+
+ 
 @c ***********************************************************************
 
 @page
