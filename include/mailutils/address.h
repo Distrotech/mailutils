@@ -48,6 +48,10 @@ extern int address_get_route
 
 extern int address_aget_email
 	__P ((address_t, size_t, char **));
+extern int address_aget_local_part
+       __P ((address_t addr, size_t no, char **buf));
+extern int address_aget_domain
+       __P ((address_t addr, size_t no, char **buf));
 
 extern int address_is_group
 	__P ((address_t, size_t, int*));

@@ -393,6 +393,56 @@ address_aget_email (address_t addr, size_t no, char **buf)
 }
 
 int
+address_aget_local_part (address_t addr, size_t no, char **buf)
+{
+  int status = 0;
+  address_t subaddr;
+  
+  if (addr == NULL || buf == NULL)
+    return EINVAL;
+
+  subaddr = _address_get_nth (addr, no);
+  if (!subaddr)
+    return ENOENT;
+  
+  if (subaddr->local_part)
+    {
+      *buf = strdup (subaddr->local_part);
+      if (!*buf)
+	status = ENOMEM;
+    }
+  else
+    *buf = NULL;
+
+  return status;
+}
+
+int
+address_aget_domain (address_t addr, size_t no, char **buf)
+{
+  int status = 0;
+  address_t subaddr;
+  
+  if (addr == NULL || buf == NULL)
+    return EINVAL;
+
+  subaddr = _address_get_nth (addr, no);
+  if (!subaddr)
+    return ENOENT;
+  
+  if (subaddr->domain)
+    {
+      *buf = strdup (subaddr->domain);
+      if (!*buf)
+	status = ENOMEM;
+    }
+  else
+    *buf = NULL;
+
+  return status;
+}
+
+int
 address_get_local_part (address_t addr, size_t no, char *buf, size_t len,
 			size_t * n)
 {
