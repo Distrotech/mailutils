@@ -477,7 +477,7 @@ static int _mime_body_read(stream_t stream, char *buf, size_t buflen, off_t off,
 				mime->flags |= MIME_INSERT_BOUNDARY;
 				mime->cur_part++;
 			}
-		} while( ret == 0 && part_nbytes == 0 );
+		} while( ret == 0 && part_nbytes == 0 && mime->cur_part < mime->nmtp_parts );
 	}
 	return ret;
 }

@@ -42,7 +42,6 @@ smtp.c \
 stream.c \
 tcp.c \
 trans_stream.c \
-transcode.c \
 url.c \
 url_file.c \
 url_mbox.c \

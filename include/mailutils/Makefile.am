@@ -17,5 +17,4 @@ pkginclude_HEADERS = \
  observer.h \
  registrar.h \
  stream.h \
- transcode.h \
  url.h

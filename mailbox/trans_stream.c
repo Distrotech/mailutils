@@ -151,7 +151,7 @@ int encoder_stream_create(stream_t *stream, stream_t iostream, const char *encod
 	if ( i == NUM_TRANSCODERS )
 		return ENOTSUP;
 
-	if ( ( ret = stream_create(stream, MU_STREAM_RDWR, ts) ) != 0 )
+	if ( ( ret = stream_create(stream, MU_STREAM_RDWR |MU_STREAM_NO_CHECK, ts) ) != 0 )
 		return ret;
 	ts->transcoder = tslist[i].encode;
 	stream_set_read(*stream, _trans_read, ts );
@@ -178,7 +178,7 @@ int decoder_stream_create(stream_t *stream, stream_t iostream, const char *encod
 	if ( i == NUM_TRANSCODERS )
 		return ENOTSUP;
 
-	if ( ( ret = stream_create(stream, MU_STREAM_RDWR, ts) ) != 0 )
+	if ( ( ret = stream_create(stream, MU_STREAM_RDWR |MU_STREAM_NO_CHECK, ts) ) != 0 )
 		return ret;
 	ts->transcoder = tslist[i].decode;
 	stream_set_read(*stream, _trans_read, ts );

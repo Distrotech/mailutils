@@ -100,7 +100,7 @@ header_parse (header_t header, const char *blurb, int len)
     return 0;
 
   header->blurb_len = len;
-  header->blurb = calloc (header->blurb_len + 1, 1);
+  header->blurb = calloc (header->blurb_len + 1, sizeof(char));
   if (header->blurb == NULL)
     return ENOMEM;
   memcpy (header->blurb, blurb, header->blurb_len);
@@ -236,11 +236,19 @@ header_set_value (header_t header, const char *fn, const char *fv, int replace)
 	      strncasecmp (header->hdr[i].fn, fn, fn_len) == 0)
 	    {
 	      blurb = header->blurb;
-	      memmove (header->hdr[i].fn, header->hdr[i + 1].fn,
-		       header->hdr[header->hdr_count - 1].fv_end
-		       - header->hdr[i + 1].fn + 1 + 1);
+	      if ((i + 1) < header->hdr_count)
+		{
+		  memmove (header->hdr[i].fn, header->hdr[i + 1].fn,
+			   header->hdr[header->hdr_count - 1].fv_end
+			   - header->hdr[i + 1].fn + 3);
+		}
+	      else
+		{
+		  header->hdr[i].fn[0] = '\n';
+		  header->hdr[i].fn[1] = '\0';
+		}
 	      /* readjust the pointers if move */
-	      len -= fn_len + fv_len + 2;
+	      len -= fn_len + fv_len + 3; /* :<sp>\n */
 	      i--;
 	      blurb = header->blurb;
 	      header_parse (header, blurb, len);
