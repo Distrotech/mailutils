@@ -83,7 +83,8 @@ opt_handler (int key, char *arg, void *unused)
     case 'c':
       changecur = arg[0] == 'y';
       break;
-      
+
+    case '+':
     case 'f': 
       current_folder = arg;
       break;

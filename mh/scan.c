@@ -77,6 +77,7 @@ opt_handler (int key, char *arg, void *unused)
 {
   switch (key)
     {
+    case '+':
     case 'f': 
       current_folder = arg;
       break;
