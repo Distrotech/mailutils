@@ -25,6 +25,7 @@ FILE *ofile;
 unsigned int timeout = 1800; /* RFC2060: 30 minutes, if enable.  */
 mailbox_t mbox;
 char *homedir;
+char *maildir = _PATH_MAILDIR;
 int state = STATE_NONAUTH;
 
 /* Number of child processes.  */
@@ -35,6 +36,7 @@ static struct option long_options[] =
   {"daemon", optional_argument, 0, 'd'},
   {"help", no_argument, 0, 'h'},
   {"inetd", no_argument, 0, 'i'},
+  {"maildir", required_argument, 0, 'm'},
   {"port", required_argument, 0, 'p'},
   {"other-namespace", required_argument, 0, 'O'},
   {"shared-namespace", required_argument, 0, 'S'},
@@ -43,7 +45,7 @@ static struct option long_options[] =
   {0, 0, 0, 0}
 };
 
-const char *short_options ="d::hip:t:vO:P:S:";
+const char *short_options ="d::him:p:t:vO:P:S:";
 
 static int imap4d_mainloop      __P ((int, int));
 static void imap4d_daemon_init  __P ((void));
@@ -90,6 +92,10 @@ main (int argc, char **argv)
           mode = INTERACTIVE;
           break;
 
+	case 'm':
+	  maildir = optarg;
+	  break;
+	  
         case 'p':
           mode = DAEMON;
           port = strtoul (optarg, NULL, 10);
@@ -117,6 +123,13 @@ main (int argc, char **argv)
         }
     }
 
+  maildir = mu_normalize_maildir (maildir);
+  if (!maildir)
+    {
+      mu_error ("Badly formed maildir: %s", maildir);
+      exit (1);
+    }
+
   /* First we want our group to be mail so we can access the spool.  */
   gr = getgrnam ("mail");
   if (gr == NULL)
@@ -135,7 +148,7 @@ main (int argc, char **argv)
   {
     list_t bookie;
     registrar_get_list (&bookie);
-    /* list_append (bookie, mbox_record); */
+    list_append (bookie, mbox_record); 
     list_append (bookie, path_record);
   }
 
@@ -347,13 +360,18 @@ imap4d_usage (char *argv0)
 {
   printf ("Usage: %s [OPTIONS]\n", argv0);
   printf ("Runs the GNU IMAP4 daemon.\n\n");
-  printf ("  -d, --daemon=MAXCHILDREN runs in daemon mode with a maximum\n");
+  printf ("  -d, --daemon[=MAXCHILDREN] runs in daemon mode with a maximum\n");
   printf ("                           of MAXCHILDREN child processes\n");
+  printf ("                           MAXCHILDREN defaults to %d\n",
+	  DEFMAXCHILDREN);
   printf ("  -h, --help               display this help and exit\n");
   printf ("  -i, --inetd              runs in inetd mode (default)\n");
   printf ("  -p, --port=PORT          specifies port to listen on, implies -d\n"
 );
   printf ("                           defaults to 143, which need not be specified\n");
+  printf ("  -m, --maildir=PATH       set path to the mailspool directory\n");
+  printf ("  -O, --other-namespace=PATHLIST  sets the `other' namespace\n");
+  printf ("  -S, --shared-namespace=PATHLIST sets the `shared' namespace\n");
   printf ("  -t, --timeout=TIMEOUT    sets idle timeout to TIMEOUT seconds\n");
   printf ("                           TIMEOUT default is 1800 (30 minutes)\n");
   printf ("  -v, --version            display version information and exit\n");

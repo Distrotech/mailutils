@@ -25,6 +25,7 @@ mailbox_t mbox;
 unsigned int timeout;
 int state;
 char *username;
+char *maildir = _PATH_MAILDIR;
 FILE *ifile;
 FILE *ofile;
 char *md5shared;
@@ -36,13 +37,14 @@ static struct option long_options[] =
   {"daemon", optional_argument, 0, 'd'},
   {"help", no_argument, 0, 'h'},
   {"inetd", no_argument, 0, 'i'},
+  {"maildir", required_argument, 0, 'm'},
   {"port", required_argument, 0, 'p'},
   {"timeout", required_argument, 0, 't'},
   {"version", no_argument, 0, 'v'},
   {0, 0, 0, 0}
 };
 
-const char *short_options = "d::hip:t:v";
+const char *short_options = "d::him:p:t:v";
 
 static int pop3d_mainloop       __P ((int, int));
 static void pop3d_daemon_init   __P ((void));
@@ -62,7 +64,7 @@ main (int argc, char **argv)
   int c = 0;
   int status = OK;
   unsigned int port;
-
+  
   port = 110;			/* Default POP3 port.  */
   timeout = 600;		/* Default timeout of 600.  */
 
@@ -87,6 +89,10 @@ main (int argc, char **argv)
 	  mode = INTERACTIVE;
 	  break;
 
+	case 'm':
+	  maildir = optarg;
+	  break;
+	  
 	case 'p':
 	  mode = DAEMON;
 	  port = strtoul (optarg, NULL, 10);
@@ -106,6 +112,13 @@ main (int argc, char **argv)
 	}
     }
 
+  maildir = mu_normalize_maildir (maildir);
+  if (!maildir)
+    {
+      mu_error ("Badly formed maildir: %s", maildir);
+      exit (1);
+    }
+	    
   /* First we want our group to be mail so we can access the spool.  */
   gr = getgrnam ("mail");
   if (gr == NULL)
@@ -124,7 +137,7 @@ main (int argc, char **argv)
   {
     list_t bookie;
     registrar_get_list (&bookie);
-    /* list_append (bookie, mbox_record); */
+    list_append (bookie, mbox_record); 
     list_append (bookie, path_record);
   }
 
@@ -449,6 +462,7 @@ pop3d_usage (char *argv0)
   printf ("                           of MAXCHILDREN child processes\n");
   printf ("  -h, --help               display this help and exit\n");
   printf ("  -i, --inetd              runs in inetd mode (default)\n");
+  printf ("  -m, --maildir=PATH       sets path to the mailspool directory\n");
   printf ("  -p, --port=PORT          specifies port to listen on, implies -d\n"
 );
   printf ("                           defaults to 110, which need not be specified\n");
