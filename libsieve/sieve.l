@@ -341,12 +341,14 @@ else	return ELSE;
 anyof	return ANYOF;   
 allof	return ALLOF;   
 not     return NOT;
-         /* Other tokens */
+         /* Identifiers */
 {IDENT}  { ident (yytext); return IDENT; } 
 :{IDENT} { ident (yytext + 1); return TAG; }
+         /* Numbers */
 0[0-7]*{SIZESUF}*                     { return number (); }
 0x[0-9a-fA-F][0-9a-fA-F]+{SIZESUF}*   { return number (); }
 [1-9][0-9]*{SIZESUF}*                 { return number (); }
+         /* Quoted strings */
 \"[^\\"\n]*\"                 { return string (); }
 \"[^\\"\n]*\\.    { BEGIN(STR);
                    multiline_begin ();
@@ -356,12 +358,18 @@ not     return NOT;
                    multiline_add (NULL); 
                    multiline_finish ();
 		   return STRING; }
-text:-?[ \t]*#.*\n        { BEGIN(ML); multiline_begin (); }
-text:-?[ \t]*\n           { BEGIN(ML); multiline_begin (); }
-text:-?\\?{IDENT}[ \t]*#.*\n { BEGIN(ML); multiline_begin (); }
-text:-?\\?{IDENT}[ \t]*\n    { BEGIN(ML); multiline_begin (); }
+         /* Multiline strings */
+text:-?[ \t]*#.*\n       { BEGIN(ML); multiline_begin (); sieve_line_num++; }
+text:-?[ \t]*\n          { BEGIN(ML); multiline_begin (); sieve_line_num++; }
+text:-?\\?{IDENT}[ \t]*#.*\n { BEGIN(ML); multiline_begin ();
+                               sieve_line_num++; }
+text:-?\\?{IDENT}[ \t]*\n    { BEGIN(ML); multiline_begin ();
+                               sieve_line_num++; }
 <ML>#[ \t]*include.*\n    { if (multiline_delimiter[0] == '\\')
-                              multiline_add (NULL);
+                              {
+				sieve_line_num++;
+                                multiline_add (NULL);
+			      }
                             else
                               sieve_include (); }
 <ML>.*\n { char *p = multiline_strip_tabs (yytext);
@@ -379,6 +387,7 @@ text:-?\\?{IDENT}[ \t]*\n    { BEGIN(ML); multiline_begin (); }
 	     }
 	    multiline_add (NULL); } 
 {WS}     ;
+         /* Other tokens */
 \n { sieve_line_num++; } 
 . return yytext[0];
 
