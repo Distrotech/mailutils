@@ -38,12 +38,13 @@ typedef struct _observer* observer_t;
 typedef struct _observable* observable_t;
 
 #define MU_EVT_MAILBOX_DESTROY   0x001
-#define MU_EVT_FOLDER_DESTROY   0x001
-#define MU_EVT_MAILER_DESTROY    0x002
-#define MU_EVT_MESSAGE_DESTROY   0x004
-#define MU_EVT_MESSAGE_ADD       0x008
-#define MU_EVT_MAILBOX_PROGRESS  0x010
-#define MU_EVT_AUTHORITY_FAILED  0x020
+#define MU_EVT_FOLDER_DESTROY    0x002
+#define MU_EVT_MAILER_DESTROY    0x004
+#define MU_EVT_MESSAGE_DESTROY   0x008
+#define MU_EVT_MESSAGE_ADD       0x010
+#define MU_EVT_MAILBOX_PROGRESS  0x020
+#define MU_EVT_AUTHORITY_FAILED  0x030
+#define MU_EVT_MAILBOX_CORRUPT   0x040
 
 #define MU_OBSERVER_NO_CHECK 1
 

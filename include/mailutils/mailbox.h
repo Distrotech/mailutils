@@ -64,9 +64,9 @@ extern int mailbox_size           __P ((mailbox_t, off_t *size));
 extern int mailbox_is_updated     __P ((mailbox_t));
 extern int mailbox_scan           __P ((mailbox_t, size_t no, size_t *count));
 
-/* Stream settings.  */
-extern int mailbox_get_stream     __P ((mailbox_t, stream_t *));
+/* Mailbox Stream.  */
 extern int mailbox_set_stream     __P ((mailbox_t, stream_t));
+extern int mailbox_get_stream     __P ((mailbox_t, stream_t *));
 
 /* Lock settings.  */
 extern int mailbox_get_locker     __P ((mailbox_t, locker_t *));
