@@ -1,5 +1,29 @@
 2005-02-16  Sergey Poznyakoff
 
+	Fix a long-standing issue in mailbox and imap4d:
+	be able to handle a case when a third-party program deletes
+	some messages in the mailbox being open by imap4d (imap4d
+	cannot and should not lock it, hence the possibility).
+	
+	* mailbox/amd.c (amd_pool_flush): New function.
+	(amd_close): Call amd_pool_flush()
+	and initialize amd data so that subsequent amd_open() works
+	properly.
+	(amd_destroy): Call amd_pool_flush.
+	* mailbox/mbox/mbox.c (mbox_close): Initialize all private data
+	so that subsequent mailbox_open() works properly.
+	(mbox_is_updated): Updated comment
+
+	* imap4d/bye.c (imap4d_bye0): Handle ERR_MAILBOX_CORRUPTED
+	* imap4d/imap4d.h (ERR_MAILBOX_CORRUPTED): New error code.
+	(imap4d_set_observer): New function
+	* imap4d/select.c (imap4d_select0): Call imap4d_set_observer()
+	* imap4d/sync.c (imap4d_set_observer): New function.
+	(imap4d_sync): Check if the mailbox was shrunk (in libmailbox
+	terms 'corrupted'). If so, reopen it and issue untagged alert.
+
+2005-02-16  Sergey Poznyakoff
+
 	* imap4d/auth_gsasl.c (cb_validate): Provide normal authentication
 	for PLAIN and LOGIN mechanisms.
 
