@@ -423,13 +423,19 @@ MU_ENABLE_SUPPORT(mh,
                   [BUILD_MH_PROGRAMS='$(PROGRAMS_MH)';
                    BUILD_MH_LIBRARIES='$(LIBRARIES_MH)'])
 
-AC_ARG_ENABLE([experimental],
-              AC_HELP_STRING([--enable-experimental],
-                             [build experimental and/or unfinished utilities]),
-              [MU_BUILD_EXPERIMENTAL="${enableval}"],
-              [MU_BUILD_EXPERIMENTAL=no])
+dnl AC_ARG_ENABLE([experimental],
+dnl               AC_HELP_STRING([--enable-experimental],
+dnl                              [build experimental and/or unfinished utilities]),
+dnl               [MU_BUILD_EXPERIMENTAL="${enableval}"],
+dnl               [MU_BUILD_EXPERIMENTAL=no])
 
-if test ".$MU_BUILD_EXPERIMENTAL" = ".no"; then
+AC_ARG_ENABLE([mh-utils],
+              AC_HELP_STRING([--enable-mh-utils],
+                             [Build MH utilities]),
+              [MU_BUILD_MH="${enableval}"],
+              [MU_BUILD_MH=no])
+
+if test ".$MU_BUILD_MH" = ".no"; then
 	BUILD_MH_PROGRAMS=
 	BUILD_MH_LIBRARIES=
 else
@@ -598,6 +604,14 @@ if test x"$useguile" = x"yes"; then
             esac
          ],[useguile=no])
 fi
+
+dnl Check for Emacs site-lisp directory
+AM_PATH_LISPDIR
+
+if test "$EMACS" != "no"; then
+	lisp_LISP='$(LISPSRC)'
+fi
+AC_SUBST(lisp_LISP)
 
 dnl Make sysconfdir available to the application
 dnl This must be done LAST, since CPPFLAGS is passed by configure
