@@ -1,3 +1,24 @@
+2001-02-01  Alain Magloire
+
+	"Premature Optimization Is The Root Of All Evil", Knuth.
+
+	* mailbox/attachment.c: Typo should be "Content-Disposition"
+
+	* mailbox/mbx_mbox.c mailbox/mbx_mboxscan.c mailbox/header.c :
+	Attempt to optimze the header, header_get_fvalue() is created,
+	The mailbox save/cache the most common headers, when doing a
+	header_get_value(), header_get_fvalue() is call first hoping
+	that the requested header was cache, if it fails we fall back
+	to the usual parsing.  The common elected headers are : From,
+	To, Cc, Subject, Date, Content-Type, X-UIDL, X-UID.
+
+	* mailbox/mailbox.c mailbox/mbx_mbox.c mailbox/mbx_imap.c :
+	I've confuse the semantic of "unseen" and "recent", "unseen"
+	means new mail, not recent.  Renamed mailbox_recent_count()
+	to mailbox_unseen_count().
+	* include/mailutils/mailbox.h : updated for mailbox_unseen_count()
+
+	
 2001-01-25  Alain Magloire
 
 	* frm/frm.c : Forget to add --summary option and fix return status.
