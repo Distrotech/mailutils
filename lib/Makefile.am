@@ -27,7 +27,7 @@ libmailutils_la_SOURCES = basename.c daemon.c getopt.c getopt1.c md5.c \
 
 EXTRA_DIST = alloca.c fnmatch.c fgetpwent.c getpass.c malloc.c obstack.c \
   realloc.c setenv.c snprintf.c strncasecmp.c \
-  strcasecmp.c strsignal.c xstrtol.c  vasprintf.c \
+  strcasecmp.c strsignal.c xstrtol.c  vasprintf.c vsyslog.c \
   utmp.c 
 
 noinst_HEADERS = error.h fnmatch.h md5.h \
