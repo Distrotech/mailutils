@@ -137,6 +137,8 @@ main (int argc, char **argv)
     list_append (bookie, path_record);
     list_append (bookie, pop_record);
     list_append (bookie, imap_record);
+    /* Only use sendmail for mail ??  */
+    list_append (bookie, sendmail_record);
   }
 
   signal (SIGPIPE, SIG_IGN);
@@ -226,7 +228,7 @@ main (int argc, char **argv)
 	      "for details.\n",
 	      argp_program_version);
     }
-  
+
   /* Mode is just sending */
   if (strlen ("send") == modelen && !strcmp ("send", mode->value))
     {
@@ -254,13 +256,13 @@ main (int argc, char **argv)
 	}
       else if (mailbox_create (&mbox, args.file) != 0)
 	exit (EXIT_FAILURE);
-      
+
       if (mailbox_open (mbox, MU_STREAM_READ) != 0)
 	exit (EXIT_FAILURE);
-      
+
       if (mailbox_messages_count (mbox, &total) != 0)
 	exit (EXIT_FAILURE);
-      
+
       if (strlen ("exist") == modelen && !strcmp ("exist", mode->value))
 	return (total < 1) ? 1 : 0;
       else if (strlen ("print") == modelen && !strcmp ("print", mode->value))
@@ -268,13 +270,13 @@ main (int argc, char **argv)
       else if (strlen ("headers") == modelen
 	       && !strcmp ("headers", mode->value))
 	return util_do_command ("from *");
-      
+
       /* initial commands */
       if ((util_find_env("header"))->set)
 	util_do_command ("from *");
-      
+
       prompt = util_find_env ("prompt");
-      
+
       while (1)
 	{
 	  int len;
@@ -287,7 +289,7 @@ main (int argc, char **argv)
 	    {
 	      char *buf;
 	      char *command2 = readline ("> ");
-	      
+
 	      command[len-1] = '\0';
 	      buf = malloc ((len + strlen (command2)) * sizeof (char));
 	      strcpy (buf, command);
