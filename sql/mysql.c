@@ -249,6 +249,51 @@ scramble_password (unsigned long *result, const char *password)
   result[1] = nr2 & (((unsigned long) 1L << 31) -1L);
 }
 
+#if 0
+static void
+octet2hex (char *to, const unsigned char *str, unsigned len)
+{
+  const char *str_end= str + len;
+  static char d[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+  for ( ; str != str_end; ++str)
+    {
+      *to++ = d[(*str & 0xF0) >> 4];
+      *to++ = d[*str & 0x0F];
+    }
+  *to= '\0';
+}
+
+#define SHA1_HASH_SIZE 20
+int
+mu_check_mysql_4x_password (const char *scrambled, const char *message)
+{
+  struct sha1_ctx sha1_context;
+  uint8 hash_stage2[SHA1_HASH_SIZE];
+  char to[2*SHA1_HASH_SIZE + 2];
+
+  if (!to)
+    return 1;
+  
+  /* stage 1: hash password */
+  sha1_init_ctx (&sha1_context);
+  sha1_process_bytes (message, strlen (message), &sha1_context);
+  sha1_finish_ctx (&sha1_context, to);
+
+  /* stage 2: hash stage1 output */
+  sha1_init_ctx (&sha1_context);
+  sha1_process_bytes (to, SHA1_HASH_SIZE, &sha1_context);
+  sha1_finish_ctx (&sha1_context, hash_stage2);
+
+  /* convert hash_stage2 to hex string */
+  *to++= '*';
+  octet2hex (to, hash_stage2, SHA1_HASH_SIZE);
+
+  /* Compare both strings */
+  return memcmp (to, scrambled, strlen (scrambled));
+}
+#endif
+
 /* Check whether a plaintext password MESSAGE matches MySQL scrambled password
    PASSWORD */
 int
