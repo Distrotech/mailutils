@@ -1,3 +1,7 @@
+2004-09-16  Sergey Poznyakoff  <gray@Mirddin.farlep.net>
+
+	* mailbox/mime.c (_mime_munge_content_header): Bugfix
+
 2004-08-31  Wojciech Polak
 
 	* mailbox/file_stream.c (prog_stream_create): Changed type
