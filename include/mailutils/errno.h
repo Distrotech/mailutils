@@ -97,6 +97,23 @@ extern "C" {
   /* Requested item not found */
 #define MU_ERR_BUFSPACE             (MU_ERR_BASE + 40)
   /* Not enough buffer space */
+
+#define MU_ERR_SQL                  (MU_ERR_BASE + 41)
+  /* SQL error */ 
+#define MU_ERR_DB_ALREADY_CONNECTED (MU_ERR_BASE + 42)
+  /* Already connected to the database */ 
+#define MU_ERR_DB_NOT_CONNECTED     (MU_ERR_BASE + 43)
+  /* Not connected to the database */
+#define MU_ERR_RESULT_NOT_RELEASED  (MU_ERR_BASE + 44)
+  /* Result of the previous query is not released */
+#define MU_ERR_NO_QUERY             (MU_ERR_BASE + 45)
+  /* No query was executed */
+#define MU_ERR_BAD_COLUMN           (MU_ERR_BASE + 46)
+  /* Bad column address */
+#define MU_ERR_NO_RESULT            (MU_ERR_BASE + 47)
+  /* No result from the previous query available */
+#define MU_ERR_NO_INTERFACE         (MU_ERR_BASE + 48)
+  /* No such interface */
   
 const char *mu_errname __P((int e));
 const char *mu_strerror __P((int e));

@@ -99,6 +99,15 @@ mu_errname (int e)
       EN(MU_ERR_PARSE);
       EN(MU_ERR_NOENT);
       EN(MU_ERR_BUFSPACE);
+
+      EN(MU_ERR_SQL);
+      EN(MU_ERR_DB_ALREADY_CONNECTED);
+      EN(MU_ERR_DB_NOT_CONNECTED);
+      EN(MU_ERR_RESULT_NOT_RELEASED);
+      EN(MU_ERR_NO_QUERY);
+      EN(MU_ERR_BAD_COLUMN);
+      EN(MU_ERR_NO_RESULT);
+      EN(MU_ERR_NO_INTERFACE);
     }
 
   snprintf (buf, sizeof buf, _("Error %d"), e);
@@ -167,6 +176,16 @@ mu_strerror (int e)
       ES(MU_ERR_PARSE,            _("Parse error"));
       ES(MU_ERR_NOENT,            _("Requested item not found"));
       ES(MU_ERR_BUFSPACE,         _("Not enough buffer space"));
+
+      ES(MU_ERR_SQL,              _("SQL error"));
+      ES(MU_ERR_DB_ALREADY_CONNECTED, _("Already connected to the database"));
+      ES(MU_ERR_DB_NOT_CONNECTED,     _("Not connected to the database"));
+      ES(MU_ERR_RESULT_NOT_RELEASED,  _("Result of the previous query is not released"));
+      ES(MU_ERR_NO_QUERY,         _("No query was executed"));
+      ES(MU_ERR_BAD_COLUMN,       _("Bad column address"));
+      ES(MU_ERR_NO_RESULT,        _("No result from the previous query available"));
+
+      ES(MU_ERR_NO_INTERFACE,     _("No such interface"));
     }
 
   return msg ? msg : strerror (e);
