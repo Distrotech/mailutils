@@ -1,0 +1,398 @@
+%{
+/* GNU mailutils - a suite of utilities for electronic mail
+   Copyright (C) 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
+
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 2, or (at your option)
+   any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
+
+#ifdef HAVE_CONFIG_H
+# include <config.h>
+#endif  
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>  
+#include <sys/file.h>
+#include <sys/stat.h>
+#include <errno.h>  
+#include <sieve.h>
+#include <sieve-gram.h>
+
+
+char *sieve_filename;  
+int sieve_line_num;  
+ino_t sieve_source_inode;
+  
+#ifdef FLEX_SCANNER
+#define xinput() (yyin ? getc(yyin) : EOF)
+#undef YY_INPUT
+#define YY_INPUT(buf,result,max_size)  do { \
+        int i;                                  \
+        for (i = 0; i < max_size; i++) {        \
+                int ch = xinput();              \
+                if (ch == EOF)                  \
+                        break;                  \
+                buf[i] = ch;                    \
+        }                                       \
+        result = i;                             \
+} while (0) 
+#define LEX_BUFFER_STATE YY_BUFFER_STATE
+#define SET_BUFFER_STATE(s) do { \
+        (s) = YY_CURRENT_BUFFER; \
+        yy_switch_to_buffer(yy_create_buffer(yyin, YY_BUF_SIZE)); \
+} while (0)
+#define RESTORE_BUFFER_STATE(s) do { \
+        yy_delete_buffer(YY_CURRENT_BUFFER); \
+        yy_switch_to_buffer(s); \
+} while (0)
+
+#else
+/* AT&T Lex */
+                                               
+static void lex_set_buffer __P((FILE *fp));
+static void lex_delete_buffer __P((LEX_BUFFER_STATE buf));
+static int xinput __P((void)); 
+static int xunput __P((void));
+        
+#undef unput
+#define unput(c) xunput(c)
+#undef input
+#define input() xinput()
+
+#define LEX_BUF_SIZE 16384
+#define LEX_PUTBACK_SIZE 32
+                                               
+typedef struct {
+  FILE *yyin;
+  char *buffer;
+  size_t bufsize;
+  size_t level;
+  char *ptr;
+  char *putback;
+  size_t pb_size;
+  size_t pb_level;
+} LEX_BUFFER_STATE;
+LEX_BUFFER_STATE current_buffer;
+ 
+#define SET_BUFFER_STATE(s) do { \
+        (s) = current_buffer;    \
+        lex_set_buffer(yyin);    \
+} while (0)
+#define RESTORE_BUFFER_STATE(s) do { \
+        lex_delete_buffer(current_buffer); \
+        current_buffer = (s); \
+        yyin = current_buffer.yyin;  \
+} while (0)
+                                    
+void
+lex_set_buffer (FILE *fp)
+{
+  char *buf;
+  size_t size;
+        
+  for (size = LEX_BUF_SIZE; size > 1; size /= 2)
+    if (buf = malloc (size))
+      break;
+  
+  if (!buf)
+    {
+      sieve_error ("not enough memory");
+      abort ();
+    }
+
+  current_buffer.yyin = yyin;
+  current_buffer.buffer = buf;
+  current_buffer.bufsize = size;
+  current_buffer.level = 0;
+  current_buffer.ptr = current_buffer.buffer;
+  current_buffer.pb_size = current_buffer.pb_level = 0;
+  current_buffer.putback = NULL;
+}
+                
+void
+lex_delete_buffer (LEX_BUFFER_STATE buf)
+{
+  free (buf.buffer);
+  if (buf.putback)
+    free (buf.putback);
+}
+
+int
+xinput ()
+{
+  if (!yyin)
+    return EOF;
+  
+  if (current_buffer.pb_level) 
+    return current_buffer.putback[--current_buffer.pb_level];
+
+  if (current_buffer.level <= 0)
+    {
+      int n;
+
+      if (feof (yyin))
+	return 0;
+      n = fread (current_buffer.buffer, 1,
+		 current_buffer.bufsize, yyin);
+      if (n <= 0)
+	return 0;
+      current_buffer.level = n;
+      current_buffer.ptr = current_buffer.buffer;
+    }
+  current_buffer.level--;
+  return *current_buffer.ptr++;
+}
+
+int
+xunput (int c)
+{
+  if (current_buffer.pb_level == current_buffer.pb_size)
+    {
+      char *putback;
+      current_buffer.pb_size += LEX_PUTBACK_SIZE;
+      putback = sieve_alloc (current_buffer.pb_size);
+      memcpy (putback, current_buffer.putback,
+	      current_buffer.pb_level);
+      free (current_buffer.putback);
+      current_buffer.putback = putback;
+    }
+  current_buffer.putback[current_buffer.pb_level++] = c;
+  return c;
+}
+                
+#endif                                         
+
+struct buffer_ctx {
+  struct buffer_ctx *prev;
+  char *filename;
+  int line;
+  ino_t i_node;
+  FILE *yyin;
+  LEX_BUFFER_STATE state;
+};
+
+static struct buffer_ctx *context_stack;
+
+static struct buffer_ctx *ctx_lookup __P((ino_t ino));
+static int push_source __P((char *name));
+static int pop_source __P((void));
+
+struct buffer_ctx *
+ctx_lookup (ino_t ino)
+{
+  struct buffer_ctx *ctx;
+
+  for (ctx = context_stack; ctx; ctx = ctx->prev)
+    if (ctx->i_node == ino)
+      break;
+  return ctx;
+}
+        
+int
+push_source (char *name)
+{
+  FILE *fp;
+  struct buffer_ctx *ctx;
+  struct stat st;
+        
+  if (stat (name, &st))
+    {
+      sieve_error ("can't stat `%s': %s", name, strerror (errno));
+      yyerror ("can't include file");
+      return 1;
+    }
+
+  if (sieve_filename && st.st_ino == sieve_source_inode)
+    {
+      yyerror ("recursive inclusion");
+      return 1;
+    }
+  if (ctx = ctx_lookup (st.st_ino))
+    {
+      yyerror ("recursive inclusion");
+      if (ctx->prev)
+	sieve_error ("%s:%d: `%s' already included here",
+		     ctx->prev->filename, ctx->prev->line, name);
+      else
+	sieve_error ("`%s' already included at top level",
+		     name);
+      return 1;
+    }
+                
+  fp = fopen (name, "r");
+  if (!fp)
+    {
+      sieve_error ("can't open `%s': %s", name, strerror (errno));
+      yyerror ("can't include file");
+      return 1;
+    }
+
+  /* Push current context */
+  if (sieve_filename)
+    {
+      ctx = sieve_alloc (sizeof (*ctx));
+      ctx->filename = sieve_filename;
+      ctx->line = sieve_line_num;
+      ctx->i_node = sieve_source_inode;
+      ctx->yyin = yyin;
+      ctx->prev = context_stack;
+      context_stack = ctx;
+      
+      /* Switch to the new context */
+      yyin = fp;
+      SET_BUFFER_STATE (ctx->state);
+    }
+  else
+    {
+#ifdef FLEX_SCANNER
+      yyrestart (fp);
+#else           
+      yyin = fp;
+      lex_set_buffer (yyin);
+#endif
+    }
+  sieve_filename = strdup (name);
+  sieve_line_num = 1;
+  sieve_source_inode = st.st_ino;
+  return 0;
+}
+
+int
+pop_source ()
+{
+  struct buffer_ctx *ctx;
+  
+  fclose (yyin);
+#ifndef FLEX_SCANNER
+  lex_delete_buffer (current_buffer);
+#endif
+  if (!context_stack)
+    {
+      yyin = NULL;
+      return 1;
+    }
+  if (sieve_filename)
+    free (sieve_filename);
+  /* Restore previous context */
+  sieve_filename = context_stack->filename;
+  sieve_line_num = context_stack->line + 1; /* #include rule did not increment
+					       it */
+  sieve_source_inode = context_stack->i_node;
+  RESTORE_BUFFER_STATE (context_stack->state);
+  ctx = context_stack->prev;
+  free (context_stack);
+  context_stack = ctx;
+  return 0;
+}
+%}
+%x COMMENT ML
+
+WS [ \t][ \t]*
+IDENT [a-zA-Z_][a-zA-Z_0-9]+
+
+%%
+         /* C-style comments */
+"/*"         BEGIN(COMMENT);
+<COMMENT>[^*\n]*        /* eat anything that's not a '*' */
+<COMMENT>"*"+[^*/\n]*   /* eat up '*'s not followed by '/'s */
+<COMMENT>\n             ++sieve_line_num;
+<COMMENT>"*"+"/"        BEGIN(INITIAL);
+         /* Preprocessor directives (an extension) */
+#[ \t]*include.*\n      { sieve_include (); }
+         /* End-of-line comments */
+#.*\n   { sieve_line_num++; }
+#.*     /* end-of-file comment */;
+         /* Reserved words */
+require return REQUIRE; 
+if	return IF;      
+elsif	return ELSIF;  
+else	return ELSE;    
+anyof	return ANYOF;   
+allof	return ALLOF;   
+true	return TRUE;    
+false   return FALSE;
+not     return NOT;
+         /* Other tokens */
+{IDENT} return IDENT; 
+:{IDENT} { return TAG; }
+0[0-7]*          { return NUMBER; }
+0x[0-9a-fA-F][0-9a-fA-F]+   { return NUMBER; }
+[1-9][0-9]*      { return NUMBER; }
+\"[^"\n]*\" { return STRING; }
+text:   { BEGIN(ML); }
+<ML>.[ \t]*\n  { BEGIN(INITIAL); sieve_line_num++; return MULTILINE; }
+<ML>.*\n { sieve_line_num++; } 
+{WS}     ;
+\n { sieve_line_num++; } 
+. return yytext[0];
+
+%%
+
+int
+yywrap ()
+{
+  return pop_source();
+}
+
+void
+sieve_include ()
+{
+  char *p, *startp, *endp = yytext + yyleng, exp, *name;
+  int n;
+  
+  p = strstr (yytext, "include");
+  for (p += 7; p < endp && isspace (*p); p++)
+    ;
+
+  switch (*p)
+    {
+    case '"':
+      exp = '"';
+      break;
+
+    case '<':
+      exp = '>';
+      break;
+
+    default:
+      yyerror ("include syntax");
+      return;
+    }
+
+  for (startp = ++p; p < endp && *p != exp; p++)
+    ;
+
+  if (*p != exp)
+    {
+      yyerror ("missing closing quote in include statement");
+      return;
+    }
+  
+  n = p - startp;
+  name = sieve_alloc (n + 1);
+  memcpy (name, startp, n);
+  name[n] = 0;
+
+  push_source (name);
+  free (name);
+}
+
+int
+sieve_open_source (const char *name)
+{
+  return push_source (name);
+}
+  
+  
+

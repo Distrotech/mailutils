@@ -1,0 +1,9 @@
+Makefile.in
+Makefile
+.deps
+.libs
+.gdbinit
+*.la
+*.lo
+*.output
+*.tab.[ch]
