@@ -25,6 +25,9 @@
 #ifndef PATH_TTY_PFX
 # define PATH_TTY_PFX PATH_DEV
 #endif
+#ifndef _PATH_MAILDIR
+# define _PATH_MAILDIR "/var/spool/mail"
+#endif
 
 #ifdef HAVE_UTMP_H
 # include <utmp.h>
