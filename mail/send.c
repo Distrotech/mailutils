@@ -442,7 +442,8 @@ mail_send0 (compose_env_t * env, int save_to)
     read_cc_bcc (env);
 
   /* Prepare the header */
-  header_set_value (env->header, "X-Mailer", argp_program_version, 1);
+  if (util_getenv (NULL, "xmailer", Mail_env_boolean, 0) == 0)
+    header_set_value (env->header, "X-Mailer", argp_program_version, 1);
 
   if (util_header_expand (&env->header) == 0)
     {
