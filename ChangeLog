@@ -1,3 +1,8 @@
+2002-12-27  Wojciech Polak <polak@gnu.org>
+
+	* doc/texinfo/mailutils.texi: Use @copying.
+	* doc/texinfo/programs.texi: Minor formatting.
+
 2002-12-27  Sergey Poznyakoff
 
 	* auth/Makefile.am: Added NLS support.
