@@ -48,7 +48,7 @@ mail_folders (int argc, char **argv)
   
   path = util_fullpath (path);
   
-  util_do_command("! %s %s", getenv ("LISTER"), path);
+  util_do_command("! %s '%s'", getenv ("LISTER"), path);
   free(path);
 
   return 0;
