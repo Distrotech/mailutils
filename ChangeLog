@@ -1,5 +1,16 @@
 2004-05-07  Sergey Poznyakoff
 
+	* mail/from.c (mail_from0): Use Date: header if 'datefield' is
+	set.
+	* mail/mail.c (main): Start interactive mode with an empty mailbox
+	if 'emptystart' is set.
+	
+	* NEWS: Updated
+	* doc/texinfo/programs.texi (Mail Variables): Documented new
+	variables.
+	
+2004-05-07  Sergey Poznyakoff
+
 	* mail/util.c (util_get_sender): Updated to match recent
 	changes (see the previous entry).
 	* mailbox/argcv.c (argcv_scan): Honor escaped whitespace.
