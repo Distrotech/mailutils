@@ -1,3 +1,102 @@
+2002-09-12  Sergey Poznyakoff  
+
+	In order to make libmailutils self-contained, shuffled several
+	files from lib/ to mailutils/.
+
+	Added standalone guile module.
+	
+	* m4/mu_libobj.m4: New file. mu-specific version of
+	  AC_LIBOBJS.
+	* m4/Makefile.am: Added mu_libobj.m4
+	
+	* configure.ac: Use MU_LIBOBJS on functions needed for
+	  libmailbox.
+	  Add mailutils.scm to GUILE_PKGDATA.
+
+	* libmu_scm/Makefile.am: Install libmu_scm. Added new rule
+	  for building guile standalone mailutils module -- mailutils.scm
+	* libmu_scm/.cvsignore: Updated.
+	* libmu_scm/mu_scm.c (mu-register-format): New
+	  primitive. Registers desired mailbox/mailer formats.
+	  (mu_scm_init): Unconditionally register path_record format.
+	* libmu_scm/mailutils.scm.in: Source for mailutils.scm -- a module
+	  interface file for mailutils.
+	* libmu_scm/.cvsignore: Updated  
+	* guimb/Makefile.am: Load libmu_scm.la
+
+	* lib/Makefile.am: Removed argp-related stuff.
+	* lib/strndup.c: Moved to mailbox/
+	* lib/strtok_r.c: Likewise.
+	* lib/strnlen.c: Likewise.
+	* lib/getline.c: Likewise.
+	* lib/strchrnul.c: Likewise.
+	* lib/argp-ba.c: Likewise.
+	* lib/argp-eexst.c: Likewise.
+	* lib/argp-fmtstream.c: Likewise.
+	* lib/argp-fs-xinl.c: Likewise.
+	* lib/argp-help.c: Likewise.
+	* lib/argp-parse.c: Likewise.
+	* lib/argp-pv.c: Likewise.
+	* lib/argp-pvh.c: Likewise.
+	* lib/argp-xinl.c: Likewise.
+	* lib/argcv.c: Likewise.
+	* lib/argp-fmtstream.h: Likewise.
+	* lib/argp-namefrob.h: Likewise.
+	* lib/getopt.h: Likewise.
+		  
+	* mailbox/Makefile.am: Added argp-related stuff.
+	* mailbox/strndup.c: Moved from lib/
+	* mailbox/strtok_r.c: Likewise.
+	* mailbox/strnlen.c: Likewise.
+	* mailbox/getline.c: Likewise.
+	* mailbox/strchrnul.c: Likewise.
+	* mailbox/argp-ba.c: Likewise.
+	* mailbox/argp-eexst.c: Likewise.
+	* mailbox/argp-fmtstream.c: Likewise.
+	* mailbox/argp-fs-xinl.c: Likewise.
+	* mailbox/argp-help.c: Likewise.
+	* mailbox/argp-parse.c: Likewise.
+	* mailbox/argp-pv.c: Likewise.
+	* mailbox/argp-pvh.c: Likewise.
+	* mailbox/argp-xinl.c: Likewise.
+	* mailbox/argcv.c: Likewise.
+	* mailbox/argp-fmtstream.h: Likewise.
+	* mailbox/argp-namefrob.h: Likewise.
+	* mailbox/getopt.h: Likewise.
+
+	* include/mailutils/gnu/: New directory. Holds GNU headers that
+	  might be missing on the system, but are necessary for mailutils.
+	* include/mailutils/Makefile.am: Added gnu to SUBDIRS.
+	* include/mailutils/gnu/Makefile.am: New file.
+	* include/mailutils/gnu/.cvsignore: New file.
+	* lib/argp.h: Moved to ...
+	* include/mailutils/gnu/argp.h: ... here
+	* lib/argcv.h: Moved to ...
+	* include/mailutils/argcv.h: ... here
+	* include/mailutils/argp.h: Conditionally include <gnu/argp.h>
+	
+	* mailbox/mu_argp.c: Changed licence to Lesser GPL
+	* mailbox/mu_auth.c: Likewise.
+	* mailbox/system.c: Likewise.
+
+	* auth/pam.c: Likewise
+	* auth/sql.c: Likewise
+	* auth/virtual.c: Likewise
+
+	* comsat/cfg.c: Removed include <argcv.h>
+	* comsat/comsat.h: Include mailutils/argcv.h
+	* sieve/sieve.c: Likewise.
+	* imap4d/fetch.c: Likewise.
+	* mail/mail.h: Likewise.
+	* mailbox/argcv.c: Likewise.
+	* mh/mh_argp.c: Likewise.
+	* dotlock/dotlock.c: Include mailutils/argp.h
+	* mh/mh_getopt.h: Likewise.
+	* mailbox/Makefile.am: Fixed INCLUDES
+	* mh/mh.h: Removed include <argp.h>
+	* mh/mh_error.c: Likewise.
+	* mailbox/mu_argp.c: Removed include <xalloc.h>
+	
 2002-09-10  Sergey Poznyakoff 
 
 	Added support for Guile 1.6.0:

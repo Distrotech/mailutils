@@ -8,7 +8,7 @@ ACLOCAL_AMFLAGS = -I m4
 SUBDIRS = include m4 lib testsuite mailbox examples doc \
           auth frm from pop3d imap4d \
           mail sieve scripts libmu_scm guimb messages comsat readmsg \
-          mail.local mail.remote dotlock 
+          mail.local mail.remote dotlock mh
 
 EXTRA_DIST = mailutils.spec mailutils.spec.in COPYING.FDL
 
