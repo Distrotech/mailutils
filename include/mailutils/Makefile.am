@@ -26,4 +26,5 @@ pkginclude_HEADERS = \
  property.h \
  registrar.h \
  stream.h \
+ types.h \
  url.h 
