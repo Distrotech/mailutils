@@ -74,10 +74,9 @@ mu_pop3_getline (mu_pop3_t pop3)
 	    return ETIMEDOUT;
 	}
 
-      status = stream_readline (pop3->carrier, pop3->io.buf + total, pop3->io.len - total, pop3->io.offset, &n);
+      status = stream_sequential_readline (pop3->carrier, pop3->io.buf + total, pop3->io.len - total, &n);
       if (status != 0)
 	return status;
-      pop3->io.offset += n;
 
       /* The server went away:  It maybe a timeout and some pop server
 	 does not send the -ERR.  Consider this like an error.  */

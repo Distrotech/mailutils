@@ -26,5 +26,33 @@ lib_LTLIBRARIES = libmu_pop.la
 libmu_pop_la_SOURCES = \
  folder.c\
  mbox.c\
- url.c
+ url.c \
+ \
+ pop3_apop.c \
+ pop3_capa.c \
+ pop3_carrier.c \
+ pop3_connect.c \
+ pop3_create.c \
+ pop3_debug.c \
+ pop3_dele.c \
+ pop3_destroy.c \
+ pop3_disconnect.c \
+ pop3_lista.c \
+ pop3_list.c \
+ pop3_noop.c \
+ pop3_pass.c \
+ pop3_quit.c \
+ pop3_readline.c \
+ pop3_response.c \
+ pop3_retr.c \
+ pop3_rset.c \
+ pop3_sendline.c \
+ pop3_stat.c \
+ pop3_stls.c \
+ pop3_stream.c \
+ pop3_timeout.c \
+ pop3_top.c \
+ pop3_uidla.c \
+ pop3_uidl.c \
+ pop3_user.c
 
