@@ -60,7 +60,7 @@ exactly know what they are!  However, SOMEBODY killed SOMETHING:
 that's clear, at any rate...
 
 From gray@Mirddin.farlep.net Sat Jul 13 00:43:18 2002
-Organization: Farlep-Internet
+Organization: Mailutils-tests
 Received: from Mirddin.farlep.net (localhost [127.0.0.1]) 
 	by Mirddin.farlep.net with ESMTP id g6CLhIb05086
 	for <gray@mirddin.farlep.net>; Sat, 13 Jul 2002 00:43:18 +0300
@@ -104,7 +104,7 @@ ZWN0bHkgc3VyZSBJIGhhdmUgbm9uZSwKV2h5LCBJIGRvIGl0IGFnYWluIGFuZCBhZ2Fpbi4nCgo=
 ------- =_aaaaaaaaaa0--
 
 From gray@Mirddin.farlep.net Sat Jul 13 00:50:58 2002
-Organization: Farlep-Internet
+Organization: Mailutils-tests
 Received: from Mirddin.farlep.net (localhost [127.0.0.1]) 
 	by Mirddin.farlep.net with ESMTP id g6CLowb05126
 	for <gray@mirddin.farlep.net>; Sat, 13 Jul 2002 00:50:58 +0300
