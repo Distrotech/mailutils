@@ -1,3 +1,18 @@
+2003-03-14  Sergey Poznyakoff  
+
+	* TODO: Reformatted in Emacs outline mode
+	* mh/compcommon.c: New file.
+	* mh/forw.c: New file.
+	* mh/.cvsignore: Added forw
+	* mh/Makefile.am: Likewise.
+	* mh/TODO: Updated
+	* mh/comp.c (format_str,check_draft_disposition): Removed
+	  (main): Use mh_comp_draft().
+	* mh/mh.h (mh_comp_draft,check_draft_disposition): New functions.
+	* mh/mh_stream.c (_body_readline,_body_stream_size): Bugfix.
+	* mh/mh_whom.c (scan_addrs): Bugfix.
+	* po/POTFILES.in: Added new files.
+	
 2003-03-13  Sergey Poznyakoff 
 
 	Reorganized directory layout under mailbox/.
