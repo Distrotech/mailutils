@@ -41,17 +41,17 @@ argcv_get (const char *command, int *argc, char ***argv)
     if (command[i] == ' ')
       (*argc)++;
 
-  *argv = malloc ((*argc + 1) * sizeof (char *));
+  *argv = calloc ((*argc + 1), sizeof (char *));
 
   for (i = 0; i <= len; i++)
     {
       if (command[i] == ' ' || command[i] == '\0')
 	{
-	  (*argv)[j] = malloc ((i-start) * sizeof (char));
-	  if (argv[j] == NULL && (i-start > 0))
+	  /* Reserve space for the null.  */
+	  (*argv)[j] = calloc ((i - start + 1),  sizeof (char));
+	  if ((*argv[j]) == NULL)
 	    return 1;
-	  strncpy ((*argv)[j], &command[start], i-start);
-	  (*argv)[j][i-start] = '\0';
+	  strncpy ((*argv)[j], &command[start], i - start);
 	  j++;
 	  start = i+1;
 	}
@@ -68,7 +68,8 @@ int
 argcv_free (int argc, char **argv)
 {
   while (--argc >= 0)
-    free (argv[argc]);
+    if (argv[argc])
+      free (argv[argc]);
   free (argv);
   return 1;
 }

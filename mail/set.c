@@ -1,5 +1,5 @@
 /* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -45,7 +45,8 @@ mail_set (int argc, char **argv)
 	      if (entry == NULL)
 		return 1;
 	      entry->set = 0;
-	      free (entry->value);
+	      if (entry->value)
+		free (entry->value);
 	    }
 	  else if (strchr (argv[i], '=') != NULL)
 	    {
@@ -63,7 +64,8 @@ mail_set (int argc, char **argv)
 	      if (entry == NULL)
 		return 1;
 	      entry->set = 1;
-	      free (entry->value);
+	      if (entry->value)
+		free (entry->value);
 	      entry->value = value;
 	    }
 	  else
@@ -72,7 +74,8 @@ mail_set (int argc, char **argv)
 	      if (entry == NULL)
 		return 1;
 	      entry->set = 1;
-	      free (entry->value);
+	      if (entry->value)
+		free (entry->value);
 	      entry->value = NULL;
 	    }
 	}
