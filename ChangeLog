@@ -1,3 +1,39 @@
+2003-02-13  Sergey Poznyakoff 
+
+	* imap4d/append.c (imap4d_append): Bugfix.
+	* include/mailutils/stream.h (stream_seek): New function.
+	* mailbox/stream.c: Likewise.
+	* mailbox/mbx_mh.c (_mh_message_save): Check if the envelope
+	  date has a newline.
+	* mailbox/message.c (message_size): Bugfix. Retrieve
+	  the header and the body with appropriate calls instead of
+	  addressing corresponding members of the message_t structure.
+	  
+	* mh/mh_list.c: New file. The parser and run-time driver for
+	  mhl format files.
+	* mh/mhl.format: New file. The default format for mhl.
+	* mh/Makefile.am: Added mh_list.c and mhl.format.
+
+	* mh/folder.c: Use ARG_ macros instead of single-char option
+	  letters.
+	* mh/mh_getopt.h: Added new ARG_ macros.
+	* mh/mh.h (mh_file_to_message,mh_stream_to_message): New
+	  functions.
+	  (mhl_format_compile,mhl_format_run,mhl_format_destroy):
+	  New functions.
+	* mh/mh_init.c (mh_file_to_message,mh_stream_to_message): New
+	  functions.
+	* mh/mh_fmtgram.y (mh_format_parse): Bugfix. Initialize prog to
+	  zero.
+	* mh/mh_format.c (mh_format_str): New function.
+	* mh/mhl.c: Finished.
+	* mh/repl.c: Handle --filter argument.
+	* mh/send.c: Use mh_.*_to_message.
+	
+	* mh/README: Updated.
+	* mh/TODO: Updated.
+	* NEWS: Updated.
+	
 2003-02-12  Sergey Poznyakoff
 
 	* mailbox/file_stream.c (prog_stream_create): New function.
