@@ -239,7 +239,7 @@ main (int argc, char **argv)
   util_do_command ("set nohold");
   util_do_command ("set noignore");
   util_do_command ("set noignoreeof");
-  util_do_command ("set indentprefix=\t");
+  util_do_command ("set indentprefix=\"\t\"");
   util_do_command ("set nokeep");
   util_do_command ("set nokeepsave");
   util_do_command ("set nometoo");
