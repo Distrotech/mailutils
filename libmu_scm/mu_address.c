@@ -121,7 +121,7 @@ SCM_DEFINE (mu_address_get_count, "mu-address-get-count", 1, 0, 0,
 #define FUNC_NAME s_mu_address_get_count
 {
   address_t addr;
-  int count = 0;
+  size_t count = 0;
   
   SCM_ASSERT (SCM_NIMP (ADDRESS) && SCM_STRINGP (ADDRESS),
 	      ADDRESS, SCM_ARG1, FUNC_NAME);
