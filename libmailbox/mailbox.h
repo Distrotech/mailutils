@@ -1,4 +1,19 @@
-/* copyright and license info go here */
+/* GNU mailutils - a suite of utilities for electronic mail
+   Copyright (C) 1999 Free Software Foundation, Inc.
+
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 2, or (at your option)
+   any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #ifndef _MAILBOX_H
 #define _MAILBOX_H	1
@@ -20,6 +35,12 @@
 #define mbox_add_message(m,s)	m->_add_message(m,s)
 #define mbox_get_body(m,n)	m->_get_body(m,n)
 #define mbox_get_header(m,n)	m->_get_header(m,n)
+#define mbox_lock(m,n)		m->_lock(m,n)
+
+/* Lock settings */
+#define MO_ULOCK	0
+#define MO_RLOCK	1
+#define MO_WLOCK	2
 
 typedef struct _mailbox
   {
@@ -37,6 +58,7 @@ typedef struct _mailbox
     int (*_expunge) __P ((struct _mailbox *));
     int (*_add_message) __P ((struct _mailbox *, char *));
     int (*_is_deleted) __P ((struct _mailbox *, int));
+    int (*_lock) __P((struct _mailbox *, int));
     char *(*_get_body) __P ((struct _mailbox *, int));
     char *(*_get_header) __P ((struct _mailbox *, int));
   }
@@ -44,4 +66,9 @@ mailbox;
 
 mailbox *mbox_open __P ((const char *name));
 
+char *mbox_header_line __P ((mailbox *mbox, int num, const char *header));
+char *mbox_body_lines __P ((mailbox *mbox, int num, int lines));
+
 #endif
+
+

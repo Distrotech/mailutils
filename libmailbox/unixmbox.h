@@ -1,4 +1,19 @@
-/* copyright and license info go here */
+/* GNU mailutils - a suite of utilities for electronic mail
+   Copyright (C) 1999 Free Software Foundation, Inc.
+
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 2, or (at your option)
+   any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #ifndef _UNIXMBOX_H
 #define _UNIXMBOX_H	1
@@ -40,6 +55,7 @@ typedef struct _unixmbox_data
   {
     unixmbox_message *messages;
     FILE *file;
+    int lockmode;
   }
 unixmbox_data;
 
@@ -49,6 +65,7 @@ int unixmbox_delete (mailbox *mbox, int num);
 int unixmbox_undelete (mailbox *mbox, int num);
 int unixmbox_expunge (mailbox *mbox);
 int unixmbox_is_deleted (mailbox *mbox, int num);
+int unixmbox_lock (mailbox *mbox, int mode);
 int unixmbox_add_message (mailbox *mbox, char *message);
 char *unixmbox_get_body (mailbox *mbox, int num);
 char *unixmbox_get_header (mailbox *mbox, int num);

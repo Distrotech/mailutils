@@ -1,9 +1,24 @@
-/* copyright and license info go here */
+/* GNU mailutils - a suite of utilities for electronic mail
+   Copyright (C) 1999 Free Software Foundation, Inc.
+
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 2, or (at your option)
+   any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #include "unixmbox.h"
 
 /*
- * Opens and locks a mailbox
+ * Opens a mailbox
  */
 int
 unixmbox_open (mailbox * mbox)
@@ -22,7 +37,6 @@ unixmbox_open (mailbox * mbox)
 
   mbox->_data = data;
   data->file = fopen (mbox->name, "r+");
-  /* FIXME: do a good, NFS safe, file lock here, with error handling */
   if (data->file == NULL)
     {
       /* errno is set by fopen() */
@@ -38,6 +52,17 @@ unixmbox_open (mailbox * mbox)
       errno = ENOMEM;
       return -1;
     }
+
+  fgets (buf, 80, data->file);
+  if (strncmp (buf, "From ", 5))
+    {
+      /* This is NOT an mbox file */
+      unixmbox_close (mbox);
+      errno = 0;
+      return -1;
+    }
+  else
+    rewind (data->file);
 
   while (fgets (buf, 80, data->file))
     {
@@ -88,6 +113,7 @@ unixmbox_open (mailbox * mbox)
   mbox->_expunge = unixmbox_expunge;
   mbox->_add_message = unixmbox_add_message;
   mbox->_is_deleted = unixmbox_is_deleted;
+  mbox->_lock = unixmbox_lock;
   mbox->_get_body = unixmbox_get_body;
   mbox->_get_header = unixmbox_get_header;
 
@@ -101,7 +127,7 @@ int
 unixmbox_close (mailbox * mbox)
 {
   unixmbox_data *data = mbox->_data;
-  /* FIXME: good file unlocking, to go along with the locking above */
+  unixmbox_lock (mbox, MO_ULOCK);
   fclose (data->file);
   free (data->messages);
   free (mbox->sizes);
@@ -266,3 +292,17 @@ unixmbox_get_header (mailbox * mbox, int num)
   fread (buf, size, sizeof (char), data->file);
   return buf;
 }
+
+/*
+ * Sets lock mode for a mailbox
+ * FIXME: this doesn't do anything, really
+ * Get locking code from Procmail and/or Exim
+ */
+int
+unixmbox_lock (mailbox *mbox, int mode)
+{
+  unixmbox_data *data = mbox->_data;
+  data->lockmode = mode;
+  return 0;
+}
+

@@ -1,4 +1,19 @@
-/* copyright and license info go here */
+/* GNU mailutils - a suite of utilities for electronic mail
+   Copyright (C) 1999 Free Software Foundation, Inc.
+
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 2, or (at your option)
+   any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 #include "mailbox.h"
 #include "unixmbox.h"
@@ -40,6 +55,7 @@ mbox_open (const char *name)
   mbox->_expunge = _mbox_dummy1;
   mbox->_add_message = _mbox_dummy3;
   mbox->_is_deleted = _mbox_dummy2;
+  mbox->_lock = _mbox_dummy2;
   mbox->_get_body = _mbox_dummy4;
   mbox->_get_header = _mbox_dummy4;
 
@@ -65,6 +81,97 @@ mbox_open (const char *name)
 
   errno = ENOSYS;
   return NULL;
+}
+
+/*
+ * Gets the contents of a header field
+ */
+char *
+mbox_header_line (mailbox *mbox, int num, const char *header)
+{
+  char *full, *tmp, *line;
+  int i = 0, j=0, try = 1, len;
+  int lh = strlen (header);
+  full = mbox_get_header (mbox, num);
+  if (full == NULL)
+    return NULL;
+ 
+  len = strlen (full);
+
+  /* First get the appropriate line at the beginning */
+  for (i=0; i < len-(lh+2); i++)
+    {
+      if (try == 1)
+	{
+	  if (!strncasecmp(&full[i], header, lh) && full[i+lh] == ':')
+	    {
+	      full[len-i] = '\0';
+	      tmp = strdup (&full[i+lh+2]);
+	      i = len;
+	    }
+	  else
+	    try = 0;
+	}
+      else if (full[i] == '\n')
+	try = 1;
+      else
+	try = 0;
+    }
+
+  /* Now trim the fat */
+  len = strlen (tmp);
+  for (i = 0; i < len; i++)
+    {
+      if (tmp[i] == '\n' && i < (len - 1) && (tmp[i+1] == ' ' || tmp[i+1] == '\t'))
+	{
+	  if (tmp[i+1] == '\t')
+	    tmp[i + 1] = ' ';
+	  for (j = i; j < len; j++)
+	    tmp[j] = tmp[j+1];
+	}
+      else if (tmp[i] == '\n')
+	{
+	  tmp[i] = '\0';
+	  i = len;
+	}
+    }
+  line = strdup (tmp);
+  free (tmp);
+  free (full);
+  return line;
+}
+
+/*
+ * Gets first LINES lines from message body
+ */
+char *
+mbox_body_lines (mailbox *mbox, int num, int lines)
+{
+  char *full, *buf = NULL;
+  int i=0, line = 0, len;
+  if (lines < 1)
+    return strdup ("");
+  full = mbox_get_body (mbox, num);
+  if (full == NULL)
+    return NULL;
+  len = strlen (full);
+  for (i=0; i < len && line < lines; i++)
+    {
+      if (full[i] == '\n')
+	{
+	  line++;
+	  if (line >= lines)
+	    {
+	      full[i+1] = '\0';
+	      buf = strdup (full);
+	      i = len;
+	    }
+	}
+    }
+  if (buf == NULL)
+    buf = strdup (full);
+  free (full);
+  return buf;
 }
 
 /*
@@ -97,3 +204,4 @@ _mbox_dummy4 (mailbox * mbox, int num)
   errno = ENOSYS;
   return NULL;
 }
+
