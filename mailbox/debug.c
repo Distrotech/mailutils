@@ -80,8 +80,9 @@ mu_debug_get_level (mu_debug_t debug, size_t *plevel)
 }
 
 int
-mu_debug_set_print (mu_debug_t debug, int (*_print)
-		 __P ((mu_debug_t, const char *, va_list)), void *owner)
+mu_debug_set_print (mu_debug_t debug,
+    int (*_print) __P ((mu_debug_t, size_t, const char *, va_list)),
+    void *owner)
 {
   if (debug == NULL)
     return EINVAL;
@@ -115,7 +116,7 @@ mu_debug_printv (mu_debug_t debug, size_t level, const char *format, va_list ap)
     return 0;
 
   if (debug->_print)
-    debug->_print (debug, format, ap);
+    debug->_print (debug, level, format, ap);
   else
     vfprintf (stderr, format, ap);
 
