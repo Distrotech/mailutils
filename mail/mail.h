@@ -117,12 +117,25 @@ struct mail_command_entry {
   int (*escfunc) __P ((int, char **, struct send_environ *));
 };
 
+typedef enum {
+  Mail_env_whatever,
+  Mail_env_number,
+  Mail_env_string,
+  Mail_env_boolean
+} mail_env_data_t;
+  
 struct mail_env_entry {
   char *var;
+  mail_env_data_t type;
   int set;
-  char *value;
+  union {
+    char *string;
+    int number;
+  } value;
 };
 
+#define mail_env_entry_is_set(ep) ((ep) && (ep)->set)
+  
 typedef struct message_set msgset_t;
 
 struct message_set
@@ -254,12 +267,18 @@ extern int util_getcols __P ((void));
 extern int util_getlines __P ((void));
 extern int util_screen_lines __P ((void));
 extern int util_screen_columns __P ((void));
-extern struct mail_env_entry *util_find_env __P ((const char *var));
+extern struct mail_env_entry *util_find_env __P ((const char *var,
+						  int create));
+extern int util_getenv __P ((void *ptr, const char *variable,
+			     mail_env_data_t type, int warn));
+
 extern int util_printenv __P ((int set));
-extern int util_setenv __P ((const char *name, const char *value, int overwrite));
+extern int util_setenv __P ((const char *name, void *value,
+			     mail_env_data_t type, int overwrite));
 extern int util_isdeleted __P ((int message));
 extern char *util_get_homedir __P ((void));
 extern char *util_fullpath __P ((const char *inpath));
+extern char *util_folder_path __P((const char *name));
 extern char *util_get_sender __P ((int msgno, int strip));
 
 extern void util_slist_print __P ((list_t list, int nl));
