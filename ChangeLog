@@ -1,3 +1,34 @@
+2003-12-26  Sergey Poznyakoff 
+
+	* examples/list.c: New sieve extension test.
+	* examples/spamd.c: Modified.
+	* examples/Makefile.am: Added list.c
+	
+	* dotlock/dotlock.c: Changed multiline doc string to
+	a single-line one: gettext 0.13 is unable to handle
+	translator comments with multiline msgids.
+	* mail.local/main.c: Likewise
+	* mail.remote/mail.remote.c: Likewise
+	* mh/anno.c: Likewise
+	* mh/fmtcheck.c: Likewise
+	* mh/folder.c: Likewise
+	* mh/forw.c: Likewise
+	* mh/inc.c: Likewise
+	* mh/install-mh.c: Likewise
+	* mh/mark.c: Likewise
+	* mh/mhl.c: Likewise
+	* mh/mhn.c: Likewise
+	* mh/mhpath.c: Likewise
+	* mh/pick.c: Likewise
+	* mh/refile.c: Likewise
+	* mh/repl.c: Likewise
+	* mh/rmf.c: Likewise
+	* mh/rmm.c: Likewise
+	* mh/scan.c: Likewise
+	* mh/send.c: Likewise
+	* mh/whom.c: Likewise
+	* sieve/sieve.c: Likewise
+
 2003-12-25  Sergey Poznyakoff
 	
 	Added changes from the backup repository 
