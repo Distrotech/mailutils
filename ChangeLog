@@ -5,7 +5,8 @@
 	* mh/mh_whatnow.c: Reorganized. Implemented disposition
 	  shell.
 	* mh/repl.c: Handle draft file. Added --use option.
-
+	* mh/README: Updated.
+	
 2003-01-16  Sergey Poznyakoff
 
 	* include/mailutils/mutil.h (mu_rfc2822_references)

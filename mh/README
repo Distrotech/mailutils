@@ -65,6 +65,10 @@ deletes all messages preceeding the non-existent one.
 
 * fmtdump command is not provided. Use fmtcheck instead.
 
+* repl
+
+Understands --use option. Disposition shell provides 'use' command.
+
 
 Local variables:
 mode: outline
