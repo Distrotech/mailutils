@@ -40,12 +40,20 @@
 #include <stdlib.h>
 #include <mailutils/libsieve.h>
 
-struct val_ctr {
-  header_t hdr;
-  size_t limit;
-  size_t count;
+struct val_ctr {  /* Data passed to the counter function */
+  header_t hdr;   /* Headers of the current message */
+  size_t limit;   /* Limit for the number of addresses */
+  size_t count;   /* Number of addresses counted so far */
 };
 
+/* Count addresses in a single header value.
+
+   Input:
+     ITEM is the name of the header to scan.
+     DATA is a pointer to the val_ctr structure */
+   Return value:
+     non-zero if the limit on the number of addresses has been reached. */
+     
 static int
 _count_items (void *item, void *data)
 {
@@ -66,7 +74,8 @@ _count_items (void *item, void *data)
   free (val);
   return vp->count >= vp->limit;
 }
-  
+
+/* Handler for the numaddr test */
 static int
 numaddr_test (sieve_machine_t mach, list_t args, list_t tags)
 {
@@ -77,12 +86,15 @@ numaddr_test (sieve_machine_t mach, list_t args, list_t tags)
   if (sieve_get_debug_level (mach) & MU_SIEVE_DEBUG_TRACE)
     sieve_debug (mach, "NUMADDR\n");
 
+  /* Retrieve required arguments: */
+  /* First argument: list of header names */
   h = sieve_value_get (args, 0);
   if (!h)
     {
       sieve_error (mach, "numaddr: can't get argument 1");
       sieve_abort (mach);
     }
+  /* Second argument: Limit on the number of addresses */
   v = sieve_value_get (args, 1);
   if (!v)
     {
@@ -90,23 +102,31 @@ numaddr_test (sieve_machine_t mach, list_t args, list_t tags)
       sieve_abort (mach);
     }
 
+  /* Fill in the val_ctr structure */
   message_get_header (sieve_get_message (mach), &vc.hdr);
   vc.count = 0;
   vc.limit = v->v.number;
 
+  /* Count the addresses */
   rc = sieve_vlist_do (h, _count_items, &vc);
-  
+
+  /* Here rc >= 1 iff the counted number of addresses is greater or equal
+     to vc.limit. If `:under' tag was given we reverse the return value */
   if (sieve_tag_lookup (tags, "under", NULL))
     rc = !rc;
   return rc;
 }
 
+/* Syntactic definitions for the numaddr test */
+
+/* Required arguments: */
 static sieve_data_type numaddr_req_args[] = {
   SVT_STRING_LIST,
   SVT_NUMBER,
   SVT_VOID
 };
 
+/* Tagged arguments: */
 static sieve_tag_def_t numaddr_tags[] = {
   { "over", SVT_VOID },
   { "under", SVT_VOID },
@@ -118,10 +138,11 @@ static sieve_tag_group_t numaddr_tag_groups[] = {
   { NULL }
 };
 
-
+/* Initialization function. It is the only function exported from this
+   module. */
 int
 SIEVE_EXPORT(numaddr,init) (sieve_machine_t mach)
 {
   return sieve_register_test (mach, "numaddr", numaddr_test,
-			      numaddr_req_args, numaddr_tag_groups, 1);
+                              numaddr_req_args, numaddr_tag_groups, 1);
 }
