@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2001, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2001, 2002, 2005 Free Software Foundation, Inc.
 
    GNU Mailutils is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -78,8 +78,6 @@ mail_set_my_name (char *name)
 int
 mail_is_my_name (char *name)
 {
-  if (util_getenv (NULL, "metoo", Mail_env_boolean, 0) == 0)
-    return 0;
   if (strchr(name, '@') == NULL && strcasecmp (name, my_name) == 0)
     return 1;
   if (strcasecmp (name, my_email) == 0)
