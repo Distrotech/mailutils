@@ -18,16 +18,19 @@
 
 source $top_srcdir/testsuite/lib/mailutils.exp
 
-mu_init
+mu_init -noflags
 mu_prepare_spools
 set mu_filename "$MU_FOLDER_DIR/mta.diag"
 set env(MTA_DIAG) "$mu_filename"
 
-# mailer_remote_test [-message MESSAGE][-default (FAIL|XFAIL)]
-#            [-from FROM][-to TO][-pattern PATTERN-LIST][PATTERN...]
+# mail_remote_test [-message MESSAGE][-default (FAIL|XFAIL)]
+#            [-input INPUT-LIST]
+#            [-args ARGS][-pattern PATTERN-LIST][PATTERN...]
+# INPUT-LIST - List of input strings for MU_TOOL
 # PATTERN   - Sequence to expect in return. 
 # MESSAGE   - [optional] message to output
-proc mailer_remote_test { args } {
+# ARGS      - Additional arguments to MU_TOOL
+proc mail_remote_test { args } {
     global MU_TOOL
     global top_builddir
     global verbose
@@ -84,14 +87,6 @@ proc mailer_remote_test { args } {
 	}
     }
 
-    verbose "Spawning $MU_TOOL --mailer $url $invocation" 1
-
-    set res [remote_spawn host "$MU_TOOL --mailer $url $invocation"]
-    if { $res < 0 || $res == "" } {
-	perror "Spawning $MU_TOOL $invocation failed."
-	return 1;
-    }
-	
     if {"$message" == ""}  {
 	set message [lindex $args 0]
     }
@@ -100,20 +95,9 @@ proc mailer_remote_test { args } {
 	send_user "Message is \"$message\"\n"
     }
 
-    set result ""
-    verbose "INPUT: $input" 1
-    for {set i 0} {$result == "" && $i < [llength $input]} {incr i} {
-	set s [lindex $input $i]
-	verbose "SEND: $s" 1
-	set result [mu_send "[lindex $input $i]\n"]
-	verbose "RESULT: $result"
-    }
-
-    mu_send ""
-
-    remote_wait host 60
-    
-    return [mu_test_file -default $default -message $message -pattern $pattern $mu_filename]
+    return [mailer_test -default $default -message $message \
+	                -input $input -pattern $pattern -file \
+			$mu_filename -args "--mailer $url $invocation"]
 }
 
 
