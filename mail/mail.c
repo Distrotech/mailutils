@@ -335,6 +335,7 @@ mail_mainloop(char *(*input) __P((void *, int)), void *closure, int do_history)
 	  command = buf;
 	  len = strlen (command);
 	}
+      util_escape_percent (&command);
       cmd = util_stripwhite (command);
       util_do_command (cmd);
 #ifdef WITH_READLINE
