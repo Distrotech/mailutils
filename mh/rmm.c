@@ -58,7 +58,6 @@ rmm (mailbox_t mbox, message_t msg, size_t num, void *data)
   attribute_t attr;
   message_get_attribute (msg, &attr);
   attribute_set_deleted (attr);
-  return 0;
 }
 
 int
@@ -72,7 +71,7 @@ main (int argc, char **argv)
   mh_argp_parse (argc, argv, options, mh_option, args_doc, doc,
 		 opt_handler, NULL, &index);
 
-  mbox = mh_open_folder (current_folder);
+  mbox = mh_open_folder (current_folder, 0);
 
   mh_msgset_parse (mbox, &msgset, argc - index, argv + index);
 
