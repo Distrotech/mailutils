@@ -22,6 +22,7 @@ PROGRAMS_MH = \
  comp\
  fmtcheck\
  folder\
+ forw\
  inc\
  install-mh\
  mark\
@@ -43,6 +44,7 @@ EXTRA_PROGRAMS = \
  comp\
  fmtcheck\
  folder\
+ forw\
  inc\
  install-mh\
  mark\
@@ -68,6 +70,7 @@ bin_PROGRAMS = @BUILD_MH_PROGRAMS@
 noinst_LIBRARIES = @BUILD_MH_LIBRARIES@
 
 libmh_a_SOURCES= \
+ compcommon.c\
  mh_argp.c\
  mh_ctx.c\
  mh_getopt.c\

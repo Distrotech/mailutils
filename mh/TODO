@@ -26,7 +26,7 @@ State	Nice	Utility		Comments
 +	-20	inc
 *	-20	repl		--annotate
 +	-20	comp		Interactive prompting.
--	-20	forw
+*	-20	forw		--annotate,--inplace,--mime,--whatnowproc
 *	-20	send		--alias,--filter,--format,--forward,--mime,
 				--split,--width
 *	-20	refile		--link copies messages.
