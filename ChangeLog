@@ -1,3 +1,13 @@
+2002-12-20  Sergey Poznyakoff 
+
+	* libsieve/sieve.l: Implemented shell-like extension for
+	  multiline strings. They can start now with text:[-][delimiter],
+	  the dash meaning 'strip leading tabs', the 'delimiter'
+	  overriding default end-of-text delimiter (.)
+	* doc/texinfo/libsieve.texi: Documented text:[-][delimiter]
+	  extension.
+	* TODO: Updated
+
 2002-12-16  Sergey Poznyakoff
 
 	* doc/texinfo/Makefile.am: Added trailing slash to the default
