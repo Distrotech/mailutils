@@ -41,15 +41,8 @@ typedef struct _stream *stream_t;
 #define MU_STREAM_APPEND   0x00000008
 #define MU_STREAM_CREAT	   0x00000010
 #define MU_STREAM_NONBLOCK 0x00000020
-/* Stream will be destroy on stream_destroy.  */
+/* Stream will be destroy on stream_destroy whitout checking the owner.  */
 #define MU_STREAM_NO_CHECK 0x00000040
-
-/* Identity of the stream.  */
-#define MU_STREAM_POP      0x00001000
-#define MU_STREAM_IMAP     0x00002000
-#define MU_STREAM_FILE     0x00004000
-#define MU_STREAM_SMTP     0x00008000
-#define MU_STREAM_SENDMAIL 0x00010000
 
 extern int stream_create       __P ((stream_t *, int flags, void *owner));
 extern void stream_destroy     __P ((stream_t *, void *owner));

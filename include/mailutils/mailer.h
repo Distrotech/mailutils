@@ -19,11 +19,13 @@
 #define _MAILUTILS_MAILER_H
 
 #include <sys/types.h>
+
 #include <mailutils/stream.h>
 #include <mailutils/observer.h>
 #include <mailutils/debug.h>
 #include <mailutils/url.h>
 #include <mailutils/message.h>
+#include <mailutils/property.h>
 
 #ifndef __P
 # ifdef __STDC__
@@ -48,6 +50,8 @@ extern int mailer_open          __P ((mailer_t, int flags));
 extern int mailer_close         __P ((mailer_t));
 
 extern int mailer_send_message	__P ((mailer_t, message_t));
+
+extern int mailer_get_property  __P ((mailer_t, property_t *));
 /* stream settings */
 extern int mailer_get_stream    __P ((mailer_t, stream_t *));
 extern int mailer_set_stream    __P ((mailer_t, stream_t));
