@@ -216,6 +216,7 @@ sql_retrieve_quota (char *name, size_t *quota)
   else
     {
       rc = RETR_OK;
+      tmp = NULL;
       status = mu_sql_get_column (conn, 0, 0, &tmp);
       if (status)
 	{
@@ -224,7 +225,7 @@ sql_retrieve_quota (char *name, size_t *quota)
 		    mu_strerror (status));
 	  rc = RETR_FAILURE;
 	}
-      else if (strcasecmp (tmp, "none") == 0)
+      else if (tmp == NULL || strcasecmp (tmp, "none") == 0)
 	rc = RETR_UNLIMITED;
       else
 	{
@@ -232,7 +233,8 @@ sql_retrieve_quota (char *name, size_t *quota)
 	  
 	  if (get_size (tmp, quota, &p))
 	    {
-	      mu_error (_("bogus mailbox quota for `%s' (near `%s')"), name, p);
+	      mu_error (_("bogus mailbox quota for `%s' (near `%s')"),
+			name, p);
 	      *quota = groupquota;
 	    }
 	}
