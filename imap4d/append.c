@@ -58,27 +58,41 @@ imap4d_append (struct imap4d_command *command, char *arg)
   return util_finish (command, RESP_NO, "[TRYCREATE] failed");
 }
 
+static int
+_append_date (envelope_t envelope, char *buf, size_t len, size_t *pnwrite)
+{
+  message_t msg = envelope_get_owner (envelope);
+  struct tm **tm = message_get_owner (msg);
+
+  strftime (buf, len, "%a %b %d %H:%M:%S %Y", *tm);
+  return 0;
+}
+
+static int
+_append_sender (envelope_t envelope, char *buf, size_t len, size_t *pnwrite)
+{
+  strncpy (buf, "GNU-imap4d", len);
+  return 0;
+}
+
 int
 imap4d_append0 (mailbox_t mbox, int flags, char *text)
 {
-  mailbox_t tmp;
   stream_t stream;
   int rc = 0;
   size_t len = 0;
-  message_t msg;
+  message_t msg = 0;
   struct tm *tm;
   time_t t;
-  char date[80];
-
-  if (mailbox_create (&tmp, "/dev/null"))
-    return 1;
-  if (mailbox_open (tmp, MU_STREAM_READ) != 0)
+  envelope_t env;
+    
+  if (message_create (&msg, &tm))
     return 1;
   
   if (memory_stream_create (&stream, 0, MU_STREAM_RDWR)
       || stream_open (stream))
     {
-      mailbox_close (tmp);
+      message_destroy (&msg, &tm);
       return 1;
     }
 
@@ -98,34 +112,34 @@ imap4d_append0 (mailbox_t mbox, int flags, char *text)
       time(&t);
     }
   tm = gmtime(&t);
-  strftime (date, sizeof (date),
-	    "From GNU-imap4d %a %b %e %H:%M:%S %Y%n",
-	    tm);
-  
-  stream_write (stream, date, strlen (date), 0, &len);
-  stream_write (stream, text, strlen (text), len, &len);
 
-  mailbox_set_stream (tmp, stream);
-  mailbox_messages_count (tmp, &len);
-  if (len == 1)
+  stream_write (stream, text, strlen (text), len, &len);
+  message_set_stream (msg, stream, &tm);
+
+  envelope_create (&env, msg);
+  envelope_set_date (env, _append_date, msg);
+  envelope_set_sender (env, _append_sender, msg);
+  message_set_envelope (msg, env, &tm);
+  rc = mailbox_append_message (mbox, msg);
+  if (rc == 0 && flags)
     {
-      mailbox_get_message (tmp, 1, &msg);
-      mailbox_append_message (mbox, msg);
-      if (flags)
-	{
-	  size_t num = 0;
-	  attribute_t attr = NULL;
-	  mailbox_messages_count (mbox, &num);
-	  mailbox_get_message (mbox, num, &msg);
-	  message_get_attribute (msg, &attr);
-	  attribute_set_flags (attr, flags);
-	}
+      size_t num = 0;
+      attribute_t attr = NULL;
+      mailbox_messages_count (mbox, &num);
+      mailbox_get_message (mbox, num, &msg);
+      message_get_attribute (msg, &attr);
+      attribute_set_flags (attr, flags);
     }
-  else
-    rc = 1;
-  
-  mailbox_close (tmp);
-  mailbox_destroy (&tmp);
+
+  message_destroy (&msg, &tm);
   return rc;
 }
 
+int
+wd()
+{
+  volatile int _s = 0;
+  while (!_s)
+    ;
+}
+     
