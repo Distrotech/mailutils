@@ -13,5 +13,6 @@ i-octet.exp
 not.exp
 redirect.exp
 reject.exp
+relational.exp
 size.exp
 true.exp
