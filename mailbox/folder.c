@@ -269,6 +269,10 @@ folder_set_ticket (folder_t folder, ticket_t ticket)
     return EINVAL;
   if (folder->ticket)
     ticket_destroy (&(folder->ticket), folder);
+  if (folder->authority)
+    {
+      authority_set_ticket (folder->authority, ticket);
+    }
   folder->ticket = ticket;
   return 0;
 }
