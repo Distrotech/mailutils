@@ -1,3 +1,39 @@
+2001-06-30 Sergey Poznyakoff
+	* configure.in:
+		define READLINE_LIBS instead of linking libreadline
+		to every binary. 
+		AC_CHECK_LIB(pthread) was missing comma before
+		ACTION_IF_NOT_FOUND, thus have_libpthread was always no.
+	* mail/Makefile.am: User READLINE_LIBS
+	* lib/argcv.[ch]: Treat a sequence of whitespace characters as
+	a single whitespace. Break string on given delimiters. Do not
+	split quoted arguments.
+	* mail/set.c: Modified to use new argcv_get() syntax.
+	* mail/delete.c: After deleting move realcursor to the next
+	non-deleted message.
+	* mail/alt.c: Honour "metoo" variable. Try to determine users
+	full email address.
+	* mail/mail.c: do not put empty or comment lines into readline
+	history. Handle keyboard interrupts properly.
+	Implemented `warranty' command. Warn user about arrival of a new
+	mail.
+	* mail/send.c: Handle keyboard interrupts. Use util_tempfile().
+	* mail/{send.c,reply.c}: change args in call to mail_send0(): packed
+	all header strings into one structure to facilitate escape handling.
+	Warn user about null message body.
+	* mail/mailline.c: (new) readline-related functions.
+	* mail/var.c: (new) Functions for escape variable handling.
+	* mail/util.c: added extra argument to util_find_entry(): a pointer
+	to the table where to look up. Added util_error(), util_help(),
+	util_tempfile().
+	* mail/*.c: use util_error() instead of printing diagnostics to ofile.
+	* mail/{source.c,if.c}: removed mail_is_terminal(),
+	mail_set_is_terminal(): `interactive' is used instead.
+	* mail/mail.h: in struct mail_command_entry changed `isflow' field
+	to `flags'. It contains information about semantics of the command.
+	* mail/table.c: Initialize `flags' field.
+		
+
 2001-06-29  Alain Magloire
 
 	* mail/util.c (util_expand_msglist): Implement expansion of
