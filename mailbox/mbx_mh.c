@@ -540,7 +540,14 @@ _mh_message_save (struct _mh_data *mhd, struct _mh_message *mhm, int expunge)
 
   message_get_envelope (msg, &env);
   if (envelope_date (env, buffer, sizeof buffer, &n) == 0 && n > 0)
-    fprintf (fp, "%s: %s\n", MH_ENV_DATE_HEADER, buffer);
+    {
+      /* NOTE: buffer is terminated with \n */
+      char *p = buffer;
+      while (isspace (*p))
+	p++;
+      fprintf (fp, "%s: %s", MH_ENV_DATE_HEADER, p);
+    }
+	  
   if (envelope_sender (env, buffer, sizeof buffer, &n) == 0 && n > 0)
     fprintf (fp, "%s: %s\n", MH_ENV_SENDER_HEADER, buffer);
   
@@ -548,7 +555,8 @@ _mh_message_save (struct _mh_data *mhd, struct _mh_message *mhm, int expunge)
   message_get_attribute (msg, &attr);
   attribute_to_string (attr, buf, bsize, &n);
   fprintf (fp, "%s", buf);
-
+  fprintf (fp, "\n");
+  
   /* Copy message body */
 
   message_get_body (msg, &body);
@@ -1371,8 +1379,12 @@ mh_envelope_date (envelope_t envelope, char *buf, size_t len,
     {
       len--; /* Leave space for the null.  */
       strncpy (buf, from, len);
+      if (strlen (from) < len)
+	{
+	  len = strlen (buf);
+	  buf[len++] = '\n';
+	}
       buf[len] = '\0';
-      len = strlen (buf);
     }
   else
     len = 0;
@@ -1401,11 +1413,11 @@ mh_envelope_sender (envelope_t envelope, char *buf, size_t len, size_t *psize)
 
   if (buf && len > 0)
     {
-      int slen = strlen (from) + 1;
+      int slen = strlen (from);
 
-      if (len <= slen)
+      if (len < slen + 1)
 	slen = len - 1;
-      memcpy (buf, from, slen - 1);
+      memcpy (buf, from, slen);
       buf[slen] = 0;
     }
   else
