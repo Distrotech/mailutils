@@ -9,7 +9,7 @@ LDLIBS 	= -lsocket
 
 MULIBS	= ../mailbox/.libs/libmailbox.a ../lib/libmailutils.a
 
-EXES    = addr mbox-explode mbox-dates mbox-auth url-parse mbox-check mimetest
+EXES    = addr mbox-explode mbox-dates mbox-auth url-parse mbox-check mimetest msg-send
 
 default: $(EXES)
 
