@@ -137,7 +137,7 @@ pop3_usage (char *argv0)
   printf ("                           TIMEOUT must be at least 600 (10 minutes) or\n");
   printf ("                           it will be disabled\n");
   printf ("  -v, --version            display version information and exit\n");
-  printf ("\nReport bugs to gnu-pop-list@nodomainname.net\n");
+  printf ("\nReport bugs to bug-mailutils@gnu.org\n");
   exit (0);
 }
 
