@@ -1,3 +1,26 @@
+2002-01-15  Sergey Poznyakoff  
+
+	* imap4d/imap4d.c: New command line option --maildir (-m).
+	  Register mbox_record at startup.
+	* pop3d/pop3d.c: Likewise.
+	* imap4d/imap4d.h: Extern declaration for maildir.
+	* pop3d/pop3d.h: Likewise.
+	
+	* imap4d/select.c: Use maildir instead of _PATH_MAILDIR.
+	* pop3d/user.c: Likewise.
+	
+	* mailbox/mutil.c: (mu_normalize_maildir) New function.
+	  Makes sure the mailbox specification either is a
+          pathname ending with '/', or matches regexp 'mbox:.*user='.
+	* include/mailutils/mutil.h: (mu_normalize_maildir) Added
+	  prototype. 
+	* mailbox/url_mbox.c: Handle extended URL specification.
+          Implemented three hash schemes.
+	
+	* comsat/action.c: (expand_line): Removed unused variable.
+	* libmu_scm/mu_mailbox.c: Fixed indentation.
+	* pop3d/apop.c: Fixed typecasts.
+	
 2002-01-14 Sergey Poznyakoff  
 
 	* argp/argp-parse.c (parser_init): Fixed erroneous typecasts.
