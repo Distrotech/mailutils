@@ -56,6 +56,7 @@ pkginclude_HEADERS = \
  refcount.h \
  registrar.h \
  stream.h \
+ sql.h \
  tls.h \
  types.h \
  url.h 
