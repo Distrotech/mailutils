@@ -658,16 +658,22 @@ _locker_lock_dotlock (locker_t lock)
   /* Try to link to the lockfile. */
   if (link (lock->data.dot.nfslock, lock->data.dot.dotlock) == -1)
     {
+      unlink (lock->data.dot.nfslock);
       if (errno == EEXIST)
 	return MU_ERR_LOCK_CONFLICT;
       return errno;
     }
 
   if ((fd = open (lock->data.dot.dotlock, O_RDONLY)) == -1)
-    return errno;
+    {
+      unlink (lock->data.dot.nfslock);
+      return errno;
+    }
+  
   err = stat_check (lock->data.dot.nfslock, fd, 2);
   if (err)
     {
+      unlink (lock->data.dot.nfslock);
       if (err == EINVAL)
 	return MU_ERR_LOCK_BAD_LOCK;
       return errno;
