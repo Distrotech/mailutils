@@ -21,10 +21,11 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <syslog.h>
 #include <mailutils/error.h>
 
-static int
-default_error_printer (const char *fmt, va_list ap)
+int
+mu_default_error_printer (const char *fmt, va_list ap)
 {
   int status;
   status = vfprintf (stderr, fmt, ap);
@@ -36,7 +37,20 @@ default_error_printer (const char *fmt, va_list ap)
   return status;
 }
 
-static error_pfn_t mu_error_printer = default_error_printer;
+int
+mu_syslog_error_printer (const char *fmt, va_list ap)
+{
+#ifdef HAVE_VSYSLOG
+  vsyslog (LOG_CRIT, fmt, ap);
+#else
+  char buf[128];
+  snprintf (buf, sizeof buf, fmt, ap);
+  syslog (LOG_CRIT, "%s", buf);
+#endif
+  return 0;
+}
+
+static error_pfn_t mu_error_printer = mu_default_error_printer;
 
 int
 mu_error (const char *fmt, ...)
