@@ -1050,7 +1050,15 @@ util_wcard_match (const char *string, const char *pattern, const char *delim)
   return WCARD_NOMATCH;
 }
 
-/* Return the uindvalidity of a mailbox. */
+/* Return the uindvalidity of a mailbox.
+   When a mailbox is selected, whose first message does not keep X-UIDVALIDITY
+   value, the uidvalidity is computed based on the return of time(). Now,
+   if we call "EXAMINE mailbox" or "STATUS mailbox (UIDVALIDITY)" the same
+   mailbox is opened second time and the uidvalidity recalculated. Thus each
+   subsequent call to EXAMINE or STATUS upon an already selected mailbox
+   will return different uidvalidity value. To avoid this, util_uidvalidity()
+   first sees if it is asked to operate upon an already opened mailbox
+   and if so, returns previously computed value. */
 int
 util_uidvalidity (mailbox_t smbox, unsigned long *uidvp)
 {
