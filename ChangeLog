@@ -1,3 +1,13 @@
+2003-03-03  Sergey Poznyakoff
+
+	* configure.ac: New option --with-included-argp
+	* README: Documented --with-included-argp
+	* doc/texinfo/muint.texi: New file. Root for the "Mailutils
+	  internals" manual.
+	* doc/texinfo/Makefile.am: Added rules to generate muint.info
+	* doc/texinfo/mom.texi: Minor changes.
+	* po/POTFILES.in: Added missed files.
+
 2003-02-24  Alain Magloire
 
 	* doc/texinfo/mom.texi: Draft explanation of the
