@@ -143,6 +143,8 @@ static struct argp_option mu_daemon_argp_option[] = {
    "Listen on specified port number", 0},
   {"timeout", 't', "NUMBER", 0,
    "Set idle timeout value to NUMBER seconds", 0},
+  {"transcript", 'x', NULL, 0,
+   "output session transcript via syslog", 0},
   { NULL,      0, NULL, 0, NULL, 0 }
 };  
 
@@ -480,6 +482,10 @@ mu_daemon_argp_parser (int key, char *arg, struct argp_state *state)
       
     case 't':
       p->timeout = strtoul (arg, NULL, 10);
+      break;
+
+    case 'x':
+      p->transcript = 1;
       break;
       
     default:
