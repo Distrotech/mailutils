@@ -430,8 +430,11 @@ util_finish (struct imap4d_command *command, int rc, const char *format, ...)
     new_state = STATE_NONE;
 
   if (new_state != STATE_NONE)
-    state = new_state;
-
+    {
+      util_run_events (state, new_state);
+      state = new_state;
+    }
+  
   return status;
 }
 
@@ -1199,3 +1202,57 @@ util_bye ()
   list_do (atexit_list, atexit_run, 0);
 }
 
+struct state_event {
+  int old_state;
+  int new_state;
+  list_action_t *action;
+  void *data;
+};
+
+static list_t event_list;
+
+void
+util_register_event (int old_state, int new_state,
+		     list_action_t *action, void *data)
+{
+  struct state_event *evp = malloc (sizeof (*evp));
+  if (!evp)
+    imap4d_bye (ERR_NO_MEM);
+  evp->old_state = old_state;
+  evp->new_state = new_state;
+  evp->action = action;
+  evp->data = data;
+  if (!event_list)
+    list_create (&event_list);
+  list_append (event_list, (void*)evp);
+}
+
+void
+util_event_remove (void *id)
+{
+  list_remove (event_list, id);
+}
+
+static int
+event_exec (void *item, void *data)
+{
+  struct state_event *ev = data, *elem = item;
+
+  if (ev->old_state == elem->old_state && ev->new_state == elem->new_state)
+    return elem->action (item, elem->data);
+  return 0;
+}
+
+void
+util_run_events (int old_state, int new_state)
+{
+  if (event_list)
+    {
+      struct state_event ev;
+
+      ev.old_state = old_state;
+      ev.new_state = new_state;
+      list_do (event_list, event_exec, &ev);
+    }
+}
+  
