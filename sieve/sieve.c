@@ -77,9 +77,6 @@ static struct argp_option options[] =
   {"ticket", 't', "TICKET", 0,
    "Ticket file for mailbox authentication", 0},
 
-  {"mailer-url", 'M', "MAILER", 0,
-   "Mailer URL (defaults to \"sendmail:\"). Use `--mailer-url none' to disable creating the mailer (it will disable reject and redirect actions as well)", 0},
-
   {"debug", 'd', "FLAGS", OPTION_ARG_OPTIONAL,
    "Debug flags (defaults to \"" D_DEFAULT "\")", 0},
 
@@ -100,7 +97,6 @@ struct options {
   int debug_level;
   int sieve_debug;
   int verbose;
-  char *mailer;
   char *script;
 };
 
@@ -115,8 +111,6 @@ parser (int key, char *arg, struct argp_state *state)
     case ARGP_KEY_INIT:
       if (!opts->tickets)
 	opts->tickets = mu_tilde_expansion ("~/.tickets", "/", NULL);
-      if (!opts->mailer)
-	opts->mailer = strdup ("sendmail:");
       if (!opts->debug_level)
 	opts->debug_level = MU_DEBUG_ERROR;
       log_facility = 0;
@@ -153,11 +147,6 @@ parser (int key, char *arg, struct argp_state *state)
     case 't':
       free (opts->tickets);
       opts->tickets = mu_tilde_expansion (arg, "/", NULL);
-      break;
-      
-    case 'M':
-      free (opts->mailer);
-      opts->mailer = strdup (arg);
       break;
       
     case 'd':
@@ -228,6 +217,7 @@ static const char *sieve_argp_capa[] =
   "mailbox",
   "license",
   "logging",
+  "mailer",
   NULL
 };
 
@@ -309,7 +299,6 @@ main (int argc, char *argv[])
   wicket_t wicket = 0;
   ticket_t ticket = 0;
   mu_debug_t debug = 0;
-  mailer_t mailer = 0;
   mailbox_t mbox = 0;
   int rc;
   struct options opts = {0};
@@ -401,23 +390,6 @@ main (int argc, char *argv[])
   
   sieve_set_debug_level (mach, debug, opts.sieve_debug);
     
-  /* Create a mailer. */
-  if (strcmp (opts.mailer, "none"))
-    {
-      if ((rc = mailer_create (&mailer, opts.mailer)))
-	{
-	  mu_error ("mailer create <%s> failed: %s\n",
-		   opts.mailer, mu_errstring (rc));
-	  goto cleanup;
-	}
-      if (debug && (rc = mailer_set_debug (mailer, debug)))
-	{
-	  mu_error ("mailer_set_debug failed: %s\n",
-		   mu_errstring (rc));
-	  goto cleanup;
-	}
-      sieve_set_mailer (mach, mailer);
-    }
   /* Create, give a ticket to, and open the mailbox. */
   if ((rc = mailbox_create_default (&mbox, opts.mbox)) != 0)
     {
