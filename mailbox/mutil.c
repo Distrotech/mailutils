@@ -29,6 +29,7 @@
 #include <pwd.h>
 #include <unistd.h>
 #include <string.h>
+#include <netdb.h>
 
 #include <mailutils/mutil.h>
 #include <mailutils/iterator.h>
@@ -404,3 +405,40 @@ getpwnam_virtual (const char *u)
 }
 
 #endif
+
+char *
+mu_get_user_email (char *name)
+{
+  size_t size;
+  char hostname[256];
+  struct hostent *hp;
+  char *domainpart;
+  char *email;
+  
+  if (!name)
+    {
+      struct passwd *pw = getpwuid (getuid ());
+      if (!pw)
+	{
+	  errno = EINVAL;
+	  return NULL;
+	}
+      name = pw->pw_name;
+    }
+
+  gethostname (hostname, sizeof hostname);
+  hostname[sizeof (hostname)-1] = 0;
+
+  if (hp = gethostbyname (hostname))
+    domainpart = hp->h_name;
+  else
+    domainpart = hostname;
+  email = malloc (strlen (name) + strlen (domainpart) + 2);
+  if (!email)
+    {
+      errno = ENOMEM;
+      return NULL;
+    }
+  sprintf (email, "%s@%s", name, domainpart);
+  return email;
+}
