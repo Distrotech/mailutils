@@ -477,7 +477,7 @@ _comp_action (void *item, void *data)
 
   d.comp = cp->comp;
   d.test = cp->test;
-  for (i = 0; cp->retr (item, cp->data, i, &d.sample) == 0; i++)
+  for (i = 0; rc == 0 && cp->retr (item, cp->data, i, &d.sample) == 0; i++)
     if (d.sample)
       {
 	cp->count++;
