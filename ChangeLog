@@ -1,3 +1,20 @@
+2003-01-20  Sergey Poznyakoff 
+
+	* configure.ac: Invoke AM_GNU_GETTEXT with no-libtool,
+	  need-ngettext
+	* lib/Makefile.am (INCLUDES): Added @INTLINCS@
+	* lib/posix/regex.h: Define __restrict_arr to empty string
+	  unless it was already defined elsewhere.
+	  
+	* m4/tls.m4: Reverted order of checks for libgnutls
+	  and libgcrypt. 
+
+	* mailbox/Makefile.am (mailutils_config_CFLAGS): Define I18NLIBS.
+	* mailbox/mailutils-config.c (main): Use I18NLIBS instead of
+	  hardcoding library names.
+
+	* THANKS: Added Simon Josefsson
+	
 2003-01-19  Wojciech Polak
 
 	* auth/tls.c (mu_check_tls_environment): Removed file permissions
