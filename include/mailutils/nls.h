@@ -25,7 +25,11 @@
 */
 
 #ifdef ENABLE_NLS
-# include <libintl.h>
+# ifdef WITH_INCLUDED_LIBINTL
+#  include <libgnuintl.h>
+# else
+#  include <libintl.h>
+# endif
 # define _(String) gettext(String)
 # define N_(String) String
 #ifdef HAVE_LOCALE_H
