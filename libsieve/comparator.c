@@ -339,7 +339,6 @@ i_octet_matches (const char *pattern, const char *text)
   return fnmatch (pattern, text, 0) == 0;
 }
 
-/* FIXME */
 static int
 i_octet_regex (const char *pattern, const char *text)
 {
