@@ -26,6 +26,7 @@
 #include <time.h>
 
 #include <mailutils/mu_features.h>
+#include <mailutils/list.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -79,6 +80,11 @@ extern char * mu_getcwd __P((void));
   
 extern int mu_spawnvp(const char* prog, const char* const av[], int* stat);
 
+typedef void *(*mu_retrieve_fp) __P((void *));
+extern void mu_register_retriever __P((list_t *pflist, mu_retrieve_fp fun));
+extern void * mu_retrieve __P((list_t flist, void *data));
+
+  
 #ifdef __cplusplus
 }
 #endif
