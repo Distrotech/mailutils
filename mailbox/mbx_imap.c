@@ -34,6 +34,8 @@
 #include <registrar0.h>
 #include <imap0.h>
 
+extern time_t mu_mktime __P((struct tm *timeptr, int tz));
+
 /* Functions to overload the mailbox_t API.  */
 static void mailbox_imap_destroy __P ((mailbox_t));
 static int mailbox_imap_open     __P ((mailbox_t, int));
@@ -1230,6 +1232,67 @@ imap_envelope_sender (envelope_t envelope, char *buffer, size_t buflen,
   return status;
 }
 
+int
+imap_parse_date_time (const char **p, struct tm *tm, int *tz)
+{
+  int year, mon, day, hour, min, sec;
+  char zone[6] = "+0000";	/* ( "+" / "-" ) hhmm */
+  char month[5] = "";
+  int hh = 0;
+  int mm = 0;
+  int sign = 1;
+  int scanned = 0, scanned3;
+  int i;
+
+  day = mon = year = hour = min = sec = 0;
+
+  memset (tm, 0, sizeof (*tm));
+
+  switch (sscanf (*p,
+		  "%2d-%3s-%4d%n %2d:%2d:%2d %5s%n",
+		  &day, month, &year, &scanned3, &hour, &min, &sec, zone,
+		  &scanned))
+    {
+    case 3:
+      scanned = scanned3;
+      break;
+    case 7:
+      break;
+    default:
+      return -1;
+    }
+
+  tm->tm_sec = sec;
+  tm->tm_min = min;
+  tm->tm_hour = hour;
+  tm->tm_mday = day;
+
+  for (i = 0; i < 12; i++)
+    {
+      if (strncasecmp (month, MONTHS[i], 3) == 0)
+	{
+	  mon = i;
+	  break;
+	}
+    }
+  tm->tm_mon = mon;
+  tm->tm_year = (year > 1900) ? year - 1900 : year;
+  tm->tm_yday = 0;		/* unknown. */
+  tm->tm_wday = 0;		/* unknown. */
+  tm->tm_isdst = -1;		/* unknown. */
+
+  hh = (zone[1] - '0') * 10 + (zone[2] - '0');
+  mm = (zone[3] - '0') * 10 + (zone[4] - '0');
+  sign = (zone[0] == '-') ? -1 : +1;
+
+  if (tz)
+    *tz = sign * (hh * 60 * 60 + mm * 60);
+
+  *p += scanned;
+
+  return 0;
+}
+
 static int
 imap_envelope_date (envelope_t envelope, char *buffer, size_t buflen,
 		    size_t *plen)
@@ -1238,12 +1301,13 @@ imap_envelope_date (envelope_t envelope, char *buffer, size_t buflen,
   msg_imap_t msg_imap = message_get_owner (msg);
   m_imap_t m_imap = msg_imap->m_imap;
   f_imap_t f_imap = m_imap->f_imap;
-  int year, mon, day, hour, min, sec;
-  int offt;
-  int i;
   struct tm tm;
+  int tz;
   time_t now;
-  char month[5];
+  char datebuf[] = "mm-dd-yyyy hh:mm:ss +0000";
+  const char* date = datebuf;
+  const char** datep = &date;
+    /* reserve as much space as we need for internal-date */
   int status;
   if (f_imap->state == IMAP_NO_STATE)
     {
@@ -1258,47 +1322,47 @@ imap_envelope_date (envelope_t envelope, char *buffer, size_t buflen,
       MAILBOX_DEBUG0 (m_imap->mailbox, MU_DEBUG_PROT, f_imap->buffer);
       f_imap->state = IMAP_FETCH;
     }
-  status = message_operation (f_imap, msg_imap, buffer, buflen, plen);
+  status = message_operation (f_imap, msg_imap, datebuf, sizeof(datebuf), NULL);
   if (status != 0)
     return status;
-  day = mon = year = hour = min = sec = offt = 0;
-  month[0] = '\0';
-  sscanf (buffer, "%2d-%3s-%4d %2d:%2d:%2d %d", &day, month, &year,
-	  &hour, &min, &sec, &offt);
-  tm.tm_sec = sec;
-  tm.tm_min = min;
-  tm.tm_hour = hour;
-  tm.tm_mday = day;
-  for (i = 0; i < 12; i++)
-    {
-      if (strncasecmp(month, MONTHS[i], 3) == 0)
-	{
-	  mon = i;
-	  break;
-	}
-    }
-  tm.tm_mon = mon;
-  tm.tm_year = (year > 1900) ? year - 1900 : year;
-  tm.tm_yday = 0; /* unknown. */
-  tm.tm_wday = 0; /* unknown. */
-  tm.tm_isdst = -1; /* unknown. */
-  /* What to do the timezone?  */
 
-  now = mktime (&tm);
+  if (imap_parse_date_time(datep, &tm, &tz) != 0)
+    now = (time_t)-1;
+  else
+    now = mu_mktime (&tm, tz);
+
+  /* if the time was unparseable, or mktime() didn't like what we
+     parsed, use the calendar time. */
   if (now == (time_t)-1)
     {
-      size_t len;
-      /* Fall back to localtime.  */
-      now = time (NULL);
-      snprintf (buffer, buflen, "%s", ctime(&now));
-      len = strlen (buffer);
-      if (len && buffer[len - 1] == '\n')
-	buffer[len - 1] = '\0';
+      struct tm* gmt;
+      
+      time(&now);
+      
+      gmt = gmtime(&now);
+
+      tm = *gmt;
     }
-  else
-    {
-      strftime (buffer, buflen, " %a %b %d %H:%M:%S %Y", &tm);
-    }
+
+  {
+    int len = strftime (buffer, buflen, " %a %b %d %H:%M:%S %Y", &tm);
+
+    /* FIXME: I don't know what strftime does if the buflen is too
+       short, or it fails. Assuming that it won't fail, this is my guess
+       as to the right thing.
+     
+       I think if the buffer is too short, it will fill it as much
+       as it can, and nul terminate it. But I'll terminate it anyhow.
+     */
+    if(len == 0)
+      {
+	len = buflen - 1;
+	buffer[len] = 0;
+      }
+    
+    if(plen)
+      *plen = len;
+  }
   return 0;
 }
 
