@@ -72,6 +72,8 @@ extern struct passwd * mu_getpwnam __P((const char *name));
 extern int mu_virtual_domain;
 
 extern struct passwd * getpwnam_virtual __P((const char *u));
+
+extern char * mu_get_user_email __P((char *name));
   
 #ifdef __cplusplus
 }
