@@ -645,19 +645,18 @@ util_folder_path (const char *name)
 }
 
 char *
-util_get_sender(int msgno, int strip)
+util_get_sender (int msgno, int strip)
 {
-  header_t header = NULL;
-  address_t addr = NULL;
   message_t msg = NULL;
-  char buffer[512], *p;
+  address_t addr = NULL;
+  char *buf = NULL, *p;
 
   mailbox_get_message (mbox, msgno, &msg);
-  message_get_header (msg, &header);
-  if (header_get_value (header, MU_HEADER_FROM, buffer, sizeof(buffer), NULL)
-      || address_create (&addr, buffer))
+  addr = get_sender_address (msg);
+  if (!addr)
     {
       envelope_t env = NULL;
+      char buffer[512];
       message_get_envelope (msg, &env);
       if (envelope_sender (env, buffer, sizeof (buffer), NULL)
 	  || address_create (&addr, buffer))
@@ -667,7 +666,7 @@ util_get_sender(int msgno, int strip)
 	}
     }
 
-  if (address_get_email (addr, 1, buffer, sizeof(buffer), NULL))
+  if (address_aget_email (addr, 1, &buf))
     {
       util_error (_("can't determine sender name (msg %d)"), msgno);
       address_destroy (&addr);
@@ -676,18 +675,17 @@ util_get_sender(int msgno, int strip)
 
   if (strip)
     {
-      p = strchr (buffer, '@');
+      p = strchr (buf, '@');
       if (p)
 	*p = 0;
     }
 
-  p = strdup (buffer);
   address_destroy (&addr);
-  return p;
+  return buf;
 }
 
 void
-util_slist_print(list_t list, int nl)
+util_slist_print (list_t list, int nl)
 {
   iterator_t itr;
   char *name;
@@ -705,7 +703,7 @@ util_slist_print(list_t list, int nl)
 }
 
 int
-util_slist_lookup(list_t list, char *str)
+util_slist_lookup (list_t list, char *str)
 {
   iterator_t itr;
   char *name;
