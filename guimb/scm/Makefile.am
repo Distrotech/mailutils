@@ -5,7 +5,7 @@
 bin_SCRIPTS = sieve.scm
 
 sieve.scm: sieve.scm.in
-	sed "s,%BINDIR%,$(bindir),g;s,%LIBDIR%,$(pkgdatadir),g" $< > $@
+	sed "s,%BINDIR%,$(bindir),g;s,%LIBDIR%,$(pkgdatadir),g;s,%PACKAGE%,$(PACKAGE),g;s,%VERSION%,$(VERSION),g" $< > $@
 
 CLEANFILES = sieve.scm
 
@@ -14,7 +14,8 @@ pkgdata_DATA=\
  numaddr.scm\
  redirect.scm\
  reject.scm\
- sieve-core.scm
+ sieve-core.scm\
+ vacation.scm
 
 EXTRA_DIST=\
  mimeheader.scm\
@@ -22,5 +23,6 @@ EXTRA_DIST=\
  redirect.scm\
  reject.scm\
  sieve-core.scm\
- sieve.scm.in
+ sieve.scm.in\
+ vacation.scm
 
