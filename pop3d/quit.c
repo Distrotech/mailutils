@@ -64,9 +64,12 @@ pop3d_fix_mark ()
   size_t total = 0;
   char *value = NULL;
   int len;
-
+  
   mailbox_messages_count (mbox, &total);
-  len = asprintf (&value, "%ul", (unsigned long) time (NULL));
+
+  if (expire > 0)
+    len = asprintf (&value, "%lu", (unsigned long) time (NULL));
+  
   for (i = 1; i <= total; i++)
     {
        message_t msg = NULL;
@@ -77,7 +80,7 @@ pop3d_fix_mark ()
        if (pop3d_is_deleted (attr))
           attribute_set_deleted (attr);
 
-       // Mark the message with a timestamp.
+       /* Mark the message with a timestamp. */
        if (expire >= 0 && pop3d_is_retr (attr))
          {
            header_t header = NULL;
