@@ -26,7 +26,7 @@
 #include <sieve.h>
 
 static sieve_register_t *
-sieve_lookup (list_t list, const char *name)
+reg_lookup (list_t list, const char *name)
 {
   iterator_t itr;
   sieve_register_t *reg;
@@ -49,15 +49,42 @@ sieve_lookup (list_t list, const char *name)
 sieve_register_t *
 sieve_test_lookup (sieve_machine_t mach, const char *name)
 {
-  return sieve_lookup (mach->test_list, name);
+  return reg_lookup (mach->test_list, name);
 }
 
 sieve_register_t *
 sieve_action_lookup (sieve_machine_t mach, const char *name)
 {
-  return sieve_lookup (mach->action_list, name);
+  return reg_lookup (mach->action_list, name);
 }
-     
+
+static int
+reg_require (sieve_machine_t mach, list_t list, const char *name)
+{
+  sieve_register_t *reg = reg_lookup (list, name);
+  if (!reg)
+    {
+      if (!(sieve_load_ext (mach, name) == 0
+	    && (reg = reg_lookup (list, name)) != NULL))
+	return 1;
+    }
+  reg->required = 1;
+  return 0;
+}
+
+int
+sieve_require_action (sieve_machine_t mach, const char *name)
+{
+  return reg_require (mach, mach->action_list, name);
+}
+
+int
+sieve_require_test (sieve_machine_t mach, const char *name)
+{
+  return reg_require (mach, mach->test_list, name);
+}
+
+
 static int
 sieve_register (list_t *pool,
 		list_t *list,

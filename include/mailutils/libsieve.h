@@ -26,6 +26,9 @@
 extern "C" {
 #endif
 
+#define __s_cat3__(a,b,c) a ## b ## c
+#define SIEVE_EXPORT(module,name) __s_cat3__(module,_LTX_,name)
+
 typedef struct sieve_machine *sieve_machine_t;
 
 typedef int (*sieve_handler_t) __PMT((sieve_machine_t mach,
@@ -137,6 +140,8 @@ int sieve_register_comparator __P((sieve_machine_t mach,
 				   sieve_comparator_t contains,
 				   sieve_comparator_t matches,
 				   sieve_comparator_t regex));
+int sieve_require_action __P((sieve_machine_t mach, const char *name));
+int sieve_require_test __P((sieve_machine_t mach, const char *name));
 int sieve_require_comparator __P((sieve_machine_t mach, const char *name));
   
 sieve_comparator_t sieve_comparator_lookup __P((sieve_machine_t mach,
@@ -148,6 +153,7 @@ sieve_comparator_t sieve_get_comparator __P((sieve_machine_t mach,
   
 void sieve_require __P((list_t slist));
 int sieve_tag_lookup __P((list_t taglist, char *name, sieve_value_t **arg));
+int sieve_load_ext __P((sieve_machine_t mach, const char *name));
 
 /* Operations in value lists */
 sieve_value_t *sieve_value_get __P((list_t vlist, size_t index));
@@ -201,6 +207,7 @@ int sieve_mailbox __P((sieve_machine_t mach, mailbox_t mbox));
 int sieve_message __P((sieve_machine_t mach, message_t message));
 int sieve_disass __P((sieve_machine_t mach));
 
+  
 #ifdef __cplusplus
 }
 #endif
