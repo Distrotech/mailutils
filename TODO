@@ -14,6 +14,9 @@
 
 + crypt is linked even if pam was detected, it should be one or the other (JB Oct 08/99)
 
+- find out why the pop3 server quits on a signal when the 'quit' command is
+  given
+
 - test daemon code
 
 - test network code
