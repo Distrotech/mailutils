@@ -488,6 +488,19 @@ _mh_tempfile(struct _mh_data *mhd, char **namep)
 }
 
 static int
+_mh_delim (char *str)
+{
+  if (str[0] == '-')
+    {
+      for (; *str == '-'; str++)
+	;
+      for (; *str == ' ' || *str == '\t'; str++)
+	;
+    }
+  return str[0] == '\n';
+}
+
+static int
 _mh_message_save (struct _mh_data *mhd, struct _mh_message *mhm, int expunge)
 {
   stream_t stream = NULL;
@@ -540,7 +553,7 @@ _mh_message_save (struct _mh_data *mhd, struct _mh_message *mhm, int expunge)
   while ((status = stream_readline (stream, buf, bsize, off, &n)) == 0
 	 && n != 0)
     {
-      if (buf[0] == '\n')
+      if (_mh_delim(buf))
 	break;
 
       nlines++;
@@ -559,9 +572,12 @@ _mh_message_save (struct _mh_data *mhd, struct _mh_message *mhm, int expunge)
 
   /* Add imapbase */
   if (!mhd->msg_head || (mhd->msg_head == mhm)) /*FIXME*/
-    fprintf (fp, "X-IMAPbase: %lu %u\n",
-	     (unsigned long) mhd->uidvalidity, (unsigned) _mh_next_seq(mhd));
-
+    {
+      fprintf (fp, "X-IMAPbase: %lu %u\n",
+	       (unsigned long) mhd->uidvalidity, (unsigned) _mh_next_seq(mhd));
+      nlines++;
+    }
+  
   message_get_envelope (msg, &env);
   if (envelope_date (env, buffer, sizeof buffer, &n) == 0 && n > 0)
     {
@@ -570,16 +586,21 @@ _mh_message_save (struct _mh_data *mhd, struct _mh_message *mhm, int expunge)
       while (isspace (*p))
 	p++;
       fprintf (fp, "%s: %s", MH_ENV_DATE_HEADER, p);
+      nlines++;
     }
 	  
   if (envelope_sender (env, buffer, sizeof buffer, &n) == 0 && n > 0)
-    fprintf (fp, "%s: %s\n", MH_ENV_SENDER_HEADER, buffer);
+    {
+      fprintf (fp, "%s: %s\n", MH_ENV_SENDER_HEADER, buffer);
+      nlines++;
+    }
   
   /* Add status */
   message_get_attribute (msg, &attr);
   attribute_to_string (attr, buf, bsize, &n);
   fprintf (fp, "%s", buf);
   fprintf (fp, "\n");
+  nlines += 2;
   
   /* Copy message body */
 
