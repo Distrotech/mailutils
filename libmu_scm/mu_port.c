@@ -100,8 +100,12 @@ mu_port_make_from_stream (SCM msg, stream_t stream, long mode)
 static SCM
 mu_port_mark (SCM port)
 {
-  struct mu_port *mp = MU_PORT (port);
-  return mp->msg;
+  if (SCM_CELL_WORD_0 (port) & SCM_OPN)
+    {
+      struct mu_port *mp = MU_PORT (port);
+      return mp->msg;
+    }
+  return SCM_BOOL_F;
 }
 
 static void
@@ -129,6 +133,9 @@ mu_port_close (SCM port)
   scm_port *pt = SCM_PTAB_ENTRY (port);
 
   mu_port_flush (port);
+  stream_close (mp->stream);
+  SCM_SETSTREAM (port, NULL);
+		
   if (pt->read_buf != &pt->shortbuf)
     free (pt->read_buf);
   if (pt->write_buf != &pt->shortbuf)
