@@ -1,3 +1,7 @@
+2002-02-16  Sergey Poznyakoff  
+
+	* configure.in (LTLIBOBJS hack): escape '[' and ']'
+
 2002-02-15  Jeff Bailey  <jbailey@outpost.dnsalias.org>
 
 	* configure.in: Hack to make AC_REPLACE_FUNCS refer to .lo instead
