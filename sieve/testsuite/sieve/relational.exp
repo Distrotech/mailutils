@@ -27,6 +27,17 @@ sieve_test -f $MU_SPOOL_DIR/relational.mbox rel-address.sv -pattern \
 "IMPLICIT KEEP on msg uid 8"\
 "DISCARD on msg uid 9: marking as deleted"
 
+sieve_test -f $MU_SPOOL_DIR/relational.mbox rel-header.sv -pattern \
+"IMPLICIT KEEP on msg uid 1"\
+"IMPLICIT KEEP on msg uid 2"\
+"IMPLICIT KEEP on msg uid 3"\
+"IMPLICIT KEEP on msg uid 4"\
+"IMPLICIT KEEP on msg uid 5"\
+"IMPLICIT KEEP on msg uid 6"\
+"IMPLICIT KEEP on msg uid 7"\
+"IMPLICIT KEEP on msg uid 8"\
+"DISCARD on msg uid 9: marking as deleted"
+
 sieve_test -f $MU_SPOOL_DIR/relational.mbox rel-hairy.sv -pattern \
 "FILEINTO on msg uid 1: delivering into %From_A-M"\
 "FILEINTO on msg uid 2: delivering into %From_N-Z"\
