@@ -3,7 +3,7 @@ DEJATOOL = mail
 RUNTESTFLAGS = 
 CLEANFILES = *.log
 
-test_dirs = etc config lib mail spool
+test_dirs = etc config lib mail spool folder
 
 dist-hook:
 	here=`cd $(top_builddir)/$(subdir) && pwd`; \
