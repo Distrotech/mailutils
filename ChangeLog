@@ -1,3 +1,7 @@
+2003-01-01  Wojciech Polak <polak@gnu.org>
+
+	* COPYING: Removed.
+
 2002-12-31  Jeff Bailey  <jbailey@gnu.org>
 
 	* auth/Makefile.am: Correct copyright year, add license
