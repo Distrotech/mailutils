@@ -239,12 +239,20 @@ mh_check_folder (char *pathname, int confirm)
 }
 
 int
-mh_getyn (const char *fmt, ...)
+mh_interactive_mode_p ()
 {
-  va_list ap;
+  static int interactive = -1;
+
+  if (interactive < 0)
+    interactive = isatty (fileno (stdin)) ? 1 : 0;
+  return interactive;
+}
+
+int
+mh_vgetyn (const char *fmt, va_list ap)
+{
   char repl[64];
-  
-  va_start (ap, fmt);
+
   while (1)
     {
       char *p;
@@ -277,6 +285,34 @@ mh_getyn (const char *fmt, ...)
   return 0; /* to pacify gcc */
 }
 
+int
+mh_getyn (const char *fmt, ...)
+{
+  va_list ap;
+  char repl[64];
+  int rc;
+  
+  if (mh_interactive_mode_p ())
+      return 1;
+  va_start (ap, fmt);
+  rc = mh_vgetyn (fmt, ap);
+  va_end (ap);
+  return rc;
+}
+
+int
+mh_getyn_interactive (const char *fmt, ...)
+{
+  va_list ap;
+  char repl[64];
+  int rc;
+  
+  va_start (ap, fmt);
+  rc = mh_vgetyn (fmt, ap);
+  va_end (ap);
+  return rc;
+}
+	    
 FILE *
 mh_audit_open (char *name, mailbox_t mbox)
 {
