@@ -531,6 +531,10 @@ extern int re_exec _RE_ARGS ((const char *));
 # endif
 #endif
 
+#ifndef __restrict_arr
+# define __restrict_arr
+#endif
+
 /* POSIX compatibility.  */
 extern int regcomp _RE_ARGS ((regex_t *__restrict __preg,
 			      const char *__restrict __pattern,
