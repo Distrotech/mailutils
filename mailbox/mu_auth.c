@@ -211,9 +211,9 @@ static error_t mu_auth_argp_parser __P((int key, char *arg,
 /* Options used by programs that use extended authentication mechanisms. */
 static struct argp_option mu_auth_argp_option[] = {
   { "authentication", ARG_AUTHENTICATION, N_("MODLIST"), 0,
-    "Set list of modules to be used for authentication", 0 },
+    N_("Set the list of modules to be used for authentication"), 0 },
   { "authorization", ARG_AUTHORIZATION, N_("MODLIST"), 0,
-    "Set list of modules to be used for authorization", 0 },
+    N_("Set list of modules to be used for authorization"), 0 },
   { NULL,      0, NULL, 0, NULL, 0 }
 };
 
