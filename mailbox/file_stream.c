@@ -31,6 +31,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <syslog.h>
+#include <signal.h>
 
 #include <mailutils/stream.h>
 #include <mailutils/error.h>
