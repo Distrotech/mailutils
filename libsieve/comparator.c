@@ -28,7 +28,7 @@
 #include <regex.h>
 
 typedef struct {
-  char *name;
+  const char *name;
   int required;
   sieve_comparator_t comp[MU_SIEVE_MATCH_LAST];
 } sieve_comparator_record_t;
@@ -413,84 +413,10 @@ i_ascii_casemap_is (const char *pattern, const char *text)
   return strcasecmp (pattern, text) == 0;
 }
 
-/* Based on strstr from GNU libc (Stephen R. van den Berg,
-   berg@pool.informatik.rwth-aachen.de) */
-
 static int
 i_ascii_casemap_contains (const char *pattern, const char *text)
 {
-  register const unsigned char *haystack, *needle;
-  register unsigned int b, c;
-
-#define U(c) toupper (c)
-  
-  haystack = (const unsigned char *)text;
-
-  if ((b = U (*(needle = (const unsigned char*)pattern))))
-    {
-      haystack--;		
-      do
-	{
-	  if (!(c = *++haystack))
-	    goto ret0;
-	}
-      while (U (c) != b);
-
-      if (!(c = *++needle))
-	goto foundneedle;
-
-      c = U (c);
-      ++needle;
-      goto jin;
-
-      for (;;)
-        { 
-          register unsigned int a;
-	  register const unsigned char *rhaystack, *rneedle;
-
-	  do
-	    {
-	      if (!(a = *++haystack))
-		goto ret0;
-	      if (U (a) == b)
-		break;
-	      if (!(a = *++haystack))
-		goto ret0;
-shloop:       ;
-            }
-          while (U (a) != b);
-	  
-jin:     if (!(a = *++haystack))
-	    goto ret0;
-
-	  if (U (a) != c)
-	    goto shloop;
-
-	  if (U (*(rhaystack = haystack-- + 1)) ==
-	      (a = U (*(rneedle = needle))))
-	    do
-	      {
-		if (!a)
-		  goto foundneedle;
-		if (U (*++rhaystack) != (a = U (*++needle)))
-		  break;
-		if (!a)
-		  goto foundneedle;
-	      }
-	    while (U (*++rhaystack) == (a = U (*++needle)));
-
-	  needle = rneedle;
-
-	  if (!a)
-	    break;
-        }
-    }
-foundneedle:
-  return 1;
-ret0:
-  return 0;
-
-#undef U
+  return mu_strcasestr (text, pattern) != NULL;
 }
 
 static int
