@@ -8,6 +8,7 @@
 	* m4/realloc.m4: File to support lib/ directory
 	* lib/xalloc.h: New file to support xmalloc.c
 	* lib/xmalloc.c: New version from sh-utils-2.0g
+	* autogen.sh: Look in m4 for extra macros
 
 2000-03-28  Jakob 'sparky' Kaivo  <jkaivo@elijah.nodomainname.net>
 
