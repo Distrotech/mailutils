@@ -13,10 +13,11 @@
 
 @end example
 
-The purpose of the Post Office Protocol Version 3 (POP3) is to permit a client to download a maildrop from a remote server.  It does
-not provide complex or extensive operation on the maildrop.  When the client successfully authenticates, the server acquires an
-exclusive access lock on the mailbox and holds it the entire duration of the session.  After the authentication, the session enters
-transaction state and the client may issues commands to access messages in the  mailbox.
+The purpose of the Post Office Protocol Version 3 (POP3) is to permit a client to download a maildrop from a remote
+server,  the protocol does not provide complex or extensive operation on the maildrop.  When the client successfully
+authenticates, the server acquires an exclusive access lock on the mailbox and holds it the entire duration of the
+session.  After the authentication, the session enters transaction state and the client may issues commands to
+access messages in the  mailbox.
 @itemize @bullet
 @item
 Authorization state
@@ -58,41 +59,44 @@ Transaction state
   @end itemize
 @end itemize
 
-When the command QUIT is issue the session enters the update state.
-The servers removes all messages marked deleted, releases the exclusive lock
+When the command QUIT is issue the session enters the update state;
+the server removes all messages marked deleted, releases the exclusive lock
 and closes the TCP connection.
 
 @subsection Commands
 @cindex mu_pop3_t
 
-An opaque structure @var{mu_pop3_t} is use as a handle for the session, it is allocated and initialized by
-calling @code{mu_pop3_create ()}.  All Functions will wait for a reply from the POP3 server before returning.  The duration of the
-wait can be set by calling @code{mu_pop3_set_timeout ()}, the default is 2 minutes.  On the server side, there is also an idle
-timeout of 10 minutes before the POP3 server closes the connection, although the @cite{RFC 1939} specifies that the minimum
+An opaque structure @code{mu_pop3_t} is use as a handle for the session, it is allocated and initialize by
+calling @code{mu_pop3_create()}.  All Functions will wait for a reply from the POP3 server before returning.
+The duration of the wait can be set by calling @code{mu_pop3_set_timeout()}, the default is 2 minutes.
+On the server side, there is also an idle timeout of 10 minutes before the POP3 server closes the connection,
+although the @cite{RFC 1939} specifies that the minimum
 default timeout to be ten minutes, many servers have shorter idle period, care should be taken to at least send a
-@code{mu_pop3_noop ()} between lengthy period of idle time.  Once a successful connection is established with
-@code{mu_pop3_connect ()}, two built-ins authentications are provided @code{mu_pop3_apop ()} or
-@code{mu_pop3_user ()}/@code{mu_pop3_pass ()}.  The @code{mu_pop3_stat ()} and @code{mu_pop3_list ()} functions can be use to
-get the number and size of messages. The functions @code{mu_pop3_list_all ()}, @code{mu_pop3_uidl_all ()} and
-@code{mu_pop3_capa ()} provide the information by going through there list iterators.  Downloading of messages is done via a two methods
-@code{mu_pop3_retr ()} or @code{mu_pop3_top ()}; @strong{Caution: Some Internet Service Providers do not permit to leave mail on
-server and the message will be deleted once downloaded}.
-The functions @code{mu_pop3_retr ()} or @code{mu_pop3_top ()} initiates the downloading of the message.
-POP3 provides only a single channel for operation, it means only one operation can be done at a time, all the functions
-will return @code{EINPROGRESS}.
+@code{mu_pop3_noop()} between lengthy period of idle time.  Once a successful connection is established with
+@code{mu_pop3_connect()}, two built-ins authentications are provided @code{mu_pop3_apop ()} or
+@code{mu_pop3_user()}/@code{mu_pop3_pass()}.  The @code{mu_pop3_stat()} and @code{mu_pop3_list ()} functions can be use to
+get the number and size of messages. The functions @code{mu_pop3_list_all()}, @code{mu_pop3_uidl_all ()} and
+@code{mu_pop3_capa()} save the information in a @code{list_t}.  Downloading of messages is done
+via a two methods @code{mu_pop3_retr()} or @code{mu_pop3_top()};
+@strong{Caution: Some Internet Service Providers do not permit to leave mail on server and the message will be
+deleted once downloaded}.
+POP3 provides only a single channel for operation, it means only one operation can be done at a time,
+all the functions will return @code{EINPROGRESS} if an other operation is in progress.
 
 
 @subsubsection Callbacks
 The POP3 library does not provide any callbacks, the approach is to leave flow control and policy outside of the
 library.  The functions do minimal state checking, for example when sending RETR with @code{mu_pop3_retr()}
-it is the responsibility of the user to go through the entire message on the stream, any other call will fail.
+it is the responsibility of the user to go through the entire buffer of the stream to terminate the RETR command,
+any other operation will fail, while the RETR is in progress.
 To reset the state or break the downloading, the user should disconnect @code{mu_pop3_disconnect()} and reconnect
 @code{mu_pop3_connect()}, after a sufficient waiting period, @strong{Some POP3 server, move the maildrop to a different
-location after a sudden disconnect, it is necessary to wait before working on the same mailbox, if not the user may
-receive a ``Mailbox busy''}.
+location after a sudden disconnect, it may be necessary to wait before working on the same mailbox, if not the user may
+receive a ``Mailbox busy'' error code}.
 
 @example
 @group
+/* Example on how to implement a callback mechanism on top of the library. */
 int pop3_list_cb (mu_pop3_t pop3, int msgno, int (*callback_list)(int msgno, size_t octet))
 @{
    size_t octet = 0;
@@ -111,7 +115,7 @@ int pop3_list_cb (mu_pop3_t pop3, int msgno, int (*callback_list)(int msgno, siz
 
 @deftypefun int mu_pop3_create (mu_pop3_t *@var{pop3})
 
-Allocate and initialize a @var{pop3}, only memory is allocated.
+Allocate and initialize a @var{pop3} session, only memory is allocated.
 
 Errors:
 @table @code
@@ -128,7 +132,7 @@ When a POP3 session is finished, any data use by the library is release.
 @deftypefun int mu_pop3_connect (mu_pop3_t @var{pop3}) 
 
 A connection is established on the carrier,  if there was any previous connection it is close first.  If non-blocking the
-function should be recalled until the return value is not EAGAIN or EINPROGRESS.
+function should be recall until the return value is not EAGAIN or EINPROGRESS.
 
 Errors:
 @table @code
@@ -152,6 +156,18 @@ Errors:
 @end table
 
 @end deftypefun
+
+@deftypefun int mu_pop3_stls (mu_pop3_t @var{pop3})
+
+Create a TLS stream from the carrier and sets it as the current carrier for the session.
+
+Errors:
+@table @code
+@item EINVAL
+@end table
+
+@end deftypefun
+
 @cindex POP3 carrier
 
 @deftypefun int mu_pop3_set_carrier (mu_pop3_t @var{pop3}, stream_t @var{carrier})
@@ -163,7 +179,7 @@ Errors:
 @item EINVAL
 @end table
 
-@end deftp
+@end deftypefun
 
 @subsubsection Authentication State
 @cindex POP3 APOP
@@ -172,8 +188,8 @@ Errors:
 
 APOP offers an alternative to USER/PASS authentication.  For intermittent use of POP3, like checking for new mail, it is the
 preferred way to authenticate.  It reduces the risk of password capture.  The @var{user} and the shared @var{secret} are pass
-to @code{mu_pop3_apop ()}, the MD5 digest is calculated by applying the time-stamp given by the server in the greeting followed by
-the @var{secret}.
+to @code{mu_pop3_apop()}, the MD5 digest is calculated by applying the time-stamp given by the server in the greeting
+followed by the @var{secret}.
 
 @end deftypefun
 
@@ -450,8 +466,8 @@ Errors:
 
 @deftypefun int mu_pop3_writeline (mu_pop3_t @var{pop3}, const char *@var{format}, ...);
 
-Copy in the internal buffer of @code{mu_pop3_t} the formatted string, @code{mu_pop3_send ()} should be called later to flush the string
-to the POP3 server.
+Copy in the internal buffer of @code{mu_pop3_t} the formatted string @var{format},
+@code{mu_pop3_send()} should be called later to flush the string to the POP3 server.
 
 Errors:
 @table @code
@@ -461,7 +477,7 @@ Errors:
 
 @deftypefun int mu_pop3_sendline (mu_pop3_t @var{pop3}, const char *@var{cmd});
 
-Cover function for @code{mu_pop3_writeline ()} and @code{mu_pop3_send ()}.
+Cover function for @code{mu_pop3_writeline()} followed by a @code{mu_pop3_send()}.
 
 Errors:
 @table @code
@@ -471,7 +487,8 @@ Errors:
 
 @deftypefun int mu_pop3_send (mu_pop3_t @var{pop3});
 
-Flushes out the strings written by @code{mu_pop3_writeline ()} in the internal buffer to the channel.
+Flushes out the strings written by @code{mu_pop3_writeline ()} in the internal buffer to the
+stream carrier.
 
 Errors:
 @table @code
@@ -481,8 +498,7 @@ Errors:
 
 @deftypefun int mu_pop3_response (mu_pop3_t @var{pop3}, char *@var{buffer}, size_t @var{len}, size_t *@var{plen})
 
-The last response from the last command is save and can be examine after
-a failure or success.
+The last response from the last command is save and can be examine after a failure or success.
 
 Errors:
 @table @code
@@ -513,3 +529,4 @@ Errors:
 @end table
 
 @end deftypefun
+
