@@ -78,7 +78,8 @@ imap4d_append0 (mailbox_t mbox, int flags, char *text)
   if (mailbox_open (tmp, MU_STREAM_READ) != 0)
     return 1;
   
-  if (memory_stream_create (&stream, 0, 0))
+  if (memory_stream_create (&stream, 0, MU_STREAM_RDWR)
+      || stream_open (stream))
     {
       mailbox_close (tmp);
       return 1;
