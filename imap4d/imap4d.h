@@ -169,7 +169,7 @@ extern int  imap4d_search __P ((struct imap4d_command *, char *));
 extern int  imap4d_search0 __P((char *arg, int isuid, char *replybuf, size_t replysize));
 extern int  imap4d_select __P ((struct imap4d_command *, char *));
 extern int  imap4d_select0 __P ((struct imap4d_command *, char *, int));
-extern void imap4d_select_status __P((void));
+extern int  imap4d_select_status __P((void));
 extern int  imap4d_status __P ((struct imap4d_command *, char *));
 extern int  imap4d_store __P ((struct imap4d_command *, char *));
 extern int  imap4d_store0 __P ((char *, int, char *, size_t));
