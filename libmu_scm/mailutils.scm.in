@@ -21,16 +21,17 @@ changequote([,])dnl
 (define-module (mailutils))
 
 (let ((lib-path "LIBDIR/"))
+  (dynamic-link (string-append lib-path "libmailbox"))
   (cond
    ((or (string=? (version) "1.4")
 	(string=? (version) "1.4.1"))
-    (dynamic-link (string-append lib-path "libmailbox"))
     (dynamic-call "mu_scm_init"
 		  (dynamic-link (string-append
 				 lib-path
 				 "libguile-mailutils-v-VERSION"))))
    (else
-    (load-extension "libguile-mailutils-v-VERSION" "mu_scm_init"))))
+    (load-extension (string-append
+		     lib-path "libguile-mailutils-v-VERSION") "mu_scm_init"))))
 
 (export mu-package)
 (export mu-package-string)
