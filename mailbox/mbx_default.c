@@ -277,7 +277,6 @@ mailbox_create_default (mailbox_t *pmbox, const char *mail)
   if (mbox == NULL)
     {
       const char *user = NULL;
-      int len;
 #ifdef USE_ENVIRON
       user = (getenv ("LOGNAME")) ? getenv ("LOGNAME") : getenv ("USER");
 #endif
