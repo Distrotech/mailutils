@@ -384,7 +384,7 @@ mailbox_set_stream (mailbox_t mbox, stream_t stream)
 int
 mailbox_get_stream (mailbox_t mbox, stream_t *pstream)
 {
-  if (mbox == NULL || pstream)
+  if (mbox == NULL || pstream == NULL)
     return EINVAL;
   /* The stream is set on the folder if exist, not the mailbox.  */
   if (mbox->folder)
