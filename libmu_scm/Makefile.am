@@ -73,8 +73,6 @@ guile-procedures.txt: $(DOT_DOC_FILES)
 	cat $(DOT_DOC_FILES) > $@
 
 mailutils.scm: mailutils.scm.in $(libmu_scm_la_SOURCES:.c=.inc)
-
-.in:
 	m4 -DVERSION=$(VERSION) -DLIBDIR=$(libdir) \
            -DBUILDDIR=$(top_builddir)/libmu_scm $< > $@
 
