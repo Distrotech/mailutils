@@ -1,3 +1,10 @@
+2004-01-06  Sergey Poznyakoff 
+
+	* m4/Makefile.am: Removed.
+	* m4/.cvsignore: Updated
+	* configure.ac: Removed m4/Makefile.am
+	* Makefile.am: Removed m4 
+
 2004-01-05  Sergey Poznyakoff
 
 	* include/mailutils/mutil.h (mu_true_answer_p): New function.
@@ -14,6 +21,7 @@
 	* libsieve/actions.c (sieve_action_stop); Restored zero assignment
 	to pc. This is possible due to the changes to runtime.c
 
+>>>>>>> 1.838
 2004-01-05  Sergey Poznyakoff  
 
 	* include/mailutils/libsieve.h (sieve_locus_t): New datatype.
