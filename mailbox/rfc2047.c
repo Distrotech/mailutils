@@ -27,8 +27,6 @@
 #include <mailutils/filter.h>
 #include <mailutils/errno.h>
 
-enum mu_iconv_fallback_mode rfc2047_fallback_mode = mu_fallback_copy_octal;
-
 int
 rfc2047_decode (const char *tocode, const char *input, char **ptostr)
 {
@@ -71,7 +69,7 @@ rfc2047_decode (const char *tocode, const char *input, char **ptostr)
 	  char *fromcode = NULL;
 	  char *encoding_type = NULL;
 	  char *encoded_text = NULL;
-	  stream_t filter = NULL, cvt = NULL;
+	  stream_t filter = NULL;
 	  stream_t in_stream = NULL;
 	  const char *filter_type = NULL;
 	  size_t nbytes = 0, size;
@@ -118,44 +116,20 @@ rfc2047_decode (const char *tocode, const char *input, char **ptostr)
 
 	  memory_stream_create (&in_stream, 0, 0);
 	  stream_write (in_stream, encoded_text, size, 0, NULL);
-	  status = filter_create (&filter, in_stream, filter_type,
-				  MU_FILTER_DECODE, MU_STREAM_READ);
+	  status = mu_decode_filter (&filter, in_stream, filter_type, fromcode,
+				     tocode);
 	  if (status != 0)
 	    break;
 
-	  status = filter_iconv_create (&cvt, filter, fromcode, tocode,
-					MU_STREAM_NO_CLOSE,
-					rfc2047_fallback_mode);
-	  if (status)
-	    {
-	      cvt = filter;
-	      /* Note: the filter stream is already open! */
-	    }
-	  else
-	    {
-	      if (stream_open (cvt))
-		{
-		  stream_destroy (&cvt, stream_get_owner (cvt));
-		  cvt = filter;
-		}
-	      else
-		{
-		  int flags;
-		  stream_get_flags (cvt, &flags);
-		  flags &= ~MU_STREAM_NO_CLOSE;
-		  stream_set_flags (cvt, flags);
-		}
-	    }
-	  
-	  while (stream_sequential_read (cvt, buffer + bufpos,
+	  while (stream_sequential_read (filter, buffer + bufpos,
 					 bufsize - bufpos,
 					 &nbytes) == 0 && nbytes)
 	    {
 	      bufpos += nbytes;
 	    }
 
-	  stream_close (cvt);
-	  stream_destroy (&cvt, stream_get_owner (cvt));
+	  stream_close (filter);
+	  stream_destroy (&filter, stream_get_owner (filter));
 	  
 	  fromstr = sp + 1;
 	  run_count = 1;
