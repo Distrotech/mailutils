@@ -151,4 +151,10 @@ int sieve_execute_script(sieve_script_t *script,
 /* Get space separated list of extensions supported by the implementation */
 const char *sieve_listextensions(void);
 
+/* Return a string describing the sieve return code. */
+const char *sieve_errstr(int code);
+
+/* Return a string naming the sieve return code. */
+const char *sieve_errname(int code);
+
 #endif
