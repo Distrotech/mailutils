@@ -1,5 +1,5 @@
 /* GNU Mailutils -- a suite of utilities for electronic mail
-   Copyright (C) 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2001, 2002, 2005 Free Software Foundation, Inc.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -31,9 +31,9 @@ static error_t sieve_argp_parser __P((int key, char *arg,
 /* Options used by programs that use extended authentication mechanisms. */
 static struct argp_option sieve_argp_option[] = {
   { "includedir", 'I', N_("DIR"), 0,
-    _("Append directory DIR to the list of directories searched for include files"), 0 },
+    N_("Append directory DIR to the list of directories searched for include files"), 0 },
   { "libdir", 'L', N_("DIR"), 0,
-    _("Append directory DIR to the list of directories searched for library files"), 0 },
+    N_("Append directory DIR to the list of directories searched for library files"), 0 },
   { NULL,      0, NULL, 0, NULL, 0 }
 };
 
