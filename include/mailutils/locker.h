@@ -28,23 +28,49 @@ extern "C" {
 struct _locker;
 typedef struct _locker *locker_t;
 
-extern int locker_create   __P ((locker_t *, const char *filename,
-				 size_t len, int flags));
+/* lock expiry time */
+#define MU_LOCKER_EXPIRE_TIME        (10 * 60)
+#define MU_LOCKER_RETRIES            (10)
+#define MU_LOCKER_RETRY_SLEEP        (1)
+
+/* locker_create() flags */
+
+#define MU_LOCKER_RETRY    0x01
+  /* This requests that we loop retries times, sleeping retry_sleep
+     seconds in between trying to obtain the lock before failing with
+     MU_LOCK_CONFLICT. */
+#define MU_LOCKER_TIME     0x02
+  /* This mode checks the last update time of the lock, then removes
+     it if older than MU_LOCKER_EXPIRE_TIME. If a client uses this,
+     then the servers better periodically update the lock on the
+     file... do they? */
+#define MU_LOCKER_PID      0x04
+  /* PID locking is only useful for programs that aren't using
+     an external dotlocker, non-setgid programs will use a dotlocker,
+     which locks and exits imediately. This is a protection against
+     a server crashing, it's not generally useful. */
+
+#define MU_LOCKER_DEFAULT  (MU_LOCKER_RETRY)
+
+extern int locker_create __P ((locker_t *, const char *filename, int flags));
 extern void locker_destroy __P ((locker_t *));
 
-#define MU_LOCKER_RDLOCK 0
-#define MU_LOCKER_WRLOCK 1
+/* Time is measured in seconds. */
 
-/* locking flags */
-#define MU_LOCKER_PID    1
-#define MU_LOCKER_FCNTL  2
-#define MU_LOCKER_TIME   4
+extern int locker_set_flags __P ((locker_t, int));
+extern int locker_set_expire_time __P ((locker_t, int));
+extern int locker_set_retries __P ((locker_t, int));
+extern int locker_set_retry_sleep __P ((locker_t, int));
 
-#define MU_LOCKER_EXPIRE_TIME        (5 * 60)
+extern int locker_get_flags __P ((locker_t, int*));
+extern int locker_get_expire_time __P ((locker_t, int*));
+extern int locker_get_retries __P ((locker_t, int*));
+extern int locker_get_retry_sleep __P ((locker_t, int*));
 
-extern int locker_lock          __P ((locker_t, int flag));
+extern int locker_lock          __P ((locker_t));
 extern int locker_touchlock     __P ((locker_t));
 extern int locker_unlock        __P ((locker_t));
+extern int locker_remove_lock   __P ((locker_t));
 
 #ifdef __cplusplus
 }
