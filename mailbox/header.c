@@ -409,24 +409,26 @@ header_get_fvalue (header_t header, const char *name, char *buffer,
   for (i = 0, name_len = strlen (name); i < header->fhdr_count; i++)
     {
       fn_len = header->fhdr[i].fn_end - header->fhdr[i].fn;
-      if (fn_len == name_len && strcasecmp (header->fhdr[i].fn, name) == 0)
+      if (fn_len == name_len
+	  && strcasecmp (header->fhdr[i].fn, name) == 0)
 	{
 	  fv_len = header->fhdr[i].fv_end - header->fhdr[i].fv;
 
-	  /* Permanent failure: If the field exist but the value is NULL
-	     It is a way to notify that the field dow not exist.
-	     The value EINVAL is return no ENOENT to let header_get_value()
-	     know about the error.  */
+	  /* Permanent failure.  */
 	  if (fv_len == 0)
-	    err = EINVAL;
-	  else if (buffer && buflen > 0)
+	    {
+	      err = EINVAL;
+	      break;
+	    }
+
+	  if (buffer && buflen > 0)
 	    {
 	      buflen--;
 	      fv_len = (fv_len < buflen) ? fv_len : buflen;
 	      memcpy (buffer, header->fhdr[i].fv, fv_len);
 	      buffer[fv_len] = '\0';
-	      err = 0;
 	    }
+	  err = 0;
 	  break;
 	}
     }
@@ -453,13 +455,12 @@ header_get_value (header_t header, const char *name, char *buffer,
   err = header_get_fvalue (header, name, buffer, buflen, pn);
   switch (err)
     {
-    case ENOENT:
-      break;  /* Do not give up just yet.  */
     case EINVAL: /* Permanent failure.  */
       err = ENOENT;
-    default:
-      if (err && pn)
+    case ENOMEM:
+      if (pn)
 	*pn = 0;
+    case 0:
       return err;
     }
 

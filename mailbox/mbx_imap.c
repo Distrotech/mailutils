@@ -1206,13 +1206,11 @@ imap_envelope_sender (envelope_t envelope, char *buffer, size_t buflen,
     return 0;
 
   message_get_header (msg, &header);
-  status = imap_header_get_value (header, MU_HEADER_SENDER, buffer,
-					  buflen, plen);
+  status = header_get_value (header, MU_HEADER_SENDER, buffer, buflen, plen);
   if (status == EAGAIN)
     return status;
   else if (status != 0)
-    status = imap_header_get_value (header, MU_HEADER_FROM, buffer,
-					    buflen, plen);
+    status = header_get_value (header, MU_HEADER_FROM, buffer, buflen, plen);
   if (status == 0)
     {
       address_t address;
@@ -1595,7 +1593,7 @@ imap_header_get_fvalue (header_t header, const char *field, char * buffer,
         return status;
 #define MU_IMAP_CACHE_HEADERS "Bcc Cc Content-Language Content-Transfer-Encoding Content-Type Date From In-Reply-To Message-ID Reference Reply-To Sender Subject To X-UIDL"
       status = imap_writeline (f_imap,
-                               "g%d FETCH %d FLAGS RFC822.SIZE BODY.PEEK[HEADER.FIELDS (%s)]\r\n",
+                               "g%d FETCH %d (FLAGS RFC822.SIZE BODY.PEEK[HEADER.FIELDS (%s)])\r\n",
                                f_imap->seq++, msg_imap->num,
 			       MU_IMAP_CACHE_HEADERS);
       CHECK_ERROR (f_imap, status);

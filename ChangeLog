@@ -1,3 +1,13 @@
+2001-10-11 Alain Magloire
+
+	* mailbox/header.c (header_get_fvalue): When it fails set the number
+	of byte written to 0.
+	(header_get_value): Likewised.
+	* mailbox/mbx_imap.c (imap_envelope_sender): Go through
+	header_get_value() to fetch the "Sender" field, it may be cache.
+	(imap_header_get_fvalue): Put parenthesies around the FETCH, the
+	WU-IMAPD likes it that way.
+
 2001-10-10 Alain Magloire
 
 	* mailbox/mbx_pop.c (_mbox_pop_init): Authority is set on the folder.
