@@ -97,47 +97,6 @@ url_destroy (url_t *purl)
     }
 }
 
-/* From RFC 1738, section 2.2 */
-char *
-url_decode (const char *s)
-{
-  char *d = strdup (s);
-  const char *eos = s + strlen (s);
-  int i;
-
-  if (!d)
-    return NULL;
-
-  for (i = 0; s < eos; i++)
-    {
-      if (*s != '%')
-	{
-	  d[i] = *s;
-	  s++;
-	}
-      else
-	{
-	  unsigned long ul = 0;
-
-	  s++;
-
-	  /* don't check return value, it's correctly coded, or it's not,
-	     in which case we just skip the garbage, this is a decoder,
-	     not an AI project */
-
-	  mu_hexstr2ul (&ul, s, 2);
-
-	  s += 2;
-
-	  d[i] = (char) ul;
-	}
-    }
-
-  d[i] = 0;
-
-  return d;
-}
-
 int
 url_parse (url_t url)
 {
@@ -512,7 +471,7 @@ url_is_same_user (url_t url1, url_t url2)
       if (s2)
         {
           url_get_user (url2, s2, j + 1, NULL);
-          ret = !strcasecmp (s1, s2);
+          ret = !strcmp (s1, s2);
           free (s2);
         }
       free (s1);
@@ -537,7 +496,7 @@ url_is_same_path (url_t url1, url_t url2)
       if (s2)
         {
           url_get_path (url2, s2, j + 1, NULL);
-          ret = !strcasecmp (s1, s2);
+          ret = !strcmp (s1, s2);
           free (s2);
         }
       free (s1);
@@ -579,3 +538,86 @@ url_is_same_port (url_t url1, url_t url2)
   url_get_port (url2, &p2);
   return (p1 == p2);
 }
+
+/* From RFC 1738, section 2.2 */
+char *
+url_decode (const char *s)
+{
+  char *d = strdup (s);
+  const char *eos = s + strlen (s);
+  int i;
+
+  if (!d)
+    return NULL;
+
+  for (i = 0; s < eos; i++)
+    {
+      if (*s != '%')
+	{
+	  d[i] = *s;
+	  s++;
+	}
+      else
+	{
+	  unsigned long ul = 0;
+
+	  s++;
+
+	  /* don't check return value, it's correctly coded, or it's not,
+	     in which case we just skip the garbage, this is a decoder,
+	     not an AI project */
+
+	  mu_hexstr2ul (&ul, s, 2);
+
+	  s += 2;
+
+	  d[i] = (char) ul;
+	}
+    }
+
+  d[i] = 0;
+
+  return d;
+}
+
+static int defined(const char* s)
+{
+    if(s && strcmp("*", s) != 0)
+          return 1;
+      return 0;
+}
+
+int
+url_is_ticket (url_t ticket, url_t url)
+{
+  if(!ticket || !url)
+    return 0;
+
+  /* If ticket has a scheme, host, port, or path, then the queries
+     equivalent must be defined and match. */
+  if(defined(ticket->scheme))
+  {
+    if(!url->scheme || strcasecmp(ticket->scheme, url->scheme) != 0)
+      return 0;
+  }
+  if(defined(ticket->host))
+  {
+    if(!url->host || strcasecmp(ticket->host, url->host) != 0)
+      return 0;
+  }
+  if(ticket->port && ticket->port != url->port)
+    return 0;
+  /* If ticket has a user or pass, but url doesn't thats OK, were
+     urling for this info. But if url does have a user/pass, it
+     must match the ticket. */
+  if(url->user)
+  {
+    if(defined(ticket->user) && strcmp(ticket->user, url->user) != 0)
+      return 0;
+  }
+
+  /* Guess it matches. */
+  return 1;
+}
+
+

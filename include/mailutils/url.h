@@ -58,6 +58,8 @@ extern int url_is_same_port   __P ((url_t, url_t));
 
 extern char* url_decode    __P ((const char *s));
 
+extern int url_is_ticket   __P ((url_t ticket, url_t url));
+
 #ifdef __cplusplus
 }
 #endif
