@@ -1,3 +1,9 @@
+2002-12-03  Sergey Poznyakoff 
+
+	* libsieve/actions.c (sieve_action_reject): Fixed diagnostic
+	  messages.
+	* m4/gssapi.m4: Bugfix: Properly restore LIBS, LDFLAGS and CFLAGS.
+
 2002-12-02  Frederic Gobry  <frederic.gobry@smartdata.ch>
 
 	* mailbox/mime.c (_mime_body_read): reset the part offset when
