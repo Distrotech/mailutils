@@ -162,6 +162,64 @@ do \
   } \
 } while (0)
 
+#define ISBCC(buf) (\
+(buf[0] == 'B' || buf[0] == 'b') \
+ && (buf[1] == 'C' || buf[1] == 'c') \
+ && (buf[2] == 'C' || buf[2] == 'c') \
+ && (buf[3] == ':' || buf[3] == ' ' || buf[3] == '\t'))
+
+#define ISCC(buf) (\
+(buf[0] == 'C' || buf[0] == 'c') \
+ && (buf[1] == 'C' || buf[1] == 'c') \
+ && (buf[2] == ':' || buf[2] == ' ' || buf[2] == '\t'))
+
+#define ISCONTENT_LANGUAGE(buf) (\
+(buf[0] == 'C' || buf[0] == 'c') \
+ && (buf[1] == 'O' || buf[1] == 'o') \
+ && (buf[2] == 'N' || buf[2] == 'n') \
+ && (buf[3] == 'T' || buf[3] == 't') \
+ && (buf[4] == 'E' || buf[4] == 'e') \
+ && (buf[5] == 'N' || buf[5] == 'n') \
+ && (buf[6] == 'T' || buf[6] == 't') \
+ && (buf[7] == '-') \
+ && (buf[8] == 'L' || buf[8] == 'l') \
+ && (buf[9] == 'A' || buf[9] == 'a') \
+ && (buf[10] == 'N' || buf[10] == 'n') \
+ && (buf[11] == 'G' || buf[11] == 'g') \
+ && (buf[12] == 'U' || buf[12] == 'u') \
+ && (buf[13] == 'A' || buf[13] == 'a') \
+ && (buf[14] == 'G' || buf[14] == 'g') \
+ && (buf[15] == 'E' || buf[15] == 'e') \
+ && (buf[16] == ':' || buf[16] == ' ' || buf[16] == '\t'))
+
+#define ISCONTENT_TRANSFER_ENCODING(buf) (\
+(buf[0] == 'C' || buf[0] == 'c') \
+ && (buf[1] == 'O' || buf[1] == 'o') \
+ && (buf[2] == 'N' || buf[2] == 'n') \
+ && (buf[3] == 'T' || buf[3] == 't') \
+ && (buf[4] == 'E' || buf[4] == 'e') \
+ && (buf[5] == 'N' || buf[5] == 'n') \
+ && (buf[6] == 'T' || buf[6] == 't') \
+ && (buf[7] == '-') \
+ && (buf[8] == 'T' || buf[8] == 't') \
+ && (buf[9] == 'R' || buf[9] == 'r') \
+ && (buf[10] == 'A' || buf[10] == 'a') \
+ && (buf[11] == 'N' || buf[11] == 'n') \
+ && (buf[12] == 'S' || buf[12] == 's') \
+ && (buf[13] == 'F' || buf[13] == 'f') \
+ && (buf[14] == 'E' || buf[14] == 'e') \
+ && (buf[15] == 'R' || buf[15] == 'r') \
+ && (buf[16] == '-') \
+ && (buf[17] == 'E' || buf[17] == 'e') \
+ && (buf[18] == 'N' || buf[18] == 'n') \
+ && (buf[19] == 'C' || buf[19] == 'c') \
+ && (buf[20] == 'O' || buf[20] == 'o') \
+ && (buf[21] == 'D' || buf[21] == 'd') \
+ && (buf[22] == 'I' || buf[22] == 'i') \
+ && (buf[23] == 'N' || buf[23] == 'n') \
+ && (buf[24] == 'G' || buf[24] == 'g') \
+ && (buf[25] == ':' || buf[25] == ' ' || buf[25] == '\t'))
+
 #define ISCONTENT_TYPE(buf) (\
 (buf[0] == 'C' || buf[0] == 'c') \
  && (buf[1] == 'O' || buf[1] == 'o') \
@@ -177,11 +235,6 @@ do \
  && (buf[11] == 'E' || buf[11] == 'e') \
  && (buf[12] == ':' || buf[12] == ' ' || buf[12] == '\t'))
 
-#define ISCC(buf) (\
-(buf[0] == 'C' || buf[0] == 'c') \
- && (buf[1] == 'C' || buf[1] == 'c') \
- && (buf[2] == ':' || buf[2] == ' ' || buf[2] == '\t'))
-
 #define ISDATE(buf) (\
 (buf[0] == 'D' || buf[0] == 'd') \
  && (buf[1] == 'A' || buf[1] == 'a') \
@@ -195,6 +248,65 @@ do \
  && (buf[2] == 'O' || buf[2] == 'o') \
  && (buf[3] == 'M' || buf[3] == 'm') \
  && (buf[4] == ':' || buf[4] == ' ' || buf[4] == '\t'))
+
+#define ISIN_REPLY_TO(buf) (\
+(buf[0] == 'I' || buf[0] == 'i') \
+ && (buf[1] == 'N' || buf[1] == 'n') \
+ && (buf[2] == '-' || buf[2] == '-') \
+ && (buf[3] == 'R' || buf[3] == 'r') \
+ && (buf[4] == 'E' || buf[4] == 'e') \
+ && (buf[5] == 'P' || buf[5] == 'p') \
+ && (buf[6] == 'L' || buf[6] == 'l') \
+ && (buf[7] == 'Y' || buf[7] == 'y') \
+ && (buf[8] == '-') \
+ && (buf[9] == 'T' || buf[9] == 't') \
+ && (buf[10] == 'O' || buf[10] == 'o') \
+ && (buf[11] == ':' || buf[11] == ' ' || buf[11] == '\t'))
+
+#define ISMESSAGE_ID(buf) (\
+(buf[0] == 'M' || buf[0] == 'm') \
+ && (buf[1] == 'E' || buf[1] == 'e') \
+ && (buf[2] == 'S' || buf[2] == 's') \
+ && (buf[3] == 'S' || buf[3] == 's') \
+ && (buf[4] == 'A' || buf[4] == 'a') \
+ && (buf[5] == 'G' || buf[5] == 'g') \
+ && (buf[6] == 'E' || buf[6] == 'e') \
+ && (buf[7] == '-') \
+ && (buf[8] == 'I' || buf[8] == 'i') \
+ && (buf[9] == 'D' || buf[9] == 'd') \
+ && (buf[10] == ':' || buf[10] == ' ' || buf[10] == '\t'))
+
+#define ISREFERENCE(buf) (\
+(buf[0] == 'R' || buf[0] == 'r') \
+ && (buf[1] == 'E' || buf[1] == 'e') \
+ && (buf[2] == 'F' || buf[2] == 'f') \
+ && (buf[3] == 'E' || buf[3] == 'e') \
+ && (buf[4] == 'R' || buf[4] == 'r') \
+ && (buf[5] == 'E' || buf[5] == 'e') \
+ && (buf[6] == 'n' || buf[6] == 'n') \
+ && (buf[7] == 'C' || buf[7] == 'c') \
+ && (buf[8] == 'E' || buf[8] == 'e') \
+ && (buf[9] == ':' || buf[9] == ' ' || buf[9] == '\t'))
+
+#define ISREPLY_TO(buf) (\
+(buf[0] == 'R' || buf[0] == 'r') \
+ && (buf[1] == 'E' || buf[1] == 'e') \
+ && (buf[2] == 'P' || buf[2] == 'p') \
+ && (buf[3] == 'L' || buf[3] == 'l') \
+ && (buf[4] == 'Y' || buf[4] == 'y') \
+ && (buf[5] == '-') \
+ && (buf[6] == 'T' || buf[6] == 't') \
+ && (buf[7] == 'O' || buf[7] == 'o') \
+ && (buf[8] == ':' || buf[8] == ' ' || buf[8] == '\t'))
+
+#define ISSENDER(buf) (\
+(buf[0] == 'S' || buf[0] == 's') \
+ && (buf[1] == 'E' || buf[1] == 'e') \
+ && (buf[2] == 'N' || buf[2] == 'n') \
+ && (buf[3] == 'D' || buf[3] == 'd') \
+ && (buf[4] == 'E' || buf[4] == 'e') \
+ && (buf[5] == 'R' || buf[5] == 'r') \
+ && (buf[6] == ':' || buf[6] == ' ' || buf[6] == '\t'))
 
 #define ISSTATUS(buf) (\
 (buf[0] == 'S' || buf[0] == 's') \
@@ -250,10 +362,17 @@ do \
  && (buf[4] == 'D' || buf[4] == 'd') \
  && (buf[5] == ':' || buf[5] == ' ' || buf[5] == '\t'))
 
-/* Skip prepen spaces.  */
+/* Skip prepend spaces.  */
 #define SKIPSPACE(p) while (*p == ' ') p++
 
-/* Save/concatenate the field-value in the field. */
+#define ATOI(a,i) \
+do {\
+ SKIPSPACE(a); \
+ for (i = 0; *a >= '0' && *a <= '9'; a++) \
+    i = 10 * i + (*a - '0'); \
+} while (0)
+
+/* Save/concatenate the field-value in the fast header(fhd) field. */
 #define FAST_HEADER(field,buf,n) \
 do { \
   int i = 0; \
@@ -281,41 +400,65 @@ do { \
     } \
 } while (0)
 
-#define FAST_HCONTENT_TYPE(mum,sf,buf,n) \
-FAST_HEADER(mum->fhdr[HCONTENT_TYPE],buf,n); \
-sf = &(mum->fhdr[HCONTENT_TYPE])
+#define FAST_H_BCC(mum,save_field,buf,n) \
+FAST_HEADER(mum->fhdr[H_BCC],buf,n); \
+save_field = &(mum->fhdr[H_BCC])
 
-#define FAST_HCC(mum,sf,buf,n) \
-FAST_HEADER(mum->fhdr[HCC],buf,n); \
-sf = &(mum->fhdr[HCC])
+#define FAST_H_CC(mum,save_field,buf,n) \
+FAST_HEADER(mum->fhdr[H_CC],buf,n); \
+save_field = &(mum->fhdr[H_CC])
 
-#define FAST_HDATE(mum,sf,buf,n) \
-FAST_HEADER(mum->fhdr[HDATE],buf,n); \
-sf = &(mum->fhdr[HDATE])
+#define FAST_H_CONTENT_LANGUAGE(mum,save_field,buf,n) \
+FAST_HEADER(mum->fhdr[H_CONTENT_LANGUAGE],buf,n); \
+save_field = &(mum->fhdr[H_CONTENT_LANGUAGE])
 
-#define FAST_HFROM(mum,sf,buf,n) \
-FAST_HEADER(mum->fhdr[HFROM],buf,n); \
-sf = &(mum->fhdr[HFROM])
+#define FAST_H_CONTENT_TRANSFER_ENCODING(mum,save_field,buf,n) \
+FAST_HEADER(mum->fhdr[H_CONTENT_TRANSFER_ENCODING],buf,n); \
+save_field = &(mum->fhdr[H_CONTENT_TRANSFER_ENCODING])
 
-#define FAST_HSUBJECT(mum,sf,buf,n) \
-FAST_HEADER(mum->fhdr[HSUBJECT],buf,n); \
-sf = &(mum->fhdr[HSUBJECT])
+#define FAST_H_CONTENT_TYPE(mum,save_field,buf,n) \
+FAST_HEADER(mum->fhdr[H_CONTENT_TYPE],buf,n); \
+save_field = &(mum->fhdr[H_CONTENT_TYPE])
 
-#define FAST_HTO(mum,sf,buf,n) \
-FAST_HEADER(mum->fhdr[HTO],buf,n); \
-sf = &(mum->fhdr[HTO])
+#define FAST_H_DATE(mum,save_field,buf,n) \
+FAST_HEADER(mum->fhdr[H_DATE],buf,n); \
+save_field = &(mum->fhdr[H_DATE])
 
-#define FAST_HX_IMAPBASE(mum,sf,buf,n) \
-FAST_HEADER(mum->fhdr[HX_IMAPBASE],buf,n); \
-sf = &(mum->fhdr[HX_UID])
+#define FAST_H_FROM(mum,save_field,buf,n) \
+FAST_HEADER(mum->fhdr[H_FROM],buf,n); \
+save_field = &(mum->fhdr[H_FROM])
 
-#define FAST_HX_UIDL(mum,sf,buf,n) \
-FAST_HEADER(mum->fhdr[HX_UIDL],buf,n); \
-sf = &(mum->fhdr[HX_UIDL])
+#define FAST_H_IN_REPLY_TO(mum,save_field,buf,n) \
+FAST_HEADER(mum->fhdr[H_IN_REPLY_TO],buf,n); \
+save_field = &(mum->fhdr[H_IN_REPLY_TO])
 
-#define FAST_HX_UID(mum,sf,buf,n) \
-FAST_HEADER(mum->fhdr[HX_UID],buf,n); \
-sf = &(mum->fhdr[HX_UID])
+#define FAST_H_MESSAGE_ID(mum,save_field,buf,n) \
+FAST_HEADER(mum->fhdr[H_MESSAGE_ID],buf,n); \
+save_field = &(mum->fhdr[H_MESSAGE_ID])
+
+#define FAST_H_REFERENCE(mum,save_field,buf,n) \
+FAST_HEADER(mum->fhdr[H_REFERENCE],buf,n); \
+save_field = &(mum->fhdr[H_REFERENCE])
+
+#define FAST_H_REPLY_TO(mum,save_field,buf,n) \
+FAST_HEADER(mum->fhdr[H_REPLY_TO],buf,n); \
+save_field = &(mum->fhdr[H_REPLY_TO])
+
+#define FAST_H_SENDER(mum,save_field,buf,n) \
+FAST_HEADER(mum->fhdr[H_SENDER],buf,n); \
+save_field = &(mum->fhdr[H_SENDER])
+
+#define FAST_H_SUBJECT(mum,save_field,buf,n) \
+FAST_HEADER(mum->fhdr[H_SUBJECT],buf,n); \
+save_field = &(mum->fhdr[H_SUBJECT])
+
+#define FAST_H_TO(mum,save_field,buf,n) \
+FAST_HEADER(mum->fhdr[H_TO],buf,n); \
+save_field = &(mum->fhdr[H_TO])
+
+#define FAST_H_X_UIDL(mum,save_field,buf,n) \
+FAST_HEADER(mum->fhdr[H_X_UIDL],buf,n); \
+save_field = &(mum->fhdr[H_X_UIDL])
 
 /* Notifications ADD_MESG. */
 #define DISPATCH_ADD_MSG(mbox,mud) \
@@ -445,6 +588,18 @@ mbox_scan0 (mailbox_t mailbox, size_t msgno, size_t *pcount, int do_notif)
   else
     mud->messages_count = 0;
 
+#if 0
+  {
+    size_t j, k;
+    for (j = 0; j < mud->umessages_count; j++)
+      {
+	mum = mud->umessages[j];
+	for (k = 0; k < HDRSIZE; k++)
+	  if (mum->fhdr[k])
+	    free (mum->fhdr[k]);
+      }
+  }
+#endif
   newline = 1;
   errno = lines = inheader = inbody = 0;
 
@@ -488,8 +643,7 @@ mbox_scan0 (mailbox_t mailbox, size_t msgno, size_t *pcount, int do_notif)
 	      mum->mud = mud;
               mum->header_from = total - n;
               mum->header_from_end = total;
-	      mum->body_end = mum->body = 0;
-	      mum->attr_flags = 0;
+	      //mum->body_end = mum->body = 0;
 	      lines = 0;
 	      sfield = NULL;
 	      for (j = 0; j < HDRSIZE; j++)
@@ -507,41 +661,88 @@ mbox_scan0 (mailbox_t mailbox, size_t msgno, size_t *pcount, int do_notif)
 	      ATTRIBUTE_SET(buf, mum, 'd', 'D', MU_ATTRIBUTE_DELETED);
 	      sfield = NULL;
 	    }
-	  else if (ISCONTENT_TYPE(buf))
+	  else if (ISBCC(buf))
 	    {
-	      FAST_HCONTENT_TYPE(mum, sfield, buf, n);
+	      FAST_H_BCC(mum, sfield, buf, n);
 	    }
 	  else if (ISCC(buf))
 	    {
-	      FAST_HCC(mum, sfield, buf, n);
+	      FAST_H_CC(mum, sfield, buf, n);
+	    }
+	  else if (ISCONTENT_LANGUAGE(buf))
+	    {
+	      FAST_H_CONTENT_LANGUAGE(mum, sfield, buf, n);
+	    }
+	  else if (ISCONTENT_TRANSFER_ENCODING(buf))
+	    {
+	      FAST_H_CONTENT_TRANSFER_ENCODING(mum, sfield, buf, n);
+	    }
+	  else if (ISCONTENT_TYPE(buf))
+	    {
+	      FAST_H_CONTENT_TYPE(mum, sfield, buf, n);
 	    }
 	  else if (ISDATE(buf))
 	    {
-	      FAST_HDATE(mum, sfield, buf, n);
+	      FAST_H_DATE(mum, sfield, buf, n);
 	    }
 	  else if (ISFROM(buf))
 	    {
-	      FAST_HFROM(mum, sfield, buf, n);
+	      char *ss = NULL;
+	      if (mum->fhdr[H_FROM]) *ss = 1;
+	      FAST_H_FROM(mum, sfield, buf, n);
+	    }
+	  else if (ISIN_REPLY_TO(buf))
+	    {
+	      FAST_H_IN_REPLY_TO(mum, sfield, buf, n);
+	    }
+	  else if (ISMESSAGE_ID(buf))
+	    {
+	      FAST_H_MESSAGE_ID(mum, sfield, buf, n);
+	    }
+	  else if (ISREFERENCE(buf))
+	    {
+	      FAST_H_REFERENCE(mum, sfield, buf, n);
+	    }
+	  else if (ISREPLY_TO(buf))
+	    {
+	      FAST_H_REPLY_TO(mum, sfield, buf, n);
+	    }
+	  else if (ISSENDER(buf))
+	    {
+	      FAST_H_SENDER (mum, sfield, buf, n);
 	    }
 	  else if (ISSUBJECT(buf))
 	    {
-	      FAST_HSUBJECT (mum, sfield, buf, n);
+	      char *ss = NULL;
+	      if (mum->fhdr[H_SUBJECT]) *ss = 1;
+	      FAST_H_SUBJECT (mum, sfield, buf, n);
 	    }
 	  else if (ISTO(buf))
 	    {
-	      FAST_HTO (mum, sfield, buf, n);
-	    }
-	  else if (ISX_IMAPBASE(buf))
-	    {
-	      FAST_HX_IMAPBASE (mum, sfield, buf, n);
+	      FAST_H_TO (mum, sfield, buf, n);
 	    }
 	  else if (ISX_UIDL(buf))
 	    {
-	      FAST_HX_UIDL (mum, sfield, buf, n);
+	      FAST_H_X_UIDL (mum, sfield, buf, n);
+	    }
+	  else if (ISX_IMAPBASE(buf))
+	    {
+	      char *s = memchr (buf, ':', n);
+	      if (s)
+		{
+		  s++;
+		  ATOI(s, mud->uidvalidity);
+		  ATOI(s, mud->uidnext);
+		}
 	    }
 	  else if (ISX_UID(buf))
 	    {
-	      FAST_HX_UID (mum, sfield, buf, n);
+	      char *s = memchr (buf, ':', n);
+	      if (s)
+		{
+		  s++;
+		  ATOI(s, mum->uid);
+		}
 	    }
 	  else if (sfield && (buf[0] == ' ' || buf[0] == '\t'))
 	    {
@@ -596,65 +797,38 @@ mbox_scan0 (mailbox_t mailbox, size_t msgno, size_t *pcount, int do_notif)
   if (mud->messages_count > 0)
     {
       mum = mud->umessages[0];
-      if (mum->fhdr[HX_IMAPBASE])
-	{
-	  char *s = mum->fhdr[HX_IMAPBASE];
-	  while (*s && !isdigit (*s)) s++;
-	  mud->uidvalidity = strtoul (s, &s, 10);
-	  mud->uidnext = strtoul (s, NULL, 10);
-	}
       if (mud->uidvalidity == 0)
 	{
-	  char u[64];
 	  mud->uidvalidity = (unsigned long)time (NULL);
 	  mud->uidnext = mud->messages_count + 1;
-	  if (mum->fhdr[HX_IMAPBASE])
-	    free (mum->fhdr[HX_IMAPBASE]);
-	  sprintf (u, "%lu %u", mud->uidvalidity, mud->uidnext);
-	  mum->fhdr[HX_IMAPBASE] = strdup (u);
 	  /* Tell that we have been modified for expunging.  */
 	  mum->attr_flags |= MU_ATTRIBUTE_MODIFIED;
 	}
     }
-  /* Reset the IMAP uids, if necessary.  */
+  /* Reset the IMAP uids, if necessary. UID according to IMAP RFC is a 32 bit
+     ascending number for each messages  */
   {
     size_t uid;
     size_t ouid;
     size_t i;
     for (uid = ouid = i = 0; i < mud->messages_count; i++)
       {
-	char *s;
 	mum = mud->umessages[i];
-	s = mum->fhdr[HX_UID];
-	if (s)
-	  {
-	    while (*s && !isdigit (*s)) s++;
-	    uid = strtoul (s, &s, 10);
-	  }
-	else
-	  uid = 0;
+	uid = mum->uid;
 	if (uid <= ouid)
 	  {
-	    char u[64];
 	    uid = ouid + 1;
-	    sprintf (u, "%d", uid);
-	    if (mum->fhdr[HX_UID])
-	      free (mum->fhdr[HX_UID]);
-	    mum->fhdr[HX_UID] = strdup (u);
-	    /* Note that we have modified for expunging.  */
+	    mum->uid = ouid = uid;
+	    /* Note that modification for when expunging.  */
 	    mum->attr_flags |= MU_ATTRIBUTE_MODIFIED;
 	  }
-	mum->uid = ouid = uid;
+	else
+	  ouid = uid;
       }
-    if (uid >= mud->uidnext)
+    if (mud->messages_count > 0 && uid >= mud->uidnext)
       {
-	char u[64];
-	mud->uidnext = uid + 1;
 	mum = mud->umessages[0];
-	if (mum->fhdr[HX_IMAPBASE])
-	  free (mum->fhdr[HX_IMAPBASE]);
-	sprintf (u, "%lu %u", mud->uidvalidity, uid + 1);
-	mum->fhdr[HX_IMAPBASE] = strdup (u);
+	mud->uidnext = uid + 1;
 	mum->attr_flags |= MU_ATTRIBUTE_MODIFIED;
       }
   }

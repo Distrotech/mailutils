@@ -58,28 +58,42 @@ struct _mbox_data;
 typedef struct _mbox_data* mbox_data_t;
 typedef struct _mbox_message* mbox_message_t;
 
-/* These represent the header field-name that we are caching for speed.  */
-#define HDRSIZE      9
+/* Below are the headers field-names that we are caching for speed, it is
+   more or less the list of headers in ENVELOPE command from IMAP.  */
+#define HDRSIZE        15
+
 const char *fhdr_table[] =
 {
-#define HFROM         0
-  "From",
-#define HTO           1
-  "To",
-#define HCC           2
+#define H_BCC                       0
+  "Bcc",
+#define H_CC                        1
   "Cc",
-#define HSUBJECT      3
-  "Subject",
-#define HDATE         4
-  "Date",
-#define HX_IMAPBASE   5
-  "X-IMAPbase",
-#define HX_UIDL       6
-  "X-UIDL",
-#define HX_UID        7
-  "X-UID",
-#define HCONTENT_TYPE 8
+#define H_CONTENT_LANGUAGE          2
+  "Content-Language",
+#define H_CONTENT_TRANSFER_ENCODING 3
+  "Content-Transfer-Encoding",
+#define H_CONTENT_TYPE              4
   "Content-Type",
+#define H_DATE                      5
+  "Date",
+#define H_FROM                      6
+  "From",
+#define H_IN_REPLY_TO               7
+  "In-Reply-To",
+#define H_MESSAGE_ID                8
+  "Message-ID",
+#define H_REFERENCE                 9
+  "Reply-To",
+#define H_REPLY_TO                  10
+  "Reply-To",
+#define H_SENDER                    11
+  "Sender",
+#define H_SUBJECT                   12
+  "Subject",
+#define H_TO                        13
+  "To",
+#define H_X_UIDL                    14
+  "X-UIDL"
 };
 
 /* Keep the positions of where the headers and bodies start and end.
@@ -146,6 +160,7 @@ struct _mbox_data
 static int mbox_open                  __P ((mailbox_t, int));
 static int mbox_close                 __P ((mailbox_t));
 static int mbox_get_message           __P ((mailbox_t, size_t, message_t *));
+//static int mbox_get_message_by_uid    __P ((mailbox_t, size_t, message_t *));
 static int mbox_append_message        __P ((mailbox_t, message_t));
 static int mbox_messages_count        __P ((mailbox_t, size_t *));
 static int mbox_messages_recent       __P ((mailbox_t, size_t *));
@@ -637,8 +652,23 @@ mbox_expunge (mailbox_t mailbox)
 	  continue;
 	}
 
-      if (mum->message)
+      /* Do the expensive mbox_append_message0() only if mark dirty.  */
+      if ((mum->attr_flags & MU_ATTRIBUTE_MODIFIED) ||
+	  (mum->message && message_is_modified (mum->message)))
 	{
+	  /* The message was not instanciated, probably the dirty flag was
+	     set by mbox_scan(), create one here.  */
+	  if (mum->message == 0)
+	    {
+	      message_t msg;
+	      status = mbox_get_message (mailbox, i, &msg);
+	      if (status != 0)
+		{
+		  fprintf (stderr, "Error expunge:%d: %s", __LINE__,
+			   strerror (status));
+		  goto bailout0;
+		}
+	    }
 	  status = mbox_append_message0 (tmpmailbox, mum->message,
 					 &total, 1, (i == save_imapbase));
 	  if (status != 0)
@@ -647,6 +677,9 @@ mbox_expunge (mailbox_t mailbox)
 		       strerror (status));
 	      goto bailout0;
 	    }
+	  /* Clear the dirty bit.  */
+	  mum->attr_flags &= ~MU_ATTRIBUTE_MODIFIED;
+	  message_clear_modified (mum->message);
 	}
       else
 	{
@@ -811,12 +844,24 @@ mbox_expunge (mailbox_t mailbox)
 		}
 	      else
 		{
+		  for (i = 0; i < HDRSIZE; i++)
+		    if (mum->fhdr[i])
+		      {
+			free (mum->fhdr[i]);
+			mum->fhdr[i] = NULL;
+		      }
 		  memset (mum, 0, sizeof (*mum));
 		}
 	    }
 	  mum->header_from = mum->header_from_end = 0;
 	  mum->body = mum->body_end = 0;
 	  mum->header_lines = mum->body_lines = 0;
+	  for (i = 0; i < HDRSIZE; i++)
+	    if (mum->fhdr[i])
+	      {
+		free (mum->fhdr[i]);
+		mum->fhdr[i] = NULL;
+	      }
 	}
       monitor_unlock (mailbox->monitor);
       /* This is should reset the messages_count, the last argument 0 means
@@ -1387,7 +1432,7 @@ mbox_append_message0 (mailbox_t mailbox, message_t msg, off_t *psize,
       {
 	char *s;
 	size_t len = 0;
-	envelope_t envelope;
+	envelope_t envelope = NULL;
 	message_get_envelope (msg, &envelope);
 	status = envelope_sender (envelope, mud->sender, 128, &len);
 	if (status != 0)
@@ -1414,7 +1459,7 @@ mbox_append_message0 (mailbox_t mailbox, message_t msg, off_t *psize,
       {
 	char *s;
 	size_t len = 0;
-	envelope_t envelope;
+	envelope_t envelope = NULL;
 	char buffer[1024];
 	message_get_envelope (msg, &envelope);
 	status = envelope_date (envelope, mud->date, 128, &len);
@@ -1464,8 +1509,8 @@ mbox_append_message0 (mailbox_t mailbox, message_t msg, off_t *psize,
       {
 	char buffer[1024];
 	size_t nread = 0;
-	stream_t is;
-	header_t header;
+	stream_t is = NULL;
+	header_t header = NULL;
 	message_get_header (msg, &header);
 	header_get_stream (header, &is);
 	do
@@ -1572,8 +1617,8 @@ mbox_append_message0 (mailbox_t mailbox, message_t msg, off_t *psize,
       {
 	char buffer[1024];
 	size_t nread = 0;
-	stream_t is;
-	body_t body;
+	stream_t is = NULL;
+	body_t body = NULL;
 	message_get_body (msg, &body);
 	body_get_stream (body, &is);
 	do
@@ -1616,7 +1661,7 @@ mbox_append_message0 (mailbox_t mailbox, message_t msg, off_t *psize,
 	    /* Append the Message.  */
 	    char buffer[1024];
 	    size_t nread = 0;
-	    stream_t is;
+	    stream_t is = NULL;
 	    message_get_stream (msg, &is);
 	    do
 	      {

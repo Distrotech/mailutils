@@ -97,6 +97,14 @@ header_is_modified (header_t header)
   return (header) ? (header->flags & HEADER_MODIFIED) : 0;
 }
 
+int
+header_clear_modified (header_t header)
+{
+  if (header)
+    header->flags &= ~HEADER_MODIFIED;
+  return 0;
+}
+
 /* Parsing is done in a rather simple fashion, meaning we just consider an
    entry to be a field-name an a field-value.  So they maybe duplicate of
    field-name like "Received" they are just put in the array, see _get_value()

@@ -162,7 +162,23 @@ message_is_modified (message_t msg)
   int mod = 0;
   mod |= header_is_modified (msg->header);
   mod |= attribute_is_modified (msg->attribute);
+  mod |= body_is_modified (msg->body);
   return mod;
+}
+
+int
+message_clear_modified (message_t msg)
+{
+  if (msg)
+    {
+      if (msg->header)
+	header_clear_modified (msg->header);
+      if (msg->attribute)
+	attribute_clear_modified (msg->attribute);
+      if (msg->body)
+	body_clear_modified (msg->body);
+    }
+  return 0;
 }
 
 int

@@ -76,6 +76,22 @@ body_get_owner (body_t body)
   return (body) ? body->owner : NULL;
 }
 
+/* FIXME: not implemented.  */
+int
+body_is_modified (body_t body)
+{
+  (void)body;
+  return 0;
+}
+
+/* FIXME: not implemented.  */
+int
+body_clear_modified (body_t body)
+{
+  (void)body;
+  return 0;
+}
+
 int
 body_get_filename (body_t body, char *filename, size_t len, size_t *pn)
 {
