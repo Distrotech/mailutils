@@ -1,3 +1,9 @@
+2003-01-02  Sergey Poznyakoff
+
+	* configure.ac: New ac_subst variable BUILD_MH_EXEC_HOOK
+	* mh/Makefile.am: Enble install-exec-hook only if
+	  BUILD_MH_EXEC_HOOK is set.
+
 2003-01-01  Wojciech Polak <polak@gnu.org>
 
 	* COPYING: Removed.
