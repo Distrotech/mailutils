@@ -144,6 +144,7 @@ str_append_n (char **to, const char *from, size_t n)
 
   return EOK;
 }
+
 static int
 str_append (char **to, const char *from)
 {
@@ -151,16 +152,19 @@ str_append (char **to, const char *from)
     return 0;
   return str_append_n (to, from, strlen (from));
 }
+
 static int
 str_append_char (char **to, char c)
 {
   return str_append_n (to, &c, 1);
 }
+
 static int
 str_append_range (char **to, const char *b, const char *e)
 {
   return str_append_n (to, b, e - b);
 }
+
 static void
 str_free (char **s)
 {
@@ -226,14 +230,19 @@ parse822_is_special (char c)
 {
   return strchr ("()<>@,;:\\\".[]", c) ? 1 : 0;
 }
+
+int
+parse822_is_atom_char_ex (char c)
+{
+  return !parse822_is_special (c)
+    && !parse822_is_space (c)
+    && !parse822_is_ctl (c);
+}
+
 int
 parse822_is_atom_char (char c)
 {
-  return
-    parse822_is_char (c) &&
-    !parse822_is_special (c) &&
-    !parse822_is_space (c) &&
-    !parse822_is_ctl (c);
+  return parse822_is_char (c) && parse822_is_atom_char_ex (c);
 }
 
 int
@@ -294,6 +303,7 @@ parse822_skip_nl (const char **p, const char *e)
 
   return EPARSE;
 }
+
 int
 parse822_skip_lwsp_char (const char **p, const char *e)
 {
@@ -304,6 +314,7 @@ parse822_skip_lwsp_char (const char **p, const char *e)
     }
   return EPARSE;
 }
+
 int
 parse822_skip_lwsp (const char **p, const char *e)
 {
@@ -482,6 +493,31 @@ parse822_atom (const char **p, const char *e, char **atom)
 }
 
 int
+parse822_atom_ex (const char **p, const char *e, char **atom)
+{
+  /* atom = 1*<an atom char> */
+
+  const char *save = *p;
+  int rc = EPARSE;
+
+  parse822_skip_comments (p, e);
+
+  save = *p;
+
+  while ((*p != e) && parse822_is_atom_char_ex (**p))
+    {
+      rc = str_append_char (atom, **p);
+      *p += 1;
+      if (rc != EOK)
+	{
+	  *p = save;
+	  break;
+	}
+    }
+  return rc;
+}
+
+int
 parse822_quoted_pair (const char **p, const char *e, char **qpair)
 {
   /* quoted-pair = "\" char */
@@ -597,11 +633,14 @@ parse822_word (const char **p, const char *e, char **word)
   /* Necessary because the quoted string could have found
    * a partial string (invalid syntax). Thus reset, the atom
    * will fail to if the syntax is invalid.
+   * We use parse822_atom_ex to allow for non-rfc-compliant atoms:
+   *
+   * "Be liberal in what you accept, and conservative in what you send."
    */
 
   {
     char *atom = 0;
-    if (parse822_atom (p, e, &atom) == EOK)
+    if (parse822_atom_ex (p, e, &atom) == EOK)
       {
 	rc = str_append (word, atom);
 
