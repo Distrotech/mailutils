@@ -6,12 +6,12 @@ EXTRA_LIBRARIES=libmu_scm.a
 libmu_scm_a_SOURCES=mu_scm.c mu_mailbox.c mu_message.c mu_body.c \
  mu_scm.h
 
-pkgdata_DATA=guile-procedures.txt
+pkgdata_DATA=@GUILE_PROCEDURES_TXT@
 DOT_X_FILES=mu_scm.x mu_mailbox.x mu_message.x mu_body.x 
 DOT_DOC_FILES=mu_scm.doc mu_mailbox.doc mu_message.doc \
  mu_body.doc 
-BUILT_SOURCES= $(DOT_X_FILES) $(DOT_DOC_FILES)
-#EXTRA_DIST=
+BUILT_SOURCES=@GUILE_BUILT_SOURCES@ 
+EXTRA_DIST=$(DOT_X_FILES) $(DOT_DOC_FILES) guile-procedures.txt
 
 CPPFLAGS=-DDATADIR=\"$(pkgdatadir)\"
 ETAGS_ARGS = --regex='/SCM_\(GLOBAL_\)?\(G?PROC\|G?PROC1\|SYMBOL\|VCELL\|CONST_LONG\).*\"\([^\"]\)*\"/\3/' \

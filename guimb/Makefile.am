@@ -8,11 +8,11 @@ guimb_SOURCES=main.c collect.c util.c run_scm.c guimb.h
 guimb_LDADD = ../libmu_scm/libmu_scm.a ../mailbox/libmailbox.la \
  ../lib/libmailutils.a @GUILE_LIBS@ 
 
-pkgdata_DATA=guile-procedures.txt
+pkgdata_DATA=@GUILE_PROCEDURES_TXT@
 DOT_X_FILES=run_scm.x
 DOT_DOC_FILES=run_scm.doc
-BUILT_SOURCES= $(DOT_X_FILES) $(DOT_DOC_FILES)
-#EXTRA_DIST=
+BUILT_SOURCES=@GUILE_BUILT_SOURCES@
+EXTRA_DIST=$(DOT_X_FILES) $(DOT_DOC_FILES) guile-procedures.txt
 
 CPPFLAGS=-DDATADIR=\"$(pkgdatadir)\"
 ETAGS_ARGS = --regex='/SCM_\(GLOBAL_\)?\(G?PROC\|G?PROC1\|SYMBOL\|VCELL\|CONST_LONG\).*\"\([^\"]\)*\"/\3/' \
