@@ -30,6 +30,6 @@ sql.c \
 tls.c \
 virtual.c 
 
-libmuauth_la_LIBADD = @AUTH_AUTHOBJS@ @LTLIBINTL@ 
+libmuauth_la_LIBADD = @LTLIBINTL@ 
 libmuauth_la_LDFLAGS = -version-info 0:0:0
 
