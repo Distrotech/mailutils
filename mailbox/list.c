@@ -179,3 +179,21 @@ list_get (list_t list, size_t indx, void **pitem)
   monitor_unlock (list->monitor);
   return status;
 }
+
+int
+list_do (list_t list, list_action_t * action, void *cbdata)
+{
+  struct list_data *current;
+  int status = 0;
+  if (list == NULL || action == NULL)
+    return EINVAL;
+  monitor_rdlock (list->monitor);
+  for (current = list->head.next; current != &(list->head);
+       current = current->next)
+    {
+      if ((status = action (current->item, cbdata)))
+	break;
+    }
+  monitor_unlock (list->monitor);
+  return status;
+}

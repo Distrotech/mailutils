@@ -44,6 +44,11 @@ extern int list_count    __P ((list_t, size_t *pcount));
 extern int list_remove   __P ((list_t, void *item));
 extern int list_get      __P ((list_t, size_t _index, void **pitem));
 
+typedef int list_action_t __P ((void* item, void* cbdata));
+
+extern int list_do       __P ((list_t list, list_action_t * action, void *cbdata));
+
+
 #ifdef __cplusplus
 }
 #endif
