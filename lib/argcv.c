@@ -19,8 +19,6 @@
 
 #include "argcv.h"
 
-char srtime[] = __TIME__;
-
 /*
  * takes a string and splits it into several strings, breaking at ' '
  * command is the string to split
@@ -43,7 +41,7 @@ argcv_scan (int len, const char *command, const char *delim, const char* cmnt,
       i = *save;
 
       if (i >= len)
-	return i;
+	return i + 1;
 
       /* Skip initial whitespace */
       while (i < len && isws (command[i]))
@@ -102,10 +100,10 @@ argcv_get (const char *command, const char *delim, const char* cmnt,
   *argv = NULL;
 
   /* Count number of arguments */
-  *argc = 1;
+  *argc = 0;
   save = 0;
 
-  while (argcv_scan (len, command, delim, cmnt, &start, &end, &save) < len)
+  while (argcv_scan (len, command, delim, cmnt, &start, &end, &save) <= len)
       (*argc)++;
 
   *argv = calloc ((*argc + 1), sizeof (char *));
@@ -198,14 +196,14 @@ argcv_string (int argc, char **argv, char **pstring)
 }
 
 #if 0
-char *command = "set prompt=\"& \"";
+char *command = "set prompt=\"& \" ";
 
-main()
+main(int xargc, char **xargv)
 {
   int i, argc;
   char **argv;
 
-  argcv_get (command, "=", NULL, &argc, &argv);
+  argcv_get (xargv[1] ? xargv[1]:command, "=", "#", &argc, &argv);
   printf ("%d args:\n", argc);
   for (i = 0; i < argc; i++)
     printf ("%s\n", argv[i]);
