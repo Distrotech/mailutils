@@ -12,6 +12,8 @@
 	sieve-my-email.
 	* guimb/scm/redirect.scm: Use close-pipe instead of close-output-port.
 	Use mu-message-destroy.
+	* guimb/scm/reject.scm: Delete message after sending reject
+	notification.
 
 	MH: Implemented user profiles.
 
