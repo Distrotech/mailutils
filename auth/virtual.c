@@ -47,7 +47,7 @@
 #include <mailutils/mu_auth.h>
 
 #ifdef USE_VIRTUAL_DOMAINS
-struct passwd *
+static struct passwd *
 getpwnam_virtual (char *u)
 {
   struct passwd *pw = NULL;
@@ -85,7 +85,7 @@ getpwnam_virtual (char *u)
   return pw;
 }
 
-struct passwd *
+static struct passwd *
 getpwnam_ip_virtual (const char *u)
 {
   struct sockaddr_in addr;
@@ -128,7 +128,7 @@ getpwnam_ip_virtual (const char *u)
 }
 
 /* Virtual domains */
-int
+static int
 mu_auth_virt_domain_by_name (void *return_data, void *key,
 			     void *unused_func_data, void *unused_call_data)
 {
@@ -167,7 +167,7 @@ mu_auth_virt_domain_by_name (void *return_data, void *key,
   return rc;
 }
 #else
-int
+static int
 mu_auth_virt_domain_by_name (void *return_data, void *key,
 			     void *unused_func_data, void *unused_call_data)
 {

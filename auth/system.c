@@ -41,7 +41,7 @@
 #include <mailutils/mu_auth.h>
 
 /* System database */
-int
+static int
 mu_auth_system (void *return_data, struct passwd *pw)
 {
   char *mailbox_name;
@@ -83,7 +83,7 @@ mu_auth_system_by_name (void *return_data, void *key,
   return mu_auth_system (return_data, getpwnam (key));
 }
 
-int
+static int
 mu_auth_system_by_uid (void *return_data, void *key,
 		       void *unused_func_data, void *unused_call_data)
 {
@@ -95,7 +95,7 @@ mu_auth_system_by_uid (void *return_data, void *key,
   return mu_auth_system (return_data, getpwuid (*(uid_t*) key));
 }
 
-int
+static int
 mu_authenticate_generic (void *ignored_return_data,
 			 void *key,
 			 void *ignored_func_data,
@@ -110,7 +110,7 @@ mu_authenticate_generic (void *ignored_return_data,
 }
 
 /* Called only if generic fails */
-int
+static int
 mu_authenticate_system (void *ignored_return_data,
 			void *key,
 			void *ignored_func_data,
