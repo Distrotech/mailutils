@@ -1,5 +1,5 @@
 /* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Library Public License as published by
@@ -17,11 +17,12 @@
 
 #include <cpystr.h>
 #include <string.h>
+#include <errno.h>
 
-int
-_cpystr (char *dst, const char *src, unsigned int size)
+size_t
+_cpystr (char *dst, const char *src, size_t size)
 {
-  unsigned int len = src ? strlen (src) : 0 ;
+  size_t len = src ? strlen (src) : 0 ;
 
   if (dst == NULL || size == 0)
     {

@@ -1,5 +1,5 @@
 /* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU Library General Public License as published by
@@ -41,7 +41,7 @@ struct _url_pop
   /* we use the fields from url_t */
   /* user, passwd, host, port */
   char * auth;
-  int (*_get_auth) __P ((const url_pop_t, char *, int));
+  int (*_get_auth) __P ((const url_pop_t, char *, size_t, size_t *));
 };
 
 extern int  url_pop_init    __P ((url_t *, const char *name));
@@ -60,12 +60,12 @@ extern struct url_type _url_pop_type;
 #endif
 
 /* pop*/
-extern int url_pop_get_auth (const url_t, char *, int);
+extern int url_pop_get_auth (const url_t, char *, size_t, size_t *);
 
 #ifdef MU_URL_MACROS
 /* pop */
-# define url_pop_get_auth(url, auth, n)	(((url_pop_t) \
-	    (url->data))->_get_auth(url->data, auth, n))
+# define url_pop_get_auth(url, auth, l, n)	(((url_pop_t) \
+	    (url->data))->_get_auth(url->data, auth, l, n))
 #endif /* MU_URL_MACROS */
 
 #ifdef __cplusplus

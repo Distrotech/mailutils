@@ -1,5 +1,5 @@
 /* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Library Public License as published by
@@ -18,13 +18,23 @@
 #ifndef _CPYSTR_H
 #define _CPYSTR_H
 
+#include <sys/types.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #ifndef __P
-# ifdef __STDC__
+# if __STDC__
 #  define __P(x)  x
 # else
 #  define __P(x)
 # endif
 #endif
-extern int _cpystr __P ((char *dst, const char *src, unsigned int size));
+extern size_t _cpystr __P ((char *dst, const char *src, size_t size));
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

@@ -1,5 +1,5 @@
 /* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU Library General Public License as published by
@@ -19,6 +19,7 @@
 #include <cpystr.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
 
 struct url_type _url_pop_type =
 {
@@ -28,18 +29,25 @@ struct url_type _url_pop_type =
   url_pop_init, url_pop_destroy
 };
 
-static int get_auth (const url_pop_t up, char *s, int n);
+static int get_auth (const url_pop_t up, char *s, size_t len, size_t *);
 
 static int
-get_auth (const url_pop_t up, char * s, int n)
+get_auth (const url_pop_t up, char *s, size_t len,  size_t *n)
 {
-  return _cpystr (s, up->auth, n);
+  size_t i;
+  if (up)
+    return EINVAL;
+  i = _cpystr (s, up->auth, len);
+  if (n)
+    *n = i;
+  return 0;
 }
 
 int
-(url_pop_get_auth) (const url_t url, char * auth, int n)
+(url_pop_get_auth) (const url_t url, char *auth, size_t len, size_t *n)
 {
-  return ((url_pop_t) (url->data))->_get_auth(url->data, auth, n);
+  return (url) ? ((url_pop_t)(url->data))->_get_auth(url->data, auth, len, n)
+    : EINVAL;
 }
 
 void

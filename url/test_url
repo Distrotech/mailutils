@@ -1,3 +1,4 @@
+file:///usr/spool/alain
 pop://<user>;auth=<auth>@<host>:<port>
 pop://rg@mailsrv.qualcomm.com
 pop://rg;AUTH=+APOP@mail.eudora.com:8110
@@ -6,3 +7,9 @@ pop://me
 pop:/joe@qnx.com
 pop://;Auth=+me@joe
 pop://alain;ATU=me@joe
+
+unix:///var/mail/alain
+unix://usr/spool/mail
+file:///usr/spool/alain
+mdir://home/alain
+mmdf://u

@@ -1,5 +1,5 @@
 /* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU Library General Public License as published by
@@ -50,7 +50,7 @@ int
 url_mbox_init (url_t *purl, const char *name)
 {
   url_t url;
-  int len;
+  size_t len;
   struct url_type *utype = &_url_mbox_type;
 
   /* reject the obvious */

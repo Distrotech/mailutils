@@ -1,5 +1,5 @@
 /* GNU mailutils - a suite of utilities for electronic mail
-   Copyright (C) 1999 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Library Public License as published by
@@ -29,14 +29,20 @@
 #include <errno.h>
 
 /* Forward prototypes */
-static int get_scheme (const url_t, char *, int);
-static int get_user   (const url_t, char *, int);
-static int get_passwd (const url_t, char *, int);
-static int get_host   (const url_t, char *, int);
-static int get_port   (const url_t, long *);
-static int get_path   (const url_t, char *, int);
-static int get_query  (const url_t, char *, int);
-static int get_id     (const url_t, int *id);
+static int get_scheme  (const url_t, char *, size_t, size_t *);
+static int get_mscheme (const url_t, char **, size_t *);
+static int get_user    (const url_t, char *, size_t, size_t *);
+static int get_muser   (const url_t, char **, size_t *);
+static int get_passwd  (const url_t, char *, size_t, size_t *);
+static int get_mpasswd (const url_t, char **, size_t *);
+static int get_host    (const url_t, char *, size_t, size_t *);
+static int get_mhost   (const url_t, char **, size_t *);
+static int get_port    (const url_t, long *);
+static int get_path    (const url_t, char *, size_t, size_t *);
+static int get_mpath   (const url_t, char **, size_t *);
+static int get_query   (const url_t, char *, size_t, size_t *);
+static int get_mquery  (const url_t, char **, size_t *);
+static int get_id      (const url_t, int *id);
 
 /*
   Builtin url types.
@@ -94,34 +100,42 @@ url_remove_type (const struct url_type *utype)
 }
 
 int
-url_list_type (struct url_type *list, int n)
+url_list_type (struct url_type *list, size_t len, size_t *n)
 {
   struct url_builtin *current;
-  int i;
+  size_t i = 0;
   for (i = 0, current = url_builtin->next; current != url_builtin;
        current = current->next, i++)
     {
       if (list)
-	if (i < n)
-	  list[i] = *(current->utype);
+	{
+	  if (i < len)
+	    list[i] = *(current->utype);
+	  else
+	    break;
+	}
     }
-  return i;
+  if (n)
+    *n = i;
+  return 0;
 }
 
 int
-url_list_mtype (struct url_type **mlist, int *n)
+url_list_mtype (struct url_type **mlist, size_t *n)
 {
   struct url_type *utype;
-  int i;
+  size_t i;
 
-  if ((i = url_list_type (NULL, 0)) <= 0
-      || (utype = calloc (i, sizeof (*utype))) == NULL)
+  url_list_type (NULL, 0, &i);
+  utype = calloc (i, sizeof (*utype));
+  if (utype == NULL)
     {
-      return -1;
+      return ENOMEM;
     }
 
   *mlist = utype;
-  return *n = url_list_type (utype, i);
+  url_list_type (utype, i, n);
+  return 0;
 }
 
 int
@@ -159,18 +173,30 @@ url_init (url_t * purl, const char *name)
 	    url->utype = utype;
 	  if (url->_get_scheme == NULL)
 	    url->_get_scheme = get_scheme;
+	  if (url->_get_mscheme == NULL)
+	    url->_get_mscheme = get_mscheme;
 	  if (url->_get_user == NULL)
 	    url->_get_user = get_user;
+	  if (url->_get_muser == NULL)
+	    url->_get_muser = get_muser;
 	  if (url->_get_passwd == NULL)
 	    url->_get_passwd = get_passwd;
+	  if (url->_get_mpasswd == NULL)
+	    url->_get_mpasswd = get_mpasswd;
 	  if (url->_get_host == NULL)
 	    url->_get_host = get_host;
+	  if (url->_get_mhost == NULL)
+	    url->_get_mhost = get_mhost;
 	  if (url->_get_port == NULL)
 	    url->_get_port = get_port;
 	  if (url->_get_path == NULL)
 	    url->_get_path = get_path;
+	  if (url->_get_mpath == NULL)
+	    url->_get_mpath = get_mpath;
 	  if (url->_get_query == NULL)
 	    url->_get_query = get_query;
+	  if (url->_get_mquery == NULL)
+	    url->_get_mquery = get_mquery;
 	  if (url->_get_id == NULL)
 	    url->_get_id = get_id;
 	}
@@ -193,29 +219,117 @@ url_destroy (url_t *purl)
 /* Simple stub functions they all call _cpystr */
 
 static int
-get_scheme (const url_t u, char * s, int n)
+get_scheme (const url_t u, char *s, size_t len, size_t *n)
 {
-  return _cpystr (s, u->scheme, n);
+  size_t i;
+  if (u == NULL)
+    return EINVAL;
+  i = _cpystr (s, u->scheme, len);
+  if (n)
+    *n = i;
+  return 0;
+}
+static int
+get_mscheme (const url_t u, char **s, size_t *n)
+{
+  size_t i;
+  if (u == NULL || s == NULL || u->_get_scheme (u, NULL, 0, &i) != 0)
+    {
+      return EINVAL;
+    }
+  *s = malloc (++i);
+  if (*s == NULL)
+    {
+      return ENOMEM;
+    }
+  u->_get_scheme (u, *s, 0, n);
+  return 0;
 }
 
 static int
-get_user (const url_t u, char * s, int n)
+get_user (const url_t u, char *s, size_t len, size_t *n)
 {
-  return _cpystr (s, u->user, n);
+  size_t i;
+  if (u == NULL)
+    return EINVAL;
+  i = _cpystr (s, u->user, len);
+  if (n)
+    *n = i;
+  return 0;
+}
+static int
+get_muser (const url_t u, char **s, size_t *n)
+{
+  size_t i;
+  if (u == NULL || s == NULL || u->_get_user (u, NULL, 0, &i) != 0)
+    {
+      return EINVAL;
+    }
+  *s = malloc (++i);
+  if (*s == NULL)
+    {
+      return ENOMEM;
+    }
+  u->_get_user (u, *s, i, n);
+  return 0;
 }
 
 /* FIXME: We should not store passwd in clear, but rather
    have a simple encoding, and decoding mechanism */
 static int
-get_passwd (const url_t u, char * s, int n)
+get_passwd (const url_t u, char *s, size_t len, size_t *n)
 {
-  return _cpystr (s, u->passwd, n);
+  size_t i;
+  if (u == NULL)
+    return EINVAL;
+  i = _cpystr (s, u->passwd, len);
+  if (n)
+    *n = i;
+  return 0;
+}
+static int
+get_mpasswd (const url_t u, char **s, size_t *n)
+{
+  size_t i;
+  if (u == NULL || s == NULL || u->_get_passwd (u, NULL, 0, &i) != 0)
+    {
+      return EINVAL;
+    }
+  *s = malloc (++i);
+  if (*s == NULL)
+    {
+      return ENOMEM;
+    }
+  u->_get_passwd (u, *s, i, n);
+  return 0;
 }
 
 static int
-get_host (const url_t u, char * s, int n)
+get_host (const url_t u, char *s, size_t len, size_t *n)
 {
-  return _cpystr (s, u->host, n);
+  size_t i;
+  if (u == NULL)
+    return EINVAL;
+  i = _cpystr (s, u->host, len);
+  if (n)
+    *n = i;
+  return 0;
+}
+static int
+get_mhost (const url_t u, char **s, size_t *n)
+{
+  size_t i;
+  if (u == NULL || s == NULL || u->_get_host (u, NULL, 0, &i) != 0)
+    {
+      return EINVAL;
+    }
+  *s = malloc (++i);
+  if (*s == NULL)
+    {
+      return ENOMEM;
+    }
+  u->_get_host (u, *s, i, n);
+  return 0;
 }
 
 static int
@@ -226,15 +340,59 @@ get_port (const url_t u, long * p)
 }
 
 static int
-get_path (const url_t u, char * s, int n)
+get_path (const url_t u, char *s, size_t len, size_t *n)
 {
-  return _cpystr(s, u->path, n);
+  size_t i;
+  if (u == NULL)
+    return EINVAL;
+  i = _cpystr(s, u->path, len);
+  if (n)
+    *n = i;
+  return 0;
+}
+static int
+get_mpath (const url_t u, char **s, size_t *n)
+{
+  size_t i;
+  if (u == NULL || s == NULL || u->_get_path (u, NULL, 0, &i) != 0)
+    {
+      return EINVAL;
+    }
+  *s = malloc (++i);
+  if (*s == NULL)
+    {
+      return ENOMEM;
+    }
+  u->_get_path (u, *s, i, n);
+  return 0;
 }
 
 static int
-get_query (const url_t u, char * s, int n)
+get_query (const url_t u, char *s, size_t len, size_t *n)
 {
-  return _cpystr(s, u->query, n);
+  size_t i;
+  if (u == NULL)
+    return EINVAL;
+  i = _cpystr(s, u->query, len);
+  if (n)
+    *n = i;
+  return 0;
+}
+static int
+get_mquery (const url_t u, char **s, size_t *n)
+{
+  size_t i;
+  if (u == NULL || s == NULL || u->_get_query (u, NULL, 0, &i) != 0)
+    {
+      return EINVAL;
+    }
+  *s = malloc (++i);
+  if (*s == NULL)
+    {
+      return ENOMEM;
+    }
+  u->_get_query (u, *s, i, n);
+  return 0;
 }
 
 static int
