@@ -253,6 +253,8 @@ extern msgset_t *msgset_range __P ((int low, int high));
 extern msgset_t *msgset_expand __P ((msgset_t *set, msgset_t *expand_by));
 extern msgset_t *msgset_dup __P ((const msgset_t *set));
 extern int msgset_parse __P ((const int argc, char **argv, msgset_t **mset));
+extern int msgset_member __P ((msgset_t *set, size_t n));
+extern msgset_t *msgset_negate __P((msgset_t *set));
 
 extern int util_do_command __P ((const char *cmd, ...));
 extern int util_msglist_command __P ((function_t *func, int argc, char **argv, int set_cursor));
