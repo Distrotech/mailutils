@@ -39,7 +39,7 @@
   TODO: implement functions to create a url and encode it properly.
 */
 
-static int url_parse0(url_t, char*);
+static int url_parse0 (url_t, char *);
 
 int
 url_create (url_t * purl, const char *name)
@@ -58,7 +58,7 @@ url_create (url_t * purl, const char *name)
 }
 
 void
-url_destroy (url_t *purl)
+url_destroy (url_t * purl)
 {
   if (purl && *purl)
     {
@@ -102,13 +102,13 @@ url_parse (url_t url)
 {
   int err = 0;
   char *n = NULL;
-  struct _url u = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ,0 ,0, 0};
+  struct _url u = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 
   if (!url || !url->name)
     return EINVAL;
 
   /* can't have been parsed already */
-  if(url->scheme || url->user || url->passwd || url->auth ||
+  if (url->scheme || url->user || url->passwd || url->auth ||
       url->host || url->path || url->query)
     return EINVAL;
 
@@ -123,8 +123,8 @@ url_parse (url_t url)
     {
       /* Dup the strings we found. We wouldn't have to do this
          if we did a single alloc of the source url name, and
-	 kept it around. It's also a good time to do hex decoding,
-	 though.
+         kept it around. It's also a good time to do hex decoding,
+         though.
        */
 
 
@@ -137,17 +137,12 @@ url_parse (url_t url)
 		  u.X = NULL; \
 		}
 
-	UALLOC (scheme)
+      UALLOC (scheme)
 	UALLOC (user)
 	UALLOC (passwd)
-	UALLOC (auth)
-	UALLOC (host)
-	UALLOC (path)
-	UALLOC (query)
-
+	UALLOC (auth) UALLOC (host) UALLOC (path) UALLOC (query)
 #undef UALLOC
-
-        url->port = u.port;
+	url->port = u.port;
     }
 
 CLEANUP:
@@ -157,14 +152,11 @@ CLEANUP:
     {
 #define UFREE(X) if(X) { free(X); X = 0; }
 
-      UFREE(url->scheme)
-      UFREE(url->user)
-      UFREE(url->passwd)
-      UFREE(url->auth)
-      UFREE(url->host)
-      UFREE(url->path)
-      UFREE(url->query)
-
+      UFREE (url->scheme)
+	UFREE (url->user)
+	UFREE (url->passwd)
+	UFREE (url->auth)
+	UFREE (url->host) UFREE (url->path) UFREE (url->query)
 #undef UFREE
     }
 
@@ -199,7 +191,7 @@ Is this required to be % quoted, though? I hope so!
 static int
 url_parse0 (url_t u, char *name)
 {
-  char *p; /* pointer into name */
+  char *p;			/* pointer into name */
 
   /* reject the obvious */
   if (name == NULL)
@@ -217,20 +209,20 @@ url_parse0 (url_t u, char *name)
   u->scheme = name;
 
   /* RFC 1738, section 2.1, lower the scheme case */
-  for ( ; name < p; name++)
-    *name = tolower(*name);
+  for (; name < p; name++)
+    *name = tolower (*name);
 
   name = p;
 
   /* Check for nothing following the scheme. */
-  if(!*name)
+  if (!*name)
     return 0;
 
   if (strncmp (name, "//", 2) != 0)
-  {
-    u->path = name;
-    return 0;
-  }
+    {
+      u->path = name;
+      return 0;
+    }
 
   name += 2;
 
@@ -247,7 +239,7 @@ url_parse0 (url_t u, char *name)
 
       /* Try to split the user into a:
          <user>:<password>
-        or
+         or
          <user>;AUTH=<auth>
        */
 
@@ -286,7 +278,7 @@ url_parse0 (url_t u, char *name)
       u->port = strtol (p, &p, 10);
 
       /* Check for garbage after the port: we should be on the start
-       of a path, a query, or at the end of the string. */
+         of a path, a query, or at the end of the string. */
       if (*p && strcspn (p, "/?") != 0)
 	return EPARSE;
     }
@@ -306,12 +298,12 @@ url_parse0 (url_t u, char *name)
       *p++ = 0;
       u->path = p;
     }
-  
+
   return 0;
 }
 
 int
-url_get_scheme (const url_t url, char *scheme, size_t len, size_t *n)
+url_get_scheme (const url_t url, char *scheme, size_t len, size_t * n)
 {
   size_t i;
   if (url == NULL)
@@ -325,7 +317,7 @@ url_get_scheme (const url_t url, char *scheme, size_t len, size_t *n)
 }
 
 int
-url_get_user (const url_t url, char *user, size_t len, size_t *n)
+url_get_user (const url_t url, char *user, size_t len, size_t * n)
 {
   size_t i;
   if (url == NULL)
@@ -341,7 +333,7 @@ url_get_user (const url_t url, char *user, size_t len, size_t *n)
 /* FIXME: We should not store passwd in clear, but rather
    have a simple encoding, and decoding mechanism */
 int
-url_get_passwd (const url_t url, char *passwd, size_t len, size_t *n)
+url_get_passwd (const url_t url, char *passwd, size_t len, size_t * n)
 {
   size_t i;
   if (url == NULL)
@@ -355,7 +347,7 @@ url_get_passwd (const url_t url, char *passwd, size_t len, size_t *n)
 }
 
 int
-url_get_auth (const url_t url, char *auth, size_t len, size_t *n)
+url_get_auth (const url_t url, char *auth, size_t len, size_t * n)
 {
   size_t i;
   if (url == NULL)
@@ -369,7 +361,7 @@ url_get_auth (const url_t url, char *auth, size_t len, size_t *n)
 }
 
 int
-url_get_host (const url_t url, char *host, size_t len, size_t *n)
+url_get_host (const url_t url, char *host, size_t len, size_t * n)
 {
   size_t i;
   if (url == NULL)
@@ -394,28 +386,28 @@ url_get_port (const url_t url, long *pport)
 }
 
 int
-url_get_path (const url_t url, char *path, size_t len, size_t *n)
+url_get_path (const url_t url, char *path, size_t len, size_t * n)
 {
   size_t i;
   if (url == NULL)
     return EINVAL;
   if (url->_get_path)
     return url->_get_path (url, path, len, n);
-  i = mu_cpystr(path, url->path, len);
+  i = mu_cpystr (path, url->path, len);
   if (n)
     *n = i;
   return 0;
 }
 
 int
-url_get_query (const url_t url, char *query, size_t len, size_t *n)
+url_get_query (const url_t url, char *query, size_t len, size_t * n)
 {
   size_t i;
   if (url == NULL)
     return EINVAL;
   if (url->_get_query)
     return url->_get_query (url, query, len, n);
-  i = mu_cpystr(query, url->query, len);
+  i = mu_cpystr (query, url->query, len);
   if (n)
     *n = i;
   return 0;
@@ -429,9 +421,10 @@ url_to_string (const url_t url)
   return url->name;
 }
 
-int url_is_scheme (url_t url, const char* scheme)
+int
+url_is_scheme (url_t url, const char *scheme)
 {
-  if(url && scheme && url->scheme && strcasecmp(url->scheme, scheme) == 0)
+  if (url && scheme && url->scheme && strcasecmp (url->scheme, scheme) == 0)
     return 1;
 
   return 0;
@@ -452,11 +445,11 @@ url_is_same_scheme (url_t url1, url_t url2)
       url_get_scheme (url1, s1, i + 1, NULL);
       s2 = calloc (j + 1, sizeof (char));
       if (s2)
-        {
-          url_get_scheme (url2, s2, j + 1, NULL);
-          ret = !strcasecmp (s1, s2);
-          free (s2);
-        }
+	{
+	  url_get_scheme (url2, s2, j + 1, NULL);
+	  ret = !strcasecmp (s1, s2);
+	  free (s2);
+	}
       free (s1);
     }
   return ret;
@@ -477,11 +470,11 @@ url_is_same_user (url_t url1, url_t url2)
       url_get_user (url1, s1, i + 1, NULL);
       s2 = calloc (j + 1, sizeof (char));
       if (s2)
-        {
-          url_get_user (url2, s2, j + 1, NULL);
-          ret = !strcmp (s1, s2);
-          free (s2);
-        }
+	{
+	  url_get_user (url2, s2, j + 1, NULL);
+	  ret = !strcmp (s1, s2);
+	  free (s2);
+	}
       free (s1);
     }
   return ret;
@@ -502,11 +495,11 @@ url_is_same_path (url_t url1, url_t url2)
       url_get_path (url1, s1, i + 1, NULL);
       s2 = calloc (j + 1, sizeof (char));
       if (s2)
-        {
-          url_get_path (url2, s2, j + 1, NULL);
-          ret = !strcmp (s1, s2);
-          free (s2);
-        }
+	{
+	  url_get_path (url2, s2, j + 1, NULL);
+	  ret = !strcmp (s1, s2);
+	  free (s2);
+	}
       free (s1);
     }
   return ret;
@@ -527,11 +520,11 @@ url_is_same_host (url_t url1, url_t url2)
       url_get_host (url1, s1, i + 1, NULL);
       s2 = calloc (j + 1, sizeof (char));
       if (s2)
-        {
-          url_get_host (url2, s2, j + 1, NULL);
-          ret = !strcasecmp (s1, s2);
-          free (s2);
-        }
+	{
+	  url_get_host (url2, s2, j + 1, NULL);
+	  ret = !strcasecmp (s1, s2);
+	  free (s2);
+	}
       free (s1);
     }
   return ret;
@@ -588,44 +581,43 @@ url_decode (const char *s)
   return d;
 }
 
-static int defined(const char* s)
+static int
+defined (const char *s)
 {
-    if(s && strcmp("*", s) != 0)
-          return 1;
-      return 0;
+  if (s && strcmp ("*", s) != 0)
+    return 1;
+  return 0;
 }
 
 int
 url_is_ticket (url_t ticket, url_t url)
 {
-  if(!ticket || !url)
+  if (!ticket || !url)
     return 0;
 
   /* If ticket has a scheme, host, port, or path, then the queries
      equivalent must be defined and match. */
-  if(defined(ticket->scheme))
-  {
-    if(!url->scheme || strcasecmp(ticket->scheme, url->scheme) != 0)
-      return 0;
-  }
-  if(defined(ticket->host))
-  {
-    if(!url->host || strcasecmp(ticket->host, url->host) != 0)
-      return 0;
-  }
-  if(ticket->port && ticket->port != url->port)
+  if (defined (ticket->scheme))
+    {
+      if (!url->scheme || strcasecmp (ticket->scheme, url->scheme) != 0)
+	return 0;
+    }
+  if (defined (ticket->host))
+    {
+      if (!url->host || strcasecmp (ticket->host, url->host) != 0)
+	return 0;
+    }
+  if (ticket->port && ticket->port != url->port)
     return 0;
   /* If ticket has a user or pass, but url doesn't thats OK, were
      urling for this info. But if url does have a user/pass, it
      must match the ticket. */
-  if(url->user)
-  {
-    if(defined(ticket->user) && strcmp(ticket->user, url->user) != 0)
-      return 0;
-  }
+  if (url->user)
+    {
+      if (defined (ticket->user) && strcmp (ticket->user, url->user) != 0)
+	return 0;
+    }
 
   /* Guess it matches. */
   return 1;
 }
-
-
