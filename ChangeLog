@@ -1,3 +1,23 @@
+2002-08-01  Sergey Poznyakoff 
+
+	* imap4d/util.c (util_msgset): Bugfix.
+
+	* imap4d/sync.c (notify_deleted): Implemented "immediate decrement
+	  rule" required by RFC2060
+	  Interchanged reset_uid() and notify(). Notify decides whether
+	  and when reset_uid must be called.
+	  (notify): Call reset_uid(). when necessary.
+	  (reset_uid): Do not call notify().
+	  (imap4d_sync): Call notify().
+	  
+	* imap4d/imap4d.h (fetch_flags0): New prototype. 
+
+	* imap4d/fetch.c (fetch_flags0): New function. Produces untagged
+	  fetch response for FETCH and STORE commands. If necessary outputs
+	  also UID.
+	* imap4d/store.c (imap4d_store0): Use fetch_flags0.
+	
+
 2002-07-27  Sergey Poznyakoff
 
 	* imap4d/fetch.c: Do not use strtok_r to parse header values (it
