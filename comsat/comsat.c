@@ -53,10 +53,8 @@ static char doc[] = "GNU comsatd";
 
 static struct argp_option options[] = 
 {
-  {NULL, 0, NULL, 0,
-   "comsatd specific switches:", 0},
   {"config", 'c', "FILE", 0, "Read configuration from FILE", 0},
-  { NULL,      0, NULL, 0, NULL, 0 }
+  { NULL, 0, NULL, 0, NULL, 0 }
 };
 
 static error_t comsatd_parse_opt (int key, char *arg, struct argp_state *state);
@@ -71,9 +69,11 @@ static struct argp argp = {
 };
 
 static const char *comsat_argp_capa[] = {
-  "mailutils",
   "daemon",
+  "common",
   "logging",
+  "mailbox",
+  "licence",
   NULL
 };
 

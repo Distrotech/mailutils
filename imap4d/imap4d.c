@@ -42,8 +42,6 @@ static char doc[] = "GNU imap4d -- the IMAP4D daemon";
 
 static struct argp_option options[] = 
 {
-  {NULL, 0, NULL, 0,
-   "imap4d specific switches:", 0},
   {"other-namespace", 'O', "PATHLIST", 0,
    "set the `other' namespace", 0},
   {"shared-namespace", 'S', "PATHLIST", 0,
@@ -63,10 +61,12 @@ static struct argp argp = {
 };
 
 static const char *imap4d_capa[] = {
-  "mailutils",
   "daemon",
-  "logging",
   "auth",
+  "common",
+  "mailbox",
+  "logging",
+  "licence",
   NULL
 };
 

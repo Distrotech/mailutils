@@ -133,7 +133,12 @@ static struct argp argp = {
   NULL, NULL
 };
 
-static const char *guimb_argp_capa[] = {"mailutils", NULL};
+static const char *guimb_argp_capa[] = {
+  "common",
+  "mailbox",
+  "licence",
+  NULL
+};
     
 int
 main (int argc, char *argv[])
