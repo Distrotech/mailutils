@@ -20,13 +20,6 @@
 		was included from "mail.h".
 	* mail/util.c: Added util_get_homedir() and util_fullpath().
 
-mail/source.c: 
-	  mail.c: 
-	* mail/mail.h: 
-	* mail/util.c: modified util_do_command to honour if/else status.
-	  Fixed possible coredump (dereferencing cmd before checking for
-	  NULL value).
-
 2001-06-21 Sergey Poznyakoff
 	* mailbox/mutil.c: Fixed error introduced in the initial
 	  implementation of mu_mktime (now mu_tm2time). The comment
