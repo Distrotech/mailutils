@@ -46,21 +46,8 @@
 #include <argcv.h>
 #include <mu_asprintf.h>
 
-#ifdef HAVE_MYSQL
-# include "../MySql/MySql.h"
-#endif
-
 #define ARG_LOG_FACILITY 1
-#define ARG_SQL_GETPWNAM 2
-#define ARG_SQL_GETPWUID 3
-#define ARG_SQL_GETPASS 4
-#define ARG_SQL_HOST 5
-#define ARG_SQL_USER 6
-#define ARG_SQL_PASSWD 7
-#define ARG_SQL_DB 8
-#define ARG_SQL_PORT 9
-#define ARG_PAM_SERVICE 10
-#define ARG_LOCK_FLAGS 11
+#define ARG_LOCK_FLAGS 2
 
 const char *argp_program_bug_address = "<" PACKAGE_BUGREPORT ">";
 
@@ -108,32 +95,6 @@ static struct argp_option mu_logging_argp_option[] = {
   { NULL,      0, NULL, 0, NULL, 0 }
 };
 
-/* Options used by programs that use extended authentication mechanisms. */
-static struct argp_option mu_auth_argp_option[] = {
-#ifdef USE_LIBPAM
-  { "pam-service", ARG_PAM_SERVICE, "STRING", 0,
-    "Use STRING as PAM service name", 0},
-#endif
-#ifdef HAVE_MYSQL
-  {"sql-getpwnam", ARG_SQL_GETPWNAM, "QUERY", 0,
-   "SQL query to retrieve a passwd entry based on username", 0},
-  {"sql-getpwuid", ARG_SQL_GETPWUID, "QUERY", 0,
-   "SQL query to retrieve a passwd entry based on UID", 0},
-  {"sql-getpass", ARG_SQL_GETPASS, "QUERY", 0,
-   "SQL query to retrieve a password from the database", 0},
-  {"sql-host", ARG_SQL_HOST, "HOSTNAME", 0,
-   "Name or IP of MySQL server to connect to", 0},
-  {"sql-user", ARG_SQL_USER, "NAME", 0,
-   "SQL user name", 0},
-  {"sql-passwd", ARG_SQL_PASSWD, "STRING", 0,
-   "SQL connection password", 0},
-  {"sql-db", ARG_SQL_DB, "STRING", 0,
-   "Name of the database to connect to", 0},
-  {"sql-port", ARG_SQL_PORT, "NUMBER", 0,
-   "Port to use", 0},
-#endif
-  { NULL,      0, NULL, 0, NULL, 0 }
-};
 
 /* Options used by programs that become daemons. */
 static struct argp_option mu_daemon_argp_option[] = {
@@ -227,18 +188,6 @@ struct argp_child mu_logging_argp_child = {
   0
 };
 
-struct argp mu_auth_argp = {
-  mu_auth_argp_option,
-  mu_common_argp_parser,
-};
-
-struct argp_child mu_auth_argp_child = {
-  &mu_auth_argp,
-  0,
-  "Authentication options",
-  0
-};
-
 struct argp mu_daemon_argp = {
   mu_daemon_argp_option,
   mu_daemon_argp_parser,
@@ -300,21 +249,6 @@ static char license_text[] =
     "   You should have received a copy of the GNU General Public License\n"
     "   along with this program; if not, write to the Free Software\n"
     "   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.\n";
-
-#ifdef HAVE_MYSQL
-char *sql_getpwnam_query;
-char *sql_getpass_query;
-char *sql_getpwuid_query;
-char *sql_host = MHOST;
-char *sql_user = MUSER;
-char *sql_passwd = MPASS;
-char *sql_db = MDB;
-char *sql_socket = MSOCKET;
-int  sql_port = MPORT;
-#endif
-#ifdef USE_LIBPAM
-char *pam_service = NULL;
-#endif
 
 static error_t
 mu_common_argp_parser (int key, char *arg, struct argp_state *state)
@@ -394,52 +328,6 @@ mu_common_argp_parser (int key, char *arg, struct argp_state *state)
       log_facility = parse_log_facility (arg);
       break;
 
-      /* authentication */
-#ifdef USE_LIBPAM
-    case ARG_PAM_SERVICE:
-      pam_service = arg;
-      break;
-#endif
-
-#ifdef HAVE_MYSQL
-    case ARG_SQL_GETPWNAM:
-      sql_getpwnam_query = arg;
-      break;
-
-    case ARG_SQL_GETPWUID:
-      sql_getpwuid_query = arg;
-      break;
-
-    case ARG_SQL_GETPASS:
-      sql_getpass_query = arg;
-      break;
-
-    case ARG_SQL_HOST:
-      sql_host = arg;
-      break;
-
-    case ARG_SQL_USER:
-      sql_user = arg;
-      break;
-
-    case ARG_SQL_PASSWD:
-      sql_passwd = arg;
-      break;
-
-    case ARG_SQL_DB:
-      sql_db = arg;
-      break;
-
-    case ARG_SQL_PORT:
-      sql_port = strtoul (arg, NULL, 0);
-      if (sql_port == 0)
-	{
-	  sql_host = NULL;
-	  sql_socket = arg;
-	}
-      break;
-
-#endif
     case ARGP_KEY_FINI:
       p = mu_normalize_maildir (mu_path_maildir);
       if (!p)
@@ -740,20 +628,37 @@ mu_create_argcv (const char *capa[],
   *p_argv = x_argv;
 }
 
+#define MU_MAX_CAPA 24
+
 struct argp_capa {
   char *capability;
   struct argp_child *child;
-} mu_argp_capa[] = {
+} mu_argp_capa[MU_MAX_CAPA] = {
   {"common",  &mu_common_argp_child},
   {"license", &mu_license_argp_child},
   {"mailbox", &mu_mailbox_argp_child},
   {"address", &mu_address_argp_child},
   {"mailer",  &mu_mailer_argp_child},
   {"logging", &mu_logging_argp_child},
-  {"auth",    &mu_auth_argp_child},
   {"daemon",  &mu_daemon_argp_child},
   {NULL,}
 };
+
+int
+mu_register_capa (const char *name, struct argp_child *child)
+{
+  int i;
+  
+  for (i = 0; i < MU_MAX_CAPA; i++)
+    if (mu_argp_capa[i].capability == NULL)
+      {
+	mu_argp_capa[i].capability = strdup (name);
+	mu_argp_capa[i].child = child;
+	return 0;
+      }
+  return 1;
+}
+
 
 static struct argp_child *
 find_argp_child (const char *capa)
