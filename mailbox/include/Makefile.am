@@ -20,6 +20,7 @@
 noinst_HEADERS = \
 address0.h \
 attribute0.h \
+amd.h \
 auth0.h \
 body0.h \
 debug0.h \
