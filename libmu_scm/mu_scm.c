@@ -47,10 +47,11 @@ mu_set_variable (const char *name, SCM value)
   scm_c_define (name, value);
 }
 
-SCM _mu_scm_package; /* STRING: PACKAGE */
-SCM _mu_scm_version; /* STRING: VERSION */
-SCM _mu_scm_mailer;  /* STRING: Default mailer path. */
-SCM _mu_scm_debug;   /* NUM: Default debug level. */
+SCM _mu_scm_package_string; /* STRING: PACKAGE_STRING */
+SCM _mu_scm_package;        /* STRING: PACKAGE */
+SCM _mu_scm_version;        /* STRING: VERSION */
+SCM _mu_scm_mailer;         /* STRING: Default mailer path. */
+SCM _mu_scm_debug;          /* NUM: Default debug level. */
 
 struct format_record {
   char *name;
@@ -178,6 +179,9 @@ mu_scm_init ()
 
   _mu_scm_version = scm_makfrom0str (VERSION);
   mu_set_variable ("mu-version", _mu_scm_version);
+
+  _mu_scm_package_string = scm_makfrom0str (PACKAGE_STRING);
+  mu_set_variable ("mu-package-string", _mu_scm_package_string);
 
   /* Create MU- attribute names */
   for (i = 0; attr_kw[i].name; i++)
