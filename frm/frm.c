@@ -238,7 +238,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
 static struct argp argp = {
   options,
   parse_opt,
-  N_("[URL]"),
+  N_("[URL ...]"),
   doc,
   NULL,
   NULL, NULL
