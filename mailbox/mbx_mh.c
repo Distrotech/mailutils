@@ -504,7 +504,7 @@ _mh_message_save (struct _mh_data *mhd, struct _mh_message *mhm, int expunge)
   char *name = NULL, *buf = NULL, *msg_name;
   size_t n, off = 0;
   size_t bsize;
-  size_t nlines;
+  size_t nlines, nbytes;
   size_t new_body_start, new_header_lines;
   FILE *fp;
   message_t msg = mhm->message;
@@ -517,10 +517,7 @@ _mh_message_save (struct _mh_data *mhd, struct _mh_message *mhm, int expunge)
   
   fp = _mh_tempfile (mhm->mhd, &name);
   if (!fp)
-    {
-      free (mhm);
-      return errno;
-    }
+    return errno;
 
   message_size (msg, &bsize);
 
@@ -530,41 +527,38 @@ _mh_message_save (struct _mh_data *mhd, struct _mh_message *mhm, int expunge)
       break;
 
   if (!bsize)
-    {
-      free (mhm);
-      return ENOMEM;
-    }
+    return ENOMEM;
 
   /* Copy flags */
   message_get_header (msg, &hdr);
   header_get_stream (hdr, &stream);
   off = 0;
-  nlines = 0;
+  nlines = nbytes = 0;
   while ((status = stream_readline (stream, buf, bsize, off, &n)) == 0
 	 && n != 0)
     {
       if (_mh_delim(buf))
 	break;
 
-      nlines++;
-
       if (!(strncasecmp (buf, "status:", 7) == 0
 	    || strncasecmp (buf, "x-imapbase:", 11) == 0
 	    || strncasecmp (buf, "x-uid:", 6) == 0
 	    || strncasecmp (buf, MU_HEADER_ENV_DATE ":", sizeof (MU_HEADER_ENV_DATE)) == 0
 	    || strncasecmp (buf, MU_HEADER_ENV_SENDER ":", sizeof (MU_HEADER_ENV_SENDER)) == 0))
-	fprintf (fp, "%s", buf);
+	{
+	  nlines++;
+	  nbytes += fprintf (fp, "%s", buf);
+	}
+      
       off += n;
     }
-
-  new_header_lines = nlines;
-  new_body_start = off;
 
   /* Add imapbase */
   if (!mhd->msg_head || (mhd->msg_head == mhm)) /*FIXME*/
     {
-      fprintf (fp, "X-IMAPbase: %lu %u\n",
-	       (unsigned long) mhd->uidvalidity, (unsigned) _mh_next_seq(mhd));
+      nbytes += fprintf (fp, "X-IMAPbase: %lu %u\n",
+			 (unsigned long) mhd->uidvalidity,
+			 (unsigned) _mh_next_seq(mhd));
       nlines++;
     }
   
@@ -575,10 +569,10 @@ _mh_message_save (struct _mh_data *mhd, struct _mh_message *mhm, int expunge)
       char *p = buffer;
       while (isspace (*p))
 	p++;
-      fprintf (fp, "%s: %s", MU_HEADER_ENV_DATE, p);
+      nbytes += fprintf (fp, "%s: %s", MU_HEADER_ENV_DATE, p);
 
       if (*p && p[strlen (p) - 1] != '\n')
-	fprintf (fp, "\n");
+	nbytes += fprintf (fp, "\n");
       
       nlines++;
     }
@@ -592,10 +586,17 @@ _mh_message_save (struct _mh_data *mhd, struct _mh_message *mhm, int expunge)
   /* Add status */
   message_get_attribute (msg, &attr);
   attribute_to_string (attr, buf, bsize, &n);
-  fprintf (fp, "%s", buf);
-  fprintf (fp, "\n");
-  nlines += 2;
+  if (n)
+    {
+      nbytes += fprintf (fp, "%s", buf);
+      nlines++;
+    }
+  nbytes += fprintf (fp, "\n");
+  nlines++;
   
+  new_header_lines = nlines;
+  new_body_start = nbytes;
+
   /* Copy message body */
 
   message_get_body (msg, &body);
@@ -610,12 +611,13 @@ _mh_message_save (struct _mh_data *mhd, struct _mh_message *mhm, int expunge)
 	  nlines++;
       fwrite (buf, 1, n, fp);
       off += n;
+      nbytes += n;
     }
 
   mhm->header_lines = new_header_lines;
   mhm->body_start = new_body_start;
   mhm->body_lines = nlines;
-  mhm->body_end = off;
+  mhm->body_end = nbytes;
 
   free (buf);
   fclose (fp);
@@ -1215,14 +1217,18 @@ mh_message_stream_open (struct _mh_message *mhm)
   struct _mh_data *mhd = mhm->mhd;
   char *filename = NULL;
   int status;
-
+  int flags = MU_STREAM_ALLOW_LINKS;
   filename = _mh_message_name (mhm, mhm->deleted);
 
   if (!filename)
     return ENOMEM;
 
-  status = file_stream_create (&mhm->stream, filename,
-			       mhd->mailbox->flags | MU_STREAM_ALLOW_LINKS);
+  /* The message should be at least readable */
+  if (mhd->mailbox->flags & (MU_STREAM_RDWR|MU_STREAM_WRITE|MU_STREAM_APPEND))
+    flags |= MU_STREAM_RDWR;
+  else 
+    flags |= MU_STREAM_READ;
+  status = file_stream_create (&mhm->stream, filename, flags);
 
   free (filename);
 
