@@ -576,3 +576,57 @@ mh_disposition (const char *filename)
   wh.prompt = _("Disposition?");
   return _whatnow (&wh, disp_tab);
 }
+
+/* Use draft shell */
+
+/* Help table for ``use draft'' shell */
+static struct helpdata usedraft_helptab[] = {
+  { "no",             N_("Don't use the draft.") },
+  { "yes",            N_("Use the draft.") },
+  { "list",           N_("List the draft on the terminal.") },
+  { NULL },
+};
+
+static int
+usedraft_help (struct mh_whatnow_env *wh, int argc, char **argv, int *status)
+{
+  return _help (usedraft_helptab, argv[0]);
+}
+
+static int
+yes (struct mh_whatnow_env *wh, int argc, char **argv, int *status)
+{
+  *status = 1;
+  return 1;
+}
+
+static int
+no (struct mh_whatnow_env *wh, int argc, char **argv, int *status)
+{
+  *status = 0;
+  return 1;
+}
+
+static struct action_tab usedraft_tab[] = {
+  { "help", usedraft_help },
+  { "?", usedraft_help },
+  { "yes", yes },
+  { "no", no },
+  { "list", list },
+  { NULL }
+};
+
+int
+mh_usedraft (const char *filename)
+{
+  struct mh_whatnow_env wh;
+  int rc;
+  
+  memset (&wh, 0, sizeof (wh));
+  wh.file = filename;
+  asprintf (&wh.prompt, _("Use \"%s\"?"), filename);
+  rc = _whatnow (&wh, usedraft_tab);
+  free (wh.prompt);
+  return rc;
+}
+
