@@ -1,6 +1,29 @@
 2005-02-25  Sergey Poznyakoff 
 
 	* NEWS: Updated
+	* auth/sql.c (mu_sql_password_type): New variable
+	(--sql-password-type): New command line option
+	(mu_sql_getpass): New function.
+	(mu_sql_authenticate): Recognize hashed, plaintext
+	and mysql scrambled passwords.
+	* auth/sql.h (sql_interface): new decl
+	(mu_sql_expand_query): New proto.
+	* imap4d/auth_gsasl.c (cb_retrieve): Fall back to SQL
+	if plaintext password file is not available.
+	* include/mailutils/sql.h (mu_sql_getpass)
+	(mu_sql_password_type,mu_sql_expand_query):
+	(mu_check_mysql_scrambled_password): New function
+	* mail.local/mailquota.c: Include <auth/sql.h>. A temporary
+	solution.
+
+	* mailbox/muerror.c (mu_syslog_error_printer): Bugfix.
+	* sql/mysql.c (mu_check_mysql_scrambled_password): New function.
+
+	* mail/mail.c: Updated copyright date.
+	
+2005-02-25  Sergey Poznyakoff 
+
+	* NEWS: Updated
 	* include/mailutils/libsieve.h (sieve_get_identifier): New
 	function.
 	(sieve_arg_error): New function.

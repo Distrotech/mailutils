@@ -1,5 +1,5 @@
-GNU mailutils NEWS -- history of user-visible changes.  2004-12-23
-Copyright (C) 2002, 2003, 2004 Free Software Foundation, Inc.
+GNU mailutils NEWS -- history of user-visible changes.  2004-02-25
+Copyright (C) 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 See the end of file for copying conditions.
 
 Please send mailutils bug reports to <bug-mailutils@gnu.org>.
@@ -9,6 +9,14 @@ Version 0.6.1:
 * libsieve: New action 'vacation'
 
 * imap4d: Implemented SASL authentication using LOGIN and PLAIN mechanisms.
+
+* Plaintext passwords for SASL authentication types may be kept in SQL
+database. When used with LOGIN or PLAIN, the passwords may be
+encrypted using MySQL password() function. New option
+--sql-password-type specifies what kind of password is returned by
+--sql-getpass query. Its possible values are: `plain' for plaintext
+passwords, `scrambled' for passwords hashed using MySQL algorithm and
+`hash' for MD5 or DES hashed passwords (default).
 
 * New SQL driver: odbc
 
@@ -20,6 +28,7 @@ Version 0.6.1:
 ** imap4d subscribe/unsubscribe was not working
 ** Fixed displaying mail headers in different languages (mail,frm,from)
 ** SQL authentication: prevent sql injection attacks
+** Fixed bug in the default syslog diagnostic printer
 
 
 Version 0.6:
@@ -343,7 +352,7 @@ The first release.
 ----------------------------------------------------------------------
 Copyright information:
 
-Copyright (C) 2002, 2003, 2004 Free Software Foundation, Inc.
+Copyright (C) 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
    Permission is granted to anyone to make or distribute verbatim copies
    of this document as received, in any medium, provided that the
