@@ -233,7 +233,7 @@ sieve_action_reject (sieve_machine_t mach, list_t args, list_t tags)
   sieve_value_t *val = sieve_value_get (args, 0);
   if (!val)
     {
-      sieve_error (mach, "redirect: can't get text!");
+      sieve_error (mach, "reject: can't get text!");
       sieve_abort (mach);
     }
   sieve_log_action (mach, "REJECT", NULL);  
@@ -275,7 +275,7 @@ sieve_action_reject (sieve_machine_t mach, list_t args, list_t tags)
       mailer_get_url (mailer, &url);
 	
       sieve_error (mach,
-		   "%d: redirect - can't open mailer %s: %s\n",
+		   "%d: reject - can't open mailer %s: %s\n",
 		   sieve_get_message_num (mach),
 		   url_to_string (url),
 		   mu_errstring (rc));
