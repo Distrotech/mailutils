@@ -156,6 +156,21 @@ SCM_DEFINE (mu_mailbox_close, "mu-mailbox-close", 1, 0, 0,
 }
 #undef FUNC_NAME
 
+SCM_DEFINE (mu_mailbox_get_url, "mu-mailbox-get-url", 1, 0, 0,
+	    (SCM MBOX), 
+            "Returns the URL of the mailbox.")
+#define FUNC_NAME s_mu_mailbox_get_url
+{
+  struct mu_mailbox *mum;
+  url_t url;
+  
+  SCM_ASSERT (mu_scm_is_mailbox (MBOX), MBOX, SCM_ARG1, FUNC_NAME);
+  mum = (struct mu_mailbox *) SCM_CDR (MBOX);
+  mailbox_get_url (mum->mbox, &url);
+  return scm_makfrom0str (url_to_string (url));
+}
+#undef FUNC_NAME
+
 SCM_DEFINE (mu_mailbox_get_message, "mu-mailbox-get-message", 2, 0, 0,
 	    (SCM MBOX, SCM MSGNO), "Retrieve from MBOX message # MSGNO.")
 #define FUNC_NAME s_mu_mailbox_get_message
