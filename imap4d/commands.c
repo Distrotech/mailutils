@@ -43,5 +43,6 @@ struct imap4d_command imap4d_command_table [] =
   { "STORE", imap4d_store, STATE_SEL, STATE_NONE, STATE_NONE, NULL },
   { "COPY", imap4d_copy, STATE_SEL, STATE_NONE, STATE_NONE, NULL },
   { "UID", imap4d_uid, STATE_SEL, STATE_NONE, STATE_NONE, NULL },
+  { "NAMESPACE", imap4d_namespace, STATE_AUTH | STATE_SEL, STATE_NONE, STATE_NONE, NULL },
   { NULL, 0, 0, 0, 0, NULL }
 };
