@@ -96,7 +96,7 @@ backslash(int c)
 }
 
 static int
-expand_escape (char **pp, message_t msg, const char *cr, struct obstack *stk)
+expand_escape (char **pp, message_t msg, struct obstack *stk)
 {
   char *p = *pp;
   char *start, *sval, *namep;
@@ -170,7 +170,7 @@ expand_escape (char **pp, message_t msg, const char *cr, struct obstack *stk)
 
 	  if (!buf)
 	    break;
-	  if (stream_read (stream, buf, size, 0, &nread) == 0)
+ 	  if (stream_read (stream, buf, size, 0, &nread) == 0)
 	    {
 	      char *q;
 
@@ -182,11 +182,10 @@ expand_escape (char **pp, message_t msg, const char *cr, struct obstack *stk)
 		  char *s = strchr (q, '\n');
 		  if (!s)
 		    break;
-		  size = s - q;
-		  obstack_grow (stk, q, size);
-		  obstack_grow (stk, cr, strlen (cr));
+		  size += s - q + 1;
 		  q = s + 1;
 		}
+	      obstack_grow (stk, buf, size);
 	    }
 	  free (buf);
 	}
@@ -197,7 +196,7 @@ expand_escape (char **pp, message_t msg, const char *cr, struct obstack *stk)
 }
 
 static char *
-expand_line (const char *str, const char *cr, message_t msg)
+expand_line (const char *str, message_t msg)
 {
   const char *p;
   int c = 0, len;
@@ -210,32 +209,17 @@ expand_line (const char *str, const char *cr, message_t msg)
     {
       switch (*p)
 	{
-	case '\n':
-	  len = strlen (cr);
-	  obstack_grow (&stk, cr, len);
-	  break;
-
 	case '\\':
 	  p++;
-	  switch (*p)
+	  if (*p)
 	    {
-	    case 0:
-	      obstack_1grow (&stk, *p);
-	      break;
-
-	    case 'n':
-	      len = strlen (cr);
- 	      obstack_grow (&stk, cr, len);
-	      break;
-
-	    default:
 	      c = backslash (*p);
 	      obstack_1grow (&stk, c);
 	    }
 	  break;
 
 	case '$':
-	  if (expand_escape (&p, msg, cr, &stk) == 0)
+	  if (expand_escape ((char**)&p, msg, &stk) == 0)
 	    break;
 
 	  /*FALLTHRU*/
@@ -268,15 +252,21 @@ action_beep (FILE *tty)
 }
 
 static void
-action_echo (FILE *tty, char *str)
+action_echo (FILE *tty, const char *cr, char *str)
 {
-  char *p;
-
   if (!str)
     return;
-  for (p = str; *p; p++)
-    *p = LB (*p);
-  fprintf (tty, "%s", str);
+  for (; *str; str++)
+    {
+      if (*str == '\n')
+	fprintf (tty, "%s", cr);
+      else
+	{
+	  char c = LB (*str);
+	  putc (c, tty);
+	}
+    }
+  fflush (tty);
 }
 
 static void
@@ -374,7 +364,7 @@ run_user_action (FILE *tty, const char *cr, message_t msg)
 	  char **argv;
 
 	  line++;
-	  str = expand_line (stmt, cr, msg);
+	  str = expand_line (stmt, msg);
 	  if (!str)
 	    continue;
 	  if (argcv_get (str, "", &argc, &argv)
@@ -393,7 +383,7 @@ run_user_action (FILE *tty, const char *cr, message_t msg)
 	    }
 	  else if (strcmp (argv[0], "echo") == 0)
 	    {
-	      action_echo (tty, argv[1]);
+	      action_echo (tty, cr, argv[1]);
 	      nact++;
 	    }
 	  else if (strcmp (argv[0], "exec") == 0)
@@ -413,8 +403,5 @@ run_user_action (FILE *tty, const char *cr, message_t msg)
     }
 
   if (nact == 0)
-    {
-      char *str = expand_line (default_action, cr, msg);
-      action_echo (tty, str);
-    }
+    action_echo (tty, cr, expand_line (default_action, msg));
 }
