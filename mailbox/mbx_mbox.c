@@ -389,9 +389,9 @@ mbox_open (mailbox_t mailbox, int flags)
   /* Give an appropriate way to file lock.  */
   /* FIXME: use dotlock external program: we may not be setgid.  */
   if (mailbox->locker == NULL)
-    locker_create (&(mailbox->locker), mud->name, strlen (mud->name),
-		   MU_LOCKER_PID | MU_LOCKER_FCNTL);
-  return 0;
+    status = locker_create (&(mailbox->locker), mud->name, strlen (mud->name),
+			    MU_LOCKER_PID | MU_LOCKER_FCNTL);
+  return status;
 }
 
 static int
@@ -645,7 +645,7 @@ mbox_expunge (mailbox_t mailbox)
   }
 
   /* Get the File lock.  */
-  if (locker_lock (mailbox->locker, MU_LOCKER_WRLOCK) < 0)
+  if (locker_lock (mailbox->locker, MU_LOCKER_WRLOCK) != 0)
     {
       mailbox_close (tmpmailbox);
       mailbox_destroy (&tmpmailbox);
@@ -1374,7 +1374,12 @@ mbox_append_message (mailbox_t mailbox, message_t msg)
   switch (mud->state)
     {
     case MBOX_NO_STATE:
-      locker_lock (mailbox->locker, MU_LOCKER_WRLOCK);
+      if (locker_lock (mailbox->locker, MU_LOCKER_WRLOCK) != 0)
+	{
+	  MAILBOX_DEBUG0 (mailbox, MU_DEBUG_TRACE,
+			  "mbox_append_message:lock failed\n");
+	  return ENOLCK;
+	}
 
     default:
       {
