@@ -1,21 +1,18 @@
-2000-09-01  Alain Magloire
-
-	*
 2000-5-19  Sean 'Shaleh' Perry <shaleh@debian.org>
 
 	* libmailbox/mh.c: fleshed out mh_open() some more
-	
+
 2000-05-18  Sean 'Shaleh' Perry <shaleh@debian.org>
 
 	* libmailbox/mh.c: fleshed out mh_open() some more
-	
+
 2000-05-15  Sean 'Shaleh' Perry <shaleh@debian.org>
 
 	* libmailbox/*: ran some files thru emacs indent, I think I introduced
 	some oddness with vi
 	* libmailbox/mh.[ch]: new files, based on maildir
 	the mh work is very empty -- just mh_open right now
-	
+
 2000-04-19  Jeff Bailey  <jbailey@nisa.net>
 
 	* configure.in: Test for limits.h and inttypes.h, add malloc
@@ -63,7 +60,7 @@
 
 	* lib/Makefile.am: added xmalloc.c, xstrdup.c, xstrtol.{c,h}
 	* lib/xmalloc.c lib/xstrdup.c lib/xstrtol.c lib/xstrtol.h : New files
-	
+
 1999-11-21  Jeff Bailey
 
 	* doc/rfc*: Add.  Standards followed should be included here.
@@ -86,11 +83,11 @@
 
 1999-11-08  Sean 'Shaleh' Perry
 
-	* cleaned up some of the automake autoconf magic for non-Linux 
+	* cleaned up some of the automake autoconf magic for non-Linux
 
 1999-11-07  Sean 'Shaleh' Perry
 
-	* TODO: restructuring, now split into sections 
+	* TODO: restructuring, now split into sections
 	* libmailbox/mailbox.c libmailbox/mailbox.h: added two new functions
 	to the api and began implementing them in unixmbox
 		is_updated() => has this mailbox been updated externally?
@@ -133,9 +130,9 @@
 	* pop3d/Makefile.am: Add warnings, remove unneeded variable
 
         * TODO: Update
-        
+
 	* impa4rev1/: Rename to imap4d. (I asked first, really I did...)
-	
+
 	* lib/Makefile.am: Update for new files
 
 	* lib/getline.c: New File
@@ -149,11 +146,11 @@
 1999-10-10  Jeff Bailey
 
 	* THANKS: New file
-	
+
 	* doc/mailutils.texi: New File
 	Provided by Alain Magloire <alainm@rcsm.ece.mcgill.ca> with some
 	changes so that Makeinfo reports no errors.
-	
+
 	* doc/Makefile.am: New file
 
 	* configure.in: Deal with libsrc to lib rename
@@ -171,12 +168,12 @@
 
 1999-10-09 Sean 'Shaleh' Perry
 
-	* added examples/gnu-pop3d.pam 
+	* added examples/gnu-pop3d.pam
 
 1999-10-08  Jeff Bailey
 
 	* doc/: New directory
-	
+
 	* pop3d/Makefile.am: Remove pam detection, now handled by configure
 	in the @AUTHLIBS@ spot.
 
@@ -251,7 +248,7 @@
 	and the section of perl code directly above it
 
 1999-10-05 Sean 'Shaleh' Perry
-	
+
 	* added pop3d/signal.c -- contains pop3_sigchld() currently
 
 1999-10-05 Sean 'Shaleh' Perry
@@ -265,7 +262,7 @@
 	* added name to AUTHORS
 	* noticed mention of IMAP4 server and went back to coding it (-:
 
-1999-10-03  Jeff Bailey 
+1999-10-03  Jeff Bailey
 
 	* mail/mail.c: Support --help, --version.
 
@@ -293,7 +290,7 @@
 	* libmailbox/mailbox.c: Include config.h if defined
 
 	* mail/mail.c: Include config.h if defined, update copyright.
-	
+
 
 1999-10-01 Sean 'Shaleh' Perry
 
