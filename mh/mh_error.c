@@ -21,7 +21,6 @@
 
 #include <stdio.h>
 #include <stdarg.h>
-#include <argp.h>
 
 void
 mh_error(const char *fmt, ...)
