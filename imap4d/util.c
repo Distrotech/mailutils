@@ -112,43 +112,7 @@ util_unquote (char **ptr)
 char *
 util_tilde_expansion (const char *ref, const char *delim)
 {
-  char *p = strdup (ref);
-  if (*p == '~')
-    {
-      p++;
-      if (*p == delim[0] || *p == '\0')
-        {
-          char *s = calloc (strlen (homedir) + strlen (p) + 1, 1);
-          strcpy (s, homedir);
-          strcat (s, p);
-          free (--p);
-          p = s;
-        }
-      else
-        {
-          struct passwd *pw;
-          char *s = p;
-          char *name;
-          while (*s && *s != delim[0])
-            s++;
-          name = calloc (s - p + 1, 1);
-          memcpy (name, p, s - p);
-          name [s - p] = '\0';
-          pw = getpwnam (name);
-          free (name);
-          if (pw)
-            {
-              char *buf = calloc (strlen (pw->pw_dir) + strlen (s) + 1, 1);
-              strcpy (buf, pw->pw_dir);
-              strcat (buf, s);
-              free (--p);
-              p = buf;
-            }
-          else
-            p--;
-        }
-    }
-  return p;
+  return mu_tilde_expansion (ref, delim, homedir);
 }
 
 /* util_normalize_path: convert pathname containig relative paths specs (../)
