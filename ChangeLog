@@ -2,7 +2,15 @@
 
 	* mh/mh_sequence.c (mh_seq_add): Update current_message
 	if the sequence being set is "cur". Free temporary storage.
-
+	* mh/components: New file
+	* mh/Makefile.am: Added components
+	* mh/mh.h (mh_interactive_mode_p, mh_getyn_interactive): New
+	functions.
+	* mh/mh_init.c (mh_interactive_mode_p, mh_getyn_interactive)
+	(mh_vgetyn): New functions.
+	(mh_real_install): Use mh_getyn_interactive().
+	* mh/pick.c (main): Use mh_interactive_mode_p().
+	
 2003-08-12  Sergey Poznyakoff 
 
 	* mh/folder.c (_scan): Prompt for creating the folder
@@ -16,7 +24,7 @@
 	* mh/mh.h: Likewise.
 	* mh/mark.c (main): Convert msgset to uids.
 	* mh/scan.c (list_message): Output an extra newline only
-	if the formatted buffer does not ends with one.
+	if the formatted buffer does not end with one.
 
 2003-08-12  Sergey Poznyakoff  
 

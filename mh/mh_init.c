@@ -642,15 +642,15 @@ mh_real_install (char *name, int automode)
     {
       size_t n = 0;
       
-      if (mh_getyn (_("Do you need help")))
+      if (mh_getyn_interactive (_("Do you need help")))
 	mh_install_help (mhdir);
 
-      if (!mh_getyn (_("Do you want the standard MH path \"%s\""), mhdir))
+      if (!mh_getyn_interactive (_("Do you want the standard MH path \"%s\""), mhdir))
 	{
 	  int local;
 	  char *p;
 	  
-	  local = mh_getyn (_("Do you want a path below your login directory"));
+	  local = mh_getyn_interactive (_("Do you want a path below your login directory"));
 	  if (local)
 	    printf (_("What is the path? "));
 	  else
