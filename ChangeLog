@@ -1,3 +1,32 @@
+2004-07-01  Sergey Poznyakoff
+
+	* include/mailutils/iterator.h (iterator_current)
+	(iterator_set_getitem): Changed proto
+	(iterator_get_list): Removed.
+	* mailbox/include/iterator0.h (struct _iterator.getitem): Changed
+	declaration.
+	* mailbox/iterator.c (iterator_current)
+	(iterator_set_getitem): Changed declaration
+	* mailbox/list.c (getitem): Changed declaration
+
+	* mailbox/rfc2047.c (rfc2047_decode): Fixed buffer
+	handling
+
+	* examples/mta.c: Minor fix
+	* examples/nntpclient.c: Fixed printf formats
+	(com_newgroups,com_newnews): Variable declarations are only allowed
+	before the statements.
+	
+	* mailbox/nntp/nntp_article.c: Fixed printf formats
+	* mailbox/nntp/nntp_body.c: Likewise
+	* mailbox/nntp/nntp_head.c: Likewise
+
+	* mailbox/nntp/nntp_iterator.c: Added missing include
+	(nntp_itr_getitem): Changed declaration
+
+	* mailbox/pop/pop3_iterator.c (pop3_itr_getitem): Changed
+	declaration
+	
 2004-06-30  Alain Magloire
 
 	* configure.ac: Add nntp directory.
