@@ -762,6 +762,7 @@ AC_CONFIG_FILES([Makefile
  messages/Makefile
  messages/testsuite/Makefile
  mh/Makefile
+ movemail/Makefile
  po/Makefile.in
  pop3d/Makefile
  pop3d/testsuite/Makefile
