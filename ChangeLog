@@ -22,7 +22,8 @@
 	* mailbox/mbox/file.c: Removed. File not needed anymore.
 	* mailbox/mbox/Makefile.am (file.c): Removed
 	
-	* frm/frm.c: Improved handling of --select option
+	* frm/frm.c: Improved handling of --select option.
+	(action): Optimized select condition.
 	* from/from.c: Include missing headers
 	
 2004-01-13  Wojciech Polak
