@@ -122,7 +122,8 @@ AM_YFLAGS=-vt
 
 pick-gram.c pick-gram.h: $(srcdir)/pick.y
 	$(YLWRAP) "$(YACC) $(AM_YFLAGS) -d" $< \
-	          y.tab.c pick-gram.c y.tab.h pick-gram.h y.output pick.output \
+	          y.tab.c pick-gram.c y.tab.h pick-gram.h \
+                  y.output pick.output \
                   -- -yy pick_yy
 
 mh_fmtgram.c: $(srcdir)/mh_fmtgram.y
