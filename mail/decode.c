@@ -180,16 +180,18 @@ display_message0 (message_t mesg, const msgset_t *msgset,
     }
   else if (util_getenv (&tmp, "metamail", Mail_env_string, 0) == 0)
     {
+      /* If `metamail' is set to a string, treat it as command line
+	 of external metamail program. */
       run_metamail (tmp, mesg);
     }
   else
     {
+      int builtin_display = 1;
       body_t body = NULL;
       stream_t b_stream = NULL;
       stream_t d_stream = NULL;
       stream_t stream = NULL;
       header_t hdr = NULL;
-      char *no_ask = NULL;
       
       message_get_body (mesg, &body);
       message_get_header (mesg, &hdr);
@@ -202,13 +204,25 @@ display_message0 (message_t mesg, const msgset_t *msgset,
       else
 	stream = b_stream;
 
-      util_getenv (&no_ask, "mimenoask", Mail_env_string, 0);
-      
       display_part_header (ofile, msgset, type, encoding);
-      if (display_stream_mailcap (NULL, stream, hdr, no_ask, interactive,
-				  0,
-				  util_getenv (NULL, "verbose",
-					       Mail_env_boolean, 0) ? 0 : 9))
+
+      /* If `metamail' is set to true, enable internal mailcap
+	 support */
+      if (util_getenv (NULL, "metamail", Mail_env_boolean, 0) == 0)
+	{
+	  char *no_ask = NULL;
+	  int debug = 0;
+	  
+	  util_getenv (&no_ask, "mimenoask", Mail_env_string, 0);
+	  if (util_getenv (&debug, "verbose", Mail_env_boolean, 0) == 0
+	      && debug)
+	    debug = 9;
+	  
+	  builtin_display = display_stream_mailcap (NULL, stream, hdr, no_ask,
+						    interactive, 0, debug);
+	}
+
+      if (builtin_display)
 	{
 	  size_t lines = 0;
 	  int pagelines = util_get_crt ();
