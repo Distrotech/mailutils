@@ -416,13 +416,13 @@ pop_user (authority_t auth)
 	  CHECK_ERROR_CLOSE (mbox, mpd, EINVAL);
 	}
       status = pop_writeline (mpd, "PASS %s\r\n", mpd->passwd);
-      MAILBOX_DEBUG0 (mbox, MU_DEBUG_PROT, mpd->buffer);
+      /* MAILBOX_DEBUG0 (mbox, MU_DEBUG_PROT, mpd->buffer); */
       /* We have to nuke the passwd.  */
       memset (mpd->passwd, '\0', strlen (mpd->passwd));
       free (mpd->passwd);
       mpd->passwd = NULL;
       CHECK_ERROR_CLOSE (mbox, mpd, status);
-      //MAILBOX_DEBUG0 (mbox, MU_DEBUG_PROT, "PASS *\n");
+      MAILBOX_DEBUG0 (mbox, MU_DEBUG_PROT, "PASS *\n");
       mpd->state = POP_AUTH_PASS;
 
     case POP_AUTH_PASS:

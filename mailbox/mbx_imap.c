@@ -1165,7 +1165,7 @@ imap_get_part (message_t msg, size_t partno, message_t *pmsg)
 	      message_get_header (message, &header);
 	      header_set_get_value (header, NULL, message);
 	      message_set_stream (message, NULL, msg_imap->parts[partno - 1]);
-	      //message_set_size (message, NULL, msg_imap->parts[partno - 1]);
+	      /* message_set_size (message, NULL, msg_imap->parts[partno - 1]); */
 	      msg_imap->parts[partno - 1]->message = message;
 	      if (pmsg)
 		*pmsg = message;

@@ -273,7 +273,7 @@ smtp_open (mailer_t mailer, int flags)
 	      /* Don't flag it as an error some SMTP servers can get the FQDN
 		 by themselves even if the client is lying, probably
 		 with getpeername().  */
-	      // return EINVAL;
+	      /* return EINVAL; */
 	    }
 	  else
 	    {

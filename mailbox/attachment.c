@@ -59,7 +59,8 @@ struct _msg_info {
 	message_t msg;
 	int		ioffset;
 	int 	ooffset;
-	stream_t ostream; // output file/decoding stream for saving attachment
+	stream_t stream; /* output file/decoding stream for saving attachment */
+	stream_t fstream; /* output file stream for saving attachment */
 };
 
 #define MSG_HDR "Content-Type: %s; name=%s\nContent-Transfer-Encoding: %s\nContent-Disposition: attachment; filename=%s\n\n"
@@ -231,7 +232,7 @@ int message_attachment_filename(message_t msg, const char **filename)
 
 int message_save_attachment(message_t msg, const char *filename, void **data)
 {
-	stream_t			istream, fstream;
+	stream_t			istream;
 	struct _msg_info	*info = NULL;
 	int 				ret;
 	size_t				size;
@@ -251,8 +252,8 @@ int message_save_attachment(message_t msg, const char *filename, void **data)
 			ret = message_attachment_filename(msg, &fname);
 		else
 			fname = filename;
-		if ( fname && ( ret = file_stream_create(&fstream) ) == 0 ) {
-			if ( ( ret = stream_open(fstream, fname, 0,  MU_STREAM_WRITE|MU_STREAM_CREAT) ) == 0 ) {
+		if ( fname && ( ret = file_stream_create(&info->fstream) ) == 0 ) {
+			if ( ( ret = stream_open(info->fstream, fname, 0,  MU_STREAM_WRITE|MU_STREAM_CREAT) ) == 0 ) {
 				header_get_value(hdr, "Content-Transfer-Encoding", NULL, 0, &size);
 				if ( size ) {
 					if ( ( content_encoding = alloca(size+1) ) == NULL )
@@ -260,17 +261,17 @@ int message_save_attachment(message_t msg, const char *filename, void **data)
 					header_get_value(hdr, "Content-Transfer-Encoding", content_encoding, size+1, 0);
 				} else
 					content_encoding = (char *)"7bit";
-				ret = filter_create(&info->ostream, fstream, content_encoding, MU_FILTER_DECODE, MU_STREAM_READ);
+				ret = filter_create(&info->stream, istream, content_encoding, MU_FILTER_DECODE, MU_STREAM_READ);
 			}
 		}
 	}
-	if ( info->ostream && istream ) {
+	if ( info->stream && istream ) {
 		if ( info->nbytes )
 			memmove( info->buf, info->buf + (BUF_SIZE - info->nbytes), info->nbytes);
-		while ( (ret == 0 && info->nbytes) || ( ( ret = stream_read(istream, info->buf, BUF_SIZE, info->ioffset, &info->nbytes) ) == 0 && info->nbytes ) ) {
+		while ( (ret == 0 && info->nbytes) || ( ( ret = stream_read(info->stream, info->buf, BUF_SIZE, info->ioffset, &info->nbytes) ) == 0 && info->nbytes ) ) {
 			info->ioffset += info->nbytes;
 			while( info->nbytes ) {
-				if ( ( ret = stream_write(info->ostream, info->buf, info->nbytes, info->ooffset, &nbytes ) ) != 0 )
+				if ( ( ret = stream_write(info->fstream, info->buf, info->nbytes, info->ooffset, &nbytes ) ) != 0 )
 					break;
 				info->nbytes -= nbytes;
 				info->ooffset += nbytes;
@@ -278,8 +279,9 @@ int message_save_attachment(message_t msg, const char *filename, void **data)
 		}
 	}
 	if ( ret != EAGAIN && info ) {
-		stream_close(info->ostream);
-		stream_destroy(&info->ostream, NULL);
+		stream_close(info->fstream);
+		stream_destroy(&info->stream, NULL);
+		stream_destroy(&info->fstream, NULL);
 		_attachment_free(info, ret);
 	}
 	return ret;

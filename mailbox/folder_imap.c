@@ -599,7 +599,7 @@ folder_imap_list (folder_t folder, const char *ref, const char *name,
 	  for (i = 0; i < num; i++)
 	    {
 	      struct list_response *lr = f_imap->callback.flist.element[i];
-	      //printf ("%s --> %s\n", lr->name, name);
+	      /* printf ("%s --> %s\n", lr->name, name); */
 	      if (fnmatch (name, lr->name, 0) == 0)
 		{
 		  plist[i] = calloc (1, sizeof (**plist));
@@ -672,7 +672,7 @@ folder_imap_lsub (folder_t folder, const char *ref, const char *name,
 	  for (i = 0; i < num; i++)
 	    {
 	      struct list_response *lr = f_imap->callback.flist.element[i];
-	      //printf ("%s --> %s\n", lr->name, name);
+	      /* printf ("%s --> %s\n", lr->name, name); */
 	      plist[i] = calloc (1, sizeof (**plist));
 	      if (plist[i] == NULL
 		  || (plist[i]->name = strdup (lr->name)) == NULL)

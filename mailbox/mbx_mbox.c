@@ -167,7 +167,7 @@ extern char *base_name __P ((char const *));
 static int mbox_open                  __P ((mailbox_t, int));
 static int mbox_close                 __P ((mailbox_t));
 static int mbox_get_message           __P ((mailbox_t, size_t, message_t *));
-//static int mbox_get_message_by_uid    __P ((mailbox_t, size_t, message_t *));
+/* static int mbox_get_message_by_uid    __P ((mailbox_t, size_t, message_t *)); */
 static int mbox_append_message        __P ((mailbox_t, message_t));
 static int mbox_messages_count        __P ((mailbox_t, size_t *));
 static int mbox_messages_recent       __P ((mailbox_t, size_t *));
@@ -865,9 +865,11 @@ mbox_expunge (mailbox_t mailbox)
 		     part of mum will be at the right position.  */
 		  memmove (mud->umessages + j, mud->umessages + j + 1,
 			   (dlast - j) * sizeof (mum));
-		  //mum->header_from = mum->header_from_end = 0;
-		  //mum->body = mum->body_end = 0;
-		  //mum->header_lines = mum->body_lines = 0;
+#if 0
+		  mum->header_from = mum->header_from_end = 0;
+		  mum->body = mum->body_end = 0;
+		  mum->header_lines = mum->body_lines = 0;
+#endif
 		  for (i = 0; i < HDRSIZE; i++)
 		    if (mum->fhdr[i])
 		      {
