@@ -1846,6 +1846,9 @@ static void
 builtin_concat (struct mh_machine *mach)
 {
   size_t size = strobj_len (&mach->arg_str);
+
+  if (size == 0)
+    return;
   compress_ws (strobj_ptr (&mach->arg_str), &size);
   if (strobj_len (&mach->reg_str) == 0)
     strobj_copy (&mach->reg_str, &mach->arg_str);
@@ -1876,9 +1879,11 @@ builtin_in_reply_to (struct mh_machine *mach)
   char *value;
 
   strobj_free (&mach->arg_str);
-  mu_rfc2822_in_reply_to (mach->message, &value);
-  strobj_create (&mach->arg_str, value);
-  free (value);
+  if (mu_rfc2822_in_reply_to (mach->message, &value))
+    {
+      strobj_create (&mach->arg_str, value);
+      free (value);
+    }
 }
 
 static void
@@ -1887,9 +1892,11 @@ builtin_references (struct mh_machine *mach)
   char *value;
 
   strobj_free (&mach->arg_str);
-  mu_rfc2822_references (mach->message, &value);
-  strobj_create (&mach->arg_str, value);
-  free (value);
+  if (mu_rfc2822_references (mach->message, &value) == 0)
+    {
+      strobj_create (&mach->arg_str, value);
+      free (value);
+    }
 }
 
 static void
