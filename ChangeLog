@@ -4,6 +4,8 @@
 	* mail.remote/mail.remote.c: Likewise.
 	* mail.local/main.c: Added call to mu_init_nls.
 
+	* sieve/testsuite/Redirect: Reflect changes to libsieve/actions.c.
+	
 2002-12-28  Sergey Poznyakoff 
 
 	* doc/texinfo/Makefile.am: Added fdl.texi
