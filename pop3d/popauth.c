@@ -68,6 +68,7 @@ static struct argp_option options[] =
   { "modify", 'm', 0, 0, N_("Modify user's record (change password)"), 1 },
   { "delete", 'd', 0, 0, N_("Delete user's record"), 1 },
   { "list", 'l', 0, 0, N_("List the contents of DBM file"), 1 },
+  { "create", 'c', 0, 0, N_("Create the DBM from a plaintext file"), 1 },
 
   { NULL, 0, NULL, 0,
     N_("Default action is:\n"
@@ -112,7 +113,12 @@ popauth_parse_opt (int key, char *arg, struct argp_state *astate)
       check_action (ap->action);
       ap->action = ACT_ADD;
       break;
-	
+
+    case 'c':
+      check_action (ap->action);
+      ap->action = ACT_CREATE;
+      break;
+      
     case 'l':
       check_action (ap->action);
       ap->action = ACT_LIST;
