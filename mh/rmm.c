@@ -21,7 +21,7 @@
 
 const char *argp_program_version = "rmm (" PACKAGE_STRING ")";
 static char doc[] = "GNU MH rmm";
-static char args_doc[] = "";
+static char args_doc[] = "[messages]";
 
 /* GNU options */
 static struct argp_option options[] = {
@@ -45,56 +45,19 @@ opt_handler (int key, char *arg, void *unused)
     case 'f': 
       current_folder = arg;
       break;
+      
     default:
       return 1;
     }
   return 0;
 }
 
-int
-member (size_t num, size_t *msglist, size_t msgcnt)
+void
+rmm (mailbox_t mbox, message_t msg, size_t num, void *data)
 {
-  size_t i;
-
-  for (i = 0; i < msgcnt; i++)
-    if (msglist[i] == num)
-      return 1;
-  return 0;
-}
-
-int
-rmm (mailbox_t mbox, size_t msgcnt, size_t *msglist)
-{
-  size_t i, total = 0;
-
-  mailbox_messages_count (mbox, &total);
-  for (i = 1; i <= total; i++)
-    {
-      message_t msg;
-      size_t num;
-      int rc;
-      
-      if ((rc = mailbox_get_message (mbox, i, &msg)) != 0)
-	{
-	  mh_error ("can't get message %d: %s", i, mu_errstring (rc));
-	  return 1;
-	}
-
-      if ((rc = mh_message_number (msg, &num)) != 0)
-	{
-	  mh_error ("can't get sequence number for message %d: %s",
-		    i, mu_errstring (rc));
-	  return 1;
-	}
-
-      if (member (num, msglist, msgcnt))
-	{
-	  attribute_t attr;
-	  message_get_attribute (msg, &attr);
-	  attribute_set_deleted (attr);
-	}
-    }
-
+  attribute_t attr;
+  message_get_attribute (msg, &attr);
+  attribute_set_deleted (attr);
   return 0;
 }
 
@@ -103,45 +66,17 @@ main (int argc, char **argv)
 {
   int index = 0;
   mailbox_t mbox;
-  size_t msgcnt = 0, *msglist = NULL;
+  mh_msgset_t msgset;
   int status;
   
   mh_argp_parse (argc, argv, options, mh_option, args_doc, doc,
 		 opt_handler, NULL, &index);
 
-  mbox = mh_open_folder ();
-  
-  if (index < argc)
-    {
-      size_t i;
-      
-      msgcnt = argc - index + 1;
-      msglist = calloc (argc - index + 1, sizeof(*msglist));
-      for (i = 0; index < argc; index++, i++)
-	{
-	  char *p = NULL;
-	  msglist[i] = strtol (argv[index], &p, 0);
-	  if (msglist[i] <= 0 || *p)
-	    {
-	      mh_error ("bad message list `%s'", argv[index]);
-	      exit (1);
-	    }
-	}
-    }
-  else
-    {
-      if (current_message == 0)
-	{
-	  mh_error ("no cur message");
-	  exit (1);
-	}
-      msglist = calloc (1, sizeof(*msglist));
-      msglist[0] = current_message;
-      current_message = 0;
-      msgcnt = 1;
-    }
+  mbox = mh_open_folder (current_folder);
 
-  status = rmm (mbox, msgcnt, msglist);
+  mh_msgset_parse (mbox, &msgset, argc - index, argv + index);
+
+  status = mh_iterate (mbox, &msgset, rmm, NULL);
 
   mailbox_expunge (mbox);
   mailbox_close (mbox);

@@ -137,7 +137,7 @@ main (int argc, char **argv)
       exit (1);
     }
 
-  return scan (mh_open_folder ());
+  return scan (mh_open_folder (current_folder));
 }
 
 #ifdef HAVE_TERMCAP_H
