@@ -98,7 +98,10 @@ imap4d_test "FETCH 2:3 BODY\[\]"\
 ")"\
 "OK"	
 
-#end of append.exp
+
+imap4d_stop
+
+# End of append.exp
 
 
 

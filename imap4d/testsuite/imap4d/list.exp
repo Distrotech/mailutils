@@ -76,3 +76,7 @@ imap4d_test "LIST \"\" INBOX"\
 "LIST (\\NoInferiors) NIL INBOX"\
 "LIST (\\NoInferiors) \"/\" INBOX"\
 "OK"	
+
+imap4d_stop
+
+# End of list.exp

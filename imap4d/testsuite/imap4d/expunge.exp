@@ -66,3 +66,7 @@ imap4d_test "SELECT mbox1" \
 "FLAGS (\\Answered \\Flagged \\Deleted \\Seen \\Draft)"\
 "OK \[PERMANENTFLAGS (\\Answered \\Deleted \\Seen)\] Permanent flags" \
 "OK"
+
+imap4d_stop
+
+# End of expunge.exp

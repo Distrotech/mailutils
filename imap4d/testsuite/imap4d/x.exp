@@ -26,3 +26,7 @@ imap4d_auth "user!passwd" "guessme"
 imap4d_test -message "X-VERSION in auth state" "X-VERSION"\
 "X-VERSION GNU imap4d (GNU Mailutils [mu_check_capability VERSION])"\
 "OK"
+
+imap4d_stop
+
+# End of x.exp

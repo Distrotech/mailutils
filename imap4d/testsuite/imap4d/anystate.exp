@@ -24,3 +24,7 @@ imap4d_test "CAPABILITY" \
 imap4d_test "NOOP"
 
 imap4d_test "NAMESPACE" "BAD"
+
+imap4d_stop
+
+# End of anystate.exp 

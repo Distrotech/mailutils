@@ -68,4 +68,6 @@ imap4d_test "FETCH 1 ALL"\
 "OK"
 
 	
-	
+imap4d_stop
+
+# End of create.exp	

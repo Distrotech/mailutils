@@ -56,5 +56,6 @@ imap4d_test "EXAMINE mbox1" \
 "OK \[PERMANENTFLAGS ()\] No Permanent flags"\
 "OK \[READ-ONLY\] EXAMINE Completed"
 
+imap4d_stop
 
-
+# End of examine.exp
