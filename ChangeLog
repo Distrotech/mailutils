@@ -1,3 +1,28 @@
+2002-09-02  Sergey Poznyakoff  
+
+	* comsat/comsat.c: Removed erroneous redeclaration of
+	  getutent.
+	* doc/texinfo/c-api.texi: Removed reference to non-implemented
+	  NNTP.
+	* doc/texinfo/programs.texi: Documented sieve.
+	
+	* guimb/scm/sieve.scm: Removed.
+	* guimb/scm/sieve.scm.in: Added to the repository.
+	* guimb/scm/Makefile.am: Make sieve.scm from sieve.scm.in
+	* guimb/scm/.cvsignore: Added sieve.scm
+	* guimb/scm/sieve-core.scm (sieve-expand-filename): Fixed syntax error.
+
+	* mailbox/mutil.c (mu_tempname): New function. Creates a unique
+	  temporary file name in tmpdir.
+	* include/mailutils/mutil.h: Likewise.
+	* mail/edit.c: Use mu_tempname
+	* mail/visual.c: Likewise.
+	* examples/mimetest.c: Likewise.
+	
+	* testsuite/lib/mailutils.exp: Couple of fixes.
+	* sieve/testsuite/sieve/DISTFILES: Temporarly removed compile.exp:
+	  it uses files not included in the distribution.
+	
 2002-08-29  Sergey Poznyakoff 
 
 	* Makefile.am: Added examples/ to SUBDIRS. 
