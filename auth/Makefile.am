@@ -1,6 +1,6 @@
 ## Process this file with GNU Automake to create Makefile.in
 
-##   Copyright (C) 2002, 2003 Free Software Foundation, Inc.
+##   Copyright (C) 2002, 2003, 2005 Free Software Foundation, Inc.
 ##
 ##   GNU Mailutils is free software; you can redistribute it and/or
 ##   modify it under the terms of the GNU General Public License as
@@ -33,6 +33,6 @@ lbuf.c \
 tls.c \
 virtual.c 
 
-libmuauth_la_LIBADD =  @SQLLIB@ @LTLIBINTL@
+libmuauth_la_LIBADD = @SQLLIB@ @LTLIBINTL@
 libmuauth_la_LDFLAGS = -version-info 0:0:0
-
+libmuauth_la_DEPENDENCIES = @SQLLIB_DEPENDENCY@ 
