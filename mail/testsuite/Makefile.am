@@ -2,7 +2,7 @@ AUTOMAKE_OPTIONS = dejagnu
 DEJATOOL = mail
 RUNTESTFLAGS = 
 CLEANFILES = *.log
-
+EXTRA_DIST = makespool
 test_dirs = etc config lib mail spool folder
 
 dist-hook:
@@ -55,10 +55,15 @@ remote.exp:;
 	@echo "set host_board `hostname`" >> $@-t
 	@echo 'set board_info($$host_board,connect) rlogin' >> $@-t
 	@echo 'set board_info($$host_board,shell_prompt) "\\$$ "' >> $@-t
+	@echo "set board_info(\$$host_board,srcdir) `cd $(srcdir); pwd`" >> $@-t
+	@echo "set board_info(\$$host_board,objdir) `pwd`" >> $@-t
 	@echo "set board_info(\$$host_board,top_srcdir) `cd $(top_srcdir); pwd`" >> $@-t
 	@echo "set board_info(\$$host_board,top_builddir) `cd $(top_builddir); pwd`" >> $@-t
 	@test ! -f remote.exp || mv remote.exp remote.bak
 	@mv $@-t remote.exp
 
 
-DISTCLEANFILES=*.exp *.log *.sum
+DISTCLEANFILES=*.exp *.log *.sum 
+
+distclean-local:
+	-rm -rf	data
