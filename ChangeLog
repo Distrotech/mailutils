@@ -1,6 +1,8 @@
 2001-07-20  Jakob 'sparky' Kaivo  <jkaivo@elijah.nodomainname.net>
 
 	* messages/messages.c: new file, implement of elm messages command
+	(parse_opt): add --silent and --quit options
+	(messages_count): new function
 
 2001-07-20 Alain Magloire
 
