@@ -33,7 +33,7 @@ pop3d_user (const char *arg)
     return ERR_BAD_ARGS;
 
   pop3d_outf ("+OK\r\n");
-  fflush (ofile);
+  pop3d_flush_output ();
 
   buf = pop3d_readline (buffer, sizeof (buffer));
   cmd = pop3d_cmd (buf);
