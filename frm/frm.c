@@ -353,13 +353,14 @@ main(int argc, char **argv)
 
 	mailbox_get_url (mbox, &url);
 	if (status == ENOENT)
-	  status = 2;
-	else
+	  goto cleanup1;
+	else {
 	  fprintf (stderr, "could not open mailbox %s: %s\n",
 		   url_to_string (url),
 		   mu_errstring(status));
 	
 	goto cleanup;
+      }
       }
 
     if (! be_quiet)
@@ -396,6 +397,7 @@ cleanup:
       return 3;
   }
 
+ cleanup1:
   if (show_summary)
     printf ("You have %d messages\n", total);
   if (show_query && have_new_mail)
