@@ -279,20 +279,21 @@ do \
 while (0)
 
 
-/* Parse the url, allocate mailbox_t, allocate pop internal structures.  */
+/* Allocate mailbox_t, allocate pop internal structures.  */
 int
 _mailbox_pop_init (mailbox_t mbox)
 {
   pop_data_t mpd;
+  int status = 0;
 
   /* Allocate specifics for pop data.  */
   mpd = mbox->data = calloc (1, sizeof (*mpd));
   if (mbox->data == NULL)
     return ENOMEM;
 
-  mpd->mbox = mbox; /* Back pointer.  */
+  mpd->mbox = mbox;		/* Back pointer.  */
 
-  mpd->state = POP_NO_STATE; /* Init with no state.  */
+  mpd->state = POP_NO_STATE;	/* Init with no state.  */
 
   /* Initialize the structure.  */
   mbox->_destroy = pop_destroy;
@@ -315,11 +316,33 @@ _mailbox_pop_init (mailbox_t mbox)
   /* Properties.  */
   mbox->properties = calloc (1, sizeof (*(mbox->properties)));
   if (mbox->properties == NULL)
-    return ENOMEM;
+    {
+      status = ENOMEM;
+      goto END;
+    }
   mbox->properties_count = 1;
   mbox->properties[0].key = strdup ("TYPE");
   mbox->properties[0].value = strdup ("POP3");
-  return 0; /* Okdoke.  */
+  if (mbox->properties[0].key == NULL || mbox->properties[0].value == NULL)
+    {
+      status = ENOMEM;
+      goto END;
+    }
+
+END:
+  if (status != 0)
+    {
+      if (mbox->properties[0].key)
+	free (mbox->properties[0].key);
+      if (mbox->properties[0].value)
+	free (mbox->properties[0].value);
+      if (mbox->properties)
+	free (mbox->properties);
+      if (mbox->data)
+	free (mbox->data);
+    }
+
+  return status;
 }
 
 /*  Cleaning up all the ressources associate with a pop mailbox.  */
@@ -415,8 +438,18 @@ pop_user (authority_t auth)
 	}
       if (mpd->passwd)
 	free (mpd->passwd);
-      /*  Fetch the passwd from them.  */
-      ticket_pop (ticket, "Pop Passwd: ",  &mpd->passwd);
+      /* Was it in the URL? */
+      {
+	size_t n = 0;
+	status = url_get_passwd (mbox->url, NULL, 0, &n);
+	if (status != 0 || n == 0)
+	  ticket_pop (ticket, "Pop Passwd: ",  &mpd->passwd);
+	else
+	  {
+	    mpd->passwd = calloc (1, n + 1);
+	    url_get_passwd (mbox->url, mpd->passwd, n + 1, NULL);
+	  }
+      }
       if (mpd->passwd == NULL || mpd->passwd[0] == '\0')
 	{
 	  CHECK_ERROR_CLOSE (mbox, mpd, EINVAL);
