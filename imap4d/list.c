@@ -26,6 +26,12 @@
 #define NOINFERIORS      (1 << 3)
 #define NOSELECT_RECURSE (1 << 4)
 
+struct inode_list
+{
+  struct inode_list *next;
+  ino_t inode;
+};
+
 /*
   1- IMAP4 insists: the reference argument that is include in the
   interpreted form SHOULD prefix the interpreted form.  It SHOULD
@@ -47,7 +53,7 @@
 
 static int  match __P ((const char *, const char *, const char *));
 static int  imap_match __P ((const char *, const char *, const char *));
-static void list_file __P ((const char *, const char *, const char *, const char *));
+static void list_file __P ((const char *, const char *, const char *, const char *, struct inode_list *));
 static void print_file __P ((const char *, const char *, const char *));
 static void print_dir __P ((const char *, const char *, const char *));
 
@@ -156,7 +162,13 @@ imap4d_list (struct imap4d_command *command, char *arg)
       
       if (chdir (cwd) == 0)
 	{
-	  list_file (cwd, ref, (dir) ? dir : "", delim);
+	  struct stat st;
+	  struct inode_list inode_rec;
+	  
+	  stat (cwd, &st);
+	  inode_rec.next = NULL;
+	  inode_rec.inode = st.st_ino;
+	  list_file (cwd, ref, (dir) ? dir : "", delim, &inode_rec);
 	  chdir (homedir);
 	}
       free (cwd);
@@ -166,10 +178,20 @@ imap4d_list (struct imap4d_command *command, char *arg)
   return util_finish (command, RESP_OK, "Completed");
 }
 
+static int
+inode_list_lookup (struct inode_list *list, ino_t inode)
+{
+  for (; list; list = list->next)
+    if (list->inode == inode)
+      return 1;
+  return 0;
+}
+
+
 /* Recusively calling the files.  */
 static void
 list_file (const char *cwd, const char *ref, const char *pattern,
-	   const char *delim)
+	   const char *delim, struct inode_list *inode_list)
 {
   DIR *dirp;
   struct dirent *dp;
@@ -211,24 +233,43 @@ list_file (const char *cwd, const char *ref, const char *pattern,
 	    {
 	      if (status & NOSELECT)
 		{
+		  struct stat st;
+
+		  if (stat (entry, &st))
+		    {
+		      mu_error ("can't stat %s: %s",
+				entry, strerror (errno));
+		      continue;
+		    }
+
 		  if (next || status & RECURSE_MATCH)
 		    {
 		      if (!next)
 			print_dir (ref, entry, delim);
-		      if (chdir (entry) == 0)
+
+		      if (S_ISDIR (st.st_mode)
+			  && inode_list_lookup (inode_list, st.st_ino) == 0)
 			{
-			  char *rf;
-			  char *cd;
-			  rf = calloc (strlen (ref) + strlen (delim) +
-				       strlen (entry) + 1, 1);
-			  sprintf (rf, "%s%s%s", ref, delim, entry);
-			  cd = calloc (strlen (cwd) + strlen (delim) +
-				      strlen (entry) + 1, 1);
-			  sprintf (cd, "%s%s%s", cwd, delim, entry);
-			  list_file (cd, rf, (next) ? next : pattern, delim);
-			  free (rf);
-			  free (cd);
-			  chdir (cwd);
+			  if (chdir (entry) == 0)
+			    {
+			      char *rf;
+			      char *cd;
+			      struct inode_list inode_rec;
+
+			      inode_rec.inode = st.st_ino;
+			      inode_rec.next = inode_list;
+			      rf = calloc (strlen (ref) + strlen (delim) +
+					   strlen (entry) + 1, 1);
+			      sprintf (rf, "%s%s%s", ref, delim, entry);
+			      cd = calloc (strlen (cwd) + strlen (delim) +
+					   strlen (entry) + 1, 1);
+			      sprintf (cd, "%s%s%s", cwd, delim, entry);
+			      list_file (cd, rf, (next) ? next : pattern,
+					 delim, &inode_rec);
+			      free (rf);
+			      free (cd);
+			      chdir (cwd);
+			    }
 			}
 		    }
 		  else
