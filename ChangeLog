@@ -1,3 +1,8 @@
+2002-01-23  Sergey Poznyakoff
+
+	* mail.local/mail.local.h: Define correct EX_ values if
+	  sysexits.h is missing.
+
 2002-01-22 Sam Roberts
 
 	* sieve/: sieve.c, sieve.h, sv.h, svcb.c, svctx.c: Implemented
