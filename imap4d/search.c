@@ -157,6 +157,7 @@ struct parsebuf
   char tokbuf[MAXTOKEN+1];      /* Token buffer for short tokens */
 
   char *arg;                    /* Rest of command line to be parsed */
+  int isuid;                    /* UIDs instead of msgnos are required */ 
   char *err_mesg;               /* Error message if a parse error occured */
   struct mem_chain *alloc;      /* Chain of objects allocated during parsing */
   
@@ -190,49 +191,77 @@ static void do_search __P((struct parsebuf *pb));
 int
 imap4d_search (struct imap4d_command *command, char *arg)
 {
-  char *sp ;
-  char *str;
-  struct parsebuf parsebuf;
+  int rc;
+  char buffer[64];
   
   if (! (command->states & state))
     return util_finish (command, RESP_BAD, "Wrong state");
 
+  rc = imap4d_search0 (arg, 0, buffer, sizeof buffer);
+  return util_finish (command, rc, buffer);
+}
+  
+int
+imap4d_search0 (char *arg, int isuid, char *replybuf, size_t replysize)
+{
+  char *sp ;
+  char *str;
+  struct parsebuf parsebuf;
+  
   memset (&parsebuf, 0, sizeof(parsebuf));
   parsebuf.arg = arg;
   parsebuf.err_mesg = NULL;
   parsebuf.alloc = NULL;
+  parsebuf.isuid = isuid;
 
   if (!parse_gettoken (&parsebuf, 0))
-    return util_finish (command, RESP_BAD, "Too few args");
+    {
+      snprintf (replybuf, replysize, "Too few args");
+      return RESP_BAD;
+    }
   
   if (strcasecmp (parsebuf.token, "CHARSET") == 0)
     {
       if (!parse_gettoken (&parsebuf, 0))
-	return util_finish (command, RESP_BAD, "Too few args");
+	{
+	  snprintf (replybuf, replysize, "Too few args");
+	  return RESP_BAD;
+	}
 
       /* Currently only ASCII is supported */
       if (strcmp (parsebuf.token, "US-ASCII"))
-	return util_finish (command, RESP_NO, "Charset not supported");
+	{
+	  snprintf (replybuf, replysize, "Charset not supported");
+	  return RESP_NO;
+	}
 
       if (!parse_gettoken (&parsebuf, 0))
-	return util_finish (command, RESP_BAD, "Too few args");
+	{
+	  snprintf (replybuf, replysize, "Too few args");
+	  return RESP_BAD;
+	}
+
     }
 
   /* Compile the expression */
   if (parse_search_key_list (&parsebuf))
     {
       parse_free_mem (&parsebuf);
-      return util_finish (command, RESP_BAD, "%s (near %s)",
+      snprintf (replybuf, replysize, "%s (near %s)",
 			  parsebuf.err_mesg,
 			  *parsebuf.arg ? parsebuf.arg : "end");
+      return RESP_BAD;
     }
+  
   put_code (&parsebuf, NULL);
 
   /* Execute compiled expression */
   do_search (&parsebuf);
   
   parse_free_mem (&parsebuf);
-  return util_finish (command, RESP_OK, "Completed");
+  
+  snprintf (replybuf, replysize, "Completed");
+  return RESP_OK;
 }
 
 /* For each message from the mailbox execute the query from `pb' and
@@ -251,7 +280,16 @@ do_search (struct parsebuf *pb)
     {
       if (mailbox_get_message (mbox, pb->msgno, &pb->msg) == 0
 	  && search_run (pb))
+	{
+	  if (pb->isuid)
+	    {
+	      size_t uid;
+	      message_get_uid (pb->msg, &uid);
+	      util_send (" %d", uid);
+	    }
+	  else
 	util_send (" %d", pb->msgno);
+	}
     }
   util_send ("\r\n");
 }

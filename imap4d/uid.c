@@ -48,6 +48,10 @@ imap4d_uid (struct imap4d_command *command, char *arg)
     {
       rc = imap4d_store0 (sp, 1, buffer, sizeof buffer);
     }
+  else if (strcasecmp (cmd, "SEARCH") == 0)
+    {
+      rc = imap4d_search0 (sp, 1, buffer, sizeof buffer);
+    }
   else
     {
       snprintf (buffer, sizeof buffer, "Error uknown uid command");
