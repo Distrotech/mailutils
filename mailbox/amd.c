@@ -65,6 +65,7 @@
 #include <mailutils/observer.h>
 #include <mailbox0.h>
 #include <registrar0.h>
+#include <url0.h>
 #include <amd.h>
 
 static void amd_destroy __P((mailbox_t mailbox));
@@ -197,7 +198,6 @@ static int
 amd_open (mailbox_t mailbox, int flags)
 {
   struct _amd_data *amd = mailbox->data;
-  int status = 0;
   struct stat st;
 
   mailbox->flags = flags;
@@ -1311,6 +1311,53 @@ amd_envelope_sender (envelope_t envelope, char *buf, size_t len, size_t *psize)
 
   if (psize)
     *psize = len;
+  return 0;
+}
+
+static void
+amd_url_destroy (url_t url ARG_UNUSED)
+{
+}
+
+int
+amd_url_init (url_t url, const char *scheme)
+{
+  const char *name = url_to_string (url);
+  const char *path_ptr = name;
+  size_t len = strlen (name);
+  size_t scheme_len = strlen (scheme);
+    
+  if (!name)
+    return 0;
+  
+  if (strncmp (MU_PATH_SCHEME, name, MU_PATH_SCHEME_LEN) == 0)
+    path_ptr = name;
+  /* reject the obvious */
+  else if (strncmp (scheme, name, scheme_len) != 0
+	   || len < scheme_len + 1) 
+    return EINVAL;
+  else
+    path_ptr = name + scheme_len;
+  
+  /* TYPE */
+  url->_destroy = amd_url_destroy;
+
+  /* SCHEME */
+  url->scheme = strdup (scheme);
+  if (url->scheme == NULL)
+    {
+      amd_url_destroy (url);
+      return ENOMEM;
+    }
+
+  /* PATH */
+  url->path = strdup (path_ptr);
+  if (url->path == NULL)
+    {
+      amd_url_destroy (url);
+      return ENOMEM;
+    }
+
   return 0;
 }
 

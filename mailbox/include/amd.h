@@ -97,3 +97,4 @@ void _amd_message_insert __P((struct _amd_data *mhd,
 int amd_message_stream_open __P((struct _amd_message *mhm));
 void amd_message_stream_close __P((struct _amd_message *mhm));
 void amd_cleanup (void *arg);
+int amd_url_init (url_t url, const char *scheme);
