@@ -94,9 +94,10 @@ mail_mbox_commit ()
 	}
       message_get_attribute (msg, &attr);
 
-      if (!is_user_mbox &&
-	  (attribute_is_userflag (attr, MAIL_ATTRIBUTE_MBOXED)
-	  || (!hold && attribute_is_read (attr))))
+      if (!is_user_mbox
+	  && !attribute_is_deleted (attr)
+	  && (attribute_is_userflag (attr, MAIL_ATTRIBUTE_MBOXED)
+	      || (!hold && attribute_is_read (attr))))
 	{
 	  if (!dest_mbox)
 	    {
